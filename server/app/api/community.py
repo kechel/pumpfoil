@@ -845,15 +845,21 @@ def spot_map(accel_only: bool = True, sport: str = "all",
                 S.place_lat.isnot(None))
         .group_by(S.place_name).all()
     )
-    namen = dict(db.query(models.Spot.id, models.Spot.name)
-                 .filter(models.Spot.id.in_([sid for sid, *_ in mit_id])).all()) if mit_id else {}
+    # Name UND Gewaesser: viele Spots heissen nach der Ortschaft und bekommen bei mehreren
+    # Stellen am selben Ort einen Zaehler („Berlin 3", „Berlin 4"). Im Dropdown sind die nicht
+    # auseinanderzuhalten — mit dem Gewaesser als zweiter Zeile schon (Jan, 24.08.).
+    stamm = {sid: (nm, wa) for sid, nm, wa in db.query(
+        models.Spot.id, models.Spot.name, models.Spot.water_name)
+        .filter(models.Spot.id.in_([sid for sid, *_ in mit_id])).all()} if mit_id else {}
+    namen = {sid: v[0] for sid, v in stamm.items()}
     out = [
-        {"spot": namen.get(sid) or "", "spot_id": sid,
+        {"spot": namen.get(sid) or "", "spot_id": sid, "water": (stamm.get(sid) or (None, None))[1],
          "lat": float(lat), "lon": float(lon), "sessions": int(n)}
         for sid, lat, lon, n in mit_id if lat is not None and lon is not None and namen.get(sid)
     ]
     out += [
-        {"spot": name, "spot_id": None, "lat": float(lat), "lon": float(lon), "sessions": int(n)}
+        {"spot": name, "spot_id": None, "water": None,
+         "lat": float(lat), "lon": float(lon), "sessions": int(n)}
         for name, lat, lon, n in ohne_id if lat is not None and lon is not None
     ]
     # Anzahl der SICHTBAREN Spot-Beschreibungen je Spot mitgeben — daraus baut die Oberflaeche

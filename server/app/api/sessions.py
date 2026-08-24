@@ -395,8 +395,11 @@ def import_parsed_session(db, user, raw: bytes, parsed: dict, *, src_label: str,
         storage.save_foil_status(session_uuid, foil)
 
     run_analysis(db, s)
+
+    _spot_nachziehen(db, s)
     if maybe_auto_trim(db, s):  # Heimfahrt o.ä. vor/nach der Session wegschneiden
         run_analysis(db, s)
+        _spot_nachziehen(db, s)
     db.refresh(s)
     from ..notify import notify_session_analyzed
     notify_session_analyzed(db, s)
@@ -1193,6 +1196,32 @@ def spot_tracks(spot: str, user: models.User = Depends(current_user),
     return out
 
 
+def _spot_nachziehen(db: Session, s: models.Session) -> None:
+    """Spot-Zuordnung nachholen, wenn sie beim ersten Durchlauf noch nicht moeglich war.
+
+    Befund 24.08.: `assign_one` lief AUSSCHLIESSLICH im Geocode-Hintergrundtask, und der stieg
+    sofort aus, sobald `place_name` gesetzt war. Bei GPS-first-Uploads (Accel kommt spaeter) und
+    bei noch offener Sportart-Klassifikation ist die Session in der ersten Runde aber weder
+    `is_pumpfoil` noch hat sie Laeufe — `assign_one` vergibt dann nur den NAMEN und setzt
+    `spot_id = None`. Danach hat niemand mehr zugeordnet, auch keine Reanalyse. Ergebnis: die
+    Session haengt ohne Spot in der Karte und erscheint dort als zweiter Marker mit demselben
+    Namen (belegt an Session #2669, „Pasohlávky", 12 Laeufe).
+
+    Deshalb nach JEDER Analyse: fehlt der Spot und qualifiziert die Session inzwischen, zuordnen.
+    Idempotent und billig — mit Spot passiert nichts.
+    """
+    if s.spot_id is not None or s.place_lat is None:
+        return
+    ar = db.query(models.AnalysisResult).filter_by(session_id=s.id).first()
+    if not (s.is_pumpfoil and ar and (ar.num_runs or 0) > 0):
+        return
+    try:
+        from ..spots import assign_one
+        assign_one(db, s)
+    except Exception:      # Spot-Zuordnung darf niemals einen Analyse-Pfad scheitern lassen
+        db.rollback()
+
+
 def _geocode_place(session_id: int) -> None:
     """Gewässer-Name per OSM (Overpass) auflösen + cachen — als BACKGROUND-Task, damit der
     Session-Endpoint NICHT auf Overpass wartet (is_in kann Sekunden dauern). Eigene DB-Session.
@@ -1205,7 +1234,12 @@ def _geocode_place(session_id: int) -> None:
     db = SessionLocal()
     try:
         s = db.get(models.Session, session_id)
-        if s is None or s.place_name is not None:
+        if s is None:
+            return
+        if s.place_name is not None:
+            # Name steht schon (z. B. aus einem frueheren Durchlauf) -> Geocoding sparen, aber die
+            # SPOT-Zuordnung trotzdem versuchen: genau hier fehlte sie bisher (s. _spot_nachziehen).
+            _spot_nachziehen(db, s)
             return
         gps = storage.load_gps(s.session_uuid)
         if not gps:
@@ -1601,6 +1635,7 @@ def reanalyze(
     """Analyse mit der aktuellen Algorithmus-Version neu rechnen (nach Tuning)."""
     s = _owned(db, user, session_id)
     run_analysis(db, s)
+    _spot_nachziehen(db, s)
     db.refresh(s)
     return _session_out(s, with_analysis=True)
 
@@ -1672,6 +1707,7 @@ def set_trim(
     s.trim_end_ms = b
     db.commit()
     run_analysis(db, s)
+    _spot_nachziehen(db, s)
     db.refresh(s)
     return _session_out(s, with_analysis=True)
 
@@ -1717,6 +1753,7 @@ def _save_excluded(db: Session, s: models.Session, wins: list[tuple[int, int]]) 
     s.excluded_ranges = dump_excluded_windows(wins)
     db.commit()
     run_analysis(db, s)
+    _spot_nachziehen(db, s)
     db.refresh(s)
     return _session_out(s, with_analysis=True)
 
@@ -1788,6 +1825,7 @@ def keep_powered_run(
     s.fremdkraft_keep = json.dumps(sorted(wins)) if wins else None
     db.commit()
     run_analysis(db, s)
+    _spot_nachziehen(db, s)
     db.refresh(s)
     return _session_out(s, with_analysis=True)
 

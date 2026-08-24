@@ -7,7 +7,7 @@ import { SpotsIcon } from "../components/Icons";
 import { SpotCompare } from "../components/SpotCompare";
 import { useT } from "../i18n";
 
-type Spot = { spot: string; spot_id: number | null; lat: number; lon: number; sessions: number; notes?: number };
+type Spot = { spot: string; spot_id: number | null; water?: string | null; lat: number; lon: number; sessions: number; notes?: number };
 
 // Spot-Namen kommen aus dem Geocoder bzw. einer Admin-Umbenennung und landen im Tooltip-HTML —
 // deshalb maskieren, statt darauf zu vertrauen, dass nie eine spitze Klammer darin steht.
@@ -129,7 +129,9 @@ export default function Spots() {
           const mk = L.circleMarker([s.lat, s.lon], {
             radius: 9, color: "#0f172a", weight: 1.5, fillColor: "#22d3ee", fillOpacity: 0.95,
           });
-          mk.bindTooltip(`${esc(s.spot)} · ${s.sessions}`, { direction: "top" });
+          // Gewaesser mit in den Tooltip: Spots am selben Ort heissen „Berlin 3"/„Berlin 4" und sind
+          // sonst nicht auseinanderzuhalten (Jan, 24.08.).
+          mk.bindTooltip(`${esc(s.spot)} · ${s.sessions}` + (s.water ? `<br><span style="opacity:.7">${esc(s.water)}</span>` : ""), { direction: "top" });
           mk.on("click", () => nav(`/sessions?spot=${s.spot_id ?? encodeURIComponent(s.spot)}`));
           grp.addLayer(mk);
           continue;
@@ -208,7 +210,9 @@ export default function Spots() {
             >
               <option value="">{t("home.spotPick")}</option>
               {[...spots].sort((a, b) => a.spot.localeCompare(b.spot)).map((s) => (
-                <option key={s.spot} value={s.spot}>{s.spot} · {s.sessions}</option>
+                <option key={s.spot} value={s.spot}>
+                  {s.spot} · {s.sessions}{s.water && s.water !== s.spot ? ` · ${s.water}` : ""}
+                </option>
               ))}
             </select>
           </div>

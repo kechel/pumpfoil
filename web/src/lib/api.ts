@@ -727,7 +727,7 @@ export const api = {
     const m = /filename="([^"]+)"/.exec(cd);
     return { blob: await res.blob(), name: m?.[1] || `pumpfoil-${id}.${kind}` };
   },
-  spotMap: (accelOnly = true) => req<{ spot: string; spot_id: number | null; lat: number; lon: number; sessions: number; notes?: number }[]>(`/api/community/spot-map?accel_only=${accelOnly}`),
+  spotMap: (accelOnly = true) => req<{ spot: string; spot_id: number | null; water?: string | null; lat: number; lon: number; sessions: number; notes?: number }[]>(`/api/community/spot-map?accel_only=${accelOnly}`),
   spotWeather: (spot: string) => req<SpotWeather>(`/api/community/spot/weather?spot=${encodeURIComponent(spot)}`),
   chatList: (scope: string, after = 0) => req<ChatMsg[]>(`/api/chat?scope=${encodeURIComponent(scope)}&after=${after}`),
   chatLatest: (scope: string, limit = 30) => req<ChatMsg[]>(`/api/chat?scope=${encodeURIComponent(scope)}&limit=${limit}`),

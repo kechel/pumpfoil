@@ -191,7 +191,7 @@ export default function Sessions() {
   const spot = sp.get("spot") || "";   // spot_id (String) — Name wird für Anzeige/Chat aufgelöst
   const [homespot, setHomespot] = useState("");
   const [homespotId, setHomespotId] = useState<number | null>(null);
-  const [spots, setSpots] = useState<{ id: number; name: string }[]>([]);
+  const [spots, setSpots] = useState<{ id: number; name: string; water?: string | null }[]>([]);
   const nameById = useMemo(() => Object.fromEntries(spots.map((s) => [String(s.id), s.name])), [spots]);
   const spotName = spot ? (nameById[spot] ?? spot) : "";
   const hsRef = homespotId != null ? String(homespotId) : homespot;   // Homespot als id, Fallback Name
@@ -206,7 +206,9 @@ export default function Sessions() {
   useEffect(() => {
     api.getSettings().then((s) => { setHomespot((s.homespot as string) ?? ""); setHomespotId((s.homespot_id as number | null) ?? null); }).catch(() => {});
     api.spotMap(false).then((m) => setSpots(   // alle Spots (auch GPS) als {id,name}
-      m.filter((x) => x.spot_id != null).map((x) => ({ id: x.spot_id as number, name: x.spot }))
+      // Gewaesser mitnehmen: „Berlin 3" und „Berlin 4" sind sonst im Auswahlfeld nicht
+      // auseinanderzuhalten (Jan, 24.08.).
+      m.filter((x) => x.spot_id != null).map((x) => ({ id: x.spot_id as number, name: x.spot, water: x.water }))
        .sort((a, b) => a.name.localeCompare(b.name)))).catch(() => {});
     api.getProfile().then((p) => setMyName(p.display_name)).catch(() => {});
   }, []);
@@ -258,7 +260,11 @@ export default function Sessions() {
           className="rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-2 text-sm text-slate-100"
         >
           <option value="">{t("all.allSpots")}</option>
-          {spots.map((s) => <option key={s.id} value={String(s.id)}>{s.name}</option>)}
+          {spots.map((s) => (
+            <option key={s.id} value={String(s.id)}>
+              {s.name}{s.water && s.water !== s.name ? ` · ${s.water}` : ""}
+            </option>
+          ))}
         </select>
         {spot && <SpotChatToggle spot={spotName} t={t} />}
         <AccelToggle value={accelOnly} onChange={setAccelOnly} className="ml-auto" />

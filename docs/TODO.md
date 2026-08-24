@@ -394,6 +394,39 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 Spot-Dubletten: zweiter Mechanismus gefunden und geschlossen (24.08.).** Jans Meldung
+  („Pasohlávky doppelt, im Dropdown zwei fast gleiche Namen"). Es war NICHT der Anlege-Wettlauf vom
+  20.08. — der Fix haelt (195 Spots, kein Paar unter 100 m, keine doppelten Namen). Zwei andere
+  Ursachen:
+  1. **Session ohne Spot-Zuordnung** (#2669, Pumpfoil, 12 Laeufe): die Karte zeichnet Sessions ohne
+     `spot_id` als eigene Namensgruppe -> derselbe Name, zweiter Marker. **Ursache:** `assign_one`
+     lief AUSSCHLIESSLICH im Geocode-Hintergrundtask, und der stieg aus, sobald `place_name` gesetzt
+     war. Bei GPS-first-Upload oder noch offener Klassifikation ist die Session in der ersten Runde
+     weder `is_pumpfoil` noch hat sie Laeufe — `assign_one` vergibt dann nur den NAMEN und setzt
+     `spot_id=None`. Danach ordnet niemand mehr zu, auch keine Reanalyse (`run_analysis` ruft
+     `assign_one` gar nicht). **Behoben:** `_spot_nachziehen()` in `api/sessions.py` nach JEDER
+     Analyse (Reanalyse, Trim, Lauf-Ausschluss, Zurueckholen) plus der Geocode-Task, der jetzt bei
+     schon gesetztem Namen trotzdem die Zuordnung versucht.
+  2. **Zwei Spots am SELBEN Steg** („Tienhoven" und „Loosdrecht", Marker 32 m auseinander): die
+     Session startet 40 m neben den anderen, ihr TRACK liegt aber in einem anderen Teil des Sees ->
+     Polygone ueberschneiden sich nicht, Polygonmitten 2,6 km auseinander. Mein 100-m-Check ueber
+     `spots.lat/lon` konnte das nicht sehen; die KARTE zeichnet das Mittel der Session-STARTPUNKTE.
+     **Behoben:** `steg_punkt()` in `spots.py`, und die Dubletten-Suche vergleicht jetzt BEIDES —
+     Polygonmitte und Steg.
+  **Nebenbefund, latenter Fehler:** `_m_to_wkt`/`_wkt_to_m` konnten nur ein einzelnes Polygon. Zwei
+  DISJUNKTE Spots zusammenzufuehren (genau dieser Fall) endete in
+  `AttributeError: 'MultiPolygon' object has no attribute 'exterior'` — der Admin-Merge zweier sich
+  nicht beruehrender Spots hat also noch nie funktioniert. Jetzt MultiPolygon-faehig, Rundlauf
+  geprueft. Bewusst KEINE konvexe Huelle: die wuerde den Zwischenraum einschliessen und beim
+  naechsten Zuordnen fremde Spots verschlucken.
+  **Bestand bereinigt** (Jans OK): Loosdrecht #365 -> Tienhoven #113 (1 Session), #2669 -> Spot 75.
+  **Geprueft danach:** 175 Marker, keine doppelten Namen, kein Marker ohne `spot_id`, kein Paar
+  unter 500 m; Dubletten-Trockenlauf mit dem neuen Steg-Kriterium findet nichts mehr.
+  **Zaehler-Namen** („Berlin 3/4/5", „Annecy 2/3", „Almere 5/6" …): Karte, Tooltip und beide
+  Spot-Auswahlfelder zeigen jetzt das GEWAESSER als Zusatz. **Wirkt aber nur bei 4 von 21** solcher
+  Spots — den anderen fehlt `water_name`, und der Overpass-Lookup laeuft von dieser VM gerade in
+  den Timeout. **Offen:** Gewaesser-Nachtrag als langsamer Hintergrundlauf (mit Nominatim-Fallback).
+
 - **🟢 Spot-Beschreibungen LIVE im Web (Nutzerwunsch, geplant + gebaut am 24.08.).** Je Nutzer EIN
   Textblock + bis zu 10 Fotos pro Spot; andere koennen nicht ueberschreiben, nur selbst aktualisieren
   oder loeschen. Mehrere Beschreibungen stehen im Spot untereinander, je Nutzer ein eigener

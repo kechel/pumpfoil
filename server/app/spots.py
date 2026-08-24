@@ -23,7 +23,7 @@ import re
 from dataclasses import dataclass, field
 
 from shapely import wkt as _wkt
-from shapely.geometry import MultiPoint, Polygon
+from shapely.geometry import MultiPoint, MultiPolygon, Polygon
 from shapely.ops import unary_union
 
 SAME_SPOT_GAP_M = 1000.0          # Tracks näher als das = selber Spot
@@ -95,14 +95,39 @@ def _poly_m(points, lat0):
 
 
 def _m_to_wkt(poly_m, lat0) -> str:
+    """Meter-Ebene -> lat/lon-WKT. Beherrscht auch MultiPolygon.
+
+    Warum (Befund 24.08.): `unary_union` zweier Spot-Polygone liefert ein MultiPolygon, sobald sie
+    sich NICHT beruehren — und genau das passiert beim Zusammenfuehren zweier Spots am selben Steg,
+    deren Tracks in verschiedene Teile eines Sees fuehren (Loosdrecht/Tienhoven, 2,6 km zwischen den
+    Polygonen). Vorher lief das in ein `AttributeError: 'MultiPolygon' object has no attribute
+    'exterior'` — der Admin-Merge zweier disjunkter Spots war schlicht nie ausprobiert worden.
+    Die Alternative, die konvexe Huelle zu nehmen, waere schlechter: sie wuerde den Zwischenraum
+    mit einschliessen und beim naechsten Zuordnen fremde Spots verschlucken.
+    """
     k = math.cos(math.radians(lat0))
-    return Polygon([(x / (111320.0 * k), y / 110540.0) for x, y in poly_m.exterior.coords]).wkt
+
+    def zurueck(poly):
+        return Polygon([(x / (111320.0 * k), y / 110540.0) for x, y in poly.exterior.coords])
+
+    teile = list(getattr(poly_m, "geoms", [poly_m]))
+    if len(teile) == 1:
+        return zurueck(teile[0]).wkt
+    return MultiPolygon([zurueck(t) for t in teile]).wkt
 
 
 def _wkt_to_m(wkt_str: str, lat0):
+    """lat/lon-WKT -> Meter-Ebene. Gegenstueck zu `_m_to_wkt`, ebenfalls MultiPolygon-faehig."""
     p = _wkt.loads(wkt_str)
     k = math.cos(math.radians(lat0))
-    return Polygon([(lon * 111320.0 * k, lat * 110540.0) for lon, lat in p.exterior.coords])
+
+    def hin(poly):
+        return Polygon([(lon * 111320.0 * k, lat * 110540.0) for lon, lat in poly.exterior.coords])
+
+    teile = list(getattr(p, "geoms", [p]))
+    if len(teile) == 1:
+        return hin(teile[0])
+    return MultiPolygon([hin(t) for t in teile])
 
 
 def _session_geom(db, s):
@@ -264,11 +289,20 @@ def dubletten_zusammenfuehren(db, apply: bool = False) -> dict:
             i = eltern[i]
         return i
 
+    # Zwei Naehe-Begriffe, beide zaehlen (s. `steg_punkt`): Spot-Koordinate (Polygonmitte) UND
+    # Steg (Mittel der Session-Startpunkte). Der zweite faengt die Faelle, in denen dieselbe
+    # Startstelle in verschiedene Teile eines Gewaessers fuehrt.
+    stege = {sp.id: steg_punkt(db, sp.id) for sp in spots}
     for i, a in enumerate(spots):
         for b in spots[i + 1:]:
-            if abs((a.lat or 0) - (b.lat or 0)) > 0.01:
+            if abs((a.lat or 0) - (b.lat or 0)) > 0.05:
                 continue
-            if _nah(a, b):
+            nah = _nah(a, b)
+            if not nah:
+                pa, pb = stege.get(a.id), stege.get(b.id)
+                nah = (pa is not None and pb is not None
+                       and abstand_m(pa[0], pa[1], pb[0], pb[1]) <= DUBLETTE_M)
+            if nah:
                 ra, rb = wurzel(a.id), wurzel(b.id)
                 if ra != rb:
                     eltern[ra] = rb
@@ -612,6 +646,26 @@ def abstand_m(a_lat, a_lon, b_lat, b_lon) -> float:
     """Abstand zweier Koordinaten in Metern (equirectangular, fuer <1 km voellig ausreichend)."""
     k = math.cos(math.radians((a_lat + b_lat) / 2.0))
     return math.hypot((a_lon - b_lon) * 111320.0 * k, (a_lat - b_lat) * 110540.0)
+
+
+def steg_punkt(db, spot_id: int) -> tuple[float, float] | None:
+    """Mittel der SESSION-Startpunkte eines Spots — der „Steg", an dem man tatsaechlich losfaehrt.
+
+    Warum zusaetzlich zur Spot-Koordinate (Befund 24.08.): `spots.lat/lon` ist der Mittelpunkt des
+    gepufferten TRACK-Polygons. Zwei Sessions vom selben Steg koennen in verschiedene Teile eines
+    Sees fahren; dann liegen die Polygon-Mittelpunkte kilometerweit auseinander, obwohl es derselbe
+    Spot ist. Genau so entstand „Loosdrecht" 40 m neben „Tienhoven" — Polygonmitten 2,6 km
+    auseinander, Startpunkte 40 m. Die KARTE zeichnet ohnehin dieses Mittel, ein Nutzer sieht also
+    zwei Marker uebereinander und nennt es zu Recht eine Dublette.
+    """
+    from . import models
+    rows = (db.query(models.Session.place_lat, models.Session.place_lon)
+            .filter(models.Session.spot_id == spot_id, models.Session.deleted.isnot(True),
+                    models.Session.place_lat.isnot(None), models.Session.place_lon.isnot(None))
+            .all())
+    if not rows:
+        return None
+    return (sum(r[0] for r in rows) / len(rows), sum(r[1] for r in rows) / len(rows))
 
 
 def _nah(a, b, grenze: float = DUBLETTE_M) -> bool:
