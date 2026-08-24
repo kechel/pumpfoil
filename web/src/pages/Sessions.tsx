@@ -13,6 +13,7 @@ import { SessionCard } from "../components/SessionCard";
 import { UploadProgressCard } from "../components/UploadProgressCard";
 import { TrackPreview } from "../components/TrackPreview";
 import { SpotWeather } from "../components/SpotWeather";
+import { SpotNotes } from "../components/SpotNotes";
 import { getLastSession, setLastSessionsSearch } from "../lib/lastSession";
 import { setCompare } from "../lib/compare";
 import { openChatOverlay } from "../components/DmWidget";
@@ -268,6 +269,10 @@ export default function Sessions() {
       <CompareTip />
 
       {spot && <SpotWeather spot={spot} />}
+      {/* Spot-Beschreibungen der Community: zwischen Wetter und Session-Liste (Jan, 24.08.).
+          Nur bei einem echten Spot (numerische id) — Namens-Gruppen aus dem Altbestand haben
+          keine Spot-Zeile, an der eine Beschreibung haengen koennte. */}
+      {spot && /^\d+$/.test(spot) && <SpotNotes spotId={Number(spot)} />}
       {isMine ? <MySessionsList key={reloadKey} myName={myName} accelOnly={accelOnly} /> : <CommunityList name="" spot={spot} accelOnly={accelOnly} onShowAll={() => setAccelAuto(false)} />}
     </div>
   );

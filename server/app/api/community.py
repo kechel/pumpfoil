@@ -856,6 +856,14 @@ def spot_map(accel_only: bool = True, sport: str = "all",
         {"spot": name, "spot_id": None, "lat": float(lat), "lon": float(lon), "sessions": int(n)}
         for name, lat, lon, n in ohne_id if lat is not None and lon is not None
     ]
+    # Anzahl der SICHTBAREN Spot-Beschreibungen je Spot mitgeben — daraus baut die Oberflaeche
+    # den Filter „nur mit Beschreibung". Absichtlich hier und nicht als Extra-Abfrage je Marker:
+    # die Karte laedt einmal, ein Aufruf je Spot waeren ueber 160.
+    notes = dict(db.query(models.SpotNote.spot_id, func.count(models.SpotNote.id))
+                 .filter(models.SpotNote.hidden.is_(False))
+                 .group_by(models.SpotNote.spot_id).all())
+    for eintrag in out:
+        eintrag["notes"] = int(notes.get(eintrag["spot_id"], 0)) if eintrag["spot_id"] else 0
     return out
 
 

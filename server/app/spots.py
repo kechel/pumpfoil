@@ -541,6 +541,7 @@ def _merge_spot_rows(db, target, sources, lat0):
          .update({models.Session.spot_id: target.id,
                   models.Session.place_name: target.name or models.Session.place_name,
                   models.Session.place_water: target.water_name}))
+        _notes_umhaengen(db, sp.id, target.id)
         if sp.poly_wkt:
             polys.append(_wkt_to_m(sp.poly_wkt, lat0))
         sp.merged_into = target.id
@@ -548,6 +549,44 @@ def _merge_spot_rows(db, target, sources, lat0):
         target.poly_wkt = _m_to_wkt(unary_union(polys), lat0)
     db.flush()
     return target
+
+
+def _notes_umhaengen(db, quelle_id: int, ziel_id: int) -> None:
+    """Spot-Beschreibungen beim Zusammenfuehren mitnehmen.
+
+    Ohne das haengen sie an einer Spot-Zeile, die keine Sessions mehr hat, und sind unsichtbar.
+    Der Haken ist die Eindeutigkeit `(user_id, spot_id)`: hat DERSELBE Nutzer beide Spots
+    beschrieben — bei Dubletten auf derselben Koordinate durchaus moeglich —, kollidieren die
+    Zeilen. Regel (Jan, 24.08.): es bleibt die Zeile am ZIEL-Spot stehen, ihr Text ist der
+    NEUERE der beiden, und die Fotos der zuwandernden Zeile kommen hinterher, soweit das Limit
+    reicht. Was darueber liegt, wird samt Datei geloescht.
+
+    Bewusst in Kauf genommen: die Herzchen der zuwandernden Zeile verfallen — sie galten einem
+    anderen Text. Die Zeile am Ziel behaelt ihre.
+    """
+    from . import models
+    from .api.spotnotes import MAX_FOTOS_PRO_BESCHREIBUNG, _note_weg
+
+    for n in db.query(models.SpotNote).filter_by(spot_id=quelle_id).all():
+        bleibt = (db.query(models.SpotNote)
+                  .filter_by(spot_id=ziel_id, user_id=n.user_id).first())
+        if bleibt is None:                      # kein Konflikt -> einfach umhaengen
+            n.spot_id = ziel_id
+            continue
+        if (n.updated_at or n.created_at) > (bleibt.updated_at or bleibt.created_at):
+            bleibt.text = n.text
+            bleibt.updated_at = n.updated_at
+        anz = db.query(models.SpotNotePhoto).filter_by(note_id=bleibt.id).count()
+        for f in (db.query(models.SpotNotePhoto).filter_by(note_id=n.id)
+                  .order_by(models.SpotNotePhoto.sort, models.SpotNotePhoto.id).all()):
+            if anz >= MAX_FOTOS_PRO_BESCHREIBUNG:
+                break
+            f.note_id = bleibt.id
+            f.sort = anz
+            anz += 1
+        db.flush()
+        _note_weg(db, n)                        # Rest-Fotos + Herzchen/Meldungen der Zuwanderin
+    db.flush()
 
 
 def _session_count(db, spot_id: int) -> int:

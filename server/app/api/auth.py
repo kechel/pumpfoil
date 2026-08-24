@@ -292,6 +292,18 @@ def export_me(user: models.User = Depends(current_user), db: Session = Depends(g
             "created_at": getattr(user, "created_at", None).isoformat() if getattr(user, "created_at", None) else None,
         },
         "sessions": sessions,
+        # Spot-Beschreibungen sind eigene Texte + eigene Fotos -> gehoeren in den Export
+        # (die Liste hier ist explizit; neue Tabellen fallen sonst stumm durch).
+        "spot_notes": [
+            {
+                "spot_id": n.spot_id,
+                "spot": (db.get(models.Spot, n.spot_id).name if db.get(models.Spot, n.spot_id) else None),
+                "text": n.text,
+                "updated_at": n.updated_at.isoformat() if n.updated_at else None,
+                "photos": [f.url for f in db.query(models.SpotNotePhoto).filter_by(note_id=n.id).all()],
+            }
+            for n in db.query(models.SpotNote).filter_by(user_id=user.id).all()
+        ],
     }
 
 
@@ -302,6 +314,13 @@ def delete_me(user: models.User = Depends(current_user), db: Session = Depends(g
         _purge_session(db, s)
     db.query(models.SessionLike).filter_by(user_id=user.id).delete()
     db.query(models.SessionVote).filter_by(user_id=user.id).delete()
+    # Spot-Beschreibungen: eigene Texte + Fotodateien weg, dazu die eigenen Herzchen/Meldungen
+    # auf FREMDEN Beschreibungen. DSGVO-Loeschung ist absolut — nichts stehen lassen.
+    from .spotnotes import _note_weg
+    for n in db.query(models.SpotNote).filter_by(user_id=user.id).all():
+        _note_weg(db, n)
+    db.query(models.SpotNoteLike).filter_by(user_id=user.id).delete()
+    db.query(models.SpotNoteVote).filter_by(user_id=user.id).delete()
     db.query(models.DeviceToken).filter_by(user_id=user.id).delete()
     db.query(models.PairingCode).filter_by(user_id=user.id).delete()
     db.query(models.OAuthIdentity).filter_by(user_id=user.id).delete()

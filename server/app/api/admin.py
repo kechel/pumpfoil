@@ -1016,6 +1016,72 @@ def rename_spot(spot_id: int, name: str = Query(...),
 
 # =============== Sportart-Klassifikation: Warteschlange (docs/sport-classification.md) ===============
 
+@router.get("/spot-notes")
+def spot_notes(scope: str = "reported", _a: models.User = Depends(current_admin),
+               db: Session = Depends(get_db)) -> list[dict]:
+    """Spot-Beschreibungen zur Moderation. scope: reported (gemeldet/ausgeblendet) | all.
+
+    Ohne diese Liste bliebe eine gemeldete Beschreibung fuer immer ausgeblendet — eine Meldung
+    blendet sofort aus (wie bei Sessions), erst der Blick eines Admins entscheidet endgueltig.
+    """
+    q = db.query(models.SpotNote)
+    if scope != "all":
+        q = q.filter(models.SpotNote.hidden.is_(True))
+    rows = q.order_by(models.SpotNote.updated_at.desc()).limit(200).all()
+    ids = [n.id for n in rows]
+    meldungen: dict[int, int] = {}
+    if ids:
+        for nid, anz in (db.query(models.SpotNoteVote.note_id, func.count(models.SpotNoteVote.id))
+                         .filter(models.SpotNoteVote.note_id.in_(ids))
+                         .group_by(models.SpotNoteVote.note_id).all()):
+            meldungen[nid] = anz
+    spots = dict(db.query(models.Spot.id, models.Spot.name).all())
+    users = {u.id: u.display_name for u in db.query(models.User).filter(
+        models.User.id.in_([n.user_id for n in rows] or [0])).all()}
+    fotos: dict[int, list[str]] = {}
+    if ids:
+        for nid, url in db.query(models.SpotNotePhoto.note_id, models.SpotNotePhoto.url).filter(
+                models.SpotNotePhoto.note_id.in_(ids)).all():
+            fotos.setdefault(nid, []).append(url)
+    return [{
+        "id": n.id, "spot_id": n.spot_id, "spot": spots.get(n.spot_id),
+        "user_id": n.user_id, "name": users.get(n.user_id),
+        "text": n.text, "photos": fotos.get(n.id, []),
+        "hidden": bool(n.hidden), "mod_ok": bool(n.mod_ok),
+        "reports": meldungen.get(n.id, 0),
+        "updated_at": n.updated_at.isoformat() if n.updated_at else None,
+    } for n in rows]
+
+
+@router.post("/spot-notes/{note_id}/ok")
+def spot_note_ok(note_id: int, admin: models.User = Depends(current_admin),
+                 db: Session = Depends(get_db)) -> dict:
+    """Freigeben: wieder sichtbar UND gegen weiteres Auto-Ausblenden geschuetzt (wie bei Sessions)."""
+    n = db.get(models.SpotNote, note_id)
+    if n is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "note not found")
+    n.hidden = False
+    n.mod_ok = True
+    db.query(models.SpotNoteVote).filter_by(note_id=n.id).delete()
+    _log(db, admin, "spot_note_ok", "spot_note", note_id)
+    db.commit()
+    return {"ok": True}
+
+
+@router.post("/spot-notes/{note_id}/delete")
+def spot_note_delete(note_id: int, admin: models.User = Depends(current_admin),
+                     db: Session = Depends(get_db)) -> dict:
+    """Endgueltig loeschen (samt Fotodateien) — fuer echte Verstoesse."""
+    from .spotnotes import _note_weg
+    n = db.get(models.SpotNote, note_id)
+    if n is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "note not found")
+    _note_weg(db, n)
+    _log(db, admin, "spot_note_delete", "spot_note", note_id)
+    db.commit()
+    return {"ok": True}
+
+
 @router.get("/classification-queue")
 def classification_queue(
     _a: models.User = Depends(current_admin), db: Session = Depends(get_db),

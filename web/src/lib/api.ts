@@ -267,6 +267,17 @@ export interface SessionSummary {
   analysis: Analysis | null;
 }
 
+export interface SpotNotePhoto { id: number; url: string; thumb_url: string | null }
+export interface SpotNote {
+  id: number; user_id: number; name: string | null; avatar_url: string | null;
+  text: string; photos: SpotNotePhoto[];
+  like_count: number; liked: boolean; my_report: boolean;
+  updated_at: string | null; mine: boolean;
+}
+export interface SpotNotesOut {
+  spot_id: number; notes: SpotNote[]; can_write: boolean; max_photos: number; max_text: number;
+}
+
 export interface SpotWeatherDay {
   date: string; code: number | null; tmax: number | null; tmin: number | null;
   wind_max: number | null; gust_max: number | null; dir: number | null; precip: number | null;
@@ -675,6 +686,32 @@ export const api = {
 
   exportMyData: () => req<Record<string, unknown>>("/api/auth/me/export"),
 
+  // --- Spot-Beschreibungen (je Nutzer ein Textblock + Fotos pro Spot) ---
+  spotNotes: (spotId: number) => req<SpotNotesOut>(`/api/community/spot/${spotId}/notes`),
+  saveSpotNote: (spotId: number, text: string) =>
+    req<{ ok: boolean; id: number }>(`/api/community/spot/${spotId}/note`,
+      { method: "PUT", body: JSON.stringify({ text }) }),
+  deleteSpotNote: (spotId: number) =>
+    req<{ ok: boolean }>(`/api/community/spot/${spotId}/note`, { method: "DELETE" }),
+  // Foto-Upload geht ueber denselben Weg wie Session-Fotos (multipart, Bild vorher verkleinert).
+  uploadSpotNotePhoto: async (spotId: number, file: File) =>
+    uploadFile<SpotNotePhoto>(`/api/community/spot/${spotId}/note/photos`, await downscaleImage(file)),
+  mySpotSessionPhotos: (spotId: number) =>
+    req<{ id: number; url: string; thumb_url: string | null; started_at: string | null }[]>(
+      `/api/community/spot/${spotId}/my-session-photos`),
+  adoptSpotNotePhoto: (spotId: number, photoId: number) =>
+    req<SpotNotePhoto>(`/api/community/spot/${spotId}/note/photos/from-session?photo_id=${photoId}`,
+      { method: "POST" }),
+  deleteSpotNotePhoto: (spotId: number, photoId: number) =>
+    req<{ ok: boolean }>(`/api/community/spot/${spotId}/note/photos/${photoId}`, { method: "DELETE" }),
+  sortSpotNotePhotos: (spotId: number, photoIds: number[]) =>
+    req<{ ok: boolean }>(`/api/community/spot/${spotId}/note/photos/order`,
+      { method: "PUT", body: JSON.stringify({ photo_ids: photoIds }) }),
+  likeSpotNote: (noteId: number) =>
+    req<{ liked: boolean; like_count: number }>(`/api/community/spot/notes/${noteId}/like`, { method: "POST" }),
+  reportSpotNote: (noteId: number) =>
+    req<{ reported: boolean; hidden: boolean }>(`/api/community/spot/notes/${noteId}/report`, { method: "POST" }),
+
   // Datei-Export EINER EIGENEN Session (GPX/FIT). Bewusst nicht als <a href> verlinkbar: der
   // Endpunkt verlangt den Token im Header, ein Link wuerde ihn in die URL zwingen (steht dann in
   // History/Server-Logs). Daher fetch + Blob; der Dateiname kommt vom Server (Content-Disposition),
@@ -689,7 +726,7 @@ export const api = {
     const m = /filename="([^"]+)"/.exec(cd);
     return { blob: await res.blob(), name: m?.[1] || `pumpfoil-${id}.${kind}` };
   },
-  spotMap: (accelOnly = true) => req<{ spot: string; spot_id: number | null; lat: number; lon: number; sessions: number }[]>(`/api/community/spot-map?accel_only=${accelOnly}`),
+  spotMap: (accelOnly = true) => req<{ spot: string; spot_id: number | null; lat: number; lon: number; sessions: number; notes?: number }[]>(`/api/community/spot-map?accel_only=${accelOnly}`),
   spotWeather: (spot: string) => req<SpotWeather>(`/api/community/spot/weather?spot=${encodeURIComponent(spot)}`),
   chatList: (scope: string, after = 0) => req<ChatMsg[]>(`/api/chat?scope=${encodeURIComponent(scope)}&after=${after}`),
   chatLatest: (scope: string, limit = 30) => req<ChatMsg[]>(`/api/chat?scope=${encodeURIComponent(scope)}&limit=${limit}`),
@@ -1062,6 +1099,14 @@ export const api = {
   adminNewsSet: (p: Partial<NewsBanner>) => req<NewsBanner>("/api/admin/news", { method: "PUT", body: JSON.stringify(p) }),
   adminSpots: () => req<{ id: number; name: string | null; name_source: string | null; water: string | null; lat: number | null; lon: number | null; sessions: number }[]>("/api/admin/spots"),
   adminMergeSpots: (into: number, from: number[]) => req<{ ok: boolean; into: number; merged: number }>("/api/admin/spots/merge", { method: "POST", body: JSON.stringify({ into, from }) }),
+  // Moderation der Spot-Beschreibungen: eine Meldung blendet sofort aus, hier entscheidet der Admin.
+  adminSpotNotes: (scope = "reported") => req<{
+    id: number; spot_id: number; spot: string | null; user_id: number; name: string | null;
+    text: string; photos: string[]; hidden: boolean; mod_ok: boolean; reports: number;
+    updated_at: string | null;
+  }[]>(`/api/admin/spot-notes?scope=${scope}`),
+  adminSpotNoteOk: (id: number) => req(`/api/admin/spot-notes/${id}/ok`, { method: "POST" }),
+  adminSpotNoteDelete: (id: number) => req(`/api/admin/spot-notes/${id}/delete`, { method: "POST" }),
   adminRenameSpot: (id: number, name: string) => req<{ ok: boolean; name: string }>(`/api/admin/spots/${id}/rename?name=${encodeURIComponent(name)}`, { method: "POST" }),
   adminFlagged: () => req<AdminSession[]>("/api/admin/flagged"),
   adminSessions: (scope: "all" | "flagged" | "fake" | "suspect" | "deleted" = "all",

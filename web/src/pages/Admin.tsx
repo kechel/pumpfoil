@@ -861,6 +861,57 @@ function AuditTab() {
   );
 }
 
+function SpotNotesModeration() {
+  const t = useT();
+  const [scope, setScope] = useState<"reported" | "all">("reported");
+  const { data, error, reload } = useAsync(() => api.adminSpotNotes(scope), [scope]);
+  if (error || !data) return null;
+  if (scope === "reported" && data.length === 0) {
+    return (
+      <div className="mb-3 text-xs text-slate-400">
+        {t("adm.spotnote.none")}{" "}
+        <button onClick={() => setScope("all")} className="underline">{t("adm.spotnote.showAll")}</button>
+      </div>
+    );
+  }
+  return (
+    <div className="mb-4 rounded-lg border border-slate-700 p-3">
+      <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-100">
+        {t("adm.spotnote.title")}
+        <span className="text-xs font-normal text-slate-400">({data.length})</span>
+        <button onClick={() => setScope(scope === "all" ? "reported" : "all")}
+          className="ml-auto rounded bg-slate-800 px-2 py-1 text-xs text-slate-200 hover:bg-slate-700">
+          {scope === "all" ? t("adm.spotnote.onlyReported") : t("adm.spotnote.showAll")}
+        </button>
+      </div>
+      <div className="space-y-2">
+        {data.map((n) => (
+          <div key={n.id} className="rounded bg-slate-800 p-2 text-sm">
+            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
+              <span className="text-slate-200">{n.spot ?? n.spot_id}</span>
+              <span>· {n.name ?? n.user_id}</span>
+              {n.updated_at && <span>· {new Date(n.updated_at).toLocaleDateString()}</span>}
+              {n.reports > 0 && <span className="text-red-600 dark:text-red-300">· {n.reports}× {t("adm.spotnote.reported")}</span>}
+              {n.hidden && <span className="text-amber-700 dark:text-amber-300">· {t("adm.spotnote.hidden")}</span>}
+              {n.mod_ok && <span className="text-emerald-700 dark:text-emerald-300">· {t("adm.spotnote.checked")}</span>}
+              <button onClick={() => api.adminSpotNoteOk(n.id).then(reload)}
+                className="ml-auto rounded bg-brand-500 px-2 py-1 font-semibold text-slate-950">{t("adm.approve")}</button>
+              <button onClick={() => { if (confirm(t("adm.spotnote.deleteConfirm"))) api.adminSpotNoteDelete(n.id).then(reload); }}
+                className="rounded bg-slate-700 px-2 py-1 text-red-600 dark:text-red-300">{t("adm.delete")}</button>
+            </div>
+            {n.text && <p className="mt-1 whitespace-pre-wrap text-slate-200">{n.text}</p>}
+            {n.photos.length > 0 && (
+              <div className="mt-1 flex flex-wrap gap-1">
+                {n.photos.map((u) => <img key={u} src={u} alt="" className="h-16 w-16 rounded object-cover" />)}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function SpotsTab() {
   const t = useT();
   const { data, error, reload } = useAsync(() => api.adminSpots(), []);
@@ -884,6 +935,9 @@ function SpotsTab() {
   }
   return (
     <div>
+      {/* Gemeldete Spot-Beschreibungen zuerst: eine einzige Meldung blendet sie sofort aus,
+          also darf die Liste nicht in einem Nebentab versauern. */}
+      <SpotNotesModeration />
       {selIds.length >= 2 && (
         <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg bg-slate-800 p-2 text-sm">
           <span>{t("adm.spot.mergeSel", { n: selIds.length })}</span>

@@ -394,6 +394,57 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 Spot-Beschreibungen LIVE im Web (Nutzerwunsch, geplant + gebaut am 24.08.).** Je Nutzer EIN
+  Textblock + bis zu 10 Fotos pro Spot; andere koennen nicht ueberschreiben, nur selbst aktualisieren
+  oder loeschen. Mehrere Beschreibungen stehen im Spot untereinander, je Nutzer ein eigener
+  Abschnitt, mit Herzchen bewertbar; Datum der letzten Aktualisierung dabei.
+  **Entschieden (Jans Linie, damit es nicht neu verhandelt wird):**
+  - **KEINE eigene Spot-Seite** — der Block kommt in die vorhandene Ansicht `/sessions?spot=<id>`,
+    und zwar **zwischen Wetter und Session-Liste** (`Sessions.tsx`, heute Zeile 270/271).
+  - **Kein Overengineering:** keine Struktur-Tags (Start-Art o. ae.), keine Spracherkennung, kein
+    Sprachfeld, kein Titelbild, keine Marker-Kennzeichnung auf der Karte, keine
+    Bearbeitungshistorie, keine Kommentare unter den Beschreibungen (dafuer gibt es den Spot-Chat —
+    Beschreibung = dauerhaft, Chat = Unterhaltung).
+  - **Schreibrecht:** mindestens eine eigene, nicht geloeschte Session an diesem Spot, UNABHAENGIG
+    von Sportart und Analyse. Einmal berechtigt, bleibt berechtigt (Session spaeter geloescht →
+    Beschreibung bleibt, sonst verschwindet Wissen).
+  - **Fotos:** neu hochladen ODER ein vorhandenes eigenes Session-Foto uebernehmen; jeder sortiert
+    seine EIGENEN Fotos. Gleiche Pipeline wie Session-Fotos (`media.save_image`, 12 MB, Thumbs).
+  - **Moderation von Anfang an:** „unangemessen"-Melden wie bei Sessions (EINE neue Meldung blendet
+    aus, `mod_ok` schuetzt, Ruecknahme blendet nie automatisch wieder ein), blockierte Nutzer
+    ausgeblendet, `social_allowed=False` darf nicht schreiben.
+  - **Konto-Loeschung + Datenexport muessen die neuen Tabellen mitnehmen** (die Liste in
+    `api/auth.py:299` ist explizit — neue Tabellen fallen sonst stumm durch, und DSGVO-Loeschung ist
+    absolut).
+  - **Spot-Merge:** `_merge_spot_rows` haengt bisher nur Sessions um. Beschreibungen muessen mit,
+    und bei `UNIQUE(user_id, spot_id)` kollidieren zwei Beschreibungen desselben Nutzers →
+    **neuere gewinnt**, Fotos beider bis zum Limit uebernehmen.
+  - **Sortierung:** eigene Beschreibung oben, dann nach Herzchen, dann nach Datum. Nur Herzchen,
+    keine Sterne, keine Downvotes.
+  - **Filter „nur mit Beschreibung"** in der Spots-Ansicht (Jans Wunsch) + ein Satz Haftungshinweis
+    (Community-Info, keine Gewaehr) + dezenter Anstoss fuer Leute mit Sessions dort ohne
+    Beschreibung (ohne Aufforderung bleibt so ein Feature leer — Beleg: der „fehlt im
+    Katalog?"-Link hat jeden Katalog-Neuzugang gebracht).
+  **Umgesetzt (Web live, Server aktiv):** `server/app/api/spotnotes.py` (neu, 9 Endpunkte),
+  vier Tabellen (`spot_notes`, `spot_note_photos`, `spot_note_likes`, `spot_note_votes`),
+  `web/src/components/SpotNotes.tsx` in `/sessions?spot=<id>` zwischen Wetter und Liste, Filter
+  „nur mit Beschreibung" auf der Spots-Karte, Admin-Moderation im Spots-Tab, i18n de+en.
+  **Gegen die laufende API geprueft** (Testkonto, danach restlos aufgeraeumt): 24 Pruefpunkte gruen
+  — Schreibrecht (fremdes Konto 403, `can_write=false`), Speichern, Foto-Upload, Uebernahme eines
+  Session-Fotos als KOPIE, Sortierung, Herzchen an/aus, eigene Meldung 400, fremde Meldung blendet
+  aus, Melder sieht sie nicht mehr, Besitzer schon, Ueberarbeiten macht wieder sichtbar,
+  `spot-map` zaehlt `notes`, Datenexport enthaelt sie, Loeschen laesst keine Reste (DB und
+  Mediendateien). Der Spot-Merge zusaetzlich in einer zurueckgerollten Transaktion geprueft:
+  konfliktfrei umgezogen, bei Kollision gewinnt die neuere Fassung, Fotos bis zum Limit (9+1),
+  keine Waisen.
+  **Zwei Befunde beim Bauen:** (a) `autoflush=False` (db.py) — `db.delete(kind)` bleibt haengen,
+  waehrend das anschliessende `db.delete(eltern)` beim Commit zuerst laufen kann; der Fremdschluessel
+  schlug zu (HTTP 500, belegt). Kinder jetzt per Bulk-DELETE + `flush()` VOR dem Elternteil.
+  (b) Der Light-Mode-Waechter im Build hat 18 doppelt gekippte slate-Klassen gefunden — die
+  Projektregel „slate nur mit der Dark-Zahl" gilt auch fuer neue Komponenten.
+  **Offen:** Lesen + Liken in Android/iOS (Web zuerst, weil sofort live; die Store-Freigaben
+  haengen), und Uebersetzungen ausser de/en (fallen auf Englisch).
+
 - **🟢 Katalog-Suche war von der Wortstellung abhaengig — behoben (24.08.).** Ausloeser: Meldung
   ueber „fehlt im Katalog?" aus der iOS-App, „Axis png 1300 v2". **Der Fluegel stand drin** — als
   `AXIS` / `PNG V2` / `1300`, eingetragen am 15.08. (Commit `43e823a2`, damals ebenfalls auf

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import L from "leaflet";
 import { api } from "../lib/api";
@@ -7,7 +7,7 @@ import { SpotsIcon } from "../components/Icons";
 import { SpotCompare } from "../components/SpotCompare";
 import { useT } from "../i18n";
 
-type Spot = { spot: string; spot_id: number | null; lat: number; lon: number; sessions: number };
+type Spot = { spot: string; spot_id: number | null; lat: number; lon: number; sessions: number; notes?: number };
 
 // Spot-Namen kommen aus dem Geocoder bzw. einer Admin-Umbenennung und landen im Tooltip-HTML —
 // deshalb maskieren, statt darauf zu vertrauen, dass nie eine spitze Klammer darin steht.
@@ -20,8 +20,14 @@ export default function Spots() {
   const t = useT();
   const nav = useNavigate();
   const spotsLabel = t("nav.spots");   // Wort fuer die Buendel-Beschriftung (uebersetzt)
-  const [spots, setSpots] = useState<Spot[] | null>(null);
+  const [alle, setAlle] = useState<Spot[] | null>(null);
   const [q, setQ] = useState("");
+  // Filter „nur mit Beschreibung" (Wunsch Jan): rein clientseitig — `spot-map` liefert je Spot
+  // schon die Anzahl der sichtbaren Beschreibungen mit, ein zweiter Server-Aufruf waere unnoetig.
+  const [nurNotes, setNurNotes] = useState(false);
+  const spots = useMemo(
+    () => (alle == null ? null : (nurNotes ? alle.filter((s) => (s.notes ?? 0) > 0) : alle)),
+    [alle, nurNotes]);
   const mapRef = useRef<HTMLDivElement>(null);
   const mapObj = useRef<L.Map | null>(null);
 
@@ -49,7 +55,7 @@ export default function Spots() {
   const viewGesetzt = useRef(false);
 
   // Immer ALLE Spots (auch GPS-only mit erkanntem On-Foil) — die Karte ist reine Übersicht.
-  useEffect(() => { api.spotMap(false).then(setSpots).catch(() => setSpots([])); }, []);
+  useEffect(() => { api.spotMap(false).then(setAlle).catch(() => setAlle([])); }, []);
 
   // Spot suchen -> zentrieren + ~50 km Radius (Quadrat 100 km) als Zoom.
   function focusSpot(name: string) {
@@ -206,6 +212,12 @@ export default function Spots() {
               ))}
             </select>
           </div>
+          <label className="mb-3 flex cursor-pointer items-center gap-2 text-sm text-slate-300">
+            <input type="checkbox" checked={nurNotes} onChange={(e) => setNurNotes(e.target.checked)}
+              className="h-4 w-4 accent-brand-500" />
+            {t("spots.onlyWithNotes")}
+            <span className="text-slate-500">({(alle ?? []).filter((s) => (s.notes ?? 0) > 0).length})</span>
+          </label>
           <div ref={mapRef} className="h-[70vh] w-full overflow-hidden rounded-2xl border border-slate-800" />
           <SpotCompare />
         </>

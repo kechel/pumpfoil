@@ -689,6 +689,76 @@ class SessionPhoto(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
+class SpotNote(Base):
+    """Beschreibung EINES Nutzers zu EINEM Spot ("mein Spot" — Startstelle, Untergrund, Hinweise).
+
+    Genau eine Zeile je (Nutzer, Spot) — deshalb der Unique-Index. Fremde koennen nicht
+    ueberschreiben, jeder pflegt nur seine eigene; im Spot stehen alle untereinander, je Nutzer ein
+    Abschnitt (Vorgabe Jan, 24.08.). Bewusst KEIN Sprachfeld und keine Struktur-Tags: Freitext
+    genuegt, Spracherkennung waere geraten.
+
+    `hidden` = durch eine Community-Meldung ausgeblendet (dieselbe Regel wie bei Sessions: EINE
+    neue "unangemessen"-Meldung blendet aus, Ruecknahme blendet nie automatisch wieder ein);
+    `mod_ok` = vom Admin geprueft und gegen Auto-Ausblenden geschuetzt.
+    """
+
+    __tablename__ = "spot_notes"
+    __table_args__ = (UniqueConstraint("user_id", "spot_id", name="uq_spotnote_user_spot"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    spot_id: Mapped[int] = mapped_column(ForeignKey("spots.id"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    text: Mapped[str] = mapped_column(Text, default="")
+    hidden: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    mod_ok: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class SpotNotePhoto(Base):
+    """Foto zu einer Spot-Beschreibung. `sort` = Reihenfolge, die der Besitzer selbst festlegt.
+
+    `from_session_photo_id` haelt fest, dass das Bild aus einem eigenen Session-Foto uebernommen
+    wurde — die Datei wird dabei KOPIERT und nicht verlinkt: sonst reisst das Loeschen des
+    Session-Fotos (das `delete_media` aufruft) das Spot-Bild mit, und der Nutzer wuerde nie
+    verstehen, warum. Ein paar hundert Kilobyte sind der Preis dafuer.
+    """
+
+    __tablename__ = "spot_note_photos"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    note_id: Mapped[int] = mapped_column(ForeignKey("spot_notes.id"), index=True)
+    url: Mapped[str] = mapped_column(String(255))
+    sort: Mapped[int] = mapped_column(Integer, default=0)
+    from_session_photo_id: Mapped[int | None] = mapped_column(Integer)
+    blocked: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class SpotNoteLike(Base):
+    """Herzchen auf eine Spot-Beschreibung. Eigene Tabelle, weil `session_likes` an Sessions haengt."""
+
+    __tablename__ = "spot_note_likes"
+    __table_args__ = (UniqueConstraint("user_id", "note_id", name="uq_spotnote_like"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    note_id: Mapped[int] = mapped_column(ForeignKey("spot_notes.id"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class SpotNoteVote(Base):
+    """Meldung "unangemessen" zu einer Spot-Beschreibung (Analogon zu SessionVote)."""
+
+    __tablename__ = "spot_note_votes"
+    __table_args__ = (UniqueConstraint("user_id", "note_id", name="uq_spotnote_vote"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    note_id: Mapped[int] = mapped_column(ForeignKey("spot_notes.id"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
 class PasswordReset(Base):
     """Einmal-Token für Passwort-Reset per E-Mail (zeitlich begrenzt)."""
 
