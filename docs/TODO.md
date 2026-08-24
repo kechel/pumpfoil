@@ -473,6 +473,13 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
      Auswahl arbeitet namensbasiert), die Beschreibungen haengen aber an der `spot_id` — mein
      `toIntOrNull()`/`Int(spot)` war immer null. Jetzt wird der Name einmal ueber `spot-map`
      aufgeloest. Im Web trat das nicht auf, weil der Parameter dort die id ist.
+  5. **Ansicht und Bearbeiten getrennt** (Jan, 24.08.): im Ruhezustand steht im eigenen Abschnitt
+     nur die Beschreibung plus EIN Knopf. „Foto hinzufuegen", „Aus meinen Session-Fotos",
+     „Loeschen" und der Foto-Zaehler erscheinen erst beim Bearbeiten; die Fotos zeigen ihr
+     Loeschkreuz und die Sortier-Pfeile ebenfalls nur dort. **Nur Web** — die Apps hatten das
+     Problem nicht: dort stehen im Ruhezustand zwei Knoepfe (Bearbeiten, Foto hinzufuegen),
+     Loeschen sitzt im Bearbeiten-Dialog und die Uebernahme aus Session-Fotos gibt es dort nicht.
+     Das Loeschkreuz am Foto bleibt in den Apps sichtbar, weil es dort der einzige Weg ist.
   **Offen:** Versionen NICHT gebumpt — Phone 1.1.23 und Wear 1.2.23 liegen in der Play-Pruefung, das
   Feature geht in die naechste Runde (Regel: einen Build in der Pruefung nur ersetzen, wenn er einen
   echten Fehler behebt). Uebersetzungen: de/en gepflegt, fr/it/es sinngemaess, Rest faellt auf

@@ -170,6 +170,10 @@ export function SpotNotes({ spotId }: { spotId: number }) {
       <p className="mb-3 text-sm text-slate-400">{t("spotnote.disclaimer")}</p>
 
       {/* --- Eigener Abschnitt --- */}
+      {/* Ansicht und Bearbeiten sind getrennt (Jan, 24.08.): im Ruhezustand steht hier nur die
+          Beschreibung und EIN Knopf. Foto hinzufuegen / aus Session-Fotos / Loeschen / der
+          Foto-Zaehler erscheinen erst beim Bearbeiten — im Ruhezustand sind es vier Knoepfe, die
+          niemand braucht, der nur mitliest. */}
       {data.can_write && (
         <div className="mb-4 rounded-xl border border-brand-500/30 bg-brand-500/5 p-3">
           {edit ? (
@@ -190,46 +194,55 @@ export function SpotNotes({ spotId }: { spotId: number }) {
                   {t("common.cancel")}
                 </button>
               </div>
-            </>
-          ) : meine ? (
-            <>
-              {kopfzeile(meine)}
-              {meine.text && <p className="mt-2 whitespace-pre-wrap text-sm text-slate-200">{meine.text}</p>}
-              {fotoGitter(meine, true)}
+
+              {/* Fotos gehoeren zum Bearbeiten: hier mit Loeschkreuz und Pfeilen zum Sortieren. */}
+              {meine && fotoGitter(meine, true)}
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                {(meine?.photos.length ?? 0) < data.max_photos && (
+                  <>
+                    <button onClick={() => fileRef.current?.click()} disabled={busy}
+                      className="flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-700 disabled:opacity-50">
+                      <CameraIcon className="h-4 w-4 text-brand-400" /> {t("spotnote.addPhoto")}
+                    </button>
+                    <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={hochladen} />
+                    <button
+                      onClick={() => api.mySpotSessionPhotos(spotId).then((l) => setPicker(l)).catch(() => setErr(t("spotnote.error")))}
+                      className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-700">
+                      {t("spotnote.fromSession")}
+                    </button>
+                  </>
+                )}
+                {meine && (
+                  <button onClick={loeschen} disabled={busy}
+                    className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-red-600 hover:bg-slate-700 disabled:opacity-50 dark:text-red-300">
+                    {t("common.delete")}
+                  </button>
+                )}
+                <span className="text-xs text-slate-500">
+                  {meine?.photos.length ?? 0}/{data.max_photos} {t("spotnote.photos")}
+                </span>
+              </div>
             </>
           ) : (
-            // Anstoss: ohne Aufforderung bleibt so ein Feature leer.
-            <p className="text-sm text-slate-300">{t("spotnote.invite")}</p>
-          )}
-
-          {!edit && (
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <button onClick={() => { setText(meine?.text ?? ""); setEdit(true); }}
-                className="flex items-center gap-1 rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400">
-                <EditIcon className="h-4 w-4" /> {meine ? t("spotnote.edit") : t("spotnote.write")}
-              </button>
-              {(meine?.photos.length ?? 0) < data.max_photos && (
+            <>
+              {meine ? (
                 <>
-                  <button onClick={() => fileRef.current?.click()} disabled={busy}
-                    className="flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-700 disabled:opacity-50">
-                    <CameraIcon className="h-4 w-4 text-brand-400" /> {t("spotnote.addPhoto")}
-                  </button>
-                  <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={hochladen} />
-                  <button
-                    onClick={() => api.mySpotSessionPhotos(spotId).then((l) => setPicker(l)).catch(() => setErr(t("spotnote.error")))}
-                    className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-700">
-                    {t("spotnote.fromSession")}
-                  </button>
+                  {kopfzeile(meine)}
+                  {meine.text && <p className="mt-2 whitespace-pre-wrap text-sm text-slate-200">{meine.text}</p>}
+                  {/* Ruhezustand: Fotos OHNE Loeschkreuz/Pfeile — nur ansehen. */}
+                  {fotoGitter(meine, false)}
                 </>
+              ) : (
+                // Anstoss: ohne Aufforderung bleibt so ein Feature leer.
+                <p className="text-sm text-slate-300">{t("spotnote.invite")}</p>
               )}
-              {meine && (
-                <button onClick={loeschen} disabled={busy}
-                  className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-red-600 hover:bg-slate-700 disabled:opacity-50 dark:text-red-300">
-                  {t("common.delete")}
+              <div className="mt-2">
+                <button onClick={() => { setText(meine?.text ?? ""); setEdit(true); }}
+                  className="flex items-center gap-1 rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400">
+                  <EditIcon className="h-4 w-4" /> {meine ? t("spotnote.edit") : t("spotnote.write")}
                 </button>
-              )}
-              <span className="text-xs text-slate-500">{meine?.photos.length ?? 0}/{data.max_photos} {t("spotnote.photos")}</span>
-            </div>
+              </div>
+            </>
           )}
           {err && <p className="mt-2 text-sm text-red-600 dark:text-red-300">{err}</p>}
         </div>
