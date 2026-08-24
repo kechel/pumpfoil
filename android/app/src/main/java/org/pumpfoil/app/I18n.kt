@@ -281,6 +281,10 @@ private val S: Map<String, Map<String, String>> = mapOf(
     "common.cancel" to row("Abbrechen", "Abbräche", "Obbrechen", "Cancel", "Annuler", "Annulla", "Cancelar"),
     // Spot-Beschreibungen (Paritaet zur PWA). de/en gepflegt, die Dialekte tragen den deutschen
     // Text; fr/it/es sinngemaess uebersetzt, alles andere faellt auf Englisch.
+    "sd.spotPage" to row("Spot-Sessions & Beschreibung", "Spot-Sessions & Beschriebig",
+        "Spot-Sessions & Beschreibung", "Spot sessions & description",
+        "Sessions du spot & description", "Sessioni dello spot e descrizione",
+        "Sesiones del spot y descripción"),
     "spotnote.title" to row("Spot-Beschreibungen", "Spot-Beschriebe", "Spot-Beschreibungen",
         "Spot descriptions", "Descriptions du spot", "Descrizioni dello spot", "Descripciones del spot"),
     "spotnote.disclaimer" to row(

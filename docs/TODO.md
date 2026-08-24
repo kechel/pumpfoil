@@ -457,6 +457,22 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   **Nicht in den Apps** (bewusst, weil es dort keinen Nutzen bringt): Uebernahme eines vorhandenen
   Session-Fotos und das Umsortieren der eigenen Fotos — auf dem Telefon ist der Bildwaehler ohnehin
   einen Fingertipp entfernt. Web behaelt beides.
+  **Nachgereicht am selben Tag (Jans Wuensche beim Ausprobieren):**
+  1. **Knopf „Spot-Sessions & Beschreibung"** in der Session-Detailansicht neben dem Spot-Chat —
+     Web als `<Link>` auf `/sessions?spot=<id>` (mit `place_name` als Rueckfall), Android als
+     Toolbar-Knopf auf die vorhandene Route `spot/<name>` (`SpotSessionsScreen`), iOS als
+     `NavigationLink` auf `SpotSessionsView`. Kein Age-Gate: das ist keine Unterhaltung.
+  2. **Beschreibungen auch in der Spot-Ansicht der Apps** (`SpotSessionsScreen` /
+     `SpotSessionsView`), oberhalb der Session-Liste.
+  3. **🐛 Foto-Vollbild war im Beschreibungs-Block eingesperrt** (Jans Meldung). Ursache ist eine
+     allgemeine Falle: unsere `Card` traegt `backdrop-blur`, und `backdrop-filter` macht ein Element
+     zum Bezugsrahmen fuer `position: fixed` — der Vollbild-Layer wurde damit auf die Kartengroesse
+     begrenzt. Behoben, indem `Lightbox` (und die Foto-Auswahl) per `createPortal` am `body` haengen;
+     das hilft jeder kuenftigen Verwendung, nicht nur hier. Hinweis dazu steht an `Card` in `ui.tsx`.
+  4. **🐛 Beschreibungen waeren in BEIDEN Apps nie erschienen**: dort ist `spot` der NAME (die
+     Auswahl arbeitet namensbasiert), die Beschreibungen haengen aber an der `spot_id` — mein
+     `toIntOrNull()`/`Int(spot)` war immer null. Jetzt wird der Name einmal ueber `spot-map`
+     aufgeloest. Im Web trat das nicht auf, weil der Parameter dort die id ist.
   **Offen:** Versionen NICHT gebumpt — Phone 1.1.23 und Wear 1.2.23 liegen in der Play-Pruefung, das
   Feature geht in die naechste Runde (Regel: einen Build in der Pruefung nur ersetzen, wenn er einen
   echten Fehler behebt). Uebersetzungen: de/en gepflegt, fr/it/es sinngemaess, Rest faellt auf

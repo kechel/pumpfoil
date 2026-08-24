@@ -1199,6 +1199,19 @@ export default function SessionDetail() {
             <span className="truncate">{t("chat.spotChat")} {session.place_name}</span>
           </button>
         )}
+        {session.place_name && (
+          // Zum Spot: Sessions aller Nutzer dort UND die Spot-Beschreibungen (Wunsch Jan, 24.08.).
+          // Ziel bevorzugt die spot_id; ohne Spot-Zeile (Altbestand) filtert der Name — beide
+          // Formen versteht die Sessions-Ansicht.
+          <Link
+            to={`/sessions?spot=${session.spot_id ?? encodeURIComponent(session.place_name)}`}
+            title={t("sd.spotPage")}
+            className="flex min-w-0 items-center gap-1 rounded-lg bg-slate-800 px-3 py-1 text-sm text-slate-200 hover:bg-slate-700"
+          >
+            <LocationIcon className="h-4 w-4 shrink-0 text-brand-400" />
+            <span className="truncate">{t("sd.spotPage")}</span>
+          </Link>
+        )}
         {session.place_water && session.place_water !== session.place_name && (
           <span className="shrink-0 text-xs text-slate-500" title={t("sd.waterBody")}>· {session.place_water}</span>
         )}

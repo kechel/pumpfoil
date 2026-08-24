@@ -52,6 +52,7 @@ import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material.icons.filled.Report
 import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Watch
 import androidx.compose.material3.AlertDialog
@@ -128,7 +129,7 @@ private val SkyOnDark = Color(0xFF7DD3FC)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}, onOpenSession: (Int) -> Unit = {}, onSpotChat: (String) -> Unit = {}, dataVersion: Long? = null, social: Boolean = true) {
+fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}, onOpenSession: (Int) -> Unit = {}, onSpotChat: (String) -> Unit = {}, onSpotSessions: (String) -> Unit = {}, dataVersion: Long? = null, social: Boolean = true) {
     var session by remember { mutableStateOf<SessionDetail?>(null) }
     var neighbors by remember(id) { mutableStateOf<Neighbors?>(null) }
     var loading by remember { mutableStateOf(true) }
@@ -325,6 +326,14 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
                     if (social) s?.placeName?.takeIf { it.isNotBlank() }?.let { sp ->
                         IconButton(onClick = { onSpotChat(sp) }) {
                             Icon(Icons.Filled.Forum, contentDescription = I18n.t("nav.chat"), tint = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                    // Zum Spot: Sessions aller Nutzer dort UND die Spot-Beschreibungen (Wunsch Jan,
+                    // 24.08. — im Web steht der Knopf neben dem Spot-Chat).
+                    s?.placeName?.takeIf { it.isNotBlank() }?.let { sp ->
+                        IconButton(onClick = { onSpotSessions(sp) }) {
+                            Icon(Icons.Filled.Place, contentDescription = I18n.t("sd.spotPage"),
+                                tint = MaterialTheme.colorScheme.primary)
                         }
                     }
                     if (s?.owned == true && s.analysis?.trackGeojson != null) {

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { Avatar } from "./ui";
@@ -60,7 +61,12 @@ export function Lightbox({ photos, index, onClose, onChange, readOnly = false }:
     api.toggleVote(p.session_id, "inappropriate").then((r) => setSt({ my_inappropriate: r.my_inappropriate })).catch(() => {});
   };
 
-  return (
+  // PORTAL an den body: `position: fixed` bezieht sich nicht mehr auf das Ansichtsfenster, sobald
+  // ein Vorfahr `backdrop-filter`/`transform`/`filter` setzt — dann wird der Vollbild-Layer auf die
+  // Groesse dieses Vorfahren eingesperrt. Genau das passierte in den Spot-Beschreibungen (gemeldet
+  // 24.08.): unsere `Card` traegt `backdrop-blur`, die Galerie blieb im Beschreibungs-Block. Das
+  // Portal macht die Galerie unabhaengig davon, WO sie im Baum gerendert wird.
+  return createPortal((
     <div
       className="fixed inset-0 z-[3000] flex flex-col bg-black/85 backdrop-blur-sm"
       onClick={onClose}
@@ -123,5 +129,5 @@ export function Lightbox({ photos, index, onClose, onChange, readOnly = false }:
         </div>
       </div>
     </div>
-  );
+  ), document.body);
 }

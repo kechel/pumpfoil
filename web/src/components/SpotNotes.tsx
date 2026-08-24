@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { api, SpotNote, SpotNotesOut } from "../lib/api";
 import { Avatar, Card } from "./ui";
 import { CameraIcon, ChevronIcon, CloseIcon, EditIcon, FlagIcon, HeartIcon, LocationIcon } from "./Icons";
@@ -250,7 +251,9 @@ export function SpotNotes({ spotId }: { spotId: number }) {
       )}
 
       {/* Fotoauswahl aus eigenen Session-Fotos DIESES Spots */}
-      {picker && (
+      {/* Auch dieser Layer geht per Portal an den body: die umgebende `Card` hat `backdrop-blur`,
+          und damit wuerde `fixed` auf die Karte begrenzt statt aufs Fenster (siehe Lightbox). */}
+      {picker && createPortal((
         <div className="fixed inset-0 z-[3000] flex items-center justify-center bg-black/70 p-4" onClick={() => setPicker(null)}>
           <div className="max-h-[80vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 p-4" onClick={(e) => e.stopPropagation()}>
             <div className="mb-3 flex items-center gap-2">
@@ -271,7 +274,7 @@ export function SpotNotes({ spotId }: { spotId: number }) {
             )}
           </div>
         </div>
-      )}
+      ), document.body)}
 
       {/* Vollbild: dieselbe Galerie wie ueberall, aber read-only — Herzchen/Melden haengen dort an
           Session-Fotos, hier gehoeren sie an die Beschreibung. */}

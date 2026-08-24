@@ -97,6 +97,8 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
     var scope by remember { mutableStateOf(Scope.MINE) }
     var homespot by remember { mutableStateOf("") }
     var spot by remember { mutableStateOf("") }          // aktiver Spot (für SPOT-Scope)
+    // Name -> spot_id (fuer die Spot-Beschreibungen; die Spot-Auswahl selbst bleibt namensbasiert).
+    var spotIds by remember { mutableStateOf<Map<String, Int>>(emptyMap()) }
     var spots by remember { mutableStateOf<List<String>>(emptyList()) }   // alle Spot-Namen (Dropdown)
     var own by remember { mutableStateOf<List<SessionSummary>>(emptyList()) }
     var groups by remember { mutableStateOf<List<CommunityGroup>>(emptyList()) }   // Community/Spot: Tages-Gruppen
@@ -120,6 +122,11 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
     LaunchedEffect(Unit) {
         homespot = try { Api.settings()["homespot"]?.jsonPrimitive?.contentOrNull ?: "" } catch (_: Exception) { "" }
         spots = try { Api.spots(accelOnly = false).all } catch (_: Exception) { emptyList() }
+        // Einmal die Karte holen, nur fuer die Zuordnung Name -> spot_id. Billig (ein Aufruf) und
+        // die Alternative waere ein neuer Endpunkt fuer denselben Zusammenhang.
+        spotIds = try {
+            Api.spotMap(accelOnly = false).mapNotNull { m -> m.spotId?.let { m.spot to it } }.toMap()
+        } catch (_: Exception) { emptyMap() }
     }
     LaunchedEffect(tick) {
         suggestions = try { Api.mergeSuggestions() } catch (_: Exception) { emptyList() }
@@ -271,10 +278,11 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
             }
             if (scope == Scope.SPOT) {
                 weather?.let { wb -> Box(Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) { WeatherCard(wb) } }
-                // Spot-Beschreibungen wie im Web zwischen Wetter und Session-Liste. Nur bei einem
-                // echten Spot (numerische id) — Namens-Gruppen aus dem Altbestand haben keine
-                // Spot-Zeile, an der eine Beschreibung haengen koennte.
-                spot.toIntOrNull()?.let { sid -> SpotNotesSection(sid) }
+                // Spot-Beschreibungen wie im Web zwischen Wetter und Session-Liste.
+                // ACHTUNG: `spot` ist hier der NAME (die Auswahl arbeitet namensbasiert), die
+                // Beschreibungen haengen aber an der spot_id — deshalb ueber die Karte aufloesen.
+                // Ohne Spot-Zeile (Altbestand, nur place_name) gibt es nichts anzuzeigen.
+                spotIds[spot]?.let { sid -> SpotNotesSection(sid) }
             }
             Box(Modifier.fillMaxSize()) {
                 Refreshable(refreshing = loading, onRefresh = { scopeC.launch { load() } }) {

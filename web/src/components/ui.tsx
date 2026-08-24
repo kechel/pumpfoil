@@ -12,6 +12,9 @@ export function NewBadge({ className = "" }: { className?: string }) {
   );
 }
 
+// ACHTUNG: `backdrop-blur` macht die Card zum Bezugsrahmen fuer `position: fixed` — ein
+// Vollbild-Layer (Galerie, Dialog) INNERHALB einer Card wird auf die Kartengroesse eingesperrt.
+// Solche Layer deshalb per `createPortal(..., document.body)` rendern (Beispiel: components/Lightbox.tsx).
 export function Card({ children, className = "", onClick, id }: { children: ReactNode; className?: string; onClick?: () => void; id?: string }) {
   return (
     <div id={id} onClick={onClick} className={`rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur ${className}`}>

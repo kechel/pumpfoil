@@ -244,6 +244,7 @@ fun MainScaffold(onLogout: () -> Unit) {
                     onLabel = { sid -> nav.navigate("labeling/$sid") },
                     onOpenSession = { sid -> nav.navigate("session/$sid") },
                     onSpotChat = { s -> nav.navigate("chatroom/${Uri.encode("spot:" + s)}?label=${Uri.encode(s)}") },
+                    onSpotSessions = { s -> nav.navigate("spot/${Uri.encode(s)}") },
                     social = social,
                 )
             }

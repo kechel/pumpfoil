@@ -135,6 +135,7 @@ struct SessionDetailView: View {
     // derselben Stelle wie die Klassifikations-Felder eigener Sessions (wie in der PWA).
     @ToolbarContentBuilder private var toolbarItems: some ToolbarContent {
         spotChatItem
+        spotSessionsItem
         ownerToolbarItems
     }
 
@@ -144,6 +145,18 @@ struct SessionDetailView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 NavigationLink { ChatRoomView(scope: "spot:\(sp)", title: sp) } label: {
                     Image(systemName: "bubble.left.and.bubble.right")
+                }
+            }
+        }
+    }
+
+    // Zum Spot: Sessions aller Nutzer dort UND die Spot-Beschreibungen (Wunsch Jan, 24.08. —
+    // im Web steht der Knopf neben dem Spot-Chat). Kein Age-Gate: das ist keine Unterhaltung.
+    @ToolbarContentBuilder private var spotSessionsItem: some ToolbarContent {
+        if let sp = session?.place_name, !sp.isEmpty {
+            ToolbarItem(placement: .topBarTrailing) {
+                NavigationLink { SpotSessionsView(spot: sp) } label: {
+                    Image(systemName: "mappin.and.ellipse")
                 }
             }
         }

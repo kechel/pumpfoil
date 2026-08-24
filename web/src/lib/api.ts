@@ -240,6 +240,7 @@ export interface SessionSummary {
   owner_avatar_url?: string | null;
   place_name?: string | null;
   place_water?: string | null;
+  spot_id?: number | null;   // Spot-Cluster (Server liefert es; Ziel fuer den Spot-Link)
   caption?: string | null;
   youtube_url?: string | null;
   video_url?: string | null;   // erstes Video jeder Plattform (nur anzeige-fähige Clients)

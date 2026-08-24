@@ -13,10 +13,15 @@ struct SpotSessionsView: View {
     // Spots -> beim Verlassen/Wechseln wieder weg (NICHT gemerkt), es gilt wieder der Default.
     @State private var showAll = false
     @State private var autoTried = false
+    // Beschreibungen haengen an der spot_id, hierher kommt nur der NAME (die Navigation ist
+    // namensbasiert). Einmal ueber die Karte zuordnen; ohne Spot-Zeile bleibt es nil.
+    @State private var spotId: Int?
 
     var body: some View {
         List {
             if let error { Text(error).foregroundStyle(.secondary) }
+            // Erst der Spot (Beschreibungen), dann was dort gefahren wurde — wie im Web.
+            if let sid = spotId { SpotNotesView(spotId: sid, lang: lang) }
             ForEach(items) { c in
                 NavigationLink { SessionDetailView(id: c.id) } label: { CommunityRow(item: c) }
             }
@@ -39,6 +44,11 @@ struct SpotSessionsView: View {
         .overlay { if loading && items.isEmpty { ProgressView() } }
         .refreshable { await load() }
         .task { if items.isEmpty { await load() } }
+        .task {
+            if spotId == nil {
+                spotId = (try? await Api.spotMap(accelOnly: false))?.first { $0.spot == spot }?.spot_id
+            }
+        }
     }
 
     private func load() async {

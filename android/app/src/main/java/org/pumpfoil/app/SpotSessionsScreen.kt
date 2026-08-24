@@ -40,6 +40,14 @@ fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, 
     // beim Spot-Wechsel/Verlassen ist das wieder weg (NICHT gemerkt), es gilt wieder der Default.
     var showAll by remember(spot) { mutableStateOf(false) }
     var autoTried by remember(spot) { mutableStateOf(false) }
+    // Spot-Beschreibungen haengen an der spot_id, hierher kommt aber nur der NAME (die Navigation
+    // ist namensbasiert). Einmal die Karte holen und zuordnen; ohne Spot-Zeile (Altbestand) bleibt
+    // es null und der Abschnitt entfaellt.
+    var spotId by remember(spot) { mutableStateOf<Int?>(null) }
+    LaunchedEffect(spot) {
+        spotId = try { Api.spotMap(accelOnly = false).firstOrNull { it.spot == spot }?.spotId }
+                 catch (_: Exception) { null }
+    }
 
     suspend fun load() {
         loading = true
@@ -86,6 +94,9 @@ fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, 
                 } else {
                     LazyColumn(Modifier.fillMaxSize()) {
                         error?.let { e -> item { Text(e, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error) } }
+                        // Beschreibungen ueber der Session-Liste (wie im Web: erst der Spot, dann
+                        // was dort gefahren wurde).
+                        spotId?.let { sid -> item { SpotNotesSection(sid) } }
                         if (items.isEmpty() && !loading && error == null) {
                             item { Text(I18n.t("sessions.empty"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                         }

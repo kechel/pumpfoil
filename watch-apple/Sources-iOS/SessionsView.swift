@@ -14,6 +14,7 @@ struct SessionsView: View {
     @State private var homespot = ""
     @State private var spotNames: [String] = []
     @State private var spot = ""          // aktiver Spot (für .spot)
+    @State private var spotIds: [String: Int] = [:]   // Name -> spot_id (Spot-Beschreibungen)
     @State private var loading = false
     @State private var error: String?
     @State private var suggestions: [MergeSuggestion] = []
@@ -89,7 +90,10 @@ struct SessionsView: View {
     // Spot-Beschreibungen wie im Web zwischen Wetter und Session-Liste. Nur bei einem echten Spot
     // (numerische id) — Namens-Gruppen aus dem Altbestand haben keine Spot-Zeile.
     @ViewBuilder private var spotNotesSection: some View {
-        if scope == .spot, let sid = Int(spot) {
+        // ACHTUNG: `spot` ist der NAME (die Auswahl arbeitet namensbasiert), die Beschreibungen
+        // haengen an der spot_id — deshalb ueber die Karte aufloesen. Ohne Spot-Zeile (Altbestand
+        // mit place_name allein) gibt es nichts anzuzeigen.
+        if scope == .spot, let sid = spotIds[spot] {
             SpotNotesView(spotId: sid, lang: lang)
         }
     }
@@ -121,6 +125,12 @@ struct SessionsView: View {
         }
         suggestions = (try? await Api.mergeSuggestions()) ?? []
         spotNames = (try? await Api.spots(accelOnly: false))?.all ?? []
+        // Einmal die Karte holen, nur fuer die Zuordnung Name -> spot_id (ein Aufruf; ein
+        // eigener Endpunkt fuer denselben Zusammenhang waere Ballast).
+        if let karte = try? await Api.spotMap(accelOnly: false) {
+            spotIds = Dictionary(karte.compactMap { m in m.spot_id.map { (m.spot, $0) } },
+                                 uniquingKeysWith: { a, _ in a })
+        }
         await applyAccelDefault()
         await reloadIncoming()
         await load()
