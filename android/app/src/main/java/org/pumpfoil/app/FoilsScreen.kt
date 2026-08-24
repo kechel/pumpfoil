@@ -109,7 +109,7 @@ fun FoilsScreen(onBack: () -> Unit = {}, onSetup: () -> Unit = {}) {
         }
         val filtered = list.filter { f ->
             (brand.isEmpty() || f.brand == brand) &&
-                (query.isBlank() || "${f.brand} ${f.model} ${f.size}".lowercase().contains(query.trim().lowercase()))
+                (query.isBlank() || gearMatches("${f.brand} ${f.model} ${f.size}", query))
         }
         val mineList = filtered.filter { mine.contains(it.id) }.sortedByDescending { it.id == def }
         val restList = filtered.filter { !mine.contains(it.id) }

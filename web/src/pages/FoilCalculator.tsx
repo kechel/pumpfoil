@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, Foil } from "../lib/api";
+import { gearMatches } from "../lib/gearSearch";
 import { Card, Spinner } from "../components/ui";
 import { ChevronIcon, CalculatorIcon } from "../components/Icons";
 import {
@@ -53,7 +54,7 @@ export default function FoilCalculator() {
     const ql = q.trim().toLowerCase();
     return foils.filter((f) =>
       (!brand || f.brand === brand) &&
-      (!ql || `${f.brand} ${f.model} ${f.size}`.toLowerCase().includes(ql)));
+      (!ql || gearMatches(`${f.brand} ${f.model} ${f.size}`, ql)));
   }, [foils, brand, q]);
 
   function toggle(id: number) {

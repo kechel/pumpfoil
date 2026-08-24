@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, Foil } from "../lib/api";
+import { gearMatches } from "../lib/gearSearch";
 import { Card, Spinner } from "../components/ui";
 import { MissingHint } from "../components/MissingHint";
 import { ChevronIcon, StarIcon, FoilIcon } from "../components/Icons";
@@ -56,7 +57,7 @@ export default function Foils() {
       // Zweitbezeichnungen mitsuchen (aliases): Nutzer tippen den offiziellen Produktcode ein,
       // wir fuehren den Marketing-Namen. Ohne das legen sie einen privaten Eintrag an und das Teil
       // steht zweimal im Katalog. Wird bewusst NICHT angezeigt, nur gefunden.
-      (!ql || `${f.brand} ${f.model} ${f.size} ${f.aliases ?? ""}`.toLowerCase().includes(ql)));
+      (!ql || gearMatches(`${f.brand} ${f.model} ${f.size} ${f.aliases ?? ""}`, ql)));
   }, [foils, brand, q]);
 
   // „Meine" zuerst (Default ganz oben), dann der Rest.

@@ -19,7 +19,7 @@ struct FoilsView: View {
     private var filtered: [Foil] {
         foils.filter { f in
             (brand.isEmpty || f.brand == brand) &&
-            (query.isEmpty || "\(f.brand) \(f.model) \(f.size)".lowercased().contains(query.lowercased()))
+            (query.isEmpty || gearMatches("\(f.brand) \(f.model) \(f.size)", query))
         }
     }
 

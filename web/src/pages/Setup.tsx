@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, Board, Stab } from "../lib/api";
+import { gearMatches } from "../lib/gearSearch";
 import { Button, Card, Spinner } from "../components/ui";
 import { MissingHint } from "../components/MissingHint";
 import { ChevronIcon, StarIcon, FoilIcon } from "../components/Icons";
@@ -127,7 +128,7 @@ export default function Setup() {
     const ql = q.trim().toLowerCase();
     return stabs.filter((s) =>
       (!brand || s.brand === brand) &&
-      (!ql || `${s.brand} ${s.model} ${s.size}`.toLowerCase().includes(ql)));
+      (!ql || gearMatches(`${s.brand} ${s.model} ${s.size}`, ql)));
   }, [stabs, brand, q]);
   const mineList = useMemo(
     () => filtered.filter((s) => myStabs.includes(s.id)).sort((a, b) => (a.id === stabId ? -1 : b.id === stabId ? 1 : 0)),

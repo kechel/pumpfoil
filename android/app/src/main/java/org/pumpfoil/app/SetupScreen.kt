@@ -177,7 +177,7 @@ fun SetupScreen(onBack: () -> Unit) {
         }
         val filtered = list.filter { s ->
             (brand.isEmpty() || s.brand == brand) &&
-                (query.isBlank() || "${s.brand} ${s.model} ${s.size}".lowercase().contains(query.trim().lowercase()))
+                (query.isBlank() || gearMatches("${s.brand} ${s.model} ${s.size}", query))
         }
         val mineList = filtered.filter { it.id in myStabs }.sortedByDescending { it.id == stabId }
         val restList = filtered.filter { it.id !in myStabs }

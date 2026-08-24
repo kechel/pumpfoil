@@ -114,7 +114,7 @@ fun FoilCalculatorScreen(onBack: () -> Unit = {}) {
 
         val filtered = list.filter { f ->
             (brand.isEmpty() || f.brand == brand) &&
-                (query.isBlank() || "${f.brand} ${f.model} ${f.size}".lowercase().contains(query.trim().lowercase()))
+                (query.isBlank() || gearMatches("${f.brand} ${f.model} ${f.size}", query))
         }
 
         LazyColumn(Modifier.padding(pad).fillMaxSize().padding(horizontal = 12.dp)) {

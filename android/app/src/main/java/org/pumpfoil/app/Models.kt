@@ -767,3 +767,18 @@ data class WatchLayoutBrief(
     val has_freetext: Boolean = false,
     val published: Boolean = false,
 )
+
+// Freitextsuche im Material-Katalog — UNABHAENGIG von der Wortstellung.
+//
+// Anlass (24.08.): Meldung „fehlt im Katalog: Axis png 1300 v2". Der Fluegel stand drin, als
+// `AXIS` / `PNG V2` / `1300` — gesucht wurde aber mit EINEM contains() ueber
+// „Marke Modell Groesse", und „png 1300 v2" ist darin nicht enthalten. Der Nutzer haette unsere
+// Wortstellung erraten muessen, um sein eigenes Material zu finden. Wer sein Teil nicht findet,
+// legt einen privaten Eintrag an — die Ursache der Katalog-Dopplungen vom 17.08.
+// Serverseitig macht `server/app/gearsearch.py` dasselbe, im Web `web/src/lib/gearSearch.ts`.
+fun gearMatches(text: String, query: String): Boolean {
+    val worte = query.trim().lowercase().split(Regex("\\s+")).filter { it.isNotEmpty() }
+    if (worte.isEmpty()) return true
+    val t = text.lowercase()
+    return worte.all { t.contains(it) }
+}

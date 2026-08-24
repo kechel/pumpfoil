@@ -836,3 +836,21 @@ struct SessionDest: Hashable {
     let id: Int
     var dataVersion: Int? = nil
 }
+
+// Freitextsuche im Material-Katalog — UNABHAENGIG von der Wortstellung.
+//
+// Anlass (24.08.): Meldung aus DIESER App, „fehlt im Katalog: Axis png 1300 v2". Der Fluegel stand
+// drin, als `AXIS` / `PNG V2` / `1300` — gesucht wurde aber mit EINEM contains() ueber
+// „Marke Modell Groesse", und „png 1300 v2" ist darin nicht enthalten. Der Nutzer haette unsere
+// Wortstellung erraten muessen, um sein eigenes Material zu finden. Wer sein Teil nicht findet,
+// legt einen privaten Eintrag an — die Ursache der Katalog-Dopplungen vom 17.08.
+// Server: `server/app/gearsearch.py`, Web: `web/src/lib/gearSearch.ts`, Android: `Models.kt`.
+func gearMatches(_ text: String, _ query: String) -> Bool {
+    let worte = query.lowercased().split(whereSeparator: { $0.isWhitespace })
+    if worte.isEmpty { return true }
+    let t = text.lowercased()
+    // String($0) statt der Substring: die contains-Ueberladung fuer StringProtocol kommt aus
+    // Foundation — mit einem echten String ist es dieselbe Ueberladung, die der bisherige Code
+    // schon benutzte (".lowercased().contains(q)"), also garantiert vorhanden.
+    return worte.allSatisfy { t.contains(String($0)) }
+}

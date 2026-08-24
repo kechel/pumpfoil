@@ -394,6 +394,30 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 Katalog-Suche war von der Wortstellung abhaengig — behoben (24.08.).** Ausloeser: Meldung
+  ueber „fehlt im Katalog?" aus der iOS-App, „Axis png 1300 v2". **Der Fluegel stand drin** — als
+  `AXIS` / `PNG V2` / `1300`, eingetragen am 15.08. (Commit `43e823a2`, damals ebenfalls auf
+  Nutzerwunsch). Gesucht wurde aber mit EINEM `LIKE`/`contains` ueber den ganzen Suchtext je Feld,
+  und „png 1300 v2" steht in keinem einzelnen Feld: der Nutzer haette **unsere Wortstellung erraten**
+  muessen, um sein eigenes Material zu finden. „png 1300", „1300 png v2", „axis 1300" — alles nichts.
+  Das ist nicht nur unbequem: wer sein Teil nicht findet, legt einen privaten Eintrag an — genau die
+  belegte Ursache der Katalog-Dopplungen vom 17.08. (4 von 7 Dubletten).
+  **Behoben an allen neun Stellen**, wortweise Suche (jedes Wort muss vorkommen, Reihenfolge egal),
+  eine Fassung je Plattform mit gegenseitigem Verweis:
+  `server/app/gearsearch.py` (Foils + Stabs, inkl. `aliases`) · `web/src/lib/gearSearch.ts`
+  (Foils, Rechner, Setup) · `android/.../Models.kt` (dieselben drei Screens) ·
+  `watch-apple/Sources-iOS/Models.swift` (FoilsView, Rechner, Setup).
+  Geprueft gegen die laufende API: „Axis png 1300 v2" -> genau 1 Treffer (`AXIS PNG V2 1300`),
+  „png 1300" -> 2 (V1 + V2), „1300 png v2" -> 1, Unsinn -> 0; Stabs ebenso („375 kraken",
+  „SDW/375"). Web-Build gruen, Android `:app:compileDebugKotlin` gruen.
+  **Nicht geprueft:** iOS — auf der VM ist **kein swiftc mehr installiert** (Memory
+  `swift-linux-parse-check` ist insoweit veraltet). Die drei Aufrufstellen sind einzeilig und
+  formgleich zu Android/Web; der Helfer nutzt bewusst `String($0)` statt der Substring, damit es
+  dieselbe `contains`-Ueberladung ist, die der bisherige Code schon benutzte. Trotzdem: erster
+  Xcode-Build ist der eigentliche Test.
+  Antwort an den Melder ist raus (aus meinem Konto, Katalog-Ausnahme): der Fluegel ist da, unter
+  „PNG V2", und die Suche findet ab jetzt auch seine Schreibweise.
+
 - **⏸️ ZURUECKGESTELLT — neuer Nutzer findet keinen Weg zur Aufnahme (Meldung 23.08. aus der Android-App).** Wortlaut:
   „Is there a START button for manual recording? I'm a beginner and can only 10-20 pumps. I used the
   app today for the first time and set it to auto-start recording, but none of my session was

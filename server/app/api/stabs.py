@@ -18,6 +18,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from .. import models
+from ..gearsearch import wort_bedingung
 from ..db import get_db
 from .deps import current_user
 
@@ -61,20 +62,14 @@ def list_stabs(
     if brand:
         query = query.filter(models.Stab.brand == brand)
     if q:
-        like = f"%{q.lower()}%"
-        from sqlalchemy import func
-        # Groesse MIT durchsuchen: Nutzer suchen zuerst nach der Zahl auf ihrem Material
-        # („375", „1450"), nicht nach dem Modellnamen. Fehlte bis 07.08. — die Weboberflaeche
-        # filtert lokal (dort war die Groesse dabei), jeder API-Nutzer fand aber nichts.
-        query = query.filter(or_(
-            func.lower(models.Stab.brand).like(like),
-            func.lower(models.Stab.model).like(like),
-            func.lower(models.Stab.size).like(like),
-            # Zweitbezeichnungen mitsuchen: Nutzer tippen den offiziellen PRODUKTCODE ein
-            # (`SDW/375`, `150AR`, „Monobloc"), wir fuehren den Marketing-Namen. Ohne das legen sie
-            # einen privaten Eintrag an und das Teil steht zweimal im Katalog (Befund 17.08.).
-            func.lower(func.coalesce(models.Stab.aliases, "")).like(like),
-        ))
+        # Wortweise suchen (Reihenfolge egal), Groesse und Aliase mit: Nutzer tippen die Zahl von
+        # ihrem Material („375", „1300") und die Worte in ihrer eigenen Reihenfolge — „axis png 1300
+        # v2" muss `AXIS PNG V2 1300` finden. Siehe app/gearsearch.py: wer sein Teil nicht findet,
+        # legt einen privaten Eintrag an, und das Teil steht zweimal im Katalog (Befund 17.08.).
+        bed = wort_bedingung(q, [models.Stab.brand, models.Stab.model, models.Stab.size,
+                                 models.Stab.aliases])
+        if bed is not None:
+            query = query.filter(bed)
     rows = query.order_by(models.Stab.brand, models.Stab.model, models.Stab.size).all()
     return [_out(s) for s in rows]
 

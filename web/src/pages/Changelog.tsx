@@ -30,6 +30,12 @@ type Entry = { date: string; items: Item[] };
 
 const ENTRIES: Entry[] = [
   {
+    date: "August 24, 2026",
+    items: [
+      "Searching for your gear no longer depends on the order you type the words in. Someone told us his wing was missing from the list \u2014 an AXIS PNG 1300 V2. It had been in the list for over a week: we keep it as AXIS, PNG V2, 1300, and the search was looking for his whole phrase inside a single field, so \u201cpng 1300 v2\u201d found nothing at all. You had to guess our word order to find your own equipment. Now every word is looked up on its own and the order does not matter: \u201caxis png 1300 v2\u201d, \u201c1300 png\u201d and \u201cpng v2 1300\u201d all land on the same wing, and the same goes for stabilisers. This matters beyond convenience \u2014 people who cannot find their gear add their own copy of it, which is how the duplicates we cleaned out last week got there in the first place. If yours really is missing, the \u201cmissing from the list?\u201d link still reaches us, and it is how nearly every wing in there was added.",
+    ],
+  },
+  {
     date: "August 21, 2026",
     items: [
       "You can download your own sessions as a file now \u2014 two buttons under a session, GPX and FIT. The FIT file is a proper activity, so Garmin Connect, Strava and anything else that reads FIT will take it as a ride rather than as raw data, complete with heart rate, speed and distance. GPX is the plain track with your heart rate, for maps and anything that does not speak FIT. What you get is the session as you see it here: if you trimmed the drive home away, or sorted a run out, it is not in the file \u2014 and the distance does not count the straight line across a gap you cut out, which would otherwise invent metres you never rode. Only your own sessions, and only for you: the file is not reachable by a link somebody else could follow.",
