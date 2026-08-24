@@ -116,14 +116,15 @@ _APP_META: dict[str, dict[str, str]] = {
         "store_url": "https://apps.apple.com/app/pumpfoil/id6783975714",
     },
     "zepp": {
-        # FREIGEGEBEN 2026-08-06: "The application Pumpfoil (1.0.4) you submitted has been
-        # approved and added to the ZEPP app store" — diesmal nennt die Mail wirklich 1.0.4
-        # (bei 1.0.3 am 31.07. war es die Version VOR dem Release-Bump, deshalb hier immer die
-        # Nummer AUS DER MAIL nehmen, nicht die aus dem Repo).
+        # FREIGEGEBEN 2026-08-24 (Mail: "The application Pumpfoil (1.0.6) you submitted has been
+        # approved and added to the ZEPP app store"). Die Nummer kommt AUS DER MAIL, nicht aus dem
+        # Repo — bei 1.0.3 am 31.07. nannte die Mail die Version VOR dem Release-Bump. 1.0.5 gab es
+        # nie im Store: abgelehnt am 18.08. (Nickname „zepp" + eckige Vorschaubilder), 1.0.6 ist
+        # der Nachfolger. Vorher 1.0.4, live seit 06.08.
         # store_url bleibt LEER, und das aendert sich nicht mehr: fuer die Pumpfoil-App im
         # Zepp-Store existiert keine Web-Adresse (Jan, 07.08.) — man kommt nur ueber die
         # Zepp-Handy-App dran, die auf /uhr verlinkt ist (ZeppAppBadges -> App Store / Play).
-        "latest": "1.0.4",
+        "latest": "1.0.6",
         "min_supported": "",
         # Zepp-Store-Adresse ist mir nicht bekannt (die App ist im Zepp-Telefon-Store, nicht im Web).
         # Leer lassen statt raten — der Hinweis auf der Uhr braucht keinen Link.

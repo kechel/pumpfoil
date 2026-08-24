@@ -36,7 +36,7 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   | Plattform | Version | wo | Inhalt |
   |---|---|---|---|
   | ~~Garmin~~ | **1.0.77 LIVE seit 16.08.** | CIQ-Store, Store-Seite bestaetigt Version 1.0.77 / 106 KB | Lauf-Canary + GNSS-Stufe je Uhr. `appmeta garmin` gesetzt und per `/api/app/latest` geprueft, Changelog steht. **ERLEDIGT.** |
-  | Zepp | **1.0.5** / code 8 | Zepp-Konsole (appId 1118995) | Roh-Accel (verlaesst gps_only), Zuverlaessigkeit/Tasten aus PR #1 von El Manu, `target` 3.6, Modellmeldung, GPS-Sprung-Gate |
+  | ~~Zepp~~ | **1.0.6 LIVE seit 24.08.** (1.0.5 ging nie live) | Zepp-Store, `appmeta zepp` gesetzt | Roh-Accel (verlaesst gps_only), Zuverlaessigkeit/Tasten aus PR #1, `target` 3.6, Modellmeldung, GPS-Sprung-Gate + die 1.0.6-Fixes. **ERLEDIGT.** |
   | Wear OS | **1.2.22** / 1032 | Play, Produktion (Wear OS) | Puls aktiv ueber Health Services + sichtbarer Hinweis, wenn keiner ankommt |
   | Android Phone | **1.1.21** / 35 | Play, Produktion | unveraendert aus dem Batch vom 10.08. |
   **NACH der jeweiligen Freigabe-Mail ohne Rueckfrage setzen:** `appmeta garmin` = 1.0.77 ·
@@ -368,7 +368,7 @@ kann mit der Store-Version normal aufnehmen (siehe den Meldungs-Befund oben in d
 | 2026-08-18 15:47 | iOS + Apple Watch | 1.1.24 (28) | ✅ **FREIGEGEBEN**, Mail 19.08. 06:26 („ready for distribution"). LIVE gegengeprueft ueber itunes.apple.com/lookup in de/us/nl/no/fi → 1.1.24, ausgeliefert seit 2026-08-18T23:51:11Z. `appmeta ios` + `apple` gesetzt, Changelog geschrieben. Uebermittlung `257c320a-…`; ersetzte die 15:44er unter der falschen Versions-Zeile „1.0.24" |
 | 2026-08-18 15:38 | Wear OS (Play) | 1.2.23 (1033) | ⏳ Vorabpruefungen laufen (bis ~15:52), danach Pruefung; Produktion, vollstaendiger Roll-out |
 | 2026-08-18 15:38 | Android Phone (Play) | 1.1.23 (37) | ⏳ Vorabpruefungen laufen (bis ~15:52), danach Pruefung; Produktion, vollstaendiger Roll-out |
-| 2026-08-18 13:26 | Zepp | 1.0.6 (code 9) | ⏳ wartet auf Freigabe |
+| 2026-08-18 13:26 | Zepp | 1.0.6 (code 9) | ✅ **FREIGEGEBEN**, Mail 24.08. 12:08 (Wortlaut: The application Pumpfoil (1.0.6) you submitted has been approved and added to the ZEPP app store). `appmeta zepp` = 1.0.6 gesetzt und per `/api/app/latest?platform=zepp` geprueft, Changelog geschrieben. Sechs Tage Pruefung |
 | 2026-08-18 (vormittags) | Zepp | 1.0.5 (code 8) | 🔴 ABGELEHNT — Nickname „zepp" + eckige Vorschaubilder; beides erledigt, Nachfolger 1.0.6 |
 | 2026-08-17 | Garmin | 1.0.78 | ✅ FREIGEGEBEN am 17.08., von Jan aus dem Store auf die eigene Uhr aktualisiert und getestet |
 | 2026-08-13 | iOS + Apple Watch | 1.1.22 (26) | ✅ LIVE 13.08. 19:38 UTC (gegengeprueft ueber itunes.apple.com/lookup in 5 Laendern) |
@@ -919,7 +919,12 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   - **Emoji 🔒 raus** (Projektregel), stattdessen zwei Textzeilen mit dem Ausweg.
   Von Jan im Simulator gegengetestet und eingereicht. Release-Notes decken 1.0.4 → 1.0.6 ab
   (1.0.5 ging nie live): Beschleunigung, GPS-Plausibilitaet, Max-Puls-Datenfeld, umschaltbare
-  Sperre, Layout-Fixes eckig. **Offen:** Zepps Antwort abwarten.
+  Sperre, Layout-Fixes eckig.
+  **🟢 FREIGEGEBEN 24.08. 12:08** (die Zepp-Mail nennt 1.0.6). `appmeta zepp` = 1.0.6 gesetzt, Server
+  neu gestartet, `/api/app/latest?platform=zepp` liefert 1.0.6, Changelog-Eintrag geschrieben. Damit
+  bekommen Amazfit-Uhren ERSTMALS die Roh-Beschleunigung — sie verlassen `gps_only`, es gibt dort ab
+  jetzt also Pump-Erkennung statt nur GPS-Laeufe (1.0.5 hatte das schon, ging aber nie live).
+  Weiter offen bleibt nur der i18n-Review von `menu.touchLock` (16 Sprachen, siehe oben).
 
 - **🟢 Zepp-Store-Vorschauen: erledigt.** 1.0.6 ist eingereicht und im Review, es fehlen keine
   Bilder mehr (Jan, 20.08.). Der frühere Eintrag „zwei Bilder nachzuschiessen" war veraltet.
