@@ -848,12 +848,22 @@ def spot_map(accel_only: bool = True, sport: str = "all",
     # Name UND Gewaesser: viele Spots heissen nach der Ortschaft und bekommen bei mehreren
     # Stellen am selben Ort einen Zaehler („Berlin 3", „Berlin 4"). Im Dropdown sind die nicht
     # auseinanderzuhalten — mit dem Gewaesser als zweiter Zeile schon (Jan, 24.08.).
-    stamm = {sid: (nm, wa) for sid, nm, wa in db.query(
-        models.Spot.id, models.Spot.name, models.Spot.water_name)
+    stamm = {sid: (nm, wa, ar) for sid, nm, wa, ar in db.query(
+        models.Spot.id, models.Spot.name, models.Spot.water_name, models.Spot.area_name)
         .filter(models.Spot.id.in_([sid for sid, *_ in mit_id])).all()} if mit_id else {}
     namen = {sid: v[0] for sid, v in stamm.items()}
+
+    def _zusatz(sid: int) -> str | None:
+        """Zweite Zeile: Gewaesser, sonst die Ortslage/der Steg (s. models.Spot.area_name).
+        Nie den Spot-Namen wiederholen — das unterscheidet nichts."""
+        nm, wa, ar = stamm.get(sid) or (None, None, None)
+        for kand in (wa, ar):
+            if kand and kand.strip() and kand.strip().lower() != (nm or "").strip().lower():
+                return kand
+        return None
+
     out = [
-        {"spot": namen.get(sid) or "", "spot_id": sid, "water": (stamm.get(sid) or (None, None))[1],
+        {"spot": namen.get(sid) or "", "spot_id": sid, "water": _zusatz(sid),
          "lat": float(lat), "lon": float(lon), "sessions": int(n)}
         for sid, lat, lon, n in mit_id if lat is not None and lon is not None and namen.get(sid)
     ]

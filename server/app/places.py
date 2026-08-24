@@ -216,6 +216,39 @@ def _nominatim(params: dict, timeout: float = 8.0):
         return None
 
 
+def lookup_area_nominatim(lat: float, lon: float) -> str | None:
+    """Unterscheidungs-LABEL fuer einen Spot (nicht sein Name): der Ort, an dem man ins Wasser geht.
+
+    Gegenstueck zur "Paris-Lektion" weiter unten: als NAME waere ein Mikro-Objekt Muell, als
+    ZUSATZZEILE ist es genau das, was "Berlin 3" von "Berlin 4" unterscheidet. Zwei Stufen:
+
+      1. Das benannte Objekt AM SPOT-MITTELPUNKT (zoom 18) — Steg, Faehranleger, Marina, Badestelle,
+         Parkplatz. Das ist die praeziseste Auskunft und benennt genau die Stelle, an der gestartet
+         wird (gemessen: "Berlin Reinickendorf" (Faehranleger) vs "Insel Scharfenberg" (Parkplatz)
+         fuer zwei Spots, die beide "Berlin" heissen und 1,1 km auseinander liegen).
+      2. Sonst der Stadtteil (zoom 17, suburb/borough) — "Tegel", "Wannsee".
+
+    Reine Anzeige; ohne Treffer None.
+    """
+    import time as _time
+
+    d = _nominatim({"lat": lat, "lon": lon, "zoom": 18}) or {}
+    name = (d.get("name") or "").strip()
+    if name and d.get("category") in ("leisure", "amenity", "natural", "man_made", "tourism",
+                                      "waterway", "water", "landuse", "place"):
+        return name[:120]
+    _time.sleep(1.1)
+    d = _nominatim({"lat": lat, "lon": lon, "zoom": 17}) or {}
+    adr = d.get("address") or {}
+    stadt = str(adr.get("city") or adr.get("town") or adr.get("village") or "").lower()
+    for k in ("suburb", "borough", "city_district", "county"):
+        if adr.get(k):
+            wert = str(adr[k])[:120]
+            if wert.lower() != stadt:      # "Berlin/Berlin" unterscheidet nichts
+                return wert
+    return None
+
+
 def lookup_place_nominatim(lat: float, lon: float) -> tuple[str | None, str | None]:
     """(ortsname, gewaessername) via Nominatim — der Fallback, wenn Overpass nichts liefert.
 

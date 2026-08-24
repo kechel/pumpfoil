@@ -812,6 +812,13 @@ class Spot(Base):
     lat: Mapped[float | None] = mapped_column(Float)
     lon: Mapped[float | None] = mapped_column(Float)
     poly_wkt: Mapped[str | None] = mapped_column(Text)                 # gepuffertes Cluster-Polygon (lat/lon-WKT)
+    # Stadtteil/Ortslage als UNTERSCHEIDUNGS-Label (nicht als Name!). Warum getrennt vom Namen:
+    # Spots am selben Ort bekommen einen Zaehler ("Berlin 3", "Berlin 4"), und im Auswahlfeld sind
+    # die nicht auseinanderzuhalten. Das Gewaesser waere das bessere Label, fehlt aber bei 17 von
+    # 21 solcher Spots (Overpass antwortet dieser VM oft nicht) — der Stadtteil kommt zuverlaessig
+    # von Nominatim ("Tegel", "Wannsee") und genau so benennt ihn auch ein Einheimischer.
+    # BEWUSST nicht im Spot-NAMEN (places.py, "Paris-Lektion": Mikro-Viertel als Name ist Muell).
+    area_name: Mapped[str | None] = mapped_column(String(120))
     merged_into: Mapped[int | None] = mapped_column(Integer, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 

@@ -78,6 +78,8 @@ def _migrate_add_indexes() -> None:
         # Durchsuchbare Zweitbezeichnungen (Produktcodes), „|"-getrennt, nicht angezeigt — s. models.Foil.
         "ALTER TABLE foils ADD COLUMN IF NOT EXISTS aliases VARCHAR(300)",
         "ALTER TABLE stabs ADD COLUMN IF NOT EXISTS aliases VARCHAR(300)",
+        # Stadtteil als Unterscheidungs-Label fuer Spots mit Zaehler-Namen (s. models.Spot).
+        "ALTER TABLE spots ADD COLUMN IF NOT EXISTS area_name VARCHAR(120)",
         # Puls-Anstieg je Session (Median des Hoechstpulses bis Minute 1/2/5), lazy gefuellt.
         "ALTER TABLE analysis_results ADD COLUMN IF NOT EXISTS hr_by_min_json TEXT",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS social_allowed BOOLEAN DEFAULT true",
