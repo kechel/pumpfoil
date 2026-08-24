@@ -855,11 +855,23 @@ def spot_map(accel_only: bool = True, sport: str = "all",
 
     def _zusatz(sid: int) -> str | None:
         """Zweite Zeile: Gewaesser, sonst die Ortslage/der Steg (s. models.Spot.area_name).
-        Nie den Spot-Namen wiederholen — das unterscheidet nichts."""
+
+        Zwei Faelle bleiben draussen, weil sie nichts unterscheiden:
+          * identisch mit dem Spot-Namen ("Olbrychski Sport" / "Olbrychski Sport"),
+          * derselbe Namensstamm mit Zahl — Prags Stadtteil heisst "Praha 5", und neben unserem
+            eigenen Zaehler-Spot "Praha 3" liest sich das wie eine dritte Spot-Nummer.
+        """
+        from ..spots import namensstamm
         nm, wa, ar = stamm.get(sid) or (None, None, None)
         for kand in (wa, ar):
-            if kand and kand.strip() and kand.strip().lower() != (nm or "").strip().lower():
-                return kand
+            k = (kand or "").strip()
+            if not k:
+                continue
+            if k.lower() == (nm or "").strip().lower():
+                continue
+            if namensstamm(k) == namensstamm(nm):
+                continue
+            return k
         return None
 
     out = [

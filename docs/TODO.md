@@ -423,9 +423,23 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   **Geprueft danach:** 175 Marker, keine doppelten Namen, kein Marker ohne `spot_id`, kein Paar
   unter 500 m; Dubletten-Trockenlauf mit dem neuen Steg-Kriterium findet nichts mehr.
   **Zaehler-Namen** („Berlin 3/4/5", „Annecy 2/3", „Almere 5/6" …): Karte, Tooltip und beide
-  Spot-Auswahlfelder zeigen jetzt das GEWAESSER als Zusatz. **Wirkt aber nur bei 4 von 21** solcher
-  Spots — den anderen fehlt `water_name`, und der Overpass-Lookup laeuft von dieser VM gerade in
-  den Timeout. **Offen:** Gewaesser-Nachtrag als langsamer Hintergrundlauf (mit Nominatim-Fallback).
+  Spot-Auswahlfelder zeigen eine zweite Zeile — Gewaesser, sonst ein Unterscheidungs-Label.
+  Das Gewaesser fehlte bei 17 von 21 dieser Spots (Overpass antwortet dieser VM oft nicht), deshalb
+  neu `spots.area_name` (+ Migration): **das benannte Objekt am Spot-Mittelpunkt** (Steg,
+  Faehranleger, Marina, Badestelle — also die Stelle, an der man ins Wasser geht), sonst der
+  **Stadtteil**. Quelle ist Nominatim (`places.lookup_area_nominatim`, zwei Stufen, 1,1 s Abstand);
+  bewusst NICHT im Spot-NAMEN — die „Paris-Lektion" in `places.py` gilt weiter, als Zusatzzeile ist
+  ein Mikro-Objekt aber genau richtig.
+  Nachtrag gelaufen (125 Spots, ~2,5 min): **116 von 197 Spots haben jetzt ein Label**, nur 8 haben
+  weder Gewaesser noch Label; 148 von 177 Markern zeigen eine zweite Zeile.
+  Zwei Labels werden bei der Anzeige unterdrueckt, weil sie nichts unterscheiden: identisch mit dem
+  Spot-Namen, und derselbe Namensstamm mit Zahl (Prags Stadtteil heisst „Praha 5" und laese sich
+  neben unserem Zaehler-Spot „Praha 3" wie eine dritte Spot-Nummer).
+  Beispiele: „Berlin 3 · Parkplatz für Anlieger der Insel Scharfenberg", „Berlin 4 · Berlin
+  Reinickendorf" (Faehranleger), „Berlin 5 · Wannsee", „Annecy 2 · Lac d'Annecy", „Annecy 3 · Le
+  Fier", „Papenberge · Havel" / „Papenberge 2 · Oberhavel".
+  **Offen:** der TITEL der Sessions-Ansicht zeigt weiter nur den Spot-Namen („Sessions · Berlin 3")
+  — Jan gefragt, ob die zweite Zeile auch dorthin soll.
 
 - **🟢 Spot-Beschreibungen LIVE im Web (Nutzerwunsch, geplant + gebaut am 24.08.).** Je Nutzer EIN
   Textblock + bis zu 10 Fotos pro Spot; andere koennen nicht ueberschreiben, nur selbst aktualisieren
