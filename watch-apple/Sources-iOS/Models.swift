@@ -315,6 +315,37 @@ struct SpotTrack: Codable, Identifiable {
 // Spot-Wetter (GET /api/community/spot/weather) — aktuell + Tagesvorschau (Wind in Knoten).
 struct MonthCount: Codable, Identifiable { let month: String; let count: Int; var id: String { month } }
 
+// Spot-Beschreibungen (je Nutzer ein Textblock + Fotos pro Spot; Paritaet zur PWA).
+struct SpotNotePhoto: Codable, Identifiable {
+    let id: Int
+    let url: String
+    let thumb_url: String?
+}
+
+struct SpotNote: Codable, Identifiable {
+    let id: Int
+    let user_id: Int
+    let name: String?
+    let avatar_url: String?
+    let text: String
+    let photos: [SpotNotePhoto]
+    let like_count: Int
+    let liked: Bool
+    let my_report: Bool
+    let updated_at: String?
+    let mine: Bool
+}
+
+struct SpotNotesOut: Codable {
+    let spot_id: Int
+    let notes: [SpotNote]
+    let can_write: Bool
+    let max_photos: Int
+    let max_text: Int
+}
+
+struct SpotNoteLike: Codable { let liked: Bool; let like_count: Int }
+
 struct SpotWeather: Codable { let weather: WeatherBlock? }
 struct WeatherBlock: Codable {
     let current: WxCurrent?

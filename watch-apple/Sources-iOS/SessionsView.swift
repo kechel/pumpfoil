@@ -64,6 +64,7 @@ struct SessionsView: View {
         if scope == .mine { transfersAndSuggestions }
         filterSection
         spotWeatherSection
+        spotNotesSection
         if let error { Text(error).foregroundStyle(.secondary) }
         sessionRows
         emptyHint
@@ -82,6 +83,14 @@ struct SessionsView: View {
     @ViewBuilder private var spotWeatherSection: some View {
         if scope == .spot, let wb = weather {
             Section { HomeWeatherCard(wb: wb, lang: lang) }
+        }
+    }
+
+    // Spot-Beschreibungen wie im Web zwischen Wetter und Session-Liste. Nur bei einem echten Spot
+    // (numerische id) — Namens-Gruppen aus dem Altbestand haben keine Spot-Zeile.
+    @ViewBuilder private var spotNotesSection: some View {
+        if scope == .spot, let sid = Int(spot) {
+            SpotNotesView(spotId: sid, lang: lang)
         }
     }
 

@@ -442,8 +442,25 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   schlug zu (HTTP 500, belegt). Kinder jetzt per Bulk-DELETE + `flush()` VOR dem Elternteil.
   (b) Der Light-Mode-Waechter im Build hat 18 doppelt gekippte slate-Klassen gefunden — die
   Projektregel „slate nur mit der Dark-Zahl" gilt auch fuer neue Komponenten.
-  **Offen:** Lesen + Liken in Android/iOS (Web zuerst, weil sofort live; die Store-Freigaben
-  haengen), und Uebersetzungen ausser de/en (fallen auf Englisch).
+  **Android + iOS nachgezogen (24.08., nach Jans Test „funktioniert wunderbar"):** nicht nur Lesen
+  und Liken, sondern der volle Umfang — eigener Textblock anlegen/aendern/loeschen, Foto hochladen
+  (dieselbe Verkleinerung wie Session-Fotos), Foto loeschen, fremde melden. Neue Dateien:
+  `android/.../SpotNotesSection.kt`, `watch-apple/Sources-iOS/SpotNotesView.swift`; eingehaengt in
+  der jeweiligen Sessions-Ansicht direkt hinter dem Spot-Wetter, genau wie im Web.
+  Bearbeiten laeuft dort als Dialog/Sheet, nicht inline: der Abschnitt sitzt in einer scrollenden
+  Liste, ein Textfeld darin verschwindet beim Tippen unter der Tastatur.
+  `:app:compileDebugKotlin` gruen; iOS mit **wieder installiertem swiftc** (`/home/jan/swift`,
+  Swift 6.0.3, Debian-12-Build) ueber ALLE `Sources-iOS/*.swift` geparst — Parse prueft nur
+  Syntax, deshalb alle benutzten Member einzeln gegen die Deklarationen abgeglichen
+  (`Loc.t`, `AvatarView(name:url:size:)`, `Api.mediaURL`, `downscaleJPEG`, PhotosPicker-Muster
+  aus `SessionDetailView`).
+  **Nicht in den Apps** (bewusst, weil es dort keinen Nutzen bringt): Uebernahme eines vorhandenen
+  Session-Fotos und das Umsortieren der eigenen Fotos — auf dem Telefon ist der Bildwaehler ohnehin
+  einen Fingertipp entfernt. Web behaelt beides.
+  **Offen:** Versionen NICHT gebumpt — Phone 1.1.23 und Wear 1.2.23 liegen in der Play-Pruefung, das
+  Feature geht in die naechste Runde (Regel: einen Build in der Pruefung nur ersetzen, wenn er einen
+  echten Fehler behebt). Uebersetzungen: de/en gepflegt, fr/it/es sinngemaess, Rest faellt auf
+  Englisch.
 
 - **🟢 Katalog-Suche war von der Wortstellung abhaengig — behoben (24.08.).** Ausloeser: Meldung
   ueber „fehlt im Katalog?" aus der iOS-App, „Axis png 1300 v2". **Der Fluegel stand drin** — als

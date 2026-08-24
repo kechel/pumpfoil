@@ -448,6 +448,61 @@ enum Api {
         try await request("/api/community/sessions/\(id)/vote?kind=\(kind)", method: "POST", body: nil, auth: true)
     }
 
+    // --- Spot-Beschreibungen ---
+    static func spotNotes(_ spotId: Int) async throws -> SpotNotesOut {
+        try await request("/api/community/spot/\(spotId)/notes", method: "GET", body: nil, auth: true)
+    }
+
+    static func saveSpotNote(_ spotId: Int, text: String) async throws {
+        struct Ok: Decodable { let ok: Bool? }
+        let _: Ok = try await request("/api/community/spot/\(spotId)/note", method: "PUT",
+                                      body: ["text": text], auth: true)
+    }
+
+    static func deleteSpotNote(_ spotId: Int) async throws {
+        struct Ok: Decodable { let ok: Bool? }
+        let _: Ok = try await request("/api/community/spot/\(spotId)/note", method: "DELETE",
+                                      body: nil, auth: true)
+    }
+
+    @discardableResult
+    static func likeSpotNote(_ noteId: Int) async throws -> SpotNoteLike {
+        try await request("/api/community/spot/notes/\(noteId)/like", method: "POST", body: nil, auth: true)
+    }
+
+    static func reportSpotNote(_ noteId: Int) async throws {
+        struct Rep: Decodable { let reported: Bool?; let hidden: Bool? }
+        let _: Rep = try await request("/api/community/spot/notes/\(noteId)/report", method: "POST",
+                                       body: nil, auth: true)
+    }
+
+    static func deleteSpotNotePhoto(_ spotId: Int, photoId: Int) async throws {
+        struct Ok: Decodable { let ok: Bool? }
+        let _: Ok = try await request("/api/community/spot/\(spotId)/note/photos/\(photoId)",
+                                      method: "DELETE", body: nil, auth: true)
+    }
+
+    // Foto zur eigenen Spot-Beschreibung — gleiche multipart-Form wie uploadSessionPhoto.
+    static func uploadSpotNotePhoto(_ spotId: Int, data: Data, filename: String = "photo.jpg",
+                                    mime: String = "image/jpeg") async throws {
+        guard let url = URL(string: baseURL + "/api/community/spot/\(spotId)/note/photos") else { throw ApiError.badURL }
+        let boundary = "----pumpfoil\(Int(Date().timeIntervalSince1970 * 1000))"
+        var body = Data()
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"\(filename)\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: \(mime)\r\n\r\n".data(using: .utf8)!)
+        body.append(data)
+        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.timeoutInterval = 60
+        req.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        if let t = token { req.setValue("Bearer \(t)", forHTTPHeaderField: "Authorization") }
+        let (respData, resp) = try await URLSession.shared.upload(for: req, from: body)
+        let code = (resp as? HTTPURLResponse)?.statusCode ?? -1
+        guard (200..<300).contains(code) else { throw ApiError.http(code, String(data: respData, encoding: .utf8) ?? "") }
+    }
+
     static func labels(_ id: Int) async throws -> [SessionLabel] {
         try await request("/api/sessions/\(id)/labels", method: "GET", body: nil, auth: true)
     }

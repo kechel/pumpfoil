@@ -342,6 +342,36 @@ data class MediaItem(
     val tz: String? = null,               // IANA-Zeitzone des Spots — Anzeige in Ortszeit
 )
 
+@Serializable
+data class SpotNotePhoto(val id: Int, val url: String, val thumb_url: String? = null)
+
+@Serializable
+data class SpotNote(
+    val id: Int,
+    val user_id: Int,
+    val name: String? = null,
+    val avatar_url: String? = null,
+    val text: String = "",
+    val photos: List<SpotNotePhoto> = emptyList(),
+    val like_count: Int = 0,
+    val liked: Boolean = false,
+    val my_report: Boolean = false,
+    val updated_at: String? = null,
+    val mine: Boolean = false,
+)
+
+@Serializable
+data class SpotNotesOut(
+    val spot_id: Int,
+    val notes: List<SpotNote> = emptyList(),
+    val can_write: Boolean = false,
+    val max_photos: Int = 10,
+    val max_text: Int = 2000,
+)
+
+@Serializable
+data class SpotNoteLike(val liked: Boolean = false, val like_count: Int = 0)
+
 // Spot-Wetter (GET /api/community/spot/weather) — aktuell + Tagesvorschau (Wind in Knoten).
 @Serializable
 data class SpotWeather(val weather: WeatherBlock? = null)

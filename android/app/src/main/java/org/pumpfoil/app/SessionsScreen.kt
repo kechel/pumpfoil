@@ -271,6 +271,10 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
             }
             if (scope == Scope.SPOT) {
                 weather?.let { wb -> Box(Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) { WeatherCard(wb) } }
+                // Spot-Beschreibungen wie im Web zwischen Wetter und Session-Liste. Nur bei einem
+                // echten Spot (numerische id) — Namens-Gruppen aus dem Altbestand haben keine
+                // Spot-Zeile, an der eine Beschreibung haengen koennte.
+                spot.toIntOrNull()?.let { sid -> SpotNotesSection(sid) }
             }
             Box(Modifier.fillMaxSize()) {
                 Refreshable(refreshing = loading, onRefresh = { scopeC.launch { load() } }) {

@@ -256,7 +256,7 @@ linearen Pager mit fester Seitenarithmetik, und ein manuelles Pausieren gibt es 
 | Teilen (Karte-Bild + Foto-Hintergrund) | ✅ | ✅ | ✅ |
 | Vollbild-Karte | ✅ | ✅ | ✅ |
 | Session-Datei laden (GPX + FIT, nur eigene) | ✅ | ❌ | ❌ |
-| Spot-Beschreibungen (Text + Fotos je Nutzer, Herzchen) | ✅ | ❌ | ❌ |
+| Spot-Beschreibungen (Text + Fotos je Nutzer, Herzchen) | ✅ | ✅ | ✅ |
 | Per-Session-Diskussion (session-Chat) | ❌ | ❌ | ❌ |
 
 ### Weitere Seiten

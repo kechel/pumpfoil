@@ -1757,7 +1757,9 @@ private fun TransferPicker(sessionId: Int) {
 
 // Bild vor dem Upload auf Web-Größe verkleinern (max 1920 px lange Kante, JPEG q85) — spart
 // Upload-Zeit + Speicher. EXIF-Orientierung wird angewandt. Bei Fehler/kein-Gewinn: Original.
-private fun downscaleJpeg(src: ByteArray, maxEdge: Int = 1920, quality: Int = 85): ByteArray {
+// `internal`, damit auch der Spot-Beschreibungs-Abschnitt dieselbe Verkleinerung nutzt
+// (eine zweite Kopie waere die naechste Stelle, die man beim Aendern vergisst).
+internal fun downscaleJpeg(src: ByteArray, maxEdge: Int = 1920, quality: Int = 85): ByteArray {
     return try {
         val bounds = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
         android.graphics.BitmapFactory.decodeByteArray(src, 0, src.size, bounds)

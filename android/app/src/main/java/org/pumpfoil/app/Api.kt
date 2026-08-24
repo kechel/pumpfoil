@@ -768,6 +768,59 @@ object Api {
         json.decodeFromString(LikeState.serializer(), http("POST", "/api/community/sessions/$id/like", null, auth = true))
     }
 
+    // --- Spot-Beschreibungen (je Nutzer ein Textblock + Fotos pro Spot) ---
+    suspend fun spotNotes(spotId: Int): SpotNotesOut = withContext(Dispatchers.IO) {
+        json.decodeFromString(SpotNotesOut.serializer(),
+            http("GET", "/api/community/spot/$spotId/notes", null, auth = true))
+    }
+
+    suspend fun saveSpotNote(spotId: Int, text: String): Unit = withContext(Dispatchers.IO) {
+        http("PUT", "/api/community/spot/$spotId/note",
+            buildJsonObject { put("text", text) }.toString(), auth = true)
+        Unit
+    }
+
+    suspend fun deleteSpotNote(spotId: Int): Unit = withContext(Dispatchers.IO) {
+        http("DELETE", "/api/community/spot/$spotId/note", null, auth = true); Unit
+    }
+
+    suspend fun likeSpotNote(noteId: Int): SpotNoteLike = withContext(Dispatchers.IO) {
+        json.decodeFromString(SpotNoteLike.serializer(),
+            http("POST", "/api/community/spot/notes/$noteId/like", null, auth = true))
+    }
+
+    suspend fun reportSpotNote(noteId: Int): Unit = withContext(Dispatchers.IO) {
+        http("POST", "/api/community/spot/notes/$noteId/report", null, auth = true); Unit
+    }
+
+    suspend fun deleteSpotNotePhoto(spotId: Int, photoId: Int): Unit = withContext(Dispatchers.IO) {
+        http("DELETE", "/api/community/spot/$spotId/note/photos/$photoId", null, auth = true); Unit
+    }
+
+    // Foto zur eigenen Spot-Beschreibung — dieselbe multipart-Form wie uploadSessionPhoto.
+    suspend fun uploadSpotNotePhoto(spotId: Int, bytes: ByteArray, filename: String = "photo.jpg",
+                                    mime: String = "image/jpeg"): Unit = withContext(Dispatchers.IO) {
+        val boundary = "----pumpfoil${System.nanoTime()}"
+        val conn = (URL(BASE + "/api/community/spot/$spotId/note/photos").openConnection() as HttpURLConnection).apply {
+            requestMethod = "POST"
+            doOutput = true
+            setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
+            token?.let { setRequestProperty("Authorization", "Bearer $it") }
+            connectTimeout = 15000; readTimeout = 60000
+        }
+        conn.outputStream.use { out ->
+            out.write(("--$boundary\r\nContent-Disposition: form-data; name=\"file\"; filename=\"$filename\"\r\n" +
+                "Content-Type: $mime\r\n\r\n").toByteArray())
+            out.write(bytes)
+            out.write("\r\n--$boundary--\r\n".toByteArray())
+        }
+        val code = conn.responseCode
+        if (code !in 200..299) {
+            val err = conn.errorStream?.bufferedReader()?.readText() ?: ""
+            throw RuntimeException("Upload fehlgeschlagen ($code): $err")
+        }
+    }
+
     suspend fun foilStats(): List<FoilStat> = withContext(Dispatchers.IO) {
         json.decodeFromString(ListSerializer(FoilStat.serializer()), http("GET", "/api/community/foil-stats", null, auth = true))
     }
