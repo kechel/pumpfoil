@@ -394,6 +394,21 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 Play-Freigabe da (25.08.): Phone 1.1.23/37 + Wear 1.2.23/1033 sind LIVE.** Sieben Tage
+  Pruefung. `appmeta android` = 1.1.23 und `appmeta wear` = 1.2.23 gesetzt (per
+  `/api/app/latest?platform=android` geprueft), Changelog-Eintrag geschrieben, Einreichungs-
+  Protokoll auf ✅.
+  **Vorsicht bei der Zuordnung:** die Mail nennt weder Version noch Track, nur „created on Aug 18,
+  2026 at 1:38 PM GMT" — das ist 15:38 Berlin und damit genau unsere Doppel-Einreichung. Wie am
+  09.08. deckt EINE Mail beide Tracks ab (gleiche `applicationId`). Wenn du in der Konsole
+  hineinsiehst: bitte kurz gegenpruefen, dass der Wear-OS-Track wirklich 1.2.23 als live zeigt —
+  sonst muss `appmeta wear` zurueck auf 1.2.20.
+  **Damit ist die Play-Warteschlange frei**, und der ganze Stapel aus der Zwischenzeit kann in die
+  naechste Runde: Spot-Beschreibungen (lesen/schreiben/Fotos, inkl. Auswahl aus Session-Fotos),
+  Knopf „Spot-Sessions & Beschreibung" im Session-Detail, Spot-Zusatz (Gewaesser/Steg) in Titel und
+  Auswahl, AR in den Foil-Badges. **Vor dem naechsten Einreichen Versionen bumpen** (Phone 1.1.24,
+  Wear 1.2.24) — und dann nicht mehr ersetzen, solange die Pruefung laeuft.
+
 - **🟢 Diktat: „Bearbeiten" liess das Eingabefeld leer (Jans Meldung 25.08.).** Der Weg lief
   ausschliesslich ueber `rec.onend`: `endWith("edit")` setzte nur eine Absicht und rief `stop()`,
   und erst das Ende-Ereignis schrieb den Text mit `onChange` ins Feld. Beides ist bei der
