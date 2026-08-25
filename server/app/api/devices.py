@@ -404,6 +404,11 @@ def list_devices(
     pm = _partmap()
     cat = _catalog_by_id()
     udefault = "full"
+    # MUSS hier stehen, nicht erst im try: Konten OHNE settings_json (jedes frisch registrierte)
+    # liefen sonst unten in `d.gnss_mode or gdefault` in einen UnboundLocalError -> HTTP 500 auf
+    # /api/devices/list, also kaputte Uhren-Seite und kaputter App-Start. Belegt am 25.08. im Log,
+    # eingeschleppt am 16.08. mit der GNSS-Stufe (ff05b63b).
+    gdefault = "best"
     ustored: dict = {}
     if user and user.settings_json:
         try:
