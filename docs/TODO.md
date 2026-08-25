@@ -398,11 +398,11 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Pruefung. `appmeta android` = 1.1.23 und `appmeta wear` = 1.2.23 gesetzt (per
   `/api/app/latest?platform=android` geprueft), Changelog-Eintrag geschrieben, Einreichungs-
   Protokoll auf ✅.
-  **Vorsicht bei der Zuordnung:** die Mail nennt weder Version noch Track, nur „created on Aug 18,
-  2026 at 1:38 PM GMT" — das ist 15:38 Berlin und damit genau unsere Doppel-Einreichung. Wie am
-  09.08. deckt EINE Mail beide Tracks ab (gleiche `applicationId`). Wenn du in der Konsole
-  hineinsiehst: bitte kurz gegenpruefen, dass der Wear-OS-Track wirklich 1.2.23 als live zeigt —
-  sonst muss `appmeta wear` zurueck auf 1.2.20.
+  **Von Jan bestaetigt (25.08.): beide Tracks sind live.** Damit ist die Regel zweimal belegt
+  (09.08. und 25.08.): bei Play kommt fuer Phone UND Wear **eine einzige Mail**, sie nennt weder
+  Version noch Track, sondern nur den Zeitpunkt der Einreichung („created on … at … GMT", GMT ->
+  Berlin umrechnen). Der Zeitpunkt ist der Schluessel zur Zuordnung — deshalb steht er im
+  Einreichungs-Protokoll. Nicht mehr nachfragen, sondern beide `appmeta`-Schluessel setzen.
   **Damit ist die Play-Warteschlange frei**, und der ganze Stapel aus der Zwischenzeit kann in die
   naechste Runde: Spot-Beschreibungen (lesen/schreiben/Fotos, inkl. Auswahl aus Session-Fotos),
   Knopf „Spot-Sessions & Beschreibung" im Session-Detail, Spot-Zusatz (Gewaesser/Steg) in Titel und
