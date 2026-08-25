@@ -394,6 +394,26 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 Alt-Kategorie „wake" ist aus dem Community-Dropdown verschwunden (25.08.).** Jans Frage
+  („warum ist die noch immer da, ist das noch referenziert?"): ja, absichtlich — `SPORTS_LEGACY`
+  haelt sie sichtbar, damit Altbestaende bei der Aufteilung vom 05.08. (`wakethief` / `towed` /
+  `surf_wave`) nicht stumm aus jeder Kategorie fallen. Der Eintrag kam also nicht aus dem Code,
+  sondern aus DREI Sessions, die ihn noch trugen.
+  **Belege fuer die Zuordnung** (alle drei desselben Nutzers, alle am selben Spot #96 „Senden"):
+  er hat eine spaetere Session dort **selbst** auf `wakethief` gesetzt (`sport_source = owner`) und
+  seine Standard-Sportart steht ebenfalls darauf; die Lauf-Profile zeigen kurze Laeufe neben
+  einzelnen sehr langen (1637 s / 6,4 km bzw. 3736 s / 13,2 km bei ~13 km/h) — die Signatur einer
+  mitgenommenen Schiffswelle, nicht von Eigenleistung (46 km gepumpt waere absurd, zwei der drei
+  haben gar keine Accel-Daten) und nicht von `towed` (zu langsam).
+  **Gemacht:** die drei ueber `PUT /api/sessions/{id}/classification` als Admin auf `wakethief`
+  gesetzt (bewusst ueber den Endpunkt, nicht per SQL — Validierung, `sport_source`, Protokoll).
+  **Geprueft:** `/api/community/sports` listet `wake` nicht mehr, das Dropdown hat jetzt fuenf
+  Eintraege (pumpfoil, wingfoil, wakethief, efoil, foildrive); `wakethief` ist von 21 auf 25
+  Sessions gewachsen. `SPORTS_LEGACY` bleibt im Code stehen — es kostet nichts und faengt den
+  naechsten Umbenennungs-Fall ab.
+  **Keine Nachricht an den Nutzer** (Jan, 25.08.: „das ist doch unsinn") — die Zuordnung entspricht
+  seiner eigenen.
+
 - **🟢 Play-Freigabe da (25.08.): Phone 1.1.23/37 + Wear 1.2.23/1033 sind LIVE.** Sieben Tage
   Pruefung. `appmeta android` = 1.1.23 und `appmeta wear` = 1.2.23 gesetzt (per
   `/api/app/latest?platform=android` geprueft), Changelog-Eintrag geschrieben, Einreichungs-
