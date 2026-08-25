@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { api, BotMsg, BotRoom, ChatRoom, DmUser } from "../lib/api";
+import { istSelbstPop } from "../lib/selfPop";
 import { Avatar } from "./ui";
 import { BellIcon, ChatBubbleIcon, CloseIcon, LocationIcon } from "./Icons";
 import { Chat } from "./Chat";
@@ -152,6 +153,11 @@ export function DmWidget() {
 
   useEffect(() => {
     const onPop = () => {
+      // Ein Overlay ÜBER uns (Diktat, Galerie, Dialog) hat seinen eigenen Marker abgeräumt —
+      // das ist keine Zurück-Geste, der Chat bleibt offen. Ohne diese Zeile schloss ein Klick auf
+      // „Bearbeiten" im Diktat den Chatraum und der diktierte Text ging mit der Komponente
+      // verloren (gemeldet 25.08.).
+      if (istSelbstPop()) return;
       if (skipPopRef.current) { skipPopRef.current = false; return; }  // eigenes Button-Schließen
       if (depthRef.current <= 0) return;                               // keiner unserer Marker
       depthRef.current -= 1;

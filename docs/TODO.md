@@ -404,9 +404,22 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Text, den der Nutzer im Vollbild sieht, plus der vorher im Feld stehende. `onend` schreibt danach
   nicht mehr (Merker `uebergebenRef`), sonst haette es das gefuellte Feld wieder leeren koennen.
   „Uebernehmen" (senden), „Abbrechen" und „Nochmal" bleiben unveraendert.
+  **NACHTRAG — die EIGENTLICHE Ursache (Jans zweite Meldung: „der Chatraum wird auch
+  geschlossen"):** beides war EIN Fehler. Der Chat legt auf Touch-Geraeten eigene History-Marker
+  (eine Ebene je UI-Stufe: Liste, Raum) und schliesst beim `popstate` eine Ebene. Das
+  Diktier-Vollbild legt ueber `useCloseOnBack` einen WEITEREN Marker und raeumt ihn beim Schliessen
+  per `history.back()` ab — und dieses `back()` konnte der Chat-Handler nicht von einer Wisch-Geste
+  unterscheiden. Er schloss also den Raum, die Chat-Komponente wurde ausgehaengt, und der gerade
+  uebergebene Text ging mit ihrem State verloren. Deshalb half der erste Fix (sofort uebergeben)
+  nicht: das Feld war nicht leer, es war weg.
+  **Behoben mit `web/src/lib/selfPop.ts`:** wer selbst `history.back()`/`go()` ruft, meldet es
+  vorher an; alle unsere popstate-Handler ignorieren so ein Ereignis. Zuruckgesetzt wird NACH dem
+  Ereignis-Durchlauf (einmaliger Listener + `setTimeout`), damit ALLE Handler denselben Stand sehen
+  und nicht nur der erste. Eingebaut in `useCloseOnBack` (Anmelden + eigener Handler) und im
+  `DmWidget` (ignoriert fremde Selbst-Pops). Gilt damit auch fuer Galerie, Teilen-Dialog,
+  Vollbild-Karte usw. UEBER einem Chat.
   **Nicht browsergetestet:** auf dieser VM gibt es keine Sprach-API und kein Test-DOM (kein jsdom
-  im Projekt, und dafuer wollte ich keine Abhaengigkeit hinzufuegen). Der Umbau macht den Pfad aber
-  unabhaengig vom Ende-Ereignis, statt dessen Timing zu erraten.
+  im Projekt, und dafuer wollte ich keine Abhaengigkeit hinzufuegen).
 
 - **🔍 Review von El Manus Zepp-Pull-Request (PR #3) — NICHT gemerged (Jans Vorgabe 25.08.).**
   `watch-zepp` only, 19 Dateien, +1656/-213 (davon `page/index.js` +1434). Ausserhalb von
