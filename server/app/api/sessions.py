@@ -1138,12 +1138,20 @@ def list_months(
 # als session_id (int) -> 422.
 @router.get("/my-spots")
 def my_spots(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
-    """Alle Gewässer/Spots des Nutzers (ALLE Sessions, auch GPS-only), neueste zuerst."""
+    """Alle Gewässer/Spots des Nutzers (ALLE Sessions, auch GPS-only), neueste zuerst.
+
+    AUSSORTIERTE Sessions zaehlen nicht mit (`is_pumpfoil = False`): wer eine Aufnahme als
+    „kein Pumpfoil" markiert hat, will den Ort nicht weiter in seiner Spot-Liste sehen. Gemeldet
+    22.08. („noch ein aussortierter Spot (Burgweiler(1)) vorhanden"). NULL bleibt drin — das sind
+    die noch nicht klassifizierten, die gehoeren dem Nutzer weiterhin. GPS-only bleibt ebenfalls
+    drin, das ist eine Frage der Sensorik und nicht der Sportart.
+    """
     from datetime import datetime
     rows = (
         db.query(models.Session.place_name, func.count(), func.max(models.Session.started_at),
                  func.max(models.Session.spot_id))
         .filter(models.Session.user_id == user.id, models.Session.deleted.isnot(True),
+                models.Session.is_pumpfoil.isnot(False),
                 models.Session.place_name.isnot(None), models.Session.place_name != "")
         .group_by(models.Session.place_name).all()
     )
@@ -1165,6 +1173,8 @@ def spot_tracks(spot: str, user: models.User = Depends(current_user),
                  models.Session.id, models.Session.started_at)
         .join(models.Session, models.AnalysisResult.session_id == models.Session.id)
         .filter(models.Session.user_id == user.id, models.Session.deleted.isnot(True),
+                # Wie in `my_spots`: aussortierte Aufnahmen gehoeren nicht in die Animation.
+                models.Session.is_pumpfoil.isnot(False),
                 (models.Session.spot_id == int(spot)) if str(spot).isdigit()
                 else (models.Session.place_name == spot))
         .order_by(models.Session.started_at.asc()).all()

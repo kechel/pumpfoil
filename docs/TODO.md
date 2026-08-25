@@ -394,6 +394,21 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 „Entwicklung am Spot" (/verlauf): zwei gemeldete Fehler behoben (25.08.).** Meldung eines
+  Nutzers vom 22.08.
+  1. **Ansicht blieb leer, wenn man einen anderen Spot waehlte.** Beim Wechsel setzt die Komponente
+     `tracks` auf null und zeigt den Spinner — dabei verschwindet der Karten-Container aus dem DOM,
+     waehrend `mapObj` noch auf die alte Leaflet-Karte zeigt. Die wurde danach weiterbenutzt und
+     zeichnete in ein Element, das nicht mehr in der Seite haengt. Behoben: die Karte wird
+     weggeworfen und neu gebaut, sobald ihr Container nicht mehr der aktuelle ist
+     (`getContainer() !== mapRef.current`).
+  2. **Aussortierte Session stand weiter in der Spot-Liste** („Burgweiler (1)"): `my_spots` zaehlte
+     ALLE Sessions mit `place_name`. Jetzt `is_pumpfoil.isnot(False)` — NULL bleibt drin (noch nicht
+     klassifiziert, gehoert dem Nutzer weiterhin), GPS-only ebenfalls (Sensorik, nicht Sportart).
+     Dieselbe Bedingung in `spot_tracks`, sonst laeuft die Animation ueber aussortierte Spuren.
+  Geprueft auf dem Konto des Melders (nur lesend): Spot-Liste von 4 auf 3 Eintraege, Burgweiler
+  weg, die anderen liefern weiter ihre 25 bzw. 2 Spuren.
+
 - **🟢 Spot-Dubletten: zweiter Mechanismus gefunden und geschlossen (24.08.).** Jans Meldung
   („Pasohlávky doppelt, im Dropdown zwei fast gleiche Namen"). Es war NICHT der Anlege-Wettlauf vom
   20.08. — der Fix haelt (195 Spots, kein Paar unter 100 m, keine doppelten Namen). Zwei andere

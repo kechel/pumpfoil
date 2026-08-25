@@ -30,6 +30,12 @@ type Entry = { date: string; items: Item[] };
 
 const ENTRIES: Entry[] = [
   {
+    date: "August 25, 2026",
+    items: [
+      "Two fixes on the history page, both reported by a rider. Switching to another spot in \u201cprogress at the spot\u201d left you with a blank panel \u2014 the map was still the old one, pointing at a piece of the page that had just been thrown away, so it drew into nothing. It is rebuilt properly now when you switch. And a session you had marked as \u201cnot pumpfoiling\u201d still put its place in your spot list; sorted-out sessions no longer count towards your spots, and they stay out of the animation too. What is still counted: recordings without an accelerometer, and sessions whose sport we have asked you about but you have not answered yet \u2014 those are still yours.",
+    ],
+  },
+  {
     date: "August 24, 2026",
     items: [
       "Spots can now be described by the people who ride them. Open a spot and you will find a new section between the weather and the sessions: how you get on the water here, what the bottom is like, where to park, whatever is worth knowing. Everyone who has a session at that spot gets their own block \u2014 one text and up to ten photos \u2014 and nobody can edit anybody else\u2019s. Several descriptions simply stand one under the other, each with the date it was last updated, and you can give the ones you find useful a heart; the most appreciated move to the top. Your photos can come straight from your own session photos at that spot instead of being uploaded again, and you decide their order. There is a filter on the spots map to show only spots that have a description. One thing to keep in mind: these are notes from other riders, not official information \u2014 on the water, trust your own judgement. The idea came from a rider, and it is a good one: a dock start, a beach start and a drop-in are three different days out, and until now there was nowhere to say which one a spot is.",

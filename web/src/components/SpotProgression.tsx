@@ -50,6 +50,16 @@ export function SpotProgression() {
   // Karte + fixer Ausschnitt (Union aller Spuren) — nur bei Spot-/Track-Wechsel.
   useEffect(() => {
     if (!mapRef.current || !tracks || !tracks.length) return;
+    // Beim Spot-Wechsel setzt `setTracks(null)` die Ansicht kurz auf den Spinner — dabei
+    // verschwindet der Karten-Container aus dem DOM, waehrend `mapObj` noch auf die alte
+    // Leaflet-Karte zeigt. Wird die danach weiterbenutzt, zeichnet sie in ein Element, das nicht
+    // mehr in der Seite haengt: die Ansicht bleibt leer bzw. „bricht zusammen" (gemeldet 22.08.).
+    // Deshalb pruefen, ob die Karte noch AN DIESEM Container haengt, und sie sonst wegwerfen.
+    if (mapObj.current && mapObj.current.getContainer() !== mapRef.current) {
+      mapObj.current.remove();
+      mapObj.current = null;
+      curRef.current = null;
+    }
     if (!mapObj.current) {
       mapObj.current = L.map(mapRef.current, { zoomControl: false, maxZoom: 22, attributionControl: false });
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 22 }).addTo(mapObj.current);
