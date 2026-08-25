@@ -438,8 +438,11 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Beispiele: „Berlin 3 · Parkplatz für Anlieger der Insel Scharfenberg", „Berlin 4 · Berlin
   Reinickendorf" (Faehranleger), „Berlin 5 · Wannsee", „Annecy 2 · Lac d'Annecy", „Annecy 3 · Le
   Fier", „Papenberge · Havel" / „Papenberge 2 · Oberhavel".
-  **Offen:** der TITEL der Sessions-Ansicht zeigt weiter nur den Spot-Namen („Sessions · Berlin 3")
-  — Jan gefragt, ob die zweite Zeile auch dorthin soll.
+  **Titel ergaenzt (Jan, 25.08.: „ja bitte auch in den titel"):** die Ueberschrift der
+  Sessions-Ansicht zeigt den Zusatz jetzt hinter dem Namen, kleiner und ruhiger gesetzt
+  („Sessions · Berlin 3 · Berlin Reinickendorf") — und nur, wenn er nicht der Name selbst ist.
+  **Nicht in den Apps:** deren `SpotMapItem` traegt das Feld noch nicht; Android/iOS zeigen im
+  Spot-Titel weiter nur den Namen. Nachziehbar, sobald wieder eine App-Runde ansteht.
 
 - **🟢 Spot-Beschreibungen LIVE im Web (Nutzerwunsch, geplant + gebaut am 24.08.).** Je Nutzer EIN
   Textblock + bis zu 10 Fotos pro Spot; andere koennen nicht ueberschreiben, nur selbst aktualisieren

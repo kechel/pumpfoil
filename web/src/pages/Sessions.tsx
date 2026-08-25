@@ -230,6 +230,10 @@ export default function Sessions() {
     : spot
       ? `${t("sessions.title")} · ${spotName}`
       : `${t("sessions.title")} · ${t("nav.allSessions.short")}`;
+  // Zweite Zeile des Spots (Gewaesser bzw. Steg/Ortslage) auch in die Ueberschrift: „Berlin 3"
+  // allein sagt nicht, welcher der drei Berliner Spots gemeint ist (Jan, 25.08.). Kleiner und
+  // ruhiger gesetzt als der Name — der Titel soll nicht zur Zeile werden.
+  const spotZusatz = spot ? (spots.find((x) => String(x.id) === spot)?.water ?? "") : "";
 
   const tabCls = (active: boolean) =>
     `rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${active ? "bg-brand-500 text-slate-950" : "text-slate-200 hover:bg-slate-800"}`;
@@ -240,7 +244,12 @@ export default function Sessions() {
       {/* Überschrift ganz oben (wie auf allen Seiten) */}
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <SessionsIcon className="h-7 w-7 text-brand-400" />
-        <h2 className="text-2xl font-bold">{title}</h2>
+        <h2 className="text-2xl font-bold">
+          {title}
+          {spotZusatz && spotZusatz !== spotName && (
+            <span className="ml-2 text-base font-normal text-slate-400">· {spotZusatz}</span>
+          )}
+        </h2>
       </div>
 
       <UploadProgressCard />
