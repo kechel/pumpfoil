@@ -394,6 +394,41 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔍 Review von El Manus Zepp-Pull-Request (PR #3) — NICHT gemerged (Jans Vorgabe 25.08.).**
+  `watch-zepp` only, 19 Dateien, +1656/-213 (davon `page/index.js` +1434). Ausserhalb von
+  `watch-zepp` aendert er nichts. Er selbst schreibt „keep this pull request as a draft" und hat
+  **4 von 7 Feldtest-Punkten offen** (Ring R1/R2/R3, R3 oeffnet bei Lauf, R3 bleibt hell, voller
+  Upload mit Lauferkennung). Im Chat (23.08.) kuendigte er ausserdem weitere Fixes an.
+  **Muss vor einem Merge geklaert werden:**
+  1. **Versions-Kollision:** er setzt `code 10, name 1.0.6` — unser **1.0.6 (code 9) ist seit
+     24.08. im Zepp-Store freigegeben**. Zwei verschiedene Builds unter derselben Nummer; muss
+     1.0.7 werden, sonst luegt auch `appmeta zepp`.
+  2. **Emoji-Regel:** das 🔒 auf dem Touch-Sperr-Schild ist wieder drin (`page/index.js:942`) —
+     genau das haben wir am 18.08. entfernt.
+  3. **`t0_ms: req.t0_ms || 0`** in `app-side/index.js`: fehlt der Wert, behauptet die 0 eine
+     EXAKTE Chunk-Startzeit (der Server schreibt bei not-None ein Sidecar und baut daraus die
+     Achse). Besser das Feld weglassen und den Server schaetzen lassen.
+  4. **Auto-Start wird bewusst ignoriert** (Kommentar in `page/index.js:813`) — Abweichung von
+     Wear/Garmin und von der Server-Einstellung. Produktentscheidung Jans; wenn so, sollte die
+     Einstellung fuer Zepp nicht als aktiv erscheinen.
+  **Uebernehmen fuer ALLE Uhren (die eigentliche Ausbeute):**
+  - **GPS-Ruhe-Gate**: Netto-Bewegung ueber ein Fenster statt Punkt-zu-Punkt, und wiederholte
+    identische Koordinaten NICHT als Null-Speed in den 3-s-Median. Genau die Fehlerklasse, die
+    ThermikDreher gemeldet hat („erster Lauf 7 km/h Ø") und die auf Garmin belegt ist (Nutzervideo,
+    100 km/h im Stehen am Steg).
+  - **Start erst mit GPS-Fix** (Knopf grau bis Fix, Vibration + Ton bei Fix) — haette Idahobies
+    Fall entschaerft.
+  - **Upload:** BLE-Chunk fruh bestaetigen, in eine begrenzte Queue legen, Handy→Server parallel,
+    COMPLETE erst nach allen Requests. Korrigiert unsere Annahme „Zepp sequenziell, parallel bringt
+    nichts" (Memory `upload-parallelization` praezisiert).
+  - **Accel inkrementell auf die Platte + Resume**, und die Datei loeschen, wenn keine GPS-Punkte
+    dazu existieren (keine Waisen nach einem Neustart in den ersten Sekunden).
+  - **Puls-Zonen des Nutzers** (`Workout.getUserHrZoneSettings`, 5 Zonen) fuer einen Ring —
+    sauber abgesichert (Capability-Pruefung, Plausibilitaet, Fallback auf feste Grenzen). Garmin
+    kann Zonen ueber `UserProfile` auch; ThermikDreher hat genau danach gefragt.
+  **PR #2** (ein Zeile, `fr.ts`: „Mes" → „Les miennes"): plausibel, aber es ist ein TAB-Label in
+  der Kurzform — vorher im Web ansehen, ob die Leiste auf dem Telefon nicht bricht.
+
 - **🟢 Vier Meldungen aus dem Chat-/Feedback-Durchgang abgearbeitet (25.08.).**
   1. **Detailansicht zeigte alte Werte** (Alex, 20.08.: „13 runs in der Uebersicht, 12 wenn ich die
      Session oeffne"). Ursache: die Session-Detailantwort baut ihr ETag aus `sessions.updated_at`,
