@@ -44,9 +44,14 @@ fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, 
     // ist namensbasiert). Einmal die Karte holen und zuordnen; ohne Spot-Zeile (Altbestand) bleibt
     // es null und der Abschnitt entfaellt.
     var spotId by remember(spot) { mutableStateOf<Int?>(null) }
+    // Zweite Zeile zum Spot (Gewaesser bzw. Steg/Ortslage) — dieselbe Abfrage, ein Feld mehr.
+    var spotLabel by remember(spot) { mutableStateOf<String?>(null) }
     LaunchedEffect(spot) {
-        spotId = try { Api.spotMap(accelOnly = false).firstOrNull { it.spot == spot }?.spotId }
-                 catch (_: Exception) { null }
+        try {
+            val m = Api.spotMap(accelOnly = false).firstOrNull { it.spot == spot }
+            spotId = m?.spotId
+            spotLabel = m?.water?.takeIf { it.isNotBlank() && !it.equals(spot, ignoreCase = true) }
+        } catch (_: Exception) { /* offline -> Titel ohne Zusatz */ }
     }
 
     suspend fun load() {
@@ -71,7 +76,7 @@ fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("📍 $spot") },
+                title = { Text("📍 $spot" + (spotLabel?.let { " · $it" } ?: ""), maxLines = 1) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück")

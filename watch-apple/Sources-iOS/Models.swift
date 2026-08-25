@@ -280,6 +280,9 @@ struct PeriodRecords: Codable {
 struct SpotMapItem: Codable, Identifiable {
     let spot: String
     let spot_id: Int?   // additiv (neue Clients); Nav bleibt namensbasiert
+    // Zweite Zeile zum Spot: Gewaesser, sonst Steg/Ortslage (Server: water_name bzw. area_name).
+    // Unterscheidet die Zaehler-Namen — „Berlin 3" und „Berlin 4" sehen sonst gleich aus.
+    let water: String?
     let lat: Double
     let lon: Double
     let sessions: Int

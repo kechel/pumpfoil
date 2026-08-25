@@ -504,6 +504,9 @@ data class PeriodRecords(
 data class SpotMapItem(
     val spot: String,
     @SerialName("spot_id") val spotId: Int? = null,   // additiv (neue Clients); Nav bleibt namensbasiert
+    // Zweite Zeile zum Spot: Gewaesser, sonst Steg/Ortslage (Server: spots.water_name bzw.
+    // area_name). Unterscheidet die Zaehler-Namen — „Berlin 3" und „Berlin 4" sind sonst gleich.
+    val water: String? = null,
     val lat: Double = 0.0,
     val lon: Double = 0.0,
     val sessions: Int = 0,

@@ -99,6 +99,8 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
     var spot by remember { mutableStateOf("") }          // aktiver Spot (für SPOT-Scope)
     // Name -> spot_id (fuer die Spot-Beschreibungen; die Spot-Auswahl selbst bleibt namensbasiert).
     var spotIds by remember { mutableStateOf<Map<String, Int>>(emptyMap()) }
+    // Name -> zweite Zeile (Gewaesser bzw. Steg/Ortslage), wie im Web hinter dem Spot-Namen.
+    var spotLabels by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
     var spots by remember { mutableStateOf<List<String>>(emptyList()) }   // alle Spot-Namen (Dropdown)
     var own by remember { mutableStateOf<List<SessionSummary>>(emptyList()) }
     var groups by remember { mutableStateOf<List<CommunityGroup>>(emptyList()) }   // Community/Spot: Tages-Gruppen
@@ -124,9 +126,14 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
         spots = try { Api.spots(accelOnly = false).all } catch (_: Exception) { emptyList() }
         // Einmal die Karte holen, nur fuer die Zuordnung Name -> spot_id. Billig (ein Aufruf) und
         // die Alternative waere ein neuer Endpunkt fuer denselben Zusammenhang.
-        spotIds = try {
-            Api.spotMap(accelOnly = false).mapNotNull { m -> m.spotId?.let { m.spot to it } }.toMap()
-        } catch (_: Exception) { emptyMap() }
+        try {
+            val karte = Api.spotMap(accelOnly = false)
+            spotIds = karte.mapNotNull { m -> m.spotId?.let { m.spot to it } }.toMap()
+            spotLabels = karte.mapNotNull { m ->
+                m.water?.takeIf { it.isNotBlank() && !it.equals(m.spot, ignoreCase = true) }
+                    ?.let { m.spot to it }
+            }.toMap()
+        } catch (_: Exception) { /* offline -> ohne Zusatz, die Ansicht funktioniert trotzdem */ }
     }
     LaunchedEffect(tick) {
         suggestions = try { Api.mergeSuggestions() } catch (_: Exception) { emptyList() }
@@ -194,7 +201,10 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
             val title = when (scope) {
                 Scope.MINE -> "${I18n.t("nav.sessions")} · ${I18n.t("sessions.mine")}"
                 Scope.ALL -> "${I18n.t("nav.sessions")} · ${I18n.t("sessions.all")}"
-                Scope.SPOT -> "${I18n.t("nav.sessions")} · 📍${spot}"
+                // Zusatz mit in den Titel (wie im Web): „Berlin 3" allein sagt nicht, welcher
+                // der drei Berliner Spots gemeint ist.
+                Scope.SPOT -> "${I18n.t("nav.sessions")} · 📍${spot}" +
+                    (spotLabels[spot]?.let { " · $it" } ?: "")
             }
             PumpfoilTopBar(title) {
                 // Spot-Chat, wenn ein Spot gefiltert ist (scope "spot:<name>", wie PWA/iOS).
@@ -232,7 +242,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
             }
             // Spot-Auswahl als Dropdown (statt Freitext, der exakte Namen brauchte).
             Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
-                SpotDropdown(spots, if (scope == Scope.SPOT) spot else "") { sel ->
+                SpotDropdown(spots, spotLabels, if (scope == Scope.SPOT) spot else "") { sel ->
                     if (sel.isBlank()) { spot = ""; if (scope == Scope.SPOT) scope = Scope.ALL }
                     else { spot = sel; scope = Scope.SPOT }
                 }
@@ -788,7 +798,8 @@ private fun MonthDropdown(months: List<MonthCount>, month: String, onSelect: (St
 
 // Spot-Auswahl (wie das PWA-<select>): „Alle Spots" + jeder Spot; ersetzt die Freitext-Suche.
 @Composable
-private fun SpotDropdown(spots: List<String>, selected: String, onSelect: (String) -> Unit) {
+private fun SpotDropdown(spots: List<String>, labels: Map<String, String>, selected: String,
+                         onSelect: (String) -> Unit) {
     var open by remember { mutableStateOf(false) }
     Box {
         AssistChip(
@@ -799,7 +810,19 @@ private fun SpotDropdown(spots: List<String>, selected: String, onSelect: (Strin
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
             DropdownMenuItem(text = { Text(I18n.t("all.allSpots")) }, onClick = { onSelect(""); open = false })
             spots.forEach { s ->
-                DropdownMenuItem(text = { Text(s) }, onClick = { onSelect(s); open = false })
+                DropdownMenuItem(
+                    text = {
+                        Column {
+                            Text(s)
+                            // Zweite Zeile: Gewaesser bzw. Steg — sonst sehen „Berlin 3" und
+                            // „Berlin 4" in der Liste identisch aus.
+                            labels[s]?.let {
+                                Text(it, style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                    },
+                    onClick = { onSelect(s); open = false })
             }
         }
     }

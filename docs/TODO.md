@@ -441,8 +441,15 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   **Titel ergaenzt (Jan, 25.08.: „ja bitte auch in den titel"):** die Ueberschrift der
   Sessions-Ansicht zeigt den Zusatz jetzt hinter dem Namen, kleiner und ruhiger gesetzt
   („Sessions · Berlin 3 · Berlin Reinickendorf") — und nur, wenn er nicht der Name selbst ist.
-  **Nicht in den Apps:** deren `SpotMapItem` traegt das Feld noch nicht; Android/iOS zeigen im
-  Spot-Titel weiter nur den Namen. Nachziehbar, sobald wieder eine App-Runde ansteht.
+  **Apps nachgezogen (25.08.):** `SpotMapItem` traegt das Feld jetzt auf beiden Seiten
+  (`water`, optional -> alte Server brechen nichts). Android: Zusatz im Titel der Sessions-Ansicht,
+  im Spot-Dropdown als zweite Zeile und im Titel von `SpotSessionsScreen`. iOS: dasselbe in
+  `SessionsView` (Titel + Auswahlmenue) und `SpotSessionsView`. Weggelassen wird der Zusatz, wenn er
+  dem Spot-Namen entspricht — dieselbe Regel wie im Web (die Unterdrueckung gleicher Namensstaemme,
+  „Praha 5" neben „Praha 3", macht schon der Server).
+  `:app:compileDebugKotlin` gruen, alle `Sources-iOS/*.swift` geparst.
+  **KEIN Versions-Bump** (Jan, 25.08.): Phone 1.1.23 und Wear 1.2.23 liegen in der Play-Pruefung,
+  das geht in die naechste Runde.
 
 - **🟢 Spot-Beschreibungen LIVE im Web (Nutzerwunsch, geplant + gebaut am 24.08.).** Je Nutzer EIN
   Textblock + bis zu 10 Fotos pro Spot; andere koennen nicht ueberschreiben, nur selbst aktualisieren

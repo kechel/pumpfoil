@@ -16,6 +16,7 @@ struct SpotSessionsView: View {
     // Beschreibungen haengen an der spot_id, hierher kommt nur der NAME (die Navigation ist
     // namensbasiert). Einmal ueber die Karte zuordnen; ohne Spot-Zeile bleibt es nil.
     @State private var spotId: Int?
+    @State private var spotLabel: String?      // Gewaesser bzw. Steg/Ortslage, fuer den Titel
 
     var body: some View {
         List {
@@ -30,7 +31,7 @@ struct SpotSessionsView: View {
             }
         }
         .listStyle(.insetGrouped)
-        .brandToolbar("📍 \(spot)")
+        .brandToolbar("📍 \(spot)" + (spotLabel.map { " · \($0)" } ?? ""))
         .toolbar {
             // Spot-Chat (scope "spot:<name>", wie Web/PWA) — bei Age-Gate (social_allowed=false) aus.
             if store.profile?.social_allowed != false {
@@ -46,7 +47,9 @@ struct SpotSessionsView: View {
         .task { if items.isEmpty { await load() } }
         .task {
             if spotId == nil {
-                spotId = (try? await Api.spotMap(accelOnly: false))?.first { $0.spot == spot }?.spot_id
+                let m = (try? await Api.spotMap(accelOnly: false))?.first { $0.spot == spot }
+                spotId = m?.spot_id
+                if let w = m?.water, !w.isEmpty, w.lowercased() != spot.lowercased() { spotLabel = w }
             }
         }
     }

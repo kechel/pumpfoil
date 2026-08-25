@@ -15,6 +15,7 @@ struct SessionsView: View {
     @State private var spotNames: [String] = []
     @State private var spot = ""          // aktiver Spot (für .spot)
     @State private var spotIds: [String: Int] = [:]   // Name -> spot_id (Spot-Beschreibungen)
+    @State private var spotLabels: [String: String] = [:]   // Name -> Gewaesser bzw. Steg/Ortslage
     @State private var loading = false
     @State private var error: String?
     @State private var suggestions: [MergeSuggestion] = []
@@ -130,6 +131,11 @@ struct SessionsView: View {
         if let karte = try? await Api.spotMap(accelOnly: false) {
             spotIds = Dictionary(karte.compactMap { m in m.spot_id.map { (m.spot, $0) } },
                                  uniquingKeysWith: { a, _ in a })
+            spotLabels = Dictionary(karte.compactMap { m -> (String, String)? in
+                guard let w = m.water, !w.isEmpty,
+                      w.lowercased() != m.spot.lowercased() else { return nil }
+                return (m.spot, w)
+            }, uniquingKeysWith: { a, _ in a })
         }
         await applyAccelDefault()
         await reloadIncoming()
@@ -168,7 +174,10 @@ struct SessionsView: View {
                     Menu {
                         Button(Loc.t("all.allSpots", lang)) { spot = ""; if scope == .spot { scope = .all } }
                         ForEach(spotNames, id: \.self) { s in
-                            Button(s) { spot = s; scope = .spot }
+                            // Zweite Zeile im Menue: sonst sind „Berlin 3" und „Berlin 4" gleich.
+                            Button { spot = s; scope = .spot } label: {
+                                if let w = spotLabels[s] { Text("\(s) · \(w)") } else { Text(s) }
+                            }
                         }
                     } label: {
                         Label(spot.isEmpty ? Loc.t("all.allSpots", lang) : spot, systemImage: "mappin.and.ellipse")
@@ -258,7 +267,11 @@ struct SessionsView: View {
         switch scope {
         case .mine: return "\(Loc.t("nav.sessions", lang)) · \(Loc.t("sessions.mine", lang))"
         case .all: return "\(Loc.t("nav.sessions", lang)) · \(Loc.t("sessions.all", lang))"
-        case .spot: return "\(Loc.t("nav.sessions", lang)) · 📍\(spot)"
+        // Zusatz mit in den Titel (wie im Web): „Berlin 3" allein sagt nicht, welcher der
+        // drei Berliner Spots gemeint ist.
+        case .spot:
+            let zusatz = spotLabels[spot].map { " · \($0)" } ?? ""
+            return "\(Loc.t("nav.sessions", lang)) · 📍\(spot)\(zusatz)"
         }
     }
 
