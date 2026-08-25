@@ -34,6 +34,7 @@ export function MicButton({ value, onChange, onSubmit, disabled, title }: {
   const baseRef = useRef("");        // Feld-Text bei Start (Diktat wird angehängt)
   const finalRef = useRef("");       // von uns akkumulierter finaler Text (über Sessions)
   const sessFinalRef = useRef("");   // finaler Text der laufenden Session
+  const uebergebenRef = useRef(false);  // „Bearbeiten" hat den Text schon ins Feld gelegt
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const SR = typeof window !== "undefined"
@@ -95,8 +96,10 @@ export function MicButton({ value, onChange, onSubmit, disabled, title }: {
         pendingRef.current = null;
         const all = finalRef.current.trim();
         const full = (baseRef.current + all).slice(0, 2000);
-        if (full.trim()) {
+        if (full.trim() && !(action === "edit" && uebergebenRef.current)) {
           // „edit" (und der Fall ohne onSubmit): Text nur ins Feld -> manuell weiter bearbeiten.
+          // Hat `endWith` den Text schon uebergeben, NICHT erneut schreiben: die Refs koennen
+          // hier bereits leer sein, und der Aufruf wuerde das gefuellte Feld wieder leeren.
           if (onSubmit && action === "accept") onSubmit(full.trim());
           else onChange(full);
         }
@@ -113,6 +116,7 @@ export function MicButton({ value, onChange, onSubmit, disabled, title }: {
 
   function start() {
     setErr("");
+    uebergebenRef.current = false;
     baseRef.current = value ? value.replace(/\s+$/, "") + " " : "";
     finalRef.current = "";
     setPreview("");
@@ -125,11 +129,24 @@ export function MicButton({ value, onChange, onSubmit, disabled, title }: {
   function resetState() {
     activeRef.current = false; recRef.current = null;
     setListening(false); setPreview(""); setBaseText(""); finalRef.current = ""; sessFinalRef.current = "";
+    uebergebenRef.current = false;
   }
   // Die Aktionen stoppen jeweils die Aufnahme; onend führt sie dann aus.
   function endWith(action: "accept" | "cancel" | "redo" | "edit") {
     pendingRef.current = action;
     activeRef.current = false;
+    // „Bearbeiten" uebergibt den Text SOFORT ins Feld, nicht erst in `onend` (gemeldet 25.08.:
+    // Feld blieb leer). Der Weg ueber `onend` haengt daran, dass der Browser nach `stop()`
+    // ueberhaupt noch ein Ende meldet und die Refs dann noch gefuellt sind — beides ist bei der
+    // Web-Speech-API nicht garantiert, besonders wenn die Erkennung gerade zwischen zwei
+    // Sessions neu startet. Quelle ist bewusst `preview`: genau der Text, den der Nutzer im
+    // Vollbild sieht.
+    if (action === "edit") {
+      const diktiert = preview.trim()
+        || [finalRef.current, sessFinalRef.current].filter(Boolean).join(" ").trim();
+      const full = (baseRef.current + diktiert).slice(0, 2000);
+      if (full.trim()) { onChange(full); uebergebenRef.current = true; }
+    }
     try { recRef.current?.stop(); } catch { /* egal */ }
   }
 

@@ -394,6 +394,20 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 Diktat: „Bearbeiten" liess das Eingabefeld leer (Jans Meldung 25.08.).** Der Weg lief
+  ausschliesslich ueber `rec.onend`: `endWith("edit")` setzte nur eine Absicht und rief `stop()`,
+  und erst das Ende-Ereignis schrieb den Text mit `onChange` ins Feld. Beides ist bei der
+  Web-Speech-API nicht garantiert — nach `stop()` muss kein Ende mehr kommen (besonders wenn die
+  Erkennung gerade zwischen zwei Sessions neu startet, unser Auto-Restart mit
+  `continuous = false`), und wenn es kommt, koennen `finalRef`/`sessFinalRef` schon leer sein.
+  **Jetzt uebergibt `endWith("edit")` den Text SOFORT** — Quelle ist `preview`, also genau der
+  Text, den der Nutzer im Vollbild sieht, plus der vorher im Feld stehende. `onend` schreibt danach
+  nicht mehr (Merker `uebergebenRef`), sonst haette es das gefuellte Feld wieder leeren koennen.
+  „Uebernehmen" (senden), „Abbrechen" und „Nochmal" bleiben unveraendert.
+  **Nicht browsergetestet:** auf dieser VM gibt es keine Sprach-API und kein Test-DOM (kein jsdom
+  im Projekt, und dafuer wollte ich keine Abhaengigkeit hinzufuegen). Der Umbau macht den Pfad aber
+  unabhaengig vom Ende-Ereignis, statt dessen Timing zu erraten.
+
 - **🔍 Review von El Manus Zepp-Pull-Request (PR #3) — NICHT gemerged (Jans Vorgabe 25.08.).**
   `watch-zepp` only, 19 Dateien, +1656/-213 (davon `page/index.js` +1434). Ausserhalb von
   `watch-zepp` aendert er nichts. Er selbst schreibt „keep this pull request as a draft" und hat
