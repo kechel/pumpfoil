@@ -1059,7 +1059,12 @@ def history(
 ) -> list[dict]:
     """Pro Session (chronologisch) der jeweils beste Lauf je Kennzahl — Grundlage
     für die Verlauf-Kurven (kumulierter Bestwert / 30-Tage-Fenster). Nur Sessions
-    mit Beschleunigungsdaten (präzise)."""
+    mit Beschleunigungsdaten (präzise).
+
+    AUSSORTIERTE Sessions (`is_pumpfoil = False`) bleiben draussen: gemeldet 16.08. — eine als
+    andere Sportart markierte Skate-Runde stand weiter in der eigenen Verlaufskurve und
+    „verfaelscht meine Laufbahn auf dem Foil". NULL bleibt drin (Sportart noch nicht geklaert).
+    """
     rows = (
         db.query(
             models.AnalysisResult.metrics_json, models.AnalysisResult.segments_json,
@@ -1067,7 +1072,8 @@ def history(
             models.Session.id, models.Session.started_at,
         )
         .join(models.Session, models.AnalysisResult.session_id == models.Session.id)
-        .filter(models.Session.user_id == user.id, models.Session.deleted.isnot(True))
+        .filter(models.Session.user_id == user.id, models.Session.deleted.isnot(True),
+                models.Session.is_pumpfoil.isnot(False))
         .order_by(models.Session.started_at.asc())
         .all()
     )

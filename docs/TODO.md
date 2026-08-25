@@ -394,6 +394,32 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 Vier Meldungen aus dem Chat-/Feedback-Durchgang abgearbeitet (25.08.).**
+  1. **Detailansicht zeigte alte Werte** (Alex, 20.08.: „13 runs in der Uebersicht, 12 wenn ich die
+     Session oeffne"). Ursache: die Session-Detailantwort baut ihr ETag aus `sessions.updated_at`,
+     und `run_analysis` hat den Stempel NICHT gesetzt — nach einer Reanalyse kam also „304 – nicht
+     geaendert" und der Client zeigte seinen alten Stand, waehrend die frisch gerechnete Liste die
+     neuen Zahlen hatte. `run_analysis` stempelt jetzt `updated_at` (eine Zeile am Ende, aendert
+     nichts an der Analyse; deckt ALLE Pfade ab — Upload, Reanalyse, Merge, Massenlauf).
+  2. **Aussortierte Sessions verfaelschten die Verlaufskurven** (PeterH, 16.08.: „wird aber in
+     meiner Historie gezaehlt"). `/api/sessions/history` filtert jetzt `is_pumpfoil.isnot(False)`,
+     wie schon `my_spots`/`spot_tracks`. Geprueft: zwei Nutzer mit 58 bzw. 51 aussortierten
+     Sessions haben davon 0 in der Kurve.
+  3. **Spot-Auswahlfeld: eigene Spots zuerst** (Philipp, 22.08.) — zwei Gruppen („Meine Spots" /
+     „Weitere Spots"); ohne eigene Spots bleibt es die einfache Liste. Und **„Aussortiert" schaltet
+     auf „alle"**, weil aussortierte Sessions meist keine Accel-Laeufe haben und die Liste sonst
+     leer aussieht (sein zweiter Punkt).
+  4. **Streckung (AR) in den Foil-Badges** (ThermikDreher) — ueberall, wo wir belastbare Masse
+     haben: Web (`lib/foilLabel.ts`: Session-Detail, eigene + fremde Listen, Profil-Unterzeile),
+     Android (`foilLabel()` in Models.kt, eigene + Community-Zeilen), iOS (`foilLabel()` in
+     Models.swift, beide Chip-Texte). Fehlt Flaeche oder Spannweite, bleibt die AR weg. Der Server
+     liefert `aspect_ratio` dafuer jetzt auch in den Community-Zeilen mit.
+  **Noch offen aus dem Durchgang:** Antworten an Alex und Beat (Jan gefragt); Beats zweiter Punkt
+  („Uhr zeigt 0.06 als Laufzeit") ist mit unseren Formaten nicht erklaerbar — die Dauer wird als
+  „1:06" gesetzt, Distanzen unter 1 km in ganzen Metern; dafuer braeuchte es ein Foto. Sessions
+  nach aehnlichen Laeufen/AR filtern: Jan will die UX vorher ueberlegen. El Manus Pull Request
+  (T-Rex-Fassung) anschauen — Zepp 1.0.6 ist inzwischen freigegeben.
+
 - **🟢 „Entwicklung am Spot" (/verlauf): zwei gemeldete Fehler behoben (25.08.).** Meldung eines
   Nutzers vom 22.08.
   1. **Ansicht blieb leer, wenn man einen anderen Spot waehlte.** Beim Wechsel setzt die Komponente

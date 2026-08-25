@@ -496,6 +496,8 @@ const de: Record<string, string> = {
   "spotnote.uploadFail": "Foto konnte nicht gespeichert werden.",
   "spots.onlyWithNotes": "Nur mit Beschreibung",
   "sd.spotPage": "Spot-Sessions & Beschreibung",
+  "sessions.mySpots": "Meine Spots",
+  "sessions.otherSpots": "Weitere Spots",
   "sd.share": "Teilen",
   "sd.waterBody": "Gewässer",
   "share.darken": "Abdunkeln",

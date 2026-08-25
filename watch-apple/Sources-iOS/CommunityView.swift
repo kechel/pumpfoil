@@ -489,8 +489,7 @@ struct CommunityRow: View {
 
     private var foilChipText: String {
         guard let f = item.foil else { return "" }
-        let parts: [String] = [f.brand, f.model, f.size].compactMap { $0 }.filter { !$0.isEmpty }
-        return parts.joined(separator: " ")
+        return foilLabel(f.brand, f.model, f.size, f.aspect_ratio)
     }
 
     /// Anzeige-Name der Sportart, wenn die Session nicht als Pumpfoilen eingeordnet ist.

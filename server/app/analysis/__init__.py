@@ -617,6 +617,12 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
                 session.needs_classification = True
 
     session.status = "analyzed" if final else "live"
+    # ZUletzt-geaendert-Stempel: die Session-Detailantwort baut daraus ihr ETag, und die Clients
+    # (PWA + Apps) cachen darueber. Ohne diesen Stempel liefert der Server nach einer Reanalyse
+    # weiter "304 – nicht geaendert": die LISTE zeigt die neuen Werte (frisch gerechnet), das
+    # DETAIL den alten Stand aus dem Cache. Genau so gemeldet (20.08.): „13 runs in der Uebersicht,
+    # 12 wenn ich die Session oeffne". Nur ein Zeitstempel — an der Analyse selbst aendert er nichts.
+    session.updated_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(result)
     return result

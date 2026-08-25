@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api, Board, Foil, SessionSummary, Stab } from "../lib/api";
+import { foilLabel } from "../lib/foilLabel";
 import { FoilIcon } from "./Icons";
 import { useT } from "../i18n";
 
@@ -58,7 +59,7 @@ export function FoilSelect({ session, owned, onMeta }: {
   if (!owned || !foils) {
     return (
       <>
-        {foil && chip(`${foil.brand} ${foil.model} ${foil.size}`, "foil")}
+        {foil && chip(foilLabel(foil), "foil")}
         {setupChips()}
       </>
     );

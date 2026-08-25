@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { fmtDate } from "../lib/time";
+import { foilLabel } from "../lib/foilLabel";
 import { Link } from "react-router-dom";
 import { api, OverallStats, Profile, SessionSummary } from "../lib/api";
 import { Card, Spinner } from "../components/ui";
@@ -256,7 +257,7 @@ export default function PersonalHome() {
               tz={s.tz}
               endedAt={s.ended_at}
               spot={s.place_name}
-              foil={s.foil ? `${s.foil.brand} ${s.foil.model} ${s.foil.size}` : null}
+              foil={s.foil ? foilLabel(s.foil) : null}
               {...setupLabels(s)}
               deviceLabel={s.device_label}
               caption={s.caption}

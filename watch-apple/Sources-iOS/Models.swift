@@ -695,6 +695,18 @@ struct FoilBrief: Codable {
     let brand: String?
     let model: String?
     let size: String?
+    // Streckung fuer die Badges (Server liefert sie in Listen und Session-Details mit).
+    let aspect_ratio: Double?
+}
+
+// Foil als Badge-Text — mit Streckung (AR), wo wir sie kennen. Warum die AR mit dran (Jan,
+// 25.08., auf Nutzerwunsch): sie sagt mehr ueber den Charakter eines Fluegels als der Name und
+// entscheidet, ob eine fremde Session mit dem eigenen Material vergleichbar ist. Ohne
+// belastbaren Wert bleibt sie weg — eine erfundene Zahl waere schlechter als keine.
+func foilLabel(_ brand: String?, _ model: String?, _ size: String?, _ ar: Double?) -> String {
+    let name = [brand, model, size].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " ")
+    if let ar, ar > 0 { return name + " · AR " + String(format: "%.1f", ar) }
+    return name
 }
 
 // Mini-Track-Vorschau (normalisierte Polylinien) wie web TrackPreview: {"w","h","lines":[[[x,y],...],...]}.

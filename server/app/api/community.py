@@ -1159,7 +1159,11 @@ def _attach_social(db: Session, user: models.User, briefs: list[dict]) -> list[d
     fids = {b.get("foil_id") for b in briefs if b.get("foil_id")}
     fmap = {}
     if fids:
-        fmap = {f.id: {"id": f.id, "brand": f.brand, "model": f.model, "size": f.size}
+        # Streckung mitliefern: die Badges zeigen sie, wo wir belastbare Masse haben (Jan, 25.08.
+        # auf Nutzerwunsch — die AR sagt mehr ueber den Charakter des Fluegels als der Name).
+        fmap = {f.id: {"id": f.id, "brand": f.brand, "model": f.model, "size": f.size,
+                       "aspect_ratio": (round((f.span_cm ** 2) / f.area_cm2, 2)
+                                        if f.area_cm2 and f.span_cm else None)}
                 for f in db.query(models.Foil).filter(models.Foil.id.in_(fids)).all()}
     # Restliches Setup (Stab/Mast/Board) im Batch. Anders als bei den eigenen Sessions gehoeren die
     # Sessions hier VERSCHIEDENEN Nutzern -> die Standards kommen aus mehreren settings_json, also

@@ -518,8 +518,7 @@ struct SessionRow: View {
 
     private var foilChipText: String {
         guard let f = session.foil else { return "" }
-        let parts: [String] = [f.brand, f.model, f.size].compactMap { $0 }.filter { !$0.isEmpty }
-        return parts.joined(separator: " ")
+        return foilLabel(f.brand, f.model, f.size, f.aspect_ratio)
     }
 
     private var statsText: String? {

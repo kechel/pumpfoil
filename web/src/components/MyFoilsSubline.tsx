@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api, Foil } from "../lib/api";
+import { foilLabel } from "../lib/foilLabel";
 
 // Dezente Subzeile für den „Meine Foils"-Menüpunkt: die vom Nutzer gewählten Foils
 // (Standard-Foil zuerst und farblich hervorgehoben). Leer -> nichts anzeigen.
@@ -14,7 +15,7 @@ export function MyFoilsSubline({ className = "" }: { className?: string }) {
         const out = mine
           .map((id) => byId.get(id))
           .filter((f): f is Foil => !!f)
-          .map((f) => ({ text: `${f.brand} ${f.model} ${f.size}`, def: f.id === def }))
+          .map((f) => ({ text: foilLabel(f), def: f.id === def }))
           .sort((a, b) => (a.def === b.def ? 0 : a.def ? -1 : 1)); // Standard-Foil nach vorne
         setRows(out);
       })

@@ -403,7 +403,7 @@ fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, onClick: () -> 
                 Column(Modifier.weight(1f)) {
                     Text(dateTimeRange(s.startedAt, s.endedAt, s.tz), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                     if (inCompare) Text("⇄ ${I18n.t("compare.title")}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
-                    val foilLabel = s.foil?.let { listOf(it.brand, it.model, it.size).filter { p -> p.isNotBlank() }.joinToString(" ") }?.takeIf { it.isNotBlank() }
+                    val foilLabel = s.foil?.let { foilLabel(it.brand, it.model, it.size, it.aspectRatio) }?.takeIf { it.isNotBlank() }
                     // Sportart bekommt hier KEINEN Chip: eigene Sessions tragen das schon im
                     // Klassifikations-Badge in der Fußzeile (samt Datenqualität) — sonst doppelt.
                     SessionChips(sportClass = null, spot = s.placeName, foil = foilLabel,
@@ -732,7 +732,7 @@ fun CommunityItemRow(c: CommunityItem, modifier: Modifier = Modifier, onClick: (
                         Text(dateTimeRange(c.startedAt, c.endedAt, c.tz), style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    val cFoil = c.foil?.let { listOf(it.brand, it.model, it.size).filter { p -> p.isNotBlank() }.joinToString(" ") }?.takeIf { it.isNotBlank() }
+                    val cFoil = c.foil?.let { foilLabel(it.brand, it.model, it.size, it.aspectRatio) }?.takeIf { it.isNotBlank() }
                     SessionChips(sportClass = c.sportClass, spot = c.spot, foil = cFoil,
                         setup = c.setup, deviceLabel = c.deviceLabel)
                     c.caption?.takeIf { it.isNotBlank() }?.let {

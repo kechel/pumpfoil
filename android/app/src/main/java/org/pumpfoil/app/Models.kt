@@ -120,6 +120,8 @@ data class FoilBrief(
     val brand: String = "",
     val model: String = "",
     val size: String = "",
+    // Streckung fuer die Badges (Server liefert sie in Listen und Session-Details mit).
+    @SerialName("aspect_ratio") val aspectRatio: Double? = null,
 )
 
 // Mini-Track-Vorschau (normalisierte Polylinien aus der Analyse), wie web TrackPreview:
@@ -808,6 +810,15 @@ data class WatchLayoutBrief(
     val has_freetext: Boolean = false,
     val published: Boolean = false,
 )
+
+// Foil als Badge-Text — mit Streckung (AR), wo wir sie kennen. Warum die AR mit dran
+// (Jan, 25.08., auf Nutzerwunsch): sie sagt mehr ueber den Charakter eines Fluegels als der Name
+// und entscheidet, ob eine fremde Session mit dem eigenen Material vergleichbar ist. Ohne
+// belastbaren Wert bleibt sie weg — eine erfundene Zahl waere schlechter als keine.
+fun foilLabel(brand: String?, model: String?, size: String?, ar: Double?): String {
+    val name = listOf(brand, model, size).filterNotNull().filter { it.isNotBlank() }.joinToString(" ")
+    return if (ar != null && ar > 0) "$name · AR " + String.format("%.1f", ar) else name
+}
 
 // Freitextsuche im Material-Katalog — UNABHAENGIG von der Wortstellung.
 //

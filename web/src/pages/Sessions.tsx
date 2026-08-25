@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { api, CommunitySession, CommunityGroup, SessionSummary, type Transfer } from "../lib/api";
+import { foilLabel } from "../lib/foilLabel";
 import { Card, Spinner, ErrorBox, Avatar } from "../components/ui";
 import { AccelToggle } from "../components/AccelToggle";
 import { useAccelDefault } from "../lib/useAccelDefault";
@@ -192,6 +193,10 @@ export default function Sessions() {
   const [homespot, setHomespot] = useState("");
   const [homespotId, setHomespotId] = useState<number | null>(null);
   const [spots, setSpots] = useState<{ id: number; name: string; water?: string | null }[]>([]);
+  // Eigene Spots (Namen) — im Auswahlfeld stehen sie in einer eigenen Gruppe OBEN. Gemeldet
+  // 22.08.: „unter Meine nur Spots mit eigenen Sessions, oder zumindest die eigenen oben".
+  // Bewusst nicht die anderen entfernen: das Feld ist auch der Sprung in fremde Spots.
+  const [meineSpots, setMeineSpots] = useState<string[]>([]);
   const nameById = useMemo(() => Object.fromEntries(spots.map((s) => [String(s.id), s.name])), [spots]);
   const spotName = spot ? (nameById[spot] ?? spot) : "";
   const hsRef = homespotId != null ? String(homespotId) : homespot;   // Homespot als id, Fallback Name
@@ -205,6 +210,7 @@ export default function Sessions() {
 
   useEffect(() => {
     api.getSettings().then((s) => { setHomespot((s.homespot as string) ?? ""); setHomespotId((s.homespot_id as number | null) ?? null); }).catch(() => {});
+    api.mySpots().then((l) => setMeineSpots(l.map((x) => x.spot))).catch(() => {});
     api.spotMap(false).then((m) => setSpots(   // alle Spots (auch GPS) als {id,name}
       // Gewaesser mitnehmen: „Berlin 3" und „Berlin 4" sind sonst im Auswahlfeld nicht
       // auseinanderzuhalten (Jan, 24.08.).
@@ -269,11 +275,23 @@ export default function Sessions() {
           className="rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-2 text-sm text-slate-100"
         >
           <option value="">{t("all.allSpots")}</option>
-          {spots.map((s) => (
-            <option key={s.id} value={String(s.id)}>
-              {s.name}{s.water && s.water !== s.name ? ` · ${s.water}` : ""}
-            </option>
-          ))}
+          {(() => {
+            const eigene = spots.filter((s) => meineSpots.includes(s.name));
+            const rest = spots.filter((s) => !meineSpots.includes(s.name));
+            const opt = (s: { id: number; name: string; water?: string | null }) => (
+              <option key={s.id} value={String(s.id)}>
+                {s.name}{s.water && s.water !== s.name ? ` · ${s.water}` : ""}
+              </option>
+            );
+            // Ohne eigene Spots (neues Konto) gar keine Gruppen — sonst steht da eine leere Gruppe.
+            if (eigene.length === 0) return spots.map(opt);
+            return (
+              <>
+                <optgroup label={t("sessions.mySpots")}>{eigene.map(opt)}</optgroup>
+                <optgroup label={t("sessions.otherSpots")}>{rest.map(opt)}</optgroup>
+              </>
+            );
+          })()}
         </select>
         {spot && <SpotChatToggle spot={spotName} t={t} />}
         <AccelToggle value={accelOnly} onChange={setAccelOnly} className="ml-auto" />
@@ -288,7 +306,8 @@ export default function Sessions() {
           Nur bei einem echten Spot (numerische id) — Namens-Gruppen aus dem Altbestand haben
           keine Spot-Zeile, an der eine Beschreibung haengen koennte. */}
       {spot && /^\d+$/.test(spot) && <SpotNotes spotId={Number(spot)} />}
-      {isMine ? <MySessionsList key={reloadKey} myName={myName} accelOnly={accelOnly} /> : <CommunityList name="" spot={spot} accelOnly={accelOnly} onShowAll={() => setAccelAuto(false)} />}
+      {isMine ? <MySessionsList key={reloadKey} myName={myName} accelOnly={accelOnly}
+                                onShowAll={() => setAccelAuto(false)} /> : <CommunityList name="" spot={spot} accelOnly={accelOnly} onShowAll={() => setAccelAuto(false)} />}
     </div>
   );
 }
@@ -322,7 +341,8 @@ export function ProcessingNote() {
   );
 }
 
-function MySessionsList({ myName, accelOnly }: { myName: string | null; accelOnly: boolean }) {
+function MySessionsList({ myName, accelOnly, onShowAll }:
+    { myName: string | null; accelOnly: boolean; onShowAll?: () => void }) {
   const t = useT();
   const accelRef = useRef(accelOnly); accelRef.current = accelOnly;
   const firstAccel = useRef(true);
@@ -471,6 +491,9 @@ function MySessionsList({ myName, accelOnly }: { myName: string | null; accelOnl
     syncUrl(filterRef.current, v); fetchPage(v, true);
   }
   function changeFilter(f: "pump" | "other") {
+    // Aussortierte Sessions haben meist gar keine Accel-Laeufe — mit „nur Accel" sieht man bei
+    // „Aussortiert (8)" eine LEERE Liste (gemeldet 22.08.). Beim Umschalten deshalb auf „alle".
+    if (f === "other" && accelRef.current) onShowAll?.();
     setFilter(f); filterRef.current = f; setMonth(""); monthRef.current = ""; hasMoreRef.current = true; offsetRef.current = 0;
     listCache.delete(cacheKey());
     syncUrl(f, ""); api.sessionMonths(f).then(setMonths).catch(() => {}); fetchPage("", true);
@@ -562,7 +585,7 @@ function MySessionsList({ myName, accelOnly }: { myName: string | null; accelOnl
               tz={s.tz}
               endedAt={s.ended_at}
               spot={s.place_name}
-              foil={s.foil ? `${s.foil.brand} ${s.foil.model} ${s.foil.size}` : null}
+              foil={s.foil ? foilLabel(s.foil) : null}
               {...setupLabels(s)}
               deviceLabel={s.device_label}
               caption={s.caption}
@@ -621,7 +644,7 @@ function renderCommunitySession(s: CommunitySession, t: (k: string) => string, l
       tz={s.tz}
       endedAt={s.ended_at}
       spot={s.spot}
-      foil={s.foil ? `${s.foil.brand} ${s.foil.model} ${s.foil.size}` : null}
+      foil={s.foil ? foilLabel(s.foil) : null}
       sportLabel={s.sport_class && s.sport_class !== "pumpfoil" ? t(`cls.sport.${s.sport_class}`) : null}
       {...setupLabels(s)}
       deviceLabel={s.device_label}
