@@ -476,6 +476,22 @@ enum Api {
                                        body: nil, auth: true)
     }
 
+    // Eigene Session-Fotos DIESES Spots — Auswahlliste fuer „aus meinen Session-Fotos".
+    // Der Systemwaehler zeigt tausende Bilder, hier stehen genau die zum Spot gehoerenden.
+    static func mySpotSessionPhotos(_ spotId: Int) async throws -> [MySessionPhoto] {
+        try await request("/api/community/spot/\(spotId)/my-session-photos", method: "GET",
+                          body: nil, auth: true)
+    }
+
+    // Uebernahme: der Server KOPIERT die Datei (ein Verweis wuerde beim Loeschen des
+    // Session-Fotos das Spot-Bild mitreissen).
+    static func adoptSpotNotePhoto(_ spotId: Int, photoId: Int) async throws {
+        struct Foto: Decodable { let id: Int? }
+        let _: Foto = try await request(
+            "/api/community/spot/\(spotId)/note/photos/from-session?photo_id=\(photoId)",
+            method: "POST", body: nil, auth: true)
+    }
+
     static func deleteSpotNotePhoto(_ spotId: Int, photoId: Int) async throws {
         struct Ok: Decodable { let ok: Bool? }
         let _: Ok = try await request("/api/community/spot/\(spotId)/note/photos/\(photoId)",

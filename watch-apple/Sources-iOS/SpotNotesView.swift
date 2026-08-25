@@ -17,6 +17,10 @@ struct SpotNotesView: View {
     @State private var busy = false
     @State private var pickerItem: PhotosPickerItem?
     @State private var gross: Bild?
+    // Auswahl aus den EIGENEN Session-Fotos dieses Spots (nil = zu). Warum das trotz
+    // System-Bildwaehler wichtig ist (Jan, 25.08.): auf dem Telefon liegen tausende Fotos,
+    // hier stehen genau die, die zu diesem Spot gehoeren.
+    @State private var waehler: [MySessionPhoto]?
 
     var body: some View {
         // Group statt zweier Zweige: die Ansicht existiert IMMER, damit `.task` laeuft und laedt —
@@ -42,6 +46,9 @@ struct SpotNotesView: View {
         .onChange(of: pickerItem) { item in upload(item) }
         .sheet(isPresented: $editing) { editSheet() }
         .sheet(item: $gross) { b in FullBild(url: b.url) }
+        .sheet(isPresented: Binding(get: { waehler != nil }, set: { if !$0 { waehler = nil } })) {
+            sessionFotoWahl()
+        }
     }
 
     // Ein Bild als identifizierbares Element — `sheet(item:)` braucht Identifiable.
@@ -78,6 +85,16 @@ struct SpotNotesView: View {
                 if (meine?.photos.count ?? 0) < d.max_photos {
                     PhotosPicker(selection: $pickerItem, matching: .images) {
                         Label(Loc.t("spotnote.addPhoto", lang), systemImage: "photo.badge.plus")
+                    }
+                    .disabled(busy)
+                    Button {
+                        Task {
+                            busy = true
+                            waehler = (try? await Api.mySpotSessionPhotos(spotId)) ?? []
+                            busy = false
+                        }
+                    } label: {
+                        Label(Loc.t("spotnote.fromSession", lang), systemImage: "photo.on.rectangle")
                     }
                     .disabled(busy)
                 }
@@ -208,6 +225,48 @@ struct SpotNotesView: View {
                             busy = false
                         }
                     }
+                }
+            }
+        }
+    }
+
+    // Gitter der eigenen Session-Fotos; Tippen uebernimmt das Bild in die Beschreibung.
+    @ViewBuilder private func sessionFotoWahl() -> some View {
+        let liste = waehler ?? []
+        NavigationStack {
+            Group {
+                if liste.isEmpty {
+                    Text(Loc.t("spotnote.noSessionPhotos", lang)).foregroundStyle(.secondary).padding()
+                } else {
+                    ScrollView {
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 88), spacing: 6)], spacing: 6) {
+                            ForEach(liste) { p in
+                                AsyncImage(url: Api.mediaURL(p.thumb_url ?? p.url)) { img in
+                                    img.resizable().scaledToFill()
+                                } placeholder: {
+                                    Color.gray.opacity(0.2)
+                                }
+                                .frame(width: 88, height: 88)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                                .onTapGesture {
+                                    Task {
+                                        busy = true
+                                        try? await Api.adoptSpotNotePhoto(spotId, photoId: p.id)
+                                        waehler = nil
+                                        await load()
+                                        busy = false
+                                    }
+                                }
+                            }
+                        }
+                        .padding()
+                    }
+                }
+            }
+            .navigationTitle(Loc.t("spotnote.fromSession", lang))
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(Loc.t("common.close", lang)) { waehler = nil }
                 }
             }
         }

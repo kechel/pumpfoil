@@ -370,6 +370,14 @@ data class SpotNotesOut(
 )
 
 @Serializable
+data class MySessionPhoto(
+    val id: Int,
+    val url: String,
+    val thumb_url: String? = null,
+    val started_at: String? = null,
+)
+
+@Serializable
 data class SpotNoteLike(val liked: Boolean = false, val like_count: Int = 0)
 
 // Spot-Wetter (GET /api/community/spot/weather) — aktuell + Tagesvorschau (Wind in Knoten).

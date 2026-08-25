@@ -793,6 +793,21 @@ object Api {
         http("POST", "/api/community/spot/notes/$noteId/report", null, auth = true); Unit
     }
 
+    // Eigene Session-Fotos DIESES Spots — die Auswahlliste fuer „aus meinen Session-Fotos".
+    // Der Systemwaehler zeigt tausende Bilder; hier stehen genau die, die zu diesem Spot gehoeren.
+    suspend fun mySpotSessionPhotos(spotId: Int): List<MySessionPhoto> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(MySessionPhoto.serializer()),
+            http("GET", "/api/community/spot/$spotId/my-session-photos", null, auth = true))
+    }
+
+    // Uebernahme: der Server KOPIERT die Datei (ein Verweis wuerde beim Loeschen des
+    // Session-Fotos das Spot-Bild mitreissen).
+    suspend fun adoptSpotNotePhoto(spotId: Int, photoId: Int): Unit = withContext(Dispatchers.IO) {
+        http("POST", "/api/community/spot/$spotId/note/photos/from-session?photo_id=$photoId",
+             null, auth = true)
+        Unit
+    }
+
     suspend fun deleteSpotNotePhoto(spotId: Int, photoId: Int): Unit = withContext(Dispatchers.IO) {
         http("DELETE", "/api/community/spot/$spotId/note/photos/$photoId", null, auth = true); Unit
     }

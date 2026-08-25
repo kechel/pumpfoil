@@ -511,9 +511,14 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Syntax, deshalb alle benutzten Member einzeln gegen die Deklarationen abgeglichen
   (`Loc.t`, `AvatarView(name:url:size:)`, `Api.mediaURL`, `downscaleJPEG`, PhotosPicker-Muster
   aus `SessionDetailView`).
-  **Nicht in den Apps** (bewusst, weil es dort keinen Nutzen bringt): Uebernahme eines vorhandenen
-  Session-Fotos und das Umsortieren der eigenen Fotos — auf dem Telefon ist der Bildwaehler ohnehin
-  einen Fingertipp entfernt. Web behaelt beides.
+  **Nachgereicht 25.08.: „Aus meinen Session-Fotos" gibt es jetzt AUCH in beiden Apps.** Meine
+  urspruengliche Begruendung („auf dem Telefon ist der Bildwaehler einen Fingertipp entfernt") war
+  falsch, Jans Einwand trifft: auf dem Telefon liegen tausende Bilder, und genau drei davon
+  gehoeren zu diesem Spot — die kurze, richtige Liste ist der ganze Punkt. Android: Dialog mit
+  Foto-Gitter, iOS: Sheet mit `LazyVGrid`; beide ueber `GET …/my-session-photos` +
+  `POST …/photos/from-session`. **Weiterhin nur im Web:** das Umsortieren der eigenen Fotos (dafuer
+  braeuchte es in den Apps einen eigenen Foto-Bearbeiten-Modus); das Loeschkreuz am Bild bleibt
+  dort deshalb sichtbar.
   **Nachgereicht am selben Tag (Jans Wuensche beim Ausprobieren):**
   1. **Knopf „Spot-Sessions & Beschreibung"** in der Session-Detailansicht neben dem Spot-Chat —
      Web als `<Link>` auf `/sessions?spot=<id>` (mit `place_name` als Rueckfall), Android als

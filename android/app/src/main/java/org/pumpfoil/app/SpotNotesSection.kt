@@ -64,6 +64,10 @@ fun SpotNotesSection(spotId: Int) {
     var editText by remember(spotId) { mutableStateOf<String?>(null) }   // != null => Dialog offen
     var busy by remember(spotId) { mutableStateOf(false) }
     var gross by remember(spotId) { mutableStateOf<String?>(null) }      // Foto im Vollbild
+    // Auswahl aus den EIGENEN Session-Fotos dieses Spots: null = zu, sonst die geladene Liste.
+    // Warum das trotz Systemwaehler wichtig ist (Jan, 25.08.): auf dem Telefon liegen tausende
+    // Bilder, hier stehen genau die drei, die zu diesem Spot gehoeren.
+    var waehler by remember(spotId) { mutableStateOf<List<MySessionPhoto>?>(null) }
 
     suspend fun laden() { data = try { Api.spotNotes(spotId) } catch (_: Exception) { null } }
     LaunchedEffect(spotId) { laden() }
@@ -122,6 +126,16 @@ fun SpotNotesSection(spotId: Int) {
                                 Spacer(Modifier.width(4.dp))
                                 Text(I18n.t("spotnote.addPhoto"))
                             }
+                            OutlinedButton(
+                                onClick = {
+                                    scope.launch {
+                                        busy = true
+                                        waehler = try { Api.mySpotSessionPhotos(spotId) } catch (_: Exception) { emptyList() }
+                                        busy = false
+                                    }
+                                },
+                                enabled = !busy,
+                            ) { Text(I18n.t("spotnote.fromSession")) }
                         }
                     }
                 }
@@ -187,6 +201,36 @@ fun SpotNotesSection(spotId: Int) {
                     TextButton(onClick = { editText = null }) { Text(I18n.t("common.cancel")) }
                 }
             },
+        )
+    }
+
+    waehler?.let { liste ->
+        AlertDialog(
+            onDismissRequest = { waehler = null },
+            title = { Text(I18n.t("spotnote.fromSession")) },
+            text = {
+                if (liste.isEmpty()) {
+                    Text(I18n.t("spotnote.noSessionPhotos"), style = MaterialTheme.typography.bodySmall)
+                } else {
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        liste.forEach { p ->
+                            AsyncImage(
+                                model = (p.thumb_url ?: p.url).let { if (it.startsWith("http")) it else Api.BASE + it },
+                                contentDescription = null, contentScale = ContentScale.Crop,
+                                modifier = Modifier.size(84.dp).clip(RoundedCornerShape(10.dp))
+                                    .clickable(enabled = !busy) {
+                                        scope.launch {
+                                            busy = true
+                                            try { Api.adoptSpotNotePhoto(spotId, p.id); laden() } catch (_: Exception) {}
+                                            busy = false; waehler = null
+                                        }
+                                    },
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = { TextButton(onClick = { waehler = null }) { Text(I18n.t("common.close")) } },
         )
     }
 

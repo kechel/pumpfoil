@@ -347,6 +347,13 @@ struct SpotNotesOut: Codable {
     let max_text: Int
 }
 
+struct MySessionPhoto: Codable, Identifiable {
+    let id: Int
+    let url: String
+    let thumb_url: String?
+    let started_at: String?
+}
+
 struct SpotNoteLike: Codable { let liked: Bool; let like_count: Int }
 
 struct SpotWeather: Codable { let weather: WeatherBlock? }
