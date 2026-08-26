@@ -152,9 +152,12 @@ class RecordView extends WatchUi.View {
     // laeuft, kann man noch reagieren (pausieren -> dann laedt die Uhr hoch und schafft Platz).
     hidden function _drawDataLossWarn(dc, w, h) {
         if (_rec.storageDropped <= 0) { return; }
+        // Unten VERANKERT (Unterkante 0,97) statt Oberkante 0,90: mit der alten Rechnung stand
+        // die Zeile auf 176 px teilweise ausserhalb des Displays. Schwarzer Textgrund, weil die
+        // Warnung ueber den Datenfeldern liegt und bei zwei Zeilen sonst im Wert verschwindet.
+        dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_BLACK);
+        _drawWrap(dc, w / 2, h * 0.97, Graphics.FONT_XTINY, Strings.s("err.dataLost"), true);
         dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h * 0.90, Graphics.FONT_XTINY, Strings.s("err.dataLost"),
-            Graphics.TEXT_JUSTIFY_CENTER);
     }
 
     // Welcher Zustand gilt gerade? Reihenfolge ist wichtig: manuell pausiert sticht alles.
@@ -203,15 +206,16 @@ class RecordView extends WatchUi.View {
     // sonst nur die knappe Zeile, damit ein eigenes Layout nicht zugedeckt wird.
     hidden function _drawPausedChrome(dc, w, h, classic, showPaused, showResume) {
         if (showPaused) {
-            dc.setColor(Config.BRAND_CYAN, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(w / 2, h * 0.055, Graphics.FONT_XTINY, Strings.s("rec.paused"),
-                Graphics.TEXT_JUSTIFY_CENTER);
+            dc.setColor(Config.BRAND_CYAN, Graphics.COLOR_BLACK);
+            _drawWrap(dc, w / 2, h * 0.04, Graphics.FONT_XTINY, Strings.s("rec.paused"), false);
         }
         if (showResume) {
+            // Unten verankert: mit VCENTER auf 0,955 ragte die halbe Zeilenhoehe unter den
+            // Displayrand — auf jeder Groesse, auf kleinen faellt es nur mehr auf.
             dc.setColor(classic ? Graphics.COLOR_LT_GRAY : Graphics.COLOR_WHITE,
-                Graphics.COLOR_TRANSPARENT);
-            dc.drawText(w / 2, h * 0.955, Graphics.FONT_XTINY, "ENTER: " + Strings.s("rec.resume"),
-                Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+                Graphics.COLOR_BLACK);
+            _drawWrap(dc, w / 2, h * 0.99, Graphics.FONT_XTINY,
+                "ENTER: " + Strings.s("rec.resume"), true);
         }
     }
 
@@ -277,8 +281,7 @@ class RecordView extends WatchUi.View {
         dc.drawArc(w / 2, h / 2, r, Graphics.ARC_CLOCKWISE, 90, 90.0 - 360.0 * sp);
         dc.setPenWidth(1);
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h * 0.42, Graphics.FONT_TINY, Strings.s("rec.holdMenu"),
-            Graphics.TEXT_JUSTIFY_CENTER);
+        _drawWrap(dc, w / 2, h * 0.42, Graphics.FONT_TINY, Strings.s("rec.holdMenu"), false);
     }
 
     // Idle: nur der Start-Screen. Verbinden + Upload liegen — wie bei nativen
@@ -292,123 +295,259 @@ class RecordView extends WatchUi.View {
     }
 
     hidden function _drawStartPage(dc, w, h) {
-        var titleY = h * 0.20;
+        // "Klein" heisst hier NICHT wenige Pixel, sondern wenige ZEILEN — darauf kommt es an.
+        // Die fenix 5 hat 240 px, ihr FONT_XTINY ist aber 26 px gross: es passen 7 Zeilen aufs
+        // Display, weniger als auf die 176-px-Instinct-2 (8,8). Die fenix 7X Pro (280 px, xtiny
+        // 13) fasst 16. Unter 13 Zeilen ruecken Titelband und Inhalt zusammen und die Version
+        // entfaellt — sie steht auch auf dem Gespeichert-Screen und im Store.
+        var klein = (h < 13 * dc.getFontHeight(Graphics.FONT_XTINY));
+        var titleY = klein ? h * 0.10 : h * 0.20;
         // Kleines Telefon-Icon oben, wenn eine aktive Verbindung zum Handy besteht.
-        if (Uploader.phoneConnected()) { _drawPhone(dc, w / 2, h * 0.115); }
+        if (Uploader.phoneConnected() && !klein) { _drawPhone(dc, w / 2, h * 0.115); }
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
         dc.drawText(w / 2, titleY, Graphics.FONT_MEDIUM, "Pumpfoil", Graphics.TEXT_JUSTIFY_CENTER);
         // Version anhand der echten Titel-Font-Höhe darunter -> kein Überlappen (geräteunabhängig).
         var titleH = dc.getFontHeight(Graphics.FONT_MEDIUM);
-        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, titleY + titleH + 2, Graphics.FONT_XTINY, "v" + Config.VERSION, Graphics.TEXT_JUSTIFY_CENTER);
+        var y = titleY + titleH + 2;
+        if (!klein) {
+            dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(w / 2, y, Graphics.FONT_XTINY, "v" + Config.VERSION, Graphics.TEXT_JUSTIFY_CENTER);
+            y += dc.getFontHeight(Graphics.FONT_XTINY);
+        }
         // Update-Hinweis: kurz nach App-Start einblenden, wenn der Server eine neuere IQ-Store-
         // Version meldet (Config-Abruf setzt updateHintUntilMs). Ganz oben, brand-cyan.
         if (_rec.updateAvailable && System.getTimer() < _rec.updateHintUntilMs) {
             dc.setColor(Config.BRAND_CYAN, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(w / 2, h * 0.03, Graphics.FONT_XTINY, Strings.s("upd.store"), Graphics.TEXT_JUSTIFY_CENTER);
+            _drawWrap(dc, w / 2, h * 0.05, Graphics.FONT_XTINY, Strings.s("upd.store"), false);
         }
         // Selbstheilung: letzte Aufnahme mit dynamischem Layout ist abgestürzt -> diese Sitzung
         // läuft statisch. Kurz sagen, damit der Nutzer weiß, warum seine Layouts fehlen.
         _drawLayoutCrashHint(dc, w, h);
+
+        // Ab hier FLIESST die Seite: jede Zeile meldet ihre gezeichnete Hoehe zurueck, der
+        // Cursor `y` wandert mit. Vorher stand alles auf festen Bruchteilen der Displayhoehe
+        // (0,44 · 0,50 · 0,555 · 0,565 · 0,65) — auf 176 px liegen zwischen 0,50 und 0,555 aber
+        // nur 10 px, weniger als eine Zeile hoch ist: Hinweis und Foil-Zeile ueberlappten sich
+        // dort schon im Normalfall, und mit Umbruch waere es beliebig schlimm geworden.
+        var luft = h * 0.015;
+        var xf = Graphics.FONT_XTINY;
+        var fh = dc.getFontHeight(xf);
+        // Ab hier duerfen nur noch PFLICHT-Zeilen dazukommen: GPS-Status und die eine Warnung.
+        // Zusatzzeilen (Foil, "erst hochladen") entfallen, damit die START-Zeile und die
+        // Hinweise darunter Platz behalten. Auf der fenix 5 (7 Zeilen aufs ganze Display)
+        // waeren sonst allein GPS + Warnung + Zusatz schon ueber dem unteren Rand.
+        var mitteMax = h * (klein ? 0.58 : 0.70);
+        if (!klein && y < h * 0.44) { y = h * 0.44; }   // grosse Uhren behalten ihr Layout
+
         // GPS-Status (vorgewärmt seit App-Start) — so weiß man, wann man loslegen kann.
-        // Aufzeichnungsrate hinten dran (Config-Check: 25 Hz / 10 Hz / GPS).
+        // Die Zeile wird nach WICHTIGKEIT zusammengesetzt: Zustand steht immer, Auto-Start und
+        // Aufzeichnungsrate nur, solange sie in die Zeile passen. Auf 280 px steht alles da,
+        // auf 176 px das Wesentliche — statt wie bisher an beiden Enden abgeschnitten zu werden.
         var rl = _rec.recordRateLabel();
+        var mw = _usableWidth(dc, y + fh / 2);
         if (_rec.hasGpsFix()) {
             dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
-            var gtxt = Strings.s("gps.ready");
-            // Auto-Start: während des Vorlaufs Countdown „Auto-Start Ns", danach nur „Auto-Start" (scharf).
-            if (_rec.autoStartOn()) {
-                gtxt += " · " + Strings.s("auto.short");
-                if (!_rec.autoArmed()) { gtxt += " " + _rec.autoLead() + "s"; }
-            }
-            gtxt += " · " + rl;
-            dc.drawText(w / 2, h * 0.44, Graphics.FONT_XTINY, gtxt, Graphics.TEXT_JUSTIFY_CENTER);
+            var auto = Strings.s("auto.short");
+            if (_rec.autoStartOn() && !_rec.autoArmed()) { auto += " " + _rec.autoLead() + "s"; }
+            var teile = _rec.autoStartOn() ? [Strings.s("gps.ready"), auto, rl]
+                                           : [Strings.s("gps.ready"), rl];
+            y += _drawWrap(dc, w / 2, y, xf, _zusammen(dc, xf, mw, teile), false) + luft;
         } else {
             dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(w / 2, h * 0.44, Graphics.FONT_XTINY, Strings.s("gps.searching") + " · " + rl, Graphics.TEXT_JUSTIFY_CENTER);
+            y += _drawWrap(dc, w / 2, y, xf,
+                _zusammen(dc, xf, mw, [Strings.s("gps.searching"), rl]), false) + luft;
         }
-        // Hinweiszeile bei h*0.50, EINE nach Dringlichkeit (Jan, 01.08.): Object-Store voll >
+
+        // Hinweiszeile, EINE nach Dringlichkeit (Jan, 01.08.): Object-Store voll >
         // ungepairt (Sessions erreichen das Konto nicht — Aufnehmen geht trotzdem) > wartende
         // Uploads (drittes Support-Muster: Session "fehlt", lag aber nur auf der Uhr).
         // Speicher voll: bisher zeigte das NUR der Recorder an. Der Uploader schreibt aber nach
         // jedem bestaetigten Chunk (sa_/sg_) und das Pairing schreibt das Token — scheitert das,
         // erfuhr der Nutzer nichts, obwohl genau das die Ursache ist.
+        mw = _usableWidth(dc, y + fh / 2);
         if (_rec.storageFull || Uploader.storageFull() || Config.storeFailed) {
             dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(w / 2, h * 0.50, Graphics.FONT_XTINY, Strings.s("err.storageFull"), Graphics.TEXT_JUSTIFY_CENTER);
+            y += _drawWrap(dc, w / 2, y, xf, Strings.s("err.storageFull"), false) + luft;
         } else if (!_rec.isPaired()) {
             dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(w / 2, h * 0.50, Graphics.FONT_XTINY,
-                Strings.s("up.notLinked") + " · " + Strings.s("start.menu"), Graphics.TEXT_JUSTIFY_CENTER);
+            // "MENU: Einstellungen" nur, wenn es in dieselbe Zeile passt — der Hinweis steht
+            // ohnehin unten auf der Seite.
+            y += _drawWrap(dc, w / 2, y, xf,
+                _zusammen(dc, xf, mw, [Strings.s("up.notLinked"), Strings.s("start.menu")]),
+                false) + luft;
         } else {
             var pn = Uploader.pendingCount();
             if (pn > 0) {
                 // Volumen dazu, nicht nur die Anzahl: 20 kurze Sessions sind weniger Daten als
-                // 3 lange (0,6 MB gegen 13 MB). Nur bei nennenswerter Menge, damit die Zeile auf
-                // kleinen Displays kurz bleibt. Cache: neu rechnen erst, wenn sich die Anzahl
+                // 3 lange (0,6 MB gegen 13 MB). Cache: neu rechnen erst, wenn sich die Anzahl
                 // aendert — pendingKb() liest je Session ein state_ und soll nicht pro Bild laufen.
                 if (_pendKbFor != pn) { _pendKb = Uploader.pendingKb(); _pendKbFor = pn; }
-                var txt = pn + " " + Strings.s("up.pendingN");
-                if (_pendKb >= 1024) { txt += " · " + (_pendKb / 1024) + " MB"; }
+                var teile2 = [pn + " " + Strings.s("up.pendingN")];
+                if (_pendKb >= 1024) { teile2.add((_pendKb / 1024) + " MB"); }
                 dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
-                dc.drawText(w / 2, h * 0.50, Graphics.FONT_XTINY, txt, Graphics.TEXT_JUSTIFY_CENTER);
+                y += _drawWrap(dc, w / 2, y, xf, _zusammen(dc, xf, mw, teile2), false) + luft;
                 // Auf speicherarmen Uhren (~96 KB) beschaedigt schon EINE wartende Session die
                 // naechste Aufnahme: der Store ist voll, die neuen Chunks werden verworfen. Also
                 // hier sagen, was zu tun ist, BEVOR er startet — nicht hinterher erklaeren muessen.
-                if (_rec.isLowMemWatch() || _pendKb >= 200) {
+                if ((_rec.isLowMemWatch() || _pendKb >= 200) && y < mitteMax) {
                     dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
-                    dc.drawText(w / 2, h * 0.565, Graphics.FONT_XTINY, Strings.s("up.uploadFirst"),
-                        Graphics.TEXT_JUSTIFY_CENTER);
+                    y += _drawWrap(dc, w / 2, y, xf, Strings.s("up.uploadFirst"), false) + luft;
                 }
             }
         }
+
         // Gewählte Foil (per DOWN einstellbar). Glocke daneben, wenn der Alarm an ist.
-        if (_rec.foils.size() >= 1 || _rec.manualAlarm) {
+        // Der Name kommt vom Nutzer -> NICHT umbrechen, sondern hinten kuerzen: ein mitten
+        // durchgeschnittener Foil-Name liest sich schlechter als "Foil: Armstro…".
+        var hatFoils = (_rec.foils.size() >= 1 || _rec.manualAlarm);
+        if (hatFoils && y < mitteMax) {
             var lbl = _rec.activeAlarmLabel.equals("") ? "-" : _rec.activeAlarmLabel;
-            var txt = Strings.s("foil.prefix") + lbl;
-            var ty = h * 0.555;
+            var platz = _usableWidth(dc, y + fh / 2) - (_rec.alarmEnabled ? 22 : 0);
+            var txt = _kuerzen(dc, Strings.s("foil.prefix") + lbl, xf, platz);
             dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(w / 2, ty, Graphics.FONT_XTINY, txt, Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(w / 2, y, xf, txt, Graphics.TEXT_JUSTIFY_CENTER);
             if (_rec.alarmEnabled) {
-                var tw = dc.getTextWidthInPixels(txt, Graphics.FONT_XTINY);
-                var bh = dc.getFontHeight(Graphics.FONT_XTINY);
-                _drawBell(dc, (w / 2) + (tw / 2) + 9, ty + (bh / 2));
+                var tw = dc.getTextWidthInPixels(txt, xf);
+                _drawBell(dc, (w / 2) + (tw / 2) + 9, y + (fh / 2));
             }
+            y += fh + luft;
         }
-        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h * 0.65, Graphics.FONT_SMALL, Strings.s("start.rec"), Graphics.TEXT_JUSTIFY_CENTER);
-        // Dezente Hinweise: Foil-Auswahl per DOWN, Einstellungen (Verbinden/Upload) hinter MENU.
+
+        // Unterer Block (dezente Hinweise) und START-Zeile teilen sich den Rest. Erst MESSEN,
+        // dann entscheiden: die START-Zeile ist die wichtigste Zeile der Seite, also fallen im
+        // Zweifel die Hinweise weg — zuerst der Foil-Hinweis, dann der MENU-Hinweis. Bisher
+        // standen sie auf festen 0,79/0,88 und konnten die START-Zeile ueberschreiben.
+        var sf = dc.getFontHeight(Graphics.FONT_SMALL);
+        var anker = h * (klein ? 0.60 : 0.65);
+        var sy = (y > anker) ? y : anker;
+        if (klein) {
+            // Kleine Uhren: START und Hinweise FLIESSEN weiter, statt unten verankert zu sein.
+            // Am unteren Rand ist eine runde Uhr zu schmal — auf 176 px sind bei 0,95 h nur noch
+            // 73 px Sehne uebrig, dort braeuchte "MENU: Einstellungen" drei Zeilen und wuerde
+            // deshalb ganz wegfallen. Weiter oben passt es in zwei.
+            var unten = h * 0.99;
+            if (sy + sf > unten) { sy = unten - sf; }
+            if (sy < y) { sy = y; }
+            dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+            _drawWrap(dc, w / 2, sy, Graphics.FONT_SMALL, Strings.s("start.rec"), false);
+            var yh = sy + sf + 2;
+            dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
+            if (yh + _wrapHoehe(dc, yh, xf, Strings.s("start.menu"), false) <= unten) {
+                yh += _drawWrap(dc, w / 2, yh, xf, Strings.s("start.menu"), false) + 2;
+            }
+            if (hatFoils && yh + _wrapHoehe(dc, yh, xf, Strings.s("start.chooseAlarm"), false) <= unten) {
+                _drawWrap(dc, w / 2, yh, xf, Strings.s("start.chooseAlarm"), false);
+            }
+            return;
+        }
+        var yb = h * 0.95;
+        var h1 = _wrapHoehe(dc, yb, xf, Strings.s("start.menu"), true);
+        var h2 = hatFoils ? _wrapHoehe(dc, yb - h1 - 2, xf, Strings.s("start.chooseAlarm"), true) : 0;
+        if (sy + sf > yb - h1 - h2 - 4) { h2 = 0; }
+        if (sy + sf > yb - h1 - 4) { h1 = 0; }
         dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
-        if (_rec.foils.size() >= 1 || _rec.manualAlarm) {
-            dc.drawText(w / 2, h * 0.79, Graphics.FONT_XTINY, Strings.s("start.chooseAlarm"), Graphics.TEXT_JUSTIFY_CENTER);
-            dc.drawText(w / 2, h * 0.88, Graphics.FONT_XTINY, Strings.s("start.menu"), Graphics.TEXT_JUSTIFY_CENTER);
-        } else {
-            dc.drawText(w / 2, h * 0.84, Graphics.FONT_XTINY, Strings.s("start.menu"), Graphics.TEXT_JUSTIFY_CENTER);
+        if (h1 > 0) {
+            _drawWrap(dc, w / 2, yb, xf, Strings.s("start.menu"), true);
+            if (h2 > 0) { _drawWrap(dc, w / 2, yb - h1 - 2, xf, Strings.s("start.chooseAlarm"), true); }
         }
+        // START-Zeile: normalerweise auf 0,65 wie bisher; sie rutscht nur nach unten, wenn die
+        // Hinweise darueber mehr Platz brauchen, und nie in den unteren Block hinein.
+        var grenze = yb - h1 - h2 - (h1 > 0 ? 4 : 0);
+        if (sy + sf > grenze) { sy = grenze - sf; }
+        if (sy < y) { sy = y; }
+        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+        _drawWrap(dc, w / 2, sy, Graphics.FONT_SMALL, Strings.s("start.rec"), false);
+    }
+
+    // Baut eine Statuszeile aus Teilen NACH WICHTIGKEIT: der erste Teil steht immer, jeder
+    // weitere kommt nur dazu, wenn die Zeile damit noch passt. Alternative waere Umbruch — aber
+    // eine zweizeilige GPS-Zeile frisst auf 176 px ein Siebtel der Seite, und "· 25 Hz" ist
+    // weniger wert als der Platz. Auf grossen Uhren aendert sich nichts, dort passt alles.
+    hidden function _zusammen(dc, font, maxW, teile) {
+        var out = teile[0];
+        for (var i = 1; i < teile.size(); i++) {
+            var probe = out + " · " + teile[i];
+            if (dc.getTextWidthInPixels(probe, font) > maxW) { return out; }
+            out = probe;
+        }
+        return out;
+    }
+
+    // Wie hoch WUERDE _drawWrap zeichnen? Fuer Bloecke, deren Platzbedarf man kennen muss,
+    // bevor man entscheidet, ob sie ueberhaupt gezeichnet werden.
+    hidden function _wrapHoehe(dc, y, font, text, nachOben) {
+        if (text == null || text.equals("")) { return 0; }
+        var fh = dc.getFontHeight(font);
+        var maxW = _usableWidth(dc, nachOben ? y - fh / 2 : y + fh / 2);
+        if (dc.getTextWidthInPixels(text, font) <= maxW) { return fh; }
+        return _umbrechen(dc, text, font, maxW).size() * fh;
     }
 
     // Nach Stopp&Speichern: klare Erfolgsmeldung (nicht mit Aufnahme verwechselbar).
     hidden function _drawStopped(dc) {
         var w = dc.getWidth();
         var h = dc.getHeight();
+        var xf = Graphics.FONT_XTINY;
+        var fh = dc.getFontHeight(xf);
+        var klein = (h < 13 * fh);
+        // Titel + Haekchen ruecken auf schmalen Uhren nach oben und zusammen, sonst bleibt fuer
+        // die drei Hinweise darunter kein Platz: auf 176 px reichte es bisher rechnerisch bis
+        // y = 213 bei 176 px Displayhoehe — die letzte Zeile lag komplett ausserhalb.
+        var ty = klein ? h * 0.10 : h * 0.28;
         dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h * 0.28, Graphics.FONT_MEDIUM, Strings.s("saved.title"), Graphics.TEXT_JUSTIFY_CENTER);
-        // grünes Häkchen
+        dc.drawText(w / 2, ty, Graphics.FONT_MEDIUM, Strings.s("saved.title"), Graphics.TEXT_JUSTIFY_CENTER);
+        // grünes Häkchen — Groesse und Lage relativ zum Titel statt auf festen Bruchteilen,
+        // damit es auf jeder Displaygroesse gleich sitzt.
+        var cy = ty + dc.getFontHeight(Graphics.FONT_MEDIUM) + h * 0.06;
+        var sz = h * 0.055;
         dc.setPenWidth(4);
-        dc.drawLine(w / 2 - 14, h * 0.46, w / 2 - 4, h * 0.50);
-        dc.drawLine(w / 2 - 4, h * 0.50, w / 2 + 16, h * 0.42);
+        dc.drawLine(w / 2 - sz, cy, w / 2 - sz * 0.3, cy + sz * 0.45);
+        dc.drawLine(w / 2 - sz * 0.3, cy + sz * 0.45, w / 2 + sz * 1.1, cy - sz * 0.45);
         dc.setPenWidth(1);
+
+        // Hinweise fliessend statt auf festen Bruchteilen: zwischen 0,62 und 0,72 liegen auf
+        // 176 px nur 17 px — weniger als eine XTINY-Zeile hoch ist, die beiden Hinweise
+        // ueberlappten sich dort schon ohne Umbruch. Und wenn es eng wird, entscheidet die
+        // WICHTIGKEIT, welche Zeile faellt — nicht der Zufall, welche zuerst gezeichnet wird.
+        // (Vorher blieb auf der Instinct 2 die Versionsnummer stehen und "START = neue Aufnahme"
+        // fiel weg, weil die kurze Zeile zufaellig noch passte.)
+        var y = cy + sz + h * 0.03;
+        var luft = h * 0.015;
+        var unten = h * 0.99;
+        var busy = (Uploader.isBusy() || Uploader.pendingCount() > 0);
         // Solange die Uebertragung laeuft/wartet: DEUTLICH sagen, dass die App offen bleiben muss —
         // Connect IQ laedt nur im Vordergrund. Drei Support-Faelle ("Session fehlt", kam Stunden
         // spaeter) hatten genau diese Wissensluecke. Orange, damit es nicht im Grau untergeht.
-        if (Uploader.isBusy() || Uploader.pendingCount() > 0) {
-            dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(w / 2, h * 0.545, Graphics.FONT_XTINY, Strings.s("up.keepOpen"), Graphics.TEXT_JUSTIFY_CENTER);
+        var txt = [];
+        var col = [];
+        if (busy) { txt.add(Strings.s("up.keepOpen")); col.add(Graphics.COLOR_ORANGE); }
+        txt.add(Strings.s("saved.upload")); col.add(Graphics.COLOR_LT_GRAY);
+        txt.add(Strings.s("saved.newRec")); col.add(Graphics.COLOR_LT_GRAY);
+        txt.add("v" + Config.VERSION); col.add(Graphics.COLOR_LT_GRAY);
+        var zeigen = new [txt.size()];
+        for (var i = 0; i < zeigen.size(); i++) { zeigen[i] = true; }
+        // Wegfall-Reihenfolge: zuerst die Version, dann die Upload-Info. Die Warnung und die
+        // Handlungsanweisung ("START = neue Aufnahme") bleiben stehen.
+        if (_stapelHoehe(dc, y, xf, txt, zeigen, luft) > unten - y) { zeigen[txt.size() - 1] = false; }
+        if (_stapelHoehe(dc, y, xf, txt, zeigen, luft) > unten - y) { zeigen[busy ? 1 : 0] = false; }
+        for (var i = 0; i < txt.size(); i++) {
+            if (!zeigen[i]) { continue; }
+            var hoehe = _wrapHoehe(dc, y, xf, txt[i], false);
+            if (y + hoehe > unten) { break; }   // Sicherheitsnetz, falls alles zu lang ist
+            dc.setColor(col[i], Graphics.COLOR_TRANSPARENT);
+            _drawWrap(dc, w / 2, y, xf, txt[i], false);
+            y += hoehe + luft;
         }
-        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h * 0.62, Graphics.FONT_XTINY, Strings.s("saved.upload"), Graphics.TEXT_JUSTIFY_CENTER);
-        dc.drawText(w / 2, h * 0.72, Graphics.FONT_XTINY, Strings.s("saved.newRec"), Graphics.TEXT_JUSTIFY_CENTER);
-        dc.drawText(w / 2, h * 0.85, Graphics.FONT_XTINY, "v" + Config.VERSION, Graphics.TEXT_JUSTIFY_CENTER);
+    }
+
+    // Wie hoch wird der Stapel aus den sichtbaren Zeilen? Laeuft mit, weil die nutzbare Breite
+    // (und damit die Zahl der Umbrueche) von der Hoehe abhaengt.
+    hidden function _stapelHoehe(dc, y, font, txt, zeigen, luft) {
+        var yy = y;
+        for (var i = 0; i < txt.size(); i++) {
+            if (zeigen[i]) { yy += _wrapHoehe(dc, yy, font, txt[i], false) + luft; }
+        }
+        return yy - y;
     }
 
     // Startbildschirm: GPS-Suche, bis ein brauchbarer Fix vorliegt.
@@ -425,8 +564,7 @@ class RecordView extends WatchUi.View {
         dc.drawText(w / 2, h * 0.40 + 34, Graphics.FONT_SMALL, dots,
             Graphics.TEXT_JUSTIFY_CENTER);
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h * 0.58, Graphics.FONT_XTINY, Strings.s("gps.sky"),
-            Graphics.TEXT_JUSTIFY_CENTER);
+        _drawWrap(dc, w / 2, h * 0.58, Graphics.FONT_XTINY, Strings.s("gps.sky"), false);
         // Aufnahme läuft bereits (roter Punkt oben).
         dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
         dc.fillCircle(w / 2, h * 0.10, 6);
@@ -567,6 +705,82 @@ class RecordView extends WatchUi.View {
             }
         }
         return best;
+    }
+
+    // Bricht einen Text an Leerzeichen um, GEMESSEN gegen die verfuegbare Breite. Greedy
+    // (so viele Woerter pro Zeile wie passen) statt "in der Mitte teilen": auf der fenix-5-Reihe
+    // ist FONT_XTINY 26 px gross bei 240 px Display — dort reichen zwei Zeilen nicht, "Speicher
+    // voll – erst hochladen" braucht drei. Mehr als WRAP_MAX Zeilen gibt es nicht; was dann noch
+    // uebrig bleibt, wird in der letzten Zeile gekuerzt.
+    hidden const WRAP_MAX = 3;
+
+    hidden function _umbrechen(dc, text, font, maxW) {
+        var zeilen = [];
+        var akt = "";
+        var wort = "";
+        var ch = text.toCharArray();
+        for (var i = 0; i <= ch.size(); i++) {
+            // Ein virtuelles Leerzeichen hinter dem Ende schliesst das letzte Wort ab.
+            var c = (i < ch.size()) ? ch[i] : ' ';
+            if (c != ' ') { wort += c.toString(); continue; }
+            if (wort.equals("")) { continue; }
+            var probe = akt.equals("") ? wort : (akt + " " + wort);
+            // `akt.equals("")`: ein Wort, das allein schon zu breit ist, kommt trotzdem in die
+            // Zeile — sonst entstuende eine leere Zeile und das Wort ginge verloren.
+            if (akt.equals("") || dc.getTextWidthInPixels(probe, font) <= maxW) {
+                akt = probe;
+            } else {
+                zeilen.add(akt);
+                akt = wort;
+            }
+            wort = "";
+        }
+        if (!akt.equals("")) { zeilen.add(akt); }
+        if (zeilen.size() > WRAP_MAX) {
+            var rest = zeilen[WRAP_MAX - 1];
+            for (var k = WRAP_MAX; k < zeilen.size(); k++) { rest += " " + zeilen[k]; }
+            zeilen = zeilen.slice(0, WRAP_MAX - 1);
+            zeilen.add(_kuerzen(dc, rest, font, maxW));
+        }
+        return zeilen;
+    }
+
+    // Hinweiszeile zeichnen — und UMBRECHEN statt ueber den Rand laufen zu lassen. Kleiner geht
+    // es hier nicht: FONT_XTINY IST der kleinste Textfont der Uhr (auf der fenix 5 sind das
+    // 26 px auf 240 px Display), und Hinweise duerfen nicht unter die normale Schriftgroesse.
+    // Gemessen wird gegen die Sehne auf der jeweiligen Hoehe — am oberen und unteren Rand ist
+    // eine runde Uhr nur noch einen Bruchteil so breit wie in der Mitte.
+    //   nachOben = false -> y ist die OBERKANTE, der Block waechst nach unten
+    //   nachOben = true  -> y ist die UNTERKANTE, der Block waechst nach oben (fuer Zeilen, die
+    //                       am unteren Displayrand kleben)
+    // Rueckgabe: gezeichnete Hoehe in Pixeln, damit der Aufrufer weiterstapeln kann.
+    hidden function _drawWrap(dc, cx, y, font, text, nachOben) {
+        if (text == null || text.equals("")) { return 0; }
+        var fh = dc.getFontHeight(font);
+        var maxW = _usableWidth(dc, nachOben ? y - fh / 2 : y + fh / 2);
+        // Schneller Weg: passt ohnehin (der Normalfall auf grossen Uhren) — eine Messung, fertig.
+        if (dc.getTextWidthInPixels(text, font) <= maxW) {
+            dc.drawText(cx, nachOben ? y - fh : y, font, text, Graphics.TEXT_JUSTIFY_CENTER);
+            return fh;
+        }
+        var zeilen = _umbrechen(dc, text, font, maxW);
+        var oben = nachOben ? y - zeilen.size() * fh : y;
+        for (var i = 0; i < zeilen.size(); i++) {
+            dc.drawText(cx, oben + i * fh, font, zeilen[i], Graphics.TEXT_JUSTIFY_CENTER);
+        }
+        return zeilen.size() * fh;
+    }
+
+    // Einzeiler, der nicht umgebrochen werden darf, weil er Nutzerdaten enthaelt (Foil-Name):
+    // hinten kuerzen und mit "…" markieren, statt einen Namen mitten durchzuschneiden.
+    hidden function _kuerzen(dc, text, font, maxW) {
+        if (dc.getTextWidthInPixels(text, font) <= maxW) { return text; }
+        var ch = text.toCharArray();
+        for (var n = ch.size() - 1; n > 1; n--) {
+            var kurz = text.substring(0, n) + "…";
+            if (dc.getTextWidthInPixels(kurz, font) <= maxW) { return kurz; }
+        }
+        return text;
     }
 
     hidden function _drawField(dc, type, cx, cy, n) {
@@ -947,8 +1161,9 @@ class RecordView extends WatchUi.View {
     (:layouts) hidden function _drawLayoutCrashHint(dc, w, h) as Void {
         if (!_rec.layoutCrash || System.getTimer() >= _rec.layoutHintUntilMs) { return; }
         dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, h * 0.03, Graphics.FONT_XTINY, Strings.s("lay.fallback"),
-            Graphics.TEXT_JUSTIFY_CENTER);
+        // 0,05 statt 0,03: ganz oben ist die nutzbare Sehne einer runden Uhr am schmalsten,
+        // ein paar Prozent tiefer bringt spuerbar Breite (176 px: 60 -> 101 px).
+        _drawWrap(dc, w / 2, h * 0.05, Graphics.FONT_XTINY, Strings.s("lay.fallback"), false);
     }
     (:nolayouts) hidden function _drawLayoutCrashHint(dc, w, h) as Void { }
 

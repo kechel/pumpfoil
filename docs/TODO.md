@@ -499,24 +499,33 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   `:wear:compileDebugKotlin` gruen, `swiftc -parse` gruen. **`watch/bin` bewusst NICHT neu
   gebaut** (ist live, und 1.0.80 ist der Store-Stand) -> geht mit der naechsten Release-Runde raus.
 
-- **🟡 Noch offen aus derselben Messung: lange Hinweiszeilen laufen ueber.** Nicht die
-  Zahlen, sondern die uebersetzten Ein-Zeilen-Hinweise (alle `FONT_XTINY`). Geschaetzte Breite
-  (0,52 x Fontgroesse je Zeichen) gegen die Displaybreite:
+- **🟢 Lange Hinweiszeilen: umgebrochen statt abgeschnitten (27.08.).** Aus derselben
+  Messung: nicht die Zahlen, sondern die uebersetzten Ein-Zeilen-Hinweise (alle `FONT_XTINY`)
+  liefen ueber den Rand — `err.storageFull` auf der Instinct 2 mit 160 %, auf der fenix-5-Reihe
+  mit 203 % der Displaybreite (dort ist `xtiny` **26 px bei 240 px Display**; auf Englisch, also
+  auch in der ENG-Stufe: „Storage full – upload first" = 158 %). Kleinere Schrift ist auf Garmin
+  keine Option — `FONT_XTINY` IST der kleinste Textfont. Also:
+  - `_umbrechen`/`_drawWrap` in `RecordView.mc`: greedy Wortumbruch, bis zu 3 Zeilen, gemessen
+    gegen die **Sehne auf der jeweiligen Hoehe** (unten am Rand ist eine runde Uhr nur noch einen
+    Bruchteil so breit). `nachOben` fuer Zeilen, die am unteren Rand kleben.
+  - `_zusammen`: Statuszeilen werden nach WICHTIGKEIT gebaut („GPS bereit" · Auto-Start · 25 Hz) —
+    Teile fallen weg, wenn sie nicht mehr in die Zeile passen, statt die Zeile umzubrechen oder
+    an beiden Enden abzuschneiden (so war es bisher auf jeder kleinen Uhr).
+  - **Start- und Gespeichert-Screen fliessen** jetzt (Cursor + gemessene Zeilenhoehen) statt auf
+    festen Bruchteilen zu sitzen. Die alten Anker lagen teils 10 px auseinander bei 19 px
+    Zeilenhoehe — Hinweis und Foil-Zeile ueberlappten sich auf 176 px schon ohne Umbruch.
+  - **Wenn es eng wird, entscheidet die Wichtigkeit**, nicht die Zeichenreihenfolge: auf dem
+    Gespeichert-Screen faellt zuerst die Version, dann die Upload-Info — „START = neue Aufnahme"
+    bleibt. Auf dem Startscreen faellt zuerst die Foil-Zeile, dann der DOWN-, dann der
+    MENU-Hinweis; die START-Zeile bleibt immer.
+  - **`klein` = wenige ZEILEN, nicht wenige Pixel**: `h < 13 * getFontHeight(XTINY)`. Die fenix 5
+    hat 240 px, fasst wegen ihres 26-px-Fonts aber nur 7 Zeilen — weniger als die 176-px-Instinct-2
+    (8,8). Auf solchen Uhren ruecken Titelband und Inhalt zusammen und die Version entfaellt.
+  Nachgerechnet fuer 176/208/240/280/454 px, jeweils Normalfall und Warnfall (wartende Uploads +
+  „erst hochladen"): keine Zeile mehr ausserhalb des Displays, keine Ueberlappung.
+  **Speicher:** der Instinct-2-Build waechst dadurch von 63,4 auf 66,9 KB (+3,4 KB) — bei 96 KB
+  Arbeitsspeicher bitte im Simulator kurz auf die Speicheranzeige schauen.
 
-  | Key | laengste Uebersetzung | Instinct 2 (176) | fenix 5 (240) | fenix 7X Pro (280) |
-  |---|---|---|---|---|
-  | `err.storageFull` | „Speicher voll – erst hochladen" (ru: 35 Z.) | 160 % | 203 % | 87 % |
-  | `err.dataLost` | „Rohdaten gehen verloren" (fr) | 155 % | 197 % | 84 % |
-  | `up.serverUnreach` | fi | 120 % | 152 % | 65 % |
-  | `saved.upload` | ru | 115 % | 146 % | 63 % |
-
-  Die fenix-5-Reihe ist der schlimmste Fall: `xtiny` ist dort **26 px auf 240 px** Display (fenix 7X
-  Pro: 13 auf 280). Betrifft sie auch auf Englisch (ENG-Stufe hat nur `StringsLite`):
-  „Storage full – upload first" = 158 % der Breite.
-  **Loesung ist NICHT kleinere Schrift** (Vorgabe: Hinweise nie unter normale Groesse), sondern
-  **Umbruch in zwei Zeilen**. Braucht pro Stelle Platz nach unten — die Hinweise stehen teils nur
-  6 % der Displayhoehe auseinander (auf 176 px = 8 px). Also erst die Idle-/Gespeichert-Screens
-  vertikal neu einteilen, dann umbrechen. Nicht mehr in dieser Runde.
 
 - **🟡 Versionen fuer die naechste Store-Runde gebumpt (26.08.) — Jan baut und testet.**
   Garmin **1.0.80** (gebaut, `watch/bin` live) · Phone **1.1.24/38** · Wear **1.2.24/1034** ·
