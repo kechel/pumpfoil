@@ -1268,6 +1268,15 @@ Page(
       const s = this.state;
       const key = (onFoil ? "1" : "0") + (this._useLayouts() ? "1" : "0");
       if (s._ringCache && s._ringKey === key) return s._ringCache;
+      // Einmal je Wechsel sagen, WORAUS der Ring gebaut wird. Genau diese Zeile fehlte, als Jans
+      // Balance 2 klassische On-Foil-Seiten zeigte: so sieht man sofort, ob es an den gelieferten
+      // Seiten (pages=0) oder am Schalter (layouts=off) liegt.
+      try {
+        console.log("[pumpfoil] ring " + (onFoil ? "on-foil" : "off-foil")
+          + " layouts=" + (this._useLayouts() ? "on" : "off")
+          + " pages=" + s.pages.length + " offFoilPages=" + s.offFoilPages.length
+          + " pref=" + String(s.layoutsPref) + " serverDefault=" + String(s.layoutsServerDefault));
+      } catch (e) {}
       let out = this._setFor(onFoil);
       // „Auch die übrigen Seiten": im Off-Foil-Zustand hängen die On-Foil-Seiten hinten dran —
       // feste Reihenfolge, vorhersehbar statt clever (RecordView.mc:150-162).
@@ -1501,6 +1510,15 @@ Page(
     // FILL_RECT nicht in der Breite umsetzen). Neu erzeugte Widgets liegen VOR dem Text — bei einer
     // Rand-Grafik ist das unkritisch (sie sitzt am Displayrand), einen Balken sollte man deshalb
     // nicht unter einen Wert legen.
+    // Zeichenfehler einer Wert-Grafik melden — je Art nur EINMAL pro Sitzung, sonst floetet
+    // das Log im Sekundentakt zu.
+    _gfxFehler(wo, e) {
+      const s = this.state;
+      if (!s._gfxErr) s._gfxErr = {};
+      if (s._gfxErr[wo]) return;
+      s._gfxErr[wo] = true;
+      try { console.log("[pumpfoil] value graphic failed at " + wo + ": " + ((e && e.message) || e)); } catch (e2) {}
+    },
     _updateLayoutGfx() {
       const w = this.state.w, gfx = w.layGfx || [], canvas = w.layCanvas;
       if (!canvas || !gfx.length) return;
@@ -1514,7 +1532,8 @@ Page(
         gfx[i].wert = v;
       }
       if (!aendert) return;
-      try { canvas.clear({ x: 0, y: 0, w: DW, h: DH }); } catch (e) {}
+      try { canvas.clear({ x: 0, y: 0, w: DW, h: DH }); }
+      catch (e) { this._gfxFehler("canvas.clear", e); }
       for (let i = 0; i < gfx.length; i++) {
         const g = gfx[i];
         g.frac = g.neu;
@@ -1526,13 +1545,15 @@ Page(
           const track = IS_ROUND ? [layRingPoly(g.e[1] | 0, g.laenge, g.th, g.inset)]
                                  : layRandPolys(g.e[1] | 0, g.laenge, g.th, g.inset);
           for (let k = 0; k < track.length; k++) {
-            try { canvas.drawPoly({ data_array: track[k], color: leer }); } catch (e) {}
+            try { canvas.drawPoly({ data_array: track[k], color: leer }); }
+            catch (e) { this._gfxFehler("drawPoly track", e); }
           }
           if (g.frac > 0) {
             const voll = IS_ROUND ? [layRingPoly(g.e[1] | 0, g.laenge * g.frac, g.th, g.inset)]
                                   : layRandPolys(g.e[1] | 0, g.laenge * g.frac, g.th, g.inset);
             for (let k = 0; k < voll.length; k++) {
-              try { canvas.drawPoly({ data_array: voll[k], color: grund }); } catch (e) {}
+              try { canvas.drawPoly({ data_array: voll[k], color: grund }); }
+              catch (e) { this._gfxFehler("drawPoly fill", e); }
             }
           }
         } else {
@@ -1541,7 +1562,7 @@ Page(
               canvas.drawPoly({ data_array: [
                 { x: x, y: y }, { x: x + bb, y: y }, { x: x + bb, y: y + hh }, { x: x, y: y + hh },
               ], color: c });
-            } catch (e) {}
+            } catch (e) { this._gfxFehler("drawPoly bar", e); }
           };
           rechteck(g.bx, g.by, g.breite, g.th, leer);
           if (g.frac > 0) {
@@ -1597,6 +1618,12 @@ Page(
           // Sitzung abschalten (nicht persistieren) und klassisch weiterzeichnen. Sinngleich mit
           // Garmins Canary, aber ohne dessen Speicher-Maschinerie (die gehört zu den 96-KB-Uhren).
           try { this._clearLayout(); } catch (e2) {}
+          // Den Grund NENNEN. Bis 26.08. schwieg die Selbstheilung — Jans Balance 2 fiel auf die
+          // klassischen Seiten zurueck, und weder Uhr-Log noch Server verrieten warum.
+          try {
+            console.log("[pumpfoil] layout render failed -> classic for this session: "
+              + ((err && err.message) || err));
+          } catch (e3) {}
           s.layoutsPref = false; s._ringKey = null;
           this.renderRecording();   // einmalige Rekursion: der neue Eintrag ist garantiert klassisch
           return;
