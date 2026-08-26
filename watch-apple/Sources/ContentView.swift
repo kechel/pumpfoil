@@ -595,10 +595,17 @@ struct RecordView: View {
 
     @ViewBuilder private func fieldView(_ fid: Int) -> some View {
         let fv = fieldValue(fid, rec, lang)
+        // `minimumScaleFactor` statt fester Groessen: die Apple Watch gibt es von 40 bis 49 mm,
+        // dazu kommt die systemweite Textgroesse des Nutzers. Ohne das wurde ein langer Wert
+        // ("12:34", dreistellige Distanz) auf der kleinen Uhr abgeschnitten oder umgebrochen.
+        // Dieselbe Idee wie auf Garmin (RecordView._fitFont) und Wear (AutoFitText): messen
+        // lassen, nicht schaetzen.
         VStack(spacing: 0) {
             Text(fv.0).font(.system(.title, design: .rounded)).monospacedDigit()
+                .lineLimit(1).minimumScaleFactor(0.5)
                 .foregroundStyle(colorBy ? fieldColor(fid, rec) : Color.primary)
-            Text(fv.1).font(.caption2).foregroundStyle(.secondary)
+            Text(fv.1).font(.caption2).lineLimit(1).minimumScaleFactor(0.7)
+                .foregroundStyle(.secondary)
         }
     }
 

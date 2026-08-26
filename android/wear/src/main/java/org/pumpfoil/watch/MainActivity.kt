@@ -39,6 +39,8 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.isSpecified
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.*
@@ -990,10 +992,38 @@ class MainActivity : ComponentActivity() {
             else -> MaterialTheme.typography.display3
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(vertical = 2.dp)) {
-            Text(value, style = valueStyle, color = color)
-            Text(label, style = if (count == 1) MaterialTheme.typography.caption1 else MaterialTheme.typography.caption2,
-                color = Color(0xFF94A3B8))
+            // Breite begrenzen (86 %): auf einem RUNDEN Display ist oben und unten nur die Sehne
+            // nutzbar, nicht der Durchmesser — und genau dort steht bei drei Feldern das erste
+            // und das dritte.
+            AutoFitText(value, valueStyle, color, Modifier.fillMaxWidth(0.86f))
+            AutoFitText(label,
+                if (count == 1) MaterialTheme.typography.caption1 else MaterialTheme.typography.caption2,
+                Color(0xFF94A3B8), Modifier.fillMaxWidth(0.92f))
         }
+    }
+
+    // Text, der sich verkleinert, bis er in EINE Zeile passt. Die Schriftgroessen oben sind fest
+    // (60.sp usw.) und tragen deshalb nicht ueber alle Wear-Displays: ein langer Wert wie "12:34"
+    // oder eine lange Beschriftung lief auf kleinen Uhren ueber den Rand bzw. brach um. Statt einer
+    // Tabelle pro Groesse misst Compose selbst und schrumpft in 8-%-Schritten — Untergrenze 55 %,
+    // damit nichts unleserlich klein wird. `remember(text, groesse)` setzt den Faktor zurueck,
+    // sobald sich der Text aendert, sonst bliebe die Schrift nach einem langen Wert klein.
+    @Composable
+    private fun AutoFitText(text: String, basis: TextStyle, color: Color, modifier: Modifier) {
+        var faktor by remember(text, basis.fontSize) { mutableStateOf(1f) }
+        Text(
+            text,
+            modifier = modifier,
+            style = basis.copy(
+                fontSize = basis.fontSize * faktor,
+                lineHeight = if (basis.lineHeight.isSpecified) basis.lineHeight * faktor else basis.lineHeight,
+            ),
+            color = color,
+            maxLines = 1,
+            softWrap = false,
+            textAlign = TextAlign.Center,
+            onTextLayout = { r -> if (r.didOverflowWidth && faktor > 0.55f) { faktor *= 0.92f } },
+        )
     }
 
     // 2 s halten zum Stoppen (wie Garmin Stop-Halten-Ring) — verhindert versehentliches Stoppen.

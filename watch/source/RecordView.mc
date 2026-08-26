@@ -2,6 +2,7 @@ using Toybox.WatchUi;
 using Toybox.Graphics;
 using Toybox.System;
 using Toybox.Attention;
+using Toybox.Math;
 
 // Aufzeichnungs-Ansicht: 1–3 konfigurierbare große Datenfelder.
 // Default: Speed (3 s) + Puls. Aktualisiert sich 1×/s via requestUpdate (Timer im Delegate).
@@ -511,29 +512,106 @@ class RecordView extends WatchUi.View {
         return [value, label, color];
     }
 
+    // Verfuegbare Breite AUF HOEHE cy. Auf einer runden Uhr ist die Zeile oben und unten viel
+    // kuerzer als in der Mitte (Sehne statt Durchmesser) — bei drei Feldern sitzen genau dort das
+    // erste und das dritte. Bisher wurde nie gemessen, ob der Wert dort hinpasst.
+    hidden function _usableWidth(dc, cy) {
+        var w = dc.getWidth();
+        var h = dc.getHeight();
+        if (System.getDeviceSettings().screenShape == System.SCREEN_SHAPE_RECTANGLE) {
+            return w * 0.96;
+        }
+        var r = (w < h ? w : h) / 2.0;
+        var dy = cy - h / 2.0;
+        var q = r * r - dy * dy;
+        if (q <= 1.0) { return w * 0.30; }
+        return 2.0 * Math.sqrt(q) * 0.94;   // etwas Luft zum Gehaeuserand
+    }
+
+    // Groesster Font aus der Liste, in den der Text hier wirklich passt. GEMESSEN, nicht
+    // geschaetzt: `getTextWidthInPixels`/`getFontHeight` kennen die echten Geraete-Fonts. Das ist
+    // der Kern der Sache — die Fonts skalieren NICHT mit der Displaygroesse. Aus den
+    // Geraete-Dateien des SDK (Design-Groesse in px):
+    //     fenix 7X Pro 280 px: numberMedium 39, xtiny 13   -> 14 % der Displayhoehe
+    //     Instinct 2   176 px: numberMedium 32, xtiny 15   -> 18 %
+    //     Forerunner 55 208 px: numberMedium 44, xtiny 13  -> 21 %
+    // Auf der kleinen Uhr ist die Zahl also relativ die GROESSTE. Genau deshalb war die
+    // klassische Drei-Feld-Seite dort zu voll, waehrend sie auf 280 px gut aussah.
+    //
+    // Ausgewaehlt wird der HOECHSTE passende Font, nicht der erste passende: die Reihenfolge
+    // NUMBER_MILD > LARGE stimmt nicht ueberall (Instinct 2: numberMild 20 < large 23), erst
+    // recht nicht ueber 78 Geraete. Die Uhr misst, statt sich auf eine Reihenfolge zu verlassen.
+    hidden function _fitFont(dc, text, kandidaten, maxW, maxH) {
+        var best = null;
+        var bestH = -1;
+        for (var i = 0; i < kandidaten.size(); i++) {
+            var f = kandidaten[i];
+            var fh = dc.getFontHeight(f);
+            // HOEHE gegen die TINTE pruefen, nicht gegen die Zeilenbox: `getFontHeight` liefert
+            // bei den NUMBER-Fonts die Box inklusive Durchschuss (Faktor ~1,5 zur em-Hoehe, im
+            // Simulator gemessen, s. watchLayout.ts). Nimmt man sie als Grenze, schrumpft die
+            // Schrift auch dort, wo heute alles sauber passt — eine Verschlechterung in die
+            // andere Richtung.
+            if (fh > bestH && dc.getTextWidthInPixels(text, f) <= maxW && fh * 0.66 <= maxH) {
+                best = f;
+                bestH = fh;
+            }
+        }
+        // Nichts passt (sehr kleines Display, sehr langer Text): den kleinsten Kandidaten nehmen.
+        if (best == null) {
+            best = kandidaten[0];
+            bestH = dc.getFontHeight(best);
+            for (var i = 1; i < kandidaten.size(); i++) {
+                var fh2 = dc.getFontHeight(kandidaten[i]);
+                if (fh2 < bestH) { best = kandidaten[i]; bestH = fh2; }
+            }
+        }
+        return best;
+    }
+
     hidden function _drawField(dc, type, cx, cy, n) {
         var pp = _fieldParts(type);
         var value = pp[0];
         var label = pp[1];
         dc.setColor(pp[2], Graphics.COLOR_TRANSPARENT);
-        var font = (n >= 3) ? Graphics.FONT_NUMBER_MEDIUM : Graphics.FONT_NUMBER_HOT;
-        dc.drawText(cx, cy, font, value, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+        // Font-Leiter: so gross wie moeglich, aber nur so gross, wie er an DIESER Stelle passt.
+        // Die NUMBER-Fonts enthalten nur Ziffern (plus : . -) und reichen fuer alle Werte; darunter
+        // die Text-Fonts als letzter Rueckfall, damit auch "--" und lange Zeiten nie ueberstehen.
+        var kandidaten = (n >= 3)
+            ? [Graphics.FONT_NUMBER_MEDIUM, Graphics.FONT_NUMBER_MILD, Graphics.FONT_LARGE,
+               Graphics.FONT_MEDIUM, Graphics.FONT_SMALL]
+            : [Graphics.FONT_NUMBER_HOT, Graphics.FONT_NUMBER_MEDIUM, Graphics.FONT_NUMBER_MILD,
+               Graphics.FONT_LARGE, Graphics.FONT_MEDIUM];
+        var hh0 = dc.getHeight();
+        var slotH = hh0 * 0.74 / n;
         // Beschriftung größer + lesbarer (Nutzer-Feedback): bei 1–2 Feldern FONT_TINY, bei 3 (eng)
         // FONT_XTINY. Abstand aus der echten Fonthöhe statt fixer 30 px — trägt über alle
         // Auflösungen (176…454 px) und ist die Grundlage des Layout-Renderers.
-        var lblFont = (n >= 3) ? Graphics.FONT_XTINY : Graphics.FONT_TINY;
+        var lblFont = _fitFont(dc, label,
+            (n >= 3) ? [Graphics.FONT_XTINY] : [Graphics.FONT_TINY, Graphics.FONT_XTINY],
+            _usableWidth(dc, cy + hh0 * 0.08), hh0);
+        // HOEHENBUDGET des Werts. Ein Feld ist NICHT nur die Zahl: darunter haengen Abstand und
+        // Beschriftung, und die naechste Zahl steht schon `slotH` tiefer. Ohne diese Rechnung
+        // durfte die Zahl fast den ganzen Slot fuellen — auf 176 px (Instinct 2, drei Felder)
+        // blieben zwischen Beschriftung und naechstem Wert rechnerisch <1 px, die Seite wirkte
+        // ueberfuellt. Zahl ist auf cy zentriert, also zaehlt die halbe Hoehe nach unten:
+        //   halbe Zahl + Abstand + Beschriftung <= slotH.
+        var gap0 = slotH * 0.33;
+        if (gap0 > hh0 * 0.10) { gap0 = hh0 * 0.10; }
+        var budget = 2.0 * (slotH - gap0 - dc.getFontHeight(lblFont) * 0.8);
+        if (budget > slotH * 0.95) { budget = slotH * 0.95; }
+        if (budget < slotH * 0.45) { budget = slotH * 0.45; }   // nie laecherlich klein werden
+        var font = _fitFont(dc, value, kandidaten, _usableWidth(dc, cy), budget);
+        dc.drawText(cx, cy, font, value, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
         // Label-Abstand: NICHT aus dc.getFontHeight() ableiten. Die Funktion liefert bei den
         // NUMBER-Fonts die ZEILENhöhe inklusive Durchschuss (deutlich mehr als die Ziffernhöhe) —
         // damit landete das Label mitten im NÄCHSTEN Feld statt unter seinem eigenen Wert
         // (Jan im Simulator, zwei Anläufe: /2 klebte am Wert, *0,75 rutschte ins nächste Feld).
         // Stattdessen geometrisch: 33 % der Slot-Höhe (bleibt im eigenen Feld), gekappt auf 10 %
         // der Displayhöhe (sonst schwebt das Label bei nur einem Feld weit weg vom Wert).
-        var hh = dc.getHeight();
-        var slot = hh * 0.74 / n;
-        var gap = slot * 0.33;
-        if (gap > hh * 0.10) { gap = hh * 0.10; }
-        var y = cy + gap;
+        var hh = hh0;
+        var y = cy + gap0;
         // Unterste Grenze: das Label darf die Seiten-Punkte (h*0.92, Radius 3) nicht berühren.
         // `drawText` ohne VCENTER setzt die Textkante OBEN an, also die Fonthöhe einrechnen. Auf
         // 240 px (fēnix 5, 3 Felder) lief das Label sonst genau in die Punktreihe — von Jan im

@@ -471,6 +471,53 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 Klassische Datenseiten passen sich der Displaygroesse an (27.08.).** Jans Meldung:
+  „die Standardscreens sind auf kleineren Displays noch zu gross". Nachgemessen aus den
+  SDK-Geraetedateien (`~/.Garmin/ConnectIQ/Devices/*/simulator.json`, die Font-Dateinamen
+  enthalten die Pixelgroesse) — **die Garmin-Fonts skalieren NICHT mit dem Display**:
+
+  | Geraet | Display | numberMedium | xtiny | Zahl in % der Hoehe |
+  |---|---|---|---|---|
+  | fenix 7X Pro | 280 px | 39 | 13 | 14 % |
+  | Instinct 2 | 176 px | 32 | 15 | 18 % |
+  | Forerunner 55 | 208 px | 44 | 13 | 21 % |
+
+  Auf der klassischen Drei-Feld-Seite gilt `halbe Zahl + Abstand + Beschriftung <= Slot`. Das war
+  auf **33 von 107 auswertbaren Geraeten verletzt** (Ueberstand 0,3–5,2 px): Instinct 2/2X/2S/3/E,
+  Descent G1, fenix 5/5S/5X(+)/Chronos, fr935/645/55/45, Swim 2, vivoactive/3, epix (Gen 1),
+  Approach S60, D2-Reihe. Fix in `watch/source/RecordView.mc`: die Uhr **misst** jetzt
+  (`getTextWidthInPixels`/`getFontHeight`) statt nach Feldanzahl zu raten —
+  `_usableWidth` (auf runden Displays die **Sehne** auf Feldhoehe, nicht der Durchmesser),
+  `_fitFont` (hoechster passender Font, nicht der erste — die Reihenfolge numberMild > large
+  stimmt z. B. auf der Instinct 2 nicht) und ein echtes Hoehenbudget fuer den Wert, das Abstand
+  und Beschriftung abzieht. Auf grossen Uhren aendert sich dadurch nichts.
+  Gleiche Idee nachgezogen: **Wear** `AutoFitText` (schrumpft in 8-%-Schritten bis 55 %,
+  die 60.sp waren fest verdrahtet) und **Apple Watch** `minimumScaleFactor` (0,5 Wert / 0,7
+  Label; 40–49 mm plus Systemtextgroesse). **Zepp braucht nichts** — dort ist die Geometrie
+  ueber `px()` schon proportional zur Displaygroesse.
+  Gebaut/geprueft: instinct2, fenix5, fr55, venusq, fenix7xpro (alle drei Speicherstufen),
+  `:wear:compileDebugKotlin` gruen, `swiftc -parse` gruen. **`watch/bin` bewusst NICHT neu
+  gebaut** (ist live, und 1.0.80 ist der Store-Stand) -> geht mit der naechsten Release-Runde raus.
+
+- **🟡 Noch offen aus derselben Messung: lange Hinweiszeilen laufen ueber.** Nicht die
+  Zahlen, sondern die uebersetzten Ein-Zeilen-Hinweise (alle `FONT_XTINY`). Geschaetzte Breite
+  (0,52 x Fontgroesse je Zeichen) gegen die Displaybreite:
+
+  | Key | laengste Uebersetzung | Instinct 2 (176) | fenix 5 (240) | fenix 7X Pro (280) |
+  |---|---|---|---|---|
+  | `err.storageFull` | „Speicher voll – erst hochladen" (ru: 35 Z.) | 160 % | 203 % | 87 % |
+  | `err.dataLost` | „Rohdaten gehen verloren" (fr) | 155 % | 197 % | 84 % |
+  | `up.serverUnreach` | fi | 120 % | 152 % | 65 % |
+  | `saved.upload` | ru | 115 % | 146 % | 63 % |
+
+  Die fenix-5-Reihe ist der schlimmste Fall: `xtiny` ist dort **26 px auf 240 px** Display (fenix 7X
+  Pro: 13 auf 280). Betrifft sie auch auf Englisch (ENG-Stufe hat nur `StringsLite`):
+  „Storage full – upload first" = 158 % der Breite.
+  **Loesung ist NICHT kleinere Schrift** (Vorgabe: Hinweise nie unter normale Groesse), sondern
+  **Umbruch in zwei Zeilen**. Braucht pro Stelle Platz nach unten — die Hinweise stehen teils nur
+  6 % der Displayhoehe auseinander (auf 176 px = 8 px). Also erst die Idle-/Gespeichert-Screens
+  vertikal neu einteilen, dann umbrechen. Nicht mehr in dieser Runde.
+
 - **🟡 Versionen fuer die naechste Store-Runde gebumpt (26.08.) — Jan baut und testet.**
   Garmin **1.0.80** (gebaut, `watch/bin` live) · Phone **1.1.24/38** · Wear **1.2.24/1034** ·
   iOS + Apple Watch **1.1.25/29** · Zepp **1.0.7** (app.json `code` 9 -> **10**, `APP_VERSION` in
