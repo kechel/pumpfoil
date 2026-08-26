@@ -9,6 +9,19 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 🚀 App-Release-Stand
 
+- **🟡 iOS + Apple Watch 1.1.25 (29) EINGEREICHT — 26.08.2026, 21:25 Uhr (Jans Meldung).**
+  Status in App Store Connect: „Warten auf Pruefung". Uebermittlungskennung
+  `a9cf1407-1369-4d4b-815d-6525abffede6`. Ein Bundle = iPhone-App UND Watch-App (eine
+  MARKETING_VERSION in `project.yml`), nach der Freigabe also BEIDE `appmeta`-Schluessel setzen
+  (`ios` und `apple`).
+  Inhalt: Wert-Grafiken in der Layout-Vorschau + Puls-Zonen im Profil, GPX-/FIT-Download der
+  eigenen Session, Spot-Beschreibungen inkl. Auswahl aus Session-Fotos, Spot-Knopf und
+  Spot-Label mit Gewaesser, AR in den Foil-Badges, Katalog-Suche unabhaengig von der
+  Wortstellung, Trainingskurve; auf der Uhr zusaetzlich `expected_chunks` im Upload,
+  Live-Distanz ohne Zuwachs im Stand, gesaeuberter Max-Speed und die Lauf-Zusammenfuehrung.
+  **Noch NICHT eingereicht:** Phone 1.1.24/38 + Wear 1.2.24/1034 (Play), Zepp 1.0.7,
+  Garmin 1.0.80 (`.iq` liegt bei Jan).
+
 - **🟢 Garmin 1.0.79 LIVE — CIQ-Store FREIGEGEBEN (26.08.), Kette komplett.** Jans Meldung
   26.08. nachmittags: Store-Seite „Latest Release August 26, 2026 · Version 1.0.79 · Size 63 KB",
   aus dem Store auf seine ECHTE Uhr installiert und getestet — „funktioniert". Vorher im Emulator
