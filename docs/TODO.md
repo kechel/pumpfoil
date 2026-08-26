@@ -415,7 +415,15 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   wegen einer Umklassifizierung), und die verbliebenen (ungueltigen) Sessions werden vorher
   losgekoppelt, sonst haelt der Fremdschluessel die Zeile.
   **Bestand bereinigt:** 5 Waisen-Spots ohne gueltige Session geloescht (Moliets-et-Maâ,
-  Aix-en-Provence, Burgweiler, Louvie-Juzon, Silkeborg 2) — 217 aktive Spots, 0 Waisen.
+  Aix-en-Provence, Burgweiler, Louvie-Juzon, Silkeborg 2) — 0 Waisen.
+  **Und die letzten 5 Nachzuegler zugeordnet:** gueltige Sessions MIT Laeufen, die eine Koordinate
+  hatten, aber keinen Spot — die hatte mein Nachtrag nicht erfasst, weil er auf FEHLENDE Koordinaten
+  gefiltert hat. Drei fielen in vorhandene Spots (West-Terschelling 2, Annecy 2, Silkeborg), zwei
+  haben eigene bekommen (Velsen-Noord, Kiruna kommun). Bei #2753 stand `place_name` noch auf dem
+  inzwischen geloeschten „Silkeborg 2"; jetzt zeigt sie auf „Silkeborg", wo auch die Nachbar-Session
+  liegt.
+  **Stand danach: 219 aktive Spots, 0 Dubletten-Kandidaten (Mitte ODER Steg <= 100 m), 0 Waisen,
+  0 gueltige Sessions ohne Ort, 0 gueltige Sessions mit Laeufen ohne Spot.**
   **⚠️ Eigener Fehler, der Aufraeumen noetig machte:** mein „zurueckgerollter" Test von
   `_spot_aufraeumen` hat Daten in die DB geschrieben — die Funktion **committet intern**, damit war
   der Rollback wirkungslos. 2 Test-Spots, 4 Test-Sessions und 1 Test-Beschreibung sind entstanden
