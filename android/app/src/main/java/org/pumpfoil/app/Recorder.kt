@@ -326,13 +326,34 @@ object Recorder {
         }
     }
 
+    // Standschwelle fuer die LIVE-Distanz. Ohne sie summiert jeder GPS-Fix seinen Abstand zum
+    // Vorgaenger auf — auch wenn die Uhr am Steg liegt und nur der Empfang zittert. Gemessen an
+    // 400 echten Sessions (26.08.): die ungefilterte Punkt-zu-Punkt-Summe liegt bis zu 53 %
+    // ueber der ausgewerteten Distanz. Betroffen war nur die ANZEIGE (und die Lauf-Distanz, die
+    // sich daraus ergibt) — die Rohdaten gehen unveraendert zum Server, der rechnet selbst.
+    // Entschieden wird auf dem DOPPLER-Wert, nicht auf dem Abstand: er ist unabhaengig vom
+    // Positions-Zittern. Nur wenn das Geraet keine Geschwindigkeit liefert (negativ = unbekannt),
+    // faellt es auf eine Mindest-Verschiebung zurueck. Idee aus @elmanu13s Zepp-PR, dort ueber ein
+    // 5-s-Netto-Fenster geloest, weil Zepp weder Genauigkeit noch Doppler liefert.
+    private const val STAND_MPS = 0.5       // darunter gilt: wir stehen (1,8 km/h)
+    private const val STAND_SCHRITT_M = 1.5 // Rueckfall ohne Doppler: Mindest-Verschiebung je Fix
+
     fun addGps(lat: Double, lon: Double, speedMps: Double, accuracyM: Double) {
         if (!running) return
         val tMs = elapsedMs()
         val sp = maxOf(0.0, speedMps)
         synchronized(lock) {
             gps.add(doubleArrayOf(tMs.toDouble(), lat, lon, sp, 0.0, accuracyM))
-            if (!prevLat.isNaN()) distM += haversine(prevLat, prevLon, lat, lon)
+            // Nur addieren, wenn wir uns wirklich bewegen (s. STAND_MPS) — sonst waechst die
+            // Distanz im Stand mit dem Empfangs-Zittern.
+            if (!prevLat.isNaN()) {
+                val schritt = haversine(prevLat, prevLon, lat, lon)
+                // Der Handy-Recorder hat (anders als Wear) kein eigenes Qualitaets-Gate fuer die
+                // Anzeige — die Genauigkeitsgrenze steht deshalb hier, mit demselben Wert wie dort.
+                val brauchbar = accuracyM <= 20.0
+                val bewegt = if (speedMps >= 0.0) sp > STAND_MPS else schritt >= STAND_SCHRITT_M
+                if (brauchbar && bewegt) distM += schritt
+            }
             prevLat = lat; prevLon = lon
             if (sp > maxMps) maxMps = sp
             spWin.add(doubleArrayOf(tMs.toDouble(), sp))

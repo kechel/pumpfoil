@@ -57,6 +57,16 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
     private var uuid = ""
     private var startMs: Double = 0
     private var chunkIndex = 0
+    /// Standschwelle fuer die LIVE-Distanz. Ohne sie summiert jeder GPS-Fix seinen Abstand zum
+    /// Vorgaenger auf — auch wenn die Uhr am Steg liegt und nur der Empfang zittert. Gemessen an
+    /// 400 echten Sessions (26.08.): die ungefilterte Punkt-zu-Punkt-Summe liegt bis zu 53 % ueber
+    /// der ausgewerteten Distanz. Betroffen war nur die ANZEIGE (und die daraus abgeleitete
+    /// Lauf-Distanz) — die Rohdaten gehen unveraendert zum Server, der rechnet selbst.
+    /// Entschieden wird auf `loc.speed` (Doppler), nicht auf dem Abstand: der ist unabhaengig vom
+    /// Positions-Zittern. `speed < 0` heisst „unbekannt" -> Rueckfall auf eine Mindest-Verschiebung.
+    private static let standMps: Double = 0.5        // darunter gilt: wir stehen (1,8 km/h)
+    private static let standSchrittM: Double = 1.5   // Rueckfall ohne Doppler
+
     private var prevLat = Double.nan
     private var prevLon = Double.nan
     private var distM = 0.0
@@ -206,7 +216,14 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         let sp = max(0, l.speed)   // m/s (-1 = ungültig -> 0)
         lock.lock()
         gpsBuf.append([Double(tMs), l.coordinate.latitude, l.coordinate.longitude, sp, 0, l.horizontalAccuracy])
-        if !prevLat.isNaN { distM += Self.haversine(prevLat, prevLon, l.coordinate.latitude, l.coordinate.longitude) }
+        // Distanz nur, wenn wir uns wirklich bewegen (s. standMps). Der Handy-Recorder hat kein
+        // eigenes Qualitaets-Gate fuer die Anzeige, deshalb steht die Genauigkeitsgrenze hier —
+        // mit demselben Wert (20 m) wie auf Uhr und Server.
+        if !prevLat.isNaN {
+            let schritt = Self.haversine(prevLat, prevLon, l.coordinate.latitude, l.coordinate.longitude)
+            let bewegt = l.speed >= 0 ? l.speed > Self.standMps : schritt >= Self.standSchrittM
+            if l.horizontalAccuracy <= 20, bewegt { distM += schritt }
+        }
         prevLat = l.coordinate.latitude; prevLon = l.coordinate.longitude
         if sp > maxMps { maxMps = sp }
         spWin.append([Double(tMs), sp])

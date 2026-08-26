@@ -86,6 +86,16 @@ final class Recorder: NSObject, ObservableObject {
     private let motion = CMMotionManager()
     private let motionQueue = OperationQueue()
     private let location = CLLocationManager()
+    /// Standschwelle fuer die LIVE-Distanz. Ohne sie summiert jeder GPS-Fix seinen Abstand zum
+    /// Vorgaenger auf — auch wenn die Uhr am Steg liegt und nur der Empfang zittert. Gemessen an
+    /// 400 echten Sessions (26.08.): die ungefilterte Punkt-zu-Punkt-Summe liegt bis zu 53 % ueber
+    /// der ausgewerteten Distanz. Betroffen war nur die ANZEIGE (und die daraus abgeleitete
+    /// Lauf-Distanz) — die Rohdaten gehen unveraendert zum Server, der rechnet selbst.
+    /// Entschieden wird auf `loc.speed` (Doppler), nicht auf dem Abstand: der ist unabhaengig vom
+    /// Positions-Zittern. `speed < 0` heisst „unbekannt" -> Rueckfall auf eine Mindest-Verschiebung.
+    private static let standMps: Double = 0.5        // darunter gilt: wir stehen (1,8 km/h)
+    private static let standSchrittM: Double = 1.5   // Rueckfall ohne Doppler
+
     private var session: HKWorkoutSession?
     private var builder: HKLiveWorkoutBuilder?
 
@@ -528,7 +538,12 @@ extension Recorder: CLLocationManagerDelegate {
             self.gpsPoor = poor
             let sp = poor ? 0 : spRaw
             // Live-Kennzahlen
-            if let p = self.prevLoc { self.distAccum += max(0, loc.distance(from: p)) }
+            // Distanz nur, wenn wir uns wirklich bewegen (s. standMps).
+            if let p = self.prevLoc {
+                let schritt = max(0, loc.distance(from: p))
+                let bewegt = loc.speed >= 0 ? loc.speed > Self.standMps : schritt >= Self.standSchrittM
+                if !poor && bewegt { self.distAccum += schritt }
+            }
             self.prevLoc = loc
             if sp > self.maxMps { self.maxMps = sp }
             self.spWin.append((Double(t), sp))

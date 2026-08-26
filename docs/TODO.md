@@ -411,8 +411,22 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 Zwei der drei Befunde aus dem dritten Zepp-PR-Durchgang sind erledigt (26.08.).**
+  **Stand-Schwelle fuer die Live-Distanz** in allen vier betroffenen Recordern (Wear, Apple Watch,
+  Android-Handy, iOS-Handy): addiert wird nur noch, wenn der Fix brauchbar ist (Genauigkeit
+  <= 20 m) UND Bewegung vorliegt — entschieden auf dem DOPPLER-Wert (> 0,5 m/s), weil der
+  unabhaengig vom Positions-Zittern ist; liefert das Geraet keine Geschwindigkeit (jetzt als -1
+  durchgereicht statt als 0, sonst nicht von echtem Stillstand zu unterscheiden), gilt eine
+  Mindest-Verschiebung von 1,5 m je Fix. **BACK waehrend der Aufnahme** verschluckt Wear jetzt
+  auch (`BackHandler(enabled = s.recording)`), wie Handy und Garmin schon.
+  **Im Wear-Emulator gemessen** (AVD `foil_wear`, Wear OS 4): 30 gejitterte Fixes (+-1,5 m ueber
+  59 s) -> **0 m** Distanz (vorher waeren daraus ~45 m geworden); danach 12 Fixes je 5 m ->
+  **63 m** (erwartet ~60). Zurueck-Taste UND Randwisch lassen die Aufnahme-Ansicht stehen,
+  `topResumedActivity` bleibt unsere Activity.
+  Offen bleibt aus dem Durchgang nur Punkt 3 (bewegte Test-GPS-Spur fuer Wear/Apple).
+
 - **🔎 Dritter Durchgang durch El Manus Zepp-PR — diesmal im CODE, nicht im Changelog (26.08.).
-  Drei neue Befunde, alle noch OFFEN (Jans Entscheidung):**
+  Drei Befunde, Punkt 1 + 2 sind mit dem Eintrag oben erledigt:**
 
   1. **Live-Distanz laeuft im Stand weiter — auf Wear, Apple Watch UND beiden Handy-Recordern.**
      Alle vier summieren `distM += haversine(vorher, jetzt)` bei JEDEM Fix, ohne das

@@ -40,7 +40,10 @@ class RecorderService : Service(), SensorEventListener {
         override fun onLocationResult(r: LocationResult) {
             r.lastLocation?.let {
                 Recorder.addGps(it.latitude, it.longitude,
-                    if (it.hasSpeed()) it.speed.toDouble() else 0.0, it.accuracy.toDouble())
+                    // -1 = Geraet liefert KEINE Geschwindigkeit. Vorher stand hier 0.0 — das
+                    // war von einem echten Stillstand nicht zu unterscheiden, und genau darauf
+                    // entscheidet die Distanz-Schwelle (Recorder.STAND_MPS).
+                    if (it.hasSpeed()) it.speed.toDouble() else -1.0, it.accuracy.toDouble())
             }
         }
     }

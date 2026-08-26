@@ -31,7 +31,9 @@ class RecorderService : Service(), SensorEventListener {
     private val locListener = LocationListener { loc: Location ->
         Recorder.addGps(
             loc.latitude, loc.longitude,
-            if (loc.hasSpeed()) loc.speed.toDouble() else 0.0,
+            // -1 = keine Geschwindigkeit vom Geraet (vorher 0.0, nicht von echtem Stillstand
+            // zu unterscheiden — s. Recorder.STAND_MPS).
+            if (loc.hasSpeed()) loc.speed.toDouble() else -1.0,
             if (loc.hasAccuracy()) loc.accuracy.toDouble() else 0.0
         )
     }

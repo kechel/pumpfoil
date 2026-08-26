@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.ui.text.font.FontWeight
 import androidx.wear.ambient.AmbientLifecycleObserver
@@ -416,6 +417,12 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+        // Wisch nach rechts = BACK: waehrend der Aufnahme verschlucken. Auf nassem Schirm passiert
+        // das schnell, und der Nutzer stand dann vor dem Watchface, waehrend die Aufnahme im
+        // Foreground-Service weiterlief. Der Handy-Recorder macht das schon (RecordScreen.kt:108),
+        // Garmin auch (RecordDelegate.onBack) — auf Wear fehlte es. Beenden geht ueber die
+        // Stop-Seite des Pagers, nicht ueber die Zurueck-Geste.
+        BackHandler(enabled = s.recording) { /* bewusst ignoriert */ }
         // Always-on: ohne Ambient-Unterstuetzung zeigt Wear OS mitten im Lauf das Watchface statt
         // unserer Zahlen. Garmin braucht das nicht (MIP/Systemverhalten), die Apple Watch bleibt in
         // der HKWorkoutSession vorn — Wear war die einzige Plattform, die herausfiel.
