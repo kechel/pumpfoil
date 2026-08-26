@@ -403,6 +403,15 @@ def import_parsed_session(db, user, raw: bytes, parsed: dict, *, src_label: str,
     db.refresh(s)
     from ..notify import notify_session_analyzed
     notify_session_analyzed(db, s)
+    # Ort + Spot sofort bestimmen (Import-Pfad: FIT/TCX/GPX-Upload, Polar & Co.). Vorher hing das
+    # allein am Oeffnen der Detailansicht — 280 der 661 ortslosen Sessions kamen aus genau diesem
+    # Weg (s. Kommentar in ingest._analyze_in_background). Synchron ist hier vertretbar: der
+    # Import wartet ohnehin auf die Analyse, und ohne Ort waere die Session halb fertig.
+    try:
+        _geocode_place(s.id)
+        db.refresh(s)
+    except Exception:      # Overpass/Nominatim down -> Session bleibt gueltig, Ort kommt spaeter
+        pass
     return s
 
 

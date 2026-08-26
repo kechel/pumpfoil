@@ -156,6 +156,20 @@ def _analyze_in_background(session_id: int, final: bool = True) -> None:
                 notify_session_analyzed(db, s)
     finally:
         db.close()
+    if not final:
+        return
+    # Ort + Spot direkt nach der Analyse bestimmen — NICHT erst, wenn jemand die
+    # Detailansicht oeffnet. Bis 26.08. hing das ausschliesslich am Aufruf von
+    # GET /api/sessions/{id}: wer nur die Liste ansah, bekam nie `place_lat`/`place_name` und
+    # damit keinen Spot, keinen Marker, kein Spot-Wetter, keinen Spot-Chat. Gemessen waren so
+    # 661 von 1940 Sessions (34 %) ohne Ort, bei einzelnen Nutzern 75-93 % ihrer eigenen.
+    # Gleiche Gesamtlast wie vorher (jede Session genau einmal), nur frueher und unabhaengig
+    # davon, ob jemand hinschaut. Eigene DB-Session, laeuft ohnehin im Hintergrund.
+    try:
+        from .sessions import _geocode_place
+        _geocode_place(session_id)
+    except Exception:      # Geocoding darf die Analyse nie nachtraeglich scheitern lassen
+        pass
 
 
 @router.post("/session/{session_uuid}/analyze")
