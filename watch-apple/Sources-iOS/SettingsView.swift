@@ -15,6 +15,10 @@ struct SettingsView: View {
     // (synct zu Web/anderen Geräten). Reine Darstellung — siehe PumpUnit.swift.
     @AppStorage(PumpUnit.storeKey) private var pumpUnit = "hz"
     @State private var weight = 0
+    // Puls-Zonen: sechs steigende Grenzen (Z1-unten … Z5-oben). Der Server liefert nie leer —
+    // ohne eigene Einstellung kommt ein Vorschlag aus dem hoechsten je gemessenen Puls.
+    @State private var zonen: [Int] = [95, 114, 133, 152, 171, 190]
+    @State private var zonenVorschlag = true
     @State private var homespot = ""
     @State private var activityType = "surfing"
     @State private var activityReady = false   // erst nach dem Laden auf Änderungen reagieren
@@ -40,6 +44,7 @@ struct SettingsView: View {
     var body: some View {
         Form {
             weightSection
+            zonenSection
             homespotSection
             activitySection
             designSection
@@ -70,6 +75,83 @@ struct SettingsView: View {
     private var weightSection: some View {
         Section(Loc.t("settings.weight", lang)) {
             Stepper(weightLabel, value: $weight, in: 0...300)
+        }
+    }
+
+    // Puls-Zonen. Einzige Quelle fuer ALLE Plattformen: nur Garmin und Zepp koennen die Zonen der
+    // Uhr selbst lesen, watchOS und Wear OS haben keine API dafuer. Stepper statt Textfeld — im
+    // Formular tippt niemand gern sechs Zahlen, und ein Stepper kann nicht ungueltig werden.
+    private var zonenSection: some View {
+        Section {
+            ForEach(0..<5, id: \.self) { i in
+                Stepper(value: zonenBinding(i), in: 60...240) {
+                    HStack {
+                        Circle().fill(zonenFarbe(i)).frame(width: 10, height: 10)
+                        Text(Loc.t("hrz.z\(i + 1)", lang))
+                        Spacer()
+                        Text(zonenText(i)).foregroundStyle(.secondary)
+                    }
+                }
+            }
+            Stepper(value: zonenBinding(5), in: 60...240) {
+                HStack {
+                    Text(Loc.t("hrz.z5", lang))
+                    Spacer()
+                    Text("\(zonen[5]) bpm").foregroundStyle(.secondary)
+                }
+            }
+            if !zonenVorschlag {
+                Button(Loc.t("hrz.reset", lang)) { zonenZuruecksetzen() }
+            }
+        } header: { Text(Loc.t("hrz.title", lang)) }
+        footer: { Text(zonenFuss) }
+    }
+
+    private var zonenFuss: String {
+        if zonenVorschlag {
+            return Loc.t("hrz.isSuggestion", lang).replacingOccurrences(of: "{max}", with: "\(zonen[5])")
+        }
+        return Loc.t("hrz.hint", lang)
+    }
+
+    private func zonenText(_ i: Int) -> String { "\(zonen[i])–\(zonen[i + 1])" }
+
+    private func zonenFarbe(_ i: Int) -> Color {
+        let farben: [Color] = [
+            Color(red: 0.231, green: 0.510, blue: 0.965), Color(red: 0.133, green: 0.773, blue: 0.369),
+            Color(red: 0.918, green: 0.702, blue: 0.031), Color(red: 0.976, green: 0.451, blue: 0.086),
+            Color(red: 0.937, green: 0.267, blue: 0.267),
+        ]
+        return farben[min(max(i, 0), farben.count - 1)]
+    }
+
+    /// Grenzen muessen streng steigen. Statt eine Eingabe abzulehnen die Nachbarn mitschieben —
+    /// so bleibt jede Zone mindestens 1 bpm breit (Spiegel von HrZones.tsx / SettingsScreen.kt).
+    private func zonenBinding(_ i: Int) -> Binding<Int> {
+        Binding(
+            get: { zonen[i] },
+            set: { neu in
+                var w = zonen
+                w[i] = min(max(neu, 60), 240)
+                var k = i + 1
+                while k < w.count { w[k] = max(w[k], w[k - 1] + 1); k += 1 }
+                k = i - 1
+                while k >= 0 { w[k] = min(w[k], w[k + 1] - 1); k -= 1 }
+                zonen = w.map { min(max($0, 60), 240) }
+                zonenVorschlag = false
+                saved = false
+            }
+        )
+    }
+
+    private func zonenZuruecksetzen() {
+        Task {
+            try? await Api.saveSettings(["hr_zones": NSNull()])
+            let s = (try? await Api.settings()) ?? [:]
+            if let z = (s["hr_zones"] as? [Any])?.compactMap({ ($0 as? NSNumber)?.intValue }), z.count == 6 {
+                zonen = z
+            }
+            zonenVorschlag = true
         }
     }
 
@@ -232,6 +314,14 @@ struct SettingsView: View {
         homespot = (s["homespot"] as? String) ?? ""
         activityType = (s["activity_type"] as? String) ?? "surfing"
         activityReady = true
+        if let z = (s["hr_zones"] as? [Any])?.compactMap({ ($0 as? NSNumber)?.intValue }), z.count == 6 {
+            zonen = z
+        }
+        zonenVorschlag = (s["hr_zones_suggested"] as? Bool) ?? false
+        // Dieselben Zahlen fuer die Layout-Vorschauen (Zonenfarben der Wert-Grafiken).
+        LayoutScales.aus(hrZones: zonen,
+                         speedMin: (s["speed_min"] as? NSNumber)?.intValue,
+                         speedMax: (s["speed_max"] as? NSNumber)?.intValue)
         if let ds = try? await Api.myDevices() { hasGarmin = ds.contains { $0.platform == "garmin" && $0.revoked_at == nil } }
         if let np = s["notify_prefs"] as? [String: Any] {
             nLike = (np["like"] as? Bool) ?? true
@@ -264,6 +354,7 @@ struct SettingsView: View {
         Task {
             try? await Api.saveSettings([
                 "weight_kg": weight,
+                "hr_zones": zonen,
                 "homespot": homespot,
                 // "chat" MUSS mit: notify_prefs wird als Ganzes ersetzt, ein Speichern von hier
                 // hat die im Web gesetzte Chat-Einstellung also stillschweigend geloescht.

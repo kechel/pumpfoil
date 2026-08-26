@@ -22,6 +22,15 @@ private let EL_LINE = 4
 private let EL_REC = 5
 private let EL_DOTS = 6
 private let EL_PAUSED = 7
+// Wert-Grafiken (Spiegel von watchLayout.ts EL_ARC/EL_BAR):
+//   8 = Rand-Grafik: x = Start auf dem Display-UMFANG (0…1000 ab 12 Uhr im Uhrzeigersinn),
+//       y = Länge desselben Umfangs, size = Dicke 1…4, extra = Feld-ID. Runde Uhr -> Ringsegment,
+//       eckige -> Rahmensegment; das entscheidet DIESER Renderer aus der Gehäuseform.
+//   9 = Balken: x/y = Mitte, size = Dicke, extra = Feld-ID, extra2 = Breite 50…1000.
+// flags Bit0 färbt beide nach Zone/Skala (bei Grafiken also NICHT „linksbündig" — eine Grafik hat
+// keine Textausrichtung).
+private let EL_ARC = 8
+private let EL_BAR = 9
 
 /// Kuratierte Palette, Index = `color`. Spiegel von layouts.py PALETTE.
 /// Index 0 = „auto": die Uhr entscheidet (Werte weiß, Labels hellgrau).
@@ -33,7 +42,97 @@ private let PALETTE: [Color?] = [
     Color(red: 0, green: 1, blue: 0), Color(red: 0, green: 0.667, blue: 0),
     Color(red: 0, green: 1, blue: 1), Color(red: 0.133, green: 0.827, blue: 0.933),
     Color(red: 0, green: 0.333, blue: 1),
+    Color(red: 0.667, green: 0, blue: 1), Color(red: 1, green: 0, blue: 0.667),
 ]
+
+/// Zonen-Farben Z1…Z5 der Wert-Grafiken (Spiegel von ZONE_COLORS in watchLayout.ts).
+private let ZONE_COLORS: [Color] = [
+    Color(red: 0.231, green: 0.510, blue: 0.965),
+    Color(red: 0.133, green: 0.773, blue: 0.369),
+    Color(red: 0.918, green: 0.702, blue: 0.031),
+    Color(red: 0.976, green: 0.451, blue: 0.086),
+    Color(red: 0.937, green: 0.267, blue: 0.267),
+]
+
+/// Skalen der Wert-Grafiken. Die Puls-Zonen kommen aus dem PROFIL (`settings.hr_zones`): nur Garmin
+/// und Zepp können die Zonen der Uhr selbst lesen, watchOS und Wear OS haben keine API dafür.
+/// Bewusst gemeinsamer Zustand statt eines Parameters an jeder Vorschau — die Skala gehört dem
+/// NUTZER, nicht dem einzelnen Layout, und wird an drei Stellen gezeichnet.
+enum LayoutScales {
+    static var hrZones: [Int] = [95, 114, 133, 152, 171, 190]
+    static var speedLo: Int = 8
+    static var speedHi: Int = 25
+
+    static func aus(hrZones z: [Int]?, speedMin: Int?, speedMax: Int?) {
+        if let z = z, z.count == 6 { hrZones = z }
+        if let lo = speedMin, lo > 0 { speedLo = lo }
+        if let hi = speedMax, hi > 0 { speedHi = hi }
+    }
+}
+
+/// Füllgrad 0…1 eines Wertes auf seiner Skala (außerhalb gekappt, nicht extrapoliert).
+private func fuellgrad(_ fieldId: Int, _ v: Double) -> Double {
+    var lo = Double(LayoutScales.speedLo)
+    var hi = Double(LayoutScales.speedHi)
+    if HR_FIELDS.contains(fieldId) {
+        lo = Double(LayoutScales.hrZones.first ?? 0)
+        hi = Double(LayoutScales.hrZones.last ?? 0)
+    }
+    if hi <= lo { return 0 }
+    return min(max((v - lo) / (hi - lo), 0), 1)
+}
+
+/// Zone 0…4 eines Wertes. Geschwindigkeit hat im Profil keine Zonen -> Spanne in fünf Stufen.
+private func zone(_ fieldId: Int, _ v: Double) -> Int {
+    var grenzen: [Double] = []
+    if HR_FIELDS.contains(fieldId) {
+        grenzen = LayoutScales.hrZones.map { Double($0) }
+    } else {
+        let lo = Double(LayoutScales.speedLo)
+        let hi = Double(LayoutScales.speedHi)
+        for i in 0...5 { grenzen.append(lo + (hi - lo) * Double(i) / 5.0) }
+    }
+    var z = 0
+    if grenzen.count > 2 {
+        for i in 1..<(grenzen.count - 1) where v >= grenzen[i] { z = i }
+    }
+    return min(max(z, 0), ZONE_COLORS.count - 1)
+}
+
+/// Punkt auf dem Display-RAND, Parameter 0…1 ab 12 Uhr im Uhrzeigersinn (Spiegel von edgePoint).
+private func randPunkt(_ rund: Bool, _ w: CGFloat, _ h: CGFloat, _ inset: CGFloat, _ p: Double) -> CGPoint {
+    let f = CGFloat((p.truncatingRemainder(dividingBy: 1) + 1).truncatingRemainder(dividingBy: 1))
+    if rund {
+        let a = f * 2 * .pi - .pi / 2
+        return CGPoint(x: w / 2 + (w / 2 - inset) * cos(a), y: h / 2 + (h / 2 - inset) * sin(a))
+    }
+    let bw = w - 2 * inset
+    let bh = h - 2 * inset
+    var d = f * 2 * (bw + bh)
+    if d < bw / 2 { return CGPoint(x: inset + bw / 2 + d, y: inset) }
+    d -= bw / 2
+    if d < bh { return CGPoint(x: w - inset, y: inset + d) }
+    d -= bh
+    if d < bw { return CGPoint(x: w - inset - d, y: h - inset) }
+    d -= bw
+    if d < bh { return CGPoint(x: inset, y: h - inset - d) }
+    d -= bh
+    return CGPoint(x: inset + d, y: inset)
+}
+
+/// Randsegment als Pfad (Start/Länge 0…1000). Gesampelt: rund und eckig gehen EINEN Weg.
+private func randPfad(_ rund: Bool, _ w: CGFloat, _ h: CGFloat, _ inset: CGFloat,
+                      _ start: Double, _ laenge: Double) -> Path {
+    let l = min(max(laenge / 1000, 0), 1)
+    let s0 = start.truncatingRemainder(dividingBy: 1000) / 1000
+    let n = max(6, Int(l * 120))
+    var pfad = Path()
+    for i in 0...n {
+        let pt = randPunkt(rund, w, h, inset, s0 + l * Double(i) / Double(n))
+        if i == 0 { pfad.move(to: pt) } else { pfad.addLine(to: pt) }
+    }
+    return pfad
+}
 
 /// Fontgröße als Anteil der Displaybreite, je Größenstufe. Abgeleitet aus watchLayout.ts
 /// (FONT_MEASURED/SAMPLE_ADV/FONT_REF_W) — dieselben Zahlen wie Web und Android.
@@ -127,9 +226,14 @@ struct WatchLayoutPreview: View {
             ctx.stroke(pfad, with: .color(farbe(int(e, 4), "line")),
                        lineWidth: max(1, CGFloat(num(e, 3))))
         }
+        // Wert-Grafiken vor dem Text: leerer Track + gefüllter Anteil, damit die Skala auch bei
+        // kleinem Wert erkennbar bleibt.
+        for e in elements where int(e, 0) == EL_ARC || int(e, 0) == EL_BAR {
+            grafik(&ctx, e, size)
+        }
         for e in elements {
             let typ = int(e, 0)
-            if typ == EL_LINE { continue }
+            if typ == EL_LINE || typ == EL_ARC || typ == EL_BAR { continue }
             let x = rel(e, 1, size.width)
             let y = rel(e, 2, size.height)
             let flags = int(e, 5)
@@ -165,6 +269,40 @@ struct WatchLayoutPreview: View {
                 }
             default:
                 break
+            }
+        }
+    }
+
+    /// Rand-Grafik bzw. Balken. Bewusst in eine eigene Funktion: SwiftUIs Type-Checker wird bei
+    /// langen Ausdrücken in einem Canvas-Block schnell unbrauchbar langsam.
+    private func grafik(_ ctx: inout GraphicsContext, _ e: [LayoutValue], _ size: CGSize) {
+        let fid = int(e, 6)
+        let wert = Double(MOCK_VALUE[fid] ?? "") ?? 0
+        let anteil = fuellgrad(fid, wert)
+        let nachSkala = int(e, 5) & 1 != 0
+        let grund: Color = nachSkala ? ZONE_COLORS[zone(fid, wert)] : farbe(int(e, 4), "value")
+        let stufeD = CGFloat(min(max(int(e, 3), 1), 4))
+        let dicke = max(2, size.width * 0.018 * stufeD)
+        if int(e, 0) == EL_ARC {
+            let rund = shape != "rect"
+            let inset = dicke / 2 + 1
+            let laenge = min(max(num(e, 2), 0), 1000)
+            let track = randPfad(rund, size.width, size.height, inset, num(e, 1), laenge)
+            ctx.stroke(track, with: .color(grund.opacity(0.25)), lineWidth: dicke)
+            if anteil > 0 {
+                let voll = randPfad(rund, size.width, size.height, inset, num(e, 1), laenge * anteil)
+                ctx.stroke(voll, with: .color(grund), lineWidth: dicke)
+            }
+        } else {
+            let breite = CGFloat(min(max(num(e, 7), 50), 1000)) / 1000 * size.width
+            let x0 = rel(e, 1, size.width) - breite / 2
+            let y0 = rel(e, 2, size.height) - dicke / 2
+            let leer = CGRect(x: x0, y: y0, width: breite, height: dicke)
+            ctx.fill(Path(roundedRect: leer, cornerRadius: dicke / 2), with: .color(grund.opacity(0.25)))
+            if anteil > 0 {
+                let vollBreite = max(dicke, breite * CGFloat(anteil))
+                let voll = CGRect(x: x0, y: y0, width: vollBreite, height: dicke)
+                ctx.fill(Path(roundedRect: voll, cornerRadius: dicke / 2), with: .color(grund))
             }
         }
     }

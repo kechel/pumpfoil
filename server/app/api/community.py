@@ -1014,14 +1014,23 @@ def community_stats(
     foilers = db.query(func.count(U.id)).scalar()
     row = _community(
         db.query(
-            func.count(func.distinct(func.nullif(S.place_name, ""))),
             func.count(func.distinct(S.id)),
             func.coalesce(func.sum(AR.pump_count), 0),
         ),
         viewer_id=None, accel_only=False,
     ).first()
-    data = {"foilers": int(foilers or 0), "spots": int(row[0] or 0),
-            "sessions": int(row[1] or 0), "pumps": int(row[2] or 0)}
+    # Spots nach spot_id zaehlen, NICHT nach place_name (25.08.: Banner 196, /spots 203).
+    # Zwei Gruende, warum der Name die falsche Einheit ist: ein Spot, dessen Sessions noch keinen
+    # Ortsnamen haben (Geocoding offen), fehlte ganz — real 2 Stueck; und ein umbenannter Spot
+    # zaehlte doppelt, solange alte Sessions den alten Namen tragen. Die Karte gruppiert seit dem
+    # 20.08. ebenfalls nach spot_id, damit zeigen beide dieselbe Einheit. Sessions ohne spot_id
+    # (Altbestand) behalten ihre Namensgruppe, sonst verschwaenden sie aus der Zahl.
+    ids = _community(db.query(func.count(func.distinct(S.spot_id))),
+                     viewer_id=None, accel_only=False).filter(S.spot_id.isnot(None)).first()
+    namenlos = _community(db.query(func.count(func.distinct(func.nullif(S.place_name, "")))),
+                          viewer_id=None, accel_only=False).filter(S.spot_id.is_(None)).first()
+    data = {"foilers": int(foilers or 0), "spots": int(ids[0] or 0) + int(namenlos[0] or 0),
+            "sessions": int(row[0] or 0), "pumps": int(row[1] or 0)}
     with _stats_lock:
         _stats_cache = (now, data)
     return data

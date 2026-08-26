@@ -136,6 +136,9 @@ fun DataFieldsScreen(onBack: () -> Unit, onGallery: () -> Unit = {}) {
             layoutsEnabled = s["layouts_enabled"]?.jsonPrimitive?.booleanOrNull ?: true
             colorByValue = s["colorByValue"]?.jsonPrimitive?.booleanOrNull ?: false
             autoStartWatch = s["auto_start"]?.jsonPrimitive?.booleanOrNull ?: true
+            // Skalen der Wert-Grafiken (Puls-Zonen + Geschwindigkeitsspanne) aus dem Profil —
+            // ohne sie zeichnete die Vorschau geratene Zonenfarben.
+            LayoutScales.aus(s)
         } catch (_: Exception) {}
         layouts = try { Api.watchLayouts() } catch (_: Exception) { emptyList() }
         loaded = true

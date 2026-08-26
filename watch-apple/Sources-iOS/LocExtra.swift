@@ -3131,6 +3131,15 @@ let nbOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/nb.ts.
 private let _nbOverlayP11: [String: String] = [
+    "hrz.title": "Pulssoner",
+    "hrz.hint": "De styrer fargene på pulsgrafikken på klokka.",
+    "hrz.z1": "Z1 restitusjon",
+    "hrz.z2": "Z2 grunntrening",
+    "hrz.z3": "Z3 tempo",
+    "hrz.z4": "Z4 terskel",
+    "hrz.z5": "Z5 maksimum",
+    "hrz.reset": "Tilbake til forslaget",
+    "hrz.isSuggestion": "Forslag ut fra målt maksimum ({max} bpm). Endre et tall, så gjelder din egen innstilling.",
     "stat.foiling": "Foiling",
     "stat.foilingTime": "Foiling-tid",
     "power.title": "Teoretisk effekt",

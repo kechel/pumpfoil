@@ -3023,6 +3023,15 @@ val ID: Map<String, String> = mapOf(
 // Englischen. Anlass: erster norwegischer Nutzer (Sogndal, 05.08.2026). nn/no landen ebenfalls
 // hier, s. web/src/i18n/index.tsx.
 val NB: Map<String, String> = mapOf(
+    "hrz.title" to "Pulssoner",
+    "hrz.hint" to "De styrer fargene på pulsgrafikken på klokka. Forslaget kommer fra den høyeste pulsen som er målt.",
+    "hrz.z1" to "Z1 restitusjon",
+    "hrz.z2" to "Z2 grunntrening",
+    "hrz.z3" to "Z3 tempo",
+    "hrz.z4" to "Z4 terskel",
+    "hrz.z5" to "Z5 maksimum",
+    "hrz.reset" to "Tilbake til forslaget",
+    "hrz.isSuggestion" to "Forslag ut fra målt maksimum ({max} bpm). Endre et tall, så gjelder din egen innstilling.",
     "sd.fullscreen" to "⛶ Fullskjerm",
     "sd.close" to "✕ Lukk",
     "stat.foiling" to "Foiling",

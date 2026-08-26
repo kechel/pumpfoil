@@ -280,6 +280,12 @@ struct DataFieldsView: View {
         layoutsEnabled = (s["layouts_enabled"] as? Bool) ?? true
         colorByValue = (s["colorByValue"] as? Bool) ?? false
         autoStartWatch = (s["auto_start"] as? Bool) ?? true
+        // Skalen der Wert-Grafiken (Puls-Zonen + Geschwindigkeitsspanne) aus dem Profil — ohne sie
+        // zeichnete die Vorschau geratene Zonenfarben.
+        let zonen = (s["hr_zones"] as? [Any])?.compactMap { ($0 as? NSNumber)?.intValue }
+        LayoutScales.aus(hrZones: zonen,
+                         speedMin: (s["speed_min"] as? NSNumber)?.intValue,
+                         speedMax: (s["speed_max"] as? NSNumber)?.intValue)
         layouts = (try? await Api.watchLayouts()) ?? []
     }
 

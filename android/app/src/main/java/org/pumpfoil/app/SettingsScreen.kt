@@ -1,5 +1,9 @@
 package org.pumpfoil.app
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -62,6 +66,10 @@ fun SettingsScreen(onBack: () -> Unit) {
     var saved by remember { mutableStateOf(false) }
 
     var weight by remember { mutableStateOf("0") }
+    // Puls-Zonen: sechs steigende Grenzen (Z1-unten … Z5-oben). Der Server liefert nie leer —
+    // ohne eigene Einstellung kommt ein Vorschlag aus dem hoechsten je gemessenen Puls.
+    var zonen by remember { mutableStateOf(listOf(95, 114, 133, 152, 171, 190)) }
+    var zonenVorschlag by remember { mutableStateOf(true) }
     var homespot by remember { mutableStateOf("") }
     var activityType by remember { mutableStateOf("surfing") }
     var hasGarmin by remember { mutableStateOf(false) }   // Aktivitätstyp nur bei verknüpfter Garmin-Uhr
@@ -88,6 +96,12 @@ fun SettingsScreen(onBack: () -> Unit) {
             weight = (s["weight_kg"]?.jsonPrimitive?.intOrNull ?: 0).toString()
             homespot = s["homespot"]?.jsonPrimitive?.contentOrNull ?: ""
             activityType = s["activity_type"]?.jsonPrimitive?.contentOrNull ?: "surfing"
+            (s["hr_zones"] as? kotlinx.serialization.json.JsonArray)
+                ?.mapNotNull { it.jsonPrimitive.intOrNull }
+                ?.takeIf { it.size == 6 }?.let { zonen = it }
+            zonenVorschlag = s["hr_zones_suggested"]?.jsonPrimitive?.booleanOrNull ?: false
+            // Dieselben Zahlen fuer die Layout-Vorschauen (Zonenfarben der Wert-Grafiken).
+            LayoutScales.aus(s)
             (s["notify_prefs"] as? kotlinx.serialization.json.JsonObject)?.let { np ->
                 nLike = np["like"]?.jsonPrimitive?.booleanOrNull ?: true
                 nAnalyzed = np["analyzed"]?.jsonPrimitive?.booleanOrNull ?: true
@@ -111,6 +125,9 @@ fun SettingsScreen(onBack: () -> Unit) {
             try {
                 Api.saveSettings(buildJsonObject {
                     put("weight_kg", weight.toIntOrNull() ?: 0)
+                    put("hr_zones", kotlinx.serialization.json.buildJsonArray {
+                        zonen.forEach { add(kotlinx.serialization.json.JsonPrimitive(it)) }
+                    })
                     put("homespot", homespot)
                     put("notify_prefs", buildJsonObject {
                         // "chat" MUSS mit: notify_prefs wird als Ganzes ersetzt, ein Speichern
@@ -146,6 +163,73 @@ fun SettingsScreen(onBack: () -> Unit) {
                 singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.width(120.dp),
             )
+            Spacer(Modifier.height(16.dp))
+
+            // Puls-Zonen. Einzige Quelle fuer alle Plattformen: nur Garmin und Zepp koennen die
+            // Zonen der Uhr selbst lesen, Wear OS und watchOS haben keine API dafuer.
+            Text(I18n.t("hrz.title"), style = MaterialTheme.typography.labelLarge)
+            Text(I18n.t("hrz.hint"), style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 2.dp, bottom = 6.dp))
+            ZONEN_FARBEN.forEachIndexed { i, farbe ->
+                Row(Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.size(12.dp).clip(CircleShape).background(farbe))
+                    Spacer(Modifier.width(8.dp))
+                    Text(I18n.t("hrz.z${i + 1}"), Modifier.width(120.dp),
+                        style = MaterialTheme.typography.bodyMedium)
+                    OutlinedTextField(
+                        value = zonen[i].toString(),
+                        onValueChange = { v ->
+                            val n = v.filter { c -> c.isDigit() }.take(3).toIntOrNull() ?: 0
+                            zonen = zonenRepariert(zonen.toMutableList().also { it[i] = n }, i)
+                            zonenVorschlag = false
+                            saved = false
+                        },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.width(96.dp),
+                    )
+                    Text(" – ", style = MaterialTheme.typography.bodyMedium)
+                    if (i < 4) {
+                        Text("${zonen[i + 1]}", style = MaterialTheme.typography.bodyMedium)
+                    } else {
+                        OutlinedTextField(
+                            value = zonen[5].toString(),
+                            onValueChange = { v ->
+                                val n = v.filter { c -> c.isDigit() }.take(3).toIntOrNull() ?: 0
+                                zonen = zonenRepariert(zonen.toMutableList().also { it[5] = n }, 5)
+                                zonenVorschlag = false
+                                saved = false
+                            },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.width(96.dp),
+                        )
+                    }
+                }
+            }
+            if (zonenVorschlag) {
+                Text(I18n.t("hrz.isSuggestion").replace("{max}", "${zonen[5]}"),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp))
+            } else {
+                OutlinedButton(onClick = {
+                    scope.launch {
+                        try {
+                            Api.saveSettings(buildJsonObject { put("hr_zones", kotlinx.serialization.json.JsonNull) })
+                            // saveSettings gibt nichts zurueck -> den neuen Vorschlag frisch holen.
+                            val r = Api.settings()
+                            (r["hr_zones"] as? kotlinx.serialization.json.JsonArray)
+                                ?.mapNotNull { it.jsonPrimitive.intOrNull }
+                                ?.takeIf { it.size == 6 }?.let { zonen = it }
+                            zonenVorschlag = true
+                            flashSaved()
+                        } catch (_: Exception) {}
+                    }
+                }, modifier = Modifier.padding(top = 4.dp)) { Text(I18n.t("hrz.reset")) }
+            }
             Spacer(Modifier.height(16.dp))
 
             // Homespot.
@@ -346,4 +430,22 @@ private fun Dropdown(options: List<Pair<String, String>>, selected: String, onSe
             }
         }
     }
+}
+
+
+/** Zonen-Farben Z1…Z5 (Spiegel von ZONE_COLORS in LayoutRender.kt / watchLayout.ts). */
+private val ZONEN_FARBEN = listOf(
+    androidx.compose.ui.graphics.Color(0xFF3B82F6), androidx.compose.ui.graphics.Color(0xFF22C55E),
+    androidx.compose.ui.graphics.Color(0xFFEAB308), androidx.compose.ui.graphics.Color(0xFFF97316),
+    androidx.compose.ui.graphics.Color(0xFFEF4444),
+)
+
+/** Grenzen muessen streng steigen. Statt eine Eingabe abzulehnen (und den Nutzer raetseln zu
+ *  lassen) die Nachbarn mitschieben — so bleibt jede Zone mindestens 1 bpm breit. Spiegel von
+ *  `repariert` in web/src/components/HrZones.tsx. */
+private fun zonenRepariert(w: List<Int>, i: Int): List<Int> {
+    val out = w.map { it.coerceIn(60, 240) }.toMutableList()
+    for (k in i + 1 until out.size) out[k] = maxOf(out[k], out[k - 1] + 1)
+    for (k in i - 1 downTo 0) out[k] = minOf(out[k], out[k + 1] - 1)
+    return out.map { it.coerceIn(60, 240) }
 }
