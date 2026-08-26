@@ -374,10 +374,7 @@ class SessionRecorder {
         var pv = Storage.getValue("pause_config");
         if (pv instanceof Lang.Array && pv.size() == 3) { pauseView = pv; }
         // Gecachte Wert-Skalen (Puls-Zonen + Geschwindigkeitsspanne) — offline verfuegbar.
-        var hz = Storage.getValue("hrzones_config");
-        if (hz instanceof Lang.Array && hz.size() == 6) { hrZones = hz; }
-        var ss = Storage.getValue("speedscale_config");
-        if (ss instanceof Lang.Array && ss.size() == 2) { speedScale = ss; }
+        _scalesFromCache();
         // Dynamische Layouts aus dem Cache (offline verfügbar) + On-Watch-Not-Aus.
         _layoutsFromCache();
         initAlarmSelection();   // Default-Foil/Website (offline aus Cache)
@@ -501,6 +498,34 @@ class SessionRecorder {
 
     // Lite-Build: keine Layouts, also nichts zu übernehmen (Felder bleiben auf ihren Defaults).
     (:nolayouts) hidden function _applyLayouts(lay) { layoutsOn = false; }
+
+    // Wert-Skalen der Layout-Grafiken (Puls-Zonen + Geschwindigkeitsspanne). NUR die Builds mit
+    // Renderer brauchen sie: die 96-KB- (LITE) und die 128-KB-Klasse (ENG) zeichnen keine Layouts,
+    // dort waeren Parsen UND der Storage-Eintrag verschwendeter Platz — und Platz ist genau das,
+    // was diesen Uhren fehlt (1.0.64 crashte dort unter Dauerlast).
+    (:layouts) hidden function _applyScales(data) {
+        if (data.hasKey("hrZones") && data["hrZones"] instanceof Lang.Array
+                && data["hrZones"].size() == 6) {
+            hrZones = data["hrZones"];
+            _store("hrzones_config", hrZones);
+        }
+        if (data.hasKey("speedScale") && data["speedScale"] instanceof Lang.Array
+                && data["speedScale"].size() == 2) {
+            speedScale = data["speedScale"];
+            _store("speedscale_config", speedScale);
+        }
+    }
+
+    (:nolayouts) hidden function _applyScales(data) { }
+
+    (:layouts) hidden function _scalesFromCache() {
+        var hz = Storage.getValue("hrzones_config");
+        if (hz instanceof Lang.Array && hz.size() == 6) { hrZones = hz; }
+        var ss = Storage.getValue("speedscale_config");
+        if (ss instanceof Lang.Array && ss.size() == 2) { speedScale = ss; }
+    }
+
+    (:nolayouts) hidden function _scalesFromCache() { }
     (:nolayouts) hidden function _pageSet(lay, key, legacyKey) { return []; }
 
     // On-Watch-Not-Aus umschalten (Menüpunkt). Wirkt sofort und überlebt den Neustart.
@@ -791,18 +816,8 @@ class SessionRecorder {
                 pauseView = _normView(data["pauseView"]);
                 _store("pause_config", pauseView);
             }
-            // Wert-Skalen der Layout-Grafiken uebernehmen + cachen. Fehlt der Key (alter Server),
-            // bleibt der bisherige Wert.
-            if (data.hasKey("hrZones") && data["hrZones"] instanceof Lang.Array
-                    && data["hrZones"].size() == 6) {
-                hrZones = data["hrZones"];
-                _store("hrzones_config", hrZones);
-            }
-            if (data.hasKey("speedScale") && data["speedScale"] instanceof Lang.Array
-                    && data["speedScale"].size() == 2) {
-                speedScale = data["speedScale"];
-                _store("speedscale_config", speedScale);
-            }
+            // Wert-Skalen der Layout-Grafiken (nur (:layouts)-Builds; in LITE/ENG ein No-Op).
+            _applyScales(data);
             // Dynamische Layouts (nur (:layouts)-Builds; in LITE/ENG ist das ein No-Op).
             _layoutsFromConfig(data);
             // Canary-Meldung ist beim Server angekommen (wir sind im Erfolgspfad) -> erledigt.
