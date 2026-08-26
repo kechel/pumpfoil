@@ -411,6 +411,47 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 GPX-/FIT-Download der Session jetzt auch in Android und iOS (26.08.).** Letzte
+  Paritaets-Luecke der Woche geschlossen: EIN Knopf mit Auswahlmenue (in der Kopfzeile ist kein
+  Platz fuer zwei), Datei in den Cache bzw. das temporaere Verzeichnis, dann ans System-Teilen —
+  ein Browser-Download gibt es auf dem Handy nicht. Dateiname wie der Server
+  (`pumpfoil-<Datum in der Zeitzone der Aufnahme>-<id>.<endung>`), MIME getrennt
+  (`application/vnd.ant.fit` / `application/gpx+xml`). Besitzer-Pruefung macht der SERVER
+  (`_owned`), der Knopf blendet sich nur zusaetzlich aus — gegen eine fremde Session geprueft: 404.
+  NICHT end-to-end geprueft (Bot-Konto hat keine eigenen Sessions, auf Jans Konto teste ich nicht);
+  der Endpunkt selbst ist seit 21.08. per `scripts/export-check.py` verifiziert.
+
+- **🔎 Review von El Manus Zepp-PR #3 — was daraus fuer UNS uebrig ist (26.08.).** Zweiter
+  Durchgang, diesmal auf der Suche nach uebertragbaren Ideen (der erste war der Merge-Review).
+  Zwei Funde sind echte Luecken bei uns, zwei Punkte sind bewusst anders, der Rest ist
+  Zepp-Kosmetik:
+
+  1. **`expected_chunks` schickt KEIN Recorder von uns** — Garmin, Wear, Apple und der
+     Handy-Recorder: 0 Treffer. Der Server kann es seit Phase 3 (`sessions.expected_chunks`,
+     `SessionStartIn.expected_chunks`), und `sessions.py:199` liefert es als `upload_total` an die
+     Oberflaeche. Weil es nie ankommt, steht dort NULL und alle Clients zeigen einen unbestimmten
+     Balken statt „12 von 30". Beim Draining einer gequeueten Session ist die Zahl exakt bekannt
+     (die Zaehler `na_`/`ng_` stehen im Store) — also klein nachzurichten, betrifft aber den
+     Upload-Pfad und damit ein Uhr-Release. **Frage an Jan: mit der naechsten Runde mitnehmen?**
+  2. **Wear OS hat keine Always-on-/Ambient-Ansicht.** El Manu haelt auf Zepp den Schirm im Lauf
+     wach (60-s-Fenster, alle 10 s erneuert). Garmin braucht das nicht (MIP/Systemverhalten),
+     Apple laeuft in der `HKWorkoutSession` und bleibt vorn — aber auf Wear gibt es weder
+     `AmbientLifecycleObserver` noch `OngoingActivity` (nur der Foreground-Service mit
+     `setOngoing(true)`). Heisst: Handgelenk heben mitten im Lauf zeigt das Watchface, nicht die
+     Zahlen. Das ist eine echte Luecke, aber eine Akku-Entscheidung → **Jans Aufruf**, und im
+     Wear-Emulator zu pruefen.
+  3. Bewusst anders: **Upload-Chunk-Groessen.** Sein „GPS 10 -> 20 Punkte, Accel 128 -> 256
+     Samples" holt Zepp nur auf; Garmin liegt bei 1500 Accel-Samples (60 s) und 120 GPS-Punkten
+     (120 s), also weit darueber. Nichts zu uebernehmen.
+  4. Bewusst anders: **Auto-Start.** Er schaltet den geschwindigkeitsbasierten Start auf Zepp AB,
+     weil Reisen unbeabsichtigte Aufnahmen erzeugte. Bei uns ist er ein Nutzerschalter und viel
+     enger gefasst: 2,8 m/s ueber 4 s, NUR auf dem Startbildschirm und erst 10 s nach dem
+     Betreten (`AUTO_START_MPS/DWELL/LEAD`). Kein Handlungsbedarf, aber der Befund ist notiert.
+  5. Schon uebernommen: die **Canvas-statt-ARC-Erkenntnis** („ARC always renders rounded stroke
+     caps on the T-Rex 3") steckt in unseren Wert-Grafiken, s. Eintrag oben.
+  6. Rest ist Zepp-spezifisch (T-Rex-3-Layouts, Batterie-Anzeige, Icon-Groessen, Ring-Reihenfolge,
+     Zepp-Zonen-API) oder betrifft nur seinen Fork.
+
 - **🟢 Wert-Grafiken in Layouts + Puls-Zonen im Profil (26.08.).** Aus El Manus Zepp-PR uebernommen,
   aber GENERISCH gebaut (Jans Wunsch): zwei neue Layout-Elemente — `typ 8` Rand-Grafik (Start +
   Laenge auf dem Display-UMFANG ab 12 Uhr im Uhrzeigersinn, Dicke 1-4) und `typ 9` Balken (Mitte,
