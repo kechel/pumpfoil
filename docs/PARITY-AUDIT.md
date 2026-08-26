@@ -54,6 +54,8 @@ DREI Seitenlisten (`pages` / `off_foil_pages` / `pause_pages`) und der Schalter 
 | Hinweis „Rate jetzt pro Uhr" | — | ✅ 17.08. | ✅ 17.08. | ersetzt durch die Einleitung über der Uhren-Liste (`devicesSettingsIntro`) |
 | Link „Layouts der Community" | — | ✅ 17.08. | ✅ 17.08. | Galerie gebaut (ansehen + kopieren) |
 | Link „Eigene Layouts" | — | 🌐 | 🌐 | bewusst Web-only: der Editor bleibt am Rechner, die Apps verlinken dorthin |
+| Puls-Zonen | `hr_zones` | ✅ 26.08. | ✅ 26.08. | fuenf Zonen im Profil; ohne eigene Einstellung Server-Vorschlag aus dem gemessenen Hoechstpuls. Android Zahlenfelder, iOS Stepper |
+| Wert-Grafiken in der Layout-Vorschau | `typ 8/9` | ✅ 26.08. | ✅ 26.08. | lesende Vorschau (Rand-Grafik/Balken), Zonenfarben aus denselben Profil-Zahlen. Gebaut, noch nicht eingereicht |
 
 **ENTSCHEIDUNG Jan (17.08.): Layout-EDITOR bleibt Web-only** („das macht man eh nur am pc") — in
 den Apps steht stattdessen ein Hinweis auf den Browser (`datafields.editorInBrowser`).

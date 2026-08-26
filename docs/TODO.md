@@ -394,6 +394,42 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 Wert-Grafiken in Layouts + Puls-Zonen im Profil (26.08.).** Aus El Manus Zepp-PR uebernommen,
+  aber GENERISCH gebaut (Jans Wunsch): zwei neue Layout-Elemente — `typ 8` Rand-Grafik (Start +
+  Laenge auf dem Display-UMFANG ab 12 Uhr im Uhrzeigersinn, Dicke 1-4) und `typ 9` Balken (Mitte,
+  Breite, Dicke). Beide zeigen den Fuellstand eines Feldes auf seiner Skala, `flags` Bit 0 faerbt
+  nach Zone. Nur Felder MIT Skala erlaubt (`SCALED_FIELDS` in `layouts.py`: Puls 2/8/9/21,
+  Geschwindigkeit 1/5/6/7/18/19) — der Server weist alles andere ab (geprueft: Feld 20 fiel raus,
+  Dicke 9 auf 4 gekappt, Laenge 50 auf 125 = 1/8 Umfang gehoben).
+  **Rund vs. eckig entscheidet der RENDERER** aus der echten Displayform, nicht der Autor: ein
+  Layout, keine zwei Varianten. Fertig in PWA-Editor + Vorschau, Android-/iOS-Vorschau und auf allen
+  vier Uhr-Plattformen.
+  **Nur die grossen Builds (Jans Vorgabe 26.08.):** auf Garmin liegt alles hinter `(:layouts)`,
+  LITE (96 KB) und ENG (128 KB) kompilieren den Code gar nicht mit; der Server liefert diesen Uhren
+  ohnehin keine Layouts (Gating >= 512 KB). Wear/Apple/Zepp haben kein Speicher-Tier.
+  **Puls-Zonen:** neu im Profil einstellbar (`settings.hr_zones`, sechs steigende Grenzen), ohne
+  eigene Einstellung liefert der Server einen Vorschlag aus dem hoechsten je gemessenen Puls des
+  Nutzers (klassischer 50/60/70/80/90/100-%-Schnitt; 141 Nutzer haben Pulsdaten, 190 als Rueckfall).
+  `/api/devices/config` traegt `hrZones` + `speedScale`; Garmin cacht beides
+  (`hrzones_config`/`speedscale_config`). **Bewusst NICHT** `UserProfile.getHeartRateZones` (Garmin)
+  bzw. `Workout.getUserHrZoneSettings` (Zepp OS 4.2): Wear OS und watchOS haben keine Zonen-API, die
+  Zahl muss also ohnehin vom Server kommen — dann aus EINER Quelle, sonst faerbt dieselbe Grafik je
+  Uhr anders.
+  **Offen / zu pruefen:** (1) die Zepp-ARC-Winkelzaehlweise (0 = 12 Uhr, im Uhrzeigersinn) ist aus
+  der Doku, nicht auf der Uhr geprueft — Zepp baut nur Jan/El Manu. (2) Optik am Handgelenk hat
+  noch niemand gesehen (Garmin 1.0.79 ist gebaut und sideloadbar). (3) Android/iOS sind gebaut,
+  aber nicht eingereicht — warten auf die naechste Store-Runde.
+  Commits `092015d8` (Server + PWA), `c9bdf794` (Apps), `afd7c1b9` (Uhren).
+
+- **🟢 Spot-Zahl im Community-Banner: nach spot_id statt nach Namen (26.08.).** Jans Befund: Banner
+  „196 Spots", `/spots` zeigt „(203)". Zwei Ursachen, eine davon ein Fehler: der Banner zaehlte
+  `distinct place_name` — ein Spot, dessen Sessions noch keinen Ortsnamen haben, fehlte dadurch ganz
+  (real 2 Stueck), und ein umbenannter Spot haette doppelt gezaehlt, solange alte Sessions den alten
+  Namen tragen. Zaehlt jetzt `spot_id` (Sessions ohne `spot_id` behalten ihre Namensgruppe) -> 198.
+  Der Rest ist ABSICHT und kein Fehler: die Karte zeigt auch Spots, an denen nur andere Sportarten
+  aufgezeichnet wurden (7 Stueck: Velden efoil/foildrive, Zollikon 2 wakethief, 5x wingfoil), der
+  Banner zaehlt nur Pumpfoil. Falls Jan das anders will: `spot-map` mit `sport=pumpfoil` aufrufen.
+
 - **🟢 Ort + Spot: Ursache abgestellt, Bestand nachgezogen, Waisen-Spots weg (26.08.).**
   **Ursache:** `place_lat`/`place_name` entstanden NUR beim Oeffnen der Detailansicht
   (`GET /api/sessions/{id}` plante den Geocode-Task). Wer nur die Liste ansah, bekam nie einen Ort —
