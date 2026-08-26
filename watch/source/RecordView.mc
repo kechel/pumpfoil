@@ -541,6 +541,11 @@ class RecordView extends WatchUi.View {
     //   element = [typ, x, y, size, color, flags, extra…]
     //   typ 1 Wert (extra Feld-ID) · 2 übersetztes Label (Feld-ID) · 3 Freitext (String)
     //       4 Trennlinie (extra x2,y2; size = Dicke) · 5 REC-Punkt · 6 Seiten-Punkte
+    //       8 Rand-Grafik (x = Start auf dem UMFANG ab 12 Uhr im Uhrzeigersinn, y = Länge,
+    //         size = Dicke 1…4, extra = Feld-ID) · 9 Balken (x/y = Mitte, extra2 = Breite)
+    //       Bei 8/9 färbt flags Bit0 nach Zone/Skala — dort hat Bit0 NICHT die Text-Bedeutung.
+    //       Rund -> Ringsegment, eckig -> Rahmensegment: das entscheidet DIESER Renderer aus
+    //       der echten Gehäuseform, damit ein Layout auf jeder Uhr passt.
     //   x/y RELATIV 0…1000 -> mal dc.getWidth()/getHeight(): trägt über alle Auflösungen
     //       (176…454 px) und Formen. size = Font-Stufe, color = Index in die Palette.
     //   flags: Bit0 linksbündig, Bit1 rechtsbündig, Bit2 Farbe nach Wert.
@@ -557,8 +562,9 @@ class RecordView extends WatchUi.View {
             for (var i = 0; i < els.size(); i++) {
                 var e = els[i];
                 if (!(e instanceof Lang.Array) || e.size() < 6) { continue; }
-                var isLine = (e[0] == 4);
-                if ((pass == 0) != isLine) { continue; }
+                // Erster Durchlauf: alles, was HINTER dem Text liegt (Linien + Wert-Grafiken).
+                var hinten = (e[0] == 4 || e[0] == 8 || e[0] == 9);
+                if ((pass == 0) != hinten) { continue; }
                 _drawElement(dc, e, w, h, idx);
             }
         }
@@ -577,6 +583,10 @@ class RecordView extends WatchUi.View {
             dc.setPenWidth(pen);
             dc.drawLine(x, y, w * e[6] / 1000.0, h * e[7] / 1000.0);
             dc.setPenWidth(1);
+            return;
+        }
+        if (typ == 8 || typ == 9) {                       // Wert-Grafik (Rand / Balken)
+            _drawValueGraphic(dc, e, w, h, typ);
             return;
         }
         if (typ == 5) {                                   // REC-Punkt
@@ -625,6 +635,171 @@ class RecordView extends WatchUi.View {
         if ((flags & 1) != 0) { just = Graphics.TEXT_JUSTIFY_LEFT; }
         else if ((flags & 2) != 0) { just = Graphics.TEXT_JUSTIFY_RIGHT; }
         dc.drawText(x, y, _layoutFont(step, typ), txt, just | Graphics.TEXT_JUSTIFY_VCENTER);
+    }
+
+    // Wert-Grafik: leerer Track + gefüllter Anteil. Rund zeichnet dc.drawArc (glatt und billig),
+    // eckig ein Rahmensegment aus Liniensegmenten — dieselbe Rand-Parametrisierung wie Web/Apps
+    // (Parameter 0…1 ab 12 Uhr im Uhrzeigersinn).
+    (:layouts) hidden function _drawValueGraphic(dc, e, w, h, typ) {
+        var fid = (e.size() > 6) ? e[6] : Config.FIELD_NONE;
+        var v = _graphicNumber(fid);
+        var pen = e[3];
+        if (pen == null || pen < 1) { pen = 1; }
+        if (pen > 4) { pen = 4; }
+        var dicke = (w * 0.018 * pen).toNumber();
+        if (dicke < 2) { dicke = 2; }
+        var anteil = (v == null) ? 0.0 : _scaleFraction(fid, v);
+        var farbe;
+        if ((e[5] & 1) != 0 && v != null) {
+            farbe = _zoneColor(_scaleZone(fid, v));
+        } else {
+            farbe = _layoutColor(e[4], Config.BRAND_CYAN);
+        }
+        dc.setPenWidth(dicke);
+        if (typ == 9) {                                   // Balken
+            var bw = (e.size() > 7 && e[7] != null) ? e[7] : 400;
+            if (bw < 50) { bw = 50; }
+            if (bw > 1000) { bw = 1000; }
+            var breite = w * bw / 1000.0;
+            var bx = w * e[1] / 1000.0 - breite / 2.0;
+            var by = h * e[2] / 1000.0;
+            // „Leerer" Track als dunkelgraue Linie: eine echte Transparenz kennt Monkey C nicht.
+            dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
+            dc.drawLine(bx, by, bx + breite, by);
+            if (anteil > 0.0) {
+                dc.setColor(farbe, Graphics.COLOR_TRANSPARENT);
+                var voll = breite * anteil;
+                if (voll < dicke) { voll = dicke; }
+                dc.drawLine(bx, by, bx + voll, by);
+            }
+            dc.setPenWidth(1);
+            return;
+        }
+        var laenge = e[2];
+        if (laenge == null || laenge < 0) { laenge = 0; }
+        if (laenge > 1000) { laenge = 1000; }
+        dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
+        _drawEdgeSegment(dc, w, h, dicke, e[1], laenge);
+        if (anteil > 0.0) {
+            dc.setColor(farbe, Graphics.COLOR_TRANSPARENT);
+            _drawEdgeSegment(dc, w, h, dicke, e[1], laenge * anteil);
+        }
+        dc.setPenWidth(1);
+    }
+
+    // Randsegment. Start/Länge in 0…1000 des Umfangs, 0 = 12 Uhr, im Uhrzeigersinn.
+    (:layouts) hidden function _drawEdgeSegment(dc, w, h, dicke, start, laenge) {
+        if (laenge <= 0) { return; }
+        var inset = dicke / 2.0 + 1;
+        var rund = (System.getDeviceSettings().screenShape != System.SCREEN_SHAPE_RECTANGLE);
+        if (rund) {
+            // drawArc: 0° = 3 Uhr, gegen den Uhrzeigersinn. Unser Parameter läuft ab 12 Uhr im
+            // Uhrzeigersinn -> Grad = 90 - 360 * p.
+            var r = (w < h ? w : h) / 2.0 - inset;
+            var a1 = 90.0 - 360.0 * (start / 1000.0);
+            var a2 = a1 - 360.0 * (laenge / 1000.0);
+            dc.drawArc(w / 2, h / 2, r, Graphics.ARC_CLOCKWISE, a1, a2);
+            return;
+        }
+        // Eckig: Rahmensegment aus Liniensegmenten (nur die 5 rechteckigen Garmin-Modelle).
+        var n = (laenge / 40).toNumber();
+        if (n < 4) { n = 4; }
+        var px = null;
+        var py = null;
+        for (var i = 0; i <= n; i++) {
+            var p = (start + laenge * i / n) / 1000.0;
+            var pt = _edgePoint(w, h, inset, p);
+            if (px != null) { dc.drawLine(px, py, pt[0], pt[1]); }
+            px = pt[0];
+            py = pt[1];
+        }
+    }
+
+    // Punkt auf dem RECHTECK-Rand, Parameter 0…1 ab oberer Mitte im Uhrzeigersinn.
+    (:layouts) hidden function _edgePoint(w, h, inset, p) {
+        // Ohne Toybox.Math: der Parameter liegt hier immer knapp bei 0…2, Abziehen genügt.
+        var f = p;
+        while (f >= 1.0) { f -= 1.0; }
+        while (f < 0.0) { f += 1.0; }
+        var bw = w - 2 * inset;
+        var bh = h - 2 * inset;
+        var d = f * 2 * (bw + bh);
+        if (d < bw / 2) { return [inset + bw / 2 + d, inset]; }
+        d -= bw / 2;
+        if (d < bh) { return [w - inset, inset + d]; }
+        d -= bh;
+        if (d < bw) { return [w - inset - d, h - inset]; }
+        d -= bw;
+        if (d < bh) { return [inset, h - inset - d]; }
+        d -= bh;
+        return [inset + d, inset];
+    }
+
+    // Zahlenwert eines skalierbaren Feldes (km/h bzw. bpm); null = kein Wert.
+    (:layouts) hidden function _graphicNumber(fid) {
+        if (fid == Config.FIELD_SPEED3S) { return _rec.gpsPoor() ? null : _rec.speed3s() * 3.6; }
+        if (fid == Config.FIELD_SPEED) { return _rec.gpsPoor() ? null : _rec.currentSpeed() * 3.6; }
+        if (fid == Config.FIELD_AVG_SPEED) { return _rec.avgSpeed() * 3.6; }
+        if (fid == Config.FIELD_MAX_SPEED) { return _rec.maxSpeed() * 3.6; }
+        if (fid == Config.FIELD_LAST_RUN_AVG_SPEED) { return _rec.lastRunAvgSpeed() * 3.6; }
+        if (fid == Config.FIELD_LAST_RUN_MAX_SPEED) { return _rec.lastRunMaxSpeed() * 3.6; }
+        if (fid == Config.FIELD_HR) { var hr = _rec.currentHr(); return hr == null ? null : hr * 1.0; }
+        if (fid == Config.FIELD_AVG_HR) { var a = _rec.avgHr(); return a == null ? null : a * 1.0; }
+        if (fid == Config.FIELD_MAX_HR) { var m = _rec.maxHr(); return m == null ? null : m * 1.0; }
+        if (fid == Config.FIELD_LAST_RUN_MAX_HR) {
+            var l = _rec.lastRunMaxHr();
+            return (l > 0) ? l * 1.0 : null;
+        }
+        return null;
+    }
+
+    (:layouts) hidden function _isHrField(fid) {
+        return fid == Config.FIELD_HR || fid == Config.FIELD_AVG_HR
+            || fid == Config.FIELD_MAX_HR || fid == Config.FIELD_LAST_RUN_MAX_HR;
+    }
+
+    // Füllgrad 0…1 auf der Skala des Feldes (außerhalb gekappt, nicht extrapoliert).
+    (:layouts) hidden function _scaleFraction(fid, v) {
+        var lo;
+        var hi;
+        if (_isHrField(fid)) {
+            lo = _rec.hrZones[0] * 1.0;
+            hi = _rec.hrZones[5] * 1.0;
+        } else {
+            lo = _rec.speedScale[0] * 1.0;
+            hi = _rec.speedScale[1] * 1.0;
+        }
+        if (hi <= lo) { return 0.0; }
+        var f = (v - lo) / (hi - lo);
+        if (f < 0.0) { return 0.0; }
+        if (f > 1.0) { return 1.0; }
+        return f;
+    }
+
+    // Zone 0…4. Geschwindigkeit hat im Profil keine Zonen -> Spanne in fünf gleiche Stufen.
+    (:layouts) hidden function _scaleZone(fid, v) {
+        var z = 0;
+        if (_isHrField(fid)) {
+            for (var i = 1; i <= 4; i++) {
+                if (v >= _rec.hrZones[i]) { z = i; }
+            }
+            return z;
+        }
+        var lo = _rec.speedScale[0] * 1.0;
+        var hi = _rec.speedScale[1] * 1.0;
+        for (var k = 1; k <= 4; k++) {
+            if (v >= lo + (hi - lo) * k / 5.0) { z = k; }
+        }
+        return z;
+    }
+
+    // Zonen-Farben Z1…Z5 — dieselbe Bedeutung wie in Web/Apps (blau ruhig … rot maximal).
+    (:layouts) hidden function _zoneColor(z) {
+        if (z <= 0) { return Graphics.COLOR_BLUE; }
+        if (z == 1) { return Graphics.COLOR_GREEN; }
+        if (z == 2) { return Graphics.COLOR_YELLOW; }
+        if (z == 3) { return Graphics.COLOR_ORANGE; }
+        return Graphics.COLOR_RED;
     }
 
     // Größenstufe -> echter Garmin-Font. Ab Stufe 5 sind es NUMBER-Fonts: die enthalten NUR

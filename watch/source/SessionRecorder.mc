@@ -133,6 +133,12 @@ class SessionRecorder {
     // Pausen-Ansicht: Standard, solange nicht on-foil (nach der kurzen Lauf-Ende-Ansicht).
     // Uhrzeit + Läufe der aktuellen Session + Puls. REC-Symbol bleibt dabei sichtbar.
     var pauseView = [Config.FIELD_CLOCK, Config.FIELD_RUN_COUNT, Config.FIELD_HR];
+    // Wert-Skalen der Layout-Grafiken (nur (:layouts)-Builds nutzen sie). Puls-Zonen kommen aus
+    // dem PROFIL, nicht aus UserProfile.getHeartRateZones(): Wear OS und watchOS haben keine
+    // Zonen-API, die Zahl muesste also ohnehin vom Server kommen — dann soll sie auf ALLEN
+    // Plattformen aus derselben Quelle stammen, sonst faerbt dieselbe Grafik je Uhr anders.
+    var hrZones = [95, 114, 133, 152, 171, 190];
+    var speedScale = [8, 25];
 
     // --- Dynamische Layouts (frei gestaltete Seiten, s. docs/setup-and-watch-layouts.md) ---
     // layoutsOn kommt vom Server (Gating: Gerät >= 512 KB, Modell unauffällig, Nutzer nicht
@@ -367,6 +373,11 @@ class SessionRecorder {
         // hartcodierte Default — genau wie bei Uhren, die noch nie einen Config-Sync hatten.
         var pv = Storage.getValue("pause_config");
         if (pv instanceof Lang.Array && pv.size() == 3) { pauseView = pv; }
+        // Gecachte Wert-Skalen (Puls-Zonen + Geschwindigkeitsspanne) — offline verfuegbar.
+        var hz = Storage.getValue("hrzones_config");
+        if (hz instanceof Lang.Array && hz.size() == 6) { hrZones = hz; }
+        var ss = Storage.getValue("speedscale_config");
+        if (ss instanceof Lang.Array && ss.size() == 2) { speedScale = ss; }
         // Dynamische Layouts aus dem Cache (offline verfügbar) + On-Watch-Not-Aus.
         _layoutsFromCache();
         initAlarmSelection();   // Default-Foil/Website (offline aus Cache)
@@ -779,6 +790,18 @@ class SessionRecorder {
                     && data["pauseView"].size() > 0) {
                 pauseView = _normView(data["pauseView"]);
                 _store("pause_config", pauseView);
+            }
+            // Wert-Skalen der Layout-Grafiken uebernehmen + cachen. Fehlt der Key (alter Server),
+            // bleibt der bisherige Wert.
+            if (data.hasKey("hrZones") && data["hrZones"] instanceof Lang.Array
+                    && data["hrZones"].size() == 6) {
+                hrZones = data["hrZones"];
+                _store("hrzones_config", hrZones);
+            }
+            if (data.hasKey("speedScale") && data["speedScale"] instanceof Lang.Array
+                    && data["speedScale"].size() == 2) {
+                speedScale = data["speedScale"];
+                _store("speedscale_config", speedScale);
             }
             // Dynamische Layouts (nur (:layouts)-Builds; in LITE/ENG ist das ein No-Op).
             _layoutsFromConfig(data);

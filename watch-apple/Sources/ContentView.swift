@@ -577,7 +577,8 @@ struct RecordView: View {
                     paused: false,
                     fieldValue: { fid in fieldValue(fid, rec, lang).0 },
                     fieldLabel: { fid in fieldValue(fid, rec, lang).1 },
-                    fieldColor: { fid in colorBy ? fieldColor(fid, rec) : nil }
+                    fieldColor: { fid in colorBy ? fieldColor(fid, rec) : nil },
+                    fieldNumber: { fid in fieldNumber(fid, rec) }
                 )
             } else {
                 // Layout aus oder Definition fehlt -> klassische Ansicht, damit die Seite nicht leer ist.
@@ -658,6 +659,12 @@ struct RecordView: View {
         if let off = c.offFoilView, !off.isEmpty { offFoil = off }
         // Pausen-Screen (zwischen den Läufen) — fehlt der Key, bleibt der lokale Default.
         if let pv = c.pauseView, !pv.isEmpty { pauseView = pv }
+        // Wert-Skalen der Layout-Grafiken uebernehmen (fehlt der Key, bleibt der bisherige Wert).
+        if let z = c.hrZones, z.count == 6 { LayoutScales.hrZones = z }
+        if let sc = c.speedScale, sc.count == 2 {
+            LayoutScales.speedLo = sc[0]
+            LayoutScales.speedHi = sc[1]
+        }
         // Aufzeichnungsmodus persistieren -> Recorder liest beim Start (offline-tauglich).
         UserDefaults.standard.set(c.recordMode ?? "full", forKey: "recordMode")
     }
@@ -883,6 +890,24 @@ struct HoldToStopButton: View {
 }
 
 // Kernfeldsatz (IDs wie web/src/lib/fields.ts); Rest "—".
+// Rohwert der skalierbaren Felder fuer die Wert-Grafiken (km/h bzw. bpm). nil = kein Messwert:
+// dann bleibt die Grafik leer, statt 0 zu zeigen (0 hiesse "ganz unten in Zone 1").
+@MainActor private func fieldNumber(_ id: Int, _ r: Recorder) -> Double? {
+    switch id {
+    case 1: return r.gpsPoor ? nil : r.speed3sKmh
+    case 5: return r.gpsPoor ? nil : r.speedKmh
+    case 6: return r.avgSpeedKmh
+    case 7: return r.maxSpeedKmh
+    case 18: return r.lastRunAvgSpeedKmh
+    case 19: return r.lastRunMaxSpeedKmh
+    case 2: return r.hr > 0 ? Double(r.hr) : nil
+    case 8: return r.avgHr > 0 ? Double(r.avgHr) : nil
+    case 9: return r.maxHr > 0 ? Double(r.maxHr) : nil
+    case 21: return r.lastRunMaxHr > 0 ? Double(r.lastRunMaxHr) : nil
+    default: return nil
+    }
+}
+
 @MainActor private func fieldValue(_ id: Int, _ r: Recorder, _ lang: String) -> (String, String) {
     switch id {
     // Schlechtes GPS -> "--" statt Phantom-Tempo (100 km/h am Steg, Nutzer-Video 05.08.).

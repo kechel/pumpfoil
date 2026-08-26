@@ -13,6 +13,13 @@ import SwiftUI
 //   typ 5 = REC-Punkt
 //   typ 6 = Seiten-Punkte
 //   typ 7 = „Pausiert"-Hinweis      (Pflicht in Pausen-Layouts, nicht entfernbar)
+//   typ 8 = Rand-Grafik             (x = Start auf dem UMFANG ab 12 Uhr im Uhrzeigersinn,
+//           y = Länge, size = Dicke 1…4, extra = Feld-ID). Die Apple Watch ist RECHTECKIG,
+//           hier wird also ein Rahmensegment gezeichnet — auf runden Uhren ein Ringsegment.
+//           Diese Entscheidung trifft der RENDERER, nicht der Autor des Layouts.
+//   typ 9 = Balken                  (x/y = Mitte, size = Dicke, extra = Feld-ID,
+//           extra2 = Breite 50…1000)
+//   Bei 8/9 färbt flags Bit0 nach Zone/Skala — dort hat Bit0 NICHT die Text-Bedeutung.
 //   flags Bit0 = links, Bit1 = rechts, sonst zentriert
 //
 // Größenstufen: EXAKT dieselbe Ableitung wie die PWA-Vorschau (web/src/lib/watchLayout.ts:58-91)
@@ -56,6 +63,85 @@ let autoLineColor = hexColor(0x808080)
 func layoutColor(_ idx: Int, _ fallback: Color) -> Color {
     let i = idx - 1
     return (i >= 0 && i < LAYOUT_PALETTE.count) ? LAYOUT_PALETTE[i] : fallback
+}
+
+/// Zonen-Farben Z1…Z5 der Wert-Grafiken (Spiegel von ZONE_COLORS in watchLayout.ts).
+private let ZONE_COLORS: [Color] = [
+    hexColor(0x3B82F6), hexColor(0x22C55E), hexColor(0xEAB308), hexColor(0xF97316), hexColor(0xEF4444),
+]
+
+/// Wert-Skalen der Grafiken. Die Puls-Zonen kommen vom SERVER (Profil, `/api/devices/config`
+/// -> `hrZones`): watchOS hat keine Zonen-API. Damit sind Uhr, Apps und PWA gleich eingefärbt.
+enum LayoutScales {
+    static var hrZones: [Int] = [95, 114, 133, 152, 171, 190]
+    static var speedLo: Int = 8
+    static var speedHi: Int = 25
+}
+
+private func istPuls(_ fid: Int) -> Bool { fid == 2 || fid == 8 || fid == 9 || fid == 21 }
+
+/// Füllgrad 0…1 auf der Skala des Feldes (außerhalb gekappt, nicht extrapoliert).
+private func fuellgrad(_ fid: Int, _ v: Double) -> Double {
+    var lo = Double(LayoutScales.speedLo)
+    var hi = Double(LayoutScales.speedHi)
+    if istPuls(fid) {
+        lo = Double(LayoutScales.hrZones.first ?? 0)
+        hi = Double(LayoutScales.hrZones.last ?? 0)
+    }
+    if hi <= lo { return 0 }
+    return min(max((v - lo) / (hi - lo), 0), 1)
+}
+
+/// Zone 0…4. Geschwindigkeit hat im Profil keine Zonen -> Spanne in fünf gleiche Stufen.
+private func zone(_ fid: Int, _ v: Double) -> Int {
+    var grenzen: [Double] = []
+    if istPuls(fid) {
+        grenzen = LayoutScales.hrZones.map { Double($0) }
+    } else {
+        let lo = Double(LayoutScales.speedLo)
+        let hi = Double(LayoutScales.speedHi)
+        for i in 0...5 { grenzen.append(lo + (hi - lo) * Double(i) / 5.0) }
+    }
+    var z = 0
+    if grenzen.count > 2 {
+        for i in 1..<(grenzen.count - 1) where v >= grenzen[i] { z = i }
+    }
+    return min(max(z, 0), ZONE_COLORS.count - 1)
+}
+
+/// Punkt auf dem Display-RAND, Parameter 0…1 ab oberer Mitte im Uhrzeigersinn. Die Apple Watch
+/// ist rechteckig; der runde Zweig bleibt, damit dieselbe Funktion in beiden Formen stimmt.
+private func randPunkt(_ rund: Bool, _ w: CGFloat, _ h: CGFloat, _ inset: CGFloat, _ p: Double) -> CGPoint {
+    let f = CGFloat((p.truncatingRemainder(dividingBy: 1) + 1).truncatingRemainder(dividingBy: 1))
+    if rund {
+        let a = f * 2 * .pi - .pi / 2
+        return CGPoint(x: w / 2 + (w / 2 - inset) * cos(a), y: h / 2 + (h / 2 - inset) * sin(a))
+    }
+    let bw = w - 2 * inset
+    let bh = h - 2 * inset
+    var d = f * 2 * (bw + bh)
+    if d < bw / 2 { return CGPoint(x: inset + bw / 2 + d, y: inset) }
+    d -= bw / 2
+    if d < bh { return CGPoint(x: w - inset, y: inset + d) }
+    d -= bh
+    if d < bw { return CGPoint(x: w - inset - d, y: h - inset) }
+    d -= bw
+    if d < bh { return CGPoint(x: inset, y: h - inset - d) }
+    d -= bh
+    return CGPoint(x: inset + d, y: inset)
+}
+
+private func randPfad(_ rund: Bool, _ w: CGFloat, _ h: CGFloat, _ inset: CGFloat,
+                      _ start: Double, _ laenge: Double) -> Path {
+    let l = min(max(laenge / 1000, 0), 1)
+    let s0 = start.truncatingRemainder(dividingBy: 1000) / 1000
+    let n = max(6, Int(l * 120))
+    var pfad = Path()
+    for i in 0...n {
+        let pt = randPunkt(rund, w, h, inset, s0 + l * Double(i) / Double(n))
+        if i == 0 { pfad.move(to: pt) } else { pfad.addLine(to: pt) }
+    }
+    return pfad
 }
 
 /// Ein Wert aus dem Layout-JSON. Die Element-Arrays sind gemischt (Zahlen und, bei Freitext,
@@ -115,6 +201,8 @@ struct LayoutElement {
     let extraText: String?
     let x2: Int?
     let y2: Int?
+    /// Balken (typ 9): Breite in Promille.
+    let extra2: Int?
 
     init(_ raw: [LayoutPrim]) {
         typ = raw.count > 0 ? raw[0].asInt : 0
@@ -127,6 +215,7 @@ struct LayoutElement {
         extraInt = (typ != 3 && raw.count > 6) ? raw[6].asInt : nil
         x2 = (typ == 4 && raw.count > 6) ? raw[6].asInt : nil
         y2 = (typ == 4 && raw.count > 7) ? raw[7].asInt : nil
+        extra2 = (typ == 9 && raw.count > 7) ? raw[7].asInt : nil
     }
 }
 
@@ -210,6 +299,8 @@ struct LayoutPageView: View {
     let fieldValue: (Int) -> String
     let fieldLabel: (Int) -> String
     let fieldColor: (Int) -> Color?
+    /// Rohwert (km/h bzw. bpm) für die Wert-Grafiken; nil = kein Messwert -> Grafik bleibt leer.
+    var fieldNumber: (Int) -> Double? = { _ in nil }
 
     var body: some View {
         GeometryReader { geo in
@@ -222,6 +313,10 @@ struct LayoutPageView: View {
                 // Linien zuerst — sonst liegen Striche über den Werten (derselbe 2-Pass wie Garmin).
                 ForEach(Array(page.elements.enumerated()), id: \.offset) { pair in
                     lineIfNeeded(pair.element, w: w, h: h)
+                }
+                // Wert-Grafiken liegen wie die Linien HINTER dem Text.
+                ForEach(Array(page.elements.enumerated()), id: \.offset) { pair in
+                    graphicIfNeeded(pair.element, w: w, h: h)
                 }
                 ForEach(Array(page.elements.enumerated()), id: \.offset) { pair in
                     contentIfNeeded(pair.element, w: w, h: h)
@@ -237,6 +332,46 @@ struct LayoutPageView: View {
                 p.addLine(to: CGPoint(x: w * CGFloat(e.x2 ?? e.x) / 1000, y: h * CGFloat(e.y2 ?? e.y) / 1000))
             }
             .stroke(layoutColor(e.color, autoLineColor), lineWidth: CGFloat(max(e.step, 1)))
+        }
+    }
+
+    /// Rand-Grafik / Balken. Leerer Track (25 % Deckkraft) + gefüllter Anteil, damit die Skala auch
+    /// bei kleinem Wert erkennbar bleibt. Eigene Funktion, weil lange Ausdrücke im ViewBuilder den
+    /// Swift-Type-Checker ausbremsen.
+    @ViewBuilder private func graphicIfNeeded(_ e: LayoutElement, w: CGFloat, h: CGFloat) -> some View {
+        if e.typ == 8 || e.typ == 9 {
+            let fid = e.extraInt ?? 0
+            let v = fieldNumber(fid)
+            let anteil = v == nil ? 0 : fuellgrad(fid, v!)
+            let basis: Color = ((e.flags & 1) != 0 && v != nil)
+                ? ZONE_COLORS[zone(fid, v!)] : layoutColor(e.color, LAYOUT_PALETTE[11])
+            let dicke = max(2, w * 0.018 * CGFloat(min(max(e.step, 1), 4)))
+            if e.typ == 8 {
+                let inset = dicke / 2 + 1
+                let laenge = min(max(Double(e.y), 0), 1000)
+                let rund = abs(w - h) / max(w, 1) < 0.05
+                ZStack {
+                    randPfad(rund, w, h, inset, Double(e.x), laenge)
+                        .stroke(basis.opacity(0.25), lineWidth: dicke)
+                    if anteil > 0 {
+                        randPfad(rund, w, h, inset, Double(e.x), laenge * anteil)
+                            .stroke(basis, lineWidth: dicke)
+                    }
+                }
+                .frame(width: w, height: h)
+            } else {
+                let breite = CGFloat(min(max(e.extra2 ?? 400, 50), 1000)) / 1000 * w
+                let x0 = w * CGFloat(e.x) / 1000 - breite / 2
+                let y0 = h * CGFloat(e.y) / 1000 - dicke / 2
+                ZStack(alignment: .leading) {
+                    Capsule().fill(basis.opacity(0.25)).frame(width: breite, height: dicke)
+                    if anteil > 0 {
+                        Capsule().fill(basis)
+                            .frame(width: max(dicke, breite * CGFloat(anteil)), height: dicke)
+                    }
+                }
+                .offset(x: x0, y: y0)
+            }
         }
     }
 

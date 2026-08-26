@@ -230,6 +230,17 @@ class MainActivity : ComponentActivity() {
                     if (a == null) offFoil else (0 until a.length()).map { a.getInt(it) }
                 }))
             colorBy = c.optBoolean("colorByValue", false)
+            // Wert-Skalen der Layout-Grafiken. Puls-Zonen kommen aus dem Profil (Wear OS hat
+            // keine Zonen-API) — fehlt der Key (alter Server), bleibt der bisherige Wert.
+            c.optJSONArray("hrZones")?.let { z ->
+                if (z.length() == 6) LayoutScales.hrZones = (0 until 6).map { z.getInt(it) }
+            }
+            c.optJSONArray("speedScale")?.let { sc ->
+                if (sc.length() == 2) {
+                    LayoutScales.speedLo = sc.getInt(0)
+                    LayoutScales.speedHi = sc.getInt(1)
+                }
+            }
             autoStart = c.optBoolean("autoStart", false)
             manualAlarm = c.optBoolean("alarmEnabled", false)
             alarmDefault = c.optString("alarmDefault", "foil")
@@ -470,6 +481,7 @@ class MainActivity : ComponentActivity() {
                                         fieldValue = { fid -> fieldValue(fid, s).first },
                                         fieldLabel = { fid -> fieldValue(fid, s).second },
                                         fieldColor = { fid -> fieldColor(fid, s).takeIf { c -> c != Color.Unspecified } },
+                                        fieldNumber = { fid -> fieldNumber(fid, s) },
                                         modifier = Modifier.fillMaxSize(),
                                     )
                                 } else {
@@ -494,6 +506,7 @@ class MainActivity : ComponentActivity() {
                                         fieldValue = { fid -> fieldValue(fid, s).first },
                                         fieldLabel = { fid -> fieldValue(fid, s).second },
                                         fieldColor = { fid -> fieldColor(fid, s).takeIf { c -> c != Color.Unspecified } },
+                                        fieldNumber = { fid -> fieldNumber(fid, s) },
                                         modifier = Modifier.fillMaxSize(),
                                     )
                                 } else {
@@ -1026,6 +1039,22 @@ private fun fieldValue(id: Int, s: Recorder.State): Pair<String, String> = when 
     20 -> s.runCount.toString() to I18n.t("f.runs")
     21 -> (if (s.lastRunMaxHr > 0) s.lastRunMaxHr.toString() else "–") to I18n.t("f.lastRunMaxHr")
     else -> "—" to ""
+}
+
+// Rohwert der skalierbaren Felder fuer die Wert-Grafiken (km/h bzw. bpm). null = kein Messwert:
+// dann bleibt die Grafik leer, statt 0 zu zeigen (0 hiesse "ganz unten in Zone 1", ein Messwert).
+private fun fieldNumber(id: Int, s: Recorder.State): Float? = when (id) {
+    1 -> if (s.gpsPoor) null else s.speed3sKmh.toFloat()
+    5 -> if (s.gpsPoor) null else s.speedKmh.toFloat()
+    6 -> s.avgSpeedKmh.toFloat()
+    7 -> s.maxSpeedKmh.toFloat()
+    18 -> s.lastRunAvgSpeedKmh.toFloat()
+    19 -> s.lastRunMaxSpeedKmh.toFloat()
+    2 -> if (s.hr > 0) s.hr.toFloat() else null
+    8 -> if (s.avgHr > 0) s.avgHr.toFloat() else null
+    9 -> if (s.maxHr > 0) s.maxHr.toFloat() else null
+    21 -> if (s.lastRunMaxHr > 0) s.lastRunMaxHr.toFloat() else null
+    else -> null
 }
 
 private fun msStr(ms: Long): String { val sec = ms / 1000; return String.format("%d:%02d", sec / 60, sec % 60) }

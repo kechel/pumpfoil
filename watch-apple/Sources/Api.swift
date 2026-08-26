@@ -93,6 +93,10 @@ enum Api {
         let pausePages: [LayoutPrimOrList]?
         let browseAll: Bool?
         let latestVersion: String?   // Update-Hinweis (leer = keiner); seit a08e67d plattform-generisch
+        // Wert-Skalen der Layout-Grafiken: Puls-Zonen aus dem PROFIL (watchOS hat keine
+        // Zonen-API) und die Geschwindigkeitsspanne. Optional -> alter Server/Cache bleibt lesbar.
+        let hrZones: [Int]?
+        let speedScale: [Int]?
     }
 
     // Letzte erfolgreich geladene Config — damit die Uhr offline mit den zuletzt

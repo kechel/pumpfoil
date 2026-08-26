@@ -5,7 +5,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
@@ -27,6 +29,13 @@ import org.json.JSONArray
 //   typ 5 = REC-Punkt
 //   typ 6 = Seiten-Punkte
 //   typ 7 = „Pausiert"-Hinweis         (Pflicht in Pausen-Layouts, nicht entfernbar)
+//   typ 8 = Rand-Grafik                (x = Start auf dem UMFANG ab 12 Uhr im Uhrzeigersinn,
+//           y = Länge, size = Dicke 1…4, extra = Feld-ID) — RUND zeichnet ein Ringsegment,
+//           ECKIG ein Rahmensegment. Das entscheidet DIESER Renderer aus der Displayform:
+//           ein Layout soll auf jeder Uhr passen, ohne zwei Varianten zu pflegen.
+//   typ 9 = Balken                     (x/y = Mitte, size = Dicke, extra = Feld-ID,
+//           extra2 = Breite 50…1000)
+//   Bei 8/9 färbt flags Bit0 nach Zone/Skala — dort hat Bit0 NICHT die Text-Bedeutung.
 //   flags Bit0 = links, Bit1 = rechts, sonst zentriert
 //
 // Größenstufen: EXAKT dieselbe Ableitung wie die PWA-Vorschau (web/src/lib/watchLayout.ts:58-91),
@@ -68,6 +77,80 @@ private val AUTO_VALUE = Color(0xFFFFFFFF)
 private val AUTO_LABEL = Color(0xFFD0D0D0)
 private val AUTO_LINE = Color(0xFF808080)
 
+/** Zonen-Farben Z1…Z5 der Wert-Grafiken (Spiegel von ZONE_COLORS in watchLayout.ts). */
+private val ZONE_COLORS = listOf(
+    Color(0xFF3B82F6), Color(0xFF22C55E), Color(0xFFEAB308), Color(0xFFF97316), Color(0xFFEF4444),
+)
+
+/**
+ * Wert-Skalen der Grafiken. Die Puls-Zonen kommen vom SERVER (Profil, `/api/devices/config`
+ * -> `hrZones`), nicht aus einer Wear-API: Wear OS hat keine Zonen-Schnittstelle. Damit sind
+ * Uhr, Apps und PWA garantiert gleich eingefärbt.
+ */
+object LayoutScales {
+    var hrZones: List<Int> = listOf(95, 114, 133, 152, 171, 190)
+    var speedLo: Int = 8
+    var speedHi: Int = 25
+}
+
+private fun istPuls(fid: Int) = fid == 2 || fid == 8 || fid == 9 || fid == 21
+
+/** Füllgrad 0…1 auf der Skala des Feldes (außerhalb gekappt, nicht extrapoliert). */
+private fun fuellgrad(fid: Int, v: Float): Float {
+    val lo: Float
+    val hi: Float
+    if (istPuls(fid)) {
+        lo = LayoutScales.hrZones.first().toFloat(); hi = LayoutScales.hrZones.last().toFloat()
+    } else {
+        lo = LayoutScales.speedLo.toFloat(); hi = LayoutScales.speedHi.toFloat()
+    }
+    if (hi <= lo) return 0f
+    return ((v - lo) / (hi - lo)).coerceIn(0f, 1f)
+}
+
+/** Zone 0…4. Geschwindigkeit hat im Profil keine Zonen -> Spanne in fünf gleiche Stufen. */
+private fun zone(fid: Int, v: Float): Int {
+    val grenzen = if (istPuls(fid)) LayoutScales.hrZones.map { it.toFloat() }
+    else (0..5).map { LayoutScales.speedLo + (LayoutScales.speedHi - LayoutScales.speedLo) * it / 5f }
+    var z = 0
+    for (i in 1 until grenzen.size - 1) if (v >= grenzen[i]) z = i
+    return z.coerceIn(0, ZONE_COLORS.size - 1)
+}
+
+/** Punkt auf dem Display-RAND, Parameter 0…1 ab 12 Uhr im Uhrzeigersinn (wie edgePoint im Web). */
+private fun randPunkt(rund: Boolean, w: Float, h: Float, inset: Float, p: Float): Offset {
+    val f = ((p % 1f) + 1f) % 1f
+    if (rund) {
+        val a = f * 2f * Math.PI.toFloat() - Math.PI.toFloat() / 2f
+        return Offset(w / 2f + (w / 2f - inset) * kotlin.math.cos(a),
+                      h / 2f + (h / 2f - inset) * kotlin.math.sin(a))
+    }
+    val bw = w - 2 * inset
+    val bh = h - 2 * inset
+    var d = f * 2f * (bw + bh)
+    if (d < bw / 2f) return Offset(inset + bw / 2f + d, inset)
+    d -= bw / 2f
+    if (d < bh) return Offset(w - inset, inset + d)
+    d -= bh
+    if (d < bw) return Offset(w - inset - d, h - inset)
+    d -= bw
+    if (d < bh) return Offset(inset, h - inset - d)
+    d -= bh
+    return Offset(inset + d, inset)
+}
+
+private fun randPfad(rund: Boolean, w: Float, h: Float, inset: Float, start: Float, laenge: Float): Path {
+    val l = (laenge / 1000f).coerceIn(0f, 1f)
+    val s0 = (start % 1000f) / 1000f
+    val n = maxOf(6, (l * 120f).toInt())
+    return Path().apply {
+        for (i in 0..n) {
+            val pt = randPunkt(rund, w, h, inset, s0 + l * i / n)
+            if (i == 0) moveTo(pt.x, pt.y) else lineTo(pt.x, pt.y)
+        }
+    }
+}
+
 /** Ein Element als Zahlenliste; `extraText` nur bei typ 3 (Freitext) belegt. */
 data class LayoutElement(
     val typ: Int,
@@ -80,6 +163,8 @@ data class LayoutElement(
     val extraText: String? = null,
     val x2: Int? = null,
     val y2: Int? = null,
+    /** Balken (typ 9): Breite in Promille. */
+    val extra2: Int? = null,
 )
 
 /** Eine Layout-Seite: Hintergrundfarbe + Elemente. */
@@ -105,6 +190,7 @@ fun parseLayoutPage(arr: JSONArray): LayoutPageDef? {
                 extraInt = extraInt, extraText = extraText,
                 x2 = if (typ == 4 && e.length() > 6) e.optInt(6) else null,
                 y2 = if (typ == 4 && e.length() > 7) e.optInt(7) else null,
+                extra2 = if (typ == 9 && e.length() > 7) e.optInt(7) else null,
             )
         )
     }
@@ -129,6 +215,8 @@ fun LayoutPageView(
     fieldValue: (Int) -> String,
     fieldLabel: (Int) -> String,
     fieldColor: (Int) -> Color?,
+    /** Rohwert (km/h bzw. bpm) für die Wert-Grafiken; null = kein Messwert -> Grafik bleibt leer. */
+    fieldNumber: (Int) -> Float? = { null },
     modifier: Modifier = Modifier,
 ) {
     val measurer = rememberTextMeasurer()
@@ -138,7 +226,9 @@ fun LayoutPageView(
         val dens = density
         // Hintergrundfarbe der Seite zuerst (RecordView.mc:479-481) — sonst bleibt jedes Layout schwarz.
         drawRect(color = layoutColor(page.bg, Color.Black), size = size)
-        val sorted = page.elements.sortedBy { if (it.typ == 4) 0 else 1 }
+        // Linien UND Wert-Grafiken zuerst: beide liegen hinter dem Text.
+        val sorted = page.elements.sortedBy { if (it.typ == 4 || it.typ == 8 || it.typ == 9) 0 else 1 }
+        val rund = w > 0f && kotlin.math.abs(w - h) / w < 0.05f
         for (e in sorted) {
             val px = w * e.x / 1000f
             val py = h * e.y / 1000f
@@ -151,6 +241,35 @@ fun LayoutPageView(
                         start = Offset(px, py), end = Offset(x2, y2),
                         strokeWidth = (if (e.step < 1) 1 else e.step).toFloat(),
                     )
+                }
+                8, 9 -> {
+                    val fid = e.extraInt ?: 0
+                    val v = fieldNumber(fid)
+                    val anteil = if (v == null) 0f else fuellgrad(fid, v)
+                    val basis = if ((e.flags and 1) != 0 && v != null) ZONE_COLORS[zone(fid, v)]
+                                else layoutColor(e.color, PALETTE[11])
+                    val dicke = maxOf(2f, w * 0.018f * e.step.coerceIn(1, 4))
+                    if (e.typ == 8) {
+                        val inset = dicke / 2f + 1f
+                        val laenge = e.y.toFloat().coerceIn(0f, 1000f)
+                        drawPath(randPfad(rund, w, h, inset, e.x.toFloat(), laenge),
+                            basis.copy(alpha = 0.25f), style = Stroke(width = dicke))
+                        if (anteil > 0f) {
+                            drawPath(randPfad(rund, w, h, inset, e.x.toFloat(), laenge * anteil),
+                                basis, style = Stroke(width = dicke))
+                        }
+                    } else {
+                        val breite = (e.extra2 ?: 400).coerceIn(50, 1000) / 1000f * w
+                        val x0 = px - breite / 2f
+                        val y0 = py - dicke / 2f
+                        val ecke = androidx.compose.ui.geometry.CornerRadius(dicke / 2f)
+                        drawRoundRect(basis.copy(alpha = 0.25f), Offset(x0, y0),
+                            androidx.compose.ui.geometry.Size(breite, dicke), ecke)
+                        if (anteil > 0f) {
+                            drawRoundRect(basis, Offset(x0, y0),
+                                androidx.compose.ui.geometry.Size(maxOf(dicke, breite * anteil), dicke), ecke)
+                        }
+                    }
                 }
                 // REC = Punkt UND "REC"-Text (Garmin _drawRec, Vorschau EL_REC) — vorher fehlte
                 // der Text, das war allein schon ein sichtbarer Unterschied zur Vorschau.

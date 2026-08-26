@@ -104,6 +104,74 @@ const DEVICE_MODEL = (() => {
 const CYAN = 0x22d3ee, CYAN_P = 0x0891b2, INK = 0x083344, RED = 0xdc2626, RED_P = 0xb91c1c, WHITE = 0xffffff;
 const GPS_READY = 0x22c55e, GPS_READY_P = 0x16a34a, GPS_WAIT = 0x334155, GPS_WAIT_P = 0x334155, MUTED = 0x94a3b8;
 
+// Gehaeuseform fuer die Rand-Grafik: rund -> Ringsegment, eckig -> Rahmensegment. Zepp deklariert
+// in app.json den Bildschirmtyp ("r"/"s"); zur Laufzeit sagt es getDeviceInfo().screenShape
+// (1 = rund). Fehlt das Feld auf einer alten Firmware, nehmen wir rund an — das ist bei Amazfit
+// der Normalfall (die 390er ist die Ausnahme).
+const IS_ROUND = (() => {
+  try {
+    const v = getDeviceInfo().screenShape;
+    return v == null ? true : v === 1;
+  } catch (e) { return true; }
+})();
+
+// Wert-Skalen der Layout-Grafiken. Zepp OS 4.2 KANN die Zonen der Uhr lesen
+// (Workout.getUserHrZoneSettings), wir nehmen aber bewusst die aus dem PROFIL: Wear OS und watchOS
+// haben keine Zonen-API, also muss die Zahl ohnehin vom Server kommen — dann soll sie auf allen
+// Plattformen aus derselben Quelle stammen, sonst faerbt dieselbe Grafik je Uhr anders.
+const laySkala = { hrZones: [95, 114, 133, 152, 171, 190], speedLo: 8, speedHi: 25 };
+// Zonen-Farben Z1…Z5 (Spiegel von ZONE_COLORS in web/src/lib/watchLayout.ts).
+const ZONE_COLORS = [0x3b82f6, 0x22c55e, 0xeab308, 0xf97316, 0xef4444];
+const layIstPuls = (fid) => fid === 2 || fid === 8 || fid === 9 || fid === 21;
+// Fuellgrad 0…1 (ausserhalb gekappt, nicht extrapoliert).
+function layFuellgrad(fid, v) {
+  const lo = layIstPuls(fid) ? laySkala.hrZones[0] : laySkala.speedLo;
+  const hi = layIstPuls(fid) ? laySkala.hrZones[5] : laySkala.speedHi;
+  if (!(hi > lo) || v == null) return 0;
+  return Math.max(0, Math.min(1, (v - lo) / (hi - lo)));
+}
+// Zone 0…4. Geschwindigkeit hat im Profil keine Zonen -> Spanne in fuenf gleiche Stufen.
+function layZone(fid, v) {
+  let grenzen;
+  if (layIstPuls(fid)) { grenzen = laySkala.hrZones; }
+  else {
+    grenzen = [];
+    for (let i = 0; i <= 5; i++) grenzen.push(laySkala.speedLo + (laySkala.speedHi - laySkala.speedLo) * i / 5);
+  }
+  let z = 0;
+  for (let i = 1; i < grenzen.length - 1; i++) if (v >= grenzen[i]) z = i;
+  return Math.max(0, Math.min(ZONE_COLORS.length - 1, z));
+}
+// Rahmensegment auf einer ECKIGEN Uhr: den Umfang ab oberer Mitte im Uhrzeigersinn abgehen und je
+// Seite den ueberdeckten Abschnitt als Rechteck zurueckgeben (max. 5 Stueck). Zepp kann nur
+// Rechtecke — kleine Segmente einzeln zu zeichnen waere ein Widget-Feuerwerk.
+function layRandRects(start, laenge, th, inset) {
+  const bw = DW - 2 * inset, bh = DH - 2 * inset;
+  const umfang = 2 * (bw + bh);
+  const seiten = [
+    // [Laenge, Funktion(a, b) -> Rechteck], a/b = Abstand auf DIESER Seite
+    [bw / 2, (a, b) => ({ x: Math.round(inset + bw / 2 + a), y: Math.round(inset - th / 2), w: Math.max(1, Math.round(b - a)), h: th })],
+    [bh, (a, b) => ({ x: Math.round(DW - inset - th / 2), y: Math.round(inset + a), w: th, h: Math.max(1, Math.round(b - a)) })],
+    [bw, (a, b) => ({ x: Math.round(DW - inset - b), y: Math.round(DH - inset - th / 2), w: Math.max(1, Math.round(b - a)), h: th })],
+    [bh, (a, b) => ({ x: Math.round(inset - th / 2), y: Math.round(DH - inset - b), w: th, h: Math.max(1, Math.round(b - a)) })],
+    [bw / 2, (a, b) => ({ x: Math.round(inset + a), y: Math.round(inset - th / 2), w: Math.max(1, Math.round(b - a)), h: th })],
+  ];
+  const d0 = (start % 1000 + 1000) % 1000 / 1000 * umfang;
+  const d1 = d0 + Math.max(0, Math.min(1000, laenge)) / 1000 * umfang;
+  const out = [];
+  // Zwei Runden, damit ein Segment ueber die obere Mitte hinaus mitgenommen wird.
+  for (let runde = 0; runde < 2; runde++) {
+    let pos = runde * umfang;
+    for (let i = 0; i < seiten.length; i++) {
+      const len = seiten[i][0];
+      const a = Math.max(d0, pos), b = Math.min(d1, pos + len);
+      if (b > a) out.push(seiten[i][1](a - pos, b - pos));
+      pos += len;
+    }
+  }
+  return out;
+}
+
 const store = new LocalStorage();
 const getTok = () => store.getItem("deviceToken", "") || "";
 const getClaim = () => store.getItem("claimToken", "") || "";
@@ -339,6 +407,12 @@ const t = (k) => {
 //   typ 5 = REC-Indikator           (Punkt UND "REC"-Text)
 //   typ 6 = Seiten-Punkte           (Anzahl dynamisch)
 //   typ 7 = "Pausiert"-Hinweis      (auf Zepp nie sichtbar, s. _renderLayoutPage)
+//   typ 8 = Rand-Grafik             (x = Start auf dem UMFANG ab 12 Uhr im Uhrzeigersinn,
+//           y = Laenge, size = Dicke 1…4, extra = Feld-ID). RUNDE Uhr -> Ringsegment (ARC),
+//           ECKIGE -> Rahmensegment aus FILL_RECTs. Entscheidet der Renderer, nicht der Autor.
+//   typ 9 = Balken                  (x/y = Mitte, size = Dicke, extra = Feld-ID,
+//           extra2 = Breite 50…1000)
+//   Bei 8/9 faerbt flags Bit0 nach Zone/Skala — dort hat Bit0 NICHT die Text-Bedeutung.
 //   flags Bit0 = links, Bit1 = rechts, sonst zentriert
 // Vorlagen: android/wear/.../WatchLayout.kt und watch-apple/Sources/WatchLayoutRender.swift.
 //
@@ -731,6 +805,12 @@ Page(
         if (r && Array.isArray(r.pages) && r.pages.length) s.pages = r.pages;
         if (r && Array.isArray(r.offFoilPages) && r.offFoilPages.length) s.offFoilPages = r.offFoilPages;
         if (r && typeof r.browseAll !== "undefined") s.browseAll = !!r.browseAll;
+        // Wert-Skalen der Layout-Grafiken (Puls-Zonen + Geschwindigkeitsspanne aus dem Profil).
+        if (r && Array.isArray(r.hrZones) && r.hrZones.length === 6) laySkala.hrZones = r.hrZones;
+        if (r && Array.isArray(r.speedScale) && r.speedScale.length === 2) {
+          laySkala.speedLo = r.speedScale[0] | 0;
+          laySkala.speedHi = r.speedScale[1] | 0;
+        }
         // Ring + gezeichnete Layout-Widgets neu aufbauen lassen (Inhalt kann sich geändert haben).
         s._ringKey = null; s.w.layKey = null;
         // Foil-/Alarm-Config übernehmen; Default-Auswahl einmalig (bis App-Ende).
@@ -1177,7 +1257,7 @@ Page(
       const w = this.state.w;
       if (!w.layW) return;
       for (let i = 0; i < w.layW.length; i++) { try { hmUI.deleteWidget(w.layW[i]); } catch (e) {} }
-      w.layW = null; w.layKey = null; w.layDyn = null;
+      w.layW = null; w.layKey = null; w.layDyn = null; w.layGfx = null;
       // Chrome zurückholen, das die Layout-Seite geleert hatte (die Renderer setzen Seite/Status
       // selbst; Titel + Versionszeile nicht).
       try { if (w.title) w.title.setProperty(hmUI.prop.TEXT, TITLE.text); } catch (e) {}
@@ -1231,13 +1311,16 @@ Page(
       try { if (w.title) w.title.setProperty(hmUI.prop.TEXT, ""); } catch (e) {}
       try { if (w.ver) w.ver.setProperty(hmUI.prop.MORE, { text: "", color: 0x000000 }); } catch (e) {}
 
-      const list = [], dyn = [];
+      const list = [], dyn = [], gfx = [];
       const bg = layColor(entry[1] | 0, 0x000000);
       // RANDLOS über das ganze Display: die Promille-Koordinaten beziehen sich aufs ganze Display,
       // ein Innenabstand würde alles verkleinern und nach innen versetzen (der Wear-Fehler).
       list.push(hmUI.createWidget(hmUI.widget.FILL_RECT, { x: 0, y: 0, w: DW, h: DH, color: bg }));
       // Linien zuerst, danach alles andere — sonst liegen Striche über den Werten (wie Garmin/Wear).
-      const sorted = els.slice().sort((a, b) => ((a && a[0] === 4) ? 0 : 1) - ((b && b[0] === 4) ? 0 : 1));
+      // Linien UND Wert-Grafiken zuerst — beide liegen hinter dem Text (Zepp zeichnet in
+      // Erzeugungsreihenfolge).
+      const hinten = (x) => (x && (x[0] === 4 || x[0] === 8 || x[0] === 9)) ? 0 : 1;
+      const sorted = els.slice().sort((a, b) => hinten(a) - hinten(b));
       for (let i = 0; i < sorted.length; i++) {
         const e = sorted[i];
         if (!e || e.length < 6) continue;
@@ -1298,6 +1381,48 @@ Page(
           }
           continue;
         }
+        if (typ === 8 || typ === 9) {
+          const fid = (e.length > 6) ? (e[6] | 0) : 0;
+          const v = this.fieldNumber(fid);
+          const nachSkala = (fl & 1) !== 0;
+          const th = Math.max(2, Math.round(DW * 0.018 * Math.max(1, Math.min(4, step))));
+          const grund = nachSkala && v != null ? ZONE_COLORS[layZone(fid, v)] : layColor(ci, CYAN);
+          // "Leerer" Track: Zepp kennt keine Deckkraft, also eine dunkle Mischung als Ersatz.
+          const leer = layMix(grund, bg, 0.3);
+          const eintrag = { typ: typ, e: e, th: th, grund: grund, fid: fid, frac: -1, wg: [] };
+          if (typ === 8) {
+            const inset = th / 2 + 1;
+            const laenge = Math.max(0, Math.min(1000, e[2] | 0));
+            eintrag.inset = inset;
+            eintrag.laenge = laenge;
+            if (IS_ROUND) {
+              // ARC: 0 Grad = 12 Uhr, im Uhrzeigersinn — dieselbe Zaehlweise wie unser Parameter.
+              // NOCH NICHT auf der Uhr geprueft (Zepp baut nur Jan/El Manu): steht im Changelog.
+              const a0 = (e[1] | 0) * 360 / 1000;
+              list.push(hmUI.createWidget(hmUI.widget.ARC, {
+                x: Math.round(inset), y: Math.round(inset),
+                w: Math.round(DW - 2 * inset), h: Math.round(DH - 2 * inset),
+                start_angle: a0, end_angle: a0 + laenge * 360 / 1000,
+                color: leer, line_width: th }));
+            } else {
+              const rr = layRandRects(e[1] | 0, laenge, th, inset);
+              for (let k = 0; k < rr.length; k++) {
+                list.push(hmUI.createWidget(hmUI.widget.FILL_RECT, { ...rr[k], color: leer }));
+              }
+            }
+          } else {
+            const bw2 = Math.max(50, Math.min(1000, e.length > 7 ? (e[7] | 0) : 400));
+            const breite = Math.round(DW * bw2 / 1000);
+            eintrag.bx = ax - Math.round(breite / 2);
+            eintrag.by = ay - Math.round(th / 2);
+            eintrag.breite = breite;
+            list.push(hmUI.createWidget(hmUI.widget.FILL_RECT, {
+              x: eintrag.bx, y: eintrag.by, w: breite, h: th,
+              radius: Math.round(th / 2), color: leer }));
+          }
+          gfx.push(eintrag);
+          continue;
+        }
         // typ 7 ("Pausiert") wird auf Zepp NIE gezeichnet: es gibt kein manuelles Pausieren, der
         // Hinweis wäre also immer falsch. Genau wie Wear (paused = hart false), bis es eine Pause gibt.
         if (typ === 7) continue;
@@ -1316,10 +1441,48 @@ Page(
         list.push(wg);
         if (typ === 1) dyn.push([wg, fid, byVal, base]);
       }
-      w.layW = list; w.layDyn = dyn; w.layKey = key;
+      w.layW = list; w.layDyn = dyn; w.layGfx = gfx; w.layKey = key;
+      this._updateLayoutGfx();
+    },
+    // 1×/s: den gefuellten Anteil der Wert-Grafiken nachziehen. Auf runden Uhren aendert das nur
+    // den Endwinkel des ARC-Widgets; auf eckigen muessen die Rechtecke neu entstehen (Zepp kann ein
+    // FILL_RECT nicht in der Breite umsetzen). Neu erzeugte Widgets liegen VOR dem Text — bei einer
+    // Rand-Grafik ist das unkritisch (sie sitzt am Displayrand), einen Balken sollte man deshalb
+    // nicht unter einen Wert legen.
+    _updateLayoutGfx() {
+      const w = this.state.w, gfx = w.layGfx || [];
+      for (let i = 0; i < gfx.length; i++) {
+        const g = gfx[i];
+        const v = this.fieldNumber(g.fid);
+        const frac = v == null ? 0 : layFuellgrad(g.fid, v);
+        if (Math.abs(frac - g.frac) < 0.01) continue;
+        g.frac = frac;
+        const farbe = ((g.e[5] | 0) & 1) !== 0 && v != null ? ZONE_COLORS[layZone(g.fid, v)] : g.grund;
+        for (let k = 0; k < g.wg.length; k++) { try { hmUI.deleteWidget(g.wg[k]); } catch (e2) {} }
+        g.wg = [];
+        if (frac <= 0) continue;
+        if (g.typ === 8 && IS_ROUND) {
+          const a0 = (g.e[1] | 0) * 360 / 1000;
+          g.wg.push(hmUI.createWidget(hmUI.widget.ARC, {
+            x: Math.round(g.inset), y: Math.round(g.inset),
+            w: Math.round(DW - 2 * g.inset), h: Math.round(DH - 2 * g.inset),
+            start_angle: a0, end_angle: a0 + g.laenge * frac * 360 / 1000,
+            color: farbe, line_width: g.th }));
+        } else if (g.typ === 8) {
+          const rr = layRandRects(g.e[1] | 0, g.laenge * frac, g.th, g.inset);
+          for (let k = 0; k < rr.length; k++) {
+            g.wg.push(hmUI.createWidget(hmUI.widget.FILL_RECT, { ...rr[k], color: farbe }));
+          }
+        } else {
+          g.wg.push(hmUI.createWidget(hmUI.widget.FILL_RECT, {
+            x: g.bx, y: g.by, w: Math.max(g.th, Math.round(g.breite * frac)), h: g.th,
+            radius: Math.round(g.th / 2), color: farbe }));
+        }
+      }
     },
     // 1×/s: nur die Wert-Elemente nachziehen (Labels/Freitext/Linien/Punkte sind statisch).
     _updateLayoutDyn() {
+      this._updateLayoutGfx();
       const dyn = this.state.w.layDyn || [];
       for (let i = 0; i < dyn.length; i++) {
         const d = dyn[i];
@@ -1382,6 +1545,26 @@ Page(
       w.page.setProperty(hmUI.prop.TEXT, "");
       this.setSlots([fmtDist(last.dist), t("f.dist")], [mmss(last.dur), t("f.dur")], [last.avg.toFixed(1), t("f.kmhAvg")]);
       w.status.setProperty(hmUI.prop.TEXT, s.upStatus);
+    },
+    // Rohwert der skalierbaren Felder fuer die Wert-Grafiken (km/h bzw. bpm); null = kein Messwert
+    // -> die Grafik bleibt leer, statt 0 zu zeigen (0 hiesse "ganz unten in Zone 1").
+    fieldNumber(id) {
+      const s = this.state, last = s.last;
+      const el = s.recording ? (Date.now() - s.startedAtMs) / 1000 : 0;
+      const hasRun = s.runCount > 0;
+      switch (id) {
+        case 1: return s.sp3 * 3.6;
+        case 5: return s.cur * 3.6;
+        case 6: return s.recording ? (el > 0 ? s.dist / el * 3.6 : 0) : (last ? last.avg : 0);
+        case 7: return s.recording ? s.max * 3.6 : (last ? last.max : 0);
+        case 18: return hasRun ? s.lastRunAvgMps * 3.6 : null;
+        case 19: return hasRun ? s.lastRunMaxMps * 3.6 : null;
+        case 2: return s.hr ? s.hr : null;
+        case 8: return s.hrN ? Math.round(s.hrSum / s.hrN) : null;
+        case 9: return s.hrMax ? s.hrMax : null;
+        case 21: return s.lastRunMaxHr > 0 ? s.lastRunMaxHr : null;
+        default: return null;
+      }
     },
     fieldValue(id) {
       const s = this.state, last = s.last;
