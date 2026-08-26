@@ -9,6 +9,26 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 🚀 App-Release-Stand
 
+- **🟡 Zepp 1.0.7 EINGEREICHT — 26.08.2026 (Jans Meldung), Zepp-Konsole: „Under Review
+  (Can be Withdrawn)".** appId 1118995, kostenlos, Buildcode 10. Die Vorversion 1.0.6 steht in
+  derselben Liste mit „Approved" vom 24.08.
+  Inhalt: Wert-Grafiken in eigenen Layouts (auf Zepp ueber CANVAS + drawPoly statt ARC —
+  Geraetebefund aus @elmanu13s PR: ARC zeichnet auf der T-Rex 3 runde Enden), Puls-Zonen aus dem
+  Profil (`hrZones`/`speedScale` mussten dafuer erst in die App-Side-Whitelist, sie fielen vorher
+  still raus), gesaeuberter Max-Speed + Lauf-Zusammenfuehrung, Touch-Sperre per 2-s-Druck auf dem
+  Schirm loesbar, Distanz-Einheit ins Label (war als einzige Plattform im Wert), und die
+  Selbstheilung des Layout-Renderers protokolliert jetzt ihren Grund.
+  **Reichweite (erstmals dokumentiert): 83 Geraete-Quellen, 34 Modellnamen** — von Falcon,
+  T-Rex Ultra/3/3 Pro, Balance/2/2 XT/3/3 Ti/Ultra, Cheetah-Reihe, GTR 4, Active/Active 2/3 bis zu
+  den eckigen (GTS 4, Bip 5/6/Max, Cheetah Square, Active 2 Square, „Rome"). Unser `app.json`
+  nennt bewusst KEINE festen Geraete-Nummern, sondern nur die zwei Formfaktoren
+  (`st:"r"` 480 px, `st:"s"` 390 px) — deshalb deckt ein Paket beide Bauformen ab.
+  **Falle aus dem Test (26.08.):** die Geraete-Auswahl in `zeus dev` muss zur laufenden
+  Simulator-Instanz passen. Jan baute fuer „T-Rex 3 Pro (48mm)" (Quellen 10551552…), der Simulator
+  war eine normale T-Rex 3 (8716544) — das Paket liess sich nicht installieren, die Uhr behielt
+  1.0.5, und alle daraus gezogenen Schluesse ueber die neuen Layouts waren wertlos. Erkennbar am
+  Server-Log (`v=1.0.5` im Config-Aufruf) und an der Versionszeile auf dem Startbildschirm.
+
 - **🟢 Garmin 1.0.80 LIVE — CIQ-Store FREIGEGEBEN (26.08., zweites Release an diesem Tag).**
   Jans Meldung: Store-Seite „Latest Release August 26, 2026 · Version 1.0.80 · Size 64 KB"
   (1.0.79 stand am selben Vormittag mit 63 KB dort — der KB-Sprung ist der ENG-Build mit den
