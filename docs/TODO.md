@@ -9,6 +9,21 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 🚀 App-Release-Stand
 
+- **🟡 Android Phone 1.1.24 (38) + Wear OS 1.2.24 (1034) EINGEREICHT — 26.08.2026, ~21:30 Uhr
+  (Jans Meldung).** Play-Konsole: Vorabpruefungen laufen („noch maximal 14 Minuten"), danach geht
+  es automatisch in die Ueberpruefung. Beide Tracks auf **vollstaendigen Roll-out** gestellt
+  (Produktion 38/1.1.24, Produktion Wear OS 1034/1.2.24).
+  **Merke fuer die Freigabe:** Play schickt EINE Mail fuer beide Tracks (gleiche applicationId
+  `org.pumpfoil.app`) — zweimal belegt, s. Memory `submission-log`. Die Mail nennt keine
+  Versionsnummer, nur den Zeitpunkt der Einreichung; erst eintragen, wenn Freigabe DA und
+  Roll-out bei 100 % ist (am 29.07. stand `appmeta` verfrueht auf einer Version, die Play noch
+  gar nicht auslieferte — ein Nutzer bekam einen Update-Hinweis ins Leere).
+  Inhalt wie bei iOS: Wert-Grafiken in der Layout-Vorschau + Puls-Zonen im Profil, GPX-/FIT-
+  Download, Spot-Beschreibungen, Spot-Label mit Gewaesser, AR-Badges, Katalog-Suche,
+  Trainingskurve; auf der Uhr zusaetzlich Always-on-Ansicht, BACK wird waehrend der Aufnahme
+  verschluckt, `expected_chunks`, Live-Distanz ohne Zuwachs im Stand, gesaeuberter Max-Speed,
+  Lauf-Zusammenfuehrung.
+
 - **🟡 iOS + Apple Watch 1.1.25 (29) EINGEREICHT — 26.08.2026, 21:25 Uhr (Jans Meldung).**
   Status in App Store Connect: „Warten auf Pruefung". Uebermittlungskennung
   `a9cf1407-1369-4d4b-815d-6525abffede6`. Ein Bundle = iPhone-App UND Watch-App (eine
