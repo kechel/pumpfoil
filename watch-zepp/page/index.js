@@ -79,7 +79,7 @@ const DEV_FAKE_GPS = false;  // true = synthetische GPS-Spur (nur Simulator-UI-D
 // aus dem Paket lesen ginge nur über einen weiteren @zos-Import; die sind hier ungetestet und
 // können beim Laden crashen, deshalb bewusst eine Konstante.) Der Bump auf 1.0.4 hatte nur
 // app.json getroffen: die Uhr zeigte weiter "v1.0.3" und meldete das auch dem Server.
-const APP_VERSION = "1.0.6";
+const APP_VERSION = "1.0.7";
 // Update-Hinweis nur zeigen, wenn der Store-Stand WIRKLICH neuer ist. Vorher stand hier ein
 // !==-Vergleich: ein Entwicklungs-Build vor dem Store (1.0.6 lokal, 1.0.4 live) hat damit zum
 // "Update" auf die AELTERE Version geraten (Jans Screenshot 18.08.: "1.0.6 -> 1.0.4"). Garmin,

@@ -411,6 +411,18 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟡 Versionen fuer die naechste Store-Runde gebumpt (26.08.) — Jan baut und testet.**
+  Garmin **1.0.81** (gebaut, `watch/bin` live) · Phone **1.1.24/38** · Wear **1.2.24/1034** ·
+  iOS + Apple Watch **1.1.25/29** · Zepp **1.0.7** (app.json `code` 9 -> **11**: El Manus
+  korrigiertes 1.0.6-Paket hatte schon 10, der Code muss streng steigen, sonst installiert Zepp
+  nicht darueber; `APP_VERSION` in `page/index.js` mitgezogen — die beiden Stellen sind schon
+  einmal auseinandergelaufen, dann meldete die Uhr die alte Version).
+  Inhalt dieser Runde: Wert-Grafiken in Layouts + Puls-Zonen, Spot-Beschreibungen und Spot-Label,
+  AR-Badges, Katalog-Suche, GPX-/FIT-Download nativ, `expected_chunks`, Wear-Always-on,
+  Wear verschluckt BACK, Live-Distanz ohne Stand-Zuwachs, gesaeuberter Max-Speed + Lauf-Merge.
+  **Noch offen:** `appmeta` erst nach der jeweiligen Freigabe hochsetzen (Garmin steht auf 1.0.79
+  = Store-Stand), Changelog-Eintrag zur Freigabe, `.iq` fuer 1.0.81 bauen, wenn Jan einreicht.
+
 - **🟢 Umgesetzt (26.08.): Max-Speed gesaeubert + Laeufe ohne Stopp zusammengefuehrt, auf ALLEN
   sechs Recordern** (Garmin, Wear, Apple Watch, Zepp, Android-Handy, iOS-Handy).
   Erwartete Wirkung aus der Simulation unten: Max-Abweichung zum Server im Mittel **+9,4 -> +3,1
