@@ -79,7 +79,17 @@ _APP_META: dict[str, dict[str, str]] = {
     "garmin": {
         # NUR auf eine im Connect-IQ-Store FREIGEGEBENE Version setzen (Pruefung durch)!
         # Die Garmin-App vergleicht das selbst mit Config.VERSION (SessionRecorder.mc:638).
-        "latest": "1.0.79",   # LIVE im CIQ-Store 2026-08-26; Store-Seite bestaetigt "Latest
+        "latest": "1.0.80",   # LIVE im CIQ-Store 2026-08-26 (zweites Release an diesem Tag);
+        # Store-Seite: "Latest Release August 26, 2026 · Version 1.0.80 · Size 64 KB" (Jan).
+        # Inhalt: gesaeuberter Max-Speed (Burst-Klemme gegen den 15-s-Median + 32-km/h-Deckel,
+        # dieselben Regeln wie analysis/gps.py), Laeufe ohne echten Stopp dazwischen zaehlen als
+        # EINER (wie _merge_no_stop serverseitig), `expected_chunks` im Upload -> "x von y" statt
+        # unbestimmtem Balken, und der "Gespeichert"-Screen liegt nicht mehr unter dem
+        # Upload-Screen und laeuft nach 10 s zum Start-Screen ab.
+        # Die 64 KB (statt 63 in 1.0.79) sind der ENG-Build mit den neuen Regeln — gemessen
+        # fr55 65 116 -> 65 740 B.
+        # Vorher 1.0.79 (Wert-Grafiken + Puls-Zonen), live seit dem Vormittag desselben Tages.
+        # --- Historie 1.0.79 ---: Store-Seite bestaetigte "Latest
         # Release August 26, 2026, Version 1.0.79, Size 63 KB" (Jan), und Jan hat sie aus dem Store
         # auf seine echte Uhr installiert und getestet ("funktioniert"). Inhalt: WERT-GRAFIKEN in
         # eigenen Layouts — Rand-Grafik (rund Ringsegment, eckig Rahmensegment; der Renderer
