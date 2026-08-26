@@ -411,6 +411,32 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 Beide Funde aus dem Zepp-PR nachgezogen (26.08.).**
+  **(a) `expected_chunks` schicken jetzt ALLE fuenf Recorder** — Garmin (`Uploader._startSession`,
+  nur wenn die Aufnahme abgeschlossen ist), Wear, Apple Watch, Android-Handy, iOS-Handy (dort je
+  `chunkFiles.size` vor `startSession`). Damit steht `sessions.expected_chunks` und
+  `sessions.py:199` liefert `upload_total` — Web und Apps zeigen „x von y" statt eines
+  unbestimmten Balkens. **Wichtige Einschraenkung, bewusst so:** bei einer LAUFENDEN Aufnahme wird
+  die Zahl NICHT gesendet, sie waere zu klein und der Fortschritt lief ueber sein eigenes Ziel
+  hinaus. Garmin-Version dafuer auf **1.0.80** gebumpt und gebaut (121/121, watch/bin ist live;
+  `appmeta` bleibt auf 1.0.79 = Store-Stand, es gibt also keinen falschen Update-Hinweis).
+  **(b) Wear OS hat jetzt eine Always-on-Ansicht.** `AmbientLifecycleObserver` (neu:
+  `androidx.wear:wear:1.3.0`), angemeldet NUR waehrend der Aufnahme und danach wieder abgemeldet —
+  eine dauerhaft ambient-faehige App bliebe auch im Leerlauf gedimmt auf dem Schirm statt dem
+  Watchface zu weichen. Die Ambient-Ansicht ist schwarz, nur helle Schrift, keine Flaechen, keine
+  Farben (Einbrennen + Strom), Inhalt bewusst auf drei Zahlen begrenzt (Tempo 3-s-Mittel, Dauer
+  des Laufs, Distanz) und verschiebt sich im Minutentakt, wenn die Uhr Einbrenn-Schutz verlangt.
+  **Im Wear-Emulator belegt** (neues AVD `foil_wear`, Wear OS 4 / API 34, 384×384): Demo-Aufnahme
+  per `DemoReceiver`, `screen_off_timeout` auf 5 s, Screenshot nach dem Dimmen zeigt die
+  Ambient-Ansicht (Log: `AmbientTaskStackManager: Timer org.pumpfoil.app/...MainActivity started!`),
+  Weckdruck bringt die volle Ansicht zurueck.
+  **Fallen dabei, fuer das naechste Mal:** der Test-Broadcast
+  `com.google.android.wearable.action.ENTER_AMBIENT` wirkt NUR auf die alte
+  `WearableActivity`/`AmbientModeSupport`-API — mit `AmbientLifecycleObserver` kommt der Zustand
+  aus dem gebundenen `AmbientService`, also muss man den Schirm wirklich dimmen lassen. Und die
+  Seitentaste (`keyevent 26`) ist auf Wear die HOME-Taste: sie fuehrt zum Watchface und sagt
+  nichts ueber Ambient.
+
 - **🟢 GPX-/FIT-Download der Session jetzt auch in Android und iOS (26.08.).** Letzte
   Paritaets-Luecke der Woche geschlossen: EIN Knopf mit Auswahlmenue (in der Kopfzeile ist kein
   Platz fuer zwei), Datei in den Cache bzw. das temporaere Verzeichnis, dann ans System-Teilen —

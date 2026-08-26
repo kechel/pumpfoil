@@ -44,6 +44,10 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.9.0")
     implementation("androidx.wear.compose:compose-material:1.3.1")
     implementation("androidx.wear.compose:compose-foundation:1.3.1")
+    // Ambient-Modus (Always-on-Anzeige waehrend der Aufnahme): AmbientLifecycleObserver.
+    // Ohne das zeigt die Uhr mitten im Lauf das Watchface statt unserer Zahlen — Garmin und
+    // Apple stehen dort vorn, Wear fiel als einzige Plattform heraus.
+    implementation("androidx.wear:wear:1.3.0")
     implementation("androidx.lifecycle:lifecycle-service:2.8.3")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.3")
     // Puls AKTIV messen statt nur den rohen Sensor mitzulesen (s. RecorderService.startHeartRate).

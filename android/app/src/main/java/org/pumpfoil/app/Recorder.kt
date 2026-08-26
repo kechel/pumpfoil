@@ -280,6 +280,9 @@ object Recorder {
         // je Gruppe erhalten). Bei abgebrochenem Upload ist damit die GPS-Spur zuerst vollständig
         // -> Session server-seitig als gps_only analysierbar statt hängend. Parität zu Server/Web.
         val chunkFiles = RecStore.chunkFiles(dir).sortedBy { if (RecStore.chunkKind(it) == "gps") 0 else 1 }
+        // expected_chunks -> `upload_total` (sessions.py:199): "x von y" statt unbestimmtem Balken.
+        // Zahl exakt, weil die Aufnahme fertig ist; waehrend einer laufenden nicht senden.
+        meta.put("expected_chunks", chunkFiles.size)
         val res = Ingest.startSession(meta)
         val received = HashSet<Int>()
         res.optJSONArray("received_chunks")?.let { a ->

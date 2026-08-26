@@ -360,6 +360,14 @@ class SessionSyncJob {
 
     hidden function _startSession() as Void {
         _phase = :start;
+        // expected_chunks: der Server macht daraus `upload_total` (sessions.py:199), damit Web und
+        // Apps "x von y" zeigen statt eines unbestimmten Balkens. NUR fuer eine abgeschlossene
+        // Aufnahme — bei einer laufenden waere die Zahl zu klein und der Fortschritt lief ueber
+        // sein eigenes Ziel hinaus. `_meta` ist hier eine Kopie aus dem Store; das Ergaenzen
+        // schreibt NICHT zurueck (Storage.getValue liefert einen Wert, keine Referenz).
+        if (_completed && (_meta instanceof Lang.Dictionary)) {
+            _meta["expected_chunks"] = _accelTotal + _gpsTotal;
+        }
         _web(
             Config.baseUrl() + "/api/ingest/session",
             _meta,

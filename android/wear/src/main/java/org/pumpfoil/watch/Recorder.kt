@@ -354,6 +354,12 @@ object Recorder {
         val chunkFiles = LocalStore.chunkFiles(dir).sortedBy { if (LocalStore.chunkKind(it) == "gps") 0 else 1 }
         // Chunks werden erst nach bestätigtem /complete gelöscht -> kein Datenverlust;
         // bereits empfangene Chunks (received_chunks) werden übersprungen (Resume).
+        // expected_chunks: der Server macht daraus `upload_total` (sessions.py:199) und alle
+        // Oberflaechen zeigen dann "x von y" statt eines unbestimmten Balkens. Hier ist die Zahl
+        // exakt bekannt — die Aufnahme ist fertig, die Chunks liegen auf der Platte. Waehrend
+        // einer LAUFENDEN Aufnahme darf sie NICHT gesendet werden: sie waere zu klein, und der
+        // Fortschritt liefe ueber sein eigenes Ziel hinaus.
+        meta.put("expected_chunks", chunkFiles.size)
         val res = Api.startSession(meta)
         val received = HashSet<Int>()
         res.optJSONArray("received_chunks")?.let { a ->

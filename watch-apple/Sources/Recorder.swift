@@ -347,7 +347,14 @@ final class Recorder: NSObject, ObservableObject {
         let chunkFiles = _cf.filter { LocalStore.chunkKind($0) == "gps" } + _cf.filter { LocalStore.chunkKind($0) != "gps" }
         // Chunks werden erst nach bestätigtem /complete gelöscht -> kein Datenverlust;
         // bereits empfangene Chunks (received_chunks) werden übersprungen (Resume).
-        let res = try await Api.startSession(meta)
+        // expected_chunks: der Server macht daraus `upload_total` (sessions.py:199) und alle
+        // Oberflaechen zeigen dann „x von y" statt eines unbestimmten Balkens. Hier ist die Zahl
+        // exakt bekannt — die Aufnahme ist fertig, die Chunks liegen im Verzeichnis. Waehrend
+        // einer LAUFENDEN Aufnahme darf sie NICHT gesendet werden (zu klein -> Fortschritt
+        // laeuft ueber sein eigenes Ziel hinaus).
+        var startMeta = meta
+        startMeta["expected_chunks"] = chunkFiles.count
+        let res = try await Api.startSession(startMeta)
         let received = Set(res.received_chunks)
         uploading = true
         status = WLoc.t("rec.uploading", UserDefaults.standard.string(forKey: "appLang") ?? "de")

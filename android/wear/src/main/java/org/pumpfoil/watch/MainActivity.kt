@@ -11,6 +11,8 @@ import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.compose.ui.text.font.FontWeight
+import androidx.wear.ambient.AmbientLifecycleObserver
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
 import androidx.activity.result.contract.ActivityResultContracts
@@ -414,7 +416,35 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-        if (s.recording) {
+        // Always-on: ohne Ambient-Unterstuetzung zeigt Wear OS mitten im Lauf das Watchface statt
+        // unserer Zahlen. Garmin braucht das nicht (MIP/Systemverhalten), die Apple Watch bleibt in
+        // der HKWorkoutSession vorn — Wear war die einzige Plattform, die herausfiel.
+        //
+        // Bewusst NUR waehrend der Aufnahme angemeldet und danach wieder abgemeldet: eine dauerhaft
+        // ambient-faehige App bleibt auch im Leerlauf gedimmt auf dem Schirm, statt dem Watchface
+        // zu weichen. Das waere eine Verschlechterung fuer jeden, der die App nur offen liegen hat.
+        val ambientActivity = LocalContext.current as? androidx.activity.ComponentActivity
+        DisposableEffect(s.recording, ambientActivity) {
+            val obs = if (s.recording && ambientActivity != null) {
+                AmbientLifecycleObserver(ambientActivity, object : AmbientLifecycleObserver.AmbientLifecycleCallback {
+                    override fun onEnterAmbient(details: AmbientLifecycleObserver.AmbientDetails) {
+                        AmbientState.aktiv.value = true
+                        AmbientState.einbrennschutz.value = details.burnInProtectionRequired
+                    }
+                    // Systemtakt (~1/min): nur dann darf im Ambient neu gezeichnet werden.
+                    override fun onUpdateAmbient() { AmbientState.takt.value += 1 }
+                    override fun onExitAmbient() { AmbientState.aktiv.value = false }
+                })
+            } else null
+            obs?.let { ambientActivity?.lifecycle?.addObserver(it) }
+            onDispose {
+                obs?.let { ambientActivity?.lifecycle?.removeObserver(it) }
+                AmbientState.aktiv.value = false
+            }
+        }
+        if (s.recording && AmbientState.aktiv.value) {
+            AmbientRecordingScreen(s)
+        } else if (s.recording) {
             // Pager: Verwerfen(0) | Stop(1) | Datenansichten 2..dataCount+1 | Übersicht | Stop | Verwerfen.
             // Verwerfen-Seiten ganz außen (versehentlich schwer erreichbar), Stop je einwärts.
             // Seitenzahl aus dem gemischten Satz (Layouts + 3-Feld-Seiten), Rueckfall views.
@@ -1290,3 +1320,56 @@ private fun vibratePattern(ctx: Context, pattern: String) {
     }
     vibrator(ctx).vibrate(android.os.VibrationEffect.createWaveform(timings, -1))
 }
+
+
+/**
+ * Zustand des Ambient-Modus (Always-on). Bewusst global und nicht im Compose-Baum: der
+ * Beobachter haengt an der ACTIVITY (Lifecycle), nicht an einer Composable, und die Ansicht
+ * braucht ihn an zwei Stellen.
+ */
+object AmbientState {
+    val aktiv = mutableStateOf(false)
+    /** Uhr verlangt Einbrenn-Schutz (AMOLED): Inhalt darf nicht dauerhaft an derselben Stelle stehen. */
+    val einbrennschutz = mutableStateOf(false)
+    /** Takt des Systems, etwa einmal pro Minute — nur dann darf im Ambient neu gezeichnet werden. */
+    val takt = mutableStateOf(0)
+}
+
+/**
+ * Ambient-Ansicht waehrend der Aufnahme: schwarz, nur helle Schrift, keine Flaechen und keine
+ * Farben. Das ist keine Design-Laune, sondern die Vorgabe fuer Always-on — gefuellte Flaechen
+ * brennen ein und kosten auf AMOLED spuerbar Strom.
+ *
+ * Inhalt bewusst auf drei Zahlen begrenzt: Tempo (3-s-Mittel, dieselbe Zahl, auf der die
+ * Lauf-Erkennung entscheidet), Dauer des laufenden Laufs und Distanz. Alles andere kann man
+ * sehen, indem man das Handgelenk dreht — dann ist der Bildschirm ohnehin wieder voll da.
+ */
+@Composable
+fun AmbientRecordingScreen(s: Recorder.State) {
+    // Einbrenn-Schutz: den Inhalt im Minutentakt um wenige Pixel verschieben.
+    val versatz = if (AmbientState.einbrennschutz.value) ((AmbientState.takt.value % 4) - 2) * 2 else 0
+    Box(Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
+        Column(
+            modifier = Modifier.offset(x = versatz.dp, y = versatz.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                String.format("%.1f", s.speed3sKmh),
+                color = Color.White, fontSize = 44.sp, fontWeight = FontWeight.Light,
+            )
+            Text("km/h", color = Color(0xFF9AA4B2), fontSize = 12.sp)
+            Spacer(Modifier.height(6.dp))
+            Text(
+                ambientZeit(if (s.runDurationMs > 0) s.runDurationMs / 1000 else s.elapsedSec),
+                color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Light,
+            )
+            Text(
+                if (s.distanceM < 1000) String.format("%.0f m", s.distanceM)
+                else String.format("%.2f km", s.distanceM / 1000.0),
+                color = Color(0xFF9AA4B2), fontSize = 14.sp,
+            )
+        }
+    }
+}
+
+private fun ambientZeit(sek: Long): String = String.format("%d:%02d", sek / 60, sek % 60)

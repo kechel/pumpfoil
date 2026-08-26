@@ -308,7 +308,12 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
     private func uploadSession(_ dir: URL) async throws {
         guard let meta = Store.readJson(dir.appendingPathComponent("meta.json")),
               let sid = meta["session_uuid"] as? String else { return }
-        let res = try await PhoneIngest.startSession(meta)
+        // expected_chunks -> `upload_total` (sessions.py:199): „x von y" statt unbestimmtem
+        // Balken. Die Chunk-Dateien liegen bereits vollstaendig im Verzeichnis, die Zahl ist also
+        // exakt; waehrend einer laufenden Aufnahme duerfte sie nicht gesendet werden.
+        var startMeta = meta
+        startMeta["expected_chunks"] = Store.chunkFiles(dir).count
+        let res = try await PhoneIngest.startSession(startMeta)
         let received = Set((res["received_chunks"] as? [Int]) ?? [])
         uploading = true; status = "lade hoch…"
         // Handy hat echtes Netz -> Chunks PARALLEL hochladen (Pool 6). Server nimmt sie in
