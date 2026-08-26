@@ -243,7 +243,14 @@ const removePending = (uuid) => savePending(loadPending().filter((s) => s.uuid !
 const makeUuid = (now) => "zepp-" + now + "-" + Math.floor(Math.random() * 1e9).toString(36);
 const pad = (n) => (n < 10 ? "0" + n : "" + n);
 const mmss = (sec) => Math.floor(sec / 60) + ":" + pad(Math.floor(sec % 60));
-const fmtDist = (m) => (m < 1000 ? Math.round(m) + " m" : (m / 1000).toFixed(2) + " km");
+// Distanz wie auf Garmin (RecordView._distVal/_distUnit) und Wear (distVal/distUnit): die
+// EINHEIT GEHOERT INS LABEL, nicht in den Wert. Stand hier bis 1.0.7 im Wert ("90 m") — in einem
+// eigenen Layout, das Wert und Label nebeneinander stellt, las sich das dann widerspruechlich
+// ("90 m" mit "km" darunter, Jans Screenshot 26.08.). fmtDist bleibt fuer die Stellen, die eine
+// fertige Zeichenkette brauchen (Zusammenfassung, Log).
+const distVal = (m) => (m < 1000 ? String(Math.round(m)) : (m / 1000).toFixed(2));
+const distUnit = (m) => (m < 1000 ? "m" : "km");
+const fmtDist = (m) => distVal(m) + " " + distUnit(m);
 function distM(a, b, c, d) {
   const R = 6371000, r = Math.PI / 180, dLat = (c - a) * r, dLon = (d - b) * r;
   const s = Math.sin(dLat / 2) ** 2 + Math.cos(a * r) * Math.cos(c * r) * Math.sin(dLon / 2) ** 2;
@@ -1718,16 +1725,17 @@ Page(
         case 8: return [s.hrN ? "" + Math.round(s.hrSum / s.hrN) : "–", t("f.bpmAvg")];
         case 9: return [s.hrMax ? "" + s.hrMax : "–", t("f.bpmMax")];
         case 3: return [mmss(el), t("f.time")];
-        case 4: return [fmtDist(s.dist), t("f.dist")];
+        case 4: return [distVal(s.dist), distUnit(s.dist) + " " + t("f.dist")];
         case 12: { const d = new Date(); return [pad(d.getHours()) + ":" + pad(d.getMinutes()), t("f.clock")]; }
         // 14/15 = AKTUELLER Lauf, 16-19 = LETZTER Lauf, 20 = Lauf-Zähler. Bis 1.0.4 zeigte 14/15
         // die Gesamt-Session (= dasselbe wie 3/4) und 16-19 die letzte SESSION statt des letzten
         // Laufs — die Feld-IDs bedeuten aber Läufe (web fw.14…fw.20), und ohne On-Watch-Erkennung
         // gab es keine Lauf-Daten. Jetzt liefert Paket 1 sie.
         case 14: return [mmss(runDurMs / 1000), s.foiling ? t("f.runActive") : t("f.runTime")];
-        case 15: return [fmtDist(runDistM), t("f.runDist")];
+        case 15: return [distVal(runDistM), distUnit(runDistM) + " " + t("f.runDist")];
         case 16: return [hasRun ? mmss(s.lastRunDurMs / 1000) : "–", t("f.lastRunTime")];
-        case 17: return [hasRun ? fmtDist(s.lastRunDistM) : "–", t("f.lastRunDist")];
+        case 17: return [hasRun ? distVal(s.lastRunDistM) : "–",
+                         distUnit(s.lastRunDistM) + " " + t("f.lastRunDist")];
         case 18: return [hasRun ? (s.lastRunAvgMps * 3.6).toFixed(1) : "–", t("f.lastRunAvg")];
         case 19: return [hasRun ? (s.lastRunMaxMps * 3.6).toFixed(1) : "–", t("f.lastRunMax")];
         case 20: return ["" + s.runCount, t("f.runs")];
