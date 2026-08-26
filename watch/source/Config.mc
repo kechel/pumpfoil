@@ -4,7 +4,12 @@ using Toybox.Application;
 module Config {
 
     // App-Version (im Start-Screen angezeigt -> zum Verifizieren des installierten Builds).
-    const VERSION = "1.0.82";  // „Gespeichert" nicht mehr doppelt + laeuft nach 10 s zum Start-Screen ab
+    // NAECHSTES Release nach dem Store-Stand 1.0.79. Die Nummer zaehlt RELEASES, nicht Builds:
+    // Zwischenstaende zum Testen bekommen KEINE eigene Nummer (Jan, 26.08.) — sonst verbrennen
+    // wir Versionen, die im Store nie auftauchen. Inhalt: Wert-Grafiken in Layouts, Puls-Zonen
+    // aus dem Profil, expected_chunks im Upload, gesaeuberter Max-Speed + Lauf-Zusammenfuehrung,
+    // „Gespeichert" nicht mehr doppelt und mit 10-s-Ablauf.
+    const VERSION = "1.0.80";
 
     // Marken-Cyan (docs/BRAND.md, = Web brand-400 #22d3ee). Primaerer/interaktiver Akzent:
     // Pairing-Code, aktive Upload-Status-Titel, Fortschrittsbalken. Funktionale Skalen

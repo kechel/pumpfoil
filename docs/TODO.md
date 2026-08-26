@@ -412,16 +412,26 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 ## 📥 Inbox
 
 - **🟡 Versionen fuer die naechste Store-Runde gebumpt (26.08.) — Jan baut und testet.**
-  Garmin **1.0.81** (gebaut, `watch/bin` live) · Phone **1.1.24/38** · Wear **1.2.24/1034** ·
-  iOS + Apple Watch **1.1.25/29** · Zepp **1.0.7** (app.json `code` 9 -> **11**: El Manus
-  korrigiertes 1.0.6-Paket hatte schon 10, der Code muss streng steigen, sonst installiert Zepp
-  nicht darueber; `APP_VERSION` in `page/index.js` mitgezogen — die beiden Stellen sind schon
-  einmal auseinandergelaufen, dann meldete die Uhr die alte Version).
+  Garmin **1.0.80** (gebaut, `watch/bin` live) · Phone **1.1.24/38** · Wear **1.2.24/1034** ·
+  iOS + Apple Watch **1.1.25/29** · Zepp **1.0.7** (app.json `code` 9 -> **10**, `APP_VERSION` in
+  `page/index.js` mitgezogen — die beiden Stellen sind schon einmal auseinandergelaufen, dann
+  meldete die Uhr die alte Version). **Caveat Zepp-Buildcode:** El Manus korrigiertes
+  1.0.6-Feldtest-Paket benutzt in seinem PR ebenfalls die 10. Unser Store-Stand ist code 9, also
+  ist 10 der naechste freie — sollte die Zepp-Konsole sie ablehnen (weil dort schon ein Build 10
+  liegt), auf 11 gehen.
+
+  **Regel (Jan, 26.08.): Versionsnummern zaehlen RELEASES, nicht Builds.** Zwischenstaende zum
+  Testen bekommen KEINE eigene Nummer. Ich hatte Garmin waehrend des Testens auf 1.0.81 und
+  1.0.82 hochgezogen — zurueckgesetzt auf 1.0.80, dem naechsten Schritt nach dem Store-Stand
+  1.0.79. Gegengeprueft gegen `appmeta` (die einzige Quelle dafuer, was WIRKLICH freigegeben ist):
+  jede Plattform steht jetzt genau EINEN Schritt ueber ihrem Live-Stand — Garmin 1.0.79 -> 1.0.80,
+  Phone 1.1.23 -> 1.1.24/38, Wear 1.2.23 -> 1.2.24/1034, iOS 1.1.24 -> 1.1.25/29,
+  Zepp 1.0.6 -> 1.0.7.
   Inhalt dieser Runde: Wert-Grafiken in Layouts + Puls-Zonen, Spot-Beschreibungen und Spot-Label,
   AR-Badges, Katalog-Suche, GPX-/FIT-Download nativ, `expected_chunks`, Wear-Always-on,
   Wear verschluckt BACK, Live-Distanz ohne Stand-Zuwachs, gesaeuberter Max-Speed + Lauf-Merge.
   **Noch offen:** `appmeta` erst nach der jeweiligen Freigabe hochsetzen (Garmin steht auf 1.0.79
-  = Store-Stand), Changelog-Eintrag zur Freigabe, `.iq` fuer 1.0.81 bauen, wenn Jan einreicht.
+  = Store-Stand), Changelog-Eintrag zur Freigabe, `.iq` fuer 1.0.80 bauen, wenn Jan einreicht.
 
 - **🟢 Umgesetzt (26.08.): Max-Speed gesaeubert + Laeufe ohne Stopp zusammengefuehrt, auf ALLEN
   sechs Recordern** (Garmin, Wear, Apple Watch, Zepp, Android-Handy, iOS-Handy).
@@ -438,7 +448,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   (c) **Lauf-Zusammenfuehrung**: ein neuer Lauf zaehlt nur nach einem echten Stopp (Speed unter
   1,5 m/s seit dem letzten Lauf-Ende), wie `_merge_no_stop` serverseitig. Die Lauf-KENNZAHLEN
   (letzter Lauf) bleiben wie bisher das letzte Bruchstueck — nur der Zaehler folgt dem Server.
-  Garmin auf **1.0.81** gebumpt und gebaut; Groesse im ENG-Build (fr55) 65 116 -> 65 740 B (+624).
+  Garmin auf **1.0.80** gebumpt und gebaut; Groesse im ENG-Build (fr55) 65 116 -> 65 740 B (+624).
   Im Wear-Emulator gegengeprueft: 20 Fixes a 5 m (18 km/h) + ein 250-m-Sprung (≈900 km/h) ->
   Aufnahme laeuft weiter, **1 Lauf** (der Burst hat ihn nicht zerrissen), kein Absturz.
   NICHT umgesetzt (bewusst): Pumps auf der Uhr zaehlen — der Server-Zaehler unter-erkennt selbst
