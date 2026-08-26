@@ -411,6 +411,37 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔎 Was koennte die UHR von der Server-Erkennung billig uebernehmen? An 119 echten Sessions
+  simuliert (26.08., read-only, `scratchpad/uhr_sim3.py`).** Die Uhr-Logik (Hysterese 2,8/2,5 m/s,
+  Dwell 4/3 s, 25 s Cooldown, 3-s-Fenster) gegen das Server-Ergebnis derselben Sessions gerechnet:
+
+  | Kennzahl | heute (Uhr − Server) | mit den zwei Regeln unten |
+  |---|---|---|
+  | Max-Speed | Mittel **+9,4 km/h**, Median +1,8, schlimmster Fall **+164 km/h** | Mittel **+3,1**, Median +1,5, schlimmster **+17,4** |
+  | Sessions mit Max > 5 km/h zu hoch | 36 von 119 | 26 von 119 |
+  | Laeufe | Mittel +2,9, Median +1, Spanne −4…+44 | Mittel +2,6, Median **0**, Spanne −7…+44 |
+
+  **LOHNT (billig, grosse Wirkung): Max-Speed saeubern.** Zwei Regeln, die der Server hat und die
+  eine Uhr genauso kann — ein Ringpuffer von 15 Werten bei 1 Hz und zwei Vergleiche:
+  (1) **Burst-Klemme**: liegt ein Wert mehr als 5 m/s ueber dem 15-s-Median UND absolut ueber
+  28 km/h, gilt der Median (`BURST_MARGIN_MPS`/`BURST_ABS_MIN_MPS` in `analysis/gps.py`).
+  (2) **Plausibilitaets-Deckel 32 km/h** (`RUN_MAX_PLAUSIBLE_KMH`): darueber ist es kein Pumpfoil,
+  sondern ein Doppler-Glitch oder eine Bootsfahrt — nicht als Rekord zaehlen.
+  Konkrete Faelle aus dem Bestand: Session 2830 zeigte auf der Uhr **103 km/h** (Server 15,0),
+  Session 2847 **51 km/h** (Server 21,1). Genau diese Zahl sehen Nutzer als „Max" und vergleichen
+  sie mit der Website.
+  **LOHNT WENIG: Lauf-Zaehler.** Der Server merged Laeufe, zwischen denen es KEINEN echten Stopp
+  gab (`_merge_no_stop`, Speed nie unter `NOSTOP_SPEED` = 1,5 m/s — ohne Zeitfenster). Die Uhr kann
+  das mit einer Variablen nachbilden (kleinster Speed seit Lauf-Ende); bringt aber nur Median
+  +1 -> 0, der Rest der Differenz kommt vom **Accel-Modell** und den Rand-Verlaengerungen
+  (`_extend_starts_back`/`_extend_ends_forward`) — das ist nicht portierbar.
+  **LOHNT NICHT: Pumps auf der Uhr zaehlen.** Der Server-Zaehler unter-erkennt ohnehin ~2x
+  (Memory `pump-groundtruth`); eine dritte Zahl, die von beiden abweicht, macht es nur schlimmer.
+  **Nebenbefund: Wear, Apple und die Handys nehmen ein 3-s-MITTEL, Garmin und Zepp einen
+  3-s-MEDIAN** (wie der Server, `SMOOTH_WINDOW_S` + `_running_median`). Der Median ist gegen
+  Einzel-Ausreisser robuster; in der Simulation aendert er die Lauf-Zahl kaum, ist aber die
+  richtige Vereinheitlichung, wenn wir die Max-Regeln ohnehin anfassen.
+
 - **🟢 Zwei der drei Befunde aus dem dritten Zepp-PR-Durchgang sind erledigt (26.08.).**
   **Stand-Schwelle fuer die Live-Distanz** in allen vier betroffenen Recordern (Wear, Apple Watch,
   Android-Handy, iOS-Handy): addiert wird nur noch, wenn der Fix brauchbar ist (Genauigkeit
