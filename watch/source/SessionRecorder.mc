@@ -184,7 +184,13 @@ class SessionRecorder {
     // kommt. Diese Marke liegt vom Anwenden bis zum ersten fertigen Bild.
     var bootCanaryOpen = false;
 
-    var stopped = false;              // true nach Stopp&Speichern -> Erfolgs-Screen (bis Neustart)
+    var stopped = false;              // true nach Stopp&Speichern -> Erfolgs-Screen
+    // Wann der Erfolgs-Screen erschienen ist. Er blieb bisher stehen, bis der Nutzer BACK drueckte
+    // oder eine neue Aufnahme startete — auf einer Uhr, die man beim Rausgehen aus dem Wasser
+    // wegsteckt, ist das der falsche Endzustand. Nach STOPPED_AUTO_BACK_MS geht die App von
+    // selbst auf den Start-Screen zurueck (dort stehen GPS-Status, wartende Uploads, Menue).
+    var stoppedAtMs = 0;
+    const STOPPED_AUTO_BACK_MS = 10000;
     var storageFull = false;          // true, wenn eine Storage-Schreiboperation scheiterte (Object-Store voll)
     // Verworfene ROHDATEN-Chunks dieser Aufnahme. Bis 1.0.75 passierte das STUMM: bei vollem
     // Store wirft _flushGps/_flushAccel den Puffer weg, damit der Speicher nicht ueberlaeuft —
@@ -1100,6 +1106,7 @@ class SessionRecorder {
         Uploader.setRecording(false);   // Aufnahme vorbei -> Auto-Retry wieder erlaubt
         Uploader.setActiveSession(null);
         stopped = true;   // -> Erfolgs-/Upload-Screen
+        stoppedAtMs = System.getTimer();
         // Session als abgeschlossen markieren und SICHER in Storage persistieren.
         // Bleibt im sessions-Index, bis vollständig hochgeladen+bestätigt.
         _saveState(true);

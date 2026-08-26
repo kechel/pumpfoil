@@ -115,6 +115,7 @@ class PauseActionDelegate extends WatchUi.BehaviorDelegate {
         } else if (sel == 2) {
             _rec.stop();
             if (Uploader.pendingCount() > 0 && Uploader.phoneConnected()) {
+                _rec.stopped = false;   // s. Kommentar oben: sonst zwei Screens uebereinander
                 WatchUi.pushView(new UploadView(_rec), new UploadDelegate(_rec), WatchUi.SLIDE_LEFT);
             }
         }
@@ -185,6 +186,11 @@ class SessionActionDelegate extends WatchUi.BehaviorDelegate {
         if (sel == 0) {
             _rec.stop();
             if (Uploader.pendingCount() > 0 && Uploader.phoneConnected()) {
+                // KEIN „Gespeichert" unter dem Upload-Screen liegen lassen (stopped=false) —
+                // sonst braucht man nach dem Upload ZWEIMAL BACK: einmal aus dem Upload-Screen
+                // und einmal aus dem Erfolgs-Screen darunter. Der schlanke Pfad
+                // (RecordDelegate._showUploadIfConnected) macht das laengst so; hier fehlte es.
+                _rec.stopped = false;
                 WatchUi.pushView(new UploadView(_rec), new UploadDelegate(_rec), WatchUi.SLIDE_LEFT);
             }
         } else if (sel == 1) {

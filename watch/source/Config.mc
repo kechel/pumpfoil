@@ -4,7 +4,7 @@ using Toybox.Application;
 module Config {
 
     // App-Version (im Start-Screen angezeigt -> zum Verifizieren des installierten Builds).
-    const VERSION = "1.0.81";  // Max-Speed gesaeubert (Burst + 32-km/h-Deckel), Laeufe ohne Stopp zusammengefuehrt
+    const VERSION = "1.0.82";  // „Gespeichert" nicht mehr doppelt + laeuft nach 10 s zum Start-Screen ab
 
     // Marken-Cyan (docs/BRAND.md, = Web brand-400 #22d3ee). Primaerer/interaktiver Akzent:
     // Pairing-Code, aktive Upload-Status-Titel, Fortschrittsbalken. Funktionale Skalen

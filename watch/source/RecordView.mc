@@ -70,6 +70,13 @@ class RecordView extends WatchUi.View {
 
         // Nicht am Aufzeichnen -> klar unterscheidbarer Start- bzw. Erfolgs-Screen.
         if (!recording) {
+            // Der Erfolgs-Screen laeuft nach 10 s von selbst ab -> Start-Screen. Wer die Uhr nach
+            // dem Rausgehen wegsteckt, fand sie sonst beim naechsten Blick immer noch auf
+            // „Gespeichert" — ohne GPS-Status, ohne Hinweis auf wartende Uploads.
+            if (_rec.stopped && _rec.stoppedAtMs > 0
+                    && System.getTimer() - _rec.stoppedAtMs > _rec.STOPPED_AUTO_BACK_MS) {
+                _rec.stopped = false;
+            }
             if (_rec.stopped) { _drawStopped(dc); } else { _drawIdle(dc); }
             return;
         }
