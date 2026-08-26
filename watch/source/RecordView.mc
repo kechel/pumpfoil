@@ -693,11 +693,23 @@ class RecordView extends WatchUi.View {
         var inset = dicke / 2.0 + 1;
         var rund = (System.getDeviceSettings().screenShape != System.SCREEN_SHAPE_RECTANGLE);
         if (rund) {
-            // drawArc: 0° = 3 Uhr, gegen den Uhrzeigersinn. Unser Parameter läuft ab 12 Uhr im
-            // Uhrzeigersinn -> Grad = 90 - 360 * p.
+            // drawArc: 0° = 3 Uhr, 90° = 12 Uhr, 180° = 9 Uhr (SDK 9.2.0, Toybox.Graphics.Dc) —
+            // die Grade wachsen also GEGEN den Uhrzeigersinn. Unser Parameter läuft ab 12 Uhr im
+            // Uhrzeigersinn -> Grad = 90 - 360 * p, gezeichnet mit ARC_CLOCKWISE.
             var r = (w < h ? w : h) / 2.0 - inset;
+            var span = 360.0 * (laenge / 1000.0);
+            // ZWEI dokumentierte Fallen von drawArc: die Parameter werden gegen Null GEKAPPT, und
+            // „degreeStart == degreeEnd" zeichnet den VOLLEN Kreis. Ein winziger Füllstand (z. B.
+            // 0,3° bei knapp erreichter Zone) würde damit den ganzen Ring füllen — also erst ab
+            // 1° zeichnen und volle Runden bewusst als Vollkreis stehen lassen.
+            if (span < 1.0) { return; }
+            if (span > 359.0) { span = 360.0; }
             var a1 = 90.0 - 360.0 * (start / 1000.0);
-            var a2 = a1 - 360.0 * (laenge / 1000.0);
+            var a2 = a1 - span;
+            while (a1 < 0.0) { a1 += 360.0; }
+            while (a1 >= 360.0) { a1 -= 360.0; }
+            while (a2 < 0.0) { a2 += 360.0; }
+            while (a2 >= 360.0) { a2 -= 360.0; }
             dc.drawArc(w / 2, h / 2, r, Graphics.ARC_CLOCKWISE, a1, a2);
             return;
         }

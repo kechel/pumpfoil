@@ -142,21 +142,54 @@ function layZone(fid, v) {
   for (let i = 1; i < grenzen.length - 1; i++) if (v >= grenzen[i]) z = i;
   return Math.max(0, Math.min(ZONE_COLORS.length - 1, z));
 }
-// Rahmensegment auf einer ECKIGEN Uhr: den Umfang ab oberer Mitte im Uhrzeigersinn abgehen und je
-// Seite den ueberdeckten Abschnitt als Rechteck zurueckgeben (max. 5 Stueck). Zepp kann nur
-// Rechtecke — kleine Segmente einzeln zu zeichnen waere ein Widget-Feuerwerk.
-function layRandRects(start, laenge, th, inset) {
+// --- Geometrie der Rand-Grafik ----------------------------------------------------------------
+// Gezeichnet wird auf einem CANVAS mit drawPoly, NICHT mit dem ARC-Widget. Grund ist ein
+// Geraetebefund aus @elmanu13s Zepp-PR (#3): "ARC always renders rounded stroke caps on the
+// T-Rex 3" — ein Segment bekaeme also runde Enden statt gerader Schnitte. Der Canvas hat noch
+// zwei Vorteile: EIN Widget statt vieler (kein Loeschen/Neuanlegen pro Sekunde, also auch kein
+// Z-Order-Problem mit dem Text darueber) und dieselbe Zeichenweise fuer rund und eckig.
+// Winkel im Canvas: 0 Grad = 3 Uhr, wachsend im Uhrzeigersinn (y zeigt nach unten). Unser
+// Parameter faengt bei 12 Uhr an -> Grad = -90 + 360 * p.
+const ZEPP_POLY_STEP = 4;   // Grad je Stuetzpunkt; feiner lohnt bei <=480 px nicht
+
+// Ringsegment (runde Uhr) als gefuelltes Polygon zwischen innerem und aeusserem Radius.
+function layRingPoly(start, laenge, th, inset) {
+  const cx = Math.round(DW / 2), cy = Math.round(DH / 2);
+  const ra = Math.round(Math.min(DW, DH) / 2 - inset);
+  const ri = Math.max(1, ra - th);
+  const a0 = -90 + (start % 1000) * 360 / 1000;
+  const a1 = a0 + Math.max(0, Math.min(1000, laenge)) * 360 / 1000;
+  const pts = [];
+  const punkt = (grad, r) => ({
+    x: Math.round(cx + r * Math.cos(grad * Math.PI / 180)),
+    y: Math.round(cy + r * Math.sin(grad * Math.PI / 180)),
+  });
+  for (let a = a0; a < a1; a += ZEPP_POLY_STEP) pts.push(punkt(a, ra));
+  pts.push(punkt(a1, ra));
+  for (let a = a1; a > a0; a -= ZEPP_POLY_STEP) pts.push(punkt(a, ri));
+  pts.push(punkt(a0, ri));
+  return pts;
+}
+
+// Rahmensegment (eckige Uhr): den Umfang ab oberer Mitte im Uhrzeigersinn abgehen und je Seite
+// den ueberdeckten Abschnitt als Rechteck-Polygon liefern (max. 5 Stueck).
+function layRandPolys(start, laenge, th, inset) {
   const bw = DW - 2 * inset, bh = DH - 2 * inset;
   const umfang = 2 * (bw + bh);
-  const seiten = [
-    // [Laenge, Funktion(a, b) -> Rechteck], a/b = Abstand auf DIESER Seite
-    [bw / 2, (a, b) => ({ x: Math.round(inset + bw / 2 + a), y: Math.round(inset - th / 2), w: Math.max(1, Math.round(b - a)), h: th })],
-    [bh, (a, b) => ({ x: Math.round(DW - inset - th / 2), y: Math.round(inset + a), w: th, h: Math.max(1, Math.round(b - a)) })],
-    [bw, (a, b) => ({ x: Math.round(DW - inset - b), y: Math.round(DH - inset - th / 2), w: Math.max(1, Math.round(b - a)), h: th })],
-    [bh, (a, b) => ({ x: Math.round(inset - th / 2), y: Math.round(DH - inset - b), w: th, h: Math.max(1, Math.round(b - a)) })],
-    [bw / 2, (a, b) => ({ x: Math.round(inset + a), y: Math.round(inset - th / 2), w: Math.max(1, Math.round(b - a)), h: th })],
+  const rect = (x, y, w, h) => [
+    { x: Math.round(x), y: Math.round(y) },
+    { x: Math.round(x + w), y: Math.round(y) },
+    { x: Math.round(x + w), y: Math.round(y + h) },
+    { x: Math.round(x), y: Math.round(y + h) },
   ];
-  const d0 = (start % 1000 + 1000) % 1000 / 1000 * umfang;
+  const seiten = [
+    [bw / 2, (a, b) => rect(inset + bw / 2 + a, inset - th / 2, Math.max(1, b - a), th)],
+    [bh, (a, b) => rect(DW - inset - th / 2, inset + a, th, Math.max(1, b - a))],
+    [bw, (a, b) => rect(DW - inset - b, DH - inset - th / 2, Math.max(1, b - a), th)],
+    [bh, (a, b) => rect(inset - th / 2, DH - inset - b, th, Math.max(1, b - a))],
+    [bw / 2, (a, b) => rect(inset + a, inset - th / 2, Math.max(1, b - a), th)],
+  ];
+  const d0 = ((start % 1000) + 1000) % 1000 / 1000 * umfang;
   const d1 = d0 + Math.max(0, Math.min(1000, laenge)) / 1000 * umfang;
   const out = [];
   // Zwei Runden, damit ein Segment ueber die obere Mitte hinaus mitgenommen wird.
@@ -408,8 +441,9 @@ const t = (k) => {
 //   typ 6 = Seiten-Punkte           (Anzahl dynamisch)
 //   typ 7 = "Pausiert"-Hinweis      (auf Zepp nie sichtbar, s. _renderLayoutPage)
 //   typ 8 = Rand-Grafik             (x = Start auf dem UMFANG ab 12 Uhr im Uhrzeigersinn,
-//           y = Laenge, size = Dicke 1…4, extra = Feld-ID). RUNDE Uhr -> Ringsegment (ARC),
-//           ECKIGE -> Rahmensegment aus FILL_RECTs. Entscheidet der Renderer, nicht der Autor.
+//           y = Laenge, size = Dicke 1…4, extra = Feld-ID). RUNDE Uhr -> Ringsegment,
+//           ECKIGE -> Rahmensegment; beides als Polygon auf EINEM Canvas. Entscheidet der
+//           Renderer, nicht der Autor.
 //   typ 9 = Balken                  (x/y = Mitte, size = Dicke, extra = Feld-ID,
 //           extra2 = Breite 50…1000)
 //   Bei 8/9 faerbt flags Bit0 nach Zone/Skala — dort hat Bit0 NICHT die Text-Bedeutung.
@@ -1257,7 +1291,7 @@ Page(
       const w = this.state.w;
       if (!w.layW) return;
       for (let i = 0; i < w.layW.length; i++) { try { hmUI.deleteWidget(w.layW[i]); } catch (e) {} }
-      w.layW = null; w.layKey = null; w.layDyn = null; w.layGfx = null;
+      w.layW = null; w.layKey = null; w.layDyn = null; w.layGfx = null; w.layCanvas = null;
       // Chrome zurückholen, das die Layout-Seite geleert hatte (die Renderer setzen Seite/Status
       // selbst; Titel + Versionszeile nicht).
       try { if (w.title) w.title.setProperty(hmUI.prop.TEXT, TITLE.text); } catch (e) {}
@@ -1316,6 +1350,11 @@ Page(
       // RANDLOS über das ganze Display: die Promille-Koordinaten beziehen sich aufs ganze Display,
       // ein Innenabstand würde alles verkleinern und nach innen versetzen (der Wear-Fehler).
       list.push(hmUI.createWidget(hmUI.widget.FILL_RECT, { x: 0, y: 0, w: DW, h: DH, color: bg }));
+      // Canvas fuer die Wert-Grafiken JETZT anlegen (direkt nach dem Hintergrund), damit er hinter
+      // allem Text liegt. Ob er gebraucht wird, wissen wir erst nach der Schleife — ein leerer
+      // Canvas kostet nichts und wird mit der Seite geloescht.
+      const gfxCanvas = hmUI.createWidget(hmUI.widget.CANVAS, { x: 0, y: 0, w: DW, h: DH });
+      list.push(gfxCanvas);
       // Linien zuerst, danach alles andere — sonst liegen Striche über den Werten (wie Garmin/Wear).
       // Linien UND Wert-Grafiken zuerst — beide liegen hinter dem Text (Zepp zeichnet in
       // Erzeugungsreihenfolge).
@@ -1383,42 +1422,16 @@ Page(
         }
         if (typ === 8 || typ === 9) {
           const fid = (e.length > 6) ? (e[6] | 0) : 0;
-          const v = this.fieldNumber(fid);
-          const nachSkala = (fl & 1) !== 0;
           const th = Math.max(2, Math.round(DW * 0.018 * Math.max(1, Math.min(4, step))));
-          const grund = nachSkala && v != null ? ZONE_COLORS[layZone(fid, v)] : layColor(ci, CYAN);
-          // "Leerer" Track: Zepp kennt keine Deckkraft, also eine dunkle Mischung als Ersatz.
-          const leer = layMix(grund, bg, 0.3);
-          const eintrag = { typ: typ, e: e, th: th, grund: grund, fid: fid, frac: -1, wg: [] };
+          const eintrag = { typ: typ, e: e, th: th, ci: ci, fid: fid, frac: -1 };
           if (typ === 8) {
-            const inset = th / 2 + 1;
-            const laenge = Math.max(0, Math.min(1000, e[2] | 0));
-            eintrag.inset = inset;
-            eintrag.laenge = laenge;
-            if (IS_ROUND) {
-              // ARC: 0 Grad = 12 Uhr, im Uhrzeigersinn — dieselbe Zaehlweise wie unser Parameter.
-              // NOCH NICHT auf der Uhr geprueft (Zepp baut nur Jan/El Manu): steht im Changelog.
-              const a0 = (e[1] | 0) * 360 / 1000;
-              list.push(hmUI.createWidget(hmUI.widget.ARC, {
-                x: Math.round(inset), y: Math.round(inset),
-                w: Math.round(DW - 2 * inset), h: Math.round(DH - 2 * inset),
-                start_angle: a0, end_angle: a0 + laenge * 360 / 1000,
-                color: leer, line_width: th }));
-            } else {
-              const rr = layRandRects(e[1] | 0, laenge, th, inset);
-              for (let k = 0; k < rr.length; k++) {
-                list.push(hmUI.createWidget(hmUI.widget.FILL_RECT, { ...rr[k], color: leer }));
-              }
-            }
+            eintrag.inset = th / 2 + 1;
+            eintrag.laenge = Math.max(0, Math.min(1000, e[2] | 0));
           } else {
             const bw2 = Math.max(50, Math.min(1000, e.length > 7 ? (e[7] | 0) : 400));
-            const breite = Math.round(DW * bw2 / 1000);
-            eintrag.bx = ax - Math.round(breite / 2);
+            eintrag.breite = Math.round(DW * bw2 / 1000);
+            eintrag.bx = ax - Math.round(eintrag.breite / 2);
             eintrag.by = ay - Math.round(th / 2);
-            eintrag.breite = breite;
-            list.push(hmUI.createWidget(hmUI.widget.FILL_RECT, {
-              x: eintrag.bx, y: eintrag.by, w: breite, h: th,
-              radius: Math.round(th / 2), color: leer }));
           }
           gfx.push(eintrag);
           continue;
@@ -1442,7 +1455,8 @@ Page(
         if (typ === 1) dyn.push([wg, fid, byVal, base]);
       }
       w.layW = list; w.layDyn = dyn; w.layGfx = gfx; w.layKey = key;
-      this._updateLayoutGfx();
+      w.layCanvas = gfx.length ? gfxCanvas : null;
+      if (w.layCanvas) this._updateLayoutGfx();
     },
     // 1×/s: den gefuellten Anteil der Wert-Grafiken nachziehen. Auf runden Uhren aendert das nur
     // den Endwinkel des ARC-Widgets; auf eckigen muessen die Rechtecke neu entstehen (Zepp kann ein
@@ -1450,33 +1464,51 @@ Page(
     // Rand-Grafik ist das unkritisch (sie sitzt am Displayrand), einen Balken sollte man deshalb
     // nicht unter einen Wert legen.
     _updateLayoutGfx() {
-      const w = this.state.w, gfx = w.layGfx || [];
+      const w = this.state.w, gfx = w.layGfx || [], canvas = w.layCanvas;
+      if (!canvas || !gfx.length) return;
+      // Nur neu malen, wenn sich wirklich etwas geaendert hat (1 % Schritte reichen fuer die Optik).
+      let aendert = false;
+      for (let i = 0; i < gfx.length; i++) {
+        const v = this.fieldNumber(gfx[i].fid);
+        const frac = v == null ? 0 : layFuellgrad(gfx[i].fid, v);
+        if (Math.abs(frac - gfx[i].frac) >= 0.01) { aendert = true; }
+        gfx[i].neu = frac;
+        gfx[i].wert = v;
+      }
+      if (!aendert) return;
+      try { canvas.clear({ x: 0, y: 0, w: DW, h: DH }); } catch (e) {}
       for (let i = 0; i < gfx.length; i++) {
         const g = gfx[i];
-        const v = this.fieldNumber(g.fid);
-        const frac = v == null ? 0 : layFuellgrad(g.fid, v);
-        if (Math.abs(frac - g.frac) < 0.01) continue;
-        g.frac = frac;
-        const farbe = ((g.e[5] | 0) & 1) !== 0 && v != null ? ZONE_COLORS[layZone(g.fid, v)] : g.grund;
-        for (let k = 0; k < g.wg.length; k++) { try { hmUI.deleteWidget(g.wg[k]); } catch (e2) {} }
-        g.wg = [];
-        if (frac <= 0) continue;
-        if (g.typ === 8 && IS_ROUND) {
-          const a0 = (g.e[1] | 0) * 360 / 1000;
-          g.wg.push(hmUI.createWidget(hmUI.widget.ARC, {
-            x: Math.round(g.inset), y: Math.round(g.inset),
-            w: Math.round(DW - 2 * g.inset), h: Math.round(DH - 2 * g.inset),
-            start_angle: a0, end_angle: a0 + g.laenge * frac * 360 / 1000,
-            color: farbe, line_width: g.th }));
-        } else if (g.typ === 8) {
-          const rr = layRandRects(g.e[1] | 0, g.laenge * frac, g.th, g.inset);
-          for (let k = 0; k < rr.length; k++) {
-            g.wg.push(hmUI.createWidget(hmUI.widget.FILL_RECT, { ...rr[k], color: farbe }));
+        g.frac = g.neu;
+        const grund = ((g.e[5] | 0) & 1) !== 0 && g.wert != null
+          ? ZONE_COLORS[layZone(g.fid, g.wert)] : layColor(g.ci, CYAN);
+        // "Leerer" Track: der Canvas kennt keine Deckkraft, also eine dunkle Mischung als Ersatz.
+        const leer = layMix(grund, 0x000000, 0.3);
+        if (g.typ === 8) {
+          const track = IS_ROUND ? [layRingPoly(g.e[1] | 0, g.laenge, g.th, g.inset)]
+                                 : layRandPolys(g.e[1] | 0, g.laenge, g.th, g.inset);
+          for (let k = 0; k < track.length; k++) {
+            try { canvas.drawPoly({ data_array: track[k], color: leer }); } catch (e) {}
+          }
+          if (g.frac > 0) {
+            const voll = IS_ROUND ? [layRingPoly(g.e[1] | 0, g.laenge * g.frac, g.th, g.inset)]
+                                  : layRandPolys(g.e[1] | 0, g.laenge * g.frac, g.th, g.inset);
+            for (let k = 0; k < voll.length; k++) {
+              try { canvas.drawPoly({ data_array: voll[k], color: grund }); } catch (e) {}
+            }
           }
         } else {
-          g.wg.push(hmUI.createWidget(hmUI.widget.FILL_RECT, {
-            x: g.bx, y: g.by, w: Math.max(g.th, Math.round(g.breite * frac)), h: g.th,
-            radius: Math.round(g.th / 2), color: farbe }));
+          const rechteck = (x, y, bb, hh, c) => {
+            try {
+              canvas.drawPoly({ data_array: [
+                { x: x, y: y }, { x: x + bb, y: y }, { x: x + bb, y: y + hh }, { x: x, y: y + hh },
+              ], color: c });
+            } catch (e) {}
+          };
+          rechteck(g.bx, g.by, g.breite, g.th, leer);
+          if (g.frac > 0) {
+            rechteck(g.bx, g.by, Math.max(g.th, Math.round(g.breite * g.frac)), g.th, grund);
+          }
         }
       }
     },
