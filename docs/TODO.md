@@ -13,7 +13,7 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   Jans Meldung: Store-Seite „Latest Release August 26, 2026 · Version 1.0.80 · Size 64 KB"
   (1.0.79 stand am selben Vormittag mit 63 KB dort — der KB-Sprung ist der ENG-Build mit den
   neuen Regeln, gemessen fr55 65 116 -> 65 740 B). Vorher im Emulator von Jan getestet,
-  **danach aus dem Store auf seine ECHTE fenix installiert und getestet (26.08., 21:35): „geht"**
+  **danach aus dem Store auf seine ECHTE fenix installiert und getestet (26.08., 21:29): „geht"**
   — damit ist die ganze Kette einmal auf Hardware gelaufen, nicht nur im Simulator.
   Inhalt: gesaeuberter Max-Speed (Burst-Klemme + 32-km/h-Deckel), Lauf-Zusammenfuehrung ohne
   echten Stopp, `expected_chunks` im Upload, „Gespeichert" nicht mehr doppelt und mit
