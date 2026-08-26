@@ -421,7 +421,23 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   aber nicht eingereicht — warten auf die naechste Store-Runde.
   Commits `092015d8` (Server + PWA), `c9bdf794` (Apps), `afd7c1b9` (Uhren).
 
-- **🟢 Spot-Zahl im Community-Banner: nach spot_id statt nach Namen (26.08.).** Jans Befund: Banner
+- **🟢 Spot-Zahl: EINE Quelle fuer Banner und Spots-Seite + zwei unsichtbare Spots (26.08., 2. Runde).**
+  Jan bestand zu Recht darauf, dass zwei sichtbare Zahlen fuer dasselbe Ding gleich sein muessen
+  (Banner 198, Seite 203). Jetzt zaehlt `community_stats` mit `_spot_anzahl()` GENAU die Gruppen,
+  die `spot_map` zeichnet — gleiche Gruppierung (`spot_id`), gleiche Koordinaten-Bedingung, gleiche
+  Sportart-Basis (`sport="all"`: die Karte ist Uebersicht ueber alle Aufnahmen, man springt von
+  jedem Marker in die Sessions-Liste). Sessions/Pumps im Banner bleiben Pumpfoil; „353 Pumpfoiler"
+  sind ohnehin alle registrierten Nutzer.
+  **Dabei zwei Spots gefunden, die es nirgends gab:** 339 (Haines Borough, Alaska, seit 17.08.) und
+  373 (Einfeld, seit 21.08.) haben KEINEN Namen — `name_for` verlangt Ortschaft/Venue/Gewaesser, ein
+  Bezirk/County faellt durch, und `spot_map` filterte namenlose Gruppen per `namen.get(sid)` still
+  weg. Drei gueltige Sessions von zwei Nutzern, ohne Ortsangabe und ohne Marker. Zwei Fixes:
+  (1) Anzeige faellt auf Gewaesser/Ortslage zurueck (kein DB-Schreiben), (2) `name_pending_spots`
+  nimmt `area_name` als letzten Rueckfall — greift beim naechsten Wartungslauf
+  (`dubletten_zusammenfuehren(apply=True)`), **noch nicht gelaufen, Jan fragen**.
+  Beide Zahlen stehen jetzt auf **205**.
+
+- **🟡 Spot-Zahl im Community-Banner: nach spot_id statt nach Namen (26.08., erste Runde — ersetzt durch die 2. Runde oben).** Jans Befund: Banner
   „196 Spots", `/spots` zeigt „(203)". Zwei Ursachen, eine davon ein Fehler: der Banner zaehlte
   `distinct place_name` — ein Spot, dessen Sessions noch keinen Ortsnamen haben, fehlte dadurch ganz
   (real 2 Stueck), und ein umbenannter Spot haette doppelt gezaehlt, solange alte Sessions den alten

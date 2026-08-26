@@ -851,7 +851,13 @@ def spot_map(accel_only: bool = True, sport: str = "all",
     stamm = {sid: (nm, wa, ar) for sid, nm, wa, ar in db.query(
         models.Spot.id, models.Spot.name, models.Spot.water_name, models.Spot.area_name)
         .filter(models.Spot.id.in_([sid for sid, *_ in mit_id])).all()} if mit_id else {}
-    namen = {sid: v[0] for sid, v in stamm.items()}
+    # Beschriftung: Spot-Name, sonst Gewaesser, sonst Ortslage. Ohne diesen Rueckfall fielen
+    # Spots, die vom Geocoder KEINEN Ortsnamen bekommen haben, komplett aus der Karte — sie
+    # wurden unten per `namen.get(sid)` weggefiltert. Real betroffen am 26.08.: Spot 339
+    # (Haines Borough, Alaska) und 373 (Einfeld) mit zusammen drei gueltigen Sessions. Die waren
+    # nirgends sichtbar und auch nicht benennbar. Kein DB-Schreiben hier: nur die Anzeige.
+    namen = {sid: ((v[0] or "").strip() or (v[1] or "").strip() or (v[2] or "").strip())
+             for sid, v in stamm.items()}
 
     def _zusatz(sid: int) -> str | None:
         """Zweite Zeile: Gewaesser, sonst die Ortslage/der Steg (s. models.Spot.area_name).
@@ -997,6 +1003,28 @@ _stats_cache: tuple[float, dict] | None = None
 _STATS_TTL = 300.0  # 5 min
 
 
+def _spot_anzahl(db: Session, accel_only: bool = False, sport: str = "all") -> int:
+    """Zahl der Spots — GENAU wie `spot_map` sie gruppiert, damit Banner und Spots-Seite nicht
+    zwei Zahlen zeigen (Jans Befund 26.08.: Banner 196/198, Seite 203).
+
+    Drei Dinge muessen dieselben sein wie dort, sonst laufen die Zahlen wieder auseinander:
+    Gruppierung nach `spot_id` (nicht nach `place_name` — ein umbenannter Spot zaehlte sonst
+    doppelt, ein noch namenloser fehlte ganz), eine vorhandene Koordinate, und dieselbe
+    Sportart-Basis: die Karte ist ausdruecklich die Uebersicht ueber ALLE Aufnahmen, nicht nur
+    Pumpfoil (`sport="all"`), weil man von jedem Marker in die Sessions-Liste springt.
+    Sessions ohne `spot_id` (Altbestand) behalten ihre Namensgruppe.
+
+    Bewusst OHNE `viewer_id`: der Banner ist fuer alle gleich, also zaehlt er nur oeffentlich
+    Sichtbares. Wer ein verstecktes Konto hat, sieht auf der Karte seinen eigenen Spot zusaetzlich.
+    """
+    mit_id = (_community(db.query(func.count(func.distinct(S.spot_id))), None, accel_only, sport)
+              .filter(S.spot_id.isnot(None), S.place_lat.isnot(None)).scalar() or 0)
+    ohne_id = (_community(db.query(func.count(func.distinct(S.place_name))), None, accel_only, sport)
+               .filter(S.spot_id.is_(None), S.place_name.isnot(None), S.place_name != "",
+                       S.place_lat.isnot(None)).scalar() or 0)
+    return int(mit_id) + int(ohne_id)
+
+
 @router.get("/stats")
 def community_stats(
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
@@ -1019,17 +1047,11 @@ def community_stats(
         ),
         viewer_id=None, accel_only=False,
     ).first()
-    # Spots nach spot_id zaehlen, NICHT nach place_name (25.08.: Banner 196, /spots 203).
-    # Zwei Gruende, warum der Name die falsche Einheit ist: ein Spot, dessen Sessions noch keinen
-    # Ortsnamen haben (Geocoding offen), fehlte ganz — real 2 Stueck; und ein umbenannter Spot
-    # zaehlte doppelt, solange alte Sessions den alten Namen tragen. Die Karte gruppiert seit dem
-    # 20.08. ebenfalls nach spot_id, damit zeigen beide dieselbe Einheit. Sessions ohne spot_id
-    # (Altbestand) behalten ihre Namensgruppe, sonst verschwaenden sie aus der Zahl.
-    ids = _community(db.query(func.count(func.distinct(S.spot_id))),
-                     viewer_id=None, accel_only=False).filter(S.spot_id.isnot(None)).first()
-    namenlos = _community(db.query(func.count(func.distinct(func.nullif(S.place_name, "")))),
-                          viewer_id=None, accel_only=False).filter(S.spot_id.is_(None)).first()
-    data = {"foilers": int(foilers or 0), "spots": int(ids[0] or 0) + int(namenlos[0] or 0),
+    # Spots aus DERSELBEN Quelle wie die Spots-Seite (s. _spot_anzahl). Sessions und Pumps
+    # bleiben die Pumpfoil-Basis — die Karte zeigt bewusst auch Aufnahmen anderer Sportarten,
+    # und "353 Pumpfoiler" sind ohnehin alle registrierten Nutzer. Wichtiger als eine reine
+    # Sportart-Trennung ist, dass zwei sichtbare Zahlen fuer dasselbe Ding gleich sind.
+    data = {"foilers": int(foilers or 0), "spots": _spot_anzahl(db),
             "sessions": int(row[0] or 0), "pumps": int(row[1] or 0)}
     with _stats_lock:
         _stats_cache = (now, data)

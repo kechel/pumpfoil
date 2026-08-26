@@ -533,6 +533,13 @@ def name_pending_spots(db, max_spots: int | None = None) -> dict:
     named = pending = 0
     for sp in q.all():
         name, src, water = name_for(sp.lat, sp.lon)
+        if name is None and (sp.area_name or "").strip():
+            # Letzter Rueckfall: die Ortslage. `name_for` verlangt Ortschaft/Venue/Gewaesser —
+            # ein Bezirk oder County faellt dort durch, und der Spot bleibt fuer immer namenlos
+            # (Befund 26.08.: Spot 339 "Haines Borough" seit 17.08., Spot 373 "Einfeld" seit
+            # 21.08.; drei gueltige Sessions, alle ohne Ortsangabe, und auf der Karte unsichtbar).
+            # Grob ist besser als leer — und der Nutzer kann den Spot ohnehin umbenennen lassen.
+            name, src, water = sp.area_name.strip(), "area", water
         if name is None:
             pending += 1
             continue
