@@ -308,6 +308,7 @@ const S = {
   "btn.start":       ["START", "START", "START", "START", "DÉMARRER", "AVVIA", "INICIAR", "INICIAR", "MULAI", "СТАРТ", "", "", "", "スタート", "开始"],
   "btn.stop":        ["STOPP", "STOPP", "STOPP", "STOP", "ARRÊTER", "STOP", "PARAR", "PARAR", "BERHENTI", "СТОП", "", "", "", "ストップ", "停止"],
   "rec.stopHold":    ["Halten", "Halte", "Halten", "Hold", "Maintenir", "Tieni", "Mantén", "Segurar", "Tahan", "Держать", "Vasthouden", "Pidä", "Podržet", "長押し", "长按"],
+  "rec.holdFree":    ["2 s halten = Touch frei", "2 s halte = Touch frei", "2 s halten = Touch frei", "Hold 2 s = touch free", "2 s = tactile libre", "2 s = touch libero", "2 s = táctil libre", "2 s = toque livre", "2 s = sentuh bebas", "2 с = касания вкл.", "2 s = touch vrij", "2 s = kosketus auki", "2 s = dotyk volný", "2秒長押しでタッチ解除", "长按2秒解锁触摸"],
   "menu.touchLock":  ["Touch-Sperre", "Touch-Sperri", "Touch-Sperre", "Touch lock", "Verrou tactile", "Blocco touch", "Bloqueo táctil", "Bloqueio do toque", "Kunci sentuh", "Блокировка касаний", "Touchvergrendeling", "Kosketuslukko", "Zámek dotyku", "タッチロック", "触摸锁定"],
   "rec.noData":      ["Noch keine Daten", "No kei Date", "Noch keine Daten", "No data yet", "Pas encore de données", "Ancora nessun dato", "Aún no hay datos", "Ainda sem dados", "Belum ada data", "Пока нет данных", "Nog geen gegevens", "Ei vielä dataa", "Zatím žádná data", "まだデータがありません", "暂无数据"],
   "gps.searching":   ["GPS suchen…", "GPS sueche…", "GPS suchen…", "GPS searching…", "Recherche GPS…", "Ricerca GPS…", "Buscando GPS…", "Buscando GPS…", "Mencari GPS…", "Поиск GPS…", "GPS zoeken…", "GPS haku…", "hledání GPS…"],
@@ -384,6 +385,7 @@ const NB = {
   "btn.start": "START",
   "btn.stop": "STOP",
   "rec.stopHold": "Hold",
+  "rec.holdFree": "Hold 2 s = berøring fri",
   "menu.touchLock": "Berøringslås",
   "rec.noData": "Ingen data ennå",
   "gps.searching": "GPS søker…",
@@ -552,6 +554,7 @@ Page(
       foils: [], foilId: null, foilLabel: "—", almOn: false, almSrc: "foil", almLow: 0, almHigh: 0,
       vibrator: null, buzzer: null, _almActive: false, _foilInit: false,
       timer: null, pollTimer: null, hbTimer: null, lockTimer: null, unlockTimer: null,
+      lockHoldTimer: null,   // laeuft, solange auf die Touch-Sperre gedrueckt wird
       touchLocked: false, brightMode: "system", brightUntilMs: 0,
       geo: null, geoSpeedPrev: null, hrSensor: null, hrCallback: null, hrUpdatedMs: 0, _hrLogged: false, w: {},
       accelSensor: null, accelCallback: null, accelFd: -1, accelBuffer: [], accelSamples: 0,
@@ -967,12 +970,20 @@ Page(
           text: t("rec.stopHold") + " = " + t("btn.stop"), text_size: Math.round(DH * 0.055),
           color: 0x9aa4b2, align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V,
         });
-        try { w.lockIcon.setEnable(false); w.lockHint.setEnable(false); } catch (e) {}
+        // Zweite Zeile: der Ausweg OHNE Tasten. Ohne ihn wuesste niemand, dass langes Druecken
+        // auf den Schirm die Sperre oeffnet — und wer keine Tasten erreicht, saesse fest.
+        w.lockHint2 = w.touchShield.createWidget(hmUI.widget.TEXT, {
+          x: 0, y: Math.round(DH * 0.60), w: DW, h: Math.round(DH * 0.10),
+          text: t("rec.holdFree"), text_size: Math.round(DH * 0.05),
+          color: 0x9aa4b2, align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V,
+        });
+        try { w.lockIcon.setEnable(false); w.lockHint.setEnable(false); w.lockHint2.setEnable(false); } catch (e) {}
       }
       s.lockTimer = setTimeout(() => {
         try { if (w.lockIcon) hmUI.deleteWidget(w.lockIcon); } catch (e) {}
         try { if (w.lockHint) hmUI.deleteWidget(w.lockHint); } catch (e) {}
-        w.lockIcon = null; w.lockHint = null; s.lockTimer = null;
+        try { if (w.lockHint2) hmUI.deleteWidget(w.lockHint2); } catch (e) {}
+        w.lockIcon = null; w.lockHint = null; w.lockHint2 = null; s.lockTimer = null;
       }, 1200);
     },
     // Automatisch = nur ab 3 Tasten (Begruendung an KEY_NUMBER), sonst die Wahl aus dem Menue.
@@ -989,13 +1000,38 @@ Page(
         x: 0, y: 0, w: DW, h: DH, z_index: 6, modal: 1, scroll_enable: 0,
       });
       w.touchCanvas = w.touchShield.createWidget(hmUI.widget.CANVAS, { x: 0, y: 0, w: DW, h: DH });
-      w.touchCanvas.addEventListener(hmUI.event.CLICK_DOWN, () => this._showTouchLock());
+      // Kurzer Tipper = nur der Hinweis. LANGES Druecken (2 s) gibt Touch frei — dieselbe Geste,
+      // die auch UP/DOWN lang macht.
+      //
+      // Warum das noetig ist: die Sperre nimmt einem die Bedienung weg und gab sie NUR ueber die
+      // Hardware-Tasten zurueck. Wer keine erreicht — im Simulator gibt es keine anklickbaren, mit
+      // dicken Handschuhen trifft man sie schlecht — sass in der Aufnahme fest.
+      // Bewusst KEINE Simulator-Erkennung: der einzige Marker waere „development build", und den
+      // trägt auch ein `zeus preview` auf der ECHTEN Uhr — die Sperre waere damit ausgerechnet im
+      // nassen Feldtest aus, fuer den es sie gibt. Zwei Sekunden gehaltener Druck kommt von Wasser
+      // nicht, das ist derselbe Gedanke wie beim langen Druecken zum Stoppen.
+      w.touchCanvas.addEventListener(hmUI.event.CLICK_DOWN, () => {
+        this._showTouchLock();
+        if (s.lockHoldTimer) clearTimeout(s.lockHoldTimer);
+        s.lockHoldTimer = setTimeout(() => {
+          s.lockHoldTimer = null;
+          if (s.touchLocked) {
+            console.log("[pumpfoil] touch unlock by long press");
+            this._unlockTouchTemporarily();
+          }
+        }, 2000);
+      });
+      w.touchCanvas.addEventListener(hmUI.event.CLICK_UP, () => {
+        if (s.lockHoldTimer) { clearTimeout(s.lockHoldTimer); s.lockHoldTimer = null; }
+      });
     },
     _removeTouchShield() {
       const s = this.state, w = s.w;
       if (s.lockTimer) { clearTimeout(s.lockTimer); s.lockTimer = null; }
+      if (s.lockHoldTimer) { clearTimeout(s.lockHoldTimer); s.lockHoldTimer = null; }
       try { if (w.touchShield) hmUI.deleteWidget(w.touchShield); } catch (e) {}
       w.touchShield = null; w.touchCanvas = null; w.lockIcon = null; w.lockHint = null;
+      w.lockHint2 = null;
     },
     _unlockTouchTemporarily() {
       const s = this.state;
