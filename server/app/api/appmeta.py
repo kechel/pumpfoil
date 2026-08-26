@@ -79,9 +79,16 @@ _APP_META: dict[str, dict[str, str]] = {
     "garmin": {
         # NUR auf eine im Connect-IQ-Store FREIGEGEBENE Version setzen (Pruefung durch)!
         # Die Garmin-App vergleicht das selbst mit Config.VERSION (SessionRecorder.mc:638).
-        "latest": "1.0.78",   # LIVE im CIQ-Store; Store-Seite bestaetigt "Latest Release
-        # August 17, 2026, Version 1.0.78, Size 63 KB" (Jan). Garmin gibt automatisch frei — die
-        # Freigabe kam am Tag des Uploads. Inhalt: neue ENG-BUILD-STUFE fuer die 16 Uhren der
+        "latest": "1.0.79",   # LIVE im CIQ-Store 2026-08-26; Store-Seite bestaetigt "Latest
+        # Release August 26, 2026, Version 1.0.79, Size 63 KB" (Jan), und Jan hat sie aus dem Store
+        # auf seine echte Uhr installiert und getestet ("funktioniert"). Inhalt: WERT-GRAFIKEN in
+        # eigenen Layouts — Rand-Grafik (rund Ringsegment, eckig Rahmensegment; der Renderer
+        # entscheidet aus der Displayform) und Balken, Fuellstand auf der Skala des Feldes, Farbe
+        # optional nach Puls-Zone. Zonen kommen aus dem Profil ueber /devices/config (hrZones +
+        # speedScale) und werden auf der Uhr gecacht. NUR in den Voll-Builds: alles hinter
+        # (:layouts), die 96-KB- (LITE) und 128-KB-Klasse (ENG) kompilieren es nicht mit, und die
+        # Skalen-Uebernahme wurde ebenfalls dorthin gezogen (-384 B fuer die kleinen Builds).
+        # Vorher 1.0.78 (ENG-Build-Stufe), live seit 17.08. — Inhalt dort: neue ENG-BUILD-STUFE fuer die 16 Uhren der
         # 128-KB-Klasse (fenix 5/5S/6/6S/Chronos, FR55/245/645/935, Venu Sq, vivoactive 3, Enduro,
         # Instinct 3 Solar / Instinct E). Sie fuhren den vollen Build und waren mit ihm aus dem
         # Speicher gewachsen (FR55 gemessen: 58 508 B in 1.0.60 -> 105 052 B in 1.0.77, freier Heap

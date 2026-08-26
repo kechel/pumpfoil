@@ -9,6 +9,23 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 🚀 App-Release-Stand
 
+- **🟢 Garmin 1.0.79 LIVE — CIQ-Store FREIGEGEBEN (26.08.), Kette komplett.** Jans Meldung
+  26.08. nachmittags: Store-Seite „Latest Release August 26, 2026 · Version 1.0.79 · Size 63 KB",
+  aus dem Store auf seine ECHTE Uhr installiert und getestet — „funktioniert". Vorher im Emulator
+  mit seinem eigenen Testlayout geprueft (fenix7xpro, `.prg` von mir geliefert).
+  Inhalt: **Wert-Grafiken in eigenen Layouts** — Rand-Grafik (`typ 8`; rund Ringsegment, eckig
+  Rahmensegment, entschieden aus der Displayform) und Balken (`typ 9`), Fuellstand auf der Skala
+  des Feldes, Farbe optional nach Puls-Zone. Zonen aus dem Profil ueber `/devices/config`
+  (`hrZones` + `speedScale`), auf der Uhr gecacht. **Nur Voll-Builds:** alles hinter `(:layouts)`,
+  LITE (96 KB) und ENG (128 KB) kompilieren es nicht mit; die Skalen-Uebernahme wurde ebenfalls
+  dorthin gezogen (**-384 B** fuer die kleinen Builds, gemessen an fr55 und instinct2).
+  Kette: `watch/bin` auf 1.0.79 (121/121 ok, ueber `/api/app/devices` verifiziert) ·
+  `.iq` gebaut (210/210 Geraete, 11,05 MB, md5 `e673a25da654`) + Store-Notizen (deu/eng) an Jan ·
+  `appmeta.garmin` = 1.0.79 · Changelog-Eintrag steht.
+  **Danach nur noch server-seitig:** Z1-Untergrenze im Zonen-Vorschlag auf feste 60 bpm (Jan);
+  die Rueckfall-Konstanten in den Clients folgen dem Vorschlag ABSICHTLICH nicht, sonst braeuchte
+  jede Voreinstellung ein Uhr-Release. Das ausgelieferte 1.0.79 bleibt damit gueltig.
+
 - **🟢 Garmin 1.0.78 LIVE — CIQ-Store FREIGEGEBEN (17.08.), Kette komplett.** Von Jan aus dem
   Store auf seine echte Uhr aktualisiert und getestet („geht"). `appmeta garmin` = 1.0.78 gesetzt,
   Changelog-Eintrag geschrieben. Inhalt: die neue **ENG-Build-Stufe** fuer die 16 Uhren der 128-KB-Klasse, die
