@@ -411,6 +411,40 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔎 Dritter Durchgang durch El Manus Zepp-PR — diesmal im CODE, nicht im Changelog (26.08.).
+  Drei neue Befunde, alle noch OFFEN (Jans Entscheidung):**
+
+  1. **Live-Distanz laeuft im Stand weiter — auf Wear, Apple Watch UND beiden Handy-Recordern.**
+     Alle vier summieren `distM += haversine(vorher, jetzt)` bei JEDEM Fix, ohne das
+     Qualitaets-Gate, das direkt darueber fuer Anzeige/Max/Lauf-Erkennung schon existiert
+     (`poor = accuracyM > 20` -> `sp = 0`). Die Lauf-Erkennung ist also geschuetzt, die Distanz
+     nicht. El Manu hat dasselbe auf Zepp ueber ein 5-s-Netto-Verschiebungsfenster geloest — bei
+     uns geht es einfacher, weil wir Genauigkeit UND Doppler-Geschwindigkeit haben (Zepp hat
+     beides nicht).
+     Gemessen an 400 echten Sessions (read-only, `scratchpad/wander.py`): die naive
+     Punkt-zu-Punkt-Summe liegt bis zu **+53 %** (#2478: 13 794 m gegen 9 003 m analysiert) bzw.
+     **+71 %** (#2558, Handy mit 26 044 Punkten) ueber der Server-Distanz. Ein Teil davon ist
+     legitim (Trim/aussortierte Bereiche fehlen serverseitig), der Mechanismus ist aber am Code
+     belegt. Betroffen ist nur die ANZEIGE auf der Uhr und die dort gezeigte Lauf-Distanz — die
+     Rohdaten und damit die Auswertung bleiben unberuehrt.
+     Vorschlag: Distanz nur addieren, wenn der Fix nicht `poor` ist UND die gemessene
+     Geschwindigkeit ueber einem Standschwellwert liegt (ca. 0,5 m/s).
+  2. **Wear OS verschluckt BACK waehrend der Aufnahme NICHT.** Der Handy-Recorder tut es
+     (`RecordScreen.kt:108`, `BackHandler(enabled = st.recording)`), Garmin auch
+     (`RecordDelegate.onBack`), El Manu hat es auf Zepp nachgezogen — auf Wear fehlt es. Ein
+     Wisch nach rechts (auf nassem Schirm schnell passiert) verlaesst mitten in der Session die
+     Aufnahme-Ansicht. Die Aufnahme selbst laeuft im Foreground-Service weiter, aber der Nutzer
+     steht vor dem Watchface. Zwei Zeilen.
+  3. **Testwerkzeug: synthetische GPS-Spur.** Er hat `DEV_FAKE_GPS` (im eingereichten Build aus).
+     Unser `DemoReceiver` auf Wear injiziert nur STATISCHE Werte — damit laesst sich die
+     Lauf-Erkennung und alles, was von Bewegung abhaengt, im Emulator nicht pruefen. Eine
+     bewegte Demo-Spur waere fuer Wear und Apple ein echtes Werkzeug (die Ambient-Ansicht habe
+     ich mit statischen Werten geprueft, mehr gab das Vorhandene nicht her).
+
+  Nicht uebertragbar (geprueft): Touch-Sperre + Tastenbedienung (auf Wear/Apple darf man im
+  Aufzeichnen wischen, das ist dort Absicht), Zepp-Zonen-API, Ring-Reihenfolge, T-Rex-Layouts,
+  Icon-Groessen, Chunk-Groessen (Garmin liegt weit darueber), Auto-Start-Abschaltung.
+
 - **🟢 Beide Funde aus dem Zepp-PR nachgezogen (26.08.).**
   **(a) `expected_chunks` schicken jetzt ALLE fuenf Recorder** — Garmin (`Uploader._startSession`,
   nur wenn die Aufnahme abgeschlossen ist), Wear, Apple Watch, Android-Handy, iOS-Handy (dort je
