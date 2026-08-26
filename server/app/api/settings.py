@@ -155,7 +155,12 @@ def hr_zones_default(db: Session, user: models.User) -> list:
             continue
         if isinstance(v, (int, float)) and 60 < v < 240:
             hoechster = max(hoechster, int(v))
-    max_hr = hoechster or 190
+    # Nur ein PLAUSIBLER Messwert taugt als Anker. Gemessen am 26.08. ueber alle 141 Nutzer mit
+    # Pulsdaten: 52 haben ein Maximum unter 150 bpm, drei davon unter 70 — das sind Sessions ohne
+    # Gurt bzw. Handgelenks-Werte, die nie eine Belastung gesehen haben, kein echtes Maximum.
+    # Nimmt man die als „100 %", steht die Grafik dauerhaft im roten Bereich. Also erst ab 150
+    # glauben, darunter 190 als neutraler Startwert — der Nutzer stellt es ohnehin selbst ein.
+    max_hr = hoechster if hoechster >= 150 else 190
     return [int(round(max_hr * p)) for p in (0.5, 0.6, 0.7, 0.8, 0.9, 1.0)]
 
 
