@@ -313,6 +313,13 @@ def device_config(
         # vier Uhr-Plattformen hartcodiert [Uhrzeit, Läufe, Puls] -> jetzt konfigurierbar.
         # Alte Clients ignorieren den Key und nutzen weiter ihren eigenen Default.
         "pauseView": settings.get("pause_view") or [12, 20, 2],
+        # Wert-Skalen fuer die Grafik-Elemente der freien Layouts (Rand-Grafik / Balken) UND fuer
+        # die Wert-Farbe: Puls-Zonen aus dem Profil, Geschwindigkeit aus derselben Spanne, die auch
+        # Alarm und Farbskala benutzen. Puls-Zonen kann NUR Garmin (UserProfile) und Zepp (4.2)
+        # selbst lesen — Wear OS und watchOS haben keine API dafuer. Also ist das Profil hier die
+        # EINZIGE Quelle fuer alle vier Plattformen: sonst faerbte dieselbe Grafik je Uhr anders.
+        "hrZones": _hr_zones_fuer_uhr(db, user, settings),
+        "speedScale": _speed_scale(settings),
         # Neueste im Connect-IQ-Store freigegebene Version (nur Garmin) -> die Uhr zeigt kurz
         # einen Update-Hinweis, wenn ihre eigene Version älter ist. Leer = kein Hinweis.
         # Gepflegt in appmeta._APP_META["garmin"]["latest"] (nur bei bestätigter Freigabe setzen).
@@ -332,6 +339,32 @@ def device_config(
         "layoutsOn": layouts_on,
         **layout_block,
     }
+
+
+def _hr_zones_fuer_uhr(db: Session, user, settings: dict) -> list:
+    """Sechs Puls-Grenzen fuer die Uhr. Nicht gesetzt -> derselbe Vorschlag, den auch das Profil
+    anzeigt (aus dem eigenen gemessenen Hoechstpuls). Nie leer liefern: die Uhr soll die Grafik
+    zeichnen koennen, ohne selbst eine Formel zu kennen."""
+    from .settings import _clean_hr_zones, hr_zones_default
+    z = _clean_hr_zones(settings.get("hr_zones"))
+    if z:
+        return z
+    if user is None:
+        return []
+    return hr_zones_default(db, user)
+
+
+def _speed_scale(settings: dict) -> list:
+    """Untere/obere Grenze der Geschwindigkeits-Skala (km/h) — dieselbe Spanne wie Alarm/Farbe."""
+    lo, hi = _manuell_standard()
+    try:
+        lo = int(round(float(settings.get("speed_min") or lo)))
+        hi = int(round(float(settings.get("speed_max") or hi)))
+    except (TypeError, ValueError):
+        lo, hi = _manuell_standard()
+    if hi <= lo:
+        lo, hi = _manuell_standard()
+    return [lo, hi]
 
 
 def _manuell_standard() -> tuple[int, int]:

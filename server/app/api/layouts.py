@@ -17,6 +17,20 @@ Object-Store-Volllauf ist ein bekannter Fehlerpfad (s. garmin-watch-fieldtest-go
     typ 6  Seiten-Punkte (Anzahl bleibt dynamisch, gespeichert werden nur Position/Farbe)
     typ 7  „Pausiert"-Anzeige — NUR in Kategorie `pause`, dort PFLICHT: verschiebbar, aber nicht
            entfernbar (s. _enforce_paused_hint). Klein gehalten (Stufe max. 2).
+    typ 8  Rand-Grafik   extra: [6] = Feld-ID. `x` = Startpunkt 0…1000 (0 = 12 Uhr, im
+           Uhrzeigersinn), `y` = Laenge 0…1000 (1000 = ganz herum), `size` = Dicke-Stufe 1…4.
+           RUND wird sie als Ring gezeichnet, ECKIG als Rahmen — das entscheidet der Renderer
+           anhand der echten Displayform, nicht das Layout (Vorgabe Jan, 26.08.: „automatisch
+           erkennen ob rund oder eckig und entsprechend adaptieren"). Ein Layout laeuft damit
+           unveraendert auf beiden Formen.
+    typ 9  Balken        extra: [6] = Feld-ID, [7] = Breite 0…1000. Frei positionierbar
+           (`x`/`y` = linke Mitte), `size` = Dicke-Stufe 1…4.
+
+Die beiden Grafik-Elemente (8/9) fuellen sich nach dem WERT ihres Feldes. `flags` Bit 0 (=1)
+schaltet auf die SKALEN-Farbe statt der Basisfarbe: beim Puls die fuenf Zonen des Nutzers
+(`settings.hr_zones`), bei Geschwindigkeiten die Spanne `speed_min`…`speed_max` aus demselben
+Profil. Nur Felder mit einer belastbaren Skala sind erlaubt (SCALED_FIELDS) — ein Ring fuer
+„Uhrzeit" oder „Anzahl Laeufe" waere Zierde ohne Aussage.
 
 x/y sind **relativ 0…1000** (die Uhr rechnet aus `dc.getWidth/getHeight`) → tragfähig über alle
 Auflösungen (176×176 … 454×454) und Formen (round/rect/semioctagon). `size` ist eine **Stufe**
@@ -65,7 +79,14 @@ MAX_TEXT_LEN = 12          # Freitext: die Uhr hat wenig Platz UND wenig Object 
 # 21 = Max-Puls des letzten Laufs (Wunsch ThermikDreher 15.08. „Letzter Lauf Max HR", Jan 17.08.
 # auf alle Uhren erweitert). Der Session-Max-Puls ist ID 9 und gab es schon.
 VALID_FIELD_IDS = set(range(0, 22))
-ELEMENT_TYPES = (1, 2, 3, 4, 5, 6, 7)
+ELEMENT_TYPES = (1, 2, 3, 4, 5, 6, 7, 8, 9)
+# Felder mit belastbarer Skala -> nur diese duerfen als Ring/Balken (typ 8/9) auftreten.
+# Puls-Felder skalieren ueber die Zonen aus dem Profil, Geschwindigkeits-Felder ueber
+# speed_min…speed_max (dieselbe Spanne, die auch Alarm und Farbskala benutzen).
+SCALED_FIELDS_HR = (2, 8, 9, 21)                 # Puls, Ø-Puls, Max-Puls, Max-Puls letzter Lauf
+SCALED_FIELDS_SPEED = (1, 5, 6, 7, 18, 19)       # Speed(3s), aktuell, Ø, max, letzter Lauf Ø/max
+SCALED_FIELDS = SCALED_FIELDS_HR + SCALED_FIELDS_SPEED
+MAX_GRAPHIC_STEP = 4                             # Dicke-Stufe (1…4), relativ zur Displaybreite
 
 
 class LayoutIn(BaseModel):
@@ -106,7 +127,12 @@ def _clean_element(e) -> list | None:
     # Labels/Freitexte werden auf FONT_LARGE (4) gekappt, sonst wären sie unsichtbar.
     # Typ 7 („Pausiert"-Anzeige) wird bewusst KLEIN gehalten: sie ist ein Hinweis, um den man
     # herum gestaltet, kein Hauptelement (Jan: „aber nicht zu gross").
-    max_step = MAX_SIZE_STEP if typ == 1 else (2 if typ == 7 else MAX_TEXT_STEP)
+    if typ in (8, 9):
+        # Grafik-Dicke, nicht Schriftgroesse: 1…4 Stufen, der Renderer rechnet sie relativ
+        # zur Displaybreite (auf 176 px darf ein Ring nicht 20 px fressen).
+        max_step = MAX_GRAPHIC_STEP
+    else:
+        max_step = MAX_SIZE_STEP if typ == 1 else (2 if typ == 7 else MAX_TEXT_STEP)
     out = [
         typ,
         _clamp(e[1], 0, 1000),           # x
@@ -131,6 +157,22 @@ def _clean_element(e) -> list | None:
         if fid not in VALID_FIELD_IDS:
             return None
         out.append(fid)
+    elif typ in (8, 9):             # Rand-Grafik / Balken -> skalierbares Feld
+        try:
+            fid = int(round(float(e[6] if len(e) > 6 else 0)))
+        except (TypeError, ValueError):
+            return None
+        # Nur Felder mit belastbarer Skala. Sonst waere die Grafik Zierde ohne Aussage — und
+        # verwerfen ist hier richtig statt zu klemmen (s. lange Begruendung bei typ 1/2).
+        if fid not in SCALED_FIELDS:
+            return None
+        out.append(fid)
+        if typ == 8:
+            # `y` IST bei diesem Typ die Laenge (s. Kopf). Mindestens ein Achtel Umfang, sonst
+            # ist das Element unsichtbar — der haeufigste Bedienfehler beim Ziehen im Editor.
+            out[2] = max(out[2], 125)
+        else:
+            out.append(_clamp(e[7] if len(e) > 7 else 400, 50, 1000, 400))   # Breite
     elif typ == 3:                  # Freitext
         txt = _clean_text(e[6] if len(e) > 6 else "")
         if not txt:

@@ -29,6 +29,15 @@ DEFAULTS = {
     # OHNE Eintrag (44, u. a. alle neu registrierten) fielen weiter auf Surfen zurück. Genau das
     # hat ein Nutzer gemeldet ("your app says surfing ... could you change it to pumpfoil?").
     "activity_type": "pumpfoil",
+    # Puls-Zonen (5 Zonen = 6 Grenzen, bpm) fuer die farbigen Ring-/Balken-Elemente in eigenen
+    # Uhr-Layouts. WARUM im Profil und nicht von der Uhr (Vorgabe Jan, 26.08.): die Zonen des
+    # Nutzers lassen sich nur auf Garmin (`UserProfile.getHeartRateZones`) und Zepp OS 4.2
+    # (`Workout.getUserHrZoneSettings`) auslesen — Wear OS und Apple Watch haben dafuer KEINE
+    # oeffentliche Schnittstelle. Eine Anzeige, die je nach Uhr anders faerbt, waere schlimmer als
+    # eine, die ueberall gleich ist. Also EINE Quelle: das Profil.
+    # None = noch nie gesetzt -> der Server liefert einen Vorschlag aus dem eigenen gemessenen
+    # Hoechstpuls (s. `hr_zones_default`), den man dann anpassen kann.
+    "hr_zones": None,
     # Vibrationsalarm bei Speed-Schwellen (km/h, 0 = aus).
     "alarm_enabled": False,
     "speed_high": 0, "speed_low": 0,
@@ -102,6 +111,53 @@ ALARM_DEFAULTS = {"foil", "fixed"}
 def _merged(user: models.User) -> dict:
     stored = json.loads(user.settings_json) if user.settings_json else {}
     return {**DEFAULTS, **stored}
+
+
+def _clean_hr_zones(v) -> list | None:
+    """Sechs aufsteigende Puls-Grenzen (Z1-Untergrenze … Z5-Obergrenze), 60…240 bpm.
+
+    Nicht plausibel = None (also „nimm den Vorschlag"), statt halb gueltige Grenzen zu speichern:
+    eine Zone, die bei 0 anfaengt oder ruecklaeufig ist, faerbt den Ring sinnlos.
+    """
+    if not isinstance(v, (list, tuple)) or len(v) != 6:
+        return None
+    try:
+        z = [int(round(float(x))) for x in v]
+    except (TypeError, ValueError):
+        return None
+    if any(x < 60 or x > 240 for x in z):
+        return None
+    if any(z[i] >= z[i + 1] for i in range(5)):
+        return None
+    return z
+
+
+def hr_zones_default(db: Session, user: models.User) -> list:
+    """Vorschlag aus dem EIGENEN gemessenen Hoechstpuls: 50/60/70/80/90/100 % davon.
+
+    Wir kennen kein Alter (und fragen es nicht), aber den hoechsten je gemessenen Puls haben wir
+    aus den Sessions (`metrics_json.max_hr`). Der ist als Anker besser als jede Altersformel — und
+    wer nie mit Pulsgurt gefahren ist, bekommt 190 als neutralen Startwert und stellt selbst ein.
+    Bewusst der KLASSISCHE Fuenf-Zonen-Schnitt, damit die Farben dasselbe bedeuten wie in jeder
+    anderen Trainings-App.
+    """
+    hoechster = 0
+    rows = (db.query(models.AnalysisResult.metrics_json)
+            .join(models.Session, models.Session.id == models.AnalysisResult.session_id)
+            .filter(models.Session.user_id == user.id, models.Session.deleted.isnot(True))
+            .all())
+    for (mj,) in rows:
+        if not mj:
+            continue
+        try:
+            v = (json.loads(mj) or {}).get("max_hr")
+        except ValueError:
+            continue
+        if isinstance(v, (int, float)) and 60 < v < 240:
+            hoechster = max(hoechster, int(v))
+    max_hr = hoechster or 190
+    return [int(round(max_hr * p)) for p in (0.5, 0.6, 0.7, 0.8, 0.9, 1.0)]
+
 
 
 def _clean_views(views) -> list | None:
@@ -184,6 +240,12 @@ def get_settings(user: models.User = Depends(current_user), db: Session = Depend
     # Homespot ist namensbasiert (mit Apps geteilt); zusätzlich die spot_id für neue Clients.
     from ..spots import spot_id_by_name
     m["homespot_id"] = spot_id_by_name(db, m["homespot"]) if m.get("homespot") else None
+    # Puls-Zonen: nie gesetzt -> Vorschlag aus dem eigenen gemessenen Hoechstpuls mitliefern,
+    # zusammen mit dem Hinweis, DASS es nur ein Vorschlag ist (die Oberflaeche zeigt das an und
+    # speichert erst, wenn der Nutzer bestaetigt/aendert).
+    if not m.get("hr_zones"):
+        m["hr_zones"] = hr_zones_default(db, user)
+        m["hr_zones_suggested"] = True
     return m
 
 
@@ -206,6 +268,8 @@ def update_settings(
         current["colorByValue"] = bool(patch["colorByValue"])
     if "layouts_enabled" in patch:
         current["layouts_enabled"] = bool(patch["layouts_enabled"])
+    if "hr_zones" in patch:
+        current["hr_zones"] = _clean_hr_zones(patch["hr_zones"])
     if "auto_start" in patch:
         current["auto_start"] = bool(patch["auto_start"])
     if "record_mode" in patch and patch["record_mode"] in ("full", "lite", "gps"):
@@ -371,4 +435,11 @@ def update_settings(
         current["notify_prefs"] = prefs
     user.settings_json = json.dumps(current)
     db.commit()
-    return {**DEFAULTS, **current}
+    out = {**DEFAULTS, **current}
+    # Antwort in derselben Form wie GET: nicht gesetzte Puls-Zonen kommen als Vorschlag zurueck,
+    # damit ein Client nach dem Speichern nicht ploetzlich `null` sieht (und die Zonen-Anzeige leer
+    # bleibt, obwohl GET gleich wieder Zahlen liefern wuerde).
+    if not out.get("hr_zones"):
+        out["hr_zones"] = hr_zones_default(db, user)
+        out["hr_zones_suggested"] = True
+    return out

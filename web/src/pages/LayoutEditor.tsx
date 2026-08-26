@@ -6,9 +6,10 @@ import { LayoutPreview } from "../components/LayoutPreview";
 import { ChevronIcon } from "../components/Icons";
 import { FIELD_OPTIONS } from "../lib/fields";
 import {
-  EL_DOTS, EL_LABEL, EL_LINE, EL_PAUSED, EL_REC, EL_TEXT, EL_VALUE,
-  MAX_ELEMENTS, MAX_TEXT_LEN, MOCK_VALUE, PALETTE, PREVIEW_SIZES,
-  SIZE_STEPS, SMALLEST, maxStepFor, undisplayableChars, watchTextWidthRatio,
+  DEFAULT_SCALES, EL_ARC, EL_BAR, EL_DOTS, EL_LABEL, EL_LINE, EL_PAUSED, EL_REC, EL_TEXT, EL_VALUE,
+  MAX_ELEMENTS, MAX_GRAPHIC_STEP, MAX_TEXT_LEN, MIN_ARC_LEN, MOCK_VALUE, PALETTE, PREVIEW_SIZES,
+  SCALED_FIELDS, SIZE_STEPS, SMALLEST, ValueScales, edgeParamAt, graphicThicknessPx, maxStepFor,
+  undisplayableChars, watchTextWidthRatio,
 } from "../lib/watchLayout";
 import { useT } from "../i18n";
 
@@ -24,6 +25,10 @@ const ADDABLE = [
   { typ: EL_LINE, key: "addLine" },
   { typ: EL_REC, key: "addRec" },
   { typ: EL_DOTS, key: "addDots" },
+  // Wert-Grafiken: EIN Element, das sich der Displayform anpasst (rund -> Ring am Rand,
+  // eckig -> Rahmen). Deshalb steht hier nur „Rand-Grafik", nicht „Ring" und „Rahmen".
+  { typ: EL_ARC, key: "addArc" },
+  { typ: EL_BAR, key: "addBar" },
 ];
 
 export default function LayoutEditor() {
@@ -44,6 +49,9 @@ export default function LayoutEditor() {
   const [pageCount, setPageCount] = useState(3);
   const [pageIndex, setPageIndex] = useState(0);
   const [err, setErr] = useState("");
+  // Skalen der Wert-Grafiken aus dem PROFIL — dieselben Zahlen, die die Uhr per /devices/config
+  // bekommt. Ohne sie waere die Vorschau der Zonenfarben geraten.
+  const [scales, setScales] = useState<ValueScales>(DEFAULT_SCALES);
   const boxRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<
     { i: number; handle: "move" | "a" | "b"; grabX: number; grabY: number; started: boolean } | null
@@ -65,6 +73,14 @@ export default function LayoutEditor() {
       setPageCount(pg.length + 1);
       const i = pg.findIndex((x) => typeof x === "number" && String(x) === id);
       setPageIndex(i >= 0 ? i : 0);
+      const z = st.hr_zones as number[] | null | undefined;
+      setScales({
+        hrZones: Array.isArray(z) && z.length === 6 ? z.map(Number) : DEFAULT_SCALES.hrZones,
+        speedScale: [
+          Number(st.speed_min ?? DEFAULT_SCALES.speedScale[0]),
+          Number(st.speed_max ?? DEFAULT_SCALES.speedScale[1]),
+        ],
+      });
     }).catch(() => {});
   }, [id]);
 
@@ -92,6 +108,10 @@ export default function LayoutEditor() {
     const base: LayoutElement =
       typ === EL_LINE ? [typ, 150, 500, 1, 3, 0, 850, 500]
       : typ === EL_TEXT ? [typ, 500, 700, 1, 0, 0, t("lay.newText")]
+      // Rand-Grafik: startet oben links (750 = 9 Uhr) und laeuft ein Viertel weit — sichtbar,
+      // ohne den REC-Punkt oben zu kreuzen. Balken: mittig, 40 % breit.
+      : typ === EL_ARC ? [typ, 750, 250, 2, 12, 1, 2]
+      : typ === EL_BAR ? [typ, 500, 800, 2, 12, 1, 2, 400]
       : typ === EL_VALUE || typ === EL_LABEL ? [typ, 500, 500, typ === EL_VALUE ? 3 : 1, 0, 0, 1]
       : [typ, 500, typ === EL_REC ? 85 : 920, 1, typ === EL_REC ? 5 : 2, 0];
     setL({ ...l, elements: [...l.elements, base] });
@@ -126,6 +146,15 @@ export default function LayoutEditor() {
     const y = Math.max(0, Math.min(1000, Math.round(((e.clientY - r.top) / r.height) * 1000)));
     const el = [...l.elements[d.i]];
     const isLine = Number(el[0]) === EL_LINE;
+    if (Number(el[0]) === EL_ARC) {
+      // Eine Rand-Grafik hat kein x/y im Display, sondern einen Startpunkt AUF dem Rand: den
+      // Zeiger auf den naechsten Randpunkt abbilden, Laenge bleibt.
+      const dicke = graphicThicknessPx(Number(el[3]) || 1, r.width);
+      el[1] = edgeParamAt(size.shape === "rect" ? "rect" : "round", r.width, r.height,
+                          dicke / 2 + 1, e.clientX - r.left, e.clientY - r.top);
+      patchEl(d.i, el);
+      return;
+    }
     if (isLine && d.handle === "b") {
       el[6] = x; el[7] = y;
     } else if (isLine && d.handle === "move") {
@@ -265,6 +294,7 @@ export default function LayoutEditor() {
             className="inline-block touch-none">
             <LayoutPreview layout={{ ...l, shape: size.shape }} w={size.w} h={size.h} px={280}
               showData={showData} selected={sel} pageCount={pageCount} pageIndex={pageIndex}
+              scales={scales}
               onPickElement={setSel} onElementPointerDown={onDown} />
           </div>
           <p className="mt-2 max-w-[280px] text-sm text-slate-400">{t("lay.dragHint")}</p>
@@ -307,6 +337,68 @@ export default function LayoutEditor() {
                     </button>
                   )}
                 </div>
+
+                {(typ === EL_ARC || typ === EL_BAR) && (
+                  <div className="space-y-3">
+                    <label className="block text-sm text-slate-300">
+                      {t("lay.field")}
+                      <select value={Number(e[6]) || 0} onChange={(ev) => setField(sel, 6, Number(ev.target.value))}
+                        className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-2 py-2 text-sm text-slate-100">
+                        {/* Nur Felder MIT Skala: eine Grafik ohne Ober-/Untergrenze koennte keinen
+                            Fuellstand zeigen (Spiegel von layouts.SCALED_FIELDS). */}
+                        {FIELD_OPTIONS.filter((o) => SCALED_FIELDS.includes(o.id)).map((o) => (
+                          <option key={o.id} value={o.id}>{t(`field.${o.id}`)}</option>
+                        ))}
+                      </select>
+                      <span className="text-sm text-slate-400">{t("lay.graphicFieldHint")}</span>
+                    </label>
+                    {typ === EL_ARC ? (
+                      <>
+                        <label className="block text-sm text-slate-300">
+                          <span className="flex items-baseline justify-between gap-2">
+                            <span>{t("lay.arcStart")}</span>
+                            <span className="text-slate-400">{Math.round(((Number(e[1]) || 0) / 1000) * 360)}°</span>
+                          </span>
+                          <input type="range" min={0} max={990} step={10} value={Number(e[1]) || 0}
+                            onChange={(ev) => setField(sel, 1, Number(ev.target.value))}
+                            className="mt-1 w-full accent-brand-500" />
+                        </label>
+                        <label className="block text-sm text-slate-300">
+                          <span className="flex items-baseline justify-between gap-2">
+                            <span>{t("lay.arcLen")}</span>
+                            <span className="text-slate-400">{Math.round((Number(e[2]) || 0) / 10)} %</span>
+                          </span>
+                          <input type="range" min={MIN_ARC_LEN} max={1000} step={5} value={Number(e[2]) || MIN_ARC_LEN}
+                            onChange={(ev) => setField(sel, 2, Number(ev.target.value))}
+                            className="mt-1 w-full accent-brand-500" />
+                        </label>
+                        <p className="text-sm text-slate-400">{t("lay.arcHint")}</p>
+                      </>
+                    ) : (
+                      <label className="block text-sm text-slate-300">
+                        <span className="flex items-baseline justify-between gap-2">
+                          <span>{t("lay.barWidth")}</span>
+                          <span className="text-slate-400">{Math.round((Number(e[7]) || 400) / 10)} %</span>
+                        </span>
+                        <input type="range" min={50} max={1000} step={10} value={Number(e[7]) || 400}
+                          onChange={(ev) => setField(sel, 7, Number(ev.target.value))}
+                          className="mt-1 w-full accent-brand-500" />
+                      </label>
+                    )}
+                    <label className="flex items-center gap-2 text-sm text-slate-300">
+                      <input type="checkbox" checked={(Number(e[5]) || 0) & 1 ? true : false}
+                        onChange={(ev) => setField(sel, 5, ((Number(e[5]) || 0) & ~1) | (ev.target.checked ? 1 : 0))}
+                        className="h-4 w-4 accent-brand-500" />
+                      {t("lay.colorByScale")}
+                    </label>
+                    <p className="text-sm text-slate-400">
+                      {t("lay.scaleHint", {
+                        hr: `${scales.hrZones[0]}–${scales.hrZones[5]}`,
+                        speed: `${scales.speedScale[0]}–${scales.speedScale[1]}`,
+                      })}
+                    </p>
+                  </div>
+                )}
 
                 {(typ === EL_VALUE || typ === EL_LABEL) && (
                   <label className="block text-sm text-slate-300">
@@ -370,8 +462,8 @@ export default function LayoutEditor() {
                     dürfen in die großen NUMBER-Fonts, Labels/Texte nicht (dort fehlen Buchstaben). */}
                 <label className="block text-sm text-slate-300">
                   <span className="flex flex-wrap items-baseline justify-between gap-2">
-                    <span>{typ === EL_LINE ? t("lay.thickness") : t("lay.size")}</span>
-                    {typ !== EL_LINE && (
+                    <span>{typ === EL_LINE || typ === EL_ARC || typ === EL_BAR ? t("lay.thickness") : t("lay.size")}</span>
+                    {typ !== EL_LINE && typ !== EL_ARC && typ !== EL_BAR && (
                       <span className="text-slate-400">
                         {t(`lay.size.${SIZE_STEPS[Number(e[3]) || 0]?.key ?? "medium"}`)}
                         {" · "}
@@ -379,12 +471,12 @@ export default function LayoutEditor() {
                       </span>
                     )}
                   </span>
-                  <input type="range" min={typ === EL_LINE ? 1 : 0}
-                    max={typ === EL_LINE ? 4 : maxStepFor(typ)}
+                  <input type="range" min={typ === EL_LINE || typ === EL_ARC || typ === EL_BAR ? 1 : 0}
+                    max={typ === EL_LINE ? 4 : typ === EL_ARC || typ === EL_BAR ? MAX_GRAPHIC_STEP : maxStepFor(typ)}
                     value={Number(e[3]) || 0}
                     onChange={(ev) => setField(sel, 3, Number(ev.target.value))}
                     className="mt-1 w-full accent-brand-500" />
-                  {typ !== EL_LINE && typ !== EL_VALUE && (
+                  {typ !== EL_LINE && typ !== EL_VALUE && typ !== EL_ARC && typ !== EL_BAR && (
                     <span className="text-sm text-slate-400">{t("lay.sizeTextCap")}</span>
                   )}
                 </label>
@@ -396,7 +488,7 @@ export default function LayoutEditor() {
                   </div>
                 </div>
 
-                {typ !== EL_LINE && (
+                {typ !== EL_LINE && typ !== EL_ARC && typ !== EL_BAR && (
                   <div className="flex flex-wrap items-center gap-3">
                     <div className="text-sm text-slate-300">{t("lay.align")}</div>
                     {[["c", 0], ["l", 1], ["r", 2]].map(([k, v]) => (

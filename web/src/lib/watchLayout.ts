@@ -16,6 +16,17 @@ export const EL_DOTS = 6;    // Seiten-Punkte (Anzahl bleibt dynamisch)
 // layouts._enforce_paused_hint): verschiebbar und einfärbbar, aber nicht entfernbar, und klein
 // gedeckelt. Ohne ihn weiß niemand, dass die Aufnahme pausiert ist und wie er sie fortsetzt.
 export const EL_PAUSED = 7;
+// Generische WERT-GRAFIK (F4). Zwei Formen, ein Prinzip: sie zeichnen den Wert eines Feldes als
+// Fuellstand auf einer Skala (Puls -> Zonen aus dem Profil, Geschwindigkeit -> speed_min…max).
+//   EL_ARC = Rand-Grafik: x = Startpunkt 0…1000 auf dem Umfang ab 12 Uhr im Uhrzeigersinn,
+//            y = Laenge 0…1000 desselben Umfangs, size = Dicke 1…4, extra[6] = Feld-ID.
+//            RUNDE Uhr -> Ringsegment, ECKIGE -> Rahmensegment. Das entscheidet der RENDERER
+//            aus der echten Displayform, nicht der Autor: dasselbe Layout soll auf jeder Uhr
+//            passen, ohne zwei Varianten zu pflegen.
+//   EL_BAR = Balken: x/y = Mitte, size = Dicke 1…4, extra[6] = Feld-ID, extra[7] = Breite 50…1000.
+// flags Bit 0 (=1) faerbt die Grafik nach der Skala; ohne das Bit gilt die Palette-Farbe.
+export const EL_ARC = 8;
+export const EL_BAR = 9;
 
 // Kuratierte Palette — Spiegel von server/app/api/layouts.py PALETTE (Index = `color`).
 // Index 0 = „auto": die Uhr entscheidet (Werte weiß, Labels hellgrau) = heutiges Verhalten.
@@ -105,7 +116,59 @@ export const MAX_SIZE_STEP = SIZE_STEPS.length - 1;
 export function maxStepFor(typ: number): number {
   if (typ === EL_VALUE) return MAX_SIZE_STEP;
   if (typ === EL_PAUSED) return 2;
+  // Grafiken: `size` ist keine Fontstufe, sondern die DICKE (1…4) — wie bei der Trennlinie.
+  if (typ === EL_ARC || typ === EL_BAR) return MAX_GRAPHIC_STEP;
   return MAX_TEXT_STEP;
+}
+/** Dickste Stufe einer Wert-Grafik (Spiegel von layouts.MAX_GRAPHIC_STEP). */
+export const MAX_GRAPHIC_STEP = 4;
+/** Dicke in Vorschau-Pixeln. Bezug ist die Displaybreite, damit sie auf jeder Uhr gleich wirkt. */
+export function graphicThicknessPx(step: number, boxW: number): number {
+  const s = Math.max(1, Math.min(MAX_GRAPHIC_STEP, Math.round(step) || 1));
+  return Math.max(2, Math.round(boxW * 0.018 * s));
+}
+/** Mindestlaenge einer Rand-Grafik (Spiegel von layouts._clean_element: 1/8 Umfang). */
+export const MIN_ARC_LEN = 125;
+
+/** Punkte entlang des Display-RANDES, Parameter 0…1 ab 12 Uhr im Uhrzeigersinn.
+ *  Runde Uhr -> Kreis, eckige -> Rechteck-Umfang. Genau diese Zuordnung bauen die Uhr-Renderer
+ *  nach, damit die Vorschau nicht luegt. */
+export function edgePoint(shape: WatchShape, w: number, h: number, inset: number, p: number): [number, number] {
+  const f = ((p % 1) + 1) % 1;
+  if (shape === "rect") {
+    const x0 = inset, y0 = inset, x1 = w - inset, y1 = h - inset;
+    const bw = x1 - x0, bh = y1 - y0;
+    const umfang = 2 * (bw + bh);
+    // Start = obere Mitte, im Uhrzeigersinn.
+    let d = f * umfang;
+    if (d < bw / 2) return [x0 + bw / 2 + d, y0];
+    d -= bw / 2;
+    if (d < bh) return [x1, y0 + d];
+    d -= bh;
+    if (d < bw) return [x1 - d, y1];
+    d -= bw;
+    if (d < bh) return [x0, y1 - d];
+    d -= bh;
+    return [x0 + d, y0];
+  }
+  const cx = w / 2, cy = h / 2;
+  const rx = w / 2 - inset, ry = h / 2 - inset;
+  const a = f * 2 * Math.PI - Math.PI / 2;
+  return [cx + rx * Math.cos(a), cy + ry * Math.sin(a)];
+}
+/** SVG-Pfad fuer ein Randsegment (Start/Laenge in 0…1000). Gesampelt, damit runde und eckige
+ *  Uhren mit EINEM Code auskommen. */
+export function edgePath(shape: WatchShape, w: number, h: number, inset: number,
+                         start: number, len: number): string {
+  const l = Math.max(0, Math.min(1000, len)) / 1000;
+  const s = (Math.max(0, Math.min(1000, start)) % 1000) / 1000;
+  const n = Math.max(6, Math.round(l * 120));
+  let d = "";
+  for (let i = 0; i <= n; i++) {
+    const [x, y] = edgePoint(shape, w, h, inset, s + (l * i) / n);
+    d += `${i === 0 ? "M" : "L"}${x.toFixed(2)} ${y.toFixed(2)}`;
+  }
+  return d;
 }
 
 // Beispieldaten je Feld — realistische Werte, damit man Textbreiten und Farb-Buckets sieht.
@@ -131,6 +194,49 @@ export function watchHrColor(hr: number): string {
   if (hr < 150) return "#eab308";
   if (hr < 170) return "#f97316";
   return "#ef4444";
+}
+
+// --- Wert-Skalen fuer die Grafik-Elemente -------------------------------------------------
+// Puls-Zonen kommen aus dem PROFIL (`settings.hr_zones`, sechs Grenzen Z1-unten…Z5-oben), weil nur
+// Garmin und Zepp die Zonen der Uhr selbst lesen koennen — Wear OS und watchOS haben keine API
+// dafuer. Eine Quelle fuer alle Plattformen, sonst faerbte dieselbe Grafik je Uhr anders.
+export type ValueScales = { hrZones: number[]; speedScale: [number, number] };
+// Rueckfall, solange die Einstellungen nicht geladen sind: 190er Maximum im klassischen
+// Fuenf-Zonen-Schnitt (identisch zu settings.hr_zones_default ohne Messwerte).
+export const DEFAULT_SCALES: ValueScales = { hrZones: [95, 114, 133, 152, 171, 190], speedScale: [8, 25] };
+/** Zonen-Farben Z1…Z5 — derselbe Verlauf wie in jeder Trainings-App, damit die Bedeutung
+ *  wiedererkennbar ist (blau ruhig -> rot maximal). */
+export const ZONE_COLORS = ["#3b82f6", "#22c55e", "#eab308", "#f97316", "#ef4444"];
+/** Felder, die eine Skala haben (nur die duerfen in eine Wert-Grafik). Spiegel von
+ *  layouts.SCALED_FIELDS. */
+export const SCALED_FIELDS: number[] = [1, 5, 6, 7, 18, 19, 2, 8, 9, 21];
+
+/** Fuellgrad 0…1 eines Wertes auf seiner Skala. Ausserhalb wird gekappt, nicht extrapoliert. */
+export function scaleFraction(fieldId: number, value: number, sc: ValueScales): number {
+  const [lo, hi] = HR_FIELDS.has(fieldId)
+    ? [sc.hrZones[0], sc.hrZones[sc.hrZones.length - 1]]
+    : sc.speedScale;
+  if (!(hi > lo) || Number.isNaN(value)) return 0;
+  return Math.max(0, Math.min(1, (value - lo) / (hi - lo)));
+}
+/** Zone 0…4 eines Wertes. Unter Z1 = Zone 0 (die Grafik ist dann ohnehin fast leer). */
+export function scaleZone(fieldId: number, value: number, sc: ValueScales): number {
+  const grenzen = HR_FIELDS.has(fieldId)
+    ? sc.hrZones
+    : (() => {
+        const [lo, hi] = sc.speedScale;
+        // Geschwindigkeit hat keine Zonen im Profil -> die Spanne in fuenf gleiche Stufen teilen.
+        return [0, 1, 2, 3, 4, 5].map((i) => lo + ((hi - lo) * i) / 5);
+      })();
+  let z = 0;
+  for (let i = 1; i < grenzen.length - 1; i++) if (value >= grenzen[i]) z = i;
+  return Math.max(0, Math.min(ZONE_COLORS.length - 1, z));
+}
+/** Farbe einer Wert-Grafik: nach Skala (flags Bit 0) oder aus der Palette. */
+export function graphicColor(fieldId: number, value: number, sc: ValueScales, byScale: boolean,
+                             paletteIdx: number): string {
+  if (byScale && !Number.isNaN(value)) return ZONE_COLORS[scaleZone(fieldId, value, sc)];
+  return paletteColor(paletteIdx, "value");
 }
 
 /** Wert-Farbe wie auf der Uhr, wenn `colorByValue` an ist (sonst null = Standardfarbe). */
@@ -203,4 +309,18 @@ export function undisplayableChars(text: string): string[] {
     if (!ok && !bad.includes(ch)) bad.push(ch);
   }
   return bad;
+}
+
+/** Umkehrung von `edgePoint`: welcher Rand-Parameter (0…1000) liegt einem Punkt am naechsten?
+ *  Gesampelt statt analytisch — dieselbe Funktion bedient Kreis und Rechteck, und der Editor
+ *  braucht nur Grad-Genauigkeit. */
+export function edgeParamAt(shape: WatchShape, w: number, h: number, inset: number,
+                            x: number, y: number): number {
+  let best = 0, bestD = Infinity;
+  for (let i = 0; i < 360; i++) {
+    const [px, py] = edgePoint(shape, w, h, inset, i / 360);
+    const d = (px - x) ** 2 + (py - y) ** 2;
+    if (d < bestD) { bestD = d; best = i; }
+  }
+  return Math.round((best / 360) * 1000);
 }

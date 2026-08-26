@@ -1,7 +1,8 @@
 import { LayoutElement, WatchLayout } from "../lib/api";
 import {
-  EL_DOTS, EL_LABEL, EL_LINE, EL_PAUSED, EL_REC, EL_TEXT, EL_VALUE,
-  MOCK_VALUE, PALETTE, SIZE_FACTOR, WatchShape, paletteColor, valueColor,
+  DEFAULT_SCALES, EL_ARC, EL_BAR, EL_DOTS, EL_LABEL, EL_LINE, EL_PAUSED, EL_REC, EL_TEXT, EL_VALUE,
+  MOCK_VALUE, PALETTE, SIZE_FACTOR, ValueScales, WatchShape, edgePath, graphicColor,
+  graphicThicknessPx, paletteColor, scaleFraction, valueColor,
 } from "../lib/watchLayout";
 import { useT } from "../i18n";
 
@@ -24,7 +25,7 @@ function shapeStyle(shape: WatchShape): React.CSSProperties {
 
 export function LayoutPreview({
   layout, w, h, px = 220, shape, showData = true,
-  pageCount = 3, pageIndex = 0,
+  pageCount = 3, pageIndex = 0, scales = DEFAULT_SCALES,
   selected = -1, onPickElement, onElementPointerDown,
 }: {
   layout: PreviewLayout;
@@ -38,6 +39,9 @@ export function LayoutPreview({
   // Vorschau 3 Punkte, Uhr 5).
   pageCount?: number;
   pageIndex?: number;
+  // Skalen der Wert-Grafiken (Puls-Zonen + Geschwindigkeitsspanne aus dem Profil). Ohne Angabe
+  // der neutrale Rueckfall — die Vorschau soll auch ohne geladene Einstellungen etwas zeigen.
+  scales?: ValueScales;
   selected?: number;
   onPickElement?: (i: number) => void;
   // `handle` sagt, WAS gegriffen wurde: "move" = ganzes Element verschieben, "a"/"b" = einzelner
@@ -68,6 +72,53 @@ export function LayoutPreview({
           an den Enden machen sie frei ausrichtbar. */}
       <svg className="absolute inset-0" width={boxW} height={boxH}
         style={{ pointerEvents: onElementPointerDown ? undefined : "none" }}>
+        {/* Wert-Grafiken: Rand-Segment (rund = Ring, eckig = Rahmen — der Renderer entscheidet
+            anhand der echten Displayform) und Balken. Beide zeigen einen leeren Track plus den
+            gefuellten Anteil, damit die Skala auch bei kleinem Wert erkennbar bleibt. */}
+        {els.map((e, i) => {
+          const typ = Number(e[0]);
+          if (typ !== EL_ARC && typ !== EL_BAR) return null;
+          const fid = Number(e[6]) || 0;
+          const roh = parseFloat(MOCK_VALUE[fid] ?? "");
+          const wert = showData ? roh : NaN;
+          const frac = showData ? scaleFraction(fid, roh, scales) : 1;
+          const byScale = (Number(e[5]) || 0) & 1 ? true : false;
+          const dicke = graphicThicknessPx(Number(e[3]) || 1, boxW);
+          const farbe = graphicColor(fid, wert, scales, byScale, Number(e[4]) || 1);
+          const dash = selected === i ? { strokeDasharray: "4 3" } : undefined;
+          if (typ === EL_ARC) {
+            const inset = dicke / 2 + 1;
+            const start = Number(e[1]) || 0;
+            const laenge = Math.max(0, Math.min(1000, Number(e[2]) || 0));
+            const track = edgePath(sh === "rect" ? "rect" : "round", boxW, boxH, inset, start, laenge);
+            const fill = edgePath(sh === "rect" ? "rect" : "round", boxW, boxH, inset, start, laenge * frac);
+            return (
+              <g key={i} onClick={onPickElement ? () => onPickElement(i) : undefined}
+                onPointerDown={onElementPointerDown ? (ev) => onElementPointerDown(i, ev, "move") : undefined}
+                style={{ cursor: onElementPointerDown ? "move" : undefined }}>
+                <path d={track} fill="none" stroke={farbe} strokeWidth={dicke} opacity={0.25} />
+                {frac > 0 && <path d={fill} fill="none" stroke={farbe} strokeWidth={dicke} style={dash} />}
+                {onElementPointerDown && (
+                  <path d={track} fill="none" stroke="transparent" strokeWidth={Math.max(14, dicke)} />
+                )}
+              </g>
+            );
+          }
+          const breite = (Math.max(50, Math.min(1000, Number(e[7]) || 400)) / 1000) * boxW;
+          const x = rel(e[1], boxW) - breite / 2;
+          const y = rel(e[2], boxH) - dicke / 2;
+          return (
+            <g key={i} onClick={onPickElement ? () => onPickElement(i) : undefined}
+              onPointerDown={onElementPointerDown ? (ev) => onElementPointerDown(i, ev, "move") : undefined}
+              style={{ cursor: onElementPointerDown ? "move" : undefined }}>
+              <rect x={x} y={y} width={breite} height={dicke} fill={farbe} opacity={0.25} rx={dicke / 2} />
+              {frac > 0 && (
+                <rect x={x} y={y} width={Math.max(dicke, breite * frac)} height={dicke} fill={farbe}
+                  rx={dicke / 2} stroke={selected === i ? "#22d3ee" : undefined} strokeWidth={1} />
+              )}
+            </g>
+          );
+        })}
         {els.map((e, i) => Number(e[0]) === EL_LINE && (
           <g key={i}>
             <line x1={rel(e[1], boxW)} y1={rel(e[2], boxH)}
@@ -95,7 +146,7 @@ export function LayoutPreview({
 
       {els.map((e, i) => {
         const typ = Number(e[0]);
-        if (typ === EL_LINE) return null;
+        if (typ === EL_LINE || typ === EL_ARC || typ === EL_BAR) return null;   // im SVG oben
         const flags = Number(e[5]) || 0;
         const a = align(flags);
         const box: React.CSSProperties = {
