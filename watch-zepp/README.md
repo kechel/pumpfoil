@@ -41,14 +41,30 @@ Ingest-Vertrag: `docs/ingest-contract.md` (Path A: start → chunks[gps json] �
 ## Bauen / Testen (auf Jans Rechner — hier nicht baubar)
 ```bash
 cd watch-zepp
+rm -rf dist .zeus build   # ZUERST: der Zeus-Cache mischt sonst alten und neuen Code
 zeus dev            # Simulator (Balance 2), Live-Reload
-# Der Simulator speist KEIN GPS ein -> page/index.js hat DEV_FAKE_GPS=true (synthetische Spur),
-# damit Aufnahme+Upload testbar sind. Vor echter Uhr/Release auf false setzen!
+# Der Simulator speist KEIN GPS ein. page/index.js hat dafür DEV_FAKE_GPS (steht auf FALSE):
+# zum Testen von Aufnahme+Upload im Simulator kurz auf true setzen — und vor Uhr/Release
+# wieder auf false. (Stand hier früher falsch als "=true" beschrieben.)
 zeus preview        # QR für echte Uhr (Zepp-App)
+zeus build          # Store-Paket für die Zepp-Konsole
 # WICHTIG (Simulator): nach jedem Code-Change/`git pull` den Simulator KOMPLETT neu starten
 # (zeus dev beenden + Fenster schließen + neu). Hot-Reload spawnt den App-Side-Worker NICHT neu
 # -> sonst 'shake timeout' bei allen Requests. Worker lebt, sobald im JS-Log `[pumpfoil] app-side
 # onInit` steht. (Auf echter Uhr/echtem Handy kein Thema — dort spawnt der Worker beim App-Start.)
+```
+
+**Syntax-Vorprüfung ohne Mac — `node --check` REICHT NICHT.** Es hat am 26.08. eine doppelt
+deklarierte Top-Level-Konstante durchgelassen (`MAX_PLAUSIBLE_MPS`, einmal 30 m/s als
+Sprung-Schwelle und einmal 32 km/h als Foil-Deckel); erst `zeus dev` auf Jans Rechner brach ab.
+Das hier findet es (die Datei ist ein ES-Modul, deshalb kompiliert erst der Modul-Pfad richtig):
+
+```bash
+node --experimental-vm-modules -e "
+const fs=require('fs'),vm=require('vm');
+for (const f of ['page/index.js','app-side/index.js','setting/index.js'])
+  new vm.SourceTextModule(fs.readFileSync(f,'utf8'),{identifier:f});
+console.log('ok')"
 ```
 
 ## Noch im Simulator zu verifizieren (blind portiert)

@@ -70,7 +70,11 @@ const SPEED_WIN_S = 3;
 // Die Anzeige des Momentanwerts bleibt unangetastet — dort ist ein Ausreisser nach einer Sekunde
 // wieder weg, im Maximum bliebe er die ganze Session stehen.
 const BURST_WIN_MS = 15000, BURST_MARGIN_MPS = 5.0;
-const BURST_ABS_MIN_MPS = 28 / 3.6, MAX_PLAUSIBLE_MPS = 32 / 3.6;
+// NICHT MAX_PLAUSIBLE_MPS nennen — der Name ist oben (Zeile 33) schon vergeben und meint etwas
+// ANDERES: 30 m/s = 108 km/h als Unsinns-Schwelle fuer Positionsspruenge. Haette ich ihn
+// wiederverwendet, waere jede Fahrt ueber 32 km/h als GPS-Sprung verworfen worden.
+const MAX_FOIL_MPS = 32 / 3.6;
+const BURST_ABS_MIN_MPS = 28 / 3.6;
 // Ein neuer Lauf zaehlt nur nach einem ECHTEN Stopp (Speed unter NOSTOP_MPS) — der Server fuehrt
 // Laeufe ohne Stopp zusammen (_merge_no_stop, ohne Zeitfenster).
 const NOSTOP_MPS = 1.5;
@@ -93,7 +97,7 @@ function maxKandidat(puffer, t, v) {
   const med = werte.length ? werte[werte.length >> 1] : 0;
   let w = v;
   if (w > med + BURST_MARGIN_MPS && w > BURST_ABS_MIN_MPS) w = med;
-  return w > MAX_PLAUSIBLE_MPS ? 0 : w;
+  return w > MAX_FOIL_MPS ? 0 : w;
 }
 
 function istNeuer(a, b) {
