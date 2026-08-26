@@ -1221,6 +1221,44 @@ def spot_tracks(spot: str, user: models.User = Depends(current_user),
     return out
 
 
+def _spot_aufraeumen(db: Session, spot_id: int | None) -> bool:
+    """Spot loeschen, wenn keine GUELTIGE Session mehr an ihm haengt (Vorgabe Jan, 26.08.:
+    „aussortierte und geloeschte sessions sollten keine Spots erzeugen, und auch beim aussortieren
+    selber ggf. den spot wieder loeschen wenn es keine anderen gueltigen sessions an dem spot mehr
+    gibt danach").
+
+    Gueltig = nicht geloescht UND nicht aussortiert (`is_pumpfoil` nicht False). Beim ANLEGEN war
+    das schon richtig — `assign_one` vergibt einen Spot nur fuer Pumpfoil mit Laeufen —, aber beim
+    nachtraeglichen Aussortieren/Loeschen blieb die Spot-Zeile stehen und tauchte als Waise auf der
+    Karte auf.
+
+    Zwei Vorsichtsmassnahmen:
+      * Hat jemand eine SPOT-BESCHREIBUNG dazu geschrieben, bleibt der Spot stehen — fremde Inhalte
+        loeschen wir nicht wegen einer Umklassifizierung.
+      * Sessions, die noch auf den Spot zeigen (die gerade aussortierte selbst), werden vorher
+        losgekoppelt, sonst haelt der Fremdschluessel die Zeile.
+    Rueckgabe: True, wenn der Spot geloescht wurde.
+    """
+    if not spot_id:
+        return False
+    gueltig = (db.query(models.Session.id)
+               .filter(models.Session.spot_id == spot_id,
+                       models.Session.deleted.isnot(True),
+                       models.Session.is_pumpfoil.isnot(False))
+               .first())
+    if gueltig is not None:
+        return False
+    if db.query(models.SpotNote.id).filter(models.SpotNote.spot_id == spot_id).first() is not None:
+        return False
+    (db.query(models.Session).filter(models.Session.spot_id == spot_id)
+     .update({models.Session.spot_id: None}))
+    sp = db.get(models.Spot, spot_id)
+    if sp is not None:
+        db.delete(sp)
+    db.commit()
+    return True
+
+
 def _spot_nachziehen(db: Session, s: models.Session) -> None:
     """Spot-Zuordnung nachholen, wenn sie beim ersten Durchlauf noch nicht moeglich war.
 
@@ -1235,7 +1273,13 @@ def _spot_nachziehen(db: Session, s: models.Session) -> None:
     Deshalb nach JEDER Analyse: fehlt der Spot und qualifiziert die Session inzwischen, zuordnen.
     Idempotent und billig — mit Spot passiert nichts.
     """
-    if s.spot_id is not None or s.place_lat is None:
+    if s.spot_id is not None:
+        # Hat die Session einen Spot, aber ist inzwischen aussortiert (Detektor oder Admin), muss
+        # der Spot geprueft werden: haengt keine gueltige Session mehr dran, ist er eine Waise.
+        if s.is_pumpfoil is False:
+            _spot_aufraeumen(db, s.spot_id)
+        return
+    if s.place_lat is None:
         return
     ar = db.query(models.AnalysisResult).filter_by(session_id=s.id).first()
     if not (s.is_pumpfoil and ar and (ar.num_runs or 0) > 0):
@@ -1646,8 +1690,11 @@ def delete_session(
     """Soft-Delete der eigenen Session: überall ausgeblendet, aber der Tombstone
     (content_hash/started_at) bleibt -> ein erneuter FIT-Import legt sie nicht wieder an."""
     s = _owned(db, user, session_id)
+    alter_spot = s.spot_id
     s.deleted = True
     db.commit()
+    # War das die letzte gueltige Session an dem Spot? Dann faellt der Spot mit (s. _spot_aufraeumen).
+    _spot_aufraeumen(db, alter_spot)
     return {"ok": True, "deleted": True}
 
 

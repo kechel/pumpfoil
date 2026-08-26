@@ -394,6 +394,35 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 Ort + Spot: Ursache abgestellt, Bestand nachgezogen, Waisen-Spots weg (26.08.).**
+  **Ursache:** `place_lat`/`place_name` entstanden NUR beim Oeffnen der Detailansicht
+  (`GET /api/sessions/{id}` plante den Geocode-Task). Wer nur die Liste ansah, bekam nie einen Ort —
+  und ohne `place_lat` gibt es keinen Spot, keinen Marker, kein Spot-Wetter, keinen Spot-Chat, keine
+  Beschreibung. Beweis am Muster: Jan oeffnet alles und hatte 1 von 238 ohne Ort, andere Nutzer
+  75-93 % ihrer eigenen. Jetzt laeuft der Task direkt nach der Analyse — im Ingest-Pfad
+  (`_analyze_in_background`) und im Import-Pfad (`import_parsed_session`).
+  **Bestand:** 102 gueltige Sessions nachgezogen, alle bekamen Ort UND Spot (0 Fehler, 0 Zeitlimits).
+  **Jans Vorgabe dabei (26.08.): „keine aussortierten oder geloeschten sessions mit reinziehen."**
+  Mein erster Lauf hatte alle 639 ortslosen genommen, davon 423 aussortierte — abgebrochen, und die
+  **102 bereits gesetzten Koordinaten aussortierter Sessions wieder auf NULL** gesetzt (eindeutig
+  erkennbar: Koordinate ohne Namen, denn Stufe 1 setzt nur Koordinaten). Filter jetzt im Skript.
+  **Neue Regel im Code, ebenfalls Jans Vorgabe:** aussortierte und geloeschte Sessions erzeugen
+  keine Spots (war beim ANLEGEN schon so) — und beim nachtraeglichen Aussortieren/Loeschen wird der
+  Spot geloescht, wenn keine gueltige Session mehr an ihm haengt: `_spot_aufraeumen()` in
+  `api/sessions.py`, eingehaengt in eigenes Loeschen, Admin-Loeschen, Admin-Aussortieren und in den
+  Nach-Analyse-Haken (der Detektor kann `is_pumpfoil` auch selbst auf False drehen).
+  Zwei Schutzregeln: Spots MIT Spot-Beschreibung bleiben stehen (fremde Inhalte loeschen wir nicht
+  wegen einer Umklassifizierung), und die verbliebenen (ungueltigen) Sessions werden vorher
+  losgekoppelt, sonst haelt der Fremdschluessel die Zeile.
+  **Bestand bereinigt:** 5 Waisen-Spots ohne gueltige Session geloescht (Moliets-et-Maâ,
+  Aix-en-Provence, Burgweiler, Louvie-Juzon, Silkeborg 2) — 217 aktive Spots, 0 Waisen.
+  **⚠️ Eigener Fehler, der Aufraeumen noetig machte:** mein „zurueckgerollter" Test von
+  `_spot_aufraeumen` hat Daten in die DB geschrieben — die Funktion **committet intern**, damit war
+  der Rollback wirkungslos. 2 Test-Spots, 4 Test-Sessions und 1 Test-Beschreibung sind entstanden
+  und wurden sofort geloescht (gegengeprueft: 0 Reste). **Lehre: Helfer, die selbst committen,
+  lassen sich nicht per Transaktions-Rollback testen** — dafuer braucht es eine eigene DB oder ein
+  Savepoint-Muster.
+
 - **🟢 Alt-Kategorie „wake" ist aus dem Community-Dropdown verschwunden (25.08.).** Jans Frage
   („warum ist die noch immer da, ist das noch referenziert?"): ja, absichtlich — `SPORTS_LEGACY`
   haelt sie sichtbar, damit Altbestaende bei der Aufteilung vom 05.08. (`wakethief` / `towed` /

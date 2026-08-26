@@ -161,9 +161,13 @@ def approve(session_id: int, admin: models.User = Depends(current_admin), db: Se
 @router.post("/sessions/{session_id}/delete")
 def delete(session_id: int, admin: models.User = Depends(current_admin), db: Session = Depends(get_db)) -> dict:
     s = _get_session(db, session_id)
+    alter_spot = s.spot_id
     s.deleted = True
     _log(db, admin, "session_delete", "session", session_id)
     db.commit()
+    # Letzte gueltige Session am Spot geloescht -> Spot mit weg (Jan, 26.08.).
+    from .sessions import _spot_aufraeumen
+    _spot_aufraeumen(db, alter_spot)
     return {"ok": True}
 
 
@@ -196,6 +200,7 @@ def sortout(session_id: int, undo: bool = False, admin: models.User = Depends(cu
     s.pumpfoil_override = False
     s.is_pumpfoil = False
     s.mod_ok = True
+    _alter_spot = s.spot_id
     # metrics_json konsistent halten (Stats/Verlauf lesen is_pumpfoil daraus).
     ar = db.query(models.AnalysisResult).filter_by(session_id=session_id).first()
     if ar and ar.metrics_json:
@@ -207,6 +212,9 @@ def sortout(session_id: int, undo: bool = False, admin: models.User = Depends(cu
             pass
     _log(db, admin, "session_sortout", "session", session_id)
     db.commit()
+    # Aussortiert = keine gueltige Session mehr an dem Spot? Dann Spot weg (Jan, 26.08.).
+    from .sessions import _spot_aufraeumen
+    _spot_aufraeumen(db, _alter_spot)
     return {"ok": True, "is_pumpfoil": False}
 
 
