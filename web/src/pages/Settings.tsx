@@ -346,7 +346,21 @@ export default function Settings() {
       <Card className="mt-4 p-5">
         <h3 className="mb-1 font-semibold">{t("profile.changePw")}</h3>
         <p className="mb-3 text-sm text-slate-300">{t("profile.changePwHint")}</p>
-        <div className="flex flex-col gap-2 sm:max-w-sm">
+        {/* ECHTES <form> um die Passwort-Felder — nicht Kosmetik, sondern der Fix für einen
+            gemeldeten Fehler (26.08.): ohne Formular fasst Chrome die GANZE Seite als ein
+            implizites Formular auf und nimmt als „Benutzername" das nächstgelegene Textfeld.
+            Das waren die Zahlenfelder der Puls-Zonen — beim Verlassen der Seite fragte der
+            Browser also „Passwort für Benutzer 161 speichern?". Mit eigenem Formular plus einem
+            Feld, das ausdrücklich der Benutzername ist (autoComplete="username", nur für den
+            Passwort-Manager, für Auge und Screenreader ausgeblendet), ist die Zuordnung eindeutig. */}
+        <form
+          onSubmit={(e) => { e.preventDefault(); changePw(); }}
+          className="flex flex-col gap-2 sm:max-w-sm"
+        >
+          <input
+            type="email" name="username" autoComplete="username" value={email} readOnly
+            tabIndex={-1} aria-hidden="true" className="sr-only"
+          />
           <input
             type="password" autoComplete="current-password"
             value={pwCur} onChange={(e) => { setPwCur(e.target.value); setPwMsg(null); }}
@@ -359,8 +373,8 @@ export default function Settings() {
             placeholder={t("profile.newPw")}
             className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100"
           />
-          <Button onClick={changePw} disabled={pwBusy || !pwCur || !pwNew}>{pwBusy ? "…" : t("profile.changePw")}</Button>
-        </div>
+          <Button type="submit" disabled={pwBusy || !pwCur || !pwNew}>{pwBusy ? "…" : t("profile.changePw")}</Button>
+        </form>
         {pwMsg && <p className={`mt-2 text-xs ${pwMsg.ok ? "text-emerald-700 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>{pwMsg.text}</p>}
       </Card>
 

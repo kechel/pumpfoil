@@ -56,8 +56,11 @@ export function HrZonesCard() {
 
   if (!z) return null;
   const feld = (i: number) => (
+    // name + autoComplete="off" gehören zum Fix von oben (Settings.tsx, Passwort-Formular):
+    // ein namenloses Textfeld neben Passwort-Feldern ist für Chrome ein Benutzername-Kandidat.
     <input type="number" inputMode="numeric" min={MIN} max={MAX} value={z[i]}
       onChange={(e) => setzen(i, e.target.value)} onBlur={() => sichern(i)}
+      name={`hr_zone_${i + 1}`} autoComplete="off"
       aria-label={t("hrz.bound", { n: i + 1 })}
       className="w-20 rounded-xl border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm text-slate-100" />
   );
