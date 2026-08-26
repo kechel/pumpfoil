@@ -415,10 +415,24 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   bzw. `Workout.getUserHrZoneSettings` (Zepp OS 4.2): Wear OS und watchOS haben keine Zonen-API, die
   Zahl muss also ohnehin vom Server kommen — dann aus EINER Quelle, sonst faerbt dieselbe Grafik je
   Uhr anders.
-  **Offen / zu pruefen:** (1) die Zepp-ARC-Winkelzaehlweise (0 = 12 Uhr, im Uhrzeigersinn) ist aus
-  der Doku, nicht auf der Uhr geprueft — Zepp baut nur Jan/El Manu. (2) Optik am Handgelenk hat
-  noch niemand gesehen (Garmin 1.0.79 ist gebaut und sideloadbar). (3) Android/iOS sind gebaut,
-  aber nicht eingereicht — warten auf die naechste Store-Runde.
+  **Nachgehaertet am 26.08. (zwei Befunde aus Quellen statt Annahmen):**
+  (a) SDK-Doku `Toybox.Graphics.Dc.drawArc`: "0 degrees: 3 o'clock ... 90 degrees: 12 o'clock",
+  Parameter werden gegen Null gekappt, und **gleiche Start-/Endwinkel zeichnen den VOLLEN Kreis**.
+  Ein winziger Fuellstand (0,3 Grad) haette damit den ganzen Ring gefuellt -> jetzt erst ab 1 Grad
+  zeichnen, Vollrunden bewusst als Vollkreis, Winkel auf [0,360) normalisiert.
+  (b) **Zepp laeuft nicht mehr ueber das ARC-Widget, sondern ueber CANVAS + drawPoly.** Grund ist
+  ein Geraetebefund aus @elmanu13s PR #3: "ARC always renders rounded stroke caps on the T-Rex 3" —
+  ein Randsegment haette runde Enden bekommen. Nebeneffekte, die wir mitnehmen: EIN Widget statt
+  vieler (kein Loeschen/Neuanlegen pro Sekunde, damit auch kein Z-Order-Problem mit dem Text) und
+  dieselbe Zeichenweise fuer rund und eckig.
+  Rand-Parameter nachgerechnet: p (0 = 12 Uhr, im Uhrzeigersinn) trifft in Web/Apps
+  (`cx + r*cos(2*pi*p - pi/2)`, y nach unten) und Garmin (Grad `90 - 360*p`) fuer p = 0/0.25/0.5/0.75
+  denselben Punkt.
+  **Offen:** (1) Optik am Handgelenk hat niemand gesehen — Garmin 1.0.79 ist gebaut und sideloadbar.
+  Der **CIQ-Simulator laeuft auf dieser VM NICHT**: er braucht `libwebkit2gtk-4.0.so.37` (libsoup2),
+  Debian 13 hat nur 4.1 (libsoup3), und beides im selben Prozess bricht ab
+  ("libsoup2 symbols detected"). Ersatz war eine PNG-Vorschau aus derselben Mathematik.
+  (2) Android/iOS sind gebaut, aber nicht eingereicht — warten auf die naechste Store-Runde.
   Commits `092015d8` (Server + PWA), `c9bdf794` (Apps), `afd7c1b9` (Uhren).
 
 - **🟢 Spot-Zahl: EINE Quelle fuer Banner und Spots-Seite + zwei unsichtbare Spots (26.08., 2. Runde).**
