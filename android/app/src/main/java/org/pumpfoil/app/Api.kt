@@ -684,6 +684,11 @@ object Api {
         httpBytes("/api/sessions/$id/share.png$q")
     }
 
+    /** Eigene Session als Datei: kind = "gpx" | "fit". Nur der Besitzer, der Server prueft das. */
+    suspend fun exportSession(id: Int, kind: String): ByteArray = withContext(Dispatchers.IO) {
+        httpBytes("/api/sessions/$id/export.$kind")
+    }
+
     @kotlinx.serialization.Serializable
     data class IntegrationStatus(val available: Boolean = false, val linked: Boolean = false, val last_sync_at: String? = null)
 

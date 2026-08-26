@@ -92,6 +92,8 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.collectAsState
+import androidx.core.content.FileProvider
+import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -137,6 +139,11 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
     var confirmDelete by remember { mutableStateOf(false) }
     var showTrim by remember { mutableStateOf(false) }
     var showShare by remember { mutableStateOf(false) }
+    // Session als Datei (GPX/FIT) — wie in der PWA, nur eigene Sessions. Android hat keinen
+    // Browser-Download: die Datei landet im Cache und geht ans System-Teilen weiter, damit sie
+    // der Nutzer in Drive/Dateien/Garmin Connect ablegen kann.
+    var showExport by remember { mutableStateOf(false) }
+    var exportBusy by remember { mutableStateOf(false) }
     var showLink by remember { mutableStateOf(false) }        // Teilen-Link-Popup (Besitzer)
     var shareUrl by remember { mutableStateOf<String?>(null) }
     var linkCopied by remember { mutableStateOf(false) }
@@ -149,6 +156,31 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
     // In der Detailansicht ausgewählter Lauf -> Teilen-Dialog übernimmt ihn als Vorauswahl (#37).
     var shareRun by remember(id) { mutableStateOf<Int?>(null) }
     val scope = rememberCoroutineScope()
+    val ctxExport = LocalContext.current
+    // Datei erzeugen und ans System-Teilen geben. Dateiname wie der Server (export_track.dateiname):
+    // pumpfoil-<Datum der AUFNAHME in ihrer Zeitzone>-<id>.<endung> — so heisst die Datei gleich,
+    // egal ob sie im Browser oder hier geladen wurde.
+    fun exportiere(kind: String) {
+        val sess = session ?: return
+        exportBusy = true
+        scope.launch {
+            try {
+                val bytes = Api.exportSession(sess.id, kind)
+                val dir = java.io.File(ctxExport.cacheDir, "shared").apply { mkdirs() }
+                val f = java.io.File(dir, exportDateiname(sess, kind))
+                f.writeBytes(bytes)
+                val uri = FileProvider.getUriForFile(ctxExport, "${ctxExport.packageName}.fileprovider", f)
+                val send = Intent(Intent.ACTION_SEND).apply {
+                    // FIT hat einen eigenen MIME-Typ (Garmin Connect erkennt ihn), GPX ist XML.
+                    type = if (kind == "fit") "application/vnd.ant.fit" else "application/gpx+xml"
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                ctxExport.startActivity(Intent.createChooser(send, I18n.t("sd.exportFile")))
+            } catch (_: Exception) {
+            } finally { exportBusy = false }
+        }
+    }
     val durSec = remember(session) {
         val a = epochMs(session?.startedAt); val b = epochMs(session?.endedAt)
         if (a != null && b != null && b > a) ((b - a) / 1000).toFloat() else 0f
@@ -334,6 +366,28 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
                         IconButton(onClick = { onSpotSessions(sp) }) {
                             Icon(Icons.Filled.Place, contentDescription = I18n.t("sd.spotPage"),
                                 tint = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                    // Datei laden (GPX/FIT) — nur eigene Sessions, wie in der PWA. Ein Knopf mit
+                    // Auswahl statt zweier: in der Kopfzeile ist kein Platz fuer beide.
+                    if (s?.owned == true) {
+                        Box {
+                            IconButton(onClick = { showExport = true }, enabled = !exportBusy) {
+                                Icon(Icons.Filled.FileDownload, contentDescription = I18n.t("sd.exportFile"),
+                                    tint = MaterialTheme.colorScheme.primary)
+                            }
+                            DropdownMenu(expanded = showExport, onDismissRequest = { showExport = false }) {
+                                // Im Menue ist Platz fuer die ganze Erklaerung — anders als in
+                                // der PWA, wo nur „GPX"/„FIT" auf den Knopf passt.
+                                DropdownMenuItem(
+                                    text = { Text(I18n.t("sd.exportGpx")) },
+                                    onClick = { showExport = false; exportiere("gpx") },
+                                )
+                                DropdownMenuItem(
+                                    text = { Text(I18n.t("sd.exportFit")) },
+                                    onClick = { showExport = false; exportiere("fit") },
+                                )
+                            }
                         }
                     }
                     if (s?.owned == true && s.analysis?.trackGeojson != null) {
@@ -2124,4 +2178,18 @@ private fun <V> SetupValueDropdown(
                 }
             }
         }
+}
+
+
+/** Dateiname wie server/app/export_track.py:dateiname — pumpfoil-<Datum>-<id>.<endung>.
+ *  Datum in der Zeitzone der AUFNAHME, wenn die Session eine kennt; sonst UTC. */
+private fun exportDateiname(s: SessionDetail, kind: String): String {
+    val ms = epochMs(s.startedAt)
+    val tag = if (ms == null) "session" else {
+        val zone = try {
+            s.tz?.takeIf { it.isNotBlank() }?.let { java.time.ZoneId.of(it) } ?: java.time.ZoneOffset.UTC
+        } catch (_: Exception) { java.time.ZoneOffset.UTC }
+        java.time.Instant.ofEpochMilli(ms).atZone(zone).toLocalDate().toString()
+    }
+    return "pumpfoil-$tag-${s.id}.$kind"
 }

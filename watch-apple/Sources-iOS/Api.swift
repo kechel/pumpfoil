@@ -757,6 +757,18 @@ enum Api {
         return data
     }
 
+    /// Eigene Session als Datei: kind = "gpx" | "fit". Nur der Besitzer, der Server prueft das.
+    static func exportSession(_ id: Int, kind: String) async throws -> Data {
+        guard let url = URL(string: baseURL + "/api/sessions/\(id)/export.\(kind)") else { throw ApiError.badURL }
+        var req = URLRequest(url: url)
+        req.timeoutInterval = 60
+        if let t = token { req.setValue("Bearer \(t)", forHTTPHeaderField: "Authorization") }
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        let code = (resp as? HTTPURLResponse)?.statusCode ?? -1
+        guard (200..<300).contains(code) else { throw ApiError.http(code, "") }
+        return data
+    }
+
     struct IntegrationStatus: Decodable { let available: Bool; let linked: Bool; let last_sync_at: String? }
     private struct ConnectResp: Decodable { let authorize_url: String }
 

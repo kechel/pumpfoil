@@ -3023,6 +3023,9 @@ val ID: Map<String, String> = mapOf(
 // Englischen. Anlass: erster norwegischer Nutzer (Sogndal, 05.08.2026). nn/no landen ebenfalls
 // hier, s. web/src/i18n/index.tsx.
 val NB: Map<String, String> = mapOf(
+    "sd.exportFile" to "Last ned fil",
+    "sd.exportGpx" to "Som GPX-fil (spor + puls)",
+    "sd.exportFit" to "Som FIT-fil (for Garmin Connect, Strava og andre)",
     "hrz.title" to "Pulssoner",
     "hrz.hint" to "De styrer fargene på pulsgrafikken på klokka. Forslaget kommer fra den høyeste pulsen som er målt.",
     "hrz.z1" to "Z1 restitusjon",

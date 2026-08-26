@@ -58,6 +58,9 @@ struct SessionDetailView: View {
     @State private var selectedFoilId = 0
     @State private var showTrim = false
     @State private var showShare = false
+    // Datei-Export (GPX/FIT): laufende Anfrage + fertige Datei fuers System-Share-Sheet.
+    @State private var exportBusy = false
+    @State private var exportURL: ExportItem?
     @State private var showLink = false        // Teilen-Link-Sheet (Besitzer)
     @State private var shareUrl: String?
     @State private var linkCopied = false
@@ -115,6 +118,7 @@ struct SessionDetailView: View {
             .sheet(isPresented: $showLink) { linkSheet }
             .sheet(isPresented: $showTrim) { trimSheet }
             .sheet(isPresented: $showShare) { shareSheet }
+            .sheet(item: $exportURL) { item in ActivityView(items: [item.url]) }
             .fullScreenCover(item: $lightbox) { start in
                 PhotoLightboxView(photos: photos, startId: start.id) { lightbox = nil }
             }
@@ -136,7 +140,73 @@ struct SessionDetailView: View {
     @ToolbarContentBuilder private var toolbarItems: some ToolbarContent {
         spotChatItem
         spotSessionsItem
+        exportItem
         ownerToolbarItems
+    }
+
+    // Session als Datei (GPX/FIT) — wie in der PWA, nur eigene Sessions. iOS hat keinen
+    // Browser-Download: die Datei landet im temporaeren Verzeichnis und geht ans System-Share-Sheet
+    // weiter („In Dateien speichern", Garmin Connect, Mail …). EIN Knopf mit Menue statt zweier:
+    // in der Kopfzeile ist kein Platz fuer beide.
+    @ToolbarContentBuilder private var exportItem: some ToolbarContent {
+        if session?.owned == true {
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    // Im Menue ist Platz fuer die ganze Erklaerung — anders als in der PWA, wo
+                    // nur „GPX"/„FIT" auf den Knopf passt und der Rest im Tooltip steht.
+                    Button(Loc.t("sd.exportGpx", lang)) { exportiere("gpx") }
+                    Button(Loc.t("sd.exportFit", lang)) { exportiere("fit") }
+                } label: {
+                    Image(systemName: exportBusy ? "hourglass" : "square.and.arrow.down")
+                }
+                .disabled(exportBusy)
+                .accessibilityLabel(Loc.t("sd.exportFile", lang))
+            }
+        }
+    }
+
+    private func exportiere(_ kind: String) {
+        guard let sess = session else { return }
+        exportBusy = true
+        let name = exportDateiname(sess, kind)
+        Task {
+            let daten = try? await Api.exportSession(sess.id, kind: kind)
+            exportFertig(daten, name)
+        }
+    }
+
+    // Zustand NUR auf dem Main-Actor setzen — dieselbe Trennung wie applyExcludeResult unten:
+    // @State aus einem Task heraus zu schreiben ist sonst ein Concurrency-Fehler.
+    @MainActor private func exportFertig(_ daten: Data?, _ name: String) {
+        exportBusy = false
+        guard let daten else { return }
+        let ziel = FileManager.default.temporaryDirectory.appendingPathComponent(name)
+        do { try daten.write(to: ziel); exportURL = ExportItem(url: ziel) } catch {}
+    }
+
+    /// Dateiname wie server/app/export_track.py:dateiname — pumpfoil-<Datum>-<id>.<endung>,
+    /// Datum in der Zeitzone der AUFNAHME, wenn die Session eine kennt.
+    private func exportDateiname(_ s: SessionDetail, _ kind: String) -> String {
+        var tag = "session"
+        // started_at ist NICHT optional (Models.swift:748) — kein `if let` darauf, das waere ein
+        // Compilerfehler, den `swiftc -parse` nicht sieht.
+        if let d = exportDatum(s.started_at) {
+            let f = DateFormatter()
+            f.dateFormat = "yyyy-MM-dd"
+            f.timeZone = (s.tz.flatMap { TimeZone(identifier: $0) }) ?? TimeZone(identifier: "UTC")
+            tag = f.string(from: d)
+        }
+        return "pumpfoil-\(tag)-\(s.id).\(kind)"
+    }
+
+    /// ISO-Zeitstempel -> Date, mit und ohne Sekundenbruchteile (der Server liefert beides).
+    private func exportDatum(_ iso: String) -> Date? {
+        let mit = ISO8601DateFormatter()
+        mit.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let d = mit.date(from: iso) { return d }
+        let ohne = ISO8601DateFormatter()
+        ohne.formatOptions = [.withInternetDateTime]
+        return ohne.date(from: iso)
     }
 
     // Spot-Chat der Session (scope "spot:<name>") — bei Age-Gate (social_allowed=false) aus.
@@ -2252,3 +2322,7 @@ private struct PhotoLightboxView: View {
         .onAppear { sel = startId }
     }
 }
+
+
+/// Fertige Export-Datei fuers Share-Sheet (`.sheet(item:)` braucht Identifiable).
+private struct ExportItem: Identifiable { let id = UUID(); let url: URL }

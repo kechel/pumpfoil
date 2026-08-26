@@ -26,7 +26,7 @@ ein zweites Mal.
 
 **Stand 2026-08-26 — Paritaets-Bilanz nach dem Release-Block der letzten Woche** (gegen den Code
 geprueft, nicht gegen diese Datei). Alles, was seit dem 18.08. in der PWA dazukam, ist in Android
-und iOS NACHGEZOGEN — mit genau einer Ausnahme:
+und iOS NACHGEZOGEN — seit dem Nachzug des Datei-Exports (26.08.) ohne Ausnahme:
 
 | Neu seit 18.08. | Web | Android | iOS | Uhren |
 |---|---|---|---|---|
@@ -40,7 +40,7 @@ und iOS NACHGEZOGEN — mit genau einer Ausnahme:
 | Puls-Zonen im Profil | ✅ | ✅ | ✅ | ✅ (aus `/config`) |
 | Wert-Grafiken in Layouts (Rand-Grafik + Balken) | ✅ | ✅ Vorschau | ✅ Vorschau | ✅ alle vier |
 | News-Banner | ✅ | ✅ | ✅ | – |
-| **Session-Datei laden (GPX + FIT)** | ✅ | ❌ | ❌ | – |
+| Session-Datei laden (GPX + FIT) | ✅ | ✅ 26.08. | ✅ 26.08. | – |
 
 Serverseitige Verbesserungen derselben Woche (Ort/Spot direkt nach der Analyse, keine Waisen-Spots,
 Spot-Zahl aus einer Quelle, Cache-Stempel nach Re-Analyse, aussortierte Sessions aus Verlauf/Spots)
@@ -285,7 +285,7 @@ linearen Pager mit fester Seitenarithmetik, und ein manuelles Pausieren gibt es 
 | Übertragen / Löschen | ✅ | ✅ | ✅ |
 | Teilen (Karte-Bild + Foto-Hintergrund) | ✅ | ✅ | ✅ |
 | Vollbild-Karte | ✅ | ✅ | ✅ |
-| Session-Datei laden (GPX + FIT, nur eigene) | ✅ | ❌ | ❌ |
+| Session-Datei laden (GPX + FIT, nur eigene) | ✅ | ✅ 26.08. | ✅ 26.08. |
 | Spot-Beschreibungen (Text + Fotos je Nutzer, Herzchen) | ✅ | ✅ | ✅ |
 | Per-Session-Diskussion (session-Chat) | ❌ | ❌ | ❌ |
 

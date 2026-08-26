@@ -3131,6 +3131,9 @@ let nbOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/nb.ts.
 private let _nbOverlayP11: [String: String] = [
+    "sd.exportFile": "Last ned fil",
+    "sd.exportGpx": "Som GPX-fil (spor + puls)",
+    "sd.exportFit": "Som FIT-fil (for Garmin Connect, Strava og andre)",
     "hrz.title": "Pulssoner",
     "hrz.hint": "De styrer fargene på pulsgrafikken på klokka.",
     "hrz.z1": "Z1 restitusjon",
