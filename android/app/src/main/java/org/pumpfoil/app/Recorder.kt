@@ -80,21 +80,47 @@ object Recorder {
     private var lastRunAvgMps = 0.0
     private var lastRunMaxMps = 0.0
 
+    // Max-Speed saeubern — dieselben zwei Regeln wie der Server (analysis/gps.py): BURST (mehr als
+    // 5 m/s ueber dem 15-s-Median UND absolut ueber 28 km/h -> Median) und DECKEL (ueber 32 km/h
+    // ist es kein Pumpfoil, sondern Glitch/Boot -> zaehlt nicht). An 119 echten Sessions gemessen
+    // (26.08.): Maxwert im Mittel 9,4 km/h zu hoch, schlimmster Fall 164; mit den Regeln +3,1/+17,4.
+    private val burstRing = DoubleArray(15) { -1.0 }
+    private var burstPos = 0
+    // maxKandidat() pro Fix nur EINMAL — sonst halbiert sich das 15-s-Fenster.
+    private var spdMaxClean = 0.0
+    private var minSpeedSeitEnde = 99.0
+    private var runIstFortsetzung = false
+
+    private fun maxKandidat(v: Double): Double {
+        burstRing[burstPos] = v
+        burstPos = (burstPos + 1) % burstRing.size
+        val vals = burstRing.filter { it >= 0.0 }.sorted()
+        val med = if (vals.isEmpty()) 0.0 else vals[vals.size / 2]
+        var w = v
+        if (w > med + 5.0 && w > 28.0 / 3.6) w = med
+        return if (w > 32.0 / 3.6) 0.0 else w
+    }
+
     private fun updateFoilingRun(sp3Kmh: Double, tMs: Long, dist: Double, spMps: Double): Boolean {
         if (!foiling) {
             if (tMs - runEndedMs < RUN_REARM_COOLDOWN_MS) {
                 foilEnterStreak = 0
             } else {
+                if (spMps < minSpeedSeitEnde) minSpeedSeitEnde = spMps
                 foilEnterStreak = if (sp3Kmh >= 10.0) foilEnterStreak + 1 else 0
                 if (foilEnterStreak >= RUN_ENTER_DWELL) {
                     foiling = true; foilExitStreak = 0
+                    // Kein echter Stopp seit dem letzten Lauf-Ende -> derselbe Lauf (der Server
+                    // fuehrt beide zusammen, _merge_no_stop).
+                    runIstFortsetzung = runCount > 0 && minSpeedSeitEnde >= 1.5
+                    minSpeedSeitEnde = 99.0
                     runStartMs = tMs - RUN_ENTER_DWELL * 1000L
                     runStartDist = dist
-                    runMaxMps = spMps
+                    runMaxMps = spdMaxClean
                 }
             }
         } else {
-            if (spMps > runMaxMps) runMaxMps = spMps
+            if (spdMaxClean > runMaxMps) runMaxMps = spdMaxClean
             foilExitStreak = if (sp3Kmh < 9.0) foilExitStreak + 1 else 0
             if (foilExitStreak >= RUN_EXIT_DWELL) {
                 foiling = false; foilEnterStreak = 0
@@ -103,7 +129,9 @@ object Recorder {
                 lastRunDistM = (dist - runStartDist).coerceAtLeast(0.0)
                 lastRunAvgMps = if (durMs > 0) lastRunDistM / (durMs / 1000.0) else 0.0
                 lastRunMaxMps = runMaxMps
-                runCount++
+                if (!runIstFortsetzung) runCount++
+                runIstFortsetzung = false
+                minSpeedSeitEnde = 99.0
                 runEndedMs = tMs
             }
         }
@@ -355,7 +383,8 @@ object Recorder {
                 if (brauchbar && bewegt) distM += schritt
             }
             prevLat = lat; prevLon = lon
-            if (sp > maxMps) maxMps = sp
+            spdMaxClean = maxKandidat(sp)
+            if (spdMaxClean > maxMps) maxMps = spdMaxClean
             spWin.add(doubleArrayOf(tMs.toDouble(), sp))
             while (spWin.isNotEmpty() && tMs - spWin[0][0] > 3000) spWin.removeAt(0)
             // Track fürs Canvas; bei >3000 Punkten jeden zweiten verwerfen (Form bleibt erhalten).
@@ -364,7 +393,8 @@ object Recorder {
         }
         val trackSnap = synchronized(lock) { ArrayList(trackPts) }
         val sec = (tMs / 1000.0).coerceAtLeast(1.0)
-        val sp3 = if (spWin.isEmpty()) sp else spWin.sumOf { it[1] } / spWin.size
+        // MEDIAN statt Mittel — wie Garmin, Zepp und der Server (_running_median).
+        val sp3 = if (spWin.isEmpty()) sp else spWin.map { it[1] }.sorted()[spWin.size / 2]
         val nowFoiling = updateFoilingRun(sp3 * 3.6, tMs.toLong(), distM, sp)
         val runDur = if (nowFoiling) (tMs.toLong() - runStartMs).coerceAtLeast(0) else lastRunDurMs
         val runDist = if (nowFoiling) (distM - runStartDist).coerceAtLeast(0.0) else lastRunDistM

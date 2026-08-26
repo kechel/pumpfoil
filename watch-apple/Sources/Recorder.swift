@@ -116,6 +116,29 @@ final class Recorder: NSObject, ObservableObject {
     private var prevLoc: CLLocation?
     private var distAccum = 0.0
     private var maxMps = 0.0
+    /// Max-Speed saeubern — dieselben zwei Regeln wie der Server (analysis/gps.py):
+    /// 1) BURST: mehr als 5 m/s ueber dem 15-s-Median UND absolut ueber 28 km/h -> es gilt der
+    ///    Median (mehrsekuendiger Doppler-Burst). 2) DECKEL: ueber 32 km/h ist es kein Pumpfoil
+    /// mehr (Glitch/Boot) und zaehlt nicht. An 119 echten Sessions gemessen (26.08.): der
+    /// Uhr-Maxwert lag im Mittel 9,4 km/h ueber dem ausgewerteten, schlimmster Fall 164 km/h;
+    /// mit den Regeln +3,1 bzw. +17,4. Die Anzeige des Momentanwerts bleibt unangetastet.
+    private var burstRing = [Double](repeating: -1, count: 15)
+    private var burstPos = 0
+    /// Gesaeuberter Wert des LAUFENDEN Fixes: maxKandidat() darf pro Fix nur EINMAL laufen, sonst
+    /// stehen zwei Eintraege im 15-s-Ring und das Fenster ist nur halb so lang.
+    private var spdMaxClean = 0.0
+    private var minSpeedSeitEnde = 99.0     // kleinster Speed seit dem letzten Lauf-Ende
+    private var runIstFortsetzung = false   // setzt den vorigen Lauf fort -> nicht neu zaehlen
+
+    private func maxKandidat(_ v: Double) -> Double {
+        burstRing[burstPos] = v
+        burstPos = (burstPos + 1) % burstRing.count
+        let vals = burstRing.filter { $0 >= 0 }.sorted()
+        let med = vals.isEmpty ? 0 : vals[vals.count / 2]
+        var w = v
+        if w > med + 5.0, w > 28.0 / 3.6 { w = med }
+        return w > 32.0 / 3.6 ? 0 : w
+    }
     private var hrSum = 0
     private var hrCount = 0
     private var maxHRv = 0
@@ -199,15 +222,20 @@ final class Recorder: NSObject, ObservableObject {
             if tMs - runEndedMs < runReArmCooldownMs {
                 foilEnterStreak = 0
             } else {
+                if spMps < minSpeedSeitEnde { minSpeedSeitEnde = spMps }
                 foilEnterStreak = speed3sKmh >= foilEnterKmh ? foilEnterStreak + 1 : 0
                 if foilEnterStreak >= foilEnterDwellS {
                     isFoiling = true; foilExitStreak = 0
+                    // Kein echter Stopp seit dem letzten Lauf-Ende -> derselbe Lauf. Der Server
+                    // fuehrt beide zusammen (_merge_no_stop, ohne Zeitfenster).
+                    runIstFortsetzung = runCount > 0 && minSpeedSeitEnde >= 1.5
+                    minSpeedSeitEnde = 99.0
                     // Lauf-Start auf den Dwell-Beginn zurückdatieren (wie Garmin).
-                    runStartMs = tMs - runEnterDwellMs; runStartDist = dist; runMaxMps = spMps; runMaxHr = hr > 0 ? hr : 0
+                    runStartMs = tMs - runEnterDwellMs; runStartDist = dist; runMaxMps = spdMaxClean; runMaxHr = hr > 0 ? hr : 0
                 }
             }
         } else {
-            if spMps > runMaxMps { runMaxMps = spMps }
+            if spdMaxClean > runMaxMps { runMaxMps = spdMaxClean }
             if hr > runMaxHr { runMaxHr = hr }
             foilExitStreak = speed3sKmh < foilExitKmh ? foilExitStreak + 1 : 0
             if foilExitStreak >= foilExitDwellS {
@@ -219,7 +247,9 @@ final class Recorder: NSObject, ObservableObject {
                 lastRunMaxMps = runMaxMps
                 lastRunMaxHrV = runMaxHr
                 runMaxHr = 0
-                runCount += 1
+                if !runIstFortsetzung { runCount += 1 }
+                runIstFortsetzung = false
+                minSpeedSeitEnde = 99.0
                 runEndedMs = tMs   // Re-Arm-Cooldown starten
             }
         }
@@ -545,10 +575,15 @@ extension Recorder: CLLocationManagerDelegate {
                 if !poor && bewegt { self.distAccum += schritt }
             }
             self.prevLoc = loc
-            if sp > self.maxMps { self.maxMps = sp }
+            self.spdMaxClean = self.maxKandidat(sp)
+            if self.spdMaxClean > self.maxMps { self.maxMps = self.spdMaxClean }
             self.spWin.append((Double(t), sp))
             while let f = self.spWin.first, Double(t) - f.t > 3000 { self.spWin.removeFirst() }
-            let sp3 = self.spWin.isEmpty ? sp : self.spWin.map { $0.mps }.reduce(0, +) / Double(self.spWin.count)
+            // MEDIAN statt Mittel — wie Garmin (speed3sMed), Zepp und der Server
+            // (SMOOTH_WINDOW_S + _running_median): ein einzelner Ausreisser haelt den Mittelwert
+            // drei Sekunden oben und kann einen Phantom-Lauf starten.
+            let sortiert = self.spWin.map { $0.mps }.sorted()
+            let sp3 = sortiert.isEmpty ? sp : sortiert[sortiert.count / 2]
             let sec = max(1.0, Double(t) / 1000.0)
             self.speedKmh = sp * 3.6
             self.speed3sKmh = sp3 * 3.6

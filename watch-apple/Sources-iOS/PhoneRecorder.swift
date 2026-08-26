@@ -81,6 +81,26 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
     private var foilEnter = 0, foilExit = 0, foiling = false
     private var runStartMs = 0.0, runStartDist = 0.0, runMaxMps = 0.0
     private var runCnt = 0
+    /// Max-Speed saeubern — dieselben zwei Regeln wie der Server (analysis/gps.py): BURST (mehr als
+    /// 5 m/s ueber dem 15-s-Median UND absolut ueber 28 km/h -> Median) und DECKEL (ueber 32 km/h
+    /// ist es kein Pumpfoil mehr). An 119 echten Sessions gemessen: Maxwert im Mittel 9,4 km/h zu
+    /// hoch, schlimmster Fall 164; mit den Regeln +3,1 bzw. +17,4.
+    private var burstRing = [Double](repeating: -1, count: 15)
+    private var burstPos = 0
+    /// maxKandidat() pro Fix nur EINMAL — sonst halbiert sich das 15-s-Fenster.
+    private var spdMaxClean = 0.0
+    private var minSpeedSeitEnde = 99.0
+    private var runIstFortsetzung = false
+
+    private func maxKandidat(_ v: Double) -> Double {
+        burstRing[burstPos] = v
+        burstPos = (burstPos + 1) % burstRing.count
+        let vals = burstRing.filter { $0 >= 0 }.sorted()
+        let med = vals.isEmpty ? 0 : vals[vals.count / 2]
+        var w = v
+        if w > med + 5.0, w > 28.0 / 3.6 { w = med }
+        return w > 32.0 / 3.6 ? 0 : w
+    }
     private var lastRunDurMs = 0.0, lastRunDistM = 0.0, lastRunMaxMps = 0.0
 
     override init() {
@@ -225,12 +245,15 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
             if l.horizontalAccuracy <= 20, bewegt { distM += schritt }
         }
         prevLat = l.coordinate.latitude; prevLon = l.coordinate.longitude
-        if sp > maxMps { maxMps = sp }
+        spdMaxClean = maxKandidat(sp)
+        if spdMaxClean > maxMps { maxMps = spdMaxClean }
         spWin.append([Double(tMs), sp])
         while let f = spWin.first, Double(tMs) - f[0] > 3000 { spWin.removeFirst() }
         lock.unlock()
         let sec = max(1.0, Double(tMs) / 1000.0)
-        let sp3 = spWin.isEmpty ? sp : spWin.reduce(0.0) { $0 + $1[1] } / Double(spWin.count)
+        // MEDIAN statt Mittel — wie Garmin, Zepp und der Server (_running_median).
+        let sortiert = spWin.map { $0[1] }.sorted()
+        let sp3 = sortiert.isEmpty ? sp : sortiert[sortiert.count / 2]
         let nowFoiling = updateFoilingRun(sp3 * 3.6, Double(tMs), distM, sp)
         gpsFix = true
         speedKmh = sp * 3.6; speed3sKmh = sp3 * 3.6; maxSpeedKmh = maxMps * 3.6
@@ -247,20 +270,27 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         if !foiling {
             if tMs - runEndedMs < RUN_REARM_COOLDOWN_MS { foilEnter = 0 }
             else {
+                if spMps < minSpeedSeitEnde { minSpeedSeitEnde = spMps }
                 foilEnter = sp3Kmh >= 10 ? foilEnter + 1 : 0
                 if foilEnter >= RUN_ENTER_DWELL {
                     foiling = true; foilExit = 0
-                    runStartMs = tMs - Double(RUN_ENTER_DWELL) * 1000; runStartDist = dist; runMaxMps = spMps
+                    // Kein echter Stopp seit dem letzten Lauf-Ende -> derselbe Lauf.
+                    runIstFortsetzung = runCnt > 0 && minSpeedSeitEnde >= 1.5
+                    minSpeedSeitEnde = 99.0
+                    runStartMs = tMs - Double(RUN_ENTER_DWELL) * 1000; runStartDist = dist; runMaxMps = spdMaxClean
                 }
             }
         } else {
-            if spMps > runMaxMps { runMaxMps = spMps }
+            if spdMaxClean > runMaxMps { runMaxMps = spdMaxClean }
             foilExit = sp3Kmh < 9 ? foilExit + 1 : 0
             if foilExit >= RUN_EXIT_DWELL {
                 foiling = false; foilEnter = 0
                 lastRunDurMs = max(0, tMs - Double(RUN_EXIT_DWELL) * 1000 - runStartMs)
                 lastRunDistM = max(0, dist - runStartDist); lastRunMaxMps = runMaxMps
-                runCnt += 1; runEndedMs = tMs
+                if !runIstFortsetzung { runCnt += 1 }
+                runIstFortsetzung = false
+                minSpeedSeitEnde = 99.0
+                runEndedMs = tMs
             }
         }
         return foiling

@@ -97,12 +97,38 @@ object Recorder {
     private var runStartDist = 0.0
     private var runMaxMps = 0.0
     private var runCount = 0
+    // Max-Speed saeubern — dieselben zwei Regeln wie der Server (analysis/gps.py):
+    //   1) BURST: mehr als BURST_MARGIN ueber dem 15-s-Median UND absolut ueber 28 km/h
+    //      -> mehrsekuendiger Doppler-Burst, es gilt der Median.
+    //   2) DECKEL: ueber 32 km/h ist es kein Pumpfoil mehr (Glitch/Boot) -> zaehlt nicht.
+    // Gemessen an 119 echten Sessions (26.08.): der Uhr-Maxwert lag im Mittel 9,4 km/h ueber dem
+    // ausgewerteten, schlimmster Fall 164 km/h. Mit den Regeln: Mittel +3,1, schlimmster +17,4.
+    // Die ANZEIGE des Momentanwerts bleibt unangetastet — dort ist ein Ausreisser nach einer
+    // Sekunde wieder weg, im Maximum bliebe er die ganze Session stehen.
+    private val burstRing = DoubleArray(15) { -1.0 }
+    private var burstPos = 0
+    // Gesaeuberter Wert des LAUFENDEN Fixes: maxKandidat() darf pro Fix nur EINMAL laufen, sonst
+    // stehen zwei Eintraege im 15-s-Ring und das Fenster ist nur halb so lang.
+    private var spdMaxClean = 0.0
+    private var minSpeedSeitEnde = 99.0     // kleinster Speed seit dem letzten Lauf-Ende
+    private var runIstFortsetzung = false   // setzt den vorigen Lauf fort -> nicht neu zaehlen
     private var lastRunDurMs = 0L
     private var lastRunDistM = 0.0
     private var lastRunAvgMps = 0.0
     private var lastRunMaxMps = 0.0
     private var runMaxHr = 0
     private var lastRunMaxHr = 0
+
+    /** Wert fuer den HOECHSTWERT saeubern (s. burstRing). */
+    private fun maxKandidat(v: Double): Double {
+        burstRing[burstPos] = v
+        burstPos = (burstPos + 1) % burstRing.size
+        val vals = burstRing.filter { it >= 0.0 }.sorted()
+        val med = if (vals.isEmpty()) 0.0 else vals[vals.size / 2]
+        var w = v
+        if (w > med + 5.0 && w > 28.0 / 3.6) w = med
+        return if (w > 32.0 / 3.6) 0.0 else w
+    }
 
     // Lauf-Erkennung mit Hysterese; pflegt bei Flanken die Lauf-Metriken (tMs/dist/sp in SI).
     private fun updateFoilingRun(sp3Kmh: Double, tMs: Long, dist: Double, spMps: Double): Boolean {
@@ -111,18 +137,24 @@ object Recorder {
             if (tMs - runEndedMs < RUN_REARM_COOLDOWN_MS) {
                 foilEnterStreak = 0
             } else {
+                if (spMps < minSpeedSeitEnde) minSpeedSeitEnde = spMps
                 foilEnterStreak = if (sp3Kmh >= 10.0) foilEnterStreak + 1 else 0
                 if (foilEnterStreak >= RUN_ENTER_DWELL) {
                     foiling = true; foilExitStreak = 0
+                    // Kein echter Stopp seit dem letzten Lauf-Ende -> derselbe Lauf. Der Server
+                    // fuehrt die beiden zusammen (_merge_no_stop, ohne Zeitfenster), also zaehlt
+                    // die Uhr sie auch als einen.
+                    runIstFortsetzung = runCount > 0 && minSpeedSeitEnde >= 1.5
+                    minSpeedSeitEnde = 99.0
                     // Lauf-Start auf den Dwell-Beginn zurückdatieren (wie Garmin).
                     runStartMs = tMs - RUN_ENTER_DWELL * 1000L
                     runStartDist = dist
-                    runMaxMps = spMps
+                    runMaxMps = spdMaxClean
                     runMaxHr = if (lastHr > 0) lastHr else 0
                 }
             }
         } else {
-            if (spMps > runMaxMps) runMaxMps = spMps
+            if (spdMaxClean > runMaxMps) runMaxMps = spdMaxClean
             if (lastHr > runMaxHr) runMaxHr = lastHr
             foilExitStreak = if (sp3Kmh < 9.0) foilExitStreak + 1 else 0
             if (foilExitStreak >= RUN_EXIT_DWELL) {
@@ -135,7 +167,9 @@ object Recorder {
                 lastRunMaxMps = runMaxMps
                 lastRunMaxHr = runMaxHr
                 runMaxHr = 0
-                runCount++
+                if (!runIstFortsetzung) runCount++
+                runIstFortsetzung = false
+                minSpeedSeitEnde = 99.0
                 runEndedMs = tMs   // Re-Arm-Cooldown starten
             }
         }
@@ -437,13 +471,17 @@ object Recorder {
                 if (!poor && bewegt) distM += schritt
             }
             prevLat = lat; prevLon = lon
-            if (sp > maxMps) maxMps = sp
+            spdMaxClean = maxKandidat(sp)
+            if (spdMaxClean > maxMps) maxMps = spdMaxClean
             // 3-s-Fenster pflegen.
             spWin.add(doubleArrayOf(tMs.toDouble(), sp))
             while (spWin.isNotEmpty() && tMs - spWin[0][0] > 3000) spWin.removeAt(0)
         }
         val sec = (tMs / 1000.0).coerceAtLeast(1.0)
-        val sp3 = if (spWin.isEmpty()) sp else spWin.sumOf { it[1] } / spWin.size
+        // MEDIAN statt Mittel — wie Garmin (speed3sMed), Zepp und der Server
+        // (SMOOTH_WINDOW_S + _running_median). Ein einzelner Ausreisser haelt den Mittelwert
+        // drei Sekunden lang oben und kann so einen Phantom-Lauf starten.
+        val sp3 = if (spWin.isEmpty()) sp else spWin.map { it[1] }.sorted()[spWin.size / 2]
         val nowFoiling = updateFoilingRun(sp3 * 3.6, tMs.toLong(), distM, sp)
         // aktueller Lauf live (solange foilend), sonst letzter Lauf
         val runDur = if (nowFoiling) (tMs.toLong() - runStartMs).coerceAtLeast(0) else lastRunDurMs

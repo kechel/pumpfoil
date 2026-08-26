@@ -50,6 +50,13 @@ class SessionRecorder {
     hidden var _sessionUuid;
     hidden var _startedAt;
     hidden var _chunkIndex = 0;      // fortlaufender Chunk-Index (gps & accel getrennt gezählt)
+    hidden var _burstRing = new [15];   // BURST_WIN; Rohwerte der letzten 15 s (Max-Saeuberung)
+    hidden var _burstPos = 0;
+    // Der gesaeuberte Wert des LAUFENDEN Ticks. Wichtig: _maxKandidat() darf pro Tick nur EINMAL
+    // laufen — jeder Aufruf schiebt in den 15-s-Ring, zwei Aufrufe halbieren also das Fenster.
+    hidden var _spdMaxClean = 0.0;
+    hidden var _minSpeedSeitEnde = 99.0;   // kleinster Speed seit dem letzten Lauf-Ende
+    hidden var _runIstFortsetzung = false; // laufender Lauf setzt den vorigen fort -> nicht zaehlen
     hidden var _accelChunkIndex = 0;
     // Startzeit je Accel-Chunk (Index -> ms seit Session-Start, gleiche Basis wie GPS-t_ms).
     // Grundlage der EXAKTEN Accel-Zeitachse am Server (timebase.py, "exact_chunks") — bisher
@@ -219,6 +226,23 @@ class SessionRecorder {
     const RUN_REARM_COOLDOWN_MS = 25000;
     // Auto-Start: auf dem Start-Screen die GPS-Geschwindigkeit überwachen und die
     // Aufnahme automatisch starten, sobald man losfährt (~10 km/h, 4 s anhaltend).
+    // Max-Speed saeubern — dieselben zwei Regeln wie der Server (analysis/gps.py):
+    //   1) BURST: liegt ein Wert mehr als BURST_MARGIN ueber dem 15-s-Median UND absolut ueber
+    //      BURST_ABS (28 km/h), ist es ein mehrsekuendiger Doppler-Burst -> Median statt Wert.
+    //   2) DECKEL: ueber MAX_PLAUSIBLE (32 km/h) ist es kein Pumpfoil mehr (Glitch/Boot) -> gar
+    //      nicht als Hoechstwert zaehlen.
+    // Warum das noetig ist: an 119 echten Sessions gemessen (26.08.) lag der Uhr-Maxwert im Mittel
+    // 9,4 km/h ueber dem ausgewerteten, im schlimmsten Fall 164 km/h (Session 2830 zeigte 103 km/h
+    // bei ausgewerteten 15). Mit den zwei Regeln: Mittel +3,1 km/h, schlimmster Fall +17,4.
+    // Kosten: 15 Zahlen und ein Median ohne Sortieren — laeuft auch auf den 96-KB-Uhren.
+    const BURST_WIN = 15;                  // 1 Tick = 1 s -> 15-s-Fenster wie beim Server
+    const BURST_MARGIN_MPS = 5.0;
+    const BURST_ABS_MIN_MPS = 7.78;        // 28 km/h
+    const MAX_PLAUSIBLE_MPS = 8.89;        // 32 km/h (RUN_MAX_PLAUSIBLE_KMH)
+    // Ein neuer Lauf zaehlt nur, wenn es dazwischen einen ECHTEN Stopp gab (Speed unter
+    // NOSTOP_MPS). Der Server fuehrt Laeufe ohne Stopp zusammen (_merge_no_stop, ohne
+    // Zeitfenster) — ohne diese Regel zaehlt die Uhr Bruchstuecke einzeln.
+    const NOSTOP_MPS = 1.5;
     const AUTO_START_MPS = 2.8;
     const AUTO_START_DWELL = 4;
     const AUTO_START_LEAD = 10;   // s Vorlauf ab Betreten des Start-Screens, bis Auto-Start scharf
@@ -1266,7 +1290,8 @@ class SessionRecorder {
             if (act == null) { return; }
             var spd = _saneSpeed(act.currentSpeed);
             if (gpsPoor()) { spd = 0.0; }   // s. _gpsQuality: kein Vertrauen -> keine Phantom-Laeufe
-            if (spd > _maxSpdSeen) { _maxSpdSeen = spd; }
+            _spdMaxClean = _maxKandidat(spd);
+            if (_spdMaxClean > _maxSpdSeen) { _maxSpdSeen = _spdMaxClean; }
             _currentHr = act.currentHeartRate;
             _speedRing[_speedRingPos] = spd;
             _speedRingPos = (_speedRingPos + 1) % SPEED_AVG_SAMPLES;
@@ -1374,19 +1399,26 @@ class SessionRecorder {
             if (tMs - _runEndedMs < RUN_REARM_COOLDOWN_MS) {
                 _enterStreak = 0;
             } else {
+                if (vInst < _minSpeedSeitEnde) { _minSpeedSeitEnde = vInst; }
                 _enterStreak = (v3 >= RUN_ENTER_MPS) ? _enterStreak + 1 : 0;
                 if (_enterStreak >= RUN_ENTER_DWELL) {
                     _foiling = true;
                     _exitStreak = 0;
+                    // Gab es seit dem letzten Lauf-Ende KEINEN echten Stopp, ist das derselbe
+                    // Lauf — der Server fuehrt ihn zusammen, also zaehlt die Uhr ihn nicht neu.
+                    _runIstFortsetzung = (_runCount > 0 && _minSpeedSeitEnde >= NOSTOP_MPS);
+                    _minSpeedSeitEnde = 99.0;
                     // Start rückdatieren auf den ersten schnellen Tick.
                     _runStartMs = tMs - RUN_ENTER_DWELL * 1000;
                     _runStartDist = dist;
-                    _runMaxSpeed = vInst;
+                    _runMaxSpeed = _spdMaxClean;
                     _runMaxHr = (_currentHr != null && _currentHr > 0) ? _currentHr : 0;
                 }
             }
         } else {
-            if (vInst > _runMaxSpeed) { _runMaxSpeed = vInst; }
+            // Lauf-Maximum aus demselben gesaeuberten Wert wie das Session-Maximum (schon in
+            // diesem Tick berechnet, s. _spdMaxClean).
+            if (_spdMaxClean > _runMaxSpeed) { _runMaxSpeed = _spdMaxClean; }
             if (_currentHr != null && _currentHr > _runMaxHr) { _runMaxHr = _currentHr; }
             _exitStreak = (v3 < RUN_EXIT_MPS) ? _exitStreak + 1 : 0;
             if (_exitStreak >= RUN_EXIT_DWELL) {
@@ -1402,7 +1434,9 @@ class SessionRecorder {
                 _lastRunMaxHr = _runMaxHr;
                 _runMaxHr = 0;
                 _lastRunAvgSpeed = (durMs > 0) ? _lastRunDistM / (durMs / 1000.0) : 0.0;
-                _runCount++;
+                if (!_runIstFortsetzung) { _runCount++; }
+                _runIstFortsetzung = false;
+                _minSpeedSeitEnde = 99.0;
                 _runEndedMs = tMs;   // Re-Arm-Cooldown starten
                 return true;   // Lauf gerade beendet -> Live-Sync anstoßen
             }
@@ -1624,6 +1658,41 @@ class SessionRecorder {
     // Speed-Sanity: null/negativ/absurd -> 0. Der Simulator liefert bei FIT-Wiedergabe
     // gelegentlich Müllwerte (z. B. 9.6e8 m/s), die die Anzeige sprengen. Kein Wassersport
     // erreicht > 100 m/s (360 km/h) -> alles darüber ist Unsinn und wird verworfen.
+    // Median der 15 gepufferten Werte OHNE Sortieren: der Wert, der genauso viele kleinere wie
+    // groessere ueber sich hat. 15x15 Vergleiche pro Sekunde sind nichts, sparen aber den
+    // Scratch-Array (auf den kleinen Uhren zaehlt jede Allokation).
+    hidden function _burstMedian() {
+        var n = 0;
+        for (var i = 0; i < BURST_WIN; i++) { if (_burstRing[i] != null) { n++; } }
+        if (n == 0) { return 0.0; }
+        var ziel = n / 2;
+        for (var i = 0; i < BURST_WIN; i++) {
+            var v = _burstRing[i];
+            if (v == null) { continue; }
+            var kleiner = 0;
+            var gleich = 0;
+            for (var j = 0; j < BURST_WIN; j++) {
+                var w = _burstRing[j];
+                if (w == null) { continue; }
+                if (w < v) { kleiner++; } else if (w == v) { gleich++; }
+            }
+            if (kleiner <= ziel && ziel < kleiner + gleich) { return v; }
+        }
+        return 0.0;
+    }
+
+    // Wert fuer den HOECHSTWERT saeubern (s. Konstanten oben). Die Anzeige des Momentanwerts
+    // bleibt unangetastet — dort ist ein Ausreisser eine Sekunde lang zu sehen und wieder weg,
+    // im Maximum bliebe er die ganze Session stehen.
+    hidden function _maxKandidat(v) {
+        _burstRing[_burstPos] = v;
+        _burstPos = (_burstPos + 1) % BURST_WIN;
+        var med = _burstMedian();
+        if (v > med + BURST_MARGIN_MPS && v > BURST_ABS_MIN_MPS) { v = med; }
+        if (v > MAX_PLAUSIBLE_MPS) { return 0.0; }
+        return v;
+    }
+
     hidden function _saneSpeed(v) {
         if (v == null || v < 0.0 || v > 100.0) { return 0.0; }
         return v;

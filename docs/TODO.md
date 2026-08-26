@@ -411,6 +411,27 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 Umgesetzt (26.08.): Max-Speed gesaeubert + Laeufe ohne Stopp zusammengefuehrt, auf ALLEN
+  sechs Recordern** (Garmin, Wear, Apple Watch, Zepp, Android-Handy, iOS-Handy).
+  Erwartete Wirkung aus der Simulation unten: Max-Abweichung zum Server im Mittel **+9,4 -> +3,1
+  km/h**, schlimmster Fall **+164 -> +17,4 km/h**; Lauf-Differenz Median **+1 -> 0**.
+  Drei Aenderungen je Recorder:
+  (a) **Burst-Klemme + 32-km/h-Deckel** fuer den Hoechstwert (Session UND Lauf). Der gesaeuberte
+  Wert wird pro Fix **einmal** berechnet (`spdMaxClean`) — beim ersten Anlauf hatte ich ihn zweimal
+  gerechnet, was den 15-s-Ring mit Doppel-Eintraegen auf ein 7,5-s-Fenster verkuerzt haette.
+  Die Anzeige des MOMENTANwerts bleibt roh: dort ist ein Ausreisser nach einer Sekunde weg, im
+  Maximum bliebe er die ganze Session stehen.
+  (b) **3-s-MEDIAN statt Mittel** auf Wear, Apple Watch und beiden Handys — Garmin, Zepp und der
+  Server rechnen schon mit Median.
+  (c) **Lauf-Zusammenfuehrung**: ein neuer Lauf zaehlt nur nach einem echten Stopp (Speed unter
+  1,5 m/s seit dem letzten Lauf-Ende), wie `_merge_no_stop` serverseitig. Die Lauf-KENNZAHLEN
+  (letzter Lauf) bleiben wie bisher das letzte Bruchstueck — nur der Zaehler folgt dem Server.
+  Garmin auf **1.0.81** gebumpt und gebaut; Groesse im ENG-Build (fr55) 65 116 -> 65 740 B (+624).
+  Im Wear-Emulator gegengeprueft: 20 Fixes a 5 m (18 km/h) + ein 250-m-Sprung (≈900 km/h) ->
+  Aufnahme laeuft weiter, **1 Lauf** (der Burst hat ihn nicht zerrissen), kein Absturz.
+  NICHT umgesetzt (bewusst): Pumps auf der Uhr zaehlen — der Server-Zaehler unter-erkennt selbst
+  ~2x, eine dritte abweichende Zahl macht es schlimmer.
+
 - **🔎 Was koennte die UHR von der Server-Erkennung billig uebernehmen? An 119 echten Sessions
   simuliert (26.08., read-only, `scratchpad/uhr_sim3.py`).** Die Uhr-Logik (Hysterese 2,8/2,5 m/s,
   Dwell 4/3 s, 25 s Cooldown, 3-s-Fenster) gegen das Server-Ergebnis derselben Sessions gerechnet:

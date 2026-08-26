@@ -61,6 +61,19 @@ const RUN_ENTER_DWELL = 4, RUN_EXIT_DWELL = 3, RUN_REARM_COOLDOWN_MS = 25000;
 // (SessionRecorder.speed3sMed). Ohne GPS-Fix läuft das Fenster nach 3 s leer -> sp3 = 0 -> ein
 // laufender Lauf endet regulär über den Exit-Dwell (statt bei stehengebliebenem Speed weiterzulaufen).
 const SPEED_WIN_S = 3;
+// Max-Speed saeubern — dieselben zwei Regeln wie der Server (analysis/gps.py):
+//   1) BURST: mehr als 5 m/s ueber dem 15-s-Median UND absolut ueber 28 km/h -> mehrsekuendiger
+//      Doppler-Burst, es gilt der Median.
+//   2) DECKEL: ueber 32 km/h ist es kein Pumpfoil mehr (Glitch/Boot) -> zaehlt gar nicht.
+// An 119 echten Sessions gemessen (26.08.): der Uhr-Maxwert lag im Mittel 9,4 km/h ueber dem
+// ausgewerteten, schlimmster Fall 164 km/h. Mit den Regeln: Mittel +3,1, schlimmster +17,4.
+// Die Anzeige des Momentanwerts bleibt unangetastet — dort ist ein Ausreisser nach einer Sekunde
+// wieder weg, im Maximum bliebe er die ganze Session stehen.
+const BURST_WIN_MS = 15000, BURST_MARGIN_MPS = 5.0;
+const BURST_ABS_MIN_MPS = 28 / 3.6, MAX_PLAUSIBLE_MPS = 32 / 3.6;
+// Ein neuer Lauf zaehlt nur nach einem ECHTEN Stopp (Speed unter NOSTOP_MPS) — der Server fuehrt
+// Laeufe ohne Stopp zusammen (_merge_no_stop, ohne Zeitfenster).
+const NOSTOP_MPS = 1.5;
 const DEV_FAKE_GPS = false;  // true = synthetische GPS-Spur (nur Simulator-UI-Demo; echte Uhr: false)
 // MUSS mit version.name in ../app.json übereinstimmen — beides beim Bump ändern. (Zur Laufzeit
 // aus dem Paket lesen ginge nur über einen weiteren @zos-Import; die sind hier ungetestet und
@@ -72,6 +85,17 @@ const APP_VERSION = "1.0.6";
 // "Update" auf die AELTERE Version geraten (Jans Screenshot 18.08.: "1.0.6 -> 1.0.4"). Garmin,
 // Wear OS und Apple Watch machen es seit je richtig (_versionNewer bzw. istNeuer) -- das hier ist
 // dieselbe Logik: Stelle fuer Stelle numerisch, fehlende Stellen als 0.
+// Wert fuer den HOECHSTWERT saeubern; `puffer` ist ein Array von [t, v] der letzten 15 s.
+function maxKandidat(puffer, t, v) {
+  puffer.push([t, v]);
+  while (puffer.length && t - puffer[0][0] > BURST_WIN_MS) puffer.shift();
+  const werte = puffer.map((x) => x[1]).sort((a, b) => a - b);
+  const med = werte.length ? werte[werte.length >> 1] : 0;
+  let w = v;
+  if (w > med + BURST_MARGIN_MPS && w > BURST_ABS_MIN_MPS) w = med;
+  return w > MAX_PLAUSIBLE_MPS ? 0 : w;
+}
+
 function istNeuer(a, b) {
   if (typeof a !== "string" || typeof b !== "string") return false;
   const teil = (v) => { const p = String(v).split("."); return [0, 1, 2].map((i) => parseInt(p[i], 10) || 0); };
@@ -1165,19 +1189,23 @@ Page(
         if (tMs - s.runEndedMs < RUN_REARM_COOLDOWN_MS) {
           s.enterStreak = 0;
         } else {
+          if (vInst < s.minSpeedSeitEnde) s.minSpeedSeitEnde = vInst;
           s.enterStreak = (v3 >= RUN_ENTER_MPS) ? s.enterStreak + 1 : 0;
           if (s.enterStreak >= RUN_ENTER_DWELL) {
             s.foiling = true; s.exitStreak = 0;
+            // Kein echter Stopp seit dem letzten Lauf-Ende -> derselbe Lauf, nicht neu zaehlen.
+            s.runIstFortsetzung = s.runCount > 0 && s.minSpeedSeitEnde >= NOSTOP_MPS;
+            s.minSpeedSeitEnde = 99;
             // Lauf-Start auf den ersten schnellen Tick zurückdatieren (wie Garmin/Wear).
             s.runStartMs = tMs - RUN_ENTER_DWELL * 1000;
             s.runStartDist = dist;
-            s.runMaxMps = vInst;
+            s.runMaxMps = s.spdMaxClean;
             s.runMaxHr = s.hr > 0 ? s.hr : 0;
             console.log("[pumpfoil] run start speed=" + (v3 * 3.6).toFixed(1));
           }
         }
       } else {
-        if (vInst > s.runMaxMps) s.runMaxMps = vInst;
+        if (s.spdMaxClean > s.runMaxMps) s.runMaxMps = s.spdMaxClean;
         if (s.hr > s.runMaxHr) s.runMaxHr = s.hr;
         s.exitStreak = (v3 < RUN_EXIT_MPS) ? s.exitStreak + 1 : 0;
         if (s.exitStreak >= RUN_EXIT_DWELL) {
@@ -1191,7 +1219,9 @@ Page(
           s.lastRunMaxMps = s.runMaxMps;
           s.lastRunMaxHr = s.runMaxHr;
           s.runMaxHr = 0;
-          s.runCount++;
+          if (!s.runIstFortsetzung) s.runCount++;
+          s.runIstFortsetzung = false;
+          s.minSpeedSeitEnde = 99;
           s.runEndedMs = tMs;   // Re-Arm-Sperre starten
           console.log("[pumpfoil] run end count=" + s.runCount
             + " duration=" + Math.round(durMs / 1000) + " distance=" + Math.round(s.lastRunDistM));
@@ -1206,6 +1236,10 @@ Page(
       s.foiling = false; s._prevFoil = false;
       s.enterStreak = 0; s.exitStreak = 0; s.runEndedMs = -100000;
       s.runStartMs = 0; s.runStartDist = 0; s.runMaxMps = 0; s.runCount = 0;
+      // burstBuf = 15-s-Fenster fuer die Max-Saeuberung; spdMaxClean = gesaeuberter Wert des
+      // LAUFENDEN Ticks (maxKandidat darf pro Tick nur EINMAL laufen, sonst halbiert sich das
+      // Fenster durch Doppel-Eintraege).
+      s.burstBuf = []; s.spdMaxClean = 0; s.minSpeedSeitEnde = 99; s.runIstFortsetzung = false;
       s.lastRunDurMs = 0; s.lastRunDistM = 0; s.lastRunAvgMps = 0; s.lastRunMaxMps = 0;
       s._ringKey = null;
     },
@@ -1701,7 +1735,8 @@ Page(
           // Strecke um den Sprung, und der Lauf daneben bekommt eine Distanz, die es nie gab.
           if (s.prev && !jump) s.dist += distM(s.prev[0], s.prev[1], lat, lon);
           s.prev = [lat, lon];
-          if (speed > s.max) s.max = speed;
+          s.spdMaxClean = maxKandidat(s.burstBuf || (s.burstBuf = []), sampleNow, speed);
+          if (s.spdMaxClean > s.max) s.max = s.spdMaxClean;
           if (s.almOn) this._checkAlarm(speed * 3.6);   // Vibrationsalarm bei Speed-Grenzen
           if (s.gps.length % GPS_CHUNK === 0) this.persistActive();
         }
