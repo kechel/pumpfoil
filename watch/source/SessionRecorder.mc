@@ -137,6 +137,9 @@ class SessionRecorder {
     // dem PROFIL, nicht aus UserProfile.getHeartRateZones(): Wear OS und watchOS haben keine
     // Zonen-API, die Zahl muesste also ohnehin vom Server kommen — dann soll sie auf ALLEN
     // Plattformen aus derselben Quelle stammen, sonst faerbt dieselbe Grafik je Uhr anders.
+    // NOTNAGEL fuer den allerersten Start ohne Config-Sync. Er folgt dem Profil-Vorschlag des
+    // Servers ABSICHTLICH NICHT: sonst braeuchte jede Aenderung an einer Voreinstellung ein
+    // Uhr-Release. Sobald /config einmal kam, gilt ohnehin die Zahl aus dem Profil.
     var hrZones = [95, 114, 133, 152, 171, 190];
     var speedScale = [8, 25];
 

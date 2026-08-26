@@ -161,7 +161,11 @@ def hr_zones_default(db: Session, user: models.User) -> list:
     # Nimmt man die als „100 %", steht die Grafik dauerhaft im roten Bereich. Also erst ab 150
     # glauben, darunter 190 als neutraler Startwert — der Nutzer stellt es ohnehin selbst ein.
     max_hr = hoechster if hoechster >= 150 else 190
-    return [int(round(max_hr * p)) for p in (0.5, 0.6, 0.7, 0.8, 0.9, 1.0)]
+    # Untergrenze von Z1 FEST bei 60 bpm (Jans Vorgabe 26.08.), nicht 50 % des Maximums: die
+    # Grafik soll schon unter leichter Belastung etwas anzeigen, und ein Ruhepuls liegt bei den
+    # meisten unter 50 % vom Maximum — mit 95 als Untergrenze blieb der Ring beim Dümpeln leer.
+    # Die oberen fünf Grenzen bleiben der klassische 60/70/80/90/100-%-Schnitt.
+    return [60] + [int(round(max_hr * p)) for p in (0.6, 0.7, 0.8, 0.9, 1.0)]
 
 
 
