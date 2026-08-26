@@ -79,8 +79,9 @@ Zwei systemd-Timer (User `jan`, oneshot), Skripte in `deploy/`:
   Version-Bump → News posten ohne Deploy. **HARTE REGEL: der Banner ist GLOBAL/öffentlich (alle Nutzer,
   alle Sprachen) → NUR allgemeine Ankündigungen. NIEMALS Persönliches oder an einzelne Nutzer Gerichtetes
   in den Banner** (Privatsphäre); persönliche Nachrichten ausschließlich per 1:1-Chat/DM. „Trag den Banner
-  nach" = nur allgemeine News; im Zweifel nachfragen. **TODO:** dasselbe in Android/iOS (könnten
-  `/api/app/news` auch abfragen).
+  nach" = nur allgemeine News; im Zweifel nachfragen. Android und iOS zeigen den Banner
+  ebenfalls (beide fragen `/api/app/news` ab, `HomeScreen.kt` bzw. `HomeView.swift`, mit demselben
+  `foil_banner_v1`-Merker) — die frühere TODO-Notiz hier war veraltet.
 - **Scripts/Backups — HARTE REGEL:** NIEMALS ungefragt etwas ausführen, das löscht oder
   überschreiben kann (z. B. `rsync --delete`, `rm`, Spiegel-Syncs). Destruktive Optionen nur nach
   explizitem OK von Jan. Und: „schreib mir ein Script" heißt **nur schreiben** — nicht automatisch

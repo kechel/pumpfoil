@@ -24,6 +24,34 @@ Session-Detailansicht (Android + iOS).
 Wer hier etwas als fehlend liest, sucht es ZUERST im Code — sonst baut man Vorhandenes nachher
 ein zweites Mal.
 
+**Stand 2026-08-26 — Paritaets-Bilanz nach dem Release-Block der letzten Woche** (gegen den Code
+geprueft, nicht gegen diese Datei). Alles, was seit dem 18.08. in der PWA dazukam, ist in Android
+und iOS NACHGEZOGEN — mit genau einer Ausnahme:
+
+| Neu seit 18.08. | Web | Android | iOS | Uhren |
+|---|---|---|---|---|
+| Spot-Beschreibungen (Text + bis 10 Fotos je Nutzer, Herzchen, Sortierung) | ✅ | ✅ | ✅ | – |
+| „Aus meinen Session-Fotos" (Auswahl statt Neu-Upload) | ✅ | ✅ | ✅ | – |
+| Spot-Knopf in der Session-Detailansicht | ✅ | ✅ | ✅ | – |
+| Spot-Label mit Gewaesser/Steg (Dropdown + Titel) | ✅ | ✅ | ✅ | – |
+| Katalog-Suche unabhaengig von der Wortstellung | ✅ | ✅ | ✅ | – |
+| Streckungsverhaeltnis (AR) in den Foil-Badges | ✅ | ✅ | ✅ | – |
+| Trainingskurve (`/hr-progress`) im Verlauf | ✅ | ✅ | ✅ | – |
+| Puls-Zonen im Profil | ✅ | ✅ | ✅ | ✅ (aus `/config`) |
+| Wert-Grafiken in Layouts (Rand-Grafik + Balken) | ✅ | ✅ Vorschau | ✅ Vorschau | ✅ alle vier |
+| News-Banner | ✅ | ✅ | ✅ | – |
+| **Session-Datei laden (GPX + FIT)** | ✅ | ❌ | ❌ | – |
+
+Serverseitige Verbesserungen derselben Woche (Ort/Spot direkt nach der Analyse, keine Waisen-Spots,
+Spot-Zahl aus einer Quelle, Cache-Stempel nach Re-Analyse, aussortierte Sessions aus Verlauf/Spots)
+wirken in ALLEN Clients ohne Portierung — dort ist nichts offen.
+
+Nicht portiert, weil bewusst Web-only: Layout-Editor, Labeling-Editor, FIT-Import, Changelog-Seite.
+
+**Versionsstand:** die Apps sind gebaut und geprueft, aber noch auf der LIVE-Nummer — vor der
+Einreichung bumpen: Phone 1.1.23/37 -> 1.1.24/38 · Wear 1.2.23/1033 -> 1.2.24/1034 ·
+iOS/Apple Watch 1.1.24/28 -> 1.1.25/29 · Zepp 1.0.6 -> 1.0.7. Garmin 1.0.79 ist live.
+
 **Alter Stand: 2026-08-17** (gegen den Code abgeglichen; die aelteren Abschnitte bleiben als Beleg stehen). Legende: ✅ vorhanden · ⚠️ teilweise/abweichend ·
 ❌ fehlt · 🌐 bewusst Web-only. Offene Punkte → **[`docs/TODO.md`](TODO.md)**.
 
@@ -329,8 +357,9 @@ GPS + Puls, Foil/Alarm-Auswahl + Vibration, konfigurierbare Datenseiten + Off-Fo
 Reverse-Pairing, Offline-Queue mit Absturz-Recovery. **Offen (Parität nachziehen):**
 | Feature | Garmin | Amazfit/Zepp |
 |---|---|---|
-| Accel 25 Hz → Pump-Erkennung | ✅ | ❌ (nur GPS+Puls → gps_only; Zepp-Accel-API vorhanden, noch nicht verdrahtet) |
-| On-Device-Lokalisierung + Systemsprache/EN-Default | ✅ | ❌ (UI hartkodiert Deutsch, kein i18n) |
+| Accel 25 Hz → Pump-Erkennung | ✅ | ✅ seit 1.0.6 (live 24.08.; `Accelerometer` aus `@zos/sensor`, Chunks wie Garmin) |
+| On-Device-Lokalisierung + Systemsprache/EN-Default | ✅ | ✅ (`setLang` aus der Profil-Sprache, Rückfall Englisch) |
+| Wert-Grafiken in Layouts (`typ 8/9`) | ✅ 1.0.79 | ✅ gebaut (CANVAS statt ARC, s. TODO) — Version noch nicht gebumpt |
 | Update-Hinweis (`latestVersion` aus `/config`) | ✅ | ✅ |
 | Aktivitätstyp Garmin/FIT (nur Garmin relevant) | ✅ | – |
 Build/Verify nur auf Jans Mac (Zeus CLI + Balance 2). Details: Memory `zepp-recorder`.
