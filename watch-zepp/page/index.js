@@ -147,29 +147,30 @@ const IS_ROUND = (() => {
 // (Workout.getUserHrZoneSettings), wir nehmen aber bewusst die aus dem PROFIL: Wear OS und watchOS
 // haben keine Zonen-API, also muss die Zahl ohnehin vom Server kommen — dann soll sie auf allen
 // Plattformen aus derselben Quelle stammen, sonst faerbt dieselbe Grafik je Uhr anders.
-const laySkala = { hrZones: [95, 114, 133, 152, 171, 190], speedLo: 8, speedHi: 25 };
+// Beide Skalen sind gleich gebaut: sechs Grenzen = fuenf Zonen (Z1-unten … Z5-oben). Sie faerben
+// BEIDES — die Zahl (layWertFarbe) und die Wert-Grafiken. Bis 1.0.7 waren das zwei verschiedene
+// Skalen: fest verdrahtete Stufen 12/16/20 km/h fuer die Zahl und die Alarmspanne fuer die
+// Grafik, dieselbe Geschwindigkeit konnte also gruene Zahl und gelben Ring bedeuten.
+// Doku: docs/COLOR-ZONES.md.
+const laySkala = { hrZones: [95, 114, 133, 152, 171, 190], speedZones: [8, 12, 16, 20, 24, 28] };
 // Zonen-Farben Z1…Z5 (Spiegel von ZONE_COLORS in web/src/lib/watchLayout.ts).
 const ZONE_COLORS = [0x3b82f6, 0x22c55e, 0xeab308, 0xf97316, 0xef4444];
 const layIstPuls = (fid) => fid === 2 || fid === 8 || fid === 9 || fid === 21;
 // Fuellgrad 0…1 (ausserhalb gekappt, nicht extrapoliert).
+const layZonen = (fid) => (layIstPuls(fid) ? laySkala.hrZones : laySkala.speedZones);
 function layFuellgrad(fid, v) {
-  const lo = layIstPuls(fid) ? laySkala.hrZones[0] : laySkala.speedLo;
-  const hi = layIstPuls(fid) ? laySkala.hrZones[5] : laySkala.speedHi;
+  const g = layZonen(fid);
+  const lo = g[0], hi = g[5];
   if (!(hi > lo) || v == null) return 0;
   return Math.max(0, Math.min(1, (v - lo) / (hi - lo)));
 }
-// Zone 0…4. Geschwindigkeit hat im Profil keine Zonen -> Spanne in fuenf gleiche Stufen.
-function layZone(fid, v) {
-  let grenzen;
-  if (layIstPuls(fid)) { grenzen = laySkala.hrZones; }
-  else {
-    grenzen = [];
-    for (let i = 0; i <= 5; i++) grenzen.push(laySkala.speedLo + (laySkala.speedHi - laySkala.speedLo) * i / 5);
-  }
+// Zone 0…4 auf den sechs Grenzen des Feldes.
+function layZoneVon(v, grenzen) {
   let z = 0;
-  for (let i = 1; i < grenzen.length - 1; i++) if (v >= grenzen[i]) z = i;
+  for (let i = 1; i < 5; i++) if (v >= grenzen[i]) z = i;
   return Math.max(0, Math.min(ZONE_COLORS.length - 1, z));
 }
+function layZone(fid, v) { return layZoneVon(v, layZonen(fid)); }
 // --- Geometrie der Rand-Grafik ----------------------------------------------------------------
 // Gezeichnet wird auf einem CANVAS mit drawPoly, NICHT mit dem ARC-Widget. Grund ist ein
 // Geraetebefund aus @elmanu13s Zepp-PR (#3): "ARC always renders rounded stroke caps on the
@@ -519,10 +520,11 @@ const layMix = (c, bg, f) => {
   const b = Math.round((c & 255) * f + (bg & 255) * (1 - f));
   return (r << 16) | (g << 8) | b;
 };
-// Farbe nach Wert in VIER STUFEN (Garmin _speedColor 12/16/20 km/h, Web-Vorschau, Wear) —
-// kein stufenloser Verlauf. Puls-Buckets 120/150/170 wie Wear hrColor.
-const laySpeedColor = (kmh) => (kmh < 12 ? 0x3b82f6 : kmh < 16 ? 0x22c55e : kmh < 20 ? 0xeab308 : 0xef4444);
-const layHrColor = (bpm) => (bpm <= 0 ? null : bpm < 120 ? 0x22c55e : bpm < 150 ? 0xeab308 : bpm < 170 ? 0xf97316 : 0xef4444);
+// Wert-Farbe aus den PROFIL-ZONEN — derselben Skala, die auch die Wert-Grafiken faerbt.
+// Historie: erst feste Stufen (12/16/20 km/h bzw. 120/150/170 bpm), die nicht zur Grafik daneben
+// passten; jetzt eine einstellbare Quelle fuer alle Plattformen (docs/COLOR-ZONES.md).
+const laySpeedColor = (kmh) => ZONE_COLORS[layZoneVon(kmh, laySkala.speedZones)];
+const layHrColor = (bpm) => (bpm <= 0 ? null : ZONE_COLORS[layZoneVon(bpm, laySkala.hrZones)]);
 
 // Recorder wie Garmin. Wischbare Seiten:
 //   Ruhe:     0 Daten(+START) · 1 Verbindung/Code · 2 Upload-Queue
@@ -879,9 +881,8 @@ Page(
         if (r && typeof r.browseAll !== "undefined") s.browseAll = !!r.browseAll;
         // Wert-Skalen der Layout-Grafiken (Puls-Zonen + Geschwindigkeitsspanne aus dem Profil).
         if (r && Array.isArray(r.hrZones) && r.hrZones.length === 6) laySkala.hrZones = r.hrZones;
-        if (r && Array.isArray(r.speedScale) && r.speedScale.length === 2) {
-          laySkala.speedLo = r.speedScale[0] | 0;
-          laySkala.speedHi = r.speedScale[1] | 0;
+        if (r && Array.isArray(r.speedZones) && r.speedZones.length === 6) {
+          laySkala.speedZones = r.speedZones;
         }
         // Ring + gezeichnete Layout-Widgets neu aufbauen lassen (Inhalt kann sich geändert haben).
         s._ringKey = null; s.w.layKey = null;

@@ -13,7 +13,7 @@ import { InstallPwa } from "../components/InstallPwa";
 import { PlatformSubline } from "../components/SupportedPlatforms";
 import { MyFoilsSubline } from "../components/MyFoilsSubline";
 import { NotificationsToggle } from "../components/NotificationsToggle";
-import { HrZonesCard } from "../components/HrZones";
+import { ZonesCard } from "../components/ZonesCard";
 
 export default function Settings() {
   const { t } = useI18n();
@@ -261,7 +261,8 @@ export default function Settings() {
 
       {/* Puls-Zonen: eine Quelle für Uhr-Grafiken UND Web — die Uhren können sie nicht überall
           selbst lesen (Wear OS/watchOS haben keine API dafür). */}
-      <HrZonesCard />
+      <ZonesCard art="hr" />
+      <ZonesCard art="speed" />
 
       <Card className="mt-4 p-5">
         <h3 className="mb-1 font-semibold">{t("profile.homespot")}</h3>

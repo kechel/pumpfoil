@@ -950,7 +950,7 @@ class RecordView extends WatchUi.View {
         var anteil = (v == null) ? 0.0 : _scaleFraction(fid, v);
         var farbe;
         if ((e[5] & 1) != 0 && v != null) {
-            farbe = _zoneColor(_scaleZone(fid, v));
+            farbe = _zoneColorAll(_scaleZone(fid, v));
         } else {
             farbe = _layoutColor(e[4], Config.BRAND_CYAN);
         }
@@ -1064,22 +1064,23 @@ class RecordView extends WatchUi.View {
         return null;
     }
 
-    (:layouts) hidden function _isHrField(fid) {
+    // Die sechs Grenzen, die fuer dieses Feld gelten — Puls und Geschwindigkeit sind seit 27.08.
+    // gleich gebaut, deshalb reicht EINE Auswahl fuer Farbe, Zone und Fuellgrad.
+    hidden function _zonesFor(fid) {
+        return _isHrFieldAll(fid) ? _rec.hrZones : _rec.speedZones;
+    }
+
+    // Puls-Feld? In JEDEM Build vorhanden — die Wert-FARBE gibt es auch ohne Layout-Renderer.
+    hidden function _isHrFieldAll(fid) {
         return fid == Config.FIELD_HR || fid == Config.FIELD_AVG_HR
             || fid == Config.FIELD_MAX_HR || fid == Config.FIELD_LAST_RUN_MAX_HR;
     }
 
     // Füllgrad 0…1 auf der Skala des Feldes (außerhalb gekappt, nicht extrapoliert).
     (:layouts) hidden function _scaleFraction(fid, v) {
-        var lo;
-        var hi;
-        if (_isHrField(fid)) {
-            lo = _rec.hrZones[0] * 1.0;
-            hi = _rec.hrZones[5] * 1.0;
-        } else {
-            lo = _rec.speedScale[0] * 1.0;
-            hi = _rec.speedScale[1] * 1.0;
-        }
+        var g = _zonesFor(fid);
+        var lo = g[0] * 1.0;
+        var hi = g[5] * 1.0;
         if (hi <= lo) { return 0.0; }
         var f = (v - lo) / (hi - lo);
         if (f < 0.0) { return 0.0; }
@@ -1087,30 +1088,17 @@ class RecordView extends WatchUi.View {
         return f;
     }
 
-    // Zone 0…4. Geschwindigkeit hat im Profil keine Zonen -> Spanne in fünf gleiche Stufen.
-    (:layouts) hidden function _scaleZone(fid, v) {
-        var z = 0;
-        if (_isHrField(fid)) {
-            for (var i = 1; i <= 4; i++) {
-                if (v >= _rec.hrZones[i]) { z = i; }
-            }
-            return z;
-        }
-        var lo = _rec.speedScale[0] * 1.0;
-        var hi = _rec.speedScale[1] * 1.0;
-        for (var k = 1; k <= 4; k++) {
-            if (v >= lo + (hi - lo) * k / 5.0) { z = k; }
-        }
-        return z;
+    // Zone 0…4 auf den sechs Grenzen des Feldes.
+    hidden function _scaleZone(fid, v) {
+        return _zoneOf(v, _zonesFor(fid));
     }
 
-    // Zonen-Farben Z1…Z5 — dieselbe Bedeutung wie in Web/Apps (blau ruhig … rot maximal).
-    (:layouts) hidden function _zoneColor(z) {
-        if (z <= 0) { return Graphics.COLOR_BLUE; }
-        if (z == 1) { return Graphics.COLOR_GREEN; }
-        if (z == 2) { return Graphics.COLOR_YELLOW; }
-        if (z == 3) { return Graphics.COLOR_ORANGE; }
-        return Graphics.COLOR_RED;
+    hidden function _zoneOf(v, grenzen) {
+        var z = 0;
+        for (var i = 1; i <= 4; i++) {
+            if (v >= grenzen[i]) { z = i; }
+        }
+        return z;
     }
 
     // Größenstufe -> echter Garmin-Font. Ab Stufe 5 sind es NUMBER-Fonts: die enthalten NUR
@@ -1188,17 +1176,26 @@ class RecordView extends WatchUi.View {
         dc.fillCircle(cx, cy + 7, 1);                                             // Home-Button
     }
 
-    // Wert-abhängige Farben (Buckets, gut ablesbar auf der Uhr).
+    // Wert-abhängige Farben — aus den PROFIL-ZONEN, derselben Skala, die auch die Grafiken in
+    // freien Layouts faerbt (docs/COLOR-ZONES.md). Bis 1.0.80 standen hier feste Stufen
+    // (12/16/20 km/h bzw. 120/150/170 bpm), waehrend die Grafik daneben nach Profil faerbte:
+    // 15 km/h hiess gruene Zahl UND gelber Ring auf derselben Seite.
+    // Ohne Config-Sync gelten die Notnagel-Zonen aus SessionRecorder — die ersten drei
+    // Geschwindigkeits-Grenzen sind dort 12/16/20, es sieht also aus wie vorher.
     hidden function _speedColor(kmh) {
-        if (kmh < 12) { return Graphics.COLOR_BLUE; }
-        if (kmh < 16) { return Graphics.COLOR_GREEN; }
-        if (kmh < 20) { return Graphics.COLOR_YELLOW; }
-        return Graphics.COLOR_RED;
+        return _zoneColorAll(_zoneOf(kmh, _rec.speedZones));
     }
     hidden function _hrColor(hr) {
-        if (hr < 120) { return Graphics.COLOR_GREEN; }
-        if (hr < 150) { return Graphics.COLOR_YELLOW; }
-        if (hr < 170) { return Graphics.COLOR_ORANGE; }
+        return _zoneColorAll(_zoneOf(hr, _rec.hrZones));
+    }
+
+    // Zonen-Farben Z1…Z5 in JEDEM Build (blau ruhig … rot maximal), damit die Wert-Farbe auch
+    // auf den kleinen Uhren ohne Layout-Renderer dieselbe Bedeutung hat.
+    hidden function _zoneColorAll(z) {
+        if (z <= 0) { return Graphics.COLOR_BLUE; }
+        if (z == 1) { return Graphics.COLOR_GREEN; }
+        if (z == 2) { return Graphics.COLOR_YELLOW; }
+        if (z == 3) { return Graphics.COLOR_ORANGE; }
         return Graphics.COLOR_RED;
     }
 

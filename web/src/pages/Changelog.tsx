@@ -30,6 +30,14 @@ type Entry = { date: string; items: Item[] };
 
 const ENTRIES: Entry[] = [
   {
+    date: "August 27, 2026",
+    items: [
+      "Speed zones \u2014 the same idea as the heart rate zones, now in your [profile](/einstellungen) as well. Five zones from slow to your own maximum, and we start you off with a suggestion built from the speeds you actually ride: we take the ninetieth percentile of your session tops rather than your single fastest reading, so one GPS glitch cannot stretch the scale to the point where nothing ever turns red again. Move a boundary and it is yours; a button puts the suggestion back.",
+      "And the colours finally agree with each other. Until now the number on your watch and the graphic next to it were coloured by two different scales: the number had fixed steps baked into the app, the graphic used the range you set for the alarm. At 15 km/h you could see a green number and a yellow ring on the same screen. Both now follow your zones \u2014 on every watch, in the layout editor and in the previews. If you have never touched the settings, the first three speed boundaries are exactly the old fixed steps, so nothing looks different until you change something.",
+      "What the colours mean, where they come from and how the suggestions are worked out is written down now, for anyone who wants to know rather than guess.",
+    ],
+  },
+  {
     date: "August 26, 2026",
     items: [
       "Your watch screens can show a value as a shape now, not just as a number. Two new elements in the [layout editor](/layouts): an edge graphic that runs along the rim of the display, and a bar you can put anywhere. Both fill up according to the value \u2014 your heart rate against your zones, your speed against the range you also use for the alarm \u2014 and they can take their colour from the zone, so a glance is enough: blue is easy, red is everything you have. You draw it once and it fits every watch. On a round watch the edge graphic is a ring segment, on a square one it becomes a frame segment along the edge, and the watch works that out from its own shape \u2014 there is no round version and no square version of your layout to keep in step. Drag it around the rim in the editor, set how far it runs, pick a thickness. It works with the fields that have a scale \u2014 heart rate and speed \u2014 because a fill level without a top and a bottom would not mean anything.",

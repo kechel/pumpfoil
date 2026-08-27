@@ -182,28 +182,41 @@ export const MOCK_VALUE: Record<number, string> = {
 export const SPEED_FIELDS = new Set([1, 5, 6, 7, 18, 19]);
 export const HR_FIELDS = new Set([2, 8, 9, 21]);
 
-/** Farb-Buckets der Uhr (RecordView._speedColor/_hrColor). */
-export function watchSpeedColor(kmh: number): string {
-  if (kmh < 12) return "#3b82f6";
-  if (kmh < 16) return "#22c55e";
-  if (kmh < 20) return "#eab308";
-  return "#ef4444";
+/** Wert-Farbe der Uhr (RecordView._speedColor/_hrColor). Seit 27.08. aus den PROFIL-ZONEN —
+ *  dieselbe Skala, die auch die Wert-Grafiken faerbt. Vorher waren das zwei verschiedene Skalen
+ *  (feste Stufen 12/16/20 fuer die Zahl, Alarmspanne fuer die Grafik): dieselbe Geschwindigkeit
+ *  konnte gruene Zahl und gelben Ring bedeuten. Doku: docs/COLOR-ZONES.md. */
+export function watchSpeedColor(kmh: number, sc: ValueScales = DEFAULT_SCALES): string {
+  return ZONE_COLORS[zoneOf(kmh, sc.speedZones)];
 }
-export function watchHrColor(hr: number): string {
-  if (hr < 120) return "#22c55e";
-  if (hr < 150) return "#eab308";
-  if (hr < 170) return "#f97316";
-  return "#ef4444";
+export function watchHrColor(hr: number, sc: ValueScales = DEFAULT_SCALES): string {
+  return ZONE_COLORS[zoneOf(hr, sc.hrZones)];
 }
 
 // --- Wert-Skalen fuer die Grafik-Elemente -------------------------------------------------
 // Puls-Zonen kommen aus dem PROFIL (`settings.hr_zones`, sechs Grenzen Z1-unten…Z5-oben), weil nur
 // Garmin und Zepp die Zonen der Uhr selbst lesen koennen — Wear OS und watchOS haben keine API
 // dafuer. Eine Quelle fuer alle Plattformen, sonst faerbte dieselbe Grafik je Uhr anders.
-export type ValueScales = { hrZones: number[]; speedScale: [number, number] };
-// Rueckfall, solange die Einstellungen nicht geladen sind: 190er Maximum im klassischen
-// Fuenf-Zonen-Schnitt (identisch zu settings.hr_zones_default ohne Messwerte).
-export const DEFAULT_SCALES: ValueScales = { hrZones: [95, 114, 133, 152, 171, 190], speedScale: [8, 25] };
+// Beide Skalen sind jetzt gleich gebaut: sechs Grenzen = fuenf Zonen (Z1-unten … Z5-oben).
+// `speedScale` bleibt als abgeleitete Spanne erhalten, weil aeltere Uhr-Versionen sie lesen.
+export type ValueScales = { hrZones: number[]; speedZones: number[] };
+// Rueckfall, solange die Einstellungen nicht geladen sind (identisch zu den Server-Vorschlaegen
+// ohne Messwerte: settings.hr_zones_default / SPEED_ZONES_FALLBACK).
+export const DEFAULT_SCALES: ValueScales = {
+  hrZones: [95, 114, 133, 152, 171, 190],
+  speedZones: [8, 12, 16, 20, 24, 28],
+};
+/** Zone 0…4 eines Wertes in sechs Grenzen. Unter Z1 = Zone 0, ueber Z5 = Zone 4. */
+export function zoneOf(value: number, grenzen: number[]): number {
+  if (Number.isNaN(value) || !Array.isArray(grenzen) || grenzen.length !== 6) return 0;
+  let z = 0;
+  for (let i = 1; i < 5; i++) if (value >= grenzen[i]) z = i;
+  return z;
+}
+/** Die sechs Grenzen, die fuer dieses Feld gelten. */
+export function zonesFor(fieldId: number, sc: ValueScales): number[] {
+  return HR_FIELDS.has(fieldId) ? sc.hrZones : sc.speedZones;
+}
 /** Zonen-Farben Z1…Z5 — derselbe Verlauf wie in jeder Trainings-App, damit die Bedeutung
  *  wiedererkennbar ist (blau ruhig -> rot maximal). */
 export const ZONE_COLORS = ["#3b82f6", "#22c55e", "#eab308", "#f97316", "#ef4444"];
@@ -213,24 +226,14 @@ export const SCALED_FIELDS: number[] = [1, 5, 6, 7, 18, 19, 2, 8, 9, 21];
 
 /** Fuellgrad 0…1 eines Wertes auf seiner Skala. Ausserhalb wird gekappt, nicht extrapoliert. */
 export function scaleFraction(fieldId: number, value: number, sc: ValueScales): number {
-  const [lo, hi] = HR_FIELDS.has(fieldId)
-    ? [sc.hrZones[0], sc.hrZones[sc.hrZones.length - 1]]
-    : sc.speedScale;
+  const g = zonesFor(fieldId, sc);
+  const lo = g[0], hi = g[g.length - 1];
   if (!(hi > lo) || Number.isNaN(value)) return 0;
   return Math.max(0, Math.min(1, (value - lo) / (hi - lo)));
 }
-/** Zone 0…4 eines Wertes. Unter Z1 = Zone 0 (die Grafik ist dann ohnehin fast leer). */
+/** Zone 0…4 eines Wertes auf der Skala seines Feldes. */
 export function scaleZone(fieldId: number, value: number, sc: ValueScales): number {
-  const grenzen = HR_FIELDS.has(fieldId)
-    ? sc.hrZones
-    : (() => {
-        const [lo, hi] = sc.speedScale;
-        // Geschwindigkeit hat keine Zonen im Profil -> die Spanne in fuenf gleiche Stufen teilen.
-        return [0, 1, 2, 3, 4, 5].map((i) => lo + ((hi - lo) * i) / 5);
-      })();
-  let z = 0;
-  for (let i = 1; i < grenzen.length - 1; i++) if (value >= grenzen[i]) z = i;
-  return Math.max(0, Math.min(ZONE_COLORS.length - 1, z));
+  return zoneOf(value, zonesFor(fieldId, sc));
 }
 /** Farbe einer Wert-Grafik: nach Skala (flags Bit 0) oder aus der Palette. */
 export function graphicColor(fieldId: number, value: number, sc: ValueScales, byScale: boolean,
@@ -240,12 +243,13 @@ export function graphicColor(fieldId: number, value: number, sc: ValueScales, by
 }
 
 /** Wert-Farbe wie auf der Uhr, wenn `colorByValue` an ist (sonst null = Standardfarbe). */
-export function valueColor(fieldId: number, colorByValue: boolean): string | null {
+export function valueColor(fieldId: number, colorByValue: boolean,
+                           sc: ValueScales = DEFAULT_SCALES): string | null {
   if (!colorByValue) return null;
   const v = parseFloat(MOCK_VALUE[fieldId] ?? "");
   if (Number.isNaN(v)) return null;
-  if (SPEED_FIELDS.has(fieldId)) return watchSpeedColor(v);
-  if (HR_FIELDS.has(fieldId)) return watchHrColor(v);
+  if (SPEED_FIELDS.has(fieldId)) return watchSpeedColor(v, sc);
+  if (HR_FIELDS.has(fieldId)) return watchHrColor(v, sc);
   return null;
 }
 

@@ -60,43 +60,41 @@ private let ZONE_COLORS: [Color] = [
 /// NUTZER, nicht dem einzelnen Layout, und wird an drei Stellen gezeichnet.
 enum LayoutScales {
     static var hrZones: [Int] = [95, 114, 133, 152, 171, 190]
-    static var speedLo: Int = 8
-    static var speedHi: Int = 25
+    /// Geschwindigkeits-Zonen, genauso gebaut wie die Puls-Zonen (sechs Grenzen). Bis 26.08. war
+    /// das nur eine Spanne (die des Alarms) und die ZAHL auf der Uhr hatte noch eine dritte,
+    /// fest verdrahtete Skala. Doku: docs/COLOR-ZONES.md.
+    static var speedZones: [Int] = [8, 12, 16, 20, 24, 28]
 
-    static func aus(hrZones z: [Int]?, speedMin: Int?, speedMax: Int?) {
+    static func aus(hrZones z: [Int]?, speedZones s: [Int]?) {
         if let z = z, z.count == 6 { hrZones = z }
-        if let lo = speedMin, lo > 0 { speedLo = lo }
-        if let hi = speedMax, hi > 0 { speedHi = hi }
+        if let s = s, s.count == 6 { speedZones = s }
+    }
+
+    static func zonesFor(_ fieldId: Int) -> [Int] {
+        HR_FIELDS.contains(fieldId) ? hrZones : speedZones
+    }
+
+    /// Zone 0…4 eines Wertes in sechs Grenzen.
+    static func zoneOf(_ v: Double, _ grenzen: [Int]) -> Int {
+        guard grenzen.count == 6 else { return 0 }
+        var z = 0
+        for i in 1..<5 where v >= Double(grenzen[i]) { z = i }
+        return min(max(z, 0), ZONE_COLORS.count - 1)
     }
 }
 
 /// Füllgrad 0…1 eines Wertes auf seiner Skala (außerhalb gekappt, nicht extrapoliert).
 private func fuellgrad(_ fieldId: Int, _ v: Double) -> Double {
-    var lo = Double(LayoutScales.speedLo)
-    var hi = Double(LayoutScales.speedHi)
-    if HR_FIELDS.contains(fieldId) {
-        lo = Double(LayoutScales.hrZones.first ?? 0)
-        hi = Double(LayoutScales.hrZones.last ?? 0)
-    }
+    let g = LayoutScales.zonesFor(fieldId)
+    let lo = Double(g.first ?? 0)
+    let hi = Double(g.last ?? 0)
     if hi <= lo { return 0 }
     return min(max((v - lo) / (hi - lo), 0), 1)
 }
 
-/// Zone 0…4 eines Wertes. Geschwindigkeit hat im Profil keine Zonen -> Spanne in fünf Stufen.
+/// Zone 0…4 eines Wertes auf den sechs Grenzen seines Feldes.
 private func zone(_ fieldId: Int, _ v: Double) -> Int {
-    var grenzen: [Double] = []
-    if HR_FIELDS.contains(fieldId) {
-        grenzen = LayoutScales.hrZones.map { Double($0) }
-    } else {
-        let lo = Double(LayoutScales.speedLo)
-        let hi = Double(LayoutScales.speedHi)
-        for i in 0...5 { grenzen.append(lo + (hi - lo) * Double(i) / 5.0) }
-    }
-    var z = 0
-    if grenzen.count > 2 {
-        for i in 1..<(grenzen.count - 1) where v >= grenzen[i] { z = i }
-    }
-    return min(max(z, 0), ZONE_COLORS.count - 1)
+    LayoutScales.zoneOf(v, LayoutScales.zonesFor(fieldId))
 }
 
 /// Punkt auf dem Display-RAND, Parameter 0…1 ab 12 Uhr im Uhrzeigersinn (Spiegel von edgePoint).

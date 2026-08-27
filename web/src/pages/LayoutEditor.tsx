@@ -73,13 +73,14 @@ export default function LayoutEditor() {
       setPageCount(pg.length + 1);
       const i = pg.findIndex((x) => typeof x === "number" && String(x) === id);
       setPageIndex(i >= 0 ? i : 0);
-      const z = st.hr_zones as number[] | null | undefined;
+      // Beide Skalen aus dem Profil (der Server liefert nie leer, sondern seinen Vorschlag).
+      // Die Geschwindigkeit hing hier fruehes an der ALARM-Spanne speed_min/speed_max — das war
+      // die zweite, widerspruechliche Skala; jetzt gibt es speed_zones wie hr_zones.
+      const zh = st.hr_zones as number[] | null | undefined;
+      const zs = st.speed_zones as number[] | null | undefined;
       setScales({
-        hrZones: Array.isArray(z) && z.length === 6 ? z.map(Number) : DEFAULT_SCALES.hrZones,
-        speedScale: [
-          Number(st.speed_min ?? DEFAULT_SCALES.speedScale[0]),
-          Number(st.speed_max ?? DEFAULT_SCALES.speedScale[1]),
-        ],
+        hrZones: Array.isArray(zh) && zh.length === 6 ? zh.map(Number) : DEFAULT_SCALES.hrZones,
+        speedZones: Array.isArray(zs) && zs.length === 6 ? zs.map(Number) : DEFAULT_SCALES.speedZones,
       });
     }).catch(() => {});
   }, [id]);
@@ -394,7 +395,7 @@ export default function LayoutEditor() {
                     <p className="text-sm text-slate-400">
                       {t("lay.scaleHint", {
                         hr: `${scales.hrZones[0]}–${scales.hrZones[5]}`,
-                        speed: `${scales.speedScale[0]}–${scales.speedScale[1]}`,
+                        speed: `${scales.speedZones[0]}–${scales.speedZones[5]}`,
                       })}
                     </p>
                   </div>

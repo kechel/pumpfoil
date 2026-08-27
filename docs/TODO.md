@@ -471,6 +471,40 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 Farbskalen vereinheitlicht + im Profil einstellbar + dokumentiert (27.08.).**
+  Jans Frage: „woher nimmt er die Farbskala?" — Antwort war: aus DREI verschiedenen Quellen.
+  Die ZAHL hatte fest verdrahtete Stufen (Speed 12/16/20 km/h, Puls 120/150/170 bpm, seit dem
+  ersten Commit ohne Herleitung), die WERT-GRAFIK nahm die Puls-Zonen aus dem Profil und fuer
+  Speed die ALARM-Spanne, Wear hatte davor sogar einen stufenlosen HSV-Verlauf. Bei Standard
+  8–25 km/h lagen die Grafik-Grenzen bei 8/11,4/14,8/18,2/21,6 -> **15 km/h = gruene Zahl und
+  gelber Ring auf derselben Seite.**
+  - **Neu `settings.speed_zones`** (sechs Grenzen, 1…80 km/h) genau wie `hr_zones`, mit
+    `_clean_speed_zones` + `speed_zones_default`: 8 km/h bis zum **90.-Perzentil der
+    Session-Maxima** (nicht das absolute Maximum — ein Doppler-Ausreisser wuerde die Skala
+    dauerhaft verziehen), in fuenf gleiche Stufen. Rueckfall `[8,12,16,20,24,28]` — die ersten drei
+    Grenzen sind bewusst die alten festen Stufen, ohne Einstellung sieht also nichts anders aus.
+    Gemessen: 95 von 189 Nutzern mit Sessions bekommen einen eigenen Vorschlag (Obergrenzen 17–27).
+  - **Zahl UND Grafik** nehmen jetzt dieselben Zonen — auf allen fuenf Renderern (Garmin, Wear,
+    Apple, Zepp, PWA-Vorschau). `/api/devices/config` liefert `speedZones`; `speedScale` bleibt als
+    abgeleitete Spanne `[z0,z5]` drin, damit **Garmin 1.0.80 im Store** unveraendert weiterfuellt.
+  - **Einstellbar im Profil auf allen drei Oberflaechen:** Web (`ZonesCard.tsx` — aus `HrZones.tsx`
+    verallgemeinert, EINE Karte, zweimal benutzt), iPhone (`SettingsView.spZonenSection`),
+    Android (`SettingsScreen.ZonenBlock`, der Puls-Block ist jetzt derselbe Baustein).
+    i18n `spz.*` in de/en/nb (Web), 7 Sprachen + nb-Overlay (iOS/Android).
+  - **Garmin-Besonderheit:** die Skalen haengen NICHT mehr an `(:layouts)`. Die kleinen Uhren
+    (96/128 KB) zeichnen keine Layouts, faerben aber die Zahl — sie haetten sonst weiter feste
+    Stufen benutzt, waehrend das Profil etwas anderes anzeigt. Kostet ~800 Byte.
+  - **Dokumentiert:** neue [`docs/COLOR-ZONES.md`](COLOR-ZONES.md) (Zonen, Farben, Vorschlags-
+    Formeln, Abgrenzung zum Alarm, Code-Stellen je Plattform, drei Fallen), verlinkt in `CLAUDE.md`.
+    Changelog-Eintrag 27.08. steht.
+  - **Alarm bleibt getrennt:** `speed_min`/`speed_max` sind Zielfenster, nicht Farbskala.
+  - Geprueft: Reinigung/Vorschlag als Fallliste (7 Faelle), Uhr-Config-Ableitung, `npm run build`
+    (live), `:app:` + `:wear:compileDebugKotlin`, `swiftc -parse` (5 Dateien), Zepp-Modulcheck,
+    Garmin-Builds instinct2/fenix5/fr55/fenix7xpro.
+  - **Instinct-2-Build jetzt 67,6 KB** (live: 63,4) — mit den Umbruch-Aenderungen von heute
+    zusammen +4,2 KB. Bei 96 KB Arbeitsspeicher im Simulator auf die Speicheranzeige schauen.
+  - Versionen NICHT gebumpt (Wear/Phone/iOS/Zepp haengen in Pruefung, Garmin 1.0.80 ist Store-Stand).
+
 - **🟢 Wear: App verschwand hinters Watchface (Nutzermeldung Instagram, 27.08.).** „After
   some time the app minimizes and the watch shows the default watchface instead of the app. The app
   continues to record the track in background" (Samsung Galaxy Watch, Akku-Optimierung war aus).

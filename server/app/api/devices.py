@@ -319,7 +319,8 @@ def device_config(
         # selbst lesen — Wear OS und watchOS haben keine API dafuer. Also ist das Profil hier die
         # EINZIGE Quelle fuer alle vier Plattformen: sonst faerbte dieselbe Grafik je Uhr anders.
         "hrZones": _hr_zones_fuer_uhr(db, user, settings),
-        "speedScale": _speed_scale(settings),
+        "speedZones": _speed_zones_fuer_uhr(db, user, settings),
+        "speedScale": _speed_scale(db, user, settings),
         # Neueste im Connect-IQ-Store freigegebene Version (nur Garmin) -> die Uhr zeigt kurz
         # einen Update-Hinweis, wenn ihre eigene Version älter ist. Leer = kein Hinweis.
         # Gepflegt in appmeta._APP_META["garmin"]["latest"] (nur bei bestätigter Freigabe setzen).
@@ -354,16 +355,33 @@ def _hr_zones_fuer_uhr(db: Session, user, settings: dict) -> list:
     return hr_zones_default(db, user)
 
 
-def _speed_scale(settings: dict) -> list:
-    """Untere/obere Grenze der Geschwindigkeits-Skala (km/h) — dieselbe Spanne wie Alarm/Farbe."""
+def _speed_zones_fuer_uhr(db: Session, user, settings: dict) -> list:
+    """Sechs Geschwindigkeits-Grenzen fuer die Uhr — dieselbe Quelle wie im Profil.
+
+    Sie faerben auf der Uhr BEIDES: die Zahl (Schalter „Werte farbig") und die Wert-Grafiken.
+    Vorher waren das zwei verschiedene Skalen — fest verdrahtete Stufen 12/16/20 fuer die Zahl,
+    die Alarmspanne fuer die Grafik —, dieselbe Geschwindigkeit konnte also gruene Zahl und
+    gelben Ring bedeuten.
+    """
+    from .settings import _clean_speed_zones, speed_zones_default, SPEED_ZONES_FALLBACK
+    z = _clean_speed_zones(settings.get("speed_zones"))
+    if z:
+        return z
+    if user is None:
+        return list(SPEED_ZONES_FALLBACK)
+    return speed_zones_default(db, user)
+
+
+def _speed_scale(db: Session, user, settings: dict) -> list:
+    """Untere/obere Grenze der Geschwindigkeits-Skala (km/h).
+
+    NUR noch fuer aeltere Uhr-Versionen da (Garmin bis 1.0.80 liest `speedScale`, nicht
+    `speedZones`): die Spanne ist jetzt die der Zonen, damit alte und neue Fassung gleich fuellen.
+    """
+    z = _speed_zones_fuer_uhr(db, user, settings)
+    if len(z) == 6:
+        return [z[0], z[5]]
     lo, hi = _manuell_standard()
-    try:
-        lo = int(round(float(settings.get("speed_min") or lo)))
-        hi = int(round(float(settings.get("speed_max") or hi)))
-    except (TypeError, ValueError):
-        lo, hi = _manuell_standard()
-    if hi <= lo:
-        lo, hi = _manuell_standard()
     return [lo, hi]
 
 

@@ -140,15 +140,20 @@ class SessionRecorder {
     // Pausen-Ansicht: Standard, solange nicht on-foil (nach der kurzen Lauf-Ende-Ansicht).
     // Uhrzeit + Läufe der aktuellen Session + Puls. REC-Symbol bleibt dabei sichtbar.
     var pauseView = [Config.FIELD_CLOCK, Config.FIELD_RUN_COUNT, Config.FIELD_HR];
-    // Wert-Skalen der Layout-Grafiken (nur (:layouts)-Builds nutzen sie). Puls-Zonen kommen aus
-    // dem PROFIL, nicht aus UserProfile.getHeartRateZones(): Wear OS und watchOS haben keine
-    // Zonen-API, die Zahl muesste also ohnehin vom Server kommen — dann soll sie auf ALLEN
-    // Plattformen aus derselben Quelle stammen, sonst faerbt dieselbe Grafik je Uhr anders.
+    // Wert-Skalen: je SECHS Grenzen = fuenf Zonen (Z1-unten … Z5-oben). Sie faerben BEIDES —
+    // die Zahl (Schalter „Werte farbig", _speedColor/_hrColor) und die Grafiken in freien
+    // Layouts. Bis 1.0.80 waren das zwei verschiedene Skalen: fest verdrahtete Stufen 12/16/20
+    // km/h fuer die Zahl und die Alarmspanne fuer die Grafik — dieselbe Geschwindigkeit konnte
+    // gruene Zahl und gelben Ring bedeuten. Doku: docs/COLOR-ZONES.md.
+    //
+    // Beide Zonen kommen aus dem PROFIL, nicht aus UserProfile.getHeartRateZones(): Wear OS und
+    // watchOS haben keine Zonen-API, die Zahl muesste also ohnehin vom Server kommen — dann soll
+    // sie auf ALLEN Plattformen aus derselben Quelle stammen.
     // NOTNAGEL fuer den allerersten Start ohne Config-Sync. Er folgt dem Profil-Vorschlag des
     // Servers ABSICHTLICH NICHT: sonst braeuchte jede Aenderung an einer Voreinstellung ein
     // Uhr-Release. Sobald /config einmal kam, gilt ohnehin die Zahl aus dem Profil.
     var hrZones = [95, 114, 133, 152, 171, 190];
-    var speedScale = [8, 25];
+    var speedZones = [8, 12, 16, 20, 24, 28];
 
     // --- Dynamische Layouts (frei gestaltete Seiten, s. docs/setup-and-watch-layouts.md) ---
     // layoutsOn kommt vom Server (Gating: Gerät >= 512 KB, Modell unauffällig, Nutzer nicht
@@ -532,33 +537,30 @@ class SessionRecorder {
     // Lite-Build: keine Layouts, also nichts zu übernehmen (Felder bleiben auf ihren Defaults).
     (:nolayouts) hidden function _applyLayouts(lay) { layoutsOn = false; }
 
-    // Wert-Skalen der Layout-Grafiken (Puls-Zonen + Geschwindigkeitsspanne). NUR die Builds mit
-    // Renderer brauchen sie: die 96-KB- (LITE) und die 128-KB-Klasse (ENG) zeichnen keine Layouts,
-    // dort waeren Parsen UND der Storage-Eintrag verschwendeter Platz — und Platz ist genau das,
-    // was diesen Uhren fehlt (1.0.64 crashte dort unter Dauerlast).
-    (:layouts) hidden function _applyScales(data) {
+    // Wert-Skalen aus dem Profil. BEWUSST in JEDEM Build, auch im LITE- (96 KB) und im
+    // ENG-Build (128 KB): die zeichnen zwar keine Layouts, faerben aber die ZAHL nach Wert —
+    // und die Farbe muss derselben Skala folgen wie ueberall sonst. Vorher hing das an
+    // (:layouts), also haetten genau die kleinen Uhren weiter feste Stufen benutzt, waehrend das
+    // Profil etwas anderes anzeigt. Die zwei Arrays und das Parsen kosten wenige hundert Byte.
+    hidden function _applyScales(data) {
         if (data.hasKey("hrZones") && data["hrZones"] instanceof Lang.Array
                 && data["hrZones"].size() == 6) {
             hrZones = data["hrZones"];
             _store("hrzones_config", hrZones);
         }
-        if (data.hasKey("speedScale") && data["speedScale"] instanceof Lang.Array
-                && data["speedScale"].size() == 2) {
-            speedScale = data["speedScale"];
-            _store("speedscale_config", speedScale);
+        if (data.hasKey("speedZones") && data["speedZones"] instanceof Lang.Array
+                && data["speedZones"].size() == 6) {
+            speedZones = data["speedZones"];
+            _store("speedzones_config", speedZones);
         }
     }
 
-    (:nolayouts) hidden function _applyScales(data) { }
-
-    (:layouts) hidden function _scalesFromCache() {
+    hidden function _scalesFromCache() {
         var hz = Storage.getValue("hrzones_config");
         if (hz instanceof Lang.Array && hz.size() == 6) { hrZones = hz; }
-        var ss = Storage.getValue("speedscale_config");
-        if (ss instanceof Lang.Array && ss.size() == 2) { speedScale = ss; }
+        var sz = Storage.getValue("speedzones_config");
+        if (sz instanceof Lang.Array && sz.size() == 6) { speedZones = sz; }
     }
-
-    (:nolayouts) hidden function _scalesFromCache() { }
     (:nolayouts) hidden function _pageSet(lay, key, legacyKey) { return []; }
 
     // On-Watch-Not-Aus umschalten (Menüpunkt). Wirkt sofort und überlebt den Neustart.

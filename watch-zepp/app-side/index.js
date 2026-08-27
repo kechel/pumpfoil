@@ -71,7 +71,7 @@ async function handle(req) {
       // Wert-Skalen der Layout-Grafiken. FEHLTEN hier zuerst: die Uhr liest `r.hrZones`, aber die
       // Whitelist liess sie nicht durch — genau der Fehler, vor dem der Kommentar oben warnt
       // (Sprache/Update-Hinweis/Layouts waren schon einmal aus demselben Grund unsichtbar).
-      hrZones: b && b.hrZones, speedScale: b && b.speedScale };
+      hrZones: b && b.hrZones, speedZones: b && b.speedZones };
   }
 
   // --- TEST: winziger Trigger, App-Side lädt Mini-Session komplett selbst hoch (kein Daten-Transfer) ---

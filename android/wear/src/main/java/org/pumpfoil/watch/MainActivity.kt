@@ -240,11 +240,8 @@ class MainActivity : ComponentActivity() {
             c.optJSONArray("hrZones")?.let { z ->
                 if (z.length() == 6) LayoutScales.hrZones = (0 until 6).map { z.getInt(it) }
             }
-            c.optJSONArray("speedScale")?.let { sc ->
-                if (sc.length() == 2) {
-                    LayoutScales.speedLo = sc.getInt(0)
-                    LayoutScales.speedHi = sc.getInt(1)
-                }
+            c.optJSONArray("speedZones")?.let { z ->
+                if (z.length() == 6) LayoutScales.speedZones = (0 until 6).map { z.getInt(it) }
             }
             autoStart = c.optBoolean("autoStart", false)
             manualAlarm = c.optBoolean("alarmEnabled", false)
@@ -1142,24 +1139,19 @@ private fun fieldColor(id: Int, s: Recorder.State): Color = when (id) {
     2, 8, 9, 21 -> hrColor(when (id) { 8 -> s.avgHr; 9 -> s.maxHr; 21 -> s.lastRunMaxHr; else -> s.hr })
     else -> Color.Unspecified
 }
-// Puls-Farbe nach Garmin-Buckets (120/150/170): grün → gelb → orange → rot.
-private fun hrColor(bpm: Int): Color = when {
-    bpm <= 0 -> Color.Unspecified
-    bpm < 120 -> Color(0xFF22C55E)
-    bpm < 150 -> Color(0xFFEAB308)
-    bpm < 170 -> Color(0xFFF97316)
-    else -> Color(0xFFEF4444)
-}
-// Geschwindigkeitsfarbe in VIER STUFEN wie Garmin (_speedColor: 12/16/20 km/h) und die
-// PWA-Vorschau (watchLayout.ts watchSpeedColor) — vorher war es hier ein stufenloser HSV-Verlauf
-// von 8 bis 25 km/h. Der sah bei jedem Wert anders aus als die Vorschau und als die Garmin-Uhr;
-// die Stufen sind der Vertrag, an dem "Farbe nach Wert" gemessen wird. Hex-Werte = die der Vorschau.
-private fun speedColor(kmh: Double): Color = when {
-    kmh < 12 -> Color(0xFF3B82F6)
-    kmh < 16 -> Color(0xFF22C55E)
-    kmh < 20 -> Color(0xFFEAB308)
-    else -> Color(0xFFEF4444)
-}
+// Wert-Farben aus den PROFIL-ZONEN — derselben Skala, die auch die Wert-Grafiken färbt
+// (LayoutScales, docs/COLOR-ZONES.md). Vorher standen hier feste Stufen (120/150/170 bpm bzw.
+// 12/16/20 km/h), während die Grafik daneben nach Profil färbte: dieselbe Geschwindigkeit
+// konnte grüne Zahl und gelben Ring bedeuten.
+private fun hrColor(bpm: Int): Color =
+    if (bpm <= 0) Color.Unspecified
+    else ZONE_COLORS[LayoutScales.zoneOf(bpm.toFloat(), LayoutScales.hrZones)]
+// Geschwindigkeitsfarbe aus den PROFIL-ZONEN (LayoutScales.speedZones) — fünf Stufen, dieselbe
+// Skala wie die Wert-Grafiken und wie Garmin/Apple/Zepp/PWA. Historie: erst ein stufenloser
+// HSV-Verlauf 8…25 km/h (sah überall anders aus), dann feste Stufen 12/16/20 (stimmten nicht mit
+// der Grafik daneben zusammen), jetzt EINE einstellbare Quelle. Doku: docs/COLOR-ZONES.md.
+private fun speedColor(kmh: Double): Color =
+    ZONE_COLORS[LayoutScales.zoneOf(kmh.toFloat(), LayoutScales.speedZones)]
 
 data class WatchAlarm(
     val enabled: Boolean = false,

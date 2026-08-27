@@ -65,48 +65,45 @@ func layoutColor(_ idx: Int, _ fallback: Color) -> Color {
     return (i >= 0 && i < LAYOUT_PALETTE.count) ? LAYOUT_PALETTE[i] : fallback
 }
 
-/// Zonen-Farben Z1…Z5 der Wert-Grafiken (Spiegel von ZONE_COLORS in watchLayout.ts).
-private let ZONE_COLORS: [Color] = [
+/// Zonen-Farben Z1…Z5 (Spiegel von ZONE_COLORS in watchLayout.ts). Nicht mehr `private`: seit
+/// 27.08. färben sie auch die ZAHL (speedColor/hrColor in ContentView), nicht nur die
+/// Wert-Grafiken — beides muss dieselbe Skala benutzen (docs/COLOR-ZONES.md).
+let ZONE_COLORS: [Color] = [
     hexColor(0x3B82F6), hexColor(0x22C55E), hexColor(0xEAB308), hexColor(0xF97316), hexColor(0xEF4444),
 ]
 
-/// Wert-Skalen der Grafiken. Die Puls-Zonen kommen vom SERVER (Profil, `/api/devices/config`
-/// -> `hrZones`): watchOS hat keine Zonen-API. Damit sind Uhr, Apps und PWA gleich eingefärbt.
+/// Wert-Skalen: je SECHS Grenzen = fünf Zonen (Z1-unten … Z5-oben). Beide kommen vom SERVER
+/// (Profil, `/api/devices/config` -> `hrZones`/`speedZones`): watchOS hat keine Zonen-API. Damit
+/// sind Uhr, Apps und PWA gleich eingefärbt. Sie färben BEIDES — die Zahl und die Wert-Grafiken;
+/// vorher waren das zwei verschiedene Skalen (feste Stufen 12/16/20 km/h für die Zahl, die
+/// Alarmspanne für die Grafik). Doku: docs/COLOR-ZONES.md.
 enum LayoutScales {
     static var hrZones: [Int] = [95, 114, 133, 152, 171, 190]
-    static var speedLo: Int = 8
-    static var speedHi: Int = 25
+    static var speedZones: [Int] = [8, 12, 16, 20, 24, 28]
+    static func zonesFor(_ fid: Int) -> [Int] { istPuls(fid) ? hrZones : speedZones }
+    /// Zone 0…4 eines Wertes in sechs Grenzen.
+    static func zoneOf(_ v: Double, _ grenzen: [Int]) -> Int {
+        guard grenzen.count == 6 else { return 0 }
+        var z = 0
+        for i in 1..<5 where v >= Double(grenzen[i]) { z = i }
+        return min(max(z, 0), ZONE_COLORS.count - 1)
+    }
 }
 
-private func istPuls(_ fid: Int) -> Bool { fid == 2 || fid == 8 || fid == 9 || fid == 21 }
+func istPuls(_ fid: Int) -> Bool { fid == 2 || fid == 8 || fid == 9 || fid == 21 }
 
 /// Füllgrad 0…1 auf der Skala des Feldes (außerhalb gekappt, nicht extrapoliert).
 private func fuellgrad(_ fid: Int, _ v: Double) -> Double {
-    var lo = Double(LayoutScales.speedLo)
-    var hi = Double(LayoutScales.speedHi)
-    if istPuls(fid) {
-        lo = Double(LayoutScales.hrZones.first ?? 0)
-        hi = Double(LayoutScales.hrZones.last ?? 0)
-    }
+    let g = LayoutScales.zonesFor(fid)
+    let lo = Double(g.first ?? 0)
+    let hi = Double(g.last ?? 0)
     if hi <= lo { return 0 }
     return min(max((v - lo) / (hi - lo), 0), 1)
 }
 
-/// Zone 0…4. Geschwindigkeit hat im Profil keine Zonen -> Spanne in fünf gleiche Stufen.
+/// Zone 0…4 auf den sechs Grenzen des Feldes.
 private func zone(_ fid: Int, _ v: Double) -> Int {
-    var grenzen: [Double] = []
-    if istPuls(fid) {
-        grenzen = LayoutScales.hrZones.map { Double($0) }
-    } else {
-        let lo = Double(LayoutScales.speedLo)
-        let hi = Double(LayoutScales.speedHi)
-        for i in 0...5 { grenzen.append(lo + (hi - lo) * Double(i) / 5.0) }
-    }
-    var z = 0
-    if grenzen.count > 2 {
-        for i in 1..<(grenzen.count - 1) where v >= grenzen[i] { z = i }
-    }
-    return min(max(z, 0), ZONE_COLORS.count - 1)
+    LayoutScales.zoneOf(v, LayoutScales.zonesFor(fid))
 }
 
 /// Punkt auf dem Display-RAND, Parameter 0…1 ab oberer Mitte im Uhrzeigersinn. Die Apple Watch

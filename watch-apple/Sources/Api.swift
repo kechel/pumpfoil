@@ -96,7 +96,7 @@ enum Api {
         // Wert-Skalen der Layout-Grafiken: Puls-Zonen aus dem PROFIL (watchOS hat keine
         // Zonen-API) und die Geschwindigkeitsspanne. Optional -> alter Server/Cache bleibt lesbar.
         let hrZones: [Int]?
-        let speedScale: [Int]?
+        let speedZones: [Int]?
     }
 
     // Letzte erfolgreich geladene Config — damit die Uhr offline mit den zuletzt

@@ -162,7 +162,8 @@ export function LayoutPreview({
 
         if (typ === EL_VALUE) {
           const fid = Number(e[6]) || 0;
-          const auto = flags & 4 ? valueColor(fid, true) : null;
+          // Wert-Farbe mit DENSELBEN Zonen wie die Grafiken (vorher feste Stufen).
+          const auto = flags & 4 ? valueColor(fid, true, scales) : null;
           return (
             <div key={i} style={{ ...box, fontSize: fontPx(e[3]), fontWeight: 700,
               color: auto ?? paletteColor(Number(e[4]), "value"), fontVariantNumeric: "tabular-nums" }}

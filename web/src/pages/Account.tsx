@@ -4,7 +4,7 @@ import { api, WatchLayout } from "../lib/api";
 import { Button, Card, ErrorBox } from "../components/ui";
 import { WatchIcon, ChevronIcon, DownloadIcon } from "../components/Icons";
 import { FIELD_OPTIONS } from "../lib/fields";
-import { MOCK_VALUE, valueColor } from "../lib/watchLayout";
+import { DEFAULT_SCALES, MOCK_VALUE, ValueScales, valueColor } from "../lib/watchLayout";
 import { LayoutPreview } from "../components/LayoutPreview";
 import { WatchMatrix } from "../components/WatchMatrix";
 import { WatchGuide } from "../components/WatchGuide";
@@ -498,6 +498,9 @@ function ViewsEditor() {
   const [pausePages, setPausePages] = useState<Page[]>([]);
   const [layouts, setLayouts] = useState<WatchLayout[]>([]);
   const [colorByValue, setColorByValue] = useState(false);
+  // Farbskala aus dem Profil (Puls- und Geschwindigkeits-Zonen) — damit die Vorschau hier
+  // dieselben Farben zeigt wie die Uhr. Vorher waren hier feste Stufen verdrahtet.
+  const [scales, setScales] = useState<ValueScales>(DEFAULT_SCALES);
   const [autoStart, setAutoStart] = useState(true);
   const [layoutsEnabled, setLayoutsEnabled] = useState(true);
   const [browseAll, setBrowseAll] = useState(true);
@@ -508,6 +511,12 @@ function ViewsEditor() {
     api.getSettings().then((s) => {
       setPages((s.pages as Page[]) ?? (s.views as number[][]) ?? [[1, 2, 0]]);
       setColorByValue(!!s.colorByValue);
+      const zh = s.hr_zones as number[] | undefined;
+      const zs = s.speed_zones as number[] | undefined;
+      setScales({
+        hrZones: Array.isArray(zh) && zh.length === 6 ? zh.map(Number) : DEFAULT_SCALES.hrZones,
+        speedZones: Array.isArray(zs) && zs.length === 6 ? zs.map(Number) : DEFAULT_SCALES.speedZones,
+      });
       setAutoStart(s.auto_start !== false);
       setLayoutsEnabled(s.layouts_enabled !== false);
       setBrowseAll(s.browse_all_pages !== false);
@@ -589,13 +598,13 @@ function ViewsEditor() {
 
       <PageList title={t("account.onFoilTitle")} desc={t("account.onFoilDesc")}
         pages={pages} setPages={(v) => { setPages(v); setSaved(false); }}
-        layouts={layouts} category="on_foil" colorByValue={colorByValue} keepOne />
+        layouts={layouts} category="on_foil" colorByValue={colorByValue} scales={scales} keepOne />
       <PageList title={t("account.offFoilTitle")} desc={t("account.offFoilDesc")}
         pages={offPages} setPages={(v) => { setOffPages(v); setSaved(false); }}
-        layouts={layouts} category="off_foil" colorByValue={colorByValue} />
+        layouts={layouts} category="off_foil" colorByValue={colorByValue} scales={scales} />
       <PageList title={t("account.pauseTitle")} desc={t("account.pauseDesc")}
         pages={pausePages} setPages={(v) => { setPausePages(v); setSaved(false); }}
-        layouts={layouts} category="pause" colorByValue={colorByValue} />
+        layouts={layouts} category="pause" colorByValue={colorByValue} scales={scales} />
 
       <div className="mt-4 flex items-center gap-3">
         <Button onClick={save} className="text-sm">{t("common.save")}</Button>
@@ -611,11 +620,11 @@ function ViewsEditor() {
 // Liste und die beiden anderen je EIN Screen; genau daran ist ein Nutzer hängengeblieben.
 // `keepOne` gilt nur für on_foil: eine Uhr ohne Datenseite gibt es nicht. Off-Foil und Pause dürfen
 // leer bleiben — dann liefert der Server den bisherigen Standard-Screen.
-function PageList({ title, desc, pages, setPages, layouts, category, colorByValue, keepOne = false }: {
+function PageList({ title, desc, pages, setPages, layouts, category, colorByValue, scales, keepOne = false }: {
   title: string; desc: string;
   pages: Page[]; setPages: (v: Page[]) => void;
   layouts: WatchLayout[]; category: "on_foil" | "off_foil" | "pause";
-  colorByValue: boolean; keepOne?: boolean;
+  colorByValue: boolean; scales: ValueScales; keepOne?: boolean;
 }) {
   const t = useT();
   const byId = (id: number) => layouts.find((l) => l.id === id);
@@ -676,7 +685,7 @@ function PageList({ title, desc, pages, setPages, layouts, category, colorByValu
                 </div>
               ) : (
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                  <WatchPreview fields={pg as number[]} colorByValue={colorByValue} />
+                  <WatchPreview fields={pg as number[]} colorByValue={colorByValue} scales={scales} />
                   <div className="flex-1 space-y-2">
                     {[0, 1, 2].map((fi) => (
                       <select key={fi} value={(pg as number[])[fi] ?? 0}
@@ -755,7 +764,8 @@ function PageList({ title, desc, pages, setPages, layouts, category, colorByValu
 // bei 1–2 Feldern groß, bei 3 kleiner; optional je nach Wert eingefärbt.
 // Werte, Farb-Buckets und Labels kommen aus lib/watchLayout — dieselbe Quelle wie der
 // Advanced-Layout-Editor; Labels sind die KURZEN Uhr-Formulierungen (`fw.*`) in Nutzersprache.
-function WatchPreview({ fields, colorByValue }: { fields: number[]; colorByValue: boolean }) {
+function WatchPreview({ fields, colorByValue, scales }:
+                      { fields: number[]; colorByValue: boolean; scales: ValueScales }) {
   const t = useT();
   const active = fields.filter((f) => f !== 0);
   const n = active.length;
@@ -767,7 +777,7 @@ function WatchPreview({ fields, colorByValue }: { fields: number[]; colorByValue
       ) : active.map((f, i) => (
         <div key={i} className="leading-none">
           <div className={`${valSize} font-bold tabular-nums`}
-            style={{ color: valueColor(f, colorByValue) ?? "#f1f5f9" }}>
+            style={{ color: valueColor(f, colorByValue, scales) ?? "#f1f5f9" }}>
             {MOCK_VALUE[f] ?? "—"}
           </div>
           <div className="mt-0.5 text-[9px] text-slate-400">{t(`fw.${f}`)}</div>

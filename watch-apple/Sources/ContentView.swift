@@ -668,9 +668,8 @@ struct RecordView: View {
         if let pv = c.pauseView, !pv.isEmpty { pauseView = pv }
         // Wert-Skalen der Layout-Grafiken uebernehmen (fehlt der Key, bleibt der bisherige Wert).
         if let z = c.hrZones, z.count == 6 { LayoutScales.hrZones = z }
-        if let sc = c.speedScale, sc.count == 2 {
-            LayoutScales.speedLo = sc[0]
-            LayoutScales.speedHi = sc[1]
+        if let sz = c.speedZones, sz.count == 6 {
+            LayoutScales.speedZones = sz
         }
         // Aufzeichnungsmodus persistieren -> Recorder liest beim Start (offline-tauglich).
         UserDefaults.standard.set(c.recordMode ?? "full", forKey: "recordMode")
@@ -970,22 +969,13 @@ private func distUnit(_ m: Double) -> String { m < 1000 ? "m" : "km" }
     }
 }
 
-// Geschwindigkeitsfarbe in VIER STUFEN wie Garmin (_speedColor: 12/16/20 km/h) und die
-// PWA-Vorschau (watchLayout.ts watchSpeedColor) — vorher stufenloser HSV-Verlauf 8…25 km/h, der bei
-// jedem Wert anders aussah als Vorschau und Garmin-Uhr. Hex-Werte = die der Vorschau.
+// Wert-Farben aus den PROFIL-ZONEN (LayoutScales) — derselben Skala, die auch die Wert-Grafiken
+// färbt. Historie: erst stufenloser HSV-Verlauf 8…25 km/h (sah überall anders aus als Vorschau
+// und Garmin), dann feste Stufen 12/16/20 (stimmten nicht mit der Grafik daneben zusammen),
+// jetzt EINE einstellbare Quelle für alle Plattformen. Doku: docs/COLOR-ZONES.md.
 private func speedColor(_ kmh: Double) -> Color {
-    if kmh < 12 { return Color(red: 0.23, green: 0.51, blue: 0.96) }
-    if kmh < 16 { return Color(red: 0.13, green: 0.77, blue: 0.37) }
-    if kmh < 20 { return Color(red: 0.92, green: 0.70, blue: 0.03) }
-    return Color(red: 0.94, green: 0.27, blue: 0.27)
+    ZONE_COLORS[LayoutScales.zoneOf(kmh, LayoutScales.speedZones)]
 }
-// Puls-Farbe nach Garmin-Buckets (120/150/170): grün → gelb → orange → rot.
 private func hrColor(_ bpm: Int) -> Color {
-    switch bpm {
-    case ..<1: return .primary
-    case ..<120: return Color(red: 0.13, green: 0.77, blue: 0.37)
-    case ..<150: return Color(red: 0.92, green: 0.70, blue: 0.03)
-    case ..<170: return Color(red: 0.98, green: 0.45, blue: 0.09)
-    default: return Color(red: 0.94, green: 0.27, blue: 0.27)
-    }
+    bpm < 1 ? .primary : ZONE_COLORS[LayoutScales.zoneOf(Double(bpm), LayoutScales.hrZones)]
 }

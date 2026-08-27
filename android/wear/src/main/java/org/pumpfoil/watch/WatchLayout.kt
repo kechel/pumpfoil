@@ -77,45 +77,47 @@ private val AUTO_VALUE = Color(0xFFFFFFFF)
 private val AUTO_LABEL = Color(0xFFD0D0D0)
 private val AUTO_LINE = Color(0xFF808080)
 
-/** Zonen-Farben Z1…Z5 der Wert-Grafiken (Spiegel von ZONE_COLORS in watchLayout.ts). */
-private val ZONE_COLORS = listOf(
+/** Zonen-Farben Z1…Z5 (Spiegel von ZONE_COLORS in watchLayout.ts). Nicht mehr `private`:
+ *  seit 27.08. faerben sie auch die ZAHL in MainActivity (speedColor/hrColor), nicht nur die
+ *  Wert-Grafiken — beides muss dieselbe Skala benutzen (docs/COLOR-ZONES.md). */
+internal val ZONE_COLORS = listOf(
     Color(0xFF3B82F6), Color(0xFF22C55E), Color(0xFFEAB308), Color(0xFFF97316), Color(0xFFEF4444),
 )
 
 /**
- * Wert-Skalen der Grafiken. Die Puls-Zonen kommen vom SERVER (Profil, `/api/devices/config`
- * -> `hrZones`), nicht aus einer Wear-API: Wear OS hat keine Zonen-Schnittstelle. Damit sind
- * Uhr, Apps und PWA garantiert gleich eingefärbt.
+ * Wert-Skalen: je SECHS Grenzen = fünf Zonen (Z1-unten … Z5-oben). Beide kommen vom SERVER
+ * (Profil, `/api/devices/config` -> `hrZones`/`speedZones`), nicht aus einer Wear-API: Wear OS
+ * hat keine Zonen-Schnittstelle. Damit sind Uhr, Apps und PWA garantiert gleich eingefärbt.
+ *
+ * Sie färben BEIDES — die Zahl (`speedColor`/`hrColor` in MainActivity) und die Wert-Grafiken.
+ * Vorher waren das zwei verschiedene Skalen: feste Stufen 12/16/20 km/h für die Zahl und die
+ * Alarmspanne für die Grafik. Doku: docs/COLOR-ZONES.md.
  */
 object LayoutScales {
     var hrZones: List<Int> = listOf(95, 114, 133, 152, 171, 190)
-    var speedLo: Int = 8
-    var speedHi: Int = 25
+    var speedZones: List<Int> = listOf(8, 12, 16, 20, 24, 28)
+    fun zonesFor(fid: Int): List<Int> = if (istPuls(fid)) hrZones else speedZones
+    /** Zone 0…4 eines Wertes in sechs Grenzen. */
+    fun zoneOf(v: Float, grenzen: List<Int>): Int {
+        var z = 0
+        for (i in 1 until 5) if (v >= grenzen[i]) z = i
+        return z.coerceIn(0, ZONE_COLORS.size - 1)
+    }
 }
 
 private fun istPuls(fid: Int) = fid == 2 || fid == 8 || fid == 9 || fid == 21
 
 /** Füllgrad 0…1 auf der Skala des Feldes (außerhalb gekappt, nicht extrapoliert). */
 private fun fuellgrad(fid: Int, v: Float): Float {
-    val lo: Float
-    val hi: Float
-    if (istPuls(fid)) {
-        lo = LayoutScales.hrZones.first().toFloat(); hi = LayoutScales.hrZones.last().toFloat()
-    } else {
-        lo = LayoutScales.speedLo.toFloat(); hi = LayoutScales.speedHi.toFloat()
-    }
+    val g = LayoutScales.zonesFor(fid)
+    val lo = g.first().toFloat()
+    val hi = g.last().toFloat()
     if (hi <= lo) return 0f
     return ((v - lo) / (hi - lo)).coerceIn(0f, 1f)
 }
 
-/** Zone 0…4. Geschwindigkeit hat im Profil keine Zonen -> Spanne in fünf gleiche Stufen. */
-private fun zone(fid: Int, v: Float): Int {
-    val grenzen = if (istPuls(fid)) LayoutScales.hrZones.map { it.toFloat() }
-    else (0..5).map { LayoutScales.speedLo + (LayoutScales.speedHi - LayoutScales.speedLo) * it / 5f }
-    var z = 0
-    for (i in 1 until grenzen.size - 1) if (v >= grenzen[i]) z = i
-    return z.coerceIn(0, ZONE_COLORS.size - 1)
-}
+/** Zone 0…4 auf den sechs Grenzen des Feldes. */
+private fun zone(fid: Int, v: Float): Int = LayoutScales.zoneOf(v, LayoutScales.zonesFor(fid))
 
 /** Punkt auf dem Display-RAND, Parameter 0…1 ab 12 Uhr im Uhrzeigersinn (wie edgePoint im Web). */
 private fun randPunkt(rund: Boolean, w: Float, h: Float, inset: Float, p: Float): Offset {

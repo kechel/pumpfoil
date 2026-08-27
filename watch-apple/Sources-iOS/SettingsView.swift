@@ -19,6 +19,8 @@ struct SettingsView: View {
     // ohne eigene Einstellung kommt ein Vorschlag aus dem hoechsten je gemessenen Puls.
     @State private var zonen: [Int] = [95, 114, 133, 152, 171, 190]
     @State private var zonenVorschlag = true
+    @State private var spZonen: [Int] = [8, 12, 16, 20, 24, 28]
+    @State private var spZonenVorschlag = true
     @State private var homespot = ""
     @State private var activityType = "surfing"
     @State private var activityReady = false   // erst nach dem Laden auf Änderungen reagieren
@@ -45,6 +47,7 @@ struct SettingsView: View {
         Form {
             weightSection
             zonenSection
+            spZonenSection
             homespotSection
             activitySection
             designSection
@@ -142,6 +145,65 @@ struct SettingsView: View {
                 saved = false
             }
         )
+    }
+
+    // --- Geschwindigkeits-Zonen: dieselbe Mechanik wie oben, nur andere Einheit/Grenzen. Sie
+    // faerben die Zahl auf der Uhr UND die Wert-Grafiken (docs/COLOR-ZONES.md).
+    private var spZonenSection: some View {
+        Section {
+            ForEach(0..<5, id: \.self) { i in
+                Stepper(value: spZonenBinding(i), in: 1...80) {
+                    HStack {
+                        Circle().fill(zonenFarbe(i)).frame(width: 10, height: 10)
+                        Text(Loc.t("spz.z\(i + 1)", lang))
+                        Spacer()
+                        Text("\(spZonen[i])–\(spZonen[i + 1])").foregroundStyle(.secondary)
+                    }
+                }
+            }
+            Stepper(value: spZonenBinding(5), in: 1...80) {
+                HStack {
+                    Text(Loc.t("spz.z5", lang))
+                    Spacer()
+                    Text("\(spZonen[5]) km/h").foregroundStyle(.secondary)
+                }
+            }
+            if !spZonenVorschlag {
+                Button(Loc.t("spz.reset", lang)) { spZonenZuruecksetzen() }
+            }
+        } header: { Text(Loc.t("spz.title", lang)) }
+        footer: { Text(spZonenFuss) }
+    }
+
+    private var spZonenFuss: String {
+        if spZonenVorschlag {
+            return Loc.t("spz.isSuggestion", lang).replacingOccurrences(of: "{max}", with: "\(spZonen[5])")
+        }
+        return Loc.t("spz.hint", lang)
+    }
+
+    private func spZonenBinding(_ i: Int) -> Binding<Int> {
+        Binding(
+            get: { spZonen[i] },
+            set: { neu in
+                var w = spZonen
+                w[i] = min(max(neu, 1), 80)
+                var k = i + 1
+                while k < w.count { w[k] = max(w[k], w[k - 1] + 1); k += 1 }
+                k = i - 1
+                while k >= 0 { w[k] = min(w[k], w[k + 1] - 1); k -= 1 }
+                spZonen = w.map { min(max($0, 1), 80) }
+                spZonenVorschlag = false
+                saved = false
+            }
+        )
+    }
+
+    private func spZonenZuruecksetzen() {
+        Task {
+            try? await Api.saveSettings(["speed_zones": NSNull()])
+            await load()
+        }
     }
 
     private func zonenZuruecksetzen() {
@@ -318,10 +380,12 @@ struct SettingsView: View {
             zonen = z
         }
         zonenVorschlag = (s["hr_zones_suggested"] as? Bool) ?? false
-        // Dieselben Zahlen fuer die Layout-Vorschauen (Zonenfarben der Wert-Grafiken).
-        LayoutScales.aus(hrZones: zonen,
-                         speedMin: (s["speed_min"] as? NSNumber)?.intValue,
-                         speedMax: (s["speed_max"] as? NSNumber)?.intValue)
+        if let z = (s["speed_zones"] as? [Any])?.compactMap({ ($0 as? NSNumber)?.intValue }), z.count == 6 {
+            spZonen = z
+        }
+        spZonenVorschlag = (s["speed_zones_suggested"] as? Bool) ?? false
+        // Dieselben Zahlen fuer die Layout-Vorschauen UND fuer die Wert-Farbe auf der Uhr.
+        LayoutScales.aus(hrZones: zonen, speedZones: spZonen)
         if let ds = try? await Api.myDevices() { hasGarmin = ds.contains { $0.platform == "garmin" && $0.revoked_at == nil } }
         if let np = s["notify_prefs"] as? [String: Any] {
             nLike = (np["like"] as? Bool) ?? true
@@ -355,6 +419,7 @@ struct SettingsView: View {
             try? await Api.saveSettings([
                 "weight_kg": weight,
                 "hr_zones": zonen,
+                "speed_zones": spZonen,
                 "homespot": homespot,
                 // "chat" MUSS mit: notify_prefs wird als Ganzes ersetzt, ein Speichern von hier
                 // hat die im Web gesetzte Chat-Einstellung also stillschweigend geloescht.

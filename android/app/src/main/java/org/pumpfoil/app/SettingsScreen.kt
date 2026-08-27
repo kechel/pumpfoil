@@ -86,6 +86,8 @@ fun SettingsScreen(onBack: () -> Unit) {
     var pwNew by remember { mutableStateOf("") }
     var pwMsg by remember { mutableStateOf<Pair<Boolean, String>?>(null) }   // (ok, text)
     var pwBusy by remember { mutableStateOf(false) }
+    var spZonen by remember { mutableStateOf(listOf(8, 12, 16, 20, 24, 28)) }
+    var spZonenVorschlag by remember { mutableStateOf(true) }
     var sensitivity by remember { mutableStateOf("normal") }
     var pumpUnit by remember { mutableStateOf(PumpUnit.unit) }
     var reanalysis by remember { mutableStateOf<ReanalysisProgress?>(null) }
@@ -100,7 +102,11 @@ fun SettingsScreen(onBack: () -> Unit) {
                 ?.mapNotNull { it.jsonPrimitive.intOrNull }
                 ?.takeIf { it.size == 6 }?.let { zonen = it }
             zonenVorschlag = s["hr_zones_suggested"]?.jsonPrimitive?.booleanOrNull ?: false
-            // Dieselben Zahlen fuer die Layout-Vorschauen (Zonenfarben der Wert-Grafiken).
+            (s["speed_zones"] as? kotlinx.serialization.json.JsonArray)
+                ?.mapNotNull { it.jsonPrimitive.intOrNull }
+                ?.takeIf { it.size == 6 }?.let { spZonen = it }
+            spZonenVorschlag = s["speed_zones_suggested"]?.jsonPrimitive?.booleanOrNull ?: false
+            // Dieselben Zahlen fuer die Layout-Vorschauen UND fuer die Wert-Farbe auf der Uhr.
             LayoutScales.aus(s)
             (s["notify_prefs"] as? kotlinx.serialization.json.JsonObject)?.let { np ->
                 nLike = np["like"]?.jsonPrimitive?.booleanOrNull ?: true
@@ -127,6 +133,9 @@ fun SettingsScreen(onBack: () -> Unit) {
                     put("weight_kg", weight.toIntOrNull() ?: 0)
                     put("hr_zones", kotlinx.serialization.json.buildJsonArray {
                         zonen.forEach { add(kotlinx.serialization.json.JsonPrimitive(it)) }
+                    })
+                    put("speed_zones", kotlinx.serialization.json.buildJsonArray {
+                        spZonen.forEach { add(kotlinx.serialization.json.JsonPrimitive(it)) }
                     })
                     put("homespot", homespot)
                     put("notify_prefs", buildJsonObject {
@@ -165,57 +174,16 @@ fun SettingsScreen(onBack: () -> Unit) {
             )
             Spacer(Modifier.height(16.dp))
 
-            // Puls-Zonen. Einzige Quelle fuer alle Plattformen: nur Garmin und Zepp koennen die
-            // Zonen der Uhr selbst lesen, Wear OS und watchOS haben keine API dafuer.
-            Text(I18n.t("hrz.title"), style = MaterialTheme.typography.labelLarge)
-            Text(I18n.t("hrz.hint"), style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 2.dp, bottom = 6.dp))
-            ZONEN_FARBEN.forEachIndexed { i, farbe ->
-                Row(Modifier.fillMaxWidth().padding(vertical = 2.dp),
-                    verticalAlignment = Alignment.CenterVertically) {
-                    Box(Modifier.size(12.dp).clip(CircleShape).background(farbe))
-                    Spacer(Modifier.width(8.dp))
-                    Text(I18n.t("hrz.z${i + 1}"), Modifier.width(120.dp),
-                        style = MaterialTheme.typography.bodyMedium)
-                    OutlinedTextField(
-                        value = zonen[i].toString(),
-                        onValueChange = { v ->
-                            val n = v.filter { c -> c.isDigit() }.take(3).toIntOrNull() ?: 0
-                            zonen = zonenRepariert(zonen.toMutableList().also { it[i] = n }, i)
-                            zonenVorschlag = false
-                            saved = false
-                        },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.width(96.dp),
-                    )
-                    Text(" – ", style = MaterialTheme.typography.bodyMedium)
-                    if (i < 4) {
-                        Text("${zonen[i + 1]}", style = MaterialTheme.typography.bodyMedium)
-                    } else {
-                        OutlinedTextField(
-                            value = zonen[5].toString(),
-                            onValueChange = { v ->
-                                val n = v.filter { c -> c.isDigit() }.take(3).toIntOrNull() ?: 0
-                                zonen = zonenRepariert(zonen.toMutableList().also { it[5] = n }, 5)
-                                zonenVorschlag = false
-                                saved = false
-                            },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.width(96.dp),
-                        )
-                    }
-                }
-            }
-            if (zonenVorschlag) {
-                Text(I18n.t("hrz.isSuggestion").replace("{max}", "${zonen[5]}"),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 4.dp))
-            } else {
-                OutlinedButton(onClick = {
+            // Zonen — EIN Block, zweimal benutzt: Puls und Geschwindigkeit funktionieren
+            // identisch (sechs Grenzen = fuenf Zonen). Sie sind die einzige Quelle fuer alle
+            // Plattformen (nur Garmin und Zepp koennen Zonen selbst lesen, Wear OS und watchOS
+            // haben keine API dafuer) und faerben BEIDES: die Zahl auf der Uhr und die
+            // Wert-Grafiken. Doku: docs/COLOR-ZONES.md.
+            ZonenBlock(
+                praefix = "hrz", einheit = "bpm", min = 60, max = 240,
+                werte = zonen, vorschlag = zonenVorschlag,
+                onChange = { w, i -> zonen = zonenRepariert(w, i, 60, 240); zonenVorschlag = false; saved = false },
+                onReset = {
                     scope.launch {
                         try {
                             Api.saveSettings(buildJsonObject { put("hr_zones", kotlinx.serialization.json.JsonNull) })
@@ -228,8 +196,27 @@ fun SettingsScreen(onBack: () -> Unit) {
                             flashSaved()
                         } catch (_: Exception) {}
                     }
-                }, modifier = Modifier.padding(top = 4.dp)) { Text(I18n.t("hrz.reset")) }
-            }
+                },
+            )
+            Spacer(Modifier.height(16.dp))
+            ZonenBlock(
+                praefix = "spz", einheit = "km/h", min = 1, max = 80,
+                werte = spZonen, vorschlag = spZonenVorschlag,
+                onChange = { w, i -> spZonen = zonenRepariert(w, i, 1, 80); spZonenVorschlag = false; saved = false },
+                onReset = {
+                    scope.launch {
+                        try {
+                            Api.saveSettings(buildJsonObject { put("speed_zones", kotlinx.serialization.json.JsonNull) })
+                            val r = Api.settings()
+                            (r["speed_zones"] as? kotlinx.serialization.json.JsonArray)
+                                ?.mapNotNull { it.jsonPrimitive.intOrNull }
+                                ?.takeIf { it.size == 6 }?.let { spZonen = it }
+                            spZonenVorschlag = true
+                            flashSaved()
+                        } catch (_: Exception) {}
+                    }
+                },
+            )
             Spacer(Modifier.height(16.dp))
 
             // Homespot.
@@ -443,9 +430,74 @@ private val ZONEN_FARBEN = listOf(
 /** Grenzen muessen streng steigen. Statt eine Eingabe abzulehnen (und den Nutzer raetseln zu
  *  lassen) die Nachbarn mitschieben — so bleibt jede Zone mindestens 1 bpm breit. Spiegel von
  *  `repariert` in web/src/components/HrZones.tsx. */
-private fun zonenRepariert(w: List<Int>, i: Int): List<Int> {
-    val out = w.map { it.coerceIn(60, 240) }.toMutableList()
+// Grenzen muessen streng steigen. Statt eine Eingabe abzulehnen (und den Nutzer raetseln zu
+// lassen) die Nachbarn mitschieben — so bleibt jede Zone mindestens 1 breit. Spiegel von
+// ZonesCard.tsx und SettingsView.swift.
+private fun zonenRepariert(w: List<Int>, i: Int, min: Int, max: Int): List<Int> {
+    val out = w.map { it.coerceIn(min, max) }.toMutableList()
     for (k in i + 1 until out.size) out[k] = maxOf(out[k], out[k - 1] + 1)
     for (k in i - 1 downTo 0) out[k] = minOf(out[k], out[k + 1] - 1)
-    return out.map { it.coerceIn(60, 240) }
+    return out.map { it.coerceIn(min, max) }
+}
+
+// Ein Zonen-Block (fuenf Zeilen + Rueckfall-Hinweis/Zuruecksetzen). `praefix` waehlt die
+// i18n-Schluessel ("hrz" oder "spz"), damit Puls und Geschwindigkeit dieselbe Oberflaeche haben.
+@Composable
+private fun ZonenBlock(
+    praefix: String, einheit: String, min: Int, max: Int,
+    werte: List<Int>, vorschlag: Boolean,
+    onChange: (List<Int>, Int) -> Unit, onReset: () -> Unit,
+) {
+    val stellen = if (max >= 100) 3 else 2
+    Text(I18n.t("$praefix.title"), style = MaterialTheme.typography.labelLarge)
+    Text(I18n.t("$praefix.hint"), style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(top = 2.dp, bottom = 6.dp))
+    ZONEN_FARBEN.forEachIndexed { i, farbe ->
+        Row(Modifier.fillMaxWidth().padding(vertical = 2.dp),
+            verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.size(12.dp).clip(CircleShape).background(farbe))
+            Spacer(Modifier.width(8.dp))
+            Text(I18n.t("$praefix.z${i + 1}"), Modifier.width(120.dp),
+                style = MaterialTheme.typography.bodyMedium)
+            OutlinedTextField(
+                value = werte[i].toString(),
+                onValueChange = { v ->
+                    val n = v.filter { c -> c.isDigit() }.take(stellen).toIntOrNull() ?: 0
+                    onChange(werte.toMutableList().also { it[i] = n }, i)
+                },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.width(96.dp),
+            )
+            Text(" – ", style = MaterialTheme.typography.bodyMedium)
+            if (i < 4) {
+                Text("${werte[i + 1]}", style = MaterialTheme.typography.bodyMedium)
+            } else {
+                OutlinedTextField(
+                    value = werte[5].toString(),
+                    onValueChange = { v ->
+                        val n = v.filter { c -> c.isDigit() }.take(stellen).toIntOrNull() ?: 0
+                        onChange(werte.toMutableList().also { it[5] = n }, 5)
+                    },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.width(96.dp),
+                )
+            }
+            Spacer(Modifier.width(6.dp))
+            Text(einheit, style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+    if (vorschlag) {
+        Text(I18n.t("$praefix.isSuggestion").replace("{max}", "${werte[5]}"),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 4.dp))
+    } else {
+        OutlinedButton(onClick = onReset, modifier = Modifier.padding(top = 4.dp)) {
+            Text(I18n.t("$praefix.reset"))
+        }
+    }
 }

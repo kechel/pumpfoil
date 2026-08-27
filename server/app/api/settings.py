@@ -38,7 +38,16 @@ DEFAULTS = {
     # None = noch nie gesetzt -> der Server liefert einen Vorschlag aus dem eigenen gemessenen
     # Hoechstpuls (s. `hr_zones_default`), den man dann anpassen kann.
     "hr_zones": None,
-    # Vibrationsalarm bei Speed-Schwellen (km/h, 0 = aus).
+    # Geschwindigkeits-Zonen, genau wie die Puls-Zonen: sechs Grenzen (Z1-unten … Z5-obergrenze,
+    # km/h). Sie faerben BEIDES — die Zahl (Schalter „Werte farbig") und die Wert-Grafiken in
+    # freien Layouts. Vorher gab es dafuer zwei getrennte Skalen: fest verdrahtete Stufen
+    # 12/16/20 fuer die Zahl und die Alarmspanne speed_min…speed_max fuer die Grafik. Auf
+    # derselben Seite konnte die Zahl gruen und der Ring daneben gelb sein.
+    # None = noch nie gesetzt -> Vorschlag aus der eigenen gefahrenen Geschwindigkeit
+    # (s. `speed_zones_default`).
+    "speed_zones": None,
+    # Vibrationsalarm bei Speed-Schwellen (km/h, 0 = aus). BEWUSST getrennt von speed_zones:
+    # der Alarm ist ein Zielfenster, die Zonen sind eine Farbskala.
     "alarm_enabled": False,
     "speed_high": 0, "speed_low": 0,
     "alarm_pattern_high": "short2", "alarm_pattern_low": "long2",
@@ -130,6 +139,59 @@ def _clean_hr_zones(v) -> list | None:
     if any(z[i] >= z[i + 1] for i in range(5)):
         return None
     return z
+
+
+# Rueckfall-Zonen, wenn nichts gemessen und nichts eingestellt ist. Bewusst so gewaehlt, dass die
+# ersten drei Grenzen den fest verdrahteten Stufen von vorher entsprechen (12/16/20 km/h) — wer die
+# Farben gewohnt ist, sieht dasselbe; nur der frueher pauschal rote Bereich ab 20 km/h teilt sich
+# jetzt in orange (Z4) und rot (Z5).
+SPEED_ZONES_FALLBACK = [8, 12, 16, 20, 24, 28]
+
+
+def _clean_speed_zones(v) -> list | None:
+    """Sechs aufsteigende Geschwindigkeits-Grenzen (Z1-Untergrenze … Z5-Obergrenze), 1…80 km/h.
+
+    Wie bei den Puls-Zonen: nicht plausibel = None (= „nimm den Vorschlag"), statt halb gueltige
+    Grenzen zu speichern.
+    """
+    if not isinstance(v, (list, tuple)) or len(v) != 6:
+        return None
+    try:
+        z = [int(round(float(x))) for x in v]
+    except (TypeError, ValueError):
+        return None
+    if any(x < 1 or x > 80 for x in z):
+        return None
+    if any(z[i] >= z[i + 1] for i in range(5)):
+        return None
+    return z
+
+
+def speed_zones_default(db: Session, user: models.User) -> list:
+    """Vorschlag aus der EIGENEN gefahrenen Geschwindigkeit: 8 km/h bis zum persoenlichen Maximum,
+    in fuenf gleiche Stufen geteilt.
+
+    Anker ist das 90.-Perzentil der Session-Maxima, nicht das absolute Maximum: ein einzelner
+    GPS-Ausreisser (Doppler-Burst) wuerde die Skala sonst dauerhaft verziehen, und dann steht die
+    Grafik nie mehr im roten Bereich. Untergrenze fest bei 8 km/h — darunter gleitet niemand.
+    Zu wenig Daten -> SPEED_ZONES_FALLBACK.
+    """
+    werte = [float(v) * 3.6 for (v,) in
+             (db.query(models.AnalysisResult.max_speed_mps)
+                .join(models.Session, models.Session.id == models.AnalysisResult.session_id)
+                .filter(models.Session.user_id == user.id, models.Session.deleted.isnot(True))
+                .all())
+             if v is not None and 0 < float(v) * 3.6 < 80]
+    if len(werte) < 3:
+        return list(SPEED_ZONES_FALLBACK)
+    werte.sort()
+    hi = int(round(werte[min(len(werte) - 1, int(len(werte) * 0.9))]))
+    if hi < 14:          # unplausibel niedrig (nur Anfahrten/kein echter Lauf)
+        return list(SPEED_ZONES_FALLBACK)
+    if hi > 60:
+        hi = 60
+    lo = SPEED_ZONES_FALLBACK[0]
+    return [int(round(lo + (hi - lo) * i / 5.0)) for i in range(6)]
 
 
 def hr_zones_default(db: Session, user: models.User) -> list:
@@ -255,6 +317,9 @@ def get_settings(user: models.User = Depends(current_user), db: Session = Depend
     if not m.get("hr_zones"):
         m["hr_zones"] = hr_zones_default(db, user)
         m["hr_zones_suggested"] = True
+    if not m.get("speed_zones"):
+        m["speed_zones"] = speed_zones_default(db, user)
+        m["speed_zones_suggested"] = True
     return m
 
 
@@ -279,6 +344,8 @@ def update_settings(
         current["layouts_enabled"] = bool(patch["layouts_enabled"])
     if "hr_zones" in patch:
         current["hr_zones"] = _clean_hr_zones(patch["hr_zones"])
+    if "speed_zones" in patch:
+        current["speed_zones"] = _clean_speed_zones(patch["speed_zones"])
     if "auto_start" in patch:
         current["auto_start"] = bool(patch["auto_start"])
     if "record_mode" in patch and patch["record_mode"] in ("full", "lite", "gps"):
@@ -451,4 +518,7 @@ def update_settings(
     if not out.get("hr_zones"):
         out["hr_zones"] = hr_zones_default(db, user)
         out["hr_zones_suggested"] = True
+    if not out.get("speed_zones"):
+        out["speed_zones"] = speed_zones_default(db, user)
+        out["speed_zones_suggested"] = True
     return out

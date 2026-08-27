@@ -82,37 +82,41 @@ private val ZONE_COLORS = listOf(
  */
 object LayoutScales {
     var hrZones: List<Int> = listOf(95, 114, 133, 152, 171, 190)
-    var speedLo: Int = 8
-    var speedHi: Int = 25
+    /** Geschwindigkeits-Zonen, genauso gebaut wie die Puls-Zonen (sechs Grenzen). Bis 26.08. war
+     *  das nur die Alarm-Spanne, und die ZAHL auf der Uhr hatte eine dritte, fest verdrahtete
+     *  Skala — dieselbe Geschwindigkeit konnte gruene Zahl und gelben Ring bedeuten.
+     *  Doku: docs/COLOR-ZONES.md. */
+    var speedZones: List<Int> = listOf(8, 12, 16, 20, 24, 28)
 
     fun aus(s: kotlinx.serialization.json.JsonObject) {
         val z = (s["hr_zones"] as? JsonArray)?.mapNotNull { (it as? JsonPrimitive)?.intOrNull }
         if (z != null && z.size == 6) hrZones = z
-        (s["speed_min"] as? JsonPrimitive)?.intOrNull?.let { if (it > 0) speedLo = it }
-        (s["speed_max"] as? JsonPrimitive)?.intOrNull?.let { if (it > 0) speedHi = it }
+        val sz = (s["speed_zones"] as? JsonArray)?.mapNotNull { (it as? JsonPrimitive)?.intOrNull }
+        if (sz != null && sz.size == 6) speedZones = sz
+    }
+
+    fun zonesFor(fieldId: Int): List<Int> = if (fieldId in HR_FIELDS) hrZones else speedZones
+
+    /** Zone 0…4 eines Wertes in sechs Grenzen. */
+    fun zoneOf(v: Float, grenzen: List<Int>): Int {
+        if (grenzen.size != 6) return 0
+        var z = 0
+        for (i in 1 until 5) if (v >= grenzen[i]) z = i
+        return z.coerceIn(0, ZONE_COLORS.size - 1)
     }
 }
 
 /** Füllgrad 0…1 eines Wertes auf seiner Skala (außerhalb wird gekappt, nicht extrapoliert). */
 private fun fuellgrad(fieldId: Int, v: Float): Float {
-    val lo: Float; val hi: Float
-    if (fieldId in HR_FIELDS) {
-        lo = LayoutScales.hrZones.first().toFloat(); hi = LayoutScales.hrZones.last().toFloat()
-    } else {
-        lo = LayoutScales.speedLo.toFloat(); hi = LayoutScales.speedHi.toFloat()
-    }
+    val g = LayoutScales.zonesFor(fieldId)
+    val lo = g.first().toFloat()
+    val hi = g.last().toFloat()
     if (hi <= lo) return 0f
     return ((v - lo) / (hi - lo)).coerceIn(0f, 1f)
 }
 
-/** Zone 0…4 eines Wertes. Geschwindigkeit hat im Profil keine Zonen -> Spanne in 5 Stufen. */
-private fun zone(fieldId: Int, v: Float): Int {
-    val grenzen = if (fieldId in HR_FIELDS) LayoutScales.hrZones.map { it.toFloat() }
-    else (0..5).map { LayoutScales.speedLo + (LayoutScales.speedHi - LayoutScales.speedLo) * it / 5f }
-    var z = 0
-    for (i in 1 until grenzen.size - 1) if (v >= grenzen[i]) z = i
-    return z.coerceIn(0, ZONE_COLORS.size - 1)
-}
+/** Zone 0…4 auf den sechs Grenzen des Feldes. */
+private fun zone(fieldId: Int, v: Float): Int = LayoutScales.zoneOf(v, LayoutScales.zonesFor(fieldId))
 
 /** Punkt auf dem Display-RAND, Parameter 0…1 ab 12 Uhr im Uhrzeigersinn. Rund -> Kreis,
  *  eckig -> Rechteck-Umfang (Spiegel von edgePoint in watchLayout.ts). */
