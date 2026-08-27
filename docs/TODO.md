@@ -56,11 +56,14 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   verschluckt, `expected_chunks`, Live-Distanz ohne Zuwachs im Stand, gesaeuberter Max-Speed,
   Lauf-Zusammenfuehrung.
 
-- **🟡 iOS + Apple Watch 1.1.25 (29) EINGEREICHT — 26.08.2026, 21:25 Uhr (Jans Meldung).**
-  Status in App Store Connect: „Warten auf Pruefung". Uebermittlungskennung
-  `a9cf1407-1369-4d4b-815d-6525abffede6`. Ein Bundle = iPhone-App UND Watch-App (eine
-  MARKETING_VERSION in `project.yml`), nach der Freigabe also BEIDE `appmeta`-Schluessel setzen
-  (`ios` und `apple`).
+- **🟢 iOS + Apple Watch 1.1.25 (29) LIVE — freigegeben 27.08.2026** („Review of your
+  submission has been completed. It is now eligible for distribution", Jans Meldung).
+  Eingereicht 26.08. 21:25 Uhr, Uebermittlungskennung `a9cf1407-1369-4d4b-815d-6525abffede6`.
+  **Gegengeprueft statt geglaubt:** `itunes.apple.com/lookup?id=6783975714` in de/us/nl/no/fi
+  liefert ueberall **1.1.25**, `currentVersionReleaseDate 2026-08-27T16:35:34Z` — also wirklich
+  ausgeliefert, nicht nur freigegeben. `appmeta` daraufhin auf 1.1.25 gesetzt, und zwar in BEIDEN
+  Schluesseln (`ios` UND `apple`): ein Bundle = iPhone-App und Watch-App mit einer
+  MARKETING_VERSION aus `project.yml`. Server neu gestartet, `/api/app/latest` fuer beide geprueft.
   Inhalt: Wert-Grafiken in der Layout-Vorschau + Puls-Zonen im Profil, GPX-/FIT-Download der
   eigenen Session, Spot-Beschreibungen inkl. Auswahl aus Session-Fotos, Spot-Knopf und
   Spot-Label mit Gewaesser, AR in den Foil-Badges, Katalog-Suche unabhaengig von der
