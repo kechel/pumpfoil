@@ -489,10 +489,11 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     seine Zahl und in der Tabelle die Standard-Zahl.
   - **Gebaut:** Gewicht kommt jetzt als Prop von der Seite (`weightKg`), die Kachel holt es nur
     noch, wenn kein Aufrufer es mitgibt -> eine Quelle je Seite, und der sinnlose 401 auf dem
-    oeffentlichen Link entfaellt. **Und die Annahme steht jetzt sichtbar unter den Kacheln**
-    (`power.basis`, war in allen 16 Sprachen vorhanden und wurde nirgends benutzt): bisher stand
-    sie nur im `title`-Tooltip der Kachel — auf dem Handy gibt es kein Hover, genau dort entstand
-    die Frage.
+    oeffentlichen Link entfaellt. Die Rechengrundlage bleibt im **(i)-Tooltip**
+    der Kachel (`power.tip`: Foil, Ø-Speed, Gesamtgewicht, Vortrieb/Pump-Traegheit). Ich hatte sie
+    zwischenzeitlich als sichtbare Zeile unter die Kacheln gesetzt — zurueckgenommen (Jan, 27.08.:
+    „das muss doch nicht noch extra zur Schau getragen werden"). Sie war nur sinnvoll, solange mit
+    dem Standardgewicht gerechnet wurde und die Zahl dadurch unerklaerlich war; jetzt stimmt sie.
   - **ENTSCHIEDEN (Jan, 27.08.): das Gewicht des BESITZERS benutzen** — „das ist doch die
     Entscheidung des Nutzers genau diese Daten zu teilen, da kann man doch viel mehr entnehmen als
     nur das Gewicht, aus dem Pulsverlauf und den Lauflaengen". Stimmt: der Teilen-Payload enthaelt
