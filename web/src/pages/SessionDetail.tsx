@@ -1349,6 +1349,7 @@ export default function SessionDetail() {
             avgKmh={m?.avg_speed_mps != null ? m.avg_speed_mps * 3.6 : null}
             pumpHz={m?.avg_pump_hz ?? null}
             estimated={session.foil.thickness_estimated}
+            weightKg={weightKg}
           />
         )}
 
@@ -1375,6 +1376,18 @@ export default function SessionDetail() {
         <ClickStat label={t("rec.farthestRun")} value={farSeg.v != null ? fmtM(farSeg.v) : "–"} sub="m"
           runIdx={farSeg.i} selected={selectedRun} onSelect={setSelectedRun} />
       </div>
+
+      {/* Womit die theoretische Leistung gerechnet wurde. Stand bisher NUR im (i)-Tooltip der
+          Kachel — auf dem Handy gibt es kein Hover, dort war die Zahl also unerklaerlich. Genau
+          daran hing der Befund vom 27.08.: hinter dem Teilen-Link kennt die Seite das Gewicht des
+          Fahrers nicht und rechnet mit dem Standardwert, dieselbe Session zeigte deshalb 227 W
+          bzw. 243 W. Die Annahme sichtbar zu machen kostet eine Zeile und beantwortet die Frage
+          da, wo sie entsteht. */}
+      {foilDims && weightKg != null && (
+        <p className="mt-2 text-sm text-slate-400">
+          {t("power.basis", { weight: String(weightKg + DEFAULT_RIDER.equipmentWeight) })}
+        </p>
+      )}
 
 
       <div

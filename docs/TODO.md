@@ -474,6 +474,31 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟡 Theoretische Leistung: Teilen-Link rechnete mit anderem Gewicht (27.08., Meldung
+  PeterH + von Jan reproduziert).** „Am PC 208 W, hinter dem Teilen-Link im Handy-Chrome 291 W,
+  alle anderen Werte identisch." Jans eigene Session: **227 W eingeloggt, 243 W hinter dem Link.**
+  - **Ursache gefunden:** `FoilPowerStat` (`components/FoilPower.tsx`) holte das Fahrergewicht
+    IMMER selbst per `api.getSettings()`. Auf dem oeffentlichen Link gibt es keinen Login -> 401 ->
+    `catch` faellt auf `DEFAULT_RIDER` (**95 kg** Fahrer + 10 kg Ausruestung). Es sind also
+    dieselben Daten, nur eine andere Annahme. Verhaeltnis passt exakt: bei ~88 kg
+    Fahrergewicht 1,07 (Jan), bei ~66 kg 1,40 (PeterH) — nachgerechnet mit der echten
+    `computeFoilPowerAtSpeed`.
+  - **Nebenbefund:** auf derselben Seite waren ZWEI Gewichte im Umlauf — die Kachel holte das
+    Profil, die Lauf-Tabelle (`powerFor` in `SessionDetail`) nahm im Public-Modus bewusst den
+    Standardwert. Ein eingeloggter Besitzer, der seinen eigenen Teilen-Link oeffnete, sah oben
+    seine Zahl und in der Tabelle die Standard-Zahl.
+  - **Gebaut:** Gewicht kommt jetzt als Prop von der Seite (`weightKg`), die Kachel holt es nur
+    noch, wenn kein Aufrufer es mitgibt -> eine Quelle je Seite, und der sinnlose 401 auf dem
+    oeffentlichen Link entfaellt. **Und die Annahme steht jetzt sichtbar unter den Kacheln**
+    (`power.basis`, war in allen 16 Sprachen vorhanden und wurde nirgends benutzt): bisher stand
+    sie nur im `title`-Tooltip der Kachel — auf dem Handy gibt es kein Hover, genau dort entstand
+    die Frage.
+  - **NOCH ZU ENTSCHEIDEN (Jan):** soll der Teilen-Link mit dem Gewicht des BESITZERS rechnen,
+    damit die Zahl dieselbe ist? Dann muesste das Gewicht (oder die daraus gerechnete Leistung) im
+    oeffentlichen Payload landen — aus Leistung + Foilmasse + Speed laesst sich das Gewicht
+    zurueckrechnen, es waere also faktisch veroeffentlicht. Alternativen: so lassen (Standardwert,
+    jetzt sichtbar beschriftet) oder die Kachel auf dem oeffentlichen Link ganz weglassen.
+
 - **🟢 Eigene Session bearbeiten: Liste zeigt es sofort (27.08.).** Jans Befund: Foil, Stab
   oder Beschriftung geaendert -> in der Session-Liste erst nach einem Reload zu sehen.
   - **Ursache:** `/sessions` liest beim Zurueckkommen aus einem Modul-Cache (`listCache` in
