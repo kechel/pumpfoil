@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { api, SessionSummary } from "../lib/api";
 import { Card } from "../components/ui";
 import { CompareIcon, CloseIcon, ChevronIcon, FoilIcon } from "../components/Icons";
-import { computeFoilPowerAtSpeed, DEFAULT_RIDER } from "../lib/foilPhysics";
+import { computeFoilPowerAtSpeed, DEFAULT_RIDER, riderWeightFor } from "../lib/foilPhysics";
 import { useCompare, removeCompare, clearCompare, mergeableIds, CompareRef, refKey } from "../lib/compare";
 import { CompareMap, CompareMapItem } from "../components/CompareMap";
 import { CompareHrStrips, HrStripItem } from "../components/CompareHrStrips";
@@ -27,12 +27,17 @@ function fmtMMSS(s: number) {
   return h > 0 ? `${h}:${pad(m)}:${pad(ss)}` : `${m}:${pad(ss)}`;
 }
 
+// `weight` ist das EIGENE Profilgewicht — es gilt nur fuer die eigenen Sessions im Korb. Jede
+// Session bringt das Gewicht ihres Fahrers mit (`owner_weight_kg`); genau darum geht es hier, denn
+// der Vergleich ist fuer mehrere Fahrer gebaut. Bis 27.08. wurde der ganze Korb mit dem Gewicht
+// des Betrachters gerechnet — ein 70-kg-Fahrer erschien damit neben einem 95-kg-Fahrer staerker,
+// als er ist, und zwar auf genau der Seite, die zum Vergleichen da ist.
 function powerOf(session: SessionSummary | null, avgMps: number | null | undefined, pumpHz: number | null | undefined, weight: number | null): number | null {
   const fo = session?.foil;
   const dims = fo?.span_cm && fo?.area_cm2 && fo?.thickness_mm
     ? { span_cm: fo.span_cm, area_cm2: fo.area_cm2, thickness_mm: fo.thickness_mm } : null;
   if (!dims || !avgMps || avgMps <= 0) return null;
-  const rider = { riderWeight: weight ?? DEFAULT_RIDER.riderWeight, equipmentWeight: DEFAULT_RIDER.equipmentWeight };
+  const rider = { riderWeight: riderWeightFor(session, weight), equipmentWeight: DEFAULT_RIDER.equipmentWeight };
   const pump = pumpHz && pumpHz > 0 ? { heaveAmp_cm: 12, pumpFreq_hz: pumpHz, recoveryLoss_pct: 35 } : undefined;
   const r = computeFoilPowerAtSpeed(dims, avgMps * 3.6, { rider, pump });
   return Math.round(r.dragPower + (pump ? r.inertiaPower : 50));

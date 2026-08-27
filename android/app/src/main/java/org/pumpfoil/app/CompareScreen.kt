@@ -459,8 +459,12 @@ private fun cmpMetrics(win: Int, weightKg: Double): List<CmpMetric> {
     fun mmss(v: Double) = "%d:%02d".format((v / 60).toInt(), (v % 60).toInt())
     fun ein(v: Double) = "%.1f".format(v)
     fun ganz(v: Double) = "%.0f".format(v)
+    // Gewicht JE SESSION: der Vergleich ist fuer mehrere Fahrer gebaut (bei zwei Namen schaltet
+    // er selbst in den Fahrer-Modus, s. oben) — mit dem Gewicht des Betrachters gerechnet stand
+    // ein 70-kg-Fahrer neben einem 95-kg-Fahrer falsch da. `weightKg` gilt nur noch als Rueckfall
+    // fuer die EIGENEN Sessions im Korb.
     fun watt(s: SessionDetail, mps: Double?, hz: Double?): Double? {
-        val f = FoilPhysics.wattRechner(s.foil, weightKg) ?: return null
+        val f = FoilPhysics.wattRechner(s.foil, FoilPhysics.gewichtFuer(s, weightKg)) ?: return null
         return mps?.let { f(it, hz) }?.toDouble()
     }
     fun segs(s: SessionDetail) = s.analysis?.segments.orEmpty()

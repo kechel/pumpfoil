@@ -1844,14 +1844,20 @@ def _add_window(wins: list[tuple[int, int]], a: int, b: int) -> list[tuple[int, 
     return sorted(keep + [(a, b)])
 
 
-def _save_excluded(db: Session, s: models.Session, wins: list[tuple[int, int]]) -> SessionOut:
+def _save_excluded(db: Session, s: models.Session, wins: list[tuple[int, int]],
+                   owned: bool = True) -> SessionOut:
     """Fenster speichern + dieselbe Session neu analysieren (wie beim Trim)."""
     s.excluded_ranges = dump_excluded_windows(wins)
     db.commit()
     run_analysis(db, s)
     _spot_nachziehen(db, s)
     db.refresh(s)
-    return _session_out(s, with_analysis=True)
+    # `owned` MUSS mitgegeben werden: bei owned=True nimmt `_session_out` die Lauf-Liste im
+    # Empfindlichkeits-Preset des BESITZERS. Ein Admin, der an einer fremden Session einen Lauf
+    # aussortiert, bekaeme dann eine andere Lauf-Nummerierung zurueck, als er angeklickt hat
+    # (aufgeloest wird ueber die kanonische Liste, s. `_shown_runs`) — der naechste Klick traefe
+    # den falschen Lauf.
+    return _session_out(s, with_analysis=True, owned=owned)
 
 
 @router.post("/{session_id}/runs/exclude", response_model=SessionOut)
@@ -1885,7 +1891,7 @@ def exclude_run(
         a, b = max(int(body.start_ms), 0), int(body.end_ms)
         if b - a < 1000:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "Range too short")
-    return _save_excluded(db, s, _add_window(excluded_windows(s), a, b))
+    return _save_excluded(db, s, _add_window(excluded_windows(s), a, b), owned=(s.user_id == user.id))
 
 
 class PoweredKeepIn(BaseModel):
@@ -1923,7 +1929,9 @@ def keep_powered_run(
     run_analysis(db, s)
     _spot_nachziehen(db, s)
     db.refresh(s)
-    return _session_out(s, with_analysis=True)
+    # owned: s. `_save_excluded` — ein Admin an fremder Session bekaeme sonst die Lauf-Liste im
+    # Preset des Besitzers zurueck und damit eine andere Nummerierung als die angeklickte.
+    return _session_out(s, with_analysis=True, owned=(s.user_id == user.id))
 
 
 @router.post("/{session_id}/runs/include", response_model=SessionOut)
@@ -1940,7 +1948,7 @@ def include_run(
     if body.range_index < 0 or body.range_index >= len(wins):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Excluded range not found")
     del wins[body.range_index]
-    return _save_excluded(db, s, wins)
+    return _save_excluded(db, s, wins, owned=(s.user_id == user.id))
 
 
 CAPTION_MAX = 30

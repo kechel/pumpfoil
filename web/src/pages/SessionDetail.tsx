@@ -14,7 +14,7 @@ import { DATA_QUALITY, SPORTS } from "../lib/sportClass";
 import { invalidateSessionListCache, ProcessingNote, updateCachedSession } from "./Sessions";
 import { FoilPowerStat } from "../components/FoilPower";
 import { openChatOverlay } from "../components/DmWidget";
-import { computeFoilPowerAtSpeed, DEFAULT_RIDER, calculateAR, calculateCLmax, calculateStallSpeed, calculateOptimalSpeed } from "../lib/foilPhysics";
+import { computeFoilPowerAtSpeed, DEFAULT_RIDER, riderWeightFor, calculateAR, calculateCLmax, calculateStallSpeed, calculateOptimalSpeed } from "../lib/foilPhysics";
 import { rampColor, hrColor, hrRange as hrRangeOf, speedColor, optimalColor, OPTIMAL_SPAN } from "../lib/trackColors";
 import { carveColor } from "../lib/turns";
 import { setPumpUnit, usePumpFmt } from "../lib/pumpRate";
@@ -468,14 +468,20 @@ export default function SessionDetail() {
   //   2. das eigene Profil — falls der Besitzer keins hinterlegt hat und man selbst eingeloggt ist.
   //   3. der Standardwert.
   useEffect(() => {
-    const besitzer = session?.owner_weight_kg;
-    if (besitzer && besitzer > 0) { setWeightKg(besitzer); return; }
-    if (isPublic) { setWeightKg(DEFAULT_RIDER.riderWeight); return; }
+    // Gewicht des Besitzers, sonst — bei FREMDER Session oder ohne Login — der Standardwert;
+    // nur fuer die eigene Session das eigene Profil. Eine Regel fuer alle Ansichten:
+    // `riderWeightFor` (lib/foilPhysics.ts).
+    const fremd = isPublic || session?.owned === false;
+    if (session?.owner_weight_kg || fremd) {
+      setWeightKg(riderWeightFor(session, null));
+      return;
+    }
+    if (!session) return;
     api.getSettings().then((s) => {
       const w = Number(s.weight_kg);
-      setWeightKg(Number.isFinite(w) && w > 0 ? w : DEFAULT_RIDER.riderWeight);
+      setWeightKg(riderWeightFor(session, Number.isFinite(w) ? w : null));
     }).catch(() => setWeightKg(DEFAULT_RIDER.riderWeight));
-  }, [isPublic, session?.owner_weight_kg]);
+  }, [isPublic, session?.owner_weight_kg, session?.owned, session?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Hotkeys: Ziffern 1–9 wählen den Lauf direkt, 0 zeigt alle; ←/→ (bzw. ↑/↓) blättern
   // durch die Einzelläufe (Reihenfolge: alle → Lauf 1 → … → Lauf n → alle).
@@ -1358,7 +1364,7 @@ export default function SessionDetail() {
             avgKmh={m?.avg_speed_mps != null ? m.avg_speed_mps * 3.6 : null}
             pumpHz={m?.avg_pump_hz ?? null}
             estimated={session.foil.thickness_estimated}
-            weightKg={weightKg}
+            weightKg={riderWeightFor(session, weightKg)}
           />
         )}
 

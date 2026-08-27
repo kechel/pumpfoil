@@ -13,6 +13,19 @@ enum FoilPhysics {
 
     struct FoilDims { let spanCm: Double; let areaCm2: Double; let thicknessMm: Double }
     struct RiderParams { var riderWeight = 95.0; var equipmentWeight = 10.0 }
+
+    /// Mit WESSEN Gewicht eine Session zu rechnen ist. Die Leistung haengt quadratisch daran, es
+    /// ist also eine Eigenschaft der Aufnahme und keine Anzeige-Vorliebe des Betrachters.
+    ///   1. `owner_weight_kg` der Session — das Gewicht des Fahrers, egal wer zuschaut.
+    ///   2. Fremde Session ohne diese Angabe: der Standardwert, NIE das eigene Profil (sonst zeigte
+    ///      dieselbe Session bei zwei Betrachtern zwei Leistungen).
+    ///   3. Eigene Session: das eigene Profil.
+    /// Spiegel von `riderWeightFor` in web/src/lib/foilPhysics.ts (Fehler vom 27.08.).
+    static func gewichtFuer(_ s: SessionDetail?, eigenes: Double) -> Double {
+        if let b = s?.owner_weight_kg, b > 0 { return Double(b) }
+        if let s, s.owned == false { return RiderParams().riderWeight }
+        return eigenes > 0 ? eigenes : RiderParams().riderWeight
+    }
     struct MastParams { var mastDiameterMm = 19.0; var mastDepthM = 0.40 }
     struct PumpParams { var heaveAmpCm = 12.0; var pumpFreqHz = 1.0; var recoveryLossPct = 35.0 }
 

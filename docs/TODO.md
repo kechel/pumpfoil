@@ -474,6 +474,39 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 Audit „fremde Daten mit eigenen Werten gerechnet" — alles gefixt (27.08.).** Nach dem
+  Leistungs-Fehler gezielt nach derselben Fehlerklasse gesucht: wo fliesst eine Einstellung des
+  BETRACHTERS in die Darstellung fremder Daten ein, obwohl die des BESITZERS gelten muesste?
+  Sieben Befunde, fuenf echte Fehler — alle behoben:
+  1. **Vergleich (`Compare.tsx`, `CompareScreen.kt`, `CompareView.swift`)** — der ganze Korb wurde
+     mit EINEM Gewicht gerechnet, dem des Betrachters. Ausgerechnet auf der Seite, deren Zweck der
+     Fremdvergleich ist (sie schaltet bei zwei Fahrern selbst in den Fahrer-Modus). Jetzt je
+     Session das Gewicht ihres Fahrers.
+  2. **Karten-Farbmodus „Optimal" (`CompareMap.tsx`)** — die optimale Geschwindigkeit haengt ueber
+     die Stall-Geschwindigkeit an der Wurzel des Gewichts. Mit dem eigenen gerechnet erschien der
+     Track eines leichteren Fahrers durchgehend blau („zu langsam"), der eines schwereren rot,
+     inklusive falscher Zahl in der Legende.
+  3. **Rueckfall-Loch:** hatte der Besitzer einer fremden Session kein Gewicht hinterlegt, fiel die
+     Rechnung wieder auf das eigene Profil zurueck — dieselbe fremde Session zeigte bei zwei
+     Betrachtern zwei Leistungen. Jetzt: fremde Session ohne Angabe -> Standardwert, nie das eigene.
+  4. **`FoilPowerStat` holte sein Gewicht selbst** (Falle fuer den naechsten Aufrufer) — Prop ist
+     jetzt Pflicht, das Selbst-Nachladen ist raus.
+  5. **Server, Admin-Pfad:** `_save_excluded` und `keep_powered_run` gaben `_session_out` ohne
+     `owned=` zurueck -> Default `owned=True` -> Lauf-Liste im Empfindlichkeits-Preset des
+     BESITZERS, waehrend der Klick ueber die kanonische Liste aufgeloest wird. Ein Admin, der an
+     einer fremden Session einen Lauf aussortiert, haette danach eine andere Nummerierung gesehen
+     und beim naechsten Klick den falschen Lauf getroffen. Jetzt `owned=(s.user_id == user.id)`.
+  - **EINE Regel statt drei Rueckfall-Ketten:** `riderWeightFor()` (`web/src/lib/foilPhysics.ts`)
+    mit den Spiegeln `FoilPhysics.gewichtFuer` in Kotlin und Swift. Reihenfolge ueberall gleich:
+    Gewicht des Besitzers > (fremd: Standardwert) > eigenes Profil > Standardwert.
+  - **Geprueft und ausdruecklich NICHT betroffen:** Puls-/Geschwindigkeits-Zonen (werden nie auf
+    fremde Sessions angewandt; der Farbmodus „Puls" nimmt die Messwerte der Session selbst),
+    `foil_sensitivity` ausserhalb von Punkt 5 (klemmt bei `owned=False` hart auf „normal"),
+    `_resolve_foil`/`_resolve_setup` (Standard des Besitzers), Rekorde/Bestenlisten
+    (`viewer_id` nur fuer Sichtbarkeit), Zeitzone (Spot der Session), Foil-Rechner (eigenes
+    Werkzeug). Anzeige-Vorlieben des Betrachters — Sprache, Theme, Einheit hz/ppm, Zeitformat,
+    manuelle Speed-Farbskala — bleiben bewusst beim Betrachter.
+
 - **🟢 Theoretische Leistung: Teilen-Link rechnete mit anderem Gewicht (27.08., Meldung
   PeterH + von Jan reproduziert).** „Am PC 208 W, hinter dem Teilen-Link im Handy-Chrome 291 W,
   alle anderen Werte identisch." Jans eigene Session: **227 W eingeloggt, 243 W hinter dem Link.**

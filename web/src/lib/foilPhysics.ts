@@ -36,6 +36,30 @@ export interface PumpParams {
 
 // Defaults aus dem Referenz-Rechner.
 export const DEFAULT_RIDER: RiderParams = { riderWeight: 95, equipmentWeight: 10 };
+
+/**
+ * Mit WESSEN Gewicht eine Session zu rechnen ist. Die theoretische Leistung (und die optimale
+ * Geschwindigkeit) haengen quadratisch bzw. ueber die Wurzel am Gewicht — es ist damit keine
+ * Anzeige-Vorliebe des Betrachters, sondern eine Eigenschaft der Aufnahme.
+ *
+ * Reihenfolge:
+ *   1. `owner_weight_kg` der Session — das Gewicht des Fahrers, egal wer zuschaut.
+ *   2. Ist es eine FREMDE Session (`owned === false`), der Standardwert — NIE das eigene Profil.
+ *      Sonst zeigte dieselbe fremde Session bei zwei Betrachtern zwei verschiedene Leistungen.
+ *   3. Eigene Session ohne hinterlegtes Gewicht: das eigene Profil, sonst der Standardwert.
+ *
+ * Eine Funktion statt drei Stellen mit derselben Ueberlegung: der Fehler vom 27.08. entstand
+ * genau daran, dass jede Ansicht ihre eigene Rueckfall-Kette hatte.
+ */
+export function riderWeightFor(
+  session: { owner_weight_kg?: number | null; owned?: boolean } | null | undefined,
+  eigenes: number | null | undefined,
+): number {
+  const besitzer = session?.owner_weight_kg;
+  if (besitzer && besitzer > 0) return besitzer;
+  if (session?.owned === false) return DEFAULT_RIDER.riderWeight;
+  return eigenes && eigenes > 0 ? eigenes : DEFAULT_RIDER.riderWeight;
+}
 export const DEFAULT_MAST: MastParams = { mastDiameter_mm: 19, mastDepth_m: 0.4 };
 export const DEFAULT_PUMP: PumpParams = { heaveAmp_cm: 12, pumpFreq_hz: 1.0, recoveryLoss_pct: 35 };
 

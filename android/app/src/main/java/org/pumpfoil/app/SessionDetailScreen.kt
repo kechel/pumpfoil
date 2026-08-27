@@ -484,8 +484,9 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
         // haengt quadratisch davon ab und war damit einfach falsch (Meldung 27.08.). Erst wenn der
         // Server das Feld nicht liefert (alte Version) oder der Besitzer kein Gewicht hinterlegt
         // hat, das eigene Profil.
-        weightKg = s.ownerWeightKg?.toDouble()
-            ?: try { Api.settings()["weight_kg"]?.jsonPrimitive?.doubleOrNull ?: 0.0 } catch (_: Exception) { 0.0 }
+        weightKg = FoilPhysics.gewichtFuer(s, try {
+            Api.settings()["weight_kg"]?.jsonPrimitive?.doubleOrNull ?: 0.0
+        } catch (_: Exception) { 0.0 })
         if (s.owned) {
             try {
                 val st = Api.settings()

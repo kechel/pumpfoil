@@ -1,6 +1,4 @@
-import { useEffect, useState } from "react";
 import { computeFoilPowerAtSpeed, DEFAULT_RIDER, FoilDims, PumpParams } from "../lib/foilPhysics";
-import { api } from "../lib/api";
 import { Card } from "./ui";
 import { InfoIcon } from "./Icons";
 import { useT } from "../i18n";
@@ -15,32 +13,18 @@ export function FoilPowerStat({ foil, avgKmh, pumpHz, estimated, weightKg }: {
   avgKmh: number | null;
   pumpHz: number | null;
   estimated?: boolean;
-  /** Fahrergewicht in kg. Von der Seite mitgegeben, damit auf EINER Seite nicht zwei
-   *  verschiedene Gewichte im Umlauf sind (s. Kommentar unten). Fehlt es, holt die Kachel es
-   *  selbst aus dem Profil — fuer Aufrufer ohne eigene Quelle. */
-  weightKg?: number | null;
+  /** Gewicht des FAHRERS dieser Session in kg — PFLICHT. Die Kachel holte es sich frueher selbst
+   *  aus dem Profil des Betrachters; auf dem oeffentlichen Teilen-Link scheiterte das (401) und
+   *  sie fiel auf 95 kg zurueck, bei fremden Sessions rechnete sie mit dem falschen Gewicht.
+   *  Wer die Kachel einsetzt, entscheidet das bewusst — `riderWeightFor()` in lib/foilPhysics.ts
+   *  ist die gemeinsame Regel dafuer. */
+  weightKg: number;
 }) {
   const t = useT();
-  const [weight, setWeight] = useState<number | null>(null);
-
-  // WARUM das Gewicht von aussen kommen darf: die Kachel hat es sich hier immer selbst geholt —
-  // auch auf dem oeffentlichen Teilen-Link, wo `getSettings()` mit 401 scheitert und der
-  // `catch` auf DEFAULT_RIDER (95 kg) faellt. Genau daran lag der Befund vom 27.08.: dieselbe
-  // Session zeigte eingeloggt 227 W und hinter dem Teilen-Link 243 W, alle anderen Zahlen gleich.
-  // Auf der Session-Seite kennt SessionDetail das Gewicht schon (und im Public-Modus bewusst den
-  // Standardwert) — nur so rechnen Kachel und Lauf-Tabelle mit derselben Zahl.
-  useEffect(() => {
-    if (weightKg != null) return;
-    api.getSettings().then((s) => {
-      const w = Number(s.weight_kg);
-      setWeight(Number.isFinite(w) && w > 0 ? w : DEFAULT_RIDER.riderWeight);
-    }).catch(() => setWeight(DEFAULT_RIDER.riderWeight));
-  }, [weightKg]);
 
   if (!foil.span_cm || !foil.area_cm2 || !foil.thickness_mm || !avgKmh || avgKmh <= 0) return null;
 
-  const rider = { riderWeight: weightKg ?? weight ?? DEFAULT_RIDER.riderWeight,
-                  equipmentWeight: DEFAULT_RIDER.equipmentWeight };
+  const rider = { riderWeight: weightKg, equipmentWeight: DEFAULT_RIDER.equipmentWeight };
   const pump: PumpParams | undefined = pumpHz && pumpHz > 0
     ? { heaveAmp_cm: 12, pumpFreq_hz: pumpHz, recoveryLoss_pct: 35 } : undefined;
   const r = computeFoilPowerAtSpeed(foil, avgKmh, { rider, pump });

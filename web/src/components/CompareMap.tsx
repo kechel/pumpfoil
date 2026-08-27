@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
 import { SessionSummary } from "../lib/api";
 import { rampColor, hrColor, hrRange as hrRangeOf, speedColor, optimalColor, OPTIMAL_SPAN } from "../lib/trackColors";
-import { DEFAULT_RIDER, calculateAR, calculateCLmax, calculateStallSpeed, calculateOptimalSpeed } from "../lib/foilPhysics";
+import { DEFAULT_RIDER, calculateAR, calculateCLmax, calculateStallSpeed, calculateOptimalSpeed, riderWeightFor } from "../lib/foilPhysics";
 import { useT } from "../i18n";
 import { usePumpFmt } from "../lib/pumpRate";
 import { useCloseOnBack } from "../lib/useCloseOnBack";
@@ -20,10 +20,14 @@ type Mode = "rider" | "track" | "speed" | "optimal" | "pump" | "hr";
 const MAX_DRAW_GAP_M = 30;
 
 // Optimale Geschwindigkeit (km/h) des Foils einer Session beim gegebenen Fahrergewicht.
+// Die optimale Geschwindigkeit haengt ueber die Stall-Geschwindigkeit an der WURZEL des Gewichts —
+// also am Gewicht des FAHRERS, nicht des Betrachters. Mit dem eigenen Gewicht gerechnet erschien
+// der Track eines leichteren Fahrers durchgehend „zu langsam" (blau) und der eines schwereren
+// „zu schnell" (rot), inklusive falscher Zahl in der Legende.
 function optimalKmhFor(session: SessionSummary, weight: number | null): number | null {
   const fo = session.foil;
   if (!fo?.span_cm || !fo?.area_cm2 || !fo?.thickness_mm) return null;
-  const rider = { riderWeight: weight ?? DEFAULT_RIDER.riderWeight, equipmentWeight: DEFAULT_RIDER.equipmentWeight };
+  const rider = { riderWeight: riderWeightFor(session, weight), equipmentWeight: DEFAULT_RIDER.equipmentWeight };
   const ar = calculateAR(fo.span_cm, fo.area_cm2);
   const clmax = calculateCLmax(ar, fo.thickness_mm, fo.area_cm2, 15);
   const stall = calculateStallSpeed(fo.area_cm2, clmax, rider);

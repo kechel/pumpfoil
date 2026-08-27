@@ -21,6 +21,22 @@ object FoilPhysics {
     data class PumpParams(val heaveAmpCm: Double = 12.0, val pumpFreqHz: Double = 1.0, val recoveryLossPct: Double = 35.0)
 
     val DEFAULT_RIDER = RiderParams()
+
+    /**
+     * Mit WESSEN Gewicht eine Session zu rechnen ist. Die Leistung haengt quadratisch daran, es ist
+     * also eine Eigenschaft der Aufnahme und keine Anzeige-Vorliebe des Betrachters.
+     *   1. `ownerWeightKg` der Session — das Gewicht des Fahrers, egal wer zuschaut.
+     *   2. Fremde Session ohne diese Angabe: der Standardwert, NIE das eigene Profil (sonst zeigte
+     *      dieselbe Session bei zwei Betrachtern zwei Leistungen).
+     *   3. Eigene Session: das eigene Profil.
+     * Spiegel von `riderWeightFor` in web/src/lib/foilPhysics.ts (Fehler vom 27.08.).
+     */
+    fun gewichtFuer(s: SessionDetail?, eigenes: Double): Double {
+        val besitzer = s?.ownerWeightKg
+        if (besitzer != null && besitzer > 0) return besitzer.toDouble()
+        if (s != null && !s.owned) return DEFAULT_RIDER.riderWeight
+        return if (eigenes > 0) eigenes else DEFAULT_RIDER.riderWeight
+    }
     val DEFAULT_MAST = MastParams()
     val DEFAULT_PUMP = PumpParams()
 
