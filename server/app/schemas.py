@@ -228,6 +228,12 @@ class SessionOut(BaseModel):
     foil_id: int | None = None  # explizit gesetztes Foil dieser Session
     foil: dict | None = None  # aufgelöstes Foil (Session-Foil oder Nutzer-Standard) für Anzeige
     setup: dict | None = None  # aufgelöstes restliches Setup (Stab/Mast/Shim/Board) für Anzeige
+    # Fahrergewicht des BESITZERS (kg) — die theoretische Leistung haengt quadratisch davon ab.
+    # Ohne diese Zahl rechnete jeder Betrachter mit seinem EIGENEN Gewicht, und der oeffentliche
+    # Teilen-Link (kein Login) mit dem Standardwert 95 kg: dieselbe Session zeigte 227 W bzw.
+    # 243 W (Meldung 27.08.). Bewusst nur in der Einzel-Session-Ausgabe, nicht in Listen — dort
+    # gibt es keine Leistungsanzeige. Jans Entscheidung 27.08.: „nutze das Gewicht des Besitzers".
+    owner_weight_kg: int | None = None
     transfer_to: str | None = None  # offene Übertragung: Anzeigename des Empfängers (nur eigene Liste)
     upload_received: int | None = None  # empfangene Chunks (nur im Zwischenzustand recording/live)
     upload_total: int | None = None     # erwartete Chunks gesamt -> Upload-Fortschritt

@@ -247,6 +247,10 @@ export interface SessionSummary {
   thumb_url?: string | null;
   device_label?: string | null;
   device_model?: string | null;
+  // Fahrergewicht des BESITZERS (kg) — die theoretische Leistung haengt quadratisch davon ab,
+  // also muss sie mit SEINEM Gewicht gerechnet werden, egal wer zuschaut. Nur in der
+  // Einzel-Session-Ausgabe (Listen zeigen keine Leistung).
+  owner_weight_kg?: number | null;
   share_token?: string | null;   // nur dem Besitzer geliefert (öffentlicher Teilen-Link gesetzt?)
   photos?: { id: number; url: string; thumb_url?: string | null }[];  // im öffentlichen Payload (/s/<token>)
   videos?: SessionVideo[];  // im öffentlichen Payload (/s/<token>)

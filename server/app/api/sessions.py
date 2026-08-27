@@ -154,6 +154,27 @@ def _flag_count(s: models.Session) -> int:
         return 0
 
 
+def _owner_weight_kg(s: models.Session) -> int | None:
+    """Fahrergewicht des Besitzers (kg) aus seinem Profil, oder None.
+
+    Die theoretische Leistung haengt quadratisch davon ab. Ohne diese Zahl rechnet jeder
+    Betrachter mit seinem EIGENEN Gewicht und der oeffentliche Teilen-Link (kein Login) mit dem
+    Standardwert — dieselbe Session zeigte deshalb 227 W bzw. 243 W (Meldung 27.08.).
+    """
+    u = getattr(s, "user", None)
+    if u is None or not getattr(u, "settings_json", None):
+        return None
+    try:
+        w = (json.loads(u.settings_json) or {}).get("weight_kg")
+    except ValueError:
+        return None
+    try:
+        w = int(round(float(w)))
+    except (TypeError, ValueError):
+        return None
+    return w if 20 <= w <= 300 else None
+
+
 def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, owned: bool = True,
                  owner_name: str | None = None, owner_avatar_url: str | None = None,
                  sens: str | None = None, video_url: str | None = None) -> SessionOut:
@@ -161,6 +182,9 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
         id=s.id,
         session_uuid=s.session_uuid,
         sport=s.sport,
+        # Nur in der Einzelansicht (slim=True sind die Listen — dort gibt es keine
+        # Leistungsanzeige, und ein Profil-Lookup je Zeile waere ein N+1).
+        owner_weight_kg=None if slim else _owner_weight_kg(s),
         # Menschliche Klassifikation — in JEDER Ausgabe dabei, damit die Session-Karten sie zeigen
         # können (Jan: „klassifikation dann auch in den session cards mit anzeigen"). `flag_count`
         # und `appeal_text` nur für Besitzer/Admin: die Melder bleiben für den Betroffenen anonym,

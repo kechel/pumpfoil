@@ -460,13 +460,22 @@ export default function SessionDetail() {
   const [cmp, setCmp] = useState<Awaited<ReturnType<typeof api.comparePumpTruth>> | null>(null);
   useEffect(() => { if (isPublic) return; api.getProfile().then((p) => setIsAdmin(p.is_admin)).catch(() => {}); }, [isPublic]);
 
+  // Fahrergewicht fuer die theoretische Leistung. Reihenfolge:
+  //   1. das des BESITZERS aus der Session — die Leistung ist SEINE Zahl, unabhaengig davon, wer
+  //      zuschaut. Damit zeigt der Teilen-Link dasselbe wie die eingeloggte Ansicht (Meldung
+  //      27.08.: 227 W vs. 243 W) und die Session eines anderen wird nicht mit dem eigenen
+  //      Gewicht gerechnet.
+  //   2. das eigene Profil — falls der Besitzer keins hinterlegt hat und man selbst eingeloggt ist.
+  //   3. der Standardwert.
   useEffect(() => {
+    const besitzer = session?.owner_weight_kg;
+    if (besitzer && besitzer > 0) { setWeightKg(besitzer); return; }
     if (isPublic) { setWeightKg(DEFAULT_RIDER.riderWeight); return; }
     api.getSettings().then((s) => {
       const w = Number(s.weight_kg);
       setWeightKg(Number.isFinite(w) && w > 0 ? w : DEFAULT_RIDER.riderWeight);
     }).catch(() => setWeightKg(DEFAULT_RIDER.riderWeight));
-  }, [isPublic]);
+  }, [isPublic, session?.owner_weight_kg]);
 
   // Hotkeys: Ziffern 1–9 wählen den Lauf direkt, 0 zeigt alle; ←/→ (bzw. ↑/↓) blättern
   // durch die Einzelläufe (Reihenfolge: alle → Lauf 1 → … → Lauf n → alle).

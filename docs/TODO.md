@@ -474,7 +474,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
-- **🟡 Theoretische Leistung: Teilen-Link rechnete mit anderem Gewicht (27.08., Meldung
+- **🟢 Theoretische Leistung: Teilen-Link rechnete mit anderem Gewicht (27.08., Meldung
   PeterH + von Jan reproduziert).** „Am PC 208 W, hinter dem Teilen-Link im Handy-Chrome 291 W,
   alle anderen Werte identisch." Jans eigene Session: **227 W eingeloggt, 243 W hinter dem Link.**
   - **Ursache gefunden:** `FoilPowerStat` (`components/FoilPower.tsx`) holte das Fahrergewicht
@@ -493,11 +493,16 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     (`power.basis`, war in allen 16 Sprachen vorhanden und wurde nirgends benutzt): bisher stand
     sie nur im `title`-Tooltip der Kachel — auf dem Handy gibt es kein Hover, genau dort entstand
     die Frage.
-  - **NOCH ZU ENTSCHEIDEN (Jan):** soll der Teilen-Link mit dem Gewicht des BESITZERS rechnen,
-    damit die Zahl dieselbe ist? Dann muesste das Gewicht (oder die daraus gerechnete Leistung) im
-    oeffentlichen Payload landen — aus Leistung + Foilmasse + Speed laesst sich das Gewicht
-    zurueckrechnen, es waere also faktisch veroeffentlicht. Alternativen: so lassen (Standardwert,
-    jetzt sichtbar beschriftet) oder die Kachel auf dem oeffentlichen Link ganz weglassen.
+  - **ENTSCHIEDEN (Jan, 27.08.): das Gewicht des BESITZERS benutzen** — „das ist doch die
+    Entscheidung des Nutzers genau diese Daten zu teilen, da kann man doch viel mehr entnehmen als
+    nur das Gewicht, aus dem Pulsverlauf und den Lauflaengen". Stimmt: der Teilen-Payload enthaelt
+    ohnehin den vollen Pulsverlauf. Umgesetzt: `SessionOut.owner_weight_kg` (`_owner_weight_kg`,
+    liest `settings_json.weight_kg`, plausibel 20…300 kg) — **nur in der Einzelansicht**, in Listen
+    bleibt das Feld leer (`slim=True`), dort gibt es keine Leistungsanzeige und ein Profil-Lookup
+    je Zeile waere ein N+1. Im Web hat es Vorrang vor dem eigenen Profil und dem Standardwert.
+  - **Damit nebenbei mitgefixt:** die Session eines ANDEREN wurde bisher mit dem Gewicht des
+    Betrachters gerechnet — auch eingeloggt in der Community war die Zahl also falsch, nur ist es
+    dort niemandem aufgefallen, weil es keine zweite Ansicht zum Vergleichen gab.
 
 - **🟢 Eigene Session bearbeiten: Liste zeigt es sofort (27.08.).** Jans Befund: Foil, Stab
   oder Beschriftung geaendert -> in der Session-Liste erst nach einem Reload zu sehen.
