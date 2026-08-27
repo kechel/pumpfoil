@@ -1624,7 +1624,12 @@ struct SessionDetailView: View {
             photos = (try? await Api.sessionPhotos(sid)) ?? []
             videos = await loadVideos(s)
             let settings = (try? await Api.settings()) ?? [:]
-            weightKg = (settings["weight_kg"] as? Int).map(Double.init) ?? 0
+            // Fahrergewicht fuer die Leistungsrechnung: das des BESITZERS hat Vorrang. Sonst
+            // rechnet man die Session eines anderen mit seinem eigenen Gewicht — die Leistung
+            // haengt quadratisch davon ab und war damit falsch (Meldung 27.08.). Erst danach das
+            // eigene Profil (alter Server ohne das Feld, oder Besitzer ohne Gewichtsangabe).
+            weightKg = s.owner_weight_kg.map(Double.init)
+                ?? (settings["weight_kg"] as? Int).map(Double.init) ?? 0
             if s.owned == true {
                 mineIds = Set((settings["my_foils"] as? [Any])?.compactMap { $0 as? Int } ?? [])
                 allFoils = (try? await Api.foils()) ?? []

@@ -760,6 +760,11 @@ struct SessionDetail: Codable, Identifiable {
     let place_water: String?   // Gewässer als Zusatz-Label
     let spot_id: Int?          // additiv; Nav bleibt namensbasiert
     let foil: Foil?        // aufgelöstes Foil (Maße) für die Leistungsberechnung
+    // Fahrergewicht des BESITZERS (kg). Die theoretische Leistung haengt quadratisch davon ab,
+    // also muss SEIN Gewicht gelten — auch wenn jemand anderes zuschaut. Bisher rechneten wir
+    // immer mit dem Gewicht des eingeloggten Nutzers; bei fremden Sessions war die Zahl damit
+    // falsch (Meldung 27.08.). Optional: alte Server liefern das Feld nicht.
+    let owner_weight_kg: Int?
     let analysis: Analysis?
     let merged_count: Int?   // >0 -> aus mehreren Sessions zusammengeführt
     let device_label: String?  // Aufzeichnungs-Uhr (Kurzform) für das Badge

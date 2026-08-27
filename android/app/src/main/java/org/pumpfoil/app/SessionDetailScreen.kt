@@ -479,7 +479,13 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
     var myShims by remember(s.id) { mutableStateOf<List<Double>>(emptyList()) }
     var myBoards by remember(s.id) { mutableStateOf<List<BoardBrief>>(emptyList()) }
     LaunchedEffect(Unit) {
-        weightKg = try { Api.settings()["weight_kg"]?.jsonPrimitive?.doubleOrNull ?: 0.0 } catch (_: Exception) { 0.0 }
+        // Fahrergewicht fuer die Leistungsrechnung: das des BESITZERS der Session hat Vorrang.
+        // Sonst rechnet man die Session eines anderen mit seinem eigenen Gewicht — die Leistung
+        // haengt quadratisch davon ab und war damit einfach falsch (Meldung 27.08.). Erst wenn der
+        // Server das Feld nicht liefert (alte Version) oder der Besitzer kein Gewicht hinterlegt
+        // hat, das eigene Profil.
+        weightKg = s.ownerWeightKg?.toDouble()
+            ?: try { Api.settings()["weight_kg"]?.jsonPrimitive?.doubleOrNull ?: 0.0 } catch (_: Exception) { 0.0 }
         if (s.owned) {
             try {
                 val st = Api.settings()

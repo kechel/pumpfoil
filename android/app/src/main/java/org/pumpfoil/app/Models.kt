@@ -741,6 +741,11 @@ data class SessionDetail(
     @SerialName("fremdkraft_keep") val fremdkraftKeep: List<List<Long>>? = emptyList(),
     val setup: SessionSetup? = null,   // Stab/Mast/Shim/Board (geerbt oder je Session gesetzt)
     val foil: Foil? = null,        // aufgelöstes Foil (Maße) für die Leistungsberechnung
+    // Fahrergewicht des BESITZERS (kg). Die theoretische Leistung haengt quadratisch davon ab,
+    // also muss SEIN Gewicht gelten — auch wenn jemand anderes zuschaut. Bisher rechneten wir
+    // immer mit dem Gewicht des eingeloggten Nutzers; bei fremden Sessions war die Zahl damit
+    // falsch (Meldung 27.08.). Nullable: alte Server liefern das Feld nicht.
+    @SerialName("owner_weight_kg") val ownerWeightKg: Int? = null,
     val analysis: Analysis? = null,
     @SerialName("merged_count") val mergedCount: Int = 0,   // >0 -> aus N Sessions zusammengeführt
     @SerialName("device_label") val deviceLabel: String? = null,   // Uhr-Bezeichnung der Aufnahme
