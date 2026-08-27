@@ -150,8 +150,39 @@ class RecordView extends WatchUi.View {
     // einem einzigen Lauf und konnte sich das nicht erklaeren (13.08., Instinct 2, zweiter Melder
     // am selben Tag). Deshalb hier, ueber ALLEN Aufnahme-Ansichten, in Rot: solange die Aufnahme
     // laeuft, kann man noch reagieren (pausieren -> dann laedt die Uhr hoch und schafft Platz).
+    // VORWARNUNG, bevor Daten verloren gehen: der Puffer reicht noch fuer weniger als
+    // STORAGE_WARN_MIN Minuten. Bis 1.0.80 gab es nur die Meldung DANACH (_drawDataLossWarn, rot) —
+    // da ist der Lauf schon halb weg. Bedingungen bewusst eng, damit die Zeile nicht dauernd
+    // steht:
+    //   * kein Handy in Reichweite (mit Handy laedt die Uhr laufend hoch -> Puffer bleibt klein)
+    //   * Budget bekannt (sonst wuerde eine erfundene Zahl gezeigt)
+    //   * es gehen noch KEINE Daten verloren (dann sticht die rote Meldung)
+    // Einmalige Vibration beim Unterschreiten — nicht wiederholt, das waere Gaengelei.
+    hidden var _storageWarned = false;
+
+    hidden function _drawStorageWarn(dc, w, h) {
+        if (_rec.storageDropped > 0) { return; }
+        var min = _rec.storageMinutesLeft();
+        var grenze = _rec.storageWarnMinutes();
+        if (min < 0 || grenze < 0 || min > grenze) { return; }
+        // Mit Handy in Reichweite normalerweise still (der Puffer laeuft ja leer) — ABER unter
+        // 3 Minuten trotzdem warnen: dann laeuft der Puffer offensichtlich NICHT leer (Handy
+        // verbunden, aber ohne Internet ist der haeufige Fall am Wasser).
+        if (Uploader.phoneConnected() && min > 3) { return; }
+        if (!_storageWarned) {
+            _storageWarned = true;
+            _vibeSwitch();
+        }
+        dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_BLACK);
+        // Tilde, weil beides geschaetzt ist: das Budget (gemessen, aber je Geraet verschieden)
+        // und das Puffervolumen (pendingKb, ~±30 %).
+        _drawWrap(dc, w / 2, h * 0.97, Graphics.FONT_XTINY,
+            "~" + min.toString() + " " + Strings.s("err.storageSoon"), true);
+        dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
+    }
+
     hidden function _drawDataLossWarn(dc, w, h) {
-        if (_rec.storageDropped <= 0) { return; }
+        if (_rec.storageDropped <= 0) { _drawStorageWarn(dc, w, h); return; }
         // Unten VERANKERT (Unterkante 0,97) statt Oberkante 0,90: mit der alten Rechnung stand
         // die Zeile auf 176 px teilweise ausserhalb des Displays. Schwarzer Textgrund, weil die
         // Warnung ueber den Datenfeldern liegt und bei zwei Zeilen sonst im Wert verschwindet.
@@ -344,6 +375,14 @@ class RecordView extends WatchUi.View {
         // Aufzeichnungsrate nur, solange sie in die Zeile passen. Auf 280 px steht alles da,
         // auf 176 px das Wesentliche — statt wie bisher an beiden Enden abgeschnitten zu werden.
         var rl = _rec.recordRateLabel();
+        // Puffer-Reichweite: nur OHNE Handy in Reichweite. Mit Handy laedt die Uhr laufend hoch,
+        // der Puffer bleibt klein — eine Restzeit waere dort schlicht falsch. Sie steht VOR dem
+        // Hz-Label in der Wichtigkeit: „wie lange kann ich aufnehmen" ist mehr wert als „25 Hz".
+        var puffer = null;
+        if (!Uploader.phoneConnected()) {
+            var minLinks = _rec.storageMinutesLeft();
+            if (minLinks >= 0) { puffer = "~" + minLinks.toString() + " " + Strings.s("start.bufferMin"); }
+        }
         var mw = _usableWidth(dc, y + fh / 2);
         if (_rec.hasGpsFix()) {
             dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
@@ -351,11 +390,14 @@ class RecordView extends WatchUi.View {
             if (_rec.autoStartOn() && !_rec.autoArmed()) { auto += " " + _rec.autoLead() + "s"; }
             var teile = _rec.autoStartOn() ? [Strings.s("gps.ready"), auto, rl]
                                            : [Strings.s("gps.ready"), rl];
+            if (puffer != null) { teile = _rec.autoStartOn() ? [Strings.s("gps.ready"), auto, puffer, rl]
+                                                            : [Strings.s("gps.ready"), puffer, rl]; }
             y += _drawWrap(dc, w / 2, y, xf, _zusammen(dc, xf, mw, teile), false) + luft;
         } else {
             dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
-            y += _drawWrap(dc, w / 2, y, xf,
-                _zusammen(dc, xf, mw, [Strings.s("gps.searching"), rl]), false) + luft;
+            var teileS = (puffer != null) ? [Strings.s("gps.searching"), puffer, rl]
+                                          : [Strings.s("gps.searching"), rl];
+            y += _drawWrap(dc, w / 2, y, xf, _zusammen(dc, xf, mw, teileS), false) + luft;
         }
 
         // Hinweiszeile, EINE nach Dringlichkeit (Jan, 01.08.): Object-Store voll >

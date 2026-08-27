@@ -319,6 +319,10 @@ def device_config(
         # selbst lesen — Wear OS und watchOS haben keine API dafuer. Also ist das Profil hier die
         # EINZIGE Quelle fuer alle vier Plattformen: sonst faerbte dieselbe Grafik je Uhr anders.
         "hrZones": _hr_zones_fuer_uhr(db, user, settings),
+        # Puffer-Budget fuer die Restzeit-Anzeige/Vorwarnung auf der Uhr. NUR Garmin: Wear,
+        # watchOS und Zepp schreiben in echten Dateispeicher (Gigabytes) und koennen ihn selbst
+        # abfragen — dort ist die Zahl sinnlos.
+        "storageBudgetKb": _storage_budget_kb(db, device) if is_garmin else 0,
         "speedZones": _speed_zones_fuer_uhr(db, user, settings),
         "speedScale": _speed_scale(db, user, settings),
         # Neueste im Connect-IQ-Store freigegebene Version (nur Garmin) -> die Uhr zeigt kurz
@@ -383,6 +387,37 @@ def _speed_scale(db: Session, user, settings: dict) -> list:
         return [z[0], z[5]]
     lo, hi = _manuell_standard()
     return [lo, hi]
+
+
+# Wie viel unser Object Store auf einer Garmin-Uhr fasst — GEMESSEN, nicht dokumentiert:
+# Connect IQ hat keine Auskunft ueber den freien Object Store (`System.getSystemStats()` ist RAM),
+# und die Grenze folgt NICHT dem RAM des Geraets. Belegt durch die Meldungen der Flotte (die Uhr
+# schickt beim Fehlschlag ihr Puffervolumen mit, s. `sf`/`kb` oben): 148…431 KB, quer ueber alle
+# Klassen — die fenix 5X mit 1,25 MB RAM lief bei 180 KB voll, die Venu Sq mit 128 KB erst bei 431.
+# Also kein Modell-Schema, sondern: was die Uhr SELBST gemessen hat, sonst was andere Uhren
+# desselben Modells gemeldet haben, sonst ein vorsichtiger Sammelwert.
+# Doku: docs/WATCH-STORAGE.md.
+STORAGE_BUDGET_DEFAULT_KB = 200
+
+
+def _storage_budget_kb(db: Session, device) -> int:
+    """Puffer-Budget dieser Uhr in KB (0 = unbekannt/nicht zutreffend).
+
+    Reihenfolge: eigene Messung > Messung desselben Modells (Minimum, also die vorsichtigste) >
+    Sammelwert. Die eigene Messung ist fuer dieses Geraet die Wahrheit und sticht deshalb.
+    """
+    eigen = int(getattr(device, "storage_full_kb", 0) or 0)
+    if eigen > 0:
+        return eigen
+    pn = getattr(device, "part_number", None)
+    if pn:
+        modell = db.execute(sa_text(
+            "SELECT MIN(NULLIF(storage_full_kb,0)) FROM device_tokens"
+            " WHERE part_number = :pn AND COALESCE(storage_full_kb,0) > 0"),
+            {"pn": pn}).scalar()
+        if modell:
+            return int(modell)
+    return STORAGE_BUDGET_DEFAULT_KB
 
 
 def _manuell_standard() -> tuple[int, int]:

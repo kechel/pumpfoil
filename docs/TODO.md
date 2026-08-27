@@ -471,6 +471,37 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 Speicher-Restzeit + Vorwarnung auf der Garmin-Uhr (27.08., Wunsch von Philipp).**
+  „Wieviel Speicherplatz noch verfuegbar ist, fuer wie lange der voraussichtlich durchhaelt
+  (entsprechend GPS-only oder gewaehlter Accel-Frequenz), ggf. vorab eine Warnung."
+  - **Abfragen geht NICHT:** Connect IQ hat kein `freeStorage`, `System.getSystemStats()` ist RAM.
+    Also gerechnet — Verbrauch exakt aus der Chunk-Geometrie (11,5 / 6,1 / 2,5 KB/min fuer
+    25 Hz / 10 Hz / nur GPS), Kapazitaet **aus den Meldungen der Flotte gelernt**: laeuft der Store
+    voll, schickt die Uhr ihr Puffervolumen mit, der Server merkt es sich je Geraet und Modell und
+    gibt es als `storageBudgetKb` zurueck. 7 von 628 Uhren haben je gemeldet: **148–431 KB**, und
+    die Grenze folgt NICHT dem RAM (fenix 5X mit 1,25 MB lief bei 180 KB voll, Venu Sq mit 128 KB
+    erst bei 431) — es gibt also kein Modell-Schema, nur Messwerte. Rueckfall 200 KB.
+  - **Daraus die Reichweite ohne Handy:** Instinct 2 / FR55 ~14 min bei 25 Hz, ~26 min bei 10 Hz,
+    ~63 min nur GPS; Venu Sq 37/71/172 min. Das erklaert den Support-Fall vom 13.08.
+    (54-min-Session, ein einziger Lauf).
+  - **Angezeigt:** Startscreen (nur ohne Handy) in der Statuszeile — „GPS bereit · 25 Hz ·
+    ~14 min Puffer", die Restzeit steht in der Wichtigkeit VOR dem Hz-Label. Waehrend der Aufnahme
+    orange Vorwarnung unten + einmalige Vibration: „~12 min bis Speicher voll – beenden & syncen".
+  - **Schwelle relativ** (`storageWarnMinutes`): 15 min, aber hoechstens 60 % der Gesamtreichweite,
+    mindestens 3 min — sonst stuende die Warnung auf einer 158-KB-Uhr bei 25 Hz (12 min gesamt) ab
+    der ersten Sekunde. Ergibt 7–15 min Vorwarnzeit je Geraet und Modus.
+  - **Still, wenn ein Handy in Reichweite ist** (Puffer laeuft laufend leer) — Ausnahme unter
+    3 Minuten, denn dann laeuft er offensichtlich NICHT leer (verbundenes Handy ohne Internet ist
+    am Wasser haeufig). Ohne Budget: gar keine Anzeige statt einer erfundenen Zahl.
+  - Neue Texte `err.storageSoon` + `start.bufferMin` in 14 Sprachen (+ StringsLite).
+    Doku: [`docs/WATCH-STORAGE.md`](WATCH-STORAGE.md), verlinkt in `CLAUDE.md`.
+  - **Bewusst nur Garmin** (Jans Entscheidung): Wear/watchOS/Zepp schreiben in echten
+    Dateispeicher (Gigabytes) und koennten ihn sogar abfragen — dort ist es kein Thema. Ebenfalls
+    zurueckgestellt: eigene Datenfelder „Speicher frei %" / „Restzeit" (waeren neue Feld-IDs in
+    allen fuenf Renderern + Layout-Editor + 15 Sprachen).
+  - **Instinct-2-Build jetzt 69,2 KB** (live 63,4; heute insgesamt +5,8 KB). Bei 96 KB
+    Arbeitsspeicher im Simulator auf die Speicheranzeige schauen.
+
 - **🟢 Farbskalen vereinheitlicht + im Profil einstellbar + dokumentiert (27.08.).**
   Jans Frage: „woher nimmt er die Farbskala?" — Antwort war: aus DREI verschiedenen Quellen.
   Die ZAHL hatte fest verdrahtete Stufen (Speed 12/16/20 km/h, Puls 120/150/170 bpm, seit dem

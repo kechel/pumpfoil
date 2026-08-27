@@ -155,6 +155,15 @@ class SessionRecorder {
     var hrZones = [95, 114, 133, 152, 171, 190];
     var speedZones = [8, 12, 16, 20, 24, 28];
 
+    // Wie viel unser Puffer im Object Store fasst, in KB — vom Server (`/config`), 0 = unbekannt.
+    // Connect IQ sagt es NICHT: `System.getSystemStats()` liefert RAM, ein `freeStorage` gibt es
+    // nicht. Die Zahl ist deshalb GEMESSEN: laeuft der Store voll, schickt die Uhr ihr
+    // Puffervolumen mit (`sf`/`kb`), der Server merkt es sich je Geraet und Modell und gibt es
+    // hier zurueck. Geschlossener Kreis — die eigene Messung ist fuer dieses Geraet die Wahrheit.
+    // Belegte Spanne der Flotte: 148…431 KB, quer ueber alle RAM-Klassen. Doku:
+    // docs/WATCH-STORAGE.md.
+    var storageBudgetKb = 0;
+
     // --- Dynamische Layouts (frei gestaltete Seiten, s. docs/setup-and-watch-layouts.md) ---
     // layoutsOn kommt vom Server (Gating: Gerät >= 512 KB, Modell unauffällig, Nutzer nicht
     // abgeschaltet) — aber nur als Voreinstellung; der On-Watch-Schalter sticht sie. pages ist die
@@ -555,7 +564,59 @@ class SessionRecorder {
         }
     }
 
+    // Puffer-Budget uebernehmen. Eigene Messung schlaegt Servervorgabe nicht — der Server
+    // LIEFERT bereits die eigene Messung, wenn er eine hat (s. _storage_budget_kb).
+    hidden function _applyStorageBudget(data) {
+        if (data.hasKey("storageBudgetKb") && data["storageBudgetKb"] instanceof Lang.Number
+                && data["storageBudgetKb"] > 0) {
+            storageBudgetKb = data["storageBudgetKb"];
+            _store("storagebudget_kb", storageBudgetKb);
+        }
+    }
+
+    // KB pro Minute im aktuellen Aufzeichnungsmodus — aus der Chunk-Geometrie, mit der auch
+    // Uploader.pendingKb() rechnet (9 KB je Accel-Chunk = 1500 Samples x 3 Achsen x 2 B,
+    // 5 KB je GPS-Chunk = 120 Samples bei 1 Hz):
+    //   25 Hz -> 11,5 KB/min · 10 Hz -> 6,1 KB/min · nur GPS -> 2,5 KB/min
+    function kbPerMin() {
+        var gpsOnly = recordMode.equals("gps") || _isLowMem();
+        var hz = gpsOnly ? 0 : (recordMode.equals("lite") ? ACCEL_HZ_LITE : ACCEL_HZ);
+        var accel = (hz * 60.0 / ACCEL_CHUNK_SAMPLES) * Uploader.KB_PER_ACCEL_CHUNK;
+        var gps = (60.0 / GPS_CHUNK_SAMPLES) * Uploader.KB_PER_GPS_CHUNK;
+        return accel + gps;
+    }
+
+    // Geschaetzte Restzeit in Minuten, bis der Puffer voll ist. -1 = unbekannt (kein Budget) —
+    // dann zeigt die Uhr NICHTS an, statt eine Zahl zu erfinden. 10 % Sicherheitsabstand, weil
+    // pendingKb() selbst nur eine Schaetzung ist (~±30 %, s. dort).
+    function storageMinutesLeft() {
+        if (storageBudgetKb <= 0) { return -1; }
+        var frei = storageBudgetKb * 0.9 - Uploader.pendingKbCached();
+        if (frei < 0) { frei = 0; }
+        var rate = kbPerMin();
+        if (rate <= 0) { return -1; }
+        return (frei / rate).toNumber();
+    }
+
+    // Ab wie vielen Restminuten gewarnt wird. NICHT einfach 15: bei kleinem Budget und 25 Hz
+    // reicht der Puffer INSGESAMT nur ~12 min (158 KB gemessen) — eine 15-min-Schwelle stuende
+    // dann ab der ersten Sekunde und waere reines Gepiepse. Deshalb hoechstens 60 % der
+    // Gesamtreichweite, aber immer mindestens 3 Minuten Vorwarnung.
+    //   158 KB / 25 Hz (12 min gesamt) -> ab  7 min ·  158 KB / GPS (57 min) -> ab 15 min
+    //   431 KB / 25 Hz (34 min gesamt) -> ab 15 min
+    function storageWarnMinutes() {
+        var rate = kbPerMin();
+        if (storageBudgetKb <= 0 || rate <= 0) { return -1; }
+        var gesamt = (storageBudgetKb * 0.9) / rate;
+        var grenze = 15.0;
+        if (grenze > gesamt * 0.6) { grenze = gesamt * 0.6; }
+        if (grenze < 3.0) { grenze = 3.0; }
+        return grenze.toNumber();
+    }
+
     hidden function _scalesFromCache() {
+        var bk = Storage.getValue("storagebudget_kb");
+        if (bk instanceof Lang.Number && bk > 0) { storageBudgetKb = bk; }
         var hz = Storage.getValue("hrzones_config");
         if (hz instanceof Lang.Array && hz.size() == 6) { hrZones = hz; }
         var sz = Storage.getValue("speedzones_config");
@@ -853,6 +914,7 @@ class SessionRecorder {
             }
             // Wert-Skalen der Layout-Grafiken (nur (:layouts)-Builds; in LITE/ENG ein No-Op).
             _applyScales(data);
+            _applyStorageBudget(data);
             // Dynamische Layouts (nur (:layouts)-Builds; in LITE/ENG ist das ein No-Op).
             _layoutsFromConfig(data);
             // Canary-Meldung ist beim Server angekommen (wir sind im Erfolgspfad) -> erledigt.

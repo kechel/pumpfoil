@@ -140,6 +140,21 @@ module Uploader {
         return kb;
     }
 
+    // Gecachte Fassung fuer die Anzeige waehrend der Aufnahme: pendingKb() liest je wartender
+    // Session einen state_-Eintrag, das soll nicht bei jedem Bild passieren. 30 s sind fein genug —
+    // in dieser Zeit waechst der Puffer im dichtesten Modus um ~6 KB.
+    var _pkbWert = -1;
+    var _pkbZeit = 0;
+
+    function pendingKbCached() as Lang.Number {
+        var jetzt = System.getTimer();
+        if (_pkbWert < 0 || jetzt - _pkbZeit > 30000 || jetzt < _pkbZeit) {
+            _pkbWert = pendingKb();
+            _pkbZeit = jetzt;
+        }
+        return _pkbWert;
+    }
+
     function isBusy() as Lang.Boolean {
         return _busy;
     }

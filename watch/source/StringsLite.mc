@@ -39,6 +39,8 @@ module Strings {
         if (key.equals("alarm.prefix"))   { return "Alarm: "; }
         if (key.equals("foil.prefix"))    { return "Foil: "; }
         if (key.equals("alarm.off"))      { return "off"; }
+        if (key.equals("err.storageSoon")) { return "min until storage is full – stop & sync"; }
+        if (key.equals("start.bufferMin")) { return "min buffer"; }
         if (key.equals("err.storageFull")) { return "Storage full – upload first"; }
         if (key.equals("err.dataLost")) { return "Storage full – losing data!"; }
         if (key.equals("up.uploadFirst")) { return "upload first!"; }
