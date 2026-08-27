@@ -1,6 +1,7 @@
 package org.pumpfoil.watch
 
 import android.app.Notification
+import android.app.PendingIntent
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
@@ -12,6 +13,7 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.IBinder
 import android.os.Looper
+import androidx.core.app.NotificationCompat
 import androidx.health.services.client.ExerciseClient
 import androidx.health.services.client.ExerciseUpdateCallback
 import androidx.health.services.client.HealthServices
@@ -21,6 +23,8 @@ import androidx.health.services.client.data.ExerciseConfig
 import androidx.health.services.client.data.ExerciseLapSummary
 import androidx.health.services.client.data.ExerciseType
 import androidx.health.services.client.data.ExerciseUpdate
+import androidx.wear.ongoing.OngoingActivity
+import androidx.wear.ongoing.Status
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
@@ -56,7 +60,7 @@ class RecorderService : Service(), SensorEventListener {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == ACTION_STOP) { stopEverything(save = true); return START_NOT_STICKY }
         if (intent?.action == ACTION_DISCARD) { stopEverything(save = false); return START_NOT_STICKY }
-        startForeground(1, notification())
+        startForeground(NOTIF_ID, notification())
         Recorder.start(applicationContext)
         registerSensors()
         startHeartRate()
@@ -171,15 +175,39 @@ class RecorderService : Service(), SensorEventListener {
         val ch = "rec"
         val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         nm.createNotificationChannel(NotificationChannel(ch, I18n.t("rec.recording"), NotificationManager.IMPORTANCE_LOW))
-        return Notification.Builder(this, ch)
+        // Weg zurueck in die App. Ohne den gab es keinen: landet die Uhr auf dem Watchface —
+        // weil der Nutzer die Seitentaste drueckt, ein Anruf kommt oder "Always-on Display" in
+        // den Systemeinstellungen aus ist —, half nur noch der App-Starter, waehrend im
+        // Hintergrund weiter aufgezeichnet wurde (Nutzermeldung 27.08., Galaxy Watch).
+        // REORDER_TO_FRONT holt die LAUFENDE Activity nach vorn, statt eine zweite zu starten.
+        val zurueck = PendingIntent.getActivity(
+            this, 0,
+            Intent(this, MainActivity::class.java).setFlags(
+                Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+        val b = NotificationCompat.Builder(this, ch)
             .setContentTitle("Pumpfoil")
             .setContentText(I18n.t("rec.recording"))
             .setSmallIcon(android.R.drawable.ic_media_play)
             .setOngoing(true)
+            .setCategory(NotificationCompat.CATEGORY_WORKOUT)
+            .setContentIntent(zurueck)
+        // Ongoing Activity ist der Wear-Weg dafuer: solange aufgezeichnet wird, sitzt ein Chip
+        // auf dem Watchface, der mit einem Tipp zurueckfuehrt. Ambient (Always-on) verhindert den
+        // Sprung aufs Watchface nur, solange der Nutzer Always-on ueberhaupt eingeschaltet hat —
+        // dieser Chip greift auch dann, wenn nicht.
+        OngoingActivity.Builder(applicationContext, NOTIF_ID, b)
+            .setStaticIcon(android.R.drawable.ic_media_play)
+            .setTouchIntent(zurueck)
+            .setStatus(Status.Builder().addTemplate(I18n.t("rec.recording")).build())
             .build()
+            .apply(applicationContext)
+        return b.build()
     }
 
     companion object {
+        /** Muss zwischen startForeground und OngoingActivity dieselbe sein. */
+        const val NOTIF_ID = 1
         const val ACTION_STOP = "org.pumpfoil.watch.STOP"
         const val ACTION_DISCARD = "org.pumpfoil.watch.DISCARD"
         fun start(ctx: Context) = ctx.startForegroundService(Intent(ctx, RecorderService::class.java))

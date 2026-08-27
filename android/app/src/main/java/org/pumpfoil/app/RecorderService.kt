@@ -2,6 +2,7 @@ package org.pumpfoil.app
 
 import android.Manifest
 import android.app.Notification
+import android.app.PendingIntent
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
@@ -118,11 +119,20 @@ class RecorderService : Service(), SensorEventListener {
         val ch = "phone-rec"
         val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         nm.createNotificationChannel(NotificationChannel(ch, "Aufnahme", NotificationManager.IMPORTANCE_LOW))
+        // Tippen fuehrt zurueck in die App (auf der Uhr fehlte das auch — dort landete man beim
+        // Watchface und kam nur ueber den App-Starter zurueck). REORDER_TO_FRONT holt die
+        // laufende Activity nach vorn, statt eine zweite zu starten.
+        val zurueck = PendingIntent.getActivity(
+            this, 0,
+            Intent(this, MainActivity::class.java).setFlags(
+                Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         return Notification.Builder(this, ch)
             .setContentTitle("Pumpfoil")
             .setContentText("Aufnahme läuft")
             .setSmallIcon(android.R.drawable.ic_media_play)
             .setOngoing(true)
+            .setContentIntent(zurueck)
             .build()
     }
 

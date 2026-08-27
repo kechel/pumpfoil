@@ -471,6 +471,30 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 Wear: App verschwand hinters Watchface (Nutzermeldung Instagram, 27.08.).** „After
+  some time the app minimizes and the watch shows the default watchface instead of the app. The app
+  continues to record the track in background" (Samsung Galaxy Watch, Akku-Optimierung war aus).
+  Kein Datenverlust — der Foreground-Service lief weiter, nur die Ansicht war weg.
+  - **Hauptursache ist bereits behoben, aber noch nicht draussen:** Always-on/Ambient
+    (`AmbientLifecycleObserver`, `AmbientRecordingScreen`) steckt in **Wear 1.2.24**, die seit
+    26.08. bei Google in Pruefung ist. Live ist **1.2.23** — genau die Version ohne Ambient. Der
+    Melder faehrt also die letzte Fassung vor dem Fix.
+  - **Zusaetzlich gebaut (27.08.), weil Ambient nicht alle Faelle abdeckt:** schaltet der Nutzer
+    „Always-on Display" in den Systemeinstellungen aus, drueckt die Seitentaste oder kommt ein
+    Anruf, landet man trotzdem auf dem Watchface — und hatte dann KEINEN Weg zurueck ausser dem
+    App-Starter. Jetzt:
+    `RecorderService` haengt einen `contentIntent` an die Benachrichtigung und meldet eine
+    **`OngoingActivity`** an (`androidx.wear:wear-ongoing:1.0.0`) -> waehrend der Aufnahme sitzt
+    ein Chip auf dem Watchface, ein Tipp fuehrt zurueck in die laufende Activity
+    (`SINGLE_TOP | REORDER_TO_FRONT`, keine zweite Instanz).
+    Dasselbe Loch gab es beim **Handy-Recorder** (Benachrichtigung ohne `contentIntent`) — auch
+    dort nachgezogen.
+  - **Version:** NICHT gebumpt. Wear 1.2.24 und Phone 1.1.24 sind in Pruefung; diese Aenderung
+    geht mit der naechsten Runde raus (dann 1.2.25 / 1.1.25). Vor dem Bauen gegen `appmeta`
+    pruefen, s. Regel oben.
+  - **Antwort an den Melder: Entwurf liegt bei Jan** (Instagram-DM, englisch) — ich poste nichts
+    selbst.
+
 - **🟢 Klassische Datenseiten passen sich der Displaygroesse an (27.08.).** Jans Meldung:
   „die Standardscreens sind auf kleineren Displays noch zu gross". Nachgemessen aus den
   SDK-Geraetedateien (`~/.Garmin/ConnectIQ/Devices/*/simulator.json`, die Font-Dateinamen
