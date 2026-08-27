@@ -11,7 +11,7 @@ import { useCloseOnBack } from "../lib/useCloseOnBack";
 import { FoilSelect } from "../components/FoilSelect";
 import { FoilOffIcon } from "../components/Icons";
 import { DATA_QUALITY, SPORTS } from "../lib/sportClass";
-import { invalidateSessionListCache, ProcessingNote } from "./Sessions";
+import { invalidateSessionListCache, ProcessingNote, updateCachedSession } from "./Sessions";
 import { FoilPowerStat } from "../components/FoilPower";
 import { openChatOverlay } from "../components/DmWidget";
 import { computeFoilPowerAtSpeed, DEFAULT_RIDER, calculateAR, calculateCLmax, calculateStallSpeed, calculateOptimalSpeed } from "../lib/foilPhysics";
@@ -403,6 +403,12 @@ export default function SessionDetail() {
   const [unmerging, setUnmerging] = useState(false);
   const [searchParams] = useSearchParams();
   const [session, setSession] = useState<SessionSummary | null>(null);
+  // Nach dem SPEICHERN: eigenen State setzen UND die gecachten Listen nachziehen. Ohne das
+  // zeigte die Session-Liste Foil, Stab/Mast und Beschriftung bis zum naechsten echten Reload
+  // alt an (Feedback Jan, 27.08.) — sie liest beim Zurueckkommen aus einem Modul-Cache, und
+  // dessen Revalidate mischt nur NEUE Sessions ein. Bewusst kein `invalidateSessionListCache()`:
+  // das wuerfe auch die Scrollposition weg, zu der man gerade zurueck wollte.
+  const uebernehmen = (s: SessionSummary) => { setSession(s); updateCachedSession(s); };
   const [cap, setCap] = useState("");            // Beschriftungs-Eingabe (Inline-Edit in der Überschrift)
   const [editingCap, setEditingCap] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -833,7 +839,7 @@ export default function SessionDetail() {
     const v = cap.trim();
     setEditingCap(false);
     if (v === (session.caption ?? "")) return;
-    api.updateSessionMeta(session.id, { caption: v }).then(setSession).catch(() => {});
+    api.updateSessionMeta(session.id, { caption: v }).then(uebernehmen).catch(() => {});
   };
 
   // Karte initialisieren (einmal je Session).
@@ -1295,10 +1301,10 @@ export default function SessionDetail() {
             )}
           </span>
         )}
-        <FoilSelect session={session} owned={owned} onMeta={setSession} />
+        <FoilSelect session={session} owned={owned} onMeta={uebernehmen} />
         {!owned && !isPublic && <span className="inline-flex items-center rounded bg-sky-500/15 px-2 py-1 text-sky-700 dark:text-sky-300">{t("sd.communityView")}</span>}
       </div>
-      {!isPublic && <ClassificationPanel session={session} owned={owned} onChange={setSession} />}
+      {!isPublic && <ClassificationPanel session={session} owned={owned} onChange={uebernehmen} />}
         </div>
       </div>
 
@@ -1691,7 +1697,7 @@ export default function SessionDetail() {
         excluded={session.excluded_ranges ?? []}
         poweredRuns={(session.analysis?.metrics as any)?.fremdkraft_laeufe ?? []}
         keptWindows={session.fremdkraft_keep ?? []}
-        canEdit={owned && !isPublic} onSaved={setSession} />
+        canEdit={owned && !isPublic} onSaved={uebernehmen} />
 
       {/* Puls je Lauf — dieselbe Darstellung wie im Vergleich, hier nur fuer diese eine Session.
           Ohne Fahrer-Beschriftung (jede Zeile waere derselbe Name), nur mit der Lauf-Nummer.
@@ -1769,7 +1775,7 @@ export default function SessionDetail() {
               {t("sd.deleteSession")}
             </button>
           </div>
-          {trimOpen && <TrimPanel session={session} onSaved={setSession} onClose={() => setTrimOpen(false)} />}
+          {trimOpen && <TrimPanel session={session} onSaved={uebernehmen} onClose={() => setTrimOpen(false)} />}
         </div>
       )}
     </div>
@@ -2047,7 +2053,9 @@ function RunsTable({
   };
   // Lauf aussortieren / wieder aufnehmen: der Server rechnet die Session danach neu und
   // liefert die frischen Kennzahlen zurück -> Seite und Listen-Cache aktualisieren.
-  const after = (s: SessionSummary) => { invalidateSessionListCache(); onSelect(null); onSaved?.(s); };
+  // `onSaved` ist `uebernehmen` und zieht den Listen-Cache gezielt nach; der frühere
+  // `invalidateSessionListCache()` warf zusätzlich die Scrollposition weg und ist damit unnötig.
+  const after = (s: SessionSummary) => { onSelect(null); onSaved?.(s); };
   const doExclude = (i: number) => {
     if (!confirm(t("sd.excludeConfirm"))) return;
     setBusy(true);

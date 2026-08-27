@@ -140,6 +140,39 @@ export function invalidateSessionListCache() {
   communityCache.clear();
 }
 
+// Eine BEARBEITETE Session in den gecachten Listen ersetzen. Absichtlich nicht
+// `invalidateSessionListCache()`: das wirft den ganzen Cache weg, und damit auch die
+// Scroll-Position, zu der man nach dem Zurück aus dem Detail gerade wieder wollte. Wer nur sein
+// Foil ändert, soll nicht oben in der Liste landen.
+//
+// Die Antwort von PATCH /sessions/{id}/meta ist eine vollständige SessionSummary (derselbe
+// Serializer wie die Liste, nur mit vollem statt schlankem Analyse-Teil) — es reicht also, sie
+// über den alten Eintrag zu legen. Ohne das blieb Foil/Stab/Beschriftung in der Liste bis zum
+// nächsten echten Reload alt (Feedback Jan, 27.08.): `revalidateHead` mischt nur NEUE IDs ein und
+// fasst bekannte Einträge bewusst nicht an.
+export function updateCachedSession(fresh: SessionSummary) {
+  for (const eintrag of listCache.values()) {
+    if (!eintrag.items.some((x) => x.id === fresh.id)) continue;
+    eintrag.items = eintrag.items.map((x) => (x.id === fresh.id ? { ...x, ...fresh } : x));
+  }
+  // Community-/Spot-Listen zeigen dieselbe Session in Tages-Gruppen — dort ist es ein ANDERER
+  // Typ (`CommunitySession`, Schlüssel `session_id`) mit nur einem Teil der Felder. Deshalb nicht
+  // das ganze Objekt drüberlegen, sondern genau die Felder, die man bearbeiten kann und die die
+  // Community-Karte zeigt.
+  for (const eintrag of communityCache.values()) {
+    eintrag.items = eintrag.items.map((g) => {
+      if (!g.sessions?.some((x) => x.session_id === fresh.id)) return g;
+      return {
+        ...g,
+        sessions: g.sessions.map((x) => (x.session_id === fresh.id
+          ? { ...x, caption: fresh.caption, foil: fresh.foil ?? x.foil, setup: fresh.setup ?? x.setup,
+              sport_class: fresh.sport_class ?? x.sport_class }
+          : x)),
+      };
+    });
+  }
+}
+
 function monthLabel(m: string) {
   return new Date(m + "-01T00:00:00").toLocaleDateString(undefined, { month: "long", year: "numeric" });
 }
@@ -404,10 +437,25 @@ function MySessionsList({ myName, accelOnly, onShowAll }:
       const fresh = await api.sessions({ limit: PAGE, offset: 0, month: monthVal || undefined, filter: filterRef.current, accelOnly: accelRef.current });
       const known = new Set(itemsRef.current.map((s) => s.id));
       const added = fresh.filter((s) => !known.has(s.id));
-      if (!added.length) return;
+      // Bekannte Eintraege MITziehen, nicht nur neue einfuegen: sonst bleibt eine anderswo
+      // geaenderte Session (anderes Geraet, anderer Tab, native App) hier alt stehen. Gleiche
+      // Zeile wie im Zwischen-Refresh weiter unten.
+      const frisch = new Map(fresh.map((s) => [s.id, s]));
+      const aktualisiert = itemsRef.current.map((p) => {
+        const f = frisch.get(p.id);
+        return f ? { ...p, ...f } : p;
+      });
+      const geaendert = aktualisiert.some((p, i) => p !== itemsRef.current[i]);
+      if (!added.length) {
+        if (!geaendert) return;
+        itemsRef.current = aktualisiert;
+        setItems(aktualisiert);
+        listCache.set(cacheKey(), { items: aktualisiert, offset: offsetRef.current, hasMore: hasMoreRef.current, scrollY: window.scrollY });
+        return;
+      }
       // Nach Datum einsortieren (neueste zuerst) — nicht blind vorne anhaengen:
       // eine zusammengefuehrte Session hat ein aelteres Datum, gehoert nicht an den Kopf.
-      const merged = [...added, ...itemsRef.current].sort((a, b) => (a.started_at < b.started_at ? 1 : -1));
+      const merged = [...added, ...aktualisiert].sort((a, b) => (a.started_at < b.started_at ? 1 : -1));
       itemsRef.current = merged;
       offsetRef.current += added.length;   // vorne eingefügte Einträge -> Folge-Offset anheben
       setItems(merged);

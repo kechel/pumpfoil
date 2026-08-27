@@ -474,6 +474,32 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 Eigene Session bearbeiten: Liste zeigt es sofort (27.08.).** Jans Befund: Foil, Stab
+  oder Beschriftung geaendert -> in der Session-Liste erst nach einem Reload zu sehen.
+  - **Ursache:** `/sessions` liest beim Zurueckkommen aus einem Modul-Cache (`listCache` in
+    `Sessions.tsx`), den die Liste beim Wegnavigieren SELBST wieder fuellt. Der
+    Hintergrund-Abgleich `revalidateHead` mischt aber nur **neue** IDs ein und fasst bekannte
+    Eintraege bewusst nicht an — eine bearbeitete Session blieb also alt stehen, bis ein echter
+    Reload die Map leerte. `PersonalHome` hat keinen Cache, dort war es immer sofort sichtbar.
+  - **Fix:** neues `updateCachedSession(fresh)` (`Sessions.tsx`) legt die Antwort des Speicherns
+    ueber den alten Eintrag — in den eigenen Listen und in den Community-/Spot-Gruppen (dort ein
+    anderer Typ, `CommunitySession`, deshalb nur die bearbeitbaren Felder). In `SessionDetail`
+    laeuft jetzt JEDES Speichern ueber ein `uebernehmen()`: Foil/Stab/Mast/Shim/Board,
+    Beschriftung, Sportart/Datenqualitaet, Trim/Zeitbereich, Lauf aussortieren.
+  - **Bewusst NICHT `invalidateSessionListCache()`**: das wirft den ganzen Cache weg — und damit
+    die Scrollposition, zu der man nach dem Zurueck aus dem Detail gerade wollte. Wer nur sein
+    Foil aendert, soll nicht oben in der Liste landen. Beim Lauf-Aussortieren stand genau das
+    vorher drin und ist jetzt auch dort der gezielte Weg.
+  - **Zusaetzlich** zieht `revalidateHead` bekannte Eintraege mit (`{...alt, ...frisch}`), damit
+    auch eine Aenderung aus einem anderen Tab, Geraet oder aus den nativen Apps ankommt.
+  - Moeglich, weil `PATCH /sessions/{id}/meta` bereits die vollstaendige Session zurueckgibt
+    (`response_model=SessionOut`, derselbe Serializer wie die Liste) — kein zusaetzlicher
+    Roundtrip noetig.
+  - **Offen, kleiner Rest:** `pwaCache.warmMySessions()` fuellt den Service-Worker-Cache
+    `api-session-detail` und ueberspringt alles, was schon drin liegt — eine bearbeitete Session
+    hat dort also eine veraltete Antwort. Online faellt das nicht auf (NetworkFirst), offline
+    schon. Waere ein `cache.delete` beim Speichern.
+
 - **🟢 Speicher-Restzeit + Vorwarnung auf der Garmin-Uhr (27.08., Wunsch von Philipp).**
   „Wieviel Speicherplatz noch verfuegbar ist, fuer wie lange der voraussichtlich durchhaelt
   (entsprechend GPS-only oder gewaehlter Accel-Frequenz), ggf. vorab eine Warnung."
