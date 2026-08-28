@@ -474,6 +474,19 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟡 Suunto: Production API haengt am Content-Formular (Mail vom 28.08.).** Suunto meldet
+  sich von sich aus: die Production-Subscription ist abonniert, aber „we have not yet been able to
+  confirm whether your integration is ready to be published" — freigegeben wird erst nach dem
+  Partner-Content-Formular (`survey.alchemer.eu/s3/90553909`). Genau der Schritt, der in der Memory
+  als erwartbar notiert war.
+  **Vorbereitet:** fertige Antworten zum Kopieren (Kurz-/Langbeschreibung EN, technische Angaben,
+  Plattform-/Sprachliste, Asset-Pfade) im Scratchpad, an Jan geschickt. Firma/Kontakt/Marketing-Mail
+  fuellt Jan aus, eingereicht wird von ihm — ich reiche nichts extern ein.
+  **Danach:** neuer Subscription Key -> `OAUTH_SUUNTO_SUBSCRIPTION_KEY` in `server/.env`,
+  `foil-server` neu starten, einmal verknuepfen + importieren testen. Developer-Key erst danach
+  wegwerfen (er ist der nachweislich funktionierende Zugang). Motiv: Developer-Limits sind
+  10 Aufrufe/Minute und 200 pro Woche fuer ALLE Nutzer zusammen.
+
 - **🟢 Audit „fremde Daten mit eigenen Werten gerechnet" — alles gefixt (27.08.).** Nach dem
   Leistungs-Fehler gezielt nach derselben Fehlerklasse gesucht: wo fliesst eine Einstellung des
   BETRACHTERS in die Darstellung fremder Daten ein, obwohl die des BESITZERS gelten muesste?
