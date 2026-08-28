@@ -38,6 +38,7 @@ nach `app-icons/`. Nach Änderungen an `master/base/` einfach neu laufen lassen.
 | **Google Play** (Wear) | `stores/google/wear-os/*.png` | 384×384 oder 454×454 (rund) |
 | **App Store** (iPhone) | `app-icons/icon-1024-light.png`, `stores/apple/iphone-6.5/*.png` | Icon 1024, 6.5″-Screenshots |
 | **App Store** (Apple Watch) | `stores/apple/apple-watch/*.png` | watchOS-Screenshots (Sim) |
+| **Suunto** (Partner-Listing) | `stores/suunto/illustration-1125.png` | 1125 px breit (Hoehe frei, max. 1:3); erzeugt von `master/suunto-hero.py`. Unten ~150 px ruhig lassen — dort schwebt Suuntos Connect-Knopf. |
 | **COROS** | `app-icons/coros/pumpfoil-102.png`, `pumpfoil-144.png` | 102 / 144 |
 | **Zepp / Amazfit** | `app-icons/zepp-240-round.png` | 240 rund |
 | **YouTube** | `social/youtube-banner-2560x1440.png` (+ `.svg`) | 2560×1440 |
