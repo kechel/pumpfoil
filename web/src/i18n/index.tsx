@@ -5,6 +5,7 @@ import { createContext, useCallback, useContext, useEffect, useState } from "rea
 import { api, getToken } from "../lib/api";
 import de from "./locales/de";
 import gsw from "./locales/gsw";
+import pl from "./locales/pl";
 import deAT from "./locales/de-AT";
 import en from "./locales/en";
 import fr from "./locales/fr";
@@ -21,7 +22,7 @@ import id from "./locales/id";
 import nb from "./locales/nb";
 
 export type Lang = "de" | "gsw" | "de-AT" | "en" | "fr" | "it" | "es" | "fi" | "nl" | "cs"
-  | "pt" | "ja" | "zh" | "ru" | "id" | "nb";
+  | "pl" | "pt" | "ja" | "zh" | "ru" | "id" | "nb";
 
 export type Dict = Record<string, string>;
 
@@ -37,6 +38,7 @@ export const LANGS: { code: Lang; flag: string; native: string }[] = [
   { code: "fi", flag: "🇫🇮", native: "Suomi" },
   { code: "nl", flag: "🇳🇱", native: "Nederlands" },
   { code: "cs", flag: "🇨🇿", native: "Čeština" },
+  { code: "pl", flag: "🇵🇱", native: "Polski" },
   { code: "pt", flag: "🇧🇷", native: "Português" },
   { code: "ja", flag: "🇯🇵", native: "日本語" },
   { code: "zh", flag: "🇨🇳", native: "中文" },
@@ -45,7 +47,7 @@ export const LANGS: { code: Lang; flag: string; native: string }[] = [
   { code: "nb", flag: "🇳🇴", native: "Norsk" },
 ];
 
-const DICTS: Record<Lang, Dict> = { de, gsw, "de-AT": deAT, en, fr, it, es, fi, nl, cs, pt, ja, zh, ru, id, nb };
+const DICTS: Record<Lang, Dict> = { de, gsw, "de-AT": deAT, en, fr, it, es, fi, nl, cs, pl, pt, ja, zh, ru, id, nb };
 
 const LS_KEY = "foil_lang";
 
@@ -72,6 +74,7 @@ export function detectInitialLang(): Lang {
   if (nav.startsWith("fi")) return "fi";
   if (nav.startsWith("nl")) return "nl";
   if (nav.startsWith("cs")) return "cs";
+  if (nav.startsWith("pl")) return "pl";
   if (nav.startsWith("pt")) return "pt";
   if (nav.startsWith("ja")) return "ja";
   if (nav.startsWith("zh")) return "zh";
