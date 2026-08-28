@@ -19,8 +19,16 @@ interface TextSlot {
   hold: number;
   size?: number;   // Schriftgröße je Zeile (Default TXS)
 }
+// Standardtext im untersten Slot. Die Leerzeilen sind Absicht: die Zeilen werden
+// vertikal zentriert (siehe drawText), die Leerzeilen schieben den Text nach oben.
+const DEFAULT_LAST_TEXT = "have fun\n\nkeep pumping!" + "\n".repeat(16);
 const emptyTexts = (): TextSlot[] =>
-  Array.from({ length: TXN }, () => ({ start: null, text: "", hold: TXH, size: TXS }));
+  Array.from({ length: TXN }, (_, i) => ({
+    start: null,
+    text: i === TXN - 1 ? DEFAULT_LAST_TEXT : "",
+    hold: TXH,
+    size: TXS,
+  }));
 
 // Pegel-Abschnitte: Musik/O-Ton in Zeitfenstern um ±dB anheben/absenken (0,5-s-Rampen)
 interface DuckSlot {
@@ -107,10 +115,12 @@ function Studio() {
   const [sel, setSel] = useState<Sel>({ youtube: null, instagram: null, tiktok: null, ...sv("sel", {}) });
   const [pvPlatform, setPvPlatform] = useState<PvPlatform>(sv("pvPlatform", "youtube"));
   const [trim, setTrim] = useState<{ start: number | null; end: number | null }>(sv("trim", { start: null, end: null }));
-  // gespeicherte Slots auffüllen, falls TXN inzwischen größer ist
-  const [texts, setTexts] = useState<TextSlot[]>(() =>
-    [...sv("texts", [] as TextSlot[]), ...emptyTexts()].slice(0, TXN),
-  );
+  // gespeicherte Slots auffüllen, falls TXN inzwischen größer ist — fehlende
+  // Slots bekommen den Default an ihrer eigenen Position, nicht den von vorne
+  const [texts, setTexts] = useState<TextSlot[]>(() => {
+    const saved = sv("texts", [] as TextSlot[]);
+    return emptyTexts().map((d, i) => saved[i] ?? d);
+  });
   const [gain, setGain] = useState(sv("gain", -12));
   const [otonGain, setOtonGain] = useState(sv("otonGain", 0));
   const [ducks, setDucks] = useState<DuckSlot[]>(sv("ducks", emptyDucks()));
