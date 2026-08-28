@@ -2,7 +2,7 @@
 // Erstübersetzung maschinell (informelles je/jij); Muttersprachler-Review empfohlen.
 const nl: Record<string, string> = {
   "watchStats.title": "Horloge-statistieken",
-  "watchStats.hint": "Welke waarden met welk horloge worden gevaren — community-aggregaat per model.",
+  "watchStats.hint": "Welke waarden met welk horloge worden gevaren — community-aggregaat per model. Hier telt elke opname mee: alle sporten, met en zonder accel-data.",
   "watchStats.none": "Nog geen gegevens.",
   "watchStats.colWatch": "Horloge",
   "watchStats.colSessions": "Sessies",

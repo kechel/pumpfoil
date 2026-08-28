@@ -1,6 +1,6 @@
 const fr: Record<string, string> = {
   "watchStats.title": "Stats par montre",
-  "watchStats.hint": "Quels chiffres avec quelle montre — agrégat communautaire par modèle.",
+  "watchStats.hint": "Quels chiffres avec quelle montre — agrégat communautaire par modèle. Ici tout compte : tous les sports, avec ou sans données accéléromètre.",
   "watchStats.none": "Pas encore de données.",
   "watchStats.colWatch": "Montre",
   "watchStats.colSessions": "Sessions",
@@ -726,7 +726,7 @@ const fr: Record<string, string> = {
 
   "foilStats.title": "Stats foils",
   "stats.short": "Stats",
-  "foilStats.hint": "Quelles valeurs sont atteintes avec quel foil (communautÃ©). Seules les sessions de pumpfoil avec détection accéléromètre sont comptées — les autres sports (wing, eFoil, foildrive, wakethief), les enregistrements GPS seuls et les données marquées comme erronées sont exclus.",
+  "foilStats.hint": "Quelles valeurs sont atteintes avec quel foil (communauté). Seules les sessions de pumpfoil avec détection accéléromètre sont comptées — les autres sports (wing, eFoil, foildrive, wakethief), les enregistrements GPS seuls et les données marquées comme erronées sont exclus.",
   "foilStats.none": "Pas encore de sessions avec un foil choisi.",
   "foilStats.colFoil": "Foil",
   "foilStats.colSessions": "Sessions",

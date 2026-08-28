@@ -18,7 +18,7 @@ const en: Record<string, string> = {
   "upload.finalizeBusy": "Analyzing…",
   "upload.finalizeConfirm": "Finish and analyze this session with the data uploaded so far? Missing acceleration data won't be uploaded later (GPS-only analysis).",
   "watchStats.title": "Watch stats",
-  "watchStats.hint": "Which numbers are ridden with which watch — community aggregate per model.",
+  "watchStats.hint": "Which numbers are ridden with which watch — community aggregate per model. Everything counts here: every sport, with or without accel data.",
   "watchStats.none": "No data yet.",
   "watchStats.colWatch": "Watch",
   "watchStats.colSessions": "Sessions",

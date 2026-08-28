@@ -1,6 +1,6 @@
 const ja: Record<string, string> = {
   "watchStats.title": "ウォッチ統計",
-  "watchStats.hint": "どの数値がどのウォッチで記録されたか — モデルごとのコミュニティ集計。",
+  "watchStats.hint": "どの数値がどのウォッチで記録されたか — モデルごとのコミュニティ集計。 ここではすべての記録が対象です。競技を問わず、加速度データの有無も問いません。",
   "watchStats.none": "まだデータがありません。",
   "watchStats.colWatch": "ウォッチ",
   "watchStats.colSessions": "セッション",

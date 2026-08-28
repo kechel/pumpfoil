@@ -1,6 +1,6 @@
 const id: Record<string, string> = {
   "watchStats.title": "Statistik jam",
-  "watchStats.hint": "Angka apa yang dicapai dengan jam mana — agregat komunitas per model.",
+  "watchStats.hint": "Angka apa yang dicapai dengan jam mana — agregat komunitas per model. Di sini semua dihitung: semua olahraga, dengan atau tanpa data accel.",
   "watchStats.none": "Belum ada data.",
   "watchStats.colWatch": "Jam",
   "watchStats.colSessions": "Sesi",

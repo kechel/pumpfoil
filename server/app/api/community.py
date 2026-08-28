@@ -92,13 +92,21 @@ def _cutoff(period: str) -> datetime | None:
 
 
 def _community(query, viewer_id: int | None = None, accel_only: bool = True,
-               sport: str = "pumpfoil"):
+               sport: str = "pumpfoil", nur_foiling: bool = True):
     """Joins + Filter für community-sichtbare Sessions. query selektiert beliebige Spalten.
 
     Versteckte Konten (hidden, App-Store-Tester) werden für alle ANDEREN ausgeblendet;
     der Besitzer selbst (viewer_id) sieht seine Inhalte weiter.
 
-    accel_only=True (Default): nur präzise Accel-/Modell-Läufe. False: auch GPS-only-Läufe."""
+    accel_only=True (Default): nur präzise Accel-/Modell-Läufe. False: auch GPS-only-Läufe.
+
+    nur_foiling=True (Default): es muss überhaupt Foiling erkannt worden sein — die Session zählt
+    als Pumpfoil-Aufnahme (`is_pumpfoil`), ist einer Sportart zugeordnet und hat mindestens einen
+    Lauf bzw. Accel-Erkennung. Das ist richtig für Rekorde, Spots, Foil-Stats.
+    nur_foiling=False: NUR die Integritäts-Filter (gelöscht, gemeldet, blockiert/versteckt,
+    laufende Aufnahme, Datenmüll). Für Auswertungen, bei denen die AUFNAHME zählt und nicht ihr
+    Inhalt — die Uhren-Statistik: dort interessiert, welche Uhr wie oft benutzt wurde, egal welcher
+    Sport und egal ob Accel-Daten dabei waren (Jan, 28.08.)."""
     q = (
         query.select_from(AR)
         .join(S, AR.session_id == S.id)
@@ -108,11 +116,11 @@ def _community(query, viewer_id: int | None = None, accel_only: bool = True,
                 # NUR fertige Sessions: recording/live (In-Progress bzw. gps_only-Vorabanalyse aus
                 # der Detail-Ansicht) NIE in Community/Rekorde — auch wenn is_pumpfoil schon gesetzt.
                 S.status.notin_(("recording", "live")),
-                S.is_pumpfoil.is_(True),
+                (S.is_pumpfoil.is_(True) if nur_foiling else true()),
                 # Menschliche Klassifikation (docs/sport-classification.md): unklassifizierte
                 # Sessions (zwei Melder, noch nicht zugeordnet) erscheinen in KEINER Kategorie,
                 # andere Sportarten und Datenmüll nicht in den Pumpfoil-Auswertungen.
-                S.needs_classification.isnot(True),
+                (S.needs_classification.isnot(True) if nur_foiling else true()),
                 # Sportart: für „pumpfoil" zählen auch Altbestände mit NULL mit (die Spalte kam erst
                 # 2026-07-27); für jede ANDERE Sportart muss sie ausdrücklich gesetzt sein, sonst
                 # rutschten unklassifizierte Sessions in fremde Rekorde.
@@ -126,7 +134,9 @@ def _community(query, viewer_id: int | None = None, accel_only: bool = True,
                   if sport == "pumpfoil" else (S.sport_class == sport))),
                 or_(S.data_quality.is_(None), S.data_quality == "ok"))
     )
-    if accel_only:
+    if not nur_foiling:
+        pass          # keine Bedingung an den INHALT der Aufnahme
+    elif accel_only:
         q = q.filter(AR.detection == "model")
     else:
         # Auch GPS-only, aber nur wenn On-Foil erkannt wurde (mind. ein Lauf) —
@@ -1101,7 +1111,19 @@ def foil_stats(_user: models.User = Depends(current_user), db: Session = Depends
 
 @router.get("/watch-stats")
 def watch_stats(_user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
-    """Community-Aggregat je Uhr-Modell (device_tokens.label). Nur Sessions mit gepaartem Gerät."""
+    """Community-Aggregat je Uhr-Modell (device_tokens.label). Nur Sessions mit gepaartem Gerät.
+
+    Bewusst OHNE Sport- und Accel-Filter (Jan, 28.08.: „bei einem Uhren-Stand sollten wir einfach
+    alle Uhren anzeigen, da ist es uns egal, welcher Sport und auch egal, ob Accel-Daten da waren").
+    Hier zählt die AUFNAHME, nicht ihr Inhalt: eine Uhr, die im GPS-Modus läuft (Instinct 2,
+    FR 55), erschien sonst systematisch mit weniger Sessions, als sie wirklich aufgezeichnet hat.
+    Die Integritäts-Filter bleiben (gelöscht, gemeldet, blockiert/versteckt, laufende Aufnahme,
+    Datenmüll).
+
+    Auf die Kennzahlen wirkt das NICHT verzerrend: Sessions ohne erkanntes Foiling steuern 0 zu
+    Distanz und Zeit bei (Ø-Speed ist Distanz/Zeit), Maxima bleiben Maxima, und `avg_cadence_hz`
+    ist dort NULL — SQL-AVG überspringt das. Es ändern sich also nur Sessions- und Foiler-Zahl,
+    und genau die sollen vollständig sein."""
     DT = models.DeviceToken
     rows = (
         _community(db.query(
@@ -1114,7 +1136,7 @@ def watch_stats(_user: models.User = Depends(current_user), db: Session = Depend
             func.max(AR.best_distance_m),
             func.max(AR.best_speed_mps),
             func.avg(AR.avg_cadence_hz),
-        ), _user.id).join(DT, S.device_id == DT.id)
+        ), _user.id, sport="all", nur_foiling=False).join(DT, S.device_id == DT.id)
         .filter(S.device_id.isnot(None), DT.label.isnot(None))
         .group_by(DT.label).all()
     )

@@ -1,6 +1,6 @@
 const it: Record<string, string> = {
   "watchStats.title": "Statistiche orologi",
-  "watchStats.hint": "Quali valori con quale orologio — aggregato community per modello.",
+  "watchStats.hint": "Quali valori con quale orologio — aggregato community per modello. Qui conta ogni registrazione: tutti gli sport, con o senza dati accelerometrici.",
   "watchStats.none": "Ancora nessun dato.",
   "watchStats.colWatch": "Orologio",
   "watchStats.colSessions": "Sessioni",

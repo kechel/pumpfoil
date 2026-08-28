@@ -1,6 +1,6 @@
 const zh: Record<string, string> = {
   "watchStats.title": "手表统计",
-  "watchStats.hint": "哪些数据是用哪块手表骑出来的 —— 按型号的社区汇总。",
+  "watchStats.hint": "哪些数据是用哪块手表骑出来的 —— 按型号的社区汇总。 这里统计所有记录：不限运动项目，有无加速度数据都算。",
   "watchStats.none": "暂无数据。",
   "watchStats.colWatch": "手表",
   "watchStats.colSessions": "记录数",

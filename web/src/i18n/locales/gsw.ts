@@ -1,7 +1,7 @@
 // Schwiizerdütsch (Schweizer Mundart). Fehlendi Keys falled uf Hochdütsch (de) zrugg.
 const gsw: Record<string, string> = {
   "watchStats.title": "Uhre-Statistik",
-  "watchStats.hint": "Weli Wärt wärded mit weler Uhr gfahre — Community-Aggregat je Modäll.",
+  "watchStats.hint": "Weli Wärt wärded mit weler Uhr gfahre — Community-Aggregat je Modäll. Do zellt jedi Ufnahm: alli Sportarte, mit und ohni Accel-Date.",
   "watchStats.none": "No kei Date.",
   "watchStats.colWatch": "Uhr",
   "watchStats.colSessions": "Sessions",
@@ -647,7 +647,7 @@ const gsw: Record<string, string> = {
 
   "foilStats.title": "Foil-Stats",
   "stats.short": "Stats",
-  "foilStats.hint": "Weli WÃ¤rt mit welem Foil gfahre wÃ¤rde (Community). Zellt wärded nume Pumpfoil-Sessions mit Accel-Erkennig — anderi Sportarte (Wing, eFoil, Foildrive, Wakethief), GPS-only-Ufnahme und als fählerhaft markierti Date sind nöd debi.",
+  "foilStats.hint": "Weli Wärt mit welem Foil gfahre wärde (Community). Zellt wärded nume Pumpfoil-Sessions mit Accel-Erkennig — anderi Sportarte (Wing, eFoil, Foildrive, Wakethief), GPS-only-Ufnahme und als fählerhaft markierti Date sind nöd debi.",
   "foilStats.none": "No kei Sessions mit gwähltem Foil.",
   "foilStats.colFoil": "Foil",
   "foilStats.colSessions": "Sessions",

@@ -1,7 +1,7 @@
 // Österreichisch (mit a bissl Dialekt-Färbung). Fehlendi Keys falln auf de zruck.
 const deAT: Record<string, string> = {
   "watchStats.title": "Uhren-Statistik",
-  "watchStats.hint": "Welche Werte werden mit welcher Uhr gefahren — Community-Aggregat je Modell.",
+  "watchStats.hint": "Welche Werte werden mit welcher Uhr gefahren — Community-Aggregat je Modell. Do zöhlt jede Aufnahme: olle Sportartn, mit und ohne Accel-Datn.",
   "watchStats.none": "Noch keine Daten.",
   "watchStats.colWatch": "Uhr",
   "watchStats.colSessions": "Sessions",
@@ -594,7 +594,7 @@ const deAT: Record<string, string> = {
 
   "foilStats.title": "Foil-Stats",
   "stats.short": "Stats",
-  "foilStats.hint": "WÃ¶che Werte werdn mit wÃ¶chem Foil gfahrn (Community). Gezählt werdn nur Pumpfoil-Sessions mit Accel-Erkennung — andere Sportarten (Wing, eFoil, Foildrive, Wakethief), GPS-only-Aufnahmen und ois fehlerhaft markierte Daten san net dabei.",
+  "foilStats.hint": "Wöche Werte werdn mit wöchem Foil gfahrn (Community). Gezählt werdn nur Pumpfoil-Sessions mit Accel-Erkennung — andere Sportarten (Wing, eFoil, Foildrive, Wakethief), GPS-only-Aufnahmen und ois fehlerhaft markierte Daten san net dabei.",
   "foilStats.none": "No kane Sessions mit dem Foil.",
   "foilStats.colFoil": "Foil",
   "foilStats.colSessions": "Sessions",

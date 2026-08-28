@@ -20,7 +20,7 @@ const de: Record<string, string> = {
   "upload.finalizeBusy": "Wird ausgewertet…",
   "upload.finalizeConfirm": "Diese Session mit den bisher hochgeladenen Daten abschließen und auswerten? Fehlende Beschleunigungsdaten werden nicht mehr nachgeladen (reine GPS-Auswertung).",
   "watchStats.title": "Uhren-Statistik",
-  "watchStats.hint": "Welche Werte werden mit welcher Uhr gefahren — Community-Aggregat je Modell.",
+  "watchStats.hint": "Welche Werte werden mit welcher Uhr gefahren — Community-Aggregat je Modell. Hier zählt jede Aufnahme: alle Sportarten, mit und ohne Accel-Daten.",
   "watchStats.none": "Noch keine Daten.",
   "watchStats.colWatch": "Uhr",
   "watchStats.colSessions": "Sessions",

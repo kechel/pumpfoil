@@ -1,6 +1,6 @@
 const fi: Record<string, string> = {
   "watchStats.title": "Kellotilastot",
-  "watchStats.hint": "Mitkä arvot millä kellolla — yhteisön koonti mallia kohti.",
+  "watchStats.hint": "Mitkä arvot millä kellolla — yhteisön koonti mallia kohti. Tässä lasketaan kaikki: kaikki lajit, accel-datan kanssa tai ilman.",
   "watchStats.none": "Ei vielä dataa.",
   "watchStats.colWatch": "Kello",
   "watchStats.colSessions": "Sessiot",
@@ -1007,7 +1007,7 @@ const fi: Record<string, string> = {
 
   "foilStats.title": "Foil-tilastot",
   "stats.short": "Stats",
-  "foilStats.hint": "MitÃ¤ arvoja milllÃ¤kin foililla ajetaan (yhteisÃ¶). Mukaan lasketaan vain pumpfoil-sessiot accel-tunnistuksella — muut lajit (wing, eFoil, foildrive, wakethief), pelkät GPS-tallenteet ja virheellisiksi merkityt tiedot jäävät pois.",
+  "foilStats.hint": "Mitä arvoja millläkin foililla ajetaan (yhteisö). Mukaan lasketaan vain pumpfoil-sessiot accel-tunnistuksella — muut lajit (wing, eFoil, foildrive, wakethief), pelkät GPS-tallenteet ja virheellisiksi merkityt tiedot jäävät pois.",
   "foilStats.none": "Ei vielä sessioita valitulla foililla.",
   "foilStats.colFoil": "Foil",
   "foilStats.colSessions": "Sessiot",
