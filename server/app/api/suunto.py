@@ -253,8 +253,27 @@ def _vorfilter(wo: dict) -> str | None:
 
 
 def _quota_weg(r: httpx.Response) -> bool:
-    """Kontingent erschoepft? Suunto antwortet 403 „Out of call volume quota"."""
+    """Kontingent erschoepft? Suunto (Azure APIM) antwortet 403 mit „Out of call volume quota".
+
+    WICHTIG: ein nacktes 403 „Forbidden" ist etwas ANDERES — s. `_endgueltig`.
+    """
     return r.status_code == 403 and "quota" in (r.text or "").lower()
+
+
+# Gruende, bei denen ein weiterer Versuch nichts bringt — der Eintrag fliegt aus der
+# Warteschlange, statt zehnmal Kontingent zu verbrennen. Am 28.08. an den sechs nachgeholten
+# Workouts gemessen:
+#   „kein gps"  — Suunto liefert die Datei, sie enthaelt aber keine Position (Indoor o. ae.)
+#   „http 403"  — Body ist ein nacktes {"error":{"code":"403","description":"Forbidden"}},
+#                 NICHT die Kontingent-Meldung. Trat bei EINEM Nutzer an fuenf Workouts auf,
+#                 waehrend ein anderes Workout desselben Nutzers durchlief: also eine
+#                 Eigenschaft des einzelnen Workouts, nicht des Zugangs. Bleibt dauerhaft.
+#   „doppelt"   — haben wir schon
+ENDGUELTIG = ("kein gps", "doppelt", "http 403", "http 404", "http 410")
+
+
+def _endgueltig(grund: str | None) -> bool:
+    return (grund or "") in ENDGUELTIG
 
 
 def _vormerken(db: Session, user_id: int, key: str, grund: str) -> None:
@@ -284,6 +303,9 @@ def _nachholen(db: Session, user: models.User, token: str, limit: int = 5) -> in
         if ok:
             db.delete(p)
             geholt += 1
+        elif _endgueltig(grund):
+            log.info("Suunto: %s endgueltig nicht holbar (%s) — aus der Warteschlange", p.workout_key, grund)
+            db.delete(p)
         else:
             p.last_error = (grund or "")[:200]
             db.commit()
@@ -365,7 +387,7 @@ def sync(user: models.User = Depends(current_user), db: Session = Depends(get_db
             imported += 1
         else:
             skipped += 1
-            if fehler in ("quota",) or (fehler or "").startswith("http"):
+            if not _endgueltig(fehler) and (fehler == "quota" or (fehler or "").startswith(("http", "fehler"))):
                 _vormerken(db, user.id, key, fehler or "?")
             if fehler == "quota":
                 break     # Kontingent leer: Rest bleibt vorgemerkt
@@ -452,7 +474,7 @@ def _import_notified_workout(username: str, key: str) -> None:
         if ok:
             link.last_sync_at = datetime.now(timezone.utc)
             db.commit()
-        elif fehler == "quota" or (fehler or "").startswith("http"):
+        elif not _endgueltig(fehler) and (fehler == "quota" or (fehler or "").startswith(("http", "fehler"))):
             # Suunto schickt denselben Ping NICHT noch einmal — ohne Vormerkung waere die
             # Session verloren. Genau das ist bei erschoepftem Wochen-Kontingent passiert.
             _vormerken(db, user.id, key, fehler or "?")

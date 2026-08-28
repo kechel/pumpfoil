@@ -497,10 +497,19 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     naechsten 403 bricht der Durchlauf ab. Es gibt bewusst keinen Scheduler; das haengt sich an
     das, was ohnehin passiert.
   - `/sync` antwortet jetzt zusaetzlich mit `filtered` und `pending`.
-  - **Beim Neustart gesehen und geprueft:** die 4 uvicorn-Worker rennen bei `create_all` in eine
-    `UniqueViolation` auf `pg_type_typname_nsp_index`, wenn eine Tabelle NEU ist — einer gewinnt,
-    die Tabelle steht, alle vier Worker laufen, keine Tracebacks danach. Kosmetisch, aber bei der
-    naechsten neuen Tabelle wieder da.
+  - **Nachtrag 28.08., an den echten Luecken gemessen.** Im Journal stehen alle 65 Webhook-Pings
+    seit dem 28.07.; abgeglichen mit den Sessions (ueber Nutzer + Zeitnaehe, die `session_uuid`
+    traegt den Workout-Key leider nicht): **48 mit Session, 6 ohne, 11 von inzwischen
+    entkoppelten Konten** (fuer die gibt es ohne Token nichts zu holen). Die sechs ueber die neue
+    Warteschlange nachgeholt — und dabei gelernt, dass beide Ursachen ENDGUELTIG sind:
+    einmal „kein gps" (Suunto liefert die Datei, sie enthaelt keine Position) und fuenfmal ein
+    nacktes `403 Forbidden` — **nicht** die Kontingent-Meldung. Letzteres trat bei EINEM Nutzer an
+    fuenf Workouts auf, waehrend ein anderes Workout desselben Nutzers durchlief: also eine
+    Eigenschaft des einzelnen Workouts, nicht des Zugangs.
+    -> `ENDGUELTIG`-Liste eingebaut: „kein gps", „doppelt", 403/404/410 fliegen sofort aus der
+    Warteschlange, statt zehnmal Kontingent zu verbrennen. Wiederholt wird nur, was sich aendern
+    kann (Kontingent, 5xx, Netzfehler). Warteschlange ist danach wieder leer.
+    **Es ging also nichts verloren, was zu holen gewesen waere.**
 
 - **🟡 Suunto: Production API haengt am Content-Formular (Mail vom 28.08.).** Suunto meldet
   sich von sich aus: die Production-Subscription ist abonniert, aber „we have not yet been able to
