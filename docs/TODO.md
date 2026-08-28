@@ -474,6 +474,34 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 Suunto: Vorfilter + Nachholen bei erschoepftem Kontingent (28.08.).** Ausloeser war
+  Jans Frage nach den Sessions je Fahrer. Gemessen: 9 Fahrer, 235 Importe, aktuell **75 Sessions
+  in 7 Tagen** (8,3 je Fahrer und Woche) — und **nur 59 % davon sind ueberhaupt Pumpfoil**
+  (139 von 235). Wir haben also jedes GPS-Workout geladen, analysiert und 41 % wieder aussortiert.
+  Rechnung gegen das Developer-Kontingent (200 Aufrufe/Woche fuer ALLE Nutzer zusammen):
+  78 Importe x 2 Aufrufe + ~63 Token-Refreshes = **~219 von 200** — wir liefen also drueber, und
+  ein 403 „Out of call volume quota" liess den Webhook-Ping ins Leere laufen (Suunto schickt ihn
+  NICHT erneut, einen periodischen Sync gibt es nicht).
+  - **Vorfilter `_vorfilter(wo)`** aus den Metadaten des Pings — greift, BEVOR ein Aufruf faellig
+    wird: Dauer < 60 s, Distanz > 60 km, oder Schnitt > 30 km/h ueber mehr als 10 Minuten
+    (Auto/Rad/Boot). Bewusst OHNE Sportart-Zuordnung: welche `activityId` jemand fuers Foilen
+    benutzt, ist nicht vorhersagbar (unsere COROS-Anleitung empfiehlt „Speedsurfing"). Fehlt ein
+    Feld, wird geladen — lieber ein Download zu viel als eine verlorene Session.
+  - **Grenze nachgezogen, weil gemessen:** mit den zuerst gewaehlten 30 km haette der Filter
+    rueckwirkend **14 echte Pumpfoil-Sessions (10 %) abgelehnt**. Mit 60 km sind es 0 Pumpfoil und
+    27 % der Nicht-Pumpfoil. (Die Distanz war fuer den Test aus `avg_speed_mps` x Dauer
+    rekonstruiert — `metrics_json` fuehrt keine Gesamtdistanz —, faellt dadurch eher zu hoch aus.)
+  - **Warteschlange `suunto_pending`** (Modell + Tabelle): scheitert ein Import an 403/HTTP,
+    landet der Workout-Key dort statt verloren zu gehen. Nachgeholt wird opportunistisch — bei
+    jedem naechsten Webhook-Ping und bei jedem `/sync`, gedeckelt auf 5 je Lauf, und beim
+    naechsten 403 bricht der Durchlauf ab. Es gibt bewusst keinen Scheduler; das haengt sich an
+    das, was ohnehin passiert.
+  - `/sync` antwortet jetzt zusaetzlich mit `filtered` und `pending`.
+  - **Beim Neustart gesehen und geprueft:** die 4 uvicorn-Worker rennen bei `create_all` in eine
+    `UniqueViolation` auf `pg_type_typname_nsp_index`, wenn eine Tabelle NEU ist — einer gewinnt,
+    die Tabelle steht, alle vier Worker laufen, keine Tracebacks danach. Kosmetisch, aber bei der
+    naechsten neuen Tabelle wieder da.
+
 - **🟡 Suunto: Production API haengt am Content-Formular (Mail vom 28.08.).** Suunto meldet
   sich von sich aus: die Production-Subscription ist abonniert, aber „we have not yet been able to
   confirm whether your integration is ready to be published" — freigegeben wird erst nach dem

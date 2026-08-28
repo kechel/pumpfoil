@@ -922,6 +922,30 @@ class SuuntoLink(Base):
     last_sync_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
+class SuuntoPending(Base):
+    """Workouts, die uns Suunto gemeldet hat, die wir aber (noch) nicht holen konnten.
+
+    Grund ist fast immer das Wochen-Kontingent der Developer-API (200 Aufrufe fuer ALLE Nutzer
+    zusammen, Antwort 403 „Out of call volume quota"). Bisher war so ein Ping verloren: Suunto
+    schickt ihn nicht noch einmal, und einen periodischen Sync gibt es nicht. Jetzt landet der
+    Schluessel hier und wird nachgeholt, sobald wieder Kontingent da ist.
+
+    Eintraege verschwinden nach erfolgreichem Import; `tries` deckelt endlose Wiederholungen bei
+    einem dauerhaft kaputten Workout.
+    """
+
+    __tablename__ = "suunto_pending"
+    __table_args__ = (UniqueConstraint("user_id", "workout_key", name="uq_suunto_pending"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    workout_key: Mapped[str] = mapped_column(String(64), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    last_try_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    tries: Mapped[int] = mapped_column(Integer, default=0)
+    last_error: Mapped[str | None] = mapped_column(String(200))
+
+
 class StravaLink(Base):
     """Verknüpfung eines Nutzers mit der Strava API (OAuth2). access_token läuft alle 6h ab
     (expires_at = absoluter Unix-Stempel) -> refresh_token (langlebig). Aktivitäten werden
