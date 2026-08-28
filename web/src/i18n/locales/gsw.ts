@@ -647,7 +647,7 @@ const gsw: Record<string, string> = {
 
   "foilStats.title": "Foil-Stats",
   "stats.short": "Stats",
-  "foilStats.hint": "Weli Wärt mit welem Foil gfahre wärde (Community).",
+  "foilStats.hint": "Weli WÃ¤rt mit welem Foil gfahre wÃ¤rde (Community). Zellt wärded nume Pumpfoil-Sessions mit Accel-Erkennig — anderi Sportarte (Wing, eFoil, Foildrive, Wakethief), GPS-only-Ufnahme und als fählerhaft markierti Date sind nöd debi.",
   "foilStats.none": "No kei Sessions mit gwähltem Foil.",
   "foilStats.colFoil": "Foil",
   "foilStats.colSessions": "Sessions",

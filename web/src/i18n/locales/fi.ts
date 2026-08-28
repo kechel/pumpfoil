@@ -1007,7 +1007,7 @@ const fi: Record<string, string> = {
 
   "foilStats.title": "Foil-tilastot",
   "stats.short": "Stats",
-  "foilStats.hint": "Mitä arvoja millläkin foililla ajetaan (yhteisö).",
+  "foilStats.hint": "MitÃ¤ arvoja milllÃ¤kin foililla ajetaan (yhteisÃ¶). Mukaan lasketaan vain pumpfoil-sessiot accel-tunnistuksella — muut lajit (wing, eFoil, foildrive, wakethief), pelkät GPS-tallenteet ja virheellisiksi merkityt tiedot jäävät pois.",
   "foilStats.none": "Ei vielä sessioita valitulla foililla.",
   "foilStats.colFoil": "Foil",
   "foilStats.colSessions": "Sessiot",

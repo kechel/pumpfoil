@@ -1039,7 +1039,7 @@ const nl: Record<string, string> = {
 
   "foilStats.title": "Foil-stats",
   "stats.short": "Stats",
-  "foilStats.hint": "Welke waarden worden met welke foil gereden (community).",
+  "foilStats.hint": "Welke waarden worden met welke foil gereden (community). Alleen pumpfoil-sessies met accel-detectie tellen mee — andere sporten (wing, eFoil, foildrive, wakethief), alleen-GPS-opnames en als foutief gemarkeerde data blijven buiten beschouwing.",
   "foilStats.none": "Nog geen sessies met gekozen foil.",
   "foilStats.colFoil": "Foil",
   "foilStats.colSessions": "Sessies",

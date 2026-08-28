@@ -1165,7 +1165,7 @@ const de: Record<string, string> = {
 
   "foilStats.title": "Foil-Stats",
   "stats.short": "Stats",
-  "foilStats.hint": "Welche Werte werden mit welchem Foil gefahren (Community).",
+  "foilStats.hint": "Welche Werte werden mit welchem Foil gefahren (Community). Gezählt werden nur Pumpfoil-Sessions mit Accel-Erkennung — andere Sportarten (Wing, eFoil, Foildrive, Wakethief), GPS-only-Aufnahmen und als fehlerhaft markierte Daten sind nicht dabei.",
   "foilStats.none": "Noch keine Sessions mit gewähltem Foil.",
   "foilStats.colFoil": "Foil",
   "foilStats.colSessions": "Sessions",

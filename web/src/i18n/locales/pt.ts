@@ -945,7 +945,7 @@ const pt: Record<string, string> = {
 
   "foilStats.title": "Estatísticas por foil",
   "stats.short": "Estatísticas",
-  "foilStats.hint": "Quais números as pessoas alcançam em qual foil (comunidade).",
+  "foilStats.hint": "Quais nÃºmeros as pessoas alcanÃ§am em qual foil (comunidade). Contam apenas sessões de pumpfoil com deteção por acelerómetro — outros desportos (wing, eFoil, foildrive, wakethief), gravações só de GPS e dados marcados como incorretos ficam de fora.",
   "foilStats.none": "Ainda sem sessões com um foil escolhido.",
   "foilStats.colFoil": "Foil",
   "foilStats.colSessions": "Sessões",

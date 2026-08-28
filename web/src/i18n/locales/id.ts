@@ -945,7 +945,7 @@ const id: Record<string, string> = {
 
   "foilStats.title": "Statistik foil",
   "stats.short": "Statistik",
-  "foilStats.hint": "Angka apa yang dicapai orang di foil mana (komunitas).",
+  "foilStats.hint": "Angka apa yang dicapai orang di foil mana (komunitas). Hanya sesi pumpfoil dengan deteksi accel yang dihitung — olahraga lain (wing, eFoil, foildrive, wakethief), rekaman GPS saja, dan data yang ditandai keliru tidak ikut.",
   "foilStats.none": "Belum ada sesi dengan foil terpilih.",
   "foilStats.colFoil": "Foil",
   "foilStats.colSessions": "Sesi",

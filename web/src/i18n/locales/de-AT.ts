@@ -594,7 +594,7 @@ const deAT: Record<string, string> = {
 
   "foilStats.title": "Foil-Stats",
   "stats.short": "Stats",
-  "foilStats.hint": "Wöche Werte werdn mit wöchem Foil gfahrn (Community).",
+  "foilStats.hint": "WÃ¶che Werte werdn mit wÃ¶chem Foil gfahrn (Community). Gezählt werdn nur Pumpfoil-Sessions mit Accel-Erkennung — andere Sportarten (Wing, eFoil, Foildrive, Wakethief), GPS-only-Aufnahmen und ois fehlerhaft markierte Daten san net dabei.",
   "foilStats.none": "No kane Sessions mit dem Foil.",
   "foilStats.colFoil": "Foil",
   "foilStats.colSessions": "Sessions",

@@ -980,7 +980,7 @@ const nb: Record<string, string> = {
   "profile.homespotAuto": "Automatisk (siste økt)",
   "foilStats.title": "Foilstatistikk",
   "stats.short": "Statistikk",
-  "foilStats.hint": "Hvilke tall folk oppnår på hvilken foil (fellesskapet).",
+  "foilStats.hint": "Hvilke tall folk oppnÃ¥r pÃ¥ hvilken foil (fellesskapet). Bare pumpfoil-økter med accel-gjenkjenning telles — andre sporter (wing, eFoil, foildrive, wakethief), rene GPS-opptak og data merket som feil er ikke med.",
   "foilStats.none": "Ingen økter med valgt foil ennå.",
   "foilStats.colFoil": "Foil",
   "foilStats.colSessions": "Økter",
