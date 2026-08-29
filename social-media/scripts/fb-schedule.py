@@ -40,9 +40,11 @@ PLAN_FILE = HERE / "fb-plan.json"
 STATE_FILE = BASE / ".fb-scheduled.json"
 VIDEO_DIR = BASE / "shorts-mit-musik" / "instagram"
 POST_HOUR = 13          # 5:00 gehoert den neuen Reels
-# Facebook nimmt Termine zwischen 10 Minuten und 75 Tagen in der Zukunft an.
+# Laut Metas Reels-Doku muss der Termin "greater than 10 minutes from the
+# current time and within 29 days" liegen — nicht 75 Tage, wie ich zuerst
+# angenommen hatte.
 MIN_LEAD = dt.timedelta(minutes=20)
-MAX_LEAD = dt.timedelta(days=75)
+MAX_LEAD = dt.timedelta(days=29)
 
 
 def page_token():
@@ -154,7 +156,7 @@ def main():
                   f"Vergangenheit — übersprungen")
             continue
         if when - now > MAX_LEAD:
-            print(f"  {e['number']}  Termin {when:%d.%m.} über 75 Tage voraus — "
+            print(f"  {e['number']}  Termin {when:%d.%m.} über 29 Tage voraus — "
                   "Facebook nimmt das nicht an")
             continue
         todo.append((e, path, when))
