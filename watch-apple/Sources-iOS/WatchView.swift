@@ -157,6 +157,9 @@ struct WatchView: View {
 
     private var navSection: some View {
         Section {
+            // Anleitung GANZ OBEN: wer die Uhr noch nicht eingerichtet hat, braucht zuerst
+            // den Weg dorthin — nicht den Code-Bildschirm.
+            navRow("guide.howto", "questionmark.circle") { GuideView() }
             navRow("garmin.title", "link.circle") { GarminPairView() }
             navRow("profile.alarm", "waveform.path") { AlarmView() }
             navRow("profile.datafields", "square.grid.2x2") { DataFieldsView() }

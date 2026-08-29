@@ -209,6 +209,7 @@ fun MainScaffold(onLogout: () -> Unit) {
                 WatchScreen(
                     onBack = { nav.popBackStack() },
                     onGarminPair = { nav.navigate("garminpair") },
+                    onGuide = { nav.navigate("guide") },
                     onAlarm = { nav.navigate("alarm") },
                     onDataFields = { nav.navigate("datafields") },
                 )
@@ -228,6 +229,7 @@ fun MainScaffold(onLogout: () -> Unit) {
             composable("record") { RecordScreen(onBack = { nav.popBackStack() }) }
             composable("compare") { CompareScreen(onBack = { nav.popBackStack() }, onOpen = { id -> nav.navigate("session/$id") }) }
             composable("garminpair") { GarminPairScreen(onBack = { nav.popBackStack() }) }
+            composable("guide") { GuideScreen(onBack = { nav.popBackStack() }) }
             composable("accounts") { LinkedAccountsScreen(onBack = { nav.popBackStack() }) }
             composable("impressum") { ImpressumScreen(onBack = { nav.popBackStack() }) }
             composable(

@@ -14,6 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Vibration
@@ -56,6 +57,7 @@ import kotlinx.coroutines.launch
 fun WatchScreen(
     onBack: () -> Unit,
     onGarminPair: () -> Unit = {},
+    onGuide: () -> Unit = {},
     onAlarm: () -> Unit = {},
     onDataFields: () -> Unit = {},
 ) {
@@ -78,6 +80,14 @@ fun WatchScreen(
             Spacer(Modifier.height(8.dp))
             PairedDevicesCard(onSaved = { scope.launch { snackHost.showSnackbar(I18n.t("common.saved")) } })
             Spacer(Modifier.height(4.dp))
+            // Anleitung GANZ OBEN in der Liste: wer hier landet und die Uhr noch nicht
+            // eingerichtet hat, braucht zuerst den Weg dorthin — nicht den Code-Bildschirm.
+            ListItem(
+                modifier = Modifier.clickable { onGuide() },
+                headlineContent = { Text(I18n.t("guide.howto")) },
+                leadingContent = { Icon(Icons.AutoMirrored.Filled.HelpOutline, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
+            )
             ListItem(
                 modifier = Modifier.clickable { onGarminPair() },
                 headlineContent = { Text(I18n.t("garmin.title")) },

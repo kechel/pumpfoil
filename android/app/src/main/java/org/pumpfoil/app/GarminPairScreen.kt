@@ -41,7 +41,8 @@ import kotlinx.coroutines.launch
 //  - Reverse: der auf der Uhr angezeigte Code wird hier eingegeben (pair-claim).
 //  - Forward: hier einen Code erzeugen und in der Garmin-Connect-App unter Pumpfoil eintragen.
 /** Store-Seite der Uhr-App — dieselbe URL wie im Web (ConnectIqButton.tsx). */
-private const val CONNECT_IQ_URL = "https://apps.garmin.com/apps/9a2a753e-b52f-4587-aee4-900caf5cb351"
+/** Auch vom Anleitungs-Bildschirm benutzt — die URL steht genau einmal. */
+const val CONNECT_IQ_URL = "https://apps.garmin.com/apps/9a2a753e-b52f-4587-aee4-900caf5cb351"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

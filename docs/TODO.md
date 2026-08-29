@@ -474,6 +474,27 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 Anleitung jetzt auch in den nativen Apps (28.08.).** Jans Frage „hatten wir das auf
+  den Nativen einfach gar nicht?" — nachgezaehlt: **Web 98 `guide.*`-Schluessel, Android 0,
+  iOS 0.** Der Tab „Anleitung" existierte nur in `Account.tsx`; die Apps hatten im Uhr-Bereich
+  ausschliesslich den Verbinden-Bildschirm, der voraussetzt, dass die App schon auf der Uhr ist.
+  - **Uebernommen: 39 Schluessel** — `guide.g.*` (Weg auf die Garmin), `guide.pair.*` (verbinden,
+    umziehen, trennen) und `guide.sync.*` („wann laedt die Uhr hoch?", die haeufigste
+    Supportfrage: Session fehlt, liegt aber noch auf der Uhr). **Nicht neu uebersetzt, sondern aus
+    den Web-Locales kopiert** — sie liegen dort in allen 17 Sprachen, damit kann ein Satz nirgends
+    unterschiedlich lauten. Je App 7 Sprachen in der Haupttabelle + 6 Overlays = 13.
+  - **Neue Bildschirme:** `GuideScreen.kt` und `GuideView.swift`, erreichbar als **erster Eintrag**
+    im Uhr-Bereich (ueber dem Verbinden-Eintrag) — wer die Uhr noch nicht eingerichtet hat,
+    braucht zuerst den Weg dorthin.
+  - Geprueft: alle benutzten Schluessel aufloesbar (Skript ueber `I18n.t(...)`/`Loc.t(...)`),
+    Android und iOS haben denselben Satz von 39, Overlays je 234 Eintraege = 39 x 6.
+    `:app:compileDebugKotlin` gruen, `swiftc -parse` gruen. `guide.pick` war zwischenzeitlich
+    drin, wieder entfernt: „Waehle deine Plattform" passt nicht zu einem Bildschirm ohne
+    Plattform-Auswahl.
+  - **Noch nicht uebernommen** (bewusst): Screenshot-Strecke `guide.cap.*` (20), die Wege fuer
+    Apple/Wear/Zepp (`guide.a.*`, `guide.w.*`, `guide.z.*`, 24) und `guide.settings.*` (9).
+    Die lohnen erst, wenn die Bilder mitkommen bzw. wenn jemand danach fragt.
+
 - **🟢 Android-App sagte nicht, WOHER die Garmin-App kommt (Feedback 27.08., franzoesisch).**
   „Franchement je n'arrive pas a installer l'application sur ma garmin" — geschrieben **aus der
   Android-App heraus** (Feedback-url `android-app`), Konto am selben Tag angelegt, 0 Sessions.
