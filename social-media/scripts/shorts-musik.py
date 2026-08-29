@@ -1029,6 +1029,8 @@ def fb_videos(limit: int = 200) -> list:
 # fehlt die Datei, liefert der Endpunkt einfach leere Listen statt zu krachen.
 
 STATS_DB = BASE / ".stats.sqlite3"
+# Bild-Zuordnung fuer captionlose Instagram-Posts (scripts/ig-match.py)
+IG_NUMBERS_FILE = BASE / ".ig-numbers.json"
 
 
 def stats_data() -> dict:
@@ -1086,6 +1088,16 @@ def stats_data() -> dict:
         for n, it in _posted_numbers(items, "title", words).items():
             if it["number"] is None:
                 it["number"] = n
+    # Die Juli-Posts auf Instagram haben gar keine Caption — fuer die hat
+    # scripts/ig-match.py die Nummer ueber den Bildinhalt bestimmt.
+    ig_map = _load_json(IG_NUMBERS_FILE, {})
+    if ig_map:
+        for x in posts:
+            if x["platform"] == "instagram" and x["number"] is None:
+                hit = ig_map.get(x["post_id"])
+                if hit:
+                    x["number"] = hit["number"]
+                    x["number_from"] = "bild"
     errs = q("SELECT e.platform, e.error, s.captured_at AS at FROM channel_error e"
              " JOIN snapshot s ON s.id = e.snapshot_id"
              " WHERE e.snapshot_id = (SELECT MAX(id) FROM snapshot)")

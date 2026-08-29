@@ -17,6 +17,7 @@ interface Post {
   published_at: string | null; title: string | null;
   views: number | null; likes: number | null; comments: number | null;
   shares: number | null; prev_views: number | null; prev_at: string | null; at: string;
+  number_from?: "bild";   // Nummer per Bildabgleich statt per Caption
 }
 interface Chan {
   platform: Platform; posts: number; views: number; likes: number | null;
@@ -289,6 +290,7 @@ function Videos({ d, posts, active, sort, setSort }: {
   }, [posts, active, sort]);
 
   const unmatched = posts.filter((p) => p.number === null).length;
+  const byImage = posts.filter((p) => p.number_from === "bild").length;
 
   return (
     <section>
@@ -304,6 +306,12 @@ function Videos({ d, posts, active, sort, setSort }: {
           <span className="muted small">
             {unmatched} Beiträge ohne erkennbare Nummer (ältere Posts, fremdsprachige
             Captions) — sie fehlen in dieser Tabelle, nicht in den Summen.
+          </span>
+        )}
+        {byImage > 0 && (
+          <span className="muted small">
+            · {byImage} davon über den Bildinhalt zugeordnet (<code>ig-match.py</code>),
+            nicht über den Text.
           </span>
         )}
       </div>
