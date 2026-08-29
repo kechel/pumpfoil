@@ -474,6 +474,21 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 Android-App sagte nicht, WOHER die Garmin-App kommt (Feedback 27.08., franzoesisch).**
+  „Franchement je n'arrive pas a installer l'application sur ma garmin" — geschrieben **aus der
+  Android-App heraus** (Feedback-url `android-app`), Konto am selben Tag angelegt, 0 Sessions.
+  Kein Nutzerfehler, sondern eine Luecke bei uns: der Garmin-Bildschirm der App beginnt mit
+  „Pumpfoil auf der Uhr oeffnen (nicht starten) → MENU halten → Verbinden" — er setzt also
+  voraus, dass die Uhr-App schon da ist. **Wie sie dorthin kommt, stand nirgends**, und bei
+  Garmin kommt sie eben NICHT aus dem Play Store, sondern aus dem **Connect IQ Store** ueber die
+  Garmin-Connect-App. Die Web-App erklaert das laengst (`guide.g.*` mit Store-Knopf) — die
+  Android-App hatte **null** `guide.*`-Schluessel.
+  **Gebaut:** Karte „Zuerst: App auf die Uhr" ganz oben auf dem Garmin-Bildschirm, mit Knopf in
+  den Connect IQ Store (dieselbe URL wie `ConnectIqButton.tsx`). Texte in 13 Sprachen
+  (7 in `I18n.kt` + 6 Overlays inkl. Franzoesisch, das der Melder sieht).
+  **Offen:** derselbe Einstieg fehlt vermutlich in der iOS-App — noch nicht geprueft. Und eine
+  Antwort an den Melder (Entwurf auf Franzoesisch liegt bei Jan; ich poste nichts selbst).
+
 - **🟢 Suunto: Vorfilter + Nachholen bei erschoepftem Kontingent (28.08.).** Ausloeser war
   Jans Frage nach den Sessions je Fahrer. Gemessen: 9 Fahrer, 235 Importe, aktuell **75 Sessions
   in 7 Tagen** (8,3 je Fahrer und Woche) — und **nur 59 % davon sind ueberhaupt Pumpfoil**
