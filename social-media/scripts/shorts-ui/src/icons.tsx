@@ -14,6 +14,7 @@ export const ICON_PATHS: Record<string, string> = {
   film: "M4 4h16v16H4zM4 9h16M4 15h16M9 4v16M15 4v16",
   wand: "m15 4 5 5M9 10l-6 6 5 5 6-6m-5-5 5 5m-5-5 3-3 5 5-3 3",
   x: "M18 6 6 18M6 6l12 12",
+  chart: "M3 3v18h18M7 15V9m5 6V5m5 10v-4",
 };
 
 export function Icon({

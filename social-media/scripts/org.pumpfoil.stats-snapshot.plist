@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>org.pumpfoil.stats-snapshot</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/homebrew/bin/python3</string>
+        <string>/Users/jan/pumpfoil/social-media/scripts/stats-snapshot.py</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Users/jan/pumpfoil/social-media</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/bin:/bin</string>
+        <key>USER</key>
+        <string>jan</string>
+    </dict>
+    <!-- Taeglich 21:30. Nachholend: war der Mac zur Zeit aus, laeuft der
+         Lauf beim naechsten Anmelden nach (launchd-Verhalten bei
+         StartCalendarInterval). Doppelte Laeufe schaden nicht — der
+         Sammler dedupliziert ueber Wertaenderungen, nicht ueber Zeit. -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key><integer>21</integer>
+        <key>Minute</key><integer>30</integer>
+    </dict>
+    <key>RunAtLoad</key>
+    <false/>
+    <key>StandardOutPath</key>
+    <string>/Users/jan/Library/Logs/pumpfoil-stats.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/jan/Library/Logs/pumpfoil-stats.log</string>
+</dict>
+</plist>

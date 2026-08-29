@@ -3,6 +3,7 @@ import { api, AppState, encPath, fmtDur, RenderResult, Track } from "./api";
 import { Icon } from "./icons";
 import Uploads from "./Uploads";
 import Publish from "./Publish";
+import Stats from "./Stats";
 
 // Muss zu den Server-Konstanten passen (TEXT_FADE/TEXT_HOLD/OUTRO_*)
 const TXN = 10;
@@ -73,7 +74,7 @@ function drawIconPath(g: CanvasRenderingContext2D, d: string, x: number, y: numb
 }
 
 export default function App() {
-  const [tab, setTab] = useState<"studio" | "texte" | "upload">("studio");
+  const [tab, setTab] = useState<"studio" | "texte" | "upload" | "stats">("studio");
   return (
     <>
       <div className="tabbar">
@@ -87,8 +88,12 @@ export default function App() {
         <button className={`tab ${tab === "upload" ? "on" : ""}`} onClick={() => setTab("upload")}>
           <Icon name="upload" /> Upload
         </button>
+        <button className={`tab ${tab === "stats" ? "on" : ""}`} onClick={() => setTab("stats")}>
+          <Icon name="chart" /> Auswertung
+        </button>
       </div>
-      {tab === "studio" ? <Studio /> : tab === "texte" ? <Uploads /> : <Publish />}
+      {tab === "studio" ? <Studio /> : tab === "texte" ? <Uploads />
+        : tab === "upload" ? <Publish /> : <Stats />}
     </>
   );
 }

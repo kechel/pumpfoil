@@ -36,6 +36,7 @@ import os
 import re
 import secrets
 import shutil
+import sqlite3
 import subprocess
 import sys
 import tempfile
@@ -397,6 +398,8 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
 
 # max. 3 Stellen: Datums-Präfixe wie "20260714-" sind KEINE laufende Nummer
 NUM_RE = re.compile(r"^(\d{1,3})-")
+# Nummer in <orig>-NNN-Pumpfoil-<name>.mp4 (videos-verarbeitet)
+PROCESSED_NUM_RE = re.compile(r"-(\d{1,3})-Pumpfoil", re.I)
 
 
 def name_prefix():
@@ -438,10 +441,12 @@ def next_number():
                 m = NUM_RE.match(p.name)
                 if m and int(m.group(1)) < SPECIAL_FROM:
                     n = max(n, int(m.group(1)))
-    # Fallback: verschobene Quellvideos heißen <orig>-NNN-<name>.mp4
+    # Fallback: verschobene Quellvideos heißen <orig>-NNN-Pumpfoil-<name>.mp4.
+    # Auf "-Pumpfoil" ankern — sonst greift eine Zahl aus dem Titel selbst
+    # ("…-tryin-180-never-give-up-155-Pumpfoil-…" ergäbe 180 statt 155).
     if PROCESSED_DIR.is_dir():
         for p in PROCESSED_DIR.iterdir():
-            m = re.search(r"-(\d{1,3})-", p.name)
+            m = PROCESSED_NUM_RE.search(p.name)
             if m and int(m.group(1)) < SPECIAL_FROM:
                 n = max(n, int(m.group(1)))
     return n + 1
@@ -1019,6 +1024,80 @@ def fb_videos(limit: int = 200) -> list:
 # Abrufzahlen, Meta die schon geposteten Beiträge. Zuordnung über die laufende
 # Nummer im Titel bzw. Textähnlichkeit zu den gecachten Captions.
 
+# --------------------------------------------- Auswertungen (Stats-Tab) -----
+# Liest die von scripts/stats-snapshot.py gefuellte SQLite-Datei. Rein lesend;
+# fehlt die Datei, liefert der Endpunkt einfach leere Listen statt zu krachen.
+
+STATS_DB = BASE / ".stats.sqlite3"
+
+
+def stats_data() -> dict:
+    """Letzter Stand je Beitrag + Kanal-Historie + Demografie fuer den Stats-Tab."""
+    if not STATS_DB.is_file():
+        return {"ok": False, "reason": "Noch kein Snapshot — scripts/stats-snapshot.py laufen lassen.",
+                "snapshots": [], "channels": [], "history": [], "posts": [], "demographics": []}
+    db = sqlite3.connect(f"file:{STATS_DB}?mode=ro", uri=True)
+    db.row_factory = sqlite3.Row
+    q = lambda sql, *a: [dict(r) for r in db.execute(sql, a)]
+    snaps = q("SELECT id, captured_at AS at, note FROM snapshot ORDER BY id")
+    history = q("SELECT c.platform, c.posts, c.views, c.likes, c.comments, c.followers,"
+                " s.captured_at AS at FROM channel_stat c"
+                " JOIN snapshot s ON s.id = c.snapshot_id ORDER BY s.id")
+    # Letzter bekannter Wert je Beitrag …
+    posts = q("""SELECT p.platform, p.post_id, p.number, p.published_at, p.title,
+                        t.views, t.likes, t.comments, t.shares, s.captured_at AS at
+                 FROM post p
+                 JOIN post_stat t ON t.platform = p.platform AND t.post_id = p.post_id
+                 JOIN snapshot s ON s.id = t.snapshot_id
+                 WHERE (t.platform, t.post_id, t.snapshot_id) IN
+                       (SELECT platform, post_id, MAX(snapshot_id) FROM post_stat
+                        GROUP BY platform, post_id)""")
+    # … und der vorletzte, damit der Tab Zuwachs/Tempo zeigen kann
+    prev = {(r["platform"], r["post_id"]): r for r in q(
+        """SELECT t.platform, t.post_id, t.views AS prev_views, s.captured_at AS prev_at
+           FROM post_stat t JOIN snapshot s ON s.id = t.snapshot_id
+           WHERE (t.platform, t.post_id, t.snapshot_id) IN
+                 (SELECT platform, post_id, MAX(snapshot_id) FROM post_stat
+                  WHERE (platform, post_id, snapshot_id) NOT IN
+                        (SELECT platform, post_id, MAX(snapshot_id) FROM post_stat
+                         GROUP BY platform, post_id)
+                  GROUP BY platform, post_id)""")}
+    for p_ in posts:
+        pv = prev.get((p_["platform"], p_["post_id"]))
+        p_["prev_views"] = pv["prev_views"] if pv else None
+        p_["prev_at"] = pv["prev_at"] if pv else None
+    demo = q("""SELECT d.platform, d.metric, d.timeframe, d.breakdown, d.dimension,
+                       d.value, s.captured_at AS at
+                FROM demographic d JOIN snapshot s ON s.id = d.snapshot_id
+                WHERE (d.platform, d.metric, d.timeframe, d.breakdown, d.dimension,
+                       d.snapshot_id) IN
+                      (SELECT platform, metric, timeframe, breakdown, dimension,
+                              MAX(snapshot_id) FROM demographic
+                       GROUP BY platform, metric, timeframe, breakdown, dimension)""")
+    # Nummern nachziehen. Der Sammler erkennt nur "155 Pumpfoil …" am Textanfang
+    # — so sehen aber nur die YouTube-Titel aus. Facebook, Instagram und TikTok
+    # tragen den deutschen Fliesstext, teils portugiesisch oder tuerkisch. Dafuer
+    # gibt es das Aehnlichkeits-Matching aus dem Coverage-Panel; hier dieselbe
+    # Funktion, damit beide Ansichten nicht auseinanderlaufen.
+    words = _caption_words()
+    for pf in ("facebook", "instagram", "tiktok"):
+        items = sorted((x for x in posts if x["platform"] == pf),
+                       key=lambda x: x["published_at"] or "")
+        for n, it in _posted_numbers(items, "title", words).items():
+            if it["number"] is None:
+                it["number"] = n
+    errs = q("SELECT e.platform, e.error, s.captured_at AS at FROM channel_error e"
+             " JOIN snapshot s ON s.id = e.snapshot_id"
+             " WHERE e.snapshot_id = (SELECT MAX(id) FROM snapshot)")
+    latest = {}
+    for h in history:
+        latest[h["platform"]] = h
+    db.close()
+    return {"ok": True, "snapshots": snaps, "channels": list(latest.values()),
+            "history": history, "posts": posts, "demographics": demo,
+            "errors": errs, "db_kb": round(STATS_DB.stat().st_size / 1024)}
+
+
 COVERAGE_CACHE = {"at": 0.0, "data": None}
 NUM_TITLE_RE = re.compile(r"^(\d{1,3})\s+[Pp]umpfoil")
 
@@ -1423,6 +1502,13 @@ class Handler(BaseHTTPRequestHandler):
                     self._json({"numbers": yt_numbers()})
                 except (RuntimeError, OSError, ValueError, KeyError) as e:
                     self._json({"numbers": [], "error": str(e)})
+            elif path == "/api/stats":
+                try:
+                    self._json(stats_data())
+                except (sqlite3.Error, OSError, ValueError) as e:
+                    self._json({"ok": False, "reason": str(e)[:300], "snapshots": [],
+                                "channels": [], "history": [], "posts": [],
+                                "demographics": []})
             elif path == "/api/coverage":
                 try:
                     self._json(coverage(force=query.get("refresh", [""])[0] == "1"))
