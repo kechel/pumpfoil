@@ -3,6 +3,10 @@ import SwiftUI
 // Garmin-Uhr verbinden — beide Wege (spiegelt web ClaimFromWatch + GenerateCode):
 //  - Reverse: der auf der Uhr angezeigte Code wird hier eingegeben (pair-claim).
 //  - Forward: hier einen Code erzeugen und in der Garmin-Connect-App unter Pumpfoil eintragen.
+/// Store-Seite der Uhr-App — dieselbe URL wie im Web (ConnectIqButton.tsx) und in der
+/// Android-App (GarminPairScreen.kt).
+private let CONNECT_IQ_URL = "https://apps.garmin.com/apps/9a2a753e-b52f-4587-aee4-900caf5cb351"
+
 struct GarminPairView: View {
     @AppStorage("appLang") private var lang = "de"
     @State private var code = ""
@@ -18,11 +22,27 @@ struct GarminPairView: View {
     // darin. Reihenfolge, Texte und Verhalten sind unveraendert.
     var body: some View {
         Form {
+            installSection
             claimSection
             genSection
         }
         .brandToolbar(Loc.t("garmin.title", lang))
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    // SCHRITT 0 — der hier fehlte. Beide Abschnitte darunter setzen voraus, dass die App schon
+    // auf der Uhr liegt („Pumpfoil auf der Uhr oeffnen"). Wie sie dorthin kommt, stand nirgends:
+    // bei Garmin kommt sie NICHT aus dem App Store, sondern aus dem Connect IQ Store ueber die
+    // Garmin-Connect-App. Ein Nutzer ist genau daran haengengeblieben (27.08., franzoesisch, aus
+    // der Android-App heraus — dort ist es jetzt behoben; auf iOS fehlte es genauso).
+    private var installSection: some View {
+        Section {
+            Link(Loc.t("garmin.installBtn", lang), destination: URL(string: CONNECT_IQ_URL)!)
+        } header: {
+            Text(Loc.t("garmin.installTitle", lang))
+        } footer: {
+            Text(Loc.t("garmin.installHelp", lang))
+        }
     }
 
     // Reverse: Code von der Uhr eingeben.
