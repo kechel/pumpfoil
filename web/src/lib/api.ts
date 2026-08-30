@@ -1142,6 +1142,9 @@ export const api = {
     req<{ ok: boolean }>(`/api/admin/social/${userId}/reject`, { method: "POST", body: JSON.stringify({ reason }) }),
   adminSocialBlock: (userId: number, blocked: boolean) =>
     req<{ ok: boolean }>(`/api/admin/social/${userId}/block?blocked=${blocked}`, { method: "POST" }),
+  // Meldung abhaken, ohne zu sperren (Video bleibt im Feed, Zaehler auf 0).
+  adminSocialDismiss: (id: number) =>
+    req<{ ok: boolean }>(`/api/admin/social/item/${id}/dismiss`, { method: "POST" }),
   adminSocialBlockItem: (id: number, blocked: boolean) =>
     req<{ ok: boolean }>(`/api/admin/social/item/${id}/block?blocked=${blocked}`, { method: "POST" }),
 

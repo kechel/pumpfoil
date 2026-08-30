@@ -1189,6 +1189,7 @@ const en: Record<string, string> = {
   "adm.social.replaces": "replaces",
   "adm.social.videos": "videos",
   "adm.social.blocked": "blocked",
+  "adm.social.dismiss": "Dismiss report",
   "adm.social.block": "Block",
   "adm.social.unblock": "Unblock",
   "phome.noFoil": "No foil recorded",

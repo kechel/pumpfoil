@@ -698,6 +698,7 @@ const deAT: Record<string, string> = {
   "adm.social.replaces": "ersetzt",
   "adm.social.videos": "Videos",
   "adm.social.blocked": "gesperrt",
+  "adm.social.dismiss": "Meldung aufheben",
   "adm.social.block": "Sperren",
   "adm.social.unblock": "Entsperren",
   "phome.noFoil": "Ohne Foil-Eintrag",

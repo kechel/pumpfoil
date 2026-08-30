@@ -285,6 +285,21 @@ def admin_blocken(user_id: int, blocked: bool = True,
     return {"ok": True, "blocked": k.blocked}
 
 
+@admin_router.post("/item/{item_id}/dismiss")
+def admin_meldung_aufheben(item_id: int, _a: models.User = Depends(current_admin),
+                           db: Session = Depends(get_db)) -> dict:
+    """Meldung abhaken, ohne zu sperren: das Video ist in Ordnung, der Zaehler geht auf 0.
+
+    Ohne das bliebe nur „sperren" — wer eine unberechtigte Meldung bekommt, waere damit
+    stillschweigend aus dem Feed geflogen (Jan, 30.08.)."""
+    it = db.get(models.SocialItem, item_id)
+    if it is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Nicht gefunden")
+    it.reports = 0
+    db.commit()
+    return {"ok": True}
+
+
 @admin_router.post("/item/{item_id}/block")
 def admin_video_blocken(item_id: int, blocked: bool = True,
                         _a: models.User = Depends(current_admin),

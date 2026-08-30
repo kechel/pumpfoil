@@ -1288,6 +1288,12 @@ function SocialTab() {
           <div key={v.id} className="flex flex-wrap items-center gap-2 border-t border-slate-800 py-2 text-sm">
             <span className="rounded bg-amber-900/60 px-1.5 py-0.5 text-xs text-amber-200">{v.reports}×</span>
             <a href={v.url} target="_blank" rel="noopener noreferrer" className="min-w-0 flex-1 truncate text-brand-300 underline">{v.title || v.url}</a>
+            {/* Ohne „aufheben" bliebe nur sperren — eine unberechtigte Meldung waere damit ein
+                stilles Urteil ueber ein Video, das in Ordnung ist. */}
+            <button onClick={async () => { await api.adminSocialDismiss(v.id); laden(); }}
+              className="rounded-lg bg-emerald-700 px-2.5 py-1 text-xs text-white">
+              {t("adm.social.dismiss")}
+            </button>
             <button onClick={async () => { await api.adminSocialBlockItem(v.id, !v.blocked); laden(); }}
               className="rounded-lg bg-slate-700 px-2.5 py-1 text-xs">
               {v.blocked ? t("adm.social.unblock") : t("adm.social.block")}
