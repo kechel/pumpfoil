@@ -29,6 +29,30 @@ def thumb_url(url: str | None) -> str | None:
     return url[:-len(".webp")] + ".t.webp"
 
 
+def reencode_image(raw: bytes, max_dim: int = 1600) -> bytes:
+    """Bild neu kodieren und als WebP-Bytes zurueckgeben, OHNE es abzulegen.
+
+    Fuer Anhaenge, die nicht oeffentlich unter /media liegen sollen. Der Neuaufbau ist der
+    eigentliche Schutz: was nicht als Bild dekodierbar ist, fliegt raus, und alles, was sonst in
+    einer Bilddatei mitreist (Skript-Reste in Metadaten, EXIF samt GPS), ueberlebt ihn nicht."""
+    if not raw:
+        raise ImageError("Leere Datei")
+    if len(raw) > MAX_UPLOAD_BYTES:
+        raise ImageError("Datei zu groß")
+    try:
+        img = Image.open(io.BytesIO(raw))
+        img = ImageOps.exif_transpose(img)
+        img.load()
+    except Exception as exc:  # noqa: BLE001
+        raise ImageError("Kein gültiges Bild") from exc
+    if img.mode != "RGB":
+        img = img.convert("RGB")
+    img.thumbnail((max_dim, max_dim), Image.LANCZOS)
+    buf = io.BytesIO()
+    img.save(buf, format="WEBP", quality=82, method=6)
+    return buf.getvalue()
+
+
 def save_image(raw: bytes, subdir: str, max_dim: int, square: bool = False,
                thumb_dim: int | None = None) -> str:
     """Speichert ein Bild unter media_dir/<subdir>/<uuid>.webp und gibt die /media-URL zurück.

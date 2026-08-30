@@ -777,6 +777,24 @@ function FeedbackTab() {
               {f.url && <a href={f.url} className="truncate text-slate-400 underline hover:text-slate-200">{f.url}</a>}
             </div>
             <div className="whitespace-pre-wrap text-sm text-slate-100">{f.text}</div>
+            {/* Anhaenge: Bilder als Vorschau, Logs als Download. Beides laeuft ueber die
+                Admin-Route — die Dateien liegen NICHT unter /media. */}
+            {(f.attachments?.length ?? 0) > 0 && (
+              <div className="mt-2 flex flex-wrap items-start gap-2">
+                {f.attachments!.map((a) => (a.kind === "image" ? (
+                  <a key={a.id} href={`/api/admin/feedback/attachment/${a.id}`} target="_blank" rel="noopener noreferrer"
+                    title={a.filename ?? ""}>
+                    <img src={`/api/admin/feedback/attachment/${a.id}`} alt={a.filename ?? ""}
+                      className="h-24 w-auto rounded-lg border border-slate-700 object-cover hover:border-slate-500" />
+                  </a>
+                ) : (
+                  <a key={a.id} href={`/api/admin/feedback/attachment/${a.id}`}
+                    className="rounded-lg bg-slate-800 px-2 py-1 text-xs text-brand-300 underline hover:bg-slate-700">
+                    {a.filename || "Datei"} · {Math.round(a.bytes / 1024)} kB
+                  </a>
+                )))}
+              </div>
+            )}
           </div>
           {/* ⭐ Testimonial-Archiv: überlebt „Alle löschen"; vor öffentlicher Nutzung Autor fragen. */}
           <button

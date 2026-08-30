@@ -740,6 +740,9 @@ const zh: Record<string, string> = {
   "meta.errLen": "最多 30 个字符。",
 
   "feedback.title": "反馈",
+  "feedback.attach": "添加附件",
+  "feedback.attachFailed": "附件上传失败",
+  "common.remove": "移除",
   "feedback.intro": "对 pumpfoil.org 有反馈？给我留言吧。",
   "feedback.placeholder": "你的反馈…",
   "feedback.send": "发送",

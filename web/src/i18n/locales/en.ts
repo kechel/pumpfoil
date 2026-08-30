@@ -856,6 +856,9 @@ const en: Record<string, string> = {
   "meta.errLen": "Max. 30 characters.",
 
   "feedback.title": "Feedback",
+  "feedback.attach": "Attach a file",
+  "feedback.attachFailed": "Attachment could not be uploaded",
+  "common.remove": "Remove",
   "feedback.intro": "Feedback on pumpfoil.org? Drop me a line.",
   "feedback.placeholder": "Your feedback…",
   "feedback.send": "Send",

@@ -740,6 +740,9 @@ const pt: Record<string, string> = {
   "meta.errLen": "Máx. 30 caracteres.",
 
   "feedback.title": "Feedback",
+  "feedback.attach": "Anexar ficheiro",
+  "feedback.attachFailed": "Não foi possível enviar o anexo",
+  "common.remove": "Remover",
   "feedback.intro": "Comentários sobre o pumpfoil.org? Me manda uma mensagem.",
   "feedback.placeholder": "Seu feedback…",
   "feedback.send": "Enviar",

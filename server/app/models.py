@@ -908,6 +908,30 @@ class SocialItem(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
+class FeedbackAttachment(Base):
+    """Anhang an einer Feedback-Meldung (Screenshot oder Log-Datei).
+
+    Bewusst NICHT unter `media_dir`: Feedback enthaelt oft Kontodaten, Fehlermeldungen oder
+    Screenshots mit fremden Namen. Die Dateien liegen unter `data_dir/feedback/` und sind nur
+    ueber eine Admin-Route abrufbar — nicht ueber `/media`, das statisch ausgeliefert wird.
+
+    Bilder werden beim Annehmen NEU KODIERT (WebP): das entfernt eingebettete Skripte, Zusatzdaten
+    und EXIF-Geokoordinaten. Textdateien werden als reiner Text abgelegt und nur mit
+    `Content-Disposition: attachment` und `text/plain` ausgeliefert, damit ein als `.txt` getarntes
+    HTML im Browser des Admins nichts anrichten kann."""
+
+    __tablename__ = "feedback_attachments"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    feedback_id: Mapped[int] = mapped_column(ForeignKey("feedback.id"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    kind: Mapped[str] = mapped_column(String(10))          # image | text
+    stored: Mapped[str] = mapped_column(String(120))       # Dateiname unter data_dir/feedback/
+    filename: Mapped[str | None] = mapped_column(String(120))   # Originalname, nur zur Anzeige
+    bytes: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
 class PolarLink(Base):
     """Verknüpfung eines Nutzers mit Polar AccessLink: gespeichertes Access-Token +
     die Polar-User-ID (x_user_id), um dessen Trainings (TCX) abzurufen und als Sessions

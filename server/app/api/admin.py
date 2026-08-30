@@ -832,12 +832,48 @@ def feedback_list(
         .join(models.User, models.Feedback.user_id == models.User.id)
         .order_by(models.Feedback.id.desc()).limit(min(max(limit, 1), 500)).all()
     )
+    # Anhaenge in EINER Abfrage dazu (nicht je Meldung einzeln).
+    anh: dict[int, list[dict]] = {}
+    for a in (db.query(models.FeedbackAttachment)
+              .filter(models.FeedbackAttachment.feedback_id.in_([f.id for f, _, _ in rows] or [0]))
+              .all()):
+        anh.setdefault(a.feedback_id, []).append(
+            {"id": a.id, "kind": a.kind, "filename": a.filename, "bytes": a.bytes})
     return [{
         "id": f.id, "text": f.text, "url": f.url,
         "at": f.created_at.isoformat() if f.created_at else None,
         "name": name or email, "email": email,
         "starred": bool(f.starred),
+        "attachments": anh.get(f.id, []),
     } for f, name, email in rows]
+
+
+@router.get("/feedback/attachment/{att_id}")
+def feedback_attachment(att_id: int, _a: models.User = Depends(current_admin),
+                        db: Session = Depends(get_db)):
+    """Anhang ausliefern — NUR fuer Admins, direkt aus `data_dir/feedback`.
+
+    Bilder liegen als WebP vor (beim Annehmen neu kodiert). Text wird als `text/plain` UND mit
+    `Content-Disposition: attachment` ausgeliefert: ein als `.log` getarntes HTML soll im Browser
+    des Admins nicht als Seite laufen. `nosniff` setzt die App ohnehin global."""
+    from fastapi.responses import Response
+    from ..config import get_settings
+
+    a = db.get(models.FeedbackAttachment, att_id)
+    if a is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Nicht gefunden")
+    pfad = get_settings().data_dir / "feedback" / a.stored
+    # Der Name kommt aus der DB und ist beim Anlegen erzeugt worden; der Vergleich schuetzt
+    # trotzdem gegen alles, was sich je aus dem Ordner herausbewegen wollte.
+    if pfad.parent != (get_settings().data_dir / "feedback") or not pfad.is_file():
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Datei fehlt")
+    daten = pfad.read_bytes()
+    if a.kind == "image":
+        return Response(content=daten, media_type="image/webp",
+                        headers={"Cache-Control": "private, max-age=3600"})
+    return Response(content=daten, media_type="text/plain; charset=utf-8",
+                    headers={"Content-Disposition": f'attachment; filename="{a.stored}"',
+                             "Cache-Control": "private, max-age=3600"})
 
 
 @router.post("/feedback/{feedback_id}/star")
@@ -855,10 +891,37 @@ def star_feedback(
     return {"ok": True, "starred": fb.starred}
 
 
+def _anhaenge_weg(db: Session, feedback_ids: list[int]) -> int:
+    """Anhänge einer Meldung mitsamt Dateien entfernen.
+
+    Ohne das schlägt das Löschen einer Meldung mit Anhang am Fremdschlüssel fehl (beim Selbsttest
+    am 30.08. sofort passiert) — und die Dateien blieben als Waisen auf der Platte liegen."""
+    if not feedback_ids:
+        return 0
+    from ..config import get_settings
+
+    ordner = get_settings().data_dir / "feedback"
+    rows = (db.query(models.FeedbackAttachment)
+            .filter(models.FeedbackAttachment.feedback_id.in_(feedback_ids)).all())
+    for a in rows:
+        pfad = ordner / a.stored
+        if pfad.is_file():
+            try:
+                pfad.unlink()
+            except OSError:      # Datei schon weg -> der DB-Eintrag muss trotzdem verschwinden
+                pass
+        db.delete(a)
+    db.flush()
+    return len(rows)
+
+
 @router.delete("/feedback/all")
 def delete_all_feedback(_a: models.User = Depends(current_admin), db: Session = Depends(get_db)) -> dict:
     """Alle NICHT gesternten Feedback-Einträge löschen (Admin, nach Abarbeitung).
     ⭐-Testimonials bleiben. Route VOR /{feedback_id} registriert."""
+    ids = [i for (i,) in db.query(models.Feedback.id)
+           .filter(models.Feedback.starred.isnot(True)).all()]
+    _anhaenge_weg(db, ids)
     n = db.query(models.Feedback).filter(models.Feedback.starred.isnot(True)).delete()
     db.commit()
     return {"ok": True, "deleted": int(n)}
@@ -869,6 +932,7 @@ def delete_feedback(feedback_id: int, _a: models.User = Depends(current_admin), 
     fb = db.get(models.Feedback, feedback_id)
     if fb is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Feedback not found")
+    _anhaenge_weg(db, [feedback_id])
     db.delete(fb)
     db.commit()
     return {"ok": True}

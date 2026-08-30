@@ -740,6 +740,9 @@ const ru: Record<string, string> = {
   "meta.errLen": "Макс. 30 символов.",
 
   "feedback.title": "Обратная связь",
+  "feedback.attach": "Прикрепить файл",
+  "feedback.attachFailed": "Не удалось загрузить вложение",
+  "common.remove": "Убрать",
   "feedback.intro": "Есть отзыв о pumpfoil.org? Напишите мне.",
   "feedback.placeholder": "Ваш отзыв…",
   "feedback.send": "Отправить",

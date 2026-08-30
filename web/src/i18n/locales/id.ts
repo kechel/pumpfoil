@@ -740,6 +740,9 @@ const id: Record<string, string> = {
   "meta.errLen": "Maks. 30 karakter.",
 
   "feedback.title": "Masukan",
+  "feedback.attach": "Lampirkan berkas",
+  "feedback.attachFailed": "Lampiran tidak dapat diunggah",
+  "common.remove": "Hapus",
   "feedback.intro": "Masukan tentang pumpfoil.org? Kirimi aku pesan.",
   "feedback.placeholder": "Masukanmu…",
   "feedback.send": "Kirim",

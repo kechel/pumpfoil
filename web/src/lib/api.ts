@@ -1185,7 +1185,12 @@ export const api = {
   adminStarFeedback: (id: number, starred: boolean) =>
     req<{ ok: boolean; starred: boolean }>(`/api/admin/feedback/${id}/star?starred=${starred}`, { method: "POST" }),
   submitFeedback: (text: string, url: string) =>
-    req<{ ok: boolean }>("/api/feedback", { method: "POST", body: JSON.stringify({ text, url }) }),
+    req<{ ok: boolean; id: number }>("/api/feedback", { method: "POST", body: JSON.stringify({ text, url }) }),
+  // Anhang an die eben abgeschickte Meldung (Screenshot oder Log). Ueber uploadFile, weil `req`
+  // immer application/json setzt — damit fehlt einem multipart-Upload die Grenzmarkierung.
+  feedbackAttachment: (feedbackId: number, file: File) =>
+    uploadFile<{ id: number; kind: string; filename: string; bytes: number }>(
+      `/api/feedback/${feedbackId}/attachment`, file),
 };
 
 export interface AdminFeedback {
@@ -1196,6 +1201,7 @@ export interface AdminFeedback {
   name: string | null;
   email: string | null;
   starred?: boolean;   // ⭐ Testimonial-Archiv — überlebt „Alle löschen"
+  attachments?: { id: number; kind: string; filename: string | null; bytes: number }[];
 }
 
 export interface StatRecord {

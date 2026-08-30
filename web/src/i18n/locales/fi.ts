@@ -778,6 +778,9 @@ const fi: Record<string, string> = {
 
   // Feedback-Widget
   "feedback.title": "Palaute",
+  "feedback.attach": "Liitä tiedosto",
+  "feedback.attachFailed": "Liitettä ei voitu ladata",
+  "common.remove": "Poista",
   "feedback.intro": "Palautetta pumpfoil.orgista? Kirjoita se lyhyesti.",
   "feedback.placeholder": "Palautteesi…",
   "feedback.send": "Lähetä",

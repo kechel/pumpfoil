@@ -807,6 +807,9 @@ const nl: Record<string, string> = {
 
   // Feedback-Widget
   "feedback.title": "Feedback",
+  "feedback.attach": "Bestand toevoegen",
+  "feedback.attachFailed": "Bijlage kon niet worden geüpload",
+  "common.remove": "Verwijderen",
   "feedback.intro": "Feedback over pumpfoil.org? Stuur me een kort berichtje.",
   "feedback.placeholder": "Jouw feedback…",
   "feedback.send": "Versturen",

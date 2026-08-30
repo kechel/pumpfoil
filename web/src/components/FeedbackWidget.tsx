@@ -6,6 +6,7 @@ import { MicButton } from "./MicButton";
 import { useT } from "../i18n";
 import { useCloseOnBack } from "../lib/useCloseOnBack";
 
+const MAX_DATEIEN = 3;   // gleiche Grenze wie im Server
 const MAX = 500;
 
 // Global sichtbares Feedback-Widget: kleiner Tab am rechten Rand (vertikal zentriert),
@@ -23,7 +24,12 @@ export function FeedbackWidget() {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
-  useCloseOnBack(open, () => setOpen(false));   // Swipe/Zurück schließt das Panel (wie Abbrechen)
+  // Anhaenge: Screenshots oder Logs. Bewusst erst NACH dem Text hochgeladen — der Text ist die
+  // Meldung, die Datei die Beigabe. Bricht der Upload ab, ist die Meldung trotzdem da.
+  const [dateien, setDateien] = useState<File[]>([]);
+  const [fehler, setFehler] = useState("");
+  useCloseOnBack(open, () => setOpen(false));
+   // Swipe/Zurück schließt das Panel (wie Abbrechen)
 
   useEffect(() => {
     function onOpen(e: Event) {
@@ -40,10 +46,16 @@ export function FeedbackWidget() {
     const v = raw.trim();
     if (!v) return;
     setBusy(true);
+    setFehler("");
     api.submitFeedback(v.slice(0, MAX), loc.pathname + loc.search)
-      .then(() => {
+      .then(async (r) => {
+        for (const f of dateien.slice(0, MAX_DATEIEN)) {
+          try { await api.feedbackAttachment(r.id, f); }
+          catch (e: any) { setFehler(e?.message?.replace(/^\d+:\s*/, "") || t("feedback.attachFailed")); }
+        }
         setSent(true);
         setText("");
+        setDateien([]);
         setTimeout(() => { setOpen(false); setSent(false); }, 1400);
       })
       .catch(() => {})
@@ -82,6 +94,38 @@ export function FeedbackWidget() {
               autoFocus
               className="w-full resize-none rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100"
             />
+            {/* Anhaenge: Bilder oder Logs. Die Auswahl ist bewusst schlicht — wer einen Fehler
+                zeigen will, hat den Screenshot schon in der Hand. `accept` filtert die Auswahl
+                vor, die verbindliche Pruefung macht ohnehin der Server. */}
+            <div className="mt-2">
+              <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-slate-800 px-2.5 py-1.5 text-xs text-slate-200 hover:bg-slate-700">
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*,.txt,.log,.json,.csv,.ips,.crash,.xml,.yml,.yaml"
+                  className="hidden"
+                  onChange={(e) => {
+                    const neu = Array.from(e.target.files ?? []);
+                    setDateien((alt) => [...alt, ...neu].slice(0, MAX_DATEIEN));
+                    e.target.value = "";
+                  }}
+                />
+                {t("feedback.attach")}
+              </label>
+              {dateien.length > 0 && (
+                <ul className="mt-1.5 space-y-1">
+                  {dateien.map((f, i) => (
+                    <li key={i} className="flex items-center gap-2 text-[11px] text-slate-400">
+                      <span className="min-w-0 flex-1 truncate">{f.name}</span>
+                      <span className="tabular-nums">{Math.round(f.size / 1024)} kB</span>
+                      <button onClick={() => setDateien((a) => a.filter((_, j) => j !== i))}
+                        className="text-slate-500 hover:text-slate-300" aria-label={t("common.remove")}>×</button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {fehler && <p className="mt-1 text-[11px] text-rose-400">{fehler}</p>}
+            </div>
             <div className="mt-2 flex items-center justify-between">
               <span className="text-[11px] tabular-nums text-slate-500">{text.length}/{MAX}</span>
               <div className="flex items-center gap-2">

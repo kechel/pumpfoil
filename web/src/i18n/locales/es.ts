@@ -527,6 +527,9 @@ const es: Record<string, string> = {
   "meta.linkVideo": "Vídeo",
 
   "feedback.title": "Comentarios",
+  "feedback.attach": "Adjuntar archivo",
+  "feedback.attachFailed": "No se pudo subir el archivo",
+  "common.remove": "Quitar",
   "feedback.intro": "¿Comentarios sobre pumpfoil.org? Escríbeme.",
   "feedback.placeholder": "Tu comentario…",
   "feedback.send": "Enviar",

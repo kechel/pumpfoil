@@ -740,6 +740,9 @@ const ja: Record<string, string> = {
   "meta.errLen": "最大30文字。",
 
   "feedback.title": "フィードバック",
+  "feedback.attach": "ファイルを添付",
+  "feedback.attachFailed": "添付ファイルをアップロードできませんでした",
+  "common.remove": "削除",
   "feedback.intro": "pumpfoil.org へのフィードバックですか？ぜひ一言お寄せください。",
   "feedback.placeholder": "あなたのフィードバック…",
   "feedback.send": "送信",

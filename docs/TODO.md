@@ -3960,3 +3960,29 @@ Offen daraus:
   **Zu ueberlegen:** Navigationen auf NetworkFirst umstellen, damit frische Kopfzeilen sofort
   gelten. Kostet einen Netzwerk-Roundtrip beim Seitenaufbau — bewusst nicht im Vorbeigehen
   geaendert, das ist eine PWA-Grundsatzentscheidung.
+
+- **✅ GEBAUT 30.08. — Dateianhaenge im Feedback-Formular.** Jans Wunsch mit „sinnvollen Grenzen
+  gegen abuse & hacking". Nutzer haengen Screenshots oder Logs an; sichtbar nur im Admin.
+  **Die Grenzen, und warum sie so sind:**
+  - **Weiss-Liste statt Schwarz-Liste:** Bilder (jpg/png/webp/gif/bmp/tif) und Text (txt/log/json/
+    csv/ips/crash/xml/yml). Alles andere fliegt raus — `.exe`, `.zip`, `.pdf`, `.svg`, `.html`,
+    `.php` gepru:eft. **`.svg` bewusst NICHT dabei**: SVG ist XML und kann Skripte tragen.
+  - **Bilder werden NEU KODIERT** (`media.reencode_image`, WebP). Das ist der eigentliche Schutz,
+    nicht die Endung. Belegt: ein JPEG mit `<script>alert(1)</script>` und GPS-Text im
+    Kommentarfeld kam mit 60 675 Bytes rein und mit 3 126 Bytes raus — beides weg, EXIF leer,
+    Kante auf 1600 begrenzt. Eine als Bild getarnte PHP-Datei: „Kein gültiges Bild".
+  - **Text muss sich als UTF-8 dekodieren lassen** — was das nicht tut, ist kein Log (Binaerdatei
+    im Test abgewiesen). Max. 256 KB, Bilder max. 8 MB.
+  - **Hoechstens 3 Anhaenge je Meldung**, nur an die EIGENE Meldung und nur binnen 30 Minuten —
+    sonst koennte man fremde oder alte Meldungen volllaufen lassen. Beides getestet, beides
+    abgewiesen. Dazu ein eigenes Rate-Limit (30/h).
+  - **Ablage unter `data_dir/feedback/` mit erzeugtem Namen, NICHT unter `/media`** (das wird
+    statisch ausgeliefert). Abruf nur ueber `GET /api/admin/feedback/attachment/{id}`.
+    Text geht mit `text/plain` UND `Content-Disposition: attachment` raus, damit ein als `.log`
+    getarntes HTML im Admin-Browser nicht als Seite laeuft (`nosniff` setzt die App global).
+  - **Originalname nur zur Anzeige**, entschaerft: `../../etc/passwd` -> `passwd`,
+    `<script>.txt` -> `_script_.txt`, auf 120 Zeichen gekappt.
+  **Nebenbefund, sofort behoben:** das Loeschen einer Meldung waere am Fremdschluessel
+  gescheitert, sobald ein Anhang dranhaengt — beim Selbsttest sofort passiert. `delete_feedback`
+  und `delete_all_feedback` raeumen jetzt Anhaenge UND Dateien mit weg (geprueft: 2 Dateien rein,
+  0 nach dem Loeschen, keine Waisen auf der Platte).

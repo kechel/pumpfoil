@@ -923,6 +923,9 @@ const de: Record<string, string> = {
 
   // Feedback-Widget
   "feedback.title": "Feedback",
+  "feedback.attach": "Datei anhängen",
+  "feedback.attachFailed": "Anhang konnte nicht hochgeladen werden",
+  "common.remove": "Entfernen",
   "feedback.intro": "Feedback zu pumpfoil.org? Schreib's mir kurz.",
   "feedback.placeholder": "Dein Feedback…",
   "feedback.send": "Senden",

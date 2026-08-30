@@ -807,6 +807,9 @@ const cs: Record<string, string> = {
 
   // Feedback-Widget
   "feedback.title": "Zpětná vazba",
+  "feedback.attach": "Přiložit soubor",
+  "feedback.attachFailed": "Přílohu se nepodařilo nahrát",
+  "common.remove": "Odebrat",
   "feedback.intro": "Máš zpětnou vazbu k pumpfoil.org? Napiš mi ji krátce.",
   "feedback.placeholder": "Tvoje zpětná vazba…",
   "feedback.send": "Odeslat",
