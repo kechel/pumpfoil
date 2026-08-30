@@ -4089,17 +4089,21 @@ Offen daraus:
   #267 Whitehorse 2 -> Schwatka Lake (1) · #322 Praha 3 -> Intercamp Kotva (1) ·
   #274 Berlin 5 -> Wannsee (1) · #386 Tampere 2 -> Petsamo (1) · #169 Annecy 3 -> Le Fier (1) ·
   #361 Etelä-Haaga 2 -> Haaga (1).
-  **3 bewusst NICHT angewendet**, weil der „bessere" Name schlechter gewesen waere als der Zaehler:
-  #121 Utrecht 3 -> „Oost" (eine Himmelsrichtung), #316 Sogndal 3 -> „Vestland" (norwegische
-  Provinz, viel zu grob), #256 Berlin 3 -> „Parkplatz für Anlieger der Insel Scharfenberg"
-  (ein Parkplatz, kein Revier). **Merkregel fuer den naechsten Durchgang: Gewaessernamen
+  **Nachtrag nach Jans Durchsicht:** zwei der drei zunaechst ausgelassenen doch umbenannt, aber
+  nicht mit dem rohen `area_name`, sondern nach dem Muster von #270 (Stadt + Ortsteil):
+  #121 Utrecht 3 -> **Utrecht Oost** (14 Sess; "Oost" allein waere nur eine Himmelsrichtung) und
+  #256 Berlin 3 -> **Berlin Scharfenberg** (1 Sess; aus "Parkplatz fuer Anlieger der Insel
+  Scharfenberg" den Inselnamen genommen — der Spot liegt im Tegeler See direkt an der Insel,
+  1155 m von #270 entfernt). **Weiter ausgelassen:** #316 Sogndal 3 -> "Vestland" (norwegische
+  Provinz, viel zu grob; Jan konnte es auch nicht besser beurteilen).
+  **Merkregel fuer den naechsten Durchgang: Gewaessernamen
   (`water_name`) sind praktisch immer brauchbar, Gebietsnamen (`area_name`) nur, wenn sie ein
   Revier oder einen Ortsteil benennen — nicht bei Himmelsrichtung, Provinz/Landkreis oder
   Infrastruktur.**
-  Sieben weitere Zaehler-Spots haben gar keinen Alternativnamen in der DB und bleiben wie sie
-  sind (Almere 5, Utrecht 3, Sogndal 2/3, West-Terschelling 2, Techendorf 2, Whitehorse 3,
-  Annecy 4/5, Berlin 3, Zürichsee 2).
-  **Kaskade nachgeprueft:** alle 12 Spots — Sessions tragen den neuen `place_name` (100 %),
+  Neun weitere Zaehler-Spots haben gar keinen Alternativnamen in der DB und bleiben wie sie
+  sind (Almere 5, Sogndal 2/3, West-Terschelling 2, Techendorf 2, Whitehorse 3, Annecy 4/5,
+  Zürichsee 2) — neun Stueck.
+  **Kaskade nachgeprueft:** alle 14 Spots — Sessions tragen den neuen `place_name` (100 %),
   0 Reste unter den alten Namen in `sessions.place_name`, 0 alte Chat-Scopes, 0 Homespots.
   Reine DB-Arbeit, kein Code geaendert.
 
