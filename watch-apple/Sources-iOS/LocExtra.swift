@@ -17,6 +17,8 @@ let ptOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/pt.ts.
 private let _ptOverlayP11: [String: String] = [
+        "feedback.attach": "Anexar ficheiro",
+        "feedback.attachFailed": "Não foi possível enviar o anexo",
         "map.street": "Mapa",
         "map.satellite": "Satélite",
         "phome.byFoil": "Por foil",
@@ -686,6 +688,8 @@ let jaOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/ja.ts.
 private let _jaOverlayP11: [String: String] = [
+        "feedback.attach": "ファイルを添付",
+        "feedback.attachFailed": "添付ファイルをアップロードできませんでした",
         "map.street": "地図",
         "map.satellite": "衛星",
         "phome.byFoil": "フォイル別",
@@ -1355,6 +1359,8 @@ let zhOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/zh.ts.
 private let _zhOverlayP11: [String: String] = [
+        "feedback.attach": "添加附件",
+        "feedback.attachFailed": "附件上传失败",
         "map.street": "地图",
         "map.satellite": "卫星",
         "phome.byFoil": "按水翼",
@@ -2024,6 +2030,8 @@ let ruOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/ru.ts.
 private let _ruOverlayP11: [String: String] = [
+        "feedback.attach": "Прикрепить файл",
+        "feedback.attachFailed": "Не удалось загрузить вложение",
         "map.street": "Карта",
         "map.satellite": "Спутник",
         "phome.byFoil": "По фойлу",
@@ -2693,6 +2701,8 @@ let idOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/id.ts.
 private let _idOverlayP11: [String: String] = [
+        "feedback.attach": "Lampirkan berkas",
+        "feedback.attachFailed": "Lampiran tidak dapat diunggah",
         "map.street": "Peta",
         "map.satellite": "Satelit",
         "phome.byFoil": "Per foil",
@@ -3361,6 +3371,8 @@ let nbOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/nb.ts.
 private let _nbOverlayP11: [String: String] = [
+        "feedback.attach": "Legg ved fil",
+        "feedback.attachFailed": "Vedlegget kunne ikke lastes opp",
         "map.street": "Kart",
         "map.satellite": "Satellitt",
         "phome.byFoil": "Per foil",
@@ -4143,6 +4155,8 @@ let plOverlay: [String: String] = {
 }()
 
 private let _plOverlayP1: [String: String] = [
+        "feedback.attach": "Dołącz plik",
+        "feedback.attachFailed": "Nie udało się przesłać załącznika",
         "map.street": "Mapa",
         "map.satellite": "Satelita",
         "phome.byFoil": "Według foila",

@@ -62,6 +62,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
@@ -727,9 +730,18 @@ private fun versionNewer(latest: String, current: String): Boolean {
 @Composable
 internal fun FeedbackDialog(onDismiss: () -> Unit, prefill: String = "") {
     val scope = rememberCoroutineScope()
+    val ctx = androidx.compose.ui.platform.LocalContext.current
     var text by remember { mutableStateOf(prefill) }
     var busy by remember { mutableStateOf(false) }
     var sent by remember { mutableStateOf(false) }
+    var fehler by remember { mutableStateOf("") }
+    // Angehaengte Dateien: Anzeigename + Inhalts-URI. Gelesen wird erst beim Senden — so
+    // liegen keine Megabytes im Dialog-Zustand, wenn der Nutzer doch abbricht.
+    var dateien by remember { mutableStateOf<List<Pair<String, android.net.Uri>>>(emptyList()) }
+    val waehlen = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
+        val neu = uris.map { u -> (dateiName(ctx, u) ?: "datei") to u }
+        dateien = (dateien + neu).take(MAX_FEEDBACK_DATEIEN)
+    }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(I18n.t("feedback.title")) },
@@ -746,6 +758,27 @@ internal fun FeedbackDialog(onDismiss: () -> Unit, prefill: String = "") {
                         placeholder = { Text(I18n.t("feedback.placeholder")) },
                         minLines = 3, modifier = Modifier.fillMaxWidth(),
                     )
+                    // Anhaenge: Bilder oder Logs. Die Auswahl filtert vor, die verbindliche
+                    // Pruefung macht ohnehin der Server (Weissliste, 3 Dateien, Neukodierung).
+                    Spacer(Modifier.height(8.dp))
+                    TextButton(
+                        onClick = { waehlen.launch(FEEDBACK_MIMES) },
+                        enabled = dateien.size < MAX_FEEDBACK_DATEIEN,
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                    ) { Text(I18n.t("feedback.attach"), style = MaterialTheme.typography.bodySmall) }
+                    dateien.forEachIndexed { i, (name, _) ->
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                            Text(name, style = MaterialTheme.typography.labelSmall, maxLines = 1,
+                                overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            TextButton(onClick = { dateien = dateien.filterIndexed { j, _ -> j != i } },
+                                contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp)) { Text("×") }
+                        }
+                    }
+                    if (fehler.isNotEmpty()) {
+                        Text(fehler, style = MaterialTheme.typography.bodySmall,
+                             color = MaterialTheme.colorScheme.error)
+                    }
                 }
             }
         },
@@ -755,10 +788,44 @@ internal fun FeedbackDialog(onDismiss: () -> Unit, prefill: String = "") {
             } else {
                 TextButton(
                     enabled = !busy && text.isNotBlank(),
-                    onClick = { busy = true; scope.launch { try { Api.submitFeedback(text.trim()); sent = true } catch (_: Exception) {}; busy = false } },
+                    onClick = {
+                        busy = true; fehler = ""
+                        scope.launch {
+                            try {
+                                val id = Api.submitFeedback(text.trim())
+                                // Ein fehlgeschlagener Anhang darf die Meldung selbst nicht
+                                // entwerten — die ist dann schon beim Server. Nur melden.
+                                for ((name, uri) in dateien) {
+                                    try {
+                                        val bytes = ctx.contentResolver.openInputStream(uri)?.use { strom -> strom.readBytes() }
+                                        val mime = ctx.contentResolver.getType(uri) ?: "application/octet-stream"
+                                        if (bytes != null && id > 0) Api.feedbackAttachment(id, bytes, name, mime)
+                                    } catch (e: Exception) {
+                                        fehler = I18n.t("feedback.attachFailed")
+                                    }
+                                }
+                                sent = true
+                            } catch (_: Exception) {}
+                            busy = false
+                        }
+                    },
                 ) { Text(I18n.t("feedback.send")) }
             }
         },
         dismissButton = { if (!sent) TextButton(onClick = onDismiss) { Text(I18n.t("common.cancel")) } },
     )
+}
+
+// Hoechstens drei Anhaenge — dieselbe Grenze wie im Server (MAX_ANHAENGE) und in der PWA.
+private const val MAX_FEEDBACK_DATEIEN = 3
+
+// Vorfilter der Dateiauswahl. Deckungsgleich mit der Server-Weissliste; `text/*` faengt
+// .log/.csv/.ips mit ab, die je nach Geraet keinen eigenen MIME-Typ haben.
+private val FEEDBACK_MIMES = arrayOf("image/*", "text/*", "application/json", "application/xml")
+
+/** Anzeigename einer Inhalts-URI (Spalte DISPLAY_NAME), sonst das letzte Pfadstueck. */
+private fun dateiName(ctx: android.content.Context, uri: android.net.Uri): String? {
+    ctx.contentResolver.query(uri, arrayOf(android.provider.OpenableColumns.DISPLAY_NAME), null, null, null)
+        ?.use { c -> if (c.moveToFirst() && !c.isNull(0)) return c.getString(0) }
+    return uri.lastPathSegment?.substringAfterLast('/')
 }

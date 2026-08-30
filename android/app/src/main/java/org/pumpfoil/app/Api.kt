@@ -77,10 +77,38 @@ object Api {
         json.decodeFromString(TokenResp.serializer(), resp).access_token
     }
 
-    // Feedback senden (POST /api/feedback {text, url}).
-    suspend fun submitFeedback(text: String): Unit = withContext(Dispatchers.IO) {
-        http("POST", "/api/feedback", buildJsonObject { put("text", text); put("url", "android-app") }.toString(), auth = true)
+    // Feedback senden (POST /api/feedback {text, url}) -> id der Meldung, denn die Anhaenge
+    // haengen danach an GENAU dieser Meldung (und nur innerhalb der Serverfrist von 30 min).
+    suspend fun submitFeedback(text: String): Int = withContext(Dispatchers.IO) {
+        val r = http("POST", "/api/feedback", buildJsonObject { put("text", text); put("url", "android-app") }.toString(), auth = true)
+        json.parseToJsonElement(r).jsonObject["id"]?.jsonPrimitive?.intOrNull ?: 0
     }
+
+    // Anhang an die eben abgeschickte Meldung (Screenshot oder Log), multipart wie
+    // uploadSessionPhoto. Die verbindliche Pruefung macht der Server: Weissliste der Endungen,
+    // hoechstens 3 Dateien, Bilder werden neu kodiert.
+    suspend fun feedbackAttachment(feedbackId: Int, bytes: ByteArray, filename: String, mime: String): Unit =
+        withContext(Dispatchers.IO) {
+            val boundary = "----pumpfoil${System.nanoTime()}"
+            val conn = (URL(BASE + "/api/feedback/$feedbackId/attachment").openConnection() as HttpURLConnection).apply {
+                requestMethod = "POST"
+                doOutput = true
+                setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
+                token?.let { setRequestProperty("Authorization", "Bearer $it") }
+                connectTimeout = 15000; readTimeout = 60000
+            }
+            conn.outputStream.use { out ->
+                out.write(("--$boundary\r\nContent-Disposition: form-data; name=\"file\"; filename=\"$filename\"\r\n" +
+                    "Content-Type: $mime\r\n\r\n").toByteArray())
+                out.write(bytes)
+                out.write("\r\n--$boundary--\r\n".toByteArray())
+            }
+            val code = conn.responseCode
+            if (code !in 200..299) {
+                val err = conn.errorStream?.bufferedReader()?.readText() ?: ""
+                throw RuntimeException("Anhang fehlgeschlagen ($code): $err")
+            }
+        }
 
     // Passwort-Reset anstoßen (Server verschickt Mail; Antwort ignorieren).
     suspend fun forgotPassword(email: String): Unit = withContext(Dispatchers.IO) {

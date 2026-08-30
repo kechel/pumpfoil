@@ -39,9 +39,35 @@ enum Api {
         return r.access_token
     }
 
-    static func submitFeedback(_ text: String) async throws {
-        struct Ok: Decodable { let ok: Bool? }
-        let _: Ok = try await request("/api/feedback", method: "POST", body: ["text": text, "url": "ios-app"], auth: true)
+    /// Feedback senden -> id der Meldung. Die Anhaenge haengen danach an GENAU dieser Meldung
+    /// (und nur innerhalb der Serverfrist von 30 Minuten).
+    @discardableResult
+    static func submitFeedback(_ text: String) async throws -> Int {
+        struct Ok: Decodable { let ok: Bool?; let id: Int? }
+        let r: Ok = try await request("/api/feedback", method: "POST", body: ["text": text, "url": "ios-app"], auth: true)
+        return r.id ?? 0
+    }
+
+    /// Anhang an die eben abgeschickte Meldung (Screenshot oder Log), multipart wie
+    /// `uploadSessionPhoto`. Die verbindliche Pruefung macht der Server: Weissliste der
+    /// Endungen, hoechstens 3 Dateien, Bilder werden neu kodiert.
+    static func feedbackAttachment(_ feedbackId: Int, data: Data, filename: String, mime: String) async throws {
+        guard let url = URL(string: baseURL + "/api/feedback/\(feedbackId)/attachment") else { throw ApiError.badURL }
+        let boundary = "----pumpfoil\(Int(Date().timeIntervalSince1970 * 1000))"
+        var body = Data()
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"\(filename)\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: \(mime)\r\n\r\n".data(using: .utf8)!)
+        body.append(data)
+        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.timeoutInterval = 60
+        req.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        if let t = token { req.setValue("Bearer \(t)", forHTTPHeaderField: "Authorization") }
+        let (respData, resp) = try await URLSession.shared.upload(for: req, from: body)
+        let code = (resp as? HTTPURLResponse)?.statusCode ?? -1
+        guard (200..<300).contains(code) else { throw ApiError.http(code, String(data: respData, encoding: .utf8) ?? "") }
     }
 
     static func forgotPassword(_ email: String) async throws {

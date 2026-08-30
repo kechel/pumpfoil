@@ -46,6 +46,9 @@ private fun row(de: String, gsw: String, deAT: String, en: String, fr: String, i
 private val S: Map<String, Map<String, String>> = sTabelle()
 
 private fun sTabelle(): Map<String, Map<String, String>> = mapOf(
+    "feedback.attach" to row("Datei anhängen", "Datei aahänke", "Datei anhängen", "Attach a file", "Joindre un fichier", "Allega un file", "Adjuntar archivo"),
+    "feedback.attachFailed" to row("Anhang konnte nicht hochgeladen werden", "Aahang het nöd chönne hochglade werde", "Anhang konnte nicht hochgeladen werden", "Attachment could not be uploaded", "L'ajout du fichier a échoué", "Impossibile caricare l'allegato", "No se pudo subir el archivo"),
+    "common.remove" to row("Entfernen", "Entferne", "Entfernen", "Remove", "Retirer", "Rimuovi", "Quitar"),
     "imp.mapTitle" to row("Karten", "Karten", "Karten", "Maps", "Maps", "Maps", "Maps"),
     "imp.map1" to row("Die <b>Straßenkarte</b> stammt von <b>OpenStreetMap</b>. Beim Anzeigen einer Karte lädt dein Browser die Kartenausschnitte direkt von deren Servern; dabei werden deine IP-Adresse und der angezeigte Ausschnitt übertragen. Anbieter: OpenStreetMap Foundation, Vereinigtes Königreich.", "Die <b>Straßenkarte</b> stammt von <b>OpenStreetMap</b>. Beim Anzeigen einer Karte lädt dein Browser die Kartenausschnitte direkt von deren Servern; dabei werden deine IP-Adresse und der angezeigte Ausschnitt übertragen. Anbieter: OpenStreetMap Foundation, Vereinigtes Königreich.", "Die <b>Straßenkarte</b> stammt von <b>OpenStreetMap</b>. Beim Anzeigen einer Karte lädt dein Browser die Kartenausschnitte direkt von deren Servern; dabei werden deine IP-Adresse und der angezeigte Ausschnitt übertragen. Anbieter: OpenStreetMap Foundation, Vereinigtes Königreich.", "The <b>street map</b> comes from <b>OpenStreetMap</b>. When a map is shown, your browser loads the map tiles directly from their servers, which transmits your IP address and the section you are viewing. Provider: OpenStreetMap Foundation, United Kingdom.", "The <b>street map</b> comes from <b>OpenStreetMap</b>. When a map is shown, your browser loads the map tiles directly from their servers, which transmits your IP address and the section you are viewing. Provider: OpenStreetMap Foundation, United Kingdom.", "The <b>street map</b> comes from <b>OpenStreetMap</b>. When a map is shown, your browser loads the map tiles directly from their servers, which transmits your IP address and the section you are viewing. Provider: OpenStreetMap Foundation, United Kingdom.", "The <b>street map</b> comes from <b>OpenStreetMap</b>. When a map is shown, your browser loads the map tiles directly from their servers, which transmits your IP address and the section you are viewing. Provider: OpenStreetMap Foundation, United Kingdom."),
     "imp.map2" to row("Schaltest du mit dem Knopf auf der Karte auf <b>Satellit</b>, kommen die Luftbilder von <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — ebenfalls direkt von deren Servern und ebenfalls mit deiner IP-Adresse. Das passiert <b>nur</b>, wenn du umschaltest; deine Wahl wird lokal auf deinem Gerät gemerkt.", "Schaltest du mit dem Knopf auf der Karte auf <b>Satellit</b>, kommen die Luftbilder von <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — ebenfalls direkt von deren Servern und ebenfalls mit deiner IP-Adresse. Das passiert <b>nur</b>, wenn du umschaltest; deine Wahl wird lokal auf deinem Gerät gemerkt.", "Schaltest du oben rechts auf <b>Satellit</b>, kommen die Luftbilder von <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — ebenfalls direkt von deren Servern und ebenfalls mit deiner IP-Adresse. Das passiert <b>nur</b>, wenn du umschaltest; deine Wahl wird lokal in deinem Browser gemerkt.", "If you switch to <b>Satellite</b> using the button on the map, the aerial imagery comes from <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — again directly from their servers and again with your IP address. This happens <b>only</b> if you switch; your choice is remembered locally on your device.", "If you switch to <b>Satellite</b> using the button on the map, the aerial imagery comes from <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — again directly from their servers and again with your IP address. This happens <b>only</b> if you switch; your choice is remembered locally on your device.", "If you switch to <b>Satellite</b> using the button on the map, the aerial imagery comes from <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — again directly from their servers and again with your IP address. This happens <b>only</b> if you switch; your choice is remembered locally on your device.", "If you switch to <b>Satellite</b> using the button on the map, the aerial imagery comes from <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — again directly from their servers and again with your IP address. This happens <b>only</b> if you switch; your choice is remembered locally on your device."),
@@ -1026,6 +1029,9 @@ private fun sTabelle(): Map<String, Map<String, String>> = mapOf(
 private val FI: Map<String, String> = fiTabelle()
 
 private fun fiTabelle(): Map<String, String> = mapOf(
+    "feedback.attach" to "Liitä tiedosto",
+    "feedback.attachFailed" to "Liitettä ei voitu ladata",
+    "common.remove" to "Poista",
     "map.street" to "Kartta",
     "map.satellite" to "Satelliitti",
     "phome.byFoil" to "Foileittain",
@@ -1593,6 +1599,9 @@ private fun fiTabelle(): Map<String, String> = mapOf(
 private val NL: Map<String, String> = nlTabelle()
 
 private fun nlTabelle(): Map<String, String> = mapOf(
+    "feedback.attach" to "Bestand toevoegen",
+    "feedback.attachFailed" to "Bijlage kon niet worden geüpload",
+    "common.remove" to "Verwijderen",
     "map.street" to "Kaart",
     "map.satellite" to "Satelliet",
     "phome.byFoil" to "Per foil",
@@ -2203,6 +2212,9 @@ private fun nlTabelle(): Map<String, String> = mapOf(
 private val CS: Map<String, String> = csTabelle()
 
 private fun csTabelle(): Map<String, String> = mapOf(
+    "feedback.attach" to "Přiložit soubor",
+    "feedback.attachFailed" to "Přílohu se nepodařilo nahrát",
+    "common.remove" to "Odebrat",
     "map.street" to "Mapa",
     "map.satellite" to "Satelit",
     "phome.byFoil" to "Podle foilu",

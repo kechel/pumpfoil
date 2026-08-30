@@ -7,6 +7,9 @@ package org.pumpfoil.app
 val PT: Map<String, String> = ptTabelle()
 
 private fun ptTabelle(): Map<String, String> = mapOf(
+    "feedback.attach" to "Anexar ficheiro",
+    "feedback.attachFailed" to "Não foi possível enviar o anexo",
+    "common.remove" to "Remover",
     "map.street" to "Mapa",
     "map.satellite" to "Satélite",
     "phome.byFoil" to "Por foil",
@@ -658,6 +661,9 @@ private fun ptTabelle(): Map<String, String> = mapOf(
 val JA: Map<String, String> = jaTabelle()
 
 private fun jaTabelle(): Map<String, String> = mapOf(
+    "feedback.attach" to "ファイルを添付",
+    "feedback.attachFailed" to "添付ファイルをアップロードできませんでした",
+    "common.remove" to "削除",
     "map.street" to "地図",
     "map.satellite" to "衛星",
     "phome.byFoil" to "フォイル別",
@@ -1309,6 +1315,9 @@ private fun jaTabelle(): Map<String, String> = mapOf(
 val ZH: Map<String, String> = zhTabelle()
 
 private fun zhTabelle(): Map<String, String> = mapOf(
+    "feedback.attach" to "添加附件",
+    "feedback.attachFailed" to "附件上传失败",
+    "common.remove" to "移除",
     "map.street" to "地图",
     "map.satellite" to "卫星",
     "phome.byFoil" to "按水翼",
@@ -1960,6 +1969,9 @@ private fun zhTabelle(): Map<String, String> = mapOf(
 val RU: Map<String, String> = ruTabelle()
 
 private fun ruTabelle(): Map<String, String> = mapOf(
+    "feedback.attach" to "Прикрепить файл",
+    "feedback.attachFailed" to "Не удалось загрузить вложение",
+    "common.remove" to "Убрать",
     "map.street" to "Карта",
     "map.satellite" to "Спутник",
     "phome.byFoil" to "По фойлу",
@@ -2611,6 +2623,9 @@ private fun ruTabelle(): Map<String, String> = mapOf(
 val ID: Map<String, String> = idTabelle()
 
 private fun idTabelle(): Map<String, String> = mapOf(
+    "feedback.attach" to "Lampirkan berkas",
+    "feedback.attachFailed" to "Lampiran tidak dapat diunggah",
+    "common.remove" to "Hapus",
     "map.street" to "Peta",
     "map.satellite" to "Satelit",
     "phome.byFoil" to "Per foil",
@@ -3265,6 +3280,9 @@ private fun idTabelle(): Map<String, String> = mapOf(
 val NB: Map<String, String> = nbTabelle()
 
 private fun nbTabelle(): Map<String, String> = mapOf(
+    "feedback.attach" to "Legg ved fil",
+    "feedback.attachFailed" to "Vedlegget kunne ikke lastes opp",
+    "common.remove" to "Fjern",
     "map.street" to "Kart",
     "map.satellite" to "Satellitt",
     "phome.byFoil" to "Per foil",
@@ -4038,6 +4056,9 @@ private fun nbTabelle(): Map<String, String> = mapOf(
 val PL: Map<String, String> = plTabelle()
 
 private fun plTabelle(): Map<String, String> = mapOf(
+    "feedback.attach" to "Dołącz plik",
+    "feedback.attachFailed" to "Nie udało się przesłać załącznika",
+    "common.remove" to "Usuń",
     "map.street" to "Mapa",
     "map.satellite" to "Satelita",
     "phome.byFoil" to "Według foila",
