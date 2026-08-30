@@ -3525,3 +3525,31 @@ Offen daraus:
   die ausgelieferte Uhren-App aber **1.1.25** — das Archiv wurde also mit einer hoeheren Nummer
   gebaut als im Repo steht. Vor der naechsten Einreichung angleichen, sonst lehnt App Store
   Connect die Build-Nummer ab.
+
+- **✅ URSACHE GEFUNDEN + gefixt (Code) 30.08. — iOS-Absturz ist ein Watchdog-Kill, kein Crash.**
+  Jacek hat sein Crash-Log geschickt (`Pumpfoil-2026-08-20-111547.ips`). Inhalt eindeutig:
+  `EXC_CRASH (SIGKILL)`, FRONTBOARD-Grund **`0x8BADF00D` — „scene-update watchdog transgression:
+  exhausted real (wall clock) time allowance of 10.00 seconds"**. Hauptthread stand in
+  `LazyLayoutViewCache.updatePrefetchPhases` -> `LazySubviewPlacements.updateValue()`, also in
+  einem SwiftUI-Layout-Durchgang. **iOS hat die App abgeschossen, weil EIN Layout zehn Sekunden
+  brauchte** — kein Programmierfehler-Absturz, sondern zu viel Arbeit am Stueck.
+  Randdaten: iPhone 16 Pro, iOS 26.6, **App 1.1.24** (nicht 1.1.25 — er hatte kein neueres Log),
+  gestartet 11:08:31, abgeschossen 11:15:44 im Hintergrund. Systemsprache des Geraets: pl.
+  Zeitlicher Zusammenhang: um 11:17/11:19 schrieb er im Chat ueber die **Spot-Karte** — er war
+  also genau dort.
+  **Ursache:** `MainTabView.tabPages` ist ein `ZStack`, der **alle sieben Tabs sofort baut**
+  (nur per `opacity` versteckt). Beim Kaltstart entstanden damit sieben Bildschirme auf einmal,
+  darunter `SpotsView` mit einer MapKit-Karte, die **je Spot eine eigene SwiftUI-`MapAnnotation`
+  mit `NavigationLink`** anlegt — aktuell **231 Stueck** (`GET /api/community/spot-map`) — plus die
+  `.task`-Ladevorgaenge jedes Tabs. Das erklaert beide Meldungen: den Kill im Betrieb und
+  „stuerzt beim Start ab".
+  **Fix (RootView.swift):** ein Tab wird erst beim ersten Oeffnen gebaut (`besucht`-Set). Am
+  Verhalten aendert das nichts — `selectTab()` zaehlt `resetTokens` hoch, ein Tab wurde also
+  ohnehin bei jedem Antippen frisch gebaut. Nur der Startbildschirm liegt jetzt beim Start im
+  Speicher statt sieben. **Jan muss bauen (Xcode).**
+  **Noch offen — die Karte selbst bleibt teuer, sobald man den Spots-Tab oeffnet.** Zwei Wege:
+  (a) ab iOS 17 `Map { ForEach { Marker } }` benutzen (Marker sind native MapKit-Objekte statt
+  gehosteter SwiftUI-Views; alte API als Fallback fuer iOS 16 stehen lassen), oder (b) den
+  `NavigationLink` aus jeder Annotation nehmen und ueber EIN `navigationDestination` +
+  Auswahl-State navigieren. (a) ist der eigentliche Fix, (b) der kleine. Beides braucht einen
+  Test im Simulator — deshalb Jans Entscheidung, nicht blind eingebaut.

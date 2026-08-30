@@ -71,6 +71,9 @@ struct MainTabView: View {
     @State private var showCompare = false
     @State private var tab = 0
     @State private var resetTokens = Array(repeating: 0, count: 7)
+    // Schon geoeffnete Tabs. Sie bleiben danach im ZStack liegen (unveraendert) — aber ein Tab,
+    // den der Nutzer noch nie angetippt hat, wird gar nicht erst gebaut. Siehe tabPages.
+    @State private var besucht: Set<Int> = [0]
     private var socialOK: Bool { session.profile?.social_allowed != false }
     // Sichtbare Tab-IDs — Reihenfolge wie Android/Web: Home, Foilers(2), Sessions(1), Verlauf,
     // Spots, Chat, Profil. Age-Gate blendet NUR den Chat (5) aus; Foilers (2) darf man ansehen.
@@ -91,14 +94,24 @@ struct MainTabView: View {
         }
     }
 
+    // Ein Tab entsteht ERST beim ersten Oeffnen. Vorher baute der ZStack beim Kaltstart alle
+    // sieben Bildschirme auf einmal — samt Spots-Karte mit ueber 200 MapKit-Pins und samt der
+    // `.task`-Ladevorgaenge jedes Tabs. Belegt durch ein Crash-Log eines Nutzers (20.08., 1.1.24):
+    // FRONTBOARD 0x8BADF00D, „scene-update watchdog transgression: exhausted real (wall clock)
+    // time allowance of 10.00 seconds", Hauptthread in LazyLayoutViewCache.updatePrefetchPhases —
+    // iOS schiesst die App ab, wenn EIN Layout-Durchgang zehn Sekunden braucht. Am Verhalten
+    // aendert das nichts: selectTab() zaehlt resetTokens hoch, ein Tab wurde also ohnehin bei
+    // jedem Antippen neu gebaut.
     private var tabPages: some View {
         ZStack {
             ForEach(visibleTabs, id: \.self) { i in
+                if besucht.contains(i) {
                 tabContent(i)
                     .id("tab\(i)-\(resetTokens[i])")
                     .opacity(tab == i ? 1 : 0)
                     .allowsHitTesting(tab == i)
                     .zIndex(tab == i ? 1 : 0)
+                }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -135,6 +148,7 @@ struct MainTabView: View {
     // eine zuvor geoeffnete Session lag sonst noch darunter. Zum Blaettern zwischen Sessions gibt es
     // „Aelter"/„Neuer". Preis: die Scroll-Position eines Tabs geht beim Wechsel verloren.
     private func selectTab(_ i: Int) {
+        besucht.insert(i)
         resetTokens[i] += 1
         if tab != i { tab = i }
     }
