@@ -64,6 +64,10 @@ async def security_headers(request: Request, call_next):
 # Nutzern mit erlaubten Dritt-Cookies erscheint. Zurueckgebaut, damit die Datensparsamkeit steht.
 # Vorschaubilder kommen ueber den EIGENEN Server (/api/public/video-thumb) — deshalb braucht
 # img-src keinen Google-Host mehr.
+# Das galt seit dem 30.08. aber nur fuer den Social-Feed: die oeffentliche Startseite und die
+# Session-Detailseite haben bis zum 31.08. weiter direkt bei img.youtube.com geladen, und der
+# Host stand deshalb hier drin — auf der Startseite ging damit die IP jedes Besuchers an Google,
+# bevor irgendjemand auf ein Video getippt hatte. Beide Stellen sind umgestellt, der Host ist raus.
 # style 'unsafe-inline' nötig (React-Inline-Styles + Leaflet) — harmlos vs. Skript.
 _CSP = (
     "default-src 'self'; "
@@ -73,7 +77,7 @@ _CSP = (
     # auf „Satellit" umschaltet. OpenStreetMap liefert keine Luftbilder, deshalb ein zweiter
     # Anbieter (Nutzerwunsch 26.08.). Beides steht in der Datenschutzerklaerung (imp.map*).
     "img-src 'self' data: blob: https://*.tile.openstreetmap.org "
-    "https://server.arcgisonline.com https://img.youtube.com; "
+    "https://server.arcgisonline.com; "
     "frame-src https://www.youtube-nocookie.com; "
     "connect-src 'self'; "
     "worker-src 'self' blob:; "

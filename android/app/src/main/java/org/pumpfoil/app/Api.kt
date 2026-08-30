@@ -345,6 +345,35 @@ object Api {
             http("GET", "/api/sessions/stats?accel_only=$accelOnly&period=$period$s", null, auth = true))
     }
 
+    // --- Community-Social-Feed ------------------------------------------------------------
+    // Der gemeinsame Feed aller freigegebenen Kanaele. Seitenweise (`offset`), damit die
+    // Community-Seite nicht Hunderte Kacheln auf einmal laedt.
+    suspend fun socialFeed(limit: Int = 24, offset: Int = 0): List<SocialItem> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(SocialItem.serializer()),
+            http("GET", "/api/social/feed?limit=$limit&offset=$offset", null, auth = true))
+    }
+
+    // Video als themenfremd melden. Der Zaehler geht hoch, sichtbar bleibt es — die
+    // Entscheidung trifft der Admin (bewusst kein Auto-Ausblenden ab N Meldungen).
+    suspend fun socialReport(itemId: Int): Unit = withContext(Dispatchers.IO) {
+        http("POST", "/api/social/item/$itemId/report", null, auth = true); Unit
+    }
+
+    suspend fun socialMine(): SocialChannelState = withContext(Dispatchers.IO) {
+        json.decodeFromString(SocialChannelState.serializer(), http("GET", "/api/social/mine", null, auth = true))
+    }
+
+    // Kanal eintragen oder aendern. Landet IMMER erst als `pendingUrl` — ein schon
+    // freigegebener Kanal bleibt live, bis die Aenderung genehmigt ist.
+    suspend fun socialSetChannel(url: String): SocialChannelState = withContext(Dispatchers.IO) {
+        json.decodeFromString(SocialChannelState.serializer(),
+            http("PUT", "/api/social/mine", buildJsonObject { put("url", url) }.toString(), auth = true))
+    }
+
+    suspend fun socialRemoveChannel(): SocialChannelState = withContext(Dispatchers.IO) {
+        json.decodeFromString(SocialChannelState.serializer(), http("DELETE", "/api/social/mine", null, auth = true))
+    }
+
     // Dieselben Kennzahlen je Foil (Startseite, Block unter den Kacheln). Fehlt die Antwort,
     // bleibt der Block einfach leer — er ist eine Ergaenzung, kein Pflichtteil der Startseite.
     suspend fun statsByFoil(accelOnly: Boolean = true, period: String = "all", sport: String? = null): List<FoilStatsGroup> = withContext(Dispatchers.IO) {

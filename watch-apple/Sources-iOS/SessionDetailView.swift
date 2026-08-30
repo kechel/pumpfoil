@@ -803,7 +803,7 @@ struct SessionDetailView: View {
     }
 
     private func videoTileLabel(_ ytId: String) -> some View {
-        let thumb: URL? = URL(string: "https://img.youtube.com/vi/\(ytId)/hqdefault.jpg")
+        let thumb: URL? = URL(string: "\(Api.baseURL)/api/public/video-thumb/\(ytId)")
         return mediaTile {
             AsyncImage(url: thumb) { phase in
                 switch phase {

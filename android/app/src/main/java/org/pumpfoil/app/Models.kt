@@ -455,6 +455,35 @@ data class FoilStatsGroup(
     val stats: OverallStats = OverallStats(),
 )
 
+// Ein Video im Community-Feed (GET /api/social/feed). Alle freigegebenen Kanaele zusammen,
+// neueste zuerst — nicht nach Kanal gruppiert und nicht nach Beliebtheit, das ist der Punkt.
+@Serializable
+data class SocialItem(
+    val id: Int = 0,
+    val platform: String = "youtube",
+    @SerialName("external_id") val externalId: String = "",
+    val url: String = "",
+    val title: String? = null,
+    @SerialName("thumb_url") val thumbUrl: String? = null,
+    @SerialName("published_at") val publishedAt: String? = null,
+    @SerialName("user_id") val userId: Int = 0,
+    @SerialName("user_name") val userName: String? = null,
+    @SerialName("user_avatar") val userAvatar: String? = null,
+    @SerialName("channel_url") val channelUrl: String? = null,
+)
+
+// Stand des EIGENEN Kanals (GET/PUT/DELETE /api/social/mine).
+// status: none | pending | approved | rejected | blocked
+@Serializable
+data class SocialChannelState(
+    val url: String? = null,
+    @SerialName("pending_url") val pendingUrl: String? = null,
+    val status: String = "none",
+    val blocked: Boolean = false,
+    @SerialName("rejected_reason") val rejectedReason: String? = null,
+    @SerialName("approved_at") val approvedAt: String? = null,
+)
+
 @Serializable
 data class SpotsList(val mine: List<String> = emptyList(), val all: List<String> = emptyList())
 

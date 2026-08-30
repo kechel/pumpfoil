@@ -75,32 +75,9 @@ private fun H2(text: String) {
 
 @Composable
 private fun Body(text: String) {
-    Text(impText(text), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Text(richText(text), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
-/**
- * Text mit `<b>…</b>` als echte Fettung.
- *
- * Die Impressum-Texte kommen unveraendert aus den Web-Locales und enthalten dort `<b>`-Marken,
- * die der Browser rendert. Die App zeigte sie bis 31.08. als sichtbare Zeichen
- * („<b>Hochgeladene Fotos</b>: …") — in acht der Abschnitte. Statt die Marken zu entfernen
- * (und die Betonung zu verlieren) werden sie hier in eine AnnotatedString-Spanne uebersetzt.
- *
- * Bewusst ein einfacher Durchlauf statt HTML-Parser: in diesen Texten kommt genau `<b>` vor,
- * nichts sonst. Eine unpaarige Marke faellt hinten einfach weg statt aufzulaufen.
- */
-private fun impText(roh: String): AnnotatedString = buildAnnotatedString {
-    var i = 0
-    while (i < roh.length) {
-        val auf = roh.indexOf("<b>", i)
-        if (auf < 0) { append(roh.substring(i)); break }
-        append(roh.substring(i, auf))
-        val zu = roh.indexOf("</b>", auf + 3)
-        if (zu < 0) { append(roh.substring(auf + 3)); break }
-        withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(roh.substring(auf + 3, zu)) }
-        i = zu + 4
-    }
-}
 
 @Composable
 private fun Section(titleKey: String, introKey: String?, bulletKeys: List<String>, noteKey: String?) {
@@ -111,8 +88,8 @@ private fun Section(titleKey: String, introKey: String?, bulletKeys: List<String
     bulletKeys.forEach { k ->
         Row(Modifier.padding(vertical = 1.dp)) {
             Text("•  ", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(impText(I18n.t(k)), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(richText(I18n.t(k)), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
-    noteKey?.let { Spacer(Modifier.height(4.dp)); Text(impText(I18n.t(it)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+    noteKey?.let { Spacer(Modifier.height(4.dp)); Text(richText(I18n.t(it)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
 }

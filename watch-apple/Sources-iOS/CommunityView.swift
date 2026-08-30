@@ -62,6 +62,10 @@ struct CommunityView: View {
                 statsHeader
                 periodSection
                 recordsSection
+                // Social-Feed bewusst UEBER "Neueste Medien" (Jan, 31.08., dieselbe
+                // Reihenfolge wie in der PWA). Laedt sich selbst; ist nichts freigegeben oder
+                // der Nutzer unter 13, zeichnet er gar nichts.
+                SocialFeedSection(lang: lang)
                 mediaFeedSection
                 leaderboardSection
                 topLikedSection

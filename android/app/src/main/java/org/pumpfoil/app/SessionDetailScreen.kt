@@ -716,7 +716,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                                 if (idx < shownVideos.size) {
                                     val v = shownVideos[idx]
                                     AsyncImage(
-                                        model = "https://img.youtube.com/vi/${youtubeId(v.youtubeUrl)}/hqdefault.jpg",
+                                        model = "${Api.BASE}/api/public/video-thumb/${youtubeId(v.youtubeUrl)}",
                                         contentDescription = "YouTube", contentScale = ContentScale.Crop,
                                         modifier = Modifier.fillMaxSize().clickable {
                                             ctxYt.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(v.youtubeUrl)))

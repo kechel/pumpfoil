@@ -286,6 +286,34 @@ enum Api {
         return try await request(pfad, method: "GET", body: nil, auth: true)
     }
 
+    // --- Community-Social-Feed ------------------------------------------------------------
+
+    /// Der gemeinsame Feed aller freigegebenen Kanaele, seitenweise.
+    static func socialFeed(limit: Int = 24, offset: Int = 0) async throws -> [SocialItem] {
+        try await request("/api/social/feed?limit=\(limit)&offset=\(offset)", method: "GET", body: nil, auth: true)
+    }
+
+    /// Video als themenfremd melden. Der Zaehler geht hoch, sichtbar bleibt es — die
+    /// Entscheidung trifft der Admin (bewusst kein Auto-Ausblenden ab N Meldungen).
+    static func socialReport(_ itemId: Int) async throws {
+        struct Ok: Decodable { let ok: Bool? }
+        let _: Ok = try await request("/api/social/item/\(itemId)/report", method: "POST", body: nil, auth: true)
+    }
+
+    static func socialMine() async throws -> SocialChannelState {
+        try await request("/api/social/mine", method: "GET", body: nil, auth: true)
+    }
+
+    /// Kanal eintragen oder aendern. Landet IMMER erst als `pending_url` — ein schon
+    /// freigegebener Kanal bleibt live, bis die Aenderung genehmigt ist.
+    static func socialSetChannel(_ url: String) async throws -> SocialChannelState {
+        try await request("/api/social/mine", method: "PUT", body: ["url": url], auth: true)
+    }
+
+    static func socialRemoveChannel() async throws -> SocialChannelState {
+        try await request("/api/social/mine", method: "DELETE", body: nil, auth: true)
+    }
+
     /// Dieselben Kennzahlen je Foil (Startseite, Block unter den Kacheln).
     static func statsByFoil(accelOnly: Bool = true, period: String = "all",
                             sport: String? = nil) async throws -> [FoilStatsGroup] {

@@ -176,6 +176,11 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                         // Community-Rekorde (mit Nutzer/Spot), klickbar -> Session.
                         item { RecordGrid(records?.get(period), showSpot = true, onOpen = onOpen, modifier = Modifier.padding(horizontal = 12.dp)) }
 
+                        // Community-Social-Feed — bewusst UEBER "Neueste Medien" (Jan, 31.08.,
+                        // dieselbe Reihenfolge wie in der PWA). Laedt sich selbst; ist nichts
+                        // freigegeben oder der Nutzer unter 13, zeichnet er gar nichts.
+                        item { SocialFeedSection(Modifier.padding(top = 8.dp)) }
+
                         // Neueste Medien (Fotos + YouTube), Tippen -> Session.
                         if (media.isNotEmpty()) {
                             item {
@@ -183,7 +188,7 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                                 LazyRow(Modifier.padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     items(media.size) { idx ->
                                         val m = media[idx]
-                                        val thumb = if (m.kind == "video") ytId(m.youtubeUrl)?.let { "https://img.youtube.com/vi/$it/hqdefault.jpg" }
+                                        val thumb = if (m.kind == "video") ytId(m.youtubeUrl)?.let { "${Api.BASE}/api/public/video-thumb/$it" }
                                                     else Api.mediaUrl(m.url)
                                         AsyncImage(
                                             model = thumb, contentDescription = m.caption,
@@ -312,7 +317,7 @@ internal fun AccelSeg(accelOnly: Boolean, onChange: (Boolean) -> Unit) {
 }
 
 @Composable
-private fun SectionHeader(title: String) {
+internal fun SectionHeader(title: String) {
     Text(title, style = MaterialTheme.typography.titleMedium,
         modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 14.dp, bottom = 6.dp))
 }

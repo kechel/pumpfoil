@@ -39,6 +39,11 @@ struct SettingsView: View {
     @State private var sensitivity = "normal"
     @State private var reanalysis: ReanalysisProgress?
     @State private var sensReady = false   // erst nach dem Laden auf Änderungen reagieren
+    // Eigener YouTube-Kanal fuer den Community-Feed.
+    @State private var kanal: SocialChannelState?
+    @State private var kanalUrl = ""
+    @State private var kanalFehler = ""
+    @State private var kanalBusy = false
 
     // Ein Abschnitt = eine eigene, explizit typisierte Property. Swifts Type-Checker loest einen
     // ViewBuilder als EINEN Ausdruck auf; elf Sections mit je eigenen header/footer-Closures
@@ -56,6 +61,7 @@ struct SettingsView: View {
             pumpUnitSection
             sensitivitySection
             notificationsSection
+            socialKanalSection
             passwordSection
             saveSection
         }
@@ -306,6 +312,62 @@ struct SettingsView: View {
             Toggle(Loc.t("settings.nRecord", lang), isOn: $nRecord)
             Toggle(Loc.t("settings.nChat", lang), isOn: $nChat)
         }
+    }
+
+    /// Eigener YouTube-Kanal fuer den Community-Feed.
+    ///
+    /// Speichert sich SELBST (eigener Endpunkt `/api/social/mine`), nicht ueber den
+    /// „Speichern"-Knopf der Seite — sonst wuerde eine Kanal-Aenderung stumm mitgehen, wenn
+    /// jemand nur seine Sprache umstellt. Ein eingetragener Kanal landet immer erst als
+    /// „wartet auf Freigabe"; ein bereits freigegebener bleibt bis dahin live.
+    @ViewBuilder private var socialKanalSection: some View {
+        Section(Loc.t("social.channelTitle", lang)) {
+            Text(Loc.t("social.channelHint", lang)).font(.caption).foregroundStyle(.secondary)
+            if let st = kanal, let zeile = kanalStand(st) {
+                Text(zeile.text).font(.caption).foregroundStyle(zeile.farbe)
+            }
+            TextField("https://www.youtube.com/@deinkanal", text: $kanalUrl)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .keyboardType(.URL)
+            if !kanalFehler.isEmpty {
+                Text(kanalFehler).font(.caption).foregroundStyle(.red)
+            }
+            HStack {
+                Button(Loc.t(kanal?.url != nil ? "social.submitChange" : "social.submit", lang)) {
+                    kanalBusy = true; kanalFehler = ""
+                    Task {
+                        do { kanal = try await Api.socialSetChannel(kanalUrl.trimmingCharacters(in: .whitespaces)); kanalUrl = "" }
+                        catch { kanalFehler = Loc.t("social.badUrl", lang) }
+                        kanalBusy = false
+                    }
+                }
+                .disabled(kanalBusy || kanalUrl.trimmingCharacters(in: .whitespaces).isEmpty)
+                if kanal?.url != nil {
+                    Spacer()
+                    Button(Loc.t("social.remove", lang), role: .destructive) {
+                        Task { kanal = (try? await Api.socialRemoveChannel()) ?? kanal }
+                    }
+                }
+            }
+        }
+        .task { if kanal == nil { kanal = try? await Api.socialMine() } }
+    }
+
+    /// Zustandszeile des Kanals — als eigene Funktion, damit der Type-Checker nicht eine
+    /// vierstufige Bedingung mitten im ViewBuilder aufloesen muss.
+    private func kanalStand(_ st: SocialChannelState) -> (text: String, farbe: Color)? {
+        if st.blocked { return (Loc.t("social.stateBlocked", lang), .red) }
+        if st.status == "approved", let u = st.url {
+            return ("✓ " + Loc.t("social.stateApproved", lang) + ": " + u, Color.accentColor)
+        }
+        if st.status == "pending" {
+            return (Loc.t("social.statePending", lang) + ": " + (st.pending_url ?? ""), .orange)
+        }
+        if st.status == "rejected", let g = st.rejected_reason {
+            return (Loc.t("social.stateRejected", lang) + ": " + g, .red)
+        }
+        return nil
     }
 
     // Passwort ändern (wie PWA-Settings).

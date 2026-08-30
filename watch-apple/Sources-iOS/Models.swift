@@ -180,6 +180,33 @@ struct SportCount: Codable, Identifiable {
     var id: String { sport }
 }
 
+// Ein Video im Community-Feed (GET /api/social/feed). Alle freigegebenen Kanaele zusammen,
+// neueste zuerst — nicht nach Kanal gruppiert und nicht nach Beliebtheit, das ist der Punkt.
+struct SocialItem: Codable, Identifiable {
+    let id: Int
+    let platform: String?
+    let external_id: String
+    let url: String
+    let title: String?
+    let thumb_url: String?
+    let published_at: String?
+    let user_id: Int?
+    let user_name: String?
+    let user_avatar: String?
+    let channel_url: String?
+}
+
+// Stand des EIGENEN Kanals (GET/PUT/DELETE /api/social/mine).
+// status: none | pending | approved | rejected | blocked
+struct SocialChannelState: Codable {
+    let url: String?
+    let pending_url: String?
+    let status: String
+    let blocked: Bool
+    let rejected_reason: String?
+    var approved_at: String? = nil
+}
+
 // Dieselben Kennzahlen wie `OverallStats`, aber je Foil (GET /api/sessions/stats-by-foil).
 // Der Server liefert nur Foils, die im gewaehlten Zeitfenster vorkommen, sortiert nach dem
 // LAENGSTEN Lauf; `foil_id == nil` ist die Gruppe "kein Foil eingetragen".

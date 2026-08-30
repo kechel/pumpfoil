@@ -378,6 +378,9 @@ fun SettingsScreen(onBack: () -> Unit) {
             }
 
             Spacer(Modifier.height(24.dp))
+            SocialKanalBlock()
+
+            Spacer(Modifier.height(24.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Button(onClick = { save() }) { Text(I18n.t("common.save")) }
                 if (saved) { Spacer(Modifier.width(12.dp)); Text(I18n.t("common.saved"), color = MaterialTheme.colorScheme.primary) }
@@ -500,6 +503,78 @@ private fun ZonenBlock(
     } else {
         OutlinedButton(onClick = onReset, modifier = Modifier.padding(top = 4.dp)) {
             Text(I18n.t("$praefix.reset"))
+        }
+    }
+}
+
+
+/**
+ * Eigener YouTube-Kanal fuer den Community-Feed.
+ *
+ * Speichert sich SELBST (eigener Endpunkt `/api/social/mine`), nicht ueber den
+ * „Speichern"-Knopf der Seite — sonst wuerde eine Kanal-Aenderung stumm mitgehen, wenn jemand
+ * nur seine Sprache umstellt.
+ *
+ * Ein eingetragener Kanal landet immer erst als „wartet auf Freigabe"; ein bereits
+ * freigegebener bleibt bis dahin live.
+ */
+@Composable
+private fun SocialKanalBlock() {
+    val scope = rememberCoroutineScope()
+    var stand by remember { mutableStateOf<SocialChannelState?>(null) }
+    var url by remember { mutableStateOf("") }
+    var fehler by remember { mutableStateOf("") }
+    var busy by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { stand = try { Api.socialMine() } catch (_: Exception) { null } }
+
+    Text(I18n.t("social.channelTitle"), style = MaterialTheme.typography.titleMedium)
+    Text(I18n.t("social.channelHint"), style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp))
+
+    stand?.let { st ->
+        val (text, farbe) = when {
+            st.blocked -> I18n.t("social.stateBlocked") to MaterialTheme.colorScheme.error
+            st.status == "approved" && st.url != null ->
+                "✓ ${I18n.t("social.stateApproved")}: ${st.url}" to MaterialTheme.colorScheme.primary
+            st.status == "pending" ->
+                "${I18n.t("social.statePending")}: ${st.pendingUrl ?: ""}" to MaterialTheme.colorScheme.tertiary
+            st.status == "rejected" && st.rejectedReason != null ->
+                "${I18n.t("social.stateRejected")}: ${st.rejectedReason}" to MaterialTheme.colorScheme.error
+            else -> "" to MaterialTheme.colorScheme.onSurfaceVariant
+        }
+        if (text.isNotEmpty()) {
+            Text(text, style = MaterialTheme.typography.bodyMedium, color = farbe,
+                 modifier = Modifier.padding(top = 6.dp))
+        }
+    }
+
+    OutlinedTextField(
+        value = url, onValueChange = { url = it },
+        placeholder = { Text("https://www.youtube.com/@deinkanal") },
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+    )
+    if (fehler.isNotEmpty()) {
+        Text(fehler, style = MaterialTheme.typography.bodyMedium,
+             color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 4.dp))
+    }
+    Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Button(
+            enabled = !busy && url.isNotBlank(),
+            onClick = {
+                busy = true; fehler = ""
+                scope.launch {
+                    try { stand = Api.socialSetChannel(url.trim()); url = "" }
+                    catch (_: Exception) { fehler = I18n.t("social.badUrl") }
+                    busy = false
+                }
+            },
+        ) { Text(I18n.t(if (stand?.url != null) "social.submitChange" else "social.submit")) }
+        if (stand?.url != null) {
+            Spacer(Modifier.width(8.dp))
+            OutlinedButton(onClick = {
+                scope.launch { stand = try { Api.socialRemoveChannel() } catch (_: Exception) { stand } }
+            }) { Text(I18n.t("social.remove")) }
         }
     }
 }

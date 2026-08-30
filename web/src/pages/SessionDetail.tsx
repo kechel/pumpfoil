@@ -221,7 +221,7 @@ function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], publ
             // YouTube: Thumbnail + Inline-Player. Instagram/TikTok: branded Kachel, öffnet extern.
             const inner = plat === "youtube" ? (
               <button onClick={() => setVideo(vid)} className="block">
-                <img src={`https://img.youtube.com/vi/${vid}/mqdefault.jpg`} alt="" className="h-20 w-auto rounded-lg object-cover" />
+                <img src={`/api/public/video-thumb/${vid}`} alt="" className="h-20 w-auto rounded-lg object-cover" />
                 <span className="absolute inset-0 flex items-center justify-center">
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black/55 text-white"><PlayIcon className="h-4 w-4" /></span>
                 </span>
