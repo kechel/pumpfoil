@@ -3503,7 +3503,12 @@ Offen daraus:
   Sprachen, wird aber nirgends benutzt — die Uhren-Statistik zeigt `best_speed_mps`, die
   Foil-Statistik nicht. Entweder die Spalte nachziehen oder den Schluessel entfernen.
 
-- **🟡 OFFEN 30.08. — Meldung „iOS 1.1.25 stuerzt beim Start ab" (EIN Nutzer, uid 149).**
+- **✅ GELOEST 30.08. — Meldung „iOS 1.1.25 stuerzt beim Start ab" (uid 149).** Ursache gefunden
+  und behoben: die ungueltige Karten-Region (s. Eintrag weiter unten) — es war NICHT sein Geraet
+  und auch nicht die 1.1.25, sondern unsere Datenlage ab 07:55 desselben Tages. Serverseitig sofort
+  entschaerft, Client-Fix in 1.1.26 (eingereicht). Der urspruengliche Befund darunter bleibt als
+  Beleg stehen, weil die Messreihe (kein Totalausfall) auch kuenftig nuetzlich ist.
+  Urspruenglicher Stand:
   Chat global:main, 30.08. 13:24: „The new version 1.1.25 of the app crash on start on iPhone".
   **Kein Hinweis auf einen Totalausfall** — geprueft (alles nur lesend):
   - 1.1.25 ist seit **27.08. ~20:35** im Feld (uid 354 wechselte binnen 13 Minuten 1.1.24 -> 1.1.25).
@@ -3720,3 +3725,21 @@ Offen daraus:
   heute belegen, dass der 72-Mio-km/h-Wert vom Simulator kommt und nicht von der Uhr — haette der
   Recorder ihn stillschweigend geglaettet, waere die Unterscheidung unmoeglich gewesen. Gesaeubert
   wird in der Auswertung und in der Anzeige, nicht in der Aufzeichnung.
+
+- **🔴 WEITER OFFEN (Stand 30.08.) — Instinct-2-Klasse zeichnet NICHTS auf.** Beim Durchgehen der
+  offenen Meldungen nachgemessen: die 128-KB-Klasse (FR55 & Co.) hat sich durch den Lite-Build
+  erholt — **FR55 6 von 7 brauchbar** seit dem 20.08. Die Instinct-2-Familie aber nicht:
+  **1 von 9 brauchbar**, und es passiert HEUTE noch.
+  | Session | Nutzer | Modell | Zeitpunkt | Version | Chunks |
+  |---|---|---|---|---|---|
+  | S3115 | 214 | Instinct 2X Solar | 30.08. 14:22 | 1.0.80 | **0** |
+  | S3092 | 214 | Instinct 2X Solar | 30.08. 09:31 | 1.0.80 | **0** |
+  | S3067 | 214 | Instinct 2X Solar | 30.08. 09:11 | 1.0.80 | **0** (haengt auf `recording`) |
+  | S2839 | 142 | Instinct 2S | 24.08. 18:11 | 1.0.79 | **0** |
+  | S2623/S2622 | 142 | Instinct 2S | 23.08. | 1.0.78 | **0** |
+  Symptom unveraendert: Session wird am Server registriert, danach kommt kein einziger Chunk.
+  Drei Starts an EINEM Tag bei uid 214 — der Nutzer merkt, dass nichts ankommt, und versucht es
+  wieder. Das ist ein stiller Totalausfall fuer diese Geraete.
+  **Naechster Schritt:** die betroffenen Nutzer sind bekannt (214, 142, 369) — eine gezielte
+  Nachfrage („was zeigt die Uhr beim Start, kommt eine Fehlermeldung?") bringt schneller Klarheit
+  als weitere Statistik. Vorher pruefen, ob 1.0.82 daran etwas geaendert hat.
