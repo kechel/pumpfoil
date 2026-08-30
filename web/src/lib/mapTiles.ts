@@ -37,14 +37,42 @@ export function basiskarten(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     { attribution: "© Esri, Maxar, Earthstar Geographics", maxZoom, maxNativeZoom: 19 },
   );
-  (gewaehlteKarte() === "satellit" ? satellit : strasse).addTo(map);
-  L.control.layers({ [namen.street]: strasse, [namen.satellite]: satellit }, undefined,
-    { position: "topright" }).addTo(map);
-  // Wahl merken — über die Ebene selbst, nicht über den angezeigten Namen: der ist übersetzt
-  // und würde beim Sprachwechsel nicht mehr passen.
-  map.on("baselayerchange", (e: L.LayersControlEvent) => {
-    try { localStorage.setItem(SPEICHER, e.layer === satellit ? "satellit" : "karte"); }
-    catch { /* privater Modus: dann gilt die Wahl eben nur für diese Sitzung */ }
+  let aktiv: "karte" | "satellit" = gewaehlteKarte();
+  (aktiv === "satellit" ? satellit : strasse).addTo(map);
+
+  // EIN Knopf statt einer Auswahlliste (Jan, 31.08.): bei genau zwei Ebenen ist eine Liste mit
+  // Radioknöpfen zwei Klicks für etwas, das einer sein sollte. Beschriftet ist er mit dem ZIEL —
+  // steht „Satellit" drauf, kommt man mit einem Tipp dorthin.
+  const Umschalter = L.Control.extend({
+    options: { position: "topright" as L.ControlPosition },
+    onAdd() {
+      const box = L.DomUtil.create("div", "leaflet-bar leaflet-control");
+      const knopf = L.DomUtil.create("a", "", box) as HTMLAnchorElement;
+      knopf.href = "#";
+      knopf.setAttribute("role", "button");
+      knopf.style.cssText =
+        "width:auto;padding:0 10px;line-height:30px;height:30px;font:600 12px/30px " +
+        "ui-sans-serif,system-ui,sans-serif;white-space:nowrap;";
+      const beschriften = () => {
+        knopf.textContent = aktiv === "satellit" ? namen.street : namen.satellite;
+        knopf.title = knopf.textContent;
+        knopf.setAttribute("aria-label", knopf.textContent);
+      };
+      beschriften();
+      L.DomEvent.on(knopf, "click", (e: Event) => {
+        L.DomEvent.stop(e);
+        const neu = aktiv === "satellit" ? "karte" : "satellit";
+        map.removeLayer(aktiv === "satellit" ? satellit : strasse);
+        (neu === "satellit" ? satellit : strasse).addTo(map);
+        aktiv = neu;
+        try { localStorage.setItem(SPEICHER, aktiv); }
+        catch { /* privater Modus: dann gilt die Wahl nur für diese Sitzung */ }
+        beschriften();
+      });
+      L.DomEvent.disableClickPropagation(box);
+      return box;
+    },
   });
+  map.addControl(new Umschalter());
   return { strasse, satellit };
 }
