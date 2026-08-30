@@ -3585,6 +3585,11 @@ Offen daraus:
      dicht liegen: Whitehorse/Haines bringen 0,04°, der Ausreisser 24°). **Aktuell faellt genau
      EIN Spot weg (三浦市), 230 von 231, Region 351,3°.** Web und Android bekommen unveraendert
      alles.
+     Gekappt werden **fremde Spots vor eigenen**: der Ausreisser ist oft der eigene (der Fahrer
+     aus Miura sitzt selbst auf 1.1.25), und ihm wuerde sonst als Einzigem sein eigener Spot
+     fehlen. Fuer ihn faellt stattdessen die andere Seite weg (8 Spots an der nordamerikanischen
+     Westkueste), Region 331,4° — gueltig. Geprueft fuer **alle 387 Konten: kein einziges** bekommt
+     eine ungueltige Region.
      **Bleibt stehen** — ab 1.1.26 ist die App ausgenommen (bekommt alle 231 Spots und kappt
      selbst), fuer aeltere Installationen ist der Notbehelf aber der einzige Schutz. Wegnehmen
      erst, wenn keine iOS-Version unter 1.1.26 mehr im Feld ist (`device_tokens`, `platform`

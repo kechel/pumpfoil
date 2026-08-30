@@ -853,18 +853,39 @@ def _alte_ios_app(request: Request) -> bool:
     return ver < (1, 1, 26)
 
 
-def _kappe_ausreisser(rows: list[dict]) -> list[dict]:
+def _eigene_spots(db: Session, user_id: int) -> set:
+    """Schluessel der Spots, an denen dieser Nutzer selbst gefahren ist (spot_id, sonst Name)."""
+    rows = (db.query(S.spot_id, S.place_name)
+            .filter(S.user_id == user_id, S.deleted.isnot(True)).distinct().all())
+    return {(sid if sid else nm) for sid, nm in rows if sid or nm}
+
+
+def _kappe_ausreisser(rows: list[dict], eigene: set | None = None) -> list[dict]:
     """Entfernt die aeussersten Spots, bis die Bounding-Box in eine MapKit-Region passt.
-    Es fliegt immer die Seite mit den WENIGSTEN Sessions — der Kern der Karte bleibt stehen."""
+
+    Reihenfolge beim Wegnehmen: FREMDE Spots vor eigenen, dann die mit den wenigsten Sessions.
+    Der eigene Spot ist der Grund, warum jemand die Karte ueberhaupt oeffnet — und der Ausreisser
+    ist oft genau seiner: der Fahrer aus Miura sitzt selbst auf einer alten iOS-Version, ihm
+    wuerde sonst als Einzigem sein eigener Spot fehlen."""
+    eigen = eigene or set()
+
+    def rang(r: dict) -> tuple:
+        # klein = fliegt zuerst
+        return (1 if (r.get("spot_id") or r.get("spot")) in eigen else 0, r["sessions"])
+
     out = list(rows)
     for schluessel, grenze in (("lon", MAX_LON_SPREIZUNG), ("lat", MAX_LAT_SPREIZUNG)):
-        while len(out) > 2:
+        # Bis 1 herunter, nicht bis 2: zwei Spots koennen allein schon 358° auseinander liegen
+        # (−179° und +179°), und dann waere die Region wieder ungueltig. Bei einem Spot ist die
+        # Spreizung 0. In der Praxis greift das nie — es ist die Garantie, dass die Schleife
+        # IMMER mit einer gueltigen Box endet.
+        while len(out) > 1:
             werte = [r[schluessel] for r in out]
             lo, hi = min(werte), max(werte)
             if hi - lo <= grenze:
                 break
-            links = min((r for r in out if r[schluessel] == lo), key=lambda r: r["sessions"])
-            rechts = min((r for r in out if r[schluessel] == hi), key=lambda r: r["sessions"])
+            links = min((r for r in out if r[schluessel] == lo), key=rang)
+            rechts = min((r for r in out if r[schluessel] == hi), key=rang)
             # Zuerst zaehlt, wo weniger Sessions dranhaengen. Bei Gleichstand die Seite nehmen, die
             # die Spreizung wirklich verkleinert: an einem Ende koennen mehrere Spots dicht
             # beieinander liegen (Whitehorse/Haines, alle um −135°), dort bringt ein Entfernen
@@ -872,8 +893,8 @@ def _kappe_ausreisser(rows: list[dict]) -> list[dict]:
             def _wirkung(weg: dict) -> float:
                 rest = [r[schluessel] for r in out if r is not weg]
                 return (hi - lo) - (max(rest) - min(rest)) if rest else 0.0
-            if links["sessions"] != rechts["sessions"]:
-                out.remove(links if links["sessions"] < rechts["sessions"] else rechts)
+            if rang(links) != rang(rechts):
+                out.remove(links if rang(links) < rang(rechts) else rechts)
             else:
                 out.remove(links if _wirkung(links) >= _wirkung(rechts) else rechts)
     return out
@@ -967,7 +988,7 @@ def spot_map(request: Request, accel_only: bool = True, sport: str = "all",
         eintrag["notes"] = int(notes.get(eintrag["spot_id"], 0)) if eintrag["spot_id"] else 0
     if _alte_ios_app(request):
         vorher = len(out)
-        out = _kappe_ausreisser(out)
+        out = _kappe_ausreisser(out, _eigene_spots(db, _user.id))
         if len(out) < vorher:
             log.info("spot-map: %d Randspot(s) fuer alte iOS-App weggelassen (MapKit-Regionsgrenze)",
                      vorher - len(out))
