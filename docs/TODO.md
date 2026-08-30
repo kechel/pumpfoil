@@ -3547,9 +3547,17 @@ Offen daraus:
   Verhalten aendert das nichts — `selectTab()` zaehlt `resetTokens` hoch, ein Tab wurde also
   ohnehin bei jedem Antippen frisch gebaut. Nur der Startbildschirm liegt jetzt beim Start im
   Speicher statt sieben. **Jan muss bauen (Xcode).**
-  **Noch offen — die Karte selbst bleibt teuer, sobald man den Spots-Tab oeffnet.** Zwei Wege:
-  (a) ab iOS 17 `Map { ForEach { Marker } }` benutzen (Marker sind native MapKit-Objekte statt
-  gehosteter SwiftUI-Views; alte API als Fallback fuer iOS 16 stehen lassen), oder (b) den
-  `NavigationLink` aus jeder Annotation nehmen und ueber EIN `navigationDestination` +
-  Auswahl-State navigieren. (a) ist der eigentliche Fix, (b) der kleine. Beides braucht einen
-  Test im Simulator — deshalb Jans Entscheidung, nicht blind eingebaut.
+  **Zweiter Teil, auf Jans Vorschlag gleich mit erledigt: Spots werden jetzt gebuendelt** (iOS +
+  Android), wie es das Web seit dem 20.08. macht — dieselbe Regel auf allen dreien: Abstand in
+  Pixeln beim aktuellen Zoom, die sessionstaerksten Spots zuerst als Anker (deterministisch),
+  Tippen auf ein Buendel zoomt hinein statt eine Zufallsauswahl zu treffen.
+  - **iOS** (`SpotsView.swift`): zusaetzlich auf den sichtbaren Ausschnitt gefiltert, weil dort
+    jede Annotation eine gehostete SwiftUI-View ist. Schwelle 38 Punkt statt 26 wie im Web —
+    unsere Pins sind 30 Punkt breit, mit 26 wuerden sie sich noch beruehren. **An den echten 231
+    Spots durchgerechnet: hoechstens 23 Pins auf jeder Zoomstufe** (Europa-Ansicht 23 statt 39
+    bei Schwelle 26, Startansicht 7 statt 231).
+  - **Android** (`SpotsScreen.kt`): osmdroid zeichnet Bitmaps statt Views, dort ging es also nicht
+    um Tempo, sondern um denselben UX-Fehler — der Tipp landete im zuletzt gezeichneten Nachbarn.
+    Buendelung ueber die Web-Mercator-Weltpixel (dieselbe Rechnung wie Leaflets `project()`),
+    Neuberechnung beim Zoomen ueber einen `DelayedMapListener`. Kompiliert.
+  - Das Web bleibt unveraendert (Schwelle 26 passt dort zu 18-px-Kreisen).
