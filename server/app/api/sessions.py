@@ -816,7 +816,8 @@ def _wasser_silhouette(db: Session, ar) -> list | None:
 
 
 def compute_overall_stats(db: Session, user_id: int, accel_only: bool = True, sens: str = "normal",
-                          period: str = "all", sport: str | None = None) -> dict:
+                          period: str = "all", sport: str | None = None,
+                          foil: int | str | None = None) -> dict:
     """Gesamt-Kennzahlen + Rekorde eines Nutzers (für Self-Stats UND Admin-Nutzer-Stats).
     sens != "normal" (nur Self-Stats des Besitzers): Foiling/Läufe/Segmente aus dem gecachten
     Preset (sensitivity_json). Admin/Community rufen mit "normal" -> Standard (unberührt).
@@ -855,6 +856,12 @@ def compute_overall_stats(db: Session, user_id: int, accel_only: bool = True, se
                      if sport == "pumpfoil" else models.Session.sport_class == sport)
     if grenze is not None:
         q = q.filter(models.Session.started_at >= grenze)
+    # `foil`: None = alle (bisheriges Verhalten) · "none" = nur Sessions OHNE Foil-Eintrag ·
+    # int = genau dieses Foil. Fuer die Aufschluesselung je Foil auf der Startseite.
+    if foil == "none":
+        q = q.filter(models.Session.foil_id.is_(None))
+    elif isinstance(foil, int):
+        q = q.filter(models.Session.foil_id == foil)
     rows = q.all()
     tot_dist = tot_time = tot_pumps = tot_runs = 0.0
     n_sessions = 0  # nur Pumpfoil-Sessions zählen
@@ -1069,6 +1076,61 @@ def overall_stats(
                                 sport=gewaehlt)
     out["sport"] = gewaehlt
     out["sports"] = sports
+    return out
+
+
+@router.get("/stats-by-foil")
+def stats_by_foil(
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+    accel_only: bool = True,
+    period: str = "all",
+    sport: str | None = None,
+) -> list[dict]:
+    """Dieselben Kennzahlen wie `/stats`, aber EINZELN je Foil — die Aufschluesselung unter den
+    Rekord-Kacheln der Startseite (Jans Wunsch 30.08., angeregt durch eine Nutzermeldung).
+
+    Nur Foils, die im gewaehlten Zeitfenster ueberhaupt vorkommen: bei „Heute" bleibt die Liste
+    damit kurz, bei „Allzeit" sieht man alles. Sessions ohne Foil-Eintrag bilden eine eigene
+    Gruppe (`foil_id: null`) — sonst fehlten sie in der Summe und niemand wuesste warum.
+
+    Ein Aufruf je Gruppe: gemessen hat der fleissigste Nutzer 7 verschiedene Foils, die Haelfte
+    genau eines. Das ist billiger als die Kennzahlen-Schleife zu verallgemeinern."""
+    from .community import _cutoff
+
+    sports = _user_sports(db, user.id)
+    gewaehlt = sport or (sports[0]["sport"] if sports else "pumpfoil")
+    grenze = _cutoff(period)
+    q = (db.query(models.Session.foil_id, func.count(models.Session.id))
+         .filter(models.Session.user_id == user.id, models.Session.deleted.isnot(True)))
+    if gewaehlt:
+        q = q.filter(or_(models.Session.sport_class.is_(None), models.Session.sport_class == "pumpfoil")
+                     if gewaehlt == "pumpfoil" else models.Session.sport_class == gewaehlt)
+    if grenze is not None:
+        q = q.filter(models.Session.started_at >= grenze)
+    gruppen = q.group_by(models.Session.foil_id).all()
+    if not gruppen:
+        return []
+    fmap = {f.id: f for f in db.query(models.Foil)
+            .filter(models.Foil.id.in_([g[0] for g in gruppen if g[0]])).all()}
+    out = []
+    for fid, n in sorted(gruppen, key=lambda g: (-g[1], g[0] or 0)):
+        f = fmap.get(fid) if fid else None
+        if fid and not f:
+            continue                      # Foil geloescht -> Gruppe waere namenlos
+        st = compute_overall_stats(db, user.id, accel_only,
+                                   sens=(user.foil_sensitivity or "normal"), period=period,
+                                   sport=gewaehlt, foil=(fid if fid else "none"))
+        out.append({
+            "foil_id": fid,
+            "brand": f.brand if f else None,
+            "model": f.model if f else None,
+            "size": f.size if f else None,
+            "aspect_ratio": (round((f.span_cm ** 2) / f.area_cm2, 2)
+                             if f and f.area_cm2 else None),
+            "sessions": int(n),
+            "stats": st,
+        })
     return out
 
 

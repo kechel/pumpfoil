@@ -1030,6 +1030,8 @@ const ja: Record<string, string> = {
   "banner.stats": "私たちはすでに §{spots}§ のスポットで §{foilers}§ 人のパンプフォイラー、合計 §{sessions}§ セッションと §{pumps}§ 回のポンプです。",
   "banner.dismiss": "閉じる",
   "phome.latest": "最新のセッション",
+  "phome.byFoil": "フォイル別",
+  "phome.noFoil": "フォイル未登録",
   "phome.allMine": "自分のすべて",
   "phome.homespotChatSoon": "スポットチャット近日公開",
 

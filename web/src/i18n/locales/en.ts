@@ -1157,6 +1157,8 @@ const en: Record<string, string> = {
   "banner.stats": "We're already §{foilers}§ pumpfoilers at §{spots}§ spots with §{sessions}§ sessions and §{pumps}§ pumps in total.",
   "banner.dismiss": "Dismiss",
   "phome.latest": "Latest sessions",
+  "phome.byFoil": "Per foil",
+  "phome.noFoil": "No foil recorded",
   "phome.allMine": "All mine",
   "phome.homespotChatSoon": "Spot chat coming",
 

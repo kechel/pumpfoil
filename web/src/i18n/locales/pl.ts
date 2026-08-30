@@ -1109,6 +1109,8 @@ const pl: Record<string, string> = {
   "banner.stats": "Jest nas już §{foilers}§ pumpfoilerów na §{spots}§ spotach, z §{sessions}§ sesjami i §{pumps}§ pompami łącznie.",
   "banner.dismiss": "Zamknij",
   "phome.latest": "Najnowsze sesje",
+  "phome.byFoil": "Według foila",
+  "phome.noFoil": "Bez wpisanego foila",
   "phome.allMine": "Wszystkie moje",
   "phome.homespotChatSoon": "Czat spotu wkrótce",
   "wx.title": "Pogoda i poziom wody",

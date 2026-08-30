@@ -1110,6 +1110,8 @@ const nl: Record<string, string> = {
   "banner.stats": "We zijn al §{foilers}§ pumpfoilers op §{spots}§ spots met §{sessions}§ sessies en samen §{pumps}§ pumps.",
   "banner.dismiss": "Verbergen",
   "phome.latest": "Laatste sessies",
+  "phome.byFoil": "Per foil",
+  "phome.noFoil": "Geen foil ingevuld",
   "phome.allMine": "Al mijn sessies",
   "phome.homespotChatSoon": "Spot-chat volgt",
 

@@ -1075,6 +1075,8 @@ const fi: Record<string, string> = {
   "banner.stats": "Meitä on jo §{foilers}§ pumpfoilaajaa §{spots}§ spotilla §{sessions}§ sessiolla ja yhteensä §{pumps}§ pumppauksella.",
   "banner.dismiss": "Piilota",
   "phome.latest": "Viimeisimmät sessiot",
+  "phome.byFoil": "Foileittain",
+  "phome.noFoil": "Ei foilia merkitty",
   "phome.allMine": "Kaikki omat",
   "phome.homespotChatSoon": "Spot-chat tulossa",
 

@@ -1110,6 +1110,8 @@ const cs: Record<string, string> = {
   "banner.stats": "Už je nás §{foilers}§ pumpfoilerů na §{spots}§ spotech s §{sessions}§ relacemi a dohromady §{pumps}§ pumpnutí.",
   "banner.dismiss": "Skrýt",
   "phome.latest": "Poslední relace",
+  "phome.byFoil": "Podle foilu",
+  "phome.noFoil": "Bez zadaného foilu",
   "phome.allMine": "Všechny moje",
   "phome.homespotChatSoon": "Spot chat brzy",
 

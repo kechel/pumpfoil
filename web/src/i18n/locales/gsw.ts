@@ -729,6 +729,8 @@ const gsw: Record<string, string> = {
   "banner.stats": "Mir sind scho §{foilers}§ Pumpfoiler a §{spots}§ Spots mit §{sessions}§ Sessions und zäme §{pumps}§ Pumps.",
   "banner.dismiss": "Uusblände",
   "phome.latest": "Letschti Sessions",
+  "phome.byFoil": "Pro Foil",
+  "phome.noFoil": "Ohni Foil-Iidrag",
   "phome.allMine": "Alli vo mir",
   "phome.homespotChatSoon": "Spot-Chat chunnt",
 

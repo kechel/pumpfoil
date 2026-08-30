@@ -669,6 +669,8 @@ const deAT: Record<string, string> = {
   "banner.stats": "Mia san scho §{foilers}§ Pumpfoiler auf §{spots}§ Spots mit §{sessions}§ Sessions und zamm §{pumps}§ Pumps.",
   "banner.dismiss": "Ausblendn",
   "phome.latest": "Letzte Sessions",
+  "phome.byFoil": "Je Foil",
+  "phome.noFoil": "Ohne Foil-Eintrag",
   "phome.allMine": "Alle meine",
   "phome.homespotChatSoon": "Spot-Chat folgt",
 

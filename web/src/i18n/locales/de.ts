@@ -1237,6 +1237,8 @@ const de: Record<string, string> = {
   "banner.stats": "Wir sind schon §{foilers}§ Pumpfoiler an §{spots}§ Spots mit §{sessions}§ Sessions und zusammen §{pumps}§ Pumps.",
   "banner.dismiss": "Ausblenden",
   "phome.latest": "Letzte Sessions",
+  "phome.byFoil": "Je Foil",
+  "phome.noFoil": "Ohne Foil-Eintrag",
   "phome.allMine": "Alle meine",
   "phome.homespotChatSoon": "Spot-Chat folgt",
 

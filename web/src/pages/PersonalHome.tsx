@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { fmtDate } from "../lib/time";
 import { foilLabel } from "../lib/foilLabel";
 import { Link } from "react-router-dom";
-import { api, OverallStats, Profile, SessionSummary } from "../lib/api";
+import { api, FoilStatsGroup, OverallStats, Profile, SessionSummary } from "../lib/api";
 import { Card, Spinner } from "../components/ui";
 import { SessionCard } from "../components/SessionCard";
 import { SessionStats, StatusBadge } from "./Sessions";
@@ -138,6 +138,9 @@ export default function PersonalHome() {
   const nf = useNumberFormat();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [stats, setStats] = useState<OverallStats | null>(null);
+  // Dieselben Kacheln noch einmal je Foil (Jans Wunsch 30.08.). Eigener Abruf, damit die
+  // Startseite ohne ihn nicht wartet — der Block erscheint einfach, sobald er da ist.
+  const [byFoil, setByFoil] = useState<FoilStatsGroup[]>([]);
   const [latest, setLatest] = useState<SessionSummary[] | null>(null);
   const [homespot, setHomespot] = useState("");
   // Rekorde: nur aus Sessions mit Accel (präzise) oder aus allen (inkl. GPS-only).
@@ -159,6 +162,7 @@ export default function PersonalHome() {
     api.getSettings().then((s) => setHomespot((s.homespot as string) ?? "")).catch(() => {});
   }, []);
   useEffect(() => {
+    api.statsByFoil(accelOnly, period, sport || undefined).then(setByFoil).catch(() => setByFoil([]));
     api.stats(accelOnly, period, sport || undefined).then((s) => {
       // Der Accel-Default wird NUR beim ersten Laden entschieden, und nur auf "Allzeit":
       // in einem kurzen Fenster (z. B. „Heute") sind leere Rekorde normal und wuerden den
@@ -175,22 +179,54 @@ export default function PersonalHome() {
     }).catch(() => {});
   }, [accelOnly, period, sport]);
 
-  const recs = stats?.records;
-  // Rekord-Kacheln (klickbar -> Session) + Gesamt-Stat-Kacheln, alle zusammen oben.
-  const recTiles: { label: string; rec?: { value: number; session_id: number | null; started_at?: string | null }; fmt: (v: number) => string }[] = [
-    { label: t("rec.farthestRun"), rec: recs?.distance, fmt: (v) => `${Math.round(v)} m` },
-    { label: t("rec.longestRun"), rec: recs?.duration, fmt: (v) => `${Math.floor(v / 60)}:${String(Math.round(v % 60)).padStart(2, "0")}` },
-    { label: t("rec.topSpeed"), rec: recs?.speed, fmt: (v) => `${(v * 3.6).toFixed(1)} km/h` },
-    { label: t("rec.longestGlide"), rec: recs?.glide, fmt: (v) => `${v.toFixed(1)} s` },
-    { label: t("rec.mostRuns"), rec: recs?.runs, fmt: (v) => `${Math.round(v)}` },
-  ];
-  const statTiles = stats ? [
-    { label: t("side.sessions"), value: String(stats.count) },
-    { label: t("stat.runs"), value: String(stats.runs_total) },
-    { label: t("side.foiling"), value: `${stats.foiling_km.toFixed(1)} km` },
-    { label: t("side.foilingTime"), value: fmtDur(stats.foiling_min) },
-    { label: t("side.pumps"), value: nf(stats.pumps) },
+  // Kachel-Definitionen EINMAL — die Gesamtansicht und jeder Foil-Block nehmen dieselbe Quelle,
+  // sonst driften Formatierung und Reihenfolge auseinander.
+  type RecTile = { label: string; rec?: { value: number; session_id: number | null; started_at?: string | null }; fmt: (v: number) => string };
+  const recTilesOf = (s: OverallStats | null): RecTile[] => {
+    const r = s?.records;
+    return [
+      { label: t("rec.farthestRun"), rec: r?.distance, fmt: (v) => `${Math.round(v)} m` },
+      { label: t("rec.longestRun"), rec: r?.duration, fmt: (v) => `${Math.floor(v / 60)}:${String(Math.round(v % 60)).padStart(2, "0")}` },
+      { label: t("rec.topSpeed"), rec: r?.speed, fmt: (v) => `${(v * 3.6).toFixed(1)} km/h` },
+      { label: t("rec.longestGlide"), rec: r?.glide, fmt: (v) => `${v.toFixed(1)} s` },
+      { label: t("rec.mostRuns"), rec: r?.runs, fmt: (v) => `${Math.round(v)}` },
+    ];
+  };
+  const statTilesOf = (s: OverallStats | null) => s ? [
+    { label: t("side.sessions"), value: String(s.count) },
+    { label: t("stat.runs"), value: String(s.runs_total) },
+    { label: t("side.foiling"), value: `${s.foiling_km.toFixed(1)} km` },
+    { label: t("side.foilingTime"), value: fmtDur(s.foiling_min) },
+    { label: t("side.pumps"), value: nf(s.pumps) },
   ] : [];
+
+  const kachelGitter = (s: OverallStats | null) => (
+    <div className="mb-6 grid grid-cols-3 gap-1.5 lg:grid-cols-5">
+      {recTilesOf(s).map((r) => {
+        const v = r.rec?.value ?? 0;
+        const inner = (
+          <Card className="h-full px-2.5 py-1.5">
+            <div className="text-[11px] leading-tight text-slate-400">{r.label}</div>
+            <div className="text-lg font-bold leading-tight tabular-nums text-brand-400">{v > 0 ? r.fmt(v) : "–"}</div>
+            {v > 0 && r.rec?.started_at && (
+              <div className="text-[10px] leading-tight tabular-nums text-slate-500">
+                {fmtDate(r.rec.started_at, (r.rec as any).tz, { day: "2-digit", month: "2-digit", year: "2-digit" })}
+              </div>
+            )}
+          </Card>
+        );
+        return v > 0 && r.rec?.session_id
+          ? <Link key={r.label} to={`/sessions/${r.rec.session_id}`} className="block transition-transform hover:scale-[1.02]">{inner}</Link>
+          : <div key={r.label}>{inner}</div>;
+      })}
+      {statTilesOf(s).map((x) => (
+        <Card key={x.label} className="h-full px-2.5 py-1.5">
+          <div className="text-[11px] leading-tight text-slate-400">{x.label}</div>
+          <div className="text-lg font-bold leading-tight tabular-nums text-brand-400">{x.value}</div>
+        </Card>
+      ))}
+    </div>
+  );
 
 
   return (
@@ -319,30 +355,29 @@ export default function PersonalHome() {
       </div>
 
       {/* Alle Kacheln: Rekorde + Gesamt-Stats */}
-      {!stats ? <Spinner /> : (
-        <div className="mb-6 grid grid-cols-3 gap-1.5 lg:grid-cols-5">
-          {recTiles.map((r) => {
-            const v = r.rec?.value ?? 0;
-            const inner = (
-              <Card className="h-full px-2.5 py-1.5">
-                <div className="text-[11px] leading-tight text-slate-400">{r.label}</div>
-                <div className="text-lg font-bold leading-tight tabular-nums text-brand-400">{v > 0 ? r.fmt(v) : "–"}</div>
-                {v > 0 && r.rec?.started_at && (
-                  <div className="text-[10px] leading-tight tabular-nums text-slate-500">
-                    {fmtDate(r.rec.started_at, (r.rec as any).tz, { day: "2-digit", month: "2-digit", year: "2-digit" })}
-                  </div>
-                )}
-              </Card>
-            );
-            return v > 0 && r.rec?.session_id
-              ? <Link key={r.label} to={`/sessions/${r.rec.session_id}`} className="block transition-transform hover:scale-[1.02]">{inner}</Link>
-              : <div key={r.label}>{inner}</div>;
-          })}
-          {statTiles.map((s) => (
-            <Card key={s.label} className="h-full px-2.5 py-1.5">
-              <div className="text-[11px] leading-tight text-slate-400">{s.label}</div>
-              <div className="text-lg font-bold leading-tight tabular-nums text-brand-400">{s.value}</div>
-            </Card>
+      {!stats ? <Spinner /> : kachelGitter(stats)}
+
+      {/* Dieselben Kacheln je Foil. Nur ab ZWEI Gruppen — bei einem einzigen Foil waere der Block
+          eine wortgleiche Wiederholung der Zahlen darueber. Welche Foils erscheinen, entscheidet
+          das gewaehlte Zeitfenster: bei „Heute" bleibt die Liste kurz, bei „Allzeit" steht alles da. */}
+      {stats && byFoil.length > 1 && (
+        <div className="mb-6">
+          <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-400">{t("phome.byFoil")}</h3>
+          {byFoil.map((g) => (
+            <div key={g.foil_id ?? "keins"}>
+              <div className="mb-1 flex items-baseline gap-2">
+                <span className="text-sm font-semibold text-slate-200">
+                  {/* brand/model/size sind nur in der Gruppe „ohne Foil" leer — dort greift der Text daneben. */}
+                  {g.foil_id
+                    ? foilLabel({ brand: g.brand ?? "", model: g.model ?? "", size: g.size ?? "", aspect_ratio: g.aspect_ratio })
+                    : t("phome.noFoil")}
+                </span>
+                <span className="text-xs text-slate-500">
+                  {g.sessions} {t("side.sessions")}
+                </span>
+              </div>
+              {kachelGitter(g.stats)}
+            </div>
           ))}
         </div>
       )}

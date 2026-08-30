@@ -1062,6 +1062,8 @@ const nb: Record<string, string> = {
   "banner.stats": "Vi er allerede §{foilers}§ pumpfoilere på §{spots}§ spots med §{sessions}§ økter og §{pumps}§ pumper til sammen.",
   "banner.dismiss": "Lukk",
   "phome.latest": "Siste økter",
+  "phome.byFoil": "Per foil",
+  "phome.noFoil": "Uten foil angitt",
   "phome.allMine": "Alle mine",
   "phome.homespotChatSoon": "Spot-chat kommer",
   "wx.title": "Vær og vannstand",

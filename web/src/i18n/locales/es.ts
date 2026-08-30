@@ -806,6 +806,8 @@ const es: Record<string, string> = {
   "banner.stats": "Ya somos §{foilers}§ pumpfoilers en §{spots}§ spots con §{sessions}§ sesiones y §{pumps}§ pumps en total.",
   "banner.dismiss": "Ocultar",
   "phome.latest": "Últimas sesiones",
+  "phome.byFoil": "Por foil",
+  "phome.noFoil": "Sin foil indicado",
   "phome.allMine": "Todas las mías",
   "phome.homespotChatSoon": "Chat del spot próximamente",
 

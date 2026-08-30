@@ -1030,6 +1030,8 @@ const zh: Record<string, string> = {
   "banner.stats": "我们已经有 §{foilers}§ 名泵翼玩家，遍布 §{spots}§ 个地点，共 §{sessions}§ 条记录和 §{pumps}§ 次泵动。",
   "banner.dismiss": "关闭",
   "phome.latest": "最新记录",
+  "phome.byFoil": "按水翼",
+  "phome.noFoil": "未填写水翼",
   "phome.allMine": "全部我的",
   "phome.homespotChatSoon": "地点聊天即将上线",
 

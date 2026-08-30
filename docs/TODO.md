@@ -3746,3 +3746,21 @@ Offen daraus:
   **Naechster Schritt:** die betroffenen Nutzer sind bekannt (214, 142, 369) — eine gezielte
   Nachfrage („was zeigt die Uhr beim Start, kommt eine Fehlermeldung?") bringt schneller Klarheit
   als weitere Statistik. Vorher pruefen, ob 1.0.82 daran etwas geaendert hat.
+
+- **✅ NEU 30.08. — Rekorde und Kennzahlen je Foil auf der Startseite.** Angeregt durch Nicobpys
+  Feedback (29.08.), das wir zuerst als Community-Tabelle gelesen hatten; Jan wollte es persoenlich:
+  alle Kacheln des Rekord-Abschnitts noch einmal **je Foil**, plus eine Gruppe „ohne Foil-Eintrag".
+  - **Server:** `GET /api/sessions/stats-by-foil` (`accel_only`, `period`, `sport` wie `/stats`).
+    `compute_overall_stats` hat dafuer einen `foil`-Filter bekommen (`None` = alle, `"none"` =
+    ohne Eintrag, int = dieses Foil) — dieselbe Rechnung, kein zweiter Weg.
+  - **Nur Foils im gewaehlten Zeitfenster** (Jan): bei „Heute" bleibt die Liste kurz, bei „Allzeit"
+    steht alles da. Faellt aus der Gruppierung von selbst.
+  - **Erst ab ZWEI Gruppen sichtbar** — bei einem einzigen Foil waere es eine wortgleiche
+    Wiederholung. Gemessen: 189 Nutzer sehen nichts (keine Foil-Angabe), 117 haben genau ein Foil,
+    **83 sehen den Block**, der groesste mit 7 Gruppen.
+  - **Quersumme geprueft** (Jans Konto): Sessions 241, Laeufe 1570, Pumps 19 510 — je Foil summiert
+    exakt die Gesamtzahlen der Startseite. Bei km/min 0,1 Abweichung, weil jede Gruppe einzeln
+    gerundet wird.
+  - Zwei neue i18n-Schluessel (`phome.byFoil`, `phome.noFoil`) in allen 17 Web-Sprachen.
+  **Noch offen:** Android und iOS haben den Abschnitt noch nicht (Paritaet), und die Uhr braucht
+  ihn nicht.

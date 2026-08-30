@@ -1030,6 +1030,8 @@ const id: Record<string, string> = {
   "banner.stats": "Kita sudah §{foilers}§ pumpfoiler di §{spots}§ spot dengan §{sessions}§ sesi dan §{pumps}§ pump secara total.",
   "banner.dismiss": "Tutup",
   "phome.latest": "Sesi terbaru",
+  "phome.byFoil": "Per foil",
+  "phome.noFoil": "Tanpa foil tercatat",
   "phome.allMine": "Semua milikku",
   "phome.homespotChatSoon": "Chat spot segera hadir",
 

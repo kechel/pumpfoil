@@ -929,6 +929,11 @@ export const api = {
   // Antwort (`sport`), welche das war. Die Auswahlliste kommt als `sports` gleich mit.
   hrProgress: (sport?: string) =>
     req<HrProgress>(`/api/sessions/hr-progress${sport ? `?sport=${encodeURIComponent(sport)}` : ""}`),
+  // Dieselben Kennzahlen, aber einzeln je Foil (Startseite, Abschnitt unter den Rekorden).
+  // Nur Foils, die im gewaehlten Zeitfenster vorkommen; `foil_id: null` = Sessions ohne Eintrag.
+  statsByFoil: (accelOnly = true, period = "all", sport?: string) =>
+    req<FoilStatsGroup[]>(`/api/sessions/stats-by-foil?accel_only=${accelOnly}&period=${encodeURIComponent(period)}`
+      + (sport ? `&sport=${encodeURIComponent(sport)}` : "")),
   stats: (accelOnly = true, period = "all", sport?: string) =>
     req<OverallStats>(`/api/sessions/stats?accel_only=${accelOnly}&period=${encodeURIComponent(period)}`
       + (sport ? `&sport=${encodeURIComponent(sport)}` : "")),
@@ -1194,6 +1199,16 @@ export interface HrProgress {
   sports: { sport: string; sessions: number }[];
   marks: number[];
   series: { session_id: number; started_at: string | null; [k: string]: number | string | null }[];
+}
+
+export interface FoilStatsGroup {
+  foil_id: number | null;
+  brand: string | null;
+  model: string | null;
+  size: string | null;
+  aspect_ratio: number | null;
+  sessions: number;
+  stats: OverallStats;
 }
 
 export interface OverallStats {

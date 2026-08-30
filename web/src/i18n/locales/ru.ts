@@ -1030,6 +1030,8 @@ const ru: Record<string, string> = {
   "banner.stats": "Нас уже §{foilers}§ pump-фойлеров на §{spots}§ спотах с §{sessions}§ сессиями и §{pumps}§ помпинг-движениями в сумме.",
   "banner.dismiss": "Закрыть",
   "phome.latest": "Последние сессии",
+  "phome.byFoil": "По фойлу",
+  "phome.noFoil": "Фойл не указан",
   "phome.allMine": "Все мои",
   "phome.homespotChatSoon": "Чат спота скоро",
 
