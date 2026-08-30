@@ -400,7 +400,7 @@ Changelog** (Satellitenansicht und Feedback-Anhaenge), beide sind jetzt nachgetr
 | Ein Umschalter statt Auswahlliste | ✅ | ✅ 31.08. | ✅ 31.08. | – |
 | Feedback-Dateianhaenge | ✅ | ✅ 31.08. | ✅ 31.08. | – |
 | Karten-Abschnitt in der Datenschutzerklaerung | ✅ | ✅ 31.08. | ✅ 31.08. | – |
-| Community-Social-Feed | ✅ | ❌ **offen** | ❌ **offen** | – |
+| Community-Social-Feed | ✅ | ✅ 31.08. | ✅ 31.08. | – |
 | Lauf-Erkennung an den Server angeglichen | – | ✅ | ✅ | ✅ alle vier |
 | Zusammenfuehren nur bei plausibler Strecke | – | ✅ | ✅ | ✅ alle vier |
 | Puls- + Geschwindigkeits-Zonen | ✅ | ✅ | ✅ | ✅ alle vier |
@@ -414,7 +414,25 @@ Strassenkarte, die vier anderen schalten normal mit. Ein Umbau auf `MKMapView` w
 Alternative — dafuer muesste die Buendelung neu geschrieben werden, die gerade erst Jaceks
 Absturzmeldung geschlossen hat. Nicht wert.
 
-**Offen bleibt genau ein Punkt: der Community-Social-Feed in Android und iOS.**
+**Die Liste ist durch — kein Punkt mehr offen.**
+
+### Sprachen auf den vier Uhren (Stand 31.08.)
+
+| Plattform | Sprachen | fehlt | Bewertung |
+|---|---|---|---|
+| Garmin | 15 | ja, zh | **richtig so** — die Built-in-Fonts der fēnix/Forerunner haben keine CJK-Glyphen; steht als Kommentar in `Strings.mc` |
+| Zepp | 17 | – | vollstaendig; nl/fi/cs sind allerdings in vielen Zeilen leere Spalten -> Englisch |
+| Wear OS | 14 | nl, fi, cs | dokumentiert und gewollt (`I18n.set`: unbekannte Profilsprache -> Geraetesprache -> Englisch) |
+| Apple Watch | 14 | nl, fi, cs | dieselbe Regel in `WLoc.t` |
+
+**Kein Defekt, aber eine Ungleichheit:** eine niederlaendische, finnische oder tschechische
+Nutzerin bekommt ihre Sprache auf einer **Garmin** vollstaendig, auf **Wear OS und Apple Watch**
+gar nicht. Nachgesehen, ob sich das aus dem Garmin-Bestand fuellen laesst: die Uhr-Texte tragen
+dort **andere Schluesselnamen** (`f.bpmMaxLast` vs. `f.lastRunMaxHr`). Ueber den deutschen Text
+zugeordnet decken sich **32 von 84** Wear-Schluesseln und **28 von 81** Apple-Schluesseln mit
+einem Garmin-Text. Fuer die restlichen zwei Drittel gibt es keine Quelle — die muessten
+uebersetzt werden, und geraten wird hier nichts. **Das ist eine Uebersetzungsaufgabe, keine
+Code-Aufgabe.**
 
 ### Nicht portiert, weil bewusst Web-only
 Layout-Editor, Labeling-Editor, FIT-Import, Changelog-Seite, Admin.

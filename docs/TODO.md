@@ -4180,3 +4180,34 @@ Offen daraus:
   Der einzige verbliebene Punkt aus `docs/PARITY-AUDIT.md`. Server (`/api/social/*`) und
   Web-Oberflaeche (`SocialFeed.tsx`) stehen; die Apps brauchen die Feed-Liste mit
   Hochformat-Karten, das Vollbild mit Weiter/Zurueck, das Kanalfeld im Profil und das Melden.
+
+- **✅ 31.08. — Social-Feed in Android und iOS; damit ist die Paritaetsliste durch.**
+  Beide Apps: Hochformat-Kacheln ueber „Neueste Medien", Vollbild mit Weiter/Zurueck, Melden,
+  Knopf zu YouTube hinaus, Kanalfeld in den Einstellungen. Abgespielt wird ueber
+  youtube-nocookie und erst nach dem Antippen — Android per WebView ohne DOM-Speicher und mit
+  geleertem Cache beim Verlassen, iOS per WKWebView mit nicht-persistenter Datenablage.
+  Dass die Kacheln hier den Player oeffnen statt der Session-Detailansicht, ist kein Bruch der
+  Regel von 13.07. ([[native-video-thumb-no-direct-open]]): hinter einem Feed-Video steht keine
+  Session, das Abspielen IST der Inhalt.
+
+- **🟢 31.08. — Vorschaubilder-Leck geschlossen (aelter als der Feed).** Beim Einbau aufgefallen:
+  die **oeffentliche Startseite** (`Home.tsx`) und die Session-Detailseite luden YouTube-
+  Vorschaubilder weiter direkt von `img.youtube.com`. Auf der Startseite ging damit **die
+  IP-Adresse jedes Besuchers an Google, bevor irgendjemand auf ein Video getippt hatte** — genau
+  das, was am 30.08. fuer den Social-Feed abgestellt wurde (und was Ghostery damals angezeigt
+  hat). Der Kommentar ueber der CSP behauptete schon „img-src braucht keinen Google-Host mehr",
+  der Host stand aber noch drin, weil diese beiden Stellen ihn brauchten.
+  Alle Stellen laufen jetzt ueber `/api/public/video-thumb` (Web, Android, iOS),
+  `https://img.youtube.com` ist aus der CSP raus, Server neu gestartet und der Header geprueft.
+  **Merke: eine Datenschutz-Korrektur an EINER Komponente heisst nicht, dass die Ursache weg
+  ist — nach demselben Muster im ganzen Baum suchen.**
+
+- **📥 31.08. — Uhr-Sprachen nl/fi/cs fehlen auf Wear OS und Apple Watch (Uebersetzungsaufgabe).**
+  Garmin hat alle drei vollstaendig, Wear OS und Apple Watch koennen sie gar nicht — beide
+  fallen dokumentiert auf die Geraetesprache und dann auf Englisch zurueck. Kein Fehler im Code,
+  aber eine Ungleichheit: dieselbe Nutzerin bekommt ihre Sprache je nach Uhr oder eben nicht.
+  **Geprueft, ob sich das aus dem Garmin-Bestand fuellen laesst: nur zum Teil.** Die Uhr-Texte
+  tragen dort andere Schluesselnamen (`f.bpmMaxLast` vs. `f.lastRunMaxHr`); ueber den deutschen
+  Text zugeordnet decken sich **32 von 84** Wear- und **28 von 81** Apple-Schluesseln. Fuer die
+  restlichen zwei Drittel gibt es keine Quelle — die muessten uebersetzt werden. Nicht geraten.
+  Zepp fuehrt nl/fi/cs zwar als Spalten, laesst sie aber in vielen Zeilen leer -> auch Englisch.
