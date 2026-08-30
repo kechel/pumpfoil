@@ -32,6 +32,8 @@ const ENTRIES: Entry[] = [
   {
     date: "August 30, 2026",
     items: [
+      "Your Garmin watch now counts a run the way the website does. Until today it could end a run too early: if your speed dipped for a moment \u2014 a touchdown between two pumps \u2014 the watch called it over, and then it ignored you for another twenty-five seconds while you were already riding again. Those seconds simply went uncounted. One rider photographed her watch after every single run and sent us the series; on one of her runs the watch showed 66 metres where she had ridden 144, and on another it showed 14 metres of what was really a 176-metre run. Three things changed: the watch only locks itself out after you have really stopped, a run that picks up again after a brief dip counts as the same run rather than a new one, and a twitch shorter than five seconds is no longer shown as your last run. Measured against her two sessions, the gap between watch and analysis drops from about a third to a few percent. Version 1.0.82, in the Connect IQ store now.",
+      "The two will never agree perfectly, and that is worth knowing: the analysis on the server also sees the accelerometer and finds runs that GPS alone cannot show. Your watch works live, from GPS, on a wrist. It just got a lot closer.",
       "The [foil stats](/foil-stats) now show the longest run as well as the farthest one, for every foil. Distance was already there; the time it stayed up was not, and the two together say more about a wing than either alone \u2014 a foil that carries you a long way and a foil that keeps you up a long time are not always the same foil. Sortable like every other column. The phone apps get it with their next update.",
     ],
   },

@@ -81,7 +81,18 @@ _APP_META: dict[str, dict[str, str]] = {
     "garmin": {
         # NUR auf eine im Connect-IQ-Store FREIGEGEBENE Version setzen (Pruefung durch)!
         # Die Garmin-App vergleicht das selbst mit Config.VERSION (SessionRecorder.mc:638).
-        "latest": "1.0.80",   # LIVE im CIQ-Store 2026-08-26 (zweites Release an diesem Tag);
+        "latest": "1.0.82",   # LIVE im CIQ-Store 2026-08-30, SELBST GEPRUEFT (nicht nur gemeldet):
+        # curl https://apps.garmin.com/apps/9a2a753e-b52f-4587-aee4-900caf5cb351 -> Version":"1.0.82",
+        # Store-Seite "Latest Release August 30, 2026 · Version 1.0.82 · Size 70 KB" (Jan), aus dem
+        # Store installiert und eine echte Session damit aufgezeichnet.
+        # Inhalt: Lauf-Erkennung an den Server angeglichen — der Re-Arm-Cooldown sperrt nur noch
+        # nach einem ECHTEN Stopp (vorher 25 s blind, das verschluckte den Rest eines Laufs),
+        # eine Fortsetzung verlaengert den Lauf statt ihn zu ersetzen (1.0.80 verschmolz nur den
+        # Zaehler, nicht die Anzeige), Mindestlauf 5 s / 2,0 m/s, und beim Zusammenfuehren muss die
+        # Strecke plausibel bleiben (max. 32 km/h). Belegt an einer Nutzer-Fotoserie: Abweichung
+        # zur Auswertung von 33 % auf 6 %.
+        # 1.0.81 lag dazwischen kurz im Store (versehentlich veroeffentlicht) und wird uebersprungen.
+        # Vorher 1.0.80, LIVE seit 2026-08-26 (zweites Release an diesem Tag);
         # Store-Seite: "Latest Release August 26, 2026 · Version 1.0.80 · Size 64 KB" (Jan).
         # Inhalt: gesaeuberter Max-Speed (Burst-Klemme gegen den 15-s-Median + 32-km/h-Deckel,
         # dieselben Regeln wie analysis/gps.py), Laeufe ohne echten Stopp dazwischen zaehlen als
