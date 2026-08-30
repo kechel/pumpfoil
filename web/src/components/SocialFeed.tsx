@@ -42,10 +42,12 @@ export function SocialFeed() {
               className="w-44 shrink-0 snap-center text-left sm:w-56">
               <Card className="flex h-full flex-col gap-2 p-2 hover:border-slate-600">
                 <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-slate-800">
-                  {it.thumb_url && (
-                    <img src={it.thumb_url} alt="" loading="lazy"
-                      className="h-full w-full object-cover" />
-                  )}
+                  {/* Vorschaubild ueber UNSEREN Server, NICHT von i.ytimg.com (Jan, 30.08.):
+                      sonst entsteht schon beim Seitenaufbau ein Drittkontakt zu Google — genau
+                      das, was Click-to-Load verhindern soll, und Ghostery blockt es zu Recht.
+                      Dieselbe Route wie die oeffentliche Startseite (main.py:public_video_thumb). */}
+                  <img src={`/api/public/video-thumb/${it.external_id}`} alt="" loading="lazy"
+                    className="h-full w-full object-cover" />
                   <span className="absolute bottom-1 right-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] text-white">
                     ▶
                   </span>

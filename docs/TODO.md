@@ -3888,5 +3888,15 @@ Offen daraus:
   - **Ende-zu-Ende geprueft:** Eintragen -> wartend -> Freigabe (loest `@pumpfoil-org` zu
     `UCb_1b-TkdGE4kZWX17HDH9g` auf, prueft den RSS-Feed gegen) -> Abholung 15 Videos -> Feed
     liefert sie neueste zuerst. Jans eigener Kanal ist als erster eingetragen und freigegeben.
+  - **FEHLER von mir, sofort korrigiert (Jan sah es an seinem Ghostery):** die Vorschaubilder
+    hingen an `i.ytimg.com` — ein Drittkontakt zu Google BEIM SEITENAUFBAU, also genau das, was
+    Click-to-Load verhindern soll. Der Blocker hatte recht. Es gab die Loesung im Projekt laengst:
+    `GET /api/public/video-thumb/{id}` (main.py) liefert das Bild ueber unseren Server, gecacht,
+    und wird von der oeffentlichen Startseite schon so benutzt — deshalb war sie dort auch nicht
+    geblockt. Jetzt nutzt der Feed dieselbe Route. **Gegenprobe:** im gebauten Bundle kommt
+    `ytimg.com` nicht mehr vor; die verbliebenen YouTube-Treffer sind drei `<a href>` und die
+    `nocookie`-Adresse im iframe (laedt erst nach dem Klick).
+    **Lehre:** bei allem, was fremde Inhalte einbindet, ZUERST suchen, wie es die oeffentliche
+    Seite loest — dort ist die Datenspar-Frage schon einmal beantwortet worden.
   **Noch offen:** CSP-`frame-src` bei der Umstellung auf erzwingend · Android/iOS (Paritaet) ·
   Platzierung weiter oben, sobald sich der Feed fuellt.
