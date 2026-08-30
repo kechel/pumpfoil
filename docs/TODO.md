@@ -3502,3 +3502,26 @@ Offen daraus:
   **Noch offen (klein):** `foilStats.colTopSpeed` liegt seit laengerem uebersetzt in allen 17
   Sprachen, wird aber nirgends benutzt — die Uhren-Statistik zeigt `best_speed_mps`, die
   Foil-Statistik nicht. Entweder die Spalte nachziehen oder den Schluessel entfernen.
+
+- **🟡 OFFEN 30.08. — Meldung „iOS 1.1.25 stuerzt beim Start ab" (EIN Nutzer, uid 149).**
+  Chat global:main, 30.08. 13:24: „The new version 1.1.25 of the app crash on start on iPhone".
+  **Kein Hinweis auf einen Totalausfall** — geprueft (alles nur lesend):
+  - 1.1.25 ist seit **27.08. ~20:35** im Feld (uid 354 wechselte binnen 13 Minuten 1.1.24 -> 1.1.25).
+  - **Die iPhone-App LIEF nachweislich auf 1.1.25:** Session 3045 (uid 357) wurde am **29.08. 15:30
+    mit `platform=ios`, `app_version=1.1.25`** aufgezeichnet und hochgeladen — der Handy-Recorder
+    kann nicht aufnehmen, wenn die App beim Start abstuerzt.
+  - 9 Konten haben die Apple-Watch-App aus dem 1.1.25-Bundle, 5 davon heute aktiv; heute 6
+    Uhr-Sessions von 1.1.25-Geraeten. Uploads je Plattform ueber 14 Tage ohne Einbruch.
+  - Keine 5xx heute (letzte am 29.08., eine); keine Tracebacks zum Zeitpunkt der Meldung.
+  - Startpfad-Code (RootView/HomeView/SessionStore.bootstrap) ist zwischen 1.1.24 und 1.1.25
+    **unveraendert**; alle Startabrufe sind `try?` (Decode-Fehler -> nil, kein Absturz).
+    Age-Gate/DeclaredAgeRange steckt schon seit 13.07. in ausgelieferten Builds.
+  **Naechster Schritt (nur Jan moeglich):** App Store Connect -> Xcode Organizer -> Crashes zeigt,
+  ob es EIN Geraet ist oder viele; parallel den Melder um das Crash-Log bitten (Einstellungen ->
+  Datenschutz & Sicherheit -> Analyse & Verbesserungen -> Analysedaten -> „Pumpfoil-…ips") plus
+  iPhone-Modell und iOS-Version. Erster Selbsttest fuer ihn: App loeschen + neu installieren
+  (lokaler Cache/Keychain-Zustand).
+  **Nebenbefund:** `watch-apple/project.yml` fuehrt das Watch-Target als **1.1.24**, im Feld meldet
+  die ausgelieferte Uhren-App aber **1.1.25** — das Archiv wurde also mit einer hoeheren Nummer
+  gebaut als im Repo steht. Vor der naechsten Einreichung angleichen, sonst lehnt App Store
+  Connect die Build-Nummer ab.
