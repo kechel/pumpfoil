@@ -3957,6 +3957,10 @@ Offen daraus:
   auch wenn kein einziges Byte Frontend-Code betroffen ist. Der Build stempelt die neue Kennung
   (`version.json`, aus dem Commit) in `sw.js`, und erst dadurch holt der Client die Seite samt
   frischer Kopfzeile neu. Gegenprobe: `md5sum web/dist/sw.js` vor und nach dem Build.
+  **UND: ERST committen, DANN bauen.** Die Kennung kommt aus `git rev-parse --short HEAD`
+  (`vite.config.ts:buildStamp`). Wer vor dem Commit baut, stempelt den VORIGEN Stand — `sw.js`
+  bleibt dann byte-gleich und es gibt kein Update-Banner, obwohl neuer Code ausgeliefert wird.
+  Am 30.08. genau so passiert und am `md5sum` gesehen (unveraendert trotz Aenderung).
   **Zu ueberlegen:** Navigationen auf NetworkFirst umstellen, damit frische Kopfzeilen sofort
   gelten. Kostet einen Netzwerk-Roundtrip beim Seitenaufbau — bewusst nicht im Vorbeigehen
   geaendert, das ist eine PWA-Grundsatzentscheidung.
