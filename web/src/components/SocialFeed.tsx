@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { api, SocialItem } from "../lib/api";
-import { Card } from "../components/ui";
 import { useT } from "../i18n";
 import { fmtDate } from "../lib/time";
 
@@ -67,28 +66,29 @@ export function SocialFeed() {
         <div onScroll={beimScrollen}
           className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2">
           {items.map((it, i) => (
+            // Hochkant wie auf der oeffentlichen Startseite (Jan, 30.08.: „es gibt fast nur
+            // Shorts bei uns"). Das Vorschaubild ist 4:3 mit dem Video in der Mitte — `object-cover`
+            // schneidet die Raender ab und zeigt genau den Bildausschnitt, der zaehlt.
             <button key={it.id} onClick={() => setOffen(i)}
-              className="w-44 shrink-0 snap-center text-left sm:w-56">
-              <Card className="flex h-full flex-col gap-2 p-2 hover:border-slate-600">
-                <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-slate-800">
-                  {/* Vorschaubild ueber UNSEREN Server, NICHT von i.ytimg.com (Jan, 30.08.):
-                      sonst entsteht schon beim Seitenaufbau ein Drittkontakt zu Google — genau
-                      das, was Click-to-Load verhindern soll, und Ghostery blockt es zu Recht.
-                      Dieselbe Route wie die oeffentliche Startseite (main.py:public_video_thumb). */}
-                  <img src={`/api/public/video-thumb/${it.external_id}`} alt="" loading="lazy"
-                    className="h-full w-full object-cover" />
-                  <span className="absolute bottom-1 right-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] text-white">
-                    ▶
-                  </span>
-                </div>
-                <div className="min-w-0">
-                  <div className="line-clamp-2 text-sm font-semibold leading-tight">{it.title || "—"}</div>
-                  <div className="mt-0.5 truncate text-xs text-slate-400">
+              className="w-36 shrink-0 snap-center text-left sm:w-44">
+              <div className="group relative aspect-[9/16] w-full overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-xl">
+                {/* Vorschaubild ueber UNSEREN Server, NICHT von i.ytimg.com: sonst entsteht schon
+                    beim Seitenaufbau ein Drittkontakt zu Google — genau das, was Click-to-Load
+                    verhindern soll. Dieselbe Route wie die Startseite (main.py). */}
+                <img src={`/api/public/video-thumb/${it.external_id}`} alt="" loading="lazy"
+                  className="h-full w-full object-cover transition group-hover:scale-105" />
+                <span className="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent" />
+                <span className="absolute left-1/2 top-1/2 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-brand-500/90 text-slate-950 shadow-lg transition group-hover:bg-brand-400">
+                  <svg viewBox="0 0 24 24" className="ml-0.5 h-5 w-5" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+                </span>
+                <div className="absolute inset-x-0 bottom-0 p-2">
+                  <div className="line-clamp-2 text-xs font-semibold leading-tight text-white">{it.title || "—"}</div>
+                  <div className="mt-0.5 truncate text-[11px] text-slate-300">
                     {it.user_name || "?"}
                     {it.published_at && <> · {fmtDate(it.published_at, null, { day: "2-digit", month: "2-digit", year: "2-digit" })}</>}
                   </div>
                 </div>
-              </Card>
+              </div>
             </button>
           ))}
         </div>
