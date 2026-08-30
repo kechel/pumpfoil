@@ -13,6 +13,9 @@ import { StartHelp } from "../components/StartHelp";
 import { UploadProgressCard } from "../components/UploadProgressCard";
 import { CommunityIcon, SendIcon, HomeIcon, SparklesIcon } from "../components/Icons";
 import { PERIODS } from "./Home";
+
+// Voreingestelltes Zeitfenster der Kacheln. Einer der Werte aus PERIODS.
+const STANDARD_ZEITRAUM = "10d";
 import { LATEST_CHANGELOG_DATE, CHANGELOG_SEEN_KEY } from "./Changelog";
 import { useT, useI18n, useNumberFormat } from "../i18n";
 
@@ -147,8 +150,10 @@ export default function PersonalHome() {
   // VORERST Default "alle" (zu wenige Nutzer, um einzuschränken); smarter Default vorbereitet.
   const [accelOnly, setAccelOnly] = useState(false);
   // Zeitraum der Rekorde/Kacheln — gleiche Fenster wie die Community-Ranglisten (PERIODS).
-  // Default "all" = bisheriges Verhalten (Allzeit), damit niemand plötzlich leere Kacheln sieht.
-  const [period, setPeriod] = useState("all");
+  // Default seit 30.08. "10 Tage" (Jan) statt "Allzeit": die Startseite soll zeigen, wie es
+  // GERADE laeuft, nicht die ewige Bestenliste — und der neue Abschnitt „je Foil" bleibt damit
+  // von selbst kurz, weil nur Foils aus dem Fenster auftauchen. Umschalten geht weiter.
+  const [period, setPeriod] = useState(STANDARD_ZEITRAUM);
   // Sportart der EIGENEN Rekorde. "" = noch nicht gewaehlt -> der Server nimmt die haeufigste
   // und schickt sie zurueck; ab dann steht sie hier. Anlass: PeterHs Skate-Session zaehlte in
   // seinen Gesamtzahlen mit, obwohl sie als andere Sportart markiert war (16.08.).
@@ -164,10 +169,10 @@ export default function PersonalHome() {
   useEffect(() => {
     api.statsByFoil(accelOnly, period, sport || undefined).then(setByFoil).catch(() => setByFoil([]));
     api.stats(accelOnly, period, sport || undefined).then((s) => {
-      // Der Accel-Default wird NUR beim ersten Laden entschieden, und nur auf "Allzeit":
+      // Der Accel-Default wird NUR beim ersten Laden entschieden, und nur im Standard-Fenster:
       // in einem kurzen Fenster (z. B. „Heute") sind leere Rekorde normal und wuerden den
       // Umschalter sonst grundlos auf „alle" zwingen.
-      if (!decidedRef.current && period === "all") {
+      if (!decidedRef.current && period === STANDARD_ZEITRAUM) {
         decidedRef.current = true;
         const noAccel = !s.records || (["distance", "duration", "speed"] as const)
           .every((k) => (s.records?.[k]?.value ?? 0) === 0);
