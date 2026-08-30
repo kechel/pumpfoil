@@ -1114,7 +1114,7 @@ def stats_by_foil(
     fmap = {f.id: f for f in db.query(models.Foil)
             .filter(models.Foil.id.in_([g[0] for g in gruppen if g[0]])).all()}
     out = []
-    for fid, n in sorted(gruppen, key=lambda g: (-g[1], g[0] or 0)):
+    for fid, n in gruppen:
         f = fmap.get(fid) if fid else None
         if fid and not f:
             continue                      # Foil geloescht -> Gruppe waere namenlos
@@ -1131,6 +1131,12 @@ def stats_by_foil(
             "sessions": int(n),
             "stats": st,
         })
+    # Sortiert nach dem LAENGSTEN Lauf (Zeit), nicht nach der Session-Zahl (Jan, 30.08.):
+    # die Frage beim Vergleich zweier Fluegel ist „womit stehe ich am laengsten oben", nicht
+    # „welches habe ich oefter mitgenommen". Gleichstand -> mehr Sessions zuerst.
+    def _laengster(g: dict) -> float:
+        return float(((g["stats"].get("records") or {}).get("duration") or {}).get("value") or 0.0)
+    out.sort(key=lambda g: (-_laengster(g), -g["sessions"]))
     return out
 
 

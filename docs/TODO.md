@@ -3762,6 +3762,10 @@ Offen daraus:
     exakt die Gesamtzahlen der Startseite. Bei km/min 0,1 Abweichung, weil jede Gruppe einzeln
     gerundet wird.
   - Zwei neue i18n-Schluessel (`phome.byFoil`, `phome.noFoil`) in allen 17 Web-Sprachen.
+  - **Reihenfolge: laengster Lauf oben** (Jan, 30.08.) — nicht nach Session-Zahl. Beim Vergleich
+    zweier Fluegel ist die Frage „womit stehe ich am laengsten oben", nicht „welches habe ich
+    oefter mitgenommen". Gleichstand -> mehr Sessions zuerst; „ohne Foil-Eintrag" landet dadurch
+    von selbst unten.
   **Noch offen:** Android und iOS haben den Abschnitt noch nicht (Paritaet), und die Uhr braucht
   ihn nicht.
 
