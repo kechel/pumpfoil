@@ -4211,3 +4211,21 @@ Offen daraus:
   Text zugeordnet decken sich **32 von 84** Wear- und **28 von 81** Apple-Schluesseln. Fuer die
   restlichen zwei Drittel gibt es keine Quelle — die muessten uebersetzt werden. Nicht geraten.
   Zepp fuehrt nl/fi/cs zwar als Spalten, laesst sie aber in vielen Zeilen leer -> auch Englisch.
+
+- **🟢 31.08. — Die Gegenprobe, die den eigentlichen Fehler fand: „liegt jeder Schluessel vor,
+  den der Code BENUTZT?"** Die Abdeckungstabelle weiter oben beantwortet eine andere Frage
+  („ist jede Sprache vollstaendig") und haette diese beiden nie gezeigt. Ueber alle sechs
+  Plattformen gelaufen, 1352 benutzte Schluessel, zwei Treffer:
+  - **Wear OS: `rec.paused` fehlte KOMPLETT** — und wird im Aufnahme-Schirm angezeigt. Die Uhr
+    zeigte im Pausenzustand den rohen Schluessel **„rec.paused" auf dem Display**.
+  - **Android Phone: `common.back`** fehlte und war die Vorlese-Beschriftung des Zurueck-Knopfs
+    im Impressum — Screenreader lasen „common.back" vor.
+
+  Beide Uebersetzungen sind **belegt, nicht geraten**: `rec.paused` steht in allen 15 Spalten in
+  `watch/source/Strings.mc` (Garmin, laengst im Store), `common.back` in allen 17 Web-Locales.
+  Mitgenommen: die Apple Watch hatte `rec.paused` nur in den 7 Grundsprachen plus nb — pt/id/ru
+  aus demselben Bestand ergaenzt.
+  **Stand danach: 0 fehlende Schluessel auf allen vier Compose-/SwiftUI-Zielen; Garmin und Zepp
+  waren schon vollstaendig.**
+  **Merke: diese Pruefung gehoert in jede Sprachrunde** — die Abdeckungszahl je Sprache sagt
+  nichts darueber, ob ein Schluessel ueberhaupt existiert.
