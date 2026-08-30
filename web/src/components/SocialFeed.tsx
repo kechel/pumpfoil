@@ -151,13 +151,13 @@ function SocialModal({ item, hatWeiter, hatZurueck, onWeiter, onZurueck, onClose
 
       {hatZurueck && (
         <button onClick={(e) => { e.stopPropagation(); onZurueck(); }} aria-label={t("social.prev")}
-          className="absolute left-2 z-10 rounded-full bg-white/10 p-3 text-white hover:bg-white/20 sm:left-6">
+          className="absolute left-2 z-10 rounded-full bg-brand-500 p-3 text-slate-950 shadow-lg hover:bg-brand-400 sm:left-6">
           <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
         </button>
       )}
       {hatWeiter && (
         <button onClick={(e) => { e.stopPropagation(); onWeiter(); }} aria-label={t("social.next")}
-          className="absolute right-2 z-10 rounded-full bg-white/10 p-3 text-white hover:bg-white/20 sm:right-6">
+          className="absolute right-2 z-10 rounded-full bg-brand-500 p-3 text-slate-950 shadow-lg hover:bg-brand-400 sm:right-6">
           <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
         </button>
       )}
