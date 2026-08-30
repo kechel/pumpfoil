@@ -3703,3 +3703,20 @@ Offen daraus:
   und laesst sich von der VM abfragen —
   `curl -s https://apps.garmin.com/apps/9a2a753e-b52f-4587-aee4-900caf5cb351 | grep -o 'Version":"[0-9.]*"'`
   liefert derzeit `1.0.81`. Damit muss man auf die Freigabe nicht warten, sondern kann sie messen.
+
+- **✅ ENTSCHIEDEN 30.08. — Sentinel NICHT im Recorder kappen.** Frage war, ob wir den
+  20 037 500-m/s-Wert schon beim Aufzeichnen abfangen. Antwort aus den Rohdaten (alle 132 305
+  GPS-Dateien, 3 GB, gescannt):
+  - **Der Sentinel kommt in 13 Sessions vor — ausnahmslos Jans, ausnahmslos Simulator, alle
+    bereits geloescht.** Kein einziger anderer Nutzer, keine einzige echte Fahrt. In zweien sind
+    auch die POSITIONEN betroffen (S367: 118 000 km Rohstrecke) — der Wert ist die
+    Mercator-Konstante, der halbe Erdumfang, also ein Platzhalter des Simulators.
+  - **Echte GPS-Glitches gibt es aber sehr wohl: 58 Sessions, 27 verschiedene Nutzer**, 91 bis
+    402 km/h, auf allen Plattformen (32 ohne Geraet, 15 Wear, 7 Apple, 4 Garmin) — die bekannten
+    Doppler-Bursts.
+  - **In KEINER dieser 58 Sessions hat der Glitch den ausgewerteten Max-Speed erreicht** (0 von 58
+    ueber 32 km/h). Die Saeuberung im Server faengt sie vollstaendig ab, die auf der Uhr ebenso.
+  **Warum trotzdem nicht kappen:** die Rohdaten sind unser Beweismittel. Genau daran liess sich
+  heute belegen, dass der 72-Mio-km/h-Wert vom Simulator kommt und nicht von der Uhr — haette der
+  Recorder ihn stillschweigend geglaettet, waere die Unterscheidung unmoeglich gewesen. Gesaeubert
+  wird in der Auswertung und in der Anzeige, nicht in der Aufzeichnung.
