@@ -3596,3 +3596,26 @@ Offen daraus:
      `ios`/`apple`). Kostet einen Header-Vergleich.
   **Merke:** Kartenregionen nie ungeprueft aus Nutzerdaten bauen — die Grenze faellt erst auf,
   wenn jemand auf einem neuen Kontinent faehrt.
+
+- **✅ 30.08. — Android/Wear auf Ziel-API 36 (Android 16).** Play-Meldung an Jan: ab **31.08.2026**
+  werden nur noch Updates angenommen, die hoechstens ein Jahr hinter der neuesten Android-Version
+  liegen; unser Stand war 35. Die gerade eingereichte Runde geht noch durch, die naechste waere
+  abgelehnt worden. `compileSdk`/`targetSdk` = 36 in `:app` und `:wear`, **AGP 8.5.2 -> 8.9.2**
+  (8.5 baut compileSdk 36 zwar, warnt aber „recommend using a newer AGP"; 8.9.2 laeuft mit dem
+  vorhandenen Gradle 9.0-milestone-1 und Kotlin 1.9.24 durch). SDK-Plattform 36 + Build-Tools
+  36.0.0 auf der VM installiert. Beide Module gebaut, im fertigen Paket steht `targetSdkVersion:'36'`.
+  **Verhaltensaenderungen von Android 16 durchgegangen:** Edge-to-Edge wird ab 36 erzwungen — wir
+  rufen `enableEdgeToEdge()` ohnehin schon auf; Ausrichtungs-Sperren werden auf grossen Displays
+  ignoriert — wir setzen kein `screenOrientation`; Predictive Back ist Standard — Compose-
+  `BackHandler` traegt das mit; 16-KB-Seitengroesse betrifft nur native Bibliotheken — wir haben
+  keine (`.so`-Suche im APK leer).
+  **Fuer Jan:** in Android Studio **Android 16 (API 36)** + **Build-Tools 36** nachinstallieren,
+  sonst baut das signierte Release nicht. API 37 bewusst NICHT — jede weitere Stufe braechte neue
+  Verhaltensaenderungen, und 36 erfuellt die Regel.
+
+- **🟡 30.08. 18:55 — iOS 1.1.26 (30) EINGEREICHT** (Jans Meldung; „Warten auf Pruefung",
+  Uebermittlungskennung c1663e12-070d-4c24-b31a-fa4469eda7aa). Inhalt: Startabsturz behoben
+  (ungueltige Karten-Region, s. o.), Tabs erst beim Oeffnen, Spot-Buendelung, Polnisch,
+  Uhr-Anleitung, Geschwindigkeits-Zonen im Profil, laengster Lauf je Foil, Leistung fremder
+  Sessions mit dem Gewicht des Besitzers. Uhren-Teil: Polnisch, Zonen-Farben, Schriftmessung.
+  Nach der Freigabe: `appmeta` auf 1.1.26 setzen + Changelog-Eintrag.

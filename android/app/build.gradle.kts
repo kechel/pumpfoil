@@ -18,12 +18,18 @@ val localApiBase: String = Properties().apply {
 
 android {
     namespace = "org.pumpfoil.app"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "org.pumpfoil.app"
         minSdk = 26
-        targetSdk = 35
+        // Ab 31.08.2026 nimmt Google Play nur noch Updates an, die hoechstens ein Jahr hinter
+        // der neuesten Android-Version liegen — API 36 (Android 16). Geprueft, was daran haengt:
+        // Edge-to-Edge wird ab 36 erzwungen (wir rufen enableEdgeToEdge() ohnehin schon),
+        // Ausrichtungs-Sperren werden auf grossen Displays ignoriert (wir sperren keine),
+        // Predictive Back ist Standard (Compose-BackHandler traegt das mit), und die
+        // 16-KB-Seitengroesse betrifft nur Apps mit nativen Bibliotheken (wir haben keine).
+        targetSdk = 36
         // Versionsschema (siehe wear/build.gradle.kts): PHONE = versionName 1.1.x + kleiner
         // versionCode; WEAR = 1.2.x + 1xxx. Das „x" ist bei beiden gleich (gemeinsam hochzählen).
         // 1.1.22/36: Paritaets-Rueckstand zur PWA abgearbeitet (docs/PARITY-AUDIT.md,
