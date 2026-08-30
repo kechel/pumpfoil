@@ -1129,7 +1129,8 @@ export const api = {
     return req<AdminSession[]>(`/api/admin/sessions?${p}`);
   },
   // --- Community-Feed aus den Social-Kanaelen der Nutzer -------------------------------
-  socialFeed: (limit = 60) => req<SocialItem[]>(`/api/social/feed?limit=${limit}`),
+  socialFeed: (limit = 60, offset = 0) =>
+    req<SocialItem[]>(`/api/social/feed?limit=${limit}&offset=${offset}`),
   socialMine: () => req<SocialChannelState>("/api/social/mine"),
   socialSetChannel: (url: string) =>
     req<SocialChannelState>("/api/social/mine", { method: "PUT", body: JSON.stringify({ url }) }),

@@ -3898,5 +3898,25 @@ Offen daraus:
     `nocookie`-Adresse im iframe (laedt erst nach dem Klick).
     **Lehre:** bei allem, was fremde Inhalte einbindet, ZUERST suchen, wie es die oeffentliche
     Seite loest — dort ist die Datenspar-Frage schon einmal beantwortet worden.
+  - **Nachtrag 30.08. (Jans Entscheidungen beim Ausprobieren):**
+    · Vollbild nutzt jetzt den ganzen Schirm (92 % Hoehe, Breite minus 7rem fuer die Pfeile) —
+      das Format des Videos verraet YouTube nirgends (nicht im RSS, nicht im oEmbed, das stur
+      16:9 meldet, nicht am Vorschaubild: unsere Shorts haben unscharfe statt schwarzer Raender).
+      Statt zu raten bekommt der Rahmen alles und der Player skaliert selbst.
+    · **Voller YouTube-Player statt nocookie** — Jans Wunsch, damit man aus dem Feed heraus liken
+      und folgen kann. Dafuer steht ein **Einwilligungs-Hinweis** davor (einmal je Browser,
+      `localStorage.yt_full_consent`): ein Klick aufs Play-Dreieck allein ist keine informierte
+      Einwilligung (§ 25 TDDDG). Vorher gesagt und hier festgehalten: fuer viele Nutzer wird der
+      Like-Knopf trotzdem nicht gehen, weil Safari/Firefox Dritt-Cookies blockieren.
+      **Mitgezogen:** `imp.yt2` (de/de-AT/en) und die Datenschutz-Regel in CLAUDE.md.
+    · Hinweistext nennt jetzt, dass Instagram und TikTok das nicht erlauben (17 Sprachen).
+    · Vorschau-Zeile laedt in Schueben von 24 nach, sobald man ans Ende wischt.
   **Noch offen:** CSP-`frame-src` bei der Umstellung auf erzwingend · Android/iOS (Paritaet) ·
   Platzierung weiter oben, sobald sich der Feed fuellt.
+
+- **📥 Inbox 30.08. (Jan) — Dateianhaenge im Feedback-Formular.** Nutzer sollen Screenshots/Logs
+  anhaengen koennen. Grenzen gegen Missbrauch mitdenken: Dateitypen weiss-listen (Bilder + Text/
+  Log, KEINE Archive/Skripte), Groesse je Datei und je Meldung, Anzahl je Meldung, Rate-Limit je
+  Konto, Ablage ausserhalb des ausgelieferten Verzeichnisses mit generiertem Namen (nie der
+  Originalname), Bilder serverseitig neu kodieren (entfernt eingebettete Skripte und EXIF-GPS),
+  Anzeige nur im Admin. Vorbilder im Haus: Session-Fotos und Spot-Beschreibungs-Fotos.
