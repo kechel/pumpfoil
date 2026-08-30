@@ -3911,7 +3911,11 @@ Offen daraus:
       **Mitgezogen:** `imp.yt2` (de/de-AT/en) und die Datenschutz-Regel in CLAUDE.md.
     · Hinweistext nennt jetzt, dass Instagram und TikTok das nicht erlauben (17 Sprachen).
     · Vorschau-Zeile laedt in Schueben von 24 nach, sobald man ans Ende wischt.
-  **Noch offen:** CSP-`frame-src` bei der Umstellung auf erzwingend · Android/iOS (Paritaet) ·
+    · **CSP nachgezogen (sofort, Jan sah `ERR_BLOCKED_BY_CSP`):** `frame-src` kannte nur
+      `youtube-nocookie.com`, der volle Player wurde von unserer eigenen Richtlinie blockiert.
+      Jetzt stehen beide drin — die Startseite bleibt bei nocookie, nur der Feed nutzt den vollen.
+      `img-src` braucht KEINEN Google-Host, weil die Vorschaubilder ueber unseren Server laufen.
+  **Noch offen:** Android/iOS (Paritaet) ·
   Platzierung weiter oben, sobald sich der Feed fuellt.
 
 - **📥 Inbox 30.08. (Jan) — Dateianhaenge im Feedback-Formular.** Nutzer sollen Screenshots/Logs
