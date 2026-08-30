@@ -4049,3 +4049,17 @@ Offen daraus:
   namenlosen Moskau-Spots (#457/#458, 530 m auseinander, derselbe Nutzer) verschmelzen und meldet
   **fuenf Helsinki-Dubletten** zur Durchsicht (#359/#362/#357/#360/#361 -> #353). Trockenlauf
   gemacht, nichts geschrieben.
+
+- **✅ 31.08. — Spot-Reparatur ausgefuehrt (nach Jans OK).** Ist-Zustand vorher gesichert
+  (`server/data/spots-stand-vor-repair.json`: 386 Spots, 2203 Session-Zuordnungen).
+  Ergebnis: die drei Sessions ohne Spot sind zugeordnet (2920 -> Illmensee, 2905/3084 -> Gošići),
+  die zwei namenlosen Moskau-Spots verschmolzen (#458 -> #457), zwei Spots nachbenannt.
+  **Danach: 0 Pumpfoil-Sessions ohne Spot, kein Name mehr doppelt, 230 Markierungen.**
+  - **🔴 WICHTIG — die gemeldete „Helsinki-Gruppe" NICHT zusammenfuehren.** Die Reparatur hat sie
+    zur Durchsicht gemeldet, und das war richtig: nachgemessen liegen sie **993 m bis 5,3 km**
+    auseinander (#357 3,4 km, #360 5,3 km, #362 4,4 km von #353). Das sind verschiedene Reviere,
+    die nur denselben Stadtnamen tragen — der Geocoder liefert bei fehlendem Gewaesser-/Ortsteil-
+    Namen eben „Helsinki", und der Zaehler haengt „5", „7", „8" dran.
+    **Das eigentliche Problem dort ist die BENENNUNG, nicht die Zahl der Spots.** Wer sie
+    zusammenfuehrt, klebt fuenf echte Spots zu einem Klumpen ueber halb Helsinki.
+    Richtiger Weg: bessere Namen (Gewaesser/Ortsteil), s. `spots.name_for`.
