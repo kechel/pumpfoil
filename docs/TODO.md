@@ -3799,3 +3799,13 @@ Offen daraus:
   **Niemand mit Sessions sieht leere Kacheln.** Ohne den Rueckfall waeren es 38 % gewesen — das
   war der Anlass. Der Rueckfall macht nur so weit auf, wie noetig: wer letzte Woche gefahren ist,
   sieht letzte Woche und nicht seine Rekorde von vorletztem Sommer.
+
+- **🟡 OFFEN — Kennzahlen je Foil in Android und iOS nachziehen.** Der Web-Teil ist seit 30.08.
+  live und abgehakt (s. o.); die Apps fehlen. Aufwand ist klein, weil der Server die Arbeit macht:
+  `GET /api/sessions/stats-by-foil` liefert die Gruppen fertig sortiert (laengster Lauf oben) samt
+  Foil-Beschriftung, dazu die Regel „nur Foils im gewaehlten Zeitfenster" und „erst ab zwei
+  Gruppen zeigen". Zu bauen ist je App nur: Abruf + derselbe Kachel-Block je Gruppe unter den
+  bestehenden Rekorden (`HomeScreen.kt` bzw. `HomeView.swift`), zwei i18n-Schluessel
+  (`phome.byFoil`, `phome.noFoil` — Web-Texte in 17 Sprachen vorhanden, App-Sprachen daraus
+  ableiten). **Erst nach den laufenden Store-Pruefungen** (iOS 1.1.26, Play 1.1.24/1.2.24), sonst
+  kollidiert es mit den Einreichungen. Eintrag auch in docs/PARITY-AUDIT.md.

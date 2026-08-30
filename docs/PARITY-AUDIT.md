@@ -363,3 +363,23 @@ Reverse-Pairing, Offline-Queue mit Absturz-Recovery. **Offen (Parität nachziehe
 | Update-Hinweis (`latestVersion` aus `/config`) | ✅ | ✅ |
 | Aktivitätstyp Garmin/FIT (nur Garmin relevant) | ✅ | – |
 Build/Verify nur auf Jans Mac (Zeus CLI + Balance 2). Details: Memory `zepp-recorder`.
+
+---
+
+## Offen seit 30.08.2026 — Startseite: Kennzahlen je Foil
+
+Die PWA zeigt in `PersonalHome.tsx` unter den Rekord-Kacheln **denselben Satz Kacheln noch einmal
+je Foil** (plus Gruppe „ohne Foil-Eintrag"), sortiert nach dem laengsten Lauf, gefiltert auf das
+gewaehlte Zeitfenster, sichtbar ab zwei Gruppen.
+
+| | Web | Android | iOS |
+|---|---|---|---|
+| Kennzahlen je Foil auf der Startseite | ✅ 30.08. | ❌ | ❌ |
+| Standard-Zeitfenster 10 Tage + schrittweiser Rueckfall | ✅ 30.08. | ❌ | ❌ |
+
+**Der Server-Teil ist fertig und plattformneutral:** `GET /api/sessions/stats-by-foil`
+(`accel_only`, `period`, `sport` wie `/stats`) liefert die Gruppen bereits sortiert und mit
+`brand`/`model`/`size`/`aspect_ratio` fuer die Beschriftung. Die Apps muessen also nur abrufen und
+zeichnen — die Reihenfolge und die Filterung kommen vom Server, damit sie nicht auseinanderlaufen.
+i18n-Schluessel liegen im Web bereit: `phome.byFoil`, `phome.noFoil` (beide 17 Sprachen).
+
