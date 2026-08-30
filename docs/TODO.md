@@ -3809,3 +3809,51 @@ Offen daraus:
   (`phome.byFoil`, `phome.noFoil` — Web-Texte in 17 Sprachen vorhanden, App-Sprachen daraus
   ableiten). **Erst nach den laufenden Store-Pruefungen** (iOS 1.1.26, Play 1.1.24/1.2.24), sonst
   kollidiert es mit den Einreichungen. Eintrag auch in docs/PARITY-AUDIT.md.
+
+- **📐 GEPLANT (30.08., noch NICHT gebaut) — Community-Feed aus den Social-Kanaelen der Nutzer.**
+  Jans Idee: ein Feed im Community-Bereich, gespeist aus dem, was Nutzer selbst hinterlegen —
+  abspielbar **auf unserer Seite** mit Weiter/Zurueck, damit man im Thema bleibt und unabhaengig
+  vom Algorithmus ist. Genau ein Kanal je Nutzer, von Jan freigegeben, blockierbar.
+
+  **Machbarkeit geprueft (das bestimmt die Form):**
+  - **YouTube: ja, automatisch.** `feeds/videos.xml?channel_id=UC…` liefert die letzten 15 Videos
+    als RSS, ohne Schluessel. Von dieser VM erreichbar — getestet, HTTP 200, 15 Eintraege.
+    `@handle` -> `channel_id` geht ueber die Kanalseite, ABER nur mit Browser-Kennzeichner und
+    `curl -L` (sonst 302/leer); der Treffer steht als `channel/UC…` im HTML, nicht als
+    `"channelId"`. An `@pumpfoil-org` verifiziert -> `UCb_1b-TkdGE4kZWX17HDH9g`.
+  - **Instagram: NEIN.** Offene Endpunkte 2021/22 dicht, **Basic Display API am 04.12.2024
+    abgeschaltet**. Nutzer-Medien nur noch ueber Graph-API mit dessen OAuth, Business-Konto und
+    Meta-App-Review. Scraping = ToS-Verstoss + Login-Wand. Einzelne Posts einbetten geht
+    (`instagram.com/p/<code>/embed`), ein Kanal-Feed nicht.
+  - **TikTok: wie Instagram** — oEmbed fuer Einzelvideos offen, Nutzer-Feed nur mit OAuth.
+
+  **Entscheidungen (Jan, 30.08.):**
+  - Quellen: **freigegebener YouTube-Kanal je Nutzer + die vorhandenen Session-Videos**
+    (heute 32 Eintraege von 5 Nutzern: 25 YouTube, 5 Instagram, 2 TikTok — bereits mit
+    `blocked`-Flag und Admin-Freigabe). Damit ist der Feed ab Tag eins gefuellt und IG/TikTok sind
+    drin, ohne dass jemand doppelt pflegt.
+  - Einbettung: **Click-to-Load** (Vorschaubild bei uns, iframe erst auf Klick) — haelt unsere
+    Bewertung „kein Cookie-Banner noetig" aufrecht.
+  - Platz: Community-Bereich, **waehrend der Entwicklung ganz unten unter den Uhr-Layouts**,
+    nach Jans Freigabe weiter nach oben (evtl. ueber „Medien").
+  - Darstellung: **eine Zeile nebeneinander wie auf der public-Seite**, Klick -> Vollbild mit
+    Weiter/Zurueck links und rechts.
+  - Moderation: **Admin-Block + Melden-Knopf fuer Nutzer**.
+  - Genau **ein** Kanal je Nutzer, zwei Felder: der freigegebene bleibt live, eine Aenderung liegt
+    daneben und ersetzt ihn erst bei der Freigabe.
+
+  **Vorgeschlagenes Modell:** Tabelle `social_channels` (user_id unique, url, channel_id,
+  pending_url, status, blocked, Zeitstempel) + `social_items` (Quelle, user_id, platform,
+  external_id UNIQUE, url, titel, thumb, published_at, blocked, reports) — `external_id` unique
+  entdoppelt automatisch, wenn dasselbe Video als Session-Video UND im Kanal-Feed auftaucht.
+  Abholung per systemd-Timer stuendlich (1 Request je Kanal), Aufloesung des Handles einmalig
+  bei der Freigabe.
+
+  **Bekannte Grenzen, bewusst in Kauf genommen:** RSS liefert nur die letzten 15 Videos je Kanal
+  (keine Historie) · die Handle-Aufloesung liest HTML, kann also brechen — aber sichtbar, bei der
+  Freigabe, nicht still im Betrieb · geloeschte/private IG-Posts brauchen eine Ersatzkachel ·
+  CSP braucht `frame-src` fuer instagram.com/tiktok.com, bevor wir sie erzwingend schalten ·
+  Age-Gate (`social_allowed=false`) muss den Feed ausblenden wie Chat und Community.
+
+  **Reihenfolge:** (1) Modell + Profil-Feld + Admin-Freigabe, noch ohne Feed · (2) RSS-Abholung +
+  Feed-Endpunkt + Zeile und Vollbild · (3) Melden/Blocken und die endgueltige Platzierung.
