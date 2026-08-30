@@ -46,6 +46,7 @@ private fun row(de: String, gsw: String, deAT: String, en: String, fr: String, i
 private val S: Map<String, Map<String, String>> = sTabelle()
 
 private fun sTabelle(): Map<String, Map<String, String>> = mapOf(
+    "common.back" to row("← zurück", "← zrugg", "← zruck", "← back", "← retour", "← indietro", "← volver"),
     "social.title" to row("Social-Media-Feeds", "Social-Media-Feeds", "Social-Media-Feeds", "Social media feeds", "Fils réseaux sociaux", "Feed social", "Feeds de redes sociales"),
     "social.hint" to row("Videos aus der Community, gesammelt an einem Ort und hier abspielbar — ohne Algorithmus, der dazwischenfunkt. <b>Trag deinen YouTube-Kanal im Profil ein, dann laufen deine Videos hier mit.</b> (Instagram und TikTok erlauben das leider nicht.)", "Videos us de Community, a einem Ort gsammlet und da abspielbar — ohni Algorithmus, wo drizwüschefunkt. <b>Trag din YouTube-Kanal im Profil i, denn laufed dini Videos da mit.</b> (Instagram und TikTok erlaubed das leider nöd.)", "Videos aus der Community, gesammelt an einem Ort und hier abspielbar — ohne Algorithmus, der dazwischenfunkt. <b>Trag deinen YouTube-Kanal im Profil ein, dann laufen deine Videos hier mit.</b> (Instagram und TikTok erlauben das leider nicht.)", "Videos from the community, gathered in one place and playable right here — no algorithm in between. <b>Add your YouTube channel in your profile and your videos join in.</b> (Instagram and TikTok do not allow this.)", "Les vidéos de la communauté, rassemblées ici et lisibles sur place — sans algorithme entre deux. <b>Ajoute ta chaîne YouTube dans ton profil et tes vidéos rejoignent le fil.</b> (Instagram et TikTok ne le permettent pas.)", "Video della community, raccolti in un posto e riproducibili qui — senza algoritmi di mezzo. <b>Aggiungi il tuo canale YouTube nel profilo e i tuoi video entrano nel feed.</b> (Instagram e TikTok non lo permettono.)", "Vídeos de la comunidad, reunidos en un sitio y reproducibles aquí mismo — sin algoritmo de por medio. <b>Añade tu canal de YouTube en tu perfil y tus vídeos se suman.</b> (Instagram y TikTok no lo permiten.)"),
     "social.prev" to row("Zurück", "Zrugg", "Zurück", "Previous", "Précédent", "Indietro", "Anterior"),
@@ -1046,6 +1047,7 @@ private fun sTabelle(): Map<String, Map<String, String>> = mapOf(
 private val FI: Map<String, String> = fiTabelle()
 
 private fun fiTabelle(): Map<String, String> = mapOf(
+    "common.back" to "← takaisin",
     "social.title" to "Somevirrat",
     "social.hint" to "Yhteisön videot yhdessä paikassa ja katsottavissa tässä — ilman algoritmia välissä. <b>Lisää YouTube-kanavasi profiiliin, niin videosi tulevat mukaan.</b> (Instagram ja TikTok eivät salli tätä.)",
     "social.prev" to "Edellinen",
@@ -1633,6 +1635,7 @@ private fun fiTabelle(): Map<String, String> = mapOf(
 private val NL: Map<String, String> = nlTabelle()
 
 private fun nlTabelle(): Map<String, String> = mapOf(
+    "common.back" to "← terug",
     "social.title" to "Social-media-feeds",
     "social.hint" to "Video's uit de community, op één plek en hier af te spelen — zonder algoritme ertussen. <b>Zet je YouTube-kanaal in je profiel, dan doen jouw video's mee.</b> (Instagram en TikTok staan dit niet toe.)",
     "social.prev" to "Vorige",
@@ -2263,6 +2266,7 @@ private fun nlTabelle(): Map<String, String> = mapOf(
 private val CS: Map<String, String> = csTabelle()
 
 private fun csTabelle(): Map<String, String> = mapOf(
+    "common.back" to "← zpět",
     "social.title" to "Feedy ze sociálních sítí",
     "social.hint" to "Videa z komunity na jednom místě a přehratelná přímo tady — bez algoritmu mezi tím. <b>Zadej svůj YouTube kanál v profilu a tvoje videa se přidají.</b> (Instagram a TikTok to neumožňují.)",
     "social.prev" to "Zpět",

@@ -5,6 +5,7 @@ import Foundation
 
 // Portugiesisch-Overlay (71 Keys). Fallback: Englisch.
 let wPtOverlay: [String: String] = [
+    "rec.paused": "Pausado",
     "rec.keepOpen": "mantenha o app aberto!",
     "rec.locPerm": "Localização não permitida – não é possível gravar",
     "rec.locCoarse": "Localização apenas aproximada – permita “Precisa”",
@@ -245,6 +246,7 @@ let wZhOverlay: [String: String] = [
 
 // Russisch-Overlay (71 Keys). Fallback: Englisch.
 let wRuOverlay: [String: String] = [
+    "rec.paused": "Пауза",
     "rec.keepOpen": "не закрывайте приложение!",
     "rec.locPerm": "Геолокация запрещена – запись невозможна",
     "rec.locCoarse": "Только приблизительная геопозиция – разрешите «Точную»",
@@ -325,6 +327,7 @@ let wRuOverlay: [String: String] = [
 
 // Indonesisch-Overlay (71 Keys). Fallback: Englisch.
 let wIdOverlay: [String: String] = [
+    "rec.paused": "Dijeda",
     "rec.keepOpen": "biarkan aplikasi terbuka!",
     "rec.locPerm": "Lokasi tidak diizinkan – tidak bisa merekam",
     "rec.locCoarse": "Hanya lokasi perkiraan – izinkan “Tepat”",

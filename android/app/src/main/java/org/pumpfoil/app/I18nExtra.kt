@@ -7,6 +7,7 @@ package org.pumpfoil.app
 val PT: Map<String, String> = ptTabelle()
 
 private fun ptTabelle(): Map<String, String> = mapOf(
+    "common.back" to "← voltar",
     "social.title" to "Feeds de redes sociais",
     "social.hint" to "Vídeos da comunidade reunidos num só sítio e reproduzíveis aqui — sem algoritmo pelo meio. <b>Adiciona o teu canal do YouTube no perfil e os teus vídeos entram também. O</b> (O Instagram e o TikTok não permitem isto.)",
     "social.prev" to "Anterior",
@@ -678,6 +679,7 @@ private fun ptTabelle(): Map<String, String> = mapOf(
 val JA: Map<String, String> = jaTabelle()
 
 private fun jaTabelle(): Map<String, String> = mapOf(
+    "common.back" to "← 戻る",
     "social.title" to "SNSフィード",
     "social.hint" to "コミュニティの動画をひとつの場所に集め、ここでそのまま再生できます — 間にアルゴリズムはありません。 <b>プロフィールに YouTube チャンネルを登録すると、あなたの動画も並びます。</b> （Instagram と TikTok では利用できません。）",
     "social.prev" to "前へ",
@@ -1349,6 +1351,7 @@ private fun jaTabelle(): Map<String, String> = mapOf(
 val ZH: Map<String, String> = zhTabelle()
 
 private fun zhTabelle(): Map<String, String> = mapOf(
+    "common.back" to "← 返回",
     "social.title" to "社交媒体动态",
     "social.hint" to "社区视频汇聚一处，可直接在这里播放——中间没有算法。 <b>在个人资料中填入你的 YouTube 频道，你的视频也会一起出现。</b> （Instagram 和 TikTok 不支持。）",
     "social.prev" to "上一个",
@@ -2020,6 +2023,7 @@ private fun zhTabelle(): Map<String, String> = mapOf(
 val RU: Map<String, String> = ruTabelle()
 
 private fun ruTabelle(): Map<String, String> = mapOf(
+    "common.back" to "← назад",
     "social.title" to "Ленты соцсетей",
     "social.hint" to "Видео сообщества в одном месте, воспроизводятся прямо здесь — без алгоритма посередине. <b>Укажите свой канал YouTube в профиле, и ваши видео появятся в ленте.</b> (Instagram и TikTok этого не позволяют.)",
     "social.prev" to "Назад",
@@ -2691,6 +2695,7 @@ private fun ruTabelle(): Map<String, String> = mapOf(
 val ID: Map<String, String> = idTabelle()
 
 private fun idTabelle(): Map<String, String> = mapOf(
+    "common.back" to "← kembali",
     "social.title" to "Feed media sosial",
     "social.hint" to "Video dari komunitas, terkumpul di satu tempat dan bisa diputar di sini — tanpa algoritma di antaranya. <b>Tambahkan kanal YouTube-mu di profil, videomu ikut tampil.</b> (Instagram dan TikTok tidak mengizinkannya.)",
     "social.prev" to "Sebelumnya",
@@ -3365,6 +3370,7 @@ private fun idTabelle(): Map<String, String> = mapOf(
 val NB: Map<String, String> = nbTabelle()
 
 private fun nbTabelle(): Map<String, String> = mapOf(
+    "common.back" to "← tilbake",
     "social.title" to "Sosiale feeder",
     "social.hint" to "Videoer fra fellesskapet, samlet på ett sted og spillbare her — uten algoritme imellom. <b>Legg inn YouTube-kanalen din i profilen, så blir videoene dine med.</b> (Instagram og TikTok tillater det ikke.)",
     "social.prev" to "Forrige",
@@ -4158,6 +4164,7 @@ private fun nbTabelle(): Map<String, String> = mapOf(
 val PL: Map<String, String> = plTabelle()
 
 private fun plTabelle(): Map<String, String> = mapOf(
+    "common.back" to "← wstecz",
     "social.title" to "Kanały społecznościowe",
     "social.hint" to "Filmy społeczności w jednym miejscu, odtwarzane tutaj — bez algorytmu pośrodku. <b>Dodaj swój kanał YouTube w profilu, a twoje filmy dołączą.</b> (Instagram i TikTok na to nie pozwalają.)",
     "social.prev" to "Wstecz",

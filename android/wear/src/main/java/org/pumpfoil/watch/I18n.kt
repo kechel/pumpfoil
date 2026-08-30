@@ -56,6 +56,7 @@ object I18n {
 // Norwegen kam mit dem ersten Nutzer aus Sogndal (05.08.2026) dazu; Bokmaal deckt auch
 // nn-/no-Geraete ab (s. web/src/i18n/index.tsx).
 private val NB: Map<String, String> = mapOf(
+    "rec.paused" to "Pauset",
     "menu.layouts" to "Egne oppsett",
     "common.auto" to "Automatisk",
     "lay.none" to "ingen sider",
@@ -152,6 +153,7 @@ private fun row(de: String, gsw: String, deAT: String, en: String, fr: String, i
     mapOf("de" to de, "gsw" to gsw, "de-AT" to deAT, "en" to en, "fr" to fr, "it" to it, "es" to es)
 
 private val S: Map<String, Map<String, String>> = mapOf(
+    "rec.paused" to row("Pausiert", "Pausiert", "Pausiert", "Paused", "En pause", "In pausa", "En pausa"),
     // Pairing
     // Eigene Layouts: Texte woertlich aus dem Garmin-Recorder (watch/source/Strings.mc),
     // damit dieselbe Funktion auf beiden Uhren gleich heisst. ja/zh fehlen dort absichtlich
@@ -306,6 +308,7 @@ private val S: Map<String, Map<String, String>> = mapOf(
 // Zusatz-Sprach-Overlays (pt, ja, zh, ru, id) — je Key aus dem ENGLISCHEN Quellwert.
 // Keys ohne Eintrag fallen in t() auf Englisch (dann Deutsch) zurueck.
 private val PT: Map<String, String> = mapOf(
+    "rec.paused" to "Pausado",
     "rec.hrPerm" to "Sem batimentos: falta a permissão – toque",
     "rec.hrNone" to "Sem batimentos registados – aperte mais o relógio",
     "rec.locPerm" to "Falta a permissão de localização – sem ela não grava. Toque",
@@ -571,6 +574,7 @@ private val ZH: Map<String, String> = mapOf(
     "f.lastRunMaxHr" to "上次最高 bpm",
 )
 private val RU: Map<String, String> = mapOf(
+    "rec.paused" to "Пауза",
     "rec.hrPerm" to "Нет пульса: нет разрешения – нажмите",
     "rec.hrNone" to "Пульс не записан – затяните ремешок",
     "rec.locPerm" to "Нет разрешения на геолокацию – без него запись невозможна. Нажмите",
@@ -662,6 +666,7 @@ private val RU: Map<String, String> = mapOf(
     "f.lastRunMaxHr" to "посл макс bpm",
 )
 private val ID: Map<String, String> = mapOf(
+    "rec.paused" to "Dijeda",
     "rec.hrPerm" to "Tanpa detak jantung: izin belum ada – ketuk",
     "rec.hrNone" to "Detak jantung tidak terekam – kencangkan jam",
     "rec.locPerm" to "Izin lokasi belum ada – tanpa itu tidak merekam. Ketuk",
@@ -756,6 +761,7 @@ private val ID: Map<String, String> = mapOf(
 // Polnisch — 17. Sprache (28.08.), Texte aus den Web-Locales bzw. einmal uebersetzt
 // und mit den Handy-Apps geteilt.
 private val PL: Map<String, String> = mapOf(
+    "rec.paused" to "Pauza",
     "menu.layouts" to "Własne układy",
     "common.auto" to "Automatycznie",
     "lay.none" to "brak stron",
