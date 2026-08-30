@@ -474,6 +474,37 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔴 VORFALL: `build-all.sh` hat den LIVE-Ordner `watch/bin` ueberschrieben (30.08.).**
+  Beim Messen des Speicherbedarfs der polnischen Sprachspalte habe ich `./build-all.sh` gestartet —
+  das Skript schreibt nach `watch/bin`, und der Ordner wird pro Request ausgeliefert
+  (`/api/app/download/<id>`). **111 von 121 `.prg` wurden mit einem UNVEROEFFENTLICHTEN Stand
+  ueberschrieben, weiter unter der Versionsnummer 1.0.80.** Dauer bis zur Wiederherstellung
+  ~15 Minuten. Der Connect-IQ-Store war nicht betroffen (eigener Vertriebsweg).
+  - **Wiederhergestellt und BEWIESEN:** Worktree auf `66cdc9d0` (den Commit vor den
+    Aenderungen dieser Woche, Config = 1.0.80), alle 121 Geraete neu gebaut, dann gegen die
+    **10 nicht ueberschriebenen** Live-Dateien geprueft — **byte-identisch**. Danach kopiert und
+    jede der 121 Dateien erneut gegen den Neubau verglichen: 0 Abweichungen. `catalog.json` war
+    nie angefasst worden. Download ueber die API gegengeprueft.
+  - **Ursache meinerseits:** die Memory sagt ausdruecklich „alle Geraete INS SCRATCHPAD bauen,
+    NIE nach `watch/bin`" — ich habe trotzdem das Skript genommen, weil es bequemer war. Richtig
+    ist `monkeyc -o <scratchpad>/<device>.prg` je Geraet.
+  - **Zweite Falle dabei:** `pkill -f build-all.sh` hat meine EIGENE Befehlszeile mitgetroffen
+    (steht so in [[multiuser-vm-command-traps]]) — der Abbruch kam dadurch verzoegert.
+
+- **🟢 Polnisch ist jetzt auf ALLEN sieben Zielen (30.08.).** Web 1534 · Android 805 ·
+  iOS 784 · Garmin 103 · Wear OS 90 · Apple Watch 84 · Zepp 59.
+  - Uebersetzt wurde nur EINMAL je Text: 1534 im Web, danach 221 app-eigene und 57 uhr-eigene
+    englische Quelltexte (entdoppelt). Alles andere ist ueber den englischen Text zugeordnet
+    worden — damit lautet derselbe Satz nirgends anders.
+  - **Speicher gemessen statt geschaetzt** (Rezept aus [[norwegian-language]], diesmal korrekt ins
+    Scratchpad): Instinct 2, FR 55, fenix 5, Venu Sq **+0 Byte** — die LITE- und ENG-Builds
+    schliessen das Sprachmodul aus und laufen auf `StringsLite` (Englisch). Nur die vollen Builds
+    zahlen: fenix 7X Pro 94 956 -> **97 004 (+2 KB)**, 12 % von 786 KB. Schlechtester Fall bleibt
+    die Instinct 2 mit 70 % — unveraendert durch Polnisch.
+  - **Nebenbefunde, mit erledigt:** Norwegisch fehlte in den Sprachauswahlen von Android und iOS
+    (auf iOS gar nicht waehlbar) und in Garmins `_systemIdx` (norwegische Uhr bekam Englisch,
+    obwohl die Spalte seit dem 06.08. da ist). Beides zusammen mit `pl` nachgezogen.
+
 - **🟢 Anleitung jetzt auch in den nativen Apps (28.08.).** Jans Frage „hatten wir das auf
   den Nativen einfach gar nicht?" — nachgezaehlt: **Web 98 `guide.*`-Schluessel, Android 0,
   iOS 0.** Der Tab „Anleitung" existierte nur in `Account.tsx`; die Apps hatten im Uhr-Bereich

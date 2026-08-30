@@ -294,7 +294,7 @@ const bytesToBase64 = (bytes, length) => {
 // anderen Apps. Ein reiner String statt Array = in allen Sprachen identisch (reine Einheiten).
 // ja/zh sind hier drin (anders als bei Garmin, wo die Fonts keine CJK-Glyphen haben): Zepp OS ist
 // eine chinesische Plattform, die Systemfonts haben CJK. Im Simulator gegenpruefen.
-const LANGS = ["de", "gsw", "de-AT", "en", "fr", "it", "es", "pt", "id", "ru", "nl", "fi", "cs", "ja", "zh", "nb"];
+const LANGS = ["de", "gsw", "de-AT", "en", "fr", "it", "es", "pt", "id", "ru", "nl", "fi", "cs", "ja", "zh", "nb", "pl"];
 const S = {
   // -- Verbindung / Pairing (Garmin _a4/_a5/_a6/_a8) --
   "menu.connect":    ["Verbinden", "Verbinde", "Verbinden", "Connect", "Se connecter", "Connetti", "Conectar", "Conectar", "Hubungkan", "Подключить", "Verbinden", "Yhdistä", "Připojit", "接続", "连接"],
@@ -378,6 +378,71 @@ const S = {
 // Norwegisch (Bokmål) als OVERLAY statt 16. Spalte: die Zeilen oben haben teils weniger
 // Eintraege (fehlende Sprache = Englisch), ein Anhaengen waere dort ins Leere gelaufen.
 // Anlass: erster norwegischer Nutzer (Sogndal, 05.08.2026); nn/no landen ebenfalls hier.
+// Polnisch — 17. Sprache (28.08.). Wie NB als Overlay statt als weitere Spalte in 59
+// Zeilen: die Tabelle oben ist schon 15 Spalten breit. Texte aus denselben Quellen wie
+// bei den anderen Uhren (web-Locales bzw. einmal uebersetzt und geteilt).
+const PL = {
+  "btn.start": "START",
+  "btn.stop": "STOP",
+  "common.auto": "Auto",
+  "common.done": "Gotowe",
+  "common.error": "Błąd",
+  "common.off": "Wył.",
+  "common.on": "Wł.",
+  "f.bpm": "bpm",
+  "f.bpmAvg": "bpm śr.",
+  "f.bpmMax": "bpm maks.",
+  "f.clock": "Godzina",
+  "f.dist": "Dystans",
+  "f.dur": "Czas",
+  "f.kmh": "km/h",
+  "f.kmh3s": "km/h (3s)",
+  "f.kmhAvg": "km/h śr.",
+  "f.kmhMax": "km/h maks.",
+  "f.lastRunAvg": "ost. śr.",
+  "f.lastRunDist": "ost. dyst.",
+  "f.lastRunMax": "ost. maks.",
+  "f.lastRunMaxHr": "ost. maks. bpm",
+  "f.lastRunTime": "ost. czas",
+  "f.runActive": "przejazd trwa",
+  "f.runDist": "Dyst. przejazdu",
+  "f.runTime": "Czas przejazdu",
+  "f.runs": "Przejazdy",
+  "f.time": "Czas",
+  "fm.alarm": "Alarm",
+  "fm.autoFoil": "Auto (foil)",
+  "fm.manual": "Ręcznie",
+  "fm.thresholds": "Progi",
+  "fm.title": "Foil i alarm",
+  "foil.prefix": "Foil: ",
+  "gps.searching": "Szukam GPS…",
+  "lay.short": "Układy",
+  "menu.connect": "Połącz",
+  "menu.connected": "Połączono",
+  "menu.linked": "Konto połączone",
+  "menu.touchLock": "Blokada dotyku",
+  "pair.code": "Kod parowania",
+  "pair.enterThere": "wpisz go tam",
+  "pair.gen": "Wygeneruj kod",
+  "pair.noConn": "Brak połączenia",
+  "rec.holdFree": "2 s = dotyk wolny",
+  "rec.noData": "Brak danych",
+  "rec.repair": "Połącz ponownie",
+  "rec.stopHold": "Trzymaj",
+  "rec.uploadNow": "Wyślij teraz",
+  "up.done": "Wysłano",
+  "up.keepOpen": "nie zamykaj aplikacji",
+  "up.later": "spróbuję później",
+  "up.noPhone": "Brak telefonu",
+  "up.notLinked": "Nie połączono",
+  "up.nothing": "Nic w kolejce",
+  "up.open": "w kolejce",
+  "up.running": "Wysyłanie…",
+  "up.serverUnreach": "Serwer nieosiągalny",
+  "up.waitConn": "Czekam na połączenie",
+  "up.waiting": "Czekam…",
+};
+
 const NB = {
   "menu.connect": "Koble til",
   "menu.connected": "Tilkoblet",
@@ -456,15 +521,20 @@ const setLang = (code) => {
   LI = i >= 0 ? i : 3;
 };
 const t = (k) => {
-  // Norwegisch kommt aus dem Overlay (die Zeilen oben haben keine Spalte 15) -> sonst Englisch.
+  // Norwegisch und Polnisch kommen aus Overlays (die Zeilen oben haben keine Spalte 15/16)
+  // -> sonst Englisch.
   if (LI === 15) {
     const v = NB[k];
+    if (v) { return v; }
+  }
+  if (LI === 16) {
+    const v = PL[k];
     if (v) { return v; }
   }
   const row = S[k];
   if (row == null) { return k; }
   if (typeof row === "string") { return row; }
-  const sp = LI === 15 ? 3 : LI;
+  const sp = (LI === 15 || LI === 16) ? 3 : LI;
   return row[sp] || row[3] || row[0] || k;
 };
 

@@ -9,7 +9,7 @@ import androidx.compose.runtime.setValue
 // /api/devices/config geliefert, in SharedPrefs gecacht). Fallback: de. Reine
 // Einheiten (km/h, bpm, m) bleiben unlokalisiert.
 object I18n {
-    private val LANGS = listOf("de", "gsw", "de-AT", "en", "fr", "it", "es", "pt", "ja", "zh", "ru", "id", "nb")
+    private val LANGS = listOf("de", "gsw", "de-AT", "en", "fr", "it", "es", "pt", "ja", "zh", "ru", "id", "nb", "pl")
     var lang by mutableStateOf("de")
         private set
 
@@ -42,9 +42,10 @@ object I18n {
             "ru" -> RU[key]?.let { return it }
             "id" -> ID[key]?.let { return it }
             "nb" -> NB[key]?.let { return it }
+            "pl" -> PL[key]?.let { return it }
         }
         val row = S[key] ?: return key
-        val overlay = lang == "pt" || lang == "ja" || lang == "zh" || lang == "ru" || lang == "id" || lang == "nb"
+        val overlay = lang == "pt" || lang == "ja" || lang == "zh" || lang == "ru" || lang == "id" || lang == "nb" || lang == "pl"
         if (overlay) return row["en"] ?: row["de"] ?: key
         return row[lang] ?: row["de"] ?: key
     }
@@ -750,4 +751,99 @@ private val ID: Map<String, String> = mapOf(
     "f.lastRunAvg" to "rata terakhir",
     "f.lastRunMax" to "maks terakhir",
     "f.lastRunMaxHr" to "maks terakhir bpm",
+)
+
+// Polnisch — 17. Sprache (28.08.), Texte aus den Web-Locales bzw. einmal uebersetzt
+// und mit den Handy-Apps geteilt.
+private val PL: Map<String, String> = mapOf(
+    "menu.layouts" to "Własne układy",
+    "common.auto" to "Automatycznie",
+    "lay.none" to "brak stron",
+    "lay.fallback" to "Układ wył. (błąd)",
+    "pair.title" to "Połącz zegarek",
+    "pair.howto" to "Wygeneruj kod parowania i wpisz go na pumpfoil.org (Konto).",
+    "pair.gen" to "Wygeneruj kod",
+    "pair.enterOn" to "Wpisz na pumpfoil.org:",
+    "pair.waiting" to "czekam na potwierdzenie…",
+    "pair.later" to "Anuluj",
+    "rec.start" to "Start",
+    "rec.stop" to "Stop",
+    "rec.stopHold" to "Trzymaj",
+    "rec.discardHold" to "Odrzuć",
+    "rec.starting" to "start…",
+    "rec.recording" to "Nagrywanie",
+    "rec.saving" to "zapisywanie…",
+    "rec.autoStart" to "Auto-start wł.",
+    "rec.autoStartIn" to "Auto-start za",
+    "rec.autoStartToggle" to "Auto-start",
+    "rec.autoStartHelp" to "Rusza samo przy 10 km/h – gdybyś zapomniał.",
+    "rec.sync" to "Sync…",
+    "rec.notNow" to "Nie teraz",
+    "rec.toData" to "Pola danych →",
+    "rec.toSummary" to "← Podsumowanie",
+    "rec.notLinked" to "Nie połączono – sesje lokalnie",
+    "rec.connect" to "Połącz",
+    "rec.pendingUpload" to "czeka na wysłanie",
+    "rec.uploadNow" to "Wyślij teraz",
+    "rec.chooseFoil" to "Wybierz foil",
+    "rec.syncNow" to "Sync",
+    "foil.website" to "Wartości stałe",
+    "rec.waitConn" to "czekam na połączenie",
+    "rec.willResume" to "wznowi się",
+    "rec.uploading" to "wysyłanie",
+    "rec.hrPerm" to "Brak tętna: brak uprawnienia – dotknij",
+    "rec.hrNone" to "Brak tętna – dociśnij zegarek",
+    "rec.locPerm" to "Brak uprawnienia do lokalizacji – bez niego nie ma nagrywania. Dotknij",
+    "rec.locOff" to "Lokalizacja wyłączona – dotknij",
+    "rec.noGpsSaved" to "Zapisano bez GPS – sprawdź lokalizację",
+    "rec.keepOpen" to "nie zamykaj aplikacji!",
+    "rec.serverErr" to "Błąd serwera – spróbuj później",
+    "rec.authErr" to "Połączenie nieważne – połącz ponownie",
+    "rec.repair" to "Połącz ponownie",
+    "rec.switch" to "Zmień konto",
+    "foil.choose" to "Foil i alarm",
+    "foil.prefix" to "Foil: ",
+    "foil.alarm" to "Alarm",
+    "foil.alarmHelp" to "Wibruje, gdy wyjdziesz poza optymalny zakres prędkości Twojego foila.",
+    "foil.chooseHelp" to "Zapisuje foil do tej sesji i ustawia progi alarmu, gdy źródłem jest Foil.",
+    "foil.thresholds" to "Progi",
+    "foil.auto" to "Auto (foil)",
+    "foil.manual" to "Ręcznie",
+    "foil.min" to "Min.",
+    "foil.max" to "Maks.",
+    "foil.noFoil" to "Bez foila",
+    "common.on" to "Wł.",
+    "common.off" to "Wył.",
+    "common.done" to "Gotowe",
+    "saved.title" to "Zapisano",
+    "saved.upload" to "Wysyłka przez Wi-Fi/telefon",
+    "saved.uploadDone" to "Wysłano",
+    "saved.uploading" to "wysyłanie…",
+    "foil.fixed" to "Wartości stałe",
+    "foil.none" to "Bez alarmu",
+    "foil.triggerPrefix" to "Wyzwalanie: ",
+    "foil.continuous" to "ciągle",
+    "foil.once" to "raz",
+    "common.back" to "← wstecz",
+    "common.error" to "Błąd",
+    "f.kmh3s" to "km/h (3s)",
+    "f.kmh" to "km/h",
+    "f.kmhAvg" to "śr. km/h",
+    "f.kmhMax" to "maks. km/h",
+    "f.bpm" to "bpm",
+    "f.bpmAvg" to "śr. bpm",
+    "f.bpmMax" to "maks. bpm",
+    "f.time" to "Czas",
+    "f.clock" to "Godzina",
+    "f.alt" to "Wysokość",
+    "f.temp" to "Temp.",
+    "f.ascent" to "Wznios",
+    "f.runTime" to "Czas przejazdu",
+    "f.runDist" to "Dyst. przejazdu",
+    "f.runs" to "Przejazdy",
+    "f.lastRunTime" to "ost. czas",
+    "f.lastRunDist" to "ost. dyst.",
+    "f.lastRunAvg" to "ost. śr.",
+    "f.lastRunMax" to "ost. maks.",
+    "f.lastRunMaxHr" to "ost. maks. bpm",
 )

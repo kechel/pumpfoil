@@ -13,11 +13,12 @@ enum WLoc {
         case "ru": if let v = wRuOverlay[key] { return v }
         case "id": if let v = wIdOverlay[key] { return v }
         case "nb": if let v = wNbOverlay[key] { return v }
+        case "pl": if let v = wPlOverlay[key] { return v }
         default: break
         }
         guard let row = table[key] else { return key }
         if let v = row[lang] { return v }
-        if ["pt", "ja", "zh", "ru", "id", "nb"].contains(lang) { return row["en"] ?? row["de"] ?? key }
+        if ["pt", "ja", "zh", "ru", "id", "nb", "pl"].contains(lang) { return row["en"] ?? row["de"] ?? key }
         // Profil-Sprache kann die Uhr nicht (fi/nl/cs/leer) -> NICHT hart Deutsch, sondern die
         // GERÄTE-SYSTEMSPRACHE; sonst Englisch.
         return row[sysLang()] ?? row["en"] ?? row["de"] ?? key
@@ -163,3 +164,92 @@ enum WLoc {
         "f.lastRunMaxHr": r("letzter max bpm", "letschte max bpm", "letzter max bpm", "last max bpm", "dern. max bpm", "ult. max bpm", "últ. máx bpm"),
     ]
 }
+
+// Polnisch — 17. Sprache (28.08.), Texte aus den Web-Locales bzw. einmal uebersetzt
+// und mit den Handy-Apps geteilt.
+let wPlOverlay: [String: String] = [
+    "menu.layouts": "Własne układy",
+    "common.auto": "Automatycznie",
+    "common.on": "Wł.",
+    "common.off": "Wył.",
+    "lay.none": "brak stron",
+    "rec.paused": "Pauza",
+    "pair.title": "Połącz zegarek",
+    "pair.howto": "Wygeneruj kod parowania i wpisz go na pumpfoil.org (Konto).",
+    "pair.gen": "Wygeneruj kod parowania",
+    "pair.enterOn": "Wpisz na pumpfoil.org:",
+    "pair.waiting": "czekam na potwierdzenie…",
+    "pair.later": "Połącz później",
+    "rec.start": "Start",
+    "rec.stop": "Stop",
+    "rec.stopHold": "Stop · trzymaj 2 s",
+    "rec.discardHold": "Odrzuć · trzymaj 2 s",
+    "rec.starting": "start…",
+    "rec.autoStart": "Auto-start wł.",
+    "rec.autoStartToggle": "Auto-start",
+    "rec.autoStartHelp": "Rusza samo przy 10 km/h – gdybyś zapomniał.",
+    "rec.recording": "Nagrywanie",
+    "rec.saving": "zapisywanie…",
+    "rec.saved": "zapisano",
+    "rec.workoutFail": "Nie udało się rozpocząć treningu: ",
+    "rec.sync": "Sync…",
+    "rec.notNow": "Nie teraz",
+    "rec.toData": "Pola danych →",
+    "rec.toSummary": "← Podsumowanie",
+    "rec.notLinked": "Nie połączono – sesje lokalnie",
+    "rec.connect": "Połącz",
+    "rec.pendingUpload": "czeka na wysłanie",
+    "rec.uploadNow": "Wyślij teraz",
+    "rec.waitConn": "czekam na połączenie",
+    "rec.willResume": "wznowi się",
+    "rec.uploading": "wysyłanie",
+    "rec.locPerm": "Brak zgody na lokalizację – nagrywanie niemożliwe",
+    "rec.locCoarse": "Tylko przybliżona lokalizacja – zezwól na „Dokładną”",
+    "rec.keepOpen": "nie zamykaj aplikacji!",
+    "rec.serverErr": "Błąd serwera – spróbuj później",
+    "rec.authErr": "Połączenie nieważne – połącz ponownie",
+    "rec.repair": "Połącz ponownie",
+    "rec.switch": "Zmień konto",
+    "rec.alarm": "Alarm",
+    "rec.change": "zmień",
+    "rec.holdProgress": "trzymaj…",
+    "foil.choose": "Wybierz foil",
+    "foil.chooseHelp": "Zapisuje foil do tej sesji i ustawia progi alarmu, gdy źródłem jest Foil.",
+    "foil.prefix": "Foil: ",
+    "foil.alarm": "Alarm",
+    "foil.alarmOn": "Alarm wibracyjny",
+    "foil.alarmHelp": "Wibruje, gdy wyjdziesz poza optymalny zakres prędkości Twojego foila.",
+    "foil.thresholds": "Progi",
+    "foil.source": "Źródło",
+    "foil.auto": "Auto (foil)",
+    "foil.manual": "Ręcznie",
+    "foil.min": "Min.",
+    "foil.max": "Maks.",
+    "foil.noFoil": "Bez foila",
+    "foil.fixed": "Wartości stałe",
+    "foil.none": "Bez foila",
+    "foil.noneSub": "bez alarmu",
+    "foil.trigger": "Wyzwalanie",
+    "foil.continuous": "Ciągle",
+    "common.cancel": "Anuluj",
+    "f.kmh3s": "km/h (3s)",
+    "f.kmh": "km/h",
+    "f.kmhAvg": "śr. km/h",
+    "f.kmhMax": "maks. km/h",
+    "f.bpm": "bpm",
+    "f.bpmAvg": "śr. bpm",
+    "f.bpmMax": "maks. bpm",
+    "f.time": "Czas",
+    "f.clock": "Godzina",
+    "f.alt": "Wysokość",
+    "f.temp": "Temp.",
+    "f.ascent": "Wznios",
+    "f.runTime": "Czas przejazdu",
+    "f.runDist": "Dyst. przejazdu",
+    "f.runs": "Przejazdy",
+    "f.lastRunTime": "ost. czas",
+    "f.lastRunDist": "ost. dyst.",
+    "f.lastRunAvg": "ost. śr.",
+    "f.lastRunMax": "ost. maks.",
+    "f.lastRunMaxHr": "ost. maks. bpm",
+]
