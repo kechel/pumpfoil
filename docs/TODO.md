@@ -3903,12 +3903,24 @@ Offen daraus:
       das Format des Videos verraet YouTube nirgends (nicht im RSS, nicht im oEmbed, das stur
       16:9 meldet, nicht am Vorschaubild: unsere Shorts haben unscharfe statt schwarzer Raender).
       Statt zu raten bekommt der Rahmen alles und der Player skaliert selbst.
-    · **Voller YouTube-Player statt nocookie** — Jans Wunsch, damit man aus dem Feed heraus liken
-      und folgen kann. Dafuer steht ein **Einwilligungs-Hinweis** davor (einmal je Browser,
-      `localStorage.yt_full_consent`): ein Klick aufs Play-Dreieck allein ist keine informierte
-      Einwilligung (§ 25 TDDDG). Vorher gesagt und hier festgehalten: fuer viele Nutzer wird der
-      Like-Knopf trotzdem nicht gehen, weil Safari/Firefox Dritt-Cookies blockieren.
-      **Mitgezogen:** `imp.yt2` (de/de-AT/en) und die Datenschutz-Regel in CLAUDE.md.
+    · **Voller YouTube-Player: probiert und am selben Abend wieder verworfen.** Ziel war, aus dem
+      Feed heraus liken zu koennen. Ergebnis: **es kam kein Like-Knopf** — der erscheint nur bei
+      YouTube-Angemeldeten mit erlaubten Dritt-Cookies (Safari/Firefox blocken die standardmaessig).
+      Genau das war vorher gesagt worden; der Versuch hat es bestaetigt. Zurueckgebaut auf
+      `youtube-nocookie` OHNE Einwilligungs-Schranke, CSP wieder nur nocookie, `imp.yt2` und die
+      Regel in CLAUDE.md zurueckgesetzt.
+      **Stattdessen:** ein auffaelliger Knopf „Auf YouTube liken" fuehrt hinaus — auf dem Handy in
+      die App, wo der Nutzer angemeldet ist. Das ist der einzige Weg, der fuer JEDEN funktioniert
+      und beim Creator wirklich ankommt.
+      **Eigene Herzchen bei uns: von Jan ausdruecklich abgelehnt** („bringt nichts fuer den
+      content creator") — Modell und Endpunkt wieder entfernt. Die leere Tabelle
+      `social_item_likes` ist beim Neustart einmal angelegt worden und steht noch in der DB; sie
+      stoert nicht, kann aber bei Gelegenheit weg (kein Eingriff ohne Ansage).
+      **Wer es erneut erwaegt:** ein echter Like aus unserer Seite geht NUR ueber die YouTube Data
+      API (`videos.rate`) mit Google-OAuth je Nutzer plus Verifizierung eines sensiblen
+      Zugriffsbereichs — Wochen Antragsarbeit, und wer die Freigabe verweigert, hat wieder nichts.
+    · **Dauerschleife im Player** (Jan): `loop=1` wirkt bei einem Einzelvideo nur zusammen mit
+      `playlist=<id>` — ohne das zweite Feld ignoriert YouTube die Wiederholung.
     · Hinweistext nennt jetzt, dass Instagram und TikTok das nicht erlauben (17 Sprachen).
     · Vorschau-Zeile laedt in Schueben von 24 nach, sobald man ans Ende wischt.
     · **CSP nachgezogen (sofort, Jan sah `ERR_BLOCKED_BY_CSP`):** `frame-src` kannte nur

@@ -59,10 +59,9 @@ async def security_headers(request: Request, call_next):
 
 # Extern geladen wird clientseitig nur: OSM-Kacheln (img) und der YouTube-Embed (frame,
 # Click-to-Load). Alles andere von der eigenen Origin.
-# `www.youtube.com` steht seit 30.08.2026 dabei: der Community-Feed nutzt den VOLLEN Player,
-# damit man dort liken und Kanaelen folgen kann (Jans Entscheidung) — davor steht ein
-# Einwilligungs-Hinweis, s. CLAUDE.md. Ohne diesen Eintrag blockt die eigene CSP das iframe
-# (ERR_BLOCKED_BY_CSP, von Jan sofort gesehen). Die Startseite bleibt auf nocookie.
+# NUR `youtube-nocookie.com`: der volle Player stand am 30.08. kurz drin (Versuch, aus dem Feed
+# heraus liken zu koennen) — er brachte nichts, weil der Like-Knopf ohnehin nur bei angemeldeten
+# Nutzern mit erlaubten Dritt-Cookies erscheint. Zurueckgebaut, damit die Datensparsamkeit steht.
 # Vorschaubilder kommen ueber den EIGENEN Server (/api/public/video-thumb) — deshalb braucht
 # img-src keinen Google-Host mehr.
 # style 'unsafe-inline' nötig (React-Inline-Styles + Leaflet) — harmlos vs. Skript.
@@ -71,7 +70,7 @@ _CSP = (
     "script-src 'self'; "
     "style-src 'self' 'unsafe-inline'; "
     "img-src 'self' data: blob: https://*.tile.openstreetmap.org https://img.youtube.com; "
-    "frame-src https://www.youtube-nocookie.com https://www.youtube.com; "
+    "frame-src https://www.youtube-nocookie.com; "
     "connect-src 'self'; "
     "worker-src 'self' blob:; "
     "manifest-src 'self'; "

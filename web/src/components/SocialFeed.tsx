@@ -109,27 +109,12 @@ export function SocialFeed() {
 
 // Vollbild mit Pfeilen links und rechts (Jan). Tastatur geht auch: Escape schliesst,
 // Pfeiltasten blaettern — auf dem Rechner ist das schneller als zielen.
-// Einwilligung fuer den VOLLEN YouTube-Player. Jan hat sich am 30.08. bewusst dafuer entschieden,
-// damit man aus dem Feed heraus liken und abonnieren kann — das geht im datensparsamen
-// nocookie-Modus nicht, weil es dort keine YouTube-Sitzung im iframe gibt.
-// Preis: der volle Player setzt Google-Cookies, sobald er laedt. Ein blosser Klick auf ein
-// Play-Dreieck gilt dafuer nicht als informierte Einwilligung (§ 25 TDDDG), deshalb steht davor
-// ein Hinweis, was passiert. Einmal je Browser, danach gemerkt — widerrufbar im Impressum.
-const CONSENT_KEY = "yt_full_consent";
-export function ytConsentGegeben(): boolean {
-  try { return localStorage.getItem(CONSENT_KEY) === "1"; } catch { return false; }
-}
-export function ytConsentWiderrufen() {
-  try { localStorage.removeItem(CONSENT_KEY); } catch { /* egal */ }
-}
-
 function SocialModal({ item, hatWeiter, hatZurueck, onWeiter, onZurueck, onClose }: {
   item: SocialItem; hatWeiter: boolean; hatZurueck: boolean;
   onWeiter: () => void; onZurueck: () => void; onClose: () => void;
 }) {
   const t = useT();
   const [gemeldet, setGemeldet] = useState(false);
-  const [darfLaden, setDarfLaden] = useState(() => ytConsentGegeben());
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -171,31 +156,21 @@ function SocialModal({ item, hatWeiter, hatZurueck, onWeiter, onZurueck, onClose
           hochkant nutzt die volle Hoehe, quer die volle Breite. */}
       <div className="flex h-[92vh] w-[calc(100vw-7rem)] flex-col" onClick={(e) => e.stopPropagation()}>
         <div className="min-h-0 w-full flex-1">
-          {darfLaden ? (
-            <iframe
-              key={item.external_id}
-              className="h-full w-full rounded-xl"
-              src={`https://www.youtube.com/embed/${item.external_id}?autoplay=1&rel=0&playsinline=1`}
-              title={item.title || "Video"}
-              allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-              allowFullScreen
-            />
-          ) : (
-            // Vor dem ersten Abspielen: Vorschaubild von UNSEREM Server, daneben was passiert.
-            // Bis hierher ging noch keine einzige Anfrage an Google.
-            <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-xl bg-slate-900">
-              <img src={`/api/public/video-thumb/${item.external_id}`} alt=""
-                className="absolute inset-0 h-full w-full object-cover opacity-30" />
-              <div className="relative max-w-md p-6 text-center">
-                <p className="mb-4 text-sm leading-relaxed text-slate-200">{t("social.consentText")}</p>
-                <button
-                  onClick={() => { try { localStorage.setItem(CONSENT_KEY, "1"); } catch { /* egal */ } setDarfLaden(true); }}
-                  className="rounded-xl bg-brand-500 px-4 py-2 font-semibold text-slate-950">
-                  {t("social.consentPlay")}
-                </button>
-              </div>
-            </div>
-          )}
+          {/* Datensparsam ueber youtube-nocookie, geladen erst durch den Klick auf die Kachel.
+              Der volle Player war am 30.08. kurz drin, damit man aus dem Feed heraus liken kann —
+              er brachte nichts: der Like-Knopf erscheint nur bei YouTube-Angemeldeten mit
+              erlaubten Dritt-Cookies. Zurueckgebaut; zum Liken fuehrt der Knopf unten hinaus. */}
+          <iframe
+            key={item.external_id}
+            className="h-full w-full rounded-xl"
+            // `loop=1` wirkt bei einem EINZELNEN Video nur zusammen mit `playlist=<id>` — ohne
+            // das zweite Feld ignoriert YouTube die Wiederholung (dokumentierte Eigenart der
+            // Player-Parameter). Bei Clips von wenigen Sekunden ist die Schleife das Richtige.
+            src={`https://www.youtube-nocookie.com/embed/${item.external_id}?autoplay=1&rel=0&playsinline=1&loop=1&playlist=${item.external_id}`}
+            title={item.title || "Video"}
+            allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+            allowFullScreen
+          />
         </div>
         <div className="mt-2 flex items-start gap-3 text-white">
           <div className="min-w-0 flex-1">
@@ -205,8 +180,10 @@ function SocialModal({ item, hatWeiter, hatZurueck, onWeiter, onZurueck, onClose
           {/* Im datensparsamen nocookie-Modus gibt es keine YouTube-Sitzung im iframe — Liken und
               Abonnieren geht dort also nicht (Jan, 30.08.). Wer das will, kommt mit einem Klick
               hin; das hilft auch dem, der das Video gemacht hat. */}
+          {/* Einziger Weg zu einem ECHTEN Like fuer den Creator: raus zu YouTube, wo der
+              Nutzer angemeldet ist (auf dem Handy oeffnet die App). Deshalb auffaellig. */}
           <a href={item.url} target="_blank" rel="noopener noreferrer"
-            className="shrink-0 rounded-lg bg-white/10 px-2.5 py-1 text-xs text-slate-200 hover:bg-white/20">
+            className="shrink-0 rounded-xl bg-brand-500 px-3 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400">
             {t("social.onYoutube")}
           </a>
           <button

@@ -908,7 +908,7 @@ const de: Record<string, string> = {
   "imp.conn3": "Die Verknüpfung ist jederzeit unter „Verknüpfte Konten“ widerrufbar — dabei wird das gespeicherte Token gelöscht.",
   "imp.ytTitle": "Eingebettete YouTube-Videos",
   "imp.yt1": "Auf der Startseite zeigen wir Vorschaubilder unseres YouTube-Kanals. Diese werden über <b>unseren eigenen Server</b> ausgeliefert — beim Laden der Seite entsteht <b>kein</b> Kontakt zu Google und es werden <b>keine</b> Cookies gesetzt.",
-  "imp.yt2": "Erst wenn du ein Video <b>anklickst</b>, wird der YouTube-Player geladen. Auf der Startseite im Modus „erweiterter Datenschutz“ (youtube-nocookie.com). Im <b>Community-Feed</b> ist es der volle YouTube-Player, damit du dort liken und dem Kanal folgen kannst — vor dem ersten Abspielen steht deshalb ein Hinweis, den du bestätigen musst. In beiden Fällen erhält Google/YouTube dann deine IP-Adresse und kann Cookies setzen.",
+  "imp.yt2": "Erst wenn du ein Video <b>anklickst</b>, wird der YouTube-Player im Modus „erweiterter Datenschutz“ (youtube-nocookie.com) geladen — das gilt für die Startseite und für den Community-Feed. Dann erhält Google/YouTube deine IP-Adresse und kann Cookies setzen. Mit dem Klick willigst du darin ein.",
   "imp.ytNote": "Anbieter: Google Ireland Ltd. Näheres in der <a href=\"https://policies.google.com/privacy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"text-brand-400 hover:underline\">Datenschutzerklärung von Google</a>.",
 
   // Session-Beschriftung / YouTube / Lightbox
@@ -1244,9 +1244,7 @@ const de: Record<string, string> = {
   "social.next": "Weiter",
   "social.report": "Melden",
   "social.reported": "Gemeldet",
-  "social.onYoutube": "Auf YouTube",
-  "social.consentText": "Beim Abspielen wird der YouTube-Player geladen. Dabei erhält Google deine IP-Adresse und kann Cookies setzen — dafür kannst du das Video direkt hier liken und dem Kanal folgen. Bis zu diesem Klick ging nichts an Google.",
-  "social.consentPlay": "Video abspielen",
+  "social.onYoutube": "Auf YouTube liken",
   "social.channelTitle": "YouTube-Kanal",
   "social.channelHint": "Dein Kanal erscheint nach einer kurzen Prüfung im Community-Feed — damit es thematisch beim Pumpfoilen bleibt. Ein Kanal je Konto.",
   "social.submit": "Eintragen",

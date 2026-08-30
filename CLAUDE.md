@@ -69,14 +69,16 @@ Zwei systemd-Timer (User `jan`, oneshot), Skripte in `deploy/`:
 - **Datenschutz / Cookies:** pumpfoil.org setzt **null Cookies**. Nur first-party `localStorage` für
   Funktion (Login-Token, Sprache `foil_lang`, `theme`, Banner-Version, `hideCompareTip`) — kein
   Tracking/Analytics (harte Vorgabe), keine Dritt-Skripte/Fonts/Karten von extern. YouTube nur als
-  **Click-to-Load** (Impressum-Keys `imp.yt*`): auf der Startseite über `youtube-nocookie.com`,
-  im **Community-Feed seit 30.08.2026 über den vollen Player** — Jans Entscheidung, damit man dort
-  liken und Kanälen folgen kann. Weil der volle Player Google-Cookies setzt, steht davor ein
-  **Einwilligungs-Hinweis**, den der Nutzer bestätigen muss (einmal je Browser, gemerkt in
-  `localStorage.yt_full_consent`). Ein Klick aufs Play-Dreieck allein reicht als Einwilligung
-  NICHT (§ 25 TDDDG) — deshalb der erklärende Text davor.
-  → **Weiterhin kein Cookie-Banner nötig**: ohne diese aktive Bestätigung geht nichts an Google,
-  sonst setzen wir keine nicht-essentielle Speicherung ein.
+  **Click-to-Load** über `youtube-nocookie.com` (Impressum-Keys `imp.yt*`) — Startseite UND
+  Community-Feed. → **Kein Cookie-Banner nötig** (Consent braucht es nur für nicht-essentielle/
+  Tracking-Speicherung, die wir nicht haben).
+  **Am 30.08.2026 einen Tag lang anders probiert und wieder verworfen:** der Feed lief kurz über
+  den vollen Player (`www.youtube.com`), damit man dort liken und folgen kann. Das brachte nichts —
+  der Like-Knopf erscheint nur bei YouTube-Angemeldeten mit erlaubten Dritt-Cookies, bei Jan kam
+  keiner. Kosten wären ein Einwilligungs-Hinweis vor jedem Abspielen und ein Absatz mehr in der
+  Datenschutzerklärung gewesen. Zurückgebaut; zum Liken führt jetzt ein Knopf zu YouTube hinaus.
+  **Wer das erneut erwägt:** ein echter Like aus unserer Seite geht NUR über die YouTube Data API
+  (`videos.rate`) mit Google-OAuth je Nutzer und Verifizierung eines sensiblen Zugriffsbereichs.
   Erst neu bewerten, falls je ein Dritt-Skript/Analytics/externe Font/Karte dazukommt.
 - **News-Banner (DB-getrieben, kein PWA-Rebuild):** Inhalt + Version stehen in der DB
   (`NewsBanner`-Singleton), öffentlicher `GET /api/app/news`. `WelcomeBanner.tsx` holt das und zeigt den
