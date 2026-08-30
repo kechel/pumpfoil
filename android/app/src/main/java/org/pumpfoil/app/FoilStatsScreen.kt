@@ -78,6 +78,7 @@ fun FoilStatsScreen(onBack: () -> Unit, onWatchStats: () -> Unit = {}) {
                     "speed" -> it.avgSpeedKmh
                     "mpp" -> it.metersPerPump
                     "best" -> it.bestDistanceM
+                    "dur" -> it.bestDurationS
                     "hz" -> it.avgPumpHz
                     else -> it.sessions.toDouble()
                 }
@@ -100,6 +101,7 @@ fun FoilStatsScreen(onBack: () -> Unit, onWatchStats: () -> Unit = {}) {
                     sortChip("Ø km/h", "speed", sortKey, sortAsc, ::sel)
                     sortChip("m/Pump", "mpp", sortKey, sortAsc, ::sel)
                     sortChip(I18n.t("foilstats.bestKm"), "best", sortKey, sortAsc, ::sel)
+                    sortChip(I18n.t("rec.longestRun"), "dur", sortKey, sortAsc, ::sel)
                     sortChip("Ø ${PumpUnit.unitLabel()}", "hz", sortKey, sortAsc, ::sel)
                 }
             }
@@ -142,17 +144,28 @@ private fun statCard(s: FoilStat) {
                 metric(s.avgSpeedKmh?.let { "%.1f".format(it) } ?: "–", "Ø km/h")
             }
             Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                metric(s.metersPerPump?.let { "%.1f".format(it) } ?: "–", "m/Pump")
-                metric(s.bestDistanceM?.let { "${(it / 1000).let { km -> "%.2f".format(km) }}" } ?: "–", I18n.t("foilstats.bestKm"))
-                metric(PumpUnit.fmtValue(s.avgPumpHz), "Ø ${PumpUnit.unitLabel()}")
+                metric(s.metersPerPump?.let { "%.1f".format(it) } ?: "–", "m/Pump", Modifier.weight(1f))
+                metric(PumpUnit.fmtValue(s.avgPumpHz), "Ø ${PumpUnit.unitLabel()}", Modifier.weight(1f))
+            }
+            // Die beiden Bestwerte eines Laufs als Paar (Nutzerwunsch 30.08.: "best time and
+            // distance for each different foil") — Strecke und Zeit gehoeren zusammen.
+            Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                metric(s.bestDistanceM?.let { "%.2f".format(it / 1000) } ?: "–", I18n.t("foilstats.bestKm"), Modifier.weight(1f))
+                metric(s.bestDurationS?.let { fmtRunDur(it) } ?: "–", I18n.t("rec.longestRun"), Modifier.weight(1f))
             }
         }
     }
 }
 
+// m:ss wie in den Rekord-Kacheln der Startseite.
+private fun fmtRunDur(sec: Double): String {
+    val t = sec.roundToInt()          // erst runden, sonst wird aus 389,6 s "6:60"
+    return "%d:%02d".format(t / 60, t % 60)
+}
+
 @Composable
-private fun metric(value: String, label: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+private fun metric(value: String, label: String, modifier: Modifier = Modifier) {
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Text(value, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.primary)
         Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }

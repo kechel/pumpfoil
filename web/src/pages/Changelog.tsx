@@ -30,6 +30,12 @@ type Entry = { date: string; items: Item[] };
 
 const ENTRIES: Entry[] = [
   {
+    date: "August 30, 2026",
+    items: [
+      "The [foil stats](/foil-stats) now show the longest run as well as the farthest one, for every foil. Distance was already there; the time it stayed up was not, and the two together say more about a wing than either alone \u2014 a foil that carries you a long way and a foil that keeps you up a long time are not always the same foil. Sortable like every other column. The phone apps get it with their next update.",
+    ],
+  },
+  {
     date: "August 27, 2026",
     items: [
       "Speed zones \u2014 the same idea as the heart rate zones, now in your [profile](/einstellungen) as well. Five zones from slow to your own maximum, and we start you off with a suggestion built from the speeds you actually ride: we take the ninetieth percentile of your session tops rather than your single fastest reading, so one GPS glitch cannot stretch the scale to the point where nothing ever turns red again. Move a boundary and it is yours; a button puts the suggestion back.",

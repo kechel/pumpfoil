@@ -61,6 +61,7 @@ struct FoilStatsView: View {
             case "speed": return s.avg_speed_kmh
             case "mpp": return s.meters_per_pump
             case "best": return s.best_distance_m
+            case "dur": return s.best_duration_s
             case "hz": return s.avg_pump_hz
             default: return Double(s.sessions)
             }
@@ -99,6 +100,7 @@ struct FoilStatsView: View {
          ("speed", "Ø km/h"),
          ("mpp", "m/Pump"),
          ("best", Loc.t("foilstats.bestKm", lang)),
+         ("dur", Loc.t("rec.longestRun", lang)),
          ("hz", avgPumpLabel)]
     }
 
@@ -114,6 +116,7 @@ struct FoilStatsView: View {
             Section(title(s)) {
                 topRow(s)
                 pumpRow(s)
+                bestRow(s)
             }
         }
     }
@@ -129,8 +132,16 @@ struct FoilStatsView: View {
     private func pumpRow(_ s: FoilStat) -> some View {
         HStack {
             metric(dec1(s.meters_per_pump), "m/Pump")
-            Spacer(); metric(kmStr(s.best_distance_m), Loc.t("foilstats.bestKm", lang))
             Spacer(); metric(PumpUnit.fmtValue(s.avg_pump_hz), avgPumpLabel)
+        }
+    }
+
+    // Die beiden Bestwerte EINES Laufs als Paar (Nutzerwunsch 30.08.: "best time and distance
+    // for each different foil") — zu zweit bleibt Platz fuer die langen Labels.
+    private func bestRow(_ s: FoilStat) -> some View {
+        HStack {
+            metric(kmStr(s.best_distance_m), Loc.t("foilstats.bestKm", lang))
+            Spacer(); metric(durStr(s.best_duration_s), Loc.t("rec.longestRun", lang))
         }
     }
 
@@ -148,6 +159,12 @@ struct FoilStatsView: View {
     private func dec1(_ v: Double?) -> String {
         guard let v else { return "–" }
         return String(format: "%.1f", v)
+    }
+    // m:ss wie in den Rekord-Kacheln der Startseite; erst runden, sonst entsteht "6:60".
+    private func durStr(_ sec: Double?) -> String {
+        guard let sec else { return "–" }
+        let t = Int(sec.rounded())
+        return String(format: "%d:%02d", t / 60, t % 60)
     }
     private func kmStr(_ m: Double?) -> String {
         guard let m else { return "–" }

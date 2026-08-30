@@ -1080,6 +1080,7 @@ def foil_stats(_user: models.User = Depends(current_user), db: Session = Depends
             func.sum(AR.foiling_time_s),
             func.sum(AR.pump_count),
             func.max(AR.best_distance_m),
+            func.max(AR.best_duration_s),
             func.avg(AR.avg_cadence_hz),
         ), _user.id).filter(S.foil_id.isnot(None))
         .group_by(S.foil_id).all()
@@ -1088,7 +1089,7 @@ def foil_stats(_user: models.User = Depends(current_user), db: Session = Depends
         return []
     fmap = {f.id: f for f in db.query(models.Foil).filter(models.Foil.id.in_([r[0] for r in rows])).all()}
     out = []
-    for fid, n_sess, n_users, sum_dist, sum_time, sum_pumps, best_dist, avg_hz in rows:
+    for fid, n_sess, n_users, sum_dist, sum_time, sum_pumps, best_dist, best_dur, avg_hz in rows:
         f = fmap.get(fid)
         if not f:
             continue
@@ -1103,6 +1104,9 @@ def foil_stats(_user: models.User = Depends(current_user), db: Session = Depends
             "avg_speed_kmh": round(dist / time * 3.6, 1) if time > 0 else None,
             "meters_per_pump": round(dist / pumps, 1) if pumps > 0 else None,
             "best_distance_m": round(float(best_dist)) if best_dist else None,
+            # Laengster EINZELLAUF auf diesem Foil (nicht die Session-Dauer) — Gegenstueck zu
+            # best_distance_m, angeregt von einem Nutzer (30.08.): "best time and distance per foil".
+            "best_duration_s": round(float(best_dur)) if best_dur else None,
             "avg_pump_hz": round(float(avg_hz), 2) if avg_hz else None,
         })
     out.sort(key=lambda x: x["sessions"], reverse=True)

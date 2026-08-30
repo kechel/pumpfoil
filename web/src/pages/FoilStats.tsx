@@ -7,6 +7,9 @@ import { useSort, SortHead } from "../components/SortableTable";
 import { usePumpFmt } from "../lib/pumpRate";
 import { useT } from "../i18n";
 
+// m:ss wie bei den Rekorden auf der Startseite (Home.tsx) — dieselbe Kennzahl, dieselbe Schreibweise.
+const fmtDur = (s: number) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}`;
+
 type Row = Awaited<ReturnType<typeof api.foilStats>>[number];
 
 // Community-Vergleich je Foil: welche Werte werden mit welchem Material gefahren.
@@ -40,7 +43,7 @@ export default function FoilStats() {
         <Card className="p-8 text-center text-slate-300">{t("foilStats.none")}</Card>
       ) : (
         <div className="overflow-x-auto rounded-2xl border border-slate-800">
-          <table className="w-full min-w-[640px] border-collapse text-sm">
+          <table className="w-full min-w-[720px] border-collapse text-sm">
             <thead>
               <tr className="bg-slate-900/70 text-left text-slate-300">
                 <SortHead label={t("foilStats.colFoil")} sortKey="foil" sort={sort} align="left" defaultDir="asc" />
@@ -49,6 +52,7 @@ export default function FoilStats() {
                 <SortHead label={t("foilStats.colAvgSpeed")} sortKey="avg_speed_kmh" sort={sort} />
                 <SortHead label={t("foilStats.colMetersPerPump")} sortKey="meters_per_pump" sort={sort} />
                 <SortHead label={t("foilStats.colBestDist")} sortKey="best_distance_m" sort={sort} />
+                <SortHead label={t("rec.longestRun")} sortKey="best_duration_s" sort={sort} />
                 <SortHead label={t("foilStats.colAvgPump")} sortKey="avg_pump_hz" sort={sort} />
               </tr>
             </thead>
@@ -64,6 +68,7 @@ export default function FoilStats() {
                   <td className="px-4 py-3 text-right tabular-nums">{r.avg_speed_kmh != null ? `${r.avg_speed_kmh.toFixed(1)} km/h` : "–"}</td>
                   <td className="px-4 py-3 text-right tabular-nums">{r.meters_per_pump != null ? `${r.meters_per_pump.toFixed(1)} m` : "–"}</td>
                   <td className="px-4 py-3 text-right tabular-nums">{r.best_distance_m != null ? `${r.best_distance_m} m` : "–"}</td>
+                  <td className="px-4 py-3 text-right tabular-nums">{r.best_duration_s != null ? fmtDur(r.best_duration_s) : "–"}</td>
                   <td className="px-4 py-3 text-right tabular-nums">{pf.fmt(r.avg_pump_hz)}</td>
                 </tr>
               ))}

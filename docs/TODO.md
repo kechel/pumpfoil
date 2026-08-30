@@ -3488,3 +3488,17 @@ Offen daraus:
   return ["–", ""]`). Ein Layout mit Feld 21 zeigt auf einer alten Uhr also einen Strich, sonst
   nichts. Merke fuer kuenftige Felder: dieser Rueckfall ist die Bedingung dafuer, dass ein neues
   Feld VOR dem Uhr-Release in den Editor darf.
+
+- **✅ ERLEDIGT 30.08. — Foil-Statistik: laengster Lauf je Foil.** Nutzerwunsch ueber das
+  Feedback-Formular der Android-App (30.08., englisch): „displaying the best time and distance for
+  each different foil". Die weiteste Strecke stand schon drin (`best_distance_m`), die Zeit fehlte —
+  obwohl `analysis_results.best_duration_s` seit jeher gefuellt ist (3020 von 3020 Ergebnissen).
+  Jetzt `max(best_duration_s)` je Foil im Aggregat `GET /api/community/foil-stats`, als sortierbare
+  Spalte im Web und als Kennzahl in Android + iOS. Label ueber den vorhandenen Schluessel
+  `rec.longestRun` — in allen 17 Web-Sprachen und in beiden Apps schon uebersetzt, **keine neue
+  Uebersetzung noetig**. Anzeige `m:ss` wie in den Rekord-Kacheln (erst runden, sonst „6:60").
+  In den Apps stehen Strecke und Zeit als Paar in einer eigenen Zeile — zu zweit bleibt Platz fuer
+  lange Labels (ru/ja), zu dritt waere es auf 360-dp-Geraeten gebrochen.
+  **Noch offen (klein):** `foilStats.colTopSpeed` liegt seit laengerem uebersetzt in allen 17
+  Sprachen, wird aber nirgends benutzt — die Uhren-Statistik zeigt `best_speed_mps`, die
+  Foil-Statistik nicht. Entweder die Spalte nachziehen oder den Schluessel entfernen.

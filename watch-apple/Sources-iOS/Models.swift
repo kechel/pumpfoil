@@ -522,6 +522,7 @@ struct FoilStat: Codable, Identifiable {
     let avg_speed_kmh: Double?
     let meters_per_pump: Double?
     let best_distance_m: Double?
+    let best_duration_s: Double?   // laengster Einzellauf auf diesem Foil (Server ab 30.08.)
     let avg_pump_hz: Double?
     var id: Int { foil_id }
 }

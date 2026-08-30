@@ -653,6 +653,7 @@ data class FoilStat(
     @SerialName("avg_speed_kmh") val avgSpeedKmh: Double? = null,
     @SerialName("meters_per_pump") val metersPerPump: Double? = null,
     @SerialName("best_distance_m") val bestDistanceM: Double? = null,
+    @SerialName("best_duration_s") val bestDurationS: Double? = null,
     @SerialName("avg_pump_hz") val avgPumpHz: Double? = null,
 )
 
