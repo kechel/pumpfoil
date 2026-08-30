@@ -79,5 +79,15 @@ def current_device(
     if device is None or device.revoked_at is not None:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid device token")
     device.last_seen_at = datetime.now(timezone.utc)
+    # Ein Geraet, das sich MELDET, ist keine Karteileiche — also wieder einblenden.
+    # Das Ausblenden beim Pairing (devices._auto_hide_alte) fusst auf der Annahme „der alte Token
+    # kann ohnehin nicht mehr benutzt werden, eine Uhr haelt genau einen". Meldet sich der Eintrag
+    # danach doch wieder, war die Annahme falsch — dann gehoert er zurueck in die Liste.
+    # Belegter Fall (30.08., Jan): die Simulator-Kopplung meldet dieselbe Part-Number wie die echte
+    # fēnix und verdraengte sie; die echte Uhr lief weiter (60 Sessions, zuletzt dieselbe Stunde),
+    # stand aber nicht mehr im Profil — der Update-Hinweis zeigte dadurch die Version des
+    # Simulators statt die der Uhr.
+    if device.hidden_at is not None:
+        device.hidden_at = None
     db.commit()
     return device

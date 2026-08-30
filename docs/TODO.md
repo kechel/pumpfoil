@@ -3764,3 +3764,18 @@ Offen daraus:
   - Zwei neue i18n-Schluessel (`phome.byFoil`, `phome.noFoil`) in allen 17 Web-Sprachen.
   **Noch offen:** Android und iOS haben den Abschnitt noch nicht (Paritaet), und die Uhr braucht
   ihn nicht.
+
+- **✅ 30.08. — „Warum steht im Profil noch ein Update-Hinweis auf 1.0.82?"** (Jan, nachdem seine
+  Uhr laengst 1.0.82 hatte). Untersuchung: der Hinweis war korrekt, aber er galt den FALSCHEN
+  Geraeten. Sichtbar waren nur zwei Garmin-Eintraege — die **Simulator-Kopplung** (id 735, heute
+  19:47 erstellt, meldet 1.0.81) und eine **fēnix 5** (id 560, 1.0.78, zuletzt 17.08.). Seine
+  echte fēnix 7X Pro (id 297, 1.0.82, 60 Sessions, zuletzt 20:56) war **ausgeblendet**.
+  **Ursache:** `_auto_hide_alte` blendet beim Pairing aeltere Eintraege derselben Part-Number aus.
+  Der Simulator meldet dieselbe Part-Number wie die echte Uhr (er gibt sich als fēnix 7X Pro aus)
+  und hat sie damit verdraengt. Die Annahme der Regel — „der alte Token kann ohnehin nicht mehr
+  benutzt werden" — stimmt hier nicht: die Uhr lief weiter.
+  **Fix (`deps.current_device`):** meldet sich ein ausgeblendetes Geraet wieder, wird das
+  Ausblenden aufgehoben. Ein Geraet, das spricht, ist keine Karteileiche.
+  **Bestand geprueft:** im ganzen Datenbestand gibt es genau EINEN solchen Fall — Jans eigenen.
+  Die Regel selbst bleibt also richtig, sie hatte nur keinen Rueckweg.
+  Jans Eintrag taucht beim naechsten App-Start der Uhr von selbst wieder auf (kein DB-Eingriff).
