@@ -9,7 +9,7 @@ import androidx.compose.runtime.setValue
 // genau diese 7 Locales pflegen). Fallback: de. Erweiterbar — Strings je Screen ergänzen.
 // Wording, wo möglich, identisch mit web/src/i18n/locales/*.
 object I18n {
-    val LANGS = listOf("de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs", "pt", "ja", "zh", "ru", "id", "nb")
+    val LANGS = listOf("de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs", "pt", "ja", "zh", "ru", "id", "nb", "pl")
     var lang by mutableStateOf("de")
         private set
 
@@ -31,8 +31,9 @@ object I18n {
         if (lang == "ru") RU[key]?.let { return it }   // ru-Overlay (aus Englisch); sonst Englisch
         if (lang == "id") ID[key]?.let { return it }   // id-Overlay (aus Englisch); sonst Englisch
         if (lang == "nb") NB[key]?.let { return it }   // nb-Overlay (Bokmaal); sonst Englisch
+        if (lang == "pl") PL[key]?.let { return it }   // pl-Overlay (aus web pl.ts); sonst Englisch
         val row = S[key] ?: return key
-        val overlayLangs = setOf("fi", "nl", "cs", "pt", "ja", "zh", "ru", "id", "nb")
+        val overlayLangs = setOf("fi", "nl", "cs", "pt", "ja", "zh", "ru", "id", "nb", "pl")
         val fallback = if (lang in overlayLangs) (row["en"] ?: row["de"]) else row["de"]
         return row[lang] ?: fallback ?: row["en"] ?: key
     }

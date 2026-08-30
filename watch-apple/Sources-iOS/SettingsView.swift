@@ -4,7 +4,8 @@ import SwiftUI
 private let langNames = ["de": "Deutsch", "gsw": "Schwiizerdütsch", "de-AT": "Österreichisch",
                          "en": "English", "fr": "Français", "it": "Italiano", "es": "Español", "fi": "Suomi",
                          "nl": "Nederlands", "cs": "Čeština", "pt": "Português", "ja": "日本語",
-                         "zh": "中文", "ru": "Русский", "id": "Bahasa Indonesia"]
+                         "zh": "中文", "ru": "Русский", "id": "Bahasa Indonesia",
+                         "nb": "Norsk", "pl": "Polski"]
 
 // Allgemeine Einstellungen: Gewicht, Homespot, Design (Theme), Push-Benachrichtigungen.
 // Bewusst Standard-Bindings + .onChange(of:) (kein derived Binding) — release-robust.

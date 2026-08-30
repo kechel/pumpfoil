@@ -3,7 +3,9 @@ import Foundation
 // Lokalisierung nach Profil-Sprache (in UserDefaults "appLang", gesetzt nach Login).
 // NICHT Geräte-Locale. Fallback de. Wording wie web/src/i18n/locales/*.
 enum Loc {
-    static let langs = ["de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs", "pt", "ja", "zh", "ru", "id"]
+    // nb fehlte hier seit dem Norwegisch-Rollout: das Overlay war da, die Sprache aber gar
+    // nicht auswaehlbar. Mit pl zusammen nachgezogen.
+    static let langs = ["de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs", "pt", "ja", "zh", "ru", "id", "nb", "pl"]
 
     // Tschechisch-Overlay (aus web/src/i18n/locales/cs.ts + app-eigene Keys). Fallback: Englisch.
     // In 10 Bloecke zerlegt: EIN Literal mit 543 Eintraegen ist fuer den
@@ -1263,9 +1265,10 @@ enum Loc {
         if lang == "ru", let v = ruOverlay[key] { return v }   // ru-Overlay (LocExtra.swift); sonst Englisch
         if lang == "id", let v = idOverlay[key] { return v }   // id-Overlay (LocExtra.swift); sonst Englisch
         if lang == "nb", let v = nbOverlay[key] { return v }   // nb-Overlay (LocExtra.swift); sonst Englisch
+        if lang == "pl", let v = plOverlay[key] { return v }   // pl-Overlay (LocExtra.swift); sonst Englisch
         guard let row = table[key] else { return key }
         // Overlay-Sprachen fallen auf Englisch zurück (nicht Deutsch), wenn ein Key im Overlay fehlt.
-        let overlayLangs: Set<String> = ["fi", "nl", "cs", "pt", "ja", "zh", "ru", "id", "nb"]
+        let overlayLangs: Set<String> = ["fi", "nl", "cs", "pt", "ja", "zh", "ru", "id", "nb", "pl"]
         let fallback = overlayLangs.contains(lang) ? (row["en"] ?? row["de"]) : row["de"]
         return row[lang] ?? fallback ?? row["en"] ?? key
     }
