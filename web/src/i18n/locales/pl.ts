@@ -1111,7 +1111,7 @@ const pl: Record<string, string> = {
   "phome.latest": "Najnowsze sesje",
   "phome.byFoil": "Według foila",
   "social.title": "Kanały społecznościowe",
-  "social.hint": "Filmy społeczności w jednym miejscu, odtwarzane tutaj — bez algorytmu pośrodku. Dodaj swój kanał YouTube w profilu, a twoje filmy dołączą. Instagram i TikTok na to nie pozwalają: nie udostępniają już publicznie filmów kanału, więc działa tylko YouTube.",
+  "social.hint": "Filmy społeczności w jednym miejscu, odtwarzane tutaj — bez algorytmu pośrodku. Dodaj swój kanał YouTube w profilu, a twoje filmy dołączą. (Instagram i TikTok na to nie pozwalają.)",
   "social.prev": "Wstecz",
   "social.next": "Dalej",
   "social.report": "Zgłoś",

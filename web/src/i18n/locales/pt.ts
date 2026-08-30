@@ -1032,7 +1032,7 @@ const pt: Record<string, string> = {
   "phome.latest": "Últimas sessões",
   "phome.byFoil": "Por foil",
   "social.title": "Feeds de redes sociais",
-  "social.hint": "Vídeos da comunidade reunidos num só sítio e reproduzíveis aqui — sem algoritmo pelo meio. Adiciona o teu canal do YouTube no perfil e os teus vídeos entram também. O Instagram e o TikTok não permitem isto: já não disponibilizam publicamente os vídeos de um canal, por isso só funciona com o YouTube.",
+  "social.hint": "Vídeos da comunidade reunidos num só sítio e reproduzíveis aqui — sem algoritmo pelo meio. Adiciona o teu canal do YouTube no perfil e os teus vídeos entram também. O (O Instagram e o TikTok não permitem isto.)",
   "social.prev": "Anterior",
   "social.next": "Seguinte",
   "social.report": "Denunciar",

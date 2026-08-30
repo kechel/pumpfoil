@@ -1032,7 +1032,7 @@ const zh: Record<string, string> = {
   "phome.latest": "最新记录",
   "phome.byFoil": "按水翼",
   "social.title": "社交媒体动态",
-  "social.hint": "社区视频汇聚一处，可直接在这里播放——中间没有算法。在个人资料中填入你的 YouTube 频道，你的视频也会一起出现。 Instagram 和 TikTok 不支持：它们不再公开提供频道视频，因此只能使用 YouTube。",
+  "social.hint": "社区视频汇聚一处，可直接在这里播放——中间没有算法。在个人资料中填入你的 YouTube 频道，你的视频也会一起出现。 （Instagram 和 TikTok 不支持。）",
   "social.prev": "上一个",
   "social.next": "下一个",
   "social.report": "举报",

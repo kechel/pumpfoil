@@ -1159,7 +1159,7 @@ const en: Record<string, string> = {
   "phome.latest": "Latest sessions",
   "phome.byFoil": "Per foil",
   "social.title": "Social media feeds",
-  "social.hint": "Videos from the community, gathered in one place and playable right here — no algorithm in between. Add your YouTube channel in your profile and your videos join in. Instagram and TikTok do not allow this: they no longer hand out a channel's videos publicly, so YouTube is the only one that works.",
+  "social.hint": "Videos from the community, gathered in one place and playable right here — no algorithm in between. Add your YouTube channel in your profile and your videos join in. (Instagram and TikTok do not allow this.)",
   "social.prev": "Previous",
   "social.next": "Next",
   "social.report": "Report",

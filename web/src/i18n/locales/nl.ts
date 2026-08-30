@@ -1112,7 +1112,7 @@ const nl: Record<string, string> = {
   "phome.latest": "Laatste sessies",
   "phome.byFoil": "Per foil",
   "social.title": "Social-media-feeds",
-  "social.hint": "Video's uit de community, op één plek en hier af te spelen — zonder algoritme ertussen. Zet je YouTube-kanaal in je profiel, dan doen jouw video's mee. Instagram en TikTok staan dit niet toe: ze geven de video's van een kanaal niet meer openbaar vrij, dus alleen YouTube werkt.",
+  "social.hint": "Video's uit de community, op één plek en hier af te spelen — zonder algoritme ertussen. Zet je YouTube-kanaal in je profiel, dan doen jouw video's mee. (Instagram en TikTok staan dit niet toe.)",
   "social.prev": "Vorige",
   "social.next": "Volgende",
   "social.report": "Melden",

@@ -1112,7 +1112,7 @@ const cs: Record<string, string> = {
   "phome.latest": "Poslední relace",
   "phome.byFoil": "Podle foilu",
   "social.title": "Feedy ze sociálních sítí",
-  "social.hint": "Videa z komunity na jednom místě a přehratelná přímo tady — bez algoritmu mezi tím. Zadej svůj YouTube kanál v profilu a tvoje videa se přidají. Instagram a TikTok to neumožňují: videa kanálu už veřejně nevydávají, takže to jde jen s YouTube.",
+  "social.hint": "Videa z komunity na jednom místě a přehratelná přímo tady — bez algoritmu mezi tím. Zadej svůj YouTube kanál v profilu a tvoje videa se přidají. (Instagram a TikTok to neumožňují.)",
   "social.prev": "Zpět",
   "social.next": "Dál",
   "social.report": "Nahlásit",

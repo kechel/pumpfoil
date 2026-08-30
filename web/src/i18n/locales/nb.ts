@@ -1064,7 +1064,7 @@ const nb: Record<string, string> = {
   "phome.latest": "Siste økter",
   "phome.byFoil": "Per foil",
   "social.title": "Sosiale feeder",
-  "social.hint": "Videoer fra fellesskapet, samlet på ett sted og spillbare her — uten algoritme imellom. Legg inn YouTube-kanalen din i profilen, så blir videoene dine med. Instagram og TikTok tillater det ikke: de gir ikke lenger ut videoene til en kanal offentlig, så bare YouTube fungerer.",
+  "social.hint": "Videoer fra fellesskapet, samlet på ett sted og spillbare her — uten algoritme imellom. Legg inn YouTube-kanalen din i profilen, så blir videoene dine med. (Instagram og TikTok tillater det ikke.)",
   "social.prev": "Forrige",
   "social.next": "Neste",
   "social.report": "Rapporter",

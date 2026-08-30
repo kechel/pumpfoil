@@ -1077,7 +1077,7 @@ const fi: Record<string, string> = {
   "phome.latest": "Viimeisimmät sessiot",
   "phome.byFoil": "Foileittain",
   "social.title": "Somevirrat",
-  "social.hint": "Yhteisön videot yhdessä paikassa ja katsottavissa tässä — ilman algoritmia välissä. Lisää YouTube-kanavasi profiiliin, niin videosi tulevat mukaan. Instagram ja TikTok eivät salli tätä: ne eivät enää luovuta kanavan videoita julkisesti, joten vain YouTube toimii.",
+  "social.hint": "Yhteisön videot yhdessä paikassa ja katsottavissa tässä — ilman algoritmia välissä. Lisää YouTube-kanavasi profiiliin, niin videosi tulevat mukaan. (Instagram ja TikTok eivät salli tätä.)",
   "social.prev": "Edellinen",
   "social.next": "Seuraava",
   "social.report": "Ilmoita",

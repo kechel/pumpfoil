@@ -1032,7 +1032,7 @@ const id: Record<string, string> = {
   "phome.latest": "Sesi terbaru",
   "phome.byFoil": "Per foil",
   "social.title": "Feed media sosial",
-  "social.hint": "Video dari komunitas, terkumpul di satu tempat dan bisa diputar di sini — tanpa algoritma di antaranya. Tambahkan kanal YouTube-mu di profil, videomu ikut tampil. Instagram dan TikTok tidak mengizinkan ini: mereka tidak lagi membagikan video sebuah kanal secara publik, jadi hanya YouTube yang bisa.",
+  "social.hint": "Video dari komunitas, terkumpul di satu tempat dan bisa diputar di sini — tanpa algoritma di antaranya. Tambahkan kanal YouTube-mu di profil, videomu ikut tampil. (Instagram dan TikTok tidak mengizinkannya.)",
   "social.prev": "Sebelumnya",
   "social.next": "Berikutnya",
   "social.report": "Laporkan",

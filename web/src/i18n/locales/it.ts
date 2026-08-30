@@ -808,7 +808,7 @@ const it: Record<string, string> = {
   "phome.latest": "Ultime sessioni",
   "phome.byFoil": "Per foil",
   "social.title": "Feed social",
-  "social.hint": "Video della community, raccolti in un posto e riproducibili qui — senza algoritmi di mezzo. Aggiungi il tuo canale YouTube nel profilo e i tuoi video entrano nel feed. Instagram e TikTok non lo permettono: non rendono più pubblici i video di un canale, quindi funziona solo con YouTube.",
+  "social.hint": "Video della community, raccolti in un posto e riproducibili qui — senza algoritmi di mezzo. Aggiungi il tuo canale YouTube nel profilo e i tuoi video entrano nel feed. (Instagram e TikTok non lo permettono.)",
   "social.prev": "Indietro",
   "social.next": "Avanti",
   "social.report": "Segnala",

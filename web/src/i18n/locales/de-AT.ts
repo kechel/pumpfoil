@@ -671,7 +671,7 @@ const deAT: Record<string, string> = {
   "phome.latest": "Letzte Sessions",
   "phome.byFoil": "Je Foil",
   "social.title": "Social-Media-Feeds",
-  "social.hint": "Videos aus der Community, gesammelt an einem Ort und hier abspielbar — ohne Algorithmus, der dazwischenfunkt. Trag deinen YouTube-Kanal im Profil ein, dann laufen deine Videos hier mit. Instagram und TikTok erlauben das leider nicht: sie geben die Videos eines Kanals nicht mehr öffentlich heraus, deshalb geht es nur mit YouTube.",
+  "social.hint": "Videos aus der Community, gesammelt an einem Ort und hier abspielbar — ohne Algorithmus, der dazwischenfunkt. Trag deinen YouTube-Kanal im Profil ein, dann laufen deine Videos hier mit. (Instagram und TikTok erlauben das leider nicht.)",
   "social.prev": "Zurück",
   "social.next": "Weiter",
   "social.report": "Melden",

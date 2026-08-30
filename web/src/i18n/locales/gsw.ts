@@ -731,7 +731,7 @@ const gsw: Record<string, string> = {
   "phome.latest": "Letschti Sessions",
   "phome.byFoil": "Pro Foil",
   "social.title": "Social-Media-Feeds",
-  "social.hint": "Videos us de Community, a einem Ort gsammlet und da abspielbar — ohni Algorithmus, wo drizwüschefunkt. Trag din YouTube-Kanal im Profil i, denn laufed dini Videos da mit. Instagram und TikTok erlaubed das leider nöd: si gänd d Videos vomene Kanal nöd meh öffentlich use, drum gaht s nur mit YouTube.",
+  "social.hint": "Videos us de Community, a einem Ort gsammlet und da abspielbar — ohni Algorithmus, wo drizwüschefunkt. Trag din YouTube-Kanal im Profil i, denn laufed dini Videos da mit. (Instagram und TikTok erlaubed das leider nöd.)",
   "social.prev": "Zrugg",
   "social.next": "Wiiter",
   "social.report": "Mälde",
