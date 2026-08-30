@@ -3687,3 +3687,19 @@ Offen daraus:
   Der Server neutralisiert ihn (>90 km/h -> Median), aber in den Rohdaten steht dauerhaft Unsinn.
   **Reihenfolge (Jan, 30.08.):** erst Garmin einreichen; iOS und Play liegen in Pruefung und
   koennen die neue Lauf-Logik fruehestens nach ihrer Freigabe nachziehen.
+
+- **🟡 30.08. — Garmin 1.0.82 EINGEREICHT** (Jans Meldung; Store-Seite: „Erste Version 2. Juli 2026,
+  Aktuelle Version 30. August 2026, Version 1.0.82 (Intern: 36), Groesse 70 KB").
+  Inhalt: die an den Server angeglichene Lauf-Erkennung (Cooldown nur nach echtem Stopp,
+  Fortsetzung verlaengert den Lauf statt ihn zu ersetzen, Mindestlauf 5 s / 2,0 m/s) plus die
+  Plausibilitaetspruefung beim Zusammenfuehren.
+  **Sonderfall 1.0.81:** die ging versehentlich in den Store (Jan hatte auf Abbrechen gedrueckt),
+  ist dort LIVE und enthaelt die Plausibilitaetspruefung noch NICHT. 1.0.82 ersetzt sie.
+  **Stand jetzt:** Store 1.0.81 · `watch/bin` 1.0.80 · `appmeta.garmin.latest` 1.0.80.
+  `appmeta` bewusst NICHT auf 1.0.81 gesetzt — 1.0.82 kommt unmittelbar, sonst aktualisieren die
+  Nutzer zweimal an einem Tag. Nach der Freigabe der 1.0.82 in dieser Reihenfolge: `build-all.sh`
+  -> `appmeta.garmin` -> Changelog -> Antwort an Cornelia (Entwurf liegt bereit).
+  **Nuetzlich, selbst pruefbar:** die im Store veroeffentlichte Version steht in der Store-Seite
+  und laesst sich von der VM abfragen —
+  `curl -s https://apps.garmin.com/apps/9a2a753e-b52f-4587-aee4-900caf5cb351 | grep -o 'Version":"[0-9.]*"'`
+  liefert derzeit `1.0.81`. Damit muss man auf die Freigabe nicht warten, sondern kann sie messen.
