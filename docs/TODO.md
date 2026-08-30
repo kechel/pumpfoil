@@ -3924,3 +3924,19 @@ Offen daraus:
   Konto, Ablage ausserhalb des ausgelieferten Verzeichnisses mit generiertem Namen (nie der
   Originalname), Bilder serverseitig neu kodieren (entfernt eingebettete Skripte und EXIF-GPS),
   Anzeige nur im Admin. Vorbilder im Haus: Session-Fotos und Spot-Beschreibungs-Fotos.
+
+- **⚠️ MERKEN (30.08.) — Sicherheits-Kopfzeilen frieren im Service Worker ein.** Nach der
+  CSP-Aenderung sah Jan weiter `ERR_BLOCKED_BY_CSP`, obwohl der Server die neue Richtlinie
+  ausliefert (per `curl` gegengeprueft: `frame-src` enthaelt beide Hosts). Ursache: der SW
+  precacht `index.html` **mitsamt den Kopfzeilen von damals**. Solange er die gecachte Antwort
+  ausliefert, gilt die ALTE CSP — Blocker aus- und einschalten hilft nicht, Neuladen auch nicht
+  zwingend.
+  **Abhilfe fuer den Nutzer:** das Banner „Neue Version verfuegbar" -> „Aktualisieren"
+  (`registerType: "prompt"`, PwaStatus.tsx), oder alle Tabs schliessen und neu oeffnen.
+  **Konsequenz fuer uns:** eine CSP-Aenderung erreicht die Nutzer erst mit dem naechsten
+  PWA-Update, nicht mit dem Server-Neustart. Bei sicherheitsrelevanten Aenderungen also immer
+  einen Web-Build mit ausliefern (macht `npm run build` ohnehin) und damit rechnen, dass alte
+  Clients die alte Richtlinie behalten, bis sie aktualisieren.
+  **Zu ueberlegen:** Navigationen auf NetworkFirst umstellen, damit frische Kopfzeilen sofort
+  gelten. Kostet einen Netzwerk-Roundtrip beim Seitenaufbau — bewusst nicht im Vorbeigehen
+  geaendert, das ist eine PWA-Grundsatzentscheidung.
