@@ -3927,8 +3927,11 @@ Offen daraus:
       `youtube-nocookie.com`, der volle Player wurde von unserer eigenen Richtlinie blockiert.
       Jetzt stehen beide drin — die Startseite bleibt bei nocookie, nur der Feed nutzt den vollen.
       `img-src` braucht KEINEN Google-Host, weil die Vorschaubilder ueber unseren Server laufen.
-  **Noch offen:** Android/iOS (Paritaet) ·
-  Platzierung weiter oben, sobald sich der Feed fuellt.
+    · **Platzierung final (Jan, 30.08.):** direkt UEBER „Medien" auf der Community-Seite — also
+      an dritter Stelle nach den Rekord-Kacheln. Waehrend der Entwicklung stand er ganz unten.
+    · **Vorschau im Hochformat (9:16)** wie auf der oeffentlichen Startseite — „es gibt fast nur
+      Shorts bei uns". Titel und Autor liegen im Bild, Play-Kreis in Marken-Cyan.
+  **Noch offen:** Android/iOS (Paritaet).
 
 - **📥 Inbox 30.08. (Jan) — Dateianhaenge im Feedback-Formular.** Nutzer sollen Screenshots/Logs
   anhaengen koennen. Grenzen gegen Missbrauch mitdenken: Dateitypen weiss-listen (Bilder + Text/

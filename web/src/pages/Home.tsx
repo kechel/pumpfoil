@@ -401,15 +401,14 @@ function CommunitySection() {
         )}
       </div>
       <RecordGrid rec={data[period]} showSpot />
+      {/* Social-Feed ueber „Medien" (Jan, 30.08., nachdem er sich gefuellt hat): die Videos der
+          Community sind das Lebendigste auf der Seite, die Fotos darunter ergaenzen sie. */}
+      <SocialFeed />
       <LatestMedia />
       <Leaderboards period={period} accelOnly={accelOnly} sport={sport} />
       <TopLiked period={period} />
       <SpotSection period={period} accelOnly={accelOnly} sport={sport} />
       <LayoutTeaser />
-      {/* Social-Feed vorerst GANZ UNTEN (Jan, 30.08.): noch hat niemand einen Kanal hinterlegt,
-          das Feld gibt es ja erst seit heute. Wenn er sich fuellt, wandert er weiter nach oben —
-          Jan sagt wann, vermutlich ueber „Medien". */}
-      <SocialFeed />
     </div>
   );
 }
