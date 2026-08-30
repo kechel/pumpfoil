@@ -3933,10 +3933,15 @@ Offen daraus:
   zwingend.
   **Abhilfe fuer den Nutzer:** das Banner „Neue Version verfuegbar" -> „Aktualisieren"
   (`registerType: "prompt"`, PwaStatus.tsx), oder alle Tabs schliessen und neu oeffnen.
-  **Konsequenz fuer uns:** eine CSP-Aenderung erreicht die Nutzer erst mit dem naechsten
-  PWA-Update, nicht mit dem Server-Neustart. Bei sicherheitsrelevanten Aenderungen also immer
-  einen Web-Build mit ausliefern (macht `npm run build` ohnehin) und damit rechnen, dass alte
-  Clients die alte Richtlinie behalten, bis sie aktualisieren.
+  **Konsequenz fuer uns — und genau das ist mir passiert:** ich habe die CSP im Server geaendert
+  und neu gestartet, aber den **Web-Build nicht wiederholt**. `sw.js` blieb damit unveraendert ->
+  kein neuer Service Worker -> kein Update-Banner -> die Clients behielten die alte, gecachte
+  `index.html` mit der alten CSP. Jan fiel es auf („das mit den Versionsupdates kam die ganze
+  Zeit, nur jetzt nicht — hast du was vergessen?").
+  **REGEL: nach jeder Aenderung an Sicherheits-Kopfzeilen `cd web && npm run build` ausfuehren**,
+  auch wenn kein einziges Byte Frontend-Code betroffen ist. Der Build stempelt die neue Kennung
+  (`version.json`, aus dem Commit) in `sw.js`, und erst dadurch holt der Client die Seite samt
+  frischer Kopfzeile neu. Gegenprobe: `md5sum web/dist/sw.js` vor und nach dem Build.
   **Zu ueberlegen:** Navigationen auf NetworkFirst umstellen, damit frische Kopfzeilen sofort
   gelten. Kostet einen Netzwerk-Roundtrip beim Seitenaufbau — bewusst nicht im Vorbeigehen
   geaendert, das ist eine PWA-Grundsatzentscheidung.
