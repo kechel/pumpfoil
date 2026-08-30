@@ -3561,3 +3561,29 @@ Offen daraus:
     Buendelung ueber die Web-Mercator-Weltpixel (dieselbe Rechnung wie Leaflets `project()`),
     Neuberechnung beim Zoomen ueber einen `DelayedMapListener`. Kompiliert.
   - Das Web bleibt unveraendert (Schwelle 26 passt dort zu 18-px-Kreisen).
+
+- **🔴 AKUT + behoben 30.08. — iOS stuerzte beim Start ab: ungueltige Karten-Region.**
+  Jans Simulator-Lauf lieferte den echten Fehler:
+  `NSInvalidArgumentException — Invalid Region <center:+17.98,+2.27 span:+139.90,+384.58>`.
+  MapKit wirft ab **180°/360°** eine NSException; die ist **nicht abfangbar**, die App endet sofort.
+  `SpotsView.fitRegion` legt auf die Bounding-Box aller Spots **40 % Rand**: erlaubt sind damit
+  257,1° Spreizung — mehr nicht.
+  **Ausgeloest hat es EINE Session:** die erste aus Japan (三浦市, `spot_id` 450, hochgeladen
+  **30.08. 07:55**). Damit reichen unsere Spots von Whitehorse/Haines (−135,1°) bis 139,6° Ost =
+  **274,7°** -> ×1,4 = **384,6°**. Tags zuvor waren es 250,9° -> 351,3°, also **keine 9° unter der
+  Kante**. Jaceks Meldung „stuerzt beim Start ab" kam 13:24 desselben Tages — es war nie sein
+  Geraet, es war unsere Datenlage. Und weil die ausgelieferten Versionen beim Start ALLE Tabs
+  bauen, traf es jeden eingeloggten iOS-Nutzer, auch ohne den Spots-Tab je zu oeffnen.
+  **Zwei Fixes:**
+  1. **Client (1.1.26):** `sichereRegion()` in `SpotsView.swift` kappt jede Spanne auf 170°/350°;
+     alle vier Kartenstellen laufen jetzt darueber (Spots, Vergleich, Verlauf, Session-Detail).
+     Der Vergleich hatte dieselbe Falle — zwei Sessions von verschiedenen Kontinenten.
+  2. **Server (sofort live, `_alte_ios_app`/`_kappe_ausreisser` in `community.py`):** Clients mit
+     `X-Pumpfoil-Client: ios/<1.1.26` bekommen von `/api/community/spot-map` die aeussersten
+     Spots weggelassen, bis die Box wieder passt — Seite mit den wenigsten Sessions zuerst, bei
+     Gleichstand die, die die Spreizung wirklich verkleinert (an einem Ende koennen mehrere Spots
+     dicht liegen: Whitehorse/Haines bringen 0,04°, der Ausreisser 24°). **Aktuell faellt genau
+     EIN Spot weg (三浦市), 230 von 231, Region 351,3°.** Web und Android bekommen unveraendert
+     alles. **WEG DAMIT, sobald 1.1.26 im Store ist.**
+  **Merke:** Kartenregionen nie ungeprueft aus Nutzerdaten bauen — die Grenze faellt erst auf,
+  wenn jemand auf einem neuen Kontinent faehrt.

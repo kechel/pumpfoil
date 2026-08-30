@@ -822,8 +822,61 @@ def spots(accel_only: bool = True, sport: str = "pumpfoil", user: models.User = 
     return {"mine": mine, "all": qual}
 
 
+# --- NOTBEHELF fuer ausgelieferte iOS-Apps (30.08.2026) -------------------------------------
+# Die iOS-App baut aus ALLEN Spots eine MapKit-Region und legt 40 % Rand drauf. MapKit wirft ab
+# 180°/360° eine NSException — das beendet die App sofort, abfangen kann man das nicht. Und weil
+# die ausgelieferten Versionen beim Start ALLE Tabs bauen (auch den nie geoeffneten Spots-Tab),
+# heisst das: Absturz beim Start, fuer jeden eingeloggten Nutzer.
+# Ausgeloest hat es die erste Session aus Japan (30.08. 07:55): Alaska −135,1° bis 三浦市 139,6°
+# = 274,7° Spreizung, mal 1,4 = 384,6°. Tags zuvor waren es 351,3° — keine 9° unter der Kante.
+# Fuer alte iOS-Clients kappen wir deshalb die aeussersten Spots, bis die Bounding-Box wieder in
+# eine gueltige Region passt. Web und Android bekommen unveraendert alles.
+# WEG DAMIT, sobald 1.1.26 im Store ist — dort kappt die App selbst (SpotsView.sichereRegion).
+# Die App rechnet (max−min) × 1,4. MapKit erlaubt 360°/180° -> erlaubte Spreizung 257,1°/128,6°.
+# Mit etwas Luft: 256 und 127 (ergibt 358,4° bzw. 177,8°).
+MAX_LON_SPREIZUNG = 256.0
+MAX_LAT_SPREIZUNG = 127.0
+
+
+def _alte_ios_app(request: Request) -> bool:
+    c = (request.headers.get("X-Pumpfoil-Client") or "").strip().lower()
+    if not c.startswith("ios/"):
+        return False
+    try:
+        ver = tuple(int(x) for x in c.split("/", 1)[1].split(".")[:3])
+    except (ValueError, IndexError):
+        return True          # unlesbare Version -> lieber absichern
+    return ver < (1, 1, 26)
+
+
+def _kappe_ausreisser(rows: list[dict]) -> list[dict]:
+    """Entfernt die aeussersten Spots, bis die Bounding-Box in eine MapKit-Region passt.
+    Es fliegt immer die Seite mit den WENIGSTEN Sessions — der Kern der Karte bleibt stehen."""
+    out = list(rows)
+    for schluessel, grenze in (("lon", MAX_LON_SPREIZUNG), ("lat", MAX_LAT_SPREIZUNG)):
+        while len(out) > 2:
+            werte = [r[schluessel] for r in out]
+            lo, hi = min(werte), max(werte)
+            if hi - lo <= grenze:
+                break
+            links = min((r for r in out if r[schluessel] == lo), key=lambda r: r["sessions"])
+            rechts = min((r for r in out if r[schluessel] == hi), key=lambda r: r["sessions"])
+            # Zuerst zaehlt, wo weniger Sessions dranhaengen. Bei Gleichstand die Seite nehmen, die
+            # die Spreizung wirklich verkleinert: an einem Ende koennen mehrere Spots dicht
+            # beieinander liegen (Whitehorse/Haines, alle um −135°), dort bringt ein Entfernen
+            # 0,04° — waehrend ein einzelner Ausreisser am anderen Ende 24° bringt.
+            def _wirkung(weg: dict) -> float:
+                rest = [r[schluessel] for r in out if r is not weg]
+                return (hi - lo) - (max(rest) - min(rest)) if rest else 0.0
+            if links["sessions"] != rechts["sessions"]:
+                out.remove(links if links["sessions"] < rechts["sessions"] else rechts)
+            else:
+                out.remove(links if _wirkung(links) >= _wirkung(rechts) else rechts)
+    return out
+
+
 @spot_router.get("/spot-map")
-def spot_map(accel_only: bool = True, sport: str = "all",
+def spot_map(request: Request, accel_only: bool = True, sport: str = "all",
              _user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
     """Spots mit repräsentativen Koordinaten (Mittel) + Session-Zahl — für die Karte.
 
@@ -908,6 +961,12 @@ def spot_map(accel_only: bool = True, sport: str = "all",
                  .group_by(models.SpotNote.spot_id).all())
     for eintrag in out:
         eintrag["notes"] = int(notes.get(eintrag["spot_id"], 0)) if eintrag["spot_id"] else 0
+    if _alte_ios_app(request):
+        vorher = len(out)
+        out = _kappe_ausreisser(out)
+        if len(out) < vorher:
+            log.info("spot-map: %d Randspot(s) fuer alte iOS-App weggelassen (MapKit-Regionsgrenze)",
+                     vorher - len(out))
     return out
 
 

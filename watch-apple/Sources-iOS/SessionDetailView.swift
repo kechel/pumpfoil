@@ -1913,7 +1913,7 @@ struct TrackMap: UIViewRepresentable {
         let center = CLLocationCoordinate2D(latitude: (latMin + latMax) / 2, longitude: (lonMin + lonMax) / 2)
         let span = MKCoordinateSpan(latitudeDelta: max((latMax - latMin) * 1.3, 0.002),
                                     longitudeDelta: max((lonMax - lonMin) * 1.3, 0.002))
-        return MKCoordinateRegion(center: center, span: span)
+        return sichereRegion(center, span)   // Kappt zu grosse Spannen, s. SpotsView.swift
     }
 
     final class Coordinator: NSObject, MKMapViewDelegate {

@@ -2,6 +2,20 @@ import SwiftUI
 import MapKit
 
 private let KARTE_HOEHE: CGFloat = 260
+
+// MapKit wirft eine NSException, sobald eine Region breiter als 180°/360° ist — das beendet die
+// App sofort, es gibt keinen Fehlerwert zum Abfangen. Genau das ist am 30.08. passiert: mit der
+// ersten Session aus Japan (三浦市, 139,6° Ost) reichten unsere Spots von Alaska (−135,1°) bis
+// dorthin, also 274,7°; `fitRegion` legt 40 % Rand drauf -> 384,6° -> „Invalid Region … span:
+// +139.9, +384.6" und Absturz beim Start. Tags zuvor waren es 351,3°, keine 9° unter der Kante.
+// Deshalb laeuft JEDE hier berechnete Region durch diesen Helfer.
+func sichereRegion(_ mitte: CLLocationCoordinate2D, _ spanne: MKCoordinateSpan) -> MKCoordinateRegion {
+    MKCoordinateRegion(
+        center: mitte,
+        span: MKCoordinateSpan(
+            latitudeDelta: min(max(spanne.latitudeDelta, 0.001), 170),
+            longitudeDelta: min(max(spanne.longitudeDelta, 0.001), 350)))
+}
 // Ab welchem Punkt-Abstand zwei Pins als "uebereinander" gelten. Das Web nimmt 26 (Kreise mit
 // 9 px Radius); unsere Pins sind 30 Punkt breit, also braucht es hier mehr — 38 = Pin-Breite plus
 // ein wenig Luft. Gemessen an den echten 231 Spots bleiben damit auf JEDER Zoomstufe hoechstens
@@ -193,10 +207,10 @@ struct SpotsView: View {
         let hLon = ((lons.max() ?? 0) - (lons.min() ?? 0)) * 1.6
         // Untergrenze: liegen die Spots (fast) aufeinander, wird trotzdem sichtbar
         // weitergezoomt — sonst tippt man ins Leere.
-        let neu = MKCoordinateRegion(
-            center: b.mitte,
-            span: MKCoordinateSpan(latitudeDelta: max(hLat, region.span.latitudeDelta / 4),
-                                   longitudeDelta: max(hLon, region.span.longitudeDelta / 4)))
+        let neu = sichereRegion(
+            b.mitte,
+            MKCoordinateSpan(latitudeDelta: max(hLat, region.span.latitudeDelta / 4),
+                             longitudeDelta: max(hLon, region.span.longitudeDelta / 4)))
         withAnimation { region = neu }
         buendeln()
     }
@@ -222,8 +236,6 @@ struct SpotsView: View {
         let center = CLLocationCoordinate2D(latitude: (minLat + maxLat) / 2, longitude: (minLon + maxLon) / 2)
         let latDelta: Double = max((maxLat - minLat) * 1.4, 0.05)
         let lonDelta: Double = max((maxLon - minLon) * 1.4, 0.05)
-        region = MKCoordinateRegion(
-            center: center,
-            span: MKCoordinateSpan(latitudeDelta: latDelta, longitudeDelta: lonDelta))
+        region = sichereRegion(center, MKCoordinateSpan(latitudeDelta: latDelta, longitudeDelta: lonDelta))
     }
 }

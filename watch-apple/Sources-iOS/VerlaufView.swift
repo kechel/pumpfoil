@@ -545,7 +545,7 @@ struct SpotProgressMap: UIViewRepresentable {
                 let center = CLLocationCoordinate2D(latitude: (laMin + laMax) / 2, longitude: (loMin + loMax) / 2)
                 let span = MKCoordinateSpan(latitudeDelta: max((laMax - laMin) * 1.3, 0.002),
                                             longitudeDelta: max((loMax - loMin) * 1.3, 0.002))
-                map.setRegion(MKCoordinateRegion(center: center, span: span), animated: false)
+                map.setRegion(sichereRegion(center, span), animated: false)   // s. SpotsView.swift
             }
         }
         map.removeOverlays(map.overlays)

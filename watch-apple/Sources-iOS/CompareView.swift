@@ -654,7 +654,9 @@ struct CompareMap: UIViewRepresentable {
                                                 longitude: (lons.min()! + lons.max()!) / 2)
             let span = MKCoordinateSpan(latitudeDelta: max((lats.max()! - lats.min()!) * 1.3, 0.002),
                                         longitudeDelta: max((lons.max()! - lons.min()!) * 1.3, 0.002))
-            map.setRegion(MKCoordinateRegion(center: center, span: span), animated: false)
+            // Ueber sichereRegion (SpotsView.swift): zwei verglichene Sessions koennen auf
+            // verschiedenen Kontinenten liegen, und eine Region ueber 180°/360° beendet die App.
+            map.setRegion(sichereRegion(center, span), animated: false)
         }
     }
 
