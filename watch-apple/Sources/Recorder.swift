@@ -128,6 +128,10 @@ final class Recorder: NSObject, ObservableObject {
     /// stehen zwei Eintraege im 15-s-Ring und das Fenster ist nur halb so lang.
     private var spdMaxClean = 0.0
     private var minSpeedSeitEnde = 99.0     // kleinster Speed seit dem letzten Lauf-Ende
+    private var lastRunStartMs = 0          // Start des zuletzt beendeten Laufs (fuer Fortsetzungen)
+    private var lastRunStartDist = 0.0
+    private let minRunMs = 5000             // kuerzer = kein Lauf (Server: MIN_SEGMENT_S)
+    private let minRunAvgMps = 2.0          // langsamer = kein Lauf (Server: MOVE_FLOOR_MPS)
     private var runIstFortsetzung = false   // setzt den vorigen Lauf fort -> nicht neu zaehlen
 
     private func maxKandidat(_ v: Double) -> Double {
@@ -198,6 +202,7 @@ final class Recorder: NSObject, ObservableObject {
         isFoiling = false; foilEnterStreak = 0; foilExitStreak = 0; runEndedMs = -100000
         runCount = 0; runStartMs = 0; runStartDist = 0; runMaxMps = 0; runMaxHr = 0; lastRunMaxHrV = 0
         lastRunDurMs = 0; lastRunDistM = 0; lastRunAvgMps = 0; lastRunMaxMps = 0
+        lastRunStartMs = 0; lastRunStartDist = 0; minSpeedSeitEnde = 99.0; runIstFortsetzung = false
         runDurationMs = 0; runDistanceM = 0; runMaxSpeedKmh = 0
         lastRunDurationMs = 0; lastRunDistanceM = 0; lastRunAvgSpeedKmh = 0; lastRunMaxSpeedKmh = 0; lastRunMaxHr = 0
         status = WLoc.t("rec.recording", UserDefaults.standard.string(forKey: "appLang") ?? "de")
@@ -217,12 +222,15 @@ final class Recorder: NSObject, ObservableObject {
         let dist = distAccum
         let spMps = speedKmh / 3.6
         if !isFoiling {
-            // Re-Arm-Cooldown: direkt nach Lauf-Ende keinen neuen Lauf zulassen
-            // (Zurückschwimmen/Waten/zum-Steg-Laufen erzeugt sonst Phantom-Läufe).
-            if tMs - runEndedMs < runReArmCooldownMs {
+            // Minimum IMMER mitfuehren — auch waehrend des Cooldowns; genau dort zeigt sich ein
+            // echter Stopp (absinken/stehen).
+            if spMps < minSpeedSeitEnde { minSpeedSeitEnde = spMps }
+            // Re-Arm-Cooldown gegen Phantom-Laeufe (Zurueckschwimmen/Waten), aber NUR nach einem
+            // echten Stopp — ohne Stopp ist es die Fortsetzung desselben Laufs.
+            let gesperrt = tMs - runEndedMs < runReArmCooldownMs && minSpeedSeitEnde < 1.5
+            if gesperrt {
                 foilEnterStreak = 0
             } else {
-                if spMps < minSpeedSeitEnde { minSpeedSeitEnde = spMps }
                 foilEnterStreak = speed3sKmh >= foilEnterKmh ? foilEnterStreak + 1 : 0
                 if foilEnterStreak >= foilEnterDwellS {
                     isFoiling = true; foilExitStreak = 0
@@ -230,8 +238,15 @@ final class Recorder: NSObject, ObservableObject {
                     // fuehrt beide zusammen (_merge_no_stop, ohne Zeitfenster).
                     runIstFortsetzung = runCount > 0 && minSpeedSeitEnde >= 1.5
                     minSpeedSeitEnde = 99.0
-                    // Lauf-Start auf den Dwell-Beginn zurückdatieren (wie Garmin).
-                    runStartMs = tMs - runEnterDwellMs; runStartDist = dist; runMaxMps = spdMaxClean; runMaxHr = hr > 0 ? hr : 0
+                    if runIstFortsetzung {
+                        // Denselben Lauf weiterfuehren -> Dauer/Distanz zeigen den GANZEN Lauf.
+                        runStartMs = lastRunStartMs; runStartDist = lastRunStartDist
+                        if lastRunMaxMps > runMaxMps { runMaxMps = lastRunMaxMps }
+                        if lastRunMaxHrV > runMaxHr { runMaxHr = lastRunMaxHrV }
+                    } else {
+                        // Lauf-Start auf den Dwell-Beginn zurückdatieren (wie Garmin).
+                        runStartMs = tMs - runEnterDwellMs; runStartDist = dist; runMaxMps = spdMaxClean; runMaxHr = hr > 0 ? hr : 0
+                    }
                 }
             }
         } else {
@@ -241,16 +256,26 @@ final class Recorder: NSObject, ObservableObject {
             if foilExitStreak >= foilExitDwellS {
                 isFoiling = false; foilEnterStreak = 0
                 let durMs = max(0, tMs - runExitDwellMs - runStartMs)
-                lastRunDurMs = durMs
-                lastRunDistM = max(0, dist - runStartDist)
-                lastRunAvgMps = durMs > 0 ? lastRunDistM / (Double(durMs) / 1000.0) : 0
-                lastRunMaxMps = runMaxMps
-                lastRunMaxHrV = runMaxHr
-                runMaxHr = 0
-                if !runIstFortsetzung { runCount += 1 }
-                runIstFortsetzung = false
+                let distM = max(0, dist - runStartDist)
                 minSpeedSeitEnde = 99.0
                 runEndedMs = tMs   // Re-Arm-Cooldown starten
+                // Zu kurz/zu langsam = kein Lauf (dieselbe Regel wie am Server).
+                let schnellGenug = durMs > 0 && distM / (Double(durMs) / 1000.0) >= minRunAvgMps
+                let verwerfen = !runIstFortsetzung && (durMs < minRunMs || !schnellGenug)
+                if verwerfen {
+                    runMaxHr = 0
+                } else {
+                    lastRunStartMs = runStartMs
+                    lastRunStartDist = runStartDist
+                    lastRunDurMs = durMs
+                    lastRunDistM = distM
+                    lastRunAvgMps = durMs > 0 ? lastRunDistM / (Double(durMs) / 1000.0) : 0
+                    lastRunMaxMps = runMaxMps
+                    lastRunMaxHrV = runMaxHr
+                    runMaxHr = 0
+                    if !runIstFortsetzung { runCount += 1 }
+                }
+                runIstFortsetzung = false
             }
         }
         // Publizierte Lauf-Felder: aktueller Lauf live, sonst letzter.

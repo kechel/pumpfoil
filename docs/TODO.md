@@ -3638,3 +3638,36 @@ Offen daraus:
   Alle vier Varianten gebaut: `app-release.aab` 15,1 MB, `wear-release.aab` 7,5 MB, beide Debug-
   APKs ebenfalls. **Merke: `assembleDebug` beweist nichts ueber den Release** — Lint laeuft nur
   beim Release-Bau, und er bricht ab, nicht warnt.
+
+- **✅ 30.08. — Lauf-Erkennung auf den Uhren an den Server angeglichen (alle sechs Recorder).**
+  Anlass: Cornelia (Cony_e) hat nach JEDER Fahrt ihre Uhr fotografiert, sieben Bilder plus zwei
+  App-Ansichten — die Messreihe, die uns bisher fehlte. Eine Simulation der Uhr-Logik auf ihren
+  echten GPS-Daten (S3079/S3081, 30.08., fēnix 7X, App 1.0.78) trifft ihre Fotos auf **1–2 Meter**
+  genau, damit ist die Diagnose belegt und nicht geraten. Drei Ursachen:
+  1. **Der 25-s-Re-Arm-Cooldown fraß den Rest des Laufs.** Bricht der Speed kurz ein (Touchdown),
+     endet der Lauf — und danach ist die Uhr 25 s taub, obwohl längst weitergefahren wird. Ihr
+     09:01-Lauf: Uhr 66 m/20 s, Server 144 m/41 s. In den Daten direkt sichtbar: die Lücken
+     zwischen den Bruchstücken sind **27 s** — die Cooldown-Dauer.
+     *Fix:* Sperre greift nur noch nach einem ECHTEN Stopp (Minimum unter 1,5 m/s). Dafür musste
+     das Minimum **auch während des Cooldowns** mitlaufen — vorher schaute die Uhr genau dann weg,
+     wenn sich ein Stopp zeigt.
+  2. **1.0.80 verschmolz nur den Zähler, nicht die Anzeige.** `_runIstFortsetzung` übersprang
+     `_runCount++`, aber `_lastRunDistM`/`_lastRunDurMs` wurden weiter mit dem Bruchstück
+     überschrieben. Ihre Beschwerde wäre also auch nach dem Update geblieben.
+     *Fix:* bei einer Fortsetzung wird der Start des vorigen Laufs übernommen (`_lastRunStartMs`/
+     `_lastRunStartDist`), Maximum und Max-Puls ebenfalls -> die Anzeige zeigt den GANZEN Lauf.
+  3. **Kein Mindest-Lauf.** 7 m in 6 s standen als „letzter Lauf" auf dem Display.
+     *Fix:* unter 5 s oder unter Ø 2,0 m/s zählt nicht (Server: `MIN_SEGMENT_S` 5 s,
+     `MOVE_FLOOR_MPS` 2,0). **Nicht** die Server-2,8 genommen — die hätte einen echten 140-m-Lauf
+     mit Ø 2,75 m/s verworfen (an ihren Daten gemessen).
+  **Ergebnis an ihren zwei Sessions:** Median-Abweichung vom Server **von 33 % auf 6 %**.
+  S3079 Uhr neu 201/67 · 131/42 · 164/57 gegen Server 191/57 · 144/41 · 176/56 · 27/8.
+  Ein Fall wird schlechter (81-m-Lauf -> 132 m überverschmolzen), zwei kurze Läufe findet die Uhr
+  weiter nicht — das ist die Grenze ohne Beschleunigungs-Modell.
+  **Wichtig fürs Verständnis:** die Schwellen sind auf beiden Seiten IDENTISCH (2,8 rein / 2,5
+  raus). Der Unterschied war nie die Erkennung, sondern das Drumherum — der Server hat keinen
+  Cooldown, sondern prüft im Nachhinein, ob je ein echter Stopp dazwischen lag.
+  Umgesetzt in: `watch/source/SessionRecorder.mc`, `android/wear/.../Recorder.kt`,
+  `android/app/.../Recorder.kt`, `watch-apple/Sources/Recorder.swift`,
+  `watch-apple/Sources-iOS/PhoneRecorder.swift`, `watch-zepp/page/index.js`.
+  Garmin auf **1.0.81** gebumpt; Test-`.prg` (fēnix 7X Pro) an Jan, `.iq` fürs Store-Paket gebaut.

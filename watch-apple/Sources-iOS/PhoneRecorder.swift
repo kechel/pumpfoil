@@ -90,6 +90,9 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
     /// maxKandidat() pro Fix nur EINMAL — sonst halbiert sich das 15-s-Fenster.
     private var spdMaxClean = 0.0
     private var minSpeedSeitEnde = 99.0
+    private var lastRunStartMs = 0.0, lastRunStartDist = 0.0   // Start des zuletzt beendeten Laufs
+    private let MIN_RUN_MS = 5000.0        // kuerzer = kein Lauf (Server: MIN_SEGMENT_S)
+    private let MIN_RUN_AVG_MPS = 2.0      // langsamer = kein Lauf (Server: MOVE_FLOOR_MPS)
     private var runIstFortsetzung = false
 
     private func maxKandidat(_ v: Double) -> Double {
@@ -128,6 +131,7 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         foiling = false; foilEnter = 0; foilExit = 0; runEndedMs = -100000
         runCnt = 0; runStartMs = 0; runStartDist = 0; runMaxMps = 0
         lastRunDurMs = 0; lastRunDistM = 0; lastRunMaxMps = 0
+        lastRunStartMs = 0; lastRunStartDist = 0; minSpeedSeitEnde = 99.0; runIstFortsetzung = false
         var meta: [String: Any] = [
             "session_uuid": uuid, "started_at": Self.nowIso(), "sport": "pumpfoil",
             "gps_hz": 1, "accel_hz": Int(ACCEL_HZ), "accel_scale": Int(ACCEL_SCALE),
@@ -268,16 +272,24 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
 
     private func updateFoilingRun(_ sp3Kmh: Double, _ tMs: Double, _ dist: Double, _ spMps: Double) -> Bool {
         if !foiling {
-            if tMs - runEndedMs < RUN_REARM_COOLDOWN_MS { foilEnter = 0 }
+            // Minimum IMMER mitfuehren (auch im Cooldown) — dort zeigt sich ein echter Stopp.
+            if spMps < minSpeedSeitEnde { minSpeedSeitEnde = spMps }
+            // Cooldown nur nach echtem Stopp; sonst Fortsetzung desselben Laufs.
+            let gesperrt = tMs - runEndedMs < RUN_REARM_COOLDOWN_MS && minSpeedSeitEnde < 1.5
+            if gesperrt { foilEnter = 0 }
             else {
-                if spMps < minSpeedSeitEnde { minSpeedSeitEnde = spMps }
                 foilEnter = sp3Kmh >= 10 ? foilEnter + 1 : 0
                 if foilEnter >= RUN_ENTER_DWELL {
                     foiling = true; foilExit = 0
                     // Kein echter Stopp seit dem letzten Lauf-Ende -> derselbe Lauf.
                     runIstFortsetzung = runCnt > 0 && minSpeedSeitEnde >= 1.5
                     minSpeedSeitEnde = 99.0
-                    runStartMs = tMs - Double(RUN_ENTER_DWELL) * 1000; runStartDist = dist; runMaxMps = spdMaxClean
+                    if runIstFortsetzung {
+                        runStartMs = lastRunStartMs; runStartDist = lastRunStartDist
+                        if lastRunMaxMps > runMaxMps { runMaxMps = lastRunMaxMps }
+                    } else {
+                        runStartMs = tMs - Double(RUN_ENTER_DWELL) * 1000; runStartDist = dist; runMaxMps = spdMaxClean
+                    }
                 }
             }
         } else {
@@ -285,12 +297,19 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
             foilExit = sp3Kmh < 9 ? foilExit + 1 : 0
             if foilExit >= RUN_EXIT_DWELL {
                 foiling = false; foilEnter = 0
-                lastRunDurMs = max(0, tMs - Double(RUN_EXIT_DWELL) * 1000 - runStartMs)
-                lastRunDistM = max(0, dist - runStartDist); lastRunMaxMps = runMaxMps
-                if !runIstFortsetzung { runCnt += 1 }
-                runIstFortsetzung = false
+                let durMs = max(0, tMs - Double(RUN_EXIT_DWELL) * 1000 - runStartMs)
+                let distM = max(0, dist - runStartDist)
                 minSpeedSeitEnde = 99.0
                 runEndedMs = tMs
+                // Zu kurz/zu langsam = kein Lauf (dieselbe Regel wie am Server).
+                let schnellGenug = durMs > 0 && distM / (durMs / 1000.0) >= MIN_RUN_AVG_MPS
+                if runIstFortsetzung || (durMs >= MIN_RUN_MS && schnellGenug) {
+                    lastRunStartMs = runStartMs; lastRunStartDist = runStartDist
+                    lastRunDurMs = durMs
+                    lastRunDistM = distM; lastRunMaxMps = runMaxMps
+                    if !runIstFortsetzung { runCnt += 1 }
+                }
+                runIstFortsetzung = false
             }
         }
         return foiling

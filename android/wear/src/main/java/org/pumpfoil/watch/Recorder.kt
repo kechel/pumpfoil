@@ -88,6 +88,8 @@ object Recorder {
     private const val RUN_EXIT_DWELL = 3
     // Nach Lauf-Ende Sperre, bevor ein neuer Lauf starten darf (Zurückschwimmen/Waten).
     private const val RUN_REARM_COOLDOWN_MS = 25000L
+    private const val MIN_RUN_MS = 5000L        // kuerzer = kein Lauf (Server: MIN_SEGMENT_S)
+    private const val MIN_RUN_AVG_MPS = 2.0     // langsamer = kein Lauf (Server: MOVE_FLOOR_MPS)
     private var runEndedMs = -100000L
     private var foilEnterStreak = 0
     private var foilExitStreak = 0
@@ -112,6 +114,8 @@ object Recorder {
     private var spdMaxClean = 0.0
     private var minSpeedSeitEnde = 99.0     // kleinster Speed seit dem letzten Lauf-Ende
     private var runIstFortsetzung = false   // setzt den vorigen Lauf fort -> nicht neu zaehlen
+    private var lastRunStartMs = 0L         // Start des zuletzt beendeten Laufs (fuer Fortsetzungen)
+    private var lastRunStartDist = 0.0
     private var lastRunDurMs = 0L
     private var lastRunDistM = 0.0
     private var lastRunAvgMps = 0.0
@@ -133,11 +137,16 @@ object Recorder {
     // Lauf-Erkennung mit Hysterese; pflegt bei Flanken die Lauf-Metriken (tMs/dist/sp in SI).
     private fun updateFoilingRun(sp3Kmh: Double, tMs: Long, dist: Double, spMps: Double): Boolean {
         if (!foiling) {
-            // Re-Arm-Cooldown: direkt nach Lauf-Ende keinen neuen Lauf zulassen.
-            if (tMs - runEndedMs < RUN_REARM_COOLDOWN_MS) {
+            // Minimum seit dem Lauf-Ende IMMER mitfuehren — auch waehrend des Cooldowns; genau
+            // dort zeigt sich ein echter Stopp.
+            if (spMps < minSpeedSeitEnde) minSpeedSeitEnde = spMps
+            // Re-Arm-Cooldown gegen Phantom-Laeufe beim Zurueckschwimmen, aber NUR nach einem
+            // echten Stopp. Ohne Stopp ist es die Fortsetzung desselben Laufs — die blinde
+            // 25-s-Sperre hat sonst den halben Lauf verschluckt (s. watch/source/SessionRecorder.mc).
+            val gesperrt = tMs - runEndedMs < RUN_REARM_COOLDOWN_MS && minSpeedSeitEnde < 1.5
+            if (gesperrt) {
                 foilEnterStreak = 0
             } else {
-                if (spMps < minSpeedSeitEnde) minSpeedSeitEnde = spMps
                 foilEnterStreak = if (sp3Kmh >= 10.0) foilEnterStreak + 1 else 0
                 if (foilEnterStreak >= RUN_ENTER_DWELL) {
                     foiling = true; foilExitStreak = 0
@@ -146,11 +155,20 @@ object Recorder {
                     // die Uhr sie auch als einen.
                     runIstFortsetzung = runCount > 0 && minSpeedSeitEnde >= 1.5
                     minSpeedSeitEnde = 99.0
-                    // Lauf-Start auf den Dwell-Beginn zurückdatieren (wie Garmin).
-                    runStartMs = tMs - RUN_ENTER_DWELL * 1000L
-                    runStartDist = dist
-                    runMaxMps = spdMaxClean
-                    runMaxHr = if (lastHr > 0) lastHr else 0
+                    if (runIstFortsetzung) {
+                        // Denselben Lauf weiterfuehren -> Dauer/Distanz zeigen am Ende den GANZEN
+                        // Lauf statt nur das letzte Bruchstueck.
+                        runStartMs = lastRunStartMs
+                        runStartDist = lastRunStartDist
+                        if (lastRunMaxMps > runMaxMps) runMaxMps = lastRunMaxMps
+                        if (lastRunMaxHr > runMaxHr) runMaxHr = lastRunMaxHr
+                    } else {
+                        // Lauf-Start auf den Dwell-Beginn zurückdatieren (wie Garmin).
+                        runStartMs = tMs - RUN_ENTER_DWELL * 1000L
+                        runStartDist = dist
+                        runMaxMps = spdMaxClean
+                        runMaxHr = if (lastHr > 0) lastHr else 0
+                    }
                 }
             }
         } else {
@@ -161,16 +179,25 @@ object Recorder {
                 foiling = false; foilEnterStreak = 0
                 // Lauf-Ende auf den Dwell-Beginn zurückdatieren; Kennzahlen festhalten.
                 val durMs = (tMs - RUN_EXIT_DWELL * 1000L - runStartMs).coerceAtLeast(0)
+                val distM = (dist - runStartDist).coerceAtLeast(0.0)
+                minSpeedSeitEnde = 99.0
+                runEndedMs = tMs   // Re-Arm-Cooldown starten
+                // Zu kurz/zu langsam = kein Lauf (Server: MIN_SEGMENT_S 5 s, Floor 2,0 m/s).
+                val schnellGenug = durMs > 0 && distM / (durMs / 1000.0) >= MIN_RUN_AVG_MPS
+                if (!runIstFortsetzung && (durMs < MIN_RUN_MS || !schnellGenug)) {
+                    runMaxHr = 0
+                    return false
+                }
+                lastRunStartMs = runStartMs
+                lastRunStartDist = runStartDist
                 lastRunDurMs = durMs
-                lastRunDistM = (dist - runStartDist).coerceAtLeast(0.0)
+                lastRunDistM = distM
                 lastRunAvgMps = if (durMs > 0) lastRunDistM / (durMs / 1000.0) else 0.0
                 lastRunMaxMps = runMaxMps
                 lastRunMaxHr = runMaxHr
                 runMaxHr = 0
                 if (!runIstFortsetzung) runCount++
                 runIstFortsetzung = false
-                minSpeedSeitEnde = 99.0
-                runEndedMs = tMs   // Re-Arm-Cooldown starten
             }
         }
         return foiling
@@ -246,6 +273,7 @@ object Recorder {
         foiling = false; foilEnterStreak = 0; foilExitStreak = 0; runEndedMs = -100000L
         runCount = 0; runStartMs = 0; runStartDist = 0.0; runMaxMps = 0.0
         lastRunDurMs = 0; lastRunDistM = 0.0; lastRunAvgMps = 0.0; lastRunMaxMps = 0.0
+        lastRunStartMs = 0L; lastRunStartDist = 0.0; minSpeedSeitEnde = 99.0; runIstFortsetzung = false
         runMaxHr = 0; lastRunMaxHr = 0
         _state.value = State(recording = true, status = I18n.t("rec.recording"),
             pendingCount = LocalStore.pendingCount(ctx))

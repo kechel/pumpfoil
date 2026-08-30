@@ -78,6 +78,8 @@ const BURST_ABS_MIN_MPS = 28 / 3.6;
 // Ein neuer Lauf zaehlt nur nach einem ECHTEN Stopp (Speed unter NOSTOP_MPS) — der Server fuehrt
 // Laeufe ohne Stopp zusammen (_merge_no_stop, ohne Zeitfenster).
 const NOSTOP_MPS = 1.5;
+// Zu kurz/zu langsam = kein Lauf (Server: MIN_SEGMENT_S 5 s, Positions-Floor 2,0 m/s).
+const MIN_RUN_MS = 5000, MIN_RUN_AVG_MPS = 2.0;
 const DEV_FAKE_GPS = false;  // true = synthetische GPS-Spur (nur Simulator-UI-Demo; echte Uhr: false)
 // MUSS mit version.name in ../app.json übereinstimmen — beides beim Bump ändern. (Zur Laufzeit
 // aus dem Paket lesen ginge nur über einen weiteren @zos-Import; die sind hier ungetestet und
@@ -1304,21 +1306,32 @@ Page(
     _updateRun(v3, vInst, dist, tMs) {
       const s = this.state;
       if (!s.foiling) {
-        if (tMs - s.runEndedMs < RUN_REARM_COOLDOWN_MS) {
+        // Minimum IMMER mitfuehren (auch waehrend der Sperre) — dort zeigt sich ein echter Stopp.
+        if (vInst < s.minSpeedSeitEnde) s.minSpeedSeitEnde = vInst;
+        // Re-Arm-Sperre nur nach einem ECHTEN Stopp; sonst ist es die Fortsetzung desselben Laufs.
+        const gesperrt = (tMs - s.runEndedMs < RUN_REARM_COOLDOWN_MS) && s.minSpeedSeitEnde < NOSTOP_MPS;
+        if (gesperrt) {
           s.enterStreak = 0;
         } else {
-          if (vInst < s.minSpeedSeitEnde) s.minSpeedSeitEnde = vInst;
           s.enterStreak = (v3 >= RUN_ENTER_MPS) ? s.enterStreak + 1 : 0;
           if (s.enterStreak >= RUN_ENTER_DWELL) {
             s.foiling = true; s.exitStreak = 0;
             // Kein echter Stopp seit dem letzten Lauf-Ende -> derselbe Lauf, nicht neu zaehlen.
             s.runIstFortsetzung = s.runCount > 0 && s.minSpeedSeitEnde >= NOSTOP_MPS;
             s.minSpeedSeitEnde = 99;
-            // Lauf-Start auf den ersten schnellen Tick zurückdatieren (wie Garmin/Wear).
-            s.runStartMs = tMs - RUN_ENTER_DWELL * 1000;
-            s.runStartDist = dist;
-            s.runMaxMps = s.spdMaxClean;
-            s.runMaxHr = s.hr > 0 ? s.hr : 0;
+            if (s.runIstFortsetzung) {
+              // Denselben Lauf weiterfuehren -> Dauer/Distanz zeigen den GANZEN Lauf.
+              s.runStartMs = s.lastRunStartMs;
+              s.runStartDist = s.lastRunStartDist;
+              if (s.lastRunMaxMps > s.runMaxMps) s.runMaxMps = s.lastRunMaxMps;
+              if (s.lastRunMaxHr > s.runMaxHr) s.runMaxHr = s.lastRunMaxHr;
+            } else {
+              // Lauf-Start auf den ersten schnellen Tick zurückdatieren (wie Garmin/Wear).
+              s.runStartMs = tMs - RUN_ENTER_DWELL * 1000;
+              s.runStartDist = dist;
+              s.runMaxMps = s.spdMaxClean;
+              s.runMaxHr = s.hr > 0 ? s.hr : 0;
+            }
             console.log("[pumpfoil] run start speed=" + (v3 * 3.6).toFixed(1));
           }
         }
@@ -1331,16 +1344,26 @@ Page(
           // Ende auf den ersten langsamen Tick zurückdatieren; Kennzahlen festhalten.
           let durMs = tMs - RUN_EXIT_DWELL * 1000 - s.runStartMs;
           if (durMs < 0) durMs = 0;
+          const distM = Math.max(0, dist - s.runStartDist);
+          s.minSpeedSeitEnde = 99;
+          s.runEndedMs = tMs;   // Re-Arm-Sperre starten
+          // Zu kurz/zu langsam = kein Lauf: weder zaehlen noch anzeigen.
+          const schnellGenug = durMs > 0 && (distM / (durMs / 1000)) >= MIN_RUN_AVG_MPS;
+          if (!s.runIstFortsetzung && (durMs < MIN_RUN_MS || !schnellGenug)) {
+            s.runMaxHr = 0;
+            s.runIstFortsetzung = false;
+            return false;
+          }
+          s.lastRunStartMs = s.runStartMs;
+          s.lastRunStartDist = s.runStartDist;
           s.lastRunDurMs = durMs;
-          s.lastRunDistM = Math.max(0, dist - s.runStartDist);
+          s.lastRunDistM = distM;
           s.lastRunAvgMps = durMs > 0 ? s.lastRunDistM / (durMs / 1000) : 0;
           s.lastRunMaxMps = s.runMaxMps;
           s.lastRunMaxHr = s.runMaxHr;
           s.runMaxHr = 0;
           if (!s.runIstFortsetzung) s.runCount++;
           s.runIstFortsetzung = false;
-          s.minSpeedSeitEnde = 99;
-          s.runEndedMs = tMs;   // Re-Arm-Sperre starten
           console.log("[pumpfoil] run end count=" + s.runCount
             + " duration=" + Math.round(durMs / 1000) + " distance=" + Math.round(s.lastRunDistM));
           return true;
@@ -1358,6 +1381,7 @@ Page(
       // LAUFENDEN Ticks (maxKandidat darf pro Tick nur EINMAL laufen, sonst halbiert sich das
       // Fenster durch Doppel-Eintraege).
       s.burstBuf = []; s.spdMaxClean = 0; s.minSpeedSeitEnde = 99; s.runIstFortsetzung = false;
+      s.lastRunStartMs = 0; s.lastRunStartDist = 0;
       s.lastRunDurMs = 0; s.lastRunDistM = 0; s.lastRunAvgMps = 0; s.lastRunMaxMps = 0;
       s._ringKey = null;
     },

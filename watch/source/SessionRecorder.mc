@@ -57,6 +57,8 @@ class SessionRecorder {
     hidden var _spdMaxClean = 0.0;
     hidden var _minSpeedSeitEnde = 99.0;   // kleinster Speed seit dem letzten Lauf-Ende
     hidden var _runIstFortsetzung = false; // laufender Lauf setzt den vorigen fort -> nicht zaehlen
+    hidden var _lastRunStartMs = 0;        // Start des zuletzt beendeten Laufs (fuer Fortsetzungen)
+    hidden var _lastRunStartDist = 0.0;
     hidden var _accelChunkIndex = 0;
     // Startzeit je Accel-Chunk (Index -> ms seit Session-Start, gleiche Basis wie GPS-t_ms).
     // Grundlage der EXAKTEN Accel-Zeitachse am Server (timebase.py, "exact_chunks") — bisher
@@ -263,6 +265,12 @@ class SessionRecorder {
     // NOSTOP_MPS). Der Server fuehrt Laeufe ohne Stopp zusammen (_merge_no_stop, ohne
     // Zeitfenster) — ohne diese Regel zaehlt die Uhr Bruchstuecke einzeln.
     const NOSTOP_MPS = 1.5;
+    // Zu kurz oder zu langsam = kein Lauf. Dieselbe Regel wie am Server (MIN_SEGMENT_S = 5 s,
+    // Positions-Floor 2,0 m/s): sonst steht ein 7-Meter-Zappler als "letzter Lauf" auf dem
+    // Display. 2,0 statt der Server-2,8, damit langsame Fahrer nicht rausfallen (belegt an
+    // einem echten 140-m-Lauf mit Ø 2,75 m/s, den 2,8 verworfen haette).
+    const MIN_RUN_MS = 5000;
+    const MIN_RUN_AVG_MPS = 2.0;
     const AUTO_START_MPS = 2.8;
     const AUTO_START_DWELL = 4;
     const AUTO_START_LEAD = 10;   // s Vorlauf ab Betreten des Start-Screens, bis Auto-Start scharf
@@ -1075,6 +1083,7 @@ class SessionRecorder {
         _runEndedMs = -100000;
         _runStartMs = 0; _runStartDist = 0.0; _runMaxSpeed = 0.0;
         _lastRunDurMs = 0; _lastRunDistM = 0.0; _lastRunMaxSpeed = 0.0; _lastRunAvgSpeed = 0.0;
+        _lastRunStartMs = 0; _lastRunStartDist = 0.0; _minSpeedSeitEnde = 99.0; _runIstFortsetzung = false;
         _runMaxHr = 0; _lastRunMaxHr = 0;
 
         // Roh-Accel ist OPTIONAL: ältere/abweichende Geräte ohne SensorLogging bzw.
@@ -1465,12 +1474,19 @@ class SessionRecorder {
     // Gibt true zurück, wenn gerade ein Lauf zu Ende ging.
     hidden function _updateRun(v3, vInst, dist, tMs) {
         if (!_foiling) {
-            // Re-Arm-Cooldown: direkt nach einem Lauf-Ende keinen neuen Lauf zulassen
-            // (Zurückschwimmen erzeugt sonst über Speed-Spikes einen Phantom-Lauf).
-            if (tMs - _runEndedMs < RUN_REARM_COOLDOWN_MS) {
+            // Kleinsten Wert seit dem Lauf-Ende IMMER mitfuehren — auch waehrend des Cooldowns.
+            // Genau dort zeigt sich ein echter Stopp (absinken/stehen), und genau dort hat die
+            // Uhr bisher weggeschaut.
+            if (vInst < _minSpeedSeitEnde) { _minSpeedSeitEnde = vInst; }
+            // Re-Arm-Cooldown gegen Phantom-Laeufe beim Zurueckschwimmen — aber NUR, wenn
+            // wirklich gestoppt wurde. Ohne Stopp ist das die Fortsetzung desselben Laufs
+            // (Touchdown zwischen zwei Pumps); die blinde 25-s-Sperre hat dabei den halben Lauf
+            // verschluckt (belegt an Cornelias Fotos vom 30.08.: Uhr 66 m/20 s, Server 144 m/41 s
+            // — die Sperre begann genau beim Einbruch und endete 27 s spaeter).
+            var gesperrt = (tMs - _runEndedMs < RUN_REARM_COOLDOWN_MS) && (_minSpeedSeitEnde < NOSTOP_MPS);
+            if (gesperrt) {
                 _enterStreak = 0;
             } else {
-                if (vInst < _minSpeedSeitEnde) { _minSpeedSeitEnde = vInst; }
                 _enterStreak = (v3 >= RUN_ENTER_MPS) ? _enterStreak + 1 : 0;
                 if (_enterStreak >= RUN_ENTER_DWELL) {
                     _foiling = true;
@@ -1479,11 +1495,21 @@ class SessionRecorder {
                     // Lauf — der Server fuehrt ihn zusammen, also zaehlt die Uhr ihn nicht neu.
                     _runIstFortsetzung = (_runCount > 0 && _minSpeedSeitEnde >= NOSTOP_MPS);
                     _minSpeedSeitEnde = 99.0;
-                    // Start rückdatieren auf den ersten schnellen Tick.
-                    _runStartMs = tMs - RUN_ENTER_DWELL * 1000;
-                    _runStartDist = dist;
-                    _runMaxSpeed = _spdMaxClean;
-                    _runMaxHr = (_currentHr != null && _currentHr > 0) ? _currentHr : 0;
+                    if (_runIstFortsetzung) {
+                        // Denselben Lauf WEITERFUEHREN: Start bleibt der urspruengliche, damit
+                        // Dauer und Distanz am Ende den GANZEN Lauf zeigen — nicht nur das letzte
+                        // Bruchstueck. Genau das fehlte bisher: 1.0.80 verschmolz nur den Zaehler.
+                        _runStartMs = _lastRunStartMs;
+                        _runStartDist = _lastRunStartDist;
+                        if (_lastRunMaxSpeed > _runMaxSpeed) { _runMaxSpeed = _lastRunMaxSpeed; }
+                        if (_lastRunMaxHr > _runMaxHr) { _runMaxHr = _lastRunMaxHr; }
+                    } else {
+                        // Start rückdatieren auf den ersten schnellen Tick.
+                        _runStartMs = tMs - RUN_ENTER_DWELL * 1000;
+                        _runStartDist = dist;
+                        _runMaxSpeed = _spdMaxClean;
+                        _runMaxHr = (_currentHr != null && _currentHr > 0) ? _currentHr : 0;
+                    }
                 }
             }
         } else {
@@ -1498,17 +1524,27 @@ class SessionRecorder {
                 // Ende rückdatieren auf den ersten langsamen Tick.
                 var durMs = tMs - RUN_EXIT_DWELL * 1000 - _runStartMs;
                 if (durMs < 0) { durMs = 0; }
+                var distM = dist - _runStartDist;
+                if (distM < 0.0) { distM = 0.0; }
+                _minSpeedSeitEnde = 99.0;
+                _runEndedMs = tMs;   // Re-Arm-Cooldown starten
+                // Zu kurz oder zu langsam -> war kein Lauf: weder zaehlen noch anzeigen.
+                // Eine Fortsetzung ist ausgenommen (sie verlaengert einen schon gueltigen Lauf).
+                var schnellGenug = (durMs > 0) && ((distM / (durMs / 1000.0)) >= MIN_RUN_AVG_MPS);
+                if (!_runIstFortsetzung && (durMs < MIN_RUN_MS || !schnellGenug)) {
+                    _runMaxHr = 0;
+                    return false;
+                }
+                _lastRunStartMs = _runStartMs;
+                _lastRunStartDist = _runStartDist;
                 _lastRunDurMs = durMs;
-                _lastRunDistM = dist - _runStartDist;
-                if (_lastRunDistM < 0.0) { _lastRunDistM = 0.0; }
+                _lastRunDistM = distM;
                 _lastRunMaxSpeed = _runMaxSpeed;
                 _lastRunMaxHr = _runMaxHr;
                 _runMaxHr = 0;
                 _lastRunAvgSpeed = (durMs > 0) ? _lastRunDistM / (durMs / 1000.0) : 0.0;
                 if (!_runIstFortsetzung) { _runCount++; }
                 _runIstFortsetzung = false;
-                _minSpeedSeitEnde = 99.0;
-                _runEndedMs = tMs;   // Re-Arm-Cooldown starten
                 return true;   // Lauf gerade beendet -> Live-Sync anstoßen
             }
         }

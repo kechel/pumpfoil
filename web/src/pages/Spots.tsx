@@ -178,6 +178,16 @@ export default function Spots() {
           {t("nav.spots")}
           {(spots?.length ?? 0) > 0 && <span className="ml-2 text-lg font-normal text-slate-400">({spots!.length})</span>}
         </h2>
+        {/* Filter rechtsbuendig auf Hoehe der Ueberschrift (Jan, 30.08.) — er stand vorher als
+            eigene Zeile ueber der Karte und schob sie nach unten. */}
+        {(spots?.length ?? 0) > 0 && (
+          <label className="ml-auto flex cursor-pointer items-center gap-2 text-sm text-slate-300">
+            <input type="checkbox" checked={nurNotes} onChange={(e) => setNurNotes(e.target.checked)}
+              className="h-4 w-4 accent-brand-500" />
+            {t("spots.onlyWithNotes")}
+            <span className="text-slate-500">({(alle ?? []).filter((s) => (s.notes ?? 0) > 0).length})</span>
+          </label>
+        )}
       </div>
       {/* Dritter Nutzer in Folge suchte einen "Spot anlegen"-Knopf — den es bewusst nicht
           gibt. Einmal erklaeren, wie Spots entstehen (und warum ein Name kurz fehlen kann). */}
@@ -216,12 +226,6 @@ export default function Spots() {
               ))}
             </select>
           </div>
-          <label className="mb-3 flex cursor-pointer items-center gap-2 text-sm text-slate-300">
-            <input type="checkbox" checked={nurNotes} onChange={(e) => setNurNotes(e.target.checked)}
-              className="h-4 w-4 accent-brand-500" />
-            {t("spots.onlyWithNotes")}
-            <span className="text-slate-500">({(alle ?? []).filter((s) => (s.notes ?? 0) > 0).length})</span>
-          </label>
           <div ref={mapRef} className="h-[70vh] w-full overflow-hidden rounded-2xl border border-slate-800" />
           <SpotCompare />
         </>

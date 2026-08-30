@@ -67,6 +67,8 @@ object Recorder {
     private const val RUN_ENTER_DWELL = 4
     private const val RUN_EXIT_DWELL = 3
     private const val RUN_REARM_COOLDOWN_MS = 25000L
+    private const val MIN_RUN_MS = 5000L        // kuerzer = kein Lauf (Server: MIN_SEGMENT_S)
+    private const val MIN_RUN_AVG_MPS = 2.0     // langsamer = kein Lauf (Server: MOVE_FLOOR_MPS)
     private var runEndedMs = -100000L
     private var foilEnterStreak = 0
     private var foilExitStreak = 0
@@ -89,6 +91,8 @@ object Recorder {
     // maxKandidat() pro Fix nur EINMAL — sonst halbiert sich das 15-s-Fenster.
     private var spdMaxClean = 0.0
     private var minSpeedSeitEnde = 99.0
+    private var lastRunStartMs = 0L         // Start des zuletzt beendeten Laufs (fuer Fortsetzungen)
+    private var lastRunStartDist = 0.0
     private var runIstFortsetzung = false
 
     private fun maxKandidat(v: Double): Double {
@@ -103,10 +107,13 @@ object Recorder {
 
     private fun updateFoilingRun(sp3Kmh: Double, tMs: Long, dist: Double, spMps: Double): Boolean {
         if (!foiling) {
-            if (tMs - runEndedMs < RUN_REARM_COOLDOWN_MS) {
+            // Minimum IMMER mitfuehren (auch im Cooldown) — dort zeigt sich ein echter Stopp.
+            if (spMps < minSpeedSeitEnde) minSpeedSeitEnde = spMps
+            // Cooldown nur nach echtem Stopp; sonst ist es die Fortsetzung desselben Laufs.
+            val gesperrt = tMs - runEndedMs < RUN_REARM_COOLDOWN_MS && minSpeedSeitEnde < 1.5
+            if (gesperrt) {
                 foilEnterStreak = 0
             } else {
-                if (spMps < minSpeedSeitEnde) minSpeedSeitEnde = spMps
                 foilEnterStreak = if (sp3Kmh >= 10.0) foilEnterStreak + 1 else 0
                 if (foilEnterStreak >= RUN_ENTER_DWELL) {
                     foiling = true; foilExitStreak = 0
@@ -114,9 +121,15 @@ object Recorder {
                     // fuehrt beide zusammen, _merge_no_stop).
                     runIstFortsetzung = runCount > 0 && minSpeedSeitEnde >= 1.5
                     minSpeedSeitEnde = 99.0
-                    runStartMs = tMs - RUN_ENTER_DWELL * 1000L
-                    runStartDist = dist
-                    runMaxMps = spdMaxClean
+                    if (runIstFortsetzung) {
+                        runStartMs = lastRunStartMs
+                        runStartDist = lastRunStartDist
+                        if (lastRunMaxMps > runMaxMps) runMaxMps = lastRunMaxMps
+                    } else {
+                        runStartMs = tMs - RUN_ENTER_DWELL * 1000L
+                        runStartDist = dist
+                        runMaxMps = spdMaxClean
+                    }
                 }
             }
         } else {
@@ -125,14 +138,19 @@ object Recorder {
             if (foilExitStreak >= RUN_EXIT_DWELL) {
                 foiling = false; foilEnterStreak = 0
                 val durMs = (tMs - RUN_EXIT_DWELL * 1000L - runStartMs).coerceAtLeast(0)
+                val distM = (dist - runStartDist).coerceAtLeast(0.0)
+                minSpeedSeitEnde = 99.0
+                runEndedMs = tMs
+                val schnellGenug = durMs > 0 && distM / (durMs / 1000.0) >= MIN_RUN_AVG_MPS
+                if (!runIstFortsetzung && (durMs < MIN_RUN_MS || !schnellGenug)) return false
+                lastRunStartMs = runStartMs
+                lastRunStartDist = runStartDist
                 lastRunDurMs = durMs
-                lastRunDistM = (dist - runStartDist).coerceAtLeast(0.0)
+                lastRunDistM = distM
                 lastRunAvgMps = if (durMs > 0) lastRunDistM / (durMs / 1000.0) else 0.0
                 lastRunMaxMps = runMaxMps
                 if (!runIstFortsetzung) runCount++
                 runIstFortsetzung = false
-                minSpeedSeitEnde = 99.0
-                runEndedMs = tMs
             }
         }
         return foiling
@@ -215,6 +233,7 @@ object Recorder {
         foiling = false; foilEnterStreak = 0; foilExitStreak = 0; runEndedMs = -100000L
         runCount = 0; runStartMs = 0; runStartDist = 0.0; runMaxMps = 0.0
         lastRunDurMs = 0; lastRunDistM = 0.0; lastRunAvgMps = 0.0; lastRunMaxMps = 0.0
+        lastRunStartMs = 0L; lastRunStartDist = 0.0; minSpeedSeitEnde = 99.0; runIstFortsetzung = false
         _state.value = State(recording = true, status = "Aufnahme läuft",
             pendingCount = RecStore.pendingCount(ctx))
         scope.launch { flushLoop() }
