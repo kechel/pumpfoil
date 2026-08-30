@@ -1273,9 +1273,12 @@ function SocialTab() {
             <a href={k.url ?? "#"} target="_blank" rel="noopener noreferrer" className="min-w-0 flex-1 truncate text-brand-300 underline">{k.url}</a>
             <span className="text-xs text-slate-400">{k.videos} {t("adm.social.videos")}</span>
             {k.blocked && <span className="rounded bg-rose-900/60 px-1.5 py-0.5 text-xs text-rose-200">{t("adm.social.blocked")}</span>}
+            {/* Eindeutig benennen: in diesem Tab gibt es ZWEI Sperren — eines fuer den ganzen
+                Kanal, eines fuer ein einzelnes Video. „Sperren" allein war nicht zu unterscheiden
+                (Jan suchte den Kanal-Schalter und fand ihn nicht). */}
             <button onClick={async () => { await api.adminSocialBlock(k.user_id, !k.blocked); laden(); }}
-              className="rounded-lg bg-slate-700 px-2.5 py-1 text-xs">
-              {k.blocked ? t("adm.social.unblock") : t("adm.social.block")}
+              className={`rounded-lg px-2.5 py-1 text-xs font-semibold ${k.blocked ? "bg-emerald-700 text-white" : "bg-rose-800 text-white"}`}>
+              {k.blocked ? t("adm.social.unblockChannel") : t("adm.social.blockChannel")}
             </button>
           </div>
         ))}
@@ -1296,7 +1299,7 @@ function SocialTab() {
             </button>
             <button onClick={async () => { await api.adminSocialBlockItem(v.id, !v.blocked); laden(); }}
               className="rounded-lg bg-slate-700 px-2.5 py-1 text-xs">
-              {v.blocked ? t("adm.social.unblock") : t("adm.social.block")}
+              {v.blocked ? t("adm.social.unblockVideo") : t("adm.social.blockVideo")}
             </button>
           </div>
         ))}
