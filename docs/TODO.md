@@ -3584,6 +3584,10 @@ Offen daraus:
      Gleichstand die, die die Spreizung wirklich verkleinert (an einem Ende koennen mehrere Spots
      dicht liegen: Whitehorse/Haines bringen 0,04°, der Ausreisser 24°). **Aktuell faellt genau
      EIN Spot weg (三浦市), 230 von 231, Region 351,3°.** Web und Android bekommen unveraendert
-     alles. **WEG DAMIT, sobald 1.1.26 im Store ist.**
+     alles.
+     **Bleibt stehen** — ab 1.1.26 ist die App ausgenommen (bekommt alle 231 Spots und kappt
+     selbst), fuer aeltere Installationen ist der Notbehelf aber der einzige Schutz. Wegnehmen
+     erst, wenn keine iOS-Version unter 1.1.26 mehr im Feld ist (`device_tokens`, `platform`
+     `ios`/`apple`). Kostet einen Header-Vergleich.
   **Merke:** Kartenregionen nie ungeprueft aus Nutzerdaten bauen — die Grenze faellt erst auf,
   wenn jemand auf einem neuen Kontinent faehrt.

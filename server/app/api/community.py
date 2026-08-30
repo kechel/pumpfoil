@@ -831,7 +831,11 @@ def spots(accel_only: bool = True, sport: str = "pumpfoil", user: models.User = 
 # = 274,7° Spreizung, mal 1,4 = 384,6°. Tags zuvor waren es 351,3° — keine 9° unter der Kante.
 # Fuer alte iOS-Clients kappen wir deshalb die aeussersten Spots, bis die Bounding-Box wieder in
 # eine gueltige Region passt. Web und Android bekommen unveraendert alles.
-# WEG DAMIT, sobald 1.1.26 im Store ist — dort kappt die App selbst (SpotsView.sichereRegion).
+#
+# Ab 1.1.26 kappt die App selbst (SpotsView.sichereRegion) und ist hier ausgenommen — sie bekommt
+# alle Spots. Das hier BLEIBT trotzdem stehen, solange aeltere Installationen im Feld sind: fuer
+# die ist es der einzige Schutz, und wer nicht aktualisiert, wuerde sonst wieder beim Start
+# abstuerzen. Kostet nichts (ein Header-Vergleich) und wirkt nur, wenn die Box zu breit ist.
 # Die App rechnet (max−min) × 1,4. MapKit erlaubt 360°/180° -> erlaubte Spreizung 257,1°/128,6°.
 # Mit etwas Luft: 256 und 127 (ergibt 358,4° bzw. 177,8°).
 MAX_LON_SPREIZUNG = 256.0
