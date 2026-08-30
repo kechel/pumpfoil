@@ -1037,7 +1037,7 @@ const ja: Record<string, string> = {
   "map.street": "地図",
   "map.satellite": "衛星",
   "social.title": "SNSフィード",
-  "social.hint": "コミュニティの動画をひとつの場所に集め、ここでそのまま再生できます — 間にアルゴリズムはありません。プロフィールに YouTube チャンネルを登録すると、あなたの動画も並びます。 （Instagram と TikTok では利用できません。）",
+  "social.hint": "コミュニティの動画をひとつの場所に集め、ここでそのまま再生できます — 間にアルゴリズムはありません。 <b>プロフィールに YouTube チャンネルを登録すると、あなたの動画も並びます。</b> （Instagram と TikTok では利用できません。）",
   "social.prev": "前へ",
   "social.next": "次へ",
   "social.report": "報告",

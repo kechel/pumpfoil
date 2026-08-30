@@ -1117,7 +1117,7 @@ const cs: Record<string, string> = {
   "map.street": "Mapa",
   "map.satellite": "Satelit",
   "social.title": "Feedy ze sociálních sítí",
-  "social.hint": "Videa z komunity na jednom místě a přehratelná přímo tady — bez algoritmu mezi tím. Zadej svůj YouTube kanál v profilu a tvoje videa se přidají. (Instagram a TikTok to neumožňují.)",
+  "social.hint": "Videa z komunity na jednom místě a přehratelná přímo tady — bez algoritmu mezi tím. <b>Zadej svůj YouTube kanál v profilu a tvoje videa se přidají.</b> (Instagram a TikTok to neumožňují.)",
   "social.prev": "Zpět",
   "social.next": "Dál",
   "social.report": "Nahlásit",

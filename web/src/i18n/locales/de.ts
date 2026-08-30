@@ -1247,7 +1247,7 @@ const de: Record<string, string> = {
   "map.street": "Karte",
   "map.satellite": "Satellit",
   "social.title": "Social-Media-Feeds",
-  "social.hint": "Videos aus der Community, gesammelt an einem Ort und hier abspielbar — ohne Algorithmus, der dazwischenfunkt. Trag deinen YouTube-Kanal im Profil ein, dann laufen deine Videos hier mit. (Instagram und TikTok erlauben das leider nicht.)",
+  "social.hint": "Videos aus der Community, gesammelt an einem Ort und hier abspielbar — ohne Algorithmus, der dazwischenfunkt. <b>Trag deinen YouTube-Kanal im Profil ein, dann laufen deine Videos hier mit.</b> (Instagram und TikTok erlauben das leider nicht.)",
   "social.prev": "Zurück",
   "social.next": "Weiter",
   "social.report": "Melden",

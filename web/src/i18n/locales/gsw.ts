@@ -733,7 +733,7 @@ const gsw: Record<string, string> = {
   "map.street": "Charte",
   "map.satellite": "Satellit",
   "social.title": "Social-Media-Feeds",
-  "social.hint": "Videos us de Community, a einem Ort gsammlet und da abspielbar — ohni Algorithmus, wo drizwüschefunkt. Trag din YouTube-Kanal im Profil i, denn laufed dini Videos da mit. (Instagram und TikTok erlaubed das leider nöd.)",
+  "social.hint": "Videos us de Community, a einem Ort gsammlet und da abspielbar — ohni Algorithmus, wo drizwüschefunkt. <b>Trag din YouTube-Kanal im Profil i, denn laufed dini Videos da mit.</b> (Instagram und TikTok erlaubed das leider nöd.)",
   "social.prev": "Zrugg",
   "social.next": "Wiiter",
   "social.report": "Mälde",

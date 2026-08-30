@@ -1116,7 +1116,7 @@ const pl: Record<string, string> = {
   "map.street": "Mapa",
   "map.satellite": "Satelita",
   "social.title": "Kanały społecznościowe",
-  "social.hint": "Filmy społeczności w jednym miejscu, odtwarzane tutaj — bez algorytmu pośrodku. Dodaj swój kanał YouTube w profilu, a twoje filmy dołączą. (Instagram i TikTok na to nie pozwalają.)",
+  "social.hint": "Filmy społeczności w jednym miejscu, odtwarzane tutaj — bez algorytmu pośrodku. <b>Dodaj swój kanał YouTube w profilu, a twoje filmy dołączą.</b> (Instagram i TikTok na to nie pozwalają.)",
   "social.prev": "Wstecz",
   "social.next": "Dalej",
   "social.report": "Zgłoś",

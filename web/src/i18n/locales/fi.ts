@@ -1082,7 +1082,7 @@ const fi: Record<string, string> = {
   "map.street": "Kartta",
   "map.satellite": "Satelliitti",
   "social.title": "Somevirrat",
-  "social.hint": "Yhteisön videot yhdessä paikassa ja katsottavissa tässä — ilman algoritmia välissä. Lisää YouTube-kanavasi profiiliin, niin videosi tulevat mukaan. (Instagram ja TikTok eivät salli tätä.)",
+  "social.hint": "Yhteisön videot yhdessä paikassa ja katsottavissa tässä — ilman algoritmia välissä. <b>Lisää YouTube-kanavasi profiiliin, niin videosi tulevat mukaan.</b> (Instagram ja TikTok eivät salli tätä.)",
   "social.prev": "Edellinen",
   "social.next": "Seuraava",
   "social.report": "Ilmoita",

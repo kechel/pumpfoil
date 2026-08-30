@@ -1164,7 +1164,7 @@ const en: Record<string, string> = {
   "map.street": "Map",
   "map.satellite": "Satellite",
   "social.title": "Social media feeds",
-  "social.hint": "Videos from the community, gathered in one place and playable right here — no algorithm in between. Add your YouTube channel in your profile and your videos join in. (Instagram and TikTok do not allow this.)",
+  "social.hint": "Videos from the community, gathered in one place and playable right here — no algorithm in between. <b>Add your YouTube channel in your profile and your videos join in.</b> (Instagram and TikTok do not allow this.)",
   "social.prev": "Previous",
   "social.next": "Next",
   "social.report": "Report",

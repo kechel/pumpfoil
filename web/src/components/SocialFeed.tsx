@@ -61,7 +61,10 @@ export function SocialFeed() {
         <PlayIcon className="h-5 w-5 text-brand-400" />
         <h3 className="text-lg font-bold">{t("social.title")}</h3>
       </div>
-      <p className="mb-2 text-sm text-slate-300">{t("social.hint")}</p>
+      {/* Der mittlere Satz ist fett (Jan, 31.08.) — er ist die Aufforderung, der Rest Erklaerung.
+          Deshalb hier HTML aus der Uebersetzung; dieselbe Technik wie im Impressum. Die Texte
+          stammen aus unseren eigenen Locale-Dateien, nicht von Nutzern. */}
+      <p className="mb-2 text-sm text-slate-300" dangerouslySetInnerHTML={{ __html: t("social.hint") }} />
       {items && items.length > 0 && (
         <div onScroll={beimScrollen}
           className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2">

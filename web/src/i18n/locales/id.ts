@@ -1037,7 +1037,7 @@ const id: Record<string, string> = {
   "map.street": "Peta",
   "map.satellite": "Satelit",
   "social.title": "Feed media sosial",
-  "social.hint": "Video dari komunitas, terkumpul di satu tempat dan bisa diputar di sini — tanpa algoritma di antaranya. Tambahkan kanal YouTube-mu di profil, videomu ikut tampil. (Instagram dan TikTok tidak mengizinkannya.)",
+  "social.hint": "Video dari komunitas, terkumpul di satu tempat dan bisa diputar di sini — tanpa algoritma di antaranya. <b>Tambahkan kanal YouTube-mu di profil, videomu ikut tampil.</b> (Instagram dan TikTok tidak mengizinkannya.)",
   "social.prev": "Sebelumnya",
   "social.next": "Berikutnya",
   "social.report": "Laporkan",

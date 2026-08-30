@@ -815,7 +815,7 @@ const fr: Record<string, string> = {
   "map.street": "Carte",
   "map.satellite": "Satellite",
   "social.title": "Fils réseaux sociaux",
-  "social.hint": "Les vidéos de la communauté, rassemblées ici et lisibles sur place — sans algorithme entre deux. Ajoute ta chaîne YouTube dans ton profil et tes vidéos rejoignent le fil. (Instagram et TikTok ne le permettent pas.)",
+  "social.hint": "Les vidéos de la communauté, rassemblées ici et lisibles sur place — sans algorithme entre deux. <b>Ajoute ta chaîne YouTube dans ton profil et tes vidéos rejoignent le fil.</b> (Instagram et TikTok ne le permettent pas.)",
   "social.prev": "Précédent",
   "social.next": "Suivant",
   "social.report": "Signaler",

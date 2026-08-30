@@ -813,7 +813,7 @@ const es: Record<string, string> = {
   "map.street": "Mapa",
   "map.satellite": "Satélite",
   "social.title": "Feeds de redes sociales",
-  "social.hint": "Vídeos de la comunidad, reunidos en un sitio y reproducibles aquí mismo — sin algoritmo de por medio. Añade tu canal de YouTube en tu perfil y tus vídeos se suman. (Instagram y TikTok no lo permiten.)",
+  "social.hint": "Vídeos de la comunidad, reunidos en un sitio y reproducibles aquí mismo — sin algoritmo de por medio. <b>Añade tu canal de YouTube en tu perfil y tus vídeos se suman.</b> (Instagram y TikTok no lo permiten.)",
   "social.prev": "Anterior",
   "social.next": "Siguiente",
   "social.report": "Denunciar",
