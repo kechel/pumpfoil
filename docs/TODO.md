@@ -3671,3 +3671,19 @@ Offen daraus:
   `android/app/.../Recorder.kt`, `watch-apple/Sources/Recorder.swift`,
   `watch-apple/Sources-iOS/PhoneRecorder.swift`, `watch-zepp/page/index.js`.
   Garmin auf **1.0.81** gebumpt; Test-`.prg` (fēnix 7X Pro) an Jan, `.iq` fürs Store-Paket gebaut.
+
+- **Nachtrag 30.08. — Plausibilitaetspruefung beim Zusammenfuehren.** Jans Simulator-Test zeigte
+  „letzter Lauf: 14 709,6 m in 0:42" (1260 km/h). Untersuchung der hochgeladenen Session S3142:
+  die Simulator-Daten sind in sich widerspruechlich — drei GPS-Punkte tragen **20 037 500 m/s**
+  (ein Sentinel: der halbe Erdumfang, Mercator-Konstante), und die 485 Punkte ergeben ueber 639 s
+  nur **590 m** Strecke, waehrend die Speed-Reihe ~50 s Foiling behauptet. Der Kilometerzaehler der
+  Uhr ist dort eine dritte, unabhaengige Quelle. Auf echter Hardware nicht reproduzierbar.
+  Trotzdem eingebaut (alle sechs Recorder): eine Fortsetzung wird nur akzeptiert, wenn die Strecke
+  seit dem urspruenglichen Start plausibel bleibt (max. 32 km/h im Mittel — dieselbe Grenze wie
+  beim Max-Speed). Springt der Zaehler, faengt ein neuer Lauf an, statt die Luecke zu erben.
+  **Was in derselben Session funktioniert hat:** Uhr 1 Lauf / 16,2 km/h max gegen Server 1 Lauf /
+  16,1 km/h — die Max-Speed-Saeuberung hat den 72-Millionen-km/h-Ausreisser sauber geschluckt.
+  **Offen (Jans Entscheidung):** den Sentinel schon beim Aufzeichnen kappen, statt ihn hochzuladen.
+  Der Server neutralisiert ihn (>90 km/h -> Median), aber in den Rohdaten steht dauerhaft Unsinn.
+  **Reihenfolge (Jan, 30.08.):** erst Garmin einreichen; iOS und Play liegen in Pruefung und
+  koennen die neue Lauf-Logik fruehestens nach ihrer Freigabe nachziehen.

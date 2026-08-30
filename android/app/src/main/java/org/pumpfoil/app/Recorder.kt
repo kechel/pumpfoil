@@ -67,6 +67,7 @@ object Recorder {
     private const val RUN_ENTER_DWELL = 4
     private const val RUN_EXIT_DWELL = 3
     private const val RUN_REARM_COOLDOWN_MS = 25000L
+    private const val MAX_PLAUSIBLE_MPS = 32.0 / 3.6   // darueber ist es kein Pumpfoil
     private const val MIN_RUN_MS = 5000L        // kuerzer = kein Lauf (Server: MIN_SEGMENT_S)
     private const val MIN_RUN_AVG_MPS = 2.0     // langsamer = kein Lauf (Server: MOVE_FLOOR_MPS)
     private var runEndedMs = -100000L
@@ -120,6 +121,15 @@ object Recorder {
                     // Kein echter Stopp seit dem letzten Lauf-Ende -> derselbe Lauf (der Server
                     // fuehrt beide zusammen, _merge_no_stop).
                     runIstFortsetzung = runCount > 0 && minSpeedSeitEnde >= 1.5
+                    // Sprung im Kilometerzaehler (GPS-Glitch) darf keine Fortsetzung sein — sonst
+                    // erbt der Lauf die ganze Luecke. Grenze wie beim Max-Speed: 32 km/h.
+                    if (runIstFortsetzung) {
+                        val luecke = tMs - lastRunStartMs
+                        val strecke = dist - lastRunStartDist
+                        if (luecke <= 0 || strecke < 0 || strecke / (luecke / 1000.0) > MAX_PLAUSIBLE_MPS) {
+                            runIstFortsetzung = false
+                        }
+                    }
                     minSpeedSeitEnde = 99.0
                     if (runIstFortsetzung) {
                         runStartMs = lastRunStartMs

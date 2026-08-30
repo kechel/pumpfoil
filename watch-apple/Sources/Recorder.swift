@@ -130,6 +130,7 @@ final class Recorder: NSObject, ObservableObject {
     private var minSpeedSeitEnde = 99.0     // kleinster Speed seit dem letzten Lauf-Ende
     private var lastRunStartMs = 0          // Start des zuletzt beendeten Laufs (fuer Fortsetzungen)
     private var lastRunStartDist = 0.0
+    private let maxPlausibleMps = 32.0 / 3.6   // darueber ist es kein Pumpfoil
     private let minRunMs = 5000             // kuerzer = kein Lauf (Server: MIN_SEGMENT_S)
     private let minRunAvgMps = 2.0          // langsamer = kein Lauf (Server: MOVE_FLOOR_MPS)
     private var runIstFortsetzung = false   // setzt den vorigen Lauf fort -> nicht neu zaehlen
@@ -237,6 +238,15 @@ final class Recorder: NSObject, ObservableObject {
                     // Kein echter Stopp seit dem letzten Lauf-Ende -> derselbe Lauf. Der Server
                     // fuehrt beide zusammen (_merge_no_stop, ohne Zeitfenster).
                     runIstFortsetzung = runCount > 0 && minSpeedSeitEnde >= 1.5
+                    // Sprung im Kilometerzaehler (GPS-Glitch) ist keine Fortsetzung — sonst erbt
+                    // der Lauf die ganze Luecke. Grenze wie beim Max-Speed: 32 km/h.
+                    if runIstFortsetzung {
+                        let luecke = Double(tMs - lastRunStartMs)
+                        let strecke = dist - lastRunStartDist
+                        if luecke <= 0 || strecke < 0 || strecke / (luecke / 1000.0) > maxPlausibleMps {
+                            runIstFortsetzung = false
+                        }
+                    }
                     minSpeedSeitEnde = 99.0
                     if runIstFortsetzung {
                         // Denselben Lauf weiterfuehren -> Dauer/Distanz zeigen den GANZEN Lauf.

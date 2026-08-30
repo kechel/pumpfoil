@@ -79,7 +79,7 @@ const BURST_ABS_MIN_MPS = 28 / 3.6;
 // Laeufe ohne Stopp zusammen (_merge_no_stop, ohne Zeitfenster).
 const NOSTOP_MPS = 1.5;
 // Zu kurz/zu langsam = kein Lauf (Server: MIN_SEGMENT_S 5 s, Positions-Floor 2,0 m/s).
-const MIN_RUN_MS = 5000, MIN_RUN_AVG_MPS = 2.0;
+const MIN_RUN_MS = 5000, MIN_RUN_AVG_MPS = 2.0, MAX_PLAUSIBLE_MPS = 32 / 3.6;
 const DEV_FAKE_GPS = false;  // true = synthetische GPS-Spur (nur Simulator-UI-Demo; echte Uhr: false)
 // MUSS mit version.name in ../app.json übereinstimmen — beides beim Bump ändern. (Zur Laufzeit
 // aus dem Paket lesen ginge nur über einen weiteren @zos-Import; die sind hier ungetestet und
@@ -1318,6 +1318,13 @@ Page(
             s.foiling = true; s.exitStreak = 0;
             // Kein echter Stopp seit dem letzten Lauf-Ende -> derselbe Lauf, nicht neu zaehlen.
             s.runIstFortsetzung = s.runCount > 0 && s.minSpeedSeitEnde >= NOSTOP_MPS;
+            // Sprung im Kilometerzaehler ist keine Fortsetzung (s. Garmin-Recorder).
+            if (s.runIstFortsetzung) {
+              const luecke = tMs - s.lastRunStartMs, strecke = dist - s.lastRunStartDist;
+              if (luecke <= 0 || strecke < 0 || strecke / (luecke / 1000) > MAX_PLAUSIBLE_MPS) {
+                s.runIstFortsetzung = false;
+              }
+            }
             s.minSpeedSeitEnde = 99;
             if (s.runIstFortsetzung) {
               // Denselben Lauf weiterfuehren -> Dauer/Distanz zeigen den GANZEN Lauf.

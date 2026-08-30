@@ -91,6 +91,7 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
     private var spdMaxClean = 0.0
     private var minSpeedSeitEnde = 99.0
     private var lastRunStartMs = 0.0, lastRunStartDist = 0.0   // Start des zuletzt beendeten Laufs
+    private let MAX_PLAUSIBLE_MPS = 32.0 / 3.6   // darueber ist es kein Pumpfoil
     private let MIN_RUN_MS = 5000.0        // kuerzer = kein Lauf (Server: MIN_SEGMENT_S)
     private let MIN_RUN_AVG_MPS = 2.0      // langsamer = kein Lauf (Server: MOVE_FLOOR_MPS)
     private var runIstFortsetzung = false
@@ -283,6 +284,14 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
                     foiling = true; foilExit = 0
                     // Kein echter Stopp seit dem letzten Lauf-Ende -> derselbe Lauf.
                     runIstFortsetzung = runCnt > 0 && minSpeedSeitEnde >= 1.5
+                    // Sprung im Kilometerzaehler ist keine Fortsetzung (s. Apple-Watch-Recorder).
+                    if runIstFortsetzung {
+                        let luecke = tMs - lastRunStartMs
+                        let strecke = dist - lastRunStartDist
+                        if luecke <= 0 || strecke < 0 || strecke / (luecke / 1000.0) > MAX_PLAUSIBLE_MPS {
+                            runIstFortsetzung = false
+                        }
+                    }
                     minSpeedSeitEnde = 99.0
                     if runIstFortsetzung {
                         runStartMs = lastRunStartMs; runStartDist = lastRunStartDist

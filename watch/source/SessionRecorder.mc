@@ -1495,6 +1495,17 @@ class SessionRecorder {
                     // Lauf — der Server fuehrt ihn zusammen, also zaehlt die Uhr ihn nicht neu.
                     _runIstFortsetzung = (_runCount > 0 && _minSpeedSeitEnde >= NOSTOP_MPS);
                     _minSpeedSeitEnde = 99.0;
+                    // Sprung im Kilometerzaehler (GPS-Glitch, im Simulator ein Teleport) darf
+                    // NICHT als Fortsetzung durchgehen — sonst erbt der Lauf die ganze Luecke.
+                    // Grenze wie beim Max-Speed: ueber 32 km/h ist es kein Pumpfoil mehr.
+                    if (_runIstFortsetzung) {
+                        var luecke = tMs - _lastRunStartMs;
+                        var strecke = dist - _lastRunStartDist;
+                        if (luecke <= 0 || strecke < 0.0
+                            || (strecke / (luecke / 1000.0)) > MAX_PLAUSIBLE_MPS) {
+                            _runIstFortsetzung = false;
+                        }
+                    }
                     if (_runIstFortsetzung) {
                         // Denselben Lauf WEITERFUEHREN: Start bleibt der urspruengliche, damit
                         // Dauer und Distanz am Ende den GANZEN Lauf zeigen — nicht nur das letzte
