@@ -3828,10 +3828,16 @@ Offen daraus:
   - **TikTok: wie Instagram** — oEmbed fuer Einzelvideos offen, Nutzer-Feed nur mit OAuth.
 
   **Entscheidungen (Jan, 30.08.):**
-  - Quellen: **freigegebener YouTube-Kanal je Nutzer + die vorhandenen Session-Videos**
-    (heute 32 Eintraege von 5 Nutzern: 25 YouTube, 5 Instagram, 2 TikTok — bereits mit
-    `blocked`-Flag und Admin-Freigabe). Damit ist der Feed ab Tag eins gefuellt und IG/TikTok sind
-    drin, ohne dass jemand doppelt pflegt.
+  - Quellen: **ausschliesslich der freigegebene YouTube-Kanal je Nutzer.** Session-Videos bleiben
+    bewusst DRAUSSEN (Jan, 30.08.): „das sind ja meistens die, die man auch im social media teilt"
+    — sie sind im Medien-Bereich der Community ohnehin praesent, und getrennt zu laufen erspart
+    den Hinweis-/Abwahl-Mechanismus komplett.
+  - **Historie: alle je gesehenen Videos werden behalten.** Der RSS-Feed zeigt nur die letzten 15;
+    was wir einmal geholt haben, bleibt in `social_items` stehen und faellt nicht wieder heraus.
+    Damit waechst der Feed mit der Zeit ueber das RSS-Fenster hinaus. **Grenze, die bleibt:** was
+    ein Kanal VOR seiner Freigabe veroeffentlicht hat, bekommen wir nie — ausser den 15, die beim
+    ersten Abholen im Fenster stehen. Es gibt keinen schluessel-freien Weg, die Upload-Liste eines
+    Kanals vollstaendig zu lesen. Fruehe Freigabe = laengere Historie.
   - Einbettung: **Click-to-Load** (Vorschaubild bei uns, iframe erst auf Klick) — haelt unsere
     Bewertung „kein Cookie-Banner noetig" aufrecht.
   - Platz: Community-Bereich, **waehrend der Entwicklung ganz unten unter den Uhr-Layouts**,
@@ -3845,14 +3851,16 @@ Offen daraus:
   **Vorgeschlagenes Modell:** Tabelle `social_channels` (user_id unique, url, channel_id,
   pending_url, status, blocked, Zeitstempel) + `social_items` (Quelle, user_id, platform,
   external_id UNIQUE, url, titel, thumb, published_at, blocked, reports) — `external_id` unique
-  entdoppelt automatisch, wenn dasselbe Video als Session-Video UND im Kanal-Feed auftaucht.
+  macht das stuendliche Abholen zu einem simplen Upsert: bekanntes Video wird aufgefrischt, neues
+  angelegt, nichts geloescht. Genau daraus entsteht die Historie.
   Abholung per systemd-Timer stuendlich (1 Request je Kanal), Aufloesung des Handles einmalig
   bei der Freigabe.
 
   **Bekannte Grenzen, bewusst in Kauf genommen:** RSS liefert nur die letzten 15 Videos je Kanal
   (keine Historie) · die Handle-Aufloesung liest HTML, kann also brechen — aber sichtbar, bei der
   Freigabe, nicht still im Betrieb · geloeschte/private IG-Posts brauchen eine Ersatzkachel ·
-  CSP braucht `frame-src` fuer instagram.com/tiktok.com, bevor wir sie erzwingend schalten ·
+  CSP braucht `frame-src` fuer die eingebetteten Plattformen, bevor wir sie erzwingend schalten ·
+  der Feed startet duenn (nur freigegebene Kanaele, je 15 Videos) und fuellt sich mit der Zeit ·
   Age-Gate (`social_allowed=false`) muss den Feed ausblenden wie Chat und Community.
 
   **Reihenfolge:** (1) Modell + Profil-Feld + Admin-Freigabe, noch ohne Feed · (2) RSS-Abholung +
