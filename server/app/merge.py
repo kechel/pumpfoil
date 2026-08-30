@@ -279,6 +279,10 @@ def merge_sessions(db: DbSession, sessions: list[models.Session]) -> models.Sess
     db.flush()
     sync_video_mirror(db, ns)
     run_analysis(db, ns)
+    # Die zusammengefuehrte Session ist neu — ohne Zuordnung haengt sie ohne Spot in der Karte
+    # (s. reanalysis.py).
+    from .api.sessions import _spot_nachziehen
+    _spot_nachziehen(db, ns)
     db.commit()
     return ns
 

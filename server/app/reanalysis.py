@@ -70,6 +70,13 @@ def _worker(user_id: int, preset: str) -> None:
                 # neu rechnen (nicht per Cache überspringen), damit auch die Spalten aktuell sind.
                 try:
                     run_analysis(db, s)
+                    # Spot nachziehen: eine Reanalyse kann aus "keine Laeufe" ein echtes Foilen
+                    # machen — dann fehlt der Spot, und die Session erscheint auf der Karte als
+                    # zweiter Marker mit demselben Namen. Genau dieser Fehler wurde am 24.08. in
+                    # den anderen Analyse-Pfaden behoben, hier aber vergessen (belegt 31.08. an
+                    # drei Sessions: Illmensee, zweimal Gošići).
+                    from .api.sessions import _spot_nachziehen
+                    _spot_nachziehen(db, s)
                     db.commit()
                 except Exception:  # noqa: BLE001 — einzelne Session-Fehler nicht den Job kippen
                     db.rollback()

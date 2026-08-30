@@ -194,6 +194,9 @@ def sortout(session_id: int, undo: bool = False, admin: models.User = Depends(cu
         db.commit()
         from ..analysis import run_analysis
         run_analysis(db, s)   # setzt is_pumpfoil + metrics wieder auf Detektor-Stand
+        # Zurueckgeholte Session qualifiziert sich wieder fuer einen Spot (s. reanalysis.py).
+        from .sessions import _spot_nachziehen
+        _spot_nachziehen(db, s)
         _log(db, admin, "session_sortout_undo", "session", session_id)
         db.commit()
         return {"ok": True, "is_pumpfoil": bool(s.is_pumpfoil)}

@@ -978,6 +978,34 @@ def spot_map(request: Request, accel_only: bool = True, sport: str = "all",
          "lat": float(lat), "lon": float(lon), "sessions": int(n)}
         for name, lat, lon, n in ohne_id if lat is not None and lon is not None
     ]
+    # --- Namens-Gruppen in den echten Spot einfalten (2026-08-31) ---------------------------
+    # Sessions OHNE `spot_id` bilden oben eine eigene Gruppe nach `place_name`. Steht derselbe
+    # Name aber schon als richtiger Spot in der Liste, lagen bisher ZWEI Markierungen am selben
+    # Fleck — Jan sah zwei "Illmensee" (279 + 1). Ursache ist nicht die Karte allein: eine Session
+    # bekommt planmaessig KEINEN Spot, wenn sie kein erkanntes Foilen hat (`assign_one`, "nur Name,
+    # kein Spot") oder wenn sie als Traverse zwischen zwei Spots startet — den Ortsnamen behaelt
+    # sie aber. Jede solche Session erzeugte hier eine Dublette.
+    # Deshalb an der Wurzel: gleicher Name -> dieselbe Markierung, die Sessions werden dazugezaehlt.
+    # Eine eigene Gruppe bleibt nur, wenn es zu dem Namen wirklich keinen Spot gibt.
+    nach_name = {}
+    for e in out:
+        if e["spot_id"]:
+            nach_name.setdefault((e["spot"] or "").strip().lower(), e)
+    zusammengefaltet = 0
+    behalten = []
+    for e in out:
+        if e["spot_id"] is None:
+            ziel = nach_name.get((e["spot"] or "").strip().lower())
+            if ziel is not None:
+                ziel["sessions"] += e["sessions"]
+                zusammengefaltet += 1
+                continue
+        behalten.append(e)
+    if zusammengefaltet:
+        log.info("spot-map: %d namenlose Gruppe(n) in den gleichnamigen Spot eingefaltet",
+                 zusammengefaltet)
+    out = behalten
+
     # Anzahl der SICHTBAREN Spot-Beschreibungen je Spot mitgeben — daraus baut die Oberflaeche
     # den Filter „nur mit Beschreibung". Absichtlich hier und nicht als Extra-Abfrage je Marker:
     # die Karte laedt einmal, ein Aufruf je Spot waeren ueber 160.

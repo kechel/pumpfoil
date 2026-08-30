@@ -4021,3 +4021,31 @@ Offen daraus:
   **Nebenbefund, mitgezogen:** die Datenschutzerklaerung erwaehnte **Karten mit keinem Wort**,
   obwohl wir seit jeher OSM-Kacheln laden und dabei IP und Kartenausschnitt an deren Server gehen.
   Jetzt ein eigener Abschnitt (`imp.map*`, de/de-AT/en): OSM immer, Esri NUR bei Umschalten.
+
+- **✅ 31.08. — „Zwei Illmensee am selben Fleck": Einfallstor gefunden, nicht nur zusammengefuehrt.**
+  Jans Meldung. In der DB gab es nur EINEN Illmensee-Spot (#18) — die Doppelung entstand in der
+  KARTE. Kette, Schritt fuer Schritt:
+  1. `spot_map` gruppiert nach `spot_id` und haengt fuer Sessions OHNE `spot_id` zusaetzlich eine
+     Gruppe nach `place_name` an (gedacht fuer Altbestand). Es pruefte NICHT, ob zu dem Namen
+     schon ein Spot existiert -> zwei Markierungen, gleicher Name, gleicher Fleck (279 + 1).
+     Betroffen waren genau zwei Namen: Illmensee und Gošići.
+  2. Warum haben Sessions keinen Spot? Zwei Wege sind ABSICHT: ohne erkanntes Foilen vergibt
+     `assign_one` nur den Namen, und wer als Traverse zwischen zwei Spots startet, bekommt bewusst
+     keinen. Drei Sessions waren aber `is_pumpfoil=True` MIT Laeufen und ohne Spot — die haetten
+     zugeordnet werden muessen (nachgerechnet: jede ueberschneidet sich mit genau EINEM Spot).
+  3. Ursache dafuer: `_spot_nachziehen` (am 24.08. fuer genau dieses Symptom gebaut, damals
+     Pasohlávky) haengt an vier Analyse-Pfaden — aber **drei Pfade riefen es nie**:
+     `reanalysis.py` (Massen-Reanalyse), `merge.py` (Sessions zusammenfuehren) und
+     `admin.py` („Aussortierung ruecknehmen"). Alle drei koennen aus „keine Laeufe" ein echtes
+     Foilen machen. Jetzt rufen alle drei nach.
+  **Zwei Fixes:** (a) die Karte faltet eine namensgleiche Gruppe in den echten Spot ein statt eine
+  zweite Markierung zu zeichnen — Illmensee steht jetzt mit 280 Sessions EINMAL da; (b) die drei
+  Analyse-Pfade ziehen den Spot nach.
+  **KEIN Spot wurde zusammengefuehrt** — Jans Sorge um Beschreibungen und Chat war berechtigt,
+  betrifft diesen Fix aber nicht. Nachgesehen: `spots.py` migriert beim echten Merge Chat-Scope
+  samt Lesezustand (Z. 231) UND Beschreibungen inkl. Fotos mit Konfliktregel (Z. 611) — das ist
+  also abgedeckt.
+  **Offen, Jans Entscheidung:** `repair(apply=True)` wuerde die drei Sessions zuordnen, die zwei
+  namenlosen Moskau-Spots (#457/#458, 530 m auseinander, derselbe Nutzer) verschmelzen und meldet
+  **fuenf Helsinki-Dubletten** zur Durchsicht (#359/#362/#357/#360/#361 -> #353). Trockenlauf
+  gemacht, nichts geschrieben.
