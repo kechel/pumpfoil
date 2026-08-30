@@ -1034,6 +1034,8 @@ const ru: Record<string, string> = {
   "banner.dismiss": "Закрыть",
   "phome.latest": "Последние сессии",
   "phome.byFoil": "По фойлу",
+  "map.street": "Карта",
+  "map.satellite": "Спутник",
   "social.title": "Ленты соцсетей",
   "social.hint": "Видео сообщества в одном месте, воспроизводятся прямо здесь — без алгоритма посередине. Укажите свой канал YouTube в профиле, и ваши видео появятся в ленте. (Instagram и TikTok этого не позволяют.)",
   "social.prev": "Назад",

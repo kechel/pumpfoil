@@ -810,6 +810,8 @@ const es: Record<string, string> = {
   "banner.dismiss": "Ocultar",
   "phome.latest": "Últimas sesiones",
   "phome.byFoil": "Por foil",
+  "map.street": "Mapa",
+  "map.satellite": "Satélite",
   "social.title": "Feeds de redes sociales",
   "social.hint": "Vídeos de la comunidad, reunidos en un sitio y reproducibles aquí mismo — sin algoritmo de por medio. Añade tu canal de YouTube en tu perfil y tus vídeos se suman. (Instagram y TikTok no lo permiten.)",
   "social.prev": "Anterior",

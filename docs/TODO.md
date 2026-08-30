@@ -3999,3 +3999,25 @@ Offen daraus:
   gescheitert, sobald ein Anhang dranhaengt — beim Selbsttest sofort passiert. `delete_feedback`
   und `delete_all_feedback` raeumen jetzt Anhaenge UND Dateien mit weg (geprueft: 2 Dateien rein,
   0 nach dem Loeschen, keine Waisen auf der Platte).
+
+- **✅ GEBAUT 30.08. — Satellitenansicht auf allen fünf Karten.** Nutzerwunsch (VintZ, ios-app,
+  26.08.): „How hard is it to have satellite view option on the tracking map."
+  **Antwort auf die naheliegende Frage: OpenStreetMap kann das NICHT** — das ist ein Datenprojekt,
+  Luftbilder gibt es dort schlicht nicht. Es braucht einen zweiten Anbieter.
+  **Gewaehlt: Esri World Imagery** (Jans Entscheidung) — sehr gute Aufloesung, kein Schluessel,
+  keine Kosten, nur Namensnennung. Verworfen: Mapbox (Schluessel + Kosten ab 50 000 Aufrufen),
+  Sentinel-2 cloudless (wirklich frei, aber 10 m — See ja, Steg nein), Landesluftbilder (je Land
+  eigene Adressen, unsere Fahrer sind in ~30 Laendern). Restrisiko benannt: Esri sieht fuer den
+  produktiven Einsatz formal ein Entwicklerkonto vor; faellt die oeffentliche Adresse je aus,
+  bleibt die Strassenkarte und der Layer wird abgeschaltet.
+  - **Ein gemeinsamer Helfer** (`web/src/lib/mapTiles.ts`) statt fuenf Kopien: Session-Detail,
+    Spots, Vergleich, Verlauf und Labeling holen ihre Basiskarten dort. Vorher stand die
+    Kachel-Adresse fuenfmal im Code — jetzt keinmal ausserhalb des Helfers (geprueft).
+  - **Die Wahl gilt appweit** (`localStorage.map_layer`) und wird ueber die EBENE gemerkt, nicht
+    ueber den angezeigten Namen — der ist uebersetzt und haette beim Sprachwechsel nicht gepasst.
+  - Kachel-Adresse bei Esri in der Reihenfolge `z/y/x` (bei OSM `z/x/y`) — die Kacheln kommen
+    (HTTP 200, 256x256 JPEG, an zwei Zoomstufen geprueft).
+  - CSP `img-src` um `server.arcgisonline.com` ergaenzt.
+  **Nebenbefund, mitgezogen:** die Datenschutzerklaerung erwaehnte **Karten mit keinem Wort**,
+  obwohl wir seit jeher OSM-Kacheln laden und dabei IP und Kartenausschnitt an deren Server gehen.
+  Jetzt ein eigener Abschnitt (`imp.map*`, de/de-AT/en): OSM immer, Esri NUR bei Umschalten.

@@ -730,6 +730,8 @@ const gsw: Record<string, string> = {
   "banner.dismiss": "Uusblände",
   "phome.latest": "Letschti Sessions",
   "phome.byFoil": "Pro Foil",
+  "map.street": "Charte",
+  "map.satellite": "Satellit",
   "social.title": "Social-Media-Feeds",
   "social.hint": "Videos us de Community, a einem Ort gsammlet und da abspielbar — ohni Algorithmus, wo drizwüschefunkt. Trag din YouTube-Kanal im Profil i, denn laufed dini Videos da mit. (Instagram und TikTok erlaubed das leider nöd.)",
   "social.prev": "Zrugg",

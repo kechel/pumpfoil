@@ -69,7 +69,11 @@ _CSP = (
     "default-src 'self'; "
     "script-src 'self'; "
     "style-src 'self' 'unsafe-inline'; "
-    "img-src 'self' data: blob: https://*.tile.openstreetmap.org https://img.youtube.com; "
+    # arcgisonline: Luftbild-Kacheln (Esri World Imagery) — laden NUR, wenn jemand in der Karte
+    # auf „Satellit" umschaltet. OpenStreetMap liefert keine Luftbilder, deshalb ein zweiter
+    # Anbieter (Nutzerwunsch 26.08.). Beides steht in der Datenschutzerklaerung (imp.map*).
+    "img-src 'self' data: blob: https://*.tile.openstreetmap.org "
+    "https://server.arcgisonline.com https://img.youtube.com; "
     "frame-src https://www.youtube-nocookie.com; "
     "connect-src 'self'; "
     "worker-src 'self' blob:; "

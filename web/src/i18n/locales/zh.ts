@@ -1034,6 +1034,8 @@ const zh: Record<string, string> = {
   "banner.dismiss": "关闭",
   "phome.latest": "最新记录",
   "phome.byFoil": "按水翼",
+  "map.street": "地图",
+  "map.satellite": "卫星",
   "social.title": "社交媒体动态",
   "social.hint": "社区视频汇聚一处，可直接在这里播放——中间没有算法。在个人资料中填入你的 YouTube 频道，你的视频也会一起出现。 （Instagram 和 TikTok 不支持。）",
   "social.prev": "上一个",

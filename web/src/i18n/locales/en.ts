@@ -1161,6 +1161,8 @@ const en: Record<string, string> = {
   "banner.dismiss": "Dismiss",
   "phome.latest": "Latest sessions",
   "phome.byFoil": "Per foil",
+  "map.street": "Map",
+  "map.satellite": "Satellite",
   "social.title": "Social media feeds",
   "social.hint": "Videos from the community, gathered in one place and playable right here — no algorithm in between. Add your YouTube channel in your profile and your videos join in. (Instagram and TikTok do not allow this.)",
   "social.prev": "Previous",
@@ -1409,6 +1411,9 @@ const en: Record<string, string> = {
   "imp.yt1": "On the home page we show thumbnails from our YouTube channel. They are served via <b>our own server</b> — loading the page creates <b>no</b> contact with Google and sets <b>no</b> cookies.",
   "imp.yt2": "Only when you <b>click</b> a video does the YouTube player load, in privacy-enhanced mode (youtube-nocookie.com) — on the home page and in the community feed alike. Google/YouTube then receives your IP address and may set cookies. By clicking you consent to this.",
   "imp.ytNote": "Provider: Google Ireland Ltd. More in <a href=\"https://policies.google.com/privacy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"text-brand-400 hover:underline\">Google's privacy policy</a>.",
+  "imp.mapTitle": "Maps",
+  "imp.map1": "The <b>street map</b> comes from <b>OpenStreetMap</b>. When a map is shown, your browser loads the map tiles directly from their servers, which transmits your IP address and the section you are viewing. Provider: OpenStreetMap Foundation, United Kingdom.",
+  "imp.map2": "If you switch to <b>Satellite</b> in the top right, the aerial imagery comes from <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — again directly from their servers and again with your IP address. This happens <b>only</b> if you switch; your choice is remembered locally in your browser.",
   "imp.ytTitle": "Embedded YouTube videos",
   "metric.metersPerPump": "meters / pump",
 

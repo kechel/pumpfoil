@@ -1113,6 +1113,8 @@ const pl: Record<string, string> = {
   "banner.dismiss": "Zamknij",
   "phome.latest": "Najnowsze sesje",
   "phome.byFoil": "Według foila",
+  "map.street": "Mapa",
+  "map.satellite": "Satelita",
   "social.title": "Kanały społecznościowe",
   "social.hint": "Filmy społeczności w jednym miejscu, odtwarzane tutaj — bez algorytmu pośrodku. Dodaj swój kanał YouTube w profilu, a twoje filmy dołączą. (Instagram i TikTok na to nie pozwalają.)",
   "social.prev": "Wstecz",

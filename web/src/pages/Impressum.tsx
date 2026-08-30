@@ -109,6 +109,16 @@ export default function Impressum() {
           <p className="mt-2 text-xs text-slate-400" dangerouslySetInnerHTML={{ __html: t("imp.aiNote") }} />
         </section>
 
+        {/* Karten: stand bisher NIRGENDS in der Erklaerung, obwohl wir seit jeher OSM-Kacheln
+            laden — beim Ergaenzen des Luftbilds am 30.08. aufgefallen und mit nachgezogen. */}
+        <section className="rounded-xl border border-slate-700 bg-slate-900/40 p-4">
+          <h3 className="mb-2 font-semibold text-slate-200">{t("imp.mapTitle")}</h3>
+          <ul className="list-disc space-y-1 pl-5 text-slate-200">
+            {li("imp.map1")}
+            {li("imp.map2")}
+          </ul>
+        </section>
+
         <section className="rounded-xl border border-slate-700 bg-slate-900/40 p-4">
           <h3 className="mb-2 font-semibold text-slate-200">{t("imp.ytTitle")}</h3>
           <ul className="list-disc space-y-1 pl-5 text-slate-200">

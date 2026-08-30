@@ -1034,6 +1034,8 @@ const pt: Record<string, string> = {
   "banner.dismiss": "Dispensar",
   "phome.latest": "Últimas sessões",
   "phome.byFoil": "Por foil",
+  "map.street": "Mapa",
+  "map.satellite": "Satélite",
   "social.title": "Feeds de redes sociais",
   "social.hint": "Vídeos da comunidade reunidos num só sítio e reproduzíveis aqui — sem algoritmo pelo meio. Adiciona o teu canal do YouTube no perfil e os teus vídeos entram também. O (O Instagram e o TikTok não permitem isto.)",
   "social.prev": "Anterior",

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import L from "leaflet";
+import { basiskarten } from "../lib/mapTiles";
 import { api, SessionSummary, SessionSocial as SocialData, SessionVideo } from "../lib/api";
 import { fmtDate, fmtTime } from "../lib/time";
 import { Card, Stat, Spinner, ErrorBox, Avatar } from "../components/ui";
@@ -868,11 +869,7 @@ export default function SessionDetail() {
       L.control.zoom({ position: "bottomright" }).addTo(mapObj.current);
       // Dezente Maßstabsleiste (Nutzer-Wunsch: bei fremden Spots fehlt das Größengefühl).
       L.control.scale({ imperial: false, maxWidth: 100 }).addTo(mapObj.current);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "© OpenStreetMap",
-        maxZoom: 22,        // erlaubt weiteres Reinzoomen ...
-        maxNativeZoom: 19,  // ... über die OSM-Kacheln hinaus (überzoomt/skaliert)
-      }).addTo(mapObj.current);
+      basiskarten(mapObj.current, { street: t("map.street"), satellite: t("map.satellite") }, { maxZoom: 22 });
       // Eigene Panes über den Track-Linien (overlayPane z=400): Pump-Marker + die
       // bewegte Position bleiben so immer sichtbar, egal in welcher Reihenfolge die
       // Linien gezeichnet werden.

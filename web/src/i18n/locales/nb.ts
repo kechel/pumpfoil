@@ -1066,6 +1066,8 @@ const nb: Record<string, string> = {
   "banner.dismiss": "Lukk",
   "phome.latest": "Siste økter",
   "phome.byFoil": "Per foil",
+  "map.street": "Kart",
+  "map.satellite": "Satellitt",
   "social.title": "Sosiale feeder",
   "social.hint": "Videoer fra fellesskapet, samlet på ett sted og spillbare her — uten algoritme imellom. Legg inn YouTube-kanalen din i profilen, så blir videoene dine med. (Instagram og TikTok tillater det ikke.)",
   "social.prev": "Forrige",

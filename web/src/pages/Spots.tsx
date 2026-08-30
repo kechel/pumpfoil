@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import L from "leaflet";
+import { basiskarten } from "../lib/mapTiles";
 import { api } from "../lib/api";
 import { Spinner, Card } from "../components/ui";
 import { SpotsIcon } from "../components/Icons";
@@ -71,7 +72,7 @@ export default function Spots() {
     if (!mapObj.current) {
       const m = L.map(mapRef.current, { attributionControl: false });
       mapObj.current = m;
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(m);
+      basiskarten(m, { street: t("map.street"), satellite: t("map.satellite") }, { maxZoom: 19 });
       markers.current = L.layerGroup().addTo(m);
       setTimeout(() => m.invalidateSize(), 100);
       // Gemerkten Ausschnitt herstellen, bevor der Marker-Block unten `fitBounds` erwaegt.
