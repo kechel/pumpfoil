@@ -16,6 +16,11 @@ import { PERIODS } from "./Home";
 
 // Voreingestelltes Zeitfenster der Kacheln. Einer der Werte aus PERIODS.
 const STANDARD_ZEITRAUM = "10d";
+// Rueckfall-Kette: ist das Fenster leer, wird EINE Stufe weiter aufgemacht — und zwar
+// schrittweise (Jan), nicht gleich bis Allzeit. Wer seit zwei Wochen faehrt, soll die zwei
+// Wochen sehen und nicht seine Rekorde von vorletztem Sommer. Greift NUR beim ersten Laden;
+// sobald jemand selbst auf einen Zeitraum tippt, bleibt seine Wahl stehen.
+const RUECKFALL = ["10d", "30d", "365d", "all"];
 import { LATEST_CHANGELOG_DATE, CHANGELOG_SEEN_KEY } from "./Changelog";
 import { useT, useI18n, useNumberFormat } from "../i18n";
 
@@ -160,6 +165,8 @@ export default function PersonalHome() {
   const [sport, setSport] = useState("");
   const [sports, setSports] = useState<{ sport: string; sessions: number }[]>([]);
   const decidedRef = useRef(false);
+  // true, solange der Zeitraum noch nicht von Hand gewaehlt wurde -> Rueckfall erlaubt.
+  const autoRef = useRef(true);
 
   useEffect(() => {
     api.getProfile().then(setProfile).catch(() => {});
@@ -178,6 +185,13 @@ export default function PersonalHome() {
           .every((k) => (s.records?.[k]?.value ?? 0) === 0);
         if (accelOnly && noAccel) { setAccelOnly(false); return; }  // -> Refetch mit "alle"
       }
+      // Leeres Fenster? Eine Stufe weiter aufmachen, statt leere Kacheln zu zeigen.
+      // Gemessen am 30.08.: 38 % der Nutzer haben in den letzten 10 Tagen keine Session.
+      if (autoRef.current && s.count === 0) {
+        const i = RUECKFALL.indexOf(period);
+        if (i >= 0 && i < RUECKFALL.length - 1) { setPeriod(RUECKFALL[i + 1]); return; }
+      }
+      autoRef.current = false;   // ab hier steht das Fenster (leer oder nicht)
       setStats(s);
       if (s.sports) setSports(s.sports);
       if (!sport && s.sport) setSport(s.sport);   // Voreinstellung des Servers uebernehmen
@@ -351,7 +365,7 @@ export default function PersonalHome() {
         {PERIODS.map(([k, labelKey]) => (
           <button
             key={k}
-            onClick={() => setPeriod(k)}
+            onClick={() => { autoRef.current = false; setPeriod(k); }}
             className={`rounded-lg px-2.5 py-1 text-xs ${period === k ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
           >
             {t(labelKey)}

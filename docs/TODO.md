@@ -3779,3 +3779,19 @@ Offen daraus:
   **Bestand geprueft:** im ganzen Datenbestand gibt es genau EINEN solchen Fall — Jans eigenen.
   Die Regel selbst bleibt also richtig, sie hatte nur keinen Rueckweg.
   Jans Eintrag taucht beim naechsten App-Start der Uhr von selbst wieder auf (kein DB-Eingriff).
+
+- **✅ 30.08. — Startseite: Standard-Zeitfenster 10 Tage, mit schrittweisem Rueckfall.** Jan:
+  „default sollte jetzt 10 tage sein" + „bitte schrittweise, nach 10 tagen kommen 30 tage, dann
+  1 jahr, dann gesamt". Umgesetzt in `PersonalHome.tsx` (`STANDARD_ZEITRAUM`, `RUECKFALL`):
+  ist das Fenster leer, wird beim ERSTEN Laden eine Stufe weiter aufgemacht — 10 T → 30 T → 1 J →
+  Allzeit. Sobald jemand selbst auf einen Zeitraum tippt, steht seine Wahl (`autoRef`).
+  **An allen 200 Nutzern mit Sessions durchgerechnet, wo sie landen:**
+  | Fenster | Nutzer |
+  |---|---|
+  | 10 Tage | 101 (50,5 %) |
+  | 30 Tage | 28 (14,0 %) |
+  | 1 Jahr | 17 (8,5 %) |
+  | Allzeit | 54 (27,0 %) |
+  **Niemand mit Sessions sieht leere Kacheln.** Ohne den Rueckfall waeren es 38 % gewesen — das
+  war der Anlass. Der Rueckfall macht nur so weit auf, wie noetig: wer letzte Woche gefahren ist,
+  sieht letzte Woche und nicht seine Rekorde von vorletztem Sommer.
