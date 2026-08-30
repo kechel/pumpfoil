@@ -2204,7 +2204,10 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Hersteller nachgeschlagen). **Kein** Alias fuer die Code-Foils-Stabs: dort IST der Produktcode
   schon die Groesse (`150AR`, `135R`), die Groessensuche findet sie bereits.
   Weitere Aliase einfach in die JSON eintragen und den Server neu starten — kein Code noetig.
-- **🔴 STILLER DATENVERLUST bei vollem Uhr-Speicher (Instinct 2) — belegt 13.08., ZWEI Nutzer.**
+- **✅ GELOEST (Jan, 30.08.) — stiller Datenverlust bei vollem Uhr-Speicher.** Die Uhr warnt
+  jetzt VORHER (Restzeit-Schaetzung + Warnschwellen, s. docs/WATCH-STORAGE.md). **Philipp hat es
+  getestet und am See live mit Jan bestaetigt.** Der urspruengliche Befund bleibt als Beleg stehen:
+  original:
   Meldung Nathan: „session on August 11th, all the data were uploaded but only one of the runs is
   being displayed". Stimmt beides — die Uhr hat alles hochgeladen, was sie noch HATTE, der Rest war
   vorher auf der Uhr verloren. Kette, Schritt fuer Schritt belegt:
