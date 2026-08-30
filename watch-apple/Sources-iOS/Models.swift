@@ -180,6 +180,21 @@ struct SportCount: Codable, Identifiable {
     var id: String { sport }
 }
 
+// Dieselben Kennzahlen wie `OverallStats`, aber je Foil (GET /api/sessions/stats-by-foil).
+// Der Server liefert nur Foils, die im gewaehlten Zeitfenster vorkommen, sortiert nach dem
+// LAENGSTEN Lauf; `foil_id == nil` ist die Gruppe "kein Foil eingetragen".
+struct FoilStatsGroup: Codable, Identifiable {
+    let foil_id: Int?
+    let brand: String?
+    let model: String?
+    let size: String?
+    let aspect_ratio: Double?
+    let sessions: Int
+    let stats: OverallStats
+    // Die Gruppe ohne Foil hat keine id — "keins" ist dafuer ein stabiler Schluessel.
+    var id: String { foil_id.map(String.init) ?? "keins" }
+}
+
 // Trainingskurve (GET /api/sessions/hr-progress): je Session der Hoechstpuls nach 30 s, 1, 2 und
 // 5 Minuten LAUF (Median ueber die Laeufe), aelteste zuerst. Faellt der Wert ueber die Wochen, ist
 // der Fahrer fitter geworden.

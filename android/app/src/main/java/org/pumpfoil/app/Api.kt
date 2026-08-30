@@ -317,6 +317,14 @@ object Api {
             http("GET", "/api/sessions/stats?accel_only=$accelOnly&period=$period$s", null, auth = true))
     }
 
+    // Dieselben Kennzahlen je Foil (Startseite, Block unter den Kacheln). Fehlt die Antwort,
+    // bleibt der Block einfach leer — er ist eine Ergaenzung, kein Pflichtteil der Startseite.
+    suspend fun statsByFoil(accelOnly: Boolean = true, period: String = "all", sport: String? = null): List<FoilStatsGroup> = withContext(Dispatchers.IO) {
+        val s = sport?.let { "&sport=" + java.net.URLEncoder.encode(it, "UTF-8") } ?: ""
+        json.decodeFromString(ListSerializer(FoilStatsGroup.serializer()),
+            http("GET", "/api/sessions/stats-by-foil?accel_only=$accelOnly&period=$period$s", null, auth = true))
+    }
+
     // Trainingskurve. `sport` leer = der Server nimmt die haeufigste Sportart des Nutzers.
     suspend fun hrProgress(sport: String? = null): HrProgress = withContext(Dispatchers.IO) {
         val s = sport?.let { "?sport=" + java.net.URLEncoder.encode(it, "UTF-8") } ?: ""

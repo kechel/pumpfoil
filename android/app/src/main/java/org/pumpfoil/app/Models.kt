@@ -441,6 +441,20 @@ data class OverallStats(
 @Serializable
 data class SportCount(val sport: String = "", val sessions: Int = 0)
 
+// Dieselben Kennzahlen wie `OverallStats`, aber je Foil (GET /api/sessions/stats-by-foil).
+// Der Server liefert nur Foils, die im gewaehlten Zeitfenster vorkommen, sortiert nach dem
+// LAENGSTEN Lauf; `foilId == null` ist die Gruppe "kein Foil eingetragen".
+@Serializable
+data class FoilStatsGroup(
+    @SerialName("foil_id") val foilId: Int? = null,
+    val brand: String? = null,
+    val model: String? = null,
+    val size: String? = null,
+    @SerialName("aspect_ratio") val aspectRatio: Double? = null,
+    val sessions: Int = 0,
+    val stats: OverallStats = OverallStats(),
+)
+
 @Serializable
 data class SpotsList(val mine: List<String> = emptyList(), val all: List<String> = emptyList())
 

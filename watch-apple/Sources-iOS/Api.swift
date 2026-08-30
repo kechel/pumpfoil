@@ -260,6 +260,17 @@ enum Api {
         return try await request(pfad, method: "GET", body: nil, auth: true)
     }
 
+    /// Dieselben Kennzahlen je Foil (Startseite, Block unter den Kacheln).
+    static func statsByFoil(accelOnly: Bool = true, period: String = "all",
+                            sport: String? = nil) async throws -> [FoilStatsGroup] {
+        var pfad = "/api/sessions/stats-by-foil?accel_only=\(accelOnly)&period=\(period)"
+        if let s = sport, !s.isEmpty,
+           let enc = s.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) {
+            pfad += "&sport=\(enc)"
+        }
+        return try await request(pfad, method: "GET", body: nil, auth: true)
+    }
+
     // Hat der Nutzer mind. einen Lauf mit Beschleunigungsdaten? -> Default des
     // „nur Accel | alle"-Umschalters (siehe AccelDefault.swift / web useAccelDefault.ts).
     struct HasAccelResponse: Decodable { let has_accel: Bool }

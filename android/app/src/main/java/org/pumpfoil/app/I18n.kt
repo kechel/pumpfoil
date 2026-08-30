@@ -43,7 +43,11 @@ private fun row(de: String, gsw: String, deAT: String, en: String, fr: String, i
     mapOf("de" to de, "gsw" to gsw, "de-AT" to deAT, "en" to en, "fr" to fr, "it" to it, "es" to es)
 
 // Kuratiertes Start-Set: Navigation, häufige Aktionen, Haupttitel.
-private val S: Map<String, Map<String, String>> = mapOf(
+private val S: Map<String, Map<String, String>> = sTabelle()
+
+private fun sTabelle(): Map<String, Map<String, String>> = mapOf(
+    "phome.byFoil" to row("Je Foil", "Pro Foil", "Je Foil", "Per foil", "Par foil", "Per foil", "Por foil"),
+    "phome.noFoil" to row("Ohne Foil-Eintrag", "Ohni Foil-Iidrag", "Ohne Foil-Eintrag", "No foil recorded", "Sans foil renseigné", "Senza foil indicato", "Sin foil indicado"),
     // Spalten der Lauf-Tabelle (Paritaet zur PWA). Erzeugt aus web/src/i18n/locales/*.ts.
     "sd.colStart" to row("Start", "Start", "Start", "Start", "Départ", "Inizio", "Inicio"),
     "sd.colDistance" to row("Distanz", "Distanz", "Distanz", "Distance", "Distance", "Distanza", "Distancia"),
@@ -1013,7 +1017,11 @@ private val S: Map<String, Map<String, String>> = mapOf(
 
 // Finnisch-Overlay (aus web/src/i18n/locales/fi.ts kopiert). App-eigene Keys ohne fi
 // fallen in t() auf Englisch zurueck. Bei neuen fi-Strings hier ergaenzen.
-private val FI: Map<String, String> = mapOf(
+private val FI: Map<String, String> = fiTabelle()
+
+private fun fiTabelle(): Map<String, String> = mapOf(
+    "phome.byFoil" to "Foileittain",
+    "phome.noFoil" to "Ei foilia merkitty",
     "sd.fullscreen" to "⛶ Koko näyttö",
     "sd.close" to "✕ Sulje",
     "stat.foiling" to "Foiling",
@@ -1574,7 +1582,11 @@ private val FI: Map<String, String> = mapOf(
 )
 
 // Niederländisch-Overlay (aus web/src/i18n/locales/nl.ts + app-eigene Keys). Fallback: Englisch.
-private val NL: Map<String, String> = mapOf(
+private val NL: Map<String, String> = nlTabelle()
+
+private fun nlTabelle(): Map<String, String> = mapOf(
+    "phome.byFoil" to "Per foil",
+    "phome.noFoil" to "Geen foil ingevuld",
     "sd.fullscreen" to "⛶ Volledig scherm",
     "sd.close" to "✕ Sluiten",
     "stat.foiling" to "Foiling",
@@ -2178,7 +2190,11 @@ private val NL: Map<String, String> = mapOf(
 )
 
 // Tschechisch-Overlay (aus web/src/i18n/locales/cs.ts + app-eigene Keys). Fallback: Englisch.
-private val CS: Map<String, String> = mapOf(
+private val CS: Map<String, String> = csTabelle()
+
+private fun csTabelle(): Map<String, String> = mapOf(
+    "phome.byFoil" to "Podle foilu",
+    "phome.noFoil" to "Bez zadaného foilu",
     "sd.fullscreen" to "⛶ Celá obrazovka",
     "sd.close" to "✕ Zavřít",
     "stat.foiling" to "Foiling",

@@ -4,7 +4,11 @@ package org.pumpfoil.app
 // uebersetzt. App-eigene Keys ohne Eintrag fallen in I18n.t() auf Englisch zurueck.
 // Muster identisch mit FI/NL/CS in I18n.kt. Auto-generiert; bei neuen Keys ergaenzen.
 
-val PT: Map<String, String> = mapOf(
+val PT: Map<String, String> = ptTabelle()
+
+private fun ptTabelle(): Map<String, String> = mapOf(
+    "phome.byFoil" to "Por foil",
+    "phome.noFoil" to "Sem foil indicado",
     "guide.howto" to "Como configurar seu relógio",
     "guide.pair.title" to "Conecte seu relógio à sua conta",
     "guide.pair.intro" to "Você pode gravar sem conectar — as sessões são salvas localmente e enviadas automaticamente depois. Para atribuí-las à sua conta, há dois jeitos:",
@@ -649,7 +653,11 @@ val PT: Map<String, String> = mapOf(
     "v2.unkeep" to "separar de novo",
 )
 
-val JA: Map<String, String> = mapOf(
+val JA: Map<String, String> = jaTabelle()
+
+private fun jaTabelle(): Map<String, String> = mapOf(
+    "phome.byFoil" to "フォイル別",
+    "phome.noFoil" to "フォイル未登録",
     "guide.howto" to "ウォッチの設定方法",
     "guide.pair.title" to "ウォッチをアカウントに接続",
     "guide.pair.intro" to "接続しなくても記録できます — セッションはローカルに保存され、後で自動的にアップロードされます。アカウントに紐づけるには2つの方法があります：",
@@ -1294,7 +1302,11 @@ val JA: Map<String, String> = mapOf(
     "v2.unkeep" to "再び除外する",
 )
 
-val ZH: Map<String, String> = mapOf(
+val ZH: Map<String, String> = zhTabelle()
+
+private fun zhTabelle(): Map<String, String> = mapOf(
+    "phome.byFoil" to "按水翼",
+    "phome.noFoil" to "未填写水翼",
     "guide.howto" to "如何设置你的手表",
     "guide.pair.title" to "将你的手表连接到你的账号",
     "guide.pair.intro" to "你可以不连接就记录 —— 记录会保存在本地，之后自动上传。要将它们归入你的账号，有两种方式：",
@@ -1939,7 +1951,11 @@ val ZH: Map<String, String> = mapOf(
     "v2.unkeep" to "重新分离",
 )
 
-val RU: Map<String, String> = mapOf(
+val RU: Map<String, String> = ruTabelle()
+
+private fun ruTabelle(): Map<String, String> = mapOf(
+    "phome.byFoil" to "По фойлу",
+    "phome.noFoil" to "Фойл не указан",
     "guide.howto" to "Как настроить часы",
     "guide.pair.title" to "Подключите часы к своему аккаунту",
     "guide.pair.intro" to "Записывать можно и без подключения — сессии сохраняются локально и загружаются автоматически позже. Чтобы привязать их к аккаунту, есть два способа:",
@@ -2584,7 +2600,11 @@ val RU: Map<String, String> = mapOf(
     "v2.unkeep" to "снова отделить",
 )
 
-val ID: Map<String, String> = mapOf(
+val ID: Map<String, String> = idTabelle()
+
+private fun idTabelle(): Map<String, String> = mapOf(
+    "phome.byFoil" to "Per foil",
+    "phome.noFoil" to "Tanpa foil tercatat",
     "guide.howto" to "Cara menyiapkan jammu",
     "guide.pair.title" to "Hubungkan jammu ke akunmu",
     "guide.pair.intro" to "Kamu bisa merekam tanpa menghubungkan — sesi disimpan lokal dan terunggah otomatis nanti. Untuk mengaitkannya ke akunmu, ada dua cara:",
@@ -3232,7 +3252,11 @@ val ID: Map<String, String> = mapOf(
 // Norwegisch (Bokmaal) — Overlay wie fi/nl/cs (aus den Web-Texten), app-eigene Keys aus dem
 // Englischen. Anlass: erster norwegischer Nutzer (Sogndal, 05.08.2026). nn/no landen ebenfalls
 // hier, s. web/src/i18n/index.tsx.
-val NB: Map<String, String> = mapOf(
+val NB: Map<String, String> = nbTabelle()
+
+private fun nbTabelle(): Map<String, String> = mapOf(
+    "phome.byFoil" to "Per foil",
+    "phome.noFoil" to "Uten foil angitt",
     "guide.howto" to "Slik setter du opp klokka",
     "guide.pair.title" to "Koble klokka til kontoen din",
     "guide.pair.intro" to "Du kan ta opp uten å koble til — økter lagres lokalt og lastes opp automatisk senere. For å knytte dem til kontoen din finnes det to måter:",
@@ -3999,7 +4023,11 @@ val NB: Map<String, String> = mapOf(
 
 // Polnisch — 17. Sprache (28.08.). Web-Texte aus web/src/i18n/locales/pl.ts uebernommen,
 // app-eigene Schluessel einmal uebersetzt und auf beide Apps verteilt.
-val PL: Map<String, String> = mapOf(
+val PL: Map<String, String> = plTabelle()
+
+private fun plTabelle(): Map<String, String> = mapOf(
+    "phome.byFoil" to "Według foila",
+    "phome.noFoil" to "Bez wpisanego foila",
     "sd.colStart" to "Start",
     "sd.colDistance" to "Dystans",
     "sd.colDuration" to "Czas",

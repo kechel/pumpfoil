@@ -17,6 +17,8 @@ let ptOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/pt.ts.
 private let _ptOverlayP11: [String: String] = [
+        "phome.byFoil": "Por foil",
+        "phome.noFoil": "Sem foil indicado",
     "guide.howto": "Como configurar seu relógio",
     "guide.pair.title": "Conecte seu relógio à sua conta",
     "guide.pair.intro": "Você pode gravar sem conectar — as sessões são salvas localmente e enviadas automaticamente depois. Para atribuí-las à sua conta, há dois jeitos:",
@@ -682,6 +684,8 @@ let jaOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/ja.ts.
 private let _jaOverlayP11: [String: String] = [
+        "phome.byFoil": "フォイル別",
+        "phome.noFoil": "フォイル未登録",
     "guide.howto": "ウォッチの設定方法",
     "guide.pair.title": "ウォッチをアカウントに接続",
     "guide.pair.intro": "接続しなくても記録できます — セッションはローカルに保存され、後で自動的にアップロードされます。アカウントに紐づけるには2つの方法があります：",
@@ -1347,6 +1351,8 @@ let zhOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/zh.ts.
 private let _zhOverlayP11: [String: String] = [
+        "phome.byFoil": "按水翼",
+        "phome.noFoil": "未填写水翼",
     "guide.howto": "如何设置你的手表",
     "guide.pair.title": "将你的手表连接到你的账号",
     "guide.pair.intro": "你可以不连接就记录 —— 记录会保存在本地，之后自动上传。要将它们归入你的账号，有两种方式：",
@@ -2012,6 +2018,8 @@ let ruOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/ru.ts.
 private let _ruOverlayP11: [String: String] = [
+        "phome.byFoil": "По фойлу",
+        "phome.noFoil": "Фойл не указан",
     "guide.howto": "Как настроить часы",
     "guide.pair.title": "Подключите часы к своему аккаунту",
     "guide.pair.intro": "Записывать можно и без подключения — сессии сохраняются локально и загружаются автоматически позже. Чтобы привязать их к аккаунту, есть два способа:",
@@ -2677,6 +2685,8 @@ let idOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/id.ts.
 private let _idOverlayP11: [String: String] = [
+        "phome.byFoil": "Per foil",
+        "phome.noFoil": "Tanpa foil tercatat",
     "guide.howto": "Cara menyiapkan jammu",
     "guide.pair.title": "Hubungkan jammu ke akunmu",
     "guide.pair.intro": "Kamu bisa merekam tanpa menghubungkan — sesi disimpan lokal dan terunggah otomatis nanti. Untuk mengaitkannya ke akunmu, ada dua cara:",
@@ -3341,6 +3351,8 @@ let nbOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/nb.ts.
 private let _nbOverlayP11: [String: String] = [
+        "phome.byFoil": "Per foil",
+        "phome.noFoil": "Uten foil angitt",
     "guide.howto": "Slik setter du opp klokka",
     "guide.pair.title": "Koble klokka til kontoen din",
     "guide.pair.intro": "Du kan ta opp uten å koble til — økter lagres lokalt og lastes opp automatisk senere. For å knytte dem til kontoen din finnes det to måter:",
@@ -4119,6 +4131,8 @@ let plOverlay: [String: String] = {
 }()
 
 private let _plOverlayP1: [String: String] = [
+        "phome.byFoil": "Według foila",
+        "phome.noFoil": "Bez wpisanego foila",
     "foils.defaultSport": "Domyślny sport dla nowych sesji",
     "foils.defaultSportHint": "Dotyczy tylko przyszłych nagrań — istniejące sesje zostają bez zmian. Wybór na zegarku pojawi się później.",
     "home.startThreshold": "Próba < ",

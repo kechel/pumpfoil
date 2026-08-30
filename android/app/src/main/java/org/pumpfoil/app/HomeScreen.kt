@@ -78,9 +78,17 @@ private object RatingClock { val startMs = android.os.SystemClock.elapsedRealtim
 fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpenSessions: () -> Unit = {}, onOpenCommunity: () -> Unit = {}, onOpenChatRoom: (String, String) -> Unit = { _, _ -> }, onRecord: () -> Unit = {}, social: Boolean = true) {
     var profile by remember { mutableStateOf<Profile?>(null) }
     var stats by remember { mutableStateOf<OverallStats?>(null) }
+    // Dieselben Kacheln zusaetzlich je Foil (PWA 30.08.). Eigene Abfrage, eigener Fehlerfall:
+    // faellt sie aus, fehlt nur der Block — die Startseite bleibt vollstaendig.
+    var byFoil by remember { mutableStateOf<List<FoilStatsGroup>>(emptyList()) }
     // Zeitraum der Rekorde UND Gesamtwerte (Paritaet Punkt 8): beides kommt aus derselben
     // Abfrage, "30 Tage" heisst also auch Foiling/Pumps der letzten 30 Tage.
-    var zeitraum by remember { mutableStateOf("all") }
+    // Vorgabe seit 30.08. "10 Tage" statt "Allzeit" (wie PWA): die Startseite soll zeigen, wie es
+    // GERADE laeuft — und der Block "je Foil" bleibt damit von selbst kurz.
+    var zeitraum by remember { mutableStateOf(STANDARD_ZEITRAUM) }
+    // true, solange das Fenster nicht von Hand gewaehlt wurde -> Rueckfall auf die naechste
+    // Stufe erlaubt, wenn es im gewaehlten Fenster gar keine Session gibt.
+    var fensterAuto by remember { mutableStateOf(true) }
     // Sportart der eigenen Rekorde (Paritaet Punkt 7). null = der Server nimmt die haeufigste
     // und sagt in der Antwort, welche es war.
     var sportart by remember { mutableStateOf<String?>(null) }
@@ -181,15 +189,25 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
     LaunchedEffect(tick, accelOnly, zeitraum, sportart) {
         val s = try { Api.stats(accelOnly, zeitraum, sportart) } catch (_: Exception) { null }
         if (s != null) {
-            if (!decidedDefault) {
+            // Der Accel-Standard wird NUR beim ersten Laden entschieden, und nur im
+            // Standardfenster: in einem kurzen Fenster sind leere Rekorde normal.
+            if (!decidedDefault && zeitraum == STANDARD_ZEITRAUM) {
                 decidedDefault = true
                 val r = s.records
                 val noAccel = (r?.distance?.value ?: 0.0) == 0.0 &&
                     (r?.duration?.value ?: 0.0) == 0.0 && (r?.speed?.value ?: 0.0) == 0.0
                 if (accelOnly && noAccel) { accelOnly = false; return@LaunchedEffect }
             }
+            // Leeres Fenster? Eine Stufe weiter aufmachen statt leere Kacheln zu zeigen
+            // (PWA 30.08.: 38 % der Nutzer haben in den letzten 10 Tagen keine Session).
+            if (fensterAuto && s.count == 0) {
+                val i = RUECKFALL.indexOf(zeitraum)
+                if (i >= 0 && i < RUECKFALL.size - 1) { zeitraum = RUECKFALL[i + 1]; return@LaunchedEffect }
+            }
+            fensterAuto = false        // ab hier steht das Fenster (leer oder nicht)
             stats = s
         }
+        byFoil = try { Api.statsByFoil(accelOnly, zeitraum, sportart) } catch (_: Exception) { emptyList() }
     }
 
     Scaffold(topBar = {
@@ -367,31 +385,40 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
                 Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     HOME_STAT_WINDOWS.forEach { (k, lbl) ->
-                        Seg(zeitraum == k, I18n.t(lbl)) { zeitraum = k }
+                        Seg(zeitraum == k, I18n.t(lbl)) { fensterAuto = false; zeitraum = k }
                     }
                 }
                 Spacer(Modifier.height(8.dp))
 
                 // EIN Grid: 5 Rekorde (klickbar) + 5 Gesamtwerte — Reihenfolge/Format wie PWA.
-                val r = st.records
-                fun rt(label: String, rec: RecordEntry?, fmt: (Double) -> String): RecTile {
-                    val v = rec?.value ?: 0.0
-                    return if (v > 0) RecTile(label, fmt(v), rec?.sessionId, shortDateFull(rec?.startedAt, rec?.tz))
-                           else RecTile(label, "–", null, null)
+                TileGrid(kachelListe(st), { id -> onOpen(id, null) }, columns = 3)
+
+                // Dieselben Kacheln je Foil. Erst ab ZWEI Gruppen — bei einem einzigen Foil
+                // waere der Block eine wortgleiche Wiederholung der Zahlen darueber. Welche
+                // Foils auftauchen, entscheidet das Zeitfenster (PWA 30.08.).
+                if (byFoil.size > 1) {
+                    Spacer(Modifier.height(10.dp))
+                    Text(I18n.t("phome.byFoil").uppercase(), style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    byFoil.forEach { g ->
+                        Spacer(Modifier.height(8.dp))
+                        Row(verticalAlignment = Alignment.Bottom) {
+                            Text(
+                                // brand/model/size sind nur in der Gruppe "ohne Foil" leer.
+                                if (g.foilId != null) foilLabel(g.brand, g.model, g.size, g.aspectRatio)
+                                else I18n.t("phome.noFoil"),
+                                style = MaterialTheme.typography.titleSmall,
+                                maxLines = 2, overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f, fill = false))
+                            Spacer(Modifier.width(6.dp))
+                            Text("${g.sessions} ${I18n.t("side.sessions")}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        Spacer(Modifier.height(4.dp))
+                        TileGrid(kachelListe(g.stats), { id -> onOpen(id, null) }, columns = 3)
+                    }
                 }
-                val tiles = listOf(
-                    rt(I18n.t("rec.farthestRun"), r?.distance) { "%.0f m".format(it) },
-                    rt(I18n.t("rec.longestRun"), r?.duration) { fmtDur(it) },
-                    rt(I18n.t("rec.topSpeed"), r?.speed) { "%.1f km/h".format(it * 3.6) },
-                    rt(I18n.t("rec.longestGlide"), r?.glide) { "%.1f s".format(it) },
-                    rt(I18n.t("rec.mostRuns"), r?.runs) { "%.0f".format(it) },
-                    RecTile(I18n.t("side.sessions"), st.count.toString(), null, null),
-                    RecTile(I18n.t("stat.runs"), st.runsTotal.toString(), null, null),
-                    RecTile(I18n.t("side.foiling"), "%.1f km".format(st.foilingKm), null, null),
-                    RecTile(I18n.t("side.foilingTime"), fmtMin(st.foilingMin), null, null),
-                    RecTile(I18n.t("side.pumps"), "%,d".format(st.pumps), null, null),
-                )
-                TileGrid(tiles, { id -> onOpen(id, null) }, columns = 3)
             }
 
             weather?.let { wb ->
@@ -440,8 +467,40 @@ private fun Seg(active: Boolean, label: String, onClick: () -> Unit) {
     }
 }
 
+/**
+ * Die zehn Kacheln der Startseite: 5 Rekorde (klickbar) + 5 Gesamtwerte.
+ *
+ * EINE Quelle fuer die Gesamtansicht UND jeden Foil-Block darunter — sonst driften
+ * Reihenfolge und Formatierung auseinander (`recTilesOf`/`statTilesOf` in PersonalHome.tsx).
+ */
+private fun kachelListe(st: OverallStats): List<RecTile> {
+    val r = st.records
+    fun rt(label: String, rec: RecordEntry?, fmt: (Double) -> String): RecTile {
+        val v = rec?.value ?: 0.0
+        return if (v > 0) RecTile(label, fmt(v), rec?.sessionId, shortDateFull(rec?.startedAt, rec?.tz))
+               else RecTile(label, "–", null, null)
+    }
+    return listOf(
+        rt(I18n.t("rec.farthestRun"), r?.distance) { "%.0f m".format(it) },
+        rt(I18n.t("rec.longestRun"), r?.duration) { fmtDur(it) },
+        rt(I18n.t("rec.topSpeed"), r?.speed) { "%.1f km/h".format(it * 3.6) },
+        rt(I18n.t("rec.longestGlide"), r?.glide) { "%.1f s".format(it) },
+        rt(I18n.t("rec.mostRuns"), r?.runs) { "%.0f".format(it) },
+        RecTile(I18n.t("side.sessions"), st.count.toString(), null, null),
+        RecTile(I18n.t("stat.runs"), st.runsTotal.toString(), null, null),
+        RecTile(I18n.t("side.foiling"), "%.1f km".format(st.foilingKm), null, null),
+        RecTile(I18n.t("side.foilingTime"), fmtMin(st.foilingMin), null, null),
+        RecTile(I18n.t("side.pumps"), "%,d".format(st.pumps), null, null),
+    )
+}
+
 private val HOME_STAT_WINDOWS = listOf(
     "today" to "period.today", "10d" to "period.10d", "30d" to "period.30d", "365d" to "period.365d", "all" to "period.all")
+
+// Vorgabefenster der Startseite und die Kette, auf die zurueckgefallen wird, solange der
+// Nutzer nicht selbst gewaehlt hat: 10 Tage -> 30 Tage -> 1 Jahr -> Allzeit (PWA 30.08.).
+private const val STANDARD_ZEITRAUM = "10d"
+private val RUECKFALL = listOf("10d", "30d", "365d", "all")
 
 @Composable
 private fun statTileModifier() = Modifier

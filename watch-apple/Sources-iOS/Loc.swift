@@ -1881,6 +1881,8 @@ enum Loc {
     }()
 
     private static let __t1P1: [String: [String: String]] = [
+        "phome.byFoil": r("Je Foil", "Pro Foil", "Je Foil", "Per foil", "Par foil", "Per foil", "Por foil"),
+        "phome.noFoil": r("Ohne Foil-Eintrag", "Ohni Foil-Iidrag", "Ohne Foil-Eintrag", "No foil recorded", "Sans foil renseigné", "Senza foil indicato", "Sin foil indicado"),
         "foils.defaultSport": r("Standard-Sportart für neue Sessions", "Standard-Sportart für neue Sessions", "Standard-Sportart für neue Sessions", "Default sport for new sessions", "Default sport for new sessions", "Default sport for new sessions", "Default sport for new sessions"),
         "foils.defaultSportHint": r("Gilt nur für künftige Aufnahmen — bestehende Sessions bleiben, wie sie sind. Auf der Uhr wählbar wird das später.", "Gilt nur für künftige Aufnahmen — bestehende Sessions bleiben, wie sie sind. Auf der Uhr wählbar wird das später.", "Gilt nur für künftige Aufnahmen — bestehende Sessions bleiben, wie sie sind. Auf der Uhr wählbar wird das später.", "Applies to future recordings only — existing sessions stay as they are. Choosing it on the watch comes later.", "Applies to future recordings only — existing sessions stay as they are. Choosing it on the watch comes later.", "Applies to future recordings only — existing sessions stay as they are. Choosing it on the watch comes later.", "Applies to future recordings only — existing sessions stay as they are. Choosing it on the watch comes later."),
         "home.startThreshold": r("Versuch < ", "Versuch < ", "Versuch < ", "Attempt < ", "Attempt < ", "Attempt < ", "Attempt < "),

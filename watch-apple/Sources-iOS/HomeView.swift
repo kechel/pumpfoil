@@ -21,7 +21,15 @@ struct HomeView: View {
     @State private var accelOnly = true
     // Zeitraum der Rekorde UND Gesamtwerte (Paritaet Punkt 8): beides kommt aus derselben
     // Abfrage, "30 Tage" heisst also auch Foiling/Pumps der letzten 30 Tage.
-    @State private var zeitraum = "all"
+    // Vorgabe seit 30.08. "10 Tage" statt "Allzeit" (wie PWA): die Startseite soll zeigen, wie es
+    // GERADE laeuft — und der Block "je Foil" bleibt damit von selbst kurz.
+    @State private var zeitraum = HomeView.standardZeitraum
+    // true, solange das Fenster nicht von Hand gewaehlt wurde -> Rueckfall auf die naechste
+    // Stufe erlaubt, wenn es im gewaehlten Fenster gar keine Session gibt.
+    @State private var fensterAuto = true
+    // Dieselben Kacheln zusaetzlich je Foil (PWA 30.08.). Eigene Abfrage, eigener Fehlerfall:
+    // faellt sie aus, fehlt nur der Block — die Startseite bleibt vollstaendig.
+    @State private var byFoil: [FoilStatsGroup] = []
     // Sportart der eigenen Rekorde (Paritaet Punkt 7). nil = der Server nimmt die haeufigste
     // und sagt in der Antwort, welche es war.
     @State private var sportart: String?
@@ -34,6 +42,10 @@ struct HomeView: View {
     @State private var carveStats: CarveStats?
     // Zeitfenster wie PWA: heute / 10 T / 30 T / 1 J / gesamt.
     private let statWindows: [(String, String)] = [("today", "period.today"), ("10d", "period.10d"), ("30d", "period.30d"), ("365d", "period.365d"), ("all", "period.all")]
+    // Vorgabefenster und die Kette, auf die zurueckgefallen wird, solange der Nutzer nicht
+    // selbst gewaehlt hat: 10 Tage -> 30 Tage -> 1 Jahr -> Allzeit (PWA 30.08.).
+    static let standardZeitraum = "10d"
+    private let rueckfall = ["10d", "30d", "365d", "all"]
     @State private var showFeedback = false
     // News-Banner DB-gesteuert (wie PWA): der AppStorage-Wert = zuletzt weggeklickte VERSION.
     @AppStorage("foil_banner_v1") private var newsVerStored = 0
@@ -251,10 +263,30 @@ struct HomeView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 6) {
                 ForEach(statWindows, id: \.0) { w in
-                    segButton(Loc.t(w.1, lang), active: zeitraum == w.0) { zeitraum = w.0 }
+                    segButton(Loc.t(w.1, lang), active: zeitraum == w.0) { fensterAuto = false; zeitraum = w.0 }
                 }
             }
         }
+        kachelGitter(st)
+
+        // Dieselben Kacheln je Foil. Erst ab ZWEI Gruppen — bei einem einzigen Foil waere der
+        // Block eine wortgleiche Wiederholung der Zahlen darueber. Welche Foils auftauchen,
+        // entscheidet das gewaehlte Zeitfenster (PWA 30.08.).
+        if byFoil.count > 1 {
+            Text(Loc.t("phome.byFoil", lang).uppercased())
+                .font(.caption).fontWeight(.semibold).foregroundStyle(.secondary)
+                .padding(.top, 6)
+            ForEach(byFoil) { g in
+                foilBlock(g)
+            }
+        }
+    }
+
+    /// Die zehn Kacheln: 5 Rekorde (klickbar) + 5 Gesamtwerte.
+    ///
+    /// EINE Quelle fuer die Gesamtansicht UND jeden Foil-Block darunter — sonst driften
+    /// Reihenfolge und Formatierung auseinander (`recTilesOf`/`statTilesOf` in PersonalHome.tsx).
+    @ViewBuilder private func kachelGitter(_ st: OverallStats) -> some View {
         let r = st.records
         LazyVGrid(columns: cols3, spacing: 10) {
             recTile(r?.distance, Loc.t("rec.farthestRun", lang)) { "\(Int($0)) m" }
@@ -268,6 +300,26 @@ struct HomeView: View {
             tile(fmtMin(st.foiling_min ?? 0), Loc.t("side.foilingTime", lang))
             tile("\(st.pumps ?? 0)", Loc.t("side.pumps", lang))
         }
+    }
+
+    /// Ein Foil mit Ueberschrift (Name + Session-Zahl) und seinem eigenen Kachelgitter.
+    /// Bewusst eigene Funktion: der Titel-Ausdruck ist optional-lastig und laesst den
+    /// Swift-Typpruefer sonst lange rechnen (s. docs — komplexe SwiftUI-Ausdruecke aufbrechen).
+    @ViewBuilder private func foilBlock(_ g: FoilStatsGroup) -> some View {
+        // brand/model/size sind nur in der Gruppe "ohne Foil" leer.
+        let titel: String = g.foil_id != nil
+            ? foilLabel(g.brand, g.model, g.size, g.aspect_ratio)
+            : Loc.t("phome.noFoil", lang)
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .lastTextBaseline, spacing: 6) {
+                Text(titel).font(.subheadline).fontWeight(.semibold).lineLimit(2)
+                Text("\(g.sessions) \(Loc.t("side.sessions", lang))")
+                    .font(.caption2).foregroundStyle(.secondary)
+                Spacer(minLength: 0)
+            }
+            kachelGitter(g.stats)
+        }
+        .padding(.top, 4)
     }
 
     @ViewBuilder private func welcomeBanner(_ n: NewsBanner) -> some View {
@@ -397,7 +449,26 @@ struct HomeView: View {
 
     /// Stats neu holen — von allen drei Umschaltern aus (Accel/alle, Sportart, Zeitraum).
     private func ladeStats() {
-        Task { stats = try? await Api.stats(accelOnly: accelOnly, period: zeitraum, sport: sportart) }
+        Task {
+            guard let s = try? await Api.stats(accelOnly: accelOnly, period: zeitraum, sport: sportart) else { return }
+            if rueckfallNoetig(s) { return }        // Fenster wurde weitergestellt -> onChange laedt neu
+            stats = s
+            byFoil = (try? await Api.statsByFoil(accelOnly: accelOnly, period: zeitraum, sport: sportart)) ?? []
+        }
+    }
+
+    /// Leeres Fenster? Eine Stufe weiter aufmachen statt leere Kacheln zu zeigen — aber nur,
+    /// solange der Nutzer den Zeitraum nicht selbst gewaehlt hat (PWA 30.08.: 38 % der Nutzer
+    /// haben in den letzten 10 Tagen keine Session).
+    /// Rueckgabe true = Fenster wurde weitergestellt, der Aufrufer bricht ab.
+    private func rueckfallNoetig(_ s: OverallStats) -> Bool {
+        guard fensterAuto, (s.count ?? 0) == 0,
+              let i = rueckfall.firstIndex(of: zeitraum), i < rueckfall.count - 1 else {
+            fensterAuto = false          // ab hier steht das Fenster (leer oder nicht)
+            return false
+        }
+        zeitraum = rueckfall[i + 1]
+        return true
     }
 
     @ViewBuilder
@@ -416,10 +487,13 @@ struct HomeView: View {
         if let s = try? await Api.stats(accelOnly: accelOnly, period: zeitraum, sport: sportart) {
             let r = s.records
             let noAccel = (r?.distance?.value ?? 0) == 0 && (r?.duration?.value ?? 0) == 0 && (r?.speed?.value ?? 0) == 0
-            if !decidedDefault && accelOnly && noAccel {
+            // Der Accel-Standard wird NUR im Standardfenster entschieden: in einem kurzen
+            // Fenster sind leere Rekorde normal und wuerden den Umschalter grundlos umlegen.
+            if !decidedDefault && accelOnly && noAccel && zeitraum == HomeView.standardZeitraum {
                 decidedDefault = true; accelOnly = false   // onChange lädt Stats mit "alle" neu
-            } else {
+            } else if !rueckfallNoetig(s) {                // sonst: leeres Fenster weiterstellen
                 decidedDefault = true; stats = s
+                byFoil = (try? await Api.statsByFoil(accelOnly: accelOnly, period: zeitraum, sport: sportart)) ?? []
             }
         }
         latest = Array(((try? await Api.sessions()) ?? []).prefix(3))
