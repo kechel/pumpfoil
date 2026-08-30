@@ -4074,3 +4074,39 @@ Offen daraus:
   beim Start abstuerzen.
   **Damit sind die Paritaets-Punkte fuer iOS wieder anfassbar** (Kennzahlen je Foil, Social-Feed) —
   die naechste iOS-Runde kann sie mitnehmen.
+
+- **✅ 31.08. — Zaehler-Spotnamen ersetzt, wo ein besserer Name in der DB lag (Jans „mach das fuer alle 21").**
+  Vorlauf: die sieben Helsinki-Spots hatten schon eigene Namen bekommen (#353 Etelä-Haaga,
+  #359 Meilahti, #362 Taka-Töölö, #357 Alppila, #356 Kuusisaari, #360 Kalasatama,
+  #361 Etelä-Haaga 2) — ueber `rename_spot_row`, also mit Kaskade (Sessions, Chat-Scope,
+  Beschreibung, Homespot).
+  Danach dieselbe Behandlung fuer alle uebrigen Spots, deren Name auf eine Zaehl-Ziffer endet
+  (Regex `' [0-9]{1,2}$'` — „Bremerhavener Ruderverein v. 1889" faellt korrekt durch).
+  22 Kandidaten, davon 15 mit einem gespeicherten Alternativnamen (`water_name`/`area_name`).
+  **12 umbenannt:** #163 Annecy 2 -> Lac d'Annecy (61 Sess) · #270 Berlin 4 -> Berlin Reinickendorf
+  (15) · #237 Zollikon 2 -> Zürichsee (13) · #403 Zollikon 3 -> Zürichsee 2 (4) ·
+  #128 Almere 6 -> Oostvaardersdiep (4) · #377 Papenberge 2 -> Oberhavel (2) ·
+  #267 Whitehorse 2 -> Schwatka Lake (1) · #322 Praha 3 -> Intercamp Kotva (1) ·
+  #274 Berlin 5 -> Wannsee (1) · #386 Tampere 2 -> Petsamo (1) · #169 Annecy 3 -> Le Fier (1) ·
+  #361 Etelä-Haaga 2 -> Haaga (1).
+  **3 bewusst NICHT angewendet**, weil der „bessere" Name schlechter gewesen waere als der Zaehler:
+  #121 Utrecht 3 -> „Oost" (eine Himmelsrichtung), #316 Sogndal 3 -> „Vestland" (norwegische
+  Provinz, viel zu grob), #256 Berlin 3 -> „Parkplatz für Anlieger der Insel Scharfenberg"
+  (ein Parkplatz, kein Revier). **Merkregel fuer den naechsten Durchgang: Gewaessernamen
+  (`water_name`) sind praktisch immer brauchbar, Gebietsnamen (`area_name`) nur, wenn sie ein
+  Revier oder einen Ortsteil benennen — nicht bei Himmelsrichtung, Provinz/Landkreis oder
+  Infrastruktur.**
+  Sieben weitere Zaehler-Spots haben gar keinen Alternativnamen in der DB und bleiben wie sie
+  sind (Almere 5, Utrecht 3, Sogndal 2/3, West-Terschelling 2, Techendorf 2, Whitehorse 3,
+  Annecy 4/5, Berlin 3, Zürichsee 2).
+  **Kaskade nachgeprueft:** alle 12 Spots — Sessions tragen den neuen `place_name` (100 %),
+  0 Reste unter den alten Namen in `sessions.place_name`, 0 alte Chat-Scopes, 0 Homespots.
+  Reine DB-Arbeit, kein Code geaendert.
+
+- **📥 Inbox 31.08. (Jan) — Synchron-Abspielen im Session-Vergleich.** Wenn zwei (oder mehr)
+  verglichene Sessions **zeitgleich am selben Spot** stattgefunden haben, soll die
+  Abspielfunktion nicht nur je Lauf, sondern **ueber die gesamten Sessions zeitsynchron**
+  laufen — alle Teilnehmer gleichzeitig auf der Karte. Pausen, in denen **niemand** on-foil ist,
+  werden uebersprungen (ohne Halt), Pausen einzelner Fahrer laufen normal mit.
+  Zweck: Videos, in denen mehrere gleichzeitig auf dem Wasser sind.
+  Bedingungen fuers Anbieten: zeitliche Ueberschneidung **und** gleicher Spot.
