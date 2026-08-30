@@ -44,6 +44,13 @@ dependencies {
     implementation("androidx.compose.foundation:foundation")
     implementation("androidx.compose.ui:ui")
     implementation("androidx.activity:activity-compose:1.9.0")
+    // ECHTER Befund, kein Fehlalarm (Lint `InvalidFragmentVersionForActivityResult`, aufgefallen
+    // beim ersten Release-Bau gegen API 36): das Wear-Modul loeste `androidx.fragment` auf 1.2.4
+    // auf — unter der von den ActivityResult-APIs geforderten 1.3.0. Genau diese alten Versionen
+    // riefen `super.onRequestPermissionsResult()` NICHT auf und benutzten ungueltige Request-Codes;
+    // MainActivity holt darueber die Standort-/Sensor-Berechtigungen (registerForActivityResult).
+    // Auf 1.5.7 gehoben, dieselbe Version wie in :app.
+    implementation("androidx.fragment:fragment:1.5.7")
     implementation("androidx.wear.compose:compose-material:1.3.1")
     implementation("androidx.wear.compose:compose-foundation:1.3.1")
     // Ambient-Modus (Always-on-Anzeige waehrend der Aufnahme): AmbientLifecycleObserver.

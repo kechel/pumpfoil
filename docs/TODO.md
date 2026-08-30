@@ -3619,3 +3619,22 @@ Offen daraus:
   Uhr-Anleitung, Geschwindigkeits-Zonen im Profil, laengster Lauf je Foil, Leistung fremder
   Sessions mit dem Gewicht des Besitzers. Uhren-Teil: Polnisch, Zonen-Farben, Schriftmessung.
   Nach der Freigabe: `appmeta` auf 1.1.26 setzen + Changelog-Eintrag.
+
+- **✅ 30.08. — Release-Bau gegen API 36 vorgeprueft; dabei EIN echter Fehler auf der Uhr.**
+  `bundleRelease` (das, was Jan in Android Studio baut) scheiterte an einem Lint-Fehler, den der
+  Debug-Bau nicht zeigt: `InvalidFragmentVersionForActivityResult` — „Upgrade Fragment version to
+  at least 1.3.0". Zweimal aufgetreten, mit unterschiedlicher Bedeutung:
+  - **`:app` = Fehlalarm.** Aufgeloest wurde ohnehin 1.5.7; im Graphen steht ueber eine Transitive
+    aber noch `fragment:1.0.0`, und der Lint liest die Version VOR der Aufloesung. Behoben, indem
+    `androidx.fragment:fragment:1.5.7` explizit deklariert ist — keine Verhaltensaenderung, und
+    die Pruefung bleibt scharf (statt sie abzuschalten).
+  - **`:wear` = echter Befund.** Das Uhr-Modul loeste tatsaechlich auf **1.2.4** auf, also unter
+    der Grenze. `MainActivity` holt genau darueber die Berechtigungen
+    (`registerForActivityResult(RequestMultiplePermissions())`), und die alten Fragment-Versionen
+    riefen `super.onRequestPermissionsResult()` **nicht** auf und benutzten ungueltige
+    Request-Codes. Das ist dieselbe Fehlerklasse wie der Befund vom 05.08. („Standort-Berechtigung
+    scheitert stumm", 4 von 6 Wear-Sessions ohne GPS-Punkte) — dort war unser eigener Code die
+    belegte Ursache, aber diese Bibliotheksversion konnte es nicht besser machen. Jetzt 1.5.7.
+  Alle vier Varianten gebaut: `app-release.aab` 15,1 MB, `wear-release.aab` 7,5 MB, beide Debug-
+  APKs ebenfalls. **Merke: `assembleDebug` beweist nichts ueber den Release** — Lint laeuft nur
+  beim Release-Bau, und er bricht ab, nicht warnt.

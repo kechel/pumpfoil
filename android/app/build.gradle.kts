@@ -66,6 +66,13 @@ dependencies {
     implementation("androidx.compose.material:material")            // nur für pullRefresh (M3 1.2 hat's noch nicht)
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.activity:activity-compose:1.9.0")
+    // Nur damit Lint die Version SIEHT. Aufgeloest wurde ohnehin schon 1.5.7, aber im
+    // Abhaengigkeitsgraphen steht ueber eine Transitive noch `fragment:1.0.0` — und
+    // `InvalidFragmentVersionForActivityResult` (Lint, seit AGP 8.9 scharf beim Release-Bau)
+    // liest die Version VOR der Aufloesung und bricht den Release ab: "you must upgrade your
+    // Fragment version to 1.3.0". Ein Fehlalarm, aber er blockiert `bundleRelease`. Explizit
+    // deklariert ist er weg — ohne die Pruefung abzuschalten und ohne Verhaltensaenderung.
+    implementation("androidx.fragment:fragment:1.5.7")
     implementation("androidx.core:core-splashscreen:1.0.1")
     implementation("androidx.navigation:navigation-compose:2.7.7")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.3")
