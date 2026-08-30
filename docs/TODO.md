@@ -4063,3 +4063,14 @@ Offen daraus:
     **Das eigentliche Problem dort ist die BENENNUNG, nicht die Zahl der Spots.** Wer sie
     zusammenfuehrt, klebt fuenf echte Spots zu einem Klumpen ueber halb Helsinki.
     Richtiger Weg: bessere Namen (Gewaesser/Ortsteil), s. `spots.name_for`.
+
+- **✅ 31.08. — iOS/Apple Watch 1.1.26 FREIGEGEBEN und live.** Freigabe-Mail „ready for
+  distribution"; **selbst gegengeprueft** ueber `itunes.apple.com/lookup` in fuenf Laendern
+  (de/us/nl/no/fi -> ueberall 1.1.26, `currentVersionReleaseDate` 2026-08-30T21:50:36).
+  `appmeta.ios` UND `appmeta.apple` auf 1.1.26 (dasselbe Bundle, immer beide zusammen),
+  Changelog-Eintrag geschrieben.
+  **Der Server-Notbehelf fuer alte iOS-Clients BLEIBT** (`_alte_ios_app`/`_kappe_ausreisser` in
+  `community.py`): 1.1.26 ist ausgenommen, aber wer nicht aktualisiert, wuerde ohne ihn wieder
+  beim Start abstuerzen.
+  **Damit sind die Paritaets-Punkte fuer iOS wieder anfassbar** (Kennzahlen je Foil, Social-Feed) —
+  die naechste iOS-Runde kann sie mitnehmen.

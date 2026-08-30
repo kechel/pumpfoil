@@ -30,6 +30,13 @@ type Entry = { date: string; items: Item[] };
 
 const ENTRIES: Entry[] = [
   {
+    date: "August 31, 2026",
+    items: [
+      "The iPhone app is fixed. Version 1.1.25 could refuse to start, and the cause was on our side, not on anyone\u2019s phone: our map asks to be shown an area big enough to hold every spot we know, and once a rider in Japan uploaded a session, that area spanned from Alaska to the Pacific \u2014 wider than the map is allowed to be. iOS shut the app down rather than draw it. The day before, we were less than nine degrees short of that limit, which is why it worked until it suddenly did not. Version 1.1.26 caps the area, and the same guard now sits on every map in the app, including the one that compares two sessions from different continents. The fix reached everyone within the hour through the server, before the update was even submitted.",
+      "While we were in there: the app no longer builds all seven tabs when it starts, only the one you are looking at \u2014 the spots map alone was drawing over two hundred pins before you had even opened it. And that map now bundles pins that sit on top of each other at low zoom, showing how many spots are hiding under one dot instead of quietly picking one of them when you tap.",
+    ],
+  },
+  {
     date: "August 30, 2026",
     items: [
       "There is a community video feed now, on the [community page](/community) above the photos. Every rider can add their YouTube channel in their [profile](/einstellungen); once we have had a look at it, their clips join the feed. Everything lands in one stream, newest first, across all channels \u2014 not sorted by what an algorithm thinks you should watch, and not one channel at a time. Tap a clip and it plays right here, full screen, with arrows to go through the others; short clips loop. Nothing is sent to YouTube until you actually press play, and the preview images come from our own server, so opening the page tells Google nothing about you. One channel per person, and a channel can be removed again if it drifts off topic \u2014 this is a place for pumpfoiling. Only YouTube works for this: Instagram and TikTok stopped handing out a channel\u2019s videos, so there is no way for us to collect them.",

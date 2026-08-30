@@ -48,10 +48,12 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.25",   # LIVE im App Store 2026-08-27, gegengeprueft ueber
-        # itunes.apple.com/lookup (de/us/nl/no/fi -> alle 1.1.25, currentVersionReleaseDate
-        # 2026-08-27T16:35:34Z). Freigabe-Mail "eligible for distribution" um 27.08. (Einreichung
-        # 26.08. 21:25 MESZ, Submission a9cf1407-1369-4d4b-815d-6525abffede6).
+        "latest": "1.1.26",   # LIVE im App Store 2026-08-30 21:50 UTC, GEGENGEPRUEFT ueber
+        # itunes.apple.com/lookup (de/us/nl/no/fi -> alle 1.1.26, currentVersionReleaseDate
+        # 2026-08-30T21:50:36). Freigabe-Mail "ready for distribution" am 31.08.
+        # Inhalt: der Startabsturz ist weg (ungueltige Karten-Region, s. docs/TODO.md), Tabs
+        # entstehen erst beim Oeffnen, Spot-Karte buendelt Pins, Polnisch, Uhr-Anleitung,
+        # Geschwindigkeits-Zonen, laengster Lauf je Foil.
         # DASSELBE Bundle wie die Watch-App ("apple" unten) — eine Einreichung, eine
         # MARKETING_VERSION (project.yml), also immer BEIDE Schluessel zusammen setzen.
         # Vorher 1.1.24, live seit 18.08.
@@ -138,7 +140,7 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.25",   # LIVE im App Store 2026-08-27 (Freigabe-Mail "eligible for
+        "latest": "1.1.26",   # LIVE im App Store 2026-08-30 (dieselbe Einreichung wie "ios"
         # distribution", Submission a9cf1407-1369-4d4b-815d-6525abffede6). NICHT auf die Mail
         # allein verlassen — "eligible for distribution" heisst freigegeben, nicht zwingend schon
         # ausgeliefert: gegengeprueft ueber itunes.apple.com/lookup?id=6783975714 in de/us/nl/no/fi,
