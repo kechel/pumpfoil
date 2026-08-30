@@ -1128,6 +1128,22 @@ export const api = {
     if (opts.userId != null) p.set("user_id", String(opts.userId));
     return req<AdminSession[]>(`/api/admin/sessions?${p}`);
   },
+  // --- Community-Feed aus den Social-Kanaelen der Nutzer -------------------------------
+  socialFeed: (limit = 60) => req<SocialItem[]>(`/api/social/feed?limit=${limit}`),
+  socialMine: () => req<SocialChannelState>("/api/social/mine"),
+  socialSetChannel: (url: string) =>
+    req<SocialChannelState>("/api/social/mine", { method: "PUT", body: JSON.stringify({ url }) }),
+  socialRemoveChannel: () => req<SocialChannelState>("/api/social/mine", { method: "DELETE" }),
+  socialReport: (id: number) => req<{ ok: boolean }>(`/api/social/item/${id}/report`, { method: "POST" }),
+  adminSocial: () => req<{ pending: AdminSocialChannel[]; approved: AdminSocialChannel[]; reported: AdminSocialItem[] }>("/api/admin/social"),
+  adminSocialApprove: (userId: number) => req<{ ok: boolean }>(`/api/admin/social/${userId}/approve`, { method: "POST" }),
+  adminSocialReject: (userId: number, reason: string) =>
+    req<{ ok: boolean }>(`/api/admin/social/${userId}/reject`, { method: "POST", body: JSON.stringify({ reason }) }),
+  adminSocialBlock: (userId: number, blocked: boolean) =>
+    req<{ ok: boolean }>(`/api/admin/social/${userId}/block?blocked=${blocked}`, { method: "POST" }),
+  adminSocialBlockItem: (id: number, blocked: boolean) =>
+    req<{ ok: boolean }>(`/api/admin/social/item/${id}/block?blocked=${blocked}`, { method: "POST" }),
+
   adminUserStats: (id: number) => req<{ user: AdminUser; stats: OverallStats }>(`/api/admin/users/${id}/stats`),
   adminApprove: (id: number) => req<{ ok: boolean }>(`/api/admin/sessions/${id}/ok`, { method: "POST" }),
   adminHideSession: (id: number) => req<{ ok: boolean }>(`/api/admin/sessions/${id}/hide`, { method: "POST" }),
@@ -1199,6 +1215,44 @@ export interface HrProgress {
   sports: { sport: string; sessions: number }[];
   marks: number[];
   series: { session_id: number; started_at: string | null; [k: string]: number | string | null }[];
+}
+
+export interface SocialItem {
+  id: number;
+  platform: string;
+  external_id: string;
+  url: string;
+  title: string | null;
+  thumb_url: string | null;
+  published_at: string | null;
+  user_id: number;
+  user_name: string | null;
+  user_avatar: string | null;
+  channel_url: string | null;
+}
+
+export interface SocialChannelState {
+  url: string | null;
+  pending_url: string | null;
+  status: "none" | "pending" | "approved" | "rejected" | "blocked";
+  blocked: boolean;
+  rejected_reason: string | null;
+  approved_at?: string | null;
+}
+
+export interface AdminSocialChannel {
+  user_id: number;
+  user_name: string | null;
+  url: string | null;
+  pending_url: string | null;
+  channel_id: string | null;
+  blocked: boolean;
+  videos: number;
+  fetched_at: string | null;
+}
+
+export interface AdminSocialItem {
+  id: number; url: string; title: string | null; reports: number; blocked: boolean; user_id: number;
 }
 
 export interface FoilStatsGroup {

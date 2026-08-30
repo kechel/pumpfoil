@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { api, clearToken } from "../lib/api";
+import { api, clearToken, SocialChannelState } from "../lib/api";
 import { Card, Button, Avatar } from "../components/ui";
 import { Link } from "react-router-dom";
 import { SettingsIcon, WatchIcon, ChevronIcon, FoilIcon, CalculatorIcon, DownloadIcon, UploadIcon, CheckIcon } from "../components/Icons";
-import { useI18n } from "../i18n";
+import { useI18n, useT } from "../i18n";
 import { APP_BUILD } from "../buildInfo";
 import { LanguageSelect } from "../components/LanguageSelect";
 import { ThemeSelect } from "../components/ThemeSelect";
@@ -245,6 +245,9 @@ export default function Settings() {
         {email && <p className="mt-4 text-xs text-slate-400">{t("profile.loggedInAs", { email })}</p>}
       </Card>
 
+      {/* Direkt unter dem Anzeigenamen (Jan, 30.08.) — beides ist "wer bin ich hier". */}
+      <SocialChannelCard />
+
       <Card className="mt-4 p-5">
         <h3 className="mb-1 font-semibold">{t("profile.weight")}</h3>
         <p className="mb-3 text-sm text-slate-300">{t("profile.weightHint")}</p>
@@ -466,5 +469,76 @@ function FoilSensitivitySelect({ onSaved }: { onSaved?: () => void }) {
         </div>
       )}
     </div>
+  );
+}
+
+// Eigener Social-Kanal fuer den Community-Feed (Jan, 30.08.).
+// Zwei Felder mit Absicht: der freigegebene Kanal bleibt live, eine Aenderung wartet daneben
+// auf die Freigabe. So kann ein einmal freigegebener Kanal nicht still gegen etwas anderes
+// getauscht werden — und wer aendert, verliert derweil seine Sichtbarkeit nicht.
+function SocialChannelCard() {
+  const t = useT();
+  const [stand, setStand] = useState<SocialChannelState | null>(null);
+  const [url, setUrl] = useState("");
+  const [fehler, setFehler] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => { api.socialMine().then(setStand).catch(() => {}); }, []);
+
+  const speichern = async () => {
+    setFehler(""); setBusy(true);
+    try {
+      setStand(await api.socialSetChannel(url.trim()));
+      setUrl("");
+    } catch (e: any) {
+      setFehler(e?.message || t("social.badUrl"));
+    } finally { setBusy(false); }
+  };
+
+  return (
+    <Card className="mt-4 p-5">
+      <h3 className="mb-1 font-semibold">{t("social.channelTitle")}</h3>
+      <p className="mb-3 text-sm text-slate-300">{t("social.channelHint")}</p>
+
+      {stand?.status === "approved" && stand.url && (
+        <p className="mb-2 text-sm">
+          <span className="text-brand-700 dark:text-brand-300">✓ {t("social.stateApproved")}</span>{" "}
+          <a href={stand.url} target="_blank" rel="noopener noreferrer" className="underline">{stand.url}</a>
+        </p>
+      )}
+      {stand?.status === "pending" && (
+        <p className="mb-2 text-sm text-amber-600 dark:text-amber-400">
+          {t("social.statePending")}: {stand.pending_url}
+        </p>
+      )}
+      {stand?.status === "rejected" && stand.rejected_reason && (
+        <p className="mb-2 text-sm text-rose-600 dark:text-rose-400">
+          {t("social.stateRejected")}: {stand.rejected_reason}
+        </p>
+      )}
+      {stand?.blocked && (
+        <p className="mb-2 text-sm text-rose-600 dark:text-rose-400">{t("social.stateBlocked")}</p>
+      )}
+
+      <div className="flex max-w-xl flex-wrap gap-2">
+        <input
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder="https://www.youtube.com/@deinkanal"
+          className="min-w-0 flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
+        />
+        <button onClick={speichern} disabled={busy || !url.trim()}
+          className="rounded-xl bg-brand-500 px-3 py-2 text-sm font-semibold text-slate-950 disabled:opacity-50">
+          {stand?.url ? t("social.submitChange") : t("social.submit")}
+        </button>
+        {stand?.url && (
+          <button onClick={async () => setStand(await api.socialRemoveChannel())}
+            className="rounded-xl bg-slate-800 px-3 py-2 text-sm text-slate-200">
+            {t("social.remove")}
+          </button>
+        )}
+      </div>
+      {fehler && <p className="mt-2 text-sm text-rose-600 dark:text-rose-400">{fehler}</p>}
+    </Card>
   );
 }

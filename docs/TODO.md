@@ -3865,3 +3865,28 @@ Offen daraus:
 
   **Reihenfolge:** (1) Modell + Profil-Feld + Admin-Freigabe, noch ohne Feed · (2) RSS-Abholung +
   Feed-Endpunkt + Zeile und Vollbild · (3) Melden/Blocken und die endgueltige Platzierung.
+
+- **✅ GEBAUT 30.08. — Community-Social-Feed (Schritte 1–3 komplett).** Nach dem Plan oben, mit
+  Jans Entscheidungen: nur YouTube-Kanaele, ein Kanal je Nutzer, Freigabe durch Jan, Historie.
+  - **Server:** `social_channels` + `social_items`; `GET/PUT/DELETE /api/social/mine`,
+    `GET /api/social/feed` (alle Kanaele gemischt, nach Veroeffentlichungsdatum),
+    `POST /api/social/item/{id}/report`; Admin unter `/api/admin/social` (Liste, approve, reject
+    mit Grund, Kanal sperren, Einzelvideo sperren).
+  - **Abholung:** `scripts/social-poll.py` + `foil-social-poll.timer` (stuendlich, 5 min Streuung,
+    User-Timer). Nichts wird geloescht -> Historie waechst ueber das 15er-RSS-Fenster hinaus.
+  - **STOLPERSTEIN, geloest:** aus der EU leitet YouTube die Kanalseite auf `consent.youtube.com`
+    um; `requests` bekam die Zustimmungsseite statt des Kanals (mit `curl` war es zufaellig
+    durchgegangen — der erste Test war also truegerisch). Cookie **`SOCS=CAI`** loest es, ohne
+    Login und ohne Kennung. Ohne diesen Fund haette die Freigabe jedes Mal „Kanal nicht
+    auffindbar" gemeldet.
+  - **Web:** `SocialFeed.tsx` (Zeile zum Wischen, Klick -> Vollbild mit Weiter/Zurueck, Pfeiltasten,
+    Melden-Knopf) ganz unten auf der Community-Seite · Kanal-Feld im Profil **direkt unter dem
+    Anzeigenamen** (Jan) · Admin-Tab „Social-Feed".
+  - **16 neue i18n-Schluessel in allen 17 Sprachen.** Dabei zweimal in die Anfuehrungszeichen-Falle
+    getappt (`d'indiquer`, `video's` zerlegten fr.ts und nl.ts) — am Ende alle Zeilen maschinell
+    mit `json.dumps` neu geschrieben. **Merke: Locale-Zeilen nie per repr()/Handquoting bauen.**
+  - **Ende-zu-Ende geprueft:** Eintragen -> wartend -> Freigabe (loest `@pumpfoil-org` zu
+    `UCb_1b-TkdGE4kZWX17HDH9g` auf, prueft den RSS-Feed gegen) -> Abholung 15 Videos -> Feed
+    liefert sie neueste zuerst. Jans eigener Kanal ist als erster eingetragen und freigegeben.
+  **Noch offen:** CSP-`frame-src` bei der Umstellung auf erzwingend · Android/iOS (Paritaet) ·
+  Platzierung weiter oben, sobald sich der Feed fuellt.

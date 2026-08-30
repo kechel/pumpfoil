@@ -1,0 +1,10 @@
+[Unit]
+Description=Stuendlich die Social-Feeds abholen
+[Timer]
+# Zur vollen Stunde plus Streuung: alle Kanaele auf einmal zu holen ist unnoetig auffaellig,
+# und YouTubes RSS aendert sich ohnehin nur, wenn jemand etwas hochlaedt.
+OnCalendar=hourly
+RandomizedDelaySec=300
+Persistent=true
+[Install]
+WantedBy=timers.target

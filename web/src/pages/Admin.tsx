@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { api, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey, NewsBanner, AdminBlock, AdminStatsSeries, AdminPending, AdminUserSport } from "../lib/api";
+import { api, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey, NewsBanner, AdminBlock, AdminStatsSeries, AdminPending, AdminUserSport, AdminSocialChannel, AdminSocialItem } from "../lib/api";
 import { Card, Spinner, ErrorBox, Avatar, NewBadge } from "../components/ui";
 import { FlagIcon, FakeIcon, HeartIcon, CameraIcon, LocationIcon } from "../components/Icons";
 import { TimeChart } from "../components/TimeChart";
@@ -8,7 +8,7 @@ import { useT, useNumberFormat } from "../i18n";
 import { DATA_QUALITY, SPORTS } from "../lib/sportClass";
 import { demoGewuenscht, demoSetzen, demoAnzahl, demoBeobachten } from "../lib/demoNames";
 
-type Tab = "overview" | "classify" | "flagged" | "fake" | "suspect" | "sessions" | "deleted" | "users" | "photos" | "chat" | "spots" | "audit" | "feedback" | "news" | "blocks";
+type Tab = "overview" | "classify" | "flagged" | "fake" | "suspect" | "sessions" | "deleted" | "users" | "photos" | "chat" | "spots" | "audit" | "feedback" | "news" | "blocks" | "social";
 const TABS: [Tab, string][] = [
   ["overview", "adm.tab.overview"],
   ["classify", "adm.tab.classify"],
@@ -23,6 +23,7 @@ const TABS: [Tab, string][] = [
   ["deleted", "adm.tab.deleted"],
   ["feedback", "adm.tab.feedback"],
   ["news", "adm.tab.news"],
+  ["social", "adm.tab.social"],
   ["blocks", "adm.tab.blocks"],
   ["audit", "adm.tab.audit"],
 ];
@@ -73,6 +74,7 @@ export default function Admin() {
       {tab === "spots" && <SpotsTab />}
       {tab === "feedback" && <FeedbackTab />}
       {tab === "news" && <NewsTab />}
+      {tab === "social" && <SocialTab />}
       {tab === "blocks" && <BlocksTab />}
       {tab === "audit" && <AuditTab />}
     </div>
@@ -1213,5 +1215,79 @@ function UserSportRow({ u, onDone }: { u: AdminUserSport; onDone: () => void }) 
         {t("adm.usport.setAllKeep", { k: u.sessions_judged })}
       </p>
     </Card>
+  );
+}
+
+// Freigabe der Social-Kanaele (Jan, 30.08.). Drei Listen: was auf Freigabe wartet, was laeuft,
+// und was Nutzer gemeldet haben. Freigeben loest den Kanal auf und prueft den RSS-Feed gegen —
+// schlaegt das fehl, kommt eine sichtbare Fehlermeldung statt eines stummen Kanals.
+function SocialTab() {
+  const t = useT();
+  const [d, setD] = useState<{ pending: AdminSocialChannel[]; approved: AdminSocialChannel[]; reported: AdminSocialItem[] } | null>(null);
+  const [fehler, setFehler] = useState("");
+  const laden = () => api.adminSocial().then(setD).catch(() => setD(null));
+  useEffect(() => { laden(); }, []);
+
+  const freigeben = async (uid: number) => {
+    setFehler("");
+    try { await api.adminSocialApprove(uid); await laden(); }
+    catch (e: any) { setFehler(e?.message || "Freigabe fehlgeschlagen"); }
+  };
+  const ablehnen = async (uid: number) => {
+    const grund = window.prompt(t("adm.social.rejectReason"), t("adm.social.rejectDefault"));
+    if (grund == null) return;
+    await api.adminSocialReject(uid, grund); await laden();
+  };
+
+  if (!d) return <Card className="p-5 text-slate-300">…</Card>;
+  return (
+    <div className="space-y-4">
+      {fehler && <Card className="border-rose-700 p-3 text-sm text-rose-300">{fehler}</Card>}
+
+      <Card className="p-5">
+        <h3 className="mb-2 font-semibold">{t("adm.social.pending")} ({d.pending.length})</h3>
+        {d.pending.length === 0 && <p className="text-sm text-slate-400">—</p>}
+        {d.pending.map((k) => (
+          <div key={k.user_id} className="flex flex-wrap items-center gap-2 border-t border-slate-800 py-2 text-sm">
+            <span className="font-semibold">{k.user_name}</span>
+            <a href={k.pending_url ?? "#"} target="_blank" rel="noopener noreferrer" className="min-w-0 flex-1 truncate text-brand-300 underline">{k.pending_url}</a>
+            {k.url && <span className="text-xs text-slate-400">{t("adm.social.replaces")}: {k.url}</span>}
+            <button onClick={() => freigeben(k.user_id)} className="rounded-lg bg-emerald-600 px-2.5 py-1 text-xs font-semibold text-white">{t("adm.social.approve")}</button>
+            <button onClick={() => ablehnen(k.user_id)} className="rounded-lg bg-slate-700 px-2.5 py-1 text-xs">{t("adm.social.reject")}</button>
+          </div>
+        ))}
+      </Card>
+
+      <Card className="p-5">
+        <h3 className="mb-2 font-semibold">{t("adm.social.approved")} ({d.approved.length})</h3>
+        {d.approved.map((k) => (
+          <div key={k.user_id} className="flex flex-wrap items-center gap-2 border-t border-slate-800 py-2 text-sm">
+            <span className="font-semibold">{k.user_name}</span>
+            <a href={k.url ?? "#"} target="_blank" rel="noopener noreferrer" className="min-w-0 flex-1 truncate text-brand-300 underline">{k.url}</a>
+            <span className="text-xs text-slate-400">{k.videos} {t("adm.social.videos")}</span>
+            {k.blocked && <span className="rounded bg-rose-900/60 px-1.5 py-0.5 text-xs text-rose-200">{t("adm.social.blocked")}</span>}
+            <button onClick={async () => { await api.adminSocialBlock(k.user_id, !k.blocked); laden(); }}
+              className="rounded-lg bg-slate-700 px-2.5 py-1 text-xs">
+              {k.blocked ? t("adm.social.unblock") : t("adm.social.block")}
+            </button>
+          </div>
+        ))}
+      </Card>
+
+      <Card className="p-5">
+        <h3 className="mb-2 font-semibold">{t("adm.social.reported")} ({d.reported.length})</h3>
+        {d.reported.length === 0 && <p className="text-sm text-slate-400">—</p>}
+        {d.reported.map((v) => (
+          <div key={v.id} className="flex flex-wrap items-center gap-2 border-t border-slate-800 py-2 text-sm">
+            <span className="rounded bg-amber-900/60 px-1.5 py-0.5 text-xs text-amber-200">{v.reports}×</span>
+            <a href={v.url} target="_blank" rel="noopener noreferrer" className="min-w-0 flex-1 truncate text-brand-300 underline">{v.title || v.url}</a>
+            <button onClick={async () => { await api.adminSocialBlockItem(v.id, !v.blocked); laden(); }}
+              className="rounded-lg bg-slate-700 px-2.5 py-1 text-xs">
+              {v.blocked ? t("adm.social.unblock") : t("adm.social.block")}
+            </button>
+          </div>
+        ))}
+      </Card>
+    </div>
   );
 }

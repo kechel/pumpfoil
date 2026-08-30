@@ -5,6 +5,7 @@ import { api, CommunityRecords, RecordSet, CommunitySession, Leaders, LeaderRow,
 import { LayoutPreview } from "../components/LayoutPreview";
 import { WatchShape } from "../lib/watchLayout";
 import { Card, Avatar } from "../components/ui";
+import { SocialFeed } from "../components/SocialFeed";
 import { SessionRow } from "../components/SessionRow";
 import { Lightbox } from "../components/Lightbox";
 import { VideoModal, ytId } from "../components/VideoModal";
@@ -405,6 +406,10 @@ function CommunitySection() {
       <TopLiked period={period} />
       <SpotSection period={period} accelOnly={accelOnly} sport={sport} />
       <LayoutTeaser />
+      {/* Social-Feed vorerst GANZ UNTEN (Jan, 30.08.): noch hat niemand einen Kanal hinterlegt,
+          das Feld gibt es ja erst seit heute. Wenn er sich fuellt, wandert er weiter nach oben —
+          Jan sagt wann, vermutlich ueber „Medien". */}
+      <SocialFeed />
     </div>
   );
 }

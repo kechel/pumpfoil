@@ -1,0 +1,11 @@
+[Unit]
+Description=pumpfoil.org — YouTube-Feeds der freigegebenen Kanaele abholen (Community-Feed)
+After=postgresql.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/jan/garmin-connect-iq/server
+# Das Skript liest server/.env selbst (manueller Parser) — ohne DATABASE_URL liefe es
+# sonst gegen den SQLite-Dev-Fallback, s. CLAUDE.md.
+ExecStart=/home/jan/garmin-connect-iq/server/.venv/bin/python /home/jan/garmin-connect-iq/scripts/social-poll.py

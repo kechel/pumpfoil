@@ -853,6 +853,61 @@ class Feedback(Base):
     starred: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
 
 
+class SocialChannel(Base):
+    """Der EINE Social-Media-Kanal eines Nutzers fuer den Community-Feed (Jan, 30.08.).
+
+    Zwei URL-Felder mit Absicht: `url` ist der freigegebene Kanal und bleibt live, `pending_url`
+    ist eine Aenderung, die auf Jans Freigabe wartet. Erst beim Genehmigen ersetzt sie die alte —
+    so kann niemand einen freigegebenen Kanal still gegen etwas anderes tauschen.
+
+    `channel_id` ist die aufgeloeste YouTube-Kennung (UC…). Aufgeloest wird EINMALIG bei der
+    Freigabe ueber die Kanalseite (Browser-Kennzeichner + Weiterleitungen folgen, der Treffer
+    steht als `channel/UC…` im HTML). Danach haengt der Abruf nur noch am stabilen RSS-Feed.
+    """
+
+    __tablename__ = "social_channels"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), unique=True, index=True)
+    # Freigegeben und live. NULL = es gibt (noch) keinen freigegebenen Kanal.
+    url: Mapped[str | None] = mapped_column(String(255))
+    channel_id: Mapped[str | None] = mapped_column(String(64))
+    # Eingereicht, wartet auf Freigabe. Ersetzt bei der Freigabe url/channel_id.
+    pending_url: Mapped[str | None] = mapped_column(String(255))
+    pending_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Abgelehnt -> Grund fuer den Nutzer sichtbar (er soll wissen, warum).
+    rejected_reason: Mapped[str | None] = mapped_column(String(200))
+    # Vom Admin geblockt: der Kanal bleibt stehen, faellt aber aus dem Feed (wie session_videos).
+    blocked: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Letzter erfolgreicher RSS-Abruf (Diagnose: haengt ein Kanal, sieht man es hier).
+    fetched_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class SocialItem(Base):
+    """Ein Video aus dem Feed eines freigegebenen Kanals.
+
+    Wird NIE geloescht: der RSS-Feed zeigt nur die letzten 15, was wir einmal geholt haben,
+    bleibt stehen. Genau daraus entsteht die Historie (Jan, 30.08.). `external_id` ist eindeutig,
+    das stuendliche Abholen ist damit ein simpler Upsert."""
+
+    __tablename__ = "social_items"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    platform: Mapped[str] = mapped_column(String(16), default="youtube")
+    external_id: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    url: Mapped[str] = mapped_column(String(255))
+    title: Mapped[str | None] = mapped_column(String(300))
+    thumb_url: Mapped[str | None] = mapped_column(String(255))
+    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
+    # Einzelnes Video geblockt (der Kanal darf bleiben).
+    blocked: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    reports: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
 class PolarLink(Base):
     """Verknüpfung eines Nutzers mit Polar AccessLink: gespeichertes Access-Token +
     die Polar-User-ID (x_user_id), um dessen Trainings (TCX) abzurufen und als Sessions
