@@ -781,18 +781,7 @@ function FeedbackTab() {
                 Admin-Route — die Dateien liegen NICHT unter /media. */}
             {(f.attachments?.length ?? 0) > 0 && (
               <div className="mt-2 flex flex-wrap items-start gap-2">
-                {f.attachments!.map((a) => (a.kind === "image" ? (
-                  <a key={a.id} href={`/api/admin/feedback/attachment/${a.id}`} target="_blank" rel="noopener noreferrer"
-                    title={a.filename ?? ""}>
-                    <img src={`/api/admin/feedback/attachment/${a.id}`} alt={a.filename ?? ""}
-                      className="h-24 w-auto rounded-lg border border-slate-700 object-cover hover:border-slate-500" />
-                  </a>
-                ) : (
-                  <a key={a.id} href={`/api/admin/feedback/attachment/${a.id}`}
-                    className="rounded-lg bg-slate-800 px-2 py-1 text-xs text-brand-300 underline hover:bg-slate-700">
-                    {a.filename || "Datei"} · {Math.round(a.bytes / 1024)} kB
-                  </a>
-                )))}
+                {f.attachments!.map((a) => <Anhang key={a.id} a={a} />)}
               </div>
             )}
           </div>
@@ -1307,5 +1296,43 @@ function SocialTab() {
         ))}
       </Card>
     </div>
+  );
+}
+
+// Ein Feedback-Anhang. Die Datei liegt hinter einer admin-geschuetzten Route, ein blosses
+// <img src> bekaeme deshalb nur „Missing bearer token" — also holen wir sie mit unserem Token
+// und zeigen sie aus einer Blob-URL. Die wird beim Verlassen wieder freigegeben.
+function Anhang({ a }: { a: { id: number; kind: string; filename: string | null; bytes: number } }) {
+  const [url, setUrl] = useState<string | null>(null);
+  const [fehler, setFehler] = useState(false);
+  useEffect(() => {
+    let tot = false;
+    let erzeugt: string | null = null;
+    api.adminFeedbackAttachment(a.id)
+      .then((b) => {
+        if (tot) return;
+        erzeugt = URL.createObjectURL(b);
+        setUrl(erzeugt);
+      })
+      .catch(() => { if (!tot) setFehler(true); });
+    return () => { tot = true; if (erzeugt) URL.revokeObjectURL(erzeugt); };
+  }, [a.id]);
+
+  const groesse = `${Math.max(1, Math.round(a.bytes / 1024))} kB`;
+  if (fehler) return <span className="text-xs text-rose-400">{a.filename} (nicht ladbar)</span>;
+  if (!url) return <span className="text-xs text-slate-500">{a.filename} …</span>;
+  if (a.kind === "image") {
+    return (
+      <a href={url} target="_blank" rel="noopener noreferrer" title={`${a.filename ?? ""} · ${groesse}`}>
+        <img src={url} alt={a.filename ?? ""}
+          className="h-24 w-auto rounded-lg border border-slate-700 object-cover hover:border-slate-500" />
+      </a>
+    );
+  }
+  return (
+    <a href={url} download={a.filename || "anhang.txt"}
+      className="rounded-lg bg-slate-800 px-2 py-1 text-xs text-brand-300 underline hover:bg-slate-700">
+      {a.filename || "Datei"} · {groesse}
+    </a>
   );
 }

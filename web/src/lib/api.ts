@@ -1180,6 +1180,18 @@ export const api = {
   adminDeletePhoto: (id: number) => req<{ ok: boolean }>(`/api/admin/photos/${id}`, { method: "DELETE" }),
   adminAudit: (limit = 100) => req<AdminAuditEntry[]>(`/api/admin/audit?limit=${limit}`),
   adminFeedback: (limit = 200) => req<AdminFeedback[]>(`/api/admin/feedback?limit=${limit}`),
+  // Anhang als Blob holen. Ein blosses <a href>/<img src> geht NICHT: der Bearer-Token steckt im
+  // localStorage und wird nur von unseren eigenen Aufrufen mitgeschickt — der Browser bekaeme
+  // „Missing bearer token" (Jan, 30.08.). Die Route ist bewusst admin-geschuetzt, also holen wir
+  // die Datei hier und zeigen sie aus einer Blob-URL.
+  adminFeedbackAttachment: async (id: number): Promise<Blob> => {
+    const token = getToken();
+    const res = await fetch(`/api/admin/feedback/attachment/${id}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) throw new Error(`${res.status}`);
+    return res.blob();
+  },
   adminDeleteFeedback: (id: number) => req<{ ok: boolean }>(`/api/admin/feedback/${id}`, { method: "DELETE" }),
   adminDeleteAllFeedback: () => req<{ ok: boolean; deleted: number }>(`/api/admin/feedback/all`, { method: "DELETE" }),
   adminStarFeedback: (id: number, starred: boolean) =>

@@ -3982,6 +3982,15 @@ Offen daraus:
     getarntes HTML im Admin-Browser nicht als Seite laeuft (`nosniff` setzt die App global).
   - **Originalname nur zur Anzeige**, entschaerft: `../../etc/passwd` -> `passwd`,
     `<script>.txt` -> `_script_.txt`, auf 120 Zeichen gekappt.
+  **Zweiter Nebenbefund (Jan, direkt beim Ausprobieren):** ein `<a href>` bzw. `<img src>` auf die
+  Admin-Route zeigte nur `{"detail":"Missing bearer token"}` — der Token steckt im `localStorage`
+  und wird nur von unseren eigenen Aufrufen mitgeschickt, nicht von einer Browser-Navigation.
+  Behoben, ohne die Route aufzuweichen: die Admin-Oberflaeche holt den Anhang **mit Token** und
+  zeigt ihn aus einer **Blob-URL** (Bild als Vorschau, Text als Download); die URL wird beim
+  Verlassen wieder freigegeben. Gegenprobe: ohne Token antwortet die Route weiterhin 401.
+  **Nicht gemacht und warum:** den Token als Query-Parameter anzuhaengen waere der schnelle Weg
+  gewesen — er landet dann aber in Verlauf, Lesezeichen und Server-Logs. Ein Blob kostet drei
+  Zeilen mehr und laesst den Token, wo er hingehoert.
   **Nebenbefund, sofort behoben:** das Loeschen einer Meldung waere am Fremdschluessel
   gescheitert, sobald ein Anhang dranhaengt — beim Selbsttest sofort passiert. `delete_feedback`
   und `delete_all_feedback` raeumen jetzt Anhaenge UND Dateien mit weg (geprueft: 2 Dateien rein,
