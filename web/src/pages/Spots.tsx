@@ -212,11 +212,14 @@ export default function Spots() {
                 {spots.map((s) => <option key={s.spot} value={s.spot} />)}
               </datalist>
             </form>
-            {/* Alternativ: Dropdown zum Durchsehen aller Spots (bis es zu viele werden). */}
+            {/* Alternativ: Dropdown zum Durchsehen aller Spots (bis es zu viele werden).
+                Ein <select> ist so breit wie seine laengste Option — mit 231 Spotnamen sprengte es
+                auf schmalen Schirmen die Zeile (Jan, 30.08.). Auf dem Handy deshalb volle Breite
+                (durch den Container gedeckelt), ab sm wieder mitwachsend, aber begrenzt. */}
             <select
               value=""
               onChange={(e) => { if (e.target.value) { setQ(e.target.value); focusSpot(e.target.value); } }}
-              className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
+              className="w-full min-w-0 max-w-full truncate rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 sm:w-auto sm:max-w-xs"
             >
               <option value="">{t("home.spotPick")}</option>
               {[...spots].sort((a, b) => a.spot.localeCompare(b.spot)).map((s) => (
