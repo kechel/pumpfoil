@@ -383,3 +383,38 @@ gewaehlte Zeitfenster, sichtbar ab zwei Gruppen.
 zeichnen — die Reihenfolge und die Filterung kommen vom Server, damit sie nicht auseinanderlaufen.
 i18n-Schluessel liegen im Web bereit: `phome.byFoil`, `phome.noFoil` (beide 17 Sprachen).
 
+
+## Stand 2026-08-31 — Paritaets-Runde nach dem Satelliten-/Social-Block
+
+Gegen den Code geprueft, nicht gegen diese Datei (s. die Lehre von 18.08.). Zusaetzlich gegen
+`web/src/pages/Changelog.tsx` gelesen — auf Jans Ansage „pruefe auch gegen das changelog dass du
+nichts vergisst". Das hat sich gelohnt: **zwei live geschaltete Features standen gar nicht im
+Changelog** (Satellitenansicht und Feedback-Anhaenge), beide sind jetzt nachgetragen.
+
+| Neu in der PWA seit 26.08. | Web | Android | iOS | Uhren |
+|---|---|---|---|---|
+| Kennzahlen + Rekorde je Foil auf der Startseite | ✅ | ✅ 31.08. | ✅ 31.08. | – |
+| Zeitfenster-Vorgabe 10 Tage + Rueckfallkette | ✅ | ✅ 31.08. | ✅ 31.08. | – |
+| Foil-Statistik: laengster Lauf je Foil | ✅ | ✅ (war schon da) | ✅ (war schon da) | – |
+| Satellitenansicht auf allen fuenf Karten | ✅ | ✅ 31.08. | ✅ 31.08.¹ | – |
+| Ein Umschalter statt Auswahlliste | ✅ | ✅ 31.08. | ✅ 31.08. | – |
+| Feedback-Dateianhaenge | ✅ | ✅ 31.08. | ✅ 31.08. | – |
+| Karten-Abschnitt in der Datenschutzerklaerung | ✅ | ✅ 31.08. | ✅ 31.08. | – |
+| Community-Social-Feed | ✅ | ❌ **offen** | ❌ **offen** | – |
+| Lauf-Erkennung an den Server angeglichen | – | ✅ | ✅ | ✅ alle vier |
+| Zusammenfuehren nur bei plausibler Strecke | – | ✅ | ✅ | ✅ alle vier |
+| Puls- + Geschwindigkeits-Zonen | ✅ | ✅ | ✅ | ✅ alle vier |
+| Wert-Grafiken in Layouts | ✅ | ✅ Vorschau | ✅ Vorschau | ✅ alle vier |
+| Datenfeld 21 (Max-Puls letzter Lauf) | ✅ | – | – | ✅ alle vier |
+
+¹ Ausnahme mit Grund: die **Spot-Karte** auf iOS sitzt als einzige auf SwiftUIs `Map` statt auf
+`MKMapView` — wegen der Buendel-Pins mit `NavigationLink`, die es nur als `MapAnnotation` gibt.
+Dort geht die Ebene erst ab **iOS 17** (`mapStyle`); auf iOS 16 bleibt genau diese eine Karte die
+Strassenkarte, die vier anderen schalten normal mit. Ein Umbau auf `MKMapView` waere die
+Alternative — dafuer muesste die Buendelung neu geschrieben werden, die gerade erst Jaceks
+Absturzmeldung geschlossen hat. Nicht wert.
+
+**Offen bleibt genau ein Punkt: der Community-Social-Feed in Android und iOS.**
+
+### Nicht portiert, weil bewusst Web-only
+Layout-Editor, Labeling-Editor, FIT-Import, Changelog-Seite, Admin.

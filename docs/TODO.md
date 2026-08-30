@@ -4114,3 +4114,69 @@ Offen daraus:
   werden uebersprungen (ohne Halt), Pausen einzelner Fahrer laufen normal mit.
   Zweck: Videos, in denen mehrere gleichzeitig auf dem Wasser sind.
   Bedingungen fuers Anbieten: zeitliche Ueberschneidung **und** gleicher Spot.
+
+- **✅ 31.08. — Sprachdurchgang ueber alle Plattformen (Jans Auftrag), zwei echte Defekte.**
+  Werkzeug dafuer: die Web-Locales sind die Quelle, daraus werden die Kotlin-/Swift-Zeilen
+  erzeugt statt von Hand geschrieben — damit koennen die 17 Sprachen gar nicht mehr auseinander
+  laufen. Abdeckung gemessen (de = 1612 Schluessel):
+
+  | | en | pl | nb | nl/cs | fi | pt/ru/id | ja/zh | de-AT | gsw | fr/it/es |
+  |---|---|---|---|---|---|---|---|---|---|---|
+  | fehlt | 30 | 54 | 111 | 353 | 386 | 385 | 406 | 509 | 530 | 544–546 |
+
+  **Defekt 1 — Mundarten fielen auf Englisch zurueck (behoben).** `gsw.ts` und `de-AT.ts` sagen
+  im eigenen Kopf „fehlende Keys fallen auf Hochdeutsch zurueck". Der Code in
+  `web/src/i18n/index.tsx` machte `DICTS[lang] ?? DICTS.en ?? DICTS.de` — also sahen Schweizer
+  und oesterreichische Nutzer **rund 500 Texte auf Englisch statt auf Deutsch**. Jetzt gibt es
+  eine `BRUECKE`: Mundart -> Hochsprache -> Englisch -> Deutsch.
+
+  **Defekt 2 — zwei englische Luecken in der Uhren-Matrix (behoben).** `watches.nStrava` und
+  `watches.st.nope` fehlten in `en.ts` und standen damit deutsch auf einer englischen Seite.
+  Die uebrigen 30 Luecken in `en.ts` sind ausschliesslich `adm.*`/`nav.adminPending` — nur Jan
+  sieht sie, deutsch ist dort richtig.
+
+  **Kein Defekt, aber die Wahrheit:** die 350–550 fehlenden Schluessel je Sprache fallen sauber
+  auf Englisch zurueck (Web, Android, iOS und Zepp alle gleich gebaut) — das ist die bewusste
+  Overlay-Bauweise. Wer sie schliessen will, braucht echte Uebersetzungen, keinen Code.
+  **Konkret offen und neu dazugekommen:** `imp.mapTitle`/`imp.map1`/`imp.map2`/`imp.mapApple`
+  (Karten-Datenschutz) gibt es nur auf Deutsch und Englisch — 15 Sprachen sehen den Abschnitt
+  auf Englisch. Ausserdem nennen die 15 uebersetzten Fassungen von `imp.map2` weiterhin eine
+  Bildschirmecke („oben rechts"); in de/en ist die Ortsangabe raus, weil der Knopf in den Apps
+  links sitzt.
+
+- **✅ 31.08. — Kleinspeicher-Uhren geprueft (Jans Frage: landet dort Unnoetiges?). Antwort: nein.**
+  Gemessen, nicht geschaetzt — je ein Einzelbuild pro Stufe ins Scratchpad (NICHT `build-all.sh`,
+  das waere eine Veroeffentlichung, s. [[watch-bin-is-live]]); die Groessen stimmen byte-genau mit
+  dem Live-Stand in `watch/bin` ueberein.
+
+  | Stufe | Geraete | engster Fall | App | frei | belegt |
+  |---|---|---|---|---|---|
+  | LITE (96 KB) | 5 | descentg1 | 69 596 B | 28 708 B | 70,8 % |
+  | ENG (128 KB) | 16 | venusq | ~74 000 B | 57 076 B | 56,5 % |
+  | VOLL (≥512 KB) | 100 | fr255 | ~97 300 B | 427 300 B | 18,5 % |
+
+  **Kein einziges der 121 Geraete liegt ueber 75 % Belegung.** Die ENG-Stufe vom 17.08. wirkt:
+  die FR55 hatte auf 1.0.77 nur noch 26 020 B frei, jetzt sind es wieder ueber 57 000 B.
+
+  **Code:** die Trennung ist vollstaendig. Alle Zeichen-Routinen der Wert-Grafiken sind
+  `(:layouts)`, die Sprachtabelle ist `(:i18n)` vs. `StringsLite.mc`, die Menues `(:full)`.
+  Wichtig und richtig: die Zonen-FARBE (`_scaleZone`, `_zoneOf`) ist bewusst NICHT gegated — die
+  faerbt auch die reine Zahl, die es auf jedem Build gibt.
+
+  **Gespeichert wird auf den sparsamen Stufen auch nichts Ueberfluessiges:** `_layoutsFromConfig`
+  und `_layoutsFromCache` haben `(:nolayouts)`-Leerfassungen, es landet also kein
+  `layouts_config`, kein Canary, kein Layout-Parser auf der Uhr.
+
+  **Serverseitig ebenfalls sauber, nachgemessen an der echten Flotte:** alle 11 Uhren der
+  96-KB-Klasse bekommen `layout_capable=False` und damit **0 Layout-Bytes**. Der Nutzdaten-Teil
+  der `/config`-Antwort ist ueber alle Klassen gleich klein (Median ~220 B, groesster Fall 499 B
+  bei 6 Foils) — da ist nichts zu holen.
+
+  Randnotiz: `LAYOUT_MIN_ON_REQUEST` ist auf denselben Wert gesetzt wie `LAYOUT_MIN_MEMORY`
+  (524288), damit ist der „auf ausdrueckliche Anforderung"-Pfad in `devices.py` derzeit tot.
+  Kein Fehler, nur eine Bedingung, die nie greift.
+
+- **📥 31.08. — Offen aus der Paritaets-Runde: Community-Social-Feed in Android und iOS.**
+  Der einzige verbliebene Punkt aus `docs/PARITY-AUDIT.md`. Server (`/api/social/*`) und
+  Web-Oberflaeche (`SocialFeed.tsx`) stehen; die Apps brauchen die Feed-Liste mit
+  Hochformat-Karten, das Vollbild mit Weiter/Zurueck, das Kanalfeld im Profil und das Melden.
