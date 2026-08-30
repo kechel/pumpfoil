@@ -40,6 +40,8 @@ struct SpotBuendel: Identifiable {
 // (spiegelt web/Spots; auf iOS idiomatisch via MapKit, kein API-Key nötig).
 struct SpotsView: View {
     @AppStorage("appLang") private var lang = "de"
+    // Karten-Ebene appweit (s. MapTiles.swift).
+    @AppStorage(MapTiles.schluessel) private var ebene = MapTiles.karte
     @State private var items: [SpotMapItem] = []
     @State private var loading = false
     @State private var error: String?
@@ -74,9 +76,7 @@ struct SpotsView: View {
     @ViewBuilder private var mapSection: some View {
         if !items.isEmpty {
             Section {
-                Map(coordinateRegion: $region, annotationItems: buendel) { b in
-                    MapAnnotation(coordinate: b.mitte) { annotation(b) }
-                }
+                spotKarte
                 .frame(height: KARTE_HOEHE)
                 .listRowInsets(EdgeInsets())
                 .background(GeometryReader { geo in
@@ -87,6 +87,29 @@ struct SpotsView: View {
                 .onChange(of: region.span.longitudeDelta) { _ in buendelnFallsNoetig() }
                 .onChange(of: region.center.latitude) { _ in buendelnFallsNoetig() }
                 .onChange(of: region.center.longitude) { _ in buendelnFallsNoetig() }
+                .mitKartenUmschalter()
+            }
+        }
+    }
+
+    /// Die Spot-Karte, ggf. als Luftbild.
+    ///
+    /// EINZIGE Karte der App, die nicht auf `MKMapView` sitzt, sondern auf SwiftUIs `Map` —
+    /// wegen der Buendel-Pins mit `NavigationLink`, die es dort als `MapAnnotation` gibt.
+    /// Der Preis: die Ebene laesst sich nur ueber `mapStyle` setzen, und das gibt es erst ab
+    /// iOS 17. Auf iOS 16 bleibt diese eine Karte deshalb die Strassenkarte; der Umschalter
+    /// wirkt dort auf den vier anderen Karten trotzdem. Ein Umbau auf `MKMapView` waere die
+    /// Alternative — dafuer muesste die Buendelung neu geschrieben werden, die gerade erst
+    /// Jaceks Absturzmeldung geschlossen hat, und das ist es nicht wert.
+    @ViewBuilder private var spotKarte: some View {
+        if #available(iOS 17.0, *), ebene == MapTiles.satellit {
+            Map(coordinateRegion: $region, annotationItems: buendel) { b in
+                MapAnnotation(coordinate: b.mitte) { annotation(b) }
+            }
+            .mapStyle(.hybrid)
+        } else {
+            Map(coordinateRegion: $region, annotationItems: buendel) { b in
+                MapAnnotation(coordinate: b.mitte) { annotation(b) }
             }
         }
     }

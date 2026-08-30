@@ -277,41 +277,44 @@ private fun CompareMap(tracks: List<CmpTrack>, mode: CompareMode, win: Int,
         CompareMode.PUMP -> cmp.track.pumpHz.getOrNull(i)?.let { rampColor((it - pumpRange.first) / (pumpRange.second - pumpRange.first).coerceAtLeast(1e-6)) } ?: GRAY
         CompareMode.HR -> cmp.track.hr.getOrNull(i)?.takeIf { it > 0 }?.let { rampColor((it - hrRange.first).toDouble() / (hrRange.second - hrRange.first).coerceAtLeast(1).toDouble()) } ?: GRAY
     }
-    AndroidView(
-        modifier = modifier,
-        factory = { c ->
-            Configuration.getInstance().userAgentValue = c.packageName
-            MapView(c).apply { setTileSource(TileSourceFactory.MAPNIK); setMultiTouchControls(true); controller.setZoom(13.0) }
-        },
-        update = { map ->
-            map.overlays.clear()
-            val dens = map.context.resources.displayMetrics.density
-            val all = ArrayList<GeoPoint>()
-            for (cmp in tracks) {
-                val pts = cmp.track.points
-                for ((_, seg) in cmp.laeufe) {
-                    val start = seg.iStart.coerceIn(0, pts.size - 1)
-                    val end = seg.iEnd.coerceIn(0, pts.size - 1)
-                    for (i in start until end) {
-                        val a = pts[i]; val b = pts[i + 1]
-                        val pa = GeoPoint(a.second, a.first); val pb = GeoPoint(b.second, b.first)
-                        if (pa.distanceToAsDouble(pb) > CMP_GAP_M) continue
-                        map.overlays.add(Polyline(map).apply {
-                            setPoints(listOf(pa, pb))
-                            outlinePaint.color = colorAt(cmp, i + 1).toArgb()
-                            outlinePaint.strokeWidth = 4f * dens
-                        })
-                        all.add(pa); all.add(pb)
+    MapTiles.MitUmschalter(modifier) { ebene ->
+        AndroidView(
+            modifier = Modifier.fillMaxSize(),
+            factory = { c ->
+                Configuration.getInstance().userAgentValue = c.packageName
+                MapView(c).apply { MapTiles.anwenden(this, ebene); setMultiTouchControls(true); controller.setZoom(13.0) }
+            },
+            update = { map ->
+                MapTiles.anwenden(map, ebene)
+                map.overlays.clear()
+                val dens = map.context.resources.displayMetrics.density
+                val all = ArrayList<GeoPoint>()
+                for (cmp in tracks) {
+                    val pts = cmp.track.points
+                    for ((_, seg) in cmp.laeufe) {
+                        val start = seg.iStart.coerceIn(0, pts.size - 1)
+                        val end = seg.iEnd.coerceIn(0, pts.size - 1)
+                        for (i in start until end) {
+                            val a = pts[i]; val b = pts[i + 1]
+                            val pa = GeoPoint(a.second, a.first); val pb = GeoPoint(b.second, b.first)
+                            if (pa.distanceToAsDouble(pb) > CMP_GAP_M) continue
+                            map.overlays.add(Polyline(map).apply {
+                                setPoints(listOf(pa, pb))
+                                outlinePaint.color = colorAt(cmp, i + 1).toArgb()
+                                outlinePaint.strokeWidth = 4f * dens
+                            })
+                            all.add(pa); all.add(pb)
+                        }
                     }
                 }
-            }
-            if (all.isNotEmpty()) {
-                val bb = BoundingBox.fromGeoPoints(all)
-                map.post { map.zoomToBoundingBox(bb.increaseByScale(1.3f), false, 48) }
-            }
-            map.invalidate()
-        },
-    )
+                if (all.isNotEmpty()) {
+                    val bb = BoundingBox.fromGeoPoints(all)
+                    map.post { map.zoomToBoundingBox(bb.increaseByScale(1.3f), false, 48) }
+                }
+                map.invalidate()
+            },
+        )
+    }
 }
 
 // Farbverlauf-Legende (Speed/Pump/Puls).

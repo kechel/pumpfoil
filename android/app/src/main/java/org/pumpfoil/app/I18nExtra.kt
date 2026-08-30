@@ -7,6 +7,8 @@ package org.pumpfoil.app
 val PT: Map<String, String> = ptTabelle()
 
 private fun ptTabelle(): Map<String, String> = mapOf(
+    "map.street" to "Mapa",
+    "map.satellite" to "Satélite",
     "phome.byFoil" to "Por foil",
     "phome.noFoil" to "Sem foil indicado",
     "guide.howto" to "Como configurar seu relógio",
@@ -656,6 +658,8 @@ private fun ptTabelle(): Map<String, String> = mapOf(
 val JA: Map<String, String> = jaTabelle()
 
 private fun jaTabelle(): Map<String, String> = mapOf(
+    "map.street" to "地図",
+    "map.satellite" to "衛星",
     "phome.byFoil" to "フォイル別",
     "phome.noFoil" to "フォイル未登録",
     "guide.howto" to "ウォッチの設定方法",
@@ -1305,6 +1309,8 @@ private fun jaTabelle(): Map<String, String> = mapOf(
 val ZH: Map<String, String> = zhTabelle()
 
 private fun zhTabelle(): Map<String, String> = mapOf(
+    "map.street" to "地图",
+    "map.satellite" to "卫星",
     "phome.byFoil" to "按水翼",
     "phome.noFoil" to "未填写水翼",
     "guide.howto" to "如何设置你的手表",
@@ -1954,6 +1960,8 @@ private fun zhTabelle(): Map<String, String> = mapOf(
 val RU: Map<String, String> = ruTabelle()
 
 private fun ruTabelle(): Map<String, String> = mapOf(
+    "map.street" to "Карта",
+    "map.satellite" to "Спутник",
     "phome.byFoil" to "По фойлу",
     "phome.noFoil" to "Фойл не указан",
     "guide.howto" to "Как настроить часы",
@@ -2603,6 +2611,8 @@ private fun ruTabelle(): Map<String, String> = mapOf(
 val ID: Map<String, String> = idTabelle()
 
 private fun idTabelle(): Map<String, String> = mapOf(
+    "map.street" to "Peta",
+    "map.satellite" to "Satelit",
     "phome.byFoil" to "Per foil",
     "phome.noFoil" to "Tanpa foil tercatat",
     "guide.howto" to "Cara menyiapkan jammu",
@@ -3255,6 +3265,8 @@ private fun idTabelle(): Map<String, String> = mapOf(
 val NB: Map<String, String> = nbTabelle()
 
 private fun nbTabelle(): Map<String, String> = mapOf(
+    "map.street" to "Kart",
+    "map.satellite" to "Satellitt",
     "phome.byFoil" to "Per foil",
     "phome.noFoil" to "Uten foil angitt",
     "guide.howto" to "Slik setter du opp klokka",
@@ -4026,6 +4038,8 @@ private fun nbTabelle(): Map<String, String> = mapOf(
 val PL: Map<String, String> = plTabelle()
 
 private fun plTabelle(): Map<String, String> = mapOf(
+    "map.street" to "Mapa",
+    "map.satellite" to "Satelita",
     "phome.byFoil" to "Według foila",
     "phome.noFoil" to "Bez wpisanego foila",
     "sd.colStart" to "Start",

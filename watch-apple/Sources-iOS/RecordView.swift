@@ -298,6 +298,7 @@ struct RecordView: View {
         } else {
             LiveTrackMap(track: rec.track, onFoil: rec.isFoiling)
                 .clipShape(RoundedRectangle(cornerRadius: 16))
+                .mitKartenUmschalter()
         }
     }
 
@@ -318,6 +319,8 @@ struct RecordView: View {
 // Live-Track auf MKMapView (wie SessionDetailView.TrackMap). Polyline des bisherigen Laufs,
 // Karte folgt der aktuellen Position. Tiles cachen; offline bleibt die Linie sichtbar.
 private struct LiveTrackMap: UIViewRepresentable {
+    // Karten-Ebene appweit (s. MapTiles.swift). Aenderung loest updateUIView aus.
+    @AppStorage(MapTiles.schluessel) private var ebene = MapTiles.karte
     let track: [[Double]]
     let onFoil: Bool
 
@@ -332,6 +335,7 @@ private struct LiveTrackMap: UIViewRepresentable {
     }
 
     func updateUIView(_ map: MKMapView, context: Context) {
+        map.mapType = MapTiles.typ(ebene)
         context.coordinator.onFoil = onFoil
         map.removeOverlays(map.overlays)
         guard track.count >= 2 else { return }

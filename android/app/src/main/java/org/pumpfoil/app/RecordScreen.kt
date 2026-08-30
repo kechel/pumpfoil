@@ -409,30 +409,33 @@ private fun TrackCanvas(track: List<DoubleArray>, onFoil: Boolean, modifier: Mod
                      else MaterialTheme.colorScheme.onSurfaceVariant).toArgb()
     val density = LocalContext.current.resources.displayMetrics.density
     Box(modifier.clip(RoundedCornerShape(16.dp)), contentAlignment = Alignment.Center) {
-        AndroidView(
-            modifier = Modifier.fillMaxSize(),
-            factory = { c ->
-                Configuration.getInstance().userAgentValue = c.packageName
-                MapView(c).apply {
-                    setTileSource(TileSourceFactory.MAPNIK)
-                    setMultiTouchControls(true)
-                    controller.setZoom(16.5)
-                }
-            },
-            update = { map ->
-                map.overlays.clear()
-                if (track.size >= 2) {
-                    val gpts = track.map { GeoPoint(it[0], it[1]) }
-                    map.overlays.add(Polyline(map).apply {
-                        setPoints(gpts)
-                        outlinePaint.color = lineColor
-                        outlinePaint.strokeWidth = 6f * density
-                    })
-                    map.controller.setCenter(gpts.last())   // der aktuellen Position folgen
-                }
-                map.invalidate()
-            },
-        )
+        MapTiles.MitUmschalter(Modifier.fillMaxSize()) { ebene ->
+            AndroidView(
+                modifier = Modifier.fillMaxSize(),
+                factory = { c ->
+                    Configuration.getInstance().userAgentValue = c.packageName
+                    MapView(c).apply {
+                        MapTiles.anwenden(this, ebene)
+                        setMultiTouchControls(true)
+                        controller.setZoom(16.5)
+                    }
+                },
+                update = { map ->
+                    MapTiles.anwenden(map, ebene)
+                    map.overlays.clear()
+                    if (track.size >= 2) {
+                        val gpts = track.map { GeoPoint(it[0], it[1]) }
+                        map.overlays.add(Polyline(map).apply {
+                            setPoints(gpts)
+                            outlinePaint.color = lineColor
+                            outlinePaint.strokeWidth = 6f * density
+                        })
+                        map.controller.setCenter(gpts.last())   // der aktuellen Position folgen
+                    }
+                    map.invalidate()
+                },
+            )
+        }
         if (track.size < 2) {
             Text(I18n.t("rec.gpsSearch"), style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)

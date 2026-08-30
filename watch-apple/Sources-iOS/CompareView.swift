@@ -203,6 +203,7 @@ struct CompareView: View {
                 compareMap(tracks)
                     .frame(height: 240)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .mitKartenUmschalter()
                     .padding(.horizontal)
                 if mapMode != .rider && mapMode != .track { gradientLegend }
             }
@@ -219,6 +220,7 @@ struct CompareView: View {
         ZStack(alignment: .topTrailing) {
             compareMap(tracks)
                 .ignoresSafeArea()
+                .mitKartenUmschalter()
             Button { mapFull = false } label: {
                 Image(systemName: "xmark.circle.fill").font(.title).foregroundStyle(.white, .black.opacity(0.5))
             }.padding()
@@ -587,6 +589,8 @@ private func cmpRamp(_ t: Double) -> UIColor {
 // Gemeinsame Karte mehrerer Sessions. Färbung: je Track (Session-Farbe) oder Wert (Speed/Pump/Puls).
 // MKMapView (iOS-16-tauglich), analog TrackMap.
 struct CompareMap: UIViewRepresentable {
+    // Karten-Ebene appweit (s. MapTiles.swift). Aenderung loest updateUIView aus.
+    @AppStorage(MapTiles.schluessel) private var ebene = MapTiles.karte
     struct Track {
         let points: [[Double]]; let segments: [Segment]; let color: UIColor; let riderColor: UIColor
         let speedsKmh: [Double]; let pumpHz: [Double?]; let hr: [Int?]
@@ -623,6 +627,7 @@ struct CompareMap: UIViewRepresentable {
     }
 
     func updateUIView(_ map: MKMapView, context: Context) {
+        map.mapType = MapTiles.typ(ebene)
         map.removeOverlays(map.overlays)
         let co = context.coordinator
         co.colors.removeAll()

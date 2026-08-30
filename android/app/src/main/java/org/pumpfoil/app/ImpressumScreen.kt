@@ -19,7 +19,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 
 // Impressum + Datenschutzhinweis in der App. Gleiche Reihenfolge/Inhalte wie web /impressum.
@@ -53,6 +57,7 @@ fun ImpressumScreen(onBack: () -> Unit) {
             Section("imp.appleTitle", "imp.appleIntro", listOf("imp.apple1", "imp.apple2", "imp.apple3"), null)
             Section("imp.connTitle", "imp.connIntro", listOf("imp.conn1", "imp.conn2", "imp.conn3"), null)
             Section("imp.ytTitle", null, listOf("imp.yt1", "imp.yt2"), "imp.ytNote")
+            Section("imp.mapTitle", null, listOf("imp.map1", "imp.map2", "imp.mapApple"), null)
 
             Spacer(Modifier.height(16.dp))
             H2(I18n.t("imp.privacyTitle"))
@@ -70,7 +75,31 @@ private fun H2(text: String) {
 
 @Composable
 private fun Body(text: String) {
-    Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Text(impText(text), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+}
+
+/**
+ * Text mit `<b>…</b>` als echte Fettung.
+ *
+ * Die Impressum-Texte kommen unveraendert aus den Web-Locales und enthalten dort `<b>`-Marken,
+ * die der Browser rendert. Die App zeigte sie bis 31.08. als sichtbare Zeichen
+ * („<b>Hochgeladene Fotos</b>: …") — in acht der Abschnitte. Statt die Marken zu entfernen
+ * (und die Betonung zu verlieren) werden sie hier in eine AnnotatedString-Spanne uebersetzt.
+ *
+ * Bewusst ein einfacher Durchlauf statt HTML-Parser: in diesen Texten kommt genau `<b>` vor,
+ * nichts sonst. Eine unpaarige Marke faellt hinten einfach weg statt aufzulaufen.
+ */
+private fun impText(roh: String): AnnotatedString = buildAnnotatedString {
+    var i = 0
+    while (i < roh.length) {
+        val auf = roh.indexOf("<b>", i)
+        if (auf < 0) { append(roh.substring(i)); break }
+        append(roh.substring(i, auf))
+        val zu = roh.indexOf("</b>", auf + 3)
+        if (zu < 0) { append(roh.substring(auf + 3)); break }
+        withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(roh.substring(auf + 3, zu)) }
+        i = zu + 4
+    }
 }
 
 @Composable
@@ -82,8 +111,8 @@ private fun Section(titleKey: String, introKey: String?, bulletKeys: List<String
     bulletKeys.forEach { k ->
         Row(Modifier.padding(vertical = 1.dp)) {
             Text("•  ", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(I18n.t(k), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(impText(I18n.t(k)), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
-    noteKey?.let { Spacer(Modifier.height(4.dp)); Text(I18n.t(it), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+    noteKey?.let { Spacer(Modifier.height(4.dp)); Text(impText(I18n.t(it)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
 }

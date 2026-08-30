@@ -49,6 +49,9 @@ export const LANGS: { code: Lang; flag: string; native: string }[] = [
 
 const DICTS: Record<Lang, Dict> = { de, gsw, "de-AT": deAT, en, fr, it, es, fi, nl, cs, pl, pt, ja, zh, ru, id, nb };
 
+// Sprachen, deren Rueckfall NICHT Englisch ist: Mundarten fallen auf ihre Hochsprache.
+const BRUECKE: Partial<Record<Lang, Lang>> = { gsw: "de", "de-AT": "de" };
+
 const LS_KEY = "foil_lang";
 
 function isLang(x: string | null): x is Lang {
@@ -116,7 +119,16 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
 
   const t = useCallback<TFunc>(
     (key, vars) => {
-      let s = DICTS[lang][key] ?? DICTS.en[key] ?? DICTS.de[key] ?? key;
+      // Rueckfall: eigene Sprache -> Bruecke -> Englisch -> Deutsch -> der Key selbst.
+      //
+      // Die Bruecke ist der Punkt: gsw und de-AT sind Mundart-Faerbungen des Deutschen und
+      // decken nur einen Teil der Keys ab (gsw 1082 von 1612, de-AT 1103) — beide Dateien sagen
+      // im eigenen Kopf "fehlende Keys fallen auf Hochdeutsch zurueck". Genau das tat der Code
+      // NICHT: er ging zuerst auf Englisch, also sahen Schweizer und oesterreichische Nutzer
+      // rund 500 Texte auf Englisch statt auf Deutsch (gefunden 31.08. beim Sprachdurchgang).
+      const bruecke = BRUECKE[lang];
+      let s = DICTS[lang][key] ?? (bruecke ? DICTS[bruecke][key] : undefined)
+              ?? DICTS.en[key] ?? DICTS.de[key] ?? key;
       if (vars) {
         for (const k of Object.keys(vars)) {
           s = s.replace(new RegExp(`\\{${k}\\}`, "g"), String(vars[k]));

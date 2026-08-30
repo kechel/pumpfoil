@@ -950,6 +950,8 @@ const en: Record<string, string> = {
   "watches.colHr": "Heart rate",
   "watches.colPump": "Pumps & glide phases",
   "watches.colStatus": "Status",
+  "watches.st.nope": "nope",
+  "watches.nStrava": "An import would be technically possible, but the API does not provide high-rate raw accelerometer data (so no pump detection), and it sits behind a paywall plus API terms that do not fit an open project — deliberately not integrated.",
   "watches.st.avail": "Available",
   "watches.stGarmin": "also via sideload (.prg)",
   "watches.linkAccount": "Account linking available",
@@ -1413,7 +1415,8 @@ const en: Record<string, string> = {
   "imp.ytNote": "Provider: Google Ireland Ltd. More in <a href=\"https://policies.google.com/privacy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"text-brand-400 hover:underline\">Google's privacy policy</a>.",
   "imp.mapTitle": "Maps",
   "imp.map1": "The <b>street map</b> comes from <b>OpenStreetMap</b>. When a map is shown, your browser loads the map tiles directly from their servers, which transmits your IP address and the section you are viewing. Provider: OpenStreetMap Foundation, United Kingdom.",
-  "imp.map2": "If you switch to <b>Satellite</b> in the top right, the aerial imagery comes from <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — again directly from their servers and again with your IP address. This happens <b>only</b> if you switch; your choice is remembered locally in your browser.",
+  "imp.map2": "If you switch to <b>Satellite</b> using the button on the map, the aerial imagery comes from <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — again directly from their servers and again with your IP address. This happens <b>only</b> if you switch; your choice is remembered locally on your device.",
+  "imp.mapApple": "In the <b>iPhone and Apple Watch app</b>, both the map and the aerial imagery come from <b>Apple Maps</b>, not from OpenStreetMap or Esri. Showing a map sends the displayed area to Apple; Apple is responsible for that under their privacy policy. The <b>Android app</b> works like the browser: street map from OpenStreetMap, aerial imagery from Esri.",
   "imp.ytTitle": "Embedded YouTube videos",
   "metric.metersPerPump": "meters / pump",
 

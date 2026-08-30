@@ -172,36 +172,39 @@ private fun SpotsMap(items: List<SpotMapItem>, onOpenSpot: (String) -> Unit, mod
     // Damit der Zoom-Listener (einmalig in factory gesetzt) immer die aktuellen Daten sieht.
     val daten = rememberUpdatedState(items)
     val oeffne = rememberUpdatedState(onOpenSpot)
-    AndroidView(
-        modifier = modifier,
-        factory = { c ->
-            Configuration.getInstance().userAgentValue = c.packageName
-            MapView(c).apply {
-                setTileSource(TileSourceFactory.MAPNIK)
-                setMultiTouchControls(true)
-                controller.setZoom(5.0)
-                // Beim Zoomen neu buendeln (wie `m.on("zoomend", …)` im Web). Schwenken aendert
-                // die Buendelung nicht — nur der Massstab entscheidet, was sich ueberdeckt.
-                addMapListener(DelayedMapListener(object : MapListener {
-                    override fun onScroll(e: ScrollEvent?): Boolean = false
-                    override fun onZoom(e: ZoomEvent?): Boolean {
-                        zeichnePins(this@apply, daten.value, oeffne.value); return true
-                    }
-                }, 150))
-            }
-        },
-        update = { map ->
-            zeichnePins(map, items, onOpenSpot)
-            val pts = items.map { GeoPoint(it.lat, it.lon) }
-            if (pts.size == 1) {
-                map.controller.setZoom(11.0)
-                map.controller.setCenter(pts[0])
-            } else if (pts.size > 1) {
-                val bb = BoundingBox.fromGeoPoints(pts)
-                map.post { map.zoomToBoundingBox(bb.increaseByScale(1.3f), false, 48) }
-            }
-        },
-    )
+    MapTiles.MitUmschalter(modifier) { ebene ->
+        AndroidView(
+            modifier = Modifier.fillMaxSize(),
+            factory = { c ->
+                Configuration.getInstance().userAgentValue = c.packageName
+                MapView(c).apply {
+                    MapTiles.anwenden(this, ebene)
+                    setMultiTouchControls(true)
+                    controller.setZoom(5.0)
+                    // Beim Zoomen neu buendeln (wie `m.on("zoomend", …)` im Web). Schwenken aendert
+                    // die Buendelung nicht — nur der Massstab entscheidet, was sich ueberdeckt.
+                    addMapListener(DelayedMapListener(object : MapListener {
+                        override fun onScroll(e: ScrollEvent?): Boolean = false
+                        override fun onZoom(e: ZoomEvent?): Boolean {
+                            zeichnePins(this@apply, daten.value, oeffne.value); return true
+                        }
+                    }, 150))
+                }
+            },
+            update = { map ->
+                MapTiles.anwenden(map, ebene)
+                zeichnePins(map, items, onOpenSpot)
+                val pts = items.map { GeoPoint(it.lat, it.lon) }
+                if (pts.size == 1) {
+                    map.controller.setZoom(11.0)
+                    map.controller.setCenter(pts[0])
+                } else if (pts.size > 1) {
+                    val bb = BoundingBox.fromGeoPoints(pts)
+                    map.post { map.zoomToBoundingBox(bb.increaseByScale(1.3f), false, 48) }
+                }
+            },
+        )
+    }
 }
 
 // Overlays neu setzen: ein Pin je Buendel. Einzelner Spot -> zu seinen Sessions; mehrere ->

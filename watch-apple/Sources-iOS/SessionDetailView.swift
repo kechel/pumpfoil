@@ -948,6 +948,7 @@ struct SessionDetailView: View {
                         carveArcs: arcs, carveGMax: v.carveGMax)
             .frame(height: hoehe).frame(maxWidth: .infinity)
             .clipShape(RoundedRectangle(cornerRadius: hoehe == nil ? 0 : 12))
+            .mitKartenUmschalter()
     }
 
     /// Knopf in der Kartenecke: oeffnet die Karte im Vollbild.
@@ -1798,6 +1799,8 @@ private class PumpDot: NSObject, MKAnnotation { let coordinate: CLLocationCoordi
 // nach Modus (Speed/Puls/Pump) gefärbt; Nicht-Foiling unsichtbar; optional weiße Pump-Marker.
 // iOS-16-tauglich über MKMapView (neue SwiftUI-Map-Polyline-API erst ab iOS 17).
 struct TrackMap: UIViewRepresentable {
+    // Karten-Ebene appweit (s. MapTiles.swift). Aenderung loest updateUIView aus.
+    @AppStorage(MapTiles.schluessel) private var ebene = MapTiles.karte
     let points: [[Double]]      // [lon,lat]
     let speedsMps: [Double]
     let hr: [Int?]
@@ -1842,6 +1845,7 @@ struct TrackMap: UIViewRepresentable {
     }
 
     func updateUIView(_ map: MKMapView, context: Context) {
+        map.mapType = MapTiles.typ(ebene)
         map.removeOverlays(map.overlays)
         map.removeAnnotations(map.annotations)
         let co = context.coordinator

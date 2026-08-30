@@ -116,6 +116,7 @@ export default function Impressum() {
           <ul className="list-disc space-y-1 pl-5 text-slate-200">
             {li("imp.map1")}
             {li("imp.map2")}
+            {li("imp.mapApple")}
           </ul>
         </section>
 

@@ -1161,85 +1161,88 @@ private fun TrackMap(
         }
         ColorMode.TURNS -> GRAY   // Basis-Track grau; die Carve-Bögen kommen farbig darüber
     }
-    AndroidView(
-        modifier = modifier,
-        factory = { c ->
-            Configuration.getInstance().userAgentValue = c.packageName
-            MapView(c).apply {
-                setTileSource(TileSourceFactory.MAPNIK)
-                setMultiTouchControls(true)
-                controller.setZoom(13.0)
-            }
-        },
-        update = { map ->
-            map.overlays.clear()
-            val dens = map.context.resources.displayMetrics.density   // px<->dp, sonst zu dünn auf HiDPI
-            // Dezente metrische Maßstabsleiste unten links (wie Web-Karte, #15).
-            map.overlays.add(ScaleBarOverlay(map).apply {
-                setAlignBottom(true)
-                setScaleBarOffset((10 * dens).toInt(), (10 * dens).toInt())
-            })
-            val allPts = ArrayList<GeoPoint>()
-            val selPts = ArrayList<GeoPoint>()
-            segments.forEachIndexed { runIdx, seg ->
-                val dim = selectedRun != null && runIdx != selectedRun   // anderer Lauf -> ausgegraut
-                val start = seg.iStart.coerceIn(0, pts.size - 1)
-                val end = seg.iEnd.coerceIn(0, pts.size - 1)
-                for (i in start until end) {
-                    val a = pts[i]; val b = pts[i + 1]
-                    val pa = GeoPoint(a.second, a.first)   // (lat, lon)
-                    val pb = GeoPoint(b.second, b.first)
-                    if (pa.distanceToAsDouble(pb) > MAX_DRAW_GAP_M) continue
-                    map.overlays.add(Polyline(map).apply {
-                        setPoints(listOf(pa, pb))
-                        outlinePaint.color = if (dim) GRAY.copy(alpha = 0.5f).toArgb() else colorAt(i + 1).toArgb()
-                        outlinePaint.strokeWidth = (if (dim) 2.5f else 5f) * dens
-                        setOnClickListener { _, _, _ -> onSelectRun(runIdx); true }   // Lauf antippen -> auswählen
-                    })
-                    allPts.add(pa); allPts.add(pb)
-                    if (!dim) { selPts.add(pa); selPts.add(pb) }
+    MapTiles.MitUmschalter(modifier) { ebene ->
+        AndroidView(
+            modifier = Modifier.fillMaxSize(),
+            factory = { c ->
+                Configuration.getInstance().userAgentValue = c.packageName
+                MapView(c).apply {
+                    MapTiles.anwenden(this, ebene)
+                    setMultiTouchControls(true)
+                    controller.setZoom(13.0)
                 }
-                // Pump-Marker nur für den (ggf. ausgewählten) Lauf, nicht für gedimmte.
-                if (showPumps && !dim) {
-                    val dot = pumpDot()
-                    for (idx in seg.pumpIdx) {
-                        val p = pts.getOrNull(idx) ?: continue
-                        map.overlays.add(Marker(map).apply {
-                            position = GeoPoint(p.second, p.first)
-                            icon = dot
-                            setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
-                            setInfoWindow(null)
-                            setOnMarkerClickListener { _, _ -> true }
-                        })
-                    }
-                }
-            }
-            // Carve-Bögen (feine 25-Hz-Polylinie je Carve) über dem grauen Basis-Track,
-            // je Segment nach Kurvenlage-g gefärbt (wie PWA). Nur im TURNS-Modus (carve != null).
-            if (mode == ColorMode.TURNS && carve != null) {
-                for (arc in carve.arcs) {
-                    for (k in 0 until arc.size - 1) {
-                        val p0 = arc[k]; val p1 = arc[k + 1]
-                        if (p0.size < 3 || p1.size < 3) continue
-                        val g0 = GeoPoint(p0[0], p0[1]); val g1 = GeoPoint(p1[0], p1[1])   // [lat,lon,g]
+            },
+            update = { map ->
+                MapTiles.anwenden(map, ebene)
+                map.overlays.clear()
+                val dens = map.context.resources.displayMetrics.density   // px<->dp, sonst zu dünn auf HiDPI
+                // Dezente metrische Maßstabsleiste unten links (wie Web-Karte, #15).
+                map.overlays.add(ScaleBarOverlay(map).apply {
+                    setAlignBottom(true)
+                    setScaleBarOffset((10 * dens).toInt(), (10 * dens).toInt())
+                })
+                val allPts = ArrayList<GeoPoint>()
+                val selPts = ArrayList<GeoPoint>()
+                segments.forEachIndexed { runIdx, seg ->
+                    val dim = selectedRun != null && runIdx != selectedRun   // anderer Lauf -> ausgegraut
+                    val start = seg.iStart.coerceIn(0, pts.size - 1)
+                    val end = seg.iEnd.coerceIn(0, pts.size - 1)
+                    for (i in start until end) {
+                        val a = pts[i]; val b = pts[i + 1]
+                        val pa = GeoPoint(a.second, a.first)   // (lat, lon)
+                        val pb = GeoPoint(b.second, b.first)
+                        if (pa.distanceToAsDouble(pb) > MAX_DRAW_GAP_M) continue
                         map.overlays.add(Polyline(map).apply {
-                            setPoints(listOf(g0, g1))
-                            outlinePaint.color = carveColor(p1[2], carveGMax).toArgb()
-                            outlinePaint.strokeWidth = 6f * dens
+                            setPoints(listOf(pa, pb))
+                            outlinePaint.color = if (dim) GRAY.copy(alpha = 0.5f).toArgb() else colorAt(i + 1).toArgb()
+                            outlinePaint.strokeWidth = (if (dim) 2.5f else 5f) * dens
+                            setOnClickListener { _, _, _ -> onSelectRun(runIdx); true }   // Lauf antippen -> auswählen
                         })
-                        allPts.add(g0); allPts.add(g1)
+                        allPts.add(pa); allPts.add(pb)
+                        if (!dim) { selPts.add(pa); selPts.add(pb) }
+                    }
+                    // Pump-Marker nur für den (ggf. ausgewählten) Lauf, nicht für gedimmte.
+                    if (showPumps && !dim) {
+                        val dot = pumpDot()
+                        for (idx in seg.pumpIdx) {
+                            val p = pts.getOrNull(idx) ?: continue
+                            map.overlays.add(Marker(map).apply {
+                                position = GeoPoint(p.second, p.first)
+                                icon = dot
+                                setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                                setInfoWindow(null)
+                                setOnMarkerClickListener { _, _ -> true }
+                            })
+                        }
                     }
                 }
-            }
-            // Auf den ausgewählten Lauf zoomen, sonst auf alle Foiling-Läufe.
-            val fitPts = if (selectedRun != null && selPts.isNotEmpty()) selPts else allPts
-            if (fitPts.isNotEmpty()) {
-                val bb = BoundingBox.fromGeoPoints(fitPts)
-                map.post { map.zoomToBoundingBox(bb.increaseByScale(1.3f), false, 48) }
-            }
-            map.invalidate()
-        },
-    )
+                // Carve-Bögen (feine 25-Hz-Polylinie je Carve) über dem grauen Basis-Track,
+                // je Segment nach Kurvenlage-g gefärbt (wie PWA). Nur im TURNS-Modus (carve != null).
+                if (mode == ColorMode.TURNS && carve != null) {
+                    for (arc in carve.arcs) {
+                        for (k in 0 until arc.size - 1) {
+                            val p0 = arc[k]; val p1 = arc[k + 1]
+                            if (p0.size < 3 || p1.size < 3) continue
+                            val g0 = GeoPoint(p0[0], p0[1]); val g1 = GeoPoint(p1[0], p1[1])   // [lat,lon,g]
+                            map.overlays.add(Polyline(map).apply {
+                                setPoints(listOf(g0, g1))
+                                outlinePaint.color = carveColor(p1[2], carveGMax).toArgb()
+                                outlinePaint.strokeWidth = 6f * dens
+                            })
+                            allPts.add(g0); allPts.add(g1)
+                        }
+                    }
+                }
+                // Auf den ausgewählten Lauf zoomen, sonst auf alle Foiling-Läufe.
+                val fitPts = if (selectedRun != null && selPts.isNotEmpty()) selPts else allPts
+                if (fitPts.isNotEmpty()) {
+                    val bb = BoundingBox.fromGeoPoints(fitPts)
+                    map.post { map.zoomToBoundingBox(bb.increaseByScale(1.3f), false, 48) }
+                }
+                map.invalidate()
+            },
+        )
+    }
 }
 
 // Foil-Auswahl als Dropdown (wie die PWA <select>): zeigt nur den gewählten Foil,

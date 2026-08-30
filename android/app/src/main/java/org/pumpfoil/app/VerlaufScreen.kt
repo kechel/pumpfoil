@@ -418,35 +418,38 @@ fun SpotProgression() {
                 else -> {
                     val safeIdx = idx.coerceIn(0, trs.size - 1)
                     var fitted by remember(spot) { mutableStateOf(false) }
-                    AndroidView(
-                        modifier = Modifier.fillMaxWidth().height(300.dp).clip(RoundedCornerShape(12.dp)),
-                        factory = { c ->
-                            Configuration.getInstance().userAgentValue = c.packageName
-                            MapView(c).apply { setTileSource(TileSourceFactory.MAPNIK); setMultiTouchControls(true) }
-                        },
-                        update = { map ->
-                            val dens = map.context.resources.displayMetrics.density
-                            if (!fitted) {
-                                val all = ArrayList<GeoPoint>()
-                                trs.forEach { tr -> tr.track.forEach { p -> val la = p.getOrNull(0); val lo2 = p.getOrNull(1); if (la != null && lo2 != null) all.add(GeoPoint(la, lo2)) } }
-                                if (all.isNotEmpty()) { val bb = BoundingBox.fromGeoPoints(all); map.post { map.zoomToBoundingBox(bb.increaseByScale(1.3f), false, 48) } }
-                                fitted = true
-                            }
-                            map.overlays.clear()
-                            val pts = trs[safeIdx].track
-                            for (i in 0 until pts.size - 1) {
-                                val a = pts[i]; val b = pts[i + 1]
-                                val la = a.getOrNull(0); val lo2 = a.getOrNull(1); val lb = b.getOrNull(0); val lob = b.getOrNull(1)
-                                if (la == null || lo2 == null || lb == null || lob == null) continue
-                                val col = b.getOrNull(2)?.let { rampColor(((it * 3.6) - lo) / (hi - lo).coerceAtLeast(1e-6)) } ?: GRAY
-                                map.overlays.add(Polyline(map).apply {
-                                    setPoints(listOf(GeoPoint(la, lo2), GeoPoint(lb, lob)))
-                                    outlinePaint.color = col.toArgb(); outlinePaint.strokeWidth = 4f * dens
-                                })
-                            }
-                            map.invalidate()
-                        },
-                    )
+                    MapTiles.MitUmschalter(Modifier.fillMaxWidth().height(300.dp).clip(RoundedCornerShape(12.dp))) { ebene ->
+                        AndroidView(
+                            modifier = Modifier.fillMaxSize(),
+                            factory = { c ->
+                                Configuration.getInstance().userAgentValue = c.packageName
+                                MapView(c).apply { MapTiles.anwenden(this, ebene); setMultiTouchControls(true) }
+                            },
+                            update = { map ->
+                                MapTiles.anwenden(map, ebene)
+                                val dens = map.context.resources.displayMetrics.density
+                                if (!fitted) {
+                                    val all = ArrayList<GeoPoint>()
+                                    trs.forEach { tr -> tr.track.forEach { p -> val la = p.getOrNull(0); val lo2 = p.getOrNull(1); if (la != null && lo2 != null) all.add(GeoPoint(la, lo2)) } }
+                                    if (all.isNotEmpty()) { val bb = BoundingBox.fromGeoPoints(all); map.post { map.zoomToBoundingBox(bb.increaseByScale(1.3f), false, 48) } }
+                                    fitted = true
+                                }
+                                map.overlays.clear()
+                                val pts = trs[safeIdx].track
+                                for (i in 0 until pts.size - 1) {
+                                    val a = pts[i]; val b = pts[i + 1]
+                                    val la = a.getOrNull(0); val lo2 = a.getOrNull(1); val lb = b.getOrNull(0); val lob = b.getOrNull(1)
+                                    if (la == null || lo2 == null || lb == null || lob == null) continue
+                                    val col = b.getOrNull(2)?.let { rampColor(((it * 3.6) - lo) / (hi - lo).coerceAtLeast(1e-6)) } ?: GRAY
+                                    map.overlays.add(Polyline(map).apply {
+                                        setPoints(listOf(GeoPoint(la, lo2), GeoPoint(lb, lob)))
+                                        outlinePaint.color = col.toArgb(); outlinePaint.strokeWidth = 4f * dens
+                                    })
+                                }
+                                map.invalidate()
+                            },
+                        )
+                    }
                     Spacer(Modifier.height(8.dp))
                     // Legende (Speed lo..hi km/h).
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {

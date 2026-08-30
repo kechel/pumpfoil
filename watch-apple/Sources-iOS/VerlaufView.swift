@@ -434,6 +434,7 @@ struct SpotProgressionView: View {
             let safe: Int = min(max(idx, 0), trs.count - 1)
             SpotProgressMap(all: trs, current: trs[safe], speedRange: speedRange, regionKey: spot)
                 .frame(height: 300).clipShape(RoundedRectangle(cornerRadius: 12))
+                .mitKartenUmschalter()
             legend
             playbackControls(trs, safe)
             Text(statusText(trs, safe))
@@ -523,6 +524,8 @@ struct SpotProgressionView: View {
 // Karte für die Verlaufs-Animation: nur aktuelle Session farbig (Speed), FIXER Ausschnitt
 // (Union aller Spuren, nur einmal je Spot gesetzt).
 struct SpotProgressMap: UIViewRepresentable {
+    // Karten-Ebene appweit (s. MapTiles.swift). Aenderung loest updateUIView aus.
+    @AppStorage(MapTiles.schluessel) private var ebene = MapTiles.karte
     let all: [SpotTrack]
     let current: SpotTrack
     let speedRange: (Double, Double)
@@ -535,6 +538,7 @@ struct SpotProgressMap: UIViewRepresentable {
     }
 
     func updateUIView(_ map: MKMapView, context: Context) {
+        map.mapType = MapTiles.typ(ebene)
         let co = context.coordinator
         // Fixer Ausschnitt: nur beim Spot-Wechsel neu setzen.
         if co.lastKey != regionKey {

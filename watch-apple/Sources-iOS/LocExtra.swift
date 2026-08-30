@@ -17,6 +17,8 @@ let ptOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/pt.ts.
 private let _ptOverlayP11: [String: String] = [
+        "map.street": "Mapa",
+        "map.satellite": "Satélite",
         "phome.byFoil": "Por foil",
         "phome.noFoil": "Sem foil indicado",
     "guide.howto": "Como configurar seu relógio",
@@ -684,6 +686,8 @@ let jaOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/ja.ts.
 private let _jaOverlayP11: [String: String] = [
+        "map.street": "地図",
+        "map.satellite": "衛星",
         "phome.byFoil": "フォイル別",
         "phome.noFoil": "フォイル未登録",
     "guide.howto": "ウォッチの設定方法",
@@ -1351,6 +1355,8 @@ let zhOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/zh.ts.
 private let _zhOverlayP11: [String: String] = [
+        "map.street": "地图",
+        "map.satellite": "卫星",
         "phome.byFoil": "按水翼",
         "phome.noFoil": "未填写水翼",
     "guide.howto": "如何设置你的手表",
@@ -2018,6 +2024,8 @@ let ruOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/ru.ts.
 private let _ruOverlayP11: [String: String] = [
+        "map.street": "Карта",
+        "map.satellite": "Спутник",
         "phome.byFoil": "По фойлу",
         "phome.noFoil": "Фойл не указан",
     "guide.howto": "Как настроить часы",
@@ -2685,6 +2693,8 @@ let idOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/id.ts.
 private let _idOverlayP11: [String: String] = [
+        "map.street": "Peta",
+        "map.satellite": "Satelit",
         "phome.byFoil": "Per foil",
         "phome.noFoil": "Tanpa foil tercatat",
     "guide.howto": "Cara menyiapkan jammu",
@@ -3351,6 +3361,8 @@ let nbOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/nb.ts.
 private let _nbOverlayP11: [String: String] = [
+        "map.street": "Kart",
+        "map.satellite": "Satellitt",
         "phome.byFoil": "Per foil",
         "phome.noFoil": "Uten foil angitt",
     "guide.howto": "Slik setter du opp klokka",
@@ -4131,6 +4143,8 @@ let plOverlay: [String: String] = {
 }()
 
 private let _plOverlayP1: [String: String] = [
+        "map.street": "Mapa",
+        "map.satellite": "Satelita",
         "phome.byFoil": "Według foila",
         "phome.noFoil": "Bez wpisanego foila",
     "foils.defaultSport": "Domyślny sport dla nowych sesji",
