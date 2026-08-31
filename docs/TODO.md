@@ -4229,3 +4229,38 @@ Offen daraus:
   waren schon vollstaendig.**
   **Merke: diese Pruefung gehoert in jede Sprachrunde** — die Abdeckungszahl je Sprache sagt
   nichts darueber, ob ein Schluessel ueberhaupt existiert.
+
+- **✅ 31.08. — nl/fi/cs auf Wear OS und Apple Watch nachgezogen; alle vier Uhren jetzt gleich.**
+  Vorher konnte nur Garmin diese drei Sprachen. Wear OS und Apple Watch fielen dokumentiert auf
+  die Geraetesprache und dann auf Englisch zurueck, Zepp fuehrte sie zwar als Spalten, liess sie
+  aber in 37 Zellen leer.
+  **Quellen in dieser Reihenfolge**, damit auf der Uhr moeglichst der Text steht, den ein Nutzer
+  derselben Sprache auf einer Garmin schon kennt: (1) `watch/source/Strings.mc` ueber den
+  deutschen Text — 33 Schluessel, (2) die Web-Locales ueber den deutschen Text — 6, (3) eigene
+  Uebersetzung der uhrspezifischen Kurztexte — 46, mit Deutsch UND Englisch als Vorlage.
+  **Stand: Wear 91 Schluessel je Sprache, Apple Watch 84, Zepp 0 leere Zellen** — jeweils
+  0 fehlende und 0 doppelte, gemessen gegen die Schluessel, die der Uhr-Code wirklich aufruft.
+  Serverseitig nichts zu tun: `/api/devices/config` reicht `user.language` unveraendert durch.
+
+- **✅ 31.08. — Karten-Datenschutz in alle 17 Sprachen; die Erklaerung ist damit vollstaendig.**
+  Jans Frage („ist der sonst in alle Sprachen uebersetzt oder ist der Karten-Absatz eine
+  Ausnahme?") nachgemessen: **51 von 55 imp.*-Schluesseln standen in allen 17 Sprachen** — die
+  einzige Luecke waren genau die vier Karten-Schluessel. Grund ist banal und nicht strukturell:
+  die Satellitenansicht ging am 31.08. live, der Absatz entstand mit dem Feature auf Deutsch und
+  Englisch, eine Uebersetzungsrunde gab es dazu nie. Jetzt 55 von 55 in 17 Sprachen.
+
+- **🔴 31.08. — Zwei Fehler im Einfuege-Werkzeug fuer die iOS-Sprachdateien (behoben).**
+  Beide hatten schon Schaden angerichtet, beide waren still:
+  1. Die Pruefung „steht der Key schon in dieser Sprache?" lief fuer das LETZTE Teil-Literal
+     einer Sprache bis zum Dateiende und traf dabei die Grundsprachen-Tabelle mit. Dadurch
+     galten **fi, nl und cs auf iOS faelschlich als versorgt: 27 Schluessel** des Tages
+     (Foil-Kacheln, Kartenumschalter, Feedback-Anhaenge, Social-Feed, Karten-Datenschutz)
+     fehlten dort, ohne dass etwas gemeldet wurde.
+  2. Dieselbe Pruefung erkannte die Grundsprachen-Tabelle nie, weil sie
+     `[String: [String: String]]` ist und nicht `[String: String]`. Dort galt also JEDER
+     Schluessel als fehlend und wurde erneut eingefuegt — beim Nachziehen von (1) entstanden so
+     **27 doppelte Schluessel in EINEM Swift-Literal, und das bricht zur LAUFZEIT ab**
+     („Fatal error: Dictionary literal contains duplicate keys").
+  **Lehre: nach jedem Masseneinfuegen in Sprachdateien auf Dopplungen pruefen** — je Literal,
+  mit korrekten Blockgrenzen. Ein `split()` auf den Tabellennamen zaehlt die Folgetabellen mit
+  und meldet Dopplungen, die es nicht gibt (darauf bin ich einmal hereingefallen).

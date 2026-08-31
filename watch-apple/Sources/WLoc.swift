@@ -5,8 +5,12 @@ import Foundation
 // Reine Einheiten (km/h, bpm, m) bleiben unlokalisiert.
 enum WLoc {
     static func t(_ key: String, _ lang: String) -> String {
-        // Overlay-Sprachen (pt/ja/zh/ru/id) — Übersetzungen in WLocExtra.swift; fehlender Key -> Englisch.
+        // Overlay-Sprachen (nl/fi/cs/pt/ja/zh/ru/id/nb/pl) — Übersetzungen in WLocExtra.swift;
+        // fehlender Key -> Englisch.
         switch lang {
+        case "nl": if let v = wNlOverlay[key] { return v }
+        case "fi": if let v = wFiOverlay[key] { return v }
+        case "cs": if let v = wCsOverlay[key] { return v }
         case "pt": if let v = wPtOverlay[key] { return v }
         case "ja": if let v = wJaOverlay[key] { return v }
         case "zh": if let v = wZhOverlay[key] { return v }
@@ -18,9 +22,9 @@ enum WLoc {
         }
         guard let row = table[key] else { return key }
         if let v = row[lang] { return v }
-        if ["pt", "ja", "zh", "ru", "id", "nb", "pl"].contains(lang) { return row["en"] ?? row["de"] ?? key }
-        // Profil-Sprache kann die Uhr nicht (fi/nl/cs/leer) -> NICHT hart Deutsch, sondern die
-        // GERÄTE-SYSTEMSPRACHE; sonst Englisch.
+        if ["nl", "fi", "cs", "pt", "ja", "zh", "ru", "id", "nb", "pl"].contains(lang) { return row["en"] ?? row["de"] ?? key }
+        // Profil-Sprache kann die Uhr nicht (leer/unbekannt) -> NICHT hart Deutsch, sondern die
+        // GERÄTE-SYSTEMSPRACHE; sonst Englisch. nl/fi/cs sind seit 31.08. eigene Overlays.
         return row[sysLang()] ?? row["en"] ?? row["de"] ?? key
     }
 

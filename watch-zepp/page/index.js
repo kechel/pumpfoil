@@ -308,15 +308,14 @@ const S = {
   "up.waiting":      ["Warte…", "Warte…", "Warte…", "Waiting…", "Attente…", "Attendo…", "Esperando…", "Aguardando…", "Menunggu…", "Ожидание…", "Wachten…", "Odotetaan…", "Čekání…"],
   // Button + Slot-Label fuer den Pairing-Code. nl/fi/cs bleiben leer (Garmins Wortlaut dort ist
   // fuer den 300-px-Button zu lang) -> englisch.
-  "pair.gen":        ["Code erzeugen", "Code erzüge", "Code erzeugen", "Generate code", "Générer un code", "Genera codice", "Generar código", "Gerar código", "Buat kode", "Создать код", "", "", "", "コードを生成", "生成代码"],
+  "pair.gen": ["Code erzeugen", "Code erzüge", "Code erzeugen", "Generate code", "Générer un code", "Genera codice", "Generar código", "Gerar código", "Buat kode", "Создать код", "Code maken", "Luo koodi", "Vytvořit kód", "コードを生成", "生成代码"],
   "pair.code":       ["Pairing-Code", "Pairing-Code", "Pairing-Code", "Pairing code", "Code", "Codice", "Código", "Código", "Kode", "Код", "Koppelcode", "Koodi", "Párovací kód", "コード", "代码"],
   "pair.enterThere": ["eingeben", "yygeh", "eingeben", "enter it there", "à saisir ici", "inseriscilo", "introdúcelo", "insira aqui", "masukkan", "введите", "daar invoeren", "syötä se siellä", "zadejte tam"],
-  "rec.repair":      ["Neu verbinden", "Neu verbinde", "Neu verbinden", "Reconnect", "Reconnecter", "Ricollega", "Reconectar", "Reconectar", "Hubungkan ulang", "Переподключить", "Opnieuw koppelen", "", "Spárovat znovu", "再接続", "重新连接"],
-
+  "rec.repair": ["Neu verbinden", "Neu verbinde", "Neu verbinden", "Reconnect", "Reconnecter", "Ricollega", "Reconectar", "Reconectar", "Hubungkan ulang", "Переподключить", "Opnieuw koppelen", "Yhdistä uudelleen", "Spárovat znovu", "再接続", "重新连接"],
   // -- Aufnahme / Tasten --
   // START/STOPP sind Grossbuchstaben-Buttons; Wortlaut = Wear rec.start/rec.stop, nur gross.
-  "btn.start":       ["START", "START", "START", "START", "DÉMARRER", "AVVIA", "INICIAR", "INICIAR", "MULAI", "СТАРТ", "", "", "", "スタート", "开始"],
-  "btn.stop":        ["STOPP", "STOPP", "STOPP", "STOP", "ARRÊTER", "STOP", "PARAR", "PARAR", "BERHENTI", "СТОП", "", "", "", "ストップ", "停止"],
+  "btn.start": ["START", "START", "START", "START", "DÉMARRER", "AVVIA", "INICIAR", "INICIAR", "MULAI", "СТАРТ", "START", "START", "START", "スタート", "开始"],
+  "btn.stop": ["STOPP", "STOPP", "STOPP", "STOP", "ARRÊTER", "STOP", "PARAR", "PARAR", "BERHENTI", "СТОП", "STOP", "STOP", "STOP", "ストップ", "停止"],
   "rec.stopHold":    ["Halten", "Halte", "Halten", "Hold", "Maintenir", "Tieni", "Mantén", "Segurar", "Tahan", "Держать", "Vasthouden", "Pidä", "Podržet", "長押し", "长按"],
   "rec.holdFree":    ["2 s halten = Touch frei", "2 s halte = Touch frei", "2 s halten = Touch frei", "Hold 2 s = touch free", "2 s = tactile libre", "2 s = touch libero", "2 s = táctil libre", "2 s = toque livre", "2 s = sentuh bebas", "2 с = касания вкл.", "2 s = touch vrij", "2 s = kosketus auki", "2 s = dotyk volný", "2秒長押しでタッチ解除", "长按2秒解锁触摸"],
   "menu.touchLock":  ["Touch-Sperre", "Touch-Sperri", "Touch-Sperre", "Touch lock", "Verrou tactile", "Blocco touch", "Bloqueo táctil", "Bloqueio do toque", "Kunci sentuh", "Блокировка касаний", "Touchvergrendeling", "Kosketuslukko", "Zámek dotyku", "タッチロック", "触摸锁定"],
@@ -332,8 +331,7 @@ const S = {
   "up.done":         ["Upload fertig", "Upload fertig", "Upload fertig", "Upload done", "Upload terminé", "Upload completato", "Subida lista", "Envio concluído", "Unggah selesai", "Загрузка готова", "Upload klaar", "Lähetys valmis", "Nahrání hotovo", "アップロード完了", "上传完成"],
   "up.later":        ["später erneut", "spöter nomal", "später erneut", "retry later", "réessai plus tard", "riprova più tardi", "reintento más tarde", "tentar depois", "coba nanti", "повтор позже", "later opnieuw", "yritä myöhemmin", "zkusit později"],
   "up.serverUnreach": ["Server nicht erreichbar", "Server nöd erreichbar", "Server nicht erreichbar", "Server unreachable", "Serveur injoignable", "Server irraggiungibile", "Servidor no disponible", "Servidor indisponível", "Server tak terjangkau", "Сервер недоступен", "Server onbereikbaar", "Palvelin ei tavoitettavissa", "Server nedostupný"],
-  "rec.uploadNow":   ["Jetzt hochladen", "Jetz ueglade", "Jetzt hochladen", "Upload now", "Envoyer maintenant", "Carica ora", "Subir ahora", "Enviar agora", "Unggah sekarang", "Загрузить сейчас", "", "", "", "今すぐアップロード", "立即上传"],
-
+  "rec.uploadNow": ["Jetzt hochladen", "Jetz ueglade", "Jetzt hochladen", "Upload now", "Envoyer maintenant", "Carica ora", "Subir ahora", "Enviar agora", "Unggah sekarang", "Загрузить сейчас", "Nu uploaden", "Lähetä nyt", "Nahrát teď", "今すぐアップロード", "立即上传"],
   // -- Foil & Alarm (Garmin _a0/_a7/_a8) --
   "fm.title":        ["Foil & Alarm", "Foil & Alarm", "Foil & Alarm", "Foil & alarm", "Foil & alarme", "Foil & allarme", "Foil & alarma", "Foil & alarme", "Foil & alarm", "Foil и сигнал", "Foil & alarm", "Foil & hälytys", "Foil & alarm", "フォイル & アラーム", "水翼 & 提醒"],
   "fm.alarm":        ["Alarm", "Alarm", "Alarm", "Alarm", "Alarme", "Allarme", "Alarma", "Alarme", "Alarm", "Сигнал", "Alarm", "Hälytys", "Alarm", "アラーム", "提醒"],
@@ -346,7 +344,7 @@ const S = {
   "common.on":       ["An", "Aa", "An", "On", "Activé", "On", "Sí", "Lig", "Nyala", "Вкл", "Aan", "Päällä", "Zap", "オン", "开"],
   "common.off":      ["Aus", "Us", "Aus", "Off", "Désactivé", "Off", "No", "Desl", "Mati", "Выкл", "Uit", "Pois", "Vyp", "オフ", "关"],
   "common.auto":     ["Auto", "Auto", "Auto", "Auto", "Auto", "Auto", "Auto", "Auto", "Auto", "Авто", "Auto", "Auto", "Auto", "自動", "自动"],
-  "common.done":     ["Fertig", "Fertig", "Fertig", "Done", "Terminé", "Fatto", "Listo", "Concluído", "Selesai", "Готово", "", "", "", "完了", "完成"],
+  "common.done": ["Fertig", "Fertig", "Fertig", "Done", "Terminé", "Fatto", "Listo", "Concluído", "Selesai", "Готово", "Klaar", "Valmis", "Hotovo", "完了", "完成"],
   "common.error":    ["Fehler", "Fähler", "Fehler", "Error", "Erreur", "Errore", "Error", "Erro", "Kesalahan", "Ошибка", "Fout", "Virhe", "Chyba", "エラー", "错误"],
 
   // -- Datenfeld-Labels (Garmin _a2/_a3; Einheiten bleiben unlokalisiert) --
@@ -366,16 +364,16 @@ const S = {
   "f.runs":          ["Läufe", "Läuf", "Läufe", "Runs", "Runs", "Run", "Tramos", "Runs", "Run", "Заезды", "Runs", "Vedot", "Jízdy", "ラン", "航段"],
   // Aktueller Lauf (Feld 14/15). Wortlaut 1:1 aus android/wear/.../I18n.kt (f.runTime/f.runDist,
   // inkl. der pt/id/ru/ja/zh-Overlays); nl/fi/cs hat Wear dort nicht -> leer = Englisch.
-  "f.runTime":       ["Lauf-Zeit", "Lauf-Ziit", "Lauf-Zeit", "Run time", "Temps run", "Tempo run", "Tiempo run", "Tempo run", "Waktu run", "Время заезда", "", "", "", "ラン時間", "航段时间"],
-  "f.runDist":       ["Lauf-Dist", "Lauf-Dist", "Lauf-Dist", "Run dist", "Dist run", "Dist run", "Dist run", "Dist run", "Jarak run", "Дист заезда", "", "", "", "ラン距離", "航段距离"],
+  "f.runTime": ["Lauf-Zeit", "Lauf-Ziit", "Lauf-Zeit", "Run time", "Temps run", "Tempo run", "Tiempo run", "Tempo run", "Waktu run", "Время заезда", "Rit-tijd", "Vedon aika", "Čas jízdy", "ラン時間", "航段时间"],
+  "f.runDist": ["Lauf-Dist", "Lauf-Dist", "Lauf-Dist", "Run dist", "Dist run", "Dist run", "Dist run", "Dist run", "Jarak run", "Дист заезда", "Rit-afst", "Vedon matka", "Vzdál. jízdy", "ラン距離", "航段距离"],
   // „Lauf läuft" — Garmin-Wortlaut (watch/source/Strings.mc f.runActive, 13 Spalten); ja/zh gibt es
   // dort nicht und Wear kennt den Key gar nicht -> leer = Englisch, statt zu raten.
   "f.runActive":     ["Lauf läuft", "Lauf lauft", "Lauf läuft", "run active", "run actif", "run attivo", "run activo", "run ativo", "run aktif", "заезд идёт", "run actief", "veto käynnissä", "jízda aktivní"],
-  "f.lastRunTime":   ["letzte Zeit", "letschti Ziit", "letzte Zeit", "last time", "dern. temps", "ult. tempo", "últ. tiempo", "último tempo", "waktu terakhir", "посл время", "", "", "", "前回の時間", "上次时间"],
-  "f.lastRunDist":   ["letzte Dist", "letschti Dist", "letzte Dist", "last dist", "dern. dist", "ult. dist", "últ. dist", "última dist", "jarak terakhir", "посл дист", "", "", "", "前回の距離", "上次距离"],
-  "f.lastRunAvg":    ["letzter Ø", "letschte Ø", "letzter Ø", "last avg", "dern. moy", "ult. media", "últ. med", "última méd", "rata terakhir", "посл средн", "", "", "", "前回の平均", "上次平均"],
-  "f.lastRunMax":    ["letzter max", "letschte max", "letzter max", "last max", "dern. max", "ult. max", "últ. máx", "último máx", "maks terakhir", "посл макс", "", "", "", "前回の最大", "上次最高"],
-  "f.lastRunMaxHr":  ["letzter max bpm", "letschte max bpm", "letzter max bpm", "last max bpm", "dern. max bpm", "ult. max bpm", "últ. máx bpm", "último máx bpm", "maks terakhir bpm", "посл макс bpm", "", "", "", "前回の最大心拍", "上次最高心率"],
+  "f.lastRunTime": ["letzte Zeit", "letschti Ziit", "letzte Zeit", "last time", "dern. temps", "ult. tempo", "últ. tiempo", "último tempo", "waktu terakhir", "посл время", "laatste tijd", "ed. aika", "posl. čas", "前回の時間", "上次时间"],
+  "f.lastRunDist": ["letzte Dist", "letschti Dist", "letzte Dist", "last dist", "dern. dist", "ult. dist", "últ. dist", "última dist", "jarak terakhir", "посл дист", "laatste afst", "ed. matka", "posl. vzdál", "前回の距離", "上次距离"],
+  "f.lastRunAvg": ["letzter Ø", "letschte Ø", "letzter Ø", "last avg", "dern. moy", "ult. media", "últ. med", "última méd", "rata terakhir", "посл средн", "laatste Ø", "ed. Ø", "posl. Ø", "前回の平均", "上次平均"],
+  "f.lastRunMax": ["letzter max", "letschte max", "letzter max", "last max", "dern. max", "ult. max", "últ. máx", "último máx", "maks terakhir", "посл макс", "laatste max", "ed. maks", "posl. max", "前回の最大", "上次最高"],
+  "f.lastRunMaxHr": ["letzter max bpm", "letschte max bpm", "letzter max bpm", "last max bpm", "dern. max bpm", "ult. max bpm", "últ. máx bpm", "último máx bpm", "maks terakhir bpm", "посл макс bpm", "laatste max bpm", "ed. maks bpm", "posl. max bpm", "前回の最大心拍", "上次最高心率"],
 };
 // Norwegisch (Bokmål) als OVERLAY statt 16. Spalte: die Zeilen oben haben teils weniger
 // Eintraege (fehlende Sprache = Englisch), ein Anhaengen waere dort ins Leere gelaufen.

@@ -292,7 +292,11 @@ def device_config(
         "gnssMode": _effective_gnss_mode(device, settings),
         # Aktivitätstyp der FIT-Session (Garmin-Connect-Kategorie): surfing | openwater.
         "activityType": settings.get("activity_type", "pumpfoil"),   # Rückfall wie DEFAULTS in settings.py
-        # Profil-Sprache (de/gsw/de-AT/en/fr/it/es) — die Uhr lokalisiert ihre On-Device-Texte danach.
+        # Profil-Sprache — die Uhr lokalisiert ihre On-Device-Texte danach. Der Code geht
+        # unveraendert raus; welche davon eine Uhr KANN, entscheidet sie selbst:
+        # Garmin 15 (kein ja/zh, den Built-in-Fonts fehlen die CJK-Glyphen), Zepp 17,
+        # Wear OS und Apple Watch seit 31.08. ebenfalls 17. Was eine Uhr nicht kennt, faellt
+        # dort auf die Geraetesprache und dann auf Englisch zurueck.
         # Ist KEINE Profil-Sprache gesetzt, "" senden (nicht hart "de") → die Uhr weicht auf ihre
         # GERÄTE-Systemsprache aus (Strings.setLang("")→_systemIdx, Fallback EN). Wunsch: engl. Uhr = engl. App.
         "language": (user.language if user and user.language else ""),
