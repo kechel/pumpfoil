@@ -4397,7 +4397,18 @@ Offen daraus:
     `alpinefoil.com/.../pumping-dockstart/stabiliser/`: „HA 175 - High Performance, 175 cm²,
     385 mm". Dieselbe Namensfalle wie oben: „HA 65" hat dort **62 cm²**.
   - **✅ `Levitaz Stabilizer 180`** (Wunsch „Stabilizator 180"). In der Free Series belegt.
-  - **🔲 OFFEN: `Levitaz FreeSeries 1200`** (AR 18.1, Spannweite 1500 mm laut Nutzer).
+  - **✅ `Levitaz Free Series Prototype 1200` — geklaert und eingetragen (31.08. abends).** Auf
+    Nachfrage im Chat: **„1200 its prototype version"**. Deshalb steht dazu nichts bei Levitaz und
+    kann auch nichts dort stehen. Eingetragen mit den Nutzerzahlen (1200 cm², Spannweite 1500 mm)
+    und **„Prototype" im Modellnamen**: der Foil-Katalog ist GLOBAL (die `foils`-Tabelle hat gar
+    keine `user_id`, private Foils gibt es also nicht — anders als bei `stabs`), niemand soll das
+    fuer einen Serienfluegel halten.
+    Aus 1500 mm und 1200 cm² ergibt sich AR **18,75** statt der genannten 18,1; Levitaz misst die
+    Flaeche vermutlich anders. Gespeichert sind nur die zwei harten Zahlen, dem Nutzer gesagt.
+    **Nebenbefund:** `specs_estimated` steht zwar in `foils.json` (z. B. bei Moses Medusa), wird
+    von `_seed_foils` aber **gar nicht gelesen** — die Spalte bleibt auf ihrem Default. Wer
+    „geschaetzt" kennzeichnen will, muss das derzeit im Namen tun.
+  - Urspruenglich offen war: **`Levitaz FreeSeries 1200`** (AR 18.1, Spannweite 1500 mm laut Nutzer).
     **Gibt es so nicht:** Levitaz fuehrt in BEIDEN Serien (Free und Race) nur die Frontfluegel
     **540, 680, 790, 900** — kein 1200. Ein 1200 cm² mit AR 18 waere auch ein Race-Kitefoil-Fluegel,
     kein Free-Ride-Fluegel. **Nicht geraten** (Regel: lieber Luecke als erfunden). Rueckfrage an
@@ -4485,6 +4496,12 @@ Offen daraus:
     | s2919 | 128 Punkte, **33 m** | 5 Linien, 106 Punkte, **5 m** |
     Web live; Android/iOS laufen in **1.1.25** bzw. **1.1.28** mit. `:app:compileDebugKotlin`
     gruen, `swiftc -parse` gruen, `tsc --noEmit` gruen.
+
+- **✅ 31.08. — iOS-Startabsturz IM FELD BESTAETIGT, vom urspruenglichen Melder.** u149 (Jacek)
+  am 31.08. um 15:27: **„New version works ok"**. Er hatte den Absturz am 30.08. gemeldet, die
+  Crash-Logs herausgesucht und den entscheidenden Satz geliefert („it crashed directly after
+  logging in" — der Anmeldebildschirm hat gar keine Karte, also lag es an dem, was dahinter
+  aufgebaut wird). Damit ist die Kette Meldung → Diagnose → Fix → Gegenprobe geschlossen.
 
 - **✅ 31.08. — iOS/Apple Watch 1.1.27 IST LIVE, Freigabekette abgearbeitet.** Freigabe-Mail
   („ready for distribution") gegen 19 Uhr Berlin, `appmeta.ios` UND `appmeta.apple` zusammen auf

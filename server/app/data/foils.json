@@ -2345,6 +2345,17 @@
   "thickness_estimated": true
  },
  {
+  "brand": "Levitaz",
+  "model": "Free Series Prototype",
+  "size": "1200",
+  "span_cm": 150.0,
+  "area_cm2": 1200,
+  "thickness_mm": null,
+  "thickness_estimated": false,
+  "is_baseline": false,
+  "aliases": "FreeSeries 1200|Free Series 1200|Levitaz 1200"
+ },
+ {
   "brand": "KT Foils",
   "model": "Solus",
   "size": "565",
