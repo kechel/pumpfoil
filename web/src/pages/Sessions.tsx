@@ -849,16 +849,26 @@ function CommunityList({ name, spot, accelOnly, onShowAll }:
   const itemsRef = useRef<CommunityGroup[]>([]);
   const lastViewed = getLastSession();
 
-  // Spot ohne eine einzige Session mit Beschleunigungsdaten: statt einer leeren Liste automatisch
-  // auf "alle" umschalten. Nur beim ersten Laden eines Spots, nur wenn der Nutzer den Umschalter
-  // nicht selbst angefasst hat, und NICHT gemerkt — beim Verlassen greift wieder der Default aus
-  // der eigenen Uhr (resetAuto beim Spot-Wechsel).
+  // Spot, an dem der Filter "nur präzise" mehr verbirgt als er zeigt: automatisch auf "alle"
+  // umschalten. Nur beim ersten Laden eines Spots, nur wenn der Nutzer den Umschalter nicht
+  // selbst angefasst hat, und NICHT gemerkt — beim Verlassen greift wieder der Default aus der
+  // eigenen Uhr (resetAuto beim Spot-Wechsel).
+  //
+  // Frueher griff das NUR bei einer komplett leeren Liste, und genau daran ist am 29.08. ein
+  // Nutzer haengen geblieben: die Spot-Karte sagte "Meerkerk · 14", nach dem Klick standen dort
+  // seine eigenen drei. Die anderen elf sind die seines Kumpels, dessen Uhr keine verwertbaren
+  // Beschleunigungsdaten liefert (`detection = gps_only`) — die Karte zaehlt mit accel_only=false,
+  // die Liste filterte mit true. Das Etikett meinte also wieder eine andere Menge als das
+  // Klickziel, derselbe Fehler wie bei den Namens-Gruppen am 20.08. (s. `spot_map`).
+  // Die Liste ist nicht leer, sie ist nur kuerzer als versprochen — deshalb reicht es nicht,
+  // auf 0 zu pruefen. Verglichen wird die ERSTE Seite: liefert "alle" dort mehr Gruppen als
+  // "nur praezise", war der Filter hier die falsche Vorgabe.
   const autoTried = useRef<string | null>(null);
   const maybeShowAll = (rows: CommunityGroup[], off: number) => {
-    if (!spot || !accelOnly || off !== 0 || rows.length || autoTried.current === spot) return;
+    if (!spot || !accelOnly || off !== 0 || autoTried.current === spot) return;
     autoTried.current = spot;
-    api.communitySessionsGrouped(1, 0, { name: name || undefined, spot, accelOnly: false, sport: "all" })
-      .then((probe) => { if (probe.length) onShowAll?.(); })
+    api.communitySessionsGrouped(PAGE, 0, { name: name || undefined, spot, accelOnly: false, sport: "all" })
+      .then((probe) => { if (probe.length > rows.length) onShowAll?.(); })
       .catch(() => {});
   };
 

@@ -4535,6 +4535,22 @@ Offen daraus:
     Apple auf **1.1.28 (32)** gebumpt, weil 1.1.27 (31) heute frueh eingereicht wurde und in
     Pruefung ist.
 
+- **✅ 31.08. — Spot-Karte und Spot-Liste zeigten verschiedene Mengen (Nutzerfrage vom 29.08.).**
+  Meldung: „locaties Meerkerk says 14 sessions, when i click it only reveals my sessions".
+  **Nachgemessen:** Spot 194 hat genau 14 Sessions — 3 mit `detection = model` (sein Handy),
+  11 mit `detection = gps_only` (die eines anderen Fahrers). Die Karte zaehlt mit
+  `accel_only=false`, die Liste filterte mit `true` → er sah drei von vierzehn.
+  - Die vorhandene Selbstkorrektur in `Sessions.tsx` (`maybeShowAll`) griff **nur bei einer
+    voellig leeren Liste**. Hier war die Liste nicht leer, nur kuerzer als das Etikett versprach —
+    also griff sie nie. Jetzt vergleicht sie die erste Seite: liefert „alle" mehr Gruppen als
+    „nur praezise", schaltet sie um. Weiterhin **nicht gemerkt** (`setAuto` ohne `touched`) —
+    verlaesst man den Spot, gilt wieder der Default aus der eigenen Uhr.
+  - Derselbe Fehlertyp wie am 20.08. bei den Namens-Gruppen (s. Docstring `spot_map`): Etikett
+    und Klickziel meinten verschiedene Mengen. Web ist live.
+  - **Antwort an den Nutzer ist raus** (DM, auf Niederlaendisch = seine Profilsprache), auf Jans
+    ausdrueckliche Bitte hin.
+  - 🔲 **Offen: Android/iOS pruefen** — beide haben dieselbe Spot-Karte und dieselbe Spot-Liste.
+
 - **✅ 31.08. — Garmin 1.0.83 IST LIVE, Freigabekette komplett abgearbeitet.**
   Jans Meldung: Store-Seite „Latest Release August 31, 2026 · Version 1.0.83 · Size 70 KB".
   **Selbst gegengeprueft** (nicht nur gemeldet): `curl https://apps.garmin.com/apps/9a2a753e-…`
