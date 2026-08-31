@@ -17,6 +17,12 @@ let ptOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/pt.ts.
 private let _ptOverlayP11: [String: String] = [
+    "compare.syncTitle": "Reproduzir em sincronia",
+    "compare.syncWho": "{n} riders, mesmo spot, mesma hora",
+    "compare.syncHint": "Todas as sessões correm no mesmo relógio — vês quem estava onde, e quando. Os trechos em que ninguém estava no foil são saltados.",
+    "compare.syncSkipped": "{min} min saltados",
+    "sd.play": "Reproduzir",
+    "sd.pause": "Pausar",
     "account.activityPumpfoil": "Pumpfoil (genérico)",
     "account.addLayoutPage": "+ Inserir tela própria",
     "account.autoStart": "Iniciar gravação automaticamente ao decolar (GPS)",
@@ -839,6 +845,12 @@ let jaOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/ja.ts.
 private let _jaOverlayP11: [String: String] = [
+    "compare.syncTitle": "同時再生",
+    "compare.syncWho": "{n} 人、同じスポット、同じ時間帯",
+    "compare.syncHint": "すべてのセッションが同じ時計で動きます — 誰がいつどこにいたかが分かります。誰もフォイルに乗っていない時間は飛ばします。",
+    "compare.syncSkipped": "{min} 分をスキップ",
+    "sd.play": "再生",
+    "sd.pause": "一時停止",
     "account.activityPumpfoil": "パンプフォイル（汎用）",
     "account.addLayoutPage": "＋ 自作画面を追加",
     "account.autoStart": "離水したら自動的に記録を開始（GPS）",
@@ -1661,6 +1673,12 @@ let zhOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/zh.ts.
 private let _zhOverlayP11: [String: String] = [
+    "compare.syncTitle": "同步播放",
+    "compare.syncWho": "{n} 位骑手，同一点位，同一时间",
+    "compare.syncHint": "所有会话共用一个时钟——你能看到谁在什么时候在哪里。没有人在水翼上的时段会被跳过。",
+    "compare.syncSkipped": "跳过 {min} 分钟",
+    "sd.play": "播放",
+    "sd.pause": "暂停",
     "account.activityPumpfoil": "泵翼（通用）",
     "account.addLayoutPage": "＋ 插入自定义界面",
     "account.autoStart": "起航时自动开始记录（GPS）",
@@ -2483,6 +2501,12 @@ let ruOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/ru.ts.
 private let _ruOverlayP11: [String: String] = [
+    "compare.syncTitle": "Синхронное воспроизведение",
+    "compare.syncWho": "{n} райдера, тот же спот, то же время",
+    "compare.syncHint": "Все сессии идут по одним часам — видно, кто где и когда был. Промежутки, когда никто не был на фойле, пропускаются.",
+    "compare.syncSkipped": "пропущено {min} мин",
+    "sd.play": "Воспроизвести",
+    "sd.pause": "Пауза",
     "account.activityPumpfoil": "Pumpfoil (общий)",
     "account.addLayoutPage": "+ Вставить свой экран",
     "account.autoStart": "Автостарт записи при выходе на фойл (GPS)",
@@ -3305,6 +3329,12 @@ let idOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/id.ts.
 private let _idOverlayP11: [String: String] = [
+    "compare.syncTitle": "Putar serentak",
+    "compare.syncWho": "{n} foiler, spot sama, waktu sama",
+    "compare.syncHint": "Semua sesi berjalan pada satu jam — kamu melihat siapa di mana dan kapan. Bagian saat tidak ada yang di atas foil dilewati.",
+    "compare.syncSkipped": "{min} mnt dilewati",
+    "sd.play": "Putar",
+    "sd.pause": "Jeda",
     "account.activityPumpfoil": "Pumpfoil (umum)",
     "account.addLayoutPage": "+ Sisipkan layar sendiri",
     "account.autoStart": "Mulai rekam otomatis saat aku take off (GPS)",
@@ -4126,6 +4156,12 @@ let nbOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/nb.ts.
 private let _nbOverlayP11: [String: String] = [
+    "compare.syncTitle": "Spill av synkront",
+    "compare.syncWho": "{n} ryttere, samme sted, samme tid",
+    "compare.syncHint": "Alle øktene går på samme klokke — du ser hvem som var hvor, og når. Strekk der ingen var oppe på foilen, hoppes over.",
+    "compare.syncSkipped": "{min} min hoppet over",
+    "sd.play": "Spill",
+    "sd.pause": "Pause",
     "account.autoStart": "Start opptak automatisk når jeg tar av (GPS)",
     "account.colorByValue": "Fargelegg verdier etter nivå (fart/puls)",
     "account.devicesSettingsIntro": "Innstillingene under hver klokke virker på selve klokka. Den henter dem neste gang du åpner appen der — ingen oppdatering nødvendig.",
@@ -4976,6 +5012,12 @@ let plOverlay: [String: String] = {
 }()
 
 private let _plOverlayP1: [String: String] = [
+    "compare.syncTitle": "Odtwarzaj synchronicznie",
+    "compare.syncWho": "{n} zawodników, ten sam spot, ten sam czas",
+    "compare.syncHint": "Wszystkie sesje idą na jednym zegarze — widzisz, kto gdzie i kiedy był. Fragmenty, w których nikt nie był na foilu, są pomijane.",
+    "compare.syncSkipped": "pominięto {min} min",
+    "sd.play": "Odtwórz",
+    "sd.pause": "Pauza",
         "imp.mapTitle": "Mapy",
         "imp.map1": "<b>Mapa drogowa</b> pochodzi z <b>OpenStreetMap</b>. Przy wyświetlaniu mapy twoja przeglądarka pobiera kafelki bezpośrednio z ich serwerów; przekazywane są przy tym twój adres IP i wyświetlany fragment. Dostawca: OpenStreetMap Foundation, Wielka Brytania.",
         "imp.map2": "Jeśli przyciskiem na mapie przełączysz się na <b>satelitę</b>, zdjęcia lotnicze pochodzą od <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — również bezpośrednio z ich serwerów i również z twoim adresem IP. Dzieje się tak <b>tylko</b> wtedy, gdy przełączysz; twój wybór jest zapamiętywany lokalnie na twoim urządzeniu.",

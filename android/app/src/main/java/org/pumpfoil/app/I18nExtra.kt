@@ -7,6 +7,10 @@ package org.pumpfoil.app
 val PT: Map<String, String> = ptTabelle()
 
 private fun ptTabelle(): Map<String, String> = mapOf(
+    "compare.syncTitle" to "Reproduzir em sincronia",
+    "compare.syncWho" to "{n} riders, mesmo spot, mesma hora",
+    "compare.syncHint" to "Todas as sessões correm no mesmo relógio — vês quem estava onde, e quando. Os trechos em que ninguém estava no foil são saltados.",
+    "compare.syncSkipped" to "{min} min saltados",
     "account.addLayoutPage" to "+ Inserir tela própria",
     "account.autoStart" to "Iniciar gravação automaticamente ao decolar (GPS)",
     "account.browseAll" to "Passar também pelas outras telas em pausa ou quando não estiver foilando",
@@ -810,6 +814,10 @@ private fun ptTabelle(): Map<String, String> = mapOf(
 val JA: Map<String, String> = jaTabelle()
 
 private fun jaTabelle(): Map<String, String> = mapOf(
+    "compare.syncTitle" to "同時再生",
+    "compare.syncWho" to "{n} 人、同じスポット、同じ時間帯",
+    "compare.syncHint" to "すべてのセッションが同じ時計で動きます — 誰がいつどこにいたかが分かります。誰もフォイルに乗っていない時間は飛ばします。",
+    "compare.syncSkipped" to "{min} 分をスキップ",
     "account.addLayoutPage" to "＋ 自作画面を追加",
     "account.autoStart" to "離水したら自動的に記録を開始（GPS）",
     "account.browseAll" to "一時停止中やフォイルしていないときも他の画面をめくれるようにする",
@@ -1613,6 +1621,10 @@ private fun jaTabelle(): Map<String, String> = mapOf(
 val ZH: Map<String, String> = zhTabelle()
 
 private fun zhTabelle(): Map<String, String> = mapOf(
+    "compare.syncTitle" to "同步播放",
+    "compare.syncWho" to "{n} 位骑手，同一点位，同一时间",
+    "compare.syncHint" to "所有会话共用一个时钟——你能看到谁在什么时候在哪里。没有人在水翼上的时段会被跳过。",
+    "compare.syncSkipped" to "跳过 {min} 分钟",
     "account.addLayoutPage" to "＋ 插入自定义界面",
     "account.autoStart" to "起航时自动开始记录（GPS）",
     "account.browseAll" to "暂停或未在foil时也能翻看其他界面",
@@ -2416,6 +2428,10 @@ private fun zhTabelle(): Map<String, String> = mapOf(
 val RU: Map<String, String> = ruTabelle()
 
 private fun ruTabelle(): Map<String, String> = mapOf(
+    "compare.syncTitle" to "Синхронное воспроизведение",
+    "compare.syncWho" to "{n} райдера, тот же спот, то же время",
+    "compare.syncHint" to "Все сессии идут по одним часам — видно, кто где и когда был. Промежутки, когда никто не был на фойле, пропускаются.",
+    "compare.syncSkipped" to "пропущено {min} мин",
     "account.addLayoutPage" to "+ Вставить свой экран",
     "account.autoStart" to "Автостарт записи при выходе на фойл (GPS)",
     "account.browseAll" to "Листать и остальные экраны на паузе или когда не идёт катание",
@@ -3219,6 +3235,10 @@ private fun ruTabelle(): Map<String, String> = mapOf(
 val ID: Map<String, String> = idTabelle()
 
 private fun idTabelle(): Map<String, String> = mapOf(
+    "compare.syncTitle" to "Putar serentak",
+    "compare.syncWho" to "{n} foiler, spot sama, waktu sama",
+    "compare.syncHint" to "Semua sesi berjalan pada satu jam — kamu melihat siapa di mana dan kapan. Bagian saat tidak ada yang di atas foil dilewati.",
+    "compare.syncSkipped" to "{min} mnt dilewati",
     "account.addLayoutPage" to "+ Sisipkan layar sendiri",
     "account.autoStart" to "Mulai rekam otomatis saat aku take off (GPS)",
     "account.browseAll" to "Telusuri juga layar lain saat jeda atau saat tidak sedang foiling",
@@ -4025,6 +4045,10 @@ private fun idTabelle(): Map<String, String> = mapOf(
 val NB: Map<String, String> = nbTabelle()
 
 private fun nbTabelle(): Map<String, String> = mapOf(
+    "compare.syncTitle" to "Spill av synkront",
+    "compare.syncWho" to "{n} ryttere, samme sted, samme tid",
+    "compare.syncHint" to "Alle øktene går på samme klokke — du ser hvem som var hvor, og når. Strekk der ingen var oppe på foilen, hoppes over.",
+    "compare.syncSkipped" to "{min} min hoppet over",
     "account.autoStart" to "Start opptak automatisk når jeg tar av (GPS)",
     "account.colorByValue" to "Fargelegg verdier etter nivå (fart/puls)",
     "account.devicesSettingsIntro" to "Innstillingene under hver klokke virker på selve klokka. Den henter dem neste gang du åpner appen der — ingen oppdatering nødvendig.",
@@ -4867,6 +4891,10 @@ private fun nbTabelle(): Map<String, String> = mapOf(
 val PL: Map<String, String> = plTabelle()
 
 private fun plTabelle(): Map<String, String> = mapOf(
+    "compare.syncTitle" to "Odtwarzaj synchronicznie",
+    "compare.syncWho" to "{n} zawodników, ten sam spot, ten sam czas",
+    "compare.syncHint" to "Wszystkie sesje idą na jednym zegarze — widzisz, kto gdzie i kiedy był. Fragmenty, w których nikt nie był na foilu, są pomijane.",
+    "compare.syncSkipped" to "pominięto {min} min",
     "imp.mapTitle" to "Mapy",
     "imp.map1" to "<b>Mapa drogowa</b> pochodzi z <b>OpenStreetMap</b>. Przy wyświetlaniu mapy twoja przeglądarka pobiera kafelki bezpośrednio z ich serwerów; przekazywane są przy tym twój adres IP i wyświetlany fragment. Dostawca: OpenStreetMap Foundation, Wielka Brytania.",
     "imp.map2" to "Jeśli przyciskiem na mapie przełączysz się na <b>satelitę</b>, zdjęcia lotnicze pochodzą od <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — również bezpośrednio z ich serwerów i również z twoim adresem IP. Dzieje się tak <b>tylko</b> wtedy, gdy przełączysz; twój wybór jest zapamiętywany lokalnie na twoim urządzeniu.",

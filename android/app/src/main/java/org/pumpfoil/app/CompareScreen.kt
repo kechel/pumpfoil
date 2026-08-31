@@ -34,6 +34,8 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material3.Slider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -42,6 +44,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -58,6 +61,7 @@ import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.BoundingBox
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
+import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polyline
 
 private enum class CompareMode { RIDER, TRACK, SPEED, PUMP, HR }
@@ -136,6 +140,38 @@ fun CompareScreen(onBack: () -> Unit, onOpen: (Int) -> Unit = {}) {
     val hrVals = cmpTracks.flatMap { it.track.hr.filterNotNull().filter { v -> v > 0 } }
     val pumpRange = (pumpVals.minOrNull() ?: 0.0) to (pumpVals.maxOrNull() ?: 2.0)
     val hrRange = (hrVals.minOrNull() ?: 100) to (hrVals.maxOrNull() ?: 170)
+
+    // ---- Synchrones Abspielen (wie PWA CompareMap.tsx) -------------------------------------
+    // Nur angeboten, wenn sich mindestens zwei der verglichenen Sessions zeitlich ueberschneiden
+    // UND am gleichen Spot liegen. Die Zeitrechnung steckt in SyncPlayback.kt — dort steht auch,
+    // warum „ein Trackpunkt = eine Sekunde" hier NICHT reicht.
+    val plan = remember(cmpTracks.map { it.ref.key to it.track.points.size }) {
+        if (cmpTracks.size < 2) null
+        else syncPlan(cmpTracks.map { it.session to it.ref.runIdx },
+                      cmpTracks.associate { it.session.id to it.track.points.size })
+    }
+    var spielt by remember(plan) { mutableStateOf(false) }
+    var tempo by remember(plan) { mutableStateOf(8) }
+    var pos by remember(plan) { mutableStateOf(0.0) }   // ms in der Wiedergabe (ohne Leerlauf)
+    // Die Karte gehoert dem Abspieler, sobald er einmal gelaufen ist. Bei Position 0 und Pause
+    // steht wieder die normale Vergleichsansicht mit allen vollstaendigen Strecken da.
+    val spielModus = plan != null && (spielt || pos > 0.0)
+
+    if (plan != null && spielt) {
+        LaunchedEffect(spielt, tempo, plan) {
+            var zuletzt = 0L
+            while (spielt) {
+                withFrameNanos { jetzt ->
+                    if (zuletzt != 0L) {
+                        val dt = (jetzt - zuletzt) / 1_000_000.0 * tempo
+                        val n = pos + dt
+                        if (n >= plan.dauerMs) { pos = plan.dauerMs; spielt = false } else pos = n
+                    }
+                    zuletzt = jetzt
+                }
+            }
+        }
+    }
 
     // Zusammenführen nur plausibel erlaubt: alle eigene, >=2, gleicher Tag + Spot (Server prüft final).
     // Einzelne Laeufe lassen sich nicht zusammenfuehren (wie `mergeableIds` in der PWA).
@@ -222,7 +258,17 @@ fun CompareScreen(onBack: () -> Unit, onOpen: (Int) -> Unit = {}) {
                                 }
                             }
                             CompareMap(cmpTracks, mode, win, pumpRange, hrRange,
-                                Modifier.fillMaxWidth().height(240.dp).padding(horizontal = 12.dp))
+                                Modifier.fillMaxWidth().height(240.dp).padding(horizontal = 12.dp),
+                                plan = plan, posMs = pos, spielModus = spielModus)
+                            if (plan != null) {
+                                SyncBedienzeile(
+                                    plan = plan, spielt = spielt, tempo = tempo, pos = pos,
+                                    tz = cmpTracks.firstOrNull()?.session?.tz,
+                                    onPlay = { if (pos >= plan.dauerMs) pos = 0.0; spielt = !spielt },
+                                    onTempo = { tempo = it },
+                                    onPos = { spielt = false; pos = it },
+                                )
+                            }
                             if (mode == CompareMode.SPEED || mode == CompareMode.PUMP || mode == CompareMode.HR) {
                                 GradientLegend(mode, pumpRange, hrRange)
                             }
@@ -269,7 +315,8 @@ private fun foilLabel(s: SessionDetail): String? {
 // Gemeinsame Karte: je Session/Fahrer/Wert gefärbte Foiling-Läufe aller verglichenen Sessions.
 @Composable
 private fun CompareMap(tracks: List<CmpTrack>, mode: CompareMode, win: Int,
-                       pumpRange: Pair<Double, Double>, hrRange: Pair<Int, Int>, modifier: Modifier = Modifier) {
+                       pumpRange: Pair<Double, Double>, hrRange: Pair<Int, Int>, modifier: Modifier = Modifier,
+                       plan: SyncPlan? = null, posMs: Double = 0.0, spielModus: Boolean = false) {
     fun colorAt(cmp: CmpTrack, i: Int): Color = when (mode) {
         CompareMode.TRACK -> cmp.sessionColor
         CompareMode.RIDER -> cmp.riderColor
@@ -289,6 +336,81 @@ private fun CompareMap(tracks: List<CmpTrack>, mode: CompareMode, win: Int,
                 map.overlays.clear()
                 val dens = map.context.resources.displayMetrics.density
                 val all = ArrayList<GeoPoint>()
+
+                // Waehrend der Wiedergabe zeichnet NUR der Abspieler: je Fahrer der Lauf, in dem
+                // er GERADE ist, und der nur bis zu seiner aktuellen Position. Laege die
+                // vollstaendige Strecke darunter, waere der wachsende Lauf darin nicht zu erkennen
+                // — bei mehreren Fahrern am selben Spot ist das ein Knaeuel (Jans Befund 31.08.).
+                if (spielModus && plan != null) {
+                    val tAbs = plan.zuUhrzeit(posMs)
+                    for (cmp in tracks) {
+                        val pts = cmp.track.points
+                        val nur = plan.laeufe[cmp.session.id]
+                        val segs = cmp.session.analysis?.segments.orEmpty()
+                            .withIndex()
+                            .filter { (i, g) ->
+                                (nur == null || i in nur) &&
+                                    g.tStartSessionMs != null && g.tEndSessionMs != null
+                            }
+                        if (segs.isEmpty()) continue
+                        val start = try {
+                            java.time.OffsetDateTime.parse(cmp.session.startedAt).toInstant().toEpochMilli().toDouble()
+                        } catch (_: Exception) { continue }
+
+                        val lauf = segs.firstOrNull { (_, g) ->
+                            tAbs >= start + g.tStartSessionMs!! && tAbs <= start + g.tEndSessionMs!!
+                        }?.value
+                        if (lauf == null) {
+                            // Pause: am Ende des letzten schon gefahrenen Laufs PARKEN, nicht
+                            // weitergleiten. Stuetzpunkte gibt es nur an den Laufgrenzen; dazwischen
+                            // wuerde ein interpolierter Punkt gemaechlich ueber den See ziehen,
+                            // waehrend der Fahrer am Steg steht. Vor dem ersten Lauf: gar nicht da.
+                            val vorher = segs.lastOrNull { (_, g) -> start + g.tEndSessionMs!! <= tAbs }?.value
+                                ?: continue
+                            val p = pts.getOrNull(vorher.iEnd.coerceIn(0, pts.size - 1)) ?: continue
+                            map.overlays.add(punktMarker(map, GeoPoint(p.second, p.first),
+                                cmp.riderColor, dens, hohl = true))
+                            continue
+                        }
+                        // Im Lauf: Index aus der Zeit INNERHALB dieses Laufs — damit ist die
+                        // Uhrzeit bei jedem Laufbeginn neu gesetzt (innerhalb eines Laufs laeuft
+                        // die Aufzeichnung sauber mit 1 Hz, nachgemessen: 0 ms Abweichung).
+                        val spanne = lauf.tEndSessionMs!! - lauf.tStartSessionMs!!
+                        val f = if (spanne > 0) (tAbs - (start + lauf.tStartSessionMs!!)) / spanne else 0.0
+                        val idx = lauf.iStart + f * (lauf.iEnd - lauf.iStart)
+                        val bis = minOf(idx.toInt(), lauf.iEnd)
+                        for (i in lauf.iStart until bis) {
+                            val a = pts.getOrNull(i) ?: continue
+                            val b = pts.getOrNull(i + 1) ?: continue
+                            val pa = GeoPoint(a.second, a.first)
+                            val pb = GeoPoint(b.second, b.first)
+                            if (pa.distanceToAsDouble(pb) > CMP_GAP_M) continue
+                            map.overlays.add(Polyline(map).apply {
+                                setPoints(listOf(pa, pb))
+                                outlinePaint.color = colorAt(cmp, i + 1).toArgb()
+                                outlinePaint.strokeWidth = 4f * dens
+                            })
+                            all.add(pa); all.add(pb)
+                        }
+                        val a = pts.getOrNull(idx.toInt().coerceIn(0, pts.size - 1))
+                        val b = pts.getOrNull((idx.toInt() + 1).coerceIn(0, pts.size - 1))
+                        if (a != null) {
+                            val g = idx - idx.toInt()
+                            val lat = a.second + ((b?.second ?: a.second) - a.second) * g
+                            val lon = a.first + ((b?.first ?: a.first) - a.first) * g
+                            val gp = GeoPoint(lat, lon)
+                            map.overlays.add(punktMarker(map, gp, cmp.riderColor, dens, hohl = false))
+                            all.add(gp)
+                        }
+                    }
+                    if (all.isNotEmpty()) {
+                        val bb = BoundingBox.fromGeoPoints(all)
+                        map.post { map.zoomToBoundingBox(bb.increaseByScale(1.3f), false, 48) }
+                    }
+                    map.invalidate()
+                    return@AndroidView
+                }
+
                 for (cmp in tracks) {
                     val pts = cmp.track.points
                     for ((_, seg) in cmp.laeufe) {
@@ -533,3 +655,82 @@ private fun cmpMetrics(win: Int, weightKg: Double): List<CmpMetric> {
 /** Das referenzierte Segment, oder null bei einem Eintrag fuer die ganze Session. */
 private fun lauf(r: CompareRef, s: SessionDetail): Segment? =
     r.runIdx?.let { s.analysis?.segments?.getOrNull(it) }
+
+// Ein Fahrer-Punkt auf der Karte. osmdroid kennt keinen „Kreis-Marker", also malen wir einen:
+// gefuellt = faehrt gerade, hohl+blass = geparkt in der Pause. KEINE Namensschilder — die Farbe
+// reicht, die Kacheln ueber der Karte sind bereits die Legende (Jan, 31.08.).
+private fun punktMarker(map: MapView, p: GeoPoint, farbe: Color, dens: Float, hohl: Boolean): Marker {
+    val r = (if (hohl) 5f else 7f) * dens
+    val rand = 2f * dens
+    val size = ((r + rand) * 2f).toInt().coerceAtLeast(4)
+    val bmp = android.graphics.Bitmap.createBitmap(size, size, android.graphics.Bitmap.Config.ARGB_8888)
+    val c = android.graphics.Canvas(bmp)
+    val mitte = size / 2f
+    val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
+    if (hohl) {
+        paint.style = android.graphics.Paint.Style.FILL
+        paint.color = android.graphics.Color.argb(140, 15, 23, 42)   // dunkler Kern, halbtransparent
+        c.drawCircle(mitte, mitte, r, paint)
+        paint.style = android.graphics.Paint.Style.STROKE
+        paint.strokeWidth = rand
+        paint.color = farbe.copy(alpha = 0.55f).toArgb()
+        c.drawCircle(mitte, mitte, r, paint)
+    } else {
+        paint.style = android.graphics.Paint.Style.FILL
+        paint.color = farbe.toArgb()
+        c.drawCircle(mitte, mitte, r, paint)
+        paint.style = android.graphics.Paint.Style.STROKE
+        paint.strokeWidth = rand
+        paint.color = android.graphics.Color.WHITE
+        c.drawCircle(mitte, mitte, r, paint)
+    }
+    return Marker(map).apply {
+        position = p
+        setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+        icon = android.graphics.drawable.BitmapDrawable(map.context.resources, bmp)
+        setInfoWindow(null)          // kein Popup beim Antippen
+    }
+}
+
+// Bedienzeile des synchronen Abspielens — wie die PWA: Start/Pause, Tempo, Uhrzeit in Spot-Ortszeit,
+// Regler und die uebersprungene Leerlaufzeit (sonst wundert man sich ueber eine „Wiedergabe" von
+// vier Minuten fuer zwei Stunden am Wasser).
+@Composable
+private fun SyncBedienzeile(
+    plan: SyncPlan, spielt: Boolean, tempo: Int, pos: Double, tz: String?,
+    onPlay: () -> Unit, onTempo: (Int) -> Unit, onPos: (Double) -> Unit,
+) {
+    val uhr = remember(pos, plan) {
+        val ms = plan.zuUhrzeit(pos).toLong()
+        val zone = try { java.time.ZoneId.of(tz ?: "UTC") } catch (_: Exception) { java.time.ZoneId.systemDefault() }
+        java.time.Instant.ofEpochMilli(ms).atZone(zone)
+            .format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"))
+    }
+    Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp)) {
+        Text(I18n.t("compare.syncTitle"), style = MaterialTheme.typography.titleSmall)
+        Text(I18n.t("compare.syncWho").replace("{n}", plan.sessions.size.toString()),
+            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(I18n.t("compare.syncHint"),
+            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(Modifier.height(6.dp))
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(onClick = onPlay, contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)) {
+                Text(I18n.t(if (spielt) "sd.pause" else "sd.play"))
+            }
+            listOf(2, 8, 30).forEach { m ->
+                val an = tempo == m
+                TextButton(onClick = { onTempo(m) }, contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)) {
+                    Text("${m}×", color = if (an) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            Text(uhr, style = MaterialTheme.typography.bodyMedium)
+        }
+        Text(I18n.t("compare.syncSkipped").replace("{min}", Math.round(plan.uebersprungenMin).toString()),
+            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Slider(
+            value = (pos / plan.dauerMs).toFloat().coerceIn(0f, 1f),
+            onValueChange = { onPos(it.toDouble() * plan.dauerMs) },
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
+}

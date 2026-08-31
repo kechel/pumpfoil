@@ -213,6 +213,12 @@ enum Loc {
     ]
 
     private static let _csOverlayP1: [String: String] = [
+        "compare.syncTitle": "Přehrát synchronně",
+        "compare.syncWho": "{n} jezdci, stejný spot, stejný čas",
+        "compare.syncHint": "Všechny relace běží na jedněch hodinách — vidíš, kdo byl kdy kde. Úseky, kdy nikdo nebyl na foilu, se přeskočí.",
+        "compare.syncSkipped": "{min} min přeskočeno",
+        "sd.play": "Přehrát",
+        "sd.pause": "Pauza",
         "setup.inherit": "Použít výchozí",
         "nav.home": "Domů",
         "nav.community": "Komunita",
@@ -1006,6 +1012,12 @@ enum Loc {
     ]
 
     private static let _nlOverlayP1: [String: String] = [
+        "compare.syncTitle": "Synchroon afspelen",
+        "compare.syncWho": "{n} riders, dezelfde spot, dezelfde tijd",
+        "compare.syncHint": "Alle sessies lopen op dezelfde klok — je ziet wie waar was, en wanneer. Stukken waarin niemand op de foil stond worden overgeslagen.",
+        "compare.syncSkipped": "{min} min overgeslagen",
+        "sd.play": "Afspelen",
+        "sd.pause": "Pauze",
         "setup.inherit": "Standaard gebruiken",
         "nav.home": "Home",
         "nav.community": "Community",
@@ -1858,6 +1870,12 @@ enum Loc {
     ]
 
     private static let _fiOverlayP1: [String: String] = [
+        "compare.syncTitle": "Toista synkronissa",
+        "compare.syncWho": "{n} foilaajaa, sama spotti, sama aika",
+        "compare.syncHint": "Kaikki sessiot kulkevat samalla kellolla — näet kuka oli missä ja milloin. Jaksot, joissa kukaan ei ollut foilin päällä, ohitetaan.",
+        "compare.syncSkipped": "{min} min ohitettu",
+        "sd.play": "Toista",
+        "sd.pause": "Tauko",
         "setup.inherit": "Käytä oletusta",
         "nav.community": "Yhteisö",
         "common.saved": "Tallennettu",
@@ -2429,6 +2447,12 @@ enum Loc {
     }()
 
     private static let __t1P1: [String: [String: String]] = [
+        "compare.syncTitle": r("Synchron abspielen", "Synchron abspiele", "Synchron abspielen", "Play in sync", "Lecture synchronisée", "Riproduci in sincrono", "Reproducir en sincronía"),
+        "compare.syncWho": r("{n} Fahrer, gleicher Spot, gleiche Zeit", "{n} Fahrer, gliiche Spot, gliichi Ziit", "{n} Fahrer, gleicher Spot, gleiche Zeit", "{n} riders, same spot, same time", "{n} riders, même spot, même moment", "{n} rider, stesso spot, stesso momento", "{n} riders, mismo spot, mismo momento"),
+        "compare.syncHint": r("Alle Sessions laufen auf derselben Uhr — du siehst, wer wann wo war. Zeiten, in denen niemand oben war, werden übersprungen.", "Alli Sessions laufed uf dere gliiche Uhr — du gsehsch, wer wänn wo gsi isch. Ziite, wo niemert obe gsi isch, werded übersprunge.", "Alle Sessions laufen auf derselben Uhr — du siehst, wer wann wo war. Zeiten, in denen kaner oben war, werden übersprungen.", "All sessions run on one clock — you see who was where, and when. Stretches where nobody was up on the foil are skipped.", "Toutes les sessions tournent sur la même horloge — tu vois qui était où, et quand. Les moments où personne n'était en vol sont sautés.", "Tutte le sessioni girano sullo stesso orologio — vedi chi era dove, e quando. I tratti in cui nessuno era in volo vengono saltati.", "Todas las sesiones van en el mismo reloj — ves quién estaba dónde y cuándo. Los tramos en los que nadie estaba volando se saltan."),
+        "compare.syncSkipped": r("{min} min übersprungen", "{min} min übersprunge", "{min} min übersprungen", "{min} min skipped", "{min} min sautées", "{min} min saltati", "{min} min saltados"),
+        "sd.play": r("Abspielen", "Abspiele", "Abspielen", "Play", "Lecture", "Riproduci", "Reproducir"),
+        "sd.pause": r("Pause", "Pause", "Pause", "Pause", "Pause", "Pausa", "Pausa"),
         "phome.byFoil": r("Je Foil", "Pro Foil", "Je Foil", "Per foil", "Par foil", "Per foil", "Por foil"),
         "phome.noFoil": r("Ohne Foil-Eintrag", "Ohni Foil-Iidrag", "Ohne Foil-Eintrag", "No foil recorded", "Sans foil renseigné", "Senza foil indicato", "Sin foil indicado"),
         "map.street": r("Karte", "Charte", "Karte", "Map", "Carte", "Mappa", "Mapa"),

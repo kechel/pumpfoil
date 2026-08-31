@@ -258,6 +258,11 @@ data class Segment(
     @SerialName("min_pump_hz") val minPumpHz: Double? = null,
     // Startzeit des Laufs, ms ab Session-Start (docs/DATA-PIPELINE.md: auf den Trim re-based).
     @SerialName("t_start_ms") val tStartMs: Double? = null,
+    // ECHTE Session-Zeit des Laufs (ohne Trim-Rebase) — nur damit laesst sich aus einem Lauf eine
+    // UHRZEIT machen: `started_at + t_start_session_ms`. `t_start_ms` kann das NICHT, es ist auf
+    // den Trim verschoben. Das synchrone Abspielen haengt daran (s. SyncPlayback.kt).
+    @SerialName("t_start_session_ms") val tStartSessionMs: Double? = null,
+    @SerialName("t_end_session_ms") val tEndSessionMs: Double? = null,
     // Geglaettete Spitzen/Tiefstwerte je Fenster (1/3/5 s) — dieselbe Quelle wie der
     // Fenster-Umschalter der Detailansicht.
     @SerialName("max_1s") val max1s: Double? = null,

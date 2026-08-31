@@ -27,6 +27,12 @@ struct CompareView: View {
     @State private var mapMode: CompareColorMode = .track
     @State private var mapWin = 3          // Glättungsfenster für Speed-Färbung
     @State private var mapFull = false     // Vollbild-Karte
+    // Synchrones Abspielen (wie PWA CompareMap.tsx): nur moeglich, wenn sich mindestens zwei der
+    // verglichenen Sessions zeitlich ueberschneiden UND am gleichen Spot liegen. Die Zeitrechnung
+    // steckt in SyncPlayback.swift — dort steht auch, warum „ein Trackpunkt = eine Sekunde" nicht reicht.
+    @State private var spielt = false
+    @State private var tempo = 8
+    @State private var pos: Double = 0     // ms in der Wiedergabe (ohne die Leerlaufzeiten)
 
     // Zerlegt, weil Swift einen ViewBuilder als EINEN Ausdruck auflöst: Ladezustand, Inhalt,
     // Merge-Fußzeile samt Task-Closure und das Binding der navigationDestination steckten in
@@ -171,7 +177,10 @@ struct CompareView: View {
             let sp = (t.properties?.speeds?[String(mapWin)] ?? t.properties?.speeds_mps ?? []).map { $0 * 3.6 }
             return CompareMap.Track(points: t.geometry.coordinates, segments: segs, color: sessUIColor(i),
                                     riderColor: riderUIColor(s.owner_name),
-                                    speedsKmh: sp, pumpHz: t.properties?.pump_hz ?? [], hr: t.properties?.hr ?? [])
+                                    speedsKmh: sp, pumpHz: t.properties?.pump_hz ?? [], hr: t.properties?.hr ?? [],
+                                    sessionId: s.id,
+                                    startMs: (TimeFmt.parseISO(s.started_at)?.timeIntervalSince1970 ?? 0) * 1000,
+                                    alleSegmente: alle)
         }
     }
 
@@ -206,14 +215,85 @@ struct CompareView: View {
                     .mitKartenUmschalter()
                     .padding(.horizontal)
                 if mapMode != .rider && mapMode != .track { gradientLegend }
+                if let plan { syncBedienzeile(plan) }
             }
             .fullScreenCover(isPresented: $mapFull) { fullscreenMap(tracks) }
         }
     }
 
+    private var plan: SyncPlan? {
+        let t = mapTracks
+        guard t.count >= 2 else { return nil }
+        var punkte: [Int: Int] = [:]
+        for x in t { punkte[x.sessionId] = x.points.count }
+        return syncPlan(items.map { (session: $0.s, runIdx: $0.ref.runIdx) }, punkte: punkte)
+    }
+    /// Die Karte gehoert dem Abspieler, sobald er einmal gelaufen ist. Bei Position 0 und Pause
+    /// steht wieder die normale Vergleichsansicht mit allen vollstaendigen Strecken da.
+    private var spielModus: Bool { plan != nil && (spielt || pos > 0) }
+
     // Karte einmal typisiert bauen (Normal- und Vollbild-Ansicht teilen dieselben Parameter).
     private func compareMap(_ tracks: [CompareMap.Track]) -> CompareMap {
-        CompareMap(tracks: tracks, mode: mapMode, pumpRange: pumpRange, hrRange: hrRange, speedRange: speedRange)
+        CompareMap(tracks: tracks, mode: mapMode, pumpRange: pumpRange, hrRange: hrRange,
+                   speedRange: speedRange, plan: plan, posMs: pos, spielModus: spielModus)
+    }
+
+    /// Bedienzeile des synchronen Abspielens — wie die PWA: Start/Pause, Tempo, Uhrzeit in
+    /// Spot-Ortszeit, Regler und die uebersprungene Leerlaufzeit (sonst wundert man sich ueber eine
+    /// „Wiedergabe" von vier Minuten fuer zwei Stunden am Wasser).
+    ///
+    /// Bewusst in kleine Teil-Ausdruecke zerlegt: der Swift-Type-Checker loest einen ViewBuilder
+    /// als EINEN Ausdruck auf, und genau daran hing der iOS-Build schon einmal minutenlang.
+    @ViewBuilder private func syncBedienzeile(_ plan: SyncPlan) -> some View {
+        let uhr = TimeFmt.hhmmss(Date(timeIntervalSince1970: plan.zuUhrzeit(pos) / 1000),
+                                 items.first?.s.tz)
+        let minuten = String(Int(plan.uebersprungenMin.rounded()))
+        VStack(alignment: .leading, spacing: 4) {
+            Text(Loc.t("compare.syncTitle", lang)).font(.subheadline).fontWeight(.semibold)
+            Text(Loc.t("compare.syncWho", lang).replacingOccurrences(of: "{n}", with: String(plan.sessions.count)))
+                .font(.caption).foregroundStyle(.secondary)
+            Text(Loc.t("compare.syncHint", lang))
+                .font(.caption).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            HStack(spacing: 10) {
+                Button {
+                    if pos >= plan.dauerMs { pos = 0 }
+                    spielt.toggle()
+                } label: {
+                    Text(Loc.t(spielt ? "sd.pause" : "sd.play", lang)).font(.subheadline).fontWeight(.semibold)
+                }
+                .buttonStyle(.borderedProminent)
+                ForEach([2, 8, 30], id: \.self) { m in
+                    Button { tempo = m } label: {
+                        Text("\(m)×").font(.caption)
+                            .foregroundStyle(tempo == m ? Color.accentColor : Color.secondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+                Text(uhr).font(.subheadline).monospacedDigit()
+            }
+            Text(Loc.t("compare.syncSkipped", lang).replacingOccurrences(of: "{min}", with: minuten))
+                .font(.caption2).foregroundStyle(.secondary)
+            Slider(value: Binding(
+                get: { min(pos, plan.dauerMs) },
+                set: { spielt = false; pos = $0 }
+            ), in: 0...max(plan.dauerMs, 1))
+        }
+        .padding(.horizontal)
+        .task(id: spielt) { await laufeAb(plan) }
+    }
+
+    /// Der Abspiel-Takt. `Task.sleep` statt eines Timers: die Ansicht haelt keinen Zustand ausser
+    /// `pos`, und beim Verlassen bricht `task(id:)` das von selbst ab.
+    private func laufeAb(_ plan: SyncPlan) async {
+        guard spielt else { return }
+        let schritt: Double = 1000.0 / 30.0        // ~30 Bilder/s
+        while spielt, !Task.isCancelled {
+            try? await Task.sleep(nanoseconds: UInt64(schritt * 1_000_000))
+            let n = pos + schritt * Double(tempo)
+            if n >= plan.dauerMs { pos = plan.dauerMs; spielt = false; return }
+            pos = n
+        }
     }
 
     private func fullscreenMap(_ tracks: [CompareMap.Track]) -> some View {
@@ -594,12 +674,21 @@ struct CompareMap: UIViewRepresentable {
     struct Track {
         let points: [[Double]]; let segments: [Segment]; let color: UIColor; let riderColor: UIColor
         let speedsKmh: [Double]; let pumpHz: [Double?]; let hr: [Int?]
+        // Fuer das synchrone Abspielen: der Abspieler braucht ALLE Laeufe der Session (nicht nur
+        // die gezeichneten) und ihren Startzeitpunkt, um aus einem Lauf eine Uhrzeit zu machen.
+        var sessionId: Int = 0
+        var startMs: Double = 0
+        var alleSegmente: [Segment] = []
     }
     let tracks: [Track]
     var mode: CompareColorMode = .track
     var pumpRange: (Double, Double) = (0, 2)
     var hrRange: (Double, Double) = (100, 170)
     var speedRange: (Double, Double) = (8, 25)
+    // Synchrones Abspielen: liegt ein Plan vor UND laeuft er, zeichnet NUR der Abspieler.
+    var plan: SyncPlan? = nil
+    var posMs: Double = 0
+    var spielModus: Bool = false
     private let maxGapM = 30.0
 
     private func colorFor(_ tr: Track, _ i: Int) -> UIColor {
@@ -629,9 +718,77 @@ struct CompareMap: UIViewRepresentable {
     func updateUIView(_ map: MKMapView, context: Context) {
         map.mapType = MapTiles.typ(ebene)
         map.removeOverlays(map.overlays)
+        map.removeAnnotations(map.annotations)
         let co = context.coordinator
         co.colors.removeAll()
         var all: [CLLocationCoordinate2D] = []
+
+        // Waehrend der Wiedergabe zeichnet NUR der Abspieler: je Fahrer der Lauf, in dem er
+        // GERADE ist, und der nur bis zu seiner aktuellen Position. Laege die vollstaendige
+        // Strecke darunter, waere der wachsende Lauf darin nicht zu erkennen — bei mehreren
+        // Fahrern am selben Spot ist das ein Knaeuel (Jans Befund 31.08.).
+        if spielModus, let plan {
+            let tAbs = plan.zuUhrzeit(posMs)
+            for tr in tracks {
+                let nur = plan.laeufe[tr.sessionId] ?? nil
+                let segs: [(offset: Int, element: Segment)] = tr.alleSegmente.enumerated()
+                    .filter { (i, g) in
+                        (nur == nil || nur!.contains(i)) && g.t_start_session_ms != nil && g.t_end_session_ms != nil
+                    }
+                if segs.isEmpty || tr.startMs == 0 { continue }
+                let start = tr.startMs
+
+                let lauf = segs.first { (_, g) in
+                    tAbs >= start + g.t_start_session_ms! && tAbs <= start + g.t_end_session_ms!
+                }?.element
+                guard let lauf else {
+                    // Pause: am Ende des letzten schon gefahrenen Laufs PARKEN, nicht weitergleiten.
+                    // Stuetzpunkte gibt es nur an den Laufgrenzen; dazwischen wuerde ein
+                    // interpolierter Punkt gemaechlich ueber den See ziehen, waehrend der Fahrer am
+                    // Steg steht. Vor dem ersten Lauf: gar nicht da.
+                    guard let vorher = segs.last(where: { (_, g) in start + g.t_end_session_ms! <= tAbs })?.element,
+                          tr.points.indices.contains(min(vorher.i_end, tr.points.count - 1)) else { continue }
+                    let p = tr.points[min(max(vorher.i_end, 0), tr.points.count - 1)]
+                    let c = CLLocationCoordinate2D(latitude: p[1], longitude: p[0])
+                    map.addAnnotation(FahrerPunkt(coordinate: c, farbe: tr.riderColor, geparkt: true))
+                    continue
+                }
+                // Im Lauf: Index aus der Zeit INNERHALB dieses Laufs — damit ist die Uhrzeit bei
+                // jedem Laufbeginn neu gesetzt (innerhalb eines Laufs laeuft die Aufzeichnung
+                // sauber mit 1 Hz, nachgemessen: 0 ms Abweichung).
+                let spanne = lauf.t_end_session_ms! - lauf.t_start_session_ms!
+                let f = spanne > 0 ? (tAbs - (start + lauf.t_start_session_ms!)) / spanne : 0
+                let idx = Double(lauf.i_start) + f * Double(lauf.i_end - lauf.i_start)
+                let bis = min(Int(idx), lauf.i_end)
+                var i = lauf.i_start
+                while i < bis {
+                    guard tr.points.indices.contains(i), tr.points.indices.contains(i + 1) else { break }
+                    let a = tr.points[i], b = tr.points[i + 1]
+                    let ca = CLLocationCoordinate2D(latitude: a[1], longitude: a[0])
+                    let cb = CLLocationCoordinate2D(latitude: b[1], longitude: b[0])
+                    let gap = CLLocation(latitude: ca.latitude, longitude: ca.longitude)
+                        .distance(from: CLLocation(latitude: cb.latitude, longitude: cb.longitude))
+                    if gap <= maxGapM {
+                        let pl = MKPolyline(coordinates: [ca, cb], count: 2)
+                        co.colors[ObjectIdentifier(pl)] = colorFor(tr, i + 1)
+                        map.addOverlay(pl)
+                        all.append(ca); all.append(cb)
+                    }
+                    i += 1
+                }
+                let k = min(max(Int(idx), 0), tr.points.count - 1)
+                let k2 = min(k + 1, tr.points.count - 1)
+                let g = idx - Double(Int(idx))
+                let a = tr.points[k], b = tr.points[k2]
+                let c = CLLocationCoordinate2D(latitude: a[1] + (b[1] - a[1]) * g,
+                                               longitude: a[0] + (b[0] - a[0]) * g)
+                map.addAnnotation(FahrerPunkt(coordinate: c, farbe: tr.riderColor, geparkt: false))
+                all.append(c)
+            }
+            zeigeBereich(map, all)
+            return
+        }
+
         for tr in tracks {
             for seg in tr.segments {
                 let lo = max(0, min(seg.i_start, tr.points.count - 1))
@@ -653,16 +810,20 @@ struct CompareMap: UIViewRepresentable {
                 }
             }
         }
-        if !all.isEmpty {
-            let lats = all.map { $0.latitude }, lons = all.map { $0.longitude }
-            let center = CLLocationCoordinate2D(latitude: (lats.min()! + lats.max()!) / 2,
-                                                longitude: (lons.min()! + lons.max()!) / 2)
-            let span = MKCoordinateSpan(latitudeDelta: max((lats.max()! - lats.min()!) * 1.3, 0.002),
-                                        longitudeDelta: max((lons.max()! - lons.min()!) * 1.3, 0.002))
-            // Ueber sichereRegion (SpotsView.swift): zwei verglichene Sessions koennen auf
-            // verschiedenen Kontinenten liegen, und eine Region ueber 180°/360° beendet die App.
-            map.setRegion(sichereRegion(center, span), animated: false)
-        }
+        zeigeBereich(map, all)
+    }
+
+    /// Kartenausschnitt auf die gezeichneten Punkte setzen. Ueber `sichereRegion`
+    /// (SpotsView.swift): zwei verglichene Sessions koennen auf verschiedenen Kontinenten liegen,
+    /// und eine Region ueber 180°/360° beendet die App (Absturz vom 30.08.).
+    private func zeigeBereich(_ map: MKMapView, _ all: [CLLocationCoordinate2D]) {
+        guard !all.isEmpty else { return }
+        let lats = all.map { $0.latitude }, lons = all.map { $0.longitude }
+        let center = CLLocationCoordinate2D(latitude: (lats.min()! + lats.max()!) / 2,
+                                            longitude: (lons.min()! + lons.max()!) / 2)
+        let span = MKCoordinateSpan(latitudeDelta: max((lats.max()! - lats.min()!) * 1.3, 0.002),
+                                    longitudeDelta: max((lons.max()! - lons.min()!) * 1.3, 0.002))
+        map.setRegion(sichereRegion(center, span), animated: false)
     }
 
     func makeCoordinator() -> Coordinator { Coordinator() }
@@ -676,5 +837,50 @@ struct CompareMap: UIViewRepresentable {
             r.lineWidth = 4
             return r
         }
+
+        // Fahrer-Punkt des Abspielers. KEINE Namensschilder — die Farbe reicht, die Kacheln ueber
+        // der Karte sind bereits die Legende (Jan, 31.08.).
+        func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+            guard let p = annotation as? FahrerPunkt else { return nil }
+            let id = "fahrer"
+            let v = mapView.dequeueReusableAnnotationView(withIdentifier: id)
+                ?? MKAnnotationView(annotation: annotation, reuseIdentifier: id)
+            v.annotation = annotation
+            v.canShowCallout = false
+            let r: CGFloat = p.geparkt ? 5 : 7
+            let rand: CGFloat = 2
+            let seite = (r + rand) * 2
+            let bild = UIGraphicsImageRenderer(size: CGSize(width: seite, height: seite)).image { ctx in
+                let c = ctx.cgContext
+                let rect = CGRect(x: rand, y: rand, width: r * 2, height: r * 2)
+                if p.geparkt {
+                    c.setFillColor(UIColor(white: 0.08, alpha: 0.55).cgColor)
+                    c.fillEllipse(in: rect)
+                    c.setStrokeColor(p.farbe.withAlphaComponent(0.55).cgColor)
+                } else {
+                    c.setFillColor(p.farbe.cgColor)
+                    c.fillEllipse(in: rect)
+                    c.setStrokeColor(UIColor.white.cgColor)
+                }
+                c.setLineWidth(rand)
+                c.strokeEllipse(in: rect)
+            }
+            v.image = bild
+            v.centerOffset = .zero
+            return v
+        }
+    }
+}
+
+/// Ein Fahrer auf der Karte waehrend des synchronen Abspielens: gefuellt = faehrt gerade,
+/// hohl und blass = geparkt in der Pause (s. `CompareMap.updateUIView`).
+final class FahrerPunkt: NSObject, MKAnnotation {
+    let coordinate: CLLocationCoordinate2D
+    let farbe: UIColor
+    let geparkt: Bool
+    init(coordinate: CLLocationCoordinate2D, farbe: UIColor, geparkt: Bool) {
+        self.coordinate = coordinate
+        self.farbe = farbe
+        self.geparkt = geparkt
     }
 }
