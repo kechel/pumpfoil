@@ -4515,6 +4515,34 @@ Offen daraus:
   1. `.iq` hochladen 2. Freigabe des CIQ-Stores ABWARTEN 3. erst dann `build-all.sh`
   (das veroeffentlicht die Website-Downloads sofort) 4. dann `appmeta.garmin` + Changelog.
 
+- **🟡 31.08. — Die fenix7x-Spur loest sich auf, dahinter steckt ein PRODUKT-Thema: ein Nutzer
+  bekommt seit einem Monat NICHTS zu sehen.** Braucht eine Entscheidung von Jan, nichts geaendert.
+  - **Technisch ist alles in Ordnung.** Die 18 „stummen" fenix7x-Sessions haben Accel bei
+    gemessenen 25,0 Hz, `detection = model`, hAcc 3–4 m, Puls, Tempo — nichts fehlt. Das Tempo ist
+    nur **winzig**: 3065 m in 62 min = **Ø 3 km/h**, Spitzen 14–16 km/h. Da kommt niemand aufs
+    Foil, und der Detektor hat recht, wenn er nichts findet. Der einzige Ausreisser (38 km/h in
+    s2719) ist ein GPS-Burst, den die Burst-Klemme ohnehin verwirft.
+  - **Es sind nur zwei Nutzer**, und einer davon faellt auf: **u156 — 21 Sessions seit 30.07.,
+    NULL mit einem erkannten Lauf.** Er hat von selbst die empfindlichste Stufe gesucht und
+    eingeschaltet (`foil_sensitivity = attempts`) — und auch die findet in allen 16 gerechneten
+    Sessions **0 Laeufe**. Jemand nutzt die App also einen Monat lang und sie zeigt ihm nie etwas.
+    (u380: 5 Sessions, 1 mit Laeufen — unauffaellig.)
+  - **Seine Sportart ist nie klassifiziert worden**, `sport_class = pumpfoil` steht dort nur, weil
+    es der Default ist (`sport_source = default`). 3 km/h im Schnitt mit Spitzen um 15 km/h passt
+    auch auf SUP/Paddeln — oder eben auf einen Anfaenger, der noch nicht gleitet.
+  - **Das ist die Frage fuer Jan, nicht fuer mich** (Ansprache von Nutzern + UX):
+    1. Sollen wir jemandem nach N Sessions ohne einen einzigen Lauf etwas sagen? Aus seiner Sicht
+       ist die App kaputt — er hat ja sogar an den Einstellungen gedreht. Ein Hinweis in der
+       Session-Ansicht („keine Laeufe erkannt; erreichtes Hoechsttempo 14 km/h — zum Gleiten
+       braucht es ~20") waere ehrlich und wuerde erklaeren statt zu schweigen.
+    2. Oder ist das genau der Fall, fuer den „attempts" gedacht war, und die Stufe muesste tiefer
+       greifen? Dann waere es eine Detektor-Frage — und die braucht ohnehin Jans OK.
+    **Nichts an einzelne Nutzer schreiben** — falls ueberhaupt, dann als allgemeine Funktion.
+  - **Zwischenbilanz der ganzen Suche:** nach Instinct 2 (Abbruch, kein Detektorproblem) und
+    fenix7x (echte Nicht-Foil-Aufnahmen) ist in diesem Bestand **kein systematisches Erkennungs-
+    oder Uhr-Problem mehr uebrig**, das die Zahlen stuetzen wuerden. Die „ohne Laeufe"-Quoten je
+    Modell sind fast durchweg kurze Test-/Standaufnahmen.
+
 - **🔴 31.08. — Instinct-2-Befund NACHGEMESSEN und korrigiert: es ist KEIN Erkennungsproblem,
   die Uhr bricht die Sessions ab.** Die bisherige Notiz („zeichnet NICHTS auf", „nur 15 von 39
   Sessions haben Laeufe") war irrefuehrend — die Zahl stimmt, die Deutung nicht.
