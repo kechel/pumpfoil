@@ -140,11 +140,13 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.26",   # LIVE im App Store 2026-08-30 (dieselbe Einreichung wie "ios"
-        # distribution", Submission a9cf1407-1369-4d4b-815d-6525abffede6). NICHT auf die Mail
-        # allein verlassen — "eligible for distribution" heisst freigegeben, nicht zwingend schon
-        # ausgeliefert: gegengeprueft ueber itunes.apple.com/lookup?id=6783975714 in de/us/nl/no/fi,
-        # alle liefern 1.1.25 (currentVersionReleaseDate 2026-08-27T16:35:34Z).
+        "latest": "1.1.26",   # LIVE im App Store 2026-08-30 21:50 UTC — dieselbe Einreichung
+        # wie "ios", die Watch-App steckt ja im selben Bundle. NICHT auf die Freigabe-Mail allein
+        # verlassen ("eligible for distribution" heisst freigegeben, nicht zwingend schon
+        # ausgeliefert): gegengeprueft ueber itunes.apple.com/lookup?id=6783975714 in
+        # de/us/nl/no/fi -> ueberall 1.1.26, currentVersionReleaseDate 2026-08-30T21:50:36.
+        # (Bis 31.08. stand hier noch der Pruefbericht zu 1.1.25 — der Kommentar widersprach
+        # damit dem eigenen Wert. Beim Bump IMMER beide Zeilen mitziehen.)
         # Inhalt: Lauf-Tabelle waagerecht scrollbar mit allen 13 Spalten, Vergleich je LAUF mit 15
         # Kennzahlen, Vollbild-Karte im Session-Detail, Schalter fuer Chat-Benachrichtigungen
         # (der zuvor beim Speichern still die Web-Einstellung geloescht hat), Trainingskurve.
