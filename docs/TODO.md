@@ -4456,3 +4456,42 @@ Offen daraus:
   Offen bleibt: fuer Uhren ohne Messung wissen wir die Grenze weiterhin nicht. Das ist ehrlicher
   als eine erfundene Zahl, kostet aber die Vorwarnung. Wer sie zurueckhaben will, braucht echte
   Messungen je Modell (die kommen von selbst, sobald eine Uhr einmal volllaeuft).
+
+- **🟢 31.08. — „Apple Watch zeichnet nicht alle Laeufe auf" untersucht: es ist NICHT die Lauf-Erkennung, sondern die GPS-Anlaufzeit.**
+  Nutzermeldung im Community-Chat (Apple Watch, App 1.1.25): der erste Lauf des Tages (geschaetzt
+  100–150 m) fehlte, danach „die meisten, aber nicht alle". Jans Frage war die richtige — nur auf
+  der Uhr oder auch serverseitig?
+
+  **Serverseitig fehlt nichts Grosses.** Die gemeldete Session hat 11 erkannte Laeufe, alle
+  deutlich ueber den Uhr-Kriterien (9–38 s, 36–178 m, Schnitt 11,8–13,0 km/h). Nicht erkannt
+  bleiben nur drei kurze Stuecke von 5–11 s und 27–55 m — unterhalb der Lauf-Kriterien, also
+  Absicht.
+
+  **Zwei Hypothesen unterwegs verworfen, beide durch Nachmessen:**
+  1. *„Der Re-Arm-Cooldown der alten Uhr-Fassung verschluckt Laeufe."* Falsch: von **173 Pausen
+     ueber acht Sessions liegt KEINE unter 25 s**, die kuerzeste ist 33 s. Der Cooldown hat bei
+     ihm nie gegriffen.
+  2. *„Der erste Lauf beginnt bei Sekunde 15."* Falsch — und das war die Index/Sekunden-Falle aus
+     `docs/DATA-PIPELINE.md`, in die ich selbst getappt bin: `i_start=15` ist ein **Sample-Index**.
+     Der Lauf beginnt bei **Sekunde 132**.
+
+  **Der eigentliche Befund, konsistent ueber drei Sessions:** am Session-ANFANG liefert die Apple
+  Watch fast keine Positionen.
+  | Session | erster Lauf ab | Samples bis dahin | Positionsrate | Luecken danach |
+  |---|---|---|---|---|
+  | #3152 | 132 s | 15 | alle 8,8 s | 0 s |
+  | #2906 | 161 s | 15 | alle 10,7 s | 85 s |
+  | #2760 |  41 s | 10 | alle 4,1 s | 25 s |
+
+  Ein Lauf in diesem Fenster ist **nicht rekonstruierbar** — weder auf der Uhr noch im Server.
+  Dazu passt der Live-Pfad im Recorder: `poor = horizontalAccuracy > 20 || speed < 0` setzt die
+  Geschwindigkeit auf 0, solange die Genauigkeit schlecht ist; die Uhr sieht in dieser Zeit also
+  ohnehin keinen Lauf. Die Rohposition wird zwar mitgeschrieben, aber zu duenn zum Segmentieren.
+
+  **Vorschlag (Jans Entscheidung, Apple-Watch-Aenderung):** die Apple Watch zeigt — anders als
+  Garmin („GPS ready" / „GPS searching") — **keinen GPS-Bereitschaftshinweis**. In
+  `ContentView.swift` gibt es dafuer nichts. Ein Hinweis vor dem Start („GPS noch nicht bereit")
+  wuerde genau diesen Verlust verhindern, ohne an der Erkennung zu drehen.
+  Nebenbefund: die Lauf-Erkennungs-Angleichung vom 30.08. (Commit 3bd27df1, 19:50) kam **nach**
+  der Einreichung von 1.1.26 (18:27/18:55) — sie ist also erst in **1.1.27** und nicht die
+  Erklaerung fuer diese Meldung.
