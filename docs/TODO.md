@@ -4434,14 +4434,23 @@ Offen daraus:
     132-m-Ausreisser hat. Zwei lange Geraden mitten im Bild sehen aus wie ein Glitch.
   - **Gegenprobe, die es bestaetigt:** seine ZWEITE Session (3158) hat nur 48 Punkte → stride 1 →
     groesster Abstand 5 m, kein Artefakt. Genau deshalb faellt es ihm nur bei der ersten auf.
-  - **Vorschlag (Jans Entscheidung, es ist eine Darstellungsaenderung):** in `spot_tracks`
-    **nach der impliziten GESCHWINDIGKEIT filtern, nicht nach einer festen Meter-Schwelle** — der
-    Server kennt den stride, also die echte Zeitdifferenz. Bei 32 km/h (dieselbe Grenze wie in
-    `analysis/gps.py`) waeren das bei stride 14 rund 124 m; die legitimen 93-m-Spruenge (= 24 km/h)
-    ueberleben, die 214 m in EINER Sekunde (770 km/h) nicht. **Eine feste 30-m-Regel wie in
-    `CompareMap` waere hier falsch** und wuerde bei stride 14 halbe Strecken loeschen.
-    Alternative/zusaetzlich: `SPOT_TRACK_MAX_PTS` von 150 anheben — kostet aber Payload in einem
-    Bulk-Endpunkt.
+  - **EMPFEHLUNG, an 25 Illmensee-Sessions durchgerechnet: JE LAUF eine eigene Linie zeichnen,
+    genau wie die Session-Karte.** Dann braucht es ueberhaupt keine Schwelle.
+    | Verfahren | groesste gezeichnete Strecke (Median / Maximum) |
+    |---|---|
+    | heute: ganze Spur, stride ueber ALLE Punkte | **52 m / 124 m** |
+    | Laeufe aneinandergehaengt (mein erster Gedanke — FALSCH) | **60 m / 206 m** |
+    | je Lauf eine eigene Linie, stride ueber die Lauf-Punkte | **6 m / 32 m** |
+    Der Mittelweg ist schlechter als heute, weil eine Gerade das Ende von Lauf 1 mit dem Anfang
+    von Lauf 2 verbindet — quer ueber den See. Erst getrennte Linien je Lauf raeumen die Klasse
+    strukturell weg, nicht per Schwellenwert.
+    **Nebengewinn:** die 150 Punkte reichen dann fuer die Laeufe in **volle 1-Hz-Aufloesung**
+    (stride 1 in 17 von 25 Sessions), wo heute jeder 14. Punkt gezeichnet wird.
+    **Noetiger Rueckfall:** Sessions ohne erkannte Laeufe (GPS-only, Detektor fand nichts) weiter
+    komplett zeichnen — mit grosszuegiger Schwelle wie im Session-Detail (200 m).
+    **Preis:** man sieht nicht mehr, wo man gepaddelt/getrieben hat. Fuer eine
+    FORTSCHRITTS-Animation ist das richtig; heute machen die Nicht-Foil-Punkte 83 % des Bildes aus.
+    Die vorher hier notierte Geschwindigkeits-Schwelle ist damit hinfaellig.
 
 - **✅ 31.08. — iOS/Apple Watch 1.1.27 IST LIVE, Freigabekette abgearbeitet.** Freigabe-Mail
   („ready for distribution") gegen 19 Uhr Berlin, `appmeta.ios` UND `appmeta.apple` zusammen auf
