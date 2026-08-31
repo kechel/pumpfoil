@@ -399,16 +399,34 @@ def _speed_scale(db: Session, user, settings: dict) -> list:
 # schickt beim Fehlschlag ihr Puffervolumen mit, s. `sf`/`kb` oben): 148…431 KB, quer ueber alle
 # Klassen — die fenix 5X mit 1,25 MB RAM lief bei 180 KB voll, die Venu Sq mit 128 KB erst bei 431.
 # Also kein Modell-Schema, sondern: was die Uhr SELBST gemessen hat, sonst was andere Uhren
-# desselben Modells gemeldet haben, sonst ein vorsichtiger Sammelwert.
+# desselben Modells gemeldet haben — und sonst GAR NICHTS.
+#
+# Bis 31.08. stand hier ein pauschaler Sammelwert von 200 KB. Der war als „vorsichtig" gedacht,
+# war fuer eine WARNUNG aber die falsche Richtung: ein zu kleines Budget erfindet einen Countdown
+# auf jeder Uhr, die mehr fasst. Jan hat es am 31.08. am See gemeldet — seine fenix 7X Pro zeigte
+# nach zehn Minuten „noch 2 Minuten, noch 1, noch 0", obwohl sie stundenlang aufzeichnet. Die
+# Rechnung war korrekt, das Budget war es nicht: 200 KB × 0,9 / 11,5 KB/min = 16 min Reichweite,
+# also stand die Warnung fast sofort. Belegt daneben, dass dieselbe Uhr in einer Session schon
+# ~279 KB gepuffert hat, ohne je „voll" zu melden.
+#
+# Der Uhr-Code sagt es selbst: „-1 = unbekannt (kein Budget) — dann zeigt die Uhr NICHTS an,
+# statt eine Zahl zu erfinden" (SessionRecorder.storageMinutesLeft). Genau das unterlief der
+# Sammelwert. Jetzt gilt: **keine Messung -> keine Zahl.** Gewarnt wird nur, wo wir die Grenze
+# dieser Uhr oder dieses Modells wirklich kennen — und das sind genau die Uhren, bei denen die
+# Warnung berechtigt ist.
+#
+# Die Meldung bei ECHTEM Speichermangel bleibt davon unberuehrt: die kommt aus einem
+# fehlgeschlagenen Schreibvorgang (Uploader) und nicht aus dieser Schaetzung.
 # Doku: docs/WATCH-STORAGE.md.
-STORAGE_BUDGET_DEFAULT_KB = 200
+STORAGE_BUDGET_UNBEKANNT = 0
 
 
 def _storage_budget_kb(db: Session, device) -> int:
     """Puffer-Budget dieser Uhr in KB (0 = unbekannt/nicht zutreffend).
 
     Reihenfolge: eigene Messung > Messung desselben Modells (Minimum, also die vorsichtigste) >
-    Sammelwert. Die eigene Messung ist fuer dieses Geraet die Wahrheit und sticht deshalb.
+    0 = unbekannt. Die eigene Messung ist fuer dieses Geraet die Wahrheit und sticht deshalb;
+    ohne jede Messung wird NICHT geraten (s. den Kommentar oben).
     """
     eigen = int(getattr(device, "storage_full_kb", 0) or 0)
     if eigen > 0:
@@ -421,7 +439,7 @@ def _storage_budget_kb(db: Session, device) -> int:
             {"pn": pn}).scalar()
         if modell:
             return int(modell)
-    return STORAGE_BUDGET_DEFAULT_KB
+    return STORAGE_BUDGET_UNBEKANNT
 
 
 def _manuell_standard() -> tuple[int, int]:

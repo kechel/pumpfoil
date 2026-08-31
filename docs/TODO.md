@@ -4419,3 +4419,28 @@ Offen daraus:
   `appmeta` bleibt unveraendert — dort steht weiter, was WIRKLICH im Store ist (1.1.23 / 1.2.23 /
   1.0.6). Wenn die laufende Pruefung durchgeht, wandert 1.1.24/1.2.24/1.0.7 dorthin, und die
   naechste Runde geht mit den jetzt gesetzten Nummern raus.
+
+- **🟢 31.08. — Falscher „Speicher gleich voll"-Countdown auf der Garmin behoben (Jans Meldung vom See).**
+  Jan, mitten in einer Session: „grade waren's noch zwei Minuten, jetzt noch eine, jetzt noch null,
+  bis der Speicher voll ist — die Session laeuft erst seit zehn Minuten und ich kann damit
+  stundenlang aufnehmen."
+  **Erstens, die beruhigende Antwort: die Aufnahme laeuft weiter.** `storageMinutesLeft()` wird
+  ausschliesslich fuer die Anzeige und eine einmalige Warn-Vibration benutzt; nichts bricht dadurch
+  ab. Echter Speichermangel kommt aus einem fehlgeschlagenen Schreibvorgang im `Uploader` und ist
+  ein anderer Pfad.
+  **Zweitens die Ursache — nicht die Rechnung, das Budget.** Jans fenix 7X Pro hat keine eigene
+  Messung, also griff der pauschale Sammelwert `STORAGE_BUDGET_DEFAULT_KB = 200`. Bei 25 Hz sind
+  das 200 × 0,9 / 11,5 KB/min = **16 Minuten Gesamtreichweite** — nach zehn Minuten ohne
+  Handy-Upload rechnet die Uhr also voellig korrekt „~2 Minuten". Der Sammelwert war als
+  „vorsichtig" gedacht, ist fuer eine WARNUNG aber die falsche Richtung: zu klein heisst falscher
+  Alarm auf jeder Uhr, die mehr fasst. Belegt: dieselbe Uhr hat in Session #2063 schon ~279 KB
+  gepuffert, ohne je „voll" zu melden.
+  **Der Fix steht schon im Uhr-Code:** „-1 = unbekannt (kein Budget) — dann zeigt die Uhr NICHTS
+  an, statt eine Zahl zu erfinden". Genau das unterlief der Sammelwert. Jetzt **keine Messung ->
+  keine Zahl** (`STORAGE_BUDGET_UNBEKANNT = 0`). Gewarnt wird nur noch, wo die Grenze dieser Uhr
+  oder dieses Modells wirklich gemessen wurde — 8 Geraete in der Flotte, 148…431 KB.
+  **Serverseitig, wirkt also sofort ohne App-Update.** Betroffen war die Anzeige seit **1.0.80**
+  (27.08.), NICHT erst seit 1.0.82 — wichtig fuer jede Nutzermitteilung.
+  Offen bleibt: fuer Uhren ohne Messung wissen wir die Grenze weiterhin nicht. Das ist ehrlicher
+  als eine erfundene Zahl, kostet aber die Vorwarnung. Wer sie zurueckhaben will, braucht echte
+  Messungen je Modell (die kommen von selbst, sobald eine Uhr einmal volllaeuft).
