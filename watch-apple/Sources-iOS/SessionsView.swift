@@ -20,9 +20,11 @@ struct SessionsView: View {
     @State private var error: String?
     @State private var suggestions: [MergeSuggestion] = []
     @State private var incoming: [Transfer] = []
-    // accel|alle-Umschalter mit smartem Default wie die PWA (useAccelDefault): „nur Accel", wenn
-    // der Nutzer selbst Accel-Läufe hat, sonst „alle" — gesetzt in applyAccelDefault().
-    @State private var accelOnly = true
+    // accel|alle-Umschalter wie die PWA (useAccelDefault): seit 31.08. startet die Liste IMMER
+    // mit „alle", auch wenn der Nutzer selbst Accel-Läufe hat (s. AccelDefault.swift).
+    // Startwert deshalb direkt `false` — stand hier hart auf `true`, was beim ersten Aufbau kurz
+    // „nur präzise" gezeigt und einmal umsonst geladen hätte.
+    @State private var accelOnly = false
     @State private var accelTouched = false        // Nutzer hat selbst umgeschaltet -> Automatik aus
     @State private var accelAutoSpot: String?      // Spot, für den schon nachgefragt wurde (1×)
     @State private var filter = "pump"         // pump | other (nur eigene)

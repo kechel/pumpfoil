@@ -236,7 +236,10 @@ export default function Sessions() {
   const [myName, setMyName] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);   // bump nach angenommener Übertragung → Liste neu laden
   // accel|alle-Umschalter für beide Tabs; smarter Default (accel wenn Accel-Daten vorhanden).
-  const [accelOnly, setAccelOnly, setAccelAuto, resetAccelAuto] = useAccelDefault();
+  // `false` = IMMER mit „alle" starten, auch wenn der Nutzer selbst Accel-Daten hat (Jan,
+  // 31.08.). Die Liste ist eine Übersicht; „nur präzise" verschweigt sonst still die Sessions
+  // der Mitfahrer, deren Uhr keine verwertbaren Beschleunigungsdaten liefert.
+  const [accelOnly, setAccelOnly, setAccelAuto, resetAccelAuto] = useAccelDefault(false);
   // Spot gewechselt oder verlassen: eine vorherige Automatik ("Spot ohne Accel-Sessions")
   // wieder verwerfen, damit wieder der Default aus der eigenen Uhr gilt.
   useEffect(() => { resetAccelAuto(); }, [spot]);  // eslint-disable-line react-hooks/exhaustive-deps

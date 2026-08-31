@@ -107,8 +107,9 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
     var suggestions by remember { mutableStateOf<List<MergeSuggestion>>(emptyList()) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
-    // accel|alle-Umschalter mit smartem Default wie die PWA (useAccelDefault): „nur Accel", wenn
-    // der Nutzer selbst Accel-Läufe hat, sonst „alle". Eine eigene Umschaltung hat Vorrang.
+    // accel|alle-Umschalter wie die PWA (useAccelDefault): seit 31.08. startet die Liste IMMER
+    // mit „alle", auch wenn der Nutzer selbst Accel-Läufe hat (s. AccelDefault.kt). Eine eigene
+    // Umschaltung hat Vorrang.
     val accel = rememberAccelDefault()
     val accelOnly = accel.value
     // Spot ohne eine einzige Session mit Beschleunigungsdaten: nur EINMAL je Spot nachfragen.

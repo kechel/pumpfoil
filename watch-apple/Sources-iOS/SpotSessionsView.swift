@@ -57,8 +57,8 @@ struct SpotSessionsView: View {
     private func load() async {
         loading = true; defer { loading = false }
         do {
-            // Default wie die PWA (useAccelDefault): „nur Accel", wenn der Nutzer selbst
-            // Accel-Läufe hat, sonst „alle".
+            // Default wie die PWA (useAccelDefault): seit 31.08. IMMER „alle", auch wenn der
+            // Nutzer selbst Accel-Läufe hat — s. AccelDefault.swift.
             let only = showAll ? false : await AccelDefault.preferred()
             var rows = try await Api.spotSessions(spot, accelOnly: only)
             // Frueher griff das NUR bei einer komplett leeren Liste, und genau daran ist am 29.08. ein
