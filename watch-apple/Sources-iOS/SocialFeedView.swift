@@ -34,8 +34,14 @@ struct SocialFeedSection: View {
                 Text(impText(Loc.t("social.hint", lang), farbe: .accentColor))
                     .font(.caption).foregroundStyle(.secondary)
                     .listRowSeparator(.hidden)
+                // LazyHStack, NICHT HStack: ein normaler HStack baut alle Kinder sofort, also
+                // starten 24 Vorschaubilder gleichzeitig ihre Anfrage. URLSession laesst je Host
+                // nur sechs Verbindungen zu — der Rest steht in der Schlange, und die danach
+                // gerenderte Zeile "Neueste Medien" kam gar nicht mehr dran. Genau das war Jans
+                // Befund am 31.08.: BEIDE Medien-Zeilen blieben leer, obwohl an der zweiten gar
+                // nichts geaendert wurde. Lazy laedt nur, was wirklich sichtbar ist.
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 10) {
+                    LazyHStack(spacing: 10) {
                         ForEach(Array(items.enumerated()), id: \.element.id) { i, it in
                             Button { offen = i } label: { kachel(it) }
                                 .buttonStyle(.plain)
@@ -43,6 +49,7 @@ struct SocialFeedSection: View {
                         }
                     }
                     .padding(.vertical, 2)
+                    .frame(height: 231)
                 }
                 .listRowInsets(EdgeInsets(top: 4, leading: 12, bottom: 8, trailing: 12))
             }
