@@ -60,7 +60,11 @@ data class SpotTrack(
     @SerialName("session_id") val sessionId: Int,
     @SerialName("started_at") val startedAt: String? = null,
     @SerialName("foiling_km") val foilingKm: Double = 0.0,
-    val track: List<List<Double?>> = emptyList(),   // [[lat, lon, speed_mps?]]
+    val track: List<List<Double?>> = emptyList(),   // [[lat, lon, speed_mps?]] — GANZE Aufnahme
+    // JE LAUF eine eigene Linie (Server seit 31.08.). `track` bleibt daneben stehen, weil
+    // draussen App-Versionen laufen, die nur das kennen. Wer `runs` hat, nimmt `runs`: zwischen
+    // zwei Laeufen wird sonst quer ueber den See verbunden (s. VerlaufScreen).
+    val runs: List<List<List<Double?>>> = emptyList(),
 )
 
 // Eigene Session im Zwischenzustand (recording/live) — Live-Upload-Karte (Home + Sessions).

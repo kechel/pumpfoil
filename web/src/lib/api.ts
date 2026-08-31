@@ -686,7 +686,9 @@ export const api = {
   publicVideos: () => req<{ videos: { id: string; title: string; published: string }[]; channel: string }>("/api/public/videos"),
 
   mySpots: () => req<{ spot: string; count: number }[]>("/api/sessions/my-spots"),
-  spotTracks: (spot: string) => req<{ session_id: number; started_at: string | null; foiling_km: number; track: [number, number, number | null][] }[]>(
+  // `runs` = je Lauf eine eigene Linie (seit 31.08.); `track` = die komplette Aufnahme, bleibt
+  // fuer draussen laufende App-Versionen erhalten. Neue Clients nehmen `runs`, wenn nicht leer.
+  spotTracks: (spot: string) => req<{ session_id: number; started_at: string | null; foiling_km: number; track: [number, number, number | null][]; runs: [number, number, number | null][][] }[]>(
     `/api/sessions/spot-tracks?spot=${encodeURIComponent(spot)}`),
 
   exportMyData: () => req<Record<string, unknown>>("/api/auth/me/export"),

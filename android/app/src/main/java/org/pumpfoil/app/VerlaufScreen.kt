@@ -430,22 +430,45 @@ fun SpotProgression() {
                                 val dens = map.context.resources.displayMetrics.density
                                 if (!fitted) {
                                     val all = ArrayList<GeoPoint>()
-                                    trs.forEach { tr -> tr.track.forEach { p -> val la = p.getOrNull(0); val lo2 = p.getOrNull(1); if (la != null && lo2 != null) all.add(GeoPoint(la, lo2)) } }
+                                    // Ausschnitt ueber das, was auch GEZEICHNET wird — sonst
+                                    // zoomt der Rahmen auf Steg- und Treibstrecken hinaus.
+                                    trs.forEach { tr ->
+                                        val quelle = if (tr.runs.isNotEmpty()) tr.runs.flatten() else tr.track
+                                        quelle.forEach { p -> val la = p.getOrNull(0); val lo2 = p.getOrNull(1); if (la != null && lo2 != null) all.add(GeoPoint(la, lo2)) }
+                                    }
                                     if (all.isNotEmpty()) { val bb = BoundingBox.fromGeoPoints(all); map.post { map.zoomToBoundingBox(bb.increaseByScale(1.3f), false, 48) } }
                                     fitted = true
                                 }
                                 map.overlays.clear()
-                                val pts = trs[safeIdx].track
-                                for (i in 0 until pts.size - 1) {
-                                    val a = pts[i]; val b = pts[i + 1]
-                                    val la = a.getOrNull(0); val lo2 = a.getOrNull(1); val lb = b.getOrNull(0); val lob = b.getOrNull(1)
-                                    if (la == null || lo2 == null || lb == null || lob == null) continue
-                                    val col = b.getOrNull(2)?.let { rampColor(((it * 3.6) - lo) / (hi - lo).coerceAtLeast(1e-6)) } ?: GRAY
-                                    map.overlays.add(Polyline(map).apply {
-                                        setPoints(listOf(GeoPoint(la, lo2), GeoPoint(lb, lob)))
-                                        outlinePaint.color = col.toArgb(); outlinePaint.strokeWidth = 4f * dens
-                                    })
+                                val tr = trs[safeIdx]
+                                // JE LAUF eine eigene Linie — zwischen zwei Laeufen wird NICHT
+                                // verbunden. Vorher lief hier die komplette Aufnahme durch, und
+                                // weil zwischen den Laeufen getrieben und gepaddelt wird (bei einer
+                                // gemessenen Session 83 % aller Punkte), verband eine Gerade
+                                // Stellen, die nach dem Herunterrechnen 14 s auseinanderlagen —
+                                // das sah aus wie ein GPS-Glitch (Meldung 31.08.). Gemessen an 25
+                                // Sessions faellt die groesste gezeichnete Strecke von 52 m auf
+                                // 6 m im Median.
+                                //
+                                // Ohne erkannte Laeufe die ganze Spur zeichnen (sonst waere die
+                                // Karte genau bei GPS-only-Sessions leer) — dann mit derselben
+                                // grosszuegigen Schwelle wie im Session-Detail.
+                                fun linie(pts: List<List<Double?>>, maxLuecke: Double) {
+                                    for (i in 0 until pts.size - 1) {
+                                        val a = pts[i]; val b = pts[i + 1]
+                                        val la = a.getOrNull(0); val lo2 = a.getOrNull(1); val lb = b.getOrNull(0); val lob = b.getOrNull(1)
+                                        if (la == null || lo2 == null || lb == null || lob == null) continue
+                                        val pa = GeoPoint(la, lo2); val pb = GeoPoint(lb, lob)
+                                        if (maxLuecke > 0 && pa.distanceToAsDouble(pb) > maxLuecke) continue
+                                        val col = b.getOrNull(2)?.let { rampColor(((it * 3.6) - lo) / (hi - lo).coerceAtLeast(1e-6)) } ?: GRAY
+                                        map.overlays.add(Polyline(map).apply {
+                                            setPoints(listOf(pa, pb))
+                                            outlinePaint.color = col.toArgb(); outlinePaint.strokeWidth = 4f * dens
+                                        })
+                                    }
                                 }
+                                if (tr.runs.isNotEmpty()) tr.runs.forEach { linie(it, 0.0) }
+                                else linie(tr.track, 200.0)
                                 map.invalidate()
                             },
                         )
