@@ -239,9 +239,9 @@ struct ProfileView: View {
 
     @ViewBuilder private var avatar: some View {
         let url = Api.mediaURL(session.profile?.avatar_url)
-        AsyncImage(url: url) { phase in
-            switch phase {
-            case .success(let img): img.resizable().scaledToFill()
+        NetzBild(url: url) { stand in
+            switch stand {
+            case .da(let img): img.resizable().scaledToFill()
             default:
                 Image(systemName: "person.crop.circle.fill")
                     .resizable().scaledToFit().foregroundStyle(.secondary)

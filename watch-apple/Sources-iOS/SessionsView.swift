@@ -481,9 +481,9 @@ struct SessionRow: View {
     }
 
     private func photoThumb(_ url: URL) -> some View {
-        AsyncImage(url: url) { phase in
-            switch phase {
-            case .success(let img): img.resizable().scaledToFill()
+        NetzBild(url: url) { stand in
+            switch stand {
+            case .da(let img): img.resizable().scaledToFill()
             default: Color.secondary.opacity(0.15)
             }
         }
@@ -493,9 +493,9 @@ struct SessionRow: View {
     private func videoThumb(_ vid: String) -> some View {
         let url: URL? = URL(string: "\(Api.baseURL)/api/public/video-thumb/\(vid)")
         return ZStack {
-            AsyncImage(url: url) { phase in
-                switch phase {
-                case .success(let img): img.resizable().scaledToFill()
+            NetzBild(url: url) { stand in
+                switch stand {
+                case .da(let img): img.resizable().scaledToFill()
                 default: Color.secondary.opacity(0.15)
                 }
             }
@@ -623,9 +623,9 @@ struct GroupCardView: View {
         }
     }
     private func groupPhoto(_ url: URL) -> some View {
-        AsyncImage(url: url) { phase in
-            switch phase {
-            case .success(let img): img.resizable().scaledToFill()
+        NetzBild(url: url) { stand in
+            switch stand {
+            case .da(let img): img.resizable().scaledToFill()
             default: Color.secondary.opacity(0.15)
             }
         }
@@ -641,9 +641,9 @@ struct GroupCardView: View {
     private func groupVideo(_ vid: String) -> some View {
         let url: URL? = URL(string: "\(Api.baseURL)/api/public/video-thumb/\(vid)")
         return ZStack {
-            AsyncImage(url: url) { phase in
-                switch phase {
-                case .success(let img): img.resizable().scaledToFill()
+            NetzBild(url: url) { stand in
+                switch stand {
+                case .da(let img): img.resizable().scaledToFill()
                 default: Color.secondary.opacity(0.15)
                 }
             }

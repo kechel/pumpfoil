@@ -57,10 +57,11 @@ struct SpotNotesView: View {
     private struct FullBild: View {
         let url: String
         var body: some View {
-            AsyncImage(url: Api.mediaURL(url)) { img in
-                img.resizable().scaledToFit()
-            } placeholder: {
-                ProgressView()
+            NetzBild(url: Api.mediaURL(url)) { stand in
+                switch stand {
+                case .da(let img): img.resizable().scaledToFit()
+                default:           ProgressView()
+                }
             }
         }
     }
@@ -143,10 +144,11 @@ struct SpotNotesView: View {
                     HStack(spacing: 6) {
                         ForEach(n.photos) { p in
                             ZStack(alignment: .topTrailing) {
-                                AsyncImage(url: Api.mediaURL(p.thumb_url ?? p.url)) { img in
-                                    img.resizable().scaledToFill()
-                                } placeholder: {
-                                    Color.gray.opacity(0.2)
+                                NetzBild(url: Api.mediaURL(p.thumb_url ?? p.url)) { stand in
+                                    switch stand {
+                                    case .da(let img): img.resizable().scaledToFill()
+                                    default:           Color.gray.opacity(0.2)
+                                    }
                                 }
                                 .frame(width: 88, height: 88)
                                 .clipShape(RoundedRectangle(cornerRadius: 10))
@@ -241,10 +243,11 @@ struct SpotNotesView: View {
                     ScrollView {
                         LazyVGrid(columns: [GridItem(.adaptive(minimum: 88), spacing: 6)], spacing: 6) {
                             ForEach(liste) { p in
-                                AsyncImage(url: Api.mediaURL(p.thumb_url ?? p.url)) { img in
-                                    img.resizable().scaledToFill()
-                                } placeholder: {
-                                    Color.gray.opacity(0.2)
+                                NetzBild(url: Api.mediaURL(p.thumb_url ?? p.url)) { stand in
+                                    switch stand {
+                                    case .da(let img): img.resizable().scaledToFill()
+                                    default:           Color.gray.opacity(0.2)
+                                    }
                                 }
                                 .frame(width: 88, height: 88)
                                 .clipShape(RoundedRectangle(cornerRadius: 10))

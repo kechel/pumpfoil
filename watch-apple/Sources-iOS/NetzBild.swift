@@ -17,12 +17,20 @@ final class BildCache {
     static let shared = BildCache()
     private let cache: NSCache<NSURL, UIImage> = {
         let c = NSCache<NSURL, UIImage>()
-        c.countLimit = 300            // Kacheln sind klein; 300 reichen fuer alle Galerien
+        c.countLimit = 300              // Kacheln sind klein; 300 reichen fuer alle Galerien
+        c.totalCostLimit = 40 * 1024 * 1024   // ~40 MB Pixel — s. `kosten` unten
         return c
     }()
 
     func bild(_ url: URL) -> UIImage? { cache.object(forKey: url as NSURL) }
-    func merken(_ url: URL, _ bild: UIImage) { cache.setObject(bild, forKey: url as NSURL) }
+
+    /// Mit Kosten ablegen, damit ein einzelnes GROSSES Bild den Cache nicht sprengt: in den
+    /// Spot-Beschreibungen wird auch die Vollbild-Ansicht eines Fotos hierueber geladen, und
+    /// die ist ein Vielfaches einer Galerie-Kachel. NSCache raeumt dann von selbst.
+    func merken(_ url: URL, _ bild: UIImage) {
+        let px = Int(bild.size.width * bild.scale * bild.size.height * bild.scale)
+        cache.setObject(bild, forKey: url as NSURL, cost: px * 4)   // 4 Byte je Pixel
+    }
 }
 
 /// Zustand einer Kachel — die Aufrufer faerben „laedt noch" und „fehlgeschlagen" unterschiedlich,

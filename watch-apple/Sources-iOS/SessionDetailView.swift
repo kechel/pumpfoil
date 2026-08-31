@@ -712,9 +712,9 @@ struct SessionDetailView: View {
 
     private func photoTile(_ p: SessionPhoto, owned: Bool) -> some View {
         mediaTile {
-            AsyncImage(url: Api.mediaURL(p.url)) { phase in
-                switch phase {
-                case .success(let img): img.resizable().scaledToFill()
+            NetzBild(url: Api.mediaURL(p.url)) { stand in
+                switch stand {
+                case .da(let img): img.resizable().scaledToFill()
                 default: Color(.secondarySystemBackground)
                 }
             }
@@ -805,9 +805,9 @@ struct SessionDetailView: View {
     private func videoTileLabel(_ ytId: String) -> some View {
         let thumb: URL? = URL(string: "\(Api.baseURL)/api/public/video-thumb/\(ytId)")
         return mediaTile {
-            AsyncImage(url: thumb) { phase in
-                switch phase {
-                case .success(let img): img.resizable().scaledToFill()
+            NetzBild(url: thumb) { stand in
+                switch stand {
+                case .da(let img): img.resizable().scaledToFill()
                 default: Color(.secondarySystemBackground)
                 }
             }
@@ -2305,9 +2305,9 @@ private struct PhotoLightboxView: View {
             Color.black.ignoresSafeArea()
             TabView(selection: $sel) {
                 ForEach(photos) { p in
-                    AsyncImage(url: Api.mediaURL(p.url)) { phase in
-                        switch phase {
-                        case .success(let img): img.resizable().scaledToFit()
+                    NetzBild(url: Api.mediaURL(p.url)) { stand in
+                        switch stand {
+                        case .da(let img): img.resizable().scaledToFit()
                         default: ProgressView()
                         }
                     }

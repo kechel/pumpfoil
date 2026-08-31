@@ -602,9 +602,9 @@ struct ChatRoomView: View {
 
     @ViewBuilder private func chatAvatar(_ m: ChatMsg) -> some View {
         if let url = Api.mediaURL(m.avatar_url) {
-            AsyncImage(url: url) { phase in
-                switch phase {
-                case .success(let img): img.resizable().scaledToFill()
+            NetzBild(url: url) { stand in
+                switch stand {
+                case .da(let img): img.resizable().scaledToFill()
                 default: Image(systemName: "person.crop.circle.fill").resizable().scaledToFit().foregroundStyle(.secondary)
                 }
             }

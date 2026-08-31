@@ -146,7 +146,10 @@ struct TransferPickerView: View {
             Button { confirmUser = u } label: {
                 HStack(spacing: 10) {
                     if let url = Api.mediaURL(u.avatar_url) {
-                        AsyncImage(url: url) { img in img.resizable().scaledToFill() } placeholder: { Color.secondary.opacity(0.15) }
+                        NetzBild(url: url) { stand in
+                            if case .da(let img) = stand { img.resizable().scaledToFill() }
+                            else { Color.secondary.opacity(0.15) }
+                        }
                             .frame(width: 30, height: 30).clipShape(Circle())
                     } else {
                         Image(systemName: "person.circle.fill").resizable().frame(width: 30, height: 30).foregroundStyle(.secondary)
