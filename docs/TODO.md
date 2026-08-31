@@ -4549,7 +4549,11 @@ Offen daraus:
     und Klickziel meinten verschiedene Mengen. Web ist live.
   - **Antwort an den Nutzer ist raus** (DM, auf Niederlaendisch = seine Profilsprache), auf Jans
     ausdrueckliche Bitte hin.
-  - 🔲 **Offen: Android/iOS pruefen** — beide haben dieselbe Spot-Karte und dieselbe Spot-Liste.
+  - ✅ **Android + iOS nachgezogen (31.08.).** Der Fehler steckte dort in je ZWEI Ansichten:
+    `SessionsScreen.kt`/`SessionsView.swift` (Spot-Tab der Sessions-Liste) und
+    `SpotSessionsScreen.kt`/`SpotSessionsView.swift` (eigene Spot-Seite). Alle vier pruefen jetzt
+    „liefert `alle` mehr als `nur praezise`" statt „ist die Liste leer". `:app:compileDebugKotlin`
+    gruen, `swiftc -parse` gruen. Laeuft in Phone 1.1.25 / Wear 1.2.25 / iOS 1.1.28 mit.
 
 - **✅ 31.08. — Garmin 1.0.83 IST LIVE, Freigabekette komplett abgearbeitet.**
   Jans Meldung: Store-Seite „Latest Release August 31, 2026 · Version 1.0.83 · Size 70 KB".

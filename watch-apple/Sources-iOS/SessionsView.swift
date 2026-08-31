@@ -305,14 +305,21 @@ struct SessionsView: View {
         setAccelAuto(v)
     }
 
-    // Spot ohne eine einzige Session mit Beschleunigungsdaten: kommt die erste Seite leer zurück,
-    // EINMAL mit accel_only=false nachfragen — gibt es dort etwas, auf „alle" umschalten, statt eine
-    // leere Liste zu zeigen. Nur einmal je Spot (accelAutoSpot), sonst hagelt es Anfragen.
+    // Spot, an dem der Filter „nur präzise" mehr verbirgt als er zeigt: EINMAL mit
+    // accel_only=false nachfragen und auf „alle" umschalten, wenn dort mehr steht.
+    // Nur einmal je Spot (accelAutoSpot), sonst hagelt es Anfragen.
+    //
+    // Frueher griff das NUR bei einer komplett leeren Liste, und genau daran ist am 29.08. ein
+    // Nutzer haengen geblieben: die Spot-Karte sagte „Meerkerk · 14“, nach dem Klick standen dort
+    // seine eigenen drei. Die anderen elf sind ohne verwertbare Beschleunigungsdaten aufgenommen
+    // (`detection = gps_only`) — die Karte zaehlt mit accel_only=false, die Liste filterte mit true.
+    // Die Liste war also nicht leer, nur kuerzer als das Etikett versprach; auf 0 zu pruefen reicht
+    // nicht. Verglichen wird jetzt die erste Seite gegen „alle“.
     private func maybeShowAllForSpot() async {
-        guard !spot.isEmpty, accelOnly, !accelTouched, groups.isEmpty, accelAutoSpot != spot else { return }
+        guard !spot.isEmpty, accelOnly, !accelTouched, accelAutoSpot != spot else { return }
         accelAutoSpot = spot
-        let probe = (try? await Api.communitySessionsGrouped(spot: spot, limit: 1, accelOnly: false, sport: "all")) ?? []
-        if !probe.isEmpty { setAccelAuto(false) }   // onChange(of: accelOnly) lädt neu
+        let probe = (try? await Api.communitySessionsGrouped(spot: spot, accelOnly: false, sport: "all")) ?? []
+        if probe.count > groups.count { setAccelAuto(false) }   // onChange(of: accelOnly) lädt neu
     }
 
     private func load() async {

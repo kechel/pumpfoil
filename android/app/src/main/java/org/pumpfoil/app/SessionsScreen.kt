@@ -154,16 +154,23 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
     // verwerfen -> es gilt wieder der Default aus der eigenen Uhr. Nichts wird gemerkt.
     LaunchedEffect(spot) { accel.resetAuto() }
 
-    // Kommt die erste Seite eines Spots leer zurück, EINMAL mit accel_only=false nachfragen: gibt es
-    // dort etwas, auf „alle" umschalten (sonst stünde man vor einer leeren Liste). setAuto = gilt
-    // nicht als Nutzer-Wahl; wer selbst umgeschaltet hat, behält seine Wahl.
+    // Verbirgt der Filter „nur präzise" an einem Spot mehr als er zeigt, EINMAL mit
+    // accel_only=false nachfragen und auf „alle" umschalten. setAuto = gilt nicht als
+    // Nutzer-Wahl; wer selbst umgeschaltet hat, behält seine Wahl.
+    //
+    // Frueher griff das NUR bei einer komplett leeren Liste, und genau daran ist am 29.08. ein
+    // Nutzer haengen geblieben: die Spot-Karte sagte „Meerkerk · 14“, nach dem Klick standen dort
+    // seine eigenen drei. Die anderen elf sind ohne verwertbare Beschleunigungsdaten aufgenommen
+    // (detection = gps_only) — die Karte zaehlt mit accel_only=false, die Liste filterte mit true.
+    // Die Liste war also nicht leer, nur kuerzer als das Etikett versprach; auf 0 zu pruefen reicht
+    // nicht. Verglichen wird jetzt die erste Seite gegen „alle“.
     suspend fun maybeShowAll(rows: List<CommunityGroup>) {
-        if (spot.isBlank() || !accelOnly || accel.userChose || rows.isNotEmpty() || accelAutoSpot == spot) return
+        if (spot.isBlank() || !accelOnly || accel.userChose || accelAutoSpot == spot) return
         accelAutoSpot = spot
         val probe = try {
-            Api.communitySessionsGrouped(spot, limit = 1, accelOnly = false, sport = "all")
+            Api.communitySessionsGrouped(spot, accelOnly = false, sport = "all")
         } catch (_: Exception) { emptyList() }
-        if (probe.isNotEmpty()) accel.setAuto(false)   // löst über accelOnly ein Neuladen aus
+        if (probe.size > rows.size) accel.setAuto(false)   // löst über accelOnly ein Neuladen aus
     }
 
     suspend fun load() {

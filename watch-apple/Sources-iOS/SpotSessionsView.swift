@@ -61,10 +61,16 @@ struct SpotSessionsView: View {
             // Accel-Läufe hat, sonst „alle".
             let only = showAll ? false : await AccelDefault.preferred()
             var rows = try await Api.spotSessions(spot, accelOnly: only)
-            if only, rows.isEmpty, !autoTried {
+            // Frueher griff das NUR bei einer komplett leeren Liste, und genau daran ist am 29.08. ein
+            // Nutzer haengen geblieben: die Spot-Karte sagte „Meerkerk · 14“, nach dem Klick standen dort
+            // seine eigenen drei. Die anderen elf sind ohne verwertbare Beschleunigungsdaten aufgenommen
+            // (`detection = gps_only`) — die Karte zaehlt mit accel_only=false, die Liste filterte mit true.
+            // Die Liste war also nicht leer, nur kuerzer als das Etikett versprach; auf 0 zu pruefen reicht
+            // nicht. Verglichen wird jetzt die erste Seite gegen „alle“.
+            if only, !autoTried {
                 autoTried = true
                 let all = try await Api.spotSessions(spot, accelOnly: false)
-                if !all.isEmpty { showAll = true; rows = all }
+                if all.count > rows.count { showAll = true; rows = all }
             }
             items = rows
             error = nil
