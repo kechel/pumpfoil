@@ -4549,6 +4549,27 @@ Offen daraus:
        Client eine Achse rekonstruieren — genau die Rekonstruktion hat hier die Fehler der
        Rohdaten sichtbar gemacht. Das ist die eigentliche Absicherung.
     3. Die 48 Sessions neu zusammenfuehren/analysieren — Datenoperation, ebenfalls nur mit OK.
+  - **Ausmass gemessen (`scripts/merge-timeaxis-check.py`, rein lesend):** 48 zusammengefuehrte
+    Sessions, **46 davon mit ≥ 5 min Zeitfehler**, Median **21,9 min**, Mittel 51,6 min,
+    groesster Fall **s458 mit 529,9 min** (8,8 h). Das Skript zeigt je Teil, wo Merge-ms 0 bzw.
+    jede Naht angezeigt wird und wo sie wirklich liegt.
+  - **Der Fix in `merge.py` ist einzeilig** — statt den Versatz aufzuaddieren, jeden Teil an seine
+    echte Stelle setzen:
+    ```python
+    # ALT: off_ms = 0 vor der Schleife, am Ende  off_ms += int(g[-1][0]) + GAP_MS
+    # NEU, in der Schleife:
+    off_ms = int((s.started_at - first_start).total_seconds() * 1000) + int(s.trim_start_ms or 0)
+    ```
+    Sicher, weil `_mergebar` ueberlappende Teile ohnehin ablehnt (`if b.started_at < _end(a)`) —
+    die Versaetze sind also immer aufsteigend und die Luecken echt.
+  - **Regressions-Check dazu:** nach dem Umbau je Session pruefen, dass (a) die Merge-Spanne
+    gleich `letztes Ende - erster Start` ist, (b) Strecken/Pumps/Tempo je Lauf UNVERAENDERT
+    bleiben (sie sind relativ), (c) nur die Zeiten wandern. Als Wahrheitsprobe die Paarung
+    3159/3157 aus dem Befund oben: Jans Lauf #7 muss danach von 10:51:08 auf **11:06:59** wandern
+    und damit auf Philipps #9 (11:06:58) fallen.
+  - **Offene Abwaegung fuer Jan:** mit echten Luecken faellt der kuenstliche 20-s-Abstand
+    (`GAP_MS`) an der Naht weg. Ist die echte Pause kuerzer als 20 s, koennte ein Lauf die Naht
+    ueberbruecken — was sachlich richtig waere, aber die Lauf-Zahl an dieser Stelle aendert.
 
 - **✅ 31.08. — „Laeuft nicht nach Uhrzeit synchronisiert" (Jan) — NACHGEMESSEN: die Uhr stimmt,
   die Darstellung log.** Jans Beispiel: Sessions **3159 (Jan, 10:26:18)** und **3157 (Philipp,
