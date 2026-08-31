@@ -3800,7 +3800,11 @@ Offen daraus:
   war der Anlass. Der Rueckfall macht nur so weit auf, wie noetig: wer letzte Woche gefahren ist,
   sieht letzte Woche und nicht seine Rekorde von vorletztem Sommer.
 
-- **🟡 OFFEN — Kennzahlen je Foil in Android und iOS nachziehen.** Der Web-Teil ist seit 30.08.
+- **✅ ERLEDIGT (nachgeprueft 31.08.) — Kennzahlen je Foil in Android und iOS.** Der Eintrag stand
+  hier faelschlich weiter auf OFFEN; im Code ist beides da: `HomeScreen.kt` holt `Api.statsByFoil`
+  und rendert den Block ab zwei Gruppen (Z. 213/402), `HomeView.swift` genauso (Z. 456/275), beide
+  mit `phome.byFoil`/`phome.noFoil` in allen Sprachen. Wer hier „offen" liest, prueft es bitte
+  erst gegen den Code. Urspruengliche Notiz: Der Web-Teil ist seit 30.08.
   live und abgehakt (s. o.); die Apps fehlen. Aufwand ist klein, weil der Server die Arbeit macht:
   `GET /api/sessions/stats-by-foil` liefert die Gruppen fertig sortiert (laengster Lauf oben) samt
   Foil-Beschriftung, dazu die Regel „nur Foils im gewaehlten Zeitfenster" und „erst ab zwei
