@@ -1561,6 +1561,9 @@ const pl: Record<string, string> = {
   "v2.keptLabel": "przywrócony przejazd",
   "v2.unkeep": "odłóż z powrotem",
   "spots.autoHint": "Spotów nigdy nie tworzysz sam: pojawiają się automatycznie, gdy tylko ktoś wyśle sesję z nowego miejsca. Nazwy miejsc i akwenów pochodzą z OpenStreetMap — zaraz po wysyłce nazwa może pojawić się dopiero po kilku minutach.",
+  "nav.adminPending": "Oczekująca moderacja (zgłoszone + podejrzenie nieautentyczności)",
+  "watches.nStrava": "Import byłby technicznie możliwy, ale API nie udostępnia surowych danych akcelerometru o wysokiej częstotliwości (czyli brak wykrywania pompowań), a do tego jest za paywallem i ma warunki API, które nie pasują do otwartego projektu — świadomie niezintegrowane.",
+  "watches.st.nope": "nie",
 };
 
 export default pl;
