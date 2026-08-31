@@ -66,8 +66,11 @@ export function SocialFeed() {
           stammen aus unseren eigenen Locale-Dateien, nicht von Nutzern. */}
       {/* Der fette Satz zusaetzlich in Marken-Cyan (Jan, 31.08.) — er ist die Aufforderung.
           Ueber eine Variante auf dem <b> statt ueber die Uebersetzung: so gilt es in ALLEN
-          17 Sprachen (alle tragen dieselbe <b>-Marke) und keine Locale muss Markup kennen. */}
-      <p className="mb-2 text-sm text-slate-300 [&_b]:text-brand-400"
+          17 Sprachen (alle tragen dieselbe <b>-Marke) und keine Locale muss Markup kennen.
+          BEIDE Modi setzen (Jan, 31.08.: „im Light-Mode nicht gut lesbar"): brand-400 ist auf
+          Weiss zu blass, im Hellen deshalb brand-700 — dasselbe Paar wie an den uebrigen
+          Marken-Textstellen der App. */}
+      <p className="mb-2 text-sm text-slate-300 [&_b]:text-brand-700 dark:[&_b]:text-brand-400"
          dangerouslySetInnerHTML={{ __html: t("social.hint") }} />
       {items && items.length > 0 && (
         <div onScroll={beimScrollen}
