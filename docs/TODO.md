@@ -4327,3 +4327,31 @@ Offen daraus:
   `let`/`fun`-Kopfzeile bis zur naechsten), nie ueber Klammerzaehlung und nie ueber `split()`
   auf den Tabellennamen. Beide Abkuerzungen haben hier heute je einmal ein falsches Ergebnis
   geliefert — einmal „alles doppelt", einmal „nichts fehlt".
+
+- **🟢 31.08. — iOS-Simulator-Runde zum Social-Feed: drei Befunde, alle behoben.**
+  Jans Test nach dem Nachzug. Punkte 1, 2, 3 und 5 der Liste liefen auf Anhieb (Spot-Karte
+  zoomt/tippt/zurueck, Kartenumschalter, Kacheln je Foil, Feedback-Anhaenge inkl. Anzeige in der
+  PWA). Drei Sachen waren offen:
+
+  1. **Vorschaubilder blieben leer — und zwar in BEIDEN Medien-Zeilen.** Das war der Schluessel:
+     an „Neueste Medien" wurde gar nichts geaendert, der einzige Eingriff in `CommunityView` ist
+     die eingehaengte `SocialFeedSection`. Also konnte es nicht am Foto-Pfad liegen.
+     **Ursache: ein normaler `HStack` baut ALLE Kinder sofort.** Der Feed laedt 24 Elemente, es
+     starten also 24 Bildanfragen gleichzeitig; `URLSession` laesst je Host sechs Verbindungen
+     zu, der Rest steht in der Schlange — und die danach gerenderte Medien-Zeile kam nicht mehr
+     dran. Jetzt `LazyHStack` mit fester Hoehe (ohne die faellt ein LazyHStack in einer
+     List-Zeile auf null zusammen). **Android war nie betroffen: dort steht seit dem ersten
+     Entwurf ein `LazyRow` — genau dieser Unterschied hat die Ursache verraten.**
+     **Merke fuer iOS: mehrere `AsyncImage` in einem eager `HStack` hungern andere Bilder
+     desselben Hosts aus. In Listen und Galerien immer `LazyHStack`/`LazyVStack`.**
+  2. **Vollbild klappte beim Weiterblaettern zu und wieder auf.** `fullScreenCover(item:)`
+     wechselt beim Blaettern die Identitaet des Ziels, SwiftUI blendet also aus und wieder ein.
+     Jetzt `isPresented` — die Praesentation bleibt stehen, nur der Inhalt wechselt.
+  3. **„Finnisch nicht im Dropdown"** war keiner: es heisst **Suomi** und steht an achter Stelle.
+     Bei 17 Sprachen klappt der Picker in eine eigene Liste auf.
+
+  **Zwei falsche Faehrten, die Zeit gekostet haben und beim naechsten Mal schneller ausscheiden
+  sollten:** die Log-Zeile `nw_proxy_resolver … proxy pac Evaluation error … -1003` ist im
+  Simulator ueblich, auch wenn alles laeuft. Und ein Netzproblem war es nachweislich nicht — die
+  API-Antworten sind NICHT cachebar (kein `cache-control`), die Feed-Daten kamen also live ueber
+  das Netz. Nur die Bilder scheiterten, und die sind als einzige mit `max-age=86400` versehen.
