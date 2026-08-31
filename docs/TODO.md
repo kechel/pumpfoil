@@ -4535,7 +4535,15 @@ Offen daraus:
     Apple auf **1.1.28 (32)** gebumpt, weil 1.1.27 (31) heute frueh eingereicht wurde und in
     Pruefung ist.
 
-- **🟡 31.08. — Garmin 1.0.83 EINGEREICHT** (Jans Meldung: Test-`.prg` im Simulator geprueft,
+- **✅ 31.08. — Garmin 1.0.83 IST LIVE, Freigabekette komplett abgearbeitet.**
+  Jans Meldung: Store-Seite „Latest Release August 31, 2026 · Version 1.0.83 · Size 70 KB".
+  **Selbst gegengeprueft** (nicht nur gemeldet): `curl https://apps.garmin.com/apps/9a2a753e-…`
+  liefert `Version":"1.0.83"`.
+  Reihenfolge aus [[watch-bin-is-live]] eingehalten: 1. Freigabe bestaetigt → 2. `build-all.sh`
+  (**121 von 121 Geraeten ok, 0 fehlgeschlagen**, `catalog.json` 121 Eintraege, `partmap.json`
+  210 Part-Numbers) → 3. `appmeta.garmin` auf 1.0.83 → 4. Changelog-Eintrag.
+
+- **✅ 31.08. (erledigt, s. oben) — Garmin 1.0.83 EINGEREICHT** (Jans Meldung: Test-`.prg` im Simulator geprueft,
   `.iq` hochgeladen und zur Freigabe gegeben).
   **`appmeta.garmin` bleibt auf 1.0.82 und `watch/bin` bleibt unangetastet, bis die Freigabe da
   ist** — sonst bewirbt die Website eine Version, die im Store noch nicht liegt (Fehler vom

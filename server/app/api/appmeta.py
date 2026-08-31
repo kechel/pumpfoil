@@ -83,7 +83,16 @@ _APP_META: dict[str, dict[str, str]] = {
     "garmin": {
         # NUR auf eine im Connect-IQ-Store FREIGEGEBENE Version setzen (Pruefung durch)!
         # Die Garmin-App vergleicht das selbst mit Config.VERSION (SessionRecorder.mc:638).
-        "latest": "1.0.82",   # LIVE im CIQ-Store 2026-08-30, SELBST GEPRUEFT (nicht nur gemeldet):
+        "latest": "1.0.83",   # LIVE im CIQ-Store 2026-08-31, SELBST GEPRUEFT (nicht nur gemeldet):
+        # curl https://apps.garmin.com/apps/9a2a753e-b52f-4587-aee4-900caf5cb351 -> Version":"1.0.83".
+        # Store-Seite: "Latest Release August 31, 2026 · Version 1.0.83 · Size 70 KB" (Jan).
+        # Inhalt: EIN Fix — der falsche "Speicher gleich voll"-Countdown. Der Server schickt seit
+        # 31.08. eine 0, wenn er die Puffergrenze dieser Uhr nicht GEMESSEN hat; _applyStorageBudget
+        # uebernahm aber nur Werte > 0 und liess den alten gecachten Wert (200 KB) stehen. Jede Uhr,
+        # die seit 1.0.80 einmal ein /config geholt hatte, zeigte den Countdown weiter — Jans Meldung
+        # vom See: "noch 2 Minuten, noch 1, noch 0" mitten in einer normalen Session. Serverseitig
+        # allein war das NICHT zu heilen, es braucht diese Uhr-Fassung.
+        # Vorher 1.0.82, LIVE seit 2026-08-30, ebenfalls selbst geprueft:
         # curl https://apps.garmin.com/apps/9a2a753e-b52f-4587-aee4-900caf5cb351 -> Version":"1.0.82",
         # Store-Seite "Latest Release August 30, 2026 · Version 1.0.82 · Size 70 KB" (Jan), aus dem
         # Store installiert und eine echte Session damit aufgezeichnet.
