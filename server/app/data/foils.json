@@ -6839,6 +6839,17 @@
   "aliases": null
  },
  {
+  "brand": "AlpineFoil",
+  "model": "DK",
+  "size": "1360",
+  "span_cm": 136.0,
+  "area_cm2": 1950,
+  "thickness_mm": null,
+  "thickness_estimated": false,
+  "is_baseline": false,
+  "aliases": "DK1360|Alpine DK 1360|Alpine dk 1360"
+ },
+ {
   "brand": "MFC",
   "model": "FW",
   "size": "1600",
