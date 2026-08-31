@@ -4380,9 +4380,13 @@ Offen daraus:
   ein Regex-Umbau haette unbemerkt Verhalten aendern koennen. Nachziehen, sobald die Meldung
   woanders auftaucht oder nach dem Release.
 
-- **🟡 31.08. 09:55 CEST — iOS/Apple Watch 1.1.27 (31) EINGEREICHT** (Jans Meldung: Archive
-  gestartet, Einreichung zur Pruefung). Vorgaenger 1.1.26 war seit 30.08. 21:50 UTC live, es hing
-  also nichts in der Warteschlange.
+- **🟡 31.08. 10:01 — iOS/Apple Watch 1.1.27 (31) EINGEREICHT, Status „Warten auf Pruefung".**
+  Jans Meldung mit den Daten aus App Store Connect: Uebermittlungskennung
+  `7cbe07de-14ec-4968-b45c-460e22e91ac3`, Uebermittlungsdatum 31. Aug. 2026 um 10:01 Uhr.
+  Vorgaenger 1.1.26 war seit 30.08. 21:50 UTC live, es hing also nichts in der Warteschlange.
+  **Die Pruefung aus dem 13.08.-Vorfall ist bestanden:** die Versions-Zeile in App Store Connect
+  lautet „1.1.27 (31)" und ist damit zeichengleich mit der `MARKETING_VERSION` aus `project.yml`
+  — damals stand dort 1.0 statt 1.1 und die Pruefung musste zurueckgezogen werden.
   **`appmeta.ios`/`appmeta.apple` stehen bewusst weiter auf 1.1.26** — `latest` wird erst gesetzt,
   wenn die Freigabe bestaetigt UND ueber `itunes.apple.com/lookup` gegengeprueft ist (nicht auf
   die Mail allein verlassen, s. der Kommentar dort). Beide Schluessel dann ZUSAMMEN hochziehen,
