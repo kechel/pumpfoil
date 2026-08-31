@@ -1,9 +1,6 @@
 import SwiftUI
 import WebKit
 
-// Wie viele Videos je Nachschub. Gleiche Zahl wie in der PWA (SocialFeed.tsx).
-private let SCHUB = 24
-
 /// Community-Social-Feed: alle freigegebenen YouTube-Kanaele in EINEM Strom, neueste zuerst —
 /// nicht nach Kanal gruppiert und nicht danach sortiert, was ein Algorithmus fuer sehenswert
 /// haelt. Genau das ist der Zweck.
@@ -15,37 +12,65 @@ private let SCHUB = 24
 /// Vorschaubilder kommen ueber UNSEREN Server (`/api/public/video-thumb/…`), nicht von
 /// img.youtube.com — sonst entsteht ein Drittkontakt zu Google, bevor der Nutzer ueberhaupt auf
 /// Abspielen getippt hat. Dieselbe Entscheidung wie in der PWA.
+/// Zustand des Feeds — bewusst NICHT in der Section, sondern im Besitz der Community-Ansicht.
+///
+/// Grund: das Vollbild darf nicht an einer `List`-ZEILE haengen. Wird die Liste beim ersten
+/// Antippen neu layoutet, raeumt SwiftUI den Traeger der Praesentation kurz ab und das Vollbild
+/// geht mit — genau Jans Befund vom 31.08. („beim ersten Mal geht es auf und sofort wieder zu,
+/// beim zweiten Mal klappt es"). Mit dem Modell haengt `fullScreenCover` an der `List` selbst,
+/// und die steht.
+@MainActor
+final class SocialFeedModell: ObservableObject {
+    @Published private(set) var items: [SocialItem] = []
+    @Published private(set) var geladen = false
+    @Published var offen: Int?
+    private var ende = false
+    private var laedt = false
+
+    /// Wie viele Videos je Nachschub. Gleiche Zahl wie in der PWA (SocialFeed.tsx).
+    private let schub = 24
+
+    func ersteSeite() async {
+        guard !geladen else { return }
+        items = (try? await Api.socialFeed(limit: schub, offset: 0)) ?? []
+        if items.count < schub { ende = true }
+        geladen = true
+    }
+
+    func nachladen(abIndex i: Int) async {
+        guard i >= items.count - 3, !ende, !laedt, !items.isEmpty else { return }
+        laedt = true
+        let mehr = (try? await Api.socialFeed(limit: schub, offset: items.count)) ?? []
+        items += mehr
+        if mehr.count < schub { ende = true }
+        laedt = false
+    }
+}
+
 struct SocialFeedSection: View {
     let lang: String
-    @State private var items: [SocialItem] = []
-    @State private var geladen = false
-    @State private var ende = false
-    @State private var laedt = false
-    @State private var offen: Int?
+    @ObservedObject var modell: SocialFeedModell
 
     var body: some View {
         // Erst zeichnen, wenn wirklich etwas da ist — sonst stuende eine leere Ueberschrift
         // auf der Community-Seite jedes Nutzers unter 13 (Age-Gate liefert dort [] ).
-        if geladen && !items.isEmpty {
+        if modell.geladen && !modell.items.isEmpty {
             Section(Loc.t("social.title", lang)) {
-                // Der mittlere Satz ist fett — er ist die Aufforderung, der Rest Erklaerung.
-                // Der Text traegt <b>-Marken aus den Web-Locales, deshalb dieselbe Fettung wie
-                // im Impressum statt roher Zeichen.
+                // Der mittlere Satz ist fett und in Marken-Cyan — er ist die Aufforderung, der
+                // Rest Erklaerung. Der Text traegt <b>-Marken aus den Web-Locales.
                 Text(impText(Loc.t("social.hint", lang), farbe: .accentColor))
                     .font(.caption).foregroundStyle(.secondary)
                     .listRowSeparator(.hidden)
                 // LazyHStack, NICHT HStack: ein normaler HStack baut alle Kinder sofort, also
                 // starten 24 Vorschaubilder gleichzeitig ihre Anfrage. URLSession laesst je Host
                 // nur sechs Verbindungen zu — der Rest steht in der Schlange, und die danach
-                // gerenderte Zeile "Neueste Medien" kam gar nicht mehr dran. Genau das war Jans
-                // Befund am 31.08.: BEIDE Medien-Zeilen blieben leer, obwohl an der zweiten gar
-                // nichts geaendert wurde. Lazy laedt nur, was wirklich sichtbar ist.
+                // gerenderte Zeile "Neueste Medien" kam gar nicht mehr dran (Jan, 31.08.).
                 ScrollView(.horizontal, showsIndicators: false) {
                     LazyHStack(spacing: 10) {
-                        ForEach(Array(items.enumerated()), id: \.element.id) { i, it in
-                            Button { offen = i } label: { kachel(it) }
+                        ForEach(Array(modell.items.enumerated()), id: \.element.id) { i, it in
+                            Button { modell.offen = i } label: { kachel(it) }
                                 .buttonStyle(.plain)
-                                .onAppear { if i >= items.count - 3 { Task { await nachladen() } } }
+                                .onAppear { Task { await modell.nachladen(abIndex: i) } }
                         }
                     }
                     .padding(.vertical, 2)
@@ -53,48 +78,27 @@ struct SocialFeedSection: View {
                 }
                 .listRowInsets(EdgeInsets(top: 4, leading: 12, bottom: 8, trailing: 12))
             }
-            // `isPresented` statt `item:` — sonst wechselt beim Weiterblaettern die Identitaet
-            // des Ziels, SwiftUI blendet das Vollbild aus und wieder ein, und man sieht das
-            // Zuklappen/Aufklappen (Jans Meldung 31.08.). So bleibt die Praesentation stehen
-            // und nur der Inhalt wird getauscht.
-            .fullScreenCover(isPresented: Binding(
-                get: { offen != nil },
-                set: { sichtbar in if !sichtbar { offen = nil } })
-            ) {
-                if let i = offen, items.indices.contains(i) {
-                    SocialPlayerView(
-                        lang: lang,
-                        item: items[i],
-                        hatZurueck: i > 0,
-                        hatWeiter: i < items.count - 1,
-                        onZurueck: { offen = i - 1 },
-                        onWeiter: { offen = i + 1 },
-                        onClose: { offen = nil }
-                    )
-                }
-            }
         } else {
             // Unsichtbarer Platzhalter, der das erste Laden anstoesst.
             Color.clear.frame(height: 0).listRowBackground(Color.clear)
-                .task { await ersteSeite() }
+                .task { await modell.ersteSeite() }
         }
     }
 
     /// Hochkant 9:16 — bei uns sind fast alle Clips Shorts.
     ///
-    /// Das Vorschaubild laedt ueber die phasen-basierte `AsyncImage`-Form — genau wie
-    /// `CommunityView.mediaThumb`, wo dasselbe schon laenger laeuft. Die erste Fassung nutzte
-    /// die content/placeholder-Form und blieb bei Jan im Simulator grau (31.08.); mit der
-    /// Phase sehen wir ausserdem den Unterschied zwischen „laedt noch" und „fehlgeschlagen"
-    /// statt beides als leere Flaeche zu zeigen.
+    /// Das Vorschaubild laedt ueber `NetzBild` (eigener Speicher-Cache) statt `AsyncImage` —
+    /// sonst wird beim Tab-Wechsel jedes Bild neu angefordert und die Kacheln bleiben leer
+    /// (Jans Befund 31.08.). „laedt noch" und „fehlgeschlagen" sind verschieden eingefaerbt,
+    /// damit man im Zweifel sieht, woran es liegt.
     @ViewBuilder private func kachel(_ it: SocialItem) -> some View {
         let u = URL(string: "\(Api.baseURL)/api/public/video-thumb/\(it.external_id)")
         ZStack(alignment: .bottomLeading) {
-            AsyncImage(url: u) { phase in
-                switch phase {
-                case .success(let bild): bild.resizable().scaledToFill()
-                case .failure:           Color.secondary.opacity(0.25)
-                default:                 Color.secondary.opacity(0.12)
+            NetzBild(url: u) { stand in
+                switch stand {
+                case .da(let bild): bild.resizable().scaledToFill()
+                case .fehler:       Color.secondary.opacity(0.25)
+                case .laedt:        Color.secondary.opacity(0.12)
                 }
             }
             .frame(width: 130, height: 231)
@@ -121,21 +125,6 @@ struct SocialFeedSection: View {
             .compactMap { $0 }.joined(separator: " · ")
     }
 
-    private func ersteSeite() async {
-        guard !geladen else { return }
-        items = (try? await Api.socialFeed(limit: SCHUB, offset: 0)) ?? []
-        if items.count < SCHUB { ende = true }
-        geladen = true
-    }
-
-    private func nachladen() async {
-        guard !ende, !laedt, !items.isEmpty else { return }
-        laedt = true
-        let mehr = (try? await Api.socialFeed(limit: SCHUB, offset: items.count)) ?? []
-        items += mehr
-        if mehr.count < SCHUB { ende = true }
-        laedt = false
-    }
 }
 
 /// Vollbild-Player.
@@ -143,7 +132,9 @@ struct SocialFeedSection: View {
 /// Datensparsam ueber youtube-nocookie und erst durch das Antippen geladen — vorher geht kein
 /// Byte an Google. Kein festes Seitenverhaeltnis: YouTube verraet das Format eines Videos
 /// nirgends, also bekommt der Rahmen alles und der Player skaliert selbst hinein.
-private struct SocialPlayerView: View {
+/// Vollbild-Player. Wird von der Community-Ansicht praesentiert, NICHT aus der List-Zeile
+/// heraus — s. die Erklaerung an `SocialFeedModell`.
+struct SocialPlayerView: View {
     let lang: String
     let item: SocialItem
     let hatZurueck: Bool

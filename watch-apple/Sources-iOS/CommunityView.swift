@@ -10,6 +10,10 @@ struct CommunityView: View {
     // auf dem Stapel (Jans "Zurueck geht eine Session zurueck", nur aus Rekorden). Buttons,
     // die selbst GENAU EIN SessionDest anhaengen, machen den Push eindeutig.
     @State private var navPath = NavigationPath()
+    // Der Social-Feed haelt seinen Zustand HIER, nicht in der Section: das Vollbild darf nicht
+    // an einer List-Zeile haengen, sonst raeumt SwiftUI es beim ersten Antippen gleich wieder
+    // ab (Jan, 31.08.). Details an `SocialFeedModell`.
+    @StateObject private var social = SocialFeedModell()
 
     @State private var records: [String: PeriodRecords]?
     @State private var leaders: Leaders?
@@ -65,13 +69,30 @@ struct CommunityView: View {
                 // Social-Feed bewusst UEBER "Neueste Medien" (Jan, 31.08., dieselbe
                 // Reihenfolge wie in der PWA). Laedt sich selbst; ist nichts freigegeben oder
                 // der Nutzer unter 13, zeichnet er gar nichts.
-                SocialFeedSection(lang: lang)
+                SocialFeedSection(lang: lang, modell: social)
                 mediaFeedSection
                 leaderboardSection
                 topLikedSection
                 spotsSection
             }
             .listStyle(.plain)   // .insetGrouped hatte großen Top-Inset -> zu viel Padding oben
+            // Vollbild des Social-Feeds — an der LIST, nicht an der Zeile (s. oben).
+            .fullScreenCover(isPresented: Binding(
+                get: { social.offen != nil },
+                set: { sichtbar in if !sichtbar { social.offen = nil } })
+            ) {
+                if let i = social.offen, social.items.indices.contains(i) {
+                    SocialPlayerView(
+                        lang: lang,
+                        item: social.items[i],
+                        hatZurueck: i > 0,
+                        hatWeiter: i < social.items.count - 1,
+                        onZurueck: { social.offen = i - 1 },
+                        onWeiter: { social.offen = i + 1 },
+                        onClose: { social.offen = nil }
+                    )
+                }
+            }
             // EIN Ziel fuer alle Session-Links dieses Stapels (Rekorde, Medien, Zeilen) —
             // wert-basiert statt closure-basiert, s. SessionDest in Models.swift.
             .navigationDestination(for: SessionDest.self) { d in
@@ -359,10 +380,13 @@ struct CommunityView: View {
             ? youtubeId(m.youtube_url).flatMap { URL(string: "\(Api.baseURL)/api/public/video-thumb/\($0)") }
             : Api.mediaURL(m.url)
         ZStack {
-            AsyncImage(url: thumb) { phase in
-                switch phase {
-                case .success(let img): img.resizable().scaledToFill()
-                default: Color(.tertiarySystemBackground)
+            // NetzBild statt AsyncImage: beim Tab-Wechsel wurde sonst jedes Bild neu
+            // angefordert, und zusammen mit der Feed-Galerie darueber blieben beide Zeilen
+            // leer (Jan, 31.08.). Mit Cache passiert beim Zurueckkommen gar keine Anfrage.
+            NetzBild(url: thumb) { stand in
+                switch stand {
+                case .da(let img): img.resizable().scaledToFill()
+                default:           Color(.tertiarySystemBackground)
                 }
             }
             .frame(width: 150, height: 100).clipped()
