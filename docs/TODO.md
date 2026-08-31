@@ -4379,3 +4379,26 @@ Offen daraus:
   Zug umgestellt, weil Jan gerade ein Release einreicht und die Zweig-Formen dort abweichen —
   ein Regex-Umbau haette unbemerkt Verhalten aendern koennen. Nachziehen, sobald die Meldung
   woanders auftaucht oder nach dem Release.
+
+- **🟡 31.08. 09:55 CEST — iOS/Apple Watch 1.1.27 (31) EINGEREICHT** (Jans Meldung: Archive
+  gestartet, Einreichung zur Pruefung). Vorgaenger 1.1.26 war seit 30.08. 21:50 UTC live, es hing
+  also nichts in der Warteschlange.
+  **`appmeta.ios`/`appmeta.apple` stehen bewusst weiter auf 1.1.26** — `latest` wird erst gesetzt,
+  wenn die Freigabe bestaetigt UND ueber `itunes.apple.com/lookup` gegengeprueft ist (nicht auf
+  die Mail allein verlassen, s. der Kommentar dort). Beide Schluessel dann ZUSAMMEN hochziehen,
+  die Watch-App steckt im selben Bundle.
+
+  **Inhalt von 1.1.27:**
+  - Kennzahlen und Rekorde je Foil auf der Startseite; Zeitfenster startet auf 10 Tagen und
+    faellt bei leerem Fenster schrittweise zurueck
+  - Satellitenansicht auf allen fuenf Karten mit einem Umschalter (Spot-Karte erst ab iOS 17,
+    dort sitzt als einzige SwiftUIs `Map` statt `MKMapView`)
+  - Community-Social-Feed: Hochformat-Kacheln, Vollbild mit Weiter/Zurueck, Melden, Knopf zu
+    YouTube, Kanalfeld in den Einstellungen
+  - Dateianhaenge im Feedback (bis drei, Bilder oder Logs)
+  - **Alle 17 Sprachen vollstaendig** — vorher fielen je Sprache 45 bis 183 Texte auf Englisch
+    zurueck; dazu nl/fi/cs neu auf der Apple Watch
+  - Karten-Abschnitt in der Datenschutzerklaerung; `<b>`-Marken werden gefettet statt gedruckt
+  - **Fehlerbehebungen aus Jans Simulator-Runde:** Spot-Karte zoomt wieder und ein Tipp auf die
+    leere Flaeche oeffnet keinen Spot mehr; das Vollbild des Feeds bleibt beim ersten Antippen
+    stehen; Vorschaubilder verschwinden nicht mehr beim Tab-Wechsel
