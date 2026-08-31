@@ -4415,9 +4415,33 @@ Offen daraus:
   - **Falle beim Bearbeiten:** `json.dump(indent=1)` passt zu `foils.json`, formatiert `stabs.json`
     aber komplett um (3032 Zeilen Diff fuer zwei Eintraege). Dort als TEXT anhaengen.
 
-- **🟡 31.08. — Feedback #116 (Philipp): GPS-Glitch in der VERLAUFS-Karte, nicht in der
-  Session-Karte.** Seine Vermutung: die Verlaufskarte nutzt die Uhr-Erkennung, die Session-Ansicht
-  die vom Server. Noch nicht untersucht.
+- **🟡 31.08. — Feedback #116 (Philipp): „GPS-Glitch" in der VERLAUFS-Karte, nicht in der
+  Session-Karte. UNTERSUCHT — Ursache ist das Herunterrechnen, nicht die Erkennung.**
+  Belegt an seiner Session **3157** (Illmensee, 31.08. vormittags).
+  - **Seine Vermutung trifft nicht zu:** beide Karten nutzen **dieselbe** Server-Spur
+    (`analysis_results.track_geojson`). Nirgends steckt eine Uhr-Erkennung drin.
+  - **Warum die Session-Karte sauber aussieht:** `SessionDetail.tsx` zeichnet, sobald Laeufe
+    erkannt sind, **nur INNERHALB der Laeufe** (`i_start..i_end` je Segment). Bei 3157 sind das
+    **355 von 2087 Punkten = 17 %**. Nachgemessen: **alle 12 Schritte ueber 30 m liegen AUSSERHALB
+    jedes Laufs** — sie werden also nie gezeichnet. (Nur im Rueckfall „gar keine Laeufe" zeichnet
+    sie alles, dann mit 200-m-Schwelle.)
+  - **Warum die Verlaufs-Animation den Ausreisser zeigt:** `SpotProgression.tsx` zeichnet die
+    **komplette** Spur, jedes aufeinanderfolgende Punktepaar, **ohne jede Lueckenschwelle**.
+  - **Der eigentliche Verstaerker ist `SPOT_TRACK_MAX_PTS = 150`** in `sessions.spot_tracks`:
+    2087 Punkte → **stride 14**, es wird also nur **jeder 14.** Punkt gezeichnet. Gemessen an der
+    so gebauten Spur: Median-Abstand **4 m**, aber zwei Strecken von **93 m und 92 m** — und die
+    liegen genau bei Original-Index 1232–1260, also dort, wo die Rohspur ihre 214-m- und
+    132-m-Ausreisser hat. Zwei lange Geraden mitten im Bild sehen aus wie ein Glitch.
+  - **Gegenprobe, die es bestaetigt:** seine ZWEITE Session (3158) hat nur 48 Punkte → stride 1 →
+    groesster Abstand 5 m, kein Artefakt. Genau deshalb faellt es ihm nur bei der ersten auf.
+  - **Vorschlag (Jans Entscheidung, es ist eine Darstellungsaenderung):** in `spot_tracks`
+    **nach der impliziten GESCHWINDIGKEIT filtern, nicht nach einer festen Meter-Schwelle** — der
+    Server kennt den stride, also die echte Zeitdifferenz. Bei 32 km/h (dieselbe Grenze wie in
+    `analysis/gps.py`) waeren das bei stride 14 rund 124 m; die legitimen 93-m-Spruenge (= 24 km/h)
+    ueberleben, die 214 m in EINER Sekunde (770 km/h) nicht. **Eine feste 30-m-Regel wie in
+    `CompareMap` waere hier falsch** und wuerde bei stride 14 halbe Strecken loeschen.
+    Alternative/zusaetzlich: `SPOT_TRACK_MAX_PTS` von 150 anheben — kostet aber Payload in einem
+    Bulk-Endpunkt.
 
 - **✅ 31.08. — iOS/Apple Watch 1.1.27 IST LIVE, Freigabekette abgearbeitet.** Freigabe-Mail
   („ready for distribution") gegen 19 Uhr Berlin, `appmeta.ios` UND `appmeta.apple` zusammen auf
