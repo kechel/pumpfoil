@@ -4515,6 +4515,28 @@ Offen daraus:
   1. `.iq` hochladen 2. Freigabe des CIQ-Stores ABWARTEN 3. erst dann `build-all.sh`
   (das veroeffentlicht die Website-Downloads sofort) 4. dann `appmeta.garmin` + Changelog.
 
+- **🔴 31.08. — Instinct-2-Befund NACHGEMESSEN und korrigiert: es ist KEIN Erkennungsproblem,
+  die Uhr bricht die Sessions ab.** Die bisherige Notiz („zeichnet NICHTS auf", „nur 15 von 39
+  Sessions haben Laeufe") war irrefuehrend — die Zahl stimmt, die Deutung nicht.
+  - **Fordert man echte Bewegung (> 500 m gefahren, aber NULL Laeufe erkannt), bleibt bei der
+    Instinct 2 genau 1 von 34 Sessions uebrig (3 %).** Die vielen „ohne Laeufe" sind schlicht
+    winzige Aufnahmen: **Median-Dauer 1,5 min, Median-Strecke 123 m** — gegen 40,5 min / 3308 m
+    bei der fenix 7. Es fehlen keine Laeufe; es fehlt die Session.
+  - **Der eigentliche Befund: 19 von 34 Instinct-2-Sessions (56 %) haben gar kein `ended_at`** —
+    sie erreichen `/complete` also nie. Zum Vergleich: fenix 7 11 %, FR55 14 %. Die Instinct 2 X
+    liegt bei 4 von 5 (80 %). Das passt zur 96-KB-Klasse und zu `docs/WATCH-STORAGE.md`, nicht zu
+    einem Detektor-Thema.
+  - **gps_only ist NICHT die Ursache:** 30 von 34 Instinct-2-Sessions sind gps_only, aber der FR55
+    ist mit 48 von 51 genauso gps_only und kommt trotzdem auf 14 % Abbrueche und normale Laengen.
+  - **Nebenbefund, der die alte Statistik erklaert:** die scheinbar katastrophalen Quoten anderer
+    Modelle (epix2pro51mm 94 % „ohne Laeufe", instinct3amoled50mm 91 %, descentmk2 89 %) loesen
+    sich mit demselben Filter praktisch komplett auf — das waren kurze Test-/Standaufnahmen.
+    Der einzige Kandidat mit nennenswerter absoluter Zahl ist **fenix7x (006-B3907-00): 18 von 90
+    Sessions ueber 500 m ohne einen einzigen Lauf, bei 11 verschiedenen Nutzern** — das ist der
+    naechste lohnende Faden, nicht die Instinct.
+  - **Offen:** warum bricht die Instinct 2 ab? Verdacht Speicher/Puffer auf der 96-KB-Klasse.
+    Braucht einen Lauf im Simulator mit dem LITE-Build; nichts davon ist aus der DB zu klaeren.
+
 - **✅ 31.08. ERLEDIGT (Jans OK eingeholt) — zusammengefuehrte Sessions haben wieder eine echte
   Uhrzeit-Achse. `merge.py` repariert, alle 48 Bestands-Sessions neu gebaut und analysiert.**
   **Ergebnis der Regressionspruefung gegen die Sicherung:** 42 von 48 Sessions in Foil-Strecke UND
