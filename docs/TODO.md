@@ -4264,3 +4264,11 @@ Offen daraus:
   **Lehre: nach jedem Masseneinfuegen in Sprachdateien auf Dopplungen pruefen** — je Literal,
   mit korrekten Blockgrenzen. Ein `split()` auf den Tabellennamen zaehlt die Folgetabellen mit
   und meldet Dopplungen, die es nicht gibt (darauf bin ich einmal hereingefallen).
+
+- **✅ 31.08. — Waisen-Tabelle `social_item_likes` geloescht (Jans Ansage).** Uebrig geblieben vom
+  eigenen Like-Versuch am 30.08., der noch am selben Tag zurueckgebaut wurde. Vor dem Loeschen
+  geprueft: **0 Zeilen, kein Modell in `models.py`, keine Codestelle, kein Fremdschluessel darauf**
+  — und die Zeilenzahl direkt vor dem `DROP` noch einmal, statt der Messung von vorher zu trauen.
+  DDL zum Wiederanlegen, falls das Thema je zurueckkommt:
+  `id integer, user_id integer, item_id integer, created_at timestamptz`.
+  Uebrig im Social-Bereich: `social_channels` und `social_items`.
