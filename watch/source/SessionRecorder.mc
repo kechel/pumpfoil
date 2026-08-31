@@ -574,11 +574,24 @@ class SessionRecorder {
 
     // Puffer-Budget uebernehmen. Eigene Messung schlaegt Servervorgabe nicht — der Server
     // LIEFERT bereits die eigene Messung, wenn er eine hat (s. _storage_budget_kb).
+    //
+    // Eine 0 heisst "unbekannt" und muss den CACHE LEEREN. Vorher hat diese Funktion nur Werte
+    // > 0 uebernommen, und genau daran waere der Fix vom 31.08. gescheitert: der Server schickt
+    // seither 0, wenn er die Grenze dieser Uhr nicht gemessen hat — die Uhr hat aber ihren alten
+    // gecachten Wert behalten und weiter einen falschen Countdown gezeigt (Jans Meldung vom See:
+    // "noch 2 Minuten, noch 1, noch 0", nach zehn Minuten Session). Serverseitig allein ist das
+    // also nicht zu heilen; eine Uhr braucht diese Fassung.
     hidden function _applyStorageBudget(data) {
-        if (data.hasKey("storageBudgetKb") && data["storageBudgetKb"] instanceof Lang.Number
-                && data["storageBudgetKb"] > 0) {
-            storageBudgetKb = data["storageBudgetKb"];
-            _store("storagebudget_kb", storageBudgetKb);
+        if (!data.hasKey("storageBudgetKb") || !(data["storageBudgetKb"] instanceof Lang.Number)) {
+            return;                     // Schluessel fehlt (alter Server) -> nichts anfassen
+        }
+        var kb = data["storageBudgetKb"];
+        if (kb > 0) {
+            storageBudgetKb = kb;
+            _store("storagebudget_kb", kb);
+        } else {
+            storageBudgetKb = 0;        // -> storageMinutesLeft() gibt -1, es wird nichts gezeigt
+            try { Storage.deleteValue("storagebudget_kb"); } catch (e) { }
         }
     }
 

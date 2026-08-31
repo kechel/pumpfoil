@@ -4441,6 +4441,18 @@ Offen daraus:
   oder dieses Modells wirklich gemessen wurde — 8 Geraete in der Flotte, 148…431 KB.
   **Serverseitig, wirkt also sofort ohne App-Update.** Betroffen war die Anzeige seit **1.0.80**
   (27.08.), NICHT erst seit 1.0.82 — wichtig fuer jede Nutzermitteilung.
+  **NACHTRAG, und das ist der wichtige Teil: serverseitig allein war es NICHT zu heilen.**
+  `_applyStorageBudget` in `SessionRecorder.mc` hat nur Werte > 0 uebernommen — eine 0 vom Server
+  liess den alten gecachten Wert (`storagebudget_kb` im Object Store) unangetastet stehen. Jede
+  Uhr, die seit 1.0.80 einmal ein `/config` geholt hat, traegt also weiter ihre 200 KB und zeigt
+  den falschen Countdown, egal was der Server jetzt sagt. Beinahe haette Jans Test genau daran
+  ein „nicht behoben" ergeben.
+  Jetzt raeumt eine 0 den Cache (`Storage.deleteValue`), und `storageMinutesLeft()` liefert wieder
+  -1 = nichts anzeigen. **Das braucht eine neue Uhr-Fassung: Garmin auf 1.0.83 gebumpt** (1.0.82
+  ist live, der Baum weicht damit ab — nicht unter der alten Nummer bauen). Per Einzelbuild auf
+  fenix7xpro gegengeprueft, `watch/bin` NICHT angefasst.
+  **Bis 1.0.83 im Store ist, sehen betroffene Uhren die falsche Warnung weiter.** Wer sie sofort
+  los sein will, muss die Uhr-App neu installieren (das leert den Object Store).
   Offen bleibt: fuer Uhren ohne Messung wissen wir die Grenze weiterhin nicht. Das ist ehrlicher
   als eine erfundene Zahl, kostet aber die Vorwarnung. Wer sie zurueckhaben will, braucht echte
   Messungen je Modell (die kommen von selbst, sobald eine Uhr einmal volllaeuft).
