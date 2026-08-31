@@ -544,7 +544,12 @@ struct SpotProgressMap: UIViewRepresentable {
         if co.lastKey != regionKey {
             co.lastKey = regionKey
             var lats: [Double] = [], lons: [Double] = []
-            for tr in all { for p in tr.track where p.count >= 2 { if let la = p[0], let lo = p[1] { lats.append(la); lons.append(lo) } } }
+            // Ausschnitt ueber das, was auch GEZEICHNET wird — sonst zoomt der Rahmen auf
+            // Steg- und Treibstrecken hinaus, die im Bild gar nicht vorkommen.
+            for tr in all {
+                let quelle = (tr.runs?.isEmpty == false) ? tr.runs!.flatMap { $0 } : tr.track
+                for p in quelle where p.count >= 2 { if let la = p[0], let lo = p[1] { lats.append(la); lons.append(lo) } }
+            }
             if let laMin = lats.min(), let laMax = lats.max(), let loMin = lons.min(), let loMax = lons.max() {
                 let center = CLLocationCoordinate2D(latitude: (laMin + laMax) / 2, longitude: (loMin + loMax) / 2)
                 let span = MKCoordinateSpan(latitudeDelta: max((laMax - laMin) * 1.3, 0.002),
@@ -554,20 +559,37 @@ struct SpotProgressMap: UIViewRepresentable {
         }
         map.removeOverlays(map.overlays)
         co.colors.removeAll()
-        let pts = current.track
-        var i = 0
-        while i < pts.count - 1 {
-            let a = pts[i], b = pts[i + 1]
-            if a.count >= 2, b.count >= 2, let la = a[0], let lo = a[1], let lb = b[0], let lob = b[1] {
-                let ca = CLLocationCoordinate2D(latitude: la, longitude: lo)
-                let cb = CLLocationCoordinate2D(latitude: lb, longitude: lob)
-                let pl = MKPolyline(coordinates: [ca, cb], count: 2)
-                let col: UIColor = (b.count > 2 ? b[2] : nil).map { spotRamp((($0 * 3.6) - speedRange.0) / max(speedRange.1 - speedRange.0, 1e-6)) } ?? .systemGray
-                co.colors[ObjectIdentifier(pl)] = col
-                map.addOverlay(pl)
+        // JE LAUF eine eigene Linie — zwischen zwei Laeufen wird NICHT verbunden.
+        //
+        // Vorher lief hier die komplette Aufnahme durch, und weil zwischen den Laeufen getrieben
+        // und gepaddelt wird (bei einer gemessenen Session 83 % aller Punkte), verband eine Gerade
+        // Stellen, die nach dem Herunterrechnen 14 Sekunden auseinanderlagen — das sah aus wie ein
+        // GPS-Glitch (Meldung 31.08.). Gemessen an 25 Sessions faellt die groesste gezeichnete
+        // Strecke damit von 52 m auf 6 m im Median.
+        //
+        // Ohne erkannte Laeufe die ganze Spur zeichnen (sonst waere die Karte genau bei
+        // GPS-only-Sessions leer) — mit derselben grosszuegigen Schwelle wie im Session-Detail.
+        func linie(_ pts: [[Double?]], _ maxLuecke: Double) {
+            var i = 0
+            while i < pts.count - 1 {
+                let a = pts[i], b = pts[i + 1]
+                if a.count >= 2, b.count >= 2, let la = a[0], let lo = a[1], let lb = b[0], let lob = b[1] {
+                    let ca = CLLocationCoordinate2D(latitude: la, longitude: lo)
+                    let cb = CLLocationCoordinate2D(latitude: lb, longitude: lob)
+                    let weit = maxLuecke > 0 && CLLocation(latitude: la, longitude: lo)
+                        .distance(from: CLLocation(latitude: lb, longitude: lob)) > maxLuecke
+                    if !weit {
+                        let pl = MKPolyline(coordinates: [ca, cb], count: 2)
+                        let col: UIColor = (b.count > 2 ? b[2] : nil).map { spotRamp((($0 * 3.6) - speedRange.0) / max(speedRange.1 - speedRange.0, 1e-6)) } ?? .systemGray
+                        co.colors[ObjectIdentifier(pl)] = col
+                        map.addOverlay(pl)
+                    }
+                }
+                i += 1
             }
-            i += 1
         }
+        if let runs = current.runs, !runs.isEmpty { for lauf in runs { linie(lauf, 0) } }
+        else { linie(current.track, 200) }
     }
 
     func makeCoordinator() -> Coordinator { Coordinator() }

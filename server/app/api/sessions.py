@@ -1277,7 +1277,8 @@ def spot_tracks(spot: str, user: models.User = Depends(current_user),
     Verlaufs-Animation — fixer Ausschnitt, keine Optionen; inkl. GPS-only-Sessions."""
     rows = (
         db.query(models.AnalysisResult.track_geojson, models.AnalysisResult.foiling_distance_m,
-                 models.Session.id, models.Session.started_at)
+                 models.Session.id, models.Session.started_at,
+                 models.AnalysisResult.segments_json)
         .join(models.Session, models.AnalysisResult.session_id == models.Session.id)
         .filter(models.Session.user_id == user.id, models.Session.deleted.isnot(True),
                 # Wie in `my_spots`: aussortierte Aufnahmen gehoeren nicht in die Animation.
@@ -1287,7 +1288,7 @@ def spot_tracks(spot: str, user: models.User = Depends(current_user),
         .order_by(models.Session.started_at.asc()).all()
     )
     out = []
-    for gj_json, fdist, sid, ts in rows:
+    for gj_json, fdist, sid, ts, seg_json in rows:
         if not gj_json:
             continue
         try:
@@ -1306,9 +1307,46 @@ def spot_tracks(spot: str, user: models.User = Depends(current_user),
             sp = speeds[i] if i < len(speeds) else None
             track.append([round(c[1], 6), round(c[0], 6),
                           round(float(sp), 2) if sp is not None else None])
+        # `runs`: dieselbe Spur, aber JE LAUF eine eigene Linie — und der stride nur ueber die
+        # Lauf-Punkte gerechnet.
+        #
+        # Warum das noetig ist (Philipps Meldung 31.08., Feedback #116): `track` ist die KOMPLETTE
+        # Aufnahme, heruntergerechnet auf SPOT_TRACK_MAX_PTS. Bei seiner Session waren das 2087
+        # Punkte -> jeder 14. — und weil zwischen den Laeufen getrieben/gepaddelt wird (bei ihm
+        # 83 % aller Punkte), verbinden lange Geraden Stellen, die 14 Sekunden auseinanderliegen.
+        # Zusammen mit den GPS-Ausreissern DORT (alle 12 Spruenge > 30 m lagen ausserhalb jedes
+        # Laufs) sieht das aus wie ein Glitch. Gemessen an 25 Sessions, groesste gezeichnete
+        # Strecke im Median/Maximum: ganze Spur 52/124 m, Laeufe aneinandergehaengt 60/206 m
+        # (schlechter! die Gerade von Lauf-Ende zu Lauf-Start quert den See), je Lauf eine eigene
+        # Linie **6/32 m**. Nebengewinn: dieselben 150 Punkte reichen dann fuer volle
+        # 1-Hz-Aufloesung auf den Laeufen (stride 1 in 17 von 25 Sessions).
+        #
+        # `track` BLEIBT unveraendert — draussen laufen App-Versionen, die nur das kennen.
+        # Neue Clients nehmen `runs`, wenn es nicht leer ist, sonst weiter `track`.
+        runs: list[list[list]] = []
+        try:
+            segs = json.loads(seg_json) if seg_json else []
+        except ValueError:
+            segs = []
+        gesamt = sum(max(0, min(g.get("i_end", 0), len(coords) - 1) - g.get("i_start", 0) + 1)
+                     for g in segs)
+        if gesamt >= 2:
+            r_stride = max(1, -(-gesamt // SPOT_TRACK_MAX_PTS))
+            for g in segs:
+                a, b = g.get("i_start", 0), min(g.get("i_end", 0), len(coords) - 1)
+                linie = []
+                for i in range(a, b + 1, r_stride):
+                    if i < 0 or i >= len(coords):
+                        continue
+                    c = coords[i]
+                    sp = speeds[i] if i < len(speeds) else None
+                    linie.append([round(c[1], 6), round(c[0], 6),
+                                  round(float(sp), 2) if sp is not None else None])
+                if len(linie) >= 2:
+                    runs.append(linie)
         out.append({
             "session_id": sid, "started_at": ts.isoformat() if ts else None,
-            "foiling_km": round((fdist or 0.0) / 1000.0, 2), "track": track,
+            "foiling_km": round((fdist or 0.0) / 1000.0, 2), "track": track, "runs": runs,
         })
     return out
 

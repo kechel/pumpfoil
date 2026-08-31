@@ -8,7 +8,11 @@ import { useT } from "../i18n";
 import { Card, Spinner } from "./ui";
 import { PlayIcon } from "./Icons";
 
-type Track = { session_id: number; started_at: string | null; foiling_km: number; track: [number, number, number | null][] };
+type Punkt = [number, number, number | null];
+// `runs` = je Lauf eine eigene Linie (Server seit 31.08.); `track` = die komplette Aufnahme,
+// bleibt fuer draussen laufende App-Versionen erhalten. Hier wird `runs` genommen, wenn es
+// welche gibt, sonst `track`.
+type Track = { session_id: number; started_at: string | null; foiling_km: number; track: Punkt[]; runs: Punkt[][] };
 
 // Verlaufs-Animation: alle eigenen Sessions eines Spots chronologisch durchschalten, auf
 // FIXEM Kartenausschnitt (Union aller Spuren). Farbe = Speed (3s), keine Optionen/Pump-Marker.
@@ -67,9 +71,12 @@ export function SpotProgression() {
     }
     const map = mapObj.current;
     map.eachLayer((l) => { if (l instanceof L.LayerGroup || l instanceof L.Polyline) map.removeLayer(l); });
-    // Fixer Ausschnitt = Union ALLER Spuren (nur für die Bounds, nicht gezeichnet).
+    // Fixer Ausschnitt = Union ALLER Spuren (nur für die Bounds, nicht gezeichnet). Gerechnet
+    // ueber das, was auch GEZEICHNET wird — sonst zoomt der Rahmen auf Steg- und Treibstrecken
+    // hinaus, die im Bild gar nicht vorkommen.
     const all: [number, number][] = [];
-    tracks.forEach((tr) => tr.track.forEach((p) => all.push([p[0], p[1]])));
+    tracks.forEach((tr) => (tr.runs?.length ? tr.runs.flat() : tr.track)
+      .forEach((p: Punkt) => all.push([p[0], p[1]])));
     curRef.current = L.layerGroup().addTo(map);
     if (all.length) map.fitBounds(L.latLngBounds(all), { padding: [20, 20] });
     setTimeout(() => map.invalidateSize(), 50);
@@ -80,11 +87,28 @@ export function SpotProgression() {
     const map = mapObj.current, lg = curRef.current, tr = tracks?.[idx];
     if (!map || !lg || !tr) return;
     lg.clearLayers();
-    for (let i = 0; i < tr.track.length - 1; i++) {
-      const a = tr.track[i], b = tr.track[i + 1];
-      const color = b[2] == null ? "#64748b" : speedColor(b[2] * 3.6, lo, hi);
-      L.polyline([[a[0], a[1]], [b[0], b[1]]], { color, weight: 4, opacity: 0.95 }).addTo(lg);
-    }
+    const zeichne = (linie: Punkt[], maxLuecke: number) => {
+      for (let i = 0; i < linie.length - 1; i++) {
+        const a = linie[i], b = linie[i + 1];
+        if (maxLuecke && map.distance([a[0], a[1]], [b[0], b[1]]) > maxLuecke) continue;
+        const color = b[2] == null ? "#64748b" : speedColor(b[2] * 3.6, lo, hi);
+        L.polyline([[a[0], a[1]], [b[0], b[1]]], { color, weight: 4, opacity: 0.95 }).addTo(lg);
+      }
+    };
+    // JE LAUF eine eigene Linie — zwischen zwei Laeufen wird NICHT verbunden.
+    //
+    // Vorher lief hier die komplette Aufnahme durch, und weil zwischen den Laeufen getrieben und
+    // gepaddelt wird (bei einer gemessenen Session 83 % aller Punkte), verband eine Gerade
+    // Stellen, die nach dem Herunterrechnen 14 Sekunden auseinanderlagen — das sah aus wie ein
+    // GPS-Glitch (Philipps Meldung 31.08.). Gemessen an 25 Sessions faellt die groesste
+    // gezeichnete Strecke damit von 52 m auf 6 m im Median. Die Laeufe ANEINANDERZUHAENGEN waere
+    // uebrigens SCHLECHTER als vorher (60 m): die Gerade von Lauf-Ende zu Lauf-Start quert den See.
+    //
+    // Ohne erkannte Laeufe (GPS-only, oder der Detektor fand nichts) die ganze Spur zeichnen,
+    // sonst waere die Karte genau bei den Sessions leer, bei denen man am ehesten nachschaut —
+    // mit derselben grosszuegigen Schwelle wie im Session-Detail.
+    if (tr.runs?.length) tr.runs.forEach((lauf: Punkt[]) => zeichne(lauf, 0));
+    else zeichne(tr.track, 200);
   }, [idx, tracks, lo, hi]);
 
   // Autoplay: eine Session pro Tick.

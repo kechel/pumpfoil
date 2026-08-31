@@ -4415,7 +4415,7 @@ Offen daraus:
   - **Falle beim Bearbeiten:** `json.dump(indent=1)` passt zu `foils.json`, formatiert `stabs.json`
     aber komplett um (3032 Zeilen Diff fuer zwei Eintraege). Dort als TEXT anhaengen.
 
-- **🟡 31.08. — Feedback #116 (Philipp): „GPS-Glitch" in der VERLAUFS-Karte, nicht in der
+- **✅ 31.08. ERLEDIGT — Feedback #116 (Philipp): „GPS-Glitch" in der VERLAUFS-Karte, nicht in der
   Session-Karte. UNTERSUCHT — Ursache ist das Herunterrechnen, nicht die Erkennung.**
   Belegt an seiner Session **3157** (Illmensee, 31.08. vormittags).
   - **Seine Vermutung trifft nicht zu:** beide Karten nutzen **dieselbe** Server-Spur
@@ -4451,6 +4451,19 @@ Offen daraus:
     **Preis:** man sieht nicht mehr, wo man gepaddelt/getrieben hat. Fuer eine
     FORTSCHRITTS-Animation ist das richtig; heute machen die Nicht-Foil-Punkte 83 % des Bildes aus.
     Die vorher hier notierte Geschwindigkeits-Schwelle ist damit hinfaellig.
+  - **UMGESETZT (31.08.), auf allen drei Clients.** Server (`spot_tracks`) liefert zusaetzlich
+    `runs` = je Lauf eine eigene Linie, stride nur ueber die Lauf-Punkte. **`track` bleibt
+    unveraendert daneben stehen** — draussen laufen App-Versionen (Android 1.1.23, iOS 1.1.26/27),
+    die nur das kennen; ein Feldwechsel haette sie sofort kaputtgemacht. Neue Clients nehmen
+    `runs`, wenn es nicht leer ist, sonst `track` mit 200-m-Schwelle (GPS-only/kein Lauf erkannt).
+    Nachgemessen ueber Philipps Spot, echter Endpunkt-Aufruf mit seinem Konto:
+    | Session | track (heute) | runs (neu) |
+    |---|---|---|
+    | s3157 | 150 Punkte, groesste Strecke **93 m** | 12 Linien, 123 Punkte, **14 m** |
+    | s2984 | 148 Punkte, **66 m** | 4 Linien, 110 Punkte, **12 m** |
+    | s2919 | 128 Punkte, **33 m** | 5 Linien, 106 Punkte, **5 m** |
+    Web live; Android/iOS laufen in **1.1.25** bzw. **1.1.28** mit. `:app:compileDebugKotlin`
+    gruen, `swiftc -parse` gruen, `tsc --noEmit` gruen.
 
 - **✅ 31.08. — iOS/Apple Watch 1.1.27 IST LIVE, Freigabekette abgearbeitet.** Freigabe-Mail
   („ready for distribution") gegen 19 Uhr Berlin, `appmeta.ios` UND `appmeta.apple` zusammen auf

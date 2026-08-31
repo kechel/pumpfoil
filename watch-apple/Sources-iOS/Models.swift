@@ -353,7 +353,11 @@ struct SpotTrack: Codable, Identifiable {
     let session_id: Int
     let started_at: String?
     let foiling_km: Double
-    let track: [[Double?]]        // [[lat, lon, speed_mps?]]
+    let track: [[Double?]]        // [[lat, lon, speed_mps?]] — GANZE Aufnahme
+    // JE LAUF eine eigene Linie (Server seit 31.08.). `track` bleibt daneben stehen, weil
+    // draussen App-Versionen laufen, die nur das kennen. Wer `runs` hat, nimmt `runs`: zwischen
+    // zwei Laeufen wird sonst quer ueber den See verbunden (s. VerlaufView).
+    let runs: [[[Double?]]]?
     var id: Int { session_id }
 }
 
