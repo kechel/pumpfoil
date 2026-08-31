@@ -938,6 +938,13 @@ struct SessionDest: Hashable {
     var dataVersion: Int? = nil
 }
 
+// Ziel der programmatischen Navigation von der Spot-KARTE aus (wert- statt closure-basiert,
+// wie SessionDest). Grund steht in SpotsView.annotation: ein NavigationLink in einer
+// List-Zeile macht die ganze Zeile zum Knopf.
+struct SpotDest: Hashable {
+    let spot: String
+}
+
 // Freitextsuche im Material-Katalog — UNABHAENGIG von der Wortstellung.
 //
 // Anlass (24.08.): Meldung aus DIESER App, „fehlt im Katalog: Axis png 1300 v2". Der Fluegel stand

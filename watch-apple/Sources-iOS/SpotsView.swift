@@ -42,6 +42,9 @@ struct SpotsView: View {
     @AppStorage("appLang") private var lang = "de"
     // Karten-Ebene appweit (s. MapTiles.swift).
     @AppStorage(MapTiles.schluessel) private var ebene = MapTiles.karte
+    // Programmatische Navigation von der Karte aus — s. `annotation` unten. Dieselbe Loesung
+    // wie in CommunityView, wo genau dieser Fehler schon einmal auftrat.
+    @State private var navPath = NavigationPath()
     @State private var items: [SpotMapItem] = []
     @State private var loading = false
     @State private var error: String?
@@ -59,12 +62,14 @@ struct SpotsView: View {
     // Ausdruck auf, und Karte samt Pin-Label (verschachtelte Closures) plus Liste in einem Body
     // ließen das Archive hängen. Reihenfolge, Layout und Texte sind unverändert.
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navPath) {
             List {
                 mapSection
                 listSection
             }
             .listStyle(.insetGrouped)
+            // Wert-basiertes Ziel statt eines Links IN der Kartenzeile (s. `annotation`).
+            .navigationDestination(for: SpotDest.self) { d in SpotSessionsView(spot: d.spot) }
             .navigationTitle(Loc.t("nav.spots", lang))
             .brandToolbar(Loc.t("nav.spots", lang))
             .overlay { if loading && items.isEmpty { ProgressView() } }
@@ -95,7 +100,7 @@ struct SpotsView: View {
     /// Die Spot-Karte, ggf. als Luftbild.
     ///
     /// EINZIGE Karte der App, die nicht auf `MKMapView` sitzt, sondern auf SwiftUIs `Map` —
-    /// wegen der Buendel-Pins mit `NavigationLink`, die es dort als `MapAnnotation` gibt.
+    /// wegen der Buendel-Pins, die es dort als `MapAnnotation` mit eigener View gibt.
     /// Der Preis: die Ebene laesst sich nur ueber `mapStyle` setzen, und das gibt es erst ab
     /// iOS 17. Auf iOS 16 bleibt diese eine Karte deshalb die Strassenkarte; der Umschalter
     /// wirkt dort auf den vier anderen Karten trotzdem. Ein Umbau auf `MKMapView` waere die
@@ -114,12 +119,23 @@ struct SpotsView: View {
         }
     }
 
-    // Ein Pin: einzelner Spot -> direkt zu seinen Sessions. Buendel -> hineinzoomen, damit der
-    // Nutzer selbst waehlt (genau Jaceks Meldung vom 20.08.: bei Europa-Zoom ueberdeckten sich die
-    // Pins, und der Klick landete in einem beliebigen Nachbarspot).
+    /// Ein Pin: einzelner Spot -> direkt zu seinen Sessions. Buendel -> hineinzoomen, damit der
+    /// Nutzer selbst waehlt (Jaceks Meldung vom 20.08.: bei Europa-Zoom ueberdeckten sich die
+    /// Pins, und der Klick landete in einem beliebigen Nachbarspot).
+    ///
+    /// **Hier steht bewusst KEIN `NavigationLink`** (Jans Meldung 31.08.: „im Emulator kann ich
+    /// die Karte nicht zoomen, ein Klick irgendwo auf die Karte oeffnet trotzdem einen Spot, und
+    /// der Zurueck-Knopf wechselt in einen Spot statt zur Karte"). Alle drei Symptome haben
+    /// dieselbe Ursache: ein `NavigationLink` in einer `List`-Zeile macht die GANZE Zeile zum
+    /// Knopf — die Zeile schluckt damit die Zoom-/Schwenk-Gesten der Karte, reagiert auf jeden
+    /// Tipp, und beim Aktivieren liegen zwei Ziele auf dem Stapel.
+    /// Genau derselbe Fehler war in `CommunityView` schon einmal dran („Zurueck geht eine
+    /// Session zurueck"); dort wie hier ist die Loesung ein Button, der GENAU EIN Ziel anhaengt.
     @ViewBuilder private func annotation(_ b: SpotBuendel) -> some View {
         if b.teil.count == 1 {
-            NavigationLink { SpotSessionsView(spot: b.teil[0].spot) } label: { pin(b.teil[0].sessions) }
+            Button { navPath.append(SpotDest(spot: b.teil[0].spot)) } label: { pin(b.teil[0].sessions) }
+                .buttonStyle(.plain)
+                .accessibilityLabel(b.teil[0].spot)
         } else {
             Button { hineinzoomen(b) } label: { buendelPin(b.teil.count) }
                 .buttonStyle(.plain)
@@ -154,7 +170,7 @@ struct SpotsView: View {
         Section {
             if let error { Text(error).foregroundStyle(.secondary) }
             ForEach(items) { s in
-                NavigationLink { SpotSessionsView(spot: s.spot) } label: { spotRow(s) }
+                NavigationLink(value: SpotDest(spot: s.spot)) { spotRow(s) }
             }
             if items.isEmpty && !loading && error == nil {
                 Text(Loc.t("spots.empty", lang)).foregroundStyle(.secondary)
