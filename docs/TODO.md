@@ -4402,3 +4402,16 @@ Offen daraus:
   - **Fehlerbehebungen aus Jans Simulator-Runde:** Spot-Karte zoomt wieder und ein Tipp auf die
     leere Flaeche oeffnet keinen Spot mehr; das Vollbild des Feeds bleibt beim ersten Antippen
     stehen; Vorschaubilder verschwinden nicht mehr beim Tab-Wechsel
+
+- **🟡 31.08. — Android/Wear/Zepp im Baum gebumpt, WEIL die Pruefung noch laeuft.**
+  Jans Stand: Phone 1.1.24 (38), Wear 1.2.24 (1034) und Zepp 1.0.7 sind seit 26.08. eingereicht
+  und noch nicht freigegeben. Im Baum standen bis eben **dieselben Nummern** — inzwischen sind
+  aber fuenf Tage Arbeit dazugekommen (Lauf-Erkennung, API 36, Kennzahlen je Foil, Satellit,
+  Feedback-Anhaenge, Social-Feed, alle 17 Sprachen, `rec.paused` auf Wear). Ein Release-Build
+  haette also unter der Nummer eines anderen Inhalts gestanden.
+  **Genau das ist am 13.08. schon einmal passiert** (Apple: „der Build trug bereits 1.1.24", Jan
+  musste die Pruefung zurueckziehen). Deshalb jetzt vorsorglich hoch:
+  **Phone 1.1.25 (39) · Wear 1.2.25 (1035) · Zepp 1.0.8 (11).**
+  `appmeta` bleibt unveraendert — dort steht weiter, was WIRKLICH im Store ist (1.1.23 / 1.2.23 /
+  1.0.6). Wenn die laufende Pruefung durchgeht, wandert 1.1.24/1.2.24/1.0.7 dorthin, und die
+  naechste Runde geht mit den jetzt gesetzten Nummern raus.
