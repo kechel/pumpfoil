@@ -4272,3 +4272,32 @@ Offen daraus:
   DDL zum Wiederanlegen, falls das Thema je zurueckkommt:
   `id integer, user_id integer, item_id integer, created_at timestamptz`.
   Uebrig im Social-Bereich: `social_channels` und `social_items`.
+
+- **✅ 31.08. — Alle fehlenden Web-Uebersetzungen nachgezogen (Jans Auftrag).** Vorher fehlten je
+  Sprache 350–550 Schluessel und fielen still auf Englisch zurueck. Jetzt fehlen in **allen 16
+  Sprachen nur noch Admin-Texte** — und die bleiben bewusst deutsch (Jan: „Admin-Ansicht kannst
+  du aussparen, die nutze nur ich, die ist Absicht").
+
+  | | vorher fehlend | jetzt (nur `adm.*`) |
+  |---|---|---|
+  | gsw / de-AT | 526 / 508 | 196 / 178 |
+  | fr / it / es | 544–546 | 196 |
+  | ja / zh | 406 | 89 |
+  | pt / ru / id | 385 | 89 |
+  | fi | 386 | 75 |
+  | nl / cs | 353 | 60 |
+  | nb | 111 | 55 |
+  | pl | 54 | 47 |
+
+  **Umfang: 371 nutzersichtbare Schluessel je Sprache, rund 4900 Uebersetzungen.** Schwerpunkte
+  waren der Layout-Editor (106 Schluessel), die Uhr-Einstellungen im Konto (37), die Teilen-Karte
+  (30), das detaillierte Setup (30) und die Spot-Beschreibungen (18).
+
+  **Verfahren:** die Web-Locales sind die Quelle; ein Werkzeug im Scratchpad traegt nur ein, was
+  in der Zieldatei WIRKLICH fehlt, und ueberschreibt nie einen vorhandenen Wert — was schon
+  uebersetzt ist, hat jemand geprueft. Deshalb stehen unter den 371 je Sprache unterschiedlich
+  viele echte Neuzugaenge (25–82 waren schon da).
+
+- **📥 31.08. — Offen: dieselben 371 Schluessel in Android und iOS.** Die Apps ziehen ihre
+  Uebersetzungen aus denselben Web-Locales, haben aber ihren eigenen Bestand. Der Nachzug dorthin
+  ist derselbe Handgriff (`i18n_insert_kt.py` / `i18n_insert_swift.py`), nur noch nicht gemacht.
