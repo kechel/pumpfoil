@@ -655,6 +655,10 @@ class MainActivity : ComponentActivity() {
             // Session-Ende) -> das remember-State setzt sich zurück, der Countdown startet neu.
             var autoCountdown by remember { mutableStateOf(10) }
             var autoArmed by remember { mutableStateOf(false) }
+            // Bereit, sobald einmal ein brauchbarer Fix da war. Bleibt dann stehen (wie das
+            // Garmin-Pendant `_hasGpsFix`) — ein kurzes Aussetzen soll die Anzeige nicht
+            // flackern lassen.
+            var gpsBereit by remember { mutableStateOf(false) }
             if (autoStart && !s.starting) {
                 LaunchedEffect(Unit) {
                     autoCountdown = 10; autoArmed = false
@@ -662,23 +666,37 @@ class MainActivity : ComponentActivity() {
                     autoArmed = true
                 }
             }
-            // Erst nach dem Countdown GPS beobachten; bei ≥10 km/h für 4 s automatisch starten.
-            // Nur solange der Idle-Screen aktiv ist (Foreground) — beim Start räumt onDispose auf.
-            if (autoStart && !s.starting && autoArmed) {
-                DisposableEffect(Unit) {
-                    val fused = LocationServices.getFusedLocationProviderClient(ctx)
-                    var streak = 0
-                    val cb = object : LocationCallback() {
-                        override fun onLocationResult(r: LocationResult) {
-                            val sp = r.lastLocation?.let { if (it.hasSpeed()) it.speed else 0f } ?: 0f
-                            if (sp * 3.6f >= 10f) { streak++; if (streak >= 4) RecorderService.start(ctx.applicationContext) }
-                            else streak = 0
-                        }
+            // GPS läuft schon im Ruhebild — NICHT erst mit dem Druck auf Start.
+            //
+            // Grund (31.08.): ein Kaltstart braucht im Freien gut zwei Minuten bis zum ersten
+            // brauchbaren Fix. In einem gemessenen Fall kamen in den ersten 132 s der Aufnahme
+            // nur 15 Positionen (eine alle 8,8 s), und der Lauf in diesem Fenster ist weder auf
+            // der Uhr noch auf dem Server zu retten. Die Garmin-Fassung hält den Empfänger
+            // deshalb seit jeher warm; Wear tat das bisher nur bei aktivem Auto-Start.
+            //
+            // Derselbe Callback erledigt beides: Bereitschaftsanzeige (immer) und die
+            // Auto-Start-Überwachung (nur wenn scharf). Zwei getrennte Anforderungen wären
+            // derselbe Fix und derselbe Stromverbrauch, nur doppelt verwaltet.
+            val autoScharf = rememberUpdatedState(autoStart && !s.starting && autoArmed)
+            DisposableEffect(Unit) {
+                val fused = LocationServices.getFusedLocationProviderClient(ctx)
+                var streak = 0
+                val cb = object : LocationCallback() {
+                    override fun onLocationResult(r: LocationResult) {
+                        val l = r.lastLocation
+                        // Brauchbar = dieselbe Schwelle wie das Qualitäts-Gate der Aufnahme
+                        // (Recorder.kt, hAcc > 20 m -> gpsPoor), damit „bereit“ und „Anzeige
+                        // zeigt Tempo“ nicht auseinanderlaufen.
+                        if (l != null && l.hasAccuracy() && l.accuracy <= 20f) gpsBereit = true
+                        if (!autoScharf.value) { streak = 0; return }
+                        val sp = l?.let { if (it.hasSpeed()) it.speed else 0f } ?: 0f
+                        if (sp * 3.6f >= 10f) { streak++; if (streak >= 4) RecorderService.start(ctx.applicationContext) }
+                        else streak = 0
                     }
-                    val req = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000).build()
-                    try { fused.requestLocationUpdates(req, cb, Looper.getMainLooper()) } catch (_: SecurityException) {}
-                    onDispose { fused.removeLocationUpdates(cb) }
                 }
+                val req = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000).build()
+                try { fused.requestLocationUpdates(req, cb, Looper.getMainLooper()) } catch (_: SecurityException) {}
+                onDispose { fused.removeLocationUpdates(cb) }
             }
             // Scrollbar + Rand: bei großer System-Schrift darf unten nichts abgeschnitten werden
             // (Wear-Schriftgrößen-Regel). Scaffold+PositionIndicator zeigt die geforderte Scroll-
@@ -713,6 +731,18 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 Spacer(Modifier.height(4.dp))   // wenig Luft über dem Start-Button
+                // GPS-Bereitschaft VOR dem Start. Wer vorher losläuft, verliert den ersten Lauf.
+                // Der Start bleibt trotzdem möglich: unter Bäumen oder in der Halle kommt nie
+                // ein Fix, und dann wäre ein gesperrter Knopf schlimmer als eine Aufnahme ohne
+                // die ersten Meter. Bei fehlender Freigabe / abgeschaltetem Standort sagen das
+                // schon die roten Hinweise unter dem Knopf — dann hier nichts doppeln.
+                if (!s.starting && !locMissing && !locOff) {
+                    Text(I18n.t(if (gpsBereit) "gps.ready" else "gps.searching"),
+                        style = MaterialTheme.typography.caption2,
+                        color = if (gpsBereit) Color(0xFF34C759) else Color(0xFFF59E0B),
+                        textAlign = TextAlign.Center)
+                    Spacer(Modifier.height(4.dp))
+                }
                 if (s.starting) {
                     // Startphase (GPS/Session): kein Start-Button, nur Spinner + Status.
                     CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)

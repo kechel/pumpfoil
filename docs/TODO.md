@@ -4511,6 +4511,30 @@ Offen daraus:
   1. `.iq` hochladen 2. Freigabe des CIQ-Stores ABWARTEN 3. erst dann `build-all.sh`
   (das veroeffentlicht die Website-Downloads sofort) 4. dann `appmeta.garmin` + Changelog.
 
+- **✅ 31.08. — GPS-Bereitschaft jetzt auf ALLEN sechs Recordern (Apple Watch + Wear OS nachgezogen).**
+  Ausloeser: Carl-Henriks fehlender erster Lauf. Gemessen an seiner Session — in den ersten 132 s
+  kamen **15 Positionen** (eine alle 8,8 s), also ein GPS-Kaltstart; der Lauf in diesem Fenster ist
+  weder auf der Uhr noch auf dem Server zu retten.
+  - **Ursache war nicht nur die fehlende Anzeige:** beide Uhren schalteten CoreLocation bzw. den
+    Fused-Provider **erst mit dem Druck auf START** ein. Garmin, Zepp, iPhone und Android-Handy
+    waermen den Empfaenger seit jeher schon im Ruhebild vor — nur die zwei Uhren nicht.
+  - **Apple Watch** (`Recorder.swift`, `ContentView.swift`): `gpsVorwaermen()` schaltet GPS beim
+    Betreten des Ruhebilds ein, `gpsBereit` wird ab einem Fix mit hAcc ≤ 20 m wahr. Positionen aus
+    der Vorwaermphase landen in **keinem** Puffer (`guard isRecording` in `didUpdateLocations`) —
+    sonst stuenden dort Punkte mit Zeiten vor dem Sessionstart. Zeile ueber dem Start-Knopf:
+    gruen „GPS bereit" / orange „GPS suchen…".
+  - **Wear OS** (`MainActivity.kt`): der bisherige Auto-Start-`DisposableEffect` lief nur bei
+    aktivem Auto-Start und erst nach dem 10-s-Vorlauf. Jetzt laeuft **ein** Callback immer, macht
+    beides (Bereitschaft + Auto-Start-Ueberwachung) und haengt am Ruhebild.
+  - **Start bleibt in beiden Faellen moeglich** — unter Baeumen oder in der Halle kommt nie ein
+    Fix, und ein gesperrter Knopf waere schlimmer als eine Aufnahme ohne die ersten Meter.
+  - Texte: `gps.ready` / `gps.searching` in **17 Sprachen** auf beiden Zielen, woertlich aus
+    `watch/source/Strings.mc` uebernommen (ja/zh dort nicht vorhanden — neu, die Garmin kann kein
+    CJK). `:wear:compileDebugKotlin` gruen, `swiftc -parse` gruen.
+  - **Versionen:** Wear laeuft in der schon gebumpten **1.2.25** mit (noch nicht eingereicht).
+    Apple auf **1.1.28 (32)** gebumpt, weil 1.1.27 (31) heute frueh eingereicht wurde und in
+    Pruefung ist.
+
 - **🟡 31.08. — Garmin 1.0.83 EINGEREICHT** (Jans Meldung: Test-`.prg` im Simulator geprueft,
   `.iq` hochgeladen und zur Freigabe gegeben).
   **`appmeta.garmin` bleibt auf 1.0.82 und `watch/bin` bleibt unangetastet, bis die Freigabe da

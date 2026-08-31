@@ -27,6 +27,17 @@ final class Recorder: NSObject, ObservableObject {
     // betraf Garmin UND Apple Watch. Rohdaten bleiben ungefiltert (Server filtert selbst,
     // hAcc wird mitgesendet); der Gate wirkt nur auf Anzeige + On-Watch-Lauf-Erkennung.
     @Published var gpsPoor: Bool = false
+    // GPS-Bereitschaft VOR der Aufnahme. Grund (31.08.): CoreLocation wurde bisher erst in
+    // `startSensors()` eingeschaltet, also erst mit dem Druck auf START. Ein Kaltstart braucht
+    // im Freien gut zwei Minuten bis zum ersten brauchbaren Fix — in einem gemessenen Fall kamen
+    // in den ersten 132 s nur 15 Positionen (eine alle 8,8 s), und der erste Lauf darin ist
+    // weder auf der Uhr noch auf dem Server zu retten. Jetzt laeuft der Empfaenger schon im
+    // Ruhebild (`gpsVorwaermen`) und die Ansicht sagt, ob er bereit ist.
+    @Published var gpsBereit: Bool = false
+    /// Ab dieser Genauigkeit gilt der Fix als brauchbar — dieselbe Schwelle wie das
+    /// Qualitaets-Gate weiter unten (`gpsPoor`), damit „bereit" und „Anzeige zeigt Tempo"
+    /// nicht auseinanderlaufen.
+    static let gpsFixAccM: Double = 20
     // Standort-Freigabe verweigert -> startUpdatingLocation liefert schweigend nichts. Ohne
     // Positionen ist der Mitschnitt wertlos (Wear-Feldbefund 05.08.: vier Sessions ueber
     // Stunden mit Accel, 0 GPS-Punkten). Deshalb sichtbar machen statt stumm aufzeichnen.
@@ -471,12 +482,11 @@ final class Recorder: NSObject, ObservableObject {
 
     // MARK: - Sensors
 
-    private func startSensors() {
+    /// Schaltet den GPS-Empfaenger mit unseren Einstellungen ein. Idempotent — ein zweiter
+    /// `startUpdatingLocation` auf denselben Manager ist ein No-Op.
+    private func gpsEinschalten() {
         // Hoechste Stufe, die CoreLocation anbietet — eine Stufe ueber kCLLocationAccuracyBest:
         // BestForNavigation zieht zusaetzliche Sensordaten hinzu und haelt den Fix zaeher.
-        // Grund (13.08.): "mir fehlen Laeufe" ist fast immer fehlende Position, nicht die
-        // Erkennung — im Bestand haben 25 % der aufgezeichneten Zeit keine. Kostet Akku, das ist
-        // bewusst in Kauf genommen (Jan: beste GPS-Erkennung auf jeder Uhr, die sie bietet).
         location.desiredAccuracy = kCLLocationAccuracyBestForNavigation
         location.distanceFilter = kCLDistanceFilterNone
         // Sagt CoreLocation, wie es filtern soll: Wassersport ist Fitness, nicht Autofahrt
@@ -485,7 +495,31 @@ final class Recorder: NSObject, ObservableObject {
         // allowsBackgroundLocationUpdates NICHT setzen: ohne "location"-Background-Mode
         // führt das zum Crash (CLClientIsBackgroundable-Assertion). Im Hintergrund hält
         // die HKWorkoutSession die App + Standortupdates am Leben.
+        location.delegate = self
         location.startUpdatingLocation()
+    }
+
+    /// Vorwaermen im Ruhebild: GPS laeuft schon, bevor der Nutzer START drueckt.
+    ///
+    /// Kostet Akku, ist aber genau das, was die Garmin-Fassung seit jeher tut — und die hat das
+    /// Problem der fehlenden ersten Minuten nicht. Positionen aus dieser Phase landen in KEINEM
+    /// Puffer (s. `didUpdateLocations`), sie dienen nur dem Fix und der Bereitschaftsanzeige.
+    /// watchOS haelt die App ohne Background-Mode ohnehin nur im Vordergrund am Leben, das
+    /// begrenzt die Laufzeit von selbst.
+    func gpsVorwaermen() {
+        guard !isRecording, !locDenied else { return }
+        gpsEinschalten()
+    }
+
+    private func startSensors() {
+        // GPS laeuft zu diesem Zeitpunkt in aller Regel schon (Vorwaermen im Ruhebild) — der
+        // Aufruf ist idempotent und stellt es nur sicher, falls das Ruhebild uebersprungen wurde
+        // (Auto-Start, Start aus einer anderen Ansicht).
+        // Grund fuer die hohe Genauigkeitsstufe (13.08.): "mir fehlen Laeufe" ist fast immer
+        // fehlende Position, nicht die Erkennung — im Bestand haben 25 % der aufgezeichneten
+        // Zeit keine. Kostet Akku, bewusst in Kauf genommen (Jan: beste GPS-Erkennung auf jeder
+        // Uhr, die sie bietet).
+        gpsEinschalten()
 
         // Modus "gps": kein Roh-Accel (minimaler Speicher); sonst Rate je Modus (full=25, lite=10).
         if recordMode != "gps", motion.isAccelerometerAvailable {
@@ -591,6 +625,13 @@ extension Recorder: CLLocationManagerDelegate {
     nonisolated func locationManager(_ m: CLLocationManager, didUpdateLocations locs: [CLLocation]) {
         guard let loc = locs.last else { return }
         Task { @MainActor in
+            // Bereitschaft gilt auch VOR der Aufnahme (Vorwaermen). hAcc <= 0 heisst „ungueltig".
+            if loc.horizontalAccuracy > 0 && loc.horizontalAccuracy <= Self.gpsFixAccM {
+                self.gpsBereit = true
+            }
+            // Ab hier geht es nur um die laufende Aufnahme: waehrend des Vorwaermens darf nichts
+            // in den GPS-Puffer, sonst stuenden dort Punkte mit Zeiten vor dem Sessionstart.
+            guard self.isRecording else { return }
             let t = self.elapsedMs()
             let spRaw = max(0, loc.speed)
             self.lock.withLock {
@@ -599,7 +640,7 @@ extension Recorder: CLLocationManagerDelegate {
             }
             // Qualitaets-Gate fuer alles LIVE (Anzeige, Max, Lauf-Erkennung): unbrauchbare
             // Position (hAcc > 20 m) oder ungueltiger Speed (loc.speed < 0) -> 0 + "--".
-            let poor = loc.horizontalAccuracy > 20 || loc.speed < 0
+            let poor = loc.horizontalAccuracy > Self.gpsFixAccM || loc.speed < 0
             self.gpsPoor = poor
             let sp = poor ? 0 : spRaw
             // Live-Kennzahlen

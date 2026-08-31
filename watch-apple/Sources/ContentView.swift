@@ -269,6 +269,9 @@ struct RecordView: View {
         // Auto-Start-Monitor wird NICHT hier gearmt, sondern erst nach dem Countdown
         // (tickAutoStart, autoTimer). Beim Verlassen des Idle sicher aufräumen.
         .onDisappear { autoMon.disarm(); autoArmed = false }
+        // GPS schon hier einschalten, nicht erst mit START: der Kaltstart kostet sonst die
+        // ersten ein bis zwei Minuten der Aufnahme (s. `gpsVorwaermen`).
+        .onAppear { rec.gpsVorwaermen() }
     }
 
     private var startingText: String {
@@ -339,6 +342,7 @@ struct RecordView: View {
 
     @ViewBuilder private var idleControls: some View {
         foilPreselectButton
+        gpsBlock
         startButton
         locationBlock
         syncOrStatusLine
@@ -379,6 +383,24 @@ struct RecordView: View {
         .tint(.green)
         .disabled(rec.locDenied)
         .sheet(isPresented: $showFoilPicker) { alarmSheet }
+    }
+
+    // GPS-Bereitschaft VOR dem Start. Die Uhr waermt den Empfaenger schon im Ruhebild vor
+    // (`gpsVorwaermen`); hier steht, ob ein brauchbarer Fix da ist. Wer vorher startet,
+    // verliert den ersten Lauf — genau das ist am 30.08. einem Nutzer passiert (in den ersten
+    // 132 s kamen 15 Positionen, der Lauf darin ist nicht mehr zu retten).
+    //
+    // Der Start bleibt trotzdem moeglich: unter Baeumen oder in der Halle kommt nie ein Fix,
+    // und dann waere ein gesperrter Knopf schlimmer als eine Aufnahme ohne die ersten Meter.
+    @ViewBuilder private var gpsBlock: some View {
+        if !rec.locDenied {
+            HStack(spacing: 4) {
+                Image(systemName: rec.gpsBereit ? "location.fill" : "location.slash")
+                Text(WLoc.t(rec.gpsBereit ? "gps.ready" : "gps.searching", lang))
+            }
+            .font(.caption2)
+            .foregroundStyle(rec.gpsBereit ? Color.green : Color.orange)
+        }
     }
 
     // Standort-Zustand: fehlende Freigabe verhindert die Aufnahme (rot), „nur ungefähr" macht

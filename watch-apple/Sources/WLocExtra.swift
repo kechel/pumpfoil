@@ -5,6 +5,8 @@ import Foundation
 
 // Portugiesisch-Overlay (71 Keys). Fallback: Englisch.
 let wPtOverlay: [String: String] = [
+    "gps.ready": "GPS pronto",
+    "gps.searching": "Buscando GPS…",
     "common.auto": "Automático",
     "common.off": "Desl",
     "common.on": "Lig",
@@ -93,6 +95,8 @@ let wPtOverlay: [String: String] = [
 
 // Japanisch-Overlay (71 Keys). Fallback: Englisch.
 let wJaOverlay: [String: String] = [
+    "gps.ready": "GPS 準備完了",
+    "gps.searching": "GPS 検索中…",
     "common.auto": "自動",
     "common.off": "オフ",
     "common.on": "オン",
@@ -181,6 +185,8 @@ let wJaOverlay: [String: String] = [
 
 // Chinesisch (vereinfacht)-Overlay (71 Keys). Fallback: Englisch.
 let wZhOverlay: [String: String] = [
+    "gps.ready": "GPS 就绪",
+    "gps.searching": "正在搜索 GPS…",
     "common.auto": "自动",
     "common.off": "关",
     "common.on": "开",
@@ -269,6 +275,8 @@ let wZhOverlay: [String: String] = [
 
 // Russisch-Overlay (71 Keys). Fallback: Englisch.
 let wRuOverlay: [String: String] = [
+    "gps.ready": "GPS готов",
+    "gps.searching": "Поиск GPS…",
     "common.auto": "Авто",
     "common.off": "Выкл",
     "common.on": "Вкл",
@@ -357,6 +365,8 @@ let wRuOverlay: [String: String] = [
 
 // Indonesisch-Overlay (71 Keys). Fallback: Englisch.
 let wIdOverlay: [String: String] = [
+    "gps.ready": "GPS siap",
+    "gps.searching": "Mencari GPS…",
     "common.auto": "Otomatis",
     "common.off": "Mati",
     "common.on": "Nyala",
@@ -447,6 +457,8 @@ let wIdOverlay: [String: String] = [
 // Kam mit dem ersten norwegischen Nutzer (Sogndal, 05.08.2026) dazu; Bokmål deckt auch
 // nn-/no-Geräte ab (siehe web/src/i18n/index.tsx).
 let wNbOverlay: [String: String] = [
+    "gps.ready": "GPS klar",
+    "gps.searching": "GPS søker…",
     "f.lastRunMaxHr": "siste maks bpm",
     "menu.layouts": "Egne oppsett",
     "common.auto": "Automatisk",
@@ -537,6 +549,8 @@ let wNbOverlay: [String: String] = [
 // Reihenfolge: watch/source/Strings.mc (Garmin, laengst im Store), dann die
 // Web-Locales ueber den deutschen Text, dann eigene Uebersetzung der Kurztexte.
 let wNlOverlay: [String: String] = [
+    "gps.ready": "GPS klaar",
+    "gps.searching": "GPS zoeken…",
     "foil.alarmHelp": "Trilt wanneer je boven of onder het optimale snelheidsbereik van je foil komt.",
     "foil.choose": "Foil & alarm",
     "foil.chooseHelp": "Slaat je foil bij deze sessie op en bepaalt de alarmdrempels als de bron op Foil staat.",
@@ -627,6 +641,8 @@ let wNlOverlay: [String: String] = [
 // Reihenfolge: watch/source/Strings.mc (Garmin, laengst im Store), dann die
 // Web-Locales ueber den deutschen Text, dann eigene Uebersetzung der Kurztexte.
 let wFiOverlay: [String: String] = [
+    "gps.ready": "GPS valmis",
+    "gps.searching": "GPS haku…",
     "foil.alarmHelp": "Värisee, kun ylität tai alitat foilisi optimaalisen nopeusalueen.",
     "foil.choose": "Foili & hälytys",
     "foil.chooseHelp": "Tallentaa foilisi tähän sessioon ja asettaa hälytysrajat, kun lähteeksi on valittu foili.",
@@ -717,6 +733,8 @@ let wFiOverlay: [String: String] = [
 // Reihenfolge: watch/source/Strings.mc (Garmin, laengst im Store), dann die
 // Web-Locales ueber den deutschen Text, dann eigene Uebersetzung der Kurztexte.
 let wCsOverlay: [String: String] = [
+    "gps.ready": "GPS připraveno",
+    "gps.searching": "hledání GPS…",
     "foil.alarmHelp": "Zavibruje, když překročíš nebo klesneš pod optimální rychlostní rozsah svého foilu.",
     "foil.choose": "Foil a alarm",
     "foil.chooseHelp": "Uloží tvůj foil k této relaci a nastaví prahy alarmu, když je jako zdroj zvolen foil.",
