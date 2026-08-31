@@ -106,18 +106,27 @@ export function zeitachseVon(session: SessionSummary): Zeitachse | null {
 
 export interface Zeitraum { von: number; bis: number }
 
-/** Die Läufe einer Session als absolute Zeiträume — dort ist jemand on foil. */
-export function laufZeitraeume(session: SessionSummary): Zeitraum[] {
+/** Die Läufe einer Session als absolute Zeiträume — dort ist jemand on foil.
+ *
+ *  `nur` = die im Vergleich AUSGEWÄHLTEN Läufe (null = die ganze Session). Das ist nicht
+ *  kosmetisch: wer im Vergleich einzelne Läufe nebeneinanderlegt, will auch genau die abgespielt
+ *  sehen. Ohne diese Einschränkung baut die Wiedergabe ihre Zeitleiste aus ALLEN Läufen der
+ *  beteiligten Sessions — dann laufen Fahrer durchs Bild, die in dem Vergleich gar nicht stehen,
+ *  und es sieht aus, als liefe die Wiedergabe nach etwas anderem als der Uhrzeit (Jans Befund
+ *  31.08.). Die ZEITACHSE dagegen nutzt weiter alle Läufe als Stützpunkte — je mehr Anker,
+ *  desto genauer die Umrechnung Index↔Uhrzeit. */
+export function laufZeitraeume(session: SessionSummary, nur?: Set<number> | null): Zeitraum[] {
   const segs = session.analysis?.segments ?? [];
   if (!session.started_at) return [];
   const start = Date.parse(session.started_at);
   if (Number.isNaN(start)) return [];
   const out: Zeitraum[] = [];
-  for (const s of segs) {
+  segs.forEach((s: any, i: number) => {
+    if (nur && !nur.has(i)) return;
     const a = s?.t_start_session_ms, b = s?.t_end_session_ms;
     if (typeof a === "number" && typeof b === "number" && b > a)
       out.push({ von: start + a, bis: start + b });
-  }
+  });
   return out;
 }
 
@@ -143,6 +152,9 @@ export interface SyncPlan {
   /** Die Sessions, die wirklich mitlaufen (überschneiden sich, gleicher Spot). */
   sessions: SessionSummary[];
   achsen: Map<number, Zeitachse>;
+  /** Die im Vergleich ausgewählten Läufe je Session (null = ganze Session). Der Zeichner darf
+   *  nur diese anfassen — sonst zeigt die Wiedergabe mehr als der Vergleich behauptet. */
+  laeufe: Map<number, Set<number> | null>;
   /** Abschnitte, in denen MINDESTENS EINER on foil ist — nur die werden abgespielt. */
   aktiv: Zeitraum[];
   /** Summe der aktiven Abschnitte in ms = die Länge der Wiedergabe. */
@@ -157,10 +169,33 @@ export interface SyncPlan {
  * Bedingung (Jan): die Sessions müssen sich **zeitlich überschneiden** UND am **gleichen Spot**
  * sein. Beides zusammen, sonst laufen im Bild Leute nebeneinander her, die sich nie gesehen haben.
  */
-export function syncPlan(sessions: SessionSummary[]): SyncPlan | null {
-  const mitAchse = sessions
-    .map((s) => ({ s, a: zeitachseVon(s) }))
-    .filter((x): x is { s: SessionSummary; a: Zeitachse } => x.a != null);
+export interface SyncAuswahl {
+  session: SessionSummary;
+  /** null = ganze Session, sonst genau dieser Lauf (Index in `analysis.segments`). */
+  runIdx: number | null;
+}
+
+export function syncPlan(auswahl: SyncAuswahl[]): SyncPlan | null {
+  // Je Session zusammenfassen: mehrfach dieselbe Session (mehrere ausgewählte Läufe) ergibt EINEN
+  // Eintrag mit allen ihren Läufen. Steht auch nur einmal die ganze Session im Vergleich, gilt
+  // die ganze Session — eine Auswahl kann eine andere nicht wieder einschränken.
+  const proSession = new Map<number, { session: SessionSummary; laeufe: Set<number> | null }>();
+  for (const a of auswahl) {
+    const vorhanden = proSession.get(a.session.id);
+    if (!vorhanden) {
+      proSession.set(a.session.id, {
+        session: a.session,
+        laeufe: a.runIdx == null ? null : new Set([a.runIdx]),
+      });
+      continue;
+    }
+    if (vorhanden.laeufe == null || a.runIdx == null) vorhanden.laeufe = null;
+    else vorhanden.laeufe.add(a.runIdx);
+  }
+
+  const mitAchse = [...proSession.values()]
+    .map((x) => ({ s: x.session, laeufe: x.laeufe, a: zeitachseVon(x.session) }))
+    .filter((x): x is { s: SessionSummary; laeufe: Set<number> | null; a: Zeitachse } => x.a != null);
   if (mitAchse.length < 2) return null;
 
   // Nach Spot gruppieren; ohne Spotnamen kann man Gleichzeitigkeit nicht sinnvoll behaupten.
@@ -206,7 +241,7 @@ export function syncPlan(sessions: SessionSummary[]): SyncPlan | null {
 
   const roh: Zeitraum[] = [];
   for (const x of beste)
-    for (const z of laufZeitraeume(x.s))
+    for (const z of laufZeitraeume(x.s, x.laeufe))
       roh.push({ von: z.von - RAND_MS, bis: z.bis + RAND_MS });
   const aktiv = verschmelzen(roh);
   if (!aktiv.length) return null;
@@ -216,6 +251,7 @@ export function syncPlan(sessions: SessionSummary[]): SyncPlan | null {
   return {
     sessions: beste.map((x) => x.s),
     achsen: new Map(beste.map((x) => [x.s.id, x.a])),
+    laeufe: new Map(beste.map((x) => [x.s.id, x.laeufe])),
     aktiv,
     dauerMs,
     zuUhrzeit: (posMs: number) => {

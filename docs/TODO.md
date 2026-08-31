@@ -4515,6 +4515,33 @@ Offen daraus:
   1. `.iq` hochladen 2. Freigabe des CIQ-Stores ABWARTEN 3. erst dann `build-all.sh`
   (das veroeffentlicht die Website-Downloads sofort) 4. dann `appmeta.garmin` + Changelog.
 
+- **✅ 31.08. — „Laeuft nicht nach Uhrzeit synchronisiert" (Jan) — NACHGEMESSEN: die Uhr stimmt,
+  die Darstellung log.** Jans Beispiel: Sessions **3159 (Jan, 10:26:18)** und **3157 (Philipp,
+  10:29:22)**, beide Illmensee, beide als GANZE Session im Vergleich.
+  - **Was ich gemessen habe, bevor ich etwas geaendert habe:** Nullpunkt je Session
+    (`started_at + Session-ms` gegen `ended_at`, 7 von 8 exakt) · die rekonstruierte Achse gegen
+    die echten GPS-Zeitstempel INNERHALB der Laeufe (**0 ms Abweichung** bei fuenf von sechs
+    Sessions, einmal 964 ms) · `index(Laufanfang)` gegen `i_start` (**0,0 Samples**) · und die
+    komplette Wiedergabe Position fuer Position nachsimuliert: streng monotone Uhrzeit, 17 aktive
+    Fenster, 56 min Spanne → 9,9 min Wiedergabe, gemeinsame Laeufe um 10:51 und 11:07.
+    **Ein Zeitversatz zwischen zwei Fahrern ist im Code sogar unmoeglich** — alle bekommen
+    dieselbe absolute Zeit.
+  - **Die echte Ursache war die Pause zwischen den Laeufen.** Stuetzpunkte fuer Index↔Uhrzeit
+    gibt es nur an den Laufgrenzen; dazwischen wurde linear interpoliert. Philipps Session hat
+    2087 Trackpunkte auf 2514 GPS-Samples (kraeftige Aussetzer, im Schnitt 1734 ms je Index) —
+    sein Punkt glitt dadurch gemaechlich ueber den See, waehrend er in Wirklichkeit am Steg
+    stand. Das sieht genau so aus, als folge die Wiedergabe einer eigenen, falschen Zeit.
+  - **Jetzt:** in der Pause wird der Fahrer am Ende seines letzten Laufs GEPARKT (blass, hohl)
+    statt weiterzugleiten; vor seinem ersten Lauf ist er gar nicht da. Im Lauf kommt der Index
+    aus der Zeit INNERHALB dieses Laufs statt aus der globalen Achse — damit ist die Uhrzeit,
+    wie von Jan gefordert, **bei jedem Laufbeginn neu gesetzt**.
+  - **Zweiter Fund dabei:** die Wiedergabe ignorierte `runIdx`. Wer im Vergleich EINZELNE Laeufe
+    nebeneinanderlegt, bekam trotzdem die ganzen Sessions abgespielt — Fahrer im Bild, die im
+    Vergleich gar nicht standen. `syncPlan` nimmt die Auswahl jetzt entgegen (`SyncAuswahl`);
+    die Zeitachse nutzt weiter ALLE Laeufe als Stuetzpunkte, nur die Zeitleiste und das
+    Gezeichnete richten sich nach der Auswahl.
+  - **Namensschilder entfernt** (Jan): die Farbe reicht, die Kacheln ueber der Karte sind die Legende.
+
 - **✅ 31.08. — Synchrones Abspielen zeichnet jetzt selbst (Jans Befund: „zeigt nur den Marker").**
   Drei Punkte, alle in `CompareMap.tsx`:
   1. **Strecke nur bis zur aktuellen Position** statt der fertigen Gesamtstrecke.

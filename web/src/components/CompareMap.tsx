@@ -136,9 +136,10 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
   // UND am gleichen Spot liegen (Jan). Die Zeitrechnung steckt in lib/syncPlayback.ts — dort
   // steht auch, warum „ein GPS-Punkt = eine Sekunde" hier NICHT reicht.
   const plan = useMemo(() => {
-    const gesehen = new Set<number>();
-    const eindeutig = items.map((i) => i.session).filter((s) => !gesehen.has(s.id) && gesehen.add(s.id));
-    return syncPlan(eindeutig);
+    // MIT runIdx: wer im Vergleich einzelne Laeufe nebeneinanderlegt, soll auch genau die
+    // abgespielt bekommen. Ohne das baut die Wiedergabe ihre Zeitleiste aus allen Laeufen der
+    // beteiligten Sessions und zeigt Faelle, die im Vergleich gar nicht stehen.
+    return syncPlan(items.map((it) => ({ session: it.session, runIdx: it.runIdx })));
   }, [items]);
   // Wie viel Leerlauf faellt weg — das ist die Zahl, die den Nutzen erklaert.
   const uebersprungenMin = useMemo(() => {
@@ -198,14 +199,23 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
   const spielModus = !!plan && (spielt || pos > 0);
 
   // Einen Zeitpunkt zeichnen: je Fahrer der Lauf, in dem er GERADE ist — und der nur bis zu
-  // seiner aktuellen Position, dazu der Marker an der Spitze.
+  // seiner aktuellen Position.
   //
-  // Bewusst nicht die ganze Strecke: bei drei Fahrern am selben Spot liegen die vollstaendigen
-  // Tracks als Knaeuel uebereinander und man sieht der Bewegung nicht mehr an, wer wo ist. Nur
-  // der laufende Lauf, wachsend, macht die Gleichzeitigkeit sichtbar — genau wofuer die
-  // Wiedergabe da ist. Wer gerade zwischen zwei Laeufen treibt, behaelt den Marker (er IST ja da),
-  // hat aber keine Linie; wer zu dem Zeitpunkt gar nicht aufgezeichnet hat, faellt ganz weg,
-  // statt eingefroren irgendwo zu stehen und Gleichzeitigkeit vorzutaeuschen.
+  // Bewusst nicht die ganze Strecke: bei mehreren Fahrern am selben Spot liegen die vollstaendigen
+  // Tracks als Knaeuel uebereinander und man sieht der Bewegung nicht mehr an, wer wo ist.
+  //
+  // ZWISCHEN zwei Laeufen wird der Fahrer GEPARKT (blass, hohl) statt weiterzugleiten. Das ist
+  // der Kern von Jans Befund vom 31.08. („laeuft nicht nach Uhrzeit, sondern nach irgendwas
+  // anderem"): Stuetzpunkte fuer die Umrechnung Index↔Uhrzeit gibt es nur an den Laufgrenzen, in
+  // der Pause dazwischen wird interpoliert. Bei Philipps Session (2087 Trackpunkte auf 2514
+  // GPS-Samples, also kraeftige Aussetzer) glitt sein Punkt dadurch gemaechlich ueber den See,
+  // waehrend er in Wirklichkeit am Steg stand — das sieht aus wie eine eigene, falsche Zeitachse.
+  // Geparkt ist die ehrliche Darstellung: an den Laufgrenzen wissen wir es genau, dazwischen
+  // nicht. Nebeneffekt, genau wie gewuenscht: zum Laufbeginn springt der Fahrer exakt auf seinen
+  // Startpunkt — die Uhrzeit ist bei jedem Lauf neu gesetzt.
+  //
+  // Keine Namensschilder (Jan, 31.08.): die Farbe reicht, die Kacheln ueber der Karte sind
+  // bereits die Legende.
   const zeichneStand = (posMs: number) => {
     const lg = spielerLayer.current;
     if (!lg || !plan) return;
@@ -215,31 +225,57 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
       const achse = plan.achsen.get(s.id);
       const bahn = bahnen.get(s.id);
       if (!achse || !bahn) continue;
-      const i = achse.index(tAbs);
-      if (i == null) continue;
 
-      // Der Lauf, der diesen Index enthaelt. Zwischen zwei Laeufen gibt es keinen -> keine Linie.
-      const segs: any[] = s.analysis?.segments ?? [];
-      const lauf = segs.find((g) => typeof g?.i_start === "number" && typeof g?.i_end === "number"
-                                    && i >= g.i_start && i <= g.i_end);
-      if (lauf) {
-        const bis = Math.min(Math.floor(i), lauf.i_end);
-        for (let k = lauf.i_start; k < bis; k++) {
-          const a = bahn.pts[k], b = bahn.pts[k + 1];
-          if (!a || !b) continue;
-          // Dieselbe Lueckenregel wie die statische Karte: ueber einen GPS-Aussetzer wird nicht
-          // quer durch die Landschaft gezeichnet.
-          if (mapObj.current && mapObj.current.distance(a, b) > MAX_DRAW_GAP_M) continue;
-          L.polyline([a, b], { color: bahn.farbeAn(k + 1), weight: 4, opacity: 0.95 }).addTo(lg);
-        }
+      // Nur die im Vergleich ausgewaehlten Laeufe — sonst zeigt die Wiedergabe mehr, als der
+      // Vergleich behauptet.
+      const nur = plan.laeufe.get(s.id) ?? null;
+      const segs: any[] = (s.analysis?.segments ?? []).filter(
+        (g: any, i: number) => (!nur || nur.has(i))
+          && typeof g?.i_start === "number" && typeof g?.i_end === "number"
+          && typeof g?.t_start_session_ms === "number" && typeof g?.t_end_session_ms === "number",
+      );
+      if (!segs.length) continue;
+      const start = Date.parse(s.started_at ?? "");
+      if (Number.isNaN(start)) continue;
+
+      const lauf = segs.find((g) => tAbs >= start + g.t_start_session_ms
+                                    && tAbs <= start + g.t_end_session_ms);
+
+      if (!lauf) {
+        // Pause: am Ende des letzten schon gefahrenen Laufs parken. Vor dem ersten Lauf ist der
+        // Fahrer noch gar nicht Teil der Geschichte -> gar nicht zeichnen.
+        let vorher: any = null;
+        for (const g of segs) if (start + g.t_end_session_ms <= tAbs) vorher = g;
+        if (!vorher) continue;
+        const p = bahn.pts[Math.min(vorher.i_end, bahn.pts.length - 1)];
+        if (!p) continue;
+        L.circleMarker(p, { radius: 5, color: bahn.farbe, weight: 2, fillColor: "#0f172a", fillOpacity: 0.55, opacity: 0.55 })
+          .addTo(lg);
+        continue;
+      }
+
+      // Im Lauf: Index aus der Zeit INNERHALB dieses Laufs — nicht ueber die globale Achse.
+      // Innerhalb eines Laufs laeuft die Aufzeichnung sauber mit 1 Hz (nachgemessen an sechs
+      // Sessions: 0 ms Abweichung), also ist das hier exakt und je Lauf neu gesetzt.
+      const span = lauf.t_end_session_ms - lauf.t_start_session_ms;
+      const f = span > 0 ? (tAbs - (start + lauf.t_start_session_ms)) / span : 0;
+      const i = lauf.i_start + f * (lauf.i_end - lauf.i_start);
+
+      const bis = Math.min(Math.floor(i), lauf.i_end);
+      for (let k = lauf.i_start; k < bis; k++) {
+        const a = bahn.pts[k], b = bahn.pts[k + 1];
+        if (!a || !b) continue;
+        // Dieselbe Lueckenregel wie die statische Karte: ueber einen GPS-Aussetzer wird nicht
+        // quer durch die Landschaft gezeichnet.
+        if (mapObj.current && mapObj.current.distance(a, b) > MAX_DRAW_GAP_M) continue;
+        L.polyline([a, b], { color: bahn.farbeAn(k + 1), weight: 4, opacity: 0.95 }).addTo(lg);
       }
 
       const a = bahn.pts[Math.floor(i)], b = bahn.pts[Math.min(Math.ceil(i), bahn.pts.length - 1)];
       if (!a) continue;
-      const f = i - Math.floor(i);
-      const p: [number, number] = b ? [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f] : a;
+      const g = i - Math.floor(i);
+      const p: [number, number] = b ? [a[0] + (b[0] - a[0]) * g, a[1] + (b[1] - a[1]) * g] : a;
       L.circleMarker(p, { radius: 7, color: "#ffffff", weight: 2, fillColor: bahn.farbe, fillOpacity: 1 })
-        .bindTooltip(bahn.name, { permanent: true, direction: "top", offset: [0, -8], className: "sync-tip" })
         .addTo(lg);
     }
   };
