@@ -4355,3 +4355,27 @@ Offen daraus:
   Simulator ueblich, auch wenn alles laeuft. Und ein Netzproblem war es nachweislich nicht — die
   API-Antworten sind NICHT cachebar (kein `cache-control`), die Feed-Daten kamen also live ueber
   das Netz. Nur die Bilder scheiterten, und die sind als einzige mit `max-age=86400` versehen.
+
+- **🟢 31.08. — Zwei weitere iOS-Befunde aus dem Simulator, beide behoben.**
+  1. **Vollbild ging beim ERSTEN Antippen kurz auf und sofort wieder zu**, beim zweiten Mal blieb
+     es. Die Praesentation hing an einer `List`-ZEILE (der Section des Feeds). Wird die Liste
+     beim Antippen neu layoutet, raeumt SwiftUI den Traeger der Praesentation kurz ab — und das
+     Vollbild geht mit. Der Feed-Zustand liegt jetzt in `SocialFeedModell`, das `CommunityView`
+     besitzt; `fullScreenCover` haengt an der `List`.
+     **Merke: Praesentations-Modifier (`sheet`, `fullScreenCover`) NIE an eine List-Zeile haengen,
+     immer an die Liste oder hoeher.** Das ist die dritte Variante derselben Familie an einem Tag
+     — nach dem NavigationLink in der Spot-Karte und dem Doppel-Push in den Rekord-Kacheln.
+  2. **Nach einem Tab-Wechsel waren die Vorschaubilder in BEIDEN Galerien wieder weg.**
+     `AsyncImage` haelt nichts fest: die Ansicht wird neu gebaut, jedes Bild neu angefordert, und
+     zusammen sprengen zwei Galerien plus Avatare die sechs Verbindungen, die `URLSession` je
+     Host zulaesst. Neu: **`NetzBild`** (`Sources-iOS/NetzBild.swift`) mit eigenem
+     Speicher-Cache (NSCache, 300 Kacheln) — beim Zurueckkommen passiert gar keine Anfrage mehr.
+     Auf der Community-Seite sind jetzt ALLE Bilder darauf umgestellt (Feed, Medien, Avatare,
+     Foto-/Video-Kleinbilder).
+
+- **📥 31.08. — Offen: `AsyncImage` in den uebrigen 13 Fundstellen.** Sessions (4), Spot-
+  Beschreibungen (3), Session-Detail (3), Chat, Profil, Transfer-Auswahl, Branding. Dieselbe
+  Ursache trifft dort genauso, sobald viele Bilder gleichzeitig sichtbar werden. NICHT im selben
+  Zug umgestellt, weil Jan gerade ein Release einreicht und die Zweig-Formen dort abweichen —
+  ein Regex-Umbau haette unbemerkt Verhalten aendern koennen. Nachziehen, sobald die Meldung
+  woanders auftaucht oder nach dem Release.

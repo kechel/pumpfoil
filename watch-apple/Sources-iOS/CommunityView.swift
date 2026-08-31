@@ -252,24 +252,24 @@ struct CommunityView: View {
 
     @ViewBuilder private func recAvatar(_ url: String?) -> some View {
         if let u = Api.mediaURL(url) {
-            AsyncImage(url: u) { phase in
-                switch phase {
-                case .success(let img): img.resizable().scaledToFill()
-                default: Image(systemName: "person.crop.circle.fill").resizable().scaledToFit().foregroundStyle(.secondary)
+            NetzBild(url: u) { stand in
+                    switch stand {
+                    case .da(let img): img.resizable().scaledToFill()
+                    default: Image(systemName: "person.crop.circle.fill").resizable().scaledToFit().foregroundStyle(.secondary)
+                    }
                 }
-            }
             .frame(width: 18, height: 18).clipShape(Circle())
         }
     }
 
     @ViewBuilder private func leaderAvatar(_ e: LeaderEntry) -> some View {
         if let url = Api.mediaURL(e.avatar_url) {
-            AsyncImage(url: url) { phase in
-                switch phase {
-                case .success(let img): img.resizable().scaledToFill()
-                default: Image(systemName: "person.crop.circle.fill").resizable().scaledToFit().foregroundStyle(.secondary)
+            NetzBild(url: url) { stand in
+                    switch stand {
+                    case .da(let img): img.resizable().scaledToFill()
+                    default: Image(systemName: "person.crop.circle.fill").resizable().scaledToFit().foregroundStyle(.secondary)
+                    }
                 }
-            }
             .frame(width: 28, height: 28).clipShape(Circle())
         }
     }
@@ -472,7 +472,7 @@ struct CommunityRow: View {
     }
 
     // Zeile in Spalten zerlegt: die Zeile war EIN Ausdruck mit sieben Geschwistern, davon drei
-    // optionale Bild-Zweige mit eigenen AsyncImage-phase-switches — der teuerste Posten der Datei.
+    // optionale Bild-Zweige mit eigenen NetzBild-Zweigen — der teuerste Posten der Datei.
     private var content: some View {
         VStack(alignment: .leading, spacing: 6) {
             headerRow
@@ -549,12 +549,12 @@ struct CommunityRow: View {
 
     @ViewBuilder private var photoThumb: some View {
         if let url = Api.mediaURL(item.thumb_url) {
-            AsyncImage(url: url) { phase in
-                switch phase {
-                case .success(let img): img.resizable().scaledToFill()
-                default: Color.secondary.opacity(0.15)
+            NetzBild(url: url) { stand in
+                    switch stand {
+                    case .da(let img): img.resizable().scaledToFill()
+                    default: Color.secondary.opacity(0.15)
+                    }
                 }
-            }
             .frame(width: 44, height: 44).clipShape(RoundedRectangle(cornerRadius: 8))
         }
     }
@@ -562,9 +562,9 @@ struct CommunityRow: View {
     @ViewBuilder private var videoThumb: some View {
         if let vid = youtubeId(item.youtube_url) {
             ZStack {
-                AsyncImage(url: videoThumbURL(vid)) { phase in
-                    switch phase {
-                    case .success(let img): img.resizable().scaledToFill()
+                NetzBild(url: videoThumbURL(vid)) { stand in
+                    switch stand {
+                    case .da(let img): img.resizable().scaledToFill()
                     default: Color.secondary.opacity(0.15)
                     }
                 }
@@ -591,12 +591,12 @@ struct CommunityRow: View {
 
     @ViewBuilder private var avatar: some View {
         if let url = Api.mediaURL(item.avatar_url) {
-            AsyncImage(url: url) { phase in
-                switch phase {
-                case .success(let img): img.resizable().scaledToFill()
-                default: Image(systemName: "person.crop.circle.fill").resizable().scaledToFit().foregroundStyle(.secondary)
+            NetzBild(url: url) { stand in
+                    switch stand {
+                    case .da(let img): img.resizable().scaledToFill()
+                    default: Image(systemName: "person.crop.circle.fill").resizable().scaledToFit().foregroundStyle(.secondary)
+                    }
                 }
-            }
             .frame(width: 36, height: 36).clipShape(Circle())
         } else {
             Image(systemName: "person.crop.circle.fill")
