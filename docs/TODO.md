@@ -4515,6 +4515,41 @@ Offen daraus:
   1. `.iq` hochladen 2. Freigabe des CIQ-Stores ABWARTEN 3. erst dann `build-all.sh`
   (das veroeffentlicht die Website-Downloads sofort) 4. dann `appmeta.garmin` + Changelog.
 
+- **🔴 31.08. — WURZEL GEFUNDEN: bei ZUSAMMENGEFUEHRTEN Sessions ist die Session-ms-Achse KEINE
+  echte Uhrzeit. 48 Sessions betroffen. Braucht Jans OK, noch NICHTS geaendert.**
+  Ausloeser war Jans Befund am synchronen Abspielen. Die Wiedergabe war unschuldig — die Daten
+  luegen.
+  - **`merge.py` (Z. ~240):** die Teile werden hintereinandergehaengt mit
+    `off_ms += len(voriger Teil) + GAP_MS (20 s)`, und jeder Teil wird von `_trimmed` vorher **auf
+    0 rebased**. Der neuen Session wird aber `started_at` des ERSTEN Teils gegeben. Damit faellt
+    zweierlei aus der Achse: der **wegetrimmte Kopf jedes Teils** und die **echte Pause zwischen
+    den Aufnahmen** (ersetzt durch feste 20 s).
+  - **Belegt an Jans Session 3159** (Teile 3153 + 3156): Merge-ms 0 ist in Wirklichkeit 10:36:11
+    (Teil A ist um 593 s getrimmt), Merge-ms 464000 ist 10:49:53 (Teil B um 44 s getrimmt).
+    Der Fehler ist damit **nicht konstant**: 9,9 min in Teil A, 15,9 min in Teil B.
+    Die GPS-Spur deckt 41,1 min ab, die Session laeuft aber 60,5 min.
+  - **Gegenprobe, die es beweist:** Jans Lauf #7 stand angezeigt auf 10:51:08, Philipps
+    Gegenstueck auf 11:06:58 — 16 min auseinander, obwohl sie nachweislich zusammen gefahren
+    sind. Mit der Korrektur liegt Jans Lauf #7 auf **11:06:59..11:07:49 (213 m)** und Philipps
+    auf **11:06:58..11:07:46 (180 m)** — **eine Sekunde Unterschied**. Weitere Paare danach
+    ebenso: 11:22:27 gegen 11:22:24, 10:53:35 gegen 10:53:44.
+    Philipps Uhr geht also richtig (seine Session ist in sich stimmig: 71,6 min GPS auf 71,9 min
+    Session) — es ist Jans zusammengefuehrte Session.
+  - **Reichweite:** 48 zusammengefuehrte Sessions. Groesster Trim-Kopf: Session 741 mit
+    **56,6 min**. Betroffen ist alles, was aus Session-ms eine UHRZEIT macht (synchrones
+    Abspielen, Laufzeiten in der Detailansicht, Wetter-Abfrage). Strecken, Tempo, Pumps sind
+    relativ und bleiben richtig.
+  - **Vorschlag (Jans Idee: „einfach immer die Uhrzeit der GPS-Werte nehmen"), zwei Stufen:**
+    1. `merge.py`: jeden Teil an seine **echte** Stelle auf der Wanduhr setzen —
+       `off_ms = (teil.started_at + teil.trim_start_ms) - first_start` statt Laenge+20 s. Dann ist
+       Session-ms wieder echte verstrichene Zeit und JEDER Verbraucher stimmt automatisch.
+       **Achtung, analyse-relevant:** die echten Pausen ersetzen dann die kuenstlichen 20 s —
+       das aendert die Lauf-Trennung an den Naehten. Deshalb erst mit Jans OK.
+    2. `track_geojson.properties.t_ms` (Zeit je Trackpunkt) mitliefern. Dann muss NIE wieder ein
+       Client eine Achse rekonstruieren — genau die Rekonstruktion hat hier die Fehler der
+       Rohdaten sichtbar gemacht. Das ist die eigentliche Absicherung.
+    3. Die 48 Sessions neu zusammenfuehren/analysieren — Datenoperation, ebenfalls nur mit OK.
+
 - **✅ 31.08. — „Laeuft nicht nach Uhrzeit synchronisiert" (Jan) — NACHGEMESSEN: die Uhr stimmt,
   die Darstellung log.** Jans Beispiel: Sessions **3159 (Jan, 10:26:18)** und **3157 (Philipp,
   10:29:22)**, beide Illmensee, beide als GANZE Session im Vergleich.
