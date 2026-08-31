@@ -4535,6 +4535,15 @@ Offen daraus:
     Apple auf **1.1.28 (32)** gebumpt, weil 1.1.27 (31) heute frueh eingereicht wurde und in
     Pruefung ist.
 
+- **✅ 31.08. — `LAYOUT_MIN_ON_REQUEST` == `LAYOUT_MIN_MEMORY`: kein Fehler, aber eine Falle.**
+  Beide stehen seit dem 17.08. auf 512 KB. Folge: die Anforderungs-Stufe im Gate
+  (`_mem >= LAYOUT_MIN_ON_REQUEST and lay == 1`) ist wirkungslos, und die Begruendung
+  **`off_memory_optin` kann die Oberflaeche gar nicht mehr zeigen** — der Zweig in
+  `_layout_reason` ist unerreichbar. Das Verhalten ist richtig (die 128-KB-Klasse hat den
+  Renderer seit der ENG-Stufe nicht mehr im Build), nur stand nirgends, dass beide Zweige
+  absichtlich leer laufen. Jetzt an beiden Stellen vermerkt, **nichts geloescht**: sobald es
+  wieder eine mittlere Geraeteklasse gibt, muss nur die Konstante sinken und beides lebt auf.
+
 - **✅ 31.08. — Spot-Karte und Spot-Liste zeigten verschiedene Mengen (Nutzerfrage vom 29.08.).**
   Meldung: „locaties Meerkerk says 14 sessions, when i click it only reveals my sessions".
   **Nachgemessen:** Spot 194 hat genau 14 Sessions — 3 mit `detection = model` (sein Handy),

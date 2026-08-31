@@ -271,6 +271,12 @@ def device_config(
     # s. fēnix-5-/FR55-Meldungen), aber wer testen will, darf. Unter 128 KB ist es unmöglich: der Lite-Build hat
     # den Renderer gar nicht drin.
     _mem = (cat or {}).get("mem", 0)
+    # HINWEIS: die dritte Zeile ist derzeit WIRKUNGSLOS — seit dem 17.08. ist
+    # LAYOUT_MIN_ON_REQUEST == LAYOUT_MIN_MEMORY (beide 512 KB), also deckt die zweite Zeile sie
+    # vollstaendig ab. Das ist so gewollt (s. Kommentar an LAYOUT_MIN_ON_REQUEST): die
+    # Anforderungs-Stufe ist benannt, aber leer, weil die 128-KB-Klasse den Renderer gar nicht mehr
+    # im Build hat. Sie steht hier, damit eine kuenftige mittlere Geraeteklasse nur die Konstante
+    # senken muss. Wer hier "toter Code" liest: nicht loeschen, sondern erst die Konstante pruefen.
     layout_capable = (
         not is_garmin   # Wear/watchOS/Zepp: kein 96-KB-Problem, Renderer immer bedienbar
         or _mem >= LAYOUT_MIN_MEMORY
@@ -596,6 +602,12 @@ def _layout_state(db: Session, d: models.DeviceToken, stored: dict,
     mem = (cat_entry or {}).get("mem", 0)
     if mem < LAYOUT_MIN_ON_REQUEST:
         return "off_memory"
+    # UNERREICHBAR, solange LAYOUT_MIN_ON_REQUEST == LAYOUT_MIN_MEMORY (seit 17.08. beide 512 KB):
+    # was die erste Bedingung ueberlebt, ist automatisch auch >= LAYOUT_MIN_MEMORY. Die Begruendung
+    # "off_memory_optin" kann die Oberflaeche also derzeit NICHT zeigen. Absichtlich stehen
+    # gelassen, damit der Baum weiter dieselbe Reihenfolge hat wie das Gate in `/config` — sonst
+    # erklaert die Anzeige irgendwann etwas anderes, als der Server tut. Sobald es wieder eine
+    # mittlere Geraeteklasse gibt, lebt der Zweig von selbst auf.
     if mem < LAYOUT_MIN_MEMORY:
         return "off_memory_optin"
     if int(d.layout_canary_count or 0) >= CANARY_BLOCK_AT and not user_opted_in:
