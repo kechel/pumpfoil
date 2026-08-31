@@ -46,19 +46,25 @@ struct SocialFeedSection: View {
                 }
                 .listRowInsets(EdgeInsets(top: 4, leading: 12, bottom: 8, trailing: 12))
             }
-            .fullScreenCover(item: Binding(
-                get: { offen.flatMap { i in items.indices.contains(i) ? SocialDest(index: i) : nil } },
-                set: { neu in offen = neu?.index })
-            ) { ziel in
-                SocialPlayerView(
-                    lang: lang,
-                    item: items[ziel.index],
-                    hatZurueck: ziel.index > 0,
-                    hatWeiter: ziel.index < items.count - 1,
-                    onZurueck: { offen = ziel.index - 1 },
-                    onWeiter: { offen = ziel.index + 1 },
-                    onClose: { offen = nil }
-                )
+            // `isPresented` statt `item:` — sonst wechselt beim Weiterblaettern die Identitaet
+            // des Ziels, SwiftUI blendet das Vollbild aus und wieder ein, und man sieht das
+            // Zuklappen/Aufklappen (Jans Meldung 31.08.). So bleibt die Praesentation stehen
+            // und nur der Inhalt wird getauscht.
+            .fullScreenCover(isPresented: Binding(
+                get: { offen != nil },
+                set: { sichtbar in if !sichtbar { offen = nil } })
+            ) {
+                if let i = offen, items.indices.contains(i) {
+                    SocialPlayerView(
+                        lang: lang,
+                        item: items[i],
+                        hatZurueck: i > 0,
+                        hatWeiter: i < items.count - 1,
+                        onZurueck: { offen = i - 1 },
+                        onWeiter: { offen = i + 1 },
+                        onClose: { offen = nil }
+                    )
+                }
             }
         } else {
             // Unsichtbarer Platzhalter, der das erste Laden anstoesst.
@@ -68,13 +74,21 @@ struct SocialFeedSection: View {
     }
 
     /// Hochkant 9:16 — bei uns sind fast alle Clips Shorts.
+    ///
+    /// Das Vorschaubild laedt ueber die phasen-basierte `AsyncImage`-Form — genau wie
+    /// `CommunityView.mediaThumb`, wo dasselbe schon laenger laeuft. Die erste Fassung nutzte
+    /// die content/placeholder-Form und blieb bei Jan im Simulator grau (31.08.); mit der
+    /// Phase sehen wir ausserdem den Unterschied zwischen „laedt noch" und „fehlgeschlagen"
+    /// statt beides als leere Flaeche zu zeigen.
     @ViewBuilder private func kachel(_ it: SocialItem) -> some View {
         let u = URL(string: "\(Api.baseURL)/api/public/video-thumb/\(it.external_id)")
         ZStack(alignment: .bottomLeading) {
-            AsyncImage(url: u) { bild in
-                bild.resizable().aspectRatio(contentMode: .fill)
-            } placeholder: {
-                Color.secondary.opacity(0.15)
+            AsyncImage(url: u) { phase in
+                switch phase {
+                case .success(let bild): bild.resizable().scaledToFill()
+                case .failure:           Color.secondary.opacity(0.25)
+                default:                 Color.secondary.opacity(0.12)
+                }
             }
             .frame(width: 130, height: 231)
             .clipped()
@@ -115,12 +129,6 @@ struct SocialFeedSection: View {
         if mehr.count < SCHUB { ende = true }
         laedt = false
     }
-}
-
-/// `fullScreenCover(item:)` braucht ein Identifiable — der reine Index tut es nicht.
-private struct SocialDest: Identifiable {
-    let index: Int
-    var id: Int { index }
 }
 
 /// Vollbild-Player.
