@@ -4384,7 +4384,20 @@ Offen daraus:
   ein Regex-Umbau haette unbemerkt Verhalten aendern koennen. Nachziehen, sobald die Meldung
   woanders auftaucht oder nach dem Release.
 
-- **🟡 31.08. 10:01 — iOS/Apple Watch 1.1.27 (31) EINGEREICHT, Status „Warten auf Pruefung".**
+- **✅ 31.08. — iOS/Apple Watch 1.1.27 IST LIVE, Freigabekette abgearbeitet.** Freigabe-Mail
+  („ready for distribution") gegen 19 Uhr Berlin, `appmeta.ios` UND `appmeta.apple` zusammen auf
+  1.1.27, Changelog-Eintrag, Server neu gestartet.
+  **⚠️ METHODEN-FEHLER, den ich dabei gemacht habe — bitte nicht wiederholen:** ich habe zuerst
+  `itunes.apple.com/lookup` gefragt und daraus geschlossen, der Rollout laufe noch. **Die API ist
+  stark gecacht und taugt fuer eine frische Freigabe nicht.** Ein Waechter hat 50 Minuten gepollt
+  (de/us/nl/no/fi): durchweg 0 von 5 auf 1.1.27, einmal kippte us kurz um und zurueck; einzig die
+  cz-Storefront zeigte 1.1.27, mit `currentVersionReleaseDate` 16:44:36Z — also VOR der Mail.
+  Die **Store-SEITE** (`apps.apple.com/de/app/...` und `/us/...`) zeigte da bereits „Version
+  1.1.27". **Kuenftig: Produktseite pruefen**, die lookup-API nur als Bestaetigung an den Tagen
+  danach. Die Vorsicht selbst war richtig (der Play-Vorfall vom 29.07. steht im Kommentar bei
+  `android`) — nur das Messinstrument war falsch.
+
+  Urspruenglicher Eintrag: **🟡 31.08. 10:01 — iOS/Apple Watch 1.1.27 (31) EINGEREICHT.**
   Jans Meldung mit den Daten aus App Store Connect: Uebermittlungskennung
   `7cbe07de-14ec-4968-b45c-460e22e91ac3`, Uebermittlungsdatum 31. Aug. 2026 um 10:01 Uhr.
   Vorgaenger 1.1.26 war seit 30.08. 21:50 UTC live, es hing also nichts in der Warteschlange.

@@ -48,9 +48,24 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.26",   # LIVE im App Store 2026-08-30 21:50 UTC, GEGENGEPRUEFT ueber
-        # itunes.apple.com/lookup (de/us/nl/no/fi -> alle 1.1.26, currentVersionReleaseDate
-        # 2026-08-30T21:50:36). Freigabe-Mail "ready for distribution" am 31.08.
+        "latest": "1.1.27",   # LIVE im App Store 2026-08-31, GEGENGEPRUEFT an der STORE-SEITE
+        # (apps.apple.com/de/... und /us/... zeigen beide "Version 1.1.27"). Freigabe-Mail
+        # "ready for distribution" am 31.08. um ~19 Uhr Berlin.
+        #
+        # ⚠️ WICHTIG FUER DAS NAECHSTE MAL — `itunes.apple.com/lookup` taugt fuer eine FRISCHE
+        # Freigabe NICHT: die API ist stark gecacht. Nach der Mail lieferte sie 50 Minuten lang
+        # weiter 1.1.26 (de/us/nl/no/fi, einmal kippte us kurz auf 1.1.27 und zurueck), einzig die
+        # cz-Storefront zeigte 1.1.27 mit currentVersionReleaseDate 16:44:36Z — also VOR der Mail.
+        # Die Store-SEITE (apps.apple.com) hatte da langst 1.1.27. Also: Produktseite pruefen, die
+        # lookup-API nur zur Bestaetigung an Tagen danach.
+        # Inhalt: Kennzahlen und Rekorde je Foil auf der Startseite (Zeitfenster startet auf
+        # 10 Tagen), Satellitenansicht auf allen fuenf Karten, Community-Video-Feed samt Vollbild
+        # und Melden, Dateianhaenge im Feedback, ALLE 17 Sprachen vollstaendig (vorher fielen je
+        # Sprache 45 bis 183 Texte auf Englisch zurueck), Karten-Absatz in der
+        # Datenschutzerklaerung. Dazu vier Fehler aus Jans Simulator-Runde: Spot-Karte zoomt
+        # wieder und ein Tipp ins Leere oeffnet keinen Spot, das Feed-Vollbild bleibt beim ersten
+        # Antippen stehen, Vorschaubilder verschwinden nicht mehr beim Tab-Wechsel.
+        # Vorher 1.1.26, live seit 30.08.
         # Inhalt: der Startabsturz ist weg (ungueltige Karten-Region, s. docs/TODO.md), Tabs
         # entstehen erst beim Oeffnen, Spot-Karte buendelt Pins, Polnisch, Uhr-Anleitung,
         # Geschwindigkeits-Zonen, laengster Lauf je Foil.
@@ -149,11 +164,12 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.26",   # LIVE im App Store 2026-08-30 21:50 UTC — dieselbe Einreichung
-        # wie "ios", die Watch-App steckt ja im selben Bundle. NICHT auf die Freigabe-Mail allein
-        # verlassen ("eligible for distribution" heisst freigegeben, nicht zwingend schon
-        # ausgeliefert): gegengeprueft ueber itunes.apple.com/lookup?id=6783975714 in
-        # de/us/nl/no/fi -> ueberall 1.1.26, currentVersionReleaseDate 2026-08-30T21:50:36.
+        "latest": "1.1.27",   # LIVE im App Store 2026-08-31 — dieselbe Einreichung wie "ios",
+        # die Watch-App steckt ja im selben Bundle. NICHT auf die Freigabe-Mail allein verlassen
+        # ("ready for distribution" heisst freigegeben, nicht zwingend schon ausgeliefert):
+        # gegengeprueft an der STORE-SEITE (apps.apple.com/de + /us zeigen "Version 1.1.27").
+        # Die lookup-API hing hier 50 Minuten nach — s. die ausfuehrliche Notiz bei "ios".
+        # Fuer die WATCH-App bringt 1.1.27: nl/fi/cs neu, alle 17 Sprachen vollstaendig.
         # (Bis 31.08. stand hier noch der Pruefbericht zu 1.1.25 — der Kommentar widersprach
         # damit dem eigenen Wert. Beim Bump IMMER beide Zeilen mitziehen.)
         # Inhalt: Lauf-Tabelle waagerecht scrollbar mit allen 13 Spalten, Vergleich je LAUF mit 15
