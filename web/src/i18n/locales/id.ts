@@ -1226,6 +1226,10 @@ const id: Record<string, string> = {
   "imp.yt2": "Hanya saat kamu <b>mengklik</b> sebuah video, pemutar YouTube (mode privasi ditingkatkan, youtube-nocookie.com) dimuat. Google/YouTube lalu menerima alamat IP-mu dan mungkin menyetel cookie. Dengan mengklik kamu menyetujui hal ini.",
   "imp.ytNote": "Penyedia: Google Ireland Ltd. Selengkapnya di <a href=\"https://policies.google.com/privacy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"text-brand-400 hover:underline\">kebijakan privasi Google</a>.",
   "imp.ytTitle": "Video YouTube tersemat",
+  "imp.mapTitle": "Peta",
+  "imp.map1": "<b>Peta jalan</b> berasal dari <b>OpenStreetMap</b>. Saat peta ditampilkan, peramban kamu memuat ubin peta langsung dari server mereka, sehingga alamat IP kamu dan area yang ditampilkan ikut terkirim. Penyedia: OpenStreetMap Foundation, Britania Raya.",
+  "imp.map2": "Kalau kamu beralih ke <b>Satelit</b> lewat tombol di peta, citra udara datang dari <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — juga langsung dari server mereka dan juga dengan alamat IP kamu. Ini <b>hanya</b> terjadi kalau kamu beralih; pilihanmu diingat secara lokal di perangkatmu.",
+  "imp.mapApple": "Di <b>aplikasi iPhone dan Apple Watch</b>, peta DAN citra udara sama-sama berasal dari <b>Apple Maps</b>, bukan dari OpenStreetMap atau Esri. Menampilkan peta mengirimkan area yang tampil ke Apple; Apple bertanggung jawab atas hal itu sesuai kebijakan privasi mereka. <b>Aplikasi Android</b> bekerja seperti peramban: peta jalan dari OpenStreetMap, citra udara dari Esri.",
   "metric.metersPerPump": "meter / pump",
 
   // Kurze Feld-Labels EXAKT wie die Uhr sie zeichnet (aus watch/source/Strings.mc `f.*`

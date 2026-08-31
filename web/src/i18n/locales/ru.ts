@@ -1226,6 +1226,10 @@ const ru: Record<string, string> = {
   "imp.yt2": "Только когда вы <b>кликаете</b> видео, загружается плеер YouTube (режим повышенной конфиденциальности, youtube-nocookie.com). Google/YouTube тогда получает ваш IP-адрес и может ставить cookies. Кликая, вы даёте на это согласие.",
   "imp.ytNote": "Провайдер: Google Ireland Ltd. Подробнее в <a href=\"https://policies.google.com/privacy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"text-brand-400 hover:underline\">политике конфиденциальности Google</a>.",
   "imp.ytTitle": "Встроенные видео YouTube",
+  "imp.mapTitle": "Карты",
+  "imp.map1": "<b>Дорожная карта</b> предоставляется <b>OpenStreetMap</b>. При показе карты твой браузер загружает фрагменты карты напрямую с их серверов, при этом передаются твой IP-адрес и отображаемый участок. Поставщик: OpenStreetMap Foundation, Великобритания.",
+  "imp.map2": "Если ты переключишься на <b>спутник</b> кнопкой на карте, аэроснимки поступают от <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — тоже напрямую с их серверов и тоже с твоим IP-адресом. Это происходит <b>только</b> при переключении; твой выбор сохраняется локально на устройстве.",
+  "imp.mapApple": "В <b>приложении для iPhone и Apple Watch</b> и карта, И аэроснимки поступают от <b>Apple Карт</b>, а не от OpenStreetMap или Esri. При показе карты устройство передаёт отображаемый участок в Apple; ответственность за это несёт Apple согласно своей политике конфиденциальности. <b>Android-приложение</b> работает как браузер: дорожная карта от OpenStreetMap, аэроснимки от Esri.",
   "metric.metersPerPump": "метров / помпинг",
 
   // Kurze Feld-Labels EXAKT wie die Uhr sie zeichnet (aus watch/source/Strings.mc `f.*`

@@ -1056,6 +1056,10 @@ const it: Record<string, string> = {
   "settings.watchUpdate": "Aggiornamento disponibile: {platform} v{version}",
   "wx.today": "Oggi",
   "imp.googleNote": "L'uso delle informazioni provenienti dalle API di Google è conforme alla <a href=\"https://developers.google.com/terms/api-services-user-data-policy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"text-brand-400 hover:underline\">Google API Services User Data Policy</a>, inclusi i requisiti Limited Use.",
+  "imp.mapTitle": "Mappe",
+  "imp.map1": "La <b>mappa stradale</b> proviene da <b>OpenStreetMap</b>. Quando viene mostrata una mappa, il tuo browser carica i riquadri direttamente dai loro server, trasmettendo il tuo indirizzo IP e la porzione visualizzata. Fornitore: OpenStreetMap Foundation, Regno Unito.",
+  "imp.map2": "Se passi a <b>Satellite</b> con il pulsante sulla mappa, le immagini aeree arrivano da <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — anche in questo caso direttamente dai loro server e con il tuo indirizzo IP. Succede <b>solo</b> se cambi vista; la tua scelta viene ricordata localmente sul tuo dispositivo.",
+  "imp.mapApple": "Nell'<b>app per iPhone e Apple Watch</b> sia la mappa SIA le immagini aeree provengono da <b>Apple Mappe</b>, non da OpenStreetMap o Esri. Mostrare una mappa invia ad Apple la porzione visualizzata; Apple ne è responsabile secondo la propria informativa sulla privacy. L'<b>app Android</b> funziona come il browser: mappa stradale da OpenStreetMap, immagini aeree da Esri.",
   "sd.colorOptimal": "vs. ottimale",
   "watches.linkAccount": "Collegamento account disponibile",
 

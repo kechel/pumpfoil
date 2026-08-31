@@ -765,6 +765,10 @@ const fi: Record<string, string> = {
   "imp.yt1": "Etusivulla näytämme YouTube-kanavamme esikatselukuvia. Ne tarjoillaan <b>oman palvelimemme</b> kautta — sivun latautuessa ei synny <b>mitään</b> yhteyttä Googleen eikä <b>mitään</b> evästeitä aseteta.",
   "imp.yt2": "Vasta kun <b>klikkaat</b> videota, ladataan YouTube-soitin (tila „laajennettu tietosuoja“, youtube-nocookie.com). Silloin Google/YouTube saa IP-osoitteesi ja voi asettaa evästeitä. Klikkauksella annat tähän suostumuksesi.",
   "imp.ytNote": "Tarjoaja: Google Ireland Ltd. Tarkemmin <a href=\"https://policies.google.com/privacy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"text-brand-400 hover:underline\">Googlen tietosuojaselosteessa</a>.",
+  "imp.mapTitle": "Kartat",
+  "imp.map1": "<b>Katukartta</b> tulee <b>OpenStreetMapilta</b>. Kun kartta näytetään, selaimesi lataa karttaruudut suoraan heidän palvelimiltaan, jolloin välittyvät IP-osoitteesi ja näkyvä karttaosuus. Palveluntarjoaja: OpenStreetMap Foundation, Yhdistynyt kuningaskunta.",
+  "imp.map2": "Jos vaihdat kartan painikkeella <b>satelliittinäkymään</b>, ilmakuvat tulevat <b>Esriltä</b> (Esri, Maxar, Earthstar Geographics) — sekin suoraan heidän palvelimiltaan ja sekin IP-osoitteesi kanssa. Näin käy <b>vain</b>, jos vaihdat näkymää; valintasi muistetaan paikallisesti laitteellasi.",
+  "imp.mapApple": "<b>iPhone- ja Apple Watch -sovelluksessa</b> sekä kartta ETTÄ ilmakuvat tulevat <b>Apple Kartoista</b>, eivät OpenStreetMapilta tai Esriltä. Kartan näyttäminen lähettää näkyvän alueen Applelle; siitä vastaa Apple oman tietosuojakäytäntönsä mukaisesti. <b>Android-sovellus</b> toimii kuten selain: katukartta OpenStreetMapilta, ilmakuvat Esriltä.",
 
   // Session-Beschriftung / YouTube / Lightbox
   "meta.captionPlaceholder": "omat 2–3 sanaa kuvaukseksi",

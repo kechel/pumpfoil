@@ -794,6 +794,10 @@ const nl: Record<string, string> = {
   "imp.yt1": "Op de startpagina tonen we voorbeeldafbeeldingen van ons YouTube-kanaal. Deze worden via <b>onze eigen server</b> geleverd — bij het laden van de pagina is er <b>geen</b> contact met Google en worden er <b>geen</b> cookies geplaatst.",
   "imp.yt2": "Pas wanneer je een video <b>aanklikt</b>, wordt de YouTube-player (modus ‘uitgebreide privacy', youtube-nocookie.com) geladen. Dan ontvangt Google/YouTube je IP-adres en kan het cookies plaatsen. Met de klik stem je daarmee in.",
   "imp.ytNote": "Aanbieder: Google Ireland Ltd. Meer in het <a href=\"https://policies.google.com/privacy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"text-brand-400 hover:underline\">privacybeleid van Google</a>.",
+  "imp.mapTitle": "Kaarten",
+  "imp.map1": "De <b>stratenkaart</b> komt van <b>OpenStreetMap</b>. Bij het tonen van een kaart laadt je browser de kaarttegels rechtstreeks van hun servers; daarbij worden je IP-adres en het getoonde gebied doorgegeven. Aanbieder: OpenStreetMap Foundation, Verenigd Koninkrijk.",
+  "imp.map2": "Schakel je met de knop op de kaart over naar <b>Satelliet</b>, dan komen de luchtfoto's van <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — ook rechtstreeks van hun servers en ook met je IP-adres. Dat gebeurt <b>alleen</b> als je omschakelt; je keuze wordt lokaal op je apparaat onthouden.",
+  "imp.mapApple": "In de <b>iPhone- en Apple Watch-app</b> komen zowel de kaart ALS de luchtfoto's van <b>Apple Kaarten</b>, niet van OpenStreetMap of Esri. Bij het tonen van een kaart stuurt je apparaat het getoonde gebied naar Apple; Apple is daarvoor verantwoordelijk volgens hun privacybeleid. De <b>Android-app</b> werkt zoals de browser: stratenkaart van OpenStreetMap, luchtfoto's van Esri.",
 
   // Session-Beschriftung / YouTube / Lightbox
   "meta.captionPlaceholder": "mijn 2–3 woorden als beschrijving",

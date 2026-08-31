@@ -7,6 +7,10 @@ package org.pumpfoil.app
 val PT: Map<String, String> = ptTabelle()
 
 private fun ptTabelle(): Map<String, String> = mapOf(
+    "imp.mapTitle" to "Mapas",
+    "imp.map1" to "O <b>mapa de ruas</b> vem do <b>OpenStreetMap</b>. Ao exibir um mapa, o teu navegador carrega os blocos diretamente dos servidores deles, transmitindo o teu endereço IP e a área exibida. Fornecedor: OpenStreetMap Foundation, Reino Unido.",
+    "imp.map2" to "Se mudares para <b>Satélite</b> com o botão no mapa, as imagens aéreas vêm da <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — também diretamente dos servidores deles e também com o teu endereço IP. Isso acontece <b>apenas</b> se mudares; a tua escolha fica guardada localmente no teu aparelho.",
+    "imp.mapApple" to "No <b>app para iPhone e Apple Watch</b>, tanto o mapa QUANTO as imagens aéreas vêm do <b>Apple Mapas</b>, não do OpenStreetMap nem da Esri. Exibir um mapa envia a área exibida à Apple; a Apple é responsável por isso conforme a política de privacidade dela. O <b>app Android</b> funciona como o navegador: mapa de ruas do OpenStreetMap, imagens aéreas da Esri.",
     "common.back" to "← voltar",
     "social.title" to "Feeds de redes sociais",
     "social.hint" to "Vídeos da comunidade reunidos num só sítio e reproduzíveis aqui — sem algoritmo pelo meio. <b>Adiciona o teu canal do YouTube no perfil e os teus vídeos entram também. O</b> (O Instagram e o TikTok não permitem isto.)",
@@ -679,6 +683,10 @@ private fun ptTabelle(): Map<String, String> = mapOf(
 val JA: Map<String, String> = jaTabelle()
 
 private fun jaTabelle(): Map<String, String> = mapOf(
+    "imp.mapTitle" to "地図",
+    "imp.map1" to "<b>道路地図</b>は <b>OpenStreetMap</b> から提供されています。地図を表示すると、ブラウザが地図タイルを同団体のサーバーから直接読み込むため、あなたの IP アドレスと表示中の範囲が送信されます。提供者：OpenStreetMap Foundation（英国）。",
+    "imp.map2" to "地図上のボタンで<b>衛星</b>に切り替えると、航空写真は <b>Esri</b>（Esri, Maxar, Earthstar Geographics）から提供されます。こちらも同社のサーバーから直接読み込まれ、同じくあなたの IP アドレスが送信されます。これは切り替えた<b>場合にのみ</b>起こり、選択内容はお使いの端末内にのみ保存されます。",
+    "imp.mapApple" to "<b>iPhone および Apple Watch アプリ</b>では、地図も航空写真も <b>Apple マップ</b>から提供され、OpenStreetMap や Esri は使用しません。地図を表示すると、端末が表示範囲を Apple に送信します。これについては Apple がそのプライバシーポリシーに基づいて責任を負います。<b>Android アプリ</b>はブラウザと同じで、道路地図は OpenStreetMap、航空写真は Esri から提供されます。",
     "common.back" to "← 戻る",
     "social.title" to "SNSフィード",
     "social.hint" to "コミュニティの動画をひとつの場所に集め、ここでそのまま再生できます — 間にアルゴリズムはありません。 <b>プロフィールに YouTube チャンネルを登録すると、あなたの動画も並びます。</b> （Instagram と TikTok では利用できません。）",
@@ -1351,6 +1359,10 @@ private fun jaTabelle(): Map<String, String> = mapOf(
 val ZH: Map<String, String> = zhTabelle()
 
 private fun zhTabelle(): Map<String, String> = mapOf(
+    "imp.mapTitle" to "地图",
+    "imp.map1" to "<b>街道地图</b>来自 <b>OpenStreetMap</b>。显示地图时，你的浏览器会直接从他们的服务器加载地图瓦片，这会传输你的 IP 地址和当前显示的范围。提供方：OpenStreetMap Foundation（英国）。",
+    "imp.map2" to "如果你用地图上的按钮切换到<b>卫星</b>视图，航拍影像来自 <b>Esri</b>（Esri、Maxar、Earthstar Geographics）——同样直接来自他们的服务器，同样会传输你的 IP 地址。这<b>仅</b>在你切换时才会发生；你的选择只保存在本机设备上。",
+    "imp.mapApple" to "在 <b>iPhone 和 Apple Watch 应用</b>中，地图和航拍影像都来自 <b>Apple 地图</b>，而不是 OpenStreetMap 或 Esri。显示地图会把当前范围发送给 Apple；对此由 Apple 依据其隐私政策负责。<b>Android 应用</b>与浏览器相同：街道地图来自 OpenStreetMap，航拍影像来自 Esri。",
     "common.back" to "← 返回",
     "social.title" to "社交媒体动态",
     "social.hint" to "社区视频汇聚一处，可直接在这里播放——中间没有算法。 <b>在个人资料中填入你的 YouTube 频道，你的视频也会一起出现。</b> （Instagram 和 TikTok 不支持。）",
@@ -2023,6 +2035,10 @@ private fun zhTabelle(): Map<String, String> = mapOf(
 val RU: Map<String, String> = ruTabelle()
 
 private fun ruTabelle(): Map<String, String> = mapOf(
+    "imp.mapTitle" to "Карты",
+    "imp.map1" to "<b>Дорожная карта</b> предоставляется <b>OpenStreetMap</b>. При показе карты твой браузер загружает фрагменты карты напрямую с их серверов, при этом передаются твой IP-адрес и отображаемый участок. Поставщик: OpenStreetMap Foundation, Великобритания.",
+    "imp.map2" to "Если ты переключишься на <b>спутник</b> кнопкой на карте, аэроснимки поступают от <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — тоже напрямую с их серверов и тоже с твоим IP-адресом. Это происходит <b>только</b> при переключении; твой выбор сохраняется локально на устройстве.",
+    "imp.mapApple" to "В <b>приложении для iPhone и Apple Watch</b> и карта, И аэроснимки поступают от <b>Apple Карт</b>, а не от OpenStreetMap или Esri. При показе карты устройство передаёт отображаемый участок в Apple; ответственность за это несёт Apple согласно своей политике конфиденциальности. <b>Android-приложение</b> работает как браузер: дорожная карта от OpenStreetMap, аэроснимки от Esri.",
     "common.back" to "← назад",
     "social.title" to "Ленты соцсетей",
     "social.hint" to "Видео сообщества в одном месте, воспроизводятся прямо здесь — без алгоритма посередине. <b>Укажите свой канал YouTube в профиле, и ваши видео появятся в ленте.</b> (Instagram и TikTok этого не позволяют.)",
@@ -2695,6 +2711,10 @@ private fun ruTabelle(): Map<String, String> = mapOf(
 val ID: Map<String, String> = idTabelle()
 
 private fun idTabelle(): Map<String, String> = mapOf(
+    "imp.mapTitle" to "Peta",
+    "imp.map1" to "<b>Peta jalan</b> berasal dari <b>OpenStreetMap</b>. Saat peta ditampilkan, peramban kamu memuat ubin peta langsung dari server mereka, sehingga alamat IP kamu dan area yang ditampilkan ikut terkirim. Penyedia: OpenStreetMap Foundation, Britania Raya.",
+    "imp.map2" to "Kalau kamu beralih ke <b>Satelit</b> lewat tombol di peta, citra udara datang dari <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — juga langsung dari server mereka dan juga dengan alamat IP kamu. Ini <b>hanya</b> terjadi kalau kamu beralih; pilihanmu diingat secara lokal di perangkatmu.",
+    "imp.mapApple" to "Di <b>aplikasi iPhone dan Apple Watch</b>, peta DAN citra udara sama-sama berasal dari <b>Apple Maps</b>, bukan dari OpenStreetMap atau Esri. Menampilkan peta mengirimkan area yang tampil ke Apple; Apple bertanggung jawab atas hal itu sesuai kebijakan privasi mereka. <b>Aplikasi Android</b> bekerja seperti peramban: peta jalan dari OpenStreetMap, citra udara dari Esri.",
     "common.back" to "← kembali",
     "social.title" to "Feed media sosial",
     "social.hint" to "Video dari komunitas, terkumpul di satu tempat dan bisa diputar di sini — tanpa algoritma di antaranya. <b>Tambahkan kanal YouTube-mu di profil, videomu ikut tampil.</b> (Instagram dan TikTok tidak mengizinkannya.)",
@@ -3370,6 +3390,10 @@ private fun idTabelle(): Map<String, String> = mapOf(
 val NB: Map<String, String> = nbTabelle()
 
 private fun nbTabelle(): Map<String, String> = mapOf(
+    "imp.mapTitle" to "Kart",
+    "imp.map1" to "<b>Veikartet</b> kommer fra <b>OpenStreetMap</b>. Når et kart vises, laster nettleseren din kartrutene direkte fra deres servere, og da overføres IP-adressen din og utsnittet du ser. Leverandør: OpenStreetMap Foundation, Storbritannia.",
+    "imp.map2" to "Bytter du til <b>satellitt</b> med knappen på kartet, kommer flybildene fra <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — også direkte fra deres servere og også med IP-adressen din. Det skjer <b>bare</b> hvis du bytter; valget ditt huskes lokalt på enheten din.",
+    "imp.mapApple" to "I <b>iPhone- og Apple Watch-appen</b> kommer både kartet OG flybildene fra <b>Apple Kart</b>, ikke fra OpenStreetMap eller Esri. Når et kart vises, sender enheten din utsnittet til Apple; Apple er ansvarlig for det etter sin personvernerklæring. <b>Android-appen</b> fungerer som nettleseren: veikart fra OpenStreetMap, flybilder fra Esri.",
     "common.back" to "← tilbake",
     "social.title" to "Sosiale feeder",
     "social.hint" to "Videoer fra fellesskapet, samlet på ett sted og spillbare her — uten algoritme imellom. <b>Legg inn YouTube-kanalen din i profilen, så blir videoene dine med.</b> (Instagram og TikTok tillater det ikke.)",
@@ -4164,6 +4188,10 @@ private fun nbTabelle(): Map<String, String> = mapOf(
 val PL: Map<String, String> = plTabelle()
 
 private fun plTabelle(): Map<String, String> = mapOf(
+    "imp.mapTitle" to "Mapy",
+    "imp.map1" to "<b>Mapa drogowa</b> pochodzi z <b>OpenStreetMap</b>. Przy wyświetlaniu mapy twoja przeglądarka pobiera kafelki bezpośrednio z ich serwerów; przekazywane są przy tym twój adres IP i wyświetlany fragment. Dostawca: OpenStreetMap Foundation, Wielka Brytania.",
+    "imp.map2" to "Jeśli przyciskiem na mapie przełączysz się na <b>satelitę</b>, zdjęcia lotnicze pochodzą od <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — również bezpośrednio z ich serwerów i również z twoim adresem IP. Dzieje się tak <b>tylko</b> wtedy, gdy przełączysz; twój wybór jest zapamiętywany lokalnie na twoim urządzeniu.",
+    "imp.mapApple" to "W <b>aplikacji na iPhone'a i Apple Watch</b> zarówno mapa, JAK I zdjęcia lotnicze pochodzą z <b>Apple Maps</b>, a nie z OpenStreetMap ani Esri. Wyświetlenie mapy wysyła widoczny fragment do Apple; odpowiada za to Apple zgodnie ze swoją polityką prywatności. <b>Aplikacja na Androida</b> działa jak przeglądarka: mapa drogowa z OpenStreetMap, zdjęcia lotnicze z Esri.",
     "common.back" to "← wstecz",
     "social.title" to "Kanały społecznościowe",
     "social.hint" to "Filmy społeczności w jednym miejscu, odtwarzane tutaj — bez algorytmu pośrodku. <b>Dodaj swój kanał YouTube w profilu, a twoje filmy dołączą.</b> (Instagram i TikTok na to nie pozwalają.)",

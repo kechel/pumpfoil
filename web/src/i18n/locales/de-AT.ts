@@ -963,6 +963,7 @@ const deAT: Record<string, string> = {
   "imp.map1": "Die <b>Straßenkarte</b> stammt von <b>OpenStreetMap</b>. Beim Anzeigen einer Karte lädt dein Browser die Kartenausschnitte direkt von deren Servern; dabei werden deine IP-Adresse und der angezeigte Ausschnitt übertragen. Anbieter: OpenStreetMap Foundation, Vereinigtes Königreich.",
   "imp.map2": "Schaltest du oben rechts auf <b>Satellit</b>, kommen die Luftbilder von <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — ebenfalls direkt von deren Servern und ebenfalls mit deiner IP-Adresse. Das passiert <b>nur</b>, wenn du umschaltest; deine Wahl wird lokal in deinem Browser gemerkt.",
   "imp.ytTitle": "Eingebettete YouTube-Videos",
+  "imp.mapApple": "In der <b>iPhone- und Apple-Watch-App</b> kommen Karte UND Luftbild von <b>Apple Maps</b>, nicht von OpenStreetMap oder Esri. Beim Anzeigen einer Karte überträgt dein Gerät den angezeigten Ausschnitt an Apple; verantwortlich dafür ist Apple nach deren Datenschutzrichtlinie. In der <b>Android-App</b> gilt dasselbe wie im Browser: Straßenkarte von OpenStreetMap, Luftbild von Esri.",
   "lab.chartAccel": "Beschleunigung — Pump-Band (g, bandpass)",
   "lab.chartSpeed": "Geschwindigkeit (m/s)",
   "lab.cvAccuracy": "CV-Accuracy:",

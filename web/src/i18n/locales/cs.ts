@@ -794,6 +794,10 @@ const cs: Record<string, string> = {
   "imp.yt1": "Na úvodní stránce zobrazujeme náhledy našeho YouTube kanálu. Ty se doručují přes <b>náš vlastní server</b> — při načtení stránky nevzniká <b>žádný</b> kontakt s Google a nenastavují se <b>žádné</b> cookies.",
   "imp.yt2": "Teprve když na video <b>klikneš</b>, načte se přehrávač YouTube (režim „rozšířená ochrana soukromí“, youtube-nocookie.com). Google/YouTube pak dostane tvoji IP adresu a může nastavit cookies. Kliknutím s tím souhlasíš.",
   "imp.ytNote": "Poskytovatel: Google Ireland Ltd. Podrobnosti v <a href=\"https://policies.google.com/privacy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"text-brand-400 hover:underline\">zásadách ochrany osobních údajů Google</a>.",
+  "imp.mapTitle": "Mapy",
+  "imp.map1": "<b>Silniční mapa</b> pochází z <b>OpenStreetMap</b>. Při zobrazení mapy načte tvůj prohlížeč mapové dlaždice přímo z jejich serverů; přitom se přenáší tvoje IP adresa a zobrazený výřez. Poskytovatel: OpenStreetMap Foundation, Spojené království.",
+  "imp.map2": "Když tlačítkem na mapě přepneš na <b>satelit</b>, letecké snímky přicházejí od <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — rovněž přímo z jejich serverů a rovněž s tvojí IP adresou. Stane se to <b>jen</b> tehdy, když přepneš; tvoje volba se uloží lokálně ve tvém zařízení.",
+  "imp.mapApple": "V <b>aplikaci pro iPhone a Apple Watch</b> pochází mapa I letecké snímky z <b>Apple Map</b>, nikoli z OpenStreetMap nebo Esri. Zobrazení mapy odešle zobrazený výřez Applu; odpovědnost za to nese Apple podle svých zásad ochrany soukromí. <b>Aplikace pro Android</b> funguje stejně jako prohlížeč: silniční mapa z OpenStreetMap, letecké snímky z Esri.",
 
   // Session-Beschriftung / YouTube / Lightbox
   "meta.captionPlaceholder": "můj popis ve 2–3 slovech",

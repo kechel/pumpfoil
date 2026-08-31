@@ -1226,6 +1226,10 @@ const pt: Record<string, string> = {
   "imp.yt2": "Só quando você <b>clica</b> num vídeo é que o player do YouTube (modo de privacidade aprimorada, youtube-nocookie.com) é carregado. O Google/YouTube então recebe seu endereço IP e pode definir cookies. Ao clicar, você consente com isso.",
   "imp.ytNote": "Provedor: Google Ireland Ltd. Mais na <a href=\"https://policies.google.com/privacy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"text-brand-400 hover:underline\">política de privacidade do Google</a>.",
   "imp.ytTitle": "Vídeos do YouTube incorporados",
+  "imp.mapTitle": "Mapas",
+  "imp.map1": "O <b>mapa de ruas</b> vem do <b>OpenStreetMap</b>. Ao exibir um mapa, o teu navegador carrega os blocos diretamente dos servidores deles, transmitindo o teu endereço IP e a área exibida. Fornecedor: OpenStreetMap Foundation, Reino Unido.",
+  "imp.map2": "Se mudares para <b>Satélite</b> com o botão no mapa, as imagens aéreas vêm da <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — também diretamente dos servidores deles e também com o teu endereço IP. Isso acontece <b>apenas</b> se mudares; a tua escolha fica guardada localmente no teu aparelho.",
+  "imp.mapApple": "No <b>app para iPhone e Apple Watch</b>, tanto o mapa QUANTO as imagens aéreas vêm do <b>Apple Mapas</b>, não do OpenStreetMap nem da Esri. Exibir um mapa envia a área exibida à Apple; a Apple é responsável por isso conforme a política de privacidade dela. O <b>app Android</b> funciona como o navegador: mapa de ruas do OpenStreetMap, imagens aéreas da Esri.",
   "metric.metersPerPump": "metros / pump",
 
   // Kurze Feld-Labels EXAKT wie die Uhr sie zeichnet (aus watch/source/Strings.mc `f.*`
