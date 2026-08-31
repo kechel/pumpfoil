@@ -4515,6 +4515,28 @@ Offen daraus:
   1. `.iq` hochladen 2. Freigabe des CIQ-Stores ABWARTEN 3. erst dann `build-all.sh`
   (das veroeffentlicht die Website-Downloads sofort) 4. dann `appmeta.garmin` + Changelog.
 
+- **✅ 31.08. — Sprachpruefung gegen die WIRKLICHKEIT (nicht nur gegen den Code): keine Luecke.**
+  Bisher hatte ich nur geprueft, ob jeder im Code benutzte Schluessel in den Tabellen steht
+  (0 Luecken auf allen sechs Zielen). Jetzt die andere Richtung — welche Profilsprachen haben
+  echte Nutzer, und deckt die jeweilige Uhr sie ab?
+  - **In Benutzung sind 12 Sprachen:** de (185 Nutzer), en (99), fr (74), cs (10), fi (6), ru (5),
+    nl (4), gsw (3), it (2), es (2), nb (1), pt (1). **ja, zh, id und pl nutzt derzeit NIEMAND** —
+    dass die Garmin kein CJK kann, trifft also aktuell keinen einzigen Nutzer.
+  - Je Sprache gegen die Plattformen geprueft, auf denen sie vorkommt: **jede ist abgedeckt.**
+    fi nur auf apple+wear (beide haben fi), ru auf apple/garmin/wear (alle drei), nl/nb/gsw/it nur
+    auf garmin (alle in den 15 Spalten), Zepp-Nutzer sind de/en/fr/cs (Spalten 0/3/4/12).
+  - **FALSCHER ALARM meinerseits, hier festgehalten damit es niemand nachbaut:** auf Zepp
+    deklariert `LANGS` 17 Sprachen, aber **kein einziges der 56 Text-Arrays hat 17 Eintraege**
+    (43 haben 15, 13 haben nur 13). Das sieht nach Fehler aus, ist aber gewollt: `t()` hat die
+    Kette `row[sp] || row[3] || row[0] || k`, und nb/pl kommen aus eigenen Overlays (`NB`/`PL`).
+    Fehlt eine Spalte, kommt Englisch — nie „undefined". Die kurzen Zeilen sind Absicht (der
+    Kommentar an `pair.gen` sagt es sogar: Garmins Wortlaut waere fuer den 300-px-Knopf zu lang).
+  - **Store-Stand selbst nachgesehen** statt darauf zu warten: iOS liefert ueber
+    `itunes.apple.com/lookup` in de/us/nl/no/fi einheitlich **1.1.26** (1.1.27 also weiter in
+    Pruefung, `appmeta.ios` stimmt), Garmin **1.0.83** (stimmt). **Play gibt die Version nicht
+    mehr her** — Google hat sie aus der Store-Seite entfernt, Android/Wear ist also nur ueber
+    Jans Meldung pruefbar.
+
 - **🟡 31.08. — Die fenix7x-Spur loest sich auf, dahinter steckt ein PRODUKT-Thema: ein Nutzer
   bekommt seit einem Monat NICHTS zu sehen.** Braucht eine Entscheidung von Jan, nichts geaendert.
   - **Technisch ist alles in Ordnung.** Die 18 „stummen" fenix7x-Sessions haben Accel bei
