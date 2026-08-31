@@ -4415,6 +4415,27 @@ Offen daraus:
   - **Falle beim Bearbeiten:** `json.dump(indent=1)` passt zu `foils.json`, formatiert `stabs.json`
     aber komplett um (3032 Zeilen Diff fuer zwei Eintraege). Dort als TEXT anhaengen.
 
+- **✅ 31.08. — Sessions-Listen starten jetzt IMMER mit „alle" statt „nur Accel" (Jans Vorgabe).**
+  Betrifft alle drei Umschalter der Liste: **Meine / je Spot / Alle** — auf Web, Android und iOS.
+  - **Vorher:** `has-accel` wurde abgefragt und bei „ja" auf „nur praezise" gestellt. Fuer eine
+    UEBERSICHT ist das falsch: sie verschweigt still die Sessions der Mitfahrer, deren Uhr keine
+    verwertbaren Beschleunigungsdaten liefert. Genau daran ist am 29.08. ein Nutzer haengengeblieben
+    („14 Sessions am Spot, nach dem Klick stehen drei da") — die automatische Umschaltung von
+    heute frueh hat den Fall entschaerft, aber die Vorgabe war weiter die falsche.
+  - **Rekorde/Bestenlisten bleiben unveraendert** auf „nur praezise": dort zaehlt Praezision.
+    Web `Home.tsx` (= Community) nutzt weiter den smarten Default; auf den Apps haben Community-
+    und Startseite ohnehin eigene Umschalter und fassen `AccelDefault` gar nicht an.
+  - **Web:** `useAccelDefault(smart = true)` bekam einen Schalter; `Sessions.tsx` uebergibt `false`
+    (kein `has-accel`-Aufruf mehr, `resetAuto` stellt ebenfalls auf „alle").
+  - **Android/iOS:** `AccelDefault.cached`/`preferred()` liefern konstant `false`, ohne Netz-Abfrage.
+    Die Form bleibt, damit die Aufrufer unveraendert sind und ein Zurueckdrehen eine Zeile ist.
+    **iOS-Detail:** in `SessionsView` stand der Startwert HART auf `true` und wurde erst nachtraeglich
+    aus `preferred()` gesetzt — das haette beim ersten Aufbau kurz „nur praezise" gezeigt und einmal
+    umsonst geladen. Jetzt direkt `false`.
+  - `Api.hasAccel` wird auf den Apps dadurch nicht mehr gerufen (bewusst stehen gelassen).
+  - Geprueft: `tsc --noEmit`, `:app:compileDebugKotlin`, `swiftc -parse` — alle gruen. Web live,
+    Android laeuft in 1.1.25 mit, iOS in 1.1.28.
+
 - **✅ 31.08. ERLEDIGT — Feedback #116 (Philipp): „GPS-Glitch" in der VERLAUFS-Karte, nicht in der
   Session-Karte. UNTERSUCHT — Ursache ist das Herunterrechnen, nicht die Erkennung.**
   Belegt an seiner Session **3157** (Illmensee, 31.08. vormittags).

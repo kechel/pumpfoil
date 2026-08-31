@@ -6,24 +6,25 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 
 // Default des „nur Accel | alle"-Umschalters — Port von web/src/lib/useAccelDefault.ts.
-// „nur Accel", wenn der anschauende Nutzer selbst Läufe mit Beschleunigungsdaten hat, sonst „alle".
-// Der Wert kommt aus /api/sessions/has-accel und wird prozessweit EINMAL geladen (wie der
-// session-weite Cache der PWA).
+//
+// GEAENDERT 31.08.2026 (Jan): die Sessions-Listen starten jetzt IMMER mit „alle", auch wenn der
+// anschauende Nutzer selbst Beschleunigungsdaten hat. Vorher wurde /api/sessions/has-accel gefragt
+// und bei „ja" auf „nur Accel" gestellt. Das ist fuer eine UEBERSICHT falsch: es verschweigt still
+// die Sessions der Mitfahrer, deren Uhr keine verwertbaren Accel-Daten liefert — genau daran ist
+// am 29.08. ein Nutzer haengengeblieben („14 Sessions am Spot, nach dem Klick stehen drei da").
+// Fuer Rekorde/Bestenlisten bleibt „nur praezise" richtig; die haben eigene Umschalter und
+// benutzen diesen Default nicht.
+//
+// Die Form (`cached`/`preferred()`) bleibt, damit die Aufrufer unveraendert bleiben und ein
+// Zurueckdrehen eine Zeile ist. `Api.hasAccel()` wird dadurch hier nicht mehr gerufen.
 object AccelDefault {
-    @Volatile private var cache: Boolean? = null
-    private val mutex = Mutex()
+    /** Startwert des Umschalters: „alle". */
+    val cached: Boolean get() = false
 
-    /** Bereits bekannter Default; solange noch nichts geladen ist optimistisch „nur Accel" (wie PWA). */
-    val cached: Boolean get() = cache ?: true
-
-    /** Lädt has-accel höchstens einmal pro Prozess; Fehler -> „alle" (wie PWA). */
-    suspend fun preferred(): Boolean = mutex.withLock {
-        cache ?: (try { Api.hasAccel() } catch (_: Exception) { false }).also { cache = it }
-    }
+    /** Ohne Netz-Abfrage — der Default haengt nicht mehr davon ab, was der Nutzer selbst hat. */
+    suspend fun preferred(): Boolean = false
 }
 
 // State-Halter für den Umschalter mit den DREI Setzern der PWA-Hook:

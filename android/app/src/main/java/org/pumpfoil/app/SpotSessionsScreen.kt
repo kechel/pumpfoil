@@ -57,8 +57,8 @@ fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, 
     suspend fun load() {
         loading = true
         try {
-            // Default wie die PWA (useAccelDefault): „nur Accel", wenn der Nutzer selbst
-            // Accel-Läufe hat, sonst „alle".
+            // Default wie die PWA (useAccelDefault): seit 31.08. IMMER „alle", auch wenn der
+            // Nutzer selbst Accel-Läufe hat — s. AccelDefault.kt.
             val only = if (showAll) false else AccelDefault.preferred()
             var rows = Api.spotSessions(spot, accelOnly = only)
             // Frueher griff das NUR bei einer komplett leeren Liste, und genau daran ist am 29.08. ein
