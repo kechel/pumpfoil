@@ -30,7 +30,12 @@ def sync_video_mirror(db: DbSession, s: models.Session) -> None:
     s.youtube_url = first_yt.youtube_url if first_yt else None
     s.youtube_added_at = first_yt.created_at if first_yt else None
 
-GAP_MS = 20_000          # Luecke zwischen Teilen (ms) -> Dropout -> Lauf-Trennung
+# FRUEHER: GAP_MS = 20_000 — eine kuenstliche Luecke zwischen den Teilen, damit die Analyse dort
+# einen Dropout sieht und Laeufe trennt. Ersatzlos gestrichen (31.08.2026): die Teile stehen jetzt
+# an ihrer echten Stelle auf der Wanduhr, also ist die Luecke die WIRKLICHE Pause zwischen den
+# Aufnahmen — meist deutlich groesser als 20 s. Ist sie ausnahmsweise kuerzer, waren die Aufnahmen
+# tatsaechlich fast nahtlos, und dann ist ein durchgehender Lauf die richtige Antwort und keine
+# erzwungene Trennung. Details am `off_ms` weiter unten.
 AUTO_MAX_GAP_S = 3600    # Auto-Merge: max. Abstand Ende->Start zweier Teile (1 h)
 MAX_GROUP_DIST_KM = 25.0  # Teile muessen am selben Ort sein (sonst kein sinnvoller Merge)
 
@@ -238,16 +243,31 @@ def merge_sessions(db: DbSession, sessions: list[models.Session]) -> models.Sess
     combined_gps: list = []
     # Accel-Teile MIT ihrer echten Zeitachse einsammeln (Session-ms in der neuen Achse).
     accel_parts: list[tuple[np.ndarray, np.ndarray]] = []
-    off_ms = 0
     for s in sessions:
         g, a, t = _trimmed_mit_achse(s)
         if not g:
             continue
+        # Jeder Teil kommt an seine ECHTE Stelle auf der Wanduhr, gerechnet ab `first_start`
+        # (= `started_at` der neuen Session). `_trimmed_mit_achse` hat den Teil vorher auf 0
+        # rebased, also muss sein Trim-Kopf wieder drauf.
+        #
+        # VORHER wurde stattdessen aufaddiert: `off_ms += Länge(voriger Teil) + GAP_MS`. Damit
+        # fielen zwei Dinge aus der Achse — der weggetrimmte Kopf JEDES Teils und die echte Pause
+        # zwischen den Aufnahmen (ersetzt durch feste 20 s). Die neue Session bekommt aber
+        # `started_at` des ersten Teils, also war `started_at + Session-ms` NICHT die Uhrzeit,
+        # und der Fehler war je Teil verschieden (wuchs also im Lauf der Session).
+        # Gemessen am Bestand (31.08.2026, `scripts/merge-timeaxis-check.py`): 46 von 48
+        # zusammengefuehrten Sessions daneben, Median 21,9 min, groesster Fall 8,8 Stunden.
+        # Aufgefallen ist es beim synchronen Abspielen: zwei Fahrer, die nachweislich zusammen
+        # gefahren sind, lagen 16 min auseinander — mit dieser Rechnung eine Sekunde.
+        #
+        # Sicher aufsteigend, weil `_mergebar` ueberlappende Teile ablehnt
+        # (`if b.started_at < _end(a)`), die Luecken zwischen den Teilen also echt und positiv sind.
+        off_ms = int((s.started_at - first_start).total_seconds() * 1000) + int(s.trim_start_ms or 0)
         for row in g:
             combined_gps.append([row[0] + off_ms] + list(row[1:]))
         if a is not None and a.shape[0] and t.size == a.shape[0]:
             accel_parts.append((a, t + float(off_ms)))
-        off_ms += int(g[-1][0]) + GAP_MS
 
     new_uuid = "merge-" + _uuid.uuid4().hex
     storage.ensure_session_dir(new_uuid)

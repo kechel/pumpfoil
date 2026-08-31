@@ -4515,8 +4515,32 @@ Offen daraus:
   1. `.iq` hochladen 2. Freigabe des CIQ-Stores ABWARTEN 3. erst dann `build-all.sh`
   (das veroeffentlicht die Website-Downloads sofort) 4. dann `appmeta.garmin` + Changelog.
 
-- **🔴 31.08. — WURZEL GEFUNDEN: bei ZUSAMMENGEFUEHRTEN Sessions ist die Session-ms-Achse KEINE
-  echte Uhrzeit. 48 Sessions betroffen. Braucht Jans OK, noch NICHTS geaendert.**
+- **✅ 31.08. ERLEDIGT (Jans OK eingeholt) — zusammengefuehrte Sessions haben wieder eine echte
+  Uhrzeit-Achse. `merge.py` repariert, alle 48 Bestands-Sessions neu gebaut und analysiert.**
+  **Ergebnis der Regressionspruefung gegen die Sicherung:** 42 von 48 Sessions in Foil-Strecke UND
+  Laufzahl **exakt unveraendert** — es haben sich nur Zeitstempel bewegt. Sechs haben
+  **dazugewonnen** (s590 3→5 Laeufe, s684 4→6, s716 10→12, s1232 20→23, s1929 5→7, s2669 12→16,
+  zusammen +847 m Foil-Strecke): dort hatte die kuenstliche 20-s-Naht Laeufe zerschnitten bzw. die
+  Plausibilitaetspruefung beim Zusammenfuehren sie verworfen. Pumps schwanken in 24 Sessions um
+  ±1–2 (die Pump-Fenster liegen auf der verschobenen Achse). Punktzahl in KEINER Session
+  veraendert — das war das Abnahmekriterium.
+  **Wahrheitsprobe bestanden:** Jans Lauf #7 in s3159 liegt jetzt auf **11:06:59..11:07:49**,
+  Philipps #9 in s3157 auf **11:06:58..11:07:46** — eine Sekunde, wie es sein muss. Vorher lagen
+  sie 16 min auseinander.
+  **Sicherung** vor dem Lauf: `tmp/merge-fix-backup-20260831-1349/` (Rohdaten 37 MB, 48 Analysen,
+  153 Session-Zeilen). **Werkzeuge:** `scripts/merge-timeaxis-check.py` (rein lesend),
+  `scripts/merge-timeaxis-repair.py` (Trockenlauf per Default, `--scharf` schreibt).
+  **Zwei Fallen, die der Trockenlauf gefunden hat, bevor etwas geschrieben wurde:**
+  1. **Verschachtelte Zusammenfuehrungen.** Wird mehrfach nacheinander zusammengefuehrt, zeigt
+     `merged_into` aller Beteiligten FLACH auf das Endergebnis — die Zwischenstufen stehen also
+     neben ihren eigenen Teilen in derselben Liste (s1910: Punktzahl verdreifachte sich).
+     Nicht am Typ entscheiden: bei s458/s741/s1723 enthaelt die Zwischenstufe Aufnahmen, die
+     sonst NIRGENDS stehen — die Typ-Regel kostete dort bis zu 2453 Punkte. Entschieden wird
+     jetzt ueber die ABDECKUNG (steuert sie Zeit bei, die kein anderer Teil hat?).
+  2. **Monotonie-Sicherung**: ueberlappende Teile ergaeben eine ruecklaufende Achse — dann wird
+     die Session ausgelassen und gemeldet, statt still Unsinn zu schreiben. Kam nicht vor.
+
+  Urspruenglicher Befund:
   Ausloeser war Jans Befund am synchronen Abspielen. Die Wiedergabe war unschuldig — die Daten
   luegen.
   - **`merge.py` (Z. ~240):** die Teile werden hintereinandergehaengt mit
