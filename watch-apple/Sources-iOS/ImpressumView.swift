@@ -6,13 +6,22 @@ import SwiftUI
 /// die der Browser rendert. Die App zeigte sie bis 31.08. als sichtbare Zeichen („<b>Hochgeladene
 /// Fotos</b>: …") — in acht der Abschnitte. Statt die Marken zu entfernen (und die Betonung zu
 /// verlieren) werden sie hier in Markdown uebersetzt, das `AttributedString` versteht.
-func impText(_ roh: String) -> AttributedString {
+/// - Parameter farbe: optional zusaetzlich zur Fettung. Der Social-Hinweis nutzt Marken-Cyan,
+///   weil der fette Satz dort die Aufforderung ist (Jan, 31.08.); im Impressum bleibt es fett.
+func impText(_ roh: String, farbe: Color? = nil) -> AttributedString {
     let md = roh.replacingOccurrences(of: "<b>", with: "**")
                 .replacingOccurrences(of: "</b>", with: "**")
     // `interpretedSyntax: .inlineOnlyPreservingWhitespace` — sonst frisst Markdown Zeilenumbrueche.
-    return (try? AttributedString(markdown: md,
-        options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)))
-        ?? AttributedString(roh)
+    guard var s = try? AttributedString(markdown: md,
+        options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace))
+    else { return AttributedString(roh) }
+    if let farbe {
+        // Genau die Laeufe einfaerben, die Markdown fett gesetzt hat.
+        for lauf in s.runs where lauf.inlinePresentationIntent?.contains(.stronglyEmphasized) == true {
+            s[lauf.range].foregroundColor = farbe
+        }
+    }
+    return s
 }
 
 // Impressum + Datenschutzhinweis in der App. Gleiche Reihenfolge/Inhalte wie web /impressum + Android.

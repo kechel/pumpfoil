@@ -64,7 +64,11 @@ export function SocialFeed() {
       {/* Der mittlere Satz ist fett (Jan, 31.08.) — er ist die Aufforderung, der Rest Erklaerung.
           Deshalb hier HTML aus der Uebersetzung; dieselbe Technik wie im Impressum. Die Texte
           stammen aus unseren eigenen Locale-Dateien, nicht von Nutzern. */}
-      <p className="mb-2 text-sm text-slate-300" dangerouslySetInnerHTML={{ __html: t("social.hint") }} />
+      {/* Der fette Satz zusaetzlich in Marken-Cyan (Jan, 31.08.) — er ist die Aufforderung.
+          Ueber eine Variante auf dem <b> statt ueber die Uebersetzung: so gilt es in ALLEN
+          17 Sprachen (alle tragen dieselbe <b>-Marke) und keine Locale muss Markup kennen. */}
+      <p className="mb-2 text-sm text-slate-300 [&_b]:text-brand-400"
+         dangerouslySetInnerHTML={{ __html: t("social.hint") }} />
       {items && items.length > 0 && (
         <div onScroll={beimScrollen}
           className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2">

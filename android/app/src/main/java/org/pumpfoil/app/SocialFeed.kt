@@ -115,7 +115,7 @@ fun SocialFeedSection(modifier: Modifier = Modifier) {
         // Der Text traegt <b>-Marken aus den Web-Locales, deshalb dieselbe Fettung wie im
         // Impressum statt roher Zeichen.
         Text(
-            richText(I18n.t("social.hint")),
+            richText(I18n.t("social.hint"), MaterialTheme.colorScheme.primary),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 12.dp).padding(bottom = 6.dp),

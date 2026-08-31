@@ -31,7 +31,7 @@ struct SocialFeedSection: View {
                 // Der mittlere Satz ist fett — er ist die Aufforderung, der Rest Erklaerung.
                 // Der Text traegt <b>-Marken aus den Web-Locales, deshalb dieselbe Fettung wie
                 // im Impressum statt roher Zeichen.
-                Text(impText(Loc.t("social.hint", lang)))
+                Text(impText(Loc.t("social.hint", lang), farbe: .accentColor))
                     .font(.caption).foregroundStyle(.secondary)
                     .listRowSeparator(.hidden)
                 ScrollView(.horizontal, showsIndicators: false) {
