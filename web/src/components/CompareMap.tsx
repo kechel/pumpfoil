@@ -155,42 +155,91 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
   // Der Plan haengt an den Sessions: wechselt der Korb, faengt die Wiedergabe von vorn an.
   useEffect(() => { setSpielt(false); setPos(0); posRef.current = 0; }, [plan]);
 
-  // Die Punkte je Session einmal aufbereiten (Leaflet-Reihenfolge lat/lon).
-  const spuren = useMemo(() => {
-    const m = new Map<number, { pts: [number, number][]; farbe: string; name: string }>();
+  // Zeichendaten je Session: Punkte (Leaflet-Reihenfolge lat/lon), Fahrerfarbe und die Farbe an
+  // einem Index. BEIDE Zeichner benutzen das — die statische Karte und die Wiedergabe. Sonst
+  // faerbt die Wiedergabe anders als die Karte, die man eine Sekunde vorher angesehen hat.
+  const bahnen = useMemo(() => {
+    const m = new Map<number, {
+      pts: [number, number][]; farbe: string; name: string; farbeAn: (i: number) => string;
+    }>();
     for (const it of items) {
       if (m.has(it.session.id)) continue;
-      const c = it.session.analysis?.track_geojson?.geometry?.coordinates;
+      const gj = it.session.analysis?.track_geojson;
+      const c = gj?.geometry?.coordinates;
       if (!c) continue;
+      const speeds: number[] = gj.properties?.speeds?.[win] ?? gj.properties?.speeds_mps ?? [];
+      const phz: (number | null)[] = gj.properties?.pump_hz ?? [];
+      const hr: (number | null)[] = gj.properties?.hr ?? [];
+      const opt = optimalKmhFor(it.session, weight) ?? 0;
+      const farbeAn = (i: number): string => {
+        if (mode === "rider") return it.riderColor;
+        if (mode === "track") return it.color;
+        if (mode === "speed") return speedColor((speeds[i] ?? 0) * 3.6, sLo, sHi);
+        if (mode === "optimal") return optimalColor((speeds[i] ?? 0) * 3.6, opt);
+        if (mode === "pump") {
+          const v = phz[i]; const [lo, hi] = pumpRange;
+          return v == null ? "#64748b" : rampColor((v - lo) / Math.max(hi - lo, 1e-6));
+        }
+        return hrColor(hr[i], hrRange);
+      };
       m.set(it.session.id, {
         pts: c.map((p: [number, number]) => [p[1], p[0]] as [number, number]),
         farbe: it.riderColor,
         name: it.rider ?? "—",
+        farbeAn,
       });
     }
     return m;
-  }, [items]);
+  }, [items, mode, win, sLo, sHi, pumpRange, hrRange, weight]);
 
-  // Marker setzen — je Fahrer einer, an der Stelle, wo er zur gerade laufenden Uhrzeit war.
-  // Wer zu dem Zeitpunkt nicht aufgezeichnet hat, bekommt keinen Marker (statt eingefroren
-  // irgendwo zu stehen und Gleichzeitigkeit vorzutaeuschen).
-  const zeichneMarker = (posMs: number) => {
+  // Wiedergabe laeuft = die Karte gehoert dem Abspieler. Erst ab dem ersten Antippen von Start
+  // oder dem ersten Ziehen am Regler; bei Position 0 und Pause steht wieder die normale
+  // Vergleichsansicht mit beiden vollstaendigen Strecken da.
+  const spielModus = !!plan && (spielt || pos > 0);
+
+  // Einen Zeitpunkt zeichnen: je Fahrer der Lauf, in dem er GERADE ist — und der nur bis zu
+  // seiner aktuellen Position, dazu der Marker an der Spitze.
+  //
+  // Bewusst nicht die ganze Strecke: bei drei Fahrern am selben Spot liegen die vollstaendigen
+  // Tracks als Knaeuel uebereinander und man sieht der Bewegung nicht mehr an, wer wo ist. Nur
+  // der laufende Lauf, wachsend, macht die Gleichzeitigkeit sichtbar — genau wofuer die
+  // Wiedergabe da ist. Wer gerade zwischen zwei Laeufen treibt, behaelt den Marker (er IST ja da),
+  // hat aber keine Linie; wer zu dem Zeitpunkt gar nicht aufgezeichnet hat, faellt ganz weg,
+  // statt eingefroren irgendwo zu stehen und Gleichzeitigkeit vorzutaeuschen.
+  const zeichneStand = (posMs: number) => {
     const lg = spielerLayer.current;
     if (!lg || !plan) return;
     lg.clearLayers();
     const tAbs = plan.zuUhrzeit(posMs);
     for (const s of plan.sessions) {
       const achse = plan.achsen.get(s.id);
-      const spur = spuren.get(s.id);
-      if (!achse || !spur) continue;
+      const bahn = bahnen.get(s.id);
+      if (!achse || !bahn) continue;
       const i = achse.index(tAbs);
       if (i == null) continue;
-      const a = spur.pts[Math.floor(i)], b = spur.pts[Math.min(Math.ceil(i), spur.pts.length - 1)];
+
+      // Der Lauf, der diesen Index enthaelt. Zwischen zwei Laeufen gibt es keinen -> keine Linie.
+      const segs: any[] = s.analysis?.segments ?? [];
+      const lauf = segs.find((g) => typeof g?.i_start === "number" && typeof g?.i_end === "number"
+                                    && i >= g.i_start && i <= g.i_end);
+      if (lauf) {
+        const bis = Math.min(Math.floor(i), lauf.i_end);
+        for (let k = lauf.i_start; k < bis; k++) {
+          const a = bahn.pts[k], b = bahn.pts[k + 1];
+          if (!a || !b) continue;
+          // Dieselbe Lueckenregel wie die statische Karte: ueber einen GPS-Aussetzer wird nicht
+          // quer durch die Landschaft gezeichnet.
+          if (mapObj.current && mapObj.current.distance(a, b) > MAX_DRAW_GAP_M) continue;
+          L.polyline([a, b], { color: bahn.farbeAn(k + 1), weight: 4, opacity: 0.95 }).addTo(lg);
+        }
+      }
+
+      const a = bahn.pts[Math.floor(i)], b = bahn.pts[Math.min(Math.ceil(i), bahn.pts.length - 1)];
       if (!a) continue;
       const f = i - Math.floor(i);
       const p: [number, number] = b ? [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f] : a;
-      L.circleMarker(p, { radius: 7, color: "#ffffff", weight: 2, fillColor: spur.farbe, fillOpacity: 1 })
-        .bindTooltip(spur.name, { permanent: true, direction: "top", offset: [0, -8], className: "sync-tip" })
+      L.circleMarker(p, { radius: 7, color: "#ffffff", weight: 2, fillColor: bahn.farbe, fillOpacity: 1 })
+        .bindTooltip(bahn.name, { permanent: true, direction: "top", offset: [0, -8], className: "sync-tip" })
         .addTo(lg);
     }
   };
@@ -200,7 +249,7 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
     if (!map) return;
     if (!spielerLayer.current) spielerLayer.current = L.layerGroup().addTo(map);
     if (!plan) { spielerLayer.current.clearLayers(); return; }
-    zeichneMarker(posRef.current);
+    zeichneStand(posRef.current);
     if (!spielt) return;
     let raf = 0;
     let zuletzt = performance.now();
@@ -208,21 +257,24 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
       const dt = (jetzt - zuletzt) * tempo; zuletzt = jetzt;
       const neu = posRef.current + dt;
       if (neu >= plan.dauerMs) {
-        posRef.current = plan.dauerMs; setPos(plan.dauerMs); zeichneMarker(plan.dauerMs);
+        posRef.current = plan.dauerMs; setPos(plan.dauerMs); zeichneStand(plan.dauerMs);
         setSpielt(false); return;
       }
-      posRef.current = neu; setPos(neu); zeichneMarker(neu);
+      posRef.current = neu; setPos(neu); zeichneStand(neu);
       raf = requestAnimationFrame(schritt);
     };
     raf = requestAnimationFrame(schritt);
     return () => cancelAnimationFrame(raf);
-  }, [plan, spielt, tempo, spuren]);
+  }, [plan, spielt, tempo, bahnen]);
 
   useEffect(() => {
     const map = mapObj.current;
     const lg = layer.current;
     if (!map || !lg) return;
     lg.clearLayers();
+    // Waehrend der Wiedergabe zeichnet NUR der Abspieler. Laege die vollstaendige Strecke
+    // darunter, waere der wachsende Lauf darin nicht zu erkennen — und genau das ist der Zweck.
+    if (spielModus) return;
     for (const it of items) {
       const gj = it.session.analysis?.track_geojson;
       const segs = it.session.analysis?.segments ?? [];
@@ -248,7 +300,7 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
         }
       }
     }
-  }, [items, mode, win, sLo, sHi, pumpRange, hrRange, weight, fullscreen]);
+  }, [items, mode, win, sLo, sHi, pumpRange, hrRange, weight, fullscreen, spielModus]);
 
   if (!items.some((it) => it.session.analysis?.track_geojson)) return null;
 
@@ -312,7 +364,7 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
           </div>
           <input
             type="range" min={0} max={plan.dauerMs} step={200} value={pos}
-            onChange={(e) => { const v = Number(e.target.value); posRef.current = v; setPos(v); zeichneMarker(v); }}
+            onChange={(e) => { const v = Number(e.target.value); posRef.current = v; setPos(v); zeichneStand(v); }}
             className="mt-2 w-full accent-brand-400"
             aria-label={t("compare.syncTitle")}
           />

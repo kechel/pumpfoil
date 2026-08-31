@@ -4515,6 +4515,21 @@ Offen daraus:
   1. `.iq` hochladen 2. Freigabe des CIQ-Stores ABWARTEN 3. erst dann `build-all.sh`
   (das veroeffentlicht die Website-Downloads sofort) 4. dann `appmeta.garmin` + Changelog.
 
+- **✅ 31.08. — Synchrones Abspielen zeichnet jetzt selbst (Jans Befund: „zeigt nur den Marker").**
+  Drei Punkte, alle in `CompareMap.tsx`:
+  1. **Strecke nur bis zur aktuellen Position** statt der fertigen Gesamtstrecke.
+  2. **Je Fahrer nur der Lauf, in dem er GERADE ist** — der Lauf wird ueber den Sample-Index
+     gesucht (`i_start <= i <= i_end`), nicht ueber die Zeit. Wer zwischen zwei Laeufen treibt,
+     behaelt den Marker, hat aber keine Linie.
+  3. **Waehrend der Wiedergabe zeichnet nur der Abspieler** (`spielModus`): laege die volle
+     Strecke darunter, waere der wachsende Lauf darin nicht zu erkennen. Bei Position 0 und
+     Pause steht wieder die normale Vergleichsansicht da.
+  Die Einfaerbung (Tempo/Puls/Pump/Fahrer) ist aus dem statischen Zeichner herausgeloest
+  (`bahnen.farbeAn`) und wird von BEIDEN benutzt — sonst faerbt die Wiedergabe anders als die
+  Karte, die man eine Sekunde vorher angesehen hat. Auch die Lueckenregel (`MAX_DRAW_GAP_M`)
+  gilt in beiden, sonst zoege die Wiedergabe ueber einen GPS-Aussetzer quer durchs Bild.
+  `tsc --noEmit` sauber, Build gruen, live. **Nativ nachziehen erst nach Jans Sichtung.**
+
 - **✅ 31.08. — GPS-Bereitschaft jetzt auf ALLEN sechs Recordern (Apple Watch + Wear OS nachgezogen).**
   Ausloeser: Carl-Henriks fehlender erster Lauf. Gemessen an seiner Session — in den ersten 132 s
   kamen **15 Positionen** (eine alle 8,8 s), also ein GPS-Kaltstart; der Lauf in diesem Fenster ist
