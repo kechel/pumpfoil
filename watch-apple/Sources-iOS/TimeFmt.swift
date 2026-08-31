@@ -50,6 +50,14 @@ enum TimeFmt {
         return f.string(from: date)
     }
 
+    // "HH:mm:ss" (synchrones Abspielen im Vergleich — beim Ziehen am Regler zaehlen Sekunden).
+    static func hhmmss(_ date: Date, _ tz: String?) -> String {
+        let f = DateFormatter()
+        f.dateFormat = "HH:mm:ss"
+        f.timeZone = zone(tz)
+        return f.string(from: date)
+    }
+
     // "dd.MM.yy" (Community-Rekord-Kacheln).
     static func shortDate(_ iso: String?, _ tz: String?) -> String? {
         guard let iso, !iso.isEmpty, let d = parseISO(iso) else { return nil }

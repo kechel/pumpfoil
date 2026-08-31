@@ -4515,6 +4515,39 @@ Offen daraus:
   1. `.iq` hochladen 2. Freigabe des CIQ-Stores ABWARTEN 3. erst dann `build-all.sh`
   (das veroeffentlicht die Website-Downloads sofort) 4. dann `appmeta.garmin` + Changelog.
 
+- **✅ 31.08. — Synchrones Abspielen ist auf Android und iOS nachgezogen** (Jans Freigabe: „das
+  synchrone Abspielen funktioniert jetzt gut").
+  - **Die Zeitrechnung liegt je Plattform in EINER Datei** und ist Zeile fuer Zeile dieselbe wie
+    im Web: `android/.../SyncPlayback.kt` und `watch-apple/Sources-iOS/SyncPlayback.swift`,
+    portiert aus `web/src/lib/syncPlayback.ts`. Alle drei tragen denselben Hinweis oben: wer eine
+    aendert, aendert die anderen mit. Enthalten sind Zeitachse aus den Lauf-Ankern,
+    `laufZeitraeume` (mit Auswahl), `verschmelzen` (5-s-Schwelle), Spot-Gruppierung ueber
+    Zusammenhangskomponenten, `zuUhrzeit` und `uebersprungenMin`.
+  - **Zwei Modell-Felder mussten dazu** (`t_start_session_ms`, `t_end_session_ms`): beide Apps
+    kannten nur `t_start_ms`, und DAS ist auf den Trim verschoben — damit laesst sich keine
+    Uhrzeit bilden. Beide Modelle nutzen die Codable-/kotlinx-Synthese, die Felder greifen also
+    ohne weiteres Zutun.
+  - **Darstellung wie im Web:** je Fahrer nur der Lauf, in dem er GERADE ist, und der nur bis zur
+    aktuellen Position; in der Pause wird am Ende des letzten Laufs GEPARKT (blass, hohl) statt
+    weiterzugleiten; vor dem ersten Lauf ist der Fahrer nicht da; waehrend der Wiedergabe zeichnet
+    nur der Abspieler. Der Index kommt aus der Zeit INNERHALB des Laufs, damit die Uhrzeit bei
+    jedem Laufbeginn neu gesetzt ist. Keine Namensschilder.
+  - **Punkte auf der Karte gibt es in beiden Werkzeugkaesten nicht fertig:** osmdroid bekommt einen
+    `Marker` mit selbst gemaltem Bitmap-Kreis, MapKit eine eigene `FahrerPunkt`-Annotation mit
+    `UIGraphicsImageRenderer`. Beide unterscheiden gefuellt (faehrt) von hohl+blass (geparkt).
+  - **Texte:** `compare.syncTitle/syncWho/syncHint/syncSkipped` in **17 Sprachen** in beide Apps
+    eingesetzt (iOS zusaetzlich `sd.play`/`sd.pause`, die es dort noch nicht gab; Android hatte
+    sie). Quelle sind die Web-Locales, keine Handuebersetzung.
+  - **`TimeFmt.hhmmss(Date, tz)` auf iOS neu** — es gab nur `hhmm`, und beim Ziehen am Regler
+    zaehlen Sekunden.
+  - **Falle, die dabei zugeschlagen haette:** `swiftc -parse` prueft nur Syntax. `TimeFmt.hhmmss`
+    existierte gar nicht und der Parse-Lauf war trotzdem gruen — erst der Abgleich gegen die
+    Deklarationen hat es gefunden (s. Memory `swift-parse-check-limits`).
+  - Geprueft: `:app:compileDebugKotlin` gruen, `swiftc -parse` ueber alle geaenderten Dateien gruen.
+    Laeuft in **Phone 1.1.25** und **iOS 1.1.28** mit (beide schon gebumpt, nicht eingereicht).
+  - 🔲 **Offen:** Wear OS und Apple Watch bekommen das NICHT — dort gibt es keine
+    Vergleichsansicht. Zepp ebenfalls nicht.
+
 - **✅ 31.08. — Sprachpruefung gegen die WIRKLICHKEIT (nicht nur gegen den Code): keine Luecke.**
   Bisher hatte ich nur geprueft, ob jeder im Code benutzte Schluessel in den Tabellen steht
   (0 Luecken auf allen sechs Zielen). Jetzt die andere Richtung — welche Profilsprachen haben

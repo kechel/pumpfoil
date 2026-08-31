@@ -46,6 +46,10 @@ private fun row(de: String, gsw: String, deAT: String, en: String, fr: String, i
 private val S: Map<String, Map<String, String>> = sTabelle()
 
 private fun sTabelle(): Map<String, Map<String, String>> = mapOf(
+    "compare.syncTitle" to row("Synchron abspielen", "Synchron abspiele", "Synchron abspielen", "Play in sync", "Lecture synchronisée", "Riproduci in sincrono", "Reproducir en sincronía"),
+    "compare.syncWho" to row("{n} Fahrer, gleicher Spot, gleiche Zeit", "{n} Fahrer, gliiche Spot, gliichi Ziit", "{n} Fahrer, gleicher Spot, gleiche Zeit", "{n} riders, same spot, same time", "{n} riders, même spot, même moment", "{n} rider, stesso spot, stesso momento", "{n} riders, mismo spot, mismo momento"),
+    "compare.syncHint" to row("Alle Sessions laufen auf derselben Uhr — du siehst, wer wann wo war. Zeiten, in denen niemand oben war, werden übersprungen.", "Alli Sessions laufed uf dere gliiche Uhr — du gsehsch, wer wänn wo gsi isch. Ziite, wo niemert obe gsi isch, werded übersprunge.", "Alle Sessions laufen auf derselben Uhr — du siehst, wer wann wo war. Zeiten, in denen kaner oben war, werden übersprungen.", "All sessions run on one clock — you see who was where, and when. Stretches where nobody was up on the foil are skipped.", "Toutes les sessions tournent sur la même horloge — tu vois qui était où, et quand. Les moments où personne n'était en vol sont sautés.", "Tutte le sessioni girano sullo stesso orologio — vedi chi era dove, e quando. I tratti in cui nessuno era in volo vengono saltati.", "Todas las sesiones van en el mismo reloj — ves quién estaba dónde y cuándo. Los tramos en los que nadie estaba volando se saltan."),
+    "compare.syncSkipped" to row("{min} min übersprungen", "{min} min übersprunge", "{min} min übersprungen", "{min} min skipped", "{min} min sautées", "{min} min saltati", "{min} min saltados"),
     "imp.mapTitle" to row("Karten", "Charte", "Karten", "Maps", "Cartes", "Mappe", "Mapas"),
     "imp.map1" to row("Die <b>Straßenkarte</b> stammt von <b>OpenStreetMap</b>. Beim Anzeigen einer Karte lädt dein Browser die Kartenausschnitte direkt von deren Servern; dabei werden deine IP-Adresse und der angezeigte Ausschnitt übertragen. Anbieter: OpenStreetMap Foundation, Vereinigtes Königreich.", "D <b>Strassecharte</b> chunnt vo <b>OpenStreetMap</b>. Wenn e Charte azeigt wird, ladet din Browser d Charteuusschnitt direkt vo dene ihrne Server; debii wärded dini IP-Adrässe und de azeigt Uusschnitt übermittlet. Aabieter: OpenStreetMap Foundation, Vereinigts Königriich.", "Die <b>Straßenkarte</b> stammt von <b>OpenStreetMap</b>. Beim Anzeigen einer Karte lädt dein Browser die Kartenausschnitte direkt von deren Servern; dabei werden deine IP-Adresse und der angezeigte Ausschnitt übertragen. Anbieter: OpenStreetMap Foundation, Vereinigtes Königreich.", "The <b>street map</b> comes from <b>OpenStreetMap</b>. When a map is shown, your browser loads the map tiles directly from their servers, which transmits your IP address and the section you are viewing. Provider: OpenStreetMap Foundation, United Kingdom.", "La <b>carte routière</b> provient d'<b>OpenStreetMap</b>. Lorsqu'une carte s'affiche, ton navigateur charge les tuiles directement depuis leurs serveurs, ce qui transmet ton adresse IP et la zone affichée. Fournisseur : OpenStreetMap Foundation, Royaume-Uni.", "La <b>mappa stradale</b> proviene da <b>OpenStreetMap</b>. Quando viene mostrata una mappa, il tuo browser carica i riquadri direttamente dai loro server, trasmettendo il tuo indirizzo IP e la porzione visualizzata. Fornitore: OpenStreetMap Foundation, Regno Unito.", "El <b>mapa de calles</b> procede de <b>OpenStreetMap</b>. Al mostrarse un mapa, tu navegador carga las teselas directamente desde sus servidores, lo que transmite tu dirección IP y la zona que estás viendo. Proveedor: OpenStreetMap Foundation, Reino Unido."),
     "imp.map2" to row("Schaltest du mit dem Knopf auf der Karte auf <b>Satellit</b>, kommen die Luftbilder von <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — ebenfalls direkt von deren Servern und ebenfalls mit deiner IP-Adresse. Das passiert <b>nur</b>, wenn du umschaltest; deine Wahl wird lokal auf deinem Gerät gemerkt.", "Wenn du mit em Chnopf uf de Charte uf <b>Satellit</b> umschaltisch, chömed d Luftbilder vo <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — au direkt vo dene ihrne Server und au mit dinere IP-Adrässe. Das passiert <b>nur</b>, wenn du umschaltisch; dini Wahl wird lokal uf dim Grät gmerkt.", "Schaltest du oben rechts auf <b>Satellit</b>, kommen die Luftbilder von <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — ebenfalls direkt von deren Servern und ebenfalls mit deiner IP-Adresse. Das passiert <b>nur</b>, wenn du umschaltest; deine Wahl wird lokal in deinem Browser gemerkt.", "If you switch to <b>Satellite</b> using the button on the map, the aerial imagery comes from <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — again directly from their servers and again with your IP address. This happens <b>only</b> if you switch; your choice is remembered locally on your device.", "Si tu passes en <b>Satellite</b> avec le bouton sur la carte, les images aériennes proviennent d'<b>Esri</b> (Esri, Maxar, Earthstar Geographics) — là aussi directement depuis leurs serveurs et là aussi avec ton adresse IP. Cela n'arrive <b>que</b> si tu changes de vue ; ton choix est mémorisé localement sur ton appareil.", "Se passi a <b>Satellite</b> con il pulsante sulla mappa, le immagini aeree arrivano da <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — anche in questo caso direttamente dai loro server e con il tuo indirizzo IP. Succede <b>solo</b> se cambi vista; la tua scelta viene ricordata localmente sul tuo dispositivo.", "Si cambias a <b>Satélite</b> con el botón del mapa, las imágenes aéreas vienen de <b>Esri</b> (Esri, Maxar, Earthstar Geographics), también directamente desde sus servidores y también con tu dirección IP. Esto ocurre <b>solo</b> si cambias de vista; tu elección se guarda localmente en tu dispositivo."),
@@ -1047,6 +1051,10 @@ private fun sTabelle(): Map<String, Map<String, String>> = mapOf(
 private val FI: Map<String, String> = fiTabelle()
 
 private fun fiTabelle(): Map<String, String> = mapOf(
+    "compare.syncTitle" to "Toista synkronissa",
+    "compare.syncWho" to "{n} foilaajaa, sama spotti, sama aika",
+    "compare.syncHint" to "Kaikki sessiot kulkevat samalla kellolla — näet kuka oli missä ja milloin. Jaksot, joissa kukaan ei ollut foilin päällä, ohitetaan.",
+    "compare.syncSkipped" to "{min} min ohitettu",
     "common.done" to "Valmis",
     "datafields.editorInBrowser" to "Omat näytöt suunnittelet tietokoneella osoitteessa pumpfoil.org — täällä voit lisätä, katsoa ja järjestää ne.",
     "garmin.installBtn" to "Connect IQ -kauppaan",
@@ -1842,6 +1850,10 @@ private fun fiTabelle(): Map<String, String> = mapOf(
 private val NL: Map<String, String> = nlTabelle()
 
 private fun nlTabelle(): Map<String, String> = mapOf(
+    "compare.syncTitle" to "Synchroon afspelen",
+    "compare.syncWho" to "{n} riders, dezelfde spot, dezelfde tijd",
+    "compare.syncHint" to "Alle sessies lopen op dezelfde klok — je ziet wie waar was, en wanneer. Stukken waarin niemand op de foil stond worden overgeslagen.",
+    "compare.syncSkipped" to "{min} min overgeslagen",
     "datafields.editorInBrowser" to "Eigen schermen ontwerp je op de computer op pumpfoil.org — hier kun je ze invoegen, bekijken en ordenen.",
     "garmin.installBtn" to "Naar de Connect IQ Store",
     "garmin.installHelp" to "De horloge-app staat NIET in de Play Store — bij Garmin komt hij uit de Connect IQ Store. Tik op «Naar de Connect IQ Store», installeer hem daar (de Garmin Connect-app op je telefoon zet hem op het horloge). Pas daarna de stappen hieronder.",
@@ -2636,6 +2648,10 @@ private fun nlTabelle(): Map<String, String> = mapOf(
 private val CS: Map<String, String> = csTabelle()
 
 private fun csTabelle(): Map<String, String> = mapOf(
+    "compare.syncTitle" to "Přehrát synchronně",
+    "compare.syncWho" to "{n} jezdci, stejný spot, stejný čas",
+    "compare.syncHint" to "Všechny relace běží na jedněch hodinách — vidíš, kdo byl kdy kde. Úseky, kdy nikdo nebyl na foilu, se přeskočí.",
+    "compare.syncSkipped" to "{min} min přeskočeno",
     "datafields.editorInBrowser" to "Vlastní obrazovky si navrhneš na počítači na pumpfoil.org — tady je můžeš vložit, prohlédnout a seřadit.",
     "garmin.installBtn" to "Do obchodu Connect IQ",
     "garmin.installHelp" to "Aplikace do hodinek NENÍ v Obchodě Play — u Garminu je v obchodě Connect IQ. Klepni na „Do obchodu Connect IQ“, tam ji nainstaluj (aplikace Garmin Connect v telefonu ji přenese do hodinek). Teprve pak kroky níže.",

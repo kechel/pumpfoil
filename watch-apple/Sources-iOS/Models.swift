@@ -614,6 +614,11 @@ struct Segment: Codable {
     let min_pump_hz: Double?
     // Startzeit des Laufs, ms ab Session-Start (docs/DATA-PIPELINE.md: auf den Trim re-based).
     let t_start_ms: Double?
+    // ECHTE Session-Zeit des Laufs (ohne Trim-Rebase) — nur damit laesst sich aus einem Lauf eine
+    // UHRZEIT machen: `started_at + t_start_session_ms`. `t_start_ms` kann das NICHT, es ist auf
+    // den Trim verschoben. Das synchrone Abspielen haengt daran (s. SyncPlayback.swift).
+    let t_start_session_ms: Double?
+    let t_end_session_ms: Double?
     // Geglaettete Spitzen/Tiefstwerte je Fenster (1/3/5 s) — dieselbe Quelle wie der
     // Fenster-Umschalter der Detailansicht.
     let max_1s: Double?
