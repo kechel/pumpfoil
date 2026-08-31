@@ -5,6 +5,13 @@ import Foundation
 
 // Portugiesisch-Overlay (71 Keys). Fallback: Englisch.
 let wPtOverlay: [String: String] = [
+    "common.auto": "Automático",
+    "common.off": "Desl",
+    "common.on": "Lig",
+    "f.lastRunMaxHr": "último máx bpm",
+    "lay.none": "sem páginas",
+    "menu.layouts": "Layouts próprios",
+    "rec.discardHold": "Descartar",
     "rec.paused": "Pausado",
     "rec.keepOpen": "mantenha o app aberto!",
     "rec.locPerm": "Localização não permitida – não é possível gravar",
@@ -86,6 +93,14 @@ let wPtOverlay: [String: String] = [
 
 // Japanisch-Overlay (71 Keys). Fallback: Englisch.
 let wJaOverlay: [String: String] = [
+    "common.auto": "自動",
+    "common.off": "オフ",
+    "common.on": "オン",
+    "f.lastRunMaxHr": "前回の最大 bpm",
+    "lay.none": "ページなし",
+    "menu.layouts": "自作レイアウト",
+    "rec.discardHold": "破棄",
+    "rec.paused": "一時停止中",
     "rec.keepOpen": "アプリを開いたままに",
     "rec.locPerm": "位置情報が許可されていません – 記録できません",
     "rec.locCoarse": "おおよその位置のみ – 「正確な位置」を許可",
@@ -166,6 +181,14 @@ let wJaOverlay: [String: String] = [
 
 // Chinesisch (vereinfacht)-Overlay (71 Keys). Fallback: Englisch.
 let wZhOverlay: [String: String] = [
+    "common.auto": "自动",
+    "common.off": "关",
+    "common.on": "开",
+    "f.lastRunMaxHr": "上次最高 bpm",
+    "lay.none": "无页面",
+    "menu.layouts": "自定义布局",
+    "rec.discardHold": "丢弃",
+    "rec.paused": "已暂停",
     "rec.keepOpen": "请保持应用打开",
     "rec.locPerm": "未允许位置权限 – 无法记录",
     "rec.locCoarse": "仅大致位置 – 请允许「精确位置」",
@@ -246,6 +269,13 @@ let wZhOverlay: [String: String] = [
 
 // Russisch-Overlay (71 Keys). Fallback: Englisch.
 let wRuOverlay: [String: String] = [
+    "common.auto": "Авто",
+    "common.off": "Выкл",
+    "common.on": "Вкл",
+    "f.lastRunMaxHr": "посл макс bpm",
+    "lay.none": "нет страниц",
+    "menu.layouts": "Свои макеты",
+    "rec.discardHold": "Отменить",
     "rec.paused": "Пауза",
     "rec.keepOpen": "не закрывайте приложение!",
     "rec.locPerm": "Геолокация запрещена – запись невозможна",
@@ -327,6 +357,13 @@ let wRuOverlay: [String: String] = [
 
 // Indonesisch-Overlay (71 Keys). Fallback: Englisch.
 let wIdOverlay: [String: String] = [
+    "common.auto": "Otomatis",
+    "common.off": "Mati",
+    "common.on": "Nyala",
+    "f.lastRunMaxHr": "maks terakhir bpm",
+    "lay.none": "tidak ada",
+    "menu.layouts": "Tata letak sendiri",
+    "rec.discardHold": "Buang",
     "rec.paused": "Dijeda",
     "rec.keepOpen": "biarkan aplikasi terbuka!",
     "rec.locPerm": "Lokasi tidak diizinkan – tidak bisa merekam",
@@ -410,6 +447,7 @@ let wIdOverlay: [String: String] = [
 // Kam mit dem ersten norwegischen Nutzer (Sogndal, 05.08.2026) dazu; Bokmål deckt auch
 // nn-/no-Geräte ab (siehe web/src/i18n/index.tsx).
 let wNbOverlay: [String: String] = [
+    "f.lastRunMaxHr": "siste maks bpm",
     "menu.layouts": "Egne oppsett",
     "common.auto": "Automatisk",
     "common.on": "På",

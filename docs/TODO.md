@@ -4301,3 +4301,29 @@ Offen daraus:
 - **📥 31.08. — Offen: dieselben 371 Schluessel in Android und iOS.** Die Apps ziehen ihre
   Uebersetzungen aus denselben Web-Locales, haben aber ihren eigenen Bestand. Der Nachzug dorthin
   ist derselbe Handgriff (`i18n_insert_kt.py` / `i18n_insert_swift.py`), nur noch nicht gemacht.
+
+- **✅ 31.08. — Uebersetzungs-Nachzug in Android und iOS: alle vier App-Ziele in 17 Sprachen voll.**
+  Nach dem Web-Durchgang zogen die Apps nach. Gemessen wird dabei NUR, was der Code wirklich
+  aufruft — die Apps tragen nicht den ganzen Web-Bestand (der Layout-Editor z. B. ist Web-only).
+
+  | Ziel | benutzte Schluessel | vorher auf Englisch | nachgetragen |
+  |---|---|---|---|
+  | Android Phone | 605 | 44–203 je Sprache | 1149 + 51 selbst uebersetzt |
+  | Wear OS | 81 | 1–5 je Sprache | 13 |
+  | iOS Phone | 570 | 45–183 je Sprache | 1162 |
+  | Apple Watch | 74 | 1–8 je Sprache | 38 |
+
+  **Quellen in dieser Reihenfolge:** Web-Locales (1102) → der jeweils ANDERE App-Bestand
+  (Android↔iOS 60, Wear→Apple Watch 38) → eigene Uebersetzung fuer die 41 app-eigenen Schluessel,
+  die es im Web gar nicht gibt (Handy-Recorder, Garmin-Installationshinweis) — die fehlten fast
+  nur auf Finnisch.
+
+- **🔴 31.08. — DIESELBE Blockgrenzen-Falle ein zweites Mal, diesmal in der Pruefung.**
+  Beim ersten Messen meldete iOS „0 Luecken" — und das war falsch: die Ad-hoc-Pruefung schnitt
+  das LETZTE Teil-Literal einer Sprache bis zum Dateiende auf und zaehlte damit die
+  Grundsprachen-Tabelle mit. Genau der Fehler, den ich Stunden vorher im Einfuege-Werkzeug
+  behoben hatte. Real fehlten iOS 45–183 Schluessel je Sprache.
+  **Regel: Blockgrenzen in diesen Sprachdateien IMMER zeilenweise bestimmen** (von einer
+  `let`/`fun`-Kopfzeile bis zur naechsten), nie ueber Klammerzaehlung und nie ueber `split()`
+  auf den Tabellennamen. Beide Abkuerzungen haben hier heute je einmal ein falsches Ergebnis
+  geliefert — einmal „alles doppelt", einmal „nichts fehlt".

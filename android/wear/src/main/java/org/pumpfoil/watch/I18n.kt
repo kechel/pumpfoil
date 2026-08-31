@@ -314,6 +314,7 @@ private val S: Map<String, Map<String, String>> = mapOf(
 // Zusatz-Sprach-Overlays (pt, ja, zh, ru, id) — je Key aus dem ENGLISCHEN Quellwert.
 // Keys ohne Eintrag fallen in t() auf Englisch (dann Deutsch) zurueck.
 private val PT: Map<String, String> = mapOf(
+    "rec.discardHold" to "Descartar",
     "rec.paused" to "Pausado",
     "rec.hrPerm" to "Sem batimentos: falta a permissão – toque",
     "rec.hrNone" to "Sem batimentos registados – aperte mais o relógio",
@@ -406,6 +407,11 @@ private val PT: Map<String, String> = mapOf(
     "f.lastRunMaxHr" to "último máx bpm",
 )
 private val JA: Map<String, String> = mapOf(
+    "common.auto" to "自動",
+    "lay.none" to "ページなし",
+    "menu.layouts" to "自作レイアウト",
+    "rec.discardHold" to "破棄",
+    "rec.paused" to "一時停止中",
     "rec.hrPerm" to "心拍なし：権限がありません – タップ",
     "rec.hrNone" to "心拍を記録できませんでした – 時計をしっかり装着",
     "rec.locPerm" to "位置情報の権限がありません – ないと記録できません。タップ",
@@ -493,6 +499,11 @@ private val JA: Map<String, String> = mapOf(
     "f.lastRunMaxHr" to "前回の最大 bpm",
 )
 private val ZH: Map<String, String> = mapOf(
+    "common.auto" to "自动",
+    "lay.none" to "无页面",
+    "menu.layouts" to "自定义布局",
+    "rec.discardHold" to "丢弃",
+    "rec.paused" to "已暂停",
     "rec.hrPerm" to "无心率：缺少权限 – 点按",
     "rec.hrNone" to "未记录心率 – 请把手表戴紧一些",
     "rec.locPerm" to "缺少位置权限 – 没有它无法记录。点按",
@@ -580,6 +591,7 @@ private val ZH: Map<String, String> = mapOf(
     "f.lastRunMaxHr" to "上次最高 bpm",
 )
 private val RU: Map<String, String> = mapOf(
+    "rec.discardHold" to "Отменить",
     "rec.paused" to "Пауза",
     "rec.hrPerm" to "Нет пульса: нет разрешения – нажмите",
     "rec.hrNone" to "Пульс не записан – затяните ремешок",
@@ -672,6 +684,7 @@ private val RU: Map<String, String> = mapOf(
     "f.lastRunMaxHr" to "посл макс bpm",
 )
 private val ID: Map<String, String> = mapOf(
+    "rec.discardHold" to "Buang",
     "rec.paused" to "Dijeda",
     "rec.hrPerm" to "Tanpa detak jantung: izin belum ada – ketuk",
     "rec.hrNone" to "Detak jantung tidak terekam – kencangkan jam",
