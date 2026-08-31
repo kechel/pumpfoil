@@ -4495,3 +4495,18 @@ Offen daraus:
   Nebenbefund: die Lauf-Erkennungs-Angleichung vom 30.08. (Commit 3bd27df1, 19:50) kam **nach**
   der Einreichung von 1.1.26 (18:27/18:55) — sie ist also erst in **1.1.27** und nicht die
   Erklaerung fuer diese Meldung.
+
+- **🟡 31.08. — Garmin 1.0.83 gebaut und bereitgelegt, NICHT veroeffentlicht.**
+  Inhalt: eine 0 vom Server raeumt jetzt den gecachten Puffer-Wert (`storagebudget_kb`) weg —
+  ohne diese Fassung bleibt der falsche „Speicher gleich voll"-Countdown auf jeder Uhr stehen,
+  die seit 1.0.80 einmal ein `/config` geholt hat.
+  - Test-`.prg` fuer Jans fenix 7X Pro: gebaut mit `-r`, an Jan geschickt, Dateiname wie
+    vereinbart `Pumpfoil-fenix7xpro.prg`.
+  - Store-`.iq`: `/home/jan/release-staging/garmin-1.0.83/pumpfoil-1.0.83.iq`, 12,8 MB,
+    **210 von 210 Geraetevarianten, BUILD SUCCESSFUL, 0 Fehler.**
+  - **`watch/bin` bewusst NICHT angefasst** (Stand 30.08., alle 121 Downloads weiter 1.0.82) —
+    sonst wuerde die Website eine Version anbieten, die im Store noch nicht freigegeben ist.
+
+  **Reihenfolge fuer die Freigabe (aus [[watch-bin-is-live]], am 10.08. schon einmal falsch gemacht):**
+  1. `.iq` hochladen 2. Freigabe des CIQ-Stores ABWARTEN 3. erst dann `build-all.sh`
+  (das veroeffentlicht die Website-Downloads sofort) 4. dann `appmeta.garmin` + Changelog.
