@@ -1085,6 +1085,10 @@ const zh: Record<string, string> = {
   "compare.run": "航段 {n}",
   "compare.subtitle": "已标记 {n}",
   "compare.gone": "（已不可用）",
+  "compare.syncTitle": "同步播放",
+  "compare.syncWho": "{n} 位骑手，同一点位，同一时间",
+  "compare.syncHint": "所有会话共用一个时钟——你能看到谁在什么时候在哪里。没有人在水翼上的时段会被跳过。",
+  "compare.syncSkipped": "跳过 {min} 分钟",
 
   // Data field options (IDs as on watch/config + app)
   "field.0": "— 关闭 —",

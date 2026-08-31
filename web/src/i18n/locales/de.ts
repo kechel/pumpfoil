@@ -1314,6 +1314,10 @@ const de: Record<string, string> = {
   "compare.run": "Lauf {n}",
   "compare.subtitle": "{n} markiert",
   "compare.gone": "(nicht mehr verfügbar)",
+  "compare.syncTitle": "Synchron abspielen",
+  "compare.syncWho": "{n} Fahrer, gleicher Spot, gleiche Zeit",
+  "compare.syncHint": "Alle Sessions laufen auf derselben Uhr — du siehst, wer wann wo war. Zeiten, in denen niemand oben war, werden übersprungen.",
+  "compare.syncSkipped": "{min} min übersprungen",
 
   // Datenfeld-Optionen (IDs wie Uhr/Config + App)
   "field.0": "— leer —",

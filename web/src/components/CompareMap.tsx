@@ -7,6 +7,8 @@ import { DEFAULT_RIDER, calculateAR, calculateCLmax, calculateStallSpeed, calcul
 import { useT } from "../i18n";
 import { usePumpFmt } from "../lib/pumpRate";
 import { useCloseOnBack } from "../lib/useCloseOnBack";
+import { syncPlan } from "../lib/syncPlayback";
+import { fmtTime } from "../lib/time";
 
 export interface CompareMapItem {
   key: string;
@@ -129,6 +131,93 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
   }, [items, fullscreen]);
 
   // Tracks (neu) zeichnen.
+  // ── Synchrones Abspielen ────────────────────────────────────────────────────────────────
+  // Nur angeboten, wenn sich mindestens zwei der verglichenen Sessions zeitlich ueberschneiden
+  // UND am gleichen Spot liegen (Jan). Die Zeitrechnung steckt in lib/syncPlayback.ts — dort
+  // steht auch, warum „ein GPS-Punkt = eine Sekunde" hier NICHT reicht.
+  const plan = useMemo(() => {
+    const gesehen = new Set<number>();
+    const eindeutig = items.map((i) => i.session).filter((s) => !gesehen.has(s.id) && gesehen.add(s.id));
+    return syncPlan(eindeutig);
+  }, [items]);
+  // Wie viel Leerlauf faellt weg — das ist die Zahl, die den Nutzen erklaert.
+  const uebersprungenMin = useMemo(() => {
+    if (!plan) return 0;
+    const von = Math.min(...plan.sessions.map((s) => plan.achsen.get(s.id)!.von));
+    const bis = Math.max(...plan.sessions.map((s) => plan.achsen.get(s.id)!.bis));
+    return Math.max(0, (bis - von) - plan.dauerMs) / 60000;
+  }, [plan]);
+  const [spielt, setSpielt] = useState(false);
+  const [tempo, setTempo] = useState(8);
+  const [pos, setPos] = useState(0);            // ms in der Wiedergabe (ohne die Leerlaufzeiten)
+  const posRef = useRef(0);
+  const spielerLayer = useRef<L.LayerGroup | null>(null);
+  // Der Plan haengt an den Sessions: wechselt der Korb, faengt die Wiedergabe von vorn an.
+  useEffect(() => { setSpielt(false); setPos(0); posRef.current = 0; }, [plan]);
+
+  // Die Punkte je Session einmal aufbereiten (Leaflet-Reihenfolge lat/lon).
+  const spuren = useMemo(() => {
+    const m = new Map<number, { pts: [number, number][]; farbe: string; name: string }>();
+    for (const it of items) {
+      if (m.has(it.session.id)) continue;
+      const c = it.session.analysis?.track_geojson?.geometry?.coordinates;
+      if (!c) continue;
+      m.set(it.session.id, {
+        pts: c.map((p: [number, number]) => [p[1], p[0]] as [number, number]),
+        farbe: it.riderColor,
+        name: it.rider ?? "—",
+      });
+    }
+    return m;
+  }, [items]);
+
+  // Marker setzen — je Fahrer einer, an der Stelle, wo er zur gerade laufenden Uhrzeit war.
+  // Wer zu dem Zeitpunkt nicht aufgezeichnet hat, bekommt keinen Marker (statt eingefroren
+  // irgendwo zu stehen und Gleichzeitigkeit vorzutaeuschen).
+  const zeichneMarker = (posMs: number) => {
+    const lg = spielerLayer.current;
+    if (!lg || !plan) return;
+    lg.clearLayers();
+    const tAbs = plan.zuUhrzeit(posMs);
+    for (const s of plan.sessions) {
+      const achse = plan.achsen.get(s.id);
+      const spur = spuren.get(s.id);
+      if (!achse || !spur) continue;
+      const i = achse.index(tAbs);
+      if (i == null) continue;
+      const a = spur.pts[Math.floor(i)], b = spur.pts[Math.min(Math.ceil(i), spur.pts.length - 1)];
+      if (!a) continue;
+      const f = i - Math.floor(i);
+      const p: [number, number] = b ? [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f] : a;
+      L.circleMarker(p, { radius: 7, color: "#ffffff", weight: 2, fillColor: spur.farbe, fillOpacity: 1 })
+        .bindTooltip(spur.name, { permanent: true, direction: "top", offset: [0, -8], className: "sync-tip" })
+        .addTo(lg);
+    }
+  };
+
+  useEffect(() => {
+    const map = mapObj.current;
+    if (!map) return;
+    if (!spielerLayer.current) spielerLayer.current = L.layerGroup().addTo(map);
+    if (!plan) { spielerLayer.current.clearLayers(); return; }
+    zeichneMarker(posRef.current);
+    if (!spielt) return;
+    let raf = 0;
+    let zuletzt = performance.now();
+    const schritt = (jetzt: number) => {
+      const dt = (jetzt - zuletzt) * tempo; zuletzt = jetzt;
+      const neu = posRef.current + dt;
+      if (neu >= plan.dauerMs) {
+        posRef.current = plan.dauerMs; setPos(plan.dauerMs); zeichneMarker(plan.dauerMs);
+        setSpielt(false); return;
+      }
+      posRef.current = neu; setPos(neu); zeichneMarker(neu);
+      raf = requestAnimationFrame(schritt);
+    };
+    raf = requestAnimationFrame(schritt);
+    return () => cancelAnimationFrame(raf);
+  }, [plan, spielt, tempo, spuren]);
+
   useEffect(() => {
     const map = mapObj.current;
     const lg = layer.current;
@@ -187,6 +276,48 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
       <div className={fullscreen ? "min-h-0 flex-1" : "overflow-hidden rounded-2xl border border-slate-800"}>
         <div ref={mapRef} style={{ width: "100%", height: fullscreen ? "100%" : "55vh", minHeight: fullscreen ? undefined : 300 }} />
       </div>
+
+      {/* Synchron abspielen — nur wenn sich Sessions zeitlich ueberschneiden UND am gleichen
+          Spot liegen. Die uebersprungene Leerlaufzeit steht dabei, sonst wundert man sich ueber
+          eine „Wiedergabe" von 4 Minuten fuer zwei Stunden am Wasser. */}
+      {plan && (
+        <div className={`mt-2 rounded-xl border border-slate-800 bg-slate-900/60 p-2 ${fullscreen ? "shrink-0" : ""}`}>
+          <div className="mb-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span className="text-sm font-semibold text-slate-200">{t("compare.syncTitle")}</span>
+            <span className="text-xs text-slate-400">
+              {t("compare.syncWho", { n: String(plan.sessions.length) })}
+            </span>
+          </div>
+          <p className="mb-2 text-xs text-slate-400">{t("compare.syncHint")}</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => { if (posRef.current >= plan.dauerMs) { posRef.current = 0; setPos(0); } setSpielt((v) => !v); }}
+              className="rounded-lg bg-brand-500 px-3 py-1 text-sm font-semibold text-slate-950 hover:bg-brand-400"
+            >
+              {spielt ? t("sd.pause") : t("sd.play")}
+            </button>
+            {[2, 8, 30].map((m) => (
+              <button key={m} onClick={() => setTempo(m)}
+                className={`rounded-lg px-2 py-1 text-xs ${tempo === m ? "bg-brand-500 text-slate-950" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}>
+                {m}×
+              </button>
+            ))}
+            <span className="ml-1 tabular-nums text-sm text-slate-200">
+              {fmtTime(new Date(plan.zuUhrzeit(pos)).toISOString(), plan.sessions[0].tz,
+                       { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+            </span>
+            <span className="text-xs text-slate-500">
+              {t("compare.syncSkipped", { min: String(Math.round(uebersprungenMin)) })}
+            </span>
+          </div>
+          <input
+            type="range" min={0} max={plan.dauerMs} step={200} value={pos}
+            onChange={(e) => { const v = Number(e.target.value); posRef.current = v; setPos(v); zeichneMarker(v); }}
+            className="mt-2 w-full accent-brand-400"
+            aria-label={t("compare.syncTitle")}
+          />
+        </div>
+      )}
 
       <div className={`flex flex-wrap items-center gap-4 px-1 pt-2 ${fullscreen ? "shrink-0 bg-slate-950 p-2" : ""}`}>
         {(mode === "rider" || mode === "track") ? (

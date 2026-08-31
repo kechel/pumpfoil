@@ -1134,6 +1134,10 @@ const fi: Record<string, string> = {
   "compare.run": "Lenkki {n}",
   "compare.subtitle": "{n} merkitty",
   "compare.gone": "(ei enää saatavilla)",
+  "compare.syncTitle": "Toista synkronissa",
+  "compare.syncWho": "{n} foilaajaa, sama spotti, sama aika",
+  "compare.syncHint": "Kaikki sessiot kulkevat samalla kellolla — näet kuka oli missä ja milloin. Jaksot, joissa kukaan ei ollut foilin päällä, ohitetaan.",
+  "compare.syncSkipped": "{min} min ohitettu",
 
   // Datenfeld-Optionen (IDs wie Uhr/Config + App)
   "field.0": "— tyhjä —",

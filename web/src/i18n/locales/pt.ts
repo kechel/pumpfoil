@@ -1085,6 +1085,10 @@ const pt: Record<string, string> = {
   "compare.run": "Volta {n}",
   "compare.subtitle": "{n} marcadas",
   "compare.gone": "(não está mais disponível)",
+  "compare.syncTitle": "Reproduzir em sincronia",
+  "compare.syncWho": "{n} riders, mesmo spot, mesma hora",
+  "compare.syncHint": "Todas as sessões correm no mesmo relógio — vês quem estava onde, e quando. Os trechos em que ninguém estava no foil são saltados.",
+  "compare.syncSkipped": "{min} min saltados",
 
   // Data field options (IDs as on watch/config + app)
   "field.0": "— off —",

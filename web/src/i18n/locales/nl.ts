@@ -1169,6 +1169,10 @@ const nl: Record<string, string> = {
   "compare.run": "Run {n}",
   "compare.subtitle": "{n} gemarkeerd",
   "compare.gone": "(niet meer beschikbaar)",
+  "compare.syncTitle": "Synchroon afspelen",
+  "compare.syncWho": "{n} riders, dezelfde spot, dezelfde tijd",
+  "compare.syncHint": "Alle sessies lopen op dezelfde klok — je ziet wie waar was, en wanneer. Stukken waarin niemand op de foil stond worden overgeslagen.",
+  "compare.syncSkipped": "{min} min overgeslagen",
 
   // Datenfeld-Optionen (IDs wie Uhr/Config + App)
   "field.0": "— leeg —",

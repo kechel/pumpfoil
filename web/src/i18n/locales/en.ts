@@ -1232,6 +1232,10 @@ const en: Record<string, string> = {
   "compare.run": "Run {n}",
   "compare.subtitle": "{n} marked",
   "compare.gone": "(no longer available)",
+  "compare.syncTitle": "Play in sync",
+  "compare.syncWho": "{n} riders, same spot, same time",
+  "compare.syncHint": "All sessions run on one clock — you see who was where, and when. Stretches where nobody was up on the foil are skipped.",
+  "compare.syncSkipped": "{min} min skipped",
 
   // Data field options (IDs as on watch/config + app)
   "field.0": "— off —",

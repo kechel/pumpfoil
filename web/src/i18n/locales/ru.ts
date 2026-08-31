@@ -1085,6 +1085,10 @@ const ru: Record<string, string> = {
   "compare.run": "Заезд {n}",
   "compare.subtitle": "{n} отмечено",
   "compare.gone": "(больше недоступно)",
+  "compare.syncTitle": "Синхронное воспроизведение",
+  "compare.syncWho": "{n} райдера, тот же спот, то же время",
+  "compare.syncHint": "Все сессии идут по одним часам — видно, кто где и когда был. Промежутки, когда никто не был на фойле, пропускаются.",
+  "compare.syncSkipped": "пропущено {min} мин",
 
   // Data field options (IDs as on watch/config + app)
   "field.0": "— выкл. —",

@@ -1169,6 +1169,10 @@ const cs: Record<string, string> = {
   "compare.run": "Jízda {n}",
   "compare.subtitle": "{n} označeno",
   "compare.gone": "(již není dostupné)",
+  "compare.syncTitle": "Přehrát synchronně",
+  "compare.syncWho": "{n} jezdci, stejný spot, stejný čas",
+  "compare.syncHint": "Všechny relace běží na jedněch hodinách — vidíš, kdo byl kdy kde. Úseky, kdy nikdo nebyl na foilu, se přeskočí.",
+  "compare.syncSkipped": "{min} min přeskočeno",
 
   // Datenfeld-Optionen (IDs wie Uhr/Config + App)
   "field.0": "— prázdné —",

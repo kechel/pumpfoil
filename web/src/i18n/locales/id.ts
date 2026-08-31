@@ -1085,6 +1085,10 @@ const id: Record<string, string> = {
   "compare.run": "Run {n}",
   "compare.subtitle": "{n} ditandai",
   "compare.gone": "(tidak lagi tersedia)",
+  "compare.syncTitle": "Putar serentak",
+  "compare.syncWho": "{n} foiler, spot sama, waktu sama",
+  "compare.syncHint": "Semua sesi berjalan pada satu jam — kamu melihat siapa di mana dan kapan. Bagian saat tidak ada yang di atas foil dilewati.",
+  "compare.syncSkipped": "{min} mnt dilewati",
 
   // Data field options (IDs as on watch/config + app)
   "field.0": "— mati —",

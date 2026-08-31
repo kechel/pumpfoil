@@ -1085,6 +1085,10 @@ const ja: Record<string, string> = {
   "compare.run": "ラン {n}",
   "compare.subtitle": "{n} 件マーク済み",
   "compare.gone": "（もう利用できません）",
+  "compare.syncTitle": "同時再生",
+  "compare.syncWho": "{n} 人、同じスポット、同じ時間帯",
+  "compare.syncHint": "すべてのセッションが同じ時計で動きます — 誰がいつどこにいたかが分かります。誰もフォイルに乗っていない時間は飛ばします。",
+  "compare.syncSkipped": "{min} 分をスキップ",
 
   "field.0": "— オフ —",
   "field.1": "速度（3 秒）",
