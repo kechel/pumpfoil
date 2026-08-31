@@ -4510,3 +4510,9 @@ Offen daraus:
   **Reihenfolge fuer die Freigabe (aus [[watch-bin-is-live]], am 10.08. schon einmal falsch gemacht):**
   1. `.iq` hochladen 2. Freigabe des CIQ-Stores ABWARTEN 3. erst dann `build-all.sh`
   (das veroeffentlicht die Website-Downloads sofort) 4. dann `appmeta.garmin` + Changelog.
+
+- **🟡 31.08. — Garmin 1.0.83 EINGEREICHT** (Jans Meldung: Test-`.prg` im Simulator geprueft,
+  `.iq` hochgeladen und zur Freigabe gegeben).
+  **`appmeta.garmin` bleibt auf 1.0.82 und `watch/bin` bleibt unangetastet, bis die Freigabe da
+  ist** — sonst bewirbt die Website eine Version, die im Store noch nicht liegt (Fehler vom
+  10.08.). Nach der Freigabe: `build-all.sh`, dann `appmeta.garmin` + Changelog.
