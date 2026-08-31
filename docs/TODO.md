@@ -4384,6 +4384,41 @@ Offen daraus:
   ein Regex-Umbau haette unbemerkt Verhalten aendern koennen. Nachziehen, sobald die Meldung
   woanders auftaucht oder nach dem Release.
 
+- **✅ 31.08. — Drei Katalog-Meldungen aus dem iOS-Feedback bearbeitet (zwei eingetragen, eine offen).**
+  Quelle: Feedback #115 (u385) und #117/#118 (u404), alle ueber die iOS-App.
+  - **✅ `AlpineFoil DK 1360`** (Foil, Wunsch „Alpine dk 1360"). Werte von der Produktseite
+    `alpinefoil.com/en/kitefoil-windfoil-store/hydrofoil-wings/wing-dk-1360.html`: **1950 cm²,
+    Spannweite 1360 mm, Chord 180 mm, AR 9.6**, ausdruecklich fuer „Pump foiling … DockStart".
+    **⚠️ FALLE: die 1360 im Namen ist die SPANNWEITE in mm, NICHT die Flaeche** — anders als bei
+    AlpineFoils RSX ULTRA, wo die Zahl die Flaeche ist. Wer 1360 als Flaeche eintraegt, liegt um
+    Faktor 1,4 daneben. (Die Kategorie-Uebersicht nannte AR 11, die Produktseite 9.6; 9.6 stimmt
+    mit 136²/1950 ueberein, also gilt die Produktseite.)
+  - **✅ `AlpineFoil HA 175`** (Stabilisator, Wunsch „AlpineFoil 175"). Quelle
+    `alpinefoil.com/.../pumping-dockstart/stabiliser/`: „HA 175 - High Performance, 175 cm²,
+    385 mm". Dieselbe Namensfalle wie oben: „HA 65" hat dort **62 cm²**.
+  - **✅ `Levitaz Stabilizer 180`** (Wunsch „Stabilizator 180"). In der Free Series belegt.
+  - **🔲 OFFEN: `Levitaz FreeSeries 1200`** (AR 18.1, Spannweite 1500 mm laut Nutzer).
+    **Gibt es so nicht:** Levitaz fuehrt in BEIDEN Serien (Free und Race) nur die Frontfluegel
+    **540, 680, 790, 900** — kein 1200. Ein 1200 cm² mit AR 18 waere auch ein Race-Kitefoil-Fluegel,
+    kein Free-Ride-Fluegel. **Nicht geraten** (Regel: lieber Luecke als erfunden). Rueckfrage an
+    den Nutzer noetig: welches Modell genau, oder ist die 1200 vielleicht die Spannweite?
+  - **🔲 Kein Katalog-Thema, sondern ein WUNSCH:** derselbe Nutzer nennt „Mast 76cm 16mm".
+    **Masten fuehren wir gar nicht** (es gibt nur `foils`, `stabs`, `boards`). Levitaz bietet
+    76/84/96 an. Waere eine eigene Tabelle — Jans Entscheidung.
+  - **Nebenbefund:** die Marke steht bei uns in zwei Schreibweisen — `AlpineFoil` (Foils, Katalog)
+    und `Alpinefoil` (Stab `HA80`, privat von u369 angelegt). Der private Eintrag bleibt
+    unangetastet (fremde Eintraege NIE zusammenfuehren), aber die Suche findet so nicht beides.
+  - **Weg:** eingetragen ueber `server/app/data/foils.json` bzw. `stabs.json` — der Seed liest sie
+    beim Start idempotent ein. `POST /api/stabs` taugt dafuer NICHT, das legt nur PRIVATE Eintraege
+    an (`user_id` gesetzt, ohne Masse), und fuer Foils gibt es gar keinen Schreib-Endpunkt.
+    `stabs.json` fuehrt bewusst NUR Bezeichnungen, keine Masse — die werden nirgends verrechnet.
+  - **Falle beim Bearbeiten:** `json.dump(indent=1)` passt zu `foils.json`, formatiert `stabs.json`
+    aber komplett um (3032 Zeilen Diff fuer zwei Eintraege). Dort als TEXT anhaengen.
+
+- **🟡 31.08. — Feedback #116 (Philipp): GPS-Glitch in der VERLAUFS-Karte, nicht in der
+  Session-Karte.** Seine Vermutung: die Verlaufskarte nutzt die Uhr-Erkennung, die Session-Ansicht
+  die vom Server. Noch nicht untersucht.
+
 - **✅ 31.08. — iOS/Apple Watch 1.1.27 IST LIVE, Freigabekette abgearbeitet.** Freigabe-Mail
   („ready for distribution") gegen 19 Uhr Berlin, `appmeta.ios` UND `appmeta.apple` zusammen auf
   1.1.27, Changelog-Eintrag, Server neu gestartet.

@@ -1507,5 +1507,17 @@
     "brand": "Ketos",
     "model": "KODEBA",
     "size": "185"
+  },
+  {
+    "brand": "AlpineFoil",
+    "model": "HA",
+    "size": "175",
+    "aliases": "HA175|HA 175|HA 175 High Performance"
+  },
+  {
+    "brand": "Levitaz",
+    "model": "Stabilizer",
+    "size": "180",
+    "aliases": "Stabilizator 180|Free Series 180"
   }
 ]
