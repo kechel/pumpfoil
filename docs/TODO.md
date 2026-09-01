@@ -619,6 +619,20 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟡 01.09. 22:24 — iOS/Apple Watch 1.1.28 (32) EINGEREICHT** („Warten auf Pruefung"; Jans
+  Meldung aus App Store Connect, Uebermittlungskennung `6f161b72-c5b4-415f-90f0-399fa210c091`,
+  eingereicht von Jan). Live ist weiter **1.1.27 (31)**.
+  **Inhalt (12 Aenderungen seit 1.1.27, chronologisch):** GPS-Bereitschaft auf der Apple Watch
+  (GPS schon im Ruhebild + Anzeige) · Spot-Listen-Korrektur · synchrones Abspielen im Vergleich ·
+  Verlaufskarte je Lauf · Sessions-Listen starten mit „alle" · vergleichbare Foils (Band-Auswahl)
+  fuer Rekorde und Bestenlisten · Upload-Karte auf der Session-Detailseite · Spot-Vergleich ·
+  Uhren aufraeumen (ausblenden/entfernen/widerrufen) + Update-Hinweis je Uhr · Datenauskunft
+  (eigene Daten exportieren) · Nur-GPS-Hinweis auf der Session · Aussortiert-Hinweis auf der
+  Startseite samt Erklaerung in der Liste. **Der Band-Auswahl-Fix von 22:05 ist drin** (die
+  Auswahl lud die Rekorde nicht neu) — er kam VOR der Einreichung, das passt also.
+  **Nach Freigabe zu tun:** `appmeta.ios` UND `appmeta.apple` zusammen auf 1.1.28 setzen (beide,
+  s. Bilanz vom 31.08.), Changelog-Eintrag, und die Release-Notes-Texte stehen im Chat vom 01.09.
+
 - **📌 01.09. — MERKE: die persoenliche Empfindlichkeit kann Laeufe NICHT retten, die das
   Bewegungsmodell verworfen hat.** Anlass: Jan fragte zu einer Session mit nur 2 Laeufen (u228,
   Laax, 53:45), ob etwas nicht erkannt wird — und ob die Profil-Einstellung die kurzen Laeufe
