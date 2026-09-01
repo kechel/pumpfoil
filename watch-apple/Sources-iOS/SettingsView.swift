@@ -23,9 +23,6 @@ struct SettingsView: View {
     @State private var spZonen: [Int] = [8, 12, 16, 20, 24, 28]
     @State private var spZonenVorschlag = true
     @State private var homespot = ""
-    @State private var activityType = "surfing"
-    @State private var activityReady = false   // erst nach dem Laden auf Änderungen reagieren
-    @State private var hasGarmin = false        // Aktivitätstyp nur bei verknüpfter Garmin-Uhr
     @State private var spots: [String] = []
     @State private var nLike = true
     @State private var nAnalyzed = true
@@ -55,7 +52,6 @@ struct SettingsView: View {
             zonenSection
             spZonenSection
             homespotSection
-            activitySection
             designSection
             languageSection
             pumpUnitSection
@@ -77,7 +73,6 @@ struct SettingsView: View {
         .onChange(of: lang) { l in Task { try? await Api.updateLanguage(l) } }
         .onChange(of: sensitivity) { v in if sensReady { changeSensitivity(v) } }
         .onChange(of: pumpUnit) { v in Task { _ = try? await Api.updatePumpUnit(v) } }
-        .onChange(of: activityType) { v in changeActivityType(v) }
     }
 
     // MARK: - Abschnitte
@@ -236,19 +231,6 @@ struct SettingsView: View {
     }
 
     // Aktivitätstyp der Garmin-Aufnahme (Surfen | Open Water). Nur bei verknüpfter Garmin-Uhr.
-    @ViewBuilder private var activitySection: some View {
-        if hasGarmin {
-            Section {
-                Picker(Loc.t("account.activityType", lang), selection: $activityType) {
-                    Text(Loc.t("account.activitySurfing", lang)).tag("surfing")
-                    Text(Loc.t("account.activityOpenWater", lang)).tag("openwater")
-                    Text(Loc.t("account.activityPumpfoil", lang)).tag("pumpfoil")
-                }
-            } header: { Text(Loc.t("account.activityType", lang)) }
-            footer: { Text(Loc.t("account.activityTypeHint", lang)) }
-        }
-    }
-
     private var designSection: some View {
         Section(Loc.t("settings.design", lang)) {
             Picker(Loc.t("settings.design", lang), selection: $themeMode) {
@@ -413,11 +395,6 @@ struct SettingsView: View {
         return "\(p.done)/\(total) · \(what)"
     }
 
-    private func changeActivityType(_ v: String) {
-        guard activityReady else { return }
-        Task { try? await Api.saveSettings(["activity_type": v]); saved = true }
-    }
-
     private func changeSensitivity(_ v: String) {
         Task {
             _ = try? await Api.updateFoilSensitivity(v)
@@ -437,8 +414,6 @@ struct SettingsView: View {
         let s = (try? await Api.settings()) ?? [:]
         weight = min(max((s["weight_kg"] as? Int) ?? 0, 0), 300)
         homespot = (s["homespot"] as? String) ?? ""
-        activityType = (s["activity_type"] as? String) ?? "surfing"
-        activityReady = true
         if let z = (s["hr_zones"] as? [Any])?.compactMap({ ($0 as? NSNumber)?.intValue }), z.count == 6 {
             zonen = z
         }
@@ -449,7 +424,6 @@ struct SettingsView: View {
         spZonenVorschlag = (s["speed_zones_suggested"] as? Bool) ?? false
         // Dieselben Zahlen fuer die Layout-Vorschauen UND fuer die Wert-Farbe auf der Uhr.
         LayoutScales.aus(hrZones: zonen, speedZones: spZonen)
-        if let ds = try? await Api.myDevices() { hasGarmin = ds.contains { $0.platform == "garmin" && $0.revoked_at == nil } }
         if let np = s["notify_prefs"] as? [String: Any] {
             nLike = (np["like"] as? Bool) ?? true
             nAnalyzed = (np["analyzed"] as? Bool) ?? true

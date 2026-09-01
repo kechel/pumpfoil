@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { api, WatchLayout } from "../lib/api";
-import { Button, Card, ErrorBox } from "../components/ui";
+import { Button, Card, ErrorBox, SELECT_SCHRUMPFT } from "../components/ui";
 import { WatchIcon, ChevronIcon, DownloadIcon } from "../components/Icons";
 import { FIELD_OPTIONS } from "../lib/fields";
 import { DEFAULT_SCALES, MOCK_VALUE, ValueScales, valueColor } from "../lib/watchLayout";
@@ -505,12 +505,22 @@ function ViewsEditor() {
   // Halten oder Druecken fuer die Uhr-Aktionen (Beenden/Verwerfen). Gilt fuer ALLE eigenen Uhren
   // — bewusst kein Geraete-Override: das ist eine Bediengewohnheit, keine Geraete-Eigenschaft.
   const [stopMode, setStopMode] = useState("hold");
+  // Aktivitätstyp der Garmin-FIT-Session. Stand bis 02.09. auf der Einstellungs-Seite; steht
+  // jetzt hier bei den anderen Uhr-Einstellungen (Jan: „passt hierhin sogar besser").
+  // Nur sichtbar mit verknüpfter Garmin — andere Uhren kennen die Garmin-Connect-Kategorie nicht.
+  const [activityType, setActivityType] = useState("pumpfoil");
+  const [hasGarmin, setHasGarmin] = useState(false);
   const [layoutsEnabled, setLayoutsEnabled] = useState(true);
   const [browseAll, setBrowseAll] = useState(true);
   const [saved, setSaved] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
+    // Aktivitätstyp nur zeigen, wenn wirklich eine Garmin verknüpft ist (wie vorher auf der
+    // Einstellungs-Seite) — sonst stünde hier eine Garmin-Connect-Kategorie für eine Apple Watch.
+    api.myDevices()
+      .then((ds) => setHasGarmin(ds.some((x) => x.platform === "garmin" && !x.revoked_at)))
+      .catch(() => {});
     api.getSettings().then((s) => {
       setPages((s.pages as Page[]) ?? (s.views as number[][]) ?? [[1, 2, 0]]);
       setColorByValue(!!s.colorByValue);
@@ -522,6 +532,7 @@ function ViewsEditor() {
       });
       setAutoStart(s.auto_start !== false);
       setStopMode(s.stop_mode === "press" ? "press" : "hold");
+      setActivityType((s.activity_type as string) ?? "pumpfoil");
       setLayoutsEnabled(s.layouts_enabled !== false);
       setBrowseAll(s.browse_all_pages !== false);
       // F3: Off-Foil und Pause sind Listen. Wer noch die alte Einzel-Konfiguration hat, sieht sie
@@ -540,13 +551,14 @@ function ViewsEditor() {
     setErr(null);
     try {
       const res = await api.saveSettings({
-        pages, colorByValue, auto_start: autoStart, stop_mode: stopMode, layouts_enabled: layoutsEnabled,
+        pages, colorByValue, auto_start: autoStart, stop_mode: stopMode, activity_type: activityType, layouts_enabled: layoutsEnabled,
         off_foil_pages: offPages, pause_pages: pausePages, browse_all_pages: browseAll,
       });
       setPages((res.pages as Page[]) ?? pages);
       setColorByValue(!!res.colorByValue);
       setAutoStart(res.auto_start !== false);
       setStopMode(res.stop_mode === "press" ? "press" : "hold");
+      setActivityType((res.activity_type as string) ?? "pumpfoil");
       setLayoutsEnabled(res.layouts_enabled !== false);
       setBrowseAll(res.browse_all_pages !== false);
       if (res.off_foil_pages) setOffPages(res.off_foil_pages as Page[]);
@@ -583,6 +595,22 @@ function ViewsEditor() {
         <input type="checkbox" checked={autoStart} onChange={(e) => { setAutoStart(e.target.checked); setSaved(false); }} />
         {t("account.autoStart")}
       </label>
+      {hasGarmin && (
+        <div className="mb-3">
+          <p className="mb-1 text-sm font-medium text-slate-200">{t("account.activityType")}</p>
+          <p className="mb-1 text-sm text-slate-400">{t("account.activityTypeHint")}</p>
+          <select
+            value={activityType}
+            onChange={(e) => { setActivityType(e.target.value); setSaved(false); }}
+            className={`${SELECT_SCHRUMPFT} rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 sm:w-auto`}
+          >
+            <option value="surfing">{t("account.activitySurfing")}</option>
+            <option value="openwater">{t("account.activityOpenWater")}</option>
+            <option value="pumpfoil">{t("account.activityPumpfoil")}</option>
+          </select>
+        </div>
+      )}
+
       {/* Beenden/Verwerfen auf der Uhr: halten (Standard) oder ein Druck. Radio statt Haken —
           es sind zwei gleichrangige Wege, kein An/Aus. */}
       <fieldset className="mb-3">

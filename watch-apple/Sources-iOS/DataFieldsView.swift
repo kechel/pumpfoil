@@ -66,6 +66,10 @@ struct DataFieldsView: View {
     @State private var autoStartWatch = true
     // Halten oder Tippen fuer die Uhr-Aktionen (Beenden/Verwerfen) — gilt fuer ALLE eigenen Uhren.
     @State private var stopMode = "hold"
+    // Aktivitätstyp der Garmin-FIT-Session. Stand bis 02.09. in den Einstellungen; steht jetzt
+    // hier bei den anderen Uhr-Einstellungen (Jan). Nur mit verknüpfter Garmin sichtbar.
+    @State private var activityType = "pumpfoil"
+    @State private var hasGarmin = false
     @State private var layouts: [WatchLayoutBrief] = []
     @State private var saved = false
     // Welche der drei Seitenlisten hat die Vorschau-Auswahl geoeffnet ("on"|"off"|"pause")?
@@ -111,6 +115,16 @@ struct DataFieldsView: View {
                 .onChange(of: colorByValue) { _ in saved = false }
             Toggle(Loc.t("account.autoStart", lang), isOn: $autoStartWatch)
                 .onChange(of: autoStartWatch) { _ in saved = false }
+            if hasGarmin {
+                Picker(Loc.t("account.activityType", lang), selection: $activityType) {
+                    Text(Loc.t("account.activityPumpfoil", lang)).tag("pumpfoil")
+                    Text(Loc.t("account.activitySurfing", lang)).tag("surfing")
+                    Text(Loc.t("account.activityOpenWater", lang)).tag("openwater")
+                }
+                .onChange(of: activityType) { _ in saved = false }
+                Text(Loc.t("account.activityTypeHint", lang)).font(.callout).foregroundStyle(.secondary)
+            }
+
             // Beenden/Verwerfen auf der Uhr: zwei gleichrangige Wege -> Auswahl statt Schalter.
             Picker(Loc.t("account.stopMode", lang), selection: $stopMode) {
                 Text(Loc.t("account.stopModeHold", lang)).tag("hold")
@@ -291,6 +305,10 @@ struct DataFieldsView: View {
         colorByValue = (s["colorByValue"] as? Bool) ?? false
         autoStartWatch = (s["auto_start"] as? Bool) ?? true
         stopMode = ((s["stop_mode"] as? String) == "press") ? "press" : "hold"
+        activityType = (s["activity_type"] as? String) ?? "pumpfoil"
+        if let ds = try? await Api.myDevices() {
+            hasGarmin = ds.contains { $0.platform == "garmin" && $0.revoked_at == nil }
+        }
         // Skalen der Wert-Grafiken (Puls-Zonen + Geschwindigkeitsspanne) aus dem Profil — ohne sie
         // zeichnete die Vorschau geratene Zonenfarben.
         let zonen = (s["hr_zones"] as? [Any])?.compactMap { ($0 as? NSNumber)?.intValue }
@@ -310,6 +328,7 @@ struct DataFieldsView: View {
                 "colorByValue": colorByValue,
                 "auto_start": autoStartWatch,
                 "stop_mode": stopMode,
+                "activity_type": activityType,
             ])
             saved = true
         }
