@@ -2190,7 +2190,23 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   brauchen also einen weiteren Bump darueber.
 
 
-- **🟡 01.09. — Garmin 1.0.84 GEBAUT und bereitgelegt, NICHT veroeffentlicht.**
+- **🟡 01.09. — Garmin 1.0.84 EINGEREICHT (Jans Meldung aus der Konsole: „Version 1.0.84
+  (Intern: 38)", Aktuelle Version 1. September 2026, 70 KB). Store liefert noch 1.0.83
+  (selbst gegengeprueft ueber apps.garmin.com).**
+  - **✅ Die ACHT NEUEN Geraete stehen schon auf der Website zum Download** (Jans Vorgabe: „die
+    neuen prgs fuer die neuen modelle kannst du aber gern schon bauen und mit aufnehmen auf unsere
+    seite"). Live gegengeprueft: `/api/app/devices` liefert **129** Geraete, und
+    `/api/app/download/fenix947mm` bzw. `fenix843mm` antworten mit **HTTP 200** und der richtigen
+    Groesse.
+  - **🔑 Nur die acht neu gebaut, NICHT alle 129.** Ein voller `build-all.sh`-Lauf haette die
+    vorhandenen 121 Downloads auf eine Version gehoben, die im Store noch nicht liegt — genau der
+    Fehler vom 10.08. Der Katalog hat ein `version`-Feld JE Eintrag, `build-all.sh` stempelt dort
+    aber pauschal EINE Version; deshalb wurde `catalog.json`/`partmap.json` gezielt neu erzeugt und
+    die alten Angaben bewahrt. Stand jetzt: **121 × 1.0.83 + 8 × 1.0.84**, 218 Part-Numbers.
+    (Sicherung der beiden JSON vor dem Eingriff im Scratchpad.)
+  - Nach der Freigabe kann `build-all.sh` normal laufen, dann sind alle 129 auf 1.0.84.
+
+- **🟡 01.09. — Garmin 1.0.84 GEBAUT (Details zum Paket).**
   Inhalt: **reine Geraete-Erweiterung, keine Code-Aenderung** — die acht neuen Geraete
   (fēnix 9 / 9 Pro / 9 Pro Solar in 43/47/51 mm plus die zuvor fehlende **fēnix 8 43 mm**).
   Manifest 121 → **129** Produkte, Store-Paket **218 statt 210** Gerätevarianten.
