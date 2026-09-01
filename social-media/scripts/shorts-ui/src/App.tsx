@@ -20,13 +20,19 @@ interface TextSlot {
   hold: number;
   size?: number;   // Schriftgröße je Zeile (Default TXS)
 }
-// Standardtext im untersten Slot. Die Leerzeilen sind Absicht: die Zeilen werden
-// vertikal zentriert (siehe drawText), die Leerzeilen schieben den Text nach oben.
+// Standardtexte in den beiden untersten Slots. Die Leerzeilen sind Absicht: die
+// Zeilen werden vertikal zentriert (siehe drawText), die Leerzeilen schieben den
+// Text nach oben. Die Anzahl ist so gewaehlt, dass beide Bloecke auf derselben
+// Hoehe beginnen — bei 3 Zeilen braucht es 16 Leerzeilen, bei 5 nur noch 14.
 const DEFAULT_LAST_TEXT = "have fun\n\nkeep pumping!" + "\n".repeat(16);
+const DEFAULT_2ND_LAST_TEXT =
+  "join our free community\nat https://pumpfoil.org\n\n"
+  + "track, share and compare\nyour progress" + "\n".repeat(14);
 const emptyTexts = (): TextSlot[] =>
   Array.from({ length: TXN }, (_, i) => ({
     start: null,
-    text: i === TXN - 1 ? DEFAULT_LAST_TEXT : "",
+    text: i === TXN - 1 ? DEFAULT_LAST_TEXT
+      : i === TXN - 2 ? DEFAULT_2ND_LAST_TEXT : "",
     hold: TXH,
     size: TXS,
   }));
