@@ -32,8 +32,6 @@ export default function Settings() {
   const [homespot, setHomespot] = useState("");
   const [spots, setSpots] = useState<string[]>([]);
   const [weight, setWeight] = useState("");
-  const [activityType, setActivityType] = useState("surfing");
-  const [hasGarmin, setHasGarmin] = useState(false);   // Aktivitätstyp nur bei verknüpfter Garmin-Uhr
   const [savedToast, setSavedToast] = useState(false);
   const [watchUpdate, setWatchUpdate] = useState<{ version: string; platform: string; label: string; model: string } | null>(null);
 
@@ -41,7 +39,6 @@ export default function Settings() {
     api.getSettings().then((s) => {
       setHomespot((s.homespot as string) ?? "");
       setWeight(s.weight_kg ? String(s.weight_kg) : "");
-      setActivityType((s.activity_type as string) ?? "surfing");
     }).catch(() => {});
     api.communitySpots().then((s) => setSpots(s.all)).catch(() => {});
     // Uhr-Update-Hinweis direkt am Button, ohne erst in die Geräteliste zu klicken.
@@ -50,7 +47,6 @@ export default function Settings() {
     // (alte Test-/Re-Pairing-Tokens sollen nicht mehr nerven). Wear/Apple: eigene Stores.
     api.myDevices().then((ds) => {
       const garmins = ds.filter((x) => x.platform === "garmin" && !x.revoked_at);
-      setHasGarmin(garmins.length > 0);
       const anyCurrent = garmins.some((x) => x.app_version && !x.update_available);
       const outdated = garmins.find((x) => x.update_available);
       if (!anyCurrent && outdated) {
@@ -80,11 +76,6 @@ export default function Settings() {
   function saveWeight() {
     api.saveSettings({ weight_kg: Number(weight) || 0 }).then(flashSaved).catch(() => {});
   }
-  function saveActivityType(v: string) {
-    setActivityType(v);
-    api.saveSettings({ activity_type: v }).then(flashSaved).catch(() => {});
-  }
-
   function changePw() {
     setPwMsg(null);
     if (pwNew.length < 8) { setPwMsg({ ok: false, text: t("profile.pwMin") }); return; }
@@ -279,22 +270,6 @@ export default function Settings() {
           {spots.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
       </Card>
-
-      {hasGarmin && (
-      <Card className="mt-4 p-5">
-        <h3 className="mb-1 font-semibold">{t("account.activityType")}</h3>
-        <p className="mb-3 text-sm text-slate-300">{t("account.activityTypeHint")}</p>
-        <select
-          value={activityType}
-          onChange={(e) => saveActivityType(e.target.value)}
-          className="w-full max-w-sm rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
-        >
-          <option value="surfing">{t("account.activitySurfing")}</option>
-          <option value="openwater">{t("account.activityOpenWater")}</option>
-          <option value="pumpfoil">{t("account.activityPumpfoil")}</option>
-        </select>
-      </Card>
-      )}
 
       <Card className="mt-4 p-5">
         <h3 className="mb-1 font-semibold">{t("lang.label")}</h3>

@@ -127,6 +127,11 @@ fun DataFieldsScreen(onBack: () -> Unit, onGallery: () -> Unit = {}) {
     // Halten oder Druecken fuer die Uhr-Aktionen (Beenden/Verwerfen) — gilt fuer ALLE eigenen
     // Uhren, kein Geraete-Override: das ist eine Bediengewohnheit, keine Geraete-Eigenschaft.
     var stopMode by remember { mutableStateOf("hold") }
+    // Aktivitätstyp der Garmin-FIT-Session. Stand bis 02.09. auf der Einstellungs-Seite; steht
+    // jetzt hier bei den anderen Uhr-Einstellungen (Jan). Nur mit verknüpfter Garmin sichtbar —
+    // andere Uhren kennen die Garmin-Connect-Kategorie nicht.
+    var activityType by remember { mutableStateOf("pumpfoil") }
+    var hasGarmin by remember { mutableStateOf(false) }
     var layouts by remember { mutableStateOf<List<WatchLayoutBrief>>(emptyList()) }
 
     LaunchedEffect(Unit) {
@@ -142,10 +147,12 @@ fun DataFieldsScreen(onBack: () -> Unit, onGallery: () -> Unit = {}) {
             colorByValue = s["colorByValue"]?.jsonPrimitive?.booleanOrNull ?: false
             autoStartWatch = s["auto_start"]?.jsonPrimitive?.booleanOrNull ?: true
             stopMode = if (s["stop_mode"]?.jsonPrimitive?.contentOrNull == "press") "press" else "hold"
+            activityType = s["activity_type"]?.jsonPrimitive?.contentOrNull ?: "pumpfoil"
             // Skalen der Wert-Grafiken (Puls-Zonen + Geschwindigkeitsspanne) aus dem Profil —
             // ohne sie zeichnete die Vorschau geratene Zonenfarben.
             LayoutScales.aus(s)
         } catch (_: Exception) {}
+        hasGarmin = try { Api.myDevices().any { it.platform == "garmin" && it.revokedAt == null } } catch (_: Exception) { false }
         layouts = try { Api.watchLayouts() } catch (_: Exception) { emptyList() }
         loaded = true
     }
@@ -165,6 +172,7 @@ fun DataFieldsScreen(onBack: () -> Unit, onGallery: () -> Unit = {}) {
                     put("colorByValue", colorByValue)
                     put("auto_start", autoStartWatch)
                     put("stop_mode", stopMode)
+                    put("activity_type", activityType)
                 })
                 saved = true
             } catch (_: Exception) {}
@@ -226,6 +234,25 @@ fun DataFieldsScreen(onBack: () -> Unit, onGallery: () -> Unit = {}) {
             SwitchRow(I18n.t("account.autoStart"), "", autoStartWatch) {
                 autoStartWatch = it; saved = false
             }
+            // Aktivitätstyp der Garmin-Aufnahme. Alle DREI Werte wie im Web — „Pumpfoil" fehlte
+            // hier bisher, obwohl es seit dem 20.07. der Standard ist.
+            if (hasGarmin) {
+                Spacer(Modifier.height(8.dp))
+                Text(I18n.t("account.activityType"), style = MaterialTheme.typography.titleSmall)
+                Text(I18n.t("account.activityTypeHint"), style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 2.dp, bottom = 6.dp))
+                Dropdown(
+                    options = listOf(
+                        "pumpfoil" to I18n.t("account.activityPumpfoil"),
+                        "surfing" to I18n.t("account.activitySurfing"),
+                        "openwater" to I18n.t("account.activityOpenWater"),
+                    ),
+                    selected = activityType,
+                    onSelect = { v -> activityType = v; saved = false },
+                )
+            }
+
             // Beenden/Verwerfen auf der Uhr: zwei gleichrangige Wege -> Auswahl statt Schalter.
             Spacer(Modifier.height(8.dp))
             Text(I18n.t("account.stopMode"), style = MaterialTheme.typography.titleSmall)

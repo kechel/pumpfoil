@@ -71,8 +71,6 @@ fun SettingsScreen(onBack: () -> Unit) {
     var zonen by remember { mutableStateOf(listOf(95, 114, 133, 152, 171, 190)) }
     var zonenVorschlag by remember { mutableStateOf(true) }
     var homespot by remember { mutableStateOf("") }
-    var activityType by remember { mutableStateOf("surfing") }
-    var hasGarmin by remember { mutableStateOf(false) }   // Aktivitätstyp nur bei verknüpfter Garmin-Uhr
     var spots by remember { mutableStateOf<List<String>>(emptyList()) }
     val snackHost = remember { SnackbarHostState() }
     fun flashSaved() { scope.launch { snackHost.showSnackbar(I18n.t("common.saved")) } }
@@ -97,7 +95,6 @@ fun SettingsScreen(onBack: () -> Unit) {
             val s = Api.settings()
             weight = (s["weight_kg"]?.jsonPrimitive?.intOrNull ?: 0).toString()
             homespot = s["homespot"]?.jsonPrimitive?.contentOrNull ?: ""
-            activityType = s["activity_type"]?.jsonPrimitive?.contentOrNull ?: "surfing"
             (s["hr_zones"] as? kotlinx.serialization.json.JsonArray)
                 ?.mapNotNull { it.jsonPrimitive.intOrNull }
                 ?.takeIf { it.size == 6 }?.let { zonen = it }
@@ -121,7 +118,6 @@ fun SettingsScreen(onBack: () -> Unit) {
             pumpUnit = p.pumpUnit ?: "hz"
             PumpUnit.set(ctx, pumpUnit)
         } catch (_: Exception) {}
-        hasGarmin = try { Api.myDevices().any { it.platform == "garmin" && it.revokedAt == null } } catch (_: Exception) { false }
         spots = try { Api.spots().all } catch (_: Exception) { emptyList() }
         loaded = true
     }
@@ -228,27 +224,6 @@ fun SettingsScreen(onBack: () -> Unit) {
             )
             Spacer(Modifier.height(16.dp))
 
-            // Aktivitätstyp der Garmin-Aufnahme (Surfen | Open Water). Nur bei verknüpfter Garmin-Uhr.
-            if (hasGarmin) {
-                Text(I18n.t("account.activityType"), style = MaterialTheme.typography.labelLarge)
-                Text(I18n.t("account.activityTypeHint"), style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp, bottom = 6.dp))
-                Dropdown(
-                    options = listOf(
-                        "surfing" to I18n.t("account.activitySurfing"),
-                        "openwater" to I18n.t("account.activityOpenWater"),
-                    ),
-                    selected = activityType,
-                    onSelect = onSelect@{ v ->
-                        if (v == activityType) return@onSelect
-                        activityType = v
-                        scope.launch {
-                            try { Api.saveSettings(buildJsonObject { put("activity_type", v) }); flashSaved() } catch (_: Exception) {}
-                        }
-                    },
-                )
-                Spacer(Modifier.height(16.dp))
-            }
 
             // Theme (lokal, sofort wirksam).
             Text(I18n.t("settings.design"), style = MaterialTheme.typography.labelLarge)
@@ -407,8 +382,10 @@ private fun ToggleRow(label: String, checked: Boolean, onChange: (Boolean) -> Un
     }
 }
 
+// internal statt private: die Datenfelder-Seite nutzt dieselbe Auswahl (Aktivitätstyp, seit
+// 02.09. dort). Zwei Kopien desselben Dropdowns waeren die schlechtere Wahl.
 @Composable
-private fun Dropdown(options: List<Pair<String, String>>, selected: String, onSelect: (String) -> Unit) {
+internal fun Dropdown(options: List<Pair<String, String>>, selected: String, onSelect: (String) -> Unit) {
     var open by remember { mutableStateOf(false) }
     val label = options.firstOrNull { it.first == selected }?.second ?: selected.ifBlank { "—" }
     Box {
