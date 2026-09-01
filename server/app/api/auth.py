@@ -22,8 +22,15 @@ from .deps import current_user
 RESET_TTL_MIN = 60
 
 # Unterstützte UI-Sprachen (inkl. Dialekte). Quelle der Wahrheit auch im Frontend (i18n).
+# MUSS mit den Sprachlisten der Clients uebereinstimmen: web/src/i18n (locales/*.ts),
+# `I18n.LANGS` (Android) und `Loc.langs` (iOS/Apple Watch). Was hier fehlt, faellt in
+# `_clean_lang` still auf Englisch zurueck — der Nutzer stellt seine Sprache um, die App zeigt
+# sie sofort, und beim naechsten Profil-Abruf springt alles auf Englisch zurueck.
+# Genau das ist mit "pl" passiert (gemeldet 01.09. von einem polnischen Nutzer): Polnisch war
+# seit dem 25.08. in allen drei Clients, hier aber nie ergaenzt. Belegt: KEIN einziges der 393
+# Konten hatte `language = "pl"`, obwohl die Sprache angeboten wurde.
 SUPPORTED_LANGS = {"de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs",
-                   "pt", "ja", "zh", "ru", "id", "nb"}
+                   "pt", "ja", "zh", "ru", "id", "nb", "pl"}
 
 
 def _clean_lang(raw: str | None, fallback: str = "en") -> str:

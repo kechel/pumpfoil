@@ -619,6 +619,30 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔴→✅ 02.09. — POLNISCH liess sich gar nicht speichern: `SUPPORTED_LANGS` im Server kannte
+  `"pl"` nicht. Gemeldet von u149 (01.09. 19:49, 1:1-Chat an mich), sofort behoben und live.**
+  - **Meldung:** „There is an issue with switching to Polish. Its switch again to English, when you
+    switch to other app and back to Pumpfoil app."
+  - **Ursache:** Polnisch ist seit dem 25.08. in ALLEN Clients (`web/src/i18n/locales/pl.ts`,
+    `I18n.LANGS`, `Loc.langs`), aber die Server-Whitelist in `auth.py` wurde nie ergaenzt. Folge:
+    `_clean_lang("pl")` gab still `"en"` zurueck, das Profil speicherte Englisch. Die App zeigte
+    Polnisch trotzdem sofort an (lokales `appLang`) — und beim naechsten Profil-Abruf (App aus dem
+    Hintergrund zurueck, `SessionStore.profile.didSet` schreibt `appLang` neu) sprang alles auf
+    Englisch. Genau das beschriebene Verhalten.
+  - **Belegt statt vermutet:** in der DB hatte **KEINES der 393 Konten** `language = "pl"` — bei
+    einer seit einer Woche angebotenen Sprache. Der Melder selbst steht auf `en`. (Verteilung:
+    191 de, 100 en, 76 fr, 10 cs, 6 fi, 5 ru, 4 nl, 3 it, 3 gsw, 2 es, 2 pt, 1 nb.)
+  - **Fix:** `"pl"` in `SUPPORTED_LANGS`, plus ein Kommentar, dass diese Liste mit den drei
+    Client-Listen uebereinstimmen MUSS und was passiert, wenn nicht. Server neu gestartet.
+  - **End-to-End gegengeprueft** ueber die echte API mit dem BOT-Konto (nicht Jans, s. Memory):
+    `PUT language=pl` -> `pl`, `GET /api/auth/me` -> `pl`, unbekanntes `xx` faellt weiter zurueck,
+    danach auf `de` zurueckgesetzt.
+  - **Betroffen war nicht nur die iOS-App:** die Uhr holt ihre Sprache aus demselben Profil, ein
+    polnischer Nutzer haette sie also nirgends bekommen.
+  - **🔲 OFFEN fuer Jan:** Antwort an den Melder (Entwurf kann ich schreiben) — und die Frage, ob
+    wir die drei Client-Listen und die Server-Whitelist maschinell gegeneinander pruefen wollen,
+    damit die naechste Sprache nicht wieder nur halb ankommt.
+
 - **✅ 01.09. — Kachel „Läufe/Starts" in der Session-Detailansicht (Jans Wunsch), mit (i).**
   Anlass: „2 Läufe" sieht nach faulem Abend aus, wenn es 15 Anläufe waren. Jans Entscheidung nach
   drei Vorschlägen: **in die vorhandene Läufe-Kachel**, Format `4/20` mit der Quote klein daneben,
