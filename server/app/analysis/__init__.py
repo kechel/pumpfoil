@@ -542,9 +542,12 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     result.carve_s = result.carve_m = result.carve_l = None
     # Puls-Anstieg ebenso verwerfen — haengt an denselben Segmenten (api/sessions.py).
     result.hr_by_min_json = None
-    # Preset-Cache: kanonisch (oben) bleibt Standard = Community. Das AKTUELLE Preset des Besitzers
-    # (falls != normal) wird in sensitivity_json abgelegt; bereits gecachte andere Presets bleiben
-    # erhalten -> Umschalten ohne Neurechnung. Der Besitzer sieht daraus v. a. die einzelnen Läufe.
+    # Preset-Cache: die kanonischen Spalten oben sind MIT dem Preset des Besitzers gerechnet (es
+    # gibt nur diesen einen Lauf, s. `_preset_kw`) — hier wird dasselbe Ergebnis zusätzlich unter
+    # seinem Stufen-Schlüssel abgelegt. Bereits gecachte ANDERE Stufen bleiben erhalten, damit ein
+    # Umschalten die Vorschau ohne Neurechnung zeigen kann; maßgeblich ist immer die aktive Stufe.
+    #   Der frühere Halbsatz „kanonisch (oben) bleibt Standard = Community" war falsch — seit dem
+    #   08.07. (bbaa57c1) ist die Stufe des Besitzers überall maßgeblich, auch öffentlich.
     cache: dict = {}
     if result.sensitivity_json:
         try:

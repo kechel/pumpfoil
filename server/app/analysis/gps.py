@@ -42,9 +42,18 @@ OUTLIER_STEP_M = 25.0     # 1-s-Schritt darüber (~>90 km/h) = GPS-Glitch -> rep
 MIN_SEG_AVG_SPEED = 2.8   # ~10 km/h
 GAP_FILL_S = 2            # ML-Maske: Lücken bis 2 s schließen (Gleit-Pausen)
 
-# Per-User-Empfindlichkeit: übersteuert die 4 Erkennungs-Limits NUR für die persönliche
-# Auswertung (leichte/langsame Fahrer, kurze Startversuche). Community/Rekorde nutzen IMMER
-# "normal". Werte >= MOVE_FLOOR_MPS (2.0) halten, sonst greift der Positions-Floor.
+# Per-User-Empfindlichkeit: übersteuert die 4 Erkennungs-Limits (leichte/langsame Fahrer, kurze
+# Startversuche). Die Stufe des BESITZERS ist die maßgebliche Auswertung der Session — überall
+# gleich, öffentlich wie privat: Community, Rekorde, Bestenlisten und Listen lesen dieselben
+# kanonischen Spalten (`analysis_results.num_runs`/`segments_json`/`foiling_*`), und die sind mit
+# genau diesem Preset gerechnet (analysis/__init__.py, `_preset_kw`). Es gibt keinen zweiten Lauf
+# mit "normal".
+#   Hier stand bis 01.09. das Gegenteil ("Community/Rekorde nutzen IMMER normal"). Das war seit
+#   dem 08.07. falsch (Commit bbaa57c1 „gewähltes Preset ist die maßgebliche Analyse — überall,
+#   auch öffentlich"), nur hat niemand den Kommentar mitgezogen. Nachgemessen am Bestand: bei 12
+#   von 12 Sessions von Nutzern mit light/attempts sind die kanonischen Spalten identisch mit dem
+#   Preset-Cache des Besitzers (`sensitivity_json[<stufe>]`) — also KEIN Normal-Ergebnis.
+# Werte >= MOVE_FLOOR_MPS (2.0) halten, sonst greift der Positions-Floor.
 SENSITIVITY_PRESETS: dict[str, dict[str, float]] = {
     "normal":   {"enter_speed": ENTER_SPEED, "exit_speed": EXIT_SPEED, "min_segment_s": MIN_SEGMENT_S, "min_seg_avg_speed": MIN_SEG_AVG_SPEED},
     "light":    {"enter_speed": 2.4, "exit_speed": 2.2, "min_segment_s": 3, "min_seg_avg_speed": 2.4},   # ~8,6 km/h, 3 s

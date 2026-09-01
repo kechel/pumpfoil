@@ -619,6 +619,26 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **✅ 01.09. — Zwei falsche Kommentare zur Empfindlichkeit korrigiert (nur Kommentare, kein
+  Verhalten).** Aufgefallen bei der Untersuchung zu u228: `gps.py` behauptete
+  „Community/Rekorde nutzen IMMER `normal`", `__init__.py` an anderer Stelle „kanonisch (oben)
+  bleibt Standard = Community" — beides das Gegenteil dessen, was 30 Zeilen weiter oben in
+  derselben Datei steht und was der Code tut.
+  - **Wahrheit:** es gibt genau EINEN Analyse-Lauf, und der bekommt `_preset_kw` (die Stufe des
+    Besitzers). `res_personal = res if _sens != "normal"` legt DASSELBE Ergebnis zusätzlich unter
+    dem Stufen-Schlüssel ab — es ist kein zweiter, „öffentlicher" Lauf mit `normal`.
+  - **Am Bestand nachgemessen:** bei **12 von 12** Sessions von Nutzern mit `light`/`attempts` sind
+    die kanonischen Spalten (`num_runs`, `foiling_time_s` — genau die, die Community, Rekorde und
+    Bestenlisten lesen) identisch mit `sensitivity_json[<stufe>]`. Kein Normal-Ergebnis dazwischen.
+    Verteilung heute: 350 Nutzer `normal`, 33 `attempts`, 21 `light`.
+  - **Wann es falsch wurde:** am **08.07.** mit `bbaa57c1` („gewähltes Preset ist die maßgebliche
+    Analyse — überall, auch öffentlich"). Die Kommentare wurden damals nicht mitgezogen.
+  - **Der Nutzer-Text war die ganze Zeit richtig** (`foilsens.hint`: „Gilt überall — deine Stufe
+    ist die maßgebliche Auswertung, auch in Community, Rekorden und Bestenlisten"). Es war also
+    reine Entwickler-Fehlinformation — die aber genau in der Frage zugeschlagen hätte, ob man
+    Nutzern die Stufe als Lösung anbietet.
+  - Server neu gestartet, Import und `/api/app/news` gruen.
+
 - **🟡 01.09. 22:24 — iOS/Apple Watch 1.1.28 (32) EINGEREICHT** („Warten auf Pruefung"; Jans
   Meldung aus App Store Connect, Uebermittlungskennung `6f161b72-c5b4-415f-90f0-399fa210c091`,
   eingereicht von Jan). Live ist weiter **1.1.27 (31)**.
