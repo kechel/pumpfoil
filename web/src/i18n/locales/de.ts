@@ -219,6 +219,11 @@ const de: Record<string, string> = {
   "period.30d": "30 Tage",
   "period.365d": "1 Jahr",
   "period.all": "Allzeit",
+  "cr.foilAll": "Alle Foils",
+  "cr.foilMine": "Wie mein Foil",
+  "cr.foilUnder": "unter {n} cm²",
+  "cr.foilHighAspect": "High Aspect (AR ab {n})",
+  "cr.foilThick": "Dicke Flügel (AR unter {n})",
 
   // Bestenlisten
   "spotcmp.title": "Spot-Rekorde",

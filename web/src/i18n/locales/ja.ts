@@ -186,6 +186,11 @@ const ja: Record<string, string> = {
   "period.30d": "30日間",
   "period.365d": "1年間",
   "period.all": "全期間",
+  "cr.foilAll": "すべてのフォイル",
+  "cr.foilMine": "自分のフォイルと同等",
+  "cr.foilUnder": "{n} cm² 未満",
+  "cr.foilHighAspect": "ハイアスペクト（AR {n} 以上）",
+  "cr.foilThick": "厚翼（AR {n} 未満）",
 
   "spotcmp.title": "スポット記録",
   "spotcmp.foilers": "最多フォイラー",

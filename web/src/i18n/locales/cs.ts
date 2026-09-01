@@ -198,6 +198,11 @@ const cs: Record<string, string> = {
   "period.30d": "30 dní",
   "period.365d": "1 rok",
   "period.all": "Za celou dobu",
+  "cr.foilAll": "Všechny foily",
+  "cr.foilMine": "Jako můj foil",
+  "cr.foilUnder": "pod {n} cm²",
+  "cr.foilHighAspect": "High aspect (AR od {n})",
+  "cr.foilThick": "Silná křídla (AR pod {n})",
 
   // Bestenlisten
   "spotcmp.title": "Rekordy spotů",

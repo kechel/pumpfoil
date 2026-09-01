@@ -4426,6 +4426,41 @@ Offen daraus:
   - **Falle beim Bearbeiten:** `json.dump(indent=1)` passt zu `foils.json`, formatiert `stabs.json`
     aber komplett um (3032 Zeilen Diff fuer zwei Eintraege). Dort als TEXT anhaengen.
 
+- **✅ 01.09. — „Vergleichbare Foils" fuer Community-Rekorde UND Bestenlisten (Jans Idee, Vorschlag
+  bestaetigt).** Ein Dropdown hinter Zeitraum/Sportart, Web live.
+  - **Die Entscheidung stand auf Messungen, nicht auf Gefuehl** (`scripts/foil-bands-check.py`,
+    rein lesend, rechnet alles vier nach):
+    1. Jans Beispielbaender (900–1100, 1000–1200 cm²) lagen um Faktor zwei zu niedrig — die Flotte
+       faehrt **1600–2400 cm²** (81 % der Sessions), Median **1800 cm²**.
+    2. **Flaeche und AR sind unabhaengig: r = −0,12.** Innerhalb 1800–2000 cm² laeuft die AR von
+       4,4 bis 20,1. Nur nach Flaeche zu gruppieren wirft also Fluegel zusammen, die nichts
+       miteinander zu tun haben → beides noetig, nicht eins von beiden.
+    3. **Feste AR-Baender taugen nicht:** 46 / 822 / 70 / 105 Sessions. Ein Eimer, drei Kruemel.
+    4. Deshalb ist das Kernstueck **`mine` = ±15 % Flaeche UND ±2 AR** um das eigene Foil:
+       317–466 Sessions aus 10–25 Varianten. Ohne die AR-Bedingung 468–761 mit AR 4,4–21,0.
+       Das sind gleichzeitig die von Jan gewuenschten „ueberlappenden Baender" — pro Nutzer
+       gerechnet statt aus einer Liste gewaehlt, damit niemand am Rand haengt.
+  - **Server:** `FOIL_BANDS` + `_band_filter()` an EINER Stelle, `foil_band`-Parameter an
+    `/records` und `/leaders`, dazu **`GET /api/community/foil-bands`** mit Session- UND Fahrerzahl
+    je Band. Die Oberflaeche verdrahtet damit keine Grenzen und blendet duenne Gruppen selbst aus
+    (`MIN_BAND_FAHRER = 3` — ein Rekord aus zwei Fahrern ist keiner).
+    **`mine` ohne eigenes Foil liefert bewusst NICHTS** (nicht heimlich alles), und faellt dadueber
+    ueber die Fahrer-Schwelle von selbst aus dem Dropdown — geprueft an vier Konten.
+    Referenz-Foil: Standard-Foil aus den Einstellungen, sonst das meistgefahrene.
+  - **Falle, die ich dabei zugemacht habe:** der Cache-Schluessel von `_time_rows` kannte das Band
+    nicht. Heute ungefaehrlich (je Request konstant), aber genau so entstehen stille Fehler, sobald
+    jemand mehrere Baender in einem Aufruf rechnet. Steht jetzt im Schluessel.
+  - **Nicht bei Spots und „Am besten bewertet"** (Jans Vorgabe) — dort geht es nicht um
+    Vergleichbarkeit der Ausruestung. Das gewaehlte Band steht in der Bestenlisten-Ueberschrift,
+    damit niemand eine Teilmenge fuer das Ganze haelt.
+  - Texte in **17 Sprachen** (`cr.foilAll/foilMine/foilUnder/foilHighAspect/foilThick`); reine
+    Zahlenbereiche („1600–2000 cm²") brauchen keinen Schluessel.
+  - **Sessions ohne hinterlegtes Foil (36 %) fallen aus jedem Band ausser „Alle" heraus** — mit Jan
+    abgesprochen („da wo nichts hinterlegt ist koennen wir auch nichts auswerten"). Deshalb steht
+    die Sessionzahl in jedem Eintrag.
+  - 🔲 **Offen: Android/iOS nachziehen** — dort gibt es die Community-Rekorde und Bestenlisten
+    ebenfalls, das Dropdown fehlt noch.
+
 - **✅ 31.08. — Sessions-Listen starten jetzt IMMER mit „alle" statt „nur Accel" (Jans Vorgabe).**
   Betrifft alle drei Umschalter der Liste: **Meine / je Spot / Alle** — auf Web, Android und iOS.
   - **Vorher:** `has-accel` wurde abgefragt und bei „ja" auf „nur praezise" gestellt. Fuer eine

@@ -185,6 +185,11 @@ const fi: Record<string, string> = {
   "period.30d": "30 päivää",
   "period.365d": "1 vuosi",
   "period.all": "Kaikki aika",
+  "cr.foilAll": "Kaikki siivet",
+  "cr.foilMine": "Kuten oma siipi",
+  "cr.foilUnder": "alle {n} cm²",
+  "cr.foilHighAspect": "High aspect (AR {n}+)",
+  "cr.foilThick": "Paksut siivet (AR alle {n})",
 
   // Bestenlisten
   "spotcmp.title": "Spotti-ennätykset",

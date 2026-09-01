@@ -186,6 +186,11 @@ const zh: Record<string, string> = {
   "period.30d": "30 天",
   "period.365d": "1 年",
   "period.all": "全部时间",
+  "cr.foilAll": "全部前翼",
+  "cr.foilMine": "与我的前翼相近",
+  "cr.foilUnder": "小于 {n} cm²",
+  "cr.foilHighAspect": "大展弦比（AR {n} 以上）",
+  "cr.foilThick": "厚翼（AR 小于 {n}）",
 
   "spotcmp.title": "地点纪录",
   "spotcmp.foilers": "最多玩家",

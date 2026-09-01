@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { fmtDate } from "../lib/time";
 import { Link } from "react-router-dom";
-import { api, CommunityRecords, RecordSet, CommunitySession, Leaders, LeaderRow, CommunityPhoto, WatchLayout } from "../lib/api";
+import { api, CommunityRecords, RecordSet, CommunitySession, Leaders, LeaderRow, CommunityPhoto, WatchLayout, FoilBand } from "../lib/api";
 import { LayoutPreview } from "../components/LayoutPreview";
 import { WatchShape } from "../lib/watchLayout";
-import { Card, Avatar } from "../components/ui";
+import { Card, Avatar, SELECT_SCHRUMPFT } from "../components/ui";
 import { SocialFeed } from "../components/SocialFeed";
 import { SessionRow } from "../components/SessionRow";
 import { Lightbox } from "../components/Lightbox";
@@ -80,6 +80,16 @@ export default function Home() {
     </div>
   );
 }
+
+/**
+ * Ab wie vielen FAHRERN ein Foil-Band überhaupt angeboten wird.
+ *
+ * Ein „Rekord" aus zwei Fahrern ist keiner, sondern eine persönliche Bestleistung mit Etikett.
+ * Gemessen am Bestand (01.09.): die dünnsten Bänder sind „unter 1200 cm²" (5 Fahrer) und
+ * „AR unter 9" (10) — die bleiben also drin, aber die Schwelle greift, sobald man zusätzlich
+ * Sportart oder „nur präzise" einschränkt.
+ */
+const MIN_BAND_FAHRER = 3;
 
 export const PERIODS: [string, string][] = [
   ["today", "period.today"],
@@ -258,12 +268,27 @@ function LatestMedia() {
   );
 }
 
-function Leaderboards({ period, accelOnly, sport = "pumpfoil" }: { period: string; accelOnly: boolean; sport?: string }) {
+/**
+ * Beschriftung eines Foil-Bandes — EINE Stelle, damit Dropdown und Bestenlisten-Kopf nie
+ * auseinanderlaufen. Reine Zahlenbereiche brauchen keinen Übersetzungs-Schlüssel.
+ */
+export function bandLabel(b: FoilBand, t: (k: string, p?: Record<string, string>) => string): string {
+  if (b.art === "alle") return t("cr.foilAll");
+  if (b.art === "eigenes") return t("cr.foilMine");
+  if (b.art === "ar") {
+    return b.von != null ? t("cr.foilHighAspect", { n: String(b.von) }) : t("cr.foilThick", { n: String(b.bis) });
+  }
+  if (b.von != null && b.bis != null) return `${b.von}–${b.bis} cm²`;
+  if (b.bis != null) return t("cr.foilUnder", { n: String(b.bis) });
+  return `${b.von}+ cm²`;
+}
+
+function Leaderboards({ period, accelOnly, sport = "pumpfoil", band }: { period: string; accelOnly: boolean; sport?: string; band?: FoilBand }) {
   const t = useT();
   const [data, setData] = useState<Leaders | null>(null);
   useEffect(() => {
-    api.leaders(period, accelOnly, sport).then(setData).catch(() => {});
-  }, [period, accelOnly, sport]);
+    api.leaders(period, accelOnly, sport, band?.key ?? "all").then(setData).catch(() => {});
+  }, [period, accelOnly, sport, band?.key]);
   if (!data) return null;
   const empty = data.sessions.length === 0 && data.runs.length === 0 && data.spots.length === 0;
   if (empty) return null;
@@ -273,6 +298,11 @@ function Leaderboards({ period, accelOnly, sport = "pumpfoil" }: { period: strin
       <h3 className="mb-2 text-lg font-bold">
         {t("home.leaderboards")}
         {periodLabelKey && <span className="ml-2 text-sm font-normal text-slate-400">· {t(periodLabelKey)}</span>}
+        {/* Das gewählte Foil-Band gehört in die Überschrift: sonst steht hier eine Bestenliste,
+            die nur einen Teil der Flotte umfasst, ohne dass man es sieht (Jans Vorgabe 01.09.). */}
+        {band && band.art !== "alle" && (
+          <span className="ml-2 text-sm font-normal text-brand-300">· {bandLabel(band, t)}</span>
+        )}
       </h3>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {LEADER_KINDS.map((k) => (
@@ -351,10 +381,28 @@ function CommunitySection() {
   // nur Accel (präzise) vs. auch GPS-only (mit erkanntem On-Foil). Default smart:
   // accel, wenn der Nutzer Accel-Daten hat, sonst alle.
   const [accelOnly, setAccelOnly] = useAccelDefault();
+  // Foil-Band („vergleichbare Foils") für Rekorde UND Bestenlisten — NICHT für Spots und
+  // „Am besten bewertet" (Jans Vorgabe): dort geht es nicht um Vergleichbarkeit der Ausrüstung.
+  // Die Bänder samt Session- und Fahrerzahl kommen vom Server (s. /api/community/foil-bands),
+  // damit hier keine Grenzen fest verdrahtet sind und die Oberfläche dünne Gruppen ausblenden kann.
+  const [bands, setBands] = useState<FoilBand[]>([]);
+  const [bandKey, setBandKey] = useState("all");
+  const band = bands.find((b) => b.key === bandKey);
 
   useEffect(() => {
-    api.communityRecords(accelOnly, sport).then(setData).catch(() => {});
-  }, [accelOnly, sport]);
+    api.communityRecords(accelOnly, sport, bandKey).then(setData).catch(() => {});
+  }, [accelOnly, sport, bandKey]);
+
+  useEffect(() => {
+    api.foilBands(accelOnly, sport).then((bs) => {
+      setBands(bs);
+      // Zurück auf „Alle Foils", wenn das gewählte Band durch einen Wechsel von Sportart oder
+      // Genauigkeit zu dünn geworden ist — sonst stünde man vor leeren Rekorden.
+      if (!bs.some((b) => b.key === bandKey && (b.art === "alle" || b.fahrer >= MIN_BAND_FAHRER))) {
+        setBandKey("all");
+      }
+    }).catch(() => setBands([]));
+  }, [accelOnly, sport]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     api.communitySports().then(setSports).catch(() => {});
@@ -399,13 +447,29 @@ function CommunitySection() {
             {sports.map((x) => <option key={x.sport} value={x.sport}>{t(`cls.sport.${x.sport}`)}</option>)}
           </select>
         )}
+        {/* Foil-Band. Reihenfolge kommt vom Server (Nützlichstes oben). Die Sessionzahl steht
+            dabei, weil jede Auswahl außer „Alle Foils" den Topf verkleinert — 36 % der Sessions
+            haben gar kein Foil hinterlegt und fallen dann heraus. */}
+        {bands.length > 1 && (
+          <select value={bandKey} onChange={(e) => setBandKey(e.target.value)}
+            title={t("cr.foilAll")}
+            className={`${SELECT_SCHRUMPFT} rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100`}>
+            {bands
+              .filter((b) => b.art === "alle" || b.fahrer >= MIN_BAND_FAHRER)
+              .map((b) => (
+                <option key={b.key} value={b.key}>
+                  {bandLabel(b, t)}{b.art === "alle" ? "" : ` (${b.sessions})`}
+                </option>
+              ))}
+          </select>
+        )}
       </div>
       <RecordGrid rec={data[period]} showSpot />
       {/* Social-Feed ueber „Medien" (Jan, 30.08., nachdem er sich gefuellt hat): die Videos der
           Community sind das Lebendigste auf der Seite, die Fotos darunter ergaenzen sie. */}
       <SocialFeed />
       <LatestMedia />
-      <Leaderboards period={period} accelOnly={accelOnly} sport={sport} />
+      <Leaderboards period={period} accelOnly={accelOnly} sport={sport} band={band} />
       <TopLiked period={period} />
       <SpotSection period={period} accelOnly={accelOnly} sport={sport} />
       <LayoutTeaser />

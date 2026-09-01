@@ -198,6 +198,11 @@ const nl: Record<string, string> = {
   "period.30d": "30 dagen",
   "period.365d": "1 jaar",
   "period.all": "Altijd",
+  "cr.foilAll": "Alle foils",
+  "cr.foilMine": "Zoals mijn foil",
+  "cr.foilUnder": "onder {n} cm²",
+  "cr.foilHighAspect": "High aspect (AR vanaf {n})",
+  "cr.foilThick": "Dikke vleugels (AR onder {n})",
 
   // Bestenlisten
   "spotcmp.title": "Spot-records",
