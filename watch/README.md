@@ -53,3 +53,31 @@ App erscheint danach in der Aktivitätsliste der Uhr.
 - `source/RecordView.mc` / `RecordDelegate.mc` — UI (Datenfelder) + Steuerung.
 - `source/Uploader.mc` — Pairing + gechunkter Upload (+ Background-Service).
 - `resources/settings/` — konfigurierbare Datenfelder, Alarm-Schwellen, Pairing-Code.
+
+## Welche Garmin-Geraete wir unterstuetzen — und welche bewusst nicht
+
+`watch/manifest.xml` fuehrt **121** Geraete, installiert sind (SDK-Manager) **165**. Die Differenz
+ist Absicht, stand aber bis zum 01.09.2026 nirgends geschrieben:
+
+| Gruppe | Warum nicht |
+|---|---|
+| Radcomputer (`edge*`) und Handgeraete (`gpsmap*`, `montana*`, `oregon*`, `rino*`, `etrextouch`) | Sitzen nicht am Handgelenk — kein Handgelenk-Accel, kein Puls. Unsere Erkennung hat dort keine Datengrundlage. |
+| Golf/Aviatik-Altgeraete (`approachs60`, `d2bravo*`, `d2charlie`) | Dieselbe Generation wie die alten fēnix: zu wenig Speicher, zu alte API. |
+| Alte Uhren (`fenix3*`, `epix` Gen 1, `fr230/235/45/630/735xt/920xt`, `vivoactive` Gen 1, `vivoactive_hr`, `garminswim2`) | Unter unserer API-/Speicher-Untergrenze. |
+
+**Neue Geraete mitbekommen** — dafuer gibt es `scripts/garmin-devices-check.py` (rein lesend). Es
+vergleicht die installierten Geraetedateien mit dem Manifest und kennt die Ausnahmen oben, meldet
+also nur **echte** Neuzugaenge, samt der fertigen `iq:product`-Zeile.
+
+**Wichtig, wie neue Geraetedateien hereinkommen:** nur ueber den **Connect IQ SDK Manager auf Jans
+Mac**. Der Manager ist ein GUI-Programm **ohne CLI** (WebKit-basiert; auf der VM startet das Binary
+nicht einmal, `libwebkit2gtk-4.0.so.37` fehlt), und die Geraeteliste kommt aus Garmins
+**angemeldetem** Dienst (`api.gcs.garmin.com` + Account-Services stecken im Binary). Es gibt also
+keinen anonymen Download-Weg — **ohne Garmin-Konto kein Geraet.** Ablauf: Jan haakt die neuen
+Geraete im Manager an, bringt den Ordner `~/.Garmin/ConnectIQ/Devices/` her (oder gibt einen
+Tarball), danach ist alles andere automatisierbar: Skript laufen lassen, `iq:product` ergaenzen,
+`build-all.sh`, Store-Release.
+
+**Stand 01.09.2026:** `fēnix 9` und `fēnix 9 Pro` sind seit dem **25.08.** im SDK Manager, bei uns
+aber **weder installiert noch im Manifest** — der Tarball im Repo ist vom 20.06. (330 Ordner,
+neuestes `fenix8pro47mm`). Wer sich jetzt eine fēnix 9 kauft, kann die App nicht installieren.
