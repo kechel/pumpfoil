@@ -7,6 +7,11 @@ package org.pumpfoil.app
 val PT: Map<String, String> = ptTabelle()
 
 private fun ptTabelle(): Map<String, String> = mapOf(
+    "cr.foilAll" to "Todos os foils",
+    "cr.foilMine" to "Como o meu foil",
+    "cr.foilUnder" to "abaixo de {n} cm²",
+    "cr.foilHighAspect" to "High aspect (AR a partir de {n})",
+    "cr.foilThick" to "Asas espessas (AR abaixo de {n})",
     "compare.syncTitle" to "Reproduzir em sincronia",
     "compare.syncWho" to "{n} riders, mesmo spot, mesma hora",
     "compare.syncHint" to "Todas as sessões correm no mesmo relógio — vês quem estava onde, e quando. Os trechos em que ninguém estava no foil são saltados.",
@@ -814,6 +819,11 @@ private fun ptTabelle(): Map<String, String> = mapOf(
 val JA: Map<String, String> = jaTabelle()
 
 private fun jaTabelle(): Map<String, String> = mapOf(
+    "cr.foilAll" to "すべてのフォイル",
+    "cr.foilMine" to "自分のフォイルと同等",
+    "cr.foilUnder" to "{n} cm² 未満",
+    "cr.foilHighAspect" to "ハイアスペクト（AR {n} 以上）",
+    "cr.foilThick" to "厚翼（AR {n} 未満）",
     "compare.syncTitle" to "同時再生",
     "compare.syncWho" to "{n} 人、同じスポット、同じ時間帯",
     "compare.syncHint" to "すべてのセッションが同じ時計で動きます — 誰がいつどこにいたかが分かります。誰もフォイルに乗っていない時間は飛ばします。",
@@ -1621,6 +1631,11 @@ private fun jaTabelle(): Map<String, String> = mapOf(
 val ZH: Map<String, String> = zhTabelle()
 
 private fun zhTabelle(): Map<String, String> = mapOf(
+    "cr.foilAll" to "全部前翼",
+    "cr.foilMine" to "与我的前翼相近",
+    "cr.foilUnder" to "小于 {n} cm²",
+    "cr.foilHighAspect" to "大展弦比（AR {n} 以上）",
+    "cr.foilThick" to "厚翼（AR 小于 {n}）",
     "compare.syncTitle" to "同步播放",
     "compare.syncWho" to "{n} 位骑手，同一点位，同一时间",
     "compare.syncHint" to "所有会话共用一个时钟——你能看到谁在什么时候在哪里。没有人在水翼上的时段会被跳过。",
@@ -2428,6 +2443,11 @@ private fun zhTabelle(): Map<String, String> = mapOf(
 val RU: Map<String, String> = ruTabelle()
 
 private fun ruTabelle(): Map<String, String> = mapOf(
+    "cr.foilAll" to "Все крылья",
+    "cr.foilMine" to "Как моё крыло",
+    "cr.foilUnder" to "меньше {n} см²",
+    "cr.foilHighAspect" to "High aspect (AR от {n})",
+    "cr.foilThick" to "Толстые крылья (AR меньше {n})",
     "compare.syncTitle" to "Синхронное воспроизведение",
     "compare.syncWho" to "{n} райдера, тот же спот, то же время",
     "compare.syncHint" to "Все сессии идут по одним часам — видно, кто где и когда был. Промежутки, когда никто не был на фойле, пропускаются.",
@@ -3235,6 +3255,11 @@ private fun ruTabelle(): Map<String, String> = mapOf(
 val ID: Map<String, String> = idTabelle()
 
 private fun idTabelle(): Map<String, String> = mapOf(
+    "cr.foilAll" to "Semua foil",
+    "cr.foilMine" to "Seperti foil saya",
+    "cr.foilUnder" to "di bawah {n} cm²",
+    "cr.foilHighAspect" to "High aspect (AR {n}+)",
+    "cr.foilThick" to "Sayap tebal (AR di bawah {n})",
     "compare.syncTitle" to "Putar serentak",
     "compare.syncWho" to "{n} foiler, spot sama, waktu sama",
     "compare.syncHint" to "Semua sesi berjalan pada satu jam — kamu melihat siapa di mana dan kapan. Bagian saat tidak ada yang di atas foil dilewati.",
@@ -4045,6 +4070,11 @@ private fun idTabelle(): Map<String, String> = mapOf(
 val NB: Map<String, String> = nbTabelle()
 
 private fun nbTabelle(): Map<String, String> = mapOf(
+    "cr.foilAll" to "Alle foiler",
+    "cr.foilMine" to "Som min foil",
+    "cr.foilUnder" to "under {n} cm²",
+    "cr.foilHighAspect" to "High aspect (AR fra {n})",
+    "cr.foilThick" to "Tykke vinger (AR under {n})",
     "compare.syncTitle" to "Spill av synkront",
     "compare.syncWho" to "{n} ryttere, samme sted, samme tid",
     "compare.syncHint" to "Alle øktene går på samme klokke — du ser hvem som var hvor, og når. Strekk der ingen var oppe på foilen, hoppes over.",
@@ -4891,6 +4921,11 @@ private fun nbTabelle(): Map<String, String> = mapOf(
 val PL: Map<String, String> = plTabelle()
 
 private fun plTabelle(): Map<String, String> = mapOf(
+    "cr.foilAll" to "Wszystkie foile",
+    "cr.foilMine" to "Jak mój foil",
+    "cr.foilUnder" to "poniżej {n} cm²",
+    "cr.foilHighAspect" to "High aspect (AR od {n})",
+    "cr.foilThick" to "Grube skrzydła (AR poniżej {n})",
     "compare.syncTitle" to "Odtwarzaj synchronicznie",
     "compare.syncWho" to "{n} zawodników, ten sam spot, ten sam czas",
     "compare.syncHint" to "Wszystkie sesje idą na jednym zegarze — widzisz, kto gdzie i kiedy był. Fragmenty, w których nikt nie był na foilu, są pomijane.",

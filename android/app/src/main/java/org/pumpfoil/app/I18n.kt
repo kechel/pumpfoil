@@ -46,6 +46,11 @@ private fun row(de: String, gsw: String, deAT: String, en: String, fr: String, i
 private val S: Map<String, Map<String, String>> = sTabelle()
 
 private fun sTabelle(): Map<String, Map<String, String>> = mapOf(
+    "cr.foilAll" to row("Alle Foils", "Alli Foils", "Olle Foils", "All foils", "Tous les foils", "Tutti i foil", "Todos los foils"),
+    "cr.foilMine" to row("Wie mein Foil", "Wie mis Foil", "Wia mei Foil", "Like my foil", "Comme mon foil", "Come il mio foil", "Como mi foil"),
+    "cr.foilUnder" to row("unter {n} cm²", "under {n} cm²", "unter {n} cm²", "under {n} cm²", "moins de {n} cm²", "sotto {n} cm²", "menos de {n} cm²"),
+    "cr.foilHighAspect" to row("High Aspect (AR ab {n})", "High Aspect (AR ab {n})", "High Aspect (AR ab {n})", "High aspect (AR {n}+)", "High aspect (AR {n}+)", "High aspect (AR da {n})", "High aspect (AR desde {n})"),
+    "cr.foilThick" to row("Dicke Flügel (AR unter {n})", "Dicki Flügel (AR under {n})", "Dicke Flügel (AR unter {n})", "Thick wings (AR under {n})", "Ailes épaisses (AR sous {n})", "Ali spesse (AR sotto {n})", "Alas gruesas (AR bajo {n})"),
     "compare.syncTitle" to row("Synchron abspielen", "Synchron abspiele", "Synchron abspielen", "Play in sync", "Lecture synchronisée", "Riproduci in sincrono", "Reproducir en sincronía"),
     "compare.syncWho" to row("{n} Fahrer, gleicher Spot, gleiche Zeit", "{n} Fahrer, gliiche Spot, gliichi Ziit", "{n} Fahrer, gleicher Spot, gleiche Zeit", "{n} riders, same spot, same time", "{n} riders, même spot, même moment", "{n} rider, stesso spot, stesso momento", "{n} riders, mismo spot, mismo momento"),
     "compare.syncHint" to row("Alle Sessions laufen auf derselben Uhr — du siehst, wer wann wo war. Zeiten, in denen niemand oben war, werden übersprungen.", "Alli Sessions laufed uf dere gliiche Uhr — du gsehsch, wer wänn wo gsi isch. Ziite, wo niemert obe gsi isch, werded übersprunge.", "Alle Sessions laufen auf derselben Uhr — du siehst, wer wann wo war. Zeiten, in denen kaner oben war, werden übersprungen.", "All sessions run on one clock — you see who was where, and when. Stretches where nobody was up on the foil are skipped.", "Toutes les sessions tournent sur la même horloge — tu vois qui était où, et quand. Les moments où personne n'était en vol sont sautés.", "Tutte le sessioni girano sullo stesso orologio — vedi chi era dove, e quando. I tratti in cui nessuno era in volo vengono saltati.", "Todas las sesiones van en el mismo reloj — ves quién estaba dónde y cuándo. Los tramos en los que nadie estaba volando se saltan."),
@@ -1051,6 +1056,11 @@ private fun sTabelle(): Map<String, Map<String, String>> = mapOf(
 private val FI: Map<String, String> = fiTabelle()
 
 private fun fiTabelle(): Map<String, String> = mapOf(
+    "cr.foilAll" to "Kaikki siivet",
+    "cr.foilMine" to "Kuten oma siipi",
+    "cr.foilUnder" to "alle {n} cm²",
+    "cr.foilHighAspect" to "High aspect (AR {n}+)",
+    "cr.foilThick" to "Paksut siivet (AR alle {n})",
     "compare.syncTitle" to "Toista synkronissa",
     "compare.syncWho" to "{n} foilaajaa, sama spotti, sama aika",
     "compare.syncHint" to "Kaikki sessiot kulkevat samalla kellolla — näet kuka oli missä ja milloin. Jaksot, joissa kukaan ei ollut foilin päällä, ohitetaan.",
@@ -1850,6 +1860,11 @@ private fun fiTabelle(): Map<String, String> = mapOf(
 private val NL: Map<String, String> = nlTabelle()
 
 private fun nlTabelle(): Map<String, String> = mapOf(
+    "cr.foilAll" to "Alle foils",
+    "cr.foilMine" to "Zoals mijn foil",
+    "cr.foilUnder" to "onder {n} cm²",
+    "cr.foilHighAspect" to "High aspect (AR vanaf {n})",
+    "cr.foilThick" to "Dikke vleugels (AR onder {n})",
     "compare.syncTitle" to "Synchroon afspelen",
     "compare.syncWho" to "{n} riders, dezelfde spot, dezelfde tijd",
     "compare.syncHint" to "Alle sessies lopen op dezelfde klok — je ziet wie waar was, en wanneer. Stukken waarin niemand op de foil stond worden overgeslagen.",
@@ -2648,6 +2663,11 @@ private fun nlTabelle(): Map<String, String> = mapOf(
 private val CS: Map<String, String> = csTabelle()
 
 private fun csTabelle(): Map<String, String> = mapOf(
+    "cr.foilAll" to "Všechny foily",
+    "cr.foilMine" to "Jako můj foil",
+    "cr.foilUnder" to "pod {n} cm²",
+    "cr.foilHighAspect" to "High aspect (AR od {n})",
+    "cr.foilThick" to "Silná křídla (AR pod {n})",
     "compare.syncTitle" to "Přehrát synchronně",
     "compare.syncWho" to "{n} jezdci, stejný spot, stejný čas",
     "compare.syncHint" to "Všechny relace běží na jedněch hodinách — vidíš, kdo byl kdy kde. Úseky, kdy nikdo nebyl na foilu, se přeskočí.",

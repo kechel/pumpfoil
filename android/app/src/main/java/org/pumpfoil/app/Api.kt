@@ -590,11 +590,17 @@ object Api {
         json.decodeFromString(SpotsList.serializer(), http("GET", "/api/community/spots?accel_only=$accelOnly", null, auth = true))
     }
 
-    suspend fun communityRecords(accelOnly: Boolean = true): Map<String, PeriodRecords> = withContext(Dispatchers.IO) {
+    suspend fun communityRecords(accelOnly: Boolean = true, foilBand: String = "all"): Map<String, PeriodRecords> = withContext(Dispatchers.IO) {
         json.decodeFromString(
             MapSerializer(String.serializer(), PeriodRecords.serializer()),
-            http("GET", "/api/community/records?accel_only=$accelOnly", null, auth = true),
+            http("GET", "/api/community/records?accel_only=$accelOnly&foil_band=$foilBand", null, auth = true),
         )
+    }
+
+    /** Die Foil-Baender fuer die Auswahl „vergleichbare Foils" — mit Session- und Fahrerzahl. */
+    suspend fun foilBands(accelOnly: Boolean = true): List<FoilBand> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(FoilBand.serializer()),
+            http("GET", "/api/community/foil-bands?accel_only=$accelOnly", null, auth = true))
     }
 
     // accelOnly=false wie die PWA (Spots.tsx) — sonst fehlen GPS-only-Spots (z. B. Frankreich).
@@ -606,8 +612,8 @@ object Api {
         json.decodeFromString(ListSerializer(ChatRoom.serializer()), http("GET", "/api/chat/rooms", null, auth = true))
     }
 
-    suspend fun leaders(period: String = "all", accelOnly: Boolean = true): Leaders = withContext(Dispatchers.IO) {
-        json.decodeFromString(Leaders.serializer(), http("GET", "/api/community/leaders?period=$period&accel_only=$accelOnly", null, auth = true))
+    suspend fun leaders(period: String = "all", accelOnly: Boolean = true, foilBand: String = "all"): Leaders = withContext(Dispatchers.IO) {
+        json.decodeFromString(Leaders.serializer(), http("GET", "/api/community/leaders?period=$period&accel_only=$accelOnly&foil_band=$foilBand", null, auth = true))
     }
 
     suspend fun latestPhotos(limit: Int = 8): List<MediaItem> = withContext(Dispatchers.IO) {

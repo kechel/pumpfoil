@@ -67,6 +67,27 @@ data class SpotTrack(
     val runs: List<List<List<Double?>>> = emptyList(),
 )
 
+/** Ein Foil-Band fuer Community-Rekorde und Bestenlisten (GET /api/community/foil-bands).
+ *
+ * `art`: "alle" | "eigenes" | "flaeche" | "ar". Bei "eigenes" kommen `foil` (Name des
+ * Referenz-Fluegels) und `arVon`/`arBis` mit — das Fenster ist +/-15 % Flaeche und +/-2 AR um das
+ * eigene Foil. Flaeche und AR sind nachweislich unabhaengig (r = -0,12), deshalb beides.
+ * `sessions`/`fahrer` sind die echten Zahlen des Bandes; die Oberflaeche blendet damit zu duenne
+ * Gruppen aus (ein Rekord aus zwei Fahrern ist keiner).
+ */
+@Serializable
+data class FoilBand(
+    val key: String,
+    val art: String,
+    val sessions: Int = 0,
+    val fahrer: Int = 0,
+    val von: Double? = null,
+    val bis: Double? = null,
+    val foil: String? = null,
+    @SerialName("ar_von") val arVon: Double? = null,
+    @SerialName("ar_bis") val arBis: Double? = null,
+)
+
 // Eigene Session im Zwischenzustand (recording/live) — Live-Upload-Karte (Home + Sessions).
 // upload_total ist null, bis die Clients expected_chunks senden -> UI zeigt dann unbestimmt.
 @Serializable

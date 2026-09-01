@@ -4435,6 +4435,28 @@ Offen daraus:
   - **Falle beim Bearbeiten:** `json.dump(indent=1)` passt zu `foils.json`, formatiert `stabs.json`
     aber komplett um (3032 Zeilen Diff fuer zwei Eintraege). Dort als TEXT anhaengen.
 
+- **🟢 01.09. — EINREICHUNGS-BILANZ: alles Neue ist auf den Apps, die Baeume sind fertig.**
+  Jan will nach der Zepp-Ablehnung neu einreichen und vorher alles nachziehen. Durchgegangen wurden
+  ALLE Commits mit Web-/Server-Anteil seit der Android/Wear-Einreichung (26.08.):
+  | Neuerung | Nachgezogen? |
+  |---|---|
+  | Satellitenansicht, Social-Feed, Feedback-Anhaenge, nl/fi/cs | ✅ 26.–31.08. |
+  | GPS-Bereitschaft (Wear + Apple Watch) | ✅ 31.08. |
+  | Synchrones Abspielen im Vergleich | ✅ 31.08. (Android + iOS) |
+  | Spot-Liste startet mit „alle" | ✅ 31.08. (Android + iOS) |
+  | Verlaufskarte je Lauf (`runs`) | ✅ 01.09. (Android + iOS) |
+  | Foil-Baender fuer Rekorde/Bestenlisten | ✅ 01.09. (Android + iOS) |
+  | Zeitachse zusammengefuehrter Sessions, Garmin-Speicherfix, Layout-Grenzen | rein serverseitig bzw. Garmin — kein App-Anteil |
+  | Web-Uebersetzungen (~4900 Texte) | betraf die WEB-Locales; App-Sprachen sind vollstaendig (Pruefung unten) |
+  **Gegenprobe:** auf allen vier App-Zielen ist **kein einzig benutzter Textschluessel undefiniert**
+  (iOS 587, Apple Watch 74, Android 631, Wear 81 — jeweils FEHLEND=0), und die fuenf neuen
+  `cr.foil*`-Schluessel stehen in allen 17 Web-Locales.
+  **Baumstand fuer die Einreichung:** Phone **1.1.25**, Wear **1.2.25**, iOS/Apple **1.1.28**,
+  Zepp **1.0.8** (Buildcode 11). Alle Builds gruen: `:app:` + `:wear:compileDebugKotlin`,
+  `swiftc -parse` ueber ALLE iOS-Dateien, `tsc --noEmit`, Web-Build.
+  **Bei Zepp fehlt weiter das runde + quadratische Vorschaubild** — der Code ist fertig, die
+  Ablehnung betraf nur die Store-Bilder (s. oben).
+
 - **✅ 01.09. — „Vergleichbare Foils" fuer Community-Rekorde UND Bestenlisten (Jans Idee, Vorschlag
   bestaetigt).** Ein Dropdown hinter Zeitraum/Sportart, Web live.
   - **Die Entscheidung stand auf Messungen, nicht auf Gefuehl** (`scripts/foil-bands-check.py`,
@@ -4467,8 +4489,14 @@ Offen daraus:
   - **Sessions ohne hinterlegtes Foil (36 %) fallen aus jedem Band ausser „Alle" heraus** — mit Jan
     abgesprochen („da wo nichts hinterlegt ist koennen wir auch nichts auswerten"). Deshalb steht
     die Sessionzahl in jedem Eintrag.
-  - 🔲 **Offen: Android/iOS nachziehen** — dort gibt es die Community-Rekorde und Bestenlisten
-    ebenfalls, das Dropdown fehlt noch.
+  - **✅ Android und iOS nachgezogen (01.09.).** Beide holen `/api/community/foil-bands`, geben
+    `foil_band` an Rekorde UND Bestenlisten weiter und nennen das Band in der
+    Bestenlisten-Ueberschrift. Auswahl als `DropdownMenu` (Android) bzw. `Menu` (iOS) neben dem
+    Accel-Umschalter; `bandLabel` liegt je Plattform an EINER Stelle, damit Auswahl und
+    Ueberschrift nicht auseinanderlaufen. Dieselbe Schwelle `MIN_BAND_FAHRER = 3`, dieselbe
+    Rueckstellung auf „Alle Foils", wenn ein Band durch einen Wechsel zu duenn wird.
+    Texte in 17 Sprachen auf beiden. **Zepp bleibt aussen vor** — reiner Recorder ohne
+    Community-Ansicht, dort gibt es nichts nachzuziehen.
 
 - **✅ 31.08. — Sessions-Listen starten jetzt IMMER mit „alle" statt „nur Accel" (Jans Vorgabe).**
   Betrifft alle drei Umschalter der Liste: **Meine / je Spot / Alle** — auf Web, Android und iOS.

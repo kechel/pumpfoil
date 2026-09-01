@@ -337,8 +337,13 @@ enum Api {
         try await request("/api/community/spots?accel_only=\(accelOnly)", method: "GET", body: nil, auth: true)
     }
 
-    static func communityRecords(accelOnly: Bool = true) async throws -> [String: PeriodRecords] {
-        try await request("/api/community/records?accel_only=\(accelOnly)", method: "GET", body: nil, auth: true)
+    static func communityRecords(accelOnly: Bool = true, foilBand: String = "all") async throws -> [String: PeriodRecords] {
+        try await request("/api/community/records?accel_only=\(accelOnly)&foil_band=\(foilBand)", method: "GET", body: nil, auth: true)
+    }
+
+    /// Die Foil-Baender fuer die Auswahl „vergleichbare Foils" — mit Session- und Fahrerzahl.
+    static func foilBands(accelOnly: Bool = true) async throws -> [FoilBand] {
+        try await request("/api/community/foil-bands?accel_only=\(accelOnly)", method: "GET", body: nil, auth: true)
     }
 
     static func updateLanguage(_ lang: String) async throws -> Profile {
@@ -364,8 +369,8 @@ enum Api {
         try await request("/api/auth/me/reanalysis", method: "GET", body: nil, auth: true)
     }
 
-    static func leaders(period: String = "all", accelOnly: Bool = true) async throws -> Leaders {
-        try await request("/api/community/leaders?period=\(period)&accel_only=\(accelOnly)", method: "GET", body: nil, auth: true)
+    static func leaders(period: String = "all", accelOnly: Bool = true, foilBand: String = "all") async throws -> Leaders {
+        try await request("/api/community/leaders?period=\(period)&accel_only=\(accelOnly)&foil_band=\(foilBand)", method: "GET", body: nil, auth: true)
     }
 
     static func latestPhotos(limit: Int = 8) async throws -> [MediaItem] {

@@ -35,6 +35,9 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -61,6 +64,29 @@ import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
+/**
+ * Ab wie vielen FAHRERN ein Foil-Band angeboten wird. Ein „Rekord" aus zwei Fahrern ist keiner,
+ * sondern eine persoenliche Bestleistung mit Etikett. Gleiche Schwelle wie in der PWA.
+ */
+private const val MIN_BAND_FAHRER = 3
+
+/**
+ * Beschriftung eines Foil-Bandes — EINE Stelle, damit Auswahl und Bestenlisten-Ueberschrift nie
+ * auseinanderlaufen. Reine Zahlenbereiche brauchen keinen Uebersetzungs-Schluessel.
+ */
+private fun bandLabel(b: FoilBand): String = when {
+    b.art == "alle" -> I18n.t("cr.foilAll")
+    b.art == "eigenes" -> I18n.t("cr.foilMine")
+    b.art == "ar" -> if (b.von != null) I18n.t("cr.foilHighAspect").replace("{n}", fmtBand(b.von))
+                     else I18n.t("cr.foilThick").replace("{n}", fmtBand(b.bis))
+    b.von != null && b.bis != null -> "${fmtBand(b.von)}–${fmtBand(b.bis)} cm²"
+    b.bis != null -> I18n.t("cr.foilUnder").replace("{n}", fmtBand(b.bis))
+    else -> "${fmtBand(b.von)}+ cm²"
+}
+
+private fun fmtBand(v: Double?): String =
+    if (v == null) "" else if (v == v.toLong().toDouble()) v.toLong().toString() else v.toString()
+
 private val PERIODS = listOf("today" to "period.today", "10d" to "period.10d", "30d" to "period.30d", "365d" to "period.365d", "all" to "period.all")
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -79,6 +105,13 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
     var error by remember { mutableStateOf<String?>(null) }
     var period by remember { mutableStateOf("10d") }
     var accelOnly by remember { mutableStateOf(true) }
+    // Foil-Band („vergleichbare Foils") fuer Rekorde UND Bestenlisten — NICHT fuer Spots und
+    // „Am besten bewertet" (Jans Vorgabe): dort geht es nicht um Vergleichbarkeit der Ausruestung.
+    // Die Baender samt Session-/Fahrerzahl kommen vom Server, damit hier keine Grenzen fest
+    // verdrahtet sind (s. FOIL_BANDS in server/app/api/community.py).
+    var bands by remember { mutableStateOf<List<FoilBand>>(emptyList()) }
+    var bandKey by remember { mutableStateOf("all") }
+    val band = bands.firstOrNull { it.key == bandKey }
     var lbMetric by remember { mutableStateOf("sessions") }
     val scope = rememberCoroutineScope()
 
@@ -86,7 +119,7 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
     suspend fun loadBase() {
         loading = true
         try {
-            records = Api.communityRecords(accelOnly); error = null
+            records = Api.communityRecords(accelOnly, bandKey); error = null
             cstats = try { Api.communityStats() } catch (_: Exception) { cstats }
             media = try { Api.latestPhotos() } catch (_: Exception) { emptyList() }
             val sp = try { Api.spots(accelOnly = false) } catch (_: Exception) { null }
@@ -98,7 +131,15 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
         } catch (e: Exception) { error = e.message }
         loading = false
     }
-    LaunchedEffect(accelOnly) { loadBase() }
+    LaunchedEffect(accelOnly, bandKey) { loadBase() }
+    LaunchedEffect(accelOnly) {
+        bands = try { Api.foilBands(accelOnly) } catch (_: Exception) { emptyList() }
+        // Zurueck auf „Alle Foils", wenn das gewaehlte Band durch den Wechsel zu duenn wurde —
+        // sonst stuende man vor leeren Rekorden.
+        if (bands.none { it.key == bandKey && (it.art == "alle" || it.fahrer >= MIN_BAND_FAHRER) }) {
+            bandKey = "all"
+        }
+    }
     // „Neueste Medien" bei jedem Betreten auffrischen (gelöschte Fotos sofort weg, wie PWA/iOS).
     // Im NavHost ist LocalLifecycleOwner der NavBackStackEntry -> ON_RESUME feuert beim Tab-Wechsel.
     val mediaOwner = LocalLifecycleOwner.current
@@ -110,8 +151,8 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
         onDispose { mediaOwner.lifecycle.removeObserver(obs) }
     }
     // Zeitraum- + accel-abhängig: Bestenliste, Best bewertet.
-    LaunchedEffect(period, accelOnly) {
-        leaders = try { Api.leaders(period, accelOnly) } catch (_: Exception) { leaders }
+    LaunchedEffect(period, accelOnly, bandKey) {
+        leaders = try { Api.leaders(period, accelOnly, bandKey) } catch (_: Exception) { leaders }
         topLiked = try { Api.topLiked(period) } catch (_: Exception) { topLiked }
     }
     // Rekorde je gezeigtem Spot (Zeitraum + accel).
@@ -168,7 +209,40 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                                     FilterChip(selected = period == id, onClick = { period = id }, label = { Text(I18n.t(key)) }, colors = cyanChipColors())
                                 }
                             }
-                            Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp), horizontalArrangement = Arrangement.End) {
+                            Row(
+                                Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                // Foil-Band. Reihenfolge kommt vom Server (Nuetzlichstes oben).
+                                // Die Sessionzahl steht dabei, weil jede Auswahl ausser „Alle
+                                // Foils" den Topf verkleinert: 36 % der Sessions haben gar kein
+                                // Foil hinterlegt und fallen dann heraus.
+                                val sichtbar = bands.filter { it.art == "alle" || it.fahrer >= MIN_BAND_FAHRER }
+                                if (sichtbar.size > 1) {
+                                    var offen by remember { mutableStateOf(false) }
+                                    Box {
+                                        TextButton(onClick = { offen = true }) {
+                                            Text(
+                                                band?.let { bandLabel(it) } ?: I18n.t("cr.foilAll"),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                maxLines = 1,
+                                            )
+                                        }
+                                        DropdownMenu(expanded = offen, onDismissRequest = { offen = false }) {
+                                            sichtbar.forEach { b ->
+                                                DropdownMenuItem(
+                                                    text = {
+                                                        Text(bandLabel(b) + if (b.art == "alle") "" else " (${b.sessions})")
+                                                    },
+                                                    onClick = { bandKey = b.key; offen = false },
+                                                )
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    Spacer(Modifier.width(1.dp))
+                                }
                                 AccelSeg(accelOnly) { accelOnly = it }
                             }
                         }
@@ -205,7 +279,14 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                         // Bestenliste (Rangliste je Metrik).
                         leaders?.let { lb ->
                             item {
-                                SectionHeader("${I18n.t("community.leaderboard")} · ${I18n.t(PERIODS.firstOrNull { it.first == period }?.second ?: "period.all")}")
+                                // Das gewaehlte Band gehoert in die Ueberschrift: sonst steht
+                                // hier eine Bestenliste ueber einen Teil der Flotte, ohne dass
+                                // man es sieht.
+                                SectionHeader(
+                                    "${I18n.t("community.leaderboard")} · " +
+                                        I18n.t(PERIODS.firstOrNull { it.first == period }?.second ?: "period.all") +
+                                        (band?.takeIf { it.art != "alle" }?.let { " · ${bandLabel(it)}" } ?: "")
+                                )
                                 Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp),
                                     horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                     listOf(
