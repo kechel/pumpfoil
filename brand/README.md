@@ -40,7 +40,7 @@ nach `app-icons/`. Nach Änderungen an `master/base/` einfach neu laufen lassen.
 | **App Store** (Apple Watch) | `stores/apple/apple-watch/*.png` | watchOS-Screenshots (Sim) |
 | **Suunto** (Partner-Listing) | `stores/suunto/illustration-1125.png` | 1125 px breit (Hoehe frei, max. 1:3); erzeugt von `master/suunto-hero.py`. Unten ~150 px ruhig lassen — dort schwebt Suuntos Connect-Knopf. |
 | **COROS** | `app-icons/coros/pumpfoil-102.png`, `pumpfoil-144.png` | 102 / 144 |
-| **Zepp / Amazfit** | `app-icons/zepp-240-round.png` | 240 rund |
+| **Zepp / Amazfit** | `stores/zepp/` (Icon + Screenshots, EIN Feld = EINE Datei) · Master: `app-icons/zepp-240-round.png` | 240 rund + 2× 360er Screenshots |
 | **YouTube** | `social/youtube-banner-2560x1440.png` (+ `.svg`) | 2560×1440 |
 | **YouTube-Overlay** | `social/youtube-overlay-1080x1920.png` | 1080×1920 (9:16) |
 | **YouTube-Short-Outro** | `social/youtube-outro.html` (fullscreen abspielen + abfilmen; `R`/Reload = Neustart) | 9:16, schwarzer BG |
