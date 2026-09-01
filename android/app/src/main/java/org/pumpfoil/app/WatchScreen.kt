@@ -1,6 +1,7 @@
 package org.pumpfoil.app
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material.icons.filled.Watch
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
@@ -34,6 +36,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -156,9 +159,27 @@ fun WatchCard(ctx: android.content.Context) {
 fun PairedDevicesCard(onSaved: () -> Unit = {}) {
     val scope = rememberCoroutineScope()
     var devices by remember { mutableStateOf<List<PairedDevice>?>(null) }
-    LaunchedEffect(Unit) { devices = try { Api.myDevices() } catch (_: Exception) { emptyList() } }
+    // Ausgeblendete mitladen, sobald man sie sehen will — sonst waere Ausblenden eine Einbahnstrasse.
+    var zeigeAusgeblendete by remember { mutableStateOf(false) }
+    var neuLaden by remember { mutableStateOf(0) }
+    var frage by remember { mutableStateOf<Triple<String, String, () -> Unit>?>(null) }
+    LaunchedEffect(zeigeAusgeblendete, neuLaden) {
+        devices = try { Api.myDevices(includeHidden = zeigeAusgeblendete) } catch (_: Exception) { emptyList() }
+    }
     val active = devices?.filter { it.revokedAt == null } ?: return
-    if (active.isEmpty()) return
+    val ausgeblendet = devices?.firstOrNull()?.hiddenTotal ?: 0
+    if (active.isEmpty() && ausgeblendet == 0) return
+
+    // Rueckfrage vor Entfernen/Widerrufen — dieselben Texte wie in der PWA.
+    frage?.let { (titel, text, tun) ->
+        AlertDialog(
+            onDismissRequest = { frage = null },
+            title = { Text(titel) },
+            text = { Text(text, style = MaterialTheme.typography.bodyMedium) },
+            confirmButton = { TextButton(onClick = { frage = null; tun() }) { Text(titel) } },
+            dismissButton = { TextButton(onClick = { frage = null }) { Text(I18n.t("common.cancel")) } },
+        )
+    }
 
     val modes = listOf(
         "full" to I18n.t("account.recordModeFull"),
@@ -254,6 +275,57 @@ fun PairedDevicesCard(onSaved: () -> Unit = {}) {
                     }
                     Text(I18n.t("account.gnssModeHint"), style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
+                }
+
+                // Aufraeumen je Uhr — bisher nur in der PWA, dadurch war eine verkaufte oder
+                // doppelt gepairte Uhr aus den Apps nicht loszuwerden.
+                //  * Ausblenden ist reversibel und rein kosmetisch (die Uhr laedt weiter hoch).
+                //  * Entfernen NUR ohne Session — sonst verliert die Session ihre Geraetezuordnung;
+                //    das trifft genau die fehlgeschlagenen Pairing-Versuche.
+                //  * Widerrufen macht den Token ungueltig, die Sessions bleiben.
+                Spacer(Modifier.height(10.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    TextButton(onClick = {
+                        scope.launch {
+                            try { Api.hideDevice(d.id, d.hiddenAt == null) } catch (_: Exception) {}
+                            neuLaden++
+                        }
+                    }) { Text(I18n.t(if (d.hiddenAt != null) "account.deviceUnhide" else "account.deviceHide")) }
+                    if (d.sessions == 0) {
+                        TextButton(onClick = {
+                            val name = d.model ?: d.label ?: I18n.t("account.deviceUnnamed")
+                            frage = Triple(
+                                I18n.t("account.deviceForget"),
+                                I18n.t("account.deviceForgetConfirm").replace("{name}", name),
+                            ) {
+                                scope.launch {
+                                    try { Api.forgetDevice(d.id) } catch (_: Exception) {}
+                                    neuLaden++
+                                }
+                            }
+                        }) { Text(I18n.t("account.deviceForget")) }
+                    }
+                    TextButton(onClick = {
+                        val name = d.model ?: d.label ?: I18n.t("account.deviceUnnamed")
+                        frage = Triple(
+                            I18n.t("account.deviceRevoke"),
+                            I18n.t("account.revokeConfirm").replace("{name}", name),
+                        ) {
+                            scope.launch {
+                                try { Api.revokeDevice(d.id) } catch (_: Exception) {}
+                                neuLaden++
+                            }
+                        }
+                    }) { Text(I18n.t("account.deviceRevoke"), color = MaterialTheme.colorScheme.error) }
+                }
+            }
+            Text(I18n.t("account.deviceHideHint"), style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 8.dp))
+            // "N ausgeblendete anzeigen" — ohne das waere Ausblenden auf dem Handy endgueltig.
+            if (ausgeblendet > 0 || zeigeAusgeblendete) {
+                TextButton(onClick = { zeigeAusgeblendete = !zeigeAusgeblendete }) {
+                    Text(if (zeigeAusgeblendete) I18n.t("account.deviceHide")
+                         else "${I18n.t("account.deviceUnhide")} ($ausgeblendet)")
                 }
             }
         }
