@@ -78,7 +78,7 @@ private object RatingClock { val startMs = android.os.SystemClock.elapsedRealtim
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpenSessions: () -> Unit = {}, onOpenCommunity: () -> Unit = {}, onOpenChatRoom: (String, String) -> Unit = { _, _ -> }, onRecord: () -> Unit = {}, social: Boolean = true) {
+fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpenSessions: () -> Unit = {}, onOpenCommunity: () -> Unit = {}, onOpenChatRoom: (String, String) -> Unit = { _, _ -> }, onRecord: () -> Unit = {}, onOpenSortedOut: () -> Unit = {}, social: Boolean = true) {
     var profile by remember { mutableStateOf<Profile?>(null) }
     var stats by remember { mutableStateOf<OverallStats?>(null) }
     // Dieselben Kacheln zusaetzlich je Foil (PWA 30.08.). Eigene Abfrage, eigener Fehlerfall:
@@ -328,6 +328,29 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
                         Text(
                             if (one) I18n.t("home.needsClassification")
                             else I18n.t("home.needsClassificationN").replace("{n}", needsCls.toString()),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer,
+                            modifier = Modifier.weight(1f),
+                        )
+                        Text("→", color = MaterialTheme.colorScheme.onTertiaryContainer)
+                    }
+                }
+                Spacer(Modifier.height(10.dp))
+            }
+
+            // Aussortierte Aufnahmen: nur ein EINZEILER, und nur solange etwas Frisches dabei ist
+            // (letzte 7 Tage, Server: sorted_out_new) -> verfaellt von selbst, nichts wegzuklicken.
+            // Die Erklaerung steht absichtlich erst in der Aussortiert-Ansicht, nicht hier.
+            val frischAussortiert = profile?.sortedOutNew ?: 0
+            if (frischAussortiert > 0) {
+                Card(
+                    Modifier.fillMaxWidth().clickable { onOpenSortedOut() },
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+                ) {
+                    Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            if (frischAussortiert == 1) I18n.t("home.sortedOut")
+                            else I18n.t("home.sortedOutN").replace("{n}", frischAussortiert.toString()),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onTertiaryContainer,
                             modifier = Modifier.weight(1f),

@@ -49,6 +49,11 @@ data class Profile(
     // der Startseite; bei genau einer Session verlinkt die ID direkt dorthin.
     @SerialName("needs_classification") val needsClassification: Int = 0,
     @SerialName("needs_classification_id") val needsClassificationId: Int? = null,
+    // Aussortierte eigene Aufnahmen (nicht als Pumpfoilen gezaehlt): Gesamtzahl, und wie viele
+    // davon FRISCH sind (letzte 7 Tage). Nur die frischen loesen den Hinweis aus — er verfaellt
+    // damit von selbst, es gibt nichts wegzuklicken.
+    @SerialName("sorted_out") val sortedOut: Int = 0,
+    @SerialName("sorted_out_new") val sortedOutNew: Int = 0,
 )
 
 @Serializable

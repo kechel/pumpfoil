@@ -104,6 +104,7 @@ struct WatchView: View {
                 Text(Loc.t("account.recordModeLite", lang)).tag("lite")
                 Text(Loc.t("account.recordModeGps", lang)).tag("gps")
             }
+            updateHinweis(d)
             autoLiteHint(d)
             gpsOnlyHint(d)
             zeppHint(d)
@@ -152,6 +153,19 @@ struct WatchView: View {
                 Task { await loadDevices() }
             }
             .font(.subheadline)
+        }
+    }
+
+    // Update-Hinweis je Uhr — die PWA zeigt ihn seit Langem, die Apps nicht. Ohne ihn faehrt man
+    // monatelang eine alte Uhr-App, ohne es zu erfahren. Bewusst `settings.watchUpdate` und NICHT
+    // `account.deviceUpdate`: letzterer endet auf „→ herunterladen", und den .prg-Download gibt es
+    // nur im Web — die Uhr holt sich das Update ueber ihren eigenen Store.
+    @ViewBuilder private func updateHinweis(_ d: PairedDevice) -> some View {
+        if d.update_available == true, let v = d.latest_version, !v.isEmpty {
+            Text(Loc.t("settings.watchUpdate", lang)
+                    .replacingOccurrences(of: "{platform}", with: (d.platform ?? "").capitalized)
+                    .replacingOccurrences(of: "{version}", with: v))
+                .font(.subheadline).foregroundStyle(.orange)
         }
     }
 

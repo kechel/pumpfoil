@@ -212,6 +212,21 @@ fun PairedDevicesCard(onSaved: () -> Unit = {}) {
                     Text(d.model ?: d.label ?: I18n.t("account.deviceUnnamed"), fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
                     d.appVersion?.let { Text("v$it", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
                 }
+                // Update-Hinweis je Uhr — die PWA zeigt ihn seit Langem, die Apps nicht. Ohne ihn
+                // faehrt man monatelang eine alte Uhr-App, ohne es zu erfahren. Hier bewusst NUR
+                // der Hinweis: den .prg-Download hat das Telefon nicht, die Uhr holt sich das
+                // Update ueber ihren eigenen Store.
+                if (d.updateAvailable && !d.latestVersion.isNullOrBlank()) {
+                    // Bewusst `settings.watchUpdate` und NICHT `account.deviceUpdate`: letzterer
+                    // endet auf „→ herunterladen", und den .prg-Download gibt es nur im Web.
+                    val plattform = (d.platform ?: "").replaceFirstChar { it.uppercase() }
+                    Text(I18n.t("settings.watchUpdate")
+                            .replace("{platform}", plattform)
+                            .replace("{version}", d.latestVersion),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.tertiary,
+                        modifier = Modifier.padding(top = 2.dp))
+                }
                 Spacer(Modifier.height(6.dp))
                 Text(I18n.t("account.recordMode"), style = MaterialTheme.typography.labelMedium)
                 var open by remember(d.id) { mutableStateOf(false) }
