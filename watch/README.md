@@ -78,6 +78,19 @@ Geraete im Manager an, bringt den Ordner `~/.Garmin/ConnectIQ/Devices/` her (ode
 Tarball), danach ist alles andere automatisierbar: Skript laufen lassen, `iq:product` ergaenzen,
 `build-all.sh`, Store-Release.
 
-**Stand 01.09.2026:** `fēnix 9` und `fēnix 9 Pro` sind seit dem **25.08.** im SDK Manager, bei uns
-aber **weder installiert noch im Manifest** — der Tarball im Repo ist vom 20.06. (330 Ordner,
-neuestes `fenix8pro47mm`). Wer sich jetzt eine fēnix 9 kauft, kann die App nicht installieren.
+**Erledigt am 01.09.2026:** Jan hat die Geraetedateien vom Mac herbergebracht (173 statt 165
+Ordner), das Pruefskript nannte **8** fehlende Geraete, alle sind im Manifest — **121 → 129**:
+
+| neu im Manifest | Anmerkung |
+|---|---|
+| `fenix943mm`, `fenix947mm` | fēnix 9 |
+| `fenix9pro43mm`, `fenix9pro47mm`, `fenix9pro51mm` | fēnix 9 Pro |
+| `fenix9prosolar47mm`, `fenix9prosolar51mm` | fēnix 9 Pro Solar |
+| **`fenix843mm`** | **fēnix 8 in 43 mm — fehlte uns schon vorher**, ohne dass es jemand gemerkt hat. Genau dafuer ist das Skript da. |
+
+Alle acht haben **768 KB** watchApp-Speicher, fallen also in den VOLLEN Build — `monkey.jungle`
+ordnet Sonderstufen namentlich zu, an der Datei war deshalb nichts zu aendern. Probebau (Release,
+in den Scratchpad, `watch/bin` unangetastet): `fenix947mm` **105 852 B**, `fenix843mm`
+**103 132 B** — genau in der Groessenordnung der fēnix 847 mm und weit unter der Grenze.
+**Ausgeliefert wird das erst mit dem naechsten Store-Release** (`build-all.sh` schreibt in das LIVE
+verzeichnis `watch/bin`).
