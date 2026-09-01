@@ -619,6 +619,33 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **✅ 01.09. — Upload-Anzeige: Detailseite zeigt dieselbe Karte wie die Uebersicht; die alte Notiz
+  war im Light-Mode unlesbar.** Jans Befund an einer laufenden Testsession (Screenshot):
+  „Beschleunigungsdaten werden hochgeladen … ist nicht lesbar" + „die session sollte auch die
+  gleiche anzeige verwenden wie die session-uebersicht waehrend eines uploads".
+  - **Ursache — die Falle ist generell:** `slate` ist per CSS-Variablen **theme-invertiert**
+    (`tailwind.config.js` + `index.css`). Die Notiz hatte `text-slate-700 dark:text-brand-200`,
+    also greift **slate-700 im Light-Mode** — und das ist dort `203 213 225`, ein sehr helles Grau
+    auf hellem Grund. **Regel (steht schon als Kommentar in `UploadProgressCard.tsx`): EINE
+    slate-Klasse pro Element, KEIN `dark:`-Variant.** Jetzt `text-slate-200` (hell im Dark, dunkel
+    im Light) und `text-sm` statt `text-xs`.
+  - **Gegenprobe ueber alle tsx-Dateien:** das Muster tritt sonst **nirgends** auf. Alle weiteren
+    `text-slate-700/800/900/950` sitzen auf Markenflaechen (`bg-brand-400`), wo helle Schrift im
+    Light-Mode gewollt ist. Sieben Stellen nutzen `slate-600` als gedaempftes Grau (Gedankenstrich,
+    „nicht unterstuetzt", zwei Chat-Hinweise) — in beiden Themes sichtbar, nur kontrastarm;
+    unveraendert gelassen. Zwei davon sind `text-[10px]` — Kandidat fuer die „nie winzig"-Regel,
+    aber nicht Teil dieser Meldung.
+  - **Gleiche Karte auf drei Plattformen:** `SessionUploadCard` (Web/Android/iOS) rendert dieselbe
+    Zeile wie die Liste — Geraetename, GPS-Haken, Prozent + Teile, Fortschrittsbalken,
+    Stall-Hinweis — nur **ohne Klick-/Tap-Ziel**, sie wuerde auf sich selbst fuehren. Auf iOS dazu
+    die Zeile in `UploadCardRow` herausgezogen, damit Liste und Detail garantiert dasselbe zeigen.
+    **Rueckfall:** ist der Upload durch und laeuft nur noch die Analyse, steht die Session nicht
+    mehr in `/in-progress` — Web zeigt dann die (jetzt lesbare) schlanke Notiz, die Natives nichts.
+    Android/iOS hatten auf der Detailseite bisher **gar keine** Upload-Anzeige, nur stilles Pollen.
+  - Laeuft in den fertigen, noch nicht eingereichten Versionen mit: **Phone 1.1.25, iOS 1.1.28**
+    (kein zusaetzlicher Bump). `tsc --noEmit` gruen, `npm run build` gruen,
+    `:app:compileDebugKotlin` gruen, `swiftc -parse` gruen.
+
 - **🔴 VORFALL: `build-all.sh` hat den LIVE-Ordner `watch/bin` ueberschrieben (30.08.).**
   Beim Messen des Speicherbedarfs der polnischen Sprachspalte habe ich `./build-all.sh` gestartet —
   das Skript schreibt nach `watch/bin`, und der Ordner wird pro Request ausgeliefert
