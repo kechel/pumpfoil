@@ -128,8 +128,10 @@ export function SpotProgression() {
     <Card className="p-4">
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-400">{t("hist.spotAnim")}</h3>
+        {/* Dieselbe Spot-Liste wie auf /sessions, also dasselbe Risiko: ohne `min-w-0` schiebt
+            ein langer Spotname die Seite breiter als das Fenster (s. Sessions.tsx). */}
         <select value={spot} onChange={(e) => setSpot(e.target.value)}
-          className="rounded-lg border border-slate-700 bg-slate-800 px-2 py-1 text-sm text-slate-100">
+          className="min-w-0 max-w-full truncate rounded-lg border border-slate-700 bg-slate-800 px-2 py-1 text-sm text-slate-100">
           {spots.length === 0 && <option value="">–</option>}
           {spots.map((s) => <option key={s.spot} value={s.spot}>{s.spot} ({s.count})</option>)}
         </select>

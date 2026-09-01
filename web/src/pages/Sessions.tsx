@@ -305,10 +305,16 @@ export default function Sessions() {
           )}
           <button className={tabCls(scope === "all" && !spot)} onClick={() => setScope("all")}>{t("nav.allSessions.short")}</button>
         </div>
+        {/* `min-w-0` ist hier das Entscheidende: das Feld sitzt in einer Flex-Zeile, und ein
+            Flex-Kind hat `min-width: auto` — es schrumpft also NICHT unter seinen Inhalt, sondern
+            schiebt die ganze Seite auf. Die längste Spot-Beschriftung ist derzeit 48 Zeichen
+            („Peyrolles-en-Provence 3 · Plan d'eau de Plantain"), das sprengt jedes Handy (Jans
+            Meldung 01.09.). Dazu `max-w-full` + `truncate`, damit der Name zugeklappt abgeschnitten
+            wird statt überzulaufen — aufgeklappt zeigt der Browser ihn ohnehin vollständig. */}
         <select
           value={spot}
           onChange={(e) => setScope("all", e.target.value)}
-          className="rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-2 text-sm text-slate-100"
+          className="min-w-0 max-w-full truncate rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-2 text-sm text-slate-100"
         >
           <option value="">{t("all.allSpots")}</option>
           {(() => {
