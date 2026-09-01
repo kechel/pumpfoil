@@ -2190,6 +2190,37 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   brauchen also einen weiteren Bump darueber.
 
 
+- **🔴 01.09. NACHGEPRUEFT (Jans Frage, ob das Garmin-Connect-SDK wieder verfuegbar ist):
+  UNVERAENDERT ZU. Kein Hinweis auf eine Wiedereroeffnung.**
+  - `developer.garmin.com/gc-developer-program/overview/`: **kein Antrags-Link.** Ich habe ALLE
+    Links der Seite auflisten lassen — nur die API-Unterseiten (Activity, Courses, Health,
+    Training, Women's Health), Forum, Brand Guidelines, allgemeines Entwickler-Kontaktformular,
+    Rechtstexte. Banner unveraendert: **„Stay tuned for more updates on the program"**.
+  - **⚠️ FALLE: die FAQ-Seite behauptet weiter das Gegenteil.**
+    `.../gc-developer-program/program-faq/` sagt „If you are interested, please request the Garmin
+    Connect Developer Program and we'll quickly review your application", Pruefung in zwei
+    Werktagen, keine Lizenz-/Wartungsgebuehren, nur fuer geschaeftliche Nutzung. **Das ist genau
+    der Wortlaut, den meine Recherche vom 28.06. schon gefunden hatte — also vor dem Entfernen des
+    Formulars.** Die FAQ ist offenbar nie mitgepflegt worden. Wer nur die FAQ liest, haelt das
+    Programm fuer offen. **Entscheidend ist, ob es ein Antragsformular gibt — und das gibt es nicht.**
+  - Im Connect-IQ-Ankuendigungsforum steht **nichts** zu GCDP (2026 nur fenix 9 und SDK 9.2) —
+    erwartbar, es sind zwei getrennte Programme.
+  - **Grenzen dieser Pruefung, damit niemand sie ueberschaetzt:** `www.garmin.com` liefert meinem
+    Abruf **403** (Bot-Schutz), ich habe also nur den `developer.garmin.com`-Spiegel gesehen; und
+    die **Websuche war fuer die Sitzung aufgebraucht** (200/200), ein Rundblick auf Fremdquellen
+    war nicht moeglich. Geprueft ist damit die Primaerquelle, nicht die Stimmung im Netz.
+
+- **🔲 01.09. NEBENFUND aus derselben Recherche, der uns direkt betrifft: fēnix 9 und fēnix 9 Pro
+  gibt es seit dem 25.08.2026 im Connect IQ SDK Manager — wir unterstuetzen sie NICHT.**
+  Belegt: `watch/manifest.xml` fuehrt **121** Geraete, `fenix9` kommt darin nicht vor, und die
+  Geraete-Dateien fehlen auch lokal (`~/.Garmin/ConnectIQ/Devices/` hat als neuestes
+  `fenix8pro47mm`). Neue Spitzen-Uhren, die Leute jetzt kaufen, koennen die App also nicht
+  installieren.
+  **Aufwand:** Geraete-Dateien ueber den SDK Manager holen (`connectiq-sdk-manager-linux.zip` ist
+  ein **GUI**-Programm, kein CLI), zwei `iq:product`-Zeilen ins Manifest, dann `build-all.sh` und
+  ein Store-Release. **Braucht Jans Entscheidung** (Release-Runde) — `watch/bin` ist live, also
+  nicht nebenbei.
+
 - **🟢 Garmins Daten-API (GCDP) nimmt keine neuen Antraege an — uns trifft es nicht, aber eine
   Planungsannahme ist damit tot.** (17.08., Anlass: Artikel von Momentum vom 15.07.2026, den Jan
   durchgegeben hat.) Kern des Artikels: das **Garmin Connect Developer Program** (die Schnittstelle,
