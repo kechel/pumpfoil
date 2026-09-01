@@ -45,6 +45,23 @@ for (const file of walk(SRC)) {
           + `  ->  nur ${dark[0].slice(5)} schreiben (slate kippt selbst)`);
       }
     }
+    // Zweite Variante derselben Falle, die dem Wächter bis 01.09. entgangen ist: die slate-Basis
+    // steht mit einem dark:-Gegenstück in einer ANDEREN Farbe. Gefunden an der Notiz „Beschleunigungs-
+    // daten werden hochgeladen" (`text-slate-700 dark:text-brand-200`) — Jan konnte sie im Light Mode
+    // nicht lesen, und die Prüfung oben greift nicht, weil sie beide Seiten in slate erwartet.
+    // Sobald ein dark:-Gegenstück existiert, IST die slate-Basis der Light-Mode-Fall — und eine hohe
+    // Zahl (600+) wird dort hell (slate-700 = 203/213/225 auf hellem Grund).
+    for (const prop of PROPS) {
+      const basis = cls.filter((t) => new RegExp(`^${prop}-slate-\\d+(/\\d+)?$`).test(t));
+      const dunkel = cls.some((t) => new RegExp(`^dark:${prop}-`).test(t));
+      for (const b of basis) {
+        const zahl = Number(b.replace(/\/\d+$/, "").split("-").pop());
+        if (dunkel && zahl >= 600) {
+          errors.push(`${rel}:${lineOf(m.index)}  ${b} + ein dark:${prop}-Gegenstück`
+            + `  ->  slate kippt selbst: EINE slate-Klasse mit der Dark-Zahl (${prop}-slate-${1000 - zahl}), kein dark:`);
+        }
+      }
+    }
     // Farbige Töne ohne Gegenstück: auf hellem Grund ist ein 300er-Ton meist unlesbar.
     for (const t of cls) {
       const hit = NON_SLATE.exec(t);
