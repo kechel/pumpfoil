@@ -25,6 +25,21 @@ Icon-Dateien im Repo hat einen Farbverlauf. Was in der Konsole angezeigt wurde, 
 kam also nicht aus dem Repo. Zwischen dem freigegebenen 1.0.6 (24.08.) und 1.0.7 wurde an den
 Assets nichts geändert.
 
+## 🔑 Ungeschriebene Regel: rund und eckig muessen INHALTLICH IDENTISCH sein
+
+Dieselben Bildschirme, einmal rund und einmal eckig. **In der Zepp-Doku steht das nicht** — es kam
+aus einer Ablehnung (Jan, vor dem 01.09.2026: „es wurde schonmal abgelehnt weil die nicht identisch
+waren rund vs. eckig").
+
+**Aktueller Stand: 8 runde, aber nur 7 eckige.** Das ist keine Verarbeitungsluecke — auch die
+Rohaufnahmen liegen 8 zu 7 (`screenshots/watch/zepp/raw/{circle,square}/`). Der achte Bildschirm
+wurde eckig nie aufgenommen.
+
+→ **Bis das nachgeholt ist: nur 7 runde hochladen**, das achte weglassen (so hat Jan es am 01.09.
+gemacht). Wer die fehlende Aufnahme nachholt: im Zepp-Simulator (nur auf Jans Mac) denselben
+Bildschirm eckig aufnehmen, dann auf 360×360 mit Inhalt 312 breit und Rand 24/24 bringen — die
+Rechnung steht unten.
+
 ## Der eine gefundene Regelbruch (behoben 01.09.)
 
 Die eckigen Screenshots hatten Inhalt **311**×360 und damit **links 24, rechts 25** Pixel Rand.

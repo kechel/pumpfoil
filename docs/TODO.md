@@ -9,7 +9,26 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 🚀 App-Release-Stand
 
-- **🔴 Zepp 1.0.7 ABGELEHNT — 01.09.2026 (Jans Meldung, Mail von der Zepp Open Platform).**
+- **🟡 Zepp 1.0.7 ERNEUT EINGEREICHT — 01.09.2026 (Jans Meldung aus der Konsole).**
+  Konsolen-Stand: **„2026.09.01 · Under Review (Can be Withdrawn)"**, darunter die Vorversion
+  **„2026.08.24 · Approved"**. **KEIN neues Paket** hochgeladen — nur die Bilder ersetzt und neu
+  einreichen lassen, damit es schneller geht; das neue Release (1.0.8, Buildcode 11) kommt direkt
+  im Anschluss.
+  Jan hat alle Bilder neu hochgeladen, **bis auf das eine, das es nur rund gibt** (s. unten).
+  Das Paket meldet ueber 80 unterstuetzte Amazfit-Modelle (Falcon, T-Rex Ultra/3/3 Pro/Ultra 2,
+  Cheetah/Pro/2 Pro/2 Ultra, GTR 4, GTS 4, Balance/2/2 XT/3/3 Ti/Ultra, Active/Edge/2/3 Premium/Max,
+  Bip 5/6/Max, Rome) — die Liste erkennt die Konsole selbst aus dem ZAB.
+  - **🔑 NEUE ERKENNTNIS von Jan: rund und eckig muessen INHALTLICH IDENTISCH sein.** Genau daran
+    lag eine **frueher schon einmal** erfolgte Ablehnung — dieselben Bildschirme, einmal rund und
+    einmal eckig. In der Doku steht das so nicht; es kam aus einer Ablehnung.
+  - **🔲 Deshalb offen: uns fehlt eine ECKIGE Aufnahme.** Wir haben **8 runde, aber nur 7 eckige** —
+    und das ist keine Verarbeitungsluecke: auch die Rohdateien liegen 8 zu 7
+    (`screenshots/watch/zepp/raw/{circle,square}/`). Der achte Bildschirm wurde eckig nie
+    aufgenommen. Muss im Zepp-Simulator nachgeholt werden (nur auf Jans Mac moeglich), dann als
+    360×360 mit Rand 24/24 aufbereiten. Bis dahin gilt: **das achte runde Bild NICHT hochladen**,
+    sonst sind die Saetze wieder ungleich.
+
+  Urspruengliche Ablehnung: **🔴 Zepp 1.0.7 ABGELEHNT — 01.09.2026 (Mail von der Zepp Open Platform).**
   Wortlaut des Grundes, vollstaendig: „Please modify the circular preview image and the square
   preview image. For reference: https://docs.zepp.com/docs/distribute/#appic".
   Es geht also **nur um die Store-Vorschaubilder**, nicht um den Code — inhaltlich ist an 1.0.7
