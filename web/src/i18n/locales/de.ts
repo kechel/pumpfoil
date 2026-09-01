@@ -1685,7 +1685,7 @@ const de: Record<string, string> = {
   "account.keepOnePage": "Mindestens eine Seite muss bleiben.",
   "account.maxPages": "Mehr als {n} Seiten speichert die Uhr nicht.",
   "account.layoutsEnabled": "Eigene Layouts an meine Uhren senden",
-  "account.layoutsEnabledHint": "Aus = deine Uhren zeigen die klassischen 3-Feld-Ansichten. Gilt nur für dich; wenn eine Uhr Probleme macht, kannst du es auch direkt am Gerät abschalten (Menü → Eigene Layouts).",
+  "account.layoutsEnabledHint": "Aus = deine Uhren zeigen die klassischen 3-Feld-Ansichten. Wenn eine Uhr Probleme macht, kannst du es auch direkt am Gerät abschalten (Menü → Eigene Layouts).",
   "account.layoutState.off_user": "Eigene Layouts sind in deinem Profil abgeschaltet.",
   "account.layoutState.off_memory": "Diese Uhr hat zu wenig Speicher für eigene Layouts.",
   "account.layoutState.off_memory_optin": "Diese Uhr hat wenig Speicher — eigene Layouts kommen nicht automatisch, du kannst sie aber auf der Uhr im Menü „Eigene Layouts“ auf „An“ stellen und es testen.",

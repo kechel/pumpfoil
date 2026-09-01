@@ -1380,7 +1380,7 @@ const cs: Record<string, string> = {
   "account.layoutState.off_nolayout": "Zatím sis nepřidal vlastní rozvržení jako stránku — vytvoř ho v „Rozvržení hodinek“ a dej ho do svých pohledů.",
   "account.layoutState.off_user": "Vlastní rozvržení máš v profilu vypnutá.",
   "account.layoutsEnabled": "Posílat moje vlastní rozvržení do mých hodinek",
-  "account.layoutsEnabledHint": "Vypnuto = hodinky ukazují klasické pohledy se 3 poli. Týká se jen tebe; když jedny hodinky zlobí, můžeš to vypnout i na zařízení (menu → Vlastní rozvržení).",
+  "account.layoutsEnabledHint": "Vypnuto = hodinky ukazují klasické pohledy se 3 poli. Když jedny hodinky zlobí, můžeš to vypnout i na zařízení (menu → Vlastní rozvržení).",
   "account.maxPages": "Hodinky uloží nejvýše {n} stránek.",
   "account.noLayoutsOfKind": "Zatím žádná vlastní obrazovka tohoto druhu.",
   "account.noLayoutsYet": "Pro tuto obrazovku sis zatím vlastní rozvržení nevytvořil.",

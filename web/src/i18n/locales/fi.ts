@@ -1346,7 +1346,7 @@ const fi: Record<string, string> = {
   "account.layoutState.off_nolayout": "Et ole vielä lisännyt omaa asettelua sivuksi — luo sellainen kohdassa «Kellon asettelut» ja laita se näkymiisi.",
   "account.layoutState.off_user": "Omat asettelut on kytketty pois profiilissasi.",
   "account.layoutsEnabled": "Lähetä omat asetteluni kelloihini",
-  "account.layoutsEnabledHint": "Pois = kellosi näyttävät klassiset 3 kentän näkymät. Koskee vain sinua; jos yksi kello temppuilee, voit kytkeä sen pois myös laitteessa (valikko → Omat asettelut).",
+  "account.layoutsEnabledHint": "Pois = kellosi näyttävät klassiset 3 kentän näkymät. Jos yksi kello temppuilee, voit kytkeä sen pois myös laitteessa (valikko → Omat asettelut).",
   "account.maxPages": "Kello tallentaa enintään {n} sivua.",
   "account.noLayoutsOfKind": "Ei vielä tämän tyyppistä omaa näyttöä.",
   "account.noLayoutsYet": "Et ole vielä rakentanut omaa asettelua tälle näytölle.",

@@ -1544,7 +1544,7 @@ const pl: Record<string, string> = {
   "account.keepOnePage": "Co najmniej jedna strona musi zostać.",
   "account.maxPages": "Zegarek przechowuje najwyżej {n} stron.",
   "account.layoutsEnabled": "Wysyłaj moje własne układy na moje zegarki",
-  "account.layoutsEnabledHint": "Wyłączone = Twoje zegarki pokazują klasyczne widoki z 3 polami. Dotyczy tylko Ciebie; jeśli jeden zegarek sprawia kłopoty, możesz je wyłączyć również na samym urządzeniu (menu → Własne układy).",
+  "account.layoutsEnabledHint": "Wyłączone = Twoje zegarki pokazują klasyczne widoki z 3 polami. Jeśli jeden zegarek sprawia kłopoty, możesz je wyłączyć również na samym urządzeniu (menu → Własne układy).",
   "account.layoutState.off_user": "Własne układy są wyłączone w Twoim profilu.",
   "account.layoutState.off_memory": "Ten zegarek nie ma dość pamięci na własne układy.",
   "account.layoutState.off_memory_optin": "Ten zegarek ma mało pamięci — własne układy nie są dostarczane automatycznie, ale możesz je włączyć w menu zegarka i spróbować.",

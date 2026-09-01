@@ -1381,7 +1381,7 @@ const nl: Record<string, string> = {
   "account.layoutState.off_nolayout": "Je hebt nog geen eigen lay-out als pagina toegevoegd — maak er een onder «Horloge-lay-outs» en zet hem in je weergaven.",
   "account.layoutState.off_user": "Eigen lay-outs staan uit in je profiel.",
   "account.layoutsEnabled": "Mijn eigen lay-outs naar mijn horloges sturen",
-  "account.layoutsEnabledHint": "Uit = je horloges tonen de klassieke weergaven met 3 velden. Geldt alleen voor jou; als één horloge zich misdraagt kun je het ook op het apparaat uitzetten (menu → Eigen lay-outs).",
+  "account.layoutsEnabledHint": "Uit = je horloges tonen de klassieke weergaven met 3 velden. Als één horloge zich misdraagt kun je het ook op het apparaat uitzetten (menu → Eigen lay-outs).",
   "account.maxPages": "Het horloge bewaart maximaal {n} pagina's.",
   "account.noLayoutsOfKind": "Nog geen eigen scherm van dit type.",
   "account.noLayoutsYet": "Je hebt voor dit scherm nog geen eigen lay-out gebouwd.",

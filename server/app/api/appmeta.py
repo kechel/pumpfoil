@@ -98,57 +98,17 @@ _APP_META: dict[str, dict[str, str]] = {
     "garmin": {
         # NUR auf eine im Connect-IQ-Store FREIGEGEBENE Version setzen (Pruefung durch)!
         # Die Garmin-App vergleicht das selbst mit Config.VERSION (SessionRecorder.mc:638).
-        "latest": "1.0.83",   # LIVE im CIQ-Store 2026-08-31, SELBST GEPRUEFT (nicht nur gemeldet):
-        # curl https://apps.garmin.com/apps/9a2a753e-b52f-4587-aee4-900caf5cb351 -> Version":"1.0.83".
-        # Store-Seite: "Latest Release August 31, 2026 · Version 1.0.83 · Size 70 KB" (Jan).
-        # Inhalt: EIN Fix — der falsche "Speicher gleich voll"-Countdown. Der Server schickt seit
-        # 31.08. eine 0, wenn er die Puffergrenze dieser Uhr nicht GEMESSEN hat; _applyStorageBudget
-        # uebernahm aber nur Werte > 0 und liess den alten gecachten Wert (200 KB) stehen. Jede Uhr,
-        # die seit 1.0.80 einmal ein /config geholt hatte, zeigte den Countdown weiter — Jans Meldung
-        # vom See: "noch 2 Minuten, noch 1, noch 0" mitten in einer normalen Session. Serverseitig
-        # allein war das NICHT zu heilen, es braucht diese Uhr-Fassung.
-        # Vorher 1.0.82, LIVE seit 2026-08-30, ebenfalls selbst geprueft:
-        # curl https://apps.garmin.com/apps/9a2a753e-b52f-4587-aee4-900caf5cb351 -> Version":"1.0.82",
-        # Store-Seite "Latest Release August 30, 2026 · Version 1.0.82 · Size 70 KB" (Jan), aus dem
-        # Store installiert und eine echte Session damit aufgezeichnet.
-        # Inhalt: Lauf-Erkennung an den Server angeglichen — der Re-Arm-Cooldown sperrt nur noch
-        # nach einem ECHTEN Stopp (vorher 25 s blind, das verschluckte den Rest eines Laufs),
-        # eine Fortsetzung verlaengert den Lauf statt ihn zu ersetzen (1.0.80 verschmolz nur den
-        # Zaehler, nicht die Anzeige), Mindestlauf 5 s / 2,0 m/s, und beim Zusammenfuehren muss die
-        # Strecke plausibel bleiben (max. 32 km/h). Belegt an einer Nutzer-Fotoserie: Abweichung
-        # zur Auswertung von 33 % auf 6 %.
-        # 1.0.81 lag dazwischen kurz im Store (versehentlich veroeffentlicht) und wird uebersprungen.
-        # Vorher 1.0.80, LIVE seit 2026-08-26 (zweites Release an diesem Tag);
-        # Store-Seite: "Latest Release August 26, 2026 · Version 1.0.80 · Size 64 KB" (Jan).
-        # Inhalt: gesaeuberter Max-Speed (Burst-Klemme gegen den 15-s-Median + 32-km/h-Deckel,
-        # dieselben Regeln wie analysis/gps.py), Laeufe ohne echten Stopp dazwischen zaehlen als
-        # EINER (wie _merge_no_stop serverseitig), `expected_chunks` im Upload -> "x von y" statt
-        # unbestimmtem Balken, und der "Gespeichert"-Screen liegt nicht mehr unter dem
-        # Upload-Screen und laeuft nach 10 s zum Start-Screen ab.
-        # Die 64 KB (statt 63 in 1.0.79) sind der ENG-Build mit den neuen Regeln — gemessen
-        # fr55 65 116 -> 65 740 B.
-        # Vorher 1.0.79 (Wert-Grafiken + Puls-Zonen), live seit dem Vormittag desselben Tages.
-        # --- Historie 1.0.79 ---: Store-Seite bestaetigte "Latest
-        # Release August 26, 2026, Version 1.0.79, Size 63 KB" (Jan), und Jan hat sie aus dem Store
-        # auf seine echte Uhr installiert und getestet ("funktioniert"). Inhalt: WERT-GRAFIKEN in
-        # eigenen Layouts — Rand-Grafik (rund Ringsegment, eckig Rahmensegment; der Renderer
-        # entscheidet aus der Displayform) und Balken, Fuellstand auf der Skala des Feldes, Farbe
-        # optional nach Puls-Zone. Zonen kommen aus dem Profil ueber /devices/config (hrZones +
-        # speedScale) und werden auf der Uhr gecacht. NUR in den Voll-Builds: alles hinter
-        # (:layouts), die 96-KB- (LITE) und 128-KB-Klasse (ENG) kompilieren es nicht mit, und die
-        # Skalen-Uebernahme wurde ebenfalls dorthin gezogen (-384 B fuer die kleinen Builds).
-        # Vorher 1.0.78 (ENG-Build-Stufe), live seit 17.08. — Inhalt dort: neue ENG-BUILD-STUFE fuer die 16 Uhren der
-        # 128-KB-Klasse (fenix 5/5S/6/6S/Chronos, FR55/245/645/935, Venu Sq, vivoactive 3, Enduro,
-        # Instinct 3 Solar / Instinct E). Sie fuhren den vollen Build und waren mit ihm aus dem
-        # Speicher gewachsen (FR55 gemessen: 58 508 B in 1.0.60 -> 105 052 B in 1.0.77, freier Heap
-        # 72 564 -> 26 020 B) und zeichneten still gar nichts mehr auf — 4 von 7 aktiv gepairten
-        # Uhren dieser Klasse hatten NIE eine Session. ENG nimmt Layout-Renderer + 13-Sprachen-
-        # Tabelle weg (Texte dort Englisch), die Menues bleiben; jetzt ~66 kB frei. Belegt an
-        # Geraet #136 und per Feldtest auf Jans fenix 5 + FR55. Details docs/TODO.md.
-        # DIE 63 KB IN DER STORE-ZEILE SIND KEIN FEHLER: der Store nennt die Groesse eines
-        # kleinen Geraete-Builds, und genau die ist durch ENG von ~106 auf ~63 KB gefallen.
-        # Vorher 1.0.77 (Lauf-Canary + GNSS-Stufe je Uhr), live seit 16.08.
-        "min_supported": "",
+        "latest": "1.0.85",   # LIVE im CIQ-Store 2026-09-02, SELBST GEPRUEFT (nicht nur gemeldet):
+        # die Store-Seite (`curl https://apps.garmin.com/apps/9a2a753e-…`) nennt 1.0.85.
+        # Store-Seite: "Latest Release September 1, 2026 · Version 1.0.85 · Size 71 KB" (Jan).
+        # Inhalt: die Profil-Einstellung "halten oder druecken" (settings_json.stop_mode). Im
+        # press-Modus loest schon ein kurzer Druck auf START aus — das Halten funktioniert
+        # unveraendert weiter, es kommt also ein Weg dazu. Anlass war ein Nutzer, auf dessen Uhr
+        # der lange Druck mit "Mann ueber Bord" belegt ist; unser Menue war damit unerreichbar.
+        # ZWISCHENVERSION 1.0.84 (live seit 01.09.) steht hier bewusst NIE: reine
+        # Geraete-Erweiterung (fenix 9 + fenix 8 43 mm), fuer vorhandene Uhren ohne Nutzen —
+        # Jan wollte dafuer keinen Update-Hinweis. Sie wurde uebersprungen, nicht vergessen.
+        # Vorher 1.0.83 (falscher "Speicher voll"-Countdown), live seit 31.08.
         "store_url": "https://apps.garmin.com/apps/9a2a753e-b52f-4587-aee4-900caf5cb351",
     },
     "wear": {

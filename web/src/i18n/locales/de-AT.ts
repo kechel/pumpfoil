@@ -1169,7 +1169,7 @@ const deAT: Record<string, string> = {
   "account.layoutState.off_nolayout": "Du hast no kein eigenes Layout als Seite eingebunden — unter „Uhr-Layouts“ anlegen und in den Ansichten einsetzen.",
   "account.layoutState.off_user": "Eigene Layouts san in deinem Profil abgedreht.",
   "account.layoutsEnabled": "Eigene Layouts an meine Uhren schicken",
-  "account.layoutsEnabledHint": "Aus = deine Uhren zeigen die klassischen 3-Feld-Ansichten. Gilt nur für dich; wenn eine Uhr zickt, kannst du's auch direkt am Gerät abdrehen (Menü → Eigene Layouts).",
+  "account.layoutsEnabledHint": "Aus = deine Uhren zeigen die klassischen 3-Feld-Ansichten. Wenn eine Uhr zickt, kannst du's auch direkt am Gerät abdrehen (Menü → Eigene Layouts).",
   "account.maxPages": "Mehr als {n} Seiten speichert die Uhr nicht.",
   "account.noLayoutsOfKind": "No kein eigener Screen dieser Art angelegt.",
   "account.noLayoutsYet": "Für diesen Screen hast du no kein eigenes Layout angelegt.",

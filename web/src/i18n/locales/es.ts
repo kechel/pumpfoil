@@ -1151,7 +1151,7 @@ const es: Record<string, string> = {
   "account.layoutState.off_nolayout": "Todavía no has añadido un diseño propio como página — crea uno en «Diseños de reloj» y ponlo en tus vistas.",
   "account.layoutState.off_user": "Los diseños propios están desactivados en tu perfil.",
   "account.layoutsEnabled": "Enviar mis diseños propios a mis relojes",
-  "account.layoutsEnabledHint": "Desactivado = tus relojes muestran las vistas clásicas de 3 campos. Solo te afecta a ti; si un reloj da problemas también puedes desactivarlo en el dispositivo (menú → Diseños propios).",
+  "account.layoutsEnabledHint": "Desactivado = tus relojes muestran las vistas clásicas de 3 campos. Si un reloj da problemas también puedes desactivarlo en el dispositivo (menú → Diseños propios).",
   "account.maxPages": "El reloj guarda como máximo {n} páginas.",
   "account.noLayoutsOfKind": "Todavía no hay ninguna pantalla propia de este tipo.",
   "account.noLayoutsYet": "Todavía no has creado un diseño propio para esta pantalla.",

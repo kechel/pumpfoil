@@ -619,6 +619,23 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **✅ 02.09. — Garmin 1.0.85 IST LIVE, Freigabe-Kette komplett abgearbeitet.** Jans Meldung aus
+  dem Store: „Latest Release September 1, 2026 · Version 1.0.85 · Size 71 KB".
+  **Selbst gegengeprueft** (nicht nur gemeldet): die Store-Seite nennt 1.0.85.
+  1. `build-all.sh`: **129 ok, 0 fehlgeschlagen**, `catalog.json` 129 Eintraege **alle 1.0.85**,
+     `partmap.json` 218 Part-Numbers. Live gegengeprueft ueber `/api/app/devices` — 129 Geraete,
+     alle 1.0.85.
+  2. `appmeta.garmin` auf **1.0.85** (Server neu gestartet, `/api/app/latest?platform=garmin`
+     antwortet 1.0.85) -> vorhandene Uhren sehen jetzt den Update-Hinweis. **Anders als bei
+     1.0.84**, das bewusst uebersprungen wurde: dort gab es fuer vorhandene Uhren nichts zu holen.
+  3. Changelog-Eintrag zum 02.09. (Halten/Druecken samt Anlass, Garmin 1.0.85, Foil-Band-Fix auf
+     iOS, Kachel „Laeufe/Starts", Polnisch).
+  - **Nebenbei auf Jans Zuruf:** der Halbsatz „Gilt nur fuer dich" im Layouts-Hinweis ist raus —
+    in allen 17 Web-Sprachen UND in den vier nativen Tabellen (17 Stellen je Plattform). Begruendung
+    Jan: „das ist doch quatsch, alle einstellungen gelten nur fuer einen selber". Achtung fuer
+    spaeter: `scripts/i18n-port.py` fuegt nur EIN, es aktualisiert nichts — Textaenderungen an
+    vorhandenen Schluesseln muss man wie hier ueber alle vier Tabellen fahren.
+
 - **✅ 02.09. — 1.0.85 bei Garmin eingereicht (Jan: getestet + hochgeladen), Melder informiert.**
   Jans Meldung nachts: „getestet und bei garmin hochgeladen … sollte morgen frueh (2. September 26)
   verfuegbar sein". Auf Jans ausdrueckliche Bitte habe ich **u404 im 1:1-Chat geschrieben**
