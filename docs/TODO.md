@@ -21,12 +21,12 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   - **🔑 NEUE ERKENNTNIS von Jan: rund und eckig muessen INHALTLICH IDENTISCH sein.** Genau daran
     lag eine **frueher schon einmal** erfolgte Ablehnung — dieselben Bildschirme, einmal rund und
     einmal eckig. In der Doku steht das so nicht; es kam aus einer Ablehnung.
-  - **🔲 Deshalb offen: uns fehlt eine ECKIGE Aufnahme.** Wir haben **8 runde, aber nur 7 eckige** —
-    und das ist keine Verarbeitungsluecke: auch die Rohdateien liegen 8 zu 7
-    (`screenshots/watch/zepp/raw/{circle,square}/`). Der achte Bildschirm wurde eckig nie
-    aufgenommen. Muss im Zepp-Simulator nachgeholt werden (nur auf Jans Mac moeglich), dann als
-    360×360 mit Rand 24/24 aufbereiten. Bis dahin gilt: **das achte runde Bild NICHT hochladen**,
-    sonst sind die Saetze wieder ungleich.
+  - **✅ Der Ueberschuss war ein DUPLIKAT, keine fehlende Aufnahme** (Jans Korrektur, meine erste
+    Schlussfolgerung war falsch): `zepp-rund-06.png` zeigte dasselbe wie `zepp-rund-01.png` —
+    gemessene mittlere Pixel-Abweichung **0,02**, waehrend das naechstaehnlichste Paar der Reihe bei
+    4,71 liegt. Geloescht, jetzt **7 zu 7**. Nicht umnummeriert: die Zuordnung laeuft ueber die
+    Nummer (nachgeprueft, rund-01…04 und rund-07 treffen ihr eckiges Gegenstueck), eine Luecke bei
+    06 ist harmlos, Umnummerieren wuerde die Paarung verschieben.
 
   Urspruengliche Ablehnung: **🔴 Zepp 1.0.7 ABGELEHNT — 01.09.2026 (Mail von der Zepp Open Platform).**
   Wortlaut des Grundes, vollstaendig: „Please modify the circular preview image and the square
