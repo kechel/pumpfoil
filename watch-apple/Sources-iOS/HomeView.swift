@@ -108,6 +108,7 @@ struct HomeView: View {
             greetingRow
             if incomingXfer > 0 { transferHint }
             if let n = session.profile?.needs_classification, n > 0 { needsClassHint(n) }
+            if let n = session.profile?.sorted_out_new, n > 0 { aussortiertHinweis(n) }
             latestSection
             if let st = stats { recordsSection(st) }
             if let ss = startSuccess { startSuccessSection(ss) }
@@ -189,6 +190,26 @@ struct HomeView: View {
         } label: {
             HStack(spacing: 10) {
                 Image(systemName: "questionmark.circle").foregroundStyle(.orange)
+                Text(text).font(.subheadline)
+                Spacer()
+                Image(systemName: "chevron.right").font(.caption).foregroundStyle(.secondary)
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity)
+            .background(RoundedRectangle(cornerRadius: 12).fill(Color.orange.opacity(0.12)))
+        }
+        .buttonStyle(.plain)
+    }
+
+    // Aussortierte Aufnahmen: nur ein EINZEILER, und nur solange etwas Frisches dabei ist
+    // (letzte 7 Tage, Server: sorted_out_new) -> verfaellt von selbst, nichts wegzuklicken. Die
+    // Erklaerung steht absichtlich erst in der Aussortiert-Ansicht.
+    @ViewBuilder private func aussortiertHinweis(_ n: Int) -> some View {
+        let text = n == 1
+            ? Loc.t("home.sortedOut", lang)
+            : Loc.t("home.sortedOutN", lang).replacingOccurrences(of: "{n}", with: "\(n)")
+        NavigationLink { SessionsView(startFilter: "other") } label: {
+            HStack(spacing: 10) {
                 Text(text).font(.subheadline)
                 Spacer()
                 Image(systemName: "chevron.right").font(.caption).foregroundStyle(.secondary)

@@ -15,6 +15,11 @@ struct Profile: Codable {
     // Startseite; bei genau einer Session verlinkt die ID direkt dorthin.
     let needs_classification: Int?
     let needs_classification_id: Int?
+    // Aussortierte eigene Aufnahmen (nicht als Pumpfoilen gezaehlt): Gesamtzahl, und wie viele
+    // davon FRISCH sind (letzte 7 Tage). Nur die frischen loesen den Hinweis aus — er verfaellt
+    // damit von selbst, es gibt nichts wegzuklicken.
+    let sorted_out: Int?
+    let sorted_out_new: Int?
 }
 
 // Fortschritt der Reanalyse nach Empfindlichkeits-Wechsel (GET /api/auth/me/reanalysis).

@@ -619,6 +619,26 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **✅ 01.09. — Dritter Durchgang: die drei letzten inhaltlichen Luecken der Apps sind zu.**
+  1. **Startseiten-Hinweis „aussortiert"** (Android + iOS): ein Einzeiler, wenn FRISCH etwas nicht
+     als Pumpfoilen gezaehlt wurde (`sorted_out_new`, letzte 7 Tage) — verfaellt von selbst, es
+     gibt nichts wegzuklicken. Fuehrt direkt in die Aussortiert-Ansicht. Dafuer tragen die
+     Profile-Modelle jetzt `sorted_out`/`sorted_out_new`.
+     **Android-Detail:** die Bottom-Nav-Route `sessions` nimmt keine Argumente, und den Filter
+     dauerhaft nach `MainActivity` zu hoisten waere fuer diesen einen Fall zu viel — daher
+     `SessionsWunsch`, ein benannter Einmal-Wunsch, der beim Abholen geleert wird. iOS bekommt
+     stattdessen `SessionsView(startFilter:)`.
+  2. **Erklaerung IN der Aussortiert-Ansicht** (`sessions.otherWhy/otherAssign/otherDefault`):
+     warum die Aufnahme dort liegt und dass man sie selbst einordnen darf. Genau der Satz, den es
+     in der PWA nur gibt, weil ein Nutzer erst durch Nachfragen erfuhr, wo seine Session steckt.
+  3. **Update-Hinweis je Uhr:** beide Apps zeigten `update_available` gar nicht an — man fuhr
+     monatelang eine alte Uhr-App, ohne es zu erfahren. Bewusst mit `settings.watchUpdate` und
+     NICHT `account.deviceUpdate`: letzterer endet auf „→ herunterladen", und den .prg-Download
+     gibt es nur im Web (die Uhr holt sich das Update ueber ihren eigenen Store).
+  - Nicht uebernommen: die Zahl am Aussortiert-Reiter (`(n)`) — Kosmetik, kein Informationsverlust.
+  - `:app:` + `:wear:compileDebugKotlin` gruen, `swiftc -parse` gruen. Laeuft in **Phone 1.1.25**
+    und **iOS 1.1.28** mit.
+
 - **✅ 01.09. — Zweiter Durchgang: der Nur-GPS-Hinweis fehlte den Apps komplett.** Gefunden ueber
   den vollstaendigen Schluessel-Abgleich (1621 Web-Keys gegen 858 Android / 843 iOS; der Rest ist
   ueberwiegend zu Recht web-only: Admin 202, Layout-Editor 94, Startseite 76, Pump-Tagging,

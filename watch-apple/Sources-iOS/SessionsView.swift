@@ -27,6 +27,9 @@ struct SessionsView: View {
     @State private var accelOnly = false
     @State private var accelTouched = false        // Nutzer hat selbst umgeschaltet -> Automatik aus
     @State private var accelAutoSpot: String?      // Spot, für den schon nachgefragt wurde (1×)
+    // pump | other (nur eigene). `startFilter` erlaubt der Startseite, direkt in die
+    // Aussortiert-Ansicht zu springen (Hinweis "eine Aufnahme wurde nicht gezaehlt").
+    var startFilter: String = "pump"
     @State private var filter = "pump"         // pump | other (nur eigene)
     @State private var month = ""              // "YYYY-MM" | "" (nur eigene)
     @State private var months: [MonthCount] = []
@@ -67,6 +70,7 @@ struct SessionsView: View {
         uploadCardSection
         if scope == .mine { transfersAndSuggestions }
         filterSection
+        aussortiertErklaerung
         spotWeatherSection
         spotNotesSection
         if let error { Text(error).foregroundStyle(.secondary) }
@@ -123,6 +127,8 @@ struct SessionsView: View {
 
     // Erstes Laden als Methode statt als .task-Closure im Body (Ablauflogik im ViewBuilder).
     private func initialLoad() async {
+        // Startfilter von aussen (Startseiten-Hinweis "aussortiert") — nur beim ersten Aufbau.
+        if startFilter != "pump", filter == "pump" { filter = startFilter }
         if homespot.isEmpty {
             homespot = ((try? await Api.settings())?["homespot"] as? String) ?? ""
         }
@@ -160,6 +166,21 @@ struct SessionsView: View {
                 }
             }
             .listRowBackground(Color.accentColor.opacity(0.12))
+        }
+    }
+
+    // Aussortiert-Ansicht: WARUM eine Aufnahme hier liegt und was man tun kann. Stand bisher nur
+    // in der PWA — dort ausdruecklich, weil ein Nutzer erst durch Nachfragen erfuhr, wo seine
+    // Session steckt und dass er sie selbst einordnen darf.
+    @ViewBuilder private var aussortiertErklaerung: some View {
+        if scope == .mine, filter == "other" {
+            Section {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(Loc.t("sessions.otherWhy", lang)).font(.subheadline)
+                    Text(Loc.t("sessions.otherAssign", lang)).font(.subheadline)
+                    Text(Loc.t("sessions.otherDefault", lang)).font(.subheadline)
+                }
+            }
         }
     }
 

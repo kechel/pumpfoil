@@ -114,7 +114,9 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
     val accelOnly = accel.value
     // Spot ohne eine einzige Session mit Beschleunigungsdaten: nur EINMAL je Spot nachfragen.
     var accelAutoSpot by remember { mutableStateOf<String?>(null) }
-    var filter by remember { mutableStateOf("pump") }      // pump | other (nur eigene)
+    // pump | other (nur eigene). Startwert kann von aussen kommen (Startseiten-Hinweis
+    // "aussortiert" -> Tabwechsel, s. SessionsWunsch).
+    var filter by remember { mutableStateOf(SessionsWunsch.abholen() ?: "pump") }
     var month by remember { mutableStateOf("") }           // "YYYY-MM" | "" (nur eigene)
     var months by remember { mutableStateOf<List<MonthCount>>(emptyList()) }
     var weather by remember { mutableStateOf<WeatherBlock?>(null) }
@@ -291,6 +293,20 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                                 },
                             )
                         }
+                    }
+                }
+            }
+            // Aussortiert-Ansicht: WARUM eine Aufnahme hier liegt und was man tun kann. Stand
+            // bisher nur in der PWA — dort ausdruecklich, weil ein Nutzer erst durch Nachfragen
+            // erfuhr, wo seine Session steckt und dass er sie selbst einordnen darf.
+            if (scope == Scope.MINE && filter == "other") {
+                Card(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)) {
+                    Column(Modifier.padding(12.dp)) {
+                        Text(I18n.t("sessions.otherWhy"), style = MaterialTheme.typography.bodyMedium)
+                        Spacer(Modifier.height(6.dp))
+                        Text(I18n.t("sessions.otherAssign"), style = MaterialTheme.typography.bodyMedium)
+                        Spacer(Modifier.height(6.dp))
+                        Text(I18n.t("sessions.otherDefault"), style = MaterialTheme.typography.bodyMedium)
                     }
                 }
             }
@@ -891,4 +907,14 @@ fun IncomingTransferCard(tr: Transfer, modifier: Modifier = Modifier, onView: ()
             }
         }
     }
+}
+
+// Einmal-Wunsch beim Tabwechsel: die Startseite kann die Liste direkt im Aussortiert-Filter
+// oeffnen. Die Bottom-Nav-Route "sessions" nimmt keine Argumente, und den Filter dauerhaft in
+// MainActivity zu hoisten waere fuer diesen einen Fall zu viel. Wird beim Abholen geleert, damit
+// der naechste Tabwechsel wieder normal auf "pump" startet.
+object SessionsWunsch {
+    private var filter: String? = null
+    fun setzeFilter(f: String) { filter = f }
+    fun abholen(): String? { val f = filter; filter = null; return f }
 }
