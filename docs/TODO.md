@@ -619,6 +619,21 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟡 02.09. — Garmin 1.0.85 GEBAUT (Jan releast heute).** Inhalt: die neue Profil-Einstellung
+  **„halten oder druecken"** (s. Eintrag darueber) — auf der Uhr loest im press-Modus schon ein
+  kurzer Druck aus, das Halten funktioniert unveraendert weiter.
+  - Store-`.iq`: `/home/jan/release-staging/garmin-1.0.85/pumpfoil-1.0.85.iq`, **13,3 MB**,
+    **218 von 218 Varianten, BUILD SUCCESSFUL, 0 Fehler** (19.421 Warnungen — dieselben
+    Container-Typ-Hinweise wie in jedem Build, Log daneben).
+  - Test-`.prg` fuer Jans fenix 7X Pro: `Pumpfoil-fenix7xpro.prg` (97.660 B), mit `-r` gebaut,
+    Dateiname wie vereinbart.
+  - `Config.VERSION` 1.0.84 → **1.0.85**; Manifest unveraendert (129 Produkte).
+  - **`watch/bin` NICHT angefasst, `appmeta.garmin` bleibt auf 1.0.83.**
+  - **Freigabe-Kette fuer DIESE Version (anders als 1.0.84 — hier lohnt sich das Update fuer
+    vorhandene Uhren):** 1. `.iq` einreichen 2. Freigabe abwarten 3. `build-all.sh` 4. `appmeta.
+    garmin` auf **1.0.85** (Update-Hinweis auf den Uhren) 5. Changelog-Eintrag.
+    Vorher NICHTS davon — sonst bewirbt die Website eine Version, die im Store fehlt (10.08.).
+
 - **✅ 02.09. — Profil-Einstellung „halten oder druecken" fuer die Uhr-Aktionen, auf ALLEN vier
   Uhr-Plattformen.** Anlass: u404 meldete am 01.09., dass auf seiner Garmin der lange Druck auf
   START mit „Mann ueber Bord" belegt ist — unser Menue war damit unerreichbar; er half sich, indem
