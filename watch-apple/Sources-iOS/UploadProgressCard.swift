@@ -6,7 +6,6 @@ import SwiftUI
 // Pollt schnell (4 s) solange etwas läuft, sonst träge (20 s). Rendert nichts, wenn leer.
 // Parität zur PWA/Android. NICHT in Community einbauen.
 struct UploadProgressCard: View {
-    @AppStorage("appLang") private var lang = "de"
     @State private var rows: [InProgressSession] = []
 
     var body: some View {
@@ -14,7 +13,7 @@ struct UploadProgressCard: View {
             if !rows.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
                     ForEach(rows) { s in
-                        NavigationLink { SessionDetailView(id: s.id) } label: { rowView(s) }
+                        NavigationLink { SessionDetailView(id: s.id) } label: { UploadCardRow(s: s) }
                             .buttonStyle(.plain)
                     }
                 }
@@ -30,6 +29,15 @@ struct UploadProgressCard: View {
             try? await Task.sleep(nanoseconds: secs * 1_000_000_000)
         }
     }
+}
+
+// Eine Upload-Zeile — von der Liste (Home/Sessions) und von der Detailseite derselben Session
+// benutzt, damit beide waehrend eines Uploads genau dasselbe zeigen (Jan, 01.09.).
+struct UploadCardRow: View {
+    let s: InProgressSession
+    @AppStorage("appLang") private var lang = "de"
+
+    var body: some View { rowView(s) }
 
     private func stalled(_ s: InProgressSession) -> Bool {
         guard let str = s.last_received_at else { return false }
@@ -82,5 +90,28 @@ struct UploadProgressCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.cyan.opacity(0.10))
         .clipShape(RoundedRectangle(cornerRadius: 14))
+    }
+}
+
+// Dieselbe Karte auf der Detailseite EINER Session — ohne Tap-Ziel (sie wuerde auf sich selbst
+// fuehren). Verschwindet von selbst, sobald der Upload durch ist: dann steht die Session nicht
+// mehr in /in-progress und nur noch die Analyse laeuft.
+struct SessionUploadCard: View {
+    let id: Int
+    @State private var row: InProgressSession? = nil
+
+    var body: some View {
+        Group {
+            if let row { UploadCardRow(s: row) }
+        }
+        .task { await poll() }
+    }
+
+    private func poll() async {
+        while !Task.isCancelled {
+            if let r = try? await Api.inProgress() { row = r.first { $0.id == id } }
+            let secs: UInt64 = row == nil ? 20 : 4
+            try? await Task.sleep(nanoseconds: secs * 1_000_000_000)
+        }
     }
 }

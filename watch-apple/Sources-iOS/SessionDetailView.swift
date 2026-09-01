@@ -523,6 +523,10 @@ struct SessionDetailView: View {
 
     @ViewBuilder private func content(_ s: SessionDetail) -> some View {
         VStack(alignment: .leading, spacing: 16) {
+            // Eigene Session laedt noch hoch -> dieselbe Karte wie in Home/Sessions (Jan, 01.09.).
+            if s.owned == true, s.status == "recording" || s.status == "live" {
+                SessionUploadCard(id: s.id)
+            }
             neighborNav
             headerRow(s)
             foilPicker(s)      // Foil gehört zu den Metadaten (wie PWA) — direkt unter dem Kopf

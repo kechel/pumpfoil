@@ -524,6 +524,11 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
         Modifier.verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        // Eigene Session laedt noch hoch -> dieselbe Karte wie in Home/Sessions statt einer
+        // eigenen Notiz (Jan, 01.09.). Verschwindet von selbst, sobald der Upload durch ist.
+        if (s.owned && (s.status == "recording" || s.status == "live")) {
+            SessionUploadCard(s.id)
+        }
         // Vor/Zurück zu Nachbar-Sessions (wie Web): deaktiviert, wenn es keine gibt.
         neighbors?.let { nb ->
             if (nb.older != null || nb.newer != null) {
