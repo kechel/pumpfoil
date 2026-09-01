@@ -64,6 +64,8 @@ struct DataFieldsView: View {
     // Aufnahme, sobald GPS Bewegung sieht. Feldnamen genau wie die PWA sie sendet.
     @State private var colorByValue = false
     @State private var autoStartWatch = true
+    // Halten oder Tippen fuer die Uhr-Aktionen (Beenden/Verwerfen) — gilt fuer ALLE eigenen Uhren.
+    @State private var stopMode = "hold"
     @State private var layouts: [WatchLayoutBrief] = []
     @State private var saved = false
     // Welche der drei Seitenlisten hat die Vorschau-Auswahl geoeffnet ("on"|"off"|"pause")?
@@ -109,6 +111,14 @@ struct DataFieldsView: View {
                 .onChange(of: colorByValue) { _ in saved = false }
             Toggle(Loc.t("account.autoStart", lang), isOn: $autoStartWatch)
                 .onChange(of: autoStartWatch) { _ in saved = false }
+            // Beenden/Verwerfen auf der Uhr: zwei gleichrangige Wege -> Auswahl statt Schalter.
+            Picker(Loc.t("account.stopMode", lang), selection: $stopMode) {
+                Text(Loc.t("account.stopModeHold", lang)).tag("hold")
+                Text(Loc.t("account.stopModePress", lang)).tag("press")
+            }
+            .onChange(of: stopMode) { _ in saved = false }
+            Text(Loc.t("account.stopModeHint", lang)).font(.callout).foregroundStyle(.secondary)
+
             Toggle(Loc.t("account.browseAll", lang), isOn: $browseAll)
                 .onChange(of: browseAll) { _ in saved = false }
             Text(Loc.t("account.browseAllHint", lang)).font(.callout).foregroundStyle(.secondary)
@@ -280,6 +290,7 @@ struct DataFieldsView: View {
         layoutsEnabled = (s["layouts_enabled"] as? Bool) ?? true
         colorByValue = (s["colorByValue"] as? Bool) ?? false
         autoStartWatch = (s["auto_start"] as? Bool) ?? true
+        stopMode = ((s["stop_mode"] as? String) == "press") ? "press" : "hold"
         // Skalen der Wert-Grafiken (Puls-Zonen + Geschwindigkeitsspanne) aus dem Profil — ohne sie
         // zeichnete die Vorschau geratene Zonenfarben.
         let zonen = (s["hr_zones"] as? [Any])?.compactMap { ($0 as? NSNumber)?.intValue }
@@ -298,6 +309,7 @@ struct DataFieldsView: View {
                 "layouts_enabled": layoutsEnabled,
                 "colorByValue": colorByValue,
                 "auto_start": autoStartWatch,
+                "stop_mode": stopMode,
             ])
             saved = true
         }

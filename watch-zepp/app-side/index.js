@@ -61,7 +61,9 @@ async function handle(req) {
     if (code === 401) return { paired: false, revoked: true };
     if (code < 200 || code >= 300) return { paired: true };
     const b = parse(r);
-    return { paired: true, views: b && b.views, offFoilView: b && b.offFoilView, autoStart: b && b.autoStart, colorByValue: b && b.colorByValue,
+    return { paired: true, views: b && b.views, offFoilView: b && b.offFoilView, autoStart: b && b.autoStart,
+      // Halten oder kurzer Druck fuer STOPP (Profil-Einstellung, gilt fuer alle Uhren).
+      stopMode: b && b.stopMode, colorByValue: b && b.colorByValue,
       foils: b && b.foils, alarmEnabled: b && b.alarmEnabled, alarmDefault: b && b.alarmDefault, speedHigh: b && b.speedHigh, speedLow: b && b.speedLow,
       // Neu durchgelassen: Profil-Sprache (i18n), Update-Hinweis, Pausen-Screen und das
       // Layout-Paket (gemischte Seiten-Saetze + Definitionen + Voreinstellung des Schalters).

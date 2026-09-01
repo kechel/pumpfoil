@@ -720,6 +720,14 @@ const deAT: Record<string, string> = {
   "phome.homespotChatSoon": "Spot-Chat folgt",
 
   "account.autoStart": "Aufnahme automatisch starten, wenn ich losfahre (GPS)",
+
+  "account.stopMode": "Aufnahme auf der Uhr beenden",
+
+  "account.stopModeHold": "Taste 2 Sekunden halten (Standard)",
+
+  "account.stopModePress": "A Druck reicht",
+
+  "account.stopModeHint": "Gilt für olle deine Uhren. Standard is des Hoiten — so beendet a vergessener Druck beim Foilen nix. „A Druck reicht“ is für olle, die des so gwohnt san, oder deren Uhr den langen Druck schon anders belegt hot (auf mancher Garmin liegt do „Mann über Bord“). Des Hoiten geht weiterhin, du kriagst oiso an zweiten Weg dazua. Beim Verwerfen frogt die Uhr dann amoi noch.",
   "account.claimAlready": "Diese Uhr ist bereits verbunden.",
   "account.claimBtn": "Verbinden",
   "account.claimHelp": "Öffne Pumpfoil auf der Uhr und gehe dort auf „Verbinden“ — Garmin: MENU halten (Knopf Mitte-links) → „Einstellungen“ → „Verbinden“; Amazfit: vom Startbildschirm nach links wischen; Wear OS und Apple Watch zeigen die Seite beim ersten Start selbst. Den angezeigten Code (6 Zeichen, Buchstaben & Ziffern) hier eintragen.",

@@ -1,5 +1,6 @@
 package org.pumpfoil.app
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -19,8 +19,6 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material3.Switch
-import kotlinx.serialization.json.booleanOrNull
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -32,7 +30,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -49,8 +49,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.add
+import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
@@ -122,6 +124,9 @@ fun DataFieldsScreen(onBack: () -> Unit, onGallery: () -> Unit = {}) {
     // NICHT verwechseln mit `phone_autostart` in RecordScreen.kt — das ist der Handy-Recorder.
     var colorByValue by remember { mutableStateOf(false) }
     var autoStartWatch by remember { mutableStateOf(true) }
+    // Halten oder Druecken fuer die Uhr-Aktionen (Beenden/Verwerfen) — gilt fuer ALLE eigenen
+    // Uhren, kein Geraete-Override: das ist eine Bediengewohnheit, keine Geraete-Eigenschaft.
+    var stopMode by remember { mutableStateOf("hold") }
     var layouts by remember { mutableStateOf<List<WatchLayoutBrief>>(emptyList()) }
 
     LaunchedEffect(Unit) {
@@ -136,6 +141,7 @@ fun DataFieldsScreen(onBack: () -> Unit, onGallery: () -> Unit = {}) {
             layoutsEnabled = s["layouts_enabled"]?.jsonPrimitive?.booleanOrNull ?: true
             colorByValue = s["colorByValue"]?.jsonPrimitive?.booleanOrNull ?: false
             autoStartWatch = s["auto_start"]?.jsonPrimitive?.booleanOrNull ?: true
+            stopMode = if (s["stop_mode"]?.jsonPrimitive?.contentOrNull == "press") "press" else "hold"
             // Skalen der Wert-Grafiken (Puls-Zonen + Geschwindigkeitsspanne) aus dem Profil —
             // ohne sie zeichnete die Vorschau geratene Zonenfarben.
             LayoutScales.aus(s)
@@ -158,6 +164,7 @@ fun DataFieldsScreen(onBack: () -> Unit, onGallery: () -> Unit = {}) {
                     put("layouts_enabled", layoutsEnabled)
                     put("colorByValue", colorByValue)
                     put("auto_start", autoStartWatch)
+                    put("stop_mode", stopMode)
                 })
                 saved = true
             } catch (_: Exception) {}
@@ -219,6 +226,20 @@ fun DataFieldsScreen(onBack: () -> Unit, onGallery: () -> Unit = {}) {
             SwitchRow(I18n.t("account.autoStart"), "", autoStartWatch) {
                 autoStartWatch = it; saved = false
             }
+            // Beenden/Verwerfen auf der Uhr: zwei gleichrangige Wege -> Auswahl statt Schalter.
+            Spacer(Modifier.height(8.dp))
+            Text(I18n.t("account.stopMode"), style = MaterialTheme.typography.titleSmall)
+            listOf("hold" to "account.stopModeHold", "press" to "account.stopModePress").forEach { (wert, key) ->
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth().clickable { stopMode = wert; saved = false }) {
+                    RadioButton(selected = stopMode == wert, onClick = { stopMode = wert; saved = false })
+                    Text(I18n.t(key), style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+            Text(I18n.t("account.stopModeHint"), style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 12.dp, bottom = 8.dp))
+
             SwitchRow(I18n.t("account.browseAll"), I18n.t("account.browseAllHint"), browseAll) {
                 browseAll = it; saved = false
             }

@@ -99,6 +99,10 @@ class SessionRecorder {
     var screens = [[Config.FIELD_SPEED3S, Config.FIELD_HR, Config.FIELD_NONE]];
     var colorByValue = false;   // Speed/Puls je nach Wert einfärben
     var autoStart = true;       // Aufnahme automatisch starten, wenn man losfährt (GPS)
+    // "hold" (Default) = 2 s halten, "press" = ein kurzer Druck genuegt. Kommt aus dem PROFIL
+    // (gilt fuer alle Uhren des Nutzers), nicht je Geraet. Anlass: auf manchen Garmin-Uhren ist
+    // der lange Druck auf START mit „Mann ueber Bord" belegt — dort war unser Menue unerreichbar.
+    var stopMode = "hold";
     // Aufzeichnungsmodus: "full" = Accel 25 Hz | "lite" = Accel 10 Hz (sparsam) |
     // "gps" = nur GPS (kein Roh-Accel) — für speicherarme Uhren (z. B. Forerunner 55).
     var recordMode = "full";
@@ -302,6 +306,11 @@ class SessionRecorder {
     const DISCARD_HOLD_MS = 6000;
     var stopHoldStartMs as Lang.Number or Null = null;
 
+    // Genuegt ein kurzer Druck fuer die Halte-Aktionen? (Profil-Einstellung, s. stopMode)
+    function pressStatt2s() as Lang.Boolean {
+        return stopMode.equals("press");
+    }
+
     // Fortschritt 0..1 des Stop-Haltens Phase 1 (Ring 1, 0..3 s). >=1.0 = „Speichern scharf".
     function stopHoldProgress() as Lang.Float {
         if (stopHoldStartMs == null) { return 0.0; }
@@ -400,6 +409,8 @@ class SessionRecorder {
         autoStart = (asv == null) ? true : asv;
         var rm = Storage.getValue("record_mode");
         recordMode = (rm != null) ? rm : "full";
+        var sm = Storage.getValue("stop_mode");
+        stopMode = (sm instanceof Lang.String) ? sm : "hold";
         var gm = Storage.getValue("gnss_mode");
         gnssMode = (gm instanceof Lang.String) ? gm : "best";
         var at = Storage.getValue("activity_type");
@@ -889,6 +900,12 @@ class SessionRecorder {
             if (data.hasKey("recordMode") && data["recordMode"] != null) {
                 recordMode = data["recordMode"];
                 _store("record_mode", recordMode);
+            }
+            // Halten oder Druecken — sofort wirksam (anders als autoStart KEIN _presetsApplied-
+            // Vorbehalt: es gibt keine On-Watch-Einstellung dafuer, die man ueberschreiben koennte).
+            if (data.hasKey("stopMode") && data["stopMode"] instanceof Lang.String) {
+                stopMode = data["stopMode"];
+                _store("stop_mode", stopMode);
             }
             if (data.hasKey("activityType") && data["activityType"] != null) {
                 activityType = data["activityType"];

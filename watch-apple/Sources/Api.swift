@@ -83,6 +83,9 @@ enum Api {
         let language: String?   // Profil-Sprache (de/gsw/de-AT/en/fr/it/es) für On-Device-Texte
         let recordMode: String? // Aufzeichnungsmodus: full | lite | gps (für speicherarme Uhren)
         let autoStart: Bool?    // GPS-Auto-Start (optional/abwärtskompatibel zum Cache)
+        // Profil-Einstellung: "hold" (Default) = 2 s halten, "press" = ein Tipp genuegt.
+        // Gilt fuer alle Uhren des Nutzers; nil = alte Antwort/Cache -> halten wie bisher.
+        let stopMode: String?
         // Eigene Layouts (F2/F3). `pages`/`offFoilPages`/`pausePages` sind GEMISCHT: ein Eintrag ist
         // entweder eine 3-Feld-Seite ([Int]) oder eine Layout-ID (Int) -- deshalb LayoutPrimOrList
         // statt [[Int]]. `layouts` bildet Layout-ID -> Definition ab. `layoutsOn` ist nur die
