@@ -164,7 +164,7 @@ fun MainScaffold(onLogout: () -> Unit) {
             composable("sessions") { SessionsScreen(onOpen = { id, v -> nav.navigate("session/$id" + (v?.let { "?v=$it" } ?: "")) }, onCompare = { nav.navigate("compare") }, onSpotChat = { s -> nav.navigate("chatroom/${Uri.encode("spot:" + s)}?label=${Uri.encode(s)}") }) }
             composable("community") { CommunityScreen(onOpen = { id -> nav.navigate("session/$id") }, onFoilStats = { nav.navigate("foilstats") }, onWatchStats = { nav.navigate("watchstats") }) }
             composable("verlauf") { VerlaufScreen(onOpen = { id -> nav.navigate("session/$id") }) }
-            composable("spots") { SpotsScreen(onOpenSpot = { nav.navigate("spot/${Uri.encode(it)}") }) }
+            composable("spots") { SpotsScreen(onOpenSpot = { nav.navigate("spot/${Uri.encode(it)}") }, onOpenSession = { id -> nav.navigate("session/$id") }) }
             composable(
                 "spot/{name}",
                 arguments = listOf(navArgument("name") { type = NavType.StringType }),

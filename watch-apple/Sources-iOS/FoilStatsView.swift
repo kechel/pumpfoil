@@ -86,8 +86,8 @@ struct FoilStatsView: View {
 
     private var introSection: some View {
         Section {
-            Text(Loc.t("foilstats.intro", lang))
-                .font(.caption).foregroundStyle(.secondary)
+            Text(Loc.t("foilStats.hint", lang))
+                .font(.subheadline).foregroundStyle(.secondary)
             StatSortBar(options: sortOptions, sortKey: $sortKey, sortAsc: $sortAsc)
         }
     }

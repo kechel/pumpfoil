@@ -46,8 +46,8 @@ struct WatchStatsView: View {
 
     private var introSection: some View {
         Section {
-            Text(Loc.t("watchStats.intro", lang))
-                .font(.caption).foregroundStyle(.secondary)
+            Text(Loc.t("watchStats.hint", lang))
+                .font(.subheadline).foregroundStyle(.secondary)
             StatSortBar(options: sortOptions, sortKey: $sortKey, sortAsc: $sortAsc)
         }
     }

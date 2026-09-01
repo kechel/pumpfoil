@@ -65,11 +65,15 @@ struct SpotsView: View {
         NavigationStack(path: $navPath) {
             List {
                 mapSection
+                // Spot-Vergleich direkt unter der Karte — dieselbe Stelle wie in der PWA.
+                SpotCompareView()
                 listSection
             }
             .listStyle(.insetGrouped)
             // Wert-basiertes Ziel statt eines Links IN der Kartenzeile (s. `annotation`).
             .navigationDestination(for: SpotDest.self) { d in SpotSessionsView(spot: d.spot) }
+            // Rekord-Karten des Vergleichs fuehren zu genau der Session, die den Wert haelt.
+            .navigationDestination(for: SpotCmpSessionDest.self) { d in SessionDetailView(id: d.id) }
             .navigationTitle(Loc.t("nav.spots", lang))
             .brandToolbar(Loc.t("nav.spots", lang))
             .overlay { if loading && items.isEmpty { ProgressView() } }

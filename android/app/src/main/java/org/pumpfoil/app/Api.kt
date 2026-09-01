@@ -608,6 +608,15 @@ object Api {
         json.decodeFromString(ListSerializer(SpotMapItem.serializer()), http("GET", "/api/community/spot-map?accel_only=$accelOnly", null, auth = true))
     }
 
+    // Spot-Vergleich (wie SpotCompare.tsx): accelOnly=false, damit GPS-only-Spots mitzaehlen —
+    // dieselbe Wahl wie bei der Spot-Karte, sonst verschwinden ganze Regionen aus dem Vergleich.
+    suspend fun spotCompare(period: String = "10d", accelOnly: Boolean = false): List<SpotAgg> = withContext(Dispatchers.IO) {
+        val o = json.parseToJsonElement(
+            http("GET", "/api/community/spot-compare?period=$period&accel_only=$accelOnly", null, auth = true)
+        ).jsonObject["spots"] ?: return@withContext emptyList()
+        json.decodeFromJsonElement(ListSerializer(SpotAgg.serializer()), o)
+    }
+
     suspend fun chatRooms(): List<ChatRoom> = withContext(Dispatchers.IO) {
         json.decodeFromString(ListSerializer(ChatRoom.serializer()), http("GET", "/api/chat/rooms", null, auth = true))
     }

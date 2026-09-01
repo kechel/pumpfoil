@@ -691,6 +691,15 @@ enum Api {
         try await request("/api/community/spot-map?accel_only=\(accelOnly)", method: "GET", body: nil, auth: true)
     }
 
+    // Spot-Vergleich (wie SpotCompare.tsx): accelOnly=false wie bei der Spot-Karte, sonst fallen
+    // GPS-only-Spots aus dem Vergleich heraus.
+    private struct SpotCompareAntwort: Codable { let spots: [SpotAgg] }
+    static func spotCompare(period: String = "10d", accelOnly: Bool = false) async throws -> [SpotAgg] {
+        let r: SpotCompareAntwort = try await request(
+            "/api/community/spot-compare?period=\(period)&accel_only=\(accelOnly)", method: "GET", body: nil, auth: true)
+        return r.spots
+    }
+
     static func chatRooms() async throws -> [ChatRoom] {
         try await request("/api/chat/rooms", method: "GET", body: nil, auth: true)
     }

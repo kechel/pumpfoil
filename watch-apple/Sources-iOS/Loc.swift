@@ -213,6 +213,13 @@ enum Loc {
     ]
 
     private static let _csOverlayP1: [String: String] = [
+        "foilStats.hint": "Které hodnoty se jezdí s kterým foilem (komunita). Počítají se jen pumpfoil session s accel detekcí — ostatní sporty (wing, eFoil, foildrive, wakethief), pouze GPS záznamy a data označená jako chybná se nezapočítávají.",
+        "watchStats.hint": "Které hodnoty se jezdí s kterými hodinkami — komunitní souhrn podle modelu. Tady se počítá každý záznam: všechny sporty, s accel daty i bez nich.",
+        "spotcmp.title": "Rekordy spotů",
+        "spotcmp.pick": "Porovnat spot …",
+        "spotcmp.foilers": "Nejvíce foilerů",
+        "spotcmp.distance": "Nejvíce nafoilováno",
+        "spots.none": "Zatím žádné spoty na mapě.",
         "cr.foilAll": "Všechny foily",
         "cr.foilMine": "Jako můj foil",
         "cr.foilUnder": "pod {n} cm²",
@@ -1017,6 +1024,13 @@ enum Loc {
     ]
 
     private static let _nlOverlayP1: [String: String] = [
+        "foilStats.hint": "Welke waarden worden met welke foil gereden (community). Alleen pumpfoil-sessies met accel-detectie tellen mee — andere sporten (wing, eFoil, foildrive, wakethief), alleen-GPS-opnames en als foutief gemarkeerde data blijven buiten beschouwing.",
+        "watchStats.hint": "Welke waarden met welk horloge worden gevaren — community-aggregaat per model. Hier telt elke opname mee: alle sporten, met en zonder accel-data.",
+        "spotcmp.title": "Spot-records",
+        "spotcmp.pick": "Vergelijk een spot …",
+        "spotcmp.foilers": "Meeste foilers",
+        "spotcmp.distance": "Meeste gefoilde afstand",
+        "spots.none": "Nog geen spots op de kaart.",
         "cr.foilAll": "Alle foils",
         "cr.foilMine": "Zoals mijn foil",
         "cr.foilUnder": "onder {n} cm²",
@@ -1880,6 +1894,13 @@ enum Loc {
     ]
 
     private static let _fiOverlayP1: [String: String] = [
+        "foilStats.hint": "Mitä arvoja millläkin foililla ajetaan (yhteisö). Mukaan lasketaan vain pumpfoil-sessiot accel-tunnistuksella — muut lajit (wing, eFoil, foildrive, wakethief), pelkät GPS-tallenteet ja virheellisiksi merkityt tiedot jäävät pois.",
+        "watchStats.hint": "Mitkä arvot millä kellolla — yhteisön koonti mallia kohti. Tässä lasketaan kaikki: kaikki lajit, accel-datan kanssa tai ilman.",
+        "spotcmp.title": "Spotti-ennätykset",
+        "spotcmp.pick": "Vertaa spottia …",
+        "spotcmp.foilers": "Eniten foilaajia",
+        "spotcmp.distance": "Eniten foilattua matkaa",
+        "spots.none": "Ei vielä spotteja kartalla.",
         "cr.foilAll": "Kaikki siivet",
         "cr.foilMine": "Kuten oma siipi",
         "cr.foilUnder": "alle {n} cm²",
@@ -2462,6 +2483,13 @@ enum Loc {
     }()
 
     private static let __t1P1: [String: [String: String]] = [
+        "foilStats.hint": r("Welche Werte werden mit welchem Foil gefahren (Community). Gezählt werden nur Pumpfoil-Sessions mit Accel-Erkennung — andere Sportarten (Wing, eFoil, Foildrive, Wakethief), GPS-only-Aufnahmen und als fehlerhaft markierte Daten sind nicht dabei.", "Weli Wärt mit welem Foil gfahre wärde (Community). Zellt wärded nume Pumpfoil-Sessions mit Accel-Erkennig — anderi Sportarte (Wing, eFoil, Foildrive, Wakethief), GPS-only-Ufnahme und als fählerhaft markierti Date sind nöd debi.", "Wöche Werte werdn mit wöchem Foil gfahrn (Community). Gezählt werdn nur Pumpfoil-Sessions mit Accel-Erkennung — andere Sportarten (Wing, eFoil, Foildrive, Wakethief), GPS-only-Aufnahmen und ois fehlerhaft markierte Daten san net dabei.", "Which numbers people achieve on which foil (community). Only pumpfoil sessions with accel detection are counted — other sports (wing, eFoil, foildrive, wakethief), GPS-only recordings and data marked as faulty are left out.", "Quelles valeurs sont atteintes avec quel foil (communauté). Seules les sessions de pumpfoil avec détection accéléromètre sont comptées — les autres sports (wing, eFoil, foildrive, wakethief), les enregistrements GPS seuls et les données marquées comme erronées sont exclus.", "Quali valori si ottengono con quale foil (community). Contano solo le sessioni di pumpfoil con rilevamento accelerometrico — altri sport (wing, eFoil, foildrive, wakethief), registrazioni solo GPS e dati segnati come errati restano fuori.", "Qué valores se logran con qué foil (comunidad). Solo cuentan las sesiones de pumpfoil con detección por acelerómetro — otros deportes (wing, eFoil, foildrive, wakethief), grabaciones solo GPS y datos marcados como erróneos quedan fuera."),
+        "watchStats.hint": r("Welche Werte werden mit welcher Uhr gefahren — Community-Aggregat je Modell. Hier zählt jede Aufnahme: alle Sportarten, mit und ohne Accel-Daten.", "Weli Wärt wärded mit weler Uhr gfahre — Community-Aggregat je Modäll. Do zellt jedi Ufnahm: alli Sportarte, mit und ohni Accel-Date.", "Welche Werte werden mit welcher Uhr gefahren — Community-Aggregat je Modell. Do zöhlt jede Aufnahme: olle Sportartn, mit und ohne Accel-Datn.", "Which numbers are ridden with which watch — community aggregate per model. Everything counts here: every sport, with or without accel data.", "Quels chiffres avec quelle montre — agrégat communautaire par modèle. Ici tout compte : tous les sports, avec ou sans données accéléromètre.", "Quali valori con quale orologio — aggregato community per modello. Qui conta ogni registrazione: tutti gli sport, con o senza dati accelerometrici.", "Qué valores con qué reloj — agregado de la comunidad por modelo. Aquí cuenta cada grabación: todos los deportes, con o sin datos de acelerómetro."),
+        "spotcmp.title": r("Spot-Rekorde", "Spot-Rekord", "Spot-Rekorde", "Spot records", "Records des spots", "Record degli spot", "Récords de spots"),
+        "spotcmp.pick": r("Spot zum Vergleichen …", "Spot zum Verglyche …", "Spot zum Vergleichen …", "Compare a spot …", "Comparer un spot …", "Confronta uno spot …", "Comparar un spot …"),
+        "spotcmp.foilers": r("Meiste Foiler", "Meischti Foiler", "Meiste Foiler", "Most foilers", "Plus de foilers", "Più foiler", "Más foilers"),
+        "spotcmp.distance": r("Meiste Foil-Distanz", "Meischti Foil-Distanz", "Meiste Foil-Distanz", "Most foiled distance", "Plus de distance foilée", "Più distanza in foil", "Más distancia en foil"),
+        "spots.none": r("Noch keine Spots auf der Karte.", "No kei Spots uf de Charte.", "No kane Spots auf da Kartn.", "No spots on the map yet.", "Aucun spot sur la carte pour l'instant.", "Ancora nessuno spot sulla mappa.", "Aún no hay spots en el mapa."),
         "cr.foilAll": r("Alle Foils", "Alli Foils", "Olle Foils", "All foils", "Tous les foils", "Tutti i foil", "Todos los foils"),
         "cr.foilMine": r("Wie mein Foil", "Wie mis Foil", "Wia mei Foil", "Like my foil", "Comme mon foil", "Come il mio foil", "Como mi foil"),
         "cr.foilUnder": r("unter {n} cm²", "under {n} cm²", "unter {n} cm²", "under {n} cm²", "moins de {n} cm²", "sotto {n} cm²", "menos de {n} cm²"),

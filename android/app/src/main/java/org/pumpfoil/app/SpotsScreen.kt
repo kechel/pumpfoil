@@ -45,7 +45,7 @@ import org.osmdroid.views.overlay.Marker
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SpotsScreen(onOpenSpot: (String) -> Unit = {}) {
+fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit = {}) {
     var items by remember { mutableStateOf<List<SpotMapItem>>(emptyList()) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -69,6 +69,8 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}) {
                     error?.let { e -> item { Text(e, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error) } }
                     if (items.isNotEmpty()) {
                         item { SpotsMap(items, onOpenSpot, Modifier.fillMaxWidth().height(260.dp)) }
+                        // Spot-Vergleich direkt unter der Karte — dieselbe Stelle wie in der PWA.
+                        item { SpotCompareSection(onOpenSession = onOpenSession, onOpenSpot = onOpenSpot) }
                     }
                     if (items.isEmpty() && !loading && error == null) {
                         item { Text(I18n.t("spots.empty"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
