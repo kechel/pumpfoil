@@ -9,7 +9,7 @@ module Config {
     // wir Versionen, die im Store nie auftauchen. Inhalt: Wert-Grafiken in Layouts, Puls-Zonen
     // aus dem Profil, expected_chunks im Upload, gesaeuberter Max-Speed + Lauf-Zusammenfuehrung,
     // „Gespeichert" nicht mehr doppelt und mit 10-s-Ablauf.
-    const VERSION = "1.0.83";
+    const VERSION = "1.0.84";
 
     // Marken-Cyan (docs/BRAND.md, = Web brand-400 #22d3ee). Primaerer/interaktiver Akzent:
     // Pairing-Code, aktive Upload-Status-Titel, Fortschrittsbalken. Funktionale Skalen
