@@ -39,10 +39,29 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
     **Health-Apps-Deklaration in der Play Console** und fuer Routen eine **eigene Freigabe** — ein
     Pruefverfahren wie bei Garmin. Und ob die Fitbit-App Routen ueberhaupt dort hineinschreibt,
     ist unbelegt; ohne das bringt der ganze Weg nichts.
-  - **Empfehlung: nicht bauen.** Wenn wir diese Nutzer bedienen wollen, ist der **Datei-Import
-    (FIT/GPX/TCX)** der richtige Weg — steht ohnehin schon auf der Liste (Garmin-FIT-Import),
-    braucht KEINE Plattform-Freigabe und deckt in einem Zug Fitbit, COROS, Suunto, Polar und alles
-    ab, was eine Datei exportieren kann. Ein Importeur statt fuenf Schnittstellen.
+  - **JANS EINWAND (01.09.), und er hat recht: „nur gps ist prima, 100 mal besser als nichts".**
+    Belegt an unseren eigenen Zahlen: der **FR55 laeuft in 48 von 51 Sessions als `gps_only`** —
+    normale Session-Laengen, 14 % Abbrueche, also wie der Rest der Flotte. `gps_only` ist eine
+    tragfaehige Klasse, kein Trostpreis. Meine Einordnung als „zweitklassig" war zu abschaetzig.
+    **Das aendert die Bewertung der drei Wege — aber NICHT die der Google Health API:** die hat
+    gar keine Positionen, das ist nicht „nur GPS", das ist nichts.
+  - **Die drei Wege, sortiert nach Aufwand und Reichweite:**
+    1. **Datei-Import (GPX/FIT/TCX)** — **keine** Plattform-Freigabe, kein Torwaechter, deckt in
+       einem Zug jedes Geraet ab, das eine Datei exportiert (Fitbit, COROS, Suunto, Polar, Garmin).
+       Steht ohnehin schon auf der Liste. **Bester erster Schritt.**
+    2. **HealthKit auf iOS** (`HKWorkoutRoute`): dieselbe Idee, aber ohne Dateihantieren — wir
+       lesen die fertige Aufnahme aus der Health-Datenbank des Telefons. **⚠️ NICHT belegt:** die
+       Apple-Doku-Seite kam beim Abruf leer zurueck, die Lesbarkeit fuer Fremd-Apps ist also nur
+       plausibel, nicht geprueft. **Vor jeder Planung nachlesen.**
+    3. **Health Connect auf Android** (`ExerciseSessionRecord` + `READ_EXERCISE_ROUTE`): belegt,
+       aber teurer — **Health-Apps-Deklaration in der Play Console plus eigene Freigabe fuer
+       Routen**, und ob die Fitbit-App Routen dort hineinschreibt, konnte ich nicht belegen.
+    Bei 2 und 3 gilt: **kein Roh-Accel**, alles landet als `gps_only`.
+  - **Ironie, die man kennen sollte:** die Nutzerin, die gefragt hat, sitzt auf **iOS**
+    (Feedback kam aus der iOS-App). Weg 3 hilft ihr also gar nicht — nur 1 oder 2.
+  - **Der eigentliche Gewinn liegt nicht bei Fitbit:** Health Connect und HealthKit sind Sammel-
+    stellen. Wer dort Routen schreibt (Samsung Health, Strava, Komoot, Polar Flow, Suunto, COROS),
+    wird in einem Zug zur Quelle. Das ist das bessere Argument als eine einzelne Fitbit-Anfrage.
   - **Nachtrag an die Nutzerin geschickt:** in der ersten Antwort hatte ich den Import ueber die
     neue API noch als „denkbar" bezeichnet — das war zu optimistisch, und sie sucht gerade einen
     Tracker. Richtiggestellt, damit sie ihre Kaufentscheidung nicht darauf baut.
