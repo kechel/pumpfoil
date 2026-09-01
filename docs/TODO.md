@@ -2190,9 +2190,20 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   brauchen also einen weiteren Bump darueber.
 
 
-- **🟡 01.09. — Garmin 1.0.84 EINGEREICHT (Jans Meldung aus der Konsole: „Version 1.0.84
-  (Intern: 38)", Aktuelle Version 1. September 2026, 70 KB). Store liefert noch 1.0.83
-  (selbst gegengeprueft ueber apps.garmin.com).**
+- **✅ 01.09. — Garmin 1.0.84 IST LIVE, Kette abgearbeitet.** Jans Meldung: „ist im store schon
+  verfuegbar, gerade meine eigene fenix geupdated, geht" (Konsole: 1.0.84, intern 38, 70 KB).
+  - `build-all.sh` gelaufen: **129 ok, 0 fehlgeschlagen**, `catalog.json` 129 Eintraege alle auf
+    **1.0.84**, `partmap.json` **218** Part-Numbers. Live gegengeprueft ueber `/api/app/devices`.
+  - **`appmeta.garmin` bewusst auf 1.0.83 gelassen** (Jans Vorgabe): kein Update-Hinweis an
+    vorhandene Uhren, weil 1.0.84 fuer sie nichts aendert. Live gegengeprueft:
+    `/api/app/latest?platform=garmin` gibt weiter 1.0.83.
+  - **Changelog-Eintrag geschrieben** (Jan: „im changelog kannst du noch alles neue eintragen") —
+    inklusive der fēnix-9-Unterstuetzung, aber mit dem ausdruecklichen Satz, dass vorhandene
+    Garmin-Nutzer nichts davon haben und nicht aktualisieren muessen.
+  - **⚠️ MERKE: `apps.garmin.com` hing NACH.** Die JSON-Abfrage lieferte noch 1.0.83, waehrend Jans
+    eigene Uhr 1.0.84 schon zog. **Dasselbe Muster wie bei Apple heute Morgen** (dort log die
+    `itunes.apple.com/lookup`-API 50 Minuten). Bei beiden Stores gilt: **die API ist gecacht, das
+    echte Geraet bzw. die Produktseite ist die Wahrheit.**
   - **✅ Die ACHT NEUEN Geraete stehen schon auf der Website zum Download** (Jans Vorgabe: „die
     neuen prgs fuer die neuen modelle kannst du aber gern schon bauen und mit aufnehmen auf unsere
     seite"). Live gegengeprueft: `/api/app/devices` liefert **129** Geraete, und
