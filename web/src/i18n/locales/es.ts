@@ -166,6 +166,11 @@ const es: Record<string, string> = {
   "period.30d": "30 días",
   "period.365d": "1 año",
   "period.all": "Histórico",
+  "cr.foilAll": "Todos los foils",
+  "cr.foilMine": "Como mi foil",
+  "cr.foilUnder": "menos de {n} cm²",
+  "cr.foilHighAspect": "High aspect (AR desde {n})",
+  "cr.foilThick": "Alas gruesas (AR bajo {n})",
 
   "spotcmp.title": "Récords de spots",
   "spotcmp.foilers": "Más foilers",

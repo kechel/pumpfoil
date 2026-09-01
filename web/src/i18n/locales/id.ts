@@ -186,6 +186,11 @@ const id: Record<string, string> = {
   "period.30d": "30 hari",
   "period.365d": "1 tahun",
   "period.all": "Sepanjang waktu",
+  "cr.foilAll": "Semua foil",
+  "cr.foilMine": "Seperti foil saya",
+  "cr.foilUnder": "di bawah {n} cm²",
+  "cr.foilHighAspect": "High aspect (AR {n}+)",
+  "cr.foilThick": "Sayap tebal (AR di bawah {n})",
 
   "spotcmp.title": "Rekor spot",
   "spotcmp.foilers": "Foiler terbanyak",

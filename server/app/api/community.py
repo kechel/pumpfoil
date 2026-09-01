@@ -365,15 +365,18 @@ _EMPTY_REC = {"session_id": None, "value": 0.0, "started_at": None, "run_idx": N
               "name": None, "avatar_url": None, "spot": None, "track_preview": None, "tz": None}
 
 
-def _record_entry(db: Session, metric: str, cut: datetime | None, spot: str | None = None, viewer_id: int | None = None, accel_only: bool = True, sport: str = "pumpfoil", cache: dict | None = None) -> dict:
+def _record_entry(db: Session, metric: str, cut: datetime | None, spot: str | None = None, viewer_id: int | None = None, accel_only: bool = True, sport: str = "pumpfoil", cache: dict | None = None, foil_band: str = "all") -> dict:
     if metric in TIME_METRICS:
-        return _time_record(db, metric, cut, spot=spot, viewer_id=viewer_id, accel_only=accel_only, sport=sport, cache=cache)
+        return _time_record(db, metric, cut, spot=spot, viewer_id=viewer_id, accel_only=accel_only, sport=sport,
+                            cache=cache, foil_band=foil_band)
     if metric == "carves180":
-        return _carve_record(db, cut, spot=spot, viewer_id=viewer_id, accel_only=accel_only, sport=sport, cache=cache)
+        return _carve_record(db, cut, spot=spot, viewer_id=viewer_id, accel_only=accel_only, sport=sport,
+                             cache=cache, foil_band=foil_band)
     valcol, idxcol = REC_COL[metric]
     idx_sel = idxcol if idxcol is not None else literal(None)
     q = _community(db.query(valcol, idx_sel, S.id, S.started_at, NAME, S.place_name, U.avatar_url, AR.track_preview,
                             S.place_lat, S.place_lon), viewer_id, accel_only, sport)
+    q = _band_filter(db, q, foil_band, viewer_id or 0)
     q = q.filter(valcol > 0)
     if cut is not None:
         q = q.filter(S.started_at >= cut)
@@ -392,7 +395,7 @@ def _record_entry(db: Session, metric: str, cut: datetime | None, spot: str | No
 
 
 def _time_rows(db: Session, spot: str | None, viewer_id: int | None, accel_only: bool, sport: str,
-               cache: dict | None) -> list[tuple]:
+               cache: dict | None, foil_band: str = "all") -> list[tuple]:
     """Basisdaten fuer Early Bird / Night Owl: je Community-Session EINE Zeile mit den beiden
     Sekundenwerten seit lokaler Mitternacht, fertig gerechnet.
 
@@ -403,12 +406,16 @@ def _time_rows(db: Session, spot: str | None, viewer_id: int | None, accel_only:
     schwere Abfrage (12,9 ms/Stk). Der Zeitraum aendert an den Sekundenwerten nichts, nur an der
     Auswahl -- also einmal alles laden und je Zeitraum in Python filtern (Schluessel `cache`).
     """
-    key = ("time_rows", spot, viewer_id, accel_only, sport)
+    # `foil_band` MUSS im Schluessel stehen: sonst liefert eine zweite Abfrage im selben Request
+    # die Zeilen des ersten Bandes zurueck. Heute ist das Band je Request konstant, aber genau so
+    # entstehen stille Fehler, sobald jemand mehrere Baender in einem Aufruf rechnet.
+    key = ("time_rows", spot, viewer_id, accel_only, sport, foil_band)
     if cache is not None and key in cache:
         return cache[key]
     q = _community(db.query(S.id, S.started_at, S.trim_start_ms, S.place_lat, S.place_lon,
                             NAME, S.place_name, U.avatar_url, AR.track_preview,
                             AR.segments_json), viewer_id, accel_only, sport)
+    q = _band_filter(db, q, foil_band, viewer_id or 0)
     if spot is not None:
         q = q.filter(_spot_cond(spot))
     rows: list[tuple] = []
@@ -440,7 +447,7 @@ def _time_rows(db: Session, spot: str | None, viewer_id: int | None, accel_only:
     return rows
 
 
-def _time_record(db: Session, metric: str, cut: datetime | None, spot: str | None = None, viewer_id: int | None = None, accel_only: bool = True, sport: str = "pumpfoil", cache: dict | None = None) -> dict:
+def _time_record(db: Session, metric: str, cut: datetime | None, spot: str | None = None, viewer_id: int | None = None, accel_only: bool = True, sport: str = "pumpfoil", cache: dict | None = None, foil_band: str = "all") -> dict:
     """Early Bird / Night Owl in echter Spot-ORTSZEIT (inkl. Sommerzeit), Python-seitig.
 
     Wert = Sekunden seit lokaler Mitternacht des Starts. Gerechnet wird auf den LAUF-Zeiten
@@ -455,7 +462,7 @@ def _time_record(db: Session, metric: str, cut: datetime | None, spot: str | Non
     """
     best: tuple | None = None
     for st, sid, name, place, avatar, preview, tzn, eb_val, no_val in _time_rows(
-            db, spot, viewer_id, accel_only, sport, cache):
+            db, spot, viewer_id, accel_only, sport, cache, foil_band):
         if cut is not None and st < cut:
             continue
         val = eb_val if metric == "early_bird" else no_val
@@ -503,7 +510,8 @@ def _fill_carve_cache(db: Session) -> None:
 
 
 def _carve_record(db: Session, cut: datetime | None, spot: str | None = None, viewer_id: int | None = None,
-                  accel_only: bool = True, sport: str = "pumpfoil", cache: dict | None = None) -> dict:
+                  accel_only: bool = True, sport: str = "pumpfoil", cache: dict | None = None,
+                  foil_band: str = "all") -> dict:
     """Meiste Carves über 180° im Zeitraum — je NUTZER, nicht je Session (Jans Vorgabe 16.08.).
 
     „Über 180°" = die gespeicherten Kategorien m (180–360°) + l (>360°); s (90–180°) bleibt draußen.
@@ -520,6 +528,7 @@ def _carve_record(db: Session, cut: datetime | None, spot: str | None = None, vi
             cache["carve_cache"] = True
     total = func.coalesce(func.sum(AR.carve_m + AR.carve_l), 0)
     q = _community(db.query(NAME, U.avatar_url, total), viewer_id, accel_only, sport)
+    q = _band_filter(db, q, foil_band, viewer_id or 0)
     q = q.filter(AR.carve_m.isnot(None))
     if cut is not None:
         q = q.filter(S.started_at >= cut)
@@ -556,12 +565,146 @@ def community_sports(
     return out
 
 
+# --- Foil-Baender: „vergleichbare Foils" fuer Rekorde und Bestenlisten -----------------------
+#
+# Warum es diese Baender GIBT und warum sie so aussehen (gemessen am Bestand, 01.09.2026, 1043
+# Sessions mit hinterlegtem Foil):
+#
+#   * **Flaeche und Streckungsverhaeltnis (AR) sind UNABHAENGIG voneinander: r = -0,12.** Aus der
+#     Flaeche folgt praktisch nichts ueber die AR. Innerhalb von 1800–2000 cm² laeuft die AR von
+#     4,4 bis 20,1 — ein 1500er mit AR 17,5 und ein 1450er mit AR 7,1 sind bei fast gleicher
+#     Flaeche voellig verschiedene Fluegel. Nur nach Flaeche zu gruppieren wirft also Dinge
+#     zusammen, die nichts miteinander zu tun haben.
+#   * **Feste AR-Baender funktionieren trotzdem nicht:** unter 9 -> 46 Sessions, 9–13 -> 822,
+#     13–16 -> 70, ueber 16 -> 105. Ein Riesen-Eimer und drei Kruemel.
+#   * Deshalb ist das Kernstueck **`mine`**: ±15 % Flaeche UND ±2 AR um das eigene Foil. Fuer die
+#     acht meistgefahrenen Fluegel ergibt das Gruppen von 317–466 Sessions aus 10–25 Varianten —
+#     gross genug fuer Rekorde, eng genug fuer Vergleichbarkeit. Ohne die AR-Bedingung wachsen
+#     dieselben Gruppen auf 468–761 Sessions mit AR 4,4–21,0, also auf Beliebigkeit.
+#     Das sind gleichzeitig die „ueberlappenden Baender" — pro Nutzer gerechnet statt aus einer
+#     Liste gewaehlt, damit niemand am Rand eines festen Bandes haengt.
+#   * Die festen Klassen sind nur zum Stoebern da (und fuer Nutzer ohne hinterlegtes Foil). Sie
+#     liegen bei 1600–2400 cm², weil DORT die Flotte faehrt: 81 % aller Sessions, Median 1800 cm².
+#   * `ar16` steht bewusst QUER zu den Flaechenklassen — High Aspect ist eine eigene Art zu fahren
+#     (Gleiten, Downwind) und kommt in allen Groessen vor.
+#
+# ACHTUNG bei Aenderungen: die Grenzen wandern mit der Flotte. Die heute gefahrenen Fluegel sind
+# nicht die von 2027 — die Zahlen oben also nachrechnen (`scripts/foil-bands-check.py`), bevor
+# jemand hier Grenzen verschiebt.
+#
+# Sessions OHNE hinterlegtes Foil fallen aus JEDEM Band ausser `all` heraus (der Join ist ein
+# INNER JOIN). Das ist so gewollt und mit Jan abgesprochen — ohne Foil gibt es nichts zu
+# vergleichen. Aktuell betrifft das 36 % der Sessions, deshalb nennt `/foil-bands` je Band die
+# Sessionzahl, damit die Oberflaeche nicht in eine leere Auswahl fuehrt.
+F = models.Foil
+_AR = F.span_cm * F.span_cm / func.nullif(F.area_cm2, 0)
+
+# Reihenfolge = Reihenfolge im Dropdown: das Nuetzlichste oben, Nischen unten.
+FOIL_BANDS: list[dict] = [
+    {"key": "all",  "art": "alle"},
+    {"key": "mine", "art": "eigenes"},
+    {"key": "a1600_2000", "art": "flaeche", "von": 1600, "bis": 2000},
+    {"key": "a2000_2400", "art": "flaeche", "von": 2000, "bis": 2400},
+    {"key": "a1200_1600", "art": "flaeche", "von": 1200, "bis": 1600},
+    {"key": "ar16",       "art": "ar", "von": 16, "bis": None},
+    {"key": "a0_1200",    "art": "flaeche", "von": None, "bis": 1200},
+    {"key": "ar0_9",      "art": "ar", "von": None, "bis": 9},
+]
+_BANDS_BY_KEY = {b["key"]: b for b in FOIL_BANDS}
+
+# Fenster fuer „wie mein Foil".
+MINE_FLAECHE_REL = 0.15
+MINE_AR_ABS = 2.0
+
+
+def _eigenes_foil(db: Session, user_id: int):
+    """Das Referenz-Foil fuer `mine`: das Standard-Foil aus den Einstellungen, sonst das am
+    haeufigsten gefahrene. Liefert die Foil-Zeile oder None."""
+    u = db.get(models.User, user_id)
+    if u is not None and u.settings_json:
+        try:
+            fid = (json.loads(u.settings_json) or {}).get("foil_id")
+        except ValueError:
+            fid = None
+        if fid:
+            f = db.get(models.Foil, int(fid))
+            if f is not None and f.area_cm2 and f.span_cm:
+                return f
+    # Rueckfall: das meistgefahrene eigene Foil mit vollstaendigen Massen.
+    row = (db.query(models.Foil, func.count(S.id).label("n"))
+           .join(S, S.foil_id == models.Foil.id)
+           .filter(S.user_id == user_id, S.deleted.isnot(True), S.is_pumpfoil.is_(True),
+                   models.Foil.area_cm2.isnot(None), models.Foil.span_cm.isnot(None))
+           .group_by(models.Foil.id).order_by(func.count(S.id).desc()).first())
+    return row[0] if row else None
+
+
+def _band_filter(db: Session, query, band: str, viewer_id: int):
+    """Ein Foil-Band auf eine mit `_community()` gebaute Query legen. `all`/unbekannt = unveraendert."""
+    b = _BANDS_BY_KEY.get((band or "all").strip())
+    if b is None or b["art"] == "alle":
+        return query
+    q = query.join(F, S.foil_id == F.id).filter(F.area_cm2.isnot(None), F.span_cm.isnot(None))
+    if b["art"] == "flaeche":
+        if b.get("von") is not None:
+            q = q.filter(F.area_cm2 >= b["von"])
+        if b.get("bis") is not None:
+            q = q.filter(F.area_cm2 < b["bis"])
+        return q
+    if b["art"] == "ar":
+        if b.get("von") is not None:
+            q = q.filter(_AR >= b["von"])
+        if b.get("bis") is not None:
+            q = q.filter(_AR < b["bis"])
+        return q
+    # `mine`
+    f = _eigenes_foil(db, viewer_id)
+    if f is None:
+        # Kein eigenes Foil hinterlegt: NICHTS zurueckgeben statt heimlich alles — sonst stuende
+        # unter „wie mein Foil" die Rekordliste aller Fluegel.
+        return q.filter(F.id.is_(None))
+    a, ar = float(f.area_cm2), float(f.span_cm) ** 2 / float(f.area_cm2)
+    return q.filter(F.area_cm2 >= a * (1 - MINE_FLAECHE_REL), F.area_cm2 <= a * (1 + MINE_FLAECHE_REL),
+                    _AR >= ar - MINE_AR_ABS, _AR <= ar + MINE_AR_ABS)
+
+
+@router.get("/foil-bands")
+def foil_bands(accel_only: bool = True, sport: str = "pumpfoil",
+               _user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
+    """Die Baender fuer das Dropdown — MIT Sessionzahl und Fahrerzahl je Band.
+
+    Die Oberflaeche soll nicht in eine leere Auswahl fuehren: ein Rekord aus zwei Fahrern ist
+    keiner. Die Zahlen kommen deshalb vom Server und nicht aus fest verdrahteten Annahmen.
+    `von`/`bis` und das aufgeloeste `mine`-Fenster gehen mit, damit die Beschriftung die echten
+    Grenzen nennen kann.
+    """
+    eigen = _eigenes_foil(db, _user.id)
+    out = []
+    for b in FOIL_BANDS:
+        q = _band_filter(db, _community(db.query(func.count(S.id), func.count(func.distinct(S.user_id))),
+                                        _user.id, accel_only, sport), b["key"], _user.id)
+        n, fahrer = q.first() or (0, 0)
+        e = {"key": b["key"], "art": b["art"], "sessions": int(n or 0), "fahrer": int(fahrer or 0),
+             "von": b.get("von"), "bis": b.get("bis")}
+        if b["key"] == "mine" and eigen is not None:
+            a = float(eigen.area_cm2)
+            ar = float(eigen.span_cm) ** 2 / a
+            e["foil"] = f"{eigen.brand} {eigen.model} {eigen.size}".strip()
+            e["von"] = round(a * (1 - MINE_FLAECHE_REL))
+            e["bis"] = round(a * (1 + MINE_FLAECHE_REL))
+            e["ar_von"] = round(ar - MINE_AR_ABS, 1)
+            e["ar_bis"] = round(ar + MINE_AR_ABS, 1)
+        out.append(e)
+    return out
+
+
 @router.get("/records")
-def community_records(accel_only: bool = True, sport: str = "pumpfoil", _user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+def community_records(accel_only: bool = True, sport: str = "pumpfoil", foil_band: str = "all", _user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
     # EIN Cache fuer den ganzen Request: die Zeit-Metriken teilen sich damit ihre Basisdaten
     # ueber alle fuenf Zeitraeume (s. _time_rows).
     cache: dict = {}
-    return {p: {m: _record_entry(db, m, _cutoff(p), viewer_id=_user.id, accel_only=accel_only, sport=sport, cache=cache) for m in METRICS} for p in PERIODS}
+    return {p: {m: _record_entry(db, m, _cutoff(p), viewer_id=_user.id, accel_only=accel_only, sport=sport,
+                                 cache=cache, foil_band=foil_band) for m in METRICS} for p in PERIODS}
 
 
 @router.get("/start-success")
@@ -708,7 +851,7 @@ def spot_records(
 
 # ------------------------------------------------------------------- Leaders ----
 @router.get("/leaders")
-def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil", _user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil", foil_band: str = "all", _user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
     cut = _cutoff(period)
     q = _community(db.query(
         NAME, U.avatar_url,
@@ -716,6 +859,7 @@ def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil
         func.count(func.distinct(func.nullif(S.place_name, ""))),
         func.coalesce(func.sum(AR.pump_count), 0),
     ), _user.id, accel_only, sport)
+    q = _band_filter(db, q, foil_band, _user.id)
     if cut is not None:
         q = q.filter(S.started_at >= cut)
     rows = q.group_by(U.id, U.display_name, U.avatar_url).all()

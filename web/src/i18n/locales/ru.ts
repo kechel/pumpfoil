@@ -186,6 +186,11 @@ const ru: Record<string, string> = {
   "period.30d": "30 дней",
   "period.365d": "1 год",
   "period.all": "За всё время",
+  "cr.foilAll": "Все крылья",
+  "cr.foilMine": "Как моё крыло",
+  "cr.foilUnder": "меньше {n} см²",
+  "cr.foilHighAspect": "High aspect (AR от {n})",
+  "cr.foilThick": "Толстые крылья (AR меньше {n})",
 
   "spotcmp.title": "Рекорды спота",
   "spotcmp.foilers": "Больше всего фойлеров",

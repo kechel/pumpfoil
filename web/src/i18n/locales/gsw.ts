@@ -166,6 +166,11 @@ const gsw: Record<string, string> = {
   "period.30d": "30 Täg",
   "period.365d": "1 Jahr",
   "period.all": "Allzit",
+  "cr.foilAll": "Alli Foils",
+  "cr.foilMine": "Wie mis Foil",
+  "cr.foilUnder": "under {n} cm²",
+  "cr.foilHighAspect": "High Aspect (AR ab {n})",
+  "cr.foilThick": "Dicki Flügel (AR under {n})",
 
   "spotcmp.title": "Spot-Rekord",
   "spotcmp.foilers": "Meischti Foiler",

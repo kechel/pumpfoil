@@ -334,6 +334,24 @@ export interface RecordSet {
 
 export type CommunityRecords = Record<string, RecordSet>;
 
+/** Ein Foil-Band für Rekorde/Bestenlisten (GET /api/community/foil-bands).
+ *
+ *  `art`: "alle" | "eigenes" | "flaeche" | "ar". Bei `eigenes` kommen zusätzlich `foil` (Name des
+ *  Referenz-Foils) und `ar_von`/`ar_bis` mit — das Fenster ist ±15 % Fläche und ±2 AR um das
+ *  eigene Foil. Fläche und AR sind nachweislich unabhängig (r = −0,12), deshalb beides.
+ *  `sessions`/`fahrer` sind die echten Zahlen des Bandes, nicht geschätzt. */
+export type FoilBand = {
+  key: string;
+  art: "alle" | "eigenes" | "flaeche" | "ar";
+  sessions: number;
+  fahrer: number;
+  von: number | null;
+  bis: number | null;
+  foil?: string;
+  ar_von?: number;
+  ar_bis?: number;
+};
+
 // Carve-Erkennung (Accel-Zentripetal-g-Modell, nur Anzeige). g = Kurvenlage je Track-Punkt;
 // carves = erkannte Carves mit Grad-Bucket (s=90–180 als <180 / m=180–360 / l=>360).
 export interface CarveData {
@@ -941,8 +959,12 @@ export const api = {
       + (sport ? `&sport=${encodeURIComponent(sport)}` : "")),
   // `sport` = Sportart-Filter der Community-Seite (docs/sport-classification.md). Default pumpfoil,
   // damit Aufrufer ohne Filter unverändert weiterlaufen.
-  communityRecords: (accelOnly = true, sport = "pumpfoil") =>
-    req<CommunityRecords>(`/api/community/records?accel_only=${accelOnly}&sport=${sport}`),
+  communityRecords: (accelOnly = true, sport = "pumpfoil", foilBand = "all") =>
+    req<CommunityRecords>(`/api/community/records?accel_only=${accelOnly}&sport=${sport}&foil_band=${foilBand}`),
+  /** Die Foil-Baender fuer das Dropdown — MIT Sessionzahl und Fahrerzahl je Band, damit die
+   *  Oberflaeche duenne Gruppen ausblenden kann (ein Rekord aus zwei Fahrern ist keiner). */
+  foilBands: (accelOnly = true, sport = "pumpfoil") =>
+    req<FoilBand[]>(`/api/community/foil-bands?accel_only=${accelOnly}&sport=${sport}`),
   communitySports: () => req<{ sport: string; runs: number }[]>("/api/community/sports"),
   startSuccess: () => req<{ threshold_m: number; windows: Record<string, { total: number; success: number; failed: number; rate: number | null }> }>("/api/community/start-success"),
   carveStats: () => req<{ windows: Record<string, { s: number; m: number; l: number }> }>("/api/community/carve-stats"),
@@ -977,8 +999,8 @@ export const api = {
   },
   spotSessions: (spot: string, accelOnly = true) =>
     req<CommunitySession[]>(`/api/community/spot-sessions?spot=${encodeURIComponent(spot)}&accel_only=${accelOnly}`),
-  leaders: (period = "all", accelOnly = true, sport = "pumpfoil") =>
-    req<Leaders>(`/api/community/leaders?period=${period}&accel_only=${accelOnly}&sport=${sport}`),
+  leaders: (period = "all", accelOnly = true, sport = "pumpfoil", foilBand = "all") =>
+    req<Leaders>(`/api/community/leaders?period=${period}&accel_only=${accelOnly}&sport=${sport}&foil_band=${foilBand}`),
   communityLatestPhotos: (limit = 5) => req<CommunityPhoto[]>(`/api/community/latest-photos?limit=${limit}`),
   topLiked: (period = "all") => req<CommunitySession[]>(`/api/community/top-liked?period=${period}`),
   toggleLike: (id: number) =>
