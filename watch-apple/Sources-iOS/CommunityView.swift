@@ -118,6 +118,11 @@ struct CommunityView: View {
             .onAppear { Task { await refreshMedia() } }
             .onChange(of: accelOnly) { _ in Task { await reloadAll() } }
             .onChange(of: period) { _ in Task { await reloadPeriod() } }
+            // Foil-Band gewechselt -> Rekorde UND Bestenlisten neu holen. Fehlte bis 01.09.
+            // (Jans Befund im Simulator): die Auswahl aenderte nur die Beschriftung, weil ein
+            // .onChange fuer bandKey nicht existierte. Bewusst NICHT reloadAll(): das holt auch
+            // die Bandliste und kann bandKey selbst zurueckstellen (Endlosschleife).
+            .onChange(of: bandKey) { _ in Task { await reloadBand() } }
             .onChange(of: spotShown) { _ in Task { await loadSpotRecs() } }
         }
     }
@@ -495,6 +500,13 @@ struct CommunityView: View {
                 spotRecs = [:]
             }
         } catch { self.error = error.localizedDescription }
+    }
+
+    /// Nur die bandabhaengigen Teile: Rekorde + Bestenlisten. Spots und Best-bewertet haengen
+    /// bewusst NICHT am Band (dort ist der Spot der Vergleich, nicht das Foil).
+    private func reloadBand() async {
+        records = (try? await Api.communityRecords(accelOnly: accelOnly, foilBand: bandKey)) ?? records
+        leaders = try? await Api.leaders(period: period, accelOnly: accelOnly, foilBand: bandKey)
     }
 
     private func loadPeriod() async {
