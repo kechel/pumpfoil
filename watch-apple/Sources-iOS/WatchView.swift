@@ -10,6 +10,10 @@ struct WatchView: View {
     // GNSS-Stufe je Uhr (id → best|l1|two|gps). NUR Garmin waehlt sie, ab Uhr 1.0.77.
     @State private var gnss: [Int: String] = [:]
     @State private var savedFlash = false
+    // Aufraeumen je Uhr (wie PWA): ausgeblendete auf Wunsch mitladen — sonst waere Ausblenden auf
+    // dem Telefon eine Einbahnstrasse. `frage` haelt die offene Rueckfrage.
+    @State private var zeigeAusgeblendete = false
+    @State private var frage: GeraeteFrage? = nil
 
     private func flashSaved() {
         savedFlash = true
@@ -28,6 +32,11 @@ struct WatchView: View {
         .brandToolbar(Loc.t("nav.watch", lang))
         .navigationBarTitleDisplayMode(.inline)
         .task { await loadDevices() }
+        .confirmationDialog(frageTitel, isPresented: zeigeFrage, titleVisibility: .visible) {
+            frageAktionen
+        } message: {
+            Text(frageText)
+        }
     }
 
     // MARK: - Abschnitte
@@ -64,6 +73,8 @@ struct WatchView: View {
                 Text(Loc.t("account.devicesSettingsIntro", lang))
                     .font(.callout).foregroundStyle(.secondary)
                 ForEach(activeDevices) { d in deviceRow(d) }
+                Text(Loc.t("account.deviceHideHint", lang)).font(.subheadline).foregroundStyle(.secondary)
+                ausgeblendetKnopf
             } header: { Text(Loc.t("account.devicesTitle", lang)) }
             footer: { savedFooter }
         }
@@ -98,6 +109,48 @@ struct WatchView: View {
             zeppHint(d)
             garminHint(d)
             gnssPicker(d)
+            geraeteAktionen(d)
+        }
+    }
+
+    // Ausblenden / Entfernen / Widerrufen — bisher nur in der PWA, dadurch war eine verkaufte
+    // oder doppelt gepairte Uhr aus der App nicht loszuwerden.
+    //  * Ausblenden ist reversibel und rein kosmetisch (die Uhr laedt weiter hoch).
+    //  * Entfernen NUR ohne Session — sonst verliert die Session ihre Geraetezuordnung; das
+    //    trifft genau die fehlgeschlagenen Pairing-Versuche.
+    //  * Widerrufen macht den Token ungueltig, die Sessions bleiben.
+    @ViewBuilder private func geraeteAktionen(_ d: PairedDevice) -> some View {
+        HStack(spacing: 14) {
+            Button(Loc.t(d.hidden_at != nil ? "account.deviceUnhide" : "account.deviceHide", lang)) {
+                Task {
+                    try? await Api.hideDevice(d.id, hidden: d.hidden_at == nil)
+                    await loadDevices()
+                }
+            }
+            if (d.sessions ?? 1) == 0 {
+                Button(Loc.t("account.deviceForget", lang)) {
+                    frage = GeraeteFrage(id: d.id, art: .entfernen, name: deviceTitle(d))
+                }
+            }
+            Button(Loc.t("account.deviceRevoke", lang), role: .destructive) {
+                frage = GeraeteFrage(id: d.id, art: .widerrufen, name: deviceTitle(d))
+            }
+            Spacer(minLength: 0)
+        }
+        .font(.subheadline)
+        .buttonStyle(.borderless)
+    }
+
+    @ViewBuilder private var ausgeblendetKnopf: some View {
+        let n = devices.first?.hidden_total ?? 0
+        if n > 0 || zeigeAusgeblendete {
+            Button(zeigeAusgeblendete
+                   ? Loc.t("account.deviceHide", lang)
+                   : "\(Loc.t("account.deviceUnhide", lang)) (\(n))") {
+                zeigeAusgeblendete.toggle()
+                Task { await loadDevices() }
+            }
+            .font(.subheadline)
         }
     }
 
@@ -200,10 +253,49 @@ struct WatchView: View {
     }
 
     private func loadDevices() async {
-        if let ds = try? await Api.myDevices() {
+        if let ds = try? await Api.myDevices(includeHidden: zeigeAusgeblendete) {
             devices = ds
             modes = Dictionary(uniqueKeysWithValues: ds.map { ($0.id, $0.record_mode ?? "full") })
             gnss = Dictionary(uniqueKeysWithValues: ds.map { ($0.id, $0.gnss_mode ?? "best") })
         }
     }
+
+    // MARK: - Rueckfrage (Entfernen/Widerrufen)
+
+    private var zeigeFrage: Binding<Bool> {
+        Binding(get: { frage != nil }, set: { if !$0 { frage = nil } })
+    }
+
+    private var frageTitel: String {
+        guard let f = frage else { return "" }
+        return Loc.t(f.art == .entfernen ? "account.deviceForget" : "account.deviceRevoke", lang)
+    }
+
+    private var frageText: String {
+        guard let f = frage else { return "" }
+        let roh = Loc.t(f.art == .entfernen ? "account.deviceForgetConfirm" : "account.revokeConfirm", lang)
+        return roh.replacingOccurrences(of: "{name}", with: f.name)
+    }
+
+    @ViewBuilder private var frageAktionen: some View {
+        if let f = frage {
+            Button(frageTitel, role: .destructive) {
+                frage = nil
+                Task {
+                    if f.art == .entfernen { try? await Api.forgetDevice(f.id) }
+                    else { try? await Api.revokeDevice(f.id) }
+                    await loadDevices()
+                }
+            }
+            Button(Loc.t("common.cancel", lang), role: .cancel) { frage = nil }
+        }
+    }
+}
+
+/// Offene Rueckfrage zu einer Uhr — Wert statt Flut von Bool-Zustaenden.
+struct GeraeteFrage: Identifiable {
+    enum Art: Equatable { case entfernen, widerrufen }
+    let id: Int
+    let art: Art
+    let name: String
 }

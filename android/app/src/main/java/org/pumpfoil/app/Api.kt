@@ -158,6 +158,12 @@ object Api {
         json.decodeFromString(Profile.serializer(), http("PUT", "/api/auth/me", body, auth = true))
     }
 
+    // DSGVO-Gegenstueck zur Loeschung: alle eigenen Daten als JSON herausgeben
+    // (Datenuebertragbarkeit). Rohtext, damit die Datei genauso aussieht wie die der PWA.
+    suspend fun exportMyData(): String = withContext(Dispatchers.IO) {
+        http("GET", "/api/auth/me/export", null, auth = true)
+    }
+
     // DSGVO: Konto + ALLE Daten unwiderruflich löschen (Google-Play-Pflicht).
     suspend fun deleteAccount(): Unit = withContext(Dispatchers.IO) {
         http("DELETE", "/api/auth/me", null, auth = true)
@@ -941,8 +947,23 @@ object Api {
     }
 
     // Gepairte Uhren/Geräte des Kontos (mit record_mode je Uhr).
-    suspend fun myDevices(): List<PairedDevice> = withContext(Dispatchers.IO) {
-        json.decodeFromString(http("GET", "/api/devices/list", null, auth = true))
+    // Ausblenden (reversibel, rein kosmetisch — die Uhr laedt weiter hoch), Entfernen (nur
+    // Eintraege ohne Session) und Widerrufen (Token ungueltig, Sessions bleiben). Wie in der PWA.
+    suspend fun hideDevice(id: Int, hidden: Boolean = true): Unit = withContext(Dispatchers.IO) {
+        http("POST", "/api/devices/$id/hide?hidden=$hidden", null, auth = true)
+    }
+
+    suspend fun forgetDevice(id: Int): Unit = withContext(Dispatchers.IO) {
+        http("POST", "/api/devices/$id/forget", null, auth = true)
+    }
+
+    suspend fun revokeDevice(id: Int): Unit = withContext(Dispatchers.IO) {
+        http("DELETE", "/api/devices/$id", null, auth = true)
+    }
+
+    // includeHidden=true holt auch die ausgeblendeten dazu ("N ausgeblendete anzeigen").
+    suspend fun myDevices(includeHidden: Boolean = false): List<PairedDevice> = withContext(Dispatchers.IO) {
+        json.decodeFromString(http("GET", "/api/devices/list?include_hidden=$includeHidden", null, auth = true))
     }
 
     // Aufzeichnungsmodus einer einzelnen Uhr setzen (full|lite|gps).

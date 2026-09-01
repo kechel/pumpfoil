@@ -11,6 +11,9 @@ struct ProfileView: View {
     @State private var draftName = ""
     @State private var avatarItem: PhotosPickerItem?
     @State private var confirmingDelete = false
+    // Datenauskunft: fertige JSON-Datei fuer das System-Teilen-Blatt (iOS hat keinen Download).
+    @State private var exportURL: ExportItem?
+    @State private var exportBusy = false
 
     // Der Body ist bewusst KURZ: Swifts Type-Checker loest einen ViewBuilder als EINEN Ausdruck
     // auf, und der Aufwand waechst ueberproportional mit Kindern + Modifiern. Dieser Body war
@@ -24,6 +27,7 @@ struct ProfileView: View {
                 socialSection
                 phoneRecSection
                 logoutSection
+                exportSection
                 deleteSection
                 debugSections
             }
@@ -38,6 +42,7 @@ struct ProfileView: View {
                 Text(Loc.t("profile.deleteConfirm", lang))
             }
             .onChange(of: avatarItem) { item in uploadAvatar(item) }
+            .sheet(item: $exportURL) { item in ActivityView(items: [item.url]) }
         }
     }
 
@@ -125,6 +130,24 @@ struct ProfileView: View {
     private var logoutSection: some View {
         Section {
             Button(Loc.t("profile.logout", lang), role: .destructive) { session.logout() }
+        }
+    }
+
+    // Datenauskunft (DSGVO-Gegenstueck zur Loeschung, wie in der PWA unter Einstellungen).
+    private var exportSection: some View {
+        Section {
+            Button(Loc.t("profile.exportData", lang)) { exportiereDaten() }
+                .disabled(exportBusy)
+        }
+    }
+
+    private func exportiereDaten() {
+        exportBusy = true
+        Task {
+            defer { exportBusy = false }
+            guard let daten = try? await Api.exportMyData() else { return }
+            let ziel = FileManager.default.temporaryDirectory.appendingPathComponent("pumpfoil-export.json")
+            do { try daten.write(to: ziel); exportURL = ExportItem(url: ziel) } catch {}
         }
     }
 
@@ -251,3 +274,7 @@ struct ProfileView: View {
         .clipShape(Circle())
     }
 }
+
+// Datei fuer das Teilen-Blatt. Gleichnamiger Typ steht auch in SessionDetailView — beide sind
+// dateiprivat, das ist kein Konflikt.
+private struct ExportItem: Identifiable { let id = UUID(); let url: URL }

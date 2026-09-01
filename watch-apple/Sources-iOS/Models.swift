@@ -41,6 +41,13 @@ struct PairedDevice: Codable, Identifiable {
     // Wahl, die Uhr faehrt die Voreinstellung "best" (alle Systeme, bestes Band).
     let gnss_mode: String?
     let low_accel: Bool?       // FR55 & Co. → bei "full" autom. "lite"
+    // Wie viele Sessions an dem Eintrag haengen. 0 = fehlgeschlagener Pairing-Versuch, den man
+    // gefahrlos entfernen darf; sonst nur ausblenden (sonst verliert die Session ihr Geraet).
+    let sessions: Int?
+    let hidden_at: String?
+    // Zahl der AUSGEBLENDETEN Eintraege desselben Nutzers — steht in jeder Antwort, damit die
+    // Oberflaeche "N ausgeblendete anzeigen" anbieten kann, ohne ein zweites Mal zu fragen.
+    let hidden_total: Int?
 }
 
 // Eigene Session im Zwischenzustand (recording/live) — Live-Upload-Karte (Home + Sessions).

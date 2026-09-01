@@ -619,6 +619,44 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **✅ 01.09. — Paritaets-Durchgang Natives (Jans Loop-Auftrag). Vier echte Luecken gefunden und
+  geschlossen; FIT-Import bewusst ausgelassen.** Geprueft wurde gegen den CODE, mit zwei Sieben:
+  alle seit dem 26.08. neu in `web/de.ts` aufgenommenen Schluessel gegen die nativen Tabellen, und
+  alle im Web benutzten API-Endpunkte gegen `Api.kt`/`Api.swift`. Schon nachgezogen waren
+  Sync-Abspielen, Foil-Baender, Listen-Vorgabe „alle", Verlaufskarte je Lauf, Satellitenansicht,
+  Feedback-Anhaenge.
+  1. **Spot-Vergleich** (`SpotCompareSection.kt` / `SpotCompareView.swift`) — fehlte komplett:
+     kein Modell, kein Endpunkt, keine Schluessel. Je Kennzahl der fuehrende Spot, darunter der
+     gewaehlte (vorbelegt: eigener Homespot) mit Wert und Rang; acht Kennzahlen wie im Web, davon
+     zwei Einzel-Rekorde mit Halter + Datum, die zu genau der Session fuehren. Sitzt wie in der
+     PWA direkt unter der Karte.
+  2. **Geraete aufraeumen** (`WatchScreen.kt` / `WatchView.swift`) — Natives konnten Uhren nur
+     ANSEHEN und Modi setzen. Jetzt Ausblenden (reversibel), Entfernen (nur Eintraege ohne
+     Session — genau die fehlgeschlagenen Pairing-Versuche) und Widerrufen, mit denselben
+     Rueckfragen wie im Web. **Wichtig war die Rueckrichtung:** ohne „N ausgeblendete anzeigen"
+     (`include_hidden`) waere Ausblenden auf dem Telefon eine Einbahnstrasse gewesen.
+  3. **Datenauskunft** (`profile.exportData`) — beide Apps konnten das Konto LOESCHEN, aber die
+     eigenen Daten nicht herausgeben. Jetzt JSON ueber das System-Teilen-Blatt (Android
+     FileProvider wie beim GPX/FIT-Export, iOS `ActivityView`).
+  4. **Anzeigefehler:** Android benutzte `watchStats.hint`, ohne dass der Schluessel in der
+     Tabelle stand — `I18n.t` gibt dann den SCHLUESSELNAMEN zurueck, auf der Uhren-Statistik stand
+     also woertlich „watchStats.hint". Gegenprobe ueber alle benutzten gegen alle definierten
+     Schluessel: sonst fehlt keiner (die restlichen Treffer sind zur Laufzeit zusammengesetzt).
+     Ausserdem zeigen beide Natives jetzt den vollen Hinweistext auf Foil-/Uhren-Statistik statt
+     der Kurzfassung — und nicht mehr in Kleinschrift.
+  - **BEWUSST NICHT gebaut: FIT/TCX/GPX-Import auf den Telefonen.** Waere machbar (Dateiwaehler +
+    Multipart), aber Jan am 01.09.: „fit Import will keiner, das gibt es laengst, es geht um
+    automatische anbindungen". Wenn es doch kommt, ist der Vertrag `POST /api/sessions/upload-fit`,
+    Feld `file`, Antwort `SessionSummary` oder `{skipped, detail}`.
+  - **Neues Werkzeug `scripts/i18n-port.py`:** traegt Schluessel aus den Web-Locales in ALLE VIER
+    nativen Tabellen (`I18n.kt`, `I18nExtra.kt`, `Loc.swift`, `LocExtra.swift`, zusammen 18.600
+    Zeilen). Von Hand sind das 14 Einfuegungen je Schluessel. Fehlt eine Uebersetzung im Web,
+    bleibt die Luecke und die App faellt auf Englisch zurueck — lieber Luecke als geraten. Hier
+    waren alle 17 Sprachen vorhanden (15 Schluessel uebertragen).
+  - Alles laeuft in den fertigen, noch nicht eingereichten Versionen mit: **Phone 1.1.25,
+    iOS 1.1.28**. `:app:` + `:wear:compileDebugKotlin` gruen, `swiftc -parse` gruen (Member gegen
+    die Deklarationen gegengeprueft, parse allein findet das nicht).
+
 - **✅ 01.09. — Upload-Anzeige: Detailseite zeigt dieselbe Karte wie die Uebersicht; die alte Notiz
   war im Light-Mode unlesbar.** Jans Befund an einer laufenden Testsession (Screenshot):
   „Beschleunigungsdaten werden hochgeladen … ist nicht lesbar" + „die session sollte auch die

@@ -837,6 +837,19 @@ enum Api {
     }
 
     /// Eigene Session als Datei: kind = "gpx" | "fit". Nur der Besitzer, der Server prueft das.
+    // DSGVO-Gegenstueck zur Loeschung: alle eigenen Daten als JSON (Datenuebertragbarkeit).
+    // Rohdaten, damit die Datei genauso aussieht wie die der PWA.
+    static func exportMyData() async throws -> Data {
+        guard let url = URL(string: baseURL + "/api/auth/me/export") else { throw ApiError.badURL }
+        var req = URLRequest(url: url)
+        req.timeoutInterval = 60
+        if let t = token { req.setValue("Bearer \(t)", forHTTPHeaderField: "Authorization") }
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        let code = (resp as? HTTPURLResponse)?.statusCode ?? -1
+        guard (200..<300).contains(code) else { throw ApiError.http(code, "") }
+        return data
+    }
+
     static func exportSession(_ id: Int, kind: String) async throws -> Data {
         guard let url = URL(string: baseURL + "/api/sessions/\(id)/export.\(kind)") else { throw ApiError.badURL }
         var req = URLRequest(url: url)
@@ -980,8 +993,26 @@ enum Api {
     }()
 
     // Gepairte Uhren/Geräte (mit record_mode je Uhr).
-    static func myDevices() async throws -> [PairedDevice] {
-        try await request("/api/devices/list", method: "GET", body: nil, auth: true)
+    // Ausblenden (reversibel, rein kosmetisch — die Uhr laedt weiter hoch), Entfernen (nur
+    // Eintraege ohne Session) und Widerrufen (Token ungueltig, Sessions bleiben). Wie in der PWA.
+    static func hideDevice(_ id: Int, hidden: Bool = true) async throws {
+        struct Ok: Decodable { let ok: Bool? }
+        let _: Ok = try await request("/api/devices/\(id)/hide?hidden=\(hidden)", method: "POST", body: nil, auth: true)
+    }
+
+    static func forgetDevice(_ id: Int) async throws {
+        struct Ok: Decodable { let ok: Bool? }
+        let _: Ok = try await request("/api/devices/\(id)/forget", method: "POST", body: nil, auth: true)
+    }
+
+    static func revokeDevice(_ id: Int) async throws {
+        struct Ok: Decodable { let ok: Bool? }
+        let _: Ok = try await request("/api/devices/\(id)", method: "DELETE", body: nil, auth: true)
+    }
+
+    // includeHidden=true holt auch die ausgeblendeten dazu ("N ausgeblendete anzeigen").
+    static func myDevices(includeHidden: Bool = false) async throws -> [PairedDevice] {
+        try await request("/api/devices/list?include_hidden=\(includeHidden)", method: "GET", body: nil, auth: true)
     }
     struct RecordModeResp: Decodable { let record_mode: String? }
     static func setDeviceRecordMode(_ id: Int, mode: String) async throws {

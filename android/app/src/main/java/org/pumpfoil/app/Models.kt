@@ -23,6 +23,13 @@ data class PairedDevice(
     // eigene Wahl, die Uhr faehrt die Voreinstellung "best" (alle Systeme, bestes Band).
     // Mehr Systeme finden die Position schneller und zuverlaessiger, kosten aber Akku.
     @SerialName("gnss_mode") val gnssMode: String? = null,
+    // Wie viele Sessions an diesem Eintrag haengen. 0 = fehlgeschlagener Pairing-Versuch, den man
+    // gefahrlos entfernen darf; sonst nur ausblenden (sonst verliert die Session ihr Geraet).
+    val sessions: Int = 0,
+    @SerialName("hidden_at") val hiddenAt: String? = null,
+    // Zahl der AUSGEBLENDETEN Eintraege desselben Nutzers — steht in jeder Antwort, damit die
+    // Oberflaeche "N ausgeblendete anzeigen" anbieten kann, ohne ein zweites Mal zu fragen.
+    @SerialName("hidden_total") val hiddenTotal: Int = 0,
 )
 
 // Spiegelt die API-Schemas (snake_case JSON -> camelCase via @SerialName).

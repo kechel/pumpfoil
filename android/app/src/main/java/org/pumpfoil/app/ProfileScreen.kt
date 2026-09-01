@@ -78,6 +78,7 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
     var editing by remember { mutableStateOf(false) }
     var draftName by remember { mutableStateOf("") }
     var confirmingDelete by remember { mutableStateOf(false) }
+    var exportBusy by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         profile = try { Api.me() } catch (e: Exception) { null }
     }
@@ -263,6 +264,34 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
             ) {
                 Text(I18n.t("profile.logout"))
             }
+            // Datenauskunft (DSGVO-Gegenstueck zur Loeschung, wie in der PWA unter Einstellungen):
+            // JSON in den Cache schreiben und ans System-Teilen-Blatt geben — Android hat keinen
+            // Browser-Download. Derselbe Weg wie der GPX/FIT-Export der Session-Ansicht.
+            Spacer(Modifier.height(8.dp))
+            TextButton(
+                enabled = !exportBusy,
+                onClick = {
+                    exportBusy = true
+                    scope.launch {
+                        try {
+                            val text = Api.exportMyData()
+                            val dir = java.io.File(ctx.cacheDir, "shared").apply { mkdirs() }
+                            val f = java.io.File(dir, "pumpfoil-export.json")
+                            f.writeText(text)
+                            val uri = androidx.core.content.FileProvider.getUriForFile(
+                                ctx, "${ctx.packageName}.fileprovider", f)
+                            val send = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                                type = "application/json"
+                                putExtra(android.content.Intent.EXTRA_STREAM, uri)
+                                addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                            }
+                            ctx.startActivity(android.content.Intent.createChooser(
+                                send, I18n.t("profile.exportData")))
+                        } catch (_: Exception) {
+                        } finally { exportBusy = false }
+                    }
+                },
+            ) { Text(I18n.t("profile.exportData")) }
             // Konto-Löschung (Google-Play-Pflicht, analog Apple 5.1.1(v)): DSGVO-Delete + Logout.
             Spacer(Modifier.height(8.dp))
             TextButton(onClick = { confirmingDelete = true }) {
