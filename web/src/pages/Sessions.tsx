@@ -376,7 +376,7 @@ const isInterim = (s: SessionSummary) => (s.owned ?? true) && s.status === "live
 export function ProcessingNote() {
   const t = useT();
   return (
-    <div className="mt-2 flex items-center gap-2 rounded-lg bg-brand-500/10 px-2.5 py-1.5 text-xs text-slate-700 dark:text-brand-200">
+    <div className="mt-2 flex items-center gap-2 rounded-lg bg-brand-500/10 px-2.5 py-1.5 text-sm text-slate-200">
       <span className="h-3.5 w-3.5 shrink-0 animate-spin rounded-full border-2 border-brand-400/40 border-t-brand-400" />
       {t("session.loadingAccel")}
     </div>

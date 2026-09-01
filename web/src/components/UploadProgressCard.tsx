@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, InProgressSession } from "../lib/api";
 import { WatchIcon, LocationIcon, CheckIcon, UploadIcon, InfoIcon } from "./Icons";
@@ -49,12 +49,47 @@ export function UploadProgressCard() {
   );
 }
 
+// Dieselbe Karte auf der Detailseite EINER Session: gleicher Zustand, gleiche Optik wie in der
+// Uebersicht. Solange die Session in /in-progress steht, zeigen wir die Karte; sobald der Upload
+// durch ist (Analyse laeuft noch), faellt es auf `fallback` zurueck (die schlanke Prozess-Notiz).
+export function SessionUploadCard({ id, fallback }: { id: number; fallback?: ReactNode }) {
+  const t = useT();
+  const [row, setRow] = useState<InProgressSession | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    const tick = async () => {
+      try {
+        const r = await api.inProgress();
+        if (!alive) return;
+        const treffer = r.find((x) => x.id === id) ?? null;
+        setRow(treffer);
+        timer.current = setTimeout(tick, treffer ? 4000 : 20000);
+      } catch {
+        if (!alive) return;
+        timer.current = setTimeout(tick, 20000);
+      }
+    };
+    tick();
+    return () => {
+      alive = false;
+      if (timer.current) clearTimeout(timer.current);
+    };
+  }, [id]);
+
+  if (!row) return <>{fallback ?? null}</>;
+  return <UploadRow s={row} t={t} eigeneSeite />;
+}
+
 function UploadRow({
   s,
   t,
+  eigeneSeite,
 }: {
   s: InProgressSession;
   t: ReturnType<typeof useT>;
+  eigeneSeite?: boolean;   // auf der Detailseite dieser Session: kein Klickziel
 }) {
   const nav = useNavigate();
   const pct =
@@ -70,8 +105,10 @@ function UploadRow({
   // GET die gps_only-Vorabanalyse triggert (Server 4a) und seamless nachlädt.
   return (
     <div
-      onClick={() => nav(`/sessions/${s.id}`)}
-      className="cursor-pointer rounded-xl border border-cyan-500/40 bg-cyan-500/5 dark:bg-cyan-400/10 p-3 sm:p-4 transition hover:border-cyan-500/70"
+      onClick={eigeneSeite ? undefined : () => nav(`/sessions/${s.id}`)}
+      className={`rounded-xl border border-cyan-500/40 bg-cyan-500/5 dark:bg-cyan-400/10 p-3 sm:p-4 transition ${
+        eigeneSeite ? "" : "cursor-pointer hover:border-cyan-500/70"
+      }`}
     >
       <div className="flex items-center gap-3">
         <span className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-cyan-500/15 text-cyan-600 dark:text-cyan-300">

@@ -14,6 +14,7 @@ import { FoilOffIcon } from "../components/Icons";
 import { DATA_QUALITY, SPORTS } from "../lib/sportClass";
 import { invalidateSessionListCache, ProcessingNote, updateCachedSession } from "./Sessions";
 import { FoilPowerStat } from "../components/FoilPower";
+import { SessionUploadCard } from "../components/UploadProgressCard";
 import { openChatOverlay } from "../components/DmWidget";
 import { computeFoilPowerAtSpeed, DEFAULT_RIDER, riderWeightFor, calculateAR, calculateCLmax, calculateStallSpeed, calculateOptimalSpeed } from "../lib/foilPhysics";
 import { rampColor, hrColor, hrRange as hrRangeOf, speedColor, optimalColor, OPTIMAL_SPAN } from "../lib/trackColors";
@@ -1336,7 +1337,11 @@ export default function SessionDetail() {
       </div>
 
       {/* Zwischenzustand (GPS da, Accel lädt noch): Prozess-Notiz statt der GPS-only-Warnung. */}
-      {owned && session.status === "live" && <div className="mb-4"><ProcessingNote /></div>}
+      {owned && session.status === "live" && (
+        <div className="mb-4">
+          <SessionUploadCard id={session.id} fallback={<ProcessingNote />} />
+        </div>
+      )}
       {m?.detection === "gps_only" && session.status !== "live" && (
         <div className="mb-4 rounded-xl border border-amber-600/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
           {m.accel_hz_effective != null && m.accel_hz_effective > 0
