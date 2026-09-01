@@ -9,9 +9,18 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 🚀 App-Release-Stand
 
-- **🟡 Zepp 1.0.7 EINGEREICHT — 26.08.2026 (Jans Meldung), Zepp-Konsole: „Under Review
-  (Can be Withdrawn)".** appId 1118995, kostenlos, Buildcode 10. Die Vorversion 1.0.6 steht in
-  derselben Liste mit „Approved" vom 24.08.
+- **🔴 Zepp 1.0.7 ABGELEHNT — 01.09.2026 (Jans Meldung, Mail von der Zepp Open Platform).**
+  Wortlaut des Grundes, vollstaendig: „Please modify the circular preview image and the square
+  preview image. For reference: https://docs.zepp.com/docs/distribute/#appic".
+  Es geht also **nur um die Store-Vorschaubilder**, nicht um den Code — inhaltlich ist an 1.0.7
+  nichts beanstandet. **Jan: „schauen wir uns spaeter an warum"**, also noch NICHT untersucht.
+  Wenn wir rangehen: die Vorgaben stehen unter dem verlinkten Anker, unsere Assets liegen in
+  `brand/app-icons/` und `brand/stores/`, das App-Icon der Uhr selbst in
+  `watch-zepp/assets/common.r/icon.png`. Danach neu einreichen (Buildcode hochzaehlen).
+  **LIVE bleibt damit 1.0.4**; im Baum steht schon 1.0.8.
+  Urspruengliche Einreichung: **26.08.2026**, Zepp-Konsole „Under Review (Can be Withdrawn)",
+  appId 1118995, kostenlos, Buildcode 10. Die Vorversion 1.0.6 stand in derselben Liste mit
+  „Approved" vom 24.08.
   Inhalt: Wert-Grafiken in eigenen Layouts (auf Zepp ueber CANVAS + drawPoly statt ARC —
   Geraetebefund aus @elmanu13s PR: ARC zeichnet auf der T-Rex 3 runde Enden), Puls-Zonen aus dem
   Profil (`hrZones`/`speedScale` mussten dafuer erst in die App-Side-Whitelist, sie fielen vorher
