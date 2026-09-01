@@ -1324,7 +1324,7 @@ const id: Record<string, string> = {
   "account.layoutState.off_nolayout": "Kamu belum menambahkan tata letak sendiri sebagai halaman — buat satu di «Tata letak jam» dan masukkan ke tampilanmu.",
   "account.layoutState.off_user": "Tata letak sendiri dimatikan di profilmu.",
   "account.layoutsEnabled": "Kirim tata letak sendiri ke jam-jamku",
-  "account.layoutsEnabledHint": "Nonaktif = jam-jammu menampilkan tampilan klasik 3 bidang. Hanya berlaku untukmu; kalau satu jam bermasalah kamu juga bisa mematikannya di perangkat (menu → Tata letak sendiri).",
+  "account.layoutsEnabledHint": "Nonaktif = jam-jammu menampilkan tampilan klasik 3 bidang. Kalau satu jam bermasalah kamu juga bisa mematikannya di perangkat (menu → Tata letak sendiri).",
   "account.maxPages": "Jam menyimpan paling banyak {n} halaman.",
   "account.noLayoutsOfKind": "Belum ada layar sendiri jenis ini.",
   "account.noLayoutsYet": "Kamu belum membuat tata letak sendiri untuk layar ini.",

@@ -1626,7 +1626,7 @@ const en: Record<string, string> = {
   "account.keepOnePage": "At least one page has to stay.",
   "account.maxPages": "The watch stores at most {n} pages.",
   "account.layoutsEnabled": "Send my custom layouts to my watches",
-  "account.layoutsEnabledHint": "Off = your watches show the classic 3-field views. Only affects you; if one watch misbehaves you can also switch it off on the device (menu \u2192 Custom layouts).",
+  "account.layoutsEnabledHint": "Off = your watches show the classic 3-field views. If one watch misbehaves you can also switch it off on the device (menu \u2192 Custom layouts).",
   "account.layoutState.off_user": "Custom layouts are switched off in your profile.",
   "account.layoutState.off_memory": "This watch does not have enough memory for custom layouts.",
   "account.layoutState.off_memory_optin": "This watch is short on memory — custom layouts aren’t delivered automatically, but you can switch them on in the watch menu and try.",

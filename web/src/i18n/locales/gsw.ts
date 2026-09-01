@@ -1163,7 +1163,7 @@ const gsw: Record<string, string> = {
   "account.layoutState.off_nolayout": "Du häsch no kei eigets Layout als Site iibunde — under „Uhr-Layouts\" aalege und i de Aasichte iisetze.",
   "account.layoutState.off_user": "Eigeni Layouts sind i dim Profil abgstellt.",
   "account.layoutsEnabled": "Eigeni Layouts a mini Uhre schicke",
-  "account.layoutsEnabledHint": "Us = dini Uhre zeiged di klassische 3-Fäld-Aasichte. Gilt nur für dich; wenn ei Uhr Probleem macht, chasch es au direkt am Grät abstelle (Menü → Eigeni Layouts).",
+  "account.layoutsEnabledHint": "Us = dini Uhre zeiged di klassische 3-Fäld-Aasichte. Wenn ei Uhr Probleem macht, chasch es au direkt am Grät abstelle (Menü → Eigeni Layouts).",
   "account.maxPages": "Meh als {n} Site speicheret d Uhr nöd.",
   "account.noLayoutsOfKind": "No kei eigene Screen vo dere Art aaglegt.",
   "account.noLayoutsYet": "Für die Screen häsch no kei eigets Layout aaglegt.",

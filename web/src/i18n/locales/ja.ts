@@ -1297,7 +1297,7 @@ const ja: Record<string, string> = {
   "account.layoutState.off_nolayout": "まだ自作レイアウトをページとして追加していません — 「時計レイアウト」で作成し、表示に組み込んでください。",
   "account.layoutState.off_user": "自作レイアウトはプロフィールでオフになっています。",
   "account.layoutsEnabled": "自作レイアウトを自分の時計に送る",
-  "account.layoutsEnabledHint": "オフ＝時計はクラシックな 3 フィールド表示になります。影響はあなただけです。特定の時計で不具合が出る場合は端末側でもオフにできます（メニュー → 自作レイアウト）。",
+  "account.layoutsEnabledHint": "オフ＝時計はクラシックな 3 フィールド表示になります。特定の時計で不具合が出る場合は端末側でもオフにできます（メニュー → 自作レイアウト）。",
   "account.maxPages": "時計が保存できるのは最大 {n} ページです。",
   "account.noLayoutsOfKind": "この種類の自作画面はまだありません。",
   "account.noLayoutsYet": "この画面用の自作レイアウトはまだ作っていません。",

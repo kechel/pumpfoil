@@ -1324,7 +1324,7 @@ const pt: Record<string, string> = {
   "account.layoutState.off_nolayout": "Você ainda não adicionou um layout próprio como página — crie um em «Layouts do relógio» e coloque-o nas suas visualizações.",
   "account.layoutState.off_user": "Os layouts próprios estão desligados no seu perfil.",
   "account.layoutsEnabled": "Enviar meus layouts próprios para meus relógios",
-  "account.layoutsEnabledHint": "Desligado = seus relógios mostram as visualizações clássicas de 3 campos. Vale só para você; se um relógio der problema, você também pode desligar no aparelho (menu → Layouts próprios).",
+  "account.layoutsEnabledHint": "Desligado = seus relógios mostram as visualizações clássicas de 3 campos. Se um relógio der problema, você também pode desligar no aparelho (menu → Layouts próprios).",
   "account.maxPages": "O relógio guarda no máximo {n} páginas.",
   "account.noLayoutsOfKind": "Ainda não há tela própria deste tipo.",
   "account.noLayoutsYet": "Você ainda não criou um layout próprio para esta tela.",

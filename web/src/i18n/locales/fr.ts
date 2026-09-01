@@ -1153,7 +1153,7 @@ const fr: Record<string, string> = {
   "account.layoutState.off_nolayout": "Tu n'as pas encore ajouté de mise en page perso comme page — crée-en une sous « Mises en page montre » et place-la dans tes vues.",
   "account.layoutState.off_user": "Les mises en page perso sont désactivées dans ton profil.",
   "account.layoutsEnabled": "Envoyer mes mises en page perso à mes montres",
-  "account.layoutsEnabledHint": "Désactivé = tes montres affichent les vues classiques à 3 champs. Cela ne concerne que toi ; si une montre pose problème, tu peux aussi désactiver sur l'appareil (menu → Mises en page perso).",
+  "account.layoutsEnabledHint": "Désactivé = tes montres affichent les vues classiques à 3 champs. Si une montre pose problème, tu peux aussi désactiver sur l'appareil (menu → Mises en page perso).",
   "account.maxPages": "La montre enregistre au maximum {n} pages.",
   "account.noLayoutsOfKind": "Aucun écran perso de ce type pour l'instant.",
   "account.noLayoutsYet": "Tu n'as pas encore créé de mise en page perso pour cet écran.",

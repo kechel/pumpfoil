@@ -1151,7 +1151,7 @@ const it: Record<string, string> = {
   "account.layoutState.off_nolayout": "Non hai ancora aggiunto un layout personalizzato come pagina — creane uno in «Layout orologio» e mettilo nelle tue viste.",
   "account.layoutState.off_user": "I layout personalizzati sono disattivati nel tuo profilo.",
   "account.layoutsEnabled": "Invia i miei layout personalizzati ai miei orologi",
-  "account.layoutsEnabledHint": "Disattivo = i tuoi orologi mostrano le viste classiche a 3 campi. Riguarda solo te; se un orologio fa i capricci puoi disattivarlo anche sul dispositivo (menu → Layout personalizzati).",
+  "account.layoutsEnabledHint": "Disattivo = i tuoi orologi mostrano le viste classiche a 3 campi. Se un orologio fa i capricci puoi disattivarlo anche sul dispositivo (menu → Layout personalizzati).",
   "account.maxPages": "L'orologio memorizza al massimo {n} pagine.",
   "account.noLayoutsOfKind": "Ancora nessuna schermata personalizzata di questo tipo.",
   "account.noLayoutsYet": "Non hai ancora creato un layout personalizzato per questa schermata.",

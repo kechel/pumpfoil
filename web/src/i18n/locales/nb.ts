@@ -1487,7 +1487,7 @@ const nb: Record<string, string> = {
   "account.keepOnePage": "Minst én side må bli værende.",
   "account.maxPages": "Klokka lagrer maks {n} sider.",
   "account.layoutsEnabled": "Send mine egne oppsett til klokkene mine",
-  "account.layoutsEnabledHint": "Av = klokkene dine viser de klassiske 3-felts-visningene. Gjelder bare deg; hvis én klokke lager trøbbel, kan du også slå det av på selve klokka (meny \u2192 Egne oppsett).",
+  "account.layoutsEnabledHint": "Av = klokkene dine viser de klassiske 3-felts-visningene. Hvis én klokke lager trøbbel, kan du også slå det av på selve klokka (meny \u2192 Egne oppsett).",
   "account.layoutState.off_user": "Egne oppsett er slått av i profilen din.",
   "account.layoutState.off_memory": "Denne klokka har ikke nok minne til egne oppsett.",
   "account.layoutState.off_memory_optin": "Denne klokka har lite minne — egne oppsett sendes ikke automatisk, men du kan slå dem på i menyen på klokka og prøve.",

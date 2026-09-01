@@ -30,6 +30,16 @@ type Entry = { date: string; items: Item[] };
 
 const ENTRIES: Entry[] = [
   {
+    date: "September 2, 2026",
+    items: [
+      "You can now choose how a recording is ended on the watch. Until today it was always \u201chold the button for two seconds\u201d, which protects you from stopping by accident mid-run \u2014 that stays the default. The new option is a single press, and it exists because of a rider whose Garmin already uses the long press for \u201cman overboard\u201d: our menu was simply out of reach for him, and he had to switch that off to use the app. You find the setting in your profile under the watch data fields, it applies to all your watches at once, and holding keeps working either way, so you gain a way rather than losing one. If you pick the single press, discarding a recording asks once before it deletes anything \u2014 that is what the holding protected.",
+      "Garmin watch app 1.0.85 is in the store and brings that setting to the watch. Apple Watch, Wear OS and Amazfit follow with their next update; the setting itself is already live on the website, so you can set it now.",
+      "Records and leaderboards can be narrowed to comparable foils \u2014 and on the iPhone that picker now actually reloads the numbers. It changed the heading but not the records, which made it look broken. Fixed in the version currently waiting for review.",
+      "The session detail now shows starts as well as runs: \u201c4/20\u201d means twenty attempts and four of them flew, with the rate next to it. An (i) explains what counts \u2014 runs come from the motion sensor, starts from GPS alone, which is why failed attempts count and walking on land does not. If two runs look like a lazy evening, it was often fifteen attempts.",
+      "Polish is selectable again \u2014 and this time it sticks. The app showed it right away but the setting never reached the server, so the next time the app looked, everything was English again. Nobody in the whole community had Polish saved, which is what gave it away.",
+    ],
+  },
+  {
     date: "September 1, 2026",
     items: [
       "You can now play a comparison instead of just looking at it. Pick two or more sessions that were at the same spot at the same time, and a play button appears under the map: everyone moves on one clock, so you finally see who was where while you were out together. Only the run someone is on is drawn, growing as they ride it \u2014 with the full tracks underneath you cannot tell anyone apart. Between runs a rider is parked with a hollow dot rather than drifting across the lake, because we only know exactly where someone was while they were up. Stretches where nobody was riding are skipped, so two hours on the water play in about ten minutes, and the map tells you how much it skipped.",

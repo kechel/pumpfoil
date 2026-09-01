@@ -1300,7 +1300,7 @@ const zh: Record<string, string> = {
   "account.layoutState.off_nolayout": "你还没有把自定义布局加为页面——先在「手表布局」里创建一个，再放进你的界面。",
   "account.layoutState.off_user": "自定义布局在你的个人资料中已关闭。",
   "account.layoutsEnabled": "把我的自定义布局发送到我的手表",
-  "account.layoutsEnabledHint": "关闭＝你的手表显示经典的三字段界面。只影响你自己；如果某块手表出问题，也可以在设备上关闭（菜单 → 自定义布局）。",
+  "account.layoutsEnabledHint": "关闭＝你的手表显示经典的三字段界面。如果某块手表出问题，也可以在设备上关闭（菜单 → 自定义布局）。",
   "account.maxPages": "手表最多保存 {n} 页。",
   "account.noLayoutsOfKind": "还没有这一类的自定义界面。",
   "account.noLayoutsYet": "你还没有为这个界面做过自定义布局。",
