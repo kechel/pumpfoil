@@ -31,14 +31,18 @@ Dieselben Bildschirme, einmal rund und einmal eckig. **In der Zepp-Doku steht da
 aus einer Ablehnung (Jan, vor dem 01.09.2026: „es wurde schonmal abgelehnt weil die nicht identisch
 waren rund vs. eckig").
 
-**Aktueller Stand: 8 runde, aber nur 7 eckige.** Das ist keine Verarbeitungsluecke — auch die
-Rohaufnahmen liegen 8 zu 7 (`screenshots/watch/zepp/raw/{circle,square}/`). Der achte Bildschirm
-wurde eckig nie aufgenommen.
+**Erledigt (01.09.):** die runde Reihe hatte **8** Dateien, die eckige **7** — der Ueberschuss war
+aber keine fehlende Aufnahme, sondern ein **Duplikat**: `zepp-rund-06.png` war dasselbe Bild wie
+`zepp-rund-01.png` (mittlere Pixel-Abweichung **0,02**; das naechstaehnlichste Paar der Reihe liegt
+bei 4,71, also 200× weiter auseinander). Geloescht — jetzt **7 zu 7**.
 
-→ **Bis das nachgeholt ist: nur 7 runde hochladen**, das achte weglassen (so hat Jan es am 01.09.
-gemacht). Wer die fehlende Aufnahme nachholt: im Zepp-Simulator (nur auf Jans Mac) denselben
-Bildschirm eckig aufnehmen, dann auf 360×360 mit Inhalt 312 breit und Rand 24/24 bringen — die
-Rechnung steht unten.
+Nachgeprueft ist auch die **Zuordnung ueber die Nummer**: rund-01…04 und rund-07 finden jeweils ihr
+eckiges Gegenstueck mit derselben Nummer als aehnlichstes Bild. Deshalb wurde nach dem Loeschen
+**NICHT umnummeriert** — die Luecke bei 06 ist gewollt, Umnummerieren wuerde die Paarung verschieben.
+Die Konsole interessiert der Dateiname nicht.
+
+**Beim naechsten Erweitern der Reihen:** jeder Bildschirm muss in BEIDEN Reihen vorkommen, und ein
+zweites Bild desselben Bildschirms zaehlt nicht — beides pruefen, bevor hochgeladen wird.
 
 ## Der eine gefundene Regelbruch (behoben 01.09.)
 
