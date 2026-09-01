@@ -619,6 +619,30 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **📌 01.09. — MERKE: die persoenliche Empfindlichkeit kann Laeufe NICHT retten, die das
+  Bewegungsmodell verworfen hat.** Anlass: Jan fragte zu einer Session mit nur 2 Laeufen (u228,
+  Laax, 53:45), ob etwas nicht erkannt wird — und ob die Profil-Einstellung die kurzen Laeufe
+  zeigen wuerde. **Beides nachgemessen, rein lesend** (`analyze_session_v2` direkt, NICHT
+  `run_analysis` — das committet):
+  - **Die zwei Laeufe sind die Wahrheit der Aufnahme.** In den ausgewerteten 44:34 war der Fahrer
+    **61 s** ueber ~11 km/h; die zwei laengsten Phasen (17 s / 14 s) sind genau die zwei Laeufe.
+    15 Startversuche, davon 13 nur 3–8 s. Der Trim (4:49 vorn, 4:24 hinten) hat nichts
+    weggeschnitten: dort zusammen **1 s** ueber 11 km/h. Daten sauber (25,2 Hz gemessen,
+    `exact_chunks`, `detection=model`), Foil und Puls wie in seinen anderen Sessions.
+  - **Die Einstellung aendert NICHTS:** v2 mit `normal`/`light`/`attempts` liefert **je 2 Laeufe**.
+    Grund: die Presets lockern nur die GPS-Schwellen (`enter_speed`, `min_segment_s`,
+    `min_seg_avg_speed`), aber **mit Accel ist das On-Foil-MODELL die Quelle der Maske**
+    (`detect_v2.py`: „Physik als Schranke, nicht als Detektor"). Die Modell-Maske markiert in der
+    ganzen Session **21 s** on-foil (zwei Phasen: 16 s + 5 s). In den drei Grenzfaellen
+    (6/6/7 s bei Ø 12–14 km/h, Fenster-Label sogar „gleiten") sagt das Modell **0 s** — und
+    `_rette_keime` kann nur retten, wo ein Keim IST.
+  - **Folge fuer die Kommunikation:** Nutzern mit „zu wenige Laeufe" NICHT die
+    Empfindlichkeits-Einstellung als Loesung anbieten, solange die Session `detection=model` hat.
+    Sie hilft nur bei GPS-only-Auswertungen und bei knapp zu kurzen/langsamen Laeufen, die das
+    Modell schon erkannt hat.
+  - **Nichts geschrieben** (Jans Entscheidung nach der Verifikation). `bot-post.py` hatte den
+    zweiten Beitrag in denselben 1:1-Chat ohnehin von selbst abgelehnt.
+
 - **✅ 01.09. — Dritter Durchgang: die drei letzten inhaltlichen Luecken der Apps sind zu.**
   1. **Startseiten-Hinweis „aussortiert"** (Android + iOS): ein Einzeiler, wenn FRISCH etwas nicht
      als Pumpfoilen gezaehlt wurde (`sorted_out_new`, letzte 7 Tage) — verfaellt von selbst, es
