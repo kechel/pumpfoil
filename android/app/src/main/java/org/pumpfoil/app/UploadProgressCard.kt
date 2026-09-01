@@ -56,8 +56,24 @@ fun UploadProgressCard(onOpen: (Int) -> Unit, modifier: Modifier = Modifier) {
     }
 }
 
+// Dieselbe Karte auf der Detailseite EINER Session (Jan, 01.09.: „die session sollte auch die
+// gleiche anzeige verwenden wie die session-uebersicht waehrend eines uploads"). Ohne Klickziel —
+// sie wuerde auf sich selbst verlinken. Rendert nichts, sobald der Upload durch ist (dann steht
+// die Session nicht mehr in /in-progress) und die Analyse allein weiterlaeuft.
 @Composable
-private fun UploadRow(s: InProgressSession, onOpen: (Int) -> Unit) {
+fun SessionUploadCard(id: Int, modifier: Modifier = Modifier) {
+    var row by remember(id) { mutableStateOf<InProgressSession?>(null) }
+    LaunchedEffect(id) {
+        while (true) {
+            row = try { Api.inProgress().firstOrNull { it.id == id } } catch (_: Exception) { row }
+            delay(if (row != null) 4000L else 20000L)
+        }
+    }
+    row?.let { UploadRow(it, onOpen = null, modifier = modifier) }
+}
+
+@Composable
+private fun UploadRow(s: InProgressSession, onOpen: ((Int) -> Unit)?, modifier: Modifier = Modifier) {
     val accent = MaterialTheme.colorScheme.primary
     val pct = s.uploadTotal?.takeIf { it > 0 }?.let {
         (s.uploadReceived.toFloat() / it).coerceIn(0f, 1f)
@@ -70,12 +86,7 @@ private fun UploadRow(s: InProgressSession, onOpen: (Int) -> Unit) {
             } catch (_: Exception) { false }
         } ?: false
     }
-    Card(
-        onClick = { onOpen(s.id) },
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = accent.copy(alpha = 0.10f)),
-        shape = RoundedCornerShape(14.dp),
-    ) {
+    val inhalt: @Composable () -> Unit = {
         Column(Modifier.padding(14.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Filled.CloudUpload, null, tint = accent, modifier = Modifier.size(20.dp))
@@ -129,5 +140,12 @@ private fun UploadRow(s: InProgressSession, onOpen: (Int) -> Unit) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
+    }
+    val farben = CardDefaults.cardColors(containerColor = accent.copy(alpha = 0.10f))
+    val form = RoundedCornerShape(14.dp)
+    if (onOpen != null) {
+        Card(onClick = { onOpen(s.id) }, modifier = modifier.fillMaxWidth(), colors = farben, shape = form) { inhalt() }
+    } else {
+        Card(modifier = modifier.fillMaxWidth(), colors = farben, shape = form) { inhalt() }
     }
 }
