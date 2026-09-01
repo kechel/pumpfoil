@@ -84,8 +84,16 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
     neue API noch als „denkbar" bezeichnet — das war zu optimistisch, und sie sucht gerade einen
     Tracker. Richtiggestellt, damit sie ihre Kaufentscheidung nicht darauf baut.
 
-- **📐 01.09. — STRATEGIE automatische Anbindungen: die einzigen offenen Tueren sind die
-  Gesundheitsspeicher der Telefone.** Bilanz nach der Google-Recherche, weil Jan automatische
+- **⏸️ 01.09. — ZURUECKGESTELLT (Jans Entscheidung): automatische Anbindung von Google/Fitbit und
+  den Telefon-Gesundheitsspeichern. „das bringt dann nix, dann heben wir uns das nur als plan fuer
+  irgendwann auf".** NICHT weiterverfolgen, nicht neu recherchieren — die Recherche steht unten und
+  ist vollstaendig. **Was den Plan wieder aufwecken wuerde:** die Google Health API dokumentiert
+  einen Location-/Route-Datentyp (heute gibt es nur den Scope `location.readonly` ohne Eintrag).
+  Sinnvoller Zeitpunkt zum Nachsehen: nachdem die Abkuendigung der alten Fitbit-API (September 2026)
+  durch ist und die neuen Dokus stehen.
+
+  Die Bilanz, die zu der Entscheidung gefuehrt hat — die einzigen offenen Tueren waeren die
+  Gesundheitsspeicher der Telefone: Bilanz nach der Google-Recherche, weil Jan automatische
   Anbindungen will und nicht Datei-Import:
   | Weg | Automatisch? | Track? | Stand |
   |---|---|---|---|
