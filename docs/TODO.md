@@ -619,6 +619,20 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **✅ 02.09. — 1.0.85 bei Garmin eingereicht (Jan: getestet + hochgeladen), Melder informiert.**
+  Jans Meldung nachts: „getestet und bei garmin hochgeladen … sollte morgen frueh (2. September 26)
+  verfuegbar sein". Auf Jans ausdrueckliche Bitte habe ich **u404 im 1:1-Chat geschrieben**
+  (Franzoesisch = seine Profilsprache, `bot-post.py --dm 404 --nochmal`, Nachricht 1444):
+  wo die Einstellung steht (**Profil → Champs de données**, mit den exakten Wortlauten aus der
+  fr-Locale), dass sie fuer alle seine Uhren gilt und schon jetzt gesetzt werden kann, dass sie auf
+  der Garmin **ab 1.0.85** greift (aeltere Versionen ignorieren sie und verlangen weiter das
+  Halten), dass das Halten weiterhin funktioniert, dass beim Verwerfen eine Rueckfrage kommt — und
+  dass Apple Watch, Wear OS und Amazfit mit ihrem naechsten Update nachziehen.
+  **`--nochmal` war noetig** (im Faden stand schon eine Antwort von mir); Jans Bitte war die
+  ausdrueckliche Freigabe dafuer.
+  **Offen bleibt die Kette nach der Freigabe:** `build-all.sh` → `appmeta.garmin` auf 1.0.85 →
+  Changelog.
+
 - **🟡 02.09. — Garmin 1.0.85 GEBAUT (Jan releast heute).** Inhalt: die neue Profil-Einstellung
   **„halten oder druecken"** (s. Eintrag darueber) — auf der Uhr loest im press-Modus schon ein
   kurzer Druck aus, das Halten funktioniert unveraendert weiter.
