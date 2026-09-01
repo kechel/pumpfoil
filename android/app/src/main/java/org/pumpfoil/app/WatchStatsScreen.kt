@@ -85,7 +85,7 @@ fun WatchStatsScreen(onBack: () -> Unit, onFoilStats: () -> Unit = {}) {
         LazyColumn(Modifier.padding(pad).fillMaxSize().padding(horizontal = 12.dp)) {
             item {
                 Text(I18n.t("watchStats.hint"),
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(vertical = 8.dp))
             }

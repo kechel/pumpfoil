@@ -17,6 +17,13 @@ let ptOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/pt.ts.
 private let _ptOverlayP11: [String: String] = [
+    "foilStats.hint": "Quais números as pessoas alcançam em qual foil (comunidade). Contam apenas sessões de pumpfoil com deteção por acelerómetro — outros desportos (wing, eFoil, foildrive, wakethief), gravações só de GPS e dados marcados como incorretos ficam de fora.",
+    "watchStats.hint": "Quais números são feitos com qual relógio — média da comunidade por modelo. Aqui conta cada gravação: todos os desportos, com ou sem dados de acelerómetro.",
+    "spotcmp.title": "Recordes do spot",
+    "spotcmp.pick": "Comparar um spot …",
+    "spotcmp.foilers": "Mais foilers",
+    "spotcmp.distance": "Maior distância de foil",
+    "spots.none": "Ainda sem spots no mapa.",
     "cr.foilAll": "Todos os foils",
     "cr.foilMine": "Como o meu foil",
     "cr.foilUnder": "abaixo de {n} cm²",
@@ -850,6 +857,13 @@ let jaOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/ja.ts.
 private let _jaOverlayP11: [String: String] = [
+    "foilStats.hint": "ã©ã®ãã©ã¤ã«ã§ã©ããªæ°å¤ãåºããï¼ã³ãã¥ããã£ï¼ã カウントされるのは加速度センサーで判定されたパンプフォイルのセッションのみです。他の競技（ウィング、eFoil、フォイルドライブ、ウェイクシーフ）、GPSのみの記録、誤りとして印を付けたデータは含まれません。",
+    "watchStats.hint": "どの数値がどのウォッチで記録されたか — モデルごとのコミュニティ集計。 ここではすべての記録が対象です。競技を問わず、加速度データの有無も問いません。",
+    "spotcmp.title": "スポット記録",
+    "spotcmp.pick": "スポットを比較 …",
+    "spotcmp.foilers": "最多フォイラー",
+    "spotcmp.distance": "最多フォイル距離",
+    "spots.none": "地図上にまだスポットがありません。",
     "cr.foilAll": "すべてのフォイル",
     "cr.foilMine": "自分のフォイルと同等",
     "cr.foilUnder": "{n} cm² 未満",
@@ -1683,6 +1697,13 @@ let zhOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/zh.ts.
 private let _zhOverlayP11: [String: String] = [
+    "foilStats.hint": "äººä»¬å¨åªæ¬¾æ°´ç¿¼ä¸åå¾åªäºæ°æ®ï¼ç¤¾åºï¼ã 仅统计带加速度识别的 pumpfoil 记录 — 其他运动（wing、eFoil、foildrive、wakethief）、仅 GPS 的记录以及被标记为错误的数据不计入。",
+    "watchStats.hint": "哪些数据是用哪块手表骑出来的 —— 按型号的社区汇总。 这里统计所有记录：不限运动项目，有无加速度数据都算。",
+    "spotcmp.title": "地点纪录",
+    "spotcmp.pick": "对比一个地点 …",
+    "spotcmp.foilers": "最多玩家",
+    "spotcmp.distance": "最多水翼距离",
+    "spots.none": "地图上暂无地点。",
     "cr.foilAll": "全部前翼",
     "cr.foilMine": "与我的前翼相近",
     "cr.foilUnder": "小于 {n} cm²",
@@ -2516,6 +2537,13 @@ let ruOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/ru.ts.
 private let _ruOverlayP11: [String: String] = [
+    "foilStats.hint": "ÐÐ°ÐºÐ¸Ðµ Ð¿Ð¾ÐºÐ°Ð·Ð°ÑÐµÐ»Ð¸ Ð´Ð¾ÑÑÐ¸Ð³Ð°ÑÑÑÑ Ð½Ð° ÐºÐ°ÐºÐ¾Ð¼ ÑÐ¾Ð¹Ð»Ðµ (ÑÐ¾Ð¾Ð±ÑÐµÑÑÐ²Ð¾). Учитываются только сессии pumpfoil с определением по акселерометру — другие виды (wing, eFoil, foildrive, wakethief), записи только по GPS и данные, помеченные как ошибочные, не входят.",
+    "watchStats.hint": "Какие показатели достигаются на каких часах — совокупные данные сообщества по каждой модели. Здесь учитывается всё: любые виды спорта, с данными акселерометра и без них.",
+    "spotcmp.title": "Рекорды спота",
+    "spotcmp.pick": "Сравнить спот …",
+    "spotcmp.foilers": "Больше всего фойлеров",
+    "spotcmp.distance": "Больше всего дистанции на фойле",
+    "spots.none": "На карте пока нет спотов.",
     "cr.foilAll": "Все крылья",
     "cr.foilMine": "Как моё крыло",
     "cr.foilUnder": "меньше {n} см²",
@@ -3349,6 +3377,13 @@ let idOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/id.ts.
 private let _idOverlayP11: [String: String] = [
+    "foilStats.hint": "Angka apa yang dicapai orang di foil mana (komunitas). Hanya sesi pumpfoil dengan deteksi accel yang dihitung — olahraga lain (wing, eFoil, foildrive, wakethief), rekaman GPS saja, dan data yang ditandai keliru tidak ikut.",
+    "watchStats.hint": "Angka apa yang dicapai dengan jam mana — agregat komunitas per model. Di sini semua dihitung: semua olahraga, dengan atau tanpa data accel.",
+    "spotcmp.title": "Rekor spot",
+    "spotcmp.pick": "Bandingkan sebuah spot …",
+    "spotcmp.foilers": "Foiler terbanyak",
+    "spotcmp.distance": "Jarak foil terbanyak",
+    "spots.none": "Belum ada spot di peta.",
     "cr.foilAll": "Semua foil",
     "cr.foilMine": "Seperti foil saya",
     "cr.foilUnder": "di bawah {n} cm²",
@@ -4181,6 +4216,13 @@ let nbOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/nb.ts.
 private let _nbOverlayP11: [String: String] = [
+    "foilStats.hint": "Hvilke tall folk oppnår på hvilken foil (fellesskapet). Bare pumpfoil-økter med accel-gjenkjenning telles — andre sporter (wing, eFoil, foildrive, wakethief), rene GPS-opptak og data merket som feil er ikke med.",
+    "watchStats.hint": "Hvilke tall som kjøres med hvilken klokke — samlet fra fellesskapet per modell. Her teller alt: alle sporter, med og uten accel-data.",
+    "spotcmp.title": "Spot-rekorder",
+    "spotcmp.pick": "Sammenlign en spot …",
+    "spotcmp.foilers": "Flest foilere",
+    "spotcmp.distance": "Mest foilet distanse",
+    "spots.none": "Ingen spots på kartet ennå.",
     "cr.foilAll": "Alle foiler",
     "cr.foilMine": "Som min foil",
     "cr.foilUnder": "under {n} cm²",
@@ -5042,6 +5084,13 @@ let plOverlay: [String: String] = {
 }()
 
 private let _plOverlayP1: [String: String] = [
+    "foilStats.hint": "Jakie wartości osiąga się na jakim foilu (społeczność). Liczą się tylko sesje pumpfoil z wykrywaniem po akcelerometrze — inne sporty (wing, eFoil, foildrive, wakethief), nagrania tylko z GPS i dane oznaczone jako błędne nie są uwzględniane.",
+    "watchStats.hint": "Jakie wartości osiąga się na jakim zegarku — zbiorczo w całej społeczności, według modelu. Tutaj liczy się każde nagranie: wszystkie sporty, z danymi akcelerometru i bez nich.",
+    "spotcmp.title": "Rekordy spotu",
+    "spotcmp.pick": "Porównaj spot …",
+    "spotcmp.foilers": "Najwięcej foilerów",
+    "spotcmp.distance": "Najwięcej przejechanych kilometrów",
+    "spots.none": "Jeszcze żadnych spotów na mapie.",
     "cr.foilAll": "Wszystkie foile",
     "cr.foilMine": "Jak mój foil",
     "cr.foilUnder": "poniżej {n} cm²",

@@ -46,6 +46,13 @@ private fun row(de: String, gsw: String, deAT: String, en: String, fr: String, i
 private val S: Map<String, Map<String, String>> = sTabelle()
 
 private fun sTabelle(): Map<String, Map<String, String>> = mapOf(
+    "foilStats.hint" to row("Welche Werte werden mit welchem Foil gefahren (Community). Gezählt werden nur Pumpfoil-Sessions mit Accel-Erkennung — andere Sportarten (Wing, eFoil, Foildrive, Wakethief), GPS-only-Aufnahmen und als fehlerhaft markierte Daten sind nicht dabei.", "Weli Wärt mit welem Foil gfahre wärde (Community). Zellt wärded nume Pumpfoil-Sessions mit Accel-Erkennig — anderi Sportarte (Wing, eFoil, Foildrive, Wakethief), GPS-only-Ufnahme und als fählerhaft markierti Date sind nöd debi.", "Wöche Werte werdn mit wöchem Foil gfahrn (Community). Gezählt werdn nur Pumpfoil-Sessions mit Accel-Erkennung — andere Sportarten (Wing, eFoil, Foildrive, Wakethief), GPS-only-Aufnahmen und ois fehlerhaft markierte Daten san net dabei.", "Which numbers people achieve on which foil (community). Only pumpfoil sessions with accel detection are counted — other sports (wing, eFoil, foildrive, wakethief), GPS-only recordings and data marked as faulty are left out.", "Quelles valeurs sont atteintes avec quel foil (communauté). Seules les sessions de pumpfoil avec détection accéléromètre sont comptées — les autres sports (wing, eFoil, foildrive, wakethief), les enregistrements GPS seuls et les données marquées comme erronées sont exclus.", "Quali valori si ottengono con quale foil (community). Contano solo le sessioni di pumpfoil con rilevamento accelerometrico — altri sport (wing, eFoil, foildrive, wakethief), registrazioni solo GPS e dati segnati come errati restano fuori.", "Qué valores se logran con qué foil (comunidad). Solo cuentan las sesiones de pumpfoil con detección por acelerómetro — otros deportes (wing, eFoil, foildrive, wakethief), grabaciones solo GPS y datos marcados como erróneos quedan fuera."),
+    "watchStats.hint" to row("Welche Werte werden mit welcher Uhr gefahren — Community-Aggregat je Modell. Hier zählt jede Aufnahme: alle Sportarten, mit und ohne Accel-Daten.", "Weli Wärt wärded mit weler Uhr gfahre — Community-Aggregat je Modäll. Do zellt jedi Ufnahm: alli Sportarte, mit und ohni Accel-Date.", "Welche Werte werden mit welcher Uhr gefahren — Community-Aggregat je Modell. Do zöhlt jede Aufnahme: olle Sportartn, mit und ohne Accel-Datn.", "Which numbers are ridden with which watch — community aggregate per model. Everything counts here: every sport, with or without accel data.", "Quels chiffres avec quelle montre — agrégat communautaire par modèle. Ici tout compte : tous les sports, avec ou sans données accéléromètre.", "Quali valori con quale orologio — aggregato community per modello. Qui conta ogni registrazione: tutti gli sport, con o senza dati accelerometrici.", "Qué valores con qué reloj — agregado de la comunidad por modelo. Aquí cuenta cada grabación: todos los deportes, con o sin datos de acelerómetro."),
+    "spotcmp.title" to row("Spot-Rekorde", "Spot-Rekord", "Spot-Rekorde", "Spot records", "Records des spots", "Record degli spot", "Récords de spots"),
+    "spotcmp.pick" to row("Spot zum Vergleichen …", "Spot zum Verglyche …", "Spot zum Vergleichen …", "Compare a spot …", "Comparer un spot …", "Confronta uno spot …", "Comparar un spot …"),
+    "spotcmp.foilers" to row("Meiste Foiler", "Meischti Foiler", "Meiste Foiler", "Most foilers", "Plus de foilers", "Più foiler", "Más foilers"),
+    "spotcmp.distance" to row("Meiste Foil-Distanz", "Meischti Foil-Distanz", "Meiste Foil-Distanz", "Most foiled distance", "Plus de distance foilée", "Più distanza in foil", "Más distancia en foil"),
+    "spots.none" to row("Noch keine Spots auf der Karte.", "No kei Spots uf de Charte.", "No kane Spots auf da Kartn.", "No spots on the map yet.", "Aucun spot sur la carte pour l'instant.", "Ancora nessuno spot sulla mappa.", "Aún no hay spots en el mapa."),
     "cr.foilAll" to row("Alle Foils", "Alli Foils", "Olle Foils", "All foils", "Tous les foils", "Tutti i foil", "Todos los foils"),
     "cr.foilMine" to row("Wie mein Foil", "Wie mis Foil", "Wia mei Foil", "Like my foil", "Comme mon foil", "Come il mio foil", "Como mi foil"),
     "cr.foilUnder" to row("unter {n} cm²", "under {n} cm²", "unter {n} cm²", "under {n} cm²", "moins de {n} cm²", "sotto {n} cm²", "menos de {n} cm²"),
@@ -1056,6 +1063,13 @@ private fun sTabelle(): Map<String, Map<String, String>> = mapOf(
 private val FI: Map<String, String> = fiTabelle()
 
 private fun fiTabelle(): Map<String, String> = mapOf(
+    "foilStats.hint" to "Mitä arvoja millläkin foililla ajetaan (yhteisö). Mukaan lasketaan vain pumpfoil-sessiot accel-tunnistuksella — muut lajit (wing, eFoil, foildrive, wakethief), pelkät GPS-tallenteet ja virheellisiksi merkityt tiedot jäävät pois.",
+    "watchStats.hint" to "Mitkä arvot millä kellolla — yhteisön koonti mallia kohti. Tässä lasketaan kaikki: kaikki lajit, accel-datan kanssa tai ilman.",
+    "spotcmp.title" to "Spotti-ennätykset",
+    "spotcmp.pick" to "Vertaa spottia …",
+    "spotcmp.foilers" to "Eniten foilaajia",
+    "spotcmp.distance" to "Eniten foilattua matkaa",
+    "spots.none" to "Ei vielä spotteja kartalla.",
     "cr.foilAll" to "Kaikki siivet",
     "cr.foilMine" to "Kuten oma siipi",
     "cr.foilUnder" to "alle {n} cm²",
@@ -1860,6 +1874,13 @@ private fun fiTabelle(): Map<String, String> = mapOf(
 private val NL: Map<String, String> = nlTabelle()
 
 private fun nlTabelle(): Map<String, String> = mapOf(
+    "foilStats.hint" to "Welke waarden worden met welke foil gereden (community). Alleen pumpfoil-sessies met accel-detectie tellen mee — andere sporten (wing, eFoil, foildrive, wakethief), alleen-GPS-opnames en als foutief gemarkeerde data blijven buiten beschouwing.",
+    "watchStats.hint" to "Welke waarden met welk horloge worden gevaren — community-aggregaat per model. Hier telt elke opname mee: alle sporten, met en zonder accel-data.",
+    "spotcmp.title" to "Spot-records",
+    "spotcmp.pick" to "Vergelijk een spot …",
+    "spotcmp.foilers" to "Meeste foilers",
+    "spotcmp.distance" to "Meeste gefoilde afstand",
+    "spots.none" to "Nog geen spots op de kaart.",
     "cr.foilAll" to "Alle foils",
     "cr.foilMine" to "Zoals mijn foil",
     "cr.foilUnder" to "onder {n} cm²",
@@ -2663,6 +2684,13 @@ private fun nlTabelle(): Map<String, String> = mapOf(
 private val CS: Map<String, String> = csTabelle()
 
 private fun csTabelle(): Map<String, String> = mapOf(
+    "foilStats.hint" to "Které hodnoty se jezdí s kterým foilem (komunita). Počítají se jen pumpfoil session s accel detekcí — ostatní sporty (wing, eFoil, foildrive, wakethief), pouze GPS záznamy a data označená jako chybná se nezapočítávají.",
+    "watchStats.hint" to "Které hodnoty se jezdí s kterými hodinkami — komunitní souhrn podle modelu. Tady se počítá každý záznam: všechny sporty, s accel daty i bez nich.",
+    "spotcmp.title" to "Rekordy spotů",
+    "spotcmp.pick" to "Porovnat spot …",
+    "spotcmp.foilers" to "Nejvíce foilerů",
+    "spotcmp.distance" to "Nejvíce nafoilováno",
+    "spots.none" to "Zatím žádné spoty na mapě.",
     "cr.foilAll" to "Všechny foily",
     "cr.foilMine" to "Jako můj foil",
     "cr.foilUnder" to "pod {n} cm²",

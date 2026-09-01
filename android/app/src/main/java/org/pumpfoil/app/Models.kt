@@ -583,6 +583,33 @@ data class PeriodRecords(
     @SerialName("carves180") val carves180: CommunityRecordEntry? = null,
 )
 
+// Rekordhalter einer Spot-Kennzahl (von EINER Session/EINEM Lauf gewonnen).
+@Serializable
+data class SpotRecHolder(
+    val value: Double = 0.0,
+    @SerialName("session_id") val sessionId: Int? = null,
+    @SerialName("run_idx") val runIdx: Int? = null,
+    val name: String? = null,
+    @SerialName("started_at") val startedAt: String? = null,
+    val tz: String? = null,
+)
+
+// Kennzahlen JE SPOT fuer den Spot-Vergleich (GET /api/community/spot-compare).
+// Aggregate + zwei Einzel-Rekorde; Wortlaut und Auswahl wie SpotCompare.tsx in der PWA.
+@Serializable
+data class SpotAgg(
+    val spot: String = "",
+    @SerialName("spot_id") val spotId: Int? = null,
+    val sessions: Int = 0,
+    val runs: Int = 0,
+    val pumps: Int = 0,
+    val foilers: Int = 0,
+    @SerialName("foiling_km") val foilingKm: Double = 0.0,
+    @SerialName("onfoil_s") val onfoilS: Int = 0,
+    @SerialName("longest_run") val longestRun: SpotRecHolder? = null,
+    @SerialName("top_speed") val topSpeed: SpotRecHolder? = null,
+)
+
 @Serializable
 data class SpotMapItem(
     val spot: String,

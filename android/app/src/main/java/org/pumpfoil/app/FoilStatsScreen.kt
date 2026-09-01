@@ -87,8 +87,8 @@ fun FoilStatsScreen(onBack: () -> Unit, onWatchStats: () -> Unit = {}) {
         fun sel(k: String) { if (sortKey == k) sortAsc = !sortAsc else { sortKey = k; sortAsc = (k == "name") } }
         LazyColumn(Modifier.padding(pad).fillMaxSize().padding(horizontal = 12.dp)) {
             item {
-                Text(I18n.t("foilstats.intro"),
-                    style = MaterialTheme.typography.bodySmall,
+                Text(I18n.t("foilStats.hint"),
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(vertical = 8.dp))
             }

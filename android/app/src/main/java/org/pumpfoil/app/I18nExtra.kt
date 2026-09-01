@@ -7,6 +7,13 @@ package org.pumpfoil.app
 val PT: Map<String, String> = ptTabelle()
 
 private fun ptTabelle(): Map<String, String> = mapOf(
+    "foilStats.hint" to "Quais números as pessoas alcançam em qual foil (comunidade). Contam apenas sessões de pumpfoil com deteção por acelerómetro — outros desportos (wing, eFoil, foildrive, wakethief), gravações só de GPS e dados marcados como incorretos ficam de fora.",
+    "watchStats.hint" to "Quais números são feitos com qual relógio — média da comunidade por modelo. Aqui conta cada gravação: todos os desportos, com ou sem dados de acelerómetro.",
+    "spotcmp.title" to "Recordes do spot",
+    "spotcmp.pick" to "Comparar um spot …",
+    "spotcmp.foilers" to "Mais foilers",
+    "spotcmp.distance" to "Maior distância de foil",
+    "spots.none" to "Ainda sem spots no mapa.",
     "cr.foilAll" to "Todos os foils",
     "cr.foilMine" to "Como o meu foil",
     "cr.foilUnder" to "abaixo de {n} cm²",
@@ -819,6 +826,13 @@ private fun ptTabelle(): Map<String, String> = mapOf(
 val JA: Map<String, String> = jaTabelle()
 
 private fun jaTabelle(): Map<String, String> = mapOf(
+    "foilStats.hint" to "ã©ã®ãã©ã¤ã«ã§ã©ããªæ°å¤ãåºããï¼ã³ãã¥ããã£ï¼ã カウントされるのは加速度センサーで判定されたパンプフォイルのセッションのみです。他の競技（ウィング、eFoil、フォイルドライブ、ウェイクシーフ）、GPSのみの記録、誤りとして印を付けたデータは含まれません。",
+    "watchStats.hint" to "どの数値がどのウォッチで記録されたか — モデルごとのコミュニティ集計。 ここではすべての記録が対象です。競技を問わず、加速度データの有無も問いません。",
+    "spotcmp.title" to "スポット記録",
+    "spotcmp.pick" to "スポットを比較 …",
+    "spotcmp.foilers" to "最多フォイラー",
+    "spotcmp.distance" to "最多フォイル距離",
+    "spots.none" to "地図上にまだスポットがありません。",
     "cr.foilAll" to "すべてのフォイル",
     "cr.foilMine" to "自分のフォイルと同等",
     "cr.foilUnder" to "{n} cm² 未満",
@@ -1631,6 +1645,13 @@ private fun jaTabelle(): Map<String, String> = mapOf(
 val ZH: Map<String, String> = zhTabelle()
 
 private fun zhTabelle(): Map<String, String> = mapOf(
+    "foilStats.hint" to "äººä»¬å¨åªæ¬¾æ°´ç¿¼ä¸åå¾åªäºæ°æ®ï¼ç¤¾åºï¼ã 仅统计带加速度识别的 pumpfoil 记录 — 其他运动（wing、eFoil、foildrive、wakethief）、仅 GPS 的记录以及被标记为错误的数据不计入。",
+    "watchStats.hint" to "哪些数据是用哪块手表骑出来的 —— 按型号的社区汇总。 这里统计所有记录：不限运动项目，有无加速度数据都算。",
+    "spotcmp.title" to "地点纪录",
+    "spotcmp.pick" to "对比一个地点 …",
+    "spotcmp.foilers" to "最多玩家",
+    "spotcmp.distance" to "最多水翼距离",
+    "spots.none" to "地图上暂无地点。",
     "cr.foilAll" to "全部前翼",
     "cr.foilMine" to "与我的前翼相近",
     "cr.foilUnder" to "小于 {n} cm²",
@@ -2443,6 +2464,13 @@ private fun zhTabelle(): Map<String, String> = mapOf(
 val RU: Map<String, String> = ruTabelle()
 
 private fun ruTabelle(): Map<String, String> = mapOf(
+    "foilStats.hint" to "ÐÐ°ÐºÐ¸Ðµ Ð¿Ð¾ÐºÐ°Ð·Ð°ÑÐµÐ»Ð¸ Ð´Ð¾ÑÑÐ¸Ð³Ð°ÑÑÑÑ Ð½Ð° ÐºÐ°ÐºÐ¾Ð¼ ÑÐ¾Ð¹Ð»Ðµ (ÑÐ¾Ð¾Ð±ÑÐµÑÑÐ²Ð¾). Учитываются только сессии pumpfoil с определением по акселерометру — другие виды (wing, eFoil, foildrive, wakethief), записи только по GPS и данные, помеченные как ошибочные, не входят.",
+    "watchStats.hint" to "Какие показатели достигаются на каких часах — совокупные данные сообщества по каждой модели. Здесь учитывается всё: любые виды спорта, с данными акселерометра и без них.",
+    "spotcmp.title" to "Рекорды спота",
+    "spotcmp.pick" to "Сравнить спот …",
+    "spotcmp.foilers" to "Больше всего фойлеров",
+    "spotcmp.distance" to "Больше всего дистанции на фойле",
+    "spots.none" to "На карте пока нет спотов.",
     "cr.foilAll" to "Все крылья",
     "cr.foilMine" to "Как моё крыло",
     "cr.foilUnder" to "меньше {n} см²",
@@ -3255,6 +3283,13 @@ private fun ruTabelle(): Map<String, String> = mapOf(
 val ID: Map<String, String> = idTabelle()
 
 private fun idTabelle(): Map<String, String> = mapOf(
+    "foilStats.hint" to "Angka apa yang dicapai orang di foil mana (komunitas). Hanya sesi pumpfoil dengan deteksi accel yang dihitung — olahraga lain (wing, eFoil, foildrive, wakethief), rekaman GPS saja, dan data yang ditandai keliru tidak ikut.",
+    "watchStats.hint" to "Angka apa yang dicapai dengan jam mana — agregat komunitas per model. Di sini semua dihitung: semua olahraga, dengan atau tanpa data accel.",
+    "spotcmp.title" to "Rekor spot",
+    "spotcmp.pick" to "Bandingkan sebuah spot …",
+    "spotcmp.foilers" to "Foiler terbanyak",
+    "spotcmp.distance" to "Jarak foil terbanyak",
+    "spots.none" to "Belum ada spot di peta.",
     "cr.foilAll" to "Semua foil",
     "cr.foilMine" to "Seperti foil saya",
     "cr.foilUnder" to "di bawah {n} cm²",
@@ -4070,6 +4105,13 @@ private fun idTabelle(): Map<String, String> = mapOf(
 val NB: Map<String, String> = nbTabelle()
 
 private fun nbTabelle(): Map<String, String> = mapOf(
+    "foilStats.hint" to "Hvilke tall folk oppnår på hvilken foil (fellesskapet). Bare pumpfoil-økter med accel-gjenkjenning telles — andre sporter (wing, eFoil, foildrive, wakethief), rene GPS-opptak og data merket som feil er ikke med.",
+    "watchStats.hint" to "Hvilke tall som kjøres med hvilken klokke — samlet fra fellesskapet per modell. Her teller alt: alle sporter, med og uten accel-data.",
+    "spotcmp.title" to "Spot-rekorder",
+    "spotcmp.pick" to "Sammenlign en spot …",
+    "spotcmp.foilers" to "Flest foilere",
+    "spotcmp.distance" to "Mest foilet distanse",
+    "spots.none" to "Ingen spots på kartet ennå.",
     "cr.foilAll" to "Alle foiler",
     "cr.foilMine" to "Som min foil",
     "cr.foilUnder" to "under {n} cm²",
@@ -4921,6 +4963,13 @@ private fun nbTabelle(): Map<String, String> = mapOf(
 val PL: Map<String, String> = plTabelle()
 
 private fun plTabelle(): Map<String, String> = mapOf(
+    "foilStats.hint" to "Jakie wartości osiąga się na jakim foilu (społeczność). Liczą się tylko sesje pumpfoil z wykrywaniem po akcelerometrze — inne sporty (wing, eFoil, foildrive, wakethief), nagrania tylko z GPS i dane oznaczone jako błędne nie są uwzględniane.",
+    "watchStats.hint" to "Jakie wartości osiąga się na jakim zegarku — zbiorczo w całej społeczności, według modelu. Tutaj liczy się każde nagranie: wszystkie sporty, z danymi akcelerometru i bez nich.",
+    "spotcmp.title" to "Rekordy spotu",
+    "spotcmp.pick" to "Porównaj spot …",
+    "spotcmp.foilers" to "Najwięcej foilerów",
+    "spotcmp.distance" to "Najwięcej przejechanych kilometrów",
+    "spots.none" to "Jeszcze żadnych spotów na mapie.",
     "cr.foilAll" to "Wszystkie foile",
     "cr.foilMine" to "Jak mój foil",
     "cr.foilUnder" to "poniżej {n} cm²",

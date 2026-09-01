@@ -319,6 +319,33 @@ struct PeriodRecords: Codable {
     let carves180: CommunityRecordEntry?
 }
 
+// Rekordhalter einer Spot-Kennzahl (von EINER Session/EINEM Lauf gewonnen).
+struct SpotRecHolder: Codable {
+    let value: Double
+    let session_id: Int?
+    let run_idx: Int?
+    let name: String?
+    let started_at: String?
+    let tz: String?
+}
+
+// Kennzahlen JE SPOT fuer den Spot-Vergleich (GET /api/community/spot-compare).
+// Aggregate + zwei Einzel-Rekorde; Auswahl und Wortlaut wie SpotCompare.tsx in der PWA.
+struct SpotAgg: Codable, Identifiable {
+    let spot: String
+    let spot_id: Int?
+    let sessions: Int
+    let runs: Int
+    let pumps: Int
+    let foilers: Int
+    let foiling_km: Double
+    let onfoil_s: Int
+    let longest_run: SpotRecHolder?
+    let top_speed: SpotRecHolder?
+
+    var id: String { spot }
+}
+
 struct SpotMapItem: Codable, Identifiable {
     let spot: String
     let spot_id: Int?   // additiv (neue Clients); Nav bleibt namensbasiert
