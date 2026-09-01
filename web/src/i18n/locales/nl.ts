@@ -160,6 +160,9 @@ const nl: Record<string, string> = {
   // Stat-Kacheln
   "stat.sessions": "Sessies",
   "stat.runs": "Runs",
+  "stat.runsStarts": "Runs/starts",
+  "stat.runsStartsInfo": "Runs en starts",
+  "stat.runsStartsTip": "Links de runs: stukken die als echt foilen zijn geteld — dat bepaalt de bewegingssensor van de horloge.\n\nRechts de starts: elke poging waarbij je minstens 2 seconden harder dan 8 km/h ging. Dat komt alleen uit het GPS, dus mislukte pogingen tellen ook mee — lopen op het land niet, dat zit op 7 tot 8 km/h.\n\n„4/20\" betekent dus: twintig keer aangezet, vier keer gevlogen. Beide getallen gelden voor het geanalyseerde deel van de sessie; wat je hebt weggeknipt telt niet mee.",
   "stat.foiling": "Foiling",
   "stat.foilingTime": "Foiling-tijd",
   "stat.pumps": "Pumps",

@@ -8,104 +8,111 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.ui.graphics.luminance
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.AnnotatedString
-import coil.compose.AsyncImage
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.HelpOutline
-import androidx.compose.material.icons.filled.OpenInFull
-import androidx.compose.material.icons.filled.CompareArrows
-import androidx.compose.material.icons.filled.Forum
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.ContentCut
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Flag
-import androidx.compose.material.icons.filled.PlayCircle
-import androidx.compose.material.icons.filled.RemoveCircleOutline
-import androidx.compose.material.icons.filled.Report
-import androidx.compose.material.icons.filled.Link
-import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.Watch
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Label
+import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.CompareArrows
+import androidx.compose.material.icons.filled.ContentCut
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.Forum
+import androidx.compose.material.icons.filled.HelpOutline
+import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.OpenInFull
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.RemoveCircleOutline
+import androidx.compose.material.icons.filled.Report
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Watch
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.collectAsState
-import androidx.core.content.FileProvider
-import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.core.content.FileProvider
+import coil.compose.AsyncImage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.doubleOrNull
+import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.BoundingBox
@@ -114,12 +121,6 @@ import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polyline
 import org.osmdroid.views.overlay.ScaleBarOverlay
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.doubleOrNull
-import kotlinx.serialization.json.intOrNull
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 
 // Amber für „Fake melden" (wie im Web); Rot kommt aus dem Theme (error).
 private val AmberReport = Color(0xFFF59E0B)
@@ -948,7 +949,20 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 a.totalDistanceM?.let { add(StatItem(I18n.t("compare.distance"), dist(it))) }
                 a.foilingDistanceM?.let { add(StatItem(I18n.t("home.foiling"), dist(it))) }
                 a.foilingTimeS?.let { add(StatItem(I18n.t("compare.foilTime"), mmssD(it))) }
-                if (segList.isNotEmpty()) add(StatItem(I18n.t("home.runs"), segList.size.toString()))
+                // Laeufe/Starts (Jan, 01.09.): links die Laeufe, rechts die Startversuche — sonst
+                // sieht „2 Laeufe" nach faulem Abend aus, wenn es 15 Anlaeufe waren. Zwei Zahlen
+                // aus ZWEI Detektoren (Laeufe = Bewegungsmodell, Versuche = reines GPS), darum:
+                // ohne Versuchsdaten oder wenn mehr Laeufe als Versuche herauskommen (im Bestand
+                // 15 von 2265 Sessions) zeigen wir nur die Laufzahl statt eines unsinnigen 12/9.
+                if (segList.isNotEmpty()) {
+                    val ver = s.analysis?.startAttempts
+                    if (ver != null && ver > 0 && ver >= segList.size) {
+                        add(StatItem(I18n.t("stat.runsStarts"), "${segList.size}/$ver",
+                            info = I18n.t("stat.runsStartsTip")))
+                    } else {
+                        add(StatItem(I18n.t("home.runs"), segList.size.toString()))
+                    }
+                }
                 (m?.avgSpeedMps)?.let { add(StatItem(I18n.t("sd.avgSpeed"), "%.1f km/h".format(it * 3.6))) }
                 a.maxSpeedMps?.let { add(StatItem(I18n.t("home.topSpeed"), "%.1f km/h".format(it * 3.6), bestSpeedIdx)) }
                 a.pumpCount?.let { pc ->
@@ -1660,7 +1674,9 @@ private fun clockAt(startedAt: String, tz: String?, offsetMs: Long): String {
 }
 
 // Eine Kennzahl-Kachel; runIdx != null => an einen Lauf gebunden (anklickbar -> Lauf auswählen).
-private data class StatItem(val label: String, val value: String, val runIdx: Int? = null)
+private data class StatItem(val label: String, val value: String, val runIdx: Int? = null,
+                            /** Erklaertext hinter einem (i) — z. B. was als Startversuch zaehlt. */
+                            val info: String? = null)
 
 @Composable
 private fun StatGrid(stats: List<StatItem>, selected: Int? = null, onSelect: (Int) -> Unit = {}) {
@@ -1675,9 +1691,30 @@ private fun StatGrid(stats: List<StatItem>, selected: Int? = null, onSelect: (In
                     val colors = if (sel) CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
                                  else CardDefaults.cardColors()
                     Card(mod, colors = colors) {
-                        Column(Modifier.padding(12.dp)) {
-                            Text(st.value, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
-                            Text(st.label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Box {
+                            Column(Modifier.padding(12.dp)) {
+                                Text(st.value, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                                Text(st.label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            st.info?.let { text ->
+                                var zeigen by remember { mutableStateOf(false) }
+                                IconButton(onClick = { zeigen = true },
+                                    modifier = Modifier.align(Alignment.TopEnd).size(28.dp)) {
+                                    Icon(Icons.Outlined.Info, contentDescription = st.label,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(16.dp))
+                                }
+                                if (zeigen) {
+                                    AlertDialog(
+                                        onDismissRequest = { zeigen = false },
+                                        title = { Text(I18n.t("stat.runsStartsInfo")) },
+                                        text = { Text(text, style = MaterialTheme.typography.bodyMedium) },
+                                        confirmButton = {
+                                            TextButton(onClick = { zeigen = false }) { Text(I18n.t("common.close")) }
+                                        },
+                                    )
+                                }
+                            }
                         }
                     }
                 }

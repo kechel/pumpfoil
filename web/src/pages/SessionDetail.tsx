@@ -5,7 +5,7 @@ import { basiskarten } from "../lib/mapTiles";
 import { api, SessionSummary, SessionSocial as SocialData, SessionVideo } from "../lib/api";
 import { fmtDate, fmtTime } from "../lib/time";
 import { Card, Stat, Spinner, ErrorBox, Avatar } from "../components/ui";
-import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon, EditIcon, StarIcon, CloseIcon, KeyboardIcon, WifiOffIcon, EyeIcon, EyeOffIcon, CompareIcon, ChatBubbleIcon, ShareIcon, WatchIcon, WaveIcon, ScissorsIcon, LinkIcon, CheckIcon, InstagramIcon, TikTokIcon, DownloadIcon } from "../components/Icons";
+import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon, EditIcon, StarIcon, CloseIcon, KeyboardIcon, WifiOffIcon, EyeIcon, EyeOffIcon, CompareIcon, ChatBubbleIcon, ShareIcon, WatchIcon, WaveIcon, ScissorsIcon, LinkIcon, CheckIcon, InstagramIcon, TikTokIcon, DownloadIcon, InfoIcon } from "../components/Icons";
 import { Lightbox } from "../components/Lightbox";
 import { ShareDialog } from "../components/ShareDialog";
 import { useCloseOnBack } from "../lib/useCloseOnBack";
@@ -1355,7 +1355,7 @@ export default function SessionDetail() {
           value={a?.foiling_distance_m == null ? "–" : a.foiling_distance_m < 1000 ? String(Math.round(a.foiling_distance_m)) : (a.foiling_distance_m / 1000).toFixed(2)}
           sub={a?.foiling_distance_m != null && a.foiling_distance_m < 1000 ? "m" : "km"} />
         <Stat label={t("stat.foilingTime")} value={fmtMMSS(a?.foiling_time_s)} sub="min:s" />
-        <Stat label={t("stat.runs")} value={String(segs.length)} />
+        <RunsStartsStat runs={segs.length} attempts={a?.start_attempts ?? null} />
         <Stat label={t("sd.avgSpeed")} value={kmh(m?.avg_speed_mps)} sub="km/h" />
         {session.foil?.span_cm && session.foil?.area_cm2 && session.foil?.thickness_mm && (
           <FoilPowerStat
@@ -2483,5 +2483,55 @@ function ClassPickers({ sessionId, compact = false }: { sessionId: number; compa
       </select>
       {err && <span className="text-sm text-red-700 dark:text-red-300">{err}</span>}
     </div>
+  );
+}
+
+/** Kachel „Läufe/Starts" (Jan, 01.09.). Links die Läufe — dieselbe Zahl wie bisher —, rechts die
+ *  Startversuche, damit „2 Läufe" nicht wie ein fauler Abend aussieht, wenn es 15 Anläufe waren.
+ *
+ *  Zwei Zahlen aus ZWEI Detektoren: Läufe kommen aus dem Bewegungsmodell, Versuche aus reinem GPS
+ *  (attempts-Preset: >= 2 s über ~8 km/h). Deshalb zwei Regeln:
+ *   - ohne Versuchsdaten (`null`) bleibt es bei der alten Anzeige,
+ *   - und wenn mehr Läufe als Versuche herauskommen (im Bestand 15 von 2265 Sessions — die zwei
+ *     Detektoren sind sich dort uneins), zeigen wir NUR die Läufe statt eines unsinnigen „12/9".
+ *  Gedeckelt wird bewusst nicht: die linke Zahl IST die Laufzahl der Session, sie darf nicht von
+ *  der Liste darunter abweichen. */
+function RunsStartsStat({ runs, attempts }: { runs: number; attempts: number | null }) {
+  const t = useT();
+  const [offen, setOffen] = useState(false);
+  const paar = attempts != null && attempts > 0 && attempts >= runs;
+  if (!paar) return <Stat label={t("stat.runs")} value={String(runs)} />;
+  const quote = Math.round((100 * runs) / attempts!);
+  return (
+    <>
+      <Card className="relative overflow-hidden p-1.5">
+        <button type="button" onClick={() => setOffen(true)} aria-label={t("stat.runsStartsInfo")}
+          className="absolute right-1 top-1 text-slate-400 hover:text-slate-200">
+          <InfoIcon className="h-3 w-3" />
+        </button>
+        <div className="flex items-baseline gap-1 leading-none">
+          <span className="text-base font-bold tabular-nums text-brand-400 sm:text-lg">{runs}/{attempts}</span>
+          <span className="text-[11px] text-slate-400">{quote} %</span>
+        </div>
+        <div className="mt-1 text-[10px] uppercase leading-tight tracking-wide text-slate-300">
+          {t("stat.runsStarts")}
+        </div>
+      </Card>
+      {offen && (
+        <div className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setOffen(false)}>
+          <div className="max-w-md" onClick={(e) => e.stopPropagation()}>
+          <Card className="p-4">
+            <h3 className="mb-2 text-base font-bold">{t("stat.runsStartsInfo")}</h3>
+            <p className="whitespace-pre-line text-sm text-slate-200">{t("stat.runsStartsTip")}</p>
+            <button type="button" onClick={() => setOffen(false)}
+              className="mt-3 rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400">
+              {t("common.close")}
+            </button>
+          </Card>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

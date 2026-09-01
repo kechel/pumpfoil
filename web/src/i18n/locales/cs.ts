@@ -160,6 +160,9 @@ const cs: Record<string, string> = {
   // Stat-Kacheln
   "stat.sessions": "Relace",
   "stat.runs": "Jízdy",
+  "stat.runsStarts": "Jízdy/starty",
+  "stat.runsStartsInfo": "Jízdy a starty",
+  "stat.runsStartsTip": "Vlevo jízdy: úseky, které se počítají jako skutečné foilování — rozhoduje o tom pohybový senzor hodinek.\n\nVpravo starty: každý pokus, kdy jsi alespoň 2 sekundy jel rychleji než 8 km/h. To pozná samotné GPS, takže se počítají i nepovedené pokusy — chůze na břehu ne, ta je na 7 až 8 km/h.\n\n„4/20\" tedy znamená: dvacet pokusů, čtyřikrát to vyšlo. Obě čísla platí pro vyhodnocenou část session; co jsi odstřihl, se nepočítá.",
   "stat.foiling": "Foiling",
   "stat.foilingTime": "Čas na foilu",
   "stat.pumps": "Pumpnutí",

@@ -1614,7 +1614,19 @@ struct SessionDetailView: View {
         if let v = a.total_distance_m { out.append(StatItem(Loc.t("compare.distance", lang), dist(v))) }
         if let v = a.foiling_distance_m { out.append(StatItem(Loc.t("home.foiling", lang), dist(v))) }
         if let v = a.foiling_time_s { out.append(StatItem(Loc.t("compare.foilTime", lang), mmssD(v))) }
-        if !segs.isEmpty { out.append(StatItem(Loc.t("home.runs", lang), "\(segs.count)")) }
+        // Laeufe/Starts (Jan, 01.09.): links die Laeufe, rechts die Startversuche — sonst sieht
+        // „2 Laeufe" nach faulem Abend aus, wenn es 15 Anlaeufe waren. Zwei Zahlen aus ZWEI
+        // Detektoren (Laeufe = Bewegungsmodell, Versuche = reines GPS), darum: ohne Versuchsdaten
+        // oder wenn mehr Laeufe als Versuche herauskommen (im Bestand 15 von 2265 Sessions) nur
+        // die Laufzahl statt eines unsinnigen „12/9".
+        if !segs.isEmpty {
+            if let ver = a.start_attempts, ver > 0, ver >= segs.count {
+                out.append(StatItem(Loc.t("stat.runsStarts", lang), "\(segs.count)/\(ver)",
+                                    info: Loc.t("stat.runsStartsTip", lang)))
+            } else {
+                out.append(StatItem(Loc.t("home.runs", lang), "\(segs.count)"))
+            }
+        }
         if let v = m?.avg_speed_mps { out.append(StatItem(Loc.t("sd.avgSpeed", lang), String(format: "%.1f km/h", v * 3.6))) }
         if let v = a.max_speed_mps { out.append(StatItem(Loc.t("home.topSpeed", lang), String(format: "%.1f km/h", v * 3.6), runIdx: bestSpeedIdx)) }
         if let pc = a.pump_count {
@@ -2279,9 +2291,11 @@ struct StatItem: Identifiable {
     // Stabil, nicht UUID(): buildStats() laeuft im Body, mit UUID() bekaeme jede Kachel bei jedem
     // Neuzeichnen eine neue Identitaet (dasselbe Muster wie RecRow in CommunityView). Labels sind
     // innerhalb einer Session eindeutig.
+    /// Erklaertext hinter einem (i) — z. B. was als Startversuch zaehlt.
+    let info: String?
     var id: String { label }
-    init(_ label: String, _ value: String, runIdx: Int? = nil) {
-        self.label = label; self.value = value; self.runIdx = runIdx
+    init(_ label: String, _ value: String, runIdx: Int? = nil, info: String? = nil) {
+        self.label = label; self.value = value; self.runIdx = runIdx; self.info = info
     }
 }
 
@@ -2289,11 +2303,27 @@ private struct StatTile: View {
     let item: StatItem
     let selected: Bool
     let onTap: () -> Void
+    @AppStorage("appLang") private var lang = "de"
+    @State private var zeigeInfo = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(item.value).font(.title3).bold().foregroundStyle(Color.accentColor)
+            HStack(alignment: .top, spacing: 4) {
+                Text(item.value).font(.title3).bold().foregroundStyle(Color.accentColor)
+                Spacer(minLength: 0)
+                if item.info != nil {
+                    Button { zeigeInfo = true } label: {
+                        Image(systemName: "info.circle").font(.caption).foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
             Text(item.label).font(.caption).foregroundStyle(.secondary)
+        }
+        .alert(Loc.t("stat.runsStartsInfo", lang), isPresented: $zeigeInfo) {
+            Button(Loc.t("common.close", lang), role: .cancel) { }
+        } message: {
+            Text(item.info ?? "")
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)

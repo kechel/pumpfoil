@@ -755,6 +755,9 @@ struct Analysis: Codable {
     let metrics: Metrics?
     let track_geojson: TrackGeo?
     let segments: [Segment]?
+    // Zahl der Startversuche (attempts-Preset, reines GPS: >= 2 s ueber ~8 km/h). nil = keine
+    // Daten -> die Kachel zeigt dann wie frueher nur die Laufzahl.
+    let start_attempts: Int?
 }
 
 // Session-weite Kennzahlen (metrics_json) — Basis für den Stats-Block in der Liste.

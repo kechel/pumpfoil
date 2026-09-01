@@ -147,6 +147,9 @@ const fi: Record<string, string> = {
   // Stat-Kacheln
   "stat.sessions": "Sessiot",
   "stat.runs": "Lenkit",
+  "stat.runsStarts": "Vedot/lähdöt",
+  "stat.runsStartsInfo": "Vedot ja lähdöt",
+  "stat.runsStartsTip": "Vasemmalla vedot: pätkät, jotka laskettiin oikeaksi foilaukseksi — siitä päättää kellon liikeanturi.\n\nOikealla lähdöt: jokainen yritys, jossa ylitit 8 km/h vähintään 2 sekunnin ajan. Sen tunnistaa pelkkä GPS, joten myös epäonnistuneet yritykset lasketaan — maalla kävely ei, se on 7-8 km/h.\n\n”4/20” tarkoittaa siis: kaksikymmentä yritystä, neljä kertaa lensi. Kummatkin luvut koskevat session analysoitua osaa; pois leikattu ei laskennassa ole.",
   "stat.foiling": "Foiling",
   "stat.foilingTime": "Foiling-aika",
   "stat.pumps": "Pumps",

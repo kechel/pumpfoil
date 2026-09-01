@@ -131,6 +131,9 @@ const gsw: Record<string, string> = {
 
   "stat.sessions": "Sessions",
   "stat.runs": "Läuf",
+  "stat.runsStarts": "Läuf/Starts",
+  "stat.runsStartsInfo": "Läuf und Starts",
+  "stat.runsStartsTip": "Links di Läuf: Strecke, wo als echts Foile zellt worde sind — das entscheidet de Bewegigssensor vo de Uhr.\n\nRächts di Starts: jede Aalauf, wo du mindeschtens 2 Sekunde schneller als 8 km/h gsi bisch. Das erkennt elei s GPS, drum zelled au missglückti Versuech mit — Laufe a Land aber nöd, das lit bi 7 bis 8 km/h.\n\n„4/20“ heisst also: 20-mal aagschobe, 4-mal treit. Beidi Zahle gälted für de uusgwertet Teil vo de Session; was du wegschnitte häsch, zellt nöd mit.",
   "stat.foiling": "Foiling",
   "stat.foilingTime": "Foiling-Ziit",
   "stat.pumps": "Pumps",

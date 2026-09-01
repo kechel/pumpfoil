@@ -176,6 +176,10 @@ class AnalysisOut(BaseModel):
     track_geojson: dict | None = None
     segments: list[dict] | None = None
     accel_windows: list[dict] | None = None
+    # Zahl der Startversuche (lockeres attempts-Preset, reines GPS: >= 2 s ueber ~8 km/h).
+    # Nur die ANZAHL, nicht die Distanzen — die Detailansicht zeigt "Laeufe/Starts".
+    # None = keine Versuchsdaten (dann zeigt die Kachel wie bisher nur die Laeufe).
+    start_attempts: int | None = None
 
 
 class SessionOut(BaseModel):
