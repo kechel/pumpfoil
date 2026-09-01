@@ -213,6 +213,11 @@ enum Loc {
     ]
 
     private static let _csOverlayP1: [String: String] = [
+        "cr.foilAll": "Všechny foily",
+        "cr.foilMine": "Jako můj foil",
+        "cr.foilUnder": "pod {n} cm²",
+        "cr.foilHighAspect": "High aspect (AR od {n})",
+        "cr.foilThick": "Silná křídla (AR pod {n})",
         "compare.syncTitle": "Přehrát synchronně",
         "compare.syncWho": "{n} jezdci, stejný spot, stejný čas",
         "compare.syncHint": "Všechny relace běží na jedněch hodinách — vidíš, kdo byl kdy kde. Úseky, kdy nikdo nebyl na foilu, se přeskočí.",
@@ -1012,6 +1017,11 @@ enum Loc {
     ]
 
     private static let _nlOverlayP1: [String: String] = [
+        "cr.foilAll": "Alle foils",
+        "cr.foilMine": "Zoals mijn foil",
+        "cr.foilUnder": "onder {n} cm²",
+        "cr.foilHighAspect": "High aspect (AR vanaf {n})",
+        "cr.foilThick": "Dikke vleugels (AR onder {n})",
         "compare.syncTitle": "Synchroon afspelen",
         "compare.syncWho": "{n} riders, dezelfde spot, dezelfde tijd",
         "compare.syncHint": "Alle sessies lopen op dezelfde klok — je ziet wie waar was, en wanneer. Stukken waarin niemand op de foil stond worden overgeslagen.",
@@ -1870,6 +1880,11 @@ enum Loc {
     ]
 
     private static let _fiOverlayP1: [String: String] = [
+        "cr.foilAll": "Kaikki siivet",
+        "cr.foilMine": "Kuten oma siipi",
+        "cr.foilUnder": "alle {n} cm²",
+        "cr.foilHighAspect": "High aspect (AR {n}+)",
+        "cr.foilThick": "Paksut siivet (AR alle {n})",
         "compare.syncTitle": "Toista synkronissa",
         "compare.syncWho": "{n} foilaajaa, sama spotti, sama aika",
         "compare.syncHint": "Kaikki sessiot kulkevat samalla kellolla — näet kuka oli missä ja milloin. Jaksot, joissa kukaan ei ollut foilin päällä, ohitetaan.",
@@ -2447,6 +2462,11 @@ enum Loc {
     }()
 
     private static let __t1P1: [String: [String: String]] = [
+        "cr.foilAll": r("Alle Foils", "Alli Foils", "Olle Foils", "All foils", "Tous les foils", "Tutti i foil", "Todos los foils"),
+        "cr.foilMine": r("Wie mein Foil", "Wie mis Foil", "Wia mei Foil", "Like my foil", "Comme mon foil", "Come il mio foil", "Como mi foil"),
+        "cr.foilUnder": r("unter {n} cm²", "under {n} cm²", "unter {n} cm²", "under {n} cm²", "moins de {n} cm²", "sotto {n} cm²", "menos de {n} cm²"),
+        "cr.foilHighAspect": r("High Aspect (AR ab {n})", "High Aspect (AR ab {n})", "High Aspect (AR ab {n})", "High aspect (AR {n}+)", "High aspect (AR {n}+)", "High aspect (AR da {n})", "High aspect (AR desde {n})"),
+        "cr.foilThick": r("Dicke Flügel (AR unter {n})", "Dicki Flügel (AR under {n})", "Dicke Flügel (AR unter {n})", "Thick wings (AR under {n})", "Ailes épaisses (AR sous {n})", "Ali spesse (AR sotto {n})", "Alas gruesas (AR bajo {n})"),
         "compare.syncTitle": r("Synchron abspielen", "Synchron abspiele", "Synchron abspielen", "Play in sync", "Lecture synchronisée", "Riproduci in sincrono", "Reproducir en sincronía"),
         "compare.syncWho": r("{n} Fahrer, gleicher Spot, gleiche Zeit", "{n} Fahrer, gliiche Spot, gliichi Ziit", "{n} Fahrer, gleicher Spot, gleiche Zeit", "{n} riders, same spot, same time", "{n} riders, même spot, même moment", "{n} rider, stesso spot, stesso momento", "{n} riders, mismo spot, mismo momento"),
         "compare.syncHint": r("Alle Sessions laufen auf derselben Uhr — du siehst, wer wann wo war. Zeiten, in denen niemand oben war, werden übersprungen.", "Alli Sessions laufed uf dere gliiche Uhr — du gsehsch, wer wänn wo gsi isch. Ziite, wo niemert obe gsi isch, werded übersprunge.", "Alle Sessions laufen auf derselben Uhr — du siehst, wer wann wo war. Zeiten, in denen kaner oben war, werden übersprungen.", "All sessions run on one clock — you see who was where, and when. Stretches where nobody was up on the foil are skipped.", "Toutes les sessions tournent sur la même horloge — tu vois qui était où, et quand. Les moments où personne n'était en vol sont sautés.", "Tutte le sessioni girano sullo stesso orologio — vedi chi era dove, e quando. I tratti in cui nessuno era in volo vengono saltati.", "Todas las sesiones van en el mismo reloj — ves quién estaba dónde y cuándo. Los tramos en los que nadie estaba volando se saltan."),

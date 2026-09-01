@@ -349,6 +349,26 @@ struct HistoryPoint: Codable, Identifiable {
 // Verlauf: „Entwicklung am Spot" — Spots des Nutzers + Bulk-Tracks je Spot.
 struct SpotCount: Codable, Identifiable { let spot: String; let count: Int; var id: String { spot } }
 
+/// Ein Foil-Band fuer Community-Rekorde und Bestenlisten (GET /api/community/foil-bands).
+///
+/// `art`: "alle" | "eigenes" | "flaeche" | "ar". Bei "eigenes" kommen `foil` (Name des
+/// Referenz-Fluegels) und `ar_von`/`ar_bis` mit — das Fenster ist ±15 % Flaeche und ±2 AR um das
+/// eigene Foil. Flaeche und AR sind nachweislich unabhaengig (r = −0,12), deshalb beides.
+/// `sessions`/`fahrer` sind die echten Zahlen; die Oberflaeche blendet damit zu duenne Gruppen aus
+/// (ein Rekord aus zwei Fahrern ist keiner).
+struct FoilBand: Codable, Identifiable {
+    let key: String
+    let art: String
+    let sessions: Int
+    let fahrer: Int
+    let von: Double?
+    let bis: Double?
+    let foil: String?
+    let ar_von: Double?
+    let ar_bis: Double?
+    var id: String { key }
+}
+
 struct SpotTrack: Codable, Identifiable {
     let session_id: Int
     let started_at: String?

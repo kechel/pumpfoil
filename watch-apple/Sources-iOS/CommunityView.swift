@@ -27,6 +27,12 @@ struct CommunityView: View {
     @State private var loading = false
     @State private var error: String?
     @State private var period = "10d"
+    // Foil-Band („vergleichbare Foils") fuer Rekorde UND Bestenlisten — NICHT fuer Spots und
+    // „Am besten bewertet" (Jans Vorgabe): dort geht es nicht um Vergleichbarkeit der Ausruestung.
+    // Die Baender samt Session-/Fahrerzahl kommen vom Server, damit hier keine Grenzen fest
+    // verdrahtet sind (s. FOIL_BANDS in server/app/api/community.py).
+    @State private var bands: [FoilBand] = []
+    @State private var bandKey = "all"
     @State private var accelOnly = true
     @State private var lbMetric = "sessions"
 
@@ -34,6 +40,10 @@ struct CommunityView: View {
     private let gridCols = [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)]
 
     private var periodLabel: String { Loc.t(periods.first { $0.0 == period }?.1 ?? "period.all", lang) }
+    private var bandSuffix: String {
+        guard let b = band, b.art != "alle" else { return "" }
+        return " · " + bandLabel(b)
+    }
     private var lbMetrics: [(String, String)] {
         [("sessions", Loc.t("leader.mostSessions", lang)), ("runs", Loc.t("leader.mostRuns", lang)),
          ("pumps", Loc.t("leader.mostPumps", lang)), ("spots", Loc.t("leader.mostSpots", lang))]
@@ -274,6 +284,34 @@ struct CommunityView: View {
         }
     }
 
+    /// Ab wie vielen FAHRERN ein Foil-Band angeboten wird. Ein „Rekord" aus zwei Fahrern ist
+    /// keiner, sondern eine persoenliche Bestleistung mit Etikett. Gleiche Schwelle wie in der PWA.
+    private var minBandFahrer: Int { 3 }
+
+    private var band: FoilBand? { bands.first { $0.key == bandKey } }
+    private var sichtbareBands: [FoilBand] { bands.filter { $0.art == "alle" || $0.fahrer >= minBandFahrer } }
+
+    /// Beschriftung eines Foil-Bandes — EINE Stelle, damit Auswahl und Bestenlisten-Ueberschrift
+    /// nie auseinanderlaufen. Reine Zahlenbereiche brauchen keinen Uebersetzungs-Schluessel.
+    private func bandLabel(_ b: FoilBand) -> String {
+        func z(_ v: Double?) -> String {
+            guard let v else { return "" }
+            return v == v.rounded() ? String(Int(v)) : String(v)
+        }
+        switch b.art {
+        case "alle": return Loc.t("cr.foilAll", lang)
+        case "eigenes": return Loc.t("cr.foilMine", lang)
+        case "ar":
+            return b.von != nil
+                ? Loc.t("cr.foilHighAspect", lang).replacingOccurrences(of: "{n}", with: z(b.von))
+                : Loc.t("cr.foilThick", lang).replacingOccurrences(of: "{n}", with: z(b.bis))
+        default:
+            if b.von != nil && b.bis != nil { return "\(z(b.von))–\(z(b.bis)) cm²" }
+            if b.bis != nil { return Loc.t("cr.foilUnder", lang).replacingOccurrences(of: "{n}", with: z(b.bis)) }
+            return "\(z(b.von))+ cm²"
+        }
+    }
+
     // In typisierte Teil-Views zerlegt (Type-Checker-Hänger beim Archivieren) — [[ios-swift-typecheck-hang]].
     @ViewBuilder private var periodSection: some View {
         Section {
@@ -283,6 +321,23 @@ struct CommunityView: View {
                 }
             }
             HStack {
+                // Foil-Band. Reihenfolge kommt vom Server (Nuetzlichstes oben). Die Sessionzahl
+                // steht dabei, weil jede Auswahl ausser „Alle Foils" den Topf verkleinert: 36 %
+                // der Sessions haben gar kein Foil hinterlegt und fallen dann heraus.
+                if sichtbareBands.count > 1 {
+                    Menu {
+                        ForEach(sichtbareBands) { b in
+                            Button {
+                                bandKey = b.key
+                            } label: {
+                                Text(bandLabel(b) + (b.art == "alle" ? "" : " (\(b.sessions))"))
+                            }
+                        }
+                    } label: {
+                        Text(band.map { bandLabel($0) } ?? Loc.t("cr.foilAll", lang))
+                            .font(.caption).lineLimit(1)
+                    }
+                }
                 Spacer()
                 chip(Loc.t("side.onlyAccel", lang), accelOnly) { accelOnly = true }
                 chip(Loc.t("side.all", lang), !accelOnly) { accelOnly = false }
@@ -307,7 +362,9 @@ struct CommunityView: View {
 
     @ViewBuilder private var leaderboardSection: some View {
         if let lb = leaders, !(lb.sessions ?? []).isEmpty || !(lb.runs ?? []).isEmpty || !(lb.spots ?? []).isEmpty {
-            Section("\(Loc.t("community.leaderboard", lang)) · \(periodLabel)") {
+            // Das gewaehlte Band gehoert in die Ueberschrift: sonst steht hier eine Bestenliste
+            // ueber einen Teil der Flotte, ohne dass man es sieht.
+            Section("\(Loc.t("community.leaderboard", lang)) · \(periodLabel)\(bandSuffix)") {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 6) {
                         ForEach(lbMetrics, id: \.0) { id, label in chip(label, lbMetric == id) { lbMetric = id } }
@@ -422,7 +479,14 @@ struct CommunityView: View {
     private func loadBase() async {
         loading = true; defer { loading = false }
         do {
-            records = try await Api.communityRecords(accelOnly: accelOnly); error = nil
+            records = try await Api.communityRecords(accelOnly: accelOnly, foilBand: bandKey); error = nil
+            let bs = (try? await Api.foilBands(accelOnly: accelOnly)) ?? []
+            bands = bs
+            // Zurueck auf „Alle Foils", wenn das gewaehlte Band durch den Wechsel zu duenn wurde —
+            // sonst stuende man vor leeren Rekorden.
+            if !bs.contains(where: { $0.key == bandKey && ($0.art == "alle" || $0.fahrer >= minBandFahrer) }) {
+                bandKey = "all"
+            }
             cstats = try? await Api.communityStats()
             media = (try? await Api.latestPhotos()) ?? []
             if let sp = try? await Api.spots(accelOnly: false) {
@@ -434,7 +498,7 @@ struct CommunityView: View {
     }
 
     private func loadPeriod() async {
-        leaders = try? await Api.leaders(period: period, accelOnly: accelOnly)
+        leaders = try? await Api.leaders(period: period, accelOnly: accelOnly, foilBand: bandKey)
         topLiked = (try? await Api.topLiked(period: period)) ?? []
     }
 
