@@ -9,6 +9,38 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 🚀 App-Release-Stand
 
+- **🔲 01.09. — Feedback #119 (u406 „Bine", deutsch, iOS-App): Fitbit/Google Charge 6 einbinden?**
+  Wortlaut: „Wäre es möglich, dass ihr den Fitbittracker (Google Charge 6) auch mit einbinden
+  könntet, bzw. eine Schnittstelle zum Auslesen der Daten." Sie hat noch **kein Geraet und keine
+  Session** — sucht gerade einen kompatiblen Tracker.
+  **An der Quelle geprueft (dev.fitbit.com, 01.09.):**
+  - **Ein Recorder AUF der Uhr ist unmoeglich.** Fitbits App-SDK richtet sich an die Smartwatches
+    (Versa/Sense) — die **Charge 6 ist ein Tracker**, dort laufen gar keine Fremd-Apps.
+  - **Der Auslese-Weg stirbt genau jetzt:** „We will be deprecating the legacy Fitbit Web API in
+    **September 2026**", Verweis auf die **Google Health API**. Heute darauf zu bauen waere Bauen
+    auf Sand; der Weg waere die Google Health API.
+  - Und selbst dann waere es ein **Import fertiger Aktivitaeten**, keine Live-Aufnahme: die
+    Charge 6 hat eingebautes GPS, gibt aber keinen 25-Hz-Accel heraus. Landet also in unserer
+    `gps_only`-Klasse wie der FR55 — Laeufe werden erkannt, nur ungenauer.
+  **Entscheidung fuer Jan:** freundlich absagen (Recorder) und den Import offenlassen, oder ganz
+  offenlassen. **Antwort noch nicht geschrieben** — Entwurf liegt bereit, Jan sagt, ob und was.
+
+- **🔲 01.09. — Feedback #105 (u225 „Abe", englisch, 28.08.): ueberlappende Bildschirme nach einer
+  Session auf der epix.** War mir bisher durchgegangen. Wortlaut: „I have overlapping screens after
+  a session on my watch (Garmin watch pix gen 2)… It doesn't break fonctionality but still a tiny
+  bug" — dazu: **„I wanted to send you a photo but I can't find where I could do that."**
+  **Nachgesehen:** seine Uhr ist eine **epix 2 Pro 42 mm**, seine Session vom 28.08. lief auf
+  **1.0.80**, und auch seine neueste (01.09.) laeuft noch auf 1.0.80 — er hat also weder 1.0.82
+  noch 1.0.83.
+  **Was ich ausschliessen kann:** der 1.0.80-Fix („Gespeichert" nicht mehr unter dem Upload-Screen)
+  betrifft den VERBUNDENEN Pfad und setzt dort `stopped = false`; und `UploadView.onUpdate` macht
+  `dc.clear()`, faerbt also den ganzen Schirm — ein statischer Ueberlapp kann von dort nicht kommen.
+  Bleiben: die Slide-Animation (normal, kein Fehler), ein Layout-gerenderter Schirm, oder Garmins
+  eigener Speichern-Dialog ueber unserem.
+  **Ohne sein Foto ist alles Weitere geraten** — und das Foto konnte er am 28.08. nicht schicken,
+  weil **die Feedback-Anhaenge erst am 30.08. dazukamen**. Jetzt gibt es sie. **Ihn um das Foto
+  bitten** (und ihm sagen, dass 1.0.83 im Store liegt); Entwurf liegt bereit.
+
 - **🟡 Zepp 1.0.7 ERNEUT EINGEREICHT — 01.09.2026 (Jans Meldung aus der Konsole).**
   Konsolen-Stand: **„2026.09.01 · Under Review (Can be Withdrawn)"**, darunter die Vorversion
   **„2026.08.24 · Approved"**. **KEIN neues Paket** hochgeladen — nur die Bilder ersetzt und neu
