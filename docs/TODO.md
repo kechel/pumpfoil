@@ -2190,6 +2190,22 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   brauchen also einen weiteren Bump darueber.
 
 
+- **🟡 01.09. — Garmin 1.0.84 GEBAUT und bereitgelegt, NICHT veroeffentlicht.**
+  Inhalt: **reine Geraete-Erweiterung, keine Code-Aenderung** — die acht neuen Geraete
+  (fēnix 9 / 9 Pro / 9 Pro Solar in 43/47/51 mm plus die zuvor fehlende **fēnix 8 43 mm**).
+  Manifest 121 → **129** Produkte, Store-Paket **218 statt 210** Gerätevarianten.
+  - Store-`.iq`: `/home/jan/release-staging/garmin-1.0.84/pumpfoil-1.0.84.iq`, **13,3 MB**,
+    **218 von 218 Varianten, BUILD SUCCESSFUL, 0 Fehler** (Log daneben).
+  - Test-`.prg` fuer Jans fenix 7X Pro: `Pumpfoil-fenix7xpro.prg` (97 372 B), mit `-r` gebaut,
+    Dateiname wie vereinbart.
+  - **`watch/bin` bewusst NICHT angefasst** und **`appmeta.garmin` bleibt auf 1.0.83** — sonst
+    bewirbt die Website eine Version, die im Store noch nicht liegt (Fehler vom 10.08.).
+  - **Reihenfolge fuer die Freigabe** (aus [[watch-bin-is-live]]): 1. `.iq` hochladen
+    2. Store-Freigabe ABWARTEN 3. erst dann `build-all.sh` (danach bietet die Website **129**
+    Downloads statt 121) 4. dann `appmeta.garmin` + Changelog.
+  - **Nicht vergessen beim Changelog:** das ist die erste Version, die fēnix 9 unterstuetzt — fuer
+    Nutzer die eigentliche Nachricht, nicht die Versionsnummer.
+
 - **🔴 01.09. NACHGEPRUEFT (Jans Frage, ob das Garmin-Connect-SDK wieder verfuegbar ist):
   UNVERAENDERT ZU. Kein Hinweis auf eine Wiedereroeffnung.**
   - `developer.garmin.com/gc-developer-program/overview/`: **kein Antrags-Link.** Ich habe ALLE
