@@ -2200,11 +2200,21 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     Dateiname wie vereinbart.
   - **`watch/bin` bewusst NICHT angefasst** und **`appmeta.garmin` bleibt auf 1.0.83** — sonst
     bewirbt die Website eine Version, die im Store noch nicht liegt (Fehler vom 10.08.).
-  - **Reihenfolge fuer die Freigabe** (aus [[watch-bin-is-live]]): 1. `.iq` hochladen
-    2. Store-Freigabe ABWARTEN 3. erst dann `build-all.sh` (danach bietet die Website **129**
-    Downloads statt 121) 4. dann `appmeta.garmin` + Changelog.
-  - **Nicht vergessen beim Changelog:** das ist die erste Version, die fēnix 9 unterstuetzt — fuer
-    Nutzer die eigentliche Nachricht, nicht die Versionsnummer.
+  - **🔑 ABWEICHENDE Freigabe-Kette fuer DIESE Version (Jans Vorgabe 01.09.):** „wenn die version
+    freigegeben wird muessen wir das nicht auf den uhren oder der webseite bekannt geben, wer schon
+    eine Uhr hat erlangt keinen Vorteil durch dieses update".
+    1. `.iq` hochladen (Jan reicht am 01.09. ein) 2. Store-Freigabe abwarten
+    3. **`build-all.sh`** — das MUSS laufen, sonst bekommen fēnix-9-Kaeufer keine Datei; danach
+       bietet die Website **129** Downloads statt 121.
+    4. **`appmeta.garmin` NICHT auf 1.0.84 bumpen** und **kein Changelog-Eintrag.**
+    **Warum das genau richtig ist:** der Update-Hinweis auf der Uhr entsteht dadurch, dass die App
+    ihre `Config.VERSION` mit `appmeta.garmin.latest` vergleicht (`SessionRecorder.mc`). Bleibt
+    `latest` auf 1.0.83, sieht keine vorhandene Uhr einen Hinweis — richtig, denn fuer sie aendert
+    1.0.84 nichts. Die Website liefert die Downloads dagegen aus `watch/bin`, also bekommen neue
+    Geraete ihre Datei trotzdem. **Kein Widerspruch zum 10.08.-Fehler:** dort wurde eine Version
+    BEWORBEN, die es im Store nicht gab; hier ist sie im Store und wird bewusst nicht beworben.
+    5. Beim NAECHSTEN inhaltlichen Release (1.0.85+) `appmeta` normal hochziehen — dann bekommen
+       alle den Hinweis, und zwar fuer etwas, das ihnen auch nuetzt.
 
 - **🔴 01.09. NACHGEPRUEFT (Jans Frage, ob das Garmin-Connect-SDK wieder verfuegbar ist):
   UNVERAENDERT ZU. Kein Hinweis auf eine Wiedereroeffnung.**
