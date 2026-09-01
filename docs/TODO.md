@@ -45,10 +45,13 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
     tragfaehige Klasse, kein Trostpreis. Meine Einordnung als „zweitklassig" war zu abschaetzig.
     **Das aendert die Bewertung der drei Wege — aber NICHT die der Google Health API:** die hat
     gar keine Positionen, das ist nicht „nur GPS", das ist nichts.
-  - **Die drei Wege, sortiert nach Aufwand und Reichweite:**
-    1. **Datei-Import (GPX/FIT/TCX)** — **keine** Plattform-Freigabe, kein Torwaechter, deckt in
-       einem Zug jedes Geraet ab, das eine Datei exportiert (Fitbit, COROS, Suunto, Polar, Garmin).
-       Steht ohnehin schon auf der Liste. **Bester erster Schritt.**
+  - **✅ KORREKTUR (Jan, 01.09.): „fit Import haben wir doch laengst".** Stimmt, und er kann mehr
+    als ich geschrieben hatte: `server/app/fitimport.py` liest **FIT**,
+    `_fit_bytes_from_upload` packt auch Garmins **ZIP** („Export Original") aus, und
+    `server/app/tcximport.py` liest **TCX UND GPX**. Der Datei-Weg ist also KEIN offener Punkt,
+    sondern fertig — ein Fitbit-Nutzer kann heute schon eine exportierte Aktivitaet hochladen,
+    ohne dass wir irgendetwas bauen.
+  - **Die verbleibenden Wege, sortiert nach Aufwand und Reichweite:**
     2. **HealthKit auf iOS** (`HKWorkoutRoute`): dieselbe Idee, aber ohne Dateihantieren — wir
        lesen die fertige Aufnahme aus der Health-Datenbank des Telefons. **⚠️ NICHT belegt:** die
        Apple-Doku-Seite kam beim Abruf leer zurueck, die Lesbarkeit fuer Fremd-Apps ist also nur
@@ -62,6 +65,21 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   - **Der eigentliche Gewinn liegt nicht bei Fitbit:** Health Connect und HealthKit sind Sammel-
     stellen. Wer dort Routen schreibt (Samsung Health, Strava, Komoot, Polar Flow, Suunto, COROS),
     wird in einem Zug zur Quelle. Das ist das bessere Argument als eine einzelne Fitbit-Anfrage.
+  - **JANS WUNSCH (01.09.): „wir sollten google dann so wie suunto und polar als
+    Kontoverknuepfung ermoeglichen".** Das Muster ist da und billig (`api/suunto.py`,
+    `api/polar.py`, `api/coros.py`, `api/strava.py` — OAuth + Push/Pull + derselbe Import).
+    **ABER: heute wuerde die Verknuepfung keinen Track liefern.** Die Google Health API
+    dokumentiert **keinen Location-Datentyp**; auf der Migrationsseite gibt es zwar den **Scope
+    `location.readonly`**, aber in der Datentypen-Tabelle steht dazu **nichts**. Auch der
+    TCX-Export der alten Fitbit-API (der GPS-Trackpunkte lieferte) hat dort **kein** Gegenstueck.
+    Wir bekaemen also Exercise-Sitzungen (Start/Ende, Typ, Kennzahlen), Puls, Schritte,
+    Aktivminuten — und **keine Positionen**. Ohne Positionen entsteht bei uns gar keine Session;
+    das erreicht nicht einmal `gps_only`, denn auch das braucht einen Track.
+    **Empfehlung: auf die Beobachtungsliste, nicht bauen — mit EINER Ausloeser-Frage:**
+    „Dokumentiert die Google Health API einen Location-/Route-Datentyp?" Dass der Scope existiert,
+    spricht dafuer, dass es kommen soll. Sinnvoller Zeitpunkt zum Nachsehen: nachdem die
+    Abkuendigung der alten Fitbit-API (September 2026) durch ist und die neuen Dokus stehen.
+    Bis dahin sind Fitbit-Nutzer NICHT blockiert — sie koennen exportieren und hochladen.
   - **Nachtrag an die Nutzerin geschickt:** in der ersten Antwort hatte ich den Import ueber die
     neue API noch als „denkbar" bezeichnet — das war zu optimistisch, und sie sucht gerade einen
     Tracker. Richtiggestellt, damit sie ihre Kaufentscheidung nicht darauf baut.
