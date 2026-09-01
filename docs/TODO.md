@@ -619,6 +619,29 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **✅ 01.09. — Kachel „Läufe/Starts" in der Session-Detailansicht (Jans Wunsch), mit (i).**
+  Anlass: „2 Läufe" sieht nach faulem Abend aus, wenn es 15 Anläufe waren. Jans Entscheidung nach
+  drei Vorschlägen: **in die vorhandene Läufe-Kachel**, Format `4/20` mit der Quote klein daneben,
+  Beschriftung „Läufe/Starts", **sichtbar für alle** (konsequent — Läufe, Pumps und Puls stehen
+  dort schon öffentlich).
+  - **Server (additiv):** `AnalysisOut.start_attempts` = ANZAHL aus `start_attempts_json`
+    (die Distanzen bleiben serverseitig, sie werden nirgends angezeigt). Bewusst NICHT vom
+    Empfindlichkeits-Preset überlagert: die Versuche kommen immer aus dem festen attempts-Preset.
+  - **Zwei Regeln, aus dem Bestand abgeleitet** (2265 Sessions gemessen): ohne Versuchsdaten bleibt
+    es bei der alten Anzeige, und wenn MEHR Läufe als Versuche herauskommen (15 Sessions — die zwei
+    Detektoren sind sich dort uneins) zeigen wir nur die Laufzahl statt eines unsinnigen „12/9".
+    **Nicht gedeckelt:** die linke Zahl IST die Laufzahl der Session, sie darf nicht von der
+    Lauf-Tabelle darunter abweichen. Verteilung sonst: 1127 Sessions mit mehr Versuchen als Läufen
+    (Median-Quote 64 %), 681 mit Läufe == Versuche (zeigt „8/8"), 442 ohne beides.
+  - **(i) erklärt es** (Jans Zusatz): links die Läufe aus dem Bewegungsmodell, rechts die Starts aus
+    reinem GPS (>= 2 s über ~8 km/h, deshalb zählen Fehlversuche mit und Gehen an Land nicht), und
+    dass beide Zahlen nur für den ausgewerteten Teil der Session gelten. Web: Klick öffnet einen
+    Dialog (kein `title`-Tooltip — auf dem Handy unsichtbar). Android: `AlertDialog`. iOS: `.alert`.
+  - **Drei Plattformen gleichzeitig**, 3 Schlüssel × 17 Sprachen über `scripts/i18n-port.py`.
+    `tsc --noEmit` + `npm run build` gruen, `:app:compileDebugKotlin` gruen, `swiftc -parse` gruen.
+  - **iOS 1.1.28 ist schon eingereicht (22:24), das hier ist NICHT drin** — kommt in die nächste
+    Runde (Phone 1.1.25 / Wear 1.2.25 tragen es mit, beide noch nicht eingereicht).
+
 - **✅ 01.09. — Zwei falsche Kommentare zur Empfindlichkeit korrigiert (nur Kommentare, kein
   Verhalten).** Aufgefallen bei der Untersuchung zu u228: `gps.py` behauptete
   „Community/Rekorde nutzen IMMER `normal`", `__init__.py` an anderer Stelle „kanonisch (oben)

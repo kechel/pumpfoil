@@ -150,6 +150,9 @@ const id: Record<string, string> = {
 
   "stat.sessions": "Sesi",
   "stat.runs": "Run",
+  "stat.runsStarts": "Run/start",
+  "stat.runsStartsInfo": "Run dan start",
+  "stat.runsStartsTip": "Di kiri run: bagian yang dihitung sebagai foiling sungguhan — sensor gerak di jam yang menentukan.\n\nDi kanan start: setiap usaha di mana kamu lebih cepat dari 8 km/jam selama minimal 2 detik. Itu dikenali GPS saja, jadi usaha yang gagal juga ikut dihitung — berjalan di darat tidak, itu ada di 7 sampai 8 km/jam.\n\nJadi \"4/20\" berarti: dua puluh kali mencoba, empat kali terbang. Kedua angka berlaku untuk bagian sesi yang dianalisis; yang kamu potong tidak dihitung.",
   "stat.foiling": "Foiling",
   "stat.foilingTime": "Waktu foiling",
   "stat.pumps": "Pump",

@@ -127,6 +127,9 @@ const deAT: Record<string, string> = {
 
   "stat.sessions": "Sessions",
   "stat.runs": "Läuf",
+  "stat.runsStarts": "Läufe/Starts",
+  "stat.runsStartsInfo": "Läufe und Starts",
+  "stat.runsStartsTip": "Links die Läufe: Strecken, die ois echtes Foilen gezählt wurdn — des entscheidet der Bewegungssensor von der Uhr.\n\nRechts die Starts: jeder Anlauf, bei dem du mindestens 2 Sekundn schneller ois 8 km/h woarst. Des erkennt allanig des GPS, drum zähln a misslungene Versuche mit — Gehn an Land aber net, des liegt bei 7 bis 8 km/h.\n\n„4/20“ heißt oiso: 20-mal angschobn, 4-mal getrogn. Beide Zahln gültn für den ausgewertetn Teil von der Session; wos du weggschnittn host, zählt net mit.",
   "stat.foiling": "Foiling",
   "stat.foilingTime": "Foiling-Zeit",
   "stat.pumps": "Pumps",

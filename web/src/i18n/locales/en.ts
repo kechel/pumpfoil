@@ -168,6 +168,9 @@ const en: Record<string, string> = {
 
   "stat.sessions": "Sessions",
   "stat.runs": "Runs",
+  "stat.runsStarts": "Runs/starts",
+  "stat.runsStartsInfo": "Runs and starts",
+  "stat.runsStartsTip": "On the left the runs: stretches that counted as real foiling — the watch's motion sensor decides that.\n\nOn the right the starts: every attempt where you got faster than 8 km/h for at least 2 seconds. That comes from GPS alone, so failed attempts count too — walking on land does not, that sits at 7 to 8 km/h.\n\nSo “4/20” means: twenty goes, four of them flew. Both numbers cover the analysed part of the session; anything you trimmed away is left out.",
   "stat.foiling": "Foiling",
   "stat.foilingTime": "Foiling time",
   "stat.pumps": "Pumps",

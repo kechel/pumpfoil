@@ -178,6 +178,9 @@ const de: Record<string, string> = {
   // Stat-Kacheln
   "stat.sessions": "Sessions",
   "stat.runs": "Läufe",
+  "stat.runsStarts": "Läufe/Starts",
+  "stat.runsStartsInfo": "Läufe und Starts",
+  "stat.runsStartsTip": "Links die Läufe: Strecken, die als echtes Foilen gezählt wurden — darüber entscheidet der Bewegungssensor der Uhr.\n\nRechts die Starts: jeder Anlauf, bei dem du mindestens 2 Sekunden schneller als 8 km/h warst. Das erkennt allein das GPS, deshalb zählen misslungene Versuche mit — Gehen an Land aber nicht, das liegt bei 7 bis 8 km/h.\n\n„4/20“ heißt also: 20-mal angeschoben, 4-mal getragen. Beide Zahlen gelten für den ausgewerteten Teil der Session; was du weggeschnitten hast, zählt nicht mit.",
   "stat.foiling": "Foiling",
   "stat.foilingTime": "Foiling-Zeit",
   "stat.pumps": "Pumps",

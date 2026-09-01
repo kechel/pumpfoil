@@ -242,6 +242,9 @@ data class Analysis(
     @SerialName("pump_count") val pumpCount: Int? = null,
     @SerialName("avg_cadence_hz") val avgCadenceHz: Double? = null,
     val metrics: Metrics? = null,
+    // Zahl der Startversuche (attempts-Preset, reines GPS: >= 2 s ueber ~8 km/h). null = keine
+    // Daten -> die Kachel zeigt dann wie frueher nur die Laufzahl.
+    @SerialName("start_attempts") val startAttempts: Int? = null,
     @SerialName("track_geojson") val trackGeojson: JsonElement? = null,
     // Foiling-Läufe (Index-Bereiche in track_geojson.coordinates) — nur diese werden gezeichnet.
     // Nullable: die schlanke Listen-Analyse liefert "segments": null (nicht nur fehlend).

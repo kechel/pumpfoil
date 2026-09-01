@@ -94,7 +94,23 @@ def _analysis_out(result: models.AnalysisResult | None, slim: bool = False, sens
         accel_windows=None if slim else (
             json.loads(result.accel_windows_json) if result.accel_windows_json else None
         ),
+        # Startversuche: NUR die Anzahl. Die Distanzen liegen in start_attempts_json, werden aber
+        # nirgends angezeigt — sie hier mitzuschicken waere Ballast in jeder Antwort.
+        # Bewusst NICHT vom Preset ueberlagert: die Versuche kommen immer aus dem festen
+        # attempts-Preset (analysis/__init__.py), unabhaengig von der Empfindlichkeit.
+        start_attempts=_attempt_count(result),
     )
+
+
+def _attempt_count(result: models.AnalysisResult) -> int | None:
+    """Anzahl der Startversuche aus `start_attempts_json` (Liste von Distanzen). None, wenn es
+    keine Daten gibt — die Anzeige faellt dann auf die reine Laufzahl zurueck."""
+    if not result.start_attempts_json:
+        return None
+    try:
+        return len(json.loads(result.start_attempts_json) or [])
+    except (ValueError, TypeError):
+        return None
 
 
 def _list_ended_at(s: models.Session):

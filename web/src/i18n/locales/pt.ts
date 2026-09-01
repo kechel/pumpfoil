@@ -150,6 +150,9 @@ const pt: Record<string, string> = {
 
   "stat.sessions": "Sessões",
   "stat.runs": "Voltas",
+  "stat.runsStarts": "Runs/arranques",
+  "stat.runsStartsInfo": "Runs e arranques",
+  "stat.runsStartsTip": "À esquerda os runs: os trechos contados como foil a sério — decide isso o sensor de movimento do relógio.\n\nÀ direita os arranques: cada tentativa em que passaste dos 8 km/h durante pelo menos 2 segundos. Isso vem só do GPS, por isso as tentativas falhadas também contam — andar em terra não, isso fica nos 7 a 8 km/h.\n\nPortanto «4/20» quer dizer: vinte tentativas, quatro voos. Os dois números valem para a parte analisada da sessão; o que cortaste não conta.",
   "stat.foiling": "Foil",
   "stat.foilingTime": "Tempo de foil",
   "stat.pumps": "Pumps",

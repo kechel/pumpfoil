@@ -150,6 +150,9 @@ const zh: Record<string, string> = {
 
   "stat.sessions": "记录数",
   "stat.runs": "航段",
+  "stat.runsStarts": "滑行/起步",
+  "stat.runsStartsInfo": "滑行与起步",
+  "stat.runsStartsTip": "左边是滑行：被判定为真正水翼滑行的路段，由手表的运动传感器判断。\n\n右边是起步：每一次超过 8 公里/小时并持续至少 2 秒的尝试。这只靠 GPS 判断，所以失败的尝试也算在内；岸上行走不算，那大约是 7 到 8 公里/小时。\n\n所以「4/20」的意思是：尝试二十次，成功浮起四次。两个数字都只针对这次记录被分析的部分，被裁掉的时段不计。",
   "stat.foiling": "水翼滑行",
   "stat.foilingTime": "水翼滑行时长",
   "stat.pumps": "泵动次数",

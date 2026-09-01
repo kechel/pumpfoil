@@ -150,6 +150,9 @@ const ja: Record<string, string> = {
 
   "stat.sessions": "セッション",
   "stat.runs": "ラン",
+  "stat.runsStarts": "ラン/スタート",
+  "stat.runsStartsInfo": "ランとスタート",
+  "stat.runsStartsTip": "左はラン。実際にフォイルで走ったと判定された区間で、判定するのは時計の動きセンサーです。\n\n右はスタート。2秒以上、時速8kmを超えた試みすべてを数えます。これはGPSだけで判定するので、失敗した試みも入ります。陸上を歩く速さ（時速7〜8km）は入りません。\n\nつまり「4/20」は、20回試して4回浮いたということです。どちらの数字も、セッションの解析された範囲だけが対象で、切り取った部分は含みません。",
   "stat.foiling": "フォイリング",
   "stat.foilingTime": "フォイリング時間",
   "stat.pumps": "ポンプ",

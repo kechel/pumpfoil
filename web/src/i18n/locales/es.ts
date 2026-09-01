@@ -130,6 +130,9 @@ const es: Record<string, string> = {
 
   "stat.sessions": "Sesiones",
   "stat.runs": "Runs",
+  "stat.runsStarts": "Runs/salidas",
+  "stat.runsStartsInfo": "Runs y salidas",
+  "stat.runsStartsTip": "A la izquierda los runs: los tramos contados como foil de verdad — lo decide el sensor de movimiento del reloj.\n\nA la derecha las salidas: cada intento en el que pasaste de 8 km/h durante al menos 2 segundos. Eso lo detecta solo el GPS, así que los intentos fallidos también cuentan — caminar en tierra no, eso queda en 7 u 8 km/h.\n\nAsí que «4/20» significa: veinte intentos, cuatro veces volando. Ambos números se refieren a la parte analizada de la sesión; lo que recortaste no cuenta.",
   "stat.foiling": "Foiling",
   "stat.foilingTime": "Tiempo de foiling",
   "stat.pumps": "Pumps",

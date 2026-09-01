@@ -177,6 +177,9 @@ export interface Analysis {
   track_geojson: any | null;
   segments: any[] | null;
   accel_windows: any[] | null;
+  // Zahl der Startversuche (attempts-Preset, reines GPS: >= 2 s ueber ~8 km/h). null = keine
+  // Daten -> die Kachel zeigt dann wie frueher nur die Laufzahl.
+  start_attempts?: number | null;
 }
 
 export interface Metrics {
