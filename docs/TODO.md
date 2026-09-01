@@ -45,13 +45,13 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
     tragfaehige Klasse, kein Trostpreis. Meine Einordnung als „zweitklassig" war zu abschaetzig.
     **Das aendert die Bewertung der drei Wege — aber NICHT die der Google Health API:** die hat
     gar keine Positionen, das ist nicht „nur GPS", das ist nichts.
-  - **✅ KORREKTUR (Jan, 01.09.): „fit Import haben wir doch laengst".** Stimmt, und er kann mehr
-    als ich geschrieben hatte: `server/app/fitimport.py` liest **FIT**,
-    `_fit_bytes_from_upload` packt auch Garmins **ZIP** („Export Original") aus, und
-    `server/app/tcximport.py` liest **TCX UND GPX**. Der Datei-Weg ist also KEIN offener Punkt,
-    sondern fertig — ein Fitbit-Nutzer kann heute schon eine exportierte Aktivitaet hochladen,
-    ohne dass wir irgendetwas bauen.
-  - **Die verbleibenden Wege, sortiert nach Aufwand und Reichweite:**
+  - **✅ KORREKTUR (Jan, 01.09.): „fit Import haben wir doch laengst"** — stimmt, und er kann mehr
+    als ich geschrieben hatte (`fitimport.py` FIT, `_fit_bytes_from_upload` auch Garmins ZIP,
+    `tcximport.py` TCX UND GPX). **Und er ist NICHT die Antwort auf diese Anfragen:** „fit Import
+    will keiner, das gibt es laengst, es geht um automatische anbindungen" (Jan). Der Datei-Weg
+    ist also weder offen noch ein Argument — **und wird Nutzern auch nicht als Ausweg
+    geschrieben** („schreib das niemanden, das sieht man prominent genug ueberall dass das geht").
+  - **Es geht um AUTOMATISCHE Anbindungen. Welche Tueren sind offen?**
     2. **HealthKit auf iOS** (`HKWorkoutRoute`): dieselbe Idee, aber ohne Dateihantieren — wir
        lesen die fertige Aufnahme aus der Health-Datenbank des Telefons. **⚠️ NICHT belegt:** die
        Apple-Doku-Seite kam beim Abruf leer zurueck, die Lesbarkeit fuer Fremd-Apps ist also nur
@@ -83,6 +83,24 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   - **Nachtrag an die Nutzerin geschickt:** in der ersten Antwort hatte ich den Import ueber die
     neue API noch als „denkbar" bezeichnet — das war zu optimistisch, und sie sucht gerade einen
     Tracker. Richtiggestellt, damit sie ihre Kaufentscheidung nicht darauf baut.
+
+- **📐 01.09. — STRATEGIE automatische Anbindungen: die einzigen offenen Tueren sind die
+  Gesundheitsspeicher der Telefone.** Bilanz nach der Google-Recherche, weil Jan automatische
+  Anbindungen will und nicht Datei-Import:
+  | Weg | Automatisch? | Track? | Stand |
+  |---|---|---|---|
+  | Suunto, Polar, COROS, Strava | ✅ gebaut | ✅ | teils credential-gated |
+  | **Garmin Connect** | — | — | 🔴 Antragsweg ZU (17.08. geprueft) |
+  | **Google Health API** (Fitbit-Nachfolger) | ✅ Muster billig | **❌ keine Positionen** | dokumentiert keinen Location-Datentyp; Scope `location.readonly` ohne Eintrag |
+  | **Health Connect** (Android) | ✅ ohne Dateien | ✅ `ExerciseSessionRecord` + `READ_EXERCISE_ROUTE` | belegt; braucht Play-Health-Deklaration + eigene Routen-Freigabe; kein Accel |
+  | **HealthKit** (iOS) | ✅ ohne Dateien | ✅ `HKWorkoutRoute` | ⚠️ Lesbarkeit fuer Fremd-Apps **NICHT belegt** — Apples Doku-Seiten kommen bei WebFetch LEER zurueck (JavaScript). Muss in Xcode/echter Doku nachgesehen werden |
+  **Warum die Telefon-Speicher der bessere Hebel sind:** sie sind Sammelstellen. Wer dort Routen
+  hineinschreibt — Samsung Health, Strava, Komoot, Polar Flow, Suunto, COROS, die Fitbit-App —
+  wird in EINEM Zug zur Quelle, ohne je einen Herstellerantrag zu stellen. Genau daran scheitert
+  Garmin, und genau das wuerde die Google-Verknuepfung auch nicht loesen.
+  **Naechster Schritt, wenn Jan das will: iOS zuerst** — dort sitzen beide Fragesteller (Bine und
+  VintZ), und es gibt keine Play-artige Freigabehuerde. Vorher die eine offene Frage klaeren:
+  darf eine Fremd-App `HKWorkoutRoute` LESEN?
 
 - **🔲 01.09. — Feedback #105 (u225 „Abe", englisch, 28.08.): ueberlappende Bildschirme nach einer
   Session auf der epix.** War mir bisher durchgegangen. Wortlaut: „I have overlapping screens after
