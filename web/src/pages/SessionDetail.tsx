@@ -1677,6 +1677,10 @@ export default function SessionDetail() {
                       <span>{t("sd.tapCmpHead", { n: cmp.n_takes, ref: cmp.ref_take ?? 0 })}
                         {" · "}{t("sd.tapCmpConsensus", { n: cmp.consensus_n ?? 0 })}</span>
                     </div>
+                    {/* Sieben Spalten in einer Karte, die auf dem Handy die volle Breite hat —
+                        knapp, aber nicht garantiert passend. Scroll-Rahmen wie bei allen anderen
+                        Tabellen der App (Lauf-Tabelle, Vergleich, Foil-Stats). */}
+                    <div className="overflow-x-auto">
                     <table className="tabular-nums text-slate-400">
                       <thead><tr className="text-slate-500">
                         <th className="pr-3 text-left">Take</th><th className="pr-3 text-right">{t("stat.pumps")}</th>
@@ -1701,6 +1705,7 @@ export default function SessionDetail() {
                         })}
                       </tbody>
                     </table>
+                    </div>
                     <p className="mt-1 text-[11px] text-slate-500">{t("sd.tapVerdictHint")}</p>
                   </div>
                   );

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { api, CommunitySession, CommunityGroup, SessionSummary, type Transfer } from "../lib/api";
 import { foilLabel } from "../lib/foilLabel";
-import { Card, Spinner, ErrorBox, Avatar } from "../components/ui";
+import { Card, Spinner, ErrorBox, Avatar, SELECT_SCHRUMPFT } from "../components/ui";
 import { AccelToggle } from "../components/AccelToggle";
 import { useAccelDefault } from "../lib/useAccelDefault";
 import { WaveIcon, SessionsIcon, RunsIcon, FoilIcon, TimerIcon, HeartPulseIcon, LocationIcon, ChatBubbleIcon, CompareIcon, SendIcon, ChevronIcon, PlayIcon, InstagramIcon, TikTokIcon } from "../components/Icons";
@@ -314,7 +314,7 @@ export default function Sessions() {
         <select
           value={spot}
           onChange={(e) => setScope("all", e.target.value)}
-          className="min-w-0 max-w-full truncate rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-2 text-sm text-slate-100"
+          className={`${SELECT_SCHRUMPFT} rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-2 text-sm text-slate-100`}
         >
           <option value="">{t("all.allSpots")}</option>
           {(() => {

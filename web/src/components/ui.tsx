@@ -3,6 +3,23 @@ import { ReactNode, useState } from "react";
 import { useT } from "../i18n";
 
 // „neu"-Badge für frische Konten (< 24 h) — sichtbar in Community & Chat.
+/**
+ * Sicherheitsklassen für ein `<select>`, dessen Optionen aus DATEN kommen (Spot-, Foil-, Nutzer-
+ * namen) — also beliebig lang werden können.
+ *
+ * Warum es die gibt: ein natives `<select>` ist so breit wie seine längste Option, und als
+ * Flex-Kind schrumpft es wegen `min-width: auto` NICHT unter seinen Inhalt — es schiebt
+ * stattdessen die ganze Seite breiter als das Fenster. Das hat dreimal zugeschlagen: Spots-Seite
+ * (30.08., 231 Spotnamen), Sessions-Liste und Verlaufs-Animation (01.09., längste Beschriftung
+ * 48 Zeichen). Deshalb hier benannt statt jedes Mal neu gefunden.
+ *
+ * Anwenden auf JEDES select mit dynamischen Optionen; die eigene Optik kommt dahinter:
+ *   className={`${SELECT_SCHRUMPFT} rounded-xl border …`}
+ *
+ * Nicht nötig bei festen, kurzen Listen (Monat, Sportart) oder wenn schon `w-full`/`max-w-*` gilt.
+ */
+export const SELECT_SCHRUMPFT = "min-w-0 max-w-full truncate";
+
 export function NewBadge({ className = "" }: { className?: string }) {
   const t = useT();
   return (

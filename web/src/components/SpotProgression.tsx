@@ -5,7 +5,7 @@ import { basiskarten } from "../lib/mapTiles";
 import { api } from "../lib/api";
 import { speedColor } from "../lib/trackColors";
 import { useT } from "../i18n";
-import { Card, Spinner } from "./ui";
+import { Card, Spinner, SELECT_SCHRUMPFT } from "./ui";
 import { PlayIcon } from "./Icons";
 
 type Punkt = [number, number, number | null];
@@ -131,7 +131,7 @@ export function SpotProgression() {
         {/* Dieselbe Spot-Liste wie auf /sessions, also dasselbe Risiko: ohne `min-w-0` schiebt
             ein langer Spotname die Seite breiter als das Fenster (s. Sessions.tsx). */}
         <select value={spot} onChange={(e) => setSpot(e.target.value)}
-          className="min-w-0 max-w-full truncate rounded-lg border border-slate-700 bg-slate-800 px-2 py-1 text-sm text-slate-100">
+          className={`${SELECT_SCHRUMPFT} rounded-lg border border-slate-700 bg-slate-800 px-2 py-1 text-sm text-slate-100`}>
           {spots.length === 0 && <option value="">–</option>}
           {spots.map((s) => <option key={s.spot} value={s.spot}>{s.spot} ({s.count})</option>)}
         </select>
