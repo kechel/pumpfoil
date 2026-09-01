@@ -40,6 +40,9 @@ CREATE TABLE IF NOT EXISTS library_post (
     caption    TEXT,
     published  TEXT,               -- ISO, aus "Heute um 05:01" aufgeloest
     number     INTEGER,            -- Videonummer, falls zuordenbar
+    post_type  TEXT,               -- Reel | Foto | …
+    duration   INTEGER,            -- Videolaenge in Sekunden (nur CSV)
+    permalink  TEXT,
     first_seen TEXT, last_seen TEXT
 );
 CREATE TABLE IF NOT EXISTS library_stat (
@@ -49,6 +52,7 @@ CREATE TABLE IF NOT EXISTS library_stat (
     distribution REAL,              -- +4,5x -> 4.5
     watch_seconds INTEGER, avg_watch_seconds INTEGER,
     views_3s INTEGER, views_60s INTEGER,
+    reactions INTEGER, saves INTEGER, shares INTEGER,   -- nur CSV
     PRIMARY KEY (key, seen_at)
 );
 CREATE INDEX IF NOT EXISTS library_series ON library_stat (key, seen_at);
@@ -194,6 +198,60 @@ def parse(html: str, today: dt.date) -> list:
     return out
 
 
+
+# --------------------------------------------------------------- CSV -----
+# Der Export aus der Content Library ist dem HTML klar ueberlegen: vollstaendig
+# statt nur der sichtbare Ausschnitt, mit stabiler Beitrags-ID, Permalink,
+# Videolaenge und drei Kennzahlen mehr (Reaktionen, Gespeichert, Geteilt).
+# Was er NICHT enthaelt: die Gruppen-Beitraege — dafuer bleibt die HTML-Kopie.
+#
+# Achtung Zeitzone: Meta exportiert in Pacific Time, nicht in Ortszeit.
+# Gegengeprueft an einem Beitrag: "08/31/2026 20:01" == 01.09. 05:01 Berlin.
+CSV_TZ = "America/Los_Angeles"
+
+CSV_MAP = {
+    "views": "Aufrufe", "viewers": "Betrachter", "interactions": "Interaktionen",
+    "net_followers": "Netto-Follower", "impressions": "Impressionen",
+    "comments": "Kommentare", "watch_seconds": "Angesehene Sekunden",
+    "avg_watch_seconds": "Durchschnittlich angesehene Sekunden",
+    "reactions": "Reaktionen", "saves": "Gespeichert", "shares": "Geteilte Inhalte",
+}
+
+
+def parse_csv(path: Path) -> list:
+    import csv as _csv
+    from zoneinfo import ZoneInfo
+    out = []
+    with path.open(encoding="utf-8-sig", newline="") as fh:
+        for row in _csv.DictReader(fh):
+            pub = None
+            raw = (row.get("Veröffentlichungszeit") or "").strip()
+            if raw:
+                try:
+                    pub = (dt.datetime.strptime(raw, "%m/%d/%Y %H:%M")
+                           .replace(tzinfo=ZoneInfo(CSV_TZ)).astimezone())
+                except ValueError:
+                    pass
+            cap = (row.get("Titel") or "").strip()
+            m = NUM_IN_TEXT.match(cap)
+            e = {"key": (row.get("Beitrags-ID") or "").strip(),
+                 "surface": "seite", "caption": cap,
+                 "published": pub.isoformat() if pub else None,
+                 "number": int(m.group(1)) if m else None,
+                 "post_type": (row.get("Beitragsart") or "").strip() or None,
+                 "duration": num(row.get("Dauer (Sek.)")),
+                 "permalink": (row.get("Permalink") or "").strip() or None,
+                 "distribution": num(row.get("Distribution")),
+                 "views_3s": None, "views_60s": None}
+            for k, col in CSV_MAP.items():
+                v = (row.get(col) or "").strip()
+                # Der Export nutzt den englischen Dezimalpunkt ("2258.994").
+                e[k] = None if v in ("", "--", "‑‑") else int(float(v.replace(",", "")))
+            if e["key"]:
+                out.append(e)
+    return out
+
+
 def db():
     d = sqlite3.connect(DB)
     d.executescript(SCHEMA)
@@ -201,7 +259,12 @@ def db():
 
 
 def do_import(path: Path, today: dt.date, dry=False):
-    rows = parse(path.read_text(encoding="utf-8", errors="replace"), today)
+    if path.suffix.lower() == ".csv":
+        rows = parse_csv(path)
+        print(f"CSV-Export gelesen ({len(rows)} Beiträge, Zeiten aus Pacific "
+              "umgerechnet)")
+    else:
+        rows = parse(path.read_text(encoding="utf-8", errors="replace"), today)
     if not rows:
         print("Keine Zeilen erkannt — ist das wirklich das <table>-Element?")
         return
@@ -216,19 +279,24 @@ def do_import(path: Path, today: dt.date, dry=False):
     new = skip = 0
     for r in rows:
         sig = (r["views"], r["interactions"], r["net_followers"])
-        d.execute("""INSERT INTO library_post VALUES (?,?,?,?,?,?,?)
+        d.execute("""INSERT INTO library_post VALUES (?,?,?,?,?,?,?,?,?,?)
                      ON CONFLICT(key) DO UPDATE SET last_seen=excluded.last_seen,
-                       number=COALESCE(excluded.number, library_post.number)""",
+                       number=COALESCE(excluded.number, library_post.number),
+                       permalink=COALESCE(excluded.permalink, library_post.permalink),
+                       duration=COALESCE(excluded.duration, library_post.duration)""",
                   (r["key"], r["surface"], r["caption"], r["published"],
-                   r["number"], now, now))
+                   r["number"], r.get("post_type"), r.get("duration"),
+                   r.get("permalink"), now, now))
         if last.get(r["key"]) == sig:
             skip += 1
             continue
-        d.execute("INSERT OR REPLACE INTO library_stat VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        d.execute("INSERT OR REPLACE INTO library_stat "
+                  "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                   (r["key"], now, r["views"], r["viewers"], r["interactions"],
                    r["net_followers"], r["impressions"], r["comments"],
                    r["distribution"], r["watch_seconds"], r["avg_watch_seconds"],
-                   r["views_3s"], r["views_60s"]))
+                   r["views_3s"], r["views_60s"],
+                   r.get("reactions"), r.get("saves"), r.get("shares")))
         new += 1
     if dry:
         d.rollback()
