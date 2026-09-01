@@ -324,8 +324,8 @@ fun PairedDevicesCard(onSaved: () -> Unit = {}) {
             // "N ausgeblendete anzeigen" — ohne das waere Ausblenden auf dem Handy endgueltig.
             if (ausgeblendet > 0 || zeigeAusgeblendete) {
                 TextButton(onClick = { zeigeAusgeblendete = !zeigeAusgeblendete }) {
-                    Text(if (zeigeAusgeblendete) I18n.t("account.deviceHide")
-                         else "${I18n.t("account.deviceUnhide")} ($ausgeblendet)")
+                    Text(if (zeigeAusgeblendete) I18n.t("account.devicesHideHidden")
+                         else I18n.t("account.devicesShowHidden").replace("{n}", ausgeblendet.toString()))
                 }
             }
         }

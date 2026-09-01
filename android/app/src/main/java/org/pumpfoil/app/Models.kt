@@ -250,6 +250,11 @@ data class Metrics(
     @SerialName("avg_speed_mps") val avgSpeedMps: Double? = null,
     @SerialName("max_speed_mps") val maxSpeedMps: Double? = null,
     @SerialName("avg_pump_hz") val avgPumpHz: Double? = null,
+    // Woher die Laeufe kommen: "model" = aus den Beschleunigungsdaten, "gps_only" = nur GPS
+    // (dann gibt es keine Pumps und keine Kadenz). accelHzEffective = die WIRKLICH gemessene
+    // Rate; bei FR55 & Co. liegt sie unter der angeforderten und reicht dem Modell nicht.
+    val detection: String? = null,
+    @SerialName("accel_hz_effective") val accelHzEffective: Double? = null,
     @SerialName("avg_hr") val avgHr: Int? = null,
     @SerialName("max_hr") val maxHr: Int? = null,
     @SerialName("farthest_segment_m") val farthestSegmentM: Double? = null,

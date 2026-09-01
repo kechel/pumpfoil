@@ -145,8 +145,9 @@ struct WatchView: View {
         let n = devices.first?.hidden_total ?? 0
         if n > 0 || zeigeAusgeblendete {
             Button(zeigeAusgeblendete
-                   ? Loc.t("account.deviceHide", lang)
-                   : "\(Loc.t("account.deviceUnhide", lang)) (\(n))") {
+                   ? Loc.t("account.devicesHideHidden", lang)
+                   : Loc.t("account.devicesShowHidden", lang)
+                        .replacingOccurrences(of: "{n}", with: String(n))) {
                 zeigeAusgeblendete.toggle()
                 Task { await loadDevices() }
             }

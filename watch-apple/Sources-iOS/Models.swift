@@ -766,6 +766,11 @@ struct Metrics: Codable {
     // Fremdkraft-Vorschläge der Erkennung v2 (Server: detect_v2._fremdkraft_laeufe) — abgetrennte
     // Läufe mit Boot/Auto/Motor-Verdacht. Optional, damit alte Antworten weiter dekodieren.
     let fremdkraft_laeufe: [PoweredRun]?
+    // Woher die Laeufe kommen: "model" = aus den Beschleunigungsdaten, "gps_only" = nur GPS
+    // (dann gibt es keine Pumps und keine Kadenz). accel_hz_effective = die WIRKLICH gemessene
+    // Rate; bei FR55 & Co. liegt sie unter der angeforderten und reicht dem Modell nicht.
+    let detection: String?
+    let accel_hz_effective: Double?
 }
 
 // Ein Fremdkraft-Vorschlag (analysis.metrics["fremdkraft_laeufe"]): langer Lauf ohne Puls-Antwort.

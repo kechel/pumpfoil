@@ -529,6 +529,24 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
         if (s.owned && (s.status == "recording" || s.status == "live")) {
             SessionUploadCard(s.id)
         }
+        // Nur-GPS-Auswertung: OHNE diesen Satz sucht man die fehlenden Pumps in der Erkennung,
+        // obwohl gar keine (brauchbaren) Beschleunigungsdaten in der Aufnahme sind. Stand bisher
+        // nur in der PWA. Zwei Faelle: gar kein Accel — oder zu niedrig getaktet (FR55 & Co.).
+        val mdet = s.analysis?.metrics
+        if (mdet?.detection == "gps_only" && s.status != "live") {
+            val hzEff = mdet.accelHzEffective
+            val warnText = if (hzEff != null && hzEff > 0)
+                I18n.t("sd.lowRateWarning").replace("{hz}", Math.round(hzEff).toString())
+            else I18n.t("sd.gpsWarning")
+            Card(
+                Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+            ) {
+                Text(warnText, Modifier.padding(12.dp), style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer)
+            }
+        }
         // Vor/Zurück zu Nachbar-Sessions (wie Web): deaktiviert, wenn es keine gibt.
         neighbors?.let { nb ->
             if (nb.older != null || nb.newer != null) {
