@@ -22,8 +22,30 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   - Und selbst dann waere es ein **Import fertiger Aktivitaeten**, keine Live-Aufnahme: die
     Charge 6 hat eingebautes GPS, gibt aber keinen 25-Hz-Accel heraus. Landet also in unserer
     `gps_only`-Klasse wie der FR55 — Laeufe werden erkannt, nur ungenauer.
-  **Entscheidung fuer Jan:** freundlich absagen (Recorder) und den Import offenlassen, oder ganz
-  offenlassen. **Antwort noch nicht geschrieben** — Entwurf liegt bereit, Jan sagt, ob und was.
+  **Antwort ist raus (01.09.).**
+
+  **🔴 NACHGEPRUEFT (01.09., Jans Frage „koennten wir denn die Google Health API einbinden?"):
+  NEIN — und zwar nicht „schwierig", sondern die Daten gibt es dort nicht.**
+  - **Google Health API** (`developers.google.com/health`, der Fitbit-Nachfolger, Cloud-REST):
+    laut Datentypen-Seite **keine Location/Route/GPS-Daten** — „Exercise" ist nur auf
+    Sitzungsebene, ohne Geodaten — und **kein Roh-Accel**. Es gibt `heart-rate` (Sample),
+    `steps`/`active-minutes` (Interval), also unterhalb von Tageswerten, aber eben keine Positionen.
+    **Damit ist es fuer uns wertlos:** unsere ganze Auswertung steht auf GPS-Positionen. Ohne die
+    gibt es keine Strecke, keine Laeufe, kein Tempo — nur „42 Minuten, Puls 130 im Schnitt".
+  - **Health Connect** (Android, auf dem Geraet) ist die ANDERE Google-Schnittstelle und kann mehr:
+    `ExerciseSessionRecord` **kann eine Route tragen**, Leseberechtigung
+    `android.permission.health.READ_EXERCISE_ROUTE`. Aber: **auch dort kein Roh-Accel**, es geht
+    **nur auf Android** (die iPhone-Haelfte der Anfrage bleibt offen), es braucht die
+    **Health-Apps-Deklaration in der Play Console** und fuer Routen eine **eigene Freigabe** — ein
+    Pruefverfahren wie bei Garmin. Und ob die Fitbit-App Routen ueberhaupt dort hineinschreibt,
+    ist unbelegt; ohne das bringt der ganze Weg nichts.
+  - **Empfehlung: nicht bauen.** Wenn wir diese Nutzer bedienen wollen, ist der **Datei-Import
+    (FIT/GPX/TCX)** der richtige Weg — steht ohnehin schon auf der Liste (Garmin-FIT-Import),
+    braucht KEINE Plattform-Freigabe und deckt in einem Zug Fitbit, COROS, Suunto, Polar und alles
+    ab, was eine Datei exportieren kann. Ein Importeur statt fuenf Schnittstellen.
+  - **Nachtrag an die Nutzerin geschickt:** in der ersten Antwort hatte ich den Import ueber die
+    neue API noch als „denkbar" bezeichnet — das war zu optimistisch, und sie sucht gerade einen
+    Tracker. Richtiggestellt, damit sie ihre Kaufentscheidung nicht darauf baut.
 
 - **🔲 01.09. — Feedback #105 (u225 „Abe", englisch, 28.08.): ueberlappende Bildschirme nach einer
   Session auf der epix.** War mir bisher durchgegangen. Wortlaut: „I have overlapping screens after
