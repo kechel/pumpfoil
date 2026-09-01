@@ -527,6 +527,7 @@ struct SessionDetailView: View {
             if s.owned == true, s.status == "recording" || s.status == "live" {
                 SessionUploadCard(id: s.id)
             }
+            nurGpsHinweis(s)
             neighborNav
             headerRow(s)
             foilPicker(s)      // Foil gehört zu den Metadaten (wie PWA) — direkt unter dem Kopf
@@ -545,6 +546,28 @@ struct SessionDetailView: View {
             reportSection(s)
         }
         .padding()
+    }
+
+    // Nur-GPS-Auswertung: OHNE diesen Satz sucht man die fehlenden Pumps in der Erkennung,
+    // obwohl gar keine (brauchbaren) Beschleunigungsdaten in der Aufnahme sind. Stand bisher nur
+    // in der PWA. Zwei Faelle: gar kein Accel — oder zu niedrig getaktet (FR55 & Co.).
+    @ViewBuilder private func nurGpsHinweis(_ s: SessionDetail) -> some View {
+        if let m = s.analysis?.metrics, m.detection == "gps_only", s.status != "live" {
+            Text(nurGpsText(m))
+                .font(.subheadline)
+                .padding(10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.orange.opacity(0.12))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+    }
+
+    private func nurGpsText(_ m: Metrics) -> String {
+        if let hz = m.accel_hz_effective, hz > 0 {
+            return Loc.t("sd.lowRateWarning", lang)
+                .replacingOccurrences(of: "{hz}", with: String(Int(hz.rounded())))
+        }
+        return Loc.t("sd.gpsWarning", lang)
     }
 
     // Selten gebrauchte Aktionen ganz unten (wie PWA): Übertragen · Trimmen · Löschen.

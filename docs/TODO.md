@@ -619,6 +619,20 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **✅ 01.09. — Zweiter Durchgang: der Nur-GPS-Hinweis fehlte den Apps komplett.** Gefunden ueber
+  den vollstaendigen Schluessel-Abgleich (1621 Web-Keys gegen 858 Android / 843 iOS; der Rest ist
+  ueberwiegend zu Recht web-only: Admin 202, Layout-Editor 94, Startseite 76, Pump-Tagging,
+  PWA-Installation, Kontoverknuepfungen).
+  - **`sd.gpsWarning` / `sd.lowRateWarning`:** eine Session ohne (brauchbare) Beschleunigungsdaten
+    zeigt keine Pumps und keine Kadenz. Die PWA sagt WARUM; Android und iOS liessen den Nutzer
+    raten. Jetzt auf beiden, mit derselben Fallunterscheidung: gar kein Accel gegen zu niedrig
+    getaktet (dann steht die gemessene Rate drin — der FR55-Fall). Dafuer tragen die Metrics-
+    Modelle jetzt `detection` und `accel_hz_effective`, die der Server ohnehin mitliefert.
+  - **Bessere Beschriftung** fuer die ausgeblendeten Uhren: `account.devicesShowHidden`
+    („{n} ausgeblendete anzeigen") statt meiner improvisierten Fassung.
+  - Weiter offen und bewusst nicht gebaut (nicht Parität, sondern Absicht): Pump-Tagging
+    (Jan: „machen wir andermal"), Layout-Editor, Admin, FIT-Import, Kontoverknuepfungen.
+
 - **✅ 01.09. — Paritaets-Durchgang Natives (Jans Loop-Auftrag). Vier echte Luecken gefunden und
   geschlossen; FIT-Import bewusst ausgelassen.** Geprueft wurde gegen den CODE, mit zwei Sieben:
   alle seit dem 26.08. neu in `web/de.ts` aufgenommenen Schluessel gegen die nativen Tabellen, und
