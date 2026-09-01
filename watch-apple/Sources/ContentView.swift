@@ -142,6 +142,8 @@ struct RecordView: View {
     @State private var showRunEnd = false               // true = Lauf-Ende-Screen, false = Pausen-Screen
     @State private var lastDataPage = 2                 // Rücksprungziel nach der Übersicht
     @State private var autoStart = false                // GPS-Auto-Start (Config-Default, auf der Uhr umschaltbar)
+    // Profil-Einstellung „ein Tipp statt 2 s halten" (gilt fuer alle Uhren des Nutzers).
+    @State private var pressStattHalten = false
     @State private var autoMon = AutoStartMonitor()     // Idle-GPS-Monitor für Auto-Start
     @State private var autoCountdown = 10               // s Vorlauf ab Betreten des Start-Screens, bis scharf
     @State private var autoArmed = false                // Monitor aktiv (Countdown durch)?
@@ -542,7 +544,8 @@ struct RecordView: View {
     @ViewBuilder private func stopPage(_ hint: String) -> some View {
         VStack(spacing: 12) {
             // 3 s halten zum Stoppen; Ring füllt sich sichtbar als Fortschritt (wie Garmin Stop-Halten).
-            HoldToStopButton(label: WLoc.t("rec.stopHold", lang)) { Task { await rec.stop() } }
+            HoldToStopButton(label: pressStattHalten ? WLoc.t("rec.stop", lang) : WLoc.t("rec.stopHold", lang),
+                             press: pressStattHalten) { Task { await rec.stop() } }
             Text(hint).font(.caption2).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -551,7 +554,11 @@ struct RecordView: View {
     // Verwerfen-Seite (ganz außen): 3 s halten -> Aufnahme löschen ohne Upload (orange statt rot).
     @ViewBuilder private func discardPage() -> some View {
         VStack(spacing: 12) {
-            HoldToStopButton(label: WLoc.t("rec.discardHold", lang), tint: .orange) { rec.discard() }
+            // Verwerfen im Tipp-Modus mit einem ZWEITEN Tipp bestaetigen — das Halten war hier der
+            // einzige Schutz davor, eine Aufnahme mit einem Fehlgriff zu loeschen.
+            HoldToStopButton(label: pressStattHalten ? WLoc.t("rec.discard", lang) : WLoc.t("rec.discardHold", lang),
+                             tint: .orange, press: pressStattHalten,
+                             bestaetigen: pressStattHalten) { rec.discard() }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -684,6 +691,7 @@ struct RecordView: View {
                 selectedFoilId = nil; alarmSource = "manual"
             }
             autoStart = c.autoStart ?? false                   // Config-Default; danach auf der Uhr umschaltbar
+            pressStattHalten = (c.stopMode ?? "hold") == "press"
         }
         if let off = c.offFoilView, !off.isEmpty { offFoil = off }
         // Pausen-Screen (zwischen den Läufen) — fehlt der Key, bleibt der lokale Default.
@@ -890,10 +898,43 @@ struct AlarmPickerSheet: View {
 struct HoldToStopButton: View {
     let label: String
     var tint: Color = .red   // Stop = rot, Verwerfen = orange
+    /// Profil-Einstellung „ein Tipp statt halten" (stopMode = press).
+    var press: Bool = false
+    /// Nur im Tipp-Modus: erst der ZWEITE Tipp loest aus (Schutz beim Verwerfen).
+    var bestaetigen: Bool = false
     let onStop: () -> Void
     @State private var progress: CGFloat = 0
+    @State private var scharf = false
 
     var body: some View {
+        if press { tippKnopf } else { halteKnopf }
+    }
+
+    // Ein Tipp genuegt. Beim Verwerfen fragt der erste Tipp nach („Verwerfen?"), der zweite tut es;
+    // nach 4 s ohne Bestaetigung wieder entschaerft.
+    private var tippKnopf: some View {
+        ZStack {
+            Circle().stroke(Color.white.opacity(0.22), lineWidth: 6)
+            Circle().fill(tint.opacity(scharf ? 0.35 : 0.15))
+            Text(scharf ? label + "?" : label).font(.caption).bold().multilineTextAlignment(.center)
+                .foregroundStyle(.white).padding(8)
+        }
+        .frame(width: 104, height: 104)
+        .contentShape(Circle())
+        .onTapGesture {
+            if bestaetigen && !scharf {
+                scharf = true
+                WKInterfaceDevice.current().play(.click)
+                Task { try? await Task.sleep(nanoseconds: 4_000_000_000); scharf = false }
+                return
+            }
+            scharf = false
+            WKInterfaceDevice.current().play(.success)
+            onStop()
+        }
+    }
+
+    private var halteKnopf: some View {
         ZStack {
             Circle().stroke(Color.white.opacity(0.22), lineWidth: 6)
             Circle().trim(from: 0, to: progress)

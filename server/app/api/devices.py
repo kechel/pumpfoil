@@ -296,6 +296,12 @@ def device_config(
         "recordMode": _effective_record_mode(device, settings),
         # GNSS-Stufe je Uhr (best|l1|two|gps) — Uhren vor 1.0.77 ignorieren den Schluessel.
         "gnssMode": _effective_gnss_mode(device, settings),
+        # Halten oder Druecken fuer die Uhr-Aktionen, die heute 2 s Halten verlangen
+        # (Beenden, Verwerfen): "hold" (Default) | "press". Gilt fuer alle Uhren des Nutzers;
+        # bewusst KEIN Geraete-Override — anders als recordMode/gnssMode ist das eine
+        # Bediengewohnheit des Menschen, nicht eine Eigenschaft des Geraets.
+        # Aeltere Uhr-Versionen ignorieren den Schluessel und halten wie bisher.
+        "stopMode": settings.get("stop_mode", "hold"),
         # Aktivitätstyp der FIT-Session (Garmin-Connect-Kategorie): surfing | openwater.
         "activityType": settings.get("activity_type", "pumpfoil"),   # Rückfall wie DEFAULTS in settings.py
         # Profil-Sprache — die Uhr lokalisiert ihre On-Device-Texte danach. Der Code geht

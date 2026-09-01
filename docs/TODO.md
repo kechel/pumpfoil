@@ -619,6 +619,40 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **✅ 02.09. — Profil-Einstellung „halten oder druecken" fuer die Uhr-Aktionen, auf ALLEN vier
+  Uhr-Plattformen.** Anlass: u404 meldete am 01.09., dass auf seiner Garmin der lange Druck auf
+  START mit „Mann ueber Bord" belegt ist — unser Menue war damit unerreichbar; er half sich, indem
+  er MOB abschaltete. Jans Vorgabe: **eine** Einstellung im Profil fuer ALLE eigenen Uhren (kein
+  Geraete-Override — eine Bediengewohnheit hat der Mensch, nicht die Uhr), **Default bleibt
+  `hold`**, und sie gilt fuer JEDE Stelle mit 2-s-Halten, nicht nur fuers Beenden.
+  - **Server:** `settings_json.stop_mode` = `hold` (Default) | `press`, validiert im PUT, und als
+    `stopMode` im Uhr-Config-Block (`/api/devices/config`) — den holen alle vier Plattformen schon.
+  - **Garmin:** kurzer Druck loest beim LOSLASSEN aus (Ring laeuft trotzdem an, das Halten
+    funktioniert unveraendert weiter — man bekommt einen Weg DAZU, keiner faellt weg). Dabei die
+    doppelte Ausloese-Logik in `RecordDelegate` zu einer Stelle (`_ausloesen`) zusammengefuehrt,
+    getrennt nach (:full) Aktions-Menue und (:lite) direkt speichern. Beide Stufen gebaut
+    (fenix7 + fr55).
+  - **Wear OS / Apple Watch:** `HoldButton` bzw. `HoldToStopButton` bekommen einen Tipp-Modus.
+    **Verwerfen fragt dort einmal nach** (zweiter Tipp, entschaerft sich nach 4 s): das Halten war
+    an der Stelle der einzige Schutz davor, eine Aufnahme mit einem Fehlgriff zu loeschen.
+  - **Zepp:** der Bildschirm-Knopf war ohnehin ein Tipp; neu ist der kurze Druck auf die
+    SELECT-Taste. Der Tasten-Hinweis unten sagt dann „STOPP" statt „Halten = STOPP".
+    **Die Touch-Sperre bleibt bewusst auf Halten** — ein Tipp wuerde die Sperre sinnlos machen,
+    genau davor schuetzt sie ja im Wasser.
+  - **Einstellung sichtbar in Web (Account), Android und iOS** (Radio/Picker statt Schalter: zwei
+    gleichrangige Wege, kein An/Aus), 4 Schluessel × 17 Sprachen.
+  - **Beinahe-Fehler beim Bauen, festgehalten:** ich hatte auf Wear zuerst `I18n.t("rec.sure")`
+    geschrieben — ein Schluessel, den es nicht gibt. Genau der Fehler, den ich am 01.09. auf
+    Android gefunden hatte (dort stand woertlich „watchStats.hint" auf dem Bildschirm). Die
+    Gegenprobe „benutzte gegen definierte Schluessel" faengt das; sie laeuft jetzt auch fuer die
+    Uhr-Tabellen: **Wear 82 benutzt, Apple 76 benutzt, beide ohne Fehlstelle.** Statt eines neuen
+    Schluessels haengt die Rueckfrage jetzt ein „?" an den vorhandenen Wortlaut.
+  - `:app:` + `:wear:compileDebugKotlin` gruen, `monkeyc` fuer fenix7 + fr55 gruen, `swiftc -parse`
+    gruen, `node --check` fuer Zepp gruen, `tsc --noEmit` + `npm run build` gruen. Server neu
+    gestartet, `PUT stop_mode` end-to-end gegen das Bot-Konto geprueft (press/hold/Unsinn).
+  - **Noch nicht bei den Nutzern:** Web ist live, die Uhr-Teile brauchen je einen Release
+    (Garmin-Build, iOS/Wear/Zepp-Einreichung).
+
 - **🔴→✅ 02.09. — POLNISCH liess sich gar nicht speichern: `SUPPORTED_LANGS` im Server kannte
   `"pl"` nicht. Gemeldet von u149 (01.09. 19:49, 1:1-Chat an mich), sofort behoben und live.**
   - **Meldung:** „There is an issue with switching to Polish. Its switch again to English, when you

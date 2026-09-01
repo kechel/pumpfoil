@@ -502,6 +502,9 @@ function ViewsEditor() {
   // dieselben Farben zeigt wie die Uhr. Vorher waren hier feste Stufen verdrahtet.
   const [scales, setScales] = useState<ValueScales>(DEFAULT_SCALES);
   const [autoStart, setAutoStart] = useState(true);
+  // Halten oder Druecken fuer die Uhr-Aktionen (Beenden/Verwerfen). Gilt fuer ALLE eigenen Uhren
+  // — bewusst kein Geraete-Override: das ist eine Bediengewohnheit, keine Geraete-Eigenschaft.
+  const [stopMode, setStopMode] = useState("hold");
   const [layoutsEnabled, setLayoutsEnabled] = useState(true);
   const [browseAll, setBrowseAll] = useState(true);
   const [saved, setSaved] = useState(false);
@@ -518,6 +521,7 @@ function ViewsEditor() {
         speedZones: Array.isArray(zs) && zs.length === 6 ? zs.map(Number) : DEFAULT_SCALES.speedZones,
       });
       setAutoStart(s.auto_start !== false);
+      setStopMode(s.stop_mode === "press" ? "press" : "hold");
       setLayoutsEnabled(s.layouts_enabled !== false);
       setBrowseAll(s.browse_all_pages !== false);
       // F3: Off-Foil und Pause sind Listen. Wer noch die alte Einzel-Konfiguration hat, sieht sie
@@ -536,12 +540,13 @@ function ViewsEditor() {
     setErr(null);
     try {
       const res = await api.saveSettings({
-        pages, colorByValue, auto_start: autoStart, layouts_enabled: layoutsEnabled,
+        pages, colorByValue, auto_start: autoStart, stop_mode: stopMode, layouts_enabled: layoutsEnabled,
         off_foil_pages: offPages, pause_pages: pausePages, browse_all_pages: browseAll,
       });
       setPages((res.pages as Page[]) ?? pages);
       setColorByValue(!!res.colorByValue);
       setAutoStart(res.auto_start !== false);
+      setStopMode(res.stop_mode === "press" ? "press" : "hold");
       setLayoutsEnabled(res.layouts_enabled !== false);
       setBrowseAll(res.browse_all_pages !== false);
       if (res.off_foil_pages) setOffPages(res.off_foil_pages as Page[]);
@@ -578,6 +583,20 @@ function ViewsEditor() {
         <input type="checkbox" checked={autoStart} onChange={(e) => { setAutoStart(e.target.checked); setSaved(false); }} />
         {t("account.autoStart")}
       </label>
+      {/* Beenden/Verwerfen auf der Uhr: halten (Standard) oder ein Druck. Radio statt Haken —
+          es sind zwei gleichrangige Wege, kein An/Aus. */}
+      <fieldset className="mb-3">
+        <legend className="mb-1 text-sm font-medium text-slate-200">{t("account.stopMode")}</legend>
+        {[["hold", "account.stopModeHold"], ["press", "account.stopModePress"]].map(([wert, key]) => (
+          <label key={wert} className="mb-1 flex items-center gap-2 text-sm text-slate-200">
+            <input type="radio" name="stopMode" value={wert} checked={stopMode === wert}
+              onChange={() => { setStopMode(wert); setSaved(false); }} />
+            {t(key)}
+          </label>
+        ))}
+        <p className="mt-1 text-sm text-slate-400">{t("account.stopModeHint")}</p>
+      </fieldset>
+
       {/* Not-Aus für die eigenen Layouts auf der Uhr. Wirkt nur für DICH — Layouts anderer
           Nutzer sind davon unberührt. Aus = die Uhr fährt die klassischen 3-Feld-Ansichten. */}
       <label className="mb-1 flex items-center gap-2 text-sm text-slate-200">

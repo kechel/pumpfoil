@@ -204,6 +204,9 @@ class MainActivity : ComponentActivity() {
         // Account-Config überschreibbar (pauseView). Fehlt der Key -> Default bleibt.
         var pauseView by remember { mutableStateOf(listOf(12, 20, 2)) }
         var autoStart by remember { mutableStateOf(false) }              // GPS-Auto-Start (Config)
+        // Profil-Einstellung: "hold" (Default) = 2 s halten, "press" = ein Druck genuegt.
+        // Gilt fuer alle Uhren des Nutzers (kein Geraete-Override) — s. /api/devices/config.
+        var stopMode by remember { mutableStateOf("hold") }
         // Eigene Layouts (F2/F3). `pages`/`offFoilPages` sind gemischte Saetze: ein Eintrag ist
         // entweder eine 3-Feld-Seite oder eine Layout-ID. `layoutsOn` ist nur die VOREINSTELLUNG
         // des Schalters beim App-Start — danach entscheidet der Nutzer am Handgelenk (wie Garmin).
@@ -244,6 +247,7 @@ class MainActivity : ComponentActivity() {
                 if (z.length() == 6) LayoutScales.speedZones = (0 until 6).map { z.getInt(it) }
             }
             autoStart = c.optBoolean("autoStart", false)
+            stopMode = c.optString("stopMode", "hold")
             manualAlarm = c.optBoolean("alarmEnabled", false)
             alarmDefault = c.optString("alarmDefault", "foil")
             alarm = WatchAlarm(
@@ -555,7 +559,10 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                             page == 1 || page == stopBack -> {  // Stop-Seiten: 2 s halten -> stoppen (speichert + lädt hoch)
-                                HoldButton(I18n.t("rec.stopHold"), Color(0xFFB91C1C), Color(0xFFF87171)) {
+                                HoldButton(
+                                    if (stopMode == "press") I18n.t("rec.stop") else I18n.t("rec.stopHold"),
+                                    Color(0xFFB91C1C), Color(0xFFF87171), press = stopMode == "press",
+                                ) {
                                     RecorderService.stop(applicationContext)
                                 }
                                 if (s.status.isNotEmpty()) {
@@ -564,7 +571,20 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                             else -> {  // Verwerfen-Seiten (ganz außen): 2 s halten -> Aufnahme löschen (kein Upload)
-                                HoldButton(I18n.t("rec.discardHold"), Color(0xFF92400E), Color(0xFFFBBF24)) {
+                                // Verwerfen im press-Modus mit ZWEITEM Druck bestaetigen: das Halten
+                                // war hier der einzige Schutz davor, eine Aufnahme mit einem
+                                // Fehlgriff zu loeschen. Ein Druck + „Sicher?" kostet eine Geste
+                                // und rettet die Daten.
+                                HoldButton(
+                                    // `rec.discardHold` ist auf Wear schon der blanke Wortlaut
+                                    // („Verwerfen"), taugt also fuer beide Wege. Die Rueckfrage
+                                    // haengt nur ein Fragezeichen an — das braucht keinen neuen
+                                    // Schluessel und liest sich in jeder Sprache richtig.
+                                    I18n.t("rec.discardHold"),
+                                    Color(0xFF92400E), Color(0xFFFBBF24), press = stopMode == "press",
+                                    bestaetigen = stopMode == "press",
+                                    bestaetigenLabel = I18n.t("rec.discardHold") + "?",
+                                ) {
                                     verworfen = true
                                     RecorderService.discard(applicationContext)
                                 }
@@ -1058,8 +1078,21 @@ class MainActivity : ComponentActivity() {
     @Composable
     // Generischer „2 s halten"-Button (Stop = rot, Verwerfen = amber). onHeld feuert erst nach
     // 2 s ohne Loslassen (bewusste, versehentlich schwer auszulösende Geste).
-    private fun HoldButton(label: String, fill: Color, ring: Color, onHeld: () -> Unit) {
+    private fun HoldButton(
+        label: String, fill: Color, ring: Color,
+        /** Profil-Einstellung „ein Druck statt 2 s halten" (stopMode = press). */
+        press: Boolean = false,
+        /** Nur im press-Modus: erst der ZWEITE Druck loest aus (Schutz beim Verwerfen). */
+        bestaetigen: Boolean = false,
+        bestaetigenLabel: String = "",
+        onHeld: () -> Unit,
+    ) {
         var progress by remember { mutableStateOf(0f) }
+        var scharf by remember { mutableStateOf(false) }   // erster Druck im Bestaetigen-Modus
+        // Nach 4 s ohne zweiten Druck wieder entschaerfen — sonst loest ein spaeterer Fehlgriff aus.
+        LaunchedEffect(scharf) {
+            if (scharf) { kotlinx.coroutines.delay(4000); scharf = false }
+        }
         Box(contentAlignment = Alignment.Center) {
             CircularProgressIndicator(
                 progress = progress.coerceAtLeast(0.001f),   // immer sichtbarer Ring (zeigt „halten")
@@ -1071,7 +1104,15 @@ class MainActivity : ComponentActivity() {
                 modifier = Modifier
                     .size(76.dp)
                     .background(fill, CircleShape)
-                    .pointerInput(Unit) {
+                    .pointerInput(press, bestaetigen) {
+                        // Ein Druck genuegt (Profil-Einstellung): sofort ausloesen, ohne Ring.
+                        if (press) {
+                            detectTapGestures(onTap = {
+                                if (bestaetigen && !scharf) { scharf = true }
+                                else { scharf = false; onHeld() }
+                            })
+                            return@pointerInput
+                        }
                         detectTapGestures(onPress = {
                             progress = 0.0001f
                             val held = coroutineScope {
@@ -1092,7 +1133,8 @@ class MainActivity : ComponentActivity() {
                     },
                 contentAlignment = Alignment.Center,
             ) {
-                Text(label, textAlign = TextAlign.Center,
+                Text(if (scharf && bestaetigenLabel.isNotEmpty()) bestaetigenLabel else label,
+                    textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.caption2, color = Color.White)
             }
         }

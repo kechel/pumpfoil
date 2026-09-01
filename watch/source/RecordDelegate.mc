@@ -8,6 +8,9 @@ using Toybox.Attention;
 //   START/STOP (KEY_ENTER): kurzer Druck startet; im laufenden Betrieb muss man
 //   2 s HALTEN, um das Aktions-Menue zu oeffnen (Ring-Indikator in der View). So kein
 //   versehentliches Beenden beim Foilen.
+//   Profil-Einstellung „ein Druck statt halten" (stopMode = "press", gilt fuer alle Uhren des
+//   Nutzers): dann loest schon ein kurzer Druck aus. Das Halten funktioniert weiter — man
+//   bekommt einen Weg dazu, keiner faellt weg.
 //   Menü-Taste: Upload. 1-Hz-Tick aktualisiert Live-Werte.
 class RecordDelegate extends WatchUi.BehaviorDelegate {
 
@@ -88,11 +91,42 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
     // schon beim DRÜCKEN behandelt (oben) — deshalb setzt sie stopHoldStartMs auch nie.
     function onKeyReleased(evt as WatchUi.KeyEvent) as Lang.Boolean {
         if (evt.getKey() == WatchUi.KEY_ENTER && _rec.stopHoldStartMs != null) {
+            var kurz = System.getTimer() - _rec.stopHoldStartMs < _rec.STOP_HOLD_MS;
             _cancelHold();
+            // Profil-Einstellung „ein Druck statt 2 s halten": beim LOSLASSEN ausloesen, nicht
+            // beim Druecken. Damit bleibt das Halten daneben erhalten (es hat den Ring schon
+            // gefuellt und oben in onHoldTick ausgeloest) — wer die Einstellung umstellt,
+            // verliert also keinen Weg, er bekommt einen zweiten dazu.
+            if (kurz && _rec.pressStatt2s()) {
+                _ausloesen();
+                WatchUi.requestUpdate();
+                return true;
+            }
             WatchUi.requestUpdate();
             return true;
         }
         return false;
+    }
+
+    // Was das Halten (bzw. der kurze Druck im press-Modus) ausloest. EINE Stelle fuer beide Wege.
+    // (:full) — Aktions-Menue Speichern/Pausieren/Verwerfen.
+    (:full)
+    hidden function _ausloesen() as Void {
+        if (Toybox has :Attention && Attention has :vibrate) {
+            try { Attention.vibrate([new Attention.VibeProfile(75, 200)]); } catch (e) {}
+        }
+        var av = new SessionActionView();
+        WatchUi.pushView(av, new SessionActionDelegate(_rec, av), WatchUi.SLIDE_LEFT);
+    }
+
+    // (:lite) — 96-KB-Uhren ohne Menue: direkt stoppen + speichern, danach ggf. Upload-Screen.
+    (:lite)
+    hidden function _ausloesen() as Void {
+        if (Toybox has :Attention && Attention has :vibrate) {
+            try { Attention.vibrate([new Attention.VibeProfile(75, 200)]); } catch (e) {}
+        }
+        _rec.stop();
+        _showUploadIfConnected();
     }
 
     // Während des Haltens: Ring animieren; bei 2 s Menü öffnen (Speichern/Verwerfen/Pausieren).
@@ -104,11 +138,7 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
         var held = System.getTimer() - _rec.stopHoldStartMs;
         if (held >= _rec.STOP_HOLD_MS) {
             _cancelHold();
-            if (Toybox has :Attention && Attention has :vibrate) {
-                try { Attention.vibrate([new Attention.VibeProfile(75, 200)]); } catch (e) {}
-            }
-            var av = new SessionActionView();
-            WatchUi.pushView(av, new SessionActionDelegate(_rec, av), WatchUi.SLIDE_LEFT);
+            _ausloesen();
             WatchUi.requestUpdate();
             return;
         }
@@ -123,11 +153,7 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
         var held = System.getTimer() - _rec.stopHoldStartMs;
         if (held >= _rec.STOP_HOLD_MS) {
             _cancelHold();
-            if (Toybox has :Attention && Attention has :vibrate) {
-                try { Attention.vibrate([new Attention.VibeProfile(75, 200)]); } catch (e) {}
-            }
-            _rec.stop();
-            _showUploadIfConnected();
+            _ausloesen();
             WatchUi.requestUpdate();
             return;
         }

@@ -619,7 +619,7 @@ Page(
       // niemand, also selbst mitschreiben wie das Lauf-Hoechsttempo.
       runMaxHr: 0, lastRunMaxHr: 0,
       lastRunDurMs: 0, lastRunDistM: 0, lastRunAvgMps: 0, lastRunMaxMps: 0,
-      views: [[1, 3, 4]], offFoil: [12, 17, 16], autoStart: false,
+      views: [[1, 3, 4]], offFoil: [12, 17, 16], autoStart: false, stopMode: "hold",
       // Seiten-Sätze je Zustand (Server, getaggte Listen: [0,a,b,c] klassisch | [1,bg,[el…]] Layout).
       // browseAll = im Off-Foil-Zustand auch durch die On-Foil-Seiten blättern. _ringKey cached den
       // zuletzt gebauten Ring (Zustand + Layout-Schalter) — bei Config-Änderung auf null setzen.
@@ -812,7 +812,14 @@ Page(
                 this._unlockTouchTemporarily();
                 return true;
               }
-              if (key === KEY_SELECT && click) { if (s.touchLocked) this._showTouchLock(); return true; }
+              // Kurzer Druck: im press-Modus beendet er die Aufnahme (Profil-Einstellung) —
+              // sonst zeigt er nur den Touch-Sperr-Hinweis wie bisher. Das lange Halten bleibt
+              // in BEIDEN Faellen erhalten, es faellt also kein Weg weg.
+              if (key === KEY_SELECT && click) {
+                if (s.stopMode === "press") { this.stop(); return true; }
+                if (s.touchLocked) this._showTouchLock();
+                return true;
+              }
               if (!click || (key !== KEY_UP && key !== KEY_DOWN)) return false;
               if (s.touchLocked) this._showTouchLock();
               // Seitenzahl aus dem Ring des AKTUELLEN Zustands (on-foil/off-foil), nicht mehr aus
@@ -940,6 +947,9 @@ Page(
         if (r && Array.isArray(r.views) && r.views.length) s.views = r.views;
         if (r && Array.isArray(r.offFoilView) && r.offFoilView.length) s.offFoil = r.offFoilView;
         if (r && typeof r.autoStart !== "undefined") s.autoStart = !!r.autoStart;
+        // Profil-Einstellung: "hold" (Default) = SELECT lang halten, "press" = kurzer Druck
+        // genuegt. Gilt fuer alle Uhren des Nutzers (kein Geraete-Override).
+        if (r && typeof r.stopMode !== "undefined") s.stopMode = r.stopMode || "hold";
         // Seiten-Sätze (F3). Der Server liefert getaggte Listen INLINE — es gibt keine Layout-IDs
         // und kein `layouts`-Wörterbuch (server/app/api/devices.py:_layouts_for_watch):
         //   [0,a,b,c]         klassische Seite mit drei Feld-IDs
@@ -1045,7 +1055,8 @@ Page(
         });
         w.lockHint = w.touchShield.createWidget(hmUI.widget.TEXT, {
           x: 0, y: Math.round(DH * 0.50), w: DW, h: Math.round(DH * 0.10),
-          text: t("rec.stopHold") + " = " + t("btn.stop"), text_size: Math.round(DH * 0.055),
+          text: (this.state.stopMode === "press" ? t("btn.stop") : t("rec.stopHold") + " = " + t("btn.stop")),
+          text_size: Math.round(DH * 0.055),
           color: 0x9aa4b2, align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V,
         });
         // Zweite Zeile: der Ausweg OHNE Tasten. Ohne ihn wuesste niemand, dass langes Druecken
@@ -1745,7 +1756,8 @@ Page(
         // Tasten-Hinweis: "Halten = STOPP". Das frueher angehaengte "kurz = Seite" ist entfallen —
         // fuer "Seite" gibt es in den anderen Uhr-Apps keinen Wortlaut, und die Seitenanzeige
         // (n/N) steht ohnehin oben rechts. Keinen Text erfinden.
-        w.status.setProperty(hmUI.prop.TEXT, t("rec.stopHold") + " = " + t("btn.stop"));
+        w.status.setProperty(hmUI.prop.TEXT,
+          s.stopMode === "press" ? t("btn.stop") : t("rec.stopHold") + " = " + t("btn.stop"));
         return;
       }
       const pg = s.page - 1, entry = ring[pg] || ring[0];

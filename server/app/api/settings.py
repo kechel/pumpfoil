@@ -22,6 +22,14 @@ DEFAULTS = {
     "auto_start": True,
     # Aufzeichnungsmodus: full | lite | gps (für speicherarme Uhren).
     "record_mode": "full",
+    # Wie eine Aktion auf der UHR ausgeloest wird, die heute ZWEI SEKUNDEN HALTEN verlangt
+    # (Aufnahme beenden, Verwerfen): "hold" = halten wie bisher (Default), "press" = ein Druck
+    # genuegt. Gilt fuer ALLE eigenen Uhren, nicht je Geraet — Jans Vorgabe: eine Gewohnheit hat
+    # man als Mensch, nicht als Uhr.
+    # Anlass (01.09., Nutzer u404): auf seiner Garmin ist der lange Druck auf START mit „Mann
+    # ueber Bord" belegt, unser Menue war damit nicht erreichbar. Und es gibt Leute, die den
+    # kurzen Druck schlicht gewohnt sind. Default bleibt bewusst "hold" (Jan: „ich mag das nicht").
+    "stop_mode": "hold",
     # Aktivitätstyp der Garmin-FIT-Session (Garmin-Connect-Kategorie): pumpfoil | surfing | openwater.
     # Default "pumpfoil" (generic + Freiwasser-SubSport + Name "Pumpfoil") — so steht es seit dem
     # 20.07.2026 auch im Changelog ("set as the default for everyone"). Der Default hier war aber
@@ -350,6 +358,8 @@ def update_settings(
         current["auto_start"] = bool(patch["auto_start"])
     if "record_mode" in patch and patch["record_mode"] in ("full", "lite", "gps"):
         current["record_mode"] = patch["record_mode"]
+    if "stop_mode" in patch and patch["stop_mode"] in ("hold", "press"):
+        current["stop_mode"] = patch["stop_mode"]
     if "activity_type" in patch and patch["activity_type"] in ("surfing", "openwater", "pumpfoil"):
         current["activity_type"] = patch["activity_type"]
     if "homespot" in patch:
