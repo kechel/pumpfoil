@@ -239,13 +239,26 @@ private struct YoutubePlayer: UIViewRepresentable {
         // `loop=1` wirkt bei einem EINZELNEN Video nur zusammen mit `playlist=<id>`
         // (dokumentierte Eigenart der Player-Parameter). Bei Clips von wenigen Sekunden ist
         // die Schleife das Richtige.
+        // Die ELTERN-Herkunft, die der Player zu sehen bekommt, muss UNSERE sein.
+        //
+        // Hier stand `youtube-nocookie.com` selbst als baseURL — damit war die Elternseite aus
+        // Sicht des Players seine eigene Domain, und YouTube lehnt das ab: **Error 153**,
+        // „Video player configuration error". Sichtbar wird das nie, weil die Absage IM iframe
+        // landet und der Rahmen schwarz bleibt. Gefunden am 02.09. in der Android-App, wo genau
+        // dieselbe Zeile stand; YouTube zieht die Herkunftspruefung fuer Embeds gerade an.
+        //
+        // In der PWA ist die Elternseite `https://pumpfoil.org`, dort laeuft es. Das stellen wir
+        // hier nach: baseURL = unsere Herkunft, plus `origin=` im Embed. Datenschutzseitig
+        // aendert das nichts: dieselbe nocookie-Domain, derselbe Referrer wie im Web, geladen
+        // wird erst nach dem Antippen.
+        let herkunft = "https://pumpfoil.org"
         let html = """
             <html><body style="margin:0;background:#000">
             <iframe width="100%" height="100%" frameborder="0" allowfullscreen
               allow="autoplay; encrypted-media; picture-in-picture"
-              src="https://www.youtube-nocookie.com/embed/\(videoId)?autoplay=1&rel=0&playsinline=1&loop=1&playlist=\(videoId)"></iframe>
+              src="https://www.youtube-nocookie.com/embed/\(videoId)?autoplay=1&rel=0&playsinline=1&loop=1&playlist=\(videoId)&origin=\(herkunft)"></iframe>
             </body></html>
             """
-        web.loadHTMLString(html, baseURL: URL(string: "https://www.youtube-nocookie.com"))
+        web.loadHTMLString(html, baseURL: URL(string: herkunft))
     }
 }
