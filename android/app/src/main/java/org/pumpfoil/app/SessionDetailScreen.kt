@@ -878,24 +878,32 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Spacer(Modifier.width(4.dp))
                             Switch(checked = showPumps, onCheckedChange = { showPumps = it })
-                            // Startversuche — nur anbieten, wenn es welche gibt (oder noch
-                            // geladen wird). Bewusst NICHT an der Kachel-Zahl festmachen: die
-                            // gilt nur fuer den ausgewerteten Bereich, Versuche vor dem
-                            // Zuschnitt kommen dort nicht vor.
-                            if (attempts == null || attempts!!.isNotEmpty()) {
-                                Spacer(Modifier.width(10.dp))
-                                Text(I18n.t("sd.showAttempts"), style = MaterialTheme.typography.bodyMedium)
-                                Switch(checked = showAttempts, onCheckedChange = { showAttempts = it })
-                            }
                         }
                     }
                 }
-                // Glättung (nur Speed) in eigener Zeile darunter.
-                if (colorMode == ColorMode.SPEED) {
+                // Zweite Zeile: links die Glättung (nur im Speed-Modus), rechts die
+                // Startversuche. Jan, 02.09.: die obere Zeile ist waagerecht scrollbar, ein
+                // Schalter am Ende wäre dort halb versteckt. Diese Zeile scrollt NICHT, deshalb
+                // gibt es sie jetzt IMMER — sonst verschwände der Schalter in den anderen
+                // Farbmodi (Puls/Pump/Carves), wo es keine Glättung gibt.
+                val zeigeVersuchsSchalter = attempts == null || attempts!!.isNotEmpty()
+                if (colorMode == ColorMode.SPEED || zeigeVersuchsSchalter) {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        listOf(1, 3, 5).forEach { w ->
-                            FilterChip(selected = win == w, onClick = { win = w }, label = { Text("${w}s") },
-                                colors = cyanChipColors(), modifier = Modifier.padding(end = 8.dp))
+                        if (colorMode == ColorMode.SPEED) {
+                            listOf(1, 3, 5).forEach { w ->
+                                FilterChip(selected = win == w, onClick = { win = w }, label = { Text("${w}s") },
+                                    colors = cyanChipColors(), modifier = Modifier.padding(end = 8.dp))
+                            }
+                        }
+                        Spacer(Modifier.weight(1f))
+                        // Nur anbieten, wenn es welche gibt (oder noch geladen wird). Bewusst
+                        // NICHT an der Kachel-Zahl festmachen: die gilt nur fuer den
+                        // ausgewerteten Bereich, Versuche vor dem Zuschnitt kommen dort nicht vor.
+                        if (zeigeVersuchsSchalter) {
+                            Text(I18n.t("sd.showAttempts"), style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Spacer(Modifier.width(4.dp))
+                            Switch(checked = showAttempts, onCheckedChange = { showAttempts = it })
                         }
                     }
                 }
