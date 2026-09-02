@@ -619,6 +619,13 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **✅ 02.09. — Wear-Aufnahme laeuft im Emulator, und „ein Druck statt halten" ist IM FELD
+  bestaetigt** (Jan: „jetzt laeuft die wear und one click stop geht auch ohne hold"). Damit ist die
+  Kette einmal ganz durchgemessen: Einstellung im Profil -> `/api/devices/config` -> Uhr -> kurzer
+  Druck beendet die Aufnahme. Vorher geprueft waren nur die einzelnen Glieder.
+  **Noch nicht praktisch bestaetigt:** derselbe Modus auf Garmin (1.0.85 ist live), Apple Watch
+  (wartet in 1.1.28) und Zepp (wartet in 1.0.7/1.0.8).
+
 - **🔴→✅ 02.09. — ECHTER Fehler, um Haaresbreite ausgeliefert: die Wear-App stirbt beim
   Aufnahmestart auf Android 15/16.** Gefunden in Jans Emulator-Test, NACHDEM der
   Sensor-HAL-Absturz (s. Eintrag darueber) aus dem Weg war und der Crash-Puffer den zweiten,
