@@ -118,6 +118,14 @@ struct SocialFeedSection: View {
                 .font(.largeTitle).foregroundStyle(Color.accentColor)
         }
         .clipShape(RoundedRectangle(cornerRadius: 16))
+        // Beruehrungen NUR auf der eigenen Kachel (Jan, 02.09.: „ab ca. der Mitte der
+        // Vorschaubilder wird schon das Video eins weiter rechts geoeffnet").
+        //
+        // Ursache: `scaledToFill` in einem festen Rahmen laesst das Bild seitlich UEBERHAENGEN.
+        // `clipped()`/`clipShape` schneidet nur die Darstellung ab — fuer die Trefferpruefung
+        // bleibt der ueberhaengende Teil zustaendig, und der liegt ueber der linken Nachbarin.
+        // `contentShape` legt die Trefferflaeche verbindlich auf die Kachel selbst.
+        .contentShape(RoundedRectangle(cornerRadius: 16))
     }
 
     private func untertitel(_ it: SocialItem) -> String {
