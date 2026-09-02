@@ -610,7 +610,7 @@ export interface AdminStatsSeries {
   totals: { new_users: number; active_users: number; sessions: number; photos: number; likes: number };
 }
 
-export interface NewsBanner { version: number; enabled: boolean; texts: Record<string, string>; }
+export interface NewsBanner { version: number; enabled: boolean; texts: Record<string, string>; updated_at?: string | null; }
 
 export interface AdminBlock {
   id: number; created_at: string | null;

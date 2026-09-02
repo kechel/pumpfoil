@@ -766,7 +766,11 @@ def _news_row(db: Session) -> "models.NewsBanner":
 
 def _news_dict(row: "models.NewsBanner") -> dict:
     return {"version": int(row.version or 0), "enabled": bool(row.enabled),
-            "texts": json.loads(row.text_json) if row.text_json else {}}
+            "texts": json.loads(row.text_json) if row.text_json else {},
+            # Wann der Banner zuletzt angefasst wurde. Klingt nebensaechlich, war aber der Grund,
+            # warum ein zwei Monate alter Text (02.09.: nur `fi`, persoenlich adressiert) niemandem
+            # auffiel: die Admin-Ansicht zeigte weder ihn noch sein Alter.
+            "updated_at": row.updated_at.isoformat() if row.updated_at else None}
 
 
 @router.get("/news")
