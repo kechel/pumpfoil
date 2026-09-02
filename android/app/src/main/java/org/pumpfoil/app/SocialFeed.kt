@@ -330,8 +330,15 @@ private fun YoutubePlayer(videoId: String, modifier: Modifier = Modifier) {
             web.tag = videoId
             web.loadDataWithBaseURL(
                 HERKUNFT,
-                """<html><body style="margin:0;background:#000">
-                   <iframe width="100%" height="100%" frameborder="0" allowfullscreen
+                // `html` UND `body` brauchen ausdruecklich Hoehe, sonst rechnet die 100 %-Angabe
+                // des iframes gegen einen Block ohne Hoehe — und das Ergebnis ist ~0.
+                // GENAU DAS war der schwarze Player (02.09.): Jan sah unten am Bildschirmrand
+                // „eine 1px hohe Zeile, die sich beim Videowechsel farblich aendert" — das WAR
+                // das Video, volle Breite, ein Pixel hoch. Ton lief die ganze Zeit.
+                // Deshalb hier alles explizit statt `width/height`-Attribute: Attribute sind nur
+                // Darstellungs-HINWEISE, und ohne Hoehe am Elternteil bringen sie nichts.
+                """<html style="height:100%"><body style="margin:0;height:100%;background:#000">
+                   <iframe style="display:block;width:100%;height:100%;border:0" allowfullscreen
                      allow="autoplay; encrypted-media; picture-in-picture"
                      src="https://www.youtube-nocookie.com/embed/$videoId?autoplay=1&rel=0&playsinline=1&loop=1&playlist=$videoId&origin=$HERKUNFT"></iframe>
                    </body></html>""",
