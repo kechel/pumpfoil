@@ -619,6 +619,25 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔴→✅ 02.09. — DIE eigentliche Ursache fuer „4 Laeufe statt 4/4": unser ETag. Nicht der Cache,
+  nicht der Service Worker.** Jan hatte das neue Bundle (`Build 2026-09-02·fd384859`) und sah es
+  trotzdem nicht — das war der Beleg, dass es NICHT am Client lag.
+  - **Mechanik:** `GET /api/sessions/{id}` baut sein ETag aus `updated_at` + Like-Zahl
+    (`W/"<dv>-<likes>-<liked>"`). Aendert sich die SESSION nicht, bleibt das ETag gleich — der
+    Server antwortet auf `If-None-Match` mit **304**, und der Browser nimmt seinen alten Rumpf.
+    Ein NEUES FELD in der Antwort (`start_attempts`) erreicht diesen Client damit **nie**, egal wie
+    oft er neu laedt oder die PWA aktualisiert. Meine eigenen Pruefungen liefen ins Leere, weil ein
+    frischer `urllib`-Aufruf kein `If-None-Match` schickt.
+  - **Fix:** `_OUT_VERSION` (Version der ANTWORT-FORM, nicht der Daten) steckt jetzt mit im ETag.
+    Ein Hochzaehlen entwertet alle ETags auf einen Schlag — genau Jans Vorschlag „setz doch fuer
+    alle das ETag einmal auf jetzt", nur **ohne DB-Schreiben**: `updated_at` von 2265 Sessions
+    anzufassen haette auch `data_version` verschoben, an dem die nativen Caches haengen.
+  - **Gegengeprueft:** altes ETag -> **200** mit `start_attempts: 4`; neues ETag -> **304**, die
+    Ersparnis bleibt also.
+  - **MERKE (die dritte Cache-Ebene in dieser Kette):** Bundle-Hash (Service Worker) ·
+    Laufzeit-Cache-Name (`api-session-detail-v2`) · **ETag**. Wer ein Feld hinzufuegt, muss an die
+    dritte denken — die beiden ersten hatte ich, und es half nichts.
+
 - **✅ 02.09. — „4 Laeufe" statt „4/4" bei Jans #3219: es WAR der Cache (Jans Verdacht stimmte).**
   - **Server war unschuldig, nachgemessen:** `/api/sessions/3219` liefert `start_attempts = 4` bei
     4 Segmenten, die Kachel-Bedingung (Versuche >= Laeufe) ist also erfuellt.

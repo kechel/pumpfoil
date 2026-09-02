@@ -59,6 +59,13 @@ public_router = APIRouter(prefix="/api/public", tags=["public"])
 _VALID_LABELS = {"pump", "glide", "not_foiling"}
 
 
+# Version der ANTWORT-FORM von GET /api/sessions/{id} (nicht der Daten!). Bei jedem neuen oder
+# umbenannten Feld hochzaehlen — sonst haengen Clients mit unveraenderter Session ueber das ETag
+# in ihrer alten Antwort fest (s. get_session, Befund 02.09.).
+#   2 = `analysis.start_attempts` dazugekommen (Kachel „Laeufe/Starts")
+_OUT_VERSION = 2
+
+
 def _analysis_out(result: models.AnalysisResult | None, slim: bool = False, sens: str = "normal") -> AnalysisOut | None:
     """slim=True lässt die großen JSON-Blobs (Track/Segmente/Accel-Fenster) weg — für die
     Listenansicht. sens != "normal" (nur für den Besitzer): überlagert Foiling-Zeit/-Distanz und
@@ -1600,7 +1607,13 @@ def get_session(
         db.query(func.count()).select_from(models.SessionLike).filter_by(session_id=s.id).scalar() or 0)
     liked = db.query(models.SessionLike).filter_by(session_id=s.id, user_id=user.id).first() is not None
     dv = int((s.updated_at or s.created_at).timestamp()) if (s.updated_at or s.created_at) else 0
-    etag = f'W/"{dv}-{like_count}-{int(liked)}"'
+    # `_OUT_VERSION` MUSS mit ins ETag: es beschreibt die FORM der Antwort, nicht die Daten.
+    # Ohne das bekommt ein Client, dessen Session sich nicht geaendert hat, ewig 304 und behaelt
+    # seinen alten Rumpf — ein NEUES FELD kommt bei ihm dann nie an, egal wie oft er neu laedt
+    # oder die PWA aktualisiert. Genau das ist am 02.09. passiert: `start_attempts` steckte im
+    # Server, im frischen Bundle und im Service Worker, aber die Detailseite zeigte weiter
+    # „4 Laeufe" statt „4/4" — der Server antwortete auf das If-None-Match brav mit 304.
+    etag = f'W/"{_OUT_VERSION}-{dv}-{like_count}-{int(liked)}"'
     if request.headers.get("if-none-match") == etag:
         return Response(status_code=304, headers={"ETag": etag, "Cache-Control": "private, no-cache"})
     # Gewässer-Name per OSM auflösen — im HINTERGRUND (nicht blockierend). place_name is None
