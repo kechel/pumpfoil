@@ -619,6 +619,28 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **✅ 02.09. — Startversuche auf der Karte + gemerkte Karten-Ansicht (Jans Wunsch).**
+  - **Schalter „Startversuche"** neben den Pumps: gestrichelte bernsteinfarbene Linien fuer die
+    Anlaeufe, aus denen KEIN Lauf wurde (die geglueckten SIND die Laeufe und liegen schon auf der
+    Karte). Server: neuer lesender Endpunkt `GET /api/sessions/{id}/attempts` — dieselbe Rechnung
+    wie `attempt_distances` (lockeres `attempts`-Preset auf den getrimmten GPS-Punkten), aber mit
+    Index-Bereichen statt nur Distanzen. **Bewusst NICHTS gespeichert:** das vorhandene
+    `start_attempts_json` umzubauen haette eine Reanalyse aller 2265 Sessions verlangt — fuer eine
+    reine Anzeige. Belegt an #3234: 15 Versuche, 2 Laeufe -> 13 Linien.
+  - **Standardmaessig AN** (Jan). Damit das nicht bei jeder Session einen Endpunkt anstoesst, holt
+    der Client die Linien nur, wenn die Session-Antwort ueberhaupt mehr Versuche als Laeufe
+    ausweist — beides steht schon drin, kostet also keinen zusaetzlichen Aufruf. Der Schalter
+    erscheint aus demselben Grund gar nicht erst, wenn es nichts zu zeigen gibt (z. B. #3219, 4/4).
+  - **Karten-Ansicht wird gemerkt** (`web/src/lib/sessionViewPrefs.ts`, localStorage `foil_sd_view`):
+    Farbmodus (Speed/Puls/Pump/Optimal/Carves), Glaettung (1/3/5 s), Pump-Marker, Startversuche.
+    Beim Oeffnen der naechsten Session gilt dieselbe Ansicht. **localStorage statt Profil**, wie
+    Sprache/Theme/Kartenebene: es ist eine Geraete-Ansicht, kein Konto-Wert — ein Profil-Feld
+    hiesse ein Server-Aufruf je Umschaltung und dieselbe Ansicht auf Handy UND Rechner.
+    **Nicht gemerkt: die Skala** (Auto/Min/Max) — die haengt an der einzelnen Session.
+    Kaputte/unbekannte Werte fallen je Feld einzeln auf den Standard zurueck; der vorhandene
+    Rueckfall „Modus in dieser Session nicht verfuegbar -> speed" schreibt bewusst mit.
+  - **Offen:** derselbe Schalter auf Android/iOS (dort eigener Karten-Renderer).
+
 - **🔴→✅ 02.09. — DIE eigentliche Ursache fuer „4 Laeufe statt 4/4": unser ETag. Nicht der Cache,
   nicht der Service Worker.** Jan hatte das neue Bundle (`Build 2026-09-02·fd384859`) und sah es
   trotzdem nicht — das war der Beleg, dass es NICHT am Client lag.

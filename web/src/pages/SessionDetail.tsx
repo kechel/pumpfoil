@@ -51,7 +51,7 @@ function kmh(mps: number | null | undefined) {
   return mps == null ? "–" : `${(mps * 3.6).toFixed(1)}`;
 }
 
-type ColorMode = "speed" | "hr" | "pump" | "optimal" | "turns";
+import { ladeSessionView, merkeSessionView, type ColorMode } from "../lib/sessionViewPrefs";
 
 // YouTube-Video-ID aus einer URL ziehen (watch?v=, youtu.be/, shorts/, embed/).
 function ytId(url: string | null | undefined): string {
@@ -423,20 +423,23 @@ export default function SessionDetail() {
       .then((n) => setNeighbors({ older: n.older ?? undefined, newer: n.newer ?? undefined }))
       .catch(() => {});
   }, [id, isPublic]);
-  const [colorMode, setColorMode] = useState<ColorMode>("speed");
+  // Karten-Ansicht: Farbmodus, Glättung, Pumps und Startversuche kommen aus der zuletzt
+  // gewählten Ansicht (localStorage) — sonst müsste man sie in jeder Session neu einstellen.
+  const gemerkt = useRef(ladeSessionView()).current;
+  const [colorMode, setColorMode] = useState<ColorMode>(gemerkt.colorMode);
   const [selectedRun, setSelectedRun] = useState<number | null>(null);
   const [speedMin, setSpeedMin] = useState(8);
   const [speedMax, setSpeedMax] = useState(25);
   const [autoScaleOn, setAutoScaleOn] = useState(true);
   const [fullscreen, setFullscreen] = useState(false);
   useCloseOnBack(fullscreen, () => setFullscreen(false));
-  const [win, setWin] = useState<"1" | "3" | "5">("3");
+  const [win, setWin] = useState<"1" | "3" | "5">(gemerkt.win);
   const [trimOpen, setTrimOpen] = useState(false);
-  const [showPumps, setShowPumps] = useState(false);
+  const [showPumps, setShowPumps] = useState(gemerkt.showPumps);
   // Startversuche auf der Karte (Jan, 02.09.): die Anlaeufe, aus denen KEIN Lauf wurde. Sie
   // stehen nicht in der Session-Antwort — Gespeichert sind nur ihre Distanzen; die Linien holt
   // ein eigener, rein lesender Endpunkt, und zwar erst beim ersten Einschalten.
-  const [showAttempts, setShowAttempts] = useState(false);
+  const [showAttempts, setShowAttempts] = useState(gemerkt.showAttempts);
   const [attemptSegs, setAttemptSegs] = useState<{ i_start: number; i_end: number; distance_m: number; duration_s: number }[] | null>(null);
   const [weightKg, setWeightKg] = useState<number | null>(null);
   const compareRefs = useCompare();
@@ -617,18 +620,32 @@ export default function SessionDetail() {
   const lastFitRun = useRef<number | null | undefined>(undefined);  // letzter Lauf, auf den gezoomt wurde
 
   useEffect(() => {
+    setAttemptSegs(null);   // Linien der vorigen Session verwerfen (Indizes gelten je Session)
     const p = isPublic ? api.publicSession(token!) : api.session(Number(id));
     p.then(setSession).catch((e) => setError(String(e)));
   }, [id, token, isPublic]);
 
+  // Jede Änderung an der Ansicht merken — sie gilt dann auch für die nächste Session.
+  // Der automatische Rückfall auf "speed" (Modus in DIESER Session nicht verfügbar, s. unten)
+  // schreibt bewusst mit: wer keine Puls-Daten hat, soll nicht bei jeder Session hängen bleiben.
+  useEffect(() => {
+    merkeSessionView({ colorMode, win, showPumps, showAttempts });
+  }, [colorMode, win, showPumps, showAttempts]);
+
   // Startversuche erst holen, wenn der Schalter das erste Mal angeht (die Rechnung laeuft
   // serverseitig ueber die Roh-GPS-Punkte — nichts, was man ungefragt bei jedem Aufruf machen will).
   useEffect(() => {
-    if (!showAttempts || attemptSegs !== null || isPublic) return;
+    if (!showAttempts || attemptSegs !== null || isPublic || !session) return;
+    // Nur holen, wenn es ueberhaupt misslungene Versuche gibt. Seit die Anzeige standardmaessig
+    // AN ist, wuerde sonst JEDE geoeffnete Session den Endpunkt anstossen — der rechnet
+    // serverseitig ueber die Roh-GPS-Punkte, das waere Arbeit fuer nichts.
+    const versuche = session.analysis?.start_attempts ?? 0;
+    const laeufe = session.analysis?.segments?.length ?? 0;
+    if (versuche <= laeufe) return;
     api.sessionAttempts(Number(id))
       .then((r) => setAttemptSegs(r.attempts ?? []))
       .catch(() => setAttemptSegs([]));
-  }, [showAttempts, attemptSegs, id, isPublic]);
+  }, [showAttempts, attemptSegs, id, isPublic, session]);
 
   // Öffentlicher Link ungültig/widerrufen -> nach 5 s zur Startseite.
   useEffect(() => {
