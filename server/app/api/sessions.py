@@ -2353,6 +2353,67 @@ def _turn_events(lat: np.ndarray, lon: np.ndarray, i0: int, i1: int,
     return ev
 
 
+@router.get("/{session_id}/attempts")
+def get_attempts(
+    session_id: int,
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Startversuche als Index-Bereiche fuer die Karte — read-only, KEINE Pipeline-/DB-Aenderung.
+
+    Dieselbe Rechnung wie `attempt_distances` (analysis/__init__.py): das lockere `attempts`-Preset
+    auf den GETRIMMTEN GPS-Samples, also >= 2 s ueber ~8 km/h. Gespeichert sind davon nur die
+    DISTANZEN (`start_attempts_json`) — fuer eine Linie auf der Karte braucht es die Indizes, und
+    die rechnen wir hier frisch aus, statt das gespeicherte Feld umzubauen (das haette eine
+    Reanalyse aller 2265 Sessions verlangt, fuer eine reine Anzeige).
+
+    Geliefert werden NUR die MISSLUNGENEN Versuche: die geglueckten sind die Laeufe, die zeichnet
+    die Karte ohnehin schon. Ein Versuch gilt als geglueckt, wenn er sich mit einem erkannten Lauf
+    ueberschneidet. Die Indizes liegen im selben getrimmten Raum wie `track_geojson` und die
+    Segmente — der Client kann sie direkt auf seine `coords` anwenden.
+    """
+    s = _readable(db, session_id)
+    leer: dict = {"attempts": []}
+    gps = storage.load_gps(s.session_uuid)
+    if not gps:
+        return leer
+    lo = s.trim_start_ms if s.trim_start_ms is not None else gps[0][0]
+    hi = s.trim_end_ms if s.trim_end_ms is not None else gps[-1][0]
+    # Auf 0 rebasen wie die Pipeline, damit die Indizes zu track_geojson passen.
+    getrimmt = [[r[0] - lo] + list(r[1:]) for r in gps if lo <= r[0] <= hi]
+    if len(getrimmt) < 3:
+        return leer
+    from ..analysis.gps import SENSITIVITY_PRESETS, analyze_gps
+
+    try:
+        res = analyze_gps(getrimmt, gps_hz=s.gps_hz or 1, **(SENSITIVITY_PRESETS.get("attempts") or {}))
+    except Exception:
+        return leer
+    try:
+        segmente = json.loads(s.result.segments_json) if s.result and s.result.segments_json else []
+    except (ValueError, AttributeError):
+        segmente = []
+    laeufe = [(int(sg["i_start"]), int(sg["i_end"])) for sg in segmente
+              if sg.get("i_start") is not None and sg.get("i_end") is not None]
+
+    def gehoert_zu_lauf(a: int, b: int) -> bool:
+        return any(a <= r1 and b >= r0 for r0, r1 in laeufe)
+
+    aus = []
+    for sg in (res.get("segments") or []):
+        a, b = int(sg["i_start"]), int(sg["i_end"])
+        if gehoert_zu_lauf(a, b):
+            continue
+        aus.append({
+            "i_start": a, "i_end": b,
+            "t_start_ms": int(sg.get("t_start_ms") or 0),
+            "distance_m": round(float(sg.get("distance_m") or 0.0), 1),
+            "duration_s": float(sg.get("duration_s") or 0.0),
+            "avg_speed_mps": round(float(sg.get("avg_speed_mps") or 0.0), 2),
+        })
+    return {"attempts": aus}
+
+
 @router.get("/{session_id}/carves")
 def get_carves(
     session_id: int,

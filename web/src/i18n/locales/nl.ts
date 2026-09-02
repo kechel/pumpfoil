@@ -166,6 +166,8 @@ const nl: Record<string, string> = {
   "stat.foiling": "Foiling",
   "stat.foilingTime": "Foiling-tijd",
   "stat.pumps": "Pumps",
+  "sd.showAttempts": "Startpogingen",
+  "sd.showAttemptsHint": "De pogingen die geen run werden — gestippeld op de kaart.",
   "stat.topSpeed": "Topsnelheid",
 
   // Home / Community

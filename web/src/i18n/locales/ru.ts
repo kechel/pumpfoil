@@ -156,6 +156,8 @@ const ru: Record<string, string> = {
   "stat.foiling": "Фойлинг",
   "stat.foilingTime": "Время на фойле",
   "stat.pumps": "Помпинг",
+  "sd.showAttempts": "Попытки старта",
+  "sd.showAttemptsHint": "Попытки, из которых не вышло прохода — на карте пунктиром.",
   "stat.topSpeed": "Макс. скорость",
 
   "home.title": "Обзор",

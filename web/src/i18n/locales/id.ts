@@ -156,6 +156,8 @@ const id: Record<string, string> = {
   "stat.foiling": "Foiling",
   "stat.foilingTime": "Waktu foiling",
   "stat.pumps": "Pump",
+  "sd.showAttempts": "Percobaan start",
+  "sd.showAttemptsHint": "Percobaan yang tidak menjadi run — putus-putus di peta.",
   "stat.topSpeed": "Kecepatan tertinggi",
 
   "home.title": "Ikhtisar",

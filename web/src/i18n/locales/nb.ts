@@ -168,6 +168,8 @@ const nb: Record<string, string> = {
   "stat.foiling": "Foiling",
   "stat.foilingTime": "Foiling-tid",
   "stat.pumps": "Pumper",
+  "sd.showAttempts": "Startforsøk",
+  "sd.showAttemptsHint": "Forsøkene som ikke ble en tur — stiplet på kartet.",
   "stat.topSpeed": "Toppfart",
   "home.title": "Oversikt",
   "home.installA2HS": "📲 Legg appen på hjemskjermen",

@@ -137,6 +137,8 @@ const gsw: Record<string, string> = {
   "stat.foiling": "Foiling",
   "stat.foilingTime": "Foiling-Ziit",
   "stat.pumps": "Pumps",
+  "sd.showAttempts": "Startversuech",
+  "sd.showAttemptsHint": "D Aaläuf, wo kein Lauf drus worde isch — gstricheled uf de Charte.",
   "stat.topSpeed": "Top-Speed",
 
   "home.title": "Übersicht",
