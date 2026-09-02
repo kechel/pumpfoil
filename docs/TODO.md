@@ -1054,7 +1054,19 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     Nutzern die Stufe als Lösung anbietet.
   - Server neu gestartet, Import und `/api/app/news` gruen.
 
-- **🟡 01.09. 22:24 — iOS/Apple Watch 1.1.28 (32) EINGEREICHT** („Warten auf Pruefung"; Jans
+- **✅ 02.09. 15:5x — iOS/Apple Watch 1.1.28 (32) FREIGEGEBEN** („Review of your submission has
+  been completed. It is now eligible for distribution.", Jans Meldung aus App Store Connect,
+  Uebermittlungskennung `6f161b72-c5b4-415f-90f0-399fa210c091`). Eingereicht 01.09. 22:24, also
+  gut 17 Stunden Pruefung.
+  **Noch offen, in DIESER Reihenfolge:** 1. pruefen, ob die Version wirklich im Store steht (die
+  **Produktseite** `apps.apple.com/app/pumpfoil/id6783975714` ist die Wahrheit, NICHT
+  `itunes.apple.com/lookup` — der Endpunkt haengt bei frischen Versionen tagelang nach, s. Notiz
+  in `appmeta.py`), 2. dann `appmeta.ios` UND `appmeta.apple` ZUSAMMEN auf 1.1.28, 3. Changelog.
+  **Was NICHT drin ist:** der Error-153-Fix am Social-Feed-Player (02.09.) — in 1.1.28 bleibt der
+  Player im Community-Feed schwarz. Faehrt in der naechsten Einreichung mit; ein Rueckzug waere
+  unverhaeltnismaessig, die Version bringt sonst alles Neue.
+
+- **🟡 01.09. 22:24 — iOS/Apple Watch 1.1.28 (32) eingereicht (Verlauf)** („Warten auf Pruefung"; Jans
   Meldung aus App Store Connect, Uebermittlungskennung `6f161b72-c5b4-415f-90f0-399fa210c091`,
   eingereicht von Jan). Live ist weiter **1.1.27 (31)**.
   **Inhalt (12 Aenderungen seit 1.1.27, chronologisch):** GPS-Bereitschaft auf der Apple Watch
