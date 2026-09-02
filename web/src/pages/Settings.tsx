@@ -381,9 +381,8 @@ export default function Settings() {
   );
 
   function exportData() {
-    api.exportMyData()
-      .then((d) => {
-        const blob = new Blob([JSON.stringify(d, null, 2)], { type: "application/json" });
+    api.exportMyDataBlob()
+      .then((blob) => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;

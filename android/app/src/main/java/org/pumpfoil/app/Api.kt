@@ -158,10 +158,35 @@ object Api {
         json.decodeFromString(Profile.serializer(), http("PUT", "/api/auth/me", body, auth = true))
     }
 
-    // DSGVO-Gegenstueck zur Loeschung: alle eigenen Daten als JSON herausgeben
-    // (Datenuebertragbarkeit). Rohtext, damit die Datei genauso aussieht wie die der PWA.
-    suspend fun exportMyData(): String = withContext(Dispatchers.IO) {
-        http("GET", "/api/auth/me/export", null, auth = true)
+    // DSGVO-Gegenstueck zur Loeschung: alle eigenen Daten als JSON (Datenuebertragbarkeit).
+    //
+    // STREAMT in eine Datei, statt die Antwort in einen String zu lesen. Grund (Absturz bei Jan,
+    // 02.09.): der Export enthaelt je Session die komplette GPS-Spur, bei 657 Sessions sind das
+    // ~134 MB. `readText()` legt daraus einen java.lang.String an — das sind zwei Kopien im
+    // Speicher (Bytes + UTF-16) und endete in `OutOfMemoryError: Failed to allocate a 134250504
+    // byte allocation`. Eine App darf an einer Nutzeraktion nicht sterben; hier wandern die
+    // Bytes deshalb in 64-KB-Haeppchen direkt auf die Platte.
+    suspend fun exportMyDataToFile(ziel: java.io.File): Unit = withContext(Dispatchers.IO) {
+        val conn = (URL(BASE + "/api/auth/me/export").openConnection() as HttpURLConnection).apply {
+            requestMethod = "GET"
+            connectTimeout = 15000
+            readTimeout = 120000        // grosser Export darf dauern
+            setRequestProperty("X-Pumpfoil-Client", CLIENT_ID)
+            setRequestProperty("Accept-Encoding", "gzip")   // spart Funk; unten wieder auspacken
+            token?.let { setRequestProperty("Authorization", "Bearer $it") }
+        }
+        val code = conn.responseCode
+        if (code == 401) {
+            appContext?.let { logout(it) }
+            onUnauthorized?.invoke()
+            throw RuntimeException("401")
+        }
+        if (code !in 200..299) throw RuntimeException("HTTP $code")
+        val roh = conn.inputStream
+        val strom = if (conn.contentEncoding?.contains("gzip", ignoreCase = true) == true) {
+            java.util.zip.GZIPInputStream(roh)
+        } else roh
+        strom.use { ein -> ziel.outputStream().use { aus -> ein.copyTo(aus, 64 * 1024) } }
     }
 
     // DSGVO: Konto + ALLE Daten unwiderruflich löschen (Google-Play-Pflicht).

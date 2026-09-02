@@ -194,40 +194,12 @@ fun DataFieldsScreen(onBack: () -> Unit, onGallery: () -> Unit = {}) {
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
             Text(I18n.t("datafields.intro"),
                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            // Eigene Screens lassen sich hier EINFUEGEN und ansehen, aber nicht bauen. Entscheidung
-            // Jan (17.08.): der Editor ist bewusst Web-only ("das macht man eh nur am pc"), also
-            // sagen wir hier klar, wo er ist, statt den Nutzer suchen zu lassen.
-            Spacer(Modifier.height(8.dp))
-            Text(I18n.t("datafields.editorInBrowser"),
-                style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
-            // Einstieg in die Community-Galerie — ANSEHEN und KOPIEREN geht nativ, nur Gestalten
-            // nicht. In der PWA steht der Link an derselben Stelle (ViewsEditor).
-            Spacer(Modifier.height(8.dp))
-            OutlinedButton(onClick = onGallery) { Text(I18n.t("lay.toCommunity")) }
-            Spacer(Modifier.height(12.dp))
 
-            PageSetEditor(
-                title = null, pages = onFoil, layouts = layouts, max = 8,
-                onChange = { onFoil = it; saved = false },
-            )
-            Spacer(Modifier.height(16.dp))
-            SectionCard(I18n.t("account.offFoilTitle"), I18n.t("account.offFoilDesc")) {
-                PageSetEditor(
-                    title = null, pages = offFoil, layouts = layouts, max = 8,
-                    onChange = { offFoil = it; saved = false },
-                )
-            }
-            Spacer(Modifier.height(12.dp))
-            SectionCard(I18n.t("account.pauseTitle"), I18n.t("account.pauseDesc")) {
-                PageSetEditor(
-                    title = null, pages = pause, layouts = layouts, max = 8,
-                    onChange = { pause = it; saved = false },
-                )
-            }
-
-            Spacer(Modifier.height(16.dp))
-            // Reihenfolge wie in der PWA (Account.tsx), damit man sich zwischen Web und App
-            // nicht umorientieren muss.
+            // Die Einstellungen stehen VOR den eigenen Screens (Jan, 02.09., wie auf der
+            // Uhren-Seite): die Seiten-Sätze sind lang, wer nur einen Schalter umlegen wollte,
+            // musste vorher an allen vorbeiscrollen.
+            // Reihenfolge der Schalter wie in der PWA (Account.tsx), damit man sich zwischen
+            // Web und App nicht umorientieren muss.
             SwitchRow(I18n.t("account.colorByValue"), "", colorByValue) {
                 colorByValue = it; saved = false
             }
@@ -272,6 +244,39 @@ fun DataFieldsScreen(onBack: () -> Unit, onGallery: () -> Unit = {}) {
             }
             SwitchRow(I18n.t("account.layoutsEnabled"), I18n.t("account.layoutsEnabledHint"), layoutsEnabled) {
                 layoutsEnabled = it; saved = false
+            }
+
+            Spacer(Modifier.height(20.dp))
+
+            // Eigene Screens lassen sich hier EINFUEGEN und ansehen, aber nicht bauen. Entscheidung
+            // Jan (17.08.): der Editor ist bewusst Web-only ("das macht man eh nur am pc"), also
+            // sagen wir hier klar, wo er ist, statt den Nutzer suchen zu lassen.
+            Spacer(Modifier.height(8.dp))
+            Text(I18n.t("datafields.editorInBrowser"),
+                style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+            // Einstieg in die Community-Galerie — ANSEHEN und KOPIEREN geht nativ, nur Gestalten
+            // nicht. In der PWA steht der Link an derselben Stelle (ViewsEditor).
+            Spacer(Modifier.height(8.dp))
+            OutlinedButton(onClick = onGallery) { Text(I18n.t("lay.toCommunity")) }
+            Spacer(Modifier.height(12.dp))
+
+            PageSetEditor(
+                title = null, pages = onFoil, layouts = layouts, max = 8,
+                onChange = { onFoil = it; saved = false },
+            )
+            Spacer(Modifier.height(16.dp))
+            SectionCard(I18n.t("account.offFoilTitle"), I18n.t("account.offFoilDesc")) {
+                PageSetEditor(
+                    title = null, pages = offFoil, layouts = layouts, max = 8,
+                    onChange = { offFoil = it; saved = false },
+                )
+            }
+            Spacer(Modifier.height(12.dp))
+            SectionCard(I18n.t("account.pauseTitle"), I18n.t("account.pauseDesc")) {
+                PageSetEditor(
+                    title = null, pages = pause, layouts = layouts, max = 8,
+                    onChange = { pause = it; saved = false },
+                )
             }
 
             Spacer(Modifier.height(20.dp))

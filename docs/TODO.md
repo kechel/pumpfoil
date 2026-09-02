@@ -619,6 +619,38 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔴→✅ 02.09. — „Meine Daten exportieren" hat die Android-App ABGESTUERZT (Jans Test).**
+  `java.lang.OutOfMemoryError: Failed to allocate a 134250504 byte allocation` in
+  `Api.http` -> `readText()`.
+  - **Ursache, nachgemessen:** Jans Export ist **48,2 MB** JSON (657 Sessions, je mit kompletter
+    GPS-Spur). `readText()` baut daraus einen `java.lang.String` — UTF-16, also ~96 MB, und der
+    StringBuilder verlangte beim Verdoppeln die 134 MB aus der Meldung. Auf einem Telefon mit
+    ~200 MB Heap-Deckel ist das aussichtslos.
+  - **Fix Android:** `exportMyDataToFile()` STREAMT in 64-KB-Haeppchen direkt in die Datei, kein
+    String. Dazu `Accept-Encoding: gzip` — der Server komprimiert schon (GZipMiddleware,
+    `main.py`), gemessen **8,6 MB statt 48,2 MB** ueber die Leitung (18 %). Achtung: wer den
+    Header selbst setzt, muss auch selbst auspacken (HttpURLConnection macht es dann nicht mehr)
+    — das tut die Funktion.
+  - **Fix iOS (gleiche Falle, nur noch nicht aufgeschlagen):** `exportMyDataToFile()` per
+    `URLSession.download` in eine Datei, danach auf `pumpfoil-export.json` umbenannt, damit das
+    Teilen-Blatt einen sinnvollen Namen zeigt. Vorher waere ein `Data` mit 48 MB im Speicher
+    gelandet.
+  - **Fix Web:** `exportMyDataBlob()` holt den Strom als Blob. Vorher parste `req` das JSON und
+    die Speicherfunktion serialisierte es wieder — dasselbe dreimal im Speicher.
+  - **Merke:** jede Antwort, die pro Session eine GPS-Spur traegt, ist ein Speicher-Risiko. Wer so
+    etwas neu baut: in eine Datei streamen, nicht in einen String/`Data`/JS-Objekt.
+
+- **✅ 02.09. — Reihenfolge auf zwei Seiten umgestellt (Jans Test, Android + iOS gleich).**
+  - **Profil/Uhr:** die vier Verweise (Anleitung, Garmin verbinden, Alarm, Datenfelder) stehen
+    jetzt VOR der Uhren-Liste — Jan hat viele Uhren gepairt und musste an allen vorbeiscrollen.
+  - **Datenseiten:** die Einstellungen (Werte farbig, Auto-Start, Aktivitaetstyp, Beenden-Modus,
+    Blaettern, eigene Layouts) stehen VOR den Seiten-Saetzen, aus demselben Grund.
+  - **Session-Liste:** der Titel steht jetzt als eigene Zeile direkt unter dem Datum und FETT
+    (vorher klein und blass unter den Chips). In beiden Android-Listen und auf iOS.
+  - **Startversuche-Schalter** aus der waagerecht scrollbaren Farbmodus-Zeile in die Zeile darunter,
+    rechtsbuendig. Diese Zeile gibt es jetzt immer (vorher nur im Speed-Modus, wo die Glaettung
+    steht) — sonst waere der Schalter bei Puls/Pump/Carves verschwunden.
+
 - **✅ 02.09. — Android auf den heutigen Stand gebracht (Jan will danach releasen).** Was noch
   fehlte und jetzt drin ist:
   - **Startversuche auf der Karte** (Schalter neben den Pumps, standardmaessig an): dieselbe

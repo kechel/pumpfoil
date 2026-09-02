@@ -90,12 +90,14 @@ struct DataFieldsView: View {
                     LayoutGalleryView(lang: lang)
                 }
             }
+            // Die Einstellungen VOR den eigenen Screens (Jan, 02.09., Android genauso): die
+            // Seiten-Saetze sind lang, wer nur einen Schalter umlegen wollte, scrollte vorbei.
+            switchSection
             pageSet(title: nil, footer: nil, pages: $onFoil, kennung: "on")
             pageSet(title: Loc.t("account.offFoilTitle", lang),
                     footer: Loc.t("account.offFoilDesc", lang), pages: $offFoil, kennung: "off")
             pageSet(title: Loc.t("account.pauseTitle", lang),
                     footer: Loc.t("account.pauseDesc", lang), pages: $pause, kennung: "pause")
-            switchSection
             Section {
                 Button(Loc.t("common.save", lang)) { save() }
                 if saved { Text(Loc.t("common.saved", lang)).foregroundStyle(.green).font(.callout) }

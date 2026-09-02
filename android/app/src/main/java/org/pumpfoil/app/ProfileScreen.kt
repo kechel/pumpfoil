@@ -274,10 +274,11 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
                     exportBusy = true
                     scope.launch {
                         try {
-                            val text = Api.exportMyData()
                             val dir = java.io.File(ctx.cacheDir, "shared").apply { mkdirs() }
                             val f = java.io.File(dir, "pumpfoil-export.json")
-                            f.writeText(text)
+                            // In die Datei STREAMEN, nicht in den Speicher: der Export ist bei
+                            // vielen Sessions dreistellig MB gross (s. Api.exportMyDataToFile).
+                            Api.exportMyDataToFile(f)
                             val uri = androidx.core.content.FileProvider.getUriForFile(
                                 ctx, "${ctx.packageName}.fileprovider", f)
                             val send = android.content.Intent(android.content.Intent.ACTION_SEND).apply {

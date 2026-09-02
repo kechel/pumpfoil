@@ -145,9 +145,10 @@ struct ProfileView: View {
         exportBusy = true
         Task {
             defer { exportBusy = false }
-            guard let daten = try? await Api.exportMyData() else { return }
-            let ziel = FileManager.default.temporaryDirectory.appendingPathComponent("pumpfoil-export.json")
-            do { try daten.write(to: ziel); exportURL = ExportItem(url: ziel) } catch {}
+            // In eine Datei laden statt in den Speicher — der Export ist bei vielen Sessions
+            // dreistellig MB gross (s. Api.exportMyDataToFile).
+            guard let ziel = try? await Api.exportMyDataToFile() else { return }
+            exportURL = ExportItem(url: ziel)
         }
     }
 
