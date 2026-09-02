@@ -177,6 +177,12 @@ private fun SpotsMap(items: List<SpotMapItem>, onOpenSpot: (String) -> Unit, mod
     MapTiles.MitUmschalter(modifier) { ebene ->
         AndroidView(
             modifier = Modifier.fillMaxSize(),
+            // osmdroid raeumt NICHT von selbst auf: eine MapView haelt Kachel-Threads und
+            // einen Kachel-Cache, und beides bleibt liegen, wenn Compose die View verwirft.
+            // In einer scrollenden Liste heisst das: jedes Rein- und Rausscrollen legt eine neue
+            // Karte an, die alte bleibt im Speicher. Jan: „die Spots-Ansicht crasht beim
+            // Scrollen" (02.09.). `onDetach()` ist der von osmdroid dafuer vorgesehene Weg.
+            onRelease = { it.onDetach() },
             factory = { c ->
                 Configuration.getInstance().userAgentValue = c.packageName
                 MapView(c).apply {
@@ -195,14 +201,22 @@ private fun SpotsMap(items: List<SpotMapItem>, onOpenSpot: (String) -> Unit, mod
             },
             update = { map ->
                 MapTiles.anwenden(map, ebene)
-                zeichnePins(map, items, onOpenSpot)
-                val pts = items.map { GeoPoint(it.lat, it.lon) }
-                if (pts.size == 1) {
-                    map.controller.setZoom(11.0)
-                    map.controller.setCenter(pts[0])
-                } else if (pts.size > 1) {
-                    val bb = BoundingBox.fromGeoPoints(pts)
-                    map.post { map.zoomToBoundingBox(bb.increaseByScale(1.3f), false, 48) }
+                // `update` laeuft bei JEDER Recomposition. Ohne Merker heisst das: alle Pins neu
+                // bauen (samt Bitmap je Buendel) und die Karte neu einpassen — bei jedem Scrollen,
+                // jedem Ebenenwechsel, jeder Zustandsaenderung drumherum. Der Merker haengt am
+                // View selbst, damit er die Recomposition ueberlebt und keine ausloest.
+                val stand = "${'$'}{items.size}:${'$'}{items.firstOrNull()?.spot}"
+                if (map.tag != stand) {
+                    map.tag = stand
+                    zeichnePins(map, items, onOpenSpot)
+                    val pts = items.map { GeoPoint(it.lat, it.lon) }
+                    if (pts.size == 1) {
+                        map.controller.setZoom(11.0)
+                        map.controller.setCenter(pts[0])
+                    } else if (pts.size > 1) {
+                        val bb = BoundingBox.fromGeoPoints(pts)
+                        map.post { map.zoomToBoundingBox(bb.increaseByScale(1.3f), false, 48) }
+                    }
                 }
             },
         )

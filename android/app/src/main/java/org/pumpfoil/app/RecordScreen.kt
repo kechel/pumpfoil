@@ -412,6 +412,12 @@ private fun TrackCanvas(track: List<DoubleArray>, onFoil: Boolean, modifier: Mod
         MapTiles.MitUmschalter(Modifier.fillMaxSize()) { ebene ->
             AndroidView(
                 modifier = Modifier.fillMaxSize(),
+                // osmdroid raeumt NICHT von selbst auf: eine MapView haelt Kachel-Threads und
+                // einen Kachel-Cache, und beides bleibt liegen, wenn Compose die View verwirft.
+                // In einer scrollenden Liste heisst das: jedes Rein- und Rausscrollen legt eine neue
+                // Karte an, die alte bleibt im Speicher. Jan: „die Spots-Ansicht crasht beim
+                // Scrollen" (02.09.). `onDetach()` ist der von osmdroid dafuer vorgesehene Weg.
+                onRelease = { it.onDetach() },
                 factory = { c ->
                     Configuration.getInstance().userAgentValue = c.packageName
                     MapView(c).apply {
