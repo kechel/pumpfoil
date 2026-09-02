@@ -619,6 +619,28 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **✅ 02.09. — Nachgerechnet: durch die blockierten Suunto-Aufrufe ist NICHTS verloren.** Jans
+  Frage zum Bericht („da waren doch ein paar blockierte, koennen wir nachtraeglich was holen? welche
+  User waren betroffen?"). Rein lesend geprueft, in dieser Reihenfolge:
+  - `suunto_pending` ist **leer**, und kein Eintrag hat je die Wiederholungsgrenze (10 Versuche)
+    erreicht — solche Zeilen bleiben stehen, es gibt keine.
+  - Im Server-Log (reicht zurueck bis **10.08.**) steht **keine** Kontingent-Meldung, **keine**
+    verworfene Warteschlangen-Zeile und **kein** „kein verknuepfter Nutzer".
+  - **Abgleich Ping gegen Datenbank:** 43 Webhook-Pings aus dem Log, je mit Kennung und Startzeit,
+    gegen die Sessions der Nutzer gestellt. Fuer **alle 10 aktuell verknuepften Nutzer existiert zu
+    JEDEM Ping eine Session** — keine Luecke.
+  - Uebrig bleiben **5 Pings eines Suunto-Namens, der nicht mehr verknuepft ist** (29.08. bis
+    02.09.); zu 4 davon gibt es nirgends in der Datenbank eine Session. Da beim Eingang kein
+    „kein verknuepfter Nutzer" geloggt wurde, bestand die Verknuepfung damals. Es bleiben also zwei
+    Erklaerungen: das Workout hatte kein GPS (wird still verworfen) oder Konto/Verknuepfung wurden
+    danach entfernt, samt Sessions.
+  **Nachholen ist dort ohnehin unmoeglich:** ohne Verknuepfung gibt es kein Token, also keinen
+  Abruf. Und fuer die verknuepften Nutzer ist nichts nachzuholen, weil nichts fehlt.
+  **Behoben, weil genau das die Antwort schwer gemacht hat:** endgueltige Absagen („kein gps",
+  „doppelt", 403/404/410) verschwanden im Webhook-Pfad **voellig lautlos** — nicht zu unterscheiden
+  von einem verlorenen Ping. Jetzt schreibt jede eine Zeile ins Log (Kennung, Grund, Nutzer-ID).
+  Server neu gestartet.
+
 - **🟡 02.09. — Zepp 1.0.7 weiter „Under Review"** (eingereicht 01.09.; die Zeile darunter zeigt
   1.0.6 als „Approved" vom 24.08.). Nichts zu tun, nur Geduld — Zepp braucht erfahrungsgemaess
   Tage, nicht Stunden. Geraeteliste der Einreichung: 85 Kennungen, von Falcon und T-Rex Ultra bis
