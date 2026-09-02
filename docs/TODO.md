@@ -619,6 +619,32 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔴 02.09. — BEFUND: die Start-Erfolgsquote ist systematisch zu GUT, weil der Auto-Zuschnitt
+  die Fehlversuche vor dem ersten geglueckten Start wegschneidet. ENTSCHEIDUNG VON JAN NOETIG
+  (Detektor-/Pipeline-Regel).**
+  - **Mechanik:** `maybe_auto_trim` (analysis/__init__.py) setzt den Zuschnitt automatisch auf
+    **[erster Lauf − 15 s, letzter Lauf + 15 s]**, wenn der Nutzer keinen eigenen gesetzt hat.
+    `attempt_distances` rechnet danach auf den GETRIMMTEN Punkten — alles, was vor dem ersten
+    ERFOLGREICHEN Start passiert ist, faellt damit heraus. Genau das sind aber die Versuche, die
+    zaehlen: wer 20-mal anschiebt und beim 21. steht, hat eine Quote von 1/21, nicht 1/1.
+  - **Gemessen ueber die 40 neuesten zugeschnittenen Sessions:** 492 gespeicherte Versuche gegen
+    **528** ueber die ganze Aufnahme (**+7 %**), Unterschied in **19 von 40** Sessions.
+    Extremfaelle: **#3251 gespeichert 1, tatsaechlich 5** (Quote 100 % statt 20 %), #3185 18 -> 24,
+    #3219 (Jans „4/4 · 100 %") in Wahrheit **4/6**.
+  - **Schon erledigt (reine Anzeige, kein Pipeline-Eingriff):** die KARTE zeigt die Versuche jetzt
+    ueber die ganze Aufnahme, auch die vor dem Zuschnitt (dort duenner gestrichelt, Feld
+    `outside_trim`). Aussortierte Bereiche (`excluded_ranges`) bleiben draussen — die hat der
+    Nutzer ausdruecklich als „nicht ich" markiert.
+  - **Zweiter Fehler dabei gefunden und behoben:** der Endpunkt lieferte INDIZES in den getrimmten
+    Track. Bei Sessions mit aussortierten Bereichen ruecken die Indizes auf -> die Linien lagen
+    verschoben (belegt an #3157: 18 statt 14 Versuche, die Extra-Linien genau in den aussortierten
+    Stellen). Er liefert jetzt fertige Koordinaten.
+  - **🔲 OFFEN, Jans Entscheidung:** soll `attempt_distances` ebenfalls auf die GANZE Aufnahme
+    rechnen? Dann stimmt die Kachel „Laeufe/Starts" mit der Karte ueberein und die
+    Start-Erfolgsquote wird ehrlich — sie faellt aber fuer ALLE, und die gespeicherten Werte
+    braeuchten eine Reanalyse (2265 Sessions), sonst gilt die neue Rechnung nur fuer neue Sessions.
+    **Ohne Jans OK nichts an der Pipeline anfassen** (Projektregel).
+
 - **✅ 02.09. — Startversuche auf der Karte + gemerkte Karten-Ansicht (Jans Wunsch).**
   - **Schalter „Startversuche"** neben den Pumps: gestrichelte bernsteinfarbene Linien fuer die
     Anlaeufe, aus denen KEIN Lauf wurde (die geglueckten SIND die Laeufe und liegen schon auf der

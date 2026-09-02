@@ -440,7 +440,7 @@ export default function SessionDetail() {
   // stehen nicht in der Session-Antwort — Gespeichert sind nur ihre Distanzen; die Linien holt
   // ein eigener, rein lesender Endpunkt, und zwar erst beim ersten Einschalten.
   const [showAttempts, setShowAttempts] = useState(gemerkt.showAttempts);
-  const [attemptSegs, setAttemptSegs] = useState<{ i_start: number; i_end: number; distance_m: number; duration_s: number }[] | null>(null);
+  const [attemptSegs, setAttemptSegs] = useState<{ points: [number, number][]; t_start_ms: number; distance_m: number; duration_s: number; outside_trim: boolean }[] | null>(null);
   const [weightKg, setWeightKg] = useState<number | null>(null);
   const compareRefs = useCompare();
 
@@ -636,12 +636,10 @@ export default function SessionDetail() {
   // serverseitig ueber die Roh-GPS-Punkte — nichts, was man ungefragt bei jedem Aufruf machen will).
   useEffect(() => {
     if (!showAttempts || attemptSegs !== null || isPublic || !session) return;
-    // Nur holen, wenn es ueberhaupt misslungene Versuche gibt. Seit die Anzeige standardmaessig
-    // AN ist, wuerde sonst JEDE geoeffnete Session den Endpunkt anstossen — der rechnet
-    // serverseitig ueber die Roh-GPS-Punkte, das waere Arbeit fuer nichts.
-    const versuche = session.analysis?.start_attempts ?? 0;
-    const laeufe = session.analysis?.segments?.length ?? 0;
-    if (versuche <= laeufe) return;
+    // Bewusst NICHT an den gespeicherten Zahlen der Kachel festmachen: die gelten nur fuer den
+    // ausgewerteten Bereich, und gerade VOR dem (automatischen) Zuschnitt liegen die
+    // Fehlversuche, bis der erste Start sass. Eine Session mit „4/4" kann hier trotzdem
+    // Versuche haben — #3219 hat zwei.
     api.sessionAttempts(Number(id))
       .then((r) => setAttemptSegs(r.attempts ?? []))
       .catch(() => setAttemptSegs([]));
@@ -1022,10 +1020,13 @@ export default function SessionDetail() {
     // Pump-Markern gezeichnet und dünner als ein Lauf.
     if (showAttempts && attemptSegs?.length) {
       attemptSegs.forEach((v) => {
-        const pts = coords.slice(v.i_start, v.i_end + 1).filter(Boolean);
-        if (pts.length < 2) return;
-        L.polyline(pts as [number, number][], {
-          color: "#f59e0b", weight: 3, opacity: 0.85, dashArray: "5 5", interactive: false,
+        if (v.points.length < 2) return;
+        // Der Server liefert fertige Punkte (lat/lon) — bewusst keine Indizes: Versuche VOR dem
+        // Zuschnitt haben im getrimmten Track gar keinen Index, und aussortierte Bereiche
+        // verschieben ihn (das lag an #3157 daneben).
+        L.polyline(v.points, {
+          color: "#f59e0b", weight: 3, opacity: v.outside_trim ? 0.6 : 0.85,
+          dashArray: v.outside_trim ? "2 6" : "5 5", interactive: false,
         }).addTo(lg);
       });
     }
@@ -1487,7 +1488,7 @@ export default function SessionDetail() {
           {/* Nur zeigen, wenn es wirklich etwas zu zeigen gibt: mehr Versuche als Läufe heißt,
               dass Anläufe dabei waren, aus denen kein Lauf wurde. Beides steht schon in der
               Session-Antwort — kein zusätzlicher Aufruf nur für die Frage, ob der Schalter hin soll. */}
-          {(a?.start_attempts ?? 0) > segs.length && (
+          {(attemptSegs === null || attemptSegs.length > 0) && (
             <button
               onClick={() => setShowAttempts((v) => !v)}
               title={t("sd.showAttemptsHint")}
