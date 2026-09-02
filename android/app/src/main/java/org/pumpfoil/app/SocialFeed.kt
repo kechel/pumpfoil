@@ -364,7 +364,10 @@ private fun YoutubePlayer(videoId: String, modifier: Modifier = Modifier) {
                                 "(function(){var f=document.querySelector('iframe');" +
                                     "return JSON.stringify({doc:[document.documentElement.clientWidth," +
                                     "document.documentElement.clientHeight],body:[document.body.clientWidth," +
-                                    "document.body.clientHeight],frame:f?[f.clientWidth,f.clientHeight]:null});})()"
+                                    "document.body.clientHeight],frame:f?[f.clientWidth,f.clientHeight]:null," +
+                                    "innen:[window.innerWidth,window.innerHeight]," +
+                                    "rect:f?[Math.round(f.getBoundingClientRect().width)," +
+                                    "Math.round(f.getBoundingClientRect().height)]:null});})()"
                             ) { r ->
                                 android.util.Log.i(
                                     "PumpfoilPlayer",
@@ -407,6 +410,12 @@ private fun YoutubePlayer(videoId: String, modifier: Modifier = Modifier) {
                 // Fall anders als Chromium. Wer die Zeile fuer Zierrat haelt, hat den schwarzen
                 // Player zurueck.
                 //
+                // Und das iframe rechnet in `vh`/`vw` statt in Prozent: Ansichtsfenster-Einheiten
+                // haengen NICHT an der Elternkette, sondern am Ansichtsfenster selbst. Aus Jans
+                // Messung wissen wir, dass das 344x651 CSS-Pixel gross ist (`body` meldete genau
+                // das) — waehrend die Prozentkette bei 0 landete. `100vh` kann dieser Fehler also
+                // nicht treffen, egal wie html/body sich verhalten.
+                //
                 // `html` UND `body` brauchen zusaetzlich ausdruecklich Hoehe, sonst rechnet die 100 %-Angabe
                 // des iframes gegen einen Block ohne Hoehe — und das Ergebnis ist ~0.
                 // GENAU DAS war der schwarze Player (02.09.): Jan sah unten am Bildschirmrand
@@ -415,7 +424,7 @@ private fun YoutubePlayer(videoId: String, modifier: Modifier = Modifier) {
                 // Deshalb hier alles explizit statt `width/height`-Attribute: Attribute sind nur
                 // Darstellungs-HINWEISE, und ohne Hoehe am Elternteil bringen sie nichts.
                 """<!DOCTYPE html><html style="height:100%"><body style="margin:0;height:100%;background:#000">
-                   <iframe style="display:block;width:100%;height:100%;border:0" allowfullscreen
+                   <iframe style="display:block;width:100vw;height:100vh;border:0" allowfullscreen
                      allow="autoplay; encrypted-media; picture-in-picture"
                      src="https://www.youtube-nocookie.com/embed/$videoId?autoplay=1&rel=0&playsinline=1&loop=1&playlist=$videoId&origin=$HERKUNFT"></iframe>
                    </body></html>""",
