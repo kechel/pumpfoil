@@ -358,6 +358,26 @@ private fun YoutubePlayer(videoId: String, modifier: Modifier = Modifier) {
                 // beantwortet genau das — ohne sie raet man an drei Stellen gleichzeitig.
                 webViewClient = object : WebViewClient() {
                     override fun onPageFinished(view: WebView, url: String) {
+                        // Groesse NACH dem Laden per JavaScript setzen — mit dem Wert, den das
+                        // Ansichtsfenster selbst meldet.
+                        //
+                        // Warum ueberhaupt: die Stile stehen unbeschadet im Dokument (belegt am
+                        // 02.09. per `bodyTag` im Log), wirken aber nicht — `body` und `iframe`
+                        // bleiben 0 hoch, obwohl `window.innerHeight` 651 meldet. Was die Ursache
+                        // dafuer ist, wissen wir noch nicht; DIESER Weg umgeht sie: er nimmt eine
+                        // gemessene Zahl statt einer Einheit, die erst aufgeloest werden muss, und
+                        // er setzt sie auf beiden Wegen — als Attribut UND ueber das Style-Objekt.
+                        view.evaluateJavascript(
+                            "(function(){var f=document.querySelector('iframe');if(!f)return 0;" +
+                                "var h=window.innerHeight||document.documentElement.clientHeight;" +
+                                "var w=window.innerWidth||document.documentElement.clientWidth;" +
+                                "document.documentElement.style.height=h+'px';" +
+                                "document.body.style.height=h+'px';document.body.style.margin='0';" +
+                                "f.setAttribute('width',w);f.setAttribute('height',h);" +
+                                "f.style.width=w+'px';f.style.height=h+'px';f.style.display='block';" +
+                                "return h;})()",
+                            null,
+                        )
                         if (!BuildConfig.DEBUG) return
                         view.postDelayed({
                             view.evaluateJavascript(
@@ -370,7 +390,12 @@ private fun YoutubePlayer(videoId: String, modifier: Modifier = Modifier) {
                                     "Math.round(f.getBoundingClientRect().height)]:null," +
                                     // Beweist, ob das Markup UNBESCHADET ankommt: fehlt hier das
                                     // style-Attribut, hat der Transportweg es zerlegt.
-                                    "bodyTag:document.body.outerHTML.slice(0,120)});})()"
+                                    "bodyTag:document.body.outerHTML.slice(0,90)," +
+                                    // Was der Browser tatsaechlich RECHNET — nicht was im
+                                    // Attribut steht. Genau hier trennt sich „Stil kam nicht an"
+                                    // von „Stil kam an, Layout ignoriert ihn".
+                                    "berechnetBody:getComputedStyle(document.body).height," +
+                                    "berechnetFrame:f?getComputedStyle(f).height:null});})()"
                             ) { r ->
                                 android.util.Log.i(
                                     "PumpfoilPlayer",
