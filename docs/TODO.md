@@ -619,6 +619,24 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **✅ 02.09. — Android Phone 1.1.24 (38) + Wear OS 1.2.24 (1034) SIND LIVE.** Play-Mail (Jans
+  Weiterleitung): „Your update to Pumpfoil, created on Aug 26, 2026 at 7:26 PM GMT, is live in the
+  store." Der Zeitstempel passt auf die Minute auf unsere Einreichung vom **26.08. 21:26 Berlin**
+  — also genau diese beiden Tracks, beide auf vollstaendigem Roll-out. Wie erwartet EINE Mail fuer
+  beide (gleiche applicationId, drittes Mal belegt).
+  - **Wie ich es geprueft habe, nachdem die Play-Seite die Version nicht mehr oeffentlich nennt
+    (dort ist nichts gegenzupruefen):** ueber UNSERE Daten. `device_tokens` zeigt am 02.09. bereits
+    **zwei Wear-Uhren mit `app_version = 1.2.24`** — die Auslieferung laeuft also wirklich, nicht
+    nur die Freigabe. Das ist der Beleg, der am 29.07. gefehlt hat, als `appmeta` verfrueht stand
+    und ein Nutzer einen Update-Hinweis ins Leere bekam.
+  - `appmeta.android` = **1.1.24**, `appmeta.wear` = **1.2.24**, Server neu gestartet, beide
+    Endpunkte gegengeprueft. Changelog-Eintrag geschrieben (Telefon- und Uhr-Inhalt getrennt).
+  - **Stand aller Plattformen jetzt:** Garmin 1.0.85 · Android 1.1.24 · Wear 1.2.24 · iOS/Apple
+    1.1.27 (1.1.28 wartet auf Pruefung) · Zepp 1.0.6 (1.0.7 wartet auf Pruefung).
+  - **Fertig im Baum, noch nicht eingereicht:** Phone **1.1.25** / Wear **1.2.25** — die tragen die
+    heutige Arbeit (Halten/Druecken, Spot-Vergleich, Geraete aufraeumen, Datenauskunft,
+    Nur-GPS-Hinweis, Aussortiert-Hinweis, Kachel Laeufe/Starts, Aktivitaetstyp-Umzug).
+
 - **✅ 02.09. — Garmin 1.0.85 IST LIVE, Freigabe-Kette komplett abgearbeitet.** Jans Meldung aus
   dem Store: „Latest Release September 1, 2026 · Version 1.0.85 · Size 71 KB".
   **Selbst gegengeprueft** (nicht nur gemeldet): die Store-Seite nennt 1.0.85.
