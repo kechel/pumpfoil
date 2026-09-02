@@ -479,6 +479,11 @@ function CommunitySection() {
 
 // Uhr-Layouts der Community, ganz unten auf der Community-Seite: höchstens 5, sortiert wie die
 // Galerie (meistgenutzte zuerst, s. layouts._usage_stats). Klick irgendwo -> Galerie.
+//
+// ALLE Kategorien, nicht nur „während des Laufs" (Jan, 02.09.): gefragt ist, was am häufigsten
+// wirklich gefahren wird — ob das eine On-Foil-Seite, die Zusammenfassung nach dem Lauf oder die
+// Pausenseite ist, entscheidet die Nutzung, nicht wir. Damit die Karten trotzdem lesbar bleiben,
+// steht die Kategorie unter dem Namen.
 // Wischen statt Pfeil-Knöpfe: eine Scroll-Snap-Reihe. Auf dem Handy ist EINE Karte volle Breite
 // (`w-full`), also wischt man genau von Layout zu Layout; ab sm liegen sie nebeneinander. Das
 // braucht keine Karussell-Bibliothek und funktioniert mit Touch, Trackpad und Tastatur.
@@ -486,7 +491,7 @@ function LayoutTeaser() {
   const t = useT();
   const [rows, setRows] = useState<WatchLayout[] | null>(null);
   useEffect(() => {
-    api.layoutCommunity({ category: "on_foil" })
+    api.layoutCommunity()
       .then((r) => setRows(r.slice(0, 5)))
       .catch(() => setRows([]));
   }, []);
@@ -513,9 +518,10 @@ function LayoutTeaser() {
                 <div className="truncate text-sm text-slate-400">
                   {t("lay.byAuthor", { name: l.author ?? "?" })}
                 </div>
+                <div className="truncate text-sm text-slate-400">{t(`lay.cat.${l.category}`)}</div>
                 {(l.used_by ?? 0) > 0 && (
                   <div className="text-sm text-brand-700 dark:text-brand-300">
-                    {t("lay.usedBy", { n: l.used_by ?? 0 })}
+                    {t(l.used_by === 1 ? "lay.usedBy1" : "lay.usedBy", { n: l.used_by ?? 0 })}
                   </div>
                 )}
               </div>

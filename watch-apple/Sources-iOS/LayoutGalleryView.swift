@@ -88,7 +88,9 @@ struct LayoutGalleryView: View {
     private func zahlen(_ l: WatchLayoutBrief) -> [String] {
         var out: [String] = []
         if let n = l.used_by, n > 0 {
-            out.append(Loc.t("lay.usedBy", lang).replacingOccurrences(of: "{n}", with: "\(n)"))
+            // Einzahl eigener Schluessel: „von 1 Foilern" ist falsches Deutsch.
+            out.append(Loc.t(n == 1 ? "lay.usedBy1" : "lay.usedBy", lang)
+                .replacingOccurrences(of: "{n}", with: "\(n)"))
         }
         if let n = l.copies, n > 0 {
             out.append(Loc.t("lay.copies", lang).replacingOccurrences(of: "{n}", with: "\(n)"))

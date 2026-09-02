@@ -379,10 +379,20 @@ def community(
     `sort=used` (Standard) rankt nach **tatsächlicher Nutzung** (verschiedene Nutzer, die das
     Layout oder eine Kopie eingebunden haben, s. `_usage_stats`) — damit steht oben, was sich in
     der Praxis bewährt hat, ohne dass jemand Ränge pflegen muss. `sort=new` = neueste zuerst."""
-    copies = (db.query(models.WatchLayout.copied_from_id, func.count().label("n"))
+    # Zwei Zahlen, und der Unterschied ist wichtig (Jan, 02.09.: „was nicht gehen darf ist, wenn
+    # ich ein Layout 20 mal in meine Datenseiten kopiere und das dann als 20 zaehlt"):
+    #   `copy_count` = Anzahl Kopien — wird ANGEZEIGT, ist als Zahl schlicht wahr.
+    #   `copy_users` = Anzahl verschiedener Foiler, die eine Kopie haben — entscheidet die
+    #                  SORTIERUNG bei gleicher Nutzung. Ohne das stand Layout 76 (4 Kopien, alle
+    #                  von einem einzigen Nutzer) vor Layouts, die vier verschiedene Leute
+    #                  uebernommen haben.
+    copies = (db.query(models.WatchLayout.copied_from_id,
+                       func.count().label("n"),
+                       func.count(func.distinct(models.WatchLayout.user_id)).label("u"))
               .filter(models.WatchLayout.copied_from_id.isnot(None))
               .group_by(models.WatchLayout.copied_from_id).all())
-    copy_count = {cid: n for cid, n in copies}
+    copy_count = {cid: n for cid, n, _u in copies}
+    copy_users = {cid: u for cid, _n, u in copies}
     q = (db.query(models.WatchLayout, models.User.display_name)
          .join(models.User, models.User.id == models.WatchLayout.user_id)
          .filter(models.WatchLayout.published.is_(True)))
@@ -396,15 +406,24 @@ def community(
         q = q.filter(models.WatchLayout.authored_h == _clamp(h, 100, 600))
     rows = q.order_by(models.WatchLayout.updated_at.desc()).all()
     used, unchanged = _usage_stats(db)
-    # „von ANDEREN Nutzern genutzt" — den Autor rausrechnen, sonst rankt sich jeder selbst hoch.
+    # „von N Foilern genutzt" zaehlt ALLE, den Autor eingeschlossen.
+    #
+    # Vorher war der Autor herausgerechnet („sonst rankt sich jeder selbst hoch"). Das war zwar
+    # gegen Selbstbeweihraeucherung gedacht, hat aber die Beschriftung zur Luege gemacht: Jan
+    # kopierte am 02.09. „All in" von Skalda und aktivierte es — genutzt wurde es damit von zwei
+    # Foilern, angezeigt stand weiter „von 1 Foilern genutzt". Und weil der Autor NIE mitzaehlte,
+    # konnte dort ueberhaupt nie eine 2 stehen, solange nur einer es uebernimmt.
+    #
+    # Die Sorge ums Ranking bleibt unbegruendet: dass jemand sein eigenes Layout auf der Uhr
+    # benutzt, IST echte Nutzung, und wer von drei Fremden uebernommen wird, steht weiter vorn.
     out = [_out(l, author=name or "?", copies=copy_count.get(l.id, 0),
-                used_by=len(used.get(l.id, set()) - {l.user_id}),
+                used_by=len(used.get(l.id, set())),
                 unchanged=unchanged.get(l.id, 0))
            for l, name in rows]
     if sort != "new":
         # Nutzung zuerst, dann Kopien, dann neu — die Reihenfolge aus `rows` (updated_at desc) ist
         # der stabile Gleichstand-Entscheid.
-        out.sort(key=lambda d: (d["used_by"], d["copies"]), reverse=True)
+        out.sort(key=lambda d: (d["used_by"], copy_users.get(d["id"], 0), d["copies"]), reverse=True)
     return out[:limit]
 
 

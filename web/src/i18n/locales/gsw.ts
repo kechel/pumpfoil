@@ -1337,6 +1337,7 @@ const gsw: Record<string, string> = {
   "lay.type.9": "Balke",
   "lay.unpublish": "Zruggzieh",
   "lay.usedBy": "vo {n} Foiler bruucht",
+  "lay.usedBy1": "vo 1 Foiler bruucht",
   "lay.warnChars": "Die Zeiche cha d Uhr nöd darstelle: {chars}",
   "lay.warnOverflow": "„{text}\" lauft über de Rand.",
   "lay.warnTitle": "Uf de chliinschte Uhr ({size}) chönnt s äng werde",

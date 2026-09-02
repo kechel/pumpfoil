@@ -1502,6 +1502,7 @@ const ru: Record<string, string> = {
   "lay.type.9": "Полоса",
   "lay.unpublish": "Снять с публикации",
   "lay.usedBy": "используют {n} фойлеров",
+  "lay.usedBy1": "использует 1 фойлер",
   "lay.warnChars": "Часы не могут показать эти символы: {chars}",
   "lay.warnOverflow": "«{text}» выходит за край.",
   "lay.warnTitle": "На самых маленьких часах может быть тесно ({size})",

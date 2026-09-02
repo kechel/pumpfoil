@@ -1458,6 +1458,7 @@ const nb: Record<string, string> = {
   "lay.galleryHint": "Se oppsett andre foilere har publisert, og kopier dem til din egen profil. Forhåndsvisningen bruker klokkestørrelsen din som standard \u2014 du kan kopiere alle oppsett, også de som er laget for en annen størrelse eller form (posisjonene er relative).",
   "lay.byAuthor": "av {name}",
   "lay.usedBy": "brukes av {n} foilere",
+  "lay.usedBy1": "brukes av 1 foiler",
   "lay.copies": "kopiert {n}\u00d7",
   "lay.asAuthor": "Forhåndsvis i originalstørrelsen",
   "lay.copyToMine": "Kopier til min profil",

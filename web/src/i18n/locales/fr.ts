@@ -1338,6 +1338,7 @@ const fr: Record<string, string> = {
   "lay.type.9": "Barre",
   "lay.unpublish": "Dépublier",
   "lay.usedBy": "utilisé par {n} foileurs",
+  "lay.usedBy1": "utilisé par 1 foileur",
   "lay.warnChars": "La montre ne peut pas afficher ces caractères : {chars}",
   "lay.warnOverflow": "« {text} » dépasse le bord.",
   "lay.warnTitle": "Ça pourrait être juste sur la plus petite montre ({size})",

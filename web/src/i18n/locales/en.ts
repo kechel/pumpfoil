@@ -1596,6 +1596,7 @@ const en: Record<string, string> = {
   "lay.galleryHint": "Browse layouts other riders published and copy them into your own profile. The preview uses your watch size by default \u2014 you can copy any layout, even one designed for a different size or shape (positions are relative).",
   "lay.byAuthor": "by {name}",
   "lay.usedBy": "used by {n} foilers",
+  "lay.usedBy1": "used by 1 foiler",
   "lay.copies": "copied {n}\u00d7",
   "lay.asAuthor": "Preview in the author’s original size",
   "lay.copyToMine": "Copy to my profile",

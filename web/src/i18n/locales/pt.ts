@@ -1502,6 +1502,7 @@ const pt: Record<string, string> = {
   "lay.type.9": "Barra",
   "lay.unpublish": "Despublicar",
   "lay.usedBy": "usado por {n} foilers",
+  "lay.usedBy1": "usado por 1 foiler",
   "lay.warnChars": "O relógio não consegue exibir estes caracteres: {chars}",
   "lay.warnOverflow": "«{text}» passa da borda.",
   "lay.warnTitle": "Pode ficar apertado no relógio menor ({size})",

@@ -1336,6 +1336,7 @@ const it: Record<string, string> = {
   "lay.type.9": "Barra",
   "lay.unpublish": "Annulla pubblicazione",
   "lay.usedBy": "usato da {n} foiler",
+  "lay.usedBy1": "usato da 1 foiler",
   "lay.warnChars": "L'orologio non può mostrare questi caratteri: {chars}",
   "lay.warnOverflow": "«{text}» esce dal bordo.",
   "lay.warnTitle": "Potrebbe stare stretto sull'orologio più piccolo ({size})",

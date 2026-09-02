@@ -1655,6 +1655,7 @@ const de: Record<string, string> = {
   "lay.galleryHint": "Veröffentlichte Layouts anderer ansehen und ins eigene Profil kopieren. Die Vorschau nutzt standardmäßig die Größe deiner Uhr — kopieren kannst du jedes Layout, auch wenn es für eine andere Größe oder Form entworfen wurde (die Positionen sind relativ).",
   "lay.byAuthor": "von {name}",
   "lay.usedBy": "von {n} Foilern genutzt",
+  "lay.usedBy1": "von 1 Foiler genutzt",
   "lay.copies": "{n}× kopiert",
   "lay.asAuthor": "Vorschau in Originalgröße des Autors",
   "lay.copyToMine": "In mein Profil kopieren",
