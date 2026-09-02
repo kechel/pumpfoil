@@ -239,6 +239,10 @@ private struct YoutubePlayer: UIViewRepresentable {
         // `loop=1` wirkt bei einem EINZELNEN Video nur zusammen mit `playlist=<id>`
         // (dokumentierte Eigenart der Player-Parameter). Bei Clips von wenigen Sekunden ist
         // die Schleife das Richtige.
+        // Hoehe ausdruecklich auf `html` UND `body`: ohne die rechnet die 100 %-Angabe des
+        // iframes gegen einen Block ohne Hoehe. Auf Android war der Player deshalb ~1 Pixel hoch
+        // (02.09.), WebKit verzeiht es bisher — wir machen es trotzdem explizit, gleiche Zeile.
+        //
         // Die ELTERN-Herkunft, die der Player zu sehen bekommt, muss UNSERE sein.
         //
         // Hier stand `youtube-nocookie.com` selbst als baseURL — damit war die Elternseite aus
@@ -253,8 +257,8 @@ private struct YoutubePlayer: UIViewRepresentable {
         // wird erst nach dem Antippen.
         let herkunft = "https://pumpfoil.org"
         let html = """
-            <html><body style="margin:0;background:#000">
-            <iframe width="100%" height="100%" frameborder="0" allowfullscreen
+            <html style="height:100%"><body style="margin:0;height:100%;background:#000">
+            <iframe style="display:block;width:100%;height:100%;border:0" allowfullscreen
               allow="autoplay; encrypted-media; picture-in-picture"
               src="https://www.youtube-nocookie.com/embed/\(videoId)?autoplay=1&rel=0&playsinline=1&loop=1&playlist=\(videoId)&origin=\(herkunft)"></iframe>
             </body></html>
