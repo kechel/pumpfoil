@@ -174,6 +174,8 @@ const en: Record<string, string> = {
   "stat.foiling": "Foiling",
   "stat.foilingTime": "Foiling time",
   "stat.pumps": "Pumps",
+  "sd.showAttempts": "Start attempts",
+  "sd.showAttemptsHint": "The tries that did not become a run — dashed on the map.",
   "stat.topSpeed": "Top speed",
 
   "home.title": "Overview",

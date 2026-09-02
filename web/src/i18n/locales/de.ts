@@ -184,6 +184,8 @@ const de: Record<string, string> = {
   "stat.foiling": "Foiling",
   "stat.foilingTime": "Foiling-Zeit",
   "stat.pumps": "Pumps",
+  "sd.showAttempts": "Startversuche",
+  "sd.showAttemptsHint": "Die Anläufe, aus denen kein Lauf wurde — gestrichelt auf der Karte.",
   "stat.topSpeed": "Top-Speed",
 
   // Home / Community

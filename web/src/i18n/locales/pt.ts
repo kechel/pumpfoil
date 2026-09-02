@@ -156,6 +156,8 @@ const pt: Record<string, string> = {
   "stat.foiling": "Foil",
   "stat.foilingTime": "Tempo de foil",
   "stat.pumps": "Pumps",
+  "sd.showAttempts": "Tentativas",
+  "sd.showAttemptsHint": "As tentativas que não deram um run — a tracejado no mapa.",
   "stat.topSpeed": "Vel. máxima",
 
   "home.title": "Visão geral",

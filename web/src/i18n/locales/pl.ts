@@ -168,6 +168,8 @@ const pl: Record<string, string> = {
   "stat.foiling": "Foiling",
   "stat.foilingTime": "Czas na foilu",
   "stat.pumps": "Pompy",
+  "sd.showAttempts": "Próby startu",
+  "sd.showAttemptsHint": "Próby, z których nie wyszedł przejazd — na mapie linią przerywaną.",
   "stat.topSpeed": "Prędkość maks.",
   "home.title": "Przegląd",
   "home.installA2HS": "📲 Dodaj aplikację do ekranu głównego",

@@ -156,6 +156,8 @@ const zh: Record<string, string> = {
   "stat.foiling": "水翼滑行",
   "stat.foilingTime": "水翼滑行时长",
   "stat.pumps": "泵动次数",
+  "sd.showAttempts": "起步尝试",
+  "sd.showAttemptsHint": "没有成为滑行的尝试，在地图上以虚线显示。",
   "stat.topSpeed": "最高速度",
 
   "home.title": "概览",

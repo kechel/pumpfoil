@@ -433,6 +433,11 @@ export default function SessionDetail() {
   const [win, setWin] = useState<"1" | "3" | "5">("3");
   const [trimOpen, setTrimOpen] = useState(false);
   const [showPumps, setShowPumps] = useState(false);
+  // Startversuche auf der Karte (Jan, 02.09.): die Anlaeufe, aus denen KEIN Lauf wurde. Sie
+  // stehen nicht in der Session-Antwort — Gespeichert sind nur ihre Distanzen; die Linien holt
+  // ein eigener, rein lesender Endpunkt, und zwar erst beim ersten Einschalten.
+  const [showAttempts, setShowAttempts] = useState(false);
+  const [attemptSegs, setAttemptSegs] = useState<{ i_start: number; i_end: number; distance_m: number; duration_s: number }[] | null>(null);
   const [weightKg, setWeightKg] = useState<number | null>(null);
   const compareRefs = useCompare();
 
@@ -615,6 +620,15 @@ export default function SessionDetail() {
     const p = isPublic ? api.publicSession(token!) : api.session(Number(id));
     p.then(setSession).catch((e) => setError(String(e)));
   }, [id, token, isPublic]);
+
+  // Startversuche erst holen, wenn der Schalter das erste Mal angeht (die Rechnung laeuft
+  // serverseitig ueber die Roh-GPS-Punkte — nichts, was man ungefragt bei jedem Aufruf machen will).
+  useEffect(() => {
+    if (!showAttempts || attemptSegs !== null || isPublic) return;
+    api.sessionAttempts(Number(id))
+      .then((r) => setAttemptSegs(r.attempts ?? []))
+      .catch(() => setAttemptSegs([]));
+  }, [showAttempts, attemptSegs, id, isPublic]);
 
   // Öffentlicher Link ungültig/widerrufen -> nach 5 s zur Startseite.
   useEffect(() => {
@@ -986,6 +1000,18 @@ export default function SessionDetail() {
         }
       });
     }
+    // Startversuche: gestrichelt und bernsteinfarben, damit sie sich klar von den Läufen
+    // abheben — es sind ja gerade die Anläufe, die KEIN Lauf geworden sind. Bewusst unter den
+    // Pump-Markern gezeichnet und dünner als ein Lauf.
+    if (showAttempts && attemptSegs?.length) {
+      attemptSegs.forEach((v) => {
+        const pts = coords.slice(v.i_start, v.i_end + 1).filter(Boolean);
+        if (pts.length < 2) return;
+        L.polyline(pts as [number, number][], {
+          color: "#f59e0b", weight: 3, opacity: 0.85, dashArray: "5 5", interactive: false,
+        }).addTo(lg);
+      });
+    }
     // Pump-Marker GANZ OBEN (nach den Carve-Bögen, sonst verdecken die Bögen sie). Bei
     // gedimmten Läufen weglassen. Bleiben weiß.
     if (showPumps) {
@@ -1008,7 +1034,7 @@ export default function SessionDetail() {
       map.fitBounds(L.latLngBounds(coords.slice(seg.i_start, seg.i_end + 1)), { padding: [40, 40] });
     }
     lastFitRun.current = selectedRun;
-  }, [session, colorMode, selectedRun, hrRange, pumpRange, speedMin, speedMax, win, showPumps, fullscreen, optimalKmh, playMode, autoScaleOn, carveData]);
+  }, [session, colorMode, selectedRun, hrRange, pumpRange, speedMin, speedMax, win, showPumps, showAttempts, attemptSegs, fullscreen, optimalKmh, playMode, autoScaleOn, carveData]);
 
   // Play-Animation: zeichnet die Timeline progressiv (wie beim Fahren). Beim (Wieder-)
   // Eintritt komplett bis zum aktuellen Kopf neu zeichnen (mit aktuellen Farben), dann —
@@ -1441,6 +1467,18 @@ export default function SessionDetail() {
           >
             <span className="inline-flex items-center gap-1">{t("stat.pumps")} {showPumps ? <EyeIcon className="h-3.5 w-3.5" /> : <EyeOffIcon className="h-3.5 w-3.5" />}</span>
           </button>
+          {/* Nur zeigen, wenn es wirklich etwas zu zeigen gibt: mehr Versuche als Läufe heißt,
+              dass Anläufe dabei waren, aus denen kein Lauf wurde. Beides steht schon in der
+              Session-Antwort — kein zusätzlicher Aufruf nur für die Frage, ob der Schalter hin soll. */}
+          {(a?.start_attempts ?? 0) > segs.length && (
+            <button
+              onClick={() => setShowAttempts((v) => !v)}
+              title={t("sd.showAttemptsHint")}
+              className={`ml-1 rounded-lg px-2.5 py-1 text-xs ${showAttempts ? "bg-amber-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"}`}
+            >
+              <span className="inline-flex items-center gap-1">{t("sd.showAttempts")} {showAttempts ? <EyeIcon className="h-3.5 w-3.5" /> : <EyeOffIcon className="h-3.5 w-3.5" />}</span>
+            </button>
+          )}
           {selectedRun != null && (
             <button onClick={() => setSelectedRun(null)} title={t("sd.clearSelection")} className="ml-1 rounded bg-slate-800 px-2 py-1 text-slate-200 hover:bg-slate-700">
               <CloseIcon className="h-3.5 w-3.5" />

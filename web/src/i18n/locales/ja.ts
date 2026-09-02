@@ -156,6 +156,8 @@ const ja: Record<string, string> = {
   "stat.foiling": "フォイリング",
   "stat.foilingTime": "フォイリング時間",
   "stat.pumps": "ポンプ",
+  "sd.showAttempts": "スタート試行",
+  "sd.showAttemptsHint": "ランにならなかった試行です。地図では破線で表示します。",
   "stat.topSpeed": "最高速度",
 
   "home.title": "概要",

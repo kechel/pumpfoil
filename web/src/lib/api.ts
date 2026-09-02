@@ -978,6 +978,11 @@ export const api = {
     req<RecordSet>(`/api/community/spot-records?spot=${encodeURIComponent(spot)}&period=${period}&accel_only=${accelOnly}&sport=${sport}`),
   spotCompare: (period = "all", accelOnly = false) =>
     req<{ spots: SpotAgg[] }>(`/api/community/spot-compare?period=${period}&accel_only=${accelOnly}`),
+  // Startversuche als Index-Bereiche fuer die Karte (nur die MISSLUNGENEN — die geglueckten sind
+  // die Laeufe). Wird serverseitig frisch gerechnet, deshalb erst beim Einschalten des Schalters.
+  sessionAttempts: (id: number) =>
+    req<{ attempts: { i_start: number; i_end: number; t_start_ms: number; distance_m: number; duration_s: number; avg_speed_mps: number }[] }>(
+      `/api/sessions/${id}/attempts`),
   sessionCarves: (id: number) =>
     req<CarveData>(`/api/sessions/${id}/carves`),
   communitySessions: (limit = 20, offset = 0, opts: { name?: string; spot?: string; accelOnly?: boolean;
