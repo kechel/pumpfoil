@@ -26,8 +26,10 @@ struct WatchView: View {
     var body: some View {
         List {
             appleWatchSection
-            devicesSection
+            // Die Verweise auf die anderen Seiten VOR der Uhren-Liste (Jan, 02.09., Android
+            // genauso): wer viele Uhren gepairt hat, scrollte vorher an allen vorbei.
             navSection
+            devicesSection
         }
         .brandToolbar(Loc.t("nav.watch", lang))
         .navigationBarTitleDisplayMode(.inline)
