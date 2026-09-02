@@ -249,7 +249,7 @@ const nb: Record<string, string> = {
   "sessions.farAbbr": "dist.",
   "sessions.longAbbr": "lengst.",
   "status.analyzed": "analysert",
-  "status.complete": "behandlet",
+  "status.complete": "behandles",
   "status.live": "● live",
   "status.recording": "tar opp",
   "row.like": "Lik",

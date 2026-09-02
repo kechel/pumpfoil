@@ -252,7 +252,7 @@ const cs: Record<string, string> = {
 
   // Status-Badges
   "status.analyzed": "vyhodnoceno",
-  "status.complete": "zpracováno",
+  "status.complete": "zpracovává se",
   "status.live": "● živě",
   "status.recording": "nahrávání",
 

@@ -276,7 +276,7 @@ const de: Record<string, string> = {
 
   // Status-Badges
   "status.analyzed": "ausgewertet",
-  "status.complete": "verarbeitet",
+  "status.complete": "wird verarbeitet",
   "status.live": "● live",
   "status.recording": "aufnahme",
 

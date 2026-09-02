@@ -207,7 +207,7 @@ const deAT: Record<string, string> = {
   "sessions.longAbbr": "läng.",
 
   "status.analyzed": "ausgwertet",
-  "status.complete": "verarbeitet",
+  "status.complete": "wird verarbeitet",
   "status.live": "● live",
   "status.recording": "Aufnahme",
 

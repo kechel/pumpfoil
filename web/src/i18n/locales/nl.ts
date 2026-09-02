@@ -252,7 +252,7 @@ const nl: Record<string, string> = {
 
   // Status-Badges
   "status.analyzed": "geanalyseerd",
-  "status.complete": "verwerkt",
+  "status.complete": "wordt verwerkt",
   "status.live": "● live",
   "status.recording": "opname",
 
