@@ -83,14 +83,18 @@ _APP_META: dict[str, dict[str, str]] = {
         # Ein Nutzer mit 1.1.14 bekam dadurch einen Update-Hinweis, den Play nicht einloesen konnte
         # ("update button just opens google play and does not offer nor start update"). Deshalb: erst
         # eintragen, wenn Freigabe DA und Roll-out bei 100 % — "eingereicht" genuegt nie.
-        "latest": "1.1.23",   # LIVE im Play Store 2026-08-25 (Play-Mail: „Your update to
-        # Pumpfoil, created on Aug 18, 2026 at 1:38 PM GMT, is live in the store" — 13:38 GMT
-        # = 15:38 Berlin, genau unsere Einreichung von Phone 1.1.23/37 + Wear 1.2.23/1033).
-        # Die Mail nennt keine Versionsnummer, nur den Zeitpunkt der Einreichung; wie am
-        # 09.08. deckt EINE Mail beide Tracks ab (gleiche applicationId org.pumpfoil.app).
-        # Vorher 1.1.20, live seit 09.08.
-        # org.pumpfoil.app, Release erstellt 05.08. 15:06 GMT). Eingereicht war 1.1.20/34, siehe
-        # docs/TODO.md — NICHT die 1.1.21/35, die danach gebaut wurde und noch nicht eingereicht ist.
+        "latest": "1.1.24",   # LIVE im Play Store 2026-09-02 (Play-Mail: „Your update to Pumpfoil,
+        # created on Aug 26, 2026 at 7:26 PM GMT, is live in the store"). Der Zeitstempel passt auf
+        # die Minute auf unsere Einreichung vom 26.08. 21:26 Berlin = Phone 1.1.24 (38) + Wear
+        # 1.2.24 (1034), beide Tracks auf vollstaendigen Roll-out.
+        # PRUEFUNG: die Play-Seite nennt die Version nicht mehr oeffentlich, dort ist also nichts
+        # gegenzupruefen. Der harte Beleg kommt aus UNSEREN Daten: `device_tokens` zeigt am 02.09.
+        # bereits Wear-Uhren mit `app_version = 1.2.24` — die Auslieferung laeuft also wirklich,
+        # nicht nur die Freigabe. (Am 29.07. stand hier verfrueht eine Version, die Play noch gar
+        # nicht auslieferte, und ein Nutzer bekam einen Hinweis ins Leere.)
+        # Inhalt: Wert-Grafiken in der Layout-Vorschau + Puls-Zonen im Profil, GPX-/FIT-Download,
+        # Spot-Beschreibungen, Spot-Label mit Gewaesser, AR-Badges, Katalog-Suche, Trainingskurve.
+        # Vorher 1.1.23, live seit 25.08.
         "min_supported": "",
         "store_url": "https://play.google.com/store/apps/details?id=org.pumpfoil.app",
     },
@@ -118,7 +122,11 @@ _APP_META: dict[str, dict[str, str]] = {
         # 05.08. 15:06 GMT). Eingereicht war 1.2.20/1030 zusammen mit Phone 1.1.20/34.
         # Der gebaute Nachzug 1.2.21/1031 (Token-Heilung bei Config-401) ist NOCH NICHT
         # eingereicht — hier also nicht eintragen. Vorher: 1.2.18/1028, live seit 04.08.
-        "latest": "1.2.23",   # LIVE 2026-08-25, dieselbe Play-Mail wie android (s. oben)
+        "latest": "1.2.24",   # LIVE 2026-09-02, dieselbe Play-Mail wie android (s. oben) — und
+        # hier sogar direkt belegt: zwei Uhren im Feld melden am 02.09. schon `app_version 1.2.24`.
+        # Zusaetzlich zur Phone-Liste bringt die Uhr: Always-on-Ansicht, BACK wird waehrend der
+        # Aufnahme verschluckt, `expected_chunks`, Live-Distanz ohne Zuwachs im Stand, gesaeuberter
+        # Max-Speed, Lauf-Zusammenfuehrung. Vorher 1.2.23, live seit 25.08.
         "min_supported": "",
         "store_url": "https://play.google.com/store/apps/details?id=org.pumpfoil.app",
     },
