@@ -619,6 +619,23 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **✅ 02.09. — „4 Laeufe" statt „4/4" bei Jans #3219: es WAR der Cache (Jans Verdacht stimmte).**
+  - **Server war unschuldig, nachgemessen:** `/api/sessions/3219` liefert `start_attempts = 4` bei
+    4 Segmenten, die Kachel-Bedingung (Versuche >= Laeufe) ist also erfuellt.
+  - **Ursache:** der Service Worker haelt `/api/sessions/<id>` als **NetworkFirst mit 30 Tagen
+    Haltbarkeit** (`vite.config.ts`), und `warmMySessions()` legt die letzten 10 eigenen Sessions
+    von sich aus dort ab. Eine Antwort, die VOR dem heutigen Serverstand gecacht wurde, kennt das
+    neue Feld nicht — die Kachel faellt dann auf die alte Anzeige zurueck. Genau deshalb ging es
+    bei anderen Sessions: die wurden frisch geholt.
+  - **Fix:** Cache-Name auf `api-session-detail-v2` hochgezogen (in `vite.config.ts` UND
+    `pwaCache.ts` — die beiden MUESSEN gleich lauten), plus `raeumeAlteCaches()` beim App-Start,
+    das den alten Cache wirklich loescht (Workbox raeumt nur seinen Precache auf, keine
+    umbenannten Laufzeit-Caches).
+  - **MERKE fuer das naechste neue Feld in `/api/sessions/<id>`:** Cache-Namen hochzaehlen und den
+    alten in `ALTE_CACHES` eintragen, sonst sehen genau die aktivsten Nutzer die Neuerung als
+    letzte — ihre Sessions liegen ja vorgewaermt im Cache.
+  - Fuer Jan sofort: einmal neu laden (der Service Worker aktiviert sich beim naechsten Start).
+
 - **✅ 02.09. — Android Phone 1.1.24 (38) + Wear OS 1.2.24 (1034) SIND LIVE.** Play-Mail (Jans
   Weiterleitung): „Your update to Pumpfoil, created on Aug 26, 2026 at 7:26 PM GMT, is live in the
   store." Der Zeitstempel passt auf die Minute auf unsere Einreichung vom **26.08. 21:26 Berlin**
