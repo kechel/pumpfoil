@@ -7,6 +7,8 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.pm.ServiceInfo
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -68,12 +70,40 @@ class RecorderService : Service(), SensorEventListener {
             if (Recorder.state.value.recording) startHeartRate()
             return START_STICKY
         }
-        startForeground(NOTIF_ID, notification())
+        starteVordergrund()
         Recorder.start(applicationContext)
         registerSensors()
         startHeartRate()
         startLocation()
         return START_STICKY
+    }
+
+    /**
+     * Vordergrund-Dienst anmelden — mit dem Typ, den das System auch ERLAUBT.
+     *
+     * Ab targetSdk 34 prueft Android die Typen; fuer `health` verlangt Android 15/16 zusaetzlich
+     * eine aus [ACTIVITY_RECOGNITION, HIGH_SAMPLING_RATE_SENSORS, health.READ_HEART_RATE, …].
+     * `BODY_SENSORS` zaehlt dort NICHT mehr. Fehlt sie, wirft `startForeground` eine
+     * SecurityException — und die App stirbt beim Druck auf START (Jans Wear-Emulator, 02.09.,
+     * Android 16, nach unserem Wechsel auf targetSdk 36 am 30.08.).
+     *
+     * Deshalb hier zwei Vorkehrungen:
+     *  1. `health` nur anmelden, wenn die Puls-Berechtigung wirklich erteilt ist.
+     *  2. Und selbst dann abgesichert: scheitert es doch, laeuft der Dienst mit `location` weiter.
+     *     Eine Aufnahme ohne Puls ist brauchbar — eine abgestuerzte App nicht.
+     */
+    private fun starteVordergrund() {
+        val hatPuls =
+            checkSelfPermission("android.permission.health.READ_HEART_RATE") == PackageManager.PERMISSION_GRANTED ||
+            checkSelfPermission(android.Manifest.permission.BODY_SENSORS) == PackageManager.PERMISSION_GRANTED
+        val nurOrt = ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+        val mitPuls = nurOrt or ServiceInfo.FOREGROUND_SERVICE_TYPE_HEALTH
+        try {
+            startForeground(NOTIF_ID, notification(), if (hatPuls) mitPuls else nurOrt)
+        } catch (e: SecurityException) {
+            android.util.Log.w("Pumpfoil", "FGS-Typ health abgelehnt -> nur location", e)
+            startForeground(NOTIF_ID, notification(), nurOrt)
+        }
     }
 
     private fun registerSensors() {

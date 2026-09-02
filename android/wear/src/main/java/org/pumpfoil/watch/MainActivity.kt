@@ -79,7 +79,7 @@ class MainActivity : ComponentActivity() {
     private fun requestPerms() {
         val p = mutableListOf(
             Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.BODY_SENSORS,
+            pulsRecht(),
         )
         if (Build.VERSION.SDK_INT >= 33) p.add(Manifest.permission.POST_NOTIFICATIONS)
         // Merken, dass der Standort schon einmal abgefragt wurde: sagt shouldShowRequestPermission-
@@ -346,7 +346,7 @@ class MainActivity : ComponentActivity() {
         // 9447 GPS-Punkten und 0 Puls-Werten). Jetzt: Zustand beobachten, vor dem Start erneut
         // fragen, und solange sie fehlt einen sichtbaren Hinweis zeigen.
         var hrMissing by remember {
-            mutableStateOf(ContextCompat.checkSelfPermission(ctx, Manifest.permission.BODY_SENSORS)
+            mutableStateOf(ContextCompat.checkSelfPermission(ctx, pulsRecht())
                 != PackageManager.PERMISSION_GRANTED)
         }
         // Standort-Berechtigung (ACCESS_FINE_LOCATION): OHNE sie zeichnet die Uhr keine Strecke
@@ -372,7 +372,7 @@ class MainActivity : ComponentActivity() {
             val obs = LifecycleEventObserver { _, event ->
                 if (event == Lifecycle.Event.ON_RESUME) {
                     hrMissing = ContextCompat.checkSelfPermission(
-                        ctx, Manifest.permission.BODY_SENSORS) != PackageManager.PERMISSION_GRANTED
+                        ctx, pulsRecht()) != PackageManager.PERMISSION_GRANTED
                     locMissing = ContextCompat.checkSelfPermission(
                         ctx, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                     locOff = !locationEnabled(ctx)
@@ -386,6 +386,9 @@ class MainActivity : ComponentActivity() {
         // der Berechtigungsdialog oben ist — und mit ihm der nur im Speicher gemerkte
         // Startwunsch; ein Druck auf Start tat dann gar nichts). Jetzt laeuft die Aufnahme schon,
         // und wird der Puls nachtraeglich erlaubt, haengt der Dienst ihn an.
+        // WELCHE Puls-Berechtigung: bis Android 14 `BODY_SENSORS`, ab 15 `health.READ_HEART_RATE`
+        // (BODY_SENSORS ist dort abgekuendigt und zaehlt auch nicht mehr als Voraussetzung fuer
+        // den Vordergrund-Dienst vom Typ `health`, s. RecorderService.starteVordergrund).
         val hrPermLauncher = rememberLauncherForActivityResult(
             ActivityResultContracts.RequestPermission()) { granted ->
             hrMissing = !granted
@@ -402,7 +405,7 @@ class MainActivity : ComponentActivity() {
                     // Standort da -> SOFORT aufnehmen. Fehlt der Puls, fragen wir danach: die
                     // Aufnahme laeuft dann schon, der Dialog kann sie nicht mehr verhindern.
                     RecorderService.start(ctx.applicationContext)
-                    if (hrMissing) hrPermLauncher.launch(Manifest.permission.BODY_SENSORS)
+                    if (hrMissing) hrPermLauncher.launch(pulsRecht())
                 }
             }
         }
@@ -792,7 +795,7 @@ class MainActivity : ComponentActivity() {
                             // waehrend er oben ist — auf dem Wear-Emulator reproduzierbar —, war
                             // der Startwunsch weg und ein Druck auf Start tat gar nichts.
                             RecorderService.start(applicationContext)
-                            if (hrMissing) hrPermLauncher.launch(Manifest.permission.BODY_SENSORS)
+                            if (hrMissing) hrPermLauncher.launch(pulsRecht())
                         }
                     },
                     colors = ButtonDefaults.buttonColors(
@@ -825,7 +828,7 @@ class MainActivity : ComponentActivity() {
                         style = MaterialTheme.typography.caption2,
                         color = Color(0xFFF59E0B), textAlign = TextAlign.Center,
                         modifier = Modifier.clickable {
-                            hrPermLauncher.launch(Manifest.permission.BODY_SENSORS)
+                            hrPermLauncher.launch(pulsRecht())
                         })
                 }
                 // Foil DARUNTER: sitzt so mittig auf der breitesten Stelle der runden Uhr
@@ -1481,3 +1484,15 @@ fun AmbientRecordingScreen(s: Recorder.State) {
 }
 
 private fun ambientZeit(sek: Long): String = String.format("%d:%02d", sek / 60, sek % 60)
+
+/**
+ * WELCHE Puls-Berechtigung die Uhr braucht — eine Wahrheit fuer Abfrage, Pruefung und Hinweis.
+ *
+ * Bis Android 14: `BODY_SENSORS`. Ab Android 15: `health.READ_HEART_RATE`; BODY_SENSORS ist dort
+ * abgekuendigt und zaehlt vor allem NICHT mehr als Voraussetzung fuer einen Vordergrund-Dienst vom
+ * Typ `health` — genau daran starb die App beim Aufnahmestart, nachdem wir am 30.08. auf
+ * targetSdk 36 gegangen sind (Jans Wear-Emulator mit Android 16, 02.09.).
+ */
+internal fun pulsRecht(): String =
+    if (Build.VERSION.SDK_INT >= 35) "android.permission.health.READ_HEART_RATE"
+    else Manifest.permission.BODY_SENSORS
