@@ -213,7 +213,7 @@ const it: Record<string, string> = {
   "sessions.longAbbr": "lung.",
 
   "status.analyzed": "analizzata",
-  "status.complete": "elaborata",
+  "status.complete": "in elaborazione",
   "status.live": "● live",
   "status.recording": "registrazione",
 

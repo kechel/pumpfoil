@@ -237,7 +237,7 @@ const ru: Record<string, string> = {
   "sessions.longAbbr": "длит.",
 
   "status.analyzed": "проанализировано",
-  "status.complete": "обработано",
+  "status.complete": "обработка",
   "status.live": "● в эфире",
   "status.recording": "запись",
 

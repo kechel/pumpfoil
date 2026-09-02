@@ -237,7 +237,7 @@ const zh: Record<string, string> = {
   "sessions.longAbbr": "长",
 
   "status.analyzed": "已分析",
-  "status.complete": "已处理",
+  "status.complete": "处理中",
   "status.live": "● 实时",
   "status.recording": "记录中",
 

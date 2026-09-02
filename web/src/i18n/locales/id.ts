@@ -237,7 +237,7 @@ const id: Record<string, string> = {
   "sessions.longAbbr": "lama.",
 
   "status.analyzed": "dianalisis",
-  "status.complete": "diproses",
+  "status.complete": "sedang diproses",
   "status.live": "● live",
   "status.recording": "merekam",
 

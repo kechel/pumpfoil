@@ -962,10 +962,14 @@ export function SessionStats({ a }: { a: NonNullable<SessionSummary["analysis"]>
 
 export function StatusBadge({ status }: { status: string }) {
   const t = useT();
+  // Nicht-slate-Farben kippen NICHT automatisch mit dem Farbmodus (nur die slate-Skala tut das,
+  // s. index.css). Ohne dark:-Gegenstueck stand hier amber-400 auf hellem Grund — praktisch
+  // unlesbar (Jan, 02.09.). Muster im Projekt: kraeftiger Ton als Basis fuer den Light-Mode,
+  // heller Ton unter dark:.
   const map: Record<string, string> = {
-    analyzed: "bg-emerald-500/15 text-emerald-400",
-    complete: "bg-amber-500/15 text-amber-400",
-    live: "bg-sky-500/15 text-sky-400",
+    analyzed: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+    complete: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
+    live: "bg-sky-500/15 text-sky-700 dark:text-sky-300",
     recording: "bg-slate-700/40 text-slate-200",
   };
   const labelKey: Record<string, string> = {

@@ -237,7 +237,7 @@ const ja: Record<string, string> = {
   "sessions.longAbbr": "最長",
 
   "status.analyzed": "解析済み",
-  "status.complete": "処理済み",
+  "status.complete": "処理中",
   "status.live": "● ライブ",
   "status.recording": "記録中",
 

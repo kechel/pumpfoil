@@ -237,7 +237,7 @@ const pt: Record<string, string> = {
   "sessions.longAbbr": "dur.",
 
   "status.analyzed": "analisada",
-  "status.complete": "processada",
+  "status.complete": "processando",
   "status.live": "● ao vivo",
   "status.recording": "gravando",
 

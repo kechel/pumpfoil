@@ -235,7 +235,7 @@ const fi: Record<string, string> = {
 
   // Status-Badges
   "status.analyzed": "analysoitu",
-  "status.complete": "käsitelty",
+  "status.complete": "käsitellään",
   "status.live": "● live",
   "status.recording": "tallennus",
 

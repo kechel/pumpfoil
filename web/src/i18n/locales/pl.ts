@@ -250,7 +250,7 @@ const pl: Record<string, string> = {
   "sessions.farAbbr": "najdal.",
   "sessions.longAbbr": "najdł.",
   "status.analyzed": "przeanalizowana",
-  "status.complete": "przetworzona",
+  "status.complete": "przetwarzanie",
   "status.live": "● na żywo",
   "status.recording": "nagrywanie",
   "row.like": "Polub",
