@@ -619,6 +619,23 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟡 02.09. 17:55 — iOS/Apple Watch 1.1.29 (33) EINGEREICHT** („Warten auf Prüfung",
+  Uebermittlungskennung `2ea86051-b581-4ac9-8048-e25f47c5c87d`, eingereicht von Jan). Live ist
+  weiter 1.1.28. Nur ~1,5 Stunden nach der Freigabe von 1.1.28 — Anlass war der kaputte Player.
+  **Inhalt (alle iOS-Aenderungen von heute sind drin, gepruefte Liste aus dem Git-Log):**
+  Error-153-Fix am Feed-Player (falsche Eltern-Herkunft: `baseURL` war `youtube-nocookie.com`
+  selbst) · neue HTML-Struktur des Players (Doctype, `<meta name=viewport>`, Stile im
+  `<style>`-Block, `vh`/`vw` statt Prozent) · Trefferflaeche der Vorschaubilder (`contentShape` —
+  „ab ca. der Mitte wird schon das Video eins weiter rechts geoeffnet") · Wischen wechselt das
+  Video. Damit ist die Changelog-Warnung zu 1.1.28 („Videos bleiben schwarz") mit dieser Version
+  erledigt.
+  **Nummern-Regel, damit nichts durcheinandergeraet:** `project.yml` steht bewusst WEITER auf
+  1.1.29 (33) — so entspricht der Repo-Stand genau dem, was in Pruefung ist. Die **naechste**
+  Aenderung, die auf iOS ausgeliefert werden soll, hebt im SELBEN Commit auf **1.1.30 (34)**
+  (beide Ziele zusammen, iPhone und Watch teilen die MARKETING_VERSION).
+  **Nach der Freigabe:** Produktseite pruefen (nicht `itunes.apple.com/lookup`, s. `appmeta.py`),
+  dann `appmeta.ios` UND `appmeta.apple` zusammen auf 1.1.29, dann Changelog.
+
 - **🟡 02.09. — Android EINGEREICHT: Phone 39 (1.1.25) + Wear OS 1035 (1.2.25), voller Roll-out.**
   Jans Meldung aus der Play Console: „Schnelle Vorabprüfungen … noch maximal 14 Minuten", beide
   Spuren auf „Vollständigen Roll-out starten", dazu die **Erklärung für Gesundheits-Apps**.
