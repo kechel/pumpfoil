@@ -3,6 +3,8 @@ package org.pumpfoil.app
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -185,16 +187,32 @@ fun VerlaufScreen(onOpen: (Int) -> Unit) {
                 } else if (data.size < 2) {
                     Text(I18n.t("verlauf.empty"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 } else {
-                    LazyColumn(Modifier.fillMaxSize().padding(horizontal = 12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        item {
-                            Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                FilterChip(selected = mode == Mode.CUMULATIVE, onClick = { mode = Mode.CUMULATIVE }, label = { Text(I18n.t("verlauf.cumulative")) }, colors = cyanChipColors())
-                                FilterChip(selected = mode == Mode.W7, onClick = { mode = Mode.W7 }, label = { Text("7 ${I18n.t("verlauf.daysAbbr")}") }, colors = cyanChipColors())
-                                FilterChip(selected = mode == Mode.W30, onClick = { mode = Mode.W30 }, label = { Text("30 ${I18n.t("verlauf.daysAbbr")}") }, colors = cyanChipColors())
-                            }
+                    // Bewusst KEINE LazyColumn, sondern eine scrollende Column.
+                    //
+                    // Grund (02.09.): der Abschnitt „Spot-Verlauf" enthaelt eine osmdroid-Karte,
+                    // und die vertraegt das faule Bauen nicht. Als Listeneintrag wird sie beim
+                    // Rausscrollen aus der Hierarchie genommen; osmdroid raeumt dabei seinen
+                    // Kachel-Anbieter SELBST ab, und zurueckgescrollt bleibt nur ein graues
+                    // Raster. Wird sie stattdessen neu gebaut, legt sie ihren Kachel-Cache samt
+                    // SQLite-Datei auf dem Hauptthread an — auf der Spots-Seite hat das ein ANR
+                    // ausgeloest („waited 5000ms for MotionEvent").
+                    //
+                    // Die Seite hat eine FESTE, kleine Menge Inhalte: 12 Diagramme plus vier
+                    // Abschnitte. Alles auf einmal zu bauen ist hier billiger als die Folgen des
+                    // Verwerfens. (Die Spots-Seite geht den anderen Weg — dort steht die Karte
+                    // fest ueber einer echten, wachsenden Liste.)
+                    Column(
+                        Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+                            .padding(horizontal = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            FilterChip(selected = mode == Mode.CUMULATIVE, onClick = { mode = Mode.CUMULATIVE }, label = { Text(I18n.t("verlauf.cumulative")) }, colors = cyanChipColors())
+                            FilterChip(selected = mode == Mode.W7, onClick = { mode = Mode.W7 }, label = { Text("7 ${I18n.t("verlauf.daysAbbr")}") }, colors = cyanChipColors())
+                            FilterChip(selected = mode == Mode.W30, onClick = { mode = Mode.W30 }, label = { Text("30 ${I18n.t("verlauf.daysAbbr")}") }, colors = cyanChipColors())
                         }
-                        items(METRICS) { m -> MetricChartCard(data, m, mode, domain) }
-                        item {
+                        METRICS.forEach { m -> MetricChartCard(data, m, mode, domain) }
+                        run {
                             val suffix = when (mode) {
                                 Mode.W7 -> " · 7 ${I18n.t("verlauf.daysAbbr")}"
                                 Mode.W30 -> " · 30 ${I18n.t("verlauf.daysAbbr")}"
@@ -203,12 +221,12 @@ fun VerlaufScreen(onOpen: (Int) -> Unit) {
                             Text(I18n.t("verlauf.aggTitle") + suffix, style = MaterialTheme.typography.titleMedium,
                                 modifier = Modifier.padding(top = 6.dp))
                         }
-                        items(METRICS_SUM) { m -> MetricChartCard(data, m, mode, domain) }
+                        METRICS_SUM.forEach { m -> MetricChartCard(data, m, mode, domain) }
                         // Trainingskurve: eigene Abfrage (hr-progress), deshalb eine eigene
                         // Karte mit eigenem Ladezustand — sie haengt nicht am History-Zeitraum.
-                        item { HrProgressCard() }
-                        item { SpotProgression() }
-                        item { Box(Modifier.height(8.dp)) }
+                        HrProgressCard()
+                        SpotProgression()
+                        Box(Modifier.height(8.dp))
                     }
                 }
             }
