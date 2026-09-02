@@ -635,10 +635,23 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     Jetzt: **Standort da -> sofort aufnehmen**, die Puls-Frage kommt DANACH, und wird sie erteilt,
     haengt der Dienst den Puls ueber `RecorderService.enableHeartRate` an die laufende Aufnahme.
     Der Standort bleibt Startkriterium (ohne Position ist die Aufnahme wertlos).
-  - **🔲 OFFEN:** `adb logcat -b crash -d` von Jans Emulator, um den Prozess-Tod selbst zu klaeren.
-    Verdacht: der Wear-Emulator ist zu klein (GMS-Binder-Fehler, Freezer-Throttling) und der
-    Low-Memory-Killer holt uns, waehrend der Dialog im Vordergrund ist. Auf echter Uhr also
-    vermutlich nie gesehen — die Entkopplung oben macht die App aber in JEDEM Fall robuster.
+  - **✅ URSACHE GEFUNDEN, und es ist NICHT unsere App** (Tombstone aus `logcat -b crash`, 13:22):
+    ```
+    Cmdline: /vendor/bin/hw/android.hardware.sensors-service.multihal
+    Abort message: 'activationOnChangeSensorEvent:231: unexpected sensor type: 26'
+    ```
+    Der SENSOR-TREIBER der Emulator-Images (`goldfish::MultihalSensors`) bricht mit `SIGABRT` ab,
+    sobald ein Sensor aktiviert wird, den er nicht kennt — **Typ 26 = `WRIST_TILT_GESTURE`**.
+    Health Services registriert beim Start einer Uebung genau solche Sensoren mit. Der Absturz
+    trifft den Sensor-DIENST des Systems, und der reisst jeden Prozess mit, der gerade Sensoren
+    nutzt — deshalb war unsere App weg, ohne eigene Exception. Mein Low-Memory-Verdacht war falsch;
+    die GMS-Binder-Fehler daneben waren Folge, nicht Ursache.
+  - **Fix fuer die Testbarkeit:** `startHeartRate()` ueberspringt Health Services, wenn
+    `Build.HARDWARE` `ranchu`/`goldfish` ist (= jeder Android-Emulator; eine echte Uhr meldet das
+    nie). Damit laesst sich die Aufnahme im Emulator wieder testen — ohne Puls, aber ohne Absturz.
+    **Auf echter Uhr aendert sich NICHTS.**
+  - **Merke:** ein Prozess, der ohne `FATAL EXCEPTION` verschwindet, ist oft FREMDER Absturz. Der
+    Tombstone im Crash-Puffer nennt den Schuldigen (`Cmdline:`) — im Haupt-Log stand davon nichts.
 
 - **🔴→✅ 02.09. — „Meine Daten exportieren" hat die Android-App ABGESTUERZT (Jans Test).**
   `java.lang.OutOfMemoryError: Failed to allocate a 134250504 byte allocation` in

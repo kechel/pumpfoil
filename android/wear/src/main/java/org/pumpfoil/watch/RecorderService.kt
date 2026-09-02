@@ -11,6 +11,7 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.os.Build
 import android.os.IBinder
 import android.os.Looper
 import androidx.core.app.NotificationCompat
@@ -106,10 +107,30 @@ class RecorderService : Service(), SensorEventListener {
      * Scheitert das (Health Services fehlt, eine andere App haelt gerade eine Uebung, Uhr ohne
      * Puls-Sensor), bleibt es beim rohen Sensor von oben — also nie schlechter als vorher.
      */
+    /**
+     * IM EMULATOR NICHT: der Sensor-Treiber der Emulator-Images (`goldfish::MultihalSensors`)
+     * bricht mit `SIGABRT` ab, sobald ein Sensor aktiviert wird, den er nicht kennt —
+     * `activationOnChangeSensorEvent: unexpected sensor type: 26` (= WRIST_TILT_GESTURE). Health
+     * Services registriert beim Start einer Uebung genau solche Sensoren mit. Der Absturz trifft
+     * den SENSOR-DIENST des Systems, und der reisst jeden Prozess mit, der gerade Sensoren nutzt:
+     * unsere App war damit beim Druck auf START sofort weg, ohne eigene Exception (Jans
+     * Emulator-Befund 02.09., Tombstone eindeutig).
+     *
+     * `Build.HARDWARE` ist bei allen Android-Emulatoren `ranchu` (aeltere: `goldfish`) — eine
+     * echte Uhr meldet das nie. Auf ihr bleibt also alles wie es war.
+     */
+    private fun imEmulator(): Boolean =
+        Build.HARDWARE == "ranchu" || Build.HARDWARE == "goldfish"
+
     private fun startHeartRate() {
         // START_STICKY: das System kann den Service mit leerem Intent neu starten. Dann laeuft die
         // Uebung schon — kein zweites Mal starten.
         if (hsClient != null) return
+        if (imEmulator()) {
+            // Kein Puls im Emulator — aber auch kein Absturz des Sensor-Dienstes (s. oben).
+            android.util.Log.i("Pumpfoil", "Health Services im Emulator uebersprungen (Sensor-HAL bricht sonst ab)")
+            return
+        }
         hsDelivered = false
         try {
             val client = HealthServices.getClient(this).exerciseClient
