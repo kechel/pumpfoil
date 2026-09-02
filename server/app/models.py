@@ -1165,3 +1165,28 @@ class SessionFlag(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     note: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class SystemSample(Base):
+    """Eine Messung der Systemgesundheit (CPU, Speicher, Platten, Last).
+
+    Warum ueberhaupt gespeichert: „laeuft langsam voll" sieht man an einer Momentaufnahme NICHT.
+    Geschrieben wird hoechstens eine Zeile pro Minute, und nur wenn ein Admin den Bildschirm
+    anschaut (kein Scheduler, s. `api/health.py`) — es ist also eine Spur der Beobachtung, keine
+    vollstaendige Zeitreihe. Zeilen aelter als 14 Tage werden beim Schreiben mit entfernt.
+
+    Alle Felder sind optional: faellt eine Quelle aus (z. B. `/proc/stat` nicht lesbar), fehlt
+    genau dieser Wert und der Rest bleibt brauchbar.
+    """
+
+    __tablename__ = "system_samples"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, index=True)
+    cpu_prozent: Mapped[float | None] = mapped_column(Float)
+    speicher_prozent: Mapped[float | None] = mapped_column(Float)
+    swap_prozent: Mapped[float | None] = mapped_column(Float)
+    last1: Mapped[float | None] = mapped_column(Float)
+    platte_root_prozent: Mapped[float | None] = mapped_column(Float)
+    platte_tmp_prozent: Mapped[float | None] = mapped_column(Float)
+
