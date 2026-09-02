@@ -1,6 +1,8 @@
 """SQLAlchemy-Setup. SQLite für Dev, Postgres für Prod (via DATABASE_URL)."""
 from __future__ import annotations
 
+from contextlib import contextmanager
+
 from collections.abc import Generator
 
 from sqlalchemy import create_engine
@@ -29,16 +31,48 @@ def get_db() -> Generator[Session, None, None]:
         db.close()
 
 
+@contextmanager
+def _init_sperre():
+    """Serialisiert den Start der vier uvicorn-Worker ueber eine Postgres-Beratungssperre.
+
+    Warum das noetig ist (02.09., echter Ausfall): alle vier Worker rufen beim Start `init_db()`
+    und damit `create_all()`. Solange sich an den Tabellen nichts aendert, ist das harmlos — beim
+    Hinzufuegen einer NEUEN Tabelle rennen sie ins Messer: „duplicate key value violates unique
+    constraint … Key (typname, typnamespace)=(health_alerts, 2200) already exists". Zwei Worker
+    starben beim Start, der Dienst lief danach mit 2 statt 4 Arbeitern weiter und antwortete
+    trotzdem — also ein Ausfall, den man nur im Journal sieht.
+
+    Die Sperre gilt fuer die Verbindung und wird am Ende freigegeben; der Schluessel ist eine
+    beliebige, aber feste Zahl (ASCII „POIL"). Auf SQLite (Dev-Rueckfall) macht sie nichts.
+    """
+    if not str(engine.url).startswith("postgres"):
+        yield
+        return
+    conn = engine.connect()
+    try:
+        conn.exec_driver_sql("select pg_advisory_lock(1347375692)")
+        conn.commit()
+        yield
+    finally:
+        try:
+            conn.exec_driver_sql("select pg_advisory_unlock(1347375692)")
+            conn.commit()
+        except Exception:  # noqa: BLE001
+            pass
+        conn.close()
+
+
 def init_db() -> None:
     """Tabellen anlegen. Für echte Migrationen später Alembic."""
     from . import models  # noqa: F401  (Modelle registrieren)
 
-    Base.metadata.create_all(bind=engine)
-    _migrate_add_columns()
-    _migrate_add_indexes()
-    _seed_foils()
-    _seed_stabs()
-    _seed_news()
+    with _init_sperre():
+        Base.metadata.create_all(bind=engine)
+        _migrate_add_columns()
+        _migrate_add_indexes()
+        _seed_foils()
+        _seed_stabs()
+        _seed_news()
 
 
 def _migrate_add_indexes() -> None:

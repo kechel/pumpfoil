@@ -1,0 +1,12 @@
+[Unit]
+Description=Systemzustand alle 5 Minuten pruefen (Platte, Speicher, Last, Dienste, Backup, DB)
+
+[Timer]
+# Alle 5 Minuten, ab einer Minute nach dem Systemstart. Kein Persistent=true: eine verpasste
+# Messung nachzuholen hat keinen Wert, die Lage von vorhin interessiert niemanden mehr.
+OnBootSec=1min
+OnUnitActiveSec=5min
+AccuracySec=30s
+
+[Install]
+WantedBy=timers.target
