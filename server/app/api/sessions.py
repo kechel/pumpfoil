@@ -2359,57 +2359,75 @@ def get_attempts(
     user: models.User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> dict:
-    """Startversuche als Index-Bereiche fuer die Karte — read-only, KEINE Pipeline-/DB-Aenderung.
+    """Startversuche als LINIEN (lat/lon) fuer die Karte — read-only, keine Pipeline-/DB-Aenderung.
 
-    Dieselbe Rechnung wie `attempt_distances` (analysis/__init__.py): das lockere `attempts`-Preset
-    auf den GETRIMMTEN GPS-Samples, also >= 2 s ueber ~8 km/h. Gespeichert sind davon nur die
-    DISTANZEN (`start_attempts_json`) — fuer eine Linie auf der Karte braucht es die Indizes, und
-    die rechnen wir hier frisch aus, statt das gespeicherte Feld umzubauen (das haette eine
-    Reanalyse aller 2265 Sessions verlangt, fuer eine reine Anzeige).
+    Zwei Entscheidungen, beide mit Grund:
 
-    Geliefert werden NUR die MISSLUNGENEN Versuche: die geglueckten sind die Laeufe, die zeichnet
-    die Karte ohnehin schon. Ein Versuch gilt als geglueckt, wenn er sich mit einem erkannten Lauf
-    ueberschneidet. Die Indizes liegen im selben getrimmten Raum wie `track_geojson` und die
-    Segmente — der Client kann sie direkt auf seine `coords` anwenden.
+    1. **Ueber die GANZE Aufnahme, ohne den Zuschnitt.** `maybe_auto_trim` schneidet jede Session
+       automatisch auf „erster Lauf minus 15 s" — und genau davor liegen die Fehlversuche, bis der
+       erste Start sass. Wer 20-mal anschiebt und beim 21. steht, saehe sonst genau die 20 nicht
+       (Jans Befund 02.09.). Ueber 40 Sessions gemessen: +7 % Versuche, im Extremfall 1 -> 5.
+       AUSSORTIERTE Bereiche (`excluded_ranges`) bleiben dagegen draussen — die hat der Nutzer
+       ausdruecklich als „nicht ich"/„nicht Pumpfoil" markiert (Autofahrt, geschlepptes Board).
+    2. **Koordinaten statt Indizes.** Vorher schickte der Endpunkt Index-Bereiche in den
+       getrimmten Track. Das war doppelt zerbrechlich: ausserhalb des Zuschnitts gibt es diese
+       Indizes gar nicht, und bei aussortierten Bereichen ruecken sie auf (belegt an #3157: die
+       Linien lagen verschoben). Mit fertigen Punkten ist die Karte von der Index-Rechnung
+       unabhaengig.
+
+    Geliefert werden nur die MISSLUNGENEN Versuche — die geglueckten sind die Laeufe und liegen
+    ohnehin auf der Karte. `outside_trim` sagt, ob der Versuch ausserhalb des ausgewerteten
+    Bereichs liegt (also in keiner Statistik der Session auftaucht).
     """
     s = _readable(db, session_id)
     leer: dict = {"attempts": []}
     gps = storage.load_gps(s.session_uuid)
-    if not gps:
+    if len(gps) < 3:
         return leer
-    lo = s.trim_start_ms if s.trim_start_ms is not None else gps[0][0]
-    hi = s.trim_end_ms if s.trim_end_ms is not None else gps[-1][0]
-    # Auf 0 rebasen wie die Pipeline, damit die Indizes zu track_geojson passen.
-    getrimmt = [[r[0] - lo] + list(r[1:]) for r in gps if lo <= r[0] <= hi]
-    if len(getrimmt) < 3:
-        return leer
+    from ..analysis import excluded_windows
     from ..analysis.gps import SENSITIVITY_PRESETS, analyze_gps
 
+    # Session-ms bleiben Session-ms: hier wird NICHT auf den Zuschnitt re-based (s. Docstring).
+    punkte = [list(r) for r in gps]
+    for a, b in excluded_windows(s):
+        punkte = [r for r in punkte if not (a <= r[0] <= b)]
+    if len(punkte) < 3:
+        return leer
     try:
-        res = analyze_gps(getrimmt, gps_hz=s.gps_hz or 1, **(SENSITIVITY_PRESETS.get("attempts") or {}))
+        res = analyze_gps(punkte, gps_hz=s.gps_hz or 1, **(SENSITIVITY_PRESETS.get("attempts") or {}))
     except Exception:
         return leer
+
+    # Laeufe in SESSION-ms: die gespeicherten Segmente sind auf den Trim re-based
+    # (docs/DATA-PIPELINE.md) -> Trim-Offset wieder draufrechnen.
+    off = int(s.trim_start_ms or 0)
     try:
         segmente = json.loads(s.result.segments_json) if s.result and s.result.segments_json else []
     except (ValueError, AttributeError):
         segmente = []
-    laeufe = [(int(sg["i_start"]), int(sg["i_end"])) for sg in segmente
-              if sg.get("i_start") is not None and sg.get("i_end") is not None]
-
-    def gehoert_zu_lauf(a: int, b: int) -> bool:
-        return any(a <= r1 and b >= r0 for r0, r1 in laeufe)
+    laeufe = [(int(g.get("t_start_session_ms", int(g["t_start_ms"]) + off)),
+               int(g.get("t_end_session_ms", int(g["t_end_ms"]) + off)))
+              for g in segmente if g.get("t_start_ms") is not None and g.get("t_end_ms") is not None]
+    lo = int(s.trim_start_ms) if s.trim_start_ms is not None else None
+    hi = int(s.trim_end_ms) if s.trim_end_ms is not None else None
 
     aus = []
     for sg in (res.get("segments") or []):
         a, b = int(sg["i_start"]), int(sg["i_end"])
-        if gehoert_zu_lauf(a, b):
+        t0, t1 = int(punkte[a][0]), int(punkte[b][0])
+        if any(t0 <= r1 and t1 >= r0 for r0, r1 in laeufe):
+            continue                      # geglueckt -> das ist ein Lauf, den zeichnet die Karte
+        linie = [[float(r[1]), float(r[2])] for r in punkte[a:b + 1]
+                 if r[1] is not None and r[2] is not None]
+        if len(linie) < 2:
             continue
         aus.append({
-            "i_start": a, "i_end": b,
-            "t_start_ms": int(sg.get("t_start_ms") or 0),
-            "distance_m": round(float(sg.get("distance_m") or 0.0), 1),
+            "points": linie,
+            "t_start_ms": t0,
             "duration_s": float(sg.get("duration_s") or 0.0),
+            "distance_m": round(float(sg.get("distance_m") or 0.0), 1),
             "avg_speed_mps": round(float(sg.get("avg_speed_mps") or 0.0), 2),
+            "outside_trim": bool((lo is not None and t1 < lo) or (hi is not None and t0 > hi)),
         })
     return {"attempts": aus}
 

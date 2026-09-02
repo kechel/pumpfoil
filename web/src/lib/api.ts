@@ -981,7 +981,7 @@ export const api = {
   // Startversuche als Index-Bereiche fuer die Karte (nur die MISSLUNGENEN — die geglueckten sind
   // die Laeufe). Wird serverseitig frisch gerechnet, deshalb erst beim Einschalten des Schalters.
   sessionAttempts: (id: number) =>
-    req<{ attempts: { i_start: number; i_end: number; t_start_ms: number; distance_m: number; duration_s: number; avg_speed_mps: number }[] }>(
+    req<{ attempts: { points: [number, number][]; t_start_ms: number; distance_m: number; duration_s: number; avg_speed_mps: number; outside_trim: boolean }[] }>(
       `/api/sessions/${id}/attempts`),
   sessionCarves: (id: number) =>
     req<CarveData>(`/api/sessions/${id}/carves`),
