@@ -114,6 +114,10 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
     val band = bands.firstOrNull { it.key == bandKey }
     var lbMetric by remember { mutableStateOf("sessions") }
     val scope = rememberCoroutineScope()
+    // Der Social-Feed haelt seinen Zustand eine Schicht hoeher als seine Sektion: der Player ist
+    // eine Vollbild-Ebene und wuerde als Teil eines LazyColumn-Eintrags abgeschnitten
+    // (s. SocialFeedZustand in SocialFeed.kt).
+    val feed = rememberSocialFeed()
 
     // Basis (accel-abhängig): Rekorde je Zeitraum, Spots (Liste immer vollständig), Stats, Medien.
     suspend fun loadBase() {
@@ -253,7 +257,7 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                         // Community-Social-Feed — bewusst UEBER "Neueste Medien" (Jan, 31.08.,
                         // dieselbe Reihenfolge wie in der PWA). Laedt sich selbst; ist nichts
                         // freigegeben oder der Nutzer unter 13, zeichnet er gar nichts.
-                        item { SocialFeedSection(Modifier.padding(top = 8.dp)) }
+                        item { SocialFeedSection(feed, Modifier.padding(top = 8.dp)) }
 
                         // Neueste Medien (Fotos + YouTube), Tippen -> Session.
                         if (media.isNotEmpty()) {
@@ -365,6 +369,9 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                     }
                 }
             }
+            // Vollbild-Player des Social-Feeds: ZULETZT gezeichnet, also UEBER dem
+            // Seiteninhalt — und im Hauptfenster, nicht in einem Dialogfenster.
+            SocialPlayerOverlay(feed)
         }
     }
 }

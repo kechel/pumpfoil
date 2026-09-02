@@ -6,6 +6,11 @@ venv/
 *.egg-info/
 .pytest_cache/
 .env
+# Auch JEDE Variante davon: am 02.09. legte ein `cp .env .env.bak.<stamp>` das Backup IM Repo an,
+# `git add -A` nahm es mit, und erst GitHubs Push-Schutz hat den Commit gestoppt. Backups von
+# Zugangsdaten gehoeren ausserhalb des Repos (Scratchpad, /opt/foil/backups), nie hierher.
+.env.*
+*/.env.*
 
 # Secrets — Apple „Sign in with Apple"-Key (.p8) niemals committen
 *.p8
