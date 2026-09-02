@@ -426,17 +426,19 @@ fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, onClick: () -> 
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
                     Text(dateTimeRange(s.startedAt, s.endedAt, s.tz), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    // Titel der Session direkt UNTER dem Datum und fett (Jan, 02.09.): vorher
+                    // stand er klein und blass unter den Chips und ging dort unter.
+                    s.caption?.takeIf { it.isNotBlank() }?.let {
+                        Text(it, style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary,
+                            maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
                     if (inCompare) Text("⇄ ${I18n.t("compare.title")}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                     val foilLabel = s.foil?.let { foilLabel(it.brand, it.model, it.size, it.aspectRatio) }?.takeIf { it.isNotBlank() }
                     // Sportart bekommt hier KEINEN Chip: eigene Sessions tragen das schon im
                     // Klassifikations-Badge in der Fußzeile (samt Datenqualität) — sonst doppelt.
                     SessionChips(sportClass = null, spot = s.placeName, foil = foilLabel,
                         setup = s.setup, deviceLabel = s.deviceLabel)
-                    s.caption?.takeIf { it.isNotBlank() }?.let {
-                        Text(it, style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 3.dp))
-                    }
                 }
                 // Track-Vorschau bleibt rechts im Kopf.
                 s.trackPreview?.let { tp ->
@@ -756,14 +758,14 @@ fun CommunityItemRow(c: CommunityItem, modifier: Modifier = Modifier, onClick: (
                         Text(dateTimeRange(c.startedAt, c.endedAt, c.tz), style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
+                    c.caption?.takeIf { it.isNotBlank() }?.let {
+                        Text(it, style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary,
+                            maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
                     val cFoil = c.foil?.let { foilLabel(it.brand, it.model, it.size, it.aspectRatio) }?.takeIf { it.isNotBlank() }
                     SessionChips(sportClass = c.sportClass, spot = c.spot, foil = cFoil,
                         setup = c.setup, deviceLabel = c.deviceLabel)
-                    c.caption?.takeIf { it.isNotBlank() }?.let {
-                        Text(it, style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 3.dp))
-                    }
                 }
                 Spacer(Modifier.width(8.dp))
                 c.trackPreview?.let { tp ->

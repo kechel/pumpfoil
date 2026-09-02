@@ -414,8 +414,8 @@ struct SessionRow: View {
         VStack(alignment: .leading, spacing: 3) {
             Text(headline).font(.footnote).fontWeight(.semibold)
                 .lineLimit(1).minimumScaleFactor(0.75)
-            chipRow
             captionLine
+            chipRow
         }
     }
 
@@ -430,7 +430,9 @@ struct SessionRow: View {
 
     @ViewBuilder private var captionLine: some View {
         if !showOwner, let cap = session.caption, !cap.isEmpty {
-            Text(cap).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
+            // Titel direkt unter dem Datum und fett (Jan, 02.09.) — unter den Chips ging er unter.
+            Text(cap).font(.subheadline).fontWeight(.semibold)
+                .foregroundStyle(Color.accentColor).lineLimit(1)
         }
     }
 
