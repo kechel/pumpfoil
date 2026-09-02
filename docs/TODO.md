@@ -619,6 +619,20 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **✅ 02.09. — iOS/Apple Watch 1.1.28 ist LIVE, Nummern gezogen.** Freigabe-Mail + an der
+  Produktseite gegengeprueft (`apps.apple.com/de/app/pumpfoil/id6783975714` zeigt „Version
+  1.1.28"). `appmeta.ios` UND `appmeta.apple` stehen auf 1.1.28, Server neu gestartet,
+  `/api/app/latest?platform=ios` liefert es. Changelog-Eintrag ist drin und die PWA neu gebaut.
+  **Fuer die naechste Einreichung schon gestellt:** `watch-apple/project.yml` auf
+  **1.1.29 (33)**, beide Ziele zusammen (iPhone + Watch teilen die MARKETING_VERSION).
+  **Was in 1.1.29 drin sein wird und in 1.1.28 fehlt:** der Error-153-Fix am Feed-Player (in
+  1.1.28 bleibt das Video schwarz, Ton laeuft — steht auch so im Changelog, damit niemand ratlos
+  davorsitzt), der verschobene Klick auf die Vorschaubilder (`contentShape`), Wischen zum
+  Wechseln, und die neue HTML-Struktur des Players.
+  **Android wartet unveraendert:** Phone **1.1.25 (39)**, Wear **1.2.25 (1035)** — noch nichts
+  hochgeladen, die Nummern sind also richtig, wie sie sind. Alles von heute ist drin (R8, Bitmap,
+  Feed-Player, Spots-ANR, Verlaufsseite).
+
 - **📌 02.09. — MERKE: YouTube-Embeds spielen auf der VM NICHT, egal was wir bauen.** Im
   Android-Emulator hier zeigt der Player „Sign in to confirm you're not a bot" — die VM haengt an
   einer Rechenzentrums-IP, und YouTube verlangt dort eine Anmeldung. Aufgefallen erst am Abend des

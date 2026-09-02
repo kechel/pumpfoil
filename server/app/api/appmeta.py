@@ -48,9 +48,12 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.27",   # LIVE im App Store 2026-08-31, GEGENGEPRUEFT an der STORE-SEITE
-        # (apps.apple.com/de/... und /us/... zeigen beide "Version 1.1.27"). Freigabe-Mail
-        # "ready for distribution" am 31.08. um ~19 Uhr Berlin.
+        "latest": "1.1.28",   # LIVE im App Store 2026-09-02, GEGENGEPRUEFT an der STORE-SEITE
+        # (apps.apple.com/de/app/…/id6783975714 zeigt "Version 1.1.28"). Freigabe-Mail
+        # "eligible for distribution" am 02.09. gegen 16 Uhr Berlin, eingereicht 01.09. 22:24.
+        # Inhalt siehe docs/TODO.md (12 Aenderungen seit 1.1.27).
+        # NICHT drin: der Error-153-Fix am Feed-Player vom 02.09. — der faehrt in 1.1.29 mit.
+        # Vorher 1.1.27, live seit 31.08.
         #
         # ⚠️ WICHTIG FUER DAS NAECHSTE MAL — `itunes.apple.com/lookup` taugt fuer eine FRISCHE
         # Freigabe NICHT: die API ist stark gecacht. Nach der Mail lieferte sie 50 Minuten lang
@@ -132,7 +135,7 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.27",   # LIVE im App Store 2026-08-31 — dieselbe Einreichung wie "ios",
+        "latest": "1.1.28",   # LIVE im App Store 2026-09-02 — dieselbe Einreichung wie "ios",
         # die Watch-App steckt ja im selben Bundle. NICHT auf die Freigabe-Mail allein verlassen
         # ("ready for distribution" heisst freigegeben, nicht zwingend schon ausgeliefert):
         # gegengeprueft an der STORE-SEITE (apps.apple.com/de + /us zeigen "Version 1.1.27").
