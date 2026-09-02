@@ -619,6 +619,27 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟡 02.09. — Wear-App stirbt beim Druck auf START (Jans Emulator-Test). Ablauf entkoppelt;
+  die URSACHE des Prozess-Todes ist noch NICHT bewiesen.**
+  - **Was das Log zeigt** (drei Mitschnitte, auch nach einem Data-Wipe): kein `FATAL EXCEPTION`,
+    kein Tombstone im normalen Puffer — der Prozess endet einfach. Und zwar **genau wenn der
+    Puls-Berechtigungsdialog aufgeht**: `com.android.permissioncontroller` rendert, zwei
+    `WindowManager startWCT`, dann `PROCESS ENDED`. Daneben GMS mit
+    `Binder transaction failure … error: -28` und „Too many transaction errors, throttling
+    freezer" — das System ist am Anschlag. Host-Platte ist NICHT voll (88 GB frei auf `/`,
+    5,9 GB in `/tmp`, geprueft).
+  - **Was ich unabhaengig davon behoben habe (mein Konstruktionsfehler von 04./05.08.):** der
+    Start hing an einer OPTIONALEN Berechtigung. Ablauf war: Start -> Puls-Dialog -> im Callback
+    aufnehmen, mit dem Merker `startNachHrFrage` **nur im Speicher**. Stirbt der Prozess, waehrend
+    der Dialog oben ist, ist der Startwunsch weg — ein Druck auf Start tut dann gar nichts.
+    Jetzt: **Standort da -> sofort aufnehmen**, die Puls-Frage kommt DANACH, und wird sie erteilt,
+    haengt der Dienst den Puls ueber `RecorderService.enableHeartRate` an die laufende Aufnahme.
+    Der Standort bleibt Startkriterium (ohne Position ist die Aufnahme wertlos).
+  - **🔲 OFFEN:** `adb logcat -b crash -d` von Jans Emulator, um den Prozess-Tod selbst zu klaeren.
+    Verdacht: der Wear-Emulator ist zu klein (GMS-Binder-Fehler, Freezer-Throttling) und der
+    Low-Memory-Killer holt uns, waehrend der Dialog im Vordergrund ist. Auf echter Uhr also
+    vermutlich nie gesehen — die Entkopplung oben macht die App aber in JEDEM Fall robuster.
+
 - **🔴→✅ 02.09. — „Meine Daten exportieren" hat die Android-App ABGESTUERZT (Jans Test).**
   `java.lang.OutOfMemoryError: Failed to allocate a 134250504 byte allocation` in
   `Api.http` -> `readText()`.
