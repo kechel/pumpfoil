@@ -619,6 +619,36 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔴→✅ 02.09. — ECHTER Fehler, um Haaresbreite ausgeliefert: die Wear-App stirbt beim
+  Aufnahmestart auf Android 15/16.** Gefunden in Jans Emulator-Test, NACHDEM der
+  Sensor-HAL-Absturz (s. Eintrag darueber) aus dem Weg war und der Crash-Puffer den zweiten,
+  eigentlichen Fehler zeigte:
+  ```
+  SecurityException: Starting FGS with type health … targetSDK=36 requires
+    allOf=true  [FOREGROUND_SERVICE_HEALTH]                      <- haben wir
+    anyOf=false [ACTIVITY_RECOGNITION, HIGH_SAMPLING_RATE_SENSORS,
+                 health.READ_HEART_RATE, health.READ_SKIN_TEMPERATURE, …]  <- hatten wir KEINE
+  ```
+  - **Ursache:** unser Dienst ist `foregroundServiceType="location|health"`. Fuer `health` verlangt
+    Android 15/16 eine der oben genannten Berechtigungen — **`BODY_SENSORS` zaehlt dort NICHT
+    mehr** (abgekuendigt, ersetzt durch `health.READ_HEART_RATE`). Scharf wurde das erst durch
+    unseren Wechsel auf **targetSdk 36 am 30.08.** (Play-Stichtag).
+  - **🍀 Beinahe im Store:** die LIVE stehende Wear **1.2.24 wurde am 26.08. eingereicht, also noch
+    mit targetSdk 35** — sie ist NICHT betroffen. Die fertige **1.2.25 haette auf jeder Uhr mit
+    Android 15/16 beim Druck auf START abgestuerzt.** Nur weil Jan im Emulator getestet hat, ist es
+    aufgefallen — ein Feldtest auf seiner eigenen (aelteren) Uhr haette es NICHT gezeigt.
+  - **Fix, drei Teile:**
+    1. `health.READ_HEART_RATE` im Manifest ergaenzt (BODY_SENSORS bleibt fuer alte Uhren).
+    2. `RecorderService.starteVordergrund()`: meldet `health` nur an, wenn die Puls-Berechtigung
+       wirklich erteilt ist — und faengt die SecurityException ab, um dann mit `location` allein
+       weiterzulaufen. **Eine Aufnahme ohne Puls ist brauchbar, eine abgestuerzte App nicht.**
+    3. `pulsRecht()` als EINE Wahrheit: unter Android 15 `BODY_SENSORS`, ab 15
+       `health.READ_HEART_RATE` — fuer Abfrage, Pruefung und Hinweis.
+  - **Handy-App nicht betroffen:** deren Dienst ist nur `location`.
+  - **🔲 Fuer Jan beim Einreichen:** Play kann beim Deklarieren von `health.READ_HEART_RATE` nach
+    dem Umgang mit Gesundheitsdaten fragen (Formular). Falls ja: wir lesen den Puls nur waehrend
+    der Aufnahme, speichern ihn in der Session und geben ihn an niemanden weiter.
+
 - **🟡 02.09. — Wear-App stirbt beim Druck auf START (Jans Emulator-Test). Ablauf entkoppelt;
   die URSACHE des Prozess-Todes ist noch NICHT bewiesen.**
   - **Was das Log zeigt** (drei Mitschnitte, auch nach einem Data-Wipe): kein `FATAL EXCEPTION`,

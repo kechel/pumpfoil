@@ -6,7 +6,14 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- Puls: BODY_SENSORS war bis Android 14 die Berechtigung; ab 15/16 verlangt das System
+         `health.READ_HEART_RATE` — und zwar AUCH als Voraussetzung fuer einen Vordergrund-Dienst
+         vom Typ `health` (s. RecorderService.fgsTyp). Ohne sie wirft `startForeground` eine
+         SecurityException und die App stirbt beim Aufnahmestart. Belegt am 02.09. im Wear-Emulator
+         (Android 16) nach dem Wechsel auf targetSdk 36. Beide deklariert, damit alte UND neue
+         Uhren bedient sind. -->
     <uses-permission android:name="android.permission.BODY_SENSORS" />
+    <uses-permission android:name="android.permission.health.READ_HEART_RATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
