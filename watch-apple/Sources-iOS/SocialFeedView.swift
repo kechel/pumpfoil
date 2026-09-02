@@ -150,6 +150,20 @@ struct SocialPlayerView: View {
             VStack(spacing: 8) {
                 YoutubePlayer(videoId: item.external_id)
                     .padding(.horizontal, 44)
+                    // Wischen wechselt das Video (Jan, 02.09.) — die Pfeile bleiben.
+                    // `minimumDistance` haelt das Ziehen vom Antippen getrennt, damit die
+                    // Bedienelemente des Players (Pause, Fortschrittsleiste) erreichbar bleiben,
+                    // und die senkrechte Strecke muss kleiner sein als die waagerechte, sonst
+                    // loest jedes schraege Ziehen einen Wechsel aus.
+                    .gesture(
+                        DragGesture(minimumDistance: 24)
+                            .onEnded { g in
+                                let dx = g.translation.width
+                                let dy = g.translation.height
+                                guard abs(dx) > 56, abs(dx) > abs(dy) else { return }
+                                if dx < 0 { if hatWeiter { onWeiter() } } else if hatZurueck { onZurueck() }
+                            }
+                    )
                 fusszeile
             }
             .padding(.vertical, 8)

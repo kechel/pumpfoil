@@ -58,6 +58,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
+import kotlin.math.abs
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 
@@ -224,7 +231,43 @@ internal fun SocialPlayerOverlay(z: SocialFeedZustand) {
     run {
         Box(Modifier.fillMaxSize().background(Color.Black)) {
             Column(Modifier.fillMaxSize().padding(top = 44.dp, bottom = 8.dp)) {
-                Box(Modifier.fillMaxWidth().weight(1f).padding(horizontal = 52.dp)) {
+                Box(
+                    Modifier.fillMaxWidth().weight(1f).padding(horizontal = 52.dp)
+                        // Wischen wechselt das Video (Jan, 02.09.). Die Pfeile bleiben, aber
+                        // wischen ist die Bewegung, die man von jedem Video-Strom kennt.
+                        //
+                        // Warum so umstaendlich und nicht `detectHorizontalDragGestures`: unter
+                        // dieser Flaeche liegt ein WebView, und der verschluckt Berührungen im
+                        // normalen Durchlauf. Deshalb hoeren wir im `Initial`-Durchlauf mit — da
+                        // ist das Elternteil vor dem Kind dran — und verbrauchen die Berührung
+                        // ERST, wenn die waagerechte Strecke die Schwelle reisst und ueberwiegt.
+                        // Ein Tipp oder ein senkrechtes Wischen kommt dadurch unveraendert beim
+                        // Player an (Pause, Fortschrittsleiste, Vollbild bleiben bedienbar).
+                        .pointerInput(idx, hatZurueck, hatWeiter) {
+                            val schwelle = 56.dp.toPx()
+                            awaitEachGesture {
+                                val down = awaitFirstDown(
+                                    requireUnconsumed = false,
+                                    pass = PointerEventPass.Initial,
+                                )
+                                var dx = 0f
+                                var dy = 0f
+                                var gefeuert = false
+                                while (true) {
+                                    val ev = awaitPointerEvent(PointerEventPass.Initial)
+                                    val ch = ev.changes.firstOrNull { it.id == down.id } ?: break
+                                    dx += ch.positionChange().x
+                                    dy += ch.positionChange().y
+                                    if (!gefeuert && abs(dx) > schwelle && abs(dx) > abs(dy)) {
+                                        gefeuert = true
+                                        if (dx < 0f) { if (hatWeiter) onWeiter() } else { if (hatZurueck) onZurueck() }
+                                    }
+                                    if (gefeuert) ch.consume()
+                                    if (ch.changedToUpIgnoreConsumed()) break
+                                }
+                            }
+                        }
+                ) {
                     YoutubePlayer(item.externalId, Modifier.fillMaxSize())
                 }
                 Row(
