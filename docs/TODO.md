@@ -619,6 +619,28 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **✅ 02.09. — Admin-Tab „System" + Push bei Warnungen.** Jans Wunsch, nachdem `/tmp` unbemerkt
+  auf 86 % gelaufen war. Server: `api/health.py` (CPU-Stichprobe, Last je Kern, Speicher/Swap,
+  alle Dateisysteme, groesste Prozesse nach CPU und RSS, Dienste, die vier Zeitgeber, Units im
+  Fehlerzustand, Postgres samt Verbindungen/laengster Abfrage/groesster Tabellen, Alter+Umfang des
+  Backups inkl. GPG-Umschlag, OOM-Kills 24 h). Bewertung serverseitig als `warnungen`.
+  **Push:** `foil-health.timer` (alle 5 Minuten, `deploy/foil-health.*`, installiert und aktiv)
+  ruft `scripts/health-watch.py`. Buchfuehrung in `health_alerts` je PROBLEM-Schluessel
+  (`platte:/tmp`, `speicher`, `last`, `backup:alter`, `pg:verbindungen`, `unit:<name>`, `oom`):
+  Meldung beim ersten Auftreten, dann fruehestens nach 6 h erneut, bei Verschaerfung sofort, und
+  EINE Entwarnung beim Verschwinden. Ende-zu-Ende belegt: 2 Warnungen -> 2 Zustellungen,
+  Wiederholung sofort danach 0, Entwarnung 2, Buchfuehrung danach leer.
+  Nebeneffekt: der Zeitgeber schreibt die Messpunkte, damit sind die Verlaufslinien echt.
+
+- **🔴→✅ 02.09. — Dabei einen ECHTEN latenten Fehler gefunden: die vier uvicorn-Worker legen beim
+  Start gleichzeitig die Tabellen an.** Solange sich am Schema nichts aendert, faellt das nie auf.
+  Mit der neuen Tabelle `health_alerts` rannten sie ins Messer („duplicate key value … Key
+  (typname, typnamespace)=(health_alerts, 2200) already exists"): **zwei Worker starben beim
+  Start**, der Dienst lief danach mit 2 statt 4 Arbeitern weiter — und antwortete normal, der
+  Ausfall stand nur im Journal. `init_db()` nimmt jetzt eine Postgres-Beratungssperre
+  (`pg_advisory_lock`), die Worker serialisieren sich also. Danach geprueft: 0 Tracebacks beim
+  Start, alle vier Worker leben. **Merke: jede kuenftige neue Tabelle haette dasselbe ausgeloest.**
+
 - **✅ 02.09. — Nachgerechnet: durch die blockierten Suunto-Aufrufe ist NICHTS verloren.** Jans
   Frage zum Bericht („da waren doch ein paar blockierte, koennen wir nachtraeglich was holen? welche
   User waren betroffen?"). Rein lesend geprueft, in dieser Reihenfolge:

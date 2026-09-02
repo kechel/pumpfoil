@@ -1190,3 +1190,22 @@ class SystemSample(Base):
     platte_root_prozent: Mapped[float | None] = mapped_column(Float)
     platte_tmp_prozent: Mapped[float | None] = mapped_column(Float)
 
+
+class HealthAlert(Base):
+    """Buchfuehrung ueber gemeldete System-Warnungen — damit Push nicht zur Plage wird.
+
+    Eine Zeile je PROBLEM (`schluessel`, z. B. `platte:/tmp`), nicht je Wortlaut: „91 % voll" und
+    „93 % voll" sind dasselbe Problem. Gemeldet wird beim ersten Auftreten, danach fruehestens
+    nach `WIEDERHOLUNG_H` erneut, und einmal beim Verschwinden („wieder im Rahmen"). Verschwindet
+    das Problem, verschwindet die Zeile.
+    """
+
+    __tablename__ = "health_alerts"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    schluessel: Mapped[str] = mapped_column(String(80), unique=True, index=True)
+    stufe: Mapped[str] = mapped_column(String(8))
+    text: Mapped[str] = mapped_column(String(300))
+    seit: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    letzte_meldung: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+

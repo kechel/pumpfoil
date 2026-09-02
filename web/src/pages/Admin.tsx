@@ -598,9 +598,12 @@ function SystemTab() {
       </div>
 
       <p className="text-sm text-slate-400">
-        Messpunkte werden höchstens einmal pro Minute gespeichert und 14 Tage behalten — die
-        Verlaufslinien zeigen also nur Zeiträume, in denen dieser Bildschirm offen war.
-        Prozesse erscheinen bewusst nur mit Namen, nicht mit Befehlszeile.
+        Ein Zeitgeber (<span className="font-mono">foil-health.timer</span>) prüft dasselbe alle
+        5 Minuten und schickt bei Warnungen eine Push-Nachricht an die Admins — beim ersten
+        Auftreten, danach höchstens alle 6 Stunden erneut, und einmal Entwarnung, wenn es wieder
+        im Rahmen ist. Messpunkte werden 14 Tage behalten, die Verlaufslinien decken also auch
+        Zeiten ab, in denen niemand hinschaut. Prozesse erscheinen bewusst nur mit Namen, nicht
+        mit Befehlszeile.
       </p>
     </div>
   );

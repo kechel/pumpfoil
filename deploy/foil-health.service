@@ -1,0 +1,16 @@
+[Unit]
+Description=pumpfoil.org Systemzustand pruefen und bei Warnungen die Admins per Push melden
+After=postgresql.service network.target
+
+# Pfade wie die live laufenden Units auf dieser VM (User=jan, /home/jan/garmin-connect-iq).
+# Bei Server-Umzug hier + in allen foil-*.service Pfade/User anpassen — siehe deploy/README.md.
+#
+# Warum ueberhaupt ein Zeitgeber: der Admin-Bildschirm misst nur, wenn jemand hinschaut. Genau
+# dann ist eine Warnung aber wertlos. Der Lauf schreibt ausserdem je Aufruf einen Messpunkt,
+# wodurch die Verlaufslinien im Bildschirm echte 14 Tage abdecken.
+[Service]
+Type=oneshot
+User=jan
+EnvironmentFile=-/home/jan/garmin-connect-iq/server/.env
+WorkingDirectory=/home/jan/garmin-connect-iq/server
+ExecStart=/home/jan/garmin-connect-iq/server/.venv/bin/python /home/jan/garmin-connect-iq/scripts/health-watch.py --still

@@ -309,54 +309,112 @@ def _warnungen(cpu: float | None, sp: dict, platten: list[dict], last: list[floa
     """Die Bewertung — damit oben steht, was JETZT wichtig ist, statt in Karten zu suchen."""
     w: list[dict] = []
 
-    def add(stufe: str, text_: str) -> None:
-        w.append({"stufe": stufe, "text": text_})
+    def add(stufe: str, schluessel: str, text_: str) -> None:
+        # Der Schluessel identifiziert das PROBLEM, nicht den Wortlaut: „/tmp zu 91 % voll" und
+        # „/tmp zu 93 % voll" sind dasselbe Problem und duerfen nicht zweimal melden.
+        w.append({"stufe": stufe, "schluessel": schluessel, "text": text_})
 
     for p in platten:
         pr = p["prozent"] or 0
         frei_gb = p["frei"] / 1024**3
         if pr >= PLATTE_ROT:
-            add("rot", f"{p['pfad']} ist zu {pr:.0f} % voll (nur {frei_gb:.1f} GB frei)")
+            add("rot", f"platte:{p['pfad']}", f"{p['pfad']} ist zu {pr:.0f} % voll (nur {frei_gb:.1f} GB frei)")
         elif pr >= PLATTE_GELB:
-            add("gelb", f"{p['pfad']} ist zu {pr:.0f} % voll ({frei_gb:.1f} GB frei)")
+            add("gelb", f"platte:{p['pfad']}", f"{p['pfad']} ist zu {pr:.0f} % voll ({frei_gb:.1f} GB frei)")
     if sp.get("prozent") is not None:
         if sp["prozent"] >= SPEICHER_ROT:
-            add("rot", f"Arbeitsspeicher zu {sp['prozent']:.0f} % belegt")
+            add("rot", "speicher", f"Arbeitsspeicher zu {sp['prozent']:.0f} % belegt")
         elif sp["prozent"] >= SPEICHER_GELB:
-            add("gelb", f"Arbeitsspeicher zu {sp['prozent']:.0f} % belegt")
+            add("gelb", "speicher", f"Arbeitsspeicher zu {sp['prozent']:.0f} % belegt")
     if sp.get("swap_prozent") and sp["swap_prozent"] >= 50:
-        add("gelb", f"Swap zu {sp['swap_prozent']:.0f} % benutzt — das System weicht auf Platte aus")
+        add("gelb", "swap", f"Swap zu {sp['swap_prozent']:.0f} % benutzt — das System weicht auf Platte aus")
     if last and kerne:
         je_kern = last[0] / kerne
         if je_kern >= LAST_JE_KERN_ROT:
-            add("rot", f"Lastmittel {last[0]:.1f} bei {kerne} Kernen ({je_kern:.1f} je Kern)")
+            add("rot", "last", f"Lastmittel {last[0]:.1f} bei {kerne} Kernen ({je_kern:.1f} je Kern)")
         elif je_kern >= LAST_JE_KERN_GELB:
-            add("gelb", f"Lastmittel {last[0]:.1f} bei {kerne} Kernen ({je_kern:.1f} je Kern)")
+            add("gelb", "last", f"Lastmittel {last[0]:.1f} bei {kerne} Kernen ({je_kern:.1f} je Kern)")
     if backup.get("alter_h") is not None:
         if backup["alter_h"] >= BACKUP_ROT_H:
-            add("rot", f"Letztes Backup ist {backup['alter_h']:.0f} h alt")
+            add("rot", "backup:alter", f"Letztes Backup ist {backup['alter_h']:.0f} h alt")
         elif backup["alter_h"] >= BACKUP_GELB_H:
-            add("gelb", f"Letztes Backup ist {backup['alter_h']:.0f} h alt")
+            add("gelb", "backup:alter", f"Letztes Backup ist {backup['alter_h']:.0f} h alt")
     if backup.get("secrets_da") is False:
-        add("gelb", "Im Backup fehlt der verschlüsselte Umschlag mit den Zugangsdaten")
+        add("gelb", "backup:secrets", "Im Backup fehlt der verschlüsselte Umschlag mit den Zugangsdaten")
     if pg.get("verbindungen") and pg.get("max_verbindungen"):
         anteil = pg["verbindungen"] / pg["max_verbindungen"] * 100
         if anteil >= 80:
-            add("rot", f"Postgres: {pg['verbindungen']} von {pg['max_verbindungen']} Verbindungen belegt")
+            add("rot", "pg:verbindungen", f"Postgres: {pg['verbindungen']} von {pg['max_verbindungen']} Verbindungen belegt")
         elif anteil >= 60:
-            add("gelb", f"Postgres: {pg['verbindungen']} von {pg['max_verbindungen']} Verbindungen belegt")
+            add("gelb", "pg:verbindungen", f"Postgres: {pg['verbindungen']} von {pg['max_verbindungen']} Verbindungen belegt")
     if pg.get("laengste_abfrage_s", 0) >= 60:
-        add("gelb", f"Eine Postgres-Abfrage läuft seit {pg['laengste_abfrage_s']} s")
+        add("gelb", "pg:abfrage", f"Eine Postgres-Abfrage läuft seit {pg['laengste_abfrage_s']} s")
     for u in fehler:
-        add("rot", f"Dienst im Fehlerzustand: {u}")
+        add("rot", f"unit:{u}", f"Dienst im Fehlerzustand: {u}")
     if oom:
-        add("rot", f"systemd-oomd hat in 24 h {oom} Prozess(e) beendet — Speicher war knapp")
+        add("rot", "oom", f"systemd-oomd hat in 24 h {oom} Prozess(e) beendet — Speicher war knapp")
     return w
 
 
-@router.get("")
-def system_health(_a: models.User = Depends(current_admin), db: Session = Depends(get_db)) -> dict:
-    """Momentaufnahme + Verlauf. Alles lesend; die einzige Schreibaktion ist die Stichprobe."""
+# Wie lange ein bestehendes Problem schweigt, bevor es erneut meldet. Sechs Stunden, weil eine
+# volle Platte nicht alle fuenf Minuten mitgeteilt werden muss, ein ueber Nacht gewachsenes
+# Problem aber am Morgen wieder auf dem Schirm sein soll.
+WIEDERHOLUNG_H = 6.0
+
+
+def melde(db: Session, warnungen: list[dict]) -> int:
+    """Neue/anhaltende Warnungen als Push an die Admins, und einmal Entwarnung beim Verschwinden.
+
+    Bewusst NICHT an `push.wants()` gebunden: das sind Betriebsmeldungen an Admins, und einen
+    passenden Schalter gibt es in der Oberflaeche nicht — er wuerde hier stumm mitschalten.
+
+    Rueckgabe: Anzahl verschickter Meldungen (fuer das Log des Zeitgebers).
+    """
+    from ..push import send_push   # spaet importiert: der Bildschirm soll ohne Push funktionieren
+
+    jetzt = datetime.now(timezone.utc)
+    admins = [u.id for u in db.query(models.User).filter(models.User.is_admin.is_(True)).all()]
+    if not admins:
+        return 0
+    aktuell = {w["schluessel"]: w for w in warnungen if w.get("schluessel")}
+    bekannt = {a.schluessel: a for a in db.query(models.HealthAlert).all()}
+    geschickt = 0
+
+    def push(titel: str, text_: str) -> None:
+        nonlocal geschickt
+        for uid in admins:
+            geschickt += send_push(db, uid, titel, text_, "/admin?tab=system")
+
+    for sch, w in aktuell.items():
+        a = bekannt.get(sch)
+        symbol = "🔴" if w["stufe"] == "rot" else "🟠"
+        if a is None:
+            db.add(models.HealthAlert(schluessel=sch, stufe=w["stufe"], text=w["text"][:300],
+                                      seit=jetzt, letzte_meldung=jetzt))
+            push(f"{symbol} Pumpfoil-Server", w["text"])
+        else:
+            verschaerft = a.stufe != "rot" and w["stufe"] == "rot"
+            alt_genug = (a.letzte_meldung is None
+                         or (jetzt - a.letzte_meldung).total_seconds() >= WIEDERHOLUNG_H * 3600)
+            a.stufe, a.text = w["stufe"], w["text"][:300]
+            if verschaerft or alt_genug:
+                seit_h = (jetzt - a.seit).total_seconds() / 3600
+                zusatz = "" if verschaerft else f" (seit {seit_h:.0f} h)"
+                a.letzte_meldung = jetzt
+                push(f"{symbol} Pumpfoil-Server", w["text"] + zusatz)
+
+    for sch, a in bekannt.items():
+        if sch not in aktuell:
+            push("🟢 Pumpfoil-Server", f"Wieder im Rahmen: {a.text}")
+            db.delete(a)
+
+    db.commit()
+    return geschickt
+
+
+def sammle(db: Session) -> dict:
+    """Alles messen. Getrennt vom Endpunkt, damit der Zeitgeber (scripts/health-watch.py)
+    genau dieselben Zahlen und dieselbe Bewertung benutzt wie der Bildschirm."""
     kerne = os.cpu_count() or 1
     try:
         last = list(os.getloadavg())
@@ -413,6 +471,21 @@ def system_health(_a: models.User = Depends(current_admin), db: Session = Depend
         "warnungen": _warnungen(cpu, sp, platten, last, kerne, pg, backup, fehler, oom),
         "verlauf": verlauf,
     }
+
+
+@router.get("")
+def system_health(_a: models.User = Depends(current_admin), db: Session = Depends(get_db)) -> dict:
+    """Momentaufnahme + Verlauf fuer den Admin-Bildschirm.
+
+    Meldet nebenbei auch: wer hinschaut, loest dieselbe Pruefung aus wie der Zeitgeber. Doppelte
+    Push-Nachrichten kann das nicht geben, dagegen steht die Buchfuehrung in `melde`.
+    """
+    d = sammle(db)
+    try:
+        melde(db, d["warnungen"])
+    except Exception:  # noqa: BLE001 — eine gescheiterte Meldung darf den Bildschirm nicht kosten
+        db.rollback()
+    return d
 
 
 def _verzeichnis_groesse(pfad: str, budget_s: float = 0.4) -> int | None:
