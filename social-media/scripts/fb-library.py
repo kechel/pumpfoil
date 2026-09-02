@@ -55,7 +55,16 @@ CREATE TABLE IF NOT EXISTS library_stat (
     reactions INTEGER, saves INTEGER, shares INTEGER,   -- nur CSV
     PRIMARY KEY (key, seen_at)
 );
+-- Laender je Beitrag. Gibt es weder in der API (ohne read_insights) noch im
+-- CSV-Export — nur in der Detailansicht eines Beitrags ("Wer sich deine
+-- Inhalte angesehen hat"). Wird von Hand eingelesen.
+CREATE TABLE IF NOT EXISTS library_country (
+    key TEXT NOT NULL, seen_at TEXT NOT NULL,
+    country TEXT NOT NULL, share REAL NOT NULL,
+    PRIMARY KEY (key, seen_at, country)
+);
 CREATE INDEX IF NOT EXISTS library_series ON library_stat (key, seen_at);
+CREATE INDEX IF NOT EXISTS library_ctry ON library_country (key, seen_at);
 """
 
 # Spaltenreihenfolge der Tabelle (aria-colindex 4 aufwaerts)
@@ -348,6 +357,61 @@ def do_series(q):
             print(f"  {at[:16].replace('T',' '):<18}{v or 0:>9,}{i or 0:>7}{f or 0:>6}".replace(",", "."))
 
 
+
+COUNTRY_LINE = re.compile(r"^(.+?)\s*\(([A-Z]{2})\)\s*$")
+PCT_LINE = re.compile(r"^([\d.,]+)\s*%$")
+
+
+def do_countries(query: str, text: str, dry=False):
+    """Den Block "Wer sich deine Inhalte angesehen hat" einem Beitrag zuordnen.
+
+    Erwartet abwechselnd "Brazil (BR)" und "60.6%" — genau so, wie man es aus
+    der Beitrags-Detailansicht kopiert."""
+    pairs, pending = [], None
+    for raw in text.splitlines():
+        line = raw.strip().replace("\ufeff", "")
+        if not line:
+            continue
+        m = COUNTRY_LINE.match(line)
+        if m:
+            pending = (m.group(2), m.group(1).strip())
+            continue
+        m = PCT_LINE.match(line)
+        if m and pending:
+            pairs.append((pending[0], float(m.group(1).replace(",", "."))))
+            pending = None
+    if not pairs:
+        print("Keine Land/Prozent-Paare erkannt.")
+        return
+    d = db()
+    hits = list(d.execute(
+        "SELECT key, caption FROM library_post WHERE caption LIKE ? OR number = ?",
+        (f"%{query}%", num(query))))
+    if len(hits) != 1:
+        print(f"{len(hits)} Beitraege passen auf {query!r}"
+              + ("" if not hits else " — bitte eindeutiger:"))
+        for k, c in hits[:8]:
+            print(f"   {(c or '')[:70]}")
+        return
+    key, cap = hits[0]
+    now = dt.datetime.now().astimezone().replace(microsecond=0).isoformat()
+    last = {c: sh for c, sh in d.execute(
+        """SELECT country, share FROM library_country WHERE key=? AND seen_at=
+           (SELECT MAX(seen_at) FROM library_country WHERE key=?)""", (key, key))}
+    if last == dict(pairs):
+        print(f"unveraendert gegenueber dem letzten Stand — nichts geschrieben")
+        return
+    for c, sh in pairs:
+        d.execute("INSERT OR REPLACE INTO library_country VALUES (?,?,?,?)",
+                  (key, now, c, sh))
+    if dry:
+        d.rollback()
+    else:
+        d.commit()
+    print(f"{len(pairs)} Laender zu: {cap[:56]}")
+    for c, sh in pairs:
+        print(f"   {c}  {sh:>5.1f} %")
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -356,9 +420,13 @@ if __name__ == "__main__":
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--series", metavar="NR-ODER-TEXT")
+    ap.add_argument("--countries", metavar="NR-ODER-TEXT",
+                    help="Laenderblock von stdin einem Beitrag zuordnen")
     a = ap.parse_args()
     day = dt.date.fromisoformat(a.date) if a.date else dt.date.today()
-    if a.imp:
+    if a.countries:
+        do_countries(a.countries, sys.stdin.read(), a.dry_run)
+    elif a.imp:
         do_import(Path(a.imp).expanduser(), day, a.dry_run)
     elif a.series:
         do_series(a.series)
