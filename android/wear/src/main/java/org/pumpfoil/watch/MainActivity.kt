@@ -349,7 +349,6 @@ class MainActivity : ComponentActivity() {
             mutableStateOf(ContextCompat.checkSelfPermission(ctx, Manifest.permission.BODY_SENSORS)
                 != PackageManager.PERMISSION_GRANTED)
         }
-        var startNachHrFrage by remember { mutableStateOf(false) }
         // Standort-Berechtigung (ACCESS_FINE_LOCATION): OHNE sie zeichnet die Uhr keine Strecke
         // auf — requestLocationUpdates wirft dann nur eine SecurityException. Feldbefund 05.08.:
         // vier Sessions ueber Stunden, 1000+ Accel-Chunks, 0 GPS-Punkte; der Nutzer hielt seine
@@ -382,10 +381,15 @@ class MainActivity : ComponentActivity() {
             lifecycleOwner.lifecycle.addObserver(obs)
             onDispose { lifecycleOwner.lifecycle.removeObserver(obs) }
         }
+        // Puls ist ein ZUSATZ, kein Startkriterium. Deshalb wartet die Aufnahme NICHT mehr auf
+        // diesen Dialog (Jans Befund 02.09.: auf dem Wear-Emulator stirbt der Prozess, waehrend
+        // der Berechtigungsdialog oben ist — und mit ihm der nur im Speicher gemerkte
+        // Startwunsch; ein Druck auf Start tat dann gar nichts). Jetzt laeuft die Aufnahme schon,
+        // und wird der Puls nachtraeglich erlaubt, haengt der Dienst ihn an.
         val hrPermLauncher = rememberLauncherForActivityResult(
             ActivityResultContracts.RequestPermission()) { granted ->
             hrMissing = !granted
-            if (startNachHrFrage) { startNachHrFrage = false; RecorderService.start(ctx.applicationContext) }
+            if (granted) RecorderService.enableHeartRate(ctx.applicationContext)
         }
         // Standort: nur bei Erteilung starten. Beim endgueltigen „Nein" NICHT starten — ein
         // Mitschnitt ohne Position ist fuer die Auswertung wertlos; der Hinweis bleibt stehen.
@@ -395,9 +399,10 @@ class MainActivity : ComponentActivity() {
             if (startNachLocFrage) {
                 startNachLocFrage = false
                 if (granted) {
-                    // Standort da — Puls ist optional, aber wenn er auch fehlt, gleich mitfragen.
-                    if (hrMissing) { startNachHrFrage = true; hrPermLauncher.launch(Manifest.permission.BODY_SENSORS) }
-                    else RecorderService.start(ctx.applicationContext)
+                    // Standort da -> SOFORT aufnehmen. Fehlt der Puls, fragen wir danach: die
+                    // Aufnahme laeuft dann schon, der Dialog kann sie nicht mehr verhindern.
+                    RecorderService.start(ctx.applicationContext)
+                    if (hrMissing) hrPermLauncher.launch(Manifest.permission.BODY_SENSORS)
                 }
             }
         }
@@ -777,16 +782,18 @@ class MainActivity : ComponentActivity() {
                     onClick = {
                         skipSync()
                         if (locMissing) {
-                            // Standort fehlt: fragen und NUR bei Erteilung starten (siehe oben).
+                            // Standort fehlt: fragen und NUR bei Erteilung starten — eine
+                            // Aufnahme ohne Position ist fuer die Auswertung wertlos.
                             askLocation(startDanach = true)
-                        } else if (hrMissing) {
-                            // Puls-Berechtigung fehlt (Erst-Dialog weggewischt, PeterH-Fall):
-                            // VOR dem Start erneut fragen und im Callback starten — dann
-                            // registriert der RecorderService den Sensor bereits MIT Erlaubnis.
-                            // Bei endgueltigem "Nein" kommt der Callback sofort -> Start ohne Puls.
-                            startNachHrFrage = true
-                            hrPermLauncher.launch(Manifest.permission.BODY_SENSORS)
-                        } else RecorderService.start(applicationContext)
+                        } else {
+                            // Standort da -> IMMER sofort aufnehmen. Fehlt die Puls-Berechtigung,
+                            // fragen wir DANACH (der Dienst haengt den Puls dann an, s.
+                            // hrPermLauncher). Vorher hing der Start am Dialog: stirbt der Prozess
+                            // waehrend er oben ist — auf dem Wear-Emulator reproduzierbar —, war
+                            // der Startwunsch weg und ein Druck auf Start tat gar nichts.
+                            RecorderService.start(applicationContext)
+                            if (hrMissing) hrPermLauncher.launch(Manifest.permission.BODY_SENSORS)
+                        }
                     },
                     colors = ButtonDefaults.buttonColors(
                         backgroundColor = Color(0xFF34C759), contentColor = Color.White),

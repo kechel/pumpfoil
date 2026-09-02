@@ -60,6 +60,13 @@ class RecorderService : Service(), SensorEventListener {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == ACTION_STOP) { stopEverything(save = true); return START_NOT_STICKY }
         if (intent?.action == ACTION_DISCARD) { stopEverything(save = false); return START_NOT_STICKY }
+        // Puls-Berechtigung wurde WAEHREND der Aufnahme erteilt -> Health Services jetzt anhaengen,
+        // statt die Session ohne Puls zu Ende laufen zu lassen. Kommt vom Start-Bildschirm, der
+        // die Aufnahme nicht mehr auf den Dialog warten laesst (s. MainActivity).
+        if (intent?.action == ACTION_HR_ON) {
+            if (Recorder.state.value.recording) startHeartRate()
+            return START_STICKY
+        }
         startForeground(NOTIF_ID, notification())
         Recorder.start(applicationContext)
         registerSensors()
@@ -210,7 +217,11 @@ class RecorderService : Service(), SensorEventListener {
         const val NOTIF_ID = 1
         const val ACTION_STOP = "org.pumpfoil.watch.STOP"
         const val ACTION_DISCARD = "org.pumpfoil.watch.DISCARD"
+        const val ACTION_HR_ON = "org.pumpfoil.watch.HR_ON"
         fun start(ctx: Context) = ctx.startForegroundService(Intent(ctx, RecorderService::class.java))
+        /** Puls nachtraeglich anhaengen (Berechtigung waehrend der Aufnahme erteilt). */
+        fun enableHeartRate(ctx: Context) = ctx.startService(
+            Intent(ctx, RecorderService::class.java).setAction(ACTION_HR_ON))
         fun stop(ctx: Context) = ctx.startService(
             Intent(ctx, RecorderService::class.java).setAction(ACTION_STOP))
         fun discard(ctx: Context) = ctx.startService(
