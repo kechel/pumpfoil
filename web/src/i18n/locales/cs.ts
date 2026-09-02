@@ -1558,6 +1558,7 @@ const cs: Record<string, string> = {
   "lay.type.9": "Sloupec",
   "lay.unpublish": "Zrušit zveřejnění",
   "lay.usedBy": "používá {n} foilerů",
+  "lay.usedBy1": "používá 1 foiler",
   "lay.warnChars": "Hodinky neumí zobrazit tyto znaky: {chars}",
   "lay.warnOverflow": "„{text}“ přesahuje okraj.",
   "lay.warnTitle": "Na nejmenších hodinkách to může být těsné ({size})",

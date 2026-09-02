@@ -1499,6 +1499,7 @@ const zh: Record<string, string> = {
   "lay.type.9": "条形",
   "lay.unpublish": "取消发布",
   "lay.usedBy": "{n} 位 foiler 在用",
+  "lay.usedBy1": "1 位 foiler 在用",
   "lay.warnChars": "手表无法显示这些字符：{chars}",
   "lay.warnOverflow": "「{text}」超出了边缘。",
   "lay.warnTitle": "在最小的手表上可能会很挤（{size}）",

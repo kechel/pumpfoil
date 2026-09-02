@@ -1343,6 +1343,7 @@ const deAT: Record<string, string> = {
   "lay.type.9": "Balken",
   "lay.unpublish": "Zurückziehen",
   "lay.usedBy": "von {n} Foilern genutzt",
+  "lay.usedBy1": "von 1 Foiler genutzt",
   "lay.warnChars": "Die Zeichen kann die Uhr nicht darstellen: {chars}",
   "lay.warnOverflow": "„{text}“ lauft über den Rand.",
   "lay.warnTitle": "Auf der kleinsten Uhr ({size}) könnt's eng werden",

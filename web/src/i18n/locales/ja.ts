@@ -1496,6 +1496,7 @@ const ja: Record<string, string> = {
   "lay.type.9": "バー",
   "lay.unpublish": "公開を取り消す",
   "lay.usedBy": "{n} 人のフォイラーが使用",
+  "lay.usedBy1": "1 人のフォイラーが使用",
   "lay.warnChars": "時計はこれらの文字を表示できません：{chars}",
   "lay.warnOverflow": "「{text}」が縁からはみ出します。",
   "lay.warnTitle": "最小の時計（{size}）では窮屈になるかもしれません",

@@ -113,7 +113,11 @@ fun LayoutGalleryScreen(onBack: () -> Unit) {
                             // gespeicherte Kopie liegt auf keiner Uhr).
                             val zahlen = buildList {
                                 val genutzt = l.used_by ?: 0
-                                if (genutzt > 0) add(I18n.t("lay.usedBy").replace("{n}", "$genutzt"))
+                                // Einzahl eigener Schluessel: „von 1 Foilern" ist falsches Deutsch.
+                                if (genutzt > 0) add(
+                                    I18n.t(if (genutzt == 1) "lay.usedBy1" else "lay.usedBy")
+                                        .replace("{n}", "$genutzt")
+                                )
                                 val kopien = l.copies ?: 0
                                 if (kopien > 0) add(I18n.t("lay.copies").replace("{n}", "$kopien"))
                             }

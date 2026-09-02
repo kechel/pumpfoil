@@ -1559,6 +1559,7 @@ const nl: Record<string, string> = {
   "lay.type.9": "Balk",
   "lay.unpublish": "Publicatie ongedaan maken",
   "lay.usedBy": "gebruikt door {n} foilers",
+  "lay.usedBy1": "gebruikt door 1 foiler",
   "lay.warnChars": "Het horloge kan deze tekens niet weergeven: {chars}",
   "lay.warnOverflow": "«{text}» loopt over de rand.",
   "lay.warnTitle": "Kan krap worden op het kleinste horloge ({size})",

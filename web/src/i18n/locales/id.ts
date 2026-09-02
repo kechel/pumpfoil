@@ -1502,6 +1502,7 @@ const id: Record<string, string> = {
   "lay.type.9": "Batang",
   "lay.unpublish": "Batalkan penerbitan",
   "lay.usedBy": "dipakai {n} foiler",
+  "lay.usedBy1": "dipakai 1 foiler",
   "lay.warnChars": "Jam tidak bisa menampilkan karakter ini: {chars}",
   "lay.warnOverflow": "«{text}» melewati tepi.",
   "lay.warnTitle": "Bisa jadi sempit di jam terkecil ({size})",

@@ -1514,6 +1514,7 @@ const pl: Record<string, string> = {
   "lay.galleryHint": "Przeglądaj układy opublikowane przez innych zawodników i kopiuj je do własnego profilu. Podgląd domyślnie używa rozmiaru Twojego zegarka — skopiować możesz każdy układ, także zaprojektowany dla innego rozmiaru czy kształtu (pozycje są względne).",
   "lay.byAuthor": "od {name}",
   "lay.usedBy": "używa go {n} foilerów",
+  "lay.usedBy1": "używa go 1 foiler",
   "lay.copies": "skopiowano {n}×",
   "lay.asAuthor": "Podgląd w oryginalnym rozmiarze autora",
   "lay.copyToMine": "Kopiuj do mojego profilu",

@@ -1525,6 +1525,7 @@ const fi: Record<string, string> = {
   "lay.type.9": "Palkki",
   "lay.unpublish": "Peru julkaisu",
   "lay.usedBy": "käytössä {n} foilaajalla",
+  "lay.usedBy1": "käytössä 1 foilaajalla",
   "lay.warnChars": "Kello ei osaa näyttää näitä merkkejä: {chars}",
   "lay.warnOverflow": "«{text}» menee reunan yli.",
   "lay.warnTitle": "Voi käydä ahtaaksi pienimmässä kellossa ({size})",
