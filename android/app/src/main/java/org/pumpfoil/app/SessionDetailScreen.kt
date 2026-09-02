@@ -449,7 +449,10 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
     val scope = rememberCoroutineScope()
     var liked by remember(s.id) { mutableStateOf(s.liked) }
     var likeCount by remember(s.id) { mutableStateOf(s.likeCount) }
-    var colorMode by remember(s.id) { mutableStateOf(ColorMode.SPEED) }
+    // Karten-Ansicht kommt aus der zuletzt gewaehlten (SharedPreferences, s. SessionViewPrefs) —
+    // sonst muesste man Farbmodus, Glaettung und Schalter in jeder Session neu einstellen.
+    val ctxPrefs = LocalContext.current
+    var colorMode by remember(s.id) { mutableStateOf(SessionViewPrefs.modus(ctxPrefs)) }
     // Carve-Daten (nur Anzeige) einmal je Session laden.
     var carve by remember(s.id) { mutableStateOf<CarveData?>(null) }
     LaunchedEffect(s.id) { carve = try { Api.sessionCarves(s.id) } catch (_: Exception) { null } }
@@ -459,10 +462,23 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
         val vals = (carve?.g ?: emptyList()) + (carve?.arcs?.flatten()?.mapNotNull { it.getOrNull(2) } ?: emptyList())
         minOf(maxOf(0.6, vals.maxOrNull() ?: 0.6), 1.0)
     }
-    var win by remember(s.id) { mutableStateOf(3) }
+    var win by remember(s.id) { mutableStateOf(SessionViewPrefs.glaettung(ctxPrefs)) }
     // Vollbild-Karte, s. unten beim TrackMap.
     var mapFull by remember(s.id) { mutableStateOf(false) }
-    var showPumps by remember(s.id) { mutableStateOf(true) }
+    var showPumps by remember(s.id) { mutableStateOf(SessionViewPrefs.zeigePumps(ctxPrefs)) }
+    // Startversuche: die Anlaeufe, aus denen KEIN Lauf wurde. Standardmaessig an; die Linien holt
+    // ein eigener Endpunkt, und zwar erst wenn der Schalter das erste Mal an ist.
+    var showAttempts by remember(s.id) { mutableStateOf(SessionViewPrefs.zeigeVersuche(ctxPrefs)) }
+    var attempts by remember(s.id) { mutableStateOf<List<AttemptLine>?>(null) }
+    LaunchedEffect(s.id, showAttempts) {
+        if (showAttempts && attempts == null) {
+            attempts = try { Api.sessionAttempts(s.id) } catch (_: Exception) { emptyList() }
+        }
+    }
+    // Jede Aenderung merken — sie gilt dann auch fuer die naechste Session.
+    LaunchedEffect(colorMode, win, showPumps, showAttempts) {
+        SessionViewPrefs.merke(ctxPrefs, colorMode, win, showPumps, showAttempts)
+    }
     var selectedRun by remember(s.id) { mutableStateOf<Int?>(null) }   // ausgewählter Lauf -> nur dieser farbig
     LaunchedEffect(selectedRun) { onRunSelected(selectedRun) }   // hoch melden -> Teilen-Vorauswahl (#37)
     var weightKg by remember { mutableStateOf(0.0) }
@@ -862,6 +878,15 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Spacer(Modifier.width(4.dp))
                             Switch(checked = showPumps, onCheckedChange = { showPumps = it })
+                            // Startversuche — nur anbieten, wenn es welche gibt (oder noch
+                            // geladen wird). Bewusst NICHT an der Kachel-Zahl festmachen: die
+                            // gilt nur fuer den ausgewerteten Bereich, Versuche vor dem
+                            // Zuschnitt kommen dort nicht vor.
+                            if (attempts == null || attempts!!.isNotEmpty()) {
+                                Spacer(Modifier.width(10.dp))
+                                Text(I18n.t("sd.showAttempts"), style = MaterialTheme.typography.bodyMedium)
+                                Switch(checked = showAttempts, onCheckedChange = { showAttempts = it })
+                            }
                         }
                     }
                 }
@@ -877,6 +902,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 Card(Modifier.fillMaxWidth()) {
                     Box {
                         TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps, win,
+                        if (showAttempts) attempts.orEmpty() else emptyList(),
                             selectedRun, { selectedRun = if (selectedRun == it) null else it },
                             if (colorMode == ColorMode.TURNS) carve else null, carveGMax,
                             Modifier.fillMaxWidth().height(300.dp))
@@ -900,6 +926,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                            properties = DialogProperties(usePlatformDefaultWidth = false)) {
                         Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
                             TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps, win,
+                                if (showAttempts) attempts.orEmpty() else emptyList(),
                                 selectedRun, { selectedRun = if (selectedRun == it) null else it },
                                 if (colorMode == ColorMode.TURNS) carve else null, carveGMax,
                                 Modifier.fillMaxSize())
@@ -1054,7 +1081,8 @@ class Track(
     fun speedsFor(win: Int): List<Double> = when (win) { 1 -> speeds1; 5 -> speeds5; else -> speedsMps }
 }
 
-private enum class ColorMode { SPEED, HR, PUMP, TURNS }
+// internal statt private: die gemerkte Karten-Ansicht (SessionViewPrefs) speichert den Modus.
+internal enum class ColorMode { SPEED, HR, PUMP, TURNS }
 
 // Kurvenlage-g -> Farbe (wie Web/turns.ts). Untere Hälfte an ABSOLUTE g gebunden (grün 0,1 →
 // gelb 0,35 → rot 0,6); oberhalb 0,6 g bis zum Lauf-Max (gMax, gedeckelt 1,0) rot → magenta → weiß.
@@ -1150,6 +1178,9 @@ fun rampColor(t: Double): Color {
 fun speedColor(kmh: Double): Color = rampColor((kmh - 8) / (25 - 8))
 
 val GRAY = Color(0xFF64748B)
+// Bernstein wie in der PWA (#f59e0b) fuer die Startversuche — klar unterscheidbar von den
+// Lauf-Farbskalen (gruen/gelb/rot bzw. cyan) und von grau.
+val ATTEMPT_COLOR = Color(0xFFF59E0B)
 
 // Track auf OSM-Karte (osmdroid, FLOSS — wie Spots/Web). Nur die Foiling-Läufe
 // (segments[].iStart..iEnd), je Punktpaar nach Modus gefärbt; Nicht-Foiling unsichtbar.
@@ -1178,6 +1209,8 @@ private fun pumpDot(): android.graphics.drawable.Drawable {
 private fun TrackMap(
     track: Track, segments: List<Segment>, mode: ColorMode,
     hrRange: Pair<Int, Int>, pumpRange: Pair<Double, Double>, showPumps: Boolean, win: Int,
+    /** Misslungene Startversuche als fertige Linien; leer = nicht anzeigen. */
+    attempts: List<AttemptLine>,
     selectedRun: Int?, onSelectRun: (Int) -> Unit,
     carve: CarveData?, carveGMax: Double,
     modifier: Modifier = Modifier,
@@ -1254,6 +1287,26 @@ private fun TrackMap(
                     }
                 }
                 // Carve-Bögen (feine 25-Hz-Polylinie je Carve) über dem grauen Basis-Track,
+                // Startversuche ZULETZT in die Overlay-Liste: osmdroid zeichnet in dieser
+                // Reihenfolge, sie liegen damit ÜBER den Läufen. Ihre Linien sind dünner, ein
+                // Lauf würde sie sonst verdecken (Jans Befund im Web, dort eigene Karten-Ebene).
+                // Gestrichelt und bernsteinfarben wie in der PWA; außerhalb des ausgewerteten
+                // Bereichs dünner gestrichelt.
+                for (v in attempts) {
+                    val punkte = v.points.mapNotNull { pp ->
+                        if (pp.size >= 2) GeoPoint(pp[0], pp[1]) else null
+                    }
+                    if (punkte.size < 2) continue
+                    map.overlays.add(Polyline(map).apply {
+                        setPoints(punkte)
+                        outlinePaint.color = ATTEMPT_COLOR.toArgb()
+                        outlinePaint.strokeWidth = 3f * dens
+                        outlinePaint.alpha = if (v.outsideTrim) 150 else 220
+                        outlinePaint.pathEffect = android.graphics.DashPathEffect(
+                            if (v.outsideTrim) floatArrayOf(2f * dens, 6f * dens)
+                            else floatArrayOf(5f * dens, 5f * dens), 0f)
+                    })
+                }
                 // je Segment nach Kurvenlage-g gefärbt (wie PWA). Nur im TURNS-Modus (carve != null).
                 if (mode == ColorMode.TURNS && carve != null) {
                     for (arc in carve.arcs) {
@@ -1329,10 +1382,40 @@ private fun PowerCard(a: Analysis, foil: Foil, weightKg: Double) {
     val topKmh = a.maxSpeedMps?.let { it * 3.6 }
     fun watt(kmh: Double?): String =
         if (kmh == null) "–" else "%.0f W".format(FoilPhysics.computeFoilPowerAtSpeed(dims, kmh, rider, pump = pump).power)
+    // Erklaerung hinter einem (i) — wie die PWA seit 02.09. (dort dasselbe Popup wie bei
+    // „Laeufe/Starts"). Ohne sie ist die Watt-Zahl eine Behauptung: es steht nirgends, mit welchem
+    // Gewicht, welcher Geschwindigkeit und welchen Anteilen (Vortrieb + Pump-Traegheit) sie
+    // gerechnet ist. Und ohne erkannte Kadenz ist der Traegheitsanteil pauschal.
+    var zeigeInfo by remember { mutableStateOf(false) }
+    val erklaerung = I18n.t("power.tip")
+        .replace("{foil}", "${foil.brand} ${foil.model} ${foil.size}")
+        .replace("{weight}", "%.0f".format(weightKg + FoilPhysics.RiderParams().equipmentWeight))
+        .replace("{speed}", avgKmh?.let { "%.1f".format(it) } ?: "–")
+        .replace("{drag}", "%.0f".format(avgKmh?.let {
+            FoilPhysics.computeFoilPowerAtSpeed(dims, it, rider, pump = pump).dragPower } ?: 0.0))
+        .replace("{inertia}", "%.0f".format(avgKmh?.let {
+            FoilPhysics.computeFoilPowerAtSpeed(dims, it, rider, pump = pump).inertiaPower } ?: 0.0))
+        .replace("{note}", if (pump == null) " (${I18n.t("power.estPump")})" else "") +
+        (if (foil.thicknessEstimated == true) " · ${I18n.t("power.estimated")}" else "")
+    if (zeigeInfo) {
+        AlertDialog(
+            onDismissRequest = { zeigeInfo = false },
+            title = { Text(I18n.t("sd.power")) },
+            text = { Text(erklaerung, style = MaterialTheme.typography.bodyMedium) },
+            confirmButton = { TextButton(onClick = { zeigeInfo = false }) { Text(I18n.t("common.close")) } },
+        )
+    }
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp)) {
-            Text("${I18n.t("sd.power")} (${foil.brand} ${foil.model} ${foil.size})",
-                style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("${I18n.t("sd.power")} (${foil.brand} ${foil.model} ${foil.size})",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
+                IconButton(onClick = { zeigeInfo = true }, modifier = Modifier.size(28.dp)) {
+                    Icon(Icons.Outlined.Info, contentDescription = I18n.t("sd.power"),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
+                }
+            }
             Spacer(Modifier.height(6.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 Column {

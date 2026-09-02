@@ -619,6 +619,27 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **✅ 02.09. — Android auf den heutigen Stand gebracht (Jan will danach releasen).** Was noch
+  fehlte und jetzt drin ist:
+  - **Startversuche auf der Karte** (Schalter neben den Pumps, standardmaessig an): dieselbe
+    Optik wie im Web — bernstein, gestrichelt, ausserhalb des Zuschnitts duenner. Die Linien
+    kommen ueber `GET /api/sessions/{id}/attempts` als fertige Punkte. **Reihenfolge:** die
+    Versuche werden ZULETZT in die osmdroid-Overlay-Liste gelegt und liegen damit ueber den
+    Laeufen (im Web dafuer eine eigene Karten-Ebene) — ihre Linien sind duenner, ein Lauf
+    verdeckt sie sonst.
+  - **Gemerkte Karten-Ansicht** (`SessionViewPrefs`, SharedPreferences): Farbmodus, Glaettung,
+    Pump-Marker, Startversuche gelten ueber Sessions hinweg. Lokal wie im Web, nicht im Profil.
+  - **(i) an der Leistungs-Karte:** ohne sie ist die Watt-Zahl eine Behauptung — jetzt steht dort,
+    mit welchem Gewicht, welcher Geschwindigkeit und welchen Anteilen (Vortrieb + Pump-Traegheit)
+    gerechnet wurde, und dass der Traegheitsanteil ohne erkannte Kadenz pauschal ist.
+  - **Fehlender Schluessel gefunden:** `account.activityPumpfoil` war beim Aktivitaetstyp-Umzug
+    heute Nacht benutzt, aber nie in die Android-Tabelle eingetragen — die Auswahl haette woertlich
+    „account.activityPumpfoil" angezeigt. **Dieselbe Klasse Fehler wie gestern (`watchStats.hint`)
+    und heute Nacht (`rec.sure`); die Gegenprobe faengt sie jedes Mal.** Jetzt: 665 benutzte
+    Schluessel, keiner ohne Definition.
+  - `:app:` + `:wear:compileDebugKotlin` gruen. **Version bleibt Phone 1.1.25 / Wear 1.2.25**
+    (beide gebaut, nie eingereicht) — kein Bump noetig, Jan reicht diesen Stand ein.
+
 - **🔴 02.09. — BEFUND: die Start-Erfolgsquote ist systematisch zu GUT, weil der Auto-Zuschnitt
   die Fehlversuche vor dem ersten geglueckten Start wegschneidet. ENTSCHEIDUNG VON JAN NOETIG
   (Detektor-/Pipeline-Regel).**
