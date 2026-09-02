@@ -619,6 +619,22 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟡 02.09. — MERKEN: die Suunto-API, die wir benutzen, ist als DEPRECATED markiert.** Jan hat es
+  in den Berichten unter `apizone.suunto.com/reports` gesehen — die Aufrufe laufen dort unter
+  **„SUUNTO WORKOUT API (DEPRECATED)"** (56 erfolgreich, 11 blockiert = das alte Wochenkontingent
+  der Developer-API). Daneben steht ein zweites Produkt **„SUUNTO WORKOUT DESCRIPTION API"** mit
+  0 Aufrufen — nach Namen der Nachfolger, aber ungeprueft.
+  **Was wir konkret aufrufen** (`server/app/api/suunto.py`): `GET cloudapi.suunto.com/v2/workouts`
+  (Liste) und `GET /v2/workout/exportFit/{key}` (FIT-Download). Genau diese zwei Wege muessen im
+  Nachfolger ein Gegenstueck haben — vor allem der **FIT-Export**, denn daran haengt unser Import;
+  eine reine „Description"-API mit Kennzahlen statt Rohdaten wuerde uns nichts nuetzen.
+  **Kein Alarm, aber ein Termin:** die Aufrufe gehen weiter durch (heute, gegen Produktion, 1 von 1
+  erfolgreich). Zu klaeren ist, ob und wann abgeschaltet wird — in der Doku der API Zone oder per
+  Mail an `partners@suunto.com`, wo der Production-Zugang herkam. Betroffen waeren **10 verknuepfte
+  Konten** (Stand 02.09.).
+  **Nicht ins Blaue migrieren:** erst Doku lesen, dann pruefen, ob `exportFit` im Nachfolger
+  existiert. Siehe Memory `suunto-api-integration`.
+
 - **✅ 02.09. — Suunto: Zugang zur PRODUCTION API freigegeben** (Mail „Thank you for subscribing to
   the Production API", Suunto Partnership Team, Jans Meldung). Beantragt war das seit Wochen.
   **Stand bei uns:** der Code steht und ist vollstaendig (`server/app/api/suunto.py`: OAuth,
