@@ -903,6 +903,11 @@ export default function SessionDetail() {
       // Eigene Panes über den Track-Linien (overlayPane z=400): Pump-Marker + die
       // bewegte Position bleiben so immer sichtbar, egal in welcher Reihenfolge die
       // Linien gezeichnet werden.
+      // Startversuche ueber die Laeufe (Jan, 02.09.): ihre Linien sind duenner, ein Lauf
+      // verdeckt sie sonst — umgekehrt stoert es nicht. Eigene Ebene statt Zeichenreihenfolge:
+      // die Laeufe werden an mehreren Stellen neu gezeichnet (u. a. beim Abspielen), auf die
+      // Reihenfolge ist also kein Verlass. Unter den Pumps (640), ueber dem Track.
+      mapObj.current.createPane("attemptPane"); mapObj.current.getPane("attemptPane")!.style.zIndex = "630";
       mapObj.current.createPane("pumpPane"); mapObj.current.getPane("pumpPane")!.style.zIndex = "640";
       mapObj.current.createPane("posPane"); mapObj.current.getPane("posPane")!.style.zIndex = "650";
       trackLayer.current = L.layerGroup().addTo(mapObj.current);
@@ -1016,8 +1021,8 @@ export default function SessionDetail() {
       });
     }
     // Startversuche: gestrichelt und bernsteinfarben, damit sie sich klar von den Läufen
-    // abheben — es sind ja gerade die Anläufe, die KEIN Lauf geworden sind. Bewusst unter den
-    // Pump-Markern gezeichnet und dünner als ein Lauf.
+    // abheben — es sind ja gerade die Anläufe, die KEIN Lauf geworden sind. Eigene Karten-Ebene
+    // ÜBER den Läufen (s. createPane oben), weil ihre Linien dünner sind; unter den Pumps.
     if (showAttempts && attemptSegs?.length) {
       attemptSegs.forEach((v) => {
         if (v.points.length < 2) return;
@@ -1025,6 +1030,7 @@ export default function SessionDetail() {
         // Zuschnitt haben im getrimmten Track gar keinen Index, und aussortierte Bereiche
         // verschieben ihn (das lag an #3157 daneben).
         L.polyline(v.points, {
+          pane: "attemptPane",
           color: "#f59e0b", weight: 3, opacity: v.outside_trim ? 0.6 : 0.85,
           dashArray: v.outside_trim ? "2 6" : "5 5", interactive: false,
         }).addTo(lg);
