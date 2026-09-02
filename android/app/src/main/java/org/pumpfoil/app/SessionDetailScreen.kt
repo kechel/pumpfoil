@@ -869,16 +869,6 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                         if (hasHr) FilterChip(selected = colorMode == ColorMode.HR, onClick = { colorMode = ColorMode.HR }, label = { Text(I18n.t("sd.colorPuls")) }, colors = cyanChipColors())
                         if (hasPump) FilterChip(selected = colorMode == ColorMode.PUMP, onClick = { colorMode = ColorMode.PUMP }, label = { Text(I18n.t("sd.colorPump")) }, colors = cyanChipColors())
                         if (hasCarves) FilterChip(selected = colorMode == ColorMode.TURNS, onClick = { colorMode = ColorMode.TURNS }, label = { Text("Carves") }, colors = cyanChipColors())
-                        Spacer(Modifier.weight(1f))
-                        // In lokale Variable ziehen: `a` ist hier nicht mehr per Smart-Cast
-                        // nicht-null (der Block haengt jetzt an trackForRuns, nicht an a?.…).
-                        val pumpAnzahl = a?.pumpCount
-                        if (pumpAnzahl != null && pumpAnzahl > 0) {
-                            Text(I18n.t("sd.markerShort"), style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Spacer(Modifier.width(4.dp))
-                            Switch(checked = showPumps, onCheckedChange = { showPumps = it })
-                        }
                     }
                 }
                 // Zweite Zeile: links die Glättung (nur im Speed-Modus), rechts die
@@ -886,24 +876,50 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 // Schalter am Ende wäre dort halb versteckt. Diese Zeile scrollt NICHT, deshalb
                 // gibt es sie jetzt IMMER — sonst verschwände der Schalter in den anderen
                 // Farbmodi (Puls/Pump/Carves), wo es keine Glättung gibt.
-                val zeigeVersuchsSchalter = attempts == null || attempts!!.isNotEmpty()
-                if (colorMode == ColorMode.SPEED || zeigeVersuchsSchalter) {
+                // Glaettung: nur im Speed-Modus — bei Puls/Pump/Carves gibt es nichts zu
+                // glaetten (die PWA macht es genauso). Eigene Zeile, links.
+                if (colorMode == ColorMode.SPEED) {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        if (colorMode == ColorMode.SPEED) {
-                            listOf(1, 3, 5).forEach { w ->
-                                FilterChip(selected = win == w, onClick = { win = w }, label = { Text("${w}s") },
-                                    colors = cyanChipColors(), modifier = Modifier.padding(end = 8.dp))
+                        Text(I18n.t("sd.smoothing"), style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(end = 8.dp))
+                        listOf(1, 3, 5).forEach { w ->
+                            FilterChip(selected = win == w, onClick = { win = w }, label = { Text("${w}s") },
+                                colors = cyanChipColors(), modifier = Modifier.padding(end = 8.dp))
+                        }
+                    }
+                }
+                // Die zwei Schalter in einer eigenen, UMBRECHENDEN Zeile (FlowRow), rechts.
+                // Vorher stand „Marker" am Ende der oberen Zeile — und die scrollt waagerecht,
+                // der Schalter hing also halb ausserhalb (Jans Screenshot 02.09.).
+                val pumpAnzahl = a?.pumpCount
+                val zeigeMarker = pumpAnzahl != null && pumpAnzahl > 0
+                // Startversuche nur anbieten, wenn es welche gibt (oder noch geladen wird).
+                // Bewusst NICHT an der Kachel-Zahl festmachen: die gilt nur fuer den ausgewerteten
+                // Bereich, Versuche vor dem Zuschnitt kommen dort nicht vor.
+                val zeigeVersuchsSchalter = attempts == null || attempts!!.isNotEmpty()
+                if (zeigeMarker || zeigeVersuchsSchalter) {
+                    FlowRow(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                        verticalArrangement = Arrangement.Center,
+                    ) {
+                        if (zeigeMarker) {
+                            Row(verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(end = 12.dp)) {
+                                Text(I18n.t("sd.markerShort"), style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Spacer(Modifier.width(4.dp))
+                                Switch(checked = showPumps, onCheckedChange = { showPumps = it })
                             }
                         }
-                        Spacer(Modifier.weight(1f))
-                        // Nur anbieten, wenn es welche gibt (oder noch geladen wird). Bewusst
-                        // NICHT an der Kachel-Zahl festmachen: die gilt nur fuer den
-                        // ausgewerteten Bereich, Versuche vor dem Zuschnitt kommen dort nicht vor.
                         if (zeigeVersuchsSchalter) {
-                            Text(I18n.t("sd.showAttempts"), style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Spacer(Modifier.width(4.dp))
-                            Switch(checked = showAttempts, onCheckedChange = { showAttempts = it })
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(I18n.t("sd.showAttempts"), style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Spacer(Modifier.width(4.dp))
+                                Switch(checked = showAttempts, onCheckedChange = { showAttempts = it })
+                            }
                         }
                     }
                 }
