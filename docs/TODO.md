@@ -619,6 +619,27 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟡 02.09. — Android EINGEREICHT: Phone 39 (1.1.25) + Wear OS 1035 (1.2.25), voller Roll-out.**
+  Jans Meldung aus der Play Console: „Schnelle Vorabprüfungen … noch maximal 14 Minuten", beide
+  Spuren auf „Vollständigen Roll-out starten", dazu die **Erklärung für Gesundheits-Apps**.
+  **Was wir dort erklaert haben** (fuer die naechste Einreichung wiederverwendbar):
+  App-Funktion = ausschliesslich **„Aktivität und Fitness"** — nichts aus „Medizin" (zieht
+  Medizinprodukt-Anforderungen nach sich) und nichts aus „Forschung am Menschen" (eigenes
+  Formular). Je Berechtigung: `BODY_SENSORS` = roher Sensor (`TYPE_HEART_RATE`) als Rueckfall auf
+  aelteren Uhren, `health.READ_HEART_RATE` = Wear-OS Health Services **und** Voraussetzung fuer den
+  Vordergrunddienst mit Health-Typ ab Android 15/16 (ohne sie der Absturz von heute Mittag).
+  Beides nur waehrend einer laufenden Aufnahme, keine Health-Connect-Anbindung, keine Weitergabe,
+  keine Werbung.
+  **Erstes Release mit R8** — `mapping.txt` aus `app/build/outputs/mapping/release/` aufbewahren,
+  sonst sind Logcat-Ausgaben aus Emulator/Handy verschleiert (Play Console entschluesselt nur
+  hochgeladene Abstuerze selbst).
+  **Nach der Freigabe zu tun:** erst wenn Play „live" meldet UND der Roll-out bei 100 % steht,
+  `appmeta.android` auf 1.1.25 und `appmeta.wear` auf 1.2.25 setzen, dann Changelog.
+  **Inhalt:** alles von heute — R8, Bitmap-Deckel im Teilen-Dialog, Startversuche, Feed-Player
+  (Error 153 + Groesse + Wischen + randlos), Spots-ANR und graues Raster, Verlaufsseite,
+  Wear-FGS-Absturz, „ein Druck statt halten", Einstellungen ueber die Listen, Titel in der
+  Sessionliste, streamender Datenexport.
+
 - **✅ 02.09. — iOS/Apple Watch 1.1.28 ist LIVE, Nummern gezogen.** Freigabe-Mail + an der
   Produktseite gegengeprueft (`apps.apple.com/de/app/pumpfoil/id6783975714` zeigt „Version
   1.1.28"). `appmeta.ios` UND `appmeta.apple` stehen auf 1.1.28, Server neu gestartet,
