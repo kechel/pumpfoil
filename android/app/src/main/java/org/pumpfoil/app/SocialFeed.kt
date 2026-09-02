@@ -367,7 +367,10 @@ private fun YoutubePlayer(videoId: String, modifier: Modifier = Modifier) {
                                     "document.body.clientHeight],frame:f?[f.clientWidth,f.clientHeight]:null," +
                                     "innen:[window.innerWidth,window.innerHeight]," +
                                     "rect:f?[Math.round(f.getBoundingClientRect().width)," +
-                                    "Math.round(f.getBoundingClientRect().height)]:null});})()"
+                                    "Math.round(f.getBoundingClientRect().height)]:null," +
+                                    // Beweist, ob das Markup UNBESCHADET ankommt: fehlt hier das
+                                    // style-Attribut, hat der Transportweg es zerlegt.
+                                    "bodyTag:document.body.outerHTML.slice(0,120)});})()"
                             ) { r ->
                                 android.util.Log.i(
                                     "PumpfoilPlayer",
@@ -416,14 +419,21 @@ private fun YoutubePlayer(videoId: String, modifier: Modifier = Modifier) {
                 // das) — waehrend die Prozentkette bei 0 landete. `100vh` kann dieser Fehler also
                 // nicht treffen, egal wie html/body sich verhalten.
                 //
-                // `html` UND `body` brauchen zusaetzlich ausdruecklich Hoehe, sonst rechnet die 100 %-Angabe
-                // des iframes gegen einen Block ohne Hoehe — und das Ergebnis ist ~0.
-                // GENAU DAS war der schwarze Player (02.09.): Jan sah unten am Bildschirmrand
-                // „eine 1px hohe Zeile, die sich beim Videowechsel farblich aendert" — das WAR
-                // das Video, volle Breite, ein Pixel hoch. Ton lief die ganze Zeit.
-                // Deshalb hier alles explizit statt `width/height`-Attribute: Attribute sind nur
-                // Darstellungs-HINWEISE, und ohne Hoehe am Elternteil bringen sie nichts.
-                """<!DOCTYPE html><html style="height:100%"><body style="margin:0;height:100%;background:#000">
+                // **KEIN Prozentzeichen im HTML — nirgends.** Das ist der eigentliche Befund
+                // hinter dem schwarzen Player: `loadDataWithBaseURL` deutet `%`-Folgen im
+                // uebergebenen Text als URL-Escapes. `height:100%\"` ist so eine Folge, das
+                // `style`-Attribut zerbricht dabei, und alles darunter erbt keine Hoehe mehr.
+                //
+                // Belegt statt vermutet: dasselbe HTML im Chromium auf der VM ergibt
+                // `body:[500,564]`, `frame:[500,564]` — alles korrekt. In Jans WebView dagegen
+                // `innen:[344,651]` (Ansichtsfenster steht!) aber `body:[344,0]`, `frame:[344,0]`.
+                // Ein `height:100vh` KANN nicht 0 werden, wenn das Ansichtsfenster 651 ist —
+                // also kamen die Stile nicht an, nicht die Hoehenrechnung war falsch.
+                //
+                // Deshalb rechnet hier alles in `vh`/`vw`: gleiche Wirkung, ohne `%`. Wer hier
+                // wieder Prozent hineinschreibt, holt den schwarzen Player zurueck.
+                // (Die Doctype-Zeile bleibt trotzdem richtig, s. oben.)
+                """<!DOCTYPE html><html style="height:100vh"><body style="margin:0;height:100vh;background:#000">
                    <iframe style="display:block;width:100vw;height:100vh;border:0" allowfullscreen
                      allow="autoplay; encrypted-media; picture-in-picture"
                      src="https://www.youtube-nocookie.com/embed/$videoId?autoplay=1&rel=0&playsinline=1&loop=1&playlist=$videoId&origin=$HERKUNFT"></iframe>
