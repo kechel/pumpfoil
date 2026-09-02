@@ -4,7 +4,7 @@ import { api, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntr
 import { Card, Spinner, ErrorBox, Avatar, NewBadge } from "../components/ui";
 import { FlagIcon, FakeIcon, HeartIcon, CameraIcon, LocationIcon } from "../components/Icons";
 import { TimeChart } from "../components/TimeChart";
-import { useT, useNumberFormat } from "../i18n";
+import { useT, useNumberFormat, LANGS } from "../i18n";
 import { DATA_QUALITY, SPORTS } from "../lib/sportClass";
 import { demoGewuenscht, demoSetzen, demoAnzahl, demoBeobachten } from "../lib/demoNames";
 
@@ -329,10 +329,19 @@ function BlocksTab() {
 }
 
 // ---------------------------------------------------------------- News-Banner ----
-const NEWS_LANGS: [string, string][] = [
-  ["de", "Deutsch"], ["gsw", "Schwiizerdütsch"], ["de-AT", "Österreichisch"],
-  ["en", "English"], ["fr", "Français"], ["it", "Italiano"], ["es", "Español"],
-];
+// Sprachliste kommt aus i18n (LANGS) und NICHT mehr aus einer eigenen Kopie. Die alte Kopie
+// kannte nur die ersten sieben Sprachen — mit dem Ergebnis, dass ein Banner-Text auf Finnisch
+// (gesetzt am 07.07.2026, persoenlich adressiert) hier zwei Monate lang UNSICHTBAR war: nicht
+// anzeigbar, nicht loeschbar, und beim Speichern wurde er stumm mit durchgeschleift, weil das
+// Formular `texts` als Ganzes zurueckschickt. Aufgefallen erst, als er im Android-Emulator auf
+// einem finnisch eingestellten Testkonto auftauchte.
+//
+// Zwei Konsequenzen daraus, absichtlich beide:
+//  1. Liste aus LANGS ableiten -> neue Sprache = automatisch hier drin.
+//  2. Was in der DB steht, aber in KEINER bekannten Sprache liegt, wird trotzdem angezeigt
+//     (Abschnitt „unbekannt"). Ein Text, den man nicht sieht, kann man nicht zurueckziehen.
+// Beschriftungen bewusst deutsch/unuebersetzt — wie der Demo-Modus oben; diese Ansicht sieht
+// nur der Betreiber.
 
 function NewsTab() {
   const t = useT();
@@ -347,6 +356,22 @@ function NewsTab() {
     try { const r = await api.adminNewsSet(n); setN(r); setSaved(true); setTimeout(() => setSaved(false), 2000); }
     finally { setSaving(false); }
   };
+
+  const bekannt = LANGS.map((l) => l.code as string);
+  const fremd = Object.keys(n.texts).filter((k) => !bekannt.includes(k));
+  const belegt = Object.entries(n.texts).filter(([, v]) => (v || "").trim()).map(([k]) => k);
+  const feld = (code: string, label: string) => (
+    <div key={code}>
+      <div className="mb-0.5 flex items-center gap-2 text-xs text-slate-400">
+        <span>{label}</span>
+        <span className="font-mono text-[10px] text-slate-500">{code}</span>
+        {(n.texts[code] || "").trim() && <span className="rounded bg-brand-500/20 px-1.5 text-[10px] font-semibold text-brand-300">belegt</span>}
+      </div>
+      <textarea value={n.texts[code] || ""} onChange={(e) => setText(code, e.target.value)} rows={2}
+        className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100" />
+    </div>
+  );
+
   return (
     <div className="max-w-2xl space-y-4">
       <Card className="space-y-3 p-4">
@@ -363,15 +388,31 @@ function NewsTab() {
             className="rounded-lg bg-slate-700 px-2.5 py-1 text-xs text-slate-200 hover:bg-slate-600">{t("adm.news.bump")}</button>
           <span className="text-xs text-slate-400">{t("adm.news.versionHint")}</span>
         </div>
+        {/* Kurzbilanz: WAS steht gerade drin und seit wann. Ohne die Zeile muss man 17 Felder
+            durchscrollen, um zu sehen, ob ueberhaupt ein Text aktiv ist. */}
+        <div className="border-t border-slate-700 pt-3 text-sm text-slate-300">
+          {belegt.length === 0
+            ? <span>Aktuell kein Text hinterlegt — es erscheint nur der Standard-Willkommenstext.</span>
+            : <span>Text hinterlegt in: <span className="font-semibold text-slate-100">{belegt.join(", ")}</span>
+                {" "}({belegt.length === 1 ? "eine Sprache" : `${belegt.length} Sprachen`})</span>}
+          {n.updated_at && <span className="text-slate-400"> · zuletzt geändert {fmtDate(n.updated_at)}</span>}
+        </div>
       </Card>
-      <div className="space-y-2">
-        {NEWS_LANGS.map(([l, label]) => (
-          <div key={l}>
-            <div className="mb-0.5 text-xs text-slate-400">{label}</div>
-            <textarea value={n.texts[l] || ""} onChange={(e) => setText(l, e.target.value)} rows={2}
-              className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100" />
+
+      {fremd.length > 0 && (
+        <Card className="space-y-3 border-amber-500/40 p-4">
+          <div className="text-sm font-semibold text-amber-700 dark:text-amber-300">
+            Text in einer Sprache, die die App nicht (mehr) anbietet: {fremd.join(", ")}
           </div>
-        ))}
+          <div className="text-sm text-slate-300">
+            Zum Zurückziehen Feld leeren und speichern — leere Texte werden serverseitig entfernt.
+          </div>
+          {fremd.map((k) => feld(k, "unbekannt"))}
+        </Card>
+      )}
+
+      <div className="space-y-2">
+        {LANGS.map((l) => feld(l.code as string, `${l.flag} ${l.native}`))}
       </div>
       <div className="flex items-center gap-3">
         <button onClick={save} disabled={saving}
@@ -379,6 +420,11 @@ function NewsTab() {
           {saving ? "…" : saved ? t("adm.news.saved") : t("adm.news.save")}
         </button>
         <span className="text-xs text-slate-400">{t("adm.news.hint")}</span>
+      </div>
+      {/* Die harte Regel steht in CLAUDE.md; sie gehoert auch dorthin, wo man tippt. */}
+      <div className="text-sm text-slate-300">
+        Der Banner ist <span className="font-semibold text-slate-100">global</span> — alle Nutzer, alle Sprachen.
+        Nur allgemeine Ankündigungen; nichts Persönliches und nichts an einzelne Nutzer Gerichtetes (dafür 1:1-Chat).
       </div>
     </div>
   );
