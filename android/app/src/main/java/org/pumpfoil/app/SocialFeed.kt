@@ -358,26 +358,10 @@ private fun YoutubePlayer(videoId: String, modifier: Modifier = Modifier) {
                 // beantwortet genau das — ohne sie raet man an drei Stellen gleichzeitig.
                 webViewClient = object : WebViewClient() {
                     override fun onPageFinished(view: WebView, url: String) {
-                        // Groesse NACH dem Laden per JavaScript setzen — mit dem Wert, den das
-                        // Ansichtsfenster selbst meldet.
-                        //
-                        // Warum ueberhaupt: die Stile stehen unbeschadet im Dokument (belegt am
-                        // 02.09. per `bodyTag` im Log), wirken aber nicht — `body` und `iframe`
-                        // bleiben 0 hoch, obwohl `window.innerHeight` 651 meldet. Was die Ursache
-                        // dafuer ist, wissen wir noch nicht; DIESER Weg umgeht sie: er nimmt eine
-                        // gemessene Zahl statt einer Einheit, die erst aufgeloest werden muss, und
-                        // er setzt sie auf beiden Wegen — als Attribut UND ueber das Style-Objekt.
-                        view.evaluateJavascript(
-                            "(function(){var f=document.querySelector('iframe');if(!f)return 0;" +
-                                "var h=window.innerHeight||document.documentElement.clientHeight;" +
-                                "var w=window.innerWidth||document.documentElement.clientWidth;" +
-                                "document.documentElement.style.height=h+'px';" +
-                                "document.body.style.height=h+'px';document.body.style.margin='0';" +
-                                "f.setAttribute('width',w);f.setAttribute('height',h);" +
-                                "f.style.width=w+'px';f.style.height=h+'px';f.style.display='block';" +
-                                "return h;})()",
-                            null,
-                        )
+                        // Kein nachtraegliches Setzen der Groesse per JavaScript mehr: das war
+                        // ein Netz fuer eine damals unbekannte Ursache. Jetzt ist sie bekannt (der
+                        // Player haengt am Ansichtsfenster, s. das HTML unten), und feste
+                        // Pixelwerte waeren beim Drehen sogar falsch.
                         if (!BuildConfig.DEBUG) return
                         view.postDelayed({
                             view.evaluateJavascript(

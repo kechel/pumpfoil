@@ -619,6 +619,45 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **✅ 02.09. — Community-Feed: Videos spielen wieder. ZWEI echte Fehler auf demselben Weg, plus
+  drei Irrwege, die hier stehen, damit sie niemand wiederholt.**
+  Jans Meldung: „das Abspielen der Videos im Community-Feed geht nicht mehr, die Previews sind
+  prima." Schwarze Flaeche, Durchblaettern ging, Titel und Knopf waren da.
+  **Fehler 1 — YouTube lehnte ab (Error 153).** Als `baseURL` stand `youtube-nocookie.com` SELBST,
+  die Elternseite war aus Sicht des Players also seine eigene Domain. Sichtbar wurde die Absage
+  nie, weil sie IM iframe landet. Jetzt `https://pumpfoil.org` als Herkunft plus `origin=` im
+  Embed — wie in der PWA, wo die Elternseite ohnehin unsere ist. **Dieselbe Zeile stand auch in
+  iOS** und ist dort mitkorrigiert.
+  **Fehler 2 — das iframe war 0 hoch.** Danach lief der Player (Ton, Dekoder, Audio-Fokus), aber
+  die Flaeche blieb schwarz. Jans Beobachtung „ganz unten am Bildschirmrand eine 1px hohe Zeile,
+  die sich beim Videowechsel farblich aendert" war das Video selbst. Gemessen (Debug-Log
+  `PumpfoilPlayer`): WebView 1032x1954 px, Ansichtsfenster 344x651 CSS-px, `body` und iframe aber
+  **0**. Behoben durch eine HTML-Struktur, die an keiner Vererbungskette haengt:
+  `<meta name="viewport">`, Stile in einem `<style>`-Block, und der Player per `position:fixed`
+  mit allen vier Kanten auf 0 am ANSICHTSFENSTER verankert. Lokal im Chromium gegengemessen
+  (`rect [500,564]`, `body` dabei 0 — was jetzt richtig ist, das iframe ist aus dem Textfluss).
+  **Drei Irrwege, alle mit Beleg widerlegt:** R8/Verschleierung (derselbe Fehler im Debug-Build
+  ohne R8) · `domStorageEnabled = true` (aendert nichts) · das Dialogfenster samt
+  Hardwarebeschleunigung (nicht die Ursache; die Ebene im Hauptfenster ist trotzdem geblieben, sie
+  ist einfacher und die Zurueck-Taste haengt am `BackHandler`). Auch meine Prozentzeichen-Theorie
+  war falsch — Jans Log zeigte das Markup unbeschadet.
+  **Dazu gebaut:** Wischen wechselt das Video (Android + iOS; auf Android muss der Griff im
+  `Initial`-Durchlauf abgefangen werden, weil der WebView sonst alles verschluckt), und der Player
+  laedt nicht mehr bei jeder Recomposition neu.
+  **Offen:** Jans Geschmacksfrage, ob der Player randlos sein soll (dann wieder ein Dialog) oder
+  ob Kopf- und Fussleiste sichtbar bleiben duerfen wie jetzt.
+
+- **✅ 02.09. — Spots-Ansicht stuerzte beim Scrollen ab: fuenf Karten ohne `onDetach()`.**
+  Jan: „die Spots-Ansicht crasht beim Scrollen, vermutlich auch zu gross/lang inzwischen" — und
+  auf iOS scrollt dieselbe Seite fluessig, es ist also nicht die Datenmenge. Befund: die App hat
+  **fuenf** osmdroid-Karten (Spots, Verlauf, Aufnahme, Vergleich, Session-Detail) und rief bei
+  KEINER `onDetach()` auf. Eine MapView haelt Kachel-Threads und einen Kachel-Cache; verwirft
+  Compose die View, bleibt beides liegen — in einer scrollenden Liste legt so jedes
+  Rein-und-Rausscrollen eine neue Karte an. Alle fuenf haben jetzt
+  `onRelease = { it.onDetach() }`. Zusaetzlich baute die Spots-Karte bei JEDER Recomposition alle
+  Pins neu (Bitmap je Buendel) und passte die Karte neu ein; jetzt nur noch bei echtem
+  Datenwechsel. **Von Jan noch nicht gegengetestet.**
+
 - **🟡 02.09. — MERKEN: die Suunto-API, die wir benutzen, ist als DEPRECATED markiert.** Jan hat es
   in den Berichten unter `apizone.suunto.com/reports` gesehen — die Aufrufe laufen dort unter
   **„SUUNTO WORKOUT API (DEPRECATED)"** (56 erfolgreich, 11 blockiert = das alte Wochenkontingent
