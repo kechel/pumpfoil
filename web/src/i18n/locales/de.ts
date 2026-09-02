@@ -767,6 +767,7 @@ const de: Record<string, string> = {
   "adm.tab.sessions": "Alle Sessions",
   "adm.tab.deleted": "Gelöscht",
   "adm.tab.audit": "Audit-Log",
+  "adm.tab.system": "System",
   "adm.stats.newUsers": "Neue Nutzer",
   "adm.stats.activeUsers": "Aktive Nutzer",
   "adm.stats.sessions": "Neue Sessions",

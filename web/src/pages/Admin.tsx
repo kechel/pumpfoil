@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { api, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey, NewsBanner, AdminBlock, AdminStatsSeries, AdminPending, AdminUserSport, AdminSocialChannel, AdminSocialItem } from "../lib/api";
+import { api, SystemHealth, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey, NewsBanner, AdminBlock, AdminStatsSeries, AdminPending, AdminUserSport, AdminSocialChannel, AdminSocialItem } from "../lib/api";
 import { Card, Spinner, ErrorBox, Avatar, NewBadge } from "../components/ui";
 import { FlagIcon, FakeIcon, HeartIcon, CameraIcon, LocationIcon } from "../components/Icons";
 import { TimeChart } from "../components/TimeChart";
@@ -8,7 +8,7 @@ import { useT, useNumberFormat, LANGS } from "../i18n";
 import { DATA_QUALITY, SPORTS } from "../lib/sportClass";
 import { demoGewuenscht, demoSetzen, demoAnzahl, demoBeobachten } from "../lib/demoNames";
 
-type Tab = "overview" | "classify" | "flagged" | "fake" | "suspect" | "sessions" | "deleted" | "users" | "photos" | "chat" | "spots" | "audit" | "feedback" | "news" | "blocks" | "social";
+type Tab = "overview" | "classify" | "flagged" | "fake" | "suspect" | "sessions" | "deleted" | "users" | "photos" | "chat" | "spots" | "audit" | "feedback" | "news" | "blocks" | "social" | "system";
 const TABS: [Tab, string][] = [
   ["overview", "adm.tab.overview"],
   ["classify", "adm.tab.classify"],
@@ -26,6 +26,7 @@ const TABS: [Tab, string][] = [
   ["social", "adm.tab.social"],
   ["blocks", "adm.tab.blocks"],
   ["audit", "adm.tab.audit"],
+  ["system", "adm.tab.system"],
 ];
 
 export default function Admin() {
@@ -74,6 +75,7 @@ export default function Admin() {
       {tab === "spots" && <SpotsTab />}
       {tab === "feedback" && <FeedbackTab />}
       {tab === "news" && <NewsTab />}
+      {tab === "system" && <SystemTab />}
       {tab === "social" && <SocialTab />}
       {tab === "blocks" && <BlocksTab />}
       {tab === "audit" && <AuditTab />}
@@ -324,6 +326,282 @@ function BlocksTab() {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------- Systemzustand ----
+// Betriebs-Bildschirm: erkennen, wenn etwas langsam zulaeuft (Platte, Datenbank, Backup zu alt)
+// oder gerade akut Last macht. Bewertet wird SERVERSEITIG (`api/health.py` liefert `warnungen`) —
+// hier wird nur dargestellt, damit Schwellen nicht an zwei Stellen gepflegt werden muessen.
+//
+// Beschriftungen deutsch und unuebersetzt, wie der Rest des Admin-Bereichs.
+
+function gb(b: number | null | undefined): string {
+  if (b === null || b === undefined) return "—";
+  if (b >= 1024 ** 3) return `${(b / 1024 ** 3).toFixed(1)} GB`;
+  if (b >= 1024 ** 2) return `${(b / 1024 ** 2).toFixed(0)} MB`;
+  return `${(b / 1024).toFixed(0)} kB`;
+}
+
+function dauer(s: number | null | undefined): string {
+  if (!s && s !== 0) return "—";
+  const t = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60);
+  if (t > 0) return `${t} d ${h} h`;
+  if (h > 0) return `${h} h ${m} min`;
+  return `${m} min`;
+}
+
+function zeitpunkt(unix: number | null | undefined): string {
+  if (!unix) return "—";
+  return new Date(unix * 1000).toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
+}
+
+/** Farbe nach Fuellstand — dieselben Schwellen wie im Server (75 / 90 %). */
+function fuellFarbe(p: number | null | undefined): string {
+  if (p === null || p === undefined) return "bg-slate-600";
+  if (p >= 90) return "bg-red-500";
+  if (p >= 75) return "bg-amber-500";
+  return "bg-brand-500";
+}
+
+function Balken({ prozent }: { prozent: number | null | undefined }) {
+  const p = Math.max(0, Math.min(100, prozent ?? 0));
+  return (
+    <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
+      <div className={`h-full rounded-full ${fuellFarbe(prozent)}`} style={{ width: `${p}%` }} />
+    </div>
+  );
+}
+
+/** Verlaufslinie ohne Diagramm-Bibliothek: reines SVG, 0…100 % feste Skala. */
+function Linie({ werte, farbe = "#22d3ee" }: { werte: (number | null)[]; farbe?: string }) {
+  const pts = werte.filter((v): v is number => v !== null && v !== undefined);
+  if (pts.length < 2) return <div className="h-8 text-xs text-slate-500">zu wenig Messpunkte</div>;
+  const w = 240, h = 32;
+  const d = pts.map((v, i) => `${(i / (pts.length - 1)) * w},${h - (Math.max(0, Math.min(100, v)) / 100) * h}`).join(" ");
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} className="h-8 w-full" preserveAspectRatio="none" aria-hidden>
+      <polyline points={d} fill="none" stroke={farbe} strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+    </svg>
+  );
+}
+
+function Kachel({ titel, children, rechts }: { titel: string; children: ReactNode; rechts?: ReactNode }) {
+  return (
+    <Card className="space-y-2 p-4">
+      <div className="flex items-baseline gap-2">
+        <h3 className="text-sm font-semibold text-slate-100">{titel}</h3>
+        {rechts && <span className="ml-auto text-xs text-slate-400">{rechts}</span>}
+      </div>
+      {children}
+    </Card>
+  );
+}
+
+function ZustandsPille({ zustand }: { zustand: string }) {
+  const gut = zustand === "active";
+  return (
+    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+      gut ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+          : "bg-red-500/15 text-red-700 dark:text-red-300"}`}>
+      {zustand}
+    </span>
+  );
+}
+
+function SystemTab() {
+  const [d, setD] = useState<SystemHealth | null>(null);
+  const [fehler, setFehler] = useState<string | null>(null);
+  const [auto, setAuto] = useState(true);
+  const [stand, setStand] = useState<number | null>(null);
+
+  const laden = () => api.adminHealth()
+    .then((r) => { setD(r); setFehler(null); setStand(Date.now()); })
+    .catch((e) => setFehler(String(e?.message ?? e)));
+
+  useEffect(() => { laden(); }, []);
+  // Alle 10 s nachladen, solange der Tab offen ist. Die Messung kostet serverseitig ~150 ms
+  // (eine CPU-Stichprobe) — oefter waere Selbstzweck.
+  useEffect(() => {
+    if (!auto) return;
+    const id = setInterval(laden, 10000);
+    return () => clearInterval(id);
+  }, [auto]);
+
+  if (fehler) return <ErrorBox message={fehler} />;
+  if (!d) return <Spinner />;
+
+  const v = d.verlauf;
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="text-sm text-slate-300">
+          {d.system.rechner} · {d.system.kerne} Kerne · seit {dauer(d.system.uptime_s)} in Betrieb
+        </span>
+        <label className="ml-auto flex cursor-pointer select-none items-center gap-2 text-sm text-slate-300">
+          <input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)}
+            className="h-4 w-4 rounded border-slate-600 bg-slate-900 text-brand-500 focus:ring-brand-500" />
+          alle 10 s aktualisieren
+        </label>
+        <button onClick={laden} className="rounded-lg bg-slate-700 px-2.5 py-1 text-xs text-slate-200 hover:bg-slate-600">
+          jetzt aktualisieren
+        </button>
+        <span className="text-xs text-slate-400">
+          Stand {stand ? new Date(stand).toLocaleTimeString("de-DE") : "—"}
+        </span>
+      </div>
+
+      {/* Bewertung zuerst: was JETZT wichtig ist, statt in Kacheln zu suchen. */}
+      {d.warnungen.length === 0 ? (
+        <Card className="p-3 text-sm text-emerald-700 dark:text-emerald-300">
+          Keine Auffälligkeiten — Platten, Speicher, Last, Dienste, Backup und Datenbank im Rahmen.
+        </Card>
+      ) : (
+        <div className="space-y-2">
+          {d.warnungen.map((w, i) => (
+            <Card key={i} className={`p-3 text-sm ${w.stufe === "rot"
+              ? "border-red-500/40 text-red-700 dark:text-red-300"
+              : "border-amber-500/40 text-amber-700 dark:text-amber-300"}`}>
+              <span className="font-semibold">{w.stufe === "rot" ? "Kritisch" : "Achtung"}:</span> {w.text}
+            </Card>
+          ))}
+        </div>
+      )}
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <Kachel titel="CPU & Last" rechts={d.system.cpu_modell}>
+          <div className="flex items-baseline gap-3">
+            <span className="text-2xl font-bold tabular-nums text-slate-100">
+              {d.cpu.auslastung === null ? "—" : `${d.cpu.auslastung.toFixed(0)} %`}
+            </span>
+            <span className="text-sm text-slate-400">
+              Last {d.cpu.last ? d.cpu.last.map((x) => x.toFixed(2)).join(" / ") : "—"}
+              {d.cpu.last_je_kern !== null && ` · ${d.cpu.last_je_kern.toFixed(2)} je Kern`}
+            </span>
+          </div>
+          <Balken prozent={d.cpu.auslastung} />
+          <Linie werte={v.map((p) => p.cpu)} />
+          <div className="text-xs text-slate-400">{d.prozesse.anzahl} Prozesse</div>
+        </Kachel>
+
+        <Kachel titel="Arbeitsspeicher" rechts={`${gb(d.speicher.benutzt)} von ${gb(d.speicher.total)}`}>
+          <div className="flex items-baseline gap-3">
+            <span className="text-2xl font-bold tabular-nums text-slate-100">
+              {d.speicher.prozent === null ? "—" : `${d.speicher.prozent.toFixed(0)} %`}
+            </span>
+            <span className="text-sm text-slate-400">{gb(d.speicher.verfuegbar)} verfügbar</span>
+          </div>
+          <Balken prozent={d.speicher.prozent} />
+          <Linie werte={v.map((p) => p.speicher)} farbe="#34d399" />
+          <div className="text-xs text-slate-400">
+            Cache {gb(d.speicher.cached)} · Swap {gb(d.speicher.swap_benutzt)} von {gb(d.speicher.swap_total)}
+            {d.speicher.swap_prozent !== null && ` (${d.speicher.swap_prozent.toFixed(0)} %)`}
+          </div>
+        </Kachel>
+
+        <Kachel titel="Platten" rechts={`${d.platten.length} Dateisysteme`}>
+          <div className="space-y-3">
+            {d.platten.map((p) => (
+              <div key={p.pfad}>
+                <div className="flex items-baseline justify-between text-sm">
+                  <span className="font-mono text-slate-200">{p.pfad}</span>
+                  <span className="text-slate-400">
+                    {p.prozent?.toFixed(0)} % · {gb(p.frei)} frei von {gb(p.total)}
+                  </span>
+                </div>
+                <Balken prozent={p.prozent} />
+                {(p.pfad === "/" || p.pfad === "/tmp") && (
+                  <Linie werte={v.map((s) => (p.pfad === "/" ? s.root : s.tmp))} farbe="#a78bfa" />
+                )}
+              </div>
+            ))}
+          </div>
+        </Kachel>
+
+        <Kachel titel="Datenbank" rechts={d.postgres.fehler ? `Fehler: ${d.postgres.fehler}` : gb(d.postgres.groesse)}>
+          <div className="text-sm text-slate-300">
+            {d.postgres.verbindungen} von {d.postgres.max_verbindungen} Verbindungen ·{" "}
+            {d.postgres.aktive_abfragen} aktive Abfragen
+            {(d.postgres.laengste_abfrage_s ?? 0) > 0 && ` · längste seit ${d.postgres.laengste_abfrage_s} s`}
+          </div>
+          <Balken prozent={d.postgres.verbindungen && d.postgres.max_verbindungen
+            ? (d.postgres.verbindungen / d.postgres.max_verbindungen) * 100 : 0} />
+          <div className="space-y-1 pt-1">
+            {(d.postgres.tabellen ?? []).slice(0, 5).map((t) => (
+              <div key={t.name} className="flex justify-between text-xs text-slate-400">
+                <span className="font-mono">{t.name}</span><span>{gb(t.bytes)}</span>
+              </div>
+            ))}
+          </div>
+        </Kachel>
+
+        <Kachel titel="Dienste & Zeitgeber">
+          <div className="space-y-1">
+            {d.dienste.map((s) => (
+              <div key={s.name} className="flex items-center justify-between text-sm">
+                <span className="font-mono text-slate-200">{s.name}</span>
+                <ZustandsPille zustand={s.zustand} />
+              </div>
+            ))}
+          </div>
+          <div className="space-y-1 border-t border-slate-800 pt-2">
+            {d.timer.map((t) => (
+              <div key={t.name} className="flex items-center justify-between gap-2 text-xs">
+                <span className="truncate font-mono text-slate-300">{t.name.replace(".timer", "")}</span>
+                <span className="whitespace-nowrap text-slate-400">
+                  zuletzt {zeitpunkt(t.letzte)} · nächster {zeitpunkt(t.naechste)}
+                </span>
+              </div>
+            ))}
+          </div>
+          {d.fehlerhafte_units.length > 0 && (
+            <div className="text-sm text-red-700 dark:text-red-300">
+              Fehlerzustand: {d.fehlerhafte_units.join(", ")}
+            </div>
+          )}
+        </Kachel>
+
+        <Kachel titel="Backup" rechts={d.backup.fehler ?? gb(d.backup.bytes)}>
+          <div className="text-sm text-slate-300">
+            Stand {zeitpunkt(d.backup.stand)}
+            {d.backup.alter_h !== undefined && ` · ${d.backup.alter_h.toFixed(0)} h alt`}
+          </div>
+          <div className="text-xs text-slate-400">
+            {d.backup.secrets_da === undefined ? "" : d.backup.secrets_da
+              ? "Verschlüsselter Umschlag mit Zugangsdaten liegt bei"
+              : "Der verschlüsselte Umschlag mit den Zugangsdaten FEHLT"}
+          </div>
+          <div className="font-mono text-xs text-slate-500">{d.backup.pfad}</div>
+          <div className="border-t border-slate-800 pt-2 text-xs text-slate-400">
+            Medienordner {gb(d.medien_bytes)} · Kernel {d.system.kernel}
+            {d.oom_24h !== null && ` · vom Speicherwächter beendet (24 h): ${d.oom_24h}`}
+          </div>
+        </Kachel>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        {([["Nach CPU", d.prozesse.nach_cpu], ["Nach Speicher", d.prozesse.nach_speicher]] as const).map(([titel, liste]) => (
+          <Kachel key={titel} titel={`Prozesse — ${titel}`}>
+            <div className="space-y-1">
+              {liste.map((p) => (
+                <div key={`${p.pid}-${titel}`} className="flex items-baseline justify-between gap-2 text-xs">
+                  <span className="truncate font-mono text-slate-200">{p.name}</span>
+                  <span className="whitespace-nowrap text-slate-400">
+                    {p.nutzer} · {p.cpu.toFixed(0)} % CPU · {gb(p.rss)} · {dauer(p.laufzeit_s)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </Kachel>
+        ))}
+      </div>
+
+      <p className="text-sm text-slate-400">
+        Messpunkte werden höchstens einmal pro Minute gespeichert und 14 Tage behalten — die
+        Verlaufslinien zeigen also nur Zeiträume, in denen dieser Bildschirm offen war.
+        Prozesse erscheinen bewusst nur mit Namen, nicht mit Befehlszeile.
+      </p>
     </div>
   );
 }

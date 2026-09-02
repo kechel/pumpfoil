@@ -610,6 +610,36 @@ export interface AdminStatsSeries {
   totals: { new_users: number; active_users: number; sessions: number; photos: number; likes: number };
 }
 
+/** Systemzustand des Servers (Admin). Feldnamen wie im Server (`api/health.py`) — deutsch, weil
+ *  der Admin-Bereich deutsch ist und eine Übersetzungsebene hier nur Fehler einbaut. */
+export interface SystemHealth {
+  zeit: number;
+  system: { kernel: string; rechner: string; kerne: number; cpu_modell: string; uptime_s: number };
+  cpu: { auslastung: number | null; last: number[] | null; last_je_kern: number | null };
+  speicher: {
+    total: number; verfuegbar: number; benutzt: number; prozent: number | null;
+    cached: number; puffer: number; swap_total: number; swap_benutzt: number; swap_prozent: number | null;
+  };
+  platten: { pfad: string; geraet: string; typ: string; total: number; benutzt: number; frei: number; prozent: number | null }[];
+  prozesse: {
+    anzahl: number;
+    nach_cpu: { pid: number; nutzer: string; cpu: number; mem: number; rss: number; laufzeit_s: number; name: string }[];
+    nach_speicher: { pid: number; nutzer: string; cpu: number; mem: number; rss: number; laufzeit_s: number; name: string }[];
+  };
+  dienste: { name: string; zustand: string; seit: string }[];
+  timer: { name: string; zustand: string; letzte: number | null; naechste: number | null }[];
+  fehlerhafte_units: string[];
+  postgres: {
+    groesse?: number; verbindungen?: number; max_verbindungen?: number; aktive_abfragen?: number;
+    laengste_abfrage_s?: number; tabellen?: { name: string; bytes: number }[]; fehler?: string;
+  };
+  backup: { pfad: string; stand?: number; alter_h?: number; bytes?: number; secrets_da?: boolean; fehler?: string };
+  oom_24h: number | null;
+  medien_bytes: number | null;
+  warnungen: { stufe: "rot" | "gelb"; text: string }[];
+  verlauf: { t: number | null; cpu: number | null; speicher: number | null; swap: number | null; last1: number | null; root: number | null; tmp: number | null }[];
+}
+
 export interface NewsBanner { version: number; enabled: boolean; texts: Record<string, string>; updated_at?: string | null; }
 
 export interface AdminBlock {
@@ -1148,6 +1178,7 @@ export const api = {
   adminPending: () => req<AdminPending>("/api/admin/pending"),
   adminBlocks: () => req<AdminBlock[]>("/api/admin/blocks"),
   newsBanner: () => req<NewsBanner>("/api/app/news"),
+  adminHealth: () => req<SystemHealth>("/api/admin/health"),
   adminNewsGet: () => req<NewsBanner>("/api/admin/news"),
   adminNewsSet: (p: Partial<NewsBanner>) => req<NewsBanner>("/api/admin/news", { method: "PUT", body: JSON.stringify(p) }),
   adminSpots: () => req<{ id: number; name: string | null; name_source: string | null; water: string | null; lat: number | null; lon: number | null; sessions: number }[]>("/api/admin/spots"),

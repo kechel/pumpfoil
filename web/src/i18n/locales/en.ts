@@ -742,6 +742,7 @@ const en: Record<string, string> = {
   "adm.tab.sessions": "All sessions",
   "adm.tab.deleted": "Deleted",
   "adm.tab.audit": "Audit log",
+  "adm.tab.system": "System",
   "adm.stats.newUsers": "New users",
   "adm.stats.activeUsers": "Active users",
   "adm.stats.sessions": "New sessions",
