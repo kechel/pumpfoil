@@ -838,16 +838,25 @@ enum Api {
 
     /// Eigene Session als Datei: kind = "gpx" | "fit". Nur der Besitzer, der Server prueft das.
     // DSGVO-Gegenstueck zur Loeschung: alle eigenen Daten als JSON (Datenuebertragbarkeit).
-    // Rohdaten, damit die Datei genauso aussieht wie die der PWA.
-    static func exportMyData() async throws -> Data {
+    //
+    // LAEDT IN EINE DATEI, nicht in den Speicher. Grund (Android-Absturz bei Jan, 02.09.): der
+    // Export traegt je Session die komplette GPS-Spur — bei 657 Sessions ~134 MB. Ein `Data`
+    // dieser Groesse ist auf einem Telefon nicht vertretbar; `URLSession.download` schreibt
+    // stattdessen in eine temporaere Datei, die wir ans Teilen-Blatt geben.
+    static func exportMyDataToFile() async throws -> URL {
         guard let url = URL(string: baseURL + "/api/auth/me/export") else { throw ApiError.badURL }
         var req = URLRequest(url: url)
-        req.timeoutInterval = 60
+        req.timeoutInterval = 180        // grosser Export darf dauern
         if let t = token { req.setValue("Bearer \(t)", forHTTPHeaderField: "Authorization") }
-        let (data, resp) = try await URLSession.shared.data(for: req)
+        let (temp, resp) = try await URLSession.shared.download(for: req)
         let code = (resp as? HTTPURLResponse)?.statusCode ?? -1
         guard (200..<300).contains(code) else { throw ApiError.http(code, "") }
-        return data
+        // Die Temp-Datei von URLSession heisst CFNetworkDownload_xyz.tmp — umbenennen, damit im
+        // Teilen-Blatt „pumpfoil-export.json" steht und die Zielapp den Typ erkennt.
+        let ziel = FileManager.default.temporaryDirectory.appendingPathComponent("pumpfoil-export.json")
+        try? FileManager.default.removeItem(at: ziel)
+        try FileManager.default.moveItem(at: temp, to: ziel)
+        return ziel
     }
 
     static func exportSession(_ id: Int, kind: String) async throws -> Data {

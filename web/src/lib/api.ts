@@ -712,7 +712,18 @@ export const api = {
   spotTracks: (spot: string) => req<{ session_id: number; started_at: string | null; foiling_km: number; track: [number, number, number | null][]; runs: [number, number, number | null][][] }[]>(
     `/api/sessions/spot-tracks?spot=${encodeURIComponent(spot)}`),
 
-  exportMyData: () => req<Record<string, unknown>>("/api/auth/me/export"),
+  // Als BLOB laden, nicht als JSON-Objekt: der Export traegt je Session die GPS-Spur und wird
+  // dreistellig MB gross (bei 657 Sessions ~134 MB). `req` wuerde ihn parsen und die
+  // Speicherfunktion ihn danach wieder serialisieren — dreimal dasselbe im Speicher, und auf
+  // Android hat genau das die App zerlegt (02.09.). Hier reicht der rohe Datenstrom.
+  exportMyDataBlob: async () => {
+    const token = getToken();
+    const res = await fetch("/api/auth/me/export", {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
+    return res.blob();
+  },
 
   // --- Spot-Beschreibungen (je Nutzer ein Textblock + Fotos pro Spot) ---
   spotNotes: (spotId: number) => req<SpotNotesOut>(`/api/community/spot/${spotId}/notes`),
