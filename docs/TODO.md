@@ -619,6 +619,17 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **📌 02.09. — MERKE: YouTube-Embeds spielen auf der VM NICHT, egal was wir bauen.** Im
+  Android-Emulator hier zeigt der Player „Sign in to confirm you're not a bot" — die VM haengt an
+  einer Rechenzentrums-IP, und YouTube verlangt dort eine Anmeldung. Aufgefallen erst am Abend des
+  02.09., nachdem ich einen halben Tag lang „bei mir ist es auch schwarz" als Befund behandelt
+  hatte. **Das war keiner.** Rueckwirkend wertlos sind damit alle meine Aussagen der Form „hier
+  spielt es auch nicht" — Jans Emulator auf dem Mac ist die einzige gueltige Quelle fuer die
+  WIEDERGABE.
+  **Was hier trotzdem messbar bleibt** (und heute den Fehler gefunden hat): Groessen und Layout per
+  `adb logcat -s PumpfoilPlayer` — WebView-Groesse, `window.innerHeight`, `getComputedStyle` von
+  `body` und iframe. Das laeuft unabhaengig davon, ob YouTube ein Bild liefert.
+
 - **✅ 02.09. — Community-Feed: Videos spielen wieder. ZWEI echte Fehler auf demselben Weg, plus
   drei Irrwege, die hier stehen, damit sie niemand wiederholt.**
   Jans Meldung: „das Abspielen der Videos im Community-Feed geht nicht mehr, die Previews sind

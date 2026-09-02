@@ -5,7 +5,6 @@ import android.content.Intent
 import android.net.Uri
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -58,6 +57,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.Dialog
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.ui.input.pointer.PointerEventPass
@@ -226,9 +227,17 @@ internal fun SocialPlayerOverlay(z: SocialFeedZustand) {
 
     val ctx = LocalContext.current
     var gemeldet by remember(item.id) { mutableStateOf(false) }
-    // Die Zurueck-Taste schliesst den Player, nicht die Seite — das machte vorher das Dialogfenster.
-    BackHandler(onBack = onClose)
-    run {
+    // Eigenes Fenster (Dialog), damit der Player WIRKLICH randlos ist — ueber der Kopfleiste UND
+    // ueber der unteren Navigation, wie auf iOS (Jan, 02.09.: „iOS blendet unten die Leiste auch
+    // aus, kann das Android auch?"). Aus dem Inhalt der Seite heraus ginge das nicht: die
+    // Kopfleiste zeichnet das Scaffold NACH dem Inhalt, und die untere Leiste haengt eine Ebene
+    // hoeher in der App.
+    //
+    // Anmerkung zur Geschichte: der Player LAG heute schon einmal in einem Dialog, und ich hatte
+    // das Fenster als Ursache der schwarzen Flaeche verdaechtigt. Es war die Groesse (das iframe
+    // war 0 hoch). Deshalb ist der Weg jetzt wieder frei — die Zurueck-Taste erledigt
+    // `onDismissRequest`, ein eigener BackHandler ist dafuer nicht mehr noetig.
+    Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Box(Modifier.fillMaxSize().background(Color.Black)) {
             // Kein oberer Rand mehr fuer das X (Jan, 02.09.: „kann das Video bis nach ganz oben
             // gehen? fuer das X ist daneben genug Platz"). Das X schwebt jetzt UEBER dem Video —
