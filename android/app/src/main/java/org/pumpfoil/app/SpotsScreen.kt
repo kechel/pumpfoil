@@ -23,6 +23,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -58,6 +60,26 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
     }
     LaunchedEffect(Unit) { load() }
 
+    // EINE Karte fuer die Lebensdauer der Seite — bewusst HIER und nicht in `SpotsMap`.
+    //
+    // Grund (Jan, 02.09.): „Crash wenn ich hochscrolle und oben ankomme". Es war kein Absturz,
+    // sondern ein ANR — im Log „Input dispatching timed out, waited 5000ms" bei 98 % Hauptthread.
+    // Ursache: die Karte war ein Eintrag der LazyColumn, wurde beim Rausscrollen verworfen und
+    // beim Zurueckscrollen NEU GEBAUT. Eine osmdroid-MapView legt dabei ihren Kachel-Cache samt
+    // SQLite-Datei an, und das auf dem Hauptthread — bei jedem Rein-Scrollen erneut.
+    //
+    // `remember` MUSS hier oben stehen: im Listeneintrag wuerde es mit dem Eintrag vergessen,
+    // und wir waeren wieder beim Neubauen.
+    val ctx = LocalContext.current
+    val karte = remember {
+        Configuration.getInstance().userAgentValue = ctx.packageName
+        MapView(ctx).apply {
+            setMultiTouchControls(true)
+            controller.setZoom(5.0)
+        }
+    }
+    DisposableEffect(karte) { onDispose { karte.onDetach() } }
+
     Scaffold(topBar = { PumpfoilTopBar(I18n.t("nav.spots")) }) { pad ->
         val scope = rememberCoroutineScope()
         Box(Modifier.padding(pad)) {
@@ -68,7 +90,7 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
                 LazyColumn(Modifier.fillMaxSize()) {
                     error?.let { e -> item { Text(e, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error) } }
                     if (items.isNotEmpty()) {
-                        item { SpotsMap(items, onOpenSpot, Modifier.fillMaxWidth().height(260.dp)) }
+                        item { SpotsMap(karte, items, onOpenSpot, Modifier.fillMaxWidth().height(260.dp)) }
                         // Spot-Vergleich direkt unter der Karte — dieselbe Stelle wie in der PWA.
                         item { SpotCompareSection(onOpenSession = onOpenSession, onOpenSpot = onOpenSpot) }
                     }
@@ -170,41 +192,39 @@ fun buendelSpots(items: List<SpotMapItem>, zoom: Double, naehe: Double): List<Li
 // FLOSS-Karte (OpenStreetMap via osmdroid) mit gebuendelten Pins, eingebettet per AndroidView
 // in Compose. Kein API-Key noetig.
 @Composable
-private fun SpotsMap(items: List<SpotMapItem>, onOpenSpot: (String) -> Unit, modifier: Modifier = Modifier) {
-    // Damit der Zoom-Listener (einmalig in factory gesetzt) immer die aktuellen Daten sieht.
+private fun SpotsMap(
+    karte: MapView,
+    items: List<SpotMapItem>,
+    onOpenSpot: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    // Damit der Zoom-Listener (einmalig gesetzt) immer die aktuellen Daten sieht.
     val daten = rememberUpdatedState(items)
     val oeffne = rememberUpdatedState(onOpenSpot)
+    // Der Listener haengt an der KARTE, nicht am Listeneintrag — deshalb nur einmal setzen.
+    LaunchedEffect(karte) {
+        karte.addMapListener(DelayedMapListener(object : MapListener {
+            override fun onScroll(e: ScrollEvent?): Boolean = false
+            override fun onZoom(e: ZoomEvent?): Boolean {
+                zeichnePins(karte, daten.value, oeffne.value); return true
+            }
+        }, 150))
+    }
     MapTiles.MitUmschalter(modifier) { ebene ->
         AndroidView(
             modifier = Modifier.fillMaxSize(),
-            // osmdroid raeumt NICHT von selbst auf: eine MapView haelt Kachel-Threads und
-            // einen Kachel-Cache, und beides bleibt liegen, wenn Compose die View verwirft.
-            // In einer scrollenden Liste heisst das: jedes Rein- und Rausscrollen legt eine neue
-            // Karte an, die alte bleibt im Speicher. Jan: „die Spots-Ansicht crasht beim
-            // Scrollen" (02.09.). `onDetach()` ist der von osmdroid dafuer vorgesehene Weg.
-            onRelease = { it.onDetach() },
-            factory = { c ->
-                Configuration.getInstance().userAgentValue = c.packageName
-                MapView(c).apply {
-                    MapTiles.anwenden(this, ebene)
-                    setMultiTouchControls(true)
-                    controller.setZoom(5.0)
-                    // Beim Zoomen neu buendeln (wie `m.on("zoomend", …)` im Web). Schwenken aendert
-                    // die Buendelung nicht — nur der Massstab entscheidet, was sich ueberdeckt.
-                    addMapListener(DelayedMapListener(object : MapListener {
-                        override fun onScroll(e: ScrollEvent?): Boolean = false
-                        override fun onZoom(e: ZoomEvent?): Boolean {
-                            zeichnePins(this@apply, daten.value, oeffne.value); return true
-                        }
-                    }, 150))
-                }
+            // Gibt die EINE Karte zurueck, statt eine neue zu bauen. Beim Zurueckscrollen haengt
+            // sie noch am alten Eltern-Container — erst abmelden, dann wieder einhaengen.
+            // KEIN `onRelease = onDetach` hier: die Karte soll das Rausscrollen ueberleben.
+            // Aufgeraeumt wird beim Verlassen der Seite (DisposableEffect in SpotsScreen).
+            factory = {
+                (karte.parent as? android.view.ViewGroup)?.removeView(karte)
+                karte
             },
             update = { map ->
                 MapTiles.anwenden(map, ebene)
-                // `update` laeuft bei JEDER Recomposition. Ohne Merker heisst das: alle Pins neu
-                // bauen (samt Bitmap je Buendel) und die Karte neu einpassen — bei jedem Scrollen,
-                // jedem Ebenenwechsel, jeder Zustandsaenderung drumherum. Der Merker haengt am
-                // View selbst, damit er die Recomposition ueberlebt und keine ausloest.
+                // Merker am View: `update` laeuft bei jeder Recomposition, und Pins neu bauen
+                // heisst eine Bitmap je Buendel plus neues Einpassen.
                 val stand = "${'$'}{items.size}:${'$'}{items.firstOrNull()?.spot}"
                 if (map.tag != stand) {
                     map.tag = stand
