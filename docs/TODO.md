@@ -619,6 +619,40 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **✅ 02.09. — Play-Hinweis „Bitmap-Bildoptimierung": Foto im Teilen-Dialog wurde in Originalgroesse
+  dekodiert.** Play zeigte das unter „Arbeitsspeichernutzung" fuer Release 38 (1.1.24) an, mit
+  Fundstelle: `ShareDialog` lud das Hintergrundfoto per `BitmapFactory.decodeStream` — einmal aus
+  dem Netz (erstes Session-Foto), einmal aus dem Bild-Picker. Ein 12-MP-Handyfoto sind **48 MB im
+  Speicher**, fuer eine Card, die 1080x1080 gross wird. Derselbe Fehler wie beim Daten-Export.
+  **Behoben:** beide Pfade gehen jetzt ueber **Coil** (war schon Abhaengigkeit) mit `size(1920)` +
+  `allowHardware(false)`. Drei Nebengewinne: EXIF-Drehung wird angewandt (der Picker-Pfad ignorierte
+  sie — Hochkant-Fotos lagen quer in der Card, war nie gemeldet), Netz-Fotos landen im Coil-Cache,
+  und das Dekodieren blockiert nicht mehr den Hauptthread im Picker-Callback.
+  Steckt in 1.1.25 (39), also im gleichen Release wie der Wear-Absturz-Fix.
+
+- **🔲 02.09. — Play-Warnung „App-Optimierung unter dem Grenzwert": Verschleierung 0 %, R8 ist aus.**
+  Play meldet fuer Release 38 (1.1.24): unter 25 % in einer Kategorie „kann sich auf Sichtbarkeit und
+  Veroeffentlichung auswirken", mit Frist (Datum steht in der Console). Ursache: `isMinifyEnabled =
+  false` in **beiden** Modulen — seit dem ersten Release so, nie bewusst entschieden, nur nie
+  angefasst.
+  **Bewusst NICHT in 1.1.25 gemacht:** R8 (AGP 8.9.2 -> Full Mode ist Standard) veraendert den
+  ausgelieferten Code und braucht einen echten Geraetedurchlauf auf Handy UND Uhr, nicht nur einen
+  gruenen Compile. Der Wear-Absturz-Fix soll nicht darauf warten.
+  **Wenn wir es angehen — Reihenfolge und die Stellen, die zu pruefen sind:**
+  1. `:app` zuerst, `isMinifyEnabled = true` + `isShrinkResources = true` +
+     `proguard-android-optimize.txt`; `:wear` erst danach separat.
+  2. **Verdachtsstellen (jede einzeln im Release-Build durchklicken):** die per Name gespeicherten
+     Enums (`SessionViewPrefs` legt `ColorMode.name` in SharedPreferences ab — R8 darf die Konstanten
+     nicht umbenennen), `@Serializable`-Modelle in `Api.kt` (kotlinx-serialization bringt eigene
+     Regeln mit, aber Full Mode ist strenger), **osmdroid** (Karte/Spots), Health Services +
+     `ListenableFuture` auf der Uhr, `credentials`/`googleid` beim Google-Login, das
+     In-App-Review-Overlay.
+  3. **Preis, der uns direkt trifft:** die `adb logcat`-Ausgaben, die Jan mir schickt, sind dann
+     verschleiert (`a.b.a`). Play Console entschluesselt hochgeladene Abstuerze selbst, ein
+     Emulator-Log nicht. Also `mapping.txt` je Release aufbewahren und mit `retrace` zurueckrechnen —
+     sonst kostet die naechste Absturzsuche ein Vielfaches.
+  Kein Zeitdruck bis zur Frist, aber vor deren Ablauf einplanen.
+
 - **✅ 02.09. — Wear-Aufnahme laeuft im Emulator, und „ein Druck statt halten" ist IM FELD
   bestaetigt** (Jan: „jetzt laeuft die wear und one click stop geht auch ohne hold"). Damit ist die
   Kette einmal ganz durchgemessen: Einstellung im Profil -> `/api/devices/config` -> Uhr -> kurzer

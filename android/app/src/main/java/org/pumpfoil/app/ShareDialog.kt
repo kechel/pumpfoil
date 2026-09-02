@@ -88,6 +88,32 @@ private val STAT_ORDER = listOf("foiling", "runs", "pumps", "speed", "time", "lo
 // Foto-Rechteck in 1080-Einheiten (wie web/xf): Position + Größe des Hintergrundfotos.
 private data class Xf(val x: Float, val y: Float, val w: Float, val h: Float)
 
+// Foto laden, aber GEDECKELT (Play-Hinweis „Bitmap-Bildoptimierung", 02.09.): vorher wurde das
+// Original per BitmapFactory.decodeStream voll dekodiert — ein 12-MP-Handyfoto sind 48 MB im
+// Speicher (ARGB_8888), fuer eine Card, die am Ende 1080x1080 gross ist. Das ist derselbe Fehler
+// wie beim Daten-Export: alles in den RAM, statt auf die gebrauchte Groesse zu gehen.
+//
+// Jetzt laedt Coil (ist ohnehin Abhaengigkeit fuer die Fotos) und skaliert beim Dekodieren auf
+// MAX_FOTO herunter. Nebeneffekte, die wir wollen: EXIF-Drehung wird angewandt (der Picker-Pfad
+// hat sie vorher IGNORIERT — Hochkant-Fotos lagen quer in der Card), Netz-Fotos landen im
+// Coil-Cache, und das Dekodieren laeuft nicht mehr im Picker-Callback auf dem Hauptthread.
+//
+// `allowHardware(false)` ist Pflicht: `composeCard` zeichnet das Bitmap per Canvas, und aus
+// HARDWARE-Bitmaps kann man nicht in ein Software-Canvas zeichnen.
+private const val MAX_FOTO = 1920   // lange Kante; ~1,8x der 1080er Card = Reserve fuer Zoom
+
+private suspend fun ladeFoto(ctx: android.content.Context, quelle: Any?, maxKante: Int = MAX_FOTO): android.graphics.Bitmap? {
+    quelle ?: return null
+    return try {
+        val req = coil.request.ImageRequest.Builder(ctx)
+            .data(quelle)
+            .size(maxKante)
+            .allowHardware(false)
+            .build()
+        (coil.Coil.imageLoader(ctx).execute(req).drawable as? android.graphics.drawable.BitmapDrawable)?.bitmap
+    } catch (_: Exception) { null }
+}
+
 // Foto (cover-fit + Gesten) + Scrim (dim) + server-Card zusammensetzen — wie das Canvas der PWA.
 private fun composeCard(card: android.graphics.Bitmap?, photo: android.graphics.Bitmap?, xf: Xf, dim: Float): android.graphics.Bitmap? {
     card ?: return null
@@ -151,8 +177,8 @@ fun ShareDialog(session: SessionDetail, initialHighlight: Int = -1, onDismiss: (
     val picker = androidx.activity.compose.rememberLauncherForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.GetContent()
     ) { uri ->
-        if (uri != null) {
-            val bmp = try { ctx.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it) } } catch (_: Exception) { null }
+        if (uri != null) scope.launch {
+            val bmp = ladeFoto(ctx, uri)
             if (bmp != null) {
                 photo = bmp
                 val s = maxOf(N / bmp.width, N / bmp.height)
@@ -175,9 +201,7 @@ fun ShareDialog(session: SessionDetail, initialHighlight: Int = -1, onDismiss: (
         try {
             val url = Api.mediaUrl(Api.sessionPhotos(session.id).firstOrNull()?.url)
             if (url != null) {
-                val bmp = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-                    try { java.net.URL(url).openStream().use { BitmapFactory.decodeStream(it) } } catch (_: Exception) { null }
-                }
+                val bmp = ladeFoto(ctx, url)
                 if (bmp != null) {
                     photo = bmp
                     val sc = maxOf(N / bmp.width, N / bmp.height)
