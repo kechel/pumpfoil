@@ -308,7 +308,29 @@ private fun YoutubePlayer(videoId: String, modifier: Modifier = Modifier) {
         modifier = modifier,
         factory = { c ->
             WebView(c).apply {
-                webViewClient = WebViewClient()
+                // Nur im Debug-Build: die ECHTEN Groessen ins Log, sobald die Seite steht.
+                // Anlass (02.09.): schwarze Videoflaeche bei laufendem Ton. Aus einem Screenshot
+                // ist nicht zu unterscheiden, ob der WebView null hoch ist, das iframe null hoch
+                // ist, oder alles passt und nur das Video nicht gezeichnet wird. Eine Zeile Log
+                // beantwortet genau das — ohne sie raet man an drei Stellen gleichzeitig.
+                webViewClient = object : WebViewClient() {
+                    override fun onPageFinished(view: WebView, url: String) {
+                        if (!BuildConfig.DEBUG) return
+                        view.postDelayed({
+                            view.evaluateJavascript(
+                                "(function(){var f=document.querySelector('iframe');" +
+                                    "return JSON.stringify({doc:[document.documentElement.clientWidth," +
+                                    "document.documentElement.clientHeight],body:[document.body.clientWidth," +
+                                    "document.body.clientHeight],frame:f?[f.clientWidth,f.clientHeight]:null});})()"
+                            ) { r ->
+                                android.util.Log.i(
+                                    "PumpfoilPlayer",
+                                    "webview=${view.width}x${view.height} px, html=$r"
+                                )
+                            }
+                        }, 1500)
+                    }
+                }
                 // Ohne WebChromeClient bekommt der HTML5-Player keine Rueckrufe fuer Vollbild
                 // und Medien-Zustand. Wir brauchen kein eigenes Verhalten, aber der Player
                 // fragt danach — fehlt der Client, verhaelt sich Video je nach WebView anders.
