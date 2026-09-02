@@ -210,6 +210,14 @@ object Api {
     }
 
     // Carve-Erkennung (nur Anzeige): Grad-Buckets + geglättete 25-Hz-Bögen mit Kurvenlage-g.
+    // Startversuche einer Session (nur die MISSLUNGENEN — die geglueckten sind die Laeufe).
+    // Wird serverseitig frisch gerechnet, deshalb erst beim Einschalten des Schalters holen.
+    suspend fun sessionAttempts(id: Int): List<AttemptLine> = withContext(Dispatchers.IO) {
+        val o = json.parseToJsonElement(http("GET", "/api/sessions/$id/attempts", null, auth = true))
+            .jsonObject["attempts"] ?: return@withContext emptyList()
+        json.decodeFromJsonElement(ListSerializer(AttemptLine.serializer()), o)
+    }
+
     suspend fun sessionCarves(id: Int): CarveData = withContext(Dispatchers.IO) {
         json.decodeFromString(CarveData.serializer(), http("GET", "/api/sessions/$id/carves", null, auth = true))
     }

@@ -603,6 +603,20 @@ data class PeriodRecords(
     @SerialName("carves180") val carves180: CommunityRecordEntry? = null,
 )
 
+// Ein Startversuch fuer die Karte (GET /api/sessions/{id}/attempts): fertige Punkte statt
+// Indizes — Versuche VOR dem Zuschnitt haben im getrimmten Track gar keinen Index, und
+// aussortierte Bereiche verschieben ihn. `outsideTrim` = liegt ausserhalb des ausgewerteten
+// Bereichs, zaehlt also in keiner Statistik der Session mit.
+@Serializable
+data class AttemptLine(
+    val points: List<List<Double>> = emptyList(),   // [[lat, lon], …]
+    @SerialName("t_start_ms") val tStartMs: Long = 0,
+    @SerialName("distance_m") val distanceM: Double = 0.0,
+    @SerialName("duration_s") val durationS: Double = 0.0,
+    @SerialName("avg_speed_mps") val avgSpeedMps: Double = 0.0,
+    @SerialName("outside_trim") val outsideTrim: Boolean = false,
+)
+
 // Rekordhalter einer Spot-Kennzahl (von EINER Session/EINEM Lauf gewonnen).
 @Serializable
 data class SpotRecHolder(
