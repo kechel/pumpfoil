@@ -474,7 +474,13 @@ def _import_notified_workout(username: str, key: str) -> None:
         if ok:
             link.last_sync_at = datetime.now(timezone.utc)
             db.commit()
-        elif not _endgueltig(fehler) and (fehler == "quota" or (fehler or "").startswith(("http", "fehler"))):
+        elif _endgueltig(fehler):
+            # Endgueltig heisst: nachholen bringt nichts (kein GPS, schon vorhanden, 403/404/410).
+            # Trotzdem PROTOKOLLIEREN — vorher verschwand so ein Ping voellig lautlos, und beim
+            # Nachrechnen am 02.09. war dadurch nicht zu unterscheiden, ob ein Workout kein GPS
+            # hatte oder ob die Verknuepfung inzwischen weg ist. Eine Zeile Log beantwortet das.
+            log.info("Suunto Webhook: %s nicht importiert (%s, Nutzer %s)", key, fehler, user.id)
+        elif fehler == "quota" or (fehler or "").startswith(("http", "fehler")):
             # Suunto schickt denselben Ping NICHT noch einmal — ohne Vormerkung waere die
             # Session verloren. Genau das ist bei erschoepftem Wochen-Kontingent passiert.
             _vormerken(db, user.id, key, fehler or "?")
