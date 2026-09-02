@@ -390,7 +390,10 @@ private fun YoutubePlayer(videoId: String, modifier: Modifier = Modifier) {
                                     "Math.round(f.getBoundingClientRect().height)]:null," +
                                     // Beweist, ob das Markup UNBESCHADET ankommt: fehlt hier das
                                     // style-Attribut, hat der Transportweg es zerlegt.
-                                    "bodyTag:document.body.outerHTML.slice(0,90)," +
+                                    // Das iframe VOLLSTAENDIG und einzeln — eine Kuerzung genau
+                                    // hinter „height:" hat am 02.09. schon einmal wie ein
+                                    // abgeschnittener Stil ausgesehen (war nur der Schnitt).
+                                    "frameTag:f?f.outerHTML.slice(0,140):null," +
                                     // Was der Browser tatsaechlich RECHNET — nicht was im
                                     // Attribut steht. Genau hier trennt sich „Stil kam nicht an"
                                     // von „Stil kam an, Layout ignoriert ihn".
