@@ -14,7 +14,7 @@ import { FeedbackWidget } from "./components/FeedbackWidget";
 import { DmWidget } from "./components/DmWidget";
 import { CompareBar } from "./components/CompareBar";
 import { InstallPwa } from "./components/InstallPwa";
-import { warmMySessions, warmMedia } from "./lib/pwaCache";
+import { warmMySessions, warmMedia, raeumeAlteCaches } from "./lib/pwaCache";
 import { demoStart } from "./lib/demoNames";
 
 type NavItem = { to: string; labelKey: string; shortKey?: string; icon: (p: { className?: string }) => JSX.Element; end: boolean };
@@ -96,7 +96,9 @@ export default function App() {
   const [pending, setPending] = useState(0);   // offene Moderation (gemeldet + unecht) fürs Admin-Badge
 
   // Letzte 10 eigene Sessions für Offline vorladen (nur was nicht schon gecacht ist).
-  useEffect(() => { warmMySessions(); }, []);
+  // Erst die alten Cache-Versionen wegräumen, dann vorwärmen — sonst bliebe eine veraltete
+  // Antwort liegen und die Detailseite zeigte ein neues Feld nicht (s. pwaCache.ts).
+  useEffect(() => { raeumeAlteCaches().finally(() => { warmMySessions(); }); }, []);
   useEffect(() => {
     api.getProfile().then((p) => {
       setProfile(p);

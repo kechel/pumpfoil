@@ -1,11 +1,22 @@
 import { api } from "./api";
 
-const CACHE = "api-session-detail"; // identisch mit vite.config (Workbox runtimeCaching)
+const CACHE = "api-session-detail-v2"; // identisch mit vite.config (Workbox runtimeCaching)
+// Vorgaenger-Namen: beim Hochzaehlen hier eintragen, damit die alten Caches wirklich verschwinden
+// (Workbox raeumt nur seinen Precache auf, nicht umbenannte Laufzeit-Caches).
+const ALTE_CACHES = ["api-session-detail"];
 const MEDIA_CACHE = "media";        // identisch mit vite.config runtimeCaching (/media/)
 
 // /media/-URLs (Avatare, Fotos) proaktiv in den media-Cache laden, damit sie auch
 // nach Neustart/offline sicher da sind. CacheFirst greift sonst erst nach dem
 // ersten erfolgreichen Abruf — der bei cold start fehlen kann.
+/** Alte Versionen des Session-Caches wegräumen (nach einem Namenswechsel). */
+export async function raeumeAlteCaches(): Promise<void> {
+  if (typeof window === "undefined" || !("caches" in window)) return;
+  for (const name of ALTE_CACHES) {
+    try { await caches.delete(name); } catch { /* egal */ }
+  }
+}
+
 export async function warmMedia(urls: (string | null | undefined)[]): Promise<void> {
   if (typeof navigator === "undefined" || !navigator.onLine || !("caches" in window)) return;
   const uniq = Array.from(new Set(urls.filter((u): u is string => !!u && u.startsWith("/media/"))));

@@ -93,7 +93,11 @@ export default defineConfig({
               /^\/api\/community\/sessions\/\d+\//.test(url.pathname),
             handler: "NetworkFirst",
             options: {
-              cacheName: "api-session-detail",
+              // v2 (02.09.): Namenswechsel verwirft die alten Eintraege. Noetig, weil die
+              // Antwort seit heute `start_attempts` traegt — eine aus dem Cache bediente
+              // Session zeigte sonst weiter „4 Laeufe" statt „4/4" (Jans Befund an #3219).
+              // MERKE: bei jedem NEUEN FELD in /api/sessions/<id> hier hochzaehlen.
+              cacheName: "api-session-detail-v2",
               networkTimeoutSeconds: 4,
               expiration: { maxEntries: 80, maxAgeSeconds: 30 * 24 * 3600 },
               cacheableResponse: { statuses: [200] },
