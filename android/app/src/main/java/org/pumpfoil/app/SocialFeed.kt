@@ -42,8 +42,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -53,12 +55,14 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.DialogWindowProvider
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 
@@ -205,6 +209,16 @@ private fun SocialPlayerDialog(
     val ctx = LocalContext.current
     var gemeldet by remember(item.id) { mutableStateOf(false) }
     Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        // Das Dialogfenster ausdruecklich hardwarebeschleunigt anfordern (Jan, 02.09.: Bild blieb
+        // schwarz, obwohl Dekoder lief und der Audio-Fokus gehalten wurde). Video zeichnet der
+        // WebView ueber eine eigene GPU-Ebene; in einem NEBENfenster ohne Beschleunigung landet
+        // sie nicht auf dem Schirm — HTML daneben wird normal gezeichnet, genau das sah man.
+        val view = LocalView.current
+        SideEffect {
+            (view.parent as? DialogWindowProvider)?.window?.addFlags(
+                android.view.WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
+            )
+        }
         Box(Modifier.fillMaxSize().background(Color.Black)) {
             Column(Modifier.fillMaxSize().padding(top = 44.dp, bottom = 8.dp)) {
                 Box(Modifier.fillMaxWidth().weight(1f).padding(horizontal = 52.dp)) {
@@ -292,6 +306,10 @@ private fun YoutubePlayer(videoId: String, modifier: Modifier = Modifier) {
         factory = { c ->
             WebView(c).apply {
                 webViewClient = WebViewClient()
+                // Ohne WebChromeClient bekommt der HTML5-Player keine Rueckrufe fuer Vollbild
+                // und Medien-Zustand. Wir brauchen kein eigenes Verhalten, aber der Player
+                // fragt danach — fehlt der Client, verhaelt sich Video je nach WebView anders.
+                webChromeClient = android.webkit.WebChromeClient()
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = false
                 settings.mediaPlaybackRequiresUserGesture = false   // autoplay wie im Web
