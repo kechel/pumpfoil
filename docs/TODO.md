@@ -619,6 +619,11 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟡 02.09. — Zepp 1.0.7 weiter „Under Review"** (eingereicht 01.09.; die Zeile darunter zeigt
+  1.0.6 als „Approved" vom 24.08.). Nichts zu tun, nur Geduld — Zepp braucht erfahrungsgemaess
+  Tage, nicht Stunden. Geraeteliste der Einreichung: 85 Kennungen, von Falcon und T-Rex Ultra bis
+  Balance 3 Ti, Bip 6 und Bip Max.
+
 - **🟡 02.09. 17:55 — iOS/Apple Watch 1.1.29 (33) EINGEREICHT** („Warten auf Prüfung",
   Uebermittlungskennung `2ea86051-b581-4ac9-8048-e25f47c5c87d`, eingereicht von Jan). Live ist
   weiter 1.1.28. Nur ~1,5 Stunden nach der Freigabe von 1.1.28 — Anlass war der kaputte Player.
