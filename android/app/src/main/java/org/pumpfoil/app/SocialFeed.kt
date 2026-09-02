@@ -262,10 +262,28 @@ private fun SocialPlayerDialog(
 /**
  * Der eingebettete Player. WebView mit genau dem `iframe`, den auch die PWA benutzt.
  *
+ * Geprueft am 02.09. auf der Fehlersuche: `domStorageEnabled = true` aendert NICHTS — der Player
+ * startete auch damit nicht, die Ursache war die Eltern-Herkunft (s. HERKUNFT unten). Also bleibt
+ * der Speicher aus; wer den Schalter erneut erwaegt, hat ihn schon ausprobiert.
+ *
  * Bewusst KEIN eigener Speicher: `domStorageEnabled` bleibt aus und der Cache wird beim
  * Verlassen geleert — die Wiedergabe braucht das nicht, und wir sammeln nichts an. JavaScript
  * muss an sein, ohne das spielt der YouTube-Player nicht.
  */
+// Die ELTERN-Herkunft, die der YouTube-Player zu sehen bekommt. Muss unsere eigene sein.
+//
+// Vorher stand hier `youtube-nocookie.com` selbst als Basis-URL — damit war die Elternseite aus
+// Sicht des Players seine eigene Domain, und YouTube lehnte ab: **Error 153**, „Video player
+// configuration error". Sichtbar wurde das nie, weil der Fehler IM iframe landete und der
+// Rahmen schwarz blieb; nach aussen sah es wie ein kaputtes Video aus (Jan, 02.09.:
+// „Abspielen geht nicht mehr, die Vorschauen sind prima").
+//
+// In der PWA ist die Elternseite `https://pumpfoil.org` — deshalb laeuft es dort. Genau das
+// stellen wir hier nach: Basis-URL = unsere Herkunft, plus `origin=` im Embed, wie es die
+// Player-Parameter vorschreiben. Datenschutzseitig aendert das nichts gegenueber der Web-Seite:
+// derselbe Referrer, dieselbe nocookie-Domain, und geladen wird erst nach dem Antippen.
+private const val HERKUNFT = "https://pumpfoil.org"
+
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 private fun YoutubePlayer(videoId: String, modifier: Modifier = Modifier) {
@@ -290,11 +308,11 @@ private fun YoutubePlayer(videoId: String, modifier: Modifier = Modifier) {
             if (web.tag == videoId) return@AndroidView
             web.tag = videoId
             web.loadDataWithBaseURL(
-                "https://www.youtube-nocookie.com",
+                HERKUNFT,
                 """<html><body style="margin:0;background:#000">
                    <iframe width="100%" height="100%" frameborder="0" allowfullscreen
                      allow="autoplay; encrypted-media; picture-in-picture"
-                     src="https://www.youtube-nocookie.com/embed/$videoId?autoplay=1&rel=0&playsinline=1&loop=1&playlist=$videoId"></iframe>
+                     src="https://www.youtube-nocookie.com/embed/$videoId?autoplay=1&rel=0&playsinline=1&loop=1&playlist=$videoId&origin=$HERKUNFT"></iframe>
                    </body></html>""",
                 "text/html", "utf-8", null,
             )
