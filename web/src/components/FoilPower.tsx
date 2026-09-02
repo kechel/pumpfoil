@@ -1,6 +1,6 @@
+import { useState } from "react";
 import { computeFoilPowerAtSpeed, DEFAULT_RIDER, FoilDims, PumpParams } from "../lib/foilPhysics";
-import { Card } from "./ui";
-import { InfoIcon } from "./Icons";
+import { Card, InfoDialog, InfoKnopf } from "./ui";
 import { useT } from "../i18n";
 
 // Ohne erkannte Pump-Frequenz (z. B. TCX/GPX/FIT-Import, kein Roh-Accel) wird die
@@ -21,6 +21,9 @@ export function FoilPowerStat({ foil, avgKmh, pumpHz, estimated, weightKg }: {
   weightKg: number;
 }) {
   const t = useT();
+  // Erklärung im selben Popup wie bei „Läufe/Starts" (Jan, 02.09.). Vorher hing sie in einem
+  // `title`-Tooltip — auf dem Handy also unsichtbar, wo die meisten die Seite ansehen.
+  const [offen, setOffen] = useState(false);
 
   if (!foil.span_cm || !foil.area_cm2 || !foil.thickness_mm || !avgKmh || avgKmh <= 0) return null;
 
@@ -41,16 +44,16 @@ export function FoilPowerStat({ foil, avgKmh, pumpHz, estimated, weightKg }: {
   }) + (estimated ? ` · ${t("power.estimated")}` : "");
 
   return (
+    <>
     <Card className="relative overflow-hidden p-1.5">
-      <button type="button" title={tip} aria-label={tip}
-        className="absolute right-1 top-1 text-slate-400 hover:text-slate-200">
-        <InfoIcon className="h-3 w-3" />
-      </button>
+      <InfoKnopf label={t("power.title")} onClick={() => setOffen(true)} />
       <div className="flex items-baseline gap-1 leading-none">
         <span className="text-base font-bold tabular-nums text-brand-400 sm:text-lg">{total}</span>
         <span className="text-[11px] text-slate-400">W{pump ? "" : "*"}</span>
       </div>
       <div className="mt-1 text-[10px] uppercase leading-tight tracking-wide text-slate-300">{t("power.title")}</div>
     </Card>
+    {offen && <InfoDialog title={t("power.title")} text={tip} onClose={() => setOffen(false)} />}
+    </>
   );
 }

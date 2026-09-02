@@ -4,8 +4,8 @@ import L from "leaflet";
 import { basiskarten } from "../lib/mapTiles";
 import { api, SessionSummary, SessionSocial as SocialData, SessionVideo } from "../lib/api";
 import { fmtDate, fmtTime } from "../lib/time";
-import { Card, Stat, Spinner, ErrorBox, Avatar } from "../components/ui";
-import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon, EditIcon, StarIcon, CloseIcon, KeyboardIcon, WifiOffIcon, EyeIcon, EyeOffIcon, CompareIcon, ChatBubbleIcon, ShareIcon, WatchIcon, WaveIcon, ScissorsIcon, LinkIcon, CheckIcon, InstagramIcon, TikTokIcon, DownloadIcon, InfoIcon } from "../components/Icons";
+import { Card, Stat, Spinner, ErrorBox, Avatar, InfoDialog, InfoKnopf } from "../components/ui";
+import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon, EditIcon, StarIcon, CloseIcon, KeyboardIcon, WifiOffIcon, EyeIcon, EyeOffIcon, CompareIcon, ChatBubbleIcon, ShareIcon, WatchIcon, WaveIcon, ScissorsIcon, LinkIcon, CheckIcon, InstagramIcon, TikTokIcon, DownloadIcon } from "../components/Icons";
 import { Lightbox } from "../components/Lightbox";
 import { ShareDialog } from "../components/ShareDialog";
 import { useCloseOnBack } from "../lib/useCloseOnBack";
@@ -2560,10 +2560,7 @@ function RunsStartsStat({ runs, attempts }: { runs: number; attempts: number | n
   return (
     <>
       <Card className="relative overflow-hidden p-1.5">
-        <button type="button" onClick={() => setOffen(true)} aria-label={t("stat.runsStartsInfo")}
-          className="absolute right-1 top-1 text-slate-400 hover:text-slate-200">
-          <InfoIcon className="h-3 w-3" />
-        </button>
+        <InfoKnopf label={t("stat.runsStartsInfo")} onClick={() => setOffen(true)} />
         <div className="flex items-baseline gap-1 leading-none">
           <span className="text-base font-bold tabular-nums text-brand-400 sm:text-lg">{runs}/{attempts}</span>
           <span className="text-[11px] text-slate-400">{quote} %</span>
@@ -2573,19 +2570,7 @@ function RunsStartsStat({ runs, attempts }: { runs: number; attempts: number | n
         </div>
       </Card>
       {offen && (
-        <div className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/60 p-4"
-          onClick={() => setOffen(false)}>
-          <div className="max-w-md" onClick={(e) => e.stopPropagation()}>
-          <Card className="p-4">
-            <h3 className="mb-2 text-base font-bold">{t("stat.runsStartsInfo")}</h3>
-            <p className="whitespace-pre-line text-sm text-slate-200">{t("stat.runsStartsTip")}</p>
-            <button type="button" onClick={() => setOffen(false)}
-              className="mt-3 rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400">
-              {t("common.close")}
-            </button>
-          </Card>
-          </div>
-        </div>
+        <InfoDialog title={t("stat.runsStartsInfo")} text={t("stat.runsStartsTip")} onClose={() => setOffen(false)} />
       )}
     </>
   );

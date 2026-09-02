@@ -1,6 +1,7 @@
 // Kleine, wiederverwendbare UI-Bausteine (Tailwind).
 import { ReactNode, useState } from "react";
 import { useT } from "../i18n";
+import { InfoIcon } from "./Icons";
 
 // „neu"-Badge für frische Konten (< 24 h) — sichtbar in Community & Chat.
 /**
@@ -70,6 +71,42 @@ export function Button({
       className={`rounded-xl px-4 py-2.5 transition-colors active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 ${styles} ${className}`}
     >
       {children}
+    </button>
+  );
+}
+
+// Kennzahl-Kachel MIT (i): eine Stelle fuer alle Kacheln, die etwas zu erklaeren haben
+// (Laeufe/Starts, theoretische Leistung, …). Vorher hatte jede ihr eigenes Verhalten — die eine
+// ein `title`-Tooltip (auf dem Handy unsichtbar), die andere ein Popup. Jan, 02.09.: das Popup
+// ist das Richtige, und im Light-Mode gehoert WEISS dahinter, kein Grau.
+//
+// Zum Hintergrund: `Card` ist `bg-slate-900/60`, und slate kippt im Light-Mode automatisch — das
+// ergibt ueber dem dunklen Schleier ein Grau. Hier deshalb bewusst `bg-white dark:bg-slate-900`,
+// die eine Stelle, an der eine weisse Basis richtig ist (s. Memory light-mode-contrast-pattern).
+export function InfoDialog({ title, text, onClose }: { title: string; text: string; onClose: () => void }) {
+  const t = useT();
+  return (
+    <div className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
+      <div className="max-w-md" onClick={(e) => e.stopPropagation()}>
+        <div className="rounded-2xl border border-slate-800 bg-white p-4 shadow-xl dark:bg-slate-900">
+          <h3 className="mb-2 text-base font-bold text-slate-100">{title}</h3>
+          <p className="whitespace-pre-line text-sm text-slate-200">{text}</p>
+          <button type="button" onClick={onClose}
+            className="mt-3 rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400">
+            {t("common.close")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Kleines (i) oben rechts in einer Kachel — oeffnet den Dialog oben. */
+export function InfoKnopf({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick} aria-label={label}
+      className="absolute right-1 top-1 text-slate-400 hover:text-slate-200">
+      <InfoIcon className="h-3 w-3" />
     </button>
   );
 }
