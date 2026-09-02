@@ -81,9 +81,10 @@ fun WatchScreen(
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
             WatchCard(ctx)
             Spacer(Modifier.height(8.dp))
-            PairedDevicesCard(onSaved = { scope.launch { snackHost.showSnackbar(I18n.t("common.saved")) } })
-            Spacer(Modifier.height(4.dp))
-            // Anleitung GANZ OBEN in der Liste: wer hier landet und die Uhr noch nicht
+            // Die vier Verweise auf die anderen Seiten stehen VOR der Uhren-Liste (Jan, 02.09.):
+            // wer viele Uhren gepairt hat, musste vorher an allen vorbeiscrollen, um zur
+            // Anleitung, zum Alarm oder zu den Datenfeldern zu kommen.
+            // Die Anleitung bleibt dabei die erste: wer hier landet und die Uhr noch nicht
             // eingerichtet hat, braucht zuerst den Weg dorthin — nicht den Code-Bildschirm.
             ListItem(
                 modifier = Modifier.clickable { onGuide() },
@@ -112,6 +113,8 @@ fun WatchScreen(
                 leadingContent = { Icon(Icons.Filled.Dashboard, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
             )
+            Spacer(Modifier.height(8.dp))
+            PairedDevicesCard(onSaved = { scope.launch { snackHost.showSnackbar(I18n.t("common.saved")) } })
         }
     }
 }
