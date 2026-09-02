@@ -358,10 +358,31 @@ private fun YoutubePlayer(videoId: String, modifier: Modifier = Modifier) {
                 // beantwortet genau das — ohne sie raet man an drei Stellen gleichzeitig.
                 webViewClient = object : WebViewClient() {
                     override fun onPageFinished(view: WebView, url: String) {
-                        // Kein nachtraegliches Setzen der Groesse per JavaScript mehr: das war
-                        // ein Netz fuer eine damals unbekannte Ursache. Jetzt ist sie bekannt (der
-                        // Player haengt am Ansichtsfenster, s. das HTML unten), und feste
-                        // Pixelwerte waeren beim Drehen sogar falsch.
+                        // Groesse in PIXELN setzen, mit der Zahl, die das Ansichtsfenster selbst
+                        // meldet — und bei jeder Groessenaenderung erneut.
+                        //
+                        // Das ist NICHT Zierrat, sondern das Stueck, das die Wiedergabe moeglich
+                        // macht. Ich hatte es am 02.09. als „redundant" entfernt, weil das HTML den
+                        // Player per `position:fixed` am Ansichtsfenster verankert — danach war die
+                        // Flaeche wieder schwarz. Erklaerung: in diesem WebView ist der
+                        // urspruengliche umgebende Block 0 hoch (gemessen: `body` und iframe 0,
+                        // waehrend `window.innerHeight` 651 meldete), und daran haengen AUCH
+                        // `position:fixed` und `vh`. Eine gemessene Pixelzahl haengt an nichts.
+                        //
+                        // Der `resize`-Horcher deckt Drehen und geteilten Bildschirm ab — das war
+                        // mein Einwand gegen feste Pixelwerte, und er ist damit erledigt.
+                        view.evaluateJavascript(
+                            "(function(){function fit(){var f=document.getElementById('p');if(!f)return;" +
+                                "var h=window.innerHeight||document.documentElement.clientHeight;" +
+                                "var w=window.innerWidth||document.documentElement.clientWidth;" +
+                                "if(!h||!w)return;" +
+                                "document.documentElement.style.height=h+'px';" +
+                                "document.body.style.height=h+'px';" +
+                                "f.style.width=w+'px';f.style.height=h+'px';" +
+                                "f.setAttribute('width',w);f.setAttribute('height',h);}" +
+                                "fit();window.addEventListener('resize',fit);})()",
+                            null,
+                        )
                         if (!BuildConfig.DEBUG) return
                         view.postDelayed({
                             view.evaluateJavascript(
