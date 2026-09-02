@@ -48,7 +48,9 @@ android {
     kotlinOptions { jvmTarget = "17" }
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             buildConfigField("String", "API_BASE", "\"$PROD_API\"")   // Release: IMMER Produktion
         }
         debug {
