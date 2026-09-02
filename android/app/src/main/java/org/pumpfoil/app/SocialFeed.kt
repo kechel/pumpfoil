@@ -395,14 +395,26 @@ private fun YoutubePlayer(videoId: String, modifier: Modifier = Modifier) {
             web.tag = videoId
             web.loadDataWithBaseURL(
                 HERKUNFT,
-                // `html` UND `body` brauchen ausdruecklich Hoehe, sonst rechnet die 100 %-Angabe
+                // **Die Doctype-Zeile ist Pflicht** — ohne sie laeuft der WebView im
+                // QUIRKS-Modus, und dort loest die Prozentkette nicht auf. Gemessen am 02.09.
+                // (Debug-Log `PumpfoilPlayer`, Jans Emulator): WebView 1032x1954 px, also voll
+                // da, aber `documentElement` 344x0 und das iframe 344x0 — waehrend `body` per
+                // Quirks-Sonderregel 344x651 meldete, die volle Hoehe. Genau dieser Widerspruch
+                // ist Quirks. Mit `<!DOCTYPE html>` erbt die Kette sauber:
+                // Ansichtsfenster -> html -> body -> iframe.
+                //
+                // Das erklaert auch, warum iOS mit demselben HTML laeuft: WebKit behandelt den
+                // Fall anders als Chromium. Wer die Zeile fuer Zierrat haelt, hat den schwarzen
+                // Player zurueck.
+                //
+                // `html` UND `body` brauchen zusaetzlich ausdruecklich Hoehe, sonst rechnet die 100 %-Angabe
                 // des iframes gegen einen Block ohne Hoehe — und das Ergebnis ist ~0.
                 // GENAU DAS war der schwarze Player (02.09.): Jan sah unten am Bildschirmrand
                 // „eine 1px hohe Zeile, die sich beim Videowechsel farblich aendert" — das WAR
                 // das Video, volle Breite, ein Pixel hoch. Ton lief die ganze Zeit.
                 // Deshalb hier alles explizit statt `width/height`-Attribute: Attribute sind nur
                 // Darstellungs-HINWEISE, und ohne Hoehe am Elternteil bringen sie nichts.
-                """<html style="height:100%"><body style="margin:0;height:100%;background:#000">
+                """<!DOCTYPE html><html style="height:100%"><body style="margin:0;height:100%;background:#000">
                    <iframe style="display:block;width:100%;height:100%;border:0" allowfullscreen
                      allow="autoplay; encrypted-media; picture-in-picture"
                      src="https://www.youtube-nocookie.com/embed/$videoId?autoplay=1&rel=0&playsinline=1&loop=1&playlist=$videoId&origin=$HERKUNFT"></iframe>
