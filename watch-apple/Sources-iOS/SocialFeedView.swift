@@ -275,7 +275,7 @@ private struct YoutubePlayer: UIViewRepresentable {
         // wird erst nach dem Antippen.
         let herkunft = "https://pumpfoil.org"
         let html = """
-            <!DOCTYPE html><html style="height:100%"><body style="margin:0;height:100%;background:#000">
+            <!DOCTYPE html><html style="height:100vh"><body style="margin:0;height:100vh;background:#000">
             <iframe style="display:block;width:100vw;height:100vh;border:0" allowfullscreen
               allow="autoplay; encrypted-media; picture-in-picture"
               src="https://www.youtube-nocookie.com/embed/\(videoId)?autoplay=1&rel=0&playsinline=1&loop=1&playlist=\(videoId)&origin=\(herkunft)"></iframe>
