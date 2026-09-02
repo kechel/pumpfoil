@@ -182,6 +182,7 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
             }
         },
     ) { pad ->
+      Box(Modifier.fillMaxSize()) {
         Box(Modifier.padding(pad)) {
             Refreshable(refreshing = loading, onRefresh = { scope.launch { loadBase() } }) {
                 if (loading && records == null) {
@@ -369,10 +370,18 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                     }
                 }
             }
-            // Vollbild-Player des Social-Feeds: ZULETZT gezeichnet, also UEBER dem
-            // Seiteninhalt — und im Hauptfenster, nicht in einem Dialogfenster.
+        }
+        // Vollbild-Player des Social-Feeds: ZULETZT gezeichnet, also UEBER dem Seiteninhalt —
+        // und im Hauptfenster, nicht in einem Dialogfenster.
+        //
+        // Nur der OBERE Rand des Scaffolds wird ausgespart, damit die Kopfleiste sichtbar bleibt;
+        // den unteren nehmen wir uns (Jan, 02.09.: „unten ist der weisse Balken, soviel koennte
+        // das Ganze noch hoeher werden"). Wuerde man auch oben darauf verzichten, verschwaende
+        // das Video unter der Kopfleiste — die zeichnet das Scaffold NACH dem Inhalt.
+        Box(Modifier.padding(top = pad.calculateTopPadding())) {
             SocialPlayerOverlay(feed)
         }
+      }
     }
 }
 

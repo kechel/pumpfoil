@@ -2,6 +2,7 @@ package org.pumpfoil.app
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -83,6 +84,23 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
     Scaffold(topBar = { PumpfoilTopBar(I18n.t("nav.spots")) }) { pad ->
         val scope = rememberCoroutineScope()
         Box(Modifier.padding(pad)) {
+          Column(Modifier.fillMaxSize()) {
+            // Die Karte steht FEST oben und scrollt nicht mit.
+            //
+            // Nicht aus Geschmack, sondern weil osmdroid es erzwingt (Jan, 02.09.): als
+            // Listeneintrag wird die View beim Rausscrollen aus der Hierarchie genommen, und
+            // osmdroid raeumt dabei seinen Kachel-Anbieter selbst ab. Danach blieb beim
+            // Zurueckscrollen nur noch das graue Raster — „nach runter und wieder hochscrollen
+            // wird keine Karte angezeigt". Eine Karte durchzuhalten und wieder einzuhaengen
+            // funktioniert also nicht; sie darf gar nicht abgehaengt werden.
+            //
+            // Der Weg davor war noch schlimmer: jedes Rein-Scrollen baute eine NEUE MapView, mit
+            // Kachel-Cache-Anlage auf dem Hauptthread -> ANR („waited 5000ms for MotionEvent").
+            //
+            // Etwas flacher als vorher (220 statt 260 dp), weil sie jetzt dauerhaft Platz belegt.
+            if (items.isNotEmpty()) {
+                SpotsMap(karte, items, onOpenSpot, Modifier.fillMaxWidth().height(220.dp))
+            }
             Refreshable(refreshing = loading, onRefresh = { scope.launch { load() } }) {
             if (loading && items.isEmpty()) {
                 CircularProgressIndicator(Modifier.align(Alignment.Center))
@@ -90,7 +108,6 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
                 LazyColumn(Modifier.fillMaxSize()) {
                     error?.let { e -> item { Text(e, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error) } }
                     if (items.isNotEmpty()) {
-                        item { SpotsMap(karte, items, onOpenSpot, Modifier.fillMaxWidth().height(260.dp)) }
                         // Spot-Vergleich direkt unter der Karte — dieselbe Stelle wie in der PWA.
                         item { SpotCompareSection(onOpenSession = onOpenSession, onOpenSpot = onOpenSpot) }
                     }
@@ -111,6 +128,7 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
                 }
             }
             }
+          }
         }
     }
 }

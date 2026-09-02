@@ -230,7 +230,11 @@ internal fun SocialPlayerOverlay(z: SocialFeedZustand) {
     BackHandler(onBack = onClose)
     run {
         Box(Modifier.fillMaxSize().background(Color.Black)) {
-            Column(Modifier.fillMaxSize().padding(top = 44.dp, bottom = 8.dp)) {
+            // Kein oberer Rand mehr fuer das X (Jan, 02.09.: „kann das Video bis nach ganz oben
+            // gehen? fuer das X ist daneben genug Platz"). Das X schwebt jetzt UEBER dem Video —
+            // moeglich, weil unsere Clips hochkant sind und rechts oben ohnehin Rand bleibt.
+            // Unten nur noch ein Hauch Abstand zur Fusszeile.
+            Column(Modifier.fillMaxSize().padding(bottom = 2.dp)) {
                 Box(
                     Modifier.fillMaxWidth().weight(1f).padding(horizontal = 52.dp)
                         // Wischen wechselt das Video (Jan, 02.09.). Die Pfeile bleiben, aber
@@ -271,7 +275,7 @@ internal fun SocialPlayerOverlay(z: SocialFeedZustand) {
                     YoutubePlayer(item.externalId, Modifier.fillMaxSize())
                 }
                 Row(
-                    Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+                    Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Column(Modifier.weight(1f)) {
