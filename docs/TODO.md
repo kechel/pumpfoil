@@ -629,10 +629,18 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   **eigenen `Ocp-Apim-Subscription-Key`**, und die OAuth-App muss dort die Weiterleitung kennen:
   `https://pumpfoil.org/api/integrations/suunto/callback` (aus `BASE_URL`, exakt so, sonst
   `redirect_uri`-Mismatch — der Fall ist im Code schon mit Logausgabe vorbereitet).
-  → Wenn der Production-Key ein anderer ist: in `.env` `OAUTH_SUUNTO_SUBSCRIPTION_KEY` ersetzen,
-  Server neu starten, dann einen echten Verbindungsversuch mit Jans Suunto-Konto. Erst danach
-  laesst sich sagen, ob die Kette wirklich haelt — bisher ist sie nie gegen Produktion gelaufen.
-  Siehe Memory `suunto-api-integration`.
+  **02.09. erledigt:** Jan hat die Subscriptions nachgesehen — die Production-Subscription hat
+  einen EIGENEN Schluessel (Sandbox hiess dort „Developer API"). Production-Primary steht jetzt in
+  `.env`, Server neu gestartet, und der Verbindungs-Endpunkt antwortet statt 404 nun **200** mit
+  einer vollstaendigen Weiterleitung: `cloudapi-oauth.suunto.com/oauth/authorize`,
+  `redirect_uri=https://pumpfoil.org/api/integrations/suunto/callback`, `scope=workout`,
+  `response_type=code`, Subscription-Key gesetzt. Zweite Mail bestaetigt es auch
+  („Your production API subscription has just been approved! You are good to go live!").
+  **Jetzt fehlt nur noch der ECHTE Durchlauf:** Jan verbindet im Profil sein Suunto-Konto. Erst
+  dann ist belegt, dass Token-Tausch, Workout-Liste und FIT-Export gegen Produktion halten —
+  gelaufen ist die Kette dort noch nie. Siehe Memory `suunto-api-integration`.
+  Nebenbei: Suunto verweist auf Marken-/Presse-Material unter `media.suunto.com` — relevant, falls
+  wir die Unterstuetzung irgendwo ankuendigen (dann aber erst nach dem echten Durchlauf).
 
 - **✅ 02.09. — Play-Hinweis „Bitmap-Bildoptimierung": Foto im Teilen-Dialog wurde in Originalgroesse
   dekodiert.** Play zeigte das unter „Arbeitsspeichernutzung" fuer Release 38 (1.1.24) an, mit
