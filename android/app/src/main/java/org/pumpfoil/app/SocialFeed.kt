@@ -236,7 +236,12 @@ internal fun SocialPlayerOverlay(z: SocialFeedZustand) {
             // Unten nur noch ein Hauch Abstand zur Fusszeile.
             Column(Modifier.fillMaxSize().padding(bottom = 2.dp)) {
                 Box(
-                    Modifier.fillMaxWidth().weight(1f).padding(horizontal = 52.dp)
+                    // Nur ein Hauch Seitenrand (vorher 52 dp fuer die Pfeile). Der Player
+                    // letterboxt hochkant aufgenommene Clips: passt das Video in die Breite,
+                    // bleibt oben und unten Luft — und die sah aus wie eine eigene Zeile fuer das
+                    // X (Jan, 02.09.). Breiter heisst also automatisch hoeher. Die Pfeile
+                    // schweben jetzt ueber den Bildraendern, dort sind sie gut sichtbar.
+                    Modifier.fillMaxWidth().weight(1f).padding(horizontal = 8.dp)
                         // Wischen wechselt das Video (Jan, 02.09.). Die Pfeile bleiben, aber
                         // wischen ist die Bewegung, die man von jedem Video-Strom kennt.
                         //
