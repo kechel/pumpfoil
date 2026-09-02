@@ -639,11 +639,26 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     Track. Bei Sessions mit aussortierten Bereichen ruecken die Indizes auf -> die Linien lagen
     verschoben (belegt an #3157: 18 statt 14 Versuche, die Extra-Linien genau in den aussortierten
     Stellen). Er liefert jetzt fertige Koordinaten.
-  - **🔲 OFFEN, Jans Entscheidung:** soll `attempt_distances` ebenfalls auf die GANZE Aufnahme
-    rechnen? Dann stimmt die Kachel „Laeufe/Starts" mit der Karte ueberein und die
-    Start-Erfolgsquote wird ehrlich — sie faellt aber fuer ALLE, und die gespeicherten Werte
-    braeuchten eine Reanalyse (2265 Sessions), sonst gilt die neue Rechnung nur fuer neue Sessions.
-    **Ohne Jans OK nichts an der Pipeline anfassen** (Projektregel).
+  - **✅ ENTSCHIEDEN UND UMGESETZT (Jan, 02.09.: „ja perfekt, dann bitte so machen").**
+    `attempt_distances` bekommt jetzt die GANZE Aufnahme (ohne Zuschnitt, ohne aussortierte
+    Bereiche). Bestand nachgezogen mit `scripts/backfill-start-attempts.py` — das schreibt
+    AUSSCHLIESSLICH `start_attempts_json`, keine Reanalyse: Laeufe, Distanzen, Pumps, Rekorde und
+    Community bleiben unberuehrt.
+    - **Ergebnis:** 653 von 2117 Sessions geaendert, **22.568 -> 24.723 Versuche (+9,5 %)**.
+      Median-Startquote ueber 117 Nutzer mit >= 20 Versuchen: **63 %**.
+      Beispiele: #3124 1/1 -> **1/44**, #1391 1/1 -> **1/63**, #3219 4/4 -> **4/6**.
+    - **Vor dem Schreiben gegengeprueft, ob wir uns Heimfahrten einfangen:** bei den fuenf
+      groessten Zuwaechsen liegt der **Median-Abstand der neuen Versuche zum Spot bei 2-4 m**,
+      der groesste bei 17 m, **keiner** weiter als 500 m. Es sind echte Anlaeufe am Wasser.
+      Radfahren waere ausserdem EIN langes Segment, nicht 30 kurze; Autofahrten fallen ohnehin
+      ueber `MAX_FOIL_SPEED` heraus.
+    - **Zwei Sessions wurden WENIGER** (#3215 12->11, #1069 2->1) — beides erklaert und richtig:
+      an der Schnittkante entstand vorher ein Segment, das es ohne den Schnitt nicht gibt
+      (#3215: 5 s exakt am Trimm-Beginn), bzw. das Stueck laeuft hinter dem Schnitt in etwas
+      Schnelleres hinein und faellt damit als Ganzes durch (#1069). Beides sind KEINE gemergten
+      Sessions (Jans Vermutung) — ein FIT- und ein Suunto-Import.
+    - `_OUT_VERSION` auf **3** gebumpt: die gespeicherte Zahl aendert sich, die Session selbst
+      nicht — ohne den Bump saehen die betroffenen Clients ueber das ETag ewig die alte Zahl.
 
 - **✅ 02.09. — Startversuche auf der Karte + gemerkte Karten-Ansicht (Jans Wunsch).**
   - **Schalter „Startversuche"** neben den Pumps: gestrichelte bernsteinfarbene Linien fuer die
