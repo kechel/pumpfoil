@@ -63,7 +63,10 @@ _VALID_LABELS = {"pump", "glide", "not_foiling"}
 # umbenannten Feld hochzaehlen — sonst haengen Clients mit unveraenderter Session ueber das ETag
 # in ihrer alten Antwort fest (s. get_session, Befund 02.09.).
 #   2 = `analysis.start_attempts` dazugekommen (Kachel „Laeufe/Starts")
-_OUT_VERSION = 2
+#   3 = Startversuche zaehlen jetzt die GANZE Aufnahme statt nur den Zuschnitt (02.09.). Der
+#       gespeicherte Wert hat sich fuer 653 Sessions geaendert, die Session selbst aber nicht —
+#       ohne diesen Bump saehen die betroffenen Clients ewig die alte Zahl.
+_OUT_VERSION = 3
 
 
 def _analysis_out(result: models.AnalysisResult | None, slim: bool = False, sens: str = "normal") -> AnalysisOut | None:

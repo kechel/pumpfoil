@@ -245,7 +245,11 @@ def attempt_distances(gps_samples, gps_hz) -> list:
     """Lauf-Distanzen unter dem 'attempts'-Preset (lockere Startversuch-Erkennung, ab ~8 km/h →
     keine Landgänge) — NUR für die Start-Erfolgsquote-Anzeige. Reine GPS-Segmentierung, erfasst
     auch kurze Fehlstartversuche, die die kanonische On-Foil-Erkennung nicht als Lauf zählt.
-    Beeinflusst KEINE anderen Stats/Rekorde/Community."""
+    Beeinflusst KEINE anderen Stats/Rekorde/Community.
+
+    ERWARTET die GANZE Aufnahme (ohne Zuschnitt, aber ohne aussortierte Bereiche) — s. den
+    Aufrufer. Wer hier den getrimmten Satz uebergibt, zaehlt genau die Fehlversuche NICHT, um
+    die es geht: der Auto-Zuschnitt beginnt beim ersten GEGLUECKTEN Start."""
     from .gps import SENSITIVITY_PRESETS
     if not gps_samples:
         return []
@@ -320,6 +324,15 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
         else:
             accel = accel[0:0]
 
+    # Startversuche werden ueber die GANZE Aufnahme gezaehlt — VOR dem Zuschnitt (Jans
+    # Entscheidung 02.09.). Grund: `maybe_auto_trim` setzt den Zuschnitt automatisch auf
+    # „erster Lauf − 15 s", und genau davor liegen die Fehlversuche, bis der erste Start sass.
+    # Wer 20-mal anschiebt und beim 21. steht, hat 1/21 und nicht 1/1. Gemessen ueber die 40
+    # neuesten zugeschnittenen Sessions: +7 % Versuche, im Extremfall #3124 1/1 -> 1/44.
+    # AUSSORTIERTE Bereiche bleiben auch hier draussen (s. unten) — die hat der Nutzer
+    # ausdruecklich als „nicht ich" markiert, sie sind keine Startversuche.
+    gps_fuer_versuche = [list(x) for x in gps_samples]
+
     # GPS aufs Fenster filtern + auf 0 re-basen -> alle nachfolgenden Berechnungen sehen nur den Teil.
     if (ts0 is not None or ts1 is not None) and gps_samples:
         gps_samples = [[s[0] - lo] + list(s[1:]) for s in gps_samples if lo <= s[0] <= hi]
@@ -332,6 +345,10 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     # unangetastet: ihr Index IST die Zeit (index = t * accel_hz), sie bleibt also zu den
     # verbleibenden GPS-Punkten synchron. Kein Detektor-Parameter wird angefasst.
     _excl = excluded_windows(session)
+    if _excl and gps_fuer_versuche:
+        # Die Kopie ist NICHT re-based -> die Fenster gelten hier unveraendert (Session-ms).
+        gps_fuer_versuche = [x for x in gps_fuer_versuche
+                             if not any(a <= x[0] <= b for a, b in _excl)]
     if _excl and gps_samples:
         _off = (ts0 or 0) if (ts0 is not None or ts1 is not None) else 0  # GPS ist beim Trim auf 0 re-based
         _wins = [(a - _off, b - _off) for a, b in _excl]
@@ -535,9 +552,10 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     result.max_speed_mps = res["max_speed_mps"]
     result.track_geojson = json.dumps(res["track_geojson"])
     result.segments_json = json.dumps(res["segments"])
-    # Start-Erfolgsquote (nur Anzeige, ADDITIV): attempts-Preset-Lauf-Distanzen auf denselben
-    # (getrimmten) GPS-Samples. Rührt keine anderen Felder/Stats an.
-    result.start_attempts_json = json.dumps(attempt_distances(gps_samples, session.gps_hz))
+    # Start-Erfolgsquote (nur Anzeige, ADDITIV): attempts-Preset auf der GANZEN Aufnahme
+    # (`gps_fuer_versuche`, s. oben) — NICHT auf dem getrimmten Satz. Rührt keine anderen
+    # Felder/Stats an.
+    result.start_attempts_json = json.dumps(attempt_distances(gps_fuer_versuche, session.gps_hz))
     # Carve-Cache verwerfen (Segmente/Trim geändert) -> /community/carve-stats rechnet lazy neu.
     result.carve_s = result.carve_m = result.carve_l = None
     # Puls-Anstieg ebenso verwerfen — haengt an denselben Segmenten (api/sessions.py).
