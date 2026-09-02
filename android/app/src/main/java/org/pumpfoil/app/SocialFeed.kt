@@ -281,6 +281,14 @@ private fun YoutubePlayer(videoId: String, modifier: Modifier = Modifier) {
             }
         },
         update = { web ->
+            // NUR laden, wenn sich das Video wirklich geaendert hat. `update` laeuft bei JEDER
+            // Recomposition — und ein `loadDataWithBaseURL` darin startet das laufende Video neu.
+            // Es genuegt, dass sich irgendwo drumherum ein Zustand aendert (der Feed laedt Nachschub,
+            // „gemeldet" kippt, die Liste waechst), und das Video springt zurueck auf Anfang.
+            // Der Merker haengt am View selbst (`tag`): er ueberlebt die Recomposition und loest
+            // keine aus (ein Compose-State an dieser Stelle waere die naechste Schleife).
+            if (web.tag == videoId) return@AndroidView
+            web.tag = videoId
             web.loadDataWithBaseURL(
                 "https://www.youtube-nocookie.com",
                 """<html><body style="margin:0;background:#000">
