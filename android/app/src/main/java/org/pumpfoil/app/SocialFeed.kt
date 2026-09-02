@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -42,10 +43,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -55,14 +54,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
-import androidx.compose.ui.window.DialogWindowProvider
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 
@@ -82,36 +77,56 @@ private const val SCHUB = 24
  * img.youtube.com — sonst entsteht ein Drittkontakt zu Google, bevor der Nutzer ueberhaupt auf
  * Abspielen getippt hat. Dieselbe Entscheidung wie in der PWA.
  */
+/**
+ * Zustand des Feeds, absichtlich AUSSERHALB der Sektion gehalten.
+ *
+ * Grund (02.09.): der Vollbild-Player lag vorher in einem `Dialog` — also in einem EIGENEN
+ * Fenster. Video zeichnet der WebView ueber eine separate GPU-Ebene, und in einem Nebenfenster
+ * landete die nicht auf dem Schirm: Dekoder lief, Audio-Fokus wurde gehalten, Flaeche blieb
+ * schwarz (Jan im Android-Emulator; auf iOS lief dasselbe Video einwandfrei). Jetzt liegt der
+ * Player als Ebene IM Hauptfenster.
+ *
+ * Dafuer muss er eine Schicht hoeher haengen als die Sektion: die Sektion ist ein Eintrag in der
+ * LazyColumn der Community-Seite und wuerde eine Vollbild-Ebene abschneiden. Also halten wir
+ * Liste und „welches Video ist offen" hier, die Community-Seite zeichnet die Ebene ueber ihren
+ * Inhalt (s. `SocialPlayerOverlay`).
+ */
+internal class SocialFeedZustand {
+    var items by mutableStateOf<List<SocialItem>>(emptyList())
+    var geladen by mutableStateOf(false)
+    var ende by mutableStateOf(false)
+    var laedt by mutableStateOf(false)
+    var offen by mutableStateOf<Int?>(null)
+}
+
 @Composable
-fun SocialFeedSection(modifier: Modifier = Modifier) {
+internal fun rememberSocialFeed(): SocialFeedZustand = remember { SocialFeedZustand() }
+
+@Composable
+internal fun SocialFeedSection(z: SocialFeedZustand, modifier: Modifier = Modifier) {
     val scope = rememberCoroutineScope()
-    var items by remember { mutableStateOf<List<SocialItem>>(emptyList()) }
-    var geladen by remember { mutableStateOf(false) }
-    var ende by remember { mutableStateOf(false) }
-    var laedt by remember { mutableStateOf(false) }
-    var offen by remember { mutableStateOf<Int?>(null) }
     val listState = rememberLazyListState()
 
     LaunchedEffect(Unit) {
-        items = try { Api.socialFeed(SCHUB, 0) } catch (_: Exception) { emptyList() }
-        if (items.size < SCHUB) ende = true
-        geladen = true
+        z.items = try { Api.socialFeed(SCHUB, 0) } catch (_: Exception) { emptyList() }
+        if (z.items.size < SCHUB) z.ende = true
+        z.geladen = true
     }
     // Nachladen, sobald die letzten drei Kacheln in Sicht kommen (wie das Scroll-Ende der PWA).
-    LaunchedEffect(listState, items.size, ende) {
+    LaunchedEffect(listState, z.items.size, z.ende) {
         snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0 }
             .collect { letzter ->
-                if (!ende && !laedt && items.isNotEmpty() && letzter >= items.size - 3) {
-                    laedt = true
-                    val mehr = try { Api.socialFeed(SCHUB, items.size) } catch (_: Exception) { emptyList() }
-                    items = items + mehr
-                    if (mehr.size < SCHUB) ende = true
-                    laedt = false
+                if (!z.ende && !z.laedt && z.items.isNotEmpty() && letzter >= z.items.size - 3) {
+                    z.laedt = true
+                    val mehr = try { Api.socialFeed(SCHUB, z.items.size) } catch (_: Exception) { emptyList() }
+                    z.items = z.items + mehr
+                    if (mehr.size < SCHUB) z.ende = true
+                    z.laedt = false
                 }
             }
     }
 
-    if (!geladen || items.isEmpty()) return
+    if (!z.geladen || z.items.isEmpty()) return
 
     Column(modifier) {
         SectionHeader(I18n.t("social.title"))
@@ -129,14 +144,14 @@ fun SocialFeedSection(modifier: Modifier = Modifier) {
             contentPadding = PaddingValues(horizontal = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            items(items.size) { i ->
-                val it = items[i]
+            items(z.items.size) { i ->
+                val it = z.items[i]
                 // Hochkant 9:16 — bei uns sind fast alle Clips Shorts.
                 Box(
                     Modifier.width(140.dp).aspectRatio(9f / 16f)
                         .clip(RoundedCornerShape(16.dp))
                         .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .clickable { offen = i },
+                        .clickable { z.offen = i },
                 ) {
                     AsyncImage(
                         model = "${Api.BASE}/api/public/video-thumb/${it.externalId}",
@@ -170,19 +185,8 @@ fun SocialFeedSection(modifier: Modifier = Modifier) {
         }
     }
 
-    offen?.let { idx ->
-        items.getOrNull(idx)?.let { it ->
-            SocialPlayerDialog(
-                item = it,
-                hatZurueck = idx > 0,
-                hatWeiter = idx < items.size - 1,
-                onZurueck = { offen = idx - 1 },
-                onWeiter = { offen = idx + 1 },
-                onClose = { offen = null },
-                onMelden = { scope.launch { runCatching { Api.socialReport(it.id) } } },
-            )
-        }
-    }
+    // Der Player wird NICHT hier gezeichnet — s. `SocialPlayerOverlay`, das die
+    // Community-Seite ueber ihren ganzen Inhalt legt.
 }
 
 /**
@@ -195,30 +199,29 @@ fun SocialFeedSection(modifier: Modifier = Modifier) {
  *
  * Kein festes Seitenverhaeltnis: YouTube verraet das Format eines Videos nirgends, also
  * bekommt der Rahmen alles und der Player skaliert selbst hinein.
+ *
+ * **Kein `Dialog` mehr** (02.09.): als eigenes Fenster blieb die Videoflaeche schwarz, obwohl der
+ * Dekoder lief und der Audio-Fokus gehalten wurde — die GPU-Ebene des Videos landete nicht auf
+ * dem Schirm, waehrend HTML im selben WebView normal gezeichnet wurde (die YouTube-Fehlerseite
+ * war lesbar). Jetzt eine Ebene im Hauptfenster; die Zurueck-Taste uebernimmt `BackHandler`.
  */
 @Composable
-private fun SocialPlayerDialog(
-    item: SocialItem,
-    hatZurueck: Boolean,
-    hatWeiter: Boolean,
-    onZurueck: () -> Unit,
-    onWeiter: () -> Unit,
-    onClose: () -> Unit,
-    onMelden: () -> Unit,
-) {
+internal fun SocialPlayerOverlay(z: SocialFeedZustand) {
+    val idx = z.offen ?: return
+    val item = z.items.getOrNull(idx) ?: return
+    val hatZurueck = idx > 0
+    val hatWeiter = idx < z.items.size - 1
+    val onZurueck = { z.offen = idx - 1 }
+    val onWeiter = { z.offen = idx + 1 }
+    val onClose = { z.offen = null }
+    val scope = rememberCoroutineScope()
+    val onMelden = { scope.launch { runCatching { Api.socialReport(item.id) } }; Unit }
+
     val ctx = LocalContext.current
     var gemeldet by remember(item.id) { mutableStateOf(false) }
-    Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        // Das Dialogfenster ausdruecklich hardwarebeschleunigt anfordern (Jan, 02.09.: Bild blieb
-        // schwarz, obwohl Dekoder lief und der Audio-Fokus gehalten wurde). Video zeichnet der
-        // WebView ueber eine eigene GPU-Ebene; in einem NEBENfenster ohne Beschleunigung landet
-        // sie nicht auf dem Schirm — HTML daneben wird normal gezeichnet, genau das sah man.
-        val view = LocalView.current
-        SideEffect {
-            (view.parent as? DialogWindowProvider)?.window?.addFlags(
-                android.view.WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
-            )
-        }
+    // Die Zurueck-Taste schliesst den Player, nicht die Seite — das machte vorher das Dialogfenster.
+    BackHandler(onBack = onClose)
+    run {
         Box(Modifier.fillMaxSize().background(Color.Black)) {
             Column(Modifier.fillMaxSize().padding(top = 44.dp, bottom = 8.dp)) {
                 Box(Modifier.fillMaxWidth().weight(1f).padding(horizontal = 52.dp)) {
