@@ -461,8 +461,18 @@ private fun YoutubePlayer(videoId: String, modifier: Modifier = Modifier) {
                 // Deshalb rechnet hier alles in `vh`/`vw`: gleiche Wirkung, ohne `%`. Wer hier
                 // wieder Prozent hineinschreibt, holt den schwarzen Player zurueck.
                 // (Die Doctype-Zeile bleibt trotzdem richtig, s. oben.)
-                """<!DOCTYPE html><html style="height:100vh"><body style="margin:0;height:100vh;background:#000">
-                   <iframe style="display:block;width:100vw;height:100vh;border:0" allowfullscreen
+                """<!DOCTYPE html><html><head>
+                   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+                   <style>
+                     html,body{margin:0;padding:0;background:#000;overflow:hidden}
+                     /* Der Player haengt am ANSICHTSFENSTER, nicht an html/body: `position:fixed`
+                        mit allen vier Kanten auf 0. Damit ist er unabhaengig davon, welche Hoehe
+                        die Elternelemente haben oder nicht haben — und genau das war das Problem
+                        (gemessen: Ansichtsfenster 344x651, `body` und iframe trotzdem 0 hoch). */
+                     #p{position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;height:100vh;border:0;display:block}
+                   </style>
+                   </head><body>
+                   <iframe id="p" allowfullscreen
                      allow="autoplay; encrypted-media; picture-in-picture"
                      src="https://www.youtube-nocookie.com/embed/$videoId?autoplay=1&rel=0&playsinline=1&loop=1&playlist=$videoId&origin=$HERKUNFT"></iframe>
                    </body></html>""",

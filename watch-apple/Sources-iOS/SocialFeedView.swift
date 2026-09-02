@@ -275,8 +275,16 @@ private struct YoutubePlayer: UIViewRepresentable {
         // wird erst nach dem Antippen.
         let herkunft = "https://pumpfoil.org"
         let html = """
-            <!DOCTYPE html><html style="height:100vh"><body style="margin:0;height:100vh;background:#000">
-            <iframe style="display:block;width:100vw;height:100vh;border:0" allowfullscreen
+            <!DOCTYPE html><html><head>
+            <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+            <style>
+              html,body{margin:0;padding:0;background:#000;overflow:hidden}
+              /* Am ANSICHTSFENSTER verankert, nicht an html/body — dieselbe Vorlage wie Android,
+                 wo genau diese Kette der Fehler war (s. SocialFeed.kt). */
+              #p{position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;height:100vh;border:0;display:block}
+            </style>
+            </head><body>
+            <iframe id="p" allowfullscreen
               allow="autoplay; encrypted-media; picture-in-picture"
               src="https://www.youtube-nocookie.com/embed/\(videoId)?autoplay=1&rel=0&playsinline=1&loop=1&playlist=\(videoId)&origin=\(herkunft)"></iframe>
             </body></html>
