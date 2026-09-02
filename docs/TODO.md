@@ -630,28 +630,41 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   und das Dekodieren blockiert nicht mehr den Hauptthread im Picker-Callback.
   Steckt in 1.1.25 (39), also im gleichen Release wie der Wear-Absturz-Fix.
 
-- **🔲 02.09. — Play-Warnung „App-Optimierung unter dem Grenzwert": Verschleierung 0 %, R8 ist aus.**
-  Play meldet fuer Release 38 (1.1.24): unter 25 % in einer Kategorie „kann sich auf Sichtbarkeit und
-  Veroeffentlichung auswirken", mit Frist (Datum steht in der Console). Ursache: `isMinifyEnabled =
-  false` in **beiden** Modulen — seit dem ersten Release so, nie bewusst entschieden, nur nie
-  angefasst.
-  **Bewusst NICHT in 1.1.25 gemacht:** R8 (AGP 8.9.2 -> Full Mode ist Standard) veraendert den
-  ausgelieferten Code und braucht einen echten Geraetedurchlauf auf Handy UND Uhr, nicht nur einen
-  gruenen Compile. Der Wear-Absturz-Fix soll nicht darauf warten.
-  **Wenn wir es angehen — Reihenfolge und die Stellen, die zu pruefen sind:**
-  1. `:app` zuerst, `isMinifyEnabled = true` + `isShrinkResources = true` +
-     `proguard-android-optimize.txt`; `:wear` erst danach separat.
-  2. **Verdachtsstellen (jede einzeln im Release-Build durchklicken):** die per Name gespeicherten
-     Enums (`SessionViewPrefs` legt `ColorMode.name` in SharedPreferences ab — R8 darf die Konstanten
-     nicht umbenennen), `@Serializable`-Modelle in `Api.kt` (kotlinx-serialization bringt eigene
-     Regeln mit, aber Full Mode ist strenger), **osmdroid** (Karte/Spots), Health Services +
-     `ListenableFuture` auf der Uhr, `credentials`/`googleid` beim Google-Login, das
-     In-App-Review-Overlay.
-  3. **Preis, der uns direkt trifft:** die `adb logcat`-Ausgaben, die Jan mir schickt, sind dann
-     verschleiert (`a.b.a`). Play Console entschluesselt hochgeladene Abstuerze selbst, ein
-     Emulator-Log nicht. Also `mapping.txt` je Release aufbewahren und mit `retrace` zurueckrechnen —
-     sonst kostet die naechste Absturzsuche ein Vielfaches.
-  Kein Zeitdruck bis zur Frist, aber vor deren Ablauf einplanen.
+- **✅ 02.09. — Play-Warnung „App-Optimierung unter dem Grenzwert" (Verschleierung 0 %): R8 ist
+  jetzt AN, in beiden Modulen, und der Release-Build ist auf zwei Emulatoren durchgeklickt.**
+  Ausloeser: Play meldete es fuer Release 38 (1.1.24) — unter 25 % „kann sich auf Sichtbarkeit und
+  Veroeffentlichung auswirken". Ursache: `isMinifyEnabled = false` seit dem ersten Release, nie
+  bewusst entschieden. Jan wollte es nicht auf ein spaeteres Release schieben („und warum nicht in
+  diesem release?"), also wurde statt geraten **gemessen**.
+  **Aenderung:** `isMinifyEnabled = true` + `isShrinkResources = true` +
+  `proguard-android-optimize.txt` in `:app` und `:wear`. Eigene Keep-Regeln: **zwei**, nur fuer die
+  zwei Wege, die hier nicht klickbar sind (Google-Login, In-App-Review) — begruendet in
+  `android/app/proguard-rules.pro`.
+  **Was der Durchlauf belegt (Release-Build, mit dem Debug-Key lokal signiert):**
+  - *Phone (foil_pixel):* Start, News-Banner, Sessionliste, Detailansicht mit osmdroid-Karte,
+    Farbmodus Puls, Pump-Marken, Kachel „Vedot/lähdöt 3/3", Teilen-Dialog inkl. Foto-Card,
+    Verlaufsdiagramme, Spots-Karte mit Clustern, Foilers, Chat, Profil. Kein Absturz, keine
+    Serialisierungsfehler.
+  - *Die Sorge, die ich vorher hatte, ist widerlegt:* R8 benennt Enum-FELDER um, laesst die
+    NAMENS-Strings aber stehen. In den Prefs stand nach dem Umschalten
+    `<string name="sd_color_mode">HR</string>`, und nach einem Kaltstart war „Puls" wieder
+    ausgewaehlt — `ColorMode.valueOf` funktioniert also. Waere es anders, haette es LEISE
+    versagt: `runCatching` faellt auf SPEED zurueck, es haette nur ausgesehen wie „merkt sich
+    die Einstellung nicht".
+  - *Wear (foil_wear):* per API gepairt, Geraetekonfiguration vom Server geholt
+    (`/api/devices/config?p=wear&v=1.2.25` -> 200), eigenes Datenseiten-Layout gerendert,
+    **Aufnahme gestartet** — Vordergrunddienst mit `types=00000108` (Standort + Health), also
+    genau wie im unverschleierten Build, keine SecurityException.
+  **Was das bringt:** AAB Phone **15,3 -> 7,0 MB** (-54 %), Wear **7,5 -> 2,9 MB** (-62 %).
+  **Noch offen, weil hier nicht testbar (braucht Google-Konto/Play-Store):** „Mit Google anmelden"
+  und das In-App-Review-Overlay. Beide sind per Keep-Regel abgesichert; wer die Regeln spaeter
+  entfernen will, muss vorher genau diese zwei Wege im Release-Build klicken.
+  **Nebenwirkung fuer die Fehlersuche:** `adb logcat`-Ausgaben sind ab jetzt verschleiert
+  (`a.b.a`). Die Play Console entschluesselt hochgeladene Abstuerze selbst — die Zuordnungsdatei
+  liegt im AAB (`BUNDLE-METADATA/com.android.tools.build.obfuscation/proguard.map`, 54 MB) und
+  wird beim Upload mitgenommen. Fuer Emulator-/Handy-Logs gilt: `mapping.txt` je Release
+  aufbewahren (`app/build/outputs/mapping/release/`) und mit `retrace` zurueckrechnen.
+
 
 - **✅ 02.09. — Wear-Aufnahme laeuft im Emulator, und „ein Druck statt halten" ist IM FELD
   bestaetigt** (Jan: „jetzt laeuft die wear und one click stop geht auch ohne hold"). Damit ist die
