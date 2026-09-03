@@ -651,8 +651,19 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   **Nicht geraetespezifisch:** u394 hat dasselbe Muster auf einer OnePlus Watch, u145 einmal 2026.
   - **Uhr (Wear, vorbereitet fuer 1.2.26):** `RecorderService` gibt das ALTER der Messung mit
     (`elapsedRealtimeNanos`), `Recorder` zaehlt Fixes aelter als 5 s; 20 in Folge → `gpsStale`.
-    Dann zeigt das Tempo-Feld „--" statt eines beruhigenden 0,0 (gpsPoor gilt mit), und quer
-    ueber die Aufnahme-Seite liegt ein gelber Balken `rec.gpsStale` (17 Sprachen).
+    Dann zeigt das Tempo-Feld „--" statt eines beruhigenden 0,0 (gpsPoor gilt mit) — **und das
+    reicht nicht**: „--" liest sich wie „ich stehe ja noch am Steg" (Jan, 03.09.). Deshalb drei
+    Stufen, alle drei noetig, weil man auf dem Wasser NICHT auf die Uhr schaut:
+    1. **Vor dem Start:** „GPS bereit" wird nur noch gruen, wenn der Fix genau UND frisch ist
+       (< 5 s). Ein zwischengespeicherter Fix meldet beste Genauigkeit und haette die Uhr sonst
+       bereit gemeldet, obwohl sie gar nicht ortet. Genau hier faellt es auf, solange man noch
+       am Steg steht.
+    2. **Waehrend der Aufnahme:** eine GANZE rote Seite ueber allem — gross „GPS", darunter der
+       Satz und „Antippen zum Wegblenden". Die Zahlen darunter sind ohnehin wertlos. Wegtippen
+       laesst den schmalen gelben Balken stehen; friert die Ortung erneut ein, kommt die Seite
+       wieder.
+    3. **Fuehlbar:** beim Umschlagen einmal `long2`, danach alle zwei Minuten `short2`, solange
+       es anhaelt. Das ist der einzige Kanal, der waehrend der Fahrt ankommt.
     **Warum das Alter und nicht „die Koordinaten aendern sich nicht":** wer am Steg steht, steht
     wirklich still — ein echter Fix wird trotzdem jede Sekunde neu GEMESSEN.
   - **Server:** `gps.eingefrorene_ortung()` misst den Anteil exakt wiederholter Positionen,
