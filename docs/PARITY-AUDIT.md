@@ -471,6 +471,13 @@ vermutet:
 Nebenbei angeglichen: Androids Pump-Marker-Vorgabe stand auf AN, Web und iOS auf AUS — jetzt
 ueberall AUS (`SessionViewPrefs.zeigePumps`).
 
+Zusaetzlich per Schluessel-Abgleich gesucht (alle `de.ts`-Schluessel gegen beide App-Tabellen,
+Web-only-Praefixe ausgenommen): **Android fehlt kein Schluessel, den iOS hat; iOS fehlten 14** —
+davon 13 nur andere Formulierungen desselben, gebauten Features (WatchStats, Spot-Knopf,
+Teilen-Link, „Masse abgeleitet" — alles vorhanden, nur mit eigenen Texten). **Echt war einer:**
+der Vergleich hatte auf iOS keinen „Auswahl leeren"-Knopf; jetzt in der Titelzeile, raeumt den
+Korb und geht zurueck (wie Android). `compare.clear` in allen 17 Sprachen nachgezogen.
+
 Offen bleibt aus der Uhr-Liste: Startversuche gibt es NUR in den Apps/PWA, nicht auf den Uhren
 (dort auch nicht sinnvoll — die rechnet der Server).
 
