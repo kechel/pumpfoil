@@ -629,9 +629,41 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   **Jan (03.09.): direkt nach dem GPS-Thema angehen. ANTWORT IST RAUS** — ihm wurde geschrieben,
   dass wir Xiaomi „prochainement" unterstuetzen wollen. Damit haengt an der Recherche jetzt eine
   oeffentliche Zusage; wenn Vela keine Dritt-Apps zulaesst, muss er das von uns hoeren.
-  **Stand der Recherche:** noch nicht belegt — die Websuche war fuer die Sitzung aufgebraucht
-  (200/200), `vela.mi.com` ist von hier nicht aufloesbar. Was als Ausgangspunkt gilt und
-  GEPRUEFT werden muss, bevor wir irgendetwas bauen:
+  **Recherche vom 03.09. (belegt, Quellen unten):**
+  - **Eigene App auf der Uhr = praktisch zu.** Es gibt Vela **Quick Apps** (VelaJS, `.rpk`) und
+    die noetigen Bausteine waeren da (`Geolocation`, `Sensor`, `fetch`, `uploadtask`,
+    `File Storage`). ABER: **kein oeffentlicher Store und kein Review-Weg** — installiert wird
+    per Sideload ueber das Debug-Menue von Mi Fitness, und den Zugang dazu gibt es laut Xiaomis
+    eigener FAQ nur „ueber die Business-Gruppe", mit einer Mail-Adresse als Kontakt. Dazu:
+    **Hintergrund-Ausfuehrung ist in der API-Liste nicht dokumentiert** — fuer einen Recorder,
+    der mit ausgeschaltetem Bildschirm weiterlaufen muss, ist genau das die Existenzfrage. Und
+    fuer die **Redmi Watch 5** sagt Xiaomis Support-Artikel, dass sie Dritt-Apps gar nicht
+    unterstuetzt.
+  - **Kontoverknuepfung ist der realistische Weg (Jans Idee, 03.09.).** Mi Fitness synchronisiert
+    Trainings zu **Strava, Google Fit — und Suunto**. Die **Suunto-Anbindung haben wir schon
+    live** (`server/app/api/suunto.py`): ein Xiaomi-Nutzer koennte seine Sessions also
+    moeglicherweise **heute schon** zu uns bringen, ohne dass wir eine Zeile bauen.
+    **Zu pruefen:** ob ueber diesen Weg die GPS-Spur mitkommt (Strava warnt ausdruecklich, dass
+    Mi-Fitness-Aktivitaeten OHNE GPS bei ihnen ohne Distanz ankommen).
+    **Naechster Schritt:** Frederic (u417) fragen, ob er Mi Fitness → Suunto verknuepft und eine
+    Session faehrt; das ist der billigste echte Test, und er hat sich selbst gemeldet.
+  - **Health Connect** (Android, unsere Handy-App): Mi Fitness schreibt dorthin. Offen, ob auch
+    die `ExerciseRoute` (GPS) mitgeht — Routen brauchen zusaetzlich `READ_EXERCISE_ROUTES` und
+    eine eigene Zustimmung je Session. Waere der datenschutzfreundlichste Weg (nichts verlaesst
+    das Geraet ueber einen fremden Dienst) und wuerde nebenbei **viele** Uhren abdecken.
+    Hinweis: das ist NICHT dasselbe wie die zurueckgestellte Google-Fit-API
+    ([[google-fitbit-integration-deferred]] — die hatte keine Positionen).
+  - **Sofort moeglich, ohne Bauen:** Xiaomi-Konto → Datenexport (account.xiaomi.com, „Manage Your
+    Data" → Mi Fitness) und die Datei bei uns hochladen; unser FIT/GPX/TCX-Import steht.
+    Ebenfalls zu pruefen, ob dort Spuren drin sind.
+  - **Nicht empfohlen:** kommerzielle Aggregatoren (Spike API, Rook) — sie loesen es technisch,
+    aber die Daten liefen ueber einen Dritten, das widerspricht der Datenschutz-Linie.
+
+  Quellen: `iot.mi.com/vela/quickapp/en/guide/` + `.../features/` + `.../guide/other/faq.html`,
+  `support.strava.com` „Mi Fitness and Strava", `mi.com/global/support/faq/details/KA-517372`,
+  `mi.com/uk/support/article/KA-674516` (Redmi Watch 5 ohne Dritt-Apps).
+
+  **Alte Ausgangspunkte, weiterhin gueltig:**
   - **Xiaomi Watch 2 / 2 Pro laufen Wear OS** → unsere bestehende Wear-App sollte dort laufen.
     Das waere der schnelle Teil-Erfolg und die konkrete Antwort an Nutzer mit diesen Modellen.
   - **Redmi Watch (3/4/5) und die Xiaomi-Watch-S-Reihe laufen Vela/HyperOS** (NuttX-RTOS), also
