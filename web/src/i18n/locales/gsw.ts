@@ -369,6 +369,8 @@ const gsw: Record<string, string> = {
   "calc.power": "Theoretischi Leischtig (W)",
   "calc.powerNote": "Gsamtleischtig (Vortrib + ggf. Pump-Trägheit). „–“ = under de Mindeschtgschwindigkeit zum Foile.",
   "calc.disclaimer": "Modällrächnig — Näherigswärt, kei Mässig. Beschti (niedrigschti) Leischtig je Spalte hervorghobe.",
+  "calc.searchHint": "Suechbegriff yygeh oder Marke wähle — denn erschyne da di passende Foils.",
+  "calc.moreHits": "… und {n} wytteri Träffer. Suechi verfynere.",
   "notif.typeChat": "Neui Chat-Nachrichte (abonnierti Rüüm)",
   "adm.tab.chat": "Chat",
   "adm.chat.none": "Kei gmäldeti Nachrichte.",

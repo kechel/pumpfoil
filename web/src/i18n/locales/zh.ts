@@ -501,6 +501,8 @@ const zh: Record<string, string> = {
   "calc.power": "理论功率 (W)",
   "calc.powerNote": "总功率（阻力 + 可选的泵动惯性）。“–” = 低于起翼的最低速度。",
   "calc.disclaimer": "模型估算 —— 近似值，非实测。每列中最佳（最低）功率已高亮。",
+  "calc.searchHint": "输入搜索词或选择品牌，匹配的翼板会显示在这里。",
+  "calc.moreHits": "… 还有 {n} 条结果，请缩小搜索范围。",
   "notif.typeChat": "新聊天消息（已订阅的聊天室）",
   "adm.tab.chat": "聊天",
   "adm.tab.spots": "地点",

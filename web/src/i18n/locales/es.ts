@@ -425,6 +425,8 @@ const es: Record<string, string> = {
   "calc.power": "Potencia teórica (W)",
   "calc.powerNote": "Potencia total (resistencia + inercia de pump). «–» = por debajo de la velocidad mínima para foilear.",
   "calc.disclaimer": "Estimación del modelo — aproximada, no medida. Mejor (menor) potencia por columna resaltada.",
+  "calc.searchHint": "Escribe un término o elige una marca: aquí aparecerán los foils que coincidan.",
+  "calc.moreHits": "… y {n} resultados más. Refina la búsqueda.",
   "notif.typeChat": "Nuevos mensajes de chat (salas suscritas)",
   "adm.tab.chat": "Chat",
   "adm.chat.none": "No hay mensajes reportados.",

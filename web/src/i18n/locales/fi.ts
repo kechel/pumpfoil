@@ -508,6 +508,8 @@ const fi: Record<string, string> = {
   "calc.power": "Teoreettinen teho (W)",
   "calc.powerNote": "Kokonaisteho (vastus + mahd. pump-hitaus). „–“ = alle foilaukseen tarvittavan miniminopeuden.",
   "calc.disclaimer": "Mallilaskelma — likiarvoja, ei mittaus. Paras (pienin) teho kussakin sarakkeessa korostettu.",
+  "calc.searchHint": "Kirjoita hakusana tai valitse merkki — osuvat foilit ilmestyvät tähän.",
+  "calc.moreHits": "… ja {n} muuta osumaa. Tarkenna hakua.",
   "notif.typeChat": "Uudet chat-viestit (tilatut huoneet)",
   "adm.tab.chat": "Chat",
   "adm.tab.spots": "Spotit",

@@ -562,6 +562,8 @@ const en: Record<string, string> = {
   "calc.power": "Theoretical power (W)",
   "calc.powerNote": "Total power (drag + optional pump inertia). “–” = below the minimum speed to foil.",
   "calc.disclaimer": "Model estimate — approximate, not measured. Best (lowest) power per column highlighted.",
+  "calc.searchHint": "Type a search term or pick a brand — matching foils appear here.",
+  "calc.moreHits": "… and {n} more hits. Narrow your search.",
   "notif.typeChat": "New chat messages (subscribed rooms)",
   "adm.tab.chat": "Chat",
   "adm.tab.spots": "Spots",

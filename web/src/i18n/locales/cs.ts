@@ -525,6 +525,8 @@ const cs: Record<string, string> = {
   "calc.power": "Teoretický výkon (W)",
   "calc.powerNote": "Celkový výkon (pohon + případně setrvačnost pumpnutí). „–“ = pod minimální rychlostí pro foiling.",
   "calc.disclaimer": "Modelový výpočet — přibližné hodnoty, ne měření. Nejlepší (nejnižší) výkon v každém sloupci je zvýrazněn.",
+  "calc.searchHint": "Zadej hledaný výraz nebo vyber značku — odpovídající foily se zobrazí tady.",
+  "calc.moreHits": "… a {n} dalších výsledků. Zpřesni hledání.",
   "notif.typeChat": "Nové zprávy v chatu (odebírané místnosti)",
   "adm.tab.chat": "Chat",
   "adm.tab.spots": "Spoty",

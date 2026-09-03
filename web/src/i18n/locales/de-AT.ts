@@ -330,6 +330,8 @@ const deAT: Record<string, string> = {
   "calc.power": "Theoretische Leistung (W)",
   "calc.powerNote": "Gesamtleistung (Vortrieb + ggf. Pump-Trägheit). „–“ = unter der Mindestgeschwindigkeit zum Foilen.",
   "calc.disclaimer": "Modellrechnung — Näherungswerte, keine Messung. Beste (niedrigste) Leistung je Spalte hervorgehoben.",
+  "calc.searchHint": "Suchbegriff eingeben oder Marke wählen — dann erscheinen hier die passenden Foils.",
+  "calc.moreHits": "… und {n} weitere Treffer. Suche verfeinern.",
   "notif.typeChat": "Neue Chat-Nachrichten (abonnierte Räume)",
   "adm.tab.chat": "Chat",
   "adm.chat.none": "Keine gemeldeten Nachrichten.",
