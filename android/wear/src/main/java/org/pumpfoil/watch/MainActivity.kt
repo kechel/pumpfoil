@@ -7,6 +7,7 @@ import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.SystemClock
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -474,6 +475,20 @@ class MainActivity : ComponentActivity() {
             val pageCount = dataCount + 5
             val pager = rememberPagerState(initialPage = firstData, pageCount = { pageCount })
             var prevFoil by remember { mutableStateOf(s.isFoiling) }
+            // Die grosse GPS-Warnung laesst sich wegtippen; sie kommt wieder, sobald die Ortung
+            // erneut einfriert.
+            var staleWeggetippt by remember { mutableStateOf(false) }
+            LaunchedEffect(s.gpsStale) {
+                if (!s.gpsStale) { staleWeggetippt = false; return@LaunchedEffect }
+                // Auf dem Wasser sieht man den Bildschirm nicht — also fuehlbar. Einmal deutlich,
+                // danach alle zwei Minuten kurz, solange die Ortung eingefroren bleibt.
+                vibratePattern(ctx, "long2")
+                while (true) {
+                    kotlinx.coroutines.delay(120_000)
+                    if (!Recorder.state.value.gpsStale) break
+                    vibratePattern(ctx, "short2")
+                }
+            }
             var showRunEnd by remember { mutableStateOf(false) }   // true = Lauf-Ende, false = Pause
             // Auto-Wechsel NUR auf der Flanke: Lauf beendet -> Übersicht (+kurze Vibration): erst
             // kurz die Lauf-Zusammenfassung, nach 8 s die Pausen-Ansicht (bleibt bis zum nächsten
@@ -628,16 +643,41 @@ class MainActivity : ComponentActivity() {
                 // Konten mit demselben Muster). Deshalb ein Balken quer ueber die Seite statt
                 // eines Symbols: er liegt ueber jeder Datenseite und jedem eigenen Layout.
                 if (s.gpsStale) {
-                    Text(
-                        I18n.t("rec.gpsStale"),
-                        color = Color(0xFF0F172A),
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
-                        lineHeight = 14.sp,
-                        modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth()
-                            .background(Color(0xFFFBBF24)).padding(horizontal = 10.dp, vertical = 3.dp),
-                    )
+                    // GROSS und nicht zu uebersehen (Jan, 03.09.): ein „--" im Tempo-Feld liest
+                    // sich wie „ich stehe ja noch am Steg". Deshalb eine ganze Seite, die den
+                    // Rest ueberdeckt — die Zahlen darunter sind ohnehin wertlos, solange die
+                    // Uhr nur eine gespeicherte Position wiederholt. Antippen legt sie weg;
+                    // danach bleibt der schmale Balken, damit man es nicht vergisst.
+                    if (!staleWeggetippt) {
+                        Column(
+                            Modifier.fillMaxSize().background(Color(0xFFB91C1C))
+                                .clickable { staleWeggetippt = true }
+                                .padding(horizontal = 14.dp),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            Text("GPS", color = Color.White, fontSize = 26.sp,
+                                fontWeight = FontWeight.Black)
+                            Spacer(Modifier.height(6.dp))
+                            Text(I18n.t("rec.gpsStale"), color = Color.White, fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
+                                lineHeight = 18.sp)
+                            Spacer(Modifier.height(8.dp))
+                            Text(I18n.t("rec.gpsStaleTap"), color = Color(0xFFFECACA),
+                                fontSize = 12.sp, textAlign = TextAlign.Center)
+                        }
+                    } else {
+                        Text(
+                            I18n.t("rec.gpsStale"),
+                            color = Color(0xFF0F172A),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            lineHeight = 14.sp,
+                            modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth()
+                                .background(Color(0xFFFBBF24)).padding(horizontal = 10.dp, vertical = 3.dp),
+                        )
+                    }
                 }
                 // Upload-Indikator oben, wenn gerade Chunks hochgeladen werden.
                 if (s.uploading) {
@@ -732,7 +772,13 @@ class MainActivity : ComponentActivity() {
                         // Brauchbar = dieselbe Schwelle wie das Qualitäts-Gate der Aufnahme
                         // (Recorder.kt, hAcc > 20 m -> gpsPoor), damit „bereit“ und „Anzeige
                         // zeigt Tempo“ nicht auseinanderlaufen.
-                        if (l != null && l.hasAccuracy() && l.accuracy <= 20f) gpsBereit = true
+                        // „Bereit" heisst: genau UND frisch. Ein zwischengespeicherter Fix
+                        // meldet beste Genauigkeit und wuerde die Uhr sonst gruen melden,
+                        // obwohl sie gar nicht ortet (Fall vom 03.09.). Hier faellt es auf,
+                        // solange man noch am Steg steht — auf dem Wasser schaut niemand hin.
+                        val frisch = l != null &&
+                            (SystemClock.elapsedRealtimeNanos() - l.elapsedRealtimeNanos) < 5_000_000_000L
+                        gpsBereit = l != null && l.hasAccuracy() && l.accuracy <= 20f && frisch
                         if (!autoScharf.value) { streak = 0; return }
                         val sp = l?.let { if (it.hasSpeed()) it.speed else 0f } ?: 0f
                         if (sp * 3.6f >= 10f) { streak++; if (streak >= 4) RecorderService.start(ctx.applicationContext) }
