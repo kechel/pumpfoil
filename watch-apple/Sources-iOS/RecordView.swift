@@ -3,7 +3,7 @@ import MapKit
 
 // „Record on Phone": das iPhone als Recorder. Gleiche Live-Werte wie die Uhr-Apps, aber
 // ohne Einstellungs-Optionen (die stehen anderswo) — dafür die Session-Foil direkt wählbar.
-// 3 Sekunden halten zum Stoppen (gegen versehentliches Beenden). Aufnahme läuft im Hintergrund
+// 2 Sekunden halten zum Stoppen (gegen versehentliches Beenden). Aufnahme läuft im Hintergrund
 // (PhoneRecorder / Background-Location) weiter, auch mit Screen aus / in der Tasche.
 struct RecordView: View {
     @Environment(\.dismiss) private var dismiss
@@ -235,7 +235,10 @@ struct RecordView: View {
     private var maxSpeedText: String { String(format: "%.1f", rec.maxSpeedKmh) }
     private var runCountText: String { "\(rec.runCount)" }
 
-    // 3 Sekunden halten zum Stoppen; der halbtransparente Balken zeigt den Fortschritt.
+    // 2 Sekunden halten zum Stoppen; der halbtransparente Balken zeigt den Fortschritt.
+    // Dieselben 2 s wie auf der Garmin (STOP_HOLD_MS, ab 1.0.68) — Jan 27.07.: „3 s fuehlten
+    // sich am Wasser unnoetig lang an". Achtung, ein Unterschied zur Uhr bleibt: hier beendet
+    // das Halten die Aufnahme direkt, es gibt kein Menue Speichern/Pausieren/Verwerfen.
     private var stopHoldButton: some View {
         let h: CGFloat = 56
         return ZStack {
@@ -244,14 +247,14 @@ struct RecordView: View {
             Text(Loc.t("rec.stop", lang)).bold().foregroundStyle(.white)
         }
         .frame(height: h).clipShape(RoundedRectangle(cornerRadius: 28))
-        .onLongPressGesture(minimumDuration: 3.0, maximumDistance: 60,
+        .onLongPressGesture(minimumDuration: 2.0, maximumDistance: 60,
             perform: { rec.stop() },
             onPressingChanged: { pressing in holdChanged(pressing) })
     }
 
     // Ablauflogik aus der Gesten-Closure heraus (Methode statt Closure im ViewBuilder).
     private func holdChanged(_ pressing: Bool) {
-        if pressing { withAnimation(.linear(duration: 3.0)) { holdProgress = 1 } }
+        if pressing { withAnimation(.linear(duration: 2.0)) { holdProgress = 1 } }
         else { withAnimation(.linear(duration: 0.15)) { holdProgress = 0 } }
     }
 

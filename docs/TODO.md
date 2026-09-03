@@ -3960,9 +3960,20 @@ Offen daraus:
   — ein Fehlgriff ist harmlos, 3 s fühlten sich am Wasser unnötig lang an.
   **Auf Apple Watch und Wear OS gibt es das gar nicht** (Jan, 2026-07-27): dort wischt man erst auf
   einen Stopp-Screen, es gibt kein Halten mit Ring. Also NICHTS zu ändern — nicht danach suchen.
-  Bleibt offen für: **Handy-Recorder** (Android/iOS, falls dort ein Halten existiert) und **Zepp**
-  (dort ist es der neue Tasten-Langdruck; die Dauer bestimmt Zepp selbst, für 2 s bräuchte es eine
-  eigene Zeitmessung über KEY_EVENT_PRESS/RELEASE).
+  **✅ 03.09. — Handy-Recorder nachgezogen:** Android (`RecordScreen.kt`, 20 x 100 ms statt 30) und
+  iOS (`RecordView.swift`, `minimumDuration` + Balken-Animation 2.0 statt 3.0) halten jetzt
+  ebenfalls 2 s. Der Hinweistext nennt keine Sekundenzahl, es blieb also bei den Zahlen.
+  **Ein Unterschied zur Uhr bleibt bewusst offen:** auf dem Handy beendet das Halten die Aufnahme
+  DIREKT (kein Menü Speichern/Pausieren/Verwerfen), der Fehlgriff-Schutz ist also eine Sekunde
+  kürzer geworden. Wenn das am Wasser stört: eine Zahl je Plattform zurückstellen.
+  Bleibt offen für **Zepp** (dort ist es der Tasten-Langdruck; die Dauer bestimmt Zepp selbst,
+  für 2 s bräuchte es eine eigene Zeitmessung über KEY_EVENT_PRESS/RELEASE).
+  **Nicht zu verwechseln mit `stop_mode`** („ein Tipp statt halten", Profil): das ist auf allen
+  vier Uhren gebaut — Garmin, Apple Watch (`ContentView.swift`), Wear (`MainActivity.kt`) und
+  **auch Zepp** (`page/index.js`, `s.stopMode === "press"`). Auf die Handy-Recorder ist es
+  bewusst NICHT übertragen: dort ist ein Fehl-Tipp auf einem grossen Touchscreen viel
+  wahrscheinlicher als auf einer Uhrentaste, und die Uhr-Begründung (manche Garmin belegen den
+  Langdruck mit „Mann über Bord") trifft aufs Handy nicht zu. Jans Entscheidung, falls doch.
 - **Standard-Sportart im Profil** (Jan 2026-07-27: „im profil ein einfaches auswahlfeld als welche
   sportart zukuenftige sessions als ‚default' eingestellt werden sollen … ist ja wie mein
   default-foil … aber das wirklich nicht mehr heute"). Nur Web/Server, KEINE Uhr-Änderung nötig:
