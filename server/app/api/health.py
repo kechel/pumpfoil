@@ -26,7 +26,7 @@ import subprocess
 import time
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -430,17 +430,6 @@ def sammle(db: Session) -> dict:
     oom = _oom_vorfaelle()
 
     _stichprobe(db, cpu, sp, platten, last[0] if last else None)
-    verlauf = []
-    try:
-        rows = (db.query(models.SystemSample)
-                .order_by(models.SystemSample.id.desc()).limit(2000).all())
-        verlauf = [{
-            "t": int(r.created_at.timestamp()) if r.created_at else None,
-            "cpu": r.cpu_prozent, "speicher": r.speicher_prozent, "swap": r.swap_prozent,
-            "last1": r.last1, "root": r.platte_root_prozent, "tmp": r.platte_tmp_prozent,
-        } for r in reversed(rows)]
-    except Exception:  # noqa: BLE001
-        verlauf = []
 
     uptime = 0.0
     try:
@@ -469,7 +458,6 @@ def sammle(db: Session) -> dict:
         "oom_24h": oom,
         "medien_bytes": _verzeichnis_groesse(os.path.join(os.getcwd(), "media")),
         "warnungen": _warnungen(cpu, sp, platten, last, kerne, pg, backup, fehler, oom),
-        "verlauf": verlauf,
     }
 
 
@@ -486,6 +474,45 @@ def system_health(_a: models.User = Depends(current_admin), db: Session = Depend
     except Exception:  # noqa: BLE001 — eine gescheiterte Meldung darf den Bildschirm nicht kosten
         db.rollback()
     return d
+
+
+@router.get("/verlauf")
+def verlauf(fenster: int = Query(24, ge=1, le=336),
+            _a: models.User = Depends(current_admin), db: Session = Depends(get_db)) -> dict:
+    """Messreihen der letzten `fenster` Stunden (1 h bis 14 Tage).
+
+    Eigener Endpunkt, weil der Bildschirm die Momentaufnahme alle 10 Sekunden holt — die Reihen
+    muessen da nicht jedes Mal mit. Verdichtet auf hoechstens `ZIELPUNKTE` Punkte (Mittelwert je
+    Eimer): 14 Tage sind bei einer Messung alle 5 Minuten rund 4000 Zeilen, und mehr Punkte als
+    Bildschirmspalten bringen kein Bild, nur Last.
+    """
+    ZIELPUNKTE = 600
+    seit = datetime.now(timezone.utc) - timedelta(hours=fenster)
+    rows = (db.query(models.SystemSample)
+            .filter(models.SystemSample.created_at >= seit)
+            .order_by(models.SystemSample.created_at).all())
+    felder = ("cpu_prozent", "speicher_prozent", "swap_prozent", "last1",
+              "platte_root_prozent", "platte_tmp_prozent")
+    namen = ("cpu", "speicher", "swap", "last1", "root", "tmp")
+
+    if len(rows) <= ZIELPUNKTE:
+        eimer = [[r] for r in rows]
+    else:
+        breite = len(rows) / ZIELPUNKTE
+        eimer = [rows[int(i * breite):max(int((i + 1) * breite), int(i * breite) + 1)]
+                 for i in range(ZIELPUNKTE)]
+
+    punkte = []
+    for gruppe in eimer:
+        if not gruppe:
+            continue
+        p = {"t": int(gruppe[len(gruppe) // 2].created_at.timestamp())}
+        for feld, name in zip(felder, namen):
+            werte = [getattr(r, feld) for r in gruppe if getattr(r, feld) is not None]
+            p[name] = round(sum(werte) / len(werte), 1) if werte else None
+        punkte.append(p)
+
+    return {"fenster": fenster, "punkte": punkte, "messungen": len(rows)}
 
 
 def _verzeichnis_groesse(pfad: str, budget_s: float = 0.4) -> int | None:

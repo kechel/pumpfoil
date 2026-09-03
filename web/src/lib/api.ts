@@ -636,8 +636,15 @@ export interface SystemHealth {
   backup: { pfad: string; stand?: number; alter_h?: number; bytes?: number; secrets_da?: boolean; fehler?: string };
   oom_24h: number | null;
   medien_bytes: number | null;
-  warnungen: { stufe: "rot" | "gelb"; text: string }[];
-  verlauf: { t: number | null; cpu: number | null; speicher: number | null; swap: number | null; last1: number | null; root: number | null; tmp: number | null }[];
+  warnungen: { stufe: "rot" | "gelb"; schluessel: string; text: string }[];
+}
+
+/** Messreihen fuer die Verlaufsdiagramme — eigener Endpunkt, damit das 10-Sekunden-Pollen der
+ *  Momentaufnahme klein bleibt. Serverseitig auf <= 600 Punkte verdichtet. */
+export interface SystemVerlauf {
+  fenster: number;
+  messungen: number;
+  punkte: { t: number; cpu: number | null; speicher: number | null; swap: number | null; last1: number | null; root: number | null; tmp: number | null }[];
 }
 
 export interface NewsBanner { version: number; enabled: boolean; texts: Record<string, string>; updated_at?: string | null; }
@@ -1179,6 +1186,7 @@ export const api = {
   adminBlocks: () => req<AdminBlock[]>("/api/admin/blocks"),
   newsBanner: () => req<NewsBanner>("/api/app/news"),
   adminHealth: () => req<SystemHealth>("/api/admin/health"),
+  adminHealthVerlauf: (stunden: number) => req<SystemVerlauf>(`/api/admin/health/verlauf?fenster=${stunden}`),
   adminNewsGet: () => req<NewsBanner>("/api/admin/news"),
   adminNewsSet: (p: Partial<NewsBanner>) => req<NewsBanner>("/api/admin/news", { method: "PUT", body: JSON.stringify(p) }),
   adminSpots: () => req<{ id: number; name: string | null; name_source: string | null; water: string | null; lat: number | null; lon: number | null; sessions: number }[]>("/api/admin/spots"),
