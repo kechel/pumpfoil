@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { api, SystemHealth, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey, NewsBanner, AdminBlock, AdminStatsSeries, AdminPending, AdminUserSport, AdminSocialChannel, AdminSocialItem } from "../lib/api";
+import { api, SystemHealth, SystemVerlauf, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey, NewsBanner, AdminBlock, AdminStatsSeries, AdminPending, AdminUserSport, AdminSocialChannel, AdminSocialItem } from "../lib/api";
 import { Card, Spinner, ErrorBox, Avatar, NewBadge } from "../components/ui";
 import { FlagIcon, FakeIcon, HeartIcon, CameraIcon, LocationIcon } from "../components/Icons";
 import { TimeChart } from "../components/TimeChart";
@@ -374,16 +374,101 @@ function Balken({ prozent }: { prozent: number | null | undefined }) {
   );
 }
 
-/** Verlaufslinie ohne Diagramm-Bibliothek: reines SVG, 0…100 % feste Skala. */
-function Linie({ werte, farbe = "#22d3ee" }: { werte: (number | null)[]; farbe?: string }) {
-  const pts = werte.filter((v): v is number => v !== null && v !== undefined);
-  if (pts.length < 2) return <div className="h-8 text-xs text-slate-500">zu wenig Messpunkte</div>;
-  const w = 240, h = 32;
-  const d = pts.map((v, i) => `${(i / (pts.length - 1)) * w},${h - (Math.max(0, Math.min(100, v)) / 100) * h}`).join(" ");
+/** Verlaufsdiagramme wie auf /verlauf — derselbe TimeChart, damit im Projekt EIN Diagrammstil
+ *  gilt. Y-Achse links, Zeitachse darunter, feste 0…100-Skala bei Prozentwerten (sonst sieht ein
+ *  Rauschen zwischen 20 und 22 % aus wie ein Drama). */
+const VERLAUF_FENSTER: [number, string][] = [[1, "1 h"], [6, "6 h"], [24, "24 h"], [168, "7 Tage"], [336, "14 Tage"]];
+const VERLAUF_REIHEN: { key: keyof SystemVerlauf["punkte"][number]; titel: string; farbe: string; einheit: string; fest100: boolean }[] = [
+  { key: "cpu", titel: "CPU-Auslastung", farbe: "#22d3ee", einheit: "%", fest100: true },
+  { key: "speicher", titel: "Arbeitsspeicher", farbe: "#34d399", einheit: "%", fest100: true },
+  { key: "last1", titel: "Lastmittel (1 min)", farbe: "#f59e0b", einheit: "", fest100: false },
+  { key: "swap", titel: "Swap", farbe: "#f472b6", einheit: "%", fest100: true },
+  { key: "root", titel: "Platte /", farbe: "#a78bfa", einheit: "%", fest100: true },
+  { key: "tmp", titel: "Platte /tmp", farbe: "#60a5fa", einheit: "%", fest100: true },
+];
+
+function VerlaufsDiagramme() {
+  const [fenster, setFenster] = useState(24);
+  const [v, setV] = useState<SystemVerlauf | null>(null);
+  useEffect(() => {
+    let weg = false;
+    const holen = () => api.adminHealthVerlauf(fenster).then((r) => { if (!weg) setV(r); }).catch(() => {});
+    holen();
+    // Seltener als die Momentaufnahme: eine Messung entsteht ohnehin nur alle 5 Minuten.
+    const id = setInterval(holen, 60000);
+    return () => { weg = true; clearInterval(id); };
+  }, [fenster]);
+
+  const punkte = v?.punkte ?? [];
+  const t = punkte.map((p) => p.t * 1000);
+  const domain: [number, number] = punkte.length
+    ? [t[0], Math.max(t[t.length - 1], Date.now())]
+    : [Date.now() - fenster * 3600_000, Date.now()];
+  const ticks = Array.from({ length: 5 }, (_, i) => domain[0] + ((domain[1] - domain[0]) * i) / 4);
+  const fmtTick = (ms: number) => new Date(ms).toLocaleString("de-DE",
+    fenster <= 24 ? { hour: "2-digit", minute: "2-digit" } : { day: "2-digit", month: "2-digit" });
+
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="h-8 w-full" preserveAspectRatio="none" aria-hidden>
-      <polyline points={d} fill="none" stroke={farbe} strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
-    </svg>
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <h3 className="text-sm font-semibold text-slate-100">Verlauf</h3>
+        {VERLAUF_FENSTER.map(([h, label]) => (
+          <button key={h} onClick={() => setFenster(h)}
+            className={`rounded-lg px-3 py-1.5 text-xs transition-colors ${fenster === h
+              ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}>
+            {label}
+          </button>
+        ))}
+        <span className="text-xs text-slate-400">
+          {v ? `${v.messungen} Messungen` : "…"}
+        </span>
+      </div>
+      {punkte.length < 2 ? (
+        <Card className="p-3 text-sm text-slate-300">
+          Noch zu wenig Messpunkte für diesen Zeitraum — der Zeitgeber misst alle 5 Minuten.
+        </Card>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {VERLAUF_REIHEN.map((r) => {
+            const werte = punkte.map((p) => (p[r.key] as number | null));
+            const zahlen = werte.filter((x): x is number => x !== null);
+            const jetzt = [...zahlen].pop() ?? 0;
+            const max = zahlen.length ? Math.max(...zahlen) : 0;
+            const vmax = r.fest100 ? 100 : Math.max(max, 1);
+            const vmin = 0;
+            // TimeChart skaliert auf min..max der Werte. Fuer eine feste Skala haengen wir zwei
+            // unsichtbare Stuetzpunkte an den Rand des Zeitraums — billiger als eine zweite
+            // Diagramm-Komponente, und die Linie bleibt dieselbe.
+            const tPlot = [domain[0] - 1, ...t, domain[1] + 1];
+            const vPlot = [vmin, ...werte, vmax];
+            return (
+              <Card key={String(r.key)} className="p-3">
+                <div className="mb-1 flex items-baseline justify-between px-1">
+                  <span className="text-xs uppercase tracking-wide text-slate-300">{r.titel}</span>
+                  <span className="text-lg font-bold tabular-nums" style={{ color: r.farbe }}>
+                    {jetzt.toFixed(r.fest100 ? 0 : 2)}{r.einheit}
+                    <span className="ml-2 text-xs font-normal text-slate-400">
+                      max {max.toFixed(r.fest100 ? 0 : 2)}{r.einheit}
+                    </span>
+                  </span>
+                </div>
+                <div className="flex gap-1">
+                  <div className="flex h-[100px] w-8 shrink-0 flex-col justify-between py-0.5 text-right text-[10px] tabular-nums text-slate-500">
+                    <span>{vmax.toFixed(0)}</span><span>{(vmax / 2).toFixed(0)}</span><span>0</span>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <TimeChart t={tPlot} values={vPlot} color={r.farbe} domainMs={domain} height={100} />
+                  </div>
+                </div>
+                <div className="ml-9 mt-1 flex justify-between px-1 text-[10px] tabular-nums text-slate-500">
+                  {ticks.map((tk, i) => <span key={i}>{fmtTick(tk)}</span>)}
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -432,7 +517,6 @@ function SystemTab() {
   if (fehler) return <ErrorBox message={fehler} />;
   if (!d) return <Spinner />;
 
-  const v = d.verlauf;
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
@@ -481,7 +565,6 @@ function SystemTab() {
             </span>
           </div>
           <Balken prozent={d.cpu.auslastung} />
-          <Linie werte={v.map((p) => p.cpu)} />
           <div className="text-xs text-slate-400">{d.prozesse.anzahl} Prozesse</div>
         </Kachel>
 
@@ -493,7 +576,6 @@ function SystemTab() {
             <span className="text-sm text-slate-400">{gb(d.speicher.verfuegbar)} verfügbar</span>
           </div>
           <Balken prozent={d.speicher.prozent} />
-          <Linie werte={v.map((p) => p.speicher)} farbe="#34d399" />
           <div className="text-xs text-slate-400">
             Cache {gb(d.speicher.cached)} · Swap {gb(d.speicher.swap_benutzt)} von {gb(d.speicher.swap_total)}
             {d.speicher.swap_prozent !== null && ` (${d.speicher.swap_prozent.toFixed(0)} %)`}
@@ -511,9 +593,6 @@ function SystemTab() {
                   </span>
                 </div>
                 <Balken prozent={p.prozent} />
-                {(p.pfad === "/" || p.pfad === "/tmp") && (
-                  <Linie werte={v.map((s) => (p.pfad === "/" ? s.root : s.tmp))} farbe="#a78bfa" />
-                )}
               </div>
             ))}
           </div>
@@ -579,6 +658,8 @@ function SystemTab() {
           </div>
         </Kachel>
       </div>
+
+      <VerlaufsDiagramme />
 
       <div className="grid gap-4 md:grid-cols-2">
         {([["Nach CPU", d.prozesse.nach_cpu], ["Nach Speicher", d.prozesse.nach_speicher]] as const).map(([titel, liste]) => (
