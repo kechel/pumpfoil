@@ -861,6 +861,15 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                     val vs = track.pumpHz.filterNotNull()
                     (vs.minOrNull() ?: 0.0) to (vs.maxOrNull() ?: 1.0)
                 }
+                // Der gemerkte Farbmodus kann in DIESER Session fehlen (Puls ohne Gurt, Carves
+                // ohne Accel) — dann gibt es weder Chip noch Farben, die Karte waere grau.
+                // Zurueck auf Speed, und zwar gemerkt (der Effekt unten schreibt mit); die PWA
+                // macht es genauso.
+                LaunchedEffect(hasHr, hasPump, hasCarves, colorMode) {
+                    if ((colorMode == ColorMode.HR && !hasHr) ||
+                        (colorMode == ColorMode.PUMP && !hasPump) ||
+                        (colorMode == ColorMode.TURNS && !hasCarves)) colorMode = ColorMode.SPEED
+                }
                 // Farbmodus (Speed/Puls/Pump) + Marker-Umschalter in DERSELBEN Zeile (rechts).
                 if (hasHr || hasPump || hasCarves) {
                     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), verticalAlignment = Alignment.CenterVertically,

@@ -738,6 +738,20 @@ struct CarveStats: Codable { let windows: [String: CarveWin] }
 struct CarveWin: Codable { let s: Int; let m: Int; let l: Int }
 
 // Carve-Erkennung (GET /api/sessions/:id/carves) — nur Anzeige, nicht in Rekorde/Stats.
+// Ein Startversuch fuer die Karte (GET /api/sessions/{id}/attempts): fertige Punkte statt
+// Indizes — Versuche VOR dem Zuschnitt haben im getrimmten Track gar keinen Index, und
+// aussortierte Bereiche verschieben ihn. `outside_trim` = liegt ausserhalb des ausgewerteten
+// Bereichs, zaehlt also in keiner Statistik der Session mit.
+struct AttemptLine: Decodable {
+    var points: [[Double]] = []          // [[lat, lon], …]
+    var t_start_ms: Double = 0
+    var distance_m: Double = 0
+    var duration_s: Double = 0
+    var avg_speed_mps: Double = 0
+    var outside_trim: Bool = false
+}
+struct AttemptsAntwort: Decodable { var attempts: [AttemptLine] = [] }
+
 struct CarveData: Codable {
     var g: [Double] = []                 // Kurvenlage-g je Track-Punkt (grobe Färbung)
     var carves: [Carve] = []

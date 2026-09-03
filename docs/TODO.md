@@ -1095,7 +1095,12 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     **Nicht gemerkt: die Skala** (Auto/Min/Max) — die haengt an der einzelnen Session.
     Kaputte/unbekannte Werte fallen je Feld einzeln auf den Standard zurueck; der vorhandene
     Rueckfall „Modus in dieser Session nicht verfuegbar -> speed" schreibt bewusst mit.
-  - **Offen:** derselbe Schalter auf Android/iOS (dort eigener Karten-Renderer).
+  - **✅ 03.09. erledigt:** Android hatte das Merken schon (`SessionViewPrefs.kt`), **iOS nicht** —
+    dort jetzt `@AppStorage("sd_color_mode"/"sd_smooth_win"/"sd_show_pumps"/"sd_show_attempts")`.
+    Dabei zwei weitere Luecken gefunden und geschlossen: iOS zeichnete die **misslungenen
+    Startversuche** gar nicht (nur die Zahl „4/20"), und **beiden** Apps fehlte der Rueckfall
+    „gemerkter Farbmodus fehlt in dieser Session -> Speed" (Karte waere grau geblieben).
+    Details in `docs/PARITY-AUDIT.md`, Abschnitt 03.09.
 
 - **🔴→✅ 02.09. — DIE eigentliche Ursache fuer „4 Laeufe statt 4/4": unser ETag. Nicht der Cache,
   nicht der Service Worker.** Jan hatte das neue Bundle (`Build 2026-09-02·fd384859`) und sah es
