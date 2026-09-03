@@ -11,6 +11,10 @@ struct CompareView: View {
     // und dieselbe Session darf zweimal drin sein, wenn zwei ihrer Laeufe verglichen werden.
     var preselect: [CompareRef] = []
     @AppStorage("appLang") private var lang = "de"
+    // „Auswahl leeren" (wie PWA und Android): raeumt den Korb und geht zurueck — die geladenen
+    // Sessions stehen ja noch in `items`, ein Verbleiben zeigte sonst einen leeren Korb voller
+    // Inhalte. Store direkt, nicht als @ObservedObject: hier wird nur geschrieben.
+    @Environment(\.dismiss) private var dismiss
     // Beobachtet die Anzeige-Einheit der Pump-Kadenz -> Umschalten wirkt sofort (PumpUnit.swift).
     @AppStorage(PumpUnit.storeKey) private var pumpUnit = "hz"
     // Fahrergewicht fuer die Leistungs-Kennzahl (Profil). 0 = unbekannt -> die Karte bleibt leer,
@@ -50,6 +54,13 @@ struct CompareView: View {
         }
         .navigationDestination(isPresented: mergedBinding) { mergedDestination }
         .navigationTitle(Loc.t("compare.title", lang))
+        .toolbar {
+            if !results.isEmpty {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(Loc.t("compare.clear", lang)) { CompareStore.shared.clear(); dismiss() }
+                }
+            }
+        }
         .task { await load() }
     }
 

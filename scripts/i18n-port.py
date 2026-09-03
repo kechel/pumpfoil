@@ -80,6 +80,17 @@ def main():
         pfad = WURZEL / rel
         zeilen = pfad.read_text(encoding="utf-8").splitlines(keepends=True)
         swift = art.startswith("sw")
+        # Schon vorhandene Schluessel NICHT erneut einfuegen. Sonst steht der Schluessel zweimal
+        # in derselben Tabelle — Kotlin und Swift schlucken das stumm (der letzte gewinnt), und
+        # man merkt es erst beim naechsten Lesen der Datei. Genau so passiert am 03.09. mit
+        # `compare.clear`, das Android schon hatte und iOS nicht.
+        vorhanden = [k for k in keys if f'"{k}"' in "".join(zeilen)]
+        if vorhanden:
+            print(f'   uebersprungen (schon drin) in {rel}: {", ".join(vorhanden)}')
+        keys_hier = [k for k in keys if k not in vorhanden]
+        if not keys_hier:
+            bilanz[rel] = 0
+            continue
         einfuegungen = []          # (index, text)
         for i, z in enumerate(zeilen):
             if f'"{ANKER}"' not in z:
@@ -88,7 +99,7 @@ def main():
             ist_basis = ("row(" in z) or ("r(" in z and swift)
             neu = []
             if ist_basis and art.endswith("basis"):
-                for k in keys:
+                for k in keys_hier:
                     werte = [web.get(s, {}).get(k, web["en"].get(k, web["de"][k])) for s in BASIS]
                     if swift:
                         neu.append(f'{einzug}"{k}": r(' + ", ".join(f'"{w}"' for w in werte) + "),\n")
@@ -98,7 +109,7 @@ def main():
                 s = block_sprache(zeilen, i, overlays)
                 if s is None:
                     continue
-                for k in keys:
+                for k in keys_hier:
                     wert = web.get(s, {}).get(k)
                     if wert is None:      # keine Uebersetzung -> Luecke lassen, App faellt auf Englisch
                         continue
