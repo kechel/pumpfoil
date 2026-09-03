@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
+import android.os.SystemClock
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -50,7 +51,14 @@ class RecorderService : Service(), SensorEventListener {
                     // -1 = Geraet liefert KEINE Geschwindigkeit. Vorher stand hier 0.0 — das
                     // war von einem echten Stillstand nicht zu unterscheiden, und genau darauf
                     // entscheidet die Distanz-Schwelle (Recorder.STAND_MPS).
-                    if (it.hasSpeed()) it.speed.toDouble() else -1.0, it.accuracy.toDouble())
+                    if (it.hasSpeed()) it.speed.toDouble() else -1.0, it.accuracy.toDouble(),
+                    // Alter des Fixes: `elapsedRealtimeNanos` ist der Zeitpunkt der MESSUNG auf
+                    // der monotonen Uhr. Ein frischer GNSS-Fix ist 0-2 s alt; wiederholt der
+                    // Fused-Provider einen zwischengespeicherten Fix, bleibt der Zeitstempel
+                    // stehen und das Alter waechst. Genau daran erkennt die Uhr, dass sie nur
+                    // eine alte Position vorgesetzt bekommt (Feldbefund 03.09., s. Recorder).
+                    ((SystemClock.elapsedRealtimeNanos() - it.elapsedRealtimeNanos) / 1_000_000L)
+                        .coerceAtLeast(0L))
             }
         }
     }

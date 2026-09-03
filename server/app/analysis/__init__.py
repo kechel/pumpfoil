@@ -450,6 +450,14 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     # und überlebt so auch jede Reanalyse. NULL = automatisch.
     if session.pumpfoil_override is not None:
         is_pumpfoil = bool(session.pumpfoil_override)
+    # Eingefrorene Ortung (Geraet wiederholt einen zwischengespeicherten Fix): als Befund
+    # mitschreiben, damit die Anzeige „keine Strecke, keine Laeufe" erklaeren kann, statt den
+    # Nutzer im Dunkeln zu lassen. Bewusst NICHT in `data_quality` — das ist die Moderations-
+    # Spalte (test/false_data) und haengt an der Sport-Klassifizierung.
+    from .gps import eingefrorene_ortung
+    frozen_share, frozen = eingefrorene_ortung(gps_samples)
+    res["metrics"]["gps_frozen_share"] = frozen_share
+    res["metrics"]["gps_frozen"] = bool(frozen)
     res["metrics"]["is_pumpfoil"] = bool(is_pumpfoil)
     session.is_pumpfoil = bool(is_pumpfoil)  # als Spalte persistieren (Listen-Filter)
 

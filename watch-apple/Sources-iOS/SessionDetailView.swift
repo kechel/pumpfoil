@@ -563,7 +563,11 @@ struct SessionDetailView: View {
     // obwohl gar keine (brauchbaren) Beschleunigungsdaten in der Aufnahme sind. Stand bisher nur
     // in der PWA. Zwei Faelle: gar kein Accel — oder zu niedrig getaktet (FR55 & Co.).
     @ViewBuilder private func nurGpsHinweis(_ s: SessionDetail) -> some View {
-        if let m = s.analysis?.metrics, m.detection == "gps_only", s.status != "live" {
+        // Die eingefrorene Ortung trifft auch Aufnahmen MIT Accel (detection == "model") —
+        // deshalb hier zusaetzlich zum Nur-GPS-Fall pruefen, sonst bliebe genau der gemeldete
+        // Fall vom 03.09. stumm.
+        if let m = s.analysis?.metrics, m.detection == "gps_only" || m.gps_frozen == true,
+           s.status != "live" {
             Text(nurGpsText(m))
                 .font(.subheadline)
                 .padding(10)
@@ -574,6 +578,9 @@ struct SessionDetailView: View {
     }
 
     private func nurGpsText(_ m: Metrics) -> String {
+        // Eingefrorene Ortung zuerst: sie erklaert „keine Strecke, keine Laeufe" viel genauer
+        // als der allgemeine Nur-GPS-Hinweis (Fall vom 03.09.).
+        if m.gps_frozen == true { return Loc.t("sd.gpsFrozen", lang) }
         if let hz = m.accel_hz_effective, hz > 0 {
             return Loc.t("sd.lowRateWarning", lang)
                 .replacingOccurrences(of: "{hz}", with: String(Int(hz.rounded())))

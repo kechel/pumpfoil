@@ -382,6 +382,7 @@ const cs: Record<string, string> = {
   "sd.duration": "Doba",
   "sd.communityView": "Komunita · jen prohlížení",
   "sd.gpsWarning": "⚠️ V tomto souboru nejsou žádná data ze zrychlení — detekce foilu běží jen hrubě přes GPS (rychlost). Pumpnutí/klouzání chybí, hranice jízd a detekce mohou být nepřesné (nad- nebo pod-detekce).",
+  "sd.gpsFrozen": "Hodinky během této nahrávky nedodaly vlastní polohu, ale pořád dokola opakovaly stejnou uloženou pozici — proto žádná vzdálenost, rychlost ani jízdy. Většinou pomůže nechat telefon dál od vody (nebo na hodinkách vypnout Bluetooth), aby hodinky použily vlastní GPS.",
   "sd.lowRateWarning": "⚠️ Zrychlení nahráno jen s ~{hz} Hz (režim „Úsporný“) — pro detekci pumpnutí/klouzání je potřeba alespoň 15 Hz. Surová data existují (viditelná při označování), ale nevyhodnocují se; detekce foilu běží jen přes GPS.",
   "sd.avgSpeed": "Ø rychlost",
   "sd.maxSpeed": "Max rychlost ({win}s)",

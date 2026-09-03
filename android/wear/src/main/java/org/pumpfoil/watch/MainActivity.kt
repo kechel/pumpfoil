@@ -622,6 +622,23 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }
+                // Eingefrorene Ortung: die Uhr bekommt nur noch alte Fixes vorgesetzt (s.
+                // Recorder.gpsStale). Das MUSS auffallen — sonst pumpt jemand eine Stunde und
+                // hat hinterher nur seinen Puls (Meldung eines Nutzers am 03.09., zwei weitere
+                // Konten mit demselben Muster). Deshalb ein Balken quer ueber die Seite statt
+                // eines Symbols: er liegt ueber jeder Datenseite und jedem eigenen Layout.
+                if (s.gpsStale) {
+                    Text(
+                        I18n.t("rec.gpsStale"),
+                        color = Color(0xFF0F172A),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 14.sp,
+                        modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth()
+                            .background(Color(0xFFFBBF24)).padding(horizontal = 10.dp, vertical = 3.dp),
+                    )
+                }
                 // Upload-Indikator oben, wenn gerade Chunks hochgeladen werden.
                 if (s.uploading) {
                     CircularProgressIndicator(

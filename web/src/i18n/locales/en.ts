@@ -396,6 +396,7 @@ const en: Record<string, string> = {
   "sd.duration": "Duration",
   "sd.communityView": "Community · view only",
   "sd.gpsWarning": "⚠️ No acceleration data in this file — foil detection runs only roughly via GPS (speed). Pump/glide phases are missing; run boundaries and detection may be inaccurate (over- or under-detection).",
+  "sd.gpsFrozen": "During this recording your watch never delivered its own position — it kept repeating the same stored fix, so there is no distance, no speed and no runs. Usually it helps to leave your phone away from the water (or turn Bluetooth off on the watch) so the watch uses its own GPS.",
   "sd.lowRateWarning": "⚠️ Acceleration recorded at only ~{hz} Hz (\"Sparse\" mode) — pump/glide detection needs at least 15 Hz. The raw values exist (visible in labeling) but aren't analysed; foil detection runs on GPS only.",
   "sd.avgSpeed": "Ø speed",
   "sd.maxSpeed": "Max speed ({win}s)",

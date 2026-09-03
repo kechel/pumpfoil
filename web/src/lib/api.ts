@@ -196,6 +196,10 @@ export interface Metrics {
   min_pump_hz?: number | null;
   detection?: string;   // "model" | "gps_only" | "none"
   accel_hz_effective?: number | null;   // tatsächliche Accel-Rate aus den Daten (kann < getaggt)
+  // Das Gerät hat immer wieder dieselbe gespeicherte Position gemeldet statt neu zu messen
+  // (Anteil exakter Wiederholungen; ab 60 % gilt die Ortung als eingefroren).
+  gps_frozen?: boolean;
+  gps_frozen_share?: number;
 }
 
 export interface SessionSummary {

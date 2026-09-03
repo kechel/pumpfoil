@@ -370,6 +370,7 @@ const nb: Record<string, string> = {
   "sd.duration": "Varighet",
   "sd.communityView": "Fellesskap · bare visning",
   "sd.gpsWarning": "⚠️ Ingen akselerasjonsdata i denne filen — foil-gjenkjenningen kjører bare grovt via GPS (fart). Pumpe-/glidefaser mangler; grensene for runs og gjenkjenningen kan være unøyaktige (for mye eller for lite blir funnet).",
+  "sd.gpsFrozen": "Under dette opptaket ga ikke klokka en egen posisjon, men gjentok den samme lagrede posisjonen — derfor ingen distanse, ingen fart og ingen runs. Som regel hjelper det å la mobilen ligge igjen (eller slå av Bluetooth på klokka), slik at klokka bruker sin egen GPS.",
   "sd.lowRateWarning": "⚠️ Akselerasjon er bare tatt opp med ~{hz} Hz (modus \"Sparse\") — pumpe-/glidegjenkjenning trenger minst 15 Hz. Rådataene finnes (synlige i merkingen), men analyseres ikke; foil-gjenkjenningen kjører bare på GPS.",
   "sd.avgSpeed": "Ø fart",
   "sd.maxSpeed": "Maks fart ({win}s)",
