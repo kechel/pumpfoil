@@ -212,6 +212,86 @@ def _heuristic_mask(speed_s, cv, quality_ok, gps_hz: int,
     return mask
 
 
+def clean_speed_series(speed: np.ndarray, gps_hz: int) -> np.ndarray:
+    """Alle gemessenen GPS-Glitch-Regeln in EINER Funktion — die einzige Stelle, an der die
+    Geschwindigkeit von Doppler-Muell befreit wird. v1 (analyze_gps) und v2 (detect_v2) rufen
+    beide hier herein.
+
+    **Warum eine gemeinsame Funktion:** v2 hatte die Kette nachgebaut und dabei zwei der vier
+    Regeln vergessen (isolierter Despike + Endpunkt-Clamp), obwohl der Docstring dort
+    „dieselben Regeln wie v1" behauptete. Da seit 01.08. ALLES ueber v2 laeuft, wirkte nur die
+    schwaechere Kette. Gefunden am 03.09. an einer Polar-Session (#3340, Meldung des Nutzers
+    „mein Import ist fehlgeschlagen"): das TCX enthielt Sekunden wie 0,0 / 42,9 / 15,8 km/h,
+    v2 kam damit auf 31,5 km/h Max, die Session lag damit ueber dem 30-km/h-Tor der
+    gps_only-Klassifikation und wurde als „kein Pumpfoil" aussortiert. Mit der vollen Kette
+    sind es 22,2 km/h — passend zum 5-s-Max von 20,9 km/h der uebrigen Session.
+
+    Reihenfolge ist bewusst genau die alte von v1 (Aendern verschiebt die Lauf-Erkennung):
+      1. unmoegliche Werte (> GLITCH_SPEED) gegen den 15-s-Median,
+      2. mehrsekuendige Doppler-Bursts (relativ UND absolut) gegen den 15-s-Median,
+      3. isolierter Despike: Einzel-Peak ueber BEIDEN Nachbarn,
+      4. Einzel-Sekunden-Ausreisser gegen den 5-s-Median, danach die beiden Endpunkte.
+    Begruendung und Beispielsessions je Regel stehen am Konstanten-Block oben.
+    """
+    speed = np.array(speed, dtype=float)
+    if speed.size == 0:
+        return speed
+
+    # 1) Unmögliche GPS-Spikes (auch mehrsekündige Bursts) gegen einen langen 15-s-Median
+    # ersetzen -> echter Max-Speed bleibt erhalten (für die Pumpfoil-Klassifikation).
+    over = speed > GLITCH_SPEED_MPS
+    if over.any():
+        med_long = _running_median(np.where(over, 0.0, speed), max(int(round(15 * gps_hz)), 1))
+        speed = np.where(over, med_long, speed)
+
+    # 2) Mehrsekündige Doppler-Bursts (unter GLITCH_SPEED) gegen den robusten 15-s-Median
+    # ersetzen. Doppelbedingung (relativ + absolut) — Details/Beispiele/Regressions-Check
+    # siehe Konstanten-Block oben (BURST_MARGIN_MPS / BURST_ABS_MIN_MPS, 2026-07-04).
+    # Der 15-s-Median ist gegen kurze (≤ ~halbes Fenster) Bursts unempfindlich; echte
+    # gehaltene Passagen heben ihn selbst mit an und werden daher NICHT beschnitten.
+    med_burst = _running_median(speed, max(int(round(BURST_MEDIAN_WIN_S * gps_hz)), 1))
+    burst = (speed > med_burst + BURST_MARGIN_MPS) & (speed > BURST_ABS_MIN_MPS)
+    if burst.any():
+        speed = np.where(burst, med_burst, speed)
+
+    # 3) Isolierter Despike: ein einzelner Ausreißer, der ÜBER BEIDEN Nachbarn liegt
+    # (>SPIKE_JUMP) und absolut hoch ist, ist ein GPS-Glitch (Beispiel #426 siehe oben).
+    # Bewusst nur Einzel-Peaks — echte, gehaltene Pump-Anstiege (beide Nachbarn ebenfalls hoch)
+    # bleiben unangetastet, damit sich die Lauf-Erkennung nicht verschiebt. Wirkt auch am Rand.
+    n = speed.size
+    if n >= 2:
+        cleaned = speed.copy()
+        for i in range(n):
+            prev = cleaned[i - 1] if i > 0 else speed[i + 1]
+            nxt = speed[i + 1] if i < n - 1 else cleaned[i - 1]
+            ref = prev if prev < nxt else nxt
+            if speed[i] > ref + SPIKE_JUMP_MPS and speed[i] > SPIKE_ABS_MIN_MPS:
+                cleaned[i] = ref
+        speed = cleaned
+
+    # 4) Einzel-Sekunden-Ausreißer (GPS-Doppler-Glitches) gegen lokalen Median clampen
+    # -> keine Lone-Spike-Farbsegmente; saubere Basis für alle Glättungen.
+    med5 = _running_median(speed, max(int(round(5 * gps_hz)), 1))
+    spike = np.abs(speed - med5) > SPEED_SPIKE_MPS
+    speed = np.where(spike, med5, speed)
+
+    # Endpunkt-Spikes: der ERSTE/LETZTE Sample entgeht den Median-Filtern, weil das
+    # Rand-Padding (mode="edge") den Wert in sein eigenes Fenster repliziert -> der
+    # Median ist der Spike selbst, nichts wird geclamped. Ein Doppler-Spike am Track-
+    # Rand setzt so fälschlich den Speed-Rekord (z.B. S555: 31,8 km/h auf dem letzten
+    # Punkt, echter Lauf-Max ~20). Beide Enden explizit gegen den Median der Innen-
+    # Nachbarn clampen (nur nach unten — echte gehaltene Rand-Speeds haben hohe Nachbarn).
+    if speed.size >= 4:
+        kk = min(max(int(round(4 * gps_hz)), 3), speed.size - 1)
+        m0 = float(np.median(speed[1:1 + kk]))
+        if speed[0] > m0 + SPEED_SPIKE_MPS:
+            speed[0] = m0
+        mN = float(np.median(speed[-1 - kk:-1]))
+        if speed[-1] > mN + SPEED_SPIKE_MPS:
+            speed[-1] = mN
+    return speed
+
+
 def analyze_gps(samples: list, gps_hz: int = 1, mask_override=None, impulse_times_ms=None,
                 water_rings=None, enter_speed: float = ENTER_SPEED, exit_speed: float = EXIT_SPEED,
                 min_segment_s: float = MIN_SEGMENT_S, min_seg_avg_speed: float = MIN_SEG_AVG_SPEED) -> dict:
@@ -265,58 +345,7 @@ def analyze_gps(samples: list, gps_hz: int = 1, mask_override=None, impulse_time
     speed_from_pos = step / dt
     speed = np.where(np.isnan(speed_raw), speed_from_pos, speed_raw)
 
-    # Unmögliche GPS-Spikes (auch mehrsekündige Bursts) gegen einen langen 15-s-Median
-    # ersetzen -> echter Max-Speed bleibt erhalten (für die Pumpfoil-Klassifikation).
-    over = speed > GLITCH_SPEED_MPS
-    if over.any():
-        med_long = _running_median(np.where(over, 0.0, speed), max(int(round(15 * gps_hz)), 1))
-        speed = np.where(over, med_long, speed)
-
-    # Mehrsekündige Doppler-Bursts (unter GLITCH_SPEED) gegen den robusten 15-s-Median
-    # ersetzen. Doppelbedingung (relativ + absolut) — Details/Beispiele/Regressions-Check
-    # siehe Konstanten-Block oben (BURST_MARGIN_MPS / BURST_ABS_MIN_MPS, 2026-07-04).
-    # Der 15-s-Median ist gegen kurze (≤ ~halbes Fenster) Bursts unempfindlich; echte
-    # gehaltene Passagen heben ihn selbst mit an und werden daher NICHT beschnitten.
-    med_burst = _running_median(speed, max(int(round(BURST_MEDIAN_WIN_S * gps_hz)), 1))
-    burst = (speed > med_burst + BURST_MARGIN_MPS) & (speed > BURST_ABS_MIN_MPS)
-    if burst.any():
-        speed = np.where(burst, med_burst, speed)
-
-    # Isolierter Despike: ein einzelner Ausreißer, der ÜBER BEIDEN Nachbarn liegt (>SPIKE_JUMP)
-    # und absolut hoch ist, ist ein GPS-Glitch (Details/Beispiel #426 siehe Konstanten oben).
-    # Bewusst nur Einzel-Peaks — echte, gehaltene Pump-Anstiege (beide Nachbarn ebenfalls hoch)
-    # bleiben unangetastet, damit sich die Lauf-Erkennung nicht verschiebt. Wirkt auch am Rand.
-    n = speed.size
-    if n >= 2:
-        cleaned = speed.copy()
-        for i in range(n):
-            prev = cleaned[i - 1] if i > 0 else speed[i + 1]
-            nxt = speed[i + 1] if i < n - 1 else cleaned[i - 1]
-            ref = prev if prev < nxt else nxt
-            if speed[i] > ref + SPIKE_JUMP_MPS and speed[i] > SPIKE_ABS_MIN_MPS:
-                cleaned[i] = ref
-        speed = cleaned
-
-    # Einzel-Sekunden-Ausreißer (GPS-Doppler-Glitches) gegen lokalen Median clampen
-    # -> keine Lone-Spike-Farbsegmente; saubere Basis für alle Glättungen.
-    med5 = _running_median(speed, max(int(round(5 * gps_hz)), 1))
-    spike = np.abs(speed - med5) > SPEED_SPIKE_MPS
-    speed = np.where(spike, med5, speed)
-
-    # Endpunkt-Spikes: der ERSTE/LETZTE Sample entgeht den Median-Filtern, weil das
-    # Rand-Padding (mode="edge") den Wert in sein eigenes Fenster repliziert -> der
-    # Median ist der Spike selbst, nichts wird geclamped. Ein Doppler-Spike am Track-
-    # Rand setzt so fälschlich den Speed-Rekord (z.B. S555: 31,8 km/h auf dem letzten
-    # Punkt, echter Lauf-Max ~20). Beide Enden explizit gegen den Median der Innen-
-    # Nachbarn clampen (nur nach unten — echte gehaltene Rand-Speeds haben hohe Nachbarn).
-    if speed.size >= 4:
-        kk = min(max(int(round(4 * gps_hz)), 3), speed.size - 1)
-        m0 = float(np.median(speed[1:1 + kk]))
-        if speed[0] > m0 + SPEED_SPIKE_MPS:
-            speed[0] = m0
-        mN = float(np.median(speed[-1 - kk:-1]))
-        if speed[-1] > mN + SPEED_SPIKE_MPS:
-            speed[-1] = mN
+    speed = clean_speed_series(speed, gps_hz)
 
     win = max(int(round(SMOOTH_WINDOW_S * gps_hz)), 1)
     speed_s = _running_median(speed, win)
