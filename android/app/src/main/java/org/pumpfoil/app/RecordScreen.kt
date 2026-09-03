@@ -316,7 +316,9 @@ fun RecordScreen(onBack: () -> Unit) {
                             detectTapGestures(onPress = {
                                 var fired = false
                                 val job = scope.launch {
-                                    val steps = 30
+                                    // 2 s halten (20 x 100 ms) — wie Garmin seit 1.0.68. Jan
+                                    // 27.07.: „3 s fuehlten sich am Wasser unnoetig lang an".
+                                    val steps = 20
                                     for (i in 1..steps) { kotlinx.coroutines.delay(100); holdProgress = i / steps.toFloat() }
                                     fired = true
                                     RecorderService.stop(ctx)
