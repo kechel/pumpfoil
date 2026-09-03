@@ -649,8 +649,13 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     Suunto verknuepfen, dann bei uns Profil → Konten verknuepfen → Suunto, dann eine Session
     fahren) samt der Bitte, das fuer uns zu testen. **Wir warten auf seine Rueckmeldung.**
     Ihm wurde dabei ehrlich gesagt, dass eine App direkt auf der Redmi Watch derzeit nicht geht.
+    Nachgeschoben (Jan, 03.09.): er muss dafuer **nicht aufs Wasser** — zwei, drei Minuten
+    Spaziergang reichen. Wichtig ist nur, dass es eine **Outdoor**-Aktivitaet ist; ein
+    Indoor-Training hat gar keine Spur und der Test waere wertlos.
     Wenn er sich meldet: als Erstes pruefen, ob bei seiner importierten Session ueberhaupt eine
-    Spur ankommt (`analysis_results.detection`, Punktzahl, `total_distance_m`).
+    Spur ankommt (`analysis_results.detection`, Punktzahl, `total_distance_m`). Die Session wird
+    bei uns als Spaziergang ankommen und damit wohl als „kein Pumpfoil" einsortiert — das ist fuer
+    den Test egal, es geht nur um die Frage, ob GPS-Punkte den Weg ueberstehen.
   - **Health Connect** (Android, unsere Handy-App): Mi Fitness schreibt dorthin. Offen, ob auch
     die `ExerciseRoute` (GPS) mitgeht — Routen brauchen zusaetzlich `READ_EXERCISE_ROUTES` und
     eine eigene Zustimmung je Session. Waere der datenschutzfreundlichste Weg (nichts verlaesst
