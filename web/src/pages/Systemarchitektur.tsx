@@ -88,6 +88,23 @@ export default function Systemarchitektur() {
           VM. Externe Dienste (OpenStreetMap für Spot-/Wasserflächen, Web-Push, SMTP, OAuth) werden
           serverseitig angebunden.
         </p>
+        <p className={`${P} mt-3`}>
+          <b>Wiederkehrende Aufgaben</b> laufen als systemd-Zeitgeber, nicht als Scheduler im
+          Anwendungsprozess — so überlebt eine Aufgabe jeden Neustart der App und ist einzeln
+          nachvollziehbar: nächtliches <b>Backup</b> (<code>pg_dump</code> + Hardlinks, plus
+          GPG-verschlüsselte Zugangsdaten), wöchentlicher <b>Hardlink-Schnappschuss</b>, täglicher
+          <b> Rekord-Schnappschuss</b> (erkennt Rekordwechsel und meldet sie per Push) und alle fünf
+          Minuten die <b>Selbstüberwachung</b>.
+        </p>
+        <p className={`${P} mt-2`}>
+          Die <b>Selbstüberwachung</b> misst CPU, Speicher, Füllstände aller Dateisysteme, Lastmittel,
+          Prozesse, Dienste, Postgres (Verbindungen, längste Abfrage, Größe) und das Alter des letzten
+          Backups. Bewertung und Schwellen liegen am Server; überschreitet etwas eine Schwelle, geht
+          eine <b>Push-Nachricht an die Betreiber</b> — beim ersten Auftreten, danach frühestens nach
+          sechs Stunden erneut und einmal Entwarnung. Die Messpunkte werden 14 Tage behalten, daraus
+          entstehen die Verlaufslinien im Admin-Bereich. Nichts davon verlässt den Server: kein
+          externer Überwachungsdienst, keine Telemetrie.
+        </p>
       </section>
 
       {/* 2. Clients & Uhren */}
@@ -126,7 +143,9 @@ export default function Systemarchitektur() {
         </Diagram>
         <p className={`${P} text-xs`}>
           Anmeldung wahlweise per E-Mail/Passwort oder „Mit Google/Apple anmelden" (OAuth). Cloud-Importe
-          (Polar AccessLink, Suunto, COROS) liefern GPS-basierte Sessions ohne Rohbeschleunigung.
+          (Suunto, COROS, Polar AccessLink) liefern GPS-basierte Sessions ohne Rohbeschleunigung — sie
+          kommen als FIT-Datei herein, entweder per Benachrichtigung des Anbieters oder auf Abruf.
+          Zusätzlich kann das <b>Handy selbst aufzeichnen</b> (Android und iOS), wenn keine Uhr dabei ist.
         </p>
       </section>
 
@@ -215,7 +234,7 @@ export default function Systemarchitektur() {
             <tbody className="text-slate-300">
               {[["Registrieren", "5 / Stunde"], ["Login", "10 / 5 min"], ["Passwort vergessen", "5 / 15 min"],
                 ["Passwort zurücksetzen", "10 / 15 min"], ["Uhr-Pairing", "10 / 5 min"], ["Pairing-Init", "20 / 5 min"],
-                ["Token minten (Companion)", "20 / 5 min"], ["Feedback senden", "20 / Stunde"]].map(([a, l]) => (
+                ["Token minten (Companion)", "20 / 5 min"], ["Feedback senden", "20 / Stunde"], ["Feedback-Anhang", "30 / Stunde"]].map(([a, l]) => (
                 <tr key={a} className="border-t border-slate-800"><td className="py-1 pr-4">{a}</td><td className="py-1 tabular-nums">{l}</td></tr>
               ))}
             </tbody>
@@ -244,7 +263,9 @@ export default function Systemarchitektur() {
           <li>App-Server auf <b>einer</b> VM (kein Auto-Scaling/Failover über mehrere Maschinen) — dafür
             einfache, gut prüfbare Struktur; mehrere Worker + geteilter Zustand in Postgres geben auf der
             Maschine (26 Kerne) reichlich Luft.</li>
-          <li>Rate-Limiter ist bewusst simpel (In-Memory-Sliding-Window), kein externer Dienst.</li>
+          <li>Rate-Limiter ist bewusst simpel: gleitendes Fenster in einer Postgres-Tabelle
+            (<code>rate_events</code>), kein Redis, kein externer Dienst. Genau, weil der Zustand über
+            alle Worker geteilt sein muss.</li>
           <li>Projekt ist <b>Open Source (AGPL)</b> — der komplette Code ist öffentlich einsehbar und prüfbar.</li>
         </ul>
       </section>
@@ -252,7 +273,7 @@ export default function Systemarchitektur() {
       {/* 9. Tabellen-Anhang */}
       <section className={CARD}>
         <h2 className={H2}>Anhang: alle Tabellen</h2>
-        <p className={`${P} mb-2`}>29 Tabellen (PostgreSQL). Fremdschlüssel in Klammern.</p>
+        <p className={`${P} mb-2`}>51 Tabellen (PostgreSQL). Fremdschlüssel in Klammern.</p>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead><tr className="text-left text-slate-400"><th className="py-1 pr-3">Tabelle</th><th className="py-1 pr-3">FK</th><th className="py-1">Zweck</th></tr></thead>
@@ -287,6 +308,28 @@ export default function Systemarchitektur() {
                 ["password_resets", "user", "Passwort-Reset-Token"],
                 ["feedback", "user", "Nutzer-Feedback"],
                 ["admin_audit", "admin", "Admin-Aktionen (Audit-Log)"],
+                ["boards", "—", "Board-Katalog (Marke/Modell/Volumen)"],
+                ["stabs", "—", "Stabilisator-Katalog"],
+                ["watch_layouts", "user", "Selbstgebaute Uhr-Screens (Elemente, Form)"],
+                ["watch_model_flags", "—", "Eigenheiten je Uhrenmodell (z. B. echte Accel-Rate)"],
+                ["session_flags", "session, user", "„Sieht nicht nach Pumpfoil aus\u201c-Meldungen"],
+                ["session_transfers", "session, user", "Session an anderen Nutzer übertragen"],
+                ["session_videos", "session", "Verknüpfte YouTube-/Clip-Links"],
+                ["spot_notes", "spot, user", "Spot-Beschreibungen der Fahrer"],
+                ["spot_note_photos", "spot_note", "Fotos zu einer Spot-Beschreibung"],
+                ["spot_note_likes", "spot_note, user", "Herzen für Beschreibungen"],
+                ["spot_note_votes", "spot_note, user", "Bewertung/Reihenfolge der Beschreibungen"],
+                ["social_channels", "user", "Freigegebene YouTube-Kanäle"],
+                ["social_items", "social_channel", "Videos im Community-Feed"],
+                ["chat_likes", "message, user", "Herzen im Chat"],
+                ["feedback_attachments", "feedback", "Anhänge zum Feedback (Bild/Text)"],
+                ["record_events", "user, session", "Rekord-Wechsel (für Benachrichtigungen)"],
+                ["record_snapshots", "—", "Täglicher Stand der Community-Rekorde"],
+                ["rate_events", "—", "Rate-Limit-Zähler (worker-übergreifend)"],
+                ["reanalysis_progress", "—", "Fortschritt einer laufenden Reanalyse"],
+                ["suunto_pending", "user", "Suunto-Workouts, die nachgeholt werden müssen"],
+                ["system_samples", "—", "Messpunkte des Systemzustands (14 Tage)"],
+                ["health_alerts", "—", "Offene System-Warnungen (Push-Buchführung)"],
               ] as [string, string, string][]).map(([t, fk, z]) => (
                 <tr key={t} className="border-t border-slate-800 align-top">
                   <td className="py-1 pr-3 font-medium text-slate-100"><code>{t}</code></td>
@@ -300,7 +343,8 @@ export default function Systemarchitektur() {
       </section>
 
       <p className="mb-8 text-xs text-slate-500">
-        Stand automatisch aus dem Code abgeleitet. Der gesamte Quellcode ist öffentlich (AGPL).
+        Stand: 3. September 2026 — von Hand gepflegt und beim Schreiben gegen Code und Datenbank
+        geprüft. Der gesamte Quellcode ist öffentlich (AGPL).
       </p>
     </div>
   );
