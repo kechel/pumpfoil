@@ -619,6 +619,29 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔴 03.09. — 33 haengengebliebene Uploads von 31 Nutzern, und 30 davon sind fuer ihre Besitzer
+  UNSICHTBAR.** Gefunden beim Lagebild-Check (Jan: „schauen mal, ob's neues Feedback gab oder
+  irgendwas Ungewoehnliches"). Rein lesend ausgezaehlt:
+  - 33 Sessions stehen auf `recording`/`live` und wurden nie fertig hochgeladen (31 verschiedene
+    Nutzer; 1× Juli, 29× August, 3× September).
+  - **Nur 3 liegen im 48-Stunden-Fenster** von `/api/sessions/in-progress` und erscheinen damit in
+    der Upload-Karte auf Home/Sessions. **30 sind aelter** — und 27 von ihnen haben
+    `is_pumpfoil = NULL`, tauchen also auch in der normalen Sessionliste NICHT auf. Der Nutzer sieht
+    seine Aufnahme nirgends und kann nichts tun.
+  - **16 der 33 haben >= 60 Bloecke**, also wahrscheinlich genug fuer eine Auswertung.
+  - Beispiele: u421 60/112 Bloecke (Erstnutzer, seit 16 h), u354 155/801, u341 2464/10117,
+    u284 3/1092, u127 235/746 (seit 137 h).
+  **Zweiter Befund: die Karte sagt das Falsche.** Sie meldet „laedt hoch, aktualisiert sich gleich"
+  — auch wenn seit 16 Stunden kein Block mehr angekommen ist. `ingest_chunks.received_at` gibt es,
+  ein stehender Upload ist also erkennbar.
+  **Vorschlag, zwei getrennte Schritte:**
+  1. **Klein und ohne Risiko:** `letzter_block`/`steht_seit_s` in `/in-progress` mitgeben und die
+     Karte umschreiben lassen — steht der Upload > ~30 min, heisst der Text „Upload steht: oeffne
+     die App auf der Uhr (WLAN), dann laeuft er weiter" statt „gleich fertig".
+  2. **Jans Entscheidung, weil es Nutzerdaten und die Pipeline beruehrt:** was mit den 30 alten
+     passiert — sichtbar machen als „unvollstaendig" in der Sessionliste, und/oder die 16 mit
+     genug Daten auswerten lassen. NICHT ohne OK anfassen.
+
 - **✅ 03.09. — iOS/Apple Watch 1.1.29 (33) ist FREIGEGEBEN und live.** Mail „ready for
   distribution", an der Produktseite gegengeprueft (zeigt „Version 1.1.29"). Eingereicht 02.09.
   17:55 — keine 24 Stunden Pruefung.
