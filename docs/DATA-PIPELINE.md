@@ -337,9 +337,14 @@ Reihenfolge (`gps.py:228`…):
 2. Schrittdistanzen; Einzelschritte über `OUTLIER_STEP_M` (~>90 km/h in 1 s) zählen **nicht**.
 3. **Geschwindigkeit**: `speed = where(isnan(speed_raw), speed_from_pos, speed_raw)` — das
    **gemeldete** Feld hat Vorrang, Position/Zeit ist nur Ersatz für fehlende Werte.
-4. Glitch-Filter: Werte über `GLITCH_SPEED_MPS` → 15-s-Median.
-5. Doppler-Burst-Filter (relativ **und** absolut, 2026-07-04) → 15-s-Median.
-6. Maske (Modell oder Heuristik) → Segmente → Nachbearbeitung (`_merge_no_stop`,
+4. **Alle Glitch-Regeln stehen in `gps.clean_speed_series()`** — der einzigen Stelle, an der
+   die Geschwindigkeit gesäubert wird. Vier Regeln in dieser Reihenfolge: (a) Werte über
+   `GLITCH_SPEED_MPS` → 15-s-Median, (b) mehrsekündige Doppler-Bursts, relativ **und** absolut
+   (2026-07-04) → 15-s-Median, (c) isolierter Despike (Einzel-Peak über **beiden** Nachbarn,
+   `SPIKE_JUMP_MPS`), (d) Einzel-Sekunden-Ausreißer gegen den 5-s-Median plus die beiden
+   Endpunkte. **`detect_v2` ruft dieselbe Funktion auf** — es hatte sie bis 03.09. nachgebaut und
+   dabei (c) und (d)-Endpunkte weggelassen, siehe §9.7.
+5. Maske (Modell oder Heuristik) → Segmente → Nachbearbeitung (`_merge_no_stop`,
    `_repair_deadreckoning`, `_trim_fall_tail`, `_extend_ends_forward`).
 
 **Segment-Felder** (`analysis_results.segments_json`, **42** Felder je Lauf):
@@ -636,6 +641,39 @@ Seen, an denen wirklich Sessions entstehen.
 
 Overpass selbst ist übrigens wieder erreichbar (über die Spiegel in `places.OVERPASS_URLS`,
 17–27 s je Abruf) — die frühere IP-Sperre ist kein Thema mehr.
+
+### 9.7 v2 hatte die Geschwindigkeits-Säuberung nachgebaut — zwei Regeln fehlten  🟢 behoben 2026-09-03
+
+**Symptom beim Nutzer:** „mein Polar-Import ist fehlgeschlagen". Der Import war in Ordnung — die
+Session lag da, stand aber auf `is_pumpfoil = False` und fehlte damit in seiner Pumpfoil-Liste.
+
+**Ursache:** `detect_v2._clean_speed` war ein Nachbau von v1s Signalaufbereitung und liess zwei
+der vier Regeln aus: den isolierten Despike und den Endpunkt-Clamp. Der Docstring behauptete
+„dieselben GEMESSENEN Glitch-Regeln wie v1". Weil seit 01.08. **alles** über v2 läuft, wirkte
+überall nur die schwächere Kette.
+
+**Messung am Fall** (#3340, Polar-TCX mit Sekunden wie 0,0 / 42,9 / 15,8 km/h):
+
+| Kette | Max |
+|---|---|
+| roh | 42,9 km/h |
+| v2 (bis 03.09.) | 31,5 km/h |
+| volle Kette | **22,2 km/h** (5-s-Max der Session: 20,9) |
+
+Bei 31,5 km/h lag die Session über dem **30-km/h-Tor** der `gps_only`-Klassifikation
+(`analysis/__init__.py`, „ohne Accel ist GPS allein unsicherer") und wurde als „kein Pumpfoil"
+aussortiert. Nach dem Fix: 21,3 km/h und 22 statt 10 Läufe.
+
+**Fix + Beleg:** eine gemeinsame `gps.clean_speed_series()`, von v1 aufgerufen und von v2
+delegiert; Reihenfolge und Konstanten unverändert. Regressions-Check über die 400 jüngsten
+Sessions: **385 von 385** mit GPS-Datei bit-identisch zur alten v1-Kette. 18 Sessions gezielt
+reanalysiert (Ist-Zustand vorher gesichert), davon kippt eine auf Pumpfoil; Bestenlisten
+unberührt, weil Rekorde aus dem lauf-internen 3-s-Wert unter dem 32-km/h-Plausibilitätstor kommen.
+
+**Lehre fürs nächste Mal:** zwei Detektor-Zweige dürfen die Signalaufbereitung nicht doppelt
+implementieren. Wenn ein Docstring „dieselben Regeln wie X" sagt, muss es ein Aufruf sein.
+
+---
 
 ### 9.4 `hz_measured` und der GPS-Vorlauf — **kein** Defekt (geprüft)
 

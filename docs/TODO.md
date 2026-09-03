@@ -619,6 +619,36 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 03.09. ERLEDIGT — „mein Polar-Import ist fehlgeschlagen" war ein Analyse-Fehler, kein
+  Import-Fehler.** Nutzer-Meldung im Chat (u17, 16:03). Session #3340 lag da (Saint-Maur, 3,3 km),
+  stand aber auf `is_pumpfoil = False` und fehlte damit in seiner Pumpfoil-Liste.
+  - **Ursache:** `detect_v2._clean_speed` war ein NACHBAU von v1s Signalaufbereitung und liess
+    zwei der vier Glitch-Regeln aus — den isolierten Despike (`gps.py`, Einzel-Peak ueber beiden
+    Nachbarn, damals fuer #426) und den Endpunkt-Clamp. Der Docstring behauptete „dieselben
+    Regeln wie v1". Seit `DETECTOR_V2=1` (01.08.) wirkte also nur die schwaechere Kette.
+  - **Am Fall gemessen:** das Polar-TCX enthaelt Sekunden wie 0,0 / 42,9 / 15,8 km/h. Roh 42,9 —
+    v2-Kette 31,5 — volle Kette 22,2 km/h. Bei 31,5 lag die Session ueber dem 30-km/h-Tor der
+    `gps_only`-Klassifikation (`analysis/__init__.py`) und fiel aus der Pumpfoil-Liste.
+  - **Fix:** eine gemeinsame `gps.clean_speed_series()`; v1 ruft sie auf, v2 delegiert dorthin.
+    Reihenfolge und Konstanten unveraendert. Regressions-Check: auf 385 von 385 juengsten
+    Sessions mit GPS-Datei **bit-identisch** zur alten v1-Kette.
+  - **Reanalyse (18 Sessions, gezielt):** Ist-Zustand vorher gesichert
+    (`~/foil-analysis-backups/vor-despike-fix-2026-09-03.jsonl`). #3340 kippt auf Pumpfoil
+    (Max 31,4 → 21,3 km/h, Laeufe 10 → 22). #1200 bleibt aussortiert — dort sind die 31,9 km/h
+    echt. Die uebrigen 16 behalten ihre Einordnung, mehrere Maxima werden realistisch
+    (412: 27,1 → 20,4 · 985: 25,0 → 18,6 · 625: 26,6 → 23,2). Bestenlisten unberuehrt.
+  - **Merksatz fuers Nutzer-Support:** „Import fehlgeschlagen" heisst bei verknuepften Konten
+    fast immer „Session ist da, aber aussortiert". Erst `is_pumpfoil` + `analysis_results.detection`
+    ansehen, dann das 30-km/h-Tor gegen den 5-s-Max pruefen.
+
+- **📥 03.09. — Polar-Import verschluckt Fehlschlaege und macht sie unwiederholbar.**
+  `polar._pull_import`: jedes Training in `try/except: skipped += 1`, und die Exercise-Transaktion
+  wird am Ende **immer** bestaetigt (`PUT`). Ein wirklich gescheitertes Training ist damit bei
+  Polar als gelesen markiert und ueber `/sync` nie wieder holbar; im Log steht nichts. Vorschlag:
+  Transaktion nur bestaetigen, wenn kein Training hart gescheitert ist, sonst offen lassen und je
+  Fehlschlag eine Zeile loggen (Exercise-URL + Fehlertyp). Braucht Jans OK, weil es das
+  Import-Verhalten aendert.
+
 - **🟢 03.09. ERLEDIGT (Sichtbarkeit) — 33 haengengebliebene Uploads von 31 Nutzern, davon 30
   UNSICHTBAR.** Gefunden beim Lagebild-Check (Jan: „schauen mal, ob's neues Feedback gab oder
   irgendwas Ungewoehnliches"). Rein lesend ausgezaehlt:
