@@ -12,6 +12,7 @@ Flow:
 from __future__ import annotations
 
 import base64
+import logging
 import time
 from datetime import datetime, timezone
 from urllib.parse import urlencode
@@ -27,7 +28,15 @@ from ..config import get_settings
 from ..db import get_db
 from .deps import current_admin, current_user
 
+log = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/api/integrations/polar", tags=["polar"])
+
+# So oft lassen wir eine Exercise-Transaktion offen, wenn ein Training hart gescheitert ist.
+# Danach wird sie doch bestaetigt: eine dauerhaft offene Transaktion wuerde die Warteschlange
+# fuer ALLE folgenden Trainings blockieren, und ein Training, das dreimal denselben Fehler
+# wirft, wird beim vierten Mal auch nicht besser.
+MAX_OFFENE_VERSUCHE = 3
 
 AUTHORIZE_URL = "https://flow.polar.com/oauth2/authorization"
 TOKEN_URL = "https://polarremote.com/v2/oauth2/token"
@@ -195,6 +204,7 @@ def _pull_import(db: Session, user: models.User, link: models.PolarLink) -> dict
         raise HTTPException(status.HTTP_502_BAD_GATEWAY, "Polar unreachable") from exc
     if tr.status_code == 204:  # keine neuen Trainings
         link.last_sync_at = datetime.now(timezone.utc)
+        link.retry_count = 0   # nichts offen -> der Fehlversuchs-Zaehler ist erledigt
         db.commit()
         return {"imported": 0, "skipped": 0, "message": "no new exercises"}
     if tr.status_code not in (200, 201):
@@ -203,36 +213,66 @@ def _pull_import(db: Session, user: models.User, link: models.PolarLink) -> dict
     listing = httpx.get(f"{base}/{tid}", headers=hdr, timeout=30)
     urls = listing.json().get("exercises", []) if listing.status_code == 200 else []
 
+    # Zwei Sorten „nicht importiert", die man auseinanderhalten MUSS:
+    #  * uebersprungen  = es gibt nichts zu holen (Indoor-Training ohne GPS, schon importiert,
+    #                     vom Nutzer bewusst geloescht). Erledigt, darf bestaetigt werden.
+    #  * gescheitert    = wir konnten es nicht lesen (Netz, HTTP-Fehler, kaputtes TCX). Hier
+    #                     gehen DATEN VERLOREN, wenn wir die Transaktion bestaetigen.
+    # Bis 03.09. landete beides im selben Zaehler und die Transaktion wurde immer bestaetigt —
+    # ein gescheitertes Training war damit bei Polar als gelesen markiert und ueber /sync nie
+    # wieder holbar, ohne eine Zeile im Log. Genau danach hat ein Nutzer gefragt.
     imported = skipped = 0
+    gescheitert: list[tuple[str, str]] = []
     for url in urls:
         try:
             tcx = httpx.get(f"{url}/tcx",
                             headers={"Authorization": f"Bearer {link.access_token}",
                                      "Accept": "application/vnd.garmin.tcx+xml"}, timeout=60)
             if tcx.status_code != 200:
-                skipped += 1
+                gescheitert.append((url, f"tcx http {tcx.status_code}"))
                 continue
             parsed = parse_track_bytes(tcx.content, "polar.tcx")
             if not parsed.get("gps_samples") or parsed.get("started_at") is None:
-                skipped += 1  # z. B. Indoor-Training ohne GPS
+                skipped += 1  # z. B. Indoor-Training ohne GPS — daran wird sich nie etwas aendern
                 continue
             s = import_parsed_session(db, user, tcx.content, parsed,
                                       src_label="polar-import", uuid_prefix="polar-")
             if s is None:
-                skipped += 1
+                skipped += 1  # war schon da bzw. bewusst geloescht
             else:
                 imported += 1
-        except Exception:  # noqa: BLE001 — ein kaputtes Exercise darf den Rest nicht stoppen
-            skipped += 1
+        except Exception as exc:  # noqa: BLE001 — ein kaputtes Exercise darf den Rest nicht stoppen
+            gescheitert.append((url, f"{type(exc).__name__}: {exc}"))
 
-    # Transaktion bestätigen (markiert die Trainings als gelesen).
-    try:
-        httpx.put(f"{base}/{tid}", headers=hdr, timeout=30)
-    except Exception:  # noqa: BLE001
-        pass
+    for url, grund in gescheitert:
+        log.error("polar: Training nicht importiert (user %s): %s — %s", user.id, url, grund)
+
+    # Transaktion NUR bestaetigen, wenn nichts hart gescheitert ist. Unbestaetigt laeuft sie bei
+    # Polar ab und die Trainings tauchen im naechsten Anlauf wieder auf — dann mit einer neuen
+    # Chance. Nach MAX_OFFENE_VERSUCHE geben wir trotzdem frei, sonst klemmt die Warteschlange
+    # dauerhaft an einem Training, das sich nicht lesen laesst.
+    offen = bool(gescheitert) and (link.retry_count or 0) < MAX_OFFENE_VERSUCHE
+    if offen:
+        link.retry_count = (link.retry_count or 0) + 1
+        log.warning("polar: Transaktion %s NICHT bestaetigt (user %s, Versuch %s/%s) — %s "
+                    "Training(e) gescheitert, sie kommen im naechsten Anlauf wieder",
+                    tid, user.id, link.retry_count, MAX_OFFENE_VERSUCHE, len(gescheitert))
+    else:
+        if gescheitert:
+            log.error("polar: Transaktion %s trotz %s Fehlschlag(en) bestaetigt (user %s, %s "
+                      "Versuche ausgeschoepft) — diese Trainings sind bei Polar jetzt als "
+                      "gelesen markiert", tid, len(gescheitert), user.id, MAX_OFFENE_VERSUCHE)
+        try:
+            httpx.put(f"{base}/{tid}", headers=hdr, timeout=30)
+        except Exception:  # noqa: BLE001
+            pass
+        link.retry_count = 0
     link.last_sync_at = datetime.now(timezone.utc)
     db.commit()
-    return {"imported": imported, "skipped": skipped}
+    # `failed`/`retry_pending` sind fuer die Diagnose da; die Oberflaeche zeigt weiter
+    # imported/skipped (LinkedAccounts.tsx) und bleibt damit unveraendert.
+    return {"imported": imported, "skipped": skipped,
+            "failed": len(gescheitert), "retry_pending": offen}
 
 
 @router.post("/sync")

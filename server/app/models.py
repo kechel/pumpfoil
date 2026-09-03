@@ -946,6 +946,10 @@ class PolarLink(Base):
     member_id: Mapped[str] = mapped_column(String(64))                 # von uns vergebene member-id
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     last_sync_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Wie oft hintereinander eine Exercise-Transaktion NICHT bestaetigt wurde, weil ein Training
+    # hart gescheitert ist (s. polar._pull_import). Nach MAX_OFFENE_VERSUCHE geben wir sie
+    # trotzdem frei, damit die Warteschlange nicht dauerhaft klemmt.
+    retry_count: Mapped[int] = mapped_column(Integer, default=0)
 
 
 class PumpTruth(Base):

@@ -641,13 +641,24 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     fast immer „Session ist da, aber aussortiert". Erst `is_pumpfoil` + `analysis_results.detection`
     ansehen, dann das 30-km/h-Tor gegen den 5-s-Max pruefen.
 
-- **📥 03.09. — Polar-Import verschluckt Fehlschlaege und macht sie unwiederholbar.**
-  `polar._pull_import`: jedes Training in `try/except: skipped += 1`, und die Exercise-Transaktion
-  wird am Ende **immer** bestaetigt (`PUT`). Ein wirklich gescheitertes Training ist damit bei
-  Polar als gelesen markiert und ueber `/sync` nie wieder holbar; im Log steht nichts. Vorschlag:
-  Transaktion nur bestaetigen, wenn kein Training hart gescheitert ist, sonst offen lassen und je
-  Fehlschlag eine Zeile loggen (Exercise-URL + Fehlertyp). Braucht Jans OK, weil es das
-  Import-Verhalten aendert.
+- **🟢 03.09. ERLEDIGT — Polar-Import verschluckte Fehlschlaege und machte sie unwiederholbar.**
+  `polar._pull_import` warf jedes Training in `try/except: skipped += 1` und bestaetigte die
+  Exercise-Transaktion am Ende **immer** (`PUT`). Ein wirklich gescheitertes Training war damit
+  bei Polar als gelesen markiert und ueber `/sync` nie wieder holbar — ohne eine Zeile im Log.
+  **Jetzt:** zwei getrennte Zaehler. „Uebersprungen" = es gibt nichts zu holen (Indoor ohne GPS,
+  schon importiert, bewusst geloescht) → Transaktion wird bestaetigt. „Gescheitert" = wir konnten
+  es nicht lesen (Netz, HTTP, kaputtes TCX) → Transaktion bleibt OFFEN, laeuft bei Polar ab und
+  die Trainings kommen im naechsten Anlauf wieder. Je Fehlschlag eine `log.error`-Zeile mit
+  Exercise-URL und Fehlertyp. Damit die Warteschlange nicht dauerhaft an einem unlesbaren Training
+  klemmt: `polar_links.retry_count` zaehlt, nach **3** offenen Anlaeufen wird trotzdem bestaetigt
+  (mit `log.error`, damit es nachvollziehbar bleibt); ein 204 („nichts Neues") setzt den Zaehler
+  zurueck. `/sync` liefert zusaetzlich `failed` und `retry_pending` — die Oberflaeche zeigt weiter
+  imported/skipped und bleibt unveraendert.
+  **Geprueft** ohne Polar anzufassen (gefaelschtes httpx, `scratchpad/polar-test.py`): alles
+  importiert → bestaetigt · ein HTTP 500 → nicht bestaetigt, Zaehler 1 · dasselbe bei Zaehler 3 →
+  bestaetigt und Zaehler zurueck · Indoor ohne GPS → bestaetigt. Migration + Neustart durch,
+  8 Links stehen auf 0.
+  **Suunto hat das Problem nicht** (kein Transaktions-Modell, Webhook je Workout).
 
 - **🟢 03.09. ERLEDIGT (Sichtbarkeit) — 33 haengengebliebene Uploads von 31 Nutzern, davon 30
   UNSICHTBAR.** Gefunden beim Lagebild-Check (Jan: „schauen mal, ob's neues Feedback gab oder
