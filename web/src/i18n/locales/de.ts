@@ -16,6 +16,8 @@ const de: Record<string, string> = {
   "upload.progressPct": "{pct} % · {n}/{total} Teile",
   "upload.hint": "Uhr in Reichweite bringen und die App öffnen, um den Upload abzuschließen.",
   "upload.stalledHint": "Seit über 5 Minuten kein Fortschritt. Öffne die App auf der Uhr noch einmal (ohne eine neue Aufnahme zu starten), während die Uhr per Bluetooth mit dem Handy verbunden ist — dann läuft der Upload weiter.",
+  "upload.supersededHint": "Diese Aufnahme ist nie vollständig angekommen, und seither wurden neuere Sessions übertragen — auf der Uhr liegt sie also nicht mehr. Zum Auswerten mit den vorhandenen Daten einfach antippen; sonst kannst du sie in der Session löschen.",
+  "upload.supersededEmpty": "Von dieser Aufnahme ist nichts angekommen, und seither wurden neuere Sessions übertragen — sie ist nicht mehr zu holen. Du kannst sie in der Session löschen.",
   "upload.finalize": "Jetzt mit den bisherigen GPS-Daten auswerten",
   "upload.finalizeBusy": "Wird ausgewertet…",
   "upload.finalizeConfirm": "Diese Session mit den bisher hochgeladenen Daten abschließen und auswerten? Fehlende Beschleunigungsdaten werden nicht mehr nachgeladen (reine GPS-Auswertung).",

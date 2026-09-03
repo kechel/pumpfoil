@@ -574,7 +574,9 @@ export interface InProgressSession {
   gps_received: number;
   accel_received: number;
   has_gps: boolean;
-  last_received_at?: string | null;   // Zeitpunkt des letzten Chunks; für Stall-Erkennung (>5 min)
+  last_received_at?: string | null;
+  /** danach ist eine neuere Session vollstaendig angekommen -> nicht mehr von der Uhr holbar */
+  ueberholt?: boolean;   // Zeitpunkt des letzten Chunks; für Stall-Erkennung (>5 min)
 }
 
 function userFilterQS(f?: UserFilter): string {

@@ -116,6 +116,8 @@ data class InProgressSession(
     @SerialName("accel_received") val accelReceived: Int = 0,
     @SerialName("has_gps") val hasGps: Boolean = false,
     @SerialName("last_received_at") val lastReceivedAt: String? = null,
+    // danach ist eine neuere Session vollstaendig angekommen -> von der Uhr nicht mehr holbar
+    val ueberholt: Boolean = false,
 )
 
 @Serializable

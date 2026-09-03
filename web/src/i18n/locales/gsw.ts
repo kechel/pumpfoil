@@ -1483,6 +1483,8 @@ const gsw: Record<string, string> = {
   "upload.hint": "Uhr i Riichwiiti bringe und d App ufmache, zum de Upload abschliesse.",
   "upload.progressPct": "{pct} % · {n}/{total} Teil",
   "upload.stalledHint": "Sit über 5 Minute kein Fortschritt. Mach d App uf de Uhr nomol uf (ohni e neui Ufnahm z starte), während d Uhr per Bluetooth mit em Händy verbunde isch — denn lauft de Upload wiiter.",
+  "upload.supersededHint": "Die Ufnahm isch nie ganz acho, und sit denn si nöiri Sessions übertreit worde — uf de Uhr isch si also nid meh. Zum Uswerte mit däm, wo da isch, eifach aatippe; susch chasch si i de Session lösche.",
+  "upload.supersededEmpty": "Vo dere Ufnahm isch nüt acho, und sit denn si nöiri Sessions übertreit worde — si isch nid meh z hole. Du chasch si i de Session lösche.",
   "upload.title": "Session ladt ufe",
   "upload.waiting": "Warte uf Date…",
   "watches.nStrava": "Import wär technisch machbar, lieferet per API aber kein hochfrequente Roh-Accel (also kei Pump-Erkennig) und staht hinder Paywall + API-Uflage, wo nöd zum offene Projekt passed — drum bewusst nöd integriert.",

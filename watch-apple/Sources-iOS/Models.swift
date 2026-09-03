@@ -70,6 +70,8 @@ struct InProgressSession: Decodable, Identifiable {
     let accel_received: Int
     let has_gps: Bool
     let last_received_at: String?
+    /// danach ist eine neuere Session vollstaendig angekommen -> von der Uhr nicht mehr holbar
+    let ueberholt: Bool?
 }
 
 struct SessionSummary: Codable, Identifiable {

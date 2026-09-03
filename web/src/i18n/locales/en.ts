@@ -14,6 +14,8 @@ const en: Record<string, string> = {
   "upload.progressPct": "{pct}% · {n}/{total} parts",
   "upload.hint": "Bring your watch in range and open the app to finish uploading.",
   "upload.stalledHint": "No progress for over 5 minutes. Open the app on your watch again (without starting a new recording) while the watch is connected to your phone via Bluetooth — the upload will then continue.",
+  "upload.supersededHint": "This recording never arrived in full, and newer sessions have been transferred since — so it is no longer on the watch. Tap to analyse it with the data we have, or delete it in the session.",
+  "upload.supersededEmpty": "Nothing of this recording arrived, and newer sessions have been transferred since — there is nothing left to fetch. You can delete it in the session.",
   "upload.finalize": "Analyze now with the GPS data so far",
   "upload.finalizeBusy": "Analyzing…",
   "upload.finalizeConfirm": "Finish and analyze this session with the data uploaded so far? Missing acceleration data won't be uploaded later (GPS-only analysis).",

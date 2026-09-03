@@ -1482,6 +1482,8 @@ const fr: Record<string, string> = {
   "upload.hint": "Rapproche ta montre et ouvre l'application pour terminer l'envoi.",
   "upload.progressPct": "{pct} % · {n}/{total} parties",
   "upload.stalledHint": "Aucun progrès depuis plus de 5 minutes. Rouvre l'application sur ta montre (sans démarrer un nouvel enregistrement) pendant que la montre est connectée à ton téléphone en Bluetooth — l'envoi reprendra alors.",
+  "upload.supersededHint": "Cet enregistrement n’est jamais arrivé en entier et des sessions plus récentes ont été transférées depuis — il n’est donc plus sur la montre. Touchez pour l’analyser avec les données disponibles, ou supprimez-le dans la session.",
+  "upload.supersededEmpty": "Rien de cet enregistrement n’est arrivé et des sessions plus récentes ont été transférées depuis — il n’y a plus rien à récupérer. Vous pouvez le supprimer dans la session.",
   "upload.title": "Session en cours d'envoi",
   "upload.waiting": "En attente de données…",
   "watches.nStrava": "Un import serait techniquement possible, mais l'API ne fournit pas de données brutes d'accéléromètre à haute fréquence (donc pas de détection des pompages), et elle est derrière un paywall avec des conditions d'API qui ne conviennent pas à un projet ouvert — délibérément non intégré.",

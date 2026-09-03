@@ -1636,6 +1636,8 @@ const fi: Record<string, string> = {
   "upload.hint": "Tuo kello lähelle ja avaa sovellus, niin lähetys saadaan valmiiksi.",
   "upload.progressPct": "{pct} % · {n}/{total} osaa",
   "upload.stalledHint": "Ei edistystä yli 5 minuuttiin. Avaa sovellus kellossa uudelleen (aloittamatta uutta tallennusta), kun kello on Bluetoothilla yhteydessä puhelimeen — silloin lähetys jatkuu.",
+  "upload.supersededHint": "Tämä tallennus ei koskaan tullut kokonaan, ja sen jälkeen on siirretty uudempia sessioita — se ei ole enää kellossa. Napauta analysoidaksesi olemassa olevilla tiedoilla tai poista se sessiossa.",
+  "upload.supersededEmpty": "Tästä tallennuksesta ei tullut mitään, ja sen jälkeen on siirretty uudempia sessioita — mitään ei ole enää haettavissa. Voit poistaa sen sessiossa.",
   "upload.title": "Sessio lähetetään",
   "upload.waiting": "Odotetaan dataa…",
 };

@@ -1652,6 +1652,8 @@ const cs: Record<string, string> = {
   "upload.hint": "Přines hodinky do dosahu a otevři aplikaci, aby se nahrávání dokončilo.",
   "upload.progressPct": "{pct} % · {n}/{total} částí",
   "upload.stalledHint": "Přes 5 minut žádný postup. Otevři aplikaci v hodinkách znovu (bez spuštění nové nahrávky), zatímco jsou hodinky přes Bluetooth spojené s telefonem — nahrávání pak bude pokračovat.",
+  "upload.supersededHint": "Tato nahrávka nikdy nedorazila celá a od té doby se přenesly novější session — na hodinkách už tedy není. Klepnutím ji vyhodnotíš s tím, co máme, nebo ji v session smaž.",
+  "upload.supersededEmpty": "Z této nahrávky nedorazilo nic a od té doby se přenesly novější session — už není co stahovat. Můžeš ji v session smazat.",
   "upload.title": "Relace se nahrává",
   "upload.waiting": "Čeká se na data…",
 };

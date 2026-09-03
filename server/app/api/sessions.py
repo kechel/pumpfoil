@@ -730,13 +730,24 @@ def list_in_progress(
     dort fehlen. Das 48-h-Fenster hält alte, hängengebliebene Uploads aus der prominenten Anzeige.
     upload_total ist NULL, bis die Clients expected_chunks senden (Phase 3) — die UI zeigt dann einen
     unbestimmten „lädt hoch"-Zustand statt %."""
-    cutoff = datetime.now(timezone.utc) - timedelta(hours=48)
+    # Kein Zeitfenster mehr, sondern Jans Regel (03.09.): der Hinweis verschwindet erst, wenn
+    # DANACH eine neuere Session vollstaendig angekommen ist.
+    #
+    # Warum das besser ist als „48 Stunden": kam seither nichts Neueres durch, kann die Aufnahme
+    # noch auf der Uhr liegen und der Upload laesst sich fortsetzen — dann soll der Hinweis
+    # bleiben, egal wie alt. Ist dagegen eine neuere Session komplett angekommen, ist die alte
+    # nicht mehr zu vervollstaendigen (die Uhr hat ihren Puffer weitergedreht): dann ist sie
+    # `ueberholt`, und der Nutzer braucht ein anderes Angebot — mit dem Vorhandenen auswerten
+    # oder verwerfen.
+    #
+    # Vorher fielen 30 von 33 haengenden Uploads aus dem 48-Stunden-Fenster, und weil
+    # `is_pumpfoil` bei ihnen NULL ist, standen sie auch nicht in der normalen Sessionliste. Ihre
+    # Besitzer sahen die Aufnahme also NIRGENDS (gezaehlt am 03.09.).
     rows = (
         db.query(models.Session)
         .filter(models.Session.user_id == user.id,
                 models.Session.deleted.isnot(True),
-                models.Session.status.in_(("recording", "live")),
-                models.Session.started_at >= cutoff)
+                models.Session.status.in_(("recording", "live")))
         .order_by(models.Session.started_at.desc())
         .all()
     )
@@ -760,6 +771,15 @@ def list_in_progress(
         .filter(models.IngestChunk.session_id.in_(ids))
         .group_by(models.IngestChunk.session_id).all()
     )
+    # Startzeit der juengsten VOLLSTAENDIG angekommenen Session des Nutzers — eine Abfrage. Alles,
+    # was davor begann und noch haengt, ist damit ueberholt.
+    jueng_fertig = (
+        db.query(func.max(models.Session.started_at))
+        .filter(models.Session.user_id == user.id,
+                models.Session.deleted.isnot(True),
+                models.Session.status.in_(("complete", "analyzed")))
+        .scalar()
+    )
     dids = {s.device_id for s in rows if s.device_id}
     dmap = dict(db.query(models.DeviceToken.id, models.DeviceToken.label)
                 .filter(models.DeviceToken.id.in_(dids)).all()) if dids else {}
@@ -781,6 +801,10 @@ def list_in_progress(
             "accel_received": a,
             "has_gps": g > 0,
             "last_received_at": last_rx.get(s.id),   # None, wenn noch kein Chunk da ist
+            # True = danach ist eine neuere Session komplett angekommen, die alte ist also nicht
+            # mehr von der Uhr zu holen. Der Client zeigt dann „auswerten oder verwerfen" statt
+            # „App auf der Uhr oeffnen".
+            "ueberholt": bool(jueng_fertig and s.started_at and s.started_at < jueng_fertig),
         })
     return out
 

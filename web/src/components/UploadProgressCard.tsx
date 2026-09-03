@@ -100,6 +100,11 @@ function UploadRow({
   const stalledMs = 5 * 60 * 1000;
   const stalled =
     !!s.last_received_at && Date.now() - new Date(s.last_received_at).getTime() > stalledMs;
+  // „Überholt" heißt: danach ist eine neuere Session vollständig angekommen, die Uhr hat ihren
+  // Puffer also weitergedreht. Dann ist „öffne die App auf der Uhr" ein falscher Rat — zu holen
+  // ist nichts mehr. Stattdessen: mit dem Vorhandenen auswerten (dafür genügt ein Klick auf die
+  // Kachel, s. unten) oder verwerfen.
+  const ueberholt = !!s.ueberholt;
 
   // Kein expliziter „auswerten"-Button nötig: Klick auf die Kachel öffnet die Detailseite, deren
   // GET die gps_only-Vorabanalyse triggert (Server 4a) und seamless nachlädt.
@@ -156,8 +161,13 @@ function UploadRow({
         </div>
       </div>
 
-      {/* Stall-Hinweis (>5 min kein Chunk): App auf der Uhr erneut öffnen, um fortzusetzen */}
-      {stalled ? (
+      {/* Überholt (neuere Session ist komplett da) -> anderes Angebot statt falschem Rat */}
+      {ueberholt ? (
+        <div className="mt-3 flex gap-2 rounded-lg bg-amber-500/10 p-2.5 leading-snug text-amber-800 dark:text-amber-200">
+          <InfoIcon className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>{s.has_gps ? t("upload.supersededHint") : t("upload.supersededEmpty")}</span>
+        </div>
+      ) : stalled ? (
         <div className="mt-3 flex gap-2 rounded-lg bg-amber-500/10 p-2.5 leading-snug text-amber-800 dark:text-amber-200">
           <InfoIcon className="mt-0.5 h-4 w-4 shrink-0" />
           <span>{t("upload.stalledHint")}</span>

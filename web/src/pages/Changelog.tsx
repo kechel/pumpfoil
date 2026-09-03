@@ -32,6 +32,7 @@ const ENTRIES: Entry[] = [
   {
     date: "September 3, 2026",
     items: [
+      "An upload that never finished keeps its hint until the recording actually arrives. If a newer session has come in since, the old one can be analysed with what we have or deleted.",
       "iPhone and Apple Watch 1.1.29: videos in the community feed play again. You can swipe through the feed now, and tapping a preview opens the video you tapped.",
     ],
   },

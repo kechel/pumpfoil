@@ -1594,6 +1594,8 @@ const zh: Record<string, string> = {
   "upload.hint": "把手表拿近并打开应用，即可完成上传。",
   "upload.progressPct": "{pct} % · {n}/{total} 个分块",
   "upload.stalledHint": "已超过 5 分钟没有进展。在手表通过蓝牙与手机相连的情况下，重新打开手表上的应用（不要开始新的记录）——上传就会继续。",
+  "upload.supersededHint": "这次记录从未完整上传，之后又传输了更新的活动，因此手表上已经没有它了。点按可用现有数据分析，或在该活动中删除。",
+  "upload.supersededEmpty": "这次记录没有任何数据上传，之后又传输了更新的活动，已无法再获取。你可以在该活动中删除它。",
   "upload.title": "会话上传中",
   "upload.waiting": "等待数据…",
   "watches.nStrava": "技术上导入是可行的，但其 API 不提供高频原始加速度数据（也就无法识别泵动），而且它在付费墙之后，API 条款也不适合一个开放项目——因此有意不做集成。",

@@ -14,6 +14,8 @@ const nb: Record<string, string> = {
   "upload.progressPct": "{pct}% · {n}/{total} deler",
   "upload.hint": "Ta klokka innen rekkevidde og åpne appen for å fullføre opplastingen.",
   "upload.stalledHint": "Ingen framgang på over 5 minutter. Åpne appen på klokka igjen (uten å starte et nytt opptak) mens klokka er koblet til telefonen via Bluetooth — da fortsetter opplastingen.",
+  "upload.supersededHint": "Dette opptaket kom aldri helt fram, og etterpå er nyere sesjoner overført — det ligger altså ikke på klokka lenger. Trykk for å analysere det med dataene vi har, eller slett det i sesjonen.",
+  "upload.supersededEmpty": "Ingenting av dette opptaket kom fram, og etterpå er nyere sesjoner overført — det er ingenting å hente. Du kan slette det i sesjonen.",
   "upload.finalize": "Analyser nå med GPS-dataene så langt",
   "upload.finalizeBusy": "Analyserer…",
   "upload.finalizeConfirm": "Avslutte og analysere denne økta med dataene som er lastet opp så langt? Manglende akselerasjonsdata blir ikke lastet opp senere (kun GPS-analyse).",

@@ -1482,6 +1482,8 @@ const it: Record<string, string> = {
   "upload.hint": "Avvicina l'orologio e apri l'app per completare il caricamento.",
   "upload.progressPct": "{pct} % · {n}/{total} parti",
   "upload.stalledHint": "Nessun progresso da oltre 5 minuti. Riapri l'app sull'orologio (senza avviare una nuova registrazione) mentre l'orologio è collegato al telefono via Bluetooth — il caricamento riprenderà.",
+  "upload.supersededHint": "Questa registrazione non è mai arrivata completa e da allora sono state trasferite sessioni più recenti — quindi non è più sull’orologio. Tocca per analizzarla con i dati disponibili, oppure eliminala nella sessione.",
+  "upload.supersededEmpty": "Di questa registrazione non è arrivato nulla e da allora sono state trasferite sessioni più recenti — non c’è più niente da recuperare. Puoi eliminarla nella sessione.",
   "upload.title": "Sessione in caricamento",
   "upload.waiting": "In attesa di dati…",
   "watches.nStrava": "Un import sarebbe tecnicamente possibile, ma l'API non fornisce dati grezzi dell'accelerometro ad alta frequenza (quindi niente rilevamento delle pompate) e sta dietro un paywall con condizioni d'uso che non si adattano a un progetto aperto — deliberatamente non integrato.",

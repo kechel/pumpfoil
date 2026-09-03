@@ -1482,6 +1482,8 @@ const es: Record<string, string> = {
   "upload.hint": "Acerca el reloj y abre la app para terminar la subida.",
   "upload.progressPct": "{pct} % · {n}/{total} partes",
   "upload.stalledHint": "Sin avance desde hace más de 5 minutos. Vuelve a abrir la app en el reloj (sin iniciar una grabación nueva) mientras el reloj esté conectado al móvil por Bluetooth — entonces la subida continuará.",
+  "upload.supersededHint": "Esta grabación nunca llegó completa y desde entonces se han transferido sesiones más nuevas, así que ya no está en el reloj. Toca para analizarla con los datos disponibles o bórrala en la sesión.",
+  "upload.supersededEmpty": "De esta grabación no llegó nada y desde entonces se han transferido sesiones más nuevas: ya no queda nada por recuperar. Puedes borrarla en la sesión.",
   "upload.title": "Sesión subiendo",
   "upload.waiting": "Esperando datos…",
   "watches.nStrava": "Una importación sería técnicamente posible, pero la API no entrega datos brutos del acelerómetro a alta frecuencia (o sea, sin detección de bombeos), y está detrás de un muro de pago con condiciones de API que no encajan en un proyecto abierto — deliberadamente no integrado.",

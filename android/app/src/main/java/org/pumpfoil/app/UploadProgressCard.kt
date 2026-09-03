@@ -128,7 +128,17 @@ private fun UploadRow(s: InProgressSession, onOpen: ((Int) -> Unit)?, modifier: 
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth().height(6.dp), color = accent)
             }
             Spacer(Modifier.height(8.dp))
-            if (stalled) {
+            // „Ueberholt": seither ist eine neuere Session komplett angekommen, die Uhr hat ihren
+            // Puffer also weitergedreht — „App auf der Uhr oeffnen" waere ein falscher Rat.
+            if (s.ueberholt) {
+                Row(verticalAlignment = Alignment.Top) {
+                    Icon(Icons.Filled.Info, null, tint = MaterialTheme.colorScheme.tertiary,
+                        modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(I18n.t(if (s.hasGps) "upload.supersededHint" else "upload.supersededEmpty"),
+                        style = MaterialTheme.typography.bodyMedium)
+                }
+            } else if (stalled) {
                 Row(verticalAlignment = Alignment.Top) {
                     Icon(Icons.Filled.Info, null, tint = MaterialTheme.colorScheme.tertiary,
                         modifier = Modifier.size(16.dp))
