@@ -199,10 +199,66 @@ export default function Systemarchitektur() {
           {line(105, 280, 105, 220)}{/* chat -> users */}
           {line(520, 295, 435, 210)}{/* foils -> sessions */}
           {line(640, 280, 420, 214)}{/* spots -> sessions */}
+          {/* Selbstverweis: zusammengelegte Aufnahmen zeigen auf die Session, in der sie stecken.
+              Die Teile bleiben erhalten — deshalb ein Pfeil auf sich selbst und keine Loeschung. */}
+          <path d="M300,172 C255,150 255,120 300,120 L300,158" fill="none" stroke={CYAN} strokeWidth={1.6}
+                markerEnd="url(#arr)" opacity={0.85} />
+          <text x={243} y={132} textAnchor="middle" fontSize="10" fill="#94a3b8">merged_into</text>
+          <Box x={180} y={40} w={110} h={50} title="session_flags" sub="Meldungen anderer" />
+          {line(255, 90, 320, 160)}
         </Diagram>
         <p className={`${P} text-xs`}>
           1:N = „ein Nutzer hat viele Sessions". Pfeile zeigen von der abhängigen zur referenzierten
           Tabelle (Fremdschlüssel). Alle weiteren Tabellen unten im Anhang.
+        </p>
+
+        <h3 className="mb-2 mt-5 text-base font-bold text-slate-100">Änderungen sind Zeitfenster, keine Löschungen</h3>
+        <p className={`${P} mb-3`}>
+          Wenn du eine Session zurechtschneidest, einen Lauf aussortierst oder zwei Aufnahmen
+          zusammenlegst, wird <b>nichts entfernt</b>. Die Roh-Chunks bleiben unangetastet; gespeichert
+          wird nur, <i>was gelten soll</i> — fast immer als <b>Zeitfenster</b> in Millisekunden ab
+          Session-Start. Die Analyse wendet diese Fenster bei jedem Durchlauf neu an. Deshalb lässt
+          sich jede Entscheidung zurücknehmen, und deshalb kann ein verbesserter Detektor alte
+          Sessions neu auswerten, ohne dass deine Korrekturen verloren gehen.
+        </p>
+        <p className={`${P} mb-3`}>
+          Bewusst <b>Zeit statt Lauf-Nummer</b>: Läufe entstehen bei jeder Analyse neu aus den
+          Rohdaten, ihre Nummern sind also nicht stabil. Ein Fenster ist es.
+        </p>
+        <div className="mb-3 overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead><tr className="text-left text-slate-400">
+              <th className="py-1 pr-3">Was du tust</th><th className="py-1 pr-3">Wie es gespeichert wird</th><th className="py-1">Wirkung</th>
+            </tr></thead>
+            <tbody className="text-slate-300">
+              {([
+                ["Anfang/Ende abschneiden", "trim_start_ms · trim_end_ms", "Alles außerhalb zählt nicht mehr — Heimfahrt, Umziehen, Aufbauen"],
+                ["Lauf oder Zeitraum aussortieren", "excluded_ranges (Liste von Zeitfenstern, JSON)", "Zählt nicht für Läufe, Zeit, Distanz, Pumps und Rekorde; verschwindet aus Karte und Summen"],
+                ["Fremdkraft-Lauf zurückholen", "fremdkraft_keep (dieselbe Fensterform)", "Die automatische Fremdkraft-Erkennung lässt dieses Fenster künftig in Ruhe — „der zählt doch\u201c"],
+                ["Zwei Aufnahmen zusammenlegen", "merged_into (Selbstverweis auf sessions)", "Die Teile bleiben als Zeilen erhalten, zeigen auf das Ganze und sind ausgeblendet. Auflösen stellt sie wieder her — samt Fotos und Videos, die zurück an ihre Ursprungs-Aufnahme gehen"],
+                ["Sportart setzen", "sport · sport_source · sport_auto_json", "Zählt in der jeweiligen Sportart. sport_source hält fest, WER entschieden hat — default, owner, auto oder admin; sport_auto_json bewahrt die Zahlen hinter einem automatischen Urteil auf, damit es nachvollziehbar und widerlegbar bleibt"],
+                ["Widerspruch einlegen", "appeal_text · appeal_at", "Deine Begründung, wenn du eine automatische Einordnung anders siehst"],
+                ["Fremde Session melden", "session_flags (eine Zeile je Melder)", "Erst zwei unabhängige Melder wirken; der Besitzer sieht die Melder nicht"],
+              ] as [string, string, string][]).map(([a, b, c]) => (
+                <tr key={a} className="border-t border-slate-800 align-top">
+                  <td className="py-1 pr-3 font-medium text-slate-100">{a}</td>
+                  <td className="py-1 pr-3 font-mono text-slate-400">{b}</td>
+                  <td className="py-1">{c}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className={`${P} text-xs`}>
+          Eine Falle, die hier mehrfach Fehler verursacht hat und deshalb dokumentiert gehört: die
+          Fenster in <code>excluded_ranges</code> und <code>fremdkraft_keep</code> zählen ab
+          <b> Session-Start</b>, die Zeiten <i>im Analyse-Ergebnis</i> dagegen ab dem <b>Trim-Anfang</b>.
+          Wer beides vergleicht, muss <code>trim_start_ms</code> dazurechnen.
+        </p>
+        <p className={`${P} mt-2 text-xs`}>
+          Größenordnung, damit man das einordnen kann (Stand 3. September 2026): 1.831 Sessions mit
+          Trim, 48 mit ausgeblendeten Zeiträumen, 8 mit zurückgeholten Fremdkraft-Läufen, 137
+          zusammengelegte Teile in Sessions.
         </p>
       </section>
 
