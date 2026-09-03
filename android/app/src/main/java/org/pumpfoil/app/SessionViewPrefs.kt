@@ -25,7 +25,9 @@ internal object SessionViewPrefs {
     /** Glaettungsfenster in Sekunden (1|3|5). */
     fun glaettung(ctx: Context): Int = p(ctx).getInt(K_GLAETTUNG, 3).let { if (it in listOf(1, 3, 5)) it else 3 }
 
-    fun zeigePumps(ctx: Context): Boolean = p(ctx).getBoolean(K_PUMPS, true)
+    /** Pump-Marker standardmaessig AUS — wie PWA (`SESSION_VIEW_DEFAULT`) und iOS. Hier stand
+     *  bis 03.09. `true`, das war ein Ausrutscher gegen die anderen beiden Plattformen. */
+    fun zeigePumps(ctx: Context): Boolean = p(ctx).getBoolean(K_PUMPS, false)
 
     /** Startversuche: standardmaessig AN (wie im Web, Jans Vorgabe). */
     fun zeigeVersuche(ctx: Context): Boolean = p(ctx).getBoolean(K_VERSUCHE, true)

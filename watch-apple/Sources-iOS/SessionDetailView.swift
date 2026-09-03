@@ -48,10 +48,19 @@ struct SessionDetailView: View {
     // Hier als Knopf IN der Kartenecke — dasselbe Muster wie die Vergleichskarte dieser App.
     @State private var mapFull = false
     @State private var pickerItem: PhotosPickerItem?
-    @State private var colorMode: TrackColorMode = .speed
+    // Gemerkte Ansicht (wie PWA `sessionViewPrefs.ts` und Android `SessionViewPrefs.kt`):
+    // Farbmodus, Glaettung, Pump-Marker und Startversuche gelten UEBER Sessions hinweg — wer die
+    // Karte nach Puls einfaerbt, will das beim naechsten Oeffnen wieder so. Bewusst lokal
+    // (UserDefaults) wie Sprache/Theme/Kartenebene, nicht im Profil. Nicht gemerkt wird die
+    // Skala — die haengt an der einzelnen Session.
+    @AppStorage("sd_color_mode") private var colorMode: TrackColorMode = .speed
     @State private var carve: CarveData?   // Carve-Bögen + Zähler (GET /carves)
-    @State private var win = 3
-    @State private var showPumps = false   // Pump-Marker default aus
+    @AppStorage("sd_smooth_win") private var win = 3
+    @AppStorage("sd_show_pumps") private var showPumps = false   // Pump-Marker default aus
+    // Startversuche standardmaessig AN (Jans Vorgabe): sie erklaeren die Luecken zwischen den
+    // Laeufen, und der Schalter erscheint ohnehin nur, wenn es misslungene Versuche gibt.
+    @AppStorage("sd_show_attempts") private var showAttempts = true
+    @State private var attempts: [AttemptLine]?   // nil = noch nicht geholt
     @State private var selectedRun: Int?     // ausgewählter Lauf -> nur dieser farbig, Karte zoomt
     @State private var allFoils: [Foil] = []
     @State private var mineIds: Set<Int> = []
@@ -113,6 +122,8 @@ struct SessionDetailView: View {
             }
             .alert(Loc.t("sd.caption", lang), isPresented: $editingCaption) { captionAlertActions }
             .task(id: sid) { await load() }
+            // Versuche erst holen, wenn sie gebraucht werden — der Server rechnet sie frisch.
+            .task(id: "\(sid)-\(showAttempts)") { await ladeVersuche() }
             .task(id: session?.status) { await pollWhileLive() }
             .onChange(of: selectedFoilId) { fid in onFoilPicked(fid) }
             .sheet(isPresented: $showLink) { linkSheet }
@@ -622,7 +633,7 @@ struct SessionDetailView: View {
     /// Angezeigte Session austauschen (kein Push!). Der Zustand der alten muss weg, sonst blitzt sie
     /// in der neuen kurz auf; `.task(id: sid)` laedt anschliessend neu.
     private func showSession(_ newId: Int) {
-        session = nil; carve = nil; neighbors = nil
+        session = nil; carve = nil; neighbors = nil; attempts = nil
         photos = []; videos = []
         selectedRun = nil; lightbox = nil
         shareUrl = nil; linkCopied = false; showLink = false
@@ -887,7 +898,14 @@ struct SessionDetailView: View {
             selectedRunRow
         }
         // Modifier INNERHALB des AnyView(...) — trackSection gibt ein AnyView zurueck.
-        .fullScreenCover(isPresented: $mapFull) { fullscreenTrackMap(track, segs, v) })
+        .fullScreenCover(isPresented: $mapFull) { fullscreenTrackMap(track, segs, v) }
+        // Der gemerkte Farbmodus kann in DIESER Session fehlen (Puls ohne Gurt, Carves ohne
+        // Accel) — dann gibt es weder Auswahlknopf noch Farben, die Karte waere grau. Zurueck
+        // auf Speed, und zwar gemerkt: die PWA macht es genauso.
+        .task(id: "\(sid)-\(v.hasHr)-\(v.hasPump)-\(v.hasCarves)-\(colorMode.rawValue)") {
+            if (colorMode == .hr && !v.hasHr) || (colorMode == .pump && !v.hasPump)
+                || (colorMode == .turns && !v.hasCarves) { colorMode = .speed }
+        })
     }
 
     // Alle abgeleiteten Track-Werte explizit typisiert an einer Stelle — vorher ein Dutzend
@@ -936,6 +954,11 @@ struct SessionDetailView: View {
                 if (s.analysis?.pump_count ?? 0) > 0 {
                     Toggle(Loc.t("sd.markerShort", lang), isOn: $showPumps).font(.caption).fixedSize()
                 }
+                // Nur zeigen, wenn es etwas zu zeigen gibt: `nil` = noch nicht geholt (dann darf
+                // der Schalter stehen, sonst koennte man ihn nie einschalten), leer = keine.
+                if attempts == nil || !(attempts?.isEmpty ?? true) {
+                    Toggle(Loc.t("sd.showAttempts", lang), isOn: $showAttempts).font(.caption).fixedSize()
+                }
             }
         }
     }
@@ -972,6 +995,7 @@ struct SessionDetailView: View {
                         segments: segs, mode: colorMode, hrRange: v.hrRange, pumpRange: v.pumpRange,
                         showPumps: showPumps, selectedRun: selectedRun,
                         onSelectRun: { selectedRun = (selectedRun == $0) ? nil : $0 },
+                        attempts: showAttempts ? (attempts ?? []) : [],
                         carveArcs: arcs, carveGMax: v.carveGMax)
             .frame(height: hoehe).frame(maxWidth: .infinity)
             .clipShape(RoundedRectangle(cornerRadius: hoehe == nil ? 0 : 12))
@@ -1642,6 +1666,13 @@ struct SessionDetailView: View {
         return out
     }
 
+    /// Misslungene Startversuche fuer die Karte. Nur einmal je Session, und nur wenn der
+    /// Schalter an ist; `attempts == []` heisst „geholt, es gibt keine" und blendet ihn aus.
+    private func ladeVersuche() async {
+        guard showAttempts, attempts == nil else { return }
+        attempts = (try? await Api.sessionAttempts(sid)) ?? []
+    }
+
     private func load() async {
         loading = true; defer { loading = false }
         // Cache-Treffer (data_version stimmt) -> Detail aus dem Disk-Cache, kein Netz-Fetch.
@@ -1800,7 +1831,7 @@ private struct SessionReportRow: View {
     }
 }
 
-enum TrackColorMode { case speed, hr, pump, turns }
+enum TrackColorMode: String { case speed, hr, pump, turns }
 
 // Kurvenlage-g -> Farbe (wie Web/turns.ts). Untere Hälfte fix (grün 0,1 → gelb 0,35 → rot 0,6),
 // darüber bis gMax (gedeckelt 1,0) rot → magenta → weiß. g<=0.02 = kein Carve (grau).
@@ -1851,6 +1882,8 @@ struct TrackMap: UIViewRepresentable {
     let showPumps: Bool
     let selectedRun: Int?
     let onSelectRun: (Int) -> Void
+    /// Misslungene Startversuche als fertige Linien; leer = nicht anzeigen.
+    var attempts: [AttemptLine] = []
     var carveArcs: [[[Double]]] = []   // je Carve Punkte [lat,lon,g] — nur im TURNS-Modus
     var carveGMax: Double = 0.6
     private let maxGapM = 30.0
@@ -1888,7 +1921,7 @@ struct TrackMap: UIViewRepresentable {
         map.removeOverlays(map.overlays)
         map.removeAnnotations(map.annotations)
         let co = context.coordinator
-        co.colors.removeAll(); co.widths.removeAll()
+        co.colors.removeAll(); co.widths.removeAll(); co.dashes.removeAll()
         co.points = points; co.segments = segments; co.onSelectRun = onSelectRun
         var all: [CLLocationCoordinate2D] = []
         var sel: [CLLocationCoordinate2D] = []
@@ -1920,6 +1953,23 @@ struct TrackMap: UIViewRepresentable {
                     map.addAnnotation(PumpDot(CLLocationCoordinate2D(latitude: p[1], longitude: p[0])))
                 }
             }
+        }
+        // Startversuche NACH den Laeufen, damit sie darueber liegen: ihre Linien sind duenner,
+        // ein Lauf wuerde sie sonst verdecken. Gestrichelt und bernsteinfarben wie in PWA und
+        // Android; ausserhalb des ausgewerteten Bereichs feiner gestrichelt und blasser.
+        for v in attempts where v.points.count >= 2 {
+            let coords: [CLLocationCoordinate2D] = v.points.compactMap {
+                $0.count >= 2 ? CLLocationCoordinate2D(latitude: $0[0], longitude: $0[1]) : nil
+            }
+            if coords.count < 2 { continue }
+            let pl = MKPolyline(coordinates: coords, count: coords.count)
+            co.colors[ObjectIdentifier(pl)] = UIColor(red: 0.96, green: 0.62, blue: 0.04,
+                                                      alpha: v.outside_trim ? 0.6 : 0.85)
+            co.widths[ObjectIdentifier(pl)] = 3
+            co.dashes[ObjectIdentifier(pl)] = v.outside_trim ? [2, 6] : [5, 5]
+            map.addOverlay(pl)
+            // Bewusst NICHT in `all`: der Ausschnitt richtet sich nach den Laeufen (wie Android
+            // und PWA), sonst zoomt ein Anlauf am Steg die Karte auf.
         }
         // Carve-Bögen (feine 25-Hz-Polylinie je Carve) über dem grauen Basis-Track, je Segment
         // nach Kurvenlage-g gefärbt (wie PWA). Nur im TURNS-Modus.
@@ -1962,6 +2012,7 @@ struct TrackMap: UIViewRepresentable {
     final class Coordinator: NSObject, MKMapViewDelegate {
         var colors: [ObjectIdentifier: UIColor] = [:]
         var widths: [ObjectIdentifier: CGFloat] = [:]
+        var dashes: [ObjectIdentifier: [NSNumber]] = [:]   // gestrichelt (Startversuche)
         var points: [[Double]] = []
         var segments: [Segment] = []
         var onSelectRun: ((Int) -> Void)?
@@ -1971,6 +2022,7 @@ struct TrackMap: UIViewRepresentable {
             let r = MKPolylineRenderer(polyline: pl)
             r.strokeColor = colors[ObjectIdentifier(pl)] ?? .systemBlue
             r.lineWidth = widths[ObjectIdentifier(pl)] ?? 4
+            r.lineDashPattern = dashes[ObjectIdentifier(pl)]
             return r
         }
         func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {

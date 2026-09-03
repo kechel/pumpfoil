@@ -438,5 +438,41 @@ die Schluessel, die der Uhr-Code tatsaechlich aufruft (Wear 81, Apple Watch 74).
 Serverseitig war nichts zu tun: `/api/devices/config` reicht `user.language` unveraendert durch,
 welche Sprache eine Uhr kann, entscheidet sie selbst.
 
+## Stand 2026-09-03 — Runde nach dem Video-/Karten-Block
+
+Gegen den Code UND gegen `web/src/pages/Changelog.tsx` (01.–03.09.) geprueft, nicht gegen diese
+Datei. Ergebnis: die meisten Punkte der Changelog-Eintraege waren nativ schon da — belegt statt
+vermutet:
+
+| Neu in der PWA seit 31.08. | Web | Android | iOS | Belegt an |
+|---|---|---|---|---|
+| Vergleich abspielen (eine Uhr, Leerlauf uebersprungen) | ✅ | ✅ (war da) | ✅ (war da) | `CompareScreen.kt` / `CompareView.swift` |
+| Rekorde auf vergleichbare Foils eingrenzen | ✅ | ✅ (war da) | ✅ (war da) | `foilBands` in beiden Community-Ansichten |
+| Session-Listen starten auf „alle" | ✅ | ✅ (war da) | ✅ (war da) | `rememberAccelDefault()` / `accelOnly = false` |
+| Tages-Gruppierung im Feed | ✅ | ✅ (war da) | ✅ (war da) | `/api/community/sessions-grouped` in beiden Api-Dateien |
+| Haengengebliebene Uploads: Hinweis bleibt, „ueberholt" kenntlich | ✅ 03.09. | ✅ 03.09. | ✅ 03.09. | `upload.supersededHint` |
+| **Kartenansicht wird gemerkt** (Farbmodus/Glaettung/Marker/Versuche) | ✅ | ✅ (war da) | **✅ 03.09.** | `SessionViewPrefs.kt` / `@AppStorage("sd_*")` |
+| **Misslungene Startversuche auf der Karte** | ✅ | ✅ (war da) | **✅ 03.09.** | `GET /{id}/attempts`, gestrichelt bernstein |
+| Rueckfall „gemerkter Farbmodus fehlt in dieser Session" | ✅ | **✅ 03.09.** | **✅ 03.09.** | fehlte auf BEIDEN, Karte waere grau geblieben |
+
+**Drei Befunde, die ohne diese Runde stehen geblieben waeren:**
+1. **iOS merkte die Kartenansicht nicht** — Farbmodus, Glaettung und Pump-Marker fielen bei jeder
+   Session auf den Standard zurueck (`@State` statt `@AppStorage`). Jetzt dieselben vier Werte wie
+   Web und Android, lokal gespeichert.
+2. **iOS kannte die misslungenen Startversuche nicht** — die Zahl („4/20") stand da, die Anlaeufe
+   auf der Karte fehlten. Nachgezogen inkl. Schalter (nur sichtbar, wenn es welche gibt) und
+   derselben Darstellung wie PWA/Android: bernsteinfarben gestrichelt, ausserhalb des
+   ausgewerteten Bereichs feiner und blasser. Der Kartenausschnitt richtet sich weiter nach den
+   LAEUFEN, sonst zoomt ein Anlauf am Steg die Karte auf.
+3. **Der Rueckfall fehlte auf beiden nativen Apps** — erst mit dem Merken faellt es auf: wer eine
+   Session mit Puls nach Puls einfaerbt und dann eine ohne Gurt oeffnet, sah eine grau gefaerbte
+   Karte ohne Auswahl. Jetzt zurueck auf Speed, gemerkt (wie die PWA).
+
+Nebenbei angeglichen: Androids Pump-Marker-Vorgabe stand auf AN, Web und iOS auf AUS — jetzt
+ueberall AUS (`SessionViewPrefs.zeigePumps`).
+
+Offen bleibt aus der Uhr-Liste: Startversuche gibt es NUR in den Apps/PWA, nicht auf den Uhren
+(dort auch nicht sinnvoll — die rechnet der Server).
+
 ### Nicht portiert, weil bewusst Web-only
 Layout-Editor, Labeling-Editor, FIT-Import, Changelog-Seite, Admin.

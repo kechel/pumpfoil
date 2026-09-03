@@ -122,6 +122,14 @@ enum Api {
     }
 
     // Carve-Erkennung (nur Anzeige): Grad-Buckets + geglättete 25-Hz-Bögen mit Kurvenlage-g.
+    // Startversuche einer Session (nur die MISSLUNGENEN — die geglueckten sind die Laeufe).
+    // Wird serverseitig frisch gerechnet, deshalb erst beim Einschalten des Schalters holen.
+    static func sessionAttempts(_ id: Int) async throws -> [AttemptLine] {
+        let r: AttemptsAntwort = try await request("/api/sessions/\(id)/attempts", method: "GET",
+                                                   body: nil, auth: true)
+        return r.attempts
+    }
+
     static func sessionCarves(_ id: Int) async throws -> CarveData {
         try await request("/api/sessions/\(id)/carves", method: "GET", body: nil, auth: true)
     }
