@@ -212,6 +212,30 @@ def _heuristic_mask(speed_s, cv, quality_ok, gps_hz: int,
     return mask
 
 
+def eingefrorene_ortung(samples: list) -> tuple[float, bool]:
+    """Anteil der Fixes, deren Position EXAKT die des vorigen ist — und ob das nach einer
+    eingefrorenen Ortung aussieht.
+
+    Warum das ein eigener Befund ist: eine echte GNSS-Ortung misst jede Sekunde neu und zittert
+    dabei um ein bis drei Meter, auch wenn man stillsteht. Wiederholt ein Geraet dagegen einen
+    zwischengespeicherten Fix (Wear-Uhren tun das, wenn die eigene Ortung nicht laeuft und das
+    Handy die Position liefert), kommen dieselben Koordinaten immer wieder — bei bester
+    gemeldeter Genauigkeit. Dann sind Strecke, Tempo und Laeufe alle null, und dem Nutzer sieht
+    es so aus, als haette die App nur seinen Puls aufgezeichnet. Genau so gemeldet am 03.09.
+
+    Schwelle 60 %, gemessen an 225 Sessions (Wear + Handy, > 5 min): sie trifft 4 Sessions von
+    3 Nutzern, ALLE mit null erkannten Laeufen — kein einziger Treffer auf eine Session mit
+    Laeufen. Zum Vergleich: eine gesunde Wear-Session hat 1306 verschiedene Positionen auf 2702
+    Fixes, eine eingefrorene 71 auf 2491, davon eine 625-mal hintereinander.
+    """
+    if len(samples) < 120:
+        return 0.0, False
+    gleich = sum(1 for i in range(1, len(samples))
+                 if samples[i][1] == samples[i - 1][1] and samples[i][2] == samples[i - 1][2])
+    anteil = gleich / (len(samples) - 1)
+    return round(anteil, 3), anteil >= 0.60
+
+
 def clean_speed_series(speed: np.ndarray, gps_hz: int) -> np.ndarray:
     """Alle gemessenen GPS-Glitch-Regeln in EINER Funktion — die einzige Stelle, an der die
     Geschwindigkeit von Doppler-Muell befreit wird. v1 (analyze_gps) und v2 (detect_v2) rufen

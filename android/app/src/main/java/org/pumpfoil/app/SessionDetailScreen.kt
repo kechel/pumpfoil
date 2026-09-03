@@ -550,7 +550,22 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
         // obwohl gar keine (brauchbaren) Beschleunigungsdaten in der Aufnahme sind. Stand bisher
         // nur in der PWA. Zwei Faelle: gar kein Accel — oder zu niedrig getaktet (FR55 & Co.).
         val mdet = s.analysis?.metrics
-        if (mdet?.detection == "gps_only" && s.status != "live") {
+        // Eingefrorene Ortung: das Geraet hat dieselbe Position wiederholt statt neu zu messen.
+        // Ohne diesen Hinweis steht der Nutzer vor „0 Laeufe, 0,0 km/h" und haelt die App fuer
+        // kaputt — genau so am 03.09. gemeldet.
+        if (mdet?.gpsFrozen == true && s.status != "live") {
+            Card(
+                Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+            ) {
+                Text(I18n.t("sd.gpsFrozen"), Modifier.padding(12.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer)
+            }
+            Spacer(Modifier.height(8.dp))
+        }
+        if (mdet?.detection == "gps_only" && mdet.gpsFrozen != true && s.status != "live") {
             val hzEff = mdet.accelHzEffective
             val warnText = if (hzEff != null && hzEff > 0)
                 I18n.t("sd.lowRateWarning").replace("{hz}", Math.round(hzEff).toString())

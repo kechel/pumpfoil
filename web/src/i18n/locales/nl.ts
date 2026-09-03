@@ -382,6 +382,7 @@ const nl: Record<string, string> = {
   "sd.duration": "Duur",
   "sd.communityView": "Community · alleen bekijken",
   "sd.gpsWarning": "⚠️ Geen versnellingsdata in dit bestand — de foil-detectie werkt alleen grof via GPS (snelheid). Pompen/glijfases ontbreken, run-grenzen en detectie kunnen onnauwkeurig zijn (over- of onderdetectie).",
+  "sd.gpsFrozen": "Je horloge leverde tijdens deze opname geen eigen locatie, maar herhaalde steeds dezelfde opgeslagen positie — daarom geen afstand, geen snelheid en geen runs. Meestal helpt het om je telefoon niet mee te nemen naar het water (of bluetooth op het horloge uit te zetten), zodat het horloge zijn eigen gps gebruikt.",
   "sd.lowRateWarning": "⚠️ Versnelling slechts met ~{hz} Hz opgenomen (‘Zuinig’-modus) — voor de pump-/glijdetectie is minimaal 15 Hz nodig. De ruwe waarden zijn er wel (zichtbaar bij Labelen), maar worden niet geanalyseerd; de foil-detectie werkt alleen via GPS.",
   "sd.avgSpeed": "Ø snelheid",
   "sd.maxSpeed": "Max snelheid ({win}s)",

@@ -420,6 +420,7 @@ const de: Record<string, string> = {
   "sd.duration": "Dauer",
   "sd.communityView": "Community · nur ansehen",
   "sd.gpsWarning": "⚠️ Keine Beschleunigungsdaten in dieser Datei — die Foil-Erkennung läuft nur grob über GPS (Geschwindigkeit). Pumpen/Gleitphasen fehlen, Lauf-Grenzen und Erkennung können ungenau sein (Über- oder Untererkennung).",
+  "sd.gpsFrozen": "Deine Uhr hat während dieser Aufnahme keine eigene Ortung geliefert, sondern immer wieder dieselbe gespeicherte Position — deshalb keine Strecke, kein Tempo und keine Läufe. Meist hilft es, das Handy nicht mit ans Wasser zu nehmen (oder auf der Uhr Bluetooth auszuschalten), damit die Uhr ihr eigenes GPS benutzt.",
   "sd.lowRateWarning": "⚠️ Beschleunigung nur mit ~{hz} Hz aufgezeichnet („Sparsam“-Modus) — für die Pump-/Gleit-Erkennung sind mindestens 15 Hz nötig. Die Rohwerte sind vorhanden (sichtbar im Labeln), werden aber nicht ausgewertet; die Foil-Erkennung läuft nur über GPS.",
   "sd.avgSpeed": "Ø Speed",
   "sd.maxSpeed": "Max Speed ({win}s)",

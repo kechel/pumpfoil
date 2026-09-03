@@ -306,6 +306,7 @@ const es: Record<string, string> = {
   "sd.duration": "Duración",
   "sd.communityView": "Comunidad · solo ver",
   "sd.gpsWarning": "⚠️ Sin datos de aceleración en este archivo — la detección de foil se basa solo de forma aproximada en el GPS (velocidad). Faltan las fases de pump/planeo; los límites de run y la detección pueden ser imprecisos (sobre- o subdetección).",
+  "sd.gpsFrozen": "Durante esta grabación tu reloj no dio una posición propia: repitió siempre la misma posición guardada, por eso no hay distancia, ni velocidad, ni runs. Normalmente basta con dejar el móvil lejos del agua (o apagar el Bluetooth del reloj) para que el reloj use su propio GPS.",
   "sd.lowRateWarning": "⚠️ Aceleración registrada solo a ~{hz} Hz (modo \"Ahorro\") — la detección de pumps/planeo necesita al menos 15 Hz. Los valores en bruto existen (visibles en el labeling) pero no se analizan; la detección del foil usa solo el GPS.",
   "sd.avgSpeed": "Ø velocidad",
   "sd.maxSpeed": "Velocidad máx. ({win}s)",

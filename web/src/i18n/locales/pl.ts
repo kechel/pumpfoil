@@ -377,6 +377,7 @@ const pl: Record<string, string> = {
   "sd.duration": "Czas trwania",
   "sd.communityView": "Społeczność · tylko podgląd",
   "sd.gpsWarning": "⚠️ Brak danych akcelerometru w tym pliku — wykrywanie foilingu działa tylko z grubsza, na podstawie GPS (prędkość). Brakuje faz pompowania/szybowania; granice przejazdów i wykrywanie mogą być niedokładne (za dużo albo za mało).",
+  "sd.gpsFrozen": "Podczas tego nagrania zegarek nie podał własnej pozycji, tylko powtarzał tę samą zapisaną — dlatego brak dystansu, prędkości i przejazdów. Zwykle pomaga zostawić telefon z dala od wody (albo wyłączyć Bluetooth w zegarku), żeby zegarek użył własnego GPS.",
   "sd.lowRateWarning": "⚠️ Przyspieszenie nagrane tylko z ok. {hz} Hz (tryb „oszczędny”) — wykrywanie pomp/szybowania wymaga co najmniej 15 Hz. Surowe wartości istnieją (widać je przy etykietowaniu), ale nie są analizowane; wykrywanie foilingu opiera się wyłącznie na GPS.",
   "sd.avgSpeed": "Ø prędkość",
   "sd.maxSpeed": "Prędkość maks. ({win}s)",

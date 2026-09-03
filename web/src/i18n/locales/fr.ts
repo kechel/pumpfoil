@@ -306,6 +306,7 @@ const fr: Record<string, string> = {
   "sd.duration": "Durée",
   "sd.communityView": "Communauté · lecture seule",
   "sd.gpsWarning": "⚠️ Pas de données d'accélération dans ce fichier — la détection de foil ne s'appuie que grossièrement sur le GPS (vitesse). Les phases de pump/glisse manquent ; les limites de run et la détection peuvent être imprécises (sur- ou sous-détection).",
+  "sd.gpsFrozen": "Pendant cet enregistrement, ta montre n'a jamais fourni sa propre position : elle a répété la même position enregistrée, d'où aucune distance, aucune vitesse et aucun run. En général il suffit de laisser le téléphone loin de l'eau (ou de couper le Bluetooth sur la montre) pour que la montre utilise son propre GPS.",
   "sd.lowRateWarning": "⚠️ Accélération enregistrée à seulement ~{hz} Hz (mode « Économe ») — la détection des pumps/glisses nécessite au moins 15 Hz. Les valeurs brutes existent (visibles dans le labeling) mais ne sont pas analysées ; la détection du foil se fait uniquement via le GPS.",
   "sd.avgSpeed": "Ø vitesse",
   "sd.maxSpeed": "Vitesse max ({win}s)",

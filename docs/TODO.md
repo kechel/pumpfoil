@@ -619,6 +619,43 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **📥 03.09. (Frédéric, Feedback android-app) — Xiaomi/Redmi als Uhr-Plattform pruefen.**
+  Wortlaut (fr): ob es ein Update fuer andere Uhrenmarken gibt, er habe eine **Redmi Watch**.
+  Das ist eine Luecke in der Roadmap-Betrachtung: Redmi/Xiaomi-Uhren laufen auf **HyperOS/Vela**
+  (NuttX-Basis), NICHT auf Wear OS — der Zepp-Zweig (Amazfit) deckt sie also nicht ab. Zu klaeren:
+  (a) welche Modelle wirklich Vela sind und welche Wear OS (die **Xiaomi Watch 2 / 2 Pro** laufen
+  Wear OS — dort wuerde unsere App schon heute funktionieren, das waere die schnelle Antwort an
+  ihn); (b) ob es fuer Vela ueberhaupt ein oeffentliches SDK fuer Dritt-Apps gibt.
+  **Jan (03.09.): direkt nach dem GPS-Thema angehen.**
+
+- **🟢 03.09. ERLEDIGT — eingefrorene Ortung: Uhr warnt, Server erkennt es, Anzeige erklaert es.**
+  Ausgeloest von einer Nutzer-Meldung („es misst nur Herzfrequenz, kein GPS", u418, Galaxy Watch
+  Ultra). Befund: das Geraet liefert gar keine eigene Ortung, sondern wiederholt einen
+  zwischengespeicherten Fix — 2491 Fixes, 71 verschiedene Positionen, eine davon 625-mal
+  hintereinander, gemeldete Genauigkeit konstant 3,8 m. Gesunde Vergleichs-Session: 1306
+  verschiedene Positionen auf 2702 Fixes. `gpsPoor` (hAcc > 20 m) greift dabei NICHT.
+  **Nicht geraetespezifisch:** u394 hat dasselbe Muster auf einer OnePlus Watch, u145 einmal 2026.
+  - **Uhr (Wear, vorbereitet fuer 1.2.26):** `RecorderService` gibt das ALTER der Messung mit
+    (`elapsedRealtimeNanos`), `Recorder` zaehlt Fixes aelter als 5 s; 20 in Folge → `gpsStale`.
+    Dann zeigt das Tempo-Feld „--" statt eines beruhigenden 0,0 (gpsPoor gilt mit), und quer
+    ueber die Aufnahme-Seite liegt ein gelber Balken `rec.gpsStale` (17 Sprachen).
+    **Warum das Alter und nicht „die Koordinaten aendern sich nicht":** wer am Steg steht, steht
+    wirklich still — ein echter Fix wird trotzdem jede Sekunde neu GEMESSEN.
+  - **Server:** `gps.eingefrorene_ortung()` misst den Anteil exakt wiederholter Positionen,
+    ab 60 % gilt sie als eingefroren; Ergebnis in `metrics_json` (`gps_frozen`,
+    `gps_frozen_share`). Bewusst NICHT in `data_quality` — das ist die Moderations-Spalte.
+    **Validiert an 225 Sessions:** 4 Treffer bei 3 Nutzern, ALLE mit null Laeufen, kein
+    Fehlalarm auf eine Session mit Laeufen.
+  - **Anzeige (Web + Android + iOS):** eigener Hinweis `sd.gpsFrozen` in 17 Sprachen statt des
+    allgemeinen Nur-GPS-Satzes — inkl. dem, was hilft (Handy nicht mit ans Wasser, Bluetooth aus).
+    Auf iOS zusaetzlich zur `gps_only`-Bedingung gepruefte Sonderfall: die betroffenen Sessions
+    haben Accel, laufen also als `detection=model`.
+  - **Reanalysiert:** 3375/3388 (u418), 3314 (u394), 1659 (u145) tragen den Befund jetzt.
+    3351 (9 min, 57 %) bleibt knapp darunter — Schwelle absichtlich nicht gedehnt.
+  - **Offen (bewusst):** zusaetzlich `LocationManager.GPS_PROVIDER` abonnieren und echte
+    GNSS-Fixes bevorzugen. Erst bauen, wenn die Messung zeigt, dass Warnung + Hinweis nicht
+    reichen. **Wear-Version NICHT gebumpt** — geht mit 1.2.26 raus, sobald 1.2.25 frei ist.
+
 - **🟢 03.09. ERLEDIGT — „mein Polar-Import ist fehlgeschlagen" war ein Analyse-Fehler, kein
   Import-Fehler.** Nutzer-Meldung im Chat (u17, 16:03). Session #3340 lag da (Saint-Maur, 3,3 km),
   stand aber auf `is_pumpfoil = False` und fehlte damit in seiner Pumpfoil-Liste.

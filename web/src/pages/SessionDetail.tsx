@@ -1392,7 +1392,15 @@ export default function SessionDetail() {
           <SessionUploadCard id={session.id} fallback={<ProcessingNote />} />
         </div>
       )}
-      {m?.detection === "gps_only" && session.status !== "live" && (
+      {/* Eingefrorene Ortung: das Gerät hat dieselbe Position wiederholt statt neu zu messen.
+          Ohne diesen Hinweis steht der Nutzer vor „0 Läufe, 0,0 km/h" und hält die App für
+          kaputt — genau so ist es am 03.09. gemeldet worden. */}
+      {m?.gps_frozen && session.status !== "live" && (
+        <div className="mb-4 rounded-xl border border-amber-600/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-300">
+          {t("sd.gpsFrozen")}
+        </div>
+      )}
+      {m?.detection === "gps_only" && !m?.gps_frozen && session.status !== "live" && (
         <div className="mb-4 rounded-xl border border-amber-600/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
           {m.accel_hz_effective != null && m.accel_hz_effective > 0
             ? t("sd.lowRateWarning", { hz: Math.round(m.accel_hz_effective) })

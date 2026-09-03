@@ -358,6 +358,7 @@ const id: Record<string, string> = {
   "sd.duration": "Durasi",
   "sd.communityView": "Komunitas · hanya lihat",
   "sd.gpsWarning": "⚠️ Tidak ada data akselerasi di file ini — deteksi foil hanya berjalan kasar via GPS (kecepatan). Fase pump/glide tidak ada; batas run dan deteksi mungkin tidak akurat (deteksi berlebih atau kurang).",
+  "sd.gpsFrozen": "Selama rekaman ini jammu tidak memberi posisi sendiri, melainkan mengulang posisi tersimpan yang sama — jadi tidak ada jarak, kecepatan, maupun run. Biasanya cukup tinggalkan ponsel jauh dari air (atau matikan Bluetooth di jam) agar jam memakai GPS-nya sendiri.",
   "sd.lowRateWarning": "⚠️ Akselerasi hanya direkam pada ~{hz} Hz (mode \"Sparse\") — deteksi pump/glide butuh minimal 15 Hz. Nilai mentah ada (terlihat di pelabelan) tapi tidak dianalisis; deteksi foil hanya berjalan lewat GPS.",
   "sd.avgSpeed": "Ø kecepatan",
   "sd.maxSpeed": "Kecepatan maks ({win}d)",

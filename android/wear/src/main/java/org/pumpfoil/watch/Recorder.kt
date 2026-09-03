@@ -50,6 +50,12 @@ object Recorder {
         // 05.08.: vier Sessions ueber Stunden mit 1000+ Accel-Chunks und 0 GPS-Punkten, weil
         // die SecurityException still verschluckt wurde. Jetzt sichtbar statt stumm.
         val gpsDenied: Boolean = false,
+        // Die Ortung liefert nur noch ALTE Fixes (Fused wiederholt einen zwischengespeicherten
+        // Stand). Feldbefund 03.09.: zwei Nutzer, drei Sessions ueber je eine Stunde — 2491 Fixes,
+        // aber nur 71 verschiedene Positionen, eine davon 625-mal hintereinander, und dazu eine
+        // gemeldete Genauigkeit von 3,8 m. `gpsPoor` (hAcc > 20 m) greift da NICHT, die Uhr zeigte
+        // seelenruhig 0,0 km/h. Erkannt wird es am ALTER des Fixes, nicht an seinem Inhalt.
+        val gpsStale: Boolean = false,
         val gpsFixes: Int = 0,            // Anzahl empfangener Positionen (0 = kein Signal)
         val speed3sKmh: Double = 0.0,     // 3-s-Mittel
         val avgSpeedKmh: Double = 0.0,    // Distanz/Zeit
@@ -225,6 +231,7 @@ object Recorder {
     // Live-Kennzahlen
     private var prevLat = Double.NaN
     private var prevLon = Double.NaN
+    private var alteFixes = 0        // Fixes in Folge, deren MESSUNG aelter als FIX_ALT_MS war
     private var distM = 0.0
     private var maxMps = 0.0
     private var hrSum = 0L
@@ -263,7 +270,7 @@ object Recorder {
         startMs = System.currentTimeMillis()
         chunkIndex = 0
         synchronized(lock) { accel.clear(); gps.clear(); spWin.clear() }
-        prevLat = Double.NaN; prevLon = Double.NaN
+        prevLat = Double.NaN; prevLon = Double.NaN; alteFixes = 0
         distM = 0.0; maxMps = 0.0; hrSum = 0; hrCount = 0; maxHrV = 0; lastHr = 0
         val meta = JSONObject()
             .put("session_uuid", uuid)
@@ -489,15 +496,32 @@ object Recorder {
     // Positions-Zittern. Nur wenn das Geraet keine Geschwindigkeit liefert (negativ = unbekannt),
     // faellt es auf eine Mindest-Verschiebung zurueck. Idee aus @elmanu13s Zepp-PR, dort ueber ein
     // 5-s-Netto-Fenster geloest, weil Zepp weder Genauigkeit noch Doppler liefert.
+    // Ab wann ein Fix „alt" ist, und wie viele alte hintereinander wir brauchen, bevor wir es
+    // dem Nutzer sagen. 5 s ist grosszuegig (ein frischer Fix ist 0-2 s alt), 20 Fixes bei 1 Hz
+    // sind rund 20 Sekunden — lang genug, dass ein einzelner Aussetzer beim Start keine Warnung
+    // ausloest, kurz genug, dass niemand eine Stunde umsonst pumpt.
+    private const val FIX_ALT_MS = 5_000L
+    private const val FIX_ALT_ANZAHL = 20
+
     private const val STAND_MPS = 0.5       // darunter gilt: wir stehen (1,8 km/h)
     private const val STAND_SCHRITT_M = 1.5 // Rueckfall ohne Doppler: Mindest-Verschiebung je Fix
 
-    fun addGps(lat: Double, lon: Double, speedMps: Double, accuracyM: Double) {
+    /** @param fixAlterMs Alter der MESSUNG (elapsedRealtime), nicht der Zustellung. -1 = unbekannt. */
+    fun addGps(lat: Double, lon: Double, speedMps: Double, accuracyM: Double, fixAlterMs: Long = -1L) {
         if (!running) return
         val tMs = elapsedMs()
         val spRaw = maxOf(0.0, speedMps)
+        // Veraltete Fixes zaehlen. Wir verlassen uns bewusst NICHT darauf, dass sich die
+        // Koordinaten nicht aendern — wer am Steg steht, steht auch wirklich still; ein echter
+        // Fix ist trotzdem jede Sekunde neu GEMESSEN. Das Alter trennt beides sauber.
+        if (fixAlterMs >= 0) {
+            if (fixAlterMs > FIX_ALT_MS) alteFixes++ else alteFixes = 0
+        }
+        val stale = alteFixes >= FIX_ALT_ANZAHL
         // Qualitaets-Gate fuer alles Live (Anzeige, Max, Lauf-Erkennung): hAcc > 20 m -> 0.
-        val poor = accuracyM > 20.0
+        // Eine eingefrorene Ortung gehoert genauso hierher: ihre Position ist alt, ihr Tempo
+        // ist 0, und ein daraus gebauter „Lauf" waere frei erfunden.
+        val poor = accuracyM > 20.0 || stale
         val sp = if (poor) 0.0 else spRaw
         synchronized(lock) {
             gps.add(doubleArrayOf(tMs.toDouble(), lat, lon, spRaw, lastHr.toDouble(), accuracyM))
@@ -527,6 +551,7 @@ object Recorder {
         val runMax = if (nowFoiling) runMaxMps else lastRunMaxMps
         _state.value = _state.value.copy(
             gpsPoor = poor,
+            gpsStale = stale,
             gpsFixes = _state.value.gpsFixes + 1,
             speedKmh = sp * 3.6,
             speed3sKmh = sp3 * 3.6,

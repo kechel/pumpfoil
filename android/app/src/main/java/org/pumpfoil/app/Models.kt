@@ -265,6 +265,8 @@ data class Metrics(
     // Rate; bei FR55 & Co. liegt sie unter der angeforderten und reicht dem Modell nicht.
     val detection: String? = null,
     @SerialName("accel_hz_effective") val accelHzEffective: Double? = null,
+    // Das Geraet hat immer wieder dieselbe gespeicherte Position gemeldet statt neu zu messen.
+    @SerialName("gps_frozen") val gpsFrozen: Boolean = false,
     @SerialName("avg_hr") val avgHr: Int? = null,
     @SerialName("max_hr") val maxHr: Int? = null,
     @SerialName("farthest_segment_m") val farthestSegmentM: Double? = null,

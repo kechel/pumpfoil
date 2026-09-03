@@ -795,6 +795,8 @@ struct Metrics: Codable {
     // Rate; bei FR55 & Co. liegt sie unter der angeforderten und reicht dem Modell nicht.
     let detection: String?
     let accel_hz_effective: Double?
+    /// Das Geraet hat immer wieder dieselbe gespeicherte Position gemeldet statt neu zu messen.
+    let gps_frozen: Bool?
 }
 
 // Ein Fremdkraft-Vorschlag (analysis.metrics["fremdkraft_laeufe"]): langer Lauf ohne Puls-Antwort.
