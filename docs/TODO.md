@@ -619,6 +619,18 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **✅ 03.09. — iOS/Apple Watch 1.1.29 (33) ist FREIGEGEBEN und live.** Mail „ready for
+  distribution", an der Produktseite gegengeprueft (zeigt „Version 1.1.29"). Eingereicht 02.09.
+  17:55 — keine 24 Stunden Pruefung.
+  **Erledigt:** `appmeta.ios` UND `appmeta.apple` auf 1.1.29, Server neu gestartet
+  (`/api/app/latest?platform=ios` liefert es), Changelog-Eintrag geschrieben, PWA neu gebaut.
+  `watch-apple/project.yml` steht fuer die naechste Einreichung auf **1.1.30 (34)**, beide Ziele.
+  **Damit ist die Changelog-Warnung zu 1.1.28 aufgeloest** („Videos im Feed bleiben schwarz") —
+  der Error-153-Fix ist ausgeliefert, samt Trefferflaeche der Kacheln und Wischen.
+  **Offen bleibt nur noch Android:** Phone 1.1.25 (39) + Wear 1.2.25 (1035) sind seit 02.09. in
+  Pruefung; nach „live" UND 100 % Roll-out `appmeta.android`/`appmeta.wear` setzen. Zepp 1.0.7
+  weiter „Under Review".
+
 - **✅ 02.09. — Admin-Tab „System" + Push bei Warnungen.** Jans Wunsch, nachdem `/tmp` unbemerkt
   auf 86 % gelaufen war. Server: `api/health.py` (CPU-Stichprobe, Last je Kern, Speicher/Swap,
   alle Dateisysteme, groesste Prozesse nach CPU und RSS, Dienste, die vier Zeitgeber, Units im

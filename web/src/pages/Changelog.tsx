@@ -30,6 +30,12 @@ type Entry = { date: string; items: Item[] };
 
 const ENTRIES: Entry[] = [
   {
+    date: "September 3, 2026",
+    items: [
+      "The iPhone and Apple Watch app 1.1.29 is out, and the black videos in the community feed are gone. What happened is worth knowing, because it hit us out of nowhere: YouTube tightened how it checks which page a player is embedded in, and our apps told it the wrong thing \u2014 they named YouTube itself as the surrounding page instead of pumpfoil.org. The player refused, the refusal was invisible inside the frame, and all you saw was black while the sound kept playing. Two smaller things from the same corner came along: tapping a preview picture opened the video one to the right from about the middle of the tile, and you can now swipe to move through the feed instead of only using the arrows.",
+    ],
+  },
+  {
     date: "September 2, 2026",
     items: [
       "The iPhone and Apple Watch app 1.1.28 is in the App Store. The watch now switches GPS on while you are still on the start screen and tells you when it is ready \u2014 a cold start takes a good two minutes outdoors, and until now it only began looking when you pressed start, so the first run of the day was often lost. On the phone: a map for every single run in your history, comparing two spots side by side, records and leaderboards narrowed to comparable foils, the upload card on the session page so you can see accelerometer data arriving, tidying up your watches (hide, remove, revoke), a note when a session has no motion data, and you can now download everything we store about you.",
