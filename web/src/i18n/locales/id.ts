@@ -1597,6 +1597,8 @@ const id: Record<string, string> = {
   "upload.hint": "Dekatkan jammu dan buka aplikasi untuk menuntaskan unggahan.",
   "upload.progressPct": "{pct} % · {n}/{total} bagian",
   "upload.stalledHint": "Lebih dari 5 menit tidak ada kemajuan. Buka lagi aplikasi di jammu (tanpa memulai rekaman baru) selagi jam tersambung ke ponsel lewat Bluetooth — unggahan lalu berlanjut.",
+  "upload.supersededHint": "Rekaman ini tidak pernah sampai utuh, dan sesudahnya ada sesi yang lebih baru terkirim — jadi sudah tidak ada di jam. Ketuk untuk menganalisisnya dengan data yang ada, atau hapus di sesinya.",
+  "upload.supersededEmpty": "Tidak ada data dari rekaman ini yang sampai, dan sesudahnya ada sesi lebih baru terkirim — tidak ada lagi yang bisa diambil. Kamu bisa menghapusnya di sesinya.",
   "upload.title": "Sesi sedang diunggah",
   "upload.waiting": "Menunggu data…",
   "watches.nStrava": "Impor secara teknis mungkin saja, tapi API tidak menyediakan data mentah akselerometer berfrekuensi tinggi (jadi tanpa deteksi pumping), dan ia berada di balik paywall dengan syarat API yang tidak cocok untuk proyek terbuka — sengaja tidak diintegrasikan.",

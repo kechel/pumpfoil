@@ -14,6 +14,8 @@ const pl: Record<string, string> = {
   "upload.progressPct": "{pct}% · {n}/{total} części",
   "upload.hint": "Przybliż zegarek i otwórz aplikację, aby dokończyć wysyłanie.",
   "upload.stalledHint": "Od ponad 5 minut brak postępu. Otwórz ponownie aplikację na zegarku (bez rozpoczynania nowego nagrania), gdy zegarek jest połączony z telefonem przez Bluetooth — wysyłanie ruszy dalej.",
+  "upload.supersededHint": "To nagranie nigdy nie dotarło w całości, a od tego czasu przesłano nowsze sesje — nie ma go już na zegarku. Dotknij, aby przeanalizować je z dostępnych danych, albo usuń je w sesji.",
+  "upload.supersededEmpty": "Z tego nagrania nie dotarło nic, a od tego czasu przesłano nowsze sesje — nie ma już czego pobierać. Możesz je usunąć w sesji.",
   "upload.finalize": "Analizuj teraz na podstawie dotychczasowych danych GPS",
   "upload.finalizeBusy": "Analizuję…",
   "upload.finalizeConfirm": "Zakończyć i przeanalizować tę sesję na podstawie dotychczas wysłanych danych? Brakujące dane akcelerometru nie zostaną już wysłane (analiza tylko z GPS).",

@@ -79,7 +79,13 @@ struct UploadCardRow: View {
             }
             if let pct { ProgressView(value: pct).tint(.cyan) }
             else { ProgressView().progressViewStyle(.linear).tint(.cyan) }
-            if stalled(s) {
+            // „Ueberholt": seither ist eine neuere Session komplett angekommen, die Uhr hat ihren
+            // Puffer also weitergedreht — „App auf der Uhr oeffnen" waere ein falscher Rat.
+            if s.ueberholt == true {
+                Label(Loc.t(s.has_gps ? "upload.supersededHint" : "upload.supersededEmpty", lang),
+                      systemImage: "info.circle")
+                    .font(.subheadline).foregroundColor(.orange)
+            } else if stalled(s) {
                 Label(Loc.t("upload.stalledHint", lang), systemImage: "info.circle")
                     .font(.subheadline).foregroundColor(.orange)
             } else {

@@ -1489,6 +1489,8 @@ const deAT: Record<string, string> = {
   "upload.hint": "Uhr in Reichweite bringen und die App aufmachen, um den Upload abzuschließen.",
   "upload.progressPct": "{pct} % · {n}/{total} Teile",
   "upload.stalledHint": "Seit über 5 Minuten kein Fortschritt. Mach die App auf der Uhr nomal auf (ohne a neue Aufnahme zu starten), während die Uhr per Bluetooth mit dem Handy verbunden ist — dann lauft der Upload weiter.",
+  "upload.supersededHint": "Diese Aufnahme ist nie vollständig angekommen, und seither wurden neuere Sessions übertragen — auf der Uhr liegt sie also nicht mehr. Zum Auswerten mit den vorhandenen Daten einfach antippen; sonst kannst du sie in der Session löschen.",
+  "upload.supersededEmpty": "Von dieser Aufnahme ist nichts angekommen, und seither wurden neuere Sessions übertragen — sie ist nicht mehr zu holen. Du kannst sie in der Session löschen.",
   "upload.title": "Session ladt hoch",
   "upload.waiting": "Warte auf Daten…",
   "watches.nStrava": "Import wär technisch machbar, liefert per API aber kein hochfrequentes Roh-Accel (also keine Pump-Erkennung) und steht hinter Paywall + API-Auflagen, die nicht zum offenen Projekt passen — daher bewusst nicht integriert.",

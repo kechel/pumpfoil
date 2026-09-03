@@ -1653,6 +1653,8 @@ const nl: Record<string, string> = {
   "upload.hint": "Breng je horloge in de buurt en open de app om het uploaden af te ronden.",
   "upload.progressPct": "{pct} % · {n}/{total} delen",
   "upload.stalledHint": "Al meer dan 5 minuten geen voortgang. Open de app op je horloge opnieuw (zonder een nieuwe opname te starten) terwijl het horloge via bluetooth met je telefoon verbonden is — dan gaat het uploaden verder.",
+  "upload.supersededHint": "Deze opname is nooit volledig aangekomen en sindsdien zijn er nieuwere sessies overgezet — hij staat dus niet meer op de horloge. Tik om hem te analyseren met de aanwezige data, of verwijder hem in de sessie.",
+  "upload.supersededEmpty": "Van deze opname is niets aangekomen en sindsdien zijn er nieuwere sessies overgezet — er is niets meer op te halen. Je kunt hem in de sessie verwijderen.",
   "upload.title": "Sessie wordt geüpload",
   "upload.waiting": "Wachten op gegevens…",
 };

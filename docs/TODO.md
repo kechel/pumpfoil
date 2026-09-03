@@ -619,7 +619,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
-- **🔴 03.09. — 33 haengengebliebene Uploads von 31 Nutzern, und 30 davon sind fuer ihre Besitzer
+- **🟢 03.09. ERLEDIGT (Sichtbarkeit) — 33 haengengebliebene Uploads von 31 Nutzern, davon 30
   UNSICHTBAR.** Gefunden beim Lagebild-Check (Jan: „schauen mal, ob's neues Feedback gab oder
   irgendwas Ungewoehnliches"). Rein lesend ausgezaehlt:
   - 33 Sessions stehen auf `recording`/`live` und wurden nie fertig hochgeladen (31 verschiedene
@@ -641,6 +641,25 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   2. **Jans Entscheidung, weil es Nutzerdaten und die Pipeline beruehrt:** was mit den 30 alten
      passiert — sichtbar machen als „unvollstaendig" in der Sessionliste, und/oder die 16 mit
      genug Daten auswerten lassen. NICHT ohne OK anfassen.
+
+  **Umgesetzt am 03.09. nach Jans Regel** („blende den Hinweis nur aus, wenn danach keine weitere
+  neuere Session uebertragen wurde ... dann ist die vielleicht noch immer auf der Uhr und der
+  Hinweis kann ohne Limit dauerhaft bleiben"):
+  - `list_in_progress` (`server/app/api/sessions.py`): **48-Stunden-Fenster entfernt**, dafuer ein
+    neues Feld `ueberholt` — wahr, wenn nach dieser Aufnahme eine andere Session desselben Nutzers
+    mit Status `complete`/`analyzed` gestartet wurde. Dann hat die Uhr ihren Puffer weitergedreht,
+    zu holen ist nichts mehr.
+  - Karten auf allen drei Plattformen (`web/src/components/UploadProgressCard.tsx`,
+    `android/.../UploadProgressCard.kt`, `watch-apple/Sources-iOS/UploadProgressCard.swift`):
+    bei `ueberholt` steht statt „App auf der Uhr oeffnen" der Hinweis, dass die Aufnahme nicht mehr
+    auf der Uhr liegt — mit GPS-Daten „antippen zum Auswerten", ohne Daten „in der Session loeschen".
+    Zwei neue Schluessel `upload.supersededHint`/`upload.supersededEmpty` in allen 17 Sprachen.
+  - **Wirkung an echten Daten gemessen:** sichtbare Upload-Karten **3 → 33** (31 Nutzer), davon
+    **8 ueberholt** (u88/2152, u125/2296, u184/2291, u194/2686+2684, u226/2609, u264/1984, u354/2950)
+    und **25 weiterhin von der Uhr holbar** (u341 2464/10117, u421 60/112, ...).
+  - **Punkt 2 bleibt offen:** die 27 mit `is_pumpfoil = NULL` fehlen weiter in der normalen
+    Sessionliste, und die 16 mit >= 60 Bloecken sind nicht ausgewertet. Beides ruehrt Nutzerdaten an
+    → weiter auf Jans OK.
 
 - **✅ 03.09. — iOS/Apple Watch 1.1.29 (33) ist FREIGEGEBEN und live.** Mail „ready for
   distribution", an der Produktseite gegengeprueft (zeigt „Version 1.1.29"). Eingereicht 02.09.
