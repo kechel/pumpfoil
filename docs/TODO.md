@@ -645,8 +645,12 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     moeglicherweise **heute schon** zu uns bringen, ohne dass wir eine Zeile bauen.
     **Zu pruefen:** ob ueber diesen Weg die GPS-Spur mitkommt (Strava warnt ausdruecklich, dass
     Mi-Fitness-Aktivitaeten OHNE GPS bei ihnen ohne Distanz ankommen).
-    **Naechster Schritt:** Frederic (u417) fragen, ob er Mi Fitness → Suunto verknuepft und eine
-    Session faehrt; das ist der billigste echte Test, und er hat sich selbst gemeldet.
+    **✅ 03.09. ANGEFRAGT:** Frederic (u417) hat per DM die Anleitung bekommen (Mi Fitness →
+    Suunto verknuepfen, dann bei uns Profil → Konten verknuepfen → Suunto, dann eine Session
+    fahren) samt der Bitte, das fuer uns zu testen. **Wir warten auf seine Rueckmeldung.**
+    Ihm wurde dabei ehrlich gesagt, dass eine App direkt auf der Redmi Watch derzeit nicht geht.
+    Wenn er sich meldet: als Erstes pruefen, ob bei seiner importierten Session ueberhaupt eine
+    Spur ankommt (`analysis_results.detection`, Punktzahl, `total_distance_m`).
   - **Health Connect** (Android, unsere Handy-App): Mi Fitness schreibt dorthin. Offen, ob auch
     die `ExerciseRoute` (GPS) mitgeht — Routen brauchen zusaetzlich `READ_EXERCISE_ROUTES` und
     eine eigene Zustimmung je Session. Waere der datenschutzfreundlichste Weg (nichts verlaesst
