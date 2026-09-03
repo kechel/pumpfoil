@@ -525,6 +525,8 @@ const nl: Record<string, string> = {
   "calc.power": "Theoretisch vermogen (W)",
   "calc.powerNote": "Totaal vermogen (voortstuwing + evt. pomptraagheid). ‘–’ = onder de minimale snelheid om te foilen.",
   "calc.disclaimer": "Modelberekening — benaderingen, geen meting. Beste (laagste) vermogen per kolom uitgelicht.",
+  "calc.searchHint": "Typ een zoekterm of kies een merk — de passende foils verschijnen hier.",
+  "calc.moreHits": "… en {n} andere resultaten. Verfijn je zoekopdracht.",
   "notif.typeChat": "Nieuwe chatberichten (geabonneerde ruimtes)",
   "adm.tab.chat": "Chat",
   "adm.tab.spots": "Spots",

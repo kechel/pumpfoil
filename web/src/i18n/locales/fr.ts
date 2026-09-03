@@ -425,6 +425,8 @@ const fr: Record<string, string> = {
   "calc.power": "Puissance théorique (W)",
   "calc.powerNote": "Puissance totale (traînée + inertie de pump). « – » = sous la vitesse minimale pour foiler.",
   "calc.disclaimer": "Estimation au modèle — approximative, non mesurée. Meilleure (plus basse) puissance par colonne mise en évidence.",
+  "calc.searchHint": "Saisissez un terme ou choisissez une marque — les foils correspondants apparaîtront ici.",
+  "calc.moreHits": "… et {n} autres résultats. Affinez la recherche.",
   "notif.typeChat": "Nouveaux messages de chat (salons abonnés)",
   "adm.tab.chat": "Chat",
   "adm.chat.none": "Aucun message signalé.",

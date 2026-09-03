@@ -501,6 +501,8 @@ const ja: Record<string, string> = {
   "calc.power": "理論上のパワー (W)",
   "calc.powerNote": "合計パワー（抵抗＋任意のポンプ慣性）。「–」= フォイリングに必要な最低速度未満。",
   "calc.disclaimer": "モデル推定 — 概算であり実測ではありません。列ごとの最良（最小）パワーを強調表示。",
+  "calc.searchHint": "検索語を入力するかブランドを選ぶと、該当するフォイルが表示されます。",
+  "calc.moreHits": "… ほか {n} 件。検索を絞ってください。",
   "notif.typeChat": "新しいチャットメッセージ（購読中のルーム）",
   "adm.tab.chat": "チャット",
   "adm.tab.spots": "スポット",

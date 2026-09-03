@@ -511,6 +511,8 @@ const nb: Record<string, string> = {
   "calc.power": "Teoretisk effekt (W)",
   "calc.powerNote": "Total effekt (motstand + eventuell pumpetreghet). «–» = under minstefarten for å foile.",
   "calc.disclaimer": "Modellanslag – omtrentlig, ikke målt. Beste (laveste) effekt per kolonne er markert.",
+  "calc.searchHint": "Skriv et søkeord eller velg et merke — foilene som passer vises her.",
+  "calc.moreHits": "… og {n} treff til. Snevre inn søket.",
   "notif.typeChat": "Nye chatmeldinger (rom du abonnerer på)",
   "adm.tab.chat": "Chat",
   "adm.tab.spots": "Spots",

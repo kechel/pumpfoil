@@ -543,6 +543,8 @@ const pl: Record<string, string> = {
   "calc.power": "Moc teoretyczna (W)",
   "calc.powerNote": "Moc całkowita (opór + opcjonalnie bezwładność pompowania). „–” = poniżej minimalnej prędkości do foilowania.",
   "calc.disclaimer": "Szacunek modelowy — przybliżony, nie mierzony. Najlepsza (najniższa) moc w kolumnie jest wyróżniona.",
+  "calc.searchHint": "Wpisz szukaną frazę lub wybierz markę — pasujące foile pojawią się tutaj.",
+  "calc.moreHits": "… i {n} kolejnych wyników. Zawęź wyszukiwanie.",
   "notif.typeChat": "Nowe wiadomości na czacie (obserwowane pokoje)",
   "adm.tab.chat": "Czat",
   "adm.tab.spots": "Spoty",

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -112,10 +113,17 @@ fun FoilCalculatorScreen(onBack: () -> Unit = {}) {
         val mast = FoilPhysics.MastParams(mastDiameter, mastDepth)
         val pump = if (withPump) FoilPhysics.PumpParams(heaveAmp, pumpFreq, recoveryLoss) else null
 
-        val filtered = list.filter { f ->
+        // Trefferliste NUR bei Suche oder gewaehlter Marke (Jan, 03.09.: „ansonsten muss man hier
+        // zehn Seiten scrollen, um überhaupt die Ergebnisse zu sehen"). Es sind ueber 800 Foils —
+        // ungefiltert schiebt die Liste die Ergebnisse aus dem Bild. Ausgewaehlte Foils stehen
+        // IMMER oben, sonst koennte man eine Auswahl nicht mehr zurücknehmen.
+        val sucheAktiv = query.isNotBlank() || brand.isNotEmpty()
+        val treffer = if (!sucheAktiv) emptyList() else list.filter { f ->
             (brand.isEmpty() || f.brand == brand) &&
-                (query.isBlank() || gearMatches("${f.brand} ${f.model} ${f.size}", query))
+                (query.isBlank() || gearMatches("${f.brand} ${f.model} ${f.size}", query)) &&
+                !selected.contains(f.id)
         }
+        val MAX_TREFFER = 40
 
         LazyColumn(Modifier.padding(pad).fillMaxSize().padding(horizontal = 12.dp)) {
             item {
@@ -194,18 +202,34 @@ fun FoilCalculatorScreen(onBack: () -> Unit = {}) {
                     }
                 }
             }
-            items(filtered, key = { it.id }) { f ->
-                Row(Modifier.fillMaxWidth().padding(vertical = 2.dp),
-                    verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(checked = selected.contains(f.id), onCheckedChange = {
-                        selected = if (selected.contains(f.id)) selected - f.id else selected + f.id
-                    })
-                    Column(Modifier.weight(1f)) {
-                        Text("${f.brand} ${f.model} ${f.size}", style = MaterialTheme.typography.bodyMedium)
-                        Text("${f.areaCm2.roundToInt()} cm²  ·  AR ${f.aspectRatio?.let { fmt(it, 1) } ?: "–"}",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
+            // Ausgewaehlte immer sichtbar, danach die Treffer der Suche.
+            items(selFoils, key = { "s${it.id}" }) { f -> FoilZeile(f, true) { id ->
+                selected = selected - id
+            } }
+            if (!sucheAktiv) {
+                item {
+                    Text(I18n.t("calc.searchHint"),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(vertical = 12.dp))
+                }
+            } else if (treffer.isEmpty()) {
+                item {
+                    Text(I18n.t("foils.none"),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(vertical = 12.dp))
+                }
+            }
+            items(treffer.take(MAX_TREFFER), key = { it.id }) { f -> FoilZeile(f, false) { id ->
+                selected = selected + id
+            } }
+            if (treffer.size > MAX_TREFFER) {
+                item {
+                    Text(I18n.t("calc.moreHits").replace("{n}", "${treffer.size - MAX_TREFFER}"),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(vertical = 8.dp))
                 }
             }
 
@@ -311,3 +335,21 @@ private fun NumField(label: String, value: Double, modifier: Modifier = Modifier
 
 private fun fmt(v: Double, dec: Int): String = "%.${dec}f".format(v)
 private fun fmtPlain(v: Double): String = if (v == v.toLong().toDouble()) v.toLong().toString() else v.toString()
+
+/** Eine Zeile der Foil-Auswahl im Rechner. Ausgelagert, weil sie an zwei Stellen steht:
+ *  oben fuer die schon gewaehlten Foils, darunter fuer die Suchtreffer. */
+@Composable
+private fun FoilZeile(f: Foil, ausgewaehlt: Boolean, onKlick: (Int) -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().clickable { onKlick(f.id) }.padding(vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Checkbox(checked = ausgewaehlt, onCheckedChange = { onKlick(f.id) })
+        Column(Modifier.weight(1f)) {
+            Text("${f.brand} ${f.model} ${f.size}", style = MaterialTheme.typography.bodyMedium)
+            Text("${f.areaCm2.roundToInt()} cm²  ·  AR ${f.aspectRatio?.let { fmt(it, 1) } ?: "–"}",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}

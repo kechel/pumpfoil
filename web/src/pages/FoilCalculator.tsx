@@ -49,6 +49,11 @@ export default function FoilCalculator() {
   const byId = useMemo(() => new Map((foils ?? []).map((f) => [f.id, f])), [foils]);
   const selected = useMemo(() => sel.map((id) => byId.get(id)).filter(Boolean) as Foil[], [sel, byId]);
 
+  // Trefferliste NUR bei Suche oder gewaehlter Marke (Jan, 03.09.). Ueber 800 Foils ungefiltert
+  // anzuzeigen schiebt die Ergebnisse aus dem Bild — auf dem Handy scrollt man sonst „zehn Seiten".
+  // Die schon gewaehlten stehen immer oben, sonst kaeme man aus einer Auswahl nicht mehr heraus.
+  const sucheAktiv = q.trim().length > 0 || brand !== "";
+  const MAX_TREFFER = 40;
   const filtered = useMemo(() => {
     if (!foils) return [];
     const ql = q.trim().toLowerCase();
@@ -124,14 +129,29 @@ export default function FoilCalculator() {
           </select>
         </div>
         <div className="max-h-56 overflow-y-auto rounded-xl border border-slate-800">
-          {filtered.map((f) => (
+          {selected.map((f) => (
+            <label key={`s${f.id}`} className="flex cursor-pointer items-center gap-2 border-b border-slate-800/60 px-3 py-1.5 text-sm last:border-0 hover:bg-slate-800/40">
+              <input type="checkbox" checked onChange={() => toggle(f.id)} />
+              <span className="text-slate-200">{f.brand} {f.model} {f.size}</span>
+              <span className="ml-auto text-xs text-slate-500">{f.area_cm2} cm² · AR {f.aspect_ratio ?? "–"}</span>
+            </label>
+          ))}
+          {!sucheAktiv && <p className="p-3 text-sm text-slate-400">{t("calc.searchHint")}</p>}
+          {sucheAktiv && filtered.filter((f) => !sel.includes(f.id)).slice(0, MAX_TREFFER).map((f) => (
             <label key={f.id} className="flex cursor-pointer items-center gap-2 border-b border-slate-800/60 px-3 py-1.5 text-sm last:border-0 hover:bg-slate-800/40">
               <input type="checkbox" checked={sel.includes(f.id)} onChange={() => toggle(f.id)} />
               <span className="text-slate-200">{f.brand} {f.model} {f.size}</span>
               <span className="ml-auto text-xs text-slate-500">{f.area_cm2} cm² · AR {f.aspect_ratio ?? "–"}</span>
             </label>
           ))}
-          {filtered.length === 0 && <p className="p-3 text-sm text-slate-400">{t("foils.none")}</p>}
+          {sucheAktiv && filtered.filter((f) => !sel.includes(f.id)).length === 0 && (
+            <p className="p-3 text-sm text-slate-400">{t("foils.none")}</p>
+          )}
+          {sucheAktiv && filtered.filter((f) => !sel.includes(f.id)).length > MAX_TREFFER && (
+            <p className="p-3 text-xs text-slate-500">
+              {t("calc.moreHits", { n: filtered.filter((f) => !sel.includes(f.id)).length - MAX_TREFFER })}
+            </p>
+          )}
         </div>
       </Card>
 

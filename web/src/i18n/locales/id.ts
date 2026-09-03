@@ -501,6 +501,8 @@ const id: Record<string, string> = {
   "calc.power": "Daya teoretis (W)",
   "calc.powerNote": "Daya total (hambatan + inersia pump opsional). “–” = di bawah kecepatan minimum untuk foil.",
   "calc.disclaimer": "Perkiraan model — kira-kira, bukan hasil ukur. Daya terbaik (terendah) per kolom disorot.",
+  "calc.searchHint": "Ketik kata pencarian atau pilih merek — foil yang cocok akan muncul di sini.",
+  "calc.moreHits": "… dan {n} hasil lainnya. Persempit pencarian.",
   "notif.typeChat": "Pesan chat baru (ruang yang dilangganani)",
   "adm.tab.chat": "Chat",
   "adm.tab.spots": "Spot",

@@ -33,10 +33,21 @@ struct FoilCalculatorView: View {
         withPump ? .init(heaveAmpCm: heaveAmp, pumpFreqHz: pumpFreq, recoveryLossPct: recoveryLoss) : nil
     }
 
+    /// Sucht der Nutzer ueberhaupt? Ohne Suchbegriff und ohne Marke zeigen wir KEINE Liste.
+    ///
+    /// Grund (Jan, 03.09.): es sind ueber 800 Foils, und ungefiltert schiebt die Liste die
+    /// Ergebnisse aus dem Bild — „ansonsten muss man hier zehn Seiten scrollen, um überhaupt die
+    /// Ergebnisse zu sehen". Die schon gewaehlten Foils stehen immer oben, sonst koennte man eine
+    /// Auswahl nicht mehr zuruecknehmen.
+    private var sucheAktiv: Bool { !query.isEmpty || !brand.isEmpty }
+    private var maxTreffer: Int { 40 }
+
     private var filtered: [Foil] {
-        foils.filter { f in
+        guard sucheAktiv else { return [] }
+        return foils.filter { f in
             (brand.isEmpty || f.brand == brand) &&
-            (query.isEmpty || gearMatches("\(f.brand) \(f.model) \(f.size)", query))
+            (query.isEmpty || gearMatches("\(f.brand) \(f.model) \(f.size)", query)) &&
+            !selected.contains(f.id)
         }
     }
     private var selectedFoils: [Foil] { foils.filter { selected.contains($0.id) } }
@@ -102,8 +113,21 @@ struct FoilCalculatorView: View {
         if loading {
             HStack { Spacer(); ProgressView(); Spacer() }
         } else {
-            ForEach(filtered) { f in
+            ForEach(selectedFoils) { f in
                 Button { toggle(f.id) } label: { foilRowLabel(f) }
+            }
+            if !sucheAktiv {
+                Text(Loc.t("calc.searchHint", lang)).font(.caption).foregroundStyle(.secondary)
+            } else if filtered.isEmpty {
+                Text(Loc.t("foils.none", lang)).font(.caption).foregroundStyle(.secondary)
+            }
+            ForEach(filtered.prefix(maxTreffer)) { f in
+                Button { toggle(f.id) } label: { foilRowLabel(f) }
+            }
+            if filtered.count > maxTreffer {
+                Text(Loc.t("calc.moreHits", lang)
+                        .replacingOccurrences(of: "{n}", with: "\(filtered.count - maxTreffer)"))
+                    .font(.caption2).foregroundStyle(.secondary)
             }
         }
     }
