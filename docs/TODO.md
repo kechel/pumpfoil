@@ -624,9 +624,23 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Das ist eine Luecke in der Roadmap-Betrachtung: Redmi/Xiaomi-Uhren laufen auf **HyperOS/Vela**
   (NuttX-Basis), NICHT auf Wear OS — der Zepp-Zweig (Amazfit) deckt sie also nicht ab. Zu klaeren:
   (a) welche Modelle wirklich Vela sind und welche Wear OS (die **Xiaomi Watch 2 / 2 Pro** laufen
-  Wear OS — dort wuerde unsere App schon heute funktionieren, das waere die schnelle Antwort an
-  ihn); (b) ob es fuer Vela ueberhaupt ein oeffentliches SDK fuer Dritt-Apps gibt.
-  **Jan (03.09.): direkt nach dem GPS-Thema angehen.**
+  Wear OS — dort wuerde unsere App schon heute funktionieren); (b) ob es fuer Vela ueberhaupt ein
+  oeffentliches SDK fuer Dritt-Apps gibt.
+  **Jan (03.09.): direkt nach dem GPS-Thema angehen. ANTWORT IST RAUS** — ihm wurde geschrieben,
+  dass wir Xiaomi „prochainement" unterstuetzen wollen. Damit haengt an der Recherche jetzt eine
+  oeffentliche Zusage; wenn Vela keine Dritt-Apps zulaesst, muss er das von uns hoeren.
+  **Stand der Recherche:** noch nicht belegt — die Websuche war fuer die Sitzung aufgebraucht
+  (200/200), `vela.mi.com` ist von hier nicht aufloesbar. Was als Ausgangspunkt gilt und
+  GEPRUEFT werden muss, bevor wir irgendetwas bauen:
+  - **Xiaomi Watch 2 / 2 Pro laufen Wear OS** → unsere bestehende Wear-App sollte dort laufen.
+    Das waere der schnelle Teil-Erfolg und die konkrete Antwort an Nutzer mit diesen Modellen.
+  - **Redmi Watch (3/4/5) und die Xiaomi-Watch-S-Reihe laufen Vela/HyperOS** (NuttX-RTOS), also
+    NICHT Wear OS und auch nicht Zepp OS. Offen: ob es dafuer ein oeffentliches App-SDK und einen
+    Store-Weg fuer Dritte gibt (openvela ist seit 2024 quelloffen — das heisst aber nicht, dass
+    man auf ein Seriengeraet eine eigene App bekommt). **Genau das ist die Frage, an der alles
+    haengt.**
+  - Erst danach die Aufwandsschaetzung: der Recorder-Vertrag steht (`docs/ingest-contract.md`),
+    ein neuer Zweig ist vor allem GPS + Accel + Upload.
 
 - **🟢 03.09. ERLEDIGT — eingefrorene Ortung: Uhr warnt, Server erkennt es, Anzeige erklaert es.**
   Ausgeloest von einer Nutzer-Meldung („es misst nur Herzfrequenz, kein GPS", u418, Galaxy Watch
