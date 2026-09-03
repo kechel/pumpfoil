@@ -114,9 +114,18 @@ export default function Systemarchitektur() {
           Alles spricht dieselbe <b>REST-API über HTTPS</b>. Die <b>Uhren sind „dünne Recorder"</b>: sie
           zeichnen GPS (+ Rohbeschleunigung, wo möglich) auf und laden hoch — die Auswertung passiert
           zentral am Server. Garmin lädt direkt über WLAN hoch; Wear&nbsp;OS / Apple&nbsp;Watch über die
-          Begleit-App am Handy; Amazfit über die Zepp-App. Polar ist geplant (Roh-Accel per Bluetooth-SDK).
+          Begleit-App am Handy; Amazfit über die Zepp-App. Ein Polar-Recorder ist geplant (Roh-Accel
+          per Bluetooth-SDK).
         </p>
-        <Diagram title="Clients und Uhren" viewBox="0 0 720 380">
+        <p className={`${P} mb-3`}>
+          Daneben gibt es <b>Konto-Verknüpfungen</b> — einen zweiten, anders gerichteten Weg: hier
+          zeichnet nicht unsere App auf, sondern der Anbieter meldet ein fertiges Workout (oder wir
+          fragen es ab), und es kommt als <b>FIT-Datei</b> herein. Diese Sessions haben GPS, aber keine
+          Rohbeschleunigung — also keine Pumps und keine Kadenz. <b>Suunto</b> und <b>Polar AccessLink</b>
+          sind aktiv, <b>COROS</b> ist gebaut und wartet auf den API-Zugang des Herstellers; Strava
+          ruht bewusst. Gestrichelt gezeichnet ist, was noch nicht angeschlossen ist.
+        </p>
+        <Diagram title="Clients und Uhren" viewBox="0 0 720 348">
           {/* Server center */}
           <Box x={285} y={165} w={150} h={64} title="pumpfoil.org" sub="REST-API (HTTPS)" fill="#0b2530" stroke={CYAN} />
           {/* left: user clients */}
@@ -138,6 +147,19 @@ export default function Systemarchitektur() {
             <g key={t as string}>
               <Box x={x as number} y={20} w={70} h={38} title={t as string} fill="#1a1030" stroke="#a78bfa" />
               {line((x as number) + 35, 58, 360, 165)}
+            </g>
+          ))}
+          {/* bottom: Konto-Verknuepfungen (Cloud-Importe). Eigene Reihe, weil sie einen anderen
+              Weg nehmen als die Uhren: nicht wir holen die Daten von einem Geraet, sondern der
+              Anbieter meldet ein Workout bzw. wir fragen es ab — und es kommt als FIT-Datei. */}
+          <text x={360} y={272} textAnchor="middle" fontSize="11" fontWeight="700" fill="#94a3b8">
+            Konto-Verknüpfungen (Cloud-Import, FIT)
+          </text>
+          {[["Suunto", "aktiv", 150], ["Polar", "AccessLink · aktiv", 285], ["COROS", "wartet auf Zugang", 420]].map(([t, s, x], i) => (
+            <g key={t as string}>
+              <Box x={x as number} y={288} w={130} h={44} title={t as string} sub={s as string}
+                   fill="#1a1030" stroke={i === 2 ? "#4c3f70" : "#a78bfa"} />
+              {line((x as number) + 65, 288, 360, 233, i === 2)}
             </g>
           ))}
         </Diagram>
