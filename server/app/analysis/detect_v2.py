@@ -83,25 +83,10 @@ def detector_v2_enabled() -> bool:
 # --- Signalaufbereitung ----------------------------------------------------------------
 
 def _clean_speed(speed: np.ndarray, gps_hz: int) -> np.ndarray:
-    """Dieselben GEMESSENEN Glitch-Regeln wie v1 (gps.py), damit sich v1 und v2 nur in der
-    Erkennung unterscheiden und nicht schon in der Signalaufbereitung: unmögliche Werte gegen
-    den 15-s-Median, mehrsekündige Doppler-Bursts (relativ UND absolut) ebenso, danach
-    Einzel-Sekunden-Ausreißer gegen den 5-s-Median. Begründung + Beispielsessions stehen bei
-    den Konstanten in gps.py."""
-    s = np.array(speed, dtype=float)
-    if s.size == 0:
-        return s
-    over = s > v1.GLITCH_SPEED_MPS
-    if over.any():
-        med = v1._running_median(np.where(over, 0.0, s), max(int(round(15 * gps_hz)), 1))
-        s = np.where(over, med, s)
-    med_burst = v1._running_median(s, max(int(round(v1.BURST_MEDIAN_WIN_S * gps_hz)), 1))
-    burst = (s > med_burst + v1.BURST_MARGIN_MPS) & (s > v1.BURST_ABS_MIN_MPS)
-    if burst.any():
-        s = np.where(burst, med_burst, s)
-    med5 = v1._running_median(s, max(int(round(5 * gps_hz)), 1))
-    spike = np.abs(s - med5) > v1.SPEED_SPIKE_MPS
-    return np.where(spike, med5, s)
+    """Signalaufbereitung == v1. Bewusst nur ein Aufruf: hier stand bis 03.09. ein Nachbau,
+    dem zwei der vier Glitch-Regeln fehlten (isolierter Despike + Endpunkt-Clamp). Die
+    Begruendung und der Fall, an dem es aufgefallen ist, stehen an `clean_speed_series`."""
+    return v1.clean_speed_series(speed, gps_hz)
 
 
 # --- Label je Fenster ------------------------------------------------------------------
