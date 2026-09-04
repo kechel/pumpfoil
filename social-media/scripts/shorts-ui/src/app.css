@@ -129,7 +129,12 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; gap: 5
 .caps .genrow input { flex: 1; font-size: 13px; padding: 6px 8px; border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; }
 .capblock { margin-bottom: 10px; }
 .capblock .caphead { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; margin-bottom: 4px; }
-.capblock pre { margin: 0; font-size: 12px; font-family: inherit; white-space: pre-wrap; background: #8881; border: 1px solid #8883; border-radius: 8px; padding: 8px 10px; }
+/* Die Texte werden nur kopiert, nicht gelesen — jeder Block bleibt flach
+   und scrollt in sich. Unten rechts laesst er sich aufziehen, falls man
+   doch mal etwas nachlesen will. */
+.capblock pre { margin: 0; font-size: 12px; font-family: inherit; white-space: pre-wrap;
+  background: #8881; border: 1px solid #8883; border-radius: 8px; padding: 8px 10px;
+  max-height: 50px; overflow-y: auto; resize: vertical; }
 .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid #8886; border-top-color: #3b82f6; border-radius: 50%; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .covers { display: flex; gap: 8px; flex-wrap: wrap; }
