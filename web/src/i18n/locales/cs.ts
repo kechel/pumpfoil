@@ -1079,7 +1079,7 @@ const cs: Record<string, string> = {
   "foilStats.title": "Statistiky foilů",
   "stats.short": "Statistiky",
   "foilStats.hint": "Které hodnoty se jezdí s kterým foilem (komunita). Počítají se jen pumpfoil session s accel detekcí — ostatní sporty (wing, eFoil, foildrive, wakethief), pouze GPS záznamy a data označená jako chybná se nezapočítávají.",
-  "foilStats.clickHint": "Klepni na foil a uvidíš jeho rekordy a své session s ním.",
+  "foilStats.clickHint": "Klepni na foil a uvidíš jeho rekordy a všechny session s ním.",
   "foilDetail.title": "Foil",
   "foilDetail.records": "Rekordy komunity s tímto foilem",
   "foilDetail.community": "{sessions} session od {users} jezdců",

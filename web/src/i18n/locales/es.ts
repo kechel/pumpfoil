@@ -756,7 +756,7 @@ const es: Record<string, string> = {
   "foilStats.title": "Stats de foils",
   "stats.short": "Stats",
   "foilStats.hint": "Qué valores se logran con qué foil (comunidad). Solo cuentan las sesiones de pumpfoil con detección por acelerómetro — otros deportes (wing, eFoil, foildrive, wakethief), grabaciones solo GPS y datos marcados como erróneos quedan fuera.",
-  "foilStats.clickHint": "Toca un foil para ver sus récords y tus sesiones con él.",
+  "foilStats.clickHint": "Toca un foil para ver sus récords y todas las sesiones con él.",
   "foilDetail.title": "Foil",
   "foilDetail.records": "Récords de la comunidad con este foil",
   "foilDetail.community": "{sessions} sesiones de {users} riders",

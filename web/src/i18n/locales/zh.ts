@@ -981,7 +981,7 @@ const zh: Record<string, string> = {
   "foilStats.title": "水翼统计",
   "stats.short": "统计",
   "foilStats.hint": "äººä»¬å¨åªæ¬¾æ°´ç¿¼ä¸åå¾åªäºæ°æ®ï¼ç¤¾åºï¼ã 仅统计带加速度识别的 pumpfoil 记录 — 其他运动（wing、eFoil、foildrive、wakethief）、仅 GPS 的记录以及被标记为错误的数据不计入。",
-  "foilStats.clickHint": "点按某支水翼，查看它的纪录和你用它记录的活动。",
+  "foilStats.clickHint": "点按某支水翼，查看它的纪录和所有用它记录的活动。",
   "foilDetail.title": "水翼",
   "foilDetail.records": "使用这支水翼的社区纪录",
   "foilDetail.community": "{users} 位骑手的 {sessions} 次活动",
