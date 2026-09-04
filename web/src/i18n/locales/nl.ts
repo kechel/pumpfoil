@@ -1111,7 +1111,7 @@ const nl: Record<string, string> = {
   "settings.polar.result": "{imported} geïmporteerd, {skipped} overgeslagen",
   "settings.coros.title": "COROS-import",
   "settings.coros.hint": "Koppel je COROS-account (Open API). Nieuwe trainingen worden automatisch als sessies geïmporteerd.",
-  "settings.coros.testHint": "Je hebt hier geen echte pumpsessie voor nodig: 100 meter buiten wandelen is genoeg. Laat het ons daarna even weten — een bericht aan Jan in de chat of via het feedbackformulier — dan kijken we naar de import.",
+  "settings.coros.testHint": "Deze koppeling is gloednieuw en nog niet met echte trainingen getest — we zijn erg blij als iemand hem uitprobeert. Je hebt hier geen echte pumpsessie voor nodig: 100 meter buiten wandelen is genoeg. Laat het ons daarna even weten — een bericht aan Jan in de chat of via het feedbackformulier — dan kijken we naar de import.",
   "settings.coros.connect": "Met COROS verbinden",
   "settings.coros.connected": "Verbonden — automatische import",
   "settings.coros.unlink": "Koppeling verbreken",

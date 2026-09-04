@@ -1140,7 +1140,7 @@ const en: Record<string, string> = {
   "settings.polar.result": "{imported} imported, {skipped} skipped",
   "settings.coros.title": "COROS import",
   "settings.coros.hint": "Connect your COROS account (Open API). New workouts are imported automatically as sessions.",
-  "settings.coros.testHint": "You don't need a real pump session for this: a 100-metre walk outdoors is enough. Just tell us afterwards — message Jan in the chat or use the feedback form — and we'll check the import.",
+  "settings.coros.testHint": "This connection is brand new and has not been tried with real workouts yet — we'd be really glad if someone gave it a go. You don't need a real pump session for this: a 100-metre walk outdoors is enough. Just tell us afterwards — message Jan in the chat or use the feedback form — and we'll check the import.",
   "settings.coros.connect": "Connect COROS",
   "settings.coros.connected": "Connected — automatic import",
   "settings.coros.unlink": "Disconnect",
