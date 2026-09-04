@@ -153,13 +153,29 @@ def bilibili_text(caps: dict) -> dict:
     return {"title": titel, "description": text, "chars": len(text)}
 
 
+# Instagram erlaubt 2200 Zeichen — die Caption allein nutzt davon nur rund 400.
+# Fuer Uploads ueber das Meta-Studio, wo das Feld lang genug ist, gibt es
+# deshalb zusaetzlich die Fassung mit dem englischen Standardblock dahinter.
+IG_CAPTION_LIMIT = 2200
+
+
+def instagram_long(caps: dict) -> dict:
+    ig = str((caps or {}).get("instagram") or "").strip()
+    if not ig:
+        return {}
+    boiler = _load_json(YT_BOILERPLATE_FILE, {}).get("en", "").strip()
+    text = "\n\n".join(x for x in (ig, boiler) if x)
+    return {"text": text, "chars": len(text), "limit": IG_CAPTION_LIMIT}
+
+
 def cached_captions(name: str) -> dict:
     """Gecachte Captions zu einem Export: erst UI-Cache (per Name), sonst
     YT-Batch-Cache — Zuordnung über die laufende Nummer im YT-Titel."""
     cache = _load_json(CAPTIONS_CACHE_FILE, {})
     if name in cache:
         return {"cached": cache[name], "source": "ui",
-                "bilibili": bilibili_text(cache[name])}
+                "bilibili": bilibili_text(cache[name]),
+                "instagram_long": instagram_long(cache[name])}
     m = NUM_RE.match(name)
     if m:
         progress = _load_json(YT_BATCH_PROGRESS_FILE, {})
@@ -168,7 +184,8 @@ def cached_captions(name: str) -> dict:
             if str(entry.get("title", "")).startswith(m.group(1) + " ") and vid in batch:
                 return {"cached": batch[vid], "source": "yt-batch",
                         "yt_title": entry["title"],
-                        "bilibili": bilibili_text(batch[vid])}
+                        "bilibili": bilibili_text(batch[vid]),
+                        "instagram_long": instagram_long(batch[vid])}
     return {"cached": None}
 
 
@@ -1767,7 +1784,8 @@ class Handler(BaseHTTPRequestHandler):
                 caps = generate_captions(title, title_prefix(name))
                 if name:
                     save_captions_cache(name, caps)
-                return self._json({**caps, "bilibili": bilibili_text(caps)})
+                return self._json({**caps, "bilibili": bilibili_text(caps),
+                                   "instagram_long": instagram_long(caps)})
             except (RuntimeError, ValueError, subprocess.TimeoutExpired) as e:
                 return self._json({"error": str(e)}, 500)
         if self.path == "/api/star":

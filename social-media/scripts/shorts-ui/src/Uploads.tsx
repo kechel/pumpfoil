@@ -109,6 +109,7 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
   );
   const [caps, setCaps] = useState<Captions | null>(null);
   const [bili, setBili] = useState<{ title: string; description: string; chars: number } | null>(null);
+  const [igLong, setIgLong] = useState<{ text: string; chars: number; limit: number } | null>(null);
   const [coverT, setCoverT] = useState("");   // eigener Zeitpunkt fürs Cover
   const [capsSource, setCapsSource] = useState("");
   const [busy, setBusy] = useState(false);
@@ -135,11 +136,13 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
       .then(async (r) => r.json() as Promise<{
         cached: Captions | null; source?: string;
         bilibili?: { title: string; description: string; chars: number };
+        instagram_long?: { text: string; chars: number; limit: number };
       }>)
       .then((d) => {
         if (d.cached) {
           setCaps(d.cached);
           setBili(d.bilibili ?? null);
+        setIgLong(d.instagram_long?.text ? d.instagram_long : null);
           setCapsSource(d.source === "yt-batch" ? "YouTube-Batch-Cache" : "früher generiert");
         }
       })
@@ -155,11 +158,13 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
     try {
       const d = await api.post<Captions & {
         error?: string; bilibili?: { title: string; description: string; chars: number };
+        instagram_long?: { text: string; chars: number; limit: number };
       }>("/api/captions", { title, name: exp.name });
       if (d.error) setErr(d.error);
       else {
         setCaps(d);
         setBili(d.bilibili ?? null);
+        setIgLong(d.instagram_long?.text ? d.instagram_long : null);
       }
     } catch (e) {
       setErr(String(e));
@@ -267,6 +272,18 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
                   <div className="caphead">Instagram-Caption <CopyBtn text={caps.instagram} /></div>
                   <pre>{caps.instagram}</pre>
                 </div>
+                {igLong && (
+                  <div className="capblock">
+                    <div className="caphead">
+                      Instagram-Caption + Standardblock (EN)
+                      <CopyBtn text={igLong.text} />
+                      <span className={"chars" + (igLong.chars > igLong.limit ? " over" : "")}>
+                        {igLong.chars} / {igLong.limit}
+                      </span>
+                    </div>
+                    <pre>{igLong.text}</pre>
+                  </div>
+                )}
                 <div className="capblock">
                   <div className="caphead">TikTok-Caption <CopyBtn text={caps.tiktok} /></div>
                   <pre>{caps.tiktok}</pre>
