@@ -56,6 +56,11 @@ object Recorder {
         // gemeldete Genauigkeit von 3,8 m. `gpsPoor` (hAcc > 20 m) greift da NICHT, die Uhr zeigte
         // seelenruhig 0,0 km/h. Erkannt wird es am ALTER des Fixes, nicht an seinem Inhalt.
         val gpsStale: Boolean = false,
+        // true = der Puls wird AKTIV gemessen (Health Services haelt eine Uebung). false = wir
+        // lesen nur passiv mit, was das System ohnehin misst — dann kommen Werte im Abstand von
+        // Minuten oder gar nicht. Der Unterschied ist fuer den Nutzer sichtbar, weil er sonst
+        // eine Aufnahme ohne Puls mit nach Hause traegt (Meldung 04.09.).
+        val pulsMessung: Boolean = true,
         val gpsFixes: Int = 0,            // Anzahl empfangener Positionen (0 = kein Signal)
         val speed3sKmh: Double = 0.0,     // 3-s-Mittel
         val avgSpeedKmh: Double = 0.0,    // Distanz/Zeit
@@ -583,6 +588,11 @@ object Recorder {
             lastRunMaxHr = lastRunMaxHr,
         )
     }
+    /** Vom RecorderService gesetzt: misst Health Services gerade aktiv (true) oder nicht. */
+    fun setPulsMessung(aktiv: Boolean) {
+        if (_state.value.pulsMessung != aktiv) _state.value = _state.value.copy(pulsMessung = aktiv)
+    }
+
     fun setHr(bpm: Int) {
         lastHr = bpm
         if (bpm > 0) lastHrMs = elapsedMs()

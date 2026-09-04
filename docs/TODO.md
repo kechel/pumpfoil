@@ -619,6 +619,44 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟡 04.09. 08:51 — iOS/Apple Watch 1.1.30 (34) EINGEREICHT** („Warten auf Prüfung"). Drin:
+  gemerkte Kartenansicht, misslungene Startversuche auf der Karte, Rueckfall bei nicht
+  verfuegbarem Farbmodus, Karte auch ohne erkannte Laeufe, „Auswahl leeren" im Vergleich,
+  haengengebliebene Uploads mit `ueberholt`, Hinweis bei eingefrorener Ortung, Apple Watch
+  schreibt keinen veralteten Puls mehr, fehlender Puls weiss, Handy-Recorder 2 s statt 3 s,
+  Foil-Rechner mit Trefferliste erst bei Suche. **Nach der Freigabe:** `appmeta.ios` UND
+  `appmeta.apple` ziehen, Changelog, `project.yml` auf 1.1.31 (35).
+
+- **🟢 04.09. — JoLes Wear-Feedback abgearbeitet (u396, Pixel Watch 2, selbst Wear-Entwickler).**
+  Vier Punkte, alle vier angefasst:
+  1. **Puls setzte lange aus.** An seinen Daten nachgemessen: 59 echte Messwert-Wechsel in
+     81 Minuten, Median-Abstand 2 s — aber Luecken von **29, 28 und 9 Minuten**. Wir benutzen
+     `ExerciseClient` schon, hatten aber zwei Loecher: das Ergebnis von `startExerciseAsync`
+     wurde nie ausgewertet (scheitert der Start — z. B. weil eine andere App eine Uebung haelt —
+     fielen wir stumm auf den passiven Sensor zurueck), und der `ExerciseState` in den Updates
+     wurde gar nicht gelesen (endete die Uebung, lief es stumm weiter). Jetzt: beides
+     ausgewertet, dazu ein **Waechter**, der die Messung neu anfordert, wenn 2 Minuten kein Wert
+     kam (hoechstens 8-mal je Aufnahme), und ein sichtbarer Hinweis „Puls passiv" auf der
+     Aufnahme-Seite. **Ursache offen und bewusst nicht behauptet:** Jans Verdacht (Uhr taucht
+     unter, Display nass) ist genauso plausibel wie eine fremde App — der Fix wirkt in beiden
+     Faellen.
+  2. **Always-on griff nicht, App ging nach ~2 min zu.** Der `AmbientLifecycleObserver` haengt
+     jetzt an `MainActivity.onCreate` statt an einem Compose-`DisposableEffect` waehrend der
+     Aufnahme — so verlangt es die AndroidX-Doku. Damit die App im Leerlauf trotzdem dem
+     Watchface weicht, treten wir in `onEnterAmbient` freiwillig zurueck (`moveTaskToBack`).
+     **Nebenbefund:** unser `targetSdk` ist **36** — auf Wear OS 6 gilt die App damit ohnehin als
+     always-on (Google-Doku), auf Wear OS 5 (seine Uhr) zaehlt weiter der Beobachter.
+  3. **Ongoing Activity sprang nicht zurueck.** Dem Touch-Intent fehlte `FLAG_ACTIVITY_NEW_TASK`.
+     Der PendingIntent wird vom SYSTEM ausgeloest, nicht aus einer Activity heraus — ohne das
+     Flag startet nichts. Ergaenzt.
+  4. **Wassersperre fehlte.** Beim Pumpen schlaegt Wasser aufs Display und loest Aktionen aus.
+     Jetzt ein Tropfen-Knopf oben links auf der Aufnahme-Seite; er schickt
+     `com.google.android.wearable.action.ENABLE_WET_MODE` mit `relaunch_component_name`, damit
+     nach dem Entsperren wieder UNSERE Aufnahme vorn steht. Von Google nicht dokumentiert, aber
+     der uebliche Weg — JoLe hat den Code aus seiner eigenen App verlinkt.
+  **Geht mit Wear 1.2.26 raus**, sobald Play die 1.2.25 freigegeben hat. Auf einer echten Uhr
+  ist davon nichts geprueft (Emulator kann Health Services nicht, s. `imEmulator()`).
+
 - **🟢 04.09. ERLEDIGT — „Bad experience with app": wir haben einem Pumper Motorkraft unterstellt,
   weil seine Uhr den Puls einfror.** Session #3391 (u396, Pixel Watch 2) trug diesen Titel vom
   Nutzer selbst. Kette:

@@ -13,6 +13,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.wear.ambient.AmbientLifecycleObserver
 import android.content.pm.PackageManager
@@ -59,16 +60,62 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import org.json.JSONObject
 
-class MainActivity : ComponentActivity() {
+class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecycleCallback {
     private val perms = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()) {}
 
+    /**
+     * Always-on: der Beobachter wird in `onCreate` angemeldet — so verlangt es die AndroidX-Doku,
+     * und offenbar nur so wirkt er.
+     *
+     * **Warum das hier steht:** bis 04.09. haengten wir ihn erst WAEHREND der Aufnahme aus einem
+     * Compose-`DisposableEffect` ein, damit die App im Leerlauf nicht dauerhaft gedimmt stehen
+     * bleibt. Ein Wear-Entwickler hat gemeldet, dass Always-on bei ihm gar nicht griff und die
+     * App nach rund zwei Minuten zuging — mitten in der Aufnahme, wo man die Werte gerade sehen
+     * will. Jetzt: immer angemeldet, und im Leerlauf treten wir in `onEnterAmbient` freiwillig
+     * zurueck, damit das Watchface wieder erscheint. Das ist derselbe Effekt wie vorher, nur an
+     * der Stelle entschieden, an der er auch funktioniert.
+     */
+    private val ambient by lazy { AmbientLifecycleObserver(this, this) }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        lifecycle.addObserver(ambient)
         Api.load(applicationContext)
         I18n.load(applicationContext)   // gecachte Profil-Sprache (offline-tauglich)
         requestPerms()
         setContent { AppUi() }
+    }
+
+    override fun onEnterAmbient(details: AmbientLifecycleObserver.AmbientDetails) {
+        if (!Recorder.state.value.recording) {
+            moveTaskToBack(true)        // im Leerlauf hat das Watchface Vorrang
+            return
+        }
+        AmbientState.aktiv.value = true
+        AmbientState.einbrennschutz.value = details.burnInProtectionRequired
+    }
+
+    /** Systemtakt (~1/min): nur dann darf im Ambient neu gezeichnet werden. */
+    override fun onUpdateAmbient() { AmbientState.takt.value += 1 }
+
+    override fun onExitAmbient() { AmbientState.aktiv.value = false }
+
+    /**
+     * Wassersperre („Wet Mode"): sperrt die Bedienung, bis man die Krone drueckt.
+     *
+     * Beim Pumpen schlaegt dauernd Wasser aufs Display und loest Aktionen aus — genau das hat ein
+     * Nutzer am 04.09. gemeldet, samt Weg dorthin. Der Broadcast ist von Google nicht
+     * dokumentiert, auf Wear OS aber der uebliche; `relaunch_component_name` sorgt dafuer, dass
+     * nach dem Entsperren WIEDER UNSERE Aufnahme vorn steht und nicht das Watchface.
+     */
+    fun wassersperre() {
+        try {
+            sendBroadcast(Intent("com.google.android.wearable.action.ENABLE_WET_MODE")
+                .putExtra("relaunch_component_name", componentName.flattenToString()))
+        } catch (t: Throwable) {
+            android.util.Log.w("Pumpfoil", "Wassersperre nicht verfuegbar", t)
+        }
     }
 
     // Ortung systemweit aus? Dann ist die Berechtigung da, es kommen aber trotzdem nie Fixes.
@@ -439,28 +486,9 @@ class MainActivity : ComponentActivity() {
         // unserer Zahlen. Garmin braucht das nicht (MIP/Systemverhalten), die Apple Watch bleibt in
         // der HKWorkoutSession vorn — Wear war die einzige Plattform, die herausfiel.
         //
-        // Bewusst NUR waehrend der Aufnahme angemeldet und danach wieder abgemeldet: eine dauerhaft
-        // ambient-faehige App bleibt auch im Leerlauf gedimmt auf dem Schirm, statt dem Watchface
-        // zu weichen. Das waere eine Verschlechterung fuer jeden, der die App nur offen liegen hat.
-        val ambientActivity = LocalContext.current as? androidx.activity.ComponentActivity
-        DisposableEffect(s.recording, ambientActivity) {
-            val obs = if (s.recording && ambientActivity != null) {
-                AmbientLifecycleObserver(ambientActivity, object : AmbientLifecycleObserver.AmbientLifecycleCallback {
-                    override fun onEnterAmbient(details: AmbientLifecycleObserver.AmbientDetails) {
-                        AmbientState.aktiv.value = true
-                        AmbientState.einbrennschutz.value = details.burnInProtectionRequired
-                    }
-                    // Systemtakt (~1/min): nur dann darf im Ambient neu gezeichnet werden.
-                    override fun onUpdateAmbient() { AmbientState.takt.value += 1 }
-                    override fun onExitAmbient() { AmbientState.aktiv.value = false }
-                })
-            } else null
-            obs?.let { ambientActivity?.lifecycle?.addObserver(it) }
-            onDispose {
-                obs?.let { ambientActivity?.lifecycle?.removeObserver(it) }
-                AmbientState.aktiv.value = false
-            }
-        }
+        // Der Ambient-Beobachter haengt seit 04.09. an `MainActivity.onCreate` — dort verlangt
+        // ihn die AndroidX-Doku, und nur dort wirkt er (Begruendung samt Nutzer-Meldung steht an
+        // `MainActivity.ambient`). Hier bleibt nur die Anzeige-Entscheidung.
         if (s.recording && AmbientState.aktiv.value) {
             AmbientRecordingScreen(s)
         } else if (s.recording) {
@@ -678,6 +706,36 @@ class MainActivity : ComponentActivity() {
                                 .background(Color(0xFFFBBF24)).padding(horizontal = 10.dp, vertical = 3.dp),
                         )
                     }
+                }
+                // Wassersperre: kleiner Knopf oben LINKS, damit er weder mit dem Upload-Ring
+                // (oben mittig) noch mit den Seiten-Punkten (unten) kollidiert. Warum es ihn gibt:
+                // beim Pumpen schlaegt Wasser aufs Display und loest Aktionen aus (Nutzer-Meldung
+                // 04.09.). Ein Tipp sperrt Touch, bis man die Krone drueckt.
+                val aktivitaet = LocalContext.current as? MainActivity
+                if (aktivitaet != null && !AmbientState.aktiv.value) {
+                    Box(
+                        Modifier.align(Alignment.TopStart).padding(start = 6.dp, top = 2.dp)
+                            .clip(CircleShape)
+                            .background(Color(0x33FFFFFF))
+                            .clickable { aktivitaet.wassersperre() }
+                            .padding(horizontal = 7.dp, vertical = 3.dp),
+                    ) {
+                        Text("\uD83D\uDCA7", fontSize = 12.sp)   // Wassertropfen
+                    }
+                }
+                // Puls wird NICHT aktiv gemessen: dann kommen Werte nur zufaellig, wenn die Uhr
+                // ohnehin gerade misst — im gemeldeten Fall dreimal ueber 20 Minuten gar nichts.
+                // Der Waechter im Service fordert die Messung neu an; bis das greift, soll es
+                // wenigstens sichtbar sein.
+                if (!s.pulsMessung) {
+                    Text(
+                        I18n.t("rec.hrPassive"),
+                        color = Color(0xFFFBBF24),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Medium,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.align(Alignment.TopEnd).padding(end = 8.dp, top = 2.dp),
+                    )
                 }
                 // Upload-Indikator oben, wenn gerade Chunks hochgeladen werden.
                 if (s.uploading) {
