@@ -172,7 +172,7 @@ const deAT: Record<string, string> = {
   "cr.foilHighAspect": "High Aspect (AR ab {n})",
   "cr.foilThick": "Dicke Flügel (AR unter {n})",
   "cr.bandRange": "Verglichen wird nur mit Foils in dem Bereich: {grenzen}.",
-  "cr.bandMine": "Verglichen wird mit Foils wie deinem {foil} — also {grenzen}. Referenz is dein Standard-Foil ausm Profil; ohne eins dein meistgfahrenes.",
+  "cr.bandMine": "Verglichen wird mit Foils wie deinem {foil} — also {grenzen}. Als Referenz nehma dein Standard-Foil ausm Profil, und wennst kans gsetzt host, des Foil, des du am oftesten fahrst.",
   "cr.bandMineNone": "Für den Vergleich fehlt a Referenz-Foil: setz im Profil a Standard-Foil mit Fläche und Spannweite.",
   "cr.bandAspect": "Streckung {a}–{b}",
   "cr.bandAspectFrom": "Streckung ab {n}",
