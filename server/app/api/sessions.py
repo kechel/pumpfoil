@@ -568,6 +568,7 @@ def list_sessions(
     month: str | None = None,
     filter: str = "pump",
     accel_only: bool = False,
+    foil_id: int | None = None,
 ) -> list[SessionOut]:
     """Ohne limit: alle (für Gesamt-Stats/Nachbarnavigation). Mit limit/offset:
     seitenweise (Infinite-Scroll). Optionaler Monatsfilter 'YYYY-MM'.
@@ -580,6 +581,10 @@ def list_sessions(
         .defer(models.AnalysisResult.segments_json)
         .defer(models.AnalysisResult.accel_windows_json)
     ).filter(models.Session.user_id == user.id, models.Session.deleted.isnot(True))
+    # Genau ein Foil (Foil-Detailseite): welche meiner Sessions bin ich mit diesem Fluegel
+    # gefahren. Nutzer-Vorschlag 04.09. („make the foil model clickable").
+    if foil_id:
+        q = q.filter(models.Session.foil_id == foil_id)
     # Persönliche Empfindlichkeit: für den Besitzer entscheidet sein Preset (gecacht in
     # sensitivity_json), ob eine Session als Pumpfoil zählt — nicht nur das globale is_pumpfoil.
     # So taucht z. B. eine Session, die erst mit „attempts" Läufe zeigt, auch in seiner Pump-Liste

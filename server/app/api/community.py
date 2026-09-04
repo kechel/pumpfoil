@@ -640,8 +640,22 @@ def _eigenes_foil(db: Session, user_id: int):
 
 
 def _band_filter(db: Session, query, band: str, viewer_id: int):
-    """Ein Foil-Band auf eine mit `_community()` gebaute Query legen. `all`/unbekannt = unveraendert."""
-    b = _BANDS_BY_KEY.get((band or "all").strip())
+    """Ein Foil-Band auf eine mit `_community()` gebaute Query legen. `all`/unbekannt = unveraendert.
+
+    Zusaetzlich zu den festen Baendern versteht `band` die Form **`foil:<id>`** = genau DIESES
+    Foil. Damit bekommt die Foil-Detailseite ihre Rekorde ohne einen zweiten Endpunkt: alle
+    Rekord-Abfragen laufen ohnehin durch diese Funktion (`_record_entry`, `_time_record`,
+    `_carve_record`), ein neuer Parameter haette drei Signaturen geaendert (Nutzer-Vorschlag
+    04.09.: „make the foil model clickable" + Jan: die Rekord-Tabs fuer genau dieses Foil).
+    """
+    roh = (band or "all").strip()
+    if roh.startswith("foil:"):
+        try:
+            fid = int(roh.split(":", 1)[1])
+        except ValueError:
+            return query
+        return query.join(F, S.foil_id == F.id).filter(F.id == fid)
+    b = _BANDS_BY_KEY.get(roh)
     if b is None or b["art"] == "alle":
         return query
     q = query.join(F, S.foil_id == F.id).filter(F.area_cm2.isnot(None), F.span_cm.isnot(None))

@@ -619,6 +619,28 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 04.09. — Foil-Namen in der Foil-Statistik sind anklickbar: neue Foil-Detailseite.**
+  Nutzer-Vorschlag: „I can already see the foil models in the statistics […] Why not make the
+  foil model clickable, so clicking it shows all sessions recorded with that specific front
+  wing?" Dazu Jan: die Community-Rekorde fuer genau dieses Foil mit drueber, aber **nur die
+  Kacheln, keine Zeitfenster-Tabs**, und die Sessionliste **laedt beim Scrollen nach**.
+  - **Neu:** `/foil-stats/:foilId` (`web/src/pages/FoilDetail.tsx`) — Kopf mit Name, Streckung
+    und „x Sessions von y Fahrern", darunter die Rekord-Kacheln (Allzeit; bei einem einzelnen
+    Fluegel waere „heute" fast immer leer), darunter die eigenen Sessions mit diesem Foil,
+    seitenweise (20 je Seite, IntersectionObserver mit 300 px Vorlauf wie in der Sessionliste).
+  - **Server brauchte KEINEN neuen Endpunkt:** `_band_filter` in `api/community.py` versteht
+    jetzt zusaetzlich die Form **`foil:<id>`** = genau dieses Foil. Alle Rekord-Abfragen laufen
+    ohnehin durch diese Funktion (`_record_entry`, `_time_record`, `_carve_record`) — ein
+    Parameter haette drei Signaturen geaendert. Die Sessionliste bekam `foil_id`.
+  - **Gegengeprueft:** `foil:17` (Sabfoil LEVIATHAN 1550) liefert echte Rekorde von vier
+    Fahrern; `?foil_id=11` liefert Jans vier SIRUS-XXL-Sessions, `?foil_id=17` null (das Foil
+    faehrt er nicht) — der Filter trennt also wirklich.
+  - Sechs Texte in 17 Sprachen, `docs/PAGES.md` ergaenzt.
+  - **Offen (Paritaet):** Android und iOS haben die Foil-Statistik ebenfalls, dort ist der Name
+    noch nicht anklickbar. Waere ein eigener Bildschirm je Plattform — lohnt sich, wenn die Seite
+    im Web angenommen wird.
+  - **Die uebrigen Vorschlaege desselben Nutzers hat Jan noch nicht entschieden** (04.09.).
+
 - **🟢 04.09. — Foil-Band auf der Community-Seite erklaert sich jetzt selbst.** Jan: „es fehlt aber
   eine Info was dann genau die Grenzen sind, und ich weiss auch nicht welche von meinen Foils da
   dann verwendet werden." Beides lieferte der Server schon mit (`foil`, `von`/`bis`,

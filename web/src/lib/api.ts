@@ -993,13 +993,15 @@ export const api = {
       _activeUploads--;
     }
   },
-  sessions: (params?: { limit?: number; offset?: number; month?: string; filter?: string; accelOnly?: boolean }) => {
+  sessions: (params?: { limit?: number; offset?: number; month?: string; filter?: string; accelOnly?: boolean; foilId?: number }) => {
     const qs = new URLSearchParams();
     if (params?.limit != null) qs.set("limit", String(params.limit));
     if (params?.offset != null) qs.set("offset", String(params.offset));
     if (params?.month) qs.set("month", params.month);
     if (params?.filter) qs.set("filter", params.filter);
     if (params?.accelOnly) qs.set("accel_only", "true");
+    // Genau ein Foil (Foil-Detailseite): meine Sessions mit diesem Fluegel.
+    if (params?.foilId) qs.set("foil_id", String(params.foilId));
     const q = qs.toString();
     return req<SessionSummary[]>(`/api/sessions${q ? "?" + q : ""}`);
   },

@@ -71,6 +71,7 @@ import Layouts from "./pages/Layouts";
 import LayoutEditor from "./pages/LayoutEditor";
 import LayoutGallery from "./pages/LayoutGallery";
 import FoilStats from "./pages/FoilStats";
+import FoilDetail from "./pages/FoilDetail";
 import WatchStats from "./pages/WatchStats";
 import FoilCalculator from "./pages/FoilCalculator";
 import PersonalHome from "./pages/PersonalHome";
@@ -115,6 +116,7 @@ const router = createBrowserRouter([
       { path: "layouts/community", element: <LayoutGallery /> },
       { path: "layouts/:id", element: <LayoutEditor /> },
       { path: "foil-stats", element: <FoilStats /> },
+      { path: "foil-stats/:foilId", element: <FoilDetail /> },
       { path: "watch-stats", element: <WatchStats /> },
       { path: "foil-rechner", element: <FoilCalculator /> },
       { path: "account", element: <Account /> },
