@@ -298,6 +298,9 @@ export default function Landing() {
               <img src="/xiaomi-logo.jpg" alt="Xiaomi" loading="lazy" className="h-10 w-auto rounded-lg" />
               <span className="text-[11px] text-slate-500">{t("land.connectXiaomi")}</span>
             </span>
+            <span className="inline-block rounded-xl bg-white px-5 py-3 shadow-sm">
+              <img src="/coros-logo.png" alt="COROS" loading="lazy" className="h-7 w-auto" />
+            </span>
           </div>
         </section>
 

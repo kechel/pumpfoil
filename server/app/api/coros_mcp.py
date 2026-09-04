@@ -371,9 +371,54 @@ def _fit_bytes_aus(res: dict) -> list[bytes]:
     return aus
 
 
+def _aktivitaeten_aus(res: dict) -> list[tuple[str, int | None]]:
+    """(labelId, sportType) je Training aus der Antwort von `querySportRecords`.
+
+    Der Server ist fuer KI-Clients gebaut und antwortet in Prosa („No sport records found from
+    … to …"), nicht zwingend in JSON. Deshalb zwei Wege: strukturierte Antwort, wenn es sie
+    gibt — sonst die `labelId`s aus dem Text klauben. Ein `labelId` ist eine lange Ziffernfolge;
+    `sportType` steht, wenn ueberhaupt, in derselben Zeile.
+    """
+    daten = _inhalt_json(res)
+    aus: list[tuple[str, int | None]] = []
+    if isinstance(daten, dict):
+        daten = daten.get("records") or daten.get("data") or daten.get("activities")
+    if isinstance(daten, list):
+        for e in daten:
+            if not isinstance(e, dict):
+                continue
+            lid = e.get("labelId") or e.get("label_id") or e.get("activityId")
+            if lid:
+                st = e.get("sportType") or e.get("sport_type")
+                aus.append((str(lid), int(st) if isinstance(st, (int, float)) else None))
+        if aus:
+            return aus
+    # Rueckfall Text.
+    import re as _re
+    for zeile in _inhalt_text(res).splitlines():
+        m = _re.search(r'labelId["\s:=]+(\d{6,})', zeile, _re.I) or _re.search(r'\b(\d{14,})\b', zeile)
+        if not m:
+            continue
+        st = _re.search(r'sportType["\s:=]+(\d{1,4})', zeile, _re.I)
+        aus.append((m.group(1), int(st.group(1)) if st else None))
+    return aus
+
+
 @router.post("/sync")
 def sync(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
-    """Neue COROS-Trainings als FIT ziehen und als Sessions importieren (idempotent)."""
+    """Neue COROS-Trainings als FIT ziehen und als Sessions importieren (idempotent).
+
+    **Am echten Server ausgemessen (04.09.), nicht geraten** — beides hat je einen Anlauf
+    gekostet und steht deshalb hier:
+      * **Datumsformat ist `YYYYMMDD`.** Mit `2026-06-01` antwortet der Server nicht etwa mit
+        einer Fehlermeldung, sondern mit „Tool call anomalies detected. High risk of session
+        context pollution…" — das ist seine Art, ungültige Eingaben abzulehnen. Wer diese
+        Meldung sieht, hat einen Parameter falsch, nicht ein Kontingent gerissen.
+      * **`downloadActivityFitFiles` kann NUR je Aktivität**, obwohl sein Schema `startDate`/
+        `endDate`/`limit` anbietet: jede Zeitraum-Form wird mit derselben Meldung abgelehnt,
+        während `labelId` + `sportType` eine echte Antwort liefert. Also erst die Liste holen,
+        dann je Eintrag die Datei.
+    """
     from .sessions import import_parsed_session   # lazy: vermeidet Import-Zyklus
     from ..fitimport import parse_fit_bytes
 
@@ -384,35 +429,28 @@ def sync(user: models.User = Depends(current_user), db: Session = Depends(get_db
     sitzung = McpSitzung(_frischer_token(link, db))
     sitzung.start()
 
-    # Zeitfenster: ab dem letzten Sync, beim ersten Mal 90 Tage zurück. Wer laenger zurueck
-    # will, kann mehrfach syncen — das Kontingent von 50 Dateien am Tag setzt ohnehin die
-    # Grenze, nicht das Fenster.
+    # Zeitfenster: ab dem letzten Sync, beim ersten Mal 90 Tage zurueck.
     seit = (link.last_sync_at or datetime.now(timezone.utc) - timedelta(days=90))
-    args = {"startDate": seit.strftime("%Y-%m-%d"),
-            "endDate": (datetime.now(timezone.utc) + timedelta(days=1)).strftime("%Y-%m-%d")}
-    liste = _inhalt_json(sitzung.rufe("querySportRecords", args))
-    eintraege = liste if isinstance(liste, list) else ((liste or {}).get("records") or (liste or {}).get("data") or [])
-
-    ids: list[str] = []
-    for e in eintraege if isinstance(eintraege, list) else []:
-        if not isinstance(e, dict):
-            continue
-        wert = e.get("labelId") or e.get("activityId") or e.get("id") or e.get("sportId")
-        if wert:
-            ids.append(str(wert))
-    ids = ids[:MAX_FITS_JE_SYNC]
+    liste = sitzung.rufe("querySportRecords", {
+        "startDate": seit.strftime("%Y%m%d"),
+        "endDate": (datetime.now(timezone.utc) + timedelta(days=1)).strftime("%Y%m%d"),
+        "limit": MAX_FITS_JE_SYNC,
+    })
+    aktivitaeten = _aktivitaeten_aus(liste)
 
     imported = skipped = gescheitert = 0
-    for aid in ids:
+    for labelId, sportType in aktivitaeten[:MAX_FITS_JE_SYNC]:
+        args = {"labelId": labelId}
+        if sportType is not None:
+            args["sportType"] = sportType
         try:
-            res = sitzung.rufe("downloadActivityFitFiles", {"activityIds": [aid]})
-            dateien = _fit_bytes_aus(res)
+            dateien = _fit_bytes_aus(sitzung.rufe("downloadActivityFitFiles", args))
             if not dateien:
-                # Rückfall: nur die URL erfragen (Werkzeug zwei) und selbst laden.
-                dateien = _fit_bytes_aus(sitzung.rufe("queryActivityFitFileDownloadUrls", {"activityIds": [aid]}))
+                # Rueckfall des zweiten Werkzeugs: nur die URL, die wir dann selbst laden.
+                dateien = _fit_bytes_aus(sitzung.rufe("queryActivityFitFileDownloadUrls", args))
             if not dateien:
                 gescheitert += 1
-                log.warning("coros-mcp: keine FIT-Datei fuer %s (user %s)", aid, user.id)
+                log.warning("coros-mcp: keine FIT-Datei fuer %s (user %s)", labelId, user.id)
                 continue
             for roh in dateien:
                 parsed = parse_fit_bytes(roh)
@@ -430,14 +468,15 @@ def sync(user: models.User = Depends(current_user), db: Session = Depends(get_db
         except Exception as exc:  # noqa: BLE001 — ein kaputtes Training stoppt den Rest nicht
             gescheitert += 1
             log.warning("coros-mcp: Training %s nicht importiert (user %s): %s: %s",
-                        aid, user.id, type(exc).__name__, exc)
+                        labelId, user.id, type(exc).__name__, exc)
 
-    # Wie bei Polar: den Stand nur weiterschieben, wenn nichts hart gescheitert ist —
-    # sonst wuerde ein Fehlschlag beim naechsten Lauf aus dem Fenster fallen.
+    # Wie bei Polar: den Stand nur weiterschieben, wenn nichts hart gescheitert ist — sonst
+    # fiele ein Fehlschlag beim naechsten Lauf aus dem Fenster.
     if gescheitert == 0:
         link.last_sync_at = datetime.now(timezone.utc)
         db.commit()
-    return {"imported": imported, "skipped": skipped, "failed": gescheitert, "found": len(ids)}
+    return {"imported": imported, "skipped": skipped, "failed": gescheitert,
+            "found": len(aktivitaeten)}
 
 
 @router.delete("")
