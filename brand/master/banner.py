@@ -35,6 +35,8 @@ def gradient():
 # YouTube-Safe-Zone (mittiger Streifen, auf ALLEN Geräten sichtbar).
 SAFE_W, SAFE_H = 1546, 423
 MARGIN = 24   # etwas Luft im Kasten
+# Breite der Plattform-Liste, gemessen an der Lockup-Breite. < 1 macht die Schrift kleiner.
+SUB_BREITE = 0.93
 
 def subline_image(text: str, px: int, tracking: int) -> Image.Image:
     """Eine Zeile der Plattform-Liste als tightes, transparentes Bild
@@ -103,13 +105,17 @@ def main():
     # darunter. Der Zeilenabstand ist knapp — die Liste soll als ein Block wirken.
     zeilen = [subline_image(z, px=max(20, int(th * 0.24)), tracking=max(2, int(th * 0.022)))
               for z in subline_zeilen()]
-    faktor = row_w / max(z.width for z in zeilen)
+    # Die Liste fuellt bewusst NICHT die volle Lockup-Breite: eine Spur schmaler heisst eine
+    # Spur kleinere Schrift (Jan, 04.09.: „einen Ticken zu gross"), und der gesparte Platz geht
+    # in den Abstand zur Tagline. Beides haengt zusammen — der Kasten wird als Ganzes in die
+    # Safe-Zone skaliert, wer hier Breite wegnimmt, macht die Zeilen wirklich kleiner.
+    faktor = (row_w * SUB_BREITE) / max(z.width for z in zeilen)
     zeilen = [z.resize((max(1, round(z.width * faktor)), max(1, round(z.height * faktor))),
                        Image.LANCZOS) for z in zeilen]
     # Eng gesetzt, und das ist kein Geschmack, sondern Rechnung: der Kasten wird in die
     # Safe-Zone skaliert, und die HOEHE ist dabei die Grenze (Breite bleibt uebrig). Jede
     # Zeile Abstand, die hier wegfaellt, macht die ganze Marke groesser.
-    gap_sub = int(th * 0.04)          # Lockup -> Liste
+    gap_sub = int(th * 0.13)          # Lockup -> Liste (Luft, die die schmalere Liste freigibt)
     gap_zeile = int(zeilen[0].height * 0.04)
     sub_h = sum(z.height for z in zeilen) + gap_zeile
 
@@ -127,7 +133,9 @@ def main():
 
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     base.convert("RGB").save(OUT)
-    print(f"{OUT}  {base.size}  block={block.width}x{block.height} (Safe {SAFE_W}x{SAFE_H})")
+    print(f"{OUT}  {base.size}  block={block.width}x{block.height} (Safe {SAFE_W}x{SAFE_H})"
+          f"  Listenzeile={round(zeilen[0].height * scale)} px  Abstand zur Tagline="
+          f"{round(gap_sub * scale)} px")
 
 if __name__ == "__main__":
     main()
