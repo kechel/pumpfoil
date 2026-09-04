@@ -1091,6 +1091,7 @@ const pl: Record<string, string> = {
   "settings.polar.result": "zaimportowano {imported}, pominięto {skipped}",
   "settings.coros.title": "Import z COROS",
   "settings.coros.hint": "Połącz swoje konto COROS (Open API). Nowe treningi importują się automatycznie jako sesje.",
+  "settings.coros.testHint": "Nie potrzebujesz do tego prawdziwej sesji pumpowania: wystarczy 100 metrów spaceru na dworze. Potem daj nam znać — wiadomość do Jana na czacie albo przez formularz opinii — a sprawdzimy import.",
   "settings.coros.connect": "Połącz COROS",
   "settings.coros.connected": "Połączono — import automatyczny",
   "settings.coros.unlink": "Rozłącz",

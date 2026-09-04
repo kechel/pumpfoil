@@ -1048,6 +1048,7 @@ const nb: Record<string, string> = {
   "settings.polar.result": "{imported} importert, {skipped} hoppet over",
   "settings.coros.title": "COROS-import",
   "settings.coros.hint": "Koble til COROS-kontoen din (Open API). Nye treninger importeres automatisk som økter.",
+  "settings.coros.testHint": "Du trenger ingen ekte pump-økt til dette: en tur på 100 meter utendørs holder. Si fra etterpå — melding til Jan i chatten eller via tilbakemeldingsskjemaet — så ser vi på importen.",
   "settings.coros.connect": "Koble til COROS",
   "settings.coros.connected": "Tilkoblet — automatisk import",
   "settings.coros.unlink": "Koble fra",

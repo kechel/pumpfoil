@@ -650,6 +650,7 @@ const deAT: Record<string, string> = {
   "settings.polar.result": "{imported} importiert, {skipped} übersprungen",
   "settings.coros.title": "COROS-Import",
   "settings.coros.hint": "Verbinde dei COROS-Konto (Open API). Neiche Trainings werdn automatisch als Sessions importiert.",
+  "settings.coros.testHint": "Du musst dafür kane echte Pump-Session fahrn: a Spaziergang von 100 Metern draußn reicht völlig. Sag uns danach kurz Bescheid — im Chat an Jan oder übers Feedback-Formular —, dann schaun ma uns den Import an.",
   "settings.coros.connect": "Mit COROS verbinden",
   "settings.coros.connected": "Verbunden — automatischer Import",
   "settings.coros.unlink": "Verbindung trennen",
