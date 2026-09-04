@@ -37,6 +37,9 @@ SAFE_W, SAFE_H = 1546, 423
 MARGIN = 24   # etwas Luft im Kasten
 # Breite der Plattform-Liste, gemessen an der Lockup-Breite. < 1 macht die Schrift kleiner.
 SUB_BREITE = 0.93
+# Ab dieser Laenge steht ein Plattform-Name allein in seiner Zeile (nur bei fester Zeilenzahl,
+# also in der Endcard). „APPLE WATCH" ist der einzige Name, der das heute ausloest.
+ALLEIN_AB = 10
 
 def subline_image(text: str, px: int, tracking: int) -> Image.Image:
     """Eine Zeile der Plattform-Liste als tightes, transparentes Bild
@@ -73,7 +76,22 @@ def subline_zeilen(pro_zeile: int | None = None) -> list[str]:
     """
     teile = [t.strip() for t in SUBLINE.split("·")]
     if pro_zeile:
-        return [" · ".join(teile[i:i + pro_zeile]) for i in range(0, len(teile), pro_zeile)]
+        # Lange Namen bekommen eine eigene Zeile (Jan, 04.09.: „Apple Watch in eine eigene
+        # Zeile"), danach geht es paarweise weiter. Sonst bestimmt der laengste Name die
+        # Schriftgroesse fuer ALLE Zeilen — genau das soll die Aufteilung ja verhindern.
+        aus, puffer = [], []
+        for t in teile:
+            if len(t) >= ALLEIN_AB:
+                if puffer:
+                    aus.append(" · ".join(puffer)); puffer = []
+                aus.append(t)
+                continue
+            puffer.append(t)
+            if len(puffer) == pro_zeile:
+                aus.append(" · ".join(puffer)); puffer = []
+        if puffer:
+            aus.append(" · ".join(puffer))
+        return aus
     gesamt = sum(len(t) for t in teile)
     lauf, schnitt = 0, len(teile) // 2
     for i, t in enumerate(teile):

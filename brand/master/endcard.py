@@ -32,9 +32,9 @@ DUNKEL = ("#020617", "#061226", "#0a1f3a")
 CYAN_HELL = "#0e7490"
 # Einleitung ueber der Plattform-Liste. Ohne sie steht dort nur eine Reihe Markennamen, und
 # niemand sieht, dass es um eine App geht (Jan, 04.09.). Mit ihr liest sich die Liste als Satz:
-# „FREE APP FOR — GARMIN · WEAR OS · …". Englisch wie die Tagline, weil die Endcard international
+# „FREE APP & COMMUNITY FOR — GARMIN · WEAR OS · …". Englisch wie die Tagline, weil die Endcard
 # laeuft; „FREE" stimmt und ist das staerkste Wort, das wir ehrlich sagen koennen (AGPL-3.0).
-APP_ZEILE = "FREE APP FOR"
+APP_ZEILE = "FREE APP & COMMUNITY FOR"
 
 
 def verlauf(farben: tuple[str, str, str]) -> Image.Image:
@@ -78,7 +78,7 @@ def endcard(theme: str) -> Image.Image:
     # Die Einleitung in derselben Schrift, aber kleiner und ruhiger als die Marken darunter —
     # sie soll fuehren, nicht mit ihnen konkurrieren.
     einleitung = banner.subline_image(APP_ZEILE, px=44, tracking=10)
-    ein_faktor = (breite * 0.52) / einleitung.width
+    ein_faktor = (breite * 0.74) / einleitung.width
     einleitung = einleitung.resize((round(einleitung.width * ein_faktor),
                                     round(einleitung.height * ein_faktor)), Image.LANCZOS)
     grau = "#64748b" if hell else "#94a3b8"
