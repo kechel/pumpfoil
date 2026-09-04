@@ -619,6 +619,22 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 04.09. — Foil-Band auf der Community-Seite erklaert sich jetzt selbst.** Jan: „es fehlt aber
+  eine Info was dann genau die Grenzen sind, und ich weiss auch nicht welche von meinen Foils da
+  dann verwendet werden." Beides lieferte der Server schon mit (`foil`, `von`/`bis`,
+  `ar_von`/`ar_bis` in `/api/community/foil-bands`) — es stand nur nirgends. Jetzt eine Zeile
+  unter der Auswahl, sobald ein Band gewaehlt ist, z. B. fuer Jans Konto:
+  „Verglichen wird mit Foils wie deinem **Gong SIRUS XXL** — also **1700–2300 cm² · Streckung
+  10,2–14,2**. Referenz ist dein Standard-Foil aus dem Profil; ohne eines dein meistgefahrenes."
+  - Fehlt ein Referenz-Foil (kein Standard-Foil mit Flaeche UND Spannweite), sagt die Zeile genau
+    das und wo man es setzt — vorher war die Auswahl einfach wirkungslos.
+  - Grenzen kommen aus `MINE_FLAECHE_REL = 0.15` (±15 % Flaeche) und `MINE_AR_ABS = 2.0`
+    (±2 Streckung), beide in `api/community.py`.
+  - Dezimaltrennzeichen ueber `toLocaleString()` statt hart „,": im Englischen steht sonst 10,2
+    statt 10.2. 6 Texte in 17 Sprachen.
+  - **Offen (Paritaet):** Android und iOS haben denselben Band-Waehler, aber noch nicht die
+    Erklaer-Zeile. Reine Textarbeit, kann mit dem naechsten Release mitgehen.
+
 - **🟢 04.09. — Startversuche: nur beim AUTO-Zuschnitt ueber die ganze Aufnahme. Vollstaendige
   Reanalyse durch.**
   - **Regel** (Jan, 04.09.): bei einem Zuschnitt der Automatik zaehlen die Versuche ueber die
