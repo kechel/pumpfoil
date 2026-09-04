@@ -214,6 +214,45 @@ def gerade_je_sample(lat: np.ndarray, lon: np.ndarray) -> np.ndarray:
     return out
 
 
+# Ab wann ein gleichbleibender Puls kein Messwert mehr ist, sondern ein stehengebliebener.
+# 120 s sind grosszuegig: ein echter Puls schwankt im Sekundentakt um ein paar Schlaege, selbst
+# im gleichmaessigen Zug. Gemessen am Bestand (04.09.): 18 von 167 Sessions mit Accel haben
+# mindestens 5 Minuten konstanten Puls — auf Wear OS, Apple Watch UND Garmin gleichermassen.
+PULS_EINGEFROREN_S = 120.0
+
+
+def _puls_lebt(t: np.ndarray, hr: np.ndarray) -> bool:
+    """Ist der Puls in diesem Fenster gemessen — oder steht er?
+
+    **Warum das hier entscheidend ist.** Die Fremdkraft-Regel urteilt allein ueber die
+    Puls-ANTWORT (Puls im Lauf minus Grundlinie davor). Bleibt der Sensor stehen, schreiben
+    unsere Recorder den letzten bekannten Wert in jeden GPS-Punkt weiter — die Antwort ist dann
+    exakt 0,0 bpm, und der Lauf gilt als „ohne eigene Kraft". Genau so ist es einem Nutzer am
+    03.09. passiert: seine drei LAENGSTEN Laeufe (6:51, 8:28, 16:03 mit 527, 677 und 1402 Pumps)
+    wurden abgetrennt, weil sein Puls 1658 Sekunden am Stueck auf 168 stand. Er musste sie von
+    Hand zurueckholen und betitelte die Session mit „Bad experience with app".
+
+    **Was es kostet, gemessen am belegten Vergleichssatz (04.09.):** von 50 menschlich als
+    Fremdkraft eingeordneten langen Laeufen hat **kein einziger** einen eingefrorenen Puls im
+    Lauf — von 41 echten Pumpfoil-Laeufen dagegen 5 (12 %). Diese Pruefung kostet also keinen
+    einzigen echten Treffer und entschaerft nur Fehlanschuldigungen.
+
+    Das ist dieselbe Doktrin, die oben schon steht („ohne brauchbaren Puls wird NICHT
+    geurteilt") — sie griff nur nicht, wenn ein Puls DA ist, aber steht.
+    """
+    ok = ~np.isnan(hr) & (hr > 0)
+    if int(ok.sum()) < 30:
+        return False                      # zu duenn -> lieber nicht urteilen
+    werte, zeit = hr[ok], t[ok]
+    wechsel = np.flatnonzero(np.diff(werte) != 0)
+    grenzen = np.concatenate(([0], wechsel + 1, [werte.size - 1]))
+    laengste = 0.0
+    for i in range(grenzen.size - 1):
+        a_i, b_i = int(grenzen[i]), int(grenzen[i + 1])
+        laengste = max(laengste, float(zeit[b_i] - zeit[a_i]) / 1000.0)
+    return laengste < PULS_EINGEFROREN_S
+
+
 def _fremdkraft_laeufe(segments: list, t_ms: np.ndarray, hr: np.ndarray,
                        gerade: np.ndarray, keep: list | None = None) -> tuple[list, list]:
     """Trennt Läufe ab, die keine eigene Kraft gekostet haben (Auto, Zug, Schleppen, Motor).
@@ -264,6 +303,11 @@ def _fremdkraft_laeufe(segments: list, t_ms: np.ndarray, hr: np.ndarray,
         # Session-ms, gleiche Basis wie t_ms hier; Überlappung genügt (die Lauf-Grenzen können
         # sich durch eine Neuanalyse leicht verschieben, das Fenster stammt vom alten Lauf).
         if keep and any(ka < b and kb > a for ka, kb in keep):
+            behalten.append(q)
+            continue
+        # Steht der Puls, gibt es kein Signal — dann wird nicht geurteilt (s. `_puls_lebt`).
+        if not _puls_lebt(t_ms[sel], hr[sel]):
+            q["puls_eingefroren"] = True
             behalten.append(q)
             continue
         # Grundlinie: die 90 s vor dem Lauf, aber NUR Samples außerhalb aller Läufe. Fehlt das,

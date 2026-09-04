@@ -183,13 +183,13 @@ object Recorder {
                         runStartMs = tMs - RUN_ENTER_DWELL * 1000L
                         runStartDist = dist
                         runMaxMps = spdMaxClean
-                        runMaxHr = if (lastHr > 0) lastHr else 0
+                        runMaxHr = if (lastHr > 0 && tMs - lastHrMs <= PULS_ALT_MS) lastHr else 0
                     }
                 }
             }
         } else {
             if (spdMaxClean > runMaxMps) runMaxMps = spdMaxClean
-            if (lastHr > runMaxHr) runMaxHr = lastHr
+            if (lastHr > runMaxHr && tMs - lastHrMs <= PULS_ALT_MS) runMaxHr = lastHr
             foilExitStreak = if (sp3Kmh < 9.0) foilExitStreak + 1 else 0
             if (foilExitStreak >= RUN_EXIT_DWELL) {
                 foiling = false; foilEnterStreak = 0
@@ -228,6 +228,7 @@ object Recorder {
     private var accelT0 = 0
     private val gps = ArrayList<DoubleArray>(256)
     private var lastHr = 0
+    private var lastHrMs = 0          // wann der letzte ECHTE Messwert kam (elapsedMs)
     // Live-Kennzahlen
     private var prevLat = Double.NaN
     private var prevLon = Double.NaN
@@ -270,7 +271,7 @@ object Recorder {
         startMs = System.currentTimeMillis()
         chunkIndex = 0
         synchronized(lock) { accel.clear(); gps.clear(); spWin.clear() }
-        prevLat = Double.NaN; prevLon = Double.NaN; alteFixes = 0
+        prevLat = Double.NaN; prevLon = Double.NaN; alteFixes = 0; lastHrMs = 0
         distM = 0.0; maxMps = 0.0; hrSum = 0; hrCount = 0; maxHrV = 0; lastHr = 0
         val meta = JSONObject()
             .put("session_uuid", uuid)
@@ -500,6 +501,14 @@ object Recorder {
     // dem Nutzer sagen. 5 s ist grosszuegig (ein frischer Fix ist 0-2 s alt), 20 Fixes bei 1 Hz
     // sind rund 20 Sekunden — lang genug, dass ein einzelner Aussetzer beim Start keine Warnung
     // ausloest, kurz genug, dass niemand eine Stunde umsonst pumpt.
+    // Wie alt ein Pulswert hoechstens sein darf, um noch mitgeschrieben zu werden. Bleibt der
+    // Sensor stehen, schrieben wir bisher den LETZTEN bekannten Wert in jeden GPS-Punkt weiter —
+    // in einem gemeldeten Fall stand so 1658 Sekunden lang derselbe Puls in der Aufnahme. Der
+    // Server urteilt anhand der Puls-Antwort darueber, ob ein Lauf aus eigener Kraft war; ein
+    // stehender Wert ergibt Antwort 0 und liess drei echte Laeufe als „Fremdkraft" aussortieren
+    // (Meldung 03.09., Session #3391). Lieber KEIN Wert als ein erfundener.
+    private const val PULS_ALT_MS = 10_000
+
     private const val FIX_ALT_MS = 5_000L
     private const val FIX_ALT_ANZAHL = 20
 
@@ -524,7 +533,10 @@ object Recorder {
         val poor = accuracyM > 20.0 || stale
         val sp = if (poor) 0.0 else spRaw
         synchronized(lock) {
-            gps.add(doubleArrayOf(tMs.toDouble(), lat, lon, spRaw, lastHr.toDouble(), accuracyM))
+            // 0 = kein Puls (der Server behandelt 0 wie „fehlt"): ein veralteter Wert waere
+            // eine Erfindung, s. PULS_ALT_MS.
+            val pulsFrisch = if (lastHr > 0 && tMs - lastHrMs <= PULS_ALT_MS) lastHr else 0
+            gps.add(doubleArrayOf(tMs.toDouble(), lat, lon, spRaw, pulsFrisch.toDouble(), accuracyM))
             // Distanz aufsummieren (Haversine zwischen Punkten) — aber nur, wenn wir uns
             // wirklich bewegen (s. STAND_MPS).
             if (!prevLat.isNaN()) {
@@ -573,6 +585,7 @@ object Recorder {
     }
     fun setHr(bpm: Int) {
         lastHr = bpm
+        if (bpm > 0) lastHrMs = elapsedMs()
         if (bpm > 0) { hrSum += bpm; hrCount++; if (bpm > maxHrV) maxHrV = bpm }
         if (running) _state.value = _state.value.copy(
             hr = bpm, maxHr = maxHrV, avgHr = if (hrCount > 0) (hrSum / hrCount).toInt() else 0,
