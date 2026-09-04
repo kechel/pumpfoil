@@ -43,6 +43,12 @@ class RecorderService : Service(), SensorEventListener {
     // Vorrang vor dem rohen Sensor — sonst wuerde ein alter Sensor-Wert einen frischen ueberschreiben.
     private var hsClient: ExerciseClient? = null
     private var hsDelivered = false
+    // Zeitpunkt des letzten Werts aus Health Services + Zahl der Neuversuche. Beides fuer den
+    // Waechter unten: bleibt die Messung stehen, fordern wir sie neu an, statt stumm auf den
+    // passiven Sensor zurueckzufallen.
+    private var letzterHsMs = 0L
+    private var hsNeustarts = 0
+    private var waechter: java.util.concurrent.ScheduledExecutorService? = null
     private val fused by lazy { LocationServices.getFusedLocationProviderClient(this) }
     private val locCb = object : LocationCallback() {
         override fun onLocationResult(r: LocationResult) {
@@ -175,14 +181,37 @@ class RecorderService : Service(), SensorEventListener {
             hsClient = client
             client.setUpdateCallback(object : ExerciseUpdateCallback {
                 override fun onRegistered() {}
-                override fun onRegistrationFailed(throwable: Throwable) { hsClient = null }
+                override fun onRegistrationFailed(throwable: Throwable) {
+                    hsClient = null
+                    Recorder.setPulsMessung(false)
+                    android.util.Log.w("Pumpfoil", "Health Services lehnt ab", throwable)
+                }
                 override fun onLapSummaryReceived(lapSummary: ExerciseLapSummary) {}
                 override fun onAvailabilityChanged(dataType: DataType<*, *>, availability: Availability) {}
                 override fun onExerciseUpdateReceived(update: ExerciseUpdate) {
+                    // ZUSTAND ZUERST — bis 04.09. lasen wir nur die Messwerte. Endete die Uebung,
+                    // lief die Aufnahme stumm weiter und der Puls kam nur noch aus dem passiven
+                    // Sensor, der bloss mitliest, was das System ohnehin gerade misst. Ein Nutzer
+                    // hat genau das gemeldet: in einer 81-Minuten-Session Luecken von 29, 28 und
+                    // 9 Minuten, dazwischen sauber im Sekundentakt. Ob die Uhr untergetaucht war,
+                    // eine andere App die Uebung uebernommen hat oder das System sie beendete,
+                    // koennen wir nicht wissen — aber wir koennen es MERKEN und neu anfordern.
+                    if (update.exerciseStateInfo.state.isEnded) {
+                        android.util.Log.w("Pumpfoil",
+                            "Puls-Uebung beendet (${update.exerciseStateInfo.state}) — neu anfordern")
+                        hsClient = null
+                        Recorder.setPulsMessung(false)
+                        return
+                    }
                     val points = update.latestMetrics.getData(DataType.HEART_RATE_BPM)
                     val bpm = points.lastOrNull()?.value?.toInt() ?: return
                     // 0 bedeutet bei Health Services "gerade kein Kontakt", kein Messwert.
-                    if (bpm > 0) { hsDelivered = true; Recorder.setHr(bpm) }
+                    if (bpm > 0) {
+                        hsDelivered = true
+                        letzterHsMs = System.currentTimeMillis()
+                        Recorder.setPulsMessung(true)
+                        Recorder.setHr(bpm)
+                    }
                 }
             })
             val config = ExerciseConfig.builder(ExerciseType.WORKOUT)
@@ -190,16 +219,70 @@ class RecorderService : Service(), SensorEventListener {
                 .setIsAutoPauseAndResumeEnabled(false)
                 .setIsGpsEnabled(false)
                 .build()
-            client.startExerciseAsync(config)
-        } catch (_: Throwable) {
+            // Das Ergebnis NICHT wegwerfen: scheitert der Start — haeufigster Fall ist, dass eine
+            // andere App gerade eine Uebung haelt, denn Health Services erlaubt nur eine —, fielen
+            // wir bisher stumm auf den passiven Sensor zurueck.
+            val start = client.startExerciseAsync(config)
+            start.addListener({
+                try {
+                    start.get()
+                    letzterHsMs = System.currentTimeMillis()
+                    Recorder.setPulsMessung(true)
+                } catch (t: Throwable) {
+                    hsClient = null
+                    Recorder.setPulsMessung(false)
+                    android.util.Log.w("Pumpfoil", "Puls-Messung konnte nicht starten", t)
+                }
+            }, java.util.concurrent.Executors.newSingleThreadExecutor())
+            starteWaechter()
+        } catch (t: Throwable) {
             // Health Services nicht verfuegbar -> roher Sensor bleibt die einzige Quelle.
             hsClient = null
+            Recorder.setPulsMessung(false)
+            android.util.Log.w("Pumpfoil", "Health Services nicht verfuegbar", t)
         }
+    }
+
+    /**
+     * Waechter: kommt laenger als PULS_STILL_MS kein Wert aus Health Services, wird die Uebung
+     * neu angefordert.
+     *
+     * Warum ueberhaupt: die Messung kann aus Gruenden aufhoeren, die wir nicht sehen — die Uhr
+     * taucht unter (kein Hautkontakt, nasses Display), eine andere App startet eine Uebung, das
+     * System raeumt auf. Der gemeldete Fall (04.09.) hatte drei Luecken von 29, 28 und 9 Minuten
+     * in einer Session, und niemand hat es bemerkt, weil der passive Sensor noch alle paar
+     * Minuten einen Wert einstreute.
+     *
+     * Hoechstens PULS_MAX_NEUSTARTS Versuche: laeuft die Uhr in einen Zustand, in dem keine
+     * Uebung moeglich ist (fremde App haelt sie dauerhaft), soll das nicht die ganze Aufnahme
+     * lang alle zwei Minuten neu probieren.
+     */
+    private fun starteWaechter() {
+        if (waechter != null) return
+        val ex = java.util.concurrent.Executors.newSingleThreadScheduledExecutor()
+        waechter = ex
+        ex.scheduleWithFixedDelay({
+            try {
+                if (!Recorder.state.value.recording) return@scheduleWithFixedDelay
+                val still = System.currentTimeMillis() - letzterHsMs
+                if (letzterHsMs > 0 && still > PULS_STILL_MS && hsNeustarts < PULS_MAX_NEUSTARTS) {
+                    hsNeustarts++
+                    android.util.Log.w("Pumpfoil",
+                        "Puls seit ${still / 1000} s still — Uebung neu anfordern ($hsNeustarts)")
+                    Recorder.setPulsMessung(false)
+                    stopHeartRate()
+                    startHeartRate()
+                }
+            } catch (_: Throwable) {
+                // Ein Waechter darf die Aufnahme nie stoppen.
+            }
+        }, 60, 60, java.util.concurrent.TimeUnit.SECONDS)
     }
 
     private fun stopHeartRate() {
         val client = hsClient ?: return
         hsClient = null
+        hsDelivered = false
         // Beendet die Uebung und damit die Messung. Der Callback stirbt mit dem Service.
         try { client.endExerciseAsync() } catch (_: Throwable) {}
     }
@@ -219,6 +302,8 @@ class RecorderService : Service(), SensorEventListener {
 
     private fun stopEverything(save: Boolean = true) {
         sensors.unregisterListener(this)
+        waechter?.shutdownNow(); waechter = null
+        hsNeustarts = 0; letzterHsMs = 0L
         stopHeartRate()
         fused.removeLocationUpdates(locCb)
         if (save) Recorder.stop() else Recorder.discard()
@@ -248,7 +333,13 @@ class RecorderService : Service(), SensorEventListener {
         // REORDER_TO_FRONT holt die LAUFENDE Activity nach vorn, statt eine zweite zu starten.
         val zurueck = PendingIntent.getActivity(
             this, 0,
+            // NEW_TASK ist Pflicht: der PendingIntent wird vom SYSTEM ausgeloest, nicht aus einer
+            // Activity heraus — ohne das Flag startet die Activity nicht. Genau das hat ein
+            // Wear-Entwickler am 04.09. gemeldet („the Ongoing Activity didn't link back to the
+            // workout tracking activity"). SINGLE_TOP + REORDER_TO_FRONT holen die LAUFENDE
+            // Activity nach vorn, statt eine zweite zu starten.
             Intent(this, MainActivity::class.java).setFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK or
                 Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         val b = NotificationCompat.Builder(this, ch)
@@ -277,6 +368,9 @@ class RecorderService : Service(), SensorEventListener {
         const val ACTION_STOP = "org.pumpfoil.watch.STOP"
         const val ACTION_DISCARD = "org.pumpfoil.watch.DISCARD"
         const val ACTION_HR_ON = "org.pumpfoil.watch.HR_ON"
+        /** Solange darf die Puls-Messung stillstehen, bevor wir sie neu anfordern. */
+        const val PULS_STILL_MS = 120_000L
+        const val PULS_MAX_NEUSTARTS = 8
         fun start(ctx: Context) = ctx.startForegroundService(Intent(ctx, RecorderService::class.java))
         /** Puls nachtraeglich anhaengen (Berechtigung waehrend der Aufnahme erteilt). */
         fun enableHeartRate(ctx: Context) = ctx.startService(
