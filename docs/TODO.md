@@ -626,15 +626,22 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Kacheln, keine Zeitfenster-Tabs**, und die Sessionliste **laedt beim Scrollen nach**.
   - **Neu:** `/foil-stats/:foilId` (`web/src/pages/FoilDetail.tsx`) — Kopf mit Name, Streckung
     und „x Sessions von y Fahrern", darunter die Rekord-Kacheln (Allzeit; bei einem einzelnen
-    Fluegel waere „heute" fast immer leer), darunter die eigenen Sessions mit diesem Foil,
-    seitenweise (20 je Seite, IntersectionObserver mit 300 px Vorlauf wie in der Sessionliste).
+    Fluegel waere „heute" fast immer leer), darunter **alle Sessions der COMMUNITY** mit diesem
+    Foil, seitenweise (20 je Seite, IntersectionObserver mit 300 px Vorlauf wie in der
+    Sessionliste).
+  - **Korrektur noch am selben Tag (Jan):** zuerst standen dort nur die EIGENEN Sessions — „sonst
+    sind ja 99 % der Listen fuer mich leer". Stimmt: der Vorschlag lautete „all sessions recorded
+    with that specific front wing". Jetzt kommt die Liste aus dem Community-Feed
+    (`/api/community/sessions?foil_id=…`), zeigt also alle Fahrer und respektiert dabei weiter
+    die Sichtbarkeits-Filter von `_community()` (versteckte Konten, geloescht, gemeldet).
   - **Server brauchte KEINEN neuen Endpunkt:** `_band_filter` in `api/community.py` versteht
     jetzt zusaetzlich die Form **`foil:<id>`** = genau dieses Foil. Alle Rekord-Abfragen laufen
     ohnehin durch diese Funktion (`_record_entry`, `_time_record`, `_carve_record`) — ein
-    Parameter haette drei Signaturen geaendert. Die Sessionliste bekam `foil_id`.
-  - **Gegengeprueft:** `foil:17` (Sabfoil LEVIATHAN 1550) liefert echte Rekorde von vier
-    Fahrern; `?foil_id=11` liefert Jans vier SIRUS-XXL-Sessions, `?foil_id=17` null (das Foil
-    faehrt er nicht) — der Filter trennt also wirklich.
+    Parameter haette drei Signaturen geaendert. Der Community-Feed und die eigene Sessionliste
+    bekamen je einen `foil_id`-Filter.
+  - **Gegengeprueft:** `foil:17` (Sabfoil LEVIATHAN 1550) liefert echte Rekorde von vier Fahrern;
+    die Sessionliste dazu zeigt Cony_e, Beat und Tuomo (also fremde Fahrer, obwohl Jan das Foil
+    nicht faehrt), und bei `foil_id=11` stehen Philipp und Jan gemischt.
   - Sechs Texte in 17 Sprachen, `docs/PAGES.md` ergaenzt.
   - **Offen (Paritaet):** Android und iOS haben die Foil-Statistik ebenfalls, dort ist der Name
     noch nicht anklickbar. Waere ein eigener Bildschirm je Plattform — lohnt sich, wenn die Seite
