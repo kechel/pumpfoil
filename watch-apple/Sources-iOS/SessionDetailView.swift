@@ -1925,7 +1925,9 @@ struct TrackMap: UIViewRepresentable {
         case .speed:
             return uiSpeedColor((speedsMps.indices.contains(i) ? speedsMps[i] : 0) * 3.6)
         case .hr:
-            guard let v = (hr.indices.contains(i) ? hr[i] : nil), v > 0 else { return .systemGray }
+            // WEISS = hier wurde kein Puls gemessen (wie PWA und Android). Stehengebliebene
+            // Werte nimmt die Analyse heraus, sie kommen also als nil an.
+            guard let v = (hr.indices.contains(i) ? hr[i] : nil), v > 0 else { return .white }
             return uiRampColor(Double(v - hrRange.0) / Double(max(hrRange.1 - hrRange.0, 1)))
         case .pump:
             guard let v = (pumpHz.indices.contains(i) ? pumpHz[i] : nil) else { return .systemGray }

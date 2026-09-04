@@ -1274,7 +1274,9 @@ private fun TrackMap(
         ColorMode.HR -> {
             val v = track.hr.getOrNull(i)
             val (lo, hi) = hrRange
-            if (v == null || v <= 0) GRAY else rampColor((v - lo).toDouble() / (hi - lo).coerceAtLeast(1).toDouble())
+            // WEISS = hier wurde kein Puls gemessen (wie PWA und iOS). Stehengebliebene Werte
+            // nimmt die Analyse heraus, sie kommen also als null an.
+            if (v == null || v <= 0) Color.White else rampColor((v - lo).toDouble() / (hi - lo).coerceAtLeast(1).toDouble())
         }
         ColorMode.PUMP -> {
             val v = track.pumpHz.getOrNull(i)

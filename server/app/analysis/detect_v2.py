@@ -221,6 +221,38 @@ def gerade_je_sample(lat: np.ndarray, lon: np.ndarray) -> np.ndarray:
 PULS_EINGEFROREN_S = 120.0
 
 
+def puls_ohne_eingefrorene(t: np.ndarray, hr: np.ndarray) -> np.ndarray:
+    """Eingefrorene Puls-Strecken auf „kein Wert" setzen (NaN).
+
+    Bleibt der Sensor stehen, schreiben Uhr-Apps den letzten bekannten Wert weiter — der sieht
+    wie ein Messwert aus, ist aber keiner. Er verfaelscht dann alles, was am Puls haengt:
+    Kurve und Faerbung auf der Karte, Durchschnitt und Hoechstwert in den Kacheln, die
+    Zonen-Anzeige und das Datenfeld „Max-Puls letzter Lauf" (168 bpm, die nie gemessen wurden).
+    Deshalb hier EINMAL zentral herausnehmen, statt es in jedem Renderer zu behandeln.
+
+    Dieselbe Schwelle wie `_puls_lebt` (PULS_EINGEFROREN_S): ein echter Puls schwankt im
+    Sekundentakt um ein paar Schlaege, zwei Minuten exakt derselbe Wert kommen nicht vor.
+    Uhren-Seite ist es ebenfalls behoben (Wear/Apple schreiben veraltete Werte gar nicht mehr
+    mit) — das hier faengt die schon aufgezeichneten Sessions und fremde Importe.
+    """
+    if hr.size == 0:
+        return hr
+    aus = hr.copy()
+    i = 0
+    n = hr.size
+    while i < n:
+        if np.isnan(hr[i]):
+            i += 1
+            continue
+        j = i + 1
+        while j < n and hr[j] == hr[i]:
+            j += 1
+        if float(t[j - 1] - t[i]) / 1000.0 >= PULS_EINGEFROREN_S:
+            aus[i:j] = np.nan
+        i = j
+    return aus
+
+
 def _puls_lebt(t: np.ndarray, hr: np.ndarray) -> bool:
     """Ist der Puls in diesem Fenster gemessen — oder steht er?
 
@@ -449,6 +481,9 @@ def detect_v2(
     lat = np.array([float(s[1]) for s in gps])
     lon = np.array([float(s[2]) for s in gps])
     hr = np.array([float(s[4]) if len(s) > 4 and s[4] is not None else np.nan for s in gps])
+    # Stehengebliebene Werte sind keine Messwerte — vor ALLEM anderen herausnehmen, damit weder
+    # Kurve noch Kacheln noch die Fremdkraft-Regel darauf hereinfallen (s. Funktion).
+    hr = puls_ohne_eingefrorene(t_ms, hr)
     hacc = np.array([float(s[5]) if len(s) > 5 and s[5] is not None else np.nan for s in gps])
     speed_raw = np.array([float(s[3]) if len(s) > 3 and s[3] is not None else np.nan for s in gps])
 
