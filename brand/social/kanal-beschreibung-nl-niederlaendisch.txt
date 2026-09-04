@@ -1,0 +1,21 @@
+Track Every Pump
+
+Maak van je sporthorloge een pumpfoil-computer: gps-track, foilafstand, pumpfrequentie en glijfases – volautomatisch uit elke sessie.
+
+Op horloge en telefoon
+Apps voor Garmin, Apple Watch, Wear OS en Amazfit – plus native apps voor iOS en Android, met recorder ook zonder horloge. Account koppelen: Polar, Suunto, COROS, Xiaomi (via Mi Fitness).
+
+Wat je krijgt
+• Instelbare datavelden: snelheid, hartslag, afstand, tijd
+• Trilalarm boven/onder je doelsnelheid (uit foil en gewicht berekend)
+• Carve-herkenning met highlights op de kaart van elke run
+• Cijfers per foil: afstand, langste run, hartslag – welke draagt je verder?
+• Verloop over het seizoen, opnemen werkt offline, uploaden gaat vanzelf
+
+Community
+Sessies delen en vergelijken, records en ranglijsten per spot – en elke spot krijgt automatisch een chatgroep.
+
+Open source
+Vrije software onder AGPL-3.0, in 17 talen.
+
+https://pumpfoil.org · github.com/kechel/pumpfoil

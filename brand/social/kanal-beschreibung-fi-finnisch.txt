@@ -1,0 +1,21 @@
+Track Every Pump
+
+Tee urheilukellostasi pumpfoil-tietokone: GPS-jälki, foilausmatka, pumppaustahti ja liu'ut – täysin automaattisesti joka sessiosta.
+
+Kellossa ja puhelimessa
+Sovellukset Garminille, Apple Watchille, Wear OS:lle ja Amazfitille – lisäksi natiivit iOS- ja Android-sovellukset, joissa tallennin toimii myös ilman kelloa. Tilin voi yhdistää: Polar, Suunto, COROS, Xiaomi (Mi Fitnessin kautta).
+
+Mitä saat
+• Muokattavat tietokentät: vauhti, syke, matka, aika
+• Värinähälytys tavoitevauhdin ylä-/alapuolella (foilin ja painon mukaan)
+• Carve-tunnistus, korostettuna jokaisen vedon kartalla
+• Luvut foileittain: matka, pisin veto, syke – mikä kantaa pisimmälle?
+• Kauden kehitys, tallennus toimii offline, lähetys hoituu itsestään
+
+Yhteisö
+Jaa ja vertaile sessioita, ennätykset ja tulostaulut spotti kerrallaan – ja jokaiselle spotille syntyy oma chattiryhmä.
+
+Avoin lähdekoodi
+Vapaa ohjelmisto AGPL-3.0-lisenssillä, 17 kielellä.
+
+https://pumpfoil.org

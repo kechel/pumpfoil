@@ -1,0 +1,21 @@
+Track Every Pump
+
+Mach us dinere Sportuhr en Pumpfoil-Computer: GPS-Track, Foiling-Distanz, Pump-Frequenz und Gleitphasen – vollautomatisch us jedere Session.
+
+Direkt uf Uhr & Händy
+Apps für Garmin, Apple Watch, Wear OS und Amazfit – dezue native Apps für iOS & Android, mit Recorder au ganz ohni Uhr. Konto verknüpfen: Polar, Suunto, COROS, Xiaomi (über Mi Fitness).
+
+Was du überchunnsch
+• Konfigurierbare Datenfelder: Tempo, Puls, Distanz, Zeit
+• Vibrationsalarm über/unter deiner Zielgeschwindigkeit (aus Foil und Gewicht berechnet)
+• Carve-Erkennung mit Highlights in der Karte jedes Laufs
+• Kennzahlen je Foil: Strecke, längster Lauf, Puls – welles treit di wiiter?
+• Verlauf über d Saison, Ufnahm offline, Upload automatisch
+
+Community
+Sessions teile und verglyche, Community-Rekorde und Bestenlisten je Spot – und zu jedem Spot gits automatisch e Chatgruppe.
+
+Open Source
+Freii Software under AGPL-3.0, i 17 Sprache.
+
+https://pumpfoil.org · github.com/kechel/pumpfoil

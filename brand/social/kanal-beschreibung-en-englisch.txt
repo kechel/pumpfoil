@@ -1,0 +1,21 @@
+Track Every Pump
+
+Turn your sports watch into a pumpfoil computer: GPS track, foiling distance, pump cadence and glides – fully automatic from every session.
+
+On your watch & phone
+Apps for Garmin, Apple Watch, Wear OS and Amazfit – plus native apps for iOS & Android with a recorder that works without a watch. Link your account: Polar, Suunto, COROS, Xiaomi (via Mi Fitness).
+
+What you get
+• Configurable data fields: speed, heart rate, distance, time
+• Vibration alarm above/below your target speed (from foil and weight)
+• Carve detection with highlights on the map of every run
+• Stats per foil: distance, longest run, heart rate – which one carries you further?
+• Season history, recording works offline, upload happens by itself
+
+Community
+Share and compare sessions, community records and leaderboards per spot – and every spot gets its own chat group automatically.
+
+Open source
+Free software under AGPL-3.0, in 17 languages.
+
+https://pumpfoil.org · github.com/kechel/pumpfoil

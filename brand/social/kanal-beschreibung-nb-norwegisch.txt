@@ -1,0 +1,21 @@
+Track Every Pump
+
+Gjør sportsklokka til en pumpfoil-datamaskin: GPS-spor, foil-distanse, pumpefrekvens og glidefaser – helautomatisk fra hver økt.
+
+På klokke og mobil
+Apper for Garmin, Apple Watch, Wear OS og Amazfit – i tillegg native apper for iOS og Android, med opptak også uten klokke. Kontoer å koble til: Polar, Suunto, COROS, Xiaomi (via Mi Fitness).
+
+Dette får du
+• Konfigurerbare datafelt: fart, puls, distanse, tid
+• Vibrasjonsvarsel over/under målfarten din (regnet ut fra foil og vekt)
+• Carve-gjenkjenning med høydepunkter i kartet for hver runde
+• Tall per foil: distanse, lengste runde, puls – hvilken bærer deg lengst?
+• Utvikling gjennom sesongen, opptak virker offline, opplasting skjer av seg selv
+
+Fellesskap
+Del og sammenlign økter, rekorder og topplister per spot – og hvert spot får automatisk sin egen chattegruppe.
+
+Åpen kildekode
+Fri programvare under AGPL-3.0, på 17 språk.
+
+https://pumpfoil.org

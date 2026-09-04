@@ -1,0 +1,21 @@
+Track Every Pump
+
+Ubah jam olahragamu jadi komputer pumpfoil: jejak GPS, jarak foiling, irama pump, dan fase meluncur – otomatis dari setiap sesi.
+
+Di jam dan ponsel
+Aplikasi untuk Garmin, Apple Watch, Wear OS, dan Amazfit – plus aplikasi native iOS & Android dengan perekam yang jalan tanpa jam sekalipun. Akun yang bisa dihubungkan: Polar, Suunto, COROS, Xiaomi (lewat Mi Fitness).
+
+Yang kamu dapat
+• Kolom data yang bisa diatur: kecepatan, detak jantung, jarak, waktu
+• Alarm getar di atas/bawah kecepatan targetmu (dihitung dari foil dan berat)
+• Deteksi carve, disorot di peta setiap run
+• Angka per foil: jarak, run terpanjang, detak jantung – mana yang membawamu lebih jauh?
+• Riwayat semusim, rekaman jalan offline, unggahan otomatis
+
+Komunitas
+Bagikan dan bandingkan sesi, rekor dan papan peringkat per spot – dan setiap spot otomatis punya grup chat sendiri.
+
+Sumber terbuka
+Perangkat lunak bebas dengan lisensi AGPL-3.0, dalam 17 bahasa.
+
+https://pumpfoil.org
