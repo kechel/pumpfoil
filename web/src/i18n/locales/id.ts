@@ -196,6 +196,12 @@ const id: Record<string, string> = {
   "cr.foilUnder": "di bawah {n} cm²",
   "cr.foilHighAspect": "High aspect (AR {n}+)",
   "cr.foilThick": "Sayap tebal (AR di bawah {n})",
+  "cr.bandRange": "Hanya foil di rentang ini yang dibandingkan: {grenzen}.",
+  "cr.bandMine": "Dibandingkan dengan foil seperti {foil} milikmu — yaitu {grenzen}. Acuannya foil default di profilmu; kalau tidak ada, yang paling sering kamu pakai.",
+  "cr.bandMineNone": "Perbandingan ini butuh foil acuan: atur foil default dengan luas dan bentang di profilmu.",
+  "cr.bandAspect": "aspect ratio {a}–{b}",
+  "cr.bandAspectFrom": "aspect ratio dari {n}",
+  "cr.bandAspectTo": "aspect ratio di bawah {n}",
 
   "spotcmp.title": "Rekor spot",
   "spotcmp.foilers": "Foiler terbanyak",

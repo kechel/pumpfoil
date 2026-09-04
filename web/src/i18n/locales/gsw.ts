@@ -176,6 +176,12 @@ const gsw: Record<string, string> = {
   "cr.foilUnder": "under {n} cm²",
   "cr.foilHighAspect": "High Aspect (AR ab {n})",
   "cr.foilThick": "Dicki Flügel (AR under {n})",
+  "cr.bandRange": "Verglyche wird nur mit Foils i dem Bereich: {grenzen}.",
+  "cr.bandMine": "Verglyche wird mit Foils wie dim {foil} — also {grenzen}. Referenz isch dis Standard-Foil im Profil; ohni eis dis meistgfahrne.",
+  "cr.bandMineNone": "Für de Verglych fehlt es Referenz-Foil: setz im Profil es Standard-Foil mit Flächi und Spannwyti.",
+  "cr.bandAspect": "Streckig {a}–{b}",
+  "cr.bandAspectFrom": "Streckig ab {n}",
+  "cr.bandAspectTo": "Streckig bis {n}",
 
   "spotcmp.title": "Spot-Rekord",
   "spotcmp.foilers": "Meischti Foiler",

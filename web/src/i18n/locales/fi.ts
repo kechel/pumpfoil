@@ -195,6 +195,12 @@ const fi: Record<string, string> = {
   "cr.foilUnder": "alle {n} cm²",
   "cr.foilHighAspect": "High aspect (AR {n}+)",
   "cr.foilThick": "Paksut siivet (AR alle {n})",
+  "cr.bandRange": "Vertailuun otetaan vain tällä alueella olevat foilit: {grenzen}.",
+  "cr.bandMine": "Vertaillaan foileihin kuten sinun {foil} — eli {grenzen}. Viitteenä on profiilisi oletusfoili; ilman sitä useimmin ajamasi.",
+  "cr.bandMineNone": "Vertailusta puuttuu viitefoili: aseta profiiliin oletusfoili, jolla on pinta-ala ja kärkiväli.",
+  "cr.bandAspect": "sivusuhde {a}–{b}",
+  "cr.bandAspectFrom": "sivusuhde {n} tai enemmän",
+  "cr.bandAspectTo": "sivusuhde alle {n}",
 
   // Bestenlisten
   "spotcmp.title": "Spotti-ennätykset",

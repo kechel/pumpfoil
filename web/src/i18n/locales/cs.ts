@@ -208,6 +208,12 @@ const cs: Record<string, string> = {
   "cr.foilUnder": "pod {n} cm²",
   "cr.foilHighAspect": "High aspect (AR od {n})",
   "cr.foilThick": "Silná křídla (AR pod {n})",
+  "cr.bandRange": "Porovnávají se jen foily v tomto rozsahu: {grenzen}.",
+  "cr.bandMine": "Porovnává se s foily jako tvůj {foil} — tedy {grenzen}. Referencí je tvůj výchozí foil z profilu; bez něj ten nejčastěji jezdený.",
+  "cr.bandMineNone": "K porovnání chybí referenční foil: nastav v profilu výchozí foil s plochou a rozpětím.",
+  "cr.bandAspect": "štíhlost {a}–{b}",
+  "cr.bandAspectFrom": "štíhlost od {n}",
+  "cr.bandAspectTo": "štíhlost pod {n}",
 
   // Bestenlisten
   "spotcmp.title": "Rekordy spotů",

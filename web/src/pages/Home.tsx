@@ -283,6 +283,39 @@ export function bandLabel(b: FoilBand, t: (k: string, p?: Record<string, string>
   return `${b.von}+ cm²`;
 }
 
+/**
+ * Was ein Band GENAU einschliesst — als Satz unter der Auswahl.
+ *
+ * Warum es das braucht: „Wie mein Foil" sagt nicht, welches Foil gemeint ist und wie weit der
+ * Vergleich reicht (Jan, 04.09.: „es fehlt aber eine info was dann genau die grenzen sind, und
+ * ich weiss auch nicht welche von meinen foils da dann verwendet werden"). Der Server liefert
+ * beides seit jeher mit (`foil`, `von`/`bis`, `ar_von`/`ar_bis`) — es stand nur nirgends.
+ */
+export function bandInfo(b: FoilBand, t: (k: string, p?: Record<string, string>) => string): string | null {
+  if (b.art === "alle") return null;
+  const teile: string[] = [];
+  if (b.von != null && b.bis != null && b.art !== "ar") teile.push(`${b.von}–${b.bis} cm²`);
+  else if (b.art !== "ar" && b.bis != null) teile.push(`< ${b.bis} cm²`);
+  else if (b.art !== "ar" && b.von != null) teile.push(`> ${b.von} cm²`);
+  // Dezimaltrennzeichen NICHT hart setzen: „10,2" ist deutsch, „10.2" englisch. toLocaleString
+  // nimmt die Sprache des Browsers — dieselbe Zahl, richtig geschrieben.
+  const zahl = (v: number | null | undefined) => (v == null ? "" : v.toLocaleString());
+  if (b.ar_von != null && b.ar_bis != null) {
+    teile.push(t("cr.bandAspect", { a: zahl(b.ar_von), b: zahl(b.ar_bis) }));
+  } else if (b.art === "ar") {
+    teile.push(b.von != null
+      ? t("cr.bandAspectFrom", { n: zahl(b.von) })
+      : t("cr.bandAspectTo", { n: zahl(b.bis) }));
+  }
+  const grenzen = teile.join(" · ");
+  if (b.art === "eigenes") {
+    return b.foil
+      ? t("cr.bandMine", { foil: b.foil, grenzen })
+      : t("cr.bandMineNone");
+  }
+  return grenzen ? t("cr.bandRange", { grenzen }) : null;
+}
+
 function Leaderboards({ period, accelOnly, sport = "pumpfoil", band }: { period: string; accelOnly: boolean; sport?: string; band?: FoilBand }) {
   const t = useT();
   const [data, setData] = useState<Leaders | null>(null);
@@ -464,6 +497,10 @@ function CommunitySection() {
           </select>
         )}
       </div>
+      {/* Grenzen des gewaehlten Bandes im Klartext — sonst raet man, was „Wie mein Foil" heisst. */}
+      {band && bandInfo(band, t) && (
+        <p className="mb-3 text-sm text-slate-400">{bandInfo(band, t)}</p>
+      )}
       <RecordGrid rec={data[period]} showSpot />
       {/* Social-Feed ueber „Medien" (Jan, 30.08., nachdem er sich gefuellt hat): die Videos der
           Community sind das Lebendigste auf der Seite, die Fotos darunter ergaenzen sie. */}

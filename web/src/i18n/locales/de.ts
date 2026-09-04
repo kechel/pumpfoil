@@ -231,6 +231,12 @@ const de: Record<string, string> = {
   "cr.foilUnder": "unter {n} cm²",
   "cr.foilHighAspect": "High Aspect (AR ab {n})",
   "cr.foilThick": "Dicke Flügel (AR unter {n})",
+  "cr.bandRange": "Verglichen wird nur mit Foils in diesem Bereich: {grenzen}.",
+  "cr.bandMine": "Verglichen wird mit Foils wie deinem {foil} — also {grenzen}. Referenz ist dein Standard-Foil aus dem Profil; ohne eines dein meistgefahrenes.",
+  "cr.bandMineNone": "Für diesen Vergleich fehlt ein Referenz-Foil: setz im Profil ein Standard-Foil mit Fläche und Spannweite.",
+  "cr.bandAspect": "Streckung {a}–{b}",
+  "cr.bandAspectFrom": "Streckung ab {n}",
+  "cr.bandAspectTo": "Streckung bis {n}",
 
   // Bestenlisten
   "spotcmp.title": "Spot-Rekorde",

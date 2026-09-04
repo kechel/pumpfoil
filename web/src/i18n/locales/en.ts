@@ -219,6 +219,12 @@ const en: Record<string, string> = {
   "cr.foilUnder": "under {n} cm²",
   "cr.foilHighAspect": "High aspect (AR {n}+)",
   "cr.foilThick": "Thick wings (AR under {n})",
+  "cr.bandRange": "Only foils in this range are compared: {grenzen}.",
+  "cr.bandMine": "Compared against foils like your {foil} — that is {grenzen}. The reference is your default foil from your profile; without one, the foil you ride most.",
+  "cr.bandMineNone": "This comparison needs a reference foil: set a default foil with area and span in your profile.",
+  "cr.bandAspect": "aspect ratio {a}–{b}",
+  "cr.bandAspectFrom": "aspect ratio {n} and up",
+  "cr.bandAspectTo": "aspect ratio below {n}",
 
   "spotcmp.title": "Spot records",
   "spotcmp.foilers": "Most foilers",

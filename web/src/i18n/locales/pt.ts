@@ -196,6 +196,12 @@ const pt: Record<string, string> = {
   "cr.foilUnder": "abaixo de {n} cm²",
   "cr.foilHighAspect": "High aspect (AR a partir de {n})",
   "cr.foilThick": "Asas espessas (AR abaixo de {n})",
+  "cr.bandRange": "Só são comparados foils nesta faixa: {grenzen}.",
+  "cr.bandMine": "Comparado com foils como o teu {foil} — ou seja {grenzen}. A referência é o teu foil predefinido no perfil; sem isso, o que mais usas.",
+  "cr.bandMineNone": "Falta um foil de referência: define no perfil um foil predefinido com área e envergadura.",
+  "cr.bandAspect": "alongamento {a}–{b}",
+  "cr.bandAspectFrom": "alongamento a partir de {n}",
+  "cr.bandAspectTo": "alongamento abaixo de {n}",
 
   "spotcmp.title": "Recordes do spot",
   "spotcmp.foilers": "Mais foilers",
