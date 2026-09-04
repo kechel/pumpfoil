@@ -119,7 +119,8 @@ const REC_ITEMS: { key: keyof RecordSet; labelKey: string; fmt: (v: number) => s
   { key: "carves180", labelKey: "rec.carves180", fmt: (v) => `${Math.round(v)}` },
 ];
 
-function RecordGrid({ rec, showSpot }: { rec?: RecordSet | null; showSpot?: boolean }) {
+// Auch von der Foil-Detailseite benutzt — dieselben Kacheln, damit Rekorde ueberall gleich aussehen.
+export function RecordGrid({ rec, showSpot }: { rec?: RecordSet | null; showSpot?: boolean }) {
   const t = useT();
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">

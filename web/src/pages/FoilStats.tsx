@@ -35,7 +35,7 @@ export default function FoilStats() {
           <WatchIcon className="h-4 w-4" /> <span className="hidden sm:inline">{t("stats.short")}</span>
         </Link>
       </div>
-      <p className="mb-4 text-sm text-slate-300">{t("foilStats.hint")}</p>
+      <p className="mb-4 text-sm text-slate-300">{t("foilStats.hint")} {t("foilStats.clickHint")}</p>
 
       {!rows ? (
         <Spinner />
@@ -59,9 +59,15 @@ export default function FoilStats() {
             <tbody>
               {sort.sorted!.map((r) => (
                 <tr key={r.foil_id} className="border-t border-slate-800">
+                  {/* Anklickbar (Nutzer-Vorschlag 04.09.): fuehrt zur Foil-Detailseite mit den
+                      Community-Rekorden dieses Fluegels und den eigenen Sessions damit. */}
                   <td className="px-4 py-3">
-                    <div className="font-semibold">{r.brand} {r.model} <span className="text-slate-400">{r.size}</span></div>
-                    <div className="text-xs text-slate-400">AR {r.aspect_ratio ?? "–"}</div>
+                    <Link to={`/foil-stats/${r.foil_id}`} className="group block">
+                      <div className="font-semibold group-hover:text-brand-300">
+                        {r.brand} {r.model} <span className="text-slate-400">{r.size}</span>
+                      </div>
+                      <div className="text-xs text-slate-400">AR {r.aspect_ratio ?? "–"}</div>
+                    </Link>
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums">{r.sessions}</td>
                   <td className="px-4 py-3 text-right tabular-nums">{r.users}</td>
