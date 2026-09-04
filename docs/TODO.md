@@ -839,10 +839,31 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     Nachgeschoben (Jan, 03.09.): er muss dafuer **nicht aufs Wasser** — zwei, drei Minuten
     Spaziergang reichen. Wichtig ist nur, dass es eine **Outdoor**-Aktivitaet ist; ein
     Indoor-Training hat gar keine Spur und der Test waere wertlos.
-    Wenn er sich meldet: als Erstes pruefen, ob bei seiner importierten Session ueberhaupt eine
-    Spur ankommt (`analysis_results.detection`, Punktzahl, `total_distance_m`). Die Session wird
-    bei uns als Spaziergang ankommen und damit wohl als „kein Pumpfoil" einsortiert — das ist fuer
-    den Test egal, es geht nur um die Frage, ob GPS-Punkte den Weg ueberstehen.
+    **✅ 04.09. GETESTET — DER WEG FUNKTIONIERT.** Frederic hat den Spaziergang gemacht
+    (Trelex bei Nyon, 221 m, 105 s). Ergebnis: **Mi Fitness → Suunto traegt die GPS-Spur mit**,
+    88 Punkte plus Pulskurve (69–137). Damit ist Xiaomi ueber die Kontoverknuepfung
+    **erledigt** — ohne dass wir je eine Uhr-App bauen muessen.
+    **Gescheitert war es an UNS, nicht an der Kette.** Er meldete „0 importiert / 1 ignoriert",
+    und der Grund war ein Parser-Absturz: die von Mi Fitness erzeugte FIT-Datei deklariert
+    **jedes Mehr-Byte-Feld als `byte`-Array** statt als den richtigen Zahlentyp
+    (`timestamp` profil-typ `date_time`, basis-typ-in-datei `byte`, Groesse 4). `fitparse`
+    liefert daraufhin Tupel statt Zahlen und stirbt an
+    `'>=' not supported between 'tuple' and 'int'` — die ganze Datei war unlesbar.
+    Die Werte selbst sind in Ordnung, nur falsch verpackt: in der von der Datei angegebenen
+    Byte-Reihenfolge (`>`) zusammengesetzt kommt exakt heraus, was Suunto meldet (221,0 m,
+    Startzeit 1788531124). **Behoben** in `fitimport._reparatur_prozessor()` — eng gefasste
+    Bedingung, an 16 gesunden FIT-Dateien (Garmin fenix/FR, unsere eigenen) gegengeprueft:
+    **null Abweichung**, GPS-Punkte und Accel-Bytes byteweise identisch.
+    Seine Session ist jetzt da: **Session 3453** (`/sessions/3453`, `detection=gps_only`,
+    80,7 m nach Auto-Trim, 1 „Lauf" à 38 m bei 2,97 m/s — Schrittgeschwindigkeit, wie erwartet).
+    **Zweite Beschwerde, ebenfalls berechtigt:** „und mit dieser Information kann ich nichts
+    anfangen" — die Meldung nannte nur Zahlen. Der Sync gibt jetzt `reasons` heraus
+    (`suunto._grund_code`: `kein_gps` · `doppelt` · `zu_kurz` · `gefiltert` · `spaeter` ·
+    `fehler`), die PWA haengt sie an die Meldung an, in allen 17 Sprachen. Dabei fiel auf, dass
+    der Zaehler log: `import_parsed_session` gibt bei einem Doppel-Treffer die VORHANDENE Session
+    zurueck, nicht `None` — deshalb meldete der erste Lauf „2 importiert", obwohl eine Session
+    ankam (einmal ueber die Liste, einmal aus der Warteschlange). Jetzt an der ID geprueft.
+    **Offen:** dasselbe `reasons`-Feld fuer Polar/COROS/Strava, und die Anzeige in Android/iOS.
   - **Health Connect** (Android, unsere Handy-App): Mi Fitness schreibt dorthin. Offen, ob auch
     die `ExerciseRoute` (GPS) mitgeht — Routen brauchen zusaetzlich `READ_EXERCISE_ROUTES` und
     eine eigene Zustimmung je Session. Waere der datenschutzfreundlichste Weg (nichts verlaesst

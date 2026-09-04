@@ -32,6 +32,7 @@ import httpx
 import jwt as pyjwt
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from fastapi.responses import RedirectResponse
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from .. import models
@@ -332,6 +333,28 @@ def _endgueltig(grund: str | None) -> bool:
     return (grund or "") in ENDGUELTIG
 
 
+def _grund_code(grund: str | None) -> str:
+    """Interner Grund -> stabiler Code fuer die Oberflaeche.
+
+    Die internen Gruende sind fuers Log gedacht und teils mit Zahlen gespickt
+    („Dauer 40 s"). Der Nutzer braucht statt dessen eine uebersetzbare Aussage — Frederic
+    am 04.09.: „0 importiert / 1 ignoriert" und „damit kann ich nichts anfangen". Deshalb
+    hier die Abbildung auf wenige Faelle, die man wirklich erklaeren kann.
+    """
+    g = (grund or "").lower()
+    if g.startswith("dauer"):
+        return "zu_kurz"
+    if g.startswith(("distanz", "schnitt")):
+        return "gefiltert"
+    if g == "kein gps":
+        return "kein_gps"
+    if g == "doppelt":
+        return "doppelt"
+    if g == "quota" or (g.startswith("http") and not _endgueltig(g)):
+        return "spaeter"
+    return "fehler"
+
+
 def _vormerken(db: Session, user_id: int, key: str, grund: str) -> None:
     """Workout in die Warteschlange legen (idempotent) — wird spaeter nachgeholt."""
     p = db.query(models.SuuntoPending).filter_by(user_id=user_id, workout_key=key).first()
@@ -393,9 +416,17 @@ def _hole_workout(db: Session, user: models.User, token: str, key: str) -> tuple
         parsed = parse_fit_bytes(fr.content)
         if not parsed.get("gps_samples") or parsed.get("started_at") is None:
             return False, "kein gps"
+        # `import_parsed_session` gibt bei einem Doppel-Treffer die VORHANDENE Session zurueck
+        # (nicht None) — das zaehlte bisher als Import. Bei Frederics Konto meldete der Sync
+        # deshalb „2 importiert", obwohl genau eine Session ankam: das Workout lief einmal
+        # durch die Liste und einmal aus der Warteschlange. Darum hier an der ID pruefen, ob
+        # wirklich etwas Neues entstanden ist, statt die Dedup-Logik zu verdoppeln.
+        vorher = db.query(func.max(models.Session.id)).scalar() or 0
         s = import_parsed_session(db, user, fr.content, parsed,
                                   src_label="suunto-import", uuid_prefix="suunto-")
-        return (s is not None), (None if s is not None else "doppelt")
+        if s is None or (s.id or 0) <= vorher:
+            return False, "doppelt"
+        return True, None
     except Exception as e:  # noqa: BLE001 — ein kaputtes Workout darf den Rest nicht stoppen
         return False, "fehler %s" % type(e).__name__
 
@@ -509,22 +540,33 @@ def sync(user: models.User = Depends(current_user), db: Session = Depends(get_db
     workouts = _workouts_holen(hdr)
 
     imported = skipped = gefiltert = 0
+    # Warum etwas NICHT importiert wurde, zaehlen wir je Fall mit und geben es heraus (s.
+    # `_grund_code`). Ohne das steht in der Oberflaeche nur eine Zahl, die nirgends hinfuehrt.
+    gruende: dict[str, int] = {}
+
+    def merken(grund: str | None) -> None:
+        code = _grund_code(grund)
+        gruende[code] = gruende.get(code, 0) + 1
+
     for w in (workouts or []):
         key = _workout_key(w)
         if not key:
             skipped += 1
+            merken("fehler kein key")
             continue
         grund = _vorfilter(w)
         if grund:
             # Gar nicht erst laden — spart den teuren FIT-Download.
             log.info("Suunto: Workout %s uebersprungen (%s)", key, grund)
             gefiltert += 1
+            merken(grund)
             continue
         ok, fehler = _hole_workout(db, user, token, key)
         if ok:
             imported += 1
         else:
             skipped += 1
+            merken(fehler)
             if not _endgueltig(fehler) and (fehler == "quota" or (fehler or "").startswith(("http", "fehler"))):
                 _vormerken(db, user.id, key, fehler or "?")
             if fehler == "quota":
@@ -535,7 +577,7 @@ def sync(user: models.User = Depends(current_user), db: Session = Depends(get_db
     db.commit()
     offen = db.query(models.SuuntoPending).filter_by(user_id=user.id).count()
     return {"imported": imported + nachgeholt, "skipped": skipped,
-            "filtered": gefiltert, "pending": offen}
+            "filtered": gefiltert, "pending": offen, "reasons": gruende}
 
 
 @router.post("/webhook")

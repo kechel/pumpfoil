@@ -21,6 +21,90 @@ ACCEL_SCALE = 2048
 _MG_TO_INT16 = ACCEL_SCALE / 1000.0
 
 
+# --- Reparatur kaputter Feld-Deklarationen (Xiaomi / Mi Fitness ueber Suunto) -------------
+# Belegt am 04.09.2026 an einer echten Datei aus der Kette Redmi Watch -> Mi Fitness ->
+# Suunto -> unser Import (Nutzer u417). Diese Schreiber deklarieren JEDES Mehr-Byte-Feld als
+# `byte` mit Groesse N, statt als den richtigen Zahlentyp:
+#
+#   timestamp      profil-typ=date_time  basis-typ-in-datei=byte  groesse=4
+#   position_lat   profil-typ=sint32     basis-typ-in-datei=byte  groesse=4
+#
+# `fitparse` liest daraus folgerichtig ein Byte-ARRAY und liefert Tupel statt Zahlen; der
+# eingebaute Typ-Prozessor stirbt dann an `'>=' not supported between 'tuple' and 'int'`, und
+# die ganze Datei war fuer uns unlesbar — 0 importiert / 1 ignoriert, ohne erkennbaren Grund.
+#
+# Die WERTE sind in Ordnung, nur falsch verpackt: in der von der Datei selbst angegebenen
+# Byte-Reihenfolge (hier `>`) zusammengesetzt kommt genau heraus, was Suunto in der
+# Zusammenfassung nennt (221,0 m; Startzeit 1788531124). Deshalb wird hier nachtraeglich
+# zusammengesetzt statt die Datei abzulehnen.
+#
+# Die Bedingung ist eng gefasst, damit gesunde Dateien unberuehrt bleiben: NUR wenn die Datei
+# `byte` sagt, das Profil an dieser Stelle einen mehrere Byte breiten ZAHLEN-Typ vorsieht und
+# die Groesse exakt dessen Breite ist. Felder, die laut Profil wirklich `byte` sind (rohe
+# Datenbloecke), und echte Arrays (z. B. `calibrated_accel_x`) fallen nicht darunter.
+_REPARATUR = None
+
+
+def _reparatur_prozessor():
+    """Datenprozessor, der byte-verpackte Zahlenfelder wieder zusammensetzt (s. Kommentar oben)."""
+    global _REPARATUR
+    if _REPARATUR is not None:
+        return _REPARATUR()
+
+    from fitparse.processors import FitFileDataProcessor
+
+    class ByteArrayReparatur(FitFileDataProcessor):
+        def run_type_processor(self, field_data):
+            try:
+                super().run_type_processor(field_data)
+            except TypeError:
+                # Tupel statt Zahl — die Reparatur laeuft in `run_message_processor`, dort ist
+                # die Byte-Reihenfolge der Nachricht bekannt. Hier nur nicht daran sterben.
+                if not isinstance(field_data.value, tuple):
+                    raise
+
+        def run_message_processor(self, data_message):
+            gross = data_message.def_mesg.endian == ">"
+            for fd in data_message.fields:
+                self._zusammensetzen(fd, gross)
+            super().run_message_processor(data_message)
+
+        def _zusammensetzen(self, fd, gross: bool) -> None:
+            fdef, feld = fd.field_def, fd.field
+            if fdef is None or feld is None or not isinstance(fd.raw_value, tuple):
+                return
+            if fdef.base_type.name != "byte":
+                return
+            bt = feld.base_type
+            # Nur Zahlentypen, und nur bei exakt passender Breite (s. Kommentar oben).
+            if bt.name == "byte" or bt.size < 2 or bt.size != len(fd.raw_value) or fdef.size != bt.size:
+                return
+            try:
+                bs = bytes(int(b) & 0xFF for b in fd.raw_value)
+            except (TypeError, ValueError):
+                return
+            roh = int.from_bytes(bs, "big" if gross else "little",
+                                 signed=bt.name.startswith("sint"))
+            if bt.parse:
+                roh = bt.parse(roh)          # FIT-Marker „kein Wert" -> None
+            wert = feld.render(roh)
+            # Skalierung/Offset wie in `fitparse.FitFile._apply_scale_offset`.
+            if isinstance(wert, (int, float)) and not isinstance(wert, bool):
+                if feld.scale:
+                    wert = float(wert) / feld.scale
+                if feld.offset:
+                    wert = wert - feld.offset
+            fd.raw_value, fd.value = roh, wert
+            # Jetzt greifen die eingebauten Prozessoren wieder (date_time -> datetime usw.).
+            super_self = super()
+            super_self.run_type_processor(fd)
+            super_self.run_field_processor(fd)
+            super_self.run_unit_processor(fd)
+
+    _REPARATUR = ByteArrayReparatur
+    return _REPARATUR()
+
+
 def _aware(dt: datetime) -> datetime:
     return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
 
@@ -109,7 +193,7 @@ def parse_fit_bytes(data: bytes) -> dict:
     import fitparse
 
     try:
-        fit = fitparse.FitFile(data)
+        fit = fitparse.FitFile(data, data_processor=_reparatur_prozessor())
         records, accel_msgs = [], []
         sport = "pumpfoil"
         # Dateiart aus `file_id.type` mitnehmen. Ohne die kann man einem Nutzer nicht sagen, WARUM
