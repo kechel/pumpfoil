@@ -1,0 +1,21 @@
+Track Every Pump
+
+Zamień swój zegarek sportowy w komputer do pumpfoila: ślad GPS, dystans na foilu, kadencja pompowania i fazy ślizgu – automatycznie z każdej sesji.
+
+Na zegarku i w telefonie
+Aplikacje na Garmin, Apple Watch, Wear OS i Amazfit – plus natywne aplikacje na iOS i Androida z nagrywaniem także bez zegarka. Konta do połączenia: Polar, Suunto, COROS, Xiaomi (przez Mi Fitness).
+
+Co dostajesz
+• Konfigurowalne pola danych: prędkość, tętno, dystans, czas
+• Alarm wibracyjny powyżej/poniżej prędkości docelowej (z foila i wagi)
+• Wykrywanie carvów z podświetleniem na mapie każdego przejazdu
+• Dane dla każdego foila: dystans, najdłuższy przejazd, tętno – który niesie dalej?
+• Historia sezonu, nagrywanie offline, wysyłka sama z siebie
+
+Społeczność
+Udostępniaj i porównuj sesje, rekordy i rankingi dla każdego spotu – a każdy spot dostaje własną grupę czatu.
+
+Open source
+Wolne oprogramowanie na licencji AGPL-3.0, w 17 językach.
+
+https://pumpfoil.org
