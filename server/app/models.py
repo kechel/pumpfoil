@@ -434,6 +434,12 @@ class Session(Base):
     # Analyse aus den GPS-Daten (genau wie der Trim) -> Läufe/Zeit/Distanz/Pumps/Rekorde
     # stimmen automatisch. Kein Datenverlust: die Rohdaten bleiben, jederzeit umkehrbar.
     excluded_ranges: Mapped[str | None] = mapped_column(Text)
+    # Kam der Zuschnitt von `maybe_auto_trim` (True) oder vom Nutzer (False)? Der Unterschied
+    # entscheidet, wo Startversuche gezaehlt werden: bei einem AUTO-Zuschnitt ueber die ganze
+    # Aufnahme (die Fehlversuche liegen ja genau davor), bei einem MANUELLEN nur innerhalb —
+    # dort hat der Nutzer Autofahrten und vergessene Stopps ausdruecklich weggeschnitten
+    # (Jan, 04.09.). NULL = unbekannt/kein Zuschnitt.
+    trim_auto: Mapped[bool | None] = mapped_column(Boolean)
     # Zurückgeholte Fremdkraft-Läufe (Erkennung v2): ZEITFENSTER wie excluded_ranges (JSON-Liste
     # von [start_ms, end_ms], ms ab Session-Start). Läufe in diesen Fenstern beurteilt die
     # Fremdkraft-Erkennung NICHT mehr — der Besitzer hat gesagt „der zählt doch". Bewusst dieselbe

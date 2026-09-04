@@ -45,9 +45,65 @@ log = logging.getLogger("pumpfoil.suunto")
 AUTHORIZE_URL = "https://cloudapi-oauth.suunto.com/oauth/authorize"
 TOKEN_URL = "https://cloudapi-oauth.suunto.com/oauth/token"
 API = "https://cloudapi.suunto.com"
-WORKOUTS_URL = f"{API}/v2/workouts"
-# FIT-Export je Workout — Pfad bei echtem Zugang gegen die Doc verifizieren.
-FIT_EXPORT = API + "/v2/workout/exportFit/{key}"
+
+# --- Zwei API-Versionen, eine aktiv -----------------------------------------------------
+# Die von uns benutzte API laeuft in Suuntos Portal als „SUUNTO WORKOUT API (DEPRECATED)"
+# (Pfad /v2). Der Nachfolger heisst dort „SUUNTO WORKOUT API" und liegt auf /v3/workouts;
+# er hat den FIT-Export ebenfalls, dazu Seitenweise-Abruf und einen Filter nach
+# Aenderungszeit. Vollstaendige Herleitung samt Quellen: docs/suunto-api-v3.md.
+#
+# UMGESCHALTET WIRD ERST NACH GEMEINSAMER PRUEFUNG (Jan, 04.09.): ohne `SUUNTO_API_V3` in
+# server/.env bleibt alles bei v2. Zum Vergleichen gibt es GET …/suunto/vergleich.
+WORKOUTS_URL_V2 = f"{API}/v2/workouts"
+FIT_EXPORT_V2 = API + "/v2/workout/exportFit/{key}"
+WORKOUTS_URL_V3 = f"{API}/v3/workouts"
+FIT_EXPORT_V3 = API + "/v3/workouts/{key}/fit"
+
+
+def _v3_aktiv() -> bool:
+    import os
+    return (os.environ.get("SUUNTO_API_V3") or "").strip() in ("1", "true", "yes", "on")
+
+
+def _workouts_url() -> str:
+    return WORKOUTS_URL_V3 if _v3_aktiv() else WORKOUTS_URL_V2
+
+
+def _fit_url(key: str) -> str:
+    return (FIT_EXPORT_V3 if _v3_aktiv() else FIT_EXPORT_V2).format(key=key)
+
+
+def _liste_lesen(payload) -> list:
+    """Workout-Liste aus der Antwort ziehen — fuer v2 UND v3.
+
+    v2 antwortet mit `{"payload": [...]}`. Fuer v3 ist die Form nicht dokumentiert (die
+    Portal-Doku nennt nur „application/json"), deshalb bleibt es hier defensiv: nackte Liste,
+    `payload`, `workouts`, `data` oder `items` — was zuerst passt. Lieber ein paar Zeilen mehr
+    als ein Sync, der an einem umbenannten Feld scheitert.
+    """
+    if isinstance(payload, list):
+        return payload
+    if not isinstance(payload, dict):
+        return []
+    for feld in ("payload", "workouts", "data", "items", "results"):
+        wert = payload.get(feld)
+        if isinstance(wert, list):
+            return wert
+        if isinstance(wert, dict):
+            for f2 in ("payload", "workouts", "data", "items"):
+                if isinstance(wert.get(f2), list):
+                    return wert[f2]
+    return []
+
+
+def _workout_key(w: dict) -> str:
+    """Schluessel eines Workouts. v2 nennt ihn `workoutKey`; v3 spricht von `workoutIdOrKey`,
+    also nehmen wir beide Schreibweisen und `id` als letzten Rueckfall."""
+    for feld in ("workoutKey", "workoutId", "workout_key", "key", "id"):
+        wert = w.get(feld)
+        if wert:
+            return str(wert)
+    return ""
 
 
 def _cfg() -> dict:
@@ -326,7 +382,7 @@ def _hole_workout(db: Session, user: models.User, token: str, key: str) -> tuple
     from .sessions import import_parsed_session  # lazy: vermeidet Import-Zyklus
     from ..fitimport import parse_fit_bytes
     try:
-        fr = httpx.get(FIT_EXPORT.format(key=key),
+        fr = httpx.get(_fit_url(key),
                        headers={"Authorization": f"Bearer {token}", "Ocp-Apim-Subscription-Key": _sub_key()},
                        timeout=60)
         if _quota_weg(fr):
@@ -349,6 +405,66 @@ def _import_workout(db: Session, user: models.User, token: str, key: str) -> boo
     return _hole_workout(db, user, token, key)[0]
 
 
+@router.get("/vergleich")
+def vergleich(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+    """v2 gegen v3 stellen — rein lesend, schaltet nichts um.
+
+    Damit prueft man vor dem Wechsel an einem ECHTEN Konto, ob der Nachfolger dasselbe liefert:
+    gleiche Anzahl Workouts, gleiche Schluessel, und ob der FIT-Download antwortet. Erst wenn
+    das passt, kommt `SUUNTO_API_V3=1` in die .env (Jan, 04.09.).
+
+    Der FIT-Test laedt bewusst nur EINEN Workout und wirft die Bytes weg — das Wochenkontingent
+    der Suunto-API ist knapp, und es geht hier nur um „antwortet der Pfad".
+    """
+    _creds()
+    link = db.query(models.SuuntoLink).filter_by(user_id=user.id).first()
+    if link is None:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Suunto not linked")
+    token = _fresh_token(link, db)
+    hdr = {"Authorization": f"Bearer {token}", "Ocp-Apim-Subscription-Key": _sub_key(),
+           "Accept": "application/json"}
+
+    def liste(url: str) -> dict:
+        try:
+            r = httpx.get(url, headers=hdr, timeout=30)
+        except Exception as exc:  # noqa: BLE001
+            return {"url": url, "fehler": f"{type(exc).__name__}"}
+        aus: dict = {"url": url, "http": r.status_code}
+        if r.status_code != 200:
+            aus["text"] = r.text[:200]
+            return aus
+        try:
+            roh = r.json()
+        except Exception:  # noqa: BLE001
+            aus["fehler"] = "keine JSON-Antwort"
+            return aus
+        w = _liste_lesen(roh)
+        aus["felder_oben"] = sorted(roh.keys())[:8] if isinstance(roh, dict) else "(Liste)"
+        aus["anzahl"] = len(w)
+        aus["schluessel"] = [_workout_key(x) for x in w[:10] if isinstance(x, dict)]
+        aus["felder_je_workout"] = sorted(w[0].keys())[:20] if w and isinstance(w[0], dict) else []
+        return aus
+
+    v2 = liste(WORKOUTS_URL_V2)
+    v3 = liste(WORKOUTS_URL_V3)
+
+    fit: dict = {}
+    key = next((k for k in (v3.get("schluessel") or v2.get("schluessel") or []) if k), None)
+    if key:
+        for name, url in (("v2", FIT_EXPORT_V2.format(key=key)), ("v3", FIT_EXPORT_V3.format(key=key))):
+            try:
+                r = httpx.get(url, headers={"Authorization": f"Bearer {token}",
+                                            "Ocp-Apim-Subscription-Key": _sub_key()}, timeout=60)
+                fit[name] = {"http": r.status_code, "bytes": len(r.content or b"")}
+            except Exception as exc:  # noqa: BLE001
+                fit[name] = {"fehler": type(exc).__name__}
+
+    gleich = (v2.get("anzahl") == v3.get("anzahl")
+              and set(v2.get("schluessel") or []) == set(v3.get("schluessel") or []))
+    return {"aktiv": "v3" if _v3_aktiv() else "v2", "v2": v2, "v3": v3,
+            "fit_test_key": key, "fit": fit, "listen_gleich": gleich}
+
+
 @router.post("/sync")
 def sync(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
     """Alle Workouts ziehen und je FIT als Session importieren (idempotent)."""
@@ -360,19 +476,16 @@ def sync(user: models.User = Depends(current_user), db: Session = Depends(get_db
     token = _fresh_token(link, db)
     hdr = {"Authorization": f"Bearer {token}", "Ocp-Apim-Subscription-Key": _sub_key(), "Accept": "application/json"}
     try:
-        lr = httpx.get(WORKOUTS_URL, headers=hdr, timeout=30)
+        lr = httpx.get(_workouts_url(), headers=hdr, timeout=30)
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(status.HTTP_502_BAD_GATEWAY, "Suunto unreachable") from exc
     if lr.status_code != 200:
         raise HTTPException(status.HTTP_502_BAD_GATEWAY, f"Suunto workouts failed ({lr.status_code})")
-    payload = lr.json()
-    workouts = payload.get("payload") or payload.get("workouts") or payload if isinstance(payload, list) else payload.get("payload", [])
-    if isinstance(workouts, dict):
-        workouts = workouts.get("payload") or []
+    workouts = _liste_lesen(lr.json())
 
     imported = skipped = gefiltert = 0
     for w in (workouts or []):
-        key = str(w.get("workoutKey") or w.get("id") or "")
+        key = _workout_key(w)
         if not key:
             skipped += 1
             continue

@@ -237,6 +237,7 @@ def maybe_auto_trim(db: DbSession, session: "models.Session") -> bool:
         return False
     session.trim_start_ms = new_start
     session.trim_end_ms = new_end
+    session.trim_auto = True        # von der Automatik, nicht vom Nutzer (s. models.trim_auto)
     db.commit()
     return True
 
@@ -329,13 +330,22 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     # „erster Lauf − 15 s", und genau davor liegen die Fehlversuche, bis der erste Start sass.
     # Wer 20-mal anschiebt und beim 21. steht, hat 1/21 und nicht 1/1. Gemessen ueber die 40
     # neuesten zugeschnittenen Sessions: +7 % Versuche, im Extremfall #3124 1/1 -> 1/44.
-    # AUSSORTIERTE Bereiche bleiben auch hier draussen (s. unten) — die hat der Nutzer
-    # ausdruecklich als „nicht ich" markiert, sie sind keine Startversuche.
+    #
+    # ABER NUR beim AUTO-Zuschnitt (Jan, 04.09.). Hat der NUTZER zugeschnitten, bleibt es beim
+    # gewaehlten Fenster: dort liegen ausserhalb Autofahrten, vergessene Stopps und Wege zum
+    # Spot, die er ausdruecklich weggeschnitten hat — die als „Startversuche" zu zaehlen waere
+    # genau der Fehler in der anderen Richtung. `trim_auto` unterscheidet die beiden Faelle;
+    # ist es unbekannt (NULL) und ein Zuschnitt gesetzt, gilt der Zuschnitt (vorsichtiger Weg).
+    manuell_zugeschnitten = ((session.trim_start_ms is not None or session.trim_end_ms is not None)
+                             and session.trim_auto is not True)
     gps_fuer_versuche = [list(x) for x in gps_samples]
 
     # GPS aufs Fenster filtern + auf 0 re-basen -> alle nachfolgenden Berechnungen sehen nur den Teil.
     if (ts0 is not None or ts1 is not None) and gps_samples:
         gps_samples = [[s[0] - lo] + list(s[1:]) for s in gps_samples if lo <= s[0] <= hi]
+        # Beim MANUELLEN Zuschnitt zaehlen die Versuche nur innerhalb (s. oben).
+        if manuell_zugeschnitten:
+            gps_fuer_versuche = [list(x) for x in gps_samples]
 
     # Aussortierte Läufe (excluded_ranges): dieselbe Mechanik wie der Trim, nur mehrere
     # Fenster — und auch MITTEN in der Session (vergessene Stopp-Taste: Autofahrt zwischen
