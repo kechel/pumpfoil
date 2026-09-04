@@ -19,6 +19,11 @@ const ROWS: { name: string; sub: string; gps: Cap; hr: Cap; pump: Cap; status: S
     account: { logo: "/polar-logo.jpg", alt: "Polar", labelKey: "watches.linkAccount" } },
   { name: "Suunto", sub: "Race, Vertical …", gps: "yes", hr: "yes", pump: "no", status: "import", noteKey: "watches.nSuunto",
     account: { logo: "/suunto-logo.png", alt: "Suunto", labelKey: "watches.linkAccount", imgClass: "h-10 w-auto" } },
+  // Xiaomi hat weder eine Uhr-App fuer Dritte noch eine offene Schnittstelle — aber Mi Fitness
+  // schiebt Trainings offiziell in die Suunto-App (Partnerschaft seit 2024, weltweit ausser China),
+  // und dort holen wir sie ab. Deshalb Suunto-Logo in der Konto-Spalte mit eigenem Label.
+  { name: "Xiaomi", sub: "Redmi Watch, Watch S …", gps: "yes", hr: "yes", pump: "no", status: "import", noteKey: "watches.nXiaomi",
+    account: { logo: "/suunto-logo.png", alt: "Suunto", labelKey: "watches.linkViaSuunto", imgClass: "h-10 w-auto" } },
   { name: "COROS", sub: "Apex, Vertix …", gps: "yes", hr: "yes", pump: "no", status: "planned" },
   { name: "Fitbit", sub: "—", gps: "no", hr: "no", pump: "no", status: "no", noteKey: "watches.nFitbit" },
   { name: "Strava", sub: "Aktivitäts-Portal", gps: "yes", hr: "yes", pump: "no", status: "nope", noteKey: "watches.nStrava" },

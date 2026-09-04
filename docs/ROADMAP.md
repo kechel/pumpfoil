@@ -53,6 +53,7 @@ Everything that can be shared **is** shared, so a new watch is a thin add-on:
 | Amazfit / Zepp OS | ✓ | ✓ | ~ | native recorder (model-dependent) |
 | Polar | ✓ | ✓ | ~ | FIT/cloud import (+ BLE sensor for accel) |
 | Suunto | ✓ | ✓ | – | FIT/cloud import |
+| Xiaomi / Redmi | ✓ | ✓ | – | via Mi Fitness → Suunto app (official partnership, worldwide except China); no watch app possible |
 | COROS | ✓ | ✓ | – | cloud import |
 | Fitbit | – | – | – | discontinued |
 
