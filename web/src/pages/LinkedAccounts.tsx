@@ -101,17 +101,28 @@ function CorosCard() {
     <Card className="p-5">
       <h3 className="mb-1 font-semibold">{t("settings.coros.title")}</h3>
       <p className="mb-3 text-sm text-slate-300">{t("settings.coros.hint")}</p>
+      {/* Aufbau exakt wie bei Polar und Suunto: Logo und „Verbunden" in EINER Zeile, die
+          Knoepfe darunter. Vorher stand der Zustand mitten zwischen den Knoepfen — als
+          einzige der drei Karten (Jan, 04.09.).
+          Der Text „Verbunden — automatischer Import" gehoerte zur Partner-API, die per
+          Webhook schiebt. Der MCP-Weg holt auf Knopfdruck, dort waere er falsch — also
+          dort schlicht „Verbunden" (derselbe Text wie bei Polar, in allen Sprachen da). */}
       <div className="mb-3 flex items-center gap-3">
         <a href="https://coros.com/" target="_blank" rel="noopener noreferrer" title="COROS"
           className="inline-block rounded-lg bg-white px-3 py-2 shadow-sm">
           <img src="/coros-logo.png" alt="COROS" className="h-7 w-auto" />
         </a>
+        {st.linked && (
+          <span className="inline-flex items-center gap-1 text-sm font-medium text-success">
+            <CheckIcon className="h-4 w-4" />
+            {mcp ? t("settings.polar.connected") : t("settings.coros.connected")}
+          </span>
+        )}
       </div>
       {!st.linked ? (
         <Button onClick={connect}>{t("settings.coros.connect")}</Button>
       ) : (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm text-emerald-700 dark:text-emerald-400">{t("settings.coros.connected")}</span>
           {mcp && (
             <Button variant="secondary" onClick={sync} disabled={busy}>
               {busy ? t("settings.polar.importing") : t("settings.suunto.sync")}
