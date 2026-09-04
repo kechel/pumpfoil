@@ -619,6 +619,30 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 04.09. — Startversuche: nur beim AUTO-Zuschnitt ueber die ganze Aufnahme. Vollstaendige
+  Reanalyse durch.**
+  - **Regel** (Jan, 04.09.): bei einem Zuschnitt der Automatik zaehlen die Versuche ueber die
+    ganze Aufnahme (die Fehlversuche liegen genau davor), bei einem MANUELLEN nur innerhalb —
+    dort hat der Nutzer Autofahrten und vergessene Stopps ausdruecklich weggeschnitten. Neue
+    Spalte `sessions.trim_auto`, gesetzt von `maybe_auto_trim` (true) bzw. `set_trim` (false).
+  - **Bestand eingeordnet:** 1624 Sessions mit Zuschnitt → **1424 Automatik, 187 manuell**
+    (erkannt daran, dass ein Auto-Zuschnitt exakt [erster Lauf −15 s, letzter +15 s] ist).
+  - **Reanalyse** (Sicherung vorher: `~/foil-analysis-backups/vor-reanalyse-2026-09-04.dump`,
+    129 MB, `analysis_results` + `sessions`): **2100 Sessions gerechnet, 200 geaendert, 26 min.**
+    Ein Deadlock (#1232) einzeln nachgeholt, 23 Laeufe. Log:
+    `~/foil-analysis-backups/reanalyse-2026-09-04.jsonl`.
+    Verteilung der Aenderungen: **avg_hr 90 · pumps 93 · max_hr 76 · Laeufe 33 · Versuche 5 ·
+    Pumpfoil-Einordnung 6** (5 gewinnen sie, 1 verliert sie). Der Puls-Anteil kommt vom
+    Einfrier-Fix von heute, die Laeufe vom Despike-Fix.
+  - **Manuell zugeschnittene Sessions blieben draussen** (Jans Vorgabe) — die 187 tragen damit
+    weiter den alten Stand. Wenn du willst, koennen sie mit: die neue Regel schuetzt ihren
+    Zuschnitt ja jetzt.
+  - **Fuenf Sessions mit unbekannter Zuschnitt-Art** (`trim_auto` NULL, weil sie heute keine
+    Laeufe haben) zaehlen jetzt weniger Versuche, z. B. #1841 14 → 1, #2089 10 → 1. Nachgemessen:
+    ihre Punkte AUSSERHALB des Zuschnitts liegen **median 2–77 m vom Spot** — es sind also keine
+    Heimfahrten, sondern Anlaeufe am Wasser. Bei ihnen ist der vorsichtige Weg (Zuschnitt gilt)
+    strenger als noetig; ein Wort von dir und ich setze sie auf „Automatik".
+
 - **🟡 04.09. 08:51 — iOS/Apple Watch 1.1.30 (34) EINGEREICHT** („Warten auf Prüfung"). Drin:
   gemerkte Kartenansicht, misslungene Startversuche auf der Karte, Rueckfall bei nicht
   verfuegbarem Farbmodus, Karte auch ohne erkannte Laeufe, „Auswahl leeren" im Vergleich,
@@ -1108,11 +1132,20 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     Wege, umgeschaltet wird ueber `SUUNTO_API_V3` in `server/.env` — ohne die Variable bleibt
     alles bei v2. Die Listen-Antwort wird defensiv gelesen (`payload`/`workouts`/`data`/nackte
     Liste), weil ihre Form fuer v3 nicht dokumentiert ist.
-  - **Zum gemeinsamen Pruefen:** `GET /api/integrations/suunto/vergleich` (eingeloggt, rein
-    lesend) holt dieselbe Liste ueber BEIDE Versionen und sagt: Anzahl je Version, die ersten
-    zehn Schluessel, die Feldnamen eines Workouts, ob die Listen uebereinstimmen — und laedt
-    EINEN FIT ueber beide Pfade (Bytes + HTTP-Code, Inhalt wird verworfen; das Wochenkontingent
-    ist knapp). **Naechster Schritt: Jan ruft das mit seinem Konto auf, dann entscheiden wir.**
+  - **Zum gemeinsamen Pruefen:** `GET /api/integrations/suunto/vergleich` (eingeloggt, rein lesend).
+  - **✅ 04.09. AN JANS KONTO GEMESSEN — v3 ist ein Eins-zu-eins-Ersatz:** beide Versionen HTTP 200,
+    **je 4 Workouts, dieselbe Huelle (`error`/`metadata`/`payload`), dieselben vier Schluessel,
+    dieselben Feldnamen**, und der FIT-Download liefert ueber beide Pfade **200 mit je 330 Bytes**.
+    `listen_gleich: true`. Unser Abo gilt fuer v3 also schon — kein neuer Antrag.
+  - **Noch gebaut, weil v3 sich hier anders verhaelt:** v3 liefert hoechstens `limit` Workouts
+    (Standard **50**), v2 kannte das nicht. Der Sync holt bei aktivem v3 daher **seitenweise**
+    (100 je Seite, bis 20 Seiten). Ohne das bekaeme ein Konto mit vielen Workouts beim ersten
+    Sync nur die neuesten 50.
+  - **Offen und bewusst nicht gebaut:** `filter-by-modification-time=true` zusammen mit
+    `since=<letzter Sync>` waere der sparsame Weg (nur holen, was sich geaendert hat). Das aendert
+    die Sync-Semantik und sollte nach dem Umschalten kommen, nicht davor.
+  - **NAECHSTER SCHRITT: Jans „ja" — dann `SUUNTO_API_V3=1` in `server/.env` + Neustart.**
+    Rueckweg ist die Variable wieder rausnehmen.
   **Nicht ins Blaue migrieren:** erst Doku lesen, dann pruefen, ob `exportFit` im Nachfolger
   existiert. Siehe Memory `suunto-api-integration`.
 
