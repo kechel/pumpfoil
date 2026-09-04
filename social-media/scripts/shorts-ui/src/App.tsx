@@ -49,7 +49,7 @@ const DUCK_FADE = 0.5;
 // Endcard-Einblendung: Startzeit, Ein-/Ausblendung und Standzeit frei waehlbar,
 // damit das Bild nicht im Video mitgerendert werden muss.
 interface EndCard { file: string; start: number | null; fadeIn: number; hold: number; fadeOut: number }
-const emptyEndcard = (): EndCard => ({ file: "", start: null, fadeIn: 0.6, hold: 3, fadeOut: 0.6 });
+const emptyEndcard = (): EndCard => ({ file: "", start: null, fadeIn: 0.3, hold: 1, fadeOut: 0.3 });
 
 const emptyDucks = (): DuckSlot[] =>
   Array.from({ length: DUCK_N }, () => ({ start: null, end: null, music: -12, oton: 0 }));
@@ -144,7 +144,13 @@ function Studio() {
   // sondern loesen einander ab — es wurde schlicht zu eng.
   const [sideTab, setSideTab] = useState<"set" | "musik">(sv("sideTab", "set"));
   // Endcard: ganzflaechiges Bild an frei gewaehlter Stelle, Zeiten in Sekunden
-  const [endcard, setEndcard] = useState<EndCard>(sv("endcard", emptyEndcard()));
+  const [endcard, setEndcard] = useState<EndCard>(() => {
+    const e = sv("endcard", emptyEndcard()) as EndCard;
+    // Einmalige Umstellung: wer noch exakt auf den alten Vorgabewerten sitzt
+    // (0,6 / 3 / 0,6), bekommt die neuen — eine eigene Einstellung bleibt.
+    return e.fadeIn === 0.6 && e.hold === 3 && e.fadeOut === 0.6
+      ? { ...e, ...emptyEndcard(), file: e.file, start: e.start } : e;
+  });
   const ecImgRef = useRef<HTMLImageElement | null>(null);
   const [fade, setFade] = useState(sv("fade", 2));
   const [outName, setOutName] = useState(sv("outName", ""));
@@ -997,19 +1003,39 @@ function Studio() {
             Fade-out
             <input type="number" min={0} max={15} step={0.5} value={fade} onChange={(e) => setFade(+e.target.value)} /> s
           </div>
+          <div className="row">
+            <label>
+              <input type="checkbox" checked={ovOn} onChange={(e) => setOvOn(e.target.checked)} /> Overlay
+            </label>
+            <select value={ovSel} onChange={(e) => { setOvSel(e.target.value); if (e.target.value) setOvOn(true); }}>
+              {state.overlays.map((o) => (
+                <option key={o} value={o}>{o.replace(/\.png$/, "")}</option>
+              ))}
+            </select>
+          </div>
+          <div className="row" style={{ paddingLeft: 24 }}>
+            Deckkraft
+            <input type="range" min={0.05} max={1} step={0.05} value={ovAlpha} onChange={(e) => setOvAlpha(+e.target.value)} />
+            <span>{Math.round(ovAlpha * 100)} %</span>
+          </div>
+          <div className="row">
+            <label>
+              <input type="checkbox" checked={outroOn} onChange={(e) => setOutroOn(e.target.checked)} /> Outro-Icons (letzte 2,5–4 s)
+            </label>
+          </div>
           {/* Endcard: statt ins Video gerendert erst hier entschieden */}
           <div className="ecard">
-            <div className="row">
+            <div className="row ecpick">
               Endcard
-              <select value={endcard.file}
-                      onChange={(e) => setEndcard({ ...endcard, file: e.target.value })}>
-                <option value="">— keine</option>
-                {(state?.endcards ?? []).map((f) => (
-                  <option key={f} value={f}>
-                    {f.replace(/^shorts-endcard-/, "").replace(/-\d+x\d+\.png$/, "")}
-                  </option>
-                ))}
-              </select>
+              <button className={`chip ${endcard.file ? "" : "on"}`}
+                      onClick={() => setEndcard({ ...endcard, file: "" })}>keine</button>
+              {(state?.endcards ?? []).map((f) => (
+                <button key={f} className={`chip ${endcard.file === f ? "on" : ""}`}
+                        title={f}
+                        onClick={() => setEndcard({ ...endcard, file: f })}>
+                  {f.replace(/^shorts-endcard-/, "").replace(/-\d+x\d+\.png$/, "")}
+                </button>
+              ))}
             </div>
             {!endcard.file && (
               <div className="echint">
@@ -1048,26 +1074,6 @@ function Studio() {
                 </div>
               </>
             )}
-          </div>
-          <div className="row">
-            <label>
-              <input type="checkbox" checked={ovOn} onChange={(e) => setOvOn(e.target.checked)} /> Overlay
-            </label>
-            <select value={ovSel} onChange={(e) => { setOvSel(e.target.value); if (e.target.value) setOvOn(true); }}>
-              {state.overlays.map((o) => (
-                <option key={o} value={o}>{o.replace(/\.png$/, "")}</option>
-              ))}
-            </select>
-          </div>
-          <div className="row" style={{ paddingLeft: 24 }}>
-            Deckkraft
-            <input type="range" min={0.05} max={1} step={0.05} value={ovAlpha} onChange={(e) => setOvAlpha(+e.target.value)} />
-            <span>{Math.round(ovAlpha * 100)} %</span>
-          </div>
-          <div className="row">
-            <label>
-              <input type="checkbox" checked={outroOn} onChange={(e) => setOutroOn(e.target.checked)} /> Outro-Icons (letzte 2,5–4 s)
-            </label>
           </div>
           <div className="row">
             Trim

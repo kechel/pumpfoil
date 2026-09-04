@@ -374,9 +374,9 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
         idx = n_inputs
         n_inputs += 1
         s0 = max(0.0, float(endcard.get("start", 0.0)) - start)
-        fi = max(0.05, float(endcard.get("fade_in", 0.6)))
-        hold = max(0.0, float(endcard.get("hold", 3.0)))
-        fo = max(0.05, float(endcard.get("fade_out", 0.6)))
+        fi = max(0.05, float(endcard.get("fade_in", 0.3)))
+        hold = max(0.0, float(endcard.get("hold", 1.0)))
+        fo = max(0.05, float(endcard.get("fade_out", 0.3)))
         fc_parts.append(
             f"[{idx}:v]format=rgba,scale={w}:{h}"
             f",fade=t=in:st={s0:.3f}:d={fi:.3f}:alpha=1"
@@ -1933,9 +1933,9 @@ class Handler(BaseHTTPRequestHandler):
             try:
                 endcard = {"path": safe_child(ENDCARD_DIR, ec["file"]),
                            "start": float(ec.get("start") or 0),
-                           "fade_in": float(ec.get("fade_in") or 0.6),
-                           "hold": float(ec.get("hold") or 3),
-                           "fade_out": float(ec.get("fade_out") or 0.6)}
+                           "fade_in": float(ec.get("fade_in") or 0.3),
+                           "hold": float(ec.get("hold") or 1),
+                           "fade_out": float(ec.get("fade_out") or 0.3)}
             except (FileNotFoundError, TypeError, ValueError):
                 return self._json({"error": "Endcard nicht gefunden"}, 400)
         results = {}
