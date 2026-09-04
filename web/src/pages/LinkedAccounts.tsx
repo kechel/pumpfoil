@@ -6,6 +6,31 @@ import { ChevronIcon, CheckIcon, LinkIcon } from "../components/Icons";
 import { PlatformSubline } from "../components/SupportedPlatforms";
 import { useI18n } from "../i18n";
 
+/**
+ * „0 importiert, 1 uebersprungen" ist eine Sackgasse — genau so kam es als Rueckmeldung
+ * zurueck (04.09.: „und mit dieser Information kann ich nichts anfangen"). Der Server zaehlt
+ * die Gruende jetzt mit; hier werden sie zu einem lesbaren Satz. Die Codes sind stabil und
+ * kommen aus `suunto._grund_code`; unbekannte werden weggelassen statt roh angezeigt.
+ */
+const GRUND_KEYS: Record<string, string> = {
+  kein_gps: "settings.sync.why.noGps",
+  doppelt: "settings.sync.why.dupe",
+  zu_kurz: "settings.sync.why.tooShort",
+  gefiltert: "settings.sync.why.filtered",
+  spaeter: "settings.sync.why.later",
+  fehler: "settings.sync.why.error",
+};
+
+function gruendeText(t: (k: string, v?: Record<string, string>) => string,
+                     reasons?: Record<string, number>): string {
+  if (!reasons) return "";
+  const teile = Object.entries(reasons)
+    .filter(([code]) => GRUND_KEYS[code])
+    .map(([code, n]) => t(GRUND_KEYS[code], { n: String(n) }));
+  return teile.length ? " — " + teile.join(", ") : "";
+}
+
+
 // Generische „Verknüpfte Konten"-Seite: hostet Import-Integrationen (Polar; später
 // Coros/Suunto/… und FIT/TCX-Upload). Jede Integration ist eine eigenständige Karte,
 // die sich selbst ausblendet, wenn serverseitig nicht konfiguriert.
@@ -232,7 +257,8 @@ function SuuntoCard() {
     setBusy(true); setMsg("");
     try {
       const r = await api.suuntoSync();
-      setMsg(r.message ?? t("settings.polar.result", { imported: String(r.imported), skipped: String(r.skipped) }));
+      setMsg(r.message ?? (t("settings.polar.result", { imported: String(r.imported), skipped: String(r.skipped) })
+                           + gruendeText(t, r.reasons)));
       await load();
     } catch (e) { setMsg(String(e)); }
     finally { setBusy(false); }

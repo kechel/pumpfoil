@@ -744,7 +744,8 @@ export const api = {
 
   suuntoStatus: () => req<{ available: boolean; linked: boolean; last_sync_at: string | null }>("/api/integrations/suunto/status"),
   suuntoConnect: () => req<{ authorize_url: string }>("/api/integrations/suunto/connect"),
-  suuntoSync: () => req<{ imported: number; skipped: number; message?: string }>("/api/integrations/suunto/sync", { method: "POST" }),
+  // `reasons`: warum etwas NICHT importiert wurde, je Fall gezaehlt (s. `suunto._grund_code`).
+  suuntoSync: () => req<{ imported: number; skipped: number; message?: string; reasons?: Record<string, number> }>("/api/integrations/suunto/sync", { method: "POST" }),
   suuntoUnlink: () => req<{ ok: boolean }>("/api/integrations/suunto", { method: "DELETE" }),
 
   stravaStatus: () => req<{ available: boolean; linked: boolean; last_sync_at: string | null }>("/api/integrations/strava/status"),
