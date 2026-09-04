@@ -1013,6 +1013,7 @@ const ru: Record<string, string> = {
   "settings.polar.result": "{imported} импортировано, {skipped} пропущено",
   "settings.coros.title": "Импорт COROS",
   "settings.coros.hint": "Подключите свой аккаунт COROS (Open API). Новые тренировки импортируются автоматически как сессии.",
+  "settings.coros.testHint": "Настоящая памп-сессия для этого не нужна: хватит прогулки на 100 метров на улице. Потом сообщи нам — напиши Яну в чат или через форму обратной связи — и мы проверим импорт.",
   "settings.coros.connect": "Подключить COROS",
   "settings.coros.connected": "Подключено — автоматический импорт",
   "settings.coros.unlink": "Отключить",

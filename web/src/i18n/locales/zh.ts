@@ -1013,6 +1013,7 @@ const zh: Record<string, string> = {
   "settings.polar.result": "已导入 {imported} 条，跳过 {skipped} 条",
   "settings.coros.title": "COROS 导入",
   "settings.coros.hint": "连接你的 COROS 账号（Open API）。新训练会自动作为记录导入。",
+  "settings.coros.testHint": "不需要真的去做一次 pump：在户外走 100 米就够了。之后在聊天里给 Jan 留言，或用反馈表单告诉我们，我们会检查导入。",
   "settings.coros.connect": "连接 COROS",
   "settings.coros.connected": "已连接 —— 自动导入",
   "settings.coros.unlink": "断开连接",

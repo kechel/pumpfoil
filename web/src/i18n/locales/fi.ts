@@ -1076,6 +1076,7 @@ const fi: Record<string, string> = {
   "settings.polar.result": "{imported} tuotu, {skipped} ohitettu",
   "settings.coros.title": "COROS-tuonti",
   "settings.coros.hint": "Yhdistä COROS-tilisi (Open API). Uudet harjoitukset tuodaan automaattisesti sessioiksi.",
+  "settings.coros.testHint": "Tähän ei tarvita oikeaa pump-sessiota: 100 metrin kävely ulkona riittää. Kerro sen jälkeen lyhyesti — viesti Janille chatissa tai palautelomakkeella — niin katsomme tuonnin läpi.",
   "settings.coros.connect": "Yhdistä COROSiin",
   "settings.coros.connected": "Yhdistetty — automaattinen tuonti",
   "settings.coros.unlink": "Katkaise yhteys",

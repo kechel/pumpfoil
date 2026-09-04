@@ -1111,6 +1111,7 @@ const cs: Record<string, string> = {
   "settings.polar.result": "{imported} importováno, {skipped} přeskočeno",
   "settings.coros.title": "COROS import",
   "settings.coros.hint": "Propoj svůj účet COROS (Open API). Nové tréninky se automaticky importují jako relace.",
+  "settings.coros.testHint": "Nepotřebuješ k tomu skutečnou pump session: stačí 100 metrů procházky venku. Pak nám dej vědět — zpráva Janovi v chatu nebo přes formulář zpětné vazby — a import zkontrolujeme.",
   "settings.coros.connect": "Propojit s COROS",
   "settings.coros.connected": "Propojeno — automatický import",
   "settings.coros.unlink": "Zrušit propojení",

@@ -107,6 +107,13 @@ function CorosCard() {
           Der Text „Verbunden — automatischer Import" gehoerte zur Partner-API, die per
           Webhook schiebt. Der MCP-Weg holt auf Knopfdruck, dort waere er falsch — also
           dort schlicht „Verbunden" (derselbe Text wie bei Polar, in allen Sprachen da). */}
+      {/* COROS ist freigegeben, ohne dass der Import je an echten Trainings lief — niemand
+          im Team hat eine COROS-Uhr. Deshalb hier offen die Bitte um einen Test, und zwar
+          mit der niedrigsten denkbaren Huerde (Jan, 04.09.): kein Pumpen noetig, 100 m
+          Spaziergang draussen genuegen, danach eine kurze Rueckmeldung. */}
+      <div className="mb-3 rounded-lg bg-amber-500/10 p-2.5 text-sm text-amber-800 dark:text-amber-200">
+        {t("settings.coros.testHint")}
+      </div>
       <div className="mb-3 flex items-center gap-3">
         <a href="https://coros.com/" target="_blank" rel="noopener noreferrer" title="COROS"
           className="inline-block rounded-lg bg-white px-3 py-2 shadow-sm">

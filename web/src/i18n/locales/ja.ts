@@ -1013,6 +1013,7 @@ const ja: Record<string, string> = {
   "settings.polar.result": "{imported} 件インポート、{skipped} 件スキップ",
   "settings.coros.title": "COROS インポート",
   "settings.coros.hint": "COROS アカウント（Open API）を連携します。新しいワークアウトは自動的にセッションとしてインポートされます。",
+  "settings.coros.testHint": "本物のパンプセッションは必要ありません。屋外で 100 メートル歩くだけで十分です。そのあとチャットで Jan に、またはフィードバックから一言ください。インポートを確認します。",
   "settings.coros.connect": "COROS を連携",
   "settings.coros.connected": "連携済み — 自動インポート",
   "settings.coros.unlink": "連携解除",
