@@ -909,6 +909,32 @@ def meta_client():
     return _load_json(META_CLIENT_FILE, {})
 
 
+# Ein vorhandenes Token heisst nicht, dass es noch gilt: Meta entwertet
+# Sitzungen bei Passwortwechsel oder aus Sicherheitsgruenden. Der Status hat
+# das frueher verschwiegen und "authorized" gemeldet, waehrend jeder Aufruf
+# mit Fehler 190 zurueckkam. Deshalb einmal wirklich nachfragen (gecacht,
+# damit die Oberflaeche nicht bei jedem Rendern eine Anfrage ausloest).
+META_CHECK = {"at": 0.0, "ok": None, "why": ""}
+
+
+def meta_token_ok(force: bool = False) -> tuple:
+    if not force and META_CHECK["ok"] is not None and time.time() - META_CHECK["at"] < 300:
+        return META_CHECK["ok"], META_CHECK["why"]
+    ok, why = False, "kein Token hinterlegt"
+    try:
+        tok = meta_access_token()
+        if tok:
+            _http_json(f"{GRAPH}/me?fields=id&access_token={tok}")
+            ok, why = True, ""
+    except (RuntimeError, OSError, ValueError, KeyError) as e:
+        msg = str(e)
+        why = ("Sitzung entwertet — Meta verlangt eine neue Anmeldung"
+               if "190" in msg or "invalidated" in msg else msg[:160])
+    META_CHECK.update(at=time.time(), ok=ok, why=why)
+    return ok, why
+
+
+
 def meta_mode() -> str:
     """'fb' = Facebook-Login (Seite + Instagram), 'ig' = nur Instagram."""
     return "fb" if meta_client().get("app_id") else "ig"
@@ -1516,9 +1542,11 @@ class Handler(BaseHTTPRequestHandler):
                             "authorized": TT_TOKEN_FILE.is_file()})
             elif path == "/api/meta/status":
                 c = meta_client()
+                has = bool(c.get("system_user_token")) or META_TOKEN_FILE.is_file()
+                ok, why = meta_token_ok(query.get("check", [""])[0] == "1") if has \
+                    else (False, "kein Token hinterlegt")
                 self._json({"configured": bool(c.get("app_id") or c.get("ig_app_id")),
-                            "authorized": bool(c.get("system_user_token"))
-                            or META_TOKEN_FILE.is_file(),
+                            "authorized": ok, "token_file": has, "reason": why,
                             "mode": meta_mode()})
             elif path == "/api/yt/numbers":
                 try:
