@@ -63,7 +63,10 @@ export default function FoilStats() {
                       Community-Rekorden dieses Fluegels und den eigenen Sessions damit. */}
                   <td className="px-4 py-3">
                     <Link to={`/foil-stats/${r.foil_id}`} className="group block">
-                      <div className="font-semibold group-hover:text-brand-300">
+                      {/* Hover-Farbe fuer BEIDE Modi: brand-300 ist ein helles Cyan, auf weissem
+                          Grund verschwindet es fast (s. Memory light-mode-contrast-pattern).
+                          Im Hellen daher die dunklere Stufe. */}
+                      <div className="font-semibold group-hover:text-brand-700 dark:group-hover:text-brand-300">
                         {r.brand} {r.model} <span className="text-slate-400">{r.size}</span>
                       </div>
                       <div className="text-xs text-slate-400">AR {r.aspect_ratio ?? "–"}</div>
