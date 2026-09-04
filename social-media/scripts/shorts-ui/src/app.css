@@ -1,5 +1,9 @@
 :root { color-scheme: light dark; font-family: -apple-system, system-ui, sans-serif; }
 * { box-sizing: border-box; }
+/* Das Browser-Standardblatt setzt [hidden] auf display:none — jede eigene
+   display-Regel schlaegt das aber, weil Autoren-CSS gewinnt. Deshalb hier
+   einmal hart, sonst blieb die Musiksuche im Einstellungen-Tab stehen. */
+[hidden] { display: none !important; }
 body { margin: 0; }
 #root { height: 100vh; display: flex; flex-direction: column; }
 
@@ -269,3 +273,4 @@ table.cmp { max-width: 520px; }
 .ecard .ectimes label { display: flex; align-items: center; gap: 3px; font-size: 12px; opacity: .8; }
 .ecard .ectimes input { width: 52px; }
 .ecard .ecsum { margin-left: auto; font-size: 11px; opacity: .55; font-variant-numeric: tabular-nums; }
+.ecard .echint { font-size: 11px; opacity: .5; margin: 2px 0 6px; }

@@ -1011,6 +1011,11 @@ function Studio() {
                 ))}
               </select>
             </div>
+            {!endcard.file && (
+              <div className="echint">
+                Bild wählen, dann erscheinen Startzeit und Blenddauern.
+              </div>
+            )}
             {endcard.file && (
               <>
                 <div className="row">
