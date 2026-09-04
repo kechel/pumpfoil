@@ -57,8 +57,13 @@ def subline_image(text: str, px: int, tracking: int) -> Image.Image:
     return img
 
 
-def subline_zeilen() -> list[str]:
-    """Die Plattform-Liste auf ZWEI Zeilen aufteilen, moeglichst gleich breit.
+def subline_zeilen(pro_zeile: int | None = None) -> list[str]:
+    """Die Plattform-Liste auf Zeilen aufteilen.
+
+    `pro_zeile` gesetzt = feste Zahl Eintraege je Zeile (die Endcard nutzt zwei: auf einem
+    Handy-Bildschirm, der drei Sekunden zu sehen ist, muss die Schrift gross sein, und gross
+    wird sie nur ueber WENIGER Zeichen je Zeile). Ohne Angabe: zwei Zeilen, moeglichst gleich
+    breit — so steht es im YouTube-Banner, wo Breite genug da ist.
 
     Warum zwei Zeilen: die Subline wird auf die volle Lockup-Breite gezogen, also schrumpft
     jedes Zeichen mit jeder neuen Plattform. Bei neun Eintraegen war sie zu klein zum Lesen
@@ -67,6 +72,8 @@ def subline_zeilen() -> list[str]:
     Zahl der Eintraege: „APPLE WATCH" wiegt so viel wie zwei kurze Namen.
     """
     teile = [t.strip() for t in SUBLINE.split("·")]
+    if pro_zeile:
+        return [" · ".join(teile[i:i + pro_zeile]) for i in range(0, len(teile), pro_zeile)]
     gesamt = sum(len(t) for t in teile)
     lauf, schnitt = 0, len(teile) // 2
     for i, t in enumerate(teile):

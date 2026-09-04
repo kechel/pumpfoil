@@ -30,6 +30,11 @@ HELL = ("#ffffff", "#eef2f7", "#dde7f0")
 DUNKEL = ("#020617", "#061226", "#0a1f3a")
 # Cyan auf Weiss ist zu blass — auf hellem Grund die dunklere Stufe derselben Farbfamilie.
 CYAN_HELL = "#0e7490"
+# Einleitung ueber der Plattform-Liste. Ohne sie steht dort nur eine Reihe Markennamen, und
+# niemand sieht, dass es um eine App geht (Jan, 04.09.). Mit ihr liest sich die Liste als Satz:
+# „FREE APP FOR — GARMIN · WEAR OS · …". Englisch wie die Tagline, weil die Endcard international
+# laeuft; „FREE" stimmt und ist das staerkste Wort, das wir ehrlich sagen koennen (AGPL-3.0).
+APP_ZEILE = "FREE APP FOR"
 
 
 def verlauf(farben: tuple[str, str, str]) -> Image.Image:
@@ -64,11 +69,23 @@ def endcard(theme: str) -> Image.Image:
     breite = W - 2 * RAND
     lock = lock.resize((breite, round(lock.height * breite / lock.width)), Image.LANCZOS)
 
-    # Plattform-Liste, zwei Zeilen, exakt wie im Banner — gleiche Quelle, gleiche Teilung.
-    zeilen = [banner.subline_image(z, px=64, tracking=6) for z in banner.subline_zeilen()]
-    # Dieselbe Proportion wie im Banner (banner.SUB_BREITE): die Liste steht eine Spur schmaler
-    # als das Lockup, damit sie nicht groesser wirkt als die Tagline.
-    faktor = (breite * banner.SUB_BREITE) / max(z.width for z in zeilen)
+    # Plattform-Liste — hier ANDERS als im Banner: nur ZWEI Eintraege je Zeile. Ein Short laeuft
+    # auf einem Handy und ist drei Sekunden zu sehen; neun Namen in zwei Zeilen kann dort niemand
+    # lesen (Jan, 04.09.). Weniger Zeichen je Zeile heisst groessere Schrift bei gleicher Breite.
+    # Die Quelle bleibt dieselbe wie im Banner, nur die Umbruch-Regel unterscheidet sich.
+    zeilen = [banner.subline_image(z, px=64, tracking=6) for z in banner.subline_zeilen(2)]
+    faktor = breite / max(z.width for z in zeilen)
+    # Die Einleitung in derselben Schrift, aber kleiner und ruhiger als die Marken darunter —
+    # sie soll fuehren, nicht mit ihnen konkurrieren.
+    einleitung = banner.subline_image(APP_ZEILE, px=44, tracking=10)
+    ein_faktor = (breite * 0.52) / einleitung.width
+    einleitung = einleitung.resize((round(einleitung.width * ein_faktor),
+                                    round(einleitung.height * ein_faktor)), Image.LANCZOS)
+    grau = "#64748b" if hell else "#94a3b8"
+    r, g, b = banner._hex(grau)
+    voll = Image.new("RGBA", einleitung.size, (r, g, b, 255))
+    voll.putalpha(einleitung.split()[3])
+    einleitung = voll
     zeilen = [z.resize((round(z.width * faktor), round(z.height * faktor)), Image.LANCZOS)
               for z in zeilen]
     if hell:
@@ -79,14 +96,19 @@ def endcard(theme: str) -> Image.Image:
             voll.putalpha(z.split()[3])
             zeilen[i] = voll
 
-    abstand = 64          # Luft zwischen Tagline und Liste, wie im Banner
-    block_h = lock.height + abstand + sum(z.height for z in zeilen) + 14
+    abstand = 84                                   # Lockup -> Einleitung
+    nach_einleitung = round(einleitung.height * 0.85)
+    zeilenabstand = round(zeilen[0].height * 0.30)  # Luft zwischen den Plattform-Zeilen
+    block_h = (lock.height + abstand + einleitung.height + nach_einleitung
+               + sum(z.height for z in zeilen) + zeilenabstand * (len(zeilen) - 1))
     y = (H - block_h) // 2
     grund.alpha_composite(lock, ((W - lock.width) // 2, y))
     y += lock.height + abstand
+    grund.alpha_composite(einleitung, ((W - einleitung.width) // 2, y))
+    y += einleitung.height + nach_einleitung
     for z in zeilen:
         grund.alpha_composite(z, ((W - z.width) // 2, y))
-        y += z.height + 14
+        y += z.height + zeilenabstand
     return grund.convert("RGB")
 
 
