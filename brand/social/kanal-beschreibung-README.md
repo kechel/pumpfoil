@@ -36,3 +36,13 @@ Französisch und Deutsch reißen die Grenze als Erste.
 (Uhren-Apps + Konto-Verknüpfungen) · fünf Punkte „Was du bekommst" · Community · Open Source ·
 Links. Kommt eine Plattform dazu, ist es **eine Zeile in jeder Datei** — dieselbe Stelle, gleiche
 Reihenfolge wie in `brand/master/banner.py` (SUBLINE) und in der Uhren-Tabelle der PWA.
+
+## Bilder daneben
+
+`brand/master/banner.py` (YouTube-Banner 2560×1440) und `brand/master/endcard.py`
+(Shorts-Endcard 1080×1920, hell und dunkel) erzeugen ihre Bilder aus derselben
+Plattform-Liste (`banner.SUBLINE`) und mit derselben Proportion (`banner.SUB_BREITE`) —
+die Liste steht bewusst eine Spur schmaler als das Lockup, sonst wirkt sie größer als die
+Tagline. Beide Skripte laufen auf der Dev-VM (`python3 banner.py`, `python3 endcard.py`);
+`python3-cairosvg` ist dort installiert. **Hochladen bleibt Handarbeit.**
+

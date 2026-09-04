@@ -66,7 +66,9 @@ def endcard(theme: str) -> Image.Image:
 
     # Plattform-Liste, zwei Zeilen, exakt wie im Banner — gleiche Quelle, gleiche Teilung.
     zeilen = [banner.subline_image(z, px=64, tracking=6) for z in banner.subline_zeilen()]
-    faktor = breite / max(z.width for z in zeilen)
+    # Dieselbe Proportion wie im Banner (banner.SUB_BREITE): die Liste steht eine Spur schmaler
+    # als das Lockup, damit sie nicht groesser wirkt als die Tagline.
+    faktor = (breite * banner.SUB_BREITE) / max(z.width for z in zeilen)
     zeilen = [z.resize((round(z.width * faktor), round(z.height * faktor)), Image.LANCZOS)
               for z in zeilen]
     if hell:
@@ -77,7 +79,7 @@ def endcard(theme: str) -> Image.Image:
             voll.putalpha(z.split()[3])
             zeilen[i] = voll
 
-    abstand = 46
+    abstand = 64          # Luft zwischen Tagline und Liste, wie im Banner
     block_h = lock.height + abstand + sum(z.height for z in zeilen) + 14
     y = (H - block_h) // 2
     grund.alpha_composite(lock, ((W - lock.width) // 2, y))
