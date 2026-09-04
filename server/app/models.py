@@ -952,6 +952,25 @@ class PolarLink(Base):
     retry_count: Mapped[int] = mapped_column(Integer, default=0)
 
 
+class CorosMcpLink(Base):
+    """Verknüpfung eines Nutzers mit dem COROS **MCP-Server** (`app/api/coros_mcp.py`).
+
+    Getrennt von `coros_links`: das ist der klassische Partner-Weg (Push per Webhook, offener
+    Antrag). Der MCP-Weg braucht weder Vertrag noch Client-Secret — nur OAuth mit PKCE, und
+    er liefert die FIT-Dateien auf Abruf. Beide Wege sollen sich nicht ins Gehege kommen,
+    deshalb eine eigene Tabelle statt zusätzlicher Spalten mit anderer Bedeutung."""
+
+    __tablename__ = "coros_mcp_links"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), unique=True, index=True)
+    access_token: Mapped[str] = mapped_column(String(2048))
+    refresh_token: Mapped[str] = mapped_column(String(2048))
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    last_sync_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
 class PumpTruth(Base):
     """Vom Owner/Admin getappte echte Pump-Zeitpunkte (Tap-to-Label in der Play-Ansicht,
     synchron zum Video). Ground Truth zur Validierung + zum Training der Pump-Erkennung.

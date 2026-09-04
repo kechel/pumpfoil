@@ -64,16 +64,36 @@ export default function LinkedAccounts() {
 function CorosCard() {
   const { t } = useI18n();
   const [st, setSt] = useState<{ available: boolean; linked: boolean; last_sync_at: string | null } | null>(null);
+  // Zwei Wege zu COROS: der MCP-Server (seit 04.09. offen, ohne Partner-Vertrag) und die
+  // klassische Partner-API (Antrag laeuft). Der MCP-Weg hat Vorrang, sobald er eingerichtet
+  // ist; nur wenn er es NICHT ist, zeigt die Karte den alten Weg. So steht nie beides da.
+  const [mcp, setMcp] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
-  const load = () => api.corosStatus().then(setSt).catch(() => setSt(null));
+  const load = async () => {
+    const m = await api.corosMcpStatus().catch(() => null);
+    if (m?.available) { setMcp(true); setSt(m); return; }
+    setMcp(false);
+    setSt(await api.corosStatus().catch(() => null));
+  };
   useEffect(() => { load(); }, []);
   if (!st || !st.available) return null;
 
   async function connect() {
-    try { const r = await api.corosConnect(); window.location.href = r.authorize_url; } catch (e) { setMsg(String(e)); }
+    try {
+      const r = mcp ? await api.corosMcpConnect() : await api.corosConnect();
+      window.location.href = r.authorize_url;
+    } catch (e) { setMsg(String(e)); }
+  }
+  async function sync() {
+    setBusy(true);
+    try {
+      const r = await api.corosMcpSync();
+      setMsg(t("settings.polar.result", { imported: String(r.imported), skipped: String(r.skipped) }));
+    } catch (e) { setMsg(String(e)); } finally { setBusy(false); load(); }
   }
   async function unlink() {
-    await api.corosUnlink().catch(() => {});
+    await (mcp ? api.corosMcpUnlink() : api.corosUnlink()).catch(() => {});
     setMsg(""); load();
   }
 
@@ -86,12 +106,17 @@ function CorosCard() {
       ) : (
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm text-emerald-700 dark:text-emerald-400">{t("settings.coros.connected")}</span>
+          {mcp && (
+            <Button variant="secondary" onClick={sync} disabled={busy}>
+              {busy ? t("settings.polar.importing") : t("settings.suunto.sync")}
+            </Button>
+          )}
           <Button variant="ghost" onClick={unlink}>{t("settings.coros.unlink")}</Button>
         </div>
       )}
       {msg && <p className="mt-2 text-xs text-slate-400">{msg}</p>}
 
-      <div className="mt-4">
+      <div className={`mt-4 ${mcp ? "hidden" : ""}`}>
         <p className="mb-2 text-xs font-medium text-slate-400">{t("settings.coros.help")}</p>
         <ol className="list-decimal space-y-1.5 pl-5 text-sm text-slate-300">
           <li>{t("settings.coros.help1")}</li>
