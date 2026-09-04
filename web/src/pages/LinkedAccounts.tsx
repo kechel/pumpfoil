@@ -224,6 +224,15 @@ function XiaomiHinweis() {
     <Card className="p-5">
       <h3 className="mb-1 font-semibold">{t("linked.xiaomi.title")}</h3>
       <p className="mb-3 text-sm text-slate-300">{t("linked.xiaomi.hint")}</p>
+      <div className="mb-3 flex items-center gap-3">
+        <span className="inline-block rounded-lg bg-white px-3 py-2 shadow-sm">
+          <img src="/xiaomi-logo.jpg" alt="Xiaomi" className="h-10 w-auto rounded-md" />
+        </span>
+        <ChevronIcon className="h-4 w-4 text-slate-500" />
+        <span className="inline-block rounded-lg bg-white px-3 py-2 shadow-sm">
+          <img src="/suunto-logo.png" alt="Suunto" className="h-10 w-auto" />
+        </span>
+      </div>
       <ol className="ml-4 list-decimal space-y-1 text-sm text-slate-300">
         <li>{t("linked.xiaomi.step1")}</li>
         <li>{t("linked.xiaomi.step2")}</li>

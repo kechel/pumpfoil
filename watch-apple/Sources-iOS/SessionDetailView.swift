@@ -893,8 +893,12 @@ struct SessionDetailView: View {
     // AnyView -> der Type-Checker sieht die lets als normale Statements (nicht im Result-Builder).
     // Die Werte stecken zusaetzlich in EINEM typisierten Wert, die Zeilen in eigenen Teil-Views.
     private func trackSection(_ s: SessionDetail) -> some View {
-        guard let track = s.analysis?.track_geojson, track.geometry.coordinates.count >= 2,
-              let segs = s.analysis?.segments, !segs.isEmpty else { return AnyView(EmptyView()) }
+        // Karte auch OHNE erkannte Laeufe: die PWA zeichnet dann die komplette Spur, Android und
+        // iOS blendeten sie ganz aus. Wer prueft, ob seine Uhr ueberhaupt ortet, sah damit NICHTS
+        // und hielt die App fuer kaputt (Meldung 04.09.: „Karte sehe ich keine noch").
+        guard let track = s.analysis?.track_geojson, track.geometry.coordinates.count >= 2
+        else { return AnyView(EmptyView()) }
+        let segs = s.analysis?.segments ?? []
         let v = trackVals(track)
         return AnyView(VStack(alignment: .leading, spacing: 16) {
             modeRow(s, v)
@@ -1872,6 +1876,14 @@ private func uiSpeedColor(_ kmh: Double) -> UIColor { uiRampColor((kmh - 8) / (2
 private class PumpDot: NSObject, MKAnnotation { let coordinate: CLLocationCoordinate2D
     init(_ c: CLLocationCoordinate2D) { coordinate = c } }
 
+/// Start- bzw. Endpunkt der Spur — nur, wenn keine Laeufe erkannt wurden (dann gibt es keine
+/// andere Orientierung auf der Karte).
+private class EndPunkt: NSObject, MKAnnotation {
+    let coordinate: CLLocationCoordinate2D
+    let start: Bool
+    init(_ c: CLLocationCoordinate2D, start: Bool) { coordinate = c; self.start = start }
+}
+
 // Track auf MapKit-Karte: nur die Foiling-Läufe (segments[].i_start..i_end), je Punktpaar
 // nach Modus (Speed/Puls/Pump) gefärbt; Nicht-Foiling unsichtbar; optional weiße Pump-Marker.
 // iOS-16-tauglich über MKMapView (neue SwiftUI-Map-Polyline-API erst ab iOS 17).
@@ -1932,6 +1944,32 @@ struct TrackMap: UIViewRepresentable {
         co.points = points; co.segments = segments; co.onSelectRun = onSelectRun
         var all: [CLLocationCoordinate2D] = []
         var sel: [CLLocationCoordinate2D] = []
+        // Ohne erkannte Laeufe (GPS-only, grobes FIT-GPS, oder der Detektor fand nichts): die
+        // KOMPLETTE Spur zeichnen, damit man die Fahrt trotzdem sieht — wie die PWA. Groessere
+        // Lueckenschwelle, weil grobe Trackpunkte weiter auseinanderliegen.
+        if segments.isEmpty {
+            var i = 0
+            while i < points.count - 1 {
+                let a = points[i], b = points[i + 1]
+                let ca = CLLocationCoordinate2D(latitude: a[1], longitude: a[0])
+                let cb = CLLocationCoordinate2D(latitude: b[1], longitude: b[0])
+                let gap = CLLocation(latitude: ca.latitude, longitude: ca.longitude)
+                    .distance(from: CLLocation(latitude: cb.latitude, longitude: cb.longitude))
+                if gap <= 200 {
+                    let pl = MKPolyline(coordinates: [ca, cb], count: 2)
+                    co.colors[ObjectIdentifier(pl)] = colorAt(i + 1)
+                    co.widths[ObjectIdentifier(pl)] = 5
+                    map.addOverlay(pl)
+                    all.append(ca); all.append(cb)
+                }
+                i += 1
+            }
+            // Start gruen, Ende rot — dieselben Marken wie im Web.
+            if let erste = points.first, let letzte = points.last, erste.count >= 2, letzte.count >= 2 {
+                map.addAnnotation(EndPunkt(CLLocationCoordinate2D(latitude: erste[1], longitude: erste[0]), start: true))
+                map.addAnnotation(EndPunkt(CLLocationCoordinate2D(latitude: letzte[1], longitude: letzte[0]), start: false))
+            }
+        }
         for (runIdx, seg) in segments.enumerated() {
             let dim = selectedRun != nil && runIdx != selectedRun   // anderer Lauf -> ausgegraut
             let lo = max(0, min(seg.i_start, points.count - 1))
@@ -2033,6 +2071,20 @@ struct TrackMap: UIViewRepresentable {
             return r
         }
         func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+            if let e = annotation as? EndPunkt {
+                let id = "ende"
+                let v = mapView.dequeueReusableAnnotationView(withIdentifier: id)
+                    ?? MKAnnotationView(annotation: annotation, reuseIdentifier: id)
+                v.annotation = annotation
+                v.frame = CGRect(x: 0, y: 0, width: 12, height: 12)
+                v.backgroundColor = e.start ? UIColor(red: 0.13, green: 0.77, blue: 0.37, alpha: 1)
+                                            : UIColor(red: 0.94, green: 0.27, blue: 0.27, alpha: 1)
+                v.layer.cornerRadius = 6
+                v.layer.borderColor = UIColor.white.cgColor
+                v.layer.borderWidth = 1.5
+                v.isEnabled = false
+                return v
+            }
             guard annotation is PumpDot else { return nil }
             let id = "pump"
             let v = mapView.dequeueReusableAnnotationView(withIdentifier: id)

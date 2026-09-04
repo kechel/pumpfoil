@@ -23,7 +23,7 @@ const ROWS: { name: string; sub: string; gps: Cap; hr: Cap; pump: Cap; status: S
   // schiebt Trainings offiziell in die Suunto-App (Partnerschaft seit 2024, weltweit ausser China),
   // und dort holen wir sie ab. Deshalb Suunto-Logo in der Konto-Spalte mit eigenem Label.
   { name: "Xiaomi", sub: "Redmi Watch, Watch S …", gps: "yes", hr: "yes", pump: "no", status: "import", noteKey: "watches.nXiaomi",
-    account: { logo: "/suunto-logo.png", alt: "Suunto", labelKey: "watches.linkViaSuunto", imgClass: "h-10 w-auto" } },
+    account: { logo: "/xiaomi-logo.jpg", alt: "Xiaomi", labelKey: "watches.linkViaSuunto", imgClass: "h-8 w-auto rounded-md" } },
   { name: "COROS", sub: "Apex, Vertix …", gps: "yes", hr: "yes", pump: "no", status: "planned" },
   { name: "Fitbit", sub: "—", gps: "no", hr: "no", pump: "no", status: "no", noteKey: "watches.nFitbit" },
   { name: "Strava", sub: "Aktivitäts-Portal", gps: "yes", hr: "yes", pump: "no", status: "nope", noteKey: "watches.nStrava" },

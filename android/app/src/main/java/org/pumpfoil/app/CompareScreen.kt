@@ -665,7 +665,8 @@ private fun lauf(r: CompareRef, s: SessionDetail): Segment? =
 // Ein Fahrer-Punkt auf der Karte. osmdroid kennt keinen „Kreis-Marker", also malen wir einen:
 // gefuellt = faehrt gerade, hohl+blass = geparkt in der Pause. KEINE Namensschilder — die Farbe
 // reicht, die Kacheln ueber der Karte sind bereits die Legende (Jan, 31.08.).
-private fun punktMarker(map: MapView, p: GeoPoint, farbe: Color, dens: Float, hohl: Boolean): Marker {
+// Auch von SessionDetailScreen benutzt (Start-/Endpunkt der Spur ohne erkannte Laeufe).
+internal fun punktMarker(map: MapView, p: GeoPoint, farbe: Color, dens: Float, hohl: Boolean): Marker {
     val r = (if (hohl) 5f else 7f) * dens
     val rand = 2f * dens
     val size = ((r + rand) * 2f).toInt().coerceAtLeast(4)
