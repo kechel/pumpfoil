@@ -197,7 +197,7 @@ const ja: Record<string, string> = {
   "cr.foilHighAspect": "ハイアスペクト（AR {n} 以上）",
   "cr.foilThick": "厚翼（AR {n} 未満）",
   "cr.bandRange": "比較対象はこの範囲のフォイルだけです：{grenzen}。",
-  "cr.bandMine": "あなたの {foil} と同じくらいのフォイルと比較します（{grenzen}）。基準はプロフィールの標準フォイル、未設定なら一番よく乗っているフォイルです。",
+  "cr.bandMine": "あなたの {foil} と同じくらいのフォイルと比較します（{grenzen}）。",
   "cr.bandMineNone": "この比較には基準となるフォイルが必要です。プロフィールで面積と全幅のある標準フォイルを設定してください。",
   "cr.bandAspect": "アスペクト比 {a}〜{b}",
   "cr.bandAspectFrom": "アスペクト比 {n} 以上",
