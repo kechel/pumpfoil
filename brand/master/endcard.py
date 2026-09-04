@@ -37,7 +37,7 @@ CYAN_HELL = "#0e7490"
 APP_ZEILE = "FREE APP & COMMUNITY"
 # Unser Gruss, unuebersetzt — so steht er in jeder Nutzer-Nachricht und am Ende jeder
 # Ankuendigung. Auf der Endcard ist er die Unterschrift unter dem Ganzen (Jan, 04.09.).
-MOTTO = "Have fun, keep pumping!"
+MOTTO = ("Have fun,", "keep pumping!")
 
 
 def verlauf(farben: tuple[str, str, str]) -> Image.Image:
@@ -104,23 +104,30 @@ def endcard(theme: str) -> Image.Image:
 
     # Motto als Unterschrift: in Marken-Cyan, gemischte Schreibweise (alles andere steht in
     # Versalien) — dadurch liest es sich wie ein Zuruf und nicht wie eine weitere Ueberschrift.
-    motto = banner.subline_image(MOTTO, px=44, tracking=2)
-    m_faktor = (breite * 0.66) / motto.width
-    motto = motto.resize((round(motto.width * m_faktor), round(motto.height * m_faktor)),
-                         Image.LANCZOS)
-    if hell:
-        r, g, b = banner._hex(CYAN_HELL)
-        voll_m = Image.new("RGBA", motto.size, (r, g, b, 255))
-        voll_m.putalpha(motto.split()[3])
-        motto = voll_m
+    # Zwei Zeilen statt einer: dieselbe Breite, halb so viele Zeichen je Zeile — also fast
+    # doppelt so gross (Jan, 04.09.). Beide Zeilen mit DEMSELBEN Faktor, sonst haetten sie
+    # verschieden grosse Schrift.
+    motto = [banner.subline_image(z, px=44, tracking=2) for z in MOTTO]
+    m_faktor = (breite * 0.66) / max(z.width for z in motto)
+    motto = [z.resize((round(z.width * m_faktor), round(z.height * m_faktor)), Image.LANCZOS)
+             for z in motto]
+    # Auf dunklem Grund WEISS — so steht der Gruss auch in den Videos (Jan, 04.09.).
+    # Auf hellem Grund waere Weiss unsichtbar, dort das dunklere Cyan wie bei der Liste.
+    r, g, b = banner._hex(CYAN_HELL if hell else "#ffffff")
+    for i, z in enumerate(motto):
+        voll_m = Image.new("RGBA", z.size, (r, g, b, 255))
+        voll_m.putalpha(z.split()[3])
+        motto[i] = voll_m
+    motto_zeilenabstand = round(motto[0].height * 0.08)
+    motto_h = sum(z.height for z in motto) + motto_zeilenabstand * (len(motto) - 1)
 
     abstand = 84                                   # Lockup -> Einleitung
     nach_einleitung = round(einleitung.height * 0.85)
     zeilenabstand = round(zeilen[0].height * 0.30)  # Luft zwischen den Plattform-Zeilen
-    vor_motto = round(motto.height * 1.5)
+    vor_motto = round(motto[0].height * 1.1)
     block_h = (lock.height + abstand + einleitung.height + nach_einleitung
                + sum(z.height for z in zeilen) + zeilenabstand * (len(zeilen) - 1)
-               + vor_motto + motto.height)
+               + vor_motto + motto_h)
     y = (H - block_h) // 2
     grund.alpha_composite(lock, ((W - lock.width) // 2, y))
     y += lock.height + abstand
@@ -130,7 +137,9 @@ def endcard(theme: str) -> Image.Image:
         grund.alpha_composite(z, ((W - z.width) // 2, y))
         y += z.height + zeilenabstand
     y += vor_motto - zeilenabstand
-    grund.alpha_composite(motto, ((W - motto.width) // 2, y))
+    for z in motto:
+        grund.alpha_composite(z, ((W - z.width) // 2, y))
+        y += z.height + motto_zeilenabstand
     return grund.convert("RGB")
 
 
