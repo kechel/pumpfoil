@@ -47,6 +47,7 @@ export default function LinkedAccounts() {
         <PolarCard />
         <CorosCard />
         <SuuntoCard />
+        <XiaomiHinweis />
         <StravaCard />
       </div>
       <div className="mt-6">
@@ -208,6 +209,27 @@ function SuuntoCard() {
         </div>
       )}
       {msg && <p className="mt-2 text-xs text-slate-400">{msg}</p>}
+    </Card>
+  );
+}
+
+// Xiaomi/Redmi haben keine eigene Schnittstelle fuer uns (Xiaomis Health-Cloud ist nur fuer
+// Partner offen, eine App auf der Uhr laesst Xiaomi nicht zu). Der Umweg ist aber offiziell:
+// Xiaomi und Suunto haben ihre Apps 2024 miteinander verbunden, weltweit ausser China. Deshalb
+// steht die Anleitung hier bei der Suunto-Karte und nicht als eigene Verknuepfung — es GIBT
+// keine Xiaomi-Verknuepfung, nur diesen Weg.
+function XiaomiHinweis() {
+  const { t } = useI18n();
+  return (
+    <Card className="p-5">
+      <h3 className="mb-1 font-semibold">{t("linked.xiaomi.title")}</h3>
+      <p className="mb-3 text-sm text-slate-300">{t("linked.xiaomi.hint")}</p>
+      <ol className="ml-4 list-decimal space-y-1 text-sm text-slate-300">
+        <li>{t("linked.xiaomi.step1")}</li>
+        <li>{t("linked.xiaomi.step2")}</li>
+        <li>{t("linked.xiaomi.step3")}</li>
+      </ol>
+      <p className="mt-3 text-xs text-slate-400">{t("linked.xiaomi.note")}</p>
     </Card>
   );
 }
