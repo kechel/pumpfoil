@@ -619,6 +619,29 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 04.09. — COROS ist offen, ohne Partner-Vertrag: MCP-Anbindung gebaut.**
+  COROS hat auf unseren Antrag vom 16.07. geantwortet: statt des klassischen Partner-Wegs gibt es
+  jetzt einen **MCP-Server** — „no application or approval needed", OAuth 2.0.
+  - **Selbst geprueft (04.09.):** `https://mcpeu.coros.com` veroeffentlicht seine OAuth-Metadaten
+    und erlaubt **Dynamic Client Registration** (`/connect/register`). Unsere Registrierung lief
+    durch → oeffentlicher Client, `token_endpoint_auth_method: none`, also **PKCE Pflicht**,
+    Scopes `openid mcp.tools offline_access`. Client-ID steht in `server/.env`
+    (`OAUTH_COROS_MCP_CLIENT_ID`).
+  - **Wichtig fuer uns:** der Server bietet `querySportRecords` UND
+    `downloadActivityFitFiles` — die **FIT-Datei** kommt also mit, damit auch die GPS-Spur.
+    Kontingent **50 FIT-Dateien je Konto und Kalendertag**; unser Sync holt hoechstens 25.
+  - **Gebaut:** `server/app/api/coros_mcp.py` (OAuth mit PKCE, MCP-Transport ueber JSON-RPC mit
+    Sitzungs-ID, JSON *und* SSE-Antworten, `/sync` mit FIT-Import ueber `import_parsed_session`),
+    Tabelle `coros_mcp_links`, Karte auf `/konten` (der MCP-Weg hat Vorrang vor dem Partner-Weg,
+    `coros.py` bleibt unangetastet).
+  - **NOCH NICHT END-ZU-ENDE GEPRUEFT:** COROS dokumentiert die Werkzeug-NAMEN, aber nicht ihre
+    Parameter. Der Sync raet daher bei `startDate`/`endDate`/`activityIds` und liest die Antwort
+    defensiv. Dafuer gibt es `GET /api/integrations/coros/mcp/tools` — einmal mit einem echten
+    Token aufrufen, die Schemata ablesen, den Sync nachziehen. **Braucht ein COROS-Konto**
+    (Anmeldung reicht, eine Uhr ist fuer den Werkzeug-Abruf nicht noetig).
+  - Offen aus der Mail: fuer Webhooks/Zwei-Wege-Sync/Mehrnutzer-Zugangsdaten kommt COROS
+    „in den kommenden Wochen" aktiv auf Plattformen zu — das waere der Weg zum Push statt Abruf.
+
 - **📥 03.09. (Frédéric, Feedback android-app) — Xiaomi/Redmi als Uhr-Plattform pruefen.**
   Wortlaut (fr): ob es ein Update fuer andere Uhrenmarken gibt, er habe eine **Redmi Watch**.
   Das ist eine Luecke in der Roadmap-Betrachtung: Redmi/Xiaomi-Uhren laufen auf **HyperOS/Vela**

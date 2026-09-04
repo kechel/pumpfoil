@@ -719,6 +719,11 @@ export const api = {
   corosStatus: () => req<{ available: boolean; linked: boolean; last_sync_at: string | null }>("/api/integrations/coros/status"),
   corosConnect: () => req<{ authorize_url: string }>("/api/integrations/coros/connect"),
   corosUnlink: () => req<{ ok: boolean }>("/api/integrations/coros", { method: "DELETE" }),
+  // COROS ueber den MCP-Server: der Weg ohne Partner-Vertrag (server/app/api/coros_mcp.py).
+  corosMcpStatus: () => req<{ available: boolean; linked: boolean; last_sync_at: string | null }>("/api/integrations/coros/mcp/status"),
+  corosMcpConnect: () => req<{ authorize_url: string }>("/api/integrations/coros/mcp/connect"),
+  corosMcpSync: () => req<{ imported: number; skipped: number; failed: number; found: number }>("/api/integrations/coros/mcp/sync", { method: "POST" }),
+  corosMcpUnlink: () => req<{ ok: boolean }>("/api/integrations/coros/mcp", { method: "DELETE" }),
 
   getPumpTruth: (id: number, runIdx: number | null) =>
     req<{ run_idx: number | null; takes: { take: number; times_ms: number[] }[]; next_take: number }>(

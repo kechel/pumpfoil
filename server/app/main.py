@@ -9,7 +9,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from .api import admin, appmeta, auth, boards, chat, community, coros, devices, feedback, foils, health as health_api, ingest, layouts, ml, oauth, polar, push, sessions, settings as settings_api, social, spotnotes, stabs, strava, suunto, transfers
+from .api import admin, appmeta, auth, boards, chat, community, coros, coros_mcp, devices, feedback, foils, health as health_api, ingest, layouts, ml, oauth, polar, push, sessions, settings as settings_api, social, spotnotes, stabs, strava, suunto, transfers
 from .api.deps import require_social
 from .config import get_settings
 from .db import init_db
@@ -313,6 +313,8 @@ app.include_router(social.admin_router)
 app.include_router(oauth.router)
 app.include_router(polar.router)
 app.include_router(coros.router)
+# COROS ueber den MCP-Server — der Weg ohne Partner-Vertrag (s. app/api/coros_mcp.py).
+app.include_router(coros_mcp.router)
 app.include_router(suunto.router)
 app.include_router(strava.router)
 app.include_router(push.router)
