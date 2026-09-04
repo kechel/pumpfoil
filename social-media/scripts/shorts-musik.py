@@ -52,6 +52,8 @@ BASE = Path(__file__).resolve().parent.parent  # scripts/ → social-media/
 VIDEO_DIR = BASE / "neue-videos-ungesichtet"
 MUSIC_DIR = BASE / "musik"
 OVERLAY_DIR = BASE / "overlays"
+# Endcards liegen bei den Markenassets, nicht bei den Arbeitsdateien
+ENDCARD_DIR = BASE.parent / "brand" / "social"
 OUT_DIR = BASE / "shorts-mit-musik"
 PROCESSED_DIR = BASE / "videos-verarbeitet"  # Quellvideos nach erfolgreichem Render
 INBOX_DIR = BASE / "neue-videos-ungesichtet"  # Ziel beim Verwerfen eines Exports
@@ -277,7 +279,8 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
            trim_start: float = 0.0, trim_end: float = None,
            texts: list = None, outro: Path = None,
            overlay_alpha: float = 1.0,
-           oton_gain_db: float = 0.0, ducks: list = None):
+           oton_gain_db: float = 0.0, ducks: list = None,
+           endcard: dict = None):
     full = duration_of(video)
     start = max(0.0, min(trim_start or 0.0, full))
     end = min(trim_end, full) if trim_end else full
@@ -362,6 +365,24 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
             f",fade=t=out:st={e - TEXT_FADE:.3f}:d={TEXT_FADE}:alpha=1[t{i}];"
             f"{vsrc}[t{i}]overlay=0:0:format=auto[v{i}]")
         vsrc = f"[v{i}]"
+    # Endcard: ganzflaechiges Bild an frei gewaehlter Stelle, mit eigener
+    # Ein-/Ausblenddauer und Standzeit. Liegt ueber den Texten, damit sie
+    # nicht durchscheinen, aber unter dem Outro.
+    if endcard and endcard.get("path"):
+        w, h = video_dims(video)
+        inputs += ["-loop", "1", "-i", str(endcard["path"])]
+        idx = n_inputs
+        n_inputs += 1
+        s0 = max(0.0, float(endcard.get("start", 0.0)) - start)
+        fi = max(0.05, float(endcard.get("fade_in", 0.6)))
+        hold = max(0.0, float(endcard.get("hold", 3.0)))
+        fo = max(0.05, float(endcard.get("fade_out", 0.6)))
+        fc_parts.append(
+            f"[{idx}:v]format=rgba,scale={w}:{h}"
+            f",fade=t=in:st={s0:.3f}:d={fi:.3f}:alpha=1"
+            f",fade=t=out:st={s0 + fi + hold:.3f}:d={fo:.3f}:alpha=1[ec];"
+            f"{vsrc}[ec]overlay=0:0:format=auto[vec]")
+        vsrc = "[vec]"
     if outro:
         # Plattform-Icons (Like/Follow/…) in den letzten Sekunden einblenden
         inputs += ["-loop", "1", "-i", str(outro)]
@@ -510,10 +531,13 @@ def list_state():
     overlays = sorted(
         p.name for p in OVERLAY_DIR.glob("*.png") if not p.name.startswith(".")
     ) if OVERLAY_DIR.is_dir() else []
+    endcards = sorted(
+        p.name for p in ENDCARD_DIR.glob("shorts-endcard-*.png")
+    ) if ENDCARD_DIR.is_dir() else []
     return {"videos": videos, "tracks": tracks, "rendered": rendered,
             "platforms": PLATFORMS, "video_dir": video_dir,
             "parent": str(VIDEO_DIR.parent), "subdirs": subdirs,
-            "overlays": overlays, "next_number": next_number(),
+            "overlays": overlays, "endcards": endcards, "next_number": next_number(),
             "name_prefix": name_prefix(), "stars": sorted(load_stars()),
             "quick_dirs": [{"label": lbl, "dir": str(Path(d).resolve())}
                            for lbl, d in QUICK_DIRS if Path(d).is_dir()],
@@ -1598,6 +1622,8 @@ class Handler(BaseHTTPRequestHandler):
                 self._file(safe_child(OUT_DIR, path[len("/media/out/"):]))
             elif path.startswith("/media/overlay/"):
                 self._file(safe_child(OVERLAY_DIR, path[len("/media/overlay/"):]))
+            elif path.startswith("/media/endcard/"):
+                self._file(safe_child(ENDCARD_DIR, path[len("/media/endcard/"):]))
             elif path.startswith("/cover/"):
                 name = Path(path[len("/cover/"):]).name
                 pf = (query.get("base", ["instagram"])[0] or "instagram")
@@ -1901,6 +1927,17 @@ class Handler(BaseHTTPRequestHandler):
                 overlay = safe_child(OVERLAY_DIR, req["overlay"])
             except FileNotFoundError:
                 return self._json({"error": "Overlay nicht gefunden"}, 400)
+        endcard = None
+        ec = req.get("endcard") or {}
+        if ec.get("file"):
+            try:
+                endcard = {"path": safe_child(ENDCARD_DIR, ec["file"]),
+                           "start": float(ec.get("start") or 0),
+                           "fade_in": float(ec.get("fade_in") or 0.6),
+                           "hold": float(ec.get("hold") or 3),
+                           "fade_out": float(ec.get("fade_out") or 0.6)}
+            except (FileNotFoundError, TypeError, ValueError):
+                return self._json({"error": "Endcard nicht gefunden"}, 400)
         results = {}
         for pf in (*PLATFORMS, "tiktok"):
             rel = (req.get("tracks") or {}).get(pf)
@@ -1922,7 +1959,7 @@ class Handler(BaseHTTPRequestHandler):
                 render(video, track, out, gain, fade_out, overlay,
                        trim_start, trim_end, texts, outros.get(pf),
                        float(req.get("overlay_alpha", 1.0)),
-                       oton_gain_db=oton_gain, ducks=ducks)
+                       oton_gain_db=oton_gain, ducks=ducks, endcard=endcard)
                 results[pf] = {"ok": True, "out": str(out.relative_to(BASE))}
             except subprocess.CalledProcessError as e:
                 results[pf] = {"ok": False, "error": (e.stderr or "")[-400:]}

@@ -46,6 +46,11 @@ interface DuckSlot {
 }
 const DUCK_N = 3;
 const DUCK_FADE = 0.5;
+// Endcard-Einblendung: Startzeit, Ein-/Ausblendung und Standzeit frei waehlbar,
+// damit das Bild nicht im Video mitgerendert werden muss.
+interface EndCard { file: string; start: number | null; fadeIn: number; hold: number; fadeOut: number }
+const emptyEndcard = (): EndCard => ({ file: "", start: null, fadeIn: 0.6, hold: 3, fadeOut: 0.6 });
+
 const emptyDucks = (): DuckSlot[] =>
   Array.from({ length: DUCK_N }, () => ({ start: null, end: null, music: -12, oton: 0 }));
 
@@ -135,6 +140,12 @@ function Studio() {
   const [gain, setGain] = useState(sv("gain", -12));
   const [otonGain, setOtonGain] = useState(sv("otonGain", 0));
   const [ducks, setDucks] = useState<DuckSlot[]>(sv("ducks", emptyDucks()));
+  // Rechte Spalte: Einstellungen und Musiksuche teilen sich die Hoehe nicht mehr,
+  // sondern loesen einander ab — es wurde schlicht zu eng.
+  const [sideTab, setSideTab] = useState<"set" | "musik">(sv("sideTab", "set"));
+  // Endcard: ganzflaechiges Bild an frei gewaehlter Stelle, Zeiten in Sekunden
+  const [endcard, setEndcard] = useState<EndCard>(sv("endcard", emptyEndcard()));
+  const ecImgRef = useRef<HTMLImageElement | null>(null);
   const [fade, setFade] = useState(sv("fade", 2));
   const [outName, setOutName] = useState(sv("outName", ""));
   const [ovOn, setOvOn] = useState(sv("ovOn", true));
@@ -150,9 +161,10 @@ function Studio() {
   useEffect(() => {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({
       curVideo, sel, pvPlatform, trim, texts, gain, otonGain, ducks, fade,
+      sideTab, endcard,
       outName, ovOn, ovSel, ovAlpha, outroOn, fltYT, fltIG, fltTT,
     }));
-  }, [curVideo, sel, pvPlatform, trim, texts, gain, otonGain, ducks, fade, outName, ovOn, ovSel, ovAlpha, outroOn, fltYT, fltIG, fltTT]);
+  }, [curVideo, sel, pvPlatform, trim, texts, gain, otonGain, ducks, fade, outName, ovOn, ovSel, ovAlpha, outroOn, fltYT, fltIG, fltTT, sideTab, endcard]);
   const [browserOpen, setBrowserOpen] = useState(false);
   const [dirInput, setDirInput] = useState("");
   const [log, setLog] = useState("");
@@ -170,8 +182,8 @@ function Studio() {
   const outroCacheRef = useRef<{ key: string; url: string }>({ key: "", url: "" });
 
   // Live-Werte für den rAF-Loop (State-Snapshot ohne Re-Subscribe)
-  const live = useRef({ trim, texts, outroOn, pvPlatform, curPlay, ducks, gain, otonGain });
-  live.current = { trim, texts, outroOn, pvPlatform, curPlay, ducks, gain, otonGain };
+  const live = useRef({ trim, texts, outroOn, pvPlatform, curPlay, ducks, gain, otonGain, endcard });
+  live.current = { trim, texts, outroOn, pvPlatform, curPlay, ducks, gain, otonGain, endcard };
 
   const load = useCallback(async () => {
     const s = await api.list();
@@ -284,7 +296,7 @@ function Studio() {
     const loop = () => {
       const vid = vidRef.current;
       if (vid) {
-        const { trim, texts, outroOn, pvPlatform, ducks, gain, otonGain } = live.current;
+        const { trim, texts, outroOn, pvPlatform, ducks, gain, otonGain, endcard } = live.current;
         const t = vid.currentTime;
         if (!vid.paused) {
           if (trim.end != null && t >= trim.end) vid.currentTime = trim.start ?? 0;
@@ -324,6 +336,18 @@ function Studio() {
           el.style.fontSize = `${(tx.size ?? TXS) * scale}px`;
           el.style.opacity = String(a);
         });
+        const ec = ecImgRef.current;
+        if (ec) {
+          const on = endcard.file && endcard.start != null;
+          if (!on) ec.style.opacity = "0";
+          else {
+            const s0 = endcard.start as number;
+            const e0 = s0 + endcard.fadeIn + endcard.hold;
+            ec.style.opacity = String(Math.max(0, Math.min(
+              Math.min((t - s0) / Math.max(0.05, endcard.fadeIn),
+                       (e0 + endcard.fadeOut - t) / Math.max(0.05, endcard.fadeOut)), 1)));
+          }
+        }
         const oi = outroImgRef.current;
         if (oi) {
           const dur = vid.duration;
@@ -545,6 +569,7 @@ function Studio() {
     setGain(-12);
     setOtonGain(0);
     setDucks(emptyDucks());
+    setEndcard(emptyEndcard());
     setFade(2);
     setOutName("");
     setOvOn(true);
@@ -605,6 +630,10 @@ function Studio() {
         fade_out: fade,
         overlay: (ovOn && ovSel) || null,
         overlay_alpha: ovAlpha,
+        endcard: endcard.file && endcard.start != null
+          ? { file: endcard.file, start: endcard.start, fade_in: endcard.fadeIn,
+              hold: endcard.hold, fade_out: endcard.fadeOut }
+          : null,
         trim_start: trim.start,
         trim_end: trim.end,
         out_name: outName,
@@ -632,7 +661,7 @@ function Studio() {
     setRenderingVideo(null);
     setRendering(false);
     void load();
-  }, [ready, curVideo, sel, gain, otonGain, ducks, fade, ovOn, ovSel, trim, outName, texts, outroOn, stopMusic, load]);
+  }, [ready, curVideo, sel, gain, otonGain, ducks, fade, ovOn, ovSel, trim, outName, texts, outroOn, endcard, stopMusic, load]);
 
   if (!state) return <div style={{ padding: 20, opacity: 0.6 }}>lade …</div>;
 
@@ -780,6 +809,10 @@ function Studio() {
             <video ref={vidRef} controls playsInline loop />
             {ovOn && ovSel && (
               <img className="ovimg" alt="" style={{ opacity: ovAlpha }} src={`/media/overlay/${encodeURIComponent(ovSel)}`} />
+            )}
+            {endcard.file && (
+              <img ref={ecImgRef} className="ovimg" alt="" style={{ opacity: 0 }}
+                   src={`/media/endcard/${encodeURIComponent(endcard.file)}`} />
             )}
             <img ref={outroImgRef} className="outroimg" alt="" style={{ opacity: 0 }} />
             {texts.map((_, i) => (
@@ -941,8 +974,15 @@ function Studio() {
 
       {/* ---------- rechte Spalte: Musik + Render ---------- */}
       <div className="col right">
-        <h2>Musik</h2>
-        <div className="panel">
+        <div className="sidetabs">
+          <button className={sideTab === "set" ? "on" : ""} onClick={() => setSideTab("set")}>
+            Einstellungen
+          </button>
+          <button className={sideTab === "musik" ? "on" : ""} onClick={() => setSideTab("musik")}>
+            Musik{selTracks.length ? ` (${selTracks.length})` : ""}
+          </button>
+        </div>
+        <div className="panel" hidden={sideTab !== "set"}>
           <div className="row">
             Musik-Pegel
             <input type="range" min={-30} max={0} step={1} value={gain} onChange={(e) => setGain(+e.target.value)} />
@@ -956,6 +996,53 @@ function Studio() {
           <div className="row">
             Fade-out
             <input type="number" min={0} max={15} step={0.5} value={fade} onChange={(e) => setFade(+e.target.value)} /> s
+          </div>
+          {/* Endcard: statt ins Video gerendert erst hier entschieden */}
+          <div className="ecard">
+            <div className="row">
+              Endcard
+              <select value={endcard.file}
+                      onChange={(e) => setEndcard({ ...endcard, file: e.target.value })}>
+                <option value="">— keine</option>
+                {(state?.endcards ?? []).map((f) => (
+                  <option key={f} value={f}>
+                    {f.replace(/^shorts-endcard-/, "").replace(/-\d+x\d+\.png$/, "")}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {endcard.file && (
+              <>
+                <div className="row">
+                  ab
+                  <button className="mini" title="aktuelle Abspielposition übernehmen"
+                          onClick={() => vidRef.current
+                            && setEndcard({ ...endcard, start: +vidRef.current.currentTime.toFixed(1) })}>
+                    @
+                  </button>
+                  <input type="number" min={0} step={0.1} value={endcard.start ?? ""}
+                         placeholder="—"
+                         onChange={(e) => setEndcard({ ...endcard,
+                           start: e.target.value === "" ? null : +e.target.value })} /> s
+                </div>
+                <div className="row ectimes">
+                  <label title="Einblenddauer">▲<input type="number" min={0.1} max={5} step={0.1}
+                    value={endcard.fadeIn}
+                    onChange={(e) => setEndcard({ ...endcard, fadeIn: +e.target.value })} /></label>
+                  <label title="Standzeit bei voller Deckkraft">■<input type="number" min={0} max={30} step={0.5}
+                    value={endcard.hold}
+                    onChange={(e) => setEndcard({ ...endcard, hold: +e.target.value })} /></label>
+                  <label title="Ausblenddauer">▼<input type="number" min={0.1} max={5} step={0.1}
+                    value={endcard.fadeOut}
+                    onChange={(e) => setEndcard({ ...endcard, fadeOut: +e.target.value })} /></label>
+                  <span className="ecsum">
+                    {endcard.start == null ? "Startzeit fehlt"
+                      : `${endcard.start.toFixed(1)}–${(endcard.start + endcard.fadeIn
+                          + endcard.hold + endcard.fadeOut).toFixed(1)} s`}
+                  </span>
+                </div>
+              </>
+            )}
           </div>
           <div className="row">
             <label>
@@ -1066,7 +1153,7 @@ function Studio() {
           )}
           {log && <div className="log">{log}</div>}
         </div>
-        <div className="searchrow">
+        <div className="searchrow" hidden={sideTab !== "musik"}>
           <input
             type="search"
             placeholder="Musik durchsuchen …"
@@ -1084,7 +1171,7 @@ function Studio() {
             <input type="checkbox" checked={fltTT} onChange={(e) => setFltTT(e.target.checked)} /> TT
           </label>
         </div>
-        <div className="scroll">
+        <div className="scroll" hidden={sideTab !== "musik"}>
           {selTracks.length > 0 && <div className="seltracks">{selTracks.map(trackRow)}</div>}
           {listTracks.map(trackRow)}
         </div>
