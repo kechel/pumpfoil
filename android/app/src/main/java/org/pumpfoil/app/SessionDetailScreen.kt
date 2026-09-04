@@ -865,7 +865,11 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
         // optional Pump-Marker — wie im Web.
         trackForRuns?.let { track ->
             val segs = a?.segments.orEmpty()
-            if (track.points.size >= 2 && segs.isNotEmpty()) {
+            // Karte auch OHNE erkannte Laeufe zeigen: die PWA macht das laengst (dort wird dann
+            // die komplette Spur gezeichnet), Android und iOS blendeten sie ganz aus. Fuer wen das
+            // wichtig ist: wer prueft, ob seine Uhr ueberhaupt ortet, sieht sonst NICHTS und haelt
+            // die App fuer kaputt — genau so gemeldet am 04.09. („Karte sehe ich keine noch").
+            if (track.points.size >= 2) {
                 val hasHr = remember(track) { track.hr.any { it != null && it > 0 } }
                 val hasPump = remember(track) { track.pumpHz.any { it != null } }
                 val hrRange = remember(track) {
@@ -1307,6 +1311,31 @@ private fun TrackMap(
                 })
                 val allPts = ArrayList<GeoPoint>()
                 val selPts = ArrayList<GeoPoint>()
+                // Ohne erkannte Laeufe (GPS-only, grobes FIT-GPS, oder der Detektor fand nichts):
+                // die KOMPLETTE Spur zeichnen, damit man die Fahrt trotzdem sieht — wie die PWA.
+                // Groessere Lueckenschwelle, weil grobe Trackpunkte weiter auseinanderliegen.
+                if (segments.isEmpty()) {
+                    for (i in 0 until pts.size - 1) {
+                        val a0 = pts[i]; val b0 = pts[i + 1]
+                        val pa = GeoPoint(a0.second, a0.first)
+                        val pb = GeoPoint(b0.second, b0.first)
+                        if (pa.distanceToAsDouble(pb) > 200.0) continue
+                        map.overlays.add(Polyline(map).apply {
+                            setPoints(listOf(pa, pb))
+                            outlinePaint.color = colorAt(i + 1).toArgb()
+                            outlinePaint.strokeWidth = 5f * dens
+                        })
+                        allPts.add(pa); allPts.add(pb)
+                    }
+                    // Start gruen, Ende rot — dieselben Marken wie im Web (punktMarker teilt sich
+                    // die Darstellung mit der Vergleichskarte).
+                    if (pts.isNotEmpty()) {
+                        map.overlays.add(punktMarker(map, GeoPoint(pts.first().second, pts.first().first),
+                            Color(0xFF22C55E), dens, hohl = false))
+                        map.overlays.add(punktMarker(map, GeoPoint(pts.last().second, pts.last().first),
+                            Color(0xFFEF4444), dens, hohl = false))
+                    }
+                }
                 segments.forEachIndexed { runIdx, seg ->
                     val dim = selectedRun != null && runIdx != selectedRun   // anderer Lauf -> ausgegraut
                     val start = seg.iStart.coerceIn(0, pts.size - 1)

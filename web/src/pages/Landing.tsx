@@ -292,11 +292,10 @@ export default function Landing() {
             <span className="inline-block rounded-xl bg-white px-5 py-3 shadow-sm">
               <img src="/polar-logo.jpg" alt="Polar" loading="lazy" className="h-7 w-auto" />
             </span>
-            {/* Xiaomi hat kein Logo bei uns liegen (und keine eigene Schnittstelle): Mi Fitness
-                schiebt die Trainings offiziell zu Suunto, dort holen wir sie ab. Als Textkachel,
-                damit die Plattform auf der oeffentlichen Seite auftaucht. */}
-            <span className="inline-flex flex-col items-center rounded-xl bg-white px-5 py-2.5 shadow-sm">
-              <span className="text-lg font-bold text-slate-900">Xiaomi</span>
+            {/* Xiaomi: keine eigene Schnittstelle — Mi Fitness schiebt die Trainings offiziell zu
+                Suunto, dort holen wir sie ab. Der Zusatz sagt das in einer Zeile. */}
+            <span className="inline-flex flex-col items-center gap-1 rounded-xl bg-white px-5 py-3 shadow-sm">
+              <img src="/xiaomi-logo.jpg" alt="Xiaomi" loading="lazy" className="h-10 w-auto rounded-lg" />
               <span className="text-[11px] text-slate-500">{t("land.connectXiaomi")}</span>
             </span>
           </div>
