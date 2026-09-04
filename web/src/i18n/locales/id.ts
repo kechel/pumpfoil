@@ -1013,7 +1013,7 @@ const id: Record<string, string> = {
   "settings.polar.result": "{imported} diimpor, {skipped} dilewati",
   "settings.coros.title": "Impor COROS",
   "settings.coros.hint": "Hubungkan akun COROS-mu (Open API). Workout baru diimpor otomatis sebagai sesi.",
-  "settings.coros.testHint": "Kamu tidak perlu sesi pump sungguhan: jalan kaki 100 meter di luar sudah cukup. Setelah itu kabari kami — pesan ke Jan di chat atau lewat formulir masukan — dan kami cek impornya.",
+  "settings.coros.testHint": "Koneksi ini benar-benar baru dan belum diuji dengan latihan sungguhan — kami akan sangat senang kalau ada yang mencobanya. Kamu tidak perlu sesi pump sungguhan: jalan kaki 100 meter di luar sudah cukup. Setelah itu kabari kami — pesan ke Jan di chat atau lewat formulir masukan — dan kami cek impornya.",
   "settings.coros.connect": "Hubungkan COROS",
   "settings.coros.connected": "Terhubung — impor otomatis",
   "settings.coros.unlink": "Putuskan",

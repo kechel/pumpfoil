@@ -704,7 +704,7 @@ const gsw: Record<string, string> = {
   "settings.polar.result": "{imported} importiert, {skipped} übersprunge",
   "settings.coros.title": "COROS-Import",
   "settings.coros.hint": "Verbinde dis COROS-Konto (Open API). Neui Trainings werded automatisch als Sessions importiert.",
-  "settings.coros.testHint": "Du muesch defür kei echti Pump-Session fahre: en Spaziergang vo 100 Meter dusse längt völlig. Sag is denn churz Bscheid — im Chat a de Jan oder übers Feedback-Formular —, denn luege mer is de Import a.",
+  "settings.coros.testHint": "Die Aabindig isch ganz nöi und no nid mit echte Trainings erprobt — mir freued is sehr, wenn si öpper uspröbiert. Du muesch defür kei echti Pump-Session fahre: en Spaziergang vo 100 Meter dusse längt völlig. Sag is denn churz Bscheid — im Chat a de Jan oder übers Feedback-Formular —, denn luege mer is de Import a.",
   "settings.coros.connect": "Mit COROS verbinde",
   "settings.coros.connected": "Verbunde — automatische Import",
   "settings.coros.unlink": "Verbindig trenne",
