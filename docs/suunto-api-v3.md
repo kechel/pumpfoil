@@ -91,7 +91,24 @@ Kennzahlen-API hätte uns nichts genützt.
 ## Wie es bei uns eingebaut ist
 
 `server/app/api/suunto.py` kennt beide Wege. **Welcher gilt, entscheidet `SUUNTO_API_V3` in
-`server/.env`** — ohne die Variable bleibt alles bei v2. Zum Vergleichen gibt es
+`server/.env`** — ohne die Variable bleibt alles bei v2.
+
+**🟢 Seit 04.09.2026 ist v3 aktiv** (`SUUNTO_API_V3=1`, Jans Freigabe nach dem Vergleich unten).
+Rueckweg: die Zeile aus `server/.env` entfernen und neu starten; die v2-Pfade bleiben im Code.
+
+**Vorher an zwei echten Konten gemessen** (u417, Xiaomi ueber Mi Fitness; und Jans eigenes):
+
+| | v2 | v3 |
+|---|---|---|
+| Liste | 1 Workout | 1 Workout, gleicher `workoutKey` |
+| Kennzahlen | 221,0 m · 105 s · avgSpeed 2,1 | identisch |
+| FIT-Datei | 2436 Bytes | 2436 Bytes, **sha256 identisch** |
+| durch `parse_fit_bytes` | 88 Punkte, Puls 69–137 | identisch |
+
+Der sha256 (`06524c3c…`) ist zugleich der `content_hash` der daraus entstandenen Session 3453 —
+es ist also nachweislich dieselbe Datei. `_liste_lesen` kam mit der v3-Antwort ohne Anpassung
+klar. Erster Lauf ueber v3 im Betrieb: u417 `0 importiert / 1 doppelt`, Jan
+`0 importiert / 3 zu kurz / 1 doppelt`. Zum Vergleichen gibt es
 `GET /api/integrations/suunto/vergleich` (eingeloggt, rein lesend): der Endpunkt holt dieselbe
 Liste über **beide** Versionen und sagt, wie viele Workouts jede liefert und ob die Schlüssel
 übereinstimmen. Erst wenn das an einem echten Konto passt, wird umgeschaltet (Jan, 04.09.).
