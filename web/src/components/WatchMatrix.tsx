@@ -24,7 +24,9 @@ const ROWS: { name: string; sub: string; gps: Cap; hr: Cap; pump: Cap; status: S
   // und dort holen wir sie ab. Deshalb Suunto-Logo in der Konto-Spalte mit eigenem Label.
   { name: "Xiaomi", sub: "Redmi Watch, Watch S …", gps: "yes", hr: "yes", pump: "no", status: "import", noteKey: "watches.nXiaomi",
     account: { logo: "/xiaomi-logo.jpg", alt: "Xiaomi", labelKey: "watches.linkViaSuunto", imgClass: "h-8 w-auto rounded-md" } },
-  { name: "COROS", sub: "Apex, Vertix …", gps: "yes", hr: "yes", pump: "no", status: "planned",
+  // Gleiche Lage wie Suunto: Konto verknuepfen, FIT importieren, kein Accel fuer Pumps —
+  // deshalb bewusst derselbe Hinweistext statt eines neuen in 17 Sprachen.
+  { name: "COROS", sub: "Apex, Vertix …", gps: "yes", hr: "yes", pump: "no", status: "import", noteKey: "watches.nSuunto",
     account: { logo: "/coros-logo.png", alt: "COROS", labelKey: "watches.linkAccount", imgClass: "h-6 w-auto" } },
   { name: "Fitbit", sub: "—", gps: "no", hr: "no", pump: "no", status: "no", noteKey: "watches.nFitbit" },
   { name: "Strava", sub: "Aktivitäts-Portal", gps: "yes", hr: "yes", pump: "no", status: "nope", noteKey: "watches.nStrava" },

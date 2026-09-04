@@ -12,8 +12,9 @@ import gen
 
 W, H = 2560, 1440
 OUT = os.path.join(os.path.dirname(__file__), "../social/youtube-banner-2560x1440.png")
-SUBLINE = "GARMIN · WEAR OS · APPLE WATCH · AMAZFIT · POLAR · SUUNTO · XIAOMI · PHONE"
-# AMAZFIT/Zepp approved & public 2026-07-21. PHONE = Handy-Recorder. COROS erst nach Approval.
+SUBLINE = "GARMIN · WEAR OS · APPLE WATCH · AMAZFIT · POLAR · SUUNTO · COROS · XIAOMI · PHONE"
+# AMAZFIT/Zepp approved & public 2026-07-21. PHONE = Handy-Recorder.
+# COROS seit 2026-09-04 dabei: die MCP-Anbindung braucht keinen Partner-Vertrag.
 # XIAOMI seit 2026-09-04: keine App auf der Uhr moeglich, aber Mi Fitness schiebt Trainings
 # offiziell in die Suunto-App (Xiaomi/Suunto-Partnerschaft, weltweit ausser China), und dort
 # holen wir sie ab. Erklaert wird das unter „Konten verknuepfen" und in der Uhren-Tabelle.

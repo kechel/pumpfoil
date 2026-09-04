@@ -30,6 +30,14 @@ type Entry = { date: string; items: Item[] };
 
 const ENTRIES: Entry[] = [
   {
+    date: "September 4, 2026",
+    items: [
+      "Xiaomi and Redmi watches can now bring their sessions here: connect Mi Fitness to Suunto, connect Suunto with us, and your rides arrive automatically. Instructions under linked accounts.",
+      "COROS accounts can be connected too — your workouts are imported as sessions.",
+      "If a watch never got a real GPS fix, you now see it: the recording says so instead of quietly showing zero, and the map is drawn even when no runs were detected.",
+    ],
+  },
+  {
     date: "September 3, 2026",
     items: [
       "An upload that never finished keeps its hint until the recording actually arrives. If a newer session has come in since, the old one can be analysed with what we have or deleted.",
