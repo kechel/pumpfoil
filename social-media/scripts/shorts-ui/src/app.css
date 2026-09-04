@@ -253,3 +253,19 @@ table.cmp { max-width: 520px; }
 .stats .warnnote { border-left: 3px solid var(--s-fb); padding-left: 10px; opacity: .8; }
 .capblock .caphead .chars { margin-left: auto; font-weight: 400; opacity: .55; font-variant-numeric: tabular-nums; }
 .capblock .caphead .chars.over { color: #eb6834; opacity: 1; font-weight: 600; }
+
+/* Rechte Spalte: Einstellungen und Musik loesen einander ab, statt sich die
+   Hoehe zu teilen — der Platz wurde zu eng. */
+.sidetabs { display: flex; gap: 4px; padding: 8px 12px 6px; border-bottom: 1px solid #8884; }
+.sidetabs button { flex: 1; font-size: 12px; padding: 5px 8px; border-radius: 7px;
+  border: 1px solid transparent; background: transparent; color: inherit; cursor: pointer; }
+.sidetabs button:hover { background: #8882; }
+.sidetabs button.on { background: #3b82f622; border-color: #3b82f688; font-weight: 600; }
+
+.ecard { border-top: 1px solid #8883; margin-top: 8px; padding-top: 6px; }
+.ecard select { font-size: 12px; padding: 3px 5px; border-radius: 6px; border: 1px solid #8886;
+  background: transparent; color: inherit; flex: 1; min-width: 0; }
+.ecard .ectimes { gap: 6px; flex-wrap: wrap; }
+.ecard .ectimes label { display: flex; align-items: center; gap: 3px; font-size: 12px; opacity: .8; }
+.ecard .ectimes input { width: 52px; }
+.ecard .ecsum { margin-left: auto; font-size: 11px; opacity: .55; font-variant-numeric: tabular-nums; }

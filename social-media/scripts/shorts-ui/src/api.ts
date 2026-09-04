@@ -24,6 +24,7 @@ export interface AppState {
   parent: string;
   subdirs: SubDir[];
   overlays: string[];
+  endcards: string[];
   next_number: number;
   name_prefix: string;
   stars: string[];
