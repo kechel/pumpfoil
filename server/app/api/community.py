@@ -202,16 +202,23 @@ def community_sessions(
     request: Request,
     limit: int = 20, offset: int = 0,
     name: str | None = Query(None), spot: str | None = Query(None), accel_only: bool = True,
-    sport: str = "pumpfoil",
+    sport: str = "pumpfoil", foil_id: int | None = None,
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> list[dict]:
     """Feed: community-sichtbare Sessions, neueste zuerst, echte SQL-Paginierung.
-    Optional gefiltert nach Anzeigename (Teiltreffer) und/oder Spot."""
+    Optional gefiltert nach Anzeigename (Teiltreffer), Spot und/oder Foil.
+
+    `foil_id` = genau dieses Foil, fuer die Foil-Detailseite. Bewusst ALLE Fahrer und nicht nur
+    die eigenen (Jan, 04.09.: „sonst sind ja 99 % der Listen fuer mich leer") — der
+    Nutzer-Vorschlag lautete ja „all sessions recorded with that specific front wing".
+    """
     q = _community(db.query(*BRIEF_COLS), user.id, accel_only, sport)
     if name:
         q = q.filter(func.lower(U.display_name).like(f"%{name.lower()}%"))
     if spot:
         q = q.filter(_spot_cond(spot))
+    if foil_id:
+        q = q.filter(S.foil_id == foil_id)
     rows = q.order_by(S.started_at.desc()).offset(max(offset, 0)).limit(min(max(limit, 1), 100)).all()
     return _attach_first_video(db, _attach_social(db, user, [_brief(*r) for r in rows]), request)
 

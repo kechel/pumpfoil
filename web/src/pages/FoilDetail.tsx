@@ -1,17 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { api, type CommunityRecords, type SessionSummary } from "../lib/api";
+import { api, type CommunityRecords, type CommunitySession } from "../lib/api";
 import { Card, Spinner } from "../components/ui";
 import { ChevronIcon, FoilIcon } from "../components/Icons";
-import { SessionCard } from "../components/SessionCard";
-import { SessionStats } from "./Sessions";
+import { renderCommunitySession } from "./Sessions";
 import { RecordGrid } from "./Home";
-import { foilLabel } from "../lib/foilLabel";
 import { useT } from "../i18n";
 
 /**
  * Ein Foil im Einzelnen: die Community-Rekorde, die MIT DIESEM Flügel gefahren wurden, und
- * darunter meine eigenen Sessions damit.
+ * darunter ALLE Sessions der Community damit (nicht nur die eigenen — bei fremden Foils wäre
+ * die eigene Liste leer, Jan 04.09.).
  *
  * Kam als Nutzer-Vorschlag (04.09.): „Why not make the foil model clickable, so clicking it
  * shows all sessions recorded with that specific front wing?" — und auf Jans Wunsch stehen die
@@ -25,7 +24,7 @@ export default function FoilDetail() {
   const { foilId } = useParams();
   const fid = Number(foilId);
   const [rec, setRec] = useState<CommunityRecords | null>(null);
-  const [sessions, setSessions] = useState<SessionSummary[] | null>(null);
+  const [sessions, setSessions] = useState<CommunitySession[] | null>(null);
   // Seitenweise nachladen beim Scrollen — dieselbe Mechanik wie in der Sessionliste
   // (IntersectionObserver auf einen Fuehler unter der Liste, 300 px Vorlauf).
   const SEITE = 20;
@@ -42,7 +41,10 @@ export default function FoilDetail() {
     if (laedt.current || !mehrDa.current || !fid) return;
     laedt.current = true;
     try {
-      const teil = await api.sessions({ foilId: fid, limit: SEITE, offset: offset.current });
+      // ALLE Fahrer, nicht nur die eigenen (Jan, 04.09.): der Vorschlag lautete „all sessions
+      // recorded with that specific front wing" — und die eigene Liste ist bei fremden Foils leer.
+      const teil = await api.communitySessions(SEITE, offset.current,
+                                               { foilId: fid, accelOnly: false, sport: "pumpfoil" });
       offset.current += teil.length;
       mehrDa.current = teil.length === SEITE;
       setMehr(mehrDa.current);
@@ -99,9 +101,9 @@ export default function FoilDetail() {
       <h3 className="mb-2 text-lg font-bold">{t("foilDetail.records")}</h3>
       {rec ? <RecordGrid rec={rec.all} showSpot /> : <Spinner />}
 
-      {/* Meine eigenen Sessions mit diesem Foil. */}
+      {/* Alle Sessions der Community mit diesem Foil — nicht nur die eigenen. */}
       <h3 className="mb-2 mt-8 text-lg font-bold">
-        {t("foilDetail.mySessions")}
+        {t("foilDetail.sessions")}
         {sessions && (
           <span className="ml-2 text-sm font-normal text-slate-400">
             ({sessions.length}{mehr ? "+" : ""})
@@ -111,33 +113,10 @@ export default function FoilDetail() {
       {!sessions ? (
         <Spinner />
       ) : sessions.length === 0 ? (
-        <Card className="p-6 text-center text-slate-300">{t("foilDetail.noneMine")}</Card>
+        <Card className="p-6 text-center text-slate-300">{t("foilDetail.none")}</Card>
       ) : (
         <div className="space-y-3">
-          {sessions.map((s) => (
-            <SessionCard
-              key={s.id}
-              sessionId={s.id}
-              owned={s.owned ?? true}
-              startedAt={s.started_at}
-              tz={s.tz}
-              endedAt={s.ended_at}
-              spot={s.place_name}
-              foil={s.foil ? foilLabel(s.foil) : null}
-              deviceLabel={s.device_label}
-              caption={s.caption}
-              thumbUrl={s.thumb_url}
-              photoCount={s.photo_count}
-              youtubeUrl={s.youtube_url}
-              videoUrl={s.video_url}
-              likeCount0={s.like_count ?? 0}
-              liked0={!!s.liked}
-              trackPreview={s.track_preview}
-              sportClass={s.sport_class}
-              dataQuality={s.data_quality}
-              stats={s.analysis ? <SessionStats a={s.analysis} /> : null}
-            />
-          ))}
+          {sessions.map((s) => renderCommunitySession(s, t, null))}
         </div>
       )}
       {/* Fuehler fuer das Nachladen: liegt immer im Baum, damit der Observer ihn beim ersten

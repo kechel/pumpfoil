@@ -692,7 +692,8 @@ function MySessionsList({ myName, accelOnly, onShowAll }:
 
 // Eine Community-Session als Listenkarte (identisch für Einzel-Session und aufgeklappte
 // Gruppen-Mitglieder). `nested` = leicht eingerückt/gedämpft innerhalb einer Gruppe.
-function renderCommunitySession(s: CommunitySession, t: (k: string) => string, lastViewed: number | null) {
+// Auch von der Foil-Detailseite benutzt — dieselbe Karte fuer dieselbe Sorte Eintrag.
+export function renderCommunitySession(s: CommunitySession, t: (k: string) => string, lastViewed: number | null) {
   return (
     <SessionCard
       key={s.session_id}
