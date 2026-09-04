@@ -619,6 +619,41 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 04.09. ERLEDIGT — „Bad experience with app": wir haben einem Pumper Motorkraft unterstellt,
+  weil seine Uhr den Puls einfror.** Session #3391 (u396, Pixel Watch 2) trug diesen Titel vom
+  Nutzer selbst. Kette:
+  1. Die Uhr mass zeitweise keinen Puls mehr. Unsere Recorder schrieben den **letzten bekannten
+     Wert in jeden GPS-Punkt** weiter — 4778 Punkte, nur 46 verschiedene Werte, der Wert 168 stand
+     **1658 Sekunden am Stueck**.
+  2. Die Fremdkraft-Regel (`detect_v2._fremdkraft_laeufe`) urteilt allein ueber die **Puls-Antwort**
+     (Puls im Lauf minus Grundlinie davor). Bei stehendem Puls ist sie exakt **0,0 bpm** — und
+     alles unter 15 gilt als „ohne eigene Kraft".
+  3. Getroffen wurden **genau seine drei laengsten Laeufe** (6:51, 8:28, 16:03 — mit 527, 677 und
+     1402 Pumps). Er musste sie einzeln zurueckholen.
+  - **Nicht geraetespezifisch:** 18 von 167 Sessions mit Accel (**11 %**) haben >= 5 Minuten
+    konstanten Puls — Wear OS, Apple Watch UND Garmin.
+  - **Geprueft und verworfen:** der Pump-Rhythmus taugt NICHT als Ersatz-Signal. efoil-Laeufe
+    kommen auf 1,54 Pumps/s, echte Pumpfoil-Laeufe auf 1,63 — die Verteilungen ueberlappen fast
+    vollstaendig. Der Puls bleibt das einzige Signal, wie es im Code steht.
+  - **Fix 1 (Server, wirkt rueckwirkend):** `_puls_lebt()` prueft vor dem Urteil, ob der Puls im
+    Lauf ueberhaupt lebt (laengste Kette identischer Werte < 120 s). Steht er, wird **nicht
+    geurteilt** — die Doktrin stand schon im Code, sie griff nur nicht, wenn ein Puls DA ist,
+    aber steht. **Regressions-Beleg:** von 50 menschlich als Fremdkraft eingeordneten langen
+    Laeufen hat **kein einziger** einen eingefrorenen Puls im Lauf, von 41 echten Pumpfoil-Laeufen
+    dagegen 5 (12 %). Kostet also keinen einzigen echten Treffer.
+  - **Fix 2 (Uhren):** kein veralteter Puls mehr in den Punkten. Wear (`Recorder.kt`) und Apple
+    Watch (`Recorder.swift`) schreiben 0 statt eines Werts, der aelter als 10 s ist — **Zepp macht
+    das laengst so** (`page/index.js`, Zeile 1909, dieselben 10 s), und **Garmin** bekommt von
+    Connect IQ `null` statt eines alten Werts, dort ist nichts zu tun.
+  - **Reanalysiert:** #3077 (u114) — dort war der einzige noch offene Vorschlag, der auf einem
+    eingefrorenen Puls beruhte; die Session hat ihren Lauf zurueck und gilt wieder als Pumpfoil.
+    #3391 ebenfalls neu gerechnet.
+  - **Nutzer informiert** (DM, kurz: was das Problem war und dass wir bei eingefrorenem Puls nicht
+    mehr aussortieren).
+  - **Offen, kleiner:** ein eingefrorener Puls verfaelscht auch Puls-Kacheln, Zonen-Faerbung und
+    das Datenfeld „Max-Puls letzter Lauf". Rueckwirkend liesse sich das mit derselben Messung
+    kenntlich machen (wie `gps_frozen`) — noch nicht gebaut.
+
 - **🟢 04.09. — COROS ist offen, ohne Partner-Vertrag: MCP-Anbindung gebaut.**
   COROS hat auf unseren Antrag vom 16.07. geantwortet: statt des klassischen Partner-Wegs gibt es
   jetzt einen **MCP-Server** — „no application or approval needed", OAuth 2.0.

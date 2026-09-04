@@ -123,6 +123,14 @@ final class Recorder: NSObject, ObservableObject {
     private var accelT0ms = 0
     private var gps: [[Double]] = []
     private var lastHR = 0
+    /// Wann der letzte ECHTE Pulswert kam (Session-ms). Bleibt der Sensor stehen, schrieben wir
+    /// bisher den letzten bekannten Wert in JEDEN GPS-Punkt weiter — in einem gemeldeten Fall
+    /// stand so 1658 Sekunden lang derselbe Puls in der Aufnahme (Wear, 03.09.). Der Server
+    /// urteilt anhand der Puls-Antwort, ob ein Lauf aus eigener Kraft war; ein stehender Wert
+    /// ergibt Antwort 0 und liess drei echte Laeufe als „Fremdkraft" aussortieren. Lieber KEIN
+    /// Wert als ein erfundener — Zepp macht es seit jeher so, Wear seit 04.09.
+    private var lastHRms = -1
+    private static let pulsAltMs = 10_000
     // Live-Kennzahlen
     private var prevLoc: CLLocation?
     private var distAccum = 0.0
@@ -191,6 +199,7 @@ final class Recorder: NSObject, ObservableObject {
         chunkIndex = 0
         accel.removeAll(); gps.removeAll(); spWin.removeAll()
         prevLoc = nil; distAccum = 0; maxMps = 0; hrSum = 0; hrCount = 0; maxHRv = 0; lastHR = 0
+        lastHRms = -1
         // Aufzeichnungsmodus aus der (gecachten) Config — pro Konto, offline-tauglich.
         recordMode = UserDefaults.standard.string(forKey: "recordMode") ?? "full"
         accelHzActual = recordMode == "lite" ? Self.accelHzLite : Self.accelHz
@@ -635,8 +644,11 @@ extension Recorder: CLLocationManagerDelegate {
             let t = self.elapsedMs()
             let spRaw = max(0, loc.speed)
             self.lock.withLock {
+                // 0 = kein Puls (der Server behandelt 0 wie „fehlt"), s. lastHRms.
+                let pulsFrisch = (self.lastHR > 0 && self.lastHRms >= 0
+                                  && t - self.lastHRms <= Self.pulsAltMs) ? self.lastHR : 0
                 self.gps.append([Double(t), loc.coordinate.latitude, loc.coordinate.longitude,
-                                 spRaw, Double(self.lastHR), loc.horizontalAccuracy])
+                                 spRaw, Double(pulsFrisch), loc.horizontalAccuracy])
             }
             // Qualitaets-Gate fuer alles LIVE (Anzeige, Max, Lauf-Erkennung): unbrauchbare
             // Position (hAcc > 20 m) oder ungueltiger Speed (loc.speed < 0) -> 0 + "--".
@@ -686,6 +698,7 @@ extension Recorder: HKWorkoutSessionDelegate, HKLiveWorkoutBuilderDelegate {
         let bpm = Int(q.doubleValue(for: HKUnit.count().unitDivided(by: .minute())))
         Task { @MainActor in
             self.lastHR = bpm
+            if bpm > 0 { self.lastHRms = self.elapsedMs() }
             self.hr = bpm
             if bpm > 0 {
                 self.hrSum += bpm; self.hrCount += 1
