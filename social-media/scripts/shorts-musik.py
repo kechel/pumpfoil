@@ -64,10 +64,6 @@ CAPTION_LANGS = ["de", "en", "fr", "it", "es", "fi", "nl", "cs",
 # gezogen, damit über die Videos hinweg gestreut wird. Auswahl nach den Ländern,
 # die in den Statistiken tatsächlich auftauchen (PL/FR/CZ/IT auf Facebook,
 # ID/PT/ES auf YouTube).
-EXTRA_LANGS = {"pl": "Polnisch", "fr": "Französisch", "it": "Italienisch",
-               "cs": "Tschechisch", "es": "Spanisch", "id": "Indonesisch",
-               "pt": "brasilianisches Portugiesisch", "ar": "Arabisch",
-               "vi": "Vietnamesisch", "tr": "Türkisch", "th": "Thai"}
 PORT = 8765
 PLATFORMS = ("youtube", "instagram")
 AUDIO_EXT = {".mp3", ".m4a", ".aac", ".wav", ".flac", ".ogg", ".opus"}
@@ -1369,13 +1365,14 @@ def title_prefix(name: str) -> str:
     return f"{m.group(1)} Pumpfoil {m.group(3)}" if m else ""
 
 
-def caption_prompt(title: str, prefix: str = "", extra_lang: str = "") -> str:
+def caption_prompt(title: str, prefix: str = "") -> str:
+    # Instagram, Facebook und TikTok haben nur EIN Textfeld fuer alle Laender —
+    # anders als YouTube, wo jede Sprache ihre eigene Lokalisierung bekommt.
+    # Deshalb dort ausschliesslich Englisch: das Publikum ist laengst
+    # international (Brasilien, Indien, Polen, Frankreich, USA), und die
+    # Caption-Sprache steuert die Ausspielung nachweislich nicht.
     prefix_rule = (f'\n- JEDER Titel beginnt exakt mit "{prefix} " (unübersetzt), '
                    f'danach folgt der übersetzte Titel.' if prefix else "")
-    extra = EXTRA_LANGS.get(extra_lang, "")
-    extra_ig = (f", danach 1 Satz auf {extra} (dieselbe Aussage, keine Übersetzung "
-                "Wort für Wort)" if extra else "")
-    extra_tt = f" + 1 kurzer Satz auf {extra}" if extra else ""
     return f"""Du bist Social-Media-Redakteur für pumpfoil.org (Pumpfoiling/Dockstart-Wassersport, Tracking-App).
 Für ein kurzes Hochkant-Video (YouTube Short / Instagram Reel / TikTok) mit dem Arbeitstitel "{title}" erzeuge Metadaten.
 
@@ -1400,20 +1397,17 @@ Regeln:
 - titles: knackiger Video-Titel je Sprache, max. 80 Zeichen. pt = brasilianisches Portugiesisch, zh = vereinfachtes Chinesisch, id = Bahasa Indonesia.{prefix_rule}
 - descriptions: 1-2 lockere, videospezifische Sätze je Sprache (gleiche Sprachcodes wie titles), passende Emojis erlaubt, KEINE Hashtags darin.
 - hashtags: EINE Zeile mit 4-6 Hashtags: #pumpfoil zuerst, danach NUR individuelle, zum konkreten Videoinhalt passende Tags. KEINE generischen Standard-Tags wie #pumpfoiling, #dockstart oder #foil.
-- instagram: lockere Caption, 1-2 Sätze Deutsch + 1-2 Sätze Englisch mit passenden Emojis{extra_ig}, Leerzeile, dann 8-12 Hashtags (#pumpfoil zuerst, Rest videospezifisch — nicht #pumpfoiling/#dockstart/#foil).
-- tiktok: 1 kurzer englischer Satz (+ optional deutsch){extra_tt}, 4-6 Hashtags (#pumpfoil + videospezifische, keine generischen Standard-Tags).
+- instagram: lockere Caption AUSSCHLIESSLICH auf Englisch, 2-3 Sätze mit passenden Emojis, Leerzeile, dann 8-12 Hashtags (#pumpfoil zuerst, Rest videospezifisch — nicht #pumpfoiling/#dockstart/#foil). KEIN Deutsch, keine weitere Sprache — dieses Feld gilt weltweit.
+- tiktok: 1-2 kurze Sätze AUSSCHLIESSLICH auf Englisch, 4-6 Hashtags (#pumpfoil + videospezifische, keine generischen Standard-Tags). KEIN Deutsch.
 """
 
 
-def generate_captions(title: str, prefix: str = "", extra_lang: str = None) -> dict:
-    # dritte Sprache für Instagram/TikTok zufällig ziehen (streut über die Videos)
-    if extra_lang is None:
-        extra_lang = secrets.choice(sorted(EXTRA_LANGS))
+def generate_captions(title: str, prefix: str = "") -> dict:
     env = {"HOME": str(Path.home()),
            "USER": Path.home().name,  # ohne USER findet die CLI ihre Keychain-Anmeldung nicht
            "PATH": "/opt/homebrew/bin:/usr/bin:/bin:" + str(Path.home() / ".local/bin")}
     proc = subprocess.run([CLAUDE_BIN, "--model", CLAUDE_MODEL, "-p",
-                           caption_prompt(title, prefix, extra_lang)],
+                           caption_prompt(title, prefix)],
                           capture_output=True, text=True, timeout=300, env=env)
     if proc.returncode != 0:
         raise RuntimeError(f"claude-CLI fehlgeschlagen: {(proc.stderr or proc.stdout)[-300:]}")
