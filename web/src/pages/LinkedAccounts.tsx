@@ -101,6 +101,12 @@ function CorosCard() {
     <Card className="p-5">
       <h3 className="mb-1 font-semibold">{t("settings.coros.title")}</h3>
       <p className="mb-3 text-sm text-slate-300">{t("settings.coros.hint")}</p>
+      <div className="mb-3 flex items-center gap-3">
+        <a href="https://coros.com/" target="_blank" rel="noopener noreferrer" title="COROS"
+          className="inline-block rounded-lg bg-white px-3 py-2 shadow-sm">
+          <img src="/coros-logo.png" alt="COROS" className="h-7 w-auto" />
+        </a>
+      </div>
       {!st.linked ? (
         <Button onClick={connect}>{t("settings.coros.connect")}</Button>
       ) : (

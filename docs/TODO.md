@@ -634,11 +634,27 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     Sitzungs-ID, JSON *und* SSE-Antworten, `/sync` mit FIT-Import ueber `import_parsed_session`),
     Tabelle `coros_mcp_links`, Karte auf `/konten` (der MCP-Weg hat Vorrang vor dem Partner-Weg,
     `coros.py` bleibt unangetastet).
-  - **NOCH NICHT END-ZU-ENDE GEPRUEFT:** COROS dokumentiert die Werkzeug-NAMEN, aber nicht ihre
-    Parameter. Der Sync raet daher bei `startDate`/`endDate`/`activityIds` und liest die Antwort
-    defensiv. Dafuer gibt es `GET /api/integrations/coros/mcp/tools` — einmal mit einem echten
-    Token aufrufen, die Schemata ablesen, den Sync nachziehen. **Braucht ein COROS-Konto**
-    (Anmeldung reicht, eine Uhr ist fuer den Werkzeug-Abruf nicht noetig).
+  - **Am echten Server ausgemessen (04.09., Jans Konto verknuepft):** `tools/list` liefert die
+    Schemata aller 22 Werkzeuge — das IST die Spezifikation. Zwei Dinge stehen darin aber
+    irrefuehrend, beide haben je einen Anlauf gekostet:
+    1. **Datumsformat ist `YYYYMMDD`.** Mit `2026-06-01` antwortet der Server nicht mit einer
+       Fehlermeldung, sondern mit „Tool call anomalies detected. High risk of session context
+       pollution…". Das ist seine Art, ungueltige Eingaben abzulehnen — wer die Meldung sieht,
+       hat einen Parameter falsch, nicht ein Kontingent gerissen.
+    2. **`downloadActivityFitFiles` kann NUR je Aktivitaet** (`labelId` + `sportType`), obwohl
+       sein Schema `startDate`/`endDate`/`limit` anbietet: jede Zeitraum-Form wird abgelehnt,
+       eine erfundene `labelId` liefert dagegen eine echte Fehlermeldung („COROS did not return
+       a FIT file URL for labelId: …"). Also erst `querySportRecords`, dann je Eintrag die Datei.
+    Der Sync ist auf genau diese Form umgebaut. Gegengeprueft hat auch `queryUserInfo` und
+    `queryDevices` funktioniert — die Verknuepfung steht also wirklich.
+  - **Weiterhin offen, weil Daten fehlen:** Jans COROS-Konto hat keine gebundene Uhr und keine
+    Aktivitaeten („No sport records found"). Die Liste kommt in **Prosa** zurueck, nicht in JSON;
+    `_aktivitaeten_aus()` liest deshalb strukturiert ODER per Regex aus dem Text. **Das muss an
+    einem Konto MIT Trainings gegengeprueft werden**, bevor COROS aus „wartet auf Freigabe" in
+    die Liste der verfuegbaren Plattformen wandert (Uhren-Tabelle, Startseite, Banner).
+  - **Region:** wir sind auf `mcpeu.coros.com` registriert (dorthin verweist `mcp.coros.com` von
+    hier aus). Meldet spaeter jemand ausserhalb Europas „keine Trainings gefunden", ist das der
+    erste Verdacht — dann braucht es die Registrierung je Region (`mcpus`, `mcpcn`).
   - Offen aus der Mail: fuer Webhooks/Zwei-Wege-Sync/Mehrnutzer-Zugangsdaten kommt COROS
     „in den kommenden Wochen" aktiv auf Plattformen zu — das waere der Weg zum Push statt Abruf.
 
