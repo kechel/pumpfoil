@@ -32,9 +32,12 @@ DUNKEL = ("#020617", "#061226", "#0a1f3a")
 CYAN_HELL = "#0e7490"
 # Einleitung ueber der Plattform-Liste. Ohne sie steht dort nur eine Reihe Markennamen, und
 # niemand sieht, dass es um eine App geht (Jan, 04.09.). Mit ihr liest sich die Liste als Satz:
-# „FREE APP & COMMUNITY FOR — GARMIN · WEAR OS · …". Englisch wie die Tagline, weil die Endcard
+# ueber der Liste. Englisch wie die Tagline, weil die Endcard
 # laeuft; „FREE" stimmt und ist das staerkste Wort, das wir ehrlich sagen koennen (AGPL-3.0).
-APP_ZEILE = "FREE APP & COMMUNITY FOR"
+APP_ZEILE = "FREE APP & COMMUNITY"
+# Unser Gruss, unuebersetzt — so steht er in jeder Nutzer-Nachricht und am Ende jeder
+# Ankuendigung. Auf der Endcard ist er die Unterschrift unter dem Ganzen (Jan, 04.09.).
+MOTTO = "Have fun, keep pumping!"
 
 
 def verlauf(farben: tuple[str, str, str]) -> Image.Image:
@@ -74,14 +77,17 @@ def endcard(theme: str) -> Image.Image:
     # lesen (Jan, 04.09.). Weniger Zeichen je Zeile heisst groessere Schrift bei gleicher Breite.
     # Die Quelle bleibt dieselbe wie im Banner, nur die Umbruch-Regel unterscheidet sich.
     zeilen = [banner.subline_image(z, px=64, tracking=6) for z in banner.subline_zeilen(2)]
-    faktor = breite / max(z.width for z in zeilen)
+    # 80 % der Breite: die Markennamen sollen lesbar sein, aber die Zeile „FREE APP & COMMUNITY"
+    # darueber traegt die Aussage — sie steht auf voller Breite (Jan, 04.09.).
+    faktor = (breite * 0.80) / max(z.width for z in zeilen)
     # Die Einleitung in derselben Schrift, aber kleiner und ruhiger als die Marken darunter —
     # sie soll fuehren, nicht mit ihnen konkurrieren.
     einleitung = banner.subline_image(APP_ZEILE, px=44, tracking=10)
-    ein_faktor = (breite * 0.74) / einleitung.width
+    # Genauso breit wie die Wortmarke darueber — die beiden bilden dann eine Achse.
+    ein_faktor = breite / einleitung.width
     einleitung = einleitung.resize((round(einleitung.width * ein_faktor),
                                     round(einleitung.height * ein_faktor)), Image.LANCZOS)
-    grau = "#64748b" if hell else "#94a3b8"
+    grau = "#475569" if hell else "#cbd5e1"     # kraeftiger, weil die Zeile jetzt traegt
     r, g, b = banner._hex(grau)
     voll = Image.new("RGBA", einleitung.size, (r, g, b, 255))
     voll.putalpha(einleitung.split()[3])
@@ -96,11 +102,25 @@ def endcard(theme: str) -> Image.Image:
             voll.putalpha(z.split()[3])
             zeilen[i] = voll
 
+    # Motto als Unterschrift: in Marken-Cyan, gemischte Schreibweise (alles andere steht in
+    # Versalien) — dadurch liest es sich wie ein Zuruf und nicht wie eine weitere Ueberschrift.
+    motto = banner.subline_image(MOTTO, px=44, tracking=2)
+    m_faktor = (breite * 0.66) / motto.width
+    motto = motto.resize((round(motto.width * m_faktor), round(motto.height * m_faktor)),
+                         Image.LANCZOS)
+    if hell:
+        r, g, b = banner._hex(CYAN_HELL)
+        voll_m = Image.new("RGBA", motto.size, (r, g, b, 255))
+        voll_m.putalpha(motto.split()[3])
+        motto = voll_m
+
     abstand = 84                                   # Lockup -> Einleitung
     nach_einleitung = round(einleitung.height * 0.85)
     zeilenabstand = round(zeilen[0].height * 0.30)  # Luft zwischen den Plattform-Zeilen
+    vor_motto = round(motto.height * 1.5)
     block_h = (lock.height + abstand + einleitung.height + nach_einleitung
-               + sum(z.height for z in zeilen) + zeilenabstand * (len(zeilen) - 1))
+               + sum(z.height for z in zeilen) + zeilenabstand * (len(zeilen) - 1)
+               + vor_motto + motto.height)
     y = (H - block_h) // 2
     grund.alpha_composite(lock, ((W - lock.width) // 2, y))
     y += lock.height + abstand
@@ -109,6 +129,8 @@ def endcard(theme: str) -> Image.Image:
     for z in zeilen:
         grund.alpha_composite(z, ((W - z.width) // 2, y))
         y += z.height + zeilenabstand
+    y += vor_motto - zeilenabstand
+    grund.alpha_composite(motto, ((W - motto.width) // 2, y))
     return grund.convert("RGB")
 
 
