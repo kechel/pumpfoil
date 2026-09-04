@@ -646,7 +646,13 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   - **Offen (Paritaet):** Android und iOS haben die Foil-Statistik ebenfalls, dort ist der Name
     noch nicht anklickbar. Waere ein eigener Bildschirm je Plattform — lohnt sich, wenn die Seite
     im Web angenommen wird.
-  - **Die uebrigen Vorschlaege desselben Nutzers hat Jan noch nicht entschieden** (04.09.).
+  - **Zweiter Vorschlag desselben Nutzers ABGELEHNT (Jan, 04.09., im Community-Chat gesagt):**
+    „click on a user's name to view all of their sessions". Begruendung im Wortlaut: *„Bundling
+    all sessions per person makes someone's routine too easy to read off. Doesn't seem right to
+    me."* — also **keine oeffentliche Sessionliste je Nutzer**. Wichtig fuer spaeter: der Server
+    KANN den Community-Feed nach Anzeigename filtern (`/api/community/sessions?name=…`), die
+    Oberflaeche ruft ihn aber fest mit `name=""` auf. Das bitte so lassen; wer die Filterung
+    freischaltet, baut genau das, was hier abgelehnt wurde.
 
 - **🟢 04.09. — Foil-Band auf der Community-Seite erklaert sich jetzt selbst.** Jan: „es fehlt aber
   eine Info was dann genau die Grenzen sind, und ich weiss auch nicht welche von meinen Foils da
