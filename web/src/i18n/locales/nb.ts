@@ -1018,7 +1018,7 @@ const nb: Record<string, string> = {
   "foilStats.title": "Foilstatistikk",
   "stats.short": "Statistikk",
   "foilStats.hint": "Hvilke tall folk oppnår på hvilken foil (fellesskapet). Bare pumpfoil-økter med accel-gjenkjenning telles — andre sporter (wing, eFoil, foildrive, wakethief), rene GPS-opptak og data merket som feil er ikke med.",
-  "foilStats.clickHint": "Trykk på en foil for å se rekordene og dine egne økter på den.",
+  "foilStats.clickHint": "Trykk på en foil for å se rekordene og alle økter på den.",
   "foilDetail.title": "Foil",
   "foilDetail.records": "Fellesskapets rekorder på denne foilen",
   "foilDetail.community": "{sessions} økter fra {users} ryttere",

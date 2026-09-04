@@ -981,7 +981,7 @@ const ja: Record<string, string> = {
   "foilStats.title": "フォイル統計",
   "stats.short": "統計",
   "foilStats.hint": "ã©ã®ãã©ã¤ã«ã§ã©ããªæ°å¤ãåºããï¼ã³ãã¥ããã£ï¼ã カウントされるのは加速度センサーで判定されたパンプフォイルのセッションのみです。他の競技（ウィング、eFoil、フォイルドライブ、ウェイクシーフ）、GPSのみの記録、誤りとして印を付けたデータは含まれません。",
-  "foilStats.clickHint": "フォイルをタップすると、その記録と自分のセッションが見られます。",
+  "foilStats.clickHint": "フォイルをタップすると、その記録とそのフォイルで走った全セッションが見られます。",
   "foilDetail.title": "フォイル",
   "foilDetail.records": "このフォイルでのコミュニティ記録",
   "foilDetail.community": "{users} 人の {sessions} セッション",

@@ -622,7 +622,7 @@ const deAT: Record<string, string> = {
   "foilStats.title": "Foil-Stats",
   "stats.short": "Stats",
   "foilStats.hint": "Wöche Werte werdn mit wöchem Foil gfahrn (Community). Gezählt werdn nur Pumpfoil-Sessions mit Accel-Erkennung — andere Sportarten (Wing, eFoil, Foildrive, Wakethief), GPS-only-Aufnahmen und ois fehlerhaft markierte Daten san net dabei.",
-  "foilStats.clickHint": "Tipp auf a Foil, um seine Rekorde und deine Sessions damit zu sehn.",
+  "foilStats.clickHint": "Tipp auf a Foil, um seine Rekorde und olle Sessions damit zu sehn.",
   "foilDetail.title": "Foil",
   "foilDetail.records": "Community-Rekorde mit dem Foil",
   "foilDetail.community": "{sessions} Sessions von {users} Fahrern",
