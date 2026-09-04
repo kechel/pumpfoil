@@ -37,7 +37,11 @@ export function hrRange(...arrays: (number | null | undefined)[][]): [number, nu
 
 /** Farbe eines Pulswerts. null oder 0 = kein Messwert -> grau, wie bisher in beiden Karten. */
 export function hrColor(v: number | null | undefined, range: [number, number]): string {
-  if (v == null || v <= 0) return "#64748b";
+  // WEISS heisst „hier wurde kein Puls gemessen" (Jan, 04.09.) — und das kommt oefter vor, als
+  // man denkt: bleibt der Sensor stehen, nimmt die Analyse die stehengebliebenen Werte heraus
+  // (detect_v2.puls_ohne_eingefrorene), sie kommen hier also als null an. Grau war dafuer zu
+  // leise; es sah aus wie eine dunkle Zone statt wie eine Luecke.
+  if (v == null || v <= 0) return "#ffffff";
   const [lo, hi] = range;
   return rampColor((v - lo) / Math.max(hi - lo, 1));
 }

@@ -152,10 +152,13 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
       g.fillRect(0, y, w, ZEILE_H);
       for (let i = 0; i < z.hr.length; i++) {
         const v = z.hr[i];
-        if (v == null) continue;
         const x0 = (i / maxLen) * w;
         const x1 = ((i + 1) / maxLen) * w;
-        g.fillStyle = hrColor(v, bereich);
+        // Kein Messwert -> WEISS (Jan, 04.09.). Vorher blieb der Streifen dort einfach in der
+        // Hintergrundfarbe, im dunklen Modus also dunkelgrau — das sah nach „niedrige Zone" aus
+        // statt nach „nicht gemessen". Stehengebliebene Pulswerte nimmt die Analyse heraus
+        // (detect_v2.puls_ohne_eingefrorene), sie landen also hier als null.
+        g.fillStyle = v == null ? "#ffffff" : hrColor(v, bereich);
         g.fillRect(x0, y, Math.max(x1 - x0, 1), ZEILE_H);
       }
     });
