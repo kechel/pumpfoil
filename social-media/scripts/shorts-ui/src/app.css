@@ -246,3 +246,5 @@ table.stat .gap { opacity: .25; }
 table.stat td.warn { color: #eb6834; } table.stat td.good { color: #1baf7a; }
 table.cmp { max-width: 520px; }
 .stats .warnnote { border-left: 3px solid var(--s-fb); padding-left: 10px; opacity: .8; }
+.capblock .caphead .chars { margin-left: auto; font-weight: 400; opacity: .55; font-variant-numeric: tabular-nums; }
+.capblock .caphead .chars.over { color: #eb6834; opacity: 1; font-weight: 600; }
