@@ -1080,7 +1080,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Pins neu (Bitmap je Buendel) und passte die Karte neu ein; jetzt nur noch bei echtem
   Datenwechsel. **Von Jan noch nicht gegengetestet.**
 
-- **🟡 02.09. — MERKEN: die Suunto-API, die wir benutzen, ist als DEPRECATED markiert.** Jan hat es
+- **🟢 04.09. GEKLAERT + GEBAUT (Nachfolger steht, noch nicht aktiv) — 02.09.: die Suunto-API, die wir benutzen, ist als DEPRECATED markiert.** Jan hat es
   in den Berichten unter `apizone.suunto.com/reports` gesehen — die Aufrufe laufen dort unter
   **„SUUNTO WORKOUT API (DEPRECATED)"** (56 erfolgreich, 11 blockiert = das alte Wochenkontingent
   der Developer-API). Daneben steht ein zweites Produkt **„SUUNTO WORKOUT DESCRIPTION API"** mit
@@ -1089,10 +1089,30 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   (Liste) und `GET /v2/workout/exportFit/{key}` (FIT-Download). Genau diese zwei Wege muessen im
   Nachfolger ein Gegenstueck haben — vor allem der **FIT-Export**, denn daran haengt unser Import;
   eine reine „Description"-API mit Kennzahlen statt Rohdaten wuerde uns nichts nuetzen.
-  **Kein Alarm, aber ein Termin:** die Aufrufe gehen weiter durch (heute, gegen Produktion, 1 von 1
-  erfolgreich). Zu klaeren ist, ob und wann abgeschaltet wird — in der Doku der API Zone oder per
-  Mail an `partners@suunto.com`, wo der Production-Zugang herkam. Betroffen waeren **10 verknuepfte
+  **Kein Alarm, aber ein Termin:** die Aufrufe gehen weiter durch. Betroffen waeren **10 verknuepfte
   Konten** (Stand 02.09.).
+
+  **04.09. — Doku besorgt, ohne Anmeldung.** Suuntos API Zone laeuft auf Azure API Management, und
+  dessen Portal-Datenschnittstelle antwortet oeffentlich:
+  `apizone.suunto.com/developer/apis?api-version=2022-04-01-preview` (+ `/operations` je API).
+  Damit liegen alle 10 Suunto-APIs und die Operationen der neuen offen. Alles in
+  **`docs/suunto-api-v3.md`** samt Abruf-Zeilen zum Nachpruefen.
+  - **Der Nachfolger heisst „SUUNTO WORKOUT API" und liegt auf `/v3/workouts`** — drei
+    Operationen: Liste (`GET /`), ein Workout (`GET /{workoutKey}`) und **`GET /{key}/fit`**.
+    **Der FIT-Export ueberlebt also**, daran hing unser Import.
+  - **v3 kann mehr als v2:** `limit`/`offset` (Seitenweise) und `filter-by-modification-time` —
+    damit holt ein Sync genau das, was sich seit dem letzten Lauf geaendert hat.
+  - **Ein Missverstaendnis vom 02.09. korrigiert:** die „SUUNTO WORKOUT DESCRIPTION API" ist NICHT
+    der Nachfolger. Sie liegt auf `/v1/workouts` und ist damit aelter als das, was wir nutzen.
+  - **Gebaut, aber NICHT aktiv** (Jans Vorgabe: erst gemeinsam pruefen): `suunto.py` kennt beide
+    Wege, umgeschaltet wird ueber `SUUNTO_API_V3` in `server/.env` — ohne die Variable bleibt
+    alles bei v2. Die Listen-Antwort wird defensiv gelesen (`payload`/`workouts`/`data`/nackte
+    Liste), weil ihre Form fuer v3 nicht dokumentiert ist.
+  - **Zum gemeinsamen Pruefen:** `GET /api/integrations/suunto/vergleich` (eingeloggt, rein
+    lesend) holt dieselbe Liste ueber BEIDE Versionen und sagt: Anzahl je Version, die ersten
+    zehn Schluessel, die Feldnamen eines Workouts, ob die Listen uebereinstimmen — und laedt
+    EINEN FIT ueber beide Pfade (Bytes + HTTP-Code, Inhalt wird verworfen; das Wochenkontingent
+    ist knapp). **Naechster Schritt: Jan ruft das mit seinem Konto auf, dann entscheiden wir.**
   **Nicht ins Blaue migrieren:** erst Doku lesen, dann pruefen, ob `exportFit` im Nachfolger
   existiert. Siehe Memory `suunto-api-integration`.
 

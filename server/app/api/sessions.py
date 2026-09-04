@@ -1963,6 +1963,9 @@ def set_trim(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "trim_end_ms must be > trim_start_ms")
     s.trim_start_ms = a
     s.trim_end_ms = b
+    # Vom NUTZER gesetzt: ab jetzt zaehlen Startversuche nur innerhalb dieses Fensters
+    # (s. models.trim_auto). Beim Aufheben (null/null) wieder offen fuer die Automatik.
+    s.trim_auto = None if (a is None and b is None) else False
     db.commit()
     run_analysis(db, s)
     _spot_nachziehen(db, s)
