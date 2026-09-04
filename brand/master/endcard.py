@@ -37,7 +37,10 @@ CYAN_HELL = "#0e7490"
 APP_ZEILE = "FREE APP & COMMUNITY"
 # Unser Gruss, unuebersetzt — so steht er in jeder Nutzer-Nachricht und am Ende jeder
 # Ankuendigung. Auf der Endcard ist er die Unterschrift unter dem Ganzen (Jan, 04.09.).
-MOTTO = ("Have fun,", "keep pumping!")
+# Genau diese Schreibweise steht in Jans Videos: klein und ohne Komma, umgebrochen nach
+# „have fun". In Nutzer-Nachrichten schreiben wir „Have fun, keep pumping!" — hier ist es
+# die Bildmarke, dort ein Satz.
+MOTTO = ("have fun", "keep pumping!")
 
 
 def verlauf(farben: tuple[str, str, str]) -> Image.Image:
@@ -118,7 +121,7 @@ def endcard(theme: str) -> Image.Image:
         voll_m = Image.new("RGBA", z.size, (r, g, b, 255))
         voll_m.putalpha(z.split()[3])
         motto[i] = voll_m
-    motto_zeilenabstand = round(motto[0].height * 0.08)
+    motto_zeilenabstand = round(motto[0].height * 0.28)   # Luft nach „have fun"
     motto_h = sum(z.height for z in motto) + motto_zeilenabstand * (len(motto) - 1)
 
     abstand = 84                                   # Lockup -> Einleitung
