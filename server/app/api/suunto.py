@@ -405,6 +405,37 @@ def _import_workout(db: Session, user: models.User, token: str, key: str) -> boo
     return _hole_workout(db, user, token, key)[0]
 
 
+# v3 liefert hoechstens `limit` Workouts (Standard 50) und kennt `offset` — v2 kannte das nicht.
+# Ohne Seitenweise bekaeme ein Konto mit vielen Workouts beim ersten Sync nur die ersten 50.
+V3_SEITE = 100
+V3_MAX_SEITEN = 20          # 2000 Workouts je Sync sind mehr als genug
+
+
+def _workouts_holen(hdr: dict) -> list:
+    """Workout-Liste holen — bei v3 seitenweise, bei v2 in einem Zug (dort gibt es das nicht)."""
+    def seite(url: str) -> list:
+        try:
+            r = httpx.get(url, headers=hdr, timeout=30)
+        except Exception as exc:  # noqa: BLE001
+            raise HTTPException(status.HTTP_502_BAD_GATEWAY, "Suunto unreachable") from exc
+        if r.status_code != 200:
+            raise HTTPException(status.HTTP_502_BAD_GATEWAY, f"Suunto workouts failed ({r.status_code})")
+        return _liste_lesen(r.json())
+
+    if not _v3_aktiv():
+        return seite(_workouts_url())
+    aus: list = []
+    for i in range(V3_MAX_SEITEN):
+        teil = seite(f"{_workouts_url()}?limit={V3_SEITE}&offset={i * V3_SEITE}")
+        aus.extend(teil)
+        if len(teil) < V3_SEITE:        # letzte Seite
+            break
+    else:
+        log.warning("Suunto: mehr als %d Workouts — Rest kommt beim naechsten Sync",
+                    V3_SEITE * V3_MAX_SEITEN)
+    return aus
+
+
 @router.get("/vergleich")
 def vergleich(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
     """v2 gegen v3 stellen — rein lesend, schaltet nichts um.
@@ -475,13 +506,7 @@ def sync(user: models.User = Depends(current_user), db: Session = Depends(get_db
 
     token = _fresh_token(link, db)
     hdr = {"Authorization": f"Bearer {token}", "Ocp-Apim-Subscription-Key": _sub_key(), "Accept": "application/json"}
-    try:
-        lr = httpx.get(_workouts_url(), headers=hdr, timeout=30)
-    except Exception as exc:  # noqa: BLE001
-        raise HTTPException(status.HTTP_502_BAD_GATEWAY, "Suunto unreachable") from exc
-    if lr.status_code != 200:
-        raise HTTPException(status.HTTP_502_BAD_GATEWAY, f"Suunto workouts failed ({lr.status_code})")
-    workouts = _liste_lesen(lr.json())
+    workouts = _workouts_holen(hdr)
 
     imported = skipped = gefiltert = 0
     for w in (workouts or []):
