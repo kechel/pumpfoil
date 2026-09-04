@@ -11,9 +11,11 @@ const GROUPS = {
   // Xiaomi hat keine eigene Verknuepfung: Mi Fitness schiebt die Trainings offiziell in die
   // Suunto-App, dort holen wir sie ab (Anleitung auf /konten). Fuer den Nutzer ist die
   // Plattform damit unterstuetzt — also gehoert sie in diese Zeile.
-  // COROS steht bewusst noch unter „wartet": die MCP-Anbindung ist gebaut, aber die
-  // Werkzeug-Parameter sind noch nicht an einem echten Konto gegengeprueft (docs/TODO.md).
-  account: { avail: ["Polar", "Suunto", "Xiaomi"], pending: ["COROS"] },
+  // COROS ist seit 04.09. dabei: die MCP-Anbindung braucht keinen Partner-Vertrag mehr.
+  // Freigegeben, OHNE dass der Import an echten Trainings lief — niemand im Team hat eine
+  // COROS-Uhr (Jan: „der erste Nutzer wird sich dann schon melden oder uns wenigstens Daten
+  // bringen"). Die Sync-Antwort und das Log sagen im Zweifel, woran es lag.
+  account: { avail: ["Polar", "Suunto", "Xiaomi", "COROS"], pending: [] },
 } as const;
 
 // Geräte-Plattform (vom Pairing gemeldet) -> Anzeigename in der Watch-Gruppe.
