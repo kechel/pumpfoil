@@ -232,7 +232,7 @@ const de: Record<string, string> = {
   "cr.foilHighAspect": "High Aspect (AR ab {n})",
   "cr.foilThick": "Dicke Flügel (AR unter {n})",
   "cr.bandRange": "Verglichen wird nur mit Foils in diesem Bereich: {grenzen}.",
-  "cr.bandMine": "Verglichen wird mit Foils wie deinem {foil} — also {grenzen}. Als Referenz nehmen wir dein Standard-Foil aus dem Profil, und wenn du keins gesetzt hast, das Foil, das du am häufigsten fährst.",
+  "cr.bandMine": "Verglichen wird mit Foils wie deinem {foil} — also {grenzen}.",
   "cr.bandMineNone": "Für diesen Vergleich fehlt ein Referenz-Foil: setz im Profil ein Standard-Foil mit Fläche und Spannweite.",
   "cr.bandAspect": "Streckung {a}–{b}",
   "cr.bandAspectFrom": "Streckung ab {n}",

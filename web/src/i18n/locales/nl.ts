@@ -209,7 +209,7 @@ const nl: Record<string, string> = {
   "cr.foilHighAspect": "High aspect (AR vanaf {n})",
   "cr.foilThick": "Dikke vleugels (AR onder {n})",
   "cr.bandRange": "Alleen foils in dit bereik worden vergeleken: {grenzen}.",
-  "cr.bandMine": "Vergeleken met foils zoals jouw {foil} — dus {grenzen}. Referentie is je standaard-foil uit je profiel; anders degene die je het meest vaart.",
+  "cr.bandMine": "Vergeleken met foils zoals jouw {foil} — dus {grenzen}.",
   "cr.bandMineNone": "Voor deze vergelijking mist een referentie-foil: stel in je profiel een standaard-foil met oppervlak en spanwijdte in.",
   "cr.bandAspect": "aspect ratio {a}–{b}",
   "cr.bandAspectFrom": "aspect ratio vanaf {n}",

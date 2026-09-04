@@ -197,7 +197,7 @@ const id: Record<string, string> = {
   "cr.foilHighAspect": "High aspect (AR {n}+)",
   "cr.foilThick": "Sayap tebal (AR di bawah {n})",
   "cr.bandRange": "Hanya foil di rentang ini yang dibandingkan: {grenzen}.",
-  "cr.bandMine": "Dibandingkan dengan foil seperti {foil} milikmu — yaitu {grenzen}. Acuannya foil default di profilmu; kalau tidak ada, yang paling sering kamu pakai.",
+  "cr.bandMine": "Dibandingkan dengan foil seperti {foil} milikmu — yaitu {grenzen}.",
   "cr.bandMineNone": "Perbandingan ini butuh foil acuan: atur foil default dengan luas dan bentang di profilmu.",
   "cr.bandAspect": "aspect ratio {a}–{b}",
   "cr.bandAspectFrom": "aspect ratio dari {n}",

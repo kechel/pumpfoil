@@ -197,7 +197,7 @@ const zh: Record<string, string> = {
   "cr.foilHighAspect": "大展弦比（AR {n} 以上）",
   "cr.foilThick": "厚翼（AR 小于 {n}）",
   "cr.bandRange": "只比较该范围内的水翼：{grenzen}。",
-  "cr.bandMine": "与和你的 {foil} 相近的水翼比较（{grenzen}）。基准是你个人资料里的默认水翼；没有设置时用你使用最多的那一支。",
+  "cr.bandMine": "与和你的 {foil} 相近的水翼比较（{grenzen}）。",
   "cr.bandMineNone": "这个比较需要一支基准水翼：请在个人资料里设置一支带面积和展长的默认水翼。",
   "cr.bandAspect": "展弦比 {a}–{b}",
   "cr.bandAspectFrom": "展弦比 {n} 以上",

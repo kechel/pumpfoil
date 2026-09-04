@@ -197,7 +197,7 @@ const ru: Record<string, string> = {
   "cr.foilHighAspect": "High aspect (AR от {n})",
   "cr.foilThick": "Толстые крылья (AR меньше {n})",
   "cr.bandRange": "Сравниваются только фойлы в этом диапазоне: {grenzen}.",
-  "cr.bandMine": "Сравнение с фойлами как твой {foil} — то есть {grenzen}. Ориентир — фойл по умолчанию из профиля; если его нет, самый используемый.",
+  "cr.bandMine": "Сравнение с фойлами как твой {foil} — то есть {grenzen}.",
   "cr.bandMineNone": "Для сравнения не хватает эталонного фойла: задай в профиле фойл по умолчанию с площадью и размахом.",
   "cr.bandAspect": "удлинение {a}–{b}",
   "cr.bandAspectFrom": "удлинение от {n}",

@@ -212,7 +212,7 @@ const nb: Record<string, string> = {
   "cr.foilHighAspect": "High aspect (AR fra {n})",
   "cr.foilThick": "Tykke vinger (AR under {n})",
   "cr.bandRange": "Bare foiler i dette området sammenlignes: {grenzen}.",
-  "cr.bandMine": "Sammenlignes med foiler som din {foil} — altså {grenzen}. Referansen er standard-foilen i profilen din; ellers den du kjører mest.",
+  "cr.bandMine": "Sammenlignes med foiler som din {foil} — altså {grenzen}.",
   "cr.bandMineNone": "Denne sammenligningen mangler en referanse-foil: sett en standard-foil med areal og spennvidde i profilen.",
   "cr.bandAspect": "aspektforhold {a}–{b}",
   "cr.bandAspectFrom": "aspektforhold fra {n}",

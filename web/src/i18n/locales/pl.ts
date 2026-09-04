@@ -212,7 +212,7 @@ const pl: Record<string, string> = {
   "cr.foilHighAspect": "High aspect (AR od {n})",
   "cr.foilThick": "Grube skrzydła (AR poniżej {n})",
   "cr.bandRange": "Porównywane są tylko foile w tym zakresie: {grenzen}.",
-  "cr.bandMine": "Porównanie z foilami jak twój {foil} — czyli {grenzen}. Odniesieniem jest twój domyślny foil z profilu; bez niego ten najczęściej używany.",
+  "cr.bandMine": "Porównanie z foilami jak twój {foil} — czyli {grenzen}.",
   "cr.bandMineNone": "Do tego porównania brakuje foila odniesienia: ustaw w profilu domyślny foil z powierzchnią i rozpiętością.",
   "cr.bandAspect": "wydłużenie {a}–{b}",
   "cr.bandAspectFrom": "wydłużenie od {n}",
