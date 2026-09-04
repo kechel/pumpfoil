@@ -7,15 +7,15 @@ Apps für Garmin, Apple Watch, Wear OS und Amazfit – dazu native Apps für iOS
 
 Was du bekommst
 • Konfigurierbare Datenfelder: Tempo, Puls, Distanz, Zeit
-• Vibrationsalarm über oder unter deiner Zielgeschwindigkeit (aus Foil und Gewicht berechnet)
+• Vibrationsalarm über/unter deiner Zielgeschwindigkeit (aus Foil und Gewicht berechnet)
 • Carve-Erkennung mit Highlights in der Karte jedes Laufs
-• Puls-Zonen und Verlauf über die Saison, Aufnahme offline mit automatischem Upload
+• Kennzahlen je Foil: Strecke, längster Lauf, Puls – welches trägt dich weiter?
+• Verlauf über die Saison, Aufnahme offline, Upload automatisch
 
 Community
-Sessions teilen und nebeneinander vergleichen, Community-Rekorde und Bestenlisten je Spot – und zu jedem Spot gibt es automatisch eine Chatgruppe.
+Sessions teilen und vergleichen, Community-Rekorde und Bestenlisten je Spot – und zu jedem Spot gibt es automatisch eine Chatgruppe.
 
 Open Source
 Freie Software unter AGPL-3.0, in 17 Sprachen.
 
-App & Infos: https://pumpfoil.org
-Code: https://github.com/kechel/pumpfoil
+https://pumpfoil.org · github.com/kechel/pumpfoil
