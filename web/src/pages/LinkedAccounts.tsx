@@ -36,16 +36,23 @@ function gruendeText(t: (k: string, v?: Record<string, string>) => string,
 // die sich selbst ausblendet, wenn serverseitig nicht konfiguriert.
 export default function LinkedAccounts() {
   const { t } = useI18n();
-  // Ergebnis der OAuth-Verknüpfung (Callback leitet auf /konten?suunto=connected|cancelled|error).
+  // Ergebnis der OAuth-Verknüpfung. JEDER Dienst leitet auf /konten?<dienst>=connected|cancelled|
+  // error zurück — bisher wurde aber nur `suunto` gelesen. Wer COROS verband, bekam deshalb gar
+  // keine Rückmeldung, und `?coros=connected` blieb in der Adresszeile stehen: ein späterer
+  // Aufruf derselben URL sah dann nach „verbunden" aus, obwohl der Zustand vom Server kommt
+  // (`st.linked`). Aufgefallen am 04.09. an einer echten COROS-Verknüpfung.
   const [banner, setBanner] = useState<"ok" | "cancelled" | "error" | null>(null);
   useEffect(() => {
     const p = new URLSearchParams(window.location.search);
-    const s = p.get("suunto");
+    let s: string | null = null;
+    for (const dienst of ["suunto", "coros", "polar", "strava"]) {
+      const v = p.get(dienst);
+      if (v) { s = v; p.delete(dienst); }
+    }
     if (s === "connected") setBanner("ok");
     else if (s === "cancelled") setBanner("cancelled");
     else if (s === "error") setBanner("error");
     if (s) {
-      p.delete("suunto");
       const q = p.toString();
       window.history.replaceState(null, "", window.location.pathname + (q ? `?${q}` : ""));
     }
