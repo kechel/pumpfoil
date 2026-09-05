@@ -187,6 +187,64 @@ _APP_META: dict[str, dict[str, str]] = {
 }
 
 
+# --------------------------------------------------------------------------------------
+# Release-Stand fuer die oeffentliche Changelog-Seite
+#
+# Auf /changelog steht ganz oben eine kleine Tabelle: was ist LIVE, was liegt gerade im
+# Review, was kommt mit dem naechsten Release. Die Live-Spalte kommt automatisch aus
+# `_APP_META` oben — das ist dieselbe Zahl, die auch der Update-Hinweis in den Apps nutzt,
+# damit die Seite gar nicht erst auseinanderlaufen KANN.
+#
+# Die beiden anderen Spalten stehen hier und muessen von Hand gepflegt werden. Jan,
+# 05.09.2026: „ab jetzt fortlaufend aktualisieren, wenn wir neue Releases in Pruefung
+# geben, das Changelog erweitern oder eingereichte Releases freigegeben werden."
+#
+# DREI ANLAESSE, DIESE LISTEN ANZUFASSEN:
+#   1. Etwas EINGEREICHT  -> Eintrag von NAECHSTES nach IN_REVIEW verschieben.
+#   2. Etwas FREIGEGEBEN  -> `_APP_META[...]["latest"] setzen (erst wenn der Store es
+#                            wirklich ausliefert!) UND den IN_REVIEW-Eintrag entfernen.
+#   3. Etwas GEBAUT, das auf eine laufende Pruefung wartet -> nach NAECHSTES.
+# Bleibt eine Liste leer, blendet die Seite den ganzen Abschnitt aus.
+#
+# `note` ist eine kurze englische Zeile fuer Nutzer — keine internen Begriffe, keine
+# Versionsnummern von Build-Codes, kein Jargon (dieselbe Regel wie fuer die Changelog-Texte).
+ANZEIGENAME = {
+    "ios": "iPhone", "apple": "Apple Watch", "android": "Android phone",
+    "wear": "Wear OS", "garmin": "Garmin", "zepp": "Amazfit",
+}
+# Reihenfolge in der Tabelle — nach Verbreitung, nicht alphabetisch.
+REIHENFOLGE = ["ios", "apple", "android", "wear", "garmin", "zepp"]
+
+IN_REVIEW: list[dict] = [
+    {"platform": "android", "version": "1.1.25",
+     "note": "submitted 2 September, waiting for Google"},
+    {"platform": "wear", "version": "1.2.25",
+     "note": "submitted 2 September, waiting for Google"},
+    {"platform": "zepp", "version": "1.0.7",
+     "note": "submitted 1 September, under review"},
+]
+
+NAECHSTES: list[dict] = [
+    {"platform": "wear", "version": "1.2.26",
+     "note": "heart rate that keeps measuring, always-on, a touch lock for the water"},
+    {"platform": "android", "version": "1.1.26",
+     "note": "warns when the watch has no GPS fix, hold two seconds to stop"},
+    {"platform": "zepp", "version": "1.0.8", "note": "follows straight after the current one"},
+]
+
+
+@router.get("/releases")
+def releases() -> dict:
+    """Was ist live, was liegt im Review, was kommt als Naechstes (fuer /changelog)."""
+    live = [{"platform": p, "name": ANZEIGENAME[p], "version": _APP_META[p]["latest"],
+             "store_url": _APP_META[p].get("store_url", "")}
+            for p in REIHENFOLGE
+            if p in _APP_META and (_APP_META[p].get("latest") or "").strip()]
+    def anreichern(eintraege):
+        return [{**e, "name": ANZEIGENAME.get(e["platform"], e["platform"])} for e in eintraege]
+    return {"live": live, "review": anreichern(IN_REVIEW), "next": anreichern(NAECHSTES)}
+
+
 @router.get("/latest")
 def latest(platform: str = "") -> dict:
     """Neueste Store-Version je Plattform (ios|android). Werte werden manuell gepflegt.

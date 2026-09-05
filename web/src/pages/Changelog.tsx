@@ -1,6 +1,7 @@
-import { useEffect, type ReactNode } from "react";
+import { Fragment, useEffect, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useT } from "../i18n";
+import { api } from "../lib/api";
 import { ScrollToTop } from "../components/ScrollToTop";
 
 // Inline-Links in Changelog-Items: [label](/interner-pfad) oder [label](https://extern).
@@ -19,6 +20,70 @@ function ItemText({ text }: { text: string }): ReactNode {
   }
   if (last < text.length) out.push(text.slice(last));
   return <>{out}</>;
+}
+
+/**
+ * „Wo steht welche App gerade?" — ganz oben auf der Changelog-Seite, fuer alle sichtbar
+ * (Jan, 05.09.2026). Drei Zustaende: im Store, in der Pruefung, und was als Naechstes kommt.
+ *
+ * Die Daten kommen komplett vom Server (`GET /api/app/releases`). Die LIVE-Zeilen stammen dort
+ * aus `appmeta._APP_META` — derselben Quelle, aus der die Apps ihren Update-Hinweis holen.
+ * Damit kann diese Tabelle gar nicht behaupten, eine Version sei draussen, die die Apps noch
+ * nicht angeboten bekommen. Die beiden anderen Abschnitte werden in `appmeta.py` von Hand
+ * gepflegt; die Regel, wann, steht dort im Kommentar.
+ *
+ * Faellt der Abruf aus, verschwindet der Block einfach — das Changelog darunter ist die
+ * eigentliche Seite und soll nie an einer Nebensache haengen.
+ */
+type Release = { platform: string; name: string; version: string; note?: string; store_url?: string };
+
+function ReleaseStatus() {
+  const [daten, setDaten] = useState<{ live: Release[]; review: Release[]; next: Release[] } | null>(null);
+  useEffect(() => { api.appReleases().then(setDaten).catch(() => setDaten(null)); }, []);
+  if (!daten) return null;
+
+  const gruppen: { titel: string; farbe: string; zeilen: Release[] }[] = [
+    { titel: "In the stores", farbe: "text-emerald-400", zeilen: daten.live },
+    { titel: "Being reviewed", farbe: "text-amber-400", zeilen: daten.review },
+    { titel: "Coming next", farbe: "text-slate-400", zeilen: daten.next },
+  ].filter((g) => g.zeilen.length > 0);
+
+  return (
+    <section className="mb-8 rounded-xl border border-slate-800 bg-slate-900/40 p-4">
+      <h2 className="mb-1 text-sm font-bold text-slate-100">App versions</h2>
+      <p className="mb-3 text-sm text-slate-400">
+        Which version is out, what is waiting for a store review, and what comes with the next one.
+      </p>
+      {/* Schmale Bildschirme: die Tabelle scrollt in sich, die Seite selbst nie seitwaerts. */}
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[320px] text-sm">
+          <tbody>
+            {gruppen.map((g) => (
+              <Fragment key={g.titel}>
+                <tr>
+                  <td colSpan={3} className={`pb-1 pt-3 text-xs font-semibold uppercase tracking-wide ${g.farbe}`}>
+                    {g.titel}
+                  </td>
+                </tr>
+                {g.zeilen.map((r) => (
+                  <tr key={`${g.titel}-${r.platform}`} className="border-t border-slate-800/70">
+                    <td className="py-1.5 pr-3 whitespace-nowrap text-slate-200">{r.name}</td>
+                    <td className="py-1.5 pr-3 whitespace-nowrap font-medium text-slate-100">
+                      {r.store_url
+                        ? <a href={r.store_url} target="_blank" rel="noopener noreferrer"
+                             className="text-brand-400 hover:underline">{r.version}</a>
+                        : r.version}
+                    </td>
+                    <td className="py-1.5 text-slate-400">{r.note ?? ""}</td>
+                  </tr>
+                ))}
+              </Fragment>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
 }
 
 // Nutzer-sichtbares Changelog. Bewusst NICHT technisch und (bis auf den Menüpunkt) auf
@@ -523,6 +588,8 @@ export default function Changelog() {
       <ScrollToTop />
       <Link to="/" className="text-sm text-brand-400 hover:underline">{t("common.back")}</Link>
       <h1 className="mb-4 mt-4 text-xl font-bold">{t("nav.changelog")}</h1>
+
+      <ReleaseStatus />
 
       <div className="space-y-8">
         {ENTRIES.map((e) => (
