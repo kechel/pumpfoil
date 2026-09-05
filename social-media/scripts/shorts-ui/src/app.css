@@ -275,3 +275,6 @@ table.cmp { max-width: 520px; }
 .ecard .ecsum { margin-left: auto; font-size: 11px; opacity: .55; font-variant-numeric: tabular-nums; }
 .ecard .echint { font-size: 11px; opacity: .5; margin: 2px 0 6px; }
 .ecard .ecpick { flex-wrap: wrap; gap: 5px; }
+.ecard .ecalpha { flex: 1 1 150px; min-width: 130px; }
+.ecard .ecalpha input[type=range] { flex: 1; min-width: 60px; }
+.ecard .ecalpha b { font-weight: 500; font-variant-numeric: tabular-nums; min-width: 34px; text-align: right; }
