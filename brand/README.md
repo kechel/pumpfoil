@@ -34,7 +34,7 @@ nach `app-icons/`. Nach Änderungen an `master/base/` einfach neu laufen lassen.
 | **Web / PWA** (live, `web/public/`) | `icon-512/192`, `apple-touch-icon`, `favicon-16/32`, `oauth-logo-512/120`, `wordmark-h-{dark,light}` | von `master/build.sh` erzeugt — **nicht** in `brand/` (App lädt sie per Pfad) |
 | **Connect IQ Store** (Garmin) | `stores/garmin/hero-1440x720.png`, `store-icon-500x500.png`, `device-icon-128-24bit.png`, `device-icon-128-64color.png` | Hero 1440×720, Titelbild 500×500 (<300 KB), Gerätesymbol 128 |
 | ↳ Screenshots (aus Sim) | `stores/garmin/` (Jan legt ab) | — |
-| **Google Play** (Phone) | `stores/google/feature-graphic-1024x500.png`, `app-icons/android-512.png`, `stores/google/phone/*.png` | Feature-Grafik 1024×500, Icon 512, Phone-Screenshots |
+| **Google Play** (Phone) | `stores/google/feature-graphic-1024x500.png` (Generator: `master/playfeature.py`), `app-icons/android-512.png`, `stores/google/phone/*.png` | Feature-Grafik 1024×500, Icon 512, Phone-Screenshots |
 | **Google Play** (Wear) | `stores/google/wear-os/*.png` | 384×384 oder 454×454 (rund) |
 | **App Store** (iPhone) | `app-icons/icon-1024-light.png`, `stores/apple/iphone-6.5/*.png` | Icon 1024, 6.5″-Screenshots |
 | **App Store** (Apple Watch) | `stores/apple/apple-watch/*.png` | watchOS-Screenshots (Sim) |
