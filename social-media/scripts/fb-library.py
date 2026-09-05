@@ -23,11 +23,13 @@ Tabelle einlesen erzeugt also keine Dubletten.
 """
 import argparse
 import datetime as dt
+import base64
 import hashlib
 import re
 import sqlite3
 import sys
 from html.parser import HTMLParser
+from urllib.parse import unquote
 from pathlib import Path
 
 BASE = Path(__file__).resolve().parent.parent
@@ -170,6 +172,32 @@ def when(text, today):
 
 
 CONTENT_ID = re.compile(r"content_id=([^&]+)")
+
+
+def post_key(href, surface, caption, pub):
+    """Ein Beitrag, ein Schluessel — egal ob aus HTML oder CSV.
+
+    Der HTML-Link traegt `content_id=` als Base64 von
+    `S:_I<seiten-id>:<beitrags-id>:<beitrags-id>`; die mittlere Zahl ist
+    exakt die `Beitrags-ID` des CSV-Exports. Frueher wurde der Base64-String
+    unveraendert als Schluessel benutzt — dadurch stand jeder Seiten-Beitrag
+    zweimal in der DB, einmal je Quelle, und die Zeitreihe zerfiel.
+    Gruppen-Beitraege haben keinen solchen Link und behalten den Hash; sie
+    kommen ohnehin nur aus dem HTML (der CSV-Export laesst Gruppen weg).
+    """
+    cid = CONTENT_ID.search(href or "")
+    if cid:
+        try:
+            raw = base64.b64decode(unquote(cid.group(1))).decode("utf-8", "replace")
+            nums = [x for x in raw.split(":") if x.isdigit()]
+            if nums:
+                return nums[-1]
+        except Exception:
+            pass
+        return cid.group(1)
+    return hashlib.sha256(
+        (surface + caption[:120] + (pub.isoformat() if pub else "")).encode()
+    ).hexdigest()[:24]
 NUM_IN_TEXT = re.compile(r"^(\d{1,3})\s+[Pp]umpfoil")
 
 
@@ -192,10 +220,7 @@ def parse(html: str, today: dt.date) -> list:
                      if x.strip().endswith("•") and "Veröffentlicht" not in x]
             surface = names[0] if names else "gruppe"
         cap = next((x for x in c.get("2", []) if len(x) > 25), "")
-        cid = CONTENT_ID.search(r.get("href") or "")
-        key = cid.group(1) if cid else hashlib.sha256(
-            (surface + cap[:120] + (pub.isoformat() if pub else "")).encode()
-        ).hexdigest()[:24]
+        key = post_key(r.get("href"), surface, cap, pub)
         vals = {}
         for i, name in enumerate(COLS, start=4):
             raw = " ".join(c.get(str(i), []))
@@ -423,7 +448,15 @@ if __name__ == "__main__":
     ap.add_argument("--countries", metavar="NR-ODER-TEXT",
                     help="Laenderblock von stdin einem Beitrag zuordnen")
     a = ap.parse_args()
-    day = dt.date.fromisoformat(a.date) if a.date else dt.date.today()
+    day = dt.date.fromisoformat(a.date) if a.date else None
+    if day is None and a.__dict__.get("import"):
+        # Relative Angaben ("Heute/Gestern um 05:01") beziehen sich auf den
+        # Moment, in dem die Seite gerendert wurde — nicht auf den Import.
+        # Wer die Seite um 00:09 sichert, hat "Gestern" fuer den Vortag drin.
+        day = dt.date.fromtimestamp(Path(a.__dict__["import"]).expanduser().stat().st_mtime)
+        if day != dt.date.today():
+            print(f"Bezugstag aus der Datei: {day} (--date ueberschreibt das)")
+    day = day or dt.date.today()
     if a.countries:
         do_countries(a.countries, sys.stdin.read(), a.dry_run)
     elif a.imp:

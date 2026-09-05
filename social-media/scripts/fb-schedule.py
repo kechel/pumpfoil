@@ -128,8 +128,15 @@ def main():
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--only", metavar="NR", help="nur diese Videonummer")
+    ap.add_argument("--dir", metavar="ORDNER",
+                    help="woanders nach den Videos suchen (z. B. auf der USB-Sicherung, "
+                         "wenn die Fassungen lokal geloescht wurden)")
     a = ap.parse_args()
 
+    src_dir = Path(a.dir).expanduser() if a.dir else VIDEO_DIR
+    if not src_dir.is_dir():
+        print(f"Ordner gibt es nicht: {src_dir}")
+        return
     plan = load(PLAN_FILE, [])
     if not plan:
         print(f"Kein Plan unter {PLAN_FILE}")
@@ -145,9 +152,12 @@ def main():
             print(f"  {e['number']}  schon terminiert am {state[e['number']]['for']} "
                   f"(ID {state[e['number']]['video_id']}) — übersprungen")
             continue
-        day = dt.datetime.strptime(e["date"], "%Y-%m-%d").replace(hour=POST_HOUR)
+        # Uhrzeit je Eintrag moeglich ("time": "15:00"), sonst der Standardslot
+        hh, mm = (e.get("time") or f"{POST_HOUR:02d}:00").split(":")
+        day = dt.datetime.strptime(e["date"], "%Y-%m-%d").replace(
+            hour=int(hh), minute=int(mm))
         when = day.astimezone()
-        path = VIDEO_DIR / e["file"]
+        path = src_dir / e["file"]
         if not path.is_file():
             print(f"  {e['number']}  DATEI FEHLT: {path}")
             continue
