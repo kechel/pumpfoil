@@ -18,18 +18,22 @@ vier Zeilen Kleingedrucktes sind dort nicht mehr lesbar. Es bleibt, was auf Brie
 groesse noch traegt: Wortmarke, Tagline, Plattform-Liste — und rechts ein echter Screenshot
 statt der frueheren Track-Dekoration (Jan, 05.09.2026).
 
-Der Screenshot kommt aus den Store-Bildern (`brand/stores/apple/iphone-6.5/03.png`, der
-farbige GPS-Track). Aus dem fertigen Store-Bild wird NUR das Telefon herausgeschnitten —
-die eingebrannte Ueberschrift bleibt draussen, sonst staenden zwei Titel im Bild. Der
-Ausschnitt ist unten offen: das Telefon laeuft aus dem Bild heraus, das wirkt lebendiger
-als ein freigestelltes Geraet in der Mitte.
+Der Screenshot zeigt die **PWA** in Handy-Breite, nicht die iOS-App: das hier ist der
+Play Store (Jan, 05.09.2026). Erzeugt mit `pwa-shot.py` aus einer echten Session, bewusst
+OHNE den Kopfbereich — dort stehen Profilbild und Name, und es geht um das Produkt, nicht
+um die Person. Neu aufnehmen, wenn sich die Oberflaeche merklich aendert:
+
+    cd server && .venv/bin/python ../brand/master/pwa-shot.py
+
+Der Ausschnitt ist unten offen: das Geraet laeuft aus dem Bild heraus, das wirkt lebendiger
+als ein freigestelltes Telefon in der Mitte.
 """
 import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw
 
 import banner
 import gen
@@ -39,14 +43,8 @@ OUT = os.path.join(os.path.dirname(__file__), "../stores/google/feature-graphic-
 # Rand rundum. Play beschneidet die Grafik je nach Platzierung an den Seiten, deshalb bleibt
 # ringsum reichlich Luft — nichts Wichtiges nah an den Rand.
 RAND = 48
-# Quelle fuer das Telefon rechts und der Ausschnitt darin (in Pixeln des Store-Bildes,
-# 1242x2688). Die Werte sind GEMESSEN: nicht ueber Helligkeit — der Gehaeuserand ist fast so
-# dunkel wie der Hintergrund und faellt dabei durch, der Ausschnitt schnitte dann ins Display.
-# Statt dessen gegen die Hintergrundfarbe der Store-Grafik verglichen (`a[5,5]`, ein sehr
-# dunkles Navy): das Geraet liegt zwischen x=116 und x=1125 und endet bei y=2645. Oben bleibt
-# die eingebrannte Ueberschrift draussen, die endet bei y~460.
-SHOT = os.path.join(os.path.dirname(__file__), "../stores/apple/iphone-6.5/03.png")
-SHOT_BOX = (116, 500, 1126, 2646)
+# Der PWA-Screenshot (Handy-Breite, dunkel). Erzeugt mit `pwa-shot.py`, s. Kopfzeile.
+SHOT = os.path.join(os.path.dirname(__file__), "../stores/google/phone/pwa-session.png")
 # Anteil der Bildbreite, den die rechte Spalte mit dem Telefon einnimmt.
 SHOT_SPALTE = 0.34
 
@@ -109,12 +107,25 @@ def main() -> None:
     # Rechts das Telefon: unten offen, damit es aus dem Bild laeuft. Die Hoehe ist bewusst
     # groesser als die Leinwand — ein vollstaendig sichtbares Geraet wirkt auf diesem flachen
     # Format wie ein Briefmarkenbild.
-    telefon = Image.open(SHOT).convert("RGB").crop(SHOT_BOX)
+    telefon = Image.open(SHOT).convert("RGB")
     t_h = round(H * 1.22)
     telefon = telefon.resize((round(telefon.width * t_h / telefon.height), t_h), Image.LANCZOS)
+    # Abgerundete Ecken + schmaler Rahmen: der Screenshot ist ein rechteckiger Ausschnitt einer
+    # Webseite, erst die Rundung laesst ihn wie ein Geraet aussehen.
+    radius = round(telefon.width * 0.085)
+    maske = Image.new("L", telefon.size, 0)
+    ImageDraw.Draw(maske).rounded_rectangle([0, 0, telefon.width - 1, telefon.height - 1],
+                                            radius=radius, fill=255)
+    gerundet = Image.new("RGBA", telefon.size, (0, 0, 0, 0))
+    gerundet.paste(telefon, (0, 0), maske)
+    rahmen = Image.new("RGBA", telefon.size, (0, 0, 0, 0))
+    ImageDraw.Draw(rahmen).rounded_rectangle([0, 0, telefon.width - 1, telefon.height - 1],
+                                             radius=radius, outline=(148, 163, 184, 110), width=3)
+    gerundet.alpha_composite(rahmen)
+
     spalte_x = round(W * (1 - SHOT_SPALTE))
-    t_x = spalte_x + (W - spalte_x - telefon.width) // 2
-    grund.paste(telefon, (t_x, round(H * 0.10)))
+    t_x = spalte_x + (W - spalte_x - gerundet.width) // 2
+    grund.alpha_composite(gerundet, (t_x, round(H * 0.10)))
 
     # Links der Markenblock, mittig in der verbleibenden Spalte.
     text_breite = spalte_x - RAND
