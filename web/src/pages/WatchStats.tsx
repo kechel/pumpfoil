@@ -19,11 +19,13 @@ type Row = Awaited<ReturnType<typeof api.watchStats>>[number];
  *
  * Drei Dinge stehen bewusst dabei, weil die Tabelle sonst mehr behauptet, als sie weiss:
  * - **Stand und Datenbasis** ueber der Tabelle. Der Snapshot wird alle paar Wochen erneuert.
- * - **Zahl der Fahrer je Modell.** Unter `WENIG_NUTZER` wird nichts Feines mehr gezeigt: bei
- *   zwei Fahrern ist ein Median aus zwei Werten keine Aussage ueber ein Uhrmodell.
+ * - **Zahl der Fahrer je Modell**, und ab `WENIG_NUTZER` abwaerts ein sichtbarer Hinweis.
+ *   Die Zahlen bleiben trotzdem stehen: es gibt bewusst KEIN Urteil in dieser Tabelle (Jan,
+ *   05.09.) -- wer selbst entscheiden soll, braucht die Werte und nicht Striche.
  * - **Ortungsguete steht getrennt.** Garmin liefert eine Stufe (Connect IQ, „GOOD"), die
  *   anderen Meter — eine gemeinsame Spalte waere schlicht falsch.
  */
+// Ab dieser Zahl abwaerts (also 3 und weniger) wird die Zeile als duenn gekennzeichnet.
 const WENIG_NUTZER = 3;
 
 function Uhrenqualitaet() {
@@ -32,10 +34,10 @@ function Uhrenqualitaet() {
   useEffect(() => { api.watchQuality().then(setD).catch(() => setD(null)); }, []);
   if (!d || !d.modelle?.length) return null;
 
-  const urteil = (u: string) =>
-    u === "empfohlen" ? { text: t("watchQuality.good"), cls: "text-emerald-700 dark:text-emerald-400" }
-    : u === "nur GPS" ? { text: t("watchQuality.gpsOnly"), cls: "text-[#c24100] dark:text-[#ff5500]" }
-    : { text: t("watchQuality.limited"), cls: "text-amber-700 dark:text-amber-400" };
+  // Nach Sessions sortiert. Frueher stand hier eine Urteilsspalte und die Reihenfolge folgte
+  // ihr -- das Urteil ist weg (Jan, 05.09.: das sollen Nutzer selbst entscheiden), also
+  // entscheidet jetzt die Datenmenge ueber die Reihenfolge.
+  const zeilen = [...d.modelle].sort((a, b) => b.sessions - a.sessions);
 
   return (
     <section className="mt-10">
@@ -51,45 +53,48 @@ function Uhrenqualitaet() {
         {t("watchQuality.new")}
       </p>
       <div className="overflow-x-auto rounded-2xl border border-slate-800">
-        <table className="w-full min-w-[680px] border-collapse text-sm">
+        <table className="w-full min-w-[560px] border-collapse text-sm">
           <thead>
             <tr className="bg-slate-900/70 text-left text-slate-300">
-              <th className="px-4 py-3">{t("watchStats.colWatch")}</th>
+              <th className="max-w-[11rem] px-3 py-3">{t("watchStats.colWatch")}</th>
               <th className="px-4 py-3 text-right">{t("watchStats.colUsers")}</th>
               <th className="px-4 py-3 text-right">{t("watchStats.colSessions")}</th>
               <th className="px-4 py-3 text-right">{t("watchQuality.colPump")}</th>
               <th className="px-4 py-3 text-right">{t("watchQuality.colGps")}</th>
               <th className="px-4 py-3 text-right">{t("watchQuality.colHr")}</th>
-              <th className="px-4 py-3">{t("watchQuality.colVerdict")}</th>
             </tr>
           </thead>
           <tbody>
-            {d.modelle.map((r) => {
-              const u = urteil(r.urteil);
-              const duenn = r.nutzer < WENIG_NUTZER;
+            {zeilen.map((r) => {
+              const duenn = r.nutzer <= WENIG_NUTZER;
               const gps = r.guete_gut != null ? t("watchQuality.gpsGood", { pct: r.guete_gut.toFixed(0) })
                         : r.hacc_m != null ? `${r.hacc_m.toFixed(1)} m` : "–";
               return (
                 <tr key={`${r.plattform}-${r.modell}`} className="border-t border-slate-800">
-                  <td className="px-4 py-3 font-semibold">{r.modell}</td>
+                  {/* Schmaler als der Rest: die Garmin-Namen sind lang, duerfen aber
+                      umbrechen statt die Tabelle zu sprengen. */}
+                  <td className="max-w-[11rem] px-3 py-3 font-semibold leading-snug">{r.modell}</td>
                   <td className="px-4 py-3 text-right tabular-nums">
                     {r.nutzer}
-                    {duenn && <span className="ml-1 text-xs text-slate-500">{t("watchQuality.few")}</span>}
+                    {duenn && (
+                      <div className="text-xs font-normal text-amber-700 dark:text-amber-400">
+                        {t("watchQuality.few")}
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums">{r.sessions}</td>
                   <td className="px-4 py-3 text-right tabular-nums">
                     {r.accel_hz != null ? `${r.accel_hz.toFixed(0)} Hz` : "–"}
                   </td>
-                  <td className="px-4 py-3 text-right tabular-nums">{duenn ? "–" : gps}</td>
+                  <td className="px-4 py-3 text-right tabular-nums">{gps}</td>
                   {/* Puls als WERTWECHSEL je Minute. Der Anteil fehlender Werte taugte nicht:
                       bis App 1.1.29 schrieb die Apple Watch den letzten bekannten Wert in jeden
                       Punkt — 99,5 % der Punkte trugen einen Wert, er war nur alt. Ein Wechsel
                       entsteht dagegen nur bei einer echten neuen Messung. */}
                   <td className="px-4 py-3 text-right tabular-nums">
-                    {duenn || r.puls_wechsel == null ? "–"
+                    {r.puls_wechsel == null ? "–"
                       : t("watchQuality.hrRate", { n: r.puls_wechsel.toFixed(0) })}
                   </td>
-                  <td className={`px-4 py-3 font-medium ${u.cls}`}>{u.text}</td>
                 </tr>
               );
             })}
