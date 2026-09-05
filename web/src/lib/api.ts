@@ -1030,8 +1030,12 @@ export const api = {
   // period: today|10d|30d|365d|all — dieselben Fenster wie die Community-Ranglisten (PERIODS).
   // `sport` leer lassen = der Server nimmt die haeufigste Sportart des Nutzers und sagt in der
   // Antwort (`sport`), welche das war. Die Auswahlliste kommt als `sports` gleich mit.
-  hrProgress: (sport?: string) =>
-    req<HrProgress>(`/api/sessions/hr-progress${sport ? `?sport=${encodeURIComponent(sport)}` : ""}`),
+  // `grid`: zusaetzlich das feine Zeit-Raster je Session (fuer den frei waehlbaren Zeitpunkt).
+  // Ohne das bleibt die Antwort so klein wie bisher — es sind 59 Zahlen je Session.
+  hrProgress: (sport?: string, grid?: boolean) =>
+    req<HrProgress>(`/api/sessions/hr-progress?${new URLSearchParams({
+      ...(sport ? { sport } : {}), ...(grid ? { grid: "1" } : {}),
+    })}`),
   // Dieselben Kennzahlen, aber einzeln je Foil (Startseite, Abschnitt unter den Rekorden).
   // Nur Foils, die im gewaehlten Zeitfenster vorkommen; `foil_id: null` = Sessions ohne Eintrag.
   statsByFoil: (accelOnly = true, period = "all", sport?: string) =>
@@ -1352,7 +1356,12 @@ export interface HrProgress {
   sport: string;
   sports: { sport: string; sessions: number }[];
   marks: number[];
-  series: { session_id: number; started_at: string | null; [k: string]: number | string | null }[];
+  // Nur mit `grid=1`: die Sekunden-Marken des feinen Rasters, und je Session `g` (Median-Puls
+  // je Marke) und `gn` (Zahl der Laeufe). Gleiche Laenge und Reihenfolge wie `grid`.
+  grid?: number[];
+  series: { session_id: number; started_at: string | null;
+            g?: (number | null)[]; gn?: number[];
+            [k: string]: number | string | null | (number | null)[] | number[] | undefined }[];
 }
 
 export interface SocialItem {
