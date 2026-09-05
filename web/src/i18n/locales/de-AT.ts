@@ -1249,6 +1249,7 @@ const deAT: Record<string, string> = {
   "cls.dq.test": "Test",
   "cls.needsBadge": "Bitte zuordnen",
   "cls.notPumpfoil": "Schaut nicht nach Pumpfoil aus",
+  "cls.fileAsk": "Deine Uhr hat diese Aufnahme als „{sport}“ gespeichert — deshalb wissen wir nicht, ob es Pumpfoiling war. Magst du sie kurz zuordnen? Bis dahin erscheint sie in keiner Auswertung. War es doch Pumpfoiling, wähle einfach „Pumpfoil“.",
   "cls.ownerAsk": "A anderer Foiler glaubt, dass diese Session kein Pumpfoilen ist. Magst sie kurz richtig zuordnen? Bis dahin scheint sie in keiner Auswertung auf. Wenn's doch Pumpfoilen war, sag's uns — dann schaut wer von uns drauf.",
   "cls.pickErr": "Hat nicht gespeichert werden können",
   "cls.sport.kitefoil": "Kitefoil",

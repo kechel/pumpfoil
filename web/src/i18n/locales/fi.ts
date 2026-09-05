@@ -1428,6 +1428,7 @@ const fi: Record<string, string> = {
   "cls.dq.test": "Testi",
   "cls.needsBadge": "Luokiteltava",
   "cls.notPumpfoil": "Ei näytä pumpfoililta",
+  "cls.fileAsk": "Kellosi tallensi tämän nimellä ”{sport}”, joten emme tiedä, oliko kyseessä pumpfoilaus. Luokittelisitko sen? Siihen asti se ei näy missään tilastossa. Jos se sittenkin oli pumpfoilausta, valitse ”Pumpfoil”.",
   "cls.ownerAsk": "Toinen foilaaja arvelee, ettei tämä sessio ole pumpfoilia. Voisitko luokitella sen? Siihen asti se ei näy missään tilastossa. Jos se todella oli pumpfoilia, kerro meille niin katsomme asiaa.",
   "cls.pickErr": "Tallennus ei onnistunut",
   "cls.sport.kitefoil": "Kitefoil",

@@ -1452,6 +1452,7 @@ const pl: Record<string, string> = {
   "cls.notPumpfoil": "To nie wygląda na pumpfoil",
   "cls.confirmFlag": "Uważasz, że to nie jest sesja pumpfoil? Właściciel dostanie uprzejmą prośbę o właściwe przypisanie — na przykład jako wingfoil albo foildrive. Zostajesz anonimowy i nikt nikogo o nic nie oskarża: chodzi tylko o to, aby rekordy pozostały porównywalne.",
   "cls.thanks": "Dzięki! Poprosimy właściciela o przypisanie tej sesji.",
+  "cls.fileAsk": "Twój zegarek zapisał to nagranie jako „{sport}”, więc nie wiemy, czy to był pumpfoiling. Przypiszesz je? Do tego czasu nie pojawi się w żadnej statystyce. Jeśli to jednak był pumpfoiling, wybierz po prostu „Pumpfoil”.",
   "cls.ownerAsk": "Inny foiler uważa, że ta sesja to nie pumpfoiling. Możesz ją przypisać? Do tego czasu nie pojawi się w żadnych statystykach. Jeśli to naprawdę był pumpfoiling, po prostu nam to napisz, a sprawdzimy.",
   "cls.pickErr": "Nie udało się zapisać",
   "cls.choose": "Wybierz sport …",

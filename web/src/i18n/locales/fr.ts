@@ -1235,6 +1235,7 @@ const fr: Record<string, string> = {
   "cls.dq.test": "Test",
   "cls.needsBadge": "À classer",
   "cls.notPumpfoil": "Ne ressemble pas à du pumpfoil",
+  "cls.fileAsk": "Ta montre a enregistré cette session comme « {sport} », donc nous ne savons pas s’il s’agissait de pumpfoil. Tu peux la classer ? En attendant, elle n’apparaît dans aucune statistique. Si c’était bien du pumpfoil, choisis simplement « Pumpfoil ».",
   "cls.ownerAsk": "Un autre foileur pense que cette session n'est pas du pumpfoil. Pourrais-tu la classer ? En attendant elle n'apparaîtra dans aucune statistique. Si c'était vraiment du pumpfoil, dis-le-nous et nous regarderons.",
   "cls.pickErr": "Enregistrement impossible",
   "cls.sport.kitefoil": "Kitefoil",

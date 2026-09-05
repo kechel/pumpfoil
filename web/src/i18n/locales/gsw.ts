@@ -1243,6 +1243,7 @@ const gsw: Record<string, string> = {
   "cls.dq.test": "Test",
   "cls.needsBadge": "Bitte zuordne",
   "cls.notPumpfoil": "Gseht nöd nach Pumpfoil us",
+  "cls.fileAsk": "Dini Uhr hät die Ufnahm als „{sport}“ gspeicheret — drum wüsse mir nid, öbs Pumpfoiling gsi isch. Magsch sie churz zuordne? Bis dänn erschiint sie i kener Uuswertig. Isches doch Pumpfoiling gsi, nimm eifach „Pumpfoil“.",
   "cls.ownerAsk": "En andere Foiler meint, dass die Session kei Pumpfoile isch. Magsch sie churz richtig zuordne? Bis denn erschiint sie i kei Uswertig. Wenn s doch Pumpfoile gsi isch, säg s üs — denn luegt öpper vo üs druf.",
   "cls.pickErr": "Hät nöd chöne gspeicheret werde",
   "cls.sport.kitefoil": "Kitefoil",

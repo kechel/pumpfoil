@@ -1463,6 +1463,7 @@ const nl: Record<string, string> = {
   "cls.dq.test": "Test",
   "cls.needsBadge": "Nog classificeren",
   "cls.notPumpfoil": "Lijkt geen pumpfoil",
+  "cls.fileAsk": "Je horloge heeft deze opname opgeslagen als ‘{sport}’, dus we weten niet of het pumpfoilen was. Wil je hem indelen? Tot dan verschijnt hij in geen enkele statistiek. Was het toch pumpfoilen, kies dan gewoon ‘Pumpfoil’.",
   "cls.ownerAsk": "Een andere foiler denkt dat deze sessie geen pumpfoil is. Zou je hem kunnen classificeren? Tot dan verschijnt hij in geen enkele statistiek. Als het echt pumpfoil was, zeg het ons dan even en we kijken ernaar.",
   "cls.pickErr": "Opslaan mislukt",
   "cls.sport.kitefoil": "Kitefoil",

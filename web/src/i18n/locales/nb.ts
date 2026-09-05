@@ -1396,6 +1396,7 @@ const nb: Record<string, string> = {
   "cls.notPumpfoil": "Ser ikke ut som pumpfoil",
   "cls.confirmFlag": "Tror du dette ikke er en pumpfoil-økt? Eieren får en vennlig forespørsel om å klassifisere den riktig — for eksempel som wingfoil eller foildrive. Du er anonym, og ingen blir anklaget for noe: det handler bare om å holde rekordene sammenlignbare.",
   "cls.thanks": "Takk! Eieren blir bedt om å klassifisere denne økta.",
+  "cls.fileAsk": "Klokka di lagret dette opptaket som «{sport}», så vi vet ikke om det var pumpfoiling. Vil du klassifisere det? Inntil da vises det ikke i noen statistikk. Var det likevel pumpfoiling, velg «Pumpfoil».",
   "cls.ownerAsk": "En annen foiler tror at denne økta ikke er pumpfoiling. Kan du klassifisere den? Fram til det vises den ikke i noen statistikk. Var det virkelig pumpfoiling, si det til oss, så tar vi en titt.",
   "cls.pickErr": "Kunne ikke lagres",
   "cls.choose": "Velg en sport …",
