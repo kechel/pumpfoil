@@ -41,8 +41,10 @@ class RecorderService : Service(), SensorEventListener {
 
     override fun onCreate() {
         super.onCreate()
-        sensors = getSystemService(SENSOR_SERVICE) as SensorManager
-        locMgr = getSystemService(LOCATION_SERVICE) as LocationManager
+
+        val attrCtx = createAttributionContext("recorder")
+        sensors = attrCtx.getSystemService(SENSOR_SERVICE) as SensorManager
+        locMgr = attrCtx.getSystemService(LOCATION_SERVICE) as LocationManager
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

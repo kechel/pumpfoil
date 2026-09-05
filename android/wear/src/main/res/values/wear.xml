@@ -2,6 +2,8 @@
 <!-- Bewirbt eine Capability, sobald die Wear-App installiert ist -> die Phone-App
      erkennt damit, ob unsere App auf der gekoppelten Uhr vorhanden ist. -->
 <resources>
+    <string name="attribution_recorder">Workout recording</string>
+
     <string-array name="android_wear_capabilities">
         <item>pumpfoil_wear_app</item>
     </string-array>
