@@ -1,29 +1,29 @@
 Urteil          Modell                              Sess Nutz    Accel  gps-only  Ortung steht  Guete/hacc  Puls fehlt  Puls starr
 ----------------------------------------------------------------------------------------------------------------------------------
-empfohlen       Apple Watch                          150   25  25.0 Hz      0.0%          0.0%       6.2 m keine Daten           –
-empfohlen       fēnix® 7X / tactix® 7 / quatix® 7X   120   12  25.0 Hz      0.0%          0.7%    95% GOOD        0.0%        0.0%
-empfohlen       fēnix® 7 / quatix® 7                 102    8  25.0 Hz      0.0%          0.4%    95% GOOD        0.0%        0.0%
-empfohlen       Wear OS                               87   14  47.0 Hz      0.0%          0.0%       4.2 m        5.4%        0.0%
-empfohlen       fēnix® 6X Pro / 6X Sapphire / 6X P    85    5  24.8 Hz      0.0%          0.0%   100% GOOD        0.1%        0.0%
-empfohlen       fēnix® 7X Pro                         81    4  25.0 Hz      0.0%          0.4%    94% GOOD        0.0%        0.0%
-empfohlen       fēnix® 8 47mm / 51mm / tactix® 8 4    68    8  25.0 Hz      0.0%          0.9%    99% GOOD        0.0%        0.0%
-empfohlen       Forerunner® 970                       44    2  25.0 Hz      0.0%          1.0%    98% GOOD        0.0%        1.9%
-empfohlen       Forerunner® 265                       32    3  25.0 Hz      0.0%          0.0%    96% GOOD        0.0%        0.0%
-empfohlen       Instinct® 3 Solar 45mm / 50mm         31    3  25.0 Hz      4.8%          1.4%    98% GOOD        0.0%        0.0%
-empfohlen       fēnix® 7 Pro                          29    4  24.9 Hz      0.0%          0.9%    94% GOOD        0.0%        0.0%
-empfohlen       Forerunner® 745                       22    2  25.5 Hz      0.0%          0.0%   100% GOOD        0.0%        0.0%
-empfohlen       Forerunner® 955 / Solar               18    3  24.9 Hz      0.0%          0.0%    97% GOOD        0.1%        0.0%
-empfohlen       fēnix® 6S Pro / 6S Sapphire / 6S P    17    1  24.3 Hz      5.9%          0.0%   100% GOOD        0.2%        0.0%
-empfohlen       fēnix® 6 Pro / 6 Sapphire / 6 Pro     16    5  25.0 Hz      0.0%          0.0%   100% GOOD        0.0%        0.0%
-empfohlen       fēnix® 7S                             16    2  25.0 Hz      0.0%          0.1%    96% GOOD        0.1%        0.0%
-empfohlen       Forerunner® 945                       16    1  25.1 Hz      0.0%          0.0%   100% GOOD        0.2%        0.0%
-empfohlen       epix™ Pro (Gen 2) 42mm                15    2  25.0 Hz      0.0%          0.2%    94% GOOD       50.0%        0.0%
-empfohlen       epix™ Pro (Gen 2) 47mm / quatix® 7    15    2  25.0 Hz      0.0%          0.8%    93% GOOD        0.0%        0.0%
-empfohlen       Descent™ G2                           13    1  25.0 Hz      0.0%          0.1%    86% GOOD        0.0%        0.0%
-empfohlen       SM-L315F                              13    1  46.5 Hz      0.0%          0.0%       5.0 m        2.4%        0.0%
-empfohlen       vívoactive® 6                         12    1  25.0 Hz      0.0%          0.4%    99% GOOD        0.0%        0.0%
-empfohlen       Instinct® 3 AMOLED 50mm               12    2  25.0 Hz      0.0%          0.0%    86% GOOD        0.0%        0.0%
-empfohlen       Phone                                  8    2  49.3 Hz      0.0%          0.0%       9.5 m      100.0%        0.0%
-mit Abstrichen  epix™ (Gen 2) / quatix® 7 Sapphire    11    2  25.0 Hz     10.0%          3.0%    93% GOOD        0.0%        0.0%
-nur GPS         Forerunner® 55                        41    3   6.6 Hz    100.0%          0.0%   100% GOOD        0.0%        0.0%
-nur GPS         Instinct® 2 / Solar / Dual Power /     8    2        –    100.0%          0.0%   100% GOOD        0.0%        0.0%
+empfohlen       Apple Watch                          150   25  25.0 Hz      0.0%          0.0%       6.2 m       6.9      0.0%
+empfohlen       fēnix® 7X / tactix® 7 / quatix® 7X   120   12  25.0 Hz      0.0%          0.7%    95% GOOD      16.9      0.0%
+empfohlen       fēnix® 7 / quatix® 7                 102    8  25.0 Hz      0.0%          0.4%    95% GOOD      17.5      0.0%
+empfohlen       Wear OS                               87   14  47.0 Hz      0.0%          0.0%       4.2 m      23.4      0.0%
+empfohlen       fēnix® 6X Pro / 6X Sapphire / 6X P    85    5  24.8 Hz      0.0%          0.0%   100% GOOD      19.6      0.0%
+empfohlen       fēnix® 7X Pro                         81    4  25.0 Hz      0.0%          0.4%    94% GOOD      14.4      0.0%
+empfohlen       fēnix® 8 47mm / 51mm / tactix® 8 4    68    8  25.0 Hz      0.0%          0.9%    99% GOOD      28.8      0.0%
+empfohlen       Forerunner® 970                       44    2  25.0 Hz      0.0%          1.0%    98% GOOD      23.8      0.0%
+empfohlen       Forerunner® 265                       32    3  25.0 Hz      0.0%          0.0%    96% GOOD      28.6      0.0%
+empfohlen       Instinct® 3 Solar 45mm / 50mm         31    3  25.0 Hz      4.8%          1.4%    98% GOOD      17.8      0.0%
+empfohlen       fēnix® 7 Pro                          29    4  24.9 Hz      0.0%          0.9%    94% GOOD      18.3      0.0%
+empfohlen       Forerunner® 745                       22    2  25.5 Hz      0.0%          0.0%   100% GOOD      21.8     20.8%
+empfohlen       Forerunner® 955 / Solar               18    3  24.9 Hz      0.0%          0.0%    97% GOOD      25.5      0.0%
+empfohlen       fēnix® 6S Pro / 6S Sapphire / 6S P    17    1  24.3 Hz      5.9%          0.0%   100% GOOD      20.9      0.0%
+empfohlen       Forerunner® 945                       17    1  25.1 Hz      0.0%          0.0%   100% GOOD      33.4      0.0%
+empfohlen       fēnix® 6 Pro / 6 Sapphire / 6 Pro     16    5  25.0 Hz      0.0%          0.0%   100% GOOD      17.5      0.0%
+empfohlen       fēnix® 7S                             16    2  25.0 Hz      0.0%          0.1%    96% GOOD      19.2      0.0%
+empfohlen       epix™ Pro (Gen 2) 42mm                15    2  25.0 Hz      0.0%          0.2%    94% GOOD      10.4     30.0%
+empfohlen       epix™ Pro (Gen 2) 47mm / quatix® 7    15    2  25.0 Hz      0.0%          0.8%    93% GOOD      15.7      0.0%
+empfohlen       Descent™ G2                           13    1  25.0 Hz      0.0%          0.1%    86% GOOD       9.5      7.7%
+empfohlen       SM-L315F                              13    1  46.5 Hz      0.0%          0.0%       5.0 m      26.3      0.0%
+empfohlen       vívoactive® 6                         12    1  25.0 Hz      0.0%          0.4%    99% GOOD      30.3      0.0%
+empfohlen       Instinct® 3 AMOLED 50mm               12    2  25.0 Hz      0.0%          0.0%    86% GOOD      17.2      0.0%
+empfohlen       Phone                                  8    2  49.3 Hz      0.0%          0.0%       9.5 m         –    100.0%
+mit Abstrichen  epix™ (Gen 2) / quatix® 7 Sapphire    11    2  25.0 Hz     10.0%          3.0%    93% GOOD      17.3      0.0%
+nur GPS         Forerunner® 55                        41    3   6.6 Hz    100.0%          0.0%   100% GOOD      18.3      2.9%
+nur GPS         Instinct® 2 / Solar / Dual Power /     8    2        –    100.0%          0.0%   100% GOOD      19.8     16.7%
