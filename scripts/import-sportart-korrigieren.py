@@ -26,6 +26,22 @@ WAS DIESES SKRIPT AENDERT — und was bewusst NICHT
 
 `sport_source` wird auf `file` gesetzt, damit die Sport-Automatik nicht darueber laeuft und
 spaeter erkennbar bleibt, woher die Einstufung stammt.
+
+ZWEITER TEIL: nachfragen statt raten
+Bleibt der Fall, wo die Datei einen WASSERsport nennt, der weder eindeutig Foilen noch
+eindeutig etwas anderes ist. Dort wird `needs_classification` gesetzt — die Session zaehlt
+dann in KEINER Auswertung mit, bekommt ein Abzeichen auf der Karte und einen Hinweis auf der
+Startseite, bis der Besitzer selbst entscheidet (Jan, 05.09.: „needs classification find ich
+gut wenns nicht eindeutig ist").
+
+Welche Sportarten das sind, ist an den Daten entschieden und nicht geraten:
+  surfing        184 Sessions, 7,7 Laeufe, laengster 57 s, max 16,0 km/h  -> EINDEUTIG Foilen
+  open_water     101 Sessions, 10,0 Laeufe, 103 s, 19,5 km/h, 83 mit Pumps -> EINDEUTIG
+  (zum Vergleich unsere eigenen App-Aufnahmen: 8,1 Laeufe, 93 s, 18,9 km/h)
+  SUP             32 Sessions, 5,5 Laeufe, laengster 178 s, max 20,7 km/h -> unklar
+  kitesurfing     13 · windsurfing 7 · sailing 3                          -> unklar
+`surfing` ist der wichtigste Nicht-Fall: unsere EIGENE Garmin-App schreibt genau das in ihre
+Dateien. Wer hier nachfragt, nervt die halbe Flotte wegen nichts.
 """
 from __future__ import annotations
 
@@ -62,6 +78,10 @@ def main() -> None:
         "inline_skating", "horseback_riding", "motorcycling", "driving", "sky_diving",
         "hunting", "fishing", "swimming", "rowing", "kayaking", "paddling",
     }
+
+    # Wassersport-Modi, die weder fuer noch gegen Foilen sprechen (s. Kopfzeile).
+    UNKLAR = {"stand_up_paddleboarding", "kitesurfing", "sailing", "windsurfing",
+              "wakeboarding", "water_skiing"}
 
     eng = create_engine(os.environ["DATABASE_URL"])
     umgestuft, nur_sport, uebersprungen = [], [], Counter()
@@ -103,6 +123,25 @@ def main() -> None:
             print(f"   {art:28s} {n}")
         print("\nUebersprungen:", dict(uebersprungen))
 
+        # --- Zweiter Teil: unklare Faelle zur Klaerung vorlegen -------------------------
+        # Bewusst NICHT ueber den Datei-Vergleich oben: `sport` ist nach dem ersten Lauf schon
+        # richtig, die Bedingung dort greift dann nicht mehr. Hier zaehlt der Ist-Zustand.
+        fragen = (db.query(models.Session)
+                  .filter(models.Session.deleted.isnot(True),
+                          models.Session.device_id.is_(None),
+                          models.Session.is_pumpfoil.is_(True),
+                          models.Session.needs_classification.isnot(True),
+                          models.Session.sport.in_(sorted(UNKLAR)),
+                          models.Session.sport_source == "default")
+                  .all())
+        fragen = [s for s in fragen if (s.sport_class or "pumpfoil") == "pumpfoil"]
+        print("\n" + "=" * 74)
+        print(f"NACHFRAGEN statt raten (needs_classification): {len(fragen)}")
+        print("=" * 74)
+        for art, n in Counter(s.sport for s in fragen).most_common():
+            print(f"   {art:28s} {n}")
+        print(f"   betrifft {len({s.user_id for s in fragen})} Nutzer")
+
         if not schreiben:
             print("\nTrockenlauf — nichts geschrieben. Mit --schreiben ausfuehren.")
             return
@@ -114,8 +153,11 @@ def main() -> None:
             s.is_pumpfoil = False
         for s, art in nur_sport:
             s.sport = art
+        for s in fragen:
+            s.needs_classification = True
         db.commit()
-        print(f"\nGESCHRIEBEN: {len(umgestuft)} umgestuft, {len(nur_sport)} Sportart nachgetragen.")
+        print(f"\nGESCHRIEBEN: {len(umgestuft)} umgestuft, {len(nur_sport)} Sportart nachgetragen, "
+              f"{len(fragen)} zur Klaerung vorgelegt.")
 
 
 if __name__ == "__main__":

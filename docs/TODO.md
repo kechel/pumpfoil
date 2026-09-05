@@ -642,9 +642,15 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   unsere Sport-Automatik (`auto`) schon entschieden hatte (12 Stueck). Und die langen Laeufe an
   der Spitze der Bestenliste — Session 1031 (10 104 m in 2513 s) traegt 3372 `foil_status`-Werte
   aus einer fremden Foil-App, ist also echtes Foilen.
-  **Offen, weil Produktentscheidung:** was mit den 112 Wassersport-Faellen geschehen soll, wo die
-  Datei `sailing`/`kitesurfing`/`windsurfing` sagt (z. B. Session 3501). Moeglich waere
-  `needs_classification`, damit der Besitzer gefragt wird, statt dass wir raten.
+  **✅ Entschieden und umgesetzt (Jan, 05.09.): bei unklaren Wassersport-Modi wird GEFRAGT.**
+  `needs_classification` haengt ein Abzeichen an die Session, weist auf der Startseite darauf hin
+  und haelt sie aus JEDER Auswertung heraus, bis der Besitzer entscheidet. Gesetzt bei **42**
+  Sessions von 7 Nutzern: SUP 21, Kitesurfen 13, Windsurfen 4, Segeln 3, Wakeboard 1 — darunter
+  Session 3501. Der Import macht das kuenftig von selbst (`UNKLAR_WASSER` in `sessions.py`).
+  **`surfing` und `open_water` stehen ABSICHTLICH nicht in der Liste.** Das schreibt unsere eigene
+  Garmin-App in ihre Dateien, und die 285 Importe mit diesen Werten sehen aus wie unsere Flotte
+  (7,7 Laeufe, laengster 57 s gegen eigene 8,1 / 93 s; bei `open_water` haben 83 von 101 gezaehlte
+  Pumps). Wer dort nachfragt, nervt die halbe Community wegen nichts.
 
 
 - **🔁 05.09. — DAUERAUFGABE: die Uhren-Auswertung alle paar Wochen erneuern** (Jan). Sie steht

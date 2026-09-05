@@ -427,14 +427,28 @@ def import_parsed_session(db, user, raw: bytes, parsed: dict, *, src_label: str,
         "inline_skating", "horseback_riding", "motorcycling", "driving", "sky_diving",
         "hunting", "fishing", "swimming", "rowing", "kayaking", "paddling",
     }
-    if (parsed.get("sport") or "").lower() in KEIN_FOILEN:
+    _datei_sport = (parsed.get("sport") or "").lower()
+    if _datei_sport in KEIN_FOILEN:
         _dsc = "other"
+    # Und der Zwischenfall: ein WASSERsport, der weder fuer noch gegen Foilen spricht. Hier wird
+    # nicht geraten, sondern gefragt — `needs_classification` haengt ein Abzeichen an die Session,
+    # weist auf der Startseite darauf hin und haelt sie so lange aus JEDER Auswertung heraus
+    # (Jan, 05.09.: „needs classification find ich gut wenns nicht eindeutig ist").
+    #
+    # `surfing` und `open_water` stehen ABSICHTLICH nicht in dieser Liste: das schreibt unsere
+    # eigene Garmin-App in ihre Dateien, und die 285 Importe mit diesen Werten sehen aus wie
+    # unsere Flotte (7,7 Laeufe, laengster 57 s gegen eigene 8,1 / 93 s). Wer dort nachfragt,
+    # nervt die halbe Community wegen nichts.
+    UNKLAR_WASSER = {"stand_up_paddleboarding", "kitesurfing", "sailing", "windsurfing",
+                     "wakeboarding", "water_skiing"}
+    _unklar = _datei_sport in UNKLAR_WASSER and _dsc == "pumpfoil"
     s = models.Session(
         session_uuid=session_uuid,
         user_id=user.id,
         content_hash=content_hash,
         sport=parsed["sport"],
         sport_class=(_dsc if _dsc in SPORTS else "pumpfoil"),
+        needs_classification=_unklar,
         started_at=started_at,
         ended_at=started_at + _ms(last_ms),
         gps_hz=1,
