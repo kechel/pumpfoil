@@ -10,6 +10,7 @@ noch nicht verfuegbare Version).
 - store_url:     Ziel des "Aktualisieren"-Buttons
 """
 import json
+import os
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
@@ -283,6 +284,27 @@ def releases() -> dict:
     live.insert(0, {"name": "Website", "version": "always up to date",
                     "store_url": "", "note": "new things appear here first, without a store"})
     return {"live": live, "review": IN_REVIEW, "next": NAECHSTES}
+
+
+# --------------------------------------------------------------------------------------
+# Uhren-Qualitaet: was die Geraete bei uns wirklich abliefern
+#
+# Erzeugt von `scripts/uhren-qualitaet.py` (liest je Session die Rohpunkte, das dauert
+# Minuten und gehoert deshalb NICHT in einen Request). Der Snapshot liegt als Datei im Repo
+# und wird alle paar Wochen neu erzeugt; `stand` im JSON sagt, von wann er ist.
+UHREN_JSON = os.path.join(os.path.dirname(__file__), "..", "..", "..",
+                          "analyse", "uhren", "uhren-qualitaet.json")
+
+
+@router.get("/watch-quality")
+def watch_quality() -> dict:
+    """Snapshot der Uhren-Auswertung fuer /watch-stats. Fehlt die Datei, bleibt es leer —
+    die Seite blendet den Abschnitt dann aus, statt einen Fehler zu zeigen."""
+    try:
+        with open(UHREN_JSON, encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return {"stand": "", "modelle": []}
 
 
 @router.get("/latest")
