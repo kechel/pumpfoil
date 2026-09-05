@@ -619,6 +619,21 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟡 05.09. — Apple Watch meldet ihr Modell (geht mit 1.1.31 raus).** Bisher trugen **alle 51**
+  Apple-Geraete bei uns das Etikett „Apple Watch"; Garmin liefert das Modell seit jeher, Wear OS
+  und Amazfit inzwischen auch. Damit liess sich fuer Apple **nicht sagen, welche Serie sauber
+  misst** — genau die Frage, um die es in der Uhren-Auswertung geht.
+  **Behoben in `watch-apple/Sources/Recorder.swift`:** die Session-Meta traegt jetzt
+  `device_model` im selben Format wie der iPhone-Recorder (`"Watch7,1 · watchOS 26.0"`).
+  `WKInterfaceDevice.model` taugt dafuer NICHT — das gibt immer nur „Apple Watch" zurueck; die
+  Serie steht in `utsname.machine`. Serverseitig war nichts zu tun, `ingest` nimmt
+  `device_model` laengst entgegen.
+  **Nicht angefasst:** `placement`. Das Feld nutzt bis heute nur der Handy-Recorder (76 Sessions,
+  sonst ueberall leer); ein neuer Wert „wrist", den nichts auswertet, waere unnoetiges Risiko.
+  **Von Jan zu pruefen:** auf dieser VM gibt es keinen Swift-Compiler mehr, die Datei ist also
+  NICHT gegengeprueft — Syntax faellt erst in Xcode auf.
+
+
 - **🔁 05.09. — DAUERAUFGABE: die Release-Tabelle auf `/changelog` mitziehen.** Ganz oben auf der
   oeffentlichen Changelog-Seite steht jetzt „App versions" mit drei Abschnitten (im Store · in
   Pruefung · kommt als Naechstes). Die **Live**-Zeilen kommen automatisch aus

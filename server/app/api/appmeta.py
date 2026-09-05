@@ -251,6 +251,12 @@ NAECHSTES: list[dict] = [
          "A touch lock for the water, so spray cannot tap anything.",
          "Hold two seconds to stop, the same way the Garmin does it.",
      ]},
+    {"name": "iPhone + Apple Watch", "version": "1.1.31",
+     "note": "not submitted yet",
+     "items": [
+         "The Apple Watch tells us which model it is. Until now every Apple Watch looked "
+         "the same to us, so we could not say which ones measure well and which do not.",
+     ]},
     {"name": "Amazfit", "version": "1.0.8", "note": "follows straight after the current one"},
 ]
 
