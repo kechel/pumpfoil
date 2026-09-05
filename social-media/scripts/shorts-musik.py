@@ -377,8 +377,12 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
         fi = max(0.05, float(endcard.get("fade_in", 0.3)))
         hold = max(0.0, float(endcard.get("hold", 1.0)))
         fo = max(0.05, float(endcard.get("fade_out", 0.3)))
+        # Deckkraft VOR den Blenden: fade skaliert den Alphakanal, der hier
+        # schon reduziert ist — die Spitze liegt damit bei genau alpha.
+        alpha = max(0.05, min(float(endcard.get("alpha", 1.0)), 1.0))
+        aa = f",colorchannelmixer=aa={alpha:.3f}" if alpha < 1 else ""
         fc_parts.append(
-            f"[{idx}:v]format=rgba,scale={w}:{h}"
+            f"[{idx}:v]format=rgba,scale={w}:{h}{aa}"
             f",fade=t=in:st={s0:.3f}:d={fi:.3f}:alpha=1"
             f",fade=t=out:st={s0 + fi + hold:.3f}:d={fo:.3f}:alpha=1[ec];"
             f"{vsrc}[ec]overlay=0:0:format=auto[vec]")
@@ -1935,7 +1939,8 @@ class Handler(BaseHTTPRequestHandler):
                            "start": float(ec.get("start") or 0),
                            "fade_in": float(ec.get("fade_in") or 0.3),
                            "hold": float(ec.get("hold") or 1),
-                           "fade_out": float(ec.get("fade_out") or 0.3)}
+                           "fade_out": float(ec.get("fade_out") or 0.3),
+                           "alpha": float(ec.get("alpha") or 1.0)}
             except (FileNotFoundError, TypeError, ValueError):
                 return self._json({"error": "Endcard nicht gefunden"}, 400)
         results = {}

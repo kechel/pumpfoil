@@ -48,8 +48,10 @@ const DUCK_N = 3;
 const DUCK_FADE = 0.5;
 // Endcard-Einblendung: Startzeit, Ein-/Ausblendung und Standzeit frei waehlbar,
 // damit das Bild nicht im Video mitgerendert werden muss.
-interface EndCard { file: string; start: number | null; fadeIn: number; hold: number; fadeOut: number }
-const emptyEndcard = (): EndCard => ({ file: "", start: null, fadeIn: 0.3, hold: 1, fadeOut: 0.3 });
+interface EndCard { file: string; start: number | null; fadeIn: number; hold: number;
+  fadeOut: number; alpha: number }
+const emptyEndcard = (): EndCard => ({ file: "", start: null, fadeIn: 0.3, hold: 1,
+  fadeOut: 0.3, alpha: 1 });
 
 const emptyDucks = (): DuckSlot[] =>
   Array.from({ length: DUCK_N }, () => ({ start: null, end: null, music: -12, oton: 0 }));
@@ -145,7 +147,9 @@ function Studio() {
   const [sideTab, setSideTab] = useState<"set" | "musik">(sv("sideTab", "set"));
   // Endcard: ganzflaechiges Bild an frei gewaehlter Stelle, Zeiten in Sekunden
   const [endcard, setEndcard] = useState<EndCard>(() => {
-    const e = sv("endcard", emptyEndcard()) as EndCard;
+    // Vorgaben zuerst, gespeicherte Werte darueber — so fehlt bei aelteren
+    // Staenden kein Feld (z. B. alpha, das es frueher nicht gab).
+    const e: EndCard = { ...emptyEndcard(), ...(sv("endcard", {}) as Partial<EndCard>) };
     // Einmalige Umstellung: wer noch exakt auf den alten Vorgabewerten sitzt
     // (0,6 / 3 / 0,6), bekommt die neuen — eine eigene Einstellung bleibt.
     return e.fadeIn === 0.6 && e.hold === 3 && e.fadeOut === 0.6
@@ -349,7 +353,7 @@ function Studio() {
           else {
             const s0 = endcard.start as number;
             const e0 = s0 + endcard.fadeIn + endcard.hold;
-            ec.style.opacity = String(Math.max(0, Math.min(
+            ec.style.opacity = String(endcard.alpha * Math.max(0, Math.min(
               Math.min((t - s0) / Math.max(0.05, endcard.fadeIn),
                        (e0 + endcard.fadeOut - t) / Math.max(0.05, endcard.fadeOut)), 1)));
           }
@@ -638,7 +642,7 @@ function Studio() {
         overlay_alpha: ovAlpha,
         endcard: endcard.file && endcard.start != null
           ? { file: endcard.file, start: endcard.start, fade_in: endcard.fadeIn,
-              hold: endcard.hold, fade_out: endcard.fadeOut }
+              hold: endcard.hold, fade_out: endcard.fadeOut, alpha: endcard.alpha }
           : null,
         trim_start: trim.start,
         trim_end: trim.end,
@@ -1066,6 +1070,11 @@ function Studio() {
                   <label title="Ausblenddauer">▼<input type="number" min={0.1} max={5} step={0.1}
                     value={endcard.fadeOut}
                     onChange={(e) => setEndcard({ ...endcard, fadeOut: +e.target.value })} /></label>
+                  <label title="Deckkraft der Endcard" className="ecalpha">
+                    ◐<input type="range" min={0.05} max={1} step={0.05} value={endcard.alpha}
+                      onChange={(e) => setEndcard({ ...endcard, alpha: +e.target.value })} />
+                    <b>{Math.round(endcard.alpha * 100)} %</b>
+                  </label>
                   <span className="ecsum">
                     {endcard.start == null ? "Startzeit fehlt"
                       : `${endcard.start.toFixed(1)}–${(endcard.start + endcard.fadeIn
