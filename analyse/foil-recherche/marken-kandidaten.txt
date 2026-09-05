@@ -1,0 +1,9 @@
+# Marken, die wir noch nicht fuehren — UNGEPRUEFT, Kandidaten aus der Recherche.
+# Achtung: der Agent hat teils Hand-Wings (die Segel) statt Frontfluegel gefunden.
+F4 Foils      | Bulgarien | Pump-/Wing-/Windfoil-Frontfluegel | https://f4foils.com/            | plausibel
+Manta Foils   | Neuseeland | Frontfluegel + Wingfoil-Teile   | https://www.mantafoils.com/     | plausibel
+Shinn         | -          | Suprahydro Carbon-Frontfluegel  | https://s2as.com/en-us/products/shinn-suprahydro-multi-directional-carbon-foil | plausibel
+Airush        | Suedafrika | "Core Foil" Frontfluegel        | https://airush.com/             | pruefen
+Ozone         | Frankreich | Fusion/Liteforce/Flow/Wasp      | https://ozonekites.com/wing/wings/ | VERDACHT: das sind Hand-Wings, keine Frontfluegel
+Ocean Rodeo   | Kanada     | "A Series Glide" ALUULA         | https://wingfoiltips.com/wingfoil-brands/ocean-rodeo-wingfoil/ | VERDACHT: Hand-Wing
+Mistral       | Niederlande| Wingfoil-Sets                   | https://www.mistral.com/shop/foil/wingfoil-sets | pruefen, evtl. nur Komplettsets

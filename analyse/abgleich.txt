@@ -1,0 +1,186 @@
+==============================================================================
+NEU — bei uns nicht gefunden, also genauer anschauen
+==============================================================================
+
+Aeromod  (2)
+   Wingfoil V3                            500 PRO, 500 R, 686 R, 950 R, 1320 NJ  https://www.aeromod.fr/wingfoil-v3
+   Wingfoil V2                            -                                      https://www.aeromod.fr/wingfoil-v2
+
+AlpineFoil  (6)
+   RSX                                    570, 700, 860, 1060, 1260, 1400        https://www.alpinefoil.com/en/kitefoil-windfoil-store/windfoil/front-wings/
+   RS                                     500, 600                               https://www.alpinefoil.com/en/kitefoil-windfoil-store/windfoil/front-wings/
+   DW                                     750, 840, 980, 1370                    https://www.alpinefoil.com/en/kitefoil-windfoil-store/windfoil/front-wings/
+   REGATA                                 850, 1100                              https://www.alpinefoil.com/en/kitefoil-windfoil-store/windfoil/front-wings/
+   ULW                                    900, 1200                              https://www.alpinefoil.com/en/kitefoil-windfoil-store/windfoil/front-wings/
+   CRUISE                                 1450                                   https://www.alpinefoil.com/en/kitefoil-windfoil-store/windfoil/front-wings/
+
+Armstrong  (3)
+   MA                                     625, 800, 1000, 1225, 1475, 1750       https://armstrongfoils.com/collections/front-foils
+   S1                                     1250, 1550, 1850, 2450                 https://armstrongfoils.com/collections/front-foils
+   CF V2                                  950, 1200                              https://armstrongfoils.com/collections/front-foils
+
+AXIS  (3)
+   Tempo                                  890, 920, 960, 1020, 1090              https://axisfoils.com/collections/front-wings
+   Spitfire                               620, 670, 720, 780, 840, 900, 960, 103 https://axisfoils.com/collections/front-wings
+   BSC                                    740, 810, 890, 970, 1060, 1120         https://axisfoils.com/collections/front-wings
+
+CORE  (3)
+   CFS Vert                               700, 850, 1050                         https://ridecore.com/us/foil/foils/cfs-vert
+   CFS Spectrum                           850, 1250, 1550, 1850, 2150            https://ridecore.com/us/foil/foils/cfs-spectrum
+   CFS ELXR                               650, 750, 850, 950, 1050, 1250         https://ridecore.com/us/foil/foils/cfs-elxr
+
+Delta  (4)
+   Progression HA                         1280, 1450, 1740                       https://deltahydrofoil.com/collections/wings
+   Reflex                                 860, 890, 1500                         https://deltahydrofoil.com/collections/wings
+   Surf                                   1280, 1660                             https://deltahydrofoil.com/collections/wings
+   Carve MA                               850                                    https://deltahydrofoil.com/collections/wings
+
+Ensis  (2)
+   Pacer                                  950, 1250, 1550, 1850, 2200            https://ensis.surf/collections/wing-foils
+   Flow Ace                               630, 720, 900, 1080, 1260              https://ensis.surf/collections/wing-foils
+
+F-One  (1)
+   SK8                                    550, 650, 750, 850, 950, 1050, 1150    https://www.f-one.world/product/sk8/
+
+Fanatic  (3)
+   Aero Glide                             725, 905, 1085, 1305                   https://www.fanatic.com/en
+   Aero High Aspect                       1250, 1500, 1750, 2000                 https://www.sunsetsailboards.com/collections/fanatic-foils
+   Aero Lift                              2400                                   https://www.sunsetsailboards.com/products/fanatic-front-wing-aero-lift
+
+GA Foils  (3)
+   Free                                   900, 1200, 1500, 2000, 2500            https://ga-foils.com/foils/free-frontwings/
+   HP                                     1050, 1150, 1450, 1750                 https://ga-foils.com/foils/hp-frontwings/
+   MP                                     890, 1090, 1290, 1490                  https://ga-foils.com/foils/mp-frontwings/
+
+GoFoil  (4)
+   GT                                     750, 1050, 1250, 1400, 1770, 2200, 260 https://www.gofoil.com/front-wings/
+   EZ                                     1275, 1600                             https://www.gofoil.com/front-wings/
+   RS                                     975-X                                  https://www.gofoil.com/front-wings/
+   P                                      P1125-HA, P1300, P1500                 https://www.gofoil.com/front-wings/
+
+Ketos  (2)
+   Long Distance                          166 LD                                 https://www.ketos-foil.com/en/shop/category/pump-foil-front-wings-pumping-29
+   Pumping Wing                           1570 LD                                https://www.ketos-foil.com/en/shop/category/pump-foil-front-wings-pumping-29
+
+Konrad Boarding  (5)
+   GTX                                    -                                      https://www.konradboarding.com/foilwings
+   STX                                    790, 900, 1038                         https://www.konradboarding.com/product-page/stx-series-surf-thin-axis-art-v2-wing-alternative
+   GS                                     1250, 1550, 1850                       https://www.konradboarding.com/product-page/ha-series-wing
+   SS                                     1300, 1600, 1900                       https://www.konradboarding.com/product-page/ss-series-wing
+   DX                                     -                                      https://www.konradboarding.com/foilwings
+
+Levitaz  (2)
+   HA1100                                 -                                      https://levitaz.com/shop/product/accessoires/frontwings/
+   Bionic R2R                             -                                      https://levitaz.com/shop/product/accessoires/frontwings/
+
+Liquid Force  (2)
+   Horizon                                1050, 1200, 1550                       https://www.liquidforce.com/collections/foils-and-components
+   Launch                                 1200                                   https://www.liquidforce.com/collections/foils-and-components
+
+MFC  (2)
+   HYDROS II                              FW1000, FW1075, FW1250, FW1400, FW1600 https://mfchawaii.com/hydrofoil/hydrofoil-parts/front-wings/
+   HELIOS                                 FW1250, FW1440, FW1800                 https://mfchawaii.com/hydrofoil/hydrofoil-parts/front-wings/
+
+Moses  (9)
+   550                                    600                                    https://moseshydrofoil.com/products/kite-front-wing-550mm
+   633                                    1250                                   https://moseshydrofoil.com/products/surf-front-wing-633mm
+   679                                    990                                    https://moseshydrofoil.com/products/wing-679-kitesurfwing
+   695                                    770                                    https://moseshydrofoil.com/products/wing-695-kite
+   720 Balz Pro                           750                                    https://moseshydrofoil.com/products/front-wing-720-balz-pro
+   790                                    1550                                   https://moseshydrofoil.com/products/front-wing-790
+   800 Slalom Race                        840                                    https://moseshydrofoil.com/products/wing-800-950-cm2-race-wind
+   873                                    2100                                   https://moseshydrofoil.com/products/surf-front-wing-873
+   1100                                   2100                                   https://moseshydrofoil.com/products/wing-1020-surfwing
+
+Naish  (6)
+   Jet High Aspect                        1040, 1240, 1440, 1640, 1840           https://www.naish.com/products/jetha-frontwing-2026
+   Excalibur                              -                                      https://www.naish.com/collections/front-wings
+   Siren                                  -                                      https://www.naish.com/collections/front-wings
+   Ultra Jet                              -                                      https://www.naish.com/collections/front-wings
+   SHA Foil                               -                                      https://www.naish.com/collections/front-wings
+   Mach-2                                 -                                      https://www.naish.com/collections/front-wings
+
+Roam Foils  (2)
+   1700                                   -                                      https://www.roamfoils.com/product/roam-1700-front-foil/22
+   1414                                   -                                      https://www.roamfoils.com/product/roam-scootfoil-kit/F6GTFEBRJXTZ6GXTAMZBGV2Q
+
+RRD  (7)
+   UNIVERSAL CARBON FRONT WING Y26        1582, 2400                             https://watersports.robertoriccidesigns.com/products/universal_carbon_front_wing_y26
+   BLAZE CARBON FRONT WING Y27            530, 650, 750, 850, 950, 1100, 1250, 1 https://watersports.robertoriccidesigns.com/products/blaze_carbon_front_wing_y27
+   BLAZE LTE FRONT WING Y30               850, 950, 1100, 1250, 1550, 1850       https://watersports.robertoriccidesigns.com/products/blaze_lte_front_wing_y30
+   UNIVERSAL MANTARAY FRONT WING Y30      650, 850, 1050, 1350                   https://watersports.robertoriccidesigns.com/products/universal_mantaray_front_wing_y30
+   THUNDER FRONT WING Y30                 550, 750, 950                          https://watersports.robertoriccidesigns.com/products/thunder_front_wing_y30
+   FLYING FISH FRONT WING Y30             750, 900, 1050, 1300                   https://watersports.robertoriccidesigns.com/products/flying_fish_front_wing_y30
+   UNIVERSAL MOONFISH FRONT WING Y30      1350, 1900                             https://watersports.robertoriccidesigns.com/products/universal_moonfish_front_wing_y30
+
+Sabfoil  (1)
+   Balz (Mueller Limited)                 707, 808, 909, 969                     https://sabfoil.com/en/all-products/products-front-wing
+
+Slingshot  (3)
+   One-Lock Ease                          1250, 1550, 1850, 2250                 https://slingshotsports.com/collections/foil-sale/front-wings
+   One-Lock Glide                         -                                      https://slingshotsports.com/collections/foil-sale/front-wings
+   One-Lock Flow                          -                                      https://slingshotsports.com/collections/foil-sale/front-wings
+
+Starboard  (1)
+   S-Type 2                               725, 1000, 1300, 1500, 1800, 2000, 240 https://starboardfoils.com/collections/front-wings
+
+TAAROA  (1)
+   LA                                     900, 1250, 1600, 2000                  https://www.taaroa-hydrofoil.com/product/category/noe-front-wings-64
+
+TAKOON  (1)
+   HS-Glide                               700                                    https://eu.takoon.com/products/foil-hs-glide-front-wing
+
+Takuma  (1)
+   V100                                   -                                      https://www.realwatersports.com/products/takuma-v100-surf-foil
+
+Zeeko  (4)
+   Amplifier V4 DBM                       -                                      https://zeeko-watersports.com/en/products/amplifier-v4-dbm-foil-en
+   Double Agent                           -                                      https://zeeko-watersports.com/en/products/bullet-windfoil-en
+   Kore V2                                3000, 4000, 5000, 6000                 https://zeeko-watersports.com/en/products/kore-v2-en
+   Spitfire                               590, 800, 1300                         https://zeeko-watersports.com/en/products/set-wings-for-spitfire
+
+==============================================================================
+ZAHLEN JE MARKE  (gefunden / davon schon da / davon neu / bei uns ohne Fund)
+==============================================================================
+   Aeromod                   2 /   0 /   2 /   2
+   AFS                       5 /   5 /   0 /   1
+   AlpineFoil                6 /   0 /   6 /   3
+   Armstrong                 6 /   3 /   3 /   0
+   AXIS                      9 /   6 /   3 /   1
+   Beta Foils                1 /   1 /   0 /   0
+   Cabrinha                  3 /   3 /   0 /  19
+   Cloud IX Foils            1 /   1 /   0 /   0
+   Code Foils                1 /   1 /   0 /   4
+   CORE                      4 /   1 /   3 /   0
+   Delta                     5 /   1 /   4 /   1
+   Duotone                   9 /   9 /   0 /   0
+   Ensis                     3 /   1 /   2 /   1
+   F-One                    12 /  11 /   1 /   0
+   Fanatic                   5 /   2 /   3 /   2
+   GA Foils                  4 /   1 /   3 /   0
+   GoFoil                    4 /   0 /   4 /   1
+   Gong                     12 /  12 /   0 /   5
+   Horue                     1 /   1 /   0 /   0
+   Indiana                   3 /   3 /   0 /   7
+   Ketos                     7 /   5 /   2 /   1
+   Konrad Boarding           6 /   1 /   5 /   0
+   KT Foils                  3 /   3 /   0 /   2
+   Levitaz                   3 /   1 /   2 /   5
+   Lift Foils                9 /   9 /   0 /   9
+   Liquid Force              3 /   1 /   2 /   0
+   MFC                       2 /   0 /   2 /   2
+   Moses                     9 /   0 /   9 /   8
+   Naish                     6 /   0 /   6 /   1
+   North                     4 /   4 /   0 /   1
+   Omen                      2 /   2 /   0 /   0
+   Reedin                    2 /   2 /   0 /   2
+   Roam Foils                2 /   0 /   2 /   1
+   RRD                       7 /   0 /   7 /   1
+   Sabfoil                   7 /   6 /   1 /   6
+   Slingshot                 3 /   0 /   3 /   4
+   Starboard                 6 /   5 /   1 /   1
+   TAAROA                    2 /   1 /   1 /   0
+   TAKOON                   14 /  13 /   1 /   1
+   Takuma                    4 /   3 /   1 /   3
+   Unifoil                   4 /   4 /   0 /   9
+   Zeeko                     4 /   0 /   4 /   2
