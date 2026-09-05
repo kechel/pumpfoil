@@ -619,6 +619,20 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **📥 05.09. — 31 Frontfluegel konnten NICHT in den Katalog, weil der Hersteller die Zahl nicht
+  nennt.** `foils.span_cm` und `foils.area_cm2` sind `NOT NULL` (zu Recht: Streckung und der
+  Vergleich „aehnliche Foils" rechnen mit beiden), und geraten wird nicht. Betroffen:
+  **Konrad Boarding komplett** (15 Groessen — die Firma veroeffentlicht ueberhaupt keine
+  Spannweiten), **AXIS Tempo** (5, Spannweite steht nur im BILD der Herstellertabelle),
+  **Ensis Flow Ace** (5), **Zeeko Spitfire** (3), **Levitaz Bionic R2R** (1),
+  **MFC HYDROS II FW1600** (1, Flaeche fehlt), **AXIS Spitfire 1180** (1, Flaeche fehlt).
+  Die Zeilen liegen vollstaendig in `analyse/foil-recherche/`. Zwei Wege, falls das jemand
+  aufloesen will: die Tabellenbilder von axisfoils.com per OCR lesen, oder bei Konrad einmal
+  nachfragen. **Nicht** die Spalten nullable machen, ohne vorher zu pruefen, was in
+  `community._band_filter` und der AR-Berechnung passiert, wenn die Zahl fehlt.
+
+
+
 - **🟢 04.09. — Foil-Namen in der Foil-Statistik sind anklickbar: neue Foil-Detailseite.**
   Nutzer-Vorschlag: „I can already see the foil models in the statistics […] Why not make the
   foil model clickable, so clicking it shows all sessions recorded with that specific front
