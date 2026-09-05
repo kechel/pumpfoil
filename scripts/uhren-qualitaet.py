@@ -7,6 +7,20 @@
 Nicht Herstellerangaben vergleichen, sondern was die Geraete bei uns wirklich abliefern
 (Jan, 05.09.2026). Vier Kategorien, dazu ein Urteil je Modell.
 
+NUR EIGENE AUFNAHMEN
+Bewertet wird ausschliesslich, was MIT UNSERER APP aufgezeichnet wurde (Jan, 05.09.2026).
+Ein importierter Garmin-FIT oder eine ueber Suunto hereingeholte Session wuerde sonst eine
+Uhr bewerten, ohne dass unsere App je darauf lief — die Datei sagt nichts darueber, wie gut
+UNSERE Aufzeichnung funktioniert. Zwei Sperren:
+- Der Join auf `device_tokens` faellt bei Importen ohnehin durch: `fit-`, `suunto-`, `polar-`,
+  `imp-` tragen keine `device_id` (nachgezaehlt am 05.09.: 480 + 294 + 41 + 86 Sessions, alle
+  ohne Geraet). Trotzdem steht die Bedingung ausdruecklich in der Abfrage — sonst haengt die
+  Richtigkeit daran, dass das SO BLEIBT.
+- **Zusammengefuehrte Sessions (`merge-`) fliegen ebenfalls raus**, und die traegen sehr wohl
+  ein Geraet: 52 Stueck, davon 20 am fēnix 7X Pro. Eine Zusammenfuehrung kann Aufnahmen von
+  ZWEI Uhren enthalten (die Doppeluhr-Messungen), haengt aber an einer — die Zuordnung waere
+  also falsch.
+
 WOHER DIE MODELLE KOMMEN
 `sessions.device_id` -> `device_tokens`. Garmin meldet modellgenau, Wear OS und Amazfit
 meist, **Apple Watch gar nicht** — dort steht bei allen 51 Geraeten nur „Apple Watch".
@@ -144,6 +158,14 @@ def main() -> None:
             JOIN device_tokens dt ON dt.id = s.device_id
             LEFT JOIN analysis_results a ON a.session_id = s.id
             WHERE s.deleted = false AND dt.platform IS NOT NULL
+              -- s. „NUR EIGENE AUFNAHMEN" in der Kopfzeile
+              AND s.session_uuid NOT LIKE 'fit-%'
+              AND s.session_uuid NOT LIKE 'imp-%'
+              AND s.session_uuid NOT LIKE 'suunto-%'
+              AND s.session_uuid NOT LIKE 'polar-%'
+              AND s.session_uuid NOT LIKE 'coros-%'
+              AND s.session_uuid NOT LIKE 'strava-%'
+              AND s.session_uuid NOT LIKE 'merge-%'
         """)).fetchall()
         warn = {(r[0], r[1] or "?"): (r[2], r[3]) for r in c.execute(text("""
             SELECT platform, label, sum(coalesce(storage_full_count,0)),
