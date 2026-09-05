@@ -226,8 +226,20 @@ def main() -> None:
 
     if "--json" in sys.argv:
         ziel = sys.argv[sys.argv.index("--json") + 1]
-        open(ziel, "w").write(json.dumps(aus, ensure_ascii=False, indent=1))
-        print("geschrieben:", ziel)
+        # Stand und Datenbasis MIT hineinschreiben: die Seite zeigt beides an, damit man weiss,
+        # worauf die Aussage beruht und wie alt sie ist (Jan, 05.09.2026). Der Snapshot wird
+        # alle paar Wochen neu erzeugt — ohne Datum waere nicht erkennbar, ob das noch gilt.
+        import datetime
+        paket = {
+            "stand": datetime.date.today().isoformat(),
+            "sessions": sum(r["sessions"] for r in aus),
+            "nutzer": sum(r["nutzer"] for r in aus),
+            "stunden": round(sum(r["stunden"] for r in aus)),
+            "modelle": aus,
+        }
+        open(ziel, "w").write(json.dumps(paket, ensure_ascii=False, indent=1))
+        print(f"geschrieben: {ziel} — Stand {paket['stand']}, "
+              f"{paket['sessions']} Sessions, {paket['stunden']} Stunden")
         return
 
     kopf = (f"{'Urteil':15s} {'Modell':34s} {'Sess':>5s} {'Nutz':>4s} {'Accel':>8s} "

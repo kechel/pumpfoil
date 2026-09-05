@@ -721,6 +721,16 @@ export const api = {
     next: { name: string; version: string; note: string; items?: string[] }[];
   }>("/api/app/releases"),
 
+  // Uhren-Auswertung fuer /watch-stats: Snapshot aus scripts/uhren-qualitaet.py.
+  watchQuality: () => req<{
+    stand: string; sessions?: number; nutzer?: number; stunden?: number;
+    modelle: { plattform: string; modell: string; sessions: number; nutzer: number;
+               accel_hz: number | null; gps_only: number; ortung_steht: number | null;
+               guete_gut: number | null; hacc_m: number | null;
+               puls_fehlt: number | null; puls_sessions: number;
+               urteil: string }[];
+  }>("/api/app/watch-quality"),
+
   polarSync: () => req<{ imported: number; skipped: number; message?: string }>("/api/integrations/polar/sync", { method: "POST" }),
   polarUnlink: () => req<{ ok: boolean }>("/api/integrations/polar", { method: "DELETE" }),
 
