@@ -968,6 +968,13 @@ object Api {
         json.decodeFromString(ListSerializer(WatchStat.serializer()), http("GET", "/api/community/watch-stats", null, auth = true))
     }
 
+    // Uhren-Auswertung: oeffentlich, ohne Token (wie /api/app/news und /api/app/latest).
+    // Der Server liefert einen fertigen Snapshot; live rechnen ginge nicht, das Skript
+    // dahinter liest je Session die Rohpunkte.
+    suspend fun watchQuality(): WatchQuality = withContext(Dispatchers.IO) {
+        json.decodeFromString(WatchQuality.serializer(), http("GET", "/api/app/watch-quality", null, auth = false))
+    }
+
     // Settings sind ein freies Key/Value-Objekt -> als JsonObject zurückgeben, der
     // Aufrufer pickt my_foils / weight_kg heraus.
     suspend fun settings(): JsonObject = withContext(Dispatchers.IO) {

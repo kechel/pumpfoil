@@ -41,12 +41,15 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun WatchStatsScreen(onBack: () -> Unit, onFoilStats: () -> Unit = {}) {
     var rows by remember { mutableStateOf<List<WatchStat>?>(null) }
+    var quali by remember { mutableStateOf<WatchQuality?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
     var sortKey by remember { mutableStateOf("sessions") }
     var sortAsc by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         try { rows = Api.watchStats() } catch (e: Exception) { error = e.message; rows = emptyList() }
+        // Zweiter, unabhaengiger Abruf: schlaegt er fehl, fehlt nur dieser Abschnitt.
+        try { quali = Api.watchQuality() } catch (_: Exception) { quali = null }
     }
 
     Scaffold(topBar = {
@@ -106,6 +109,76 @@ fun WatchStatsScreen(onBack: () -> Unit, onFoilStats: () -> Unit = {}) {
                 item { Text(I18n.t("watchStats.none"), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(8.dp)) }
             }
             items(sorted, key = { it.watch }) { s -> watchCard(s) }
+
+            // Uhren-Auswertung: was die Geraete wirklich abliefern. Bewusst OHNE Urteil —
+            // das entscheiden Nutzer selbst (Jan, 05.09.); die Zahlen stehen dafuer da.
+            quali?.takeIf { it.modelle.isNotEmpty() }?.let { q ->
+                item {
+                    Column(Modifier.padding(top = 18.dp, bottom = 6.dp)) {
+                        Text(I18n.t("watchQuality.title"), fontWeight = FontWeight.Bold)
+                        Text(
+                            I18n.t("watchQuality.lead")
+                                .replace("{sessions}", q.sessions.toString())
+                                .replace("{hours}", q.stunden.toString())
+                                .replace("{date}", q.stand),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 4.dp),
+                        )
+                        Text(
+                            I18n.t("watchQuality.new"),
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(top = 8.dp),
+                        )
+                    }
+                }
+                items(q.modelle.sortedByDescending { it.sessions }, key = { "q-" + it.modell }) { m ->
+                    qualiCard(m)
+                }
+                item {
+                    Text(
+                        I18n.t("watchQuality.note"),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 8.dp, bottom = 16.dp),
+                    )
+                }
+            }
+        }
+    }
+}
+
+// Eine Zeile der Uhren-Auswertung. Ab drei Fahrern abwaerts steht der Hinweis dabei, dass
+// die Datenbasis duenn ist — die Zahlen bleiben aber stehen (s. Web-Fassung).
+@Composable
+private fun qualiCard(m: WatchQualityModel) {
+    Card(Modifier.fillMaxWidth().padding(bottom = 10.dp)) {
+        Column(Modifier.padding(12.dp)) {
+            Text(m.modell, fontWeight = FontWeight.SemiBold)
+            if (m.nutzer <= 3) {
+                Text(
+                    I18n.t("watchQuality.few"),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.tertiary,
+                )
+            }
+            Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                wMetric("${m.nutzer}", I18n.t("watchStats.users"))
+                wMetric("${m.sessions}", I18n.t("nav.sessions"))
+                wMetric(m.accelHz?.let { "%.0f Hz".format(it) } ?: "–", I18n.t("watchQuality.colPump"))
+            }
+            Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                // Garmin meldet eine Guete-Stufe, die anderen Meter — nie in EINE Zahl mischen.
+                wMetric(
+                    m.gueteGut?.let { I18n.t("watchQuality.gpsGood").replace("{pct}", "%.0f".format(it)) }
+                        ?: m.haccM?.let { "%.1f m".format(it) } ?: "–",
+                    I18n.t("watchQuality.colGps"),
+                )
+                wMetric(
+                    m.pulsWechsel?.let { I18n.t("watchQuality.hrRate").replace("{n}", "%.0f".format(it)) } ?: "–",
+                    I18n.t("watchQuality.colHr"),
+                )
+            }
         }
     }
 }

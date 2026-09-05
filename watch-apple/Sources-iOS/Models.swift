@@ -635,6 +635,30 @@ struct FoilStat: Codable, Identifiable {
 }
 
 // Uhren-Statistik (GET /api/community/watch-stats) — Community-Aggregat je Uhr-Modell.
+// Uhren-Auswertung (Server: appmeta.watch_quality, Snapshot aus scripts/uhren-qualitaet.py):
+// was die Geraete bei uns wirklich abliefern. Oeffentlich, kein Token noetig.
+// `stand` ist das Datum des Snapshots -- die Ansicht zeigt es an, weil neu gerechnet wird
+// nur alle paar Wochen.
+struct WatchQualityModel: Codable, Identifiable {
+    let plattform: String
+    let modell: String
+    let sessions: Int
+    let nutzer: Int
+    let accel_hz: Double?
+    let gps_only: Double?
+    let guete_gut: Double?      // nur Garmin: Anteil "GOOD"
+    let hacc_m: Double?         // nur Apple/Wear/Handy: Meter
+    let puls_wechsel: Double?
+    var id: String { plattform + modell }
+}
+
+struct WatchQuality: Codable {
+    let stand: String
+    let sessions: Int?
+    let stunden: Int?
+    let modelle: [WatchQualityModel]
+}
+
 struct WatchStat: Codable, Identifiable {
     let watch: String
     let sessions: Int
