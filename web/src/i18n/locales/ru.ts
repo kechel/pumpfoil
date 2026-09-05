@@ -1030,6 +1030,7 @@ const ru: Record<string, string> = {
   "settings.sync.why.error": "{n} не читается",
   "watchQuality.title": "Какие часы записывают лучше?",
   "watchQuality.lead": "Измерено по {sessions} записям и {hours} часам на воде. Пересчитывается раз в несколько недель — эти данные от {date}.",
+  "watchQuality.new": "Этот анализ новый. Чем больше записей накопится, тем надёжнее станут цифры — особенно для моделей, которыми пока пользуются один-два райдера.",
   "watchQuality.colPump": "Распознавание пампов",
   "watchQuality.colGps": "Позиционирование",
   "watchQuality.colHr": "Пульс",

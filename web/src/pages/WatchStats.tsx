@@ -40,9 +40,15 @@ function Uhrenqualitaet() {
   return (
     <section className="mt-10">
       <h3 className="mb-1 text-lg font-bold">{t("watchQuality.title")}</h3>
-      <p className="mb-3 text-sm text-slate-400">
+      <p className="mb-2 text-sm text-slate-400">
         {t("watchQuality.lead", { sessions: String(d.sessions ?? 0), hours: String(d.stunden ?? 0),
                                   date: d.stand })}
+      </p>
+      {/* Ehrlicher Vorbehalt statt Kleingedrucktem: die Auswertung ist jung, und die duennen
+          Zeilen sind es besonders. Steht bewusst UEBER der Tabelle — wer nur die Zahlen sieht,
+          liest den Hinweis darunter nicht mehr. */}
+      <p className="mb-3 rounded-lg bg-slate-800/60 p-2.5 text-sm text-slate-300">
+        {t("watchQuality.new")}
       </p>
       <div className="overflow-x-auto rounded-2xl border border-slate-800">
         <table className="w-full min-w-[680px] border-collapse text-sm">

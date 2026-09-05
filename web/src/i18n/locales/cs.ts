@@ -1128,6 +1128,7 @@ const cs: Record<string, string> = {
   "settings.sync.why.error": "{n} nečitelná",
   "watchQuality.title": "Které hodinky zaznamenávají nejlépe?",
   "watchQuality.lead": "Měřeno na {sessions} záznamech a {hours} hodinách na vodě. Přepočítáváme každých pár týdnů — tento stav je z {date}.",
+  "watchQuality.new": "Toto vyhodnocení je nové. Čím více záznamů přibude, tím spolehlivější čísla budou — hlavně u modelů, které zatím používá jen jeden nebo dva jezdci.",
   "watchQuality.colPump": "Detekce pumpů",
   "watchQuality.colGps": "Určení polohy",
   "watchQuality.colHr": "Tep",

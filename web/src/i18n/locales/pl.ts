@@ -1108,6 +1108,7 @@ const pl: Record<string, string> = {
   "settings.sync.why.error": "{n} nieczytelna",
   "watchQuality.title": "Który zegarek nagrywa najlepiej?",
   "watchQuality.lead": "Zmierzone na {sessions} nagraniach i {hours} godzinach na wodzie. Przeliczane co kilka tygodni — ten stan jest z {date}.",
+  "watchQuality.new": "Ta analiza jest nowa. Im więcej nagrań się zbierze, tym bardziej wiarygodne będą liczby — zwłaszcza przy modelach, których używa dotąd tylko jeden lub dwóch zawodników.",
   "watchQuality.colPump": "Wykrywanie pumpów",
   "watchQuality.colGps": "Lokalizacja",
   "watchQuality.colHr": "Tętno",

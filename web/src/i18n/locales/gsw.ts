@@ -721,6 +721,7 @@ const gsw: Record<string, string> = {
   "settings.sync.why.error": "{n} nid läsbar",
   "watchQuality.title": "Wie guet zeichnet die Uhre uf?",
   "watchQuality.lead": "Gmässe a {sessions} Ufnahme us {hours} Stunde ufem Wasser. Alli paar Wuche neu uusgwertet — dää Stand isch vom {date}.",
+  "watchQuality.new": "D Uuswertig isch neu. Je meh Ufnahme zäme chöme, desto verlässlicher wärde d Zahle — vor allem bi Modäll, wo bishär nume ei oder zwee Fahrer bruuche.",
   "watchQuality.colPump": "Pump-Erkennig",
   "watchQuality.colGps": "Ortig",
   "watchQuality.colHr": "Puls",

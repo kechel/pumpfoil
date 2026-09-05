@@ -1030,6 +1030,7 @@ const ja: Record<string, string> = {
   "settings.sync.why.error": "{n} 件は読み取れず",
   "watchQuality.title": "どの時計が一番よく記録できるか",
   "watchQuality.lead": "{sessions} 件の記録、水上 {hours} 時間分から算出。数週間ごとに再集計しています — このデータは {date} 時点のものです。",
+  "watchQuality.new": "この集計は始めたばかりです。記録が集まるほど数字の信頼性は上がります — とくに、まだ1〜2人しか使っていない機種では。",
   "watchQuality.colPump": "ポンプ検出",
   "watchQuality.colGps": "測位",
   "watchQuality.colHr": "心拍",

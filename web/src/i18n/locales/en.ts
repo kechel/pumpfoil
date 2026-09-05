@@ -1157,6 +1157,7 @@ const en: Record<string, string> = {
   "settings.sync.why.error": "{n} unreadable",
   "watchQuality.title": "How well do the watches record?",
   "watchQuality.lead": "Measured from {sessions} recordings over {hours} hours on the water. Re-run every few weeks — this snapshot is from {date}.",
+  "watchQuality.new": "This analysis is new. The more recordings come in, the more reliable the numbers get — especially for models only one or two riders use so far.",
   "watchQuality.colPump": "Pump detection",
   "watchQuality.colGps": "Positioning",
   "watchQuality.colHr": "Heart rate",

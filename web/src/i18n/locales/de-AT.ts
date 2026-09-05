@@ -667,6 +667,7 @@ const deAT: Record<string, string> = {
   "settings.sync.why.error": "{n} nicht lesbar",
   "watchQuality.title": "Wie gut zeichnen die Uhren auf?",
   "watchQuality.lead": "Gemessen an {sessions} Aufnahmen aus {hours} Stunden auf dem Wasser. Alle paar Wochen neu ausgewertet — dieser Stand ist vom {date}.",
+  "watchQuality.new": "Die Auswertung ist neu. Je mehr Aufnahmen zusammenkommen, desto belastbarer werden die Zahlen — vor allem bei Modellen, die bisher nur ein oder zwei Fahrer nutzen.",
   "watchQuality.colPump": "Pump-Erkennung",
   "watchQuality.colGps": "Ortung",
   "watchQuality.colHr": "Puls",

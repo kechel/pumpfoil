@@ -804,6 +804,7 @@ const fr: Record<string, string> = {
   "settings.sync.why.error": "{n} illisible",
   "watchQuality.title": "Quelle montre enregistre le mieux ?",
   "watchQuality.lead": "Mesuré sur {sessions} enregistrements, {hours} heures sur l'eau. Recalculé toutes les quelques semaines — cet état date du {date}.",
+  "watchQuality.new": "Cette analyse est récente. Plus il y aura d'enregistrements, plus les chiffres seront fiables — surtout pour les modèles utilisés jusqu'ici par un ou deux riders seulement.",
   "watchQuality.colPump": "Détection des pumps",
   "watchQuality.colGps": "Localisation",
   "watchQuality.colHr": "Fréquence cardiaque",
