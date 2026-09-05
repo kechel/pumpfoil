@@ -37,7 +37,7 @@ function ItemText({ text }: { text: string }): ReactNode {
  */
 // Eine Zeile = eine Einreichung. Handy und Uhr stehen deshalb zusammen in `name`,
 // ihre Versionen in `version` ("1.1.25 / 1.2.25") — s. `appmeta.GRUPPEN`.
-type Release = { name: string; version: string; note?: string; store_url?: string };
+type Release = { name: string; version: string; note?: string; store_url?: string; items?: string[] };
 
 function ReleaseStatus() {
   const [daten, setDaten] = useState<{ live: Release[]; review: Release[]; next: Release[] } | null>(null);
@@ -73,16 +73,29 @@ function ReleaseStatus() {
                   </td>
                 </tr>
                 {g.zeilen.map((r) => (
-                  <tr key={`${g.titel}-${r.name}`} className="border-t border-slate-800/70">
-                    <td className="py-1.5 pr-3 whitespace-nowrap text-slate-200">{r.name}</td>
-                    <td className="py-1.5 pr-3 whitespace-nowrap font-medium text-slate-100">
-                      {r.store_url
-                        ? <a href={r.store_url} target="_blank" rel="noopener noreferrer"
-                             className="text-brand-400 hover:underline">{r.version}</a>
-                        : r.version}
-                    </td>
-                    <td className="py-1.5 text-slate-400">{r.note ?? ""}</td>
-                  </tr>
+                  <Fragment key={`${g.titel}-${r.name}`}>
+                    <tr className="border-t border-slate-800/70">
+                      <td className="py-1.5 pr-3 whitespace-nowrap text-slate-200">{r.name}</td>
+                      <td className="py-1.5 pr-3 whitespace-nowrap font-medium text-slate-100">
+                        {r.store_url
+                          ? <a href={r.store_url} target="_blank" rel="noopener noreferrer"
+                               className="text-brand-400 hover:underline">{r.version}</a>
+                          : r.version}
+                      </td>
+                      <td className="py-1.5 text-slate-400">{r.note ?? ""}</td>
+                    </tr>
+                    {/* Was in dieser Fassung steckt. Ohne das stehen die Aenderungen einer
+                        eingereichten Version nirgends, bis sie veroeffentlicht ist. */}
+                    {r.items && r.items.length > 0 && (
+                      <tr>
+                        <td colSpan={3} className="pb-2 pl-1">
+                          <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">
+                            {r.items.map((t, i) => <li key={i}>{t}</li>)}
+                          </ul>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
                 ))}
               </Fragment>
             ))}

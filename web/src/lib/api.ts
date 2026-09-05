@@ -717,8 +717,8 @@ export const api = {
   // Quelle wie der Update-Hinweis in den Apps (appmeta), damit beides nicht auseinanderlaeuft.
   appReleases: () => req<{
     live: { name: string; version: string; store_url: string; note?: string }[];
-    review: { name: string; version: string; note: string }[];
-    next: { name: string; version: string; note: string }[];
+    review: { name: string; version: string; note: string; items?: string[] }[];
+    next: { name: string; version: string; note: string; items?: string[] }[];
   }>("/api/app/releases"),
 
   polarSync: () => req<{ imported: number; skipped: number; message?: string }>("/api/integrations/polar/sync", { method: "POST" }),

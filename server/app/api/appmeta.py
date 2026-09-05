@@ -220,17 +220,37 @@ GRUPPEN = [
     (("zepp",), "Amazfit"),
 ]
 
+# `items` sind die Aenderungen der jeweiligen Fassung — schon so formuliert, wie sie spaeter
+# im Changelog stehen sollen. Das ist der Zweck (Jan, 05.09.): was eingereicht ist, steht
+# heute NIRGENDS, bis es veroeffentlicht wird. Bei der Freigabe wandern die Zeilen unveraendert
+# nach `Changelog.tsx` — abschreiben, nicht neu erfinden.
 IN_REVIEW: list[dict] = [
     {"name": "Android phone + Wear OS", "version": "1.1.25 / 1.2.25",
-     "note": "submitted 2 September, waiting for Google"},
+     "note": "submitted 2 September, waiting for Google",
+     "items": [
+         "Videos in the community feed play again, and you can swipe from one to the next.",
+         "The spots map no longer freezes when you scroll back to it.",
+         "A recording can be ended with a single press instead of holding, if you set that "
+         "in your profile.",
+         "The session list puts the title on its own line, under the date.",
+         "Downloading everything we store about you no longer runs out of memory.",
+     ]},
     {"name": "Amazfit", "version": "1.0.7",
-     "note": "submitted 1 September, under review"},
+     "note": "submitted 1 September, under review",
+     "items": ["Nothing new in the app itself — this round only replaces the store images."]},
 ]
 
 NAECHSTES: list[dict] = [
     {"name": "Android phone + Wear OS", "version": "1.1.26 / 1.2.26",
-     "note": "warns when the watch has no GPS fix, heart rate that keeps measuring, "
-             "always-on, a touch lock for the water"},
+     "note": "waiting for the version above to be approved",
+     "items": [
+         "The watch says it plainly when it never got a GPS fix, instead of quietly "
+         "recording zeros.",
+         "Heart rate keeps measuring: if the watch stops reporting, the app asks for it again.",
+         "The always-on screen stays on while you ride.",
+         "A touch lock for the water, so spray cannot tap anything.",
+         "Hold two seconds to stop, the same way the Garmin does it.",
+     ]},
     {"name": "Amazfit", "version": "1.0.8", "note": "follows straight after the current one"},
 ]
 
