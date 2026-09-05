@@ -1382,6 +1382,7 @@ const zh: Record<string, string> = {
   "cls.dq.test": "测试",
   "cls.needsBadge": "待归类",
   "cls.notPumpfoil": "看起来不像 pumpfoil",
+  "cls.fileAsk": "你的手表把这次记录保存为“{sport}”，因此我们无法判断这是否是划水翼板。方便归类一下吗？在此之前它不会出现在任何统计中。如果确实是划水翼板，选择“Pumpfoil”即可。",
   "cls.ownerAsk": "另一位 foiler 认为这次会话不是 pumpfoil。你能归一下类吗？在此之前它不会出现在任何统计中。如果确实是 pumpfoil，告诉我们一声，我们来看看。",
   "cls.pickErr": "无法保存",
   "cls.sport.kitefoil": "Kitefoil",

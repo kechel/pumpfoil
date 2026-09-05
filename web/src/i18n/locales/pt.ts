@@ -1406,6 +1406,7 @@ const pt: Record<string, string> = {
   "cls.dq.test": "Teste",
   "cls.needsBadge": "Classificar",
   "cls.notPumpfoil": "Não parece pumpfoil",
+  "cls.fileAsk": "O teu relógio guardou esta gravação como «{sport}», por isso não sabemos se foi pumpfoil. Queres classificá-la? Até lá não aparece em nenhuma estatística. Se afinal foi pumpfoil, escolhe «Pumpfoil».",
   "cls.ownerAsk": "Outro foiler acha que esta sessão não é pumpfoil. Você poderia classificá-la? Até lá ela não aparece em nenhuma estatística. Se foi mesmo pumpfoil, é só nos dizer que damos uma olhada.",
   "cls.pickErr": "Não foi possível salvar",
   "cls.sport.kitefoil": "Kitefoil",

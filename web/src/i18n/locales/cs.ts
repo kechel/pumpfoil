@@ -1462,6 +1462,7 @@ const cs: Record<string, string> = {
   "cls.dq.test": "Test",
   "cls.needsBadge": "K zařazení",
   "cls.notPumpfoil": "Nevypadá to na pumpfoil",
+  "cls.fileAsk": "Tvoje hodinky uložily tento záznam jako „{sport}“, takže nevíme, jestli šlo o pumpfoiling. Zařadíš ho? Do té doby se neobjeví v žádné statistice. Pokud to pumpfoiling byl, vyber prostě „Pumpfoil“.",
   "cls.ownerAsk": "Jiný foiler si myslí, že tahle relace není pumpfoil. Zařadil bys ji? Do té doby se neobjeví v žádné statistice. Pokud to opravdu pumpfoil byl, dej nám vědět a podíváme se.",
   "cls.pickErr": "Nepodařilo se uložit",
   "cls.sport.kitefoil": "Kitefoil",

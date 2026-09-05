@@ -209,6 +209,40 @@ davon 30 bei user 135. Alle Zahlen und ihre Herkunft stehen im Modul-Kopf von `s
 **Offen:** der Hinweistext in PWA und Apps (Schlüssel `auto.motor` / `auto.unklar`) und die
 rückwirkende Anwendung auf die 39 Sessions — beides wartet auf Jans Freigabe.
 
+## Stufe 1c — die Datei als fünfte Quelle (2026-09-05)
+
+Ausloeser: eine Session stand als Pumpfoil da, war aber Segeln. In der Datei stand es die ganze
+Zeit — `session.sport = sailing`. Gelesen wurde sie nicht: `fitimport.parse_fit_bytes` kannte nur
+eine eigenstaendige `sport`-Nachricht, und **Suunto schreibt die Sportart ausschliesslich in die
+`session`-Nachricht**. Behoben.
+
+Seitdem gilt beim Datei-Import (`sessions.import_parsed_session`) eine Dreiteilung:
+
+| Was die Datei sagt | Was passiert |
+|---|---|
+| Laufen, Radfahren, Wandern, Fussball, Skifahren, Schwimmen, Rudern, Paddeln … (`KEIN_FOILEN`) | `sport_class = other`. Kann kein Foilen sein. |
+| `surfing`, `open_water`, `generic` | **unveraendert** — genau das schreibt unsere EIGENE Garmin-App in ihre Dateien |
+| SUP, Kitesurfen, Segeln, Windsurfen, Wakeboard, Wasserski (`UNKLAR_WASSER`) | `needs_classification` — der Besitzer wird gefragt |
+
+**Warum `surfing` nicht mitzaehlt, ist gemessen und nicht geraten.** Die 184 Importe mit
+`surfing` sehen aus wie unsere eigene Flotte: 7,7 Laeufe, laengster 57 s, max 16,0 km/h gegen
+8,1 / 93 s / 18,9 km/h bei den App-Aufnahmen. Bei `open_water` haben 83 von 101 gezaehlte Pumps.
+Wer dort nachfragt, nervt die halbe Community wegen nichts.
+
+**Und Dauer taugt NICHT als Kriterium** (Jan, 05.09.): „es gibt durchaus Pumpfoiler, die 1–2
+Stunden pumpen koennen“. Ein erster Entwurf wollte lange, ununterbrochene Fahrten aussortieren —
+die Daten widerlegen ihn: die laengsten Laeufe unserer eigenen Aufnahmen tragen echte
+Pumpsignaturen (2161 Pumps bei 1,75 Hz ueber 20 Minuten). Verworfen.
+
+**Der Text auf der Session-Seite ist ein eigener** (`cls.fileAsk`). Ohne ihn haette der Besitzer
+den Text fuer GEMELDETE Sessions gelesen („ein anderer Foiler glaubt …“), obwohl niemand etwas
+gemeldet hat — und der Widerspruchsweg zum Admin ist fuer diesen Fall abgeschaltet: hier waehlt
+man einfach die richtige Sportart.
+
+Einmal-Korrektur des Bestands: `scripts/import-sportart-korrigieren.py` (Trockenlauf per
+Vorgabe). Gelaufen am 05.09.2026: 130 umgestuft, 242 Sportarten nachgetragen, 42 zur Klaerung
+vorgelegt.
+
 ## Vorgeschlagene Reihenfolge
 
 - **Stufe 1 (Kern):** Spalten + `session_flags`, Melden (fremd: nur die freundliche Bitte, KEINE

@@ -1406,6 +1406,7 @@ const id: Record<string, string> = {
   "cls.dq.test": "Uji",
   "cls.needsBadge": "Perlu diklasifikasikan",
   "cls.notPumpfoil": "Sepertinya bukan pumpfoil",
+  "cls.fileAsk": "Jammu menyimpan rekaman ini sebagai “{sport}”, jadi kami tidak tahu apakah ini pumpfoiling. Mau mengklasifikasikannya? Sampai itu, sesi ini tidak muncul di statistik mana pun. Kalau ternyata pumpfoiling, pilih saja “Pumpfoil”.",
   "cls.ownerAsk": "Foiler lain berpendapat sesi ini bukan pumpfoil. Bisakah kamu mengklasifikasikannya? Sampai saat itu ia tidak muncul di statistik mana pun. Kalau memang benar pumpfoil, beri tahu kami dan kami akan melihatnya.",
   "cls.pickErr": "Tidak bisa disimpan",
   "cls.sport.kitefoil": "Kitefoil",

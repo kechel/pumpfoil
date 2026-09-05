@@ -1534,6 +1534,7 @@ const en: Record<string, string> = {
   "cls.notPumpfoil": "Doesn’t look like pumpfoil",
   "cls.confirmFlag": "You think this isn’t a pumpfoil session? The owner will get a friendly request to classify it properly — as wingfoil or foildrive, for example. You stay anonymous, and nobody is being accused of anything: it’s only about keeping the records comparable.",
   "cls.thanks": "Thanks! The owner will be asked to classify this session.",
+  "cls.fileAsk": "Your watch saved this recording as “{sport}”, so we cannot tell whether it was pumpfoiling. Would you classify it? Until then it won’t appear in any stats. If it was pumpfoiling after all, just pick “Pumpfoil”.",
   "cls.ownerAsk": "Another foiler thinks this session isn’t pumpfoiling. Could you classify it? Until then it won’t appear in any of the stats. If it really was pumpfoiling, just tell us and we’ll take a look.",
   "cls.pickErr": "Couldn’t save",
   "cls.choose": "Pick a sport …",
