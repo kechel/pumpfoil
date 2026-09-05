@@ -35,6 +35,10 @@ const ENTRIES: Entry[] = [
       "iPhone and Apple Watch 1.1.30: the map remembers the view you chose, shows your failed take-off attempts, and is drawn even when no runs were detected. Missing heart rate is now shown in white instead of a colour that means nothing.",
       "The watch no longer writes an old heart rate into new track points. That used to make long runs look like they were not done under your own power, and they were dropped from your stats.",
       "Comparison: a button to clear your selection.",
+      "Xiaomi and Redmi sessions really do arrive now. The file those watches produce is written in a way our reader could not open, so the import kept saying it had skipped everything. Fixed — and the first test ride from a Redmi Watch is in.",
+      "When an import skips something, it now says why: no GPS track, already imported, too short, or it will be retried later. Before you only got a number.",
+      "232 front wings added to the foil catalogue, from AlpineFoil, Armstrong, AXIS, CORE, Delta, Ensis, Fanatic, F-One, GA, GoFoil, Levitaz, Liquid Force, MFC, Moses, Naish, Roam, RRD, Sabfoil, Slingshot, Starboard and others. Every figure comes from the manufacturer; where a manufacturer does not publish a number, the wing was left out rather than guessed.",
+      "The Moses entries were wrong — they carried Sabfoil model names. Moses now has its own nine wings.",
     ],
   },
   {
@@ -43,6 +47,8 @@ const ENTRIES: Entry[] = [
       "Xiaomi and Redmi watches can now bring their sessions here: connect Mi Fitness to Suunto, connect Suunto with us, and your rides arrive automatically. Instructions under linked accounts.",
       "COROS accounts can be connected too — your workouts are imported as sessions.",
       "If a watch never got a real GPS fix, you now see it: the recording says so instead of quietly showing zero, and the map is drawn even when no runs were detected.",
+      "Foil names are clickable. Tap one in the [foil stats](/foil-stats) and you get its own page: the community records set on that exact front wing, and every session ridden with it — everyone\u2019s, not only yours.",
+      "\u201cComparable foils\u201d now says what it compares: the area and aspect-ratio limits of the group you picked are written under the selector.",
     ],
   },
   {
@@ -50,6 +56,9 @@ const ENTRIES: Entry[] = [
     items: [
       "An upload that never finished keeps its hint until the recording actually arrives. If a newer session has come in since, the old one can be analysed with what we have or deleted.",
       "iPhone and Apple Watch 1.1.29: videos in the community feed play again. You can swipe through the feed now, and tapping a preview opens the video you tapped.",
+      "A single bad GPS point could throw off a whole session. All four of our clean-up rules now run on every recording; two of them had been missing.",
+      "Polar: a training that fails to import is picked up again on the next try instead of being quietly dropped.",
+      "The foil calculator shows its results when you search, and keeps your selection at the top.",
     ],
   },
   {
