@@ -716,9 +716,9 @@ export const api = {
   // Release-Stand fuer die Tabelle oben auf /changelog. Die Live-Spalte kommt aus derselben
   // Quelle wie der Update-Hinweis in den Apps (appmeta), damit beides nicht auseinanderlaeuft.
   appReleases: () => req<{
-    live: { platform: string; name: string; version: string; store_url: string }[];
-    review: { platform: string; name: string; version: string; note: string }[];
-    next: { platform: string; name: string; version: string; note: string }[];
+    live: { name: string; version: string; store_url: string }[];
+    review: { name: string; version: string; note: string }[];
+    next: { name: string; version: string; note: string }[];
   }>("/api/app/releases"),
 
   polarSync: () => req<{ imported: number; skipped: number; message?: string }>("/api/integrations/polar/sync", { method: "POST" }),

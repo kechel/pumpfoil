@@ -630,6 +630,9 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     ausliefert) UND den `IN_REVIEW`-Eintrag entfernen
   - **gebaut, wartet auf eine laufende Pruefung** → nach `NAECHSTES`
   Server-Neustart noetig, kein PWA-Build. `note` ist Nutzertext: englisch, kurz, kein Jargon.
+  **Handy und Uhr gehoeren in EINE Zeile** (`GRUPPEN`): Android Phone und Wear OS teilen sich die
+  `applicationId` und bekommen eine einzige Play-Mail, iPhone und Apple Watch stecken im selben
+  Bundle mit einer `MARKETING_VERSION` — zwei Zeilen wuerden zwei Vorgaenge vortaeuschen.
 
 
 - **📥 05.09. — 31 Frontfluegel konnten NICHT in den Katalog, weil der Hersteller die Zahl nicht

@@ -208,41 +208,50 @@ _APP_META: dict[str, dict[str, str]] = {
 #
 # `note` ist eine kurze englische Zeile fuer Nutzer — keine internen Begriffe, keine
 # Versionsnummern von Build-Codes, kein Jargon (dieselbe Regel wie fuer die Changelog-Texte).
-ANZEIGENAME = {
-    "ios": "iPhone", "apple": "Apple Watch", "android": "Android phone",
-    "wear": "Wear OS", "garmin": "Garmin", "zepp": "Amazfit",
-}
-# Reihenfolge in der Tabelle — nach Verbreitung, nicht alphabetisch.
-REIHENFOLGE = ["ios", "apple", "android", "wear", "garmin", "zepp"]
+# Handy und Uhr sind EINE Einreichung: Android Phone und Wear OS teilen sich die
+# `applicationId` (Play schickt eine einzige Mail fuer beide Spuren), iPhone und Apple Watch
+# stecken im selben Bundle mit einer `MARKETING_VERSION`. Getrennte Zeilen wuerden zwei
+# Vorgaenge vortaeuschen, wo es einer ist (Jan, 05.09.) — deshalb je eine Zeile mit beiden
+# Versionsnummern. Garmin und Amazfit stehen fuer sich.
+GRUPPEN = [
+    (("ios", "apple"), "iPhone + Apple Watch"),
+    (("android", "wear"), "Android phone + Wear OS"),
+    (("garmin",), "Garmin"),
+    (("zepp",), "Amazfit"),
+]
 
 IN_REVIEW: list[dict] = [
-    {"platform": "android", "version": "1.1.25",
+    {"name": "Android phone + Wear OS", "version": "1.1.25 / 1.2.25",
      "note": "submitted 2 September, waiting for Google"},
-    {"platform": "wear", "version": "1.2.25",
-     "note": "submitted 2 September, waiting for Google"},
-    {"platform": "zepp", "version": "1.0.7",
+    {"name": "Amazfit", "version": "1.0.7",
      "note": "submitted 1 September, under review"},
 ]
 
 NAECHSTES: list[dict] = [
-    {"platform": "wear", "version": "1.2.26",
-     "note": "heart rate that keeps measuring, always-on, a touch lock for the water"},
-    {"platform": "android", "version": "1.1.26",
-     "note": "warns when the watch has no GPS fix, hold two seconds to stop"},
-    {"platform": "zepp", "version": "1.0.8", "note": "follows straight after the current one"},
+    {"name": "Android phone + Wear OS", "version": "1.1.26 / 1.2.26",
+     "note": "warns when the watch has no GPS fix, heart rate that keeps measuring, "
+             "always-on, a touch lock for the water"},
+    {"name": "Amazfit", "version": "1.0.8", "note": "follows straight after the current one"},
 ]
 
 
 @router.get("/releases")
 def releases() -> dict:
     """Was ist live, was liegt im Review, was kommt als Naechstes (fuer /changelog)."""
-    live = [{"platform": p, "name": ANZEIGENAME[p], "version": _APP_META[p]["latest"],
-             "store_url": _APP_META[p].get("store_url", "")}
-            for p in REIHENFOLGE
-            if p in _APP_META and (_APP_META[p].get("latest") or "").strip()]
-    def anreichern(eintraege):
-        return [{**e, "name": ANZEIGENAME.get(e["platform"], e["platform"])} for e in eintraege]
-    return {"live": live, "review": anreichern(IN_REVIEW), "next": anreichern(NAECHSTES)}
+    live = []
+    for schluessel, name in GRUPPEN:
+        versionen, laden = [], ""
+        for p in schluessel:
+            m = _APP_META.get(p) or {}
+            v = (m.get("latest") or "").strip()
+            if not v:
+                continue
+            if v not in versionen:      # Handy und Uhr tragen bei Apple dieselbe Nummer
+                versionen.append(v)
+            laden = laden or (m.get("store_url") or "")
+        if versionen:
+            live.append({"name": name, "version": " / ".join(versionen), "store_url": laden})
+    return {"live": live, "review": IN_REVIEW, "next": NAECHSTES}
 
 
 @router.get("/latest")
