@@ -619,6 +619,19 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔁 05.09. — DAUERAUFGABE: die Uhren-Auswertung alle paar Wochen erneuern** (Jan). Sie steht
+  oeffentlich auf `/watch-stats` unter „Wie gut zeichnen die Uhren auf?“ und nennt dort ihren
+  **Stand** und die **Datenbasis** — veraltet sie unbemerkt, faellt das niemandem auf.
+  ```
+  cd server && .venv/bin/python ../scripts/uhren-qualitaet.py --json ../analyse/uhren/uhren-qualitaet.json
+  ```
+  Dauert ein paar Minuten (liest je Session die Rohpunkte), danach `sudo systemctl restart
+  foil-server`. Kein PWA-Build noetig.
+  **Beim naechsten Lauf mit pruefen:** ob die Apple Watch inzwischen ihr Modell meldet (ab
+  App 1.1.31) — dann wird aus der einen Zeile „Apple Watch“ eine Zeile je Serie. Und ob auf
+  Wear OS ab 1.2.26 die Puls-Spalte wieder Daten hat.
+
+
 - **🟡 05.09. — Apple Watch meldet ihr Modell (geht mit 1.1.31 raus).** Bisher trugen **alle 51**
   Apple-Geraete bei uns das Etikett „Apple Watch"; Garmin liefert das Modell seit jeher, Wear OS
   und Amazfit inzwischen auch. Damit liess sich fuer Apple **nicht sagen, welche Serie sauber

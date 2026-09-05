@@ -31,7 +31,7 @@ Ergänzt [`UX-IA.md`](UX-IA.md) (Informationsarchitektur). Bei neuer Route hier 
 | `/foils` | `Foils.tsx` | Foil-Katalog: mehrere als „meine" merken, eines als Standard (Stern). |
 | `/foil-stats` | `FoilStats.tsx` | Community-Vergleich je Foil: welche Werte mit welchem Material gefahren werden. |
 | `/foil-stats/:foilId` | `FoilDetail.tsx` | Ein Foil im Einzelnen: Community-Rekord-Kacheln mit genau diesem Fluegel, darunter die eigenen Sessions damit (laedt beim Scrollen nach). Erreichbar per Klick auf den Foil-Namen in der Tabelle. |
-| `/watch-stats` | `WatchStats.tsx` | Community-Vergleich je Uhr-Modell: was mit welcher Uhr gefahren wird. |
+| `/watch-stats` | `WatchStats.tsx` | Community-Vergleich je Uhr-Modell: was mit welcher Uhr gefahren wird. Darunter „Wie gut zeichnen die Uhren auf?“ — Pump-Erkennung, Ortung, Puls und ein Urteil je Modell, gemessen an unseren eigenen Aufnahmen (`/api/app/watch-quality`, Snapshot aus `scripts/uhren-qualitaet.py`; Stand + Datenbasis stehen dabei). |
 | `/foil-rechner` | `FoilCalculator.tsx` | Nativer Foil-Rechner: mehrere Foils vergleichen (Kennwerte + theoretische Leistung über Speeds; geportetes Physik-Modul). |
 | `/vergleich` | `Compare.tsx` | Mehr-Fahrer-/Session-Vergleich mit Farb-Legende je Fahrer. |
 | `/account` | `Account.tsx` | **Uhr einrichten**: Tabs Guide/Connect/Ansichten/Alarm/App/Kompatibilität (Watch-Matrix, Connect-IQ-Download). Von Einstellungen aus verlinkt. |
