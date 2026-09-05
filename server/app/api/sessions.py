@@ -406,6 +406,29 @@ def import_parsed_session(db, user, raw: bytes, parsed: dict, *, src_label: str,
         _dsc = (json.loads(user.settings_json or "{}") or {}).get("default_sport_class") or "pumpfoil"
     except ValueError:
         _dsc = "pumpfoil"
+    # ... ABER die Datei schlägt die Voreinstellung, wenn sie etwas nennt, das mit Foilen nichts
+    # zu tun haben KANN. Am 05.09.2026 nachgezählt: von 260 lesbaren Import-Originalen trugen 242
+    # eine andere Sportart als die, unter der sie bei uns standen — 130 davon zählten als
+    # Pumpfoil, darunter 25 Radfahrten, 20 Läufe und 4 Fußballspiele. Grund war ein Lesefehler
+    # (s. `fitimport`: Suunto schreibt die Sportart nur in die `session`-Nachricht), aber selbst
+    # mit richtiger Lesung hätte die Voreinstellung sie überschrieben.
+    #
+    # Die Liste ist BEWUSST eng. Sie enthält NUR, was niemand als Ersatzmodus fürs Foilen
+    # wählen würde. Nicht enthalten und deshalb weiter der Voreinstellung überlassen:
+    # `surfing`, `stand_up_paddleboarding`, `kitesurfing`, `sailing`, `windsurfing`,
+    # `wakeboarding`, `open_water`, `generic` — für Pumpfoil gibt es auf keiner Uhr einen
+    # eigenen Modus, also nehmen die Leute genau diese. Wer dort mitraten wollte, würde echte
+    # Pumper aussortieren (Jan, 05.09.: „es gibt durchaus Pumpfoiler, die 1–2 Stunden pumpen").
+    KEIN_FOILEN = {
+        "running", "trail_running", "cycling", "e_biking", "mountain_biking", "walking", "hiking",
+        "soccer", "american_football", "basketball", "tennis", "golf", "training",
+        "fitness_equipment", "floor_climbing", "rock_climbing", "mountaineering",
+        "alpine_skiing", "snowboarding", "cross_country_skiing", "snowshoeing", "ice_skating",
+        "inline_skating", "horseback_riding", "motorcycling", "driving", "sky_diving",
+        "hunting", "fishing", "swimming", "rowing", "kayaking", "paddling",
+    }
+    if (parsed.get("sport") or "").lower() in KEIN_FOILEN:
+        _dsc = "other"
     s = models.Session(
         session_uuid=session_uuid,
         user_id=user.id,
