@@ -694,7 +694,13 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     Heimfahrten, sondern Anlaeufe am Wasser. Bei ihnen ist der vorsichtige Weg (Zuschnitt gilt)
     strenger als noetig; ein Wort von dir und ich setze sie auf „Automatik".
 
-- **🟡 04.09. 08:51 — iOS/Apple Watch 1.1.30 (34) EINGEREICHT** („Warten auf Prüfung"). Drin:
+- **🟢 05.09. — iOS/Apple Watch 1.1.30 (34) FREIGEGEBEN UND LIVE.** Freigabe-Mail „ready for
+  distribution" am 05.09.; **an der Produktseite gegengeprueft** (apps.apple.com/de zeigt
+  „Version 1.1.30", erschienen vor gut drei Stunden, Apple Watch in der Kompatibilitaet) — die
+  `lookup`-API wurde bewusst nicht gefragt, die haengt nach einer frischen Freigabe nach.
+  Nachgezogen: `appmeta.ios` **und** `appmeta.apple` auf 1.1.30, Changelog-Eintrag vom
+  5. September, `watch-apple/project.yml` auf **1.1.31 (35)** fuer die naechste Einreichung.
+  Eingereicht war sie am 04.09. 08:51 — knapp einen Tag Pruefung. Drin:
   gemerkte Kartenansicht, misslungene Startversuche auf der Karte, Rueckfall bei nicht
   verfuegbarem Farbmodus, Karte auch ohne erkannte Laeufe, „Auswahl leeren" im Vergleich,
   haengengebliebene Uploads mit `ueberholt`, Hinweis bei eingefrorener Ortung, Apple Watch

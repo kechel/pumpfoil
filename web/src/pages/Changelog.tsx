@@ -30,6 +30,14 @@ type Entry = { date: string; items: Item[] };
 
 const ENTRIES: Entry[] = [
   {
+    date: "September 5, 2026",
+    items: [
+      "iPhone and Apple Watch 1.1.30: the map remembers the view you chose, shows your failed take-off attempts, and is drawn even when no runs were detected. Missing heart rate is now shown in white instead of a colour that means nothing.",
+      "The watch no longer writes an old heart rate into new track points. That used to make long runs look like they were not done under your own power, and they were dropped from your stats.",
+      "Comparison: a button to clear your selection.",
+    ],
+  },
+  {
     date: "September 4, 2026",
     items: [
       "Xiaomi and Redmi watches can now bring their sessions here: connect Mi Fitness to Suunto, connect Suunto with us, and your rides arrive automatically. Instructions under linked accounts.",

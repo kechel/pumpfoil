@@ -48,7 +48,15 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.29",   # LIVE im App Store 2026-09-03, GEGENGEPRUEFT an der STORE-SEITE
+        "latest": "1.1.30",   # LIVE im App Store 2026-09-05, GEGENGEPRUEFT an der STORE-SEITE
+        # (Produktseite apps.apple.com/de zeigt "Version 1.1.30", erschienen vor gut drei Stunden).
+        # Freigabe-Mail "ready for distribution" am 05.09., eingereicht 04.09. 08:51.
+        # Inhalt: gemerkte Kartenansicht, misslungene Startversuche auf der Karte, Rueckfall bei
+        # nicht verfuegbarem Farbmodus, Karte auch ohne erkannte Laeufe, "Auswahl leeren" im
+        # Vergleich, haengengebliebene Uploads mit `ueberholt`, Hinweis bei eingefrorener Ortung,
+        # fehlender Puls weiss, Handy-Recorder 2 s statt 3 s, Foil-Rechner mit Trefferliste erst
+        # bei Suche.
+        # Vorher 1.1.29, live seit 03.09., GEGENGEPRUEFT an der STORE-SEITE
         # (Produktseite zeigt "Version 1.1.29"). Freigabe-Mail "ready for distribution" am 03.09.,
         # eingereicht 02.09. 17:55 — keine 24 Stunden Pruefung.
         # Inhalt: der Community-Feed spielt wieder (YouTube lehnte den Player mit Error 153 ab,
@@ -141,7 +149,12 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.29",   # LIVE im App Store 2026-09-03 — dieselbe Einreichung wie "ios",
+        "latest": "1.1.30",   # LIVE im App Store 2026-09-05 — dieselbe Einreichung wie "ios",
+        # gegengeprueft an der Produktseite ("Version 1.1.30", Apple Watch in der Kompatibilitaet).
+        # Fuer die WATCH-App bringt 1.1.30: kein veralteter Puls mehr in den Messpunkten (die Uhr
+        # schrieb bisher den letzten bekannten Wert in JEDEN GPS-Punkt, was Laeufe faelschlich als
+        # "nicht aus eigener Kraft" aussortieren liess).
+        # Vorher 1.1.29, live seit 03.09. — dieselbe Einreichung wie "ios",
         # die Watch-App steckt ja im selben Bundle. NICHT auf die Freigabe-Mail allein verlassen
         # ("ready for distribution" heisst freigegeben, nicht zwingend schon ausgeliefert):
         # gegengeprueft an der STORE-SEITE (apps.apple.com/de + /us zeigen "Version 1.1.27").
