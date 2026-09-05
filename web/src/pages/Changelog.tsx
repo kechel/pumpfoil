@@ -115,6 +115,12 @@ type Entry = { date: string; items: Item[] };
 
 const ENTRIES: Entry[] = [
   {
+    date: "September 6, 2026",
+    items: [
+      "The training curve in your [history](/verlauf) now has a slider: pick any moment between 10 seconds and 5 minutes into a run and see how your heart rate at that point developed over the weeks. It says how many of your sessions have a value there — the further right you go, the fewer runs were that long.",
+    ],
+  },
+  {
     date: "September 5, 2026",
     items: [
       "iPhone and Apple Watch 1.1.30: the map remembers the view you chose, shows your failed take-off attempts, and is drawn even when no runs were detected. Missing heart rate is now shown in white instead of a colour that means nothing.",

@@ -994,9 +994,15 @@ def compute_overall_stats(db: Session, user_id: int, accel_only: bool = True, se
 
 
 HR_MARKEN = (30, 60, 120, 300)   # Sekunden: nach 30 s, 1, 2 und 5 Minuten Lauf
+# Feines Raster fuer den frei waehlbaren Punkt (Jan, 05.09.2026: „mich wuerde z. B. nach
+# 45 Sekunden interessieren"). Es wird MIT gecacht, damit der Regler ohne Nachladen laeuft:
+# wuerde der Server je Reglerstellung rechnen, muesste er die GPS-Spur JEDER Session neu lesen.
+# 5-Sekunden-Schritte sind fein genug — die GPS-Punkte liegen bei 1 Hz, und der Puls aendert
+# sich ohnehin nicht sekundenscharf.
+HR_RASTER = tuple(range(10, 301, 5))
 # Version des Cache-Inhalts. Aendert sich die Markenliste oder die Rechnung, hochzaehlen — der
 # Leser rechnet dann von selbst neu, statt dass jemand die Spalte von Hand leeren muss.
-HR_CACHE_V = 2
+HR_CACHE_V = 3   # 3: zusaetzlich das feine Raster (HR_RASTER)
 
 
 def _hr_by_min(uuid: str, segs_json: str | None) -> dict:
@@ -1037,20 +1043,52 @@ def _hr_by_min(uuid: str, segs_json: str | None) -> dict:
     if not any(hr):
         return leer
     out: dict[str, dict] = {"v": HR_CACHE_V}
-    for marke in HR_MARKEN:
+    # Je Lauf EINMAL den laufenden Höchstpuls über die ersten 300 s bilden, statt für jede Marke
+    # neu über das Fenster zu gehen. Bei 63 Marken (4 feste + 59 im Raster) ist das der
+    # Unterschied zwischen „einmal lesen" und „63-mal lesen".
+    # GPS liegt bei 1 Hz -> ein Index ≈ eine Sekunde. Dieselbe Näherung, mit der `gps_hz` überall
+    # im Projekt geführt wird (docs/DATA-PIPELINE.md).
+    laeufe: list[tuple[float, list[int | None]]] = []
+    grenze = max(max(HR_MARKEN), max(HR_RASTER))
+    for sg in segs:
+        a, b = sg.get("i_start"), sg.get("i_end")
+        if a is None or b is None:
+            continue
+        dauer = sg.get("duration_s") or 0
+        ende = min(int(a) + grenze, int(b), len(hr) - 1)
+        lauf_max: list[int | None] = []
+        bisher = None
+        for v in hr[int(a):ende + 1]:
+            if v:
+                bisher = v if bisher is None else max(bisher, v)
+            lauf_max.append(bisher)
+        laeufe.append((dauer, lauf_max))
+
+    def marke_werte(marke: int) -> list[int]:
+        """Höchstpuls bis Sekunde `marke`, je Lauf — Läufe, die kürzer waren, zählen nicht mit."""
         werte = []
-        for sg in segs:
-            a, b = sg.get("i_start"), sg.get("i_end")
-            if a is None or b is None or (sg.get("duration_s") or 0) < marke:
+        for dauer, lauf_max in laeufe:
+            if dauer < marke or not lauf_max:
                 continue
-            # GPS liegt bei 1 Hz -> ein Index ≈ eine Sekunde. Das ist dieselbe Näherung, mit der
-            # `gps_hz` überall im Projekt geführt wird (docs/DATA-PIPELINE.md).
-            ende = min(int(a) + marke, int(b), len(hr) - 1)
-            fenster = [v for v in hr[int(a):ende + 1] if v]
-            if fenster:
-                werte.append(max(fenster))
+            v = lauf_max[min(marke, len(lauf_max) - 1)]
+            if v:
+                werte.append(v)
+        return werte
+
+    for marke in HR_MARKEN:
+        werte = marke_werte(marke)
         if werte:
+            # Median über die Läufe, nicht der Bestwert — ein Ausreißer soll die Kurve nicht
+            # verziehen.
             out[str(marke)] = {"med": round(_st.median(werte)), "n": len(werte)}
+    # Das Raster kompakt: zwei gleich lange Listen statt 59 Objekte. Fehlt ein Wert (kein Lauf
+    # war so lang), steht dort `null`.
+    med, anz = [], []
+    for marke in HR_RASTER:
+        werte = marke_werte(marke)
+        med.append(round(_st.median(werte)) if werte else None)
+        anz.append(len(werte))
+    out["raster"] = {"med": med, "n": anz}
     return out
 
 
@@ -1074,6 +1112,7 @@ def hr_progress(
     user: models.User = Depends(current_user),
     db: Session = Depends(get_db),
     sport: str | None = None,
+    grid: bool = False,
 ) -> dict:
     """Trainingskurve: je Session der Höchstpuls nach 1, 2 und 5 Minuten Lauf (Median über die
     Läufe), älteste zuerst. Fällt der Wert über die Wochen, ist der Fahrer fitter geworden.
@@ -1100,14 +1139,25 @@ def hr_progress(
             werte = _hr_by_min(uuid, ar.segments_json)
             ar.hr_by_min_json = json.dumps(werte)
             dirty = True
-        werte = {k: v for k, v in werte.items() if k != "v"}
+        raster = werte.get("raster") if isinstance(werte, dict) else None
+        werte = {k: v for k, v in werte.items() if k not in ("v", "raster")}
         if werte:
-            reihe.append({"session_id": sid, "started_at": ts.isoformat() if ts else None,
-                          **{f"hr{k}": v["med"] for k, v in werte.items()},
-                          **{f"n{k}": v["n"] for k, v in werte.items()}})
+            eintrag = {"session_id": sid, "started_at": ts.isoformat() if ts else None,
+                       **{f"hr{k}": v["med"] for k, v in werte.items()},
+                       **{f"n{k}": v["n"] for k, v in werte.items()}}
+            # Das Raster nur auf Anforderung mitschicken: es ist je Session eine Liste mit 59
+            # Zahlen. Die festen Marken brauchen das nicht, und die nativen Apps holen es
+            # (noch) nicht — ohne `grid=1` bleibt die Antwort so klein wie bisher.
+            if grid and isinstance(raster, dict):
+                eintrag["g"] = raster.get("med")
+                eintrag["gn"] = raster.get("n")
+            reihe.append(eintrag)
     if dirty:
         db.commit()
-    return {"sport": gewaehlt, "sports": sports, "marks": list(HR_MARKEN), "series": reihe}
+    aus = {"sport": gewaehlt, "sports": sports, "marks": list(HR_MARKEN), "series": reihe}
+    if grid:
+        aus["grid"] = list(HR_RASTER)
+    return aus
 
 
 @router.get("/stats")
