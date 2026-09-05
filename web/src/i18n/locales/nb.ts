@@ -1065,6 +1065,7 @@ const nb: Record<string, string> = {
   "settings.sync.why.error": "{n} uleselig",
   "watchQuality.title": "Hvilken klokke måler best?",
   "watchQuality.lead": "Målt på {sessions} opptak og {hours} timer på vannet. Regnes ut på nytt med noen ukers mellomrom — dette er fra {date}.",
+  "watchQuality.new": "Denne analysen er ny. Jo flere opptak som kommer inn, jo mer pålitelige blir tallene — særlig for modeller som bare én eller to ryttere bruker så langt.",
   "watchQuality.colPump": "Pump-gjenkjenning",
   "watchQuality.colGps": "Posisjon",
   "watchQuality.colHr": "Puls",

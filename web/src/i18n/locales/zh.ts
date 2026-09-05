@@ -1030,6 +1030,7 @@ const zh: Record<string, string> = {
   "settings.sync.why.error": "{n} 项无法读取",
   "watchQuality.title": "哪款手表记录得最好？",
   "watchQuality.lead": "基于 {sessions} 次记录、水上 {hours} 小时测得。每隔几周重新统计 — 本次数据截至 {date}。",
+  "watchQuality.new": "这项统计刚刚开始。记录越多，数字就越可靠 — 尤其是目前只有一两位用户在用的型号。",
   "watchQuality.colPump": "划水识别",
   "watchQuality.colGps": "定位",
   "watchQuality.colHr": "心率",

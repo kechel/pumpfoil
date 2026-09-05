@@ -1030,6 +1030,7 @@ const pt: Record<string, string> = {
   "settings.sync.why.error": "{n} ilegível",
   "watchQuality.title": "Qual relógio grava melhor?",
   "watchQuality.lead": "Medido em {sessions} gravações e {hours} horas na água. Recalculado a cada poucas semanas — este estado é de {date}.",
+  "watchQuality.new": "Esta análise é nova. Quantas mais gravações chegarem, mais fiáveis ficam os números — sobretudo nos modelos que até agora só um ou dois riders usam.",
   "watchQuality.colPump": "Deteção de pumps",
   "watchQuality.colGps": "Localização",
   "watchQuality.colHr": "Frequência cardíaca",

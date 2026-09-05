@@ -1030,6 +1030,7 @@ const id: Record<string, string> = {
   "settings.sync.why.error": "{n} tidak terbaca",
   "watchQuality.title": "Jam mana yang merekam paling baik?",
   "watchQuality.lead": "Diukur dari {sessions} rekaman dan {hours} jam di air. Dihitung ulang setiap beberapa minggu — kondisi ini per {date}.",
+  "watchQuality.new": "Analisis ini masih baru. Semakin banyak rekaman yang masuk, semakin dapat diandalkan angkanya — terutama untuk model yang sejauh ini hanya dipakai satu atau dua rider.",
   "watchQuality.colPump": "Deteksi pump",
   "watchQuality.colGps": "Penentuan posisi",
   "watchQuality.colHr": "Detak jantung",

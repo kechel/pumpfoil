@@ -1093,6 +1093,7 @@ const fi: Record<string, string> = {
   "settings.sync.why.error": "{n} ei luettavissa",
   "watchQuality.title": "Mikä kello tallentaa parhaiten?",
   "watchQuality.lead": "Mitattu {sessions} tallenteesta ja {hours} tunnista vedessä. Lasketaan uudelleen muutaman viikon välein — tämä tilanne on {date}.",
+  "watchQuality.new": "Tämä analyysi on uusi. Mitä enemmän tallenteita kertyy, sitä luotettavampia luvut ovat — etenkin malleissa, joita käyttää toistaiseksi vain yksi tai kaksi kuskia.",
   "watchQuality.colPump": "Pumppausten tunnistus",
   "watchQuality.colGps": "Paikannus",
   "watchQuality.colHr": "Syke",

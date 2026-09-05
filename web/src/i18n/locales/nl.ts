@@ -1128,6 +1128,7 @@ const nl: Record<string, string> = {
   "settings.sync.why.error": "{n} onleesbaar",
   "watchQuality.title": "Welk horloge registreert het best?",
   "watchQuality.lead": "Gemeten aan {sessions} opnames en {hours} uur op het water. Elke paar weken opnieuw berekend — deze stand is van {date}.",
+  "watchQuality.new": "Deze analyse is nieuw. Hoe meer opnames binnenkomen, hoe betrouwbaarder de cijfers worden — vooral bij modellen die tot nu toe maar één of twee riders gebruiken.",
   "watchQuality.colPump": "Pump-herkenning",
   "watchQuality.colGps": "Positiebepaling",
   "watchQuality.colHr": "Hartslag",
