@@ -42,10 +42,15 @@ function ReleaseStatus() {
   useEffect(() => { api.appReleases().then(setDaten).catch(() => setDaten(null)); }, []);
   if (!daten) return null;
 
+  // Farben je Abschnitt (Jan, 05.09.). Jede Farbe wird fuer BEIDE Modi gesetzt: die dunklen
+  // Toene verschwinden auf hellem Grund fast, deshalb im Light-Mode jeweils die kraeftigere
+  // Stufe derselben Farbfamilie (s. Marken-Cyan, das als brand-400 auf Weiss zu blass ist).
   const gruppen: { titel: string; farbe: string; zeilen: Release[] }[] = [
-    { titel: "In the stores", farbe: "text-emerald-400", zeilen: daten.live },
-    { titel: "Being reviewed", farbe: "text-amber-400", zeilen: daten.review },
-    { titel: "Coming next", farbe: "text-slate-400", zeilen: daten.next },
+    { titel: "In the stores", farbe: "text-brand-700 dark:text-brand-400", zeilen: daten.live },
+    { titel: "Being reviewed", farbe: "text-emerald-700 dark:text-emerald-400", zeilen: daten.review },
+    // #ff5500 ist die Wunschfarbe; auf Weiss ist sie fuer kleine Versalien zu hell, dort eine
+    // Stufe dunkler derselben Farbe.
+    { titel: "Coming next", farbe: "text-[#c24100] dark:text-[#ff5500]", zeilen: daten.next },
   ].filter((g) => g.zeilen.length > 0);
 
   return (
