@@ -633,6 +633,10 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   **Handy und Uhr gehoeren in EINE Zeile** (`GRUPPEN`): Android Phone und Wear OS teilen sich die
   `applicationId` und bekommen eine einzige Play-Mail, iPhone und Apple Watch stecken im selben
   Bundle mit einer `MARKETING_VERSION` — zwei Zeilen wuerden zwei Vorgaenge vortaeuschen.
+  **Jede Fassung fuehrt ihre Aenderungen als `items` mit** (Jan, 05.09.): was eingereicht ist,
+  stand sonst NIRGENDS, bis es veroeffentlicht wurde. Die Punkte gleich so schreiben, wie sie
+  spaeter im Changelog stehen sollen — **bei der Freigabe werden sie unveraendert nach
+  `web/src/pages/Changelog.tsx` uebernommen**, nicht neu formuliert.
 
 
 - **📥 05.09. — 31 Frontfluegel konnten NICHT in den Katalog, weil der Hersteller die Zahl nicht
