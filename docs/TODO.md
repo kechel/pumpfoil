@@ -619,6 +619,19 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔁 05.09. — DAUERAUFGABE: die Release-Tabelle auf `/changelog` mitziehen.** Ganz oben auf der
+  oeffentlichen Changelog-Seite steht jetzt „App versions" mit drei Abschnitten (im Store · in
+  Pruefung · kommt als Naechstes). Die **Live**-Zeilen kommen automatisch aus
+  `appmeta._APP_META` — dieselbe Quelle wie der Update-Hinweis in den Apps, die kann also nicht
+  auseinanderlaufen. Die beiden anderen Abschnitte stehen als `IN_REVIEW` und `NAECHSTES` in
+  `server/app/api/appmeta.py` und **muessen von Hand gepflegt werden** (Jan, 05.09.):
+  - **eingereicht** → Eintrag von `NAECHSTES` nach `IN_REVIEW`
+  - **freigegeben** → `_APP_META[...]["latest"]` setzen (erst wenn der Store wirklich
+    ausliefert) UND den `IN_REVIEW`-Eintrag entfernen
+  - **gebaut, wartet auf eine laufende Pruefung** → nach `NAECHSTES`
+  Server-Neustart noetig, kein PWA-Build. `note` ist Nutzertext: englisch, kurz, kein Jargon.
+
+
 - **📥 05.09. — 31 Frontfluegel konnten NICHT in den Katalog, weil der Hersteller die Zahl nicht
   nennt.** `foils.span_cm` und `foils.area_cm2` sind `NOT NULL` (zu Recht: Streckung und der
   Vergleich „aehnliche Foils" rechnen mit beiden), und geraten wird nicht. Betroffen:

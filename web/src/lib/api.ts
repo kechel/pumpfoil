@@ -713,6 +713,14 @@ export const api = {
   getProfile: () => req<Profile>("/api/auth/me"),
   polarStatus: () => req<{ available: boolean; linked: boolean; last_sync_at: string | null }>("/api/integrations/polar/status"),
   polarConnect: () => req<{ authorize_url: string }>("/api/integrations/polar/connect"),
+  // Release-Stand fuer die Tabelle oben auf /changelog. Die Live-Spalte kommt aus derselben
+  // Quelle wie der Update-Hinweis in den Apps (appmeta), damit beides nicht auseinanderlaeuft.
+  appReleases: () => req<{
+    live: { platform: string; name: string; version: string; store_url: string }[];
+    review: { platform: string; name: string; version: string; note: string }[];
+    next: { platform: string; name: string; version: string; note: string }[];
+  }>("/api/app/releases"),
+
   polarSync: () => req<{ imported: number; skipped: number; message?: string }>("/api/integrations/polar/sync", { method: "POST" }),
   polarUnlink: () => req<{ ok: boolean }>("/api/integrations/polar", { method: "DELETE" }),
 

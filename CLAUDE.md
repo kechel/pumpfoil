@@ -59,6 +59,10 @@ Zwei systemd-Timer (User `jan`, oneshot), Skripte in `deploy/`:
 
 ## Konventionen
 
+- **Release-Tabelle auf `/changelog`:** die oeffentliche Changelog-Seite zeigt oben, welche
+  App-Version im Store ist, welche im Review liegt und was als Naechstes kommt. Live kommt aus
+  `appmeta._APP_META`; **`IN_REVIEW` und `NAECHSTES` in `server/app/api/appmeta.py` bei jeder
+  Einreichung und jeder Freigabe mitziehen** (Details im Kommentar dort und in `docs/TODO.md`).
 - **Server neu starten** darf Claude jederzeit (Dev-Stadium): `sudo systemctl restart foil-server`.
   Nach `server/`-Code-Änderungen nötig; Web/Watch-Builds brauchen **keinen** Restart (frisch gelesen).
 - **Detektor-/Analyse-Pipeline** (`server/app/analysis/`): Änderungen erst mit Jans OK; Befund +
