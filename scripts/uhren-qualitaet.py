@@ -22,12 +22,15 @@ DIE VIER KATEGORIEN
    und die Guete. **Die Guete ist NICHT vergleichbar zwischen den Welten:** Connect IQ
    liefert eine Stufe (`Position.Quality`, 4 = GOOD), Apple/Wear/Handy liefern Meter.
    Deshalb zwei getrennte Spalten und niemals eine gemeinsame Rangfolge daraus.
-3. **Puls.** Hier steckt die groesste Falle: die Aussetzer messen ueber weite Strecken UNSERE
-   Software, nicht die Uhr. Bis 1.1.29 schrieb die Apple-App den letzten bekannten Puls in
-   JEDEN Punkt; auf Wear OS kam derselbe Fehler mit 1.2.21 dazu und ist erst ab 1.2.26 weg
-   (an den Daten belegt: bis 1.2.20 lag die laengste starre Kette im Median bei 5 bis 16
-   Punkten, ab 1.2.23 bei 121 bis 268). Sessions aus diesen Zeitraeumen werden fuer die
-   Puls-Spalte **ausgeschlossen** — sonst bewertet man die Uhr fuer unseren Fehler.
+3. **Puls.** Gemessen an den **Wertwechseln je Minute**, nicht am Anteil fehlender Werte.
+   Das ist entscheidend: bis 1.1.29 schrieb die Apple-App den letzten bekannten Puls in JEDEN
+   Punkt (auf Wear OS derselbe Fehler von 1.2.21 bis 1.2.25). Wer den ANTEIL fehlender Werte
+   misst, sieht davon nichts — 99,5 % der Apple-Punkte tragen einen Wert, er ist nur alt.
+   Wertwechsel dagegen entstehen NUR, wenn wirklich neu gemessen wurde; ein weitergeschriebener
+   Wert aendert sich nicht. Damit ist die Zahl von unserem Fehler unabhaengig und ueber alle
+   Plattformen und App-Versionen hinweg vergleichbar.
+   Zum Einordnen: Garmin 18,3 Wechsel/min (etwa alle 3 s), Apple Watch 4,4 (etwa alle 14 s).
+   `PULS_TOT_PRO_MIN` markiert, ab wann eine Session als Aussetzer gilt.
 4. **Speicher.** `device_tokens.storage_full_count`/`crash_count`. Bewusst nur als Hinweis:
    nur je zehn Geraete haben ueberhaupt etwas gemeldet, das traegt keine Statistik.
 
@@ -52,6 +55,7 @@ BASIS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 MIN_SESSIONS = 8
 MIN_PUNKTE = 120
 PULS_STARR_PUNKTE = 60      # >= so viele gleiche Werte am Stueck = eingefroren
+PULS_TOT_PRO_MIN = 1.0      # weniger als ein neuer Wert je Minute = die Messung steht
 ACCEL_MIN_HZ = 15.0         # darunter reicht es nicht fuers Pump-Modell (s. analysis/__init__)
 BEWEGT_MPS = 1.0            # ab hier gilt "in Bewegung" — darunter zaehlt Stillstand nicht als Fehler
 
@@ -112,7 +116,13 @@ def messen(samples: list) -> dict | None:
         h = s[5] if len(s) > 5 else None
         if isinstance(h, (int, float)) and h > 0:
             haccs.append(float(h))
+    # Wertwechsel je Minute: die einzige Puls-Zahl, die UNSER Padding nicht verfaelscht
+    # (s. Kategorie 3). Nur ueber die Punkte, die ueberhaupt einen Wert tragen.
+    werte = [s[4] for s in samples if len(s) > 4 and s[4]]
+    dauer_min = max(1.0, (samples[-1][0] - samples[0][0]) / 60000.0)
+    wechsel = sum(1 for a, b in zip(werte, werte[1:]) if a != b) / dauer_min if werte else 0.0
     return {"punkte": n, "dauer_s": max(1.0, (samples[-1][0] - samples[0][0]) / 1000.0),
+            "puls_wechsel": wechsel if werte else None,
             "puls_fehlt": ohne_puls / n, "puls_starr": laengste,
             "ortung_steht": (doppelt / bewegt) if bewegt >= 60 else None,
             "hacc": median(haccs) if haccs else None,
@@ -174,7 +184,10 @@ def main() -> None:
             "ortung_steht": med("ortung_steht"),
             "guete_gut": med("guete_gut"),
             "hacc": med("hacc"),
-            "puls_sessions": len(puls),
+            "puls_sessions": len(L),
+            "puls_wechsel": (median(x) if (x := [w["puls_wechsel"] for w in L
+                                                 if w["puls_wechsel"] is not None]) else None),
+            "puls_tot": sum(1 for w in L if (w["puls_wechsel"] or 0) < PULS_TOT_PRO_MIN) / len(L),
             "puls_fehlt": (median(w["puls_fehlt"] for w in puls) if puls else None),
             "puls_starr": (sum(1 for w in puls if w["puls_starr"] >= PULS_STARR_PUNKTE) / len(puls)
                            if puls else None),
@@ -193,6 +206,8 @@ def main() -> None:
         g = ueber_nutzer(N, "guete_gut")
         h = ueber_nutzer(N, "hacc")
         pf = ueber_nutzer(N, "puls_fehlt")
+        pw = ueber_nutzer(N, "puls_wechsel")
+        pt = ueber_nutzer(N, "puls_tot")
         ps = ueber_nutzer(N, "puls_starr")
         o = ueber_nutzer(N, "ortung_steht")
         hz = ueber_nutzer(N, "accel_hz")
@@ -207,6 +222,8 @@ def main() -> None:
             "hacc_m": round(h, 1) if plattform != "garmin" and h is not None else None,
             "puls_sessions": sum(n["puls_sessions"] for n in N),
             "puls_fehlt": round(pf * 100, 1) if pf is not None else None,
+            "puls_wechsel": round(pw, 1) if pw is not None else None,
+            "puls_tot": round(pt * 100, 1) if pt is not None else None,
             "puls_starr": round(ps * 100, 1) if ps is not None else None,
             "speicher_voll": voll, "abstuerze": crash,
         })
@@ -249,12 +266,12 @@ def main() -> None:
     for r in aus:
         g = (f"{r['guete_gut']:.0f}% GOOD" if r["guete_gut"] is not None
              else (f"{r['hacc_m']:.1f} m" if r["hacc_m"] is not None else "–"))
-        pf = f"{r['puls_fehlt']:.1f}%" if r["puls_fehlt"] is not None else "keine Daten"
-        ps = f"{r['puls_starr']:.1f}%" if r["puls_starr"] is not None else "–"
+        pf = f"{r['puls_wechsel']:.1f}" if r["puls_wechsel"] is not None else "–"
+        ps = f"{r['puls_tot']:.1f}%" if r["puls_tot"] is not None else "–"
         print(f"{r['urteil']:15s} {r['modell'][:34]:34s} {r['sessions']:5d} {r['nutzer']:4d} "
               f"{(str(r['accel_hz']) + ' Hz' if r['accel_hz'] else '–'):>8s} {r['gps_only']:8.1f}% "
               f"{(f'{r["ortung_steht"]:.1f}%' if r["ortung_steht"] is not None else '–'):>13s} "
-              f"{g:>11s} {pf:>11s} {ps:>11s}")
+              f"{g:>11s} {pf:>9s} {ps:>9s}")
 
 
 if __name__ == "__main__":

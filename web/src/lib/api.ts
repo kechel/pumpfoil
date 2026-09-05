@@ -727,7 +727,7 @@ export const api = {
     modelle: { plattform: string; modell: string; sessions: number; nutzer: number;
                accel_hz: number | null; gps_only: number; ortung_steht: number | null;
                guete_gut: number | null; hacc_m: number | null;
-               puls_fehlt: number | null; puls_sessions: number;
+               puls_wechsel: number | null; puls_tot: number | null; puls_sessions: number;
                urteil: string }[];
   }>("/api/app/watch-quality"),
 

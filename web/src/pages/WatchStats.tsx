@@ -81,10 +81,13 @@ function Uhrenqualitaet() {
                     {r.accel_hz != null ? `${r.accel_hz.toFixed(0)} Hz` : "–"}
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums">{duenn ? "–" : gps}</td>
+                  {/* Puls als WERTWECHSEL je Minute. Der Anteil fehlender Werte taugte nicht:
+                      bis App 1.1.29 schrieb die Apple Watch den letzten bekannten Wert in jeden
+                      Punkt — 99,5 % der Punkte trugen einen Wert, er war nur alt. Ein Wechsel
+                      entsteht dagegen nur bei einer echten neuen Messung. */}
                   <td className="px-4 py-3 text-right tabular-nums">
-                    {r.puls_sessions === 0 ? t("watchQuality.hrPending")
-                      : duenn || r.puls_fehlt == null ? "–"
-                      : t("watchQuality.hrOk", { pct: r.puls_fehlt.toFixed(1) })}
+                    {duenn || r.puls_wechsel == null ? "–"
+                      : t("watchQuality.hrRate", { n: r.puls_wechsel.toFixed(0) })}
                   </td>
                   <td className={`px-4 py-3 font-medium ${u.cls}`}>{u.text}</td>
                 </tr>
