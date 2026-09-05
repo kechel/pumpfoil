@@ -210,6 +210,13 @@ final class Recorder: NSObject, ObservableObject {
             "gps_hz": 1,
             "accel_hz": accelHzActual,
             "accel_scale": Int(Self.accelScale),
+            // Uhrmodell mitschicken — bis 1.1.30 fehlte es komplett, und damit sahen ALLE
+            // Apple-Watch-Aufnahmen in unserer Auswertung gleich aus („Apple Watch", 51 Geräte).
+            // Garmin liefert das Modell seit jeher, Wear OS und Amazfit inzwischen auch; nur bei
+            // Apple liess sich deshalb nicht sagen, welche Serie sauber misst und welche nicht.
+            // `WKInterfaceDevice.model` gibt IMMER nur "Apple Watch" zurück — die Serie steht in
+            // `utsname.machine` (z. B. "Watch7,1"). Gleiche Schreibweise wie beim iPhone-Recorder.
+            "device_model": Self.deviceModel(),
         ]
         if let foilId { meta["foil_id"] = foilId }   // für diese Session gewähltes Foil (Server-Override)
         // Version, mit der aufgenommen wurde (wandert mit der Session, auch wenn der Upload
@@ -430,6 +437,21 @@ final class Recorder: NSObject, ObservableObject {
         let p = Self.netMonitor.currentPath
         let fast = p.usesInterfaceType(.wifi) || p.usesInterfaceType(.cellular) || p.usesInterfaceType(.wiredEthernet)
         return fast ? 6 : 2
+    }
+
+    /// Aufnahme-Gerät als "Watch7,1 · watchOS 26.0". Modellkennung über `uname` (WatchKit
+    /// meldet nur die Gattung), OS-Version über `ProcessInfo` — beides ohne Zusatzrechte.
+    private static func deviceModel() -> String {
+        var sys = utsname(); uname(&sys)
+        let machine = withUnsafeBytes(of: &sys.machine) { raw -> String in
+            let ptr = raw.bindMemory(to: CChar.self).baseAddress!
+            return String(cString: ptr)
+        }
+        let v = ProcessInfo.processInfo.operatingSystemVersion
+        let os = v.patchVersion > 0
+            ? "\(v.majorVersion).\(v.minorVersion).\(v.patchVersion)"
+            : "\(v.majorVersion).\(v.minorVersion)"
+        return "\(machine) · watchOS \(os)"
     }
 
     private func uploadSession(_ dir: URL) async throws {
