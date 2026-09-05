@@ -966,6 +966,13 @@ enum Api {
         try await request("/api/community/watch-stats", method: "GET", body: nil, auth: true)
     }
 
+    // Uhren-Auswertung: oeffentlich, ohne Token (wie /api/app/news). Der Server liefert
+    // einen fertigen Snapshot; live rechnen ginge nicht, das Skript dahinter liest je
+    // Session die Rohpunkte.
+    static func watchQuality() async throws -> WatchQuality {
+        try await request("/api/app/watch-quality", method: "GET", body: nil, auth: false)
+    }
+
     struct LikeState: Decodable { let like_count: Int; let liked: Bool }
 
     static func toggleLike(_ id: Int) async throws -> LikeState {

@@ -807,6 +807,31 @@ data class WatchStat(
     @SerialName("avg_pump_hz") val avgPumpHz: Double? = null,
 )
 
+// Uhren-Auswertung (Server: appmeta.watch_quality, Snapshot aus scripts/uhren-qualitaet.py):
+// was die Geraete bei uns wirklich abliefern. Oeffentlich, kein Token noetig.
+// `stand` ist das Datum des Snapshots — die Seite zeigt es an, weil die Auswertung nur alle
+// paar Wochen neu gerechnet wird.
+@Serializable
+data class WatchQualityModel(
+    val plattform: String = "",
+    val modell: String = "",
+    val sessions: Int = 0,
+    val nutzer: Int = 0,
+    @SerialName("accel_hz") val accelHz: Double? = null,
+    @SerialName("gps_only") val gpsOnly: Double = 0.0,
+    @SerialName("guete_gut") val gueteGut: Double? = null,   // nur Garmin: Anteil "GOOD"
+    @SerialName("hacc_m") val haccM: Double? = null,         // nur Apple/Wear/Handy: Meter
+    @SerialName("puls_wechsel") val pulsWechsel: Double? = null,
+)
+
+@Serializable
+data class WatchQuality(
+    val stand: String = "",
+    val sessions: Int = 0,
+    val stunden: Int = 0,
+    val modelle: List<WatchQualityModel> = emptyList(),
+)
+
 // Restliches Setup einer Session (Server: sessions.py:_resolve_setup). Jedes Teil hat ein
 // `*_is_default`: true = vom Nutzer-Standard geerbt, false = fuer DIESE Session gesetzt.
 @Serializable

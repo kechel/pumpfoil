@@ -6,6 +6,7 @@ struct WatchStatsView: View {
     // Beobachtet die Anzeige-Einheit der Pump-Kadenz -> Umschalten wirkt sofort (PumpUnit.swift).
     @AppStorage(PumpUnit.storeKey) private var pumpUnit = "hz"
     @State private var rows: [WatchStat] = []
+    @State private var quali: WatchQuality?
     @State private var loading = true
     @State private var error: String?
     @State private var sortKey = "sessions"
@@ -36,12 +37,68 @@ struct WatchStatsView: View {
             introSection
             statusRows
             statRows
+            qualiSection
         }
         .overlay { if loading { ProgressView() } }
         .navigationTitle(Loc.t("watchStats.title", lang))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { otherStatsToolbar }
         .task { await load() }
+    }
+
+    // Uhren-Auswertung: was die Geraete wirklich abliefern. Bewusst OHNE Urteil -- das
+    // entscheiden Nutzer selbst (Jan, 05.09.); dafuer stehen die Zahlen da. Einzelne
+    // Teil-Views und vorformatierte Strings, damit der Type-Checker nicht ausufert
+    // (dieselbe Vorsicht wie oben im Body).
+    @ViewBuilder private var qualiSection: some View {
+        if let q = quali, !q.modelle.isEmpty {
+            Section(Loc.t("watchQuality.title", lang)) {
+                Text(qualiLead(q)).font(.subheadline).foregroundStyle(.secondary)
+                Text(Loc.t("watchQuality.new", lang)).font(.subheadline)
+            }
+            ForEach(q.modelle.sorted { $0.sessions > $1.sessions }) { m in
+                Section(m.modell) { qualiRows(m) }
+            }
+            Section { Text(Loc.t("watchQuality.note", lang)).font(.footnote).foregroundStyle(.secondary) }
+        }
+    }
+
+    private func qualiLead(_ q: WatchQuality) -> String {
+        Loc.t("watchQuality.lead", lang)
+            .replacingOccurrences(of: "{sessions}", with: String(q.sessions ?? 0))
+            .replacingOccurrences(of: "{hours}", with: String(q.stunden ?? 0))
+            .replacingOccurrences(of: "{date}", with: q.stand)
+    }
+
+    @ViewBuilder private func qualiRows(_ m: WatchQualityModel) -> some View {
+        // Garmin meldet eine Guete-Stufe, die anderen Meter -- nie in EINE Zahl mischen.
+        let gps: String = {
+            if let g = m.guete_gut {
+                return Loc.t("watchQuality.gpsGood", lang)
+                    .replacingOccurrences(of: "{pct}", with: String(Int(g.rounded())))
+            }
+            if let h = m.hacc_m { return String(format: "%.1f m", h) }
+            return "–"
+        }()
+        let puls: String = m.puls_wechsel.map {
+            Loc.t("watchQuality.hrRate", lang)
+                .replacingOccurrences(of: "{n}", with: String(Int($0.rounded())))
+        } ?? "–"
+        let accel: String = m.accel_hz.map { String(format: "%.0f Hz", $0) } ?? "–"
+        // Aufbau wie die Kennzahl-Zeilen darueber: `metric` statt eigener Zeilenart.
+        HStack {
+            metric(String(m.nutzer), Loc.t("watchStats.users", lang))
+            Spacer(); metric(String(m.sessions), Loc.t("nav.sessions", lang))
+            Spacer(); metric(accel, Loc.t("watchQuality.colPump", lang))
+        }
+        HStack {
+            metric(gps, Loc.t("watchQuality.colGps", lang))
+            Spacer(); metric(puls, Loc.t("watchQuality.colHr", lang))
+            Spacer(); Spacer()
+        }
+        if m.nutzer <= 3 {
+            Text(Loc.t("watchQuality.few", lang)).font(.footnote).foregroundStyle(.orange)
+        }
     }
 
     private var introSection: some View {
@@ -120,5 +177,7 @@ struct WatchStatsView: View {
         loading = true; defer { loading = false }
         do { rows = try await Api.watchStats(); error = nil }
         catch { self.error = error.localizedDescription }
+        // Zweiter, unabhaengiger Abruf: schlaegt er fehl, fehlt nur dieser Abschnitt.
+        quali = try? await Api.watchQuality()
     }
 }
