@@ -251,6 +251,11 @@ def releases() -> dict:
             laden = laden or (m.get("store_url") or "")
         if versionen:
             live.append({"name": name, "version": " / ".join(versionen), "store_url": laden})
+    # Die Website steht mit in der Liste, obwohl sie keine Versionsnummer hat: sie ist Teil
+    # desselben Produkts, und die Aussage „hier braucht niemand auf einen Store zu warten" ist
+    # fuer Nutzer die nuetzlichste Zeile der ganzen Tabelle (Jan, 05.09.).
+    live.insert(0, {"name": "Website", "version": "always up to date",
+                    "store_url": "", "note": "new things appear here first, without a store"})
     return {"live": live, "review": IN_REVIEW, "next": NAECHSTES}
 
 

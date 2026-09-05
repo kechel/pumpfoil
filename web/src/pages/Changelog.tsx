@@ -48,7 +48,7 @@ function ReleaseStatus() {
   // Toene verschwinden auf hellem Grund fast, deshalb im Light-Mode jeweils die kraeftigere
   // Stufe derselben Farbfamilie (s. Marken-Cyan, das als brand-400 auf Weiss zu blass ist).
   const gruppen: { titel: string; farbe: string; zeilen: Release[] }[] = [
-    { titel: "In the stores", farbe: "text-brand-700 dark:text-brand-400", zeilen: daten.live },
+    { titel: "Live now", farbe: "text-brand-700 dark:text-brand-400", zeilen: daten.live },
     { titel: "Being reviewed", farbe: "text-emerald-700 dark:text-emerald-400", zeilen: daten.review },
     // #ff5500 ist die Wunschfarbe; auf Weiss ist sie fuer kleine Versalien zu hell, dort eine
     // Stufe dunkler derselben Farbe.
@@ -57,9 +57,9 @@ function ReleaseStatus() {
 
   return (
     <section className="mb-8 rounded-xl border border-slate-800 bg-slate-900/40 p-4">
-      <h2 className="mb-1 text-sm font-bold text-slate-100">App versions</h2>
+      <h2 className="mb-1 text-sm font-bold text-slate-100">Release status</h2>
       <p className="mb-3 text-sm text-slate-400">
-        Which version is out, what is waiting for a store review, and what comes with the next one.
+        Where everything stands right now — website, phone apps and watch apps.
       </p>
       {/* Schmale Bildschirme: die Tabelle scrollt in sich, die Seite selbst nie seitwaerts. */}
       <div className="overflow-x-auto">
