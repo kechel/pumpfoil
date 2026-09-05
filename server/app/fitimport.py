@@ -208,7 +208,15 @@ def parse_fit_bytes(data: bytes) -> dict:
                 records.append({d.name: d.value for d in msg})
             elif msg.name == "accelerometer_data":
                 accel_msgs.append({d.name: d.value for d in msg})
-            elif msg.name == "sport":
+            elif msg.name in ("sport", "session"):
+                # `sport`-Nachricht ODER die Sportart in der `session`-Nachricht. Letztere war
+                # bis 05.09.2026 uebersehen — und genau dort steht sie bei SUUNTO: deren Dateien
+                # haben ueberhaupt keine `sport`-Nachricht, nur `session.sport`. Folge: JEDE
+                # Suunto-Session kam mit der Voreinstellung „pumpfoil" herein, auch wenn in der
+                # Datei „sailing" stand (belegt an Session 3501). Die `sport`-Nachricht bleibt
+                # vorrangig, weil sie die speziellere Angabe ist.
+                if msg.name == "session" and sport != "pumpfoil":
+                    continue
                 vals = {d.name: d.value for d in msg}
                 sp = vals.get("sport")
                 sub = vals.get("sub_sport")
