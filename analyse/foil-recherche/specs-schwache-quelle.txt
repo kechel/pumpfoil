@@ -1,0 +1,29 @@
+# Zahlen mit SCHWACHER Quelle — nicht ohne zweite Bestaetigung eintragen.
+GoFoil | EZ | EZ1025 | 72.5 | 1025 | - | gofoil.com fuehrt die EZ-Reihe nicht mehr; Zahlen aus NauticExpos Abdruck des GoFoil-Katalogs | https://www.nauticexpo.com/prod/gofoil/product-200182-578596.html
+GoFoil | EZ | EZ1275 | 79.5 | 1275 | - | wie oben | https://www.nauticexpo.com/prod/gofoil/product-200182-578824.html
+GoFoil | EZ | EZ1600 | 89 | 1600 | - | wie oben | https://www.nauticexpo.com/prod/gofoil/product-200182-578825.html
+GoFoil | EZ | EZ1800 | 101.5 | 1800 | - | wie oben | https://www.nauticexpo.com/prod/gofoil/product-200182-578826.html
+GoFoil | P | P1300 | 107 | 1305 | - | Herstellerseite ist 404; Zahl nur aus einem Artikel von Dez. 2023 | http://www.standuppaddlesurf.net/2023/12/01/unveiling-gofoils-new-p-series-front-foil-wings-with-alex-aguera/
+GoFoil | P | P1500 | 122 | 1504 | - | wie oben, 404 beim Hersteller | http://www.standuppaddlesurf.net/2023/12/01/unveiling-gofoils-new-p-series-front-foil-wings-with-alex-aguera/
+Levitaz | Bionic R2R | 500 | - | 500 | - | "R2R" ist laut Haendler-Abdruck die Prepreg-Rennbauweise des 500-cm2-Bionic, KEIN eigener Fluegel; Spannweite nirgends veroeffentlicht | https://www.kite-elements.de/produkt/levitaz-bionic-set-2/
+Aeromod | Wingfoil V2 | Easy XL | 94 | 1000 | - | Zahlen von der WINDFOIL-V2-Seite; Aeromod sagt, die Fluegel seien zwischen beiden Reihen austauschbar | https://www.aeromod.fr/windfoil/windfoil-v2
+Aeromod | Wingfoil V2 | Easy M | 78 | 790 | - | wie oben, von der Windfoil-V2-Seite | https://www.aeromod.fr/windfoil/windfoil-v2
+Aeromod | Wingfoil V2 | Easy S | 64 | 620 | - | wie oben | https://www.aeromod.fr/windfoil/windfoil-v2
+Aeromod | Wingfoil V2 | Slalom S | 62 | 467 | - | wie oben | https://www.aeromod.fr/windfoil/windfoil-v2
+Aeromod | Wingfoil V2 | Slalom L | 82 | 700 | - | wie oben | https://www.aeromod.fr/windfoil/windfoil-v2
+Starboard | S-Type 2 | 2200 | 105 | 2200 | - | starboardfoils.com nennt selbst keine Zahlen; Quelle ist eine Starboard-Spezifikationstafel beim Haendler, in sich stimmig (AR = Spannweite2/Flaeche geht auf). S-Type 2 hat den einfachen S-Type ERSETZT | https://andybiggs.co.uk/wp-content/uploads/2025/01/Starboard_Foils_Wing_Specifications_2025_5.webp
+Starboard | S-Type 2 | 1800 | 93 | 1800 | - | wie oben | https://andybiggs.co.uk/wp-content/uploads/2025/01/Starboard_Foils_Wing_Specifications_2025_5.webp
+Starboard | S-Type 2 | 1500 | 84 | 1500 | - | wie oben | https://andybiggs.co.uk/wp-content/uploads/2025/01/Starboard_Foils_Wing_Specifications_2025_5.webp
+TAAROA | LA | LA2000 | 100.0 | 2000 | - | ausgelaufen, Seite 403; Zahlen aus dem Archiv der Herstellerseite (Stand 31.03.2023) | http://web.archive.org/web/20230331153508/https://www.taaroa-hydrofoil.com/shop/wgfw2200xup-front-wing-la2000-151
+Takoon | HS-Glide | 700 | 80.0 | 700 | 13 ODER 16 | Dicke widerspricht sich zwischen zwei Archivstaenden derselben Herstellerseite (13 mm im Apr/Jul 2024, 16 mm im Sep/Nov 2024) — beide genannt statt geraten | https://web.archive.org/web/20240913224457/https://eu.takoon.com/products/foil-hs-glide-front-wing
+Takuma | V100 | V100 | 59.0 | 1245 | - | V100 ist ein KOMPLETTPAKET (Mast+Fuselage+Front+Stab) von ~2017/18, keine Fluegel-Groessenreihe; takuma.com nicht erreichbar, Zahlen aus mehreren Haendler-Abdrucken | https://www.realwatersports.com/products/takuma-v100-surf-foil
+Armstrong | CF V2 | 950 | 67.0 | 950 | - | Armstrongs eigene Seite nennt keine Zahlen; Haendler-Abdruck, AR 5 | https://amosshapes.com/products/armstrong-cf950v2-front-wing
+Armstrong | CF V2 | 1200 | 74.6 | 1200 | - | Haendler-Abdruck, AR 4,9 | https://jupiterwatersports.com/products/2022-armstrong-cf1200-v2-front-wing
+Armstrong | CF V2 | 1600 | 85.6 | 1600 | - | Haendler-Abdruck; Seitentitel dort faelschlich "CF1200", Datenblock ist CF1600 — vor Uebernahme pruefen | https://kiteboardingcloseouts.com/product/armstrong-cf1200-v2-front-wing/
+Armstrong | CF V2 | 2050 | 97.2 | 2050 | - | Haendler-Abdruck, AR 4,82 | https://www.undergroundsurf.co.nz/product/30912/armstrong-foils-new-cf2050-v2-foil-front-wing
+AXIS | Tempo | 890 | - | 495 | - | nur Flaeche als Text auffindbar; Spannweite steht nur im Bild der Herstellertabelle | https://nzfoilcentre.co.nz/products/axis-tempo-range
+AXIS | Tempo | 920 | - | 528 | - | wie oben | https://nzfoilcentre.co.nz/products/axis-tempo-range
+AXIS | Tempo | 960 | - | 578 | - | wie oben | https://nzfoilcentre.co.nz/products/axis-tempo-range
+AXIS | Tempo | 1020 | - | 653 | - | wie oben | https://nzfoilcentre.co.nz/products/axis-tempo-range
+AXIS | Tempo | 1090 | - | 746 | - | wie oben | https://nzfoilcentre.co.nz/products/axis-tempo-range
+AXIS | Spitfire | 1180 | 118.0 | - | - | nur Spannweite belegt, Flaeche nirgends als Text | https://www.realwatersports.com/products/axis-spitfire-spf-front-wing

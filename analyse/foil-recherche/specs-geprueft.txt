@@ -1,0 +1,237 @@
+# Spezifikationen, Quelle geprueft. Format:
+# MARKE | Modell | Groesse | span_cm | area_cm2 | thickness_mm | Notiz | Quelle
+AlpineFoil | RSX | 570 | 86.0 | 570 | - | AR ~13,1; NICHT dasselbe wie RSX ULTRA AR17 | https://www.alpinefoil.com/en/kitefoil-windfoil-store/hydrofoil-wings/wing-rsx-570.html
+AlpineFoil | RSX | 700 | 95.0 | 715 | - | Name sagt 700, veroeffentlicht sind 715 cm2 (gegen rohes HTML geprueft) | https://www.alpinefoil.com/en/kitefoil-windfoil-store/hydrofoil-wings/wing-rsx-700.html
+AlpineFoil | RSX | 860 | 106.0 | 860 | - | AR 13 | https://www.alpinefoil.com/en/kitefoil-windfoil-store/hydrofoil-wings/wing-rsx-860.html
+AlpineFoil | RSX | 1060 | 116.6 | 1063 | - | gegen rohes HTML geprueft | https://www.alpinefoil.com/en/kitefoil-windfoil-store/hydrofoil-wings/wing-rsx-1060.html
+AlpineFoil | RSX | 1260 | 125.1 | 1260 | - | AR 13 | https://www.alpinefoil.com/en/kitefoil-windfoil-store/hydrofoil-wings/wing-rsx-1260.html
+AlpineFoil | RSX | 1400 G2 | 132.0 | 1400 | - | AR 13,2 | https://www.alpinefoil.com/en/kitefoil-windfoil-store/hydrofoil-wings/wing-rsx-1400-g2.html
+AlpineFoil | RSX | 1540 | 139.9 | 1540 | - | AR 13 | https://www.alpinefoil.com/en/kitefoil-windfoil-store/hydrofoil-wings/wing-rsx-1540.html
+AlpineFoil | RSX CARVE | 700 | 89.0 | 700 | - | AR 11, eigene Unterreihe | https://www.alpinefoil.com/kitefoil-windfoil-shop/ailes-foils/aile-rsx-carve.html
+AlpineFoil | RSX CARVE | 820 | 95.8 | 820 | - | AR 11 | https://www.alpinefoil.com/kitefoil-windfoil-shop/ailes-foils/aile-rsx-carve.html
+AlpineFoil | RSX CARVE | 960 | 103.0 | 960 | - | AR 11 | https://www.alpinefoil.com/kitefoil-windfoil-shop/ailes-foils/aile-rsx-carve.html
+AlpineFoil | RSX CARVE | 1100 | 112.2 | 1100 | - | AR 11 | https://www.alpinefoil.com/kitefoil-windfoil-shop/ailes-foils/aile-rsx-carve.html
+AlpineFoil | RS | 500 | 68.0 | 515 | - | Name sagt 500, veroeffentlicht 515 cm2; AR 9,0 | https://www.alpinefoil.com/en/kitefoil-windfoil-store/hydrofoil-wings/wing-rs500.html
+AlpineFoil | RS | 600 | 72.0 | 600 | - | AR 8,7 | https://www.alpinefoil.com/en/kitefoil-windfoil-store/hydrofoil-wings/wing-rs-600-wingfoil-kitefoil-windfoil.html
+AlpineFoil | DW | 750 | 77.0 | 750 | - | AR 7,9 | https://www.alpinefoil.com/en/kitefoil-windfoil-store/hydrofoil-wings/wingfoil-wing-dw-750.html
+AlpineFoil | DW | 840 | 81.0 | 840 | - | AR 8,14 | https://www.alpinefoil.com/en/kitefoil-windfoil-store/hydrofoil-wings/wing-dw-840.html
+AlpineFoil | DW | 980 | 93.0 | 980 | - | AR 8,8 | https://www.alpinefoil.com/en/kitefoil-windfoil-store/hydrofoil-wings/dowwind-wing-dw-980-1655819690-1655820217-1655820783.html
+AlpineFoil | DW | 1180 | 94.0 | 1180 | - | AR 7,5 | https://www.alpinefoil.com/en/kitefoil-windfoil-store/hydrofoil-wings/wing-dw1180.html
+AlpineFoil | DW | 1370 | 109.0 | 1370 | - | AR 8,7 | https://www.alpinefoil.com/en/kitefoil-windfoil-store/hydrofoil-wings/wing-1370-1655820487-1655821525-1655821770-1655821874-1655993619.html
+AlpineFoil | DW | 1680 | 109.0 | 1680 | - | AR 7, gleiche Spannweite wie DW1370 | https://www.alpinefoil.com/en/kitefoil-windfoil-store/hydrofoil-wings/windfoil-wing-regata-1100-1-1655819469-1655820828-1655975415-1655975508-1655993784.html
+AlpineFoil | REGATA | 580 | 65.0 | 580 | - | High Aspect, Profil RTeam | https://www.alpinefoil.com/en/kitefoil-windfoil-store/hydrofoil-wings/windfoil-wing-regata-580.html
+AlpineFoil | REGATA | 850 | 88.0 | 850 | - | - | https://www.alpinefoil.com/en/kitefoil-windfoil-store/hydrofoil-wings/windfoil-wing-regata-850.html
+AlpineFoil | REGATA | 1100 | 100.0 | 1100 | - | Profil RTeam | https://www.alpinefoil.com/en/kitefoil-windfoil-store/hydrofoil-wings/windfoil-wing-regata-1100.html
+AlpineFoil | ULW | 900 | 84.0 | 945 | - | Name sagt 900, veroeffentlicht 945 cm2; Profil MHA | https://www.alpinefoil.com/en/kitefoil-windfoil-store/hydrofoil-wings/windfoil-wing-alpinefoil-ulw900.html
+AlpineFoil | ULW | 1200 BSC | 86.0 | 1200 | - | Profil MHA | https://www.alpinefoil.com/en/kitefoil-windfoil-store/hydrofoil-wings/windfoil-wing-ulw-1200-carbon.html
+AlpineFoil | CRUISE | 1250 | 86.5 | 1250 | - | Profil MHA | https://www.alpinefoil.com/en/kitefoil-windfoil-store/hydrofoil-wings/wingfoil-wing-cruise-1250-carbon-1.html
+AlpineFoil | CRUISE | 1450 | 89.0 | 1450 | - | duennes Alpinefoil-Profil, MHA | https://www.alpinefoil.com/en/kitefoil-windfoil-store/hydrofoil-wings/cruise-1450.html
+Konrad Boarding | GTX | 870 | - | 870 | - | Hersteller veroeffentlicht NUR die Flaeche (rohes HTML geprueft) | https://www.konradboarding.com/product-page/gtx-front-wing-speed-wing
+Konrad Boarding | GTX | 1079 | - | 1079 | - | nur Flaeche | https://www.konradboarding.com/product-page/gtx-front-wing-speed-wing
+Konrad Boarding | GTX | 1283 | - | 1283 | - | nur Flaeche | https://www.konradboarding.com/product-page/gtx-front-wing-speed-wing
+Konrad Boarding | GTX | 1460 | - | 1460 | - | nur Flaeche | https://www.konradboarding.com/product-page/gtx-front-wing-speed-wing
+Konrad Boarding | STX | 790 | - | 790 | - | nur Flaeche | https://www.konradboarding.com/product-page/stx-series-surf-thin-axis-art-v2-wing-alternative
+Konrad Boarding | STX | 900 | - | 900 | - | nur Flaeche | https://www.konradboarding.com/product-page/stx-series-surf-thin-axis-art-v2-wing-alternative
+Konrad Boarding | STX | 1038 | - | 1038 | - | nur Flaeche | https://www.konradboarding.com/product-page/stx-series-surf-thin-axis-art-v2-wing-alternative
+Konrad Boarding | GS | 1250 | - | 1250 | - | Seite heisst GS, URL-Rest legacy ha-series | https://www.konradboarding.com/product-page/ha-series-wing
+Konrad Boarding | GS | 1550 | - | 1550 | - | nur Flaeche | https://www.konradboarding.com/product-page/ha-series-wing
+Konrad Boarding | GS | 1850 | - | 1850 | - | nur Flaeche | https://www.konradboarding.com/product-page/ha-series-wing
+Konrad Boarding | SS | 1300 | - | 1300 | - | Surf-Reihe, niedriges AR | https://www.konradboarding.com/product-page/ss-series-wing
+Konrad Boarding | SS | 1600 | - | 1600 | - | nur Flaeche | https://www.konradboarding.com/product-page/ss-series-wing
+Konrad Boarding | SS | 1900 | - | 1900 | - | nur Flaeche | https://www.konradboarding.com/product-page/ss-series-wing
+Konrad Boarding | DX | 1291 | - | 1291 | - | rohes HTML geprueft | https://www.konradboarding.com/product-page/dx-wings-downwind-axis-art-pro-wing-alternative
+Konrad Boarding | DX | 1647 | - | 1647 | - | nur Flaeche | https://www.konradboarding.com/product-page/dx-wings-downwind-axis-art-pro-wing-alternative
+CORE | CFS Vert | 700 | 70.0 | 700 | - | von mir an der Herstellerseite gegengeprueft | https://ridecore.com/us/foil/foils/cfs-vert
+CORE | CFS Vert | 850 | 90.0 | 850 | - | von mir gegengeprueft (Spannweite steht wirklich so) | https://ridecore.com/us/foil/foils/cfs-vert
+CORE | CFS Vert | 1050 | 100.0 | 1050 | - | von mir gegengeprueft | https://ridecore.com/us/foil/foils/cfs-vert
+GoFoil | GT | GT1050 | 73.5 | 1054 | - | "Projected Surface Area" (Herstellerbegriff) | https://gofoil.com/products/gt1050
+GoFoil | GT | GT1400 | 96.5 | 1384 | - | projizierte Flaeche | https://gofoil.com/products/gt-1400
+GoFoil | GT | GT1770 | 103 | 1768 | - | projizierte Flaeche | https://gofoil.com/products/gt1770
+GoFoil | GT | GT2200 | 112 | 2186 | - | projizierte Flaeche | https://gofoil.com/products/gt2200
+GoFoil | RS | RS600-X | 63 | 598 | - | projizierte Flaeche | https://gofoil.com/products/rs600-x
+GoFoil | RS | RS650-HA | 69 | 642 | - | projizierte Flaeche | https://gofoil.com/products/rs650-ha
+GoFoil | RS | RS975-X | 80 | 978 | - | projizierte Flaeche | https://gofoil.com/products/rs975-x
+GoFoil | RS | RS1000 | 81.5 | 1000 | - | projizierte Flaeche | https://gofoil.com/products/rs1000
+GoFoil | RS | RS1075-X | 91 | 1040 | - | projizierte Flaeche | https://gofoil.com/products/rs1075-x
+GoFoil | RS | RS1150 | 91.5 | 1136 | - | projizierte Flaeche | https://gofoil.com/products/rs1150
+GoFoil | RS | RS1300 | 105 | 1306 | - | projizierte Flaeche | https://gofoil.com/products/rs1300
+GoFoil | P | P1125-HA | 122 | 1128 | - | einzige P-Groesse noch im Shop | https://gofoil.com/products/p1125-ha
+Delta | Progression HA | 1280 | 89 | 1280 | - | Hersteller sagt nur "Area", nicht projiziert/planform | https://deltahydrofoil.com/pages/wing-specs
+Delta | Progression HA | 1450 | 100 | 1450 | - | Flaechenart nicht angegeben | https://deltahydrofoil.com/pages/wing-specs
+Delta | Progression HA | 1740 | 110 | 1740 | - | Flaechenart nicht angegeben | https://deltahydrofoil.com/pages/wing-specs
+Delta | Reflex | 860 | 57 | 860 | - | Flaechenart nicht angegeben | https://deltahydrofoil.com/pages/wing-specs
+Delta | Reflex | 890 | 56 | 890 | - | Flaechenart nicht angegeben | https://deltahydrofoil.com/pages/wing-specs
+Delta | Reflex | 1500 | 75 | 1500 | - | Flaechenart nicht angegeben | https://deltahydrofoil.com/pages/wing-specs
+Delta | Surf | 1280 | 75 | 1280 | - | Flaechenart nicht angegeben | https://deltahydrofoil.com/pages/wing-specs
+Delta | Surf | 1660 | 82 | 1660 | - | Flaechenart nicht angegeben | https://deltahydrofoil.com/pages/wing-specs
+Delta | Carve MA | 850 | 80 | 850 | - | einzige Groesse der Reihe | https://deltahydrofoil.com/pages/wing-specs
+Zeeko | Spitfire | Standard | - | 590 | - | nur Flaeche veroeffentlicht, keine Spannweite | https://zeeko-watersports.com/en/products/set-wings-for-spitfire
+Zeeko | Spitfire | XLW | - | 800 | - | nur Flaeche | https://zeeko-watersports.com/en/products/set-wings-for-spitfire
+Zeeko | Spitfire | XXLW | - | 1300 | - | nur Flaeche | https://zeeko-watersports.com/en/products/set-wings-for-spitfire
+GA Foils | Free | FR 900 | 71 | 928 | - | Flaechenart nicht unterschieden | https://ga-foils.com/foils/free-frontwings/
+GA Foils | Free | FR 1200 | 75 | 1201 | - | - | https://ga-foils.com/foils/free-frontwings/
+GA Foils | Free | FR 1500 | 84 | 1494 | - | - | https://ga-foils.com/foils/free-frontwings/
+GA Foils | Free | FR 2000 | 98 | 2024 | - | - | https://ga-foils.com/foils/free-frontwings/
+GA Foils | Free | FR 2500 | 112 | 2432 | - | - | https://ga-foils.com/foils/free-frontwings/
+GA Foils | HP | HP 1050 | 76.4 | 1075 | - | - | https://ga-foils.com/foils/hp-frontwings/
+GA Foils | HP | HP 1150 | 82.4 | 1150 | - | - | https://ga-foils.com/foils/hp-frontwings/
+GA Foils | HP | HP 1450 | 92 | 1451 | - | - | https://ga-foils.com/foils/hp-frontwings/
+GA Foils | HP | HP 1750 | 97.5 | 1750 | - | - | https://ga-foils.com/foils/hp-frontwings/
+GA Foils | MP | MP 690 | 66.1 | 691 | - | - | https://ga-foils.com/foils/mp-frontwings/
+GA Foils | MP | MP 890 | 81.3 | 891 | - | - | https://ga-foils.com/foils/mp-frontwings/
+GA Foils | MP | MP 1090 | 89.5 | 1082 | - | Flaeche 1082, nicht 1090 wie der Name | https://ga-foils.com/foils/mp-frontwings/
+GA Foils | MP | MP 1290 | 102.5 | 1289 | - | - | https://ga-foils.com/foils/mp-frontwings/
+GA Foils | MP | MP 1490 | 112.6 | 1491 | - | - | https://ga-foils.com/foils/mp-frontwings/
+Fanatic | Aero Glide | 725 | 83 | 725 | - | AR 9,5 | https://www.fanatic.com/en/uk/products/fanatic-x-aero-glide-range-al-3-0-2023-32220-3787
+Fanatic | Aero Glide | 905 | 92 | 905 | - | AR 9,4 | https://www.fanatic.com/en/uk/products/fanatic-x-aero-glide-range-al-3-0-2023-32220-3787
+Fanatic | Aero Glide | 1085 | 100 | 1085 | - | AR 9,3 | https://www.fanatic.com/en/uk/products/fanatic-x-aero-glide-range-al-3-0-2023-32220-3787
+Fanatic | Aero Glide | 1305 | 110 | 1305 | - | AR 9,3 | https://www.fanatic.com/en/uk/products/fanatic-x-aero-glide-range-al-3-0-2023-32220-3787
+Fanatic | Aero Lift | 2400 | 110 | 2400 | - | ACHTUNG: Fanatics Tabelle nennt "1110 cm" (Fehler auf der Herstellerseite); 110 cm stammt aus deren Fliesstext und passt zu AR 5,1 bei 2400 cm2 | https://www.fanatic.com/en/us/products/fanatic-x-aero-lift-range-al-3-0-2022-32220-3780
+Ensis | Pacer | 950 | 75.4 | 950 | - | Spannweite aus mm umgerechnet | https://ensis.surf/pages/sizes-and-specifications-pacer-front-wing
+Ensis | Pacer | 1250 | 86.4 | 1250 | - | aus mm | https://ensis.surf/pages/sizes-and-specifications-pacer-front-wing
+Ensis | Pacer | 1550 | 96.4 | 1550 | - | aus mm | https://ensis.surf/pages/sizes-and-specifications-pacer-front-wing
+Ensis | Pacer | 1850 | 105.4 | 1850 | - | aus mm | https://ensis.surf/pages/sizes-and-specifications-pacer-front-wing
+Ensis | Pacer | 2200 | 109.4 | 2200 | - | aus mm | https://ensis.surf/pages/sizes-and-specifications-pacer-front-wing
+Ensis | Flow Ace | 630 | - | 630 | - | eigenes Modell, NICHT identisch mit Maniac Infinity/Stride ACE; nur Flaeche veroeffentlicht | https://ensis.surf/products/flow-ace-foil-set
+Ensis | Flow Ace | 720 | - | 720 | - | nur Flaeche | https://ensis.surf/products/flow-ace-foil-set
+Ensis | Flow Ace | 900 | - | 900 | - | nur Flaeche | https://ensis.surf/products/flow-ace-foil-set
+Ensis | Flow Ace | 1080 | - | 1080 | - | nur Flaeche | https://ensis.surf/products/flow-ace-foil-set
+Ensis | Flow Ace | 1260 | - | 1260 | - | nur Flaeche | https://ensis.surf/products/flow-ace-foil-set
+F-One | SK8 | 550 | 67 | 550 | - | - | https://www.f-one.world/product/sk8/
+F-One | SK8 | 650 | 72.5 | 650 | - | - | https://www.f-one.world/product/sk8/
+F-One | SK8 | 750 | 77.5 | 750 | - | - | https://www.f-one.world/product/sk8/
+F-One | SK8 | 850 | 82.5 | 850 | - | - | https://www.f-one.world/product/sk8/
+F-One | SK8 | 950 | 87 | 950 | - | - | https://www.f-one.world/product/sk8/
+F-One | SK8 | 1050 | 91.5 | 1050 | - | - | https://www.f-one.world/product/sk8/
+F-One | SK8 | 1150 | 96 | 1150 | - | - | https://www.f-one.world/product/sk8/
+RRD | UNIVERSAL CARBON FRONT WING Y26 | 2400 | 110 | 2400 | 28.5 | rohes HTML geprueft | https://watersports.robertoriccidesigns.com/products/universal_carbon_front_wing_y26
+RRD | UNIVERSAL CARBON FRONT WING Y26 | 1582 | 82 | 1582 | 30 | rohes HTML geprueft | https://watersports.robertoriccidesigns.com/products/universal_carbon_front_wing_y26
+RRD | BLAZE CARBON FRONT WING Y27 | 530 | 58 | 530 | 12 | - | https://watersports.robertoriccidesigns.com/products/blaze_carbon_front_wing_y27
+RRD | BLAZE CARBON FRONT WING Y27 | 650 | 64.5 | 650 | 15 | - | https://watersports.robertoriccidesigns.com/products/blaze_carbon_front_wing_y27
+RRD | BLAZE CARBON FRONT WING Y27 | 750 | 69 | 750 | 16 | - | https://watersports.robertoriccidesigns.com/products/blaze_carbon_front_wing_y27
+RRD | BLAZE CARBON FRONT WING Y27 | 850 | 72.5 | 850 | 17 | - | https://watersports.robertoriccidesigns.com/products/blaze_carbon_front_wing_y27
+RRD | BLAZE CARBON FRONT WING Y27 | 950 | 79 | 950 | 19 | - | https://watersports.robertoriccidesigns.com/products/blaze_carbon_front_wing_y27
+RRD | BLAZE CARBON FRONT WING Y27 | 1100 | 83.5 | 1100 | 18 | - | https://watersports.robertoriccidesigns.com/products/blaze_carbon_front_wing_y27
+RRD | BLAZE CARBON FRONT WING Y27 | 1250 | 86.5 | 1250 | 19 | - | https://watersports.robertoriccidesigns.com/products/blaze_carbon_front_wing_y27
+RRD | BLAZE CARBON FRONT WING Y27 | 1550 | 97.5 | 1550 | 19.2 | - | https://watersports.robertoriccidesigns.com/products/blaze_carbon_front_wing_y27
+RRD | BLAZE CARBON FRONT WING Y27 | 1850 | 103.5 | 1850 | 19.3 | - | https://watersports.robertoriccidesigns.com/products/blaze_carbon_front_wing_y27
+RRD | BLAZE LTE FRONT WING Y30 | 850 | 72.5 | 850 | 17 | - | https://watersports.robertoriccidesigns.com/products/blaze_lte_front_wing_y30
+RRD | BLAZE LTE FRONT WING Y30 | 950 | 79 | 950 | 18 | - | https://watersports.robertoriccidesigns.com/products/blaze_lte_front_wing_y30
+RRD | BLAZE LTE FRONT WING Y30 | 1100 | 83.5 | 1100 | 18 | - | https://watersports.robertoriccidesigns.com/products/blaze_lte_front_wing_y30
+RRD | BLAZE LTE FRONT WING Y30 | 1250 | 86.5 | 1250 | 19 | - | https://watersports.robertoriccidesigns.com/products/blaze_lte_front_wing_y30
+RRD | BLAZE LTE FRONT WING Y30 | 1550 | 97.5 | 1550 | 19.2 | - | https://watersports.robertoriccidesigns.com/products/blaze_lte_front_wing_y30
+RRD | BLAZE LTE FRONT WING Y30 | 1850 | 103.5 | 1850 | 19.3 | - | https://watersports.robertoriccidesigns.com/products/blaze_lte_front_wing_y30
+RRD | UNIVERSAL MANTARAY FRONT WING Y30 | 650 | 67 | 650 | - | Dicke nicht veroeffentlicht | https://watersports.robertoriccidesigns.com/products/universal_mantaray_front_wing_y30
+RRD | UNIVERSAL MANTARAY FRONT WING Y30 | 850 | 76 | 850 | - | Dicke nicht veroeffentlicht | https://watersports.robertoriccidesigns.com/products/universal_mantaray_front_wing_y30
+RRD | UNIVERSAL MANTARAY FRONT WING Y30 | 1050 | 84 | 1050 | - | Dicke nicht veroeffentlicht | https://watersports.robertoriccidesigns.com/products/universal_mantaray_front_wing_y30
+RRD | UNIVERSAL MANTARAY FRONT WING Y30 | 1350 | 93 | 1350 | - | Dicke nicht veroeffentlicht | https://watersports.robertoriccidesigns.com/products/universal_mantaray_front_wing_y30
+RRD | THUNDER FRONT WING Y30 | 550 | 66 | 550 | - | Dicke nicht veroeffentlicht | https://watersports.robertoriccidesigns.com/products/thunder_front_wing_y30
+RRD | THUNDER FRONT WING Y30 | 750 | 75 | 750 | - | Dicke nicht veroeffentlicht | https://watersports.robertoriccidesigns.com/products/thunder_front_wing_y30
+RRD | THUNDER FRONT WING Y30 | 950 | 85 | 950 | - | Dicke nicht veroeffentlicht | https://watersports.robertoriccidesigns.com/products/thunder_front_wing_y30
+RRD | FLYING FISH FRONT WING Y30 | 750 | 84 | 750 | - | Dicke nicht veroeffentlicht | https://watersports.robertoriccidesigns.com/products/flying_fish_front_wing_y30
+RRD | FLYING FISH FRONT WING Y30 | 900 | 91 | 900 | - | Dicke nicht veroeffentlicht | https://watersports.robertoriccidesigns.com/products/flying_fish_front_wing_y30
+RRD | FLYING FISH FRONT WING Y30 | 1050 | 99 | 1050 | - | Dicke nicht veroeffentlicht | https://watersports.robertoriccidesigns.com/products/flying_fish_front_wing_y30
+RRD | UNIVERSAL MOONFISH FRONT WING Y30 | 1350 | 120 | 1350 | 19.7 | - | https://watersports.robertoriccidesigns.com/products/universal_moonfish_front_wing_y30
+RRD | UNIVERSAL MOONFISH FRONT WING Y30 | 1900 | 135 | 1900 | 21 | - | https://watersports.robertoriccidesigns.com/products/universal_moonfish_front_wing_y30
+Roam Foils | 1700 | 1700 | 170.0 | 2800 | - | Flaeche als "Surface Area" ausgewiesen; AR 10,5 | https://www.roamfoils.com/product/roam-1700-front-foil/22
+Roam Foils | 1414 | 1414 | 141.4 | 2080 | - | Flaeche als "Surface Area" | https://www.roamfoils.com/product/roam-1414-front-foil/TTAW5CSRNVMUDBS6W5VC5N3Y
+Slingshot | One-Lock Ease | 1250 | 81.7 | 1250 | - | Slingshots eigene Tabelle laedt per JS; Zahlen aus dem woertlichen Haendler-Abdruck | https://www.realwatersports.com/products/slingshot-one-lock-ease-front-wing
+Slingshot | One-Lock Ease | 1550 | 86.6 | 1550 | - | wie oben | https://www.realwatersports.com/products/slingshot-one-lock-ease-front-wing
+Slingshot | One-Lock Ease | 1850 | 99.0 | 1850 | - | wie oben | https://www.realwatersports.com/products/slingshot-one-lock-ease-front-wing
+Slingshot | One-Lock Ease | 2250 | 109.0 | 2250 | - | wie oben | https://www.realwatersports.com/products/slingshot-one-lock-ease-front-wing
+Slingshot | One-Lock Glide | 625 | 72.4 | 625 | - | wie oben | https://www.realwatersports.com/products/slingshot-one-lock-glide-front-wing
+Slingshot | One-Lock Glide | 725 | 79.9 | 725 | - | wie oben | https://www.realwatersports.com/products/slingshot-one-lock-glide-front-wing
+Slingshot | One-Lock Glide | 825 | 84.9 | 825 | - | neueste Groesse | https://s2as.com/products/one-lock-glide-front-wing
+Slingshot | One-Lock Glide | 925 | 89.9 | 925 | - | wie oben | https://www.realwatersports.com/products/slingshot-one-lock-glide-front-wing
+Slingshot | One-Lock Glide | 1125 | 99.9 | 1125 | - | wie oben | https://www.realwatersports.com/products/slingshot-one-lock-glide-front-wing
+Slingshot | One-Lock Glide | 1325 | 109.9 | 1325 | - | wie oben | https://www.realwatersports.com/products/slingshot-one-lock-glide-front-wing
+Slingshot | One-Lock Glide | 1525 | 116.9 | 1525 | - | wie oben | https://www.realwatersports.com/products/slingshot-one-lock-glide-front-wing
+Slingshot | One-Lock Flow | 600 | 81.2 | 600 | - | wie oben | https://houstonkiteboarding.com/products/2025-slingshot-one-lock-foil-builder-tool-front-wing
+Slingshot | One-Lock Flow | 800 | 93.8 | 800 | - | wie oben | https://houstonkiteboarding.com/products/2025-slingshot-one-lock-foil-builder-tool-front-wing
+Slingshot | One-Lock Flow | 1000 | 104.9 | 1000 | - | ein Haendler fuehrt hier faelschlich 1125 (Kopie aus der Glide-Zeile); 1000 gegen zwei unabhaengige Quellen bestaetigt | https://houstonkiteboarding.com/products/2025-slingshot-one-lock-foil-builder-tool-front-wing
+Slingshot | One-Lock Flow | 1200 | 114.9 | 1200 | - | wie oben | https://houstonkiteboarding.com/products/2025-slingshot-one-lock-foil-builder-tool-front-wing
+Moses | 550 | 550 | 55.0 | 600 | - | Archivstand 2020, aktueller Seitentitel stimmt ueberein; eine "Surface"-Zahl, nicht als projiziert ausgewiesen | http://web.archive.org/web/20200921185357/https://moseshydrofoil.com/products/kite-front-wing-550mm
+Moses | 633 | 633 | 63.3 | 1250 | - | wie oben | http://web.archive.org/web/20201030041357/https://moseshydrofoil.com/products/surf-front-wing-633mm
+Moses | 679 | 679 | 67.9 | 990 | - | Angaben von der Kombi-Seite "Kit 72", Felder ausdruecklich "Front Wing Span"/"Front Wing Surface" | http://web.archive.org/web/20200925104936/https://moseshydrofoil.com/products/kit-72-679-onda
+Moses | 695 | 695 | 69.5 | 770 | - | wie oben | http://web.archive.org/web/20200921190543/https://moseshydrofoil.com/products/wing-695-kite
+Moses | 720 Balz Pro | 720 | 72.0 | 750 | - | wie oben | http://web.archive.org/web/20201025161956/https://moseshydrofoil.com/products/front-wing-720-balz-pro
+Moses | 790 | 790 | 79.0 | 1550 | - | wie oben | http://web.archive.org/web/20201025161135/https://moseshydrofoil.com/products/front-wing-790
+Moses | 800 Slalom Race | 800 | 80.0 | 840 | - | wie oben | http://web.archive.org/web/20200925042206/https://moseshydrofoil.com/products/wing-800-950-cm2-race-wind
+Moses | 873 | 873 | 87.3 | 2100 | - | wie oben | http://web.archive.org/web/20201025170858/https://moseshydrofoil.com/products/surf-front-wing-873
+Moses | 1100 | 1100 | 110.0 | 2100 | - | Modell heisst 1100; "1020" ist nur ein alter URL-Rest auf denselben Fluegel, KEIN eigenes Modell | http://web.archive.org/web/20200925022703/https://moseshydrofoil.com/products/kit-82-1020-onda
+Naish | Excalibur | 544 | 74.5 | 544 | - | Herstellerfeld "Projected surface area"; Seite nennt es "Excalibur HA" | https://www.naish.com/products/excalibur-ha-frontwing
+Naish | Excalibur | 744 | 87.0 | 744 | - | projizierte Flaeche | https://www.naish.com/products/excalibur-ha-frontwing
+Naish | Excalibur | 944 | 98.2 | 944 | - | projizierte Flaeche | https://www.naish.com/products/excalibur-ha-frontwing
+Naish | Excalibur | 1144 | 108.0 | 1144 | - | projizierte Flaeche | https://www.naish.com/products/excalibur-ha-frontwing
+Naish | Excalibur | 1344 | 117.0 | 1344 | - | projizierte Flaeche | https://www.naish.com/products/excalibur-ha-frontwing
+Naish | Siren | 600 | 71.4 | 600 | - | Seite nennt es "Siren MA"; projizierte Flaeche | https://www.naish.com/products/siren-ma-frontwing
+Naish | Siren | 800 | 82.0 | 800 | - | projizierte Flaeche | https://www.naish.com/products/siren-ma-frontwing
+Naish | Siren | 1000 | 92.2 | 1000 | - | projizierte Flaeche | https://www.naish.com/products/siren-ma-frontwing
+Naish | Siren | 1200 | 100.0 | 1200 | - | projizierte Flaeche | https://www.naish.com/products/siren-ma-frontwing
+Naish | Ultra Jet | 1450 | 88.9 | 1450 | - | Spannweite nur in Zoll (35") veroeffentlicht, umgerechnet; das Seitenfeld "front-wing-stab" ist die STAB-Angabe, nicht die Spannweite | https://www.naish.com/products/ultrajet-frontwing-2026
+Naish | Ultra Jet | 1650 | 91.9 | 1650 | - | aus 36,2" umgerechnet | https://www.naish.com/products/ultrajet-frontwing-2026
+Naish | Ultra Jet | 2000 | 100.1 | 2000 | - | aus 39,4" umgerechnet | https://www.naish.com/products/ultrajet-frontwing-2026
+Naish | SHA | 733 | 98.0 | 733 | - | projizierte Flaeche | https://www.naish.com/products/sha-foil-front-wing
+Naish | SHA | 933 | 110.0 | 933 | - | projizierte Flaeche | https://www.naish.com/products/sha-foil-front-wing
+Naish | SHA | 1133 | 120.0 | 1133 | - | projizierte Flaeche | https://www.naish.com/products/sha-foil-front-wing
+Naish | Mach-2 | 560 | 75.0 | 560 | - | projizierte Flaeche | https://www.naish.com/products/mach-2-frontwing
+Naish | Mach-2 | 711 | 85.0 | 711 | - | projizierte Flaeche | https://www.naish.com/products/mach-2-frontwing
+Levitaz | HA1100 | HA1100 | 85 | 1100 | - | einzige Groesse, Name = Flaeche; AR 6,6; levitaz.com selbst nicht abrufbar (reine JS-Seite), Zahlen aus Haendler-Abdruck | https://www.kite-elements.de/produkt/levitaz-ha1100/
+Liquid Force | Horizon | 1050 | 74 | 1050 | - | aktuelle FuseLock-Generation | https://www.liquidforce.com/products/2026-carbon-horizon-1050-fuselock-front-wing
+Liquid Force | Horizon | 1200 | 80 | 1200 | - | aktuelle FuseLock-Generation | https://www.liquidforce.com/products/2026-carbon-horizon-1200-fuselock-front-wing
+Liquid Force | Launch | 1200 | 65 | 1200 | - | einziger Fluegel, der wirklich "Launch" heisst; das aeltere Launch-Paket enthielt einen Fluegel namens "Flite 120" | https://www.liquidforce.com/products/2026-alloy-launch-1200-fuselock-foil-set-system
+MFC | HYDROS II | FW1000 | 61.7 | 1000 | - | Flaeche als "sq. cm.", nicht als projiziert ausgewiesen; Profiltiefe 21,1 cm, AR 2,92 | https://mfchawaii.com/shop/hydrofoil/hydros-ii-fw1000/
+MFC | HYDROS II | FW1075 | 66 | 1075 | - | Profiltiefe 21,8 cm, AR 3,03 | https://mfchawaii.com/shop/hydrofoil/parts/front-wings/hydros-ii-fw1075/
+MFC | HYDROS II | FW1250 | 72.26 | 1250 | - | AR 3,17 — ACHTUNG: FW1250 gibt es auch bei HELIOS mit anderen Werten | https://mfchawaii.com/shop/hydrofoil/parts/front-wings/hydros-ii-fw1250/
+MFC | HYDROS II | FW1400 | 78.7 | 1400 | - | Profiltiefe 23 cm, AR 3,42 | https://mfchawaii.com/shop/hydrofoil/parts/front-wings/hydros-ii-fw1400/
+MFC | HYDROS II | FW1600 | 85 | - | - | Seite nennt NUR Spannweite und Gewicht, keine Flaeche — trotz des Namens nicht angenommen | https://mfchawaii.com/shop/hydrofoil/hydros-ii-fw1600-pack
+MFC | HELIOS | FW1250 | 81.4 | 1250 | - | AR 5,61 — gleiche Nummer wie bei HYDROS II, anderer Fluegel | https://mfchawaii.com/shop/hydrofoil/parts/front-wings/helios-fw1250/
+MFC | HELIOS | FW1440 | 87.4 | 1440 | - | AR 5,53 | https://mfchawaii.com/shop/hydrofoil/helios-fw1440/
+MFC | HELIOS | FW1800 | 93.43 | 1800 | - | AR 5,19 | https://mfchawaii.com/shop/hydrofoil/parts/front-wings/helios-fw1800/
+Aeromod | Wingfoil V3 | 500 R | 67 | 500 | - | AR 9 | https://www.aeromod.fr/wingfoil-v3
+Aeromod | Wingfoil V3 | 686 R | 82 | 686 | - | AR 9,8 | https://www.aeromod.fr/wingfoil-v3
+Aeromod | Wingfoil V3 | 950 R | 97 | 950 | - | AR 9,9 | https://www.aeromod.fr/wingfoil-v3
+Aeromod | Wingfoil V3 | 1320 NJ | 115 | 1320 | - | "NJ" = No Jump, GROESSENKUERZEL der V3, kein eigenes Modell; AR 10 | https://www.aeromod.fr/wingfoil-v3
+Aeromod | Wingfoil V2 | Free XL | 102 | 1240 | - | einzige Groesse mit Zahlen auf der Wingfoil-V2-Seite selbst | https://www.aeromod.fr/wingfoil-v2/
+Sabfoil | Balz Mueller | 707 | 70.7 | 661 | 14.5 | Flaeche als "Surface", nicht projiziert/flach getrennt | https://sabfoil.com/en/products/balz-w707
+Sabfoil | Balz Mueller | 808 | 80.8 | 792 | 15.3 | wie oben | https://sabfoil.com/en/products/balz-w808
+Sabfoil | Balz Mueller | 909 | 90.9 | 1000 | 17 | wie oben | https://sabfoil.com/en/products/balz-w909
+Sabfoil | Balz Mueller | 969 | 96.9 | 1230 | 19 | wie oben | https://sabfoil.com/en/products/balz-w969
+TAAROA | LA | LA900 | 80.0 | 900 | - | "Wing surface" wie veroeffentlicht | https://www.taaroa-hydrofoil.com/shop/wgfw1808frr-front-wing-la900-74
+TAAROA | LA | LA1250 | 80.0 | 1250 | - | "Wing surface" wie veroeffentlicht | https://www.taaroa-hydrofoil.com/shop/wgfw2125xup-front-wing-la1250-149
+Takoon | HS-Glide | 600 | 73.7 | 600 | 12 | ausgelaufen, Seite 404; Zahlen aus dem Archiv der Herstellerseite | https://web.archive.org/web/20240420111944/https://takoon.com/products/foil-hs-glide
+Armstrong | MA Mk II | 490 | 63.2 | 490 | - | AR 8,0 (alle Groessen); AELTERE MA-Generation ist eine andere Produktreihe | https://armstrongfoils.com/collections/front-foils/products/ma-mk-ii-front-foil
+Armstrong | MA Mk II | 590 | 69.0 | 590 | - | AR 8,0 | https://armstrongfoils.com/collections/front-foils/products/ma-mk-ii-front-foil
+Armstrong | MA Mk II | 690 | 76.7 | 690 | - | AR 8,0 | https://armstrongfoils.com/collections/front-foils/products/ma-mk-ii-front-foil
+Armstrong | MA Mk II | 790 | 81.7 | 790 | - | AR 8,0 | https://armstrongfoils.com/collections/front-foils/products/ma-mk-ii-front-foil
+Armstrong | MA Mk II | 890 | 86.0 | 890 | - | AR 8,0 | https://armstrongfoils.com/collections/front-foils/products/ma-mk-ii-front-foil
+Armstrong | MA Mk II | 990 | 90.6 | 990 | - | AR 8,0 | https://armstrongfoils.com/collections/front-foils/products/ma-mk-ii-front-foil
+Armstrong | MA Mk II | 1190 | 99.0 | 1190 | - | AR 8,0 | https://armstrongfoils.com/collections/front-foils/products/ma-mk-ii-front-foil
+Armstrong | MA Mk II | 1390 | 106.0 | 1390 | - | AR 8,0 | https://armstrongfoils.com/collections/front-foils/products/ma-mk-ii-front-foil
+Armstrong | S1 | 1250 | 84.8 | 1250 | - | AR 5,7; Textabelle auf der Herstellerseite | https://armstrongfoils.com/products/s1-front-foil
+Armstrong | S1 | 1550 | 90.5 | 1550 | - | AR 5,3 | https://armstrongfoils.com/products/s1-front-foil
+Armstrong | S1 | 1850 | 96.5 | 1850 | - | AR 5,0 | https://armstrongfoils.com/products/s1-front-foil
+Armstrong | S1 | 2450 | 105.4 | 2450 | - | AR 4,8 | https://armstrongfoils.com/products/s1-front-foil
+AXIS | BSC | 740 | 74.0 | 844 | - | projizierte Flaeche (tatsaechlich 883), AR 6,49 | https://www.realwatersports.com/products/axis-broad-spectrum-carve-bsc-front-wing
+AXIS | BSC | 810 | 81.0 | 1022 | - | projiziert (tatsaechlich 1070), AR 6,42 | https://www.realwatersports.com/products/axis-broad-spectrum-carve-bsc-front-wing
+AXIS | BSC | 890 | 89.0 | 1232 | - | projiziert (tatsaechlich 1290), AR 6,43 | https://www.realwatersports.com/products/axis-broad-spectrum-carve-bsc-front-wing
+AXIS | BSC | 970 | 97.0 | 1501 | - | projiziert (tatsaechlich 1572), AR 6,27 | https://www.realwatersports.com/products/axis-broad-spectrum-carve-bsc-front-wing
+AXIS | BSC | 1060 | 106.0 | 1726 | - | projiziert (tatsaechlich 1803), AR 6,51 | https://www.realwatersports.com/products/axis-broad-spectrum-carve-bsc-front-wing
+AXIS | BSC | 1120 | 112.0 | 2007 | - | projiziert (tatsaechlich 2102), AR 6,25 | https://www.realwatersports.com/products/axis-broad-spectrum-carve-bsc-front-wing
+AXIS | Spitfire | 780 | 78.0 | 886 | - | projiziert (tatsaechlich 902), AR 6,87 | https://www.realwatersports.com/products/axis-spitfire-spf-front-wing
+AXIS | Spitfire | 840 | 84.0 | 988 | - | projiziert (tatsaechlich 1006), AR 7,14 | https://www.realwatersports.com/products/axis-spitfire-spf-front-wing
+AXIS | Spitfire | 900 | 90.0 | 1080 | - | projiziert (tatsaechlich 1099), AR 7,25 | https://www.realwatersports.com/products/axis-spitfire-spf-front-wing
+AXIS | Spitfire | 960 | 96.0 | 1175 | - | projiziert (tatsaechlich 1196), AR 7,84 | https://www.realwatersports.com/products/axis-spitfire-spf-front-wing
+AXIS | Spitfire | 1030 | 103.0 | 1285 | - | projiziert (tatsaechlich 1308), AR 8,26 | https://www.realwatersports.com/products/axis-spitfire-spf-front-wing
+AXIS | Spitfire | 1100 | 110.0 | 1398 | - | projiziert (tatsaechlich 1423), AR 8,66 | https://www.realwatersports.com/products/axis-spitfire-spf-front-wing
+CORE | CFS Spectrum | 850 | 76 | 850 | - | Herstellertabelle als Text; Groessencode = Flaeche, NICHT Spannweite | https://ridecore.com/us/foil/foils/cfs-spectrum
+CORE | CFS Spectrum | 1250 | 89 | 1250 | - | AR 6,3 | https://ridecore.com/us/foil/foils/cfs-spectrum
+CORE | CFS Spectrum | 1550 | 91 | 1550 | - | AR 5,3 | https://ridecore.com/us/foil/foils/cfs-spectrum
+CORE | CFS Spectrum | 1850 | 97 | 1850 | - | AR 5,1 | https://ridecore.com/us/foil/foils/cfs-spectrum
+CORE | CFS Spectrum | 2150 | 104 | 2150 | - | AR 5,0 | https://ridecore.com/us/foil/foils/cfs-spectrum
+CORE | CFS ELXR | 650 | 72 | 650 | - | Herstellertabelle als Text | https://ridecore.com/us/foil/foils/cfs-elxr
+CORE | CFS ELXR | 750 | 78.5 | 750 | - | - | https://ridecore.com/us/foil/foils/cfs-elxr
+CORE | CFS ELXR | 850 | 86.5 | 850 | - | - | https://ridecore.com/us/foil/foils/cfs-elxr
+CORE | CFS ELXR | 950 | 91.5 | 950 | - | - | https://ridecore.com/us/foil/foils/cfs-elxr
+CORE | CFS ELXR | 1050 | 96 | 1050 | - | - | https://ridecore.com/us/foil/foils/cfs-elxr
+CORE | CFS ELXR | 1250 | 100 | 1250 | - | - | https://ridecore.com/us/foil/foils/cfs-elxr
