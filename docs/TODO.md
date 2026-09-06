@@ -623,6 +623,15 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **📥 06.09. — Uhrenmodell aus importierten FIT-Dateien mitnehmen.** Beim ersten COROS-Import
+  (Peter B., Session 3866) steht in der Datei zweimal sauber `product_name: COROS PACE 3`
+  (`file_id` UND `device_info`), wir werfen es weg: `sessions.device_model` bleibt bei allen
+  Import-Sessions leer, obwohl die Spalte existiert und Apple/Wear sie fuellen. Kostet im Import
+  drei Zeilen (`file_id.product_name`, sonst `manufacturer`-Nummer). Nutzen: auf der
+  Session-Seite steht, WOMIT aufgezeichnet wurde, und die Uhren-Auswertung koennte spaeter eine
+  zweite, getrennte Tabelle „ueber Import" bekommen — die heutige zaehlt bewusst nur eigene
+  Aufnahmen und sieht COROS/Suunto/Polar deshalb gar nicht.
+
 - **🟢 06.09. — `pumpfoil.org/sitemap.xml` landete im Browser auf der Startseite.** Von Jan beim
   Einreichen in der Search Console gemeldet. **Ursache: unser eigener Service Worker.** Er
   beantwortet JEDE Navigation aus dem Cache mit `index.html` (`navigateFallback`); der Router
