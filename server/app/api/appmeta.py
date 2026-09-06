@@ -259,13 +259,18 @@ NAECHSTES: list[dict] = [
          "the same to us, so we could not say which ones measure well and which do not.",
      ]},
     {"name": "Amazfit", "version": "1.0.8", "note": "follows straight after the current one",
+     # Inhalt gegenueber der LIVE stehenden 1.0.6 (freigegeben 24.08.), nicht gegenueber 1.0.4:
+     # in `docs/TODO.md` stand dazu ein falscher Satz, den das Einreichungs-Protokoll und die
+     # gemeldeten App-Versionen der Uhren widerlegen. Der GPS-Sprung-Fix vom 16.08. ist deshalb
+     # NICHT hier — der ist mit 1.0.6 laengst draussen.
      "items": [
          "Value graphics on the watch: speed, heart rate and pump cadence as a bar, not just "
          "a number.",
          "Heart-rate zones and speed zones use the colours you set in your profile.",
          "A single press can end a recording instead of holding, if you set that in your profile.",
-         "The touch lock can be opened with your finger again, and it is switchable.",
-         "A GPS jump no longer creates a run that never happened.",
+         "The touch lock can be opened with your finger again.",
+         "Runs are detected the same way as on the server, and a run that never stopped is no "
+         "longer split in two.",
          "Dutch, Finnish, Czech and Polish.",
      ]},
 ]
