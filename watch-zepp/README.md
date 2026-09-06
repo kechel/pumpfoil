@@ -10,6 +10,22 @@ auf pumpfoil.org → Konto → „Uhr verbinden" eintragen → die Uhr pollt und
 für Dritt-Apps nicht gesichert verfügbar → vorerst GPS-only ⇒ Server `detection = gps_only`
 (Distanz/Speed/Läufe, **noch keine Pumps**). Accel nachrüsten, sobald die API bestätigt ist.
 
+## Welche Uhren das sind — und warum wir sie NICHT auflisten
+
+Anders als bei Garmin steht in `app.json` **kein einziges Geraet**, sondern nur eine API-Spanne:
+`runtime.apiVersion` = compatible `3.0.0`, target `3.6.0`, minVersion `3.0`. Welche Modelle das
+bedeutet, leitet **Zepp** daraus ab; die Zepp-Konsole zeigte am 06.09.2026 ueber 80 Stueck — von
+Falcon und T-Rex Ultra ueber Balance 3 Ti bis Bip 6 und Active 3 Premium.
+
+**Diese Liste gehoert deshalb bewusst nirgends in unsere Oberflaeche.** Sie waechst von selbst,
+sobald Zepp eine neue Uhr mit Zepp OS ≥ 3.0 ausliefert — eine abgetippte Kopie waere von dem Tag
+an falsch, ohne dass es jemand merkt. Bei Garmin ist es umgekehrt: dort steht jedes Geraet im
+Manifest, wir bauen 129 Varianten, und `/api/app/devices` erzeugt die Kompatibilitaets-Ansicht
+daraus.
+
+Nachsehen kann man sie in der Zepp Open Platform (appId **1118995**) in der Spalte „Supporting
+Device".
+
 ## Ablauf (wie Garmin: Aufnahme primär, Verbindung/Upload im Hintergrund)
 - **GPS läuft ab dem Ruhe-Screen** (durchgehender 1-Hz-Sampler) → Status „GPS suche… / GPS ●" vor
   dem Start; Puls parallel.
