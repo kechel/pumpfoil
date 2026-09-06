@@ -74,6 +74,7 @@ FADE_OUT = 2.0
 # Text-Overlays: der Browser rendert den Text (inkl. Emojis) als transparentes
 # PNG in Videogröße; ffmpeg blendet es mit fade alpha ein/aus.
 TEXT_FADE = 0.5
+TAIL_MAX = 30.0   # Sekunden, die maximal hinten angehaengt werden
 TEXT_HOLD = 2.0
 OUTRO_SECS = 2.5       # Like/Follow-Icons: sichtbar in den letzten x Sekunden …
 OUTRO_SECS_LONG = 4.0  # … bzw. bei Videos über 20 s
@@ -280,15 +281,22 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
            texts: list = None, outro: Path = None,
            overlay_alpha: float = 1.0,
            oton_gain_db: float = 0.0, ducks: list = None,
-           endcard: dict = None):
+           endcard: dict = None, tail_secs: float = 0.0):
     full = duration_of(video)
     start = max(0.0, min(trim_start or 0.0, full))
     end = min(trim_end, full) if trim_end else full
     if end - start < 0.5:
         raise ValueError("Trim-Bereich zu kurz (unter 0,5 s)")
     dur = end - start
+    # Angehaengter Schluss: das letzte Bild wird eingefroren, damit eine
+    # deckende Karte laenger stehen kann als das Material reicht.
+    try:
+        tail = max(0.0, min(float(tail_secs or 0.0), TAIL_MAX))
+    except (TypeError, ValueError):
+        tail = 0.0
+    total = dur + tail
     trimmed = start > 0.01 or end < full - 0.01
-    fade_out = max(0.001, min(fade_out, dur / 2))
+    fade_out = max(0.001, min(fade_out, total / 2))
     inputs = []
     if trimmed:
         inputs += ["-ss", f"{start:.3f}", "-to", f"{end:.3f}"]
@@ -312,13 +320,15 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
         if duck_music:
             music += f"volume=volume='{duck_music}':eval=frame,"
         music += (
-            f"afade=t=in:d={min(FADE_IN, dur / 4):.3f},"
-            f"afade=t=out:st={dur - fade_out:.3f}:d={fade_out:.3f}"
+            f"afade=t=in:d={min(FADE_IN, total / 4):.3f},"
+            f"afade=t=out:st={total - fade_out:.3f}:d={fade_out:.3f}"
         )
         if has_audio(video):
             osrc = "[0:a]"
-            if oton:
-                fc_parts.append(f"[0:a]{oton}[oa]")
+            # apad: der O-Ton endet mit dem Material, der Schwanz bleibt still
+            oton_full = ",".join(x for x in (oton, "apad" if tail else "") if x)
+            if oton_full:
+                fc_parts.append(f"[0:a]{oton_full}[oa]")
                 osrc = "[oa]"
             fc_parts.append(f"[1:a]{music}[m];"
                             f"{osrc}[m]amix=inputs=2:duration=first:normalize=0[a]")
@@ -327,8 +337,9 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
         amap = ["-map", "[a]"]
         acodec = ["-c:a", "aac", "-b:a", "192k"]
     elif has_audio(video):
-        if oton:
-            fc_parts.append(f"[0:a]{oton}[a]")
+        oton_full = ",".join(x for x in (oton, "apad" if tail else "") if x)
+        if oton_full:
+            fc_parts.append(f"[0:a]{oton_full}[a]")
             amap = ["-map", "[a]"]
             acodec = ["-c:a", "aac", "-b:a", "192k"]
         else:
@@ -337,6 +348,10 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
     else:
         amap, acodec = [], []
     vsrc = "[0:v]"
+    if tail:
+        fc_parts.append(
+            f"[0:v]tpad=stop_mode=clone:stop_duration={tail:.3f}[vpad]")
+        vsrc = "[vpad]"
     if overlay:
         w, h = video_dims(video)
         inputs += ["-i", str(overlay)]
@@ -345,7 +360,7 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
         alpha = max(0.0, min(float(overlay_alpha), 1.0))
         fade_ov = (f",colorchannelmixer=aa={alpha:.3f}" if alpha < 1 else "")
         fc_parts.append(f"[{ov_idx}:v]format=rgba{fade_ov},scale={w}:{h}[ov];"
-                        "[0:v][ov]overlay=0:0:format=auto[vo]")
+                        f"{vsrc}[ov]overlay=0:0:format=auto[vo]")
         vsrc = "[vo]"
     # Text-PNGs: Zeiten beziehen sich aufs Original, nach Trim verschiebt
     # sich die Output-Zeitachse um -start
@@ -399,9 +414,11 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
         idx = n_inputs
         n_inputs += 1
         st = max(0.0, dur - (OUTRO_SECS_LONG if dur > OUTRO_LONG_AB else OUTRO_SECS))
+        outro_fade = (f",fade=t=out:st={max(st, dur - TEXT_FADE):.3f}"
+                      f":d={TEXT_FADE}:alpha=1" if tail else "")
         fc_parts.append(
             f"[{idx}:v]format=rgba"
-            f",fade=t=in:st={st:.3f}:d={TEXT_FADE}:alpha=1[outro];"
+            f",fade=t=in:st={st:.3f}:d={TEXT_FADE}:alpha=1{outro_fade}[outro];"
             f"{vsrc}[outro]overlay=0:0:format=auto[vout]")
         vsrc = "[vout]"
     if vsrc != "[0:v]":
@@ -415,26 +432,26 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
     cmd = [
         "ffmpeg", "-y", "-nostats", "-progress", "pipe:1", *inputs,
         *fc, "-map", vmap, *amap, *vcodec, *acodec,
-        "-t", f"{dur:.3f}", "-movflags", "+faststart", str(out),
+        "-t", f"{total:.3f}", "-movflags", "+faststart", str(out),
     ]
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT, text=True)
-    tail = []
+    errtail = []
     for line in proc.stdout:
         line = line.strip()
         if line.startswith("out_time_us=") or line.startswith("out_time_ms="):
             try:
                 # beide Keys tragen Mikrosekunden (ffmpeg-Eigenheit)
-                PROGRESS["pct"] = min(100.0, int(line.split("=")[1]) / 1e6 / dur * 100)
+                PROGRESS["pct"] = min(100.0, int(line.split("=")[1]) / 1e6 / total * 100)
             except ValueError:
                 pass
         elif not re.match(r"^[a-z_0-9.]+=", line):
-            tail.append(line)
-            if len(tail) > 50:
-                del tail[0]
+            errtail.append(line)
+            if len(errtail) > 50:
+                del errtail[0]
     if proc.wait() != 0:
         raise subprocess.CalledProcessError(proc.returncode, cmd,
-                                            stderr="\n".join(tail))
+                                            stderr="\n".join(errtail))
     PROGRESS["pct"] = 100.0
 
 
@@ -1970,7 +1987,8 @@ class Handler(BaseHTTPRequestHandler):
                 render(video, track, out, gain, fade_out, overlay,
                        trim_start, trim_end, texts, outros.get(pf),
                        float(req.get("overlay_alpha", 1.0)),
-                       oton_gain_db=oton_gain, ducks=ducks, endcard=endcard)
+                       oton_gain_db=oton_gain, ducks=ducks, endcard=endcard,
+                       tail_secs=float(req.get("tail_secs") or 0.0))
                 results[pf] = {"ok": True, "out": str(out.relative_to(BASE))}
             except subprocess.CalledProcessError as e:
                 results[pf] = {"ok": False, "error": (e.stderr or "")[-400:]}

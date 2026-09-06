@@ -189,6 +189,7 @@ function Studio() {
   const [beats, setBeats] = useState<number>(sv("beats", 3));
   const [cardSlogan, setCardSlogan] = useState<boolean>(sv("cardSlogan", true));
   const [txAlpha, setTxAlpha] = useState<number>(sv("txAlpha", TXA));
+  const [tailSecs, setTailSecs] = useState<number>(sv("tailSecs", 0));
   // Endcard: ganzflaechiges Bild an frei gewaehlter Stelle, Zeiten in Sekunden
   const [endcard, setEndcard] = useState<EndCard>(() => {
     // Vorgaben zuerst, gespeicherte Werte darueber — so fehlt bei aelteren
@@ -216,10 +217,10 @@ function Studio() {
   useEffect(() => {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({
       curVideo, sel, pvPlatform, trim, texts, gain, otonGain, ducks, fade,
-      sideTab, endcard, midTab, beats, cardSlogan, txAlpha,
+      sideTab, endcard, midTab, beats, cardSlogan, txAlpha, tailSecs,
       outName, ovOn, ovSel, ovAlpha, outroOn, fltYT, fltIG, fltTT,
     }));
-  }, [curVideo, sel, pvPlatform, trim, texts, gain, otonGain, ducks, fade, outName, ovOn, ovSel, ovAlpha, outroOn, fltYT, fltIG, fltTT, sideTab, endcard, midTab, beats, cardSlogan, txAlpha]);
+  }, [curVideo, sel, pvPlatform, trim, texts, gain, otonGain, ducks, fade, outName, ovOn, ovSel, ovAlpha, outroOn, fltYT, fltIG, fltTT, sideTab, endcard, midTab, beats, cardSlogan, txAlpha, tailSecs]);
   const [browserOpen, setBrowserOpen] = useState(false);
   const [dirInput, setDirInput] = useState("");
   const [log, setLog] = useState("");
@@ -582,6 +583,13 @@ function Studio() {
     if (card) {
       g.fillStyle = NAVY;
       g.fillRect(0, 0, w, h);
+      // Dieselben Kanten wie am Hook-Banner: gruen oben, rot unten. Die Karte
+      // ist damit sichtbar dasselbe Format wie die Frage am Anfang.
+      const edge = 10 * (w / 1080);
+      g.fillStyle = STAMP.success.color;
+      g.fillRect(0, 0, w, edge);
+      g.fillStyle = STAMP.fail.color;
+      g.fillRect(0, h - edge, w, edge);
     }
 
     // Erst messen, dann notfalls kleiner rechnen: eine lange Unterzeile darf
@@ -860,8 +868,8 @@ function Studio() {
     const vid = vidRef.current;
     const end = trim.end ?? (vid && isFinite(vid.duration) ? vid.duration : null);
     if (end == null) return null;
-    return end - (trim.start ?? 0);
-  }, [trim]);
+    return end - (trim.start ?? 0) + tailSecs;
+  }, [trim, tailSecs]);
 
   const resetAll = useCallback(() => {
     if (!window.confirm("Alle Studio-Einstellungen zurücksetzen (Texte, Trim, Musikwahl, Name …)?")) return;
@@ -870,6 +878,7 @@ function Studio() {
     setFltTT(true);
     setPvPlatform("youtube");
     setTrim({ start: null, end: null });
+    setTailSecs(0);
     setTexts(emptyTexts());
     setGain(-12);
     setOtonGain(0);
@@ -941,6 +950,7 @@ function Studio() {
           : null,
         trim_start: trim.start,
         trim_end: trim.end,
+        tail_secs: tailSecs,
         out_name: outName,
         texts: texts
           // Ein Stempel zaehlt auch ohne Unterzeile — nur Fliesstext braucht Inhalt.
@@ -969,7 +979,7 @@ function Studio() {
     setRenderingVideo(null);
     setRendering(false);
     void load();
-  }, [ready, curVideo, sel, gain, otonGain, ducks, fade, ovOn, ovSel, trim, outName, texts, outroOn, endcard, stopMusic, load]);
+  }, [ready, curVideo, sel, gain, otonGain, ducks, fade, ovOn, ovSel, trim, outName, texts, outroOn, endcard, tailSecs, stopMusic, load]);
 
   if (!state) return <div style={{ padding: 20, opacity: 0.6 }}>lade …</div>;
 
@@ -1545,6 +1555,12 @@ function Studio() {
                 ? "–"
                 : `${trim.start != null ? trim.start.toFixed(1) + "s" : "0s"} → ${trim.end != null ? trim.end.toFixed(1) + "s" : "Ende"}`}
             </span>
+            <label className="tail" title="Am Ende Sekunden anhängen: das letzte Bild friert ein, damit eine deckende Karte länger stehen kann als das Video reicht">
+              anhängen
+              <input type="number" min={0} max={30} step={0.5} value={tailSecs}
+                     onChange={(e) => setTailSecs(Math.min(30, Math.max(0, +e.target.value || 0)))} />
+              s
+            </label>
           </div>
           <div className="namebox">
             <div className="nfix">
