@@ -275,6 +275,22 @@ def _vol_expr(windows, key, offset, dur, fade=0.5):
     return "*".join(parts)
 
 
+def text_window(tx, trim_start: float) -> tuple[float, float, float]:
+    """Anfang, Ende und Blenddauer eines Textoverlays auf der Ausgabe-Zeitachse."""
+    s = float(tx.get("start", 0)) - trim_start
+    try:
+        hold = max(0.0, float(tx.get("hold", TEXT_HOLD)))
+    except (TypeError, ValueError):
+        hold = TEXT_HOLD
+    # Blenddauer je Text: fuer Fliesstext sind 0,5 s richtig, ein Stempel
+    # will hart einrasten (~0,12 s) — sonst wirkt er wie eine Bauchbinde.
+    try:
+        fade = max(0.02, float(tx.get("fade", TEXT_FADE)))
+    except (TypeError, ValueError):
+        fade = TEXT_FADE
+    return s, s + 2 * fade + hold, fade
+
+
 def endcard_len(endcard) -> float:
     """Gesamtdauer einer Endcard-Einblendung (Ein + Stand + Aus)."""
     if not endcard or not endcard.get("path"):
@@ -303,10 +319,17 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
         tail_man = max(0.0, float(tail_secs or 0.0))
     except (TypeError, ValueError):
         tail_man = 0.0
-    # Die angehaengte Endcard kommt HINTER den von Hand angehaengten Sekunden:
-    # erst die Karte auf dem eingefrorenen Bild, dann die Endcard.
+    # Ueberhang: was ein Overlay hinten braucht, verlaengert das Ergebnis von
+    # selbst — sonst wuerde eine Karte mit 2,2 s Standzeit am Videoende einfach
+    # abgeschnitten. Das Feld in der Oberflaeche ist nur noch ein Mindestwert.
+    over = 0.0
+    for tx in texts or []:
+        over = max(over, text_window(tx, start)[1] - dur)
+    # Die angehaengte Endcard kommt HINTER dem eingefrorenen Rest:
+    # erst die Karte auf dem stehenden Bild, dann die Endcard.
     ec_append = bool(endcard and endcard.get("append") and endcard.get("path"))
     ec_len = endcard_len(endcard) if ec_append else 0.0
+    tail_man = max(tail_man, max(0.0, over))
     tail = min(tail_man + ec_len, TAIL_MAX)
     total = dur + tail
     trimmed = start > 0.01 or end < full - 0.01
@@ -379,18 +402,7 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
     # Text-PNGs: Zeiten beziehen sich aufs Original, nach Trim verschiebt
     # sich die Output-Zeitachse um -start
     for i, tx in enumerate(texts or []):
-        s = float(tx.get("start", 0)) - start
-        try:
-            hold = max(0.0, float(tx.get("hold", TEXT_HOLD)))
-        except (TypeError, ValueError):
-            hold = TEXT_HOLD
-        # Blenddauer je Text: fuer Fliesstext sind 0,5 s richtig, ein Stempel
-        # will hart einrasten (~0,12 s) — sonst wirkt er wie eine Bauchbinde.
-        try:
-            fade = max(0.02, float(tx.get("fade", TEXT_FADE)))
-        except (TypeError, ValueError):
-            fade = TEXT_FADE
-        e = s + 2 * fade + hold
+        s, e, fade = text_window(tx, start)
         inputs += ["-loop", "1", "-i", str(tx["png"])]
         idx = n_inputs
         n_inputs += 1

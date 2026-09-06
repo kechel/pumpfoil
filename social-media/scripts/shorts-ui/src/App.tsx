@@ -229,11 +229,26 @@ function Studio() {
   const [prog, setProg] = useState<{ label: string; pct: number } | null>(null);
   const [rendering, setRendering] = useState(false);
 
-  // Angehaengter Teil: erst die von Hand gesetzten Sekunden (dort steht die
-  // Karte auf dem eingefrorenen Bild), dann optional die Endcard.
+  // Angehaengter Teil. Was ein Overlay hinten ueberhaengt, verlaengert das
+  // Ergebnis VON SELBST — das Feld in der Trim-Zeile ist nur ein Mindestwert.
+  // Danach kommt, falls angehakt, die Endcard.
+  const vidEnd = useMemo(() => {
+    const d = curVideo ? state?.vdurs?.[curVideo] ?? 0 : 0;
+    return trim.end ?? d;
+  }, [curVideo, state, trim.end]);
+  const overhang = useMemo(() => {
+    if (!vidEnd) return 0;
+    let o = 0;
+    for (const tx of texts) {
+      if (tx.start == null || !(tx.text.trim() || isStamp(tx.style))) continue;
+      const fd = isGfx(tx.style) ? STAMP_FADE : TXF;
+      o = Math.max(o, tx.start + 2 * fd + tx.hold - vidEnd);
+    }
+    return Math.max(0, o);
+  }, [texts, vidEnd]);
   const tailTotal = useMemo(
-    () => tailSecs + (endcard.file && endcard.append ? ecLen(endcard) : 0),
-    [tailSecs, endcard],
+    () => Math.max(tailSecs, overhang) + (endcard.file && endcard.append ? ecLen(endcard) : 0),
+    [tailSecs, overhang, endcard],
   );
 
   const tailRef = useRef<{ at: number | null }>({ at: null });
@@ -250,8 +265,8 @@ function Studio() {
   const outroCacheRef = useRef<{ key: string; url: string }>({ key: "", url: "" });
 
   // Live-Werte für den rAF-Loop (State-Snapshot ohne Re-Subscribe)
-  const live = useRef({ trim, texts, outroOn, pvPlatform, curPlay, ducks, gain, otonGain, endcard, tailSecs, tailTotal });
-  live.current = { trim, texts, outroOn, pvPlatform, curPlay, ducks, gain, otonGain, endcard, tailSecs, tailTotal };
+  const live = useRef({ trim, texts, outroOn, pvPlatform, curPlay, ducks, gain, otonGain, endcard, tailSecs, tailTotal, overhang });
+  live.current = { trim, texts, outroOn, pvPlatform, curPlay, ducks, gain, otonGain, endcard, tailSecs, tailTotal, overhang };
 
   const load = useCallback(async () => {
     const s = await api.list();
@@ -432,7 +447,7 @@ function Studio() {
           const on = endcard.file && (endcard.append || endcard.start != null);
           if (!on) ec.style.opacity = "0";
           else {
-            const s0 = endcard.append ? endT + tailSecs : (endcard.start as number);
+            const s0 = endcard.append ? endT + Math.max(tailSecs, overhang) : (endcard.start as number);
             const e0 = s0 + endcard.fadeIn + endcard.hold;
             ec.style.opacity = String(endcard.alpha * Math.max(0, Math.min(
               Math.min((t - s0) / Math.max(0.05, endcard.fadeIn),
@@ -1605,16 +1620,17 @@ function Studio() {
                 ? "–"
                 : `${trim.start != null ? trim.start.toFixed(1) + "s" : "0s"} → ${trim.end != null ? trim.end.toFixed(1) + "s" : "Ende"}`}
             </span>
-            <label className="tail" title="Am Ende Sekunden anhängen: das letzte Bild friert ein, damit eine deckende Karte länger stehen kann als das Video reicht">
-              anhängen
+            <label className="tail" title="Mindestens so viele Sekunden anhängen. Was ein Overlay hinten überhängt, wird ohnehin automatisch angehängt — das letzte Bild friert dabei ein.">
+              anhängen mind.
               <input type="number" min={0} max={30} step={0.5} value={tailSecs}
                      onChange={(e) => setTailSecs(Math.min(30, Math.max(0, +e.target.value || 0)))} />
               s
             </label>
             {tailTotal > 0 && (
-              <span style={{ opacity: 0.6 }}>
-                → {(len ?? 0).toFixed(1)} s gesamt
-                {endcard.file && endcard.append ? ` (inkl. Endcard ${ecLen(endcard).toFixed(1)} s)` : ""}
+              <span style={{ opacity: 0.6 }} title="Ergebnislänge inklusive allem, was hinten angehängt wird">
+                → {(len ?? 0).toFixed(1)} s gesamt (+{tailTotal.toFixed(1)} s
+                {overhang > tailSecs ? ", davon automatisch" : ""}
+                {endcard.file && endcard.append ? `, Endcard ${ecLen(endcard).toFixed(1)} s` : ""})
               </span>
             )}
           </div>
