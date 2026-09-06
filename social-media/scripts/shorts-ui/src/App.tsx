@@ -192,6 +192,7 @@ function Studio() {
   const [fltIG, setFltIG] = useState(sv("fltIG", true));
   const [fltTT, setFltTT] = useState(sv("fltTT", true));
   const [search, setSearch] = useState("");
+  const [vfilter, setVfilter] = useState("");
 
   // bei jeder Änderung speichern
   useEffect(() => {
@@ -622,10 +623,17 @@ function Studio() {
   const sortedVids = useCallback((): string[] => {
     if (!state) return [];
     const starred = new Set(state.stars);
-    return [...state.videos].sort(
-      (a, b) => (starred.has(b) ? 1 : 0) - (starred.has(a) ? 1 : 0) || a.localeCompare(b),
-    );
-  }, [state]);
+    // Suchbegriffe einzeln und in beliebiger Reihenfolge: "charly fail" findet
+    // 20260904-charly-fail.mp4, egal ob mit Bindestrich oder Leerzeichen getippt.
+    const terms = vfilter.toLowerCase().split(/[\s-]+/).filter(Boolean);
+    const hit = (v: string) => {
+      const n = v.toLowerCase();
+      return terms.every((s) => n.includes(s));
+    };
+    return [...state.videos]
+      .filter(hit)
+      .sort((a, b) => (starred.has(b) ? 1 : 0) - (starred.has(a) ? 1 : 0) || a.localeCompare(b));
+  }, [state, vfilter]);
 
   const discard = useCallback(
     async (v: string, category: string) => {
@@ -936,6 +944,24 @@ function Studio() {
             {!state.subdirs.length && <div className="item" style={{ opacity: 0.5, cursor: "default" }}>keine Unterordner</div>}
           </div>
         )}
+        <div className="vsearch">
+          <input
+            type="search"
+            placeholder="Videos filtern …"
+            spellCheck={false}
+            value={vfilter}
+            title="Mehrere Begriffe erlaubt, Reihenfolge egal — z. B. „charly fail“"
+            onChange={(e) => setVfilter(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") setVfilter("");
+            }}
+          />
+          {vfilter.trim() && (
+            <button className="mini" title="Filter aufheben" onClick={() => setVfilter("")}>
+              {vids.length}/{state.videos.length} ✕
+            </button>
+          )}
+        </div>
         <div className="scroll">
           {vids.map((v) => (
             <div
@@ -972,6 +998,11 @@ function Studio() {
               </div>
             </div>
           ))}
+          {!vids.length && (
+            <div className="item" style={{ opacity: 0.5, cursor: "default" }}>
+              {state.videos.length ? "kein Video passt zum Filter" : "keine Videos im Ordner"}
+            </div>
+          )}
         </div>
       </div>
 
