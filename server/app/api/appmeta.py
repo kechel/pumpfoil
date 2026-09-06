@@ -258,7 +258,16 @@ NAECHSTES: list[dict] = [
          "The Apple Watch tells us which model it is. Until now every Apple Watch looked "
          "the same to us, so we could not say which ones measure well and which do not.",
      ]},
-    {"name": "Amazfit", "version": "1.0.8", "note": "follows straight after the current one"},
+    {"name": "Amazfit", "version": "1.0.8", "note": "follows straight after the current one",
+     "items": [
+         "Value graphics on the watch: speed, heart rate and pump cadence as a bar, not just "
+         "a number.",
+         "Heart-rate zones and speed zones use the colours you set in your profile.",
+         "A single press can end a recording instead of holding, if you set that in your profile.",
+         "The touch lock can be opened with your finger again, and it is switchable.",
+         "A GPS jump no longer creates a run that never happened.",
+         "Dutch, Finnish, Czech and Polish.",
+     ]},
 ]
 
 
