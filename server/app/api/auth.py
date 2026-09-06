@@ -4,11 +4,11 @@ from __future__ import annotations
 import json
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
-from .. import models
+from .. import kontensync, models
 from ..config import get_settings
 from ..db import get_db
 from ..media import delete_media
@@ -412,7 +412,7 @@ async def upload_avatar(
 
 @router.post("/login", response_model=TokenOut)
 def login(
-    body: LoginIn, db: Session = Depends(get_db),
+    body: LoginIn, background: BackgroundTasks, db: Session = Depends(get_db),
     _rl: None = Depends(rate_limit(10, 300, "login")),
 ) -> TokenOut:
     user = db.query(models.User).filter_by(email=body.email.lower()).first()
@@ -420,4 +420,8 @@ def login(
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid credentials")
     if user.blocked:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Konto gesperrt")
+    # Verknuepfte Konten beim Anmelden mitnehmen (Jan, 06.09.). Im Hintergrund: die Anmeldung
+    # darf davon weder zeitlich noch bei einer Stoerung des Anbieters etwas merken. `fuer_nutzer`
+    # ueberspringt alles, was in den letzten 20 Stunden schon lief, und wirft nie.
+    background.add_task(kontensync.fuer_nutzer, user.id)
     return TokenOut(access_token=create_access_token(user.id))

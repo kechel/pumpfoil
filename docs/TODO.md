@@ -623,6 +623,17 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **📥 06.09. — Serverstart haengt, wenn IRGENDEIN Client eine Transaktion offen haelt.**
+  `init_db()` laeuft bei jedem Start und fuehrt in `_migrate_add_columns()` `ALTER TABLE … ADD
+  COLUMN` aus — das braucht ACCESS EXCLUSIVE. Eine einzige Sitzung, die nur gelesen und nicht
+  committet hat, blockiert damit den kompletten Start; uvicorn bleibt auf „Waiting for
+  application startup" stehen und der Port antwortet gar nicht. Am 06.09. so passiert
+  (75 s Ausfall, Ursache war ein eigenes Skript mit `time.sleep` innerhalb von `try/finally`).
+  Moegliche Haerten: `lock_timeout` fuer die Migrationen setzen, damit der Start lieber ohne
+  neue Spalte hochkommt als gar nicht; oder Migrationen aus dem Start herausziehen (Alembic,
+  eigener Schritt im Deploy). Solange das offen ist: vor einem Neustart pruefen mit
+  `SELECT pid, state, now()-state_change FROM pg_stat_activity WHERE state <> 'idle'`.
+
 - **📥 06.09. — Uhrenmodell aus importierten FIT-Dateien mitnehmen.** Beim ersten COROS-Import
   (Peter B., Session 3866) steht in der Datei zweimal sauber `product_name: COROS PACE 3`
   (`file_id` UND `device_info`), wir werfen es weg: `sessions.device_model` bleibt bei allen

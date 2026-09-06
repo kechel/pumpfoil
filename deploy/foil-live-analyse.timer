@@ -1,0 +1,10 @@
+[Unit]
+Description=Alle 5 Minuten pruefen, ob eine laufende Session nachzurechnen ist
+[Timer]
+# Kurzer Takt, weil die Pruefung selbst fast nichts kostet (eine Abfrage je offener Session);
+# gerechnet wird nur, wenn seit der letzten Analyse Daten kamen UND der Upload zur Ruhe kam.
+OnBootSec=3min
+OnUnitActiveSec=5min
+Persistent=true
+[Install]
+WantedBy=timers.target
