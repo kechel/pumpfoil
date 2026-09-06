@@ -70,6 +70,9 @@ h2.dirtitle { text-transform: none; white-space: nowrap; overflow: hidden; text-
   border: 1px solid #8886; background: transparent; color: inherit; cursor: pointer; }
 .midtabs button:hover { background: #8882; }
 .midtabs button.on { background: #3b82f622; border-color: #3b82f688; font-weight: 600; }
+.midtabs .txalpha { flex: none; display: flex; align-items: center; gap: 3px; font-size: 11px; opacity: .75; }
+.midtabs .txalpha input { width: 44px; font-size: 12px; padding: 4px; border-radius: 6px;
+  border: 1px solid #8886; background: transparent; color: inherit; }
 
 /* Stil je Zeile: Fliesstext, SUCCESS-Stempel, FAIL-Stempel */
 .txstyle { display: flex; gap: 2px; }
@@ -79,6 +82,7 @@ h2.dirtitle { text-transform: none; white-space: nowrap; overflow: hidden; text-
 .txstyle button.on { background: #3b82f6; color: #fff; border-color: #3b82f6; }
 .txstyle button:nth-child(2).on { background: #22c55e; border-color: #22c55e; }
 .txstyle button:nth-child(3).on { background: #ef4444; border-color: #ef4444; }
+.txstyle button.bnr.on { background: #94a3b8; color: #020617; border-color: #94a3b8; }
 .txstyle button.card.on { background: #22d3ee; color: #020617; border-color: #22d3ee; }
 
 /* Reveal-Tab: dieselben Slots, nur als Ablauf der Reihe beschriftet */
