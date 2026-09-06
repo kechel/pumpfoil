@@ -403,6 +403,7 @@ def _hole_workout(db: Session, user: models.User, token: str, key: str) -> tuple
       "leer"/"kein gps"/"fehler" -> an diesem Workout wird sich nichts mehr aendern
     """
     from .sessions import import_parsed_session  # lazy: vermeidet Import-Zyklus
+    from .. import storage
     from ..fitimport import parse_fit_bytes
     try:
         fr = httpx.get(_fit_url(key),
@@ -413,7 +414,13 @@ def _hole_workout(db: Session, user: models.User, token: str, key: str) -> tuple
             return False, "quota"
         if fr.status_code != 200 or not fr.content:
             return False, "http %d" % fr.status_code
-        parsed = parse_fit_bytes(fr.content)
+        try:
+            parsed = parse_fit_bytes(fr.content)
+        except Exception as exc:  # noqa: BLE001
+            storage.quarantaene_ablegen(fr.content, quelle="suunto", user_id=user.id,
+                                        grund=f"{type(exc).__name__}: {exc}",
+                                        filename=f"{key}.fit")
+            raise
         if not parsed.get("gps_samples") or parsed.get("started_at") is None:
             return False, "kein gps"
         # `import_parsed_session` gibt bei einem Doppel-Treffer die VORHANDENE Session zurueck

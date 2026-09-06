@@ -271,49 +271,92 @@ def accel_from_messages(accel_msgs: list[dict]) -> tuple[bytes, int]:
     return inter.tobytes(), hz
 
 
-def parse_fit_bytes(data: bytes) -> dict:
-    """Parst FIT-Bytes. Rückgabe-Dict: gps_samples, accel_bytes, accel_hz, started_at, sport."""
-    import fitparse
+def _ernten(fit) -> tuple[list, list, str, object, Exception | None]:
+    """Nachrichten einsammeln — und behalten, was gelesen wurde, wenn der Strom mittendrin abreisst.
 
-    try:
-        fit = _toleranter_fitfile()(data, data_processor=_reparatur_prozessor())
-        records, accel_msgs = [], []
-        sport = "pumpfoil"
-        # Dateiart aus `file_id.type` mitnehmen. Ohne die kann man einem Nutzer nicht sagen, WARUM
-        # eine formal gültige FIT-Datei nichts hergibt: eine Tagesaufzeichnung (Schritte/Stress,
-        # type=monitoring_b) enthält gar keine `record`-Messages. Genau das kam als „wird nicht als
-        # FIT-Datei erkannt" zurück, was in die falsche Richtung führt.
-        fit_type = None
-        for msg in fit.get_messages():
-            if msg.name == "file_id":
-                fit_type = {d.name: d.value for d in msg}.get("type")
-            if msg.name == "record":
-                records.append({d.name: d.value for d in msg})
-            elif msg.name == "accelerometer_data":
-                accel_msgs.append({d.name: d.value for d in msg})
-            elif msg.name in ("sport", "session"):
-                # `sport`-Nachricht ODER die Sportart in der `session`-Nachricht. Letztere war
-                # bis 05.09.2026 uebersehen — und genau dort steht sie bei SUUNTO: deren Dateien
-                # haben ueberhaupt keine `sport`-Nachricht, nur `session.sport`. Folge: JEDE
-                # Suunto-Session kam mit der Voreinstellung „pumpfoil" herein, auch wenn in der
-                # Datei „sailing" stand (belegt an Session 3501). Die `sport`-Nachricht bleibt
-                # vorrangig, weil sie die speziellere Angabe ist.
-                if msg.name == "session" and sport != "pumpfoil":
-                    continue
-                vals = {d.name: d.value for d in msg}
-                sp = vals.get("sport")
-                sub = vals.get("sub_sport")
-                # 'generic' ist nichtssagend -> dann das aussagekräftigere sub_sport nehmen
-                # (z.B. Pump-Foiling kommt oft als generic/open_water -> "open_water";
-                #  Surfen/Laufen/Radfahren stehen direkt in sport).
-                if sp and sp != "generic":
-                    sport = str(sp)
-                elif sub:
-                    sport = str(sub)
-                elif sp:
-                    sport = str(sp)
-    except Exception as exc:
-        raise ValueError(f"Unreadable FIT file: {exc}") from exc
+    Warum das wichtig ist: eine FIT-Datei wird von vorn nach hinten gelesen, die Trackpunkte
+    stehen der Reihe nach drin. Bricht das Lesen bei 60 % ab, sind die ersten 60 % der Fahrt
+    trotzdem vollstaendig da. Vorher lag die ganze Schleife in EINEM try/except — ein Fehler am
+    Ende der Datei hat auch den Anfang weggeworfen. Das trifft genau die Faelle, die am ehesten
+    vorkommen: leerer Akku mitten in der Session, abgebrochener Sync, Muell hinter dem Dateiende.
+    """
+    records, accel_msgs = [], []
+    sport = "pumpfoil"
+    # Dateiart aus `file_id.type` mitnehmen. Ohne die kann man einem Nutzer nicht sagen, WARUM
+    # eine formal gültige FIT-Datei nichts hergibt: eine Tagesaufzeichnung (Schritte/Stress,
+    # type=monitoring_b) enthält gar keine `record`-Messages. Genau das kam als „wird nicht als
+    # FIT-Datei erkannt" zurück, was in die falsche Richtung führt.
+    fit_type = None
+    strom = fit.get_messages()
+    abbruch: Exception | None = None
+    while True:
+        try:
+            msg = next(strom)
+        except StopIteration:
+            break
+        except Exception as exc:      # Datei zu Ende, CRC falsch, Muell dahinter -> aufhoeren
+            abbruch = exc
+            break
+        if msg.name == "file_id":
+            fit_type = {d.name: d.value for d in msg}.get("type")
+        if msg.name == "record":
+            records.append({d.name: d.value for d in msg})
+        elif msg.name == "accelerometer_data":
+            accel_msgs.append({d.name: d.value for d in msg})
+        elif msg.name in ("sport", "session"):
+            # `sport`-Nachricht ODER die Sportart in der `session`-Nachricht. Letztere war
+            # bis 05.09.2026 uebersehen — und genau dort steht sie bei SUUNTO: deren Dateien
+            # haben ueberhaupt keine `sport`-Nachricht, nur `session.sport`. Folge: JEDE
+            # Suunto-Session kam mit der Voreinstellung „pumpfoil" herein, auch wenn in der
+            # Datei „sailing" stand (belegt an Session 3501). Die `sport`-Nachricht bleibt
+            # vorrangig, weil sie die speziellere Angabe ist.
+            if msg.name == "session" and sport != "pumpfoil":
+                continue
+            vals = {d.name: d.value for d in msg}
+            sp = vals.get("sport")
+            sub = vals.get("sub_sport")
+            # 'generic' ist nichtssagend -> dann das aussagekräftigere sub_sport nehmen
+            # (z.B. Pump-Foiling kommt oft als generic/open_water -> "open_water";
+            #  Surfen/Laufen/Radfahren stehen direkt in sport).
+            if sp and sp != "generic":
+                sport = str(sp)
+            elif sub:
+                sport = str(sub)
+            elif sp:
+                sport = str(sp)
+    return records, accel_msgs, sport, fit_type, abbruch
+
+
+def parse_fit_bytes(data: bytes) -> dict:
+    """Parst FIT-Bytes. Rückgabe-Dict: gps_samples, accel_bytes, accel_hz, started_at, sport.
+
+    Gibt zusaetzlich `abbruch` zurueck: die Begruendung, falls die Datei nur bis zu einer
+    bestimmten Stelle gelesen werden konnte (sonst None). Der Import laeuft trotzdem — mit dem,
+    was da ist.
+    """
+    # Zweimal probieren: erst streng, dann ohne Pruefsumme. Die Pruefsumme sagt „an dieser Datei
+    # hat sich etwas veraendert" — sie sagt nicht, dass die Messwerte unbrauchbar sind, und
+    # etliche Schreiber setzen sie schlicht falsch oder auf 0. Eine ganze Session deswegen
+    # wegzuwerfen ist die schlechtere der beiden Antworten; unplausible Punkte fischt die
+    # Analyse ohnehin heraus. Streng bleibt der erste Versuch, damit gesunde Dateien unveraendert
+    # denselben Weg nehmen wie bisher.
+    letzter: Exception | None = None
+    for pruefsumme in (True, False):
+        try:
+            fit = _toleranter_fitfile()(data, data_processor=_reparatur_prozessor(),
+                                        check_crc=pruefsumme)
+        except Exception as exc:          # Kopf unlesbar -> gar keine FIT-Datei
+            letzter = exc
+            continue
+        records, accel_msgs, sport, fit_type, abbruch = _ernten(fit)
+        if abbruch is None or records or accel_msgs:
+            break
+        letzter = abbruch
+    else:
+        raise ValueError(f"Unreadable FIT file: {letzter}")
+    if abbruch is not None and not (records or accel_msgs):
+        raise ValueError(f"Unreadable FIT file: {abbruch}")
+    abbruch_text = f"{type(abbruch).__name__}: {abbruch}" if abbruch else None
 
     # Zeitbasis NUR aus den GPS-Record-Zeitstempeln. Accel-Zeitstempel (SensorLogger)
     # sind teils unzuverlässig/konstant (z. B. alle == Aktivitäts-Start), würden t0
@@ -324,7 +367,8 @@ def parse_fit_bytes(data: bytes) -> dict:
         a0 = _accel_msg_time(accel_msgs[0]) if accel_msgs else None
         if a0 is None:
             return {"gps_samples": [], "accel_bytes": b"", "accel_hz": 0, "started_at": None,
-                    "sport": sport, "fit_type": fit_type, "record_count": len(records)}
+                    "sport": sport, "fit_type": fit_type, "record_count": len(records),
+                    "abbruch": abbruch_text}
         times = [a0]
     t0 = min(times)
 
@@ -350,4 +394,8 @@ def parse_fit_bytes(data: bytes) -> dict:
         "started_at": t0,
         "sport": sport,
         "foil_status": foil_status,
+        # Gesetzt, wenn die Datei nur bis zu einer Stelle lesbar war (abgebrochene Aufzeichnung,
+        # falsche Pruefsumme, Muell hinter dem Ende). Der Import laeuft trotzdem — hiermit kann
+        # der Aufrufer es protokollieren, statt dass es unbemerkt bleibt.
+        "abbruch": abbruch_text,
     }
