@@ -3,6 +3,7 @@
 // nur Verfahren/Design, keine Keys/JWT-Secrets/echten Hosts/IPs. Selbstgemalte SVG-Diagramme.
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useSeo } from "../lib/seo";
 
 const CARD = "rounded-2xl border border-slate-800 bg-slate-900/50 p-5 mb-6";
 const H2 = "mb-2 text-lg font-bold text-slate-100";
@@ -40,6 +41,9 @@ const line = (x1: number, y1: number, x2: number, y2: number, dashed = false) =>
 );
 
 export default function Systemarchitektur() {
+  // Eigener Titel und eigene Beschreibung — sonst teilen sich alle
+  // oeffentlichen Seiten die Angaben aus `index.html`.
+  useSeo("Systemarchitektur", "Wie pumpfoil.org gebaut ist: Aufzeichnung auf der Uhr, Upload, Analyse-Pipeline und Auslieferung — nachpruefbar beschrieben.");
   useEffect(() => { document.title = "Systemarchitektur · pumpfoil.org"; }, []);
   return (
     <div className="mx-auto w-full max-w-3xl">

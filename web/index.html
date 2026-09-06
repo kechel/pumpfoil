@@ -27,7 +27,106 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Pumpfoil" />
-    <title>Pumpfoil</title>
+    <!-- Titel: das Schlagwort zuerst, dann was die Seite TUT. Google zeigt ~60 Zeichen,
+         alles danach wird abgeschnitten — deshalb steht die Marke vorn und nicht am Ende. -->
+    <title>Pumpfoil — Pump-Foiling aufzeichnen und auswerten</title>
+    <link rel="canonical" href="https://pumpfoil.org/" />
+    <!-- Ohne max-image-preview:large zeigt Google in Discover/Bildern nur Briefmarken. -->
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="author" content="pumpfoil.org" />
+    <meta property="og:site_name" content="Pumpfoil" />
+    <meta property="og:locale" content="de_DE" />
+    <meta property="og:image:alt" content="Pumpfoil.org — Track every pump" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Pumpfoil — Pump-Foiling aufzeichnen und auswerten" />
+    <meta name="twitter:description" content="Zeichne Pump-Foiling mit Garmin, Apple Watch, Wear OS oder Amazfit auf und werte jede Session aus: GPS-Track, Foiling-Distanz, Pump-Frequenz, Gleitphasen. Kostenlos und quelloffen." />
+    <meta name="twitter:image" content="https://pumpfoil.org/oauth-logo-512.png" />
+    <!-- Strukturierte Daten. Kein ausfuehrbares Skript (Typ `application/ld+json`), die CSP mit
+         `script-src 'self'` laesst es durch — im Browser gegengeprueft, nicht angenommen.
+         `SoftwareApplication` ist der ehrliche Typ: eine kostenlose Web-App. `FAQPage` deckt die
+         Fragen ab, die Leute wirklich tippen („was ist pumpfoil", „womit tracken"). -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "SoftwareApplication",
+          "@id": "https://pumpfoil.org/#app",
+          "name": "Pumpfoil",
+          "alternateName": ["Pumpfoil.org", "Pump Foiling Tracker"],
+          "url": "https://pumpfoil.org/",
+          "applicationCategory": "SportsApplication",
+          "applicationSubCategory": "Pump Foiling",
+          "operatingSystem": "Web, iOS, Android, watchOS, Wear OS, Garmin Connect IQ, Zepp OS",
+          "description": "Pumpfoil zeichnet Pump-Foiling-Sessions mit Sportuhr oder Handy auf und wertet sie automatisch aus: GPS-Track, Foiling-Distanz, Pump-Frequenz, Gleitphasen, Puls und Rekorde.",
+          "inLanguage": ["de", "en", "fr", "it", "es", "nl", "pt", "pl", "cs", "fi", "nb", "id", "ja", "zh", "ru"],
+          "isAccessibleForFree": true,
+          "license": "https://www.gnu.org/licenses/agpl-3.0.html",
+          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+          "featureList": [
+            "Pump-Foiling mit Garmin, Apple Watch, Wear OS und Amazfit aufzeichnen",
+            "Pumps zaehlen und Pump-Frequenz messen",
+            "Foiling-Distanz, Gleitphasen und Startversuche erkennen",
+            "GPS-Track nach Geschwindigkeit, Puls oder Pump-Frequenz einfaerben",
+            "Sessions vergleichen, Community-Rekorde und Spot-Chats"
+          ]
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://pumpfoil.org/#org",
+          "name": "Pumpfoil.org",
+          "url": "https://pumpfoil.org/",
+          "logo": "https://pumpfoil.org/icon-512.png"
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://pumpfoil.org/#website",
+          "url": "https://pumpfoil.org/",
+          "name": "Pumpfoil",
+          "publisher": { "@id": "https://pumpfoil.org/#org" },
+          "inLanguage": "de"
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://pumpfoil.org/#faq",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "Was ist Pumpfoiling?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Pumpfoiling heisst, ein Hydrofoil ohne Wind, Welle oder Motor allein durch rhythmisches Auf- und Abbewegen des Boards in Fahrt zu halten. Der Antrieb kommt aus dem Koerper des Fahrers — jede dieser Bewegungen ist ein Pump."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Womit kann ich Pumpfoiling aufzeichnen?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Mit einer Garmin-Uhr (ueber 70 Modelle), einer Apple Watch, einer Wear-OS-Uhr oder einer Amazfit. Ohne Uhr geht es auch mit dem Handy. Wer eine Polar, Suunto, COROS oder Xiaomi nutzt, verknuepft sein Konto und die Sessions kommen automatisch an."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Wie werden Pumps gezaehlt?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Die Uhr zeichnet neben GPS auch die Beschleunigung am Handgelenk auf. Daraus erkennt die Auswertung die Pump-Bewegung und zaehlt jeden einzelnen Pump, misst die Pump-Frequenz in Hertz und trennt Pumpphasen von Gleitphasen."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Kostet Pumpfoil.org etwas?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Nein. Die Nutzung ist kostenlos, es gibt keine Werbung und kein Tracking. Der Quellcode steht unter der AGPL-3.0 offen."
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
   </head>
   <body>
     <!-- Theme früh anwenden (kein Flash) — ausgelagert, damit die CSP ohne Inline-Skript auskommt. -->

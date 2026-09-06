@@ -40,6 +40,10 @@ Ergänzt [`UX-IA.md`](UX-IA.md) (Informationsarchitektur). Bei neuer Route hier 
 
 ## Nerd-/Technik-Seiten (öffentlich, tief)
 
+**Seit 06.09.2026 wirklich öffentlich** — eigene Routen ohne Login (vorher rendert `RootRoute`
+Gästen dort die Landing-Page). Sie stehen in der `sitemap.xml`, sind aus der `robots.txt`
+heraus und von der Startseite verlinkt.
+
 | Route | Komponente | Was drauf ist |
 |---|---|---|
 | `/nerd-analysen` | `NerdAnalysen.tsx` | Teil 1: Dual-Watch-Pumpfoil-Experiment (2026-06-27). 7 Sprachen (`nerd1.i18n.ts`). |

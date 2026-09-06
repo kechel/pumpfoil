@@ -1,9 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Nur Seiten, die ein Gast ohne Login wirklich sieht. Alles andere rendert der Router
+     als Landing-Page und waere ein Duplikat (s. robots.txt). -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://pumpfoil.org/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://pumpfoil.org/nerd-analysen</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pumpfoil.org/nerd-analysen-2</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pumpfoil.org/nerd-analysen-3</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pumpfoil.org/systemarchitektur</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://pumpfoil.org/changelog</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
   </url>
   <url>
     <loc>https://pumpfoil.org/impressum</loc>
