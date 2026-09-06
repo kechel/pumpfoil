@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { NerdIcon } from "../components/Icons";
 import { useI18n } from "../i18n";
 import { NERD2 } from "./nerd2.i18n";
+import { useSeo } from "../lib/seo";
 
 // Nerd-Analysen — Teil 2: Wie die Erkennung wirklich funktioniert.
 // Der IT-/Signalverarbeitungs-/ML-Teil hinter Pump-, On-Foil-, Start/Ende- und
@@ -93,6 +94,9 @@ function Box({ x, y, w, h, title, sub, accent }: { x: number; y: number; w: numb
 }
 
 export default function NerdAnalysen2() {
+  // Eigener Titel und eigene Beschreibung — sonst teilen sich alle
+  // oeffentlichen Seiten die Angaben aus `index.html`.
+  useSeo("Wie die Pump-Erkennung funktioniert", "Signalverarbeitung und maschinelles Lernen hinter der Pumpfoil-Auswertung: Pump-Erkennung, On-Foil-Erkennung, Start und Ende eines Laufs, Gleitphasen.");
   const { lang } = useI18n();
   const c = NERD2[lang] ?? NERD2.de!;
   return (

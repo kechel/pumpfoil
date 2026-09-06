@@ -96,6 +96,15 @@ const router = createBrowserRouter([
   { path: "/reset", element: <Reset /> },
   { path: "/impressum", element: <Impressum /> },
   { path: "/changelog", element: <Changelog /> },
+  // Oeffentlich OHNE Login — und das ist eine SEO-Entscheidung (Jan, 06.09.2026): fuer
+  // Gaeste rendert `RootRoute` sonst die Landing-Page, Google saehe also unter vier
+  // eigenen Adressen denselben Inhalt („Duplikat ohne Canonical") und muesste sie in der
+  // robots.txt gesperrt bleiben. Genau diese Seiten sind aber der tiefste eigene Inhalt,
+  // den wir haben. Sie rufen keine API auf, es geht also kein Zugriffsschutz verloren.
+  { path: "/nerd-analysen", element: <NerdAnalysen /> },
+  { path: "/nerd-analysen-2", element: <NerdAnalysen2 /> },
+  { path: "/nerd-analysen-3", element: <NerdAnalysen3 /> },
+  { path: "/systemarchitektur", element: <Systemarchitektur /> },
   { path: "/s/:token", element: <PublicSession /> },   // öffentlicher Teilen-Link (read-only, ohne Login)
   {
     path: "/",
@@ -126,10 +135,6 @@ const router = createBrowserRouter([
       { path: "sessions/:id", element: <SessionDetail /> },
       { path: "sessions/:id/label", element: <Labeling /> },
       { path: "admin", element: <Admin /> },
-      { path: "nerd-analysen", element: <NerdAnalysen /> },
-      { path: "nerd-analysen-2", element: <NerdAnalysen2 /> },
-      { path: "nerd-analysen-3", element: <NerdAnalysen3 /> },
-      { path: "systemarchitektur", element: <Systemarchitektur /> },
     ],
   },
 ]);

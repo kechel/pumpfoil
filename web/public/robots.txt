@@ -1,4 +1,7 @@
-# Öffentlich indexierbar sind nur die Landing-Page (/) und /impressum.
+# Öffentlich indexierbar: Landing-Page (/), /impressum, /changelog und die vier
+# Textseiten (Nerd-Analysen 1–3, Systemarchitektur). Die vier sind seit 06.09.2026
+# auch OHNE Login erreichbar — vorher rendert der Router Gästen dort die Landing-Page,
+# und Google hätte unter vier Adressen denselben Inhalt gesehen.
 # Alle App-Routen zeigen Gästen/Crawlern nur dieselbe Landing-Page (login-gated)
 # -> vom Crawling ausschließen, sonst meldet Google "Duplikat ohne Canonical".
 # Statische Assets (/assets, /media, Bilder, manifest) bleiben crawlbar, damit
@@ -22,6 +25,9 @@ Disallow: /einstellungen
 Disallow: /konten
 Disallow: /vergleich
 Disallow: /admin
-Disallow: /nerd-analysen
+
+# Bilder und Assets bleiben crawlbar, sonst kann Google die Seite nicht rendern.
+Allow: /assets/
+Allow: /nerd3/
 
 Sitemap: https://pumpfoil.org/sitemap.xml

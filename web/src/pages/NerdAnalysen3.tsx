@@ -4,6 +4,7 @@ import { FoilIcon } from "../components/Icons";
 import { ShortModal } from "../components/ShortModal";
 import { useI18n } from "../i18n";
 import { NERD3 } from "./nerd3.i18n";
+import { useSeo } from "../lib/seo";
 
 // Nerd-Analysen — Teil 3: Bericht zur zweiten Doppeluhr-Messung (wo wir aktuell stehen).
 // Datengetrieben aus nerd3.i18n.ts (alle 8 Sprachen). Anders als Teil 1/2 mit echten
@@ -51,6 +52,9 @@ function Fig({ src, caption }: { src: string; caption: string }) {
 const VIDEO_ID = "S85hOgmajb4";   // Doppeluhr + Board-Handy (YouTube-Short)
 
 export default function NerdAnalysen3() {
+  // Eigener Titel und eigene Beschreibung — sonst teilen sich alle
+  // oeffentlichen Seiten die Angaben aus `index.html`.
+  useSeo("Zweite Doppeluhr-Messung mit Fotos und Messkurven", "Pump-Foiling nachgemessen: zwei Uhren am selben Lauf, echte Fotos und Messkurven zu Pumps, Puls und Geschwindigkeit.");
   const { lang } = useI18n();
   const c = NERD3[lang] ?? NERD3.de!;
   const [vidOpen, setVidOpen] = useState(false);

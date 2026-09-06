@@ -619,6 +619,37 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 06.09. — Startseite auf „pumpfoil“ optimiert (Jans Auftrag).** Was gemacht wurde, und
+  vor allem: was NICHT.
+  **Der groesste Fund war kein Meta-Tag, sondern eine Sperre.** `/nerd-analysen`,
+  `-2`, `-3` und `/systemarchitektur` sind rund 119 KB eigener Fachtext — und waren fuer
+  Gaeste nicht erreichbar: `RootRoute` rendert ohne Token die Landing-Page, also sah Google
+  unter vier Adressen dasselbe. Deshalb standen sie zu Recht in der `robots.txt`. Jetzt sind
+  sie echte oeffentliche Routen (sie rufen keine API auf, es geht kein Schutz verloren), aus
+  der `robots.txt` heraus, in der `sitemap.xml` drin und von der Startseite verlinkt — vorher
+  verlinkte sie NIRGENDS etwas.
+  **Zweiter Fund: die `h1` der Startseite war leer.** Die Wortmarke ist ein Bild. Jetzt traegt
+  die `h1` echten Text (`land.h1`, 17 Sprachen), die Bilder sind als Schmuck ausgezeichnet.
+  **Dritter Fund: alle Seiten trugen denselben `<title>`.** Neu: `src/lib/seo.ts` setzt Titel,
+  Beschreibung, Canonical und die OG-Felder je Seite.
+  **Dazu:** strukturierte Daten als JSON-LD (`SoftwareApplication`, `Organization`, `WebSite`,
+  `FAQPage` mit vier echten Fragen), `max-image-preview:large`, Twitter-Karten,
+  `og:site_name`/`og:locale`, Canonical in `index.html`, Sitemap von 2 auf 7 Seiten.
+  **Im Browser gegengeprueft**, nicht angenommen: JSON-LD kommt trotz `script-src 'self'`
+  durch die CSP (nicht ausfuehrbarer Typ), keine Konsolenfehler, `/nerd-analysen` rendert fuer
+  Gaeste 4366 Zeichen, `-2` sogar 15 024.
+  **Bewusst NICHT gemacht** (Jan fragte nach „offiziell und inoffiziell“): Keyword-Stuffing,
+  versteckter Text, Doorway-Seiten, Cloaking (anderer Inhalt fuer Crawler als fuer Menschen),
+  gekaufte Links, Kommentar-Spam. Das sind alles Verstoesse gegen Googles Spam-Richtlinien;
+  sie wirken kurz und kosten dann die ganze Domain. Die `sr-only`-`h1` ist KEIN versteckter
+  Text in diesem Sinn: sie sagt woertlich dasselbe wie das Bild darueber und ist die uebliche
+  Barrierefreiheits-Loesung.
+  **Offen und die groesste verbleibende Chance: eigene Adressen je Sprache.** Heute liegen alle
+  17 Sprachen auf EINER URL (Umschaltung im `localStorage`), Google indexiert also nur Deutsch.
+  Fuer „pump foiling“ auf Englisch braeuchte es `/en/…` samt `hreflang`. Das ist ein Eingriff in
+  Routing, i18n und Server — deshalb hier als Vorschlag und nicht heimlich mitgebaut.
+
+
 - **🟢 05.09. — Importe trugen die falsche Sportart: Lesefehler behoben, 130 Sessions korrigiert.**
   Ausloeser: Jan fiel Session 3501 auf („das ist vermutlich wingfoil oder?“). In der Datei steht
   `session.sport = sailing` — und derselbe Fahrer hatte am selben Tag zwei Aufnahmen mit

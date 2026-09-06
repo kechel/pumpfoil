@@ -144,12 +144,19 @@ export default function Landing() {
           <section className="pb-6 pt-0 text-center sm:pb-10 sm:pt-0">
             {/* Haupttitel = Wortmarke + Tagline „TRACK EVERY PUMP" (PNG: schriftunabhängig
                 identisch auf allen Geräten). Alt-Text trägt die H1-Semantik. */}
-            <h1>
-              <img src="/wordmark-stacked-dark.png" alt="Pumpfoil.org — Track every pump"
+            {/* Die Wortmarke ist ein BILD — damit stand hier eine leere `h1`, im Browser
+                nachgemessen. Suchmaschinen sahen auf der wichtigsten Seite gar keine
+                Ueberschrift. Jetzt traegt die `h1` echten Text (nur fuer Vorleseprogramme und
+                Crawler sichtbar), und die Bilder sind als Schmuck ausgezeichnet, damit ihr
+                Alt-Text die Ueberschrift nicht doppelt. Der Text sagt dasselbe wie das Bild —
+                nichts Verstecktes, nur maschinenlesbar. */}
+            <h1 className="sr-only">{t("land.h1")}</h1>
+            <p aria-hidden="true">
+              <img src="/wordmark-stacked-dark.png" alt=""
                 className="logo-dark mx-auto h-auto w-full max-w-sm sm:max-w-md" />
-              <img src="/wordmark-stacked-light.png" alt="Pumpfoil.org — Track every pump"
+              <img src="/wordmark-stacked-light.png" alt=""
                 className="logo-light mx-auto h-auto w-full max-w-sm sm:max-w-md" />
-            </h1>
+            </p>
             <p className="mx-auto mt-3 max-w-2xl text-base text-slate-300 sm:text-lg">{t("land.heroSub")}</p>
 
             {/* Kompakter Promo-Block: aktueller Lieblings-Short (Click-to-Load, datensparsam);
@@ -340,13 +347,13 @@ export default function Landing() {
                       >
                         <img
                           src={`/mobile-dark-${n}.webp`}
-                          alt="Pumpfoil App"
+                          alt={t("land.appShotsTitle")}
                           loading="lazy"
                           className="shot-dark block w-full"
                         />
                         <img
                           src={`/mobile-light-${n}.webp`}
-                          alt="Pumpfoil App"
+                          alt={t("land.appShotsTitle")}
                           loading="lazy"
                           className="shot-light block w-full"
                         />
@@ -462,6 +469,25 @@ export default function Landing() {
               {t("land.openLink")}
             </a>
           </div>
+        </section>
+
+        {/* Die vier Textseiten. Sie sind seit 06.09.2026 ohne Login erreichbar, waren aber von
+            NIRGENDS verlinkt — weder Besucher noch Suchmaschinen fanden sie. Es ist der tiefste
+            eigene Inhalt, den wir haben, und er beantwortet genau die Fragen, die Leute zum
+            Pumpfoilen stellen. */}
+        <section className="mb-10 rounded-3xl border border-slate-800 bg-slate-900/40 px-6 py-8">
+          <h2 className="text-xl font-bold sm:text-2xl">{t("land.deepTitle")}</h2>
+          <p className="mt-2 max-w-2xl text-slate-300">{t("land.deepBody")}</p>
+          <ul className="mt-4 space-y-2">
+            {[["/nerd-analysen", "land.deep1"], ["/nerd-analysen-2", "land.deep2"],
+              ["/nerd-analysen-3", "land.deep3"], ["/systemarchitektur", "land.deep4"]].map(([zu, k]) => (
+              <li key={zu}>
+                <Link to={zu} className="text-brand-700 hover:underline dark:text-brand-300">
+                  {t(k)}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </section>
 
         {/* Abschluss-CTA */}
