@@ -40,6 +40,12 @@ h2.dirtitle { text-transform: none; white-space: nowrap; overflow: hidden; text-
 .btn:hover { background: #8883; }
 .btn.sel, .btn.primary { background: #3b82f6; color: #fff; border-color: #3b82f6; }
 .btn:disabled { opacity: .4; cursor: default; }
+/* Filter ueber der Videoliste — der Zaehler daneben zeigt, dass gefiltert wird */
+.vsearch { display: flex; align-items: center; gap: 6px; padding: 0 12px 8px; }
+.vsearch input[type=search] { flex: 1; min-width: 0; font-size: 12px; padding: 5px 8px;
+  border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; }
+.vsearch .mini { flex: none; }
+
 .quickrow { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 12px 8px; }
 .chip { font-size: 11px; padding: 3px 9px; border: 1px solid #8886; border-radius: 10px; cursor: pointer; background: transparent; color: inherit; }
 .chip:hover { background: #8883; }
