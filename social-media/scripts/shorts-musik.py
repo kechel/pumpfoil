@@ -355,14 +355,20 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
             hold = max(0.0, float(tx.get("hold", TEXT_HOLD)))
         except (TypeError, ValueError):
             hold = TEXT_HOLD
-        e = s + 2 * TEXT_FADE + hold
+        # Blenddauer je Text: fuer Fliesstext sind 0,5 s richtig, ein Stempel
+        # will hart einrasten (~0,12 s) — sonst wirkt er wie eine Bauchbinde.
+        try:
+            fade = max(0.02, float(tx.get("fade", TEXT_FADE)))
+        except (TypeError, ValueError):
+            fade = TEXT_FADE
+        e = s + 2 * fade + hold
         inputs += ["-loop", "1", "-i", str(tx["png"])]
         idx = n_inputs
         n_inputs += 1
         fc_parts.append(
             f"[{idx}:v]format=rgba"
-            f",fade=t=in:st={s:.3f}:d={TEXT_FADE}:alpha=1"
-            f",fade=t=out:st={e - TEXT_FADE:.3f}:d={TEXT_FADE}:alpha=1[t{i}];"
+            f",fade=t=in:st={s:.3f}:d={fade:.3f}:alpha=1"
+            f",fade=t=out:st={e - fade:.3f}:d={fade:.3f}:alpha=1[t{i}];"
             f"{vsrc}[t{i}]overlay=0:0:format=auto[v{i}]")
         vsrc = f"[v{i}]"
     # Endcard: ganzflaechiges Bild an frei gewaehlter Stelle, mit eigener
@@ -1901,7 +1907,7 @@ class Handler(BaseHTTPRequestHandler):
             os.close(fd)
             tmp_pngs.append(pth)
             texts.append({"start": t["start"], "hold": t.get("hold", TEXT_HOLD),
-                          "png": pth})
+                          "fade": t.get("fade", TEXT_FADE), "png": pth})
         outros = {}
         for pf, dataurl in (req.get("outros") or {}).items():
             if not dataurl:

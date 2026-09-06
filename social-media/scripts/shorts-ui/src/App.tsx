@@ -14,12 +14,27 @@ const OUTRO_SECS = 2.5;
 const OUTRO_SECS_LONG = 4.0;
 const OUTRO_LONG_AB = 20.0;
 
+// Stil je Textzeile. "text" ist der bisherige Fliesstext. Die beiden Stempel
+// sind fuer die "success or fail?"-Reihe: Kopfzeile fest (SUCCESS/FAIL), der
+// eingetippte Text wird zur Unterzeile darunter — beides im selben Winkel.
+type TxStyle = "text" | "success" | "fail";
 interface TextSlot {
   start: number | null;
   text: string;
   hold: number;
   size?: number;   // Schriftgröße je Zeile (Default TXS)
+  style?: TxStyle;
 }
+const STAMP: Record<"success" | "fail", { label: string; color: string; tilt: number }> = {
+  // tilt in Grad: der Erfolg lehnt links, der Fail rechts — damit sich der
+  // letzte Beat anders anfuehlt als die drei davor.
+  success: { label: "SUCCESS", color: "#22c55e", tilt: -7 },
+  fail: { label: "FAIL", color: "#ef4444", tilt: 6 },
+};
+// Ein Stempel rastet ein, er blendet nicht auf: 0,12 s statt der 0,5 s fuer Text.
+const STAMP_FADE = 0.12;
+const NAVY = "#020617";
+const isStamp = (s?: TxStyle): s is "success" | "fail" => s === "success" || s === "fail";
 // Standardtexte in den beiden untersten Slots. Die Leerzeilen sind Absicht: die
 // Zeilen werden vertikal zentriert (siehe drawText), die Leerzeilen schieben den
 // Text nach oben. Die Anzahl ist so gewaehlt, dass beide Bloecke auf derselben
@@ -35,7 +50,14 @@ const emptyTexts = (): TextSlot[] =>
       : i === TXN - 2 ? DEFAULT_2ND_LAST_TEXT : "",
     hold: TXH,
     size: TXS,
+    style: "text",
   }));
+
+// Vorlage der "success or fail?"-Reihe: Hook, k Urteile, Schlusssatz, echter Fail.
+const REVEAL_SUBS = ["you tried it", "you tried again", "you got closer", "you kept going"];
+const REVEAL_HOOK = "success or fail?";
+const REVEAL_END = "trying is the success.\n\nthe rest is practice.";
+const REVEAL_FAIL = "the day I stayed home";
 
 // Pegel-Abschnitte: Musik/O-Ton in Zeitfenstern um ±dB anheben/absenken (0,5-s-Rampen)
 interface DuckSlot {
@@ -145,6 +167,10 @@ function Studio() {
   // Rechte Spalte: Einstellungen und Musiksuche teilen sich die Hoehe nicht mehr,
   // sondern loesen einander ab — es wurde schlicht zu eng.
   const [sideTab, setSideTab] = useState<"set" | "musik">(sv("sideTab", "set"));
+  // Mittelspalte: die zehn Rohzeilen, oder die Beat-Liste der Reveal-Reihe.
+  // Beides schreibt in dieselben texts-Slots, nur anders bedient.
+  const [midTab, setMidTab] = useState<"texte" | "reveal">(sv("midTab", "texte"));
+  const [beats, setBeats] = useState<number>(sv("beats", 3));
   // Endcard: ganzflaechiges Bild an frei gewaehlter Stelle, Zeiten in Sekunden
   const [endcard, setEndcard] = useState<EndCard>(() => {
     // Vorgaben zuerst, gespeicherte Werte darueber — so fehlt bei aelteren
@@ -171,10 +197,10 @@ function Studio() {
   useEffect(() => {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({
       curVideo, sel, pvPlatform, trim, texts, gain, otonGain, ducks, fade,
-      sideTab, endcard,
+      sideTab, endcard, midTab, beats,
       outName, ovOn, ovSel, ovAlpha, outroOn, fltYT, fltIG, fltTT,
     }));
-  }, [curVideo, sel, pvPlatform, trim, texts, gain, otonGain, ducks, fade, outName, ovOn, ovSel, ovAlpha, outroOn, fltYT, fltIG, fltTT, sideTab, endcard]);
+  }, [curVideo, sel, pvPlatform, trim, texts, gain, otonGain, ducks, fade, outName, ovOn, ovSel, ovAlpha, outroOn, fltYT, fltIG, fltTT, sideTab, endcard, midTab, beats]);
   const [browserOpen, setBrowserOpen] = useState(false);
   const [dirInput, setDirInput] = useState("");
   const [log, setLog] = useState("");
@@ -184,7 +210,10 @@ function Studio() {
 
   const vidRef = useRef<HTMLVideoElement>(null);
   const musicRef = useRef<HTMLAudioElement>(null);
-  const txovRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const txovRefs = useRef<(HTMLElement | null)[]>([]);
+  // Die Vorschau zeigt genau das PNG, das auch gerendert wird — nicht mehr
+  // eine CSS-Nachbildung. Neu erzeugt nur bei Aenderung, nicht je Frame.
+  const [txPreview, setTxPreview] = useState<(string | null)[]>([]);
   const outroImgRef = useRef<HTMLImageElement>(null);
   const allowPlayRef = useRef(0);
   const playTimerRef = useRef<number | undefined>(undefined);
@@ -332,18 +361,16 @@ function Studio() {
         vid.volume = Math.min(1, Math.pow(10, otonGain / 20) * duckF("oton"));
         if (musicRef.current)
           musicRef.current.volume = Math.min(1, Math.pow(10, gain / 20) * duckF("music"));
-        const scale = vid.videoWidth ? vid.clientWidth / vid.videoWidth : 1;
         texts.forEach((tx, i) => {
           const el = txovRefs.current[i];
           if (!el) return;
-          if (tx.start == null || !tx.text.trim()) {
+          if (tx.start == null) {
             el.style.opacity = "0";
             return;
           }
-          const e = tx.start + 2 * TXF + (tx.hold ?? TXH);
-          const a = Math.max(0, Math.min(Math.min((t - tx.start) / TXF, (e - t) / TXF), 1));
-          el.textContent = tx.text;
-          el.style.fontSize = `${(tx.size ?? TXS) * scale}px`;
+          const fd = isStamp(tx.style) ? STAMP_FADE : TXF;
+          const e = tx.start + 2 * fd + (tx.hold ?? TXH);
+          const a = Math.max(0, Math.min(Math.min((t - tx.start) / fd, (e - t) / fd), 1));
           el.style.opacity = String(a);
         });
         const ec = ecImgRef.current;
@@ -417,10 +444,111 @@ function Studio() {
     return c.toDataURL("image/png");
   }
 
+  // Abgerundetes Rechteck ohne roundRect() — arcTo laeuft ueberall.
+  function rrect(g: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+    g.beginPath();
+    g.moveTo(x + r, y);
+    g.arcTo(x + w, y, x + w, y + h, r);
+    g.arcTo(x + w, y + h, x, y + h, r);
+    g.arcTo(x, y + h, x, y, r);
+    g.arcTo(x, y, x + w, y, r);
+    g.closePath();
+  }
+
+  // Stempel: Navy-Flaeche, farbiger Rahmen, Haken bzw. Kreuz, darunter die
+  // Unterzeile im selben Winkel. Alle Masse sind fuer 1080 Breite entworfen und
+  // werden ueber k skaliert, damit 720er Videos gleich aussehen.
+  function stampPng(tx: TextSlot, w: number, h: number): string {
+    const cfg = STAMP[tx.style as "success" | "fail"];
+    const k = w / 1080;
+    const c = document.createElement("canvas");
+    c.width = w;
+    c.height = h;
+    const g = c.getContext("2d")!;
+    const face = '"Avenir Next", Avenir, "Helvetica Neue", Helvetica, sans-serif';
+    const B = 12 * k, R = 20 * k, PY = 28 * k, PL = 44 * k, PR = 56 * k, GAP = 28 * k;
+    const FS = 92 * k, LS = 10 * k, ICON = 84 * k;
+    const SUB_FS = 48 * k, SUB_PY = 18 * k, SUB_PX = 40 * k, SUB_R = 12 * k, SUB_GAP = 20 * k;
+
+    g.font = `800 ${FS}px ${face}`;
+    g.letterSpacing = `${LS}px`;
+    const labelW = g.measureText(cfg.label).width;
+    const boxW = PL + ICON + GAP + labelW + PR;
+    const boxH = PY * 2 + FS;
+
+    const sub = tx.text.trim();
+    let subW = 0, subH = 0;
+    if (sub) {
+      g.font = `600 ${SUB_FS}px ${face}`;
+      g.letterSpacing = `${2 * k}px`;
+      subW = g.measureText(sub).width + SUB_PX * 2;
+      subH = SUB_FS + SUB_PY * 2;
+    }
+    const blockH = boxH + (sub ? SUB_GAP + subH : 0);
+
+    g.translate(w / 2, h * 0.46);
+    g.rotate((cfg.tilt * Math.PI) / 180);
+    g.textAlign = "left";
+    g.textBaseline = "middle";
+
+    // Stempel
+    const bx = -boxW / 2, by = -blockH / 2;
+    g.shadowColor = "rgba(2,6,23,0.45)";
+    g.shadowBlur = 34 * k;
+    g.shadowOffsetY = 10 * k;
+    g.fillStyle = NAVY;
+    rrect(g, bx, by, boxW, boxH, R);
+    g.fill();
+    g.shadowColor = "transparent";
+    g.shadowBlur = 0;
+    g.shadowOffsetY = 0;
+    g.strokeStyle = cfg.color;
+    g.lineWidth = B;
+    rrect(g, bx + B / 2, by + B / 2, boxW - B, boxH - B, R - B / 2);
+    g.stroke();
+
+    // Haken / Kreuz, aus dem 24er Raster der Outro-Icons
+    const s = ICON / 24;
+    g.save();
+    g.translate(bx + PL, by + boxH / 2 - ICON / 2);
+    g.scale(s, s);
+    g.strokeStyle = cfg.color;
+    g.lineWidth = 3.6;
+    g.lineCap = "round";
+    g.lineJoin = "round";
+    g.beginPath();
+    if (tx.style === "success") {
+      g.moveTo(4, 12.5); g.lineTo(9.5, 18); g.lineTo(20, 6.5);
+    } else {
+      g.moveTo(6, 6); g.lineTo(18, 18); g.moveTo(18, 6); g.lineTo(6, 18);
+    }
+    g.stroke();
+    g.restore();
+
+    g.font = `800 ${FS}px ${face}`;
+    g.letterSpacing = `${LS}px`;
+    g.fillStyle = cfg.color;
+    g.fillText(cfg.label, bx + PL + ICON + GAP, by + boxH / 2);
+
+    // Unterzeile
+    if (sub) {
+      const sy = by + boxH + SUB_GAP;
+      g.fillStyle = NAVY;
+      rrect(g, -subW / 2, sy, subW, subH, SUB_R);
+      g.fill();
+      g.font = `600 ${SUB_FS}px ${face}`;
+      g.letterSpacing = `${2 * k}px`;
+      g.fillStyle = "#ffffff";
+      g.fillText(sub, -subW / 2 + SUB_PX, sy + subH / 2);
+    }
+    return c.toDataURL("image/png");
+  }
+
   function textPng(tx: TextSlot): string {
     const vid = vidRef.current;
     const w = vid?.videoWidth || 1080;
     const h = vid?.videoHeight || 1920;
+    if (isStamp(tx.style)) return stampPng(tx, w, h);
     const c = document.createElement("canvas");
     c.width = w;
     c.height = h;
@@ -439,6 +567,38 @@ function Studio() {
     const y0 = h / 2 - ((lines.length - 1) / 2) * lh;
     lines.forEach((ln, i) => g.fillText(ln, w / 2, y0 + i * lh));
     return c.toDataURL("image/png");
+  }
+
+  useEffect(() => {
+    setTxPreview(texts.map((tx) =>
+      tx.start != null && (tx.text.trim() || isStamp(tx.style)) ? textPng(tx) : null));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [texts, curVideo]);
+
+  // Slot-Plan der Reihe: Hook, k Urteile, Schluss, echter Fail — auf die
+  // vorhandenen Textslots abgebildet, damit am Render nichts anzupassen ist.
+  const revealRows = useMemo(() => {
+    const r: { slot: number; label: string; hint: string }[] = [
+      { slot: 0, label: "Hook", hint: "über dem ersten Frame" },
+    ];
+    for (let b = 0; b < beats; b++)
+      r.push({ slot: 1 + b, label: `Urteil ${b + 1}`, hint: "auf den Aufprall setzen" });
+    r.push({ slot: beats + 1, label: "Schluss", hint: "die Aussage" });
+    r.push({ slot: beats + 2, label: "Echter Fail", hint: "Standbild o. ä." });
+    return r;
+  }, [beats]);
+
+  function seedReveal() {
+    setTexts((ts) =>
+      ts.map((t, i): TextSlot => {
+        if (i === 0) return { ...t, text: REVEAL_HOOK, style: "text", hold: 1.2, size: 72 };
+        if (i >= 1 && i <= beats)
+          return { ...t, text: REVEAL_SUBS[(i - 1) % REVEAL_SUBS.length], style: "success", hold: 1.2 };
+        if (i === beats + 1) return { ...t, text: REVEAL_END, style: "text", hold: 2.2, size: 64 };
+        if (i === beats + 2) return { ...t, text: REVEAL_FAIL, style: "fail", hold: 2.2 };
+        return t;
+      }),
+    );
   }
 
   const setDir = useCallback(
@@ -648,8 +808,11 @@ function Studio() {
         trim_end: trim.end,
         out_name: outName,
         texts: texts
-          .filter((t) => t.text.trim() && t.start != null)
-          .map((t) => ({ start: t.start, hold: t.hold, png: textPng(t) })),
+          // Ein Stempel zaehlt auch ohne Unterzeile — nur Fliesstext braucht Inhalt.
+          .filter((t) => t.start != null && (t.text.trim() || isStamp(t.style)))
+          .map((t) => ({ start: t.start, hold: t.hold,
+                         fade: isStamp(t.style) ? STAMP_FADE : TXF,
+                         png: textPng(t) })),
         outros: outroOn && vidRef.current
           ? {
               youtube: outroPng("youtube", vidRef.current),
@@ -825,9 +988,12 @@ function Studio() {
                    src={`/media/endcard/${encodeURIComponent(endcard.file)}`} />
             )}
             <img ref={outroImgRef} className="outroimg" alt="" style={{ opacity: 0 }} />
-            {texts.map((_, i) => (
-              <div key={i} ref={(el) => { txovRefs.current[i] = el; }} className="txov" />
-            ))}
+            {texts.map((_, i) =>
+              txPreview[i] ? (
+                <img key={i} ref={(el) => { txovRefs.current[i] = el; }} className="ovimg"
+                     alt="" style={{ opacity: 0 }} src={txPreview[i] as string} />
+              ) : null,
+            )}
           </div>
           <div className="actions">
             <div className="abtns">
@@ -847,7 +1013,65 @@ function Studio() {
                 <Icon name="undo" size={14} /> rückgängig
               </button>
             </div>
-            <div className="texts">
+            <div className="midtabs">
+              <button className={midTab === "texte" ? "on" : ""} onClick={() => setMidTab("texte")}>
+                Texte
+              </button>
+              <button className={midTab === "reveal" ? "on" : ""} onClick={() => setMidTab("reveal")}>
+                Reveal
+              </button>
+            </div>
+            <div className="reveal" hidden={midTab !== "reveal"}>
+              <div className="rvhead">
+                <label title="Wie viele Crashs zwischen Hook und Schluss">
+                  Urteile
+                  <input type="number" min={1} max={4} step={1} value={beats}
+                         onChange={(e) => setBeats(Math.min(4, Math.max(1, +e.target.value || 3)))} />
+                </label>
+                <button className="abtn" onClick={seedReveal} title="Texte, Stil und Standzeiten der Reihe in die Slots schreiben — Startzeiten bleiben">
+                  Vorlage einsetzen
+                </button>
+              </div>
+              {revealRows.map((r) => {
+                const tx = texts[r.slot];
+                if (!tx) return null;
+                return (
+                  <div key={r.slot} className="rvrow">
+                    <span className="rvlbl" title={r.hint}>{r.label}</span>
+                    <button className="mini" title="Startzeit = aktuelle Videoposition übernehmen"
+                      onClick={() =>
+                        setTexts((ts) => ts.map((s, j) =>
+                          j === r.slot ? { ...s, start: Math.round((vidRef.current?.currentTime ?? 0) * 10) / 10 } : s))
+                      }>@</button>
+                    <input type="number" className="tstart" min={0} step={0.1} placeholder="–"
+                      title="Startzeit in Sekunden — Doppelklick springt im Video dorthin"
+                      value={tx.start ?? ""}
+                      onChange={(e) =>
+                        setTexts((ts) => ts.map((s, j) =>
+                          j === r.slot
+                            ? { ...s, start: e.target.value === "" ? null : Math.max(0, +e.target.value) }
+                            : s))
+                      }
+                      onDoubleClick={() => {
+                        const vid = vidRef.current;
+                        if (vid && tx.start != null) vid.currentTime = tx.start;
+                      }} />
+                    <textarea className="rvtxt" rows={1} spellCheck={false}
+                      placeholder={isStamp(tx.style) ? "Unterzeile …" : "Text …"}
+                      value={tx.text}
+                      onChange={(e) => setTexts((ts) => ts.map((s, j) => (j === r.slot ? { ...s, text: e.target.value } : s)))} />
+                    <input type="number" className="thold" min={0} max={60} step={0.1}
+                      title="Anzeigedauer in Sekunden" value={tx.hold}
+                      onChange={(e) => setTexts((ts) => ts.map((s, j) => (j === r.slot ? { ...s, hold: Math.max(0, +e.target.value || 0) } : s)))} />
+                  </div>
+                );
+              })}
+              <div className="rvhint">
+                Schreibt in dieselben Textslots wie nebenan — dort kannst du jede Zeile
+                einzeln nachjustieren.
+              </div>
+            </div>
+            <div className="texts" hidden={midTab !== "texte"}>
               {texts.map((tx, i) => (
                 <div key={i} className="txrow">
                   <button
@@ -885,10 +1109,24 @@ function Studio() {
                       if (vid && tx.start != null) vid.currentTime = tx.start;
                     }}
                   />
+                  <div className="txstyle">
+                    {(["text", "success", "fail"] as TxStyle[]).map((s) => (
+                      <button
+                        key={s}
+                        className={(tx.style ?? "text") === s ? "on" : ""}
+                        title={s === "text" ? "Fließtext"
+                          : s === "success" ? "SUCCESS-Stempel (Text wird zur Unterzeile)"
+                          : "FAIL-Stempel (Text wird zur Unterzeile)"}
+                        onClick={() => setTexts((ts) => ts.map((t, j) => (j === i ? { ...t, style: s } : t)))}
+                      >
+                        {s === "text" ? "T" : s === "success" ? "✓" : "✕"}
+                      </button>
+                    ))}
+                  </div>
                   <textarea
                     className="txt"
                     rows={2}
-                    placeholder="Text …"
+                    placeholder={isStamp(tx.style) ? "Unterzeile …" : "Text …"}
                     spellCheck={false}
                     value={tx.text}
                     onChange={(e) => setTexts((ts) => ts.map((t, j) => (j === i ? { ...t, text: e.target.value } : t)))}
@@ -912,7 +1150,10 @@ function Studio() {
                     max={200}
                     step={4}
                     value={tx.size ?? TXS}
-                    title="Schriftgröße in Pixeln (bezogen auf 1080×1920)"
+                    disabled={isStamp(tx.style)}
+                    title={isStamp(tx.style)
+                      ? "Beim Stempel steht die Größe fest"
+                      : "Schriftgröße in Pixeln (bezogen auf 1080×1920)"}
                     onChange={(e) =>
                       setTexts((ts) =>
                         ts.map((t, j) => (j === i ? { ...t, size: Math.max(8, +e.target.value || TXS) } : t)),
@@ -922,7 +1163,7 @@ function Studio() {
                   <button
                     className="mini"
                     title="löschen"
-                    onClick={() => setTexts((ts) => ts.map((t, j) => (j === i ? { start: null, text: "", hold: TXH, size: TXS } : t)))}
+                    onClick={() => setTexts((ts) => ts.map((t, j) => (j === i ? { start: null, text: "", hold: TXH, size: TXS, style: "text" } : t)))}
                   >
                     <Icon name="x" size={11} />
                   </button>
