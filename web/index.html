@@ -17,7 +17,14 @@
       property="og:description"
       content="Verbinde deine Uhr (Garmin, Apple Watch, Wear OS, Amazfit) oder nimm per Handy auf und werte jede Pump-Foiling-Session aus: GPS-Track, Foiling-Distanz, Pump-Frequenz und Gleitphasen."
     />
-    <meta property="og:image" content="/oauth-logo-512.png" />
+    <!-- Vorschaubild fuers Teilen (WhatsApp, Signal, Telegram, Discord, LinkedIn, X …).
+         1200x630 = das Standardmass fuer die grosse Karte; vorher stand hier das
+         quadratische Anmelde-Logo, das die Dienste zurechtschnitten. Absolute Adresse,
+         weil manche Dienste relative Pfade nicht aufloesen. Generator: brand/master/ogimage.py -->
+    <meta property="og:image" content="https://pumpfoil.org/og-1200x630.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/png" />
     <meta property="og:url" content="https://pumpfoil.org/" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
@@ -62,7 +69,7 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Pumpfoil — Pump-Foiling aufzeichnen und auswerten" />
     <meta name="twitter:description" content="Zeichne Pump-Foiling mit Garmin, Apple Watch, Wear OS oder Amazfit auf und werte jede Session aus: GPS-Track, Foiling-Distanz, Pump-Frequenz, Gleitphasen. Kostenlos und quelloffen." />
-    <meta name="twitter:image" content="https://pumpfoil.org/oauth-logo-512.png" />
+    <meta name="twitter:image" content="https://pumpfoil.org/og-1200x630.png" />
     <!-- Strukturierte Daten. Kein ausfuehrbares Skript (Typ `application/ld+json`), die CSP mit
          `script-src 'self'` laesst es durch — im Browser gegengeprueft, nicht angenommen.
          `SoftwareApplication` ist der ehrliche Typ: eine kostenlose Web-App. `FAQPage` deckt die
