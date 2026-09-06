@@ -10,6 +10,9 @@ import { StartHelp } from "../components/StartHelp";
 import { useCompare } from "../lib/compare";
 import { fmtTime } from "../lib/time";
 import { usePumpFmt } from "../lib/pumpRate";
+// Rekord-Kacheln und Zeitfenster kommen aus der Community-Seite — eine Quelle, damit
+// die Spot-Rekorde nicht anders aussehen als dieselben Rekorde eine Seite weiter.
+import { RecordGrid, PERIODS } from "./Home";
 import { SessionCard } from "../components/SessionCard";
 import { UploadProgressCard } from "../components/UploadProgressCard";
 import { TrackPreview } from "../components/TrackPreview";
@@ -343,6 +346,10 @@ export default function Sessions() {
       {isMine && <MergeHint />}
       <CompareTip />
 
+      {/* Rekorde an DIESEM Spot — ganz oben, ueber dem Wetter (Nutzer-Idee aus dem Feedback,
+          Jan 06.09.). Dieselben Kacheln und dieselben Zeitfenster wie auf der Community-Seite,
+          nur eben auf den Spot eingegrenzt. */}
+      {spot && <SpotRecords spot={spot} accelOnly={accelOnly} />}
       {spot && <SpotWeather spot={spot} />}
       {/* Spot-Beschreibungen der Community: zwischen Wetter und Session-Liste (Jan, 24.08.).
           Nur bei einem echten Spot (numerische id) — Namens-Gruppen aus dem Altbestand haben
@@ -980,5 +987,52 @@ export function StatusBadge({ status }: { status: string }) {
     <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${map[status] ?? "bg-slate-700/40 text-slate-200"}`}>
       {labelKey[status] ? t(labelKey[status]) : status}
     </span>
+  );
+}
+
+
+/**
+ * Community-Rekorde an einem Spot. Baugleich zum Block auf der Community-Seite — dieselben
+ * `RecordGrid`-Kacheln, dieselben Zeitfenster-Knoepfe — nur mit `spot` eingegrenzt.
+ *
+ * Serverseitig war dafuer nichts zu bauen: `_record_entry` und die beiden Sonderfaelle
+ * (Zeit-Rekorde, Carves) kennen den Spot-Parameter seit jeher, nur der Endpunkt reichte ihn
+ * nicht durch.
+ *
+ * `showSpot` ist hier AUS: in jeder Kachel stuende sonst derselbe Ortsname, den die Seite
+ * oben schon im Auswahlfeld traegt.
+ *
+ * Der Accel-Schalter kommt von der Seite (`accelOnly`) statt eines zweiten daneben — eine
+ * Seite, eine Einstellung. Ein Foil-Band-Filter fehlt bewusst: an einem einzelnen Spot ist der
+ * Topf klein genug, dass eine weitere Eingrenzung meist leere Kacheln erzeugt.
+ */
+function SpotRecords({ spot, accelOnly }: { spot: string; accelOnly: boolean }) {
+  const t = useT();
+  const [data, setData] = useState<Awaited<ReturnType<typeof api.communityRecords>> | null>(null);
+  const [period, setPeriod] = useState("all");
+
+  useEffect(() => {
+    setData(null);
+    api.communityRecords(accelOnly, "pumpfoil", "all", spot).then(setData).catch(() => setData(null));
+  }, [spot, accelOnly]);
+
+  if (!data) return null;
+  return (
+    <Card className="mb-3 p-4">
+      <h3 className="mb-2 font-semibold">{t("rec.spotTitle")}</h3>
+      <div className="mb-3 flex flex-wrap items-center gap-1">
+        {PERIODS.map(([k, labelKey]) => (
+          <button
+            key={k}
+            onClick={() => setPeriod(k)}
+            className={`rounded-lg px-2.5 py-1 text-xs ${period === k
+              ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"}`}
+          >
+            {t(labelKey)}
+          </button>
+        ))}
+      </div>
+      <RecordGrid rec={data[period]} />
+    </Card>
   );
 }

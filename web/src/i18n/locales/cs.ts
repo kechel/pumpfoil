@@ -96,6 +96,7 @@ const cs: Record<string, string> = {
   "side.onlyAccel": "jen accel",
   "side.all": "vše",
   "side.recordsHint": "Rekordy jen z relací s daty ze zrychlení (přesné), nebo ze všech",
+  "rec.spotTitle": "Rekordy na tomto spotu",
   "rec.farthestRun": "Nejdelší jízda (vzdálenost)",
   "rec.longestRun": "Nejdelší jízda (čas)",
   "rec.topSpeed": "Top rychlost",

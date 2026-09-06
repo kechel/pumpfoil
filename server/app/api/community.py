@@ -720,11 +720,19 @@ def foil_bands(accel_only: bool = True, sport: str = "pumpfoil",
 
 
 @router.get("/records")
-def community_records(accel_only: bool = True, sport: str = "pumpfoil", foil_band: str = "all", _user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+def community_records(accel_only: bool = True, sport: str = "pumpfoil", foil_band: str = "all",
+                      spot: str | None = None,
+                      _user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+    """`spot`: Rekorde NUR an diesem Spot (numerisch = `spot_id`, sonst `place_name`, s.
+    `_spot_cond`). Serverseitig war dafuer nichts zu bauen — `_record_entry`, `_time_record` und
+    `_carve_record` kennen den Parameter seit jeher, nur dieser Endpunkt reichte ihn nicht durch
+    (Nutzer-Idee aus dem Feedback, Jan 06.09.2026: dieselben Rekorde je Spot).
+    """
     # EIN Cache fuer den ganzen Request: die Zeit-Metriken teilen sich damit ihre Basisdaten
     # ueber alle fuenf Zeitraeume (s. _time_rows).
     cache: dict = {}
-    return {p: {m: _record_entry(db, m, _cutoff(p), viewer_id=_user.id, accel_only=accel_only, sport=sport,
+    return {p: {m: _record_entry(db, m, _cutoff(p), spot=spot, viewer_id=_user.id,
+                                 accel_only=accel_only, sport=sport,
                                  cache=cache, foil_band=foil_band) for m in METRICS} for p in PERIODS}
 
 

@@ -110,6 +110,7 @@ const en: Record<string, string> = {
   "side.onlyAccel": "accel only",
   "side.all": "all",
   "side.recordsHint": "Records from sessions with acceleration data (precise) or from all",
+  "rec.spotTitle": "Records at this spot",
   "rec.farthestRun": "Farthest run",
   "rec.longestRun": "Longest run",
   "rec.topSpeed": "Top speed",

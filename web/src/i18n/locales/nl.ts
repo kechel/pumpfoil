@@ -96,6 +96,7 @@ const nl: Record<string, string> = {
   "side.onlyAccel": "alleen accel",
   "side.all": "alle",
   "side.recordsHint": "Records alleen uit sessies met versnellingsdata (precies) of uit alle",
+  "rec.spotTitle": "Records op deze spot",
   "rec.farthestRun": "Verste run",
   "rec.longestRun": "Langste run",
   "rec.topSpeed": "Topsnelheid",

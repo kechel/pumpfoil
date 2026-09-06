@@ -90,6 +90,7 @@ const ru: Record<string, string> = {
   "side.onlyAccel": "только акселерометр",
   "side.all": "все",
   "side.recordsHint": "Рекорды из сессий с данными акселерометра (точные) или из всех",
+  "rec.spotTitle": "Рекорды на этом споте",
   "rec.farthestRun": "Самый дальний заезд",
   "rec.longestRun": "Самый долгий заезд",
   "rec.topSpeed": "Макс. скорость",

@@ -70,6 +70,7 @@ const es: Record<string, string> = {
   "side.onlyAccel": "solo accel.",
   "side.all": "todos",
   "side.recordsHint": "Récords de sesiones con datos de aceleración (precisos) o de todas",
+  "rec.spotTitle": "Récords en este spot",
   "rec.farthestRun": "Run más largo",
   "rec.longestRun": "Run más duradero",
   "rec.topSpeed": "Velocidad máx.",

@@ -90,6 +90,7 @@ const zh: Record<string, string> = {
   "side.onlyAccel": "仅加速度数据",
   "side.all": "全部",
   "side.recordsHint": "来自含加速度数据（精确）的记录，或来自全部记录的纪录",
+  "rec.spotTitle": "本地点的纪录",
   "rec.farthestRun": "最远航段",
   "rec.longestRun": "最长航段",
   "rec.topSpeed": "最高速度",

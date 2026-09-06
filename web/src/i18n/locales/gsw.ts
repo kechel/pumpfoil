@@ -71,6 +71,7 @@ const gsw: Record<string, string> = {
   "side.onlyAccel": "nur Accel",
   "side.all": "alli",
   "side.recordsHint": "Rekord nur us Sessions mit Beschleunigungsdate (gnau) oder us allne",
+  "rec.spotTitle": "Rekord a däm Spot",
   "rec.farthestRun": "Wytischte Lauf",
   "rec.longestRun": "Längschte Lauf",
   "rec.topSpeed": "Top-Speed",

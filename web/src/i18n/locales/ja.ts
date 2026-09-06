@@ -90,6 +90,7 @@ const ja: Record<string, string> = {
   "side.onlyAccel": "加速度のみ",
   "side.all": "すべて",
   "side.recordsHint": "加速度データありのセッション（高精度）からの記録、または全セッションから",
+  "rec.spotTitle": "このスポットの記録",
   "rec.farthestRun": "最遠ラン",
   "rec.longestRun": "最長ラン",
   "rec.topSpeed": "最高速度",

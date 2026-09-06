@@ -1046,8 +1046,11 @@ export const api = {
       + (sport ? `&sport=${encodeURIComponent(sport)}` : "")),
   // `sport` = Sportart-Filter der Community-Seite (docs/sport-classification.md). Default pumpfoil,
   // damit Aufrufer ohne Filter unverändert weiterlaufen.
-  communityRecords: (accelOnly = true, sport = "pumpfoil", foilBand = "all") =>
-    req<CommunityRecords>(`/api/community/records?accel_only=${accelOnly}&sport=${sport}&foil_band=${foilBand}`),
+  /** `spot`: nur Rekorde an diesem Spot (numerische id oder Ortsname, s. `community._spot_cond`). */
+  communityRecords: (accelOnly = true, sport = "pumpfoil", foilBand = "all", spot?: string) =>
+    req<CommunityRecords>(`/api/community/records?${new URLSearchParams({
+      accel_only: String(accelOnly), sport, foil_band: foilBand, ...(spot ? { spot } : {}),
+    })}`),
   /** Die Foil-Baender fuer das Dropdown — MIT Sessionzahl und Fahrerzahl je Band, damit die
    *  Oberflaeche duenne Gruppen ausblenden kann (ein Rekord aus zwei Fahrern ist keiner). */
   foilBands: (accelOnly = true, sport = "pumpfoil") =>

@@ -83,6 +83,7 @@ const fi: Record<string, string> = {
   "side.onlyAccel": "vain kiihtyvyys",
   "side.all": "kaikki",
   "side.recordsHint": "Ennätykset vain kiihtyvyysdatan sisältävistä sessioista (tarkka) tai kaikista",
+  "rec.spotTitle": "Ennätykset tällä spotilla",
   "rec.farthestRun": "Pisin matka",
   "rec.longestRun": "Pisin lenkki",
   "rec.topSpeed": "Huippunopeus",

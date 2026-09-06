@@ -108,6 +108,7 @@ const pl: Record<string, string> = {
   "side.onlyAccel": "tylko akcelerometr",
   "side.all": "wszystkie",
   "side.recordsHint": "Rekordy z sesji z danymi akcelerometru (dokładne) albo ze wszystkich",
+  "rec.spotTitle": "Rekordy na tym spocie",
   "rec.farthestRun": "Najdalszy przejazd",
   "rec.longestRun": "Najdłuższy przejazd",
   "rec.topSpeed": "Prędkość maks.",
