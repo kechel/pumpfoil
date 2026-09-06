@@ -783,6 +783,8 @@ const id: Record<string, string> = {
   "land.cta": "Mulai gratis",
   "land.ctaSecondary": "Saya punya akun",
   "land.heroTitle": "Rekam dan analisis pump foiling-mu",
+  "seo.landTitle": "Pumpfoil — rekam dan analisis pump foiling",
+  "seo.landDesc": "Rekam pump foiling dengan Garmin, Apple Watch, Wear OS atau Amazfit dan analisis setiap sesi: jejak GPS, jarak foiling, kadensi pump, fase meluncur. Gratis dan open source.",
   "land.h1": "Pumpfoil — rekam dan analisis pump foiling dengan jam olahragamu",
   "land.deepTitle": "Bagaimana pengukurannya",
   "land.deepBody": "Kami memasang dua jam pada run yang sama lalu mengukurnya. Semuanya terbuka: apa yang diukur, bagaimana pump dikenali, dan di mana batasnya.",

@@ -879,6 +879,8 @@ const nl: Record<string, string> = {
   "land.cta": "Gratis beginnen",
   "land.ctaSecondary": "Ik heb een account",
   "land.heroTitle": "Pumpfoilen opnemen en analyseren",
+  "seo.landTitle": "Pumpfoil — pumpfoilen opnemen en analyseren",
+  "seo.landDesc": "Neem pumpfoilen op met een Garmin, Apple Watch, Wear OS of Amazfit en laat elke sessie analyseren: gps-spoor, foilafstand, pumpcadans, glijfases. Gratis en opensource.",
   "land.h1": "Pumpfoil — pumpfoilen opnemen en analyseren met je sporthorloge",
   "land.deepTitle": "Hoe het meten werkt",
   "land.deepBody": "We hebben twee horloges aan dezelfde run gehangen en nagemeten. Alles ligt open: wat er gemeten wordt, hoe pumps herkend worden en waar de grenzen liggen.",

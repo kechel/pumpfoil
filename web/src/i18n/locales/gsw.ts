@@ -474,6 +474,8 @@ const gsw: Record<string, string> = {
   "land.cta": "Gratis aafange",
   "land.ctaSecondary": "Ich ha es Konto",
   "land.heroTitle": "Pump-Foiling ufzeichne und uswerte",
+  "seo.landTitle": "Pumpfoil — Pump-Foiling ufzeichne und uuswerte",
+  "seo.landDesc": "Nimm Pump-Foiling mit Garmin, Apple Watch, Wear OS oder Amazfit uf und wert jedi Session uus: GPS-Track, Foiling-Distanz, Pump-Frequänz, Gleitphase. Gratis und offe.",
   "land.h1": "Pumpfoil — Pump-Foiling mit dr Sportuhr ufzeichne und uuswerte",
   "land.deepTitle": "Wie s Mässe funktioniert",
   "land.deepBody": "Mir hend zwoi Uhre a de gliich Lauf ghänkt und nachgmässe. Alles offeglegt: was gmässe wird, wie Pumps erkennt wärded und wo d Grenze sind.",

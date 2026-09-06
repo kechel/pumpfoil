@@ -1,11 +1,398 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Nur Seiten, die ein Gast ohne Login wirklich sieht. Alles andere rendert der Router
      als Landing-Page und waere ein Duplikat (s. robots.txt). -->
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://pumpfoil.org/</loc>
+      <xhtml:link rel="alternate" hreflang="de" href="https://pumpfoil.org/" />
+      <xhtml:link rel="alternate" hreflang="gsw" href="https://pumpfoil.org/gsw/" />
+      <xhtml:link rel="alternate" hreflang="de-AT" href="https://pumpfoil.org/de-AT/" />
+      <xhtml:link rel="alternate" hreflang="en" href="https://pumpfoil.org/en/" />
+      <xhtml:link rel="alternate" hreflang="fr" href="https://pumpfoil.org/fr/" />
+      <xhtml:link rel="alternate" hreflang="it" href="https://pumpfoil.org/it/" />
+      <xhtml:link rel="alternate" hreflang="es" href="https://pumpfoil.org/es/" />
+      <xhtml:link rel="alternate" hreflang="fi" href="https://pumpfoil.org/fi/" />
+      <xhtml:link rel="alternate" hreflang="nl" href="https://pumpfoil.org/nl/" />
+      <xhtml:link rel="alternate" hreflang="cs" href="https://pumpfoil.org/cs/" />
+      <xhtml:link rel="alternate" hreflang="pl" href="https://pumpfoil.org/pl/" />
+      <xhtml:link rel="alternate" hreflang="pt" href="https://pumpfoil.org/pt/" />
+      <xhtml:link rel="alternate" hreflang="ja" href="https://pumpfoil.org/ja/" />
+      <xhtml:link rel="alternate" hreflang="zh" href="https://pumpfoil.org/zh/" />
+      <xhtml:link rel="alternate" hreflang="ru" href="https://pumpfoil.org/ru/" />
+      <xhtml:link rel="alternate" hreflang="id" href="https://pumpfoil.org/id/" />
+      <xhtml:link rel="alternate" hreflang="nb" href="https://pumpfoil.org/nb/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://pumpfoil.org/" />
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://pumpfoil.org/gsw/</loc>
+      <xhtml:link rel="alternate" hreflang="de" href="https://pumpfoil.org/" />
+      <xhtml:link rel="alternate" hreflang="gsw" href="https://pumpfoil.org/gsw/" />
+      <xhtml:link rel="alternate" hreflang="de-AT" href="https://pumpfoil.org/de-AT/" />
+      <xhtml:link rel="alternate" hreflang="en" href="https://pumpfoil.org/en/" />
+      <xhtml:link rel="alternate" hreflang="fr" href="https://pumpfoil.org/fr/" />
+      <xhtml:link rel="alternate" hreflang="it" href="https://pumpfoil.org/it/" />
+      <xhtml:link rel="alternate" hreflang="es" href="https://pumpfoil.org/es/" />
+      <xhtml:link rel="alternate" hreflang="fi" href="https://pumpfoil.org/fi/" />
+      <xhtml:link rel="alternate" hreflang="nl" href="https://pumpfoil.org/nl/" />
+      <xhtml:link rel="alternate" hreflang="cs" href="https://pumpfoil.org/cs/" />
+      <xhtml:link rel="alternate" hreflang="pl" href="https://pumpfoil.org/pl/" />
+      <xhtml:link rel="alternate" hreflang="pt" href="https://pumpfoil.org/pt/" />
+      <xhtml:link rel="alternate" hreflang="ja" href="https://pumpfoil.org/ja/" />
+      <xhtml:link rel="alternate" hreflang="zh" href="https://pumpfoil.org/zh/" />
+      <xhtml:link rel="alternate" hreflang="ru" href="https://pumpfoil.org/ru/" />
+      <xhtml:link rel="alternate" hreflang="id" href="https://pumpfoil.org/id/" />
+      <xhtml:link rel="alternate" hreflang="nb" href="https://pumpfoil.org/nb/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://pumpfoil.org/" />
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://pumpfoil.org/de-AT/</loc>
+      <xhtml:link rel="alternate" hreflang="de" href="https://pumpfoil.org/" />
+      <xhtml:link rel="alternate" hreflang="gsw" href="https://pumpfoil.org/gsw/" />
+      <xhtml:link rel="alternate" hreflang="de-AT" href="https://pumpfoil.org/de-AT/" />
+      <xhtml:link rel="alternate" hreflang="en" href="https://pumpfoil.org/en/" />
+      <xhtml:link rel="alternate" hreflang="fr" href="https://pumpfoil.org/fr/" />
+      <xhtml:link rel="alternate" hreflang="it" href="https://pumpfoil.org/it/" />
+      <xhtml:link rel="alternate" hreflang="es" href="https://pumpfoil.org/es/" />
+      <xhtml:link rel="alternate" hreflang="fi" href="https://pumpfoil.org/fi/" />
+      <xhtml:link rel="alternate" hreflang="nl" href="https://pumpfoil.org/nl/" />
+      <xhtml:link rel="alternate" hreflang="cs" href="https://pumpfoil.org/cs/" />
+      <xhtml:link rel="alternate" hreflang="pl" href="https://pumpfoil.org/pl/" />
+      <xhtml:link rel="alternate" hreflang="pt" href="https://pumpfoil.org/pt/" />
+      <xhtml:link rel="alternate" hreflang="ja" href="https://pumpfoil.org/ja/" />
+      <xhtml:link rel="alternate" hreflang="zh" href="https://pumpfoil.org/zh/" />
+      <xhtml:link rel="alternate" hreflang="ru" href="https://pumpfoil.org/ru/" />
+      <xhtml:link rel="alternate" hreflang="id" href="https://pumpfoil.org/id/" />
+      <xhtml:link rel="alternate" hreflang="nb" href="https://pumpfoil.org/nb/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://pumpfoil.org/" />
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://pumpfoil.org/en/</loc>
+      <xhtml:link rel="alternate" hreflang="de" href="https://pumpfoil.org/" />
+      <xhtml:link rel="alternate" hreflang="gsw" href="https://pumpfoil.org/gsw/" />
+      <xhtml:link rel="alternate" hreflang="de-AT" href="https://pumpfoil.org/de-AT/" />
+      <xhtml:link rel="alternate" hreflang="en" href="https://pumpfoil.org/en/" />
+      <xhtml:link rel="alternate" hreflang="fr" href="https://pumpfoil.org/fr/" />
+      <xhtml:link rel="alternate" hreflang="it" href="https://pumpfoil.org/it/" />
+      <xhtml:link rel="alternate" hreflang="es" href="https://pumpfoil.org/es/" />
+      <xhtml:link rel="alternate" hreflang="fi" href="https://pumpfoil.org/fi/" />
+      <xhtml:link rel="alternate" hreflang="nl" href="https://pumpfoil.org/nl/" />
+      <xhtml:link rel="alternate" hreflang="cs" href="https://pumpfoil.org/cs/" />
+      <xhtml:link rel="alternate" hreflang="pl" href="https://pumpfoil.org/pl/" />
+      <xhtml:link rel="alternate" hreflang="pt" href="https://pumpfoil.org/pt/" />
+      <xhtml:link rel="alternate" hreflang="ja" href="https://pumpfoil.org/ja/" />
+      <xhtml:link rel="alternate" hreflang="zh" href="https://pumpfoil.org/zh/" />
+      <xhtml:link rel="alternate" hreflang="ru" href="https://pumpfoil.org/ru/" />
+      <xhtml:link rel="alternate" hreflang="id" href="https://pumpfoil.org/id/" />
+      <xhtml:link rel="alternate" hreflang="nb" href="https://pumpfoil.org/nb/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://pumpfoil.org/" />
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://pumpfoil.org/fr/</loc>
+      <xhtml:link rel="alternate" hreflang="de" href="https://pumpfoil.org/" />
+      <xhtml:link rel="alternate" hreflang="gsw" href="https://pumpfoil.org/gsw/" />
+      <xhtml:link rel="alternate" hreflang="de-AT" href="https://pumpfoil.org/de-AT/" />
+      <xhtml:link rel="alternate" hreflang="en" href="https://pumpfoil.org/en/" />
+      <xhtml:link rel="alternate" hreflang="fr" href="https://pumpfoil.org/fr/" />
+      <xhtml:link rel="alternate" hreflang="it" href="https://pumpfoil.org/it/" />
+      <xhtml:link rel="alternate" hreflang="es" href="https://pumpfoil.org/es/" />
+      <xhtml:link rel="alternate" hreflang="fi" href="https://pumpfoil.org/fi/" />
+      <xhtml:link rel="alternate" hreflang="nl" href="https://pumpfoil.org/nl/" />
+      <xhtml:link rel="alternate" hreflang="cs" href="https://pumpfoil.org/cs/" />
+      <xhtml:link rel="alternate" hreflang="pl" href="https://pumpfoil.org/pl/" />
+      <xhtml:link rel="alternate" hreflang="pt" href="https://pumpfoil.org/pt/" />
+      <xhtml:link rel="alternate" hreflang="ja" href="https://pumpfoil.org/ja/" />
+      <xhtml:link rel="alternate" hreflang="zh" href="https://pumpfoil.org/zh/" />
+      <xhtml:link rel="alternate" hreflang="ru" href="https://pumpfoil.org/ru/" />
+      <xhtml:link rel="alternate" hreflang="id" href="https://pumpfoil.org/id/" />
+      <xhtml:link rel="alternate" hreflang="nb" href="https://pumpfoil.org/nb/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://pumpfoil.org/" />
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://pumpfoil.org/it/</loc>
+      <xhtml:link rel="alternate" hreflang="de" href="https://pumpfoil.org/" />
+      <xhtml:link rel="alternate" hreflang="gsw" href="https://pumpfoil.org/gsw/" />
+      <xhtml:link rel="alternate" hreflang="de-AT" href="https://pumpfoil.org/de-AT/" />
+      <xhtml:link rel="alternate" hreflang="en" href="https://pumpfoil.org/en/" />
+      <xhtml:link rel="alternate" hreflang="fr" href="https://pumpfoil.org/fr/" />
+      <xhtml:link rel="alternate" hreflang="it" href="https://pumpfoil.org/it/" />
+      <xhtml:link rel="alternate" hreflang="es" href="https://pumpfoil.org/es/" />
+      <xhtml:link rel="alternate" hreflang="fi" href="https://pumpfoil.org/fi/" />
+      <xhtml:link rel="alternate" hreflang="nl" href="https://pumpfoil.org/nl/" />
+      <xhtml:link rel="alternate" hreflang="cs" href="https://pumpfoil.org/cs/" />
+      <xhtml:link rel="alternate" hreflang="pl" href="https://pumpfoil.org/pl/" />
+      <xhtml:link rel="alternate" hreflang="pt" href="https://pumpfoil.org/pt/" />
+      <xhtml:link rel="alternate" hreflang="ja" href="https://pumpfoil.org/ja/" />
+      <xhtml:link rel="alternate" hreflang="zh" href="https://pumpfoil.org/zh/" />
+      <xhtml:link rel="alternate" hreflang="ru" href="https://pumpfoil.org/ru/" />
+      <xhtml:link rel="alternate" hreflang="id" href="https://pumpfoil.org/id/" />
+      <xhtml:link rel="alternate" hreflang="nb" href="https://pumpfoil.org/nb/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://pumpfoil.org/" />
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://pumpfoil.org/es/</loc>
+      <xhtml:link rel="alternate" hreflang="de" href="https://pumpfoil.org/" />
+      <xhtml:link rel="alternate" hreflang="gsw" href="https://pumpfoil.org/gsw/" />
+      <xhtml:link rel="alternate" hreflang="de-AT" href="https://pumpfoil.org/de-AT/" />
+      <xhtml:link rel="alternate" hreflang="en" href="https://pumpfoil.org/en/" />
+      <xhtml:link rel="alternate" hreflang="fr" href="https://pumpfoil.org/fr/" />
+      <xhtml:link rel="alternate" hreflang="it" href="https://pumpfoil.org/it/" />
+      <xhtml:link rel="alternate" hreflang="es" href="https://pumpfoil.org/es/" />
+      <xhtml:link rel="alternate" hreflang="fi" href="https://pumpfoil.org/fi/" />
+      <xhtml:link rel="alternate" hreflang="nl" href="https://pumpfoil.org/nl/" />
+      <xhtml:link rel="alternate" hreflang="cs" href="https://pumpfoil.org/cs/" />
+      <xhtml:link rel="alternate" hreflang="pl" href="https://pumpfoil.org/pl/" />
+      <xhtml:link rel="alternate" hreflang="pt" href="https://pumpfoil.org/pt/" />
+      <xhtml:link rel="alternate" hreflang="ja" href="https://pumpfoil.org/ja/" />
+      <xhtml:link rel="alternate" hreflang="zh" href="https://pumpfoil.org/zh/" />
+      <xhtml:link rel="alternate" hreflang="ru" href="https://pumpfoil.org/ru/" />
+      <xhtml:link rel="alternate" hreflang="id" href="https://pumpfoil.org/id/" />
+      <xhtml:link rel="alternate" hreflang="nb" href="https://pumpfoil.org/nb/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://pumpfoil.org/" />
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://pumpfoil.org/fi/</loc>
+      <xhtml:link rel="alternate" hreflang="de" href="https://pumpfoil.org/" />
+      <xhtml:link rel="alternate" hreflang="gsw" href="https://pumpfoil.org/gsw/" />
+      <xhtml:link rel="alternate" hreflang="de-AT" href="https://pumpfoil.org/de-AT/" />
+      <xhtml:link rel="alternate" hreflang="en" href="https://pumpfoil.org/en/" />
+      <xhtml:link rel="alternate" hreflang="fr" href="https://pumpfoil.org/fr/" />
+      <xhtml:link rel="alternate" hreflang="it" href="https://pumpfoil.org/it/" />
+      <xhtml:link rel="alternate" hreflang="es" href="https://pumpfoil.org/es/" />
+      <xhtml:link rel="alternate" hreflang="fi" href="https://pumpfoil.org/fi/" />
+      <xhtml:link rel="alternate" hreflang="nl" href="https://pumpfoil.org/nl/" />
+      <xhtml:link rel="alternate" hreflang="cs" href="https://pumpfoil.org/cs/" />
+      <xhtml:link rel="alternate" hreflang="pl" href="https://pumpfoil.org/pl/" />
+      <xhtml:link rel="alternate" hreflang="pt" href="https://pumpfoil.org/pt/" />
+      <xhtml:link rel="alternate" hreflang="ja" href="https://pumpfoil.org/ja/" />
+      <xhtml:link rel="alternate" hreflang="zh" href="https://pumpfoil.org/zh/" />
+      <xhtml:link rel="alternate" hreflang="ru" href="https://pumpfoil.org/ru/" />
+      <xhtml:link rel="alternate" hreflang="id" href="https://pumpfoil.org/id/" />
+      <xhtml:link rel="alternate" hreflang="nb" href="https://pumpfoil.org/nb/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://pumpfoil.org/" />
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://pumpfoil.org/nl/</loc>
+      <xhtml:link rel="alternate" hreflang="de" href="https://pumpfoil.org/" />
+      <xhtml:link rel="alternate" hreflang="gsw" href="https://pumpfoil.org/gsw/" />
+      <xhtml:link rel="alternate" hreflang="de-AT" href="https://pumpfoil.org/de-AT/" />
+      <xhtml:link rel="alternate" hreflang="en" href="https://pumpfoil.org/en/" />
+      <xhtml:link rel="alternate" hreflang="fr" href="https://pumpfoil.org/fr/" />
+      <xhtml:link rel="alternate" hreflang="it" href="https://pumpfoil.org/it/" />
+      <xhtml:link rel="alternate" hreflang="es" href="https://pumpfoil.org/es/" />
+      <xhtml:link rel="alternate" hreflang="fi" href="https://pumpfoil.org/fi/" />
+      <xhtml:link rel="alternate" hreflang="nl" href="https://pumpfoil.org/nl/" />
+      <xhtml:link rel="alternate" hreflang="cs" href="https://pumpfoil.org/cs/" />
+      <xhtml:link rel="alternate" hreflang="pl" href="https://pumpfoil.org/pl/" />
+      <xhtml:link rel="alternate" hreflang="pt" href="https://pumpfoil.org/pt/" />
+      <xhtml:link rel="alternate" hreflang="ja" href="https://pumpfoil.org/ja/" />
+      <xhtml:link rel="alternate" hreflang="zh" href="https://pumpfoil.org/zh/" />
+      <xhtml:link rel="alternate" hreflang="ru" href="https://pumpfoil.org/ru/" />
+      <xhtml:link rel="alternate" hreflang="id" href="https://pumpfoil.org/id/" />
+      <xhtml:link rel="alternate" hreflang="nb" href="https://pumpfoil.org/nb/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://pumpfoil.org/" />
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://pumpfoil.org/cs/</loc>
+      <xhtml:link rel="alternate" hreflang="de" href="https://pumpfoil.org/" />
+      <xhtml:link rel="alternate" hreflang="gsw" href="https://pumpfoil.org/gsw/" />
+      <xhtml:link rel="alternate" hreflang="de-AT" href="https://pumpfoil.org/de-AT/" />
+      <xhtml:link rel="alternate" hreflang="en" href="https://pumpfoil.org/en/" />
+      <xhtml:link rel="alternate" hreflang="fr" href="https://pumpfoil.org/fr/" />
+      <xhtml:link rel="alternate" hreflang="it" href="https://pumpfoil.org/it/" />
+      <xhtml:link rel="alternate" hreflang="es" href="https://pumpfoil.org/es/" />
+      <xhtml:link rel="alternate" hreflang="fi" href="https://pumpfoil.org/fi/" />
+      <xhtml:link rel="alternate" hreflang="nl" href="https://pumpfoil.org/nl/" />
+      <xhtml:link rel="alternate" hreflang="cs" href="https://pumpfoil.org/cs/" />
+      <xhtml:link rel="alternate" hreflang="pl" href="https://pumpfoil.org/pl/" />
+      <xhtml:link rel="alternate" hreflang="pt" href="https://pumpfoil.org/pt/" />
+      <xhtml:link rel="alternate" hreflang="ja" href="https://pumpfoil.org/ja/" />
+      <xhtml:link rel="alternate" hreflang="zh" href="https://pumpfoil.org/zh/" />
+      <xhtml:link rel="alternate" hreflang="ru" href="https://pumpfoil.org/ru/" />
+      <xhtml:link rel="alternate" hreflang="id" href="https://pumpfoil.org/id/" />
+      <xhtml:link rel="alternate" hreflang="nb" href="https://pumpfoil.org/nb/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://pumpfoil.org/" />
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://pumpfoil.org/pl/</loc>
+      <xhtml:link rel="alternate" hreflang="de" href="https://pumpfoil.org/" />
+      <xhtml:link rel="alternate" hreflang="gsw" href="https://pumpfoil.org/gsw/" />
+      <xhtml:link rel="alternate" hreflang="de-AT" href="https://pumpfoil.org/de-AT/" />
+      <xhtml:link rel="alternate" hreflang="en" href="https://pumpfoil.org/en/" />
+      <xhtml:link rel="alternate" hreflang="fr" href="https://pumpfoil.org/fr/" />
+      <xhtml:link rel="alternate" hreflang="it" href="https://pumpfoil.org/it/" />
+      <xhtml:link rel="alternate" hreflang="es" href="https://pumpfoil.org/es/" />
+      <xhtml:link rel="alternate" hreflang="fi" href="https://pumpfoil.org/fi/" />
+      <xhtml:link rel="alternate" hreflang="nl" href="https://pumpfoil.org/nl/" />
+      <xhtml:link rel="alternate" hreflang="cs" href="https://pumpfoil.org/cs/" />
+      <xhtml:link rel="alternate" hreflang="pl" href="https://pumpfoil.org/pl/" />
+      <xhtml:link rel="alternate" hreflang="pt" href="https://pumpfoil.org/pt/" />
+      <xhtml:link rel="alternate" hreflang="ja" href="https://pumpfoil.org/ja/" />
+      <xhtml:link rel="alternate" hreflang="zh" href="https://pumpfoil.org/zh/" />
+      <xhtml:link rel="alternate" hreflang="ru" href="https://pumpfoil.org/ru/" />
+      <xhtml:link rel="alternate" hreflang="id" href="https://pumpfoil.org/id/" />
+      <xhtml:link rel="alternate" hreflang="nb" href="https://pumpfoil.org/nb/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://pumpfoil.org/" />
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://pumpfoil.org/pt/</loc>
+      <xhtml:link rel="alternate" hreflang="de" href="https://pumpfoil.org/" />
+      <xhtml:link rel="alternate" hreflang="gsw" href="https://pumpfoil.org/gsw/" />
+      <xhtml:link rel="alternate" hreflang="de-AT" href="https://pumpfoil.org/de-AT/" />
+      <xhtml:link rel="alternate" hreflang="en" href="https://pumpfoil.org/en/" />
+      <xhtml:link rel="alternate" hreflang="fr" href="https://pumpfoil.org/fr/" />
+      <xhtml:link rel="alternate" hreflang="it" href="https://pumpfoil.org/it/" />
+      <xhtml:link rel="alternate" hreflang="es" href="https://pumpfoil.org/es/" />
+      <xhtml:link rel="alternate" hreflang="fi" href="https://pumpfoil.org/fi/" />
+      <xhtml:link rel="alternate" hreflang="nl" href="https://pumpfoil.org/nl/" />
+      <xhtml:link rel="alternate" hreflang="cs" href="https://pumpfoil.org/cs/" />
+      <xhtml:link rel="alternate" hreflang="pl" href="https://pumpfoil.org/pl/" />
+      <xhtml:link rel="alternate" hreflang="pt" href="https://pumpfoil.org/pt/" />
+      <xhtml:link rel="alternate" hreflang="ja" href="https://pumpfoil.org/ja/" />
+      <xhtml:link rel="alternate" hreflang="zh" href="https://pumpfoil.org/zh/" />
+      <xhtml:link rel="alternate" hreflang="ru" href="https://pumpfoil.org/ru/" />
+      <xhtml:link rel="alternate" hreflang="id" href="https://pumpfoil.org/id/" />
+      <xhtml:link rel="alternate" hreflang="nb" href="https://pumpfoil.org/nb/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://pumpfoil.org/" />
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://pumpfoil.org/ja/</loc>
+      <xhtml:link rel="alternate" hreflang="de" href="https://pumpfoil.org/" />
+      <xhtml:link rel="alternate" hreflang="gsw" href="https://pumpfoil.org/gsw/" />
+      <xhtml:link rel="alternate" hreflang="de-AT" href="https://pumpfoil.org/de-AT/" />
+      <xhtml:link rel="alternate" hreflang="en" href="https://pumpfoil.org/en/" />
+      <xhtml:link rel="alternate" hreflang="fr" href="https://pumpfoil.org/fr/" />
+      <xhtml:link rel="alternate" hreflang="it" href="https://pumpfoil.org/it/" />
+      <xhtml:link rel="alternate" hreflang="es" href="https://pumpfoil.org/es/" />
+      <xhtml:link rel="alternate" hreflang="fi" href="https://pumpfoil.org/fi/" />
+      <xhtml:link rel="alternate" hreflang="nl" href="https://pumpfoil.org/nl/" />
+      <xhtml:link rel="alternate" hreflang="cs" href="https://pumpfoil.org/cs/" />
+      <xhtml:link rel="alternate" hreflang="pl" href="https://pumpfoil.org/pl/" />
+      <xhtml:link rel="alternate" hreflang="pt" href="https://pumpfoil.org/pt/" />
+      <xhtml:link rel="alternate" hreflang="ja" href="https://pumpfoil.org/ja/" />
+      <xhtml:link rel="alternate" hreflang="zh" href="https://pumpfoil.org/zh/" />
+      <xhtml:link rel="alternate" hreflang="ru" href="https://pumpfoil.org/ru/" />
+      <xhtml:link rel="alternate" hreflang="id" href="https://pumpfoil.org/id/" />
+      <xhtml:link rel="alternate" hreflang="nb" href="https://pumpfoil.org/nb/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://pumpfoil.org/" />
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://pumpfoil.org/zh/</loc>
+      <xhtml:link rel="alternate" hreflang="de" href="https://pumpfoil.org/" />
+      <xhtml:link rel="alternate" hreflang="gsw" href="https://pumpfoil.org/gsw/" />
+      <xhtml:link rel="alternate" hreflang="de-AT" href="https://pumpfoil.org/de-AT/" />
+      <xhtml:link rel="alternate" hreflang="en" href="https://pumpfoil.org/en/" />
+      <xhtml:link rel="alternate" hreflang="fr" href="https://pumpfoil.org/fr/" />
+      <xhtml:link rel="alternate" hreflang="it" href="https://pumpfoil.org/it/" />
+      <xhtml:link rel="alternate" hreflang="es" href="https://pumpfoil.org/es/" />
+      <xhtml:link rel="alternate" hreflang="fi" href="https://pumpfoil.org/fi/" />
+      <xhtml:link rel="alternate" hreflang="nl" href="https://pumpfoil.org/nl/" />
+      <xhtml:link rel="alternate" hreflang="cs" href="https://pumpfoil.org/cs/" />
+      <xhtml:link rel="alternate" hreflang="pl" href="https://pumpfoil.org/pl/" />
+      <xhtml:link rel="alternate" hreflang="pt" href="https://pumpfoil.org/pt/" />
+      <xhtml:link rel="alternate" hreflang="ja" href="https://pumpfoil.org/ja/" />
+      <xhtml:link rel="alternate" hreflang="zh" href="https://pumpfoil.org/zh/" />
+      <xhtml:link rel="alternate" hreflang="ru" href="https://pumpfoil.org/ru/" />
+      <xhtml:link rel="alternate" hreflang="id" href="https://pumpfoil.org/id/" />
+      <xhtml:link rel="alternate" hreflang="nb" href="https://pumpfoil.org/nb/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://pumpfoil.org/" />
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://pumpfoil.org/ru/</loc>
+      <xhtml:link rel="alternate" hreflang="de" href="https://pumpfoil.org/" />
+      <xhtml:link rel="alternate" hreflang="gsw" href="https://pumpfoil.org/gsw/" />
+      <xhtml:link rel="alternate" hreflang="de-AT" href="https://pumpfoil.org/de-AT/" />
+      <xhtml:link rel="alternate" hreflang="en" href="https://pumpfoil.org/en/" />
+      <xhtml:link rel="alternate" hreflang="fr" href="https://pumpfoil.org/fr/" />
+      <xhtml:link rel="alternate" hreflang="it" href="https://pumpfoil.org/it/" />
+      <xhtml:link rel="alternate" hreflang="es" href="https://pumpfoil.org/es/" />
+      <xhtml:link rel="alternate" hreflang="fi" href="https://pumpfoil.org/fi/" />
+      <xhtml:link rel="alternate" hreflang="nl" href="https://pumpfoil.org/nl/" />
+      <xhtml:link rel="alternate" hreflang="cs" href="https://pumpfoil.org/cs/" />
+      <xhtml:link rel="alternate" hreflang="pl" href="https://pumpfoil.org/pl/" />
+      <xhtml:link rel="alternate" hreflang="pt" href="https://pumpfoil.org/pt/" />
+      <xhtml:link rel="alternate" hreflang="ja" href="https://pumpfoil.org/ja/" />
+      <xhtml:link rel="alternate" hreflang="zh" href="https://pumpfoil.org/zh/" />
+      <xhtml:link rel="alternate" hreflang="ru" href="https://pumpfoil.org/ru/" />
+      <xhtml:link rel="alternate" hreflang="id" href="https://pumpfoil.org/id/" />
+      <xhtml:link rel="alternate" hreflang="nb" href="https://pumpfoil.org/nb/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://pumpfoil.org/" />
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://pumpfoil.org/id/</loc>
+      <xhtml:link rel="alternate" hreflang="de" href="https://pumpfoil.org/" />
+      <xhtml:link rel="alternate" hreflang="gsw" href="https://pumpfoil.org/gsw/" />
+      <xhtml:link rel="alternate" hreflang="de-AT" href="https://pumpfoil.org/de-AT/" />
+      <xhtml:link rel="alternate" hreflang="en" href="https://pumpfoil.org/en/" />
+      <xhtml:link rel="alternate" hreflang="fr" href="https://pumpfoil.org/fr/" />
+      <xhtml:link rel="alternate" hreflang="it" href="https://pumpfoil.org/it/" />
+      <xhtml:link rel="alternate" hreflang="es" href="https://pumpfoil.org/es/" />
+      <xhtml:link rel="alternate" hreflang="fi" href="https://pumpfoil.org/fi/" />
+      <xhtml:link rel="alternate" hreflang="nl" href="https://pumpfoil.org/nl/" />
+      <xhtml:link rel="alternate" hreflang="cs" href="https://pumpfoil.org/cs/" />
+      <xhtml:link rel="alternate" hreflang="pl" href="https://pumpfoil.org/pl/" />
+      <xhtml:link rel="alternate" hreflang="pt" href="https://pumpfoil.org/pt/" />
+      <xhtml:link rel="alternate" hreflang="ja" href="https://pumpfoil.org/ja/" />
+      <xhtml:link rel="alternate" hreflang="zh" href="https://pumpfoil.org/zh/" />
+      <xhtml:link rel="alternate" hreflang="ru" href="https://pumpfoil.org/ru/" />
+      <xhtml:link rel="alternate" hreflang="id" href="https://pumpfoil.org/id/" />
+      <xhtml:link rel="alternate" hreflang="nb" href="https://pumpfoil.org/nb/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://pumpfoil.org/" />
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://pumpfoil.org/nb/</loc>
+      <xhtml:link rel="alternate" hreflang="de" href="https://pumpfoil.org/" />
+      <xhtml:link rel="alternate" hreflang="gsw" href="https://pumpfoil.org/gsw/" />
+      <xhtml:link rel="alternate" hreflang="de-AT" href="https://pumpfoil.org/de-AT/" />
+      <xhtml:link rel="alternate" hreflang="en" href="https://pumpfoil.org/en/" />
+      <xhtml:link rel="alternate" hreflang="fr" href="https://pumpfoil.org/fr/" />
+      <xhtml:link rel="alternate" hreflang="it" href="https://pumpfoil.org/it/" />
+      <xhtml:link rel="alternate" hreflang="es" href="https://pumpfoil.org/es/" />
+      <xhtml:link rel="alternate" hreflang="fi" href="https://pumpfoil.org/fi/" />
+      <xhtml:link rel="alternate" hreflang="nl" href="https://pumpfoil.org/nl/" />
+      <xhtml:link rel="alternate" hreflang="cs" href="https://pumpfoil.org/cs/" />
+      <xhtml:link rel="alternate" hreflang="pl" href="https://pumpfoil.org/pl/" />
+      <xhtml:link rel="alternate" hreflang="pt" href="https://pumpfoil.org/pt/" />
+      <xhtml:link rel="alternate" hreflang="ja" href="https://pumpfoil.org/ja/" />
+      <xhtml:link rel="alternate" hreflang="zh" href="https://pumpfoil.org/zh/" />
+      <xhtml:link rel="alternate" hreflang="ru" href="https://pumpfoil.org/ru/" />
+      <xhtml:link rel="alternate" hreflang="id" href="https://pumpfoil.org/id/" />
+      <xhtml:link rel="alternate" hreflang="nb" href="https://pumpfoil.org/nb/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://pumpfoil.org/" />
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://pumpfoil.org/nerd-analysen</loc>

@@ -562,6 +562,8 @@ const fr: Record<string, string> = {
   "land.cta": "Commencer gratuitement",
   "land.ctaSecondary": "J'ai un compte",
   "land.heroTitle": "Enregistrez et analysez votre pump foil",
+  "seo.landTitle": "Pumpfoil — enregistrer et analyser le pump foil",
+  "seo.landDesc": "Enregistre tes sessions de pump foil avec une montre Garmin, Apple Watch, Wear OS ou Amazfit et obtiens l'analyse : trace GPS, distance en vol, cadence de pump, phases de glisse. Gratuit et open source.",
   "land.h1": "Pumpfoil — enregistrer et analyser le pump foil avec ta montre de sport",
   "land.deepTitle": "Comment se fait la mesure",
   "land.deepBody": "Nous avons mis deux montres sur le même run et mesuré. Tout est ouvert : ce qui est mesuré, comment les pumps sont détectés et où sont les limites.",

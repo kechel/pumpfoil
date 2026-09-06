@@ -7,6 +7,11 @@ Ergänzt [`UX-IA.md`](UX-IA.md) (Informationsarchitektur). Bei neuer Route hier 
 
 ## Öffentlich (ohne Login, außerhalb der App-Shell)
 
+**Sprach-Adressen:** die oeffentliche Startseite gibt es unter `/` (Deutsch, zugleich
+`x-default`) und `/<code>/` fuer die uebrigen 16 Sprachen — `/en/`, `/fr/`, `/ja/` usw. Die
+Sprache kommt aus der Adresse (`i18n.langAusPfad`), `hreflang` steht in `index.html` und in der
+`sitemap.xml`.
+
 | Route | Komponente | Was drauf ist |
 |---|---|---|
 | `/` (Gast) | `Landing.tsx` | Öffentliche Startseite: erklärt, wofür Pumpfoil da ist. Nötig für die Google-OAuth-Prüfung (Homepage muss den App-Zweck ohne Anmeldung zeigen). |

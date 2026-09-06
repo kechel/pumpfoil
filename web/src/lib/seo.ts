@@ -17,9 +17,20 @@ import { useEffect } from "react";
  */
 const MARKE = "Pumpfoil";
 
+/**
+ * Adresse der oeffentlichen Startseite in einer Sprache. Deutsch liegt auf `/` und bekommt
+ * KEIN eigenes `/de/` — sonst gaebe es zwei Adressen mit identischem Inhalt, und genau davor
+ * warnt Google („Duplikat ohne Canonical"). `/` traegt deshalb `hreflang="de"` und zugleich
+ * `x-default` (s. index.html).
+ */
+export function sprachPfad(code: string): string {
+  return code === "de" ? "/" : `/${code}/`;
+}
+
 export function useSeo(titel: string, beschreibung?: string, pfad?: string): void {
   useEffect(() => {
-    document.title = titel ? `${titel} — ${MARKE}` : MARKE;
+    // Marke nur anhaengen, wenn sie nicht schon drinsteht — sonst „Pumpfoil … — Pumpfoil".
+    document.title = !titel ? MARKE : titel.includes(MARKE) ? titel : `${titel} — ${MARKE}`;
     if (beschreibung) setzeMeta("description", beschreibung);
     // Canonical mitziehen: sonst zeigen alle Unterseiten auf die Startseite und Google
     // betrachtet sie als deren Duplikat.

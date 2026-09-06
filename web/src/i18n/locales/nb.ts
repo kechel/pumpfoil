@@ -834,6 +834,8 @@ const nb: Record<string, string> = {
   "land.cta": "Kom i gang gratis",
   "land.ctaSecondary": "Jeg har en konto",
   "land.heroTitle": "Ta opp og analyser pumpfoilingen din",
+  "seo.landTitle": "Pumpfoil — ta opp og analyser pumpfoiling",
+  "seo.landDesc": "Ta opp pumpfoiling med Garmin, Apple Watch, Wear OS eller Amazfit og få hver økt analysert: GPS-spor, foilavstand, pumpekadens og glidefaser. Gratis og åpen kildekode.",
   "land.h1": "Pumpfoil — ta opp og analyser pumpfoiling med sportsklokka",
   "land.deepTitle": "Slik måler vi",
   "land.deepBody": "Vi hengte to klokker på samme tur og målte. Alt er åpent: hva som måles, hvordan pump gjenkjennes og hvor grensene går.",

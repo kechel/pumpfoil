@@ -434,6 +434,8 @@ const deAT: Record<string, string> = {
   "land.cta": "Gratis loslegn",
   "land.ctaSecondary": "I hob scho a Konto",
   "land.heroTitle": "Pump-Foiling aufzeichnen und auswertn",
+  "seo.landTitle": "Pumpfoil — Pump-Foiling aufzeichnen und auswerten",
+  "seo.landDesc": "Zeichne Pump-Foiling mit Garmin, Apple Watch, Wear OS oder Amazfit auf und werte jede Session aus: GPS-Track, Foiling-Distanz, Pump-Frequenz, Gleitphasen. Kostenlos und quelloffen.",
   "land.h1": "Pumpfoil — Pump-Foiling mit der Sportuhr aufzeichnen und auswerten",
   "land.deepTitle": "Wie das Messen funktioniert",
   "land.deepBody": "Wir haben zwei Uhren an denselben Lauf gehängt und nachgemessen. Alles offengelegt: was gemessen wird, wie Pumps erkannt werden und wo die Grenzen liegen.",

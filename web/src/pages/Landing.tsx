@@ -5,8 +5,9 @@ import {
   FoilIcon, FakeIcon, BellIcon, DownloadIcon, ChatBubbleIcon, LocationIcon, TagIcon,
   LockIcon, HeartIcon,
 } from "../components/Icons";
-import { useT } from "../i18n";
+import { useT, useI18n } from "../i18n";
 import { LanguageFlags } from "../components/LanguageSelect";
+import { useSeo } from "../lib/seo";
 import { InstallPwa } from "../components/InstallPwa";
 import { WatchMatrix } from "../components/WatchMatrix";
 import { ConnectIqButton } from "../components/ConnectIqButton";
@@ -55,6 +56,14 @@ function WatchCarousel({ images, rounded, caption, sub, badge, delay = 2800 }: {
 // Nötig für die Google-OAuth-Prüfung: Homepage muss ohne Anmeldung den App-Zweck zeigen.
 export default function Landing() {
   const t = useT();
+  // Titel, Beschreibung und Canonical in der Sprache DIESER Adresse. Ohne das truege `/fr/`
+  // den deutschen Titel aus `index.html`, und Google haette 17 Adressen mit identischem
+  // Schnipsel — der haeufigste Fehler bei mehrsprachigen Seiten.
+  // Canonical folgt der ADRESSE, nicht der eingestellten Sprache: ein wiederkehrender Besucher
+  // mit englischer Voreinstellung sieht auf `/` englischen Text, die Seite bleibt aber `/`.
+  // Ein Crawler hat keinen localStorage und sieht dort ohnehin Deutsch.
+  useI18n();   // Neu-Rendern bei Sprachwechsel
+  useSeo(t("seo.landTitle"), t("seo.landDesc"), window.location.pathname);
   // Kompakter Lieblings-Short ganz oben (Click-to-Load-Fassade, datensparsam).
   const [heroVideoOn, setHeroVideoOn] = useState(false);
   const features = [
@@ -129,7 +138,7 @@ export default function Landing() {
                 style={{ paddingTop: "calc(0.75rem + env(safe-area-inset-top))" }}>
           <div className="flex items-center gap-3">
             <ThemeToggle />
-            <LanguageFlags />
+            <LanguageFlags alsLinks />
             <Link
               to="/login"
               className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400"

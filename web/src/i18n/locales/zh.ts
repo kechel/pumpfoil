@@ -783,6 +783,8 @@ const zh: Record<string, string> = {
   "land.cta": "免费开始",
   "land.ctaSecondary": "我已有账号",
   "land.heroTitle": "记录并分析你的泵翼滑行",
+  "seo.landTitle": "Pumpfoil — 记录并分析划水翼板",
+  "seo.landDesc": "用 Garmin、Apple Watch、Wear OS 或 Amazfit 记录划水翼板，自动分析每次出水：GPS 轨迹、飞行距离、划水频率与滑行阶段。免费且开源。",
   "land.h1": "Pumpfoil — 用运动手表记录并分析划水翼板",
   "land.deepTitle": "测量是怎么做的",
   "land.deepBody": "我们把两块手表戴在同一次滑行上做了实测。全部公开：测什么、如何识别划水、边界在哪里。",
