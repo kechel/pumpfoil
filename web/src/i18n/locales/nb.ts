@@ -108,6 +108,7 @@ const nb: Record<string, string> = {
   "side.onlyAccel": "kun accel",
   "side.all": "alle",
   "side.recordsHint": "Rekorder fra økter med akselerasjonsdata (presise) eller fra alle",
+  "rec.spotTitle": "Rekorder på denne spoten",
   "rec.farthestRun": "Lengste run",
   "rec.longestRun": "Lengste run (tid)",
   "rec.topSpeed": "Toppfart",

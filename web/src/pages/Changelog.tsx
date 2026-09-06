@@ -117,6 +117,12 @@ const ENTRIES: Entry[] = [
   {
     date: "September 6, 2026",
     items: [
+      "Every spot now has its own records. Open a spot in your session list and you see the farthest run, the longest one, top speed, most pumps and the rest — for that spot alone, with the same time windows as on the community page. Idea from the feedback form.",
+    ],
+  },
+  {
+    date: "September 6, 2026",
+    items: [
       "The training curve in your [history](/verlauf) now has a slider: pick any moment between 10 seconds and 5 minutes into a run and see how your heart rate at that point developed over the weeks. It says how many of your sessions have a value there — the further right you go, the fewer runs were that long.",
     ],
   },

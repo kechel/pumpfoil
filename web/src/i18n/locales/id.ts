@@ -90,6 +90,7 @@ const id: Record<string, string> = {
   "side.onlyAccel": "hanya accel",
   "side.all": "semua",
   "side.recordsHint": "Rekor dari sesi dengan data akselerasi (presisi) atau dari semua",
+  "rec.spotTitle": "Rekor di spot ini",
   "rec.farthestRun": "Run terjauh",
   "rec.longestRun": "Run terlama",
   "rec.topSpeed": "Kecepatan tertinggi",

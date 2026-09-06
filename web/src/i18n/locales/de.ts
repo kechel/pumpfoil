@@ -116,6 +116,7 @@ const de: Record<string, string> = {
   "side.onlyAccel": "nur Accel",
   "side.all": "alle",
   "side.recordsHint": "Rekorde nur aus Sessions mit Beschleunigungsdaten (präzise) oder aus allen",
+  "rec.spotTitle": "Rekorde an diesem Spot",
   "rec.farthestRun": "Weitester Lauf",
   "rec.longestRun": "Längster Lauf",
   "rec.topSpeed": "Top-Speed",
