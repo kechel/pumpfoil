@@ -189,6 +189,7 @@ async def push(request: Request, db: Session = Depends(get_db)) -> dict:
     items = body.get("sportDataList") or []
 
     from .sessions import import_parsed_session  # lazy: vermeidet Import-Zyklus
+    from .. import storage
     from ..fitimport import parse_fit_bytes
 
     imported = 0
@@ -213,7 +214,12 @@ async def push(request: Request, db: Session = Depends(get_db)) -> dict:
                 r = httpx.get(fit_url, timeout=60)   # presignte OSS-URL, kein Auth nötig
                 if r.status_code != 200 or not r.content:
                     continue
-                parsed = parse_fit_bytes(r.content)
+                try:
+                    parsed = parse_fit_bytes(r.content)
+                except Exception as exc:  # noqa: BLE001
+                    storage.quarantaene_ablegen(r.content, quelle="coros", user_id=user.id,
+                                                grund=f"{type(exc).__name__}: {exc}")
+                    raise
                 if not parsed.get("gps_samples") or parsed.get("started_at") is None:
                     continue   # z. B. Indoor ohne GPS
                 s = import_parsed_session(db, user, r.content, parsed,

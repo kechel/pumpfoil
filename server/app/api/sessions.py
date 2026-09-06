@@ -380,9 +380,17 @@ def import_parsed_session(db, user, raw: bytes, parsed: dict, *, src_label: str,
     pro Nutzer, idempotent) -> Session + Rohdaten -> analysieren. Wiederverwendet von /upload-fit
     UND vom Polar-Import. Rückgabe: Session (neu oder bestehend) oder None (bewusst gelöscht)."""
     import hashlib
+    import logging
 
     samples = parsed["gps_samples"]
     started_at = parsed["started_at"]
+    if parsed.get("abbruch"):
+        # Die Datei war nur bis zu einer Stelle lesbar (abgebrochene Aufzeichnung, falsche
+        # Pruefsumme, Muell hinter dem Ende). Wir importieren, was da ist — aber es steht im Log,
+        # damit „die Session ist kuerzer als meine Fahrt" nachvollziehbar bleibt.
+        logging.getLogger(__name__).warning(
+            "Import %s (user %s): Datei nur teilweise lesbar, %d Punkte uebernommen — %s",
+            src_label, user.id, len(samples), parsed["abbruch"])
     content_hash = hashlib.sha256(raw).hexdigest()
     existing = (
         db.query(models.Session)
@@ -538,6 +546,10 @@ async def upload_fit(
             src_label = "fit-upload"
             uuid_prefix = "fit-"
     except ValueError as exc:
+        # Auch hier aufheben: der Nutzer bekommt eine Fehlermeldung und laedt die Datei
+        # erfahrungsgemaess nie wieder hoch. Mit der Kopie kann ein spaeterer Fix sie nachholen.
+        storage.quarantaene_ablegen(data, quelle="upload", user_id=user.id,
+                                    grund=str(exc), filename=file.filename)
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc))
     samples = parsed["gps_samples"]
     started_at = parsed["started_at"]

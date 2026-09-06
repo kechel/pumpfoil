@@ -420,6 +420,7 @@ def sync(user: models.User = Depends(current_user), db: Session = Depends(get_db
         dann je Eintrag die Datei.
     """
     from .sessions import import_parsed_session   # lazy: vermeidet Import-Zyklus
+    from .. import storage
     from ..fitimport import parse_fit_bytes
 
     link = db.query(models.CorosMcpLink).filter_by(user_id=user.id).first()
@@ -453,7 +454,15 @@ def sync(user: models.User = Depends(current_user), db: Session = Depends(get_db
                 log.warning("coros-mcp: keine FIT-Datei fuer %s (user %s)", labelId, user.id)
                 continue
             for roh in dateien:
-                parsed = parse_fit_bytes(roh)
+                try:
+                    parsed = parse_fit_bytes(roh)
+                except Exception as exc:  # noqa: BLE001
+                    # Datei aufheben, BEVOR sie verloren geht — sonst haengt jede spaetere
+                    # Rettung daran, dass der Nutzer neu synchronisiert (s. storage-Kommentar).
+                    storage.quarantaene_ablegen(roh, quelle="coros-mcp", user_id=user.id,
+                                                grund=f"{type(exc).__name__}: {exc}",
+                                                filename=f"{labelId}.fit")
+                    raise
                 if not parsed.get("gps_samples") or parsed.get("started_at") is None:
                     skipped += 1        # z. B. Indoor-Training ohne GPS
                     continue

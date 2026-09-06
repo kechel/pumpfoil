@@ -68,6 +68,53 @@ def save_accel_chunk(session_uuid: str, index: int, b64: str, t0_ms: int | None 
     return len(raw) // 2 // 3
 
 
+# Ablage fuer Dateien, die der Import NICHT lesen konnte. Liegt unter data/ und wandert damit
+# ueber dieselbe Hardlink-Kette in die Backups wie alles andere.
+QUARANTAENE = "_nicht-lesbar"
+
+
+def quarantaene_ablegen(roh: bytes, *, quelle: str, user_id: int | None,
+                        grund: str, filename: str | None = None) -> str | None:
+    """Eine nicht lesbare Import-Datei aufheben, statt sie zu verlieren.
+
+    Warum (06.09.2026): Peters erstes COROS-Training kam vollstaendig bei uns an und war dann weg
+    — `parse_fit_bytes` warf, und der Aufrufer hatte nur eine Log-Zeile uebrig. Die Datei selbst
+    hat niemand behalten: `save_original_upload` laeuft erst NACH dem erfolgreichen Parsen. Damit
+    haengt jede Rettung daran, dass der Nutzer nochmal synchronisiert und der Anbieter erreichbar
+    ist — beides war hier nicht gegeben (COROS antwortete stundenlang mit 504).
+
+    Mit der Ablage hier gilt das Gegenteil: eine spaetere Verbesserung am Parser kann die Datei
+    einfach erneut einlesen, ohne dass der Nutzer irgendetwas tut. Nebenbei ist es das einzige
+    Mittel, an ein echtes Fehlerbeispiel zu kommen — beim COROS-Fehler musste eine Datei mit dem
+    Defekt nachgebaut werden, weil das Original nicht mehr existierte.
+
+    Gleiche Datei zweimal (etwa weil ein Sync mehrfach laeuft) landet nur einmal hier: der Name
+    ist der Inhalts-Hash.
+    """
+    import hashlib
+    import json as _json
+    from datetime import datetime, timezone
+
+    d = settings.data_dir / QUARANTAENE
+    try:
+        d.mkdir(parents=True, exist_ok=True)
+        h = hashlib.sha256(roh).hexdigest()[:16]
+        ziel = d / f"{h}.bin"
+        if not ziel.exists():
+            ziel.write_bytes(roh)
+        # Beipackzettel: ohne ihn ist eine Sammlung namenloser Bytehaufen wertlos — wir muessen
+        # wissen, WEM sie gehoert (sonst kann man sie nicht nachtraeglich importieren) und WORAN
+        # es lag (sonst weiss niemand, welche Dateien ein Fix betrifft).
+        (d / f"{h}.json").write_text(_json.dumps({
+            "sha256_kurz": h, "quelle": quelle, "user_id": user_id, "grund": grund,
+            "filename": filename, "bytes": len(roh),
+            "gesehen": datetime.now(timezone.utc).isoformat(),
+        }, indent=2))
+        return ziel.name
+    except OSError:      # Platte voll o. ae. darf einen Import nie zusaetzlich scheitern lassen
+        return None
+
+
 def save_original_upload(session_uuid: str, raw: bytes, filename: str | None) -> str | None:
     """Die HOCHGELADENE Originaldatei (FIT/ZIP/GPX/TCX) unveraendert neben der Session ablegen.
 

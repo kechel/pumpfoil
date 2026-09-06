@@ -101,3 +101,53 @@ Recommended rate 1 Hz, ~60 samples per chunk.
   Services for HR, FusedLocationProvider for GPS; foreground service to keep recording.
 - **Older Garmin / FIT-only devices** — skip the accel path entirely and use **Path B**
   (FIT upload). The server falls back to `detection = gps_only`.
+
+## Import bestehender Dateien: wie viel Defekt vertragen wird
+
+Der zweite Weg (fertige FIT/TCX/GPX-Datei statt Roh-Chunks) trifft auf Dateien, die andere
+geschrieben haben — und die halten sich nicht immer an die Norm. Stand 06.09.2026 gilt:
+
+**Gelesen wird, was lesbar ist.** `fitimport.parse_fit_bytes` sammelt die Nachrichten der Reihe
+nach ein und behält, was bis zum Abbruch da war. Eine FIT-Datei wird von vorn nach hinten
+gelesen, die Trackpunkte stehen der Reihe nach drin — bricht das Lesen bei 60 % ab, sind die
+ersten 60 % der Fahrt trotzdem vollständig vorhanden. Vorher lag die ganze Schleife in *einem*
+`try/except`: ein Fehler am Dateiende hat auch den Anfang weggeworfen.
+
+An einer echten COROS-Datei durchgemessen (107 Punkte im Original):
+
+| Defekt | vorher | jetzt |
+|---|---|---|
+| Datei-Prüfsumme falsch | abgelehnt | 107 Punkte |
+| Datei-Prüfsumme = 0 | abgelehnt | 107 Punkte |
+| Kopf-Prüfsumme falsch | abgelehnt | 107 Punkte |
+| `data_size` im Kopf zu klein | abgelehnt | 107 Punkte |
+| Null-Bytes hinter dem Dateiende | abgelehnt | 107 Punkte |
+| bei 60 % abgeschnitten (leerer Akku) | abgelehnt | **65 Punkte** |
+| Feld schmaler deklariert als sein Typ | abgelehnt | 107 Punkte, Feld leer |
+
+Zwei Entscheidungen dahinter, die man kennen sollte:
+
+- **Die Prüfsumme entscheidet nicht mehr allein.** Sie sagt „an dieser Datei hat sich etwas
+  verändert", nicht „die Messwerte sind unbrauchbar" — und etliche Schreiber setzen sie schlicht
+  falsch oder auf 0. Erst wird streng geprüft; scheitert das, wird ohne Prüfung gelesen.
+  Unplausible Punkte fischt die Analyse ohnehin heraus.
+- **Ein zu schmal deklariertes Feld wird geleert, nicht geraten.** Aus 1 Byte lässt sich kein
+  `uint32` rekonstruieren. Bei `timestamp` würde ein geratener Wert eine ganze Session unbemerkt
+  auf die falsche Uhrzeit legen — lieber ein leeres Feld.
+
+War die Datei nur teilweise lesbar, steht das in `parsed["abbruch"]` und landet als Warnung im
+Log (`Import <quelle> (user N): Datei nur teilweise lesbar, M Punkte uebernommen`).
+
+**Was trotzdem scheitert, wird aufgehoben.** `storage.quarantaene_ablegen` legt die Bytes unter
+`server/data/_nicht-lesbar/<hash>.bin` ab, samt Beipackzettel (Quelle, Nutzer, Grund). Grund:
+`save_original_upload` läuft erst *nach* erfolgreichem Parsen — eine gescheiterte Datei war
+vorher restlos weg, und jede Rettung hing daran, dass der Nutzer neu synchronisiert und der
+Anbieter erreichbar ist. Beides war am 06.09. nicht gegeben (COROS antwortete stundenlang mit
+504). Nach jeder Verbesserung am Parser:
+
+```
+cd server && .venv/bin/python ../scripts/quarantaene-nachholen.py
+```
+
+Trockenlauf per Vorgabe; `--schreiben` importiert die inzwischen lesbaren Dateien für den
+Nutzer, dem sie gehören, und räumt sie weg.

@@ -118,6 +118,7 @@ const ENTRIES: Entry[] = [
     date: "September 6, 2026",
     items: [
       "COROS workouts import reliably now. One watch wrote a single value in a way our reader could not make sense of, and it turned down the whole workout over it. It now leaves that one value out and keeps everything else — position, speed and heart rate all arrive as recorded.",
+      "Importing a file that stops halfway through no longer loses the whole session. If your watch battery died mid-ride, or a sync was cut short, we now keep the part that was recorded instead of turning the file down. Files we still cannot read are kept aside, so a later improvement can pick them up without you uploading anything again.",
     ],
   },
   {
