@@ -79,6 +79,7 @@ h2.dirtitle { text-transform: none; white-space: nowrap; overflow: hidden; text-
 .txstyle button.on { background: #3b82f6; color: #fff; border-color: #3b82f6; }
 .txstyle button:nth-child(2).on { background: #22c55e; border-color: #22c55e; }
 .txstyle button:nth-child(3).on { background: #ef4444; border-color: #ef4444; }
+.txstyle button.card.on { background: #22d3ee; color: #020617; border-color: #22d3ee; }
 
 /* Reveal-Tab: dieselben Slots, nur als Ablauf der Reihe beschriftet */
 .reveal { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
