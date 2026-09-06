@@ -46,6 +46,7 @@ import httpx
 import jwt as pyjwt
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import HTMLResponse, RedirectResponse
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from .. import models
@@ -240,8 +241,26 @@ class McpSitzung:
 
 
 def _inhalt_text(res: dict) -> str:
-    """Alle Text-Blöcke einer Werkzeug-Antwort zusammenfügen."""
-    return "\n".join(c.get("text") or "" for c in (res.get("content") or []) if c.get("type") == "text")
+    """Alle Text-Blöcke einer Werkzeug-Antwort zusammenfügen — als LESBAREN Text.
+
+    Der MCP-Server verpackt seine Prosa als JSON-String: im Block steht dann
+    `"Sport Records …\n1. Flatwater …\n   LabelId: 480… "` — mit Anfuehrungszeichen aussen und
+    den Zeilenumbruechen als literalem Backslash-n. Wer das nicht auspackt, bekommt EINE Zeile.
+    Genau daran hing der Sync: `_aktivitaeten_aus` sucht zeilenweise, fand also in 25 Datensaetzen
+    genau eine `labelId` — die erste. Jeder COROS-Sync hat damit nur die neueste Aktivitaet
+    geholt, alles aeltere blieb unsichtbar (belegt am 07.09.2026 an einem echten Konto: 25
+    Datensaetze in der Antwort, 1 erkannt).
+    """
+    roh = "\n".join(c.get("text") or "" for c in (res.get("content") or []) if c.get("type") == "text")
+    t = roh.strip()
+    if len(t) >= 2 and t[0] == '"' and t[-1] == '"':
+        try:
+            entpackt = json.loads(t)
+        except json.JSONDecodeError:
+            return roh
+        if isinstance(entpackt, str):
+            return entpackt
+    return roh
 
 
 def _inhalt_json(res: dict):
@@ -393,14 +412,19 @@ def _aktivitaeten_aus(res: dict) -> list[tuple[str, int | None]]:
                 aus.append((str(lid), int(st) if isinstance(st, (int, float)) else None))
         if aus:
             return aus
-    # Rueckfall Text.
+    # Rueckfall Text. NICHT zeilenweise mit `search`: das findet je Zeile nur den ersten Treffer
+    # und faellt komplett aus, wenn der Server alles in einer Zeile schickt (s. `_inhalt_text`).
+    # `finditer` ueber den ganzen Text ist gegen beides unempfindlich.
     import re as _re
-    for zeile in _inhalt_text(res).splitlines():
-        m = _re.search(r'labelId["\s:=]+(\d{6,})', zeile, _re.I) or _re.search(r'\b(\d{14,})\b', zeile)
-        if not m:
-            continue
-        st = _re.search(r'sportType["\s:=]+(\d{1,4})', zeile, _re.I)
-        aus.append((m.group(1), int(st.group(1)) if st else None))
+    text = _inhalt_text(res)
+    for m in _re.finditer(r'labelId["\s:=]+(\d{6,})[^\n]*?(?:sportType["\s:=]+(\d{1,4}))?(?=\n|$)',
+                          text, _re.I):
+        aus.append((m.group(1), int(m.group(2)) if m.group(2) else None))
+    if aus:
+        return aus
+    # Letzter Rueckfall: lange Ziffernfolgen, wenn die Antwort das Wort „labelId" gar nicht nennt.
+    for m in _re.finditer(r'\b(\d{14,})\b', text):
+        aus.append((m.group(1), None))
     return aus
 
 
@@ -466,9 +490,14 @@ def sync(user: models.User = Depends(current_user), db: Session = Depends(get_db
                 if not parsed.get("gps_samples") or parsed.get("started_at") is None:
                     skipped += 1        # z. B. Indoor-Training ohne GPS
                     continue
+                # `import_parsed_session` gibt bei einem Doppel-Treffer die VORHANDENE Session
+                # zurueck (nicht None) — das zaehlte hier als Import. Der Sync meldete deshalb
+                # „1 importiert", obwohl nichts Neues entstand (07.09.). Gleiche Korrektur wie
+                # bei Suunto am 05.09.: an der ID pruefen, ob wirklich etwas hinzugekommen ist.
+                vorher = db.query(func.max(models.Session.id)).scalar() or 0
                 s = import_parsed_session(db, user, roh, parsed,
                                           src_label="coros-import", uuid_prefix="coros-")
-                if s is None:
+                if s is None or (s.id or 0) <= vorher:
                     skipped += 1        # war schon da bzw. bewusst geloescht
                 else:
                     imported += 1
