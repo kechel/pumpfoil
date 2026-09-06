@@ -5,6 +5,8 @@ erlaubt der Uhr, nach Abbruch nur Fehlendes nachzuschicken.
 """
 from __future__ import annotations
 
+import logging
+
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -22,6 +24,8 @@ from .deps import current_device
 
 router = APIRouter(prefix="/api/ingest", tags=["ingest"])
 
+log = logging.getLogger(__name__)
+
 
 def _get_owned_session(db, device, session_uuid) -> models.Session:
     s = db.query(models.Session).filter_by(session_uuid=session_uuid).first()
@@ -30,9 +34,61 @@ def _get_owned_session(db, device, session_uuid) -> models.Session:
     return s
 
 
+def _altlasten_abschliessen(db: Session, device: models.DeviceToken,
+                            aktuelle: models.Session, background: BackgroundTasks) -> None:
+    """Aeltere, nie abgeschlossene Sessions DESSELBEN Geraets endgueltig auswerten.
+
+    Warum dieses Signal (Jan, 06.09.): eine Aufnahme, die der Nutzer nie stoppen konnte (Akku
+    leer), bleibt fuer immer `live` — es gibt keinen Zeitpunkt, an dem sie fertig wird. Meldet
+    dasselbe Geraet aber eine NEUERE Aufnahme an, ohne die alte vervollstaendigt zu haben, ist
+    das das einzige belastbare Zeichen, dass die alten Daten dort nicht mehr warten.
+
+    Sicherheitsnetz drumherum, weil das Zeichen nicht unfehlbar ist: die Apple-App macht nach
+    einem Upload-Fehler mit der naechsten Session weiter (`drain()` bricht nur bei 401 ab), eine
+    neuere Session kann also hochgeladen werden, waehrend die aeltere noch Daten auf der Uhr hat.
+    Deshalb (a) nur Sessions anfassen, bei denen seit `RUHE_ABSCHLUSS_S` kein Chunk mehr kam, und
+    (b) `/status` meldet „complete" ohnehin erst, wenn alle Chunks da sind — eine Uhr wirft also
+    auch dann nichts weg, wenn hier zu frueh abgeschlossen wird.
+    """
+    from datetime import datetime, timezone
+
+    from sqlalchemy import func as _f
+
+    if device.id is None or aktuelle.started_at is None:
+        return
+    alt = (db.query(models.Session)
+           .filter(models.Session.device_id == device.id,
+                   models.Session.id != aktuelle.id,
+                   models.Session.deleted.is_(False),
+                   models.Session.status.in_(("recording", "live")),
+                   models.Session.started_at < aktuelle.started_at)
+           .all())
+    jetzt = datetime.now(timezone.utc)
+    for a in alt:
+        letzter = (db.query(_f.max(models.IngestChunk.received_at))
+                   .filter_by(session_id=a.id).scalar())
+        if letzter is None:
+            continue                      # nie etwas hochgeladen -> nichts abzuschliessen
+        if letzter.tzinfo is None:
+            letzter = letzter.replace(tzinfo=timezone.utc)
+        if (jetzt - letzter).total_seconds() < RUHE_ABSCHLUSS_S:
+            continue                      # laedt vielleicht gerade noch -> in Ruhe lassen
+        # Endzeit nachtragen wie in `/complete`, wenn die Uhr sie nie geschickt hat.
+        if a.ended_at is None and a.started_at is not None:
+            from datetime import timedelta
+            lm = storage.gps_last_ms(a.session_uuid)
+            if lm:
+                a.ended_at = a.started_at + timedelta(milliseconds=lm)
+                db.commit()
+        log.info("ingest: schliesse Session %s ab — Geraet %s meldet eine neuere an",
+                 a.session_uuid, device.id)
+        background.add_task(_analyze_in_background, a.id, True)
+
+
 @router.post("/session", response_model=SessionStartOut)
 def start_session(
     body: SessionStartIn,
+    background: BackgroundTasks,
     device: models.DeviceToken = Depends(current_device),
     db: Session = Depends(get_db),
 ) -> SessionStartOut:
@@ -102,6 +158,7 @@ def start_session(
             "accel_scale": body.accel_scale,
         },
     )
+    _altlasten_abschliessen(db, device, s, background)
     received = [c.index for c in s.chunks]
     return SessionStartOut(session_id=s.id, received_chunks=sorted(set(received)))
 
@@ -112,6 +169,11 @@ def start_session(
 # zur Ruhe gekommen ist, lohnt sich die Rechnung. Ist sie dagegen VOLLSTAENDIG, wird sofort
 # gerechnet — dann kommt nichts mehr, worauf man warten muesste.
 RUHE_S = 180
+
+# Wie lange eine aeltere Session ohne neuen Chunk sein muss, bevor sie beim Anmelden einer
+# neueren Session desselben Geraets abgeschlossen wird. Grosszuegig: ein Upload, der gerade
+# stockt, soll nicht abgeschnitten werden.
+RUHE_ABSCHLUSS_S = 1800
 
 
 def _nachrechnen_faellig(db: Session, s: "models.Session") -> bool:
@@ -263,6 +325,28 @@ def session_status(
     # Zustand (complete/analyzed/…) -> "complete", damit die Uhr aufräumt; nur die noch
     # laufende Aufnahme (recording/live) hält sie offen.
     done = s.status not in ("recording", "live", None)
+    # ABER: „complete" heisst fuer die Uhr „du darfst deine Kopie loeschen" (Uploader.mc ruft
+    # daraufhin `_cleanup()`). Das duerfen wir nur sagen, wenn wir die Chunks auch wirklich alle
+    # haben. Sonst genuegt EIN vorzeitiger Abschluss auf unserer Seite, um Daten endgueltig zu
+    # vernichten, die nur noch auf der Uhr liegen — und der Abschluss kann kuenftig auch ohne
+    # Zutun der Uhr passieren (s. `_altlasten_abschliessen`). Fehlt etwas, antworten wir „live":
+    # der Uploader laedt dann weiter statt zu loeschen (Uploader.onStatus -> `_startSession()`),
+    # und ueber `received_chunks` schickt er nur das Fehlende. Jan, 06.09.: „mach es so, dass
+    # moeglichst nie Daten verloren gehen."
+    # Nur fuer echte Uhr-Uploads: importierte Sessions (FIT/TCX aus einem verknuepften Konto)
+    # setzen `total_chunks = 1`, legen aber nie `ingest_chunks` an — die saehen sonst alle
+    # unvollstaendig aus. Sie haben kein `device_id`, weil sie nicht von einem gepaarten Geraet
+    # stammen, und fragen diesen Endpunkt auch nie.
+    if done and s.device_id is not None:
+        soll = s.expected_chunks or s.total_chunks
+        if soll:
+            from sqlalchemy import func as _f
+            haben = int(db.query(_f.count(models.IngestChunk.id))
+                        .filter_by(session_id=s.id).scalar() or 0)
+            if haben < soll:
+                log.info("ingest: %s serverseitig fertig, aber %d von %d Chunks — Uhr behaelt",
+                         session_uuid, haben, soll)
+                done = False
     return {"exists": True, "status": "complete" if done else (s.status or "recording")}
 
 
