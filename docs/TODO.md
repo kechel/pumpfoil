@@ -623,6 +623,31 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **📥 06.09. — Bestandsmeldung der Uhr („was liegt bei dir noch?") für künftige Uhr-Versionen.**
+  Idee von Jan. Die Umkehrung — der Server fragt die Uhr — geht nicht: Uhren haben keine
+  eingehende Verbindung, Garmin blockt das ausdrücklich (dieselbe Sperre, an der die
+  Live-Session-Statistik scheitert, s. Memory `live-session-stats`). Nötig ist es aber auch
+  nicht, weil die Uhr sich ohnehin meldet.
+  **Vorschlag:** die Recorder schicken bei einer Gelegenheit, die es schon gibt (`/devices/config`
+  oder `/api/ingest/session`), eine Liste dessen, was lokal liegt:
+  `[{session_uuid, chunks_lokal, fertig_aufgezeichnet}]`. Der Server antwortet je Eintrag mit den
+  fehlenden Indizes.
+  **Was das löst:**
+  1. `_altlasten_abschliessen` (06.09.) schließt heute aus „dasselbe Gerät meldet eine neuere
+     Session an", dass die alten Daten weg sind. Das ist ein Indiz, kein Beweis — `drain()` in der
+     Apple-App macht nach einem Upload-Fehler mit der nächsten Session weiter. Mit der
+     Bestandsmeldung wird aus dem Indiz eine Tatsache: was gemeldet wird, bleibt unangetastet.
+  2. **Aufnahmen, die nie hochgeladen wurden, wären überhaupt erst sichtbar** — eine Session
+     existiert bei uns erst, wenn der Upload beginnt. Was auf einer Uhr liegt und nie ankommt,
+     sieht heute niemand, auch der Nutzer nicht.
+  3. Resume ohne Nachfrage je Session (heute ein `/session`-Aufruf pro Session für
+     `received_chunks`).
+  4. Echte Zahlen für die Speicherwarnung statt der Schätzung aus `docs/WATCH-STORAGE.md`
+     (Connect IQ kennt kein `freeStorage`).
+  **Aufwand:** ein kleiner Endpunkt plus wenige Zeilen je Recorder (Garmin, Wear, Apple, Zepp,
+  Handy). Eng wird es nur auf der Instinct 2 (96 KB, s. Memory `garmin-instinct2-lowmem`) — dort
+  ggf. nur die UUIDs ohne Chunk-Zahlen.
+
 - **📥 06.09. — Serverstart haengt, wenn IRGENDEIN Client eine Transaktion offen haelt.**
   `init_db()` laeuft bei jedem Start und fuehrt in `_migrate_add_columns()` `ALTER TABLE … ADD
   COLUMN` aus — das braucht ACCESS EXCLUSIVE. Eine einzige Sitzung, die nur gelesen und nicht
