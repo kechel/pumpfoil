@@ -17,7 +17,7 @@ const OUTRO_LONG_AB = 20.0;
 // Stil je Textzeile. "text" ist der bisherige Fliesstext. Die beiden Stempel
 // sind fuer die "success or fail?"-Reihe: Kopfzeile fest (SUCCESS/FAIL), der
 // eingetippte Text wird zur Unterzeile darunter — beides im selben Winkel.
-type TxStyle = "text" | "success" | "fail";
+type TxStyle = "text" | "success" | "fail" | "banner";
 interface TextSlot {
   start: number | null;
   text: string;
@@ -34,12 +34,23 @@ const STAMP: Record<"success" | "fail", { label: string; color: string; tilt: nu
 };
 // Ein Stempel rastet ein, er blendet nicht auf: 0,12 s statt der 0,5 s fuer Text.
 const STAMP_FADE = 0.12;
+const TXA = 0.8;  // Deckkraft der Textoverlays — 80 % laesst das Video durchatmen
 const NAVY = "#020617";
 const CARD_CHIP = "#0f172a";  // Plaettchen auf der Karte, einen Schritt heller als Navy
 const CARD_K = 1.5;           // die Karte zeigt denselben Stempel, nur groesser
 const CYAN = "#22d3ee";       // Markenfarbe — der Spruch spricht fuer den Kanal,
 const CARD_SLOGAN = "have fun, keep pumping!";  // nicht fuer das Urteil im Stempel
+const SLATE = "#94a3b8";
+// Wiedererkennung der Reihe: im Hook-Banner tragen genau die beiden Woerter,
+// um die es geht, ihre Urteilsfarbe — der Rest bleibt weiss.
+const BANNER_WORDS: Record<string, string> = {
+  success: "#22c55e", erfolg: "#22c55e",
+  fail: "#ef4444", failure: "#ef4444", fehler: "#ef4444",
+  or: SLATE, oder: SLATE,
+};
 const isStamp = (s?: TxStyle): s is "success" | "fail" => s === "success" || s === "fail";
+// Stempel und Banner sind gezeichnete Grafik: feste Groesse, harte Blende.
+const isGfx = (s?: TxStyle) => isStamp(s) || s === "banner";
 // Standardtexte in den beiden untersten Slots. Die Leerzeilen sind Absicht: die
 // Zeilen werden vertikal zentriert (siehe drawText), die Leerzeilen schieben den
 // Text nach oben. Die Anzahl ist so gewaehlt, dass beide Bloecke auf derselben
@@ -60,7 +71,7 @@ const emptyTexts = (): TextSlot[] =>
 
 // Vorlage der "success or fail?"-Reihe: Hook, k Urteile, Schlusssatz, echter Fail.
 const REVEAL_SUBS = ["you tried it", "you tried again", "you got closer", "you kept going"];
-const REVEAL_HOOK = "success or fail?";
+const REVEAL_HOOK = "success\nor fail?";
 const REVEAL_END = "trying is the success.\n\nthe rest is practice.";
 const REVEAL_FAIL = "the day I stayed home";
 
@@ -177,6 +188,7 @@ function Studio() {
   const [midTab, setMidTab] = useState<"texte" | "reveal">(sv("midTab", "texte"));
   const [beats, setBeats] = useState<number>(sv("beats", 3));
   const [cardSlogan, setCardSlogan] = useState<boolean>(sv("cardSlogan", true));
+  const [txAlpha, setTxAlpha] = useState<number>(sv("txAlpha", TXA));
   // Endcard: ganzflaechiges Bild an frei gewaehlter Stelle, Zeiten in Sekunden
   const [endcard, setEndcard] = useState<EndCard>(() => {
     // Vorgaben zuerst, gespeicherte Werte darueber — so fehlt bei aelteren
@@ -204,10 +216,10 @@ function Studio() {
   useEffect(() => {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({
       curVideo, sel, pvPlatform, trim, texts, gain, otonGain, ducks, fade,
-      sideTab, endcard, midTab, beats, cardSlogan,
+      sideTab, endcard, midTab, beats, cardSlogan, txAlpha,
       outName, ovOn, ovSel, ovAlpha, outroOn, fltYT, fltIG, fltTT,
     }));
-  }, [curVideo, sel, pvPlatform, trim, texts, gain, otonGain, ducks, fade, outName, ovOn, ovSel, ovAlpha, outroOn, fltYT, fltIG, fltTT, sideTab, endcard, midTab, beats, cardSlogan]);
+  }, [curVideo, sel, pvPlatform, trim, texts, gain, otonGain, ducks, fade, outName, ovOn, ovSel, ovAlpha, outroOn, fltYT, fltIG, fltTT, sideTab, endcard, midTab, beats, cardSlogan, txAlpha]);
   const [browserOpen, setBrowserOpen] = useState(false);
   const [dirInput, setDirInput] = useState("");
   const [log, setLog] = useState("");
@@ -375,7 +387,7 @@ function Studio() {
             el.style.opacity = "0";
             return;
           }
-          const fd = isStamp(tx.style) ? STAMP_FADE : TXF;
+          const fd = isGfx(tx.style) ? STAMP_FADE : TXF;
           const e = tx.start + 2 * fd + (tx.hold ?? TXH);
           const a = Math.max(0, Math.min(Math.min((t - tx.start) / fd, (e - t) / fd), 1));
           el.style.opacity = String(a);
@@ -448,7 +460,21 @@ function Studio() {
       drawIconPath(g, d, x, y, size);
       x += size + gap;
     }
-    return c.toDataURL("image/png");
+    return flatten(c, txAlpha);
+  }
+
+  // Einheitliche Deckkraft: erst deckend zeichnen, dann als Ganzes abblenden.
+  // Direkt mit globalAlpha zu zeichnen wuerde die Ueberlappungen im Stempel
+  // (Rahmen auf Flaeche, Stempel auf Karte) unterschiedlich dicht machen.
+  function flatten(c: HTMLCanvasElement, a: number): string {
+    if (a >= 0.999) return c.toDataURL("image/png");
+    const o = document.createElement("canvas");
+    o.width = c.width;
+    o.height = c.height;
+    const g = o.getContext("2d")!;
+    g.globalAlpha = Math.max(0.05, a);
+    g.drawImage(c, 0, 0);
+    return o.toDataURL("image/png");
   }
 
   // Abgerundetes Rechteck ohne roundRect() — arcTo laeuft ueberall.
@@ -460,6 +486,64 @@ function Studio() {
     g.arcTo(x, y + h, x, y, r);
     g.arcTo(x, y, x + w, y, r);
     g.closePath();
+  }
+
+  // Hook-Banner: Balken ueber die ganze Breite, gruene Kante oben, rote unten —
+  // die Frage der Reihe, noch ohne Antwort. Gerade, damit die schraegen Stempel
+  // sich davon abheben.
+  function bannerPng(tx: TextSlot, w: number, h: number): string {
+    const k = w / 1080;
+    const c = document.createElement("canvas");
+    c.width = w;
+    c.height = h;
+    const g = c.getContext("2d")!;
+    const face = '"Avenir Next", Avenir, "Helvetica Neue", Helvetica, sans-serif';
+    const lines = tx.text.split("\n").map((s) => s.trim()).filter(Boolean);
+    if (!lines.length) return c.toDataURL("image/png");
+
+    const widest = (fs: number, ls: number) => {
+      g.font = `800 ${fs}px ${face}`;
+      g.letterSpacing = `${ls}px`;
+      return Math.max(...lines.map((l) => g.measureText(l).width));
+    };
+    // Schrift so gross wie moeglich, aber der Text muss in den Balken passen.
+    let fs = 96 * k, ls = 6 * k;
+    const nat = widest(fs, ls);
+    const maxW = w * 0.9;
+    if (nat > maxW) {
+      const f = maxW / nat;
+      fs *= f;
+      ls *= f;
+    }
+
+    const EDGE = 10 * k, PADY = 44 * k, LEAD = 1.18;
+    const lineH = fs * LEAD;
+    const barH = PADY * 2 + lineH * lines.length;
+    const top = h * 0.42 - barH / 2;
+    g.fillStyle = NAVY;
+    g.fillRect(0, top, w, barH);
+    g.fillStyle = STAMP.success.color;
+    g.fillRect(0, top, w, EDGE);
+    g.fillStyle = STAMP.fail.color;
+    g.fillRect(0, top + barH - EDGE, w, EDGE);
+
+    g.font = `800 ${fs}px ${face}`;
+    g.letterSpacing = `${ls}px`;
+    g.textBaseline = "middle";
+    g.textAlign = "left";
+    lines.forEach((line, i) => {
+      // Wort fuer Wort setzen, damit "success" und "fail" ihre Farbe bekommen;
+      // Satzzeichen werden abgetrennt und bleiben weiss.
+      const parts = line.match(/[\p{L}]+|[^\p{L}]+/gu) ?? [line];
+      let x = (w - g.measureText(line).width) / 2;
+      const y = top + PADY + lineH * (i + 0.5);
+      for (const part of parts) {
+        g.fillStyle = BANNER_WORDS[part.toLowerCase()] ?? "#ffffff";
+        g.fillText(part, x, y);
+        x += g.measureText(part).width;
+      }
+    });
+    return flatten(c, txAlpha);
   }
 
   // Alle Stempelmasse an einem Ort: sie sind fuer 1080 Breite entworfen und
@@ -582,13 +666,16 @@ function Studio() {
       g.fillStyle = CYAN;
       g.fillText(CARD_SLOGAN, w / 2, h * 0.8);
     }
-    return c.toDataURL("image/png");
+    // Die Karte bleibt deckend: sie ersetzt das Bild, statt darueber zu liegen —
+    // sonst geistert das Video (und das Logo-Overlay) durch das Navy.
+    return flatten(c, card ? 1 : txAlpha);
   }
 
   function textPng(tx: TextSlot): string {
     const vid = vidRef.current;
     const w = vid?.videoWidth || 1080;
     const h = vid?.videoHeight || 1920;
+    if (tx.style === "banner") return bannerPng(tx, w, h);
     if (isStamp(tx.style)) return stampPng(tx, w, h, cardSlogan);
     const c = document.createElement("canvas");
     c.width = w;
@@ -607,14 +694,14 @@ function Studio() {
     const lh = fs * 1.15;
     const y0 = h / 2 - ((lines.length - 1) / 2) * lh;
     lines.forEach((ln, i) => g.fillText(ln, w / 2, y0 + i * lh));
-    return c.toDataURL("image/png");
+    return flatten(c, txAlpha);
   }
 
   useEffect(() => {
     setTxPreview(texts.map((tx) =>
       tx.start != null && (tx.text.trim() || isStamp(tx.style)) ? textPng(tx) : null));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [texts, curVideo, cardSlogan]);
+  }, [texts, curVideo, cardSlogan, txAlpha]);
 
   // Slot-Plan der Reihe: Hook, k Urteile, Schluss, echter Fail — auf die
   // vorhandenen Textslots abgebildet, damit am Render nichts anzupassen ist.
@@ -632,7 +719,7 @@ function Studio() {
   function seedReveal() {
     setTexts((ts) =>
       ts.map((t, i): TextSlot => {
-        if (i === 0) return { ...t, text: REVEAL_HOOK, style: "text", hold: 1.2, size: 72 };
+        if (i === 0) return { ...t, text: REVEAL_HOOK, style: "banner", hold: 1.2 };
         if (i >= 1 && i <= beats)
           return { ...t, text: REVEAL_SUBS[(i - 1) % REVEAL_SUBS.length], style: "success", hold: 1.2, card: false };
         if (i === beats + 1) return { ...t, text: REVEAL_END, style: "text", hold: 2.2, size: 64 };
@@ -859,7 +946,7 @@ function Studio() {
           // Ein Stempel zaehlt auch ohne Unterzeile — nur Fliesstext braucht Inhalt.
           .filter((t) => t.start != null && (t.text.trim() || isStamp(t.style)))
           .map((t) => ({ start: t.start, hold: t.hold,
-                         fade: isStamp(t.style) ? STAMP_FADE : TXF,
+                         fade: isGfx(t.style) ? STAMP_FADE : TXF,
                          png: textPng(t) })),
         outros: outroOn && vidRef.current
           ? {
@@ -1091,6 +1178,12 @@ function Studio() {
               <button className={midTab === "reveal" ? "on" : ""} onClick={() => setMidTab("reveal")}>
                 Reveal
               </button>
+              <label className="txalpha" title="Deckkraft aller gezeichneten Overlays (Texte, Stempel, Banner, Outro) in Prozent">
+                <input type="number" min={5} max={100} step={5}
+                       value={Math.round(txAlpha * 100)}
+                       onChange={(e) => setTxAlpha(Math.min(1, Math.max(0.05, (+e.target.value || 100) / 100)))} />
+                %
+              </label>
             </div>
             <div className="reveal" hidden={midTab !== "reveal"}>
               <div className="rvhead">
@@ -1133,7 +1226,7 @@ function Studio() {
                         if (vid && tx.start != null) vid.currentTime = tx.start;
                       }} />
                     <textarea className="rvtxt" rows={1} spellCheck={false}
-                      placeholder={isStamp(tx.style) ? "Unterzeile …" : "Text …"}
+                      placeholder={isStamp(tx.style) ? "Unterzeile …" : tx.style === "banner" ? "Frage der Reihe …" : "Text …"}
                       value={tx.text}
                       onChange={(e) => setTexts((ts) => ts.map((s, j) => (j === r.slot ? { ...s, text: e.target.value } : s)))} />
                     {isStamp(tx.style) && (
@@ -1195,16 +1288,17 @@ function Studio() {
                     }}
                   />
                   <div className="txstyle">
-                    {(["text", "success", "fail"] as TxStyle[]).map((s) => (
+                    {(["text", "success", "fail", "banner"] as TxStyle[]).map((s) => (
                       <button
                         key={s}
-                        className={(tx.style ?? "text") === s ? "on" : ""}
+                        className={`${(tx.style ?? "text") === s ? "on" : ""} ${s === "banner" ? "bnr" : ""}`}
                         title={s === "text" ? "Fließtext"
                           : s === "success" ? "SUCCESS-Stempel (Text wird zur Unterzeile)"
-                          : "FAIL-Stempel (Text wird zur Unterzeile)"}
+                          : s === "fail" ? "FAIL-Stempel (Text wird zur Unterzeile)"
+                          : "Hook-Banner der Reihe (Balken über die ganze Breite)"}
                         onClick={() => setTexts((ts) => ts.map((t, j) => (j === i ? { ...t, style: s } : t)))}
                       >
-                        {s === "text" ? "T" : s === "success" ? "✓" : "✕"}
+                        {s === "text" ? "T" : s === "success" ? "✓" : s === "fail" ? "✕" : "▭"}
                       </button>
                     ))}
                     {isStamp(tx.style) && (
@@ -1220,7 +1314,7 @@ function Studio() {
                   <textarea
                     className="txt"
                     rows={2}
-                    placeholder={isStamp(tx.style) ? "Unterzeile …" : "Text …"}
+                    placeholder={isStamp(tx.style) ? "Unterzeile …" : tx.style === "banner" ? "Frage der Reihe …" : "Text …"}
                     spellCheck={false}
                     value={tx.text}
                     onChange={(e) => setTexts((ts) => ts.map((t, j) => (j === i ? { ...t, text: e.target.value } : t)))}
@@ -1244,9 +1338,9 @@ function Studio() {
                     max={200}
                     step={4}
                     value={tx.size ?? TXS}
-                    disabled={isStamp(tx.style)}
-                    title={isStamp(tx.style)
-                      ? "Beim Stempel steht die Größe fest"
+                    disabled={isGfx(tx.style)}
+                    title={isGfx(tx.style)
+                      ? "Bei Stempel und Banner steht die Größe fest"
                       : "Schriftgröße in Pixeln (bezogen auf 1080×1920)"}
                     onChange={(e) =>
                       setTexts((ts) =>
