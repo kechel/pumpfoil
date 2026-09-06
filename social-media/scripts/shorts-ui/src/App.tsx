@@ -90,7 +90,10 @@ interface EndCard { file: string; start: number | null; fadeIn: number; hold: nu
   fadeOut: number; alpha: number; append: boolean }
 const emptyEndcard = (): EndCard => ({ file: "", start: null, fadeIn: 0.3, hold: 1,
   fadeOut: 0.3, alpha: 1, append: false });
-const ecLen = (e: EndCard) => e.fadeIn + e.hold + e.fadeOut;
+// Wieviel die Endcard das Ergebnis verlaengert. Angehaengt zaehlt nur die
+// Standzeit: die Einblende ueberlappt mit der Karte davor (Ueberblendung), und
+// ausgeblendet wird am Schluss nicht — danach ist das Video zu Ende.
+const ecLen = (e: EndCard) => (e.append ? e.hold : e.fadeIn + e.hold + e.fadeOut);
 
 const emptyDucks = (): DuckSlot[] =>
   Array.from({ length: DUCK_N }, () => ({ start: null, end: null, music: -12, oton: 0 }));
@@ -447,11 +450,14 @@ function Studio() {
           const on = endcard.file && (endcard.append || endcard.start != null);
           if (!on) ec.style.opacity = "0";
           else {
-            const s0 = endcard.append ? endT + Math.max(tailSecs, overhang) : (endcard.start as number);
+            const s0 = endcard.append
+              ? Math.max(0, endT + Math.max(tailSecs, overhang) - endcard.fadeIn)
+              : (endcard.start as number);
             const e0 = s0 + endcard.fadeIn + endcard.hold;
-            ec.style.opacity = String(endcard.alpha * Math.max(0, Math.min(
-              Math.min((t - s0) / Math.max(0.05, endcard.fadeIn),
-                       (e0 + endcard.fadeOut - t) / Math.max(0.05, endcard.fadeOut)), 1)));
+            const auf = (t - s0) / Math.max(0.05, endcard.fadeIn);
+            const ab = endcard.append ? 1
+              : (e0 + endcard.fadeOut - t) / Math.max(0.05, endcard.fadeOut);
+            ec.style.opacity = String(endcard.alpha * Math.max(0, Math.min(Math.min(auf, ab), 1)));
           }
         }
         const oi = outroImgRef.current;
@@ -600,22 +606,33 @@ function Studio() {
   // Alle Stempelmasse an einem Ort: sie sind fuer 1080 Breite entworfen und
   // haengen linear an k, damit die Karte denselben Stempel nur groesser zeigt.
   function stampMetrics(g: CanvasRenderingContext2D, tx: TextSlot, label: string, k: number, face: string) {
-    const B = 12 * k, R = 20 * k, PY = 28 * k, PL = 44 * k, PR = 56 * k, GAP = 28 * k;
+    const B = 12 * k, R = 20 * k, PX = 50 * k, GAP = 28 * k;
     const FS = 92 * k, LS = 10 * k, ICON = 84 * k;
     const SUB_FS = 48 * k, SUB_PY = 18 * k, SUB_PX = 40 * k, SUB_R = 12 * k, SUB_GAP = 20 * k;
     g.font = `800 ${FS}px ${face}`;
     g.letterSpacing = `${LS}px`;
-    const boxW = PL + ICON + GAP + g.measureText(label).width + PR;
-    const boxH = PY * 2 + FS;
+    // measureText zaehlt die Sperrung HINTER dem letzten Zeichen mit — die ist
+    // aber nicht zu sehen. Ungekuerzt sitzt der Text sichtbar zu weit links.
+    const m = g.measureText(label);
+    const labelW = m.width - LS;
+    // Versalien in der Kastenmitte: nicht ueber die Schriftgroesse rechnen
+    // (da haengt Unterlaenge drin, die "SUCCESS" gar nicht hat), sondern ueber
+    // die tatsaechliche Hoehe der Buchstaben.
+    const capA = m.actualBoundingBoxAscent || FS * 0.72;
+    const capD = m.actualBoundingBoxDescent || 0;
+    const capH = capA + capD;
+    const boxW = PX * 2 + ICON + GAP + labelW;
+    const boxH = 41 * k * 2 + capH;
     const sub = tx.text.trim();
     let subW = 0, subH = 0;
     if (sub) {
       g.font = `600 ${SUB_FS}px ${face}`;
       g.letterSpacing = `${2 * k}px`;
-      subW = g.measureText(sub).width + SUB_PX * 2;
+      subW = g.measureText(sub).width - 2 * k + SUB_PX * 2;
       subH = SUB_FS + SUB_PY * 2;
     }
-    return { B, R, PY, PL, GAP, FS, LS, ICON, SUB_FS, SUB_PY, SUB_PX, SUB_R, SUB_GAP,
+    return { B, R, PX, GAP, FS, LS, ICON, capA, capD, capH, labelW,
+             SUB_FS, SUB_PY, SUB_PX, SUB_R, SUB_GAP,
              boxW, boxH, sub, subW, subH, blockH: boxH + (sub ? SUB_GAP + subH : 0) };
   }
 
@@ -680,7 +697,7 @@ function Studio() {
     // Haken / Kreuz, aus dem 24er Raster der Outro-Icons
     const s = m.ICON / 24;
     g.save();
-    g.translate(bx + m.PL, by + m.boxH / 2 - m.ICON / 2);
+    g.translate(bx + m.PX, by + m.boxH / 2 - m.ICON / 2);
     g.scale(s, s);
     g.strokeStyle = cfg.color;
     g.lineWidth = 3.6;
@@ -698,7 +715,10 @@ function Studio() {
     g.font = `800 ${m.FS}px ${face}`;
     g.letterSpacing = `${m.LS}px`;
     g.fillStyle = cfg.color;
-    g.fillText(cfg.label, bx + m.PL + m.ICON + m.GAP, by + m.boxH / 2);
+    g.textBaseline = "alphabetic";
+    g.fillText(cfg.label, bx + m.PX + m.ICON + m.GAP,
+               by + m.boxH / 2 + (m.capA - m.capD) / 2);
+    g.textBaseline = "middle";
 
     // Unterzeile: auf der Karte braucht das Plaettchen einen Hauch mehr Helligkeit
     // als der Grund, sonst verschwindet es und die Zeile schwebt frei.
@@ -1541,13 +1561,14 @@ function Studio() {
                 <div className="row">
                   <label className="ecapp" title="Endcard hinten anhängen, statt sie ins Video zu legen — das Video wird um ihre Dauer länger">
                     <input type="checkbox" checked={endcard.append}
-                           onChange={(e) => setEndcard({ ...endcard, append: e.target.checked })} />
+                           onChange={(e) => setEndcard({ ...endcard, append: e.target.checked,
+                             hold: e.target.checked && endcard.hold <= 1 ? 2.5 : endcard.hold })} />
                     ans Ende
                   </label>
                   {endcard.append ? (
                     <span style={{ opacity: 0.7 }}>
-                      hinter dem Video{tailSecs ? ` und den ${tailSecs} s davor` : ""},
-                      {" "}Dauer {ecLen(endcard).toFixed(1)} s
+                      blendet über die Karte davor ein ({endcard.fadeIn.toFixed(1)} s)
+                      und steht {endcard.hold.toFixed(1)} s bis zum Schluss
                     </span>
                   ) : (
                     <>
@@ -1571,8 +1592,10 @@ function Studio() {
                   <label title="Standzeit bei voller Deckkraft">■<input type="number" min={0} max={30} step={0.5}
                     value={endcard.hold}
                     onChange={(e) => setEndcard({ ...endcard, hold: +e.target.value })} /></label>
-                  <label title="Ausblenddauer">▼<input type="number" min={0.1} max={5} step={0.1}
-                    value={endcard.fadeOut}
+                  <label title={endcard.append
+                    ? "Beim Anhängen ohne Wirkung: die Endcard bleibt bis zum letzten Bild stehen"
+                    : "Ausblenddauer"}>▼<input type="number" min={0.1} max={5} step={0.1}
+                    value={endcard.fadeOut} disabled={endcard.append}
                     onChange={(e) => setEndcard({ ...endcard, fadeOut: +e.target.value })} /></label>
                   <label title="Deckkraft der Endcard" className="ecalpha">
                     ◐<input type="range" min={0.05} max={1} step={0.05} value={endcard.alpha}
@@ -1580,7 +1603,7 @@ function Studio() {
                     <b>{Math.round(endcard.alpha * 100)} %</b>
                   </label>
                   <span className="ecsum">
-                    {endcard.append ? `+${ecLen(endcard).toFixed(1)} s hinten`
+                    {endcard.append ? `+${ecLen(endcard).toFixed(1)} s am Schluss`
                       : endcard.start == null ? "Startzeit fehlt"
                       : `${endcard.start.toFixed(1)}–${(endcard.start + ecLen(endcard)).toFixed(1)} s`}
                   </span>
