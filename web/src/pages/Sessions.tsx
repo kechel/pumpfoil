@@ -1006,17 +1006,42 @@ export function StatusBadge({ status }: { status: string }) {
  * Seite, eine Einstellung. Ein Foil-Band-Filter fehlt bewusst: an einem einzelnen Spot ist der
  * Topf klein genug, dass eine weitere Eingrenzung meist leere Kacheln erzeugt.
  */
+// Reihenfolge, in der ein leeres Zeitfenster aufgegeben wird (Jan, 06.09.): erst die 10 Tage der
+// Community-Seite, dann groesser werden, bis wirklich etwas dasteht. „Heute" ist bewusst nicht
+// dabei — an einem einzelnen Spot ist das fast immer leer und waere ein schlechter Einstieg.
+const SPOT_FENSTER = ["10d", "30d", "365d", "all"];
+
+/** Steht in diesem Zeitfenster ueberhaupt ein Rekord? */
+function hatRekorde(satz: unknown): boolean {
+  if (!satz || typeof satz !== "object") return false;
+  return Object.values(satz as Record<string, { session_id?: number | null } | null>)
+    .some((r) => r && r.session_id != null);
+}
+
 function SpotRecords({ spot, accelOnly }: { spot: string; accelOnly: boolean }) {
   const t = useT();
   const [data, setData] = useState<Awaited<ReturnType<typeof api.communityRecords>> | null>(null);
-  const [period, setPeriod] = useState("all");
+  const [period, setPeriod] = useState("10d");
+  // Sobald der Nutzer selbst ein Fenster gewaehlt hat, wird es nicht mehr verschoben — sonst
+  // spraenge seine Wahl beim naechsten Laden zurueck.
+  const selbstGewaehlt = useRef(false);
 
   useEffect(() => {
     setData(null);
-    api.communityRecords(accelOnly, "pumpfoil", "all", spot).then(setData).catch(() => setData(null));
+    api.communityRecords(accelOnly, "pumpfoil", "all", spot).then((d) => {
+      setData(d);
+      if (!selbstGewaehlt.current) {
+        // Erstes Fenster, in dem es etwas zu sehen gibt. Ohne das steht an ruhigeren Spots
+        // eine Wand aus leeren Kacheln, obwohl es Rekorde gibt — nur aeltere.
+        setPeriod(SPOT_FENSTER.find((k) => hatRekorde((d as Record<string, unknown>)[k])) ?? "all");
+      }
+    }).catch(() => setData(null));
   }, [spot, accelOnly]);
 
-  if (!data) return null;
+  // Gar nichts an diesem Spot? Dann auch keinen Kasten — an einem Spot ohne Sessions stuenden
+  // sonst zwoelf leere Kacheln ueber dem Wetter (an Gourvieille gesehen, wo ein Nutzer seine
+  // Aufzeichnungen geloescht hat).
+  if (!data || !SPOT_FENSTER.some((k) => hatRekorde((data as Record<string, unknown>)[k]))) return null;
   return (
     <Card className="mb-3 p-4">
       <h3 className="mb-2 font-semibold">{t("rec.spotTitle")}</h3>
@@ -1024,7 +1049,7 @@ function SpotRecords({ spot, accelOnly }: { spot: string; accelOnly: boolean }) 
         {PERIODS.map(([k, labelKey]) => (
           <button
             key={k}
-            onClick={() => setPeriod(k)}
+            onClick={() => { selbstGewaehlt.current = true; setPeriod(k); }}
             className={`rounded-lg px-2.5 py-1 text-xs ${period === k
               ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"}`}
           >
