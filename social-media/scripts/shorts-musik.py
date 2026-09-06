@@ -291,13 +291,24 @@ def text_window(tx, trim_start: float) -> tuple[float, float, float]:
     return s, s + 2 * fade + hold, fade
 
 
+def endcard_teile(endcard) -> tuple[float, float, float]:
+    """Ein-, Stand- und Ausblendzeit einer Endcard."""
+    return (max(0.05, float(endcard.get("fade_in", 0.3))),
+            max(0.0, float(endcard.get("hold", 1.0))),
+            max(0.05, float(endcard.get("fade_out", 0.3))))
+
+
 def endcard_len(endcard) -> float:
-    """Gesamtdauer einer Endcard-Einblendung (Ein + Stand + Aus)."""
+    """Wieviel eine Endcard das Ergebnis verlaengert.
+
+    Angehaengt zaehlt nur die Standzeit: die Einblende ueberlappt mit dem, was
+    davor lief (Ueberblendung), und ausgeblendet wird am Schluss nicht mehr —
+    das Video ist danach zu Ende, ein Wegblenden zeigt nur noch Leere.
+    """
     if not endcard or not endcard.get("path"):
         return 0.0
-    return (max(0.05, float(endcard.get("fade_in", 0.3)))
-            + max(0.0, float(endcard.get("hold", 1.0)))
-            + max(0.05, float(endcard.get("fade_out", 0.3))))
+    fi, hold, fo = endcard_teile(endcard)
+    return hold if endcard.get("append") else fi + hold + fo
 
 
 def render(video: Path, track: Path, out: Path, gain_db: float,
@@ -420,19 +431,22 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
         inputs += ["-loop", "1", "-i", str(endcard["path"])]
         idx = n_inputs
         n_inputs += 1
-        s0 = (dur + tail_man if ec_append
+        fi, hold, fo = endcard_teile(endcard)
+        # Angehaengt startet die Endcard eine Einblendlaenge FRUEHER: sie steigt
+        # auf, waehrend die Karte davor verschwindet — die beiden blenden
+        # ineinander, statt hart zu schneiden.
+        s0 = (max(0.0, dur + tail_man - fi) if ec_append
               else max(0.0, float(endcard.get("start", 0.0)) - start))
-        fi = max(0.05, float(endcard.get("fade_in", 0.3)))
-        hold = max(0.0, float(endcard.get("hold", 1.0)))
-        fo = max(0.05, float(endcard.get("fade_out", 0.3)))
         # Deckkraft VOR den Blenden: fade skaliert den Alphakanal, der hier
         # schon reduziert ist — die Spitze liegt damit bei genau alpha.
         alpha = max(0.05, min(float(endcard.get("alpha", 1.0)), 1.0))
         aa = f",colorchannelmixer=aa={alpha:.3f}" if alpha < 1 else ""
+        # Angehaengt bleibt sie bis zum letzten Bild stehen — kein Ausblenden.
+        aus = ("" if ec_append else
+               f",fade=t=out:st={s0 + fi + hold:.3f}:d={fo:.3f}:alpha=1")
         fc_parts.append(
             f"[{idx}:v]format=rgba,scale={w}:{h}{aa}"
-            f",fade=t=in:st={s0:.3f}:d={fi:.3f}:alpha=1"
-            f",fade=t=out:st={s0 + fi + hold:.3f}:d={fo:.3f}:alpha=1[ec];"
+            f",fade=t=in:st={s0:.3f}:d={fi:.3f}:alpha=1{aus}[ec];"
             f"{vsrc}[ec]overlay=0:0:format=auto[vec]")
         vsrc = "[vec]"
     if outro:
