@@ -87,9 +87,10 @@ const DUCK_FADE = 0.5;
 // Endcard-Einblendung: Startzeit, Ein-/Ausblendung und Standzeit frei waehlbar,
 // damit das Bild nicht im Video mitgerendert werden muss.
 interface EndCard { file: string; start: number | null; fadeIn: number; hold: number;
-  fadeOut: number; alpha: number }
+  fadeOut: number; alpha: number; append: boolean }
 const emptyEndcard = (): EndCard => ({ file: "", start: null, fadeIn: 0.3, hold: 1,
-  fadeOut: 0.3, alpha: 1 });
+  fadeOut: 0.3, alpha: 1, append: false });
+const ecLen = (e: EndCard) => e.fadeIn + e.hold + e.fadeOut;
 
 const emptyDucks = (): DuckSlot[] =>
   Array.from({ length: DUCK_N }, () => ({ start: null, end: null, music: -12, oton: 0 }));
@@ -228,6 +229,14 @@ function Studio() {
   const [prog, setProg] = useState<{ label: string; pct: number } | null>(null);
   const [rendering, setRendering] = useState(false);
 
+  // Angehaengter Teil: erst die von Hand gesetzten Sekunden (dort steht die
+  // Karte auf dem eingefrorenen Bild), dann optional die Endcard.
+  const tailTotal = useMemo(
+    () => tailSecs + (endcard.file && endcard.append ? ecLen(endcard) : 0),
+    [tailSecs, endcard],
+  );
+
+  const tailRef = useRef<{ at: number | null }>({ at: null });
   const vidRef = useRef<HTMLVideoElement>(null);
   const musicRef = useRef<HTMLAudioElement>(null);
   const txovRefs = useRef<(HTMLElement | null)[]>([]);
@@ -241,8 +250,8 @@ function Studio() {
   const outroCacheRef = useRef<{ key: string; url: string }>({ key: "", url: "" });
 
   // Live-Werte für den rAF-Loop (State-Snapshot ohne Re-Subscribe)
-  const live = useRef({ trim, texts, outroOn, pvPlatform, curPlay, ducks, gain, otonGain, endcard });
-  live.current = { trim, texts, outroOn, pvPlatform, curPlay, ducks, gain, otonGain, endcard };
+  const live = useRef({ trim, texts, outroOn, pvPlatform, curPlay, ducks, gain, otonGain, endcard, tailSecs, tailTotal });
+  live.current = { trim, texts, outroOn, pvPlatform, curPlay, ducks, gain, otonGain, endcard, tailSecs, tailTotal };
 
   const load = useCallback(async () => {
     const s = await api.list();
@@ -355,13 +364,38 @@ function Studio() {
     const loop = () => {
       const vid = vidRef.current;
       if (vid) {
-        const { trim, texts, outroOn, pvPlatform, ducks, gain, otonGain, endcard } = live.current;
-        const t = vid.currentTime;
-        if (!vid.paused) {
-          if (trim.end != null && t >= trim.end) vid.currentTime = trim.start ?? 0;
-          else if (trim.start && t < trim.start && lastTRef.current > t + 1) vid.currentTime = trim.start;
+        const { trim, texts, outroOn, pvPlatform, ducks, gain, otonGain, endcard,
+                tailSecs, tailTotal } = live.current;
+        const vdur = isFinite(vid.duration) ? vid.duration : 0;
+        const endT = trim.end ?? vdur;
+        // Der angehaengte Teil existiert im <video> nicht. Also: am Ende
+        // anhalten (das haelt das letzte Bild, wie tpad im Render) und die Zeit
+        // fuer die Overlays weiterlaufen lassen.
+        let t = vid.currentTime;
+        const tl = tailRef.current;
+        if (tl.at != null) {
+          const el = (performance.now() - tl.at) / 1000;
+          if (!vid.paused || tailTotal <= 0 || el >= tailTotal) {
+            tailRef.current = { at: null };
+            if (tailTotal > 0 && vid.paused) {
+              vid.currentTime = trim.start ?? 0;
+              void vid.play();
+            }
+          } else {
+            t = endT + el;
+          }
+        } else if (!vid.paused) {
+          if (endT > 0 && t >= endT - 0.03) {
+            if (tailTotal > 0) {
+              tailRef.current = { at: performance.now() };
+              vid.pause();
+              t = endT;
+            } else if (trim.end != null) vid.currentTime = trim.start ?? 0;
+          } else if (trim.start && t < trim.start && lastTRef.current > t + 1) {
+            vid.currentTime = trim.start;
+          }
         }
-        lastTRef.current = t;
+        lastTRef.current = vid.currentTime;
         // Pegel-Vorschau: Musik/O-Ton-Lautstärke inkl. Pegel-Abschnitten
         // (Browser kann nicht über 100 % — O-Ton-Boost hört man erst im Render voll)
         const duckF = (key: "music" | "oton") => {
@@ -395,10 +429,10 @@ function Studio() {
         });
         const ec = ecImgRef.current;
         if (ec) {
-          const on = endcard.file && endcard.start != null;
+          const on = endcard.file && (endcard.append || endcard.start != null);
           if (!on) ec.style.opacity = "0";
           else {
-            const s0 = endcard.start as number;
+            const s0 = endcard.append ? endT + tailSecs : (endcard.start as number);
             const e0 = s0 + endcard.fadeIn + endcard.hold;
             ec.style.opacity = String(endcard.alpha * Math.max(0, Math.min(
               Math.min((t - s0) / Math.max(0.05, endcard.fadeIn),
@@ -413,7 +447,8 @@ function Studio() {
             const effLen = end - (trim.start ?? 0);
             const secs = effLen > OUTRO_LONG_AB ? OUTRO_SECS_LONG : OUTRO_SECS;
             const st = Math.max(trim.start ?? 0, end - secs);
-            const a = Math.max(0, Math.min((t - st) / TXF, 1));
+            const a = Math.max(0, Math.min((t - st) / TXF, 1))
+              * (tailTotal > 0 ? Math.max(0, Math.min((end - t) / TXF, 1)) : 1);
             const key = pvPlatform + "|" + vid.videoWidth;
             if (a > 0 && outroCacheRef.current.key !== key) {
               outroCacheRef.current = { key, url: outroPng(pvPlatform, vid) };
@@ -868,8 +903,8 @@ function Studio() {
     const vid = vidRef.current;
     const end = trim.end ?? (vid && isFinite(vid.duration) ? vid.duration : null);
     if (end == null) return null;
-    return end - (trim.start ?? 0) + tailSecs;
-  }, [trim, tailSecs]);
+    return end - (trim.start ?? 0) + tailTotal;
+  }, [trim, tailTotal]);
 
   const resetAll = useCallback(() => {
     if (!window.confirm("Alle Studio-Einstellungen zurücksetzen (Texte, Trim, Musikwahl, Name …)?")) return;
@@ -944,9 +979,10 @@ function Studio() {
         fade_out: fade,
         overlay: (ovOn && ovSel) || null,
         overlay_alpha: ovAlpha,
-        endcard: endcard.file && endcard.start != null
-          ? { file: endcard.file, start: endcard.start, fade_in: endcard.fadeIn,
-              hold: endcard.hold, fade_out: endcard.fadeOut, alpha: endcard.alpha }
+        endcard: endcard.file && (endcard.append || endcard.start != null)
+          ? { file: endcard.file, start: endcard.start ?? 0, fade_in: endcard.fadeIn,
+              hold: endcard.hold, fade_out: endcard.fadeOut, alpha: endcard.alpha,
+              append: endcard.append }
           : null,
         trim_start: trim.start,
         trim_end: trim.end,
@@ -1147,7 +1183,7 @@ function Studio() {
       <div className="col center">
         <div className="stage">
           <div className="vwrap">
-            <video ref={vidRef} controls playsInline loop />
+            <video ref={vidRef} controls playsInline loop={tailTotal <= 0} />
             {ovOn && ovSel && (
               <img className="ovimg" alt="" style={{ opacity: ovAlpha }} src={`/media/overlay/${encodeURIComponent(ovSel)}`} />
             )}
@@ -1488,16 +1524,30 @@ function Studio() {
             {endcard.file && (
               <>
                 <div className="row">
-                  ab
-                  <button className="mini" title="aktuelle Abspielposition übernehmen"
-                          onClick={() => vidRef.current
-                            && setEndcard({ ...endcard, start: +vidRef.current.currentTime.toFixed(1) })}>
-                    @
-                  </button>
-                  <input type="number" min={0} step={0.1} value={endcard.start ?? ""}
-                         placeholder="—"
-                         onChange={(e) => setEndcard({ ...endcard,
-                           start: e.target.value === "" ? null : +e.target.value })} /> s
+                  <label className="ecapp" title="Endcard hinten anhängen, statt sie ins Video zu legen — das Video wird um ihre Dauer länger">
+                    <input type="checkbox" checked={endcard.append}
+                           onChange={(e) => setEndcard({ ...endcard, append: e.target.checked })} />
+                    ans Ende
+                  </label>
+                  {endcard.append ? (
+                    <span style={{ opacity: 0.7 }}>
+                      hinter dem Video{tailSecs ? ` und den ${tailSecs} s davor` : ""},
+                      {" "}Dauer {ecLen(endcard).toFixed(1)} s
+                    </span>
+                  ) : (
+                    <>
+                      ab
+                      <button className="mini" title="aktuelle Abspielposition übernehmen"
+                              onClick={() => vidRef.current
+                                && setEndcard({ ...endcard, start: +vidRef.current.currentTime.toFixed(1) })}>
+                        @
+                      </button>
+                      <input type="number" min={0} step={0.1} value={endcard.start ?? ""}
+                             placeholder="—"
+                             onChange={(e) => setEndcard({ ...endcard,
+                               start: e.target.value === "" ? null : +e.target.value })} /> s
+                    </>
+                  )}
                 </div>
                 <div className="row ectimes">
                   <label title="Einblenddauer">▲<input type="number" min={0.1} max={5} step={0.1}
@@ -1515,9 +1565,9 @@ function Studio() {
                     <b>{Math.round(endcard.alpha * 100)} %</b>
                   </label>
                   <span className="ecsum">
-                    {endcard.start == null ? "Startzeit fehlt"
-                      : `${endcard.start.toFixed(1)}–${(endcard.start + endcard.fadeIn
-                          + endcard.hold + endcard.fadeOut).toFixed(1)} s`}
+                    {endcard.append ? `+${ecLen(endcard).toFixed(1)} s hinten`
+                      : endcard.start == null ? "Startzeit fehlt"
+                      : `${endcard.start.toFixed(1)}–${(endcard.start + ecLen(endcard)).toFixed(1)} s`}
                   </span>
                 </div>
               </>
@@ -1561,6 +1611,12 @@ function Studio() {
                      onChange={(e) => setTailSecs(Math.min(30, Math.max(0, +e.target.value || 0)))} />
               s
             </label>
+            {tailTotal > 0 && (
+              <span style={{ opacity: 0.6 }}>
+                → {(len ?? 0).toFixed(1)} s gesamt
+                {endcard.file && endcard.append ? ` (inkl. Endcard ${ecLen(endcard).toFixed(1)} s)` : ""}
+              </span>
+            )}
           </div>
           <div className="namebox">
             <div className="nfix">

@@ -275,6 +275,15 @@ def _vol_expr(windows, key, offset, dur, fade=0.5):
     return "*".join(parts)
 
 
+def endcard_len(endcard) -> float:
+    """Gesamtdauer einer Endcard-Einblendung (Ein + Stand + Aus)."""
+    if not endcard or not endcard.get("path"):
+        return 0.0
+    return (max(0.05, float(endcard.get("fade_in", 0.3)))
+            + max(0.0, float(endcard.get("hold", 1.0)))
+            + max(0.05, float(endcard.get("fade_out", 0.3))))
+
+
 def render(video: Path, track: Path, out: Path, gain_db: float,
            fade_out: float = FADE_OUT, overlay: Path = None,
            trim_start: float = 0.0, trim_end: float = None,
@@ -291,9 +300,14 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
     # Angehaengter Schluss: das letzte Bild wird eingefroren, damit eine
     # deckende Karte laenger stehen kann als das Material reicht.
     try:
-        tail = max(0.0, min(float(tail_secs or 0.0), TAIL_MAX))
+        tail_man = max(0.0, float(tail_secs or 0.0))
     except (TypeError, ValueError):
-        tail = 0.0
+        tail_man = 0.0
+    # Die angehaengte Endcard kommt HINTER den von Hand angehaengten Sekunden:
+    # erst die Karte auf dem eingefrorenen Bild, dann die Endcard.
+    ec_append = bool(endcard and endcard.get("append") and endcard.get("path"))
+    ec_len = endcard_len(endcard) if ec_append else 0.0
+    tail = min(tail_man + ec_len, TAIL_MAX)
     total = dur + tail
     trimmed = start > 0.01 or end < full - 0.01
     fade_out = max(0.001, min(fade_out, total / 2))
@@ -394,7 +408,8 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
         inputs += ["-loop", "1", "-i", str(endcard["path"])]
         idx = n_inputs
         n_inputs += 1
-        s0 = max(0.0, float(endcard.get("start", 0.0)) - start)
+        s0 = (dur + tail_man if ec_append
+              else max(0.0, float(endcard.get("start", 0.0)) - start))
         fi = max(0.05, float(endcard.get("fade_in", 0.3)))
         hold = max(0.0, float(endcard.get("hold", 1.0)))
         fo = max(0.05, float(endcard.get("fade_out", 0.3)))
@@ -1963,7 +1978,8 @@ class Handler(BaseHTTPRequestHandler):
                            "fade_in": float(ec.get("fade_in") or 0.3),
                            "hold": float(ec.get("hold") or 1),
                            "fade_out": float(ec.get("fade_out") or 0.3),
-                           "alpha": float(ec.get("alpha") or 1.0)}
+                           "alpha": float(ec.get("alpha") or 1.0),
+                           "append": bool(ec.get("append"))}
             except (FileNotFoundError, TypeError, ValueError):
                 return self._json({"error": "Endcard nicht gefunden"}, 400)
         results = {}

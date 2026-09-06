@@ -71,6 +71,7 @@ h2.dirtitle { text-transform: none; white-space: nowrap; overflow: hidden; text-
 .midtabs button:hover { background: #8882; }
 .midtabs button.on { background: #3b82f622; border-color: #3b82f688; font-weight: 600; }
 .midtabs .txalpha { flex: none; display: flex; align-items: center; gap: 3px; font-size: 11px; opacity: .75; }
+.ecard .ecapp { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
 .row .tail { display: flex; align-items: center; gap: 4px; font-size: 11px; opacity: .8; }
 .row .tail input { width: 48px; font-size: 12px; padding: 4px; border-radius: 6px;
   border: 1px solid #8886; background: transparent; color: inherit; }
