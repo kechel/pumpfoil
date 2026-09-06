@@ -66,8 +66,33 @@ def _reparatur_prozessor():
         def run_message_processor(self, data_message):
             gross = data_message.def_mesg.endian == ">"
             for fd in data_message.fields:
+                if self._unlesbar(fd):
+                    continue
                 self._zusammensetzen(fd, gross)
             super().run_message_processor(data_message)
+
+        def _unlesbar(self, fd) -> bool:
+            """Feld, das die Datei SCHMALER deklariert, als sein Typ breit ist -> None.
+
+            Gegenstueck zu `_zusammensetzen`: dort passt die Breite exakt und die Werte sind
+            nur falsch verpackt, hier fehlen schlicht Bytes. Aus 1 Byte laesst sich kein
+            uint32 rekonstruieren — jeder Wert waere geraten. Lieber ein leeres Feld als eine
+            erfundene Zahl: bei `timestamp` wuerde geraten die ganze Session auf eine falsche
+            Uhrzeit legen, und das faellt niemandem auf. Faellt das Feld weg, greifen die
+            vorhandenen Wege (Zeit fehlt -> Datei wird mit klarer Begruendung abgelehnt).
+            """
+            fdef, feld = fd.field_def, fd.field
+            if fdef is None or feld is None or fdef.base_type.name != "byte":
+                return False
+            bt = getattr(feld, "base_type", None)
+            # Genau die Lage, die `_toleranter_fitfile` hinterlaesst: als `byte` gelesen, weil
+            # die Datei WENIGER Bytes vorsieht, als der Typ laut Profil braucht. Ein gesundes
+            # `byte`-Feld ist nie schmaler als sein Profiltyp, ein Xiaomi-Feld nie schmaler
+            # als exakt eine Typbreite — deshalb trifft das nur den kaputten Fall.
+            if bt is None or bt.size <= fdef.size:
+                return False
+            fd.raw_value, fd.value = None, None
+            return True
 
         def _zusammensetzen(self, fd, gross: bool) -> None:
             fdef, feld = fd.field_def, fd.field
@@ -103,6 +128,64 @@ def _reparatur_prozessor():
 
     _REPARATUR = ByteArrayReparatur
     return _REPARATUR()
+
+
+# --- Toleranz gegen kaputte Feld-BREITEN (COROS PACE 3) ---------------------------------
+# Belegt am 06.09.2026 an einem echten Training von Nutzer u277 (erster COROS-Import
+# ueberhaupt): der Sync brach mit
+#
+#   Unreadable FIT file: Invalid field size 1 for type 'uint32' (expected a multiple of 4)
+#
+# ab. Anders als bei Xiaomi (s. oben) stimmt hier nicht die Verpackung nicht, sondern die
+# BREITE: die Datei deklariert ein Feld mit 1 Byte, dessen Basistyp 4 Byte breit ist.
+# `fitparse` wirft daraufhin schon beim DEFINITIONSSATZ — bevor irgendein Datenprozessor
+# laeuft. Ein Prozessor kann das also nicht mehr auffangen, es muss hier passieren.
+#
+# `fitparse` selbst sieht den Ausweg vor und laesst ihn nur offen (Kommentar an der Stelle:
+# "we could fall back to byte encoding if there's any examples in the wild"). Das Beispiel
+# aus der Wildnis liegt jetzt vor, also gehen wir diesen Weg: das Feld wird als `byte`
+# gelesen. Entscheidend ist, dass die GROESSE unveraendert bleibt — sie schiebt den
+# Lesezeiger weiter, der Rest der Nachricht bleibt dadurch exakt in der Spur. Verloren geht
+# nur dieses eine Feld — der Prozessor oben erkennt die Lage und leert es, statt aus einem
+# Byte eine Zahl zu erfinden.
+_TOLERANT = None
+
+
+def _toleranter_fitfile():
+    """FitFile-Variante, die kaputte Feld-Breiten ueberliest statt die Datei abzulehnen."""
+    global _TOLERANT
+    if _TOLERANT is not None:
+        return _TOLERANT
+
+    import fitparse
+    from fitparse.records import BASE_TYPES, BASE_TYPE_BYTE
+
+    class BreitenTolerant(fitparse.FitFile):
+        def _parse_definition_message(self, header):
+            # Die Original-Methode wird NICHT nachgebaut (45 Zeilen Fremdcode, die veralten).
+            # Stattdessen wird waehrend ihres Laufs das Lesen der Feld-Tripel abgefangen:
+            # def_num, Groesse und Basistyp stehen in genau diesen drei Bytes, und nur dort
+            # ist beides gleichzeitig bekannt. Passt die Groesse nicht zum Basistyp, geben wir
+            # `byte` zurueck — Groesse unveraendert, Lesezeiger bleibt in der Spur.
+            echt = self._read_struct
+
+            def mit_blick(fmt, *a, **kw):
+                wert = echt(fmt, *a, **kw)
+                if fmt == "3B":
+                    def_num, groesse, basis = wert
+                    bt = BASE_TYPES.get(basis, BASE_TYPE_BYTE)
+                    if groesse % bt.size:
+                        return (def_num, groesse, BASE_TYPE_BYTE.identifier)
+                return wert
+
+            self._read_struct = mit_blick
+            try:
+                return super()._parse_definition_message(header)
+            finally:
+                del self._read_struct
+
+    _TOLERANT = BreitenTolerant
+    return _TOLERANT
 
 
 def _aware(dt: datetime) -> datetime:
@@ -193,7 +276,7 @@ def parse_fit_bytes(data: bytes) -> dict:
     import fitparse
 
     try:
-        fit = fitparse.FitFile(data, data_processor=_reparatur_prozessor())
+        fit = _toleranter_fitfile()(data, data_processor=_reparatur_prozessor())
         records, accel_msgs = [], []
         sport = "pumpfoil"
         # Dateiart aus `file_id.type` mitnehmen. Ohne die kann man einem Nutzer nicht sagen, WARUM

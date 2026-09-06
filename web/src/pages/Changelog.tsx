@@ -117,6 +117,12 @@ const ENTRIES: Entry[] = [
   {
     date: "September 6, 2026",
     items: [
+      "COROS workouts import reliably now. One watch wrote a single value in a way our reader could not make sense of, and it turned down the whole workout over it. It now leaves that one value out and keeps everything else — position, speed and heart rate all arrive as recorded.",
+    ],
+  },
+  {
+    date: "September 6, 2026",
+    items: [
       "Every spot now has its own records. Open a spot in your session list and you see the farthest run, the longest one, top speed, most pumps and the rest — for that spot alone, with the same time windows as on the community page. Idea from the feedback form.",
     ],
   },
