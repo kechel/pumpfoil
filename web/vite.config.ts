@@ -48,8 +48,20 @@ export default defineConfig({
         importScripts: ["/push-sw.js"],   // Web-Push-Handler
         navigateFallback: "/index.html",
         // /demo + die OAuth-Brücken (…-oauth) liefert der Server selbst aus —
-        // ohne Ausnahme zeigt der SW dafür die gecachte SPA-Shell (= 404 im Router)
-        navigateFallbackDenylist: [/^\/api/, /^\/media/, /^\/demo/, /-oauth(\?|$)/],
+        // ohne Ausnahme zeigt der SW dafür die gecachte SPA-Shell (= 404 im Router).
+        //
+        // sitemap.xml, robots.txt, .well-known und die Google-Bestätigungsdatei kamen am
+        // 06.09.2026 dazu, nachdem `pumpfoil.org/sitemap.xml` im Browser auf der Startseite
+        // landete: der SW beantwortet JEDE Navigation aus dem Cache mit `index.html`, der
+        // Router sieht dann `/sitemap.xml`, erkennt darin keine Sprache und leitet auf `/`.
+        // Googlebot führt keinen Service Worker aus und bekam die Datei — für Menschen (und
+        // für die Prüfung in der Search Console) war sie aber unerreichbar.
+        navigateFallbackDenylist: [
+          /^\/api/, /^\/media/, /^\/demo/, /-oauth(\?|$)/,
+          /^\/sitemap\.xml$/, /^\/robots\.txt$/, /^\/\.well-known/,
+          // Search Console legt eine Datei wie `google1a2b3c4d5e.html` in den Wurzelordner.
+          /^\/google[0-9a-f]+\.html$/,
+        ],
         runtimeCaching: [
           {
             // Likes offline -> in Background-Sync-Queue, Versand sobald wieder online
