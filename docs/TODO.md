@@ -153,7 +153,11 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   Wenn wir rangehen: die Vorgaben stehen unter dem verlinkten Anker, unsere Assets liegen in
   `brand/app-icons/` und `brand/stores/`, das App-Icon der Uhr selbst in
   `watch-zepp/assets/common.r/icon.png`. Danach neu einreichen (Buildcode hochzaehlen).
-  **LIVE bleibt damit 1.0.4**; im Baum steht schon 1.0.8.
+  **LIVE bleibt damit 1.0.6** (freigegeben 24.08., s. Einreichungs-Protokoll); im Baum steht schon
+  1.0.8. — *Korrektur 06.09.: hier stand faelschlich „LIVE bleibt damit 1.0.4“. Das widersprach
+  schon dem naechsten Absatz („Die Vorversion 1.0.6 stand in derselben Liste mit Approved vom
+  24.08.“) und `appmeta.zepp`. Belegt an unseren eigenen Daten: 16 Amazfit-Uhren melden
+  `app_version = 1.0.6`, zuletzt gesehen am 04.09., dazu 14 damit aufgezeichnete Sessions.*
   Urspruengliche Einreichung: **26.08.2026**, Zepp-Konsole „Under Review (Can be Withdrawn)",
   appId 1118995, kostenlos, Buildcode 10. Die Vorversion 1.0.6 stand in derselben Liste mit
   „Approved" vom 24.08.
