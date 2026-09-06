@@ -1,0 +1,11 @@
+[Unit]
+Description=Taeglich die verknuepften Konten synchronisieren
+[Timer]
+# Einmal taeglich reicht: alle drei Schnittstellen fragen ab dem letzten Sync-Zeitpunkt, kam
+# nichts dazu, wird keine einzige Datei geladen. Nachts, damit es niemandem in die Quere kommt;
+# Streuung, damit nicht alle Konten in derselben Sekunde abgefragt werden.
+OnCalendar=*-*-* 04:20:00
+RandomizedDelaySec=600
+Persistent=true
+[Install]
+WantedBy=timers.target

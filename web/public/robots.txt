@@ -1,33 +1,20 @@
-# Öffentlich indexierbar: Landing-Page (/), /impressum, /changelog und die vier
-# Textseiten (Nerd-Analysen 1–3, Systemarchitektur). Die vier sind seit 06.09.2026
-# auch OHNE Login erreichbar — vorher rendert der Router Gästen dort die Landing-Page,
-# und Google hätte unter vier Adressen denselben Inhalt gesehen.
-# Alle App-Routen zeigen Gästen/Crawlern nur dieselbe Landing-Page (login-gated)
-# -> vom Crawling ausschließen, sonst meldet Google "Duplikat ohne Canonical".
-# Statische Assets (/assets, /media, Bilder, manifest) bleiben crawlbar, damit
-# Google die Seite korrekt rendern kann.
+# Öffentlich indexierbar: Landing-Page (/), /impressum, /changelog, /support, /feedback und die
+# vier Textseiten (Nerd-Analysen 1–3, Systemarchitektur) — in allen Sprachen unter /<code>/.
+#
+# WARUM HIER (fast) NICHTS MEHR GESPERRT IST (06.09.2026):
+# Bis dahin standen alle App-Routen auf `Disallow`, weil sie Gästen nur die Landing-Page zeigen.
+# Google meldete daraufhin „Indexiert, obwohl durch robots.txt-Datei blockiert" — und das ist
+# kein Widerspruch, sondern die Folge: eine gesperrte Seite wird nicht gecrawlt, also sieht
+# Google dort auch kein `noindex`. Kennt es die Adresse trotzdem aus einem Link (ein geteilter
+# Session-Link genügt), landet sie ohne Inhalt im Index, und man wird sie so nicht wieder los.
+#
+# Deshalb umgekehrt: crawlen erlauben, und der Server liefert für genau diese Routen
+# `X-Robots-Tag: noindex, follow` aus (s. `spa()` in server/app/main.py). Das ist der einzige
+# Weg, der Seiten wirklich aus dem Index hält.
+#
+# Gesperrt bleibt nur, was für einen Crawler ohnehin sinnlos ist und Last erzeugt.
 User-agent: *
-Disallow: /login
-Disallow: /reset
-Disallow: /home
-Disallow: /community
-Disallow: /chat
-Disallow: /verlauf
-Disallow: /sessions
-Disallow: /import
-Disallow: /alle-sessions
-Disallow: /spots
-Disallow: /foils
-Disallow: /foil-stats
-Disallow: /foil-rechner
-Disallow: /account
-Disallow: /einstellungen
-Disallow: /konten
-Disallow: /vergleich
-Disallow: /admin
-
-# Bilder und Assets bleiben crawlbar, sonst kann Google die Seite nicht rendern.
-Allow: /assets/
-Allow: /nerd3/
+Disallow: /api/
+Allow: /
 
 Sitemap: https://pumpfoil.org/sitemap.xml

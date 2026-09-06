@@ -106,10 +106,56 @@ def start_session(
     return SessionStartOut(session_id=s.id, received_chunks=sorted(set(received)))
 
 
+# Wie lange nach dem letzten Chunk gewartet wird, bevor neu gerechnet wird. Nicht nach JEDEM
+# Chunk rechnen (Jan, 06.09.) — bei 1372 Chunks waeren das 1372 volle Analysen, und waehrend ein
+# Upload laeuft ist jeder Zwischenstand ohnehin gleich wieder veraltet. Erst wenn die Uebertragung
+# zur Ruhe gekommen ist, lohnt sich die Rechnung. Ist sie dagegen VOLLSTAENDIG, wird sofort
+# gerechnet — dann kommt nichts mehr, worauf man warten muesste.
+RUHE_S = 180
+
+
+def _nachrechnen_faellig(db: Session, s: "models.Session") -> bool:
+    """Liegt die Analyse hinter den Daten — und ist der Upload so weit zur Ruhe gekommen,
+    dass sich das Rechnen lohnt?
+
+    Drei Bedingungen, alle noetig:
+    1. Die Session laeuft noch (`recording`/`live`). Abgeschlossene rechnet `/complete`.
+    2. Seit der letzten Analyse sind Chunks angekommen. `updated_at` ist der Zeitpunkt der
+       letzten Analyse — `run_analysis` schreibt in die Session-Zeile, ein Chunk-Upload nicht.
+       Das braucht keine neue Spalte und gilt ueber alle vier uvicorn-Arbeitsprozesse hinweg,
+       weil der Zustand in der DB steht und nicht im Prozess.
+    3. Entweder ist die Uebertragung vollstaendig (dann sofort), oder der letzte Chunk liegt
+       mindestens `RUHE_S` zurueck.
+    """
+    from datetime import datetime, timezone
+
+    from sqlalchemy import func as _f
+
+    if s.status not in ("recording", "live", None):
+        return False
+    letzter, anzahl = (db.query(_f.max(models.IngestChunk.received_at),
+                                _f.count(models.IngestChunk.id))
+                       .filter_by(session_id=s.id).first() or (None, 0))
+    if letzter is None:
+        return False
+    if letzter.tzinfo is None:
+        letzter = letzter.replace(tzinfo=timezone.utc)
+    stand = s.updated_at or s.created_at
+    if stand is not None:
+        if stand.tzinfo is None:
+            stand = stand.replace(tzinfo=timezone.utc)
+        if letzter <= stand:
+            return False                      # seit der letzten Analyse kam nichts Neues
+    if s.expected_chunks and (anzahl or 0) >= s.expected_chunks:
+        return True                           # vollstaendig -> nicht warten
+    return (datetime.now(timezone.utc) - letzter).total_seconds() >= RUHE_S
+
+
 @router.post("/session/{session_uuid}/chunk", response_model=ChunkOut)
 def upload_chunk(
     session_uuid: str,
     body: ChunkIn,
+    background: BackgroundTasks,
     device: models.DeviceToken = Depends(current_device),
     db: Session = Depends(get_db),
 ) -> ChunkOut:
@@ -139,6 +185,15 @@ def upload_chunk(
     else:
         chunk.sample_count = n
     db.commit()
+    # Weiterrechnen, solange Daten nachkommen (Jan, 06.09.): auswerten und anzeigen, was DA ist —
+    # bis zu dem Punkt, bis zu dem die Daten reichen. Kommt nichts mehr, hoert es von selbst auf;
+    # es braucht also keinen Abschluss-Zeitpunkt und keine Aufraeum-Schleife. Der Anlass dafuer
+    # war eine Apple Watch, deren Akku mitten in der Fahrt leer war: die Vorabanalyse lief genau
+    # EINMAL beim Oeffnen der Session (`s.result is None`), stand danach fuer immer auf dem Stand
+    # der ersten hochgeladenen Minuten — 4 statt 13 Laeufe — und niemand konnte es sehen.
+    # `final=False`: der Status bleibt „live", die Uhr darf ihre Daten NICHT wegwerfen.
+    if _nachrechnen_faellig(db, s):
+        background.add_task(_analyze_in_background, s.id, False)
     return ChunkOut(ok=True, index=body.index)
 
 

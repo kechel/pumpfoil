@@ -1729,10 +1729,22 @@ def get_session(
     # der Nutzer nicht auf eine leere Seite schaut. MUSS VOR dem ETag/304-Return stehen: sonst
     # antwortet der Poll dauerhaft 304 (updated_at ändert sich ohne Analyse nie) -> Trigger feuert
     # nie -> Deadlock. Nur Besitzer, nur mit GPS-Chunks, nur wenn (noch) kein Ergebnis existiert.
-    if s.user_id == user.id and s.status in ("recording", "live") and s.result is None:
+    if s.user_id == user.id and s.status in ("recording", "live"):
         has_gps = db.query(models.IngestChunk.id).filter_by(session_id=s.id, kind="gps").first() is not None
-        if has_gps:
-            from .ingest import _analyze_in_background
+        # Frueher stand hier `s.result is None`, die Vorabanalyse lief also GENAU EINMAL. Wer eine
+        # Session waehrend des Uploads oeffnete, sah danach fuer immer den Stand dieses Moments —
+        # belegt an einer Apple Watch mit leerem Akku: 4 statt 13 Laeufe, und nichts deutete darauf
+        # hin, dass die Zahl nur ein Zwischenstand war. Jetzt wird auch nachgerechnet, wenn seit
+        # der letzten Analyse Chunks angekommen sind (Jan, 06.09.: „immer wenn zusaetzliche Daten
+        # ankamen dann nochmal neu die ganze Analyse"). `updated_at` ist der Zeitpunkt der letzten
+        # Analyse — sie schreibt in die Session-Zeile, ein Chunk-Upload nicht.
+        from .ingest import _analyze_in_background, _nachrechnen_faellig
+        # Erste Vorschau sofort (sonst schaut der Nutzer auf eine leere Seite); danach nur noch,
+        # wenn seit der letzten Analyse Chunks angekommen sind UND der Upload zur Ruhe gekommen
+        # oder vollstaendig ist — dieselbe Regel wie beim Chunk-Empfang. Ohne die zweite Haelfte
+        # wuerde der Poll dieser Seite waehrend eines Uploads bei jedem Durchlauf eine komplette
+        # Analyse ausloesen.
+        if has_gps and (s.result is None or _nachrechnen_faellig(db, s)):
             background_tasks.add_task(_analyze_in_background, s.id, False)
     like_count = int(
         db.query(func.count()).select_from(models.SessionLike).filter_by(session_id=s.id).scalar() or 0)

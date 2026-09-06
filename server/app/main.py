@@ -343,10 +343,38 @@ if settings.web_dist.exists():
     _NO_CACHE = {"sw.js", "index.html", "version.json", "manifest.webmanifest",
                  "registerSW.js", "push-sw.js", "theme-init.js"}
 
+    # Routen, die nur angemeldeten Nutzern etwas zeigen. Gaesten und Crawlern rendert der Router
+    # dort dieselbe Landing-Page — als Suchergebnis ist das wertlos und waere ein Duplikat.
+    #
+    # Bis 06.09.2026 standen sie in der robots.txt auf `Disallow`. Genau das hat Google als
+    # „Indexiert, obwohl durch robots.txt-Datei blockiert" gemeldet, und der Grund ist logisch:
+    # eine gesperrte Seite wird nicht GECRAWLT, also sieht Google auch kein `noindex` — kennt
+    # Google die Adresse aber aus einem Link (ein geteilter Session-Link genuegt), nimmt es sie
+    # trotzdem in den Index auf, nur ohne Inhalt. Sperren ist deshalb das falsche Werkzeug:
+    # crawlen ERLAUBEN und `noindex` ausliefern ist der einzige Weg, der wirklich fernhaelt.
+    #
+    # Als Kopfzeile statt als Meta-Tag, weil die PWA fuer JEDE Route dieselbe `index.html`
+    # ausliefert — ein Meta-Tag darin gaelte auch fuer die Startseite. Die Kopfzeile kann pro
+    # Pfad gesetzt werden. `follow` bleibt drin: den Links darf Google weiter folgen.
+    _PRIVAT = ("login", "reset", "home", "community", "chat", "verlauf", "sessions", "import",
+               "alle-sessions", "spots", "foils", "foil-stats", "foil-rechner", "account",
+               "einstellungen", "konten", "vergleich", "admin")
+
+    def _privat(pfad: str) -> bool:
+        erstes = pfad.strip("/").split("/", 1)[0].lower()
+        # Sprachpraefix ueberspringen (/en/community, /fr/spots …): zweistellige Codes.
+        if len(erstes) == 2 and erstes.isalpha():
+            rest = pfad.strip("/").split("/", 2)
+            erstes = rest[1].lower() if len(rest) > 1 else ""
+        return erstes in _PRIVAT
+
     @app.get("/{full_path:path}")
     def spa(full_path: str):  # noqa: ANN202
         candidate = settings.web_dist / full_path
         if full_path and candidate.is_file():
             nc = candidate.name in _NO_CACHE or candidate.name.startswith("workbox-")
             return FileResponse(candidate, headers={"Cache-Control": "no-cache"} if nc else {})
-        return FileResponse(settings.web_dist / "index.html", headers={"Cache-Control": "no-cache"})
+        kopf = {"Cache-Control": "no-cache"}
+        if _privat(full_path):
+            kopf["X-Robots-Tag"] = "noindex, follow"
+        return FileResponse(settings.web_dist / "index.html", headers=kopf)
