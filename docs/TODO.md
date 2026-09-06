@@ -619,6 +619,22 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 06.09. — `pumpfoil.org/sitemap.xml` landete im Browser auf der Startseite.** Von Jan beim
+  Einreichen in der Search Console gemeldet. **Ursache: unser eigener Service Worker.** Er
+  beantwortet JEDE Navigation aus dem Cache mit `index.html` (`navigateFallback`); der Router
+  sieht dann `/sitemap.xml`, erkennt darin keine Sprache und leitet auf `/`. Die
+  `navigateFallbackDenylist` kannte nur `/api`, `/media`, `/demo` und die OAuth-Bruecken.
+  **Nachgewiesen, nicht vermutet:** im Browser mit registriertem Worker reproduziert (Adresse
+  danach `/`, Inhalt = Flaggenreihe der Startseite), ohne Worker kam sauberes XML.
+  **Behoben:** `sitemap.xml`, `robots.txt`, `/.well-known` und `google<hex>.html` stehen jetzt
+  in der Ausnahmeliste — die letzte vorsorglich, weil die Search Console genau so eine Datei
+  in den Wurzelordner legen laesst und der Worker sie sonst genauso verschluckt haette.
+  **Googlebot war nie betroffen** (fuehrt keinen Service Worker aus), Menschen schon.
+  **Achtung beim Nachpruefen:** der Worker steht auf `registerType: "prompt"`. Ein bereits
+  installierter Worker bleibt aktiv, bis der Nutzer im Banner auf „Aktualisieren" klickt oder
+  hart neu laedt — die alte Fassung haelt sich also noch eine Weile.
+
+
 - **🟢 06.09. — Startseite auf „pumpfoil“ optimiert (Jans Auftrag).** Was gemacht wurde, und
   vor allem: was NICHT.
   **Der groesste Fund war kein Meta-Tag, sondern eine Sperre.** `/nerd-analysen`,
