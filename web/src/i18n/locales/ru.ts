@@ -783,6 +783,8 @@ const ru: Record<string, string> = {
   "land.cta": "Начать бесплатно",
   "land.ctaSecondary": "У меня есть аккаунт",
   "land.heroTitle": "Записывайте и анализируйте свой pump foiling",
+  "seo.landTitle": "Pumpfoil — записывай и анализируй pump foiling",
+  "seo.landDesc": "Записывай pump foiling с часами Garmin, Apple Watch, Wear OS или Amazfit и получай разбор каждой сессии: GPS-трек, дистанция на фойле, каденс пампов, фазы глиссирования. Бесплатно и с открытым кодом.",
   "land.h1": "Pumpfoil — записывай и анализируй pump foiling со спортивными часами",
   "land.deepTitle": "Как устроено измерение",
   "land.deepBody": "Мы надели двое часов на один и тот же заезд и всё перемерили. Всё открыто: что измеряется, как распознаются пампы и где границы.",

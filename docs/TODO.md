@@ -644,10 +644,26 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   sie wirken kurz und kosten dann die ganze Domain. Die `sr-only`-`h1` ist KEIN versteckter
   Text in diesem Sinn: sie sagt woertlich dasselbe wie das Bild darueber und ist die uebliche
   Barrierefreiheits-Loesung.
-  **Offen und die groesste verbleibende Chance: eigene Adressen je Sprache.** Heute liegen alle
-  17 Sprachen auf EINER URL (Umschaltung im `localStorage`), Google indexiert also nur Deutsch.
-  Fuer „pump foiling“ auf Englisch braeuchte es `/en/…` samt `hreflang`. Das ist ein Eingriff in
-  Routing, i18n und Server — deshalb hier als Vorschlag und nicht heimlich mitgebaut.
+  **✅ Nachgezogen am 06.09.: eigene Adresse je Sprache.** `/en/`, `/fr/`, `/ja/` … 16 Stueck;
+  Deutsch bleibt auf `/` und bekommt bewusst KEIN `/de/` (sonst zwei Adressen mit gleichem
+  Inhalt). Wie es zusammenspielt:
+  - `i18n.langAusPfad()` liest die Sprache aus der Adresse, VOR `localStorage` und
+    Browsersprache — wer `/fr/` aufruft, sieht Franzoesisch, auch wenn beim letzten Besuch
+    Deutsch eingestellt war.
+  - Route `/:lang` rendert dieselbe Landing-Page. Statische Pfade wie `/login` gewinnen in
+    React Router gegen das dynamische Segment; unbekannte Segmente gehen auf `/` (sonst waere
+    jede Tippfehler-Adresse eine Kopie der Startseite).
+  - Die Flaggenreihe besteht jetzt aus echten **Links** — Suchmaschinen folgen keinen
+    Klick-Handlern, so werden die Uebersetzungen ueberhaupt erst gefunden. Der Klick schaltet
+    zusaetzlich sofort um, sonst wechselte bei der Navigation ohne Neuladen nur die Adresse.
+  - `hreflang` fuer alle 17 Sprachen plus `x-default` in `index.html`, dazu in der `sitemap.xml`
+    je Adresse alle Alternativen.
+  - Titel, Beschreibung und Canonical je Sprache (`seo.landTitle`/`seo.landDesc`). Das Canonical
+    folgt der ADRESSE, nicht der eingestellten Sprache.
+  **Im Browser durchgeklickt:** `/en/` `/fr/` `/ja/` liefern jeweils eigenen Titel, eigene
+  Beschreibung, eigenes `html lang` und eigenes Canonical; ein Klick auf die franzoesische
+  Flagge fuehrt zu `/fr/` mit franzoesischem Titel, zurueck auf `/` mit deutschem;
+  `/quatsch` landet auf `/`.
 
 
 - **🟢 05.09. — Importe trugen die falsche Sportart: Lesefehler behoben, 130 Sessions korrigiert.**

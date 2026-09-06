@@ -879,6 +879,8 @@ const cs: Record<string, string> = {
   "land.cta": "Začni zdarma",
   "land.ctaSecondary": "Mám účet",
   "land.heroTitle": "Zaznamenej a vyhodnoť pump-foiling",
+  "seo.landTitle": "Pumpfoil — nahrávej a vyhodnocuj pumpfoiling",
+  "seo.landDesc": "Nahraj pumpfoiling s hodinkami Garmin, Apple Watch, Wear OS nebo Amazfit a nech si každou jízdu vyhodnotit: GPS trasa, vzdálenost na foilu, kadence pumpů, klouzavé fáze. Zdarma a otevřené.",
   "land.h1": "Pumpfoil — nahrávej a vyhodnocuj pumpfoiling se sportovními hodinkami",
   "land.deepTitle": "Jak měření funguje",
   "land.deepBody": "Dali jsme dvoje hodinky na stejnou jízdu a přeměřili to. Vše je otevřené: co se měří, jak se rozpoznávají pumpy a kde jsou hranice.",

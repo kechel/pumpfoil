@@ -902,6 +902,8 @@ const en: Record<string, string> = {
   "land.cta": "Get started free",
   "land.ctaSecondary": "I have an account",
   "land.heroTitle": "Record and analyze your pump foiling",
+  "seo.landTitle": "Pumpfoil — record and analyse pump foiling",
+  "seo.landDesc": "Record pump foiling with a Garmin, Apple Watch, Wear OS or Amazfit watch and get every session analysed: GPS track, foiling distance, pump cadence, glide phases. Free and open source.",
   "land.h1": "Pumpfoil — record and analyse pump foiling with your sports watch",
   "land.deepTitle": "How the measuring works",
   "land.deepBody": "We strapped two watches to the same run and measured. Everything is out in the open: what is measured, how pumps are detected, and where the limits are.",

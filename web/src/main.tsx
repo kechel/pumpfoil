@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { Navigate, useParams, createBrowserRouter, RouterProvider } from "react-router-dom";
 import "leaflet/dist/leaflet.css";
 // Muss VOR der ersten Karte laufen: Leaflet soll keine Tasten schlucken, waehrend jemand tippt.
 import "./lib/leafletKeyboard";
@@ -10,7 +10,7 @@ import { getToken, setToken } from "./lib/api";
 import { APP_BUILD } from "./buildInfo";
 import { applyTheme, getTheme, watchSystemTheme } from "./lib/theme";
 import { applyFontScale, getFontScale } from "./lib/fontscale";
-import { I18nProvider } from "./i18n";
+import { I18nProvider, langAusPfad} from "./i18n";
 
 // Chunk-/Modul-Ladefehler nach einem Deploy (alte Chunk-URL nach PWA-Update) -> einmal pro
 // Session frisch neu laden statt Blank-Screen. Ergänzt den Watchdog (public/app-watchdog.js).
@@ -87,6 +87,18 @@ import { PwaStatus } from "./components/PwaStatus";
 
 // "/" -> eingeloggt: App-Shell; Gast: öffentliche Landing-Page (statt Login-Redirect),
 // damit der App-Zweck ohne Anmeldung sichtbar ist (Google-OAuth-Anforderung).
+/**
+ * Startseite unter einem Sprachpraefix. Rendert dieselbe Landing-Page; die Sprache stellt
+ * `detectInitialLang` schon beim Start aus der Adresse ein. Ist das Segment keine bekannte
+ * Sprache, geht es auf `/` — sonst waere jede Tippfehler-Adresse eine Kopie der Startseite,
+ * und genau das meldet Google als „Duplikat ohne Canonical".
+ */
+function SprachStartseite() {
+  const { lang } = useParams();
+  if (!langAusPfad("/" + (lang ?? ""))) return <Navigate to="/" replace />;
+  return <Landing />;
+}
+
 function RootRoute() {
   return getToken() ? <App /> : <Landing />;
 }
@@ -96,6 +108,10 @@ const router = createBrowserRouter([
   { path: "/reset", element: <Reset /> },
   { path: "/impressum", element: <Impressum /> },
   { path: "/changelog", element: <Changelog /> },
+  // Eine eigene Adresse je Sprache fuer die oeffentliche Startseite: /en/, /fr/, /ja/ …
+  // Statische Pfade wie /login gewinnen in React Router gegen dieses dynamische Segment,
+  // die bestehenden Routen bleiben also unberuehrt. Unbekannte Segmente landen auf /.
+  { path: "/:lang", element: <SprachStartseite /> },
   // Oeffentlich OHNE Login — und das ist eine SEO-Entscheidung (Jan, 06.09.2026): fuer
   // Gaeste rendert `RootRoute` sonst die Landing-Page, Google saehe also unter vier
   // eigenen Adressen denselben Inhalt („Duplikat ohne Canonical") und muesste sie in der

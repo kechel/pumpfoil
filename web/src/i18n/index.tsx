@@ -63,7 +63,25 @@ function htmlLang(l: Lang): string {
   return l === "gsw" ? "de-CH" : l;
 }
 
+/**
+ * Sprachpraefix der Adresse, z. B. "/en/" -> "en". Nur bekannte Codes zaehlen; alles andere
+ * ergibt null, damit `/login` oder `/impressum` nicht als Sprache missverstanden werden.
+ *
+ * Das gibt es, damit jede Sprache eine EIGENE Adresse hat (Jan, 06.09.2026). Vorher lagen alle
+ * 17 Sprachen auf `/` und die Wahl stand nur im localStorage — fuer eine Suchmaschine ist das
+ * eine einzige deutsche Seite. Mit `/en/`, `/fr/` … kann jede Sprache fuer sich ranken, und die
+ * `hreflang`-Angaben in `index.html` sagen Google, dass es Uebersetzungen derselben Seite sind.
+ */
+export function langAusPfad(pfad?: string): Lang | null {
+  const teil = (pfad ?? window.location.pathname).split("/")[1] || "";
+  return isLang(teil) ? teil : null;
+}
+
 export function detectInitialLang(): Lang {
+  // Die Adresse schlaegt alles: wer `/fr/` aufruft, will Franzoesisch sehen — auch wenn im
+  // localStorage noch Deutsch von einem frueheren Besuch steht.
+  const ausPfad = langAusPfad();
+  if (ausPfad) return ausPfad;
   const saved = localStorage.getItem(LS_KEY);
   if (isLang(saved)) return saved;
   const nav = (navigator.language || "").toLowerCase();

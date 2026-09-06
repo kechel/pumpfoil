@@ -783,6 +783,8 @@ const ja: Record<string, string> = {
   "land.cta": "無料で始める",
   "land.ctaSecondary": "アカウントを持っています",
   "land.heroTitle": "パンプフォイリングを記録・解析",
+  "seo.landTitle": "Pumpfoil — パンプフォイルを記録して分析",
+  "seo.landDesc": "Garmin、Apple Watch、Wear OS、Amazfit でパンプフォイルを記録し、GPS軌跡・フォイリング距離・パンプ頻度・滑走区間を自動で分析します。無料・オープンソース。",
   "land.h1": "Pumpfoil — スポーツウォッチでパンプフォイルを記録して分析",
   "land.deepTitle": "計測のしくみ",
   "land.deepBody": "同じランに2つの時計を付けて計測しました。何を測っているか、パンプをどう検出しているか、限界はどこかをすべて公開しています。",

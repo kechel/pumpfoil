@@ -783,6 +783,8 @@ const pt: Record<string, string> = {
   "land.cta": "Comece grátis",
   "land.ctaSecondary": "Já tenho uma conta",
   "land.heroTitle": "Grave e analise seu pump foiling",
+  "seo.landTitle": "Pumpfoil — grava e analisa pump foil",
+  "seo.landDesc": "Grava pump foil com um Garmin, Apple Watch, Wear OS ou Amazfit e analisa cada sessão: traçado GPS, distância em voo, cadência de pump e fases de planeio. Grátis e open source.",
   "land.h1": "Pumpfoil — grava e analisa pump foil com o teu relógio desportivo",
   "land.deepTitle": "Como se mede",
   "land.deepBody": "Pusemos dois relógios no mesmo run e medimos. Está tudo aberto: o que é medido, como se detetam os pumps e onde estão os limites.",

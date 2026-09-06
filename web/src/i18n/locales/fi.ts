@@ -847,6 +847,8 @@ const fi: Record<string, string> = {
   "land.cta": "Aloita ilmaiseksi",
   "land.ctaSecondary": "Minulla on tili",
   "land.heroTitle": "Tallenna ja analysoi pump-foilaus",
+  "seo.landTitle": "Pumpfoil — tallenna ja analysoi pumpfoilaus",
+  "seo.landDesc": "Tallenna pumpfoilaus Garminilla, Apple Watchilla, Wear OS:llä tai Amazfitilla ja analysoi jokainen sessio: GPS-jälki, foilausmatka, pumppauskadenssi ja liitovaiheet. Ilmainen ja avoin.",
   "land.h1": "Pumpfoil — tallenna ja analysoi pumpfoilaus urheilukellolla",
   "land.deepTitle": "Näin mittaus toimii",
   "land.deepBody": "Laitoimme kaksi kelloa samaan vetoon ja mittasimme. Kaikki on avointa: mitä mitataan, miten pumppaukset tunnistetaan ja missä rajat menevät.",
