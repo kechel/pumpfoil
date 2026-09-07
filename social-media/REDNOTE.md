@@ -30,9 +30,36 @@ und finden auch alte Beitraege. Folgen daraus:
 在德国博登湖玩无动力水翼板 🌊
 不用风、不用浪、不用船，只靠自己 pump 起飞
 从新手摔到起飞，全过程都记在这儿
-顺手写了个运动手表 App：佳明 / Apple Watch / Wear OS / Amazfit
+顺手写了个运动手表 App：佳明 / Apple Watch / 华米 Amazfit / 高驰 COROS
 记录每次 pump 的距离和滑行 · 免费开源 → pumpfoil.org
 ```
+
+## Welche Uhren wir dort nennen — und welche NICHT
+
+Nicht die Weltliste, sondern die fuer China:
+
+| Marke | auf RedNote nennen? |
+|---|---|
+| 佳明 Garmin | ✅ App auf der Uhr, in China praesent |
+| Apple Watch | ✅ |
+| 华米 Amazfit | ✅ chinesische Marke (Zepp/Huami) |
+| 高驰 COROS | ✅ chinesische Marke, in China stark — ueber die Kontoanbindung |
+| Wear OS | ❌ Google ist in China gesperrt, erreicht dort niemanden |
+| **小米 Xiaomi** | ❌ **auf keinen Fall** |
+| 华为 Huawei | ❌ wird gar nicht unterstuetzt |
+
+**Warum Xiaomi trotz aller Naheliegendheit raus muss:** unsere Anbindung laeuft ueber
+Mi Fitness → Suunto, und dazu steht in unserer eigenen App-Doku
+(`web/src/i18n/locales/en.ts`, `linked.xiaomi.note`): *"Xiaomi offers this connection
+worldwide except in China."* Genau diese Bruecke fehlt dort. 小米 zu nennen waere ein
+Versprechen, das beim ersten Versuch bricht — und das vor dem Publikum, das die Marke am
+besten kennt.
+
+**Der Elefant ist Huawei.** Die groesste Uhrenmarke Chinas unterstuetzen wir gar nicht,
+weder mit App noch ueber ein Konto. Wer uns dort ueber den App-Winkel findet, hat also mit
+einiger Wahrscheinlichkeit eine Uhr, mit der es nicht geht. Das begrenzt, was RedNote fuer
+App-Nutzer bringen kann — fuer Reichweite und Sichtbarkeit des Sports bleibt es trotzdem
+sinnvoll.
 
 ## Wie das Studio das bedient
 

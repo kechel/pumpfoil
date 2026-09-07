@@ -208,8 +208,13 @@ def rednote_text(caps: dict) -> dict:
         kurz = kurz.rstrip(" —-–—·,，、：:!！?？")
     # Der App-Hinweis auf Chinesisch: kurz, ohne Werbeton — RedNote-Leser
     # erwarten einen Tipp, keine Anzeige.
+    # Marken fuer CHINA, nicht die Weltliste: Wear OS ist dort ohne Google
+    # praktisch nicht vorhanden, und Xiaomi laeuft ueber Mi Fitness -> Suunto,
+    # eine Bruecke, die es laut unserer eigenen Doku "worldwide except in China"
+    # gibt. 小米 hier zu nennen waere also ein Versprechen, das dort bricht.
+    # Dafuer 高驰 (COROS), chinesische Marke, in China stark.
     app = ("用运动手表记录每一次 pump：GPS、水翼距离、滑行时间。\n"
-           "免费开源，支持佳明 / Apple Watch / Wear OS / Amazfit → pumpfoil.org")
+           "免费开源，支持佳明 / Apple Watch / 华米 Amazfit / 高驰 COROS → pumpfoil.org")
     tags = " ".join("#" + x for x in XHS_TAGS)
     teile = [d.get("zh", "").strip(), app, tags]
     text = "\n\n".join(x for x in teile if x)
