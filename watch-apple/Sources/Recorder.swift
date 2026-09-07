@@ -451,7 +451,12 @@ final class Recorder: NSObject, ObservableObject {
         let os = v.patchVersion > 0
             ? "\(v.majorVersion).\(v.minorVersion).\(v.patchVersion)"
             : "\(v.majorVersion).\(v.minorVersion)"
-        return "\(machine) · watchOS \(os)"
+        // Im Simulator gibt `utsname.machine` die Architektur des MACS zurueck („arm64"), nicht
+        // die Modellkennung („Watch7,1"). Ungefiltert landet „arm64" als Uhrenmodell in unserer
+        // Auswertung — am 07.09.2026 im Bestand nachgezaehlt: neun Sessions trugen es schon.
+        // Lieber ehrlich „Simulator" schreiben; die Auswertung soll nur echte Geraete vergleichen.
+        let echtesGeraet = !["arm64", "x86_64", "i386"].contains(machine)
+        return "\(echtesGeraet ? machine : "Simulator") · watchOS \(os)"
     }
 
     private func uploadSession(_ dir: URL) async throws {

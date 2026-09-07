@@ -1061,6 +1061,13 @@ struct SessionDest: Hashable {
 // List-Zeile macht die ganze Zeile zum Knopf.
 struct SpotDest: Hashable {
     let spot: String
+    /// Die Spot-Zeile, wenn der Einstieg sie schon kennt (Karte, Spot-Liste, Session).
+    ///
+    /// Warum das mitreist (Jan, 07.09.2026): die Spot-Ansicht hat die id vorher NOCHMAL ueber
+    /// die Spot-Karte gesucht (`spotMap().first { $0.spot == name }`) — und wenn das schiefging,
+    /// fehlten die Beschreibungen ohne jeden Hinweis. Der Einstieg hat die id ohnehin zur Hand,
+    /// also wird sie durchgegeben; die Suche bleibt nur als Rueckfall.
+    var spotId: Int? = nil
 }
 
 // Freitextsuche im Material-Katalog — UNABHAENGIG von der Wortstellung.

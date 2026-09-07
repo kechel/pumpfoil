@@ -9,6 +9,9 @@ import SwiftUI
 // zusammengelegt gehoeren sie trotzdem — s. docs/TODO.md.
 struct SpotSessionsView: View {
     let spot: String
+    /// Vom Einstieg mitgegebene Spot-Zeile (Karte/Liste/Session). Ist sie da, wird nicht mehr
+    /// gesucht — genau diese Suche hat die Beschreibungen verschluckt.
+    var vorgegebeneSpotId: Int? = nil
     @EnvironmentObject private var store: SessionStore
     @AppStorage("appLang") private var lang = "de"
     @State private var items: [CommunityItem] = []
@@ -61,6 +64,7 @@ struct SpotSessionsView: View {
         // Nebenlaeufen in einer Gruppe, damit nichts aufeinander wartet.
         .task {
             if items.isEmpty { await load() }
+            if spotId == nil { spotId = vorgegebeneSpotId }
             async let w = Api.spotWeather(spot)
             async let karte = Api.spotMap(accelOnly: false)
             weather = (try? await w)?.weather
