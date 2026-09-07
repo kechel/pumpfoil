@@ -94,9 +94,14 @@ struct SpotNotesView: View {
             // DREI tippbare Elemente in EINER Listenzeile. Ohne eigenen Knopfstil macht SwiftUI
             // die ganze Zeile interaktiv, und ein Tipp loest mehrere davon aus: „Bearbeiten"
             // oeffnete den Text UND sofort die Bilderauswahl, „Foto hinzufuegen" dasselbe
-            // (Jan, 07.09.2026). `.borderless` macht jedes Element fuer sich tippbar und behaelt
-            // die Akzentfarbe — `.plain` wuerde sie nehmen. Dieselbe Falle wie beim
-            // NavigationLink in Listenzeilen, s. Kommentar bei `SpotDest`.
+            // (Jan, 07.09.2026). Dieselbe Falle wie beim NavigationLink in Listenzeilen,
+            // s. Kommentar bei `SpotDest`.
+            //
+            // ACHTUNG, ZWEI VERSCHIEDENE STILE — das ist kein Versehen: mit `.borderless` reagierte
+            // der `PhotosPicker` auf den Tipp GAR NICHT MEHR (Jan, 07.09.2026, direkt nach dem Fix
+            // oben). Die beiden echten `Button` laufen damit; der Picker braucht `.plain`, und das
+            // ist in diesem Code bewiesen — der Avatar-Picker in `ProfileView` nutzt es seit dem
+            // Release. `.plain` nimmt die Akzentfarbe, deshalb steht sie am Label wieder drin.
             HStack(spacing: 12) {
                 Button {
                     draft = meine?.text ?? ""
@@ -110,8 +115,9 @@ struct SpotNotesView: View {
                 if (meine?.photos.count ?? 0) < d.max_photos {
                     PhotosPicker(selection: $pickerItem, matching: .images) {
                         Label(Loc.t("spotnote.addPhoto", lang), systemImage: "photo.badge.plus")
+                            .foregroundStyle(Color.accentColor)
                     }
-                    .buttonStyle(.borderless)
+                    .buttonStyle(.plain)
                     .disabled(busy)
                     Button {
                         Task {
