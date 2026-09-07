@@ -123,11 +123,6 @@ const ENTRIES: Entry[] = [
       "A recording can be ended with a single press instead of holding, if you set that in your profile.",
       "The session list puts the title on its own line, under the date.",
       "Downloading everything we store about you no longer runs out of memory.",
-    ],
-  },
-  {
-    date: "September 7, 2026",
-    items: [
       "COROS is out of testing. Your workouts now come in on their own, and the connection was fixed in three places at once: it used to fetch only your single most recent activity, it turned down one file it could not read, and it counted an already-known workout as a fresh import. One tester got nine older rides back this way, two of them recognised as pumpfoiling.",
       "Polar sends new trainings to us the moment they arrive in Polar Flow — no more waiting and no button to press.",
       "Connected accounts (Polar, Suunto, COROS) also sync once a day and whenever you sign in. Until now that only happened if you opened the settings page and pressed the button.",
@@ -144,17 +139,7 @@ const ENTRIES: Entry[] = [
       "COROS sync was only ever fetching your most recent workout. It reads the whole list now — on one account that was 25 activities where we had been seeing one. If you have connected COROS, your older sessions can come in on the next sync.",
       "COROS workouts import reliably now. One watch wrote a single value in a way our reader could not make sense of, and it turned down the whole workout over it. It now leaves that one value out and keeps everything else — position, speed and heart rate all arrive as recorded.",
       "Importing a file that stops halfway through no longer loses the whole session. If your watch battery died mid-ride, or a sync was cut short, we now keep the part that was recorded instead of turning the file down. Files we still cannot read are kept aside, so a later improvement can pick them up without you uploading anything again.",
-    ],
-  },
-  {
-    date: "September 6, 2026",
-    items: [
       "Every spot now has its own records. Open a spot in your session list and you see the farthest run, the longest one, top speed, most pumps and the rest — for that spot alone, with the same time windows as on the community page. Idea from the feedback form.",
-    ],
-  },
-  {
-    date: "September 6, 2026",
-    items: [
       "The training curve in your [history](/verlauf) now has a slider: pick any moment between 10 seconds and 5 minutes into a run and see how your heart rate at that point developed over the weeks. It says how many of your sessions have a value there — the further right you go, the fewer runs were that long.",
     ],
   },
