@@ -55,6 +55,7 @@ const fi: Record<string, string> = {
   "common.delete": "Poista",
   "common.search": "Hae",
   "common.loading": "ladataan…",
+  "changelog.details": "Tiedot ({n})",
   "common.loadFailed": "Lataus ei onnistunut.",
   "common.reset": "Nollaa",
   "common.back": "← takaisin",

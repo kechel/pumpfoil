@@ -74,6 +74,7 @@ const en: Record<string, string> = {
   "common.delete": "Delete",
   "common.search": "Search",
   "common.loading": "loading…",
+  "changelog.details": "Details ({n})",
   "common.loadFailed": "Could not be loaded.",
   "common.close": "Close",
   "common.reset": "Reset",

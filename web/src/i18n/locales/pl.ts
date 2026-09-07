@@ -74,6 +74,7 @@ const pl: Record<string, string> = {
   "common.delete": "Usuń",
   "common.search": "Szukaj",
   "common.loading": "wczytywanie…",
+  "changelog.details": "Szczegóły ({n})",
   "common.loadFailed": "Nie udało się wczytać.",
   "common.close": "Zamknij",
   "common.reset": "Resetuj",

@@ -46,6 +46,7 @@ const deAT: Record<string, string> = {
   "common.delete": "Löschen",
   "common.search": "Suachn",
   "common.loading": "ladt…",
+  "changelog.details": "Details ({n})",
   "common.loadFailed": "Hot net gladen werdn kenna.",
   "common.reset": "Zurücksetzen",
   "common.back": "← zruck",
