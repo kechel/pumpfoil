@@ -7,6 +7,8 @@ detection) -> reines SQL, keine Full-Scans/JSON-Parsing.
 """
 from __future__ import annotations
 
+from urllib.parse import unquote
+
 import json
 import logging
 import threading
@@ -1398,6 +1400,30 @@ def foil_stats(_user: models.User = Depends(current_user), db: Session = Depends
     return out
 
 
+# Emulator- und Testgeraete gehoeren NICHT in eine oeffentliche Uhren-Statistik: sie erscheinen
+# dort als eigenes „Modell" und behaupten Messwerte, die niemand gefahren hat.
+#
+# EHRLICHKEIT ZUR WIRKUNG: das ist ein SCHUTZ, kein Fix. Nachgemessen am 07.09.2026 aendert er am
+# Ergebnis NICHTS — 61 Modelle vorher, 61 nachher. Ich hatte zuerst behauptet, `sdk_gwear_arm64`
+# stehe mit 22 Sessions in der Tabelle; das war falsch, ich hatte GELOESCHTE mitgezaehlt. Jan raeumt
+# seine Testaufnahmen selbst weg (0 von 22 nicht geloescht), und „Wear Emulator" (3 lebende) faellt
+# schon durch die Community-Filter. Der Schutz greift also erst, wenn eine Testaufnahme mal liegen
+# bleibt — dann aber ohne Zutun.
+#
+# Bewusst enge Merkmale, damit kein echtes Geraet mitgeht: die Modellkuerzel echter Uhren sehen aus
+# wie `SM-L315F`, `OPWWE251` oder „Google Pixel Watch 2" — keines enthaelt eine Architektur oder das
+# Wort Emulator. Die zwei Testnamen stehen ausgeschrieben, damit die Liste nachvollziehbar bleibt.
+_ATTRAPPEN_TEILE = ("sdk_", "emulator", "simulator", "arm64", "x86", "avd")
+_ATTRAPPEN_GANZ = ("r8-test wear", "deduptest", "emu test")
+
+
+def _ist_attrappe(label: str | None) -> bool:
+    l = (label or "").strip().lower()
+    if not l:
+        return True
+    return l in _ATTRAPPEN_GANZ or any(t in l for t in _ATTRAPPEN_TEILE)
+
+
 @router.get("/watch-stats")
 def watch_stats(_user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
     """Community-Aggregat je Uhr-Modell (device_tokens.label). Nur Sessions mit gepaartem Gerät.
@@ -1432,7 +1458,13 @@ def watch_stats(_user: models.User = Depends(current_user), db: Session = Depend
     # Modelle über den ersten Teil vor "/" zusammenfassen (lange partNumber-Gruppen).
     agg: dict[str, dict] = {}
     for label, n_sess, n_users, sum_dist, sum_time, sum_pumps, best_dist, best_spd, avg_hz in rows:
-        key = (label or "").split("/")[0].strip() or "—"
+        if _ist_attrappe(label):
+            continue
+        # Prozent-Kodierung aufloesen: EIN Zepp-Geraet hat seinen Namen URL-kodiert gemeldet
+        # (`Amazfit%20T-Rex%203%20(8716545)`, Token 558). Auch das ist Vorsorge — dieses Token hat
+        # keine lebende Session, taucht also derzeit nirgends auf. Kommt es wieder, waere es sonst
+        # eine zweite Zeile fuer dasselbe Modell.
+        key = unquote(label or "").split("/")[0].strip() or "—"
         a = agg.setdefault(key, {"watch": key, "sessions": 0, "users": 0, "dist": 0.0, "time": 0.0,
                                  "pumps": 0.0, "best_dist": 0.0, "best_spd": 0.0, "hz": []})
         a["sessions"] += int(n_sess or 0)
