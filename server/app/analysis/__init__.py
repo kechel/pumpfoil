@@ -70,6 +70,34 @@ def _gps_only_ok(sport) -> bool:
     return (sport or "").lower() in GPS_ONLY_SPORTS
 
 
+def _mensch_sagt_pumpfoil(session) -> bool:
+    """Hat ein MENSCH diese Session ausdruecklich als Pumpfoil eingestuft?
+
+    Dann darf die GPS-only-Erkennung laufen, egal was die Datei als Sportart nennt. Der Grund ist
+    ein gemeldeter Fall (Nutzer 198, 07.09.2026): er zeichnet Pumpfoilen auf seiner Suunto im
+    LAUF-Modus auf. Bis zum 05.09. las der Import die Sportart nicht aus der Datei, jede
+    Suunto-Aufnahme galt als `pumpfoil` — und damit lief die GPS-only-Erkennung. Seit dem
+    (richtigen!) Fix `4f3426ce` steht korrekt `running` in der Session, `running` ist hier
+    absichtlich ausgeschlossen, und seine Laeufe wurden hart auf 0 gesetzt. In unseren eigenen
+    gespeicherten Zahlen standen sie weiter drin: Session #4631 hatte `longest_segment_s=894` und
+    `farthest_segment_m=3610` — ein Lauf von 14:54 ueber 3,6 km, erkannt und verworfen. Er hatte
+    die Sessions selbst auf Pumpfoil gestellt; das half nicht, weil die Schranke nur die
+    DATEI-Sportart ansah.
+
+    Absichtlich eng: NUR `owner`/`admin` (`sport_source`), nicht `sport_class` allgemein. Gemessen
+    am 07.09.: 33 Sessions haben `sport_class='pumpfoil'` und `detection='none'`, aber nur 2 davon
+    hat ein Mensch eingestuft. Die uebrigen 31 sind Voreinstellung — darunter 24 eines Nutzers mit
+    Lauf-Aufnahmen von bis zu 2991 s / 9,2 km, eine davon auf einer Eisbahn. Genau davor schuetzt
+    die Schranke, und genau die soll sie weiter aussortieren. Ueber Wasserflaechen zu gehen traegt
+    hier nicht: nur 4 der 33 haben ueberhaupt ein Gewaesser, eines davon ist die Eisbahn.
+
+    Dasselbe Prinzip wendet die Pipeline beim Fremdkraft-Urteil schon an (s. `judge_fremdkraft`):
+    eine vom Menschen eingestufte Session hat die Frage beantwortet.
+    """
+    return ((getattr(session, "sport_source", None) or "") in ("owner", "admin")
+            and (getattr(session, "sport_class", None) or "") == "pumpfoil")
+
+
 # Bis zu diesem Zeitpunkt wurde ein FEHLGESCHLAGENER Overpass-Abruf als rings_json="" gecacht und
 # hiess damit dauerhaft „hier ist kein Wasser" (Fix in 8b6e38f, 2026-08-01 08:34 +02). Solche
 # Zeilen sind keine Aussage, sondern Narben einer Stoerung — sie werden EINMAL neu nachgeschlagen
@@ -378,9 +406,12 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
         # Präziser Start: nur starke Aufsprung-Impulse (Jump) zum Snappen verwenden.
         impulses = detect_jumps(accel, accel_hz, session.accel_scale)
         detection = "model"
-    elif _gps_only_ok(session.sport):
+    elif _gps_only_ok(session.sport) or _mensch_sagt_pumpfoil(session):
         # Wassersport-FIT ohne Beschleunigung (z. B. Surf-Modus): nur grobe GPS-
         # Heuristik (Speed-Band + Glätte). Über-/Untererkennung möglich -> Warnung.
+        # Zweiter Weg hierher: ein Mensch hat die Session als Pumpfoil eingestuft, dann zaehlt
+        # seine Aussage mehr als der Modus, den die Uhr in die Datei geschrieben hat
+        # (s. `_mensch_sagt_pumpfoil`).
         mask_override = None  # -> analyze_gps nutzt die GPS-State-Machine
         impulses = None
         detection = "gps_only"
