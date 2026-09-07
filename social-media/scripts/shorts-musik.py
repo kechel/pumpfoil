@@ -1533,7 +1533,7 @@ Für ein kurzes Hochkant-Video (YouTube Short / Instagram Reel / TikTok) mit dem
 Antworte AUSSCHLIESSLICH mit gültigem JSON (kein Markdown, keine Code-Fences) in exakt dieser Struktur:
 {{"titles": {{{", ".join(f'"{lang}": "..."' for lang in CAPTION_LANGS)}}},
  "descriptions": {{...gleiche Sprachen wie titles...}},
- "hashtags": "...", "instagram": "...", "tiktok": "..."}}
+ "hashtags": "...", "instagram": "...", "tiktok": "...", "kwai": "..."}}
 
 Fachbegriffe (WICHTIG, häufige Fehlerquelle):
 - Die Tragfläche unter Wasser heißt "foil" / "hydrofoil" (de: "Foil", "Tragfläche").
@@ -1553,6 +1553,7 @@ Regeln:
 - hashtags: EINE Zeile mit 4-6 Hashtags: #pumpfoil zuerst, danach NUR individuelle, zum konkreten Videoinhalt passende Tags. KEINE generischen Standard-Tags wie #pumpfoiling, #dockstart oder #foil.
 - instagram: lockere Caption AUSSCHLIESSLICH auf Englisch, 2-3 Sätze mit passenden Emojis, Leerzeile, dann 8-12 Hashtags (#pumpfoil zuerst, Rest videospezifisch — nicht #pumpfoiling/#dockstart/#foil). KEIN Deutsch, keine weitere Sprache — dieses Feld gilt weltweit.
 - tiktok: 1-2 kurze Sätze AUSSCHLIESSLICH auf Englisch, 4-6 Hashtags (#pumpfoil + videospezifische, keine generischen Standard-Tags). KEIN Deutsch.
+- kwai: 1-2 kurze Sätze AUSSCHLIESSLICH auf BRASILIANISCHEM Portugiesisch (nicht europäisch: "celular" statt "telemóvel", "seu" statt "teu"), am Ende eine Frage ans Publikum, danach Leerzeile und 4-6 Hashtags. Kwai läuft fast nur in Brasilien — dieses eine Feld ist deshalb NICHT englisch, anders als instagram und tiktok. Sportbegriffe (pumpfoil, foil, dockstart, pump) bleiben englisch, so heißen sie dort auch.
 """
 
 
@@ -1919,6 +1920,22 @@ class Handler(BaseHTTPRequestHandler):
             if not removed and src is None:
                 return self._json({"error": "Export nicht gefunden"}, 404)
             return self._json({"exports": exports_state()})
+        if self.path == "/api/uploads/mark":
+            name = Path(str(req.get("name", ""))).name
+            platform = Path(str(req.get("platform", ""))).name
+            if not name or not platform:
+                return self._json({"error": "name und platform noetig"}, 400)
+            st = uploads_state()
+            if req.get("on"):
+                st.setdefault(name, {})[platform] = {
+                    "manual": True,
+                    "at": datetime.datetime.now().astimezone().isoformat(timespec="seconds")}
+            else:
+                st.get(name, {}).pop(platform, None)
+                if not st.get(name):
+                    st.pop(name, None)
+            UPLOADS_STATE_FILE.write_text(json.dumps(st, ensure_ascii=False, indent=1))
+            return self._json({"ok": True, "state": uploads_state()})
         if self.path == "/api/reveal":
             name = Path(str(req.get("name", ""))).name
             for pf in ("tiktok", *PLATFORMS):
