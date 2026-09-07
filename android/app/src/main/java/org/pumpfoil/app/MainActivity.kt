@@ -105,6 +105,10 @@ private val TOP_LEVEL = setOf("home", "community", "sessions", "verlauf", "spots
 @Composable
 fun MainScaffold(onLogout: () -> Unit) {
     val nav = rememberNavController()
+    // Das in der Foil-Liste angetippte Foil, fuer die Detailseite. Als Merker statt in der
+    // Route: die Detailseite braucht Name, AR und die Zaehler, und die stehen in der Liste
+    // schon — ein zweiter Abruf nur fuer drei Textfelder waere Verschwendung.
+    var gewaehltesFoil by remember { mutableStateOf<FoilStat?>(null) }
     val backEntry by nav.currentBackStackEntryAsState()
     val route = backEntry?.destination?.route
     val ctx = androidx.compose.ui.platform.LocalContext.current
@@ -217,7 +221,22 @@ fun MainScaffold(onLogout: () -> Unit) {
             composable("foilcalc") { FoilCalculatorScreen(onBack = { nav.popBackStack() }) }
             composable("foils") { FoilsScreen(onBack = { nav.popBackStack() }, onSetup = { nav.navigate("setup") }) }
             composable("setup") { SetupScreen(onBack = { nav.popBackStack() }) }
-            composable("foilstats") { FoilStatsScreen(onBack = { nav.popBackStack() }, onWatchStats = { nav.navigate("watchstats") }) }
+            composable("foilstats") {
+                FoilStatsScreen(
+                    onBack = { nav.popBackStack() },
+                    onWatchStats = { nav.navigate("watchstats") },
+                    // Das gewaehlte Foil wandert ueber einen Merker, nicht durch die Route: die
+                    // Detailseite braucht Name, AR und die Zaehler, und die stehen in der Liste
+                    // schon — ein zweiter Abruf nur fuer drei Textfelder waere Verschwendung.
+                    onFoil = { f -> gewaehltesFoil = f; nav.navigate("foildetail") },
+                )
+            }
+            composable("foildetail") {
+                gewaehltesFoil?.let { f ->
+                    FoilDetailScreen(foil = f, onBack = { nav.popBackStack() },
+                                     onOpen = { id -> nav.navigate("session/$id") })
+                }
+            }
             composable("watchstats") { WatchStatsScreen(onBack = { nav.popBackStack() }, onFoilStats = { nav.navigate("foilstats") }) }
             composable("alarm") { AlarmScreen(onBack = { nav.popBackStack() }) }
             composable("settings") { SettingsScreen(onBack = { nav.popBackStack() }) }

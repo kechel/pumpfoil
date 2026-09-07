@@ -203,7 +203,13 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
             return String(cString: ptr)
         }
         let v = ProcessInfo.processInfo.operatingSystemVersion
-        let model = machine.isEmpty ? "iPhone" : machine
+        // Im Simulator gibt `utsname.machine` die Architektur des MACS zurueck („arm64"), nicht
+        // die Modellkennung („iPhone15,2"). Ungefiltert landet „arm64" als Geraet in unserer
+        // Uhren-Auswertung — am 07.09.2026 im Bestand: neun Sessions trugen es schon. ECHTE
+        // Handy-Aufnahmen sind davon nicht betroffen und gehoeren ausdruecklich in die
+        // Auswertung (Jan: „auch wenn das handy hier als Uhr missbraucht wird").
+        let echtesGeraet = !["arm64", "x86_64", "i386", ""].contains(machine)
+        let model = echtesGeraet ? machine : "Simulator"
         return String("\(model) · iOS \(v.majorVersion).\(v.minorVersion)".prefix(80))
     }
     private func toI16(_ v: Double) -> Int16 { Int16(max(-32768, min(32767, (v).rounded()))) }

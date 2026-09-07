@@ -252,8 +252,13 @@ enum Api {
         try await request("/api/devices/pairing-code", method: "POST", body: nil, auth: true)
     }
 
-    static func communitySessions(limit: Int = 30, offset: Int = 0, accelOnly: Bool = true) async throws -> [CommunityItem] {
-        let qs = "?limit=\(limit)&offset=\(offset)" + (accelOnly ? "" : "&accel_only=false")
+    /// Community-Sessions. `foilId` filtert auf GENAU EIN Foil — das braucht die
+    /// Foil-Detailseite, und zwar ueber ALLE Fahrer, nicht nur die eigenen.
+    static func communitySessions(limit: Int = 30, offset: Int = 0, accelOnly: Bool = true,
+                                  foilId: Int? = nil, sport: String? = nil) async throws -> [CommunityItem] {
+        var qs = "?limit=\(limit)&offset=\(offset)" + (accelOnly ? "" : "&accel_only=false")
+        if let foilId { qs += "&foil_id=\(foilId)" }
+        if let sport { qs += "&sport=\(sport)" }
         return try await request("/api/community/sessions\(qs)", method: "GET", body: nil, auth: true)
     }
 

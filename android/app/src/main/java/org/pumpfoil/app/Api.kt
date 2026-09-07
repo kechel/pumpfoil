@@ -333,10 +333,16 @@ object Api {
     // Sport-Bedingung auf (alle anderen Filter bleiben) — das braucht die Liste „was ist neu",
     // damit dort auch eFoil/Wake/… auftauchen. Sportgetrennte Ansichten (Community-Seite,
     // Bestenlisten, Rekorde) fragen weiterhin genau EINE Sportart ab.
+    /**
+     * Community-Sessions. `foilId` filtert auf GENAU EIN Foil — das braucht die Foil-Detailseite,
+     * und zwar ueber ALLE Fahrer, nicht nur die eigenen.
+     */
     suspend fun communitySessions(limit: Int = 20, offset: Int = 0, accelOnly: Boolean = true,
-                                  sport: String? = null): List<CommunityItem> = withContext(Dispatchers.IO) {
+                                  sport: String? = null,
+                                  foilId: Int? = null): List<CommunityItem> = withContext(Dispatchers.IO) {
         val qs = "?limit=$limit&offset=$offset" + (if (!accelOnly) "&accel_only=false" else "") +
-            (if (sport != null) "&sport=$sport" else "")
+            (if (sport != null) "&sport=$sport" else "") +
+            (if (foilId != null) "&foil_id=$foilId" else "")
         json.decodeFromString(
             ListSerializer(CommunityItem.serializer()),
             http("GET", "/api/community/sessions$qs", null, auth = true),

@@ -646,6 +646,22 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **📥 07.09. — `device_model` in die Uhren-Auswertung aufnehmen (nach iOS 1.1.31).**
+  `scripts/uhren-qualitaet.py` gruppiert nach `device_tokens.platform` und `.label` — also nach
+  dem, was beim Pairing feststeht. Damit sind ALLE Apple Watches eine einzige Zeile („Apple
+  Watch", 150 Sessions), und die Modellmeldung, die 1.1.31 mitbringt, läuft ins Leere: das Feld
+  `sessions.device_model` liest die Auswertung nicht.
+  **Zu tun, sobald 1.1.31 draußen ist und echte Modelle ankommen:** bei Apple (und sinnvoll auch
+  bei Wear/iOS-Handy) nach `device_model` gruppieren, mit Rückfall auf `label`, solange das Feld
+  leer ist. Erst dann sieht man, ob eine Ultra anders ortet als eine SE.
+  **Zwei Fallen dabei:**
+  - Aufnahmen aus dem SIMULATOR trugen bis 07.09. `arm64 · watchOS 26.5` (utsname liefert dort
+    die Architektur des Macs). Neun Sessions im Bestand haben das noch; die App schreibt jetzt
+    „Simulator". Beim Gruppieren beides ausschließen.
+  - **Echte Handy-Aufnahmen gehören ausdrücklich MIT in die Tabelle** (Jan, 07.09.: „auch wenn
+    das handy hier als Uhr missbraucht wird") — die stehen heute korrekt als „Phone" drin, das
+    darf beim Umbau nicht verlorengehen.
+
 - **📥 07.09. — ZWEI Spot-Ansichten je App, zusammenlegen.** Jan beim Testen im Emulator: die
   Spot-Ansicht zeigte „weder Rekorde an diesem Spot noch Wetter & Pegel noch
   Spot-Beschreibungen". Ursache ist eine Doppelung, die nur die Apps haben:

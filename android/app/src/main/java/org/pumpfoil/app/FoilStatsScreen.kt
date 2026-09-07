@@ -1,5 +1,6 @@
 package org.pumpfoil.app
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,7 +42,8 @@ import kotlin.math.roundToInt
 // Sortierung über Chips (wie die sortierbaren Web-Spalten), leere Werte immer unten.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FoilStatsScreen(onBack: () -> Unit, onWatchStats: () -> Unit = {}) {
+fun FoilStatsScreen(onBack: () -> Unit, onWatchStats: () -> Unit = {},
+                    onFoil: (FoilStat) -> Unit = {}) {
     var rows by remember { mutableStateOf<List<FoilStat>?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
     var sortKey by remember { mutableStateOf("sessions") }
@@ -109,7 +111,7 @@ fun FoilStatsScreen(onBack: () -> Unit, onWatchStats: () -> Unit = {}) {
             if (list.isEmpty() && error == null) {
                 item { Text(I18n.t("common.noData"), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(8.dp)) }
             }
-            items(sorted, key = { it.foilId }) { s -> statCard(s) }
+            items(sorted, key = { it.foilId }) { s -> statCard(s, onFoil) }
         }
     }
 }
@@ -134,8 +136,10 @@ fun <T> sortStats(list: List<T>, asc: Boolean, nameKey: ((T) -> String)? = null,
 }
 
 @Composable
-private fun statCard(s: FoilStat) {
-    Card(Modifier.fillMaxWidth().padding(bottom = 10.dp)) {
+private fun statCard(s: FoilStat, onFoil: (FoilStat) -> Unit = {}) {
+    // Nutzer-Vorschlag (04.09.): das Foil anklickbar machen und dahinter alle Sessions
+    // damit zeigen. In der PWA seit dem 04.09., in den Apps bis 07.09. vergessen.
+    Card(Modifier.fillMaxWidth().padding(bottom = 10.dp).clickable { onFoil(s) }) {
         Column(Modifier.padding(12.dp)) {
             Text("${s.brand} ${s.model} ${s.size}", fontWeight = FontWeight.SemiBold)
             Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
