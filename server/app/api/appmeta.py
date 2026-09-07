@@ -253,10 +253,18 @@ NAECHSTES: list[dict] = [
          "Hold two seconds to stop, the same way the Garmin does it.",
      ]},
     {"name": "iPhone + Apple Watch", "version": "1.1.31",
-     "note": "not submitted yet",
+     "note": "ready to submit",
      "items": [
+         "COROS can be connected from the app at all — it pointed at the wrong address and "
+         "always reported itself as unavailable, while it had been working on the website "
+         "for days.",
+         "You can choose which sport modes we import from a connected account, and the note "
+         "under each account now says what actually happens: Polar sends new trainings by "
+         "itself, COROS is fetched once a day.",
+         "A recording without a single position says so, instead of showing an empty page.",
          "The Apple Watch tells us which model it is. Until now every Apple Watch looked "
          "the same to us, so we could not say which ones measure well and which do not.",
+         "The watch comparison from the website is in the app too.",
      ]},
     {"name": "Amazfit", "version": "1.0.8", "note": "follows straight after the current one",
      # Inhalt gegenueber der LIVE stehenden 1.0.6 (freigegeben 24.08.), nicht gegenueber 1.0.4:

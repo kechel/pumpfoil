@@ -896,6 +896,22 @@ struct SessionDetailView: View {
         // Karte auch OHNE erkannte Laeufe: die PWA zeichnet dann die komplette Spur, Android und
         // iOS blendeten sie ganz aus. Wer prueft, ob seine Uhr ueberhaupt ortet, sah damit NICHTS
         // und hielt die App fuer kaputt (Meldung 04.09.: „Karte sehe ich keine noch").
+        // Aufnahme OHNE eine einzige Position: sagen, was passiert ist, statt nichts zu zeigen.
+        // Am 07.09.2026 nachgezaehlt: 199 solche Sessions bei 82 Nutzern, und 11 Nutzer haben
+        // AUSSCHLIESSLICH solche — sechs davon nach einem einzigen Versuch. Fuer die entscheidet
+        // genau diese Seite, ob sie es nochmal probieren. Gleiche Anzeige wie in der PWA.
+        if s.analysis != nil, (s.analysis?.track_geojson?.geometry.coordinates.count ?? 0) == 0 {
+            return AnyView(
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(Loc.t("sd.noFix.title", lang)).font(.subheadline.weight(.semibold))
+                    Text(Loc.t("sd.noFix.text", lang)).font(.caption)
+                }
+                .padding(12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.orange.opacity(0.12))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            )
+        }
         guard let track = s.analysis?.track_geojson, track.geometry.coordinates.count >= 2
         else { return AnyView(EmptyView()) }
         let segs = s.analysis?.segments ?? []
