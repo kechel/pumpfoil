@@ -331,3 +331,8 @@ table.cmp { max-width: 520px; }
    videos-verarbeitet liegt und keinen eigenen Knopf hat. */
 .sortrow { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
 .sortrow .sortlbl { font-size: 11px; opacity: .55; margin-right: 2px; }
+
+/* Exporte filtern (Texte-Reiter) — bei 181 Renders sonst nur Scrollen. */
+.expfilter { display: flex; align-items: center; gap: 6px; margin: 0 0 10px; }
+.expfilter input[type=search] { flex: 1; min-width: 0; font-size: 13px; padding: 6px 9px;
+  border-radius: 7px; border: 1px solid #8886; background: transparent; color: inherit; }
