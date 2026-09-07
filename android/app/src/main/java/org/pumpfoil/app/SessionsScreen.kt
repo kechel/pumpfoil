@@ -299,28 +299,6 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
             // Aussortiert-Ansicht: WARUM eine Aufnahme hier liegt und was man tun kann. Stand
             // bisher nur in der PWA — dort ausdruecklich, weil ein Nutzer erst durch Nachfragen
             // erfuhr, wo seine Session steckt und dass er sie selbst einordnen darf.
-            if (scope == Scope.MINE && filter == "other") {
-                Card(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)) {
-                    Column(Modifier.padding(12.dp)) {
-                        Text(I18n.t("sessions.otherWhy"), style = MaterialTheme.typography.bodyMedium)
-                        Spacer(Modifier.height(6.dp))
-                        Text(I18n.t("sessions.otherAssign"), style = MaterialTheme.typography.bodyMedium)
-                        Spacer(Modifier.height(6.dp))
-                        Text(I18n.t("sessions.otherDefault"), style = MaterialTheme.typography.bodyMedium)
-                    }
-                }
-            }
-            if (scope == Scope.SPOT) {
-                // Reihenfolge wie in der PWA: Rekorde, Wetter, Beschreibungen, dann die Sessions
-                // (Jan, 07.09.: „die 3 muessen nach oben wie in der pwa").
-                if (spot.isNotBlank()) SpotRecordsSection(spot, accelOnly) { id -> onOpen(id, null) }
-                weather?.let { wb -> Box(Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) { WeatherCard(wb, titelKey = "spot.weatherTitle") } }
-                // Spot-Beschreibungen wie im Web zwischen Wetter und Session-Liste.
-                // ACHTUNG: `spot` ist hier der NAME (die Auswahl arbeitet namensbasiert), die
-                // Beschreibungen haengen aber an der spot_id — deshalb ueber die Karte aufloesen.
-                // Ohne Spot-Zeile (Altbestand, nur place_name) gibt es nichts anzuzeigen.
-                spotIds[spot]?.let { sid -> SpotNotesSection(sid) }
-            }
             Box(Modifier.fillMaxSize()) {
                 Refreshable(refreshing = loading, onRefresh = { scopeC.launch { load() } }) {
                     val empty = (scope == Scope.MINE && own.isEmpty()) || (scope != Scope.MINE && groups.isEmpty())
@@ -329,6 +307,48 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                     } else {
                         LazyColumn(Modifier.fillMaxSize()) {
                             error?.let { e -> item { Text(e, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error) } }
+                            // Reihenfolge wie in der PWA: Rekorde, Wetter, Beschreibungen, dann die
+                            // Sessions (Jan, 07.09.: „die 3 muessen nach oben wie in der pwa").
+                            //
+                            // Diese drei MUESSEN Eintraege der LazyColumn sein, nicht Kinder der
+                            // Column darum: dort standen sie fest ueber der Liste und liessen sich
+                            // nicht wegscrollen. Mit 13 Rekord-Kacheln ist der Block hoeher als der
+                            // Bildschirm, die Sessions lagen also unerreichbar darunter — genau das
+                            // hat Jan am 07.09. gemeldet („die Spot-Seite laesst sich nicht scrollen,
+                            // die Sessionliste schon"). `SpotSessionsScreen` machte es schon richtig.
+                            // Dieselbe Bauform, derselbe Grund wie unten: als Kind der Column
+                            // stand dieser Hinweis fest ueber der Liste. Er ist kurz genug, dass es
+                            // nicht auffiel — aber es ist derselbe Fehler.
+                            if (scope == Scope.MINE && filter == "other") {
+                                item {
+                                    Card(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)) {
+                                        Column(Modifier.padding(12.dp)) {
+                                            Text(I18n.t("sessions.otherWhy"), style = MaterialTheme.typography.bodyMedium)
+                                            Spacer(Modifier.height(6.dp))
+                                            Text(I18n.t("sessions.otherAssign"), style = MaterialTheme.typography.bodyMedium)
+                                            Spacer(Modifier.height(6.dp))
+                                            Text(I18n.t("sessions.otherDefault"), style = MaterialTheme.typography.bodyMedium)
+                                        }
+                                    }
+                                }
+                            }
+                            if (scope == Scope.SPOT) {
+                                if (spot.isNotBlank()) {
+                                    item { SpotRecordsSection(spot, accelOnly) { id -> onOpen(id, null) } }
+                                }
+                                weather?.let { wb ->
+                                    item {
+                                        Box(Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) {
+                                            WeatherCard(wb, titelKey = "spot.weatherTitle")
+                                        }
+                                    }
+                                }
+                                // ACHTUNG: `spot` ist hier der NAME (die Auswahl arbeitet
+                                // namensbasiert), die Beschreibungen haengen aber an der spot_id —
+                                // deshalb ueber die Karte aufloesen. Ohne Spot-Zeile (Altbestand,
+                                // nur place_name) gibt es nichts anzuzeigen.
+                                spotIds[spot]?.let { sid -> item { SpotNotesSection(sid) } }
+                            }
                             if (scope == Scope.MINE && incoming.isNotEmpty()) {
                                 items(incoming, key = { "xfer-${it.id}" }) { tr ->
                                     IncomingTransferCard(
