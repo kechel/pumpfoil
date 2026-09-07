@@ -1,6 +1,7 @@
 package org.pumpfoil.app
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.viewinterop.AndroidView
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberUpdatedState
@@ -98,14 +100,32 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
             // Kachel-Cache-Anlage auf dem Hauptthread -> ANR („waited 5000ms for MotionEvent").
             //
             // Etwas flacher als vorher (220 statt 260 dp), weil sie jetzt dauerhaft Platz belegt.
-            if (items.isNotEmpty()) {
-                SpotsMap(karte, items, onOpenSpot, Modifier.fillMaxWidth().height(220.dp))
-            }
+            //
+            // DREI Dinge hier sind Absicht, nach einem Befund von Jan am 07.09.2026 („die
+            // Kartenansicht ueberlappt mit dem Inhalt", direkt nach dem Oeffnen, ohne Scrollen):
+            // die Karte malte weit ueber ihre 220 dp hinaus, der Inhalt darunter lag
+            // durchscheinend darauf.
+            //
+            // 1. KEIN `if (items.isNotEmpty())` mehr. Der Wechsel „kein Knoten -> Knoten", sobald
+            //    die Daten ankommen, baut den Interop-Knoten neu — und weil hier EINE MapView
+            //    wiederverwendet und im `factory` aus ihrem alten Eltern-Container gerissen wird
+            //    (s. Kommentar dort), haengt sie danach mit alten Grenzen im Baum. Jetzt steht der
+            //    Knoten von der ersten Composition an fest; ohne Daten zeigt die Karte einfach
+            //    keine Pins.
+            // 2. `clipToBounds()`: eine native View kann damit gar nicht mehr ausserhalb ihres
+            //    Kastens zeichnen — das wirkt unabhaengig davon, ob meine Ursachen-Erklaerung
+            //    stimmt.
+            // 3. Der Inhalt darunter bekommt einen DECKENDEN Hintergrund. Compose-Flaechen sind
+            //    sonst durchsichtig, und dann scheint alles durch, was dahinter liegt.
+            SpotsMap(
+                karte, items, onOpenSpot,
+                Modifier.fillMaxWidth().height(220.dp).clipToBounds(),
+            )
             Refreshable(refreshing = loading, onRefresh = { scope.launch { load() } }) {
             if (loading && items.isEmpty()) {
                 CircularProgressIndicator(Modifier.align(Alignment.Center))
             } else {
-                LazyColumn(Modifier.fillMaxSize()) {
+                LazyColumn(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
                     error?.let { e -> item { Text(e, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error) } }
                     if (items.isNotEmpty()) {
                         // Spot-Vergleich direkt unter der Karte — dieselbe Stelle wie in der PWA.
