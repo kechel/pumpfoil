@@ -276,7 +276,7 @@ def _pull_import(db: Session, user: models.User, link: models.PolarLink) -> dict
                 continue
             if sport_key is not None:
                 importsports.merken(db, user.id, "polar", sport_key,
-                                    hat_gps=bool(parsed.get("gps_samples")))
+                                    hat_gps=bool(parsed.get("gps_samples")), zaehlen=False)
             s = import_parsed_session(db, user, tcx.content, parsed,
                                       src_label="polar-import", uuid_prefix="polar-")
             if s is None:

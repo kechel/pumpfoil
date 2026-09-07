@@ -28,7 +28,7 @@ log = logging.getLogger(__name__)
 
 def merken(db: Session, user_id: int, provider: str, sport_key: str,
            label: str | None = None, hat_gps: bool | None = None,
-           label_erzwingen: bool = False) -> models.ImportSportPref:
+           label_erzwingen: bool = False, zaehlen: bool = True) -> models.ImportSportPref:
     """Modus festhalten. Neu -> `importieren = True` (Jan: „default aber true, also importieren
     bis der user etwas anderes sagt"). Bestehende Wahl wird NIE ueberschrieben."""
     key = str(sport_key)
@@ -45,7 +45,11 @@ def merken(db: Session, user_id: int, provider: str, sport_key: str,
         p.label = label
     if hat_gps is not None and (p.hat_gps is None or hat_gps):
         p.hat_gps = hat_gps                 # einmal GPS gesehen bleibt GPS
-    p.gesehen = (p.gesehen or 0) + 1
+    # `zaehlen=False` fuer Nachtraege zum SELBEN Training: Polar und Suunto rufen zweimal auf
+    # — einmal vor dem Download (Name, Auswahl pruefen) und einmal danach (jetzt ist bekannt,
+    # ob es Ortung gab). Beide Male zu zaehlen hat aus einem Training zwei gemacht.
+    if zaehlen:
+        p.gesehen = (p.gesehen or 0) + 1
     p.zuletzt_am = datetime.now(timezone.utc)
     db.commit()
     return p
