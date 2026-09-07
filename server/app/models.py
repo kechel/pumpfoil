@@ -6,10 +6,11 @@ Analyse-Ergebnisse und Labels.
 """
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 from sqlalchemy import (
     Boolean,
+    Date,
     DateTime,
     Float,
     ForeignKey,
@@ -1158,6 +1159,47 @@ class NewsBanner(Base):
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, server_default="1")
     text_json: Mapped[str | None] = mapped_column(Text)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class ChangelogItem(Base):
+    """EIN Punkt des oeffentlichen Changelogs — eine Zeile je Punkt, mit Datum.
+
+    Warum eine Zeile je PUNKT und nicht je Tag: genau daran lag der Fehler, der das hier
+    ausgeloest hat. Die Liste stand fest im PWA-Code, und am 07.09.2026 stand dort der
+    7. September zweimal und der 6. dreimal — jede Aenderung brauchte ausserdem einen
+    Neubau der PWA. Mit dieser Form ist ein doppeltes Datum strukturell unmoeglich: die API
+    gruppiert nach `tag`, es kann also gar nicht zwei Ueberschriften fuer denselben Tag geben.
+    Und ein neuer Punkt ist eine INSERT-Zeile, kein Deploy.
+
+    `tag` ist ein echtes Datum (nicht „September 7, 2026"), damit Sortierung und
+    Formatierung stimmen; die Anzeige formatiert der Client in seiner Sprache.
+    `pos` ordnet innerhalb eines Tages, kleinste Zahl zuerst.
+    `img` ist der optionale Bildpfad, den einzelne Punkte tragen (wie bisher `{text, img}`).
+    `entwurf` haelt einen Punkt zurueck, bis die zugehoerige Version wirklich draussen ist —
+    bisher musste man dafuer den Text in `appmeta.IN_REVIEW` parken und spaeter abschreiben.
+    """
+
+    __tablename__ = "changelog_items"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    tag: Mapped[date] = mapped_column(Date, index=True)
+    pos: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    text: Mapped[str] = mapped_column(Text)
+    img: Mapped[str | None] = mapped_column(String(200))
+    img_alt: Mapped[str | None] = mapped_column(String(200))
+    entwurf: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    # Mit WELCHER Version je Plattform kommt dieser Punkt heraus? JSON, z. B.
+    # {"ios": "1.1.31", "android": "1.1.26", "wear": "1.2.26"}. Leer/NULL heisst „gilt ueberall
+    # sofort" — Web- und Serveraenderungen sind mit dem Deploy da, und fuer die 52 historischen
+    # Punkte laesst sich das nicht mehr sauber rekonstruieren (bewusst leer statt geraten).
+    #
+    # Wozu: Jans Idee (07.09.2026) — die Apps sollen zeigen, welche Version LAEUFT und welche
+    # Funktionen ein Update BRINGT. Die Rechnung „ist diese Version neuer als meine" macht damit
+    # der Server an einer Stelle, nicht jede der vier Apps fuer sich; die Live-Version je
+    # Plattform kennt er schon aus `appmeta._APP_META`.
+    versionen: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class UserBlock(Base):

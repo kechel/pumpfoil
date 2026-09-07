@@ -57,6 +57,7 @@ const cs: Record<string, string> = {
   "common.delete": "Smazat",
   "common.search": "Hledat",
   "common.loading": "načítá se…",
+  "common.loadFailed": "Nepodařilo se načíst.",
   "common.close": "Zavřít",
   "common.reset": "Resetovat",
   "share.linkBtn": "Odkaz ke sdílení",

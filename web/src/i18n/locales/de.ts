@@ -77,6 +77,7 @@ const de: Record<string, string> = {
   "common.delete": "Löschen",
   "common.search": "Suchen",
   "common.loading": "lädt…",
+  "common.loadFailed": "Konnte nicht geladen werden.",
   "common.close": "Schließen",
   "common.reset": "Zurücksetzen",
   "share.linkBtn": "Teilen-Link",

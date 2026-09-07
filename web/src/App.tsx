@@ -10,7 +10,7 @@ import { Avatar } from "./components/ui";
 import { SessionsIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon, SpotsIcon, HomeIcon, FoilIcon, ServerIcon, UploadIcon } from "./components/Icons";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { useI18n } from "./i18n";
-import { LATEST_CHANGELOG_DATE, CHANGELOG_SEEN_KEY } from "./pages/Changelog";
+import { CHANGELOG_SEEN_KEY, abonnieren, neuestesDatum } from "./lib/changelogLatest";
 import { FeedbackWidget } from "./components/FeedbackWidget";
 import { DmWidget } from "./components/DmWidget";
 import { CompareBar } from "./components/CompareBar";
@@ -49,13 +49,19 @@ function ChangelogLink() {
   const [seen, setSeen] = useState<string | null>(() => {
     try { return localStorage.getItem(CHANGELOG_SEEN_KEY); } catch { return null; }
   });
+  // Das Datum kommt seit 07.09.2026 vom Server (der Changelog liegt in der DB), nicht mehr aus
+  // einer Konstante. `abonnieren` holt es hoechstens einmal je Seitenaufruf.
+  const [neuestes, setNeuestes] = useState(neuestesDatum());
+  useEffect(() => abonnieren(setNeuestes), []);
   useEffect(() => {
-    if (loc.pathname === "/changelog") {
-      try { localStorage.setItem(CHANGELOG_SEEN_KEY, LATEST_CHANGELOG_DATE); } catch { /* ignore */ }
-      setSeen(LATEST_CHANGELOG_DATE);
+    if (loc.pathname === "/changelog" && neuestes) {
+      try { localStorage.setItem(CHANGELOG_SEEN_KEY, neuestes); } catch { /* ignore */ }
+      setSeen(neuestes);
     }
-  }, [loc.pathname]);
-  const unseen = seen !== LATEST_CHANGELOG_DATE;
+  }, [loc.pathname, neuestes]);
+  // Ohne Datum (erster Start, Abruf noch offen) NICHT hervorheben — sonst leuchtet das Badge
+  // bei jedem Kaltstart kurz auf, als gaebe es Neues.
+  const unseen = !!neuestes && seen !== neuestes;
   // Label bleibt neutral (wie die anderen Menü-Links); nur das Badge wird hervorgehoben.
   // Beide Modi setzen (light-mode-contrast-pattern): Base = dunkler Text, dark: = hell.
   // Halbtransparenter BG (Alpha) statt dark:-BG-Swap -> in keinem Modus ein dunkler Kasten,
@@ -67,9 +73,11 @@ function ChangelogLink() {
     <Link to="/changelog"
       className="mt-2 flex items-center gap-1.5 px-3 text-xs text-slate-400 hover:text-slate-400 dark:hover:text-slate-300">
       {t("nav.changelog")}
-      <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${badge}`}>
-        {shortDate(LATEST_CHANGELOG_DATE, lang)}
-      </span>
+      {neuestes && (
+        <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${badge}`}>
+          {shortDate(neuestes, lang)}
+        </span>
+      )}
     </Link>
   );
 }

@@ -45,6 +45,7 @@ const fr: Record<string, string> = {
   "common.delete": "Supprimer",
   "common.search": "Rechercher",
   "common.loading": "chargement…",
+  "common.loadFailed": "Impossible de charger.",
   "common.reset": "Réinitialiser",
   "common.back": "← retour",
 

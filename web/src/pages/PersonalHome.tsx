@@ -21,7 +21,7 @@ const STANDARD_ZEITRAUM = "10d";
 // Wochen sehen und nicht seine Rekorde von vorletztem Sommer. Greift NUR beim ersten Laden;
 // sobald jemand selbst auf einen Zeitraum tippt, bleibt seine Wahl stehen.
 const RUECKFALL = ["10d", "30d", "365d", "all"];
-import { LATEST_CHANGELOG_DATE, CHANGELOG_SEEN_KEY } from "./Changelog";
+import { CHANGELOG_SEEN_KEY, abonnieren, neuestesDatum } from "../lib/changelogLatest";
 import { useT, useI18n, useNumberFormat } from "../i18n";
 
 // Kleiner Hinweis, wenn mir jemand eine Session übertragen will (Details/Annehmen in „Meine Sessions").
@@ -85,11 +85,15 @@ function ChangelogBadge() {
   const [seen, setSeen] = useState<string | null>(() => {
     try { return localStorage.getItem(CHANGELOG_SEEN_KEY); } catch { return null; }
   });
-  const unseen = seen !== LATEST_CHANGELOG_DATE;
-  let dateStr = LATEST_CHANGELOG_DATE;
-  try { dateStr = new Intl.DateTimeFormat(lang, { month: "short", day: "numeric" }).format(new Date(LATEST_CHANGELOG_DATE)); } catch { /* ignore */ }
+  // Datum vom Server, s. Kommentar in App.tsx.
+  const [neuestes, setNeuestes] = useState(neuestesDatum());
+  useEffect(() => abonnieren(setNeuestes), []);
+  const unseen = !!neuestes && seen !== neuestes;
+  let dateStr = neuestes;
+  try { dateStr = new Intl.DateTimeFormat(lang, { month: "short", day: "numeric" }).format(new Date(neuestes)); } catch { /* ignore */ }
+  if (!neuestes) return null;   // ohne Datum keine Kachel, statt einer leeren
   return (
-    <Link to="/changelog" title={t("nav.changelog")} onClick={() => { try { localStorage.setItem(CHANGELOG_SEEN_KEY, LATEST_CHANGELOG_DATE); } catch { /* ignore */ } setSeen(LATEST_CHANGELOG_DATE); }}
+    <Link to="/changelog" title={t("nav.changelog")} onClick={() => { try { localStorage.setItem(CHANGELOG_SEEN_KEY, neuestes); } catch { /* ignore */ } setSeen(neuestes); }}
       className={`ml-auto inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-medium transition ${unseen ? "bg-brand-500/15 text-brand-600 dark:text-brand-300" : "text-slate-500 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300"}`}>
       <SparklesIcon className="h-4 w-4" filled={unseen} /> {dateStr}
     </Link>
