@@ -646,6 +646,20 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **📥 07.09. — `docs/PARITY-AUDIT.md` ist veraltet (Abschnitte vom 17.08.) und hat mich in die
+  Irre geführt.** Auf Jans Frage „was hast du noch alles übersehen/vergessen?" habe ich einen
+  frischen Abgleich gemacht (alle Web-Routen + die zuletzt gebauten Features gegen beide Apps).
+  Ergebnis: **drei** echte Lücken, davon zwei noch offen.
+  - ✅ Foil-Detailseite (Rekorde + Sessions je Foil) — am 07.09. in iOS und Android gebaut.
+  - 🔲 **Changelog in den Apps** — nirgends verlinkt, auch nicht nach außen.
+  - 🔲 **Nerd-Analysen + Systemarchitektur in den Apps** — dito.
+  Bei den beiden offenen ist erst die Produktfrage zu klären: gehören lange Textseiten überhaupt
+  in die Apps, oder reicht ein Link auf die Website? (Im Store-Kontext eher letzteres.)
+  **Und die eigentliche Aufgabe:** die Datei einmal komplett gegen den Code nachziehen. Solange
+  sie halb vom 17.08. ist, ist sie schlimmer als keine — sie erzeugt Sicherheit, wo keine ist.
+  Der Abgleich selbst ist billig: Web-Routen aus `web/src/main.tsx`, dann je Feature ein
+  Volltextgriff in `watch-apple/Sources-iOS` und `android/app/src/main/java`.
+
 - **📥 07.09. — `device_model` in die Uhren-Auswertung aufnehmen (nach iOS 1.1.31).**
   `scripts/uhren-qualitaet.py` gruppiert nach `device_tokens.platform` und `.label` — also nach
   dem, was beim Pairing feststeht. Damit sind ALLE Apple Watches eine einzige Zeile („Apple
