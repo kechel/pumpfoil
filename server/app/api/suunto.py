@@ -77,8 +77,13 @@ def _fit_url(key: str) -> str:
 # Lesbare Namen der Suunto-`activityId`. NICHT geraten: aus Suuntos offizieller Liste, verlinkt
 # aus der Entwickler-FAQ (apizone.suunto.com/faq):
 #   https://aspartnercontent.blob.core.windows.net/apizone/docs/Activities.pdf
-# Abgerufen und ausgelesen am 07.09.2026 (`pdftotext -layout`), 98 Eintraege; die 89 fehlt in
-# Suuntos eigener Nummerierung.
+# Abgerufen und ausgelesen am 07.09.2026 (`pdftotext -layout`), 121 Eintraege (0-121); die 89
+# fehlt in Suuntos eigener Nummerierung.
+#
+# Beim ersten Anlauf fehlten die IDs 100-121 (Mermaiding, Spearfishing, Backcountry skiing …):
+# deren Zeilen nennen in der Support-Spalte nicht „All sports watches“, sondern „Watches:
+# 9Peak pro, Race, …“ — das Muster hat sie uebersprungen. Aufgefallen, weil in der Auswahl
+# eines Nutzers „17x 107“ ohne Namen stand.
 #
 # Gebraucht fuer die Sportart-Auswahl in den Kontoeinstellungen: die Workout-Liste nennt nur die
 # Zahl, und „28" sagt niemandem etwas — „Water sports" schon. (Jan, 07.09.: „sehe jetzt die
@@ -183,6 +188,29 @@ AKTIVITAETEN = {
     96: "Fishing",
     97: "Hunting",
     98: "Transition",
+    99: "Gravel cycling",
+    100: "Mermaiding",
+    101: "Spearfishing",
+    102: "Jump rope",
+    103: "Track running",
+    104: "Calisthenics",
+    105: "E-biking",
+    106: "E-mtb",
+    107: "Backcountry skiing",
+    108: "Wheelchair sport",
+    109: "Hand cycling",
+    110: "Splitboarding",
+    111: "Biathlon",
+    112: "Meditation",
+    113: "Field hockey",
+    114: "Cyclocross",
+    115: "Vertical running",
+    116: "Ski mountaineering",
+    117: "Skate skiing",
+    118: "Classic skiing",
+    119: "Chores",
+    120: "Pilates",
+    121: "Yoga",
 }
 
 
