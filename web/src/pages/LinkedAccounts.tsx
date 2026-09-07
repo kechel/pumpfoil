@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { api, type ImportSport } from "../lib/api";
+import { api, type ImportSport, type SyncStand } from "../lib/api";
 import { Card, Button } from "../components/ui";
 import { ChevronIcon, CheckIcon, LinkIcon } from "../components/Icons";
 import { PlatformSubline } from "../components/SupportedPlatforms";
@@ -21,14 +21,6 @@ const GRUND_KEYS: Record<string, string> = {
   fehler: "settings.sync.why.error",
 };
 
-function gruendeText(t: (k: string, v?: Record<string, string>) => string,
-                     reasons?: Record<string, number>): string {
-  if (!reasons) return "";
-  const teile = Object.entries(reasons)
-    .filter(([code]) => GRUND_KEYS[code])
-    .map(([code, n]) => t(GRUND_KEYS[code], { n: String(n) }));
-  return teile.length ? " — " + teile.join(", ") : "";
-}
 
 
 // Generische „Verknüpfte Konten"-Seite: hostet Import-Integrationen (Polar; später
@@ -100,7 +92,6 @@ function CorosCard() {
   // klassische Partner-API (Antrag laeuft). Der MCP-Weg hat Vorrang, sobald er eingerichtet
   // ist; nur wenn er es NICHT ist, zeigt die Karte den alten Weg. So steht nie beides da.
   const [mcp, setMcp] = useState(false);
-  const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const load = async () => {
     const m = await api.corosMcpStatus().catch(() => null);
@@ -117,13 +108,7 @@ function CorosCard() {
       window.location.href = r.authorize_url;
     } catch (e) { setMsg(String(e)); }
   }
-  async function sync() {
-    setBusy(true);
-    try {
-      const r = await api.corosMcpSync();
-      setMsg(t("settings.polar.result", { imported: String(r.imported), skipped: String(r.skipped) }));
-    } catch (e) { setMsg(String(e)); } finally { setBusy(false); load(); }
-  }
+  const fort = useSyncFortschritt("coros", async () => { await api.corosMcpSync(); });
   async function unlink() {
     await (mcp ? api.corosMcpUnlink() : api.corosUnlink()).catch(() => {});
     setMsg(""); load();
@@ -171,15 +156,16 @@ function CorosCard() {
       ) : (
         <div className="flex flex-wrap items-center gap-2">
           {mcp && (
-            <Button variant="secondary" onClick={sync} disabled={busy}>
-              {busy ? t("settings.polar.importing") : t("settings.suunto.sync")}
+            <Button variant="secondary" onClick={fort.starten} disabled={fort.laeuft}>
+              {fort.laeuft ? t("settings.polar.importing") : t("settings.suunto.sync")}
             </Button>
           )}
           <Button variant="ghost" onClick={unlink}>{t("settings.coros.unlink")}</Button>
         </div>
       )}
+      {fort.balken}
       {st.linked && <SportAuswahl provider="coros" />}
-      {msg && <p className="mt-2 text-xs text-slate-400">{msg}</p>}
+      {(msg || fort.msg) && <p className="mt-2 text-sm text-slate-400">{msg || fort.msg}</p>}
 
       <div className={`mt-4 ${mcp ? "hidden" : ""}`}>
         <p className="mb-2 text-xs font-medium text-slate-400">{t("settings.coros.help")}</p>
@@ -192,6 +178,72 @@ function CorosCard() {
       </div>
     </Card>
   );
+}
+
+/**
+ * Gemeinsame Fortschritts-Logik für die drei Konto-Importe.
+ *
+ * Der Import läuft serverseitig im Hintergrund (sonst läuft der Apache-Proxy in den Timeout —
+ * am 07.09. bekam Jan nach Minuten einen „502 Proxy Error", während der Import in Ruhe
+ * durchlief). Der Aufruf stößt also nur an; hier wird der Stand abgefragt, bis er fertig ist,
+ * und am Ende der Schlusssatz des Servers angezeigt.
+ */
+function useSyncFortschritt(provider: "polar" | "suunto" | "coros", anstossen: () => Promise<unknown>) {
+  const { t } = useI18n();
+  const [stand, setStand] = useState<SyncStand | null>(null);
+  const [msg, setMsg] = useState("");
+  const timer = useRef<number | null>(null);
+
+  useEffect(() => () => { if (timer.current) window.clearTimeout(timer.current); }, []);
+
+  function abfragen() {
+    api.syncProgress(provider).then((st) => {
+      setStand(st);
+      if (st.laeuft) {
+        timer.current = window.setTimeout(abfragen, 1500);
+      } else {
+        setStand(null);
+        // Gründe in der Sprache des Nutzers, wenn der Server sie mitzählt (Suunto). Sonst der
+        // Schlusssatz des Servers. Ohne die strukturierten Daten wäre die Meldung ein englisch/
+        // deutsch gemischter Serversatz — die Codes sind übersetzbar, ein fertiger Satz nicht.
+        const gruende = (st.daten as { reasons?: Record<string, number> } | null)?.reasons;
+        const teile = Object.entries(gruende ?? {})
+          .filter(([k]) => GRUND_KEYS[k])
+          .map(([k, n]) => t(GRUND_KEYS[k], { n: String(n) }));
+        setMsg(teile.length ? teile.join(" · ") : (st.ergebnis ?? ""));
+      }
+    }).catch(() => setStand(null));
+  }
+
+  async function starten() {
+    setMsg("");
+    setStand({ laeuft: true, gesamt: 0, fertig: 0, schritt: null, ergebnis: null, daten: null });
+    try {
+      await anstossen();
+      abfragen();
+    } catch (e) {
+      setStand(null);
+      setMsg(String(e));
+    }
+  }
+
+  const balken = stand?.laeuft ? (
+    <div className="mt-3">
+      <div className="h-2 w-full overflow-hidden rounded-full bg-slate-700/60">
+        <div
+          className="h-full rounded-full bg-brand-500 transition-all"
+          style={{ width: stand.gesamt > 0 ? `${Math.min(100, (100 * stand.fertig) / stand.gesamt)}%` : "15%" }}
+        />
+      </div>
+      <p className="mt-1 text-sm text-slate-400">
+        {stand.gesamt > 0
+          ? t("settings.sync.progress", { fertig: String(stand.fertig), gesamt: String(stand.gesamt) })
+          : (stand.schritt ?? "")}
+      </p>
+    </div>
+  ) : null;
+
+  return { starten, laeuft: !!stand?.laeuft, balken, msg, setMsg };
 }
 
 /**
@@ -262,7 +314,6 @@ function SportAuswahl({ provider }: { provider: "polar" | "suunto" | "coros" }) 
 function PolarCard() {
   const { t } = useI18n();
   const [st, setSt] = useState<{ available: boolean; linked: boolean; last_sync_at: string | null } | null>(null);
-  const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const load = () => api.polarStatus().then(setSt).catch(() => setSt(null));
   useEffect(() => { load(); }, []);
@@ -271,15 +322,7 @@ function PolarCard() {
   async function connect() {
     try { const r = await api.polarConnect(); window.location.href = r.authorize_url; } catch (e) { setMsg(String(e)); }
   }
-  async function sync() {
-    setBusy(true); setMsg("");
-    try {
-      const r = await api.polarSync();
-      setMsg(r.message ?? t("settings.polar.result", { imported: String(r.imported), skipped: String(r.skipped) }));
-      await load();
-    } catch (e) { setMsg(String(e)); }
-    finally { setBusy(false); }
-  }
+  const fort = useSyncFortschritt("polar", async () => { await api.polarSync(); });
   async function unlink() {
     await api.polarUnlink().catch(() => {});
     setMsg(""); load();
@@ -301,12 +344,15 @@ function PolarCard() {
         <Button onClick={connect}>{t("settings.polar.connect")}</Button>
       ) : (
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="secondary" onClick={sync} disabled={busy}>{busy ? t("settings.polar.importing") : t("settings.polar.sync")}</Button>
+          <Button variant="secondary" onClick={fort.starten} disabled={fort.laeuft}>
+            {fort.laeuft ? t("settings.polar.importing") : t("settings.polar.sync")}
+          </Button>
           <Button variant="ghost" onClick={unlink}>{t("settings.polar.unlink")}</Button>
         </div>
       )}
+      {fort.balken}
       {st.linked && <SportAuswahl provider="polar" />}
-      {msg && <p className="mt-2 text-xs text-slate-400">{msg}</p>}
+      {(msg || fort.msg) && <p className="mt-2 text-sm text-slate-400">{msg || fort.msg}</p>}
     </Card>
   );
 }
@@ -316,7 +362,6 @@ function PolarCard() {
 function SuuntoCard() {
   const { t } = useI18n();
   const [st, setSt] = useState<{ available: boolean; linked: boolean; last_sync_at: string | null } | null>(null);
-  const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const load = () => api.suuntoStatus().then(setSt).catch(() => setSt(null));
   useEffect(() => { load(); }, []);
@@ -325,16 +370,7 @@ function SuuntoCard() {
   async function connect() {
     try { const r = await api.suuntoConnect(); window.location.href = r.authorize_url; } catch (e) { setMsg(String(e)); }
   }
-  async function sync() {
-    setBusy(true); setMsg("");
-    try {
-      const r = await api.suuntoSync();
-      setMsg(r.message ?? (t("settings.polar.result", { imported: String(r.imported), skipped: String(r.skipped) })
-                           + gruendeText(t, r.reasons)));
-      await load();
-    } catch (e) { setMsg(String(e)); }
-    finally { setBusy(false); }
-  }
+  const fort = useSyncFortschritt("suunto", async () => { await api.suuntoSync(); });
   async function unlink() {
     await api.suuntoUnlink().catch(() => {});
     setMsg(""); load();
@@ -359,12 +395,15 @@ function SuuntoCard() {
         <Button onClick={connect}>{t("settings.suunto.connect")}</Button>
       ) : (
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="secondary" onClick={sync} disabled={busy}>{busy ? t("settings.polar.importing") : t("settings.suunto.sync")}</Button>
+          <Button variant="secondary" onClick={fort.starten} disabled={fort.laeuft}>
+            {fort.laeuft ? t("settings.polar.importing") : t("settings.suunto.sync")}
+          </Button>
           <Button variant="ghost" onClick={unlink}>{t("settings.suunto.unlink")}</Button>
         </div>
       )}
+      {fort.balken}
       {st.linked && <SportAuswahl provider="suunto" />}
-      {msg && <p className="mt-2 text-xs text-slate-400">{msg}</p>}
+      {(msg || fort.msg) && <p className="mt-2 text-sm text-slate-400">{msg || fort.msg}</p>}
     </Card>
   );
 }

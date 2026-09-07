@@ -838,6 +838,7 @@ const fr: Record<string, string> = {
   "settings.coros.unlink": "Déconnecter",
   "settings.coros.help": "Comment ça marche ?",
   "settings.coros.help1": "Connecte ton compte COROS → les nouveaux entraînements s'importent automatiquement (GPS + FC), sans sync manuel.",
+  "settings.sync.progress": "{fertig} sur {gesamt} entraînements",
   "settings.sports.title": "Quels sports importer ?",
   "settings.sports.hint": "Seuls les modes que ton compte a réellement fournis. Un nouveau mode est importé automatiquement jusqu'à ce que tu le décoches. S'applique aux imports futurs.",
   "settings.sports.none": "Aucun pour l'instant. Dès qu'une activité arrive, son mode apparaît ici.",

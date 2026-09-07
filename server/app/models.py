@@ -958,6 +958,41 @@ class PolarLink(Base):
     retry_count: Mapped[int] = mapped_column(Integer, default=0)
 
 
+class SyncProgress(Base):
+    """Fortschritt eines laufenden Imports aus einem verknuepften Konto — je Nutzer und Anbieter.
+
+    Warum in der DB und nicht im Prozess (Jan, 07.09.): der Sync laeuft synchron, und bei einem
+    langsamen Anbieter sieht der Nutzer minutenlang nur einen deaktivierten Knopf ohne jede
+    Meldung — genau so passiert, als Polar zwei Trainings lieferte. Der Uhr-Upload zeigt seit
+    immer „x von y", das Gleiche gehoert hierher.
+
+    Der Zustand MUSS in der DB stehen: uvicorn laeuft mit vier Arbeitsprozessen, die Abfrage des
+    Fortschritts landet also fast sicher in einem anderen Prozess als der laufende Sync.
+    """
+
+    __tablename__ = "sync_progress"
+    __table_args__ = (UniqueConstraint("user_id", "provider", name="uq_sync_progress"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    provider: Mapped[str] = mapped_column(String(16))
+    laeuft: Mapped[bool] = mapped_column(Boolean, default=False)
+    gesamt: Mapped[int] = mapped_column(Integer, default=0)
+    fertig: Mapped[int] = mapped_column(Integer, default=0)
+    schritt: Mapped[str | None] = mapped_column(String(64))   # was gerade passiert
+    gestartet_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    beendet_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Schlusssatz fuer die Oberflaeche („2 importiert, 1 doppelt" bzw. die Fehlermeldung). Der
+    # Aufruf ist ja längst beantwortet, wenn der Lauf fertig wird — ohne dieses Feld erfaehrt
+    # der Nutzer das Ergebnis nie.
+    ergebnis: Mapped[str | None] = mapped_column(String(300))
+    # Dasselbe Ergebnis noch einmal als JSON. Der Text ist fuer den Notfall; die Oberflaeche
+    # braucht die Struktur, um die Gruende in der Sprache des Nutzers zu benennen (Suunto sagt
+    # z. B. „3 zu kurz, 1 doppelt" — als fertiger Satz vom Server waere das englisch/deutsch
+    # gemischt und nicht uebersetzbar).
+    ergebnis_json: Mapped[str | None] = mapped_column(Text)
+
+
 class ImportSportPref(Base):
     """Welche Sportart-Modi eines verknuepften Kontos wir fuer diesen Nutzer importieren.
 

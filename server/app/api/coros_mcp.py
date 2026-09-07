@@ -44,7 +44,7 @@ from urllib.parse import urlencode
 
 import httpx
 import jwt as pyjwt
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import BackgroundTasks, APIRouter, Depends, HTTPException, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -546,8 +546,23 @@ def _aktivitaeten_aus(res: dict) -> list[dict]:
 
 
 @router.post("/sync")
-def sync(tage: int = 0, user: models.User = Depends(current_user),
+def sync(background: BackgroundTasks, tage: int = 0,
+         user: models.User = Depends(current_user),
          db: Session = Depends(get_db)) -> dict:
+    """Import ANSTOSSEN und sofort antworten; der Stand kommt aus `/sync-progress`.
+    Begruendung s. `polar.sync`."""
+    from .. import syncprogress
+    if db.query(models.CorosMcpLink).filter_by(user_id=user.id).first() is None:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "COROS not linked")
+    if syncprogress.stand(db, user.id, "coros")["laeuft"]:
+        return {"laeuft": True}
+    syncprogress.start(db, user.id, "coros", 0, "COROS wird gefragt")
+    background.add_task(syncprogress.im_hintergrund, "coros", user.id,
+                        lambda d, u: _sync_lauf(d, u, tage))
+    return {"gestartet": True}
+
+
+def _sync_lauf(db: Session, user: models.User, tage: int = 0) -> dict:
     """Neue COROS-Trainings als FIT ziehen und als Sessions importieren (idempotent).
 
     **Am echten Server ausgemessen (04.09.), nicht geraten** — beides hat je einen Anlauf
@@ -562,7 +577,7 @@ def sync(tage: int = 0, user: models.User = Depends(current_user),
         dann je Eintrag die Datei.
     """
     from .sessions import import_parsed_session   # lazy: vermeidet Import-Zyklus
-    from .. import importsports, storage
+    from .. import importsports, storage, syncprogress
     from ..fitimport import parse_fit_bytes
 
     link = db.query(models.CorosMcpLink).filter_by(user_id=user.id).first()
@@ -592,6 +607,7 @@ def sync(tage: int = 0, user: models.User = Depends(current_user),
         "limit": LISTE_LIMIT,
     })
     aktivitaeten = _aktivitaeten_aus(liste)
+    syncprogress.gesamt_setzen(db, user.id, "coros", len(aktivitaeten))
 
     # Doppel erkennen, BEVOR wir herunterladen. Die Liste nennt die Startzeit, und unsere
     # Dedup-Regel in `import_parsed_session` greift ohnehin ueber `started_at` — was wir also
@@ -609,6 +625,7 @@ def sync(tage: int = 0, user: models.User = Depends(current_user),
     imported = skipped = gescheitert = 0
     abgewaehlt = 0
     for eintrag in aktivitaeten:
+        syncprogress.schritt(db, user.id, "coros")
         if imported + gescheitert >= MAX_FITS_JE_SYNC:
             log.info("coros-mcp: Download-Obergrenze %d erreicht (user %s), Rest folgt beim "
                      "naechsten Lauf", MAX_FITS_JE_SYNC, user.id)
@@ -711,3 +728,11 @@ def sports_setzen(wahl: dict[str, bool], user: models.User = Depends(current_use
     from .. import importsports
     n = importsports.setzen(db, user.id, "coros", wahl)
     return {"ok": True, "geaendert": n, "sports": importsports.liste(db, user.id, "coros")}
+
+
+@router.get("/sync-progress")
+def sync_progress(user: models.User = Depends(current_user),
+                  db: Session = Depends(get_db)) -> dict:
+    """Stand eines laufenden Imports: laeuft, fertig von gesamt, Schritt, Schlusssatz."""
+    from .. import syncprogress
+    return syncprogress.stand(db, user.id, "coros")

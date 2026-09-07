@@ -1162,6 +1162,7 @@ const nl: Record<string, string> = {
   "settings.coros.unlink": "Koppeling verbreken",
   "settings.coros.help": "Hoe werkt het?",
   "settings.coros.help1": "COROS-account koppelen → nieuwe trainingen worden automatisch geïmporteerd (GPS + hartslag), geen handmatige sync.",
+  "settings.sync.progress": "{fertig} van {gesamt} trainingen",
   "settings.sports.title": "Welke sporten importeren?",
   "settings.sports.hint": "Alleen de modi die je account tot nu toe echt heeft geleverd. Een nieuwe wordt automatisch geïmporteerd tot je hem uitvinkt. Geldt voor toekomstige imports.",
   "settings.sports.none": "Nog geen. Zodra er een activiteit binnenkomt, verschijnt de modus hier.",

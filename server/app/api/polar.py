@@ -19,7 +19,7 @@ from urllib.parse import urlencode
 
 import httpx
 import jwt as pyjwt
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import BackgroundTasks, APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
@@ -222,6 +222,11 @@ def _pull_import(db: Session, user: models.User, link: models.PolarLink) -> dict
     # Bis 03.09. landete beides im selben Zaehler und die Transaktion wurde immer bestaetigt —
     # ein gescheitertes Training war damit bei Polar als gelesen markiert und ueber /sync nie
     # wieder holbar, ohne eine Zeile im Log. Genau danach hat ein Nutzer gefragt.
+    from .. import syncprogress
+    # Die Zahl der Trainings verraet erst der zweite Aufruf (die Transaktion), deshalb wird sie
+    # hier nachgetragen. Gilt auch fuer den Webhook-Weg — dort ist noch kein Lauf gestartet, die
+    # Zeile entsteht dann eben jetzt.
+    syncprogress.gesamt_setzen(db, user.id, "polar", len(urls) if urls else 0)
     imported = skipped = 0
     abgewaehlt = 0
     gescheitert: list[tuple[str, str]] = []
@@ -271,6 +276,8 @@ def _pull_import(db: Session, user: models.User, link: models.PolarLink) -> dict
                 imported += 1
         except Exception as exc:  # noqa: BLE001 — ein kaputtes Exercise darf den Rest nicht stoppen
             gescheitert.append((url, f"{type(exc).__name__}: {exc}"))
+        finally:
+            syncprogress.schritt(db, user.id, "polar")
 
     for url, grund in gescheitert:
         log.error("polar: Training nicht importiert (user %s): %s — %s", user.id, url, grund)
@@ -304,13 +311,31 @@ def _pull_import(db: Session, user: models.User, link: models.PolarLink) -> dict
 
 
 @router.post("/sync")
-def sync(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
-    """Neue Polar-Trainings (Exercise-Transaktion) als TCX ziehen und als Sessions importieren."""
+def sync(background: BackgroundTasks, user: models.User = Depends(current_user),
+         db: Session = Depends(get_db)) -> dict:
+    """Import ANSTOSSEN und sofort antworten; der Stand kommt aus `/sync-progress`.
+
+    Vorher lief der Import im Aufruf selbst. Bei zwei Trainings hat das den Apache-Proxy in den
+    Timeout laufen lassen: der Nutzer sah minutenlang einen deaktivierten Knopf und dann einen
+    „502 Proxy Error" — waehrend der Import serverseitig weiterlief und funktionierte (07.09.2026,
+    Jans eigenes Konto). Ein Import kann nicht schnell sein: Download, Analyse und Geokodierung
+    je Training. Also darf er nicht am Aufruf haengen.
+    """
+    from .. import syncprogress
     _creds()
     link = db.query(models.PolarLink).filter_by(user_id=user.id).first()
     if link is None:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Polar not linked")
-    return _pull_import(db, user, link)
+    if syncprogress.stand(db, user.id, "polar")["laeuft"]:
+        return {"laeuft": True}
+    syncprogress.start(db, user.id, "polar", 0, "Polar wird gefragt")
+
+    def arbeit(d, u):
+        l = d.query(models.PolarLink).filter_by(user_id=u.id).first()
+        return _pull_import(d, u, l) if l else {}
+
+    background.add_task(syncprogress.im_hintergrund, "polar", user.id, arbeit)
+    return {"gestartet": True}
 
 
 def _webhook_secret() -> str:
@@ -401,3 +426,11 @@ def sports_setzen(wahl: dict[str, bool], user: models.User = Depends(current_use
     from .. import importsports
     n = importsports.setzen(db, user.id, "polar", wahl)
     return {"ok": True, "geaendert": n, "sports": importsports.liste(db, user.id, "polar")}
+
+
+@router.get("/sync-progress")
+def sync_progress(user: models.User = Depends(current_user),
+                  db: Session = Depends(get_db)) -> dict:
+    """Stand eines laufenden Imports: laeuft, fertig von gesamt, Schritt, Schlusssatz."""
+    from .. import syncprogress
+    return syncprogress.stand(db, user.id, "polar")

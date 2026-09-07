@@ -1162,6 +1162,7 @@ const cs: Record<string, string> = {
   "settings.coros.unlink": "Zrušit propojení",
   "settings.coros.help": "Jak to funguje?",
   "settings.coros.help1": "Propoj účet COROS → nové tréninky se automaticky importují (GPS + tep), žádný ruční sync.",
+  "settings.sync.progress": "{fertig} z {gesamt} tréninků",
   "settings.sports.title": "Které sporty importovat?",
   "settings.sports.hint": "Jen režimy, které tvůj účet skutečně dodal. Nový se importuje automaticky, dokud ho neodškrtneš. Platí pro budoucí importy.",
   "settings.sports.none": "Zatím žádné. Až přijde aktivita, její režim se zobrazí tady.",
