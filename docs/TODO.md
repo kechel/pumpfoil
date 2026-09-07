@@ -603,7 +603,24 @@ unbetroffen — die Overlays sind `static let` und werden nur beim ersten Zugrif
 
 **Betroffene ausgelieferte Versionen: 1.1.29 (live 03.09.) und 1.1.30 (live 05.09.)** — also
 **fuenf Tage live**. 1.1.28 war noch sauber (eingereicht 01.09. 22:24, vor der Ursache).
-Betroffene Nutzer nach `users.language`: **10** (7 ru, 2 pt, 1 ja).
+**Wie viele es wirklich getroffen hat: sehr wahrscheinlich NIEMANDEN** — nachgesehen, nicht
+geschaetzt (Jans Frage: „nutzen die 10 ueberhaupt die iOS-App?"). Zehn Konten haben eine
+betroffene Sprache (7 ru, 2 pt, 1 ja), aber:
+
+* **7 von 10 waren seit dem Fehler nie mehr aktiv** (`users.last_seen_at` zwischen 06.08. und
+  01.09., der Fehler entstand am 02.09. 09:53).
+* Die **drei mit einem Apple-Geraet** (144, 189, 195) gehoeren genau in diese Gruppe — zuletzt
+  aktiv 10.08., 06.08. und 29.08.
+* Die **drei, die danach aktiv waren** (443 ja, 454 ru, 459 ru — alle am 05./06.09. registriert),
+  sind Wear-OS-/Garmin-Nutzer, ausser 443: dort ist kein Geraet gepaart und die Plattform damit
+  unbekannt. Weiter kommen wir nicht, und das ist Absicht — wir sammeln kein Analytics
+  ([[no-analytics-ever]]), also wissen wir nie, wer eine App nur GEOEFFNET hat.
+* Kein Feedback und keine Chat-Nachricht von einem dieser zehn.
+
+Folge fuer die Dringlichkeit: eine **beschleunigte Pruefung bei Apple ist NICHT noetig** (das hatte
+ich zuerst empfohlen, bevor ich nachgesehen hatte). 1.1.31 kann die normale Schlange nehmen. Echt
+war das Risiko trotzdem: den naechsten russisch-, portugiesisch- oder japanischsprachigen Nutzer,
+der die iOS-App installiert, haette es sofort erwischt.
 
 **Ursache.** Ein Swift-Dictionary-**Literal** mit doppeltem Schluessel bricht zur LAUFZEIT ab
 (`Fatal error: Dictionary literal contains duplicate keys`) — es ist kein Compilerfehler, nur eine
