@@ -408,6 +408,8 @@ const pl: Record<string, string> = {
   "sd.optimalLegend": "Optymalnie {v} km/h",
   "sd.smoothing": "Wygładzanie:",
   "sd.clearSelection": "Wyczyść zaznaczenie (wszystkie przejazdy)",
+  "sd.noFix.title": "To nagranie nie zawiera pozycji.",
+  "sd.noFix.text": "Zegarek nie miał odbioru GPS podczas nagrywania — bez pozycji nie ma czego analizować. Następnym razem poczekaj na ekranie startowym, aż GPS będzie gotowy, i dopiero wtedy zacznij. Na otwartym terenie zwykle kilka sekund, po dłuższej przerwie nawet minutę.",
   "sd.close": "✕ Zamknij",
   "sd.fullscreen": "⛶ Pełny ekran",
   "sd.play": "Odtwórz",

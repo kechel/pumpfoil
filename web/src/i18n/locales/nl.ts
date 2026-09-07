@@ -413,6 +413,8 @@ const nl: Record<string, string> = {
   "sd.optimalLegend": "Optimaal {v} km/h",
   "sd.smoothing": "Afvlakking:",
   "sd.clearSelection": "Selectie opheffen (alle runs)",
+  "sd.noFix.title": "Deze opname bevat geen positie.",
+  "sd.noFix.text": "Het horloge had tijdens de opname geen gps-ontvangst — zonder positie is er niets te analyseren. Wacht volgende keer op het startscherm tot gps klaar is voordat je begint. Buiten duurt dat meestal enkele seconden, na een langere pauze tot een minuut.",
   "sd.close": "✕ Sluiten",
   "sd.fullscreen": "⛶ Volledig scherm",
   "sd.play": "Afspelen",

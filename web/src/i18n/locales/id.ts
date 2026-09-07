@@ -389,6 +389,8 @@ const id: Record<string, string> = {
   "sd.optimalLegend": "Optimal {v} km/h",
   "sd.smoothing": "Penghalusan:",
   "sd.clearSelection": "Hapus pilihan (semua run)",
+  "sd.noFix.title": "Rekaman ini tidak berisi posisi.",
+  "sd.noFix.text": "Jam tidak menerima GPS saat merekam — tanpa posisi tidak ada yang bisa dianalisis. Lain kali tunggu di layar awal sampai GPS siap, baru mulai. Di ruang terbuka biasanya beberapa detik, setelah lama tidak dipakai bisa sampai satu menit.",
   "sd.close": "✕ Tutup",
   "sd.fullscreen": "⛶ Layar penuh",
   "sd.play": "Putar",

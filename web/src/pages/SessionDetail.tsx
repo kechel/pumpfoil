@@ -888,6 +888,12 @@ export default function SessionDetail() {
     api.updateSessionMeta(session.id, { caption: v }).then(uebernehmen).catch(() => {});
   };
 
+  // „Keine einzige Position" heisst: die Analyse ist gelaufen (sonst wuesste man es noch nicht),
+  // und die Spur ist leer. NICHT dasselbe wie „keine Laeufe erkannt" — dort gibt es eine Spur.
+  const ohneOrtung =
+    !!session?.analysis &&
+    (session.analysis.track_geojson?.geometry?.coordinates?.length ?? 0) === 0;
+
   // Karte initialisieren (einmal je Session).
   useEffect(() => {
     if (!session?.analysis?.track_geojson || !mapRef.current) return;
@@ -1523,6 +1529,18 @@ export default function SessionDetail() {
             {fullscreen ? t("sd.close") : t("sd.fullscreen")}
           </button>
         </div>
+
+        {/* Aufnahme ohne eine einzige Position: hier stand bisher eine leere Karte und sonst
+            nichts. Am 07.09.2026 nachgezählt: 199 solche Sessions bei 82 Nutzern, und 11 Nutzer
+            haben AUSSCHLIESSLICH solche — sechs davon nach einem einzigen Versuch. Für die
+            entscheidet genau diese Seite, ob sie es nochmal probieren. Also sagen wir, was
+            passiert ist, statt sie ratlos vor einer grauen Fläche zu lassen. */}
+        {ohneOrtung && (
+          <div className="mb-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-800 dark:text-amber-200">
+            <p className="font-semibold">{t("sd.noFix.title")}</p>
+            <p className="mt-1">{t("sd.noFix.text")}</p>
+          </div>
+        )}
 
         {/* KEINE Card (backdrop-blur = Containing-Block). Vollbild: Karte füllt den
             flex-1-Bereich; Karte selbst nur height:100% (kein position-Hack). */}

@@ -389,6 +389,8 @@ const ja: Record<string, string> = {
   "sd.optimalLegend": "最適 {v} km/h",
   "sd.smoothing": "スムージング：",
   "sd.clearSelection": "選択をクリア（全ラン）",
+  "sd.noFix.title": "この記録には位置情報が含まれていません。",
+  "sd.noFix.text": "記録中、時計が GPS を受信できていませんでした。位置情報がないと解析できません。次回はスタート画面で GPS の準備ができるまで待ってから開始してください。屋外なら通常は数秒、久しぶりの場合は 1 分ほどかかります。",
   "sd.close": "✕ 閉じる",
   "sd.fullscreen": "⛶ フルスクリーン",
   "sd.play": "再生",

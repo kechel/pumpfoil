@@ -427,6 +427,8 @@ const en: Record<string, string> = {
   "sd.optimalLegend": "Optimal {v} km/h",
   "sd.smoothing": "Smoothing:",
   "sd.clearSelection": "Clear selection (all runs)",
+  "sd.noFix.title": "This recording contains no position.",
+  "sd.noFix.text": "The watch had no GPS reception while recording — without a position there is nothing to analyse. Next time, wait on the start screen until the GPS indicator is ready before you start. Outdoors that usually takes a few seconds, after a longer break up to a minute.",
   "sd.close": "✕ Close",
   "sd.fullscreen": "⛶ Fullscreen",
   "sd.play": "Play",

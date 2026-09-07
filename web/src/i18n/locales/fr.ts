@@ -335,6 +335,8 @@ const fr: Record<string, string> = {
   "unit.pumpPerMin": "/min",
   "sd.smoothing": "Lissage :",
   "sd.clearSelection": "Annuler la sélection (tous les runs)",
+  "sd.noFix.title": "Cet enregistrement ne contient aucune position.",
+  "sd.noFix.text": "La montre n'avait pas de réception GPS pendant l'enregistrement — sans position, il n'y a rien à analyser. La prochaine fois, attends sur l'écran de départ que le GPS soit prêt avant de lancer. En extérieur, cela prend généralement quelques secondes, jusqu'à une minute après une longue pause.",
   "sd.close": "✕ Fermer",
   "sd.fullscreen": "⛶ Plein écran",
   "sd.play": "Lecture",

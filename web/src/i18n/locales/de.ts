@@ -451,6 +451,8 @@ const de: Record<string, string> = {
   "sd.optimalLegend": "Optimal {v} km/h",
   "sd.smoothing": "Glättung:",
   "sd.clearSelection": "Auswahl aufheben (alle Läufe)",
+  "sd.noFix.title": "Diese Aufnahme enthält keine Position.",
+  "sd.noFix.text": "Die Uhr hatte während der Aufzeichnung keinen GPS-Empfang — ohne Position lässt sich nichts auswerten. Warte beim nächsten Mal auf dem Startbildschirm, bis die GPS-Anzeige bereit ist, und starte erst dann. Unter freiem Himmel dauert das meist einige Sekunden, nach längerer Pause auch eine Minute.",
   "sd.close": "✕ Schließen",
   "sd.fullscreen": "⛶ Vollbild",
   "sd.play": "Abspielen",

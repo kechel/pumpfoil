@@ -277,6 +277,8 @@ const deAT: Record<string, string> = {
   "sd.colorSpeed": "Speed",
   "sd.colorPulse": "Puls",
   "sd.smoothing": "Glättung:",
+  "sd.noFix.title": "Des Aufnahm hot kaa Position.",
+  "sd.noFix.text": "De Uhr hot während'n Aufzeichnen kaan GPS-Empfang ghobt — ohne Position kann ma nix auswerten. Wart's nächste Mal aufm Startbildschirm, bis de GPS-Anzeige parat is, und start erst dann. Unterm freien Himmel dauert des meistens a paar Sekunden, nach längerer Pause a a Minute.",
   "sd.close": "✕ Zua",
   "sd.fullscreen": "⛶ Vollbild",
   "sd.auto": "Auto",

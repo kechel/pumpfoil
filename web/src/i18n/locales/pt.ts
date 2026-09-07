@@ -389,6 +389,8 @@ const pt: Record<string, string> = {
   "sd.optimalLegend": "Ótimo {v} km/h",
   "sd.smoothing": "Suavização:",
   "sd.clearSelection": "Limpar seleção (todas as voltas)",
+  "sd.noFix.title": "Esta gravação não contém nenhuma posição.",
+  "sd.noFix.text": "O relógio não tinha receção GPS durante a gravação — sem posição não há nada para analisar. Na próxima vez, espera no ecrã inicial até o GPS estar pronto antes de começar. Ao ar livre costuma levar alguns segundos, até um minuto após uma pausa longa.",
   "sd.close": "✕ Fechar",
   "sd.fullscreen": "⛶ Tela cheia",
   "sd.play": "Reproduzir",
