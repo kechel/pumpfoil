@@ -3170,6 +3170,11 @@ enum Loc {
         // In der Spot-Ansicht heisst die Wetterkarte wie in der PWA — nicht „am Homespot".
         "spot.weatherTitle": r("Wetter & Pegel", "Wätter & Pegel", "Wetter & Pegel", "Weather & water level", "Météo & niveau d'eau", "Meteo e livello dell'acqua", "Tiempo y nivel del agua"),
         "common.loading": r("lädt …", "lädt …", "lädt …", "loading …", "chargement …", "caricamento …", "cargando …"),
+        // Foil-Detailseite (Rekorde + Sessions je Foil), Wortlaut wie in der PWA.
+        "foilDetail.records": r("Community-Rekorde mit diesem Foil", "Community-Rekörd mit däm Foil", "Community-Rekorde mit dem Foil", "Community records with this foil", "Records de la communauté avec ce foil", "Record della community con questo foil", "Récords de la comunidad con este foil"),
+        "foilDetail.community": r("{sessions} Sessions von {users} Fahrern", "{sessions} Sessions vo {users} Fahrer", "{sessions} Sessions von {users} Fahrern", "{sessions} sessions by {users} riders", "{sessions} sessions de {users} riders", "{sessions} sessioni di {users} rider", "{sessions} sesiones de {users} riders"),
+        "foilDetail.sessions": r("Sessions mit diesem Foil", "Sessions mit däm Foil", "Sessions mit dem Foil", "Sessions with this foil", "Sessions avec ce foil", "Sessioni con questo foil", "Sesiones con este foil"),
+        "foilDetail.none": r("Mit diesem Foil ist noch keine Session aufgezeichnet.", "Mit däm Foil isch no kei Session ufgnoh worde.", "Mit dem Foil is nu kane Session aufgnommen worn.", "No session has been recorded with this foil yet.", "Aucune session n'a encore été enregistrée avec ce foil.", "Con questo foil non è ancora stata registrata nessuna sessione.", "Todavía no se ha grabado ninguna sesión con este foil."),
         "rec.spotTitle": r("Rekorde an diesem Spot", "Rekörd a däm Spot", "Rekorde an dem Spot", "Records at this spot", "Records à ce spot", "Record in questo spot", "Récords en este spot"),
         "period.10d": r("10 Tage", "10 Täg", "10 Tog", "10 days", "10 jours", "10 giorni", "10 días"),
         "period.30d": r("30 Tage", "30 Täg", "30 Tog", "30 days", "30 jours", "30 giorni", "30 días"),

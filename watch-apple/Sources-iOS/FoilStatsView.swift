@@ -117,6 +117,11 @@ struct FoilStatsView: View {
                 topRow(s)
                 pumpRow(s)
                 bestRow(s)
+                // Nutzer-Vorschlag (04.09.): das Foil anklickbar machen und dahinter alle
+                // Sessions damit zeigen. In der PWA seit dem 04.09., hier bis 07.09. vergessen.
+                NavigationLink { FoilDetailView(foil: s) } label: {
+                    Text(Loc.t("foilDetail.sessions", lang)).font(.callout)
+                }
             }
         }
     }
