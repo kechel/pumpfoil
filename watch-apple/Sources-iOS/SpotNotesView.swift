@@ -12,6 +12,7 @@ struct SpotNotesView: View {
     let lang: String
 
     @State private var data: SpotNotesOut?
+    @State private var fehler = false
     @State private var editing = false
     @State private var draft = ""
     @State private var busy = false
@@ -27,7 +28,10 @@ struct SpotNotesView: View {
         // haette der leere Zweig ein EmptyView, wuerde der Task je nach SwiftUI-Version nicht
         // ausgefuehrt. Ohne Inhalt gibt Group nichts aus, also auch keine leere Listenzeile.
         Group {
-            if let d = data, d.can_write || !d.notes.isEmpty {
+            if fehler {
+                Section { Text(Loc.t("spotnote.loadFailed", lang)).font(.caption).foregroundStyle(.secondary) }
+                    header: { Text(Loc.t("spotnote.title", lang)) }
+            } else if let d = data, d.can_write || !d.notes.isEmpty {
                 Section {
                     Text(Loc.t("spotnote.disclaimer", lang))
                         .font(.caption)
@@ -276,7 +280,16 @@ struct SpotNotesView: View {
     }
 
     private func load() async {
-        data = try? await Api.spotNotes(spotId)
+        // Scheitert der Abruf, blieb `data` nil und die ganze Ansicht gab NICHTS aus — von
+        // „dieser Spot hat keine Beschreibung" nicht zu unterscheiden. Genau daran haben wir am
+        // 07.09.2026 gesucht, waehrend der Server die Beschreibung nachweislich lieferte.
+        // Der Grund landet jetzt wenigstens im Log.
+        do {
+            data = try await Api.spotNotes(spotId)
+        } catch {
+            print("SpotNotes \(spotId) nicht geladen: \(error)")
+            fehler = true
+        }
     }
 
     private func upload(_ item: PhotosPickerItem?) {

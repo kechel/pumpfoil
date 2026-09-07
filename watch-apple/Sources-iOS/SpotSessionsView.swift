@@ -30,12 +30,26 @@ struct SpotSessionsView: View {
 
     var body: some View {
         List {
+            // Der Spotname MUSS in die Liste: `brandToolbar` belegt die Titelzeile mit der
+            // Wortmarke und benutzt den uebergebenen Titel nur als Vorlesetext — sichtbar war
+            // der Name also nie (Jan, 07.09.2026). Die PWA zeigt ihn als Ueberschrift.
+            Section {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("📍 \(spot)").font(.title3.bold())
+                    if let w = spotLabel, !w.isEmpty {
+                        Text(w).font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+            }
             if let error { Text(error).foregroundStyle(.secondary) }
             // Reihenfolge wie in der PWA: Rekorde, Wetter, Beschreibungen, dann die Sessions
             // (Jan, 07.09.: „die 3 muessen nach oben wie in der pwa").
             SpotRecordsView(spot: spot, lang: lang, accelOnly: showAll ? false : true)
             if let wb = weather { Section { HomeWeatherCard(wb: wb, lang: lang, titelKey: "spot.weatherTitle") } }
-            if let sid = spotId { SpotNotesView(spotId: sid, lang: lang) }
+            // `?? vorgegebeneSpotId`: die id des Einstiegs gilt SOFORT. Vorher wurde sie erst
+            // im Task uebernommen — nach dem Laden der Sessions — und bis dahin (oder wenn der
+            // Task nicht durchlief) stand hier nichts.
+            if let sid = spotId ?? vorgegebeneSpotId { SpotNotesView(spotId: sid, lang: lang) }
             ForEach(items) { c in
                 NavigationLink { SessionDetailView(id: c.id) } label: { CommunityRow(item: c) }
             }
