@@ -289,23 +289,37 @@ IN_REVIEW: list[dict] = [
      ]},
     {"name": "Amazfit", "version": "1.0.7",
      "note": "submitted 1 September, under review",
-     "items": ["Nothing new in the app itself — this round only replaces the store images."]},
+     # KORREKTUR 07.09.2026 (Jan): hier stand „Nothing new in the app itself — this round only
+     # replaces the store images". Das stimmte nur im Vergleich zur VORIGEN Einreichung von 1.0.7 —
+     # und die wurde abgelehnt, nur wegen der Store-Vorschaubilder (s. docs/TODO.md). Fuer die
+     # NUTZER ist damit nichts davon draussen: live steht 1.0.6 vom 24.08., und alles, was 1.0.7
+     # mitbringt, kommt erst mit dieser Runde. Jans Frage war genau richtig.
+     #
+     # Der Inhalt ist aus git rekonstruiert, weil `watch-zepp/CHANGELOG.md` nur bis 1.0.5 gefuehrt
+     # wurde: auf 1.0.6 wurde am 18.08. gebumpt (`3ff50081`), auf 1.0.7 am 26.08. um 20:15
+     # (`bedb67dc`). Alles dazwischen ist 1.0.7, alles ab dem 27.08. gehoert zu 1.0.8 — die
+     # 1.0.8-Liste war vorher eine Mischung aus beidem.
+     "items": [
+         "Value graphics on the watch: speed, heart rate and pump cadence as a bar, not just "
+         "a number.",
+         "Heart-rate zones use the colours you set in your profile.",
+         "The touch lock can be opened with your finger again.",
+         "A cleaned-up top speed, and a run that never really stopped is no longer counted "
+         "as two.",
+     ]},
 ]
 
 NAECHSTES: list[dict] = [
     {"name": "Amazfit", "version": "1.0.8", "note": "follows straight after the current one",
-     # Inhalt gegenueber der LIVE stehenden 1.0.6 (freigegeben 24.08.), nicht gegenueber 1.0.4:
-     # in `docs/TODO.md` stand dazu ein falscher Satz, den das Einreichungs-Protokoll und die
-     # gemeldeten App-Versionen der Uhren widerlegen. Der GPS-Sprung-Fix vom 16.08. ist deshalb
-     # NICHT hier — der ist mit 1.0.6 laengst draussen.
+     # Inhalt NUR gegenueber 1.0.7 (liegt in der Pruefung), nicht gegenueber der live stehenden
+     # 1.0.6 — sonst stuenden dieselben Punkte zweimal in der Tabelle. Alles ab dem 27.08.2026 im
+     # Zepp-Recorder. Der GPS-Sprung-Fix vom 16.08. ist mit 1.0.6 laengst draussen und steht
+     # deshalb in keiner der beiden Listen.
      "items": [
-         "Value graphics on the watch: speed, heart rate and pump cadence as a bar, not just "
-         "a number.",
-         "Heart-rate zones and speed zones use the colours you set in your profile.",
+         "Speed zones use the colours you set in your profile, the same way heart-rate zones "
+         "already do.",
          "A single press can end a recording instead of holding, if you set that in your profile.",
-         "The touch lock can be opened with your finger again.",
-         "Runs are detected the same way as on the server, and a run that never stopped is no "
-         "longer split in two.",
+         "Runs are detected the same way as on the server.",
          "Dutch, Finnish, Czech and Polish.",
      ]},
 ]
