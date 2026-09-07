@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, getToken, SessionSummary } from "../lib/api";
 import { Button } from "./ui";
+import { UploadIcon } from "./Icons";
 import { useT } from "../i18n";
 
 // Wiederverwendbarer FIT/ZIP-Upload. Nicht eingeloggt -> /login. Nach dem Upload
@@ -62,8 +63,13 @@ export function UploadFitButton({
 
   return (
     <>
+      {/* Icon vor der Beschriftung, wie beim Link in „Meine Sessions" (Jan, 07.09.2026).
+          Es steht auch WAEHREND des Uploads da: sonst springt die Knopfbreite beim Klick. */}
       <Button onClick={click} variant={variant} className={className} disabled={uploading}>
-        {uploading ? `${t("sessions.importing")}${progress ? " " + progress : ""}…` : t("sessions.uploadFitZip")}
+        <span className="inline-flex items-center gap-1.5">
+          <UploadIcon className="h-4 w-4" />
+          {uploading ? `${t("sessions.importing")}${progress ? " " + progress : ""}…` : t("sessions.uploadFitZip")}
+        </span>
       </Button>
       <input ref={fileRef} type="file" accept=".fit,.zip,.tcx,.gpx" multiple className="hidden" onChange={onPick} />
     </>
