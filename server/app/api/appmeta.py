@@ -101,7 +101,9 @@ _APP_META: dict[str, dict[str, str]] = {
         # Ein Nutzer mit 1.1.14 bekam dadurch einen Update-Hinweis, den Play nicht einloesen konnte
         # ("update button just opens google play and does not offer nor start update"). Deshalb: erst
         # eintragen, wenn Freigabe DA und Roll-out bei 100 % — "eingereicht" genuegt nie.
-        "latest": "1.1.24",   # LIVE im Play Store 2026-09-02 (Play-Mail: „Your update to Pumpfoil,
+        "latest": "1.1.25",   # LIVE 2026-09-07: Play-Mail „is live in the store", Release
+        # erstellt 02.09. 15:53 GMT (= 17:53 Berlin, genau diese Einreichung). Wie am
+        # 09.08. und 25.08. deckt EINE Mail beide Tracks ab (gleiche applicationId).
         # created on Aug 26, 2026 at 7:26 PM GMT, is live in the store"). Der Zeitstempel passt auf
         # die Minute auf unsere Einreichung vom 26.08. 21:26 Berlin = Phone 1.1.24 (38) + Wear
         # 1.2.24 (1034), beide Tracks auf vollstaendigen Roll-out.
@@ -140,7 +142,14 @@ _APP_META: dict[str, dict[str, str]] = {
         # 05.08. 15:06 GMT). Eingereicht war 1.2.20/1030 zusammen mit Phone 1.1.20/34.
         # Der gebaute Nachzug 1.2.21/1031 (Token-Heilung bei Config-401) ist NOCH NICHT
         # eingereicht — hier also nicht eintragen. Vorher: 1.2.18/1028, live seit 04.08.
-        "latest": "1.2.24",   # LIVE 2026-09-02, dieselbe Play-Mail wie android (s. oben) — und
+        "latest": "1.2.25",   # LIVE 2026-09-07, dieselbe Play-Mail wie android. Zusaetzlich
+        # im Feld belegt, nicht nur geglaubt: user 396 wechselte am 05.09. von 1.2.24 auf
+        # `app_version 1.2.25` — Pixel Watch 2, fremdes Geraet, nicht Jans Emulator. Also war
+        # der Wear-Track schon VOR der Mail draussen (er hat eine eigene Pruefung, s. TODO).
+        # ACHTUNG bei solchen Belegen: fuer PHONE geht das nicht, weil iOS und Android-Handy
+        # BEIDE `1.1.x` zaehlen — `sessions.app_version` unterscheidet sie nicht. 1.2.x ist
+        # dagegen eindeutig Wear. Die Play-Store-Seite nennt die Version nicht mehr, ein
+        # itunes-artiges Nachschlagen gibt es fuer Play nicht.
         # hier sogar direkt belegt: zwei Uhren im Feld melden am 02.09. schon `app_version 1.2.24`.
         # Zusaetzlich zur Phone-Liste bringt die Uhr: Always-on-Ansicht, BACK wird waehrend der
         # Aufnahme verschluckt, `expected_chunks`, Live-Distanz ohne Zuwachs im Stand, gesaeuberter
@@ -252,16 +261,6 @@ IN_REVIEW: list[dict] = [
          "hand over.",
          "On a spot description, tapping Edit opened the photo picker at the same time.",
      ]},
-    {"name": "Android phone + Wear OS", "version": "1.1.25 / 1.2.25",
-     "note": "submitted 2 September, waiting for Google",
-     "items": [
-         "Videos in the community feed play again, and you can swipe from one to the next.",
-         "The spots map no longer freezes when you scroll back to it.",
-         "A recording can be ended with a single press instead of holding, if you set that "
-         "in your profile.",
-         "The session list puts the title on its own line, under the date.",
-         "Downloading everything we store about you no longer runs out of memory.",
-     ]},
     {"name": "Amazfit", "version": "1.0.7",
      "note": "submitted 1 September, under review",
      "items": ["Nothing new in the app itself — this round only replaces the store images."]},
@@ -269,7 +268,7 @@ IN_REVIEW: list[dict] = [
 
 NAECHSTES: list[dict] = [
     {"name": "Android phone + Wear OS", "version": "1.1.26 / 1.2.26",
-     "note": "ready to submit once the version above is approved",
+     "note": "ready to submit",
      "items": [
          "COROS can be connected from the app at all — it pointed at the wrong address and "
          "always reported itself as unavailable, while it had been working on the website "
