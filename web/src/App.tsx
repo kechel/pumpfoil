@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type React from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { FeedbackRequestBanner } from "./components/FeedbackRequestBanner";
@@ -86,7 +87,16 @@ function BrandLogo({ className = "h-9" }: { className?: string }) {
   );
 }
 
-export default function App() {
+/**
+ * Der App-Rahmen. Nimmt optional `children` statt der Route-`Outlet`.
+ *
+ * Warum (Jan, 07.09.2026): die vier Textseiten (Nerd-Analysen 1-3, Systemarchitektur) liegen
+ * seit dem SEO-Umbau AUSSERHALB dieses Rahmens, damit Google sie ohne Login sieht. Fuer
+ * Angemeldete sah das dann nackt aus — kein Menue, kein Zurueck, „sehr doof, wenn man da
+ * reingeht". Mit `children` kann dieselbe Seite in beiden Welten leben: fuer Gaeste blank,
+ * fuer Angemeldete im gewohnten Rahmen.
+ */
+export default function App({ children }: { children?: React.ReactNode } = {}) {
   const { t, setLang } = useI18n();
   // Import-Button (Sidebar + Mobile-Topbar) nur auf der Sessions-Seite zeigen —
   // dort gehört der FIT-Upload hin; im Profil gibt es einen eigenen Einstieg.
@@ -272,7 +282,7 @@ export default function App() {
           schwebenden Vergleichs-Button (CompareBar, bottom-20) gescrollt werden kann. */}
       <main className="min-w-0 flex-1 overflow-x-clip px-4 py-5 pb-32 md:px-8 md:pb-20">
         <FeedbackRequestBanner />
-        <Outlet />
+        {children ?? <Outlet />}
       </main>
 
       {/* Mobile-Bottom-Nav (Safe-Area unten fuer iPhone-Home-Indicator) */}
