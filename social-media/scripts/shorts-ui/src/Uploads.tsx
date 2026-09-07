@@ -402,6 +402,7 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
 export default function Uploads() {
   const [exports, setExports] = useState<ExportItem[] | null>(null);
   const [yt, setYt] = useState<YtStatus>({ configured: false, authorized: false });
+  const [filter, setFilter] = useState("");
 
   const refreshYt = useCallback(() => {
     void fetch("/api/yt/status").then(async (r) => setYt(await r.json()));
@@ -413,12 +414,39 @@ export default function Uploads() {
   }, [refreshYt]);
 
   if (!exports) return <div className="uploads">lade …</div>;
+  // Begriffe einzeln, Reihenfolge egal — "152" oder "clean dropstart" finden
+  // dasselbe. Bei 181 Exporten sonst nur Scrollen.
+  const begriffe = filter.toLowerCase().split(/[\s-]+/).filter(Boolean);
+  const sichtbar = exports.filter((e) => {
+    const n = e.name.toLowerCase();
+    return begriffe.every((s) => n.includes(s));
+  });
   return (
     <div className="uploads">
       <h1>Fertige Exporte ({exports.length})</h1>
       <YtBanner status={yt} refresh={refreshYt} />
+      <div className="expfilter">
+        <input
+          type="search"
+          placeholder="Exporte filtern — Nummer oder Stichwort …"
+          spellCheck={false}
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") setFilter("");
+          }}
+        />
+        {filter.trim() && (
+          <button className="btn" onClick={() => setFilter("")}>
+            {sichtbar.length}/{exports.length} ✕
+          </button>
+        )}
+      </div>
       {exports.length === 0 && <div style={{ opacity: 0.6 }}>Noch keine Renders in shorts-mit-musik/.</div>}
-      {exports.map((e) => (
+      {exports.length > 0 && sichtbar.length === 0 && (
+        <div style={{ opacity: 0.6 }}>Kein Export passt zum Filter.</div>
+      )}
+      {sichtbar.map((e) => (
         <ExportCard key={e.name} exp={e} onChanged={setExports} ytReady={yt.authorized} />
       ))}
     </div>
