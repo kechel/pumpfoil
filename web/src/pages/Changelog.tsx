@@ -122,6 +122,7 @@ const ENTRIES: Entry[] = [
       "Connected accounts (Polar, Suunto, COROS) also sync once a day and whenever you sign in. Until now that only happened if you opened the settings page and pressed the button.",
       "You can now choose which sport modes we import from a connected account. The list shows only the modes your own account has actually delivered, and a new one is always imported until you uncheck it — there is no pumpfoil mode on any watch, so nobody should lose a session to a list of ours.",
       "Importing shows a progress bar with \"3 of 8 workouts\" instead of a button that just sits there, and it tells you why a workout was left out — \"3 too short\" instead of \"3 skipped\". A long import used to run into a timeout and show an error page while it was quietly succeeding.",
+      "Updating the server no longer takes the site down. A new version needs about a second to take over, and one request arriving in that second was enough: the part of our setup that hands your requests to the server then wrote the server off as broken and answered everyone with an error page for a full minute — long after it was back up. It now simply tries again, so an update costs you a moment instead of a minute. That is also what was behind the \"the server is not responding\" moments some of you ran into today.",
     ],
   },
   {
