@@ -109,7 +109,15 @@ function RootRoute() {
  * ein geteilter Link fuer beide funktioniert.
  */
 function TextSeite({ children }: { children: React.ReactNode }) {
-  return getToken() ? <App>{children}</App> : <>{children}</>;
+  if (getToken()) return <App>{children}</App>;
+  // Fuer Gaeste fehlt der App-Rahmen — und damit auch dessen Innenabstand und Breite. Ohne
+  // eigenen Rahmen liefen die Nerd-Analysen randlos ueber die ganze Bildschirmbreite, waehrend
+  // `Systemarchitektur` einen eigenen `max-w-3xl` mitbringt und richtig aussah (Jan, 07.09.).
+  // Dieselben Werte wie im App-Rahmen (`<main>` dort: px-4 py-5 md:px-8), damit eine Seite in
+  // beiden Welten gleich wirkt. Der doppelte max-w in `Systemarchitektur` schadet nicht.
+  return (
+    <main className="mx-auto w-full max-w-3xl px-4 py-5 md:px-8">{children}</main>
+  );
 }
 
 const router = createBrowserRouter([
