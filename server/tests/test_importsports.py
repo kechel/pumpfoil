@@ -17,15 +17,31 @@ ANBIETER = "probe"
 
 @pytest.fixture()
 def nutzer(client):  # noqa: ARG001 — client legt die Tabellen an
-    """Ein echter Nutzer, weil `import_sport_prefs.user_id` auf `users.id` verweist."""
+    """Ein echter Nutzer, weil `import_sport_prefs.user_id` auf `users.id` verweist.
+
+    Zwei Dinge, die beim ersten Anlauf schiefgingen (07.09.2026, gegen Postgres in der CI —
+    auf der SQLite-Rueckfallebene faellt beides NICHT auf, weil dort Fremdschluessel
+    standardmaessig nicht erzwungen werden):
+      * Die Mailadresse war fest. Blieb der Nutzer beim Aufraeumen liegen, kollidierte jeder
+        weitere Lauf an `ix_users_email`. Jetzt ist sie je Test eindeutig.
+      * Das Aufraeumen wollte den Nutzer loeschen, solange Sessions an ihm hingen (der letzte
+        Test importiert welche) — der Fremdschluessel verhindert das. Jetzt werden die
+        Abhaengigen zuerst weggeraeumt, in der richtigen Reihenfolge.
+    """
+    import uuid as _uuid
+
     from app import models
     from app.db import SessionLocal
     from app.security import hash_password
 
     db = SessionLocal()
     try:
-        u = models.User(email="sportauswahl@test.local", password_hash=hash_password("x"),
-                        display_name="Sportauswahl")
+        # BEIDE eindeutig: `email` UND `display_name` haben einen Unique-Index. Mit festem
+        # Anzeigenamen scheitert schon der zweite Test.
+        kennung = _uuid.uuid4().hex[:8]
+        u = models.User(email=f"sportauswahl-{kennung}@test.local",
+                        password_hash=hash_password("x"),
+                        display_name=f"Sportauswahl {kennung}")
         db.add(u)
         db.commit()
         db.refresh(u)
@@ -33,10 +49,14 @@ def nutzer(client):  # noqa: ARG001 — client legt die Tabellen an
     finally:
         db.close()
     yield uid
+    # NUR die eigenen Zeilen wegraeumen, den Nutzer NICHT. Ihn zu loeschen scheitert an den
+    # Fremdschluesseln alles, was ein Import nach sich zieht (Sessions, Analysen, Chat-Zustand) —
+    # und jeden davon zu verfolgen waere ein Testgeruest, das mehr kaputtgeht als es prueft. Die
+    # Mailadresse ist eindeutig, also kollidiert auch nichts; die Test-DB ist eine Wegwerf-DB
+    # (s. conftest).
     db = SessionLocal()
     try:
         db.query(models.ImportSportPref).filter_by(user_id=uid).delete()
-        db.query(models.User).filter_by(id=uid).delete()
         db.commit()
     finally:
         db.close()
