@@ -9,6 +9,29 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 🚀 App-Release-Stand
 
+- **🟡 07.09. — iOS/Apple Watch 1.1.31 (Build 35) ist einreichfertig.** Version und Build standen
+  schon (werden bei euch direkt nach jeder Freigabe vorgezogen, s. `88c695c7`), gebaut wird auf
+  Jans Mac. Inhalt:
+  - **COROS war aus der App überhaupt nicht verbindbar.** `LinkedAccountsView` zeigte auf
+    `/api/integrations/coros/…` — den PARTNER-Weg, für den uns der Vertrag fehlt; der Endpunkt
+    meldet `available: false`. Der funktionierende Weg ist `coros/mcp`. Dazu stand in der App
+    „COROS ist push-basiert (kein manueller Import)" — genau umgekehrt: der MCP-Weg kann NICHT
+    pushen, Polar pusht seit dem 07.09. wirklich. Beide Notizen richtiggestellt
+    (`accounts.corosNote` neu, `accounts.polarNote` dazu).
+  - **Sportart-Auswahl je verknüpftes Konto** (`SportAuswahl` in `LinkedAccountsView`), gegen
+    `GET/PUT /api/integrations/{anbieter}/sports`. Nur eigene Modi, nur mit Ortung, Neues immer
+    ausgewählt.
+  - **Hinweis bei Aufnahme ohne Position** in `SessionDetailView` statt einer leeren Seite
+    (`sd.noFix.*`) — dieselbe Erklärung wie in der PWA.
+  - Apple-Watch-Modellmeldung und die Uhren-Auswertung waren schon drin.
+  - `swiftc -parse` grün, Member gegen die Deklarationen abgeglichen (Initialisierer von
+    `Api.ImportSport`, alle vier COROS-MCP-Endpunkte, neue `Loc`-Schlüssel).
+  - **BEWUSST NICHT drin:** die Spot-Rekorde auf der Spot-Seite (die PWA zeigt sie seit 06.09.
+    über dem Wetter). iOS hat Spot-Rekorde schon in der Community-Ansicht mit Spot-Auswahl; die
+    zweite Platzierung würde bedeuten, `recordGrid`/`recordRows`/`recordCell` aus
+    `CommunityView` herauszulösen — drei verschränkte private Methoden. Kurz vor einer
+    Einreichung nicht angefasst. Gilt genauso für Android.
+
 - **🔲 01.09. — Feedback #119 (u406 „Bine", deutsch, iOS-App): Fitbit/Google Charge 6 einbinden?**
   Wortlaut: „Wäre es möglich, dass ihr den Fitbittracker (Google Charge 6) auch mit einbinden
   könntet, bzw. eine Schnittstelle zum Auslesen der Daten." Sie hat noch **kein Geraet und keine

@@ -890,6 +890,30 @@ enum Api {
         return r.authorize_url
     }
     struct SyncResp: Decodable { let imported: Int?; let skipped: Int?; let message: String? }
+
+    // Sportart-Modi eines verknuepften Kontos: welche das Konto tatsaechlich geliefert hat und
+    // welche davon importiert werden sollen. Serverseitig fuer alle drei Anbieter derselbe
+    // Vertrag (server/app/importsports.py).
+    struct ImportSport: Decodable, Identifiable {
+        let sport_key: String
+        let label: String
+        let importieren: Bool
+        let gesehen: Int
+        var id: String { sport_key }
+    }
+    private struct SportsResp: Decodable { let sports: [ImportSport] }
+
+    static func importSports(_ provider: String) async throws -> [ImportSport] {
+        let r: SportsResp = try await request("/api/integrations/\(provider)/sports",
+                                              method: "GET", body: nil, auth: true)
+        return r.sports
+    }
+    static func setImportSports(_ provider: String, _ wahl: [String: Bool]) async throws -> [ImportSport] {
+        let r: SportsResp = try await request("/api/integrations/\(provider)/sports",
+                                              method: "PUT", body: wahl as [String: Any],
+                                              auth: true)
+        return r.sports
+    }
     static func integrationSync(_ provider: String) async throws -> SyncResp {
         try await request("/api/integrations/\(provider)/sync", method: "POST", body: nil, auth: true)
     }
