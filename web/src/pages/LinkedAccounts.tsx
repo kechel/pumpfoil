@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { api } from "../lib/api";
+import { api, type ImportSport } from "../lib/api";
 import { Card, Button } from "../components/ui";
 import { ChevronIcon, CheckIcon, LinkIcon } from "../components/Icons";
 import { PlatformSubline } from "../components/SupportedPlatforms";
@@ -178,6 +178,7 @@ function CorosCard() {
           <Button variant="ghost" onClick={unlink}>{t("settings.coros.unlink")}</Button>
         </div>
       )}
+      {st.linked && <SportAuswahl provider="coros" />}
       {msg && <p className="mt-2 text-xs text-slate-400">{msg}</p>}
 
       <div className={`mt-4 ${mcp ? "hidden" : ""}`}>
@@ -190,6 +191,69 @@ function CorosCard() {
         </ol>
       </div>
     </Card>
+  );
+}
+
+/**
+ * Welche Sportart-Modi eines verknüpften Kontos importiert werden.
+ *
+ * Der Hintergrund (Jan, 07.09.): für Pumpfoil gibt es auf keiner Uhr einen eigenen Modus, also
+ * stellen die Leute irgendetwas ein — Flatwater, Speedsurfing, sogar Radfahren (nachgezählt:
+ * 8 als „cycling" aufgezeichnete Sessions waren echtes Pumpfoilen). Eine feste Liste erlaubter
+ * Sportarten wäre deshalb ein Verlustgeschäft. Stattdessen merkt sich der Server, was das Konto
+ * tatsächlich liefert, und hier kann man abwählen.
+ *
+ * Zwei Regeln in der Anzeige: nur Modi, die DIESER Nutzer selbst überträgt (nicht die 75 aus der
+ * COROS-Doku), und nur solche mit Ortung — eine Hallenaufnahme wäre eine Zeile ohne Sinn.
+ */
+function SportAuswahl({ provider }: { provider: "polar" | "suunto" | "coros" }) {
+  const { t } = useI18n();
+  const [sports, setSports] = useState<ImportSport[] | null>(null);
+  const [msg, setMsg] = useState("");
+  useEffect(() => {
+    api.importSports(provider).then((r) => setSports(r.sports)).catch(() => setSports([]));
+  }, [provider]);
+
+  async function umschalten(key: string, an: boolean) {
+    // Erst anzeigen, dann speichern: ein Häkchen soll sofort reagieren.
+    setSports((prev) => (prev ?? []).map((x) => (x.sport_key === key ? { ...x, importieren: an } : x)));
+    try {
+      const r = await api.setImportSports(provider, { [key]: an });
+      setSports(r.sports);
+      setMsg(t("settings.sports.saved"));
+      window.setTimeout(() => setMsg(""), 2000);
+    } catch (e) {
+      setMsg(String(e));
+    }
+  }
+
+  if (sports === null) return null;
+  return (
+    <div className="mt-4 border-t border-slate-700/60 pt-3">
+      <p className="mb-1 text-sm font-medium">{t("settings.sports.title")}</p>
+      <p className="mb-2 text-sm text-slate-400">{t("settings.sports.hint")}</p>
+      {sports.length === 0 ? (
+        <p className="text-sm text-slate-400">{t("settings.sports.none")}</p>
+      ) : (
+        <ul className="space-y-1">
+          {sports.map((sp) => (
+            <li key={sp.sport_key}>
+              <label className="flex cursor-pointer items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 accent-brand-500"
+                  checked={sp.importieren}
+                  onChange={(e) => umschalten(sp.sport_key, e.target.checked)}
+                />
+                <span>{sp.label}</span>
+                <span className="text-slate-500">({sp.gesehen}&times;)</span>
+              </label>
+            </li>
+          ))}
+        </ul>
+      )}
+      {msg && <p className="mt-2 text-sm text-slate-400">{msg}</p>}
+    </div>
   );
 }
 
@@ -241,6 +305,7 @@ function PolarCard() {
           <Button variant="ghost" onClick={unlink}>{t("settings.polar.unlink")}</Button>
         </div>
       )}
+      {st.linked && <SportAuswahl provider="polar" />}
       {msg && <p className="mt-2 text-xs text-slate-400">{msg}</p>}
     </Card>
   );
@@ -298,6 +363,7 @@ function SuuntoCard() {
           <Button variant="ghost" onClick={unlink}>{t("settings.suunto.unlink")}</Button>
         </div>
       )}
+      {st.linked && <SportAuswahl provider="suunto" />}
       {msg && <p className="mt-2 text-xs text-slate-400">{msg}</p>}
     </Card>
   );

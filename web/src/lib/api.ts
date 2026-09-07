@@ -339,6 +339,13 @@ export interface RecordSet {
   carves180?: StatRecord;
 }
 
+export type ImportSport = {
+  sport_key: string;      // Schluessel des Anbieters (COROS-Code, Suunto-activityId, Polar-Name)
+  label: string;          // lesbarer Name
+  importieren: boolean;
+  gesehen: number;        // wie oft dieser Modus schon aufgetaucht ist
+};
+
 export type CommunityRecords = Record<string, RecordSet>;
 
 /** Ein Foil-Band für Rekorde/Bestenlisten (GET /api/community/foil-bands).
@@ -732,6 +739,19 @@ export const api = {
   }>("/api/app/watch-quality"),
 
   polarSync: () => req<{ imported: number; skipped: number; message?: string }>("/api/integrations/polar/sync", { method: "POST" }),
+
+  // Sportart-Modi eines verknuepften Kontos: welche der Nutzer tatsaechlich uebertraegt und
+  // welche davon er importieren will. Fuer alle drei Anbieter derselbe Vertrag (server:
+  // app/importsports.py) — deshalb ein Aufrufpaar mit dem Anbieter als Parameter.
+  importSports: (provider: "polar" | "suunto" | "coros") =>
+    req<{ sports: ImportSport[] }>(
+      provider === "coros" ? "/api/integrations/coros/mcp/sports"
+                           : `/api/integrations/${provider}/sports`),
+  setImportSports: (provider: "polar" | "suunto" | "coros", wahl: Record<string, boolean>) =>
+    req<{ ok: boolean; geaendert: number; sports: ImportSport[] }>(
+      provider === "coros" ? "/api/integrations/coros/mcp/sports"
+                           : `/api/integrations/${provider}/sports`,
+      { method: "PUT", body: JSON.stringify(wahl) }),
   polarUnlink: () => req<{ ok: boolean }>("/api/integrations/polar", { method: "DELETE" }),
 
   corosStatus: () => req<{ available: boolean; linked: boolean; last_sync_at: string | null }>("/api/integrations/coros/status"),
