@@ -71,6 +71,7 @@ struct SessionsView: View {
         if scope == .mine { transfersAndSuggestions }
         filterSection
         aussortiertErklaerung
+        spotRecordsSection
         spotWeatherSection
         spotNotesSection
         if let error { Text(error).foregroundStyle(.secondary) }
@@ -85,6 +86,14 @@ struct SessionsView: View {
                 .listRowInsets(EdgeInsets(top: 4, leading: 12, bottom: 4, trailing: 12))
                 .listRowSeparator(.hidden)
                 .listRowBackground(Color.clear)
+        }
+    }
+
+    // Rekorde dieses Spots ganz oben — Reihenfolge wie in der PWA: Rekorde, Wetter,
+    // Beschreibungen, dann die Sessions (Jan, 07.09.: „die 3 muessen nach oben wie in der pwa").
+    @ViewBuilder private var spotRecordsSection: some View {
+        if scope == .spot, !spot.isEmpty {
+            SpotRecordsView(spot: spot, lang: lang, accelOnly: accelOnly)
         }
     }
 

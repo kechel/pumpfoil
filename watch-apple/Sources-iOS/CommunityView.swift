@@ -162,42 +162,10 @@ struct CommunityView: View {
     // verworfen und neu aufgebaut — und damit eine laufende Navigation zerlegt: nach „zurueck"
     // landete man irgendwo statt auf der Community-Seite (Jans Befund, mehrfach). Der Metrik-Key ist
     // stabil und eindeutig, also ist er die Identitaet.
-    private struct RecRow: Identifiable { let id: String; let label: String; let value: String; let entry: CommunityRecordEntry? }
-
-    private func recordRows(_ r: PeriodRecords?) -> [RecRow] {
-        // `ohneSession`: der Rekord gehoert einem NUTZER, nicht einer Session (bisher nur
-        // „Meiste Carves >180°"). Dann reicht der WERT — ohne dieses Kennzeichen fiele die Kachel
-        // durch die session_id-Pruefung und stuende dauerhaft auf „–".
-        func ok(_ e: CommunityRecordEntry?, _ ohneSession: Bool = false) -> Bool {
-            (ohneSession || e?.session_id != nil) && (e?.value ?? 0) > 0
-        }
-        func row(_ key: String, _ e: CommunityRecordEntry?, ohneSession: Bool = false,
-                 _ fmt: (Double) -> String) -> RecRow {
-            let da = ok(e, ohneSession)
-            return RecRow(id: key, label: Loc.t(key, lang), value: da ? fmt(e!.value ?? 0) : "–",
-                          entry: da ? e : nil)
-        }
-        func dur(_ s: Double) -> String { String(format: "%d:%02d", Int(s) / 60, Int(s) % 60) }
-        // Tageszeit-Rekorde: Sekunden seit Mitternacht (Spot-Ortszeit); Night Owl kann >24 h sein.
-        func hhmm(_ v: Double) -> String {
-            let s = ((Int(v) % 86400) + 86400) % 86400
-            return String(format: "%02d:%02d", s / 3600, (s % 3600) / 60)
-        }
-        return [
-            row("rec.farthestRun", r?.distance) { "\(Int($0.rounded())) m" },
-            row("rec.longestRun", r?.duration) { dur($0) },
-            row("rec.topSpeed", r?.speed) { String(format: "%.1f km/h", $0 * 3.6) },
-            row("rec.longestGlide", r?.glide) { String(format: "%.1f s", $0) },
-            row("rec.mostRuns", r?.runs) { "\(Int($0))" },
-            row("rec.sessionDistance", r?.session_distance) { String(format: "%.1f km", $0 / 1000.0) },
-            row("rec.sessionTime", r?.session_time) { "\(Int(($0 / 60).rounded())) min" },
-            row("rec.sessionPumps", r?.session_pumps) { "\(Int($0.rounded()))" },
-            row("rec.maxHr", r?.max_hr) { "\(Int($0.rounded())) bpm" },
-            row("rec.earlyBird", r?.early_bird) { hhmm($0) },
-            row("rec.nightOwl", r?.night_owl) { hhmm($0) },
-            row("rec.carves180", r?.carves180, ohneSession: true) { "\(Int($0.rounded()))" },
-        ]
-    }
+    // `RecRow`/`rekordZeilen` stehen in SpotRecordsView.swift — dieselbe Datenlogik nutzt die
+    // Spot-Ansicht (Jan, 07.09.: dort fehlten die Rekorde ganz). Nur die DARSTELLUNG ist hier
+    // eigen, weil sie an `navPath` und die Avatar-/Track-Helfer dieser Ansicht haengt.
+    private func recordRows(_ r: PeriodRecords?) -> [RecRow] { rekordZeilen(r, lang: lang) }
 
     @ViewBuilder private func recordGrid(_ r: PeriodRecords?, showSpot: Bool) -> some View {
         let rows = recordRows(r)

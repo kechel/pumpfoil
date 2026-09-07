@@ -311,6 +311,9 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                 }
             }
             if (scope == Scope.SPOT) {
+                // Reihenfolge wie in der PWA: Rekorde, Wetter, Beschreibungen, dann die Sessions
+                // (Jan, 07.09.: „die 3 muessen nach oben wie in der pwa").
+                if (spot.isNotBlank()) SpotRecordsSection(spot, accelOnly) { id -> onOpen(id, null) }
                 weather?.let { wb -> Box(Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) { WeatherCard(wb) } }
                 // Spot-Beschreibungen wie im Web zwischen Wetter und Session-Liste.
                 // ACHTUNG: `spot` ist hier der NAME (die Auswahl arbeitet namensbasiert), die

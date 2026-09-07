@@ -646,6 +646,27 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **📥 07.09. — ZWEI Spot-Ansichten je App, zusammenlegen.** Jan beim Testen im Emulator: die
+  Spot-Ansicht zeigte „weder Rekorde an diesem Spot noch Wetter & Pegel noch
+  Spot-Beschreibungen". Ursache ist eine Doppelung, die nur die Apps haben:
+  - **PWA:** EINE Ansicht. Ein Klick auf der Spot-Karte führt zu `/sessions?spot=…`
+    (`Spots.tsx:136`), also in die Sessionliste mit Spot-Filter.
+  - **iOS:** `SessionsView(scope: .spot)` (über die Chips in der Liste) **und**
+    `SpotSessionsView` (von der Karte und vom Spot-Namen einer Session).
+  - **Android:** genauso — `SessionsScreen(Scope.SPOT)` und `SpotSessionsScreen`.
+  Die Paare sind auseinandergelaufen: die Karten-Ansicht hatte nur Beschreibungen, die
+  Listen-Ansicht Wetter und Beschreibungen, **Rekorde hatte keine von beiden** (die PWA zeigt
+  sie seit 06.09.).
+  **Am 07.09. angeglichen** — alle vier Bildschirme zeigen jetzt Rekorde, Wetter,
+  Beschreibungen, dann die Sessions. Dafür wurde die Rekord-Darstellung wiederverwendbar
+  gemacht (Android: `RecordGrid` nicht mehr `private`; iOS: Datenlogik nach
+  `SpotRecordsView.swift`, weil das Raster dort an `navPath` hängt).
+  **Offen bleibt das Zusammenlegen.** Zwei Bildschirme für dieselbe Sache laufen wieder
+  auseinander. Der Weg wäre, die Karten-Einstiege auf die Sessionliste mit Spot-Filter zu
+  lenken und die zweite Ansicht zu löschen — dann muss die Liste aber als Unterseite taugen
+  (Upload-Karte, Bereichs-Chips „meine/Community" gehören dort nicht hin). Kurz vor der
+  Einreichung nicht angefasst.
+
 - **📥 06.09. — Bestandsmeldung der Uhr („was liegt bei dir noch?") für künftige Uhr-Versionen.**
   Idee von Jan. Die Umkehrung — der Server fragt die Uhr — geht nicht: Uhren haben keine
   eingehende Verbindung, Garmin blockt das ausdrücklich (dieselbe Sperre, an der die

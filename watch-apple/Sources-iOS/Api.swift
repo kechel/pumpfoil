@@ -345,8 +345,17 @@ enum Api {
         try await request("/api/community/spots?accel_only=\(accelOnly)", method: "GET", body: nil, auth: true)
     }
 
-    static func communityRecords(accelOnly: Bool = true, foilBand: String = "all") async throws -> [String: PeriodRecords] {
-        try await request("/api/community/records?accel_only=\(accelOnly)&foil_band=\(foilBand)", method: "GET", body: nil, auth: true)
+    /// Community-Rekorde. Mit `spot` nur die dieses Spots — dann kommen ALLE Zeitfenster in
+    /// einem Aufruf, was der Ruckfall „10 Tage, sonst 30, sonst ein Jahr, sonst alles" braucht
+    /// (`/community/spot-records` liefert immer nur EIN Fenster).
+    static func communityRecords(accelOnly: Bool = true, foilBand: String = "all",
+                                 spot: String? = nil) async throws -> [String: PeriodRecords] {
+        var pfad = "/api/community/records?accel_only=\(accelOnly)&foil_band=\(foilBand)"
+        if let spot, !spot.isEmpty {
+            let s = spot.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? spot
+            pfad += "&spot=\(s)"
+        }
+        return try await request(pfad, method: "GET", body: nil, auth: true)
     }
 
     /// Die Foil-Baender fuer die Auswahl „vergleichbare Foils" — mit Session- und Fahrerzahl.

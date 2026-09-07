@@ -855,6 +855,7 @@ private fun sTabelle(): Map<String, Map<String, String>> = mapOf(
     "community.leaderboard" to row("Bestenliste", "Bäschtelischte", "Bestenliste", "Leaderboard", "Classement", "Classifica", "Clasificación"),
     "community.latestMedia" to row("Neueste Medien", "Nöischti Medie", "Neueste Medien", "Latest media", "Médias récents", "Media recenti", "Medios recientes"),
     "community.topRated" to row("Best bewertet", "Bescht bewertet", "Best bewertet", "Top rated", "Mieux notés", "Più apprezzati", "Mejor valorados"),
+    "rec.spotTitle" to row("Rekorde an diesem Spot", "Rekörd a däm Spot", "Rekorde an dem Spot", "Records at this spot", "Records à ce spot", "Record in questo spot", "Récords en este spot"),
     "community.spotRecords" to row("Rekorde an einem Spot", "Rekord an emene Spot", "Rekorde an einem Spot", "Records at a spot", "Records sur un spot", "Record di uno spot", "Récords en un spot"),
     "foilStats.title" to row("Foil-Stats", "Foil-Stats", "Foil-Stats", "Foil stats", "Stats foils", "Statistiche foil", "Stats de foils"),
     "period.today" to row("Heute", "Hütt", "Heit", "Today", "Aujourd'hui", "Oggi", "Hoy"),
