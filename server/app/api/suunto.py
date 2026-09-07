@@ -823,24 +823,32 @@ def vergleich(user: models.User = Depends(current_user), db: Session = Depends(g
 
 
 @router.post("/sync")
-def sync(background: BackgroundTasks, user: models.User = Depends(current_user),
+def sync(user: models.User = Depends(current_user),
          db: Session = Depends(get_db)) -> dict:
-    """Import ANSTOSSEN und sofort antworten; der Stand kommt aus `/sync-progress`.
-    Begruendung s. `polar.sync` — ein Import kann nicht schnell sein und darf deshalb nicht am
-    Aufruf haengen (Apache-Proxy-Timeout, 502 beim Nutzer)."""
+    """Import anstossen. Kurze Laeufe werden abgewartet und liefern ihr Ergebnis direkt, lange
+    laufen im Hintergrund weiter — den Stand holt dann `/sync-progress`.
+
+    Zwei Gruende fuer diese Zweiteilung (07.09.2026):
+    * Ganz im Aufruf lief der Import in den Apache-Timeout. Der Nutzer sah minutenlang einen
+      deaktivierten Knopf und dann einen „502 Proxy Error", waehrend der Import serverseitig
+      weiterlief und funktionierte. Ein Import kann nicht schnell sein: Download, Analyse und
+      Geokodierung je Training.
+    * Ganz im Hintergrund hat es die AUSGELIEFERTEN Apps stillgelegt: iOS und Android erwarten
+      `imported`/`skipped` in der Antwort und zeigten nach dem Umbau „0 importiert". Android
+      steht im Review und kann nicht schnell nachziehen.
+    Der haeufigste Fall ist „nichts Neues" und in Millisekunden erledigt — der bleibt also
+    verträglich, s. `syncprogress.anstossen`.
+    """
     from .. import syncprogress
+
     _creds()
     if db.query(models.SuuntoLink).filter_by(user_id=user.id).first() is None:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Suunto not linked")
-    if syncprogress.stand(db, user.id, "suunto")["laeuft"]:
-        return {"laeuft": True}
-    syncprogress.start(db, user.id, "suunto", 0, "Suunto wird gefragt")
-    background.add_task(syncprogress.im_hintergrund, "suunto", user.id, _sync_lauf)
-    return {"gestartet": True}
+    return syncprogress.anstossen(db, user.id, "suunto", _sync_lauf)
 
 
 def _sync_lauf(db: Session, user: models.User) -> dict:
-    """Der eigentliche Import — laeuft im Hintergrund, s. `sync`."""
+    """Der eigentliche Import — laeuft ggf. im Hintergrund, s. `sync`."""
     from .. import syncprogress
     link = db.query(models.SuuntoLink).filter_by(user_id=user.id).first()
     if link is None:
