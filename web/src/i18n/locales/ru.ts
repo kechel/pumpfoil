@@ -1064,6 +1064,8 @@ const ru: Record<string, string> = {
   "settings.coros.unlink": "Отключить",
   "settings.coros.help": "Как это работает?",
   "settings.coros.help1": "Подключите свой аккаунт COROS → новые тренировки импортируются автоматически (GPS + пульс), без ручной синхронизации.",
+  "settings.sync.nothingNew": "Ничего нового",
+  "settings.sync.imported": "Импортировано: {n}",
   "settings.sync.progress": "{fertig} из {gesamt} тренировок",
   "settings.sports.title": "Какие виды спорта импортировать?",
   "settings.sports.hint": "Только режимы, которые ваш аккаунт действительно передавал. Новый импортируется автоматически, пока вы не снимете галочку. Действует для будущих импортов.",

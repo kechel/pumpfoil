@@ -1291,6 +1291,8 @@ const de: Record<string, string> = {
   "settings.coros.unlink": "Verbindung trennen",
   "settings.coros.help": "Wie funktioniert's?",
   "settings.coros.help1": "COROS-Konto verbinden → neue Trainings werden automatisch importiert (GPS + Puls), kein manueller Sync.",
+  "settings.sync.nothingNew": "Nichts Neues",
+  "settings.sync.imported": "{n} importiert",
   "settings.sync.progress": "{fertig} von {gesamt} Trainings",
   "settings.sports.title": "Welche Sportarten importieren?",
   "settings.sports.hint": "Hier stehen nur die Modi, die dein Konto bisher wirklich geliefert hat — kommt ein neuer dazu, wird er automatisch importiert, bis du ihn abwählst. Gilt für künftige Importe.",

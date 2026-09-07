@@ -181,6 +181,37 @@ function CorosCard() {
 }
 
 /**
+ * Der Schlusssatz eines Imports — in der Sprache des Nutzers.
+ *
+ * Gebaut wird er aus den ZAHLEN, nicht aus einem Satz des Servers. Vorher stand in der
+ * Oberfläche wörtlich „message: no new exercises" (Jan, 07.09.) — Polars englischer Text mit
+ * dem Feldnamen davor. Ein fertiger Serversatz ist nicht übersetzbar, Zahlen und Codes sind es.
+ */
+function ergebnisText(st: SyncStand, t: (k: string, v?: Record<string, string>) => string): string {
+  const d = (st.daten ?? {}) as {
+    imported?: number; skipped?: number; failed?: number;
+    reasons?: Record<string, number>;
+  };
+  // Zählt der Server die Gründe mit (Suunto), sind sie aussagekräftiger als eine nackte
+  // „übersprungen"-Zahl: „3 zu kurz" sagt, was zu tun ist, „3 übersprungen" nicht.
+  const gruende = Object.entries(d.reasons ?? {})
+    .filter(([k]) => GRUND_KEYS[k])
+    .map(([k, n]) => t(GRUND_KEYS[k], { n: String(n) }));
+  if (gruende.length) {
+    const kopf = d.imported ? [t("settings.sync.imported", { n: String(d.imported) })] : [];
+    return [...kopf, ...gruende].join(" · ");
+  }
+  // Ohne Gründe beide Zahlen nennen — bei COROS sind die übersprungenen die schon vorhandenen
+  // Trainings, und „9 importiert" allein ließe offen, was mit den anderen 16 war.
+  if (d.imported || d.skipped) {
+    return t("settings.polar.result", {
+      imported: String(d.imported ?? 0), skipped: String(d.skipped ?? 0),
+    });
+  }
+  return t("settings.sync.nothingNew");
+}
+
+/**
  * Gemeinsame Fortschritts-Logik für die drei Konto-Importe.
  *
  * Der Import läuft serverseitig im Hintergrund (sonst läuft der Apache-Proxy in den Timeout —
@@ -212,14 +243,7 @@ function useSyncFortschritt(provider: "polar" | "suunto" | "coros", anstossen: (
       } else {
         setStand(null);
         setFertigZaehler((n) => n + 1);
-        // Gründe in der Sprache des Nutzers, wenn der Server sie mitzählt (Suunto). Sonst der
-        // Schlusssatz des Servers. Ohne die strukturierten Daten wäre die Meldung ein englisch/
-        // deutsch gemischter Serversatz — die Codes sind übersetzbar, ein fertiger Satz nicht.
-        const gruende = (st.daten as { reasons?: Record<string, number> } | null)?.reasons;
-        const teile = Object.entries(gruende ?? {})
-          .filter(([k]) => GRUND_KEYS[k])
-          .map(([k, n]) => t(GRUND_KEYS[k], { n: String(n) }));
-        setMsg(teile.length ? teile.join(" · ") : (st.ergebnis ?? ""));
+        setMsg(ergebnisText(st, t));
       }
     }).catch(() => setStand(null));
   }

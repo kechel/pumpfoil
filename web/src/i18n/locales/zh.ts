@@ -1064,6 +1064,8 @@ const zh: Record<string, string> = {
   "settings.coros.unlink": "断开连接",
   "settings.coros.help": "它是怎么运作的？",
   "settings.coros.help1": "连接你的 COROS 账号 → 新训练自动导入（GPS + 心率），无需手动同步。",
+  "settings.sync.nothingNew": "没有新内容",
+  "settings.sync.imported": "已导入 {n} 次",
   "settings.sync.progress": "{gesamt} 次训练中的 {fertig} 次",
   "settings.sports.title": "导入哪些运动？",
   "settings.sports.hint": "这里只列出你的账户实际提供过的模式。新出现的模式会自动导入，直到你取消勾选。适用于今后的导入。",
