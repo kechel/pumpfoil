@@ -5,7 +5,7 @@ import { foilLabel } from "../lib/foilLabel";
 import { Card, Spinner, ErrorBox, Avatar, SELECT_SCHRUMPFT } from "../components/ui";
 import { AccelToggle } from "../components/AccelToggle";
 import { useAccelDefault } from "../lib/useAccelDefault";
-import { WaveIcon, SessionsIcon, RunsIcon, FoilIcon, TimerIcon, HeartPulseIcon, LocationIcon, ChatBubbleIcon, CompareIcon, SendIcon, ChevronIcon, PlayIcon, InstagramIcon, TikTokIcon } from "../components/Icons";
+import { UploadIcon, WaveIcon, SessionsIcon, RunsIcon, FoilIcon, TimerIcon, HeartPulseIcon, LocationIcon, ChatBubbleIcon, CompareIcon, SendIcon, ChevronIcon, PlayIcon, InstagramIcon, TikTokIcon } from "../components/Icons";
 import { StartHelp } from "../components/StartHelp";
 import { useCompare } from "../lib/compare";
 import { fmtTime } from "../lib/time";
@@ -23,7 +23,6 @@ import { setCompare } from "../lib/compare";
 import { openChatOverlay } from "../components/DmWidget";
 import { ytId, videoPlatform } from "../components/VideoModal";
 import { useT } from "../i18n";
-import { UploadFitButton } from "../components/UploadFitButton";
 
 const PAGE = 20;
 
@@ -340,24 +339,21 @@ export default function Sessions() {
           })()}
         </select>
         {spot && <SpotChatToggle spot={spotName} t={t} />}
-        <AccelToggle value={accelOnly} onChange={setAccelOnly} className="ml-auto" />
+        {/* Weg zur Import-Seite — in DERSELBEN Zeile wie die Filter, links vom Accel-Umschalter,
+            beide zusammen rechtsbuendig (Jan, 07.09.2026). Deshalb traegt der LINK jetzt `ml-auto`
+            und der Umschalter nicht mehr: `ml-auto` schiebt alles ab hier nach rechts, die zwei
+            bleiben dabei ein Block. Bewusst nur der Link und nicht der Datei-Knopf — der Upload
+            gehoert auf die Import-Seite, wo auch die Anleitung zum Garmin-Export steht.
+            Nur in „Meine": ein Upload erzeugt immer eine EIGENE Session. */}
+        {isMine && (
+          <Link to="/import"
+            className="ml-auto inline-flex items-center gap-1.5 text-sm text-brand-400 hover:underline">
+            <UploadIcon className="h-4 w-4" /> {t("import.title")}
+          </Link>
+        )}
+        <AccelToggle value={accelOnly} onChange={setAccelOnly} className={isMine ? "" : "ml-auto"} />
       </div>
 
-      {/* Datei-Upload direkt hier, rechts unter dem Accel-Filter (Jan, 07.09.2026: „sollten die
-          nicht in meine Sessions oben rechts unter den Filtern stehen?"). Er lag bisher NUR auf
-          /import, also hinter Einstellungen → Aktivität importieren — gesucht wird er aber dort,
-          wo die eigenen Sessions stehen.
-          Nur in „Meine": ein Upload erzeugt immer eine EIGENE Session, in der Community-Ansicht
-          waere der Knopf irrefuehrend. Der Link daneben fuehrt weiter zur Import-Seite, wo die
-          Anleitung zum Garmin-Export steht. */}
-      {isMine && (
-        <div className="mb-4 flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
-          <Link to="/import" className="text-xs text-slate-400 hover:text-slate-300 hover:underline">
-            {t("import.title")}
-          </Link>
-          <UploadFitButton className="text-sm" />
-        </div>
-      )}
 
       {isMine && <IncomingTransfers onAccepted={() => setReloadKey((k) => k + 1)} />}
       {isMine && <MergeHint />}
