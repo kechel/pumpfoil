@@ -259,6 +259,14 @@ NAECHSTES: list[dict] = [
          "The always-on screen stays on while you ride.",
          "A touch lock for the water, so spray cannot tap anything.",
          "Hold two seconds to stop, the same way the Garmin does it.",
+         "Every foil in the list opens its own page, with the records set on it and the "
+         "sessions ridden with it.",
+         "An account import shows a progress bar while it runs, and says in your language "
+         "what came of it — how many were imported and why the others were not.",
+         "Xiaomi and Redmi watches: the app explains the official way in, through Mi Fitness "
+         "and Suunto.",
+         "COROS: the app says which mode records the best data, and what COROS does not "
+         "hand over.",
      ]},
     {"name": "iPhone + Apple Watch", "version": "1.1.31",
      "note": "ready to submit",
@@ -274,6 +282,15 @@ NAECHSTES: list[dict] = [
          "The Apple Watch tells us which model it is. Until now every Apple Watch looked "
          "the same to us, so we could not say which ones measure well and which do not.",
          "The watch comparison from the website is in the app too.",
+         "Every foil in the list opens its own page, with the records set on it and the "
+         "sessions ridden with it.",
+         "An account import shows a progress bar while it runs, and says in your language "
+         "what came of it — how many were imported and why the others were not.",
+         "Xiaomi and Redmi watches: the app explains the official way in, through Mi Fitness "
+         "and Suunto.",
+         "COROS: the app says which mode records the best data, and what COROS does not "
+         "hand over.",
+         "On a spot description, tapping Edit opened the photo picker at the same time.",
      ]},
     {"name": "Amazfit", "version": "1.0.8", "note": "follows straight after the current one",
      # Inhalt gegenueber der LIVE stehenden 1.0.6 (freigegeben 24.08.), nicht gegenueber 1.0.4:
