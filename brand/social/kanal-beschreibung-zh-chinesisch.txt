@@ -3,7 +3,7 @@ Track Every Pump
 把运动手表变成 pumpfoil 电脑：GPS 轨迹、水翼滑行距离、pump 频率和滑行阶段——每次出水都自动记录。
 
 手表和手机上都能用
-支持 Garmin、Apple Watch、Wear OS 和 Amazfit 的手表应用，另有 iOS 与 Android 原生应用，没有手表也能用手机记录。可绑定账号：Polar、Suunto、COROS、小米（通过小米运动健康）。
+支持 Garmin（佳明）、Apple Watch 和 Amazfit（华米）的手表应用，另有 iOS 与 Android 原生应用，没有手表也能用手机记录。可绑定账号：COROS（高驰）、Polar、Suunto。
 
 你会得到
 • 可自定义的数据字段：速度、心率、距离、时间
@@ -13,7 +13,7 @@ Track Every Pump
 • 整个赛季的变化曲线，离线也能记录，上传自动完成
 
 社区
-分享和对比活动，按浪点查看社区纪录和排行榜——每个浪点还会自动生成聊天群组。
+分享和对比活动，按浪点查看社区纪录和排行榜。
 
 开源
 基于 AGPL-3.0 的自由软件，支持 17 种语言。

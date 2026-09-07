@@ -26,7 +26,7 @@ Französisch und Deutsch reißen die Grenze als Erste.
 | ru | russisch | 933 |
 | id | indonesisch | 971 |
 | ja | japanisch | 527 |
-| zh | chinesisch | 444 |
+| zh | chinesisch | 417 |
 
 **Auf YouTube fehlten am 04.09. zwei Sprachen**, die die App längst kann: **Polnisch** und
 **Norwegisch**. Schweizerdeutsch bietet YouTube nicht an — die Fassung liegt für andere Kanäle
@@ -36,6 +36,26 @@ Französisch und Deutsch reißen die Grenze als Erste.
 (Uhren-Apps + Konto-Verknüpfungen) · fünf Punkte „Was du bekommst" · Community · Open Source ·
 Links. Kommt eine Plattform dazu, ist es **eine Zeile in jeder Datei** — dieselbe Stelle, gleiche
 Reihenfolge wie in `brand/master/banner.py` (SUBLINE) und in der Uhren-Tabelle der PWA.
+
+## Chinesisch weicht ABSICHTLICH ab
+
+`kanal-beschreibung-zh-chinesisch.txt` ist **nicht** die wortgleiche Übersetzung der anderen,
+und das soll auch so bleiben. Wer sie „vereinheitlicht", macht sie falsch:
+
+- **Xiaomi steht nur dort nicht drin.** Unsere Anbindung läuft über Mi Fitness → Suunto, und
+  dazu sagt unsere eigene App-Doku (`web/src/i18n/locales/en.ts`, `linked.xiaomi.note`):
+  *„Xiaomi offers this connection worldwide except in China."* In allen anderen 16 Sprachen
+  ist Xiaomi richtig — in der chinesischen wäre es ein Versprechen, das beim ersten Versuch
+  bricht, vor dem Publikum, das die Marke am besten kennt.
+- **Wear OS fehlt**, weil Google in China gesperrt ist und die Zeile dort niemanden erreicht.
+- **COROS (高驰) steht weiter vorn**, es ist eine chinesische Marke und dort bekannt.
+- **Die Chatgruppen je Spot sind rausgenommen.** Push läuft über Web Push (`pywebpush`,
+  VAPID); bei Chrome-basierten Browsern über Googles Infrastruktur, in China gesperrt. Ein
+  Chat, dessen Benachrichtigungen nie ankommen, sollte man nicht bewerben. Der
+  Community-Absatz nennt dort nur noch Vergleichen und Ranglisten.
+
+Marken zusätzlich mit chinesischem Namen: Garmin（佳明）, Amazfit（华米）, COROS（高驰） —
+danach wird dort gesucht.
 
 ## Bilder daneben
 
