@@ -13,7 +13,7 @@ enum Loc {
     // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
     static let csOverlay: [String: String] = {
         var d: [String: String] = [:]
-        for p in [_csOverlayP1, _csOverlayP2, _csOverlayP3, _csOverlayP4, _csOverlayP5, _csOverlayP6, _csOverlayP7, _csOverlayP8, _csOverlayP9, _csOverlayP10, _csOverlayP11] { d.merge(p) { a, _ in a } }
+        for p in [_csOverlayP1, _csOverlayP1s2, _csOverlayP1s3, _csOverlayP2, _csOverlayP2s2, _csOverlayP3, _csOverlayP3s2, _csOverlayP4, _csOverlayP4s2, _csOverlayP5, _csOverlayP5s2, _csOverlayP6, _csOverlayP6s2, _csOverlayP7, _csOverlayP7s2, _csOverlayP8, _csOverlayP8s2, _csOverlayP9, _csOverlayP9s2, _csOverlayP10, _csOverlayP10s2, _csOverlayP11, _csOverlayP11s2, _csOverlayP11s3, _csOverlayP11s4] { d.merge(p) { a, _ in a } }
         return d
     }()
 
@@ -69,6 +69,8 @@ enum Loc {
     "guide.garminSub": "Fenix, Forerunner, Epix, Instinct …",
     "guide.howto": "Jak si nastavit hodinky",
     "guide.pair.intro": "I bez propojení můžeš nahrávat – relace se uloží lokálně a později se automaticky nahrají. K přiřazení ke svému účtu vedou dvě cesty:",
+    ]
+    private static let _csOverlayP11s2: [String: String] = [
     "guide.pair.note": "Přihlášení přes e-mail, Google nebo Apple – stejný e-mail dává stejný účet, samostatné propojení není potřeba.",
     "guide.pair.title": "Propoj hodinky se svým účtem",
     "guide.sync.note": "Nic se neztratí: pokud tady session chybí, skoro vždycky je ještě v hodinkách a čeká jen na příští spuštění aplikace.",
@@ -119,6 +121,8 @@ enum Loc {
     "setup.boardDesc": "Boardy si zadáváš sám (název, volitelně objem a délku) — katalog výrobce pro ně neexistuje.",
     "setup.boardLenPlaceholder": "cm",
     "setup.boardNamePlaceholder": "Název boardu",
+    ]
+    private static let _csOverlayP11s3: [String: String] = [
     "setup.boardTitle": "Boardy",
     "setup.boardVolPlaceholder": "litrů",
     "setup.emptyList": "Zatím nic zadáno.",
@@ -169,6 +173,8 @@ enum Loc {
         "feedback.attachFailed": "Přílohu se nepodařilo nahrát",
         "social.title": "Feedy ze sociálních sítí",
         "social.hint": "Videa z komunity na jednom místě a přehratelná přímo tady — bez algoritmu mezi tím. <b>Zadej svůj YouTube kanál v profilu a tvoje videa se přidají.</b> (Instagram a TikTok to neumožňují.)",
+    ]
+    private static let _csOverlayP11s4: [String: String] = [
         "social.prev": "Zpět",
         "social.next": "Dál",
         "social.report": "Nahlásit",
@@ -249,7 +255,6 @@ enum Loc {
         "account.stopModeHint": "Platí pro všechny tvoje hodinky. Výchozí je podržení, takže náhodné stisknutí při foilování nic neukončí. „Stačí jedno stisknutí\" je pro ty, kdo jsou na to zvyklí, nebo komu hodinky dlouhý stisk už používají na něco jiného (na některých Garminech je to „muž přes palubu\"). Podržení funguje dál: přibude ti cesta, žádná nezmizí. Při zahození se hodinky jednou zeptají.",
         "sd.showAttempts": "Pokusy o start",
         "sd.showAttemptsHint": "Pokusy, ze kterých nevznikla jízda — na mapě čárkovaně.",
-        "account.activityPumpfoil": "Pumpfoil (obecné)",
         "power.tip": "{foil}: teoretický výkon při Ø {speed} km/h, celkové hmotnosti {weight} kg. Pohon {drag} W + setrvačnost pumpnutí {inertia} W{note}.",
         "power.estPump": "bez accel dat paušálně odhadnuto",
         "power.estimated": "Tloušťka odhadnuta (hodnoty z kalkulačky s výhradou)",
@@ -263,6 +268,8 @@ enum Loc {
         "watchQuality.title": "Které hodinky zaznamenávají nejlépe?",
         "watchQuality.lead": "Měřeno na {sessions} záznamech a {hours} hodinách na vodě. Přepočítáváme každých pár týdnů — tento stav je z {date}.",
         "watchQuality.new": "Toto vyhodnocení je nové. Čím více záznamů přibude, tím spolehlivější čísla budou — hlavně u modelů, které zatím používá jen jeden nebo dva jezdci.",
+    ]
+    private static let _csOverlayP1s2: [String: String] = [
         "watchQuality.colPump": "Detekce pumpů",
         "watchQuality.colGps": "Určení polohy",
         "watchQuality.colHr": "Tep",
@@ -313,6 +320,8 @@ enum Loc {
         "rec.foilLabel": "Foil pro tuto relaci",
         "rec.foilNone": "Bez foilu",
         "rec.foilOther": "Jiný foil …",
+    ]
+    private static let _csOverlayP1s3: [String: String] = [
         "rec.start": "START",
         "rec.stop": "STOP",
         "rec.holdStop": "Pro zastavení podrž stisknuté",
@@ -390,6 +399,8 @@ enum Loc {
         "account.recordMode": "Režim nahrávání",
         "account.recordModeFull": "Plný · 25 Hz",
         "account.recordModeLite": "Úsporný · 10 Hz",
+    ]
+    private static let _csOverlayP2s2: [String: String] = [
         "account.recordModeGps": "Jen GPS",
         "account.recordModeAutoLite": "Tyto hodinky se při „Plném“ automaticky omezí na „Úsporný“ (málo paměti).",
         "account.recordModeGarminHint": "Pod jakým typem aktivity se nahrávka objeví v Garmin Connect nastavíš v profilu pod „Typ aktivity v Garmin Connect“.",
@@ -448,6 +459,8 @@ enum Loc {
         "sessions.searchSpot": "Hledat spot",
         "sessions.empty": "Žádné relace",
         "sessions.oclock": "hod.",
+    ]
+    private static let _csOverlayP3s2: [String: String] = [
         "sd.duration": "Doba",
         "verlauf.empty": "Zatím žádná vyhodnocení",
         "verlauf.total": "Celkem",
@@ -507,6 +520,8 @@ enum Loc {
         "profile.changePw": "Změnit heslo",
         "profile.changePwHint": "Pro potvrzení aktuální heslo, pak nastav nové.",
         "profile.curPw": "Aktuální heslo",
+    ]
+    private static let _csOverlayP4s2: [String: String] = [
         "profile.newPw": "Nové heslo (min. 8 znaků)",
         "profile.pwMin": "Nové heslo: min. 8 znaků.",
         "profile.pwChanged": "Heslo změněno.",
@@ -565,6 +580,8 @@ enum Loc {
         "rec.longestRun": "Nejdelší jízda (čas)",
         "rec.topSpeed": "Top rychlost",
         "rec.longestGlide": "Nejdelší klouzání",
+    ]
+    private static let _csOverlayP5s2: [String: String] = [
         "rec.mostRuns": "Nejvíce jízd",
         "rec.sessionDistance": "Nejdelší relace",
         "rec.sessionTime": "Čas na foilu",
@@ -623,6 +640,8 @@ enum Loc {
         "imp.community1": "<b>Zobrazované jméno</b> a <b>profilový obrázek</b> (pokud je nastaven; bez zobrazovaného jména se relace zobrazí bez jména).",
         "imp.community2": "<b>Všechny relace s rozpoznaným foilingem</b>: datum/čas, <b>spot</b> (název vody z OpenStreetMap), <b>mapu/GPS trasu</b> (tedy <u>kde</u> ses foilil), počet jízd, vzdálenost, rychlost, tep, hodnoty pumpování/klouzání a nahrané <b>fotky</b>.",
         "imp.community3": "<b>Rekordy a žebříčky</b> (jméno, hodnota, spot, počet relací/jízd/spotů).",
+    ]
+    private static let _csOverlayP6s2: [String: String] = [
         "imp.community4": "<b>To se mi líbí</b> (počet) a <b>počet</b> hlasů „působí neuvěřitelně“/„nevhodné“.",
         "imp.communityNote": "Relace <b>nejsou anonymní</b> — jsou přiřazeny osobě přes její zobrazované jméno. Každou relaci můžeš kdykoli jednotlivě smazat; jen relace, které jsi <b>skryl(a)</b>, se v komunitních seznamech neobjeví (zobrazují se i čistě GPS relace).",
         "imp.ownerTitle": "🔒 Jen ty sám (vlastník relace)",
@@ -681,6 +700,8 @@ enum Loc {
         "watchStats.users": "Uživatelé",
         "watchStats.km": "Foil-km",
         "watchStats.bestSpeed": "Top rychlost",
+    ]
+    private static let _csOverlayP7s2: [String: String] = [
         "foilstats.bestKm": "nejlepší km",
         "datafields.intro": "Až 3 pole na stránku. Prázdné stránky se na hodinkách vynechají.",
         "account.offFoilTitle": "Off-foil obrazovka",
@@ -739,6 +760,8 @@ enum Loc {
         "compare.runsTitle": "Všechny jednotlivé jízdy ({count})",
         "compare.colorTrack": "Podle trasy",
         "compare.colorRider": "Podle jezdce",
+    ]
+    private static let _csOverlayP8s2: [String: String] = [
         "sd.fullscreen": "⛶ Celá obrazovka",
         "sd.close": "✕ Zavřít",
         "merge.done": "Sloučeno ✓",
@@ -797,6 +820,8 @@ enum Loc {
         "sd.captionEdit": "Upravit popisek",
         "sd.addPhoto": "Fotka",
         "meta.linkVideo": "Video",
+    ]
+    private static let _csOverlayP9s2: [String: String] = [
         "sessions.deleteAllOther": "Smazat vše",
         "sessions.deleteAllOtherConfirm": "Opravdu smazat VŠECHNY vyřazené relace? Týká se to jen tvých vlastních vyřazených (ne-pumpfoil) relací — tvé pumpfoil relace zůstanou nedotčené. Tento krok nelze vzít zpět.",
         "meta.youtubePlaceholder": "odkaz na YouTube, Instagram nebo TikTok",
@@ -856,6 +881,8 @@ enum Loc {
         // Automatische Sportart-Erkennung + Fremdkraft-Kasten (Wortlaut aus web cs.ts).
         "cls.autoAsk": "Tato session nám nevypadá jako pumpfoil — proto se zatím nezapočítává do žádných statistik. Zařadíš ji správně? Pokud to pumpfoil přece jen byl, vyber prostě „Pumpfoil“.",
         "cls.autoSetAs": "Automaticky zařazeno jako {sport}. Pokud to nesedí, změň to tady.",
+    ]
+    private static let _csOverlayP10s2: [String: String] = [
         "cls.autoWhy": "Rozhodlo: nejdelší jízda {dur} s při průměru {kmh} km/h — pumpovací jízda trvá v průměru 27 s.",
         "cls.autoWhyPulse": "Rozhodlo: nejdelší jízda {dur} s při průměru {kmh} km/h a tep skoro nereagoval ({hr} bpm).",
         "v2.sepTitle": "Cizí pohon? Odložené jízdy",
@@ -875,7 +902,7 @@ enum Loc {
     // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
     static let nlOverlay: [String: String] = {
         var d: [String: String] = [:]
-        for p in [_nlOverlayP1, _nlOverlayP2, _nlOverlayP3, _nlOverlayP4, _nlOverlayP5, _nlOverlayP6, _nlOverlayP7, _nlOverlayP8, _nlOverlayP9, _nlOverlayP10, _nlOverlayP11] { d.merge(p) { a, _ in a } }
+        for p in [_nlOverlayP1, _nlOverlayP1s2, _nlOverlayP1s3, _nlOverlayP2, _nlOverlayP2s2, _nlOverlayP3, _nlOverlayP3s2, _nlOverlayP4, _nlOverlayP4s2, _nlOverlayP5, _nlOverlayP5s2, _nlOverlayP6, _nlOverlayP6s2, _nlOverlayP7, _nlOverlayP7s2, _nlOverlayP8, _nlOverlayP8s2, _nlOverlayP9, _nlOverlayP9s2, _nlOverlayP10, _nlOverlayP10s2, _nlOverlayP11, _nlOverlayP11s2, _nlOverlayP11s3, _nlOverlayP11s4] { d.merge(p) { a, _ in a } }
         return d
     }()
 
@@ -931,6 +958,8 @@ enum Loc {
     "guide.garminSub": "Fenix, Forerunner, Epix, Instinct …",
     "guide.howto": "Zo stel je je horloge in",
     "guide.pair.intro": "Zonder verbinden kun je toch opnemen – de sessies worden lokaal opgeslagen en later automatisch geüpload. Om ze aan je account te koppelen zijn er twee manieren:",
+    ]
+    private static let _nlOverlayP11s2: [String: String] = [
     "guide.pair.note": "Inloggen via e-mail, Google of Apple – hetzelfde e-mailadres geeft hetzelfde account, apart koppelen is niet nodig.",
     "guide.pair.title": "Horloge met je account verbinden",
     "guide.sync.note": "Er gaat niets verloren: mist hier een sessie, dan staat hij bijna altijd nog op het horloge te wachten op de volgende app-start.",
@@ -981,6 +1010,8 @@ enum Loc {
     "setup.boardDesc": "Je boards voer je zelf in (naam, eventueel volume en lengte) — daarvoor is er geen fabrikantencatalogus.",
     "setup.boardLenPlaceholder": "cm",
     "setup.boardNamePlaceholder": "Naam van het board",
+    ]
+    private static let _nlOverlayP11s3: [String: String] = [
     "setup.boardTitle": "Boards",
     "setup.boardVolPlaceholder": "liter",
     "setup.emptyList": "Nog niets ingevoerd.",
@@ -1031,6 +1062,8 @@ enum Loc {
         "feedback.attachFailed": "Bijlage kon niet worden geüpload",
         "social.title": "Social-media-feeds",
         "social.hint": "Video's uit de community, op één plek en hier af te spelen — zonder algoritme ertussen. <b>Zet je YouTube-kanaal in je profiel, dan doen jouw video's mee.</b> (Instagram en TikTok staan dit niet toe.)",
+    ]
+    private static let _nlOverlayP11s4: [String: String] = [
         "social.prev": "Vorige",
         "social.next": "Volgende",
         "social.report": "Melden",
@@ -1111,7 +1144,6 @@ enum Loc {
         "account.stopModeHint": "Geldt voor al je horloges. Ingedrukt houden is de standaard, zodat een onbedoelde druk tijdens het foilen niets beëindigt. „Eén druk is genoeg\" is voor wie dat gewend is, of wiens horloge de lange druk al voor iets anders gebruikt (op sommige Garmins is dat „man overboord\"). Ingedrukt houden blijft werken: je krijgt er een weg bij in plaats van er een te verliezen. Bij weggooien vraagt het horloge dan één keer na.",
         "sd.showAttempts": "Startpogingen",
         "sd.showAttemptsHint": "De pogingen die geen run werden — gestippeld op de kaart.",
-        "account.activityPumpfoil": "Pumpfoil (generiek)",
         "power.tip": "{foil}: theoretisch vermogen bij Ø {speed} km/h, {weight} kg totaalgewicht. Voortstuwing {drag} W + pomptraagheid {inertia} W{note}.",
         "power.estPump": "zonder accel-data grofweg geschat",
         "power.estimated": "Dikte geschat (calculatorwaarden onder voorbehoud)",
@@ -1125,6 +1157,8 @@ enum Loc {
         "watchQuality.title": "Welk horloge registreert het best?",
         "watchQuality.lead": "Gemeten aan {sessions} opnames en {hours} uur op het water. Elke paar weken opnieuw berekend — deze stand is van {date}.",
         "watchQuality.new": "Deze analyse is nieuw. Hoe meer opnames binnenkomen, hoe betrouwbaarder de cijfers worden — vooral bij modellen die tot nu toe maar één of twee riders gebruiken.",
+    ]
+    private static let _nlOverlayP1s2: [String: String] = [
         "watchQuality.colPump": "Pump-herkenning",
         "watchQuality.colGps": "Positiebepaling",
         "watchQuality.colHr": "Hartslag",
@@ -1175,6 +1209,8 @@ enum Loc {
         "rec.foilLabel": "Foil van deze sessie",
         "rec.foilNone": "Zonder foil",
         "rec.foilOther": "Andere foil …",
+    ]
+    private static let _nlOverlayP1s3: [String: String] = [
         "rec.start": "START",
         "rec.stop": "STOP",
         "rec.holdStop": "Houd ingedrukt om te stoppen",
@@ -1252,6 +1288,8 @@ enum Loc {
         "account.recordMode": "Opnamemodus",
         "account.recordModeFull": "Volledig · 25 Hz",
         "account.recordModeLite": "Zuinig · 10 Hz",
+    ]
+    private static let _nlOverlayP2s2: [String: String] = [
         "account.recordModeGps": "Alleen GPS",
         "account.recordModeAutoLite": "Dit horloge wordt bij ‘Volledig’ automatisch beperkt tot ‘Zuinig’ (te weinig geheugen).",
         "account.recordModeGarminHint": "Onder welk activiteitstype de opname in Garmin Connect verschijnt, stel je in het profiel in onder ‘Activiteitstype in Garmin Connect’.",
@@ -1310,6 +1348,8 @@ enum Loc {
         "sessions.searchSpot": "Spot zoeken",
         "sessions.empty": "Geen sessies",
         "sessions.oclock": "uur",
+    ]
+    private static let _nlOverlayP3s2: [String: String] = [
         "sd.duration": "Duur",
         "verlauf.empty": "Nog geen analyses",
         "verlauf.total": "Totaal",
@@ -1369,6 +1409,8 @@ enum Loc {
         "profile.changePw": "Wachtwoord wijzigen",
         "profile.changePwHint": "Huidig wachtwoord ter bevestiging, daarna het nieuwe instellen.",
         "profile.curPw": "Huidig wachtwoord",
+    ]
+    private static let _nlOverlayP4s2: [String: String] = [
         "profile.newPw": "Nieuw wachtwoord (min. 8 tekens)",
         "profile.pwMin": "Nieuw wachtwoord: min. 8 tekens.",
         "profile.pwChanged": "Wachtwoord gewijzigd.",
@@ -1427,6 +1469,8 @@ enum Loc {
         "rec.longestRun": "Langste run",
         "rec.topSpeed": "Topsnelheid",
         "rec.longestGlide": "Langste glijfase",
+    ]
+    private static let _nlOverlayP5s2: [String: String] = [
         "rec.mostRuns": "Meeste runs",
         "rec.sessionDistance": "Verste sessie",
         "rec.sessionTime": "On-foil-tijd",
@@ -1485,6 +1529,8 @@ enum Loc {
         "imp.community1": "<b>Weergavenaam</b> en <b>profielfoto</b> (indien ingesteld; zonder weergavenaam verschijnt de sessie zonder naam).",
         "imp.community2": "<b>Alle sessies met gedetecteerd foilen</b>: datum/tijd, <b>spot</b> (waternaam uit OpenStreetMap), de <b>kaart/GPS-route</b> (dus <u>waar</u> is gefoild), aantal runs, afstand, snelheid, hartslag, pomp-/glijwaarden en de geüploade <b>foto's</b>.",
         "imp.community3": "<b>Records &amp; ranglijsten</b> (naam, waarde, spot, aantal sessies/runs/spots).",
+    ]
+    private static let _nlOverlayP6s2: [String: String] = [
         "imp.community4": "<b>Likes</b> (aantal) en het <b>aantal</b> stemmen ‘lijkt nep'/‘ongepast'.",
         "imp.communityNote": "Sessies zijn <b>niet anoniem</b> — ze zijn via de weergavenaam aan de persoon gekoppeld. Je kunt elke sessie op elk moment afzonderlijk verwijderen; alleen door jou <b>verborgen</b> sessies verschijnen niet in de community-lijsten (ook pure GPS-sessies worden getoond).",
         "imp.ownerTitle": "🔒 Alleen jijzelf (eigenaar van de sessie)",
@@ -1543,6 +1589,8 @@ enum Loc {
         "watchStats.users": "Gebruikers",
         "watchStats.km": "Foil-km",
         "watchStats.bestSpeed": "Topsnelheid",
+    ]
+    private static let _nlOverlayP7s2: [String: String] = [
         "foilstats.bestKm": "beste km",
         "datafields.intro": "Maximaal 3 velden per pagina. Lege pagina's worden op het horloge overgeslagen.",
         "account.offFoilTitle": "Off-foil-scherm",
@@ -1601,6 +1649,8 @@ enum Loc {
         "compare.runsTitle": "Alle afzonderlijke runs ({count})",
         "compare.colorTrack": "Per track",
         "compare.colorRider": "Per rijder",
+    ]
+    private static let _nlOverlayP8s2: [String: String] = [
         "sd.fullscreen": "⛶ Volledig scherm",
         "sd.close": "✕ Sluiten",
         "merge.done": "Samengevoegd ✓",
@@ -1659,6 +1709,8 @@ enum Loc {
         "sd.captionEdit": "Bijschrift bewerken",
         "sd.addPhoto": "Foto",
         "meta.linkVideo": "Video",
+    ]
+    private static let _nlOverlayP9s2: [String: String] = [
         "sessions.deleteAllOther": "Alles verwijderen",
         "sessions.deleteAllOtherConfirm": "Echt ALLE uitgefilterde sessies verwijderen? Dit betreft alleen je eigen uitgefilterde (niet-Pumpfoil) sessies — je Pumpfoil-sessies blijven onaangetast. Dit kan niet ongedaan worden gemaakt.",
         "meta.youtubePlaceholder": "YouTube-link (optioneel)",
@@ -1718,6 +1770,8 @@ enum Loc {
         // Automatische Sportart-Erkennung + Fremdkraft-Kasten (Wortlaut aus web nl.ts).
         "cls.autoAsk": "Deze sessie lijkt ons geen pumpfoilen — daarom telt hij voorlopig in geen enkele statistiek mee. Wil je hem juist indelen? Was het toch pumpfoilen, kies dan gewoon ‘Pumpfoil’.",
         "cls.autoSetAs": "Automatisch ingedeeld als {sport}. Klopt dat niet, verander het hier.",
+    ]
+    private static let _nlOverlayP10s2: [String: String] = [
         "cls.autoWhy": "Doorslaggevend: langste run {dur} s bij gemiddeld {kmh} km/h — een pumping-run duurt gemiddeld 27 s.",
         "cls.autoWhyPulse": "Doorslaggevend: langste run {dur} s bij gemiddeld {kmh} km/h, en de hartslag reageerde nauwelijks ({hr} bpm).",
         "v2.sepTitle": "Externe aandrijving? Apart gezette runs",
@@ -1755,7 +1809,7 @@ enum Loc {
     // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
     static let fiOverlay: [String: String] = {
         var d: [String: String] = [:]
-        for p in [_fiOverlayP1, _fiOverlayP2, _fiOverlayP3, _fiOverlayP4, _fiOverlayP5, _fiOverlayP6, _fiOverlayP7, _fiOverlayP8, _fiOverlayP9, _fiOverlayP10, _fiOverlayP11] { d.merge(p) { a, _ in a } }
+        for p in [_fiOverlayP1, _fiOverlayP1s2, _fiOverlayP1s3, _fiOverlayP2, _fiOverlayP2s2, _fiOverlayP3, _fiOverlayP3s2, _fiOverlayP4, _fiOverlayP4s2, _fiOverlayP5, _fiOverlayP5s2, _fiOverlayP6, _fiOverlayP6s2, _fiOverlayP7, _fiOverlayP7s2, _fiOverlayP8, _fiOverlayP8s2, _fiOverlayP9, _fiOverlayP9s2, _fiOverlayP10, _fiOverlayP11, _fiOverlayP11s2, _fiOverlayP11s3, _fiOverlayP11s4, _fiOverlayP11s5] { d.merge(p) { a, _ in a } }
         return d
     }()
 
@@ -1811,6 +1865,8 @@ enum Loc {
     "garmin.installTitle": "Ensin: sovellus kelloon",
     "guide.g.storeCta": "Lataa Connect IQ Storesta",
     "guide.g.storeLead": "Nyt kaupassa — helpoin asentaa suoraan:",
+    ]
+    private static let _fiOverlayP11s2: [String: String] = [
     "guide.garminSub": "Fenix, Forerunner, Epix, Instinct …",
     "guide.howto": "Näin asennat kellosi",
     "guide.pair.intro": "Voit silti tallentaa ilman yhdistämistä – sessiot tallentuvat paikallisesti ja ladataan myöhemmin automaattisesti. Tiliisi liittämiseen on kaksi tapaa:",
@@ -1861,6 +1917,8 @@ enum Loc {
     "rec.holdStop": "Pysäytä pitämällä pohjassa",
     "rec.onfoil": "Foililla",
     "rec.pageTitle": "Tallenna sessio puhelimella",
+    ]
+    private static let _fiOverlayP11s3: [String: String] = [
     "rec.pending": "{n} odottaa lähetystä",
     "rec.recording": "Tallennus käynnissä",
     "rec.runDur": "Vedon aika",
@@ -1911,6 +1969,8 @@ enum Loc {
     "setup.shimPlaceholder": "esim. +1,5",
     "setup.shimTitle": "Shim (kulma)",
     "setup.stabAddErr": "Lisääminen ei onnistunut — nimi on jo varattu.",
+    ]
+    private static let _fiOverlayP11s4: [String: String] = [
     "setup.stabAddHint": "Eikö listalta löydy? Lisää nimi itse — se pysyy vain sinun tietonasi, ja hyvät merkinnät siirrämme myöhemmin yhteiseen listaan.",
     "setup.stabBrandPlaceholder": "Merkki",
     "setup.stabModelPlaceholder": "Malli (esim. Stab Trail)",
@@ -1961,6 +2021,8 @@ enum Loc {
         "social.channelHint": "Kanavasi näkyy virrassa lyhyen tarkistuksen jälkeen, jotta aihe pysyy pumpfoilissa. Yksi kanava tiliä kohden.",
         "social.submit": "Lisää",
         "social.submitChange": "Lähetä muutos",
+    ]
+    private static let _fiOverlayP11s5: [String: String] = [
         "social.remove": "Poista",
         "social.badUrl": "Anna YouTube-kanavan osoite",
         "social.stateApproved": "hyväksytty",
@@ -2032,7 +2094,6 @@ enum Loc {
         "account.stopModeHint": "Koskee kaikkia kellojasi. Oletus on pitäminen, jolloin vahinkopainallus foilatessa ei lopeta mitään. ”Yksi painallus riittää” on niille, jotka ovat siihen tottuneet, tai joiden kellossa pitkä painallus on jo muussa käytössä (joissakin Garmineissa se on ”mies yli laidan”). Pitäminen toimii edelleen: saat toisen tavan etkä menetä yhtään. Hylättäessä kello kysyy kerran varmistuksen.",
         "sd.showAttempts": "Lähtöyritykset",
         "sd.showAttemptsHint": "Yritykset, joista ei tullut vetoa — kartalla katkoviivalla.",
-        "account.activityPumpfoil": "Pumpfoil (yleinen)",
         "power.tip": "{foil}: teoreettinen teho Ø {speed} km/h, {weight} kg kokonaispaino. Vastus {drag} W + pump-hitaus {inertia} W{note}.",
         "power.estPump": "ilman kiihtyvyysdataa karkeasti arvioitu",
         "power.estimated": "Paksuus arvioitu (laskurin arvot varauksella)",
@@ -2046,6 +2107,8 @@ enum Loc {
         "watchQuality.title": "Mikä kello tallentaa parhaiten?",
         "watchQuality.lead": "Mitattu {sessions} tallenteesta ja {hours} tunnista vedessä. Lasketaan uudelleen muutaman viikon välein — tämä tilanne on {date}.",
         "watchQuality.new": "Tämä analyysi on uusi. Mitä enemmän tallenteita kertyy, sitä luotettavampia luvut ovat — etenkin malleissa, joita käyttää toistaiseksi vain yksi tai kaksi kuskia.",
+    ]
+    private static let _fiOverlayP1s2: [String: String] = [
         "watchQuality.colPump": "Pumppausten tunnistus",
         "watchQuality.colGps": "Paikannus",
         "watchQuality.colHr": "Syke",
@@ -2096,6 +2159,8 @@ enum Loc {
         "garmin.sub": "Syötä tai luo koodi",
         "garmin.claimTitle": "Syötä kellon koodi",
         "garmin.claimHelp": "Avaa Pumpfoil kellossa (älä käynnistä) → pidä MENU pohjassa → Yhdistä. Syötä näkyvä 6-merkkinen koodi tähän. Puhelin lähellä / Wi-Fi tarvitaan.",
+    ]
+    private static let _fiOverlayP1s3: [String: String] = [
         "garmin.codePlaceholder": "Koodi",
         "garmin.claimBtn": "Yhdistä",
         "garmin.claimOk": "Kello yhdistetty ✓",
@@ -2173,6 +2238,8 @@ enum Loc {
         "dict.listening": "Puhu nyt …",
         "dict.retry": "Uudelleen",
         "dict.edit": "Muokkaa",
+    ]
+    private static let _fiOverlayP2s2: [String: String] = [
         "dict.permDenied": "Mikrofonin käyttöoikeus tarvitaan",
         "foils.brand": "Merkki",
         "foils.all": "Kaikki foilit",
@@ -2231,6 +2298,8 @@ enum Loc {
         "sd.deleteTitle": "Poistetaanko sessio?",
         "sd.deleteBody": "Tämä sessio piilotetaan ja poistetaan yhteisöstä.",
         "sd.trimReset": "Poista rajaus",
+    ]
+    private static let _fiOverlayP3s2: [String: String] = [
         "sd.apply": "Käytä",
         "sd.report": "Ilmoita",
         "sd.reportFake": "Ilmoita huijaukseksi",
@@ -2289,6 +2358,8 @@ enum Loc {
         "account.activityOpenWater": "Avovesi",
         "account.activityTypeHint": "Määrittää, minä aktiviteettina Garmin-tallennus näkyy Garmin Connectissa.",
         "account.devicesTitle": "Yhdistetyt kellot",
+    ]
+    private static let _fiOverlayP4s2: [String: String] = [
         "account.deviceUnnamed": "Nimeämätön kello",
         "account.recordMode": "Tallennustila",
         "account.recordModeFull": "Täysi · 25 Hz",
@@ -2348,6 +2419,8 @@ enum Loc {
         "unit.pumpPerMin": "/min",
         "unit.pumpsPerMin": "pumppausta/min",
         "pumpunit.label": "Näytä pump-kadenssi muodossa",
+    ]
+    private static let _fiOverlayP5s2: [String: String] = [
         "pumpunit.hz": "Hz (pumppausta sekunnissa)",
         "pumpunit.ppm": "Pumppausta minuutissa",
         "pumpunit.hint": "Vaikuttaa vain näyttöön — mitatut arvot ja ennätykset pysyvät samoina.",
@@ -2406,6 +2479,8 @@ enum Loc {
         "feedback.sent": "Kiitos! Palaute lähetetty.",
         "rec.farthestRun": "Pisin matka",
         "rec.longestRun": "Pisin lenkki",
+    ]
+    private static let _fiOverlayP6s2: [String: String] = [
         "rec.topSpeed": "Huippunopeus",
         "rec.longestGlide": "Pisin liukuvaihe",
         "rec.mostRuns": "Eniten lenkkejä",
@@ -2464,6 +2539,8 @@ enum Loc {
         "imp.communityNote": "Sessiot <b>eivät ole anonyymejä</b> — ne on liitetty henkilöön näyttönimen kautta. Voit poistaa minkä tahansa session milloin tahansa yksitellen; vain itse <b>piilottamasi</b> sessiot eivät näy yhteisölistoissa (myös pelkät GPS-sessiot näytetään).",
         "imp.ownerTitle": "🔒 Vain sinä itse (session omistaja)",
         "imp.owner1": "Sessioidesi <b>raakadata</b> (yksittäiset GPS-pisteet, 25 Hz kiihtyvyys) — esim. merkitsemistä varten.",
+    ]
+    private static let _fiOverlayP7s2: [String: String] = [
         "imp.owner2": "Merkinnät, rajaus, uudelleenanalysointi, kuvien lataus/poisto.",
         "imp.owner3": "<b>Sähköpostiosoitteesi</b> ja tiliasetukset — eivät koskaan näy muille käyttäjille.",
         "imp.owner4": "Kuka tarkalleen äänesti/tykkäsi sessiosta, ei näytetä muille käyttäjille.",
@@ -2522,6 +2599,8 @@ enum Loc {
         "field.18": "Viimeisin lenkki: Ø nopeus",
         "field.19": "Viimeisin lenkki: maks. nopeus",
         "field.20": "Lenkit (määrä)",
+    ]
+    private static let _fiOverlayP8s2: [String: String] = [
         "alarm.title": "Värinähälytys",
         "alarm.desc": "Kello värisee foilatessa heti kun ylität tai alität nopeusrajan – esim. pysyäksesi optimaalisessa pump-nopeudessa. Kun hälytys on pois, kellon aloitusnäyttö näyttää „Hälytys: pois“.",
         "alarm.enable": "Ota värinähälytys käyttöön",
@@ -2580,6 +2659,8 @@ enum Loc {
         "share.runLabel": "Osuus {n}",
         "share.color.cyan": "Cyan",
         "share.color.speed": "Nopeus",
+    ]
+    private static let _fiOverlayP9s2: [String: String] = [
         "share.color.hr": "Syke",
         "share.textColor": "Tekstin väri",
         "share.background": "Tausta",
@@ -2631,7 +2712,7 @@ enum Loc {
     // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
     static let _t1: [String: [String: String]] = {
         var d: [String: [String: String]] = [:]
-        for p in [__t1P1, __t1P2, __t1P3, __t1P4, __t1P5] { d.merge(p) { a, _ in a } }
+        for p in [__t1P1, __t1P1s2, __t1P1s3, __t1P1s4, __t1P1s5, __t1P2, __t1P2s2, __t1P3, __t1P3s2, __t1P4, __t1P4s2, __t1P5] { d.merge(p) { a, _ in a } }
         return d
     }()
 
@@ -2686,6 +2767,8 @@ enum Loc {
         "watchQuality.title": r("Wie gut zeichnen die Uhren auf?", "Wie guet zeichnet die Uhre uf?", "Wie gut zeichnen die Uhren auf?", "How well do the watches record?", "Quelle montre enregistre le mieux ?", "Quale orologio registra meglio?", "¿Qué reloj registra mejor?"),
         "watchQuality.lead": r("Gemessen an {sessions} Aufnahmen aus {hours} Stunden auf dem Wasser. Alle paar Wochen neu ausgewertet — dieser Stand ist vom {date}.", "Gmässe a {sessions} Ufnahme us {hours} Stunde ufem Wasser. Alli paar Wuche neu uusgwertet — dää Stand isch vom {date}.", "Gemessen an {sessions} Aufnahmen aus {hours} Stunden auf dem Wasser. Alle paar Wochen neu ausgewertet — dieser Stand ist vom {date}.", "Measured from {sessions} recordings over {hours} hours on the water. Re-run every few weeks — this snapshot is from {date}.", "Mesuré sur {sessions} enregistrements, {hours} heures sur l'eau. Recalculé toutes les quelques semaines — cet état date du {date}.", "Misurato su {sessions} registrazioni e {hours} ore in acqua. Ricalcolato ogni poche settimane — questo stato è del {date}.", "Medido sobre {sessions} grabaciones y {hours} horas en el agua. Se recalcula cada pocas semanas — este estado es del {date}."),
         "watchQuality.new": r("Die Auswertung ist neu. Je mehr Aufnahmen zusammenkommen, desto belastbarer werden die Zahlen — vor allem bei Modellen, die bisher nur ein oder zwei Fahrer nutzen.", "D Uuswertig isch neu. Je meh Ufnahme zäme chöme, desto verlässlicher wärde d Zahle — vor allem bi Modäll, wo bishär nume ei oder zwee Fahrer bruuche.", "Die Auswertung ist neu. Je mehr Aufnahmen zusammenkommen, desto belastbarer werden die Zahlen — vor allem bei Modellen, die bisher nur ein oder zwei Fahrer nutzen.", "This analysis is new. The more recordings come in, the more reliable the numbers get — especially for models only one or two riders use so far.", "Cette analyse est récente. Plus il y aura d'enregistrements, plus les chiffres seront fiables — surtout pour les modèles utilisés jusqu'ici par un ou deux riders seulement.", "Questa analisi è nuova. Più registrazioni arrivano, più i numeri diventano affidabili — soprattutto per i modelli usati finora da uno o due rider.", "Este análisis es nuevo. Cuantas más grabaciones lleguen, más fiables serán las cifras — sobre todo en modelos que hasta ahora usan solo uno o dos riders."),
+    ]
+    private static let __t1P1s2: [String: [String: String]] = [
         "watchQuality.colPump": r("Pump-Erkennung", "Pump-Erkennig", "Pump-Erkennung", "Pump detection", "Détection des pumps", "Rilevamento pump", "Detección de pumps"),
         "watchQuality.colGps": r("Ortung", "Ortig", "Ortung", "Positioning", "Localisation", "Localizzazione", "Localización"),
         "watchQuality.colHr": r("Puls", "Puls", "Puls", "Heart rate", "Fréquence cardiaque", "Frequenza cardiaca", "Pulso"),
@@ -2736,6 +2819,8 @@ enum Loc {
         "foils.defaultSportHint": r("Gilt nur für künftige Aufnahmen — bestehende Sessions bleiben, wie sie sind. Auf der Uhr wählbar wird das später.", "Gilt nur für künftige Aufnahmen — bestehende Sessions bleiben, wie sie sind. Auf der Uhr wählbar wird das später.", "Gilt nur für künftige Aufnahmen — bestehende Sessions bleiben, wie sie sind. Auf der Uhr wählbar wird das später.", "Applies to future recordings only — existing sessions stay as they are. Choosing it on the watch comes later.", "Applies to future recordings only — existing sessions stay as they are. Choosing it on the watch comes later.", "Applies to future recordings only — existing sessions stay as they are. Choosing it on the watch comes later.", "Applies to future recordings only — existing sessions stay as they are. Choosing it on the watch comes later."),
         "home.startThreshold": r("Versuch < ", "Versuch < ", "Versuch < ", "Attempt < ", "Attempt < ", "Attempt < ", "Attempt < "),
         "setup.addValue": r("Hinzufügen", "Hinzufügen", "Hinzufügen", "Add", "Add", "Add", "Add"),
+    ]
+    private static let __t1P1s3: [String: [String: String]] = [
         "setup.boardDelConfirm": r("Dieses Board löschen? Sessions, die es nutzen, fallen zurück auf deinen Standard.", "Dieses Board löschen? Sessions, die es nutzen, fallen zurück auf deinen Standard.", "Dieses Board löschen? Sessions, die es nutzen, fallen zurück auf deinen Standard.", "Delete this board? Sessions using it fall back to your default.", "Delete this board? Sessions using it fall back to your default.", "Delete this board? Sessions using it fall back to your default.", "Delete this board? Sessions using it fall back to your default."),
         "setup.boardDesc": r("Deine Boards trägst du selbst ein (Name, optional Volumen und Länge) — dafür gibt es keinen Hersteller-Katalog.", "Deine Boards trägst du selbst ein (Name, optional Volumen und Länge) — dafür gibt es keinen Hersteller-Katalog.", "Deine Boards trägst du selbst ein (Name, optional Volumen und Länge) — dafür gibt es keinen Hersteller-Katalog.", "You add your own boards (name, optionally volume and length) — there's no manufacturer catalogue for these.", "You add your own boards (name, optionally volume and length) — there's no manufacturer catalogue for these.", "You add your own boards (name, optionally volume and length) — there's no manufacturer catalogue for these.", "You add your own boards (name, optionally volume and length) — there's no manufacturer catalogue for these."),
         "setup.boardLenPlaceholder": r("cm", "cm", "cm", "cm", "cm", "cm", "cm"),
@@ -2794,6 +2879,8 @@ enum Loc {
         "account.gnssModeGps": r("Nur GPS (sparsamste)", "Nur GPS (sparsamscht)", "Nur GPS (sparsamste)", "GPS only (most efficient)", "GPS seul (le plus économe)", "Solo GPS (più efficiente)", "Solo GPS (el más eficiente)"),
         "account.gnssModeHint": r("Mehr Systeme finden schneller und zuverlässiger Position, brauchen aber mehr Akku. Gilt nur für Garmin ab Uhr-Version 1.0.77.", "Meh Syschtem finde schneller und zuverlässiger d Position, bruuche aber meh Akku. Gilt nur für Garmin ab Uhr-Version 1.0.77.", "Mehr Systeme finden schneller und zuverlässiger Position, brauchen aber mehr Akku. Gilt nur für Garmin ab Uhr-Version 1.0.77.", "More systems find your position faster and more reliably, but use more battery. Garmin only, from watch version 1.0.77.", "Plus de systèmes trouvent la position plus vite et plus sûrement, mais consomment plus de batterie. Garmin uniquement, à partir de la version 1.0.77.", "Più sistemi trovano la posizione più in fretta e in modo più affidabile, ma consumano più batteria. Solo Garmin, dalla versione 1.0.77.", "Más sistemas encuentran la posición más rápido y con más fiabilidad, pero gastan más batería. Solo Garmin, desde la versión 1.0.77."),
         "account.recordModeGpsHint": r("Pump-Zahl, Kadenz und Gleitphasen fehlen in diesem Modus — sie werden aus dem Bewegungssensor berechnet.", "Pump-Zahl, Kadenz und Gleitphase fehle i dem Modus — si werde us em Bewegigssensor grechnet.", "Pump-Zahl, Kadenz und Gleitphasen fehlen in diesem Modus — sie werden aus dem Bewegungssensor berechnet.", "Pump count, cadence and glide phases are missing in this mode — they are calculated from the movement sensor.", "Le nombre de pumps, la cadence et les phases de glisse manquent dans ce mode — ils sont calculés à partir du capteur de mouvement.", "In questa modalità mancano numero di pump, cadenza e fasi di planata: vengono calcolati dal sensore di movimento.", "En este modo faltan el número de pumps, la cadencia y las fases de planeo: se calculan a partir del sensor de movimiento."),
+    ]
+    private static let __t1P1s4: [String: [String: String]] = [
         "account.recordModeZeppHint": r("Amazfit übernimmt diese Einstellung noch nicht — die Uhr nimmt mit ihrer eigenen Rate auf.", "Amazfit übernimmt die Iistellig na nöd — d’Uhr nimmt mit ihrer eigene Rate uf.", "Amazfit übernimmt diese Einstellung noch nicht — die Uhr nimmt mit ihrer eigenen Rate auf.", "Amazfit does not use this setting yet — the watch records at its own rate.", "Amazfit does not use this setting yet — the watch records at its own rate.", "Amazfit does not use this setting yet — the watch records at its own rate.", "Amazfit does not use this setting yet — the watch records at its own rate."),
         "account.devicesSettingsIntro": r("Die Einstellungen unter jeder Uhr wirken auf die Uhr selbst — sie übernimmt sie beim nächsten Start der App, ganz ohne Update.", "D’Iistellige under jedere Uhr wirked uf d’Uhr sälber — si übernimmt si bim nächschte Start vo de App, ganz ohni Update.", "Die Einstellungen unter jeder Uhr wirken auf die Uhr selbst — sie übernimmt sie beim nächsten Start der App, ganz ohne Update.", "The settings under each watch act on the watch itself. It picks them up the next time you open the app there — no update needed.", "The settings under each watch act on the watch itself. It picks them up the next time you open the app there — no update needed.", "The settings under each watch act on the watch itself. It picks them up the next time you open the app there — no update needed.", "The settings under each watch act on the watch itself. It picks them up the next time you open the app there — no update needed."),
         // Layout-Vorschau nativ (Paritaet Punkt 4, 17.08.): Auswahl-Titel, der "Pausiert"-Hinweis,
@@ -2853,6 +2940,8 @@ enum Loc {
         "account.layoutsEnabledHint": r("Aus = deine Uhren zeigen die klassischen 3-Feld-Ansichten. Wenn eine Uhr Probleme macht, kannst du es auch direkt am Gerät abschalten (Menü → Eigene Layouts).", "Aus = deine Uhren zeigen die klassischen 3-Feld-Ansichten. Wenn eine Uhr Probleme macht, kannst du es auch direkt am Gerät abschalten (Menü → Eigene Layouts).", "Aus = deine Uhren zeigen die klassischen 3-Feld-Ansichten. Wenn eine Uhr Probleme macht, kannst du es auch direkt am Gerät abschalten (Menü → Eigene Layouts).", "Off = your watches show the classic 3-field views. If one watch misbehaves you can also switch it off on the device (menu → Custom layouts).", "Off = your watches show the classic 3-field views. If one watch misbehaves you can also switch it off on the device (menu → Custom layouts).", "Off = your watches show the classic 3-field views. If one watch misbehaves you can also switch it off on the device (menu → Custom layouts).", "Off = your watches show the classic 3-field views. If one watch misbehaves you can also switch it off on the device (menu → Custom layouts)."),
         "account.pauseTitle": r("Aufnahme pausiert", "Aufnahme pausiert", "Aufnahme pausiert", "Recording paused", "Recording paused", "Recording paused", "Recording paused"),
         "account.pauseDesc": r("Zeigt die Uhr nur, wenn du die Aufnahme selbst pausiert hast (STOP halten → Pausieren). Eigene Screens dieser Art enthalten immer den „Pausiert“-Hinweis — verschiebbar, aber nicht entfernbar, sonst weiß niemand, wie er fortsetzt.", "Zeigt die Uhr nur, wenn du die Aufnahme selbst pausiert hast (STOP halten → Pausieren). Eigene Screens dieser Art enthalten immer den „Pausiert“-Hinweis — verschiebbar, aber nicht entfernbar, sonst weiß niemand, wie er fortsetzt.", "Zeigt die Uhr nur, wenn du die Aufnahme selbst pausiert hast (STOP halten → Pausieren). Eigene Screens dieser Art enthalten immer den „Pausiert“-Hinweis — verschiebbar, aber nicht entfernbar, sonst weiß niemand, wie er fortsetzt.", "Shown only when you paused the recording yourself (hold STOP → Pause). Custom screens of this kind always carry the “Paused” hint — movable, but not removable, or nobody knows how to resume.", "Shown only when you paused the recording yourself (hold STOP → Pause). Custom screens of this kind always carry the “Paused” hint — movable, but not removable, or nobody knows how to resume.", "Shown only when you paused the recording yourself (hold STOP → Pause). Custom screens of this kind always carry the “Paused” hint — movable, but not removable, or nobody knows how to resume.", "Shown only when you paused the recording yourself (hold STOP → Pause). Custom screens of this kind always carry the “Paused” hint — movable, but not removable, or nobody knows how to resume."),
+    ]
+    private static let __t1P1s5: [String: [String: String]] = [
         "account.layoutMissing": r("(Layout gelöscht)", "(Layout gelöscht)", "(Layout gelöscht)", "(layout deleted)", "(layout deleted)", "(layout deleted)", "(layout deleted)"),
         "account.addLayoutPage": r("+ Eigenen Screen einfügen", "+ Eigenen Screen einfügen", "+ Eigenen Screen einfügen", "+ Insert custom screen", "+ Insert custom screen", "+ Insert custom screen", "+ Insert custom screen"),
         // Sportart-Klassifikation (docs/sport-classification.md). Wortlaut woertlich aus der
@@ -2925,6 +3014,8 @@ enum Loc {
         "share.copy": r("Kopieren", "Kopiere", "Kopieren", "Copy", "Copier", "Copia", "Copiar"),
         "share.copied": r("Kopiert ✓", "Kopiert ✓", "Kopiert ✓", "Copied ✓", "Copié ✓", "Copiato ✓", "Copiado ✓"),
         "share.revoke": r("Link deaktivieren", "Link deaktiviere", "Link deaktivieren", "Disable link", "Désactiver le lien", "Disattiva link", "Desactivar enlace"),
+    ]
+    private static let __t1P2s2: [String: [String: String]] = [
         "home.recordBtn": r("Aufnehmen", "Ufnäh", "Aufnehmen", "Record", "Enregistrer", "Registra", "Grabar"),
         "profile.phoneRec": r("Handy-Recorder", "Händy-Recorder", "Handy-Recorder", "Phone recorder", "Enregistreur tél.", "Registratore telefono", "Grabadora del teléfono"),
         "profile.phoneRecSub": r("Dieses Handy als Recorder nutzen — blendet einen Aufnahme-Button auf der Startseite ein.", "Dieses Handy als Recorder nutzen — blendet einen Aufnahme-Button auf der Startseite ein.", "Dieses Handy als Recorder nutzen — blendet einen Aufnahme-Button auf der Startseite ein.", "Use this phone as a recorder — shows a record button on the home screen.", "Use this phone as a recorder — shows a record button on the home screen.", "Use this phone as a recorder — shows a record button on the home screen.", "Use this phone as a recorder — shows a record button on the home screen."),
@@ -2997,6 +3088,8 @@ enum Loc {
         "guide.pair.codeTitle": r("Mit Code (Garmin & als Fallback):", "Mit Code (Garmin & als Fallback):", "Mit Code (Garmin & als Fallback):", "With a code (Garmin & as fallback):", "Avec un code (Garmin & en secours) :", "Con codice (Garmin e come fallback):", "Con código (Garmin y como alternativa):"),
         "guide.pair.code": r("An der Uhr „Verbinden“ → „Pairing-Code erzeugen“, dann den 6-stelligen Code hier eintragen:", "An de Uhr „Verbinde“ → „Pairing-Code erzüge“, denn de 6-stellig Code da yygeh:", "An der Uhr „Verbinden“ → „Pairing-Code erzeugen“, dann den 6-stelligen Code hier eintragen:", "On the watch: “Connect” → “Generate pairing code”, then enter the 6-digit code here:", "Sur la montre : « Connecter » → « Générer un code », puis saisissez le code à 6 chiffres ici :", "Sull’orologio: «Collega» → «Genera codice», poi inserisci qui il codice a 6 cifre:", "En el reloj: «Conectar» → «Generar código», luego introduce aquí el código de 6 dígitos:"),
         "guide.pair.relinkTitle": r("Wechseln oder trennen (Garmin):", "Wächsle oder trenne (Garmin):", "Wechseln oder trennen (Garmin):", "Switch or disconnect (Garmin):", "Changer ou dissocier (Garmin) :", "Cambiare o scollegare (Garmin):", "Cambiar o desvincular (Garmin):"),
+    ]
+    private static let __t1P3s2: [String: [String: String]] = [
         "guide.pair.relink": r("Trennst du die Uhr unter „Verknüpfte Konten“, hebt sie das Pairing beim nächsten Mal mit Server-Verbindung von selbst auf – statt „Verbunden“ zeigt sie dann wieder einen Code. Bestehendes Pairing überschreiben (andere Uhr/anderes Konto): an der Uhr „Verbinden“ → ENTER erzeugt jederzeit einen neuen Code. Das alte Token bleibt aktiv, bis du den neuen Code hier einlöst – ein abgebrochener Versuch ändert also nichts.", "Trennsch d Uhr under „Verknüpfti Konte“, hebt si s Pairing s nächste Mal mit Server-Verbindig vo sälber uf – statt „Verbunde“ zeigt si denn wider en Code. Bestehends Pairing überschriibe (anderi Uhr/anders Konto): an de Uhr „Verbinde“ → ENTER macht jederzit en neue Code. S alt Token blibt aktiv, bis du de neu Code da yylösisch – en abbrochene Versuech ändered also nüt.", "Trennst du die Uhr unter „Verknüpfte Konten“, hebt sie das Pairing beim nächsten Mal mit Server-Verbindung von selbst auf – statt „Verbunden“ zeigt sie dann wieder einen Code. Bestehendes Pairing überschreiben (andere Uhr/anderes Konto): an der Uhr „Verbinden“ → ENTER erzeugt jederzeit einen neuen Code. Das alte Token bleibt aktiv, bis du den neuen Code hier einlöst – ein abgebrochener Versuch ändert also nichts.", "If you disconnect the watch under “Linked accounts”, it drops the pairing by itself the next time it reaches the server — instead of “Connected” it shows a code again. To overwrite an existing pairing (different watch/account): on the watch “Connect” → ENTER generates a fresh code anytime. The old token stays active until you redeem the new code here, so an aborted attempt changes nothing.", "Si vous dissociez la montre dans « Comptes liés », elle annule l’appairage d’elle-même à la prochaine connexion au serveur — au lieu de « Connecté », elle réaffiche un code. Pour remplacer un appairage existant (autre montre/autre compte) : sur la montre « Connecter » → ENTER génère un nouveau code à tout moment. L’ancien jeton reste actif jusqu’à ce que vous validiez le nouveau code ici ; une tentative annulée ne change donc rien.", "Se scolleghi l’orologio in «Account collegati», annulla l’abbinamento da solo alla successiva connessione al server — invece di «Connesso» mostra di nuovo un codice. Per sovrascrivere un abbinamento esistente (altro orologio/altro account): sull’orologio «Collega» → ENTER genera un nuovo codice in qualsiasi momento. Il vecchio token resta attivo finché non riscatti qui il nuovo codice; un tentativo annullato quindi non cambia nulla.", "Si desvinculas el reloj en «Cuentas vinculadas», cancela el emparejamiento por sí solo la próxima vez que conecte con el servidor — en lugar de «Conectado» vuelve a mostrar un código. Para sobrescribir un emparejamiento existente (otro reloj/otra cuenta): en el reloj «Conectar» → ENTER genera un código nuevo en cualquier momento. El token antiguo sigue activo hasta que canjeas el nuevo código aquí; un intento cancelado no cambia nada."),
         "guide.pair.note": r("Login per E-Mail, Google oder Apple – gleiche E-Mail ergibt dasselbe Konto, ein separates Verknüpfen ist nicht nötig.", "Login per E-Mail, Google oder Apple – gliichi E-Mail git s gliiche Konto, es separats Verknüpfe isch nöd nötig.", "Login per E-Mail, Google oder Apple – gleiche E-Mail ergibt dasselbe Konto, ein separates Verknüpfen ist nicht nötig.", "Sign in with email, Google or Apple — the same email means the same account, no separate linking needed.", "Connexion par e-mail, Google ou Apple — la même adresse donne le même compte, aucune liaison séparée nécessaire.", "Accesso con email, Google o Apple — la stessa email è lo stesso account, nessun collegamento separato necessario.", "Inicio de sesión con email, Google o Apple — el mismo email es la misma cuenta, sin vinculación aparte."),
         "guide.connect": r("„Verbinden“", "„Verbinde“", "„Verbinden“", "“Connect”", "« Connecter »", "« Connetti »", "« Conectar »"),
@@ -3058,7 +3151,6 @@ enum Loc {
         "account.activityType": r("Aktivitätstyp in Garmin Connect", "Aktivitätstyp i Garmin Connect", "Aktivitätstyp in Garmin Connect", "Activity type in Garmin Connect", "Type d'activité dans Garmin Connect", "Tipo di attività in Garmin Connect", "Tipo de actividad en Garmin Connect"),
         "account.activitySurfing": r("Surfen", "Surfe", "Surfen", "Surfing", "Surf", "Surf", "Surf"),
         "account.activityOpenWater": r("Open Water (Freiwasser)", "Open Water (Freiwasser)", "Open Water (Freiwasser)", "Open water", "Eau libre", "Acque libere", "Aguas abiertas"),
-        "account.activityPumpfoil": r("Pumpfoil (generisch)", "Pumpfoil (generisch)", "Pumpfoil (generisch)", "Pumpfoil (generic)", "Pumpfoil (générique)", "Pumpfoil (generico)", "Pumpfoil (genérico)"),
         "account.activityTypeHint": r("Legt fest, als welche Aktivität die Garmin-Aufnahme in Garmin Connect erscheint.", "Legt fescht, als weli Aktivität d Garmin-Ufnahm i Garmin Connect erschiint.", "Legt fest, als welche Aktivität die Garmin-Aufnahme in Garmin Connect erscheint.", "Sets which activity the Garmin recording appears as in Garmin Connect.", "Définit sous quelle activité l'enregistrement Garmin apparaît dans Garmin Connect.", "Imposta come quale attività appare la registrazione Garmin in Garmin Connect.", "Define como qué actividad aparece la grabación de Garmin en Garmin Connect."),
         "account.devicesTitle": r("Verbundene Uhren", "Verbundeni Uhre", "Verbundene Uhren", "Linked watches", "Montres liées", "Orologi collegati", "Relojes vinculados"),
         "account.deviceUnnamed": r("Unbenannte Uhr", "Unbenannti Uhr", "Unbenannte Uhr", "Unnamed watch", "Montre sans nom", "Orologio senza nome", "Reloj sin nombre"),
@@ -3097,6 +3189,8 @@ enum Loc {
         "transfer.homeHint": r("Du hast eingehende Session-Übertragungen", "Du hesch iichoomendi Session-Übertragige", "Du hast eingehende Session-Übertragungen", "You have incoming session transfers", "Tu as des transferts de session entrants", "Hai trasferimenti di sessione in arrivo", "Tienes transferencias de sesión entrantes"),
         "settings.nLikes": r("Likes", "Likes", "Likes", "Likes", "J'aime", "Mi piace", "Me gusta"),
         "settings.nAnalyzed": r("Auswertung fertig", "Uuswertig fertig", "Auswertung fertig", "Analysis ready", "Analyse prête", "Analisi pronta", "Análisis listo"),
+    ]
+    private static let __t1P4s2: [String: [String: String]] = [
         "settings.nRecord": r("Aufnahme/Records", "Ufnahm/Records", "Aufnahme/Records", "Recording/records", "Enreg./records", "Registrazione/record", "Grabación/récords"),
         "settings.nChat": r("Neue Chat-Nachrichten (abonnierte Räume)", "Neui Chat-Nachrichte (abonnierti Rüüm)", "Neue Chat-Nachrichten (abonnierte Räume)", "New chat messages (subscribed rooms)", "Nouveaux messages de chat (salons abonnés)", "Nuovi messaggi in chat (stanze sottoscritte)", "Nuevos mensajes de chat (salas suscritas)"),
         "home.hello": r("Hallo", "Hoi", "Servus", "Hi", "Salut", "Ciao", "Hola"),
@@ -3142,7 +3236,7 @@ enum Loc {
     // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
     static let _t2: [String: [String: String]] = {
         var d: [String: [String: String]] = [:]
-        for p in [__t2P1, __t2P2, __t2P3, __t2P4, __t2P5] { d.merge(p) { a, _ in a } }
+        for p in [__t2P1, __t2P1s2, __t2P2, __t2P2s2, __t2P3, __t2P3s2, __t2P4, __t2P4s2, __t2P5] { d.merge(p) { a, _ in a } }
         return d
     }()
 
@@ -3200,6 +3294,8 @@ enum Loc {
         "home.spotSearch": r("Spot suchen (anderer See)…", "Spot sueche (en andere See)…", "Spot suachn (aunderer See)…", "Search spot (another lake)…", "Chercher un spot (autre lac)…", "Cerca spot (altro lago)…", "Buscar spot (otro lago)…"),
         "home.noSpots": r("Noch keine Spots — oben suchen.", "No kei Spots — obe sueche.", "No kane Spots — obn suachn.", "No spots yet — search above.", "Pas encore de spots — cherchez ci-dessus.", "Ancora nessuno spot — cerca sopra.", "Aún no hay spots — busca arriba."),
         "home.remove": r("entfernen", "use", "weg", "remove", "retirer", "rimuovi", "quitar"),
+    ]
+    private static let __t2P1s2: [String: [String: String]] = [
         "sessions.filterPump": r("Pumpfoil", "Pumpfoil", "Pumpfoil", "Pumpfoil", "Pumpfoil", "Pumpfoil", "Pumpfoil"),
         "sessions.filterOther": r("Aussortiert", "Usghoble", "Aussortiert", "Filtered out", "Écartées", "Escluse", "Descartadas"),
         "sessions.allMonths": r("Alle Monate", "Alli Mönet", "Olle Monat", "All months", "Tous les mois", "Tutti i mesi", "Todos los meses"),
@@ -3286,6 +3382,8 @@ enum Loc {
         // Vorher zeigten die Apps die ROHE englische Servermeldung ("no new exercises"); genau das
         // hat Jan am 07.09.2026 in der PWA gemeldet, dort ist es seit `687332df` uebersetzt.
         "accounts.sync.progress": r("{fertig} von {gesamt} Trainings", "{fertig} vo {gesamt} Trainings", "{fertig} vo {gesamt} Trainings", "{fertig} of {gesamt} workouts", "{fertig} sur {gesamt} entraînements", "{fertig} di {gesamt} allenamenti", "{fertig} de {gesamt} entrenamientos"),
+    ]
+    private static let __t2P2s2: [String: [String: String]] = [
         "accounts.sync.imported": r("{n} importiert", "{n} importiert", "{n} importiert", "{n} imported", "{n} importés", "{n} importate", "{n} importadas"),
         "accounts.sync.nothingNew": r("Nichts Neues", "Nüt Neus", "Nix Neichs", "Nothing new", "Rien de nouveau", "Niente di nuovo", "Nada nuevo"),
         "accounts.sync.why.noGps": r("{n} ohne GPS-Spur", "{n} ohni GPS-Spur", "{n} ohne GPS-Spur", "{n} without a GPS track", "{n} sans trace GPS", "{n} senza traccia GPS", "{n} sin traza GPS"),
@@ -3371,6 +3469,8 @@ enum Loc {
         "imp.communityTitle": r("👥 Für jede registrierte Person sichtbar (Community)", "👥 Für jedi registrierti Person sichtbar (Community)", "👥 Für jede registrierte Person sichtbar (Community)", "👥 Visible to every registered person (community)", "👥 Visible par toute personne inscrite (communauté)", "👥 Visibile a ogni persona registrata (community)", "👥 Visible para cada persona registrada (comunidad)"),
         "imp.communityIntro": r("Ein Konto kann jeder anlegen. Eingeloggt sieht man von allen Nutzern:", "Es Konto cha jede aalege. Iiglogged gseht mer vo allne Nutzer:", "Ein Konto kann jeder anlegen. Eingeloggt sieht man von allen Nutzern:", "Anyone can create an account. Once logged in, you see from all users:", "Tout le monde peut créer un compte. Une fois connecté, on voit de tous les utilisateurs :", "Chiunque può creare un account. Una volta effettuato l'accesso, di tutti gli utenti si vede:", "Cualquiera puede crear una cuenta. Con la sesión iniciada, de todos los usuarios se ve:"),
         "imp.community1": r("Anzeigename und Profilbild (wenn gesetzt; ohne Anzeigename erscheint die Session ohne Namen).", "Aazeigename und Profilbild (wenn gsetzt; ohni Aazeigename erschynt d Session ohni Name).", "Anzeigename und Profilbild (wenn gesetzt; ohne Anzeigename erscheint die Session ohne Namen).", "Display name and profile picture (if set; without a display name the session appears without a name).", "Nom d'affichage et photo de profil (si définis ; sans nom d'affichage, la session apparaît sans nom).", "Nome visualizzato e foto profilo (se impostati; senza nome visualizzato la sessione appare senza nome).", "Nombre visible y foto de perfil (si están definidos; sin nombre visible la sesión aparece sin nombre)."),
+    ]
+    private static let __t2P3s2: [String: [String: String]] = [
         "imp.community2": r("Alle Sessions mit erkanntem Foiling: Datum/Uhrzeit, Spot (Gewässername aus OpenStreetMap), die Karte/GPS-Strecke (also wo gefoilt wurde), Anzahl Läufe, Distanz, Geschwindigkeit, Puls, Pump-/Gleitwerte und die hochgeladenen Fotos.", "Alli Sessions mit erkanntem Foiling: Datum/Ziit, Spot (Gwässername us OpenStreetMap), d Charte/GPS-Strecki (also wo gfoilt worde isch), Aazahl Läuf, Distanz, Gschwindigkeit, Puls, Pump-/Gleitwärt und die uufglade Föteli.", "Alle Sessions mit erkanntem Foiling: Datum/Uhrzeit, Spot (Gewässername aus OpenStreetMap), die Karte/GPS-Strecke (also wo gefoilt wurde), Anzahl Läufe, Distanz, Geschwindigkeit, Puls, Pump-/Gleitwerte und die hochgeladenen Fotos.", "All sessions with detected foiling: date/time, spot (water name from OpenStreetMap), the map/GPS track (i.e. where you foiled), number of runs, distance, speed, heart rate, pump/glide values and the uploaded photos.", "Toutes les sessions avec foil détecté : date/heure, spot (nom du plan d'eau depuis OpenStreetMap), la carte/trace GPS (donc où tu as foilé), nombre de runs, distance, vitesse, pouls, valeurs de pump/glisse et les photos importées.", "Tutte le sessioni con foil rilevato: data/ora, spot (nome dello specchio d'acqua da OpenStreetMap), la mappa/traccia GPS (quindi dove hai foilato), numero di run, distanza, velocità, battito, valori di pump/planata e le foto caricate.", "Todas las sesiones con foil detectado: fecha/hora, spot (nombre de la masa de agua de OpenStreetMap), el mapa/traza GPS (es decir, dónde has foileado), número de runs, distancia, velocidad, pulso, valores de pump/planeo y las fotos subidas."),
         "imp.community3": r("Rekorde & Bestenlisten (Name, Wert, Spot, Anzahl Sessions/Läufe/Spots).", "Rekord & Beschtelischte (Name, Wärt, Spot, Aazahl Sessions/Läuf/Spots).", "Rekorde & Bestenlisten (Name, Wert, Spot, Anzahl Sessions/Läufe/Spots).", "Records & leaderboards (name, value, spot, number of sessions/runs/spots).", "Records & classements (nom, valeur, spot, nombre de sessions/runs/spots).", "Record & classifiche (nome, valore, spot, numero di sessioni/run/spot).", "Récords y clasificaciones (nombre, valor, spot, número de sesiones/runs/spots)."),
         "imp.community4": r("Likes (Anzahl) und die Anzahl der „wirkt unecht“/„unangemessen“-Stimmen.", "Likes (Aazahl) und d Aazahl vo de „wirkt unecht“/„unaagmässe“-Stimme.", "Likes (Anzahl) und die Anzahl der „wirkt unecht“/„unangemessen“-Stimmen.", "Likes (count) and the number of “looks fake”/“inappropriate” votes.", "Likes (nombre) et le nombre de votes « semble faux »/« inapproprié ».", "Like (numero) e il numero di voti « sembra falso »/« inappropriato ».", "Me gusta (número) y el número de votos « parece falso »/« inapropiado »."),
@@ -3429,6 +3529,8 @@ enum Loc {
         "watchStats.title": r("Uhren-Statistik", "Uhre-Statistik", "Uhren-Statistik", "Watch stats", "Stats par montre", "Statistiche orologi", "Estadísticas de relojes"),
         "watchStats.intro": r("Welche Werte mit welcher Uhr — Community-Aggregat je Modell.", "Weli Wärt mit weler Uhr — Community-Aggregat je Modäll.", "Welche Werte mit welcher Uhr — Community-Aggregat je Modell.", "Which numbers with which watch — community aggregate per model.", "Quels chiffres avec quelle montre — agrégat par modèle.", "Quali valori con quale orologio — aggregato per modello.", "Qué valores con qué reloj — agregado por modelo."),
         "watchStats.users": r("Nutzer", "Nutzer", "Nutzer", "Users", "Utilisateurs", "Utenti", "Usuarios"),
+    ]
+    private static let __t2P4s2: [String: [String: String]] = [
         "watchStats.km": r("Foil-km", "Foil-km", "Foil-km", "Foil km", "Km foil", "Km foil", "Km foil"),
         "watchStats.bestSpeed": r("Top-Speed", "Top-Speed", "Top-Speed", "Top speed", "Vitesse max", "Vel. max", "Vel. máx"),
         "foilstats.bestKm": r("best km", "best km", "best km", "best km", "meilleur km", "miglior km", "mejor km"),
@@ -3482,7 +3584,7 @@ enum Loc {
     // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
     static let _t3: [String: [String: String]] = {
         var d: [String: [String: String]] = [:]
-        for p in [__t3P1, __t3P2, __t3P3, __t3P4] { d.merge(p) { a, _ in a } }
+        for p in [__t3P1, __t3P1s2, __t3P2, __t3P2s2, __t3P3, __t3P4] { d.merge(p) { a, _ in a } }
         return d
     }()
 
@@ -3556,6 +3658,8 @@ enum Loc {
         "calc.intro": r("Vergleiche Foils: Basis-Kennwerte und theoretische Leistung über die Geschwindigkeit.", "Vergliich Foils: Basis-Wärt und theoretischi Leischtig über d Gschwindigkeit.", "Vergleiche Foils: Basis-Kennwerte und theoretische Leistung über die Geschwindigkeit.", "Compare foils: basic characteristics and theoretical power across speed.", "Comparez les foils : caractéristiques de base et puissance théorique selon la vitesse.", "Confronta i foil: caratteristiche di base e potenza teorica al variare della velocità.", "Compara foils: características básicas y potencia teórica según la velocidad."),
         "calc.params": r("Parameter", "Parameter", "Parameter", "Parameters", "Paramètres", "Parametri", "Parámetros"),
         "calc.equip": r("Equip. (kg)", "Equip. (kg)", "Equip. (kg)", "Equip. (kg)", "Équip. (kg)", "Equip. (kg)", "Equipo (kg)"),
+    ]
+    private static let __t3P1s2: [String: [String: String]] = [
         "calc.mastDiameter": r("Mast-Durchmesser", "Mast-Durchmässer", "Mast-Durchmesser", "Mast diameter", "Diamètre du mât", "Diametro albero", "Diámetro del mástil"),
         "calc.mastDepth": r("Mast-Tiefe", "Mast-Tüfi", "Mast-Tiefe", "Mast depth", "Profondeur du mât", "Profondità albero", "Profundidad del mástil"),
         "calc.withPump": r("Pump-Trägheit einrechnen", "Pump-Trägheit irächne", "Pump-Trägheit einrechnen", "Include pump inertia", "Inclure l’inertie de pump", "Includi inerzia di pump", "Incluir inercia de pump"),
@@ -3630,6 +3734,8 @@ enum Loc {
         "share.stat.runs": r("Läufe", "Läuf", "Läufe", "Runs", "Runs", "Run", "Tramos"),
         "share.stat.pumps": r("Pumps", "Pumps", "Pumps", "Pumps", "Pumps", "Pump", "Pumps"),
         "share.stat.speed": r("Top-Speed", "Top-Speed", "Top-Speed", "Top speed", "Vitesse max", "Velocità max", "Vel. máx"),
+    ]
+    private static let __t3P2s2: [String: [String: String]] = [
         "share.stat.time": r("Foil-Zeit", "Foil-Ziit", "Foil-Zeit", "Foil time", "Temps foil", "Tempo foil", "Tiempo foil"),
         "share.stat.longest": r("Längster", "Längscht", "Längster", "Longest", "Le plus long", "Il più lungo", "El más largo"),
         "share.stat.distance": r("Strecke", "Strecki", "Strecke", "Distance", "Distance", "Distanza", "Distancia"),

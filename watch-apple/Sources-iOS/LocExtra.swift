@@ -11,7 +11,7 @@ import Foundation
 // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
 let ptOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_ptOverlayP1, _ptOverlayP2, _ptOverlayP3, _ptOverlayP4, _ptOverlayP5, _ptOverlayP6, _ptOverlayP7, _ptOverlayP8, _ptOverlayP9, _ptOverlayP10, _ptOverlayP11] { d.merge(p) { a, _ in a } }
+    for p in [_ptOverlayP1, _ptOverlayP1s2, _ptOverlayP2, _ptOverlayP2s2, _ptOverlayP3, _ptOverlayP3s2, _ptOverlayP4, _ptOverlayP4s2, _ptOverlayP5, _ptOverlayP5s2, _ptOverlayP6, _ptOverlayP6s2, _ptOverlayP7, _ptOverlayP7s2, _ptOverlayP8, _ptOverlayP8s2, _ptOverlayP9, _ptOverlayP9s2, _ptOverlayP10, _ptOverlayP10s2, _ptOverlayP11, _ptOverlayP11s2, _ptOverlayP11s3, _ptOverlayP11s4, _ptOverlayP11s5, _ptOverlayP11s6] { d.merge(p) { a, _ in a } }
     return d
 }()
 
@@ -67,6 +67,8 @@ private let _ptOverlayP11: [String: String] = [
     "watchQuality.title": "Qual relógio grava melhor?",
     "watchQuality.lead": "Medido em {sessions} gravações e {hours} horas na água. Recalculado a cada poucas semanas — este estado é de {date}.",
     "watchQuality.new": "Esta análise é nova. Quantas mais gravações chegarem, mais fiáveis ficam os números — sobretudo nos modelos que até agora só um ou dois riders usam.",
+]
+private let _ptOverlayP11s2: [String: String] = [
     "watchQuality.colPump": "Deteção de pumps",
     "watchQuality.colGps": "Localização",
     "watchQuality.colHr": "Frequência cardíaca",
@@ -86,7 +88,6 @@ private let _ptOverlayP11: [String: String] = [
     "compare.syncSkipped": "{min} min saltados",
     "sd.play": "Reproduzir",
     "sd.pause": "Pausar",
-    "account.activityPumpfoil": "Pumpfoil (genérico)",
     "account.addLayoutPage": "+ Inserir tela própria",
     "account.autoStart": "Iniciar gravação automaticamente ao decolar (GPS)",
     "account.browseAll": "Passar também pelas outras telas em pausa ou quando não estiver foilando",
@@ -117,6 +118,8 @@ private let _ptOverlayP11: [String: String] = [
     "cls.pickErr": "Não foi possível salvar",
     "cls.thanks": "Obrigado! O dono será convidado a classificar esta sessão.",
     "cls.wasPumpfoil": "Foi pumpfoil sim →",
+]
+private let _ptOverlayP11s3: [String: String] = [
     "datafields.editorInBrowser": "Własne ekrany projektujesz na pumpfoil.org w przeglądarce — tutaj możesz je wstawiać, oglądać i porządkować.",
     "foils.add": "Adicionar",
     "foils.catalog": "Catálogo",
@@ -167,6 +170,8 @@ private let _ptOverlayP11: [String: String] = [
     "sd.excludedTitleOne": "1 run tirado",
     "sd.exportFile": "Last ned fil",
     "sd.exportFit": "Baixar como arquivo FIT (para Garmin Connect, Strava e outros)",
+]
+private let _ptOverlayP11s4: [String: String] = [
     "sd.exportGpx": "Baixar como arquivo GPX (trilha + frequência cardíaca)",
     "sd.includeRun": "trazer de volta",
     "sessions.none": "Ainda sem sessões.",
@@ -217,6 +222,8 @@ private let _ptOverlayP11: [String: String] = [
     "upload.title": "Sessão sendo enviada",
     "upload.waiting": "Aguardando dados…",
         "imp.mapTitle": "Mapas",
+]
+private let _ptOverlayP11s5: [String: String] = [
         "imp.map1": "O <b>mapa de ruas</b> vem do <b>OpenStreetMap</b>. Ao exibir um mapa, o teu navegador carrega os blocos diretamente dos servidores deles, transmitindo o teu endereço IP e a área exibida. Fornecedor: OpenStreetMap Foundation, Reino Unido.",
         "imp.map2": "Se mudares para <b>Satélite</b> com o botão no mapa, as imagens aéreas vêm da <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — também diretamente dos servidores deles e também com o teu endereço IP. Isso acontece <b>apenas</b> se mudares; a tua escolha fica guardada localmente no teu aparelho.",
         "imp.mapApple": "No <b>app para iPhone e Apple Watch</b>, tanto o mapa QUANTO as imagens aéreas vêm do <b>Apple Mapas</b>, não do OpenStreetMap nem da Esri. Exibir um mapa envia a área exibida à Apple; a Apple é responsável por isso conforme a política de privacidade dela. O <b>app Android</b> funciona como o navegador: mapa de ruas do OpenStreetMap, imagens aéreas da Esri.",
@@ -267,6 +274,8 @@ private let _ptOverlayP11: [String: String] = [
     "guide.g.s2Title": "2. Gere um código no relógio:",
     "guide.g.s2": "abra o Pumpfoil (não inicie) → segure MENU (botão do meio à esquerda) → “Configurações” → “Conectar”. O relógio mostra um código de 6 dígitos (celular por perto ou Wi-Fi necessários).",
     "guide.g.s3Title": "3. Digite o código aqui:",
+]
+private let _ptOverlayP11s6: [String: String] = [
     "guide.g.s3": "→ “Digite o código do relógio”. Pronto — o relógio está vinculado à sua conta.",
     "guide.g.s4Title": "4. Campos de dados e alarme:",
     "guide.g.s4": "defina aqui no pumpfoil.org nas abas “Campos de dados” (até 3 por tela) e “Alarme” — enviados ao relógio após conectar.",
@@ -357,6 +366,8 @@ private let _ptOverlayP1: [String: String] = [
     "rec.saving": "salvando…",
     "rec.saved": "Salvo",
     "common.cancel": "Cancelar",
+]
+private let _ptOverlayP1s2: [String: String] = [
     "common.delete": "Excluir",
     "common.saved": "Salvo",
     "common.noData": "Ainda sem dados",
@@ -415,6 +426,8 @@ private let _ptOverlayP2: [String: String] = [
     "account.activityTypeHint": "Define como qual atividade a gravação Garmin aparece no Garmin Connect.",
     "account.devicesTitle": "Relógios vinculados",
     "account.deviceUnnamed": "Relógio sem nome",
+]
+private let _ptOverlayP2s2: [String: String] = [
     "account.recordMode": "Gravação",
     "account.recordModeFull": "Completo · 25 Hz",
     "account.recordModeLite": "Lite · 10 Hz",
@@ -476,6 +489,8 @@ private let _ptOverlayP3: [String: String] = [
     "sessions.searchSpot": "Buscar spot",
     "sessions.empty": "Sem sessões",
     "sessions.oclock": "",
+]
+private let _ptOverlayP3s2: [String: String] = [
     "sd.duration": "Duração",
     "verlauf.empty": "Ainda sem análises",
     "verlauf.total": "Total",
@@ -535,6 +550,8 @@ private let _ptOverlayP4: [String: String] = [
     "profile.changePw": "Alterar senha",
     "profile.changePwHint": "Senha atual para confirmar, depois defina uma nova.",
     "profile.curPw": "Senha atual",
+]
+private let _ptOverlayP4s2: [String: String] = [
     "profile.newPw": "Nova senha (mín. 8 caracteres)",
     "profile.pwMin": "Nova senha: pelo menos 8 caracteres.",
     "profile.pwChanged": "Senha alterada.",
@@ -593,6 +610,8 @@ private let _ptOverlayP5: [String: String] = [
     "rec.longestRun": "Run mais longo (tempo)",
     "rec.topSpeed": "Velocidade máx.",
     "rec.longestGlide": "Planeio mais longo",
+]
+private let _ptOverlayP5s2: [String: String] = [
     "rec.mostRuns": "Mais runs",
     "rec.sessionDistance": "Sessão mais longa (dist.)",
     "rec.sessionTime": "Tempo no foil",
@@ -651,6 +670,8 @@ private let _ptOverlayP6: [String: String] = [
     "imp.community1": "Nome de exibição e foto de perfil (se definidos; sem nome de exibição, a sessão aparece sem nome).",
     "imp.community2": "Todas as sessões com foiling detectado: data/hora, spot (nome do corpo d'água do OpenStreetMap), o traçado do mapa/GPS (ou seja, onde você foilou), número de runs, distância, velocidade, frequência cardíaca, valores de pump/planeio e as fotos enviadas.",
     "imp.community3": "Recordes e rankings (nome, valor, spot, número de sessões/runs/spots).",
+]
+private let _ptOverlayP6s2: [String: String] = [
     "imp.community4": "Curtidas (contagem) e o número de votos “parece falso”/“inadequado”.",
     "imp.communityNote": "As sessões não são anônimas — estão vinculadas à pessoa por meio do nome de exibição. Sessões sem foiling detectado (ex.: importações apenas de GPS) não aparecem nas listas da comunidade.",
     "imp.ownerTitle": "🔒 Apenas você (dono da sessão)",
@@ -709,6 +730,8 @@ private let _ptOverlayP7: [String: String] = [
     "watchStats.users": "Usuários",
     "watchStats.km": "km de foil",
     "watchStats.bestSpeed": "Velocidade máx.",
+]
+private let _ptOverlayP7s2: [String: String] = [
     "foilstats.bestKm": "melhores km",
     "datafields.intro": "Até 3 campos por página. Páginas vazias são puladas no relógio.",
     "account.offFoilTitle": "Tela fora do foil",
@@ -767,6 +790,8 @@ private let _ptOverlayP8: [String: String] = [
     "compare.runsTitle": "Todos os runs",
     "compare.colorTrack": "Por traçado",
     "compare.colorRider": "Por rider",
+]
+private let _ptOverlayP8s2: [String: String] = [
     "sd.fullscreen": "Tela cheia",
     "sd.close": "Fechar",
     "merge.done": "Unidas ✓",
@@ -825,6 +850,8 @@ private let _ptOverlayP9: [String: String] = [
     "sd.captionEdit": "Editar legenda",
     "sd.addPhoto": "Adicionar foto",
     "meta.linkVideo": "Vincular vídeo",
+]
+private let _ptOverlayP9s2: [String: String] = [
     "sessions.deleteAllOther": "Excluir todas",
     "sessions.deleteAllOtherConfirm": "Excluir mesmo TODAS as sessões filtradas? Isso afeta apenas suas próprias sessões filtradas (não pumpfoil) — suas sessões de pumpfoil não são tocadas. Isso não pode ser desfeito.",
     "meta.youtubePlaceholder": "Link do YouTube (opcional)",
@@ -884,6 +911,8 @@ private let _ptOverlayP10: [String: String] = [
     // Automatische Sportart-Erkennung + Fremdkraft-Kasten (Wortlaut aus web pt.ts).
     "cls.autoAsk": "Esta sessão não nos parece pumpfoil — por enquanto ela não conta em nenhuma estatística. Quer classificá-la corretamente? Se foi mesmo pumpfoil, basta escolher “Pumpfoil”.",
     "cls.autoSetAs": "Classificada automaticamente como {sport}. Se não estiver certo, altere aqui.",
+]
+private let _ptOverlayP10s2: [String: String] = [
     "cls.autoWhy": "O que decidiu: run mais longo {dur} s a {kmh} km/h em média — um run de pumping dura 27 s em média.",
     "cls.autoWhyPulse": "O que decidiu: run mais longo {dur} s a {kmh} km/h em média, e a frequência cardíaca quase não reagiu ({hr} bpm).",
     "v2.sepTitle": "Propulsão externa? Runs separados",
@@ -902,7 +931,7 @@ private let _ptOverlayP10: [String: String] = [
 // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
 let jaOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_jaOverlayP1, _jaOverlayP2, _jaOverlayP3, _jaOverlayP4, _jaOverlayP5, _jaOverlayP6, _jaOverlayP7, _jaOverlayP8, _jaOverlayP9, _jaOverlayP10, _jaOverlayP11] { d.merge(p) { a, _ in a } }
+    for p in [_jaOverlayP1, _jaOverlayP1s2, _jaOverlayP2, _jaOverlayP2s2, _jaOverlayP3, _jaOverlayP3s2, _jaOverlayP4, _jaOverlayP4s2, _jaOverlayP5, _jaOverlayP5s2, _jaOverlayP6, _jaOverlayP6s2, _jaOverlayP7, _jaOverlayP7s2, _jaOverlayP8, _jaOverlayP8s2, _jaOverlayP9, _jaOverlayP9s2, _jaOverlayP10, _jaOverlayP10s2, _jaOverlayP11, _jaOverlayP11s2, _jaOverlayP11s3, _jaOverlayP11s4, _jaOverlayP11s5, _jaOverlayP11s6] { d.merge(p) { a, _ in a } }
     return d
 }()
 
@@ -958,6 +987,8 @@ private let _jaOverlayP11: [String: String] = [
     "watchQuality.title": "どの時計が一番よく記録できるか",
     "watchQuality.lead": "{sessions} 件の記録、水上 {hours} 時間分から算出。数週間ごとに再集計しています — このデータは {date} 時点のものです。",
     "watchQuality.new": "この集計は始めたばかりです。記録が集まるほど数字の信頼性は上がります — とくに、まだ1〜2人しか使っていない機種では。",
+]
+private let _jaOverlayP11s2: [String: String] = [
     "watchQuality.colPump": "ポンプ検出",
     "watchQuality.colGps": "測位",
     "watchQuality.colHr": "心拍",
@@ -977,7 +1008,6 @@ private let _jaOverlayP11: [String: String] = [
     "compare.syncSkipped": "{min} 分をスキップ",
     "sd.play": "再生",
     "sd.pause": "一時停止",
-    "account.activityPumpfoil": "パンプフォイル（汎用）",
     "account.addLayoutPage": "＋ 自作画面を追加",
     "account.autoStart": "離水したら自動的に記録を開始（GPS）",
     "account.browseAll": "一時停止中やフォイルしていないときも他の画面をめくれるようにする",
@@ -1008,6 +1038,8 @@ private let _jaOverlayP11: [String: String] = [
     "cls.pickErr": "保存できませんでした",
     "cls.thanks": "ありがとうございます！ 所有者にこのセッションの分類をお願いします。",
     "cls.wasPumpfoil": "やはりパンプフォイルでした →",
+]
+private let _jaOverlayP11s3: [String: String] = [
     "datafields.editorInBrowser": "Własne ekrany projektujesz na pumpfoil.org w przeglądarce — tutaj możesz je wstawiać, oglądać i porządkować.",
     "foils.add": "追加",
     "foils.catalog": "カタログ",
@@ -1058,6 +1090,8 @@ private let _jaOverlayP11: [String: String] = [
     "sd.excludedTitleOne": "1 本のランを除外",
     "sd.exportFile": "Last ned fil",
     "sd.exportFit": "FIT ファイルとしてダウンロード（Garmin Connect、Strava など向け）",
+]
+private let _jaOverlayP11s4: [String: String] = [
     "sd.exportGpx": "GPX ファイルとしてダウンロード（トラック＋心拍）",
     "sd.includeRun": "元に戻す",
     "sessions.none": "まだセッションがありません。",
@@ -1108,6 +1142,8 @@ private let _jaOverlayP11: [String: String] = [
     "upload.title": "セッションをアップロード中",
     "upload.waiting": "データを待っています…",
         "imp.mapTitle": "地図",
+]
+private let _jaOverlayP11s5: [String: String] = [
         "imp.map1": "<b>道路地図</b>は <b>OpenStreetMap</b> から提供されています。地図を表示すると、ブラウザが地図タイルを同団体のサーバーから直接読み込むため、あなたの IP アドレスと表示中の範囲が送信されます。提供者：OpenStreetMap Foundation（英国）。",
         "imp.map2": "地図上のボタンで<b>衛星</b>に切り替えると、航空写真は <b>Esri</b>（Esri, Maxar, Earthstar Geographics）から提供されます。こちらも同社のサーバーから直接読み込まれ、同じくあなたの IP アドレスが送信されます。これは切り替えた<b>場合にのみ</b>起こり、選択内容はお使いの端末内にのみ保存されます。",
         "imp.mapApple": "<b>iPhone および Apple Watch アプリ</b>では、地図も航空写真も <b>Apple マップ</b>から提供され、OpenStreetMap や Esri は使用しません。地図を表示すると、端末が表示範囲を Apple に送信します。これについては Apple がそのプライバシーポリシーに基づいて責任を負います。<b>Android アプリ</b>はブラウザと同じで、道路地図は OpenStreetMap、航空写真は Esri から提供されます。",
@@ -1158,6 +1194,8 @@ private let _jaOverlayP11: [String: String] = [
     "guide.g.s2Title": "2. ウォッチでコードを生成：",
     "guide.g.s2": "Pumpfoil を開き（開始しない）→ MENU（左中央のボタン）を長押し →「設定」→「接続」。ウォッチに6桁のコードが表示されます（スマホが近くにあるか Wi-Fi が必要）。",
     "guide.g.s3Title": "3. ここにコードを入力：",
+]
+private let _jaOverlayP11s6: [String: String] = [
     "guide.g.s3": "→「ウォッチのコードを入力」。完了 — ウォッチがアカウントに連携されました。",
     "guide.g.s4Title": "4. データフィールドとアラーム：",
     "guide.g.s4": "ここ pumpfoil.org の「データフィールド」（画面ごと最大3つ）と「アラーム」タブで設定 — 接続後にウォッチへ送信されます。",
@@ -1248,6 +1286,8 @@ private let _jaOverlayP1: [String: String] = [
     "rec.saving": "保存中…",
     "rec.saved": "保存しました",
     "common.cancel": "キャンセル",
+]
+private let _jaOverlayP1s2: [String: String] = [
     "common.delete": "削除",
     "common.saved": "保存しました",
     "common.noData": "まだデータがありません",
@@ -1306,6 +1346,8 @@ private let _jaOverlayP2: [String: String] = [
     "account.activityTypeHint": "Garminの記録がGarmin Connectでどのアクティビティとして表示されるかを設定します。",
     "account.devicesTitle": "連携済みウォッチ",
     "account.deviceUnnamed": "名前なしウォッチ",
+]
+private let _jaOverlayP2s2: [String: String] = [
     "account.recordMode": "記録",
     "account.recordModeFull": "フル · 25 Hz",
     "account.recordModeLite": "ライト · 10 Hz",
@@ -1367,6 +1409,8 @@ private let _jaOverlayP3: [String: String] = [
     "sessions.searchSpot": "スポットを検索",
     "sessions.empty": "セッションがありません",
     "sessions.oclock": "",
+]
+private let _jaOverlayP3s2: [String: String] = [
     "sd.duration": "継続時間",
     "verlauf.empty": "まだ分析がありません",
     "verlauf.total": "合計",
@@ -1426,6 +1470,8 @@ private let _jaOverlayP4: [String: String] = [
     "profile.changePw": "パスワードを変更",
     "profile.changePwHint": "確認のため現在のパスワードを入力し、新しいものを設定します。",
     "profile.curPw": "現在のパスワード",
+]
+private let _jaOverlayP4s2: [String: String] = [
     "profile.newPw": "新しいパスワード(8文字以上)",
     "profile.pwMin": "新しいパスワード:8文字以上。",
     "profile.pwChanged": "パスワードを変更しました。",
@@ -1484,6 +1530,8 @@ private let _jaOverlayP5: [String: String] = [
     "rec.longestRun": "最長ラン",
     "rec.topSpeed": "最高速度",
     "rec.longestGlide": "最長グライド",
+]
+private let _jaOverlayP5s2: [String: String] = [
     "rec.mostRuns": "最多ラン",
     "rec.sessionDistance": "最長セッション",
     "rec.sessionTime": "フォイル上時間",
@@ -1542,6 +1590,8 @@ private let _jaOverlayP6: [String: String] = [
     "imp.community1": "表示名とプロフィール画像(設定されている場合;表示名がない場合、セッションは名前なしで表示されます)。",
     "imp.community2": "フォイリングが検出された全セッション:日時、スポット(OpenStreetMapの水域名)、マップ/GPSトラック(つまりどこでフォイルしたか)、ラン数、距離、速度、心拍数、ポンプ/グライド値、そしてアップロードされた写真。",
     "imp.community3": "レコード&リーダーボード(名前、値、スポット、セッション/ラン/スポット数)。",
+]
+private let _jaOverlayP6s2: [String: String] = [
     "imp.community4": "いいね(数)と「偽物っぽい」/「不適切」投票の数。",
     "imp.communityNote": "セッションは匿名ではありません—表示名を通じて本人に紐づけられます。フォイリングが検出されなかったセッション(例:純粋なGPSインポート)はコミュニティリストに表示されません。",
     "imp.ownerTitle": "🔒 あなただけ(セッションの所有者)",
@@ -1600,6 +1650,8 @@ private let _jaOverlayP7: [String: String] = [
     "watchStats.users": "ユーザー",
     "watchStats.km": "フォイルkm",
     "watchStats.bestSpeed": "最高速度",
+]
+private let _jaOverlayP7s2: [String: String] = [
     "foilstats.bestKm": "ベストkm",
     "datafields.intro": "1ページあたり最大3フィールド。空のページはウォッチでスキップされます。",
     "account.offFoilTitle": "フォイル外画面",
@@ -1658,6 +1710,8 @@ private let _jaOverlayP8: [String: String] = [
     "compare.runsTitle": "全ラン",
     "compare.colorTrack": "トラックごと",
     "compare.colorRider": "ライダーごと",
+]
+private let _jaOverlayP8s2: [String: String] = [
     "sd.fullscreen": "全画面",
     "sd.close": "閉じる",
     "merge.done": "結合しました ✓",
@@ -1716,6 +1770,8 @@ private let _jaOverlayP9: [String: String] = [
     "sd.captionEdit": "キャプションを編集",
     "sd.addPhoto": "写真を追加",
     "meta.linkVideo": "動画をリンク",
+]
+private let _jaOverlayP9s2: [String: String] = [
     "sessions.deleteAllOther": "すべて削除",
     "sessions.deleteAllOtherConfirm": "除外されたすべてのセッションを本当に削除しますか?これはあなた自身の除外済み(非パンプフォイル)セッションにのみ影響します—あなたのパンプフォイルセッションはそのまま残ります。取り消せません。",
     "meta.youtubePlaceholder": "YouTubeリンク(任意)",
@@ -1775,6 +1831,8 @@ private let _jaOverlayP10: [String: String] = [
     // Automatische Sportart-Erkennung + Fremdkraft-Kasten (Wortlaut aus web ja.ts).
     "cls.autoAsk": "このセッションはパンプフォイルには見えません。そのため当面はどの統計にも入りません。正しく分類してもらえますか？ 本当にパンプフォイルだった場合は「Pumpfoil」を選んでください。",
     "cls.autoSetAs": "自動的に「{sport}」に分類されました。違う場合はここで変更できます。",
+]
+private let _jaOverlayP10s2: [String: String] = [
     "cls.autoWhy": "判断の根拠：最長ラン {dur} 秒、平均 {kmh} km/h — パンプのランは平均 27 秒です。",
     "cls.autoWhyPulse": "判断の根拠：最長ラン {dur} 秒、平均 {kmh} km/h で、心拍がほとんど反応しませんでした（{hr} bpm）。",
     "v2.sepTitle": "外部動力？ 除外されたラン",
@@ -1793,7 +1851,7 @@ private let _jaOverlayP10: [String: String] = [
 // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
 let zhOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_zhOverlayP1, _zhOverlayP2, _zhOverlayP3, _zhOverlayP4, _zhOverlayP5, _zhOverlayP6, _zhOverlayP7, _zhOverlayP8, _zhOverlayP9, _zhOverlayP10, _zhOverlayP11] { d.merge(p) { a, _ in a } }
+    for p in [_zhOverlayP1, _zhOverlayP1s2, _zhOverlayP2, _zhOverlayP2s2, _zhOverlayP3, _zhOverlayP3s2, _zhOverlayP4, _zhOverlayP4s2, _zhOverlayP5, _zhOverlayP5s2, _zhOverlayP6, _zhOverlayP6s2, _zhOverlayP7, _zhOverlayP7s2, _zhOverlayP8, _zhOverlayP8s2, _zhOverlayP9, _zhOverlayP9s2, _zhOverlayP10, _zhOverlayP10s2, _zhOverlayP11, _zhOverlayP11s2, _zhOverlayP11s3, _zhOverlayP11s4, _zhOverlayP11s5, _zhOverlayP11s6] { d.merge(p) { a, _ in a } }
     return d
 }()
 
@@ -1849,6 +1907,8 @@ private let _zhOverlayP11: [String: String] = [
     "watchQuality.title": "哪款手表记录得最好？",
     "watchQuality.lead": "基于 {sessions} 次记录、水上 {hours} 小时测得。每隔几周重新统计 — 本次数据截至 {date}。",
     "watchQuality.new": "这项统计刚刚开始。记录越多，数字就越可靠 — 尤其是目前只有一两位用户在用的型号。",
+]
+private let _zhOverlayP11s2: [String: String] = [
     "watchQuality.colPump": "划水识别",
     "watchQuality.colGps": "定位",
     "watchQuality.colHr": "心率",
@@ -1868,7 +1928,6 @@ private let _zhOverlayP11: [String: String] = [
     "compare.syncSkipped": "跳过 {min} 分钟",
     "sd.play": "播放",
     "sd.pause": "暂停",
-    "account.activityPumpfoil": "泵翼（通用）",
     "account.addLayoutPage": "＋ 插入自定义界面",
     "account.autoStart": "起航时自动开始记录（GPS）",
     "account.browseAll": "暂停或未在foil时也能翻看其他界面",
@@ -1899,6 +1958,8 @@ private let _zhOverlayP11: [String: String] = [
     "cls.pickErr": "无法保存",
     "cls.thanks": "谢谢！我们会请所有者为这次会话归类。",
     "cls.wasPumpfoil": "这确实是 pumpfoil →",
+]
+private let _zhOverlayP11s3: [String: String] = [
     "datafields.editorInBrowser": "Własne ekrany projektujesz na pumpfoil.org w przeglądarce — tutaj możesz je wstawiać, oglądać i porządkować.",
     "foils.add": "添加",
     "foils.catalog": "目录",
@@ -1949,6 +2010,8 @@ private let _zhOverlayP11: [String: String] = [
     "sd.excludedTitleOne": "已剔除 1 次",
     "sd.exportFile": "Last ned fil",
     "sd.exportFit": "下载为 FIT 文件（用于 Garmin Connect、Strava 等）",
+]
+private let _zhOverlayP11s4: [String: String] = [
     "sd.exportGpx": "下载为 GPX 文件（轨迹＋心率）",
     "sd.includeRun": "加回来",
     "sessions.none": "暂无记录。",
@@ -1999,6 +2062,8 @@ private let _zhOverlayP11: [String: String] = [
     "upload.title": "会话上传中",
     "upload.waiting": "等待数据…",
         "imp.mapTitle": "地图",
+]
+private let _zhOverlayP11s5: [String: String] = [
         "imp.map1": "<b>街道地图</b>来自 <b>OpenStreetMap</b>。显示地图时，你的浏览器会直接从他们的服务器加载地图瓦片，这会传输你的 IP 地址和当前显示的范围。提供方：OpenStreetMap Foundation（英国）。",
         "imp.map2": "如果你用地图上的按钮切换到<b>卫星</b>视图，航拍影像来自 <b>Esri</b>（Esri、Maxar、Earthstar Geographics）——同样直接来自他们的服务器，同样会传输你的 IP 地址。这<b>仅</b>在你切换时才会发生；你的选择只保存在本机设备上。",
         "imp.mapApple": "在 <b>iPhone 和 Apple Watch 应用</b>中，地图和航拍影像都来自 <b>Apple 地图</b>，而不是 OpenStreetMap 或 Esri。显示地图会把当前范围发送给 Apple；对此由 Apple 依据其隐私政策负责。<b>Android 应用</b>与浏览器相同：街道地图来自 OpenStreetMap，航拍影像来自 Esri。",
@@ -2049,6 +2114,8 @@ private let _zhOverlayP11: [String: String] = [
     "guide.g.s2Title": "2. 在手表上生成配对码：",
     "guide.g.s2": "打开 Pumpfoil（不要启动）→ 按住 MENU（左中键）→ “设置” → “连接”。手表会显示一个 6 位配对码（需手机在附近或有 Wi-Fi）。",
     "guide.g.s3Title": "3. 在此输入配对码：",
+]
+private let _zhOverlayP11s6: [String: String] = [
     "guide.g.s3": "→ “输入手表上的配对码”。完成 —— 手表已关联到你的账号。",
     "guide.g.s4Title": "4. 数据字段与提醒：",
     "guide.g.s4": "在 pumpfoil.org 的“数据字段”（每屏最多 3 个）和“提醒”标签中设置 —— 连接后会推送到手表。",
@@ -2139,6 +2206,8 @@ private let _zhOverlayP1: [String: String] = [
     "rec.saving": "保存中…",
     "rec.saved": "已保存",
     "common.cancel": "取消",
+]
+private let _zhOverlayP1s2: [String: String] = [
     "common.delete": "删除",
     "common.saved": "已保存",
     "common.noData": "暂无数据",
@@ -2197,6 +2266,8 @@ private let _zhOverlayP2: [String: String] = [
     "account.activityTypeHint": "设置 Garmin 记录在 Garmin Connect 中显示为哪种活动。",
     "account.devicesTitle": "已连接的手表",
     "account.deviceUnnamed": "未命名手表",
+]
+private let _zhOverlayP2s2: [String: String] = [
     "account.recordMode": "记录模式",
     "account.recordModeFull": "完整 · 25 Hz",
     "account.recordModeLite": "精简 · 10 Hz",
@@ -2258,6 +2329,8 @@ private let _zhOverlayP3: [String: String] = [
     "sessions.searchSpot": "搜索地点",
     "sessions.empty": "暂无记录",
     "sessions.oclock": "",
+]
+private let _zhOverlayP3s2: [String: String] = [
     "sd.duration": "时长",
     "verlauf.empty": "暂无分析",
     "verlauf.total": "总计",
@@ -2317,6 +2390,8 @@ private let _zhOverlayP4: [String: String] = [
     "profile.changePw": "修改密码",
     "profile.changePwHint": "输入当前密码确认，再设置新密码。",
     "profile.curPw": "当前密码",
+]
+private let _zhOverlayP4s2: [String: String] = [
     "profile.newPw": "新密码（至少 8 个字符）",
     "profile.pwMin": "新密码：至少 8 个字符。",
     "profile.pwChanged": "密码已修改。",
@@ -2375,6 +2450,8 @@ private let _zhOverlayP5: [String: String] = [
     "rec.longestRun": "最长航次",
     "rec.topSpeed": "最高速度",
     "rec.longestGlide": "最长滑行",
+]
+private let _zhOverlayP5s2: [String: String] = [
     "rec.mostRuns": "最多航次",
     "rec.sessionDistance": "最远一次冲浪",
     "rec.sessionTime": "在 foil 上的时间",
@@ -2433,6 +2510,8 @@ private let _zhOverlayP6: [String: String] = [
     "imp.community1": "昵称和头像（若已设置；没有昵称时该记录会以无名显示）。",
     "imp.community2": "所有检测到水翼冲浪的记录：日期/时间、地点（来自 OpenStreetMap 的水域名称）、地图/GPS 轨迹（即你在哪里冲浪）、航次数、距离、速度、心率、泵动/滑行数值以及上传的照片。",
     "imp.community3": "纪录与排行榜（名字、数值、地点、记录/航次/地点数量）。",
+]
+private let _zhOverlayP6s2: [String: String] = [
     "imp.community4": "点赞（数量）以及“疑似造假”/“不当内容”投票的数量。",
     "imp.communityNote": "记录不是匿名的 — 它们通过昵称与本人关联。未检测到水翼冲浪的记录（如纯 GPS 导入）不会出现在社区列表中。",
     "imp.ownerTitle": "🔒 仅你本人（记录所有者）",
@@ -2491,6 +2570,8 @@ private let _zhOverlayP7: [String: String] = [
     "watchStats.users": "用户",
     "watchStats.km": "Foil 公里数",
     "watchStats.bestSpeed": "最高速度",
+]
+private let _zhOverlayP7s2: [String: String] = [
     "foilstats.bestKm": "最佳公里数",
     "datafields.intro": "每页最多 3 个字段。空白页在手表上会被跳过。",
     "account.offFoilTitle": "非 foil 屏幕",
@@ -2549,6 +2630,8 @@ private let _zhOverlayP8: [String: String] = [
     "compare.runsTitle": "全部航次",
     "compare.colorTrack": "按轨迹",
     "compare.colorRider": "按骑手",
+]
+private let _zhOverlayP8s2: [String: String] = [
     "sd.fullscreen": "全屏",
     "sd.close": "关闭",
     "merge.done": "已合并 ✓",
@@ -2607,6 +2690,8 @@ private let _zhOverlayP9: [String: String] = [
     "sd.captionEdit": "编辑说明",
     "sd.addPhoto": "添加照片",
     "meta.linkVideo": "关联视频",
+]
+private let _zhOverlayP9s2: [String: String] = [
     "sessions.deleteAllOther": "全部删除",
     "sessions.deleteAllOtherConfirm": "确定删除所有被筛除的记录？这只影响你自己被筛除的（非泵翼冲浪）记录 — 你的泵翼冲浪记录不受影响。此操作无法撤销。",
     "meta.youtubePlaceholder": "YouTube 链接（可选）",
@@ -2666,6 +2751,8 @@ private let _zhOverlayP10: [String: String] = [
     // Automatische Sportart-Erkennung + Fremdkraft-Kasten (Wortlaut aus web zh.ts).
     "cls.autoAsk": "这次记录在我们看来不像是 pumpfoil，因此暂时不计入任何统计。可以帮忙正确归类吗？如果确实是 pumpfoil，选择“Pumpfoil”即可。",
     "cls.autoSetAs": "已自动归类为 {sport}。如果不对，在这里改即可。",
+]
+private let _zhOverlayP10s2: [String: String] = [
     "cls.autoWhy": "判断依据：最长一段 {dur} 秒，平均 {kmh} km/h —— 泵动的一段平均只有 27 秒。",
     "cls.autoWhyPulse": "判断依据：最长一段 {dur} 秒，平均 {kmh} km/h，而心率几乎没有反应（{hr} bpm）。",
     "v2.sepTitle": "外部动力？已分离的段",
@@ -2684,7 +2771,7 @@ private let _zhOverlayP10: [String: String] = [
 // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
 let ruOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_ruOverlayP1, _ruOverlayP2, _ruOverlayP3, _ruOverlayP4, _ruOverlayP5, _ruOverlayP6, _ruOverlayP7, _ruOverlayP8, _ruOverlayP9, _ruOverlayP10, _ruOverlayP11] { d.merge(p) { a, _ in a } }
+    for p in [_ruOverlayP1, _ruOverlayP1s2, _ruOverlayP2, _ruOverlayP2s2, _ruOverlayP3, _ruOverlayP3s2, _ruOverlayP4, _ruOverlayP4s2, _ruOverlayP5, _ruOverlayP5s2, _ruOverlayP6, _ruOverlayP6s2, _ruOverlayP7, _ruOverlayP7s2, _ruOverlayP8, _ruOverlayP8s2, _ruOverlayP9, _ruOverlayP9s2, _ruOverlayP10, _ruOverlayP10s2, _ruOverlayP11, _ruOverlayP11s2, _ruOverlayP11s3, _ruOverlayP11s4, _ruOverlayP11s5, _ruOverlayP11s6] { d.merge(p) { a, _ in a } }
     return d
 }()
 
@@ -2740,6 +2827,8 @@ private let _ruOverlayP11: [String: String] = [
     "watchQuality.title": "Какие часы записывают лучше?",
     "watchQuality.lead": "Измерено по {sessions} записям и {hours} часам на воде. Пересчитывается раз в несколько недель — эти данные от {date}.",
     "watchQuality.new": "Этот анализ новый. Чем больше записей накопится, тем надёжнее станут цифры — особенно для моделей, которыми пока пользуются один-два райдера.",
+]
+private let _ruOverlayP11s2: [String: String] = [
     "watchQuality.colPump": "Распознавание пампов",
     "watchQuality.colGps": "Позиционирование",
     "watchQuality.colHr": "Пульс",
@@ -2759,7 +2848,6 @@ private let _ruOverlayP11: [String: String] = [
     "compare.syncSkipped": "пропущено {min} мин",
     "sd.play": "Воспроизвести",
     "sd.pause": "Пауза",
-    "account.activityPumpfoil": "Pumpfoil (общий)",
     "account.addLayoutPage": "+ Вставить свой экран",
     "account.autoStart": "Автостарт записи при выходе на фойл (GPS)",
     "account.browseAll": "Листать и остальные экраны на паузе или когда не идёт катание",
@@ -2790,6 +2878,8 @@ private let _ruOverlayP11: [String: String] = [
     "cls.pickErr": "Не удалось сохранить",
     "cls.thanks": "Спасибо! Владельца попросят классифицировать эту сессию.",
     "cls.wasPumpfoil": "Это всё-таки был пампфойл →",
+]
+private let _ruOverlayP11s3: [String: String] = [
     "datafields.editorInBrowser": "Własne ekrany projektujesz na pumpfoil.org w przeglądarce — tutaj możesz je wstawiać, oglądać i porządkować.",
     "foils.add": "Добавить",
     "foils.catalog": "Каталог",
@@ -2840,6 +2930,8 @@ private let _ruOverlayP11: [String: String] = [
     "sd.excludedTitleOne": "1 заезд убран",
     "sd.exportFile": "Last ned fil",
     "sd.exportFit": "Скачать как файл FIT (для Garmin Connect, Strava и других)",
+]
+private let _ruOverlayP11s4: [String: String] = [
     "sd.exportGpx": "Скачать как файл GPX (трек + пульс)",
     "sd.includeRun": "вернуть",
     "sessions.none": "Пока нет сессий.",
@@ -2890,6 +2982,8 @@ private let _ruOverlayP11: [String: String] = [
     "upload.title": "Сессия загружается",
     "upload.waiting": "Ожидание данных…",
         "imp.mapTitle": "Карты",
+]
+private let _ruOverlayP11s5: [String: String] = [
         "imp.map1": "<b>Дорожная карта</b> предоставляется <b>OpenStreetMap</b>. При показе карты твой браузер загружает фрагменты карты напрямую с их серверов, при этом передаются твой IP-адрес и отображаемый участок. Поставщик: OpenStreetMap Foundation, Великобритания.",
         "imp.map2": "Если ты переключишься на <b>спутник</b> кнопкой на карте, аэроснимки поступают от <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — тоже напрямую с их серверов и тоже с твоим IP-адресом. Это происходит <b>только</b> при переключении; твой выбор сохраняется локально на устройстве.",
         "imp.mapApple": "В <b>приложении для iPhone и Apple Watch</b> и карта, И аэроснимки поступают от <b>Apple Карт</b>, а не от OpenStreetMap или Esri. При показе карты устройство передаёт отображаемый участок в Apple; ответственность за это несёт Apple согласно своей политике конфиденциальности. <b>Android-приложение</b> работает как браузер: дорожная карта от OpenStreetMap, аэроснимки от Esri.",
@@ -2940,6 +3034,8 @@ private let _ruOverlayP11: [String: String] = [
     "guide.g.s2Title": "2. Сгенерируйте код на часах:",
     "guide.g.s2": "откройте Pumpfoil (не запускайте) → удерживайте MENU (средняя левая кнопка) → «Настройки» → «Подключение». Часы покажут 6-значный код (нужен телефон рядом или Wi-Fi).",
     "guide.g.s3Title": "3. Введите код здесь:",
+]
+private let _ruOverlayP11s6: [String: String] = [
     "guide.g.s3": "→ «Введите код с часов». Готово — часы связаны с вашим аккаунтом.",
     "guide.g.s4Title": "4. Поля данных и сигнал:",
     "guide.g.s4": "задаются здесь на pumpfoil.org во вкладках «Поля данных» (до 3 на экран) и «Сигнал» — отправляются на часы после подключения.",
@@ -3030,6 +3126,8 @@ private let _ruOverlayP1: [String: String] = [
     "rec.saving": "сохранение…",
     "rec.saved": "Сохранено",
     "common.cancel": "Отмена",
+]
+private let _ruOverlayP1s2: [String: String] = [
     "common.delete": "Удалить",
     "common.saved": "Сохранено",
     "common.noData": "Пока нет данных",
@@ -3088,6 +3186,8 @@ private let _ruOverlayP2: [String: String] = [
     "account.activityTypeHint": "Задаёт, как записи Garmin отображаются в Garmin Connect.",
     "account.devicesTitle": "Привязанные часы",
     "account.deviceUnnamed": "Часы без имени",
+]
+private let _ruOverlayP2s2: [String: String] = [
     "account.recordMode": "Запись",
     "account.recordModeFull": "Полная · 25 Гц",
     "account.recordModeLite": "Облегчённая · 10 Гц",
@@ -3149,6 +3249,8 @@ private let _ruOverlayP3: [String: String] = [
     "sessions.searchSpot": "Поиск спота",
     "sessions.empty": "Нет сессий",
     "sessions.oclock": "",
+]
+private let _ruOverlayP3s2: [String: String] = [
     "sd.duration": "Длительность",
     "verlauf.empty": "Пока нет анализов",
     "verlauf.total": "Всего",
@@ -3208,6 +3310,8 @@ private let _ruOverlayP4: [String: String] = [
     "profile.changePw": "Сменить пароль",
     "profile.changePwHint": "Текущий пароль для подтверждения, затем задайте новый.",
     "profile.curPw": "Текущий пароль",
+]
+private let _ruOverlayP4s2: [String: String] = [
     "profile.newPw": "Новый пароль (мин. 8 символов)",
     "profile.pwMin": "Новый пароль: минимум 8 символов.",
     "profile.pwChanged": "Пароль изменён.",
@@ -3266,6 +3370,8 @@ private let _ruOverlayP5: [String: String] = [
     "rec.longestRun": "Самый долгий заезд",
     "rec.topSpeed": "Макс. скорость",
     "rec.longestGlide": "Самое долгое скольжение",
+]
+private let _ruOverlayP5s2: [String: String] = [
     "rec.mostRuns": "Больше всего заездов",
     "rec.sessionDistance": "Самая дальняя сессия",
     "rec.sessionTime": "Время на фойле",
@@ -3324,6 +3430,8 @@ private let _ruOverlayP6: [String: String] = [
     "imp.community1": "Отображаемое имя и аватар (если заданы; без отображаемого имени сессия показывается без имени).",
     "imp.community2": "Все сессии с обнаруженным фойлингом: дата/время, спот (название водоёма из OpenStreetMap), карта/GPS-трек (то есть где вы катали на фойле), число заездов, дистанция, скорость, пульс, значения памп/скольжение и загруженные фото.",
     "imp.community3": "Рекорды и таблицы лидеров (имя, значение, спот, число сессий/заездов/спотов).",
+]
+private let _ruOverlayP6s2: [String: String] = [
     "imp.community4": "Лайки (количество) и число голосов «похоже на фейк»/«неуместно».",
     "imp.communityNote": "Сессии не анонимны — они связаны с человеком через его отображаемое имя. Сессии без обнаруженного фойлинга (например, чистые GPS-импорты) не появляются в списках сообщества.",
     "imp.ownerTitle": "🔒 Только вы (владелец сессии)",
@@ -3382,6 +3490,8 @@ private let _ruOverlayP7: [String: String] = [
     "watchStats.users": "Пользователи",
     "watchStats.km": "Foil-км",
     "watchStats.bestSpeed": "Макс. скорость",
+]
+private let _ruOverlayP7s2: [String: String] = [
     "foilstats.bestKm": "лучшие км",
     "datafields.intro": "До 3 полей на страницу. Пустые страницы на часах пропускаются.",
     "account.offFoilTitle": "Экран вне фойла",
@@ -3440,6 +3550,8 @@ private let _ruOverlayP8: [String: String] = [
     "compare.runsTitle": "Все заезды",
     "compare.colorTrack": "По треку",
     "compare.colorRider": "По райдеру",
+]
+private let _ruOverlayP8s2: [String: String] = [
     "sd.fullscreen": "Полный экран",
     "sd.close": "Закрыть",
     "merge.done": "Объединено ✓",
@@ -3498,6 +3610,8 @@ private let _ruOverlayP9: [String: String] = [
     "sd.captionEdit": "Изменить подпись",
     "sd.addPhoto": "Добавить фото",
     "meta.linkVideo": "Привязать видео",
+]
+private let _ruOverlayP9s2: [String: String] = [
     "sessions.deleteAllOther": "Удалить все",
     "sessions.deleteAllOtherConfirm": "Точно удалить ВСЕ отфильтрованные сессии? Это затронет только ваши отфильтрованные (не-pumpfoil) сессии — ваши pumpfoil-сессии не тронуты. Отменить нельзя.",
     "meta.youtubePlaceholder": "Ссылка YouTube (необязательно)",
@@ -3557,6 +3671,8 @@ private let _ruOverlayP10: [String: String] = [
     // Automatische Sportart-Erkennung + Fremdkraft-Kasten (Wortlaut aus web ru.ts).
     "cls.autoAsk": "Эта сессия не похожа на пампфойл — поэтому пока она не учитывается ни в одной статистике. Не хочешь отнести её к нужной категории? Если это всё же был пампфойл, просто выбери «Pumpfoil».",
     "cls.autoSetAs": "Автоматически отнесено к категории {sport}. Если это неверно, просто измени здесь.",
+]
+private let _ruOverlayP10s2: [String: String] = [
     "cls.autoWhy": "Решающее: самый длинный заезд {dur} с при средней {kmh} км/ч — заезд с пампингом длится в среднем 27 с.",
     "cls.autoWhyPulse": "Решающее: самый длинный заезд {dur} с при средней {kmh} км/ч, а пульс почти не отреагировал ({hr} уд/мин).",
     "v2.sepTitle": "Внешняя тяга? Отделённые заезды",
@@ -3575,7 +3691,7 @@ private let _ruOverlayP10: [String: String] = [
 // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
 let idOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_idOverlayP1, _idOverlayP2, _idOverlayP3, _idOverlayP4, _idOverlayP5, _idOverlayP6, _idOverlayP7, _idOverlayP8, _idOverlayP9, _idOverlayP10, _idOverlayP11] { d.merge(p) { a, _ in a } }
+    for p in [_idOverlayP1, _idOverlayP1s2, _idOverlayP2, _idOverlayP2s2, _idOverlayP3, _idOverlayP3s2, _idOverlayP4, _idOverlayP4s2, _idOverlayP5, _idOverlayP5s2, _idOverlayP6, _idOverlayP6s2, _idOverlayP7, _idOverlayP7s2, _idOverlayP8, _idOverlayP8s2, _idOverlayP9, _idOverlayP9s2, _idOverlayP10, _idOverlayP10s2, _idOverlayP11, _idOverlayP11s2, _idOverlayP11s3, _idOverlayP11s4, _idOverlayP11s5, _idOverlayP11s6] { d.merge(p) { a, _ in a } }
     return d
 }()
 
@@ -3631,6 +3747,8 @@ private let _idOverlayP11: [String: String] = [
     "watchQuality.title": "Jam mana yang merekam paling baik?",
     "watchQuality.lead": "Diukur dari {sessions} rekaman dan {hours} jam di air. Dihitung ulang setiap beberapa minggu — kondisi ini per {date}.",
     "watchQuality.new": "Analisis ini masih baru. Semakin banyak rekaman yang masuk, semakin dapat diandalkan angkanya — terutama untuk model yang sejauh ini hanya dipakai satu atau dua rider.",
+]
+private let _idOverlayP11s2: [String: String] = [
     "watchQuality.colPump": "Deteksi pump",
     "watchQuality.colGps": "Penentuan posisi",
     "watchQuality.colHr": "Detak jantung",
@@ -3650,7 +3768,6 @@ private let _idOverlayP11: [String: String] = [
     "compare.syncSkipped": "{min} mnt dilewati",
     "sd.play": "Putar",
     "sd.pause": "Jeda",
-    "account.activityPumpfoil": "Pumpfoil (umum)",
     "account.addLayoutPage": "+ Sisipkan layar sendiri",
     "account.autoStart": "Mulai rekam otomatis saat aku take off (GPS)",
     "account.browseAll": "Telusuri juga layar lain saat jeda atau saat tidak sedang foiling",
@@ -3681,6 +3798,8 @@ private let _idOverlayP11: [String: String] = [
     "cls.pickErr": "Tidak bisa disimpan",
     "cls.thanks": "Terima kasih! Pemiliknya akan diminta mengklasifikasikan sesi ini.",
     "cls.wasPumpfoil": "Itu memang pumpfoil →",
+]
+private let _idOverlayP11s3: [String: String] = [
     "datafields.editorInBrowser": "Własne ekrany projektujesz na pumpfoil.org w przeglądarce — tutaj możesz je wstawiać, oglądać i porządkować.",
     "foils.add": "Tambah",
     "foils.catalog": "Katalog",
@@ -3731,6 +3850,8 @@ private let _idOverlayP11: [String: String] = [
     "sd.excludedTitleOne": "1 run dikeluarkan",
     "sd.exportFile": "Last ned fil",
     "sd.exportFit": "Unduh sebagai berkas FIT (untuk Garmin Connect, Strava dan lainnya)",
+]
+private let _idOverlayP11s4: [String: String] = [
     "sd.exportGpx": "Unduh sebagai berkas GPX (jalur + detak jantung)",
     "sd.includeRun": "kembalikan",
     "sessions.none": "Belum ada sesi.",
@@ -3781,6 +3902,8 @@ private let _idOverlayP11: [String: String] = [
     "upload.title": "Sesi sedang diunggah",
     "upload.waiting": "Menunggu data…",
         "imp.mapTitle": "Peta",
+]
+private let _idOverlayP11s5: [String: String] = [
         "imp.map1": "<b>Peta jalan</b> berasal dari <b>OpenStreetMap</b>. Saat peta ditampilkan, peramban kamu memuat ubin peta langsung dari server mereka, sehingga alamat IP kamu dan area yang ditampilkan ikut terkirim. Penyedia: OpenStreetMap Foundation, Britania Raya.",
         "imp.map2": "Kalau kamu beralih ke <b>Satelit</b> lewat tombol di peta, citra udara datang dari <b>Esri</b> (Esri, Maxar, Earthstar Geographics) — juga langsung dari server mereka dan juga dengan alamat IP kamu. Ini <b>hanya</b> terjadi kalau kamu beralih; pilihanmu diingat secara lokal di perangkatmu.",
         "imp.mapApple": "Di <b>aplikasi iPhone dan Apple Watch</b>, peta DAN citra udara sama-sama berasal dari <b>Apple Maps</b>, bukan dari OpenStreetMap atau Esri. Menampilkan peta mengirimkan area yang tampil ke Apple; Apple bertanggung jawab atas hal itu sesuai kebijakan privasi mereka. <b>Aplikasi Android</b> bekerja seperti peramban: peta jalan dari OpenStreetMap, citra udara dari Esri.",
@@ -3831,6 +3954,8 @@ private let _idOverlayP11: [String: String] = [
     "guide.g.s2Title": "2. Buat kode di jam:",
     "guide.g.s2": "buka Pumpfoil (jangan mulai) → tahan MENU (tombol tengah-kiri) → “Pengaturan” → “Hubungkan”. Jam menampilkan kode 6 digit (ponsel di dekatnya atau Wi-Fi diperlukan).",
     "guide.g.s3Title": "3. Masukkan kode di sini:",
+]
+private let _idOverlayP11s6: [String: String] = [
     "guide.g.s3": "→ “Masukkan kode dari jam”. Selesai — jam tertaut ke akunmu.",
     "guide.g.s4Title": "4. Data field & alarm:",
     "guide.g.s4": "diatur di sini di pumpfoil.org pada tab “Data field” (hingga 3 per layar) dan “Alarm” — dikirim ke jam setelah terhubung.",
@@ -3921,6 +4046,8 @@ private let _idOverlayP1: [String: String] = [
     "rec.saving": "menyimpan…",
     "rec.saved": "Tersimpan",
     "common.cancel": "Batal",
+]
+private let _idOverlayP1s2: [String: String] = [
     "common.delete": "Hapus",
     "common.saved": "Tersimpan",
     "common.noData": "Belum ada data",
@@ -3979,6 +4106,8 @@ private let _idOverlayP2: [String: String] = [
     "account.activityTypeHint": "Menentukan sebagai aktivitas apa rekaman Garmin muncul di Garmin Connect.",
     "account.devicesTitle": "Jam terhubung",
     "account.deviceUnnamed": "Jam tanpa nama",
+]
+private let _idOverlayP2s2: [String: String] = [
     "account.recordMode": "Perekaman",
     "account.recordModeFull": "Penuh · 25 Hz",
     "account.recordModeLite": "Lite · 10 Hz",
@@ -4040,6 +4169,8 @@ private let _idOverlayP3: [String: String] = [
     "sessions.searchSpot": "Cari spot",
     "sessions.empty": "Tidak ada sesi",
     "sessions.oclock": "",
+]
+private let _idOverlayP3s2: [String: String] = [
     "sd.duration": "Durasi",
     "verlauf.empty": "Belum ada analisis",
     "verlauf.total": "Total",
@@ -4099,6 +4230,8 @@ private let _idOverlayP4: [String: String] = [
     "profile.changePw": "Ubah kata sandi",
     "profile.changePwHint": "Kata sandi saat ini untuk konfirmasi, lalu atur yang baru.",
     "profile.curPw": "Kata sandi saat ini",
+]
+private let _idOverlayP4s2: [String: String] = [
     "profile.newPw": "Kata sandi baru (min. 8 karakter)",
     "profile.pwMin": "Kata sandi baru: minimal 8 karakter.",
     "profile.pwChanged": "Kata sandi diubah.",
@@ -4157,6 +4290,8 @@ private let _idOverlayP5: [String: String] = [
     "rec.longestRun": "Lintasan terlama",
     "rec.topSpeed": "Kecepatan tertinggi",
     "rec.longestGlide": "Meluncur terlama",
+]
+private let _idOverlayP5s2: [String: String] = [
     "rec.mostRuns": "Lintasan terbanyak",
     "rec.sessionDistance": "Sesi terjauh",
     "rec.sessionTime": "Waktu on-foil",
@@ -4215,6 +4350,8 @@ private let _idOverlayP6: [String: String] = [
     "imp.community1": "Nama tampilan dan foto profil (jika diatur; tanpa nama tampilan sesi muncul tanpa nama).",
     "imp.community2": "Semua sesi dengan foiling terdeteksi: tanggal/waktu, spot (nama perairan dari OpenStreetMap), jalur peta/GPS (yaitu di mana Anda foiling), jumlah lintasan, jarak, kecepatan, detak jantung, nilai pump/meluncur, dan foto yang diunggah.",
     "imp.community3": "Rekor & papan peringkat (nama, nilai, spot, jumlah sesi/lintasan/spot).",
+]
+private let _idOverlayP6s2: [String: String] = [
     "imp.community4": "Suka (jumlah) dan jumlah suara “tampak palsu”/“tidak pantas”.",
     "imp.communityNote": "Sesi tidak anonim — sesi terkait dengan orang melalui nama tampilan mereka. Sesi tanpa foiling terdeteksi (mis. impor GPS murni) tidak muncul di daftar komunitas.",
     "imp.ownerTitle": "🔒 Hanya Anda (pemilik sesi)",
@@ -4273,6 +4410,8 @@ private let _idOverlayP7: [String: String] = [
     "watchStats.users": "Pengguna",
     "watchStats.km": "Km foil",
     "watchStats.bestSpeed": "Kecepatan tertinggi",
+]
+private let _idOverlayP7s2: [String: String] = [
     "foilstats.bestKm": "km terbaik",
     "datafields.intro": "Hingga 3 bidang per halaman. Halaman kosong dilewati di jam.",
     "account.offFoilTitle": "Layar off-foil",
@@ -4331,6 +4470,8 @@ private let _idOverlayP8: [String: String] = [
     "compare.runsTitle": "Semua lintasan",
     "compare.colorTrack": "Per jalur",
     "compare.colorRider": "Per rider",
+]
+private let _idOverlayP8s2: [String: String] = [
     "sd.fullscreen": "Layar penuh",
     "sd.close": "Tutup",
     "merge.done": "Digabung ✓",
@@ -4389,6 +4530,8 @@ private let _idOverlayP9: [String: String] = [
     "sd.captionEdit": "Edit keterangan",
     "sd.addPhoto": "Tambah foto",
     "meta.linkVideo": "Tautkan video",
+]
+private let _idOverlayP9s2: [String: String] = [
     "sessions.deleteAllOther": "Hapus semua",
     "sessions.deleteAllOtherConfirm": "Yakin menghapus SEMUA sesi yang tersaring keluar? Ini hanya memengaruhi sesi Anda sendiri yang tersaring keluar (non-pumpfoil) — sesi pumpfoil Anda tidak tersentuh. Ini tidak bisa dibatalkan.",
     "meta.youtubePlaceholder": "Tautan YouTube (opsional)",
@@ -4448,6 +4591,8 @@ private let _idOverlayP10: [String: String] = [
     // Automatische Sportart-Erkennung + Fremdkraft-Kasten (Wortlaut aus web id.ts).
     "cls.autoAsk": "Sesi ini bagi kami tidak terlihat seperti pumpfoil — untuk sementara tidak dihitung di statistik mana pun. Mau mengklasifikasikannya dengan benar? Kalau memang pumpfoil, pilih saja “Pumpfoil”.",
     "cls.autoSetAs": "Diklasifikasikan otomatis sebagai {sport}. Kalau tidak tepat, ubah saja di sini.",
+]
+private let _idOverlayP10s2: [String: String] = [
     "cls.autoWhy": "Yang menentukan: run terpanjang {dur} s dengan rata-rata {kmh} km/h — satu run pumping rata-rata 27 s.",
     "cls.autoWhyPulse": "Yang menentukan: run terpanjang {dur} s dengan rata-rata {kmh} km/h, dan detak jantung hampir tidak bereaksi ({hr} bpm).",
     "v2.sepTitle": "Tenaga luar? Run yang dipisahkan",
@@ -4465,7 +4610,7 @@ private let _idOverlayP10: [String: String] = [
 // den Swift-Type-Checker im Release-Build minutenlang kauen.
 let nbOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_nbOverlayP1, _nbOverlayP2, _nbOverlayP3, _nbOverlayP4, _nbOverlayP5, _nbOverlayP6, _nbOverlayP7, _nbOverlayP8, _nbOverlayP9, _nbOverlayP10, _nbOverlayP11] { d.merge(p) { a, _ in a } }
+    for p in [_nbOverlayP1, _nbOverlayP1s2, _nbOverlayP2, _nbOverlayP2s2, _nbOverlayP3, _nbOverlayP3s2, _nbOverlayP4, _nbOverlayP4s2, _nbOverlayP5, _nbOverlayP5s2, _nbOverlayP6, _nbOverlayP6s2, _nbOverlayP7, _nbOverlayP7s2, _nbOverlayP8, _nbOverlayP8s2, _nbOverlayP9, _nbOverlayP9s2, _nbOverlayP10, _nbOverlayP10s2, _nbOverlayP11, _nbOverlayP11s2, _nbOverlayP11s3, _nbOverlayP11s4, _nbOverlayP11s5] { d.merge(p) { a, _ in a } }
     return d
 }()
 
@@ -4521,6 +4666,8 @@ private let _nbOverlayP11: [String: String] = [
     "watchQuality.title": "Hvilken klokke måler best?",
     "watchQuality.lead": "Målt på {sessions} opptak og {hours} timer på vannet. Regnes ut på nytt med noen ukers mellomrom — dette er fra {date}.",
     "watchQuality.new": "Denne analysen er ny. Jo flere opptak som kommer inn, jo mer pålitelige blir tallene — særlig for modeller som bare én eller to ryttere bruker så langt.",
+]
+private let _nbOverlayP11s2: [String: String] = [
     "watchQuality.colPump": "Pump-gjenkjenning",
     "watchQuality.colGps": "Posisjon",
     "watchQuality.colHr": "Puls",
@@ -4571,6 +4718,8 @@ private let _nbOverlayP11: [String: String] = [
     "lay.hasFreetext": "inneholder egen tekst",
     "lay.pausedHint": "Pauset",
     "lay.saveErr": "Kunne ikke lagres.",
+]
+private let _nbOverlayP11s3: [String: String] = [
     "lay.toCommunity": "Oppsett fra fellesskapet",
     "lay.usedBy": "brukes av {n} foilere",
     "sessions.none": "Ingen økter ennå.",
@@ -4621,6 +4770,8 @@ private let _nbOverlayP11: [String: String] = [
     "guide.pair.code": "På klokka: “Koble til” → “Lag koblingskode”, skriv så inn den 6-sifrede koden her:",
     "guide.pair.relinkTitle": "Bytte eller koble fra (Garmin):",
     "guide.pair.relink": "Kobler du klokka fra under “Tilknyttede kontoer”, mister den koblingen selv neste gang den når serveren — i stedet for “Tilkoblet” viser den en kode igjen. For å overskrive en eksisterende kobling (annen klokke/konto): på klokka “Koble til” → ENTER lager en ny kode når som helst. Det gamle tokenet er aktivt til du løser inn den nye koden her, så et avbrutt forsøk endrer ingenting.",
+]
+private let _nbOverlayP11s4: [String: String] = [
     "guide.pair.note": "Logg inn med e-post, Google eller Apple — samme e-post betyr samme konto, ingen egen kobling nødvendig.",
     "guide.connect": "“Koble til”",
     "guide.garminSub": "Fenix, Forerunner, Epix, Instinct …",
@@ -4671,6 +4822,8 @@ private let _nbOverlayP11: [String: String] = [
     "spz.z4": "Z4 rask",
     "spz.z5": "Z5 maksimum",
     "spz.reset": "Tilbake til forslaget",
+]
+private let _nbOverlayP11s5: [String: String] = [
     "spz.isSuggestion": "Forslag ut fra farten du kjører (opptil {max} km/h). Endre et tall, så gjelder din egen innstilling.",
     "stat.foiling": "Foiling",
     "stat.foilingTime": "Foiling-tid",
@@ -4747,6 +4900,8 @@ private let _nbOverlayP1: [String: String] = [
     "account.layoutsEnabledHint": "Av = klokkene dine viser de klassiske 3-felts-visningene. Hvis én klokke lager trøbbel, kan du også slå det av på selve klokka (meny → Egne oppsett).",
     "account.pauseTitle": "Opptak satt på pause",
     "account.pauseDesc": "Vises bare når du selv har satt opptaket på pause (hold STOP → Pause). Skjermer av denne typen har alltid “Pause”-hintet — det kan flyttes, men ikke fjernes, ellers vet ingen hvordan man fortsetter.",
+]
+private let _nbOverlayP1s2: [String: String] = [
     "account.layoutMissing": "(oppsett slettet)",
     "account.addLayoutPage": "+ Sett inn egen skjerm",
     "cls.sport.pumpfoil": "Pumpfoil",
@@ -4816,6 +4971,8 @@ private let _nbOverlayP2: [String: String] = [
     "rec.autostartHint": "Opptaket starter automatisk (som START-knappen) når GPS ser ~10 km/h i ca. 4 s.",
     "rec.foilLabel": "Foil for denne økta",
     "rec.foilNone": "Ingen foil",
+]
+private let _nbOverlayP2s2: [String: String] = [
     "rec.foilOther": "Annen foil …",
     "rec.start": "START",
     "rec.stop": "STOP",
@@ -4885,13 +5042,14 @@ private let _nbOverlayP3: [String: String] = [
     "profile.editName": "Visningsnavn",
     "profile.web": "Åpne pumpfoil.org",
     "settings.title": "Innstillinger",
+]
+private let _nbOverlayP3s2: [String: String] = [
     "settings.weight": "Vekt",
     "settings.homespot": "Hjemmespot",
     "settings.auto": "Automatisk",
     "account.activityType": "Aktivitetstype i Garmin Connect",
     "account.activitySurfing": "Surfing",
     "account.activityOpenWater": "Åpent vann",
-    "account.activityPumpfoil": "Pumpfoil (generisk)",
     "account.activityTypeHint": "Bestemmer hvilken aktivitet Garmin-opptaket vises som i Garmin Connect.",
     "account.devicesTitle": "Tilkoblede klokker",
     "account.deviceUnnamed": "Klokke uten navn",
@@ -4957,6 +5115,8 @@ private let _nbOverlayP4: [String: String] = [
     "sessions.searchSpot": "Søk spot",
     "sessions.empty": "Ingen økter",
     "sessions.oclock": "",
+]
+private let _nbOverlayP4s2: [String: String] = [
     "sd.duration": "Varighet",
     "verlauf.empty": "Ingen analyser ennå",
     "verlauf.total": "Totalt",
@@ -5026,6 +5186,8 @@ private let _nbOverlayP5: [String: String] = [
     "compare.remove": "Fjern fra sammenligning",
     "row.like": "Lik",
     "row.unlike": "Fjern like",
+]
+private let _nbOverlayP5s2: [String: String] = [
     "chat.report": "Rapporter",
     "chat.reportConfirm": "Rapportere denne meldingen til moderatorene?",
     "chat.subscribe": "Abonner",
@@ -5095,6 +5257,8 @@ private let _nbOverlayP6: [String: String] = [
     "chat.title": "Chat",
     "dm.block": "Blokker",
     "dm.unblock": "Fjern blokkering",
+]
+private let _nbOverlayP6s2: [String: String] = [
     "dm.blockConfirm": "Blokkere {name}? Dere kan ikke sende meldinger til hverandre lenger.",
     "dm.blockedNote": "Blokkert — meldinger er ikke mulig.",
     "dm.searchPlaceholder": "Søk etter navn…",
@@ -5164,6 +5328,8 @@ private let _nbOverlayP7: [String: String] = [
     "imp.yt1": "På hjemmesiden viser vi miniatyrbilder fra YouTube-kanalen vår. De leveres via <b>vår egen server</b> — å laste siden gir <b>ingen</b> kontakt med Google og setter <b>ingen</b> cookies.",
     "imp.yt2": "Først når du <b>klikker</b> på en video, lastes YouTube-spilleren (personvernmodus, youtube-nocookie.com). Google/YouTube får da IP-adressen din og kan sette cookies. Ved å klikke samtykker du til dette.",
     "imp.ytNote": "Leverandør: Google Ireland Ltd. Mer i <a href=\"https://policies.google.com/privacy\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"text-brand-400 hover:underline\">Googles personvernerklæring</a>.",
+]
+private let _nbOverlayP7s2: [String: String] = [
     "update.available": "Oppdatering klar",
     "update.action": "Oppdater",
     "chat.edit": "Endre",
@@ -5233,6 +5399,8 @@ private let _nbOverlayP8: [String: String] = [
     "alarm.mode": "Utløser",
     "alarm.modeOnce": "én gang ved kryssing",
     "alarm.modeContinuous": "kontinuerlig så lenge over/under",
+]
+private let _nbOverlayP8s2: [String: String] = [
     "alarm.zeroHint": "Tips: 0 km/h slår av den grensen.",
     "alarm.patShort1": "1× kort",
     "alarm.patShort2": "2× kort",
@@ -5302,6 +5470,8 @@ private let _nbOverlayP9: [String: String] = [
     "sd.captionEdit": "Endre tekst",
     "sd.addPhoto": "Bilde",
     "meta.linkVideo": "Video",
+]
+private let _nbOverlayP9s2: [String: String] = [
     "sessions.deleteAllOther": "Slett alle",
     "sessions.deleteAllOtherConfirm": "Vil du virkelig slette ALLE utsorterte økter? Dette gjelder bare dine egne utsorterte økter (ikke pumpfoil) — pumpfoil-øktene dine berøres ikke. Dette kan ikke angres.",
     "meta.youtubePlaceholder": "YouTube-, Instagram- eller TikTok-lenke",
@@ -5371,6 +5541,8 @@ private let _nbOverlayP10: [String: String] = [
     "cls.autoAsk": "Denne økta ser ikke ut som pumpfoiling for oss — så inntil videre teller den ikke i noen statistikk. Kan du klassifisere den? Var det virkelig pumpfoiling, velger du bare «Pumpfoil».",
     "cls.autoSetAs": "Automatisk klassifisert som {sport}. Er det feil, endrer du det bare her.",
     "cls.autoWhy": "Det som avgjorde: lengste run {dur} s med {kmh} km/h i snitt — et run med pumping varer 27 s i snitt.",
+]
+private let _nbOverlayP10s2: [String: String] = [
     "cls.autoWhyPulse": "Det som avgjorde: lengste run {dur} s med {kmh} km/h i snitt, og pulsen din reagerte nesten ikke ({hr} bpm).",
     "v2.sepTitle": "Ytre kraft? Runs satt til side",
     "v2.sepIntro": "Disse strekkene ser ut som ytre kraft — en båt, bil eller motor — så de teller ikke som pumpfoil-runs. Er det feil, holder ett trykk for å hente runet tilbake.",
@@ -5385,7 +5557,7 @@ private let _nbOverlayP10: [String: String] = [
 // einziges Riesen-Literal laesst den Swift-Type-Checker minutenlang kauen.
 let plOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_plOverlayP1, _plOverlayP2, _plOverlayP3, _plOverlayP4, _plOverlayP5, _plOverlayP6] { d.merge(p) { a, _ in a } }
+    for p in [_plOverlayP1, _plOverlayP1s2, _plOverlayP1s3, _plOverlayP1s4, _plOverlayP1s5, _plOverlayP2, _plOverlayP2s2, _plOverlayP2s3, _plOverlayP3, _plOverlayP3s2, _plOverlayP3s3, _plOverlayP4, _plOverlayP4s2, _plOverlayP4s3, _plOverlayP5, _plOverlayP5s2, _plOverlayP5s3, _plOverlayP6] { d.merge(p) { a, _ in a } }
     return d
 }()
 
@@ -5440,6 +5612,8 @@ private let _plOverlayP1: [String: String] = [
     "watchQuality.title": "Który zegarek nagrywa najlepiej?",
     "watchQuality.lead": "Zmierzone na {sessions} nagraniach i {hours} godzinach na wodzie. Przeliczane co kilka tygodni — ten stan jest z {date}.",
     "watchQuality.new": "Ta analiza jest nowa. Im więcej nagrań się zbierze, tym bardziej wiarygodne będą liczby — zwłaszcza przy modelach, których używa dotąd tylko jeden lub dwóch zawodników.",
+]
+private let _plOverlayP1s2: [String: String] = [
     "watchQuality.colPump": "Wykrywanie pumpów",
     "watchQuality.colGps": "Lokalizacja",
     "watchQuality.colHr": "Tętno",
@@ -5490,6 +5664,8 @@ private let _plOverlayP1: [String: String] = [
     "foils.defaultSportHint": "Dotyczy tylko przyszłych nagrań — istniejące sesje zostają bez zmian. Wybór na zegarku pojawi się później.",
     "home.startThreshold": "Próba < ",
     "setup.addValue": "Dodaj",
+]
+private let _plOverlayP1s3: [String: String] = [
     "setup.boardDelConfirm": "Usunąć tę deskę? Sesje, które jej używają, wrócą do Twojej domyślnej.",
     "setup.boardDesc": "Deski dodajesz sam (nazwa, opcjonalnie objętość i długość) — nie ma na nie katalogu producentów.",
     "setup.boardLenPlaceholder": "cm",
@@ -5540,6 +5716,8 @@ private let _plOverlayP1: [String: String] = [
     "account.gnssModeGps": "Tylko GPS (najoszczędniej)",
     "account.gnssModeHint": "Więcej systemów szybciej i pewniej ustala pozycję, ale zużywa więcej baterii. Tylko Garmin, od wersji zegarka 1.0.77.",
     "account.recordModeGpsHint": "W tym trybie brakuje liczby pomp, kadencji i faz szybowania — są liczone z czujnika ruchu.",
+]
+private let _plOverlayP1s4: [String: String] = [
     "account.recordModeZeppHint": "Amazfit nie korzysta jeszcze z tego ustawienia — zegarek nagrywa ze swoją własną częstotliwością.",
     "account.devicesSettingsIntro": "Ustawienia pod każdym zegarkiem działają na sam zegarek. Przejmie je przy następnym otwarciu aplikacji — bez aktualizacji.",
     "account.pickLayoutTitle": "Który z Twoich własnych ekranów?",
@@ -5590,6 +5768,8 @@ private let _plOverlayP1: [String: String] = [
     "account.layoutsEnabledHint": "Wyłączone = Twoje zegarki pokazują klasyczne widoki z 3 polami. Jeśli jeden zegarek sprawia kłopoty, możesz je wyłączyć również na samym urządzeniu (menu → Własne układy).",
     "account.pauseTitle": "Nagrywanie wstrzymane",
     "account.pauseDesc": "Pokazywane tylko wtedy, gdy sam wstrzymałeś nagrywanie (przytrzymaj STOP → Pauza). Własne ekrany tego rodzaju zawsze noszą wskazówkę „Pauza” — można ją przesunąć, ale nie usunąć, bo inaczej nikt nie wie, jak wznowić.",
+]
+private let _plOverlayP1s5: [String: String] = [
     "account.layoutMissing": "(układ usunięty)",
     "account.addLayoutPage": "+ Wstaw własny ekran",
     "cls.sport.pumpfoil": "Pumpfoil",
@@ -5689,6 +5869,8 @@ private let _plOverlayP2: [String: String] = [
     "rec.upDone": "wysłano ✓",
     "rec.saving": "zapisywanie…",
     "rec.saved": "Zapisano",
+]
+private let _plOverlayP2s2: [String: String] = [
     "common.cancel": "Anuluj",
     "common.delete": "Usuń",
     "common.saved": "Zapisano",
@@ -5739,6 +5921,8 @@ private let _plOverlayP2: [String: String] = [
     "guide.g.s2Title": "2. Wygeneruj kod na zegarku:",
     "guide.g.s2": "otwórz Pumpfoil (nie startuj) → przytrzymaj MENU (środkowy lewy przycisk) → „Ustawienia” → „Połącz”. Zegarek pokaże 6-znakowy kod (wymagany telefon w pobliżu albo Wi-Fi).",
     "guide.g.s3Title": "3. Wpisz kod tutaj:",
+]
+private let _plOverlayP2s3: [String: String] = [
     "guide.g.s3": "→ „Wpisz kod z zegarka”. Gotowe — zegarek jest powiązany z Twoim kontem.",
     "guide.g.s4Title": "4. Pola danych i alarm:",
     "guide.g.s4": "ustawiasz tutaj, na pumpfoil.org, w zakładkach „Pola danych” (do 3 na ekran) i „Alarm” — trafiają na zegarek po połączeniu.",
@@ -5781,7 +5965,6 @@ private let _plOverlayP2: [String: String] = [
     "account.activityType": "Typ aktywności w Garmin Connect",
     "account.activitySurfing": "Surfing",
     "account.activityOpenWater": "Woda otwarta",
-    "account.activityPumpfoil": "Pumpfoil (ogólny)",
     "account.activityTypeHint": "Ustala, jako jaka aktywność nagranie z Garmina pojawia się w Garmin Connect.",
     "account.devicesTitle": "Połączone zegarki",
     "account.deviceUnnamed": "Zegarek bez nazwy",
@@ -5842,6 +6025,8 @@ private let _plOverlayP3: [String: String] = [
     "home.longestRun": "Najdłuższy przejazd",
     "home.longestGlide": "Najdłuższe szybowanie",
     "home.mostRuns": "Najwięcej przejazdów",
+]
+private let _plOverlayP3s2: [String: String] = [
     "home.latest": "Najnowsze sesje",
     "sessions.mine": "Moje",
     "sessions.all": "Wszystkie",
@@ -5892,6 +6077,8 @@ private let _plOverlayP3: [String: String] = [
     "pumpunit.ppm": "Pompy na minutę",
     "pumpunit.hint": "Jak pokazywana jest kadencja pomp: w Hz (pompy na sekundę) czy jako pompy na minutę. Tylko wyświetlanie.",
     "unit.spots": "Spoty",
+]
+private let _plOverlayP3s3: [String: String] = [
     "home.spots": "Spoty",
     "home.spotSearch": "Szukaj spotu (inne jezioro)…",
     "home.noSpots": "Jeszcze żadnych spotów — poszukaj powyżej.",
@@ -5995,6 +6182,8 @@ private let _plOverlayP4: [String: String] = [
     "dm.noResults": "Nic nie znaleziono.",
     "dm.blockedList": "Zablokowani",
     "rating.title": "Podoba Ci się Pumpfoil?",
+]
+private let _plOverlayP4s2: [String: String] = [
     "rating.subtitle": "Ile gwiazdek nam dasz?",
     "rating.feedbackTitle": "Co możemy zrobić lepiej?",
     "rating.feedbackHint": "Twoja opinia trafia prosto do nas — dzięki!",
@@ -6045,6 +6234,8 @@ private let _plOverlayP4: [String: String] = [
     "imp.apple3": "Brak przekazywania osobom trzecim, brak reklam, brak trenowania AI/ML. Za przetwarzanie po stronie Apple odpowiada Apple, zgodnie ze swoją polityką prywatności.",
     "imp.connTitle": "Połączone konta (Polar, COROS, Suunto)",
     "imp.connIntro": "Opcjonalnie i wyłącznie na Twoje wyraźne działanie możesz połączyć konto innej usługi, aby importować aktywności:",
+]
+private let _plOverlayP4s3: [String: String] = [
     "imp.conn1": "Przy łączeniu zostajesz przekierowany do danego dostawcy i logujesz się u niego (OAuth). Otrzymujemy token dostępu oraz udostępnione przez Ciebie dane treningów (w tym ślad GPS, czas, tętno).",
     "imp.conn2": "Te dane są importowane wyłącznie jako Twoje własne sesje i traktowane jak pozostałe Twoje sesje.",
     "imp.conn3": "Połączenie możesz w każdej chwili cofnąć w „Połączonych kontach” — zapisany token zostaje wtedy usunięty.",
@@ -6129,7 +6320,6 @@ private let _plOverlayP5: [String: String] = [
     "sd.colAvgPump": "Ø pompa {unit}",
     "sd.colPumpMaxMin": "Pompa {unit} 5s (maks./min.)",
     "sd.colGlide": "najdłuższe szybowanie",
-    "sd.colMaxHr": "Maks. tętno",
     "alarm.pattern": "Wzór",
     "alarm.mode": "Wyzwalanie",
     "alarm.modeOnce": "raz przy przekroczeniu",
@@ -6148,6 +6338,8 @@ private let _plOverlayP5: [String: String] = [
     "sd.minSpeed": "Prędkość min. ({win}s)",
     "sd.maxGlide": "Najdłuższe szybowanie",
     "stat.pumps": "Pompy",
+]
+private let _plOverlayP5s2: [String: String] = [
     "merge.action": "Połącz",
     "merge.compareHint": "Tylko Twoje własne sesje z tego samego dnia – możesz je połączyć w jedną.",
     "compare.runsTitle": "Wszystkie przejazdy",
@@ -6198,6 +6390,8 @@ private let _plOverlayP5: [String: String] = [
     "sd.apply": "Zastosuj",
     "sd.report": "Zgłoś",
     "sd.reportFake": "Zgłoś jako fejk",
+]
+private let _plOverlayP5s3: [String: String] = [
     "sd.reportInappropriate": "Zgłoś jako nieodpowiednie",
     "sd.fake": "wygląda na fejk",
     "sd.inappropriate": "nieodpowiednie",
