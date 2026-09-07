@@ -57,6 +57,7 @@ const nl: Record<string, string> = {
   "common.delete": "Verwijderen",
   "common.search": "Zoeken",
   "common.loading": "laden…",
+  "common.loadFailed": "Kon niet geladen worden.",
   "common.close": "Sluiten",
   "common.reset": "Resetten",
   "share.linkBtn": "Deel-link",

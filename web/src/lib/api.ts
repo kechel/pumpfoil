@@ -739,6 +739,15 @@ export const api = {
     next: { name: string; version: string; note: string; items?: string[] }[];
   }>("/api/app/releases"),
 
+  // Der Changelog selbst — seit 07.09.2026 aus der Datenbank, nicht mehr fest im Code.
+  // `plattform`/`version` sind fuer die nativen Apps gedacht (der Server markiert dann, was
+  // erst ein Update bringt); die PWA ist immer aktuell und schickt sie deshalb nicht.
+  changelog: () => req<{
+    days: { date: string; items: { text: string; img?: string; img_alt?: string;
+                                   mit_update?: string }[] }[];
+    latest: string;
+  }>("/api/app/changelog"),
+
   // Uhren-Auswertung fuer /watch-stats: Snapshot aus scripts/uhren-qualitaet.py.
   watchQuality: () => req<{
     stand: string; sessions?: number; nutzer?: number; stunden?: number;

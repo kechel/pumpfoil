@@ -54,6 +54,7 @@ const pt: Record<string, string> = {
   "common.delete": "Excluir",
   "common.search": "Buscar",
   "common.loading": "carregando…",
+  "common.loadFailed": "Não foi possível carregar.",
   "common.close": "Fechar",
   "common.reset": "Redefinir",
   "share.linkBtn": "Link de compartilhamento",

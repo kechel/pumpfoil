@@ -46,6 +46,7 @@ const gsw: Record<string, string> = {
   "common.delete": "Lösche",
   "common.search": "Sueche",
   "common.loading": "ladt…",
+  "common.loadFailed": "Het nöd chönne glade werde.",
   "common.reset": "Zruggsetze",
   "common.back": "← zrugg",
 

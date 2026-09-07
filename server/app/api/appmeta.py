@@ -325,6 +325,77 @@ NAECHSTES: list[dict] = [
 ]
 
 
+def _ver_tupel(v: str) -> tuple[int, ...]:
+    """„1.1.26" -> (1, 1, 26). Fehlende/kaputte Stellen zaehlen als 0 — ein Vergleich soll nie
+    an einem Tippfehler in einer Versionsangabe scheitern."""
+    teile = []
+    for t in (v or "").strip().split("."):
+        ziffern = "".join(c for c in t if c.isdigit())
+        teile.append(int(ziffern) if ziffern else 0)
+    return tuple(teile)
+
+
+def _neuer_als(a: str, b: str) -> bool:
+    """Ist Version `a` neuer als `b`? Stellenweise numerisch, nicht als Text — „1.1.10" ist
+    neuer als „1.1.9", was ein String-Vergleich genau falsch herum sieht (derselbe Fehler stand
+    bis 18.08. im Zepp-Update-Hinweis, s. watch-zepp/CHANGELOG.md 1.0.6)."""
+    ta, tb = _ver_tupel(a), _ver_tupel(b)
+    laenge = max(len(ta), len(tb))
+    ta += (0,) * (laenge - len(ta))
+    tb += (0,) * (laenge - len(tb))
+    return ta > tb
+
+
+@router.get("/changelog")
+def changelog(plattform: str = "", version: str = "",
+              db: Session = Depends(get_db)) -> dict:
+    """Der oeffentliche Changelog, gruppiert nach Tag — neueste zuerst.
+
+    Stand bis zum 07.09.2026 als festes Array im PWA-Code (`Changelog.tsx`). Zwei Gruende fuer
+    den Umzug in die Datenbank, beide von Jan:
+      * Jede Textzeile brauchte einen NEUBAU der PWA. Jetzt ist ein neuer Punkt eine Zeile in
+        `changelog_items`.
+      * Im Code stand der 7. September zweimal und der 6. dreimal. Eine Zeile je PUNKT mit
+        einem echten Datum macht das strukturell unmoeglich: hier wird nach `tag` gruppiert.
+
+    `plattform` + `version` sind optional und fuer die NATIVEN Apps gedacht (Jans Idee): wer sie
+    mitschickt, bekommt je Punkt ein `mit_update`-Kennzeichen — also „das bekommst du erst mit
+    einem Update". Ausdrueckliche Vorgabe Jan: **nur in der Changelog-Ansicht zeigen, NICHT im
+    Update-Hinweis** — der bleibt kurz.
+
+    Die Rechnung „ist diese Version neuer als meine" macht bewusst der Server. Sonst haette jede
+    der vier Apps ihren eigenen Versionsvergleich, und genau der ist schon einmal falsch gewesen.
+    """
+    from ..models import ChangelogItem
+
+    plat = (plattform or "").lower().strip()
+    zeilen = (db.query(ChangelogItem)
+              .filter(ChangelogItem.entwurf == False)  # noqa: E712
+              .order_by(ChangelogItem.tag.desc(), ChangelogItem.pos.asc(),
+                        ChangelogItem.id.asc()).all())
+    tage: list[dict] = []
+    for z in zeilen:
+        iso = z.tag.isoformat()
+        if not tage or tage[-1]["date"] != iso:
+            tage.append({"date": iso, "items": []})
+        punkt: dict = {"text": z.text}
+        if z.img:
+            punkt["img"] = z.img
+            if z.img_alt:
+                punkt["img_alt"] = z.img_alt
+        # Kommt dieser Punkt fuer MEINE Plattform erst mit einer neueren Version?
+        if plat and version and z.versionen:
+            try:
+                vs = json.loads(z.versionen) or {}
+            except ValueError:
+                vs = {}
+            noetig = (vs.get(plat) or "").strip()
+            if noetig and _neuer_als(noetig, version):
+                punkt["mit_update"] = noetig
+        tage[-1]["items"].append(punkt)
+    return {"days": tage, "latest": tage[0]["date"] if tage else ""}
+
+
 @router.get("/releases")
 def releases() -> dict:
     """Was ist live, was liegt im Review, was kommt als Naechstes (fuer /changelog)."""

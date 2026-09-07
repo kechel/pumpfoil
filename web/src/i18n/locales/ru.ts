@@ -54,6 +54,7 @@ const ru: Record<string, string> = {
   "common.delete": "Удалить",
   "common.search": "Поиск",
   "common.loading": "загрузка…",
+  "common.loadFailed": "Не удалось загрузить.",
   "common.close": "Закрыть",
   "common.reset": "Сбросить",
   "share.linkBtn": "Ссылка для доступа",

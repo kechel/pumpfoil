@@ -54,6 +54,7 @@ const zh: Record<string, string> = {
   "common.delete": "删除",
   "common.search": "搜索",
   "common.loading": "加载中…",
+  "common.loadFailed": "无法加载。",
   "common.close": "关闭",
   "common.reset": "重置",
   "share.linkBtn": "分享链接",

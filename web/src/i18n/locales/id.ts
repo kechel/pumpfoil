@@ -54,6 +54,7 @@ const id: Record<string, string> = {
   "common.delete": "Hapus",
   "common.search": "Cari",
   "common.loading": "memuat…",
+  "common.loadFailed": "Tidak dapat dimuat.",
   "common.close": "Tutup",
   "common.reset": "Reset",
   "share.linkBtn": "Bagikan tautan",
