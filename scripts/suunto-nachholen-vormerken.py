@@ -25,6 +25,11 @@ Kontingent weg. Deshalb drei Grenzen:
 2. Nur was `suunto._vorfilter` durchlaesst (Bewegungsprofil: nicht ueber 60 km, nicht unter einer
    Minute, kein 30er-Schnitt ueber zehn Minuten). Der Filter ist bewusst grosszuegig.
 3. Nur was wir nicht schon haben (Vergleich der Startzeiten, drei Sekunden Toleranz).
+4. Nur Sportarten, deren FIT-Wert bei uns zum Aussortieren oder zur Rueckfrage fuehrt. Was
+   sofort als Pumpfoil zaehlen wuerde, bleibt aussen vor — „Surfing" kann bei einem
+   Suunto-Nutzer echtes Wellenreiten sein, und „Water sports" schreibt `generic`, faellt also
+   auf die Voreinstellung. Sonst wanderten fremde Alt-Aufnahmen ungefragt in die
+   Community-Rekorde. Mit `--auch-zaehlende` trotzdem moeglich.
 
 Die frischen Aufnahmen behalten Vorrang, ohne dass es dafuer etwas zu tun gab: `_nachholen`
 laeuft in jedem Sync NACH dem regulaeren Durchgang.
@@ -70,6 +75,9 @@ def main() -> int:
                     help="auch alles Nicht-Wassersportliche (ueber 1200 Abrufe!)")
     ap.add_argument("--je-nutzer", type=int, default=0,
                     help="hoechstens so viele je Nutzer (0 = alle)")
+    ap.add_argument("--auch-zaehlende", action="store_true",
+                    help="auch Sportarten, die SOFORT als Pumpfoil zaehlen (Surfing, Water "
+                         "sports, …) — die gehen ungefragt in die Community-Rekorde ein")
     args = ap.parse_args()
 
     if not pathlib.Path(".env").exists():
@@ -82,11 +90,24 @@ def main() -> int:
     from sqlalchemy import text
 
     from app import models
-    from app.api.suunto import (AKTIVITAETEN, WORKOUTS_URL_V2, WORKOUTS_URL_V3, _fresh_token,
-                                _liste_lesen, _sub_key, _v3_aktiv, _vorfilter, _workout_key)
+    from app.api.sessions import KEIN_FOILEN, UNKLAR_WASSER
+    from app.api.suunto import (AKTIVITAET_FIT, AKTIVITAETEN, WORKOUTS_URL_V2, WORKOUTS_URL_V3,
+                                _fresh_token, _liste_lesen, _sub_key, _v3_aktiv, _vorfilter,
+                                _workout_key)
     from app.db import SessionLocal
 
     wasser = {i for i, n in AKTIVITAETEN.items() if WASSER_MUSTER.search(n)} - NICHT
+    # HARMLOS heisst: die Sportart aus der Datei fuehrt bei uns entweder zum Aussortieren
+    # (KEIN_FOILEN -> „anderer Sport") oder zur Rueckfrage (UNKLAR_WASSER ->
+    # `needs_classification`). Beides beeinflusst KEINE Auswertung und KEINEN Rekord, bis der
+    # Besitzer selbst entscheidet.
+    #
+    # Alles andere faellt auf die Voreinstellung des Nutzers, also „pumpfoil", und zaehlt damit
+    # sofort mit. Beim Nachholen fremder Alt-Aufnahmen ist das nicht erwuenscht: „Surfing" kann
+    # bei einem Suunto-Nutzer echtes Wellenreiten sein, und „Water sports" schreibt `generic`.
+    # Jan, 07.09.2026, zu genau dieser Frage: erst nur die eindeutigen holen.
+    harmlos = {i for i, f in AKTIVITAET_FIT.items()
+               if f in KEIN_FOILEN or f in UNKLAR_WASSER}
     db = SessionLocal()
     gesamt = 0
     try:
@@ -121,6 +142,8 @@ def main() -> int:
                 if _vorfilter(w) is not None:
                     continue                      # Bewegungsprofil spricht dagegen
                 if not args.alle_sportarten and w.get("activityId") not in wasser:
+                    continue
+                if not args.auch_zaehlende and w.get("activityId") not in harmlos:
                     continue
                 key = _workout_key(w)
                 if key:

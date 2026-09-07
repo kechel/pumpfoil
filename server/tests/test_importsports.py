@@ -150,3 +150,43 @@ def test_nachtrag_zaehlt_nicht_doppelt(nutzer):
         assert z["gesehen"] == 1
     finally:
         db.close()
+
+
+def test_import_ordnet_die_sportart_aus_der_datei_ein(nutzer):
+    """Die Sportart AUS DER DATEI schlaegt die Voreinstellung — und Wassersport fragt nach.
+
+    Diese Zuordnung ist am 07.09.2026 bei einem Umbau versehentlich verlorengegangen (die
+    Zeilen, die `_datei_sport` berechnen und `KEIN_FOILEN` anwenden, fielen einer
+    Textoperation zum Opfer). Aufgefallen ist es nur, weil eine Nachholaktion mit
+    „NameError" abbrach — kein Test hat es gemerkt. Deshalb dieser.
+    """
+    from app import models
+    from app.api.sessions import import_parsed_session
+    from app.db import SessionLocal
+
+    def einlesen(sport: str, uuid_prefix: str, stunde: int):
+        db = SessionLocal()
+        try:
+            u = db.get(models.User, nutzer)
+            parsed = {
+                "gps_samples": [[0, 47.5, 9.5, 1.0, 100, None], [1000, 47.5001, 9.5, 1.0, 101, None]],
+                "accel_bytes": b"", "accel_hz": 0, "started_at": None, "sport": sport,
+                "fit_type": "activity", "record_count": 2, "foil_status": [], "abbruch": None,
+            }
+            from datetime import datetime, timezone
+            # Je Fall eine EIGENE Startzeit: `import_parsed_session` erkennt Doppel ueber
+            # Inhalts-Hash ODER Startzeit, mit derselben Zeit bekaeme man die erste Session
+            # zurueck statt einer neuen (genau so beim Schreiben dieses Tests passiert).
+            parsed["started_at"] = datetime(2026, 9, 7, stunde, 0, tzinfo=timezone.utc)
+            s = import_parsed_session(db, u, sport.encode() + uuid_prefix.encode(), parsed,
+                                      src_label="test-import", uuid_prefix=uuid_prefix)
+            return None if s is None else (s.sport_class, bool(s.needs_classification))
+        finally:
+            db.close()
+
+    # Landsport: die Datei gewinnt, die Session wird aussortiert.
+    assert einlesen("running", "t1-", 9) == ("other", False)
+    # Mehrdeutiger Wassersport: bleibt Pumpfoil, aber es wird nachgefragt.
+    assert einlesen("stand_up_paddleboarding", "t2-", 11) == ("pumpfoil", True)
+    # Was unsere eigene App schreibt: eindeutig, keine Rueckfrage.
+    assert einlesen("surfing", "t3-", 13) == ("pumpfoil", False)

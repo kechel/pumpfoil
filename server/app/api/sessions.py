@@ -450,9 +450,17 @@ def import_parsed_session(db, user, raw: bytes, parsed: dict, *, src_label: str,
         _dsc = (json.loads(user.settings_json or "{}") or {}).get("default_sport_class") or "pumpfoil"
     except ValueError:
         _dsc = "pumpfoil"
-    # Listen s. Modulebene (KEIN_FOILEN / UNKLAR_WASSER) — dieselbe Definition nutzt
-    # `scripts/suunto-nachholen-vormerken.py`, damit eine Nachholaktion genau die
-    # Sportarten meidet, die sofort als Pumpfoil zaehlen wuerden.
+    # Die Datei schlaegt die Voreinstellung, wenn sie etwas nennt, das mit Foilen nichts zu tun
+    # haben KANN. Die beiden Listen stehen auf Modulebene (KEIN_FOILEN / UNKLAR_WASSER) —
+    # dieselbe Definition nutzt `scripts/suunto-nachholen-vormerken.py`, damit eine Nachholaktion
+    # genau die Sportarten meidet, die sofort als Pumpfoil zaehlen wuerden.
+    _datei_sport = (parsed.get("sport") or "").lower()
+    if _datei_sport in KEIN_FOILEN:
+        _dsc = "other"
+    # Der Zwischenfall: ein WASSERsport, der weder fuer noch gegen Foilen spricht. Hier wird
+    # nicht geraten, sondern gefragt — `needs_classification` haengt ein Abzeichen an die
+    # Session, weist auf der Startseite darauf hin und haelt sie so lange aus JEDER Auswertung
+    # heraus (Jan, 05.09.: „needs classification find ich gut wenns nicht eindeutig ist").
     _unklar = _datei_sport in UNKLAR_WASSER and _dsc == "pumpfoil"
     s = models.Session(
         session_uuid=session_uuid,

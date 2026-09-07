@@ -214,6 +214,139 @@ AKTIVITAETEN = {
 }
 
 
+# Welche Sportart Suunto in die FIT-Datei schreibt, je `activityId`. Aus derselben Liste wie
+# `AKTIVITAETEN` (Spalte "FIT file Sport"), also nachpruefbar und nicht geraten.
+#
+# Gebraucht wird das fuer Nachholaktionen: unsere Einordnung haengt am FIT-Wert, nicht an
+# Suuntos Namen. "Water sports" (28) schreibt `generic` und wuerde damit auf die Voreinstellung
+# des Nutzers fallen — also sofort als Pumpfoil zaehlen. "Surfing" (91) schreibt `surfing`, das
+# gilt bei uns als eindeutig Pumpfoil. Beides ist beim Nachholen fremder Alt-Aufnahmen nicht
+# erwuenscht: es wuerde ungefragt in die Community-Rekorde eingehen (Jan, 07.09.2026).
+AKTIVITAET_FIT = {
+    0: "walking",
+    1: "running",
+    2: "cycling",
+    3: "cross_country_skiing",
+    4: "generic",
+    5: "generic",
+    6: "generic",
+    7: "generic",
+    8: "generic",
+    9: "generic",
+    10: "cycling",
+    11: "hiking",
+    12: "inline_skating",
+    13: "alpine_skiing",
+    14: "paddling",
+    15: "rowing",
+    16: "golf",
+    17: "training",
+    18: "generic",
+    19: "generic",
+    20: "training",
+    21: "swimming",
+    22: "running",
+    23: "training",
+    24: "walking",
+    25: "horseback_riding",
+    26: "driving",
+    27: "generic",
+    28: "generic",
+    29: "rock_climbing",
+    30: "snowboarding",
+    31: "alpine_skiing",
+    32: "training",
+    33: "soccer",
+    34: "tennis",
+    35: "basketball",
+    36: "racket",
+    37: "generic",
+    38: "generic",
+    39: "american_football",
+    40: "racket",
+    41: "racket",
+    42: "racket",
+    43: "generic",
+    44: "generic",
+    45: "generic",
+    46: "generic",
+    47: "generic",
+    48: "generic",
+    49: "ice_skating",
+    50: "generic",
+    51: "training",
+    52: "cycling",
+    53: "running",
+    54: "training",
+    55: "fitness_equipment",
+    56: "cross_country_skiing",
+    57: "fitness_equipment",
+    58: "training",
+    59: "running",
+    60: "running",
+    61: "stand_up_paddleboarding",
+    62: "generic",
+    63: "training",
+    64: "generic",
+    65: "snowshoeing",
+    66: "generic",
+    67: "generic",
+    68: "multisport",
+    69: "training",
+    70: "hiking",
+    71: "sailing",
+    72: "kayaking",
+    73: "training",
+    74: "multisport",
+    75: "racket",
+    76: "training",
+    77: "boxing",
+    78: "diving",
+    79: "diving",
+    80: "generic",
+    81: "training",
+    82: "paddling",
+    83: "mountaineering",
+    84: "alpine_skiing",
+    85: "swimming",
+    86: "windsurfing",
+    87: "kitesurfing",
+    88: "hang_gliding",
+    90: "swimming",
+    91: "surfing",
+    92: "multisport",
+    93: "multisport",
+    94: "multisport",
+    95: "generic",
+    96: "fishing",
+    97: "hunting",
+    98: "transition",
+    99: "cycling",
+    100: "diving",
+    101: "diving",
+    102: "generic",
+    103: "running",
+    104: "fitness_equipment",
+    105: "e_biking",
+    106: "e_biking",
+    107: "cross_country_skiing",
+    108: "generic",
+    109: "cycling",
+    110: "snowboarding",
+    111: "multisport",
+    112: "generic",
+    113: "generic",
+    114: "cycling",
+    115: "running",
+    116: "mountaineering",
+    117: "cross_country_skiing",
+    118: "cross_country_skiing",
+    119: "generic",
+    120: "fitness_equipment",
+    121: "fitness_equipment",
+}
+
+
 def _liste_lesen(payload) -> list:
     """Workout-Liste aus der Antwort ziehen — fuer v2 UND v3.
 
@@ -586,7 +719,11 @@ def _hole_workout(db: Session, user: models.User, token: str, key: str,
             return False, "doppelt"
         return True, None
     except Exception as e:  # noqa: BLE001 — ein kaputtes Workout darf den Rest nicht stoppen
-        return False, "fehler %s" % type(e).__name__
+        # Den Grund MIT Text, nicht nur den Ausnahmetyp: „fehler NameError" hat am 07.09.2026
+        # eine halbe Stunde gekostet, weil der Name fehlte. `_grund_code`/`_endgueltig` sehen
+        # nur den Anfang „fehler", die Einordnung bleibt also gleich.
+        log.exception("Suunto: Workout %s nicht importiert (user %s)", key, user.id)
+        return False, "fehler %s: %s" % (type(e).__name__, e)
 
 
 def _import_workout(db: Session, user: models.User, token: str, key: str) -> bool:
