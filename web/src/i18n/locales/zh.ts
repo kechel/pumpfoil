@@ -910,7 +910,7 @@ const zh: Record<string, string> = {
   "import.shotAlt": "带有“导出为文件”选项的 Garmin Connect 菜单",
   "import.desc": "打开活动，点击右上角的齿轮图标，然后选“导出为文件”。在此上传 ZIP 文件。",
   "import.shotCap": "Garmin Connect：齿轮菜单 → “导出为文件”",
-  "import.uploadNote": "FIT、TCX 或 GPX — 单个文件或 ZIP，可一次多个。上传后会打开分析。",
+  "import.uploadNote": "FIT、TCX 或 GPX — 单个文件或 ZIP，可一次多个。",
 
   "account.tabAlarm": "上翼提醒",
   "alarm.title": "震动提醒",

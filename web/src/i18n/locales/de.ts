@@ -1131,7 +1131,7 @@ const de: Record<string, string> = {
   "import.shotAlt": "Garmin-Connect-Menü mit der Option „Datei exportieren“",
   "import.desc": "Aktivität öffnen, rechts oben auf das Zahnrad klicken, dann „Datei exportieren“. Die ZIP-Datei hier hochladen.",
   "import.shotCap": "Garmin Connect: Zahnrad-Menü → „Datei exportieren“",
-  "import.uploadNote": "FIT, TCX oder GPX — einzeln oder als ZIP, mehrere Dateien möglich. Nach dem Upload öffnet sich die Auswertung.",
+  "import.uploadNote": "FIT, TCX oder GPX — einzeln oder als ZIP, mehrere Dateien möglich.",
 
   "account.tabAlarm": "On-Foil Alarm",
   "alarm.title": "Vibrationsalarm",

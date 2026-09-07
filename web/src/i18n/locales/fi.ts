@@ -976,7 +976,7 @@ const fi: Record<string, string> = {
   "import.shotAlt": "Garmin Connect -valikko, jossa vaihtoehto „Vie tiedosto“",
   "import.desc": "Avaa aktiviteetti, klikkaa oikeasta yläkulmasta ratasta ja sitten „Vie tiedosto“. Lataa ZIP-tiedosto tänne.",
   "import.shotCap": "Garmin Connect: ratasvalikko → „Vie tiedosto“",
-  "import.uploadNote": "FIT, TCX tai GPX — yksittäin tai ZIP-pakettina, useita kerralla. Analyysi avautuu latauksen jälkeen.",
+  "import.uploadNote": "FIT, TCX tai GPX — yksittäin tai ZIP-pakettina, useita kerralla.",
 
   "account.tabAlarm": "On-Foil-hälytys",
   "alarm.title": "Värinähälytys",

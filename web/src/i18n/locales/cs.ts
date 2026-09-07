@@ -1008,7 +1008,7 @@ const cs: Record<string, string> = {
   "import.shotAlt": "Menu Garmin Connect s volbou „Exportovat soubor“",
   "import.desc": "Otevři aktivitu, klikni vpravo nahoře na ozubené kolo, pak „Exportovat soubor“. ZIP soubor nahraj sem.",
   "import.shotCap": "Garmin Connect: menu ozubeného kola → „Exportovat soubor“",
-  "import.uploadNote": "FIT, TCX nebo GPX — jednotlivě nebo v ZIP, i více najednou. Po nahrání se otevře vyhodnocení.",
+  "import.uploadNote": "FIT, TCX nebo GPX — jednotlivě nebo v ZIP, i více najednou.",
 
   "account.tabAlarm": "On-foil alarm",
   "alarm.title": "Vibrační alarm",
