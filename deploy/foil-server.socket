@@ -1,0 +1,35 @@
+# Lauschender Socket für den FastAPI-Server, GETRENNT vom Dienst.
+#
+# WOZU: `systemctl restart foil-server` schliesst heute den Port. Gemessen am 07.09.2026:
+# 1,66 s lang „connection refused" — und weil die Apache-Vorlage kein `retry=` setzt (Standard
+# von mod_proxy ist 60 s!), kann daraus beim Nutzer bis zu eine Minute 503 werden.
+#
+# Mit diesem Socket-Unit gehoert der lauschende Socket SYSTEMD, nicht dem Prozess. Beim Neustart
+# des Dienstes bleibt er offen: der Kernel nimmt Verbindungen weiter an und legt sie in die
+# Accept-Queue, bis der neue Prozess sie abholt. Aus „abgewiesen" wird „kurz gewartet" — der
+# Unterschied zwischen einem 502 und 1,7 s Verzoegerung.
+#
+# Installation (drei Befehle, einzeln):
+#   sudo cp deploy/foil-server.socket /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now foil-server.socket
+# Dazu MUSS der Dienst den geerbten Socket benutzen: in foil-server.service `--host`/`--port`
+# gegen `--fd 3` tauschen (3 ist der erste von systemd uebergebene Deskriptor) und
+# `Requires=foil-server.socket` + `After=foil-server.socket` ergaenzen.
+#
+# ReusePort ist hier bewusst AN: damit kann spaeter eine ZWEITE Instanz denselben Port
+# mitbenutzen (Blau/Gruen-Umschaltung ohne jede Wartezeit). Ohne zweite Instanz aendert es nichts.
+
+[Unit]
+Description=Socket fuer den Pumpfoil-FastAPI-Server (Port 8090)
+
+[Socket]
+ListenStream=0.0.0.0:8090
+ReusePort=true
+# Grosszuegige Warteschlange: sie ist genau der Puffer, der den Neustart ueberbrueckt.
+Backlog=1024
+# Ein Deskriptor an den Dienst (kein Prozess je Verbindung).
+Accept=no
+
+[Install]
+WantedBy=sockets.target
