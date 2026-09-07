@@ -997,7 +997,6 @@ const pl: Record<string, string> = {
   "import.shotAlt": "Menu Garmin Connect z opcją „Eksportuj do pliku”",
   "import.desc": "Otwórz aktywność, kliknij ikonę koła zębatego w prawym górnym rogu, potem „Eksportuj do pliku”. Wyślij tutaj plik ZIP.",
   "import.shotCap": "Garmin Connect: menu koła zębatego → „Eksportuj do pliku”",
-  "import.uploadNote": "FIT, TCX lub GPX — pojedynczo albo w ZIP, także kilka naraz.",
   "account.tabAlarm": "Alarm na foilu",
   "alarm.title": "Alarm wibracyjny",
   "alarm.desc": "Zegarek wibruje podczas jazdy na foilu, gdy przekroczysz progową prędkość – np. aby utrzymać się w optymalnym tempie pompowania. Gdy alarm jest wyłączony, ekran startowy zegarka pokazuje „Alarm: wył.”.",

@@ -603,7 +603,6 @@ const gsw: Record<string, string> = {
   "import.shotAlt": "Garmin-Connect-Menü mit de Option „Datei exportiere“",
   "import.desc": "Aktivität öffne, obe rächts ufs Zahnrad klicke, denn „Datei exportiere“. S ZIP-File da ufelade.",
   "import.shotCap": "Garmin Connect: Zahnrad-Menü → „Datei exportiere“",
-  "import.uploadNote": "FIT, TCX oder GPX — einzeln oder als ZIP, mehreri Dateie möglich.",
 
   "account.tabAlarm": "On-Foil Alarm",
   "alarm.title": "Vibrationsalarm",

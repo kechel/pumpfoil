@@ -686,7 +686,6 @@ const es: Record<string, string> = {
   "import.shotAlt": "Menú de Garmin Connect con la opción «Exportar a archivo»",
   "import.desc": "Abre la actividad, haz clic en el engranaje arriba a la derecha, luego «Exportar a archivo». Sube aquí el archivo ZIP.",
   "import.shotCap": "Garmin Connect: menú de engranaje → «Exportar a archivo»",
-  "import.uploadNote": "FIT, TCX o GPX — sueltos o en ZIP, varios a la vez.",
 
   "account.tabAlarm": "On-Foil Alarma",
   "alarm.title": "Alarma por vibración",

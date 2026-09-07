@@ -1031,7 +1031,6 @@ const en: Record<string, string> = {
   "import.shotAlt": "Garmin Connect menu with the “Export to file” option",
   "import.desc": "Open the activity, click the gear icon at the top right, then “Export to file”. Upload the ZIP file here.",
   "import.shotCap": "Garmin Connect: gear menu → “Export to file”",
-  "import.uploadNote": "FIT, TCX or GPX — single files or a ZIP, several at once.",
 
   "account.tabAlarm": "On-Foil Alarm",
   "alarm.title": "Vibration alarm",
