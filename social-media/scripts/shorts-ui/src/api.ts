@@ -23,6 +23,7 @@ export interface AppState {
   video_dir: string;
   parent: string;
   subdirs: SubDir[];
+  categories: string[];   // Einsortier-Ziele = Unterordner von videos-verarbeitet
   overlays: string[];
   endcards: string[];
   next_number: number;

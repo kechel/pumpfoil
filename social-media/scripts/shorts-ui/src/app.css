@@ -58,15 +58,15 @@ h2.dirtitle { text-transform: none; white-space: nowrap; overflow: hidden; text-
 .vwrap { position: relative; max-width: 100%; }
 .vwrap video { max-height: calc(100vh - 84px); max-width: 100%; border-radius: 12px; background: #000; display: block; }
 .ovimg, .outroimg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-.actions { display: flex; flex-direction: column; gap: 10px; }
-.abtns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-.abtn { display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 12px; padding: 6px 8px; border-radius: 8px; border: 1px solid #8886; background: transparent; color: inherit; cursor: pointer; white-space: nowrap; }
+.actions { display: flex; flex-direction: column; gap: 6px; }
+.abtns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+.abtn { display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 12px; padding: 4px 8px; border-radius: 8px; border: 1px solid #8886; background: transparent; color: inherit; cursor: pointer; white-space: nowrap; }
 .abtn:hover { background: #8883; }
 .abtn.starred { color: #f59e0b; border-color: #f59e0b88; }
 .amsg { font-size: 11px; opacity: .6; max-width: 190px; white-space: pre-wrap; }
 /* Umschalter ueber den Textzeilen: normale Texte | Reihe „success or fail?" */
-.midtabs { display: flex; gap: 4px; margin-top: 6px; border-top: 1px solid #8884; padding-top: 8px; }
-.midtabs button { flex: 1; font-size: 12px; padding: 5px 8px; border-radius: 7px;
+.midtabs { display: flex; gap: 4px; margin-top: 4px; border-top: 1px solid #8884; padding-top: 6px; }
+.midtabs button { flex: 1; font-size: 12px; padding: 4px 8px; border-radius: 7px;
   border: 1px solid #8886; background: transparent; color: inherit; cursor: pointer; }
 .midtabs button:hover { background: #8882; }
 .midtabs button.on { background: #3b82f622; border-color: #3b82f688; font-weight: 600; }
@@ -80,7 +80,7 @@ h2.dirtitle { text-transform: none; white-space: nowrap; overflow: hidden; text-
 
 /* Stil je Zeile: Fliesstext, SUCCESS-Stempel, FAIL-Stempel */
 .txstyle { display: flex; gap: 2px; }
-.txstyle button { width: 22px; font-size: 12px; line-height: 1.5; padding: 3px 0; border-radius: 6px;
+.txstyle button { width: 21px; font-size: 12px; line-height: 1.35; padding: 2px 0; border-radius: 6px;
   border: 1px solid #8886; background: transparent; color: inherit; cursor: pointer; }
 .txstyle button:hover { background: #8883; }
 .txstyle button.on { background: #3b82f6; color: #fff; border-color: #3b82f6; }
@@ -109,12 +109,12 @@ h2.dirtitle { text-transform: none; white-space: nowrap; overflow: hidden; text-
 /* Trennlinie sitzt schon am Umschalter — nicht doppelt ziehen */
 .midtabs + .texts { border-top: none; margin-top: 0; padding-top: 4px; }
 
-.texts { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; border-top: 1px solid #8884; padding-top: 10px; }
-.txrow { display: flex; align-items: flex-start; gap: 5px; }
-.txrow textarea { width: 110px; font-size: 12px; padding: 4px 6px; border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; resize: vertical; font-family: inherit; }
-.txrow .thold { width: 42px; font-size: 12px; padding: 4px; border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; }
-.txrow .tsize { width: 46px; font-size: 12px; padding: 4px; border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; }
-.txrow .tstart { width: 54px; font-size: 12px; padding: 4px; border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; }
+.texts { display: flex; flex-direction: column; gap: 3px; margin-top: 4px; border-top: 1px solid #8884; padding-top: 6px; }
+.txrow { display: flex; align-items: flex-start; gap: 4px; }
+.txrow textarea { width: 110px; font-size: 12px; padding: 2px 6px; line-height: 1.25; min-height: 0; border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; resize: vertical; font-family: inherit; }
+.txrow .thold { width: 40px; font-size: 12px; padding: 2px 3px; border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; }
+.txrow .tsize { width: 44px; font-size: 12px; padding: 2px 3px; border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; }
+.txrow .tstart { width: 50px; font-size: 12px; padding: 2px 3px; border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; }
 .namebox { display: flex; flex-direction: column; gap: 3px; padding: 6px 0; }
 .namebox input { width: 100%; font-size: 13px; padding: 6px 8px; border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; }
 .namebox .nfix { display: flex; flex-wrap: wrap; gap: 8px; font-size: 11px; opacity: .6; }
@@ -122,7 +122,7 @@ h2.dirtitle { text-transform: none; white-space: nowrap; overflow: hidden; text-
 .duckhead { font-size: 11px; opacity: 0.6; }
 .duckrow { display: flex; align-items: center; gap: 5px; font-size: 12px; white-space: nowrap; }
 .duckrow input[type="number"] { width: 46px; font-size: 12px; padding: 3px 4px; border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; }
-.mini { font-size: 11px; padding: 3px 7px; border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; cursor: pointer; white-space: nowrap; }
+.mini { font-size: 11px; padding: 2px 6px; border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; cursor: pointer; white-space: nowrap; }
 .mini:hover { background: #8883; }
 .mini.sel { background: #3b82f6; color: #fff; border-color: #3b82f6; }
 .pvbar { display: flex; align-items: center; gap: 8px; font-size: 12px; opacity: .9; max-width: 100%; padding: 2px 0; }
@@ -326,3 +326,8 @@ table.cmp { max-width: 520px; }
 .ecard .ecalpha { flex: 1 1 150px; min-width: 130px; }
 .ecard .ecalpha input[type=range] { flex: 1; min-width: 60px; }
 .ecard .ecalpha b { font-weight: 500; font-variant-numeric: tabular-nums; min-width: 34px; text-align: right; }
+
+/* Weitere Einsortier-Ziele: alles, was als Unterordner in
+   videos-verarbeitet liegt und keinen eigenen Knopf hat. */
+.sortrow { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.sortrow .sortlbl { font-size: 11px; opacity: .55; margin-right: 2px; }
