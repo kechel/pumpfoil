@@ -15,8 +15,6 @@ interface UpInfo {
   uploaded_at?: number;
   languages?: number;
   privacy?: string;
-  manual?: boolean;   // von Hand abgehakt (Plattformen ohne Schnittstelle, z.B. Kwai)
-  at?: string;
 }
 type UpState = Record<string, Record<string, UpInfo>>;
 
@@ -280,9 +278,6 @@ function PublishCard({ exp, up, ytReady, ttReady, refresh, slot }: {
   const [prog, setProg] = useState<UpProg | null>(null);
   const yt = up?.youtube;
   const tt = up?.tiktok;
-  // Kwai hat keine Schnittstelle zum Veroeffentlichen: hochgeladen wird von Hand in
-  // der App, der Haken hier ist die einzige Buchfuehrung darueber.
-  const kwai = up?.kwai;
 
   const pollProgress = useCallback(() => {
     return window.setInterval(async () => {
@@ -425,18 +420,6 @@ function PublishCard({ exp, up, ytReady, ttReady, refresh, slot }: {
             </button>
           )}
         </div>
-        <label className="kwaimark" title={kwai?.at
-          ? `abgehakt am ${new Date(kwai.at).toLocaleString("de-DE")}`
-          : "Kwai laedt man von Hand in der App hoch — hier abhaken, damit du weisst, was schon draussen ist"}>
-          <input type="checkbox" checked={!!kwai}
-            onChange={async (e) => {
-              await api.post("/api/uploads/mark",
-                             { name: exp.name, platform: "kwai", on: e.target.checked });
-              refresh();
-            }} />
-          auf Kwai
-          {kwai?.at && <span style={{ opacity: 0.55 }}> · {new Date(kwai.at).toLocaleDateString("de-DE")}</span>}
-        </label>
         <ProgBar p={prog} />
         {msg && <div style={{ fontSize: 12 }}>{msg}</div>}
       </div>
