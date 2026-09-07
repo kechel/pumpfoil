@@ -118,6 +118,43 @@ def im_hintergrund(provider: str, user_id: int, arbeit) -> None:
         db.close()
 
 
+# Kurze Laeufe werden noch im Aufruf abgewartet, damit ALTE Apps ihr Ergebnis bekommen.
+# Hintergrund (07.09.2026): der Umbau auf Hintergrund-Laeufe hat die ausgelieferten Apps
+# stillgelegt — iOS und Android erwarten `imported`/`skipped` in der Antwort, bekamen aber
+# `{"gestartet": true}` und zeigten damit „0 importiert". Android steht im Review und kann
+# nicht schnell nachziehen. Der haeufigste Fall ist ohnehin „nichts Neues" und in Millisekunden
+# erledigt; nur der lange Lauf (der vorher in den Proxy-Timeout lief) antwortet asynchron.
+WARTEN_S = 10.0
+_POOL = None
+
+
+def anstossen(db: Session, user_id: int, provider: str, arbeit) -> dict:
+    """Lauf starten, bis zu `WARTEN_S` auf sein Ergebnis warten, sonst asynchron weiterlaufen.
+
+    Rueckgabe: das echte Ergebnis (alte Apps verstehen es) oder `{"gestartet": True}`. Die
+    Weboberflaeche fragt in beiden Faellen `/sync-progress` ab, ihr ist es also gleich.
+    """
+    import concurrent.futures as _cf
+
+    global _POOL
+    if _POOL is None:
+        # Wenige Faeden reichen: ein Nutzer stoesst hoechstens einen Lauf je Anbieter an, und
+        # laenger Laufendes wartet ohnehin niemand ab.
+        _POOL = _cf.ThreadPoolExecutor(max_workers=4, thread_name_prefix="sync")
+    if stand(db, user_id, provider)["laeuft"]:
+        return {"laeuft": True}
+    start(db, user_id, provider, 0, "verbinde")
+    fut = _POOL.submit(im_hintergrund, provider, user_id, arbeit)
+    try:
+        fut.result(timeout=WARTEN_S)
+    except _cf.TimeoutError:
+        return {"gestartet": True}          # laeuft weiter, Stand kommt aus /sync-progress
+    except Exception:  # noqa: BLE001 — im_hintergrund faengt selbst, das hier ist der Notnagel
+        return {"gestartet": True}
+    erg = stand(db, user_id, provider).get("daten")
+    return erg if isinstance(erg, dict) else {"imported": 0, "skipped": 0}
+
+
 def stand(db: Session, user_id: int, provider: str) -> dict:
     """Fuer die Oberflaeche. Ein zu alter Eintrag gilt als beendet — sonst haengt die Anzeige
     nach einem Serverneustart fuer immer auf „laeuft…"."""

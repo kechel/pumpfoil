@@ -341,31 +341,33 @@ def _pull_import(db: Session, user: models.User, link: models.PolarLink) -> dict
 
 
 @router.post("/sync")
-def sync(background: BackgroundTasks, user: models.User = Depends(current_user),
+def sync(user: models.User = Depends(current_user),
          db: Session = Depends(get_db)) -> dict:
-    """Import ANSTOSSEN und sofort antworten; der Stand kommt aus `/sync-progress`.
+    """Import anstossen. Kurze Laeufe werden abgewartet und liefern ihr Ergebnis direkt, lange
+    laufen im Hintergrund weiter — den Stand holt dann `/sync-progress`.
 
-    Vorher lief der Import im Aufruf selbst. Bei zwei Trainings hat das den Apache-Proxy in den
-    Timeout laufen lassen: der Nutzer sah minutenlang einen deaktivierten Knopf und dann einen
-    „502 Proxy Error" — waehrend der Import serverseitig weiterlief und funktionierte (07.09.2026,
-    Jans eigenes Konto). Ein Import kann nicht schnell sein: Download, Analyse und Geokodierung
-    je Training. Also darf er nicht am Aufruf haengen.
+    Zwei Gruende fuer diese Zweiteilung (07.09.2026):
+    * Ganz im Aufruf lief der Import in den Apache-Timeout. Der Nutzer sah minutenlang einen
+      deaktivierten Knopf und dann einen „502 Proxy Error", waehrend der Import serverseitig
+      weiterlief und funktionierte. Ein Import kann nicht schnell sein: Download, Analyse und
+      Geokodierung je Training.
+    * Ganz im Hintergrund hat es die AUSGELIEFERTEN Apps stillgelegt: iOS und Android erwarten
+      `imported`/`skipped` in der Antwort und zeigten nach dem Umbau „0 importiert". Android
+      steht im Review und kann nicht schnell nachziehen.
+    Der haeufigste Fall ist „nichts Neues" und in Millisekunden erledigt — der bleibt also
+    verträglich, s. `syncprogress.anstossen`.
     """
     from .. import syncprogress
     _creds()
     link = db.query(models.PolarLink).filter_by(user_id=user.id).first()
     if link is None:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Polar not linked")
-    if syncprogress.stand(db, user.id, "polar")["laeuft"]:
-        return {"laeuft": True}
-    syncprogress.start(db, user.id, "polar", 0, "Polar wird gefragt")
 
     def arbeit(d, u):
         l = d.query(models.PolarLink).filter_by(user_id=u.id).first()
         return _pull_import(d, u, l) if l else {}
 
-    background.add_task(syncprogress.im_hintergrund, "polar", user.id, arbeit)
-    return {"gestartet": True}
+    return syncprogress.anstossen(db, user.id, "polar", arbeit)
 
 
 def _webhook_secret() -> str:
