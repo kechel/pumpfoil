@@ -47,12 +47,33 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import kotlinx.coroutines.launch
+import androidx.compose.material3.Switch
+import androidx.compose.runtime.LaunchedEffect
 
-private data class Provider(val id: String, val label: String, val canSync: Boolean, val logo: Int? = null)
+/**
+ * Ein verknüpfbarer Anbieter. `id` ist der Anzeige-/Zustandsschlüssel, `pfad` der Pfad beim
+ * Server — die beiden unterscheiden sich nur bei COROS.
+ *
+ * ZWEI SACHEN WAREN HIER FALSCH (gefunden am 07.09.2026):
+ *  * COROS zeigte auf `/api/integrations/coros/…` — das ist der PARTNER-Weg, für den uns der
+ *    Vertrag fehlt; der Endpunkt meldet `available: false`. COROS war aus der App also nie
+ *    verbindbar, obwohl es im Web längst läuft. Der funktionierende Weg ist `coros/mcp`.
+ *  * Der Kommentar sagte „Push-basiert: kein manueller Import" — genau umgekehrt: der MCP-Weg
+ *    kann NICHT pushen (nur abholen), während Polar seit dem 07.09. wirklich pusht.
+ */
+private data class Provider(
+    val id: String,
+    val label: String,
+    val canSync: Boolean,
+    val logo: Int? = null,
+    val apiPath: String? = null,
+) {
+    val pfad: String get() = apiPath ?: id
+}
 
 private val PROVIDERS = listOf(
     Provider("polar", "Polar", canSync = true, logo = R.drawable.polar_logo),
-    Provider("coros", "COROS", canSync = false),   // Push-basiert: kein manueller Import
+    Provider("coros", "COROS", canSync = true, apiPath = "coros/mcp"),
     Provider("suunto", "Suunto", canSync = true, logo = R.drawable.suunto_logo),
 )
 
@@ -67,7 +88,7 @@ fun LinkedAccountsScreen(onBack: () -> Unit) {
 
     suspend fun refresh() {
         for (p in PROVIDERS) {
-            status[p.id] = try { Api.integrationStatus(p.id) } catch (_: Exception) { Api.IntegrationStatus() }
+            status[p.id] = try { Api.integrationStatus(p.pfad) } catch (_: Exception) { Api.IntegrationStatus() }
         }
     }
     // Beim (Wieder-)Erscheinen laden — fängt die Rückkehr aus dem OAuth-Browser ab.
@@ -102,6 +123,7 @@ fun LinkedAccountsScreen(onBack: () -> Unit) {
                         logo = p.logo,
                         sub = when {
                             st.linked && p.id == "coros" -> I18n.t("accounts.corosNote")
+                            st.linked && p.id == "polar" -> I18n.t("accounts.polarNote")
                             st.linked -> I18n.t("accounts.connected")
                             else -> I18n.t("accounts.sub")
                         },
@@ -115,7 +137,7 @@ fun LinkedAccountsScreen(onBack: () -> Unit) {
                                         busy = p.id
                                         scope.launch {
                                             try {
-                                                val url = Api.integrationAuthorizeUrl(p.id)
+                                                val url = Api.integrationAuthorizeUrl(p.pfad)
                                                 ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
                                             } catch (_: Exception) {}
                                             busy = null
@@ -129,7 +151,7 @@ fun LinkedAccountsScreen(onBack: () -> Unit) {
                                         onClick = {
                                             busy = p.id
                                             scope.launch {
-                                                val r = try { Api.integrationSync(p.id) } catch (_: Exception) { null }
+                                                val r = try { Api.integrationSync(p.pfad) } catch (_: Exception) { null }
                                                 syncMsg = when {
                                                     r == null -> I18n.t("accounts.importError")
                                                     !r.message.isNullOrBlank() -> r.message
@@ -146,11 +168,12 @@ fun LinkedAccountsScreen(onBack: () -> Unit) {
                                     enabled = busy == null,
                                     onClick = {
                                         busy = p.id
-                                        scope.launch { try { Api.integrationUnlink(p.id) } catch (_: Exception) {}; refresh(); busy = null }
+                                        scope.launch { try { Api.integrationUnlink(p.pfad) } catch (_: Exception) {}; refresh(); busy = null }
                                     },
                                 ) { Text(I18n.t("accounts.disconnect")) }
                             }
                         }
+                        if (st.linked) SportAuswahl(p.pfad)
                     }
                 }
             }
@@ -181,6 +204,61 @@ private fun ProviderCard(title: String, sub: String, connected: Boolean = false,
             }
             Text(sub, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Box(Modifier.padding(top = 8.dp)); actions()
+        }
+    }
+}
+
+
+/**
+ * Welche Sportart-Modi eines verknüpften Kontos importiert werden.
+ *
+ * Für Pumpfoil gibt es auf keiner Uhr einen eigenen Modus, also stellen die Leute irgendetwas
+ * ein — an unseren eigenen Daten nachgezählt kamen acht Suunto-Sessions als „cycling" herein und
+ * waren echtes Pumpfoilen. Eine feste Liste erlaubter Sportarten wäre deshalb ein
+ * Verlustgeschäft. Der Server merkt sich, was das Konto tatsächlich liefert; hier kann man
+ * abwählen. Neu Auftauchendes ist immer ausgewählt, bis der Nutzer etwas anderes sagt.
+ *
+ * Angezeigt werden nur Modi mit Ortung — ein Hallenmodus wäre hier eine Zeile ohne Sinn.
+ */
+@Composable
+private fun SportAuswahl(pfad: String) {
+    val scope = rememberCoroutineScope()
+    var sports by remember(pfad) { mutableStateOf<List<Api.ImportSport>?>(null) }
+
+    LaunchedEffect(pfad) {
+        sports = try { Api.importSports(pfad) } catch (_: Exception) { emptyList() }
+    }
+
+    val liste = sports ?: return
+    Column(Modifier.padding(top = 10.dp)) {
+        Text(I18n.t("accounts.sports.title"), style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold)
+        Text(I18n.t("accounts.sports.hint"), style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (liste.isEmpty()) {
+            Text(I18n.t("accounts.sports.none"), style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+        } else {
+            liste.forEach { sp ->
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                    Column(Modifier.weight(1f)) {
+                        Text(sp.label, style = MaterialTheme.typography.bodyMedium)
+                        Text("${sp.gesehen}\u00d7", style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Switch(
+                        checked = sp.importieren,
+                        onCheckedChange = { an ->
+                            // Erst anzeigen, dann speichern — ein Schalter soll sofort reagieren.
+                            sports = liste.map { if (it.sport_key == sp.sport_key) it.copy(importieren = an) else it }
+                            scope.launch {
+                                try { sports = Api.setImportSports(pfad, mapOf(sp.sport_key to an)) }
+                                catch (_: Exception) {}
+                            }
+                        },
+                    )
+                }
+            }
         }
     }
 }

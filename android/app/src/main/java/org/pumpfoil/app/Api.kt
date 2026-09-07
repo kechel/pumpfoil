@@ -11,6 +11,7 @@ import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -816,6 +817,34 @@ object Api {
 
     @kotlinx.serialization.Serializable
     data class SyncResp(val imported: Int = 0, val skipped: Int = 0, val message: String? = null, val ok: Boolean = true)
+
+    /**
+     * Sportart-Modi eines verknüpften Kontos: welche das Konto tatsächlich geliefert hat und
+     * welche davon importiert werden sollen. Für alle drei Anbieter derselbe Vertrag
+     * (server/app/importsports.py).
+     */
+    @kotlinx.serialization.Serializable
+    data class ImportSport(
+        val sport_key: String = "",
+        val label: String = "",
+        val importieren: Boolean = true,
+        val gesehen: Int = 0,
+    )
+
+    @kotlinx.serialization.Serializable
+    private data class SportsResp(val sports: List<ImportSport> = emptyList())
+
+    suspend fun importSports(provider: String): List<ImportSport> = withContext(Dispatchers.IO) {
+        json.decodeFromString(SportsResp.serializer(),
+            http("GET", "/api/integrations/$provider/sports", null, auth = true)).sports
+    }
+
+    suspend fun setImportSports(provider: String, wahl: Map<String, Boolean>): List<ImportSport> =
+        withContext(Dispatchers.IO) {
+            val body = buildJsonObject { wahl.forEach { (k, v) -> put(k, JsonPrimitive(v)) } }
+            json.decodeFromString(SportsResp.serializer(),
+                http("PUT", "/api/integrations/$provider/sports", body.toString(), auth = true)).sports
+        }
 
     // Fremdkonten (Polar/COROS/Suunto) verknüpfen/importieren. provider = "polar"|"coros"|"suunto".
     suspend fun integrationStatus(provider: String): IntegrationStatus = withContext(Dispatchers.IO) {

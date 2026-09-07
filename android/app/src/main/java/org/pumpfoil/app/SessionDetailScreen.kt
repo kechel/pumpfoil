@@ -863,6 +863,23 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
         val trackForRuns = remember(a?.trackGeojson) { a?.trackGeojson?.let { parseTrack(it) } }
         // Track auf OSM-Karte (osmdroid): nur die Foiling-Läufe, gefärbt nach Modus (Speed/Puls/Pump),
         // optional Pump-Marker — wie im Web.
+        // Aufnahme OHNE eine einzige Position: sagen, was passiert ist, statt nichts zu zeigen.
+        // Am 07.09.2026 nachgezaehlt: 199 solche Sessions bei 82 Nutzern, und 11 Nutzer haben
+        // AUSSCHLIESSLICH solche — sechs davon nach einem einzigen Versuch. Fuer die entscheidet
+        // genau diese Seite, ob sie es nochmal probieren. Gleiche Anzeige wie in PWA und iOS.
+        if (a != null && (trackForRuns?.points?.size ?: 0) == 0) {
+            Card(
+                Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+            ) {
+                Column(Modifier.padding(14.dp)) {
+                    Text(I18n.t("sd.noFix.title"), style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold)
+                    Text(I18n.t("sd.noFix.text"), style = MaterialTheme.typography.bodySmall)
+                }
+            }
+        }
         trackForRuns?.let { track ->
             val segs = a?.segments.orEmpty()
             // Karte auch OHNE erkannte Laeufe zeigen: die PWA macht das laengst (dort wird dann
