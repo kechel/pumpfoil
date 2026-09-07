@@ -23,6 +23,7 @@ import { setCompare } from "../lib/compare";
 import { openChatOverlay } from "../components/DmWidget";
 import { ytId, videoPlatform } from "../components/VideoModal";
 import { useT } from "../i18n";
+import { UploadFitButton } from "../components/UploadFitButton";
 
 const PAGE = 20;
 
@@ -341,6 +342,22 @@ export default function Sessions() {
         {spot && <SpotChatToggle spot={spotName} t={t} />}
         <AccelToggle value={accelOnly} onChange={setAccelOnly} className="ml-auto" />
       </div>
+
+      {/* Datei-Upload direkt hier, rechts unter dem Accel-Filter (Jan, 07.09.2026: „sollten die
+          nicht in meine Sessions oben rechts unter den Filtern stehen?"). Er lag bisher NUR auf
+          /import, also hinter Einstellungen → Aktivität importieren — gesucht wird er aber dort,
+          wo die eigenen Sessions stehen.
+          Nur in „Meine": ein Upload erzeugt immer eine EIGENE Session, in der Community-Ansicht
+          waere der Knopf irrefuehrend. Der Link daneben fuehrt weiter zur Import-Seite, wo die
+          Anleitung zum Garmin-Export steht. */}
+      {isMine && (
+        <div className="mb-4 flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
+          <Link to="/import" className="text-xs text-slate-400 hover:text-slate-300 hover:underline">
+            {t("import.title")}
+          </Link>
+          <UploadFitButton className="text-sm" />
+        </div>
+      )}
 
       {isMine && <IncomingTransfers onAccepted={() => setReloadKey((k) => k + 1)} />}
       {isMine && <MergeHint />}

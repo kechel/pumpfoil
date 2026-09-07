@@ -998,7 +998,7 @@ const nl: Record<string, string> = {
 
   "import.title": "Activiteit importeren",
   "import.short": "Import",
-  "import.intro": "Upload een opgenomen activiteit (FIT-bestand) om die te analyseren — ook oudere sessies.",
+  "import.intro": "Upload een opgenomen activiteit om die te analyseren — FIT, TCX of GPX, ook als ZIP en ook oudere sessies.",
   "import.step1": "Open de activiteit in Garmin Connect (web, connect.garmin.com).",
   "import.step2": "Klik rechtsboven op het tandwielmenu (⚙).",
   "import.step3pre": "Kies ",
@@ -1008,7 +1008,7 @@ const nl: Record<string, string> = {
   "import.shotAlt": "Garmin-Connect-menu met de optie ‘Bestand exporteren'",
   "import.desc": "Activiteit openen, rechtsboven op het tandwiel klikken, dan ‘Bestand exporteren'. Het ZIP-bestand hier uploaden.",
   "import.shotCap": "Garmin Connect: tandwielmenu → ‘Bestand exporteren'",
-  "import.uploadNote": "FIT of ZIP, meerdere bestanden mogelijk. Na de upload opent de analyse.",
+  "import.uploadNote": "FIT, TCX of GPX — los of als ZIP, meerdere tegelijk. De analyse opent na het uploaden.",
 
   "account.tabAlarm": "On-foil-alarm",
   "alarm.title": "Trilalarm",

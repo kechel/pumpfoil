@@ -676,7 +676,7 @@ const es: Record<string, string> = {
 
   "import.title": "Importar actividad",
   "import.short": "Importar",
-  "import.intro": "Sube una actividad registrada (archivo FIT) para analizarla — también sesiones antiguas.",
+  "import.intro": "Sube una actividad grabada para analizarla — FIT, TCX o GPX, también en ZIP y también sesiones antiguas.",
   "import.step1": "Abre la actividad en Garmin Connect (web, connect.garmin.com).",
   "import.step2": "Haz clic en el menú de engranaje (⚙) arriba a la derecha.",
   "import.step3pre": "Elige ",
@@ -686,7 +686,7 @@ const es: Record<string, string> = {
   "import.shotAlt": "Menú de Garmin Connect con la opción «Exportar a archivo»",
   "import.desc": "Abre la actividad, haz clic en el engranaje arriba a la derecha, luego «Exportar a archivo». Sube aquí el archivo ZIP.",
   "import.shotCap": "Garmin Connect: menú de engranaje → «Exportar a archivo»",
-  "import.uploadNote": "FIT o ZIP, varios archivos posibles. El análisis se abre tras la subida.",
+  "import.uploadNote": "FIT, TCX o GPX — sueltos o en ZIP, varios a la vez. El análisis se abre tras la subida.",
 
   "account.tabAlarm": "On-Foil Alarma",
   "alarm.title": "Alarma por vibración",

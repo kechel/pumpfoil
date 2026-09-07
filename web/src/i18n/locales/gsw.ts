@@ -593,7 +593,7 @@ const gsw: Record<string, string> = {
 
   "import.title": "Aktivität importiere",
   "import.short": "Import",
-  "import.intro": "Lad e ufgezeichneti Aktivität (FIT-Datei) ufe zum uswerte — au älteri Sessions.",
+  "import.intro": "Lad e ufzeichneti Aktivität ufe zum uuswerte — FIT, TCX oder GPX, au als ZIP und au eltere Sessions.",
   "import.step1": "Öffne d Aktivität i Garmin Connect (Web, connect.garmin.com).",
   "import.step2": "Klick obe rächts ufs Zahnrad-Menü (⚙).",
   "import.step3pre": "Wähl ",
@@ -603,7 +603,7 @@ const gsw: Record<string, string> = {
   "import.shotAlt": "Garmin-Connect-Menü mit de Option „Datei exportiere“",
   "import.desc": "Aktivität öffne, obe rächts ufs Zahnrad klicke, denn „Datei exportiere“. S ZIP-File da ufelade.",
   "import.shotCap": "Garmin Connect: Zahnrad-Menü → „Datei exportiere“",
-  "import.uploadNote": "FIT oder ZIP, mehreri Dateie möglich. Nachem Ufelade gaht d Uswertig uf.",
+  "import.uploadNote": "FIT, TCX oder GPX — einzeln oder als ZIP, mehreri Dateie möglich. Nach em Uufelade gaht d Uuswertig uf.",
 
   "account.tabAlarm": "On-Foil Alarm",
   "alarm.title": "Vibrationsalarm",

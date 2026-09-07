@@ -966,7 +966,7 @@ const fi: Record<string, string> = {
 
   "import.title": "Tuo aktiviteetti",
   "import.short": "Tuonti",
-  "import.intro": "Lataa tallennettu aktiviteetti (FIT-tiedosto) analysoitavaksi — myös vanhemmat sessiot.",
+  "import.intro": "Lataa tallennettu suoritus analysoitavaksi — FIT, TCX tai GPX, myös ZIP-pakattuna ja myös vanhempia.",
   "import.step1": "Avaa aktiviteetti Garmin Connectissa (web, connect.garmin.com).",
   "import.step2": "Klikkaa oikeasta yläkulmasta ratasvalikkoa (⚙).",
   "import.step3pre": "Valitse ",
@@ -976,7 +976,7 @@ const fi: Record<string, string> = {
   "import.shotAlt": "Garmin Connect -valikko, jossa vaihtoehto „Vie tiedosto“",
   "import.desc": "Avaa aktiviteetti, klikkaa oikeasta yläkulmasta ratasta ja sitten „Vie tiedosto“. Lataa ZIP-tiedosto tänne.",
   "import.shotCap": "Garmin Connect: ratasvalikko → „Vie tiedosto“",
-  "import.uploadNote": "FIT tai ZIP, useampi tiedosto mahdollista. Latauksen jälkeen analyysi avautuu.",
+  "import.uploadNote": "FIT, TCX tai GPX — yksittäin tai ZIP-pakettina, useita kerralla. Analyysi avautuu latauksen jälkeen.",
 
   "account.tabAlarm": "On-Foil-hälytys",
   "alarm.title": "Värinähälytys",
