@@ -65,7 +65,7 @@ ProxyPass         /  http://app-host:8090/ retry=0 connectiontimeout=2 timeout=3
 setzen** — von der App-VM aus ist sie nicht erreichbar. Ohne diesen Schritt bringen die folgenden
 nur die Hälfte.
 
-### Schritt 1 — Socket-Aktivierung (auf dieser VM, klein und reversibel)
+### Schritt 1 — Socket-Aktivierung ✅ AKTIV seit 07.09.2026
 
 `foil-server.socket` in diesem Verzeichnis: der lauschende Socket gehört systemd, nicht dem
 Prozess. Beim Neustart bleibt er offen, der Kernel nimmt Verbindungen an und legt sie in die
@@ -75,8 +75,29 @@ in `foil-server.service` `--host 0.0.0.0 --port 8090` durch `--fd 3` ersetzen un
 
 Eine Nebenwirkung, die man kennen muss: die Wartezeit ist so lang wie das Herunterfahren des
 alten Prozesses. `--timeout-graceful-shutdown 300` würde eine hängende Anfrage also fünf Minuten
-lang zur Warteschlange für ALLE machen. Mit Socket-Aktivierung deshalb **auf 15 s senken** —
-Chunk-Uploads sind Millisekunden, und lange Läufe gehören nicht in einen HTTP-Request.
+lang zur Warteschlange für ALLE machen. Deshalb steht sie jetzt auf **15 s** (`TimeoutStopSec=25`)
+— Chunk-Uploads sind Millisekunden, und lange Läufe gehören nicht in einen HTTP-Request.
+
+**Gemessen, vorher/nachher, mit `scripts/restart-ausfall-messen.py --restart`:**
+
+| | vorher | nachher |
+|---|---|---|
+| abgewiesene Verbindungen | 1,66 s lang | **keine** |
+| längste einzelne Wartezeit | — | 1,88 s (Anfrage wird beantwortet) |
+
+Vorher geprüft wurde das an einem **identischen Testpaar auf Port 8099** (`foil-test.socket`
++ `.service`, danach entfernt), nicht direkt an der Produktion: dort hat sich bestätigt, dass
+`uvicorn --fd 3` mit `--workers 4` sauber läuft — Eltern plus vier Worker, keine Fehler.
+Die Umstellung selbst brauchte 0,40 s, weil der alte Prozess den Port ohne `SO_REUSEPORT` hielt
+und erst weichen musste; das ist einmalig.
+
+Zurückrollen, falls je nötig: die alte Unit liegt als
+`/root/foil-server.service.vor-socket-aktivierung-20260907`.
+```
+sudo cp /root/foil-server.service.vor-socket-aktivierung-20260907 /etc/systemd/system/foil-server.service
+```
+danach `sudo systemctl daemon-reload`, `sudo systemctl disable --now foil-server.socket`,
+`sudo systemctl restart foil-server`.
 
 ### Schritt 2 — Blau/Grün, falls auch die Wartezeit weg soll
 
