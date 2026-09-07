@@ -389,6 +389,8 @@ const zh: Record<string, string> = {
   "sd.optimalLegend": "最优 {v} km/h",
   "sd.smoothing": "平滑：",
   "sd.clearSelection": "清除选区（所有航段）",
+  "sd.noFix.title": "这次记录没有任何位置数据。",
+  "sd.noFix.text": "记录期间手表没有 GPS 信号——没有位置就无法分析。下次请在开始界面等到 GPS 就绪后再开始。在空旷处通常几秒钟，长时间未用则可能需要一分钟。",
   "sd.close": "✕ 关闭",
   "sd.fullscreen": "⛶ 全屏",
   "sd.play": "播放",

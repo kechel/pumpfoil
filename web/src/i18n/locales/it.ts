@@ -335,6 +335,8 @@ const it: Record<string, string> = {
   "unit.pumpPerMin": "/min",
   "sd.smoothing": "Smussatura:",
   "sd.clearSelection": "Annulla selezione (tutti i run)",
+  "sd.noFix.title": "Questa registrazione non contiene alcuna posizione.",
+  "sd.noFix.text": "L'orologio non aveva ricezione GPS durante la registrazione — senza posizione non c'è nulla da analizzare. La prossima volta attendi sulla schermata iniziale che il GPS sia pronto prima di avviare. All'aperto servono di solito pochi secondi, fino a un minuto dopo una pausa lunga.",
   "sd.close": "✕ Chiudi",
   "sd.fullscreen": "⛶ Schermo intero",
   "sd.play": "Riproduci",

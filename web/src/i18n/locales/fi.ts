@@ -396,6 +396,8 @@ const fi: Record<string, string> = {
   "sd.optimalLegend": "Optimaalinen {v} km/h",
   "sd.smoothing": "Tasoitus:",
   "sd.clearSelection": "Poista valinta (kaikki lenkit)",
+  "sd.noFix.title": "Tämä tallennus ei sisällä sijaintia.",
+  "sd.noFix.text": "Kellolla ei ollut GPS-signaalia tallennuksen aikana — ilman sijaintia ei ole mitään analysoitavaa. Odota ensi kerralla aloitusnäytöllä, että GPS on valmis, ja aloita vasta sitten. Ulkona se kestää yleensä sekunteja, pidemmän tauon jälkeen jopa minuutin.",
   "sd.close": "✕ Sulje",
   "sd.fullscreen": "⛶ Koko näyttö",
   "sd.play": "Toista",

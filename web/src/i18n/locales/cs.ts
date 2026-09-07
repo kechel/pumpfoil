@@ -413,6 +413,8 @@ const cs: Record<string, string> = {
   "sd.optimalLegend": "Optimum {v} km/h",
   "sd.smoothing": "Vyhlazení:",
   "sd.clearSelection": "Zrušit výběr (všechny jízdy)",
+  "sd.noFix.title": "Tato nahrávka neobsahuje žádnou polohu.",
+  "sd.noFix.text": "Hodinky během nahrávání neměly signál GPS — bez polohy není co vyhodnotit. Příště na úvodní obrazovce vyčkej, až bude GPS připravená, a teprve pak začni. Pod otevřeným nebem to bývá několik sekund, po delší pauze i minutu.",
   "sd.close": "✕ Zavřít",
   "sd.fullscreen": "⛶ Celá obrazovka",
   "sd.play": "Přehrát",

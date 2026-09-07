@@ -286,6 +286,8 @@ const gsw: Record<string, string> = {
   "sd.colorSpeed": "Speed",
   "sd.colorPulse": "Puls",
   "sd.smoothing": "Glättig:",
+  "sd.noFix.title": "Die Ufnahm het kei Position.",
+  "sd.noFix.text": "D Uhr het während em Ufnäh kei GPS-Empfang gha — ohni Position cha me nüt uswerte. Wart s nächscht Mal uf em Startbildschirm, bis s GPS parat isch, und start erst denn. Under freiem Himmel duuret das meistens es paar Sekunde, nach längerer Pause au e Minute.",
   "sd.close": "✕ Zue",
   "sd.fullscreen": "⛶ Vollbild",
   "sd.play": "Abspiele",

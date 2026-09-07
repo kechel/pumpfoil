@@ -401,6 +401,8 @@ const nb: Record<string, string> = {
   "sd.optimalLegend": "Optimal {v} km/h",
   "sd.smoothing": "Utjevning:",
   "sd.clearSelection": "Fjern valg (alle runs)",
+  "sd.noFix.title": "Dette opptaket inneholder ingen posisjon.",
+  "sd.noFix.text": "Klokka hadde ikke GPS-dekning under opptaket — uten posisjon er det ingenting å analysere. Neste gang: vent på startskjermen til GPS er klar før du starter. Utendørs tar det vanligvis noen sekunder, etter en lengre pause opptil et minutt.",
   "sd.close": "✕ Lukk",
   "sd.fullscreen": "⛶ Fullskjerm",
   "sd.play": "Spill",
