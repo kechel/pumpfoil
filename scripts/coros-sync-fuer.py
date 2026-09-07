@@ -36,6 +36,10 @@ def main() -> int:
     ap.add_argument("--warten", type=int, default=0,
                     help="Sekunden zwischen Wiederholungen, solange COROS nicht antwortet")
     ap.add_argument("--versuche", type=int, default=1)
+    ap.add_argument("--tage", type=int, default=0,
+                    help="Zeitfenster ausdruecklich weiten (statt ab dem letzten Sync). "
+                         "Kostet kein zusaetzliches Kontingent: was wir schon haben, wird an "
+                         "der Startzeit erkannt und nicht geladen.")
     args = ap.parse_args()
 
     if not pathlib.Path(".env").exists():
@@ -61,7 +65,7 @@ def main() -> int:
             if link is None:
                 print(f"Nutzer {args.user_id} hat COROS nicht verknuepft.", file=sys.stderr)
                 return 2
-            ergebnis = coros_sync(user=nutzer, db=db)
+            ergebnis = coros_sync(tage=args.tage, user=nutzer, db=db)
             print(f"Versuch {n}: {ergebnis}", flush=True)
             return 0
         except Exception as exc:  # noqa: BLE001
