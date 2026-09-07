@@ -115,8 +115,9 @@ type Entry = { date: string; items: Item[] };
 
 const ENTRIES: Entry[] = [
   {
-    date: "September 7, 2026 — Android and Wear OS 1.1.25 / 1.2.25 in the Play Store",
+    date: "September 7, 2026",
     items: [
+      "Android and Wear OS 1.1.25 / 1.2.25 is in the Play Store.",
       "Videos in the community feed play again, and you can swipe from one to the next.",
       "The spots map no longer freezes when you scroll back to it.",
       "A recording can be ended with a single press instead of holding, if you set that in your profile.",
