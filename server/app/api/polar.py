@@ -230,6 +230,14 @@ def _pull_import(db: Session, user: models.User, link: models.PolarLink) -> dict
     imported = skipped = 0
     abgewaehlt = 0
     gescheitert: list[tuple[str, str]] = []
+    # Warum ein Training NICHT importiert wurde, mitzaehlen — mit denselben Codes wie bei Suunto
+    # (`suunto._grund_code`), damit die Oberflaeche sie uebersetzt anzeigen kann. Vorher war ein
+    # Uebersprung vollkommen stumm: der erste echte Polar-Push kam an, wurde verarbeitet, und es
+    # entstand keine Session — ohne eine einzige Zeile dazu (07.09.2026).
+    gruende: dict[str, int] = {}
+
+    def zaehl(code: str) -> None:
+        gruende[code] = gruende.get(code, 0) + 1
     for url in urls:
         try:
             # Zusammenfassung ZUERST: sie nennt die Sportart, die TCX-Datei kostet dagegen einen
@@ -263,6 +271,8 @@ def _pull_import(db: Session, user: models.User, link: models.PolarLink) -> dict
                 if not importsports.erlaubt(db, user.id, "polar", sport_key):
                     abgewaehlt += 1
                     skipped += 1
+                    zaehl("gefiltert")
+                    log.info("polar: %s uebersprungen — Sportart %s abgewaehlt", url, sport_key)
                     continue
             tcx = httpx.get(f"{url}/tcx",
                             headers={"Authorization": f"Bearer {link.access_token}",
@@ -273,6 +283,8 @@ def _pull_import(db: Session, user: models.User, link: models.PolarLink) -> dict
             parsed = parse_track_bytes(tcx.content, "polar.tcx")
             if not parsed.get("gps_samples") or parsed.get("started_at") is None:
                 skipped += 1  # z. B. Indoor-Training ohne GPS — daran wird sich nie etwas aendern
+                zaehl("kein_gps")
+                log.info("polar: %s uebersprungen — keine GPS-Punkte in der Datei", url)
                 continue
             if sport_key is not None:
                 importsports.merken(db, user.id, "polar", sport_key,
@@ -281,8 +293,11 @@ def _pull_import(db: Session, user: models.User, link: models.PolarLink) -> dict
                                       src_label="polar-import", uuid_prefix="polar-")
             if s is None:
                 skipped += 1  # war schon da bzw. bewusst geloescht
+                zaehl("doppelt")
+                log.info("polar: %s uebersprungen — schon vorhanden oder bewusst geloescht", url)
             else:
                 imported += 1
+                log.info("polar: Session %s importiert (user %s)", s.id, user.id)
         except Exception as exc:  # noqa: BLE001 — ein kaputtes Exercise darf den Rest nicht stoppen
             gescheitert.append((url, f"{type(exc).__name__}: {exc}"))
         finally:
@@ -313,9 +328,11 @@ def _pull_import(db: Session, user: models.User, link: models.PolarLink) -> dict
         link.retry_count = 0
     link.last_sync_at = datetime.now(timezone.utc)
     db.commit()
-    # `failed`/`retry_pending` sind fuer die Diagnose da; die Oberflaeche zeigt weiter
-    # imported/skipped (LinkedAccounts.tsx) und bleibt damit unveraendert.
-    return {"imported": imported, "skipped": skipped,
+    for u, grund in gescheitert:
+        zaehl("fehler")
+    # `reasons` wird in der Oberflaeche uebersetzt (LinkedAccounts.GRUND_KEYS) — damit steht dort
+    # nicht mehr nur „1 uebersprungen", sondern woran es lag.
+    return {"imported": imported, "skipped": skipped, "reasons": gruende,
             "failed": len(gescheitert), "retry_pending": offen}
 
 
