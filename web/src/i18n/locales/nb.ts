@@ -1099,6 +1099,8 @@ const nb: Record<string, string> = {
   "settings.coros.unlink": "Koble fra",
   "settings.coros.help": "Hvordan funker det?",
   "settings.coros.help1": "Koble til COROS-kontoen din → nye treninger importeres automatisk (GPS + puls), ingen manuell synk.",
+  "settings.sync.nothingNew": "Ingenting nytt",
+  "settings.sync.imported": "{n} importert",
   "settings.sync.progress": "{fertig} av {gesamt} treninger",
   "settings.sports.title": "Hvilke sporter skal importeres?",
   "settings.sports.hint": "Bare modusene kontoen din faktisk har levert. En ny importeres automatisk til du fjerner haken. Gjelder framtidige importer.",

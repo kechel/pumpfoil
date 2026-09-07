@@ -755,6 +755,8 @@ const gsw: Record<string, string> = {
   "settings.coros.unlink": "Verbindig trenne",
   "settings.coros.help": "Wie gaht das?",
   "settings.coros.help1": "COROS-Konto verbinde → neui Trainings werded automatisch importiert (GPS + Puls), kei manuelle Sync.",
+  "settings.sync.nothingNew": "Nüt Neus",
+  "settings.sync.imported": "{n} importiert",
   "settings.sync.progress": "{fertig} vo {gesamt} Trainings",
   "settings.sports.title": "Weli Sportarte importiere?",
   "settings.sports.hint": "Do stöhnd nur die Modi, wo dis Konto würkli gliferet het. Chunnt en neue dezue, wird er automatisch importiert, bis du ne abwählsch. Gilt für zuekünftigi Importe.",

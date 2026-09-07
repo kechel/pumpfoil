@@ -1127,6 +1127,8 @@ const fi: Record<string, string> = {
   "settings.coros.unlink": "Katkaise yhteys",
   "settings.coros.help": "Miten se toimii?",
   "settings.coros.help1": "Yhdistä COROS-tili → uudet harjoitukset tuodaan automaattisesti (GPS + syke), ei manuaalista synkkausta.",
+  "settings.sync.nothingNew": "Ei uutta",
+  "settings.sync.imported": "{n} tuotu",
   "settings.sync.progress": "{fertig}/{gesamt} harjoitusta",
   "settings.sports.title": "Mitkä lajit tuodaan?",
   "settings.sports.hint": "Vain tilit, jotka tilisi on todella toimittanut. Uusi tuodaan automaattisesti, kunnes poistat valinnan. Koskee tulevia tuonteja.",

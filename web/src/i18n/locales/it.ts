@@ -836,6 +836,8 @@ const it: Record<string, string> = {
   "settings.coros.unlink": "Scollega",
   "settings.coros.help": "Come funziona?",
   "settings.coros.help1": "Collega l'account COROS → i nuovi allenamenti si importano in automatico (GPS + FC), senza sync manuale.",
+  "settings.sync.nothingNew": "Niente di nuovo",
+  "settings.sync.imported": "{n} importate",
   "settings.sync.progress": "{fertig} di {gesamt} allenamenti",
   "settings.sports.title": "Quali sport importare?",
   "settings.sports.hint": "Solo le modalità che il tuo account ha effettivamente fornito. Una nuova viene importata automaticamente finché non la deselezioni. Vale per i futuri import.",
