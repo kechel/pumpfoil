@@ -81,6 +81,7 @@ non-public-sdks/
 server/scripts/delete_test_accounts.py
 # social-media: Medien/Musik bleiben privat, nur das Shorts-Tool ist versioniert
 social-media/*
+!social-media/*.md
 !social-media/scripts/
 !social-media/musik/
 social-media/musik/*
