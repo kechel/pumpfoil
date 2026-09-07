@@ -108,3 +108,26 @@ Pumpfoil è un progetto community con software libero e open source sotto licenz
 App e info: https://pumpfoil.org
 Codice: https://github.com/kechel/pumpfoil
 ---------------------------------------------
+Português (Brasil)
+---------------------------------------------
+Track Every Pump
+
+Transforme seu relógio esportivo em um computador de pumpfoil: track GPS, distância em foil, cadência de bombeada e glides – automaticamente em cada sessão.
+
+No relógio e no celular
+Apps para Garmin, Apple Watch, Wear OS e Amazfit – e apps nativos para iOS e Android, com gravador mesmo sem relógio. Contas para conectar: Polar, Suunto, COROS, Xiaomi (via Mi Fitness).
+
+O que você recebe
+• Campos de dados configuráveis: velocidade, frequência cardíaca, distância, tempo
+• Alarme por vibração acima/abaixo da sua velocidade-alvo (calculada pelo foil e pelo peso)
+• Detecção de carves, destacados no mapa de cada run
+• Números por foil: distância, run mais longo, frequência cardíaca – qual te leva mais longe?
+• Histórico da temporada, gravação offline, envio automático
+
+Comunidade
+Compartilhe e compare sessões, recordes e rankings por spot – e cada spot ganha automaticamente um grupo de conversa.
+
+Código aberto
+Software livre sob AGPL-3.0, em 17 idiomas.
+
+https://pumpfoil.org · github.com/kechel/pumpfoil
