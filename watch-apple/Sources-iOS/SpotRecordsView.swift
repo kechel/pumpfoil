@@ -80,7 +80,18 @@ struct SpotRecordsView: View {
 
     var body: some View {
         Group {
-            if geladen && etwasDa {
+            // Solange nichts geladen ist, steht hier ein Platzhalter — und wenn geladen wurde,
+            // aber nichts drin ist, sagt die Ansicht das AUCH. Vorher gab sie in beiden Faellen
+            // gar nichts aus, und damit war nicht unterscheidbar, ob der Abruf scheitert, ob es
+            // keine Rekorde gibt oder ob die Ansicht nie gebaut wird (Jan, 07.09.: „keine
+            // rekorde" bei frischem Build, waehrend der Server 11 Kacheln liefert).
+            if !geladen {
+                Section { Text(Loc.t("common.loading", lang)).font(.caption).foregroundStyle(.secondary) }
+                    header: { Text(Loc.t("rec.spotTitle", lang)) }
+            } else if !etwasDa {
+                Section { Text(Loc.t("records.empty", lang)).font(.caption).foregroundStyle(.secondary) }
+                    header: { Text(Loc.t("rec.spotTitle", lang)) }
+            } else {
                 Section {
                     Picker("", selection: $fensterWahl) {
                         ForEach(Self.fenster, id: \.self) { f in

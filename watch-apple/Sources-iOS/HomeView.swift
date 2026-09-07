@@ -605,9 +605,13 @@ struct HomeView: View {
 struct HomeWeatherCard: View {
     let wb: WeatherBlock
     let lang: String
+    /// Ueberschrift. Vorgabe ist „Wetter am Homespot" — in einer SPOT-Ansicht ist das falsch,
+    /// dort steht der Titel der PWA („Wetter & Pegel"). Aufgefallen am 07.09.2026 im Simulator:
+    /// die Spot-Seite trug die Homespot-Ueberschrift, weil sie diese Karte wiederverwendet.
+    var titelKey: String = "home.weather"
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(Loc.t("home.weather", lang)).font(.caption).foregroundStyle(.secondary)
+            Text(Loc.t(titelKey, lang)).font(.caption).foregroundStyle(.secondary)
             if let c = wb.current {
                 HStack(spacing: 10) {
                     Text(wxIcon(c.code)).font(.title2)

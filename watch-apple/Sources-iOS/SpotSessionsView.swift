@@ -31,7 +31,7 @@ struct SpotSessionsView: View {
             // Reihenfolge wie in der PWA: Rekorde, Wetter, Beschreibungen, dann die Sessions
             // (Jan, 07.09.: „die 3 muessen nach oben wie in der pwa").
             SpotRecordsView(spot: spot, lang: lang, accelOnly: showAll ? false : true)
-            if let wb = weather { Section { HomeWeatherCard(wb: wb, lang: lang) } }
+            if let wb = weather { Section { HomeWeatherCard(wb: wb, lang: lang, titelKey: "spot.weatherTitle") } }
             if let sid = spotId { SpotNotesView(spotId: sid, lang: lang) }
             ForEach(items) { c in
                 NavigationLink { SessionDetailView(id: c.id) } label: { CommunityRow(item: c) }
@@ -54,15 +54,19 @@ struct SpotSessionsView: View {
         }
         .overlay { if loading && items.isEmpty { ProgressView() } }
         .refreshable { await load() }
-        .task { if items.isEmpty { await load() } }
+        // EIN Task fuer alles. Vorher hingen drei `.task`-Blocke an derselben Liste — dass alle
+        // drei laufen, ist nicht garantiert genug, um sich darauf zu verlassen, und ein stumm
+        // ausgefallener Block ist von „keine Daten" nicht zu unterscheiden (Jan, 07.09.: Wetter
+        // da, Rekorde und Beschreibungen nicht). Nacheinander in einem Block, mit den
+        // Nebenlaeufen in einer Gruppe, damit nichts aufeinander wartet.
         .task {
-            if weather == nil { weather = (try? await Api.spotWeather(spot))?.weather }
-        }
-        .task {
-            if spotId == nil {
-                let m = (try? await Api.spotMap(accelOnly: false))?.first { $0.spot == spot }
-                spotId = m?.spot_id
-                if let w = m?.water, !w.isEmpty, w.lowercased() != spot.lowercased() { spotLabel = w }
+            if items.isEmpty { await load() }
+            async let w = Api.spotWeather(spot)
+            async let karte = Api.spotMap(accelOnly: false)
+            weather = (try? await w)?.weather
+            if let m = (try? await karte)?.first(where: { $0.spot == spot }) {
+                spotId = m.spot_id
+                if let wn = m.water, !wn.isEmpty, wn.lowercased() != spot.lowercased() { spotLabel = wn }
             }
         }
     }
