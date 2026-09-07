@@ -910,7 +910,6 @@ const id: Record<string, string> = {
   "import.shotAlt": "Menu Garmin Connect dengan opsi “Ekspor ke file”",
   "import.desc": "Buka aktivitasnya, klik ikon roda gigi di kanan atas, lalu “Ekspor ke file”. Unggah file ZIP di sini.",
   "import.shotCap": "Garmin Connect: menu roda gigi → “Ekspor ke file”",
-  "import.uploadNote": "FIT, TCX atau GPX — satuan atau dalam ZIP, beberapa sekaligus.",
 
   "account.tabAlarm": "Alarm On-Foil",
   "alarm.title": "Alarm getar",

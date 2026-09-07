@@ -954,7 +954,6 @@ const nb: Record<string, string> = {
   "import.shotAlt": "Garmin Connect-menyen med valget «Eksporter til fil»",
   "import.desc": "Åpne aktiviteten, klikk på tannhjulet øverst til høyre, så «Eksporter til fil». Last opp ZIP-filen her.",
   "import.shotCap": "Garmin Connect: tannhjul-menyen → «Eksporter til fil»",
-  "import.uploadNote": "FIT, TCX eller GPX — enkeltfiler eller ZIP, flere om gangen.",
   "account.tabAlarm": "På-foil-alarm",
   "alarm.title": "Vibrasjonsalarm",
   "alarm.desc": "Klokka vibrerer mens du foiler når du krysser en fartsgrense – f.eks. for å holde deg i optimal pumpefart. Når alarmen er av, viser startskjermen på klokka «Alarm: av».",
