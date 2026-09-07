@@ -45,6 +45,7 @@ const it: Record<string, string> = {
   "common.delete": "Elimina",
   "common.search": "Cerca",
   "common.loading": "caricamento…",
+  "changelog.details": "Dettagli ({n})",
   "common.loadFailed": "Impossibile caricare.",
   "common.reset": "Reimposta",
   "common.back": "← indietro",

@@ -74,6 +74,7 @@ const nb: Record<string, string> = {
   "common.delete": "Slett",
   "common.search": "Søk",
   "common.loading": "laster…",
+  "changelog.details": "Detaljer ({n})",
   "common.loadFailed": "Kunne ikke lastes.",
   "common.close": "Lukk",
   "common.reset": "Nullstill",

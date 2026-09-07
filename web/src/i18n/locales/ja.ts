@@ -54,6 +54,7 @@ const ja: Record<string, string> = {
   "common.delete": "削除",
   "common.search": "検索",
   "common.loading": "読み込み中…",
+  "changelog.details": "詳細（{n}）",
   "common.loadFailed": "読み込めませんでした。",
   "common.close": "閉じる",
   "common.reset": "リセット",

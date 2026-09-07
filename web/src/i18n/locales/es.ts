@@ -45,6 +45,7 @@ const es: Record<string, string> = {
   "common.delete": "Eliminar",
   "common.search": "Buscar",
   "common.loading": "cargando…",
+  "changelog.details": "Detalles ({n})",
   "common.loadFailed": "No se pudo cargar.",
   "common.reset": "Restablecer",
   "common.back": "← volver",
