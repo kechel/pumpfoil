@@ -1124,7 +1124,6 @@ const cs: Record<string, string> = {
   "linked.accountShort": "Propojení účtu",
   "settings.polar.title": "Polar import",
   "settings.polar.hint": "Propoj svůj účet Polar (AccessLink) a importuj své tréninky automaticky jako relace.",
-  "settings.polar.gpsHint": "Důležité: v profilu sportu v Polaru musí být zapnutý GPS. U vodních profilů se volba jmenuje „použít GPS telefonu“ — bez ní hodinky nezaznamenají polohu a bez polohy nelze session vyhodnotit.",
   "settings.polar.scope": "Importuje automaticky nové tréninky od okamžiku propojení. Starší tréninky z dřívějška Polar neposkytuje — a přebírají se jen aktivity s GPS.",
   "settings.polar.connect": "Propojit s Polar",
   "settings.polar.sync": "Importovat tréninky",

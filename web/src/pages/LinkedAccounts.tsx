@@ -366,12 +366,7 @@ function PolarCard() {
     <Card className="p-5">
       <h3 className="mb-1 font-semibold">{t("settings.polar.title")}</h3>
       <p className="mb-2 text-sm text-slate-300">{t("settings.polar.hint")}</p>
-      <p className="mb-2 rounded-lg bg-slate-800/60 px-3 py-2 text-sm text-slate-400">{t("settings.polar.scope")}</p>
-      {/* Der Haken im Sportprofil entscheidet, nicht das Profil selbst: Jans „Water Exercise"
-          lieferte zweimal keine Position und nach dem Einschalten von „GPS vom Handy verwenden"
-          sofort eine (07.09.2026, an den Push-Daten belegt). Ohne diesen Satz sucht man den
-          Fehler bei uns. */}
-      <p className="mb-3 rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-800 dark:text-amber-200">{t("settings.polar.gpsHint")}</p>
+      <p className="mb-3 rounded-lg bg-slate-800/60 px-3 py-2 text-sm text-slate-400">{t("settings.polar.scope")}</p>
       <div className="mb-3 flex items-center gap-3">
         <a href="https://flow.polar.com/" target="_blank" rel="noopener noreferrer" title="Polar Flow"
           className="inline-block rounded-lg bg-white px-3 py-2 shadow-sm">

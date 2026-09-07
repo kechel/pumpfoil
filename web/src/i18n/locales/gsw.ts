@@ -717,7 +717,6 @@ const gsw: Record<string, string> = {
   "linked.accountShort": "Konto-Verchnüpfig",
   "settings.polar.title": "Polar-Import",
   "settings.polar.hint": "Verbinde dis Polar-Konto (AccessLink) und importier dini Trainings automatisch als Sessions.",
-  "settings.polar.gpsHint": "Wichtig: im Polar-Sportprofil muess GPS a sii. Bi Wasser-Profil heisst de Haken „GPS vom Händy bruche“ — ohni de zeichnet d Uhr kei Position uf, und ohni Position cha me e Session nöd uswerte.",
   "settings.polar.scope": "Importiert automatisch nöii Trainings ab em Verbinde. Ältери vo vorher git Polar nöd use — und nume Aktivitäte mit GPS chömed inä.",
   "settings.polar.connect": "Mit Polar verbinde",
   "settings.polar.sync": "Trainings importiere",
