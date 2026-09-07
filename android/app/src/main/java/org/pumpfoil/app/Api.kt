@@ -630,10 +630,22 @@ object Api {
         json.decodeFromString(SpotsList.serializer(), http("GET", "/api/community/spots?accel_only=$accelOnly", null, auth = true))
     }
 
-    suspend fun communityRecords(accelOnly: Boolean = true, foilBand: String = "all"): Map<String, PeriodRecords> = withContext(Dispatchers.IO) {
+    /**
+     * Community-Rekorde. Mit `spot` nur die dieses Spots — dann kommen ALLE Zeitfenster in einem
+     * Aufruf, was der Rueckfall "10 Tage, sonst 30, sonst ein Jahr, sonst alles" braucht
+     * (`/community/spot-records` liefert immer nur EIN Fenster).
+     */
+    suspend fun communityRecords(
+        accelOnly: Boolean = true,
+        foilBand: String = "all",
+        spot: String? = null,
+    ): Map<String, PeriodRecords> = withContext(Dispatchers.IO) {
         json.decodeFromString(
             MapSerializer(String.serializer(), PeriodRecords.serializer()),
-            http("GET", "/api/community/records?accel_only=$accelOnly&foil_band=$foilBand", null, auth = true),
+            http("GET", buildString {
+            append("/api/community/records?accel_only=$accelOnly&foil_band=$foilBand")
+            if (!spot.isNullOrBlank()) append("&spot=" + java.net.URLEncoder.encode(spot, "UTF-8"))
+        }, null, auth = true),
         )
     }
 

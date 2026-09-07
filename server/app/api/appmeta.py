@@ -252,6 +252,7 @@ NAECHSTES: list[dict] = [
          "under each account now says what actually happens: Polar sends new trainings by "
          "itself, COROS is fetched once a day.",
          "A recording without a single position says so, instead of showing an empty page.",
+         "The spot page shows the records for that spot, the weather and the water level, and the spot descriptions — at the top, the way the website does it. Some of that was missing entirely.",
          "The watch says it plainly when it never got a GPS fix, instead of quietly "
          "recording zeros.",
          "Heart rate keeps measuring: if the watch stops reporting, the app asks for it again.",
@@ -269,6 +270,7 @@ NAECHSTES: list[dict] = [
          "under each account now says what actually happens: Polar sends new trainings by "
          "itself, COROS is fetched once a day.",
          "A recording without a single position says so, instead of showing an empty page.",
+         "The spot page shows the records for that spot, the weather and the water level, and the spot descriptions — at the top, the way the website does it. Some of that was missing entirely.",
          "The Apple Watch tells us which model it is. Until now every Apple Watch looked "
          "the same to us, so we could not say which ones measure well and which do not.",
          "The watch comparison from the website is in the app too.",

@@ -44,9 +44,11 @@ fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, 
     // ist namensbasiert). Einmal die Karte holen und zuordnen; ohne Spot-Zeile (Altbestand) bleibt
     // es null und der Abschnitt entfaellt.
     var spotId by remember(spot) { mutableStateOf<Int?>(null) }
+    var weather by remember(spot) { mutableStateOf<WeatherBlock?>(null) }
     // Zweite Zeile zum Spot (Gewaesser bzw. Steg/Ortslage) — dieselbe Abfrage, ein Feld mehr.
     var spotLabel by remember(spot) { mutableStateOf<String?>(null) }
     LaunchedEffect(spot) {
+        weather = try { Api.spotWeather(spot).weather } catch (_: Exception) { null }
         try {
             val m = Api.spotMap(accelOnly = false).firstOrNull { it.spot == spot }
             spotId = m?.spotId
@@ -105,8 +107,18 @@ fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, 
                 } else {
                     LazyColumn(Modifier.fillMaxSize()) {
                         error?.let { e -> item { Text(e, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error) } }
-                        // Beschreibungen ueber der Session-Liste (wie im Web: erst der Spot, dann
-                        // was dort gefahren wurde).
+                        // Reihenfolge wie in der PWA: Rekorde, Wetter, Beschreibungen, dann die
+                        // Sessions (Jan, 07.09.: hier fehlten Rekorde UND Wetter ganz).
+                        //
+                        // ACHTUNG, DOPPELUNG: dasselbe zeigt `SessionsScreen` im Spot-Modus. Die
+                        // PWA hat nur EINE Ansicht — ein Klick auf der Spot-Karte fuehrt dort zu
+                        // `/sessions?spot=…`. Die beiden Android-Bildschirme sind auseinander-
+                        // gelaufen; angeglichen sind sie jetzt, zusammengelegt gehoeren sie
+                        // trotzdem (s. docs/TODO.md).
+                        item { SpotRecordsSection(spot, accelOnly = false, onOpen = onOpen) }
+                        weather?.let { wb ->
+                            item { Box(Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) { WeatherCard(wb) } }
+                        }
                         spotId?.let { sid -> item { SpotNotesSection(sid) } }
                         if (items.isEmpty() && !loading && error == null) {
                             item { Text(I18n.t("sessions.empty"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }

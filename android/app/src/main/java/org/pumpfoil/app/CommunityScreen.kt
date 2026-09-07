@@ -429,9 +429,12 @@ private fun hhmmOfDay(v: Double): String {
     val s = (v.toLong() % 86400 + 86400) % 86400
     return "%02d:%02d".format(s / 3600, (s % 3600) / 60)
 }
-
+// NICHT mehr `private`: dieselbe Darstellung braucht die Spot-Ansicht (Jan, 07.09.2026 — dort
+// fehlten die Rekorde ganz). Die Navigation kommt ueber `onOpen`, das Raster haengt also an
+// nichts aus diesem Bildschirm; die Helfer darunter (RecItem, fmtDurC, hhmmOfDay) bleiben
+// dateiprivat, weil nur dieses Raster sie braucht.
 @Composable
-private fun RecordGrid(r: PeriodRecords?, showSpot: Boolean, onOpen: (Int) -> Unit, modifier: Modifier = Modifier) {
+fun RecordGrid(r: PeriodRecords?, showSpot: Boolean, onOpen: (Int) -> Unit, modifier: Modifier = Modifier) {
     val items = buildList {
         r?.distance?.let { add(RecItem(I18n.t("rec.farthestRun"), "%.0f m".format(it.value), it)) }
         r?.duration?.let { add(RecItem(I18n.t("rec.longestRun"), fmtDurC(it.value), it)) }

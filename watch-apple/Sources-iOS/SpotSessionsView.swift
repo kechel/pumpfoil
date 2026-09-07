@@ -1,6 +1,12 @@
 import SwiftUI
 
 // Sessions eines Spots (Tippen auf einen Pin/Eintrag in den Spots) — reiche Karten wie der Feed.
+//
+// ACHTUNG, DOPPELUNG: dasselbe zeigt `SessionsView` im Spot-Modus (dort ueber die Chips in der
+// Sessionliste erreichbar). Die PWA hat nur EINE Ansicht — ein Klick auf der Spot-Karte fuehrt
+// dort zu `/sessions?spot=…`. Die beiden iOS-Ansichten sind auseinandergelaufen: hier fehlten
+// Rekorde UND Wetter, dort fehlten die Rekorde (Jan, 07.09.2026). Angeglichen sind sie jetzt,
+// zusammengelegt gehoeren sie trotzdem — s. docs/TODO.md.
 struct SpotSessionsView: View {
     let spot: String
     @EnvironmentObject private var store: SessionStore
@@ -17,11 +23,15 @@ struct SpotSessionsView: View {
     // namensbasiert). Einmal ueber die Karte zuordnen; ohne Spot-Zeile bleibt es nil.
     @State private var spotId: Int?
     @State private var spotLabel: String?      // Gewaesser bzw. Steg/Ortslage, fuer den Titel
+    @State private var weather: WeatherBlock?
 
     var body: some View {
         List {
             if let error { Text(error).foregroundStyle(.secondary) }
-            // Erst der Spot (Beschreibungen), dann was dort gefahren wurde — wie im Web.
+            // Reihenfolge wie in der PWA: Rekorde, Wetter, Beschreibungen, dann die Sessions
+            // (Jan, 07.09.: „die 3 muessen nach oben wie in der pwa").
+            SpotRecordsView(spot: spot, lang: lang, accelOnly: showAll ? false : true)
+            if let wb = weather { Section { HomeWeatherCard(wb: wb, lang: lang) } }
             if let sid = spotId { SpotNotesView(spotId: sid, lang: lang) }
             ForEach(items) { c in
                 NavigationLink { SessionDetailView(id: c.id) } label: { CommunityRow(item: c) }
@@ -45,6 +55,9 @@ struct SpotSessionsView: View {
         .overlay { if loading && items.isEmpty { ProgressView() } }
         .refreshable { await load() }
         .task { if items.isEmpty { await load() } }
+        .task {
+            if weather == nil { weather = (try? await Api.spotWeather(spot))?.weather }
+        }
         .task {
             if spotId == nil {
                 let m = (try? await Api.spotMap(accelOnly: false))?.first { $0.spot == spot }
