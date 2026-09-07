@@ -49,7 +49,10 @@ struct SpotNotesView: View {
                     Text(Loc.t("spotnote.disclaimer", lang))
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    if d.can_write { ownBlock(d) }
+                    if d.can_write {
+                        ownBlock(d)
+                        aktionen(d)   // eigene Zeilen, s. Kommentar dort
+                    }
                     ForEach(d.notes.filter { !$0.mine }) { n in noteBlock(n, own: false) }
                     if d.notes.filter({ !$0.mine }).isEmpty && !d.can_write {
                         Text(Loc.t("spotnote.none", lang)).font(.caption).foregroundStyle(.secondary)
@@ -91,48 +94,45 @@ struct SpotNotesView: View {
             } else {
                 Text(Loc.t("spotnote.invite", lang)).font(.footnote)
             }
-            // DREI tippbare Elemente in EINER Listenzeile. Ohne eigenen Knopfstil macht SwiftUI
-            // die ganze Zeile interaktiv, und ein Tipp loest mehrere davon aus: „Bearbeiten"
-            // oeffnete den Text UND sofort die Bilderauswahl, „Foto hinzufuegen" dasselbe
-            // (Jan, 07.09.2026). Dieselbe Falle wie beim NavigationLink in Listenzeilen,
-            // s. Kommentar bei `SpotDest`.
-            //
-            // ACHTUNG, ZWEI VERSCHIEDENE STILE — das ist kein Versehen: mit `.borderless` reagierte
-            // der `PhotosPicker` auf den Tipp GAR NICHT MEHR (Jan, 07.09.2026, direkt nach dem Fix
-            // oben). Die beiden echten `Button` laufen damit; der Picker braucht `.plain`, und das
-            // ist in diesem Code bewiesen — der Avatar-Picker in `ProfileView` nutzt es seit dem
-            // Release. `.plain` nimmt die Akzentfarbe, deshalb steht sie am Label wieder drin.
-            HStack(spacing: 12) {
-                Button {
-                    draft = meine?.text ?? ""
-                    editing = true
-                } label: {
-                    Label(meine == nil ? Loc.t("spotnote.write", lang) : Loc.t("spotnote.edit", lang),
-                          systemImage: "square.and.pencil")
-                }
-                .buttonStyle(.borderless)
-                .disabled(busy)
-                if (meine?.photos.count ?? 0) < d.max_photos {
-                    PhotosPicker(selection: $pickerItem, matching: .images) {
-                        Label(Loc.t("spotnote.addPhoto", lang), systemImage: "photo.badge.plus")
-                            .foregroundStyle(Color.accentColor)
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(busy)
-                    Button {
-                        Task {
-                            busy = true
-                            waehler = (try? await Api.mySpotSessionPhotos(spotId)) ?? []
-                            busy = false
-                        }
-                    } label: {
-                        Label(Loc.t("spotnote.fromSession", lang), systemImage: "photo.on.rectangle")
-                    }
-                    .buttonStyle(.borderless)
-                    .disabled(busy)
-                }
+        }
+    }
+
+    /// Die drei Aktionen als EIGENE Listenzeilen — je Zeile EIN tippbares Element.
+    ///
+    /// Vorgeschichte, alles am 07.09.2026 von Jan im Simulator geprueft: erst standen sie
+    /// zusammen in einer `HStack` in EINER Zeile, dann machte SwiftUI die ganze Zeile
+    /// interaktiv und ein Tipp loeste mehrere aus („Bearbeiten" oeffnete den Text UND die
+    /// Bilderauswahl). Mit `.borderless` je Element war das behoben, aber der `PhotosPicker`
+    /// reagierte gar nicht mehr; mit `.plain` (im Repo bewiesen, s. `ProfileView`) ebenfalls
+    /// nicht. Eine eigene Zeile loest beides ohne Knopfstil: ein Element pro Zeile kann sich
+    /// mit keinem anderen streiten. Nebenbei bricht der Text nicht mehr um („Bearbei-ten").
+    ///
+    /// Wer das wieder in eine Zeile packt, holt sich einen der beiden Fehler zurueck.
+    @ViewBuilder private func aktionen(_ d: SpotNotesOut) -> some View {
+        let meine = d.notes.first(where: { $0.mine })
+        Button {
+            draft = meine?.text ?? ""
+            editing = true
+        } label: {
+            Label(meine == nil ? Loc.t("spotnote.write", lang) : Loc.t("spotnote.edit", lang),
+                  systemImage: "square.and.pencil")
+        }
+        .disabled(busy)
+        if (meine?.photos.count ?? 0) < d.max_photos {
+            PhotosPicker(selection: $pickerItem, matching: .images) {
+                Label(Loc.t("spotnote.addPhoto", lang), systemImage: "photo.badge.plus")
             }
-            .font(.footnote)
+            .disabled(busy)
+            Button {
+                Task {
+                    busy = true
+                    waehler = (try? await Api.mySpotSessionPhotos(spotId)) ?? []
+                    busy = false
+                }
+            } label: {
+                Label(Loc.t("spotnote.fromSession", lang), systemImage: "photo.on.rectangle")
+            }
+            .disabled(busy)
         }
     }
 
