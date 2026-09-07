@@ -93,6 +93,21 @@ QUICK_DIRS = [  # Schnellzugriff-Chips in der Sidebar: (Label, Pfad)
 ]
 
 
+# Einsortier-Ziele: jeder Unterordner von videos-verarbeitet ist eine Kategorie.
+# Angelegt werden sie im Finder — das Studio zeigt einfach, was da ist, statt
+# eine feste Liste zu pflegen.
+FIXED_CATEGORIES = ("aussortiert", "privat", "never-give-up")
+
+
+def sort_categories() -> list:
+    da = sorted(p.name for p in PROCESSED_DIR.iterdir()
+                if p.is_dir() and not p.name.startswith(".")) \
+        if PROCESSED_DIR.is_dir() else []
+    # die drei festen zuerst, damit ihre Knoepfe nicht wandern
+    fest = [c for c in FIXED_CATEGORIES if c in da]
+    return fest + [c for c in da if c not in FIXED_CATEGORIES]
+
+
 def load_stars():
     try:
         return set(json.loads(STARS_FILE.read_text()))
@@ -603,6 +618,7 @@ def list_state():
         p.name for p in ENDCARD_DIR.glob("shorts-endcard-*.png")
     ) if ENDCARD_DIR.is_dir() else []
     return {"videos": videos, "tracks": tracks, "rendered": rendered,
+            "categories": sort_categories(),
             "platforms": PLATFORMS, "video_dir": video_dir,
             "parent": str(VIDEO_DIR.parent), "subdirs": subdirs,
             "overlays": overlays, "endcards": endcards, "next_number": next_number(),
@@ -1938,8 +1954,8 @@ class Handler(BaseHTTPRequestHandler):
                 video = safe_child(VIDEO_DIR, req.get("video", ""))
             except FileNotFoundError:
                 return self._json({"error": "Video nicht gefunden"}, 400)
-            category = req.get("category", "aussortiert")
-            if category not in ("aussortiert", "privat", "never-give-up"):
+            category = Path(str(req.get("category", "aussortiert"))).name
+            if category not in sort_categories():
                 return self._json({"error": f"Unbekannte Kategorie: {category}"}, 400)
             dest_dir = PROCESSED_DIR / category
             dest_dir.mkdir(parents=True, exist_ok=True)

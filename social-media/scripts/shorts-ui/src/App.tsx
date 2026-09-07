@@ -51,6 +51,9 @@ const BANNER_WORDS: Record<string, string> = {
   fail: "#ef4444", failure: "#ef4444", fehler: "#ef4444",
   or: SLATE, oder: SLATE,
 };
+// Diese drei haben eigene Knoepfe mit Symbol; alle weiteren Unterordner
+// erscheinen als Chips daneben.
+const FIXED_CATS = ["aussortiert", "privat", "never-give-up"];
 const isStamp = (s?: TxStyle): s is "success" | "fail" => s === "success" || s === "fail";
 const shapeOf = (tx: TextSlot): TxShape => tx.shape ?? "plain";
 // Alles Gezeichnete (Urteil oder geformter Text) hat feste Masse und rastet
@@ -1399,6 +1402,19 @@ function Studio() {
                 <Icon name="undo" size={14} /> rückgängig
               </button>
             </div>
+            {/* Die uebrigen Unterordner von videos-verarbeitet: was im Finder
+                angelegt ist, ist hier ein Ziel — keine Liste im Code. */}
+            {(state.categories ?? []).filter((c) => !FIXED_CATS.includes(c)).length > 0 && (
+              <div className="sortrow">
+                <span className="sortlbl">einsortieren</span>
+                {(state.categories ?? []).filter((c) => !FIXED_CATS.includes(c)).map((c) => (
+                  <button key={c} className="chip" title={`nach videos-verarbeitet/${c} verschieben`}
+                          onClick={() => curVideo && void discard(curVideo, c)}>
+                    {c}
+                  </button>
+                ))}
+              </div>
+            )}
             <div className="midtabs">
               <button className={midTab === "texte" ? "on" : ""} onClick={() => setMidTab("texte")}>
                 Texte
