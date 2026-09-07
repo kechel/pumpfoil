@@ -17,7 +17,9 @@ export default function Import() {
           <h2 className="flex items-center gap-2 text-xl font-bold"><UploadIcon className="h-5 w-5 text-brand-400" /> {t("import.title")}</h2>
           <p className="mt-1 text-sm text-slate-300">{t("import.intro")}</p>
         </div>
-        <div className="shrink-0 sm:max-w-[16rem] sm:text-right">
+        {/* 19rem statt 16 (Jan, 07.09.2026): der Hinweis unter dem Knopf brach in DREI Zeilen,
+            seit er FIT, TCX und GPX alle nennt. Rund 20 % mehr Breite reichen fuer zwei. */}
+        <div className="shrink-0 sm:max-w-[19rem] sm:text-right">
           <UploadFitButton className="text-sm" />
           <p className="mt-1 text-xs text-slate-400">{t("import.uploadNote")}</p>
         </div>
