@@ -100,6 +100,7 @@ function CorosCard() {
     setSt(await api.corosStatus().catch(() => null));
   };
   useEffect(() => { load(); }, []);
+  const fort = useSyncFortschritt("coros", async () => { await api.corosMcpSync(); });
   if (!st || !st.available) return null;
 
   async function connect() {
@@ -108,7 +109,6 @@ function CorosCard() {
       window.location.href = r.authorize_url;
     } catch (e) { setMsg(String(e)); }
   }
-  const fort = useSyncFortschritt("coros", async () => { await api.corosMcpSync(); });
   async function unlink() {
     await (mcp ? api.corosMcpUnlink() : api.corosUnlink()).catch(() => {});
     setMsg(""); load();
@@ -164,7 +164,7 @@ function CorosCard() {
         </div>
       )}
       {fort.balken}
-      {st.linked && <SportAuswahl provider="coros" />}
+      {st.linked && <SportAuswahl provider="coros" aktualisieren={fort.fertigZaehler} />}
       {(msg || fort.msg) && <p className="mt-2 text-sm text-slate-400">{msg || fort.msg}</p>}
 
       <div className={`mt-4 ${mcp ? "hidden" : ""}`}>
@@ -189,10 +189,18 @@ function CorosCard() {
  * und am Ende der Schlusssatz des Servers angezeigt.
  */
 function useSyncFortschritt(provider: "polar" | "suunto" | "coros", anstossen: () => Promise<unknown>) {
+  // ACHTUNG beim Einbauen: dieser Hook MUSS vor dem frühen `return null` der Karte stehen
+  // (`if (!st || !st.available) return null`). Dahinter aufgerufen zählt React beim ersten
+  // Render weniger Hooks als danach und die ganze Seite stirbt mit Fehler #310 — genau so am
+  // 07.09. passiert, /konten war unbenutzbar.
   const { t } = useI18n();
   const [stand, setStand] = useState<SyncStand | null>(null);
   const [msg, setMsg] = useState("");
   const timer = useRef<number | null>(null);
+  // Zaehlt abgeschlossene Laeufe. Die Sportart-Liste haengt daran und holt sich neu — sonst
+  // erschiene ein beim Import NEU entdeckter Modus erst nach einem Neuladen der Seite
+  // (Jan, 07.09.: „die liste wird ja sichtbar direkt aktualisiert … oder?" — tat sie nicht).
+  const [fertigZaehler, setFertigZaehler] = useState(0);
 
   useEffect(() => () => { if (timer.current) window.clearTimeout(timer.current); }, []);
 
@@ -203,6 +211,7 @@ function useSyncFortschritt(provider: "polar" | "suunto" | "coros", anstossen: (
         timer.current = window.setTimeout(abfragen, 1500);
       } else {
         setStand(null);
+        setFertigZaehler((n) => n + 1);
         // Gründe in der Sprache des Nutzers, wenn der Server sie mitzählt (Suunto). Sonst der
         // Schlusssatz des Servers. Ohne die strukturierten Daten wäre die Meldung ein englisch/
         // deutsch gemischter Serversatz — die Codes sind übersetzbar, ein fertiger Satz nicht.
@@ -243,7 +252,7 @@ function useSyncFortschritt(provider: "polar" | "suunto" | "coros", anstossen: (
     </div>
   ) : null;
 
-  return { starten, laeuft: !!stand?.laeuft, balken, msg, setMsg };
+  return { starten, laeuft: !!stand?.laeuft, balken, msg, setMsg, fertigZaehler };
 }
 
 /**
@@ -258,13 +267,14 @@ function useSyncFortschritt(provider: "polar" | "suunto" | "coros", anstossen: (
  * Zwei Regeln in der Anzeige: nur Modi, die DIESER Nutzer selbst überträgt (nicht die 75 aus der
  * COROS-Doku), und nur solche mit Ortung — eine Hallenaufnahme wäre eine Zeile ohne Sinn.
  */
-function SportAuswahl({ provider }: { provider: "polar" | "suunto" | "coros" }) {
+function SportAuswahl({ provider, aktualisieren = 0 }:
+                      { provider: "polar" | "suunto" | "coros"; aktualisieren?: number }) {
   const { t } = useI18n();
   const [sports, setSports] = useState<ImportSport[] | null>(null);
   const [msg, setMsg] = useState("");
   useEffect(() => {
     api.importSports(provider).then((r) => setSports(r.sports)).catch(() => setSports([]));
-  }, [provider]);
+  }, [provider, aktualisieren]);
 
   async function umschalten(key: string, an: boolean) {
     // Erst anzeigen, dann speichern: ein Häkchen soll sofort reagieren.
@@ -317,12 +327,12 @@ function PolarCard() {
   const [msg, setMsg] = useState("");
   const load = () => api.polarStatus().then(setSt).catch(() => setSt(null));
   useEffect(() => { load(); }, []);
+  const fort = useSyncFortschritt("polar", async () => { await api.polarSync(); });
   if (!st || !st.available) return null;
 
   async function connect() {
     try { const r = await api.polarConnect(); window.location.href = r.authorize_url; } catch (e) { setMsg(String(e)); }
   }
-  const fort = useSyncFortschritt("polar", async () => { await api.polarSync(); });
   async function unlink() {
     await api.polarUnlink().catch(() => {});
     setMsg(""); load();
@@ -351,7 +361,7 @@ function PolarCard() {
         </div>
       )}
       {fort.balken}
-      {st.linked && <SportAuswahl provider="polar" />}
+      {st.linked && <SportAuswahl provider="polar" aktualisieren={fort.fertigZaehler} />}
       {(msg || fort.msg) && <p className="mt-2 text-sm text-slate-400">{msg || fort.msg}</p>}
     </Card>
   );
@@ -365,12 +375,12 @@ function SuuntoCard() {
   const [msg, setMsg] = useState("");
   const load = () => api.suuntoStatus().then(setSt).catch(() => setSt(null));
   useEffect(() => { load(); }, []);
+  const fort = useSyncFortschritt("suunto", async () => { await api.suuntoSync(); });
   if (!st || !st.available) return null;
 
   async function connect() {
     try { const r = await api.suuntoConnect(); window.location.href = r.authorize_url; } catch (e) { setMsg(String(e)); }
   }
-  const fort = useSyncFortschritt("suunto", async () => { await api.suuntoSync(); });
   async function unlink() {
     await api.suuntoUnlink().catch(() => {});
     setMsg(""); load();
@@ -402,7 +412,7 @@ function SuuntoCard() {
         </div>
       )}
       {fort.balken}
-      {st.linked && <SportAuswahl provider="suunto" />}
+      {st.linked && <SportAuswahl provider="suunto" aktualisieren={fort.fertigZaehler} />}
       {(msg || fort.msg) && <p className="mt-2 text-sm text-slate-400">{msg || fort.msg}</p>}
     </Card>
   );
