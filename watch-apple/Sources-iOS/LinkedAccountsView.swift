@@ -215,8 +215,9 @@ private struct XiaomiHinweis: View {
         Section {
             VStack(alignment: .leading, spacing: 6) {
                 Text(Loc.t("accounts.xiaomi.hint", lang)).font(.footnote)
-                // EIN Abschluss-Parameter: ein Tupel laesst sich seit Swift 3 nicht in zwei
-                // Parameter zerlegen, und `swiftc -parse` merkt das nicht.
+                // Ein Parameter statt `{ i, key in }` — beides ist gueltig (mit `-typecheck`
+                // nachgeprueft, Swift zerlegt ein Tupel-Argument durchaus in zwei Parameter,
+                // wie es `FeedbackView.anhangBereich` seit dem Release auch tut).
                 ForEach(Array(["accounts.xiaomi.step1", "accounts.xiaomi.step2",
                                "accounts.xiaomi.step3"].enumerated()), id: \.offset) { schritt in
                     HStack(alignment: .top, spacing: 6) {

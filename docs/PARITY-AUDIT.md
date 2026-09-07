@@ -2,6 +2,52 @@
 
 **Vorgabe Phone/Web:** [pumpfoil.org](https://pumpfoil.org) (`web/`) · **Vorgabe Uhren:** Garmin (`watch/`).
 
+**Stand: 2026-09-07** — gegen den Code geprueft, mit einem systematischen Hebel statt Gefuehl:
+alle **61 nutzersichtbaren Textschluessel, die seit dem 26.08. in der PWA dazukamen**, wurden
+gegen die Sprachdateien beider Apps gehalten (`I18n.kt`/`I18nExtra.kt`, `Loc.swift`/`LocExtra.swift`).
+Das trennt „fehlt wirklich" von „steht unter einem anderen Namen schon da" ohne Raten.
+
+**Ergebnis: 38 Schluessel fehlten in mindestens einer App, davon waren 3 Gruppen echte Luecken.**
+
+| Befund | Web | Android | iOS | erledigt |
+|---|---|---|---|---|
+| Fortschritt des Konto-Imports (Balken + „x von y Trainings") | ✅ | ✅ 07.09. | ✅ 07.09. | `e1f11dae` |
+| Ergebnis des Imports uebersetzt statt roher Servermeldung | ✅ | ✅ 07.09. | ✅ 07.09. | `e1f11dae` |
+| Xiaomi/Redmi: der Weg ueber Mi Fitness → Suunto | ✅ | ✅ 07.09. | ✅ 07.09. | `e1f11dae` |
+| COROS: Modus-Empfehlung + Grenze „kein Roh-Accel" | ⚠️ **war versteckt** | ✅ 07.09. | ✅ 07.09. | `8164c44d` |
+
+Die uebrigen 34 Schluessel sind **keine** Luecken, mit Beleg:
+- `adm.*` (13) — Admin, bewusst Web-only.
+- `land.*` (5) — oeffentliche Startseite fuer Suchmaschinen, es gibt sie in den Apps nicht.
+- `settings.sports.*` (4) — in den Apps unter `accounts.sports.*` **vorhanden** (eigene Namensfolge).
+- `spz.bound` — **Waisen-Schluessel**: in allen 17 Web-Sprachen definiert, in KEINER `.tsx` benutzt
+  (dieselbe Klasse wie `sd.discussion` im Audit vom 18.08.).
+- `status.complete`, `common.remove` — Web-Badge bzw. `aria-label`; die Apps zeigen den Zustand
+  ueber eigene Wege (`sd.analyzing`, „×"-Knopf ohne Beschriftung).
+
+**Der wichtigste Befund war kein App-Thema, sondern eine versteckte Web-Karte.** Die COROS-Hilfe
+hing an `mcp ? "hidden" : ""`. Der MCP-Weg hat aber Vorrang, sobald er eingerichtet ist — er ist
+also der Weg, den ALLE nutzen. Unsichtbar waren damit die zwei Dinge, die ausdruecklich gewuenscht
+waren: welchen Modus man auf der COROS-Uhr waehlt („Flatwater", nach eigenen Messungen), und dass
+COROS keinen Roh-Accelerometer liefert. Die Commit-Meldung vom Morgen des 07.09. behauptete, diese
+Grenze bleibe beschrieben — sie stand in genau dem versteckten Block.
+
+**Lehre (bestaetigt, gilt weiter):** ein ❌ in dieser Datei ist kein Befund, solange es nicht gegen
+den Code geprueft ist. Und ein ✅ im Web ist keiner, solange nicht geprueft ist, ob der Block
+ueberhaupt gerendert wird.
+
+**Weiter offen — und bewusst so:**
+
+| Punkt | Warum |
+|---|---|
+| Changelog-Seite | Web-only. Zu entscheiden, ob die Apps sie einbetten oder nach draussen verlinken. |
+| `/nerd-analysen`, `/systemarchitektur`, `/watch-stats` | oeffentliche Textseiten, Web-only; gleiche Entscheidung. |
+| Layout-**Editor** | ENTSCHEIDUNG Jan 17.08.: bleibt Web-only („das macht man eh nur am pc"). Anzeige, Vorschau und Community-Galerie sind nativ gebaut. |
+| Labeling-Editor, FIT-Import, Admin | Web-only. |
+| Doppelte Spot-Ansichten in beiden Apps | Aufraeumen, kein Funktionsunterschied. |
+
+---
+
 **Stand: 2026-08-18** — gegen den Code nachgeprueft, nicht uebernommen. Vorgabe Jan: alles
 nachziehen, auch was frueher schon vergessen wurde, denn was damals fehlte, fehlt heute auch noch.
 Dabei kam heraus, dass die Datei selbst der Hauptbefund war: **sechs von sieben offenen Markern
