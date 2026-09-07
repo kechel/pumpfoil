@@ -97,12 +97,14 @@ tauschen. Also: **fuer Kwai die TikTok-Datei nehmen.**
   > saiu deslizando. 💦 Quantas tentativas você levou pra acertar seu primeiro dockstart?
 
   Aeltere Cache-Eintraege haben das Feld nicht; dort einmal „Neu generieren" druecken.
-- **Haken „auf Kwai" im Upload-Tab.** Weil es keine Schnittstelle gibt, laedt man von
-  Hand in der App hoch — der Haken ist die einzige Buchfuehrung darueber, mit Datum.
+**Keine Buchfuehrung je Video.** Ein Haken „schon gepostet" waere zusaetzliche Arbeit, kein
+gesparte — genau wie bei bilibili, das seit dem Start 1:1 mit YouTube, Instagram und TikTok
+mitlaeuft, ohne dass irgendwo etwas eingetragen wird. Zahlen kommen spaeter im Block, indem
+Jan die Content-Liste aus der App hereinkopiert; ausgewertet wird sie dann wie die Facebook
+Content Library.
 
 Ablauf je Video: rendern wie immer → im Texte-Tab die Kwai-Caption kopieren → „Im Finder
-zeigen", die **TikTok**-Datei aufs Handy → in der Kwai-App hochladen → im Upload-Tab
-abhaken.
+zeigen", die **TikTok**-Datei aufs Handy → in der Kwai-App hochladen. Fertig.
 
 ## Erwartung, ehrlich
 

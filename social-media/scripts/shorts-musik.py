@@ -1920,22 +1920,6 @@ class Handler(BaseHTTPRequestHandler):
             if not removed and src is None:
                 return self._json({"error": "Export nicht gefunden"}, 404)
             return self._json({"exports": exports_state()})
-        if self.path == "/api/uploads/mark":
-            name = Path(str(req.get("name", ""))).name
-            platform = Path(str(req.get("platform", ""))).name
-            if not name or not platform:
-                return self._json({"error": "name und platform noetig"}, 400)
-            st = uploads_state()
-            if req.get("on"):
-                st.setdefault(name, {})[platform] = {
-                    "manual": True,
-                    "at": datetime.datetime.now().astimezone().isoformat(timespec="seconds")}
-            else:
-                st.get(name, {}).pop(platform, None)
-                if not st.get(name):
-                    st.pop(name, None)
-            UPLOADS_STATE_FILE.write_text(json.dumps(st, ensure_ascii=False, indent=1))
-            return self._json({"ok": True, "state": uploads_state()})
         if self.path == "/api/reveal":
             name = Path(str(req.get("name", ""))).name
             for pf in ("tiktok", *PLATFORMS):
