@@ -5,7 +5,7 @@ Kwai gibt es hier **keine Huerde**: die App liegt im deutschen Store (`com.xingi
 in DE/AT/CH als 小红书, in US/BR/GB als „rednote"), Anmeldung per Google ging, und
 **creator.rednote.com** erlaubt den Upload im Browser — kein Handy noetig.
 
-**Stand 07.09.2026: Kanal steht, erster Beitrag (152) ist online.**
+**Stand 07.09.2026: Kanal steht, fuenf Beitraege online (152, 132, 160, 163, 131).**
 
 ## Was die Plattform anders macht
 
@@ -34,6 +34,38 @@ und finden auch alte Beitraege. Folgen daraus:
 记录每次 pump 的距离和滑行 · 免费开源 → pumpfoil.org
 ```
 
+## Erreichbarkeit aus China — geprueft
+
+**pumpfoil.org ist erreichbar** (07.09., Beijing, Shenzhen, Innere Mongolei, Heilongjiang,
+Yunnan — alle OK). Die Domain steht auf keiner Sperrliste, DNS loest ueberall korrekt auf
+`78.46.102.130` auf.
+
+**Und die iOS-App liegt im chinesischen App Store** (`org.pumpfoil.coolwatch`, geprueft ueber
+die iTunes-Lookup-API in `cn`, `hk`, `tw`). RedNote ist damit ein moeglicher App-Kanal, nicht
+nur Sichtbarkeit fuer den Sport.
+
+Zwei Einschraenkungen an dem Befund:
+
+- Der Test prueft **DNS**, nicht die fertige HTTPS-Verbindung. Bewiesen ist, dass der
+  haeufigste harte Block fehlt. Ob es auch zuegig laedt, waere mit einem Dienst zu pruefen,
+  der wirklich HTTP holt (z. B. `check-host.net` mit chinesischen Knoten). Die IP liegt in
+  einem **Hetzner**-Bereich (`78.46.0.0/15`, Rechenzentrum Nuernberg), und von dort ist aus
+  China eher „langsam" als „gesperrt" zu erwarten.
+- **Die Domain ohne `https://` eingeben.** Mit Praefix meldet der Test „BLOCKED", weil er
+  einen ungueltigen Hostnamen prueft. Das hat uns hier einmal eine falsche Schlussfolgerung
+  gekostet.
+
+### Was in China trotzdem nicht funktioniert
+
+Unabhaengig von der Erreichbarkeit der Domain:
+
+| | |
+|---|---|
+| **YouTube-Einbettung** im Community-Feed | vollstaendig gesperrt, bleibt leer |
+| **Web Push** (`pywebpush`/VAPID, Chrome-Browser) | laeuft ueber Googles Infrastruktur, gesperrt |
+| **Play-Store-Link** zur Android-App | gesperrt — iOS geht, Android nur ueber Umwege |
+| **OpenStreetMap- und Esri-Kacheln** | erreichbar, aber langsam |
+
 ## Welche Uhren wir dort nennen — und welche NICHT
 
 Nicht die Weltliste, sondern die fuer China:
@@ -56,10 +88,9 @@ Versprechen, das beim ersten Versuch bricht — und das vor dem Publikum, das di
 besten kennt.
 
 **Der Elefant ist Huawei.** Die groesste Uhrenmarke Chinas unterstuetzen wir gar nicht,
-weder mit App noch ueber ein Konto. Wer uns dort ueber den App-Winkel findet, hat also mit
-einiger Wahrscheinlichkeit eine Uhr, mit der es nicht geht. Das begrenzt, was RedNote fuer
-App-Nutzer bringen kann — fuer Reichweite und Sichtbarkeit des Sports bleibt es trotzdem
-sinnvoll.
+weder mit App noch ueber ein Konto. Das ist jetzt die verbliebene Deckelung des Kanals: die
+Seite ist erreichbar und die iOS-App im Store, aber wer dort eine Huawei traegt — und das
+sind viele — kommt trotzdem nicht weit.
 
 ## Wie das Studio das bedient
 

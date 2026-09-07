@@ -4,7 +4,9 @@ Kwai ist die kurze-Videos-App von Kuaishou und in Brasilien sehr gross: rund **6
 monatlich aktive Nutzer**, gut 75 Minuten am Tag. Anlass war die Frage, ob wir dort die
 juengere Zielgruppe erreichen, die auf Facebook fehlt.
 
-**Stand 07.09.2026: im Studio eingebaut, Bilder und Texte fertig, Konto wird angelegt.**
+**Stand 07.09.2026: gescheitert am Regionsblock. App laeuft, Konto per Google-Login
+angelegt — aber der Kwai-Server antwortet aus Deutschland nicht.** Liegt auf Eis, bis ein
+VPN mit brasilianischem Ausgang oder eine brasilianische eSIM ausprobiert ist.
 
 ## Wem gehoert Kwai
 
@@ -28,18 +30,30 @@ Player von dort.** Der Kanal ist eine Einbahnstrasse nach draussen.
 | Schnittstelle zum Veroeffentlichen | **Gibt es nicht.** Kwais Open Platform ist OpenID-Connect-Login und Werbe-APIs; die GitHub-Organisation `kwai-apis` enthaelt einen Login-Client und sonst nichts. Kein Drittanbieter-Planer unterstuetzt Kwai. |
 | Hochladen vom Rechner | Kein offizieller Weg. Die brasilianischen Anleitungen zu „postar pelo PC" laufen alle ueber einen Android-Emulator. kwai.com ist zum Schauen da, die Seite fuehrt zum App-Download. |
 | App in Deutschland | **Nicht verfuegbar.** `com.kwai.intl` liegt im App Store von US und BR, nicht in DE, AT, CH, PT, ES, GB (geprueft ueber die iTunes-Lookup-API, 07.09.). Im Play Store dasselbe Bild. |
+| Warum kein Europa | Kuaishou hat im **Oktober 2021** von Expansion auf Kontraktion umgestellt und die Auslandsgeschaefte auf Lateinamerika und Suedostasien gebuendelt (Brasilien und Indonesien als Prioritaeten, spaeter MENA). Europa war nie Zielmarkt. Dazu kommt, dass ihr Wachstumsmotor — „Bônus Diário", Geld fuers Ansehen — in der EU verbraucherrechtlich heikel waere. |
+| Nach der Installation | **Serverseitiger Regionsblock:** „our server is unavailable in your region". Google-Login ging durch, SMS und E-Mail-Registrierung nicht. Der Block sitzt also nicht nur im Store. |
 
-## Weg ins Konto
+## Weg ins Konto — wie weit wir gekommen sind
 
-Da die App hier nicht im Store liegt, bleibt der **APK-Weg** auf einem Android-Geraet oder
-im Emulator (Android Studio ist ohnehin da). Danach Konto in der App anlegen. Offen und
-erst am lebenden Objekt zu klaeren:
+Der **APK-Weg** funktioniert. Auf dem Pixel 7a eingespielt (07.09.), und dabei gelernt:
 
-- ob Kwai die Anmeldung oder die Inhalte nach IP einschraenkt (deutsche IP, brasilianisches
-  Publikum),
-- ob eine Telefonnummer verlangt wird und ob eine deutsche akzeptiert wird,
-- welche Bildmasse Profilbild und Titelbild wirklich haben (deshalb liegen sie quadratisch
-  mit Schutzzone bereit, siehe unten).
+- **APKMirror statt eines Einzel-APK.** Beide Downloads trugen dieselbe Signatur
+  (`bb8d2610…e81047`, `CN=kwai-video, O=kwai, L=Beijing`), aber nur das APKMirror-Buendel
+  hat zusaetzlich den **Google Source Stamp** — den Nachweis, dass die Datei aus dem Play
+  Store stammt. Ausserdem 70 statt 189 MB, weil nur die passende Architektur drin ist.
+- **Ein `.apkm` ist kein APK**, sondern ein Zip mit 22 Teilen. Antippen schlaegt fehl; es
+  braucht `adb install-multiple` mit den zum Geraet passenden Teilen (arm64-v8a + xxhdpi).
+- Der Verbindungsport beim drahtlosen Debugging ist ein **anderer als der Kopplungsport** —
+  `adb mdns services` zeigt ihn.
+
+**Danach ist Schluss:** die App startet, Google-Login geht, aber der Server antwortet nicht
+(„our server is unavailable in your region"). SMS kam nie an, E-Mail-Registrierung gibt es
+nicht. Der Block ist serverseitig, nicht im Store.
+
+Bleibt ein **VPN mit brasilianischem Ausgang** (dann durchgehend, „Always-on VPN" plus
+„Verbindungen ohne VPN blockieren", und immer derselbe Standort — Kwais Betrugserkennung ist
+wegen des Bonus-Modells scharf) oder, vermutlich besser, eine **brasilianische eSIM**: echte
+Mobilfunk-IP statt Rechenzentrum, und je nach Tarif gleich eine Nummer fuer die SMS.
 
 ## Was fertig bereitliegt
 
