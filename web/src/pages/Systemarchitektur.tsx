@@ -79,7 +79,7 @@ export default function Systemarchitektur() {
           <rect x={410} y={40} width={290} height={280} rx={12} fill="#0b1220" stroke="#334155" strokeWidth={1.5} />
           <text x={555} y={62} textAnchor="middle" fontSize="12" fontWeight="700" fill="#94a3b8">App-VM (Linux · systemd)</text>
           <Box x={430} y={78} w={250} h={48} title="uvicorn + FastAPI" sub="mehrere Worker (async)" fill="#0b2530" stroke={CYAN} />
-          <Box x={430} y={140} w={120} h={48} title="PostgreSQL" sub="29 Tabellen" />
+          <Box x={430} y={140} w={120} h={48} title="PostgreSQL" sub="55 Tabellen" />
           <Box x={560} y={140} w={120} h={48} title="Dateisystem" sub="media / data" />
           <Box x={430} y={202} w={250} h={44} title="Analyse-Pipeline" sub="GPS-Automat + On-Foil-Modell + Pump-Kadenz" />
           <Box x={430} y={260} w={250} h={44} title="Backups (systemd-Timer)" sub="pg_dump + Hardlinks, täglich" />
@@ -125,11 +125,13 @@ export default function Systemarchitektur() {
           Daneben gibt es <b>Konto-Verknüpfungen</b> — einen zweiten, anders gerichteten Weg: hier
           zeichnet nicht unsere App auf, sondern der Anbieter meldet ein fertiges Workout (oder wir
           fragen es ab), und es kommt als <b>FIT-Datei</b> herein. Diese Sessions haben GPS, aber keine
-          Rohbeschleunigung — also keine Pumps und keine Kadenz. <b>Suunto</b> und <b>Polar AccessLink</b>
-          sind aktiv, <b>COROS</b> ist gebaut und wartet auf den API-Zugang des Herstellers; Strava
-          ruht bewusst. Gestrichelt gezeichnet ist, was noch nicht angeschlossen ist.
+          Rohbeschleunigung — also keine Pumps und keine Kadenz. <b>Suunto</b>, <b>Polar AccessLink</b>
+          und <b>COROS</b> sind aktiv; Strava ruht bewusst. <b>Xiaomi</b> hat gar keine eigene
+          Verknüpfung — dort ist der offizielle Weg ein Umweg: Mi&nbsp;Fitness schiebt die Trainings
+          in die Suunto-App, und von dort holen wir sie. Deshalb zeigt die Xiaomi-Kachel im Bild auf
+          Suunto und nicht auf uns. Gestrichelt gezeichnet ist, was noch nicht angeschlossen ist.
         </p>
-        <Diagram title="Clients und Uhren" viewBox="0 0 720 348">
+        <Diagram title="Clients und Uhren" viewBox="0 0 720 400">
           {/* Server center */}
           <Box x={285} y={165} w={150} h={64} title="pumpfoil.org" sub="REST-API (HTTPS)" fill="#0b2530" stroke={CYAN} />
           {/* left: user clients */}
@@ -156,20 +158,30 @@ export default function Systemarchitektur() {
           {/* bottom: Konto-Verknuepfungen (Cloud-Importe). Eigene Reihe, weil sie einen anderen
               Weg nehmen als die Uhren: nicht wir holen die Daten von einem Geraet, sondern der
               Anbieter meldet ein Workout bzw. wir fragen es ab — und es kommt als FIT-Datei. */}
-          <text x={360} y={272} textAnchor="middle" fontSize="11" fontWeight="700" fill="#94a3b8">
+          <text x={360} y={330} textAnchor="middle" fontSize="11" fontWeight="700" fill="#94a3b8">
             Konto-Verknüpfungen (Cloud-Import, FIT)
           </text>
-          {[["Suunto", "aktiv", 150], ["Polar", "AccessLink · aktiv", 285], ["COROS", "wartet auf Zugang", 420]].map(([t, s, x], i) => (
+          {/* Diese Reihe lag bis zum 07.09.2026 auf y=288 und ueberlappte dort die
+              „Polar (geplant)"-Kachel der Uhren-Spalte (die endet bei y=324) — im Bild schoben
+              sich COROS und Polar uebereinander. Deshalb ist der viewBox hoeher und die Reihe
+              steht jetzt unter der Uhren-Spalte statt daneben. */}
+          {[["Suunto", "aktiv", 150], ["Polar", "AccessLink · aktiv", 285], ["COROS", "MCP · aktiv", 420]].map(([t, s, x]) => (
             <g key={t as string}>
-              <Box x={x as number} y={288} w={130} h={44} title={t as string} sub={s as string}
-                   fill="#1a1030" stroke={i === 2 ? "#4c3f70" : "#a78bfa"} />
-              {line((x as number) + 65, 288, 360, 233, i === 2)}
+              <Box x={x as number} y={345} w={130} h={44} title={t as string} sub={s as string}
+                   fill="#1a1030" stroke="#a78bfa" />
+              {line((x as number) + 65, 345, 360, 233)}
             </g>
           ))}
+          {/* Xiaomi zeigt auf SUUNTO, nicht auf uns: Mi Fitness schiebt die Trainings offiziell in
+              die Suunto-App (weltweit ausser China), und von dort holen wir sie. Eine eigene
+              Xiaomi-Schnittstelle gibt es fuer uns nicht, und auf der Uhr laeuft keine App. */}
+          <Box x={8} y={345} w={122} h={44} title="Xiaomi" sub="Mi Fitness → Suunto"
+               fill="#1a1030" stroke="#a78bfa" />
+          {line(130, 367, 150, 367)}
         </Diagram>
         <p className={`${P} text-xs`}>
           Anmeldung wahlweise per E-Mail/Passwort oder „Mit Google/Apple anmelden" (OAuth). Cloud-Importe
-          (Suunto, COROS, Polar AccessLink) liefern GPS-basierte Sessions ohne Rohbeschleunigung — sie
+          (Suunto, COROS, Polar AccessLink, Xiaomi über Suunto) liefern GPS-basierte Sessions ohne Rohbeschleunigung — sie
           kommen als FIT-Datei herein, entweder per Benachrichtigung des Anbieters oder auf Abruf.
           Zusätzlich kann das <b>Handy selbst aufzeichnen</b> (Android und iOS), wenn keine Uhr dabei ist.
         </p>
@@ -372,7 +384,12 @@ export default function Systemarchitektur() {
                 ["spots", "—", "Spots (Ort/Gewässer, aus Track-Clustern)"],
                 ["oauth_identities", "user", "Google/Apple-Verknüpfung"],
                 ["polar_links", "user", "Polar-AccessLink-Konto"],
-                ["coros_links", "user", "COROS-Konto"],
+                ["coros_mcp_links", "user", "COROS-Konto (aktiver Weg, MCP)"],
+                ["coros_links", "user", "COROS-Konto (Partner-API, ruhend)"],
+                ["suunto_pending", "user", "Suunto-Workouts, die auf Kontingent warten"],
+                ["import_sport_prefs", "user", "Welche Sportart-Modi eines Kontos importiert werden"],
+                ["sync_progress", "user", "Fortschritt eines laufenden Konto-Imports"],
+                ["changelog_items", "—", "Changelog-Punkte (ein Punkt je Zeile, mit Datum)"],
                 ["suunto_links", "user", "Suunto-Konto"],
                 ["strava_links", "user", "Strava-Konto (ruhend)"],
                 ["chat_messages", "user", "Community-/Spot-/Direkt-Chat"],
