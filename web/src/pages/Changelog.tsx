@@ -115,6 +115,16 @@ type Entry = { date: string; items: Item[] };
 
 const ENTRIES: Entry[] = [
   {
+    date: "September 7, 2026",
+    items: [
+      "COROS is out of testing. Your workouts now come in on their own, and the connection was fixed in three places at once: it used to fetch only your single most recent activity, it turned down one file it could not read, and it counted an already-known workout as a fresh import. One tester got nine older rides back this way, two of them recognised as pumpfoiling.",
+      "Polar sends new trainings to us the moment they arrive in Polar Flow — no more waiting and no button to press.",
+      "Connected accounts (Polar, Suunto, COROS) also sync once a day and whenever you sign in. Until now that only happened if you opened the settings page and pressed the button.",
+      "You can now choose which sport modes we import from a connected account. The list shows only the modes your own account has actually delivered, and a new one is always imported until you uncheck it — there is no pumpfoil mode on any watch, so nobody should lose a session to a list of ours.",
+      "Importing shows a progress bar with \"3 of 8 workouts\" instead of a button that just sits there, and it tells you why a workout was left out — \"3 too short\" instead of \"3 skipped\". A long import used to run into a timeout and show an error page while it was quietly succeeding.",
+    ],
+  },
+  {
     date: "September 6, 2026",
     items: [
       "A ride whose upload stopped halfway now shows what did arrive. If your watch runs out of battery mid-session, we used to analyse whatever had been uploaded in the first seconds and never look again — one ride showed 4 runs instead of 13. Now the analysis is redone whenever more data comes in, and your watch keeps its copy until the upload is really finished.",

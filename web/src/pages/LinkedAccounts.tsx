@@ -143,14 +143,6 @@ function CorosCard() {
           </span>
         )}
       </div>
-      {/* COROS ist freigegeben, ohne dass der Import je an echten Trainings lief — niemand
-          im Team hat eine COROS-Uhr. Deshalb hier offen: die Anbindung ist neu, und die
-          Bitte um einen Test mit der niedrigsten denkbaren Huerde (Jan, 04.09.) — kein
-          Pumpen noetig, 100 m Spaziergang draussen genuegen, danach kurz Bescheid geben.
-          Steht bewusst UNTER dem Logo, direkt ueber dem Knopf, den es betrifft. */}
-      <div className="mb-3 rounded-lg bg-amber-500/10 p-2.5 text-sm text-amber-800 dark:text-amber-200">
-        {t("settings.coros.testHint")}
-      </div>
       {!st.linked ? (
         <Button onClick={connect}>{t("settings.coros.connect")}</Button>
       ) : (
