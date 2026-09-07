@@ -103,6 +103,15 @@ function RootRoute() {
   return getToken() ? <App /> : <Landing />;
 }
 
+/**
+ * Eine Seite, die es in zwei Welten geben muss: oeffentlich (fuer Google und Gaeste, ohne
+ * Login) und drinnen im App-Rahmen (fuer Angemeldete, mit Menue). Dieselbe Adresse, damit
+ * ein geteilter Link fuer beide funktioniert.
+ */
+function TextSeite({ children }: { children: React.ReactNode }) {
+  return getToken() ? <App>{children}</App> : <>{children}</>;
+}
+
 const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
   { path: "/reset", element: <Reset /> },
@@ -117,10 +126,12 @@ const router = createBrowserRouter([
   // eigenen Adressen denselben Inhalt („Duplikat ohne Canonical") und muesste sie in der
   // robots.txt gesperrt bleiben. Genau diese Seiten sind aber der tiefste eigene Inhalt,
   // den wir haben. Sie rufen keine API auf, es geht also kein Zugriffsschutz verloren.
-  { path: "/nerd-analysen", element: <NerdAnalysen /> },
-  { path: "/nerd-analysen-2", element: <NerdAnalysen2 /> },
-  { path: "/nerd-analysen-3", element: <NerdAnalysen3 /> },
-  { path: "/systemarchitektur", element: <Systemarchitektur /> },
+  // …und fuer Angemeldete IM App-Rahmen, sonst steht der Text nackt da, ohne Menue und ohne
+  // Weg zurueck (Jan, 07.09.: „das sieht jetzt sehr doof aus, wenn man da reingeht").
+  { path: "/nerd-analysen", element: <TextSeite><NerdAnalysen /></TextSeite> },
+  { path: "/nerd-analysen-2", element: <TextSeite><NerdAnalysen2 /></TextSeite> },
+  { path: "/nerd-analysen-3", element: <TextSeite><NerdAnalysen3 /></TextSeite> },
+  { path: "/systemarchitektur", element: <TextSeite><Systemarchitektur /></TextSeite> },
   { path: "/s/:token", element: <PublicSession /> },   // öffentlicher Teilen-Link (read-only, ohne Login)
   {
     path: "/",
