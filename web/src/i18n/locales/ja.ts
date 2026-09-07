@@ -910,7 +910,7 @@ const ja: Record<string, string> = {
   "import.shotAlt": "「ファイルにエクスポート」オプションのある Garmin Connect メニュー",
   "import.desc": "アクティビティを開き、右上の歯車アイコンをクリックし、「ファイルにエクスポート」を選びます。その ZIP ファイルをここにアップロードします。",
   "import.shotCap": "Garmin Connect：歯車メニュー →「ファイルにエクスポート」",
-  "import.uploadNote": "FIT・TCX・GPX — 単体でも ZIP でも、複数まとめても。アップロード後に解析が開きます。",
+  "import.uploadNote": "FIT・TCX・GPX — 単体でも ZIP でも、複数まとめても。",
 
   "account.tabAlarm": "オンフォイルアラーム",
   "alarm.title": "振動アラーム",

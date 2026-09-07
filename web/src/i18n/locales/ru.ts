@@ -910,7 +910,7 @@ const ru: Record<string, string> = {
   "import.shotAlt": "Меню Garmin Connect с опцией «Экспорт в файл»",
   "import.desc": "Откройте активность, нажмите значок шестерёнки справа вверху, затем «Экспорт в файл». Загрузите ZIP-файл сюда.",
   "import.shotCap": "Garmin Connect: меню-шестерёнка → «Экспорт в файл»",
-  "import.uploadNote": "FIT, TCX или GPX — по одному или в ZIP, можно несколько сразу. После загрузки откроется разбор.",
+  "import.uploadNote": "FIT, TCX или GPX — по одному или в ZIP, можно несколько сразу.",
 
   "account.tabAlarm": "Сигнал на фойле",
   "alarm.title": "Вибросигнал",
