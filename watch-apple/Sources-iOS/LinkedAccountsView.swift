@@ -68,6 +68,16 @@ struct LinkedAccountsView: View {
                             }
                         }
                         if busy == p.id, let stand, stand.laeuft { balken(stand) }
+                        // Nur COROS: welchen Modus man auf der Uhr waehlt, und was der Export
+                        // NICHT liefert. Pumpfoil gibt es auf keiner COROS-Uhr als Sportart.
+                        if p.id == "coros" && st.linked {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(Loc.t("accounts.coros.best", lang))
+                                Text(Loc.t("accounts.coros.limit", lang))
+                            }
+                            .font(.caption).foregroundStyle(.secondary)
+                            .padding(.top, 6)
+                        }
                         if st.linked {
                             SportAuswahl(pfad: p.pfad, lang: lang, neuLaden: fertigZaehler)
                         }

@@ -159,10 +159,15 @@ function CorosCard() {
       {st.linked && <SportAuswahl provider="coros" aktualisieren={fort.fertigZaehler} />}
       {(msg || fort.msg) && <p className="mt-2 text-sm text-slate-400">{msg || fort.msg}</p>}
 
-      <div className={`mt-4 ${mcp ? "hidden" : ""}`}>
+      {/* Diese Liste war komplett `hidden`, sobald der MCP-Weg aktiv ist — und der hat Vorrang,
+          ist also der Weg, den ALLE nutzen. Damit war unsichtbar, was Jan ausdruecklich wollte:
+          die Empfehlung, welchen Modus man auf der Uhr waehlt („Flatwater", nach unseren eigenen
+          Messungen), und die Grenze „kein Roh-Accelerometer" (07.09.2026 gefunden). Nur `help1`
+          gehoert wirklich zur Partner-API — der Rest gilt auf beiden Wegen. */}
+      <div className="mt-4">
         <p className="mb-2 text-xs font-medium text-slate-400">{t("settings.coros.help")}</p>
         <ol className="list-decimal space-y-1.5 pl-5 text-sm text-slate-300">
-          <li>{t("settings.coros.help1")}</li>
+          {!mcp && <li>{t("settings.coros.help1")}</li>}
           <li>{t("settings.coros.help2")}</li>
           <li>{t("settings.coros.help3")}</li>
           <li>{t("settings.coros.help4")}</li>
