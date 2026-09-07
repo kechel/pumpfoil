@@ -900,7 +900,7 @@ const id: Record<string, string> = {
 
   "import.title": "Impor aktivitas",
   "import.short": "Impor",
-  "import.intro": "Unggah aktivitas yang direkam (file FIT) untuk menganalisisnya — termasuk sesi lama.",
+  "import.intro": "Unggah aktivitas yang sudah direkam untuk dianalisis — FIT, TCX atau GPX, juga sebagai ZIP dan sesi lama.",
   "import.step1": "Buka aktivitasnya di Garmin Connect (web, connect.garmin.com).",
   "import.step2": "Klik menu roda gigi (⚙) di kanan atas.",
   "import.step3pre": "Pilih ",
@@ -910,7 +910,7 @@ const id: Record<string, string> = {
   "import.shotAlt": "Menu Garmin Connect dengan opsi “Ekspor ke file”",
   "import.desc": "Buka aktivitasnya, klik ikon roda gigi di kanan atas, lalu “Ekspor ke file”. Unggah file ZIP di sini.",
   "import.shotCap": "Garmin Connect: menu roda gigi → “Ekspor ke file”",
-  "import.uploadNote": "FIT atau ZIP, boleh beberapa file. Analisis terbuka setelah diunggah.",
+  "import.uploadNote": "FIT, TCX atau GPX — satuan atau dalam ZIP, beberapa sekaligus. Analisis terbuka setelah unggah.",
 
   "account.tabAlarm": "Alarm On-Foil",
   "alarm.title": "Alarm getar",

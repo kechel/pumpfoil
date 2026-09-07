@@ -900,7 +900,7 @@ const ru: Record<string, string> = {
 
   "import.title": "Импорт активности",
   "import.short": "Импорт",
-  "import.intro": "Загрузите записанную активность (FIT-файл) для анализа — включая старые сессии.",
+  "import.intro": "Загрузите записанную активность для анализа — FIT, TCX или GPX, в том числе в ZIP и старые сессии.",
   "import.step1": "Откройте активность в Garmin Connect (веб, connect.garmin.com).",
   "import.step2": "Нажмите меню-шестерёнку (⚙) в правом верхнем углу.",
   "import.step3pre": "Выберите ",
@@ -910,7 +910,7 @@ const ru: Record<string, string> = {
   "import.shotAlt": "Меню Garmin Connect с опцией «Экспорт в файл»",
   "import.desc": "Откройте активность, нажмите значок шестерёнки справа вверху, затем «Экспорт в файл». Загрузите ZIP-файл сюда.",
   "import.shotCap": "Garmin Connect: меню-шестерёнка → «Экспорт в файл»",
-  "import.uploadNote": "FIT или ZIP, можно несколько файлов. Анализ откроется после загрузки.",
+  "import.uploadNote": "FIT, TCX или GPX — по одному или в ZIP, можно несколько сразу. После загрузки откроется разбор.",
 
   "account.tabAlarm": "Сигнал на фойле",
   "alarm.title": "Вибросигнал",

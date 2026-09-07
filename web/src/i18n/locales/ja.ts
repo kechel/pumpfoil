@@ -900,7 +900,7 @@ const ja: Record<string, string> = {
 
   "import.title": "アクティビティをインポート",
   "import.short": "インポート",
-  "import.intro": "記録したアクティビティ（FIT ファイル）をアップロードして解析します — 古いセッションも含めて。",
+  "import.intro": "記録したアクティビティをアップロードして解析できます — FIT・TCX・GPX、ZIP でも、古いセッションでも。",
   "import.step1": "Garmin Connect（ウェブ、connect.garmin.com）でアクティビティを開きます。",
   "import.step2": "右上の歯車メニュー（⚙）をクリックします。",
   "import.step3pre": "選択： ",
@@ -910,7 +910,7 @@ const ja: Record<string, string> = {
   "import.shotAlt": "「ファイルにエクスポート」オプションのある Garmin Connect メニュー",
   "import.desc": "アクティビティを開き、右上の歯車アイコンをクリックし、「ファイルにエクスポート」を選びます。その ZIP ファイルをここにアップロードします。",
   "import.shotCap": "Garmin Connect：歯車メニュー →「ファイルにエクスポート」",
-  "import.uploadNote": "FIT または ZIP、複数ファイル可。アップロード後に解析が開きます。",
+  "import.uploadNote": "FIT・TCX・GPX — 単体でも ZIP でも、複数まとめても。アップロード後に解析が開きます。",
 
   "account.tabAlarm": "オンフォイルアラーム",
   "alarm.title": "振動アラーム",
