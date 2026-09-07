@@ -24,11 +24,24 @@ struct SpotNotesView: View {
     @State private var waehler: [MySessionPhoto]?
 
     var body: some View {
-        // Group statt zweier Zweige: die Ansicht existiert IMMER, damit `.task` laeuft und laedt —
-        // haette der leere Zweig ein EmptyView, wuerde der Task je nach SwiftUI-Version nicht
-        // ausgefuehrt. Ohne Inhalt gibt Group nichts aus, also auch keine leere Listenzeile.
+        // Group statt zweier Zweige, DAMIT die Ansicht immer existiert und `.task` laeuft.
+        // KORREKTUR vom 07.09.2026: „Ohne Inhalt gibt Group nichts aus" stimmt — aber dann laeuft
+        // der Task auch NICHT. Belegt an zwei Ansichten an einem Tag (hier und SpotRecordsView):
+        // beide blieben stumm leer, obwohl der Server Daten lieferte, und beide liefen sofort,
+        // nachdem sie im Ausgangszustand etwas Sichtbares ausgaben. Der Ladehinweis unten ist
+        // also nicht Kosmetik, sondern die Bedingung dafuer, dass ueberhaupt geladen wird.
         Group {
-            if fehler {
+            // Platzhalter, SOLANGE nichts geladen ist. Der Kommentar unten behauptete, eine
+            // leere `Group` genuege, damit `.task` laeuft — die Praxis sagt etwas anderes: die
+            // Rekord-Ansicht (SpotRecordsView) lud ihre Daten erst, nachdem sie im Ausgangs-
+            // zustand etwas Sichtbares ausgab. Ohne diesen Zweig blieben die Beschreibungen
+            // stumm leer, obwohl der Server sie lieferte (07.09.2026, an Illmensee belegt:
+            // can_write true, eine Beschreibung — angezeigt wurde nichts, nicht einmal ein
+            // Fehler).
+            if data == nil && !fehler {
+                Section { Text(Loc.t("common.loading", lang)).font(.caption).foregroundStyle(.secondary) }
+                    header: { Text(Loc.t("spotnote.title", lang)) }
+            } else if fehler {
                 Section { Text(Loc.t("spotnote.loadFailed", lang)).font(.caption).foregroundStyle(.secondary) }
                     header: { Text(Loc.t("spotnote.title", lang)) }
             } else if let d = data, d.can_write || !d.notes.isEmpty {
