@@ -242,10 +242,19 @@ def _pull_import(db: Session, user: models.User, link: models.PolarLink) -> dict
                 zus = httpx.get(url, headers=hdr, timeout=20)
                 if zus.status_code == 200:
                     js = zus.json() if zus.headers.get("content-type", "").startswith("application/json") else {}
-                    roh = (js.get("sport") or js.get("detailed-sport-info")
-                           or js.get("detailed_sport_info"))
+                    # `detailed-sport-info` ZUERST: `sport` ist nur die grobe Kategorie und
+                    # liefert bei allem, was Polar nicht als eigene Sportart kennt, schlicht
+                    # „OTHER" — an Jans Konto kamen so zwei verschiedene Trainingsarten beide
+                    # als „Other" an (07.09.2026). Die genaue Angabe steht im Detailfeld.
+                    roh = (js.get("detailed-sport-info") or js.get("detailed_sport_info")
+                           or js.get("sport"))
                     if isinstance(roh, str) and roh.strip():
                         sport_key = roh.strip()
+                    # Beides ins Log, damit man bei der naechsten Ueberraschung nicht wieder
+                    # raten muss (die Zusammenfassung ist nach der Transaktion nicht mehr
+                    # abrufbar — `GET /v3/exercises` liefert dann eine leere Liste).
+                    log.info("polar: Sportart-Felder (user %s): sport=%r detailed=%r",
+                             user.id, js.get("sport"), js.get("detailed-sport-info"))
             except Exception:  # noqa: BLE001 — Zusammenfassung ist Kuer, nicht Pflicht
                 sport_key = None
             if sport_key is not None:
