@@ -621,11 +621,26 @@ YT_TOKEN_FILE = BASE / ".yt-token.json"
 YT_SCOPES = ("https://www.googleapis.com/auth/youtube "
              "https://www.googleapis.com/auth/youtube.upload")
 YT_PENDING = {}  # state → code_verifier des laufenden Login-Flows
-# unsere Sprachcodes → YouTube-BCP-47 (zh braucht die Region)
+# unsere Sprachcodes → YouTube-BCP-47. Mehrere Kennungen sind erlaubt: derselbe
+# Text wird dann unter jeder abgelegt.
+#  - zh braucht die Region (vereinfachtes Chinesisch)
+#  - pt IST bei uns brasilianisches Portugiesisch (so steht es im Caption-Prompt),
+#    darum zuerst pt-BR — das ist die Oberflaechensprache in Brasilien, dem mit
+#    215 Mio. Sprechern 20-fach groesseren Markt. "pt" bleibt daneben stehen,
+#    damit Portugal nicht leer ausgeht; brasilianisches Portugiesisch ist dort
+#    ohne Weiteres lesbar.
 YT_LANG = {"de": "de", "en": "en", "fr": "fr", "it": "it", "es": "es",
-           "fi": "fi", "nl": "nl", "cs": "cs", "pt": "pt",
+           "fi": "fi", "nl": "nl", "cs": "cs", "pt": ("pt-BR", "pt"),
            "ja": "ja", "zh": "zh-CN", "ru": "ru", "id": "id", "pl": "pl",
            "ar": "ar", "vi": "vi", "tr": "tr", "th": "th"}
+
+
+def yt_codes(lang: str) -> tuple:
+    """YouTube-Kennungen zu einem unserer Sprachcodes (immer ein Tupel)."""
+    code = YT_LANG.get(lang)
+    if not code:
+        return ()
+    return code if isinstance(code, tuple) else (code,)
 YT_ID_RE = re.compile(
     r"(?:youtu\.be/|watch\?v=|/shorts/|studio\.youtube\.com/video/|^)"
     r"([A-Za-z0-9_-]{11})(?![A-Za-z0-9_-])")
@@ -748,11 +763,14 @@ def yt_localize(video_url: str, titles: dict, descriptions: dict,
         snippet["description"] = main
     written = []
     for lang, title in titles.items():
-        code = YT_LANG.get(lang)
-        if not code or code == default_lang or not str(title).strip():
+        if not str(title).strip():
             continue
-        loc[code] = {"title": str(title)[:100], "description": compose(lang)}
-        written.append(code)
+        text = {"title": str(title)[:100], "description": compose(lang)}
+        for code in yt_codes(lang):
+            if code == default_lang:
+                continue
+            loc[code] = text
+            written.append(code)
     _http_json("https://www.googleapis.com/youtube/v3/videos"
                "?part=snippet,localizations",
                {"id": vid, "snippet": snippet, "localizations": loc},
@@ -825,12 +843,14 @@ def yt_upload(path: Path, titles: dict, descriptions: dict, hashtags: str = "",
         status["publishAt"] = publish_at
     loc = {}
     for lang, title in (titles or {}).items():
-        code = YT_LANG.get(lang)
-        if not code or code == "de" or not str(title).strip():
+        if not str(title).strip():
             continue
-        loc[code] = {"title": str(title)[:100],
-                     "description": yt_compose_description(
-                         lang, descriptions, hashtags, boiler=boiler)}
+        text = {"title": str(title)[:100],
+                "description": yt_compose_description(
+                    lang, descriptions, hashtags, boiler=boiler)}
+        for code in yt_codes(lang):
+            if code != "de":
+                loc[code] = text
     meta = {"snippet": snippet, "status": status}
     if loc:
         meta["localizations"] = loc
