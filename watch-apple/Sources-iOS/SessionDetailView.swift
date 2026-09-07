@@ -236,7 +236,7 @@ struct SessionDetailView: View {
     @ToolbarContentBuilder private var spotSessionsItem: some ToolbarContent {
         if let sp = session?.place_name, !sp.isEmpty {
             ToolbarItem(placement: .topBarTrailing) {
-                NavigationLink { SpotSessionsView(spot: sp) } label: {
+                NavigationLink { SpotSessionsView(spot: sp, vorgegebeneSpotId: session?.spot_id) } label: {
                     Image(systemName: "mappin.and.ellipse")
                 }
             }

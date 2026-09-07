@@ -71,7 +71,7 @@ struct SpotsView: View {
             }
             .listStyle(.insetGrouped)
             // Wert-basiertes Ziel statt eines Links IN der Kartenzeile (s. `annotation`).
-            .navigationDestination(for: SpotDest.self) { d in SpotSessionsView(spot: d.spot) }
+            .navigationDestination(for: SpotDest.self) { d in SpotSessionsView(spot: d.spot, vorgegebeneSpotId: d.spotId) }
             // Rekord-Karten des Vergleichs fuehren zu genau der Session, die den Wert haelt.
             .navigationDestination(for: SpotCmpSessionDest.self) { d in SessionDetailView(id: d.id) }
             .navigationTitle(Loc.t("nav.spots", lang))
@@ -137,7 +137,7 @@ struct SpotsView: View {
     /// Session zurueck"); dort wie hier ist die Loesung ein Button, der GENAU EIN Ziel anhaengt.
     @ViewBuilder private func annotation(_ b: SpotBuendel) -> some View {
         if b.teil.count == 1 {
-            Button { navPath.append(SpotDest(spot: b.teil[0].spot)) } label: { pin(b.teil[0].sessions) }
+            Button { navPath.append(SpotDest(spot: b.teil[0].spot, spotId: b.teil[0].spot_id)) } label: { pin(b.teil[0].sessions) }
                 .buttonStyle(.plain)
                 .accessibilityLabel(b.teil[0].spot)
         } else {
@@ -174,7 +174,7 @@ struct SpotsView: View {
         Section {
             if let error { Text(error).foregroundStyle(.secondary) }
             ForEach(items) { s in
-                NavigationLink(value: SpotDest(spot: s.spot)) { spotRow(s) }
+                NavigationLink(value: SpotDest(spot: s.spot, spotId: s.spot_id)) { spotRow(s) }
             }
             if items.isEmpty && !loading && error == nil {
                 Text(Loc.t("spots.empty", lang)).foregroundStyle(.secondary)
