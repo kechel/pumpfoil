@@ -1089,6 +1089,7 @@ const fi: Record<string, string> = {
   "linked.accountShort": "Tilin linkitys",
   "settings.polar.title": "Polar-tuonti",
   "settings.polar.hint": "Yhdistä Polar-tilisi (AccessLink) ja tuo harjoituksesi automaattisesti sessioiksi.",
+  "settings.polar.gpsHint": "Tärkeää: GPS:n on oltava päällä Polarin lajiprofiilissa. Vesilajeissa asetus on „käytä puhelimen GPS:ää“ — ilman sitä kello ei tallenna sijaintia, eikä sessiota voi analysoida ilman sijaintia.",
   "settings.polar.scope": "Tuo automaattisesti uudet harjoitukset linkityksestä alkaen. Sitä vanhempia harjoituksia Polar ei tarjoa — ja vain GPS:n sisältävät aktiviteetit tuodaan.",
   "settings.polar.connect": "Yhdistä Polariin",
   "settings.polar.sync": "Tuo harjoitukset",

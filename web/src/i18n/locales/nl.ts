@@ -1124,6 +1124,7 @@ const nl: Record<string, string> = {
   "linked.accountShort": "Accountkoppeling",
   "settings.polar.title": "Polar-import",
   "settings.polar.hint": "Koppel je Polar-account (AccessLink) en importeer je trainingen automatisch als sessies.",
+  "settings.polar.gpsHint": "Belangrijk: GPS moet aanstaan in je Polar-sportprofiel. Bij waterprofielen heet de optie ‘gps van telefoon gebruiken' — zonder die instelling neemt het horloge geen positie op, en zonder positie kan een sessie niet worden geanalyseerd.",
   "settings.polar.scope": "Importeert automatisch nieuwe trainingen vanaf het koppelen. Oudere trainingen van daarvoor stelt Polar niet beschikbaar — en alleen activiteiten met GPS worden overgenomen.",
   "settings.polar.connect": "Met Polar verbinden",
   "settings.polar.sync": "Trainingen importeren",

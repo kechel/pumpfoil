@@ -663,6 +663,7 @@ const deAT: Record<string, string> = {
   "linked.accountShort": "Konto-Verknüpfung",
   "settings.polar.title": "Polar-Import",
   "settings.polar.hint": "Verbinde dein Polar-Konto (AccessLink) und importiere deine Trainings automatisch als Sessions.",
+  "settings.polar.gpsHint": "Wichtig: im Polar-Sportprofil muass GPS eingschoitn sei. Bei Wasser-Profilen haaßt der Hakerl „GPS vom Handy verwenden“ — ohne den zeichnet de Uhr kaa Position auf, und ohne Position kann ma a Session net auswerten.",
   "settings.polar.scope": "Importiert automatisch neiche Trainings ob da Verknüpfung. Öltere vo vorher gibt Polar ned her — und nur Aktivitäten mit GPS kumman eina.",
   "settings.polar.connect": "Mit Polar verbinden",
   "settings.polar.sync": "Trainings importieren",

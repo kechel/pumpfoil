@@ -1026,6 +1026,7 @@ const zh: Record<string, string> = {
   "linked.accountShort": "账号关联",
   "settings.polar.title": "Polar 导入",
   "settings.polar.hint": "连接你的 Polar 账号（AccessLink），将训练自动作为记录导入。",
+  "settings.polar.gpsHint": "重要：请在 Polar 运动模式中开启 GPS。水上运动模式里这个选项叫“使用手机 GPS”——不开启时手表不会记录位置，没有位置就无法分析。",
   "settings.polar.scope": "自动导入关联后记录的新训练。Polar 不提供关联之前的较早训练 —— 且仅导入 GPS 活动。",
   "settings.polar.connect": "连接 Polar",
   "settings.polar.sync": "导入训练",
