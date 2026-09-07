@@ -91,6 +91,12 @@ struct SpotNotesView: View {
             } else {
                 Text(Loc.t("spotnote.invite", lang)).font(.footnote)
             }
+            // DREI tippbare Elemente in EINER Listenzeile. Ohne eigenen Knopfstil macht SwiftUI
+            // die ganze Zeile interaktiv, und ein Tipp loest mehrere davon aus: „Bearbeiten"
+            // oeffnete den Text UND sofort die Bilderauswahl, „Foto hinzufuegen" dasselbe
+            // (Jan, 07.09.2026). `.borderless` macht jedes Element fuer sich tippbar und behaelt
+            // die Akzentfarbe — `.plain` wuerde sie nehmen. Dieselbe Falle wie beim
+            // NavigationLink in Listenzeilen, s. Kommentar bei `SpotDest`.
             HStack(spacing: 12) {
                 Button {
                     draft = meine?.text ?? ""
@@ -99,11 +105,13 @@ struct SpotNotesView: View {
                     Label(meine == nil ? Loc.t("spotnote.write", lang) : Loc.t("spotnote.edit", lang),
                           systemImage: "square.and.pencil")
                 }
+                .buttonStyle(.borderless)
                 .disabled(busy)
                 if (meine?.photos.count ?? 0) < d.max_photos {
                     PhotosPicker(selection: $pickerItem, matching: .images) {
                         Label(Loc.t("spotnote.addPhoto", lang), systemImage: "photo.badge.plus")
                     }
+                    .buttonStyle(.borderless)
                     .disabled(busy)
                     Button {
                         Task {
@@ -114,6 +122,7 @@ struct SpotNotesView: View {
                     } label: {
                         Label(Loc.t("spotnote.fromSession", lang), systemImage: "photo.on.rectangle")
                     }
+                    .buttonStyle(.borderless)
                     .disabled(busy)
                 }
             }
