@@ -154,6 +154,21 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   **„2026.08.24 · Approved"**. **KEIN neues Paket** hochgeladen — nur die Bilder ersetzt und neu
   einreichen lassen, damit es schneller geht; das neue Release (1.0.8, Buildcode 11) kommt direkt
   im Anschluss.
+  - **⚠️ „Kein neues Paket" heisst NICHT „kein neuer Inhalt" — Korrektur 07.09.2026 durch Jans
+    Frage.** Im Changelog stand fuer 1.0.7 „Nothing new in the app itself, this round only replaces
+    the store images". Das gilt nur gegenueber der VORIGEN 1.0.7-Einreichung, und die wurde
+    abgelehnt. Live steht 1.0.6 vom 24.08.; **alles, was 1.0.7 seit dem 18.08. mitbringt, kommt
+    erst mit dieser Runde heraus** — Wert-Grafiken auf der Uhr, Puls-Zonen in Profilfarben,
+    Touch-Sperre mit dem Finger oeffenbar, gesaeuberter Max-Speed und zusammengefuehrte Laeufe.
+    `appmeta` fuehrt das jetzt so, und die 1.0.8-Liste enthaelt nur noch das Zusaetzliche ab dem
+    27.08. (vorher war sie eine Mischung aus beiden Versionen).
+    Rekonstruiert wurde das aus git, weil `watch-zepp/CHANGELOG.md` nur bis 1.0.5 gefuehrt ist:
+    Bump auf 1.0.6 am 18.08. (`3ff50081`), auf 1.0.7 am 26.08. 20:15 (`bedb67dc`), auf 1.0.8 am
+    31.08. (`08b69443`). **Unscharf bleibt genau ein Commit:** `b07ae4e1` („Distanz-Einheit gehoert
+    ins Label") kam am 26.08. um 22:41, also nach dem Bump und moeglicherweise nach dem Upload —
+    er steht in keiner der Listen, weil er zu klein fuer einen Changelog-Punkt ist. **Und die
+    Zepp-CHANGELOG.md sollte wieder gefuehrt werden**, dann muss das nie wieder rekonstruiert
+    werden.
   Jan hat alle Bilder neu hochgeladen, **bis auf das eine, das es nur rund gibt** (s. unten).
   Das Paket meldet ueber 80 unterstuetzte Amazfit-Modelle (Falcon, T-Rex Ultra/3/3 Pro/Ultra 2,
   Cheetah/Pro/2 Pro/2 Ultra, GTR 4, GTS 4, Balance/2/2 XT/3/3 Ti/Ultra, Active/Edge/2/3 Premium/Max,
