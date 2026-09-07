@@ -194,6 +194,7 @@ def _pull_import(db: Session, user: models.User, link: models.PolarLink) -> dict
     """Exercise-Transaktion abarbeiten: neue Trainings als TCX ziehen + importieren. Von /sync
     (manuell) UND vom Webhook (Auto-Import) genutzt."""
     from .sessions import import_parsed_session  # lazy: vermeidet Import-Zyklus
+    from .. import importsports
     from ..tcximport import parse_track_bytes
 
     hdr = {"Authorization": f"Bearer {link.access_token}", "Accept": "application/json"}
@@ -222,9 +223,33 @@ def _pull_import(db: Session, user: models.User, link: models.PolarLink) -> dict
     # ein gescheitertes Training war damit bei Polar als gelesen markiert und ueber /sync nie
     # wieder holbar, ohne eine Zeile im Log. Genau danach hat ein Nutzer gefragt.
     imported = skipped = 0
+    abgewaehlt = 0
     gescheitert: list[tuple[str, str]] = []
     for url in urls:
         try:
+            # Zusammenfassung ZUERST: sie nennt die Sportart, die TCX-Datei kostet dagegen einen
+            # eigenen Abruf. Damit laesst sich ein abgewaehlter Modus ueberspringen, ohne ihn zu
+            # laden — und der Nutzer bekommt seine Modi ueberhaupt erst zu sehen (Polars
+            # Transaktion nennt sonst nur URLs). Faellt der Abruf aus, wird geladen: lieber ein
+            # Download zu viel als eine verlorene Session.
+            sport_key = None
+            try:
+                zus = httpx.get(url, headers=hdr, timeout=20)
+                if zus.status_code == 200:
+                    js = zus.json() if zus.headers.get("content-type", "").startswith("application/json") else {}
+                    roh = (js.get("sport") or js.get("detailed-sport-info")
+                           or js.get("detailed_sport_info"))
+                    if isinstance(roh, str) and roh.strip():
+                        sport_key = roh.strip()
+            except Exception:  # noqa: BLE001 — Zusammenfassung ist Kuer, nicht Pflicht
+                sport_key = None
+            if sport_key is not None:
+                importsports.merken(db, user.id, "polar", sport_key,
+                                    label=sport_key.replace("_", " ").title())
+                if not importsports.erlaubt(db, user.id, "polar", sport_key):
+                    abgewaehlt += 1
+                    skipped += 1
+                    continue
             tcx = httpx.get(f"{url}/tcx",
                             headers={"Authorization": f"Bearer {link.access_token}",
                                      "Accept": "application/vnd.garmin.tcx+xml"}, timeout=60)
@@ -235,6 +260,9 @@ def _pull_import(db: Session, user: models.User, link: models.PolarLink) -> dict
             if not parsed.get("gps_samples") or parsed.get("started_at") is None:
                 skipped += 1  # z. B. Indoor-Training ohne GPS — daran wird sich nie etwas aendern
                 continue
+            if sport_key is not None:
+                importsports.merken(db, user.id, "polar", sport_key,
+                                    hat_gps=bool(parsed.get("gps_samples")))
             s = import_parsed_session(db, user, tcx.content, parsed,
                                       src_label="polar-import", uuid_prefix="polar-")
             if s is None:
@@ -358,3 +386,18 @@ def unlink(user: models.User = Depends(current_user), db: Session = Depends(get_
         db.delete(link)
         db.commit()
     return {"ok": True}
+
+
+@router.get("/sports")
+def sports_(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+    """Die Polar-Modi, die DIESER Nutzer uebertraegt — mit seiner Auswahl (s. `importsports`)."""
+    from .. import importsports
+    return {"sports": importsports.liste(db, user.id, "polar")}
+
+
+@router.put("/sports")
+def sports_setzen(wahl: dict[str, bool], user: models.User = Depends(current_user),
+                  db: Session = Depends(get_db)) -> dict:
+    from .. import importsports
+    n = importsports.setzen(db, user.id, "polar", wahl)
+    return {"ok": True, "geaendert": n, "sports": importsports.liste(db, user.id, "polar")}

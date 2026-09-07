@@ -958,6 +958,43 @@ class PolarLink(Base):
     retry_count: Mapped[int] = mapped_column(Integer, default=0)
 
 
+class ImportSportPref(Base):
+    """Welche Sportart-Modi eines verknuepften Kontos wir fuer diesen Nutzer importieren.
+
+    Warum das noetig ist (Jan, 07.09.2026): fuer Pumpfoil gibt es auf keiner Uhr einen eigenen
+    Modus, also stellen die Leute irgendetwas ein — Flatwater, Speedsurfing, sogar Radfahren
+    (nachgezaehlt: 8 Suunto-Sessions kamen als „cycling" herein und waren echtes Pumpfoilen).
+    Eine feste Liste erlaubter Sportarten waere damit ein Verlustgeschaeft: sie wuerde genau die
+    Leute aussieben, die einen ungewoehnlichen Modus benutzen, und zwar unbemerkt, weil wir die
+    Datei nie gesehen haetten.
+
+    Deshalb umgekehrt: wir merken uns, was der Nutzer TATSAECHLICH uebertraegt, zeigen ihm genau
+    diese Modi zum Abwaehlen — und importieren im Zweifel. Ein neu auftauchender Modus steht auf
+    `importieren = True`, bis der Nutzer etwas anderes sagt.
+
+    `sport_key` ist der Schluessel des ANBIETERS (COROS-Sportcode, Suunto-`activityId`, Polar-
+    Sportname), nicht unsere Sportart: nur damit laesst sich schon aus der Liste entscheiden, ob
+    ein Download sich lohnt. `label` ist der lesbare Name fuer die Oberflaeche.
+    """
+
+    __tablename__ = "import_sport_prefs"
+    __table_args__ = (UniqueConstraint("user_id", "provider", "sport_key",
+                                       name="uq_import_sport_pref"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    provider: Mapped[str] = mapped_column(String(16), index=True)   # coros | suunto | polar
+    sport_key: Mapped[str] = mapped_column(String(64))
+    label: Mapped[str | None] = mapped_column(String(64))
+    importieren: Mapped[bool] = mapped_column(Boolean, default=True)
+    # Nur Modi MIT GPS gehoeren in die Oberflaeche (Jan): eine Hallenaufnahme kann man nicht
+    # auswerten, sie waere dort eine Zeile ohne Sinn. Bleibt None, solange wir es nicht wissen.
+    hat_gps: Mapped[bool | None] = mapped_column(Boolean)
+    gesehen: Mapped[int] = mapped_column(Integer, default=0)
+    zuerst_am: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    zuletzt_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
 class CorosMcpLink(Base):
     """Verknüpfung eines Nutzers mit dem COROS **MCP-Server** (`app/api/coros_mcp.py`).
 

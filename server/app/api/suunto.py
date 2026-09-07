@@ -394,7 +394,8 @@ def _nachholen(db: Session, user: models.User, token: str, limit: int = 5) -> in
     return geholt
 
 
-def _hole_workout(db: Session, user: models.User, token: str, key: str) -> tuple[bool, str | None]:
+def _hole_workout(db: Session, user: models.User, token: str, key: str,
+                  sport_key: str | None = None) -> tuple[bool, str | None]:
     """Ein Workout per FIT-Export holen + importieren. (erfolgreich?, Grund fuers Scheitern).
 
     Der Grund unterscheidet die Faelle, die verschieden behandelt werden muessen:
@@ -421,6 +422,13 @@ def _hole_workout(db: Session, user: models.User, token: str, key: str) -> tuple
                                         grund=f"{type(exc).__name__}: {exc}",
                                         filename=f"{key}.fit")
             raise
+        if sport_key is not None:
+            # Jetzt kennen wir den lesbaren Namen des Modus (die Liste nennt nur `activityId`).
+            # Er landet in der Auswahl, die der Nutzer in seinen Kontoeinstellungen sieht.
+            from .. import importsports
+            importsports.merken(db, user.id, "suunto", sport_key,
+                                label=(parsed.get("sport") or None), label_erzwingen=True,
+                                hat_gps=bool(parsed.get("gps_samples")))
         if not parsed.get("gps_samples") or parsed.get("started_at") is None:
             return False, "kein gps"
         # `import_parsed_session` gibt bei einem Doppel-Treffer die VORHANDENE Session zurueck
@@ -542,6 +550,8 @@ def sync(user: models.User = Depends(current_user), db: Session = Depends(get_db
     if link is None:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Suunto not linked")
 
+    from .. import importsports
+
     token = _fresh_token(link, db)
     hdr = {"Authorization": f"Bearer {token}", "Ocp-Apim-Subscription-Key": _sub_key(), "Accept": "application/json"}
     workouts = _workouts_holen(hdr)
@@ -561,6 +571,19 @@ def sync(user: models.User = Depends(current_user), db: Session = Depends(get_db
             skipped += 1
             merken("fehler kein key")
             continue
+        # Sportart-Modus des Nutzers festhalten und seine Auswahl beachten. Die Liste nennt nur
+        # `activityId` ohne Namen — der wird beim ersten Import dieses Typs nachgetragen.
+        # Voreinstellung ist immer importieren: eine feste Erlaubt-Liste haette die Leute
+        # ausgesiebt, die einen ungewoehnlichen Modus benutzen (8 als „cycling" aufgezeichnete
+        # Sessions waren echtes Pumpfoilen).
+        aid = w.get("activityId") if isinstance(w, dict) else None
+        sport_key = str(aid) if isinstance(aid, (int, float)) else None
+        if sport_key is not None:
+            importsports.merken(db, user.id, "suunto", sport_key)
+            if not importsports.erlaubt(db, user.id, "suunto", sport_key):
+                gefiltert += 1
+                merken("abgewaehlt")
+                continue
         grund = _vorfilter(w)
         if grund:
             # Gar nicht erst laden — spart den teuren FIT-Download.
@@ -568,7 +591,7 @@ def sync(user: models.User = Depends(current_user), db: Session = Depends(get_db
             gefiltert += 1
             merken(grund)
             continue
-        ok, fehler = _hole_workout(db, user, token, key)
+        ok, fehler = _hole_workout(db, user, token, key, sport_key=sport_key)
         if ok:
             imported += 1
         else:
@@ -690,3 +713,18 @@ def unlink(user: models.User = Depends(current_user), db: Session = Depends(get_
         db.delete(link)
         db.commit()
     return {"ok": True}
+
+
+@router.get("/sports")
+def sports_(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+    """Die Suunto-Modi, die DIESER Nutzer uebertraegt — mit seiner Auswahl (s. `importsports`)."""
+    from .. import importsports
+    return {"sports": importsports.liste(db, user.id, "suunto")}
+
+
+@router.put("/sports")
+def sports_setzen(wahl: dict[str, bool], user: models.User = Depends(current_user),
+                  db: Session = Depends(get_db)) -> dict:
+    from .. import importsports
+    n = importsports.setzen(db, user.id, "suunto", wahl)
+    return {"ok": True, "geaendert": n, "sports": importsports.liste(db, user.id, "suunto")}

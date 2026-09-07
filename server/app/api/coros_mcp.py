@@ -390,16 +390,114 @@ def _fit_bytes_aus(res: dict) -> list[bytes]:
     return aus
 
 
-def _aktivitaeten_aus(res: dict) -> list[tuple[str, int | None]]:
-    """(labelId, sportType) je Training aus der Antwort von `querySportRecords`.
+# Lesbare Namen der COROS-Sportcodes. NICHT geraten: der MCP-Server listet sie vollstaendig in
+# der Beschreibung von `querySportRecords` auf (`tools/list`, abgerufen 07.09.2026 — nachprüfbar
+# ueber GET /api/integrations/coros/mcp/tools). Gebraucht werden sie fuer die Oberflaeche: dort
+# stehen die Modi, die der Nutzer tatsaechlich uebertraegt, und „Flatwater" ist eine Zeile, die
+# man versteht, „704" nicht.
+SPORT_NAMEN = {
+    100: "Outdoor Run",
+    101: "Indoor Run",
+    102: "Trail Run",
+    103: "Track Run",
+    104: "Hike",
+    105: "Mountain Climb",
+    106: "Multi-Pitch Sub Climb",
+    200: "Outdoor Bike",
+    201: "Indoor Bike",
+    202: "E-Bike",
+    203: "Gravel Bike",
+    204: "Mountain Bike",
+    205: "Mountain E-Bike",
+    299: "Helmet Bike",
+    300: "Pool Swim",
+    301: "Open Water Swim",
+    400: "Gym Cardio",
+    401: "Gps Cardio",
+    402: "Strength",
+    500: "Ski",
+    501: "Snowboard",
+    502: "Xc Ski",
+    503: "Alpine Touring",
+    600: "Fighter",
+    700: "Rowing",
+    701: "Indoor Row",
+    702: "Whitewater",
+    704: "Flatwater",
+    705: "Windsurfing",
+    706: "Speedsurfing",
+    707: "Boat Fishing Lure",
+    708: "Shore Fishing Lure",
+    709: "Pond Fishing Lure",
+    710: "Kayak Fishing Lure",
+    711: "Inshore Fishing",
+    712: "Offshore Fishing",
+    713: "Boat Fly Fishing",
+    714: "Shore Fly Fishing",
+    715: "Surf Fishing",
+    800: "Indoor Single Pitch",
+    801: "Bouldering",
+    802: "Outdoor Climb",
+    900: "Walk",
+    901: "Jump Rope",
+    902: "Stair Climbing",
+    903: "Elliptical",
+    904: "Yoga",
+    905: "Pilates",
+    906: "Boxing",
+    1000: "Badminton",
+    1001: "Ping Pong",
+    1002: "Basketball",
+    1003: "Soccer",
+    1004: "Pickleball",
+    1005: "Tennis",
+    1006: "Padel",
+    1100: "Frisbee",
+    1101: "Skateboard",
+    9800: "Custom Outdoor Ball",
+    9801: "Custom Outdoor Leisure",
+    9802: "Custom Outdoor Mountain",
+    9803: "Custom Outdoor High Altitude",
+    9804: "Custom Outdoor Motor Vehicle",
+    9805: "Custom Outdoor Aquatics",
+    9806: "Custom Outdoor Adventure",
+    9807: "Custom Outdoor Other",
+    9900: "Custom Indoor Ball",
+    9901: "Custom Indoor Strength",
+    9902: "Custom Indoor Shape",
+    9903: "Custom Indoor Dance",
+    9904: "Custom Indoor Other",
+    10000: "Triathlon",
+    10001: "Free Combine",
+    10002: "Climb Ski",
+    10003: "Multi-Pitch Climb",
+    1200: "Hybrid Fitness",
+    9999: "Custom",
+    25301: "Track Route",
+}
 
-    Der Server ist fuer KI-Clients gebaut und antwortet in Prosa („No sport records found from
-    … to …"), nicht zwingend in JSON. Deshalb zwei Wege: strukturierte Antwort, wenn es sie
-    gibt — sonst die `labelId`s aus dem Text klauben. Ein `labelId` ist eine lange Ziffernfolge;
-    `sportType` steht, wenn ueberhaupt, in derselben Zeile.
+# So viele Datensaetze holen wir uns in der LISTE. Das ist ein einziger Aufruf und kostet nichts
+# vom FIT-Kontingent — anders als der Download. Frueher stand hier dieselbe Zahl wie fuer die
+# Downloads (25), und weil ungefiltert auch Wanderungen und Laeufe in der Liste stehen, haben
+# die die Plaetze belegt: an einem echten Konto reichte die Liste damit nur bis zum Vortag,
+# waehrend die gefilterte bis 24.07. zurueckkam. Getrennte Zahlen sind der Punkt.
+LISTE_LIMIT = 100
+
+
+def _aktivitaeten_aus(res: dict) -> list[dict]:
+    """Je Training {labelId, sportType, start_ts} aus der Antwort von `querySportRecords`.
+
+    Der Server ist fuer KI-Clients gebaut und antwortet in Prosa, nicht zwingend in JSON —
+    und die Prosa kommt als JSON-String, also mit literalen `\n` (s. `_inhalt_text`). Deshalb
+    wird der Text in Bloecke zerlegt („1. Flatwater — …", „2. …") und jeder Block fuer sich
+    gelesen: so gehoert die Startzeit sicher zur richtigen `labelId`.
+
+    `start_ts` ist Gold wert: damit erkennen wir ein Doppel, BEVOR wir die Datei herunterladen.
     """
+    import re as _re
+
     daten = _inhalt_json(res)
-    aus: list[tuple[str, int | None]] = []
+    aus: list[dict] = []
     if isinstance(daten, dict):
         daten = daten.get("records") or daten.get("data") or daten.get("activities")
     if isinstance(daten, list):
@@ -407,29 +505,49 @@ def _aktivitaeten_aus(res: dict) -> list[tuple[str, int | None]]:
             if not isinstance(e, dict):
                 continue
             lid = e.get("labelId") or e.get("label_id") or e.get("activityId")
-            if lid:
-                st = e.get("sportType") or e.get("sport_type")
-                aus.append((str(lid), int(st) if isinstance(st, (int, float)) else None))
+            if not lid:
+                continue
+            st = e.get("sportType") or e.get("sport_type")
+            ts = e.get("startTimestamp") or e.get("start_timestamp")
+            aus.append({"labelId": str(lid),
+                        "sportType": int(st) if isinstance(st, (int, float)) else None,
+                        "start_ts": int(ts) if isinstance(ts, (int, float)) else None})
         if aus:
             return aus
-    # Rueckfall Text. NICHT zeilenweise mit `search`: das findet je Zeile nur den ersten Treffer
-    # und faellt komplett aus, wenn der Server alles in einer Zeile schickt (s. `_inhalt_text`).
-    # `finditer` ueber den ganzen Text ist gegen beides unempfindlich.
-    import re as _re
+
     text = _inhalt_text(res)
-    for m in _re.finditer(r'labelId["\s:=]+(\d{6,})[^\n]*?(?:sportType["\s:=]+(\d{1,4}))?(?=\n|$)',
-                          text, _re.I):
-        aus.append((m.group(1), int(m.group(2)) if m.group(2) else None))
+    # In Bloecke zerlegen. Faellt die Nummerierung weg, bleibt der ganze Text EIN Block — dann
+    # findet die Schleife unten immer noch alle labelIds, nur ohne sichere Startzeit-Zuordnung.
+    bloecke = _re.split(r"(?m)^\s*\d+\.\s", text)
+    for b in bloecke:
+        for m in _re.finditer(r'labelId["\s:=]+(\d{6,})', b, _re.I):
+            st = _re.search(r'sportType["\s:=]+(\d{1,5})', b, _re.I)
+            ts = _re.search(r'startTimestamp["\s:=]+(\d{9,})', b, _re.I)
+            # „Start Coordinates: 49.041000, 12.121000" — steht nur da, wenn die Aufnahme eine
+            # Ortung hatte. Damit wissen wir VOR dem Download, ob sich das Holen lohnt, und
+            # koennen Hallen-Modi aus der Oberflaeche heraushalten (Jan: „nur solche mit
+            # mindestens GPS").
+            koord = _re.search(r"Start Coordinates[:\s]+(-?\d+\.\d+)[,\s]+(-?\d+\.\d+)",
+                               b, _re.I)
+            aus.append({"labelId": m.group(1),
+                        "sportType": int(st.group(1)) if st else None,
+                        "start_ts": int(ts.group(1)) if ts else None,
+                        # Fehlt die Zeile, heisst das KEIN GPS — nicht „unbekannt": COROS
+                        # schreibt sie bei jeder Aufnahme mit Ortung. `merken` stuft ein einmal
+                        # als GPS erkanntes Modus nie wieder herab, ein Ausrutscher schadet also
+                        # nicht.
+                        "hat_gps": bool(koord)})
     if aus:
         return aus
-    # Letzter Rueckfall: lange Ziffernfolgen, wenn die Antwort das Wort „labelId" gar nicht nennt.
-    for m in _re.finditer(r'\b(\d{14,})\b', text):
-        aus.append((m.group(1), None))
+    # Letzter Rueckfall: lange Ziffernfolgen, falls die Antwort das Wort „labelId" gar nicht nennt.
+    for m in _re.finditer(r"\b(\d{14,})\b", text):
+        aus.append({"labelId": m.group(1), "sportType": None, "start_ts": None})
     return aus
 
 
 @router.post("/sync")
-def sync(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+def sync(tage: int = 0, user: models.User = Depends(current_user),
+         db: Session = Depends(get_db)) -> dict:
     """Neue COROS-Trainings als FIT ziehen und als Sessions importieren (idempotent).
 
     **Am echten Server ausgemessen (04.09.), nicht geraten** — beides hat je einen Anlauf
@@ -444,7 +562,7 @@ def sync(user: models.User = Depends(current_user), db: Session = Depends(get_db
         dann je Eintrag die Datei.
     """
     from .sessions import import_parsed_session   # lazy: vermeidet Import-Zyklus
-    from .. import storage
+    from .. import importsports, storage
     from ..fitimport import parse_fit_bytes
 
     link = db.query(models.CorosMcpLink).filter_by(user_id=user.id).first()
@@ -455,16 +573,61 @@ def sync(user: models.User = Depends(current_user), db: Session = Depends(get_db
     sitzung.start()
 
     # Zeitfenster: ab dem letzten Sync, beim ersten Mal 90 Tage zurueck.
-    seit = (link.last_sync_at or datetime.now(timezone.utc) - timedelta(days=90))
+    # `tage` fordert ausdruecklich ein weiteres Fenster an — gebraucht nach einer Korrektur am
+    # Import, wenn Aktivitaeten nachzuholen sind, die beim letzten Lauf durchgefallen sind.
+    # Ohne den Parameter muesste man dafuer `last_sync_at` in der DB zuruecksetzen, also an
+    # fremden Daten schrauben, um Daten zu holen. Kostet kein zusaetzliches Kontingent: was wir
+    # schon haben, wird an der Startzeit erkannt und gar nicht erst geladen (s. unten).
+    seit = (datetime.now(timezone.utc) - timedelta(days=max(1, min(tage, 365)))) if tage > 0 else (
+        link.last_sync_at or datetime.now(timezone.utc) - timedelta(days=90))
     liste = sitzung.rufe("querySportRecords", {
         "startDate": seit.strftime("%Y%m%d"),
         "endDate": (datetime.now(timezone.utc) + timedelta(days=1)).strftime("%Y%m%d"),
-        "limit": MAX_FITS_JE_SYNC,
+        # ALLE Sportarten holen, nicht nur Wassersport (Jan, 07.09.). Eine feste Liste haette
+        # genau die Leute ausgesiebt, die einen ungewoehnlichen Modus benutzen — nachgezaehlt
+        # kamen 8 Suunto-Sessions als „cycling" herein und waren echtes Pumpfoilen. Was der
+        # Nutzer nicht will, waehlt er selbst ab (`importsports`); die Liste ist billig, nur der
+        # Download kostet Kontingent.
+        "sportTypeCodes": None,
+        "limit": LISTE_LIMIT,
     })
     aktivitaeten = _aktivitaeten_aus(liste)
 
+    # Doppel erkennen, BEVOR wir herunterladen. Die Liste nennt die Startzeit, und unsere
+    # Dedup-Regel in `import_parsed_session` greift ohnehin ueber `started_at` — was wir also
+    # schon haben, muessen wir gar nicht erst holen. Das ist der Unterschied zwischen „jeder Sync
+    # verbraucht 25 Dateien vom Tageskontingent" und „ein Sync ohne Neues kostet nichts".
+    # Zwei Sekunden Toleranz, falls Uhr und Datei sich in der Rundung unterscheiden.
+    bekannt = {int(t.timestamp())
+               for (t,) in db.query(models.Session.started_at)
+               .filter(models.Session.user_id == user.id,
+                       models.Session.started_at.isnot(None)).all() if t}
+
+    def _schon_da(ts: int | None) -> bool:
+        return ts is not None and any((ts + d) in bekannt for d in (-2, -1, 0, 1, 2))
+
     imported = skipped = gescheitert = 0
-    for labelId, sportType in aktivitaeten[:MAX_FITS_JE_SYNC]:
+    abgewaehlt = 0
+    for eintrag in aktivitaeten:
+        if imported + gescheitert >= MAX_FITS_JE_SYNC:
+            log.info("coros-mcp: Download-Obergrenze %d erreicht (user %s), Rest folgt beim "
+                     "naechsten Lauf", MAX_FITS_JE_SYNC, user.id)
+            break
+        labelId, sportType = eintrag["labelId"], eintrag.get("sportType")
+        # Modus festhalten, damit der Nutzer ihn in seinen Kontoeinstellungen abwaehlen kann.
+        # Neu heisst importieren — im Zweifel holen, nicht verwerfen.
+        if sportType is not None:
+            importsports.merken(db, user.id, "coros", str(sportType),
+                                label=SPORT_NAMEN.get(sportType), hat_gps=eintrag.get("hat_gps"))
+            if not importsports.erlaubt(db, user.id, "coros", str(sportType)):
+                abgewaehlt += 1
+                continue
+        if eintrag.get("hat_gps") is False:
+            skipped += 1          # ohne Ortung gibt es nichts zu analysieren
+            continue
+        if _schon_da(eintrag.get("start_ts")):
+            skipped += 1
+            continue
         args = {"labelId": labelId}
         if sportType is not None:
             args["sportType"] = sportType
@@ -514,7 +677,7 @@ def sync(user: models.User = Depends(current_user), db: Session = Depends(get_db
         link.last_sync_at = datetime.now(timezone.utc)
         db.commit()
     return {"imported": imported, "skipped": skipped, "failed": gescheitert,
-            "found": len(aktivitaeten)}
+            "deselected": abgewaehlt, "found": len(aktivitaeten)}
 
 
 @router.delete("")
@@ -524,3 +687,27 @@ def unlink(user: models.User = Depends(current_user), db: Session = Depends(get_
         db.delete(link)
         db.commit()
     return {"ok": True}
+
+
+# --------------------------------------------------------------------------------------
+# Sportart-Auswahl (dieselben Endpunkte gibt es fuer Suunto und Polar, s. `importsports`)
+
+
+@router.get("/sports")
+def sports_(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+    """Die Modi, die DIESER Nutzer ueber COROS uebertraegt — mit seiner Auswahl.
+
+    Bewusst nicht die 75 Codes aus der Doku (Jan, 07.09.: „nur die, die er auch selber
+    verwendet, nicht 75"), und nur solche mit Ortung.
+    """
+    from .. import importsports
+    return {"sports": importsports.liste(db, user.id, "coros")}
+
+
+@router.put("/sports")
+def sports_setzen(wahl: dict[str, bool], user: models.User = Depends(current_user),
+                  db: Session = Depends(get_db)) -> dict:
+    """Auswahl uebernehmen: {"704": true, "104": false}. Wirkt auf KUENFTIGE Importe."""
+    from .. import importsports
+    n = importsports.setzen(db, user.id, "coros", wahl)
+    return {"ok": True, "geaendert": n, "sports": importsports.liste(db, user.id, "coros")}
