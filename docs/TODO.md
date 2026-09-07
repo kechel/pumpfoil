@@ -705,6 +705,11 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **Standard-Emoji in der Android-Spot-Ueberschrift.** `SpotSessionsScreen.kt` setzt
+  `"📍 $spot"` in den TopAppBar-Titel. Laut Memory `no-standard-emojis-in-ui` gehoeren dort
+  eigene Material-SVG-Icons hin, keine System-Emojis. Beim Nachziehen des Wetter-Titels am
+  07.09. aufgefallen, nicht angefasst (nicht gefragt, kein Fehler — nur inkonsistent).
+
 - **📥 07.09. — `docs/PARITY-AUDIT.md` ist veraltet (Abschnitte vom 17.08.) und hat mich in die
   Irre geführt.** Auf Jans Frage „was hast du noch alles übersehen/vergessen?" habe ich einen
   frischen Abgleich gemacht (alle Web-Routen + die zuletzt gebauten Features gegen beide Apps).
