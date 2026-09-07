@@ -113,14 +113,26 @@ fun SpotNotesSection(spotId: Int) {
                                 try { Api.deleteSpotNotePhoto(spotId, pid); laden() } catch (_: Exception) {}
                                 busy = false } })
                     }
-                    Row(Modifier.padding(top = 6.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedButton(onClick = { editText = meine?.text ?: "" }, enabled = !busy) {
+                    // JE AKTION EINE ZEILE, wie auf iOS seit 4fa63196. Drei beschriftete Knoepfe
+                    // passen auf einem Handy nicht nebeneinander: „Aus meinen Session-Fotos"
+                    // brach in vier Zeilen und wurde zu einem Kreis (Jan, 07.09.2026, mit
+                    // Screenshot). Volle Breite statt nebeneinander, dann steht der Text.
+                    Column(
+                        Modifier.fillMaxWidth().padding(top = 6.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        OutlinedButton(
+                            onClick = { editText = meine?.text ?: "" },
+                            enabled = !busy,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
                             Text(if (meine == null) I18n.t("spotnote.write") else I18n.t("spotnote.edit"))
                         }
                         if ((meine?.photos?.size ?: 0) < d.max_photos) {
                             OutlinedButton(
                                 onClick = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
                                 enabled = !busy,
+                                modifier = Modifier.fillMaxWidth(),
                             ) {
                                 Icon(Icons.Filled.PhotoCamera, contentDescription = null, Modifier.size(16.dp))
                                 Spacer(Modifier.width(4.dp))
@@ -135,6 +147,7 @@ fun SpotNotesSection(spotId: Int) {
                                     }
                                 },
                                 enabled = !busy,
+                                modifier = Modifier.fillMaxWidth(),
                             ) { Text(I18n.t("spotnote.fromSession")) }
                         }
                     }
