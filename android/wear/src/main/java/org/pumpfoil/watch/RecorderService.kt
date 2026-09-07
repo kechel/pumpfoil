@@ -49,7 +49,10 @@ class RecorderService : Service(), SensorEventListener {
     private var letzterHsMs = 0L
     private var hsNeustarts = 0
     private var waechter: java.util.concurrent.ScheduledExecutorService? = null
-    private val fused by lazy { LocationServices.getFusedLocationProviderClient(this) }
+    private val fused by lazy {
+        val attrCtx = createAttributionContext("recorder")
+        LocationServices.getFusedLocationProviderClient(attrCtx)
+    }
     private val locCb = object : LocationCallback() {
         override fun onLocationResult(r: LocationResult) {
             r.lastLocation?.let {
@@ -177,7 +180,8 @@ class RecorderService : Service(), SensorEventListener {
         }
         hsDelivered = false
         try {
-            val client = HealthServices.getClient(this).exerciseClient
+            val attrCtx = createAttributionContext("recorder")
+            val client = HealthServices.getClient(attrCtx).exerciseClient
             hsClient = client
             client.setUpdateCallback(object : ExerciseUpdateCallback {
                 override fun onRegistered() {}
