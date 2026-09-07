@@ -4,7 +4,7 @@ Kwai ist die kurze-Videos-App von Kuaishou und in Brasilien sehr gross: rund **6
 monatlich aktive Nutzer**, gut 75 Minuten am Tag. Anlass war die Frage, ob wir dort die
 juengere Zielgruppe erreichen, die auf Facebook fehlt.
 
-**Stand 07.09.2026: recherchiert und vorbereitet, kein Konto, nichts im Studio gebaut.**
+**Stand 07.09.2026: im Studio eingebaut, Bilder und Texte fertig, Konto wird angelegt.**
 
 ## Wem gehoert Kwai
 
@@ -80,6 +80,29 @@ Beispiele, passend zu dem, was auf Facebook gezuendet hat (Anfaenger, Lernen, Fo
 - `Primeira sessão dele. Olha o que acontece no final. E você, já tentou?`
 - `Dockstart: 20 tentativas até sair. Esta é a número 21.`
 - `Sem vento, sem onda, sem barco — só pumpar. Alguém aí de Floripa?`
+
+## Was das Studio kann
+
+**Kein eigener Render.** Die TikTok-Fassung ist 9:16, hat O-Ton und keine lizenzierte
+Musik — genau richtig fuer eine Plattform, deren Musikrechte wir nicht kennen. Ein
+zweiter Durchlauf haette 24 MB und eine Minute gekostet, um ein Symbol im Outro zu
+tauschen. Also: **fuer Kwai die TikTok-Datei nehmen.**
+
+- **Caption auf brasilianischem Portugiesisch.** Der Texte-Tab erzeugt neben Instagram
+  und TikTok jetzt ein Feld `kwai`: ein bis zwei Saetze, Frage ans Publikum, dann
+  Hashtags. Als einziges Caption-Feld nicht englisch — Kwai laeuft praktisch nur in
+  Brasilien. Sportbegriffe bleiben englisch, so heissen sie dort auch. Beispiel:
+
+  > Charly caiu três vezes e voltou pro píer três vezes — na quarta o foil segurou e ele
+  > saiu deslizando. 💦 Quantas tentativas você levou pra acertar seu primeiro dockstart?
+
+  Aeltere Cache-Eintraege haben das Feld nicht; dort einmal „Neu generieren" druecken.
+- **Haken „auf Kwai" im Upload-Tab.** Weil es keine Schnittstelle gibt, laedt man von
+  Hand in der App hoch — der Haken ist die einzige Buchfuehrung darueber, mit Datum.
+
+Ablauf je Video: rendern wie immer → im Texte-Tab die Kwai-Caption kopieren → „Im Finder
+zeigen", die **TikTok**-Datei aufs Handy → in der Kwai-App hochladen → im Upload-Tab
+abhaken.
 
 ## Erwartung, ehrlich
 

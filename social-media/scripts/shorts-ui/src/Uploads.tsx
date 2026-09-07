@@ -288,6 +288,19 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
                   <div className="caphead">TikTok-Caption <CopyBtn text={caps.tiktok} /></div>
                   <pre>{caps.tiktok}</pre>
                 </div>
+                {caps.kwai && (
+                  <div className="capblock">
+                    <div className="caphead">
+                      Kwai-Caption (pt-BR) <CopyBtn text={caps.kwai} />
+                    </div>
+                    <pre>{caps.kwai}</pre>
+                    <div style={{ fontSize: 11, opacity: 0.6 }}>
+                      Für Kwai die <b>TikTok-Datei</b> nehmen — 9:16, O-Ton, ohne lizenzierte
+                      Musik. „Im Finder zeigen“ oben, dann aufs Handy und in der App hochladen;
+                      eine Schnittstelle gibt es dort nicht.
+                    </div>
+                  </div>
+                )}
                 {bili && (
                   <>
                     <div className="capblock">

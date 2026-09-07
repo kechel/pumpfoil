@@ -331,3 +331,7 @@ table.cmp { max-width: 520px; }
    videos-verarbeitet liegt und keinen eigenen Knopf hat. */
 .sortrow { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
 .sortrow .sortlbl { font-size: 11px; opacity: .55; margin-right: 2px; }
+
+/* Kwai von Hand abhaken — es gibt dort keine Schnittstelle zum Veroeffentlichen. */
+.kwaimark { display: inline-flex; align-items: center; gap: 5px; font-size: 12px;
+  opacity: .8; margin-top: 6px; cursor: pointer; white-space: nowrap; }
