@@ -26,7 +26,7 @@ Französisch und Deutsch reißen die Grenze als Erste.
 | ru | russisch | 933 |
 | id | indonesisch | 971 |
 | ja | japanisch | 527 |
-| zh | chinesisch | 417 |
+| zh | chinesisch | 454 |
 
 **Auf YouTube fehlten am 04.09. zwei Sprachen**, die die App längst kann: **Polnisch** und
 **Norwegisch**. Schweizerdeutsch bietet YouTube nicht an — die Fassung liegt für andere Kanäle
@@ -37,25 +37,25 @@ Französisch und Deutsch reißen die Grenze als Erste.
 Links. Kommt eine Plattform dazu, ist es **eine Zeile in jeder Datei** — dieselbe Stelle, gleiche
 Reihenfolge wie in `brand/master/banner.py` (SUBLINE) und in der Uhren-Tabelle der PWA.
 
-## Chinesisch weicht ABSICHTLICH ab
+## Chinesisch: diese Datei ist fuer YOUTUBE, nicht fuer Festlandchina
 
-`kanal-beschreibung-zh-chinesisch.txt` ist **nicht** die wortgleiche Übersetzung der anderen,
-und das soll auch so bleiben. Wer sie „vereinheitlicht", macht sie falsch:
+Wichtig, weil hier schon einmal falsch korrigiert wurde: `kanal-beschreibung-zh-chinesisch.txt`
+geht als `zh-CN` in die **YouTube**-Kanaluebersetzung. YouTube ist in Festlandchina gesperrt —
+gelesen wird das also von Simplified-Chinese-Sprechern **ausserhalb**: Singapur, Malaysia,
+Diaspora. Fuer die gilt dasselbe wie fuer alle anderen Sprachen:
 
-- **Xiaomi steht nur dort nicht drin.** Unsere Anbindung läuft über Mi Fitness → Suunto, und
-  dazu sagt unsere eigene App-Doku (`web/src/i18n/locales/en.ts`, `linked.xiaomi.note`):
-  *„Xiaomi offers this connection worldwide except in China."* In allen anderen 16 Sprachen
-  ist Xiaomi richtig — in der chinesischen wäre es ein Versprechen, das beim ersten Versuch
-  bricht, vor dem Publikum, das die Marke am besten kennt.
-- **Wear OS fehlt**, weil Google in China gesperrt ist und die Zeile dort niemanden erreicht.
-- **COROS (高驰) steht weiter vorn**, es ist eine chinesische Marke und dort bekannt.
-- **Die Chatgruppen je Spot sind rausgenommen.** Push läuft über Web Push (`pywebpush`,
-  VAPID); bei Chrome-basierten Browsern über Googles Infrastruktur, in China gesperrt. Ein
-  Chat, dessen Benachrichtigungen nie ankommen, sollte man nicht bewerben. Der
-  Community-Absatz nennt dort nur noch Vergleichen und Ranglisten.
+- **Xiaomi gehoert hier hinein.** Die Anbindung ueber Mi Fitness → Suunto funktioniert
+  weltweit, nur nicht in Festlandchina — und Festlandchina liest diese Datei nicht.
+- **Wear OS gehoert hier hinein**, Google ist ausserhalb des Festlands erreichbar.
+- **Die Chatgruppen je Spot gehoeren hier hinein**, Web Push kommt dort an.
 
-Marken zusätzlich mit chinesischem Namen: Garmin（佳明）, Amazfit（华米）, COROS（高驰） —
-danach wird dort gesucht.
+Die China-spezifischen Einschraenkungen (kein Xiaomi, kein Wear OS, keine Chatgruppen
+bewerben) gelten **nur fuer RedNote** — dort sitzt das Publikum tatsaechlich im Festland.
+Diese Texte stehen in `social-media/REDNOTE.md` und in `rednote_text()` in
+`social-media/scripts/shorts-musik.py`, nicht hier.
+
+Die chinesischen Markennamen — Garmin（佳明）, Amazfit（华米）, COROS（高驰） — stehen
+dagegen ueberall richtig: danach wird auf Chinesisch gesucht, egal wo jemand sitzt.
 
 ## Bilder daneben
 
