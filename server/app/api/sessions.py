@@ -52,6 +52,42 @@ def _fit_bytes_from_upload(data: bytes, filename: str | None) -> bytes:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "No .fit file inside ZIP")
     return zf.read(fits[0])
 
+
+# ... ABER die Datei schlägt die Voreinstellung, wenn sie etwas nennt, das mit Foilen nichts
+# zu tun haben KANN. Am 05.09.2026 nachgezählt: von 260 lesbaren Import-Originalen trugen 242
+# eine andere Sportart als die, unter der sie bei uns standen — 130 davon zählten als
+# Pumpfoil, darunter 25 Radfahrten, 20 Läufe und 4 Fußballspiele. Grund war ein Lesefehler
+# (s. `fitimport`: Suunto schreibt die Sportart nur in die `session`-Nachricht), aber selbst
+# mit richtiger Lesung hätte die Voreinstellung sie überschrieben.
+#
+# Die Liste ist BEWUSST eng. Sie enthält NUR, was niemand als Ersatzmodus fürs Foilen
+# wählen würde. Nicht enthalten und deshalb weiter der Voreinstellung überlassen:
+# `surfing`, `stand_up_paddleboarding`, `kitesurfing`, `sailing`, `windsurfing`,
+# `wakeboarding`, `open_water`, `generic` — für Pumpfoil gibt es auf keiner Uhr einen
+# eigenen Modus, also nehmen die Leute genau diese. Wer dort mitraten wollte, würde echte
+# Pumper aussortieren (Jan, 05.09.: „es gibt durchaus Pumpfoiler, die 1–2 Stunden pumpen").
+KEIN_FOILEN = {
+    "running", "trail_running", "cycling", "e_biking", "mountain_biking", "walking", "hiking",
+    "soccer", "american_football", "basketball", "tennis", "golf", "training",
+    "fitness_equipment", "floor_climbing", "rock_climbing", "mountaineering",
+    "alpine_skiing", "snowboarding", "cross_country_skiing", "snowshoeing", "ice_skating",
+    "inline_skating", "horseback_riding", "motorcycling", "driving", "sky_diving",
+    "hunting", "fishing", "swimming", "rowing", "kayaking", "paddling",
+}
+
+# Und der Zwischenfall: ein WASSERsport, der weder fuer noch gegen Foilen spricht. Hier wird
+# nicht geraten, sondern gefragt — `needs_classification` haengt ein Abzeichen an die Session,
+# weist auf der Startseite darauf hin und haelt sie so lange aus JEDER Auswertung heraus
+# (Jan, 05.09.: „needs classification find ich gut wenns nicht eindeutig ist").
+#
+# `surfing` und `open_water` stehen ABSICHTLICH nicht in dieser Liste: das schreibt unsere
+# eigene Garmin-App in ihre Dateien, und die 285 Importe mit diesen Werten sehen aus wie
+# unsere Flotte (7,7 Laeufe, laengster 57 s gegen eigene 8,1 / 93 s). Wer dort nachfragt,
+# nervt die halbe Community wegen nichts.
+UNKLAR_WASSER = {"stand_up_paddleboarding", "kitesurfing", "sailing", "windsurfing",
+                 "wakeboarding", "water_skiing"}
+
+
 router = APIRouter(prefix="/api/sessions", tags=["sessions"])
 # Öffentlicher (auth-freier) Router — nur der Token-Share-Endpoint. In main.py OHNE Auth eingebunden.
 public_router = APIRouter(prefix="/api/public", tags=["public"])
@@ -414,41 +450,9 @@ def import_parsed_session(db, user, raw: bytes, parsed: dict, *, src_label: str,
         _dsc = (json.loads(user.settings_json or "{}") or {}).get("default_sport_class") or "pumpfoil"
     except ValueError:
         _dsc = "pumpfoil"
-    # ... ABER die Datei schlägt die Voreinstellung, wenn sie etwas nennt, das mit Foilen nichts
-    # zu tun haben KANN. Am 05.09.2026 nachgezählt: von 260 lesbaren Import-Originalen trugen 242
-    # eine andere Sportart als die, unter der sie bei uns standen — 130 davon zählten als
-    # Pumpfoil, darunter 25 Radfahrten, 20 Läufe und 4 Fußballspiele. Grund war ein Lesefehler
-    # (s. `fitimport`: Suunto schreibt die Sportart nur in die `session`-Nachricht), aber selbst
-    # mit richtiger Lesung hätte die Voreinstellung sie überschrieben.
-    #
-    # Die Liste ist BEWUSST eng. Sie enthält NUR, was niemand als Ersatzmodus fürs Foilen
-    # wählen würde. Nicht enthalten und deshalb weiter der Voreinstellung überlassen:
-    # `surfing`, `stand_up_paddleboarding`, `kitesurfing`, `sailing`, `windsurfing`,
-    # `wakeboarding`, `open_water`, `generic` — für Pumpfoil gibt es auf keiner Uhr einen
-    # eigenen Modus, also nehmen die Leute genau diese. Wer dort mitraten wollte, würde echte
-    # Pumper aussortieren (Jan, 05.09.: „es gibt durchaus Pumpfoiler, die 1–2 Stunden pumpen").
-    KEIN_FOILEN = {
-        "running", "trail_running", "cycling", "e_biking", "mountain_biking", "walking", "hiking",
-        "soccer", "american_football", "basketball", "tennis", "golf", "training",
-        "fitness_equipment", "floor_climbing", "rock_climbing", "mountaineering",
-        "alpine_skiing", "snowboarding", "cross_country_skiing", "snowshoeing", "ice_skating",
-        "inline_skating", "horseback_riding", "motorcycling", "driving", "sky_diving",
-        "hunting", "fishing", "swimming", "rowing", "kayaking", "paddling",
-    }
-    _datei_sport = (parsed.get("sport") or "").lower()
-    if _datei_sport in KEIN_FOILEN:
-        _dsc = "other"
-    # Und der Zwischenfall: ein WASSERsport, der weder fuer noch gegen Foilen spricht. Hier wird
-    # nicht geraten, sondern gefragt — `needs_classification` haengt ein Abzeichen an die Session,
-    # weist auf der Startseite darauf hin und haelt sie so lange aus JEDER Auswertung heraus
-    # (Jan, 05.09.: „needs classification find ich gut wenns nicht eindeutig ist").
-    #
-    # `surfing` und `open_water` stehen ABSICHTLICH nicht in dieser Liste: das schreibt unsere
-    # eigene Garmin-App in ihre Dateien, und die 285 Importe mit diesen Werten sehen aus wie
-    # unsere Flotte (7,7 Laeufe, laengster 57 s gegen eigene 8,1 / 93 s). Wer dort nachfragt,
-    # nervt die halbe Community wegen nichts.
-    UNKLAR_WASSER = {"stand_up_paddleboarding", "kitesurfing", "sailing", "windsurfing",
-                     "wakeboarding", "water_skiing"}
+    # Listen s. Modulebene (KEIN_FOILEN / UNKLAR_WASSER) — dieselbe Definition nutzt
+    # `scripts/suunto-nachholen-vormerken.py`, damit eine Nachholaktion genau die
+    # Sportarten meidet, die sofort als Pumpfoil zaehlen wuerden.
     _unklar = _datei_sport in UNKLAR_WASSER and _dsc == "pumpfoil"
     s = models.Session(
         session_uuid=session_uuid,
