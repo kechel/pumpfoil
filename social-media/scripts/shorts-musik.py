@@ -68,6 +68,11 @@ CAPTION_LANGS = ["de", "en", "fr", "it", "es", "fi", "nl", "cs",
 # ID/PT/ES auf YouTube).
 PORT = 8765
 PLATFORMS = ("youtube", "instagram")
+# Ordner unter shorts-mit-musik/. rednote bekommt KEINEN eigenen Render: dort
+# liegt ein harter Link auf die TikTok-Fassung (9:16, O-Ton, keine lizenzierte
+# Musik) — dieselbe Datei, nur an dem Platz, an dem man sie sucht.
+EXPORT_PLATFORMS = (*PLATFORMS, "tiktok", "rednote")
+LINKED_EXPORTS = {"rednote": "tiktok"}
 AUDIO_EXT = {".mp3", ".m4a", ".aac", ".wav", ".flac", ".ogg", ".opus"}
 FADE_IN = 1.0
 FADE_OUT = 2.0
@@ -167,6 +172,52 @@ def bilibili_text(caps: dict) -> dict:
     return {"title": titel, "description": text, "chars": len(text)}
 
 
+# Xiaohongshu/RedNote: Titel max. 20 Zeichen, Text bis 1000. Anders als TikTok
+# ist die Plattform SUCH-getrieben — Leute tippen "无动力水翼板" ein und finden
+# auch zwei Jahre alte Beitraege. Deshalb wiegen Titel und Schlagworte dort mehr
+# als anderswo, und der Text darf ruhig erklaerend sein statt nur witzig.
+XHS_TITEL_MAX = 20
+XHS_TEXT_MAX = 1000
+# Dieselben Fachbegriffe wie auf bilibili (dort geprueft), erweitert um die
+# Schlagworte, die auf RedNote selbst ueblich sind: 小众运动 ("Nischensport")
+# ist dort eine eigene Rubrik, 装备 ("Ausruestung") und 运动手表 treffen genau
+# das Kaufinteresse, das die Plattform ausmacht.
+XHS_TAGS = ["无动力水翼板", "水翼", "冲浪", "极限运动", "户外运动",
+            "小众运动", "运动手表", "佳明", "装备", "pumpfoil"]
+
+
+def rednote_text(caps: dict) -> dict:
+    """Titel + Text fuer Xiaohongshu/RedNote, aus den vorhandenen zh-Feldern.
+
+    Kein eigener Modellaufruf: die chinesische Fassung entsteht ohnehin fuer
+    jedes Video, sie muss nur anders zusammengesetzt werden.
+    """
+    t = (caps.get("titles") or {})
+    d = (caps.get("descriptions") or {})
+    titel = re.sub(r"^-?\d{1,3}\s+[Pp]umpfoil\s+\d{4}\s*", "", t.get("zh") or "").strip()
+    if not titel:
+        titel = "无动力水翼板 pumpfoil"
+    # 20 Zeichen sind bei chinesischen Titeln viel, bei lateinischen wenig —
+    # dort saehe ein harter Schnitt aus wie ein Fehler ("Success or Fail 2 — ").
+    # Deshalb an der letzten Wortgrenze trennen und Trennzeichen abraeumen.
+    kurz = titel
+    if len(titel) > XHS_TITEL_MAX:
+        kurz = titel[:XHS_TITEL_MAX]
+        if titel[XHS_TITEL_MAX].isascii() and titel[XHS_TITEL_MAX] != " ":
+            kurz = kurz.rsplit(" ", 1)[0] if " " in kurz else kurz
+        kurz = kurz.rstrip(" —-–—·,，、：:!！?？")
+    # Der App-Hinweis auf Chinesisch: kurz, ohne Werbeton — RedNote-Leser
+    # erwarten einen Tipp, keine Anzeige.
+    app = ("用运动手表记录每一次 pump：GPS、水翼距离、滑行时间。\n"
+           "免费开源，支持佳明 / Apple Watch / Wear OS / Amazfit → pumpfoil.org")
+    tags = " ".join("#" + x for x in XHS_TAGS)
+    teile = [d.get("zh", "").strip(), app, tags]
+    text = "\n\n".join(x for x in teile if x)
+    if len(text) > XHS_TEXT_MAX:
+        text = text[:XHS_TEXT_MAX - 1] + "…"
+    return {"title": kurz, "title_full": titel, "description": text, "chars": len(text)}
+
+
 # Instagram erlaubt 2200 Zeichen — die Caption allein nutzt davon nur rund 400.
 # Fuer Uploads ueber das Meta-Studio, wo das Feld lang genug ist, gibt es
 # deshalb zusaetzlich die Fassung mit dem englischen Standardblock dahinter.
@@ -189,6 +240,7 @@ def cached_captions(name: str) -> dict:
     if name in cache:
         return {"cached": cache[name], "source": "ui",
                 "bilibili": bilibili_text(cache[name]),
+                "rednote": rednote_text(cache[name]),
                 "instagram_long": instagram_long(cache[name])}
     m = NUM_RE.match(name)
     if m:
@@ -199,6 +251,7 @@ def cached_captions(name: str) -> dict:
                 return {"cached": batch[vid], "source": "yt-batch",
                         "yt_title": entry["title"],
                         "bilibili": bilibili_text(batch[vid]),
+                        "rednote": rednote_text(batch[vid]),
                         "instagram_long": instagram_long(batch[vid])}
     return {"cached": None}
 
@@ -608,7 +661,7 @@ def list_state():
                 "dur": track_duration(p),
             })
     rendered = {
-        v: [pf for pf in (*PLATFORMS, "tiktok") if (OUT_DIR / pf / v).exists()]
+        v: [pf for pf in EXPORT_PLATFORMS if (OUT_DIR / pf / v).exists()]
         for v in videos
     }
     overlays = sorted(
@@ -1490,7 +1543,7 @@ def cover_image(path: Path, t: float, mode: str = "blur") -> Path:
 def exports_state():
     """Fertige Renders, gruppiert über die drei Plattform-Ordner."""
     groups = {}
-    for pf in (*PLATFORMS, "tiktok"):
+    for pf in EXPORT_PLATFORMS:
         d = OUT_DIR / pf
         if not d.is_dir():
             continue
@@ -1732,7 +1785,7 @@ class Handler(BaseHTTPRequestHandler):
             elif path.startswith("/cover/"):
                 name = Path(path[len("/cover/"):]).name
                 pf = (query.get("base", ["instagram"])[0] or "instagram")
-                src = export_file(pf if pf in (*PLATFORMS, "tiktok") else "instagram", name)
+                src = export_file(pf if pf in EXPORT_PLATFORMS else "instagram", name)
                 if src is None:
                     raise FileNotFoundError(name)
                 t = float(query.get("t", ["1"])[0])
@@ -1744,7 +1797,7 @@ class Handler(BaseHTTPRequestHandler):
             elif path.startswith("/thumb/"):
                 name = path[len("/thumb/"):]
                 base_q = query.get("base", [""])[0]
-                if base_q.startswith("out:") and base_q[4:] in (*PLATFORMS, "tiktok"):
+                if base_q.startswith("out:") and base_q[4:] in EXPORT_PLATFORMS:
                     video = export_file(base_q[4:], Path(name).name)
                     if video is None:
                         raise FileNotFoundError(name)
@@ -1880,7 +1933,7 @@ class Handler(BaseHTTPRequestHandler):
             if not moved.is_file():
                 return self._json({"error": "Quellvideo nicht mehr in "
                                    f"videos-verarbeitet ({moved.name})"}, 404)
-            for pf in (*PLATFORMS, "tiktok"):
+            for pf in EXPORT_PLATFORMS:
                 p = export_file(pf, info["out_name"])
                 if p is not None:
                     p.unlink()
@@ -1900,7 +1953,7 @@ class Handler(BaseHTTPRequestHandler):
             if not name.endswith(".mp4"):
                 return self._json({"error": "Ungültiger Name"}, 400)
             removed = 0
-            for pf in (*PLATFORMS, "tiktok"):
+            for pf in EXPORT_PLATFORMS:
                 p = export_file(pf, name)
                 if p is not None:
                     p.unlink()
@@ -1938,6 +1991,7 @@ class Handler(BaseHTTPRequestHandler):
                 if name:
                     save_captions_cache(name, caps)
                 return self._json({**caps, "bilibili": bilibili_text(caps),
+                                   "rednote": rednote_text(caps),
                                    "instagram_long": instagram_long(caps)})
             except (RuntimeError, ValueError, subprocess.TimeoutExpired) as e:
                 return self._json({"error": str(e)}, 500)
@@ -2046,7 +2100,9 @@ class Handler(BaseHTTPRequestHandler):
             except (FileNotFoundError, TypeError, ValueError):
                 return self._json({"error": "Endcard nicht gefunden"}, 400)
         results = {}
-        for pf in (*PLATFORMS, "tiktok"):
+        for pf in EXPORT_PLATFORMS:
+            if pf in LINKED_EXPORTS:
+                continue                       # kommt unten als harter Link dazu
             rel = (req.get("tracks") or {}).get(pf)
             PROGRESS.update(active=True, label=pf, pct=0.0)
             try:
@@ -2072,6 +2128,30 @@ class Handler(BaseHTTPRequestHandler):
             except subprocess.CalledProcessError as e:
                 results[pf] = {"ok": False, "error": (e.stderr or "")[-400:]}
             except (ValueError, FileNotFoundError) as e:
+                results[pf] = {"ok": False, "error": str(e)}
+        # Verlinkte Ziele: dieselbe Datei an einem zweiten Platz. Ein harter Link
+        # kostet keinen Speicher und keine Renderzeit — die TikTok-Fassung passt
+        # unveraendert (9:16, O-Ton, keine lizenzierte Musik). Faellt der Link
+        # aus (anderes Dateisystem), wird kopiert.
+        for pf, quelle in LINKED_EXPORTS.items():
+            if not results.get(quelle, {}).get("ok"):
+                continue
+            src = BASE / results[quelle]["out"]
+            ziel = OUT_DIR / pf / src.name
+            try:
+                ziel.parent.mkdir(parents=True, exist_ok=True)
+                alt = export_file(pf, src.name)
+                if alt is not None:
+                    alt.unlink()
+                for p in (OUT_DIR / pf).glob(f"{export_key(src.name)}*.mp4"):
+                    p.unlink()             # Altbestand mit anderem Pixabay-Suffix
+                try:
+                    os.link(src, ziel)
+                except OSError:
+                    shutil.copy2(src, ziel)
+                results[pf] = {"ok": True, "out": str(ziel.relative_to(BASE)),
+                               "linked_from": quelle}
+            except OSError as e:
                 results[pf] = {"ok": False, "error": str(e)}
         for p in tmp_pngs:
             try:

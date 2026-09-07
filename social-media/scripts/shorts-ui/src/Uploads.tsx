@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { pfLabel } from "./pf";
 import { api, Captions, ExportItem } from "./api";
 import { Icon } from "./icons";
 
@@ -109,6 +110,7 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
   );
   const [caps, setCaps] = useState<Captions | null>(null);
   const [bili, setBili] = useState<{ title: string; description: string; chars: number } | null>(null);
+  const [xhs, setXhs] = useState<{ title: string; title_full: string; description: string; chars: number } | null>(null);
   const [igLong, setIgLong] = useState<{ text: string; chars: number; limit: number } | null>(null);
   const [coverT, setCoverT] = useState("");   // eigener Zeitpunkt fürs Cover
   const [capsSource, setCapsSource] = useState("");
@@ -136,12 +138,15 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
       .then(async (r) => r.json() as Promise<{
         cached: Captions | null; source?: string;
         bilibili?: { title: string; description: string; chars: number };
+        rednote?: { title: string; title_full: string; description: string; chars: number };
         instagram_long?: { text: string; chars: number; limit: number };
       }>)
       .then((d) => {
         if (d.cached) {
           setCaps(d.cached);
           setBili(d.bilibili ?? null);
+        setXhs(d.rednote ?? null);
+          setXhs(d.rednote ?? null);
         setIgLong(d.instagram_long?.text ? d.instagram_long : null);
           setCapsSource(d.source === "yt-batch" ? "YouTube-Batch-Cache" : "früher generiert");
         }
@@ -158,6 +163,7 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
     try {
       const d = await api.post<Captions & {
         error?: string; bilibili?: { title: string; description: string; chars: number };
+        rednote?: { title: string; title_full: string; description: string; chars: number };
         instagram_long?: { text: string; chars: number; limit: number };
       }>("/api/captions", { title, name: exp.name });
       if (d.error) setErr(d.error);
@@ -186,7 +192,7 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
         <div className="title">{exp.name.replace(/\.mp4$/, "")}</div>
         <div className="meta">
           {new Date(exp.mtime * 1000).toLocaleString("de-DE")} ·{" "}
-          {exp.platforms.map((p) => (p === "youtube" ? "YT" : p === "instagram" ? "IG" : "TT")).join(" + ")}
+          {exp.platforms.map(pfLabel).join(" + ")}
           {exp.source ? ` · Quelle: ${exp.source}` : " · Quelle nicht gefunden"}
         </div>
         <div className="btns">
@@ -300,6 +306,33 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
                       eine Schnittstelle gibt es dort nicht.
                     </div>
                   </div>
+                )}
+                {xhs && (
+                  <>
+                    <div className="capblock">
+                      <div className="caphead">
+                        RedNote-Titel ({xhs.title.length}/20 Zeichen) <CopyBtn text={xhs.title} />
+                      </div>
+                      <pre>{xhs.title}</pre>
+                      {xhs.title_full !== xhs.title && (
+                        <div style={{ fontSize: 11, opacity: 0.6 }}>
+                          gekürzt aus: {xhs.title_full}
+                        </div>
+                      )}
+                    </div>
+                    <div className="capblock">
+                      <div className="caphead">
+                        RedNote-Text — Chinesisch ({xhs.chars}/1000 Zeichen)
+                        <CopyBtn text={xhs.description} />
+                      </div>
+                      <pre>{xhs.description}</pre>
+                      <div style={{ fontSize: 11, opacity: 0.6 }}>
+                        RedNote wird über die <b>Suche</b> gefunden, nicht nur über den Feed —
+                        deshalb tragen Titel und Schlagworte dort mehr als anderswo, und alte
+                        Beiträge werden weiter gefunden. Video: die <b>TikTok-Datei</b> nehmen.
+                      </div>
+                    </div>
+                  </>
                 )}
                 {bili && (
                   <>

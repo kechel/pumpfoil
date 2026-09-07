@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api, AppState, encPath, fmtDur, RenderResult, Track } from "./api";
+import { pfLabel } from "./pf";
 import { Icon } from "./icons";
 import Uploads from "./Uploads";
 import Publish from "./Publish";
@@ -1249,7 +1250,7 @@ function Studio() {
             : ""}
           onClick={() => selectTrack(pf as PvPlatform, t.rel)}
         >
-          {PF_SHORT[pf as PvPlatform] ?? pf}
+          {pfLabel(pf)}
         </button>
       ))}
     </div>
@@ -1336,8 +1337,8 @@ function Studio() {
                   )}
                   {v.replace(/\.mp4$/, "")}
                   {(state.rendered[v] ?? []).map((pf) => (
-                    <span key={pf} className="badge done">
-                      {pf === "youtube" ? "YT" : pf === "instagram" ? "IG" : "TT"}
+                    <span key={pf} className="badge done" title={pf}>
+                      {pfLabel(pf)}
                     </span>
                   ))}
                 </span>
@@ -1652,7 +1653,7 @@ function Studio() {
           <span className="nm">{curVideo ?? ""}</span>
           {(["youtube", "instagram", "tiktok"] as PvPlatform[]).map((pf) => (
             <button key={pf} className={`mini ${pvPlatform === pf ? "sel" : ""}`} onClick={() => playSelected(pf)}>
-              {pf === "youtube" ? "YT" : pf === "instagram" ? "IG" : "TT"}
+              {pfLabel(pf)}
             </button>
           ))}
           <span className="trkname">{pvTrackName}</span>
