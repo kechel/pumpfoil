@@ -226,6 +226,32 @@ GRUPPEN = [
 # heute NIRGENDS, bis es veroeffentlicht wird. Bei der Freigabe wandern die Zeilen unveraendert
 # nach `Changelog.tsx` — abschreiben, nicht neu erfinden.
 IN_REVIEW: list[dict] = [
+    {"name": "iPhone + Apple Watch", "version": "1.1.31",
+     "note": "submitted 7 September, waiting for Apple",
+     "items": [
+         "The app no longer quits right after signing in when it is set to Portuguese, "
+         "Japanese, Chinese, Russian or Indonesian.",
+         "COROS can be connected from the app at all — it pointed at the wrong address and "
+         "always reported itself as unavailable, while it had been working on the website "
+         "for days.",
+         "You can choose which sport modes we import from a connected account, and the note "
+         "under each account now says what actually happens: Polar sends new trainings by "
+         "itself, COROS is fetched once a day.",
+         "A recording without a single position says so, instead of showing an empty page.",
+         "The spot page shows the records for that spot, the weather and the water level, and the spot descriptions — at the top, the way the website does it. Some of that was missing entirely.",
+         "The Apple Watch tells us which model it is. Until now every Apple Watch looked "
+         "the same to us, so we could not say which ones measure well and which do not.",
+         "The watch comparison from the website is in the app too.",
+         "Every foil in the list opens its own page, with the records set on it and the "
+         "sessions ridden with it.",
+         "An account import shows a progress bar while it runs, and says in your language "
+         "what came of it — how many were imported and why the others were not.",
+         "Xiaomi and Redmi watches: the app explains the official way in, through Mi Fitness "
+         "and Suunto.",
+         "COROS: the app says which mode records the best data, and what COROS does not "
+         "hand over.",
+         "On a spot description, tapping Edit opened the photo picker at the same time.",
+     ]},
     {"name": "Android phone + Wear OS", "version": "1.1.25 / 1.2.25",
      "note": "submitted 2 September, waiting for Google",
      "items": [
@@ -267,30 +293,6 @@ NAECHSTES: list[dict] = [
          "and Suunto.",
          "COROS: the app says which mode records the best data, and what COROS does not "
          "hand over.",
-     ]},
-    {"name": "iPhone + Apple Watch", "version": "1.1.31",
-     "note": "ready to submit",
-     "items": [
-         "COROS can be connected from the app at all — it pointed at the wrong address and "
-         "always reported itself as unavailable, while it had been working on the website "
-         "for days.",
-         "You can choose which sport modes we import from a connected account, and the note "
-         "under each account now says what actually happens: Polar sends new trainings by "
-         "itself, COROS is fetched once a day.",
-         "A recording without a single position says so, instead of showing an empty page.",
-         "The spot page shows the records for that spot, the weather and the water level, and the spot descriptions — at the top, the way the website does it. Some of that was missing entirely.",
-         "The Apple Watch tells us which model it is. Until now every Apple Watch looked "
-         "the same to us, so we could not say which ones measure well and which do not.",
-         "The watch comparison from the website is in the app too.",
-         "Every foil in the list opens its own page, with the records set on it and the "
-         "sessions ridden with it.",
-         "An account import shows a progress bar while it runs, and says in your language "
-         "what came of it — how many were imported and why the others were not.",
-         "Xiaomi and Redmi watches: the app explains the official way in, through Mi Fitness "
-         "and Suunto.",
-         "COROS: the app says which mode records the best data, and what COROS does not "
-         "hand over.",
-         "On a spot description, tapping Edit opened the photo picker at the same time.",
      ]},
     {"name": "Amazfit", "version": "1.0.8", "note": "follows straight after the current one",
      # Inhalt gegenueber der LIVE stehenden 1.0.6 (freigegeben 24.08.), nicht gegenueber 1.0.4:
