@@ -1026,7 +1026,6 @@ const id: Record<string, string> = {
   "linked.accountShort": "tautan akun",
   "settings.polar.title": "Impor Polar",
   "settings.polar.hint": "Hubungkan akun Polar-mu (AccessLink) dan impor latihanmu otomatis sebagai sesi.",
-  "settings.polar.gpsHint": "Penting: GPS harus aktif di profil olahraga Polar. Pada profil air, opsinya bernama “gunakan GPS ponsel” — tanpa itu jam tidak merekam posisi, dan tanpa posisi sesi tidak bisa dianalisis.",
   "settings.polar.scope": "Otomatis mengimpor latihan baru yang direkam setelah penautan. Polar tidak menyediakan latihan lama dari sebelumnya — dan hanya aktivitas GPS yang diimpor.",
   "settings.polar.connect": "Hubungkan Polar",
   "settings.polar.sync": "Impor latihan",
