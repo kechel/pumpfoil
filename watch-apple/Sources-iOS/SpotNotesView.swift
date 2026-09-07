@@ -17,6 +17,8 @@ struct SpotNotesView: View {
     @State private var draft = ""
     @State private var busy = false
     @State private var pickerItem: PhotosPickerItem?
+    // Darstellung des Bilderwaehlers EXPLIZIT, s. Kommentar an `aktionen`.
+    @State private var zeigeWaehler = false
     @State private var gross: Bild?
     // Auswahl aus den EIGENEN Session-Fotos dieses Spots (nil = zu). Warum das trotz
     // System-Bildwaehler wichtig ist (Jan, 25.08.): auf dem Telefon liegen tausende Fotos,
@@ -107,7 +109,16 @@ struct SpotNotesView: View {
     /// nicht. Eine eigene Zeile loest beides ohne Knopfstil: ein Element pro Zeile kann sich
     /// mit keinem anderen streiten. Nebenbei bricht der Text nicht mehr um („Bearbei-ten").
     ///
-    /// Wer das wieder in eine Zeile packt, holt sich einen der beiden Fehler zurueck.
+    /// Der `PhotosPicker` als View blieb aber auch in seiner eigenen Zeile stumm — der Tipp kam an
+    /// (die Zeile leuchtete auf), nur oeffnete sich nichts. Der Grund liegt eine Ebene hoeher: die
+    /// Ansicht ist eine `Group`, und eine `Group` gibt ihre Modifier an JEDES Kind weiter — die drei
+    /// `.sheet` hangen damit an demselben Teilbaum, in dem der Picker steckt, und seine eigene
+    /// Darstellung kam nicht durch. Deshalb hier die explizite Form: ein normaler `Button` (die
+    /// funktionieren in dieser Zeile nachweislich) plus `.photosPicker(isPresented:…)`, also
+    /// dieselbe Mechanik wie bei den drei `.sheet`, die hier ebenfalls nachweislich funktionieren.
+    ///
+    /// Wer das wieder in eine Zeile packt oder zur `PhotosPicker`-View zurueckgeht, holt sich einen
+    /// der drei Fehler zurueck.
     @ViewBuilder private func aktionen(_ d: SpotNotesOut) -> some View {
         let meine = d.notes.first(where: { $0.mine })
         Button {
@@ -119,10 +130,13 @@ struct SpotNotesView: View {
         }
         .disabled(busy)
         if (meine?.photos.count ?? 0) < d.max_photos {
-            PhotosPicker(selection: $pickerItem, matching: .images) {
+            Button {
+                zeigeWaehler = true
+            } label: {
                 Label(Loc.t("spotnote.addPhoto", lang), systemImage: "photo.badge.plus")
             }
             .disabled(busy)
+            .photosPicker(isPresented: $zeigeWaehler, selection: $pickerItem, matching: .images)
             Button {
                 Task {
                     busy = true
