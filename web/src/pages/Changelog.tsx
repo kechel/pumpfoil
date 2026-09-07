@@ -115,6 +115,16 @@ type Entry = { date: string; items: Item[] };
 
 const ENTRIES: Entry[] = [
   {
+    date: "September 7, 2026 — Android and Wear OS 1.1.25 / 1.2.25 in the Play Store",
+    items: [
+      "Videos in the community feed play again, and you can swipe from one to the next.",
+      "The spots map no longer freezes when you scroll back to it.",
+      "A recording can be ended with a single press instead of holding, if you set that in your profile.",
+      "The session list puts the title on its own line, under the date.",
+      "Downloading everything we store about you no longer runs out of memory.",
+    ],
+  },
+  {
     date: "September 7, 2026",
     items: [
       "COROS is out of testing. Your workouts now come in on their own, and the connection was fixed in three places at once: it used to fetch only your single most recent activity, it turned down one file it could not read, and it counted an already-known workout as a fresh import. One tester got nine older rides back this way, two of them recognised as pumpfoiling.",
