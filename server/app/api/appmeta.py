@@ -229,8 +229,8 @@ IN_REVIEW: list[dict] = [
     {"name": "iPhone + Apple Watch", "version": "1.1.31",
      "note": "submitted 7 September, waiting for Apple",
      "items": [
-         "The app no longer quits right after signing in when it is set to Portuguese, "
-         "Japanese, Chinese, Russian or Indonesian.",
+         "The app no longer quits on launch when it is set to Portuguese, Japanese, "
+         "Chinese, Russian or Indonesian.",
          "COROS can be connected from the app at all — it pointed at the wrong address and "
          "always reported itself as unavailable, while it had been working on the website "
          "for days.",

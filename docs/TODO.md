@@ -593,6 +593,46 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ---
 
+## 🔴 Stoerung 02.-07.09.: iOS stuerzte in fuenf Sprachen beim Start ab
+
+**Wirkung.** Wer die App auf **Portugiesisch, Japanisch, Chinesisch, Russisch oder Indonesisch**
+gestellt hatte, kam nicht mehr hinein: Absturz **beim Start**, nicht erst nach der Anmeldung.
+`appLang` liegt in `UserDefaults` und ueberlebt den Neustart, der erste uebersetzte Text greift
+also sofort auf das Overlay der gespeicherten Sprache zu. Andere Sprachen waren voellig
+unbetroffen — die Overlays sind `static let` und werden nur beim ersten Zugriff aufgebaut.
+
+**Betroffene ausgelieferte Versionen: 1.1.29 (live 03.09.) und 1.1.30 (live 05.09.)** — also
+**fuenf Tage live**. 1.1.28 war noch sauber (eingereicht 01.09. 22:24, vor der Ursache).
+Betroffene Nutzer nach `users.language`: **10** (7 ru, 2 pt, 1 ja).
+
+**Ursache.** Ein Swift-Dictionary-**Literal** mit doppeltem Schluessel bricht zur LAUFZEIT ab
+(`Fatal error: Dictionary literal contains duplicate keys`) — es ist kein Compilerfehler, nur eine
+Warnung, die zwischen tausenden Zeilen niemandem auffaellt. `account.activityPumpfoil` stand in
+fuenf Overlays zweimal **im selben Literal**.
+
+Eingebaut am **02.09. 09:53** mit `7e87ce0a` — dort hat `scripts/i18n-port.py` Schluessel
+angehaengt, die die Tabelle schon hatte. Das WERKZEUG wurde am 03.09. mit `5cb944fd` dicht
+gemacht (`vorhanden = [k for k in keys if …]`, ueberspringt bekannte Schluessel), **die schon
+geschriebenen Doppelten blieben aber stehen** — repariert erst am 07.09. mit `3287370f`.
+
+**Wie es gefunden wurde.** Nicht durch Lesen und nicht durch einen Absturzbericht, sondern
+beiher: `Loc.swift`/`LocExtra.swift` brauchen nur `Foundation` und lassen sich deshalb auf der
+Linux-VM kompilieren UND AUSFUEHREN. Ein kleines `main.swift`, das jede Tabelle ausgibt, starb
+sofort mit genau dieser Meldung. Das ist die beste Pruefung, die hier ohne Xcode moeglich ist.
+
+**Nicht betroffen:** Apple Watch (kennt den Schluessel nicht) und Web (keine Doppelten). Android
+hatte dieselben Doppelten, Kotlins `mapOf` stuerzt aber nicht ab — dort gewann bei
+`watchStats.hint` in ALLEN 17 Sprachen die alte, gekuerzte Fassung, behoben am 07.09. mit
+`189564c6`.
+
+**Behoben in 1.1.31**, eingereicht 07.09. 15:12 aus Commit `189564c6` (enthaelt `3287370f`,
+gegengeprueft). **Bis zur Freigabe stuerzt 1.1.30 fuer diese Nutzer weiter ab** — eine
+beschleunigte Pruefung bei Apple ist dafuer der vorgesehene Weg.
+
+**Dauerhafte Regel:** nach jedem Lauf von `scripts/i18n-port.py` und nach jedem Nachziehen von
+Uebersetzungen pruefen, ob ein Schluessel in DERSELBEN Tabelle zweimal steht. Swift stuerzt ab,
+Kotlin und TypeScript zeigen still den falschen Text. Kein Compiler warnt zuverlaessig.
+
 ## 📤 Einreichungs-Protokoll
 
 **Vorgabe Jan (18.08.): jede Einreichungs-Mitteilung von ihm wird hier mit ZEITPUNKT vermerkt.**
