@@ -41,7 +41,12 @@ ueberhaupt gerendert wird.
 | Punkt | Warum |
 |---|---|
 | Changelog-Seite | Web-only. Zu entscheiden, ob die Apps sie einbetten oder nach draussen verlinken. |
-| `/nerd-analysen`, `/systemarchitektur`, `/watch-stats` | oeffentliche Textseiten, Web-only; gleiche Entscheidung. |
+
+**Korrektur, Jan am 07.09.:** `/nerd-analysen` und `/systemarchitektur` **brauchen die Apps nicht**
+— entschieden, kein offener Punkt. Und die **Uhren-Statistik ist in den Apps laengst da** (Screenshot
+aus dem iOS-Simulator: eigener Bildschirm „Uhren-Statistik" mit Umschalter zur Foil-Statistik). Meine
+Zeile darueber war falsch: ich hatte sie aus der Liste der oeffentlichen Web-Seiten abgeleitet,
+statt im App-Code nachzusehen — genau der Fehler, den der Kopf dieser Datei beschreibt.
 | Layout-**Editor** | ENTSCHEIDUNG Jan 17.08.: bleibt Web-only („das macht man eh nur am pc"). Anzeige, Vorschau und Community-Galerie sind nativ gebaut. |
 | Labeling-Editor, FIT-Import, Admin | Web-only. |
 | Doppelte Spot-Ansichten in beiden Apps | Aufraeumen, kein Funktionsunterschied. |
