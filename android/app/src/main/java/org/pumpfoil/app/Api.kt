@@ -837,6 +837,35 @@ object Api {
     data class SyncResp(val imported: Int = 0, val skipped: Int = 0, val message: String? = null, val ok: Boolean = true)
 
     /**
+     * Stand eines im Hintergrund laufenden Konto-Imports (`GET .../sync-progress`).
+     *
+     * Der Import läuft serverseitig weiter, nachdem `POST /sync` zurückkam — sonst läuft der
+     * Proxy in den Timeout. Ohne diese Abfrage zeigte die App darum die Zahlen des ersten
+     * Augenblicks („0 importiert"), obwohl gerade 25 Trainings geholt wurden.
+     */
+    @kotlinx.serialization.Serializable
+    data class SyncDaten(
+        val imported: Int = 0,
+        val skipped: Int = 0,
+        val failed: Int = 0,
+        val reasons: Map<String, Int> = emptyMap(),
+    )
+
+    @kotlinx.serialization.Serializable
+    data class SyncStand(
+        val laeuft: Boolean = false,
+        val gesamt: Int = 0,
+        val fertig: Int = 0,
+        val schritt: String? = null,
+        val daten: SyncDaten? = null,
+    )
+
+    suspend fun syncProgress(provider: String): SyncStand = withContext(Dispatchers.IO) {
+        json.decodeFromString(SyncStand.serializer(),
+            http("GET", "/api/integrations/$provider/sync-progress", null, auth = true))
+    }
+
+    /**
      * Sportart-Modi eines verknüpften Kontos: welche das Konto tatsächlich geliefert hat und
      * welche davon importiert werden sollen. Für alle drei Anbieter derselbe Vertrag
      * (server/app/importsports.py).

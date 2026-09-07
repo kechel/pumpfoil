@@ -33,6 +33,11 @@ struct LinkedAccountsView: View {
     @State private var busy: String?
     @State private var safariURL: IdentifiedURL?
     @State private var syncMsg: String?
+    // Stand des laufenden Imports (nur einer zur Zeit, `busy` sagt welcher).
+    @State private var stand: Api.SyncStand?
+    // Zaehlt fertige Importe. Die Sportart-Liste haengt daran und holt sich neu — sonst
+    // erschiene ein beim Import NEU entdeckter Modus erst nach einem Neustart der App.
+    @State private var fertigZaehler = 0
 
     var body: some View {
         List {
@@ -62,10 +67,14 @@ struct LinkedAccountsView: View {
                                 }
                             }
                         }
-                        if st.linked { SportAuswahl(pfad: p.pfad, lang: lang) }
+                        if busy == p.id, let stand, stand.laeuft { balken(stand) }
+                        if st.linked {
+                            SportAuswahl(pfad: p.pfad, lang: lang, neuLaden: fertigZaehler)
+                        }
                     }
                 }
             }
+            XiaomiHinweis(lang: lang)
         }
         .brandToolbar(Loc.t("accounts.title", lang))
         .navigationBarTitleDisplayMode(.inline)
@@ -99,27 +108,118 @@ struct LinkedAccountsView: View {
             busy = nil
         }
     }
+    /// Balken samt „x von y Trainings" — dasselbe Bild wie in der PWA.
+    @ViewBuilder private func balken(_ st: Api.SyncStand) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            if st.gesamt > 0 {
+                ProgressView(value: Double(st.fertig), total: Double(st.gesamt))
+                Text(Loc.t("accounts.sync.progress", lang)
+                        .replacingOccurrences(of: "{fertig}", with: String(st.fertig))
+                        .replacingOccurrences(of: "{gesamt}", with: String(st.gesamt)))
+                    .font(.caption).foregroundStyle(.secondary)
+            } else {
+                ProgressView()
+                if let s = st.schritt, !s.isEmpty {
+                    Text(s).font(.caption).foregroundStyle(.secondary)
+                }
+            }
+        }
+        .padding(.top, 6)
+    }
+
+    /// Der Import laeuft serverseitig im Hintergrund weiter, nachdem `POST /sync` zurueckkam
+    /// (sonst laeuft der Proxy in den Timeout — im Web gab es dafuer am 07.09.2026 einen
+    /// „502 Proxy Error", waehrend der Import in Ruhe durchlief). Der Aufruf stoesst also nur an;
+    /// hier wird der Stand abgefragt, bis er fertig ist.
     private func sync(_ p: Provider) {
         busy = p.id
+        stand = Api.SyncStand(laeuft: true, gesamt: 0, fertig: 0, schritt: nil, daten: nil)
         Task {
             do {
-                let r = try await Api.integrationSync(p.pfad)
-                if let m = r.message, !m.isEmpty {
-                    syncMsg = m
-                } else {
-                    syncMsg = Loc.t("accounts.importResult", lang)
-                        .replacingOccurrences(of: "{imported}", with: String(r.imported ?? 0))
-                        .replacingOccurrences(of: "{skipped}", with: String(r.skipped ?? 0))
+                _ = try await Api.integrationSync(p.pfad)
+                var letzter: Api.SyncStand?
+                while true {
+                    let st = try await Api.syncProgress(p.pfad)
+                    letzter = st
+                    if !st.laeuft { break }
+                    stand = st
+                    try await Task.sleep(nanoseconds: 1_500_000_000)
                 }
+                syncMsg = ergebnisText(letzter)
             } catch {
                 syncMsg = Loc.t("accounts.importError", lang)
             }
+            stand = nil
+            fertigZaehler += 1
             await refresh(); busy = nil
         }
+    }
+
+    /// Der Schlusssatz. Vorher zeigte die App die ROHE englische Servermeldung
+    /// („no new exercises") — genau das hat Jan am 07.09.2026 im Web gemeldet.
+    /// Codes stammen aus `suunto._grund_code`; unbekannte werden weggelassen statt roh gezeigt.
+    private func ergebnisText(_ st: Api.SyncStand?) -> String {
+        let d = st?.daten
+        // Zaehlt der Server die Gruende mit (Suunto), sind sie aussagekraeftiger als eine nackte
+        // „uebersprungen"-Zahl: „3 zu kurz" sagt, was zu tun ist, „3 uebersprungen" nicht.
+        // Codes aus `suunto._grund_code`; unbekannte werden weggelassen statt roh gezeigt.
+        let bekannt = [("kein_gps", "noGps"), ("doppelt", "dupe"), ("zu_kurz", "tooShort"),
+                       ("gefiltert", "filtered"), ("spaeter", "later"), ("fehler", "error")]
+        let gruende = bekannt.compactMap { code, key -> String? in
+            guard let n = d?.reasons?[code], n > 0 else { return nil }
+            return Loc.t("accounts.sync.why." + key, lang)
+                .replacingOccurrences(of: "{n}", with: String(n))
+        }
+        if !gruende.isEmpty {
+            var teile: [String] = []
+            if let n = d?.imported, n > 0 {
+                teile.append(Loc.t("accounts.sync.imported", lang)
+                                .replacingOccurrences(of: "{n}", with: String(n)))
+            }
+            teile.append(contentsOf: gruende)
+            return teile.joined(separator: " \u{00b7} ")
+        }
+        // Ohne Gruende beide Zahlen nennen — bei COROS sind die uebersprungenen die schon
+        // vorhandenen Trainings, und „9 importiert" allein liesse offen, was mit den anderen war.
+        let imp = d?.imported ?? 0, skip = d?.skipped ?? 0
+        if imp > 0 || skip > 0 {
+            return Loc.t("accounts.importResult", lang)
+                .replacingOccurrences(of: "{imported}", with: String(imp))
+                .replacingOccurrences(of: "{skipped}", with: String(skip))
+        }
+        return Loc.t("accounts.sync.nothingNew", lang)
     }
     private func unlink(_ p: Provider) {
         busy = p.id
         Task { try? await Api.integrationUnlink(p.pfad); await refresh(); busy = nil }
+    }
+}
+
+/// Xiaomi/Redmi haben keine eigene Schnittstelle fuer uns (Xiaomis Health-Cloud ist nur fuer
+/// Partner offen, und eine App auf der Uhr laesst Xiaomi nicht zu). Der Umweg ist aber offiziell:
+/// Xiaomi und Suunto haben ihre Apps 2024 miteinander verbunden, weltweit ausser China. Deshalb
+/// steht hier eine Anleitung und keine Xiaomi-Verknuepfung — Spiegel der PWA (`db914137`).
+private struct XiaomiHinweis: View {
+    let lang: String
+    var body: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(Loc.t("accounts.xiaomi.hint", lang)).font(.footnote)
+                // EIN Abschluss-Parameter: ein Tupel laesst sich seit Swift 3 nicht in zwei
+                // Parameter zerlegen, und `swiftc -parse` merkt das nicht.
+                ForEach(Array(["accounts.xiaomi.step1", "accounts.xiaomi.step2",
+                               "accounts.xiaomi.step3"].enumerated()), id: \.offset) { schritt in
+                    HStack(alignment: .top, spacing: 6) {
+                        Text("\(schritt.offset + 1).").font(.footnote.weight(.semibold))
+                        Text(Loc.t(schritt.element, lang)).font(.footnote)
+                    }
+                }
+                Text(Loc.t("accounts.xiaomi.note", lang)).font(.caption).foregroundStyle(.secondary)
+            }
+            .padding(.vertical, 2)
+        } header: {
+            Text(Loc.t("accounts.xiaomi.title", lang))
+        }
     }
 }
 
@@ -146,12 +246,20 @@ struct SafariView: UIViewControllerRepresentable {
 private struct SportAuswahl: View {
     let pfad: String
     let lang: String
+    /// Wird nach jedem fertigen Import hochgezaehlt; die Liste holt sich dann neu, damit ein
+    /// dabei NEU entdeckter Modus sofort erscheint.
+    let neuLaden: Int
     @State private var sports: [Api.ImportSport] = []
     @State private var geladen = false
 
     var body: some View {
         Group {
-            if geladen {
+            // ACHTUNG: der Ladehinweis ist keine Kosmetik. Eine View, die im Ausgangszustand
+            // NICHTS ausgibt, fuehrt ihren `.task` nicht aus — am 07.09.2026 an zwei Ansichten
+            // belegt (SpotRecordsView, SpotNotesView). Ohne diesen Zweig lud die Liste nie.
+            if !geladen {
+                Text(Loc.t("common.loading", lang)).font(.caption).foregroundStyle(.secondary)
+            } else {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(Loc.t("accounts.sports.title", lang)).font(.subheadline.weight(.semibold))
                     Text(Loc.t("accounts.sports.hint", lang)).font(.caption).foregroundStyle(.secondary)
@@ -176,7 +284,7 @@ private struct SportAuswahl: View {
                 .padding(.top, 6)
             }
         }
-        .task {
+        .task(id: neuLaden) {
             sports = (try? await Api.importSports(pfad)) ?? []
             geladen = true
         }

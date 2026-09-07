@@ -905,6 +905,29 @@ enum Api {
     }
     struct SyncResp: Decodable { let imported: Int?; let skipped: Int?; let message: String? }
 
+    /// Stand eines im Hintergrund laufenden Konto-Imports (`GET .../sync-progress`).
+    ///
+    /// Der Import laeuft serverseitig weiter, nachdem `POST /sync` zurueckkam — sonst laeuft der
+    /// Proxy in den Timeout. Ohne diese Abfrage zeigte die App darum die Zahlen des ersten
+    /// Augenblicks („0 importiert"), obwohl gerade 25 Trainings geholt wurden.
+    struct SyncStand: Decodable {
+        let laeuft: Bool
+        let gesamt: Int
+        let fertig: Int
+        let schritt: String?
+        let daten: SyncDaten?
+    }
+    struct SyncDaten: Decodable {
+        let imported: Int?
+        let skipped: Int?
+        let failed: Int?
+        let reasons: [String: Int]?
+    }
+    static func syncProgress(_ provider: String) async throws -> SyncStand {
+        try await request("/api/integrations/\(provider)/sync-progress",
+                          method: "GET", body: nil, auth: true)
+    }
+
     // Sportart-Modi eines verknuepften Kontos: welche das Konto tatsaechlich geliefert hat und
     // welche davon importiert werden sollen. Serverseitig fuer alle drei Anbieter derselbe
     // Vertrag (server/app/importsports.py).
