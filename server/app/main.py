@@ -19,6 +19,29 @@ settings = get_settings()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Eigene Log-Meldungen sichtbar machen. uvicorn richtet nur SEINE Logger ein; der
+    # Wurzel-Logger bleibt ohne Handler, und damit verschwindet jedes `log.info(...)` aus
+    # unserem Code spurlos — nur `warning` und schlimmer kommen durch, weil Python dafuer
+    # einen Notfall-Handler hat. Aufgefallen am 07.09.2026: eine neu eingebaute Diagnosezeile
+    # tauchte nicht auf, und beim Nachsehen war KEINE einzige app-INFO-Zeile des ganzen Tages
+    # im Journal — Import-Gruende, Kontingent-Hinweise, „Datei nur teilweise lesbar": alles
+    # geschrieben, nie gelesen.
+    #
+    # Nur unser eigenes Paket wird hochgedreht, nicht der Wurzel-Logger: sonst redet auch
+    # jede Bibliothek mit.
+    import logging
+
+    if not logging.getLogger("app").handlers:
+        h = logging.StreamHandler()
+        h.setFormatter(logging.Formatter("%(levelname)s:     %(name)s: %(message)s"))
+        eigen = logging.getLogger("app")
+        eigen.addHandler(h)
+        eigen.setLevel(logging.INFO)
+        eigen.propagate = False
+        # Eine Zeile beim Start, damit im Journal belegt ist, dass unsere Meldungen ankommen.
+        # Ohne die sieht man den Unterschied erst, wenn zufaellig etwas passiert.
+        eigen.info("Log-Ausgabe fuer app.* aktiv (INFO)")
+
     settings.data_dir.mkdir(parents=True, exist_ok=True)
     init_db()
     yield

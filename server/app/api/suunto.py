@@ -543,7 +543,7 @@ def _hole_workout(db: Session, user: models.User, token: str, key: str,
             # Luecken, also IDs, die Suunto nach dem 07.09.2026 dazugenommen hat.
             importsports.merken(db, user.id, "suunto", sport_key,
                                 label=(parsed.get("sport") or None),
-                                hat_gps=bool(parsed.get("gps_samples")))
+                                hat_gps=bool(parsed.get("gps_samples")), zaehlen=False)
         if not parsed.get("gps_samples") or parsed.get("started_at") is None:
             return False, "kein gps"
         # `import_parsed_session` gibt bei einem Doppel-Treffer die VORHANDENE Session zurueck
