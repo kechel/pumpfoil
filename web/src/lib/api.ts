@@ -339,6 +339,17 @@ export interface RecordSet {
   carves180?: StatRecord;
 }
 
+export type SyncStart = { gestartet?: boolean; laeuft?: boolean };
+export type SyncStand = {
+  laeuft: boolean;
+  gesamt: number;
+  fertig: number;
+  schritt: string | null;
+  ergebnis: string | null;
+  // Dasselbe Ergebnis strukturiert — daraus baut die Oberflaeche die uebersetzten Gruende.
+  daten: Record<string, unknown> | null;
+};
+
 export type ImportSport = {
   sport_key: string;      // Schluessel des Anbieters (COROS-Code, Suunto-activityId, Polar-Name)
   label: string;          // lesbarer Name
@@ -738,7 +749,13 @@ export const api = {
                urteil: string }[];
   }>("/api/app/watch-quality"),
 
-  polarSync: () => req<{ imported: number; skipped: number; message?: string }>("/api/integrations/polar/sync", { method: "POST" }),
+  // Die drei Sync-Aufrufe STOSSEN nur an und antworten sofort — der Import laeuft im
+  // Hintergrund, sonst laeuft der Apache-Proxy in den Timeout (502 beim Nutzer, 07.09.).
+  // Den Stand holt `syncProgress`.
+  polarSync: () => req<SyncStart>("/api/integrations/polar/sync", { method: "POST" }),
+  syncProgress: (provider: "polar" | "suunto" | "coros") =>
+    req<SyncStand>(provider === "coros" ? "/api/integrations/coros/mcp/sync-progress"
+                                        : `/api/integrations/${provider}/sync-progress`),
 
   // Sportart-Modi eines verknuepften Kontos: welche der Nutzer tatsaechlich uebertraegt und
   // welche davon er importieren will. Fuer alle drei Anbieter derselbe Vertrag (server:
@@ -760,7 +777,7 @@ export const api = {
   // COROS ueber den MCP-Server: der Weg ohne Partner-Vertrag (server/app/api/coros_mcp.py).
   corosMcpStatus: () => req<{ available: boolean; linked: boolean; last_sync_at: string | null }>("/api/integrations/coros/mcp/status"),
   corosMcpConnect: () => req<{ authorize_url: string }>("/api/integrations/coros/mcp/connect"),
-  corosMcpSync: () => req<{ imported: number; skipped: number; failed: number; found: number }>("/api/integrations/coros/mcp/sync", { method: "POST" }),
+  corosMcpSync: () => req<SyncStart>("/api/integrations/coros/mcp/sync", { method: "POST" }),
   corosMcpUnlink: () => req<{ ok: boolean }>("/api/integrations/coros/mcp", { method: "DELETE" }),
 
   getPumpTruth: (id: number, runIdx: number | null) =>
@@ -783,7 +800,7 @@ export const api = {
   suuntoStatus: () => req<{ available: boolean; linked: boolean; last_sync_at: string | null }>("/api/integrations/suunto/status"),
   suuntoConnect: () => req<{ authorize_url: string }>("/api/integrations/suunto/connect"),
   // `reasons`: warum etwas NICHT importiert wurde, je Fall gezaehlt (s. `suunto._grund_code`).
-  suuntoSync: () => req<{ imported: number; skipped: number; message?: string; reasons?: Record<string, number> }>("/api/integrations/suunto/sync", { method: "POST" }),
+  suuntoSync: () => req<SyncStart>("/api/integrations/suunto/sync", { method: "POST" }),
   suuntoUnlink: () => req<{ ok: boolean }>("/api/integrations/suunto", { method: "DELETE" }),
 
   stravaStatus: () => req<{ available: boolean; linked: boolean; last_sync_at: string | null }>("/api/integrations/strava/status"),

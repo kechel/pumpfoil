@@ -1191,6 +1191,7 @@ const en: Record<string, string> = {
   "settings.coros.unlink": "Disconnect",
   "settings.coros.help": "How does it work?",
   "settings.coros.help1": "Connect your COROS account → new workouts import automatically (GPS + heart rate), no manual sync.",
+  "settings.sync.progress": "{fertig} of {gesamt} workouts",
   "settings.sports.title": "Which sports to import?",
   "settings.sports.hint": "Only the modes your account has actually delivered so far. A new one is imported automatically until you uncheck it. Applies to future imports.",
   "settings.sports.none": "None yet. As soon as an activity comes in, its mode shows up here.",

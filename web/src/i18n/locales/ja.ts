@@ -1064,6 +1064,7 @@ const ja: Record<string, string> = {
   "settings.coros.unlink": "連携解除",
   "settings.coros.help": "どのように動作しますか？",
   "settings.coros.help1": "COROS アカウントを連携 → 新しいワークアウトが自動的にインポートされます（GPS + 心拍数）。手動同期は不要です。",
+  "settings.sync.progress": "{gesamt} 件中 {fertig} 件",
   "settings.sports.title": "どのスポーツを取り込みますか？",
   "settings.sports.hint": "実際にアカウントから届いたモードのみが表示されます。新しいモードはチェックを外すまで自動で取り込まれます。今後の取り込みに適用されます。",
   "settings.sports.none": "まだありません。アクティビティが届くと、そのモードがここに表示されます。",

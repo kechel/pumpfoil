@@ -1064,6 +1064,7 @@ const id: Record<string, string> = {
   "settings.coros.unlink": "Putuskan",
   "settings.coros.help": "Bagaimana cara kerjanya?",
   "settings.coros.help1": "Hubungkan akun COROS-mu → workout baru diimpor otomatis (GPS + detak jantung), tanpa sinkron manual.",
+  "settings.sync.progress": "{fertig} dari {gesamt} latihan",
   "settings.sports.title": "Olahraga mana yang diimpor?",
   "settings.sports.hint": "Hanya mode yang benar-benar pernah dikirim akunmu. Mode baru diimpor otomatis sampai kamu hapus centangnya. Berlaku untuk impor berikutnya.",
   "settings.sports.none": "Belum ada. Begitu ada aktivitas masuk, modenya muncul di sini.",

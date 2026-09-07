@@ -74,6 +74,118 @@ def _fit_url(key: str) -> str:
     return (FIT_EXPORT_V3 if _v3_aktiv() else FIT_EXPORT_V2).format(key=key)
 
 
+# Lesbare Namen der Suunto-`activityId`. NICHT geraten: aus Suuntos offizieller Liste, verlinkt
+# aus der Entwickler-FAQ (apizone.suunto.com/faq):
+#   https://aspartnercontent.blob.core.windows.net/apizone/docs/Activities.pdf
+# Abgerufen und ausgelesen am 07.09.2026 (`pdftotext -layout`), 98 Eintraege; die 89 fehlt in
+# Suuntos eigener Nummerierung.
+#
+# Gebraucht fuer die Sportart-Auswahl in den Kontoeinstellungen: die Workout-Liste nennt nur die
+# Zahl, und „28" sagt niemandem etwas — „Water sports" schon. (Jan, 07.09.: „sehe jetzt die
+# Auswahl, aber als Zahlen".) Der Name aus der Datei bleibt der Rueckfall fuer eine ID, die
+# Suunto spaeter dazunimmt.
+AKTIVITAETEN = {
+    0: "Walking",
+    1: "Running",
+    2: "Cycling",
+    3: "Cross-country skiing",
+    4: "Sports",
+    5: "Sports",
+    6: "Sports",
+    7: "Sports",
+    8: "Sports",
+    9: "Sports",
+    10: "Mountain biking",
+    11: "Hiking",
+    12: "Roller skating",
+    13: "Downhill skiing",
+    14: "Paddling",
+    15: "Rowing",
+    16: "Golfing",
+    17: "Indoor sports",
+    18: "Parkouring",
+    19: "Ball games",
+    20: "Outdoor gym",
+    21: "Swimming",
+    22: "Trail running",
+    23: "Gym",
+    24: "Nordic walking",
+    25: "Horseback riding",
+    26: "Motorsports",
+    27: "Skateboarding",
+    28: "Water sports",
+    29: "Climbing",
+    30: "Snowboarding",
+    31: "Ski touring",
+    32: "Fitness class",
+    33: "Soccer",
+    34: "Tennis",
+    35: "Basketball",
+    36: "Badminton",
+    37: "Baseball",
+    38: "Volleyball",
+    39: "American football",
+    40: "Table tennis",
+    41: "Racquet ball",
+    42: "Squash",
+    43: "Floorball",
+    44: "Handball",
+    45: "Softball",
+    46: "Bowling",
+    47: "Cricket",
+    48: "Rugby",
+    49: "Ice skating",
+    50: "Ice hockey",
+    51: "Yoga/pilates",
+    52: "Indoor cycling",
+    53: "Treadmill",
+    54: "Crossfit",
+    55: "Crosstrainer",
+    56: "Roller skiing",
+    57: "Indoor rowing",
+    58: "Stretching",
+    59: "Track and field",
+    60: "Orienteering",
+    61: "Standup paddling",
+    62: "Combat sport",
+    63: "Kettlebell",
+    64: "Dancing",
+    65: "Snow shoeing",
+    66: "Frisbee golf",
+    67: "Futsal",
+    68: "Multisport",
+    69: "Aerobics",
+    70: "Trekking",
+    71: "Sailing",
+    72: "Kayaking",
+    73: "Circuit training",
+    74: "Triathlon",
+    75: "Padel",
+    76: "Cheerleading",
+    77: "Boxing",
+    78: "Scubadiving",
+    79: "Freediving",
+    80: "Adventure racing",
+    81: "Gymnastics",
+    82: "Canoeing",
+    83: "Mountaineering",
+    84: "Telemarkskiing",
+    85: "Openwater swimming",
+    86: "Windsurfing",
+    87: "Kitesurfing",
+    88: "Paragliding",
+    90: "Snorkeling",
+    91: "Surfing",
+    92: "Swimrun",
+    93: "Duathlon",
+    94: "Aquathlon",
+    95: "Obstacle racing",
+    96: "Fishing",
+    97: "Hunting",
+    98: "Transition",
+}
+
+
 def _liste_lesen(payload) -> list:
     """Workout-Liste aus der Antwort ziehen — fuer v2 UND v3.
 
@@ -426,8 +538,11 @@ def _hole_workout(db: Session, user: models.User, token: str, key: str,
             # Jetzt kennen wir den lesbaren Namen des Modus (die Liste nennt nur `activityId`).
             # Er landet in der Auswahl, die der Nutzer in seinen Kontoeinstellungen sieht.
             from .. import importsports
+            # Name NICHT erzwingen: `AKTIVITAETEN` kennt Suuntos eigene Bezeichnung, die ist
+            # besser als der FIT-Wert („Water sports" gegen „generic"). Der Dateiwert fuellt nur
+            # Luecken, also IDs, die Suunto nach dem 07.09.2026 dazugenommen hat.
             importsports.merken(db, user.id, "suunto", sport_key,
-                                label=(parsed.get("sport") or None), label_erzwingen=True,
+                                label=(parsed.get("sport") or None),
                                 hat_gps=bool(parsed.get("gps_samples")))
         if not parsed.get("gps_samples") or parsed.get("started_at") is None:
             return False, "kein gps"
@@ -543,18 +658,35 @@ def vergleich(user: models.User = Depends(current_user), db: Session = Depends(g
 
 
 @router.post("/sync")
-def sync(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
-    """Alle Workouts ziehen und je FIT als Session importieren (idempotent)."""
+def sync(background: BackgroundTasks, user: models.User = Depends(current_user),
+         db: Session = Depends(get_db)) -> dict:
+    """Import ANSTOSSEN und sofort antworten; der Stand kommt aus `/sync-progress`.
+    Begruendung s. `polar.sync` — ein Import kann nicht schnell sein und darf deshalb nicht am
+    Aufruf haengen (Apache-Proxy-Timeout, 502 beim Nutzer)."""
+    from .. import syncprogress
     _creds()
+    if db.query(models.SuuntoLink).filter_by(user_id=user.id).first() is None:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Suunto not linked")
+    if syncprogress.stand(db, user.id, "suunto")["laeuft"]:
+        return {"laeuft": True}
+    syncprogress.start(db, user.id, "suunto", 0, "Suunto wird gefragt")
+    background.add_task(syncprogress.im_hintergrund, "suunto", user.id, _sync_lauf)
+    return {"gestartet": True}
+
+
+def _sync_lauf(db: Session, user: models.User) -> dict:
+    """Der eigentliche Import — laeuft im Hintergrund, s. `sync`."""
+    from .. import syncprogress
     link = db.query(models.SuuntoLink).filter_by(user_id=user.id).first()
     if link is None:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Suunto not linked")
+        return {}
 
     from .. import importsports
 
     token = _fresh_token(link, db)
     hdr = {"Authorization": f"Bearer {token}", "Ocp-Apim-Subscription-Key": _sub_key(), "Accept": "application/json"}
     workouts = _workouts_holen(hdr)
+    syncprogress.gesamt_setzen(db, user.id, "suunto", len(workouts or []))
 
     imported = skipped = gefiltert = 0
     # Warum etwas NICHT importiert wurde, zaehlen wir je Fall mit und geben es heraus (s.
@@ -579,7 +711,8 @@ def sync(user: models.User = Depends(current_user), db: Session = Depends(get_db
         aid = w.get("activityId") if isinstance(w, dict) else None
         sport_key = str(aid) if isinstance(aid, (int, float)) else None
         if sport_key is not None:
-            importsports.merken(db, user.id, "suunto", sport_key)
+            importsports.merken(db, user.id, "suunto", sport_key,
+                                label=AKTIVITAETEN.get(int(sport_key)))
             if not importsports.erlaubt(db, user.id, "suunto", sport_key):
                 gefiltert += 1
                 merken("abgewaehlt")
@@ -600,7 +733,9 @@ def sync(user: models.User = Depends(current_user), db: Session = Depends(get_db
             if not _endgueltig(fehler) and (fehler == "quota" or (fehler or "").startswith(("http", "fehler"))):
                 _vormerken(db, user.id, key, fehler or "?")
             if fehler == "quota":
+                syncprogress.schritt(db, user.id, "suunto")
                 break     # Kontingent leer: Rest bleibt vorgemerkt
+        syncprogress.schritt(db, user.id, "suunto")
     # Was frueher liegengeblieben ist, hier gleich mitnehmen (solange Kontingent da ist).
     nachgeholt = _nachholen(db, user, token)
     link.last_sync_at = datetime.now(timezone.utc)
@@ -728,3 +863,11 @@ def sports_setzen(wahl: dict[str, bool], user: models.User = Depends(current_use
     from .. import importsports
     n = importsports.setzen(db, user.id, "suunto", wahl)
     return {"ok": True, "geaendert": n, "sports": importsports.liste(db, user.id, "suunto")}
+
+
+@router.get("/sync-progress")
+def sync_progress(user: models.User = Depends(current_user),
+                  db: Session = Depends(get_db)) -> dict:
+    """Stand eines laufenden Imports: laeuft, fertig von gesamt, Schritt, Schlusssatz."""
+    from .. import syncprogress
+    return syncprogress.stand(db, user.id, "suunto")
