@@ -243,8 +243,15 @@ IN_REVIEW: list[dict] = [
 
 NAECHSTES: list[dict] = [
     {"name": "Android phone + Wear OS", "version": "1.1.26 / 1.2.26",
-     "note": "waiting for the version above to be approved",
+     "note": "ready to submit once the version above is approved",
      "items": [
+         "COROS can be connected from the app at all — it pointed at the wrong address and "
+         "always reported itself as unavailable, while it had been working on the website "
+         "for days.",
+         "You can choose which sport modes we import from a connected account, and the note "
+         "under each account now says what actually happens: Polar sends new trainings by "
+         "itself, COROS is fetched once a day.",
+         "A recording without a single position says so, instead of showing an empty page.",
          "The watch says it plainly when it never got a GPS fix, instead of quietly "
          "recording zeros.",
          "Heart rate keeps measuring: if the watch stops reporting, the app asks for it again.",
