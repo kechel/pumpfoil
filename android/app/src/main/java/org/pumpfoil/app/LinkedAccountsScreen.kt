@@ -22,6 +22,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -368,8 +369,13 @@ private fun SportAuswahl(pfad: String, neuLaden: Int) {
             Text(I18n.t("accounts.sports.none"), style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         } else {
-            liste.forEach { sp ->
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+            // Die Schalter brauchen Luft: ohne Abstand berühren sich die Kapseln fast und die
+            // Liste liest sich als ein Block (Jan, 07.09.2026, am iOS-Screenshot gemeldet — hier
+            // war es genauso). Trenner dazu, damit man Zeile und Schalter zusammen liest.
+            liste.forEachIndexed { i, sp ->
+                if (i > 0) HorizontalDivider()
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
                     Column(Modifier.weight(1f)) {
                         Text(sp.label, style = MaterialTheme.typography.bodyMedium)
                         Text("${sp.gesehen}\u00d7", style = MaterialTheme.typography.bodySmall,

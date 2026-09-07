@@ -277,22 +277,32 @@ private struct SportAuswahl: View {
                     if sports.isEmpty {
                         Text(Loc.t("accounts.sports.none", lang)).font(.caption).foregroundStyle(.secondary)
                     } else {
-                        ForEach(sports) { sp in
-                            Toggle(isOn: Binding(
-                                get: { sp.importieren },
-                                set: { neu in umschalten(sp.sport_key, neu) }
-                            )) {
-                                HStack(spacing: 6) {
-                                    Text(sp.label)
-                                    Text("(\(sp.gesehen)×)").foregroundStyle(.secondary)
+                        // Die Schalter brauchen Luft: bei vier Zeilen ohne Abstand beruehren sich
+                        // die Schalter-Kapseln fast und die Liste liest sich als ein Block
+                        // (Jan, 07.09.2026, mit Screenshot). `spacing` allein reicht nicht — ein
+                        // Schalter ist hoeher als seine Textzeile, also zusaetzlich Polster je
+                        // Zeile und ein Trenner, damit man Zeile und Schalter zusammen liest.
+                        VStack(alignment: .leading, spacing: 0) {
+                            ForEach(Array(sports.enumerated()), id: \.element.sport_key) { eintrag in
+                                if eintrag.offset > 0 { Divider() }
+                                Toggle(isOn: Binding(
+                                    get: { eintrag.element.importieren },
+                                    set: { neu in umschalten(eintrag.element.sport_key, neu) }
+                                )) {
+                                    HStack(spacing: 6) {
+                                        Text(eintrag.element.label)
+                                        Text("(\(eintrag.element.gesehen)×)").foregroundStyle(.secondary)
+                                    }
+                                    .font(.callout)
                                 }
-                                .font(.callout)
+                                .toggleStyle(.switch)
+                                .padding(.vertical, 7)
                             }
-                            .toggleStyle(.switch)
                         }
+                        .padding(.top, 4)
                     }
                 }
-                .padding(.top, 6)
+                .padding(.vertical, 8)
             }
         }
         .task(id: neuLaden) {
