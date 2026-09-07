@@ -99,7 +99,7 @@ struct SessionsView: View {
 
     @ViewBuilder private var spotWeatherSection: some View {
         if scope == .spot, let wb = weather {
-            Section { HomeWeatherCard(wb: wb, lang: lang) }
+            Section { HomeWeatherCard(wb: wb, lang: lang, titelKey: "spot.weatherTitle") }
         }
     }
 

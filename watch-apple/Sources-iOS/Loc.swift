@@ -3167,6 +3167,9 @@ enum Loc {
         "community.spotRecords": r("Rekorde an einem Spot", "Rekord an eme Spot", "Rekorde an einem Spot", "Records at a spot", "Records sur un spot", "Record di uno spot", "Récords de un spot"),
         "foilStats.title": r("Foil-Stats", "Foil-Stats", "Foil-Stats", "Foil stats", "Stats foils", "Statistiche foil", "Stats de foils"),
         "period.today": r("Heute", "Hütt", "Heit", "Today", "Aujourd'hui", "Oggi", "Hoy"),
+        // In der Spot-Ansicht heisst die Wetterkarte wie in der PWA — nicht „am Homespot".
+        "spot.weatherTitle": r("Wetter & Pegel", "Wätter & Pegel", "Wetter & Pegel", "Weather & water level", "Météo & niveau d'eau", "Meteo e livello dell'acqua", "Tiempo y nivel del agua"),
+        "common.loading": r("lädt …", "lädt …", "lädt …", "loading …", "chargement …", "caricamento …", "cargando …"),
         "rec.spotTitle": r("Rekorde an diesem Spot", "Rekörd a däm Spot", "Rekorde an dem Spot", "Records at this spot", "Records à ce spot", "Record in questo spot", "Récords en este spot"),
         "period.10d": r("10 Tage", "10 Täg", "10 Tog", "10 days", "10 jours", "10 giorni", "10 días"),
         "period.30d": r("30 Tage", "30 Täg", "30 Tog", "30 days", "30 jours", "30 giorni", "30 días"),
