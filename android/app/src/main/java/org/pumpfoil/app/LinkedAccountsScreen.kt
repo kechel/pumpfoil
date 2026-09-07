@@ -25,6 +25,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -46,6 +47,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.material3.Switch
 import androidx.compose.runtime.LaunchedEffect
@@ -85,6 +87,11 @@ fun LinkedAccountsScreen(onBack: () -> Unit) {
     val status = remember { mutableStateMapOf<String, Api.IntegrationStatus>() }
     var busy by remember { mutableStateOf<String?>(null) }
     var syncMsg by remember { mutableStateOf<String?>(null) }
+    // Stand des laufenden Imports (nur einer zur Zeit, `busy` sagt welcher).
+    var stand by remember { mutableStateOf<Api.SyncStand?>(null) }
+    // Zählt fertige Importe. Die Sportart-Liste hängt daran und holt sich neu — sonst erschiene
+    // ein beim Import NEU entdeckter Modus erst nach einem Neustart der App.
+    var fertigZaehler by remember { mutableStateOf(0) }
 
     suspend fun refresh() {
         for (p in PROVIDERS) {
@@ -148,17 +155,30 @@ fun LinkedAccountsScreen(onBack: () -> Unit) {
                                 if (p.canSync) {
                                     Button(
                                         enabled = busy == null,
+                                        // Der Import läuft serverseitig im Hintergrund weiter,
+                                        // nachdem `POST /sync` zurückkam (sonst Proxy-Timeout).
+                                        // Der Aufruf stößt also nur an; danach wird der Stand
+                                        // abgefragt, bis er fertig ist.
                                         onClick = {
                                             busy = p.id
+                                            stand = Api.SyncStand(laeuft = true)
                                             scope.launch {
-                                                val r = try { Api.integrationSync(p.pfad) } catch (_: Exception) { null }
-                                                syncMsg = when {
-                                                    r == null -> I18n.t("accounts.importError")
-                                                    !r.message.isNullOrBlank() -> r.message
-                                                    else -> I18n.t("accounts.importResult")
-                                                        .replace("{imported}", r.imported.toString())
-                                                        .replace("{skipped}", r.skipped.toString())
+                                                syncMsg = try {
+                                                    Api.integrationSync(p.pfad)
+                                                    var letzter: Api.SyncStand? = null
+                                                    while (true) {
+                                                        val st2 = Api.syncProgress(p.pfad)
+                                                        letzter = st2
+                                                        if (!st2.laeuft) break
+                                                        stand = st2
+                                                        delay(1500)
+                                                    }
+                                                    ergebnisText(letzter)
+                                                } catch (_: Exception) {
+                                                    I18n.t("accounts.importError")
                                                 }
+                                                stand = null
+                                                fertigZaehler += 1
                                                 refresh(); busy = null
                                             }
                                         },
@@ -173,10 +193,12 @@ fun LinkedAccountsScreen(onBack: () -> Unit) {
                                 ) { Text(I18n.t("accounts.disconnect")) }
                             }
                         }
-                        if (st.linked) SportAuswahl(p.pfad)
+                        stand?.let { fort -> if (busy == p.id && fort.laeuft) Fortschritt(fort) }
+                        if (st.linked) SportAuswahl(p.pfad, fertigZaehler)
                     }
                 }
             }
+            XiaomiHinweis()
         }
     }
 
@@ -187,6 +209,103 @@ fun LinkedAccountsScreen(onBack: () -> Unit) {
             title = { Text(I18n.t("accounts.import")) },
             text = { Text(m) },
         )
+    }
+}
+
+/** Balken samt „x von y Trainings" — dasselbe Bild wie in der PWA. */
+@Composable
+private fun Fortschritt(st: Api.SyncStand) {
+    Column(Modifier.fillMaxWidth().padding(top = 8.dp)) {
+        if (st.gesamt > 0) {
+            LinearProgressIndicator(
+                progress = { st.fertig.toFloat() / st.gesamt.toFloat() },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Text(
+                I18n.t("accounts.sync.progress")
+                    .replace("{fertig}", st.fertig.toString())
+                    .replace("{gesamt}", st.gesamt.toString()),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+        } else {
+            LinearProgressIndicator(Modifier.fillMaxWidth())
+            if (!st.schritt.isNullOrBlank()) {
+                Text(st.schritt, style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp))
+            }
+        }
+    }
+}
+
+/**
+ * Der Schlusssatz eines Imports.
+ *
+ * Vorher zeigte die App die ROHE englische Servermeldung („no new exercises") — genau das hat Jan
+ * am 07.09.2026 in der PWA gemeldet. Zählt der Server die Gründe mit (Suunto), sind sie
+ * aussagekräftiger als eine nackte „übersprungen"-Zahl: „3 zu kurz" sagt, was zu tun ist,
+ * „3 übersprungen" nicht. Codes aus `suunto._grund_code`; unbekannte werden weggelassen statt
+ * roh gezeigt.
+ */
+private val GRUND_KEYS = listOf(
+    "kein_gps" to "noGps", "doppelt" to "dupe", "zu_kurz" to "tooShort",
+    "gefiltert" to "filtered", "spaeter" to "later", "fehler" to "error",
+)
+
+private fun ergebnisText(st: Api.SyncStand?): String {
+    val d = st?.daten
+    val gruende = GRUND_KEYS.mapNotNull { (code, key) ->
+        val n = d?.reasons?.get(code) ?: 0
+        if (n > 0) I18n.t("accounts.sync.why.$key").replace("{n}", n.toString()) else null
+    }
+    if (gruende.isNotEmpty()) {
+        val teile = mutableListOf<String>()
+        val imp = d?.imported ?: 0
+        if (imp > 0) teile.add(I18n.t("accounts.sync.imported").replace("{n}", imp.toString()))
+        teile.addAll(gruende)
+        return teile.joinToString(" \u00b7 ")
+    }
+    // Ohne Gründe beide Zahlen nennen — bei COROS sind die übersprungenen die schon vorhandenen
+    // Trainings, und „9 importiert" allein ließe offen, was mit den anderen war.
+    val imp = d?.imported ?: 0
+    val skip = d?.skipped ?: 0
+    if (imp > 0 || skip > 0) {
+        return I18n.t("accounts.importResult")
+            .replace("{imported}", imp.toString())
+            .replace("{skipped}", skip.toString())
+    }
+    return I18n.t("accounts.sync.nothingNew")
+}
+
+/**
+ * Xiaomi/Redmi haben keine eigene Schnittstelle für uns (Xiaomis Health-Cloud ist nur für Partner
+ * offen, und eine App auf der Uhr lässt Xiaomi nicht zu). Der Umweg ist aber offiziell: Xiaomi und
+ * Suunto haben ihre Apps 2024 miteinander verbunden, weltweit außer China. Deshalb steht hier eine
+ * Anleitung und keine Xiaomi-Verknüpfung — Spiegel der PWA (`db914137`).
+ */
+@Composable
+private fun XiaomiHinweis() {
+    Card(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+        Column(Modifier.padding(14.dp)) {
+            Text(I18n.t("accounts.xiaomi.title"), style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold)
+            Text(I18n.t("accounts.xiaomi.hint"), style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 4.dp))
+            listOf("accounts.xiaomi.step1", "accounts.xiaomi.step2", "accounts.xiaomi.step3")
+                .forEachIndexed { i, key ->
+                    Row(Modifier.padding(top = 6.dp)) {
+                        Text("${i + 1}.", style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(end = 6.dp))
+                        Text(I18n.t(key), style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            Text(I18n.t("accounts.xiaomi.note"), style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 8.dp))
+        }
     }
 }
 
@@ -221,11 +340,11 @@ private fun ProviderCard(title: String, sub: String, connected: Boolean = false,
  * Angezeigt werden nur Modi mit Ortung — ein Hallenmodus wäre hier eine Zeile ohne Sinn.
  */
 @Composable
-private fun SportAuswahl(pfad: String) {
+private fun SportAuswahl(pfad: String, neuLaden: Int) {
     val scope = rememberCoroutineScope()
     var sports by remember(pfad) { mutableStateOf<List<Api.ImportSport>?>(null) }
 
-    LaunchedEffect(pfad) {
+    LaunchedEffect(pfad, neuLaden) {
         sports = try { Api.importSports(pfad) } catch (_: Exception) { emptyList() }
     }
 
