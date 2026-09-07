@@ -117,7 +117,7 @@ fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, 
                         // trotzdem (s. docs/TODO.md).
                         item { SpotRecordsSection(spot, accelOnly = false, onOpen = onOpen) }
                         weather?.let { wb ->
-                            item { Box(Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) { WeatherCard(wb) } }
+                            item { Box(Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) { WeatherCard(wb, titelKey = "spot.weatherTitle") } }
                         }
                         spotId?.let { sid -> item { SpotNotesSection(sid) } }
                         if (items.isEmpty() && !loading && error == null) {

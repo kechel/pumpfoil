@@ -575,10 +575,10 @@ private fun CarveStatsSection(cs: CarveStats) {
 }
 
 @Composable
-internal fun WeatherCard(wb: WeatherBlock) {
+internal fun WeatherCard(wb: WeatherBlock, titelKey: String = "home.weather") {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp)) {
-            Text(I18n.t("home.weather"), style = MaterialTheme.typography.labelMedium,
+            Text(I18n.t(titelKey), style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.height(4.dp))
             wb.current?.let { c ->

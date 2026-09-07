@@ -956,6 +956,10 @@ private fun sTabelle(): Map<String, Map<String, String>> = mapOf(
     "home.hideSessions" to row("▾ Sessions ausblenden", "▾ Sessions usblände", "▾ Sessions ausblendn", "▾ Hide sessions", "▾ Masquer les sessions", "▾ Nascondi sessioni", "▾ Ocultar sesiones"),
     "home.noSessionsShort" to row("Keine Sessions.", "Kei Sessions.", "Kane Sessions.", "No sessions.", "Aucune session.", "Nessuna sessione.", "Sin sesiones."),
     "home.weather" to row("Wetter am Homespot", "Wätter am Homespot", "Wetter am Homespot", "Weather at home spot", "Météo au spot", "Meteo allo spot", "Tiempo en el spot"),
+    // Dieselbe Wetter-Karte steht auf der Startseite (Homespot) UND auf einer Spot-Seite.
+    // Dort war „Wetter am Homespot" schlicht falsch — auf iOS am 07.09.2026 behoben
+    // (`titelKey`), Android hatte den Schluessel noch fest verdrahtet.
+    "spot.weatherTitle" to row("Wetter & Pegel", "Wätter & Pegel", "Wetter & Pegel", "Weather & water level", "Météo & niveau d'eau", "Meteo e livello dell'acqua", "Tiempo y nivel del agua"),
     "home.myChats" to row("Meine Chats", "Mini Chats", "Meine Chats", "My chats", "Mes chats", "Le mie chat", "Mis chats"),
     "wx.today" to row("Heute", "Hüt", "Heit", "Today", "Aujourd'hui", "Oggi", "Hoy"),
     "wx.tomorrow" to row("Morgen", "Morn", "Morgn", "Tomorrow", "Demain", "Domani", "Mañana"),
