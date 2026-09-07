@@ -1026,6 +1026,7 @@ const ja: Record<string, string> = {
   "linked.accountShort": "アカウント連携",
   "settings.polar.title": "Polar インポート",
   "settings.polar.hint": "Polar アカウント（AccessLink）を連携し、トレーニングを自動的にセッションとしてインポートします。",
+  "settings.polar.gpsHint": "重要: Polar のスポーツプロファイルで GPS を有効にしてください。ウォーター系のプロファイルでは「スマートフォンの GPS を使用」という設定です。これがないと位置情報が記録されず、位置情報がなければセッションを解析できません。",
   "settings.polar.scope": "連携後に記録された新しいトレーニングを自動的にインポートします。Polar は連携前の古いトレーニングを提供しません — また GPS アクティビティのみがインポートされます。",
   "settings.polar.connect": "Polar を連携",
   "settings.polar.sync": "トレーニングをインポート",

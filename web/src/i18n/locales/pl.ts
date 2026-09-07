@@ -1104,6 +1104,7 @@ const pl: Record<string, string> = {
   "linked.accountShort": "połączenie konta",
   "settings.polar.title": "Import z Polara",
   "settings.polar.hint": "Połącz swoje konto Polar (AccessLink) i importuj treningi automatycznie jako sesje.",
+  "settings.polar.gpsHint": "Ważne: w profilu sportowym Polar musi być włączony GPS. W profilach wodnych opcja nazywa się „użyj GPS telefonu” — bez niej zegarek nie zapisuje pozycji, a bez pozycji nie da się przeanalizować sesji.",
   "settings.polar.scope": "Importuje automatycznie nowe treningi nagrane po połączeniu. Polar nie udostępnia starszych treningów z okresu przed nim — i importowane są tylko aktywności z GPS.",
   "settings.polar.connect": "Połącz Polara",
   "settings.polar.sync": "Importuj treningi",

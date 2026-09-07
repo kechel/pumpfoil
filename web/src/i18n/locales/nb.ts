@@ -1061,6 +1061,7 @@ const nb: Record<string, string> = {
   "linked.accountShort": "kontokobling",
   "settings.polar.title": "Polar-import",
   "settings.polar.hint": "Koble til Polar-kontoen din (AccessLink) og importer treningene dine automatisk som økter.",
+  "settings.polar.gpsHint": "Viktig: GPS må være slått på i Polar-sportsprofilen. På vannprofiler heter innstillingen «bruk GPS fra telefonen» — uten den registrerer klokka ingen posisjon, og uten posisjon kan en økt ikke analyseres.",
   "settings.polar.scope": "Importerer automatisk nye treninger som er tatt opp etter koblingen. Polar gir ikke ut eldre treninger fra før — og bare GPS-aktiviteter importeres.",
   "settings.polar.connect": "Koble til Polar",
   "settings.polar.sync": "Importer treninger",
