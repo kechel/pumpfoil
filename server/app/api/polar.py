@@ -281,14 +281,18 @@ def _pull_import(db: Session, user: models.User, link: models.PolarLink) -> dict
                 gescheitert.append((url, f"tcx http {tcx.status_code}"))
                 continue
             parsed = parse_track_bytes(tcx.content, "polar.tcx")
+            # Ortung JETZT festhalten, vor dem Ueberspringen: sonst bleibt bei einem Modus, der
+            # nie GPS liefert, `hat_gps` fuer immer unbekannt — und er stuende weiter in der
+            # Auswahl, obwohl er dort nichts verloren hat (Jan: „nur solche mit mindestens GPS").
+            # Genau so passiert mit Polars Profil „Water Exercise", das keine Position schreibt.
+            if sport_key is not None:
+                importsports.merken(db, user.id, "polar", sport_key,
+                                    hat_gps=bool(parsed.get("gps_samples")), zaehlen=False)
             if not parsed.get("gps_samples") or parsed.get("started_at") is None:
                 skipped += 1  # z. B. Indoor-Training ohne GPS — daran wird sich nie etwas aendern
                 zaehl("kein_gps")
                 log.info("polar: %s uebersprungen — keine GPS-Punkte in der Datei", url)
                 continue
-            if sport_key is not None:
-                importsports.merken(db, user.id, "polar", sport_key,
-                                    hat_gps=bool(parsed.get("gps_samples")), zaehlen=False)
             s = import_parsed_session(db, user, tcx.content, parsed,
                                       src_label="polar-import", uuid_prefix="polar-")
             if s is None:
