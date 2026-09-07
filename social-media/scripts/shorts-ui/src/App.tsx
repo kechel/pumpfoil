@@ -17,14 +17,17 @@ const OUTRO_LONG_AB = 20.0;
 // Stil je Textzeile. "text" ist der bisherige Fliesstext. Die beiden Stempel
 // sind fuer die "success or fail?"-Reihe: Kopfzeile fest (SUCCESS/FAIL), der
 // eingetippte Text wird zur Unterzeile darunter — beides im selben Winkel.
-type TxStyle = "text" | "success" | "fail" | "banner";
+// Zwei unabhaengige Achsen, sonst fehlt in jeder Kombination etwas: WAS gezeigt
+// wird (Text oder ein Urteil) und WIE (frei im Bild, als Balken, als Karte).
+type TxStyle = "text" | "success" | "fail";
+type TxShape = "plain" | "bar" | "card";
 interface TextSlot {
   start: number | null;
   text: string;
   hold: number;
-  size?: number;   // Schriftgröße je Zeile (Default TXS)
+  size?: number;   // Schriftgröße je Zeile (Default TXS), nur bei plain+text
   style?: TxStyle;
-  card?: boolean;  // Stempel als ganzseitige Karte statt ueber dem Video
+  shape?: TxShape;
 }
 const STAMP: Record<"success" | "fail", { label: string; color: string; tilt: number }> = {
   // tilt in Grad: der Erfolg lehnt links, der Fail rechts — damit sich der
@@ -49,8 +52,10 @@ const BANNER_WORDS: Record<string, string> = {
   or: SLATE, oder: SLATE,
 };
 const isStamp = (s?: TxStyle): s is "success" | "fail" => s === "success" || s === "fail";
-// Stempel und Banner sind gezeichnete Grafik: feste Groesse, harte Blende.
-const isGfx = (s?: TxStyle) => isStamp(s) || s === "banner";
+const shapeOf = (tx: TextSlot): TxShape => tx.shape ?? "plain";
+// Alles Gezeichnete (Urteil oder geformter Text) hat feste Masse und rastet
+// hart ein; nur freier Fliesstext blendet weich und ist in der Groesse frei.
+const isGfx = (tx: TextSlot) => isStamp(tx.style) || shapeOf(tx) !== "plain";
 // Standardtexte in den beiden untersten Slots. Die Leerzeilen sind Absicht: die
 // Zeilen werden vertikal zentriert (siehe drawText), die Leerzeilen schieben den
 // Text nach oben. Die Anzahl ist so gewaehlt, dass beide Bloecke auf derselben
@@ -67,6 +72,7 @@ const emptyTexts = (): TextSlot[] =>
     hold: TXH,
     size: TXS,
     style: "text",
+    shape: "plain",
   }));
 
 // Vorlage der "success or fail?"-Reihe: Hook, k Urteile, Schlusssatz, echter Fail.
@@ -178,8 +184,17 @@ function Studio() {
   // gespeicherte Slots auffüllen, falls TXN inzwischen größer ist — fehlende
   // Slots bekommen den Default an ihrer eigenen Position, nicht den von vorne
   const [texts, setTexts] = useState<TextSlot[]>(() => {
-    const saved = sv("texts", [] as TextSlot[]);
-    return emptyTexts().map((d, i) => saved[i] ?? d);
+    const saved = sv("texts", [] as (TextSlot & { card?: boolean })[]);
+    // Aeltere Zustaende kannten "banner" als Stil und "card" als Schalter —
+    // beides ist jetzt die Form. Ohne diese Umschrift verlierst du beim ersten
+    // Laden, was du eingestellt hattest.
+    const alt = (s: TextSlot & { card?: boolean }): TextSlot => {
+      const style = (s.style as string) === "banner" ? "text" : s.style;
+      const shape: TxShape = s.shape ?? ((s.style as string) === "banner" ? "bar"
+        : s.card ? "card" : "plain");
+      return { ...s, style, shape, card: undefined } as TextSlot;
+    };
+    return emptyTexts().map((d, i) => (saved[i] ? alt(saved[i]) : d));
   });
   const [gain, setGain] = useState(sv("gain", -12));
   const [otonGain, setOtonGain] = useState(sv("otonGain", 0));
@@ -244,7 +259,7 @@ function Studio() {
     let o = 0;
     for (const tx of texts) {
       if (tx.start == null || !(tx.text.trim() || isStamp(tx.style))) continue;
-      const fd = isGfx(tx.style) ? STAMP_FADE : TXF;
+      const fd = isGfx(tx) ? STAMP_FADE : TXF;
       o = Math.max(o, tx.start + 2 * fd + tx.hold - vidEnd);
     }
     return Math.max(0, o);
@@ -440,7 +455,7 @@ function Studio() {
             el.style.opacity = "0";
             return;
           }
-          const fd = isGfx(tx.style) ? STAMP_FADE : TXF;
+          const fd = isGfx(tx) ? STAMP_FADE : TXF;
           const e = tx.start + 2 * fd + (tx.hold ?? TXH);
           const a = Math.max(0, Math.min(Math.min((t - tx.start) / fd, (e - t) / fd), 1));
           el.style.opacity = String(a);
@@ -545,10 +560,114 @@ function Studio() {
     g.closePath();
   }
 
-  // Hook-Banner: Balken ueber die ganze Breite, gruene Kante oben, rote unten —
-  // die Frage der Reihe, noch ohne Antwort. Gerade, damit die schraegen Stempel
-  // sich davon abheben.
-  function bannerPng(tx: TextSlot, w: number, h: number): string {
+  // Balken ueber die ganze Breite. Gerade gesetzt, damit die schraegen Stempel
+  // sich davon abheben. Zwei Faelle:
+  //   Text   — die Frage der Reihe, gruene Kante oben und rote unten (noch
+  //            keine Antwort), "success"/"fail" im Text in ihrer Urteilsfarbe.
+  //   Urteil — Haken bzw. Kreuz mit SUCCESS/FAIL als Kopfzeile und dem Textfeld
+  //            als Unterzeile, Kanten oben UND unten in der Urteilsfarbe.
+  function barPng(tx: TextSlot, w: number, h: number): string {
+    if (isStamp(tx.style)) return verdictBarPng(tx, w, h, STAMP[tx.style]);
+    return hookBarPng(tx, w, h);
+  }
+
+  function verdictBarPng(tx: TextSlot, w: number, h: number,
+                         cfg: { label: string; color: string }): string {
+    const k = w / 1080;
+    const c = document.createElement("canvas");
+    c.width = w;
+    c.height = h;
+    const g = c.getContext("2d")!;
+    const face = '"Avenir Next", Avenir, "Helvetica Neue", Helvetica, sans-serif';
+    // Auf einem Balken ueber die ganze Breite darf das Urteil nicht so klein
+    // sein wie im Stempel — sonst schwimmen vier Buchstaben in einer leeren
+    // Zeile. Alle Masse haengen deshalb an FS und wachsen mit.
+    const EDGE = 10 * k;
+    let FS = 148 * k, LS = 0.07 * FS;
+    let ICON = 0.85 * FS, IGAP = 0.28 * FS, PADY = 0.42 * FS, GAP = 0.2 * FS;
+
+    const setz = () => {
+      g.font = `800 ${FS}px ${face}`;
+      g.letterSpacing = `${LS}px`;
+      return g.measureText(cfg.label);
+    };
+    let m = setz();
+    // measureText zaehlt die Sperrung hinter dem letzten Zeichen mit — weg damit.
+    const kopf = () => ICON + IGAP + m.width - LS;
+    if (kopf() > w * 0.86) {
+      const f = (w * 0.86) / kopf();
+      FS *= f;
+      LS *= f;
+      ICON *= f;
+      IGAP *= f;
+      PADY *= f;
+      GAP *= f;
+      m = setz();
+    }
+    const SUB_FS = 0.38 * FS;
+    const capA = m.actualBoundingBoxAscent || FS * 0.72;
+    const capD = m.actualBoundingBoxDescent || 0;
+
+    const sub = tx.text.trim().split("\n").map((s) => s.trim()).filter(Boolean);
+    let subFs = SUB_FS;
+    if (sub.length) {
+      g.font = `600 ${subFs}px ${face}`;
+      g.letterSpacing = `${2 * k}px`;
+      const breit = Math.max(...sub.map((l) => g.measureText(l).width));
+      if (breit > w * 0.88) subFs *= (w * 0.88) / breit;
+    }
+    const subH = sub.length ? sub.length * subFs * 1.2 : 0;
+    const barH = PADY * 2 + (capA + capD) + (sub.length ? GAP + subH : 0);
+    const top = h * 0.42 - barH / 2;
+
+    g.fillStyle = NAVY;
+    g.fillRect(0, top, w, barH);
+    g.fillStyle = cfg.color;
+    g.fillRect(0, top, w, EDGE);
+    g.fillRect(0, top + barH - EDGE, w, EDGE);
+
+    // Kopfzeile: Icon und Wort als ein Block in der Mitte
+    const kb = kopf();
+    let x = (w - kb) / 2;
+    const mid = top + PADY + (capA + capD) / 2;
+    g.save();
+    g.translate(x, mid - ICON / 2);
+    g.scale(ICON / 24, ICON / 24);
+    g.strokeStyle = cfg.color;
+    g.lineWidth = 3.6;
+    g.lineCap = "round";
+    g.lineJoin = "round";
+    g.beginPath();
+    if (tx.style === "success") {
+      g.moveTo(4, 12.5); g.lineTo(9.5, 18); g.lineTo(20, 6.5);
+    } else {
+      g.moveTo(6, 6); g.lineTo(18, 18); g.moveTo(18, 6); g.lineTo(6, 18);
+    }
+    g.stroke();
+    g.restore();
+    g.font = `800 ${FS}px ${face}`;
+    g.letterSpacing = `${LS}px`;
+    g.fillStyle = cfg.color;
+    g.textAlign = "left";
+    g.textBaseline = "alphabetic";
+    g.fillText(cfg.label, x + ICON + IGAP, mid + (capA - capD) / 2);
+
+    if (sub.length) {
+      g.font = `600 ${subFs}px ${face}`;
+      g.letterSpacing = `${2 * k}px`;
+      g.fillStyle = "#ffffff";
+      g.textAlign = "center";
+      g.textBaseline = "middle";
+      let y = top + PADY + (capA + capD) + GAP + subFs * 0.6;
+      for (const l of sub) {
+        g.fillText(l, w / 2, y);
+        y += subFs * 1.2;
+      }
+    }
+    return flatten(c, txAlpha);
+  }
+
+  function hookBarPng(tx: TextSlot, w: number, h: number): string {
     const k = w / 1080;
     const c = document.createElement("canvas");
     c.width = w;
@@ -603,6 +722,19 @@ function Studio() {
     return flatten(c, txAlpha);
   }
 
+  // Grund jeder Karte: Navy ueber das ganze Bild, dazu dieselben Kanten wie am
+  // Balken — gruen oben, rot unten. Karte und Balken sind damit sichtbar
+  // dasselbe Format.
+  function cardGround(g: CanvasRenderingContext2D, w: number, h: number) {
+    g.fillStyle = NAVY;
+    g.fillRect(0, 0, w, h);
+    const edge = 10 * (w / 1080);
+    g.fillStyle = STAMP.success.color;
+    g.fillRect(0, 0, w, edge);
+    g.fillStyle = STAMP.fail.color;
+    g.fillRect(0, h - edge, w, edge);
+  }
+
   // Alle Stempelmasse an einem Ort: sie sind fuer 1080 Breite entworfen und
   // haengen linear an k, damit die Karte denselben Stempel nur groesser zeigt.
   function stampMetrics(g: CanvasRenderingContext2D, tx: TextSlot, label: string, k: number, face: string) {
@@ -639,24 +771,16 @@ function Studio() {
   // Stempel: Navy-Flaeche, farbiger Rahmen, Haken bzw. Kreuz, darunter die
   // Unterzeile im selben Winkel. Als Karte deckt er das ganze Bild ab und faellt
   // dabei groesser aus — dann konkurriert er mit keinem Video mehr.
-  function stampPng(tx: TextSlot, w: number, h: number, slogan: boolean): string {
+  function stampPng(tx: TextSlot, w: number, h: number, slogan: boolean,
+                    card: boolean): string {
     const cfg = STAMP[tx.style as "success" | "fail"];
     const c = document.createElement("canvas");
     c.width = w;
     c.height = h;
     const g = c.getContext("2d")!;
     const face = '"Avenir Next", Avenir, "Helvetica Neue", Helvetica, sans-serif';
-    const card = !!tx.card;
     if (card) {
-      g.fillStyle = NAVY;
-      g.fillRect(0, 0, w, h);
-      // Dieselben Kanten wie am Hook-Banner: gruen oben, rot unten. Die Karte
-      // ist damit sichtbar dasselbe Format wie die Frage am Anfang.
-      const edge = 10 * (w / 1080);
-      g.fillStyle = STAMP.success.color;
-      g.fillRect(0, 0, w, edge);
-      g.fillStyle = STAMP.fail.color;
-      g.fillRect(0, h - edge, w, edge);
+      cardGround(g, w, h);
     }
 
     // Erst messen, dann notfalls kleiner rechnen: eine lange Unterzeile darf
@@ -753,25 +877,48 @@ function Studio() {
     const vid = vidRef.current;
     const w = vid?.videoWidth || 1080;
     const h = vid?.videoHeight || 1920;
-    if (tx.style === "banner") return bannerPng(tx, w, h);
-    if (isStamp(tx.style)) return stampPng(tx, w, h, cardSlogan);
+    const shape = shapeOf(tx);
+    if (shape === "bar") return barPng(tx, w, h);
+    if (isStamp(tx.style)) return stampPng(tx, w, h, cardSlogan, shape === "card");
     const c = document.createElement("canvas");
     c.width = w;
     c.height = h;
     const g = c.getContext("2d")!;
-    const fs = tx.size ?? TXS;
+    // Text als Karte: derselbe Navy-Grund wie beim Urteil, damit der
+    // Schlusssatz dasselbe Format hat — und der Spruch darunter.
+    const karte = shape === "card";
+    const fs = karte ? 76 * (w / 1080) : (tx.size ?? TXS);
+    if (karte) cardGround(g, w, h);
     g.font = `${fs}px Arial`;
     g.textAlign = "center";
     g.textBaseline = "middle";
     g.fillStyle = "#fff";
-    g.shadowColor = "rgba(0,0,0,0.7)";
-    g.shadowBlur = 6;
-    g.shadowOffsetX = 2;
-    g.shadowOffsetY = 2;
-    const lines = tx.text.split("\n");
+    if (!karte) {
+      // Schatten braucht es nur ueber dem Video; auf Navy ist er unsichtbar.
+      g.shadowColor = "rgba(0,0,0,0.7)";
+      g.shadowBlur = 6;
+      g.shadowOffsetX = 2;
+      g.shadowOffsetY = 2;
+    }
+    // Auf der Karte fallen die angehaengten Leerzeilen der Standardtexte weg:
+    // die schieben den Text ueber dem Video nach oben, hier gibt es kein Video,
+    // das freigehalten werden muss. Leerzeilen MITTEN im Text bleiben.
+    let lines = tx.text.split("\n");
+    if (karte) {
+      lines = lines.map((s) => s.trimEnd());
+      while (lines.length && !lines[lines.length - 1]) lines.pop();
+    }
     const lh = fs * 1.15;
-    const y0 = h / 2 - ((lines.length - 1) / 2) * lh;
+    const mitte = karte ? h * 0.44 : h / 2;
+    const y0 = mitte - ((lines.length - 1) / 2) * lh;
     lines.forEach((ln, i) => g.fillText(ln, w / 2, y0 + i * lh));
+    if (karte && cardSlogan) {
+      const sk = w / 1080;
+      g.font = `600 ${64 * sk}px "Avenir Next", Avenir, "Helvetica Neue", Helvetica, sans-serif`;
+      g.letterSpacing = `${2 * sk}px`;
+      g.fillStyle = CYAN;
+      g.fillText(CARD_SLOGAN, w / 2, h * 0.8);
+    }
     return flatten(c, txAlpha);
   }
 
@@ -797,11 +944,11 @@ function Studio() {
   function seedReveal() {
     setTexts((ts) =>
       ts.map((t, i): TextSlot => {
-        if (i === 0) return { ...t, text: REVEAL_HOOK, style: "banner", hold: 1.2 };
+        if (i === 0) return { ...t, text: REVEAL_HOOK, style: "text", shape: "bar", hold: 1.2 };
         if (i >= 1 && i <= beats)
-          return { ...t, text: REVEAL_SUBS[(i - 1) % REVEAL_SUBS.length], style: "success", hold: 1.2, card: false };
-        if (i === beats + 1) return { ...t, text: REVEAL_END, style: "text", hold: 2.2, size: 64 };
-        if (i === beats + 2) return { ...t, text: REVEAL_FAIL, style: "fail", hold: 2.2, card: true };
+          return { ...t, text: REVEAL_SUBS[(i - 1) % REVEAL_SUBS.length], style: "success", shape: "plain", hold: 1.2 };
+        if (i === beats + 1) return { ...t, text: REVEAL_END, style: "text", shape: "card", hold: 2.2 };
+        if (i === beats + 2) return { ...t, text: REVEAL_FAIL, style: "fail", shape: "card", hold: 2.2 };
         return t;
       }),
     );
@@ -1027,7 +1174,7 @@ function Studio() {
           // Ein Stempel zaehlt auch ohne Unterzeile — nur Fliesstext braucht Inhalt.
           .filter((t) => t.start != null && (t.text.trim() || isStamp(t.style)))
           .map((t) => ({ start: t.start, hold: t.hold,
-                         fade: isGfx(t.style) ? STAMP_FADE : TXF,
+                         fade: isGfx(t) ? STAMP_FADE : TXF,
                          png: textPng(t) })),
         outros: outroOn && vidRef.current
           ? {
@@ -1307,18 +1454,21 @@ function Studio() {
                         if (vid && tx.start != null) vid.currentTime = tx.start;
                       }} />
                     <textarea className="rvtxt" rows={1} spellCheck={false}
-                      placeholder={isStamp(tx.style) ? "Unterzeile …" : tx.style === "banner" ? "Frage der Reihe …" : "Text …"}
+                      placeholder={isStamp(tx.style) ? "Unterzeile …" : shapeOf(tx) === "bar" ? "Frage der Reihe …" : "Text …"}
                       value={tx.text}
                       onChange={(e) => setTexts((ts) => ts.map((s, j) => (j === r.slot ? { ...s, text: e.target.value } : s)))} />
-                    {isStamp(tx.style) && (
-                      <div className="txstyle">
-                        <button className={tx.card ? "card on" : "card"}
-                          title="Ganzseitige Karte: Navy deckt das Video ab"
-                          onClick={() => setTexts((ts) => ts.map((s, j) => (j === r.slot ? { ...s, card: !s.card } : s)))}>
-                          ▣
+                    <div className="txstyle">
+                      {(["bar", "card"] as TxShape[]).map((sh) => (
+                        <button key={sh}
+                          className={`${sh === "bar" ? "bnr" : "card"} ${shapeOf(tx) === sh ? "on" : ""}`}
+                          title={sh === "bar" ? "Als Balken über die ganze Breite"
+                                              : "Als ganzseitige Karte"}
+                          onClick={() => setTexts((ts) => ts.map((s, j) =>
+                            j === r.slot ? { ...s, shape: shapeOf(s) === sh ? "plain" : sh } : s))}>
+                          {sh === "bar" ? "▭" : "▣"}
                         </button>
-                      </div>
-                    )}
+                      ))}
+                    </div>
                     <input type="number" className="thold" min={0} max={60} step={0.1}
                       title="Anzeigedauer in Sekunden" value={tx.hold}
                       onChange={(e) => setTexts((ts) => ts.map((s, j) => (j === r.slot ? { ...s, hold: Math.max(0, +e.target.value || 0) } : s)))} />
@@ -1369,33 +1519,37 @@ function Studio() {
                     }}
                   />
                   <div className="txstyle">
-                    {(["text", "success", "fail", "banner"] as TxStyle[]).map((s) => (
+                    {(["text", "success", "fail"] as TxStyle[]).map((s) => (
                       <button
                         key={s}
-                        className={`${(tx.style ?? "text") === s ? "on" : ""} ${s === "banner" ? "bnr" : ""}`}
-                        title={s === "text" ? "Fließtext"
-                          : s === "success" ? "SUCCESS-Stempel (Text wird zur Unterzeile)"
-                          : s === "fail" ? "FAIL-Stempel (Text wird zur Unterzeile)"
-                          : "Hook-Banner der Reihe (Balken über die ganze Breite)"}
+                        className={(tx.style ?? "text") === s ? "on" : ""}
+                        title={s === "text" ? "Text"
+                          : s === "success" ? "Urteil SUCCESS (Text wird zur Unterzeile)"
+                          : "Urteil FAIL (Text wird zur Unterzeile)"}
                         onClick={() => setTexts((ts) => ts.map((t, j) => (j === i ? { ...t, style: s } : t)))}
                       >
-                        {s === "text" ? "T" : s === "success" ? "✓" : s === "fail" ? "✕" : "▭"}
+                        {s === "text" ? "T" : s === "success" ? "✓" : "✕"}
                       </button>
                     ))}
-                    {isStamp(tx.style) && (
+                    <span className="txsep" />
+                    {(["bar", "card"] as TxShape[]).map((sh) => (
                       <button
-                        className={tx.card ? "card on" : "card"}
-                        title="Ganzseitige Karte: Navy deckt das Video ab (fuer den Schluss-Fail ohne passendes Material)"
-                        onClick={() => setTexts((ts) => ts.map((t, j) => (j === i ? { ...t, card: !t.card } : t)))}
+                        key={sh}
+                        className={`${sh === "bar" ? "bnr" : "card"} ${shapeOf(tx) === sh ? "on" : ""}`}
+                        title={sh === "bar"
+                          ? "Als Balken über die ganze Breite"
+                          : "Als ganzseitige Karte — Navy deckt das Video ab"}
+                        onClick={() => setTexts((ts) => ts.map((t, j) =>
+                          j === i ? { ...t, shape: shapeOf(t) === sh ? "plain" : sh } : t))}
                       >
-                        ▣
+                        {sh === "bar" ? "▭" : "▣"}
                       </button>
-                    )}
+                    ))}
                   </div>
                   <textarea
                     className="txt"
                     rows={2}
-                    placeholder={isStamp(tx.style) ? "Unterzeile …" : tx.style === "banner" ? "Frage der Reihe …" : "Text …"}
+                    placeholder={isStamp(tx.style) ? "Unterzeile …" : shapeOf(tx) === "bar" ? "Frage der Reihe …" : "Text …"}
                     spellCheck={false}
                     value={tx.text}
                     onChange={(e) => setTexts((ts) => ts.map((t, j) => (j === i ? { ...t, text: e.target.value } : t)))}
@@ -1419,9 +1573,9 @@ function Studio() {
                     max={200}
                     step={4}
                     value={tx.size ?? TXS}
-                    disabled={isGfx(tx.style)}
-                    title={isGfx(tx.style)
-                      ? "Bei Stempel und Banner steht die Größe fest"
+                    disabled={isGfx(tx)}
+                    title={isGfx(tx)
+                      ? "Bei Urteil, Balken und Karte steht die Größe fest"
                       : "Schriftgröße in Pixeln (bezogen auf 1080×1920)"}
                     onChange={(e) =>
                       setTexts((ts) =>
@@ -1432,7 +1586,7 @@ function Studio() {
                   <button
                     className="mini"
                     title="löschen"
-                    onClick={() => setTexts((ts) => ts.map((t, j) => (j === i ? { start: null, text: "", hold: TXH, size: TXS, style: "text", card: false } : t)))}
+                    onClick={() => setTexts((ts) => ts.map((t, j) => (j === i ? { start: null, text: "", hold: TXH, size: TXS, style: "text", shape: "plain" } : t)))}
                   >
                     <Icon name="x" size={11} />
                   </button>
