@@ -97,6 +97,17 @@ seiner eigenen `NAMES`-Tabelle als „brasilianisches Portugiesisch", und die St
 ganze fuenf europaeische Ausreisser. An den Videos haengen ausserdem `pt` **und** `pt-BR`
 mit identischem Text — doppelt gemoppelt, aber nicht falsch.
 
-**Wenn Portugal je drankommt:** die europaeische Fassung liegt fertig unter
-`kanal-beschreibung-pt-portugiesisch.txt` und gehoert dann als **`pt-PT`** hinein, nicht als
-`pt`.
+**Portugal ist am 08.09. dazugekommen** — `pt_PT` mit
+`kanal-beschreibung-pt-portugiesisch.txt` (958 Zeichen). Der Kanal hat damit beide
+Fassungen: `pt_BR` brasilianisch, `pt_PT` europaeisch.
+
+Nach Zahlen war das nicht noetig (Portugal: 2 Instagram-Follower, auf Facebook null) — es
+kostete aber nur einen Aufruf, weil die Datei schon dalag, und ein Portugiese bekommt jetzt
+Portugal-Portugiesisch statt der brasilianischen Fassung.
+
+**Die 170 Videotexte bleiben vorerst ohne `pt-PT`.** Das waere ein kompletter
+Uebersetzungslauf fuer zwei Follower. Erst wenn Portugal in der Demografie auftaucht.
+
+**Schreibweise beachten:** Kanaluebersetzungen nutzen Locale-Codes mit Unterstrich
+(`pt_BR`, `pt_PT`, `zh_CN`), Video-Lokalisierungen dagegen Sprachcodes mit Bindestrich
+(`pt`, `pt-BR`, `zh-CN`). Zwei verschiedene Konventionen in derselben API.
