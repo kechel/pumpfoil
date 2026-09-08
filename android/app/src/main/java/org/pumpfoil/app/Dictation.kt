@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -112,9 +113,12 @@ fun DictationOverlay(existing: String, title: String, onDismiss: () -> Unit, onR
         if (!granted) permLauncher.launch(Manifest.permission.RECORD_AUDIO) else start()
     }
 
-    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         Column(
-            Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface).padding(24.dp),
+            // Hintergrund bis unter die Leisten, Inhalt nicht: sonst liegt die Knopfreihe
+            // (Abbrechen · Noch mal · Bearbeiten · Senden) unter der Navigationsleiste.
+            Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface)
+                .systemBarsPadding().padding(24.dp),
             verticalArrangement = Arrangement.SpaceBetween,
         ) {
             Column(Modifier.fillMaxWidth()) {

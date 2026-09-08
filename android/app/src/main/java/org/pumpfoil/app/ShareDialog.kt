@@ -267,7 +267,7 @@ fun ShareDialog(session: SessionDetail, initialHighlight: Int = -1, onDismiss: (
         }
     }
 
-    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         // Bei usePlatformDefaultWidth=false bestimmt der Inhalt selbst seine Hoehe. Die scrollbare
         // Column war damit UNBEGRENZT hoch: das Fenster wuchs ueber den Bildschirm hinaus, die
         // Teilen-Schaltflaeche lag darunter — und Scrollen half nicht, weil der Scroll-Container
@@ -276,6 +276,12 @@ fun ShareDialog(session: SessionDetail, initialHighlight: Int = -1, onDismiss: (
         // die Fenstergroesse begrenzt und gibt der Column damit eine Maximalhoehe -> es scrollt.
         // systemBarsPadding haelt die Karte aus Status-/Navigationsleiste heraus, imePadding
         // schiebt sie hoch, wenn fuer den Titel die Tastatur aufgeht.
+        //
+        // Dafuer MUSS oben decorFitsSystemWindows=false stehen. Sonst bekommt die Komposition im
+        // Dialogfenster ueberhaupt keine Insets zugestellt, systemBarsPadding addiert 0, und der
+        // Teilen-Knopf liegt unter der Navigationsleiste — genau so gemeldet am 08.09. von einem
+        // Nutzer mit Galaxy S23 („die Taste ist unter den Display Tasten"). Seit targetSdk 35
+        // erzwingt Android edge-to-edge, das Fenster reicht also bis unter die Leisten.
         Box(
             Modifier.fillMaxSize().systemBarsPadding().imePadding().padding(vertical = 12.dp),
             contentAlignment = Alignment.Center,
