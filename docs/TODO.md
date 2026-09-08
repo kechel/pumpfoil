@@ -692,7 +692,7 @@ kann mit der Store-Version normal aufnehmen (siehe den Meldungs-Befund oben in d
 | 2026-09-08 ~09:20 | Android Phone + Wear OS (Play) | 1.1.27 (41) / 1.2.27 (1037) | 🟡 **EINGEREICHT, ERSETZT die Einreichung vom 07.09.** (1.1.26/1.2.26, war noch in Pruefung). Entscheidung Jan: „statt eine Woche zu warten lade ich das Update direkt neu hoch, dann verlieren wir nur einen Tag anstatt einer ganzen Woche fuer den echten Bugfix von heute" — deckt sich mit der Regel vom 23.08. (ersetzen nur bei einem ECHTEN Fehler; die Ortung ueber das Handy ist einer). Gebaut aus `89e41292`, gegengeprueft: danach keine Aenderung mehr an `android/`, Versionen 41/1.1.27 und 1037/1.2.27, alle vier Wear-Commits enthalten. **`appmeta`-Punkte ZUSAMMENGEFUEHRT** (16 statt 3): 1.1.27 ist derselbe Baum wie 1.1.26 plus die vier Ortungs-Commits, und die ersetzte Einreichung ist nie erschienen — waeren nur die neuen drei Zeilen aufgefuehrt, fehlten den Nutzern die 13 anderen. |
 | 2026-09-07 ~17:30 | Android Phone + Wear OS (Play) | 1.1.26 (40) / 1.2.26 (1036) | 🟡 **EINGEREICHT** (Jans Meldung: „habs getestet und release jetzt"). Play-Konsole: Vorabpruefungen laufen („noch maximal 14 Minuten"), **beide Tracks auf vollstaendigen Roll-out** (Produktion 40/1.1.26, Produktion Wear OS 1036/1.2.26). Mit eingereicht: geaenderte Vorstellungsgrafik + Video im Store-Eintrag (de-DE). Enthaelt ausser dem NAECHSTES-Inhalt auch die vier Befunde aus Jans Testrunde vom selben Abend: Spot-Seite scrollt wieder (`487adeba`), Karte malt nicht mehr ueber den Inhalt (`f26d5ac0`), Spotbeschreibungs-Knoepfe je in eigener Zeile (`0611faf0`), Wetter-Titel auf der Spot-Seite (`a28e6f6b`). Bei der Freigabe: EINE Mail fuer beide Tracks, s. Memory `submission-log`. |
 | 2026-09-07 (Freigabe) | Android Phone + Wear OS (Play) | 1.1.25 (39) / 1.2.25 (1035) | ✅ **FREIGEGEBEN**, Play-Mail: „Your update to Pumpfoil, created on Sep 2, 2026 at 3:53 PM GMT, is live in the store" (15:53 GMT = 17:53 Berlin, genau diese Einreichung). Wie am 09.08. und 25.08. deckt EINE Mail beide Tracks ab. **Fuenf Tage Pruefung.** `appmeta` android=1.1.25 + wear=1.2.25 gesetzt, Changelog-Punkte 1:1 uebernommen, NAECHSTES (1.1.26/1.2.26) auf „ready to submit". **Wear war offenbar schon vor der Mail drausssen:** user 396 wechselte am 05.09. von `app_version 1.2.24` auf `1.2.25` — Pixel Watch 2, fremdes Geraet, nicht Jans Emulator. Passt zu der Beobachtung vom 23.08., dass der Wear-Track eine EIGENE Pruefung hat; hier war er schneller als Phone, und die Mail kam am Ende beider. Zu klaeren waere nur, ob dieser Nutzer in einer Testgruppe ist. **Fuer Phone gibt es keinen Feldbeleg** — und es kann auch keinen geben: iOS und Android-Handy nutzen BEIDE `1.1.x`, `sessions.app_version` unterscheidet sie also nicht (die 14 Nutzer mit „1.1.25" ab 27.08. sind iOS-Nutzer, dort ist 1.1.25 seit 27.08. live). Die Play-Store-Seite nennt die Version nicht mehr (von hier abgefragt: 1,1 MB HTML, keine Versionsangabe), ein itunes-artiges Nachschlagen gibt es fuer Play nicht. |
-| 2026-09-07 15:12 | iOS + Apple Watch | 1.1.31 (35) | 🟢 **REVIEW DURCH am 08.09. abends** (Apple: „Review of your submission has been completed. It is now eligible for distribution“, Uebermittlung `bbd630be-3f2c-4e3b-9244-f71a1d758a2f`, eingereicht 07.09. 06:12 PDT = 15:12 Berlin — **gut 28 Stunden Pruefung**). **`appmeta` steht bewusst NOCH auf IN_REVIEW**: die Store-Seite (apps.apple.com/de) zeigte um 19:17 Berlin weiter 1.1.30, `itunes/lookup` in de/us/cz/nl/no ebenfalls (currentVersionReleaseDate 2026-09-04). Hinweis Jan dazu: **von Apple kommen normalerweise ZWEI Mails** — erst „eligible for distribution“ (Review durch), dann die eigentliche Freigabe/Auslieferung. Erst mit der zweiten (bzw. sobald die Produktseite 1.1.31 zeigt) darf `_APP_META[ios]`/`[apple]` auf 1.1.31 und der IN_REVIEW-Eintrag raus — sonst schickt der Update-Hinweis Nutzer auf eine Version, die der Store noch nicht ausliefert. Urspruenglich EINGEREICHT „Warten auf Pruefung“,  „Warten auf Pruefung". Uebermittlungskennung `bbd630be-3f2c-4e3b-9244-f71a1d758a2f`. **Gebaut aus Commit `189564c6`** (von Jan genannt) — damit ist `3287370f` von 14:47 enthalten, also der Fix fuer den Absturz in pt/ja/zh/ru/id. Im Baum dieses Commits gegengeprueft: je Sprache genau ein `account.activityPumpfoil`. **Das LIVE stehende 1.1.30 stuerzt fuer diese Sprachen weiter ab** (10 Nutzer betroffen: 7 ru, 2 pt, 1 ja) — bis Apple freigibt. `appmeta` auf IN_REVIEW gesetzt, Absturz-Fix als erster Changelog-Punkt. |
+| 2026-09-07 15:12 | iOS + Apple Watch | 1.1.31 (35) | ✅ **FREIGEGEBEN am 08.09. abends** — ZWEITE Apple-Mail: „The following app is ready for distribution: App Version Number: 1.1.31“. `appmeta ios` UND `apple` auf 1.1.31 gesetzt (ein Bundle, eine MARKETING_VERSION), IN_REVIEW-Eintrag entfernt, zwei Changelog-Punkte in die DB (mit `versionen` ios/apple 1.1.31 — ein Client auf 1.1.30 sieht dort jetzt den Hinweis „kommt mit einem Update", einer auf 1.1.31 nicht mehr; beides gegen `/api/app/changelog` geprueft), Server neu gestartet, `/api/app/latest?platform=ios` liefert 1.1.31. **Der Absturz in pt/ja/zh/ru/id ist damit fuer die 10 betroffenen Nutzer behebbar** — sobald sie aktualisieren. **Store-Propagation lief noch:** Produktseite und `itunes/lookup` (de/us/cz) zeigten unmittelbar nach der Mail weiter 1.1.30, das ist die bekannte Verzoegerung. Zuvor **REVIEW DURCH** (erste Mail, „eligible for distribution“) (Apple: „Review of your submission has been completed. It is now eligible for distribution“, Uebermittlung `bbd630be-3f2c-4e3b-9244-f71a1d758a2f`, eingereicht 07.09. 06:12 PDT = 15:12 Berlin — **gut 28 Stunden Pruefung**). **`appmeta` steht bewusst NOCH auf IN_REVIEW**: die Store-Seite (apps.apple.com/de) zeigte um 19:17 Berlin weiter 1.1.30, `itunes/lookup` in de/us/cz/nl/no ebenfalls (currentVersionReleaseDate 2026-09-04). Hinweis Jan dazu: **von Apple kommen normalerweise ZWEI Mails** — erst „eligible for distribution“ (Review durch), dann die eigentliche Freigabe/Auslieferung. Erst mit der zweiten (bzw. sobald die Produktseite 1.1.31 zeigt) darf `_APP_META[ios]`/`[apple]` auf 1.1.31 und der IN_REVIEW-Eintrag raus — sonst schickt der Update-Hinweis Nutzer auf eine Version, die der Store noch nicht ausliefert. Urspruenglich EINGEREICHT „Warten auf Pruefung“,  „Warten auf Pruefung". Uebermittlungskennung `bbd630be-3f2c-4e3b-9244-f71a1d758a2f`. **Gebaut aus Commit `189564c6`** (von Jan genannt) — damit ist `3287370f` von 14:47 enthalten, also der Fix fuer den Absturz in pt/ja/zh/ru/id. Im Baum dieses Commits gegengeprueft: je Sprache genau ein `account.activityPumpfoil`. **Das LIVE stehende 1.1.30 stuerzt fuer diese Sprachen weiter ab** (10 Nutzer betroffen: 7 ru, 2 pt, 1 ja) — bis Apple freigibt. `appmeta` auf IN_REVIEW gesetzt, Absturz-Fix als erster Changelog-Punkt. |
 | 2026-08-18 15:47 | iOS + Apple Watch | 1.1.24 (28) | ✅ **FREIGEGEBEN**, Mail 19.08. 06:26 („ready for distribution"). LIVE gegengeprueft ueber itunes.apple.com/lookup in de/us/nl/no/fi → 1.1.24, ausgeliefert seit 2026-08-18T23:51:11Z. `appmeta ios` + `apple` gesetzt, Changelog geschrieben. Uebermittlung `257c320a-…`; ersetzte die 15:44er unter der falschen Versions-Zeile „1.0.24" |
 | 2026-08-18 15:38 | Wear OS (Play) | 1.2.23 (1033) | ✅ **FREIGEGEBEN**, Play-Mail 25.08.: Your update to Pumpfoil, created on Aug 18, 2026 at 1:38 PM GMT, is live in the store (13:38 GMT = 15:38 Berlin = genau diese Einreichung). Die Mail nennt KEINE Versionsnummer und keinen Track — wie am 09.08. deckt eine Mail beide ab (gleiche applicationId). `appmeta` gesetzt, Changelog geschrieben. **Sieben Tage Pruefung** |
 | 2026-08-18 15:38 | Android Phone (Play) | 1.1.23 (37) | ✅ **FREIGEGEBEN**, Play-Mail 25.08.: Your update to Pumpfoil, created on Aug 18, 2026 at 1:38 PM GMT, is live in the store (13:38 GMT = 15:38 Berlin = genau diese Einreichung). Die Mail nennt KEINE Versionsnummer und keinen Track — wie am 09.08. deckt eine Mail beide ab (gleiche applicationId). `appmeta` gesetzt, Changelog geschrieben. **Sieben Tage Pruefung** |
@@ -721,6 +721,63 @@ Status „Warten auf Pruefung" ist, kostet ein Zurueckziehen nichts — nach der
 kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
+
+- **🧊 08.09. (Jan) — NATIVE APPS + UHREN EINGEFROREN, hier wird weitergemacht.** Ansage Jan:
+  „das ganze Portieren machen wir dann irgendwann alles zusammen, das rate limit schlaegt bald zu
+  und das brauche ich noch vielleicht fuer details an der Profilseite“ — plus: „bis dahin bitte nichts
+  mehr an den native apps oder uhren einfach machen“. Also **kein** Anfassen von `android/`,
+  `watch-apple/`, `watch/`, `watch-zepp/` ohne seine ausdrueckliche Ansage. Web/Server bleiben normal.
+
+  **Was am 08.09. FERTIG wurde** (gebaut, geprueft, gepusht — nicht nochmal machen):
+  - `171b6ce5` **Datei-Import FIT/TCX/GPX in Android + iOS.** Der fehlte in beiden Apps KOMPLETT;
+    die alte Paritaets-Zeile „Session-Datei laden (GPX + FIT) ✅ 26.08.“ meinte den EXPORT
+    (`ba407138`). Neu: `Api.uploadFit` je App, `ImportFileButton.kt`, `importSection` in
+    `SessionsView.swift` — Knopf rechts unter den Filtern in „Meine Sessions“ wie in der PWA,
+    Mehrfachauswahl mit Fortschritt „3/8“, uebersprungen ist kein Fehler, danach oeffnet die
+    angelegte Session.
+  - `7799c39d` **Wetterkarte: Pegel + Wassertemperatur + Boen + Niederschlag + Quellen.** Die
+    Spot-Seite trug den PWA-Titel „Wetter & Pegel“ und zeigte keinen Pegel — beide Apps parsten
+    nur `weather` und warfen `pegel`/`water` weg. Karte nimmt jetzt das ganze `SpotWeather`.
+  - `foils.none` („Keine Treffer.“) in allen 17 Web-Sprachen + beide Apps. Der Schluessel wurde im
+    Foil-Rechner benutzt und war NIRGENDS definiert, auch im Web nicht — auf allen drei
+    Plattformen stand der rohe Key auf dem Bildschirm.
+
+  **Wo genau weitergemacht wird, sobald Jan die Apps freigibt:**
+  1. **Wiedergabe in der Session-Detailansicht** — fehlt in Android UND iOS. Vorlage:
+     `web/src/pages/SessionDetail.tsx` ab ca. Zeile 1670 (`togglePlay`/`stopPlay`, Tempo 1/2/4/8/16×,
+     Ableselinie ueber `showReadout`, Schluessel `sd.play`, `sd.pause`, `sd.stop`, `sd.playSpeed`,
+     `sd.playRun`, `sd.playWhole`, `sd.roToggle`, `sd.roDist`, `sd.roSpeed`). **Bauteile sind
+     vorhanden:** `SyncPlayback.kt`/`SyncPlayback.swift` animieren im Vergleich schon mehrere Tracks,
+     und `VerlaufScreen.kt` schaltet die Spot-Entwicklung durch — beides laesst sich fuer EINEN Track
+     nachnutzen. Aufwand: die groesste der offenen Luecken, deshalb bewusst nicht angefangen.
+  2. **Fotos in eigenen Spot-Beschreibungen umsortieren** — `spotnote.moveLeft`/`spotnote.moveRight`
+     gibt es nur im Web. Klein.
+  3. **iOS-Version vor der naechsten Einreichung bumpen**: Baum steht auf `MARKETING_VERSION 1.1.31` /
+     Build 35 — also genau der Stand, der gerade freigegeben wurde. Naechste Einreichung braucht
+     1.1.32/36. Android (1.1.27/1.2.27) und Zepp (1.0.7) liegen in der Pruefung: deren Code darf
+     gebaut werden, wandert aber nach `appmeta.NAECHSTES`, nicht nach IN_REVIEW.
+  4. ~~`_APP_META[ios]`/`[apple]` auf 1.1.31 setzen und den IN_REVIEW-Eintrag entfernen~~ —
+     **am 08.09. abends erledigt**, die zweite Apple-Mail kam noch am selben Abend (s. Protokoll unten).
+     Damit steht in der Release-Tabelle auf `/changelog` iPhone + Apple Watch 1.1.31 als LIVE, im Review
+     liegen nur noch Android 1.1.27/1.2.27 und Amazfit 1.0.7.
+
+  **Zwei Dinge, die dabei Zeit gespart haben und wieder gelten:**
+  - Der Vergleich „Web-Schluessel gegen App-Schluessel“ produziert fast nur Fehlalarm: die Apps
+    benutzen eigene Namensraeume (`verlauf.*` statt `history.*`, `accounts.sports.*` statt
+    `settings.sports.*`), und Web-only-Seiten (adm/land/lay/guide/lab) schlagen als „fehlt“ an.
+    Verlaesslich ist die andere Richtung: **im App-CODE benutzte Schluessel gegen die
+    App-Sprachtabellen** — damit war `foils.none` in einem Lauf gefunden. Und Features immer im
+    Code suchen, nicht in `docs/PARITY-AUDIT.md`.
+  - **Der Zuschnitt-Fix vom 08.09. (`7c7134b7`, „eine Sekunde“) braucht KEINEN Port.** Beide Apps
+    sind dagegen immun, weil der Trim-Knopf an `durSec > 1` haengt (Android `SessionDetailScreen.kt`
+    `canTrim`, iOS `bottomActions`) — bei unbekannter Laenge gibt es ihn gar nicht. `sd.trimNoLength`
+    bleibt deshalb absichtlich web-only.
+  - **`scripts/i18n-port.py` bleibt wie es ist** (Jan am 08.09.: „nein mach das nicht jetzt bitte“).
+    Der Auto-Split der Swift-Bloecke war gebaut und wurde zurueckgenommen. Heisst: nach jedem
+    Portier-Lauf **von Hand** pruefen, dass kein Literal in `Loc.swift`/`LocExtra.swift` ueber 50
+    Eintraege kommt (sonst rechnet Xcodes Type-Checker minutenlang), Ueberhang in einen neuen
+    `…sN`-Block und den Namen in die `for p in [...]`-Merge-Liste. Am 08.09. zweimal faellig
+    gewesen, je zehn Bloecke.
 
 - **📥 Inbox 08.09. (Jan) — Foiler-Profilseite: Einstieg entscheiden.** `/foiler/<id>` ist gebaut
   und live, aber **absichtlich nirgends verlinkt** („erstmal so eine seite bauen damit ich mir die
