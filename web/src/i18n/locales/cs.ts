@@ -677,6 +677,7 @@ const cs: Record<string, string> = {
   "adm.stats.newUsers": "Noví uživatelé",
   "adm.stats.activeUsers": "Aktivní uživatelé",
   "adm.stats.sessions": "Nové relace",
+  "adm.stats.imported": "Naimportováno",
   "adm.stats.photos": "Fotky",
   "adm.stats.likes": "To se mi líbí",
   "adm.ov.users": "Uživatelé",

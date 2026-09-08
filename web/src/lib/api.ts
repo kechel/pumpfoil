@@ -626,12 +626,17 @@ export interface AdminOverview {
 export interface AdminPending { flagged: number; fake: number; suspect?: number; chat?: number; total: number; }
 
 export interface AdminStatsBucket {
-  date: string; new_users: number; active_users: number; sessions: number; photos: number; likes: number;
+  date: string; new_users: number; active_users: number;
+  // ZWEI verschiedene Daten je Session, nicht dasselbe (s. `api/admin.py`):
+  //   sessions = an diesem Tag GEFAHREN, imported = an diesem Tag bei uns ANGEKOMMEN.
+  // Eine Nachhol-Aktion der Kontoverknuepfungen bringt 1000 alte Fahrten an einem Tag —
+  // die gehoeren in `imported`, nicht in `sessions`.
+  sessions: number; imported: number; photos: number; likes: number;
 }
 export interface AdminStatsSeries {
   period: string;
   buckets: AdminStatsBucket[];
-  totals: { new_users: number; active_users: number; sessions: number; photos: number; likes: number };
+  totals: { new_users: number; active_users: number; sessions: number; imported: number; photos: number; likes: number };
 }
 
 /** Systemzustand des Servers (Admin). Feldnamen wie im Server (`api/health.py`) — deutsch, weil

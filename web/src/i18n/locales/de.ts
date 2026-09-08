@@ -788,6 +788,7 @@ const de: Record<string, string> = {
   "adm.stats.newUsers": "Neue Nutzer",
   "adm.stats.activeUsers": "Aktive Nutzer",
   "adm.stats.sessions": "Neue Sessions",
+  "adm.stats.imported": "Importiert",
   "adm.stats.photos": "Fotos",
   "adm.stats.likes": "Likes",
   "adm.ov.users": "Nutzer",

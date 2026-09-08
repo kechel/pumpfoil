@@ -763,6 +763,7 @@ const en: Record<string, string> = {
   "adm.stats.newUsers": "New users",
   "adm.stats.activeUsers": "Active users",
   "adm.stats.sessions": "New sessions",
+  "adm.stats.imported": "Imported",
   "adm.stats.photos": "Photos",
   "adm.stats.likes": "Likes",
   "adm.ov.users": "Users",

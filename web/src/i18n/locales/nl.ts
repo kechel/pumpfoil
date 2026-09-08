@@ -677,6 +677,7 @@ const nl: Record<string, string> = {
   "adm.stats.newUsers": "Nieuwe gebruikers",
   "adm.stats.activeUsers": "Actieve gebruikers",
   "adm.stats.sessions": "Nieuwe sessies",
+  "adm.stats.imported": "Geïmporteerd",
   "adm.stats.photos": "Foto's",
   "adm.stats.likes": "Likes",
   "adm.ov.users": "Gebruikers",

@@ -652,6 +652,7 @@ const ru: Record<string, string> = {
   "adm.stats.newUsers": "Новые пользователи",
   "adm.stats.activeUsers": "Активные пользователи",
   "adm.stats.sessions": "Новые сессии",
+  "adm.stats.imported": "Импортировано",
   "adm.stats.photos": "Фото",
   "adm.stats.likes": "Лайки",
   "adm.ov.users": "Пользователи",

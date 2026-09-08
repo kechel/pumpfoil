@@ -706,6 +706,7 @@ const nb: Record<string, string> = {
   "adm.stats.newUsers": "Nye brukere",
   "adm.stats.activeUsers": "Aktive brukere",
   "adm.stats.sessions": "Nye økter",
+  "adm.stats.imported": "Importert",
   "adm.stats.photos": "Bilder",
   "adm.stats.likes": "Likes",
   "adm.ov.users": "Brukere",

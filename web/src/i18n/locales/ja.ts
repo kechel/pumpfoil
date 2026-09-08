@@ -652,6 +652,7 @@ const ja: Record<string, string> = {
   "adm.stats.newUsers": "新規ユーザー",
   "adm.stats.activeUsers": "アクティブユーザー",
   "adm.stats.sessions": "新規セッション",
+  "adm.stats.imported": "インポート",
   "adm.stats.photos": "写真",
   "adm.stats.likes": "いいね",
   "adm.ov.users": "ユーザー",
