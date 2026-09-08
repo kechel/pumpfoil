@@ -16,6 +16,8 @@ import { Card, Avatar } from "../components/ui";
 import { ScrollToTop } from "../components/ScrollToTop";
 import { SessionCard } from "../components/SessionCard";
 import { PlayIcon } from "../components/Icons";
+import { Lightbox, LightboxPhoto } from "../components/Lightbox";
+import { VideoModal, ytId } from "../components/VideoModal";
 import { SessionStats } from "./Sessions";
 import { foilLabel } from "../lib/foilLabel";
 import { useT, useNumberFormat } from "../i18n";
@@ -38,21 +40,21 @@ const setupLabels = (s: { setup?: { stab?: { brand: string; model: string; size:
   board: s.setup?.board?.name || null,
 });
 
-// YouTube-ID aus jeder gaengigen URL-Form — nur fuer das Vorschaubild von UNSEREM Server.
-function ytId(url: string | null | undefined): string | null {
-  const m = (url || "").match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([A-Za-z0-9_-]{6,16})/);
-  return m ? m[1] : null;
-}
-
 export default function Foiler() {
   const { id } = useParams();
   const t = useT();
   const nf = useNumberFormat();
   const [d, setD] = useState<Awaited<ReturnType<typeof api.foilerProfil>> | null>(null);
   const [fehler, setFehler] = useState(false);
+  // Galerie: Index im FOTO-Array (Videos sind nicht Teil der Galerie, die laufen im Player).
+  const [galerie, setGalerie] = useState<number | null>(null);
+  const [video, setVideo] = useState<string | null>(null);
+  // Wie viele Kacheln gerendert sind. Waechst beim Scrollen nach rechts — bei 200 Medien
+  // sonst 200 <img> auf einmal, und das Karussell ruckelt beim ersten Wischen.
+  const [gezeigt, setGezeigt] = useState(24);
 
   useEffect(() => {
-    setD(null); setFehler(false);
+    setD(null); setFehler(false); setGezeigt(24); setGalerie(null); setVideo(null);
     api.foilerProfil(Number(id)).then(setD).catch(() => setFehler(true));
   }, [id]);
 
@@ -64,6 +66,14 @@ export default function Foiler() {
     );
   }
   if (!d) return <div className="mx-auto max-w-3xl p-6 text-sm text-slate-400">{t("common.loading")}</div>;
+
+  const medien = d.medien ?? [];
+  // Die Galerie zeigt nur Fotos. Die Reihenfolge ist dieselbe wie im Karussell, damit das
+  // angeklickte Bild auch das ist, das aufgeht.
+  const fotos: LightboxPhoto[] = medien
+    .filter((m) => m.kind !== "video" && m.url)
+    .map((m) => ({ url: m.url as string, session_id: m.session_id, name: d.name,
+                   avatar_url: d.avatar_url, started_at: m.started_at }));
 
   const r = d.rekorde?.records;
   // Dieselben Kacheln und dieselbe Formatierung wie auf der eigenen Startseite — driftet die
@@ -163,33 +173,56 @@ export default function Foiler() {
         </>
       )}
 
-      {/* Medien: Fotos und verlinkte Videos an seinen Sessions. Ein Klick fuehrt in die
-          Session — dort steht das Bild in seinem Zusammenhang, und das Video laeuft im
-          Click-to-Load-Rahmen (youtube-nocookie). Deshalb hier bewusst KEINE Lightbox und kein
-          eingebetteter Player: eine zweite Abspielstelle waere eine zweite Datenschutz-Baustelle.
+      {/* Medien einzeilig als Karussell (Jan, 08.09.2026): waagerecht scrollbar, unter jeder
+          Kachel das Datum. Ein Klick oeffnet die FULLSCREEN-GALERIE mit den Fotos dieses
+          Nutzers zum Durchschalten — nicht mehr die Session. Videos gehen weiter in den
+          Click-to-Load-Player (youtube-nocookie): ein Video hat in einer Bildergalerie keinen
+          Platz, und ein zweiter Abspielweg waere eine zweite Datenschutz-Baustelle.
           Vorschaubilder der Videos kommen ueber UNSEREN Server (/api/public/video-thumb). */}
-      {d.zeigt.media && (d.medien?.length ?? 0) > 0 && (
+      {d.zeigt.media && medien.length > 0 && (
         <div className="mt-6">
           <h2 className="mb-2 text-sm font-semibold text-slate-200">
-            {t("foiler.media")} <span className="font-normal text-slate-400">({d.medien!.length})</span>
+            {t("foiler.media")} <span className="font-normal text-slate-400">({medien.length})</span>
           </h2>
-          <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-4 lg:grid-cols-6">
-            {d.medien!.map((m, i) => {
-              const yt = m.youtube_url ? ytId(m.youtube_url) : null;
+          {/* Nachladen beim Scrollen: 400 px vor dem Ende kommen die naechsten 24 Kacheln.
+              Zusammen mit loading="lazy" laedt der Browser nur, was in Sichtweite kommt. */}
+          <div
+            className="-mx-4 flex snap-x gap-2 overflow-x-auto px-4 pb-2 md:mx-0 md:px-0"
+            onScroll={(e) => {
+              const el = e.currentTarget;
+              if (el.scrollLeft + el.clientWidth > el.scrollWidth - 400) {
+                setGezeigt((n) => (n >= medien.length ? n : n + 24));
+              }
+            }}
+          >
+            {medien.slice(0, gezeigt).map((m, i) => {
+              const yt = m.kind === "video" ? ytId(m.youtube_url) : "";
               const bild = m.kind === "video" ? (yt ? `/api/public/video-thumb/${yt}` : null) : (m.thumb_url || m.url);
+              const oeffnen = () => {
+                if (m.kind === "video") { setVideo(m.youtube_url); return; }
+                const k = fotos.findIndex((f) => f.url === m.url);
+                if (k >= 0) setGalerie(k);
+              };
               return (
-                <Link key={`${m.kind}-${m.session_id}-${i}`} to={`/sessions/${m.session_id}`} className="group relative block">
-                  {bild
-                    ? <img src={bild} alt="" loading="lazy" className="aspect-square w-full rounded-lg object-cover transition-opacity group-hover:opacity-90" />
-                    : <div className="aspect-square w-full rounded-lg bg-slate-800" />}
-                  {m.kind === "video" && (
-                    <span className="absolute inset-0 flex items-center justify-center">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black/55 text-white">
-                        <PlayIcon className="h-4 w-4" />
+                <button key={`${m.kind}-${m.session_id}-${i}`} onClick={oeffnen}
+                        className="group w-24 shrink-0 snap-start text-left sm:w-28">
+                  <span className="relative block">
+                    {bild
+                      ? <img src={bild} alt="" loading="lazy" decoding="async"
+                             className="aspect-square w-full rounded-lg object-cover transition-opacity group-hover:opacity-90" />
+                      : <span className="block aspect-square w-full rounded-lg bg-slate-800" />}
+                    {m.kind === "video" && (
+                      <span className="absolute inset-0 flex items-center justify-center">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black/55 text-white">
+                          <PlayIcon className="h-4 w-4" />
+                        </span>
                       </span>
-                    </span>
-                  )}
-                </Link>
+                    )}
+                  </span>
+                  <span className="mt-1 block text-center text-xs tabular-nums text-slate-400">
+                    {m.started_at ? fmtDate(m.started_at, null, { day: "2-digit", month: "2-digit", year: "2-digit" }) : ""}
+                  </span>
+                </button>
               );
             })}
           </div>
@@ -246,6 +279,12 @@ export default function Foiler() {
           </div>
         </div>
       )}
+
+      {galerie !== null && fotos[galerie] && (
+        <Lightbox photos={fotos} index={galerie} onClose={() => setGalerie(null)}
+                  onChange={(i) => setGalerie(i)} />
+      )}
+      {video && <VideoModal url={video} onClose={() => setVideo(null)} />}
     </div>
   );
 }
