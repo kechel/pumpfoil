@@ -1692,7 +1692,6 @@ const ja: Record<string, string> = {
   "pubprof.channel": "自分のYouTubeチャンネル",
   "foiler.onlyFoiler": "このスポットで唯一のフォイラー",
   "foiler.titles": "コミュニティ記録（12か月）",
-  "foiler.basisAccel": "Accel + GPS",
   "foiler.basisGps": "GPSのみ",
   "foiler.basisAccelTip": "モーションセンサーありの記録の中での記録",
   "foiler.basisGpsTip": "モーションセンサーなしの記録の中での記録 — GPSモードのウォッチとアカウント取り込み",

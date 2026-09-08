@@ -1752,7 +1752,6 @@ const nl: Record<string, string> = {
   "pubprof.channel": "Mijn YouTube-kanaal",
   "foiler.onlyFoiler": "Enige foiler op deze spot",
   "foiler.titles": "Communityrecords (12 maanden)",
-  "foiler.basisAccel": "Accel + GPS",
   "foiler.basisGps": "Alleen GPS",
   "foiler.basisAccelTip": "Records onder alle opnames met bewegingssensor",
   "foiler.basisGpsTip": "Records onder de opnames zonder bewegingssensor — horloges in GPS-modus en accountimports",

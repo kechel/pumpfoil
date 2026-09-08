@@ -1698,7 +1698,6 @@ const id: Record<string, string> = {
   "pubprof.channel": "Kanal YouTube-ku",
   "foiler.onlyFoiler": "Satu-satunya foiler di spot ini",
   "foiler.titles": "Rekor komunitas (12 bulan)",
-  "foiler.basisAccel": "Accel + GPS",
   "foiler.basisGps": "Hanya GPS",
   "foiler.basisAccelTip": "Rekor di antara rekaman dengan sensor gerak",
   "foiler.basisGpsTip": "Rekor di antara rekaman tanpa sensor gerak — jam dalam mode GPS dan impor akun",

@@ -263,7 +263,7 @@ export default function Foiler() {
                       <Link to="/community" title={t(basis === "accel" ? "foiler.basisAccelTip" : "foiler.basisGpsTip")}
                             className="flex items-center gap-1 py-0.5 text-sm font-semibold text-slate-200 underline decoration-slate-500 hover:decoration-brand-400">
                         <CommunityIcon className="h-4 w-4 shrink-0 text-slate-400" />
-                        {t(basis === "accel" ? "foiler.basisAccel" : "foiler.basisGps")}
+                        {t(basis === "accel" ? "side.onlyAccel" : "foiler.basisGps")}
                       </Link>
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
                         {liste.map((x) => (

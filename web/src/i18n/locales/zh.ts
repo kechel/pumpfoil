@@ -1695,7 +1695,6 @@ const zh: Record<string, string> = {
   "pubprof.channel": "我的 YouTube 频道",
   "foiler.onlyFoiler": "该地点唯一的水翼玩家",
   "foiler.titles": "社区记录（12 个月）",
-  "foiler.basisAccel": "Accel + GPS",
   "foiler.basisGps": "仅 GPS",
   "foiler.basisAccelTip": "在带运动传感器的记录中的成绩",
   "foiler.basisGpsTip": "在没有运动传感器的记录中的成绩 — GPS 模式的手表和账号导入",

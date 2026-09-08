@@ -1751,7 +1751,6 @@ const cs: Record<string, string> = {
   "pubprof.channel": "Můj kanál na YouTube",
   "foiler.onlyFoiler": "Jediný foiler na tomto spotu",
   "foiler.titles": "Rekordy komunity (12 měsíců)",
-  "foiler.basisAccel": "Accel + GPS",
   "foiler.basisGps": "Jen GPS",
   "foiler.basisAccelTip": "Rekordy mezi záznamy s pohybovým senzorem",
   "foiler.basisGpsTip": "Rekordy mezi záznamy bez pohybového senzoru — hodinky v režimu GPS a importy z účtu",

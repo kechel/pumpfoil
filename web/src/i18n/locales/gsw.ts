@@ -1583,7 +1583,6 @@ const gsw: Record<string, string> = {
   "pubprof.channel": "Min YouTube-Kanal",
   "foiler.onlyFoiler": "Einzige Foiler a dem Spot",
   "foiler.titles": "Community-Rekord (12 Mönet)",
-  "foiler.basisAccel": "Accel + GPS",
   "foiler.basisGps": "Nur GPS",
   "foiler.basisAccelTip": "Rekord under allne Ufnahme mit Bewegigssensor",
   "foiler.basisGpsTip": "Rekord under de Ufnahme ohni Bewegigssensor — Uhre im GPS-Modus und Konto-Import",
