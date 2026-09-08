@@ -125,7 +125,10 @@ const OUTRO_ICONS: Record<PvPlatform, [string, string][]> = {
   ],
   instagram: [
     ["M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z", "heart"],
-    ["M7.9 20A9 9 0 1 0 4 16.1L2 22Z", "comment"],
+    // Zipfel unten RECHTS — Instagrams eigene Sprechblase zeigt dorthin,
+    // unsere zeigte spiegelverkehrt nach links (Jan, 08.09.). Gespiegelt
+    // heisst: x -> 24-x, und die Drehrichtung des Bogens kippt mit (0 -> 1).
+    ["M16.1 20A9 9 0 1 1 20 16.1L22 22Z", "comment"],
     ["m22 2-7 20-4-9-9-4ZM22 2 11 13", "send"],
   ],
   tiktok: [
