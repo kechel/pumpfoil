@@ -1666,7 +1666,7 @@ const nb: Record<string, string> = {
   "pubprof.view": "Se profilsiden min",
   "foiler.media": "Medier",
   "foiler.spotNotes": "Spotbeskrivelser",
-  "foiler.lastSessions": "Siste sessions",
+  "foiler.lastSessions": "Siste 5 sessions",
   "pubprof.media": "Bilder og videoer på sessionene mine",
   "pubprof.spots": "Spots jeg har beskrevet",
   "pubprof.sessions": "Mine fem siste sessions",

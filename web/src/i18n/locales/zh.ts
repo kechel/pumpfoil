@@ -1687,7 +1687,7 @@ const zh: Record<string, string> = {
   "pubprof.view": "查看我的个人主页",
   "foiler.media": "媒体",
   "foiler.spotNotes": "地点说明",
-  "foiler.lastSessions": "最近的活动",
+  "foiler.lastSessions": "最近 5 次活动",
   "pubprof.media": "我的活动照片和视频",
   "pubprof.spots": "我写过说明的地点",
   "pubprof.sessions": "我最近的五次活动",

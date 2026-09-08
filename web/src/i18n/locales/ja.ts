@@ -1684,7 +1684,7 @@ const ja: Record<string, string> = {
   "pubprof.view": "自分のプロフィールページを見る",
   "foiler.media": "メディア",
   "foiler.spotNotes": "スポットの説明",
-  "foiler.lastSessions": "最近のセッション",
+  "foiler.lastSessions": "最近の5セッション",
   "pubprof.media": "自分のセッションの写真と動画",
   "pubprof.spots": "自分が説明を書いたスポット",
   "pubprof.sessions": "直近5件のセッション",

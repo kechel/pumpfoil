@@ -1690,7 +1690,7 @@ const id: Record<string, string> = {
   "pubprof.view": "Lihat halaman profilku",
   "foiler.media": "Media",
   "foiler.spotNotes": "Deskripsi spot",
-  "foiler.lastSessions": "Sesi terakhir",
+  "foiler.lastSessions": "5 sesi terakhir",
   "pubprof.media": "Foto dan video di sesiku",
   "pubprof.spots": "Spot yang sudah kudeskripsikan",
   "pubprof.sessions": "Lima sesi terakhirku",
