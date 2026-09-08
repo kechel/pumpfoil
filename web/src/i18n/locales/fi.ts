@@ -478,6 +478,7 @@ const fi: Record<string, string> = {
   "sd.trim": "Rajaa",
   "sd.trimActive": "· päällä",
   "sd.trimHint": "Analysoi vain valittu aikaväli (esim. leikkaa pois unohtunut tallennus / automatka kotiin). Suhteutettu koko tallennukseen ({total} min:s).",
+  "sd.trimNoLength": "Emme tiedä tämän tallenteen pituutta — rajaus on siksi estetty, jottei vahingossa leikkaudu kaikki pois.",
   "sd.start": "Alku:",
   "sd.end": "Loppu:",
   "sd.saveReanalyze": "Tallenna ja analysoi uudelleen",

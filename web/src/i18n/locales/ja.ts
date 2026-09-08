@@ -471,6 +471,7 @@ const ja: Record<string, string> = {
   "sd.trim": "トリミング",
   "sd.trimActive": "· 有効",
   "sd.trimHint": "選択した時間範囲のみを解析します（例：切り忘れた記録／帰宅時のドライブをカット）。記録全体（{total} 分:秒）に対する相対値です。",
+  "sd.trimNoLength": "この記録の長さが分からないため、切り取りは無効です。誤ってすべて切り落とさないようにしています。",
   "sd.start": "開始：",
   "sd.end": "終了：",
   "sd.saveReanalyze": "保存して再解析",

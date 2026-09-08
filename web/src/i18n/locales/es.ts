@@ -395,6 +395,7 @@ const es: Record<string, string> = {
   "sd.trim": "Recortar",
   "sd.trimActive": "· activo",
   "sd.trimHint": "Analiza solo el rango de tiempo elegido (p. ej. cortar una grabación olvidada / la vuelta a casa). Respecto a toda la grabación ({total} min:s).",
+  "sd.trimNoLength": "No conocemos la duración de esta grabación — el recorte está desactivado para no borrar todo por error.",
   "sd.start": "Inicio:",
   "sd.end": "Fin:",
   "sd.saveReanalyze": "Guardar y reanalizar",

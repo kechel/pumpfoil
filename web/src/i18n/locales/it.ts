@@ -395,6 +395,7 @@ const it: Record<string, string> = {
   "sd.trim": "Taglia",
   "sd.trimActive": "· attivo",
   "sd.trimHint": "Analizza solo l'intervallo scelto (es. tagliare una registrazione dimenticata / il rientro in auto). Rispetto a tutta la registrazione ({total} min:s).",
+  "sd.trimNoLength": "Non conosciamo la durata di questa registrazione — il taglio è disattivato per non eliminare tutto per sbaglio.",
   "sd.start": "Inizio:",
   "sd.end": "Fine:",
   "sd.saveReanalyze": "Salva e rianalizza",

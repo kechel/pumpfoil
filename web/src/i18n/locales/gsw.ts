@@ -1148,6 +1148,7 @@ const gsw: Record<string, string> = {
   "sd.tableFooter": "Speeds i km/h. Glättig obe umschaltbar (1/3/5 s). Zile aaklicke = nur de Lauf uf de Charte. ★ = wytischte Lauf.",
   "sd.trimActive": "· aktiv",
   "sd.trimHint": "Nur de gwählt Ziitberych uswerte (z. B. vergässni Ufnahm / Auto-Heimfahrt abschnyde). Bezoge uf di ganz Ufnahm ({total} min:s).",
+  "sd.trimNoLength": "Mir wüssed d Läng vo dere Ufnahm nöd — drum isch s Zueschnyde gsperrt, dass nöd versehentlich alles wegchunt.",
   "settings.watchUpdate": "Update verfüegbar: {platform} v{version}",
   "unit.run": "Lauf",
   "vote.reportConfirm": "Die Session als unaagmässe melde?",

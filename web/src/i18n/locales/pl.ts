@@ -515,6 +515,7 @@ const pl: Record<string, string> = {
   "sd.trim": "Przytnij",
   "sd.trimActive": "· aktywne",
   "sd.trimHint": "Analizuj tylko wybrany zakres czasu (np. odetnij zapomniane nagranie / drogę powrotną). Względem całego nagrania ({total} min:s).",
+  "sd.trimNoLength": "Nie znamy długości tego nagrania — przycinanie jest zablokowane, żeby przypadkiem nie usunąć wszystkiego.",
   "sd.start": "Początek:",
   "sd.end": "Koniec:",
   "sd.saveReanalyze": "Zapisz i przeanalizuj ponownie",

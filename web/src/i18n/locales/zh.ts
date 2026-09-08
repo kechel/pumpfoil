@@ -471,6 +471,7 @@ const zh: Record<string, string> = {
   "sd.trim": "裁剪",
   "sd.trimActive": "· 已启用",
   "sd.trimHint": "只分析所选的时间范围（例如剪掉忘记停止的记录 / 开车回家）。相对于整条记录（{total} 分:秒）。",
+  "sd.trimNoLength": "我们不知道这段记录有多长 — 因此已禁用裁剪，以免误删全部内容。",
   "sd.start": "开始：",
   "sd.end": "结束：",
   "sd.saveReanalyze": "保存并重新分析",

@@ -2014,6 +2014,17 @@ function Legend({ mode, hrRange, speedRange, pumpRange, optimal }: { mode: Color
 
 function TrimPanel({ session, onSaved, onClose }: { session: SessionSummary; onSaved: (s: SessionSummary) => void; onClose: () => void }) {
   const t = useT();
+  // LAENGE UNBEKANNT = NICHT ZUSCHNEIDEN. `ended_at` darf null sein (laufende Aufnahme, oder ein
+  // Recorder hat es nie geschickt). Vorher fiel die Rechnung dann auf `started_at` zurueck, die
+  // Differenz war 0 und `Math.max(1, 0)` machte daraus EINE SEKUNDE: der Regler stand auf 0..1,
+  // und ein Klick auf „Anwenden" schnitt die Aufnahme auf eine Sekunde zusammen.
+  //
+  // Genau so passiert (Session 5002, gemeldet am 08.09.2026): ein Nutzer schrieb „no run
+  // detected", und in seiner Aufnahme steckte ein Lauf von 20,1 s / 130,7 m — unsichtbar hinter
+  // `trim 0..1000`. Sie ist die EINZIGE von 208 manuellen Zuschnitten mit einem Fenster unter
+  // 33 Sekunden, also kein Nutzerfehler, sondern dieser Rueckfall.
+  const dauerBekannt = !!session.ended_at
+    && new Date(session.ended_at).getTime() > new Date(session.started_at).getTime();
   const totalSec = Math.max(
     1,
     Math.round((new Date(session.ended_at ?? session.started_at).getTime() - new Date(session.started_at).getTime()) / 1000)
@@ -2031,6 +2042,7 @@ function TrimPanel({ session, onSaved, onClose }: { session: SessionSummary; onS
   const trimmed = session.trim_start_ms != null || session.trim_end_ms != null;
 
   async function apply(clear: boolean) {
+    if (!clear && !dauerBekannt) return;   // s. Kommentar oben — nie auf 1 s zuschneiden
     setSaving(true);
     try {
       const r = clear
@@ -2046,6 +2058,7 @@ function TrimPanel({ session, onSaved, onClose }: { session: SessionSummary; onS
   // Denselben Bereich AUSSORTIEREN statt zuschneiden: nötig, wenn der Störteil mitten in der
   // Aufnahme liegt (Fahrt zwischen zwei Spots) — der Trim kann nur Anfang/Ende abschneiden.
   async function excludeRange() {
+    if (!dauerBekannt) return;             // s. Kommentar oben
     if (!confirm(t("sd.excludeRangeConfirm", { from: clock(a), to: clock(Math.min(b, totalSec)) }))) return;
     setSaving(true);
     try {
@@ -2058,6 +2071,9 @@ function TrimPanel({ session, onSaved, onClose }: { session: SessionSummary; onS
 
   return (
     <Card className="space-y-4 p-4">
+      {!dauerBekannt && (
+        <p className="text-sm text-amber-700 dark:text-amber-300">{t("sd.trimNoLength")}</p>
+      )}
       <p className="text-sm text-slate-300">
         {t("sd.trimHint", { total: fmtMMSS(totalSec) })}
       </p>
@@ -2077,11 +2093,14 @@ function TrimPanel({ session, onSaved, onClose }: { session: SessionSummary; onS
           className="mt-1 w-full accent-brand-500" />
       </label>
       <div className="flex flex-wrap gap-2">
-        <button disabled={saving} onClick={() => apply(false)}
+        {/* Beide schreibenden Knoepfe sind gesperrt, solange die Laenge unbekannt ist — s.
+            Kommentar oben. „Zuruecksetzen" bleibt IMMER benutzbar: wer schon in der Falle
+            sitzt, muss wieder herauskommen. */}
+        <button disabled={saving || !dauerBekannt} onClick={() => apply(false)}
           className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-50">
           {saving ? "…" : t("sd.saveReanalyze")}
         </button>
-        <button disabled={saving} onClick={excludeRange}
+        <button disabled={saving || !dauerBekannt} onClick={excludeRange}
           className="rounded-xl bg-slate-800 px-4 py-2 text-sm text-slate-200 hover:bg-slate-700 disabled:opacity-50">
           {t("sd.excludeRange")}
         </button>

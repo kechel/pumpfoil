@@ -1147,6 +1147,7 @@ const deAT: Record<string, string> = {
   "sd.tapVerdictHint": "Plausibel = plausible Kadenz (Pumps/Foil-Sekunde) + Abdeckung des Laufs. „verlässlich“ ab 2 plausiblen Takes. ⚠-Takes zählen nicht zum Konsens.",
   "sd.trimActive": "· aktiv",
   "sd.trimHint": "Nur den gewählten Zeitbereich auswerten (z. B. vergessene Aufnahme / Auto-Heimfahrt abschneiden). Bezogen auf die gesamte Aufnahme ({total} min:s).",
+  "sd.trimNoLength": "De Läng von der Aufnahm kenn ma net — drum is Zuschneidn gsperrt, damit net ausse Ochtsamkeit ois wegkummt.",
   "settings.strava.connect": "Mit Strava verbinden",
   "settings.strava.connected": "Verbunden",
   "settings.strava.hint": "Verbinde dein Strava-Konto und importiere deine Aktivitäten als Sessions.",
