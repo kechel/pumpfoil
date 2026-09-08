@@ -311,17 +311,29 @@ IN_REVIEW: list[dict] = [
 
 NAECHSTES: list[dict] = [
     {"name": "Android phone + Wear OS", "version": "1.1.27 / 1.2.27",
-     # Version im Baum steht noch auf 1.1.26/1.2.26 (in der Pruefung) und wird erst gebumpt, wenn
-     # Jan die Ortungs-Umstellung auf einer ECHTEN Uhr gefahren hat — sie laesst sich weder auf
-     # der VM noch im Emulator pruefen (dort wird die Position eingespeist). Vorher gehoert sie
-     # in keine Einreichung: sie kann Uhren mit GNSS treffen, wenn der Plattform-Provider dort
-     # anders reagiert als erwartet.
-     "note": "needs a test on a real watch first",
+     # Im Emulator durchgetestet (08.09.2026): `dumpsys location` zeigt unsere App als DIREKTEN
+     # Zuhoerer am `gps provider` und Fused auf `ProviderRequest[OFF]`, die Positionen landen im
+     # Track (Testsession 5238, 35 Punkte), und mit `geo fix … <knoten>` zeigt die Uhr Tempo und
+     # die Lauf-Erkennung springt an.
+     #
+     # Was NICHT geprueft ist: wie lange eine echte Uhr bis zum ersten Fix braucht — der
+     # Plattform-Provider kann traeger einrasten als Fused. Entscheidung Jan (08.09.): das ist
+     # kein Grund zu warten, denn auf GPS zu warten ist normal und die Uhr zeigt es an
+     # („GPS ready"/„GPS searching", und der Empfaenger laeuft schon im Ruhebild).
+     #
+     # NICHT einreichen, solange 1.1.26 / 1.2.26 in der Pruefung liegt (Vorgabe Jan, 08.09.2026).
+     # Ein neuer Upload auf denselben Track ERSETZT die laufende Pruefung, und die Wartezeit
+     # beginnt von vorne — zweimal belegt, s. die Beobachtung vom 23.08. in docs/TODO.md. Die
+     # Nutzer wuerden dadurch auch die Korrekturen aus 1.2.26 spaeter bekommen.
+     "note": "ready — goes out once the version above is approved",
      "items": [
          "The watch uses its own GPS instead of taking the position from your phone. Until now "
          "it asked the system for \u201ethe best location\u201c, and on a watch that can mean the "
          "phone lying on the shore — the track then shows where your phone was, not where you "
          "rode. On one watch model half of all recordings were affected.",
+         "\u201eGPS ready\u201c on the start screen now means the watch itself has a fix. It used "
+         "to turn green on a position that came from the phone, which promised something the "
+         "recording could not deliver.",
          "A watch without any GPS of its own says so before you start, instead of recording a "
          "track that is not yours. Heart rate and movement are still recorded.",
      ]},
