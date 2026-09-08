@@ -9,7 +9,7 @@
 //
 // Welche Bloecke erscheinen, entscheidet der SERVER anhand der Schalter des Nutzers. Diese Seite
 // prueft nichts nachtraeglich: fehlt ein Feld, wird es nicht gezeigt.
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api, OverallStats } from "../lib/api";
 import { Card, Avatar } from "../components/ui";
@@ -248,30 +248,36 @@ export default function Foiler() {
                   selbst, der Spotname steht davor. */}
               {/* Nach Spot gruppiert, nicht als eine lange Kette: bei vier Spots und zehn
                   Kennzahlen (luk) stuende der Spotname sonst dreissigmal da. */}
-              <div className="space-y-2">
+              {/* EIN Raster ueber alle Spots, nicht eine Zeile je Spot: die erste Spalte ist
+                  so breit wie der laengste Spotname, dadurch fangen die Titel bei allen Spots
+                  auf derselben Kante an. Und weil die Chips in der zweiten Spalte umbrechen,
+                  rutscht eine zweite Reihe NICHT unter den Namen, sondern bleibt buendig
+                  (Jan, 08.09.2026 — genau das war vorher schief). */}
+              <div className="grid grid-cols-[max-content_1fr] items-start gap-x-3 gap-y-2">
                 {spotGruppen.map(([spot, liste]) => (
-                  <div key={spot} className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+                  <Fragment key={spot}>
                     <Link to={`/sessions?spot=${liste[0].spot_id}`}
-                          className="flex items-center gap-1 text-sm font-semibold text-slate-200 underline decoration-slate-500 hover:decoration-brand-400">
-                      <LocationIcon className="h-4 w-4 text-slate-400" />{spot}
+                          className="flex items-center gap-1 py-0.5 text-sm font-semibold text-slate-200 underline decoration-slate-500 hover:decoration-brand-400">
+                      <LocationIcon className="h-4 w-4 shrink-0 text-slate-400" />{spot}
                     </Link>
-                    {/* Ist er dort der einzige Fahrer, haelt er zwangslaeufig jeden Rekord —
-                        dann sagt EIN Hinweis mehr als zehn Titel ohne Gegner (Jan). */}
-                    {liste[0].allein && (
-                      <span className="rounded-full border border-slate-700 px-2.5 py-0.5 text-sm text-slate-400">
-                        {t("foiler.onlyFoiler")}
-                      </span>
-                    )}
-                    {!liste[0].allein && liste.map((x, i) => {
-                      const inhalt = <>{recLabel(x.metric, t)} <span className="font-semibold tabular-nums">{recWert(x.metric, x.value)}</span></>;
-                      const klasse = "rounded-full border border-slate-700 px-2.5 py-0.5 text-sm text-slate-300";
-                      // „Meiste Carves >180°" ist eine Summe ueber den Zeitraum und haengt an
-                      // keiner Session (s. _carve_record) -> kein Link, sonst zeigt er irgendwohin.
-                      return x.session_id
-                        ? <Link key={`${x.metric}-${i}`} to={`/sessions/${x.session_id}`} className={`${klasse} hover:border-brand-400 hover:text-brand-300`}>{inhalt}</Link>
-                        : <span key={`${x.metric}-${i}`} className={klasse}>{inhalt}</span>;
-                    })}
-                  </div>
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+                      {/* Ist er dort der einzige Fahrer, haelt er zwangslaeufig jeden Rekord —
+                          dann sagt EIN Hinweis mehr als zehn Titel ohne Gegner (Jan). */}
+                      {liste[0].allein ? (
+                        <span className="rounded-full border border-slate-700 px-2.5 py-0.5 text-sm text-slate-400">
+                          {t("foiler.onlyFoiler")}
+                        </span>
+                      ) : liste.map((x, i) => {
+                        const inhalt = <>{recLabel(x.metric, t)} <span className="font-semibold tabular-nums">{recWert(x.metric, x.value)}</span></>;
+                        const klasse = "rounded-full border border-slate-700 px-2.5 py-0.5 text-sm text-slate-300";
+                        // „Meiste Carves >180°" ist eine Summe ueber den Zeitraum und haengt an
+                        // keiner Session (s. _carve_record) -> kein Link, sonst zeigt er irgendwohin.
+                        return x.session_id
+                          ? <Link key={`${x.metric}-${i}`} to={`/sessions/${x.session_id}`} className={`${klasse} hover:border-brand-400 hover:text-brand-300`}>{inhalt}</Link>
+                          : <span key={`${x.metric}-${i}`} className={klasse}>{inhalt}</span>;
+                      })}
+                    </div>
+                  </Fragment>
                 ))}
               </div>
             </>
