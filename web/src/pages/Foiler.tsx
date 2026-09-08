@@ -252,9 +252,12 @@ export default function Foiler() {
             {t("foiler.media")} <span className="font-normal text-slate-400">({medien.length})</span>
           </h2>
           {/* Nachladen beim Scrollen: 400 px vor dem Ende kommen die naechsten 24 Kacheln.
-              Zusammen mit loading="lazy" laedt der Browser nur, was in Sichtweite kommt. */}
+              Zusammen mit loading="lazy" laedt der Browser nur, was in Sichtweite kommt.
+              KEIN Rand-Ausbruch per negativer Margin: die erste Kachel rutschte damit links
+              ueber den Seitenrand hinaus (Jan, 08.09.2026). Das Karussell endet jetzt genau
+              da, wo auch die Ueberschriften anfangen. */}
           <div
-            className="-mx-4 flex snap-x gap-2 overflow-x-auto px-4 pb-2 md:-mx-8 md:px-8"
+            className="flex snap-x gap-2 overflow-x-auto pb-2"
             onScroll={(e) => {
               const el = e.currentTarget;
               if (el.scrollLeft + el.clientWidth > el.scrollWidth - 400) {
