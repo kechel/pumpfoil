@@ -1675,6 +1675,16 @@ const zh: Record<string, string> = {
   "foiler.records": "近 12 个月的记录",
   "foiler.notFound": "该个人主页不可用。",
   "foiler.offHint": "你的个人主页对其他人隐藏。修改可见性:",
+  "pubprof.title": "公开个人主页",
+  "pubprof.hint": "其他水翼玩家可以看到关于你的页面。内容由你决定 — 你的名字和头像本来就出现在每次活动下。该页面有意不列出你的活动记录。",
+  "pubprof.enabled": "个人主页对他人可见",
+  "pubprof.fields": "可以显示的内容",
+  "pubprof.join": "加入时间",
+  "pubprof.watch": "手表",
+  "pubprof.foil": "水翼",
+  "pubprof.homespot": "主玩点",
+  "pubprof.records": "近 12 个月的记录",
+  "pubprof.view": "查看我的个人主页",
 };
 
 export default zh;

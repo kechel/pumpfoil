@@ -1563,6 +1563,16 @@ const gsw: Record<string, string> = {
   "foiler.records": "Rekord vo de letschte 12 Mönet",
   "foiler.notFound": "Die Profilsite isch nöd verfüegbar.",
   "foiler.offHint": "Dini Profilsite isch für anderi usgblendet. Sichtbarkeit ändere:",
+  "pubprof.title": "Öffentligi Profilsite",
+  "pubprof.hint": "Anderi Foiler chöi e Site über di gseh. Du entscheidsch, was drufsteht — Namen und Bild stöh eh under jeder Session. E Liste vo dine Sessions git's det absichtlich nöd.",
+  "pubprof.enabled": "Profilsite für anderi sichtbar",
+  "pubprof.fields": "Das darf drufstoh",
+  "pubprof.join": "Dabii sit",
+  "pubprof.watch": "Uhr",
+  "pubprof.foil": "Foil",
+  "pubprof.records": "Rekord vo de letschte 12 Mönet",
+  "pubprof.homespot": "Homespot",
+  "pubprof.view": "Mini Profilsite aaluege",
 };
 
 export default gsw

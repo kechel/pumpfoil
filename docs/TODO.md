@@ -722,6 +722,15 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **📥 Inbox 08.09. (Jan) — Foiler-Profilseite: Einstieg entscheiden.** `/foiler/<id>` ist gebaut
+  und live, aber **absichtlich nirgends verlinkt** („erstmal so eine seite bauen damit ich mir die
+  anschauen kann bevor wir die irgendwo verlinken dann"). Offen ist nur, WO sie verlinkt wird —
+  Kandidaten: Name/Avatar im Community-Feed, in den Bestenlisten, im Chat-Kopf, in den
+  Session-Karten. Zu bedenken: sobald der Name im Feed klickbar ist, ist die Seite faktisch
+  oeffentlich fuer alle Angemeldeten; die Schalter dafuer stehen in den Einstellungen
+  (`public_profile`, alle fuenf Felder default an, `enabled` schaltet die Seite ganz ab).
+  Danach: dieselbe Seite in Android und iOS (heute nur Web).
+
 - **Standard-Emoji in der Android-Spot-Ueberschrift.** `SpotSessionsScreen.kt` setzt
   `"📍 $spot"` in den TopAppBar-Titel. Laut Memory `no-standard-emojis-in-ui` gehoeren dort
   eigene Material-SVG-Icons hin, keine System-Emojis. Beim Nachziehen des Wetter-Titels am

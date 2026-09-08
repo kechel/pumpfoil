@@ -1714,6 +1714,16 @@ const fi: Record<string, string> = {
   "foiler.records": "Viimeisten 12 kuukauden ennätykset",
   "foiler.notFound": "Tätä profiilisivua ei ole saatavilla.",
   "foiler.offHint": "Profiilisivusi on piilotettu muilta. Muuta näkyvyyttä:",
+  "pubprof.title": "Julkinen profiilisivu",
+  "pubprof.hint": "Muut foilaajat voivat nähdä sinusta sivun. Sinä päätät, mitä siinä on — nimi ja kuva näkyvät joka tapauksessa jokaisen session yhteydessä. Sessioluetteloa siinä ei tarkoituksella ole.",
+  "pubprof.enabled": "Profiilisivu näkyy muille",
+  "pubprof.fields": "Mitä siinä saa näkyä",
+  "pubprof.join": "Mukana",
+  "pubprof.watch": "Kello",
+  "pubprof.foil": "Foili",
+  "pubprof.homespot": "Kotispotti",
+  "pubprof.records": "Viimeisten 12 kuukauden ennätykset",
+  "pubprof.view": "Katso profiilisivuni",
 };
 
 export default fi;

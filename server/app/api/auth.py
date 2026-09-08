@@ -194,7 +194,7 @@ def register(
 
 @router.get("/me", response_model=ProfileOut)
 def me(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> ProfileOut:
-    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "en", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), pump_unit=(user.pump_unit or "hz"), social_allowed=(user.social_allowed is not False),
+    return ProfileOut(id=user.id, email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "en", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), pump_unit=(user.pump_unit or "hz"), social_allowed=(user.social_allowed is not False),
                       **_profile_hinweise(db, user.id))
 
 
@@ -229,7 +229,7 @@ def update_me(
             start_reanalysis(user.id, new_sens)
     db.commit()
     db.refresh(user)
-    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "en", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), pump_unit=(user.pump_unit or "hz"), social_allowed=(user.social_allowed is not False),
+    return ProfileOut(id=user.id, email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "en", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), pump_unit=(user.pump_unit or "hz"), social_allowed=(user.social_allowed is not False),
                       **_profile_hinweise(db, user.id))
 
 
@@ -244,7 +244,7 @@ def set_age_range(
     user.age_bracket = (body.age_bracket or None)
     db.commit()
     db.refresh(user)
-    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url,
+    return ProfileOut(id=user.id, email=user.email, display_name=user.display_name, avatar_url=user.avatar_url,
                       is_admin=user.is_admin, language=user.language or "en",
                       beta=True,
                       foil_sensitivity=(user.foil_sensitivity or "normal"), pump_unit=(user.pump_unit or "hz"),
@@ -406,7 +406,7 @@ async def upload_avatar(
     user.avatar_url = url
     db.commit()
     db.refresh(user)
-    return ProfileOut(email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "en", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), pump_unit=(user.pump_unit or "hz"), social_allowed=(user.social_allowed is not False),
+    return ProfileOut(id=user.id, email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "en", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), pump_unit=(user.pump_unit or "hz"), social_allowed=(user.social_allowed is not False),
                       **_profile_hinweise(db, user.id))
 
 

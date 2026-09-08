@@ -1732,6 +1732,16 @@ const nl: Record<string, string> = {
   "foiler.records": "Records van de laatste 12 maanden",
   "foiler.notFound": "Deze profielpagina is niet beschikbaar.",
   "foiler.offHint": "Je profielpagina is verborgen voor anderen. Zichtbaarheid wijzigen:",
+  "pubprof.title": "Openbare profielpagina",
+  "pubprof.hint": "Andere foilers kunnen een pagina over jou zien. Jij bepaalt wat erop staat — je naam en foto staan toch al onder elke sessie. Er staat bewust geen lijst van je sessies op.",
+  "pubprof.enabled": "Profielpagina zichtbaar voor anderen",
+  "pubprof.fields": "Wat er op mag staan",
+  "pubprof.join": "Lid sinds",
+  "pubprof.watch": "Horloge",
+  "pubprof.foil": "Foil",
+  "pubprof.homespot": "Homespot",
+  "pubprof.records": "Records van de laatste 12 maanden",
+  "pubprof.view": "Mijn profielpagina bekijken",
 };
 
 export default nl;

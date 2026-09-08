@@ -1672,6 +1672,16 @@ const ja: Record<string, string> = {
   "foiler.records": "直近12か月の記録",
   "foiler.notFound": "このプロフィールページは利用できません。",
   "foiler.offHint": "あなたのプロフィールページは他の人には非表示です。公開設定を変更:",
+  "pubprof.title": "公開プロフィールページ",
+  "pubprof.hint": "他のフォイラーがあなたのページを見られます。何を載せるかはあなたが決めます — 名前と写真はどのセッションにも表示されます。セッション一覧は意図的に載せません。",
+  "pubprof.enabled": "プロフィールページを他の人に公開",
+  "pubprof.fields": "掲載してよい項目",
+  "pubprof.join": "参加日",
+  "pubprof.watch": "ウォッチ",
+  "pubprof.foil": "フォイル",
+  "pubprof.homespot": "ホームスポット",
+  "pubprof.records": "直近12か月の記録",
+  "pubprof.view": "自分のプロフィールページを見る",
 };
 
 export default ja;

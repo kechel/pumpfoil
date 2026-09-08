@@ -32,6 +32,7 @@ Sprache kommt aus der Adresse (`i18n.langAusPfad`), `hreflang` steht in `index.h
 | `/sessions/:id/label` | `Labeling.tsx` | Pump-**Tap-to-Label** synchron zum Video (Ground Truth fürs Pump-Modell). |
 | `/import` | `Import.tsx` | Erklärt den Garmin-Export und bietet den FIT/ZIP-Upload. |
 | `/alle-sessions` | `AllSessionsRedirect.tsx` | Redirect für Alt-Links/Bookmarks. |
+| `/foiler/:id` | `Foiler.tsx` | **Oeffentliche Profilseite eines Foilers** (Login noetig, nicht fuer Suchmaschinen): Anzeigename, Dabei-seit, Homespot, bis zu drei benutzte Uhren, drei meistgenutzte Foils, Rekorde der letzten 12 Monate. Was erscheint, entscheidet der Server aus `settings.public_profile` (`/api/community/foiler/<id>`); 404 bei hidden/blocked/unter 13/abgeschaltet. **Bewusst ohne Sessionliste** (Bewegungsprofil, 04.09.2026). Stand 08.09.2026 **nirgends verlinkt** — Einstieg noch offen. |
 | `/spots` | `Spots.tsx` | Kartenansicht aller Spot-Locations; Marker → Sessions am Spot. |
 | `/foils` | `Foils.tsx` | Foil-Katalog: mehrere als „meine" merken, eines als Standard (Stern). |
 | `/foil-stats` | `FoilStats.tsx` | Community-Vergleich je Foil: welche Werte mit welchem Material gefahren werden. |

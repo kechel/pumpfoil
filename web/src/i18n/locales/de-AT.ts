@@ -1569,6 +1569,16 @@ const deAT: Record<string, string> = {
   "foiler.records": "Rekorde der letzten 12 Monate",
   "foiler.notFound": "Diese Profilseite is net verfügbar.",
   "foiler.offHint": "Deine Profilseite is für andere ausgeblendet. Sichtbarkeit ändern:",
+  "pubprof.title": "Öffentliche Profilseite",
+  "pubprof.hint": "Andere Foiler können a Seite über di sehen. Du entscheidest, was drauf steht — Anzeigename und Bild stehen eh unter jeder Session. A Liste deiner Sessions gibt's dort bewusst net.",
+  "pubprof.enabled": "Profilseite für andere sichtbar",
+  "pubprof.fields": "Des darf drauf stehen",
+  "pubprof.join": "Dabei seit",
+  "pubprof.watch": "Uhr",
+  "pubprof.foil": "Foil",
+  "pubprof.homespot": "Homespot",
+  "pubprof.records": "Rekorde der letzten 12 Monate",
+  "pubprof.view": "Meine Profilseite anschauen",
 };
 
 export default deAT
