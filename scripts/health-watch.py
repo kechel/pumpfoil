@@ -17,7 +17,7 @@ Aufruf (aus dem server/-Verzeichnis, mit dessen venv):
 `--still` unterdrueckt die Ausgabe (fuer den Zeitgeber; Fehler gehen weiter ins Journal).
 
 Die DATABASE_URL kommt aus server/.env — mit einem eigenen Parser, weil `set -a; . ./.env` sie
-NICHT zuverlaessig exportiert und wir sonst gegen die alte SQLite-Datei laufen (bekannte Falle,
+NICHT zuverlaessig exportiert und der Import von app.config sonst abbricht (bekannte Falle,
 s. CLAUDE.md).
 """
 from __future__ import annotations

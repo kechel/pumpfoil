@@ -30,7 +30,7 @@ def main() -> int:
     ap.add_argument("--limit", type=int, default=0, help="nur die N neuesten (zum Ausprobieren)")
     args = ap.parse_args()
 
-    # DATABASE_URL MUSS im Env stehen, sonst faellt app.db auf SQLite zurueck (Memory
+    # DATABASE_URL MUSS im Env stehen, sonst bricht app.config beim Import ab (Memory
     # `reanalyse-detector-v2-env`): `set -a; . ./.env` exportiert es nicht zuverlaessig.
     if not os.environ.get("DATABASE_URL"):
         for zeile in open(os.path.join(os.path.dirname(__file__), "..", "server", ".env"), encoding="utf-8"):

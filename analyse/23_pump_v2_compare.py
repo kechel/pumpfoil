@@ -4,7 +4,7 @@
 Accel-Sessions: alt(global,|mag|) / lokal(|mag|,lauf-lokal) / v2(vertikal) /
 v2asym(vertikal + Asymmetrie „schnell hoch, langsam runter").
 
-Produktion bleibt unangetastet. DATABASE_URL via server/.env (kein SQLite).
+Produktion bleibt unangetastet. DATABASE_URL via server/.env (Postgres, Pflicht).
     cd server && ./.venv/bin/python ../analyse/23_pump_v2_compare.py
 """
 from __future__ import annotations

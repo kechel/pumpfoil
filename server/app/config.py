@@ -8,11 +8,25 @@ from pathlib import Path
 
 class Settings:
     def __init__(self) -> None:
-        # SQLite-Default für Dev; in Prod auf Postgres setzen, z. B.
-        #   postgresql+psycopg://user:pass@localhost/foil
-        self.database_url: str = os.environ.get(
-            "DATABASE_URL", "sqlite:///./foil.sqlite3"
-        )
+        # Postgres ist Pflicht — es gibt KEINEN Rueckfall. Bis 08.09.2026 stand hier
+        # `sqlite:///./foil.sqlite3` als Default, und der hat mehrfach stumm geschadet: ein
+        # Skript ohne DATABASE_URL im Env baute sich wortlos eine leere SQLite, legte per
+        # create_all 54 leere Tabellen an und meldete dann „0 Sessions" statt eines Fehlers.
+        # Ein sofortiger Abbruch mit Hinweis ist immer besser als ein falsches Ergebnis.
+        url = (os.environ.get("DATABASE_URL") or "").strip()
+        if not url:
+            raise RuntimeError(
+                "DATABASE_URL fehlt. Postgres ist Pflicht (kein SQLite-Rueckfall mehr).\n"
+                "  Dienst:  steht in server/.env, systemd liest sie per EnvironmentFile.\n"
+                "  Skript:  cd server && DATABASE_URL=\"$(sed -n 's/^DATABASE_URL=//p' .env)\" "
+                ".venv/bin/python ..."
+            )
+        if not url.startswith("postgresql"):
+            raise RuntimeError(
+                f"DATABASE_URL muss auf Postgres zeigen (postgresql+psycopg://...), nicht auf "
+                f"'{url.split(':', 1)[0]}:'."
+            )
+        self.database_url: str = url
         # JWT-Secret — in Prod MUSS dies gesetzt werden.
         self.jwt_secret: str = os.environ.get("JWT_SECRET", "dev-insecure-change-me")
         self.jwt_algorithm: str = "HS256"

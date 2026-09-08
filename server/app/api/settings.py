@@ -114,7 +114,30 @@ DEFAULTS = {
     "homespot": "",
     # Körpergewicht (kg) — optional, für spätere Leistungsberechnung. 0 = nicht angegeben.
     "weight_kg": 0,
+    # Was auf der oeffentlichen Foiler-Seite (`/foiler/<id>`) steht. Vorgabe Jan (08.09.2026):
+    # standardmaessig Anzeigename, Beitrittsdatum, Uhr, Foil, Homespot und die allgemeinen
+    # Rekorde ueber alle Foils — Rekorde fest auf ein Jahr, ohne Fensterwahl.
+    #
+    # Name und Avatar haben KEINEN Schalter: sie sind die Identitaet der Seite, und sie stehen
+    # ohnehin unter jeder Session im Feed. Alles andere kann der Nutzer einzeln abschalten,
+    # `enabled: False` nimmt die Seite ganz weg.
+    #
+    # Was hier bewusst FEHLT: eine Session-Liste. Produktentscheidung vom 04.09.2026 — aus
+    # gebuendelten Sessions einer Person liest man Spot, Wochentage und Uhrzeiten ab, also ein
+    # Bewegungsprofil. Wer hier „nur mal eben" eine Liste ergaenzt, baut genau das, was
+    # abgelehnt wurde.
+    "public_profile": {
+        "enabled": True,
+        "join": True,
+        "watch": True,
+        "foil": True,
+        "homespot": True,
+        "records": True,
+    },
 }
+
+# Schalter der oeffentlichen Foiler-Seite (ohne `enabled`, das steht fuer die ganze Seite).
+PUBLIC_PROFILE_KEYS = ("join", "watch", "foil", "homespot", "records")
 
 # Bekannte Push-Typen (Quelle der Wahrheit, auch im Frontend gespiegelt).
 NOTIFY_TYPES = ("like", "analyzed", "record")
@@ -370,6 +393,17 @@ def update_settings(
         else:
             from ..spots import canon_spot_name
             current["homespot"] = str(canon_spot_name(db, v))[:120]
+    if "public_profile" in patch:
+        v = patch["public_profile"] or {}
+        if isinstance(v, dict):
+            # Nur bekannte Schalter, nur Wahrheitswerte — ein unbekannter Schluessel im Patch
+            # darf hier nichts anlegen, sonst waechst die Einstellung unkontrolliert.
+            aktuell = dict(DEFAULTS["public_profile"])
+            aktuell.update(current.get("public_profile") or {})
+            for k in ("enabled",) + PUBLIC_PROFILE_KEYS:
+                if k in v:
+                    aktuell[k] = bool(v[k])
+            current["public_profile"] = aktuell
     if "weight_kg" in patch:
         try:
             current["weight_kg"] = max(0, min(300, round(float(patch["weight_kg"]))))

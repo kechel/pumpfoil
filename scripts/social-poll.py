@@ -22,7 +22,7 @@ from xml.etree import ElementTree as ET
 import requests
 
 # .env von Hand lesen — `set -a; . .env` exportiert nicht zuverlaessig, und ohne DATABASE_URL
-# laeuft das Skript gegen den SQLite-Dev-Fallback (s. CLAUDE.md).
+# bricht das Skript beim Import von app.config ab (s. CLAUDE.md).
 _ENV = Path(__file__).resolve().parent.parent / "server" / ".env"
 if _ENV.exists():
     for zeile in _ENV.read_text().splitlines():

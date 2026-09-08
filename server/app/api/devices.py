@@ -1141,5 +1141,5 @@ def pair_poll(
 
 
 def _aware(dt: datetime) -> datetime:
-    """SQLite gibt naive datetimes zurück — als UTC interpretieren."""
+    """Zeitstempel ohne Zeitzone als UTC interpretieren (sonst bricht jeder Vergleich)."""
     return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)

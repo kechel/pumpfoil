@@ -41,8 +41,9 @@ def current_user(
     if exp is not None and exp - datetime.now(timezone.utc) < timedelta(days=30):
         response.headers["X-Refresh-Token"] = create_access_token(user_id)
     # "Zuletzt aktiv" gedrosselt aktualisieren (höchstens 1×/Stunde) — kein Write je Request.
-    # last_seen_at kann unter SQLite (Dev/Tests) naiv zurückkommen -> vor dem Vergleich als
-    # UTC-aware behandeln, sonst „can't subtract offset-naive and offset-aware".
+    # last_seen_at defensiv als UTC-aware behandeln: eine ohne Zeitzone geschriebene Spalte
+    # käme naiv zurück, und dann bricht der Vergleich mit „can't subtract offset-naive and
+    # offset-aware" — mitten in der Authentifizierung, also auf JEDEM Request.
     now = datetime.now(timezone.utc)
     last = user.last_seen_at
     if last is not None and last.tzinfo is None:

@@ -9,7 +9,7 @@ Befund (Sessions 360/361): die produktive Schwelle ist GLOBAL
 glatte Pump-Läufe (Markus) fallen komplett drunter -> ganze Läufe ohne Marker.
 NEU: Schwelle relativ zur LAUF-eigenen Std (+ niedrigerer Boden + Pump-Band-Gate).
 
-Lauf:  DATABASE_URL muss im Env sein (kein SQLite-Fallback):
+Lauf:  DATABASE_URL muss im Env sein (es gibt keine Rueckfallebene):
     cd server && ./.venv/bin/python ../analyse/22_pump_adaptive_compare.py
 (parst server/.env selbst).
 """
