@@ -652,6 +652,7 @@ const zh: Record<string, string> = {
   "adm.stats.newUsers": "新用户",
   "adm.stats.activeUsers": "活跃用户",
   "adm.stats.sessions": "新记录",
+  "adm.stats.imported": "已导入",
   "adm.stats.photos": "照片",
   "adm.stats.likes": "点赞",
   "adm.ov.users": "用户",

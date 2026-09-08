@@ -652,6 +652,7 @@ const id: Record<string, string> = {
   "adm.stats.newUsers": "Pengguna baru",
   "adm.stats.activeUsers": "Pengguna aktif",
   "adm.stats.sessions": "Sesi baru",
+  "adm.stats.imported": "Diimpor",
   "adm.stats.photos": "Foto",
   "adm.stats.likes": "Suka",
   "adm.ov.users": "Pengguna",

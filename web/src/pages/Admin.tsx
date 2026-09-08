@@ -212,6 +212,12 @@ const STATS_METRICS: [keyof AdminStatsSeries["totals"], string, string][] = [
   ["new_users", "adm.stats.newUsers", "#22d3ee"],
   ["active_users", "adm.stats.activeUsers", "#a3e635"],
   ["sessions", "adm.stats.sessions", "#f59e0b"],
+  // Zweite Kurve, bewusst neben der ersten (Jan, 08.09.2026: „vielleicht sind beide Kurven
+  // interessant"): `sessions` = an dem Tag GEFAHREN, `imported` = an dem Tag bei uns ANGEKOMMEN.
+  // Die beiden laufen normalerweise fast deckungsgleich; auseinander laufen sie genau dann, wenn
+  // eine Kontoverknuepfung Historie nachholt — am 07.09. waren das 1049 alte Suunto-Fahrten aus
+  // 2021 bis 2026 an einem Tag.
+  ["imported", "adm.stats.imported", "#38bdf8"],
   ["photos", "adm.stats.photos", "#c084fc"],
   ["likes", "adm.stats.likes", "#fb7185"],
 ];

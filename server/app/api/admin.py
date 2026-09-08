@@ -709,8 +709,23 @@ def _stats_cut(period: str) -> datetime | None:
 @router.get("/stats-series")
 def stats_series(period: str = "30d", _a: models.User = Depends(current_admin),
                  db: Session = Depends(get_db)) -> dict:
-    """Tages-Verlauf (+ Fenster-Summen) für 5 Kennzahlen: neue Nutzer, aktive Nutzer (=Nutzer mit
-    Session am Tag), neue Sessions, Fotos, Likes. Fenster wie die Community (heute/10d/30d/365d/all)."""
+    """Tages-Verlauf (+ Fenster-Summen): neue Nutzer, aktive Nutzer, gefahrene Sessions,
+    IMPORTIERTE Sessions, Fotos, Likes. Fenster wie die Community (heute/10d/30d/365d/all).
+
+    ACHTUNG, ZWEI VERSCHIEDENE DATEN je Session — bis zum 08.09.2026 waren sie verwechselt:
+      * `started_at` = wann GEFAHREN wurde. Das ist die Frage „wie viel wurde gepumpt".
+      * `created_at` = wann die Zeile bei UNS entstand. Das ist eine Aussage ueber unseren
+        Import, nicht ueber die Nutzer.
+
+    Vorher zaehlte alles nach `created_at`. Am 07.09. holte die Nachhol-Aktion der
+    Kontoverknuepfungen 1049 alte Suunto-Fahrten (aus 2021 bis 2026) an EINEM Tag — die Kurve
+    zeigte daraufhin „1049 neue Sessions gestern" und die Besitzer als „aktive Nutzer", obwohl
+    keiner von ihnen an dem Tag auf dem Wasser war. Jans Einwand: „es waren halt nicht 1000
+    Sessions gestern".
+
+    Jetzt zaehlen `sessions` und `active_users` nach dem FAHRTDATUM, und `imported` kommt als
+    eigene Reihe dazu — die Import-Spitzen bleiben also sichtbar, stehen aber nicht mehr da, wo
+    sie nicht hingehoeren."""
     cut = _stats_cut(period)
 
     def series(col, model, *, distinct=None, extra=None) -> dict[str, int]:
@@ -735,19 +750,24 @@ def stats_series(period: str = "30d", _a: models.User = Depends(current_admin),
     S, U, P, L = models.Session, models.User, models.SessionPhoto, models.SessionLike
     live = S.deleted.isnot(True)
     nu = series(U.created_at, U)
-    au = series(S.created_at, S, distinct=S.user_id, extra=live)
-    se = series(S.created_at, S, extra=live)
+    # Gefahren, nicht importiert — s. Docstring.
+    au = series(S.started_at, S, distinct=S.user_id, extra=live)
+    se = series(S.started_at, S, extra=live)
+    im = series(S.created_at, S, extra=live)
     ph = series(P.created_at, P)
     li = series(L.created_at, L)
-    dates = sorted(set(nu) | set(au) | set(se) | set(ph) | set(li))
+    dates = sorted(set(nu) | set(au) | set(se) | set(im) | set(ph) | set(li))
     buckets = [{
         "date": d, "new_users": nu.get(d, 0), "active_users": au.get(d, 0),
-        "sessions": se.get(d, 0), "photos": ph.get(d, 0), "likes": li.get(d, 0),
+        "sessions": se.get(d, 0), "imported": im.get(d, 0),
+        "photos": ph.get(d, 0), "likes": li.get(d, 0),
     } for d in dates]
     totals = {
         "new_users": total(U, col=U.created_at),
-        "active_users": total(S, distinct=S.user_id, col=S.created_at, extra=live),  # distinct über Fenster
-        "sessions": total(S, col=S.created_at, extra=live),
+        # distinct über das Fenster, ebenfalls nach Fahrtdatum
+        "active_users": total(S, distinct=S.user_id, col=S.started_at, extra=live),
+        "sessions": total(S, col=S.started_at, extra=live),
+        "imported": total(S, col=S.created_at, extra=live),
         "photos": total(P, col=P.created_at),
         "likes": total(L, col=L.created_at),
     }

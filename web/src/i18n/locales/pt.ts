@@ -652,6 +652,7 @@ const pt: Record<string, string> = {
   "adm.stats.newUsers": "Novos usuários",
   "adm.stats.activeUsers": "Usuários ativos",
   "adm.stats.sessions": "Novas sessões",
+  "adm.stats.imported": "Importadas",
   "adm.stats.photos": "Fotos",
   "adm.stats.likes": "Curtidas",
   "adm.ov.users": "Usuários",
