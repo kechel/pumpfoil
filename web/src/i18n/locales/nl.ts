@@ -1074,6 +1074,7 @@ const nl: Record<string, string> = {
   "foils.title": "Mijn foils",
   "foils.hint": "Bewaar je foils en kies er één als standaard (★). De standaard is per sessie te overschrijven.",
   "foils.search": "Foil zoeken…",
+  "foils.none": "Geen resultaten.",
   "foils.allBrands": "Alle merken",
   "foils.catalog": "Catalogus",
   "foils.choose": "Kiezen",

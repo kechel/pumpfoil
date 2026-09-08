@@ -1074,6 +1074,7 @@ const cs: Record<string, string> = {
   "foils.title": "Moje foily",
   "foils.hint": "Ulož si své foily a vyber jeden jako výchozí (★). Výchozí lze přepsat u každé relace.",
   "foils.search": "Hledat foil…",
+  "foils.none": "Žádné výsledky.",
   "foils.allBrands": "Všechny značky",
   "foils.catalog": "Katalog",
   "foils.choose": "Vybrat",

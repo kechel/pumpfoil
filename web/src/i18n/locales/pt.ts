@@ -976,6 +976,7 @@ const pt: Record<string, string> = {
   "foils.title": "Meus foils",
   "foils.hint": "Marque seus foils e escolha um como padrão (★). O padrão pode ser trocado por sessão.",
   "foils.search": "Buscar foil…",
+  "foils.none": "Sem resultados.",
   "foils.allBrands": "Todas as marcas",
   "foils.catalog": "Catálogo",
   "foils.choose": "Escolher",

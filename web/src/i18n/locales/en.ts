@@ -1099,6 +1099,7 @@ const en: Record<string, string> = {
   "foils.defaultSportHint": "Applies to future recordings only — existing sessions stay as they are. Choosing it on the watch comes later.",
   "foils.hint": "Mark your foils and pick one as default (★). The default is overridable per session.",
   "foils.search": "Search foil…",
+  "foils.none": "No matches.",
   "foils.allBrands": "All brands",
   "foils.missingFoil": "Your brand or size missing from the list?",
   "foils.missingCta": "Ask us to add it",

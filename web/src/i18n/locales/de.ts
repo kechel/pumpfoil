@@ -1199,6 +1199,7 @@ const de: Record<string, string> = {
   "foils.defaultSportHint": "Gilt nur für künftige Aufnahmen — bestehende Sessions bleiben, wie sie sind. Auf der Uhr wählbar wird das später.",
   "foils.hint": "Merke deine Foils und wähle eines als Standard (★). Der Standard ist je Session überschreibbar.",
   "foils.search": "Foil suchen…",
+  "foils.none": "Keine Treffer.",
   "foils.allBrands": "Alle Marken",
   "foils.missingFoil": "Deine Marke oder Größe fehlt im Katalog?",
   "foils.missingCta": "Nachtragen lassen",

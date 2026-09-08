@@ -750,6 +750,7 @@ const it: Record<string, string> = {
   "foils.title": "I miei foil",
   "foils.hint": "Segna i tuoi foil e scegline uno come predefinito (★). Sovrascrivibile per sessione.",
   "foils.search": "Cerca foil…",
+  "foils.none": "Nessun risultato.",
   "foils.allBrands": "Tutte le marche",
   "foils.catalog": "Catalogo",
   "foils.choose": "Scegli",

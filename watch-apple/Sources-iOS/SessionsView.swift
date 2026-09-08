@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 private enum SessionScope { case mine, spot, all }
 
@@ -34,6 +35,15 @@ struct SessionsView: View {
     @State private var month = ""              // "YYYY-MM" | "" (nur eigene)
     @State private var months: [MonthCount] = []
     @State private var weather: WeatherBlock?
+    // Datei-Import (FIT/TCX/GPX, auch ZIP) — in der PWA sitzt der Knopf seit dem 07.09.2026 in
+    // „Meine Sessions" unter den Filtern. In den Apps fehlte der Import ganz (s. ImportFileButton
+    // auf Android und `Api.uploadFit`).
+    @State private var zeigeWaehler = false
+    @State private var importLaeuft = false
+    @State private var importFortschritt = ""
+    @State private var importMeldung: String?
+    @State private var importierteId: Int?
+    @State private var oeffneImport = false
 
     // Der Body war EIN Ausdruck (List mit 7 Kindern + 15 Modifier mit Closures) und stand mit
     // >500 ms im Build-Log. Listeninhalt, Toolbar und Startladen sind jetzt eigene typisierte Teile.
@@ -63,6 +73,22 @@ struct SessionsView: View {
                 .onChange(of: month) { _ in Task { await load() } }
                 .onChange(of: sync.tick) { _ in Task { await load() } }
                 .task { await loadMonths() }
+                // Dateiauswahl: `.data` statt einer engeren Liste — .fit hat auf iOS keinen
+                // eigenen Typ, eine Filterung wuerde genau die Dateien ausgrauen, die gemeint
+                // sind. Geprueft wird serverseitig.
+                .fileImporter(isPresented: $zeigeWaehler, allowedContentTypes: [.data],
+                              allowsMultipleSelection: true) { ergebnis in
+                    if case .success(let urls) = ergebnis { importiere(urls) }
+                }
+                .alert(Loc.t("import.title", lang), isPresented: importMeldungBinding) {
+                    Button(Loc.t("common.close", lang)) {
+                        importMeldung = nil
+                        if importierteId != nil { oeffneImport = true }
+                    }
+                } message: {
+                    Text(importMeldung ?? "")
+                }
+                .navigationDestination(isPresented: $oeffneImport) { importZiel }
         }
     }
 
@@ -70,6 +96,7 @@ struct SessionsView: View {
         uploadCardSection
         if scope == .mine { transfersAndSuggestions }
         filterSection
+        importSection
         aussortiertErklaerung
         spotRecordsSection
         spotWeatherSection
@@ -249,6 +276,93 @@ struct SessionsView: View {
             Button(Loc.t("common.cancel", lang), role: .cancel) {}
         } message: {
             Text(Loc.t("sessions.deleteAllOtherConfirm", lang))
+        }
+    }
+
+    // Knopf rechts unter den Filtern, nur in „Meine": ein Import erzeugt immer eine EIGENE
+    // Session, in der Community-Ansicht waere er irrefuehrend (dieselbe Begruendung wie im Web).
+    @ViewBuilder private var importSection: some View {
+        if scope == .mine {
+            Section {
+                HStack {
+                    Spacer()
+                    Button { zeigeWaehler = true } label: {
+                        Label(importLaeuft
+                              ? Loc.t("sessions.importing", lang)
+                                + (importFortschritt.isEmpty ? "" : " " + importFortschritt) + " …"
+                              : Loc.t("sessions.uploadFitZip", lang),
+                              systemImage: "square.and.arrow.down")
+                            .font(.subheadline)
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(importLaeuft)
+                }
+                .listRowInsets(EdgeInsets(top: 2, leading: 16, bottom: 2, trailing: 16))
+                .listRowSeparator(.hidden)
+            }
+        }
+    }
+
+    private var importMeldungBinding: Binding<Bool> {
+        Binding(get: { importMeldung != nil }, set: { if !$0 { importMeldung = nil } })
+    }
+
+    @ViewBuilder private var importZiel: some View {
+        if let id = importierteId { SessionDetailView(id: id) } else { EmptyView() }
+    }
+
+    /// Dateien hochladen und danach dasselbe sagen wie die PWA. Uebersprungen ist KEIN Fehler:
+    /// der Garmin-Gesamtexport enthaelt Aktivitaeten und Tagesaufzeichnungen gemischt (am
+    /// Dateinamen nicht unterscheidbar) — wer den Ordner hochlaedt, soll „12 importiert,
+    /// 87 uebersprungen" lesen und nicht „87 fehlgeschlagen".
+    private func importiere(_ urls: [URL]) {
+        guard !urls.isEmpty else { return }
+        importLaeuft = true
+        Task {
+            var fehler = 0
+            var uebersprungen = 0
+            var grund = ""
+            var letzte: Int?
+            for (i, u) in urls.enumerated() {
+                if urls.count > 1 { importFortschritt = "\(i + 1)/\(urls.count)" }
+                let zugriff = u.startAccessingSecurityScopedResource()
+                do {
+                    let daten = try Data(contentsOf: u)
+                    let r = try await Api.uploadFit(data: daten, filename: u.lastPathComponent)
+                    if let s = r.skipped, !s.isEmpty {
+                        uebersprungen += 1
+                        if grund.isEmpty, let d = r.detail, !d.isEmpty { grund = d }
+                    } else if let id = r.id {
+                        letzte = id
+                    }
+                } catch {
+                    fehler += 1
+                }
+                if zugriff { u.stopAccessingSecurityScopedResource() }
+            }
+            importFortschritt = ""
+            importLaeuft = false
+            importierteId = letzte
+            var text: String?
+            if fehler > 0 {
+                text = Loc.t("sessions.uploadFail", lang)
+                    .replacingOccurrences(of: "{fail}", with: "\(fehler)")
+                    .replacingOccurrences(of: "{total}", with: "\(urls.count)")
+            } else if uebersprungen > 0 {
+                // Bei genau EINER Datei den Grund im Klartext zeigen — sonst raetselt man, warum
+                // nichts passiert ist.
+                text = (urls.count == 1 && !grund.isEmpty)
+                    ? Loc.t("sessions.uploadSkippedOne", lang).replacingOccurrences(of: "{reason}", with: grund)
+                    : Loc.t("sessions.uploadSkipped", lang)
+                        .replacingOccurrences(of: "{skipped}", with: "\(uebersprungen)")
+                        .replacingOccurrences(of: "{total}", with: "\(urls.count)")
+            }
+            await load()
+            if let text {
+                importMeldung = text
+            } else if letzte != nil {
+                oeffneImport = true
+            }
         }
     }
 

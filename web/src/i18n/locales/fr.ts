@@ -752,6 +752,7 @@ const fr: Record<string, string> = {
   "foils.title": "Mes foils",
   "foils.hint": "Marque tes foils et choisis-en un par défaut (★). Modifiable par session.",
   "foils.search": "Chercher un foil…",
+  "foils.none": "Aucun résultat.",
   "foils.allBrands": "Toutes les marques",
   "foils.catalog": "Catalogue",
   "foils.choose": "Choisir",

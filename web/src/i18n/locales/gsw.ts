@@ -668,6 +668,7 @@ const gsw: Record<string, string> = {
   "foils.title": "Mini Foils",
   "foils.hint": "Merk dini Foils und wähl eis als Standard (★). Je Session überschribbar.",
   "foils.search": "Foil sueche…",
+  "foils.none": "Kei Träffer.",
   "foils.allBrands": "Alli Marke",
   "foils.catalog": "Katalog",
   "foils.choose": "Wähle",

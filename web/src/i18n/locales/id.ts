@@ -976,6 +976,7 @@ const id: Record<string, string> = {
   "foils.title": "Foil saya",
   "foils.hint": "Tandai foil-mu dan pilih satu sebagai bawaan (★). Bawaan bisa ditimpa per sesi.",
   "foils.search": "Cari foil…",
+  "foils.none": "Tidak ada hasil.",
   "foils.allBrands": "Semua merek",
   "foils.catalog": "Katalog",
   "foils.choose": "Pilih",

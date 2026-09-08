@@ -16,10 +16,17 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.put
 import java.net.HttpURLConnection
 import java.net.URL
+
+/**
+ * Ergebnis eines Datei-Imports: entweder eine angelegte Session (`sessionId`) oder ein Grund,
+ * warum die Datei uebersprungen wurde (`skipped` + `detail` im Klartext vom Server).
+ */
+data class FitUpload(val sessionId: Int?, val skipped: String?, val detail: String?)
 
 // REST-Client zur Pumpfoil-API (JWT Bearer). Spiegelt web/src/lib/api.ts.
 object Api {
@@ -304,6 +311,47 @@ object Api {
                 val err = conn.errorStream?.bufferedReader()?.readText() ?: ""
                 throw RuntimeException("Upload fehlgeschlagen ($code): $err")
             }
+        }
+
+    /**
+     * Aufgezeichnete Aktivitaet importieren (FIT/TCX/GPX, auch als ZIP) — derselbe Endpunkt, den
+     * die PWA benutzt (`POST /api/sessions/upload-fit`, Feldname "file", multipart wie oben).
+     *
+     * Die Antwort ist ENTWEDER eine angelegte Session (dann steht `id` drin) ODER
+     * `{"skipped": grund, "detail": text}`. Uebersprungen ist KEIN Fehler: der Garmin-Gesamtexport
+     * enthaelt Aktivitaeten und Tagesaufzeichnungen gemischt, am Dateinamen nicht unterscheidbar.
+     * Deshalb gibt diese Funktion beides zurueck, statt bei "skipped" zu werfen.
+     *
+     * readTimeout absichtlich hoch: der Server parst die Datei und wertet sie gleich mit aus.
+     */
+    suspend fun uploadFit(bytes: ByteArray, filename: String): FitUpload =
+        withContext(Dispatchers.IO) {
+            val boundary = "----pumpfoil${System.nanoTime()}"
+            val conn = (URL(BASE + "/api/sessions/upload-fit").openConnection() as HttpURLConnection).apply {
+                requestMethod = "POST"
+                doOutput = true
+                setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
+                token?.let { setRequestProperty("Authorization", "Bearer $it") }
+                connectTimeout = 15000; readTimeout = 300000
+            }
+            conn.outputStream.use { out ->
+                out.write(("--$boundary\r\nContent-Disposition: form-data; name=\"file\"; filename=\"$filename\"\r\n" +
+                    "Content-Type: application/octet-stream\r\n\r\n").toByteArray())
+                out.write(bytes)
+                out.write("\r\n--$boundary--\r\n".toByteArray())
+            }
+            val code = conn.responseCode
+            if (code !in 200..299) {
+                val err = conn.errorStream?.bufferedReader()?.readText() ?: ""
+                throw RuntimeException("Import fehlgeschlagen ($code): $err")
+            }
+            val body = conn.inputStream.bufferedReader().readText()
+            val o = json.parseToJsonElement(body).jsonObject
+            FitUpload(
+                sessionId = o["id"]?.jsonPrimitive?.intOrNull,
+                skipped = o["skipped"]?.jsonPrimitive?.contentOrNull,
+                detail = o["detail"]?.jsonPrimitive?.contentOrNull,
+            )
         }
 
     suspend fun uploadAvatar(bytes: ByteArray, filename: String = "avatar.jpg", mime: String = "image/jpeg"): Unit =
