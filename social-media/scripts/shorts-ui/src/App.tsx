@@ -143,16 +143,20 @@ const OUTRO_ICONS: Record<PvPlatform, [string, string][]> = {
   // TikTok zeichnet GEFUELLTE Symbole, nicht konturierte (siehe OUTRO_FILL).
   // Die Sprechblase bekommt ihre drei Punkte als eigene Kreise im selben Pfad
   // — mit der Even-Odd-Regel stanzen sie sich aus der Flaeche heraus.
+  // TikTok und RedNote (das hart auf die TikTok-Datei verlinkt): nur Herz und
+  // Stern. Beide Apps haben vier Aktionen, aber Liken und Speichern sind die
+  // beiden, die zaehlen — auf RedNote treibt 收藏 sogar die Suche und damit die
+  // Langzeit-Reichweite. Sprechblase und Teilen-Pfeil liegen auskommentiert
+  // darunter (Jan, 08.09.: hoechstens drei Symbole, lieber zwei).
   tiktok: [
     ["M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z", "heart"],
-    // Punkte auf y=12: das ist der Mittelpunkt des Blasenkreises. Der Bogen
-    // A9 9 von (7.9,20) nach (4,16.1) hat sein Zentrum bei (12,12) — auf y=11
-    // sassen sie eine Rastereinheit zu hoch (Jan, 08.09.: "2px zu weit oben").
-    ["M7.9 20A9 9 0 1 0 4 16.1L2 22Z"
-     + "M6.6 12a1.4 1.4 0 1 0 2.8 0a1.4 1.4 0 1 0-2.8 0"
-     + "M10.6 12a1.4 1.4 0 1 0 2.8 0a1.4 1.4 0 1 0-2.8 0"
-     + "M14.6 12a1.4 1.4 0 1 0 2.8 0a1.4 1.4 0 1 0-2.8 0", "comment"],
-    ["M14 7V3l7 7-7 7v-4.1c-5 0-8.5 1.6-11 5.1 1-5 4-10 11-11z", "share"],
+    ["M12 2.5l2.9 5.9 6.6.9-4.8 4.6 1.2 6.5-5.9-3.1-5.9 3.1 1.2-6.5L2.5 9.3l6.6-.9z", "stern"],
+    // Punkte auf y=12, dem Mittelpunkt des Blasenkreises:
+    // ["M7.9 20A9 9 0 1 0 4 16.1L2 22Z"
+    //  + "M6.6 12a1.4 1.4 0 1 0 2.8 0a1.4 1.4 0 1 0-2.8 0"
+    //  + "M10.6 12a1.4 1.4 0 1 0 2.8 0a1.4 1.4 0 1 0-2.8 0"
+    //  + "M14.6 12a1.4 1.4 0 1 0 2.8 0a1.4 1.4 0 1 0-2.8 0", "comment"],
+    // ["M14 7V3l7 7-7 7v-4.1c-5 0-8.5 1.6-11 5.1 1-5 4-10 11-11z", "share"],
   ],
 };
 
