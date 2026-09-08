@@ -235,9 +235,28 @@ GRUPPEN = [
 # heute NIRGENDS, bis es veroeffentlicht wird. Bei der Freigabe wandern die Zeilen unveraendert
 # nach `Changelog.tsx` — abschreiben, nicht neu erfinden.
 IN_REVIEW: list[dict] = [
-    {"name": "Android phone + Wear OS", "version": "1.1.26 / 1.2.26",
-     "note": "submitted 7 September, waiting for Google",
+    {"name": "Android phone + Wear OS", "version": "1.1.27 / 1.2.27",
+     # ERSETZT die Einreichung vom 07.09. (1.1.26/1.2.26), bevor Google sie freigegeben hat —
+     # Entscheidung Jan (08.09.2026): „statt eine Woche zu warten lade ich das Update direkt neu
+     # hoch, dann verlieren wir nur einen Tag anstatt einer ganzen Woche fuer den echten Bugfix
+     # von heute". Ein neuer Upload auf denselben Track ersetzt die laufende Pruefung; das ist
+     # laut der Regel vom 23.08. nur bei einem ECHTEN Fehler richtig, und die Ortung ueber das
+     # Handy ist einer.
+     #
+     # WICHTIG: die Punkte sind ZUSAMMENGEFUEHRT. 1.1.27 ist derselbe Baum wie 1.1.26 plus die
+     # vier Wear-Commits von heute — waeren hier nur die neuen drei Zeilen aufgefuehrt, fehlten
+     # den Nutzern die 13 aus der ersetzten Einreichung, denn die ist nie erschienen.
+     "note": "submitted 8 September (replaces the 7 September build), waiting for Google",
      "items": [
+         "The watch uses its own GPS instead of taking the position from your phone. Until now "
+         "it asked the system for \u201ethe best location\u201c, and on a watch that can mean the "
+         "phone lying on the shore — the track then shows where your phone was, not where you "
+         "rode. On one watch model half of all recordings were affected.",
+         "\u201eGPS ready\u201c on the start screen now means the watch itself has a fix. It used "
+         "to turn green on a position that came from the phone, which promised something the "
+         "recording could not deliver.",
+         "A watch without any GPS of its own says so before you start, instead of recording a "
+         "track that is not yours. Heart rate and movement are still recorded.",
          "COROS can be connected from the app at all — it pointed at the wrong address and "
          "always reported itself as unavailable, while it had been working on the website "
          "for days.",
@@ -310,33 +329,6 @@ IN_REVIEW: list[dict] = [
 ]
 
 NAECHSTES: list[dict] = [
-    {"name": "Android phone + Wear OS", "version": "1.1.27 / 1.2.27",
-     # Im Emulator durchgetestet (08.09.2026): `dumpsys location` zeigt unsere App als DIREKTEN
-     # Zuhoerer am `gps provider` und Fused auf `ProviderRequest[OFF]`, die Positionen landen im
-     # Track (Testsession 5238, 35 Punkte), und mit `geo fix … <knoten>` zeigt die Uhr Tempo und
-     # die Lauf-Erkennung springt an.
-     #
-     # Was NICHT geprueft ist: wie lange eine echte Uhr bis zum ersten Fix braucht — der
-     # Plattform-Provider kann traeger einrasten als Fused. Entscheidung Jan (08.09.): das ist
-     # kein Grund zu warten, denn auf GPS zu warten ist normal und die Uhr zeigt es an
-     # („GPS ready"/„GPS searching", und der Empfaenger laeuft schon im Ruhebild).
-     #
-     # NICHT einreichen, solange 1.1.26 / 1.2.26 in der Pruefung liegt (Vorgabe Jan, 08.09.2026).
-     # Ein neuer Upload auf denselben Track ERSETZT die laufende Pruefung, und die Wartezeit
-     # beginnt von vorne — zweimal belegt, s. die Beobachtung vom 23.08. in docs/TODO.md. Die
-     # Nutzer wuerden dadurch auch die Korrekturen aus 1.2.26 spaeter bekommen.
-     "note": "ready — goes out once the version above is approved",
-     "items": [
-         "The watch uses its own GPS instead of taking the position from your phone. Until now "
-         "it asked the system for \u201ethe best location\u201c, and on a watch that can mean the "
-         "phone lying on the shore — the track then shows where your phone was, not where you "
-         "rode. On one watch model half of all recordings were affected.",
-         "\u201eGPS ready\u201c on the start screen now means the watch itself has a fix. It used "
-         "to turn green on a position that came from the phone, which promised something the "
-         "recording could not deliver.",
-         "A watch without any GPS of its own says so before you start, instead of recording a "
-         "track that is not yours. Heart rate and movement are still recorded.",
-     ]},
     {"name": "Amazfit", "version": "1.0.8", "note": "follows straight after the current one",
      # Inhalt NUR gegenueber 1.0.7 (liegt in der Pruefung), nicht gegenueber der live stehenden
      # 1.0.6 — sonst stuenden dieselben Punkte zweimal in der Tabelle. Alles ab dem 27.08.2026 im
