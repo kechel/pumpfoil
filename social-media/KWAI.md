@@ -8,16 +8,10 @@ juengere Zielgruppe erreichen, die auf Facebook fehlt.
 ging durch.** Der Ausgang liegt in **Schweden** (77.111.247.35 und 2001:67c:2660::/48,
 beide HERNLABS/OPERA — Operas eigene Infrastruktur; IPv4 und IPv6 tunneln, kein Leck).
 
-**Was das noch NICHT beweist.** Zwischen dem Fehlschlag am 07.09. und dem Erfolg heute
-haben sich zwei Dinge geaendert, nicht eins: das Land (DE → SE) **und** der Zugang (App →
-Website). Es kann also ebenso sein, dass die Website nie gesperrt war und nur die App den
-Regionscheck macht — dann sagt das VPN ueber die App gar nichts.
-
-→ **Offener Kontrolltest:** kwai.com einmal OHNE VPN aus Deutschland laden. Geht es auch
-so, war die Website nie das Problem.
-
-(Wir sind hier schon einmal auf eine halbe Messung hereingefallen: beim China-Test hat ein
-`https://`-Praefix „BLOCKED" gemeldet und eine ganze Empfehlung getragen, siehe REDNOTE.md.)
+**Der Block haengt an der IP — kontrolliert.** Jan hat `kwai.com` am 07.09. ohne VPN aus
+Deutschland auf viele Arten probiert, nichts ging; mit VPN am 08.09. beim ersten Versuch.
+Damit ist es nicht der Browser, nicht das Konto und nicht das Geraet, sondern die Herkunft
+der Verbindung.
 
 ## Wem gehoert Kwai
 
@@ -75,7 +69,41 @@ ueber einen Android-Emulator. Anders als bei RedNote, wo `creator.rednote.com` d
 im Browser erlaubt, gibt es bei Kwai kein Gegenstueck.
 
 Der Wert des Web-Logins ist deshalb: **Beweis, dass es nur die IP ist**, und ein Blick auf
-den Kanal von aussen. Hochgeladen wird weiter aus der App.
+den Kanal von aussen. Hochgeladen wird aus der App.
+
+### Also Emulator auf dem Mac — und der ist schon da
+
+Vom Handy hochzuladen kommt fuer die Studio-Ausgaben nicht in Frage, und genau deshalb
+laufen ja auch alle brasilianischen „postar pelo PC"-Anleitungen ueber einen Emulator.
+Auf dem Mac ist die Ausstattung bereits vollstaendig (geprueft 08.09.):
+
+| | |
+|---|---|
+| Android Studio | installiert, SDK unter `~/Library/Android/sdk` |
+| AVD | **Pixel_9_Pro_XL**, 10 GB Datenpartition |
+| System-Image | `android-37.0/google_apis_playstore_ps16k/**arm64-v8a**` |
+| adb | `~/Library/Android/sdk/platform-tools/adb`, im PATH |
+
+Das Image ist arm64 (laeuft nativ auf Apple Silicon, kein Emulieren fremder Befehle) **und
+hat den Play Store** — beides genau das, was die Kwai-App braucht, weil ihr Google-Login
+ohne Play-Dienste nicht funktioniert. Die APK-Teile sind dieselben wie beim Pixel 7a
+(arm64-v8a), der Weg ueber `adb install-multiple` gilt unveraendert.
+
+**Zwei Dinge fehlen noch:**
+
+1. **Ein systemweites VPN auf dem Mac mit Ausgang in Brasilien.** Operas VPN ist ein
+   Browser-Proxy — der Emulator geht daran vorbei und meldet sich mit der deutschen IP,
+   also genau der, die gesperrt ist. Es braucht einen VPN-Dienst mit echtem Systemtunnel
+   und BR-Standort.
+2. **Die APK-Datei.** Das APKMirror-Buendel von damals liegt nicht mehr auf der Platte.
+
+Dazu: **Locale und Zeitzone im Emulator auf pt-BR / America/Sao_Paulo** stellen. Kwai
+verteilt nach Region; ein Geraet, das sich als deutsch meldet, waehrend die IP
+brasilianisch ist, ist genau die Art Widerspruch, die der Betrugserkennung auffaellt.
+
+⚠️ **Platz:** auf `/` sind nur noch 12 GB frei (98 % belegt). Eine laufende AVD will davon
+einen guten Teil. Vor dem Start also erst die 7,8 GB aus `shorts-mit-musik/youtube/` auf
+die externe Platte.
 
 ### Zwei Dinge, die beim VPN zaehlen
 
