@@ -15,6 +15,7 @@ import fi from "./locales/fi";
 import nl from "./locales/nl";
 import cs from "./locales/cs";
 import pt from "./locales/pt";
+import ptPT from "./locales/pt-PT";
 import ja from "./locales/ja";
 import zh from "./locales/zh";
 import ru from "./locales/ru";
@@ -22,7 +23,7 @@ import id from "./locales/id";
 import nb from "./locales/nb";
 
 export type Lang = "de" | "gsw" | "de-AT" | "en" | "fr" | "it" | "es" | "fi" | "nl" | "cs"
-  | "pl" | "pt" | "ja" | "zh" | "ru" | "id" | "nb";
+  | "pl" | "pt" | "pt-PT" | "ja" | "zh" | "ru" | "id" | "nb";
 
 export type Dict = Record<string, string>;
 
@@ -39,7 +40,8 @@ export const LANGS: { code: Lang; flag: string; native: string }[] = [
   { code: "nl", flag: "🇳🇱", native: "Nederlands" },
   { code: "cs", flag: "🇨🇿", native: "Čeština" },
   { code: "pl", flag: "🇵🇱", native: "Polski" },
-  { code: "pt", flag: "🇧🇷", native: "Português" },
+  { code: "pt", flag: "🇧🇷", native: "Português (Brasil)" },
+  { code: "pt-PT", flag: "🇵🇹", native: "Português (Portugal)" },
   { code: "ja", flag: "🇯🇵", native: "日本語" },
   { code: "zh", flag: "🇨🇳", native: "中文" },
   { code: "ru", flag: "🇷🇺", native: "Русский" },
@@ -47,10 +49,13 @@ export const LANGS: { code: Lang; flag: string; native: string }[] = [
   { code: "nb", flag: "🇳🇴", native: "Norsk" },
 ];
 
-const DICTS: Record<Lang, Dict> = { de, gsw, "de-AT": deAT, en, fr, it, es, fi, nl, cs, pl, pt, ja, zh, ru, id, nb };
+const DICTS: Record<Lang, Dict> = { de, gsw, "de-AT": deAT, en, fr, it, es, fi, nl, cs, pl, pt, "pt-PT": ptPT, ja, zh, ru, id, nb };
 
 // Sprachen, deren Rueckfall NICHT Englisch ist: Mundarten fallen auf ihre Hochsprache.
-const BRUECKE: Partial<Record<Lang, Lang>> = { gsw: "de", "de-AT": "de" };
+// gsw und de-AT sind Mundart-Faerbungen und decken nur einen Teil der Keys ab.
+// pt-PT ist dagegen VOLLSTAENDIG — die Bruecke ist dort nur ein Netz: kommt ein neuer
+// Key nach pt.ts und wird pt-PT.ts vergessen, sieht Portugal brasilianisch statt englisch.
+const BRUECKE: Partial<Record<Lang, Lang>> = { gsw: "de", "de-AT": "de", "pt-PT": "pt" };
 
 const LS_KEY = "foil_lang";
 
@@ -60,7 +65,11 @@ function isLang(x: string | null): x is Lang {
 
 // HTML-lang-Attribut (Dialekte auf passende BCP-47-Codes mappen).
 function htmlLang(l: Lang): string {
-  return l === "gsw" ? "de-CH" : l;
+  // "pt" ist bei uns die brasilianische Fassung — wie bei YouTube, wo `pt` Brasilien meint
+  // und `pt-PT` die Abweichung ist. Fuer Browser und Suchmaschinen wird daraus pt-BR.
+  if (l === "gsw") return "de-CH";
+  if (l === "pt") return "pt-BR";
+  return l;
 }
 
 /**
@@ -96,6 +105,7 @@ export function detectInitialLang(): Lang {
   if (nav.startsWith("nl")) return "nl";
   if (nav.startsWith("cs")) return "cs";
   if (nav.startsWith("pl")) return "pl";
+  if (nav.startsWith("pt-pt")) return "pt-PT";
   if (nav.startsWith("pt")) return "pt";
   if (nav.startsWith("ja")) return "ja";
   if (nav.startsWith("zh")) return "zh";

@@ -30,7 +30,7 @@ RESET_TTL_MIN = 60
 # seit dem 25.08. in allen drei Clients, hier aber nie ergaenzt. Belegt: KEIN einziges der 393
 # Konten hatte `language = "pl"`, obwohl die Sprache angeboten wurde.
 SUPPORTED_LANGS = {"de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs",
-                   "pt", "ja", "zh", "ru", "id", "nb", "pl"}
+                   "pt", "pt-PT", "ja", "zh", "ru", "id", "nb", "pl"}
 
 
 def _clean_lang(raw: str | None, fallback: str = "en") -> str:
