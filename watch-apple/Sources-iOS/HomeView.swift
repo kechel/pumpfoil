@@ -14,7 +14,7 @@ struct HomeView: View {
 
     @State private var stats: OverallStats?
     @State private var latest: [SessionSummary] = []
-    @State private var weather: WeatherBlock?
+    @State private var weather: SpotWeather?
     @State private var loading = true
     // Rekorde: nur Accel (präzise) oder alle (inkl. GPS-only). Default nur Accel,
     // aber einmalig auf "alle" fallen, wenn der Nutzer gar keine Accel-Läufe hat.
@@ -113,7 +113,7 @@ struct HomeView: View {
             if let st = stats { recordsSection(st) }
             if let ss = startSuccess { startSuccessSection(ss) }
             if let cs = carveStats, carveStatsHasAny(cs) { carveStatsSection(cs) }
-            if let wb = weather { HomeWeatherCard(wb: wb, lang: lang) }
+            if let sw = weather { HomeWeatherCard(sw: sw, lang: lang) }
         }
         .padding(.horizontal).padding(.bottom).padding(.top, 2)
     }
@@ -519,7 +519,7 @@ struct HomeView: View {
         }
         latest = Array(((try? await Api.sessions()) ?? []).prefix(3))
         let hs = (try? await Api.settings())?["homespot"] as? String
-        if let hs, !hs.isEmpty { weather = (try? await Api.spotWeather(hs))?.weather } else { weather = nil }
+        if let hs, !hs.isEmpty { weather = try? await Api.spotWeather(hs) } else { weather = nil }
         incomingXfer = ((try? await Api.transfersIncoming()) ?? []).count
         startSuccess = try? await Api.startSuccess()
         carveStats = try? await Api.carveStats()
@@ -601,10 +601,15 @@ struct HomeView: View {
     }
 }
 
-// Wetter-Karte am Homespot (aktuell + 3-Tage-Vorschau, Wind in kn, WMO-Emoji).
+// Wetter-Karte am Homespot: aktuell + 3-Tage-Vorschau (Wind in kn, Boen, Niederschlag),
+// darunter Pegelstand und Wassertemperatur samt Quellen — wie `web/src/components/SpotWeather.tsx`.
+//
+// Nimmt das GANZE `SpotWeather`, nicht nur den Wetterblock: Pegel und Wassertemperatur haengen
+// daneben und werden auch gezeigt, wenn die Vorhersage fehlt (so macht es die PWA auch).
 struct HomeWeatherCard: View {
-    let wb: WeatherBlock
+    let sw: SpotWeather
     let lang: String
+    private var wb: WeatherBlock? { sw.weather }
     /// Ueberschrift. Vorgabe ist „Wetter am Homespot" — in einer SPOT-Ansicht ist das falsch,
     /// dort steht der Titel der PWA („Wetter & Pegel"). Aufgefallen am 07.09.2026 im Simulator:
     /// die Spot-Seite trug die Homespot-Ueberschrift, weil sie diese Karte wiederverwendet.
@@ -612,16 +617,17 @@ struct HomeWeatherCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(Loc.t(titelKey, lang)).font(.caption).foregroundStyle(.secondary)
-            if let c = wb.current {
+            if let c = wb?.current {
                 HStack(spacing: 10) {
                     Text(wxIcon(c.code)).font(.title2)
                     if let t = c.temp { Text("\(Int(t.rounded()))°").font(.title2.bold()) }
                     if let w = c.wind {
                         Text("\(Int(w.rounded())) kn \(dirLabel(c.dir))").font(.subheadline).foregroundStyle(.secondary)
                     }
+                    Text(Loc.t("wx.now", lang)).font(.caption2).foregroundStyle(.secondary)
                 }
             }
-            if let days = wb.days, !days.isEmpty {
+            if let days = wb?.days, !days.isEmpty {
                 HStack {
                     ForEach(Array(days.prefix(3).enumerated()), id: \.offset) { i, d in
                         VStack(spacing: 2) {
@@ -629,15 +635,73 @@ struct HomeWeatherCard: View {
                             Text(wxIcon(d.code))
                             Text(d.tmax.map { "\(Int($0.rounded()))°" } ?? "–").font(.caption)
                             if let wm = d.wind_max { Text("\(Int(wm.rounded())) kn").font(.caption2).foregroundStyle(.secondary) }
+                            if let g = d.gust_max {
+                                Text("(\(Loc.t("wx.gust", lang)) \(Int(g.rounded())))")
+                                    .font(.caption2).foregroundStyle(.secondary)
+                            }
+                            if let p = d.precip, p > 0 {
+                                Text(String(format: "☔ %.1f mm", p)).font(.caption2).foregroundStyle(.secondary)
+                            }
                         }
                         .frame(maxWidth: .infinity)
                     }
                 }
             }
+            pegelZeile
+            wasserZeile
+            // Quellenangabe — dieselben drei Quellen wie im Web (Open-Meteo immer, die anderen
+            // nur, wenn ihr Block auch Daten geliefert hat).
+            Text(Loc.t("wx.source", lang) + ": Open-Meteo.com"
+                 + (sw.pegel != nil ? " · PEGELONLINE" : "")
+                 + (sw.water?.source.map { " · " + $0 } ?? ""))
+                .font(.caption2).foregroundStyle(.secondary)
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
+    }
+
+    /// Pegelstand: Wert + Trendpfeil + Gewaesser/Station (km), wie in der PWA. Eigene Teilansicht,
+    /// damit der Ausdruck im `body` kurz bleibt (s. Memory `ios-swift-typecheck-hang`).
+    @ViewBuilder private var pegelZeile: some View {
+        if let pg = sw.pegel, let v = pg.value {
+            Text(Loc.t("wx.level", lang) + ": "
+                 + String(format: "%.0f", v) + " " + (pg.unit ?? "cm")
+                 + trendPfeil(pg.trend) + "  " + pegelOrt(pg))
+                .font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    /// Wassertemperatur: aktuell, Tagesspanne, Mittel.
+    @ViewBuilder private var wasserZeile: some View {
+        if let w = sw.water, let c = w.current {
+            Text("🌊 " + Loc.t("wx.water", lang) + ": " + String(format: "%.1f °C", c)
+                 + wasserSpanne(w))
+                .font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    private func trendPfeil(_ t: Double?) -> String {
+        guard let t else { return "" }
+        return t > 0 ? " ↗" : (t < 0 ? " ↘" : " →")
+    }
+
+    private func pegelOrt(_ pg: Pegel) -> String {
+        var teile: [String] = []
+        if let w = pg.water, !w.isEmpty { teile.append(String(w.prefix(1)) + w.dropFirst().lowercased()) }
+        if let st = pg.station, !st.isEmpty { teile.append(st) }
+        var out = teile.joined(separator: " · ")
+        if let km = pg.km { out += String(format: " (%.0f km)", km) }
+        return out
+    }
+
+    private func wasserSpanne(_ w: WaterTemp) -> String {
+        var out = ""
+        if let mi = w.min, let ma = w.max {
+            out += "   " + Loc.t("wx.today", lang) + String(format: " %.1f–%.1f °C", mi, ma)
+        }
+        if let a = w.avg { out += String(format: "   ⌀ %.1f °C", a) }
+        return out
     }
 }
 

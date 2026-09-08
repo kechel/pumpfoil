@@ -11,7 +11,7 @@ import Foundation
 // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
 let ptOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_ptOverlayP1, _ptOverlayP1s2, _ptOverlayP2, _ptOverlayP2s2, _ptOverlayP3, _ptOverlayP3s2, _ptOverlayP4, _ptOverlayP4s2, _ptOverlayP5, _ptOverlayP5s2, _ptOverlayP6, _ptOverlayP6s2, _ptOverlayP7, _ptOverlayP7s2, _ptOverlayP8, _ptOverlayP8s2, _ptOverlayP9, _ptOverlayP9s2, _ptOverlayP10, _ptOverlayP10s2, _ptOverlayP11, _ptOverlayP11s2, _ptOverlayP11s7, _ptOverlayP11s3, _ptOverlayP11s4, _ptOverlayP11s5, _ptOverlayP11s6] { d.merge(p) { a, _ in a } }
+    for p in [_ptOverlayP1, _ptOverlayP1s2, _ptOverlayP2, _ptOverlayP2s2, _ptOverlayP3, _ptOverlayP3s2, _ptOverlayP4, _ptOverlayP4s2, _ptOverlayP5, _ptOverlayP5s2, _ptOverlayP6, _ptOverlayP6s2, _ptOverlayP7, _ptOverlayP7s2, _ptOverlayP8, _ptOverlayP8s2, _ptOverlayP9, _ptOverlayP9s2, _ptOverlayP10, _ptOverlayP10s2, _ptOverlayP11, _ptOverlayP11s2, _ptOverlayP11s8, _ptOverlayP11s7, _ptOverlayP11s3, _ptOverlayP11s4, _ptOverlayP11s5, _ptOverlayP11s6] { d.merge(p) { a, _ in a } }
     return d
 }()
 
@@ -84,6 +84,11 @@ private let _ptOverlayP11s2: [String: String] = [
     "sessions.uploadSkipped": "{skipped} de {total} arquivos ignorados — não são atividades (por ex. o monitoramento diário do relógio). Todo o resto foi importado.",
     "sessions.uploadSkippedOne": "Não importado: {reason}.",
     "import.title": "Importar atividade",
+    "wx.gust": "rajada",
+    "wx.level": "Nível da água",
+    "wx.now": "agora",
+    "wx.source": "Fonte",
+    "wx.water": "Temp. da água",
     "cr.foilAll": "Todos os foils",
     "cr.foilMine": "Como o meu foil",
     "cr.foilUnder": "abaixo de {n} cm²",
@@ -114,6 +119,8 @@ private let _ptOverlayP11s2: [String: String] = [
     "account.pauseTitle": "Gravação em pausa",
     "account.pickLayoutTitle": "Qual das suas telas?",
     "account.recordModeGpsHint": "Neste modo faltam a contagem de pumps, a cadência e as fases de planeio — são calculadas a partir do sensor de movimento.",
+]
+private let _ptOverlayP11s8: [String: String] = [
     "account.recordModeZeppHint": "O Amazfit ainda não usa este ajuste — o relógio grava na frequência dele mesmo.",
     "cls.appealPending": "Obrigado — vamos ver isso e te retornamos.",
     "cls.appealPlaceholder": "O que foi na verdade? (ajuda na verificação)",
@@ -941,7 +948,7 @@ private let _ptOverlayP10s2: [String: String] = [
 // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
 let jaOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_jaOverlayP1, _jaOverlayP1s2, _jaOverlayP2, _jaOverlayP2s2, _jaOverlayP3, _jaOverlayP3s2, _jaOverlayP4, _jaOverlayP4s2, _jaOverlayP5, _jaOverlayP5s2, _jaOverlayP6, _jaOverlayP6s2, _jaOverlayP7, _jaOverlayP7s2, _jaOverlayP8, _jaOverlayP8s2, _jaOverlayP9, _jaOverlayP9s2, _jaOverlayP10, _jaOverlayP10s2, _jaOverlayP11, _jaOverlayP11s2, _jaOverlayP11s7, _jaOverlayP11s3, _jaOverlayP11s4, _jaOverlayP11s5, _jaOverlayP11s6] { d.merge(p) { a, _ in a } }
+    for p in [_jaOverlayP1, _jaOverlayP1s2, _jaOverlayP2, _jaOverlayP2s2, _jaOverlayP3, _jaOverlayP3s2, _jaOverlayP4, _jaOverlayP4s2, _jaOverlayP5, _jaOverlayP5s2, _jaOverlayP6, _jaOverlayP6s2, _jaOverlayP7, _jaOverlayP7s2, _jaOverlayP8, _jaOverlayP8s2, _jaOverlayP9, _jaOverlayP9s2, _jaOverlayP10, _jaOverlayP10s2, _jaOverlayP11, _jaOverlayP11s2, _jaOverlayP11s8, _jaOverlayP11s7, _jaOverlayP11s3, _jaOverlayP11s4, _jaOverlayP11s5, _jaOverlayP11s6] { d.merge(p) { a, _ in a } }
     return d
 }()
 
@@ -1014,6 +1021,11 @@ private let _jaOverlayP11s2: [String: String] = [
     "sessions.uploadSkipped": "{total} 件中 {skipped} 件のファイルをスキップしました — アクティビティではありません（例：時計の日常モニタリング）。それ以外はすべて取り込みました。",
     "sessions.uploadSkippedOne": "取り込めませんでした：{reason}。",
     "import.title": "アクティビティをインポート",
+    "wx.gust": "突風",
+    "wx.level": "水位",
+    "wx.now": "現在",
+    "wx.source": "出典",
+    "wx.water": "水温",
     "cr.foilAll": "すべてのフォイル",
     "cr.foilMine": "自分のフォイルと同等",
     "cr.foilUnder": "{n} cm² 未満",
@@ -1044,6 +1056,8 @@ private let _jaOverlayP11s2: [String: String] = [
     "account.pauseTitle": "記録を一時停止中",
     "account.pickLayoutTitle": "どの自作画面にしますか？",
     "account.recordModeGpsHint": "このモードではパンプ数・ケイデンス・グライド時間が出ません。これらは加速度センサーから計算されます。",
+]
+private let _jaOverlayP11s8: [String: String] = [
     "account.recordModeZeppHint": "Amazfit はこの設定をまだ使いません — 時計は独自のレートで記録します。",
     "cls.appealPending": "ありがとうございます — 確認してご連絡します。",
     "cls.appealPlaceholder": "実際は何でしたか？（確認の助けになります）",
@@ -1871,7 +1885,7 @@ private let _jaOverlayP10s2: [String: String] = [
 // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
 let zhOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_zhOverlayP1, _zhOverlayP1s2, _zhOverlayP2, _zhOverlayP2s2, _zhOverlayP3, _zhOverlayP3s2, _zhOverlayP4, _zhOverlayP4s2, _zhOverlayP5, _zhOverlayP5s2, _zhOverlayP6, _zhOverlayP6s2, _zhOverlayP7, _zhOverlayP7s2, _zhOverlayP8, _zhOverlayP8s2, _zhOverlayP9, _zhOverlayP9s2, _zhOverlayP10, _zhOverlayP10s2, _zhOverlayP11, _zhOverlayP11s2, _zhOverlayP11s7, _zhOverlayP11s3, _zhOverlayP11s4, _zhOverlayP11s5, _zhOverlayP11s6] { d.merge(p) { a, _ in a } }
+    for p in [_zhOverlayP1, _zhOverlayP1s2, _zhOverlayP2, _zhOverlayP2s2, _zhOverlayP3, _zhOverlayP3s2, _zhOverlayP4, _zhOverlayP4s2, _zhOverlayP5, _zhOverlayP5s2, _zhOverlayP6, _zhOverlayP6s2, _zhOverlayP7, _zhOverlayP7s2, _zhOverlayP8, _zhOverlayP8s2, _zhOverlayP9, _zhOverlayP9s2, _zhOverlayP10, _zhOverlayP10s2, _zhOverlayP11, _zhOverlayP11s2, _zhOverlayP11s8, _zhOverlayP11s7, _zhOverlayP11s3, _zhOverlayP11s4, _zhOverlayP11s5, _zhOverlayP11s6] { d.merge(p) { a, _ in a } }
     return d
 }()
 
@@ -1944,6 +1958,11 @@ private let _zhOverlayP11s2: [String: String] = [
     "sessions.uploadSkipped": "{total} 个文件中跳过了 {skipped} 个——它们不是活动记录（例如手表的日常监测）。其余全部已导入。",
     "sessions.uploadSkippedOne": "未导入：{reason}。",
     "import.title": "导入活动",
+    "wx.gust": "阵风",
+    "wx.level": "水位",
+    "wx.now": "现在",
+    "wx.source": "来源",
+    "wx.water": "水温",
     "cr.foilAll": "全部前翼",
     "cr.foilMine": "与我的前翼相近",
     "cr.foilUnder": "小于 {n} cm²",
@@ -1974,6 +1993,8 @@ private let _zhOverlayP11s2: [String: String] = [
     "account.pauseTitle": "记录已暂停",
     "account.pickLayoutTitle": "用你的哪个界面？",
     "account.recordModeGpsHint": "此模式下没有 pump 次数、频率和滑行时间——它们由运动传感器计算得出。",
+]
+private let _zhOverlayP11s8: [String: String] = [
     "account.recordModeZeppHint": "Amazfit 还不使用此设置——手表按自己的频率记录。",
     "cls.appealPending": "谢谢——我们看看再回复你。",
     "cls.appealPlaceholder": "实际上是什么？（有助于我们核实）",
@@ -2801,7 +2822,7 @@ private let _zhOverlayP10s2: [String: String] = [
 // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
 let ruOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_ruOverlayP1, _ruOverlayP1s2, _ruOverlayP2, _ruOverlayP2s2, _ruOverlayP3, _ruOverlayP3s2, _ruOverlayP4, _ruOverlayP4s2, _ruOverlayP5, _ruOverlayP5s2, _ruOverlayP6, _ruOverlayP6s2, _ruOverlayP7, _ruOverlayP7s2, _ruOverlayP8, _ruOverlayP8s2, _ruOverlayP9, _ruOverlayP9s2, _ruOverlayP10, _ruOverlayP10s2, _ruOverlayP11, _ruOverlayP11s2, _ruOverlayP11s7, _ruOverlayP11s3, _ruOverlayP11s4, _ruOverlayP11s5, _ruOverlayP11s6] { d.merge(p) { a, _ in a } }
+    for p in [_ruOverlayP1, _ruOverlayP1s2, _ruOverlayP2, _ruOverlayP2s2, _ruOverlayP3, _ruOverlayP3s2, _ruOverlayP4, _ruOverlayP4s2, _ruOverlayP5, _ruOverlayP5s2, _ruOverlayP6, _ruOverlayP6s2, _ruOverlayP7, _ruOverlayP7s2, _ruOverlayP8, _ruOverlayP8s2, _ruOverlayP9, _ruOverlayP9s2, _ruOverlayP10, _ruOverlayP10s2, _ruOverlayP11, _ruOverlayP11s2, _ruOverlayP11s8, _ruOverlayP11s7, _ruOverlayP11s3, _ruOverlayP11s4, _ruOverlayP11s5, _ruOverlayP11s6] { d.merge(p) { a, _ in a } }
     return d
 }()
 
@@ -2874,6 +2895,11 @@ private let _ruOverlayP11s2: [String: String] = [
     "sessions.uploadSkipped": "{skipped} из {total} файлов пропущено — это не активности (например, ежедневный мониторинг часов). Всё остальное импортировано.",
     "sessions.uploadSkippedOne": "Не импортировано: {reason}.",
     "import.title": "Импорт активности",
+    "wx.gust": "порыв",
+    "wx.level": "Уровень воды",
+    "wx.now": "сейчас",
+    "wx.source": "Источник",
+    "wx.water": "Темп. воды",
     "cr.foilAll": "Все крылья",
     "cr.foilMine": "Как моё крыло",
     "cr.foilUnder": "меньше {n} см²",
@@ -2904,6 +2930,8 @@ private let _ruOverlayP11s2: [String: String] = [
     "account.pauseTitle": "Запись на паузе",
     "account.pickLayoutTitle": "Какой из твоих экранов?",
     "account.recordModeGpsHint": "В этом режиме нет количества пампов, каденса и фаз скольжения — они вычисляются по датчику движения.",
+]
+private let _ruOverlayP11s8: [String: String] = [
     "account.recordModeZeppHint": "Amazfit пока не использует эту настройку — часы записывают со своей частотой.",
     "cls.appealPending": "Спасибо — посмотрим и вернёмся к тебе.",
     "cls.appealPlaceholder": "Что это было на самом деле? (поможет нам проверить)",
@@ -3731,7 +3759,7 @@ private let _ruOverlayP10s2: [String: String] = [
 // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
 let idOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_idOverlayP1, _idOverlayP1s2, _idOverlayP2, _idOverlayP2s2, _idOverlayP3, _idOverlayP3s2, _idOverlayP4, _idOverlayP4s2, _idOverlayP5, _idOverlayP5s2, _idOverlayP6, _idOverlayP6s2, _idOverlayP7, _idOverlayP7s2, _idOverlayP8, _idOverlayP8s2, _idOverlayP9, _idOverlayP9s2, _idOverlayP10, _idOverlayP10s2, _idOverlayP11, _idOverlayP11s2, _idOverlayP11s7, _idOverlayP11s3, _idOverlayP11s4, _idOverlayP11s5, _idOverlayP11s6] { d.merge(p) { a, _ in a } }
+    for p in [_idOverlayP1, _idOverlayP1s2, _idOverlayP2, _idOverlayP2s2, _idOverlayP3, _idOverlayP3s2, _idOverlayP4, _idOverlayP4s2, _idOverlayP5, _idOverlayP5s2, _idOverlayP6, _idOverlayP6s2, _idOverlayP7, _idOverlayP7s2, _idOverlayP8, _idOverlayP8s2, _idOverlayP9, _idOverlayP9s2, _idOverlayP10, _idOverlayP10s2, _idOverlayP11, _idOverlayP11s2, _idOverlayP11s8, _idOverlayP11s7, _idOverlayP11s3, _idOverlayP11s4, _idOverlayP11s5, _idOverlayP11s6] { d.merge(p) { a, _ in a } }
     return d
 }()
 
@@ -3804,6 +3832,11 @@ private let _idOverlayP11s2: [String: String] = [
     "sessions.uploadSkipped": "{skipped} dari {total} berkas dilewati — itu bukan aktivitas (mis. pemantauan harian jam). Semua sisanya diimpor.",
     "sessions.uploadSkippedOne": "Tidak diimpor: {reason}.",
     "import.title": "Impor aktivitas",
+    "wx.gust": "hembusan",
+    "wx.level": "Ketinggian air",
+    "wx.now": "sekarang",
+    "wx.source": "Sumber",
+    "wx.water": "Suhu air",
     "cr.foilAll": "Semua foil",
     "cr.foilMine": "Seperti foil saya",
     "cr.foilUnder": "di bawah {n} cm²",
@@ -3834,6 +3867,8 @@ private let _idOverlayP11s2: [String: String] = [
     "account.pauseTitle": "Perekaman dijeda",
     "account.pickLayoutTitle": "Layar milikmu yang mana?",
     "account.recordModeGpsHint": "Dalam mode ini jumlah pump, kadensi, dan fase melayang tidak ada — semuanya dihitung dari sensor gerak.",
+]
+private let _idOverlayP11s8: [String: String] = [
     "account.recordModeZeppHint": "Amazfit belum memakai pengaturan ini — jam merekam dengan laju sendiri.",
     "cls.appealPending": "Terima kasih — kami akan melihatnya dan mengabari kamu.",
     "cls.appealPlaceholder": "Sebenarnya itu apa? (membantu kami memeriksa)",
@@ -4660,7 +4695,7 @@ private let _idOverlayP10s2: [String: String] = [
 // den Swift-Type-Checker im Release-Build minutenlang kauen.
 let nbOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_nbOverlayP1, _nbOverlayP1s2, _nbOverlayP2, _nbOverlayP2s2, _nbOverlayP3, _nbOverlayP3s2, _nbOverlayP4, _nbOverlayP4s2, _nbOverlayP5, _nbOverlayP5s2, _nbOverlayP6, _nbOverlayP6s2, _nbOverlayP7, _nbOverlayP7s2, _nbOverlayP8, _nbOverlayP8s2, _nbOverlayP9, _nbOverlayP9s2, _nbOverlayP10, _nbOverlayP10s2, _nbOverlayP11, _nbOverlayP11s2, _nbOverlayP11s6, _nbOverlayP11s3, _nbOverlayP11s4, _nbOverlayP11s5] { d.merge(p) { a, _ in a } }
+    for p in [_nbOverlayP1, _nbOverlayP1s2, _nbOverlayP2, _nbOverlayP2s2, _nbOverlayP3, _nbOverlayP3s2, _nbOverlayP4, _nbOverlayP4s2, _nbOverlayP5, _nbOverlayP5s2, _nbOverlayP6, _nbOverlayP6s2, _nbOverlayP7, _nbOverlayP7s2, _nbOverlayP8, _nbOverlayP8s2, _nbOverlayP9, _nbOverlayP9s2, _nbOverlayP10, _nbOverlayP10s2, _nbOverlayP11, _nbOverlayP11s2, _nbOverlayP11s7, _nbOverlayP11s6, _nbOverlayP11s3, _nbOverlayP11s4, _nbOverlayP11s5] { d.merge(p) { a, _ in a } }
     return d
 }()
 
@@ -4733,6 +4768,11 @@ private let _nbOverlayP11s2: [String: String] = [
     "sessions.uploadSkipped": "{skipped} av {total} filer hoppet over — de er ikke aktiviteter (f.eks. klokkas daglige måling). Alt annet ble importert.",
     "sessions.uploadSkippedOne": "Ikke importert: {reason}.",
     "import.title": "Importer aktivitet",
+    "wx.gust": "vindkast",
+    "wx.level": "Vannstand",
+    "wx.now": "nå",
+    "wx.source": "Kilde",
+    "wx.water": "Vanntemp",
     "cr.foilAll": "Alle foiler",
     "cr.foilMine": "Som min foil",
     "cr.foilUnder": "under {n} cm²",
@@ -4763,6 +4803,8 @@ private let _nbOverlayP11s2: [String: String] = [
     "hr.afterSeconds": "etter {sec} sekunder",
     "hr.axisHint": "Vannrett: dato · Loddrett: puls (bpm)",
     "hr.fromRuns": "fra {runs} runs i {sessions} økter",
+]
+private let _nbOverlayP11s7: [String: String] = [
     "hr.progressHint": "Hvor høyt pulsen din går etter 30 sekunder, 1, 2 og 5 minutters pumping.",
     "hr.progressTitle": "Treningskurve: puls under pumping",
     "lay.byAuthor": "av {name}",
@@ -5617,7 +5659,7 @@ private let _nbOverlayP10s2: [String: String] = [
 // einziges Riesen-Literal laesst den Swift-Type-Checker minutenlang kauen.
 let plOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_plOverlayP1, _plOverlayP1s2, _plOverlayP1s6, _plOverlayP1s3, _plOverlayP1s4, _plOverlayP1s5, _plOverlayP2, _plOverlayP2s2, _plOverlayP2s3, _plOverlayP3, _plOverlayP3s2, _plOverlayP3s3, _plOverlayP4, _plOverlayP4s2, _plOverlayP4s3, _plOverlayP5, _plOverlayP5s2, _plOverlayP5s3, _plOverlayP6] { d.merge(p) { a, _ in a } }
+    for p in [_plOverlayP1, _plOverlayP1s2, _plOverlayP1s7, _plOverlayP1s6, _plOverlayP1s3, _plOverlayP1s4, _plOverlayP1s5, _plOverlayP2, _plOverlayP2s2, _plOverlayP2s3, _plOverlayP3, _plOverlayP3s2, _plOverlayP3s3, _plOverlayP4, _plOverlayP4s2, _plOverlayP4s3, _plOverlayP5, _plOverlayP5s2, _plOverlayP5s3, _plOverlayP6] { d.merge(p) { a, _ in a } }
     return d
 }()
 
@@ -5689,6 +5731,11 @@ private let _plOverlayP1s2: [String: String] = [
     "sessions.uploadSkipped": "Pominięto {skipped} z {total} plików — to nie są aktywności (np. codzienny monitoring zegarka). Cała reszta została zaimportowana.",
     "sessions.uploadSkippedOne": "Nie zaimportowano: {reason}.",
     "import.title": "Importuj aktywność",
+    "wx.gust": "poryw",
+    "wx.level": "Poziom wody",
+    "wx.now": "teraz",
+    "wx.source": "Źródło",
+    "wx.water": "Temp. wody",
     "cr.foilAll": "Wszystkie foile",
     "cr.foilMine": "Jak mój foil",
     "cr.foilUnder": "poniżej {n} cm²",
@@ -5719,6 +5766,8 @@ private let _plOverlayP1s2: [String: String] = [
         "social.badUrl": "Podaj adres kanału YouTube",
         "social.stateApproved": "zatwierdzony",
         "social.statePending": "czeka na zatwierdzenie",
+]
+private let _plOverlayP1s7: [String: String] = [
         "social.stateRejected": "odrzucony",
         "social.stateBlocked": "Ten kanał został zablokowany.",
         "feedback.attach": "Dołącz plik",

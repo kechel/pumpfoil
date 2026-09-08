@@ -463,7 +463,23 @@ struct MySessionPhoto: Codable, Identifiable {
 
 struct SpotNoteLike: Codable { let liked: Bool; let like_count: Int }
 
-struct SpotWeather: Codable { let weather: WeatherBlock? }
+// Pegelstand (PEGELONLINE) und Wassertemperatur kamen bis 08.09.2026 nur in der PWA an — die
+// Apps warfen sie beim Dekodieren weg und zeigten trotzdem den Titel „Wetter & Pegel".
+struct SpotWeather: Codable {
+    let weather: WeatherBlock?
+    let pegel: Pegel?
+    let water: WaterTemp?
+}
+/// Pegelstand einer Messstelle: Wert + Einheit, Trend (>0 steigend), Gewaesser/Station/km.
+struct Pegel: Codable {
+    let station: String?; let water: String?; let value: Double?
+    let unit: String?; let timestamp: String?; let trend: Double?; let km: Double?
+}
+/// Wassertemperatur (Tageswerte einer Messstelle) samt Quellenangabe.
+struct WaterTemp: Codable {
+    let current: Double?; let min: Double?; let max: Double?
+    let avg: Double?; let at: String?; let source: String?
+}
 struct WeatherBlock: Codable {
     let current: WxCurrent?
     let days: [WxDay]?
@@ -472,6 +488,8 @@ struct WxCurrent: Codable { let temp: Double?; let wind: Double?; let dir: Doubl
 struct WxDay: Codable {
     let date: String?; let code: Int?; let tmax: Double?; let tmin: Double?
     let wind_max: Double?; let dir: Double?
+    // Boen und Niederschlag zeigt die PWA je Tag mit an; hier fehlten sie im Modell.
+    let gust_max: Double?; let precip: Double?
 }
 
 // Bestenliste (GET /api/community/leaders) — je Metrik eine Rangliste.

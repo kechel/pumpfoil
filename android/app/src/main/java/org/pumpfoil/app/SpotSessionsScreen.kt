@@ -44,11 +44,11 @@ fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, 
     // ist namensbasiert). Einmal die Karte holen und zuordnen; ohne Spot-Zeile (Altbestand) bleibt
     // es null und der Abschnitt entfaellt.
     var spotId by remember(spot) { mutableStateOf<Int?>(null) }
-    var weather by remember(spot) { mutableStateOf<WeatherBlock?>(null) }
+    var weather by remember(spot) { mutableStateOf<SpotWeather?>(null) }
     // Zweite Zeile zum Spot (Gewaesser bzw. Steg/Ortslage) — dieselbe Abfrage, ein Feld mehr.
     var spotLabel by remember(spot) { mutableStateOf<String?>(null) }
     LaunchedEffect(spot) {
-        weather = try { Api.spotWeather(spot).weather } catch (_: Exception) { null }
+        weather = try { Api.spotWeather(spot) } catch (_: Exception) { null }
         try {
             val m = Api.spotMap(accelOnly = false).firstOrNull { it.spot == spot }
             spotId = m?.spotId
@@ -116,8 +116,8 @@ fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, 
                         // gelaufen; angeglichen sind sie jetzt, zusammengelegt gehoeren sie
                         // trotzdem (s. docs/TODO.md).
                         item { SpotRecordsSection(spot, accelOnly = false, onOpen = onOpen) }
-                        weather?.let { wb ->
-                            item { Box(Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) { WeatherCard(wb, titelKey = "spot.weatherTitle") } }
+                        weather?.let { sw ->
+                            item { Box(Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) { WeatherCard(sw, titelKey = "spot.weatherTitle") } }
                         }
                         spotId?.let { sid -> item { SpotNotesSection(sid) } }
                         if (items.isEmpty() && !loading && error == null) {

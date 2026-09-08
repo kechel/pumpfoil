@@ -34,7 +34,7 @@ struct SessionsView: View {
     @State private var filter = "pump"         // pump | other (nur eigene)
     @State private var month = ""              // "YYYY-MM" | "" (nur eigene)
     @State private var months: [MonthCount] = []
-    @State private var weather: WeatherBlock?
+    @State private var weather: SpotWeather?
     // Datei-Import (FIT/TCX/GPX, auch ZIP) — in der PWA sitzt der Knopf seit dem 07.09.2026 in
     // „Meine Sessions" unter den Filtern. In den Apps fehlte der Import ganz (s. ImportFileButton
     // auf Android und `Api.uploadFit`).
@@ -125,8 +125,8 @@ struct SessionsView: View {
     }
 
     @ViewBuilder private var spotWeatherSection: some View {
-        if scope == .spot, let wb = weather {
-            Section { HomeWeatherCard(wb: wb, lang: lang, titelKey: "spot.weatherTitle") }
+        if scope == .spot, let sw = weather {
+            Section { HomeWeatherCard(sw: sw, lang: lang, titelKey: "spot.weatherTitle") }
         }
     }
 
@@ -400,7 +400,7 @@ struct SessionsView: View {
     private func reloadIncoming() async { incoming = (try? await Api.transfersIncoming()) ?? [] }
     private func loadMonths() async { months = (try? await Api.sessionMonths(filter: filter)) ?? [] }
     private func loadWeather() async {
-        weather = spot.isEmpty ? nil : (try? await Api.spotWeather(spot))?.weather
+        weather = spot.isEmpty ? nil : (try? await Api.spotWeather(spot))
     }
     private func monthLabel(_ m: String) -> String {
         let f = DateFormatter(); f.dateFormat = "yyyy-MM"

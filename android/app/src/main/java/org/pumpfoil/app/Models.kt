@@ -438,7 +438,28 @@ data class SpotNoteLike(val liked: Boolean = false, val like_count: Int = 0)
 
 // Spot-Wetter (GET /api/community/spot/weather) — aktuell + Tagesvorschau (Wind in Knoten).
 @Serializable
-data class SpotWeather(val weather: WeatherBlock? = null)
+data class SpotWeather(
+    val weather: WeatherBlock? = null,
+    // Pegelstand (PEGELONLINE) und Wassertemperatur kamen bis 08.09.2026 nur in der PWA an —
+    // die Apps warfen sie beim Parsen weg und zeigten trotzdem den Titel „Wetter & Pegel".
+    val pegel: Pegel? = null,
+    val water: WaterTemp? = null,
+)
+
+/** Pegelstand einer Messstelle: Wert + Einheit, Trend (>0 steigend), Gewaesser/Station/km. */
+@Serializable
+data class Pegel(
+    val station: String = "", val water: String? = null, val value: Double? = null,
+    val unit: String = "cm", val timestamp: String? = null, val trend: Double? = null,
+    val km: Double? = null,
+)
+
+/** Wassertemperatur (Tageswerte einer Messstelle) samt Quellenangabe. */
+@Serializable
+data class WaterTemp(
+    val current: Double? = null, val min: Double? = null, val max: Double? = null,
+    val avg: Double? = null, val at: String? = null, val source: String = "",
+)
 
 @Serializable
 data class WeatherBlock(
@@ -455,6 +476,8 @@ data class WxCurrent(
 data class WxDay(
     val date: String = "", val code: Int? = null, val tmax: Double? = null, val tmin: Double? = null,
     @SerialName("wind_max") val windMax: Double? = null, val dir: Double? = null,
+    // Boen und Niederschlag zeigt die PWA je Tag mit an; hier fehlten sie im Modell.
+    @SerialName("gust_max") val gustMax: Double? = null, val precip: Double? = null,
 )
 
 // Gesamt-Statistik + persönliche Rekorde (GET /api/sessions/stats).

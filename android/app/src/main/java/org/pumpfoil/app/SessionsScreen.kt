@@ -119,7 +119,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
     var filter by remember { mutableStateOf(SessionsWunsch.abholen() ?: "pump") }
     var month by remember { mutableStateOf("") }           // "YYYY-MM" | "" (nur eigene)
     var months by remember { mutableStateOf<List<MonthCount>>(emptyList()) }
-    var weather by remember { mutableStateOf<WeatherBlock?>(null) }
+    var weather by remember { mutableStateOf<SpotWeather?>(null) }
     var incoming by remember { mutableStateOf<List<Transfer>>(emptyList()) }
     var xferTick by remember { mutableStateOf(0) }
     val tick by WatchSync.tick.collectAsState()
@@ -151,7 +151,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
     }
     // Spot-Wetter im Spot-Scope (wie PWA).
     LaunchedEffect(spot) {
-        weather = if (spot.isNotBlank()) try { Api.spotWeather(spot).weather } catch (_: Exception) { null } else null
+        weather = if (spot.isNotBlank()) try { Api.spotWeather(spot) } catch (_: Exception) { null } else null
     }
     // Spot gewechselt oder verlassen: eine vorherige Automatik („Spot ohne Accel-Sessions")
     // verwerfen -> es gilt wieder der Default aus der eigenen Uhr. Nichts wird gemerkt.
@@ -344,10 +344,10 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                                 if (spot.isNotBlank()) {
                                     item { SpotRecordsSection(spot, accelOnly) { id -> onOpen(id, null) } }
                                 }
-                                weather?.let { wb ->
+                                weather?.let { sw ->
                                     item {
                                         Box(Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) {
-                                            WeatherCard(wb, titelKey = "spot.weatherTitle")
+                                            WeatherCard(sw, titelKey = "spot.weatherTitle")
                                         }
                                     }
                                 }
