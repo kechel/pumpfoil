@@ -108,6 +108,11 @@ def band(theme: str) -> Image.Image:
                 fill=_hex(CYAN_HELL if hell else CYAN))
 
     lock = Image.open(LOGO.format(theme="light" if hell else "dark")).convert("RGBA")
+    # Auf den sichtbaren Inhalt zuschneiden: die Datei ist 1800x520, das Lockup
+    # darin nur 1368x234. Die 143 px unsichtbarer Rand unten landeten sonst als
+    # Luecke zwischen Logo und Zeile — auf 900 Breite skaliert 72 px, die zu den
+    # 46 px Abstand dazukamen (Jan, 08.09.: "Abstand viel zu gross").
+    lock = lock.crop(lock.getbbox())
     breite = W - 2 * RAND
     lock = lock.resize((breite, round(lock.height * breite / lock.width)), Image.LANCZOS)
     zeile = gesperrt(APP_ZEILE, 52, 12, CYAN_HELL if hell else "#cbd5e1")
@@ -118,7 +123,7 @@ def band(theme: str) -> Image.Image:
     # Mittig in der oberen Haelfte des Streifens — die untere bleibt den
     # Bedienelementen der Plattformen. Passt der Block nicht hinein, schrumpft
     # er als Ganzes: lieber etwas kleiner als in fremde Elemente hineinragen.
-    abstand = 46
+    abstand = 34
     frei = round(BAND_H * INHALT_ANTEIL) - KANTE
     block = lock.height + abstand + zeile.height
     if block > frei:
