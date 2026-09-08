@@ -68,11 +68,11 @@ CAPTION_LANGS = ["de", "en", "fr", "it", "es", "fi", "nl", "cs",
 # ID/PT/ES auf YouTube).
 PORT = 8765
 PLATFORMS = ("youtube", "instagram")
-# Ordner unter shorts-mit-musik/. rednote bekommt KEINEN eigenen Render: dort
-# liegt ein harter Link auf die TikTok-Fassung (9:16, O-Ton, keine lizenzierte
-# Musik) — dieselbe Datei, nur an dem Platz, an dem man sie sucht.
-EXPORT_PLATFORMS = (*PLATFORMS, "tiktok", "rednote")
-LINKED_EXPORTS = {"rednote": "tiktok"}
+# Ordner unter shorts-mit-musik/. RedNote hat KEINEN eigenen: dort wird die
+# TikTok-Fassung hochgeladen (9:16, O-Ton, keine lizenzierte Musik), und die
+# holt Jan ueber die laufende Nummer direkt aus tiktok/. Ein zweiter Ordner
+# mit harten Links stand hier kurz, war aber nur Verwaltung ohne Nutzen.
+EXPORT_PLATFORMS = (*PLATFORMS, "tiktok")
 AUDIO_EXT = {".mp3", ".m4a", ".aac", ".wav", ".flac", ".ogg", ".opus"}
 FADE_IN = 1.0
 FADE_OUT = 2.0
@@ -2141,8 +2141,6 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json({"error": "Endcard nicht gefunden"}, 400)
         results = {}
         for pf in EXPORT_PLATFORMS:
-            if pf in LINKED_EXPORTS:
-                continue                       # kommt unten als harter Link dazu
             rel = (req.get("tracks") or {}).get(pf)
             PROGRESS.update(active=True, label=pf, pct=0.0)
             try:
@@ -2168,30 +2166,6 @@ class Handler(BaseHTTPRequestHandler):
             except subprocess.CalledProcessError as e:
                 results[pf] = {"ok": False, "error": (e.stderr or "")[-400:]}
             except (ValueError, FileNotFoundError) as e:
-                results[pf] = {"ok": False, "error": str(e)}
-        # Verlinkte Ziele: dieselbe Datei an einem zweiten Platz. Ein harter Link
-        # kostet keinen Speicher und keine Renderzeit — die TikTok-Fassung passt
-        # unveraendert (9:16, O-Ton, keine lizenzierte Musik). Faellt der Link
-        # aus (anderes Dateisystem), wird kopiert.
-        for pf, quelle in LINKED_EXPORTS.items():
-            if not results.get(quelle, {}).get("ok"):
-                continue
-            src = BASE / results[quelle]["out"]
-            ziel = OUT_DIR / pf / src.name
-            try:
-                ziel.parent.mkdir(parents=True, exist_ok=True)
-                alt = export_file(pf, src.name)
-                if alt is not None:
-                    alt.unlink()
-                for p in (OUT_DIR / pf).glob(f"{export_key(src.name)}*.mp4"):
-                    p.unlink()             # Altbestand mit anderem Pixabay-Suffix
-                try:
-                    os.link(src, ziel)
-                except OSError:
-                    shutil.copy2(src, ziel)
-                results[pf] = {"ok": True, "out": str(ziel.relative_to(BASE)),
-                               "linked_from": quelle}
-            except OSError as e:
                 results[pf] = {"ok": False, "error": str(e)}
         for p in tmp_pngs:
             try:
