@@ -1731,6 +1731,16 @@ const cs: Record<string, string> = {
   "foiler.records": "Rekordy za posledních 12 měsíců",
   "foiler.notFound": "Tato profilová stránka není dostupná.",
   "foiler.offHint": "Tvoje profilová stránka je pro ostatní skrytá. Změnit viditelnost:",
+  "pubprof.title": "Veřejná profilová stránka",
+  "pubprof.hint": "Ostatní foileři mohou vidět stránku o tobě. Ty rozhoduješ, co na ní je — jméno a fotka jsou tak jako tak pod každou session. Seznam tvých sessions tam záměrně není.",
+  "pubprof.enabled": "Profilová stránka viditelná pro ostatní",
+  "pubprof.fields": "Co na ní může být",
+  "pubprof.join": "Členem od",
+  "pubprof.watch": "Hodinky",
+  "pubprof.foil": "Foil",
+  "pubprof.homespot": "Domácí spot",
+  "pubprof.records": "Rekordy za posledních 12 měsíců",
+  "pubprof.view": "Zobrazit moji profilovou stránku",
 };
 
 export default cs;

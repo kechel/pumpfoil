@@ -43,6 +43,9 @@ class AgeRangeIn(BaseModel):
 
 
 class ProfileOut(BaseModel):
+    # Eigene Nutzer-ID. Gebraucht fuer den Link auf die eigene Foiler-Seite (/foiler/<id>) —
+    # ein Endpunkt „/foiler/me" waere daran gescheitert, dass der Pfadparameter ein int ist.
+    id: int = 0
     email: EmailStr
     display_name: str | None = None
     avatar_url: str | None = None

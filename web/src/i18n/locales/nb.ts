@@ -1654,6 +1654,16 @@ const nb: Record<string, string> = {
   "foiler.records": "Rekorder fra de siste 12 månedene",
   "foiler.notFound": "Denne profilsiden er ikke tilgjengelig.",
   "foiler.offHint": "Profilsiden din er skjult for andre. Endre synlighet:",
+  "pubprof.title": "Offentlig profilside",
+  "pubprof.hint": "Andre foilere kan se en side om deg. Du bestemmer hva som står der — navn og bilde står uansett under hver session. Den lister bevisst ikke sessionene dine.",
+  "pubprof.enabled": "Profilsiden er synlig for andre",
+  "pubprof.fields": "Dette kan stå der",
+  "pubprof.join": "Med siden",
+  "pubprof.watch": "Klokke",
+  "pubprof.foil": "Foil",
+  "pubprof.homespot": "Hjemmespot",
+  "pubprof.records": "Rekorder fra de siste 12 månedene",
+  "pubprof.view": "Se profilsiden min",
 };
 
 export default nb;

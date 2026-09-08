@@ -1678,6 +1678,16 @@ const id: Record<string, string> = {
   "foiler.records": "Rekor 12 bulan terakhir",
   "foiler.notFound": "Halaman profil ini tidak tersedia.",
   "foiler.offHint": "Halaman profilmu disembunyikan dari orang lain. Ubah visibilitas:",
+  "pubprof.title": "Halaman profil publik",
+  "pubprof.hint": "Foiler lain bisa melihat halaman tentang kamu. Kamu yang menentukan isinya — nama dan fotomu tetap muncul di setiap sesi. Daftar sesimu sengaja tidak ditampilkan di sana.",
+  "pubprof.enabled": "Halaman profil terlihat oleh orang lain",
+  "pubprof.fields": "Yang boleh ditampilkan",
+  "pubprof.join": "Bergabung sejak",
+  "pubprof.watch": "Jam",
+  "pubprof.foil": "Foil",
+  "pubprof.homespot": "Spot utama",
+  "pubprof.records": "Rekor 12 bulan terakhir",
+  "pubprof.view": "Lihat halaman profilku",
 };
 
 export default id;

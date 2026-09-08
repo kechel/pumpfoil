@@ -511,6 +511,7 @@ export interface Leaders {
 }
 
 export interface Profile {
+  id: number;        // eigene Nutzer-ID — fuer den Link auf die eigene Foiler-Seite
   email: string;
   display_name: string | null;
   avatar_url: string | null;

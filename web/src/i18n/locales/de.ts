@@ -1797,6 +1797,16 @@ const de: Record<string, string> = {
   "foiler.records": "Rekorde der letzten 12 Monate",
   "foiler.notFound": "Diese Profilseite ist nicht verfügbar.",
   "foiler.offHint": "Deine Profilseite ist für andere ausgeblendet. Sichtbarkeit ändern:",
+  "pubprof.title": "Öffentliche Profilseite",
+  "pubprof.hint": "Andere Foiler können eine Seite über dich sehen. Du entscheidest, was darauf steht — Anzeigename und Bild stehen ohnehin unter jeder Session. Eine Liste deiner Sessions gibt es dort bewusst nicht.",
+  "pubprof.enabled": "Profilseite für andere sichtbar",
+  "pubprof.fields": "Das darf darauf stehen",
+  "pubprof.join": "Dabei seit",
+  "pubprof.watch": "Uhr",
+  "pubprof.foil": "Foil",
+  "pubprof.homespot": "Homespot",
+  "pubprof.records": "Rekorde der letzten 12 Monate",
+  "pubprof.view": "Meine Profilseite ansehen",
 };
 
 export default de;

@@ -14,6 +14,7 @@ import { PlatformSubline } from "../components/SupportedPlatforms";
 import { MyFoilsSubline } from "../components/MyFoilsSubline";
 import { NotificationsToggle } from "../components/NotificationsToggle";
 import { ZonesCard } from "../components/ZonesCard";
+import { PublicProfileCard } from "../components/PublicProfileCard";
 
 export default function Settings() {
   const { t } = useI18n();
@@ -270,6 +271,8 @@ export default function Settings() {
           {spots.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
       </Card>
+
+      <PublicProfileCard onSaved={flashSaved} />
 
       <Card className="mt-4 p-5">
         <h3 className="mb-1 font-semibold">{t("lang.label")}</h3>

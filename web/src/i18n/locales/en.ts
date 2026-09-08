@@ -1742,6 +1742,16 @@ const en: Record<string, string> = {
   "foiler.records": "Records from the last 12 months",
   "foiler.notFound": "This profile page is not available.",
   "foiler.offHint": "Your profile page is hidden from others. Change visibility:",
+  "pubprof.title": "Public profile page",
+  "pubprof.hint": "Other foilers can see a page about you. You decide what's on it — your name and picture appear under every session anyway. It deliberately does not list your sessions.",
+  "pubprof.enabled": "Profile page visible to others",
+  "pubprof.fields": "What may appear on it",
+  "pubprof.join": "Member since",
+  "pubprof.watch": "Watch",
+  "pubprof.foil": "Foil",
+  "pubprof.homespot": "Home spot",
+  "pubprof.records": "Records from the last 12 months",
+  "pubprof.view": "View my profile page",
 };
 
 export default en;

@@ -1678,6 +1678,16 @@ const pt: Record<string, string> = {
   "foiler.records": "Recordes dos últimos 12 meses",
   "foiler.notFound": "Esta página de perfil não está disponível.",
   "foiler.offHint": "A tua página de perfil está oculta para os outros. Alterar visibilidade:",
+  "pubprof.title": "Página de perfil pública",
+  "pubprof.hint": "Outros foilers podem ver uma página sobre ti. Tu decides o que aparece — o teu nome e a tua foto aparecem de qualquer forma em cada sessão. De propósito, não mostra uma lista das tuas sessões.",
+  "pubprof.enabled": "Página de perfil visível para outros",
+  "pubprof.fields": "O que pode aparecer",
+  "pubprof.join": "Membro desde",
+  "pubprof.watch": "Relógio",
+  "pubprof.foil": "Foil",
+  "pubprof.homespot": "Spot habitual",
+  "pubprof.records": "Recordes dos últimos 12 meses",
+  "pubprof.view": "Ver a minha página de perfil",
 };
 
 export default pt;
