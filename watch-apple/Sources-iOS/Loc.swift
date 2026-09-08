@@ -13,7 +13,7 @@ enum Loc {
     // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
     static let csOverlay: [String: String] = {
         var d: [String: String] = [:]
-        for p in [_csOverlayP1, _csOverlayP1s2, _csOverlayP1s3, _csOverlayP2, _csOverlayP2s2, _csOverlayP3, _csOverlayP3s2, _csOverlayP4, _csOverlayP4s2, _csOverlayP5, _csOverlayP5s2, _csOverlayP6, _csOverlayP6s2, _csOverlayP7, _csOverlayP7s2, _csOverlayP8, _csOverlayP8s2, _csOverlayP9, _csOverlayP9s2, _csOverlayP10, _csOverlayP10s2, _csOverlayP11, _csOverlayP11s2, _csOverlayP11s3, _csOverlayP11s4] { d.merge(p) { a, _ in a } }
+        for p in [_csOverlayP1, _csOverlayP1s2, _csOverlayP1s4, _csOverlayP1s3, _csOverlayP2, _csOverlayP2s2, _csOverlayP3, _csOverlayP3s2, _csOverlayP4, _csOverlayP4s2, _csOverlayP5, _csOverlayP5s2, _csOverlayP6, _csOverlayP6s2, _csOverlayP7, _csOverlayP7s2, _csOverlayP8, _csOverlayP8s2, _csOverlayP9, _csOverlayP9s2, _csOverlayP10, _csOverlayP10s2, _csOverlayP11, _csOverlayP11s2, _csOverlayP11s3, _csOverlayP11s4] { d.merge(p) { a, _ in a } }
         return d
     }()
 
@@ -278,6 +278,13 @@ enum Loc {
         "watchQuality.hrRate": "{n}×/min",
         "watchQuality.hrPending": "zatím žádná data",
         "watchQuality.note": "Sloupec polohy nelze porovnávat napříč světy: Garmin hlásí stupeň kvality, Apple a Wear OS hlásí metry. Apple Watch nám svůj model prozradí až od příští verze. Tep počítá nová měření za minutu, ne chybějící body — jen tak je vidět, jak často hodinky opravdu měří.",
+        "foils.none": "Žádné výsledky.",
+        "sessions.uploadFitZip": "Importovat FIT/TCX/GPX",
+        "sessions.importing": "Importuji",
+        "sessions.uploadFail": "{fail} z {total} souborů selhalo (není FIT / žádná GPS data?).",
+        "sessions.uploadSkipped": "{skipped} z {total} souborů přeskočeno — nejsou to aktivity (např. denní monitoring hodinek). Všechno ostatní bylo importováno.",
+        "sessions.uploadSkippedOne": "Neimportováno: {reason}.",
+        "import.title": "Importovat aktivitu",
         "cr.foilAll": "Všechny foily",
         "cr.foilMine": "Jako můj foil",
         "cr.foilUnder": "pod {n} cm²",
@@ -313,6 +320,9 @@ enum Loc {
         "rec.pageTitle": "Nahrát relaci telefonem",
         "rec.waterproof": "Zabal telefon vodotěsně!",
         "rec.gpsHint": "Zabal telefon vodotěsně a vezmi ho s sebou — nahrává se GPS a pohyb.",
+    ]
+
+    private static let _csOverlayP1s4: [String: String] = [
         "rec.gpsSearch": "Hledám GPS …",
         "rec.gpsReady": "GPS připraveno",
         "rec.autostart": "Automatický start",
@@ -902,7 +912,7 @@ enum Loc {
     // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
     static let nlOverlay: [String: String] = {
         var d: [String: String] = [:]
-        for p in [_nlOverlayP1, _nlOverlayP1s2, _nlOverlayP1s3, _nlOverlayP2, _nlOverlayP2s2, _nlOverlayP3, _nlOverlayP3s2, _nlOverlayP4, _nlOverlayP4s2, _nlOverlayP5, _nlOverlayP5s2, _nlOverlayP6, _nlOverlayP6s2, _nlOverlayP7, _nlOverlayP7s2, _nlOverlayP8, _nlOverlayP8s2, _nlOverlayP9, _nlOverlayP9s2, _nlOverlayP10, _nlOverlayP10s2, _nlOverlayP11, _nlOverlayP11s2, _nlOverlayP11s3, _nlOverlayP11s4] { d.merge(p) { a, _ in a } }
+        for p in [_nlOverlayP1, _nlOverlayP1s2, _nlOverlayP1s4, _nlOverlayP1s3, _nlOverlayP2, _nlOverlayP2s2, _nlOverlayP3, _nlOverlayP3s2, _nlOverlayP4, _nlOverlayP4s2, _nlOverlayP5, _nlOverlayP5s2, _nlOverlayP6, _nlOverlayP6s2, _nlOverlayP7, _nlOverlayP7s2, _nlOverlayP8, _nlOverlayP8s2, _nlOverlayP9, _nlOverlayP9s2, _nlOverlayP10, _nlOverlayP10s2, _nlOverlayP11, _nlOverlayP11s2, _nlOverlayP11s3, _nlOverlayP11s4] { d.merge(p) { a, _ in a } }
         return d
     }()
 
@@ -1167,6 +1177,13 @@ enum Loc {
         "watchQuality.hrRate": "{n}×/min",
         "watchQuality.hrPending": "nog geen data",
         "watchQuality.note": "De positiekolom is niet vergelijkbaar tussen werelden: Garmin meldt een kwaliteitsniveau, Apple en Wear OS melden meters. De Apple Watch vertelt ons pas vanaf de volgende versie welk model het is. Hartslag telt nieuwe metingen per minuut, geen ontbrekende punten — alleen zo zie je hoe vaak een horloge echt meet.",
+        "foils.none": "Geen resultaten.",
+        "sessions.uploadFitZip": "FIT/TCX/GPX importeren",
+        "sessions.importing": "Importeren",
+        "sessions.uploadFail": "{fail} van {total} bestand(en) mislukt (geen FIT/geen GPS-data?).",
+        "sessions.uploadSkipped": "{skipped} van {total} bestanden overgeslagen — het zijn geen activiteiten (bv. de dagelijkse monitoring van het horloge). Al het andere is geïmporteerd.",
+        "sessions.uploadSkippedOne": "Niet geïmporteerd: {reason}.",
+        "import.title": "Activiteit importeren",
         "cr.foilAll": "Alle foils",
         "cr.foilMine": "Zoals mijn foil",
         "cr.foilUnder": "onder {n} cm²",
@@ -1202,6 +1219,9 @@ enum Loc {
         "rec.pageTitle": "Sessie met je telefoon opnemen",
         "rec.waterproof": "Verpak je telefoon waterdicht!",
         "rec.gpsHint": "Verpak je telefoon waterdicht en neem hem mee — GPS en beweging worden opgenomen.",
+    ]
+
+    private static let _nlOverlayP1s4: [String: String] = [
         "rec.gpsSearch": "GPS zoeken …",
         "rec.gpsReady": "GPS gereed",
         "rec.autostart": "Autostart",
@@ -1809,7 +1829,7 @@ enum Loc {
     // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
     static let fiOverlay: [String: String] = {
         var d: [String: String] = [:]
-        for p in [_fiOverlayP1, _fiOverlayP1s2, _fiOverlayP1s3, _fiOverlayP2, _fiOverlayP2s2, _fiOverlayP3, _fiOverlayP3s2, _fiOverlayP4, _fiOverlayP4s2, _fiOverlayP5, _fiOverlayP5s2, _fiOverlayP6, _fiOverlayP6s2, _fiOverlayP7, _fiOverlayP7s2, _fiOverlayP8, _fiOverlayP8s2, _fiOverlayP9, _fiOverlayP9s2, _fiOverlayP10, _fiOverlayP11, _fiOverlayP11s2, _fiOverlayP11s3, _fiOverlayP11s4, _fiOverlayP11s5] { d.merge(p) { a, _ in a } }
+        for p in [_fiOverlayP1, _fiOverlayP1s2, _fiOverlayP1s4, _fiOverlayP1s3, _fiOverlayP2, _fiOverlayP2s2, _fiOverlayP3, _fiOverlayP3s2, _fiOverlayP4, _fiOverlayP4s2, _fiOverlayP5, _fiOverlayP5s2, _fiOverlayP6, _fiOverlayP6s2, _fiOverlayP7, _fiOverlayP7s2, _fiOverlayP8, _fiOverlayP8s2, _fiOverlayP9, _fiOverlayP9s2, _fiOverlayP10, _fiOverlayP11, _fiOverlayP11s2, _fiOverlayP11s3, _fiOverlayP11s4, _fiOverlayP11s5] { d.merge(p) { a, _ in a } }
         return d
     }()
 
@@ -2117,6 +2137,13 @@ enum Loc {
         "watchQuality.hrRate": "{n}×/min",
         "watchQuality.hrPending": "ei vielä dataa",
         "watchQuality.note": "Paikannussaraketta ei voi verrata maailmojen välillä: Garmin ilmoittaa laatutason, Apple ja Wear OS metrejä. Apple Watch kertoo mallinsa vasta seuraavasta versiosta alkaen. Syke laskee uudet mittaukset minuutissa, ei puuttuvia pisteitä — vain näin näkee, kuinka usein kello oikeasti mittaa.",
+        "foils.none": "Ei tuloksia.",
+        "sessions.uploadFitZip": "Tuo FIT/TCX/GPX",
+        "sessions.importing": "Tuodaan",
+        "sessions.uploadFail": "{fail}/{total} tiedostoa epäonnistui (ei FIT / ei GPS-dataa?).",
+        "sessions.uploadSkipped": "{skipped}/{total} tiedostoa ohitettu — ne eivät ole aktiviteetteja (esim. kellon päivittäinen seuranta). Kaikki muu tuotiin.",
+        "sessions.uploadSkippedOne": "Ei tuotu: {reason}.",
+        "import.title": "Tuo aktiviteetti",
         "cr.foilAll": "Kaikki siivet",
         "cr.foilMine": "Kuten oma siipi",
         "cr.foilUnder": "alle {n} cm²",
@@ -2152,6 +2179,9 @@ enum Loc {
         "profile.calc": "Foil-laskuri",
         "profile.calcSub": "Vertaa foileja & pumppausteho",
         "profile.stats": "Foil-tilastot",
+    ]
+
+    private static let _fiOverlayP1s4: [String: String] = [
         "profile.statsSub": "Yhteisö: arvot per foil",
         "profile.alarm": "On-foil-hälytys",
         "profile.alarmSub": "Nopeusrajat & värinäkuviot kellolle",
@@ -2777,6 +2807,13 @@ enum Loc {
         "watchQuality.hrRate": r("{n}×/min", "{n}×/min", "{n}×/min", "{n}×/min", "{n}×/min", "{n}×/min", "{n}×/min"),
         "watchQuality.hrPending": r("noch keine Daten", "no kei Date", "noch keine Daten", "no data yet", "pas encore de données", "ancora nessun dato", "aún sin datos"),
         "watchQuality.note": r("Die Ortungsspalte ist nicht zwischen den Welten vergleichbar: Garmin meldet eine Güte-Stufe, Apple und Wear OS melden Meter. Die Apple Watch verrät uns ihr Modell erst ab der nächsten Version, bis dahin steht sie als eine Zeile. Puls zählt neue Messwerte je Minute, nicht fehlende Punkte — nur so ist erkennbar, wie oft eine Uhr wirklich misst.", "D Ortigsspalte isch zwüsche de Welte nid vergliichbar: Garmin meldet e Güete-Stufe, Apple und Wear OS meldet Meter. D Apple Watch verrat üs ihres Modäll erscht ab de nächste Version. Puls zellt neui Mässwärt pro Minute, nid fählendi Pünkt — nume so gseht mer, wie oft e Uhr würklich misst.", "Die Ortungsspalte ist nicht zwischen den Welten vergleichbar: Garmin meldet eine Güte-Stufe, Apple und Wear OS melden Meter. Die Apple Watch verrät uns ihr Modell erst ab der nächsten Version, bis dahin steht sie als eine Zeile. Puls zählt neue Messwerte je Minute, nicht fehlende Punkte — nur so ist erkennbar, wie oft eine Uhr wirklich misst.", "The positioning column cannot be compared across worlds: Garmin reports a quality grade, Apple and Wear OS report metres. The Apple Watch only tells us its model from the next version on, until then it is one row. Heart rate counts new readings per minute, not missing points — that is the only way to see how often a watch really measures.", "La colonne localisation n'est pas comparable d'un monde à l'autre : Garmin indique un niveau de qualité, Apple et Wear OS des mètres. L'Apple Watch ne nous dira son modèle qu'à partir de la prochaine version. La fréquence cardiaque compte les nouvelles mesures par minute, pas les points manquants — c'est le seul moyen de voir à quelle fréquence une montre mesure vraiment.", "La colonna localizzazione non è confrontabile tra mondi: Garmin indica un livello di qualità, Apple e Wear OS indicano metri. L'Apple Watch ci dirà il suo modello solo dalla prossima versione. La frequenza cardiaca conta le nuove misurazioni al minuto, non i punti mancanti: è l'unico modo per vedere quanto spesso un orologio misura davvero.", "La columna de localización no es comparable entre mundos: Garmin informa un nivel de calidad, Apple y Wear OS informan metros. El Apple Watch solo nos dirá su modelo a partir de la próxima versión. El pulso cuenta lecturas nuevas por minuto, no puntos que faltan: es la única forma de ver con qué frecuencia mide realmente un reloj."),
+        "foils.none": r("Keine Treffer.", "Kei Träffer.", "Kane Treffer.", "No matches.", "Aucun résultat.", "Nessun risultato.", "Sin resultados."),
+        "sessions.uploadFitZip": r("FIT/TCX/GPX importieren", "FIT/TCX/GPX importiere", "FIT/TCX/GPX importieren", "Import FIT/TCX/GPX", "Importer FIT/TCX/GPX", "Importa FIT/TCX/GPX", "Importar FIT/TCX/GPX"),
+        "sessions.importing": r("Importiere", "Importiere", "Importier grad", "Importing", "Import", "Importazione", "Importando"),
+        "sessions.uploadFail": r("{fail} von {total} Datei(en) fehlgeschlagen (kein FIT/keine GPS-Daten?).", "{fail} vo {total} Datei(e) fählgschlage (kei FIT/kei GPS-Date?).", "{fail} von {total} Datei(en) fehlgschlagn (kei FIT/kane GPS-Daten?).", "{fail} of {total} file(s) failed (no FIT / no GPS data?).", "{fail} sur {total} fichier(s) en échec (pas de FIT / pas de données GPS ?).", "{fail} di {total} file non riusciti (nessun FIT / nessun dato GPS?).", "{fail} de {total} archivo(s) fallaron (¿sin FIT / sin datos GPS?)."),
+        "sessions.uploadSkipped": r("{skipped} von {total} Dateien übersprungen — das sind keine Aktivitäten (z. B. Tagesaufzeichnungen der Uhr). Alles andere wurde importiert.", "{skipped} vo {total} Dateie übersprunge — das sind kei Aktivitäte (z. B. Tagesufzeichnige vo de Uhr). Alles andere isch importiert worde.", "{skipped} von {total} Dateien übersprungen — das san keine Aktivitäten (z. B. Tagesaufzeichnungen der Uhr). Alles andere wurde importiert.", "{skipped} of {total} files skipped — they aren’t activities (e.g. the watch’s daily monitoring). Everything else was imported.", "{skipped} fichiers sur {total} ignorés — ce ne sont pas des activités (par ex. le suivi quotidien de la montre). Tout le reste a été importé.", "{skipped} di {total} file saltati — non sono attività (per es. il monitoraggio quotidiano dell'orologio). Tutto il resto è stato importato.", "{skipped} de {total} archivos omitidos — no son actividades (p. ej. el seguimiento diario del reloj). Todo lo demás se importó."),
+        "sessions.uploadSkippedOne": r("Nicht importiert: {reason}.", "Nöd importiert: {reason}.", "Nicht importiert: {reason}.", "Not imported: {reason}.", "Non importé : {reason}.", "Non importato: {reason}.", "No importado: {reason}."),
+        "import.title": r("Aktivität importieren", "Aktivität importiere", "Aktivität importieren", "Import activity", "Importer une activité", "Importa attività", "Importar actividad"),
         "cr.foilAll": r("Alle Foils", "Alli Foils", "Olle Foils", "All foils", "Tous les foils", "Tutti i foil", "Todos los foils"),
         "cr.foilMine": r("Wie mein Foil", "Wie mis Foil", "Wia mei Foil", "Like my foil", "Comme mon foil", "Come il mio foil", "Como mi foil"),
         "cr.foilUnder": r("unter {n} cm²", "under {n} cm²", "unter {n} cm²", "under {n} cm²", "moins de {n} cm²", "sotto {n} cm²", "menos de {n} cm²"),

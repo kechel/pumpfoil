@@ -616,6 +616,7 @@ const deAT: Record<string, string> = {
   "foils.title": "Meine Foils",
   "foils.hint": "Merk dir deine Foils und wähl ans als Standard (★). Der Standard is je Session überschreibbar.",
   "foils.search": "Foil suachn…",
+  "foils.none": "Kane Treffer.",
   "foils.allBrands": "Olle Marken",
   "foils.catalog": "Katalog",
   "foils.choose": "Wähln",

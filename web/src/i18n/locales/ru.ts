@@ -976,6 +976,7 @@ const ru: Record<string, string> = {
   "foils.title": "Мои фойлы",
   "foils.hint": "Отметьте свои фойлы и выберите один по умолчанию (★). Значение по умолчанию можно переопределить для каждой сессии.",
   "foils.search": "Найти фойл…",
+  "foils.none": "Ничего не найдено.",
   "foils.allBrands": "Все бренды",
   "foils.catalog": "Каталог",
   "foils.choose": "Выбрать",

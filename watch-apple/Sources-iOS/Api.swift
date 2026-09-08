@@ -210,6 +210,38 @@ enum Api {
         guard (200..<300).contains(code) else { throw ApiError.http(code, String(data: respData, encoding: .utf8) ?? "") }
     }
 
+    /// Ergebnis eines Datei-Imports: entweder eine angelegte Session (`sessionId`) oder ein
+    /// Grund, warum die Datei uebersprungen wurde (`skipped` + `detail` im Klartext vom Server).
+    struct FitUpload: Decodable {
+        let id: Int?
+        let skipped: String?
+        let detail: String?
+    }
+
+    /// Aufgezeichnete Aktivitaet importieren (FIT/TCX/GPX, auch als ZIP) — derselbe Endpunkt,
+    /// den die PWA benutzt. Uebersprungen ist KEIN Fehler (der Garmin-Gesamtexport enthaelt
+    /// Aktivitaeten und Tagesaufzeichnungen gemischt), deshalb kommt das Ergebnis zurueck,
+    /// statt zu werfen. `timeoutInterval` hoch: der Server parst UND wertet gleich aus.
+    static func uploadFit(data: Data, filename: String) async throws -> FitUpload {
+        guard let url = URL(string: baseURL + "/api/sessions/upload-fit") else { throw ApiError.badURL }
+        let boundary = "----pumpfoil\(Int(Date().timeIntervalSince1970 * 1000))"
+        var body = Data()
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"\(filename)\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: application/octet-stream\r\n\r\n".data(using: .utf8)!)
+        body.append(data)
+        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.timeoutInterval = 300
+        req.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        if let t = token { req.setValue("Bearer \(t)", forHTTPHeaderField: "Authorization") }
+        let (respData, resp) = try await URLSession.shared.upload(for: req, from: body)
+        let code = (resp as? HTTPURLResponse)?.statusCode ?? -1
+        guard (200..<300).contains(code) else { throw ApiError.http(code, String(data: respData, encoding: .utf8) ?? "") }
+        return try JSONDecoder().decode(FitUpload.self, from: respData)
+    }
+
     static func uploadSessionPhoto(_ id: Int, data: Data, filename: String = "photo.jpg", mime: String = "image/jpeg") async throws {
         guard let url = URL(string: baseURL + "/api/sessions/\(id)/photos") else { throw ApiError.badURL }
         let boundary = "----pumpfoil\(Int(Date().timeIntervalSince1970 * 1000))"

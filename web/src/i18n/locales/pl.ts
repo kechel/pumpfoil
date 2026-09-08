@@ -1056,6 +1056,7 @@ const pl: Record<string, string> = {
   "foils.defaultSportHint": "Dotyczy tylko przyszłych nagrań — istniejące sesje zostają bez zmian. Wybór na zegarku pojawi się później.",
   "foils.hint": "Zaznacz swoje foile i wybierz jeden jako domyślny (★). Domyślny można nadpisać w każdej sesji.",
   "foils.search": "Szukaj foila…",
+  "foils.none": "Brak wyników.",
   "foils.allBrands": "Wszystkie marki",
   "foils.missingFoil": "Brakuje Twojej marki albo rozmiaru na liście?",
   "foils.missingCta": "Poproś nas o dodanie",

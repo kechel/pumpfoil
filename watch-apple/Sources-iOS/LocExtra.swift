@@ -11,7 +11,7 @@ import Foundation
 // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
 let ptOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_ptOverlayP1, _ptOverlayP1s2, _ptOverlayP2, _ptOverlayP2s2, _ptOverlayP3, _ptOverlayP3s2, _ptOverlayP4, _ptOverlayP4s2, _ptOverlayP5, _ptOverlayP5s2, _ptOverlayP6, _ptOverlayP6s2, _ptOverlayP7, _ptOverlayP7s2, _ptOverlayP8, _ptOverlayP8s2, _ptOverlayP9, _ptOverlayP9s2, _ptOverlayP10, _ptOverlayP10s2, _ptOverlayP11, _ptOverlayP11s2, _ptOverlayP11s3, _ptOverlayP11s4, _ptOverlayP11s5, _ptOverlayP11s6] { d.merge(p) { a, _ in a } }
+    for p in [_ptOverlayP1, _ptOverlayP1s2, _ptOverlayP2, _ptOverlayP2s2, _ptOverlayP3, _ptOverlayP3s2, _ptOverlayP4, _ptOverlayP4s2, _ptOverlayP5, _ptOverlayP5s2, _ptOverlayP6, _ptOverlayP6s2, _ptOverlayP7, _ptOverlayP7s2, _ptOverlayP8, _ptOverlayP8s2, _ptOverlayP9, _ptOverlayP9s2, _ptOverlayP10, _ptOverlayP10s2, _ptOverlayP11, _ptOverlayP11s2, _ptOverlayP11s7, _ptOverlayP11s3, _ptOverlayP11s4, _ptOverlayP11s5, _ptOverlayP11s6] { d.merge(p) { a, _ in a } }
     return d
 }()
 
@@ -77,6 +77,13 @@ private let _ptOverlayP11s2: [String: String] = [
     "watchQuality.hrRate": "{n}×/min",
     "watchQuality.hrPending": "ainda sem dados",
     "watchQuality.note": "A coluna de localização não é comparável entre mundos: a Garmin indica um nível de qualidade, a Apple e o Wear OS indicam metros. O Apple Watch só nos dirá o seu modelo a partir da próxima versão. A frequência cardíaca conta novas leituras por minuto, não pontos em falta — só assim se vê com que frequência um relógio mede mesmo.",
+    "foils.none": "Sem resultados.",
+    "sessions.uploadFitZip": "Importar FIT/TCX/GPX",
+    "sessions.importing": "Importando",
+    "sessions.uploadFail": "{fail} de {total} arquivo(s) falharam (sem FIT / sem dados de GPS?).",
+    "sessions.uploadSkipped": "{skipped} de {total} arquivos ignorados — não são atividades (por ex. o monitoramento diário do relógio). Todo o resto foi importado.",
+    "sessions.uploadSkippedOne": "Não importado: {reason}.",
+    "import.title": "Importar atividade",
     "cr.foilAll": "Todos os foils",
     "cr.foilMine": "Como o meu foil",
     "cr.foilUnder": "abaixo de {n} cm²",
@@ -112,6 +119,9 @@ private let _ptOverlayP11s2: [String: String] = [
     "cls.appealPlaceholder": "O que foi na verdade? (ajuda na verificação)",
     "cls.appealSend": "Enviar",
     "cls.confirmFlag": "Você acha que esta não é uma sessão de pumpfoil? O dono vai receber um pedido gentil para classificá-la corretamente — como wingfoil ou foildrive, por exemplo. Você continua anônimo e ninguém está sendo acusado de nada: trata-se apenas de manter os recordes comparáveis.",
+]
+
+private let _ptOverlayP11s7: [String: String] = [
     "cls.needsBadge": "Classificar",
     "cls.notPumpfoil": "Não parece pumpfoil",
     "cls.ownerAsk": "Outro foiler acha que esta sessão não é pumpfoil. Você poderia classificá-la? Até lá ela não aparece em nenhuma estatística. Se foi mesmo pumpfoil, é só nos dizer que damos uma olhada.",
@@ -931,7 +941,7 @@ private let _ptOverlayP10s2: [String: String] = [
 // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
 let jaOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_jaOverlayP1, _jaOverlayP1s2, _jaOverlayP2, _jaOverlayP2s2, _jaOverlayP3, _jaOverlayP3s2, _jaOverlayP4, _jaOverlayP4s2, _jaOverlayP5, _jaOverlayP5s2, _jaOverlayP6, _jaOverlayP6s2, _jaOverlayP7, _jaOverlayP7s2, _jaOverlayP8, _jaOverlayP8s2, _jaOverlayP9, _jaOverlayP9s2, _jaOverlayP10, _jaOverlayP10s2, _jaOverlayP11, _jaOverlayP11s2, _jaOverlayP11s3, _jaOverlayP11s4, _jaOverlayP11s5, _jaOverlayP11s6] { d.merge(p) { a, _ in a } }
+    for p in [_jaOverlayP1, _jaOverlayP1s2, _jaOverlayP2, _jaOverlayP2s2, _jaOverlayP3, _jaOverlayP3s2, _jaOverlayP4, _jaOverlayP4s2, _jaOverlayP5, _jaOverlayP5s2, _jaOverlayP6, _jaOverlayP6s2, _jaOverlayP7, _jaOverlayP7s2, _jaOverlayP8, _jaOverlayP8s2, _jaOverlayP9, _jaOverlayP9s2, _jaOverlayP10, _jaOverlayP10s2, _jaOverlayP11, _jaOverlayP11s2, _jaOverlayP11s7, _jaOverlayP11s3, _jaOverlayP11s4, _jaOverlayP11s5, _jaOverlayP11s6] { d.merge(p) { a, _ in a } }
     return d
 }()
 
@@ -997,6 +1007,13 @@ private let _jaOverlayP11s2: [String: String] = [
     "watchQuality.hrRate": "{n} 回/分",
     "watchQuality.hrPending": "データなし",
     "watchQuality.note": "測位の列は各社で比較できません。Garmin は品質段階を、Apple と Wear OS はメートルを報告します。Apple Watch が機種名を知らせるのは次のバージョンからです。 心拍は1分あたりの新しい測定回数です。欠落した点の数ではありません — 実際にどれだけ測っているかはこれでしか分かりません。",
+    "foils.none": "該当なし。",
+    "sessions.uploadFitZip": "FIT/TCX/GPX をインポート",
+    "sessions.importing": "インポート中",
+    "sessions.uploadFail": "{total} 個中 {fail} 個のファイルが失敗しました（FIT でない／GPS データなし？）。",
+    "sessions.uploadSkipped": "{total} 件中 {skipped} 件のファイルをスキップしました — アクティビティではありません（例：時計の日常モニタリング）。それ以外はすべて取り込みました。",
+    "sessions.uploadSkippedOne": "取り込めませんでした：{reason}。",
+    "import.title": "アクティビティをインポート",
     "cr.foilAll": "すべてのフォイル",
     "cr.foilMine": "自分のフォイルと同等",
     "cr.foilUnder": "{n} cm² 未満",
@@ -1032,6 +1049,9 @@ private let _jaOverlayP11s2: [String: String] = [
     "cls.appealPlaceholder": "実際は何でしたか？（確認の助けになります）",
     "cls.appealSend": "送信",
     "cls.confirmFlag": "これはパンプフォイルのセッションではないと思いますか？ 所有者には、ウイングフォイルやフォイルドライブなどに正しく分類するようお願いが届きます。あなたは匿名のままで、誰かを非難するものでもありません：記録を比較可能に保つためだけのものです。",
+]
+
+private let _jaOverlayP11s7: [String: String] = [
     "cls.needsBadge": "要分類",
     "cls.notPumpfoil": "パンプフォイルには見えない",
     "cls.ownerAsk": "別のフォイラーが、このセッションはパンプフォイルではないと考えています。分類していただけますか？ それまでは統計に一切表示されません。本当にパンプフォイルだった場合は、教えていただければ確認します。",
@@ -1851,7 +1871,7 @@ private let _jaOverlayP10s2: [String: String] = [
 // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
 let zhOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_zhOverlayP1, _zhOverlayP1s2, _zhOverlayP2, _zhOverlayP2s2, _zhOverlayP3, _zhOverlayP3s2, _zhOverlayP4, _zhOverlayP4s2, _zhOverlayP5, _zhOverlayP5s2, _zhOverlayP6, _zhOverlayP6s2, _zhOverlayP7, _zhOverlayP7s2, _zhOverlayP8, _zhOverlayP8s2, _zhOverlayP9, _zhOverlayP9s2, _zhOverlayP10, _zhOverlayP10s2, _zhOverlayP11, _zhOverlayP11s2, _zhOverlayP11s3, _zhOverlayP11s4, _zhOverlayP11s5, _zhOverlayP11s6] { d.merge(p) { a, _ in a } }
+    for p in [_zhOverlayP1, _zhOverlayP1s2, _zhOverlayP2, _zhOverlayP2s2, _zhOverlayP3, _zhOverlayP3s2, _zhOverlayP4, _zhOverlayP4s2, _zhOverlayP5, _zhOverlayP5s2, _zhOverlayP6, _zhOverlayP6s2, _zhOverlayP7, _zhOverlayP7s2, _zhOverlayP8, _zhOverlayP8s2, _zhOverlayP9, _zhOverlayP9s2, _zhOverlayP10, _zhOverlayP10s2, _zhOverlayP11, _zhOverlayP11s2, _zhOverlayP11s7, _zhOverlayP11s3, _zhOverlayP11s4, _zhOverlayP11s5, _zhOverlayP11s6] { d.merge(p) { a, _ in a } }
     return d
 }()
 
@@ -1917,6 +1937,13 @@ private let _zhOverlayP11s2: [String: String] = [
     "watchQuality.hrRate": "{n} 次/分",
     "watchQuality.hrPending": "暂无数据",
     "watchQuality.note": "定位一列无法跨平台比较：Garmin 报告的是质量等级，Apple 与 Wear OS 报告的是米。Apple Watch 从下个版本起才会告知具体型号。 心率一列统计的是每分钟的新测量次数，而非缺失点数 — 只有这样才能看出手表实际测量的频率。",
+    "foils.none": "没有匹配结果。",
+    "sessions.uploadFitZip": "导入 FIT/TCX/GPX",
+    "sessions.importing": "正在导入",
+    "sessions.uploadFail": "{total} 个文件中有 {fail} 个失败（无 FIT / 无 GPS 数据？）。",
+    "sessions.uploadSkipped": "{total} 个文件中跳过了 {skipped} 个——它们不是活动记录（例如手表的日常监测）。其余全部已导入。",
+    "sessions.uploadSkippedOne": "未导入：{reason}。",
+    "import.title": "导入活动",
     "cr.foilAll": "全部前翼",
     "cr.foilMine": "与我的前翼相近",
     "cr.foilUnder": "小于 {n} cm²",
@@ -1952,6 +1979,9 @@ private let _zhOverlayP11s2: [String: String] = [
     "cls.appealPlaceholder": "实际上是什么？（有助于我们核实）",
     "cls.appealSend": "发送",
     "cls.confirmFlag": "你觉得这不是一次 pumpfoil 会话？我们会礼貌地请所有者正确归类——比如归为 wingfoil 或 foildrive。你保持匿名，也不是在指责任何人：这只是为了让记录之间可比。",
+]
+
+private let _zhOverlayP11s7: [String: String] = [
     "cls.needsBadge": "待归类",
     "cls.notPumpfoil": "看起来不像 pumpfoil",
     "cls.ownerAsk": "另一位 foiler 认为这次会话不是 pumpfoil。你能归一下类吗？在此之前它不会出现在任何统计中。如果确实是 pumpfoil，告诉我们一声，我们来看看。",
@@ -2771,7 +2801,7 @@ private let _zhOverlayP10s2: [String: String] = [
 // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
 let ruOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_ruOverlayP1, _ruOverlayP1s2, _ruOverlayP2, _ruOverlayP2s2, _ruOverlayP3, _ruOverlayP3s2, _ruOverlayP4, _ruOverlayP4s2, _ruOverlayP5, _ruOverlayP5s2, _ruOverlayP6, _ruOverlayP6s2, _ruOverlayP7, _ruOverlayP7s2, _ruOverlayP8, _ruOverlayP8s2, _ruOverlayP9, _ruOverlayP9s2, _ruOverlayP10, _ruOverlayP10s2, _ruOverlayP11, _ruOverlayP11s2, _ruOverlayP11s3, _ruOverlayP11s4, _ruOverlayP11s5, _ruOverlayP11s6] { d.merge(p) { a, _ in a } }
+    for p in [_ruOverlayP1, _ruOverlayP1s2, _ruOverlayP2, _ruOverlayP2s2, _ruOverlayP3, _ruOverlayP3s2, _ruOverlayP4, _ruOverlayP4s2, _ruOverlayP5, _ruOverlayP5s2, _ruOverlayP6, _ruOverlayP6s2, _ruOverlayP7, _ruOverlayP7s2, _ruOverlayP8, _ruOverlayP8s2, _ruOverlayP9, _ruOverlayP9s2, _ruOverlayP10, _ruOverlayP10s2, _ruOverlayP11, _ruOverlayP11s2, _ruOverlayP11s7, _ruOverlayP11s3, _ruOverlayP11s4, _ruOverlayP11s5, _ruOverlayP11s6] { d.merge(p) { a, _ in a } }
     return d
 }()
 
@@ -2837,6 +2867,13 @@ private let _ruOverlayP11s2: [String: String] = [
     "watchQuality.hrRate": "{n}×/мин",
     "watchQuality.hrPending": "данных пока нет",
     "watchQuality.note": "Столбец позиционирования нельзя сравнивать между платформами: Garmin сообщает уровень качества, Apple и Wear OS — метры. Apple Watch сообщит нам свою модель только со следующей версии. Пульс считает новые измерения в минуту, а не пропущенные точки — только так видно, как часто часы действительно измеряют.",
+    "foils.none": "Ничего не найдено.",
+    "sessions.uploadFitZip": "Импорт FIT/TCX/GPX",
+    "sessions.importing": "Импорт",
+    "sessions.uploadFail": "{fail} из {total} файл(ов) не обработаны (нет FIT / нет данных GPS?).",
+    "sessions.uploadSkipped": "{skipped} из {total} файлов пропущено — это не активности (например, ежедневный мониторинг часов). Всё остальное импортировано.",
+    "sessions.uploadSkippedOne": "Не импортировано: {reason}.",
+    "import.title": "Импорт активности",
     "cr.foilAll": "Все крылья",
     "cr.foilMine": "Как моё крыло",
     "cr.foilUnder": "меньше {n} см²",
@@ -2872,6 +2909,9 @@ private let _ruOverlayP11s2: [String: String] = [
     "cls.appealPlaceholder": "Что это было на самом деле? (поможет нам проверить)",
     "cls.appealSend": "Отправить",
     "cls.confirmFlag": "Считаешь, что это не сессия пампфойла? Владелец получит вежливую просьбу правильно её классифицировать — например как вингфойл или фойлдрайв. Ты остаёшься анонимным, и никого ни в чём не обвиняют: речь только о том, чтобы рекорды оставались сопоставимыми.",
+]
+
+private let _ruOverlayP11s7: [String: String] = [
     "cls.needsBadge": "Нужно классифицировать",
     "cls.notPumpfoil": "Не похоже на пампфойл",
     "cls.ownerAsk": "Другой фойлер считает, что эта сессия — не пампфойл. Не классифицируешь её? До тех пор она не появится ни в одной статистике. Если это действительно был пампфойл, просто скажи нам, и мы посмотрим.",
@@ -3691,7 +3731,7 @@ private let _ruOverlayP10s2: [String: String] = [
 // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
 let idOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_idOverlayP1, _idOverlayP1s2, _idOverlayP2, _idOverlayP2s2, _idOverlayP3, _idOverlayP3s2, _idOverlayP4, _idOverlayP4s2, _idOverlayP5, _idOverlayP5s2, _idOverlayP6, _idOverlayP6s2, _idOverlayP7, _idOverlayP7s2, _idOverlayP8, _idOverlayP8s2, _idOverlayP9, _idOverlayP9s2, _idOverlayP10, _idOverlayP10s2, _idOverlayP11, _idOverlayP11s2, _idOverlayP11s3, _idOverlayP11s4, _idOverlayP11s5, _idOverlayP11s6] { d.merge(p) { a, _ in a } }
+    for p in [_idOverlayP1, _idOverlayP1s2, _idOverlayP2, _idOverlayP2s2, _idOverlayP3, _idOverlayP3s2, _idOverlayP4, _idOverlayP4s2, _idOverlayP5, _idOverlayP5s2, _idOverlayP6, _idOverlayP6s2, _idOverlayP7, _idOverlayP7s2, _idOverlayP8, _idOverlayP8s2, _idOverlayP9, _idOverlayP9s2, _idOverlayP10, _idOverlayP10s2, _idOverlayP11, _idOverlayP11s2, _idOverlayP11s7, _idOverlayP11s3, _idOverlayP11s4, _idOverlayP11s5, _idOverlayP11s6] { d.merge(p) { a, _ in a } }
     return d
 }()
 
@@ -3757,6 +3797,13 @@ private let _idOverlayP11s2: [String: String] = [
     "watchQuality.hrRate": "{n}×/mnt",
     "watchQuality.hrPending": "belum ada data",
     "watchQuality.note": "Kolom posisi tidak bisa dibandingkan antar platform: Garmin melaporkan tingkat kualitas, Apple dan Wear OS melaporkan meter. Apple Watch baru memberi tahu modelnya mulai versi berikutnya. Detak jantung menghitung pembacaan baru per menit, bukan titik yang hilang — hanya begitu terlihat seberapa sering jam benar-benar mengukur.",
+    "foils.none": "Tidak ada hasil.",
+    "sessions.uploadFitZip": "Impor FIT/TCX/GPX",
+    "sessions.importing": "Mengimpor",
+    "sessions.uploadFail": "{fail} dari {total} file gagal (bukan FIT / tidak ada data GPS?).",
+    "sessions.uploadSkipped": "{skipped} dari {total} berkas dilewati — itu bukan aktivitas (mis. pemantauan harian jam). Semua sisanya diimpor.",
+    "sessions.uploadSkippedOne": "Tidak diimpor: {reason}.",
+    "import.title": "Impor aktivitas",
     "cr.foilAll": "Semua foil",
     "cr.foilMine": "Seperti foil saya",
     "cr.foilUnder": "di bawah {n} cm²",
@@ -3792,6 +3839,9 @@ private let _idOverlayP11s2: [String: String] = [
     "cls.appealPlaceholder": "Sebenarnya itu apa? (membantu kami memeriksa)",
     "cls.appealSend": "Kirim",
     "cls.confirmFlag": "Menurutmu ini bukan sesi pumpfoil? Pemiliknya akan menerima permintaan baik-baik untuk mengklasifikasikannya dengan benar — misalnya sebagai wingfoil atau foildrive. Kamu tetap anonim dan tidak ada yang dituduh apa pun: ini hanya soal menjaga rekor tetap sebanding.",
+]
+
+private let _idOverlayP11s7: [String: String] = [
     "cls.needsBadge": "Perlu diklasifikasikan",
     "cls.notPumpfoil": "Sepertinya bukan pumpfoil",
     "cls.ownerAsk": "Foiler lain berpendapat sesi ini bukan pumpfoil. Bisakah kamu mengklasifikasikannya? Sampai saat itu ia tidak muncul di statistik mana pun. Kalau memang benar pumpfoil, beri tahu kami dan kami akan melihatnya.",
@@ -4610,7 +4660,7 @@ private let _idOverlayP10s2: [String: String] = [
 // den Swift-Type-Checker im Release-Build minutenlang kauen.
 let nbOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_nbOverlayP1, _nbOverlayP1s2, _nbOverlayP2, _nbOverlayP2s2, _nbOverlayP3, _nbOverlayP3s2, _nbOverlayP4, _nbOverlayP4s2, _nbOverlayP5, _nbOverlayP5s2, _nbOverlayP6, _nbOverlayP6s2, _nbOverlayP7, _nbOverlayP7s2, _nbOverlayP8, _nbOverlayP8s2, _nbOverlayP9, _nbOverlayP9s2, _nbOverlayP10, _nbOverlayP10s2, _nbOverlayP11, _nbOverlayP11s2, _nbOverlayP11s3, _nbOverlayP11s4, _nbOverlayP11s5] { d.merge(p) { a, _ in a } }
+    for p in [_nbOverlayP1, _nbOverlayP1s2, _nbOverlayP2, _nbOverlayP2s2, _nbOverlayP3, _nbOverlayP3s2, _nbOverlayP4, _nbOverlayP4s2, _nbOverlayP5, _nbOverlayP5s2, _nbOverlayP6, _nbOverlayP6s2, _nbOverlayP7, _nbOverlayP7s2, _nbOverlayP8, _nbOverlayP8s2, _nbOverlayP9, _nbOverlayP9s2, _nbOverlayP10, _nbOverlayP10s2, _nbOverlayP11, _nbOverlayP11s2, _nbOverlayP11s6, _nbOverlayP11s3, _nbOverlayP11s4, _nbOverlayP11s5] { d.merge(p) { a, _ in a } }
     return d
 }()
 
@@ -4676,6 +4726,13 @@ private let _nbOverlayP11s2: [String: String] = [
     "watchQuality.hrRate": "{n}×/min",
     "watchQuality.hrPending": "ingen data ennå",
     "watchQuality.note": "Posisjonskolonnen kan ikke sammenlignes på tvers: Garmin melder et kvalitetsnivå, Apple og Wear OS melder meter. Apple Watch forteller oss modellen først fra neste versjon. Puls teller nye målinger per minutt, ikke manglende punkter — bare slik ser man hvor ofte en klokke faktisk måler.",
+    "foils.none": "Ingen treff.",
+    "sessions.uploadFitZip": "Importer FIT/TCX/GPX",
+    "sessions.importing": "Importerer",
+    "sessions.uploadFail": "{fail} av {total} fil(er) feilet (ingen FIT / ingen GPS-data?).",
+    "sessions.uploadSkipped": "{skipped} av {total} filer hoppet over — de er ikke aktiviteter (f.eks. klokkas daglige måling). Alt annet ble importert.",
+    "sessions.uploadSkippedOne": "Ikke importert: {reason}.",
+    "import.title": "Importer aktivitet",
     "cr.foilAll": "Alle foiler",
     "cr.foilMine": "Som min foil",
     "cr.foilUnder": "under {n} cm²",
@@ -4711,6 +4768,9 @@ private let _nbOverlayP11s2: [String: String] = [
     "lay.byAuthor": "av {name}",
     "lay.copiedGoto": "Kopiert — gå til mine oppsett",
     "lay.copies": "kopiert {n}×",
+]
+
+private let _nbOverlayP11s6: [String: String] = [
     "lay.copyToMine": "Kopier til min profil",
     "lay.galleryEmpty": "Ingenting publisert ennå. Publiser oppsettet ditt — så ser andre det her.",
     "lay.galleryHint": "Se oppsett andre foilere har publisert, og kopier dem til din egen profil. Forhåndsvisningen bruker klokkestørrelsen din som standard — du kan kopiere alle oppsett, også de som er laget for en annen størrelse eller form (posisjonene er relative).",
@@ -5557,7 +5617,7 @@ private let _nbOverlayP10s2: [String: String] = [
 // einziges Riesen-Literal laesst den Swift-Type-Checker minutenlang kauen.
 let plOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_plOverlayP1, _plOverlayP1s2, _plOverlayP1s3, _plOverlayP1s4, _plOverlayP1s5, _plOverlayP2, _plOverlayP2s2, _plOverlayP2s3, _plOverlayP3, _plOverlayP3s2, _plOverlayP3s3, _plOverlayP4, _plOverlayP4s2, _plOverlayP4s3, _plOverlayP5, _plOverlayP5s2, _plOverlayP5s3, _plOverlayP6] { d.merge(p) { a, _ in a } }
+    for p in [_plOverlayP1, _plOverlayP1s2, _plOverlayP1s6, _plOverlayP1s3, _plOverlayP1s4, _plOverlayP1s5, _plOverlayP2, _plOverlayP2s2, _plOverlayP2s3, _plOverlayP3, _plOverlayP3s2, _plOverlayP3s3, _plOverlayP4, _plOverlayP4s2, _plOverlayP4s3, _plOverlayP5, _plOverlayP5s2, _plOverlayP5s3, _plOverlayP6] { d.merge(p) { a, _ in a } }
     return d
 }()
 
@@ -5622,6 +5682,13 @@ private let _plOverlayP1s2: [String: String] = [
     "watchQuality.hrRate": "{n}×/min",
     "watchQuality.hrPending": "jeszcze brak danych",
     "watchQuality.note": "Kolumny lokalizacji nie da się porównać między światami: Garmin podaje stopień jakości, Apple i Wear OS podają metry. Apple Watch poda nam swój model dopiero od następnej wersji. Tętno liczy nowe pomiary na minutę, a nie brakujące punkty — tylko tak widać, jak często zegarek naprawdę mierzy.",
+    "foils.none": "Brak wyników.",
+    "sessions.uploadFitZip": "Importuj FIT/TCX/GPX",
+    "sessions.importing": "Importowanie",
+    "sessions.uploadFail": "{fail} z {total} plików nie powiodło się (brak FIT / brak danych GPS?).",
+    "sessions.uploadSkipped": "Pominięto {skipped} z {total} plików — to nie są aktywności (np. codzienny monitoring zegarka). Cała reszta została zaimportowana.",
+    "sessions.uploadSkippedOne": "Nie zaimportowano: {reason}.",
+    "import.title": "Importuj aktywność",
     "cr.foilAll": "Wszystkie foile",
     "cr.foilMine": "Jak mój foil",
     "cr.foilUnder": "poniżej {n} cm²",
@@ -5657,6 +5724,9 @@ private let _plOverlayP1s2: [String: String] = [
         "feedback.attach": "Dołącz plik",
         "feedback.attachFailed": "Nie udało się przesłać załącznika",
         "map.street": "Mapa",
+]
+
+private let _plOverlayP1s6: [String: String] = [
         "map.satellite": "Satelita",
         "phome.byFoil": "Według foila",
         "phome.noFoil": "Bez wpisanego foila",

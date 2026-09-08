@@ -1013,6 +1013,7 @@ const nb: Record<string, string> = {
   "foils.defaultSportHint": "Gjelder bare fremtidige opptak — eksisterende økter forblir som de er. Valg på klokka kommer senere.",
   "foils.hint": "Merk foilene dine og velg én som standard (★). Standarden kan overstyres per økt.",
   "foils.search": "Søk foil…",
+  "foils.none": "Ingen treff.",
   "foils.allBrands": "Alle merker",
   "foils.missingFoil": "Mangler merket eller størrelsen din i listen?",
   "foils.missingCta": "Be oss legge den til",

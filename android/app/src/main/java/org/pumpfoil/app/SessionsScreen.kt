@@ -296,6 +296,14 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                     }
                 }
             }
+            // Datei-Import, rechts unter den Filtern — dieselbe Stelle wie in der PWA (Jan,
+            // 07.09.2026: „sollten die nicht in meine Sessions oben rechts unter den Filtern
+            // stehen?"). Nur in „Meine": ein Import erzeugt immer eine EIGENE Session.
+            if (scope == Scope.MINE) {
+                ImportFileButton { neueId ->
+                    if (neueId != null) onOpen(neueId, null) else scopeC.launch { load() }
+                }
+            }
             // Aussortiert-Ansicht: WARUM eine Aufnahme hier liegt und was man tun kann. Stand
             // bisher nur in der PWA — dort ausdruecklich, weil ein Nutzer erst durch Nachfragen
             // erfuhr, wo seine Session steckt und dass er sie selbst einordnen darf.

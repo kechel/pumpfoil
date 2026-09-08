@@ -976,6 +976,7 @@ const ja: Record<string, string> = {
   "foils.title": "マイフォイル",
   "foils.hint": "自分のフォイルをマークし、1つをデフォルト（★）に選びます。デフォルトはセッションごとに上書きできます。",
   "foils.search": "フォイルを検索…",
+  "foils.none": "該当なし。",
   "foils.allBrands": "全ブランド",
   "foils.catalog": "カタログ",
   "foils.choose": "選択",

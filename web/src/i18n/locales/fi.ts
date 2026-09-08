@@ -1041,6 +1041,7 @@ const fi: Record<string, string> = {
   "foils.title": "Omat foilit",
   "foils.hint": "Merkitse foilisi ja valitse yksi oletukseksi (★). Oletus on ohitettavissa sessiokohtaisesti.",
   "foils.search": "Hae foil…",
+  "foils.none": "Ei tuloksia.",
   "foils.allBrands": "Kaikki merkit",
   "foils.catalog": "Katalogi",
   "foils.choose": "Valitse",

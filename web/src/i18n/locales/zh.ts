@@ -976,6 +976,7 @@ const zh: Record<string, string> = {
   "foils.title": "我的水翼",
   "foils.hint": "标记你的水翼并选择一个作为默认 (★)。默认值可按每次记录覆盖。",
   "foils.search": "搜索水翼…",
+  "foils.none": "没有匹配结果。",
   "foils.allBrands": "所有品牌",
   "foils.catalog": "目录",
   "foils.choose": "选择",
