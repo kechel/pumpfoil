@@ -587,6 +587,34 @@ def name_prefix():
 PIXABAY_ID_RE = re.compile(r"-(\d{4,})$")
 
 
+# Der Dateiname ist der Lizenznachweis. Bei Pixabay steht die Track-ID drin, die
+# direkt zur Lizenzseite fuehrt; bei den Plattform-Bibliotheken genuegt die
+# Quelle, denn deren Lizenz haengt am Ordner, nicht am einzelnen Stueck.
+# NEUEN ORDNER hier eintragen — die Suffix-Erkennung baut sich daraus auf.
+MUSIK_QUELLE = {
+    "youtube": "music-yt",                  # YouTube Audio Library — nur YouTube
+    "instagram": "music-insta",             # Meta Sound Collection — nur FB/Instagram
+    "marcus-gruenschneder": "music-marcus",  # eigene Aufnahmen, mit Erlaubnis
+}
+MUSIK_FREI = "music-frei"    # unbekannter Ordner: frei nutzbar, aber ohne Nachweis
+KEIN_TON = "no-music"        # O-Ton pur — bei TikTok das Zeichen "Ton kommt in der App"
+
+
+def musik_suffix(rel) -> str:
+    """Suffix fuer den Dateinamen aus dem Musikordner eines Tracks."""
+    if not rel:
+        return "-" + KEIN_TON
+    p = Path(str(rel))
+    ordner = [x.lower() for x in p.parts[:-1]]
+    if any(x == "pixabay" for x in ordner):
+        m = PIXABAY_ID_RE.search(p.stem)
+        return f"-pixabay-{m.group(1)}" if m else "-" + MUSIK_FREI
+    for x in ordner:
+        if x in MUSIK_QUELLE:
+            return "-" + MUSIK_QUELLE[x]
+    return "-" + MUSIK_FREI
+
+
 def pixabay_ids(rels) -> list:
     ids = []
     for rel in rels:
@@ -1053,11 +1081,18 @@ def tt_upload_draft(path: Path):
 # Die Pixabay-ID hängt am Dateinamen je Plattform (nur die dort verwendete),
 # die Dateien eines Renders heißen also nicht überall gleich. Für Gruppierung
 # und alle Endpunkte zählt der Name OHNE Lizenz-Suffix.
-PIXABAY_SUFFIX_RE = re.compile(r"(?:-pixabay-\d+)+$")
+# Aus MUSIK_QUELLE gebaut, damit ein neuer Ordner nicht an zwei Stellen gepflegt
+# werden muss. Geschlossene Liste statt Platzhalter: sonst wuerde ein Video namens
+# "…-tango-music-slow" faelschlich gekuerzt und seine Plattform-Fassungen faenden
+# einander nicht mehr.
+_MUSIK_MARKER = sorted({*MUSIK_QUELLE.values(), MUSIK_FREI, KEIN_TON},
+                       key=len, reverse=True)
+MUSIK_SUFFIX_RE = re.compile(
+    r"(?:-pixabay-\d+|" + "|".join("-" + re.escape(x) for x in _MUSIK_MARKER) + r")+$")
 
 
 def export_key(name: str) -> str:
-    return PIXABAY_SUFFIX_RE.sub("", Path(name).stem)
+    return MUSIK_SUFFIX_RE.sub("", Path(name).stem)
 
 
 def export_file(pf: str, name: str):
@@ -2083,7 +2118,7 @@ class Handler(BaseHTTPRequestHandler):
             base = name_prefix() + base
         # aus einem früheren Render mitgeschlepptes Lizenz-Suffix abstreifen —
         # es wird gleich je Plattform aus dem dort gewählten Track neu gebildet
-        base = PIXABAY_SUFFIX_RE.sub("", base)
+        base = MUSIK_SUFFIX_RE.sub("", base)
         out_name = num + base + ".mp4"
         overlay = None
         if req.get("overlay"):
@@ -2117,8 +2152,8 @@ class Handler(BaseHTTPRequestHandler):
                     if pf not in track_platforms(Path(rel)):
                         raise ValueError(f"Track liegt nicht in einem für {pf} "
                                          "erlaubten Ordner")
-                # Lizenznachweis: nur die auf DIESER Plattform genutzte Pixabay-ID
-                pf_suffix = "".join(f"-pixabay-{i}" for i in pixabay_ids([rel]))
+                # Lizenznachweis im Dateinamen: woher die Musik DIESER Fassung stammt
+                pf_suffix = musik_suffix(rel)
                 out = OUT_DIR / pf / (num + base + pf_suffix + ".mp4")
                 # Altbestand mit abweichendem Suffix ersetzen statt doppeln
                 old = export_file(pf, out.name)
