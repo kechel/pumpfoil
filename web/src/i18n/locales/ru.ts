@@ -1694,7 +1694,7 @@ const ru: Record<string, string> = {
   "pubprof.media": "Фото и видео к моим сессиям",
   "pubprof.spots": "Споты, которые я описал",
   "pubprof.sessions": "Мои последние пять сессий",
-  "foiler.titles": "Сейчас держит эти рекорды",
+  "foiler.titles": "Сейчас держит эти рекорды (12 месяцев)",
   "foiler.spotTitles": "На отдельных спотах",
   "pubprof.titles": "Рекорды, которые я держу",
 };

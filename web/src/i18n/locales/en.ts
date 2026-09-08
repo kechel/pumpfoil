@@ -1758,7 +1758,7 @@ const en: Record<string, string> = {
   "pubprof.media": "Photos and videos on my sessions",
   "pubprof.spots": "Spots I have described",
   "pubprof.sessions": "My last five sessions",
-  "foiler.titles": "Currently holds these records",
+  "foiler.titles": "Currently holds these records (12 months)",
   "foiler.spotTitles": "At individual spots",
   "pubprof.titles": "Records I currently hold",
 };

@@ -1691,7 +1691,7 @@ const zh: Record<string, string> = {
   "pubprof.media": "我的活动照片和视频",
   "pubprof.spots": "我写过说明的地点",
   "pubprof.sessions": "我最近的五次活动",
-  "foiler.titles": "目前保持的记录",
+  "foiler.titles": "目前保持的记录（12 个月）",
   "foiler.spotTitles": "各个地点",
   "pubprof.titles": "我目前保持的记录",
 };

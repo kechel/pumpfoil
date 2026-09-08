@@ -1694,7 +1694,7 @@ const id: Record<string, string> = {
   "pubprof.media": "Foto dan video di sesiku",
   "pubprof.spots": "Spot yang sudah kudeskripsikan",
   "pubprof.sessions": "Lima sesi terakhirku",
-  "foiler.titles": "Saat ini memegang rekor ini",
+  "foiler.titles": "Saat ini memegang rekor ini (12 bulan)",
   "foiler.spotTitles": "Di spot tertentu",
   "pubprof.titles": "Rekor yang sedang kupegang",
 };
