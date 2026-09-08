@@ -285,7 +285,7 @@ export default function Foiler() {
                         // „Meiste Carves >180°" ist eine Summe ueber den Zeitraum und haengt an
                         // keiner Session (s. _carve_record) -> kein Link, sonst zeigt er irgendwohin.
                         return x.session_id
-                          ? <Link key={`${x.metric}-${i}`} to={`/sessions/${x.session_id}`} className={`${klasse} hover:border-brand-400 hover:text-brand-300`}>{inhalt}</Link>
+                          ? <Link key={`${x.metric}-${i}`} to={`/sessions/${x.session_id}`} className={`${klasse} hover:border-brand-400 hover:text-brand-600 dark:hover:text-brand-300`}>{inhalt}</Link>
                           : <span key={`${x.metric}-${i}`} className={klasse}>{inhalt}</span>;
                       })}
                     </div>
@@ -364,7 +364,7 @@ export default function Foiler() {
           <div className="flex flex-wrap gap-2">
             {d.spot_notizen!.map((n) => (
               <Link key={n.spot_id} to={`/sessions?spot=${n.spot_id}`}
-                    className="flex items-center gap-1 rounded-full border border-slate-700 px-3 py-1 text-sm text-slate-300 hover:border-brand-400 hover:text-brand-300">
+                    className="flex items-center gap-1 rounded-full border border-slate-700 px-3 py-1 text-sm text-slate-300 hover:border-brand-400 hover:text-brand-600 dark:hover:text-brand-300">
                 <LocationIcon className="h-4 w-4 text-slate-400" />
                 {n.name}{n.area_name ? ` · ${n.area_name}` : ""}
               </Link>
