@@ -1655,6 +1655,13 @@ const pl: Record<string, string> = {
   "nav.adminPending": "Oczekująca moderacja (zgłoszone + podejrzenie nieautentyczności)",
   "watches.nStrava": "Import byłby technicznie możliwy, ale API nie udostępnia surowych danych akcelerometru o wysokiej częstotliwości (czyli brak wykrywania pompowań), a do tego jest za paywallem i ma warunki API, które nie pasują do otwartego projektu — świadomie niezintegrowane.",
   "watches.st.nope": "nie",
+  "foiler.since": "Z nami od {date}",
+  "foiler.homespot": "Domowy spot",
+  "foiler.watch": "Zegarek",
+  "foiler.foil": "Foil",
+  "foiler.records": "Rekordy z ostatnich 12 miesięcy",
+  "foiler.notFound": "Ta strona profilu jest niedostępna.",
+  "foiler.offHint": "Twoja strona profilu jest ukryta przed innymi. Zmień widoczność:",
 };
 
 export default pl;

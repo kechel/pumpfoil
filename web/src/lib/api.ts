@@ -744,6 +744,17 @@ export const api = {
     next: { name: string; version: string; note: string; items?: string[] }[];
   }>("/api/app/releases"),
 
+  /** Oeffentliche Foiler-Seite eines Nutzers. Anmeldung noetig; was drin steht, entscheidet
+   *  der Server nach den Schaltern des Nutzers (`public_profile` in den Einstellungen). */
+  foilerProfil: (id: number) => req<{
+    id: number; name: string | null; avatar_url: string | null;
+    ich: boolean; aus: boolean;
+    zeigt: { join: boolean; watch: boolean; foil: boolean; homespot: boolean; records: boolean };
+    seit?: string; homespot?: string | null; uhren?: string[];
+    foils?: { brand: string; model: string; size: string }[];
+    rekorde?: OverallStats;
+  }>(`/api/community/foiler/${id}`),
+
   // Der Changelog selbst — seit 07.09.2026 aus der Datenbank, nicht mehr fest im Code.
   // `plattform`/`version` sind fuer die nativen Apps gedacht (der Server markiert dann, was
   // erst ein Update bringt); die PWA ist immer aktuell und schickt sie deshalb nicht.

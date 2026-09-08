@@ -1725,6 +1725,13 @@ const nl: Record<string, string> = {
   "upload.supersededEmpty": "Van deze opname is niets aangekomen en sindsdien zijn er nieuwere sessies overgezet — er is niets meer op te halen. Je kunt hem in de sessie verwijderen.",
   "upload.title": "Sessie wordt geüpload",
   "upload.waiting": "Wachten op gegevens…",
+  "foiler.since": "Lid sinds {date}",
+  "foiler.homespot": "Homespot",
+  "foiler.watch": "Horloge",
+  "foiler.foil": "Foil",
+  "foiler.records": "Records van de laatste 12 maanden",
+  "foiler.notFound": "Deze profielpagina is niet beschikbaar.",
+  "foiler.offHint": "Je profielpagina is verborgen voor anderen. Zichtbaarheid wijzigen:",
 };
 
 export default nl;

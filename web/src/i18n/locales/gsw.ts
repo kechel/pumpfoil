@@ -1556,6 +1556,13 @@ const gsw: Record<string, string> = {
   "upload.waiting": "Warte uf Date…",
   "watches.nStrava": "Import wär technisch machbar, lieferet per API aber kein hochfrequente Roh-Accel (also kei Pump-Erkennig) und staht hinder Paywall + API-Uflage, wo nöd zum offene Projekt passed — drum bewusst nöd integriert.",
   "watches.st.nope": "nope",
+  "foiler.since": "Dabii sit {date}",
+  "foiler.homespot": "Homespot",
+  "foiler.watch": "Uhr",
+  "foiler.foil": "Foil",
+  "foiler.records": "Rekord vo de letschte 12 Mönet",
+  "foiler.notFound": "Die Profilsite isch nöd verfüegbar.",
+  "foiler.offHint": "Dini Profilsite isch für anderi usgblendet. Sichtbarkeit ändere:",
 };
 
 export default gsw

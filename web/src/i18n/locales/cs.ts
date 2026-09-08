@@ -1724,6 +1724,13 @@ const cs: Record<string, string> = {
   "upload.supersededEmpty": "Z této nahrávky nedorazilo nic a od té doby se přenesly novější session — už není co stahovat. Můžeš ji v session smazat.",
   "upload.title": "Relace se nahrává",
   "upload.waiting": "Čeká se na data…",
+  "foiler.since": "Členem od {date}",
+  "foiler.homespot": "Domácí spot",
+  "foiler.watch": "Hodinky",
+  "foiler.foil": "Foil",
+  "foiler.records": "Rekordy za posledních 12 měsíců",
+  "foiler.notFound": "Tato profilová stránka není dostupná.",
+  "foiler.offHint": "Tvoje profilová stránka je pro ostatní skrytá. Změnit viditelnost:",
 };
 
 export default cs;

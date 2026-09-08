@@ -1555,6 +1555,13 @@ const es: Record<string, string> = {
   "upload.waiting": "Esperando datos…",
   "watches.nStrava": "Una importación sería técnicamente posible, pero la API no entrega datos brutos del acelerómetro a alta frecuencia (o sea, sin detección de bombeos), y está detrás de un muro de pago con condiciones de API que no encajan en un proyecto abierto — deliberadamente no integrado.",
   "watches.st.nope": "no",
+  "foiler.since": "Miembro desde el {date}",
+  "foiler.homespot": "Spot habitual",
+  "foiler.watch": "Reloj",
+  "foiler.foil": "Foil",
+  "foiler.records": "Récords de los últimos 12 meses",
+  "foiler.notFound": "Esta página de perfil no está disponible.",
+  "foiler.offHint": "Tu página de perfil está oculta para los demás. Cambiar visibilidad:",
 };
 
 export default es;

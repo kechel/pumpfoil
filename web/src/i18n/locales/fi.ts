@@ -1707,6 +1707,13 @@ const fi: Record<string, string> = {
   "upload.supersededEmpty": "Tästä tallennuksesta ei tullut mitään, ja sen jälkeen on siirretty uudempia sessioita — mitään ei ole enää haettavissa. Voit poistaa sen sessiossa.",
   "upload.title": "Sessio lähetetään",
   "upload.waiting": "Odotetaan dataa…",
+  "foiler.since": "Mukana {date} lähtien",
+  "foiler.homespot": "Kotispotti",
+  "foiler.watch": "Kello",
+  "foiler.foil": "Foili",
+  "foiler.records": "Viimeisten 12 kuukauden ennätykset",
+  "foiler.notFound": "Tätä profiilisivua ei ole saatavilla.",
+  "foiler.offHint": "Profiilisivusi on piilotettu muilta. Muuta näkyvyyttä:",
 };
 
 export default fi;

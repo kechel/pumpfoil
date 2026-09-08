@@ -1790,6 +1790,13 @@ const de: Record<string, string> = {
   "v2.keptLabel": "zurückgeholter Lauf",
   "v2.unkeep": "wieder abtrennen",
   "spots.autoHint": "Spots musst du nicht anlegen: Sie entstehen automatisch, sobald jemand an einem neuen Ort eine Session hochlädt. Ort- und Gewässernamen kommen aus OpenStreetMap — direkt nach dem Upload kann der Name noch ein paar Minuten fehlen.",
+  "foiler.since": "Dabei seit {date}",
+  "foiler.homespot": "Homespot",
+  "foiler.watch": "Uhr",
+  "foiler.foil": "Foil",
+  "foiler.records": "Rekorde der letzten 12 Monate",
+  "foiler.notFound": "Diese Profilseite ist nicht verfügbar.",
+  "foiler.offHint": "Deine Profilseite ist für andere ausgeblendet. Sichtbarkeit ändern:",
 };
 
 export default de;
