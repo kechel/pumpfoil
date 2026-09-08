@@ -1670,8 +1670,6 @@ const nb: Record<string, string> = {
   "pubprof.media": "Bilder og videoer på sessionene mine",
   "pubprof.spots": "Spots jeg har beskrevet",
   "pubprof.sessions": "Mine fem siste sessions",
-  "foiler.titles": "Har akkurat nå disse rekordene (12 måneder)",
-  "foiler.spotTitles": "På enkelte spots",
   "pubprof.titles": "Rekorder jeg har nå",
 };
 

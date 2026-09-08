@@ -15,7 +15,7 @@ import { api, OverallStats } from "../lib/api";
 import { Card, Avatar } from "../components/ui";
 import { ScrollToTop } from "../components/ScrollToTop";
 import { SessionCard } from "../components/SessionCard";
-import { PlayIcon } from "../components/Icons";
+import { PlayIcon, LocationIcon, WatchIcon, FoilIcon } from "../components/Icons";
 import { Lightbox, LightboxPhoto } from "../components/Lightbox";
 import { VideoModal, ytId } from "../components/VideoModal";
 import { SessionStats } from "./Sessions";
@@ -78,12 +78,12 @@ export default function Foiler() {
 
   if (fehler) {
     return (
-      <div className="mx-auto max-w-3xl p-6">
+      <div>
         <p className="text-sm text-slate-400">{t("foiler.notFound")}</p>
       </div>
     );
   }
-  if (!d) return <div className="mx-auto max-w-3xl p-6 text-sm text-slate-400">{t("common.loading")}</div>;
+  if (!d) return <div className="text-sm text-slate-400">{t("common.loading")}</div>;
 
   const medien = d.medien ?? [];
   // Die Galerie zeigt nur Fotos. Die Reihenfolge ist dieselbe wie im Karussell, damit das
@@ -120,7 +120,7 @@ export default function Foiler() {
   ] : [];
 
   return (
-    <div className="mx-auto max-w-3xl p-4 md:p-6">
+    <div>
       <ScrollToTop />
       {/* Nur der Besitzer sieht diesen Hinweis — sonst waere „ist abgeschaltet" selbst eine
           Auskunft ueber ein fremdes Konto. Der Server liefert `aus` deshalb auch nur ihm. */}
@@ -148,7 +148,7 @@ export default function Foiler() {
       <div className="mb-5 grid grid-cols-[max-content_1fr] gap-x-3 gap-y-1.5 text-sm">
         {d.homespot && (
           <>
-            <span className="text-slate-400">{t("foiler.homespot")}:</span>
+            <span className="flex items-center gap-1.5 text-slate-400"><LocationIcon className="h-4 w-4" />{t("foiler.homespot")}:</span>
             <span className="font-semibold text-slate-200">
               {/* Der Homespot verlinkt auf den Spot, wenn wir ihn zuordnen konnten. */}
               {d.homespot_id
@@ -159,13 +159,13 @@ export default function Foiler() {
         )}
         {d.uhren && d.uhren.length > 0 && (
           <>
-            <span className="text-slate-400">{t("foiler.watch")}:</span>
+            <span className="flex items-center gap-1.5 text-slate-400"><WatchIcon className="h-4 w-4" />{t("foiler.watch")}:</span>
             <span className="font-semibold text-slate-200">{d.uhren.join(" · ")}</span>
           </>
         )}
         {d.foils && d.foils.length > 0 && (
           <>
-            <span className="text-slate-400">{t("foiler.foil")}:</span>
+            <span className="flex items-center gap-1.5 text-slate-400"><FoilIcon className="h-4 w-4" />{t("foiler.foil")}:</span>
             <span className="font-semibold text-slate-200">{d.foils.map((f) => `${f.brand} ${f.model} ${f.size}`).join(" · ")}</span>
           </>
         )}
@@ -203,7 +203,6 @@ export default function Foiler() {
           und auf der Community-Seite nicht mit zwei verschiedenen Zahlen steht. */}
       {d.zeigt.titles && ((d.titel?.length ?? 0) > 0 || (d.spot_titel?.length ?? 0) > 0) && (
         <div className="mt-6">
-          <h2 className="mb-2 text-sm font-semibold text-slate-200">{t("foiler.titles")}</h2>
           {(d.titel?.length ?? 0) > 0 && (
             <div className="mb-2 flex flex-wrap gap-2">
               {d.titel!.map((x) => (
@@ -216,15 +215,16 @@ export default function Foiler() {
           )}
           {spotGruppen.length > 0 && (
             <>
-              <p className="mb-1 text-sm text-slate-400">{t("foiler.spotTitles")}</p>
+              {/* Ohne Ueberschrift (Jan, 08.09.2026): die Chips nennen Kennzahl und Wert
+                  selbst, der Spotname steht davor. */}
               {/* Nach Spot gruppiert, nicht als eine lange Kette: bei vier Spots und zehn
                   Kennzahlen (luk) stuende der Spotname sonst dreissigmal da. */}
               <div className="space-y-2">
                 {spotGruppen.map(([spot, liste]) => (
                   <div key={spot} className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
                     <Link to={`/sessions?spot=${liste[0].spot_id}`}
-                          className="text-sm font-semibold text-slate-200 underline decoration-slate-500 hover:decoration-brand-400">
-                      {spot}
+                          className="flex items-center gap-1 text-sm font-semibold text-slate-200 underline decoration-slate-500 hover:decoration-brand-400">
+                      <LocationIcon className="h-4 w-4 text-slate-400" />{spot}
                     </Link>
                     {liste.map((x, i) => (
                       <span key={`${x.metric}-${i}`}
@@ -254,7 +254,7 @@ export default function Foiler() {
           {/* Nachladen beim Scrollen: 400 px vor dem Ende kommen die naechsten 24 Kacheln.
               Zusammen mit loading="lazy" laedt der Browser nur, was in Sichtweite kommt. */}
           <div
-            className="-mx-4 flex snap-x gap-2 overflow-x-auto px-4 pb-2 md:mx-0 md:px-0"
+            className="-mx-4 flex snap-x gap-2 overflow-x-auto px-4 pb-2 md:-mx-8 md:px-8"
             onScroll={(e) => {
               const el = e.currentTarget;
               if (el.scrollLeft + el.clientWidth > el.scrollWidth - 400) {
@@ -304,7 +304,8 @@ export default function Foiler() {
           <div className="flex flex-wrap gap-2">
             {d.spot_notizen!.map((n) => (
               <Link key={n.spot_id} to={`/sessions?spot=${n.spot_id}`}
-                    className="rounded-full border border-slate-700 px-3 py-1 text-sm text-slate-300 hover:border-brand-400 hover:text-brand-300">
+                    className="flex items-center gap-1 rounded-full border border-slate-700 px-3 py-1 text-sm text-slate-300 hover:border-brand-400 hover:text-brand-300">
+                <LocationIcon className="h-4 w-4 text-slate-400" />
                 {n.name}{n.area_name ? ` · ${n.area_name}` : ""}
               </Link>
             ))}

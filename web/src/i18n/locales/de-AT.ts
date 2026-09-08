@@ -1585,8 +1585,6 @@ const deAT: Record<string, string> = {
   "pubprof.media": "Fotos und Videos an meine Sessions",
   "pubprof.spots": "Spots, die i beschrieben hab",
   "pubprof.sessions": "Meine letzten fünf Sessions",
-  "foiler.titles": "Hält aktuell diese Rekorde (12 Monate)",
-  "foiler.spotTitles": "An einzelnen Spots",
   "pubprof.titles": "Rekorde, die i aktuell halt",
 };
 

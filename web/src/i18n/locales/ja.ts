@@ -1688,8 +1688,6 @@ const ja: Record<string, string> = {
   "pubprof.media": "自分のセッションの写真と動画",
   "pubprof.spots": "自分が説明を書いたスポット",
   "pubprof.sessions": "直近5件のセッション",
-  "foiler.titles": "現在保持している記録（12か月）",
-  "foiler.spotTitles": "スポットごと",
   "pubprof.titles": "現在保持している記録",
 };
 

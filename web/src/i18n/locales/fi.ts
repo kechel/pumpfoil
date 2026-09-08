@@ -1730,8 +1730,6 @@ const fi: Record<string, string> = {
   "pubprof.media": "Sessioideni kuvat ja videot",
   "pubprof.spots": "Spotit, jotka olen kuvaillut",
   "pubprof.sessions": "Viisi viimeisintä sessiotani",
-  "foiler.titles": "Hallussa juuri nyt (12 kk)",
-  "foiler.spotTitles": "Yksittäisillä spoteilla",
   "pubprof.titles": "Ennätykset, jotka minulla on nyt",
 };
 

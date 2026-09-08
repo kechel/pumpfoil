@@ -1578,8 +1578,6 @@ const it: Record<string, string> = {
   "pubprof.media": "Foto e video delle mie sessioni",
   "pubprof.spots": "Spot che ho descritto",
   "pubprof.sessions": "Le mie ultime cinque sessioni",
-  "foiler.titles": "Detiene questi record (12 mesi)",
-  "foiler.spotTitles": "Su singoli spot",
   "pubprof.titles": "I record che detengo",
 };
 
