@@ -55,9 +55,16 @@ class RecorderService : Service(), SensorEventListener {
     private val fused by lazy { LocationServices.getFusedLocationProviderClient(this) }
     private val locMgr by lazy { getSystemService(Context.LOCATION_SERVICE) as LocationManager }
 
-    /** Hat DIESE Uhr einen eigenen GNSS-Empfaenger? */
+    /**
+     * Hat DIESE Uhr einen eigenen GNSS-Empfaenger?
+     *
+     * Am PROVIDER gemessen, nicht an `hasSystemFeature(FEATURE_LOCATION_GPS)`: die Deklaration
+     * kommt aus dem System-Image und kann fehlen, obwohl der Provider existiert (08.09.2026 an
+     * zwei Wear-Emulatoren belegt). Zusaetzlich faengt `startLocation` die
+     * IllegalArgumentException — wer hier durchkommt, aber keinen Provider hat, faellt dort auf.
+     */
     private val eigenesGnss by lazy {
-        packageManager.hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS)
+        try { LocationManager.GPS_PROVIDER in locMgr.allProviders } catch (_: Exception) { true }
     }
 
     /**

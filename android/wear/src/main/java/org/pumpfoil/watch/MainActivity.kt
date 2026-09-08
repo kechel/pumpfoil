@@ -421,8 +421,20 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
         // Position auf — und das muss VOR der Aufnahme dastehen, nicht erst mittendrin. Wer eine
         // Stunde pumpt und danach erfaehrt, dass keine Strecke aufgezeichnet wurde, ist zu Recht
         // sauer.
+        //
+        // GEPRUEFT WIRD DER PROVIDER, NICHT DAS FEATURE. Erster Versuch war
+        // `packageManager.hasSystemFeature(FEATURE_LOCATION_GPS)` — das ist die falsche Quelle:
+        // die Deklaration kommt aus dem System-Image und kann fehlen, obwohl der `gps`-Provider
+        // da ist. Belegt am 08.09.2026 an zwei Wear-Emulatoren: auf Jans meldete die App „diese
+        // Uhr hat kein eigenes GPS", obwohl der Provider existiert; auf dem hier wird das Feature
+        // sogar dann noch gemeldet, wenn man `hw.gps = no` in die AVD-Konfiguration schreibt.
+        // Eine falsche Warnung waere schlimmer als der Fehler, den sie verhindern soll — sie
+        // wuerde uns die Strecke auf Uhren wegnehmen, die eine haben.
         val keinGnss = remember {
-            !ctx.packageManager.hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS)
+            try {
+                val lm = ctx.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+                LocationManager.GPS_PROVIDER !in lm.allProviders
+            } catch (_: Exception) { false }   // im Zweifel NICHT warnen
         }
         // Beim Zurueckkommen (z. B. aus den System-Einstellungen, wo die Berechtigung erteilt
         // wurde) neu pruefen — sonst bliebe der Hinweis bis zum App-Neustart stehen.
