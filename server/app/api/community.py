@@ -1520,16 +1520,21 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
                 break
         raus["uhren"] = namen
     if sicht.get("foil"):
-        # ALLE gefahrenen Foils, zuletzt benutztes zuerst (Jan, 08.09.2026 — erst zwei, dann
-        # doch alle). Sortiert wird nach der letzten Fahrt, nicht nach Haeufigkeit: wer den
-        # Fluegel gewechselt hat, faehrt heute den neuen, und danach fragt die Seite.
-        reihen = (db.query(models.Foil.brand, models.Foil.model, models.Foil.size,
-                           func.max(models.Session.started_at))
-                  .join(models.Session, models.Session.foil_id == models.Foil.id)
-                  .filter(models.Session.user_id == u.id,
-                          models.Session.deleted == False)  # noqa: E712
-                  .group_by(models.Foil.brand, models.Foil.model, models.Foil.size)
-                  .order_by(func.max(models.Session.started_at).desc()).all())
+        # Alle Foils der letzten 12 MONATE, zuletzt benutztes zuerst (Jan, 08.09.2026 — erst
+        # zwei, dann alle, dann auf ein Jahr begrenzt). Dasselbe Fenster wie die Rekorde:
+        # sonst stehen hier Fluegel, die jemand vor drei Jahren einmal gefahren hat, und die
+        # Zeile beschreibt nicht mehr, womit er heute unterwegs ist. Sortiert nach der letzten
+        # Fahrt, nicht nach Haeufigkeit.
+        foil_cut = _cutoff("365d")
+        fq = (db.query(models.Foil.brand, models.Foil.model, models.Foil.size,
+                       func.max(models.Session.started_at))
+              .join(models.Session, models.Session.foil_id == models.Foil.id)
+              .filter(models.Session.user_id == u.id,
+                      models.Session.deleted == False)  # noqa: E712
+              .group_by(models.Foil.brand, models.Foil.model, models.Foil.size))
+        if foil_cut is not None:
+            fq = fq.filter(models.Session.started_at >= foil_cut)
+        reihen = fq.order_by(func.max(models.Session.started_at).desc()).all()
         raus["foils"] = [{"brand": b, "model": m, "size": g} for b, m, g, _ in reihen]
     if sicht.get("channel"):
         # Eigener YouTube-Kanal, aber NUR der freigegebene und nicht geblockte (Jan, 08.09.2026).
