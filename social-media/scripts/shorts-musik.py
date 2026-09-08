@@ -1365,9 +1365,15 @@ def stats_data() -> dict:
     history = q("SELECT c.platform, c.posts, c.views, c.likes, c.comments, c.followers,"
                 " s.captured_at AS at FROM channel_stat c"
                 " JOIN snapshot s ON s.id = c.snapshot_id ORDER BY s.id")
+    # 收藏 gibt es nur bei RedNote, und die Spalte entsteht erst beim ersten
+    # Import (scripts/rednote-import.py). Vorher waere sie im SELECT ein Fehler,
+    # der den ganzen Stats-Tab lahmlegt — deshalb nachsehen statt annehmen.
+    hat_saves = any(r["name"] == "saves" for r in db.execute("PRAGMA table_info(post_stat)"))
+    saves = "t.saves," if hat_saves else "NULL AS saves,"
     # Letzter bekannter Wert je Beitrag …
-    posts = q("""SELECT p.platform, p.post_id, p.number, p.published_at, p.title,
-                        t.views, t.likes, t.comments, t.shares, s.captured_at AS at
+    posts = q(f"""SELECT p.platform, p.post_id, p.number, p.published_at, p.title,
+                        t.views, t.likes, t.comments, t.shares, {saves}
+                        s.captured_at AS at
                  FROM post p
                  JOIN post_stat t ON t.platform = p.platform AND t.post_id = p.post_id
                  JOIN snapshot s ON s.id = t.snapshot_id
