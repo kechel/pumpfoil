@@ -792,7 +792,11 @@ YT_PENDING = {}  # state → code_verifier des laufenden Login-Flows
 #    damit Portugal nicht leer ausgeht; brasilianisches Portugiesisch ist dort
 #    ohne Weiteres lesbar.
 YT_LANG = {"de": "de", "en": "en", "fr": "fr", "it": "it", "es": "es",
-           "fi": "fi", "nl": "nl", "cs": "cs", "pt": ("pt-BR", "pt"),
+           "fi": "fi", "nl": "nl", "cs": "cs",
+           # YouTubes Liste kennt nur `pt` und `pt-PT` — `pt` IST dort das brasilianische
+           # (wie zh-CN gegen zh-TW). `pt-BR` steht zwar nicht in der Liste, wird aber
+           # angenommen und schadet nicht; Portugal ist die Abweichung.
+           "pt": ("pt-BR", "pt"), "pt-PT": "pt-PT",
            "ja": "ja", "zh": "zh-CN", "ru": "ru", "id": "id", "pl": "pl",
            "ar": "ar", "vi": "vi", "tr": "tr", "th": "th"}
 

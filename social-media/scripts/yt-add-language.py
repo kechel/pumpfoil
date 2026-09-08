@@ -23,7 +23,9 @@ sm = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(sm)
 
 NAMES = {"pl": "Polnisch", "cs": "Tschechisch", "id": "Bahasa Indonesia",
-         "pt": "brasilianisches Portugiesisch", "tr": "Türkisch",
+         "pt": "brasilianisches Portugiesisch",
+         "pt-PT": "europäisches Portugiesisch (Portugal — tu statt você, telemóvel, ecrã, ficheiro, desportivo, receção; NICHT brasilianisch)",
+         "tr": "Türkisch",
          "vi": "Vietnamesisch", "ar": "modernes Standardarabisch", "th": "Thai"}
 # Bei Rechts-nach-links-Schrift steht das lateinische "NNN Pumpfoil JJJJ" davor
 # hässlich im Weg. Die Nummer wird nur für unsere Zuordnung gebraucht, und die
