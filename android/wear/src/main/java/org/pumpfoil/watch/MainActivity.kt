@@ -413,6 +413,17 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
         // Hier nur WARNEN (Start bleibt erlaubt): anders als die fehlende Berechtigung ist das
         // kein sicheres Scheitern, und wer trotzdem aufnehmen will, soll nicht ausgesperrt sein.
         var locOff by remember { mutableStateOf(!locationEnabled(ctx)) }
+        // DRITTER Fall, und der schlimmste: die Uhr hat gar keinen eigenen GNSS-Empfaenger.
+        // Es gibt solche Wear-OS-Modelle — sie holen die Position vom gekoppelten Handy. Fuer
+        // uns ist das wertlos: dann steht in der Spur, wo das HANDY lag, nicht wo gefahren wurde
+        // (Vorgabe Jan, 08.09.2026: „IMMER wenn statt der Uhr das GPS des Handys genommen wird,
+        // ist das ein FAIL von uns"). Deshalb nimmt der Recorder in diesem Fall gar keine
+        // Position auf — und das muss VOR der Aufnahme dastehen, nicht erst mittendrin. Wer eine
+        // Stunde pumpt und danach erfaehrt, dass keine Strecke aufgezeichnet wurde, ist zu Recht
+        // sauer.
+        val keinGnss = remember {
+            !ctx.packageManager.hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS)
+        }
         // Beim Zurueckkommen (z. B. aus den System-Einstellungen, wo die Berechtigung erteilt
         // wurde) neu pruefen — sonst bliebe der Hinweis bis zum App-Neustart stehen.
         val lifecycleOwner = LocalLifecycleOwner.current
@@ -901,7 +912,7 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                 // ein Fix, und dann wäre ein gesperrter Knopf schlimmer als eine Aufnahme ohne
                 // die ersten Meter. Bei fehlender Freigabe / abgeschaltetem Standort sagen das
                 // schon die roten Hinweise unter dem Knopf — dann hier nichts doppeln.
-                if (!s.starting && !locMissing && !locOff) {
+                if (!s.starting && !locMissing && !locOff && !keinGnss) {
                     Text(I18n.t(if (gpsBereit) "gps.ready" else "gps.searching"),
                         style = MaterialTheme.typography.caption2,
                         color = if (gpsBereit) Color(0xFF34C759) else Color(0xFFF59E0B),
@@ -941,7 +952,13 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                 ) { Text(I18n.t("rec.start")) }
                 // Kein Standort = keine Strecke: das ist kein Nebenaspekt, sondern verhindert die
                 // Aufnahme. Deshalb zuerst und in Rot (der Puls-Hinweis darunter bleibt amber).
-                if (locMissing) {
+                if (keinGnss) {
+                    // Zuerst, weil es der einzige Fall ist, den der Nutzer NICHT beheben kann.
+                    Spacer(Modifier.height(6.dp))
+                    Text(I18n.t("rec.gpsNoHardware"),
+                        style = MaterialTheme.typography.caption2,
+                        color = Color(0xFFEF4444), textAlign = TextAlign.Center)
+                } else if (locMissing) {
                     Spacer(Modifier.height(6.dp))
                     Text(I18n.t("rec.locPerm"),
                         style = MaterialTheme.typography.caption2,
