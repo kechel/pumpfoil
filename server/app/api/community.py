@@ -18,13 +18,13 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy import Float, cast, func, literal, or_, true
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from .. import models
 from ..accounts import is_new_account
 from ..db import get_db
 from ..media import thumb_url as _thumb
-from ..naming import owner_label_sql
+from ..naming import owner_label, owner_label_sql
 from ..tzlookup import tz_name, tz_of
 from ..videos import client_wants_all_videos, filter_videos
 from ..weather import spot_water_temp, spot_weather
@@ -1439,10 +1439,12 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
       * `public_profile.enabled = False` — der Nutzer hat die Seite abgeschaltet.
     Ein 404 statt 403, damit die Antwort nicht verraet, dass das Konto existiert.
 
-    KEINE Session-Liste, auch nicht gekuerzt. Produktentscheidung vom 04.09.2026: aus
-    gebuendelten Sessions einer Person liest man Spot, Wochentage und Uhrzeiten ab. Die Rekorde
-    hier sind Einzelwerte, die im Community-Bereich ohnehin mit Namen und Datum stehen — sie
-    legen also nichts offen, was nicht schon offen war.
+    Zur Sessionliste: am 04.09.2026 war entschieden, dass es KEINE Liste je Nutzer gibt (aus
+    gebuendelten Sessions liest man Spot, Wochentage und Uhrzeiten ab). Am 08.09.2026 hat Jan
+    fuer diese Seite die letzten FUENF ausdruecklich gewollt. Fuenf sind kein Archiv, und jede
+    davon steht mit Name, Spot und Uhrzeit ohnehin im Community-Feed. Die vollstaendige Liste
+    bleibt weiterhin unerwuenscht — wer hier "limit" hochdreht, baut genau das, was abgelehnt
+    wurde. Abschaltbar wie alles andere (`public_profile.sessions`).
 
     Rekorde fest auf 365 Tage und ueber ALLE Foils (Vorgabe Jan): eine Fensterwahl waere eine
     Bedienoberflaeche fuer fremde Daten, und „Allzeit" macht aus einem Konto ein Archiv.
@@ -1476,34 +1478,57 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
         raus["seit"] = u.created_at.date().isoformat()
     if sicht.get("homespot"):
         raus["homespot"] = (einst.get("homespot") or "") or None
+        # Der Homespot soll auf den Spot verlinken (Jan, 08.09.2026). Gespeichert ist nur ein
+        # NAME, gebraucht wird die Spot-ID (`/sessions?spot=<id>`). Aufgeloest wird ueber die
+        # juengste eigene Session an diesem Ort — nicht ueber `spots.name`: Namen sind nicht
+        # eindeutig (mehrere „Illmensee"-Cluster sind moeglich, s. models.Spot.area_name), und
+        # die eigene Session zeigt garantiert auf den Cluster, an dem er wirklich faehrt.
+        if raus["homespot"]:
+            sid = (db.query(models.Session.spot_id)
+                   .filter(models.Session.user_id == u.id,
+                           models.Session.place_name == raus["homespot"],
+                           models.Session.spot_id.isnot(None),
+                           models.Session.deleted == False)  # noqa: E712
+                   .order_by(models.Session.started_at.desc()).limit(1).scalar())
+            if sid is None:
+                # Kein eigener Track dort (z. B. Homespot per Hand gesetzt) -> ueber den Namen,
+                # zusammengefuehrte Cluster ausgenommen.
+                sid = (db.query(models.Spot.id)
+                       .filter(models.Spot.name == raus["homespot"],
+                               models.Spot.merged_into.is_(None))
+                       .order_by(models.Spot.id).limit(1).scalar())
+            raus["homespot_id"] = int(sid) if sid else None
     if sicht.get("watch"):
-        # Die Uhren, mit denen wirklich AUFGEZEICHNET wurde, die meistgenutzte zuerst — nicht
-        # alle je gepairten Geraete. Jan hat zehn davon (darunter „Garmin", „Phone", zwei
-        # Amazfits); auf einer Profilseite ist das Rauschen, gefragt ist „womit faehrt der".
-        # Hoechstens drei, Attrappen raus (s. `_ist_attrappe`).
+        # Nur die ZULETZT benutzte Uhr (Jan, 08.09.2026). Nicht die meistgenutzte und schon gar
+        # nicht alle je gepairten Geraete: Jan hat zehn davon (darunter „Garmin", „Phone", zwei
+        # Amazfits) — auf einer Profilseite ist das Rauschen, gefragt ist „womit faehrt der".
+        # Sortiert wird nach der letzten AUFNAHME, nicht nach dem Pairing; Attrappen raus.
+        # Es bleibt eine Liste, damit die Clients nicht umgebaut werden muessen, wenn wir hier
+        # je wieder zwei zeigen wollen.
         DT = models.DeviceToken
         namen: list[str] = []
-        for lab, _n in (db.query(DT.label, func.count(models.Session.id))
-                        .join(models.Session, models.Session.device_id == DT.id)
-                        .filter(DT.user_id == u.id, DT.label.isnot(None),
-                                models.Session.deleted == False)  # noqa: E712
-                        .group_by(DT.label)
-                        .order_by(func.count(models.Session.id).desc()).all()):
+        for lab, _zuletzt in (db.query(DT.label, func.max(models.Session.started_at))
+                              .join(models.Session, models.Session.device_id == DT.id)
+                              .filter(DT.user_id == u.id, DT.label.isnot(None),
+                                      models.Session.deleted == False)  # noqa: E712
+                              .group_by(DT.label)
+                              .order_by(func.max(models.Session.started_at).desc()).all()):
             kurz = unquote((lab or "").split("/")[0].strip())
             if kurz and not _ist_attrappe(kurz) and kurz not in namen:
                 namen.append(kurz)
-            if len(namen) >= 3:
+            if namen:
                 break
         raus["uhren"] = namen
     if sicht.get("foil"):
-        # Das am meisten gefahrene Foil zuerst — „mein Foil" ist fuer die meisten genau eines.
+        # Die zuletzt gefahrenen zwei Foils (Jan, 08.09.2026) — nicht die meistgefahrenen: wer
+        # den Fluegel gewechselt hat, faehrt heute den neuen, und danach fragt die Seite.
         reihen = (db.query(models.Foil.brand, models.Foil.model, models.Foil.size,
-                           func.count(models.Session.id))
+                           func.max(models.Session.started_at))
                   .join(models.Session, models.Session.foil_id == models.Foil.id)
                   .filter(models.Session.user_id == u.id,
                           models.Session.deleted == False)  # noqa: E712
                   .group_by(models.Foil.brand, models.Foil.model, models.Foil.size)
-                  .order_by(func.count(models.Session.id).desc()).limit(3).all())
+                  .order_by(func.max(models.Session.started_at).desc()).limit(2).all())
         raus["foils"] = [{"brand": b, "model": m, "size": g} for b, m, g, _ in reihen]
     if sicht.get("records"):
         # Genau wie die eigene Startseite: `accel_only=False` (dort ist der Umschalter
@@ -1513,6 +1538,123 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
         # Zeitfenster fest 12 Monate (Vorgabe Jan, 08.09.2026), kein Umschalter auf der Seite.
         raus["rekorde"] = compute_overall_stats(
             db, u.id, False, sens=(u.foil_sensitivity or "normal"), period="365d")
+
+    # Sichtbarkeit der Sessions dieses Nutzers — dieselben Riegel wie im Feed (`latest_photos`):
+    # geloescht, gemeldet, gesperrtes Konto, laufende Aufnahme und Nicht-Pumpfoil fallen raus.
+    # Der Besitzer sieht seine eigene Seite mit denselben Filtern, damit „was sehen andere"
+    # wirklich stimmt.
+    sicht_s = (models.Session.deleted.isnot(True), models.Session.flagged.isnot(True),
+               models.Session.user_id == u.id, models.Session.is_pumpfoil.is_(True),
+               models.Session.needs_classification.isnot(True),
+               models.Session.status.notin_(("recording", "live")))
+
+    if sicht.get("media"):
+        # ALLE Medien an eigenen Sessions (Jan, 08.09.2026), neueste zuerst: Fotos und verlinkte
+        # Videos. Nur YouTube-Videos kommen als Kachel mit, weil nur die ein Vorschaubild haben,
+        # das UNSER Server ausliefert (`/api/public/video-thumb/<id>`) — Instagram/TikTok gaeben
+        # es nur ueber ein Dritt-Skript her, und das gibt es hier nicht (0 Cookies).
+        # Die Obergrenze ist ein Schutz fuer die Antwortgroesse, keine Auswahl: wer sie erreicht,
+        # hat mehr als 200 Medien, und dann ist die Seite ohnehin voll.
+        P, V = models.SessionPhoto, models.SessionVideo
+        medien: list[dict] = []
+        for pid, url, cts, sid, sts in (db.query(P.id, P.url, P.created_at, P.session_id,
+                                                 models.Session.started_at)
+                                        .select_from(P)
+                                        .join(models.Session, P.session_id == models.Session.id)
+                                        .filter(P.blocked.isnot(True), *sicht_s)
+                                        .order_by(P.id.desc()).limit(200).all()):
+            medien.append({"kind": "photo", "_ts": cts or sts, "url": url,
+                           "thumb_url": _thumb(url), "youtube_url": None, "session_id": sid,
+                           "started_at": sts.isoformat() if sts else None})
+        for yturl, cts, sid, sts in (db.query(V.youtube_url, V.created_at, V.session_id,
+                                              models.Session.started_at)
+                                     .select_from(V)
+                                     .join(models.Session, V.session_id == models.Session.id)
+                                     .filter(V.blocked.isnot(True),
+                                             V.youtube_url.op("~*")("youtube|youtu\\.be"), *sicht_s)
+                                     .order_by(V.id.desc()).limit(200).all()):
+            medien.append({"kind": "video", "_ts": cts or sts, "url": None, "thumb_url": None,
+                           "youtube_url": yturl, "session_id": sid,
+                           "started_at": sts.isoformat() if sts else None})
+        _boden = datetime.min.replace(tzinfo=timezone.utc)
+        medien.sort(key=lambda x: x["_ts"] or _boden, reverse=True)
+        for m in medien:
+            m.pop("_ts", None)
+        raus["medien"] = medien[:200]
+
+    if sicht.get("spots"):
+        # Spots, zu denen er eine Beschreibung geschrieben hat. Ausgeblendete (Community-Meldung)
+        # bleiben draussen, leere Texte zaehlen nicht als Beschreibung.
+        SN = models.SpotNote
+        raus["spot_notizen"] = [
+            {"spot_id": sid, "name": name or "—", "area_name": area}
+            for sid, name, area in (db.query(models.Spot.id, models.Spot.name, models.Spot.area_name)
+                                    .select_from(SN).join(models.Spot, SN.spot_id == models.Spot.id)
+                                    .filter(SN.user_id == u.id, SN.hidden.isnot(True),
+                                            SN.text.isnot(None), SN.text != "",
+                                            models.Spot.merged_into.is_(None))
+                                    .order_by(SN.updated_at.desc()).limit(50).all())
+        ]
+
+    if sicht.get("sessions"):
+        # Die letzten FUENF, in derselben Form wie die eigene Sessionliste (dieselbe Karte im
+        # Web). `owned=False` haelt die Besitzer-Felder heraus (Meldungen, Widerspruch,
+        # App-Version, Auto-Begruendung) — die Zahl 5 ist die Zusage, nicht nur eine Vorgabe.
+        from .sessions import _session_out
+        rows = (db.query(models.Session)
+                .options(joinedload(models.Session.result)
+                         .defer(models.AnalysisResult.track_geojson)
+                         .defer(models.AnalysisResult.segments_json)
+                         .defer(models.AnalysisResult.accel_windows_json))
+                .filter(*sicht_s)
+                .order_by(models.Session.started_at.desc()).limit(5).all())
+        outs = [_session_out(r, with_analysis=True, slim=True, owned=False,
+                             owner_name=owner_label(u.display_name, u.id),
+                             owner_avatar_url=u.avatar_url) for r in rows]
+        ids = [r.id for r in rows]
+        if ids:
+            # Vorschaubild + Fotoanzahl + Likes im Batch (kein N+1) — genau die Felder, die die
+            # Session-Karte anzeigt.
+            thumb: dict[int, str] = {}
+            anzahl: dict[int, int] = {}
+            for sid, url in (db.query(models.SessionPhoto.session_id, models.SessionPhoto.url)
+                             .filter(models.SessionPhoto.session_id.in_(ids),
+                                     models.SessionPhoto.blocked.isnot(True))
+                             .order_by(models.SessionPhoto.id.desc()).all()):
+                anzahl[sid] = anzahl.get(sid, 0) + 1
+                thumb.setdefault(sid, _thumb(url))
+            videos: dict[int, str] = {}
+            for sid, vurl in (db.query(models.SessionVideo.session_id, models.SessionVideo.youtube_url)
+                              .filter(models.SessionVideo.session_id.in_(ids),
+                                      models.SessionVideo.blocked.isnot(True))
+                              .order_by(models.SessionVideo.id).all()):
+                videos.setdefault(sid, vurl)
+            likes = dict(db.query(models.SessionLike.session_id, func.count())
+                         .filter(models.SessionLike.session_id.in_(ids))
+                         .group_by(models.SessionLike.session_id).all())
+            meine = {sid for (sid,) in db.query(models.SessionLike.session_id)
+                     .filter(models.SessionLike.session_id.in_(ids),
+                             models.SessionLike.user_id == user.id).all()}
+            geraete = dict(db.query(models.DeviceToken.id, models.DeviceToken.label)
+                           .filter(models.DeviceToken.id.in_({r.device_id for r in rows if r.device_id}))
+                           .all()) if any(r.device_id for r in rows) else {}
+            foils = {f.id: f for f in db.query(models.Foil)
+                     .filter(models.Foil.id.in_({r.foil_id for r in rows if r.foil_id})).all()} \
+                if any(r.foil_id for r in rows) else {}
+            for o, r in zip(outs, rows):
+                o.thumb_url = thumb.get(o.id)
+                o.photo_count = anzahl.get(o.id, 0)
+                o.video_url = videos.get(o.id)
+                o.like_count = int(likes.get(o.id, 0))
+                o.liked = o.id in meine
+                lbl = geraete.get(r.device_id) if r.device_id else None
+                if lbl:
+                    o.device_label = unquote(lbl.split("/")[0].strip())
+                f = foils.get(r.foil_id) if r.foil_id else None
+                if f:
+                    o.foil = {"id": f.id, "brand": f.brand, "model": f.model, "size": f.size,
+                              "aspect_ratio": round((f.span_cm ** 2) / f.area_cm2, 2) if f.area_cm2 else None}
+        raus["sessions"] = [o.model_dump() for o in outs]
     return raus
 
 

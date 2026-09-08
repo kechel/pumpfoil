@@ -750,10 +750,18 @@ export const api = {
   foilerProfil: (id: number) => req<{
     id: number; name: string | null; avatar_url: string | null;
     ich: boolean; aus: boolean;
-    zeigt: { join: boolean; watch: boolean; foil: boolean; homespot: boolean; records: boolean };
-    seit?: string; homespot?: string | null; uhren?: string[];
+    zeigt: { join: boolean; watch: boolean; foil: boolean; homespot: boolean; records: boolean;
+             media: boolean; spots: boolean; sessions: boolean };
+    seit?: string; homespot?: string | null; homespot_id?: number | null; uhren?: string[];
     foils?: { brand: string; model: string; size: string }[];
     rekorde?: OverallStats;
+    // Alle Medien an eigenen Sessions, neueste zuerst (Fotos + verlinkte YouTube-Videos).
+    medien?: { kind: "photo" | "video"; url: string | null; thumb_url: string | null;
+               youtube_url: string | null; session_id: number; started_at: string | null }[];
+    // Spots, zu denen er eine Beschreibung geschrieben hat.
+    spot_notizen?: { spot_id: number; name: string; area_name?: string | null }[];
+    // Die letzten fuenf Sessions — dieselbe Form wie die eigene Liste, ohne Besitzer-Felder.
+    sessions?: SessionSummary[];
   }>(`/api/community/foiler/${id}`),
 
   // Der Changelog selbst — seit 07.09.2026 aus der Datenbank, nicht mehr fest im Code.

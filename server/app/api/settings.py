@@ -133,11 +133,17 @@ DEFAULTS = {
         "foil": True,
         "homespot": True,
         "records": True,
+        # Nachgezogen am 08.09.2026 (Jan): Medien an eigenen Sessions, Spots mit eigener
+        # Beschreibung und die letzten FUENF Sessions. Alle drei vorbelegt an — sie zeigen
+        # nichts, was nicht schon im Community-Feed mit Name und Spot steht.
+        "media": True,
+        "spots": True,
+        "sessions": True,
     },
 }
 
 # Schalter der oeffentlichen Foiler-Seite (ohne `enabled`, das steht fuer die ganze Seite).
-PUBLIC_PROFILE_KEYS = ("join", "watch", "foil", "homespot", "records")
+PUBLIC_PROFILE_KEYS = ("join", "watch", "foil", "homespot", "records", "media", "spots", "sessions")
 
 # Bekannte Push-Typen (Quelle der Wahrheit, auch im Frontend gespiegelt).
 NOTIFY_TYPES = ("like", "analyzed", "record")

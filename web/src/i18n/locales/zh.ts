@@ -1685,6 +1685,12 @@ const zh: Record<string, string> = {
   "pubprof.homespot": "主玩点",
   "pubprof.records": "近 12 个月的记录",
   "pubprof.view": "查看我的个人主页",
+  "foiler.media": "媒体",
+  "foiler.spotNotes": "写过说明的地点",
+  "foiler.lastSessions": "最近的活动",
+  "pubprof.media": "我的活动照片和视频",
+  "pubprof.spots": "我写过说明的地点",
+  "pubprof.sessions": "我最近的五次活动",
 };
 
 export default zh;

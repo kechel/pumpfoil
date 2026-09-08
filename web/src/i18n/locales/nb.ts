@@ -1664,6 +1664,12 @@ const nb: Record<string, string> = {
   "pubprof.homespot": "Hjemmespot",
   "pubprof.records": "Rekorder fra de siste 12 månedene",
   "pubprof.view": "Se profilsiden min",
+  "foiler.media": "Medier",
+  "foiler.spotNotes": "Spots med egen beskrivelse",
+  "foiler.lastSessions": "Siste sessions",
+  "pubprof.media": "Bilder og videoer på sessionene mine",
+  "pubprof.spots": "Spots jeg har beskrevet",
+  "pubprof.sessions": "Mine fem siste sessions",
 };
 
 export default nb;

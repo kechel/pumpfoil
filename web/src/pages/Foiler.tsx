@@ -1,10 +1,11 @@
 // Oeffentliche Foiler-Seite EINES Nutzers — sichtbar fuer angemeldete Foiler, nicht fuer
 // Suchmaschinen (der Endpunkt verlangt eine Anmeldung).
 //
-// Was hier NICHT steht und auch nicht dazukommen darf: eine Liste seiner Sessions.
-// Produktentscheidung vom 04.09.2026 — aus gebuendelten Sessions einer Person liest man Spot,
-// Wochentage und Uhrzeiten ab, also ein Bewegungsprofil. Die Rekord-Kacheln sind Einzelwerte,
-// die im Community-Bereich ohnehin mit Namen und Datum stehen.
+// Zur Sessionliste: am 04.09.2026 war entschieden, dass es keine Liste je Nutzer gibt (aus
+// gebuendelten Sessions liest man Spot, Wochentage und Uhrzeiten ab). Am 08.09.2026 hat Jan fuer
+// diese Seite die letzten FUENF ausdruecklich gewollt — fuenf sind kein Archiv, und jede davon
+// steht mit Name, Spot und Uhrzeit ohnehin im Community-Feed. Eine vollstaendige Liste bleibt
+// unerwuenscht; die Grenze zieht der Server, nicht diese Seite.
 //
 // Welche Bloecke erscheinen, entscheidet der SERVER anhand der Schalter des Nutzers. Diese Seite
 // prueft nichts nachtraeglich: fehlt ein Feld, wird es nicht gezeigt.
@@ -13,6 +14,10 @@ import { Link, useParams } from "react-router-dom";
 import { api, OverallStats } from "../lib/api";
 import { Card, Avatar } from "../components/ui";
 import { ScrollToTop } from "../components/ScrollToTop";
+import { SessionCard } from "../components/SessionCard";
+import { PlayIcon } from "../components/Icons";
+import { SessionStats } from "./Sessions";
+import { foilLabel } from "../lib/foilLabel";
 import { useT, useNumberFormat } from "../i18n";
 import { fmtDate } from "../lib/time";
 
@@ -22,6 +27,21 @@ function fmtDur(min: number): string {
   const h = Math.floor(min / 60);
   const m = Math.round(min % 60);
   return h > 0 ? `${h} h ${m} min` : `${m} min`;
+}
+
+// Setup-Labels wie in der eigenen Sessionliste — die Karte formatiert nichts selbst.
+const setupLabels = (s: { setup?: { stab?: { brand: string; model: string; size: string } | null;
+                                   mast_len_cm?: number | null;
+                                   board?: { name: string } | null } | null }) => ({
+  stab: s.setup?.stab ? `${s.setup.stab.brand} ${s.setup.stab.model} ${s.setup.stab.size}`.trim() : null,
+  mast: s.setup?.mast_len_cm ? `${s.setup.mast_len_cm} cm` : null,
+  board: s.setup?.board?.name || null,
+});
+
+// YouTube-ID aus jeder gaengigen URL-Form — nur fuer das Vorschaubild von UNSEREM Server.
+function ytId(url: string | null | undefined): string | null {
+  const m = (url || "").match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([A-Za-z0-9_-]{6,16})/);
+  return m ? m[1] : null;
 }
 
 export default function Foiler() {
@@ -87,19 +107,32 @@ export default function Foiler() {
         </div>
       </div>
 
-      {/* Ausruestung und Homespot als Zeilen, nicht als Kacheln: es sind Angaben, keine Zahlen. */}
-      <div className="mb-5 space-y-1.5 text-sm">
+      {/* Angaben als zweispaltiges Raster: die Werte stehen dadurch UNTEREINANDER auf einer
+          Kante, egal wie lang das Label ist (Jan, 08.09.2026). Die Label-Spalte waechst mit dem
+          laengsten Label mit (max-content), deshalb funktioniert das auch in 17 Sprachen. */}
+      <div className="mb-5 grid grid-cols-[max-content_1fr] gap-x-3 gap-y-1.5 text-sm">
         {d.homespot && (
-          <p className="text-slate-300"><span className="text-slate-400">{t("foiler.homespot")}: </span>{d.homespot}</p>
+          <>
+            <span className="text-slate-400">{t("foiler.homespot")}:</span>
+            <span className="text-slate-300">
+              {/* Der Homespot verlinkt auf den Spot, wenn wir ihn zuordnen konnten. */}
+              {d.homespot_id
+                ? <Link to={`/sessions?spot=${d.homespot_id}`} className="underline decoration-slate-500 hover:decoration-brand-400">{d.homespot}</Link>
+                : d.homespot}
+            </span>
+          </>
         )}
         {d.uhren && d.uhren.length > 0 && (
-          <p className="text-slate-300"><span className="text-slate-400">{t("foiler.watch")}: </span>{d.uhren.join(" · ")}</p>
+          <>
+            <span className="text-slate-400">{t("foiler.watch")}:</span>
+            <span className="text-slate-300">{d.uhren.join(" · ")}</span>
+          </>
         )}
         {d.foils && d.foils.length > 0 && (
-          <p className="text-slate-300">
-            <span className="text-slate-400">{t("foiler.foil")}: </span>
-            {d.foils.map((f) => `${f.brand} ${f.model} ${f.size}`).join(" · ")}
-          </p>
+          <>
+            <span className="text-slate-400">{t("foiler.foil")}:</span>
+            <span className="text-slate-300">{d.foils.map((f) => `${f.brand} ${f.model} ${f.size}`).join(" · ")}</span>
+          </>
         )}
       </div>
 
@@ -128,6 +161,90 @@ export default function Foiler() {
             ))}
           </div>
         </>
+      )}
+
+      {/* Medien: Fotos und verlinkte Videos an seinen Sessions. Ein Klick fuehrt in die
+          Session — dort steht das Bild in seinem Zusammenhang, und das Video laeuft im
+          Click-to-Load-Rahmen (youtube-nocookie). Deshalb hier bewusst KEINE Lightbox und kein
+          eingebetteter Player: eine zweite Abspielstelle waere eine zweite Datenschutz-Baustelle.
+          Vorschaubilder der Videos kommen ueber UNSEREN Server (/api/public/video-thumb). */}
+      {d.zeigt.media && (d.medien?.length ?? 0) > 0 && (
+        <div className="mt-6">
+          <h2 className="mb-2 text-sm font-semibold text-slate-200">
+            {t("foiler.media")} <span className="font-normal text-slate-400">({d.medien!.length})</span>
+          </h2>
+          <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-4 lg:grid-cols-6">
+            {d.medien!.map((m, i) => {
+              const yt = m.youtube_url ? ytId(m.youtube_url) : null;
+              const bild = m.kind === "video" ? (yt ? `/api/public/video-thumb/${yt}` : null) : (m.thumb_url || m.url);
+              return (
+                <Link key={`${m.kind}-${m.session_id}-${i}`} to={`/sessions/${m.session_id}`} className="group relative block">
+                  {bild
+                    ? <img src={bild} alt="" loading="lazy" className="aspect-square w-full rounded-lg object-cover transition-opacity group-hover:opacity-90" />
+                    : <div className="aspect-square w-full rounded-lg bg-slate-800" />}
+                  {m.kind === "video" && (
+                    <span className="absolute inset-0 flex items-center justify-center">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black/55 text-white">
+                        <PlayIcon className="h-4 w-4" />
+                      </span>
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Spots, zu denen er eine Beschreibung geschrieben hat — der Link fuehrt an den Spot,
+          wo die Beschreibung steht (mit allen anderen). */}
+      {d.zeigt.spots && (d.spot_notizen?.length ?? 0) > 0 && (
+        <div className="mt-6">
+          <h2 className="mb-2 text-sm font-semibold text-slate-200">{t("foiler.spotNotes")}</h2>
+          <div className="flex flex-wrap gap-2">
+            {d.spot_notizen!.map((n) => (
+              <Link key={n.spot_id} to={`/sessions?spot=${n.spot_id}`}
+                    className="rounded-full border border-slate-700 px-3 py-1 text-sm text-slate-300 hover:border-brand-400 hover:text-brand-300">
+                {n.name}{n.area_name ? ` · ${n.area_name}` : ""}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Die letzten fuenf — dieselbe Karte wie in der eigenen Sessionliste. */}
+      {d.zeigt.sessions && (d.sessions?.length ?? 0) > 0 && (
+        <div className="mt-6">
+          <h2 className="mb-2 text-sm font-semibold text-slate-200">{t("foiler.lastSessions")}</h2>
+          <div className="space-y-3">
+            {d.sessions!.map((s) => (
+              <SessionCard
+                key={s.id}
+                sessionId={s.id}
+                startedAt={s.started_at}
+                endedAt={s.ended_at}
+                tz={s.tz}
+                spot={s.place_name}
+                foil={s.foil ? foilLabel(s.foil) : null}
+                {...setupLabels(s)}
+                deviceLabel={s.device_label}
+                caption={s.caption}
+                avatarName={d.name}
+                avatarUrl={d.avatar_url}
+                thumbUrl={s.thumb_url}
+                photoCount={s.photo_count}
+                youtubeUrl={s.youtube_url}
+                videoUrl={s.video_url}
+                likeCount0={s.like_count ?? 0}
+                liked0={!!s.liked}
+                trackPreview={s.track_preview}
+                stats={s.analysis && <SessionStats a={s.analysis} />}
+                sportClass={s.sport_class}
+                dataQuality={s.data_quality}
+              />
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );

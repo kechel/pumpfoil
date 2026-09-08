@@ -1688,6 +1688,12 @@ const id: Record<string, string> = {
   "pubprof.homespot": "Spot utama",
   "pubprof.records": "Rekor 12 bulan terakhir",
   "pubprof.view": "Lihat halaman profilku",
+  "foiler.media": "Media",
+  "foiler.spotNotes": "Spot dengan deskripsi",
+  "foiler.lastSessions": "Sesi terakhir",
+  "pubprof.media": "Foto dan video di sesiku",
+  "pubprof.spots": "Spot yang sudah kudeskripsikan",
+  "pubprof.sessions": "Lima sesi terakhirku",
 };
 
 export default id;

@@ -1807,6 +1807,12 @@ const de: Record<string, string> = {
   "pubprof.homespot": "Homespot",
   "pubprof.records": "Rekorde der letzten 12 Monate",
   "pubprof.view": "Meine Profilseite ansehen",
+  "foiler.media": "Medien",
+  "foiler.spotNotes": "Spots mit eigener Beschreibung",
+  "foiler.lastSessions": "Letzte Sessions",
+  "pubprof.media": "Fotos und Videos an meinen Sessions",
+  "pubprof.spots": "Spots, die ich beschrieben habe",
+  "pubprof.sessions": "Meine letzten fünf Sessions",
 };
 
 export default de;

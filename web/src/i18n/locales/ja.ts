@@ -1682,6 +1682,12 @@ const ja: Record<string, string> = {
   "pubprof.homespot": "ホームスポット",
   "pubprof.records": "直近12か月の記録",
   "pubprof.view": "自分のプロフィールページを見る",
+  "foiler.media": "メディア",
+  "foiler.spotNotes": "説明を書いたスポット",
+  "foiler.lastSessions": "最近のセッション",
+  "pubprof.media": "自分のセッションの写真と動画",
+  "pubprof.spots": "自分が説明を書いたスポット",
+  "pubprof.sessions": "直近5件のセッション",
 };
 
 export default ja;

@@ -1573,6 +1573,12 @@ const gsw: Record<string, string> = {
   "pubprof.records": "Rekord vo de letschte 12 Mönet",
   "pubprof.homespot": "Homespot",
   "pubprof.view": "Mini Profilsite aaluege",
+  "foiler.media": "Medie",
+  "foiler.spotNotes": "Spots mit eigener Beschribig",
+  "foiler.lastSessions": "Letschti Sessions",
+  "pubprof.media": "Foti und Videos a mine Sessions",
+  "pubprof.spots": "Spots, wo i beschribe ha",
+  "pubprof.sessions": "Mini letschte föif Sessions",
 };
 
 export default gsw
