@@ -49,7 +49,19 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.30",   # LIVE im App Store 2026-09-05, GEGENGEPRUEFT an der STORE-SEITE
+        "latest": "1.1.31",   # FREIGEGEBEN 2026-09-08 abends, ZWEITE Apple-Mail
+        # („The following app is ready for distribution: App Version Number: 1.1.31“). Hinweis von
+        # Jan an diesem Abend: von Apple kommen NORMALERWEISE ZWEI Mails — erst „Review of your
+        # submission has been completed. It is now eligible for distribution“ (nur das Ende der
+        # Pruefung), danach diese hier. Nach der ERSTEN Mail stand die Produktseite noch auf 1.1.30,
+        # `itunes/lookup` in de/us/cz/nl/no ebenfalls — deshalb wurde `latest` erst mit der zweiten
+        # gesetzt. Die Store-Propagation laeuft danach noch (bekannte Verzoegerung, s. Notiz unten).
+        # Eingereicht 07.09. 15:12 aus Commit `189564c6`, Uebermittlung `bbd630be-…`, gut 28 h Pruefung.
+        # Inhalt: Absturz beim Start in pt/ja/zh/ru/id behoben, COROS ueberhaupt verbindbar,
+        # Sportart-Auswahl je Konto, Hinweis bei Aufnahme ohne Position, Spot-Seite mit Rekorden/
+        # Wetter/Pegel/Beschreibungen, Foil-Detailseite, Fortschritt beim Konto-Import,
+        # Apple-Watch-Modellmeldung, Uhren-Vergleich, Xiaomi-Weg, COROS-Modus-Empfehlung.
+        # Vorher 1.1.30, live seit 05.09., GEGENGEPRUEFT an der STORE-SEITE
         # (Produktseite apps.apple.com/de zeigt "Version 1.1.30", erschienen vor gut drei Stunden).
         # Freigabe-Mail "ready for distribution" am 05.09., eingereicht 04.09. 08:51.
         # Inhalt: gemerkte Kartenansicht, misslungene Startversuche auf der Karte, Rueckfall bei
@@ -159,7 +171,11 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.30",   # LIVE im App Store 2026-09-05 — dieselbe Einreichung wie "ios",
+        "latest": "1.1.31",   # FREIGEGEBEN 2026-09-08 — dieselbe Einreichung wie "ios" (ein Bundle,
+        # eine MARKETING_VERSION), zweite Apple-Mail. Fuer die WATCH-App bringt 1.1.31 die
+        # Modellmeldung: bis dahin sah jede Apple Watch fuer uns gleich aus, jetzt steht in
+        # `sessions.device_model`, welches Modell aufgenommen hat (Simulator-Aufnahmen melden sich
+        # als „Simulator“). Vorher 1.1.30, live seit 05.09. — dieselbe Einreichung wie "ios",
         # gegengeprueft an der Produktseite ("Version 1.1.30", Apple Watch in der Kompatibilitaet).
         # Fuer die WATCH-App bringt 1.1.30: kein veralteter Puls mehr in den Messpunkten (die Uhr
         # schrieb bisher den letzten bekannten Wert in JEDEN GPS-Punkt, was Laeufe faelschlich als
@@ -279,32 +295,6 @@ IN_REVIEW: list[dict] = [
          "and Suunto.",
          "COROS: the app says which mode records the best data, and what COROS does not "
          "hand over.",
-     ]},
-    {"name": "iPhone + Apple Watch", "version": "1.1.31",
-     "note": "submitted 7 September, waiting for Apple",
-     "items": [
-         "The app no longer quits on launch when it is set to Portuguese, Japanese, "
-         "Chinese, Russian or Indonesian.",
-         "COROS can be connected from the app at all — it pointed at the wrong address and "
-         "always reported itself as unavailable, while it had been working on the website "
-         "for days.",
-         "You can choose which sport modes we import from a connected account, and the note "
-         "under each account now says what actually happens: Polar sends new trainings by "
-         "itself, COROS is fetched once a day.",
-         "A recording without a single position says so, instead of showing an empty page.",
-         "The spot page shows the records for that spot, the weather and the water level, and the spot descriptions — at the top, the way the website does it. Some of that was missing entirely.",
-         "The Apple Watch tells us which model it is. Until now every Apple Watch looked "
-         "the same to us, so we could not say which ones measure well and which do not.",
-         "The watch comparison from the website is in the app too.",
-         "Every foil in the list opens its own page, with the records set on it and the "
-         "sessions ridden with it.",
-         "An account import shows a progress bar while it runs, and says in your language "
-         "what came of it — how many were imported and why the others were not.",
-         "Xiaomi and Redmi watches: the app explains the official way in, through Mi Fitness "
-         "and Suunto.",
-         "COROS: the app says which mode records the best data, and what COROS does not "
-         "hand over.",
-         "On a spot description, tapping Edit opened the photo picker at the same time.",
      ]},
     {"name": "Amazfit", "version": "1.0.7",
      "note": "submitted 1 September, under review",
