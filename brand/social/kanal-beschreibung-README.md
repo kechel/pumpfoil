@@ -21,7 +21,8 @@ Französisch und Deutsch reißen die Grenze als Erste.
 | fi | finnisch | 961 |
 | cs | tschechisch | 905 |
 | pl | polnisch | 962 |
-| pt | portugiesisch | 959 |
+| pt | portugiesisch (**europäisch**) | 959 |
+| pt-BR | pt-BR-brasilianisch | 960 |
 | nb | norwegisch | 924 |
 | ru | russisch | 933 |
 | id | indonesisch | 971 |
@@ -66,3 +67,36 @@ die Liste steht bewusst eine Spur schmaler als das Lockup, sonst wirkt sie grö�
 Tagline. Beide Skripte laufen auf der Dev-VM (`python3 banner.py`, `python3 endcard.py`);
 `python3-cairosvg` ist dort installiert. **Hochladen bleibt Handarbeit.**
 
+
+## Portugiesisch: zwei Fassungen — und YouTube meint mit `pt` das brasilianische
+
+Hier lag am 08.09. ein Fehler, der genau in die falsche Richtung wirkte.
+
+**Was YouTube kennt** (`i18nLanguages`, 83 Sprachen, abgefragt 08.09.): **`pt`
+(„Portugiesisch")** und **`pt-PT` („Portugiesisch (Portugal)")**. Ein `pt-BR` steht **nicht**
+in der Liste — bei YouTube ist `pt` die brasilianische Vorgabe und `pt-PT` die Abweichung,
+dieselbe Logik wie bei `zh-CN` gegen `zh-TW`.
+
+**Der Fehler:** die Kanaluebersetzung lag unter dem Schluessel `pt_BR` — trug aber den
+**europaeischen** Text (`Transforma o teu relógio desportivo`, `telemóvel`, `planeios`). Wer
+aus Brasilien von einem Video aufs Profil klickte, bekam also Portugal-Portugiesisch. Und
+Brasilien ist mit **30,3 % unser groesstes Land auf Facebook** (siehe
+`social-media/KWAI.md`).
+
+**Getauscht am 08.09.** gegen `kanal-beschreibung-pt-BR-brasilianisch.txt`
+(`Transforme seu relógio esportivo`, `celular`, `glides`). Die anderen 14 Sprachen blieben
+unberuehrt, Sicherung unter
+`social-media/.yt-kanal-localizations-vor-ptBR-20260908-202648.json`.
+
+Achtung bei der Rueckfrage direkt nach dem PUT: YouTube liefert dort noch kurz den alten
+Stand aus. Eine zweite Abfrage ein paar Sekunden spaeter zeigt das Richtige.
+
+**Die Videotexte waren nie betroffen.** `scripts/yt-add-language.py` uebersetzt `pt` laut
+seiner eigenen `NAMES`-Tabelle als „brasilianisches Portugiesisch", und die Stichprobe ueber
+241 Videotexte bestaetigt es: *você* (6), *a gente* (9), *cara* (11), *celular* (2) gegen
+ganze fuenf europaeische Ausreisser. An den Videos haengen ausserdem `pt` **und** `pt-BR`
+mit identischem Text — doppelt gemoppelt, aber nicht falsch.
+
+**Wenn Portugal je drankommt:** die europaeische Fassung liegt fertig unter
+`kanal-beschreibung-pt-portugiesisch.txt` und gehoert dann als **`pt-PT`** hinein, nicht als
+`pt`.
