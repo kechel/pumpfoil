@@ -767,7 +767,9 @@ export const api = {
     titel?: { metric: string; value: number; started_at?: string | null; spot?: string | null;
               session_id?: number | null }[];
     spot_titel?: { metric: string; value: number; spot_id: number; spot?: string;
-                   started_at?: string | null; session_id?: number | null }[];
+                   started_at?: string | null; session_id?: number | null;
+                   // true = er ist dort der einzige Fahrer, haelt also zwangslaeufig alles
+                   allein?: boolean }[];
     // Die letzten fuenf Sessions — dieselbe Form wie die eigene Liste, ohne Besitzer-Felder.
     sessions?: SessionSummary[];
   }>(`/api/community/foiler/${id}`),

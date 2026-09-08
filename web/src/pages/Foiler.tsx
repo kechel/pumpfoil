@@ -255,7 +255,14 @@ export default function Foiler() {
                           className="flex items-center gap-1 text-sm font-semibold text-slate-200 underline decoration-slate-500 hover:decoration-brand-400">
                       <LocationIcon className="h-4 w-4 text-slate-400" />{spot}
                     </Link>
-                    {liste.map((x, i) => {
+                    {/* Ist er dort der einzige Fahrer, haelt er zwangslaeufig jeden Rekord —
+                        dann sagt EIN Hinweis mehr als zehn Titel ohne Gegner (Jan). */}
+                    {liste[0].allein && (
+                      <span className="rounded-full border border-slate-700 px-2.5 py-0.5 text-sm text-slate-400">
+                        {t("foiler.onlyFoiler")}
+                      </span>
+                    )}
+                    {!liste[0].allein && liste.map((x, i) => {
                       const inhalt = <>{recLabel(x.metric, t)} <span className="font-semibold tabular-nums">{recWert(x.metric, x.value)}</span></>;
                       const klasse = "rounded-full border border-slate-700 px-2.5 py-0.5 text-sm text-slate-300";
                       // „Meiste Carves >180°" ist eine Summe ueber den Zeitraum und haengt an

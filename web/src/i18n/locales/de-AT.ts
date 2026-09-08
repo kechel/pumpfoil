@@ -1587,6 +1587,7 @@ const deAT: Record<string, string> = {
   "pubprof.sessions": "Meine letzten fünf Sessions",
   "pubprof.titles": "Rekorde, die i aktuell halt",
   "pubprof.channel": "Mein YouTube-Kanal",
+  "foiler.onlyFoiler": "Einziger Foiler an dem Spot – hält alle Rekorde",
 };
 
 export default deAT
