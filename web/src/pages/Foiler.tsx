@@ -93,6 +93,13 @@ export default function Foiler() {
     .map((m) => ({ url: m.url as string, session_id: m.session_id, name: d.name,
                    avatar_url: d.avatar_url, started_at: m.started_at }));
 
+  // Spot-Titel nach Spot buendeln; die Reihenfolge kommt schon sortiert vom Server.
+  const spotGruppen = Object.entries((d.spot_titel ?? []).reduce((acc, x) => {
+    const k = x.spot || "—";
+    (acc[k] ||= []).push(x);
+    return acc;
+  }, {} as Record<string, NonNullable<typeof d.spot_titel>>));
+
   const r = d.rekorde?.records;
   // Dieselben Kacheln und dieselbe Formatierung wie auf der eigenen Startseite — driftet die
   // Darstellung auseinander, wirken es zwei verschiedene Zahlen.
@@ -207,15 +214,25 @@ export default function Foiler() {
               ))}
             </div>
           )}
-          {(d.spot_titel?.length ?? 0) > 0 && (
+          {spotGruppen.length > 0 && (
             <>
               <p className="mb-1 text-sm text-slate-400">{t("foiler.spotTitles")}</p>
-              <div className="flex flex-wrap gap-2">
-                {d.spot_titel!.map((x, i) => (
-                  <Link key={`s-${x.spot_id}-${x.metric}-${i}`} to={`/sessions?spot=${x.spot_id}`}
-                        className="rounded-full border border-slate-700 px-3 py-1 text-sm text-slate-300 hover:border-brand-400 hover:text-brand-300">
-                    {x.spot} · {recLabel(x.metric, t)} <span className="font-semibold tabular-nums">{recWert(x.metric, x.value)}</span>
-                  </Link>
+              {/* Nach Spot gruppiert, nicht als eine lange Kette: bei vier Spots und zehn
+                  Kennzahlen (luk) stuende der Spotname sonst dreissigmal da. */}
+              <div className="space-y-2">
+                {spotGruppen.map(([spot, liste]) => (
+                  <div key={spot} className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+                    <Link to={`/sessions?spot=${liste[0].spot_id}`}
+                          className="text-sm font-semibold text-slate-200 underline decoration-slate-500 hover:decoration-brand-400">
+                      {spot}
+                    </Link>
+                    {liste.map((x, i) => (
+                      <span key={`${x.metric}-${i}`}
+                            className="rounded-full border border-slate-700 px-2.5 py-0.5 text-sm text-slate-300">
+                        {recLabel(x.metric, t)} <span className="font-semibold tabular-nums">{recWert(x.metric, x.value)}</span>
+                      </span>
+                    ))}
+                  </div>
                 ))}
               </div>
             </>

@@ -163,8 +163,11 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
       {/* Desktop-Sidebar */}
       <aside className="hidden w-60 shrink-0 flex-col gap-1 border-r border-slate-800/60 px-4 pb-4 pt-2 md:flex">
         <Link to="/" className="mb-3 block px-1"><BrandLogo className="w-full h-auto" /></Link>
+        {/* Bild/Name/Mail fuehren auf die EIGENE Profilseite (Jan, 08.09.2026) — vorher lag
+            hier ein zweiter Link auf die Startseite, die daneben schon als „Home" steht. */}
         {profile && (
-          <Link to="/" className="mb-2 flex items-center gap-3 rounded-xl px-2 py-1.5 hover:bg-slate-900">
+          <Link to={profile.id ? `/foiler/${profile.id}` : "/"}
+                className="mb-2 flex items-center gap-3 rounded-xl px-2 py-1.5 hover:bg-slate-900">
             <Avatar name={profile.display_name} url={profile.avatar_url} size={40} />
             <div className="min-w-0">
               <div className="truncate text-sm font-semibold text-slate-100">{profile.display_name || "—"}</div>

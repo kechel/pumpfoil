@@ -1598,34 +1598,42 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
         ]
 
     if sicht.get("titles"):
-        # „Haelt aktuell diese Rekorde" — Community-weit und je Spot, Fenster fest 12 Monate
+        # „Haelt aktuell diese Rekorde" — community-weit und je Spot, Fenster fest 12 Monate
         # (Jan, 08.09.2026). Verglichen wird ueber den Anzeigenamen: `owner_label` ist
         # deterministisch und Anzeigenamen sind eindeutig (ix_users_display_name).
         #
-        # Basis sind ALLE Aufnahmen (`accel_only=False`), wie bei den Rekord-Kacheln oben auf
-        # dieser Seite. Die Community-Seite ist per Vorbelegung auf „nur Accel" — ein Titel hier
-        # kann dort deshalb einem anderen gehoeren. Andersherum waere schlimmer: Konto-Importe
-        # (Suunto/COROS/FIT) bringen keine Beschleunigungsdaten mit, und diese Fahrer koennten
-        # dann grundsaetzlich keinen Rekord halten, obwohl wir sie zum Importieren einladen.
+        # ALLE Kennzahlen, auch Early Bird / Nachteule / Carves (Jan: „es fehlen noch allerlei
+        # rekorde" — an seinem Spot hielt er genau die vier, die zuerst fehlten). Das kostet die
+        # eine schwere Abfrage von `_time_rows` (alle segments_json des Jahres, gemessen 200 ms
+        # fuer 1787 Sessions); sie laeuft dank `cache` genau EINMAL je Request und deckt beide
+        # Durchgaenge (community-weit + je Spot) ab.
         #
-        # Bewusst NUR die Spalten-Rekorde (REC_COL): `early_bird`/`night_owl` brauchen
-        # `_time_rows` (laedt alle segments_json des Jahres, ~200 ms), und `carves180` fuellt
-        # dabei sogar einen Cache in der DB — beides hat auf einer Profilseite nichts zu suchen.
+        # `carve_cache` steht absichtlich VORAB im Cache: `_carve_record` wuerde sonst
+        # `_fill_carve_cache` aufrufen und dabei fehlende Carve-Zahlen SCHREIBEN. Eine
+        # Profilseite rechnet nichts nach — sie liest, was da ist (geprueft 08.09.: 1787 von
+        # 1787 community-sichtbaren Sessions haben den Cache, es fehlt nichts).
+        #
+        # Basis sind ALLE Aufnahmen (`accel_only=False`), wie bei den Rekord-Kacheln oben.
+        # Nachgemessen an Illmensee: mit und ohne Accel-Filter halten dieselben Leute alle zwoelf
+        # Rekorde — die Wahl macht dort also keinen Unterschied. Sie ist trotzdem bewusst so:
+        # Konto-Importe (Suunto/COROS/FIT) bringen keine Beschleunigungsdaten mit, und diese
+        # Fahrer sollen nicht grundsaetzlich titellos bleiben.
         mein = owner_label(u.display_name, u.id)
         cut = _cutoff("365d")
-        titel: list[dict] = []
-        for m in REC_COL:
-            e = _record_entry(db, m, cut, viewer_id=user.id, accel_only=False, sport="pumpfoil")
-            if e.get("name") and e["name"] == mein:
-                titel.append({"metric": m, "value": e["value"], "started_at": e.get("started_at"),
-                              "spot": e.get("spot"), "session_id": e.get("session_id")})
-        raus["titel"] = titel
+        cache: dict = {"carve_cache": True}
+        raus["titel"] = [
+            {"metric": m, "value": e["value"], "started_at": e.get("started_at"),
+             "spot": e.get("spot"), "session_id": e.get("session_id")}
+            for m, e in ((m, _record_entry(db, m, cut, viewer_id=user.id, accel_only=False,
+                                           sport="pumpfoil", cache=cache)) for m in METRICS)
+            if e.get("name") and e["name"] == mein
+        ]
 
         # Spot-Rekorde: EINE Abfrage je Kennzahl fuer ALLE Spots (Fensterfunktion), nicht eine
-        # je Spot — sonst waeren es bei einem Vielreisenden hundert Abfragen. Nur die fuenf
-        # Lauf-Rekorde; Sessions ohne `spot_id` bleiben draussen, die haetten keinen Link.
+        # je Spot — sonst waeren es bei einem Vielreisenden hundert Abfragen. Sessions ohne
+        # `spot_id` bleiben draussen, die haetten keinen Link.
         spot_titel: list[dict] = []
-        for m in ("distance", "duration", "speed", "glide", "runs"):
+        for m in REC_COL:
             valcol, _ = REC_COL[m]
             rn = func.row_number().over(partition_by=S.spot_id, order_by=valcol.desc()).label("rn")
             sub = _community(db.query(S.spot_id.label("sid"), S.user_id.label("uid"),
@@ -1641,13 +1649,57 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
                 spot_titel.append({"metric": m, "value": round(float(val), 2), "spot_id": int(sid),
                                    "started_at": st.isoformat() if st else None,
                                    "session_id": ses_id})
+
+        # Early Bird / Nachteule je Spot: dieselben Zeilen wie community-weit, in Python nach
+        # Ortsnamen gruppiert (die Sekundenwerte haengen an der Spot-Zeitzone, nicht an SQL).
+        # Gleichstand behaelt die erste Zeile — genau wie in `_time_record`.
+        bestzeit: dict[tuple[str, str], tuple] = {}
+        for st, sid, name, place, _av, _pv, _tz, eb_val, no_val in _time_rows(
+                db, None, user.id, False, "pumpfoil", cache):
+            if not place or (cut is not None and st < cut):
+                continue
+            for m, val in (("early_bird", eb_val), ("night_owl", no_val)):
+                alt = bestzeit.get((m, place))
+                besser = alt is None or (val < alt[0] if m == "early_bird" else val > alt[0])
+                if besser:
+                    bestzeit[(m, place)] = (val, sid, st, name)
+        zeit_sieger = [(m, w) for (m, _place), w in bestzeit.items() if w[3] == mein]
+        if zeit_sieger:
+            # Spot-ID der Sieger-Session nachziehen (die Zeilen kennen nur den Ortsnamen).
+            sids = dict(db.query(S.id, S.spot_id).filter(S.id.in_([w[1] for _m, w in zeit_sieger])).all())
+            for m, (val, sid, st, _n) in zeit_sieger:
+                if sids.get(sid):
+                    spot_titel.append({"metric": m, "value": round(val, 2),
+                                       "spot_id": int(sids[sid]),
+                                       "started_at": st.isoformat() if st else None,
+                                       "session_id": sid})
+
+        # Carves >180° je Spot: Summe je (Spot, Nutzer), Sieger per Fensterfunktion UEBER der
+        # Gruppierung. Ohne `session_id`/Datum — der Rekord gehoert einem Zeitraum, nicht einer
+        # Session (s. `_carve_record`).
+        carve_summe = func.coalesce(func.sum(AR.carve_m + AR.carve_l), 0)
+        crn = func.row_number().over(partition_by=S.spot_id, order_by=carve_summe.desc()).label("rn")
+        csub = _community(db.query(S.spot_id.label("sid"), S.user_id.label("uid"),
+                                   carve_summe.label("val"), crn),
+                          user.id, False, "pumpfoil")
+        csub = csub.filter(AR.carve_m.isnot(None), S.spot_id.isnot(None))
+        if cut is not None:
+            csub = csub.filter(S.started_at >= cut)
+        csub = csub.group_by(S.spot_id, S.user_id).subquery()
+        for sid, val in (db.query(csub.c.sid, csub.c.val)
+                         .filter(csub.c.rn == 1, csub.c.uid == u.id, csub.c.val > 0).all()):
+            spot_titel.append({"metric": "carves180", "value": float(int(val)),
+                               "spot_id": int(sid), "started_at": None, "session_id": None})
+
         if spot_titel:
             namen = dict(db.query(models.Spot.id, models.Spot.name)
                          .filter(models.Spot.id.in_({x["spot_id"] for x in spot_titel})).all())
             for x in spot_titel:
                 x["spot"] = namen.get(x["spot_id"]) or "—"
-            # Nach Spot gruppiert lesbar halten: gleiche Spots beieinander, staerkste zuerst.
-            spot_titel.sort(key=lambda x: (x["spot"], x["metric"]))
+            # Nach Spot gruppiert, innerhalb des Spots in der Reihenfolge der Rekord-Kacheln:
+            # sonst steht „Max. Puls" vor „Weitester Lauf" und die Seite liest sich zufaellig.
+            reihung = {m: i for i, m in enumerate(METRICS)}
+            spot_titel.sort(key=lambda x: (x["spot"], reihung.get(x["metric"], 99)))
         raus["spot_titel"] = spot_titel
 
     if sicht.get("sessions"):
