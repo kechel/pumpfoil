@@ -118,10 +118,10 @@ const OUTRO_ICONS: Record<PvPlatform, [string, string][]> = {
   // — die standen hier bis 08.09. und passten zu keinem Knopf auf dem Schirm.
   youtube: [
     ["M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z", "heart"],
-    // Bogen und Spitze in EINEM Pfad: die Liste setzt je Eintrag ein eigenes
-    // Symbol nebeneinander. Die Spitze deshalb absolut (M14 4), sonst haenge
-    // sie relativ am Bogenende und laege ausserhalb.
-    ["M3 19c0-6.5 5.5-10 17-10M14 4l6 5-6 5", "share"],
+    // Die Silhouette des Pfeils, nicht ein Strich mit Spitze: YouTube und TikTok
+    // zeichnen einen massiven Pfeil mit Schaft und Haken unten links. Als
+    // geschlossene Form, deshalb das abschliessende z.
+    ["M14 7V3l7 7-7 7v-4.1c-5 0-8.5 1.6-11 5.1 1-5 4-10 11-11z", "share"],
   ],
   instagram: [
     ["M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z", "heart"],
@@ -137,7 +137,7 @@ const OUTRO_ICONS: Record<PvPlatform, [string, string][]> = {
     // Teilen, nicht Repost: in TikToks Leiste stehen Herz, Sprechblase,
     // Lesezeichen und Teilen-Pfeil — einen Repost-Knopf gibt es dort nicht
     // (Jans Bildschirmfoto, 08.09.). Derselbe Pfeil wie bei YouTube.
-    ["M3 19c0-6.5 5.5-10 17-10M14 4l6 5-6 5", "share"],
+    ["M14 7V3l7 7-7 7v-4.1c-5 0-8.5 1.6-11 5.1 1-5 4-10 11-11z", "share"],
   ],
 };
 
