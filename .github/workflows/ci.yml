@@ -29,7 +29,7 @@ jobs:
           --health-cmd "pg_isready -U foil"
           --health-interval 5s --health-timeout 5s --health-retries 10
     env:
-      # Tests laufen gegen Postgres (wie Prod), nicht SQLite — wegwerfbarer Container.
+      # Tests laufen gegen Postgres (wie Prod) — wegwerfbarer Container je Lauf.
       TEST_DATABASE_URL: postgresql+psycopg://foil:foil@localhost:5432/foil_test
     steps:
       - uses: actions/checkout@v4

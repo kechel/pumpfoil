@@ -19,9 +19,8 @@ ANBIETER = "probe"
 def nutzer(client):  # noqa: ARG001 — client legt die Tabellen an
     """Ein echter Nutzer, weil `import_sport_prefs.user_id` auf `users.id` verweist.
 
-    Zwei Dinge, die beim ersten Anlauf schiefgingen (07.09.2026, gegen Postgres in der CI —
-    auf der SQLite-Rueckfallebene faellt beides NICHT auf, weil dort Fremdschluessel
-    standardmaessig nicht erzwungen werden):
+    Zwei Dinge, die beim ersten Anlauf schiefgingen (07.09.2026) — beides Folgen echter
+    Fremdschluessel, die es nur mit einer richtigen Datenbank gibt:
       * Die Mailadresse war fest. Blieb der Nutzer beim Aufraeumen liegen, kollidierte jeder
         weitere Lauf an `ix_users_email`. Jetzt ist sie je Test eindeutig.
       * Das Aufraeumen wollte den Nutzer loeschen, solange Sessions an ihm hingen (der letzte

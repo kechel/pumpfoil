@@ -1,19 +1,14 @@
 #!/usr/bin/env python3
-"""DB-Backup mit Rotation. Erkennt PostgreSQL (pg_dump, custom/komprimiert) bzw.
-SQLite (.backup-API + gzip) anhand DATABASE_URL.
+"""DB-Backup mit Rotation: pg_dump im custom-Format (bereits komprimiert) anhand DATABASE_URL.
 
 Aufruf (systemd-Timer): python -m scripts.backup_db
 ENV: BACKUP_DIR (Default ~/backups/foil-db), BACKUP_KEEP (Default 14)
 """
 from __future__ import annotations
 
-import gzip
 import os
-import shutil
-import sqlite3
 import subprocess
 import sys
-import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -44,38 +39,12 @@ def backup_postgres(url: str, backup_dir: Path, keep: int, stamp: str) -> Path:
     return out
 
 
-def backup_sqlite(rel: str, backup_dir: Path, keep: int, stamp: str) -> Path:
-    src = Path(rel)
-    if not src.is_absolute():
-        src = (Path(__file__).resolve().parents[1] / src)
-    out = backup_dir / f"foil-{stamp}.sqlite3.gz"
-    with tempfile.NamedTemporaryFile(suffix=".sqlite3", delete=False) as tmp:
-        tmp_path = Path(tmp.name)
-    try:
-        sc = sqlite3.connect(f"file:{src}?mode=ro", uri=True)
-        dc = sqlite3.connect(str(tmp_path))
-        with dc:
-            sc.backup(dc)
-        sc.close(); dc.close()
-        with open(tmp_path, "rb") as fi, gzip.open(out, "wb", compresslevel=6) as fo:
-            shutil.copyfileobj(fi, fo)
-    finally:
-        tmp_path.unlink(missing_ok=True)
-    _rotate(backup_dir, "foil-*.sqlite3.gz", keep)
-    return out
-
-
 def main() -> int:
     url = get_settings().database_url
     backup_dir = _backup_dir()
     keep = int(os.environ.get("BACKUP_KEEP", "14"))
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
-    if url.startswith("postgresql"):
-        out = backup_postgres(url, backup_dir, keep, stamp)
-    elif url.startswith("sqlite"):
-        out = backup_sqlite(url.split("///", 1)[1], backup_dir, keep, stamp)
-    else:
-        raise SystemExit(f"Unbekannte DATABASE_URL: {url}")
+    out = backup_postgres(url, backup_dir, keep, stamp)
     n = len(list(backup_dir.glob("foil-*")))
     print(f"Backup: {out} ({out.stat().st_size / 1e6:.1f} MB) | vorhanden: {n}")
     return 0

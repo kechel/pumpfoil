@@ -743,8 +743,8 @@ def _sperre_koordinate(db, punkt) -> None:
     """Transaktions-Sperre auf ein ~1-km-Koordinatenraster (nur Postgres).
 
     Verhindert, dass zwei Worker fuer denselben Ort gleichzeitig einen Spot anlegen. Die Sperre
-    faellt mit dem Commit/Rollback der Transaktion von allein. Auf anderen Datenbanken (SQLite im
-    Dev) ist sie ein No-Op — dort schuetzt die Naehe-Pruefung danach.
+    faellt mit dem Commit/Rollback der Transaktion von allein. Zieht sie nicht, schuetzt die
+    Naehe-Pruefung danach.
     """
     try:
         if db.bind is None or db.bind.dialect.name != "postgresql":
@@ -831,8 +831,7 @@ def assign_one(db, s):
         # Helsinki-Spots aus vier Sessions, die zwischen 10:42:59 und 10:43:17 analysiert
         # wurden). Zwei Riegel dagegen:
         #   1) eine Postgres-Sperre auf die gerundete Koordinate (~1 km Raster) — der zweite
-        #      Worker wartet, statt parallel anzulegen. Nur Postgres; ohne Sperre (SQLite-Dev)
-        #      bleibt Riegel 2.
+        #      Worker wartet, statt parallel anzulegen.
         #   2) NACH der Sperre noch einmal nachsehen: existiert inzwischen ein Spot naeher als
         #      DUBLETTE_M, wird er benutzt statt eines neuen. Das ist der eigentliche Schutz,
         #      denn er greift auch, wenn die Sperre nicht zieht.

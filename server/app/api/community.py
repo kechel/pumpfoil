@@ -1424,6 +1424,98 @@ def _ist_attrappe(label: str | None) -> bool:
     return l in _ATTRAPPEN_GANZ or any(t in l for t in _ATTRAPPEN_TEILE)
 
 
+@router.get("/foiler/{user_id}")
+def foiler_profil(user_id: int, user: models.User = Depends(current_user),
+                  db: Session = Depends(get_db)) -> dict:
+    """Oeffentliche Foiler-Seite EINES Nutzers — nur was er selbst freigegeben hat.
+
+    Anmeldung noetig, wie im ganzen Community-Bereich: die Seite ist fuer andere FOILER
+    sichtbar, nicht fuer Suchmaschinen.
+
+    Die Sichtbarkeit entscheidet der SERVER, nicht die Oberflaeche. Vier Gruende fuer ein 404,
+    und jeder davon ist eine bestehende Zusage:
+      * `hidden` / `blocked` — von der Moderation weggenommen.
+      * `social_allowed = False` — das Alters-Tor (unter 13 gibt es keine sozialen Flaechen).
+      * `public_profile.enabled = False` — der Nutzer hat die Seite abgeschaltet.
+    Ein 404 statt 403, damit die Antwort nicht verraet, dass das Konto existiert.
+
+    KEINE Session-Liste, auch nicht gekuerzt. Produktentscheidung vom 04.09.2026: aus
+    gebuendelten Sessions einer Person liest man Spot, Wochentage und Uhrzeiten ab. Die Rekorde
+    hier sind Einzelwerte, die im Community-Bereich ohnehin mit Namen und Datum stehen — sie
+    legen also nichts offen, was nicht schon offen war.
+
+    Rekorde fest auf 365 Tage und ueber ALLE Foils (Vorgabe Jan): eine Fensterwahl waere eine
+    Bedienoberflaeche fuer fremde Daten, und „Allzeit" macht aus einem Konto ein Archiv.
+    """
+    from .settings import DEFAULTS, PUBLIC_PROFILE_KEYS
+    from .sessions import compute_overall_stats
+
+    u = db.get(models.User, user_id)
+    if u is None or u.hidden or u.blocked or not u.social_allowed:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "not found")
+    try:
+        einst = json.loads(u.settings_json or "{}") or {}
+    except ValueError:
+        einst = {}
+    sicht = dict(DEFAULTS["public_profile"])
+    sicht.update(einst.get("public_profile") or {})
+    # Der Nutzer selbst darf seine Seite immer sehen — sonst kann er nicht pruefen, was andere
+    # sehen, und genau das ist der Sinn der Schalter.
+    if not sicht.get("enabled") and u.id != user.id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "not found")
+
+    raus: dict = {
+        "id": u.id,
+        "name": u.display_name,
+        "avatar_url": u.avatar_url,
+        "ich": u.id == user.id,
+        "aus": not sicht.get("enabled"),      # nur der Besitzer sieht das
+        "zeigt": {k: bool(sicht.get(k)) for k in PUBLIC_PROFILE_KEYS},
+    }
+    if sicht.get("join"):
+        raus["seit"] = u.created_at.date().isoformat()
+    if sicht.get("homespot"):
+        raus["homespot"] = (einst.get("homespot") or "") or None
+    if sicht.get("watch"):
+        # Die Uhren, mit denen wirklich AUFGEZEICHNET wurde, die meistgenutzte zuerst — nicht
+        # alle je gepairten Geraete. Jan hat zehn davon (darunter „Garmin", „Phone", zwei
+        # Amazfits); auf einer Profilseite ist das Rauschen, gefragt ist „womit faehrt der".
+        # Hoechstens drei, Attrappen raus (s. `_ist_attrappe`).
+        DT = models.DeviceToken
+        namen: list[str] = []
+        for lab, _n in (db.query(DT.label, func.count(models.Session.id))
+                        .join(models.Session, models.Session.device_id == DT.id)
+                        .filter(DT.user_id == u.id, DT.label.isnot(None),
+                                models.Session.deleted == False)  # noqa: E712
+                        .group_by(DT.label)
+                        .order_by(func.count(models.Session.id).desc()).all()):
+            kurz = unquote((lab or "").split("/")[0].strip())
+            if kurz and not _ist_attrappe(kurz) and kurz not in namen:
+                namen.append(kurz)
+            if len(namen) >= 3:
+                break
+        raus["uhren"] = namen
+    if sicht.get("foil"):
+        # Das am meisten gefahrene Foil zuerst — „mein Foil" ist fuer die meisten genau eines.
+        reihen = (db.query(models.Foil.brand, models.Foil.model, models.Foil.size,
+                           func.count(models.Session.id))
+                  .join(models.Session, models.Session.foil_id == models.Foil.id)
+                  .filter(models.Session.user_id == u.id,
+                          models.Session.deleted == False)  # noqa: E712
+                  .group_by(models.Foil.brand, models.Foil.model, models.Foil.size)
+                  .order_by(func.count(models.Session.id).desc()).limit(3).all())
+        raus["foils"] = [{"brand": b, "model": m, "size": g} for b, m, g, _ in reihen]
+    if sicht.get("records"):
+        # Genau wie die eigene Startseite: `accel_only=False` (dort ist der Umschalter
+        # „alle | nur Accel" auf ALLE vorbelegt) und die persoenliche Empfindlichkeit des
+        # Nutzers. Mit `accel_only=True` sahen Konto-Importe fast leer aus — luk kam auf 27
+        # von 741 Sessions, weil Suunto/FIT-Importe keine Beschleunigungsdaten mitbringen.
+        # Zeitfenster fest 12 Monate (Vorgabe Jan, 08.09.2026), kein Umschalter auf der Seite.
+        raus["rekorde"] = compute_overall_stats(
+            db, u.id, False, sens=(u.foil_sensitivity or "normal"), period="365d")
+    return raus
+
+
 @router.get("/watch-stats")
 def watch_stats(_user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
     """Community-Aggregat je Uhr-Modell (device_tokens.label). Nur Sessions mit gepaartem Gerät.

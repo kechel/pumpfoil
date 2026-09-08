@@ -33,7 +33,7 @@ import sys
 
 def env_laden() -> None:
     """`.env` von Hand lesen — `set -a; . ./.env` exportiert DATABASE_URL nicht zuverlaessig,
-    und ohne sie laeuft alles gegen die alte SQLite (s. CLAUDE.md)."""
+    und ohne sie bricht der Import von app.config sofort ab (s. CLAUDE.md)."""
     for zeile in pathlib.Path(".env").read_text().splitlines():
         m = re.match(r"^([A-Za-z_][A-Za-z0-9_]*)=(.*)$", zeile.strip())
         if m:

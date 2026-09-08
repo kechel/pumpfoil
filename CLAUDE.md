@@ -6,8 +6,10 @@ Web-PWA + native Mobile-Apps als Frontend. Repo öffentlich (AGPL).
 ## Stack
 
 - **Server:** FastAPI, **PostgreSQL** (`localhost:5432/foil`, `DATABASE_URL` in `server/.env`).
-  Postgres ist die DB — **kein SQLite** (der `sqlite://`-Default in `app/config.py` ist nur
-  Dev-Fallback; diese VM + Prod laufen Postgres). systemd-Service **`foil-server`** (Port 8090).
+  Postgres ist die DB, **ohne Rückfallebene**: fehlt `DATABASE_URL`, bricht `app/config.py`
+  mit einer Meldung ab (der frühere `sqlite://`-Default ist am 08.09.2026 raus — er ließ Skripte
+  stumm gegen eine leere DB laufen). Tests brauchen `TEST_DATABASE_URL` bzw. leiten `foil_test`
+  aus `DATABASE_URL` ab. systemd-Service **`foil-server`** (Port 8090).
 - **Web:** React + Vite + TypeScript (`web/`).
 - **Garmin-Uhr:** Monkey C / Connect IQ (`watch/`).
 - **Android Phone + Wear OS:** Kotlin/Compose, ein Gradle-Projekt (`android/`, Module `:app` + `:wear`).
@@ -68,7 +70,7 @@ Zwei systemd-Timer (User `jan`, oneshot), Skripte in `deploy/`:
 - **Detektor-/Analyse-Pipeline** (`server/app/analysis/`): Änderungen erst mit Jans OK; Befund +
   verifizierter Fix + Regressions-Check vorlegen. Reanalyse aller Sessions:
   Postgres-`DATABASE_URL` muss im Env sein (manueller `.env`-Parser; `set -a; . ./.env` exportiert
-  es NICHT zuverlässig → läuft sonst gegen die alte SQLite und crasht auf `place_lat`).
+  es NICHT zuverlässig → das Skript bricht dann beim Import mit „DATABASE_URL fehlt“ ab).
 - **Keine Garmin-Passwörter** im Produkt speichern (nur Jans eigene R&D-Tokens, env, gitignored).
 - **Datenschutz / Cookies:** pumpfoil.org setzt **null Cookies**. Nur first-party `localStorage` für
   Funktion (Login-Token, Sprache `foil_lang`, `theme`, Banner-Version, `hideCompareTip`) — kein

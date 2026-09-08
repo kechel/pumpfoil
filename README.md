@@ -102,7 +102,7 @@ re-run on old sessions. Detection runs server-side (fast iteration in Python, no
 cd server
 python3 -m venv .venv && . .venv/bin/activate
 pip install -e .
-cp .env.example .env          # dev defaults to SQLite — no Postgres required
+cp .env.example .env          # then set DATABASE_URL (Postgres is required)
 uvicorn app.main:app --reload --port 8090
 # API docs: http://localhost:8090/api/docs
 ```

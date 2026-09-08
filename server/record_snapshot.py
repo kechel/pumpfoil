@@ -5,7 +5,7 @@ Aus dem server/-Verzeichnis mit dem venv starten:
     .venv/bin/python record_snapshot.py
 
 Parst ./.env manuell VOR dem app-Import (set -a; . ./.env exportiert DATABASE_URL nicht zuverlässig
--> liefe sonst gegen die SQLite-Default-DB). Siehe CLAUDE.md.
+-> bricht sonst mit „DATABASE_URL fehlt“ ab). Siehe CLAUDE.md.
 """
 import os
 import re

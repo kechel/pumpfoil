@@ -1,4 +1,4 @@
-"""SQLAlchemy-Setup. SQLite für Dev, Postgres für Prod (via DATABASE_URL)."""
+"""SQLAlchemy-Setup. Immer PostgreSQL (via DATABASE_URL, s. app/config.py)."""
 from __future__ import annotations
 
 from contextlib import contextmanager
@@ -12,10 +12,7 @@ from .config import get_settings
 
 settings = get_settings()
 
-_connect_args = (
-    {"check_same_thread": False} if settings.database_url.startswith("sqlite") else {}
-)
-engine = create_engine(settings.database_url, connect_args=_connect_args, future=True)
+engine = create_engine(settings.database_url, future=True)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
 
 
@@ -43,11 +40,8 @@ def _init_sperre():
     trotzdem — also ein Ausfall, den man nur im Journal sieht.
 
     Die Sperre gilt fuer die Verbindung und wird am Ende freigegeben; der Schluessel ist eine
-    beliebige, aber feste Zahl (ASCII „POIL"). Auf SQLite (Dev-Rueckfall) macht sie nichts.
+    beliebige, aber feste Zahl (ASCII „POIL").
     """
-    if not str(engine.url).startswith("postgres"):
-        yield
-        return
     conn = engine.connect()
     try:
         conn.exec_driver_sql("select pg_advisory_lock(1347375692)")
@@ -96,8 +90,7 @@ def _migrate_add_indexes() -> None:
         # gemessen 10,9 ms je Zeitraum, also ~55 ms von 145 ms des Rekord-Endpunkts (18.08.).
         # Der Ausdruck muss ZEICHENGLEICH zu dem sein, den community._MAX_HR erzeugt, sonst nutzt
         # der Planer den Index nicht. Alle drei Bausteine (Cast auf jsonb, jsonb_extract_path_text,
-        # Cast auf float) sind immutable, deshalb ueberhaupt indexierbar. Postgres-only; auf dem
-        # SQLite-Dev-Fallback scheitert das Statement und wird unten geschluckt.
+        # Cast auf float) sind immutable, deshalb ueberhaupt indexierbar.
         "CREATE INDEX IF NOT EXISTS ix_analysis_results_max_hr ON analysis_results "
         "((CAST(NULLIF(jsonb_extract_path_text(CAST(metrics_json AS JSONB), 'max_hr'), '') AS FLOAT)) DESC)",
         # Per-User-Empfindlichkeit — neue Spalten idempotent ergänzen. Cache je Preset in einem
@@ -192,7 +185,7 @@ def _migrate_add_indexes() -> None:
         for s in stmts:
             try:
                 conn.execute(text(s))
-            except Exception:  # noqa: BLE001 — SQLite-Dev kann DESC/Teilsyntax anders handhaben; egal
+            except Exception:  # noqa: BLE001 — bereits vorhanden/nicht anwendbar; idempotent gemeint
                 pass
 
 
