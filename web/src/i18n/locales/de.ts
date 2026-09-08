@@ -1817,7 +1817,6 @@ const de: Record<string, string> = {
   "pubprof.channel": "Mein YouTube-Kanal",
   "foiler.onlyFoiler": "Einziger Foiler an diesem Spot",
   "foiler.titles": "Community-Rekorde (12 Monate)",
-  "foiler.basisAccel": "Accel + GPS",
   "foiler.basisGps": "Nur GPS",
   "foiler.basisAccelTip": "Rekorde unter allen Aufnahmen mit Bewegungssensor",
   "foiler.basisGpsTip": "Rekorde unter den Aufnahmen ohne Bewegungssensor — Uhren im GPS-Modus und Konto-Importe",
