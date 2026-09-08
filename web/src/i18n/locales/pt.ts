@@ -1696,7 +1696,7 @@ const pt: Record<string, string> = {
   "pubprof.sessions": "As minhas últimas cinco sessões",
   "pubprof.titles": "Os recordes que detenho",
   "pubprof.channel": "O meu canal do YouTube",
-  "foiler.onlyFoiler": "Único foiler neste spot – detém todos os recordes",
+  "foiler.onlyFoiler": "Único foiler neste spot",
 };
 
 export default pt;

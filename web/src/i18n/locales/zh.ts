@@ -1693,7 +1693,7 @@ const zh: Record<string, string> = {
   "pubprof.sessions": "我最近的五次活动",
   "pubprof.titles": "我目前保持的记录",
   "pubprof.channel": "我的 YouTube 频道",
-  "foiler.onlyFoiler": "该地点唯一的水翼玩家 — 保持所有记录",
+  "foiler.onlyFoiler": "该地点唯一的水翼玩家",
 };
 
 export default zh;

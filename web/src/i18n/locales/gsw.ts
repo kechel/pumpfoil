@@ -1581,7 +1581,7 @@ const gsw: Record<string, string> = {
   "pubprof.sessions": "Mini letschte föif Sessions",
   "pubprof.titles": "Rekord, wo i aktuell halte",
   "pubprof.channel": "Min YouTube-Kanal",
-  "foiler.onlyFoiler": "Einzige Foiler a dem Spot – haltet alli Rekord",
+  "foiler.onlyFoiler": "Einzige Foiler a dem Spot",
 };
 
 export default gsw
