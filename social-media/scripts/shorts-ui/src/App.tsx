@@ -130,10 +130,12 @@ const OUTRO_ICONS: Record<PvPlatform, [string, string][]> = {
     ["M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z", "heart"],
     // Zipfel unten RECHTS, so zeigt Instagrams eigene Sprechblase:
     // ["M16.1 20A9 9 0 1 1 20 16.1L22 22Z", "comment"],
-    // Alle vier Teilstriche in EINEM Pfad — die Liste setzt je Eintrag ein
-    // eigenes Symbol nebeneinander. Jeder Teil beginnt absolut (M), sonst
-    // haengt er am Ende des vorigen.
-    ["M15 3l3 3-3 3M6 20a4 4 0 0 1-4-4V9a3 3 0 0 1 3-3h13M9 21l-3-3 3-3M18 4a4 4 0 0 1 4 4v7a3 3 0 0 1-3 3H6", "reshare"],
+    // ZWEI getrennte Haken mit je einer Kurve, nicht eine geschlossene
+    // Schleife: so zeichnet Instagram es, und mit zwei Kurven je Pfeil wurden
+    // die Balken so lang, dass sie sich ueberschnitten (Jan, 08.09.).
+    // Alles in EINEM Pfad — die Liste setzt je Eintrag ein eigenes Symbol
+    // nebeneinander; jeder Teil beginnt deshalb absolut mit M.
+    ["M7 13v-2a3 3 0 0 1 3-3h7m-3-3 3 3-3 3M17 11v2a3 3 0 0 1-3 3H7m3-3-3 3 3 3", "reshare"],
   ],
   // TikTok zeichnet GEFUELLTE Symbole, nicht konturierte (siehe OUTRO_FILL).
   // Die Sprechblase bekommt ihre drei Punkte als eigene Kreise im selben Pfad
