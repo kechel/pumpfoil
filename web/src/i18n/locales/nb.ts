@@ -1651,7 +1651,7 @@ const nb: Record<string, string> = {
   "foiler.homespot": "Hjemmespot",
   "foiler.watch": "Klokke",
   "foiler.foil": "Foil",
-  "foiler.records": "Rekorder fra de siste 12 månedene",
+  "foiler.records": "Rekorder (12 måneder)",
   "foiler.notFound": "Denne profilsiden er ikke tilgjengelig.",
   "foiler.offHint": "Profilsiden din er skjult for andre. Endre synlighet:",
   "pubprof.title": "Offentlig profilside",
@@ -1665,11 +1665,14 @@ const nb: Record<string, string> = {
   "pubprof.records": "Rekorder fra de siste 12 månedene",
   "pubprof.view": "Se profilsiden min",
   "foiler.media": "Medier",
-  "foiler.spotNotes": "Spots med egen beskrivelse",
+  "foiler.spotNotes": "Spotbeskrivelser",
   "foiler.lastSessions": "Siste sessions",
   "pubprof.media": "Bilder og videoer på sessionene mine",
   "pubprof.spots": "Spots jeg har beskrevet",
   "pubprof.sessions": "Mine fem siste sessions",
+  "foiler.titles": "Har akkurat nå disse rekordene",
+  "foiler.spotTitles": "På enkelte spots",
+  "pubprof.titles": "Rekorder jeg har nå",
 };
 
 export default nb;

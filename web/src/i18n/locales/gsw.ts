@@ -1560,7 +1560,7 @@ const gsw: Record<string, string> = {
   "foiler.homespot": "Homespot",
   "foiler.watch": "Uhr",
   "foiler.foil": "Foil",
-  "foiler.records": "Rekord vo de letschte 12 Mönet",
+  "foiler.records": "Rekord (12 Mönet)",
   "foiler.notFound": "Die Profilsite isch nöd verfüegbar.",
   "foiler.offHint": "Dini Profilsite isch für anderi usgblendet. Sichtbarkeit ändere:",
   "pubprof.title": "Öffentligi Profilsite",
@@ -1574,11 +1574,14 @@ const gsw: Record<string, string> = {
   "pubprof.homespot": "Homespot",
   "pubprof.view": "Mini Profilsite aaluege",
   "foiler.media": "Medie",
-  "foiler.spotNotes": "Spots mit eigener Beschribig",
+  "foiler.spotNotes": "Spot-Beschribige",
   "foiler.lastSessions": "Letschti Sessions",
   "pubprof.media": "Foti und Videos a mine Sessions",
   "pubprof.spots": "Spots, wo i beschribe ha",
   "pubprof.sessions": "Mini letschte föif Sessions",
+  "foiler.titles": "Haltet aktuell die Rekord",
+  "foiler.spotTitles": "A einzelne Spots",
+  "pubprof.titles": "Rekord, wo i aktuell halte",
 };
 
 export default gsw

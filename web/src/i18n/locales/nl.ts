@@ -1729,7 +1729,7 @@ const nl: Record<string, string> = {
   "foiler.homespot": "Homespot",
   "foiler.watch": "Horloge",
   "foiler.foil": "Foil",
-  "foiler.records": "Records van de laatste 12 maanden",
+  "foiler.records": "Records (12 maanden)",
   "foiler.notFound": "Deze profielpagina is niet beschikbaar.",
   "foiler.offHint": "Je profielpagina is verborgen voor anderen. Zichtbaarheid wijzigen:",
   "pubprof.title": "Openbare profielpagina",
@@ -1743,11 +1743,14 @@ const nl: Record<string, string> = {
   "pubprof.records": "Records van de laatste 12 maanden",
   "pubprof.view": "Mijn profielpagina bekijken",
   "foiler.media": "Media",
-  "foiler.spotNotes": "Beschreven spots",
+  "foiler.spotNotes": "Spotbeschrijvingen",
   "foiler.lastSessions": "Laatste sessies",
   "pubprof.media": "Foto's en video's bij mijn sessies",
   "pubprof.spots": "Spots die ik heb beschreven",
   "pubprof.sessions": "Mijn laatste vijf sessies",
+  "foiler.titles": "Heeft nu deze records",
+  "foiler.spotTitles": "Op afzonderlijke spots",
+  "pubprof.titles": "Records die ik nu heb",
 };
 
 export default nl;

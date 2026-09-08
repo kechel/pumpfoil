@@ -751,7 +751,7 @@ export const api = {
     id: number; name: string | null; avatar_url: string | null;
     ich: boolean; aus: boolean;
     zeigt: { join: boolean; watch: boolean; foil: boolean; homespot: boolean; records: boolean;
-             media: boolean; spots: boolean; sessions: boolean };
+             media: boolean; spots: boolean; sessions: boolean; titles: boolean };
     seit?: string; homespot?: string | null; homespot_id?: number | null; uhren?: string[];
     foils?: { brand: string; model: string; size: string }[];
     rekorde?: OverallStats;
@@ -760,6 +760,11 @@ export const api = {
                youtube_url: string | null; session_id: number; started_at: string | null }[];
     // Spots, zu denen er eine Beschreibung geschrieben hat.
     spot_notizen?: { spot_id: number; name: string; area_name?: string | null }[];
+    // Rekorde, die er AKTUELL haelt (12 Monate): community-weit und je Spot.
+    titel?: { metric: string; value: number; started_at?: string | null; spot?: string | null;
+              session_id?: number | null }[];
+    spot_titel?: { metric: string; value: number; spot_id: number; spot?: string;
+                   started_at?: string | null; session_id?: number | null }[];
     // Die letzten fuenf Sessions — dieselbe Form wie die eigene Liste, ohne Besitzer-Felder.
     sessions?: SessionSummary[];
   }>(`/api/community/foiler/${id}`),

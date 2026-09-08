@@ -1711,7 +1711,7 @@ const fi: Record<string, string> = {
   "foiler.homespot": "Kotispotti",
   "foiler.watch": "Kello",
   "foiler.foil": "Foili",
-  "foiler.records": "Viimeisten 12 kuukauden ennätykset",
+  "foiler.records": "Ennätykset (12 kk)",
   "foiler.notFound": "Tätä profiilisivua ei ole saatavilla.",
   "foiler.offHint": "Profiilisivusi on piilotettu muilta. Muuta näkyvyyttä:",
   "pubprof.title": "Julkinen profiilisivu",
@@ -1725,11 +1725,14 @@ const fi: Record<string, string> = {
   "pubprof.records": "Viimeisten 12 kuukauden ennätykset",
   "pubprof.view": "Katso profiilisivuni",
   "foiler.media": "Media",
-  "foiler.spotNotes": "Kuvatut spotit",
+  "foiler.spotNotes": "Spottikuvaukset",
   "foiler.lastSessions": "Viimeisimmät sessiot",
   "pubprof.media": "Sessioideni kuvat ja videot",
   "pubprof.spots": "Spotit, jotka olen kuvaillut",
   "pubprof.sessions": "Viisi viimeisintä sessiotani",
+  "foiler.titles": "Hallussa juuri nyt",
+  "foiler.spotTitles": "Yksittäisillä spoteilla",
+  "pubprof.titles": "Ennätykset, jotka minulla on nyt",
 };
 
 export default fi;

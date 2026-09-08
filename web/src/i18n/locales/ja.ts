@@ -1669,7 +1669,7 @@ const ja: Record<string, string> = {
   "foiler.homespot": "ホームスポット",
   "foiler.watch": "ウォッチ",
   "foiler.foil": "フォイル",
-  "foiler.records": "直近12か月の記録",
+  "foiler.records": "記録（12か月）",
   "foiler.notFound": "このプロフィールページは利用できません。",
   "foiler.offHint": "あなたのプロフィールページは他の人には非表示です。公開設定を変更:",
   "pubprof.title": "公開プロフィールページ",
@@ -1683,11 +1683,14 @@ const ja: Record<string, string> = {
   "pubprof.records": "直近12か月の記録",
   "pubprof.view": "自分のプロフィールページを見る",
   "foiler.media": "メディア",
-  "foiler.spotNotes": "説明を書いたスポット",
+  "foiler.spotNotes": "スポットの説明",
   "foiler.lastSessions": "最近のセッション",
   "pubprof.media": "自分のセッションの写真と動画",
   "pubprof.spots": "自分が説明を書いたスポット",
   "pubprof.sessions": "直近5件のセッション",
+  "foiler.titles": "現在保持している記録",
+  "foiler.spotTitles": "スポットごと",
+  "pubprof.titles": "現在保持している記録",
 };
 
 export default ja;
