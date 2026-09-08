@@ -1651,7 +1651,7 @@ const nb: Record<string, string> = {
   "foiler.homespot": "Hjemmespot",
   "foiler.watch": "Klokke",
   "foiler.foil": "Foil",
-  "foiler.records": "Rekorder (12 måneder)",
+  "foiler.records": "Personlige rekorder (12 måneder)",
   "foiler.notFound": "Denne profilsiden er ikke tilgjengelig.",
   "foiler.offHint": "Profilsiden din er skjult for andre. Endre synlighet:",
   "pubprof.title": "Offentlig profilside",
@@ -1673,6 +1673,8 @@ const nb: Record<string, string> = {
   "pubprof.titles": "Rekorder jeg har nå",
   "pubprof.channel": "YouTube-kanalen min",
   "foiler.onlyFoiler": "Eneste foiler på denne spoten",
+  "foiler.titles": "Fellesskapsrekorder (12 måneder)",
+  "foiler.overall": "Totalt",
 };
 
 export default nb;

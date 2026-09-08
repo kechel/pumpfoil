@@ -1729,7 +1729,7 @@ const nl: Record<string, string> = {
   "foiler.homespot": "Homespot",
   "foiler.watch": "Horloge",
   "foiler.foil": "Foil",
-  "foiler.records": "Records (12 maanden)",
+  "foiler.records": "Persoonlijke records (12 maanden)",
   "foiler.notFound": "Deze profielpagina is niet beschikbaar.",
   "foiler.offHint": "Je profielpagina is verborgen voor anderen. Zichtbaarheid wijzigen:",
   "pubprof.title": "Openbare profielpagina",
@@ -1751,6 +1751,8 @@ const nl: Record<string, string> = {
   "pubprof.titles": "Records die ik nu heb",
   "pubprof.channel": "Mijn YouTube-kanaal",
   "foiler.onlyFoiler": "Enige foiler op deze spot",
+  "foiler.titles": "Communityrecords (12 maanden)",
+  "foiler.overall": "Totaal",
 };
 
 export default nl;

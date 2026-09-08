@@ -1675,7 +1675,7 @@ const id: Record<string, string> = {
   "foiler.homespot": "Spot utama",
   "foiler.watch": "Jam",
   "foiler.foil": "Foil",
-  "foiler.records": "Rekor (12 bulan)",
+  "foiler.records": "Rekor pribadi (12 bulan)",
   "foiler.notFound": "Halaman profil ini tidak tersedia.",
   "foiler.offHint": "Halaman profilmu disembunyikan dari orang lain. Ubah visibilitas:",
   "pubprof.title": "Halaman profil publik",
@@ -1697,6 +1697,8 @@ const id: Record<string, string> = {
   "pubprof.titles": "Rekor yang sedang kupegang",
   "pubprof.channel": "Kanal YouTube-ku",
   "foiler.onlyFoiler": "Satu-satunya foiler di spot ini",
+  "foiler.titles": "Rekor komunitas (12 bulan)",
+  "foiler.overall": "Keseluruhan",
 };
 
 export default id;

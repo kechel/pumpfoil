@@ -1711,7 +1711,7 @@ const fi: Record<string, string> = {
   "foiler.homespot": "Kotispotti",
   "foiler.watch": "Kello",
   "foiler.foil": "Foili",
-  "foiler.records": "Ennätykset (12 kk)",
+  "foiler.records": "Omat ennätykset (12 kk)",
   "foiler.notFound": "Tätä profiilisivua ei ole saatavilla.",
   "foiler.offHint": "Profiilisivusi on piilotettu muilta. Muuta näkyvyyttä:",
   "pubprof.title": "Julkinen profiilisivu",
@@ -1733,6 +1733,8 @@ const fi: Record<string, string> = {
   "pubprof.titles": "Ennätykset, jotka minulla on nyt",
   "pubprof.channel": "YouTube-kanavani",
   "foiler.onlyFoiler": "Ainoa foilaaja tällä spotilla",
+  "foiler.titles": "Yhteisön ennätykset (12 kk)",
+  "foiler.overall": "Kaikkiaan",
 };
 
 export default fi;
