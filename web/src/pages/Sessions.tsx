@@ -831,7 +831,7 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
         <div className="min-w-0 flex-1">
           <div className="font-semibold">
             {dateStr}
-            {g.name && <span className="text-brand-300"> · {g.name}</span>}
+            {g.name && <span className="text-brand-600 dark:text-brand-300"> · {g.name}</span>}
           </div>
           {g.spot && (
             <div className="text-sm text-slate-300">

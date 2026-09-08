@@ -10,7 +10,7 @@ function linkify(text: string) {
   const parts = text.split(/(https?:\/\/[^\s]+)/g);
   return parts.map((p, i) =>
     /^https?:\/\//.test(p)
-      ? <a key={i} href={p} target="_blank" rel="noopener noreferrer" className="text-brand-300 underline break-all">{p}</a>
+      ? <a key={i} href={p} target="_blank" rel="noopener noreferrer" className="text-brand-600 dark:text-brand-300 underline break-all">{p}</a>
       : <span key={i}>{p}</span>
   );
 }
@@ -237,7 +237,7 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
             onTouchStart={() => pressStart(m)} onTouchEnd={pressCancel} onTouchMove={pressCancel}>
             {!isDesktop && menuFor === m.id && canEdit(m) && (
               <button onClick={() => startEdit(m)} title={t("chat.edit")} aria-label={t("chat.edit")}
-                className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center self-center rounded-xl bg-slate-800 text-brand-300 hover:bg-slate-700">
+                className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center self-center rounded-xl bg-slate-800 text-brand-600 dark:text-brand-300 hover:bg-slate-700">
                 <EditIcon className="h-5 w-5" />
               </button>
             )}
@@ -260,7 +260,7 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
                   {isDesktop && canEdit(m) && (
                     <>
                       <button onClick={() => startEdit(m)} title={t("chat.edit")} aria-label={t("chat.edit")}
-                        className="rounded-lg p-1.5 text-slate-400 opacity-0 transition hover:bg-slate-800 hover:text-brand-300 group-hover:opacity-100"><EditIcon className="h-5 w-5" /></button>
+                        className="rounded-lg p-1.5 text-slate-400 opacity-0 transition hover:bg-slate-800 hover:text-brand-600 dark:hover:text-brand-300 group-hover:opacity-100"><EditIcon className="h-5 w-5" /></button>
                       <button onClick={() => del(m)} title={t("chat.delete")} aria-label={t("chat.delete")}
                         className="rounded-lg p-1.5 text-slate-400 opacity-0 transition hover:bg-slate-800 hover:text-red-400 group-hover:opacity-100"><TrashIcon className="h-5 w-5" /></button>
                     </>
@@ -270,7 +270,7 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
                   )}
                   {isAdmin && (
                     <>
-                      <button onClick={() => toggleHide(m)} className="text-slate-500 hover:text-brand-300" title={m.hidden ? t("chat.unhide") : t("chat.hide")}>{m.hidden ? <EyeIcon className="h-3.5 w-3.5" /> : <EyeOffIcon className="h-3.5 w-3.5" />}</button>
+                      <button onClick={() => toggleHide(m)} className="text-slate-500 hover:text-brand-600 dark:hover:text-brand-300" title={m.hidden ? t("chat.unhide") : t("chat.hide")}>{m.hidden ? <EyeIcon className="h-3.5 w-3.5" /> : <EyeOffIcon className="h-3.5 w-3.5" />}</button>
                       {!m.mine && (
                         <button onClick={() => setReadonly(m)} className="text-slate-500 hover:text-red-400" title={t("chat.readonly")}><MuteIcon className="h-3.5 w-3.5" /></button>
                       )}
@@ -293,7 +293,7 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
         ))}
       </div>
       {editing != null && (
-        <div className="mb-1 flex items-center justify-between text-xs text-brand-300">
+        <div className="mb-1 flex items-center justify-between text-xs text-brand-600 dark:text-brand-300">
           <span>{t("chat.editing")}</span>
           <button onClick={cancelEdit} className="text-slate-400 hover:text-slate-200" title={t("chat.editCancel")}><CloseIcon className="h-3.5 w-3.5" /></button>
         </div>

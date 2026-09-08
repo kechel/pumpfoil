@@ -195,13 +195,13 @@ export default function Landing() {
                 <p className="text-xl font-semibold text-slate-100 sm:text-2xl">{t("land.illmenseeTitle")}</p>
                 <div className="flex items-center gap-5">
                   <a href="https://www.youtube.com/@pumpfoil-org/shorts" target="_blank" rel="noopener noreferrer"
-                    aria-label="YouTube" className="text-slate-300 hover:text-brand-300">
+                    aria-label="YouTube" className="text-slate-300 hover:text-brand-600 dark:hover:text-brand-300">
                     <svg viewBox="0 0 24 24" className="h-7 w-7" fill="currentColor" aria-hidden="true">
                       <path d="M23 12s0-3.5-.4-5.1a2.6 2.6 0 0 0-1.8-1.8C19.2 4.7 12 4.7 12 4.7s-7.2 0-8.8.4A2.6 2.6 0 0 0 1.4 6.9C1 8.5 1 12 1 12s0 3.5.4 5.1a2.6 2.6 0 0 0 1.8 1.8c1.6.4 8.8.4 8.8.4s7.2 0 8.8-.4a2.6 2.6 0 0 0 1.8-1.8C23 15.5 23 12 23 12ZM9.8 15.3V8.7l6 3.3-6 3.3Z" />
                     </svg>
                   </a>
                   <a href="https://www.instagram.com/pumpfoil_org/" target="_blank" rel="noopener noreferrer"
-                    aria-label="Instagram" className="text-slate-300 hover:text-brand-300">
+                    aria-label="Instagram" className="text-slate-300 hover:text-brand-600 dark:hover:text-brand-300">
                     <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="2"
                       strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                       <rect x="2" y="2" width="20" height="20" rx="5" />
@@ -210,7 +210,7 @@ export default function Landing() {
                     </svg>
                   </a>
                   <a href="https://www.tiktok.com/@pumpfoil.org" target="_blank" rel="noopener noreferrer"
-                    aria-label="TikTok" className="text-slate-300 hover:text-brand-300">
+                    aria-label="TikTok" className="text-slate-300 hover:text-brand-600 dark:hover:text-brand-300">
                     <svg viewBox="0 0 24 24" className="h-7 w-7" fill="currentColor" aria-hidden="true">
                       <path d="M16.5 3c.3 2.2 1.5 3.7 3.6 4v2.5c-1.3.1-2.5-.2-3.6-.9v5.9c0 3.3-2.4 5.5-5.4 5.5A5.2 5.2 0 0 1 6 14.9c0-3.2 3-5.6 6.3-4.8v2.7a2.3 2.3 0 0 0-1-.2 2.5 2.5 0 0 0 .1 5c1.4 0 2.5-1.1 2.5-2.7V3h2.6Z" />
                     </svg>
@@ -473,7 +473,7 @@ export default function Landing() {
               href="https://github.com/kechel/pumpfoil"
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-2 inline-block text-sm font-medium text-brand-400 hover:text-brand-300"
+              className="mt-2 inline-block text-sm font-medium text-brand-400 hover:text-brand-600 dark:hover:text-brand-300"
             >
               {t("land.openLink")}
             </a>

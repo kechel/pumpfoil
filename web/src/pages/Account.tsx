@@ -426,7 +426,7 @@ function AppDownloads({ initialQuery = "" }: { initialQuery?: string }) {
         {t("account.installDesc")}
         {devices && <span className="ml-1 text-slate-400">{t("account.modelsCount", { n: devices.length })}</span>}
         {devices?.[0]?.version && (
-          <span className="ml-1 inline-flex items-center rounded-md bg-slate-800 px-2 py-0.5 text-xs font-medium text-brand-300">
+          <span className="ml-1 inline-flex items-center rounded-md bg-slate-800 px-2 py-0.5 text-xs font-medium text-brand-600 dark:text-brand-300">
             v{devices[0].version}
           </span>
         )}
@@ -461,7 +461,7 @@ function AppDownloads({ initialQuery = "" }: { initialQuery?: string }) {
                 <span className="block truncate text-slate-100">{d.name}</span>
                 <span className="text-xs text-slate-400">{d.w}×{d.h} · {Math.round(d.bytes / 1024)} KB</span>
               </span>
-              <span className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-slate-800 px-2.5 py-1 text-xs text-brand-300"><DownloadIcon className="h-3.5 w-3.5" /> .prg</span>
+              <span className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-slate-800 px-2.5 py-1 text-xs text-brand-600 dark:text-brand-300"><DownloadIcon className="h-3.5 w-3.5" /> .prg</span>
             </a>
           ))}
           {filtered.length === 0 && (

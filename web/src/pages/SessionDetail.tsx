@@ -1346,13 +1346,13 @@ export default function SessionDetail() {
               className="ml-2 w-64 max-w-full rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-base font-normal text-slate-100"
             />
           ) : (
-            <span className="text-brand-300"> · {session.caption}
+            <span className="text-brand-600 dark:text-brand-300"> · {session.caption}
               <button onClick={() => { setCap(session.caption ?? ""); setEditingCap(true); }} title={t("meta.edit")}
                 className="ml-1 inline-flex align-middle text-slate-400 hover:text-slate-200"><EditIcon className="h-4 w-4" /></button>
             </span>
           )
         ) : (
-          session.caption && <span className="text-brand-300"> · {session.caption}</span>
+          session.caption && <span className="text-brand-600 dark:text-brand-300"> · {session.caption}</span>
         )}
       </h2>
       <p className="mb-2 text-sm text-slate-300">
@@ -1566,13 +1566,13 @@ export default function SessionDetail() {
             <div className="pointer-events-none absolute right-3 top-3 z-[1000] flex flex-col items-end gap-2">
               <div className="rounded-xl bg-slate-950/70 px-3 py-1.5 text-right backdrop-blur-sm ring-1 ring-white/10">
                 <div className="text-[10px] font-medium uppercase tracking-wide text-slate-300">{t("sd.roSpeed")}</div>
-                <div className="text-2xl font-bold leading-tight tabular-nums text-brand-300">
+                <div className="text-2xl font-bold leading-tight tabular-nums text-brand-600 dark:text-brand-300">
                   {readout.v.toFixed(1)} <span className="text-sm font-semibold text-slate-300">km/h</span>
                 </div>
               </div>
               <div className="rounded-xl bg-slate-950/70 px-3 py-1.5 text-right backdrop-blur-sm ring-1 ring-white/10">
                 <div className="text-[10px] font-medium uppercase tracking-wide text-slate-300">{t("sd.roDist")}</div>
-                <div className="text-2xl font-bold leading-tight tabular-nums text-brand-300">
+                <div className="text-2xl font-bold leading-tight tabular-nums text-brand-600 dark:text-brand-300">
                   {readout.d < 1000 ? Math.round(readout.d) : (readout.d / 1000).toFixed(2)}
                   <span className="ml-0.5 text-sm font-semibold text-slate-300">{readout.d < 1000 ? "m" : "km"}</span>
                 </div>
@@ -1582,7 +1582,7 @@ export default function SessionDetail() {
               {readout.hr != null && (
                 <div className="rounded-xl bg-slate-950/70 px-3 py-1.5 text-right backdrop-blur-sm ring-1 ring-white/10">
                   <div className="text-[10px] font-medium uppercase tracking-wide text-slate-300">{t("field.2")}</div>
-                  <div className="text-2xl font-bold leading-tight tabular-nums text-brand-300">
+                  <div className="text-2xl font-bold leading-tight tabular-nums text-brand-600 dark:text-brand-300">
                     {readout.hr} <span className="text-sm font-semibold text-slate-300">bpm</span>
                   </div>
                 </div>

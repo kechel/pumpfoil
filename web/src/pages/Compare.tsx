@@ -272,7 +272,7 @@ export default function Compare() {
             {items.map((it) => (
               <div key={refKey(it.ref)} className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/60 px-2.5 py-1.5">
                 <span className="inline-block h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: it.color }} />
-                <Link to={`/sessions/${it.ref.sessionId}`} className="text-sm text-slate-200 hover:text-brand-300">
+                <Link to={`/sessions/${it.ref.sessionId}`} className="text-sm text-slate-200 hover:text-brand-600 dark:hover:text-brand-300">
                   {it.rider && <span className="pf-name font-semibold text-slate-100">{it.rider} · </span>}
                   <span>{itemLabel(it)}</span>
                   {foilLabel(it) && <span className="ml-1.5 inline-flex items-center gap-1 text-xs text-slate-400"><FoilIcon className="h-3.5 w-3.5" />{foilLabel(it)}</span>}
@@ -412,7 +412,7 @@ function AllRunsTable({ items, win, weight }: { items: Item[]; win: "1" | "3" | 
                     </span>
                   </td>
                   <td className="px-3 py-2">
-                    <Link to={`/sessions/${r.sessionId}?run=${r.runIdx}`} className="text-slate-300 hover:text-brand-300">{r.date}</Link>
+                    <Link to={`/sessions/${r.sessionId}?run=${r.runIdx}`} className="text-slate-300 hover:text-brand-600 dark:hover:text-brand-300">{r.date}</Link>
                   </td>
                   <td className="px-3 py-2 tabular-nums">{r.runNo}</td>
                   <td className="px-3 py-2 tabular-nums">{Math.round(r.seg.distance_m)} m</td>

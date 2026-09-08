@@ -16,7 +16,7 @@ function H({ children }: { children: React.ReactNode }) {
 }
 function Key({ children }: { children: React.ReactNode }) {
   return (
-    <div className="my-4 rounded-xl border border-brand-700/50 bg-brand-950/20 p-4 text-sm text-slate-200">
+    <div className="my-4 rounded-xl border border-brand-700/50 bg-brand-500/10 p-4 text-sm text-slate-200">
       {children}
     </div>
   );
@@ -32,7 +32,7 @@ function Diagram({ vb, children, caption }: { vb: string; children: React.ReactN
   );
 }
 function Code({ children }: { children: React.ReactNode }) {
-  return <code className="rounded bg-slate-800/70 px-1 py-0.5 text-[0.85em] text-brand-300">{children}</code>;
+  return <code className="rounded bg-slate-800/70 px-1 py-0.5 text-[0.85em] text-brand-600 dark:text-brand-300">{children}</code>;
 }
 
 // Mini-Renderer für Rich-Markup in den übersetzten Strings:

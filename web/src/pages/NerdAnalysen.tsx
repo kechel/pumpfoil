@@ -19,7 +19,7 @@ function RT({ children }: { children: string }) {
     if (m.index > last) nodes.push(s.slice(last, m.index));
     if (m[1] !== undefined) nodes.push(<b key={i++}>{m[1]}</b>);
     else if (m[2] !== undefined)
-      nodes.push(<code key={i++} className="rounded bg-slate-800/70 px-1 py-0.5 text-[0.85em] text-brand-300">{m[2]}</code>);
+      nodes.push(<code key={i++} className="rounded bg-slate-800/70 px-1 py-0.5 text-[0.85em] text-brand-600 dark:text-brand-300">{m[2]}</code>);
     else if (m[3] !== undefined) nodes.push(<i key={i++}>{m[3]}</i>);
     else if (m[4] !== undefined)
       nodes.push(<Link key={i++} to={m[5]} className="text-brand-400 hover:underline">{m[4]}</Link>);
@@ -42,7 +42,7 @@ function Fig({ src, caption }: { src: string; caption: string }) {
 
 function Key({ children }: { children: React.ReactNode }) {
   return (
-    <div className="my-4 rounded-xl border border-brand-700/50 bg-brand-950/20 p-4 text-sm text-slate-200">
+    <div className="my-4 rounded-xl border border-brand-700/50 bg-brand-500/10 p-4 text-sm text-slate-200">
       {children}
     </div>
   );
@@ -119,7 +119,7 @@ export default function NerdAnalysen() {
 
       <Link
         to="/nerd-analysen-2"
-        className="mb-10 inline-flex items-center gap-2 rounded-xl border border-brand-700/50 bg-brand-950/20 px-4 py-3 text-sm font-semibold text-brand-300 transition-colors hover:bg-brand-950/40"
+        className="mb-10 inline-flex items-center gap-2 rounded-xl border border-brand-700/50 bg-brand-500/10 px-4 py-3 text-sm font-semibold text-brand-600 dark:text-brand-300 transition-colors hover:bg-brand-500/20"
       >
         {c.next}
       </Link>

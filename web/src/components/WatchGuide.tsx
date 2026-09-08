@@ -55,7 +55,7 @@ export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => voi
   const t = useT();
   const [sel, setSel] = useState<string | null>(null);
   const connectLink = (
-    <button type="button" onClick={onOpenConnect} className="mx-1 text-brand-400 underline hover:text-brand-300"><b>{t("guide.connect")}</b></button>
+    <button type="button" onClick={onOpenConnect} className="mx-1 text-brand-400 underline hover:text-brand-600 dark:hover:text-brand-300"><b>{t("guide.connect")}</b></button>
   );
   return (
     <div className="space-y-5">
@@ -97,8 +97,8 @@ export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => voi
         <ol className="mt-2 space-y-3 text-sm text-slate-200">
           <li>
             <b>{t("guide.g.s1Title")}</b> {t("guide.g.s1a")}
-            <button type="button" onClick={onOpenApp} className="mx-1 text-brand-400 underline hover:text-brand-300"><b>{t("guide.g.s1Download")}</b></button>
-            {t("guide.g.s1b")} <a href="https://openmtp.ganeshrvel.com/" target="_blank" rel="noopener noreferrer" className="text-brand-400 underline hover:text-brand-300"><b>OpenMTP</b></a> {t("guide.g.s1c")}
+            <button type="button" onClick={onOpenApp} className="mx-1 text-brand-400 underline hover:text-brand-600 dark:hover:text-brand-300"><b>{t("guide.g.s1Download")}</b></button>
+            {t("guide.g.s1b")} <a href="https://openmtp.ganeshrvel.com/" target="_blank" rel="noopener noreferrer" className="text-brand-400 underline hover:text-brand-600 dark:hover:text-brand-300"><b>OpenMTP</b></a> {t("guide.g.s1c")}
             <code className="mx-1 rounded bg-slate-800 px-1">GARMIN/APPS/</code>{t("guide.g.s1d")}
           </li>
           <li><b>{t("guide.g.s2Title")}</b> {t("guide.g.s2")}</li>

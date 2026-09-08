@@ -37,7 +37,7 @@ export function InstallPwa({ className = "" }: { className?: string }) {
     <div className={className}>
       <button
         onClick={click}
-        className="flex w-full items-center justify-center gap-2 rounded-xl border border-brand-500/40 bg-brand-500/10 px-3 py-2 text-sm font-medium text-brand-200 hover:bg-brand-500/20"
+        className="flex w-full items-center justify-center gap-2 rounded-xl border border-brand-500/40 bg-brand-500/10 px-3 py-2 text-sm font-medium text-brand-700 dark:text-brand-200 hover:bg-brand-500/20"
       >
         <img src="/icon-192.png" alt="" className="h-6 w-6 rounded-md" />
         {t("install.button")}

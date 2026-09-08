@@ -142,7 +142,7 @@ export function RecordGrid({ rec, showSpot }: { rec?: RecordSet | null; showSpot
                 {r!.name && (
                   <span className="inline-flex items-center gap-1 align-middle">
                     <Avatar name={r!.name} url={r!.avatar_url} size={20} />
-                    <span className="pf-name text-brand-300">{r!.name}</span>
+                    <span className="pf-name text-brand-600 dark:text-brand-300">{r!.name}</span>
                   </span>
                 )}
                 {r!.started_at && (
@@ -337,7 +337,7 @@ function Leaderboards({ period, accelOnly, sport = "pumpfoil", band }: { period:
         {/* Das gewählte Foil-Band gehört in die Überschrift: sonst steht hier eine Bestenliste,
             die nur einen Teil der Flotte umfasst, ohne dass man es sieht (Jans Vorgabe 01.09.). */}
         {band && band.art !== "alle" && (
-          <span className="ml-2 text-sm font-normal text-brand-300">· {bandLabel(band, t)}</span>
+          <span className="ml-2 text-sm font-normal text-brand-600 dark:text-brand-300">· {bandLabel(band, t)}</span>
         )}
       </h3>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -452,11 +452,11 @@ function CommunitySection() {
         <h2 className="text-2xl font-bold">{t("home.community")}</h2>
         <div className="ml-auto flex flex-wrap items-center gap-2">
           <Link to="/foil-stats" title={t("foilStats.title")} aria-label={t("foilStats.title")}
-            className="inline-flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-brand-300 hover:bg-slate-700">
+            className="inline-flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-brand-600 dark:text-brand-300 hover:bg-slate-700">
             <FoilIcon className="h-4 w-4" /> <span className="hidden sm:inline">{t("stats.short")}</span>
           </Link>
           <Link to="/watch-stats" title={t("watchStats.title")} aria-label={t("watchStats.title")}
-            className="inline-flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-brand-300 hover:bg-slate-700">
+            className="inline-flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-brand-600 dark:text-brand-300 hover:bg-slate-700">
             <WatchIcon className="h-4 w-4" /> <span className="hidden sm:inline">{t("stats.short")}</span>
           </Link>
         </div>
@@ -652,7 +652,7 @@ function SpotSection({ period, accelOnly, sport = "pumpfoil" }: { period: string
       {selected && (
         <div>
           <div className="mb-1.5 flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 font-semibold text-brand-300"><LocationIcon className="h-4 w-4" /> {selected}</span>
+            <span className="inline-flex items-center gap-1 font-semibold text-brand-600 dark:text-brand-300"><LocationIcon className="h-4 w-4" /> {selected}</span>
           </div>
           <RecordGrid rec={recs[`${sport}:${accelOnly}:${period}:${selected}`]} />
           <SpotSessions spot={selected} accelOnly={accelOnly} />

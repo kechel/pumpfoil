@@ -62,6 +62,46 @@ for (const file of walk(SRC)) {
         }
       }
     }
+    // Unsere EIGENE brand-Skala (Cyan) — der Wächter kannte sie bis 08.09.2026 nicht, und genau
+    // dadurch ist die Falle wieder bis zu Jan gekommen: die Rekord-Chips der Foiler-Seite hatten
+    // `hover:text-brand-300`, und auf hellem Grund verschwand der Text beim Überfahren.
+    //
+    // brand kippt NICHT mit dem Theme (feste Hex-Werte in tailwind.config.js). Darum:
+    //   * 50–300 sind helle Töne  -> auf hellem Grund unlesbar
+    //   * 600–700 sind dunkle Töne -> auf dunklem Grund unlesbar
+    //   * 400/500 sind die Mitteltöne, die auf BEIDEN Gründen tragen (Akzentfarbe der App)
+    // Ein Ton aus den Randbereichen braucht deshalb immer ein dark:-Gegenstück. Das ist ein
+    // FEHLER und keine Warnung: anders als bei amber/red gibt es hier keinen Fall, in dem der
+    // Grund unabhängig vom Theme dunkel bleibt — auch eine Fläche über Karte oder Foto ist bei
+    // uns aus slate gebaut und kippt mit.
+    // Vordergrund (Text/Unterstreichung/Icon-Füllung) ist ein FEHLER: dort entscheidet der Ton
+    // allein über die Lesbarkeit. Flächen (bg/border/ring/…) sind eine Warnung — ein Tonwert mit
+    // 10–40 % Deckkraft trägt oft auf beiden Gründen, das muss ein Mensch entscheiden.
+    const VORDERGRUND = ["text", "decoration", "fill", "stroke"];
+    const PALETTE = [50, 100, 200, 300, 400, 500, 600, 700];   // s. tailwind.config.js
+    for (const t of cls) {
+      const b = /^(?:(hover|focus|active|group-hover|focus-visible):)?(text|border|bg|ring|decoration|from|via|to|fill|stroke|divide)-brand-(\d{2,3})(?:\/\d+)?$/.exec(t);
+      if (!b) continue;
+      const [, variante, prop, zahlStr] = b;
+      const zahl = Number(zahlStr);
+      if (!PALETTE.includes(zahl)) {
+        // Tailwind erzeugt für eine unbekannte Stufe GAR KEINE Regel — die Klasse tut nichts,
+        // in keinem Theme. Gefunden am 08.09.2026: `bg-brand-950/20` an drei Kacheln der
+        // Nerd-Seiten, die dadurch nie einen Hintergrund hatten.
+        errors.push(`${rel}:${lineOf(m.index)}  ${t}  ->  die Stufe ${zahl} gibt es in brand nicht`
+          + ` (nur ${PALETTE.join("/")}) — die Klasse tut NICHTS`);
+        continue;
+      }
+      if (zahl >= 400 && zahl <= 500) continue;          // Mitteltöne tragen auf beiden Gründen
+      const praefix = variante ? `dark:${variante}:${prop}-` : `dark:${prop}-`;
+      if (cls.some((x) => x.startsWith(praefix))) continue;
+      const rand = zahl <= 300 ? "heller" : "dunkler";
+      const rat = `${variante ? variante + ":" : ""}${prop}-brand-${zahl <= 300 ? 600 : 300}`
+        + ` + dark:${variante ? variante + ":" : ""}${prop}-brand-${zahl}`;
+      const text = `${rel}:${lineOf(m.index)}  ${t}  ->  ${rand} brand-Ton ohne dark:-Gegenstück`
+        + ` (brand kippt nicht selbst; ${rat} schreiben)`;
+      (VORDERGRUND.includes(prop) ? errors : warnings).push(text);
+    }
     // Farbige Töne ohne Gegenstück: auf hellem Grund ist ein 300er-Ton meist unlesbar.
     for (const t of cls) {
       const hit = NON_SLATE.exec(t);
@@ -81,7 +121,8 @@ if (errors.length) {
   console.error(`\nLight-Mode-Wächter: ${errors.length} FEHLER — slate doppelt gekippt (im Light Mode unlesbar):`);
   for (const e of errors) console.error("  " + e);
   console.error("\nRegel: slate NUR mit der Dark-Zahl schreiben (text-slate-300), kein dark:-Gegenstück.");
-  console.error("Nicht-slate (amber/emerald/…) dagegen IMMER beide: text-amber-700 dark:text-amber-300.\n");
+  console.error("Nicht-slate (amber/emerald/…) dagegen IMMER beide: text-amber-700 dark:text-amber-300.");
+  console.error("brand: 400/500 gehen ohne Gegenstück, 50–300 und 600/700 brauchen eines.\n");
   process.exit(1);
 }
 console.log(`Light-Mode-Wächter: ok (0 Fehler, ${warnings.length} Hinweise)`);
