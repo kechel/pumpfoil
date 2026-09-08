@@ -32,11 +32,6 @@ import androidx.health.services.client.data.ExerciseType
 import androidx.health.services.client.data.ExerciseUpdate
 import androidx.wear.ongoing.OngoingActivity
 import androidx.wear.ongoing.Status
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
 
 // Foreground-Service: hält Aufnahme im Hintergrund am Leben, registriert Sensoren
 // (Accel 25 Hz, HR) + GPS (1 Hz) und füttert den Recorder.
@@ -52,7 +47,6 @@ class RecorderService : Service(), SensorEventListener {
     private var letzterHsMs = 0L
     private var hsNeustarts = 0
     private var waechter: java.util.concurrent.ScheduledExecutorService? = null
-    private val fused by lazy { LocationServices.getFusedLocationProviderClient(this) }
     private val locMgr by lazy { getSystemService(Context.LOCATION_SERVICE) as LocationManager }
 
     /**
@@ -91,24 +85,6 @@ class RecorderService : Service(), SensorEventListener {
             // Alter des Fixes auf der monotonen Uhr. Ein frischer GNSS-Fix ist 0-2 s alt.
             ((SystemClock.elapsedRealtimeNanos() - it.elapsedRealtimeNanos) / 1_000_000L)
                 .coerceAtLeast(0L))
-    }
-    private val locCb = object : LocationCallback() {
-        override fun onLocationResult(r: LocationResult) {
-            r.lastLocation?.let {
-                Recorder.addGps(it.latitude, it.longitude,
-                    // -1 = Geraet liefert KEINE Geschwindigkeit. Vorher stand hier 0.0 — das
-                    // war von einem echten Stillstand nicht zu unterscheiden, und genau darauf
-                    // entscheidet die Distanz-Schwelle (Recorder.STAND_MPS).
-                    if (it.hasSpeed()) it.speed.toDouble() else -1.0, it.accuracy.toDouble(),
-                    // Alter des Fixes: `elapsedRealtimeNanos` ist der Zeitpunkt der MESSUNG auf
-                    // der monotonen Uhr. Ein frischer GNSS-Fix ist 0-2 s alt; wiederholt der
-                    // Fused-Provider einen zwischengespeicherten Fix, bleibt der Zeitstempel
-                    // stehen und das Alter waechst. Genau daran erkennt die Uhr, dass sie nur
-                    // eine alte Position vorgesetzt bekommt (Feldbefund 03.09., s. Recorder).
-                    ((SystemClock.elapsedRealtimeNanos() - it.elapsedRealtimeNanos) / 1_000_000L)
-                        .coerceAtLeast(0L))
-            }
-        }
     }
 
     override fun onCreate() {
@@ -362,7 +338,6 @@ class RecorderService : Service(), SensorEventListener {
         hsNeustarts = 0; letzterHsMs = 0L
         stopHeartRate()
         try { locMgr.removeUpdates(gpsListener) } catch (_: SecurityException) {}
-        fused.removeLocationUpdates(locCb)   // fuer den Fall, dass eine alte Anmeldung noch haengt
         if (save) Recorder.stop() else Recorder.discard()
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
