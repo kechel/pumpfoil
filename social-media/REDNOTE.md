@@ -94,21 +94,20 @@ sind viele — kommt trotzdem nicht weit.
 
 ## Wie das Studio das bedient
 
-**Kein eigener Render.** `shorts-mit-musik/rednote/` enthaelt **harte Links** auf die
-TikTok-Fassung: dieselben Daten, zweiter Name, kein Byte und keine Sekunde extra. Die
-TikTok-Fassung passt unveraendert — 9:16, O-Ton, keine lizenzierte Musik. Geregelt ueber
-`LINKED_EXPORTS = {"rednote": "tiktok"}`; die Render-Schleife ueberspringt verlinkte Ziele
-und legt den Link an, sobald die Quelle fertig ist.
+**Kein eigener Render und kein eigener Ordner.** Fuer RedNote wird die **TikTok-Fassung**
+hochgeladen — 9:16, O-Ton, keine lizenzierte Musik —, geholt ueber die laufende Nummer aus
+`shorts-mit-musik/tiktok/`. Ein zweiter Ordner mit harten Links stand hier kurz
+(`LINKED_EXPORTS`), war aber nur Verwaltung ohne Nutzen und ist am 08.09. wieder raus.
 
-**Outro:** die TikTok-Fassung, mittig. Von den drei Saetzen passt Instagram am besten
-(Herz · Kommentar · Teilen; TikToks Repost gibt es auf RedNote nicht), aber der Unterschied
-ist ein Symbol von dreien. Nur YouTube sitzt tiefer (68 % Hoehe) und wuerde in RedNotes
-eigenen Textblock am unteren Rand laufen.
+**Outro:** die TikTok-Fassung zeigt seit 08.09. **Herz und Stern** — gefuellt, mittig. Der
+Stern ist 收藏, und Speichern ist auf einer Such-Plattform die wertvollste Aktion. Er passt
+zugleich fuer TikTok, wo an derselben Stelle ein Lesezeichen steht. Ein eigener
+RedNote-Render ist damit nicht noetig.
 
-**Richtig waere langfristig ein eigenes Outro** mit Herz · Kommentar · **Stern (收藏)** —
-Speichern ist auf einer Such-Plattform die wertvollste Aktion, und keiner der drei
-vorhandenen Saetze hat das Symbol. Das kostet dann einen eigenen Render je Video statt des
-kostenlosen Links. Bewusst zurueckgestellt, bis der Kanal Zahlen zeigt.
+Sprechblase und Teilen-Pfeil liegen in `OUTRO_ICONS` auskommentiert daneben, falls die
+Leiste je wieder voller werden soll. Nur YouTube sitzt tiefer (68 % Hoehe) und wuerde in
+RedNotes eigenen Textblock am unteren Rand laufen — deshalb dort die TikTok-Fassung, nicht
+die von YouTube.
 
 **Texte:** Reiter *Texte* → Export filtern → „Titel & Captions" → Block **RedNote**. Titel
 (auf 20 Zeichen an der Wortgrenze gekuerzt) und chinesischer Text mit Schlagworten,
@@ -133,8 +132,13 @@ dahinter leer ist.
 RedNote), `148` (lowkite, 130.000 auf Facebook), `145` (neuer Spot, erster Dropstart), und
 die `success-or-fail`-Reihe, die ein Publikum braucht, das das Format kennt.
 
-**Nur Pixabay-Musik.** Der Nachweis steht im Dateinamen (`-pixabay-<id>`); von 44
-TikTok-Exporten haben 43 einen, nur `139` nicht.
+**Musik.** Der Nachweis steht im Dateinamen — seit 08.09. sagt der Suffix bei jeder Quelle
+etwas (`-pixabay-<id>`, `-music-yt`, `-music-insta`, `-no-music`). Fuer RedNote spielt es
+keine Rolle, welche Quelle es ist: die Datei geht so hoch, wie sie ist.
+
+**Texte gibt es zu jeder Nummer.** UI-Cache und YT-Batch-Cache decken zusammen 3 bis 173
+ohne Luecke ab — auch fuer Videos, deren Datei laengst nur noch auf der externen Platte
+liegt, stehen Titel und Text im Studio.
 
 ## Beobachtet
 
