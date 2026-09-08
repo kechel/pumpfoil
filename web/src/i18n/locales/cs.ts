@@ -1741,6 +1741,12 @@ const cs: Record<string, string> = {
   "pubprof.homespot": "Domácí spot",
   "pubprof.records": "Rekordy za posledních 12 měsíců",
   "pubprof.view": "Zobrazit moji profilovou stránku",
+  "foiler.media": "Média",
+  "foiler.spotNotes": "Popsané spoty",
+  "foiler.lastSessions": "Poslední sessions",
+  "pubprof.media": "Fotky a videa u mých sessions",
+  "pubprof.spots": "Spoty, které jsem popsal",
+  "pubprof.sessions": "Mých posledních pět sessions",
 };
 
 export default cs;

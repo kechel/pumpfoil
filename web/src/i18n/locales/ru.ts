@@ -1688,6 +1688,12 @@ const ru: Record<string, string> = {
   "pubprof.homespot": "Домашний спот",
   "pubprof.records": "Рекорды за последние 12 месяцев",
   "pubprof.view": "Открыть мою страницу профиля",
+  "foiler.media": "Медиа",
+  "foiler.spotNotes": "Споты с описанием",
+  "foiler.lastSessions": "Последние сессии",
+  "pubprof.media": "Фото и видео к моим сессиям",
+  "pubprof.spots": "Споты, которые я описал",
+  "pubprof.sessions": "Мои последние пять сессий",
 };
 
 export default ru;

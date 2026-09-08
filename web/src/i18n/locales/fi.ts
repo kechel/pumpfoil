@@ -1724,6 +1724,12 @@ const fi: Record<string, string> = {
   "pubprof.homespot": "Kotispotti",
   "pubprof.records": "Viimeisten 12 kuukauden ennätykset",
   "pubprof.view": "Katso profiilisivuni",
+  "foiler.media": "Media",
+  "foiler.spotNotes": "Kuvatut spotit",
+  "foiler.lastSessions": "Viimeisimmät sessiot",
+  "pubprof.media": "Sessioideni kuvat ja videot",
+  "pubprof.spots": "Spotit, jotka olen kuvaillut",
+  "pubprof.sessions": "Viisi viimeisintä sessiotani",
 };
 
 export default fi;
