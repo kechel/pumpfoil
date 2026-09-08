@@ -1579,8 +1579,6 @@ const gsw: Record<string, string> = {
   "pubprof.media": "Foti und Videos a mine Sessions",
   "pubprof.spots": "Spots, wo i beschribe ha",
   "pubprof.sessions": "Mini letschte föif Sessions",
-  "foiler.titles": "Haltet aktuell die Rekord (12 Mönet)",
-  "foiler.spotTitles": "A einzelne Spots",
   "pubprof.titles": "Rekord, wo i aktuell halte",
 };
 

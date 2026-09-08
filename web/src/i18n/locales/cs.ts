@@ -1747,8 +1747,6 @@ const cs: Record<string, string> = {
   "pubprof.media": "Fotky a videa u mých sessions",
   "pubprof.spots": "Spoty, které jsem popsal",
   "pubprof.sessions": "Mých posledních pět sessions",
-  "foiler.titles": "Aktuálně drží tyto rekordy (12 měsíců)",
-  "foiler.spotTitles": "Na jednotlivých spotech",
   "pubprof.titles": "Rekordy, které právě držím",
 };
 

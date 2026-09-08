@@ -1748,8 +1748,6 @@ const nl: Record<string, string> = {
   "pubprof.media": "Foto's en video's bij mijn sessies",
   "pubprof.spots": "Spots die ik heb beschreven",
   "pubprof.sessions": "Mijn laatste vijf sessies",
-  "foiler.titles": "Heeft nu deze records (12 maanden)",
-  "foiler.spotTitles": "Op afzonderlijke spots",
   "pubprof.titles": "Records die ik nu heb",
 };
 
