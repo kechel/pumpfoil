@@ -4,14 +4,20 @@ Kwai ist die kurze-Videos-App von Kuaishou und in Brasilien sehr gross: rund **6
 monatlich aktive Nutzer**, gut 75 Minuten am Tag. Anlass war die Frage, ob wir dort die
 juengere Zielgruppe erreichen, die auf Facebook fehlt.
 
-**Stand 08.09.2026: der Regionsblock faellt mit VPN.** Ueber das eingebaute VPN in Opera
-ist `kwai.com` erreichbar, und die Anmeldung mit dem Google-Konto ging durch. Damit ist
-belegt, was vorher nur Vermutung war: der Block haengt an der IP, nicht am Konto und nicht
-am Geraet.
+**Stand 08.09.2026: `kwai.com` ist ueber das Opera-VPN erreichbar, die Google-Anmeldung
+ging durch.** Der Ausgang liegt in **Schweden** (77.111.247.35 und 2001:67c:2660::/48,
+beide HERNLABS/OPERA — Operas eigene Infrastruktur; IPv4 und IPv6 tunneln, kein Leck).
 
-Zum Hochladen reicht das aber noch nicht — siehe „Der Web-Zugang loest das Hochladen
-nicht" weiter unten. Der naechste Schritt ist dasselbe VPN auf dem Pixel 7a, wo die App
-schon liegt.
+**Was das noch NICHT beweist.** Zwischen dem Fehlschlag am 07.09. und dem Erfolg heute
+haben sich zwei Dinge geaendert, nicht eins: das Land (DE → SE) **und** der Zugang (App →
+Website). Es kann also ebenso sein, dass die Website nie gesperrt war und nur die App den
+Regionscheck macht — dann sagt das VPN ueber die App gar nichts.
+
+→ **Offener Kontrolltest:** kwai.com einmal OHNE VPN aus Deutschland laden. Geht es auch
+so, war die Website nie das Problem.
+
+(Wir sind hier schon einmal auf eine halbe Messung hereingefallen: beim China-Test hat ein
+`https://`-Praefix „BLOCKED" gemeldet und eine ganze Empfehlung getragen, siehe REDNOTE.md.)
 
 ## Wem gehoert Kwai
 
@@ -73,10 +79,11 @@ den Kanal von aussen. Hochgeladen wird weiter aus der App.
 
 ### Zwei Dinge, die beim VPN zaehlen
 
-- **Welcher Ausgang.** Opera bietet nur „Europa / Amerika / Asien", kein Land. „Amerika"
-  landet ueblicherweise in den USA — und Kwai-USA ist ein Bruchteil von Kwai-Brasilien.
-  Fuer einen Kanal, der auf Brasilien zielt, ist ein Ausgang in **Brasilien** noetig, sonst
-  bekommt das Konto von Anfang an das falsche Publikum zugewiesen.
+- **Welcher Ausgang.** Opera bietet nur „Europa / Amerika / Asien", kein Land — gemessen
+  kommt „Europa" in **Schweden** heraus. Fuer einen Kanal, der auf Brasilien zielt, ist das
+  das falsche Land: Kwai verteilt stark nach Region, ein Konto mit schwedischer IP und
+  portugiesischen Texten passt in kein Publikum. Opera reicht also zum Nachsehen, nicht
+  zum Betreiben — dafuer braucht es einen Ausgang in **Brasilien**.
 - **Immer derselbe.** Kwais Betrugserkennung ist wegen des Bonus-Modells scharf. Heute USA,
   morgen Brasilien, uebermorgen eine deutsche Mobilfunk-IP ist genau das Muster, das dort
   auffaellt. Besser einmal festlegen und dabei bleiben — was wiederum fuer die eSIM
