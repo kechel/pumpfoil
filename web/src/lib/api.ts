@@ -1279,6 +1279,17 @@ export const api = {
   newsBanner: () => req<NewsBanner>("/api/app/news"),
   adminHealth: () => req<SystemHealth>("/api/admin/health"),
   adminHealthVerlauf: (stunden: number) => req<SystemVerlauf>(`/api/admin/health/verlauf?fenster=${stunden}`),
+
+  // Platzbedarf des PROJEKTS (Datenbank + data/ + media/), einmal taeglich gemessen.
+  // `stand: null` heisst „noch nie gemessen" — nicht „nichts belegt".
+  adminSpeicher: () => req<{
+    stand: null | {
+      tag: string; db: number; db_tabellen: [string, number][];
+      data: number; data_dateien: number; media: number; media_dateien: number;
+      projekt: number; platte_belegt: number; platte_gesamt: number;
+    };
+    verlauf: { tag: string; db: number; data: number; media: number; projekt: number }[];
+  }>("/api/admin/health/speicher"),
   adminNewsGet: () => req<NewsBanner>("/api/admin/news"),
   adminNewsSet: (p: Partial<NewsBanner>) => req<NewsBanner>("/api/admin/news", { method: "PUT", body: JSON.stringify(p) }),
   adminSpots: () => req<{ id: number; name: string | null; name_source: string | null; water: string | null; lat: number | null; lon: number | null; sessions: number }[]>("/api/admin/spots"),

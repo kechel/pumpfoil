@@ -1,0 +1,12 @@
+[Unit]
+Description=Pumpfoil: taegliche Speicherplatz-Messung
+
+[Timer]
+# 03:20, also VOR dem Backup um 03:30 — dann steht der Wert des Tages im Backup mit drin.
+OnCalendar=*-*-* 03:20:00
+# Verpasste Laeufe (VM aus) nachholen, sonst fehlen Tage im Verlauf.
+Persistent=true
+RandomizedDelaySec=120
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,16 @@
+# Misst einmal taeglich, wie viel Platz das Projekt belegt (Datenbank + data/ + media/).
+#
+# Warum als Zeitgeber und nicht im Request: `server/data` sind rund 620.000 Dateien, die Summe
+# dauert ~2 s und liest das halbe Verzeichnis. Der Admin-Bildschirm liest nur die letzte Zeile.
+[Unit]
+Description=Pumpfoil: Platzbedarf messen (Datenbank + Dateien)
+After=network.target postgresql.service
+
+[Service]
+Type=oneshot
+User=jan
+WorkingDirectory=/home/jan/garmin-connect-iq/server
+ExecStart=/home/jan/garmin-connect-iq/server/.venv/bin/python /home/jan/garmin-connect-iq/scripts/speicher-messen.py
+# Nice + IO-Nice: die Messung darf die laufende Seite nicht bremsen.
+Nice=10
+IOSchedulingClass=idle

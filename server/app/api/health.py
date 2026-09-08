@@ -476,6 +476,49 @@ def system_health(_a: models.User = Depends(current_admin), db: Session = Depend
     return d
 
 
+@router.get("/speicher")
+def speicher(_a: models.User = Depends(current_admin), db: Session = Depends(get_db)) -> dict:
+    """Was das PROJEKT an Platz belegt — letzter Stand + Verlauf je Tag.
+
+    Gelesen, nicht gemessen: `scripts/speicher-messen.py` schreibt einmal taeglich eine Zeile
+    (`foil-speicher.timer`). Der Grund steht am Modell — `server/data` sind rund 620.000
+    Dateien, die Summe dauert Sekunden, und das gehoert nicht in einen Request.
+
+    Ist noch nie gemessen worden, kommt `stand: null` zurueck; der Bildschirm zeigt dann einen
+    Hinweis statt Nullen, die wie „nichts belegt" aussehen.
+    """
+    import json as _json
+
+    rows = (db.query(models.SpeicherStand)
+            .order_by(models.SpeicherStand.tag.asc()).all())
+    if not rows:
+        return {"stand": None, "verlauf": []}
+    letzte = rows[-1]
+    try:
+        tabellen = _json.loads(letzte.db_tabellen_json or "[]")
+    except ValueError:
+        tabellen = []
+    projekt = lambda r: int(r.db_bytes + r.data_bytes + r.media_bytes)  # noqa: E731
+    return {
+        "stand": {
+            "tag": letzte.tag.isoformat(),
+            "db": int(letzte.db_bytes),
+            "db_tabellen": tabellen,
+            "data": int(letzte.data_bytes),
+            "data_dateien": int(letzte.data_dateien),
+            "media": int(letzte.media_bytes),
+            "media_dateien": int(letzte.media_dateien),
+            "projekt": projekt(letzte),
+            "platte_belegt": int(letzte.platte_belegt),
+            "platte_gesamt": int(letzte.platte_gesamt),
+        },
+        "verlauf": [{
+            "tag": r.tag.isoformat(), "db": int(r.db_bytes), "data": int(r.data_bytes),
+            "media": int(r.media_bytes), "projekt": projekt(r),
+        } for r in rows],
+    }
+
+
 @router.get("/verlauf")
 def verlauf(fenster: int = Query(24, ge=1, le=336),
             _a: models.User = Depends(current_admin), db: Session = Depends(get_db)) -> dict:
