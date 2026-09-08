@@ -1672,7 +1672,7 @@ const nb: Record<string, string> = {
   "pubprof.sessions": "Mine fem siste sessions",
   "pubprof.titles": "Rekorder jeg har nå",
   "pubprof.channel": "YouTube-kanalen min",
-  "foiler.onlyFoiler": "Eneste foiler på denne spoten – har alle rekordene",
+  "foiler.onlyFoiler": "Eneste foiler på denne spoten",
 };
 
 export default nb;

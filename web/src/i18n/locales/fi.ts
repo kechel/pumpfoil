@@ -1732,7 +1732,7 @@ const fi: Record<string, string> = {
   "pubprof.sessions": "Viisi viimeisintä sessiotani",
   "pubprof.titles": "Ennätykset, jotka minulla on nyt",
   "pubprof.channel": "YouTube-kanavani",
-  "foiler.onlyFoiler": "Ainoa foilaaja tällä spotilla – hallussa kaikki ennätykset",
+  "foiler.onlyFoiler": "Ainoa foilaaja tällä spotilla",
 };
 
 export default fi;

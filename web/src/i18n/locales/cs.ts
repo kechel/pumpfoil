@@ -1749,7 +1749,7 @@ const cs: Record<string, string> = {
   "pubprof.sessions": "Mých posledních pět sessions",
   "pubprof.titles": "Rekordy, které právě držím",
   "pubprof.channel": "Můj kanál na YouTube",
-  "foiler.onlyFoiler": "Jediný foiler na tomto spotu – drží všechny rekordy",
+  "foiler.onlyFoiler": "Jediný foiler na tomto spotu",
 };
 
 export default cs;

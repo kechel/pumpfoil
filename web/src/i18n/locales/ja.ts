@@ -1690,7 +1690,7 @@ const ja: Record<string, string> = {
   "pubprof.sessions": "直近5件のセッション",
   "pubprof.titles": "現在保持している記録",
   "pubprof.channel": "自分のYouTubeチャンネル",
-  "foiler.onlyFoiler": "このスポットで唯一のフォイラー — 全記録を保持",
+  "foiler.onlyFoiler": "このスポットで唯一のフォイラー",
 };
 
 export default ja;

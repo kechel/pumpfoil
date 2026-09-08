@@ -1696,7 +1696,7 @@ const ru: Record<string, string> = {
   "pubprof.sessions": "Мои последние пять сессий",
   "pubprof.titles": "Рекорды, которые я держу",
   "pubprof.channel": "Мой канал на YouTube",
-  "foiler.onlyFoiler": "Единственный фойлер на споте — держит все рекорды",
+  "foiler.onlyFoiler": "Единственный фойлер на споте",
 };
 
 export default ru;
