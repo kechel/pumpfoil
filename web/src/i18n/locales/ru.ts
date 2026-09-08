@@ -1695,6 +1695,7 @@ const ru: Record<string, string> = {
   "pubprof.spots": "Споты, которые я описал",
   "pubprof.sessions": "Мои последние пять сессий",
   "pubprof.titles": "Рекорды, которые я держу",
+  "pubprof.channel": "Мой канал на YouTube",
 };
 
 export default ru;

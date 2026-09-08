@@ -1586,6 +1586,7 @@ const deAT: Record<string, string> = {
   "pubprof.spots": "Spots, die i beschrieben hab",
   "pubprof.sessions": "Meine letzten fünf Sessions",
   "pubprof.titles": "Rekorde, die i aktuell halt",
+  "pubprof.channel": "Mein YouTube-Kanal",
 };
 
 export default deAT

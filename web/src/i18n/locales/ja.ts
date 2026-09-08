@@ -1689,6 +1689,7 @@ const ja: Record<string, string> = {
   "pubprof.spots": "自分が説明を書いたスポット",
   "pubprof.sessions": "直近5件のセッション",
   "pubprof.titles": "現在保持している記録",
+  "pubprof.channel": "自分のYouTubeチャンネル",
 };
 
 export default ja;

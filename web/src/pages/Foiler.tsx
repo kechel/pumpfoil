@@ -37,6 +37,17 @@ const recLabel = (metric: string, t: (k: string) => string) =>
 const recWert = (metric: string, v: number) =>
   REC_ITEMS.find((x) => x.key === metric)?.fmt(v) ?? String(v);
 
+// Anzeigename eines Kanal-Links: „@handle" wenn vorhanden, sonst der Pfad ohne Host.
+function kanalName(url: string): string {
+  try {
+    const p = new URL(url).pathname.replace(/\/+$/, "");
+    const letzter = p.split("/").filter(Boolean).pop();
+    return letzter || new URL(url).hostname;
+  } catch {
+    return url;
+  }
+}
+
 // Setup-Labels wie in der eigenen Sessionliste — die Karte formatiert nichts selbst.
 const setupLabels = (s: { setup?: { stab?: { brand: string; model: string; size: string } | null;
                                    mast_len_cm?: number | null;
@@ -103,12 +114,12 @@ export default function Foiler() {
   const r = d.rekorde?.records;
   // Dieselben Kacheln und dieselbe Formatierung wie auf der eigenen Startseite — driftet die
   // Darstellung auseinander, wirken es zwei verschiedene Zahlen.
-  const rekorde: { label: string; wert: number | undefined; fmt: (v: number) => string; datum?: string | null; tz?: string | null }[] = [
-    { label: t("rec.farthestRun"), wert: r?.distance?.value, fmt: (v) => `${Math.round(v)} m`, datum: r?.distance?.started_at, tz: (r?.distance as any)?.tz },
-    { label: t("rec.longestRun"), wert: r?.duration?.value, fmt: (v) => `${Math.floor(v / 60)}:${String(Math.round(v % 60)).padStart(2, "0")}`, datum: r?.duration?.started_at, tz: (r?.duration as any)?.tz },
-    { label: t("rec.topSpeed"), wert: r?.speed?.value, fmt: (v) => `${(v * 3.6).toFixed(1)} km/h`, datum: r?.speed?.started_at, tz: (r?.speed as any)?.tz },
-    { label: t("rec.longestGlide"), wert: r?.glide?.value, fmt: (v) => `${v.toFixed(1)} s`, datum: r?.glide?.started_at, tz: (r?.glide as any)?.tz },
-    { label: t("rec.mostRuns"), wert: r?.runs?.value, fmt: (v) => `${Math.round(v)}`, datum: r?.runs?.started_at, tz: (r?.runs as any)?.tz },
+  const rekorde: { label: string; wert: number | undefined; fmt: (v: number) => string; datum?: string | null; tz?: string | null; sid?: number | null }[] = [
+    { label: t("rec.farthestRun"), wert: r?.distance?.value, fmt: (v) => `${Math.round(v)} m`, datum: r?.distance?.started_at, tz: (r?.distance as any)?.tz, sid: r?.distance?.session_id },
+    { label: t("rec.longestRun"), wert: r?.duration?.value, fmt: (v) => `${Math.floor(v / 60)}:${String(Math.round(v % 60)).padStart(2, "0")}`, datum: r?.duration?.started_at, tz: (r?.duration as any)?.tz, sid: r?.duration?.session_id },
+    { label: t("rec.topSpeed"), wert: r?.speed?.value, fmt: (v) => `${(v * 3.6).toFixed(1)} km/h`, datum: r?.speed?.started_at, tz: (r?.speed as any)?.tz, sid: r?.speed?.session_id },
+    { label: t("rec.longestGlide"), wert: r?.glide?.value, fmt: (v) => `${v.toFixed(1)} s`, datum: r?.glide?.started_at, tz: (r?.glide as any)?.tz, sid: r?.glide?.session_id },
+    { label: t("rec.mostRuns"), wert: r?.runs?.value, fmt: (v) => `${Math.round(v)}`, datum: r?.runs?.started_at, tz: (r?.runs as any)?.tz, sid: r?.runs?.session_id },
   ];
   const s: OverallStats | undefined = d.rekorde;
   const summen = s ? [
@@ -163,6 +174,17 @@ export default function Foiler() {
             <span className="font-semibold text-slate-200">{d.uhren.join(" · ")}</span>
           </>
         )}
+        {d.kanal && (
+          <>
+            <span className="flex items-center gap-1.5 text-slate-400"><PlayIcon className="h-4 w-4" />YouTube:</span>
+            {/* Externer Link, deshalb rel=noreferrer: unsere Adresse geht nicht als Referrer mit.
+                Angezeigt wird der Kanal-Name (@handle), nicht die ganze URL. */}
+            <a href={d.kanal} target="_blank" rel="noopener noreferrer"
+               className="font-semibold text-brand-600 underline dark:text-brand-300">
+              {kanalName(d.kanal)}
+            </a>
+          </>
+        )}
         {d.foils && d.foils.length > 0 && (
           <>
             <span className="flex items-center gap-1.5 text-slate-400"><FoilIcon className="h-4 w-4" />{t("foiler.foil")}:</span>
@@ -175,19 +197,26 @@ export default function Foiler() {
         <>
           <h2 className="mb-2 text-sm font-semibold text-slate-200">{t("foiler.records")}</h2>
           <div className="grid grid-cols-3 gap-1.5 lg:grid-cols-5">
-            {rekorde.map((x) => (
-              <Card key={x.label} className="h-full px-2.5 py-1.5">
-                <div className="text-[11px] leading-tight text-slate-400">{x.label}</div>
-                <div className="text-lg font-bold leading-tight tabular-nums text-brand-400">
-                  {x.wert && x.wert > 0 ? x.fmt(x.wert) : "–"}
-                </div>
-                {x.wert && x.wert > 0 && x.datum && (
-                  <div className="text-[10px] leading-tight tabular-nums text-slate-500">
-                    {datum(x.datum, x.tz ?? null)}
+            {/* Jede Kachel fuehrt in die Session, in der der Rekord gefahren wurde — dieselbe
+                Verlinkung wie auf der eigenen Startseite (Jan, 08.09.2026). */}
+            {rekorde.map((x) => {
+              const inner = (
+                <Card className="h-full px-2.5 py-1.5">
+                  <div className="text-[11px] leading-tight text-slate-400">{x.label}</div>
+                  <div className="text-lg font-bold leading-tight tabular-nums text-brand-400">
+                    {x.wert && x.wert > 0 ? x.fmt(x.wert) : "–"}
                   </div>
-                )}
-              </Card>
-            ))}
+                  {x.wert && x.wert > 0 && x.datum && (
+                    <div className="text-[10px] leading-tight tabular-nums text-slate-500">
+                      {datum(x.datum, x.tz ?? null)}
+                    </div>
+                  )}
+                </Card>
+              );
+              return x.wert && x.wert > 0 && x.sid
+                ? <Link key={x.label} to={`/sessions/${x.sid}`} className="block transition-transform hover:scale-[1.02]">{inner}</Link>
+                : <div key={x.label}>{inner}</div>;
+            })}
             {summen.map((x) => (
               <Card key={x.label} className="h-full px-2.5 py-1.5">
                 <div className="text-[11px] leading-tight text-slate-400">{x.label}</div>
@@ -206,7 +235,7 @@ export default function Foiler() {
           {(d.titel?.length ?? 0) > 0 && (
             <div className="mb-2 flex flex-wrap gap-2">
               {d.titel!.map((x) => (
-                <Link key={`c-${x.metric}`} to="/community"
+                <Link key={`c-${x.metric}`} to={x.session_id ? `/sessions/${x.session_id}` : "/community"}
                       className="rounded-full bg-brand-500/15 px-3 py-1 text-sm text-brand-700 hover:bg-brand-500/25 dark:text-brand-300">
                   {recLabel(x.metric, t)} <span className="font-semibold tabular-nums">{recWert(x.metric, x.value)}</span>
                 </Link>
@@ -226,12 +255,15 @@ export default function Foiler() {
                           className="flex items-center gap-1 text-sm font-semibold text-slate-200 underline decoration-slate-500 hover:decoration-brand-400">
                       <LocationIcon className="h-4 w-4 text-slate-400" />{spot}
                     </Link>
-                    {liste.map((x, i) => (
-                      <span key={`${x.metric}-${i}`}
-                            className="rounded-full border border-slate-700 px-2.5 py-0.5 text-sm text-slate-300">
-                        {recLabel(x.metric, t)} <span className="font-semibold tabular-nums">{recWert(x.metric, x.value)}</span>
-                      </span>
-                    ))}
+                    {liste.map((x, i) => {
+                      const inhalt = <>{recLabel(x.metric, t)} <span className="font-semibold tabular-nums">{recWert(x.metric, x.value)}</span></>;
+                      const klasse = "rounded-full border border-slate-700 px-2.5 py-0.5 text-sm text-slate-300";
+                      // „Meiste Carves >180°" ist eine Summe ueber den Zeitraum und haengt an
+                      // keiner Session (s. _carve_record) -> kein Link, sonst zeigt er irgendwohin.
+                      return x.session_id
+                        ? <Link key={`${x.metric}-${i}`} to={`/sessions/${x.session_id}`} className={`${klasse} hover:border-brand-400 hover:text-brand-300`}>{inhalt}</Link>
+                        : <span key={`${x.metric}-${i}`} className={klasse}>{inhalt}</span>;
+                    })}
                   </div>
                 ))}
               </div>

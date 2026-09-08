@@ -1580,6 +1580,7 @@ const gsw: Record<string, string> = {
   "pubprof.spots": "Spots, wo i beschribe ha",
   "pubprof.sessions": "Mini letschte föif Sessions",
   "pubprof.titles": "Rekord, wo i aktuell halte",
+  "pubprof.channel": "Min YouTube-Kanal",
 };
 
 export default gsw

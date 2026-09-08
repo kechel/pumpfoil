@@ -752,8 +752,10 @@ export const api = {
     id: number; name: string | null; avatar_url: string | null;
     ich: boolean; aus: boolean;
     zeigt: { join: boolean; watch: boolean; foil: boolean; homespot: boolean; records: boolean;
-             media: boolean; spots: boolean; sessions: boolean; titles: boolean };
+             media: boolean; spots: boolean; sessions: boolean; titles: boolean;
+             channel: boolean };
     seit?: string; homespot?: string | null; homespot_id?: number | null; uhren?: string[];
+    kanal?: string | null;   // freigegebener YouTube-Kanal (nur der, kein pending)
     foils?: { brand: string; model: string; size: string }[];
     rekorde?: OverallStats;
     // Alle Medien an eigenen Sessions, neueste zuerst (Fotos + verlinkte YouTube-Videos).

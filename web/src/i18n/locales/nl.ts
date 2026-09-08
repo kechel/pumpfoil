@@ -1749,6 +1749,7 @@ const nl: Record<string, string> = {
   "pubprof.spots": "Spots die ik heb beschreven",
   "pubprof.sessions": "Mijn laatste vijf sessies",
   "pubprof.titles": "Records die ik nu heb",
+  "pubprof.channel": "Mijn YouTube-kanaal",
 };
 
 export default nl;
