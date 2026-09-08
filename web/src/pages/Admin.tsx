@@ -802,7 +802,7 @@ function NewsTab() {
       <div className="mb-0.5 flex items-center gap-2 text-xs text-slate-400">
         <span>{label}</span>
         <span className="font-mono text-[10px] text-slate-500">{code}</span>
-        {(n.texts[code] || "").trim() && <span className="rounded bg-brand-500/20 px-1.5 text-[10px] font-semibold text-brand-300">belegt</span>}
+        {(n.texts[code] || "").trim() && <span className="rounded bg-brand-500/20 px-1.5 text-[10px] font-semibold text-brand-600 dark:text-brand-300">belegt</span>}
       </div>
       <textarea value={n.texts[code] || ""} onChange={(e) => setText(code, e.target.value)} rows={2}
         className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100" />
@@ -939,7 +939,7 @@ function SessionsTab({ scope }: { scope: "flagged" | "fake" | "suspect" | "all" 
       </form>
       {userId && (
         <div className="mb-3 flex items-center gap-2 text-xs text-slate-300">
-          <span>{t("adm.onlyFrom")} <b className="text-brand-300">{filterUser || `#${userId}`}</b></span>
+          <span>{t("adm.onlyFrom")} <b className="text-brand-600 dark:text-brand-300">{filterUser || `#${userId}`}</b></span>
           <button onClick={clearUser} className="rounded bg-slate-800 px-2 py-0.5 text-slate-200">{t("adm.clearFilter")}</button>
         </div>
       )}
@@ -949,7 +949,7 @@ function SessionsTab({ scope }: { scope: "flagged" | "fake" | "suspect" | "all" 
             <Card key={s.session_id} className="flex flex-wrap items-center gap-3 p-3">
               <Link to={`/sessions/${s.session_id}`} className="min-w-0 flex-1">
                 <div className="truncate text-sm font-medium text-slate-100">
-                  {s.name ? <span className="text-brand-300">{s.name}</span> : <span className="text-slate-400">—</span>}
+                  {s.name ? <span className="text-brand-600 dark:text-brand-300">{s.name}</span> : <span className="text-slate-400">—</span>}
                   {s.spot && <span className="inline-flex items-center gap-1 text-slate-300"> · <LocationIcon className="h-3.5 w-3.5" /> {s.spot}</span>}
                   <span className="text-slate-400"> · {s.sport}</span>
                 </div>
@@ -1255,7 +1255,7 @@ function FeedbackTab() {
         <Card key={f.id} className={`flex items-start gap-3 p-3 ${f.starred ? "border-amber-500/50" : ""}`}>
           <div className="min-w-0 flex-1">
             <div className="mb-1 flex flex-wrap items-baseline gap-2 text-xs text-slate-400">
-              <span className="font-medium text-brand-300">{f.name}</span>
+              <span className="font-medium text-brand-600 dark:text-brand-300">{f.name}</span>
               <span>{f.at ? new Date(f.at).toLocaleString() : ""}</span>
               {f.url && <a href={f.url} className="truncate text-slate-400 underline hover:text-slate-200">{f.url}</a>}
             </div>
@@ -1344,7 +1344,7 @@ function AuditTab() {
       {data.map((a) => (
         <div key={a.id} className="flex items-baseline gap-2 rounded-lg bg-slate-900 px-3 py-1.5 text-xs">
           <span className="shrink-0 text-slate-400">{a.at ? new Date(a.at).toLocaleString() : ""}</span>
-          <span className="shrink-0 font-medium text-brand-300">{a.admin}</span>
+          <span className="shrink-0 font-medium text-brand-600 dark:text-brand-300">{a.admin}</span>
           <span className="text-slate-200">{a.action}</span>
           <span className="text-slate-400">{a.target_type}#{a.target_id}{a.detail ? ` (${a.detail})` : ""}</span>
         </div>
@@ -1740,7 +1740,7 @@ function SocialTab() {
         {d.pending.map((k) => (
           <div key={k.user_id} className="flex flex-wrap items-center gap-2 border-t border-slate-800 py-2 text-sm">
             <span className="font-semibold">{k.user_name}</span>
-            <a href={k.pending_url ?? "#"} target="_blank" rel="noopener noreferrer" className="min-w-0 flex-1 truncate text-brand-300 underline">{k.pending_url}</a>
+            <a href={k.pending_url ?? "#"} target="_blank" rel="noopener noreferrer" className="min-w-0 flex-1 truncate text-brand-600 dark:text-brand-300 underline">{k.pending_url}</a>
             {k.url && <span className="text-xs text-slate-400">{t("adm.social.replaces")}: {k.url}</span>}
             <button onClick={() => freigeben(k.user_id)} className="rounded-lg bg-emerald-600 px-2.5 py-1 text-xs font-semibold text-white">{t("adm.social.approve")}</button>
             <button onClick={() => ablehnen(k.user_id)} className="rounded-lg bg-slate-700 px-2.5 py-1 text-xs">{t("adm.social.reject")}</button>
@@ -1753,7 +1753,7 @@ function SocialTab() {
         {d.approved.map((k) => (
           <div key={k.user_id} className="flex flex-wrap items-center gap-2 border-t border-slate-800 py-2 text-sm">
             <span className="font-semibold">{k.user_name}</span>
-            <a href={k.url ?? "#"} target="_blank" rel="noopener noreferrer" className="min-w-0 flex-1 truncate text-brand-300 underline">{k.url}</a>
+            <a href={k.url ?? "#"} target="_blank" rel="noopener noreferrer" className="min-w-0 flex-1 truncate text-brand-600 dark:text-brand-300 underline">{k.url}</a>
             <span className="text-xs text-slate-400">{k.videos} {t("adm.social.videos")}</span>
             {k.blocked && <span className="rounded bg-rose-900/60 px-1.5 py-0.5 text-xs text-rose-200">{t("adm.social.blocked")}</span>}
             {/* Eindeutig benennen: in diesem Tab gibt es ZWEI Sperren — eines fuer den ganzen
@@ -1773,7 +1773,7 @@ function SocialTab() {
         {d.reported.map((v) => (
           <div key={v.id} className="flex flex-wrap items-center gap-2 border-t border-slate-800 py-2 text-sm">
             <span className="rounded bg-amber-900/60 px-1.5 py-0.5 text-xs text-amber-200">{v.reports}×</span>
-            <a href={v.url} target="_blank" rel="noopener noreferrer" className="min-w-0 flex-1 truncate text-brand-300 underline">{v.title || v.url}</a>
+            <a href={v.url} target="_blank" rel="noopener noreferrer" className="min-w-0 flex-1 truncate text-brand-600 dark:text-brand-300 underline">{v.title || v.url}</a>
             {/* Ohne „aufheben" bliebe nur sperren — eine unberechtigte Meldung waere damit ein
                 stilles Urteil ueber ein Video, das in Ordnung ist. */}
             <button onClick={async () => { await api.adminSocialDismiss(v.id); laden(); }}
@@ -1823,7 +1823,7 @@ function Anhang({ a }: { a: { id: number; kind: string; filename: string | null;
   }
   return (
     <a href={url} download={a.filename || "anhang.txt"}
-      className="rounded-lg bg-slate-800 px-2 py-1 text-xs text-brand-300 underline hover:bg-slate-700">
+      className="rounded-lg bg-slate-800 px-2 py-1 text-xs text-brand-600 dark:text-brand-300 underline hover:bg-slate-700">
       {a.filename || "Datei"} · {groesse}
     </a>
   );

@@ -125,7 +125,7 @@ export function SpotCompare() {
                     {lh.name && (
                       <span className="inline-flex items-center gap-1 align-middle">
                         <Avatar name={lh.name} url={null} size={18} />
-                        <span className="text-brand-300">{lh.name}</span>
+                        <span className="text-brand-600 dark:text-brand-300">{lh.name}</span>
                       </span>
                     )}
                     {lh.started_at && (

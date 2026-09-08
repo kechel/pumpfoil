@@ -54,7 +54,7 @@ export function WelcomeBanner() {
         className="absolute right-2 top-2 rounded-lg p-1 text-slate-400 hover:bg-white/10 hover:text-slate-200">
         <CloseIcon className="h-4 w-4" />
       </button>
-      {newsText && <p className="mb-1.5 text-sm font-bold text-brand-300">{newsText}</p>}
+      {newsText && <p className="mb-1.5 text-sm font-bold text-brand-600 dark:text-brand-300">{newsText}</p>}
       <p className="text-sm leading-relaxed text-slate-200">
         👋 <span className="font-semibold">Pumpfoil<span className="text-brand-400">.org</span></span>{" "}
         {msgParts.length > 1
@@ -65,16 +65,16 @@ export function WelcomeBanner() {
         <p className="mt-1.5 text-sm text-slate-300">
           {parts.map((p, i) =>
             i % 2 === 1
-              ? <span key={i} className="font-bold tabular-nums text-brand-300">{p}</span>
+              ? <span key={i} className="font-bold tabular-nums text-brand-600 dark:text-brand-300">{p}</span>
               : <span key={i}>{p}</span>
           )}
         </p>
       )}
       <p className="mt-2 text-sm text-slate-300">
         {t("banner.nerdLead")}{" "}
-        <Link to="/nerd-analysen" className="font-medium text-brand-300 hover:underline">{t("banner.nerd1")}</Link>
+        <Link to="/nerd-analysen" className="font-medium text-brand-600 dark:text-brand-300 hover:underline">{t("banner.nerd1")}</Link>
         <span className="mx-1 text-slate-500">·</span>
-        <Link to="/nerd-analysen-2" className="font-medium text-brand-300 hover:underline">{t("banner.nerd2")}</Link>
+        <Link to="/nerd-analysen-2" className="font-medium text-brand-600 dark:text-brand-300 hover:underline">{t("banner.nerd2")}</Link>
       </p>
     </div>
   );

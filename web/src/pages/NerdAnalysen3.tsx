@@ -14,7 +14,7 @@ function H({ children }: { children: React.ReactNode }) {
   return <h2 className="mb-3 mt-10 border-b border-slate-800 pb-1 text-lg font-bold text-slate-100">{children}</h2>;
 }
 function Code({ children }: { children: React.ReactNode }) {
-  return <code className="rounded bg-slate-800/70 px-1 py-0.5 text-[0.85em] text-brand-300">{children}</code>;
+  return <code className="rounded bg-slate-800/70 px-1 py-0.5 text-[0.85em] text-brand-600 dark:text-brand-300">{children}</code>;
 }
 // Rich-Markup: **fett**, `code`, *kursiv*, [label](/pfad).
 function RT({ children }: { children: string }) {

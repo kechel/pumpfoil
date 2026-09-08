@@ -34,7 +34,7 @@ function TransferHint() {
     <Link to="/sessions" className="mb-5 flex items-center gap-2 rounded-xl border border-brand-500/40 bg-brand-500/10 px-4 py-3 text-sm text-slate-200 hover:bg-brand-500/20">
       <SendIcon className="h-5 w-5 shrink-0 text-brand-400" />
       <span>{t("transfer.homeHint")}</span>
-      <span className="ml-auto text-xs text-brand-300">→</span>
+      <span className="ml-auto text-xs text-brand-600 dark:text-brand-300">→</span>
     </Link>
   );
 }
@@ -274,7 +274,7 @@ export default function PersonalHome() {
       {/* Letzte Sessions ganz oben (direkt nach der Begrüßung) */}
       <div className="mb-2 flex items-center justify-between">
         <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-400">{t("phome.latest")}</h3>
-        <Link to="/sessions" className="text-xs text-brand-300 hover:text-brand-200">{t("phome.allMine")} →</Link>
+        <Link to="/sessions" className="text-xs text-brand-600 dark:text-brand-300 hover:text-brand-700 dark:hover:text-brand-200">{t("phome.allMine")} →</Link>
       </div>
       {/* Wartet eine eigene Session auf Zuordnung, MUSS es hier stehen: ein Push allein genügt nicht
           (wer Push aus hat, erfährt nie, dass seine Session aus den Auswertungen gefallen ist) und die
@@ -409,7 +409,7 @@ export default function PersonalHome() {
       {homespot && <SpotWeather spot={homespot} showSpot />}
 
       <div className="mt-6">
-        <Link to="/community" className="inline-flex items-center gap-1 text-sm text-brand-300 hover:text-brand-200">
+        <Link to="/community" className="inline-flex items-center gap-1 text-sm text-brand-600 dark:text-brand-300 hover:text-brand-700 dark:hover:text-brand-200">
           <CommunityIcon className="h-4 w-4" /> {t("home.community")} →
         </Link>
       </div>

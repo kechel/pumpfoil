@@ -192,7 +192,7 @@ export default function Changelog() {
       <div className="space-y-8">
         {(tage ?? []).map((e) => (
           <section key={e.date}>
-            <h2 className="mb-2 text-sm font-semibold text-brand-300">{tagLang(e.date)}</h2>
+            <h2 className="mb-2 text-sm font-semibold text-brand-600 dark:text-brand-300">{tagLang(e.date)}</h2>
             <ul className="list-disc space-y-1.5 pl-5 text-sm text-slate-200">
               {e.items.map((it, i) => (
                 <li key={i}>
