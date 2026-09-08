@@ -1531,6 +1531,18 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
                   .group_by(models.Foil.brand, models.Foil.model, models.Foil.size)
                   .order_by(func.max(models.Session.started_at).desc()).all())
         raus["foils"] = [{"brand": b, "model": m, "size": g} for b, m, g, _ in reihen]
+    if sicht.get("channel"):
+        # Eigener YouTube-Kanal, aber NUR der freigegebene und nicht geblockte (Jan, 08.09.2026).
+        # `pending_url` bleibt draussen: eine eingereichte Aenderung ist noch nicht geprueft, und
+        # ueber diese Seite waere sie sonst trotzdem oeffentlich. Neue Auskunft ist das keine —
+        # freigegebene Kanaele speisen ohnehin den Community-Feed.
+        k = (db.query(models.SocialChannel)
+             .filter(models.SocialChannel.user_id == u.id,
+                     models.SocialChannel.url.isnot(None),
+                     models.SocialChannel.blocked.isnot(True)).first())
+        if k and k.url:
+            raus["kanal"] = k.url
+
     if sicht.get("records"):
         # Genau wie die eigene Startseite: `accel_only=False` (dort ist der Umschalter
         # „alle | nur Accel" auf ALLE vorbelegt) und die persoenliche Empfindlichkeit des

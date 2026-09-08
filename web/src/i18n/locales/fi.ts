@@ -1731,6 +1731,7 @@ const fi: Record<string, string> = {
   "pubprof.spots": "Spotit, jotka olen kuvaillut",
   "pubprof.sessions": "Viisi viimeisintä sessiotani",
   "pubprof.titles": "Ennätykset, jotka minulla on nyt",
+  "pubprof.channel": "YouTube-kanavani",
 };
 
 export default fi;

@@ -1692,6 +1692,7 @@ const zh: Record<string, string> = {
   "pubprof.spots": "我写过说明的地点",
   "pubprof.sessions": "我最近的五次活动",
   "pubprof.titles": "我目前保持的记录",
+  "pubprof.channel": "我的 YouTube 频道",
 };
 
 export default zh;

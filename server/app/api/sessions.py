@@ -102,7 +102,10 @@ _VALID_LABELS = {"pump", "glide", "not_foiling"}
 #   3 = Startversuche zaehlen jetzt die GANZE Aufnahme statt nur den Zuschnitt (02.09.). Der
 #       gespeicherte Wert hat sich fuer 653 Sessions geaendert, die Session selbst aber nicht —
 #       ohne diesen Bump saehen die betroffenen Clients ewig die alte Zahl.
-_OUT_VERSION = 3
+#   4 = `owner_id` dazugekommen (Profilbild verlinkt auf /foiler/<id>, 08.09.). Genau die hier
+#       beschriebene Falle ist sofort wieder zugeschnappt: bei einer FREMDEN Session war der
+#       Link da, bei den eigenen (laengst geladenen) nicht — der Server schickte 304.
+_OUT_VERSION = 4
 
 
 def _analysis_out(result: models.AnalysisResult | None, slim: bool = False, sens: str = "normal") -> AnalysisOut | None:

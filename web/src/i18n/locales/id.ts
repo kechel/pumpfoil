@@ -1695,6 +1695,7 @@ const id: Record<string, string> = {
   "pubprof.spots": "Spot yang sudah kudeskripsikan",
   "pubprof.sessions": "Lima sesi terakhirku",
   "pubprof.titles": "Rekor yang sedang kupegang",
+  "pubprof.channel": "Kanal YouTube-ku",
 };
 
 export default id;

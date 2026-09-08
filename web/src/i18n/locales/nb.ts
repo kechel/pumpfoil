@@ -1671,6 +1671,7 @@ const nb: Record<string, string> = {
   "pubprof.spots": "Spots jeg har beskrevet",
   "pubprof.sessions": "Mine fem siste sessions",
   "pubprof.titles": "Rekorder jeg har nå",
+  "pubprof.channel": "YouTube-kanalen min",
 };
 
 export default nb;

@@ -1579,6 +1579,7 @@ const es: Record<string, string> = {
   "pubprof.spots": "Spots que he descrito",
   "pubprof.sessions": "Mis últimas cinco sesiones",
   "pubprof.titles": "Los récords que tengo",
+  "pubprof.channel": "Mi canal de YouTube",
 };
 
 export default es;

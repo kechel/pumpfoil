@@ -1748,6 +1748,7 @@ const cs: Record<string, string> = {
   "pubprof.spots": "Spoty, které jsem popsal",
   "pubprof.sessions": "Mých posledních pět sessions",
   "pubprof.titles": "Rekordy, které právě držím",
+  "pubprof.channel": "Můj kanál na YouTube",
 };
 
 export default cs;

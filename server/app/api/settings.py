@@ -141,12 +141,14 @@ DEFAULTS = {
         "sessions": True,
         # Rekorde, die er aktuell haelt (community-weit + je Spot, 12 Monate).
         "titles": True,
+        # Link auf den eigenen (freigegebenen) YouTube-Kanal.
+        "channel": True,
     },
 }
 
 # Schalter der oeffentlichen Foiler-Seite (ohne `enabled`, das steht fuer die ganze Seite).
 PUBLIC_PROFILE_KEYS = ("join", "watch", "foil", "homespot", "records", "media", "spots",
-                       "sessions", "titles")
+                       "sessions", "titles", "channel")
 
 # Bekannte Push-Typen (Quelle der Wahrheit, auch im Frontend gespiegelt).
 NOTIFY_TYPES = ("like", "analyzed", "record")
