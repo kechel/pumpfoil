@@ -13,7 +13,7 @@ enum Loc {
     // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
     static let csOverlay: [String: String] = {
         var d: [String: String] = [:]
-        for p in [_csOverlayP1, _csOverlayP1s2, _csOverlayP1s4, _csOverlayP1s3, _csOverlayP2, _csOverlayP2s2, _csOverlayP3, _csOverlayP3s2, _csOverlayP4, _csOverlayP4s2, _csOverlayP5, _csOverlayP5s2, _csOverlayP6, _csOverlayP6s2, _csOverlayP7, _csOverlayP7s2, _csOverlayP8, _csOverlayP8s2, _csOverlayP9, _csOverlayP9s2, _csOverlayP10, _csOverlayP10s2, _csOverlayP11, _csOverlayP11s2, _csOverlayP11s3, _csOverlayP11s4] { d.merge(p) { a, _ in a } }
+        for p in [_csOverlayP1, _csOverlayP1s2, _csOverlayP1s5, _csOverlayP1s4, _csOverlayP1s3, _csOverlayP2, _csOverlayP2s2, _csOverlayP3, _csOverlayP3s2, _csOverlayP4, _csOverlayP4s2, _csOverlayP5, _csOverlayP5s2, _csOverlayP6, _csOverlayP6s2, _csOverlayP7, _csOverlayP7s2, _csOverlayP8, _csOverlayP8s2, _csOverlayP9, _csOverlayP9s2, _csOverlayP10, _csOverlayP10s2, _csOverlayP11, _csOverlayP11s2, _csOverlayP11s3, _csOverlayP11s4] { d.merge(p) { a, _ in a } }
         return d
     }()
 
@@ -285,6 +285,11 @@ enum Loc {
         "sessions.uploadSkipped": "{skipped} z {total} souborů přeskočeno — nejsou to aktivity (např. denní monitoring hodinek). Všechno ostatní bylo importováno.",
         "sessions.uploadSkippedOne": "Neimportováno: {reason}.",
         "import.title": "Importovat aktivitu",
+        "wx.gust": "N",
+        "wx.level": "Hladina",
+        "wx.now": "teď",
+        "wx.source": "Zdroj",
+        "wx.water": "Voda",
         "cr.foilAll": "Všechny foily",
         "cr.foilMine": "Jako můj foil",
         "cr.foilUnder": "pod {n} cm²",
@@ -315,6 +320,8 @@ enum Loc {
         "share.revoke": "Deaktivovat odkaz",
         "home.recordBtn": "Nahrávat",
         "profile.phoneRec": "Nahrávání na telefonu",
+    ]
+    private static let _csOverlayP1s5: [String: String] = [
         "profile.phoneRecSub": "Použít tento telefon jako rekordér — na domovské obrazovce se zobrazí tlačítko nahrávání.",
         "rec.title": "Nahrávání",
         "rec.pageTitle": "Nahrát relaci telefonem",
@@ -912,7 +919,7 @@ enum Loc {
     // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
     static let nlOverlay: [String: String] = {
         var d: [String: String] = [:]
-        for p in [_nlOverlayP1, _nlOverlayP1s2, _nlOverlayP1s4, _nlOverlayP1s3, _nlOverlayP2, _nlOverlayP2s2, _nlOverlayP3, _nlOverlayP3s2, _nlOverlayP4, _nlOverlayP4s2, _nlOverlayP5, _nlOverlayP5s2, _nlOverlayP6, _nlOverlayP6s2, _nlOverlayP7, _nlOverlayP7s2, _nlOverlayP8, _nlOverlayP8s2, _nlOverlayP9, _nlOverlayP9s2, _nlOverlayP10, _nlOverlayP10s2, _nlOverlayP11, _nlOverlayP11s2, _nlOverlayP11s3, _nlOverlayP11s4] { d.merge(p) { a, _ in a } }
+        for p in [_nlOverlayP1, _nlOverlayP1s2, _nlOverlayP1s5, _nlOverlayP1s4, _nlOverlayP1s3, _nlOverlayP2, _nlOverlayP2s2, _nlOverlayP3, _nlOverlayP3s2, _nlOverlayP4, _nlOverlayP4s2, _nlOverlayP5, _nlOverlayP5s2, _nlOverlayP6, _nlOverlayP6s2, _nlOverlayP7, _nlOverlayP7s2, _nlOverlayP8, _nlOverlayP8s2, _nlOverlayP9, _nlOverlayP9s2, _nlOverlayP10, _nlOverlayP10s2, _nlOverlayP11, _nlOverlayP11s2, _nlOverlayP11s3, _nlOverlayP11s4] { d.merge(p) { a, _ in a } }
         return d
     }()
 
@@ -1184,6 +1191,11 @@ enum Loc {
         "sessions.uploadSkipped": "{skipped} van {total} bestanden overgeslagen — het zijn geen activiteiten (bv. de dagelijkse monitoring van het horloge). Al het andere is geïmporteerd.",
         "sessions.uploadSkippedOne": "Niet geïmporteerd: {reason}.",
         "import.title": "Activiteit importeren",
+        "wx.gust": "W",
+        "wx.level": "Waterstand",
+        "wx.now": "nu",
+        "wx.source": "Bron",
+        "wx.water": "Water",
         "cr.foilAll": "Alle foils",
         "cr.foilMine": "Zoals mijn foil",
         "cr.foilUnder": "onder {n} cm²",
@@ -1214,6 +1226,8 @@ enum Loc {
         "share.revoke": "Link deactiveren",
         "home.recordBtn": "Opnemen",
         "profile.phoneRec": "Telefoon-recorder",
+    ]
+    private static let _nlOverlayP1s5: [String: String] = [
         "profile.phoneRecSub": "Deze telefoon als recorder gebruiken — toont een opnameknop op het startscherm.",
         "rec.title": "Opname",
         "rec.pageTitle": "Sessie met je telefoon opnemen",
@@ -1829,7 +1843,7 @@ enum Loc {
     // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
     static let fiOverlay: [String: String] = {
         var d: [String: String] = [:]
-        for p in [_fiOverlayP1, _fiOverlayP1s2, _fiOverlayP1s4, _fiOverlayP1s3, _fiOverlayP2, _fiOverlayP2s2, _fiOverlayP3, _fiOverlayP3s2, _fiOverlayP4, _fiOverlayP4s2, _fiOverlayP5, _fiOverlayP5s2, _fiOverlayP6, _fiOverlayP6s2, _fiOverlayP7, _fiOverlayP7s2, _fiOverlayP8, _fiOverlayP8s2, _fiOverlayP9, _fiOverlayP9s2, _fiOverlayP10, _fiOverlayP11, _fiOverlayP11s2, _fiOverlayP11s3, _fiOverlayP11s4, _fiOverlayP11s5] { d.merge(p) { a, _ in a } }
+        for p in [_fiOverlayP1, _fiOverlayP1s2, _fiOverlayP1s5, _fiOverlayP1s4, _fiOverlayP1s3, _fiOverlayP2, _fiOverlayP2s2, _fiOverlayP3, _fiOverlayP3s2, _fiOverlayP4, _fiOverlayP4s2, _fiOverlayP5, _fiOverlayP5s2, _fiOverlayP6, _fiOverlayP6s2, _fiOverlayP7, _fiOverlayP7s2, _fiOverlayP8, _fiOverlayP8s2, _fiOverlayP9, _fiOverlayP9s2, _fiOverlayP10, _fiOverlayP11, _fiOverlayP11s2, _fiOverlayP11s3, _fiOverlayP11s4, _fiOverlayP11s5] { d.merge(p) { a, _ in a } }
         return d
     }()
 
@@ -2144,6 +2158,11 @@ enum Loc {
         "sessions.uploadSkipped": "{skipped}/{total} tiedostoa ohitettu — ne eivät ole aktiviteetteja (esim. kellon päivittäinen seuranta). Kaikki muu tuotiin.",
         "sessions.uploadSkippedOne": "Ei tuotu: {reason}.",
         "import.title": "Tuo aktiviteetti",
+        "wx.gust": "P",
+        "wx.level": "Vedenkorkeus",
+        "wx.now": "nyt",
+        "wx.source": "Lähde",
+        "wx.water": "Vesi",
         "cr.foilAll": "Kaikki siivet",
         "cr.foilMine": "Kuten oma siipi",
         "cr.foilUnder": "alle {n} cm²",
@@ -2174,6 +2193,8 @@ enum Loc {
         "watch.notInstalled": "Kello yhdistetty, sovellus puuttuu — lisää se iPhonen Watch-sovelluksessa kohdasta „Saatavilla olevat sovellukset“.",
         "watch.install": "Asenna kelloon",
         "watch.none": "Ei Apple Watchia yhdistettynä.",
+    ]
+    private static let _fiOverlayP1s5: [String: String] = [
         "profile.foils": "Foilit",
         "profile.foilsSub": "Katalogi · omat & oletus",
         "profile.calc": "Foil-laskuri",
@@ -2814,6 +2835,11 @@ enum Loc {
         "sessions.uploadSkipped": r("{skipped} von {total} Dateien übersprungen — das sind keine Aktivitäten (z. B. Tagesaufzeichnungen der Uhr). Alles andere wurde importiert.", "{skipped} vo {total} Dateie übersprunge — das sind kei Aktivitäte (z. B. Tagesufzeichnige vo de Uhr). Alles andere isch importiert worde.", "{skipped} von {total} Dateien übersprungen — das san keine Aktivitäten (z. B. Tagesaufzeichnungen der Uhr). Alles andere wurde importiert.", "{skipped} of {total} files skipped — they aren’t activities (e.g. the watch’s daily monitoring). Everything else was imported.", "{skipped} fichiers sur {total} ignorés — ce ne sont pas des activités (par ex. le suivi quotidien de la montre). Tout le reste a été importé.", "{skipped} di {total} file saltati — non sono attività (per es. il monitoraggio quotidiano dell'orologio). Tutto il resto è stato importato.", "{skipped} de {total} archivos omitidos — no son actividades (p. ej. el seguimiento diario del reloj). Todo lo demás se importó."),
         "sessions.uploadSkippedOne": r("Nicht importiert: {reason}.", "Nöd importiert: {reason}.", "Nicht importiert: {reason}.", "Not imported: {reason}.", "Non importé : {reason}.", "Non importato: {reason}.", "No importado: {reason}."),
         "import.title": r("Aktivität importieren", "Aktivität importiere", "Aktivität importieren", "Import activity", "Importer une activité", "Importa attività", "Importar actividad"),
+        "wx.gust": r("B", "B", "B", "gust", "R", "R", "R"),
+        "wx.level": r("Pegel", "Pegel", "Pegel", "Water level", "Niveau", "Livello", "Nivel"),
+        "wx.now": r("jetzt", "jetz", "jetzat", "now", "maintenant", "ora", "ahora"),
+        "wx.source": r("Quelle", "Quelle", "Quelle", "Source", "Source", "Fonte", "Fuente"),
+        "wx.water": r("Wasser", "Wasser", "Wasser", "Water temp", "Eau", "Acqua", "Agua"),
         "cr.foilAll": r("Alle Foils", "Alli Foils", "Olle Foils", "All foils", "Tous les foils", "Tutti i foil", "Todos los foils"),
         "cr.foilMine": r("Wie mein Foil", "Wie mis Foil", "Wia mei Foil", "Like my foil", "Comme mon foil", "Come il mio foil", "Como mi foil"),
         "cr.foilUnder": r("unter {n} cm²", "under {n} cm²", "unter {n} cm²", "under {n} cm²", "moins de {n} cm²", "sotto {n} cm²", "menos de {n} cm²"),

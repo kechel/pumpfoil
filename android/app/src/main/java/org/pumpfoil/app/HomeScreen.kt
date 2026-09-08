@@ -96,7 +96,7 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
     // und sagt in der Antwort, welche es war.
     var sportart by remember { mutableStateOf<String?>(null) }
     var latest by remember { mutableStateOf<List<SessionSummary>>(emptyList()) }
-    var weather by remember { mutableStateOf<WeatherBlock?>(null) }
+    var weather by remember { mutableStateOf<SpotWeather?>(null) }
     var rooms by remember { mutableStateOf<List<ChatRoom>>(emptyList()) }
     var startSuccess by remember { mutableStateOf<StartSuccess?>(null) }
     var carveStats by remember { mutableStateOf<CarveStats?>(null) }
@@ -185,7 +185,7 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
         startSuccess = try { Api.startSuccess() } catch (_: Exception) { startSuccess }
         carveStats = try { Api.carveStats() } catch (_: Exception) { carveStats }
         val hs = try { Api.settings()["homespot"]?.jsonPrimitive?.contentOrNull } catch (_: Exception) { null }
-        weather = if (!hs.isNullOrBlank()) try { Api.spotWeather(hs).weather } catch (_: Exception) { null } else null
+        weather = if (!hs.isNullOrBlank()) try { Api.spotWeather(hs) } catch (_: Exception) { null } else null
         loading = false
     }
     // Stats separat: reagiert zusätzlich auf den Accel/alle-Umschalter.
@@ -447,9 +447,9 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
                 }
             }
 
-            weather?.let { wb ->
+            weather?.let { sw ->
                 Spacer(Modifier.height(10.dp))
-                WeatherCard(wb)
+                WeatherCard(sw)
             }
 
             // Persönliche Home-Stats (wie PWA): Start-Erfolgsquote + Carve-Zähler je Zeitfenster.
@@ -575,13 +575,22 @@ private fun CarveStatsSection(cs: CarveStats) {
 }
 
 @Composable
-internal fun WeatherCard(wb: WeatherBlock, titelKey: String = "home.weather") {
+/**
+ * Wetterkarte wie in der PWA (`web/src/components/SpotWeather.tsx`): aktuell, drei Tage mit
+ * Boen und Niederschlag, darunter Pegelstand und Wassertemperatur samt Quellen.
+ *
+ * Nimmt das GANZE `SpotWeather`, nicht nur den Wetterblock: Pegel und Wassertemperatur haengen
+ * daneben und werden auch gezeigt, wenn die Vorhersage fehlt (so macht es die PWA auch). Bis zum
+ * 08.09.2026 hiess die Karte auf der Spot-Seite „Wetter & Pegel" und zeigte keinen Pegel.
+ */
+internal fun WeatherCard(sw: SpotWeather, titelKey: String = "home.weather") {
+    val wb = sw.weather
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp)) {
             Text(I18n.t(titelKey), style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.height(4.dp))
-            wb.current?.let { c ->
+            wb?.current?.let { c ->
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(wxIcon(c.code), style = MaterialTheme.typography.headlineSmall)
                     c.temp?.let { Text("%.0f°".format(it), style = MaterialTheme.typography.titleLarge) }
@@ -589,9 +598,11 @@ internal fun WeatherCard(wb: WeatherBlock, titelKey: String = "home.weather") {
                         Text("%.0f kn %s".format(it, dirLabel(c.dir)), style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
+                    Text(I18n.t("wx.now"), style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
-            if (wb.days.isNotEmpty()) {
+            if (wb != null && wb.days.isNotEmpty()) {
                 Spacer(Modifier.height(8.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     wb.days.take(3).forEachIndexed { i, d ->
@@ -604,10 +615,57 @@ internal fun WeatherCard(wb: WeatherBlock, titelKey: String = "home.weather") {
                                 Text("%.0f kn".format(it), style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
+                            d.gustMax?.let {
+                                Text("(${I18n.t("wx.gust")} %.0f)".format(it),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            d.precip?.takeIf { it > 0 }?.let {
+                                Text("☔ %.1f mm".format(it), style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
                         }
                     }
                 }
             }
+            // Pegelstand: Wert + Trendpfeil + Gewaesser/Station (km), wie in der PWA.
+            sw.pegel?.takeIf { it.value != null }?.let { pg ->
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    I18n.t("wx.level") + ": %.0f %s".format(pg.value, pg.unit) +
+                        (pg.trend?.let { if (it > 0) " ↗" else if (it < 0) " ↘" else " →" } ?: "") +
+                        "  " + listOfNotNull(
+                            pg.water?.takeIf { it.isNotBlank() }
+                                ?.let { it.substring(0, 1) + it.substring(1).lowercase() },
+                            pg.station.takeIf { it.isNotBlank() },
+                        ).joinToString(" · ") +
+                        (pg.km?.let { " (%.0f km)".format(it) } ?: ""),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            // Wassertemperatur: aktuell, Tagesspanne, Mittel.
+            sw.water?.takeIf { it.current != null }?.let { w ->
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    "🌊 " + I18n.t("wx.water") + ": %.1f °C".format(w.current) +
+                        (if (w.min != null && w.max != null)
+                            "   " + I18n.t("wx.today") + " %.1f–%.1f °C".format(w.min, w.max) else "") +
+                        (w.avg?.let { "   ⌀ %.1f °C".format(it) } ?: ""),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            // Quellenangabe — dieselben drei Quellen wie im Web (Open-Meteo immer, die anderen
+            // nur, wenn ihr Block auch Daten geliefert hat).
+            Spacer(Modifier.height(4.dp))
+            Text(
+                I18n.t("wx.source") + ": Open-Meteo.com" +
+                    (if (sw.pegel != null) " · PEGELONLINE" else "") +
+                    (sw.water?.source?.takeIf { it.isNotBlank() }?.let { " · $it" } ?: ""),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

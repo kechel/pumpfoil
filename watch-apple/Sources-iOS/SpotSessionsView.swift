@@ -26,7 +26,7 @@ struct SpotSessionsView: View {
     // namensbasiert). Einmal ueber die Karte zuordnen; ohne Spot-Zeile bleibt es nil.
     @State private var spotId: Int?
     @State private var spotLabel: String?      // Gewaesser bzw. Steg/Ortslage, fuer den Titel
-    @State private var weather: WeatherBlock?
+    @State private var weather: SpotWeather?
 
     var body: some View {
         List {
@@ -45,7 +45,7 @@ struct SpotSessionsView: View {
             // Reihenfolge wie in der PWA: Rekorde, Wetter, Beschreibungen, dann die Sessions
             // (Jan, 07.09.: „die 3 muessen nach oben wie in der pwa").
             SpotRecordsView(spot: spot, lang: lang, accelOnly: showAll ? false : true)
-            if let wb = weather { Section { HomeWeatherCard(wb: wb, lang: lang, titelKey: "spot.weatherTitle") } }
+            if let sw = weather { Section { HomeWeatherCard(sw: sw, lang: lang, titelKey: "spot.weatherTitle") } }
             // `?? vorgegebeneSpotId`: die id des Einstiegs gilt SOFORT. Vorher wurde sie erst
             // im Task uebernommen — nach dem Laden der Sessions — und bis dahin (oder wenn der
             // Task nicht durchlief) stand hier nichts.
@@ -81,7 +81,7 @@ struct SpotSessionsView: View {
             if spotId == nil { spotId = vorgegebeneSpotId }
             async let w = Api.spotWeather(spot)
             async let karte = Api.spotMap(accelOnly: false)
-            weather = (try? await w)?.weather
+            weather = try? await w
             if let m = (try? await karte)?.first(where: { $0.spot == spot }) {
                 spotId = m.spot_id
                 if let wn = m.water, !wn.isEmpty, wn.lowercased() != spot.lowercased() { spotLabel = wn }
