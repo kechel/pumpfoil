@@ -20,8 +20,11 @@ W, H = 1080, 1920
 BAND_H = H // 3                 # exakt das untere Drittel
 RAND = 90                       # seitlicher Rand wie in endcard.py
 KANTE = 8                       # Cyan-Kante als Trennung zum Video darueber
-# Untere 210 px bleiben frei: dort liegen bei Instagram und TikTok Caption und Knoepfe.
-UI_LUFT = 140
+# Logo und Zeile nur in der OBEREN HAELFTE des Streifens. Die untere Haelfte
+# belegen auf allen Plattformen fremde Elemente: bei YouTube Kanalbild, Handle
+# und Videotitel, bei Instagram und TikTok Caption und Knoepfe (Jan, 08.09. —
+# vorher lag "@pumpfoil-org" genau auf der Zeile FREE APP & COMMUNITY).
+INHALT_ANTEIL = 0.5
 
 HIER = os.path.dirname(os.path.abspath(__file__))
 LOGO = os.path.join(HIER, "..", "logo", "logo-horizontal-{theme}.png")
@@ -112,11 +115,18 @@ def band(theme: str) -> Image.Image:
     zeile = zeile.resize((round(zeile.width * z_faktor), round(zeile.height * z_faktor)),
                          Image.LANCZOS)
 
-    # Inhalt in der oberen Haelfte des Streifens: unten bleibt Luft fuer die Bedienelemente
-    # der Plattformen, sonst liegt bei Instagram die Caption auf der Wortmarke.
+    # Mittig in der oberen Haelfte des Streifens — die untere bleibt den
+    # Bedienelementen der Plattformen. Passt der Block nicht hinein, schrumpft
+    # er als Ganzes: lieber etwas kleiner als in fremde Elemente hineinragen.
     abstand = 46
+    frei = round(BAND_H * INHALT_ANTEIL) - KANTE
     block = lock.height + abstand + zeile.height
-    frei = BAND_H - KANTE - UI_LUFT
+    if block > frei:
+        f = (frei * 0.94) / block          # 6 % Luft, sonst klebt es an der Kante
+        abstand = round(abstand * f)
+        lock = lock.resize((round(lock.width * f), round(lock.height * f)), Image.LANCZOS)
+        zeile = zeile.resize((round(zeile.width * f), round(zeile.height * f)), Image.LANCZOS)
+        block = lock.height + abstand + zeile.height
     y = H - BAND_H + KANTE + max(0, (frei - block) // 2)
     bild.alpha_composite(lock, ((W - lock.width) // 2, y))
     y += lock.height + abstand
