@@ -3,6 +3,7 @@ package org.pumpfoil.watch
 import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.location.LocationListener
 import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
@@ -47,11 +48,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.*
 import android.os.Looper
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -860,31 +856,53 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
             // Auto-Start-Überwachung (nur wenn scharf). Zwei getrennte Anforderungen wären
             // derselbe Fix und derselbe Stromverbrauch, nur doppelt verwaltet.
             val autoScharf = rememberUpdatedState(autoStart && !s.starting && autoArmed)
+            // AUCH HIER der Plattform-Provider `gps`, nicht Fused — derselbe Grund wie im
+            // Recorder (s. RecorderService.startLocation), aber lange uebersehen:
+            //
+            // Dieser Callback treibt die Bereitschaftsanzeige und den Auto-Start. Kam die
+            // Position vom Handy, leuchtete „GPS bereit" gruen, und die Aufnahme bekam danach
+            // trotzdem nichts Eigenes — die Anzeige haette also genau das Gegenteil von dem
+            // gesagt, was sie soll. Aufgefallen am 08.09.2026 in Jans Emulator-Log: der
+            // `gps provider` lief zwar, aber als Zuhoerer stand dort
+            // `com.google.android.gms[fused_location_provider]` mit unserer WorkSource — die
+            // Anfrage lief also weiter ueber Fused, obwohl der Recorder schon umgestellt war.
             DisposableEffect(Unit) {
-                val fused = LocationServices.getFusedLocationProviderClient(ctx)
+                val lm = ctx.getSystemService(Context.LOCATION_SERVICE) as LocationManager
                 var streak = 0
-                val cb = object : LocationCallback() {
-                    override fun onLocationResult(r: LocationResult) {
-                        val l = r.lastLocation
-                        // Brauchbar = dieselbe Schwelle wie das Qualitäts-Gate der Aufnahme
-                        // (Recorder.kt, hAcc > 20 m -> gpsPoor), damit „bereit“ und „Anzeige
-                        // zeigt Tempo“ nicht auseinanderlaufen.
-                        // „Bereit" heisst: genau UND frisch. Ein zwischengespeicherter Fix
-                        // meldet beste Genauigkeit und wuerde die Uhr sonst gruen melden,
-                        // obwohl sie gar nicht ortet (Fall vom 03.09.). Hier faellt es auf,
-                        // solange man noch am Steg steht — auf dem Wasser schaut niemand hin.
-                        val frisch = l != null &&
-                            (SystemClock.elapsedRealtimeNanos() - l.elapsedRealtimeNanos) < 5_000_000_000L
-                        gpsBereit = l != null && l.hasAccuracy() && l.accuracy <= 20f && frisch
-                        if (!autoScharf.value) { streak = 0; return }
-                        val sp = l?.let { if (it.hasSpeed()) it.speed else 0f } ?: 0f
-                        if (sp * 3.6f >= 10f) { streak++; if (streak >= 4) RecorderService.start(ctx.applicationContext) }
-                        else streak = 0
+                // `l` ist hier NICHT nullbar (anders als `LocationResult.lastLocation` vorher),
+                // deshalb kein `?.` und kein `return` — ein Lambda kehrt nicht so zurueck.
+                val cb = LocationListener { l ->
+                    // Brauchbar = dieselbe Schwelle wie das Qualitaets-Gate der Aufnahme
+                    // (Recorder.kt, hAcc > 20 m -> gpsPoor), damit „bereit" und „Anzeige zeigt
+                    // Tempo" nicht auseinanderlaufen.
+                    // „Bereit" heisst: genau UND frisch. Ein zwischengespeicherter Fix meldet
+                    // beste Genauigkeit und wuerde die Uhr sonst gruen melden, obwohl sie gar
+                    // nicht ortet (Fall vom 03.09.). Hier faellt es auf, solange man noch am
+                    // Steg steht — auf dem Wasser schaut niemand hin.
+                    val frisch =
+                        (SystemClock.elapsedRealtimeNanos() - l.elapsedRealtimeNanos) < 5_000_000_000L
+                    gpsBereit = l.hasAccuracy() && l.accuracy <= 20f && frisch
+                    if (!autoScharf.value) {
+                        streak = 0
+                    } else {
+                        val sp = if (l.hasSpeed()) l.speed else 0f
+                        if (sp * 3.6f >= 10f) {
+                            streak++
+                            if (streak >= 4) RecorderService.start(ctx.applicationContext)
+                        } else {
+                            streak = 0
+                        }
                     }
                 }
-                val req = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000).build()
-                try { fused.requestLocationUpdates(req, cb, Looper.getMainLooper()) } catch (_: SecurityException) {}
-                onDispose { fused.removeLocationUpdates(cb) }
+                try {
+                    lm.requestLocationUpdates(
+                        LocationManager.GPS_PROVIDER, 1000L, 0f, cb, Looper.getMainLooper())
+                } catch (_: SecurityException) {
+                } catch (_: IllegalArgumentException) {
+                    // Kein `gps`-Provider: dann bleibt die Bereitschaftsanzeige aus, statt mit
+                    // einer fremden Position gruen zu leuchten. Der rote Hinweis oben sagt es.
+                }
+                onDispose { try { lm.removeUpdates(cb) } catch (_: SecurityException) {} }
             }
             // Scrollbar + Rand: bei großer System-Schrift darf unten nichts abgeschnitten werden
             // (Wear-Schriftgrößen-Regel). Scaffold+PositionIndicator zeigt die geforderte Scroll-
