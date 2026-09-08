@@ -123,13 +123,17 @@ const OUTRO_ICONS: Record<PvPlatform, [string, string][]> = {
     // geschlossene Form, deshalb das abschliessende z.
     ["M14 7V3l7 7-7 7v-4.1c-5 0-8.5 1.6-11 5.1 1-5 4-10 11-11z", "share"],
   ],
+  // Instagram und Facebook: Herz und Reshare. Die Sprechblase liegt
+  // auskommentiert daneben — Jan will sie spaeter womoeglich zurueck
+  // (08.09.). Der Papierflieger ist raus, geteilt wird dort per Reshare.
   instagram: [
     ["M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z", "heart"],
-    // Zipfel unten RECHTS — Instagrams eigene Sprechblase zeigt dorthin,
-    // unsere zeigte spiegelverkehrt nach links (Jan, 08.09.). Gespiegelt
-    // heisst: x -> 24-x, und die Drehrichtung des Bogens kippt mit (0 -> 1).
-    ["M16.1 20A9 9 0 1 1 20 16.1L22 22Z", "comment"],
-    ["m22 2-7 20-4-9-9-4ZM22 2 11 13", "send"],
+    // Zipfel unten RECHTS, so zeigt Instagrams eigene Sprechblase:
+    // ["M16.1 20A9 9 0 1 1 20 16.1L22 22Z", "comment"],
+    // Alle vier Teilstriche in EINEM Pfad — die Liste setzt je Eintrag ein
+    // eigenes Symbol nebeneinander. Jeder Teil beginnt absolut (M), sonst
+    // haengt er am Ende des vorigen.
+    ["M15 3l3 3-3 3M6 20a4 4 0 0 1-4-4V9a3 3 0 0 1 3-3h13M9 21l-3-3 3-3M18 4a4 4 0 0 1 4 4v7a3 3 0 0 1-3 3H6", "reshare"],
   ],
   tiktok: [
     ["M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z", "heart"],
