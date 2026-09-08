@@ -174,6 +174,12 @@ export default function Foiler() {
             <span className="font-semibold text-slate-200">{d.uhren.join(" · ")}</span>
           </>
         )}
+        {d.foils && d.foils.length > 0 && (
+          <>
+            <span className="flex items-center gap-1.5 text-slate-400"><FoilIcon className="h-4 w-4" />{t("foiler.foil")}:</span>
+            <span className="font-semibold text-slate-200">{d.foils.map((f) => `${f.brand} ${f.model} ${f.size}`).join(" · ")}</span>
+          </>
+        )}
         {d.kanal && (
           <>
             <span className="flex items-center gap-1.5 text-slate-400"><PlayIcon className="h-4 w-4" />YouTube:</span>
@@ -183,12 +189,6 @@ export default function Foiler() {
                className="font-semibold text-brand-600 underline dark:text-brand-300">
               {kanalName(d.kanal)}
             </a>
-          </>
-        )}
-        {d.foils && d.foils.length > 0 && (
-          <>
-            <span className="flex items-center gap-1.5 text-slate-400"><FoilIcon className="h-4 w-4" />{t("foiler.foil")}:</span>
-            <span className="font-semibold text-slate-200">{d.foils.map((f) => `${f.brand} ${f.model} ${f.size}`).join(" · ")}</span>
           </>
         )}
       </div>
