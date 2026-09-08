@@ -189,3 +189,40 @@ rueckwirkend fuer alle Exporte, kein zusaetzlicher Modellaufruf.
 Am selben Abend nachgetragen: `140` (日落, erster Beitrag mit korrigiertem Titel) stand nach
 einer Stunde bei 11 Aufrufen und **2 收藏 bei 0 Likes** — die einzige Zahl bisher, bei der
 gespeichert statt nur geherzt wurde.
+
+## Zahlen einlesen
+
+RedNote hat keine API — die Kennzahlen kommen von Hand herein, denselben Weg
+wie die Facebook Content Library:
+
+```
+# creator.rednote.com → 笔记管理 → GANZ NACH UNTEN scrollen, damit alle Karten
+# nachgeladen sind. Dann Rechtsklick auf die Liste → Untersuchen →
+# <div class="panel"> markieren → "Copy outerHTML" → in eine Datei sichern.
+scripts/rednote-import.py --import ~/Downloads/rednote.html
+scripts/rednote-import.py --list
+scripts/rednote-import.py --series 132     # Zeitverlauf eines Beitrags
+```
+
+Geschrieben wird in `.stats.sqlite3`, in dieselben Tabellen `post`/`post_stat`
+wie YouTube, TikTok, Instagram und Facebook — RedNote erscheint damit von
+selbst im Auswertungs-Tab. Wie ueberall gilt: **eine Zeile nur bei geaenderten
+Werten**, zweimal dieselbe Datei einlesen erzeugt also keine Dubletten.
+
+Zwei Eigenheiten:
+
+- **收藏 hat eine eigene Spalte** (`post_stat.saves`), additiv ergaenzt beim
+  ersten Import. In views/likes/comments/shares passte es nicht, und auf einer
+  Such-Plattform ist Speichern die Zahl, auf die es ankommt.
+- **Die laufende Nummer steht nicht im Titel.** Sie wird ueber die chinesischen
+  Titel aus dem Caption-Cache zurueckgerechnet. Nach einer Umbenennung auf
+  RedNote findet die Zuordnung sie nicht mehr — dann meldet der Import die
+  Karte und `--nummer <noteId>=<nr>` setzt sie. Einmal gesetzt bleibt sie
+  stehen, auch wenn spaeter weiter umbenannt wird.
+
+Beitraege in 审核中 werden uebersprungen: RedNote zeichnet ihnen keine
+vollstaendige Zahlenzeile, sie waeren kein vergleichbarer Messpunkt.
+
+**bilibili bleibt draussen.** Dort steht der ganze Kanal bei null Aufrufen
+ausser Jans eigenen (Stand 09.09.) — eine Tabelle aus Nullen bringt nichts.
+Sobald sich etwas bewegt, ist derselbe Import in kurzer Zeit angepasst.
