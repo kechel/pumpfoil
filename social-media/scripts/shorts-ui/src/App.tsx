@@ -113,9 +113,15 @@ type PvPlatform = "youtube" | "instagram" | "tiktok";
 const PF_SHORT: Record<PvPlatform, string> = { youtube: "YT", instagram: "IG", tiktok: "TT" };
 
 const OUTRO_ICONS: Record<PvPlatform, [string, string][]> = {
+  // Shorts, nicht der Desktop-Player: rechts stehen dort Herz, Sprechblase,
+  // Teilen-Pfeil und Remix. Daumen hoch und Glocke kommen darin gar nicht vor
+  // — die standen hier bis 08.09. und passten zu keinem Knopf auf dem Schirm.
   youtube: [
-    ["M7 10v12M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z", "thumbsup"],
-    ["M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0", "bell"],
+    ["M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z", "heart"],
+    // Bogen und Spitze in EINEM Pfad: die Liste setzt je Eintrag ein eigenes
+    // Symbol nebeneinander. Die Spitze deshalb absolut (M14 4), sonst haenge
+    // sie relativ am Bogenende und laege ausserhalb.
+    ["M3 19c0-6.5 5.5-10 17-10M14 4l6 5-6 5", "share"],
   ],
   instagram: [
     ["M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z", "heart"],
