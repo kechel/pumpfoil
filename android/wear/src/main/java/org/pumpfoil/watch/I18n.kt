@@ -191,6 +191,9 @@ private val S: Map<String, Map<String, String>> = mapOf(
     "rec.discardHold" to row("Verwerfen", "Verwärfe", "Verwerfen", "Discard", "Supprimer", "Scarta", "Descartar"),
     "rec.starting" to row("starte…", "start…", "starte…", "starting…", "démarrage…", "avvio…", "iniciando…"),
     "rec.recording" to row("Aufnahme läuft", "Ufnahm lauft", "Aufnahme läuft", "Recording", "Enregistrement", "Registrazione", "Grabando"),
+    // Uhr ohne eigenen GNSS-Empfaenger. Wir nehmen NICHT die Position des Handys —
+    // s. RecorderService.startLocation (Vorgabe Jan, 08.09.2026).
+    "rec.gpsNoHardware" to row("Diese Uhr hat kein eigenes GPS – Strecke wird nicht aufgezeichnet", "Die Uhr het kes eigets GPS – d Strecki wird nöd ufzeichnet", "De Uhr hot kaa eigenes GPS – de Streckn wird net aufgzeichnet", "This watch has no GPS of its own – no track is recorded", "Cette montre n'a pas de GPS – aucun tracé enregistré", "Questo orologio non ha un GPS proprio – nessuna traccia registrata", "Este reloj no tiene GPS propio – no se graba la ruta"),
     "rec.gpsStale" to row("GPS eingefroren – Handy weglegen", "GPS iigfrore – Händy wegleege", "GPS eingfrorn – Handy weglegn", "GPS frozen – leave phone behind", "GPS figé – laisse le téléphone", "GPS bloccato – lascia il telefono", "GPS congelado – deja el móvil"),
     "rec.hrPassive" to row("Puls passiv", "Puls passiv", "Puls passiv", "HR passive", "FC passive", "FC passiva", "FC pasiva"),
     "rec.gpsStaleTap" to row("Antippen zum Wegblenden", "Aatippe zum Wegblende", "Antippn zum Wegblendn", "Tap to dismiss", "Toucher pour masquer", "Tocca per chiudere", "Toca para ocultar"),

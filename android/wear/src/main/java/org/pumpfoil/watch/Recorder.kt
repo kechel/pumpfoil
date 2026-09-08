@@ -50,6 +50,11 @@ object Recorder {
         // 05.08.: vier Sessions ueber Stunden mit 1000+ Accel-Chunks und 0 GPS-Punkten, weil
         // die SecurityException still verschluckt wurde. Jetzt sichtbar statt stumm.
         val gpsDenied: Boolean = false,
+        // Diese Uhr hat GAR KEINEN eigenen GNSS-Empfaenger (PackageManager-Feature fehlt). Dann
+        // zeichnen wir bewusst KEINE Position auf, statt die des gekoppelten Handys zu nehmen —
+        // sonst steht in der Spur, wo das Handy lag, nicht wo gefahren wurde (Vorgabe Jan,
+        // 08.09.2026). Puls und Beschleunigung werden weiter aufgezeichnet.
+        val gpsOhneHardware: Boolean = false,
         // Die Ortung liefert nur noch ALTE Fixes (Fused wiederholt einen zwischengespeicherten
         // Stand). Feldbefund 03.09.: zwei Nutzer, drei Sessions ueber je eine Stunde — 2491 Fixes,
         // aber nur 71 verschiedene Positionen, eine davon 625-mal hintereinander, und dazu eine
@@ -491,6 +496,10 @@ object Recorder {
     // wertlos -> die UI sagt es, statt stumm Accel zu sammeln.
     fun setGpsDenied(v: Boolean) {
         _state.value = _state.value.copy(gpsDenied = v)
+    }
+
+    fun setGpsOhneHardware(v: Boolean) {
+        _state.value = _state.value.copy(gpsOhneHardware = v)
     }
 
     // Standschwelle fuer die LIVE-Distanz. Ohne sie summiert jeder GPS-Fix seinen Abstand zum

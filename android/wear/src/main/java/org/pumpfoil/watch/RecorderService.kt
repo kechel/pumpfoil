@@ -8,6 +8,9 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
 import android.content.pm.ServiceInfo
 import android.os.SystemClock
 import android.hardware.Sensor
@@ -50,6 +53,38 @@ class RecorderService : Service(), SensorEventListener {
     private var hsNeustarts = 0
     private var waechter: java.util.concurrent.ScheduledExecutorService? = null
     private val fused by lazy { LocationServices.getFusedLocationProviderClient(this) }
+    private val locMgr by lazy { getSystemService(Context.LOCATION_SERVICE) as LocationManager }
+
+    /** Hat DIESE Uhr einen eigenen GNSS-Empfaenger? */
+    private val eigenesGnss by lazy {
+        packageManager.hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS)
+    }
+
+    /**
+     * Ortung vom PLATTFORM-Provider `gps` — also ausschliesslich vom Empfaenger der UHR.
+     *
+     * Warum nicht der Fused-Provider (den wir bis 08.09.2026 benutzt haben): der darf auf Wear OS
+     * die Position des gekoppelten HANDYS durchreichen und einen zwischengespeicherten Fix
+     * wiederholen. Dann zeichnet die Uhr auf, wo das Handy liegt — am Steg, im Auto, in der
+     * Strandtasche. Vorgabe Jan (08.09.2026): „IMMER wenn statt der Uhr das GPS des Handys
+     * genommen wird, ist das ein FAIL von uns und der User zeichnet genau das Falsche auf."
+     * Das Handy-GPS darf nur der Handy-Recorder selbst nutzen, ganz ohne Uhr.
+     *
+     * Belegter Fall: Session 3851 (Wear, OPWWE251) hatte 3455 Fixes, davon 2723 exakt gleich zum
+     * Vorgaenger und eine Kette von 501 s mit BYTEWEISE derselben Koordinate — bei gemeldeten 3 m
+     * Genauigkeit. Ueber zwei Nutzer und acht Sessions desselben Modells: 0/45/0/0/68/44/79/0 %.
+     */
+    private val gpsListener = LocationListener { loc: Location -> uebernehmen(loc) }
+
+    private fun uebernehmen(it: Location) {
+        Recorder.addGps(it.latitude, it.longitude,
+            // -1 = Geraet liefert KEINE Geschwindigkeit. Vorher stand hier 0.0 — das war von
+            // einem echten Stillstand nicht zu unterscheiden.
+            if (it.hasSpeed()) it.speed.toDouble() else -1.0, it.accuracy.toDouble(),
+            // Alter des Fixes auf der monotonen Uhr. Ein frischer GNSS-Fix ist 0-2 s alt.
+            ((SystemClock.elapsedRealtimeNanos() - it.elapsedRealtimeNanos) / 1_000_000L)
+                .coerceAtLeast(0L))
+    }
     private val locCb = object : LocationCallback() {
         override fun onLocationResult(r: LocationResult) {
             r.lastLocation?.let {
@@ -288,14 +323,28 @@ class RecorderService : Service(), SensorEventListener {
     }
 
     private fun startLocation() {
-        val req = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000).build()
+        // Keine eigene GNSS-Hardware -> wir zeichnen KEINE Position auf, statt heimlich die des
+        // Handys zu nehmen. Der Nutzer erfaehrt es (gpsDenied), und die Aufnahme bleibt ehrlich:
+        // Puls und Beschleunigung ja, Strecke nein. Alles andere waere eine erfundene Spur.
+        if (!eigenesGnss) {
+            Recorder.setGpsOhneHardware(true)
+            Recorder.setGpsDenied(true)
+            return
+        }
         try {
-            fused.requestLocationUpdates(req, locCb, Looper.getMainLooper())
+            // 1 s Takt, 0 m Mindestdistanz — dieselbe Rate wie vorher beim Fused-Provider.
+            locMgr.requestLocationUpdates(
+                LocationManager.GPS_PROVIDER, 1000L, 0f, gpsListener, Looper.getMainLooper())
             Recorder.setGpsDenied(false)
         } catch (_: SecurityException) {
             // Fehlende Standort-Berechtigung: NICHT stumm weiterlaufen. Feldbefund 05.08.:
             // vier Wear-Sessions ueber Stunden mit 1000+ Accel-Chunks und 0 GPS-Punkten —
             // der Nutzer hielt die Uhr fuer inkompatibel. Jetzt sagt die Aufnahme es.
+            Recorder.setGpsDenied(true)
+        } catch (_: IllegalArgumentException) {
+            // Provider existiert nicht, obwohl das Feature gemeldet wurde — dann ebenso ehrlich
+            // melden statt auf Fused zurueckzufallen.
+            Recorder.setGpsOhneHardware(true)
             Recorder.setGpsDenied(true)
         }
     }
@@ -305,7 +354,8 @@ class RecorderService : Service(), SensorEventListener {
         waechter?.shutdownNow(); waechter = null
         hsNeustarts = 0; letzterHsMs = 0L
         stopHeartRate()
-        fused.removeLocationUpdates(locCb)
+        try { locMgr.removeUpdates(gpsListener) } catch (_: SecurityException) {}
+        fused.removeLocationUpdates(locCb)   // fuer den Fall, dass eine alte Anmeldung noch haengt
         if (save) Recorder.stop() else Recorder.discard()
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
