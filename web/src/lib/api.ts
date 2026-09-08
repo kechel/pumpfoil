@@ -764,8 +764,10 @@ export const api = {
     // Spots, zu denen er eine Beschreibung geschrieben hat.
     spot_notizen?: { spot_id: number; name: string; area_name?: string | null }[];
     // Rekorde, die er AKTUELL haelt (12 Monate): community-weit und je Spot.
-    titel?: { metric: string; value: number; started_at?: string | null; spot?: string | null;
-              session_id?: number | null }[];
+    // basis: "accel" = unter Aufnahmen MIT Bewegungssensor, "gps" = unter denen ohne.
+    // Zwei getrennte Zeilen, damit jede Gleiches mit Gleichem vergleicht.
+    titel?: { metric: string; value: number; basis: "accel" | "gps";
+              started_at?: string | null; spot?: string | null; session_id?: number | null }[];
     spot_titel?: { metric: string; value: number; spot_id: number; spot?: string;
                    started_at?: string | null; session_id?: number | null;
                    // true = er ist dort der einzige Fahrer, haelt also zwangslaeufig alles

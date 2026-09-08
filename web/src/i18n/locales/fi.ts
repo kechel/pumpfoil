@@ -1734,7 +1734,10 @@ const fi: Record<string, string> = {
   "pubprof.channel": "YouTube-kanavani",
   "foiler.onlyFoiler": "Ainoa foilaaja tällä spotilla",
   "foiler.titles": "Yhteisön ennätykset (12 kk)",
-  "foiler.overall": "Kaikkiaan",
+  "foiler.basisAccel": "Accel + GPS",
+  "foiler.basisGps": "Vain GPS",
+  "foiler.basisAccelTip": "Ennätykset liikeanturilla tehdyistä tallenteista",
+  "foiler.basisGpsTip": "Ennätykset tallenteista ilman liikeanturia — GPS-tilan kellot ja tilituonnit",
 };
 
 export default fi;

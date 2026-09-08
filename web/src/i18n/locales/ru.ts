@@ -1698,7 +1698,10 @@ const ru: Record<string, string> = {
   "pubprof.channel": "Мой канал на YouTube",
   "foiler.onlyFoiler": "Единственный фойлер на споте",
   "foiler.titles": "Рекорды сообщества (12 месяцев)",
-  "foiler.overall": "Всего",
+  "foiler.basisAccel": "Accel + GPS",
+  "foiler.basisGps": "Только GPS",
+  "foiler.basisAccelTip": "Рекорды среди записей с датчиком движения",
+  "foiler.basisGpsTip": "Рекорды среди записей без датчика движения — часы в режиме GPS и импорт из аккаунта",
 };
 
 export default ru;

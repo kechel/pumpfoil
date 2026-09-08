@@ -94,7 +94,7 @@ def _cutoff(period: str) -> datetime | None:
 
 
 def _community(query, viewer_id: int | None = None, accel_only: bool = True,
-               sport: str = "pumpfoil", nur_foiling: bool = True):
+               sport: str = "pumpfoil", nur_foiling: bool = True, nur_gps: bool = False):
     """Joins + Filter für community-sichtbare Sessions. query selektiert beliebige Spalten.
 
     Versteckte Konten (hidden, App-Store-Tester) werden für alle ANDEREN ausgeblendet;
@@ -138,6 +138,14 @@ def _community(query, viewer_id: int | None = None, accel_only: bool = True,
     )
     if not nur_foiling:
         pass          # keine Bedingung an den INHALT der Aufnahme
+    elif nur_gps:
+        # Dritter Modus (08.09.2026, fuer die Foiler-Seite): NUR Aufnahmen OHNE Bewegungssensor.
+        # `accel_only=False` ist naemlich nicht das Gegenteil von `True`, sondern die Summe aus
+        # beidem — fuer einen fairen Vergleich („nur GPS" gegen „nur GPS") braucht es die
+        # disjunkte Haelfte. NULL zaehlt dazu: Altbestaende ohne gesetztes `detection` sind
+        # keine Modell-Erkennung. Foiling muss erkannt sein (mind. ein Lauf), sonst wuerden
+        # reine GPS-Fahrten ohne Foilen die Rekorde verwaessern.
+        q = q.filter(or_(AR.detection.is_(None), AR.detection != "model"), AR.num_runs > 0)
     elif accel_only:
         q = q.filter(AR.detection == "model")
     else:
@@ -374,17 +382,17 @@ _EMPTY_REC = {"session_id": None, "value": 0.0, "started_at": None, "run_idx": N
               "name": None, "avatar_url": None, "spot": None, "track_preview": None, "tz": None}
 
 
-def _record_entry(db: Session, metric: str, cut: datetime | None, spot: str | None = None, viewer_id: int | None = None, accel_only: bool = True, sport: str = "pumpfoil", cache: dict | None = None, foil_band: str = "all") -> dict:
+def _record_entry(db: Session, metric: str, cut: datetime | None, spot: str | None = None, viewer_id: int | None = None, accel_only: bool = True, sport: str = "pumpfoil", cache: dict | None = None, foil_band: str = "all", nur_gps: bool = False) -> dict:
     if metric in TIME_METRICS:
         return _time_record(db, metric, cut, spot=spot, viewer_id=viewer_id, accel_only=accel_only, sport=sport,
-                            cache=cache, foil_band=foil_band)
+                            cache=cache, foil_band=foil_band, nur_gps=nur_gps)
     if metric == "carves180":
         return _carve_record(db, cut, spot=spot, viewer_id=viewer_id, accel_only=accel_only, sport=sport,
-                             cache=cache, foil_band=foil_band)
+                             cache=cache, foil_band=foil_band, nur_gps=nur_gps)
     valcol, idxcol = REC_COL[metric]
     idx_sel = idxcol if idxcol is not None else literal(None)
     q = _community(db.query(valcol, idx_sel, S.id, S.started_at, NAME, S.place_name, U.avatar_url, AR.track_preview,
-                            S.place_lat, S.place_lon), viewer_id, accel_only, sport)
+                            S.place_lat, S.place_lon), viewer_id, accel_only, sport, nur_gps=nur_gps)
     q = _band_filter(db, q, foil_band, viewer_id or 0)
     q = q.filter(valcol > 0)
     if cut is not None:
@@ -404,7 +412,7 @@ def _record_entry(db: Session, metric: str, cut: datetime | None, spot: str | No
 
 
 def _time_rows(db: Session, spot: str | None, viewer_id: int | None, accel_only: bool, sport: str,
-               cache: dict | None, foil_band: str = "all") -> list[tuple]:
+               cache: dict | None, foil_band: str = "all", nur_gps: bool = False) -> list[tuple]:
     """Basisdaten fuer Early Bird / Night Owl: je Community-Session EINE Zeile mit den beiden
     Sekundenwerten seit lokaler Mitternacht, fertig gerechnet.
 
@@ -418,12 +426,12 @@ def _time_rows(db: Session, spot: str | None, viewer_id: int | None, accel_only:
     # `foil_band` MUSS im Schluessel stehen: sonst liefert eine zweite Abfrage im selben Request
     # die Zeilen des ersten Bandes zurueck. Heute ist das Band je Request konstant, aber genau so
     # entstehen stille Fehler, sobald jemand mehrere Baender in einem Aufruf rechnet.
-    key = ("time_rows", spot, viewer_id, accel_only, sport, foil_band)
+    key = ("time_rows", spot, viewer_id, accel_only, sport, foil_band, nur_gps)
     if cache is not None and key in cache:
         return cache[key]
     q = _community(db.query(S.id, S.started_at, S.trim_start_ms, S.place_lat, S.place_lon,
                             NAME, S.place_name, U.avatar_url, AR.track_preview,
-                            AR.segments_json), viewer_id, accel_only, sport)
+                            AR.segments_json), viewer_id, accel_only, sport, nur_gps=nur_gps)
     q = _band_filter(db, q, foil_band, viewer_id or 0)
     if spot is not None:
         q = q.filter(_spot_cond(spot))
@@ -456,7 +464,7 @@ def _time_rows(db: Session, spot: str | None, viewer_id: int | None, accel_only:
     return rows
 
 
-def _time_record(db: Session, metric: str, cut: datetime | None, spot: str | None = None, viewer_id: int | None = None, accel_only: bool = True, sport: str = "pumpfoil", cache: dict | None = None, foil_band: str = "all") -> dict:
+def _time_record(db: Session, metric: str, cut: datetime | None, spot: str | None = None, viewer_id: int | None = None, accel_only: bool = True, sport: str = "pumpfoil", cache: dict | None = None, foil_band: str = "all", nur_gps: bool = False) -> dict:
     """Early Bird / Night Owl in echter Spot-ORTSZEIT (inkl. Sommerzeit), Python-seitig.
 
     Wert = Sekunden seit lokaler Mitternacht des Starts. Gerechnet wird auf den LAUF-Zeiten
@@ -471,7 +479,7 @@ def _time_record(db: Session, metric: str, cut: datetime | None, spot: str | Non
     """
     best: tuple | None = None
     for st, sid, name, place, avatar, preview, tzn, eb_val, no_val in _time_rows(
-            db, spot, viewer_id, accel_only, sport, cache, foil_band):
+            db, spot, viewer_id, accel_only, sport, cache, foil_band, nur_gps):
         if cut is not None and st < cut:
             continue
         val = eb_val if metric == "early_bird" else no_val
@@ -520,7 +528,7 @@ def _fill_carve_cache(db: Session) -> None:
 
 def _carve_record(db: Session, cut: datetime | None, spot: str | None = None, viewer_id: int | None = None,
                   accel_only: bool = True, sport: str = "pumpfoil", cache: dict | None = None,
-                  foil_band: str = "all") -> dict:
+                  foil_band: str = "all", nur_gps: bool = False) -> dict:
     """Meiste Carves über 180° im Zeitraum — je NUTZER, nicht je Session (Jans Vorgabe 16.08.).
 
     „Über 180°" = die gespeicherten Kategorien m (180–360°) + l (>360°); s (90–180°) bleibt draußen.
@@ -536,7 +544,7 @@ def _carve_record(db: Session, cut: datetime | None, spot: str | None = None, vi
         if cache is not None:
             cache["carve_cache"] = True
     total = func.coalesce(func.sum(AR.carve_m + AR.carve_l), 0)
-    q = _community(db.query(NAME, U.avatar_url, total), viewer_id, accel_only, sport)
+    q = _community(db.query(NAME, U.avatar_url, total), viewer_id, accel_only, sport, nur_gps=nur_gps)
     q = _band_filter(db, q, foil_band, viewer_id or 0)
     q = q.filter(AR.carve_m.isnot(None))
     if cut is not None:
@@ -1630,31 +1638,47 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
         # Profilseite rechnet nichts nach — sie liest, was da ist (geprueft 08.09.: 1787 von
         # 1787 community-sichtbaren Sessions haben den Cache, es fehlt nichts).
         #
-        # WELCHE BASIS? Das war erst falsch: die Seite rechnete mit `accel_only=False`, die
-        # Community-Seite zeigt aber per Vorbelegung nur die praezisen Accel-Aufnahmen. Ergebnis
-        # (Jans Befund 08.09.2026): Markus stand in den Community-Rekorden viermal, auf seiner
-        # Profilseite nur einmal — mit Accel-Filter haelt er runs/session_distance/session_pumps/
-        # carves180, ohne ihn nur session_pumps. Ein Titel, den die Bestenliste nicht bestaetigt,
-        # ist keiner. Also dieselbe Basis wie dort.
+        # ZWEI BASEN, zwei Zeilen (Jan, 08.09.2026). Vorgeschichte in einem Satz: erst rechnete
+        # die Seite ueber ALLE Aufnahmen, dann sah Jan, dass Markus in den Community-Rekorden
+        # viermal steht und auf seiner Profilseite einmal — die Bestenliste zeigt per Vorbelegung
+        # nur die praezisen Accel-Aufnahmen. Statt eine Basis zu waehlen und die andere Haelfte
+        # der Wahrheit zu verschweigen, liefert die Seite jetzt BEIDE: genau die zwei Zustaende,
+        # die der Umschalter auf der Community-Seite hat („nur Accel" / „alle"). Jeder Titel
+        # bleibt damit dort nachpruefbar — und Fahrer ohne Beschleunigungsdaten (Suunto/COROS/
+        # FIT-Importe, FR55) tauchen in der Zeile „alle" auf, statt titellos zu bleiben.
         #
-        # Die Ausnahme ist genau die, die die PWA fuer ihren Umschalter auch macht
-        # (`useAccelDefault` -> `loadHasAccel`): wer selbst KEINE Accel-Aufnahme hat (reine
-        # Konto-Importe von Suunto/COROS/FIT), sieht die Bestenliste ohne Filter — und fuer den
-        # rechnen wir hier auch ohne, sonst waere er strukturell titellos.
+        # Die zweite Zeile ist BEWUSST „nur GPS" und nicht „alle": `accel_only=False` ist nicht
+        # das Gegenteil von `True`, sondern die Summe aus beidem — dann stuende derselbe
+        # Accel-Rekord in beiden Zeilen und die zweite waere nichts als eine Wiederholung.
+        # Mit der disjunkten Haelfte vergleicht jede Zeile Gleiches mit Gleichem: eine Uhr ohne
+        # Bewegungssensor misst Strecke und Tempo, nur eben keine Pumps.
+        #
+        # `carve_cache` steht absichtlich vorab im Cache: `_carve_record` wuerde sonst
+        # `_fill_carve_cache` aufrufen und dabei fehlende Carve-Zahlen SCHREIBEN. Eine
+        # Profilseite rechnet nichts nach — sie liest, was da ist (geprueft 08.09.: 1787 von
+        # 1787 community-sichtbaren Sessions haben den Cache).
         mein = owner_label(u.display_name, u.id)
         cut = _cutoff("365d")
+        cache: dict = {"carve_cache": True}
+        titel: list[dict] = []
+        for basis, nur_accel, nur_gps in (("accel", True, False), ("gps", False, True)):
+            for m in METRICS:
+                e = _record_entry(db, m, cut, viewer_id=user.id, accel_only=nur_accel,
+                                  sport="pumpfoil", cache=cache, nur_gps=nur_gps)
+                if e.get("name") and e["name"] == mein:
+                    titel.append({"metric": m, "value": e["value"], "basis": basis,
+                                  "started_at": e.get("started_at"), "spot": e.get("spot"),
+                                  "session_id": e.get("session_id")})
+        raus["titel"] = titel
+
+        # Die Spot-Zeilen bleiben EINE Basis, sonst waeren es zwei Zeilen je Spot (bei Markus
+        # acht statt vier). Genommen wird die, die der Fahrer selbst auf der Community-Seite
+        # vorgesetzt bekaeme — dieselbe Regel wie in der PWA (`useAccelDefault` ->
+        # `loadHasAccel`): mit eigenen Accel-Aufnahmen der Filter, ohne sie ohne ihn.
         hat_accel = (_community(db.query(S.id), user.id, True, "pumpfoil")
                      .filter(S.user_id == u.id).first() is not None)
         basis_accel = bool(hat_accel)
         raus["titel_accel"] = basis_accel     # damit die Seite sagen kann, worauf sie sich beruft
-        cache: dict = {"carve_cache": True}
-        raus["titel"] = [
-            {"metric": m, "value": e["value"], "started_at": e.get("started_at"),
-             "spot": e.get("spot"), "session_id": e.get("session_id")}
-            for m, e in ((m, _record_entry(db, m, cut, viewer_id=user.id, accel_only=basis_accel,
-                                           sport="pumpfoil", cache=cache)) for m in METRICS)
-            if e.get("name") and e["name"] == mein
-        ]
 
         # Spot-Rekorde: EINE Abfrage je Kennzahl fuer ALLE Spots (Fensterfunktion), nicht eine
         # je Spot — sonst waeren es bei einem Vielreisenden hundert Abfragen. Sessions ohne
