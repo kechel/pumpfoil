@@ -250,22 +250,32 @@ export default function Foiler() {
                     unterscheidbar — Jan hat sofort gefragt, warum ein Rekord anders aussieht
                     (08.09.2026). Die Fuellfarbe bleibt, sie ist die Auszeichnung: ein
                     community-weiter Rekord ist mehr als ein Spot-Rekord. */}
-                {(d.titel?.length ?? 0) > 0 && (
-                  <Fragment key="__community">
-                    <Link to="/community"
-                          className="flex items-center gap-1 py-0.5 text-sm font-semibold text-slate-200 underline decoration-slate-500 hover:decoration-brand-400">
-                      <CommunityIcon className="h-4 w-4 shrink-0 text-slate-400" />{t("foiler.overall")}
-                    </Link>
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
-                      {d.titel!.map((x) => (
-                        <Link key={`c-${x.metric}`} to={x.session_id ? `/sessions/${x.session_id}` : "/community"}
-                              className="rounded-full bg-brand-500/15 px-2.5 py-0.5 text-sm text-brand-700 hover:bg-brand-500/25 dark:text-brand-300">
-                          {recLabel(x.metric, t)} <span className="font-semibold tabular-nums">{recWert(x.metric, x.value)}</span>
-                        </Link>
-                      ))}
-                    </div>
-                  </Fragment>
-                )}
+                {/* Zwei Zeilen fuer die community-weiten Titel (Jan, 08.09.2026): einmal unter
+                    den Aufnahmen MIT Bewegungssensor, einmal unter denen ohne. Die zweite Zeile
+                    ist bewusst „nur GPS" und nicht „alle" — sonst stuende derselbe Accel-Rekord
+                    zweimal da. So vergleicht jede Zeile Gleiches mit Gleichem, und eine Uhr ohne
+                    Sensor (oder ein Konto-Import) faellt nicht aus der Wertung. */}
+                {(["accel", "gps"] as const).map((basis) => {
+                  const liste = (d.titel ?? []).filter((x) => x.basis === basis);
+                  if (!liste.length) return null;
+                  return (
+                    <Fragment key={`b-${basis}`}>
+                      <Link to="/community" title={t(basis === "accel" ? "foiler.basisAccelTip" : "foiler.basisGpsTip")}
+                            className="flex items-center gap-1 py-0.5 text-sm font-semibold text-slate-200 underline decoration-slate-500 hover:decoration-brand-400">
+                        <CommunityIcon className="h-4 w-4 shrink-0 text-slate-400" />
+                        {t(basis === "accel" ? "foiler.basisAccel" : "foiler.basisGps")}
+                      </Link>
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+                        {liste.map((x) => (
+                          <Link key={`c-${basis}-${x.metric}`} to={x.session_id ? `/sessions/${x.session_id}` : "/community"}
+                                className="rounded-full bg-brand-500/15 px-2.5 py-0.5 text-sm text-brand-700 hover:bg-brand-500/25 dark:text-brand-300">
+                            {recLabel(x.metric, t)} <span className="font-semibold tabular-nums">{recWert(x.metric, x.value)}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    </Fragment>
+                  );
+                })}
                 {spotGruppen.map(([spot, liste]) => (
                   <Fragment key={spot}>
                     <Link to={`/sessions?spot=${liste[0].spot_id}`}

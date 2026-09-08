@@ -1674,7 +1674,10 @@ const nb: Record<string, string> = {
   "pubprof.channel": "YouTube-kanalen min",
   "foiler.onlyFoiler": "Eneste foiler på denne spoten",
   "foiler.titles": "Fellesskapsrekorder (12 måneder)",
-  "foiler.overall": "Totalt",
+  "foiler.basisAccel": "Accel + GPS",
+  "foiler.basisGps": "Bare GPS",
+  "foiler.basisAccelTip": "Rekorder blant alle opptak med bevegelsessensor",
+  "foiler.basisGpsTip": "Rekorder blant opptak uten bevegelsessensor — klokker i GPS-modus og kontoimport",
 };
 
 export default nb;
