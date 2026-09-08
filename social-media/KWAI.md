@@ -4,9 +4,14 @@ Kwai ist die kurze-Videos-App von Kuaishou und in Brasilien sehr gross: rund **6
 monatlich aktive Nutzer**, gut 75 Minuten am Tag. Anlass war die Frage, ob wir dort die
 juengere Zielgruppe erreichen, die auf Facebook fehlt.
 
-**Stand 07.09.2026: gescheitert am Regionsblock. App laeuft, Konto per Google-Login
-angelegt — aber der Kwai-Server antwortet aus Deutschland nicht.** Liegt auf Eis, bis ein
-VPN mit brasilianischem Ausgang oder eine brasilianische eSIM ausprobiert ist.
+**Stand 08.09.2026: der Regionsblock faellt mit VPN.** Ueber das eingebaute VPN in Opera
+ist `kwai.com` erreichbar, und die Anmeldung mit dem Google-Konto ging durch. Damit ist
+belegt, was vorher nur Vermutung war: der Block haengt an der IP, nicht am Konto und nicht
+am Geraet.
+
+Zum Hochladen reicht das aber noch nicht — siehe „Der Web-Zugang loest das Hochladen
+nicht" weiter unten. Der naechste Schritt ist dasselbe VPN auf dem Pixel 7a, wo die App
+schon liegt.
 
 ## Wem gehoert Kwai
 
@@ -54,6 +59,28 @@ Bleibt ein **VPN mit brasilianischem Ausgang** (dann durchgehend, „Always-on V
 „Verbindungen ohne VPN blockieren", und immer derselbe Standort — Kwais Betrugserkennung ist
 wegen des Bonus-Modells scharf) oder, vermutlich besser, eine **brasilianische eSIM**: echte
 Mobilfunk-IP statt Rechenzentrum, und je nach Tarif gleich eine Nummer fuer die SMS.
+
+### Der Web-Zugang loest das Hochladen nicht
+
+Am 08.09. per Opera-VPN auf `kwai.com` angemeldet. Das beweist den IP-Block — aber
+**kwai.com ist eine Schau-Seite, keine Studio-Oberflaeche.** Es gibt dort keinen
+Hochlade-Weg; saemtliche brasilianischen Anleitungen zu „postar pelo PC" laufen bis heute
+ueber einen Android-Emulator. Anders als bei RedNote, wo `creator.rednote.com` den Upload
+im Browser erlaubt, gibt es bei Kwai kein Gegenstueck.
+
+Der Wert des Web-Logins ist deshalb: **Beweis, dass es nur die IP ist**, und ein Blick auf
+den Kanal von aussen. Hochgeladen wird weiter aus der App.
+
+### Zwei Dinge, die beim VPN zaehlen
+
+- **Welcher Ausgang.** Opera bietet nur „Europa / Amerika / Asien", kein Land. „Amerika"
+  landet ueblicherweise in den USA — und Kwai-USA ist ein Bruchteil von Kwai-Brasilien.
+  Fuer einen Kanal, der auf Brasilien zielt, ist ein Ausgang in **Brasilien** noetig, sonst
+  bekommt das Konto von Anfang an das falsche Publikum zugewiesen.
+- **Immer derselbe.** Kwais Betrugserkennung ist wegen des Bonus-Modells scharf. Heute USA,
+  morgen Brasilien, uebermorgen eine deutsche Mobilfunk-IP ist genau das Muster, das dort
+  auffaellt. Besser einmal festlegen und dabei bleiben — was wiederum fuer die eSIM
+  spricht, sobald es ernst wird.
 
 ## Was fertig bereitliegt
 
