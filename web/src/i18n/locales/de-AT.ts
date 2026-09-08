@@ -1566,7 +1566,7 @@ const deAT: Record<string, string> = {
   "foiler.homespot": "Homespot",
   "foiler.watch": "Uhr",
   "foiler.foil": "Foil",
-  "foiler.records": "Rekorde der letzten 12 Monate",
+  "foiler.records": "Rekorde (12 Monate)",
   "foiler.notFound": "Diese Profilseite is net verfügbar.",
   "foiler.offHint": "Deine Profilseite is für andere ausgeblendet. Sichtbarkeit ändern:",
   "pubprof.title": "Öffentliche Profilseite",
@@ -1580,11 +1580,14 @@ const deAT: Record<string, string> = {
   "pubprof.records": "Rekorde der letzten 12 Monate",
   "pubprof.view": "Meine Profilseite anschauen",
   "foiler.media": "Medien",
-  "foiler.spotNotes": "Spots mit eigener Beschreibung",
+  "foiler.spotNotes": "Spot-Beschreibungen",
   "foiler.lastSessions": "Letzte Sessions",
   "pubprof.media": "Fotos und Videos an meine Sessions",
   "pubprof.spots": "Spots, die i beschrieben hab",
   "pubprof.sessions": "Meine letzten fünf Sessions",
+  "foiler.titles": "Hält aktuell diese Rekorde",
+  "foiler.spotTitles": "An einzelnen Spots",
+  "pubprof.titles": "Rekorde, die i aktuell halt",
 };
 
 export default deAT

@@ -1675,7 +1675,7 @@ const id: Record<string, string> = {
   "foiler.homespot": "Spot utama",
   "foiler.watch": "Jam",
   "foiler.foil": "Foil",
-  "foiler.records": "Rekor 12 bulan terakhir",
+  "foiler.records": "Rekor (12 bulan)",
   "foiler.notFound": "Halaman profil ini tidak tersedia.",
   "foiler.offHint": "Halaman profilmu disembunyikan dari orang lain. Ubah visibilitas:",
   "pubprof.title": "Halaman profil publik",
@@ -1689,11 +1689,14 @@ const id: Record<string, string> = {
   "pubprof.records": "Rekor 12 bulan terakhir",
   "pubprof.view": "Lihat halaman profilku",
   "foiler.media": "Media",
-  "foiler.spotNotes": "Spot dengan deskripsi",
+  "foiler.spotNotes": "Deskripsi spot",
   "foiler.lastSessions": "Sesi terakhir",
   "pubprof.media": "Foto dan video di sesiku",
   "pubprof.spots": "Spot yang sudah kudeskripsikan",
   "pubprof.sessions": "Lima sesi terakhirku",
+  "foiler.titles": "Saat ini memegang rekor ini",
+  "foiler.spotTitles": "Di spot tertentu",
+  "pubprof.titles": "Rekor yang sedang kupegang",
 };
 
 export default id;

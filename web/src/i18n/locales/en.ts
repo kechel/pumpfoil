@@ -1739,7 +1739,7 @@ const en: Record<string, string> = {
   "foiler.homespot": "Home spot",
   "foiler.watch": "Watch",
   "foiler.foil": "Foil",
-  "foiler.records": "Records from the last 12 months",
+  "foiler.records": "Records (12 months)",
   "foiler.notFound": "This profile page is not available.",
   "foiler.offHint": "Your profile page is hidden from others. Change visibility:",
   "pubprof.title": "Public profile page",
@@ -1753,11 +1753,14 @@ const en: Record<string, string> = {
   "pubprof.records": "Records from the last 12 months",
   "pubprof.view": "View my profile page",
   "foiler.media": "Media",
-  "foiler.spotNotes": "Spots with a description",
+  "foiler.spotNotes": "Spot descriptions",
   "foiler.lastSessions": "Latest sessions",
   "pubprof.media": "Photos and videos on my sessions",
   "pubprof.spots": "Spots I have described",
   "pubprof.sessions": "My last five sessions",
+  "foiler.titles": "Currently holds these records",
+  "foiler.spotTitles": "At individual spots",
+  "pubprof.titles": "Records I currently hold",
 };
 
 export default en;

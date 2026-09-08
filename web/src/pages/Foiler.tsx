@@ -20,8 +20,8 @@ import { Lightbox, LightboxPhoto } from "../components/Lightbox";
 import { VideoModal, ytId } from "../components/VideoModal";
 import { SessionStats } from "./Sessions";
 import { foilLabel } from "../lib/foilLabel";
-import { useT, useNumberFormat } from "../i18n";
-import { fmtDate } from "../lib/time";
+import { useI18n, useNumberFormat } from "../i18n";
+import { REC_ITEMS } from "./Home";
 
 // Bewusst dieselbe Formel wie auf der eigenen Startseite (`PersonalHome.fmtDur`) — eine zweite
 // Schreibweise fuer dieselbe Zahl liest sich wie ein anderer Wert.
@@ -30,6 +30,12 @@ function fmtDur(min: number): string {
   const m = Math.round(min % 60);
   return h > 0 ? `${h} h ${m} min` : `${m} min`;
 }
+
+// Label und Wert einer Rekord-Kennzahl — dieselbe Quelle wie die Community-Kacheln.
+const recLabel = (metric: string, t: (k: string) => string) =>
+  t(REC_ITEMS.find((x) => x.key === metric)?.labelKey ?? metric);
+const recWert = (metric: string, v: number) =>
+  REC_ITEMS.find((x) => x.key === metric)?.fmt(v) ?? String(v);
 
 // Setup-Labels wie in der eigenen Sessionliste — die Karte formatiert nichts selbst.
 const setupLabels = (s: { setup?: { stab?: { brand: string; model: string; size: string } | null;
@@ -42,8 +48,20 @@ const setupLabels = (s: { setup?: { stab?: { brand: string; model: string; size:
 
 export default function Foiler() {
   const { id } = useParams();
-  const t = useT();
+  const { t, lang } = useI18n();
   const nf = useNumberFormat();
+  // Datumsangaben in der PROFILSPRACHE, nicht in der des Browsers (Jan, 08.09.2026): sonst
+  // stand auf der englischen Seite „20. Juni 2026", weil `toLocaleDateString(undefined, …)`
+  // die Browser-Sprache nimmt. Zeitzone bleibt die des Spots, wo wir sie kennen.
+  const datum = (iso: string | null | undefined, tz?: string | null,
+                 opts: Intl.DateTimeFormatOptions = { day: "2-digit", month: "2-digit", year: "2-digit" }) => {
+    if (!iso) return "";
+    try {
+      return new Intl.DateTimeFormat(lang, { ...opts, timeZone: tz ?? undefined }).format(new Date(iso));
+    } catch {
+      return new Date(iso).toLocaleDateString(undefined, opts);
+    }
+  };
   const [d, setD] = useState<Awaited<ReturnType<typeof api.foilerProfil>> | null>(null);
   const [fehler, setFehler] = useState(false);
   // Galerie: Index im FOTO-Array (Videos sind nicht Teil der Galerie, die laufen im Player).
@@ -111,7 +129,7 @@ export default function Foiler() {
           <h1 className="truncate text-xl font-bold">{d.name ?? "—"}</h1>
           {d.seit && (
             <p className="text-sm text-slate-400">
-              {t("foiler.since", { date: fmtDate(d.seit, null, { day: "2-digit", month: "long", year: "numeric" }) })}
+              {t("foiler.since", { date: datum(d.seit, null, { day: "2-digit", month: "long", year: "numeric" }) })}
             </p>
           )}
         </div>
@@ -124,7 +142,7 @@ export default function Foiler() {
         {d.homespot && (
           <>
             <span className="text-slate-400">{t("foiler.homespot")}:</span>
-            <span className="text-slate-300">
+            <span className="font-semibold text-slate-200">
               {/* Der Homespot verlinkt auf den Spot, wenn wir ihn zuordnen konnten. */}
               {d.homespot_id
                 ? <Link to={`/sessions?spot=${d.homespot_id}`} className="underline decoration-slate-500 hover:decoration-brand-400">{d.homespot}</Link>
@@ -135,13 +153,13 @@ export default function Foiler() {
         {d.uhren && d.uhren.length > 0 && (
           <>
             <span className="text-slate-400">{t("foiler.watch")}:</span>
-            <span className="text-slate-300">{d.uhren.join(" · ")}</span>
+            <span className="font-semibold text-slate-200">{d.uhren.join(" · ")}</span>
           </>
         )}
         {d.foils && d.foils.length > 0 && (
           <>
             <span className="text-slate-400">{t("foiler.foil")}:</span>
-            <span className="text-slate-300">{d.foils.map((f) => `${f.brand} ${f.model} ${f.size}`).join(" · ")}</span>
+            <span className="font-semibold text-slate-200">{d.foils.map((f) => `${f.brand} ${f.model} ${f.size}`).join(" · ")}</span>
           </>
         )}
       </div>
@@ -158,7 +176,7 @@ export default function Foiler() {
                 </div>
                 {x.wert && x.wert > 0 && x.datum && (
                   <div className="text-[10px] leading-tight tabular-nums text-slate-500">
-                    {fmtDate(x.datum, x.tz ?? null, { day: "2-digit", month: "2-digit", year: "2-digit" })}
+                    {datum(x.datum, x.tz ?? null)}
                   </div>
                 )}
               </Card>
@@ -171,6 +189,38 @@ export default function Foiler() {
             ))}
           </div>
         </>
+      )}
+
+      {/* Rekorde, die er AKTUELL haelt — community-weit und je Spot, Fenster fest 12 Monate.
+          Label und Formatierung kommen aus REC_ITEMS (Home.tsx), damit derselbe Rekord hier
+          und auf der Community-Seite nicht mit zwei verschiedenen Zahlen steht. */}
+      {d.zeigt.titles && ((d.titel?.length ?? 0) > 0 || (d.spot_titel?.length ?? 0) > 0) && (
+        <div className="mt-6">
+          <h2 className="mb-2 text-sm font-semibold text-slate-200">{t("foiler.titles")}</h2>
+          {(d.titel?.length ?? 0) > 0 && (
+            <div className="mb-2 flex flex-wrap gap-2">
+              {d.titel!.map((x) => (
+                <Link key={`c-${x.metric}`} to="/community"
+                      className="rounded-full bg-brand-500/15 px-3 py-1 text-sm text-brand-700 hover:bg-brand-500/25 dark:text-brand-300">
+                  {recLabel(x.metric, t)} <span className="font-semibold tabular-nums">{recWert(x.metric, x.value)}</span>
+                </Link>
+              ))}
+            </div>
+          )}
+          {(d.spot_titel?.length ?? 0) > 0 && (
+            <>
+              <p className="mb-1 text-sm text-slate-400">{t("foiler.spotTitles")}</p>
+              <div className="flex flex-wrap gap-2">
+                {d.spot_titel!.map((x, i) => (
+                  <Link key={`s-${x.spot_id}-${x.metric}-${i}`} to={`/sessions?spot=${x.spot_id}`}
+                        className="rounded-full border border-slate-700 px-3 py-1 text-sm text-slate-300 hover:border-brand-400 hover:text-brand-300">
+                    {x.spot} · {recLabel(x.metric, t)} <span className="font-semibold tabular-nums">{recWert(x.metric, x.value)}</span>
+                  </Link>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       )}
 
       {/* Medien einzeilig als Karussell (Jan, 08.09.2026): waagerecht scrollbar, unter jeder
@@ -220,7 +270,7 @@ export default function Foiler() {
                     )}
                   </span>
                   <span className="mt-1 block text-center text-xs tabular-nums text-slate-400">
-                    {m.started_at ? fmtDate(m.started_at, null, { day: "2-digit", month: "2-digit", year: "2-digit" }) : ""}
+                    {datum(m.started_at)}
                   </span>
                 </button>
               );

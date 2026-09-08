@@ -1675,7 +1675,7 @@ const ru: Record<string, string> = {
   "foiler.homespot": "Домашний спот",
   "foiler.watch": "Часы",
   "foiler.foil": "Фойл",
-  "foiler.records": "Рекорды за последние 12 месяцев",
+  "foiler.records": "Рекорды (12 месяцев)",
   "foiler.notFound": "Эта страница профиля недоступна.",
   "foiler.offHint": "Ваша страница профиля скрыта от других. Изменить видимость:",
   "pubprof.title": "Публичная страница профиля",
@@ -1689,11 +1689,14 @@ const ru: Record<string, string> = {
   "pubprof.records": "Рекорды за последние 12 месяцев",
   "pubprof.view": "Открыть мою страницу профиля",
   "foiler.media": "Медиа",
-  "foiler.spotNotes": "Споты с описанием",
+  "foiler.spotNotes": "Описания спотов",
   "foiler.lastSessions": "Последние сессии",
   "pubprof.media": "Фото и видео к моим сессиям",
   "pubprof.spots": "Споты, которые я описал",
   "pubprof.sessions": "Мои последние пять сессий",
+  "foiler.titles": "Сейчас держит эти рекорды",
+  "foiler.spotTitles": "На отдельных спотах",
+  "pubprof.titles": "Рекорды, которые я держу",
 };
 
 export default ru;

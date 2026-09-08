@@ -1520,15 +1520,16 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
                 break
         raus["uhren"] = namen
     if sicht.get("foil"):
-        # Die zuletzt gefahrenen zwei Foils (Jan, 08.09.2026) — nicht die meistgefahrenen: wer
-        # den Fluegel gewechselt hat, faehrt heute den neuen, und danach fragt die Seite.
+        # ALLE gefahrenen Foils, zuletzt benutztes zuerst (Jan, 08.09.2026 — erst zwei, dann
+        # doch alle). Sortiert wird nach der letzten Fahrt, nicht nach Haeufigkeit: wer den
+        # Fluegel gewechselt hat, faehrt heute den neuen, und danach fragt die Seite.
         reihen = (db.query(models.Foil.brand, models.Foil.model, models.Foil.size,
                            func.max(models.Session.started_at))
                   .join(models.Session, models.Session.foil_id == models.Foil.id)
                   .filter(models.Session.user_id == u.id,
                           models.Session.deleted == False)  # noqa: E712
                   .group_by(models.Foil.brand, models.Foil.model, models.Foil.size)
-                  .order_by(func.max(models.Session.started_at).desc()).limit(2).all())
+                  .order_by(func.max(models.Session.started_at).desc()).all())
         raus["foils"] = [{"brand": b, "model": m, "size": g} for b, m, g, _ in reihen]
     if sicht.get("records"):
         # Genau wie die eigene Startseite: `accel_only=False` (dort ist der Umschalter
@@ -1595,6 +1596,59 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
                                             models.Spot.merged_into.is_(None))
                                     .order_by(SN.updated_at.desc()).limit(50).all())
         ]
+
+    if sicht.get("titles"):
+        # „Haelt aktuell diese Rekorde" — Community-weit und je Spot, Fenster fest 12 Monate
+        # (Jan, 08.09.2026). Verglichen wird ueber den Anzeigenamen: `owner_label` ist
+        # deterministisch und Anzeigenamen sind eindeutig (ix_users_display_name).
+        #
+        # Basis sind ALLE Aufnahmen (`accel_only=False`), wie bei den Rekord-Kacheln oben auf
+        # dieser Seite. Die Community-Seite ist per Vorbelegung auf „nur Accel" — ein Titel hier
+        # kann dort deshalb einem anderen gehoeren. Andersherum waere schlimmer: Konto-Importe
+        # (Suunto/COROS/FIT) bringen keine Beschleunigungsdaten mit, und diese Fahrer koennten
+        # dann grundsaetzlich keinen Rekord halten, obwohl wir sie zum Importieren einladen.
+        #
+        # Bewusst NUR die Spalten-Rekorde (REC_COL): `early_bird`/`night_owl` brauchen
+        # `_time_rows` (laedt alle segments_json des Jahres, ~200 ms), und `carves180` fuellt
+        # dabei sogar einen Cache in der DB — beides hat auf einer Profilseite nichts zu suchen.
+        mein = owner_label(u.display_name, u.id)
+        cut = _cutoff("365d")
+        titel: list[dict] = []
+        for m in REC_COL:
+            e = _record_entry(db, m, cut, viewer_id=user.id, accel_only=False, sport="pumpfoil")
+            if e.get("name") and e["name"] == mein:
+                titel.append({"metric": m, "value": e["value"], "started_at": e.get("started_at"),
+                              "spot": e.get("spot"), "session_id": e.get("session_id")})
+        raus["titel"] = titel
+
+        # Spot-Rekorde: EINE Abfrage je Kennzahl fuer ALLE Spots (Fensterfunktion), nicht eine
+        # je Spot — sonst waeren es bei einem Vielreisenden hundert Abfragen. Nur die fuenf
+        # Lauf-Rekorde; Sessions ohne `spot_id` bleiben draussen, die haetten keinen Link.
+        spot_titel: list[dict] = []
+        for m in ("distance", "duration", "speed", "glide", "runs"):
+            valcol, _ = REC_COL[m]
+            rn = func.row_number().over(partition_by=S.spot_id, order_by=valcol.desc()).label("rn")
+            sub = _community(db.query(S.spot_id.label("sid"), S.user_id.label("uid"),
+                                      valcol.label("val"), S.started_at.label("st"),
+                                      S.id.label("session_id"), rn),
+                             user.id, False, "pumpfoil")
+            sub = sub.filter(valcol > 0, S.spot_id.isnot(None))
+            if cut is not None:
+                sub = sub.filter(S.started_at >= cut)
+            sub = sub.subquery()
+            for sid, val, st, ses_id in (db.query(sub.c.sid, sub.c.val, sub.c.st, sub.c.session_id)
+                                         .filter(sub.c.rn == 1, sub.c.uid == u.id).all()):
+                spot_titel.append({"metric": m, "value": round(float(val), 2), "spot_id": int(sid),
+                                   "started_at": st.isoformat() if st else None,
+                                   "session_id": ses_id})
+        if spot_titel:
+            namen = dict(db.query(models.Spot.id, models.Spot.name)
+                         .filter(models.Spot.id.in_({x["spot_id"] for x in spot_titel})).all())
+            for x in spot_titel:
+                x["spot"] = namen.get(x["spot_id"]) or "—"
+            # Nach Spot gruppiert lesbar halten: gleiche Spots beieinander, staerkste zuerst.
+            spot_titel.sort(key=lambda x: (x["spot"], x["metric"]))
+        raus["spot_titel"] = spot_titel
 
     if sicht.get("sessions"):
         # Die letzten FUENF, in derselben Form wie die eigene Sessionliste (dieselbe Karte im

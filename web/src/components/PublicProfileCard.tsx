@@ -15,7 +15,7 @@ import { useT } from "../i18n";
 
 type Schalter = { enabled: boolean; join: boolean; watch: boolean; foil: boolean;
                   homespot: boolean; records: boolean; media: boolean; spots: boolean;
-                  sessions: boolean };
+                  sessions: boolean; titles: boolean };
 
 const FELDER: { key: keyof Omit<Schalter, "enabled">; label: string }[] = [
   { key: "join", label: "pubprof.join" },
@@ -26,6 +26,7 @@ const FELDER: { key: keyof Omit<Schalter, "enabled">; label: string }[] = [
   { key: "media", label: "pubprof.media" },
   { key: "spots", label: "pubprof.spots" },
   { key: "sessions", label: "pubprof.sessions" },
+  { key: "titles", label: "pubprof.titles" },
 ];
 
 export function PublicProfileCard({ onSaved }: { onSaved?: () => void }) {
@@ -41,6 +42,7 @@ export function PublicProfileCard({ onSaved }: { onSaved?: () => void }) {
         enabled: p.enabled !== false, join: p.join !== false, watch: p.watch !== false,
         foil: p.foil !== false, homespot: p.homespot !== false, records: p.records !== false,
         media: p.media !== false, spots: p.spots !== false, sessions: p.sessions !== false,
+        titles: p.titles !== false,
       });
     }).catch(() => {});
     api.getProfile().then((p) => setId(p.id || null)).catch(() => {});

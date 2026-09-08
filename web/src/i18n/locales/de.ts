@@ -1794,7 +1794,7 @@ const de: Record<string, string> = {
   "foiler.homespot": "Homespot",
   "foiler.watch": "Uhr",
   "foiler.foil": "Foil",
-  "foiler.records": "Rekorde der letzten 12 Monate",
+  "foiler.records": "Rekorde (12 Monate)",
   "foiler.notFound": "Diese Profilseite ist nicht verfügbar.",
   "foiler.offHint": "Deine Profilseite ist für andere ausgeblendet. Sichtbarkeit ändern:",
   "pubprof.title": "Öffentliche Profilseite",
@@ -1808,11 +1808,14 @@ const de: Record<string, string> = {
   "pubprof.records": "Rekorde der letzten 12 Monate",
   "pubprof.view": "Meine Profilseite ansehen",
   "foiler.media": "Medien",
-  "foiler.spotNotes": "Spots mit eigener Beschreibung",
+  "foiler.spotNotes": "Spot-Beschreibungen",
   "foiler.lastSessions": "Letzte Sessions",
   "pubprof.media": "Fotos und Videos an meinen Sessions",
   "pubprof.spots": "Spots, die ich beschrieben habe",
   "pubprof.sessions": "Meine letzten fünf Sessions",
+  "foiler.titles": "Hält aktuell diese Rekorde",
+  "foiler.spotTitles": "An einzelnen Spots",
+  "pubprof.titles": "Rekorde, die ich aktuell halte",
 };
 
 export default de;

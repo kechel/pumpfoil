@@ -1672,7 +1672,7 @@ const zh: Record<string, string> = {
   "foiler.homespot": "主玩点",
   "foiler.watch": "手表",
   "foiler.foil": "水翼",
-  "foiler.records": "近 12 个月的记录",
+  "foiler.records": "记录（12 个月）",
   "foiler.notFound": "该个人主页不可用。",
   "foiler.offHint": "你的个人主页对其他人隐藏。修改可见性:",
   "pubprof.title": "公开个人主页",
@@ -1686,11 +1686,14 @@ const zh: Record<string, string> = {
   "pubprof.records": "近 12 个月的记录",
   "pubprof.view": "查看我的个人主页",
   "foiler.media": "媒体",
-  "foiler.spotNotes": "写过说明的地点",
+  "foiler.spotNotes": "地点说明",
   "foiler.lastSessions": "最近的活动",
   "pubprof.media": "我的活动照片和视频",
   "pubprof.spots": "我写过说明的地点",
   "pubprof.sessions": "我最近的五次活动",
+  "foiler.titles": "目前保持的记录",
+  "foiler.spotTitles": "各个地点",
+  "pubprof.titles": "我目前保持的记录",
 };
 
 export default zh;

@@ -1728,7 +1728,7 @@ const cs: Record<string, string> = {
   "foiler.homespot": "Domácí spot",
   "foiler.watch": "Hodinky",
   "foiler.foil": "Foil",
-  "foiler.records": "Rekordy za posledních 12 měsíců",
+  "foiler.records": "Rekordy (12 měsíců)",
   "foiler.notFound": "Tato profilová stránka není dostupná.",
   "foiler.offHint": "Tvoje profilová stránka je pro ostatní skrytá. Změnit viditelnost:",
   "pubprof.title": "Veřejná profilová stránka",
@@ -1742,11 +1742,14 @@ const cs: Record<string, string> = {
   "pubprof.records": "Rekordy za posledních 12 měsíců",
   "pubprof.view": "Zobrazit moji profilovou stránku",
   "foiler.media": "Média",
-  "foiler.spotNotes": "Popsané spoty",
+  "foiler.spotNotes": "Popisy spotů",
   "foiler.lastSessions": "Poslední sessions",
   "pubprof.media": "Fotky a videa u mých sessions",
   "pubprof.spots": "Spoty, které jsem popsal",
   "pubprof.sessions": "Mých posledních pět sessions",
+  "foiler.titles": "Aktuálně drží tyto rekordy",
+  "foiler.spotTitles": "Na jednotlivých spotech",
+  "pubprof.titles": "Rekordy, které právě držím",
 };
 
 export default cs;
