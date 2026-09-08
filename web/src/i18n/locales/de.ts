@@ -1813,7 +1813,7 @@ const de: Record<string, string> = {
   "pubprof.media": "Fotos und Videos an meinen Sessions",
   "pubprof.spots": "Spots, die ich beschrieben habe",
   "pubprof.sessions": "Meine letzten fünf Sessions",
-  "foiler.titles": "Hält aktuell diese Rekorde",
+  "foiler.titles": "Hält aktuell diese Rekorde (12 Monate)",
   "foiler.spotTitles": "An einzelnen Spots",
   "pubprof.titles": "Rekorde, die ich aktuell halte",
 };
