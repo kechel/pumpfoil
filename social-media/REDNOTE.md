@@ -146,3 +146,46 @@ liegt, stehen Titel und Text im Studio.
   Fontaene). Dateinamen sind hier keine verlaessliche Quelle — vor der Auswahl ins Bild sehen.
 - Das Outro ist bei 80 % Deckkraft ueber hellem Wasser schwer zu lesen. Fuer helle Videos
   lohnt es, die Deckkraft in der Tab-Zeile auf 100 % zu stellen (gilt ab dem naechsten Render).
+
+## Erste Zahlen (09.09.2026, 12 Beitraege, Tag 3)
+
+Aus 笔记管理 abgelesen — eine API gibt es nicht, die Liste wird von Hand kopiert.
+Spalten dort: 👁 Aufrufe · 💬 Kommentare · ❤️ Likes · ⭐ 收藏 · ↗️ Geteilt.
+
+| Titel | 👁 | ❤️ | ⭐ | ↗️ |
+|---|---|---|---|---|
+| 在水翼上贴丝线，看清水流走向 🌊 | **261** | 4 | 1 | 1 |
+| 子弹时间…水翼不停泵动 (2 h alt) | 24 | 0 | 0 | 0 |
+| 和菲尔一起水上翼板 | 8 | 0 | 0 | 0 |
+| 日食之下的水上滑行 | 7 | 0 | 0 | 0 |
+| 悠闲晨练 | 7 | 1 | 0 | 1 |
+| 避免通气失速 | 6 | 0 | 0 | 0 |
+| 慢动作刻雕翻车集 | 5 | 0 | 0 | 0 |
+| 水翼上贴毛线：240fps (1 h alt) | 4 | 0 | 0 | 0 |
+| 镜面水域，云影倒映 | 2 | 0 | 1 | 0 |
+| 和朋友一起下水 | 2 | 0 | 0 | 0 |
+| 连续四次干净的入水起步 | 0 | 1 | 1 | 0 |
+
+**Ein Beitrag traegt 80 % der Aufrufe.** Das ist hier kein Rauschen: dieselbe Nacht,
+dasselbe Konto, dieselbe Followerzahl — die Nachbarn liegen bei 2 bis 8, dieser bei 261.
+Faktor 30 aus derselben Ausgangslage heisst, dass etwas ihn aufgegriffen hat, auf einer
+Such-Plattform am ehesten die Suche selbst.
+
+**Erstes pruefbares Muster: 水翼 im Titel.** Die drei oberen Plaetze haben das Wort, die
+unteren fuenf nicht. Der Gegentest kostet nichts, also gilt ab jetzt: **水翼 gehoert in
+jeden Titel** — es ist der Wortstamm, den die Suche findet (水翼 = Wasserfluegel/Foil,
+水翼板 = Foilboard, 无动力水翼板 = unser Begriff fuer Pumpfoil, enthaelt beide).
+
+**Vorsicht beim Nachbearbeiten:** eine Aenderung an einem veroeffentlichten Beitrag schickt
+ihn erneut durch 审核 und nimmt ihn waehrenddessen aus der Suche. Wenige pro Tag, nicht
+alle auf einmal — eine Massenaenderung sieht nach Manipulation aus.
+
+**Im Studio erledigt (09.09.):** `mit_suchwort()` in `shorts-musik.py` haengt den Begriff an
+jeden RedNote-Titel, der ihn nicht ohnehin traegt — als `｜无动力水翼板`, und wenn die 20
+Zeichen nicht reichen, als `｜水翼`. Angehaengt statt vorangestellt, weil ein Praefix den
+Satzbau kippt (`水翼和朋友一起下水` statt `和朋友一起玩水翼`) und der ｜-Zusatz nie. Wirkt
+rueckwirkend fuer alle Exporte, kein zusaetzlicher Modellaufruf.
+
+Am selben Abend nachgetragen: `140` (日落, erster Beitrag mit korrigiertem Titel) stand nach
+einer Stunde bei 11 Aufrufen und **2 收藏 bei 0 Likes** — die einzige Zahl bisher, bei der
+gespeichert statt nur geherzt wurde.
