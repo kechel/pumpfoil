@@ -135,22 +135,36 @@ const OUTRO_ICONS: Record<PvPlatform, [string, string][]> = {
     // haengt er am Ende des vorigen.
     ["M15 3l3 3-3 3M6 20a4 4 0 0 1-4-4V9a3 3 0 0 1 3-3h13M9 21l-3-3 3-3M18 4a4 4 0 0 1 4 4v7a3 3 0 0 1-3 3H6", "reshare"],
   ],
+  // TikTok zeichnet GEFUELLTE Symbole, nicht konturierte (siehe OUTRO_FILL).
+  // Die Sprechblase bekommt ihre drei Punkte als eigene Kreise im selben Pfad
+  // — mit der Even-Odd-Regel stanzen sie sich aus der Flaeche heraus.
   tiktok: [
     ["M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z", "heart"],
-    ["M7.9 20A9 9 0 1 0 4 16.1L2 22Z", "comment"],
-    // Teilen, nicht Repost: in TikToks Leiste stehen Herz, Sprechblase,
-    // Lesezeichen und Teilen-Pfeil — einen Repost-Knopf gibt es dort nicht
-    // (Jans Bildschirmfoto, 08.09.). Derselbe Pfeil wie bei YouTube.
+    ["M7.9 20A9 9 0 1 0 4 16.1L2 22Z"
+     + "M6.6 11a1.4 1.4 0 1 0 2.8 0a1.4 1.4 0 1 0-2.8 0"
+     + "M10.6 11a1.4 1.4 0 1 0 2.8 0a1.4 1.4 0 1 0-2.8 0"
+     + "M14.6 11a1.4 1.4 0 1 0 2.8 0a1.4 1.4 0 1 0-2.8 0", "comment"],
     ["M14 7V3l7 7-7 7v-4.1c-5 0-8.5 1.6-11 5.1 1-5 4-10 11-11z", "share"],
   ],
 };
 
-function drawIconPath(g: CanvasRenderingContext2D, d: string, x: number, y: number, size: number) {
+// TikTok zeichnet seine Leiste gefuellt, YouTube und Instagram konturiert.
+// Ueber Videomaterial sind gefuellte Formen sogar besser lesbar — Kontur ist
+// hier keine Design-Entscheidung, sondern schlicht das, was die App zeigt.
+const OUTRO_FILL: Record<PvPlatform, boolean> = {
+  youtube: false, instagram: false, tiktok: true,
+};
+
+function drawIconPath(g: CanvasRenderingContext2D, d: string, x: number, y: number,
+                      size: number, fuellen = false) {
   g.save();
   g.translate(x, y);
   g.scale(size / 24, size / 24);
   g.lineWidth = 2;
-  g.stroke(new Path2D(d));
+  // evenodd: die Punkte der Sprechblase liegen als eigene Kreise im selben
+  // Pfad und stanzen sich damit aus der Flaeche.
+  if (fuellen) g.fill(new Path2D(d), "evenodd");
+  else g.stroke(new Path2D(d));
   g.restore();
 }
 
@@ -541,7 +555,9 @@ function Studio() {
     let x = (w - total) / 2;
     // YT: unteres Drittel wie gehabt; IG/TikTok: exakt mittig (Safe-Space)
     const y = pf === "youtube" ? h * 0.68 : h / 2 - size / 2;
+    const fuellen = OUTRO_FILL[pf];
     g.strokeStyle = "#fff";
+    g.fillStyle = "#fff";
     g.shadowColor = "rgba(0,0,0,0.7)";
     g.shadowBlur = 8;
     g.shadowOffsetX = 2;
@@ -549,7 +565,7 @@ function Studio() {
     g.lineCap = "round";
     g.lineJoin = "round";
     for (const [d] of items) {
-      drawIconPath(g, d, x, y, size);
+      drawIconPath(g, d, x, y, size, fuellen);
       x += size + gap;
     }
     return flatten(c, txAlpha);
