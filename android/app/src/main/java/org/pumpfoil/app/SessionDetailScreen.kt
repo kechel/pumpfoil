@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -992,7 +993,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                     // Vollbild als Dialog: die Karte bleibt vollstaendig bedienbar (Lauf antippen,
                     // Farb-Modus wirkt weiter), nur ohne den uebrigen Seiteninhalt.
                     Dialog(onDismissRequest = { mapFull = false },
-                           properties = DialogProperties(usePlatformDefaultWidth = false)) {
+                           properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
                         Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
                             TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps, win,
                                 if (showAttempts) attempts.orEmpty() else emptyList(),
@@ -1001,7 +1002,9 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                                 Modifier.fillMaxSize())
                             IconButton(
                                 onClick = { mapFull = false },
-                                modifier = Modifier.align(Alignment.TopEnd).padding(12.dp).size(40.dp)
+                                // Karte bleibt randlos, das X nicht — sonst liegt es unter der Statusleiste.
+                                modifier = Modifier.align(Alignment.TopEnd).statusBarsPadding()
+                                    .padding(12.dp).size(40.dp)
                                     .background(Color.Black.copy(alpha = 0.5f), CircleShape),
                             ) {
                                 Icon(Icons.Filled.Close, contentDescription = I18n.t("sd.close"),
@@ -1914,7 +1917,7 @@ private fun StatGrid(stats: List<StatItem>, selected: Int? = null, onSelect: (In
 @Composable
 private fun PhotoLightbox(photos: List<SessionPhoto>, startIdx: Int, onClose: () -> Unit) {
     if (photos.isEmpty()) return
-    Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+    Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         val pager = rememberPagerState(
             initialPage = startIdx.coerceIn(0, photos.size - 1), pageCount = { photos.size })
         Box(
@@ -1930,7 +1933,8 @@ private fun PhotoLightbox(photos: List<SessionPhoto>, startIdx: Int, onClose: ()
                 )
             }
             // Sichtbares Schließen-X (zusätzlich zu Zurück/Tippen).
-            IconButton(onClick = onClose, modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)) {
+            IconButton(onClick = onClose,
+                       modifier = Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(8.dp)) {
                 Icon(Icons.Filled.Close, contentDescription = I18n.t("common.cancel"), tint = Color.White)
             }
         }

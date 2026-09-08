@@ -18,8 +18,10 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -237,13 +239,15 @@ internal fun SocialPlayerOverlay(z: SocialFeedZustand) {
     // das Fenster als Ursache der schwarzen Flaeche verdaechtigt. Es war die Groesse (das iframe
     // war 0 hoch). Deshalb ist der Weg jetzt wieder frei — die Zurueck-Taste erledigt
     // `onDismissRequest`, ein eigener BackHandler ist dafuer nicht mehr noetig.
-    Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+    Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         Box(Modifier.fillMaxSize().background(Color.Black)) {
             // Kein oberer Rand mehr fuer das X (Jan, 02.09.: „kann das Video bis nach ganz oben
             // gehen? fuer das X ist daneben genug Platz"). Das X schwebt jetzt UEBER dem Video —
             // moeglich, weil unsere Clips hochkant sind und rechts oben ohnehin Rand bleibt.
             // Unten nur noch ein Hauch Abstand zur Fusszeile.
-            Column(Modifier.fillMaxSize().padding(bottom = 2.dp)) {
+            // Schwarz bis unter die Leisten, Inhalt nicht: die Fusszeile lag sonst unter der
+            // Navigationsleiste.
+            Column(Modifier.fillMaxSize().navigationBarsPadding().padding(bottom = 2.dp)) {
                 Box(
                     // Nur ein Hauch Seitenrand (vorher 52 dp fuer die Pfeile). Der Player
                     // letterboxt hochkant aufgenommene Clips: passt das Video in die Breite,
@@ -318,7 +322,8 @@ internal fun SocialPlayerOverlay(z: SocialFeedZustand) {
                     }
                 }
             }
-            IconButton(onClick = onClose, modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)) {
+            IconButton(onClick = onClose,
+                       modifier = Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(8.dp)) {
                 Icon(Icons.Filled.Close, contentDescription = I18n.t("common.close"), tint = Color.White)
             }
             if (hatZurueck) {
