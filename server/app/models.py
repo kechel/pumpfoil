@@ -9,6 +9,7 @@ from __future__ import annotations
 from datetime import date, datetime, timezone
 
 from sqlalchemy import (
+    BigInteger,
     Boolean,
     Date,
     DateTime,
@@ -1159,6 +1160,35 @@ class NewsBanner(Base):
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, server_default="1")
     text_json: Mapped[str | None] = mapped_column(Text)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+class SpeicherStand(Base):
+    """Wie viel Platz das Projekt belegt — EINE Zeile je Tag, fuer den Verlauf.
+
+    Warum eine Tabelle und nicht bei jedem Aufruf gemessen: `server/data` besteht aus rund
+    620.000 Dateien (GPS-Haeppchen, Accel-Rohdaten, Original-Uploads). Sie zu summieren dauert
+    ~1,7 s und liest das halbe Verzeichnis — das darf nicht am Oeffnen einer Admin-Seite haengen.
+    Der Zeitgeber schreibt einmal taeglich, der Bildschirm liest die letzte Zeile.
+
+    `db_tabellen_json` haelt die groessten Tabellen als [[name, bytes], …]. Ohne die sagt eine
+    wachsende Datenbank nur, DASS sie waechst; mit ihr sieht man, wo (aktuell:
+    `analysis_results` 278 MB, `ingest_chunks` 56 MB von 360 MB).
+    """
+
+    __tablename__ = "speicher_stand"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    tag: Mapped[date] = mapped_column(Date, unique=True, index=True)
+    db_bytes: Mapped[int] = mapped_column(BigInteger, default=0)
+    db_tabellen_json: Mapped[str | None] = mapped_column(Text)
+    data_bytes: Mapped[int] = mapped_column(BigInteger, default=0)
+    data_dateien: Mapped[int] = mapped_column(Integer, default=0)
+    media_bytes: Mapped[int] = mapped_column(BigInteger, default=0)
+    media_dateien: Mapped[int] = mapped_column(Integer, default=0)
+    # Zum Einordnen: was das Projekt belegt, ist ohne die Plattengroesse keine Aussage.
+    platte_belegt: Mapped[int] = mapped_column(BigInteger, default=0)
+    platte_gesamt: Mapped[int] = mapped_column(BigInteger, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
 class ChangelogItem(Base):

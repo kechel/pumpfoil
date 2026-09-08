@@ -501,6 +501,70 @@ function ZustandsPille({ zustand }: { zustand: string }) {
   );
 }
 
+/** Platzbedarf des Projekts: aktueller Stand + Verlauf je Tag.
+ *
+ *  Getrennt vom uebrigen Systemzustand geladen, denn der wird alle 10 s neu geholt — dieser
+ *  Wert aendert sich einmal am Tag (`foil-speicher.timer`, 03:20). Gemessen wird NICHT hier:
+ *  `server/data` sind rund 620.000 Dateien, das dauert Sekunden (s. scripts/speicher-messen.py).
+ */
+function SpeicherKarte() {
+  const [d, setD] = useState<Awaited<ReturnType<typeof api.adminSpeicher>> | null>(null);
+  useEffect(() => { api.adminSpeicher().then(setD).catch(() => setD(null)); }, []);
+  if (!d) return null;
+  if (!d.stand) {
+    return (
+      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4 text-sm text-slate-400">
+        Platzbedarf noch nicht gemessen — der Zeitgeber läuft täglich um 03:20.
+      </div>
+    );
+  }
+  const s = d.stand;
+  const teile: [string, number, string][] = [
+    ["Datenbank", s.db, "#22d3ee"],
+    ["Dateien (data)", s.data, "#f59e0b"],
+    ["Medien", s.media, "#a3e635"],
+  ];
+  // Wachstum: erster gegen letzten Punkt. Bei einem einzigen Tag gibt es keine Aussage.
+  const ersteZeile = d.verlauf[0];
+  const wachstum = d.verlauf.length > 1 ? s.projekt - ersteZeile.projekt : null;
+  return (
+    <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
+      <div className="mb-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <h3 className="text-sm font-bold text-slate-100">Platzbedarf des Projekts</h3>
+        <span className="text-lg font-semibold text-slate-100">{gb(s.projekt)}</span>
+        <span className="text-xs text-slate-400">
+          Stand {s.tag} · Platte {gb(s.platte_belegt)} von {gb(s.platte_gesamt)} belegt
+          {wachstum !== null && ` · ${wachstum >= 0 ? "+" : ""}${gb(Math.abs(wachstum))} seit ${ersteZeile.tag}`}
+        </span>
+      </div>
+      {/* Ein Balken, drei Teile — die Verhaeltnisse sind hier die eigentliche Aussage
+          (aktuell: die Dateien sind das Sechsfache der Datenbank). */}
+      <div className="mb-2 flex h-3 w-full overflow-hidden rounded-full bg-slate-800">
+        {teile.map(([name, wert, farbe]) => (
+          <div key={name} title={`${name}: ${gb(wert)}`}
+            style={{ width: `${(100 * wert) / Math.max(1, s.projekt)}%`, background: farbe }} />
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-slate-300">
+        {teile.map(([name, wert, farbe]) => (
+          <span key={name} className="inline-flex items-center gap-1.5">
+            <span className="inline-block h-2 w-2 rounded-full" style={{ background: farbe }} />
+            {name} {gb(wert)}
+          </span>
+        ))}
+        <span className="text-slate-400">
+          {s.data_dateien.toLocaleString("de-DE")} Dateien, {s.media_dateien} Medien
+        </span>
+      </div>
+      {s.db_tabellen.length > 0 && (
+        <p className="mt-2 text-xs text-slate-400">
+          Größte Tabellen: {s.db_tabellen.slice(0, 4).map(([n, b]) => `${n} ${gb(b)}`).join(" · ")}
+        </p>
+      )}
+    </div>
+  );
+}
+
 function SystemTab() {
   const [d, setD] = useState<SystemHealth | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
@@ -541,6 +605,11 @@ function SystemTab() {
           Stand {stand ? new Date(stand).toLocaleTimeString("de-DE") : "—"}
         </span>
       </div>
+
+      {/* Platzbedarf des Projekts — eigener Abruf, weil er sich nur taeglich aendert
+          (Jan, 08.09.2026: „wieviel Speicherplatz nur unser Projekt benoetigt … gerne auch ab
+          jetzt im Zeitverlauf mit tracken"). */}
+      <SpeicherKarte />
 
       {/* Bewertung zuerst: was JETZT wichtig ist, statt in Kacheln zu suchen. */}
       {d.warnungen.length === 0 ? (
