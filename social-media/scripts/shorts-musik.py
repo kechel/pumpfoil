@@ -186,6 +186,31 @@ XHS_TAGS = ["无动力水翼板", "水翼", "冲浪", "极限运动", "户外运
             "小众运动", "运动手表", "佳明", "装备", "pumpfoil"]
 
 
+# Das Modell erfindet fuer Pumpfoil gelegentlich 泵翼 / 泵翼板 / 泵翼水翼板. Die
+# Woerter gibt es nicht, danach sucht niemand — der etablierte Begriff, den auch
+# unsere Bio und die bilibili-Titel benutzen, ist 无动力水翼板. Betrifft nicht nur
+# RedNote: die zh-Fassung geht auch als chinesische YouTube-Lokalisierung raus,
+# deshalb wird hier korrigiert, wo die Captions gelesen werden.
+ZH_ERSATZ = [("泵翼水翼板", "无动力水翼板"), ("泵翼水翼", "无动力水翼板"),
+             ("泵翼板", "无动力水翼板"), ("泵翼", "无动力水翼板")]
+
+
+def zh_begriffe(caps: dict) -> dict:
+    """Kopie der Captions mit korrigierten chinesischen Fachbegriffen."""
+    if not caps:
+        return caps
+    aus = dict(caps)
+    for feld in ("titles", "descriptions"):
+        werte = aus.get(feld)
+        if not isinstance(werte, dict) or not werte.get("zh"):
+            continue
+        text = str(werte["zh"])
+        for falsch, richtig in ZH_ERSATZ:      # laengste Form zuerst
+            text = text.replace(falsch, richtig)
+        aus[feld] = {**werte, "zh": text}
+    return aus
+
+
 def rednote_text(caps: dict) -> dict:
     """Titel + Text fuer Xiaohongshu/RedNote, aus den vorhandenen zh-Feldern.
 
@@ -243,21 +268,23 @@ def cached_captions(name: str) -> dict:
     YT-Batch-Cache — Zuordnung über die laufende Nummer im YT-Titel."""
     cache = _load_json(CAPTIONS_CACHE_FILE, {})
     if name in cache:
-        return {"cached": cache[name], "source": "ui",
-                "bilibili": bilibili_text(cache[name]),
-                "rednote": rednote_text(cache[name]),
-                "instagram_long": instagram_long(cache[name])}
+        korr = zh_begriffe(cache[name])
+        return {"cached": korr, "source": "ui",
+                "bilibili": bilibili_text(korr),
+                "rednote": rednote_text(korr),
+                "instagram_long": instagram_long(korr)}
     m = NUM_RE.match(name)
     if m:
         progress = _load_json(YT_BATCH_PROGRESS_FILE, {})
         batch = _load_json(YT_BATCH_CACHE_FILE, {})
         for vid, entry in progress.items():
             if str(entry.get("title", "")).startswith(m.group(1) + " ") and vid in batch:
-                return {"cached": batch[vid], "source": "yt-batch",
+                korr = zh_begriffe(batch[vid])
+                return {"cached": korr, "source": "yt-batch",
                         "yt_title": entry["title"],
-                        "bilibili": bilibili_text(batch[vid]),
-                        "rednote": rednote_text(batch[vid]),
-                        "instagram_long": instagram_long(batch[vid])}
+                        "bilibili": bilibili_text(korr),
+                        "rednote": rednote_text(korr),
+                        "instagram_long": instagram_long(korr)}
     return {"cached": None}
 
 
@@ -1642,6 +1669,7 @@ Fachbegriffe (WICHTIG, häufige Fehlerquelle):
 
 Regeln:
 - titles: knackiger Video-Titel je Sprache, max. 80 Zeichen. pt = brasilianisches Portugiesisch, zh = vereinfachtes Chinesisch, id = Bahasa Indonesia.{prefix_rule}
+- Chinesisch (zh): Pumpfoil heisst 无动力水翼板 („antriebsloses Hydrofoil-Board"), kurz 水翼. Die Wortschoepfungen 泵翼 / 泵翼板 / 泵翼水翼板 sind VERBOTEN — die gibt es nicht und niemand sucht danach.
 - descriptions: 1-2 lockere, videospezifische Sätze je Sprache (gleiche Sprachcodes wie titles), passende Emojis erlaubt, KEINE Hashtags darin.
 - hashtags: EINE Zeile mit 4-6 Hashtags: #pumpfoil zuerst, danach NUR individuelle, zum konkreten Videoinhalt passende Tags. KEINE generischen Standard-Tags wie #pumpfoiling, #dockstart oder #foil.
 - instagram: lockere Caption AUSSCHLIESSLICH auf Englisch, 2-3 Sätze mit passenden Emojis, Leerzeile, dann 8-12 Hashtags (#pumpfoil zuerst, Rest videospezifisch — nicht #pumpfoiling/#dockstart/#foil). KEIN Deutsch, keine weitere Sprache — dieses Feld gilt weltweit.
@@ -2030,6 +2058,7 @@ class Handler(BaseHTTPRequestHandler):
                 caps = generate_captions(title, title_prefix(name))
                 if name:
                     save_captions_cache(name, caps)
+                caps = zh_begriffe(caps)
                 return self._json({**caps, "bilibili": bilibili_text(caps),
                                    "rednote": rednote_text(caps),
                                    "instagram_long": instagram_long(caps)})
