@@ -211,6 +211,38 @@ def zh_begriffe(caps: dict) -> dict:
     return aus
 
 
+# Auf RedNote wird ueber die SUCHE entdeckt, nicht ueber einen Feed. Am
+# 09.09. lagen die drei Beitraege mit 水翼 im Titel bei 261 / 24 / 8 Aufrufen,
+# die fuenf ohne bei 2 bis 7 — bei gleichem Konto, gleicher Nacht, gleicher
+# Followerzahl. Also steht der Suchbegriff ab jetzt in jedem Titel.
+#
+# Angehaengt statt vorangestellt: ein Praefix veraendert den Satzbau
+# ("水翼和朋友一起下水" statt "和朋友一起玩水翼"), ein ｜-Zusatz nie. Auf
+# Xiaohongshu ist genau diese Form ueblich. 无动力水翼板 enthaelt 水翼 und
+# 水翼板 gleich mit, deckt also alle drei Suchen ab — passt es nicht in die
+# 20 Zeichen, reicht der Wortstamm.
+XHS_SUCHWORT = "水翼"
+XHS_SUCHWORT_LANG = "无动力水翼板"
+
+
+def mit_suchwort(titel: str) -> str:
+    """Sorgt dafuer, dass der RedNote-Titel den Suchbegriff enthaelt."""
+    if XHS_SUCHWORT in titel:
+        return titel
+    for wort in (XHS_SUCHWORT_LANG, XHS_SUCHWORT):
+        if len(titel) + 1 + len(wort) <= XHS_TITEL_MAX:
+            return f"{titel}｜{wort}"
+    # Muss doch gekuerzt werden, dann lieber an einem Satzzeichen als mitten
+    # im Wort ("...失败与完｜水翼"). Nur wenn die Fuge nicht zu frueh sitzt,
+    # sonst bleibt vom Titel nichts uebrig.
+    platz = XHS_TITEL_MAX - 1 - len(XHS_SUCHWORT)
+    stumpf = titel[:platz]
+    fuge = max((stumpf.rfind(z) for z in " ，、：。！？,:!?"), default=-1)
+    if fuge >= platz // 2:
+        stumpf = stumpf[:fuge]
+    return f"{stumpf.rstrip(' —-–—·,，、：:!！?？')}｜{XHS_SUCHWORT}"
+
+
 def rednote_text(caps: dict) -> dict:
     """Titel + Text fuer Xiaohongshu/RedNote, aus den vorhandenen zh-Feldern.
 
@@ -231,6 +263,7 @@ def rednote_text(caps: dict) -> dict:
         if titel[XHS_TITEL_MAX].isascii() and titel[XHS_TITEL_MAX] != " ":
             kurz = kurz.rsplit(" ", 1)[0] if " " in kurz else kurz
         kurz = kurz.rstrip(" —-–—·,，、：:!！?？")
+    kurz = mit_suchwort(kurz)
     # Der App-Hinweis auf Chinesisch: kurz, ohne Werbeton — RedNote-Leser
     # erwarten einen Tipp, keine Anzeige.
     # Marken fuer CHINA, nicht die Weltliste: Wear OS ist dort ohne Google
