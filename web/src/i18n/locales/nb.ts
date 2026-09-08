@@ -1647,6 +1647,13 @@ const nb: Record<string, string> = {
   "spots.onlyWithNotes": "Kun med beskrivelse",
   "watches.nStrava": "Import ville vært teknisk mulig, men API-et gir ikke rå akselerometerdata med høy rate (altså ingen pumpegjenkjenning), og det ligger bak en betalingsmur med API-vilkår som ikke passer et åpent prosjekt — bevisst ikke integrert.",
   "watches.st.nope": "nei",
+  "foiler.since": "Med siden {date}",
+  "foiler.homespot": "Hjemmespot",
+  "foiler.watch": "Klokke",
+  "foiler.foil": "Foil",
+  "foiler.records": "Rekorder fra de siste 12 månedene",
+  "foiler.notFound": "Denne profilsiden er ikke tilgjengelig.",
+  "foiler.offHint": "Profilsiden din er skjult for andre. Endre synlighet:",
 };
 
 export default nb;

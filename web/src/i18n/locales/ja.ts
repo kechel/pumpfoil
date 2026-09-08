@@ -1665,6 +1665,13 @@ const ja: Record<string, string> = {
   "upload.waiting": "データを待っています…",
   "watches.nStrava": "取り込みは技術的には可能ですが、API は高レートの生の加速度データを提供しないため（つまりポンプ検出ができません）、しかも有料の壁と、オープンなプロジェクトに合わない API 条件があります — 意図的に未対応です。",
   "watches.st.nope": "不可",
+  "foiler.since": "{date} から参加",
+  "foiler.homespot": "ホームスポット",
+  "foiler.watch": "ウォッチ",
+  "foiler.foil": "フォイル",
+  "foiler.records": "直近12か月の記録",
+  "foiler.notFound": "このプロフィールページは利用できません。",
+  "foiler.offHint": "あなたのプロフィールページは他の人には非表示です。公開設定を変更:",
 };
 
 export default ja;

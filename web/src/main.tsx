@@ -64,6 +64,7 @@ import Labeling from "./pages/Labeling";
 import Impressum from "./pages/Impressum";
 import Changelog from "./pages/Changelog";
 import Import from "./pages/Import";
+import Foiler from "./pages/Foiler";
 import Spots from "./pages/Spots";
 import Foils from "./pages/Foils";
 import Setup from "./pages/Setup";
@@ -152,6 +153,9 @@ const router = createBrowserRouter([
       { path: "sessions", element: <Sessions /> },
       { path: "current-feedback-request", element: <CurrentFeedbackRequest /> },
       { path: "import", element: <Import /> },
+      // Oeffentliche Foiler-Seite. NOCH NICHT VERLINKT (Jan, 08.09.2026: erst ansehen,
+      // dann entscheiden, wo sie erscheint) — nur direkt ueber /foiler/<id> erreichbar.
+      { path: "foiler/:id", element: <Foiler /> },
       { path: "alle-sessions", element: <AllSessionsRedirect /> },
       { path: "spots", element: <Spots /> },
       { path: "foils", element: <Foils /> },

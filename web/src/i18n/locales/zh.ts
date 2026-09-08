@@ -1668,6 +1668,13 @@ const zh: Record<string, string> = {
   "upload.waiting": "等待数据…",
   "watches.nStrava": "技术上导入是可行的，但其 API 不提供高频原始加速度数据（也就无法识别泵动），而且它在付费墙之后，API 条款也不适合一个开放项目——因此有意不做集成。",
   "watches.st.nope": "否",
+  "foiler.since": "自 {date} 加入",
+  "foiler.homespot": "主玩点",
+  "foiler.watch": "手表",
+  "foiler.foil": "水翼",
+  "foiler.records": "近 12 个月的记录",
+  "foiler.notFound": "该个人主页不可用。",
+  "foiler.offHint": "你的个人主页对其他人隐藏。修改可见性:",
 };
 
 export default zh;

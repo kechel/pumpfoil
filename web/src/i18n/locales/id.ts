@@ -1671,6 +1671,13 @@ const id: Record<string, string> = {
   "upload.waiting": "Menunggu data…",
   "watches.nStrava": "Impor secara teknis mungkin saja, tapi API tidak menyediakan data mentah akselerometer berfrekuensi tinggi (jadi tanpa deteksi pumping), dan ia berada di balik paywall dengan syarat API yang tidak cocok untuk proyek terbuka — sengaja tidak diintegrasikan.",
   "watches.st.nope": "tidak",
+  "foiler.since": "Bergabung sejak {date}",
+  "foiler.homespot": "Spot utama",
+  "foiler.watch": "Jam",
+  "foiler.foil": "Foil",
+  "foiler.records": "Rekor 12 bulan terakhir",
+  "foiler.notFound": "Halaman profil ini tidak tersedia.",
+  "foiler.offHint": "Halaman profilmu disembunyikan dari orang lain. Ubah visibilitas:",
 };
 
 export default id;

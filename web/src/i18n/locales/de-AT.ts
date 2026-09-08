@@ -1562,6 +1562,13 @@ const deAT: Record<string, string> = {
   "upload.waiting": "Warte auf Daten…",
   "watches.nStrava": "Import wär technisch machbar, liefert per API aber kein hochfrequentes Roh-Accel (also keine Pump-Erkennung) und steht hinter Paywall + API-Auflagen, die nicht zum offenen Projekt passen — daher bewusst nicht integriert.",
   "watches.st.nope": "nope",
+  "foiler.since": "Dabei seit {date}",
+  "foiler.homespot": "Homespot",
+  "foiler.watch": "Uhr",
+  "foiler.foil": "Foil",
+  "foiler.records": "Rekorde der letzten 12 Monate",
+  "foiler.notFound": "Diese Profilseite is net verfügbar.",
+  "foiler.offHint": "Deine Profilseite is für andere ausgeblendet. Sichtbarkeit ändern:",
 };
 
 export default deAT
