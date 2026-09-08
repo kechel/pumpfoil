@@ -1669,7 +1669,7 @@ const ja: Record<string, string> = {
   "foiler.homespot": "ホームスポット",
   "foiler.watch": "ウォッチ",
   "foiler.foil": "フォイル",
-  "foiler.records": "記録（12か月）",
+  "foiler.records": "自己記録（12か月）",
   "foiler.notFound": "このプロフィールページは利用できません。",
   "foiler.offHint": "あなたのプロフィールページは他の人には非表示です。公開設定を変更:",
   "pubprof.title": "公開プロフィールページ",
@@ -1691,6 +1691,8 @@ const ja: Record<string, string> = {
   "pubprof.titles": "現在保持している記録",
   "pubprof.channel": "自分のYouTubeチャンネル",
   "foiler.onlyFoiler": "このスポットで唯一のフォイラー",
+  "foiler.titles": "コミュニティ記録（12か月）",
+  "foiler.overall": "全体",
 };
 
 export default ja;

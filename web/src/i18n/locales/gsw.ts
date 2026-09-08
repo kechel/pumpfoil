@@ -1560,7 +1560,7 @@ const gsw: Record<string, string> = {
   "foiler.homespot": "Homespot",
   "foiler.watch": "Uhr",
   "foiler.foil": "Foil",
-  "foiler.records": "Rekord (12 Mönet)",
+  "foiler.records": "Persönlichi Rekord (12 Mönet)",
   "foiler.notFound": "Die Profilsite isch nöd verfüegbar.",
   "foiler.offHint": "Dini Profilsite isch für anderi usgblendet. Sichtbarkeit ändere:",
   "pubprof.title": "Öffentligi Profilsite",
@@ -1582,6 +1582,8 @@ const gsw: Record<string, string> = {
   "pubprof.titles": "Rekord, wo i aktuell halte",
   "pubprof.channel": "Min YouTube-Kanal",
   "foiler.onlyFoiler": "Einzige Foiler a dem Spot",
+  "foiler.titles": "Community-Rekord (12 Mönet)",
+  "foiler.overall": "Total",
 };
 
 export default gsw

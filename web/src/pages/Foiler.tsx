@@ -15,7 +15,7 @@ import { api, OverallStats } from "../lib/api";
 import { Card, Avatar } from "../components/ui";
 import { ScrollToTop } from "../components/ScrollToTop";
 import { SessionCard } from "../components/SessionCard";
-import { PlayIcon, LocationIcon, WatchIcon, FoilIcon } from "../components/Icons";
+import { PlayIcon, LocationIcon, WatchIcon, FoilIcon, CommunityIcon } from "../components/Icons";
 import { Lightbox, LightboxPhoto } from "../components/Lightbox";
 import { VideoModal, ytId } from "../components/VideoModal";
 import { SessionStats } from "./Sessions";
@@ -232,17 +232,8 @@ export default function Foiler() {
           und auf der Community-Seite nicht mit zwei verschiedenen Zahlen steht. */}
       {d.zeigt.titles && ((d.titel?.length ?? 0) > 0 || (d.spot_titel?.length ?? 0) > 0) && (
         <div className="mt-6">
-          {(d.titel?.length ?? 0) > 0 && (
-            <div className="mb-2 flex flex-wrap gap-2">
-              {d.titel!.map((x) => (
-                <Link key={`c-${x.metric}`} to={x.session_id ? `/sessions/${x.session_id}` : "/community"}
-                      className="rounded-full bg-brand-500/15 px-3 py-1 text-sm text-brand-700 hover:bg-brand-500/25 dark:text-brand-300">
-                  {recLabel(x.metric, t)} <span className="font-semibold tabular-nums">{recWert(x.metric, x.value)}</span>
-                </Link>
-              ))}
-            </div>
-          )}
-          {spotGruppen.length > 0 && (
+          <h2 className="mb-2 text-sm font-semibold text-slate-200">{t("foiler.titles")}</h2>
+          {(spotGruppen.length > 0 || (d.titel?.length ?? 0) > 0) && (
             <>
               {/* Ohne Ueberschrift (Jan, 08.09.2026): die Chips nennen Kennzahl und Wert
                   selbst, der Spotname steht davor. */}
@@ -254,6 +245,27 @@ export default function Foiler() {
                   rutscht eine zweite Reihe NICHT unter den Namen, sondern bleibt buendig
                   (Jan, 08.09.2026 — genau das war vorher schief). */}
               <div className="grid grid-cols-[max-content_1fr] items-start gap-x-3 gap-y-2">
+                {/* Community-weite Titel als erste Zeile DESSELBEN Rasters, mit eigenem Label:
+                    vorher standen sie ohne Beschriftung darueber, nur an der Fuellfarbe
+                    unterscheidbar — Jan hat sofort gefragt, warum ein Rekord anders aussieht
+                    (08.09.2026). Die Fuellfarbe bleibt, sie ist die Auszeichnung: ein
+                    community-weiter Rekord ist mehr als ein Spot-Rekord. */}
+                {(d.titel?.length ?? 0) > 0 && (
+                  <Fragment key="__community">
+                    <Link to="/community"
+                          className="flex items-center gap-1 py-0.5 text-sm font-semibold text-slate-200 underline decoration-slate-500 hover:decoration-brand-400">
+                      <CommunityIcon className="h-4 w-4 shrink-0 text-slate-400" />{t("foiler.overall")}
+                    </Link>
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+                      {d.titel!.map((x) => (
+                        <Link key={`c-${x.metric}`} to={x.session_id ? `/sessions/${x.session_id}` : "/community"}
+                              className="rounded-full bg-brand-500/15 px-2.5 py-0.5 text-sm text-brand-700 hover:bg-brand-500/25 dark:text-brand-300">
+                          {recLabel(x.metric, t)} <span className="font-semibold tabular-nums">{recWert(x.metric, x.value)}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  </Fragment>
+                )}
                 {spotGruppen.map(([spot, liste]) => (
                   <Fragment key={spot}>
                     <Link to={`/sessions?spot=${liste[0].spot_id}`}

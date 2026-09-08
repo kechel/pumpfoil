@@ -1675,7 +1675,7 @@ const pt: Record<string, string> = {
   "foiler.homespot": "Spot habitual",
   "foiler.watch": "Relógio",
   "foiler.foil": "Foil",
-  "foiler.records": "Recordes (12 meses)",
+  "foiler.records": "Recordes pessoais (12 meses)",
   "foiler.notFound": "Esta página de perfil não está disponível.",
   "foiler.offHint": "A tua página de perfil está oculta para os outros. Alterar visibilidade:",
   "pubprof.title": "Página de perfil pública",
@@ -1697,6 +1697,8 @@ const pt: Record<string, string> = {
   "pubprof.titles": "Os recordes que detenho",
   "pubprof.channel": "O meu canal do YouTube",
   "foiler.onlyFoiler": "Único foiler neste spot",
+  "foiler.titles": "Recordes da comunidade (12 meses)",
+  "foiler.overall": "Geral",
 };
 
 export default pt;

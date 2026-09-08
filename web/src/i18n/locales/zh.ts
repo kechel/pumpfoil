@@ -1672,7 +1672,7 @@ const zh: Record<string, string> = {
   "foiler.homespot": "主玩点",
   "foiler.watch": "手表",
   "foiler.foil": "水翼",
-  "foiler.records": "记录（12 个月）",
+  "foiler.records": "个人记录（12 个月）",
   "foiler.notFound": "该个人主页不可用。",
   "foiler.offHint": "你的个人主页对其他人隐藏。修改可见性:",
   "pubprof.title": "公开个人主页",
@@ -1694,6 +1694,8 @@ const zh: Record<string, string> = {
   "pubprof.titles": "我目前保持的记录",
   "pubprof.channel": "我的 YouTube 频道",
   "foiler.onlyFoiler": "该地点唯一的水翼玩家",
+  "foiler.titles": "社区记录（12 个月）",
+  "foiler.overall": "总体",
 };
 
 export default zh;

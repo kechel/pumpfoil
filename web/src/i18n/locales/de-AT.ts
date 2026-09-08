@@ -1566,7 +1566,7 @@ const deAT: Record<string, string> = {
   "foiler.homespot": "Homespot",
   "foiler.watch": "Uhr",
   "foiler.foil": "Foil",
-  "foiler.records": "Rekorde (12 Monate)",
+  "foiler.records": "Persönliche Rekorde (12 Monate)",
   "foiler.notFound": "Diese Profilseite is net verfügbar.",
   "foiler.offHint": "Deine Profilseite is für andere ausgeblendet. Sichtbarkeit ändern:",
   "pubprof.title": "Öffentliche Profilseite",
@@ -1588,6 +1588,8 @@ const deAT: Record<string, string> = {
   "pubprof.titles": "Rekorde, die i aktuell halt",
   "pubprof.channel": "Mein YouTube-Kanal",
   "foiler.onlyFoiler": "Einziger Foiler an dem Spot",
+  "foiler.titles": "Community-Rekorde (12 Monate)",
+  "foiler.overall": "Gesamt",
 };
 
 export default deAT
