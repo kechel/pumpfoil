@@ -1726,7 +1726,7 @@ const fi: Record<string, string> = {
   "pubprof.view": "Katso profiilisivuni",
   "foiler.media": "Media",
   "foiler.spotNotes": "Spottikuvaukset",
-  "foiler.lastSessions": "Viimeisimmät sessiot",
+  "foiler.lastSessions": "5 viimeisintä sessiota",
   "pubprof.media": "Sessioideni kuvat ja videot",
   "pubprof.spots": "Spotit, jotka olen kuvaillut",
   "pubprof.sessions": "Viisi viimeisintä sessiotani",

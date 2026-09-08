@@ -1574,7 +1574,7 @@ const es: Record<string, string> = {
   "pubprof.view": "Ver mi página de perfil",
   "foiler.media": "Medios",
   "foiler.spotNotes": "Descripciones de spots",
-  "foiler.lastSessions": "Últimas sesiones",
+  "foiler.lastSessions": "Últimas 5 sesiones",
   "pubprof.media": "Fotos y vídeos de mis sesiones",
   "pubprof.spots": "Spots que he descrito",
   "pubprof.sessions": "Mis últimas cinco sesiones",

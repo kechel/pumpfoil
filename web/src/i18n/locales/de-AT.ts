@@ -1581,7 +1581,7 @@ const deAT: Record<string, string> = {
   "pubprof.view": "Meine Profilseite anschauen",
   "foiler.media": "Medien",
   "foiler.spotNotes": "Spot-Beschreibungen",
-  "foiler.lastSessions": "Letzte Sessions",
+  "foiler.lastSessions": "Letzte 5 Sessions",
   "pubprof.media": "Fotos und Videos an meine Sessions",
   "pubprof.spots": "Spots, die i beschrieben hab",
   "pubprof.sessions": "Meine letzten fünf Sessions",

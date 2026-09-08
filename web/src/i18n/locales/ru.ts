@@ -1690,7 +1690,7 @@ const ru: Record<string, string> = {
   "pubprof.view": "Открыть мою страницу профиля",
   "foiler.media": "Медиа",
   "foiler.spotNotes": "Описания спотов",
-  "foiler.lastSessions": "Последние сессии",
+  "foiler.lastSessions": "Последние 5 сессий",
   "pubprof.media": "Фото и видео к моим сессиям",
   "pubprof.spots": "Споты, которые я описал",
   "pubprof.sessions": "Мои последние пять сессий",

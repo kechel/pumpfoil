@@ -1744,7 +1744,7 @@ const nl: Record<string, string> = {
   "pubprof.view": "Mijn profielpagina bekijken",
   "foiler.media": "Media",
   "foiler.spotNotes": "Spotbeschrijvingen",
-  "foiler.lastSessions": "Laatste sessies",
+  "foiler.lastSessions": "Laatste 5 sessies",
   "pubprof.media": "Foto's en video's bij mijn sessies",
   "pubprof.spots": "Spots die ik heb beschreven",
   "pubprof.sessions": "Mijn laatste vijf sessies",

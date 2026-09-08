@@ -1809,7 +1809,7 @@ const de: Record<string, string> = {
   "pubprof.view": "Meine Profilseite ansehen",
   "foiler.media": "Medien",
   "foiler.spotNotes": "Spot-Beschreibungen",
-  "foiler.lastSessions": "Letzte Sessions",
+  "foiler.lastSessions": "Letzte 5 Sessions",
   "pubprof.media": "Fotos und Videos an meinen Sessions",
   "pubprof.spots": "Spots, die ich beschrieben habe",
   "pubprof.sessions": "Meine letzten fünf Sessions",

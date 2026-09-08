@@ -1575,7 +1575,7 @@ const gsw: Record<string, string> = {
   "pubprof.view": "Mini Profilsite aaluege",
   "foiler.media": "Medie",
   "foiler.spotNotes": "Spot-Beschribige",
-  "foiler.lastSessions": "Letschti Sessions",
+  "foiler.lastSessions": "Letschti 5 Sessions",
   "pubprof.media": "Foti und Videos a mine Sessions",
   "pubprof.spots": "Spots, wo i beschribe ha",
   "pubprof.sessions": "Mini letschte föif Sessions",

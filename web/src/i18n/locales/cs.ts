@@ -1743,7 +1743,7 @@ const cs: Record<string, string> = {
   "pubprof.view": "Zobrazit moji profilovou stránku",
   "foiler.media": "Média",
   "foiler.spotNotes": "Popisy spotů",
-  "foiler.lastSessions": "Poslední sessions",
+  "foiler.lastSessions": "Posledních 5 sessions",
   "pubprof.media": "Fotky a videa u mých sessions",
   "pubprof.spots": "Spoty, které jsem popsal",
   "pubprof.sessions": "Mých posledních pět sessions",
