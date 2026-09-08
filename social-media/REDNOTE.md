@@ -223,6 +223,11 @@ Zwei Eigenheiten:
 Beitraege in 审核中 werden uebersprungen: RedNote zeichnet ihnen keine
 vollstaendige Zahlenzeile, sie waeren kein vergleichbarer Messpunkt.
 
+**Wenn die Zuordnung nach einer Umbenennung nicht mehr greift:** der ALTE Titel
+steht ja noch im Caption-Cache. Am 09.09. liessen sich so alle acht
+umbenannten Beitraege wiederfinden — Titel von vorher nachschlagen, Nummer
+mit `--nummer` setzen, fertig. Steht sie einmal drin, bleibt sie.
+
 **bilibili bleibt draussen.** Dort steht der ganze Kanal bei null Aufrufen
 ausser Jans eigenen (Stand 09.09.) — eine Tabelle aus Nullen bringt nichts.
 Sobald sich etwas bewegt, ist derselbe Import in kurzer Zeit angepasst.
