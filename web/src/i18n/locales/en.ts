@@ -1760,6 +1760,7 @@ const en: Record<string, string> = {
   "pubprof.sessions": "My last five sessions",
   "pubprof.titles": "Records I currently hold",
   "pubprof.channel": "My YouTube channel",
+  "foiler.onlyFoiler": "Only foiler at this spot – holding all records",
 };
 
 export default en;

@@ -1680,6 +1680,7 @@ const pl: Record<string, string> = {
   "pubprof.sessions": "Moje ostatnie pięć sesji",
   "pubprof.titles": "Rekordy, które mam",
   "pubprof.channel": "Mój kanał YouTube",
+  "foiler.onlyFoiler": "Jedyny foiler na tym spocie – ma wszystkie rekordy",
 };
 
 export default pl;

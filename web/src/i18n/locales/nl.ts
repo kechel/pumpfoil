@@ -1750,6 +1750,7 @@ const nl: Record<string, string> = {
   "pubprof.sessions": "Mijn laatste vijf sessies",
   "pubprof.titles": "Records die ik nu heb",
   "pubprof.channel": "Mijn YouTube-kanaal",
+  "foiler.onlyFoiler": "Enige foiler op deze spot – heeft alle records",
 };
 
 export default nl;

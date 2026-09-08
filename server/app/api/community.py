@@ -1708,6 +1708,22 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
             spot_titel.append({"metric": "carves180", "value": float(int(val)),
                                "spot_id": int(sid), "started_at": None, "session_id": None})
 
+        # Ein Spot-Rekord ist nur etwas wert, wenn dort ueberhaupt jemand anderes faehrt
+        # (Jan, 08.09.2026): am eigenen Hausteich ohne Mitbewerber haelt man zwangslaeufig
+        # jeden Rekord. Statt sie zu verschweigen, wird der Spot als `allein` markiert — die
+        # Oberflaeche schreibt dort „Einzelkaempfer an diesem Spot" statt der Liste, das ist
+        # ehrlicher und liest sich besser als zehn Titel ohne Gegner.
+        # Gezaehlt wird im GLEICHEN Fenster wie die Rekorde selbst — wer vor drei Jahren
+        # einmal dort war, macht den Spot heute nicht umkaempft.
+        if spot_titel:
+            fahrer = _community(db.query(S.spot_id, func.count(func.distinct(S.user_id))),
+                                user.id, False, "pumpfoil")
+            fahrer = fahrer.filter(S.spot_id.in_({x["spot_id"] for x in spot_titel}))
+            if cut is not None:
+                fahrer = fahrer.filter(S.started_at >= cut)
+            genug = {sid for sid, n in fahrer.group_by(S.spot_id).all() if (n or 0) >= 2}
+            for x in spot_titel:
+                x["allein"] = x["spot_id"] not in genug
         if spot_titel:
             namen = dict(db.query(models.Spot.id, models.Spot.name)
                          .filter(models.Spot.id.in_({x["spot_id"] for x in spot_titel})).all())

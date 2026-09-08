@@ -1696,6 +1696,7 @@ const id: Record<string, string> = {
   "pubprof.sessions": "Lima sesi terakhirku",
   "pubprof.titles": "Rekor yang sedang kupegang",
   "pubprof.channel": "Kanal YouTube-ku",
+  "foiler.onlyFoiler": "Satu-satunya foiler di spot ini – memegang semua rekor",
 };
 
 export default id;
