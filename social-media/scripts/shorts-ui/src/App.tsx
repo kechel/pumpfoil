@@ -135,7 +135,10 @@ const OUTRO_ICONS: Record<PvPlatform, [string, string][]> = {
     // die Balken so lang, dass sie sich ueberschnitten (Jan, 08.09.).
     // Alles in EINEM Pfad — die Liste setzt je Eintrag ein eigenes Symbol
     // nebeneinander; jeder Teil beginnt deshalb absolut mit M.
-    ["M7 13v-2a3 3 0 0 1 3-3h7m-3-3 3 3-3 3M17 11v2a3 3 0 0 1-3 3H7m3-3-3 3 3 3", "reshare"],
+    // Die beiden Haken stehen diagonal 1,5 Rastereinheiten auseinander (oben
+    // nach links-oben, unten nach rechts-unten). Buendig aneinander lasen sie
+    // sich als geschlossener Kasten; Instagram laesst dort sichtbar Luft.
+    ["M5.5 11.5v-2a3 3 0 0 1 3-3h7m-3-3 3 3-3 3M18.5 12.5v2a3 3 0 0 1-3 3H8.5m3-3-3 3 3 3", "reshare"],
   ],
   // TikTok zeichnet GEFUELLTE Symbole, nicht konturierte (siehe OUTRO_FILL).
   // Die Sprechblase bekommt ihre drei Punkte als eigene Kreise im selben Pfad
