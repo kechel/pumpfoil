@@ -1630,18 +1630,28 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
         # Profilseite rechnet nichts nach — sie liest, was da ist (geprueft 08.09.: 1787 von
         # 1787 community-sichtbaren Sessions haben den Cache, es fehlt nichts).
         #
-        # Basis sind ALLE Aufnahmen (`accel_only=False`), wie bei den Rekord-Kacheln oben.
-        # Nachgemessen an Illmensee: mit und ohne Accel-Filter halten dieselben Leute alle zwoelf
-        # Rekorde — die Wahl macht dort also keinen Unterschied. Sie ist trotzdem bewusst so:
-        # Konto-Importe (Suunto/COROS/FIT) bringen keine Beschleunigungsdaten mit, und diese
-        # Fahrer sollen nicht grundsaetzlich titellos bleiben.
+        # WELCHE BASIS? Das war erst falsch: die Seite rechnete mit `accel_only=False`, die
+        # Community-Seite zeigt aber per Vorbelegung nur die praezisen Accel-Aufnahmen. Ergebnis
+        # (Jans Befund 08.09.2026): Markus stand in den Community-Rekorden viermal, auf seiner
+        # Profilseite nur einmal — mit Accel-Filter haelt er runs/session_distance/session_pumps/
+        # carves180, ohne ihn nur session_pumps. Ein Titel, den die Bestenliste nicht bestaetigt,
+        # ist keiner. Also dieselbe Basis wie dort.
+        #
+        # Die Ausnahme ist genau die, die die PWA fuer ihren Umschalter auch macht
+        # (`useAccelDefault` -> `loadHasAccel`): wer selbst KEINE Accel-Aufnahme hat (reine
+        # Konto-Importe von Suunto/COROS/FIT), sieht die Bestenliste ohne Filter — und fuer den
+        # rechnen wir hier auch ohne, sonst waere er strukturell titellos.
         mein = owner_label(u.display_name, u.id)
         cut = _cutoff("365d")
+        hat_accel = (_community(db.query(S.id), user.id, True, "pumpfoil")
+                     .filter(S.user_id == u.id).first() is not None)
+        basis_accel = bool(hat_accel)
+        raus["titel_accel"] = basis_accel     # damit die Seite sagen kann, worauf sie sich beruft
         cache: dict = {"carve_cache": True}
         raus["titel"] = [
             {"metric": m, "value": e["value"], "started_at": e.get("started_at"),
              "spot": e.get("spot"), "session_id": e.get("session_id")}
-            for m, e in ((m, _record_entry(db, m, cut, viewer_id=user.id, accel_only=False,
+            for m, e in ((m, _record_entry(db, m, cut, viewer_id=user.id, accel_only=basis_accel,
                                            sport="pumpfoil", cache=cache)) for m in METRICS)
             if e.get("name") and e["name"] == mein
         ]
@@ -1656,7 +1666,7 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
             sub = _community(db.query(S.spot_id.label("sid"), S.user_id.label("uid"),
                                       valcol.label("val"), S.started_at.label("st"),
                                       S.id.label("session_id"), rn),
-                             user.id, False, "pumpfoil")
+                             user.id, basis_accel, "pumpfoil")
             sub = sub.filter(valcol > 0, S.spot_id.isnot(None))
             if cut is not None:
                 sub = sub.filter(S.started_at >= cut)
@@ -1672,7 +1682,7 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
         # Gleichstand behaelt die erste Zeile — genau wie in `_time_record`.
         bestzeit: dict[tuple[str, str], tuple] = {}
         for st, sid, name, place, _av, _pv, _tz, eb_val, no_val in _time_rows(
-                db, None, user.id, False, "pumpfoil", cache):
+                db, None, user.id, basis_accel, "pumpfoil", cache):
             if not place or (cut is not None and st < cut):
                 continue
             for m, val in (("early_bird", eb_val), ("night_owl", no_val)):
@@ -1698,7 +1708,7 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
         crn = func.row_number().over(partition_by=S.spot_id, order_by=carve_summe.desc()).label("rn")
         csub = _community(db.query(S.spot_id.label("sid"), S.user_id.label("uid"),
                                    carve_summe.label("val"), crn),
-                          user.id, False, "pumpfoil")
+                          user.id, basis_accel, "pumpfoil")
         csub = csub.filter(AR.carve_m.isnot(None), S.spot_id.isnot(None))
         if cut is not None:
             csub = csub.filter(S.started_at >= cut)
@@ -1716,6 +1726,10 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
         # Gezaehlt wird im GLEICHEN Fenster wie die Rekorde selbst — wer vor drei Jahren
         # einmal dort war, macht den Spot heute nicht umkaempft.
         if spot_titel:
+            # Diese Zaehlung laeuft bewusst OHNE Accel-Filter (also nicht auf `basis_accel`):
+            # „Faehrt hier noch jemand?" ist eine Aussage ueber MENSCHEN, nicht ueber die
+            # Aufnahmequalitaet. Sonst waere jemand „einziger Foiler am Spot", nur weil die
+            # anderen dort mit einer GPS-Uhr oder per Konto-Import aufgezeichnet haben.
             fahrer = _community(db.query(S.spot_id, func.count(func.distinct(S.user_id))),
                                 user.id, False, "pumpfoil")
             fahrer = fahrer.filter(S.spot_id.in_({x["spot_id"] for x in spot_titel}))
