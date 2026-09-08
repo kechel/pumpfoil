@@ -198,3 +198,54 @@ Sinnvolle Reihenfolge, wenn das Konto steht:
    teure Renderkette faellt also weg (1–2 h Arbeit).
 3. Kennzahlen erst danach, und dann wie bei der Facebook Content Library ueber die
    gespeicherte Seite — eine API gibt es auch dafuer nicht.
+
+
+## Nachgerechnet am 08.09.: Brasilien ist kein Reichweiten-Problem
+
+Anlass war Jans Einwand — Brasilien habe eine grosse Foiling-Szene, und es gebe **keinen
+einzigen brasilianischen App-Nutzer**. Stimmt. Nur liegt es nicht an fehlender Reichweite:
+
+| Kanal | Brasilien |
+|---|---|
+| **Facebook** (1.696 Follower) | **30,3 % — das groesste Land**, vor Polen 13,3 %, Frankreich 12,6 %, USA 11,1 %, Deutschland 8,7 % |
+| Instagram (280 Follower) | 7 Follower, 335 erreicht im Monat |
+
+Rund **510 brasilianische Facebook-Follower — und null App-Nutzer.** Das ist ein
+Trichter-Problem, kein Kanal-Problem. Ein weiterer Kanal fuellt oben nach, wo unten nichts
+ankommt.
+
+Zur Einordnung von Instagram: die erreichten Konten dort sind Iran (27.066), Tuerkei
+(15.522), Usbekistan (3.817), Irak (2.981). Das ist keine Zielgruppe, das ist Ausspielung
+ins Leere — die 267.972 Aufrufe des Kanals sagen ueber Brasilien nichts.
+
+### Und Kwai passt demografisch am schlechtesten
+
+Kwai Brasilien: **46 % Klassen D/E, 29 % C, 18 % A/B.** Ein Pumpfoil-Setup kostet
+1.500–3.000 €. Von allen brasilianischen Plattformen ist Kwai damit die, deren Publikum am
+weitesten von der Kaufkraft entfernt liegt, die der Sport voraussetzt. Die brasilianische
+Wassersport-Szene lebt auf **Instagram** (Medina, Ítalo, die Schulen und Marken),
+**YouTube** und in **Facebook-Gruppen** — alles Kanaele, die wir haben.
+
+### Was NICHT die Ursache ist (geprueft)
+
+- **Die iOS-App ist im brasilianischen App Store.** `org.pumpfoil.coolwatch`, ueber die
+  iTunes-Lookup-API in `br` bestaetigt.
+- **Die Website gibt es auf Portugiesisch.** `web/src/i18n/locales/pt.ts`, 1.707 Zeilen.
+
+### Was plausibel die Ursache ist — ungeprueft, aber pruefbar
+
+1. **Die Uhr steht im Vordergrund.** `land.h1` lautet „grava e analisa pump foil com o teu
+   relógio desportivo". In Brasilien sind Garmin und Apple Watch wegen der Importsteuern
+   deutlich teurer als hier. Dass die App **auch ohne Uhr** mit dem Handy aufzeichnet, ist
+   fuer Brasilien der entscheidende Satz — und er steht nicht vorn.
+2. **Die Endcard ist englisch** („FREE APP & COMMUNITY"), auch unter Videos, die zu 60 %
+   in Brasilien laufen.
+3. **`pt.ts` ist gemischt.** 36 europaeische Marker (13× „o teu", dazu telemóvel, ecrã,
+   receção, de facto, sítio, predefinição, premido, ficheiro) und durchgehend
+   tu-Konjugation statt „você". Der Grossteil ist zwar brasilianisch (celular 21, tela 25),
+   aber es liest sich stellenweise portugiesisch — dieselbe Falle wie bei der
+   Kanalbeschreibung, wo wir dafuer extra eine pt-BR-Fassung geschrieben haben.
+
+**Fazit fuer Kwai:** nicht falsch, aber die falsche Reihenfolge. Erst den Trichter fuer die
+510 Brasilianer reparieren, die schon da sind; ein bezahltes System-VPN, ein Emulator und
+eine eSIM lohnen erst, wenn Brasilien ueberhaupt konvertiert.
