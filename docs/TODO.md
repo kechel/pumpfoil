@@ -728,8 +728,12 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Kandidaten: Name/Avatar im Community-Feed, in den Bestenlisten, im Chat-Kopf, in den
   Session-Karten. Zu bedenken: sobald der Name im Feed klickbar ist, ist die Seite faktisch
   oeffentlich fuer alle Angemeldeten; die Schalter dafuer stehen in den Einstellungen
-  (`public_profile`, alle fuenf Felder default an, `enabled` schaltet die Seite ganz ab).
-  Danach: dieselbe Seite in Android und iOS (heute nur Web).
+  (`public_profile`, inzwischen ZEHN Felder default an, `enabled` schaltet die Seite ganz ab).
+  **Stand 08.09. abends:** Einstieg ist gebaut — Bild/Name/Mail links oben und jedes Profilbild
+  in der Session-Detailansicht fuehren hin; im Changelog steht sie seit dem 08.09.
+  **Port nach Android/iOS bewusst VERTAGT** (Jan: „auf die native apps uebernehmen wir das erst
+  nach ein bisschen feedback, wer weiss wieviel da noch geaendert wird") — Jan fragt zuerst die
+  Community nach Ideen. Erst wenn sich die Seite gesetzt hat, lohnt der Nachbau in zwei Apps.
 
 - **Standard-Emoji in der Android-Spot-Ueberschrift.** `SpotSessionsScreen.kt` setzt
   `"📍 $spot"` in den TopAppBar-Titel. Laut Memory `no-standard-emojis-in-ui` gehoeren dort
