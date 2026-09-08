@@ -242,6 +242,7 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
                  sens: str | None = None, video_url: str | None = None) -> SessionOut:
     return SessionOut(
         id=s.id,
+        owner_id=s.user_id,
         session_uuid=s.session_uuid,
         sport=s.sport,
         # Nur in der Einzelansicht (slim=True sind die Listen — dort gibt es keine
@@ -1867,6 +1868,7 @@ def public_shared_session(token: str, request: Request, db: Session = Depends(ge
                          .filter_by(session_id=s.id).scalar() or 0)
     out.liked = False
     out.share_token = None   # den Token NICHT im öffentlichen Payload zurückspiegeln
+    out.owner_id = None      # kein Link auf die Foiler-Seite: die verlangt eine Anmeldung
     photos = [{"id": p.id, "url": p.url, "thumb_url": media.thumb_url(p.url)}
               for p in db.query(models.SessionPhoto)
               .filter_by(session_id=s.id, blocked=False).order_by(models.SessionPhoto.id).all()]

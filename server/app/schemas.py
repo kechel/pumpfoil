@@ -205,6 +205,10 @@ class SessionOut(BaseModel):
     owned: bool = True   # gehört die Session dem aktuellen Nutzer? (Community = read-only)
     owner_name: str | None = None  # Anzeigename des Besitzers (für Community-Ansicht)
     owner_avatar_url: str | None = None  # Profilbild des Besitzers
+    # Nutzer-ID des Besitzers — nur damit das Profilbild in der Detailansicht auf seine
+    # Foiler-Seite verlinken kann (/foiler/<id>). Im OEFFENTLICHEN Teilen-Payload wird das
+    # Feld bewusst geleert: die Foiler-Seite verlangt eine Anmeldung, der Link liefe ins Leere.
+    owner_id: int | None = None
     merged_count: int = 0  # >0 = aus so vielen Sessions zusammengeführt (auflösbar)
     place_name: str | None = None  # Spot-Name (Ufer-Venue bevorzugt, sonst Gewässer)
     place_water: str | None = None  # Gewässername als Zusatz-Label (wenn place_name ein Ufer-Venue ist)

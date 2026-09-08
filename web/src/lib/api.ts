@@ -221,6 +221,7 @@ export interface SessionSummary {
   // puls_antwort_bpm/grund).
   fremdkraft_keep?: number[][];
   owned?: boolean;
+  owner_id?: number | null;   // Besitzer — Profilbild verlinkt auf /foiler/<id>
   // Menschliche Sportart-Klassifikation (docs/sport-classification.md). ACHTUNG: `sport` oben ist
   // der Aktivitätstyp AUS DER AUFNAHME — etwas anderes.
   sport_class?: string | null;          // pumpfoil (Default) | wingfoil | foildrive | …

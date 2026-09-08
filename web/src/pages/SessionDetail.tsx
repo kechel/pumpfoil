@@ -1306,9 +1306,21 @@ export default function SessionDetail() {
       )}
       <div className="mb-4 flex items-start gap-3">
         {/* Profilbild zuerst, daneben Überschrift + Meta + Medien/Aktionen */}
+        {/* Profilbild fuehrt auf die Foiler-Seite des Besitzers (Jan, 08.09.2026). Ohne
+            `owner_id` (oeffentlicher Teilen-Link, dort ist niemand angemeldet) bleibt es ein
+            reines Bild — ein Link auf eine Seite, die Anmeldung verlangt, waere eine Sackgasse. */}
         <div className="flex shrink-0 flex-col items-center gap-1">
-          <Avatar name={session.owner_name ?? null} url={session.owner_avatar_url ?? null} size={96} className="h-24 w-24" />
-          {session.owner_name && <span className="max-w-24 truncate text-[10px] text-slate-300">{session.owner_name}</span>}
+          {session.owner_id ? (
+            <Link to={`/foiler/${session.owner_id}`} className="flex flex-col items-center gap-1">
+              <Avatar name={session.owner_name ?? null} url={session.owner_avatar_url ?? null} size={96} className="h-24 w-24" />
+              {session.owner_name && <span className="max-w-24 truncate text-[10px] text-slate-300">{session.owner_name}</span>}
+            </Link>
+          ) : (
+            <>
+              <Avatar name={session.owner_name ?? null} url={session.owner_avatar_url ?? null} size={96} className="h-24 w-24" />
+              {session.owner_name && <span className="max-w-24 truncate text-[10px] text-slate-300">{session.owner_name}</span>}
+            </>
+          )}
         </div>
         <div className="min-w-0 flex-1">
       <h2 className="mb-1 text-xl font-bold">
