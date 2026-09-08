@@ -558,6 +558,7 @@ const de: Record<string, string> = {
   "sd.trim": "Trimmen",
   "sd.trimActive": "· aktiv",
   "sd.trimHint": "Nur den gewählten Zeitbereich auswerten (z. B. vergessene Aufnahme / Auto-Heimfahrt abschneiden). Bezogen auf die gesamte Aufnahme ({total} min:s).",
+  "sd.trimNoLength": "Die Länge dieser Aufnahme ist uns nicht bekannt — Zuschneiden ist deshalb gesperrt, damit nicht versehentlich alles weggeschnitten wird.",
   "sd.start": "Start:",
   "sd.end": "Ende:",
   "sd.saveReanalyze": "Speichern & neu auswerten",

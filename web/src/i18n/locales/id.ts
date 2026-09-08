@@ -471,6 +471,7 @@ const id: Record<string, string> = {
   "sd.trim": "Pangkas",
   "sd.trimActive": "· aktif",
   "sd.trimHint": "Analisis hanya rentang waktu terpilih (mis. potong rekaman yang lupa dimatikan / perjalanan pulang). Relatif terhadap seluruh rekaman ({total} menit:detik).",
+  "sd.trimNoLength": "Kami tidak tahu panjang rekaman ini — pemotongan dinonaktifkan agar tidak terpotong semua.",
   "sd.start": "Mulai:",
   "sd.end": "Akhir:",
   "sd.saveReanalyze": "Simpan & analisis ulang",

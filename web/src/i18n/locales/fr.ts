@@ -395,6 +395,7 @@ const fr: Record<string, string> = {
   "sd.trim": "Rogner",
   "sd.trimActive": "· actif",
   "sd.trimHint": "N'analyser que la plage de temps choisie (p. ex. couper un enregistrement oublié / le retour en voiture). Par rapport à tout l'enregistrement ({total} min:s).",
+  "sd.trimNoLength": "Nous ne connaissons pas la durée de cet enregistrement — le découpage est désactivé pour ne rien supprimer par accident.",
   "sd.start": "Début :",
   "sd.end": "Fin :",
   "sd.saveReanalyze": "Enregistrer et réanalyser",

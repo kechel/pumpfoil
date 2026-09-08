@@ -483,6 +483,7 @@ const nb: Record<string, string> = {
   "sd.trim": "Trim",
   "sd.trimActive": "· aktiv",
   "sd.trimHint": "Analyser bare det valgte tidsrommet (f.eks. kutt bort et glemt opptak / turen hjem). Relativt til hele opptaket ({total} min:s).",
+  "sd.trimNoLength": "Vi kjenner ikke lengden på dette opptaket — beskjæring er derfor sperret, så ingenting kuttes bort ved et uhell.",
   "sd.start": "Start:",
   "sd.end": "Slutt:",
   "sd.saveReanalyze": "Lagre og analyser på nytt",

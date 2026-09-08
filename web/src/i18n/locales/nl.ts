@@ -495,6 +495,7 @@ const nl: Record<string, string> = {
   "sd.trim": "Trimmen",
   "sd.trimActive": "· actief",
   "sd.trimHint": "Alleen het gekozen tijdsbereik analyseren (bijv. een vergeten opname / autorit naar huis wegknippen). Ten opzichte van de hele opname ({total} min:s).",
+  "sd.trimNoLength": "We weten niet hoe lang deze opname is — trimmen is uitgeschakeld zodat er niets per ongeluk wegvalt.",
   "sd.start": "Start:",
   "sd.end": "Einde:",
   "sd.saveReanalyze": "Opslaan & opnieuw analyseren",

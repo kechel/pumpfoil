@@ -534,6 +534,7 @@ const en: Record<string, string> = {
   "sd.trim": "Trim",
   "sd.trimActive": "· active",
   "sd.trimHint": "Analyze only the selected time range (e.g. cut off a forgotten recording / drive home). Relative to the whole recording ({total} min:s).",
+  "sd.trimNoLength": "We don't know how long this recording is — trimming is disabled so nothing gets cut away by accident.",
   "sd.start": "Start:",
   "sd.end": "End:",
   "sd.saveReanalyze": "Save & re-analyze",

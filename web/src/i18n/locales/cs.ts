@@ -495,6 +495,7 @@ const cs: Record<string, string> = {
   "sd.trim": "Oříznout",
   "sd.trimActive": "· aktivní",
   "sd.trimHint": "Vyhodnotit jen zvolený časový úsek (např. oříznout zapomenuté nahrávání / cestu autem domů). Vztaženo k celé nahrávce ({total} min:s).",
+  "sd.trimNoLength": "Neznáme délku tohoto záznamu — stříhání je proto vypnuté, aby se omylem nesmazalo všechno.",
   "sd.start": "Začátek:",
   "sd.end": "Konec:",
   "sd.saveReanalyze": "Uložit a znovu vyhodnotit",
