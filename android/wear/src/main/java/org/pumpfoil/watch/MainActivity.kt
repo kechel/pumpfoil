@@ -670,6 +670,22 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                 // hat hinterher nur seinen Puls (Meldung eines Nutzers am 03.09., zwei weitere
                 // Konten mit demselben Muster). Deshalb ein Balken quer ueber die Seite statt
                 // eines Symbols: er liegt ueber jeder Datenseite und jedem eigenen Layout.
+                // Uhr OHNE eigenen GNSS-Empfaenger: dann gibt es gar keine Position, und das
+                // muss man VOR der Fahrt wissen. Wir nehmen bewusst nicht die des Handys — sonst
+                // stuende in der Spur, wo das Handy lag (Vorgabe Jan, 08.09.2026). Derselbe
+                // Balken wie bei der eingefrorenen Ortung, nur mit eigenem Text.
+                if (s.gpsOhneHardware) {
+                    Text(
+                        I18n.t("rec.gpsNoHardware"),
+                        color = Color.White,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 14.sp,
+                        modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth()
+                            .background(Color(0xFFB91C1C)).padding(horizontal = 10.dp, vertical = 3.dp),
+                    )
+                }
                 if (s.gpsStale) {
                     // GROSS und nicht zu uebersehen (Jan, 03.09.): ein „--" im Tempo-Feld liest
                     // sich wie „ich stehe ja noch am Steg". Deshalb eine ganze Seite, die den
