@@ -75,6 +75,8 @@ class Liste(HTMLParser):
     def __init__(self):
         super().__init__(convert_charrefs=True)
         self.karten = []
+        self.geplant = []           # 定时发布 — noch keine Zahlen, aber ein Datum
+        self.unvollstaendig = []    # 审核中 / 未通过 — keine vergleichbare Zeile
         self.gesamt = None          # aus dem Reiter "全部 12"
         self.tiefe = 0              # div-Tiefe innerhalb der aktuellen Karte
         self.karte = None
@@ -117,6 +119,8 @@ class Liste(HTMLParser):
             self.sammeln = "title"
         elif "note-card__time" in kl:
             self.sammeln = "time"
+        elif "note-card__schedule" in kl:
+            self.sammeln = "schedule"
         elif "note-card__tag" in kl:
             self.sammeln = "tag"
         elif "play_time" in kl and "play_time_wrap" not in kl:
@@ -154,12 +158,34 @@ class Liste(HTMLParser):
 
     def _karte_fertig(self):
         k, self.karte = self.karte, None
-        # Karten in Pruefung (审核中) oder abgelehnt (未通过) haben teils weniger
-        # Symbole — nur vollstaendige Zeilen sind vergleichbare Messpunkte.
-        if k.get("note_id") and len(self.zahlen) == len(FELDER):
+        if not k.get("note_id"):
+            return
+        if len(self.zahlen) == len(FELDER):
             for feld, wert in zip(FELDER, self.zahlen):
                 k[feld] = _zahl(wert)
             self.karten.append(k)
+        elif k.get("schedule"):
+            # 定时发布: geplant, aber noch nicht draussen. Kein Messpunkt — die
+            # Karte hat keine Zahlenzeile —, aber der Termin ist es wert,
+            # mitgeschrieben zu werden: geht der Beitrag live, haengen die
+            # Zahlen an derselben noteId.
+            k["time"] = _pekingzeit(k.get("time"))
+            self.geplant.append(k)
+        else:
+            # 审核中 / 未通过 — weder Zahlen noch Termin.
+            self.unvollstaendig.append(k)
+
+
+def _pekingzeit(text):
+    """'2026-09-20 05:00 （GMT+8:00 北京时间）' -> '2026-09-20 05:00'.
+
+    Der Zusatz steht NUR bei geplanten Beitraegen. Veroeffentlichte Karten
+    zeigen dieselbe Zeitzone ohne Hinweis (Beleg: die ersten fuenf Beitraege
+    stehen laut REDNOTE.md seit dem 07.09. online und tragen hier
+    '2026-09-08 02:5x' — das geht nur als Pekinger Zeit auf). Beide Faelle
+    landen damit in derselben Zeitzone in der Spalte.
+    """
+    return re.sub(r"\s*（.*$", "", (text or "")).strip() or None
 
 
 def _zahl(text):
@@ -184,6 +210,26 @@ def _stamm(titel: str) -> str:
     t = re.sub(r"^-?\d{1,3}\s+[Pp]umpfoil\s+\d{4}\s*", "", titel or "")
     t = t.split("｜")[0].split("|")[0]
     return re.sub(r"[^\w一-鿿]", "", t)
+
+
+def finde_nummer(idx, titel):
+    """Nummer zu einem RedNote-Titel — exakt, sonst ueber den Anfang.
+
+    RedNote schneidet Titel bei 20 Zeichen ab, unsere Captions sind oft laenger.
+    Ein eindeutiger Praefix-Treffer ist deshalb genauso gut wie ein exakter
+    ("Success or Fail 2" -> "Success or Fail 2 — 每次尝试都是进步"). Mehrdeutig
+    oder zu kurz heisst weiterhin: keine Nummer, dann setzt --nummer sie.
+    """
+    s = _stamm(titel)
+    if not s:
+        return None
+    if s in idx:
+        return idx[s]
+    if len(s) >= 6:
+        treffer = {n for stamm, n in idx.items() if stamm.startswith(s)}
+        if len(treffer) == 1:
+            return treffer.pop()
+    return None
 
 
 def nummern_index(sm):
@@ -244,7 +290,7 @@ def importieren(pfad, note=None):
     roh = Path(pfad).read_text(encoding="utf-8") if pfad != "-" else sys.stdin.read()
     p = Liste()
     p.feed(roh)
-    if not p.karten:
+    if not p.karten and not p.geplant:
         sys.exit("Keine Karten gefunden — wurde das <div class=\"panel\"> kopiert?")
 
     sm = studio()
@@ -258,8 +304,8 @@ def importieren(pfad, note=None):
 
     neu = unveraendert = 0
     ohne_nummer = []
-    for k in p.karten:
-        nummer = idx.get(_stamm(k.get("title", "")))
+
+    def post_zeile(k, nummer):
         db.execute(
             "INSERT INTO post VALUES (?,?,?,?,?,?,?) "
             "ON CONFLICT (platform, post_id) DO UPDATE SET last_seen=excluded.last_seen,"
@@ -267,13 +313,19 @@ def importieren(pfad, note=None):
             # eine einmal gefundene Nummer nicht — nach einer Umbenennung
             # findet die Titel-Zuordnung sie sonst nicht mehr wieder.
             " title=COALESCE(excluded.title, post.title),"
+            " published_at=COALESCE(excluded.published_at, post.published_at),"
             " number=COALESCE(post.number, excluded.number)",
             (PLATTFORM, k["note_id"], nummer, k.get("time"), k.get("title"), snap, snap))
+    for k in p.karten + p.geplant:
+        nummer = finde_nummer(idx, k.get("title", ""))
+        post_zeile(k, nummer)
         if nummer is None and db.execute(
                 "SELECT number FROM post WHERE platform=? AND post_id=?",
                 (PLATTFORM, k["note_id"])).fetchone()["number"] is None:
             ohne_nummer.append(k)
 
+        if "views" not in k:            # geplant: Termin ja, Zahlen nein
+            continue
         werte = (k["views"], k["likes"], k["comments"], k["shares"], k["saves"])
         if alt.get(k["note_id"]) == werte:
             unveraendert += 1
@@ -288,11 +340,20 @@ def importieren(pfad, note=None):
     print(f"Snapshot #{snap} · {jetzt}")
     print(f"{len(p.karten)} Karten gelesen · {neu} neue Messpunkte · "
           f"{unveraendert} unveraendert")
-    if p.gesamt and p.gesamt > len(p.karten):
+    if p.geplant:
+        print(f"{len(p.geplant)} geplant (定时发布), Termine in Pekinger Zeit:")
+        for k in sorted(p.geplant, key=lambda x: x.get("time") or ""):
+            nr = db.execute("SELECT number FROM post WHERE platform=? AND post_id=?",
+                            (PLATTFORM, k["note_id"])).fetchone()["number"]
+            print(f"   {k.get('time')}  {f'{nr:03d}' if nr else '  —'}  {k.get('title')}")
+    if p.unvollstaendig:
+        print(f"{len(p.unvollstaendig)} ohne Zahlenzeile (审核中 / 未通过) — "
+              f"kein vergleichbarer Messpunkt, deshalb uebersprungen.")
+    gelesen = len(p.karten) + len(p.geplant) + len(p.unvollstaendig)
+    if p.gesamt and p.gesamt > gelesen:
         print(f"⚠️  Der Reiter meldet {p.gesamt} Beitraege, gelesen wurden "
-              f"{len(p.karten)}. Vor dem Kopieren ganz nach unten scrollen, "
-              f"damit alle Karten nachgeladen sind (Beitraege in 审核中 haben "
-              f"ausserdem keine vollstaendige Zahlenzeile).")
+              f"{gelesen}. Vor dem Kopieren ganz nach unten scrollen, damit "
+              f"alle Karten nachgeladen sind.")
     for k in ohne_nummer:
         print(f"   ohne Nummer: {k['note_id']}  {k.get('title')}"
               f"   → ./rednote-import.py --nummer {k['note_id']}=<nr>")
