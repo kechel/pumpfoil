@@ -224,6 +224,8 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; gap: 5
 /* Leichte Linie zwischen den Zeilen — bei zwei Spalten mit langem Text sonst
    schwer zu sehen, was zusammengehoert. Auch unter dem Spaltenkopf. */
 .caprow + .caprow { border-top: 1px solid #8882; }
+/* Instagram und TikTok haben keinen Titel — ihr Text nimmt beide Spalten. */
+.caprow.breit { grid-template-columns: 96px 1fr; }
 .caprow .pfname { font-size: 12px; font-weight: 700; color: var(--pf, inherit);
   padding: 6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .caprow.kopf > div { font-size: 11px; text-transform: uppercase; letter-spacing: .06em;
