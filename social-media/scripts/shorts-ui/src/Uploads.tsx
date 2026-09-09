@@ -328,18 +328,17 @@ function ExportCard({ exp, ytReady, showTexts }: {
                       </pre>
                     }
                   />
-                  <CapRow pf="instagram" name="Instagram" desc={caps.instagram} />
-                  {igLong && (
-                    <CapRow pf="instagram" name="Instagram +Block" desc={igLong.text}
-                      descFull={
-                        <>
-                          <pre>{igLong.text}</pre>
-                          <div className={"note" + (igLong.chars > igLong.limit ? " over" : "")}>
-                            {igLong.chars} / {igLong.limit} Zeichen
-                          </div>
-                        </>
-                      } />
-                  )}
+                  {/* Nur die lange Fassung (Caption + Standardblock) — die kurze
+                      braucht Jan nicht, kopiert wird ohnehin immer der ganze Text. */}
+                  <CapRow pf="instagram" name="Instagram" desc={igLong?.text ?? caps.instagram}
+                    descFull={igLong && (
+                      <>
+                        <pre>{igLong.text}</pre>
+                        <div className={"note" + (igLong.chars > igLong.limit ? " over" : "")}>
+                          {igLong.chars} / {igLong.limit} Zeichen
+                        </div>
+                      </>
+                    )} />
                   <CapRow pf="tiktok" name="TikTok" desc={caps.tiktok} />
                   {caps.kwai && (
                     <CapRow pf="kwai" name="Kwai" desc={caps.kwai}
