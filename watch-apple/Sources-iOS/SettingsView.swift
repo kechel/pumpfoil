@@ -3,7 +3,7 @@ import SwiftUI
 // Sprachnamen in der jeweiligen Sprache (Reihenfolge = Loc.langs).
 private let langNames = ["de": "Deutsch", "gsw": "Schwiizerdütsch", "de-AT": "Österreichisch",
                          "en": "English", "fr": "Français", "it": "Italiano", "es": "Español", "fi": "Suomi",
-                         "nl": "Nederlands", "cs": "Čeština", "pt": "Português", "ja": "日本語",
+                         "nl": "Nederlands", "cs": "Čeština", "pt": "Português (Brasil)", "pt-PT": "Português (Portugal)", "ja": "日本語",
                          "zh": "中文", "ru": "Русский", "id": "Bahasa Indonesia",
                          "nb": "Norsk", "pl": "Polski"]
 

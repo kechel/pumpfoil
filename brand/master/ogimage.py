@@ -9,7 +9,7 @@ pumpfoil.org teilt. Bis 06.09.2026 zeigte `og:image` das quadratische Anmelde-Lo
 waehrend `twitter:card` „summary_large_image" verlangt — die Kachel ist auf 1,91:1 ausgelegt
 und schnitt das Quadrat entsprechend zu. 1200x630 ist das Standardmass dafuer.
 
-Bewusst EIN Bild fuer alle 17 Sprachen: eine Marke, ein Bild. Sprachvarianten waeren 17-mal
+Bewusst EIN Bild fuer alle 18 Sprachen: eine Marke, ein Bild. Sprachvarianten waeren 18-mal
 Pflege fuer einen Effekt, den in der Vorschaukarte ohnehin Titel und Beschreibung tragen —
 und die kommen je Sprach-Adresse schon richtig heraus.
 
