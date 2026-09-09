@@ -1696,7 +1696,7 @@ Für ein kurzes Hochkant-Video (YouTube Short / Instagram Reel / TikTok) mit dem
 Antworte AUSSCHLIESSLICH mit gültigem JSON (kein Markdown, keine Code-Fences) in exakt dieser Struktur:
 {{"titles": {{{", ".join(f'"{lang}": "..."' for lang in CAPTION_LANGS)}}},
  "descriptions": {{...gleiche Sprachen wie titles...}},
- "hashtags": "...", "instagram": "...", "tiktok": "...", "kwai": "..."}}
+ "hashtags": "...", "instagram": "...", "tiktok": "..."}}
 
 Fachbegriffe (WICHTIG, häufige Fehlerquelle):
 - Die Tragfläche unter Wasser heißt "foil" / "hydrofoil" (de: "Foil", "Tragfläche").
@@ -1717,7 +1717,6 @@ Regeln:
 - hashtags: EINE Zeile mit 4-6 Hashtags: #pumpfoil zuerst, danach NUR individuelle, zum konkreten Videoinhalt passende Tags. KEINE generischen Standard-Tags wie #pumpfoiling, #dockstart oder #foil.
 - instagram: lockere Caption AUSSCHLIESSLICH auf Englisch, 2-3 Sätze mit passenden Emojis, Leerzeile, dann 8-12 Hashtags (#pumpfoil zuerst, Rest videospezifisch — nicht #pumpfoiling/#dockstart/#foil). KEIN Deutsch, keine weitere Sprache — dieses Feld gilt weltweit.
 - tiktok: 1-2 kurze Sätze AUSSCHLIESSLICH auf Englisch, 4-6 Hashtags (#pumpfoil + videospezifische, keine generischen Standard-Tags). KEIN Deutsch.
-- kwai: 1-2 kurze Sätze AUSSCHLIESSLICH auf BRASILIANISCHEM Portugiesisch (nicht europäisch: "celular" statt "telemóvel", "seu" statt "teu"), am Ende eine Frage ans Publikum, danach Leerzeile und 4-6 Hashtags. Kwai läuft fast nur in Brasilien — dieses eine Feld ist deshalb NICHT englisch, anders als instagram und tiktok. Sportbegriffe (pumpfoil, foil, dockstart, pump) bleiben englisch, so heißen sie dort auch.
 """
 
 

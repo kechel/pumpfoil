@@ -127,7 +127,7 @@ dieselbe Logik wie bei `zh-CN` gegen `zh-TW`.
 **europaeischen** Text (`Transforma o teu relógio desportivo`, `telemóvel`, `planeios`). Wer
 aus Brasilien von einem Video aufs Profil klickte, bekam also Portugal-Portugiesisch. Und
 Brasilien ist mit **30,3 % unser groesstes Land auf Facebook** (siehe
-`social-media/KWAI.md`).
+`social-media/BRASILIEN.md`).
 
 **Getauscht am 08.09.** gegen `kanal-beschreibung-pt-BR-brasilianisch.txt`
 (`Transforme seu relógio esportivo`, `celular`, `glides`). Die anderen 14 Sprachen blieben

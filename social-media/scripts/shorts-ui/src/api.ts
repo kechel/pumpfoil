@@ -49,7 +49,6 @@ export interface Captions {
   hashtags: string;
   instagram: string;
   tiktok: string;
-  kwai?: string;   // brasilianisches Portugiesisch; fehlt bei aelteren Cache-Eintraegen
 }
 
 export interface RenderResult {
