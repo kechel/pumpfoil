@@ -229,7 +229,7 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
             {caps && (
               <>
                 <div className="capblock">
-                  <div className="caphead">Zu YouTube pushen (Titel-Lokalisierungen + Beschreibung)</div>
+                  <div className="caphead" data-pf="youtube">Zu <b>YouTube</b> pushen (Titel-Lokalisierungen + Beschreibung)</div>
                   <div className="genrow">
                     <input
                       value={ytUrl}
@@ -258,7 +258,7 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
                   {ytMsg && <div style={{ fontSize: 12 }}>{ytMsg}</div>}
                 </div>
                 <div className="capblock">
-                  <div className="caphead">YouTube-Titel (Lokalisierungen) <CopyBtn text={ytTitlesText} /></div>
+                  <div className="caphead" data-pf="youtube"><b>YouTube</b>-Titel (Lokalisierungen) <CopyBtn text={ytTitlesText} /></div>
                   <pre>
                     {Object.entries(caps.titles).map(([l, t]) => (
                       <div key={l}>
@@ -268,20 +268,20 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
                   </pre>
                 </div>
                 <div className="capblock">
-                  <div className="caphead">
-                    YouTube-Kurzbeschreibung (de) — beim Push kommen Hashtags + Standard-Block je Sprache automatisch dazu
+                  <div className="caphead" data-pf="youtube">
+                    <b>YouTube</b>-Kurzbeschreibung (de) — beim Push kommen Hashtags + Standard-Block je Sprache automatisch dazu
                     <CopyBtn text={`${caps.descriptions?.de ?? ""}\n\n${caps.hashtags ?? ""}`} />
                   </div>
                   <pre>{(caps.descriptions?.de ?? "") + "\n\n" + (caps.hashtags ?? "")}</pre>
                 </div>
                 <div className="capblock">
-                  <div className="caphead">Instagram-Caption <CopyBtn text={caps.instagram} /></div>
+                  <div className="caphead" data-pf="instagram"><b>Instagram</b>-Caption <CopyBtn text={caps.instagram} /></div>
                   <pre>{caps.instagram}</pre>
                 </div>
                 {igLong && (
                   <div className="capblock">
-                    <div className="caphead">
-                      Instagram-Caption + Standardblock (EN)
+                    <div className="caphead" data-pf="instagram">
+                      <b>Instagram</b>-Caption + Standardblock (EN)
                       <CopyBtn text={igLong.text} />
                       <span className={"chars" + (igLong.chars > igLong.limit ? " over" : "")}>
                         {igLong.chars} / {igLong.limit}
@@ -291,13 +291,13 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
                   </div>
                 )}
                 <div className="capblock">
-                  <div className="caphead">TikTok-Caption <CopyBtn text={caps.tiktok} /></div>
+                  <div className="caphead" data-pf="tiktok"><b>TikTok</b>-Caption <CopyBtn text={caps.tiktok} /></div>
                   <pre>{caps.tiktok}</pre>
                 </div>
                 {caps.kwai && (
                   <div className="capblock">
-                    <div className="caphead">
-                      Kwai-Caption (pt-BR) <CopyBtn text={caps.kwai} />
+                    <div className="caphead" data-pf="kwai">
+                      <b>Kwai</b>-Caption (pt-BR) <CopyBtn text={caps.kwai} />
                     </div>
                     <pre>{caps.kwai}</pre>
                     <div style={{ fontSize: 11, opacity: 0.6 }}>
@@ -310,8 +310,8 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
                 {xhs && (
                   <>
                     <div className="capblock">
-                      <div className="caphead">
-                        RedNote-Titel ({xhs.title.length}/20 Zeichen) <CopyBtn text={xhs.title} />
+                      <div className="caphead" data-pf="rednote">
+                        <b>RedNote</b>-Titel ({xhs.title.length}/20 Zeichen) <CopyBtn text={xhs.title} />
                       </div>
                       <pre>{xhs.title}</pre>
                       {xhs.title_full !== xhs.title && (
@@ -321,8 +321,8 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
                       )}
                     </div>
                     <div className="capblock">
-                      <div className="caphead">
-                        RedNote-Text — Chinesisch ({xhs.chars}/1000 Zeichen)
+                      <div className="caphead" data-pf="rednote">
+                        <b>RedNote</b>-Text — Chinesisch ({xhs.chars}/1000 Zeichen)
                         <CopyBtn text={xhs.description} />
                       </div>
                       <pre>{xhs.description}</pre>
@@ -337,14 +337,14 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
                 {bili && (
                   <>
                     <div className="capblock">
-                      <div className="caphead">
-                        Bilibili-Titel <CopyBtn text={bili.title} />
+                      <div className="caphead" data-pf="bilibili">
+                        <b>Bilibili</b>-Titel <CopyBtn text={bili.title} />
                       </div>
                       <pre>{bili.title}</pre>
                     </div>
                     <div className="capblock">
-                      <div className="caphead">
-                        Bilibili-Beschreibung — Englisch, Indonesisch, Thai ({bili.chars}/2000 Zeichen)
+                      <div className="caphead" data-pf="bilibili">
+                        <b>Bilibili</b>-Beschreibung — Englisch, Indonesisch, Thai ({bili.chars}/2000 Zeichen)
                         <CopyBtn text={bili.description} />
                       </div>
                       <pre>{bili.description}</pre>

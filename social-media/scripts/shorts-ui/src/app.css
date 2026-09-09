@@ -1,4 +1,28 @@
-:root { color-scheme: light dark; font-family: -apple-system, system-ui, sans-serif; }
+/* Kategorial-Palette der Plattformen — EINE Quelle fuer den Auswertungs-Tab
+   (Diagramme) und die Textblock-Ueberschriften im Studio. Die ersten vier sind
+   gegen Farbfehlsichtigkeit geprueft; kwai/rednote/bilibili sind danach fuer
+   Abstand ergaenzt, aber nicht erneut geprueft. Die dunklen Werte sind fuer den
+   dunklen Grund eigens gewaehlt, nicht die hellen aufgehellt. */
+:root {
+  color-scheme: light dark; font-family: -apple-system, system-ui, sans-serif;
+  --s-yt: #2a78d6;    /* blau    */
+  --s-fb: #eb6834;    /* orange  */
+  --s-ig: #1baf7a;    /* aqua    */
+  --s-tt: #4a3aa7;    /* violett */
+  --s-kwai: #d97706;  /* safran  */
+  --s-rn: #c2185b;    /* karmin  */
+  --s-bili: #8a6d1f;  /* ocker   */
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --s-yt: #3987e5; --s-fb: #d95926; --s-ig: #199e70; --s-tt: #9085e9;
+    --s-kwai: #e8963c; --s-rn: #ef7aa8; --s-bili: #c7a94a;
+  }
+}
+:root[data-theme="dark"] {
+  --s-yt: #3987e5; --s-fb: #d95926; --s-ig: #199e70; --s-tt: #9085e9;
+  --s-kwai: #e8963c; --s-rn: #ef7aa8; --s-bili: #c7a94a;
+}
 * { box-sizing: border-box; }
 /* Das Browser-Standardblatt setzt [hidden] auf display:none — jede eigene
    display-Regel schlaegt das aber, weil Autoren-CSS gewinnt. Deshalb hier
@@ -180,7 +204,20 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; gap: 5
 .caps .genrow { display: flex; gap: 6px; margin-bottom: 10px; }
 .caps .genrow input { flex: 1; font-size: 13px; padding: 6px 8px; border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; }
 .capblock { margin-bottom: 10px; }
-.capblock .caphead { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+/* Ueberschrift eines Textblocks: nur der Plattformname fett und farbig, damit
+   man beim Scrollen den richtigen Abschnitt sofort findet (Jan, 09.09.). Der
+   Rest der Zeile bleibt normal — vorher war alles fett und damit gleich laut.
+   Die Farben kommen aus derselben Palette wie die Diagramme im Auswertungs-Tab
+   (--s-* auf :root), damit eine Plattform ueberall dieselbe Farbe hat. */
+.capblock .caphead { display: flex; align-items: center; gap: 8px; font-size: 12px;
+  font-weight: 400; margin-bottom: 4px; }
+.capblock .caphead b { font-weight: 700; color: var(--pf, inherit); }
+.capblock .caphead[data-pf="youtube"]  { --pf: var(--s-yt); }
+.capblock .caphead[data-pf="instagram"]{ --pf: var(--s-ig); }
+.capblock .caphead[data-pf="tiktok"]   { --pf: var(--s-tt); }
+.capblock .caphead[data-pf="kwai"]     { --pf: var(--s-kwai); }
+.capblock .caphead[data-pf="rednote"]  { --pf: var(--s-rn); }
+.capblock .caphead[data-pf="bilibili"] { --pf: var(--s-bili); }
 /* Die Texte werden nur kopiert, nicht gelesen — jeder Block bleibt flach
    und scrollt in sich. Unten rechts laesst er sich aufziehen, falls man
    doch mal etwas nachlesen will. */
@@ -196,30 +233,18 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; gap: 5
 .covers a:hover img { outline: 2px solid #3b82f6; }
 
 /* ===================================================== Auswertungs-Tab === */
-/* Kategorial-Palette, gegen Farbfehlsichtigkeit geprüft. Die dunklen Werte
-   sind für den dunklen Grund eigens gewählt, nicht die hellen aufgehellt. */
+/* Die Plattformfarben stehen auf :root (siehe ganz oben) — hier nur noch die
+   Flaechen und Achsen des Auswertungs-Tabs. */
 .stats {
   --viz-surface: #fcfcfb;
-  --s-yt: #2a78d6;  /* blau   */
-  --s-fb: #eb6834;  /* orange */
-  --s-ig: #1baf7a;  /* aqua   */
-  --s-tt: #4a3aa7;  /* violett*/
   --viz-grid: #8883;
   --viz-ink: #52514e;
   flex: 1; display: flex; flex-direction: column; min-height: 0;
 }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .stats {
-    --viz-surface: #1a1a19;
-    --s-yt: #3987e5; --s-fb: #d95926; --s-ig: #199e70; --s-tt: #9085e9;
-    --viz-ink: #c3c2b7;
-  }
+  :root:not([data-theme="light"]) .stats { --viz-surface: #1a1a19; --viz-ink: #c3c2b7; }
 }
-:root[data-theme="dark"] .stats {
-  --viz-surface: #1a1a19;
-  --s-yt: #3987e5; --s-fb: #d95926; --s-ig: #199e70; --s-tt: #9085e9;
-  --viz-ink: #c3c2b7;
-}
+:root[data-theme="dark"] .stats { --viz-surface: #1a1a19; --viz-ink: #c3c2b7; }
 
 .stats .filterbar { display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
   padding: 8px 14px; border-bottom: 1px solid #8884; }
