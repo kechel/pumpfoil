@@ -192,8 +192,15 @@ class Sink:
                 " number=COALESCE(excluded.number, post.number),"
                 " title=COALESCE(excluded.title, post.title)",
                 list(self.posts.values()))
-            self.db.executemany("INSERT OR REPLACE INTO post_stat VALUES (?,?,?,?,?,?,?)",
-                                self.stats)
+            # Spalten NAMENTLICH, nicht ueber die Position: am 08.09. ist der taegliche
+            # Lauf hier abgestuerzt, weil post_stat fuer RedNotes 收藏 eine achte Spalte
+            # (`saves`) bekommen hatte — die Zahlen des Tages waren schon abgerufen und
+            # gingen beim Schreiben verloren. Mit Spaltennamen ist eine neue Spalte
+            # additiv und bricht diesen Weg nicht mehr.
+            self.db.executemany(
+                "INSERT OR REPLACE INTO post_stat "
+                "(platform, post_id, snapshot_id, views, likes, comments, shares)"
+                " VALUES (?,?,?,?,?,?,?)", self.stats)
             self.db.executemany("INSERT OR REPLACE INTO demographic VALUES (?,?,?,?,?,?,?)",
                                 self.demos)
             self.db.executemany("INSERT OR REPLACE INTO channel_stat VALUES (?,?,?,?,?,?,?)",
