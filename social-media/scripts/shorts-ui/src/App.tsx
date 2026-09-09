@@ -296,10 +296,11 @@ function Studio() {
   // Angehaengter Teil. Was ein Overlay hinten ueberhaengt, verlaengert das
   // Ergebnis VON SELBST — das Feld in der Trim-Zeile ist nur ein Mindestwert.
   // Danach kommt, falls angehakt, die Endcard.
-  const vidEnd = useMemo(() => {
-    const d = curVideo ? state?.vdurs?.[curVideo] ?? 0 : 0;
-    return trim.end ?? d;
-  }, [curVideo, state, trim.end]);
+  // Laenge der Quelldatei. Steht als Zahl unter dem Player: die Zeiten fuer
+  // Trim, Texte und Endcard liegen auf derselben Achse, und dafuer braucht man
+  // das Ende auf die Zehntelsekunde (Jan, 09.09.).
+  const srcDur = curVideo ? state?.vdurs?.[curVideo] ?? 0 : 0;
+  const vidEnd = useMemo(() => trim.end ?? srcDur, [srcDur, trim.end]);
   const overhang = useMemo(() => {
     if (!vidEnd) return 0;
     let o = 0;
@@ -1695,6 +1696,11 @@ function Studio() {
         </div>
         <div className="pvbar">
           <span className="nm">{curVideo ?? ""}</span>
+          {srcDur > 0 && (
+            <span className="vsecs" title="Laenge der Quelldatei in Sekunden — dieselbe Achse wie Trim, Texte, Endcard">
+              {srcDur.toFixed(1)} s
+            </span>
+          )}
           {(["youtube", "instagram", "tiktok"] as PvPlatform[]).map((pf) => (
             <button key={pf} className={`mini ${pvPlatform === pf ? "sel" : ""}`} onClick={() => playSelected(pf)}>
               {pfLabel(pf)}
