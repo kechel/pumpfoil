@@ -1,0 +1,21 @@
+Track Every Pump
+
+Biến đồng hồ thể thao của bạn thành máy tính pumpfoil: bản đồ GPS, quãng đường bay trên foil, nhịp pump và các pha lướt – hoàn toàn tự động sau mỗi buổi tập.
+
+Trên đồng hồ và điện thoại
+Ứng dụng cho Garmin, Apple Watch, Wear OS và Amazfit – cùng ứng dụng cho iOS và Android, ghi được cả khi không có đồng hồ. Liên kết tài khoản: Polar, Suunto, COROS, Xiaomi (qua Mi Fitness).
+
+Bạn nhận được gì
+• Trường dữ liệu tùy chỉnh: tốc độ, nhịp tim, quãng đường, thời gian
+• Báo rung khi vượt trên/dưới tốc độ mục tiêu (tính từ foil và cân nặng)
+• Nhận diện carve, đánh dấu trên bản đồ mỗi lượt
+• Chỉ số theo từng foil: quãng đường, lượt dài nhất, nhịp tim – cái nào đưa bạn đi xa hơn?
+• Lịch sử cả mùa, ghi ngoại tuyến, tự động tải lên
+
+Cộng đồng
+Chia sẻ và so sánh buổi tập, kỷ lục cộng đồng và bảng xếp hạng theo từng điểm – mỗi điểm tự động có nhóm trò chuyện riêng.
+
+Mã nguồn mở
+Phần mềm tự do theo AGPL-3.0, có 18 ngôn ngữ.
+
+https://pumpfoil.org · github.com/kechel/pumpfoil

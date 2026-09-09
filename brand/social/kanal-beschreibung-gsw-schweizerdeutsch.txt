@@ -16,6 +16,6 @@ Community
 Sessions teile und verglyche, Community-Rekorde und Bestenlisten je Spot – und zu jedem Spot gits automatisch e Chatgruppe.
 
 Open Source
-Freii Software under AGPL-3.0, i 17 Sprache.
+Freii Software under AGPL-3.0, i 18 Sprache.
 
 https://pumpfoil.org · github.com/kechel/pumpfoil

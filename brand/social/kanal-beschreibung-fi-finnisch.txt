@@ -16,6 +16,6 @@ Yhteisö
 Jaa ja vertaile sessioita, ennätykset ja tulostaulut spotti kerrallaan – ja jokaiselle spotille syntyy oma chattiryhmä.
 
 Avoin lähdekoodi
-Vapaa ohjelmisto AGPL-3.0-lisenssillä, 17 kielellä.
+Vapaa ohjelmisto AGPL-3.0-lisenssillä, 18 kielellä.
 
 https://pumpfoil.org

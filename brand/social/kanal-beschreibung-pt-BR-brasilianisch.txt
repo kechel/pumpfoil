@@ -16,6 +16,6 @@ Comunidade
 Compartilhe e compare sessões, recordes e rankings por pico – e cada pico ganha automaticamente um grupo de conversa.
 
 Código aberto
-Software livre sob AGPL-3.0, em 17 idiomas.
+Software livre sob AGPL-3.0, em 18 idiomas.
 
 https://pumpfoil.org

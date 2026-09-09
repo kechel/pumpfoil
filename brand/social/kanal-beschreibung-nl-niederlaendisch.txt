@@ -16,6 +16,6 @@ Community
 Sessies delen en vergelijken, records en ranglijsten per spot – en elke spot krijgt automatisch een chatgroep.
 
 Open source
-Vrije software onder AGPL-3.0, in 17 talen.
+Vrije software onder AGPL-3.0, in 18 talen.
 
 https://pumpfoil.org · github.com/kechel/pumpfoil

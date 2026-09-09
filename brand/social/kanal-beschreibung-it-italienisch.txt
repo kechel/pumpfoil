@@ -16,6 +16,6 @@ Community
 Condividi e confronta le sessioni, record e classifiche per spot – e ogni spot ha in automatico il suo gruppo di chat.
 
 Open source
-Software libero con licenza AGPL-3.0, in 17 lingue.
+Software libero con licenza AGPL-3.0, in 18 lingue.
 
 https://pumpfoil.org · github.com/kechel/pumpfoil

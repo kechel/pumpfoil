@@ -16,6 +16,6 @@ Communauté
 Partage et compare tes sessions, records et classements par spot – chaque spot a son groupe de discussion.
 
 Open source
-Logiciel libre sous AGPL-3.0, en 17 langues.
+Logiciel libre sous AGPL-3.0, en 18 langues.
 
 https://pumpfoil.org

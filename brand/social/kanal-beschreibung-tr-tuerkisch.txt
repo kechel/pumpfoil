@@ -1,0 +1,21 @@
+Track Every Pump
+
+Spor saatini bir pumpfoil bilgisayarına dönüştür: GPS kaydı, foil mesafesi, pump temposu ve süzülme fazları – her seanstan tam otomatik.
+
+Saatinde ve telefonunda
+Garmin, Apple Watch, Wear OS ve Amazfit için uygulamalar – ayrıca iOS ve Android için, saat olmadan da çalışan kayıt özellikli uygulamalar. Hesap bağla: Polar, Suunto, COROS, Xiaomi (Mi Fitness üzerinden).
+
+Neler var
+• Ayarlanabilir veri alanları: hız, nabız, mesafe, süre
+• Hedef hızının üstünde/altında titreşimli uyarı (foil ve kilodan hesaplanır)
+• Carve algılama, her turun haritasında işaretli
+• Foil başına değerler: mesafe, en uzun tur, nabız – hangisi seni daha ileri taşıyor?
+• Sezon geçmişi, kayıt çevrimdışı çalışır, yükleme kendiliğinden olur
+
+Topluluk
+Seansları paylaş ve karşılaştır, her spot için topluluk rekorları ve sıralamalar – ve her spot otomatik olarak kendi sohbet grubunu alır.
+
+Açık kaynak
+AGPL-3.0 altında özgür yazılım, 18 dilde.
+
+https://pumpfoil.org · github.com/kechel/pumpfoil
