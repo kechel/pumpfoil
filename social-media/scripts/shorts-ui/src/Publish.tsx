@@ -433,6 +433,11 @@ export default function Publish() {
   const [ytReady, setYtReady] = useState(false);
   const [tt, setTt] = useState({ configured: false, authorized: false });
   const [ytNums, setYtNums] = useState<Set<number>>(new Set());
+  // Leer heisst nicht "nichts veroeffentlicht" — es kann auch heissen, dass die
+  // Abfrage nicht durchkam (Kontingent, kein Netz). Dann darf hier kein Termin
+  // vorgeschlagen werden: die Kette haengt sonst hinter 118 laengst
+  // veroeffentlichten Exporten (Jan, 09.09.: "da steht jetzt 16.01.2027").
+  const [ytNumsFehler, setYtNumsFehler] = useState("");
   const [meta, setMeta] = useState({ configured: false, authorized: false });
   // Knoten merken (nie auf null zurücksetzen — beim Unmount brauchen wir ihn noch)
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -460,18 +465,31 @@ export default function Publish() {
     void fetch("/api/tiktok/status").then(async (r) => setTt(await r.json()));
     void fetch("/api/meta/status").then(async (r) => setMeta(await r.json()));
     void fetch("/api/yt/numbers")
-      .then(async (r) => setYtNums(new Set<number>((await r.json()).numbers ?? [])))
-      .catch(() => {});
+      .then(async (r) => {
+        const d = (await r.json()) as { numbers?: number[]; error?: string; stale?: boolean };
+        setYtNums(new Set<number>(d.numbers ?? []));
+        setYtNumsFehler(
+          d.error && !d.numbers?.length
+            ? "Die Liste der schon veröffentlichten Videos kam nicht durch — deshalb schlägt "
+              + "das Tab gerade keine Termine vor. " + d.error.slice(0, 200)
+            : d.stale
+              ? "Kanal gerade nicht erreichbar — Termine stehen auf dem zuletzt bekannten Stand."
+              : "",
+        );
+      })
+      .catch((e: unknown) => setYtNumsFehler(String(e)));
   }, []);
 
   useEffect(() => refresh(), [refresh]);
 
-  const slots = exports ? nextSlots(exports, up, ytNums) : {};
+  const kanalBekannt = ytNums.size > 0 || !ytNumsFehler;
+  const slots = exports && kanalBekannt ? nextSlots(exports, up, ytNums) : {};
 
   if (!exports) return <div className="uploads">lade …</div>;
   return (
     <div className="uploads" ref={setRoot}>
       <h1>Upload ({exports.length})</h1>
+      {ytNumsFehler && <div className="log">{ytNumsFehler}</div>}
       <CoveragePanel />
       <ConnectBanner
         name="TikTok"
