@@ -343,19 +343,6 @@ function ExportCard({ exp, ytReady, showTexts }: {
                       </>
                     )} />
                   <CapRow pf="tiktok" name="TikTok" breit title={caps.tiktok} />
-                  {caps.kwai && (
-                    <CapRow pf="kwai" name="Kwai" desc={caps.kwai}
-                      descFull={
-                        <>
-                          <pre>{caps.kwai}</pre>
-                          <div className="note">
-                            Für Kwai die <b>TikTok-Datei</b> nehmen — 9:16, O-Ton, ohne
-                            lizenzierte Musik. Datei aus shorts-mit-musik/tiktok/ aufs Handy und
-                            in der App hochladen; eine Schnittstelle gibt es dort nicht.
-                          </div>
-                        </>
-                      } />
-                  )}
                   {xhs && (
                     <CapRow pf="rednote" name="RedNote" title={xhs.title} desc={xhs.description}
                       titleFull={

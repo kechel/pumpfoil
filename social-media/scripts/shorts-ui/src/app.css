@@ -1,6 +1,6 @@
 /* Kategorial-Palette der Plattformen — EINE Quelle fuer den Auswertungs-Tab
    (Diagramme) und die Textblock-Ueberschriften im Studio. Die ersten vier sind
-   gegen Farbfehlsichtigkeit geprueft; kwai/rednote/bilibili sind danach fuer
+   gegen Farbfehlsichtigkeit geprueft; rednote und bilibili sind danach fuer
    Abstand ergaenzt, aber nicht erneut geprueft. Die dunklen Werte sind fuer den
    dunklen Grund eigens gewaehlt, nicht die hellen aufgehellt. */
 :root {
@@ -9,19 +9,18 @@
   --s-fb: #eb6834;    /* orange  */
   --s-ig: #1baf7a;    /* aqua    */
   --s-tt: #4a3aa7;    /* violett */
-  --s-kwai: #d97706;  /* safran  */
   --s-rn: #c2185b;    /* karmin  */
   --s-bili: #8a6d1f;  /* ocker   */
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --s-yt: #3987e5; --s-fb: #d95926; --s-ig: #199e70; --s-tt: #9085e9;
-    --s-kwai: #e8963c; --s-rn: #ef7aa8; --s-bili: #c7a94a;
+    --s-rn: #ef7aa8; --s-bili: #c7a94a;
   }
 }
 :root[data-theme="dark"] {
   --s-yt: #3987e5; --s-fb: #d95926; --s-ig: #199e70; --s-tt: #9085e9;
-  --s-kwai: #e8963c; --s-rn: #ef7aa8; --s-bili: #c7a94a;
+  --s-rn: #ef7aa8; --s-bili: #c7a94a;
 }
 * { box-sizing: border-box; }
 /* Das Browser-Standardblatt setzt [hidden] auf display:none — jede eigene
@@ -233,7 +232,6 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; gap: 5
 .caprow[data-pf="youtube"]  { --pf: var(--s-yt); }
 .caprow[data-pf="instagram"]{ --pf: var(--s-ig); }
 .caprow[data-pf="tiktok"]   { --pf: var(--s-tt); }
-.caprow[data-pf="kwai"]     { --pf: var(--s-kwai); }
 .caprow[data-pf="rednote"]  { --pf: var(--s-rn); }
 .caprow[data-pf="bilibili"] { --pf: var(--s-bili); }
 
