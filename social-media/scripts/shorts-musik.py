@@ -40,6 +40,7 @@ import sqlite3
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import urllib.error
 import urllib.parse
@@ -336,17 +337,54 @@ def duration_of(path):
     return float(ffprobe(path, "-show_entries", "format=duration", "-of", "csv=p=0"))
 
 
+# Laengen liegen zusaetzlich auf Platte. Vorher nur im Speicher — und damit nach
+# jedem Dienst-Neustart weg: das erste /api/list probte dann 187 Musikdateien neu,
+# seriell, rund 8 s (Jan, 09.09.: "das Studio laedt echt langsam ... oder das ist
+# nur nach Server-Restart so"). Schluessel ist Pfad + mtime, eine geaenderte Datei
+# wird also von selbst neu geprobt.
+DUR_CACHE_FILE = BASE / ".durations.json"
 _DUR_CACHE = {}
+_DUR_LOCK = threading.Lock()
+_DUR_STAND = {"geladen": False, "schmutzig": False}
 
 
 def track_duration(p: Path):
-    key = (str(p), p.stat().st_mtime)
-    if key not in _DUR_CACHE:
+    key = f"{p}|{p.stat().st_mtime}"
+    with _DUR_LOCK:
+        if not _DUR_STAND["geladen"]:
+            _DUR_CACHE.update(_load_json(DUR_CACHE_FILE, {}))
+            _DUR_STAND["geladen"] = True
+        if key in _DUR_CACHE:
+            return _DUR_CACHE[key]
+    try:
+        wert = round(duration_of(p), 1)
+    except (subprocess.CalledProcessError, ValueError):
+        wert = None
+    with _DUR_LOCK:
+        _DUR_CACHE[key] = wert
+        _DUR_STAND["schmutzig"] = True
+    return wert
+
+
+def dur_cache_sichern():
+    """Nach einem Durchlauf einmal schreiben — nicht je Datei."""
+    with _DUR_LOCK:
+        if not _DUR_STAND["schmutzig"]:
+            return
+        # Verwaiste Eintraege wegwerfen, aber nur wenn ihr Ordner erreichbar ist:
+        # eine ausgehaengte externe Platte soll den Cache nicht leerraeumen.
+        behalten = {}
+        for k, v in _DUR_CACHE.items():
+            pfad = Path(k.rsplit("|", 1)[0])
+            if pfad.exists() or not pfad.parent.is_dir():
+                behalten[k] = v
+        _DUR_CACHE.clear()
+        _DUR_CACHE.update(behalten)
+        _DUR_STAND["schmutzig"] = False
         try:
-            _DUR_CACHE[key] = round(duration_of(p), 1)
-        except (subprocess.CalledProcessError, ValueError):
-            _DUR_CACHE[key] = None
-    return _DUR_CACHE[key]
+            DUR_CACHE_FILE.write_text(json.dumps(behalten))
+        except OSError:
+            pass
 
 
 def has_audio(path):
@@ -744,16 +782,21 @@ def list_state():
                                 "mp4s": sum(1 for _ in p.glob("*.mp4"))})
     except PermissionError:
         pass
+    musik = [p for p in sorted(MUSIC_DIR.rglob("*"))
+             if p.suffix.lower() in AUDIO_EXT and not p.name.startswith(".")]
+    # Auch die Musik parallel proben. Seriell waren das bei 187 Dateien rund 8 s,
+    # jedes Mal, wenn der Laengen-Cache kalt war.
+    with ThreadPoolExecutor(8) as ex:
+        mdurs = list(ex.map(track_duration, musik))
     tracks = []
-    for p in sorted(MUSIC_DIR.rglob("*")):
-        if p.suffix.lower() in AUDIO_EXT and not p.name.startswith("."):
-            rel = p.relative_to(MUSIC_DIR)
-            tracks.append({
-                "rel": str(rel),
-                "folder": str(rel.parent) if str(rel.parent) != "." else "alle",
-                "platforms": track_platforms(rel),
-                "dur": track_duration(p),
-            })
+    for p, dur in zip(musik, mdurs):
+        rel = p.relative_to(MUSIC_DIR)
+        tracks.append({
+            "rel": str(rel),
+            "folder": str(rel.parent) if str(rel.parent) != "." else "alle",
+            "platforms": track_platforms(rel),
+            "dur": dur,
+        })
     rendered = {
         v: [pf for pf in EXPORT_PLATFORMS if (OUT_DIR / pf / v).exists()]
         for v in videos
@@ -764,15 +807,18 @@ def list_state():
     endcards = sorted(
         p.name for p in ENDCARD_DIR.glob("shorts-endcard-*.png")
     ) if ENDCARD_DIR.is_dir() else []
-    return {"videos": videos, "tracks": tracks, "rendered": rendered,
-            "categories": sort_categories(),
-            "platforms": PLATFORMS, "video_dir": video_dir,
-            "parent": str(VIDEO_DIR.parent), "subdirs": subdirs,
-            "overlays": overlays, "endcards": endcards, "next_number": next_number(),
-            "name_prefix": name_prefix(), "stars": sorted(load_stars()),
-            "quick_dirs": [{"label": lbl, "dir": str(Path(d).resolve())}
-                           for lbl, d in QUICK_DIRS if Path(d).is_dir()],
-            "vdurs": vdurs}
+    zustand = {"videos": videos, "tracks": tracks, "rendered": rendered,
+               "categories": sort_categories(),
+               "platforms": PLATFORMS, "video_dir": video_dir,
+               "parent": str(VIDEO_DIR.parent), "subdirs": subdirs,
+               "overlays": overlays, "endcards": endcards,
+               "next_number": next_number(),
+               "name_prefix": name_prefix(), "stars": sorted(load_stars()),
+               "quick_dirs": [{"label": lbl, "dir": str(Path(d).resolve())}
+                              for lbl, d in QUICK_DIRS if Path(d).is_dir()],
+               "vdurs": vdurs}
+    dur_cache_sichern()
+    return zustand
 
 
 # ------------------------------------------------------------ YouTube -------
