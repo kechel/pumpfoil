@@ -296,58 +296,6 @@ def instagram_long(caps: dict) -> dict:
     return {"text": text, "chars": len(text), "limit": IG_CAPTION_LIMIT}
 
 
-# Facebook nennt in seiner Spam-Richtlinie „more than 5 hashtags in the caption"
-# ausdruecklich als Grund fuer weniger Verteilung (Jan hat den Hinweis am 09.09.
-# in der App bekommen). Unsere Instagram-Caption hat laut Prompt 8-12 Tags — fuer
-# Instagram richtig, fuer Facebook zu viel. Deshalb keine eigene Caption vom
-# Modell, sondern dieselbe mit gekapptem Hashtag-Block: das wirkt sofort fuer
-# alle gecachten Videos, ohne dass irgendetwas neu erzeugt werden muss.
-FB_TAGS_MAX = 5
-
-# Beim Kappen nicht stumpf die ersten fuenf nehmen: das Modell setzt die
-# generischen nach vorn, und der eine videospezifische Tag stand bei 007 auf
-# Platz 7 (#highwater) — genau der waere weggefallen. Dieselbe Liste, die der
-# Caption-Prompt schon als "generisch" verbietet, wandert deshalb ans Ende.
-FB_TAGS_GENERISCH = {"pumpfoiling", "foil", "foiling", "hydrofoil", "dockstart",
-                     "watersport", "watersports", "foillife", "pumpfoiladdict"}
-
-
-def _fb_kappen(text: str) -> dict:
-    """Hashtag-Block eines Textes auf FB_TAGS_MAX eindampfen."""
-    teile = text.split("\n\n")
-    tags = teile[-1].split() if len(teile) > 1 else []
-    if tags and all(x.startswith("#") for x in tags):
-        gekappt = len(tags) > FB_TAGS_MAX
-
-        def rang(i_tag):
-            i, tag = i_tag
-            wort = tag.lstrip("#").lower()
-            return (0 if wort == "pumpfoil" else 2 if wort in FB_TAGS_GENERISCH else 1, i)
-
-        sortiert = [t for _, t in sorted(enumerate(tags), key=rang)]
-        # In der Reihenfolge lassen, in der sie dastanden — nur die Auswahl aendert sich.
-        behalten = set(sortiert[:FB_TAGS_MAX])
-        teile[-1] = " ".join(x for x in tags if x in behalten)
-        neu = "\n\n".join(teile)
-        return {"text": neu, "tags": min(len(tags), FB_TAGS_MAX),
-                "weggelassen": max(0, len(tags) - FB_TAGS_MAX), "gekappt": gekappt}
-    return {"text": text, "tags": text.count("#"), "weggelassen": 0, "gekappt": False}
-
-
-def facebook_text(caps: dict) -> dict:
-    """Eigene Facebook-Fassung, wenn das Modell eine geliefert hat — sonst die
-    Instagram-Caption mit gekapptem Hashtag-Block. Der zweite Weg deckt die 173
-    Videos ab, die vor dem 09.09. erzeugt wurden; neu erzeugte bringen das Feld
-    selbst mit. Gekappt wird in beiden Faellen, auch beim Modell."""
-    eigen = str((caps or {}).get("facebook") or "").strip()
-    if eigen:
-        return {**_fb_kappen(eigen), "quelle": "eigen"}
-    ig = str((caps or {}).get("instagram") or "").strip()
-    if not ig:
-        return {}
-    return {**_fb_kappen(ig), "quelle": "instagram"}
-
-
 def cached_captions(name: str) -> dict:
     """Gecachte Captions zu einem Export: erst UI-Cache (per Name), sonst
     YT-Batch-Cache — Zuordnung über die laufende Nummer im YT-Titel."""
@@ -357,8 +305,7 @@ def cached_captions(name: str) -> dict:
         return {"cached": korr, "source": "ui",
                 "bilibili": bilibili_text(korr),
                 "rednote": rednote_text(korr),
-                "instagram_long": instagram_long(korr),
-                "facebook": facebook_text(korr)}
+                "instagram_long": instagram_long(korr)}
     m = NUM_RE.match(name)
     if m:
         progress = _load_json(YT_BATCH_PROGRESS_FILE, {})
@@ -370,8 +317,7 @@ def cached_captions(name: str) -> dict:
                         "yt_title": entry["title"],
                         "bilibili": bilibili_text(korr),
                         "rednote": rednote_text(korr),
-                        "instagram_long": instagram_long(korr),
-                "facebook": facebook_text(korr)}
+                        "instagram_long": instagram_long(korr)}
     return {"cached": None}
 
 
@@ -1750,7 +1696,7 @@ Für ein kurzes Hochkant-Video (YouTube Short / Instagram Reel / TikTok) mit dem
 Antworte AUSSCHLIESSLICH mit gültigem JSON (kein Markdown, keine Code-Fences) in exakt dieser Struktur:
 {{"titles": {{{", ".join(f'"{lang}": "..."' for lang in CAPTION_LANGS)}}},
  "descriptions": {{...gleiche Sprachen wie titles...}},
- "hashtags": "...", "instagram": "...", "facebook": "...", "tiktok": "..."}}
+ "hashtags": "...", "instagram": "...", "tiktok": "..."}}
 
 Fachbegriffe (WICHTIG, häufige Fehlerquelle):
 - Die Tragfläche unter Wasser heißt "foil" / "hydrofoil" (de: "Foil", "Tragfläche").
@@ -1769,8 +1715,7 @@ Regeln:
 - Chinesisch (zh): Pumpfoil heisst 无动力水翼板 („antriebsloses Hydrofoil-Board"), kurz 水翼. Die Wortschoepfungen 泵翼 / 泵翼板 / 泵翼水翼板 sind VERBOTEN — die gibt es nicht und niemand sucht danach.
 - descriptions: 1-2 lockere, videospezifische Sätze je Sprache (gleiche Sprachcodes wie titles), passende Emojis erlaubt, KEINE Hashtags darin.
 - hashtags: EINE Zeile mit 4-6 Hashtags: #pumpfoil zuerst, danach NUR individuelle, zum konkreten Videoinhalt passende Tags. KEINE generischen Standard-Tags wie #pumpfoiling, #dockstart oder #foil.
-- instagram: lockere Caption AUSSCHLIESSLICH auf Englisch, 2-3 Sätze mit passenden Emojis, Leerzeile, dann 5 Hashtags (#pumpfoil zuerst, Rest videospezifisch — nicht #pumpfoiling/#dockstart/#foil). Frueher standen hier 8-12; Meta empfiehlt seit 2024 selbst 3-5, mehr bringt keine Reichweite. KEIN Deutsch, keine weitere Sprache — dieses Feld gilt weltweit.
-- facebook: 1-2 kurze Sätze AUSSCHLIESSLICH auf Englisch mit passenden Emojis, Leerzeile, dann GENAU 5 Hashtags: #pumpfoil zuerst, die anderen vier videospezifisch (nicht #pumpfoiling/#dockstart/#foil/#hydrofoil/#watersports). Facebook nennt "more than 5 hashtags in the caption" in seiner Spam-Richtlinie als Grund fuer weniger Verteilung — mehr als fuenf schaden dort also. KEIN Deutsch.
+- instagram: lockere Caption AUSSCHLIESSLICH auf Englisch, 2-3 Sätze mit passenden Emojis, Leerzeile, dann 5 Hashtags (#pumpfoil zuerst, Rest videospezifisch — nicht #pumpfoiling/#dockstart/#foil). Frueher standen hier 8-12; Meta empfiehlt seit 2024 selbst 3-5, und Facebook wertet mehr als 5 als Spam. Dieser Text geht an Instagram UND Facebook — der Meta-Planer hat nur ein Feld fuer beide. KEIN Deutsch, keine weitere Sprache — er gilt weltweit.
 - tiktok: 1-2 kurze Sätze AUSSCHLIESSLICH auf Englisch, 4-5 Hashtags (#pumpfoil + videospezifische, keine generischen Standard-Tags). KEIN Deutsch.
 """
 
@@ -2158,8 +2103,7 @@ class Handler(BaseHTTPRequestHandler):
                 caps = zh_begriffe(caps)
                 return self._json({**caps, "bilibili": bilibili_text(caps),
                                    "rednote": rednote_text(caps),
-                                   "instagram_long": instagram_long(caps),
-                                   "facebook": facebook_text(caps)})
+                                   "instagram_long": instagram_long(caps)})
             except (RuntimeError, ValueError, subprocess.TimeoutExpired) as e:
                 return self._json({"error": str(e)}, 500)
         if self.path == "/api/star":

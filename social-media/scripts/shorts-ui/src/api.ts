@@ -49,7 +49,6 @@ export interface Captions {
   hashtags: string;
   instagram: string;
   tiktok: string;
-  facebook?: { text: string; tags: number; weggelassen: number; gekappt: boolean };
 }
 
 export interface RenderResult {

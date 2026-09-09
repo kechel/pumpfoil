@@ -232,7 +232,6 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; gap: 5
 .caprow.kopf > div { font-size: 11px; text-transform: uppercase; letter-spacing: .06em;
   opacity: .5; padding: 4px 8px 2px; }
 .caprow[data-pf="youtube"]  { --pf: var(--s-yt); }
-.caprow[data-pf="facebook"] { --pf: var(--s-fb); }
 .caprow[data-pf="instagram"]{ --pf: var(--s-ig); }
 .caprow[data-pf="tiktok"]   { --pf: var(--s-tt); }
 .caprow[data-pf="rednote"]  { --pf: var(--s-rn); }
