@@ -54,13 +54,13 @@ function CopyBtn({ text }: { text: string }) {
   );
 }
 
-/** Ueberschrift eines Textblocks. Die ganze Zeile kopiert, nicht nur ein Knopf
- *  daneben (Jan, 09.09.) — das Ziel ist damit so gross wie die Zeile breit ist.
- *  Ohne `copy` bleibt sie eine normale Ueberschrift. */
-function CapHead({ pf, copy, children }:
-                 { pf?: string; copy?: string; children: ReactNode }) {
+/** Eine Zelle der Texttabelle: zugeklappt EINE Zeile mit … und anklickbar zum
+ *  Kopieren, aufgeklappt der volle Text (Jan, 09.09.: „den titel einzeilig mit
+ *  .. so wie platz ist anklickbar zum kopieren, und rechts die beschreibung"). */
+function CapCell({ copy, zeile, children }:
+                 { copy?: string; zeile?: string; children?: ReactNode }) {
   const [ok, setOk] = useState(false);
-  if (!copy) return <div className="caphead" data-pf={pf}>{children}</div>;
+  if (!copy) return <div className="capcell leer" />;
   const kopieren = () => {
     void navigator.clipboard.writeText(copy);
     setOk(true);
@@ -68,20 +68,32 @@ function CapHead({ pf, copy, children }:
   };
   return (
     <div
-      className="caphead copyable"
-      data-pf={pf}
+      className={"capcell" + (ok ? " ok" : "")}
       role="button"
       tabIndex={0}
-      title="Klicken kopiert den Text darunter"
+      title="Klicken kopiert den ganzen Text"
       onClick={kopieren}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") { e.preventDefault(); kopieren(); }
       }}
     >
-      {children}
-      <span className="copyhint">
-        <Icon name="copy" size={11} /> {ok ? "kopiert!" : "kopieren"}
-      </span>
+      <div className="einzeiler">{(zeile ?? copy).replace(/\s+/g, " ").trim()}</div>
+      <div className="voll">{children ?? <pre>{copy}</pre>}</div>
+      <span className="kopiert">kopiert!</span>
+    </div>
+  );
+}
+
+/** Eine Zeile: Plattformname farbig und fett, dann Titel und Beschreibung. */
+function CapRow({ pf, name, title, desc, titleZeile, titleFull, descFull }: {
+  pf: string; name: string; title?: string; desc?: string; titleZeile?: string;
+  titleFull?: ReactNode; descFull?: ReactNode;
+}) {
+  return (
+    <div className="caprow" data-pf={pf}>
+      <div className="pfname">{name}</div>
+      <CapCell copy={title} zeile={titleZeile}>{titleFull}</CapCell>
+      <CapCell copy={desc}>{descFull}</CapCell>
     </div>
   );
 }
@@ -271,9 +283,9 @@ function ExportCard({ exp, onChanged, ytReady, showTexts }: {
             )}
             {err && <div className="log">{err}</div>}
             {caps && (
-              <div className="capgrid">
-                <div className="capblock wide bedien">
-                  <CapHead pf="youtube">Zu <b>YouTube</b> pushen (Titel-Lokalisierungen + Beschreibung)</CapHead>
+              <>
+                <div className="capblock bedien">
+                  <div className="caphead" data-pf="youtube">Zu <b>YouTube</b> pushen (Titel-Lokalisierungen + Beschreibung)</div>
                   <div className="genrow">
                     <input
                       value={ytUrl}
@@ -301,132 +313,132 @@ function ExportCard({ exp, onChanged, ytReady, showTexts }: {
                   </div>
                   {ytMsg && <div style={{ fontSize: 12 }}>{ytMsg}</div>}
                 </div>
-                <div className="capblock c1">
-                  <CapHead pf="youtube" copy={ytTitlesText}><b>YouTube</b>-Titel (Lokalisierungen)</CapHead>
-                  <pre>
-                    {Object.entries(caps.titles).map(([l, t]) => (
-                      <div key={l}>
-                        <b>{LANG_LABELS[l] ?? l}:</b> {t} <CopyBtn text={t} />
-                      </div>
-                    ))}
-                  </pre>
-                </div>
-                <div className="capblock c2">
-                  <CapHead pf="youtube" copy={`${caps.descriptions?.de ?? ""}\n\n${caps.hashtags ?? ""}`}>
-                    <b>YouTube</b>-Kurzbeschreibung (de) — beim Push kommen Hashtags + Standard-Block je Sprache automatisch dazu
-                  </CapHead>
-                  <pre>{(caps.descriptions?.de ?? "") + "\n\n" + (caps.hashtags ?? "")}</pre>
-                </div>
-                <div className="capblock c1">
-                  <CapHead pf="instagram" copy={caps.instagram}><b>Instagram</b>-Caption</CapHead>
-                  <pre>{caps.instagram}</pre>
-                </div>
-                {igLong && (
-                  <div className="capblock c2">
-                    <CapHead pf="instagram" copy={igLong.text}>
-                      <b>Instagram</b>-Caption + Standardblock (EN)
-                      <span className={"chars" + (igLong.chars > igLong.limit ? " over" : "")}>
-                        {igLong.chars} / {igLong.limit}
-                      </span>
-                    </CapHead>
-                    <pre>{igLong.text}</pre>
+                {/* Eine Zeile je Plattform: Name farbig und fett, dann Titel und
+                    Beschreibung — beide einzeilig mit … und anklickbar zum Kopieren.
+                    Aufgeklappt steht in denselben Zellen der volle Text. */}
+                <div className="captab">
+                  <div className="caprow kopf">
+                    <div />
+                    <div>Titel</div>
+                    <div>Beschreibung</div>
                   </div>
-                )}
-                <div className="capblock c1">
-                  <CapHead pf="tiktok" copy={caps.tiktok}><b>TikTok</b>-Caption</CapHead>
-                  <pre>{caps.tiktok}</pre>
-                </div>
-                {caps.kwai && (
-                  <div className="capblock c2">
-                    <CapHead pf="kwai" copy={caps.kwai}><b>Kwai</b>-Caption (pt-BR)</CapHead>
-                    <pre>{caps.kwai}</pre>
-                    <div className="note">
-                      Für Kwai die <b>TikTok-Datei</b> nehmen — 9:16, O-Ton, ohne lizenzierte
-                      Musik. „Im Finder zeigen“ oben, dann aufs Handy und in der App hochladen;
-                      eine Schnittstelle gibt es dort nicht.
-                    </div>
-                  </div>
-                )}
-                {xhs && (
-                  <>
-                    <div className="capblock c1">
-                      <CapHead pf="rednote" copy={xhs.title}>
-                        <b>RedNote</b>-Titel ({xhs.title.length}/20 Zeichen)
-                      </CapHead>
-                      <pre>{xhs.title}</pre>
-                      {xhs.title_full !== xhs.title && (
-                        <div className="note">
-                          gekürzt aus: {xhs.title_full}
-                        </div>
-                      )}
-                    </div>
-                    <div className="capblock c2">
-                      <CapHead pf="rednote" copy={xhs.description}>
-                        <b>RedNote</b>-Text — Chinesisch ({xhs.chars}/1000 Zeichen)
-                      </CapHead>
-                      <pre>{xhs.description}</pre>
-                      <div className="note">
-                        RedNote wird über die <b>Suche</b> gefunden, nicht nur über den Feed —
-                        deshalb tragen Titel und Schlagworte dort mehr als anderswo, und alte
-                        Beiträge werden weiter gefunden. Video: die <b>TikTok-Datei</b> nehmen.
-                      </div>
-                    </div>
-                  </>
-                )}
-                {bili && (
-                  <>
-                    <div className="capblock c1">
-                      <CapHead pf="bilibili" copy={bili.title}><b>Bilibili</b>-Titel</CapHead>
-                      <pre>{bili.title}</pre>
-                    </div>
-                    <div className="capblock c2">
-                      <CapHead pf="bilibili" copy={bili.description}>
-                        <b>Bilibili</b>-Beschreibung — Englisch, Indonesisch, Thai ({bili.chars}/2000 Zeichen)
-                      </CapHead>
-                      <pre>{bili.description}</pre>
-                    </div>
-                    <div className="capblock wide">
-                      <div className="caphead">
-                        Cover-Vorschläge (1920×1080) — anklicken zum Herunterladen
-                      </div>
-                      {([
-                        ["blur", "ganzes Bild, unscharfe Ränder"],
-                        ["crop", "Bildmitte, randlos beschnitten"],
-                      ] as const).map(([mode, label]) => (
-                        <div key={mode} style={{ marginBottom: 8 }}>
-                          <div style={{ fontSize: 11, opacity: 0.6, marginBottom: 3 }}>{label}</div>
-                          <div className="covers">
-                            {[0.2, 0.5, 0.8].map((f) => {
-                              const t = Math.max(0.5, (exp.duration ?? 20) * f);
-                              return <CoverPic key={f} exp={exp} t={t} mode={mode} />;
-                            })}
-                            {(() => {
-                              const t = parseFloat(coverT.replace(",", "."));
-                              if (!isFinite(t) || t < 0) return null;
-                              const tt = Math.min(Math.max(t, 0), Math.max(0, (exp.duration ?? 1e9) - 0.1));
-                              return <CoverPic exp={exp} t={tt} mode={mode} eigen />;
-                            })()}
+                  <CapRow
+                    pf="youtube" name="YouTube"
+                    title={ytTitlesText}
+                    titleZeile={caps.titles?.de}
+                    desc={`${caps.descriptions?.de ?? ""}\n\n${caps.hashtags ?? ""}`}
+                    titleFull={
+                      <pre>
+                        {Object.entries(caps.titles).map(([l, tt]) => (
+                          <div key={l}>
+                            <b>{LANG_LABELS[l] ?? l}:</b> {tt} <CopyBtn text={tt} />
                           </div>
-                        </div>
-                      ))}
-                      <div className="genrow" style={{ alignItems: "center" }}>
-                        <label style={{ fontSize: 12, whiteSpace: "nowrap" }}>
-                          eigener Zeitpunkt{" "}
-                          <input
-                            type="number" min={0} max={exp.duration ?? undefined} step={0.5}
-                            style={{ width: 72 }} value={coverT} placeholder="Sek."
-                            onChange={(e) => setCoverT(e.target.value)}
-                          />{" "}
-                          s{exp.duration ? ` (Video: ${exp.duration.toFixed(1)} s)` : ""}
-                        </label>
-                        {coverT && (
-                          <button className="mini" onClick={() => setCoverT("")}>zurücksetzen</button>
-                        )}
-                      </div>
-                    </div>
-                  </>
+                        ))}
+                      </pre>
+                    }
+                  />
+                  <CapRow pf="instagram" name="Instagram" desc={caps.instagram} />
+                  {igLong && (
+                    <CapRow pf="instagram" name="Instagram +Block" desc={igLong.text}
+                      descFull={
+                        <>
+                          <pre>{igLong.text}</pre>
+                          <div className={"note" + (igLong.chars > igLong.limit ? " over" : "")}>
+                            {igLong.chars} / {igLong.limit} Zeichen
+                          </div>
+                        </>
+                      } />
+                  )}
+                  <CapRow pf="tiktok" name="TikTok" desc={caps.tiktok} />
+                  {caps.kwai && (
+                    <CapRow pf="kwai" name="Kwai" desc={caps.kwai}
+                      descFull={
+                        <>
+                          <pre>{caps.kwai}</pre>
+                          <div className="note">
+                            Für Kwai die <b>TikTok-Datei</b> nehmen — 9:16, O-Ton, ohne
+                            lizenzierte Musik. „Im Finder zeigen“ oben, dann aufs Handy und in
+                            der App hochladen; eine Schnittstelle gibt es dort nicht.
+                          </div>
+                        </>
+                      } />
+                  )}
+                  {xhs && (
+                    <CapRow pf="rednote" name="RedNote" title={xhs.title} desc={xhs.description}
+                      titleFull={
+                        <>
+                          <pre>{xhs.title}</pre>
+                          <div className="note">
+                            {xhs.title.length}/20 Zeichen
+                            {xhs.title_full !== xhs.title ? ` · gekürzt aus: ${xhs.title_full}` : ""}
+                          </div>
+                        </>
+                      }
+                      descFull={
+                        <>
+                          <pre>{xhs.description}</pre>
+                          <div className="note">
+                            {xhs.chars}/1000 Zeichen · RedNote wird über die <b>Suche</b> gefunden,
+                            nicht nur über den Feed — deshalb tragen Titel und Schlagworte dort
+                            mehr als anderswo. Video: die <b>TikTok-Datei</b> nehmen.
+                          </div>
+                        </>
+                      } />
+                  )}
+                  {bili && (
+                    <CapRow pf="bilibili" name="Bilibili" title={bili.title} desc={bili.description}
+                      descFull={
+                        <>
+                          <pre>{bili.description}</pre>
+                          <div className="note">
+                            {bili.chars}/2000 Zeichen · Englisch, Indonesisch, Thai
+                          </div>
+                        </>
+                      } />
+                  )}
+                </div>
+                {bili && (
+                <div className="capblock">
+                                      <div className="caphead">
+                                        Cover-Vorschläge (1920×1080) — anklicken zum Herunterladen
+                                      </div>
+                                      {([
+                                        ["blur", "ganzes Bild, unscharfe Ränder"],
+                                        ["crop", "Bildmitte, randlos beschnitten"],
+                                      ] as const).map(([mode, label]) => (
+                                        <div key={mode} style={{ marginBottom: 8 }}>
+                                          <div style={{ fontSize: 11, opacity: 0.6, marginBottom: 3 }}>{label}</div>
+                                          <div className="covers">
+                                            {[0.2, 0.5, 0.8].map((f) => {
+                                              const t = Math.max(0.5, (exp.duration ?? 20) * f);
+                                              return <CoverPic key={f} exp={exp} t={t} mode={mode} />;
+                                            })}
+                                            {(() => {
+                                              const t = parseFloat(coverT.replace(",", "."));
+                                              if (!isFinite(t) || t < 0) return null;
+                                              const tt = Math.min(Math.max(t, 0), Math.max(0, (exp.duration ?? 1e9) - 0.1));
+                                              return <CoverPic exp={exp} t={tt} mode={mode} eigen />;
+                                            })()}
+                                          </div>
+                                        </div>
+                                      ))}
+                                      <div className="genrow" style={{ alignItems: "center" }}>
+                                        <label style={{ fontSize: 12, whiteSpace: "nowrap" }}>
+                                          eigener Zeitpunkt{" "}
+                                          <input
+                                            type="number" min={0} max={exp.duration ?? undefined} step={0.5}
+                                            style={{ width: 72 }} value={coverT} placeholder="Sek."
+                                            onChange={(e) => setCoverT(e.target.value)}
+                                          />{" "}
+                                          s{exp.duration ? ` (Video: ${exp.duration.toFixed(1)} s)` : ""}
+                                        </label>
+                                        {coverT && (
+                                          <button className="mini" onClick={() => setCoverT("")}>zurücksetzen</button>
+                                        )}
+                                      </div>
+                                    </div>
                 )}
-              </div>
+              </>
             )}
           </div>
         )}

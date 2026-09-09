@@ -203,82 +203,68 @@ table.cov tr.top td { font-weight: 600; }
 a.btn { text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
 .caps .genrow { display: flex; gap: 6px; margin-bottom: 10px; }
 .caps .genrow input { flex: 1; font-size: 13px; padding: 6px 8px; border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; }
-.capblock { margin-bottom: 0; }
-/* Ueberschrift eines Textblocks: nur der Plattformname fett und farbig, damit
-   man beim Scrollen den richtigen Abschnitt sofort findet (Jan, 09.09.). Der
-   Rest der Zeile bleibt normal — vorher war alles fett und damit gleich laut.
-   Die Farben kommen aus derselben Palette wie die Diagramme im Auswertungs-Tab
-   (--s-* auf :root), damit eine Plattform ueberall dieselbe Farbe hat. */
+.capblock { margin-bottom: 8px; }
 .capblock .caphead { display: flex; align-items: center; gap: 8px; font-size: 12px;
-  font-weight: 400; margin-bottom: 2px; }
-.capblock .caphead b { font-weight: 700; color: var(--pf, inherit); }
-/* Die ganze Ueberschriftszeile kopiert, nicht nur ein Knopf am Rand. */
-/* Der Abstand zwischen den Bloecken steckt in DIESER Zeile statt daneben —
-   so ist die Flaeche, die kopiert, so gross wie moeglich (Jan, 09.09.). */
-.capblock .caphead.copyable { cursor: pointer; border-radius: 6px;
-  margin: 0 -8px 2px; padding: 7px 8px; }
-.capblock .caphead.copyable:hover { background: #8882; }
-.capblock .caphead.copyable:focus-visible { outline: 2px solid #3b82f6; outline-offset: 1px; }
-.capblock .caphead .copyhint { margin-left: auto; display: flex; align-items: center; gap: 4px;
-  font-size: 11px; opacity: 0; white-space: nowrap; }
-.capblock .caphead.copyable:hover .copyhint,
-.capblock .caphead.copyable:focus-visible .copyhint { opacity: .6; }
+  font-weight: 400; margin-bottom: 4px; }
+.capblock .caphead b { font-weight: 700; color: var(--s-yt); }
+.capblock .note { font-size: 11px; opacity: .6; line-height: 1.45; margin-top: 3px; }
+.capblock .note.over { color: #eb6834; opacity: 1; }
+.caps .quelle { font-size: 12px; opacity: .6; }
 
-/* Ein Schalter fuer die ganze Ansicht blendet die Textfelder weg — sie sind zum
-   Kopieren da, nicht zum Lesen, und aufgeklappt scrollt man sich tot (Jan,
-   09.09.). Die Ueberschriften bleiben stehen und kopieren ja selbst. Die
-   Cover-Vorschlaege bleiben ebenfalls: an denen erkennt Jan, welches Video das
-   ueberhaupt ist. */
-/* Zugeklappt bleibt EINE Zeile stehen: die Caption bzw. der Anfang der
-   Beschreibung, so viel wie in die halbe Spalte passt (Jan, 09.09.). Ganz weg
-   war zu wenig — man will ja sehen, was da steht, ohne es aufzuklappen.
-   `nowrap` macht aus den Zeilenumbruechen Leerzeichen, der Rest wird mit … 
-   abgeschnitten; beim Titel-Block stehen Divs drin, da greift die Regel je
-   Zeile und die Hoehe laesst nur die erste (Deutsch) sichtbar. */
-.caps.nurkoepfe .capblock pre {
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  max-height: none; height: calc(1.5em + 16px); resize: none; }
-.caps.nurkoepfe .capblock pre > div { overflow: hidden; text-overflow: ellipsis; }
-.caps.nurkoepfe .capblock .note { display: none; }
+/* ---- Texttabelle: eine Zeile je Plattform ------------------------------
+   Name farbig und fett, dann Titel und Beschreibung (Jan, 09.09.). Zugeklappt
+   ist jede Zelle EINE Zeile mit Auslassungszeichen und als Ganzes anklickbar
+   — die Texte werden kopiert, nicht gelesen. Aufgeklappt (Schalter oben oder
+   frisch erzeugt) steht in denselben Zellen der volle Text. Die Farben kommen
+   aus derselben Palette wie die Diagramme im Auswertungs-Tab (--s-* auf
+   :root), damit eine Plattform ueberall gleich aussieht. */
+.captab { margin: 2px 0 6px; }
+.caprow { display: grid; grid-template-columns: 96px 1fr 1fr; gap: 0 10px;
+  align-items: start; }
+.caprow .pfname { font-size: 12px; font-weight: 700; color: var(--pf, inherit);
+  padding: 6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.caprow.kopf > div { font-size: 11px; text-transform: uppercase; letter-spacing: .06em;
+  opacity: .5; padding: 4px 8px 2px; }
+.caprow[data-pf="youtube"]  { --pf: var(--s-yt); }
+.caprow[data-pf="instagram"]{ --pf: var(--s-ig); }
+.caprow[data-pf="tiktok"]   { --pf: var(--s-tt); }
+.caprow[data-pf="kwai"]     { --pf: var(--s-kwai); }
+.caprow[data-pf="rednote"]  { --pf: var(--s-rn); }
+.caprow[data-pf="bilibili"] { --pf: var(--s-bili); }
+
+.capcell { position: relative; min-width: 0; cursor: pointer; border-radius: 6px;
+  padding: 6px 8px; font-size: 12px; }
+.capcell:hover { background: #8882; }
+.capcell:focus-visible { outline: 2px solid #3b82f6; outline-offset: -1px; }
+.capcell.leer, .capcell.leer:hover { cursor: default; background: none; }
+.capcell .einzeiler { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.capcell .kopiert { position: absolute; right: 6px; top: 4px; font-size: 11px;
+  background: #22c55e; color: #fff; border-radius: 5px; padding: 0 5px;
+  opacity: 0; transition: opacity .12s; pointer-events: none; }
+.capcell.ok .kopiert { opacity: 1; }
+/* zugeklappt nur der Einzeiler, aufgeklappt nur der volle Text */
+.caps.nurkoepfe .capcell .voll { display: none; }
+.caps:not(.nurkoepfe) .capcell .einzeiler { display: none; }
+
 /* Arbeitstitel, "Generieren" und der YouTube-Push gehoeren zum Bearbeiten, nicht
-   zum Kopieren — die gehen mit weg. Nur solange ein Video noch gar keine Texte
-   hat, bleiben sie stehen: sonst kaeme man nie zum ersten Generieren. */
+   zum Kopieren — die gehen mit den Texten weg. Nur solange ein Video noch gar
+   keine Texte hat, bleiben sie stehen: sonst kaeme man nie zum ersten Mal zum
+   Generieren. Die Cover-Vorschlaege bleiben immer: an denen erkennt Jan, welches
+   Video das ueberhaupt ist. */
 .caps.ohnebedienung .genrow,
 .caps.ohnebedienung .quelle,
 .caps.ohnebedienung .capblock.bedien { display: none; }
-
-/* Zwei Spalten: links der Titel, rechts die Beschreibung (Jan, 09.09.). Bei
-   halber Breite bricht mehr um, deshalb etwas mehr Zeilenabstand und ein
-   hoeheres Sichtfenster im Textfeld. */
-.capgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px;
-  align-items: start; }
-.capgrid .capblock.c1   { grid-column: 1; }
-.capgrid .capblock.c2   { grid-column: 2; }
-.capgrid .capblock.wide { grid-column: 1 / -1; }
-@media (max-width: 900px) {
-  .capgrid { grid-template-columns: 1fr; }
-  .capgrid .capblock.c1, .capgrid .capblock.c2 { grid-column: 1; }
-}
 
 .uphead { display: flex; align-items: center; gap: 12px; }
 .uphead h1 { flex: 1; }
 .uphead .btn { display: flex; align-items: center; gap: 5px; }
 
-.capblock .note { font-size: 11px; opacity: .6; line-height: 1.45; }
-.caps .quelle { font-size: 12px; opacity: .6; }
-
-.capblock .caphead[data-pf="youtube"]  { --pf: var(--s-yt); }
-.capblock .caphead[data-pf="instagram"]{ --pf: var(--s-ig); }
-.capblock .caphead[data-pf="tiktok"]   { --pf: var(--s-tt); }
-.capblock .caphead[data-pf="kwai"]     { --pf: var(--s-kwai); }
-.capblock .caphead[data-pf="rednote"]  { --pf: var(--s-rn); }
-.capblock .caphead[data-pf="bilibili"] { --pf: var(--s-bili); }
 /* Die Texte werden nur kopiert, nicht gelesen — jeder Block bleibt flach
    und scrollt in sich. Unten rechts laesst er sich aufziehen, falls man
    doch mal etwas nachlesen will. */
-.capblock pre { margin: 0; font-size: 12px; font-family: inherit; white-space: pre-wrap;
-  background: #8881; border: 1px solid #8883; border-radius: 8px; padding: 8px 10px;
-  max-height: 84px; overflow-y: auto; resize: vertical; line-height: 1.5; }
+.capblock pre, .capcell pre { margin: 0; font-size: 12px; font-family: inherit;
+  white-space: pre-wrap; background: #8881; border: 1px solid #8883; border-radius: 8px;
+  padding: 6px 8px; max-height: 150px; overflow-y: auto; resize: vertical; line-height: 1.5; }
 .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid #8886; border-top-color: #3b82f6; border-radius: 50%; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .covers { display: flex; gap: 8px; flex-wrap: wrap; }
