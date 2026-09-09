@@ -144,9 +144,6 @@ function YtBanner({ status, refresh }: { status: YtStatus; refresh: () => void }
 function ExportCard({ exp, ytReady, showTexts }: {
   exp: ExportItem; ytReady: boolean; showTexts: boolean;
 }) {
-  // Frisch erzeugte Texte zeigt die Karte von sich aus — genau die will man
-  // ja gerade lesen (Jan, 09.09.). Der Schalter oben gilt fuer alles andere.
-  const [frisch, setFrisch] = useState(false);
   const [title, setTitle] = useState(() =>
     exp.name
       .replace(/\.mp4$/, "")
@@ -202,9 +199,8 @@ function ExportCard({ exp, ytReady, showTexts }: {
         if (d.cached) {
           setCaps(d.cached);
           setBili(d.bilibili ?? null);
-        setXhs(d.rednote ?? null);
           setXhs(d.rednote ?? null);
-        setIgLong(d.instagram_long?.text ? d.instagram_long : null);
+          setIgLong(d.instagram_long?.text ? d.instagram_long : null);
           setCapsSource(d.source === "yt-batch" ? "YouTube-Batch-Cache" : "früher generiert");
         }
       })
@@ -227,8 +223,8 @@ function ExportCard({ exp, ytReady, showTexts }: {
       else {
         setCaps(d);
         setBili(d.bilibili ?? null);
+        setXhs(d.rednote ?? null);
         setIgLong(d.instagram_long?.text ? d.instagram_long : null);
-        setFrisch(true);
       }
     } catch (e) {
       setErr(String(e));
@@ -236,10 +232,12 @@ function ExportCard({ exp, ytReady, showTexts }: {
     setBusy(false);
   }, [title]);
 
-  // Textfelder: der Schalter oben, oder frisch erzeugt. Die Bedienzeilen
-  // (Arbeitstitel, Generieren, YouTube-Push) haengen daran mit dran — ausser
-  // es gibt fuer das Video noch gar keine Texte, dann braucht man sie ja.
-  const zeigeTexte = showTexts || frisch;
+  // Textfelder haengen allein am Schalter oben. Nach dem Generieren gehen sie
+  // NICHT von selbst auf — die Texte stehen ohnehin in der Standardansicht
+  // (Jan, 09.09.). Die Bedienzeilen (Arbeitstitel, Generieren, YouTube-Push)
+  // haengen mit dran — ausser es gibt fuer das Video noch gar keine Texte,
+  // dann braucht man sie ja.
+  const zeigeTexte = showTexts;
 
   const ytTitlesText = caps
     ? Object.entries(caps.titles).map(([l, t]) => `${l}: ${t}`).join("\n")
