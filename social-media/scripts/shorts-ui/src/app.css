@@ -203,18 +203,20 @@ table.cov tr.top td { font-weight: 600; }
 a.btn { text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
 .caps .genrow { display: flex; gap: 6px; margin-bottom: 10px; }
 .caps .genrow input { flex: 1; font-size: 13px; padding: 6px 8px; border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; }
-.capblock { margin-bottom: 10px; }
+.capblock { margin-bottom: 0; }
 /* Ueberschrift eines Textblocks: nur der Plattformname fett und farbig, damit
    man beim Scrollen den richtigen Abschnitt sofort findet (Jan, 09.09.). Der
    Rest der Zeile bleibt normal — vorher war alles fett und damit gleich laut.
    Die Farben kommen aus derselben Palette wie die Diagramme im Auswertungs-Tab
    (--s-* auf :root), damit eine Plattform ueberall dieselbe Farbe hat. */
 .capblock .caphead { display: flex; align-items: center; gap: 8px; font-size: 12px;
-  font-weight: 400; margin-bottom: 4px; }
+  font-weight: 400; margin-bottom: 2px; }
 .capblock .caphead b { font-weight: 700; color: var(--pf, inherit); }
 /* Die ganze Ueberschriftszeile kopiert, nicht nur ein Knopf am Rand. */
+/* Der Abstand zwischen den Bloecken steckt in DIESER Zeile statt daneben —
+   so ist die Flaeche, die kopiert, so gross wie moeglich (Jan, 09.09.). */
 .capblock .caphead.copyable { cursor: pointer; border-radius: 6px;
-  margin: 0 -4px 4px; padding: 1px 4px; }
+  margin: 0 -8px 2px; padding: 7px 8px; }
 .capblock .caphead.copyable:hover { background: #8882; }
 .capblock .caphead.copyable:focus-visible { outline: 2px solid #3b82f6; outline-offset: 1px; }
 .capblock .caphead .copyhint { margin-left: auto; display: flex; align-items: center; gap: 4px;
@@ -227,7 +229,16 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; gap: 5
    09.09.). Die Ueberschriften bleiben stehen und kopieren ja selbst. Die
    Cover-Vorschlaege bleiben ebenfalls: an denen erkennt Jan, welches Video das
    ueberhaupt ist. */
-.caps.nurkoepfe .capblock pre,
+/* Zugeklappt bleibt EINE Zeile stehen: die Caption bzw. der Anfang der
+   Beschreibung, so viel wie in die halbe Spalte passt (Jan, 09.09.). Ganz weg
+   war zu wenig — man will ja sehen, was da steht, ohne es aufzuklappen.
+   `nowrap` macht aus den Zeilenumbruechen Leerzeichen, der Rest wird mit … 
+   abgeschnitten; beim Titel-Block stehen Divs drin, da greift die Regel je
+   Zeile und die Hoehe laesst nur die erste (Deutsch) sichtbar. */
+.caps.nurkoepfe .capblock pre {
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-height: none; height: calc(1.5em + 16px); resize: none; }
+.caps.nurkoepfe .capblock pre > div { overflow: hidden; text-overflow: ellipsis; }
 .caps.nurkoepfe .capblock .note { display: none; }
 /* Arbeitstitel, "Generieren" und der YouTube-Push gehoeren zum Bearbeiten, nicht
    zum Kopieren — die gehen mit weg. Nur solange ein Video noch gar keine Texte
@@ -239,7 +250,7 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; gap: 5
 /* Zwei Spalten: links der Titel, rechts die Beschreibung (Jan, 09.09.). Bei
    halber Breite bricht mehr um, deshalb etwas mehr Zeilenabstand und ein
    hoeheres Sichtfenster im Textfeld. */
-.capgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px;
+.capgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px;
   align-items: start; }
 .capgrid .capblock.c1   { grid-column: 1; }
 .capgrid .capblock.c2   { grid-column: 2; }
