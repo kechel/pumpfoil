@@ -4,34 +4,80 @@ Eine Datei je Sprache, benannt `kanal-beschreibung-<kürzel>-<name>.txt`. Inhalt
 **direkten Einfügen** gedacht — kein Vorspann, keine Metazeilen.
 
 **Zeichengrenze 1000** (YouTube-Formular „Übersetzung für deinen Kanalnamen und die
-Beschreibung"). Alle Fassungen liegen darunter; die knappsten sind Deutsch (998),
-Italienisch (998) und Französisch (993). **Wer hier etwas ergänzt, muss vorher zählen** —
-Französisch und Deutsch reißen die Grenze als Erste.
+Beschreibung"). Alle Fassungen liegen darunter; die knappsten sind Deutsch (997),
+Italienisch (997) und Französisch (992). **Wer hier etwas ergänzt, muss vorher zählen** —
+Französisch, Deutsch und Italienisch reißen die Grenze als Erste.
 
-| Kürzel | Datei | Zeichen |
-|---|---|---|
-| de | deutsch | 998 |
-| de-AT | deutsch-oesterreich | 997 |
-| gsw | schweizerdeutsch | 975 |
-| en | englisch | 986 |
-| fr | franzoesisch | 993 |
-| it | italienisch | 998 |
-| es | spanisch | 975 |
-| nl | niederlaendisch | 948 |
-| fi | finnisch | 961 |
-| cs | tschechisch | 905 |
-| pl | polnisch | 962 |
-| pt | portugiesisch (**europäisch**) | 959 |
-| pt-BR | pt-BR-brasilianisch | 960 |
-| nb | norwegisch | 924 |
-| ru | russisch | 933 |
-| id | indonesisch | 971 |
-| ja | japanisch | 527 |
-| zh | chinesisch | 454 |
+| Kürzel | Datei | YouTube-Code | Zeichen |
+|---|---|---|---|
+| de | deutsch | de (Haupttext) | 997 |
+| de-AT | deutsch-oesterreich | — | 996 |
+| gsw | schweizerdeutsch | — | 974 |
+| en | englisch | en | 985 |
+| fr | franzoesisch | fr | 992 |
+| it | italienisch | it | 997 |
+| es | spanisch | es | 974 |
+| nl | niederlaendisch | nl | 947 |
+| fi | finnisch | fi | 960 |
+| cs | tschechisch | cs | 904 |
+| pl | polnisch | pl | 961 |
+| pt | portugiesisch (**europäisch**) | pt-PT | 958 |
+| pt-BR | pt-BR-brasilianisch | pt | 960 |
+| nb | norwegisch | no | 923 |
+| ru | russisch | ru | 932 |
+| id | indonesisch | id | 970 |
+| ja | japanisch | ja | 526 |
+| zh | chinesisch | zh-CN | 454 |
+| ar | arabisch | ar | 925 |
+| th | thai | th | 912 |
+| tr | tuerkisch | tr | 989 |
+| vi | vietnamesisch | vi | 988 |
 
 **Auf YouTube fehlten am 04.09. zwei Sprachen**, die die App längst kann: **Polnisch** und
-**Norwegisch**. Schweizerdeutsch bietet YouTube nicht an — die Fassung liegt für andere Kanäle
-(Instagram, Website) trotzdem bei.
+**Norwegisch**. Schweizerdeutsch und Österreichisch bietet YouTube nicht an — die Fassungen
+liegen für andere Kanäle (Instagram, Website) trotzdem bei.
+
+**Seit 09.09. sind alle 20 YouTube-Sprachen gesetzt.** Dazugekommen sind **Arabisch, Thai,
+Türkisch und Vietnamesisch** — die vier hatten die Videobeschreibungen längst
+(`social-media/scripts/yt-boilerplate.json`), nur der Kanal nicht. Die Dateien hier sind
+wörtlich der Standardblock aus dem Boilerplate.
+
+## Gesetzt wird mit `social-media/scripts/yt-kanal-localize.py`
+
+    python3 yt-kanal-localize.py                 # zeigen: was liegt an, was fehlt
+    python3 yt-kanal-localize.py --push ar th    # genannte Sprachen schreiben
+    python3 yt-kanal-localize.py --push --alle   # alle Dateien schreiben
+
+Ohne `--push` ändert es nichts. Vor jedem Schreiben legt es den kompletten Ist-Stand als
+`social-media/.yt-kanal-localizations-<zeitstempel>.json` ab. Die Zuordnung Datei →
+YouTube-Code steht in `CODES` im Skript und in der Tabelle oben; vorhandene Sprachen werden
+unter ihrem bestehenden Locale-Schlüssel aktualisiert, damit nicht `de` **und** `de_DE`
+nebeneinander stehen.
+
+## Die Standardsprache hat keine Übersetzung — sie ist der Haupttext
+
+Am 09.09. gingen 20 Sprachen in einem PUT raus, 19 kamen richtig an, **Deutsch blieb auf dem
+alten Stand** — ohne Fehlermeldung. Grund: `de` ist die Standardsprache des Kanals
+(`snippet.defaultLanguage`), und ihr Eintrag unter `localizations` ist nur ein **Spiegel** von
+`brandingSettings.channel.description`. Ein Schreibzugriff darauf wird stillschweigend
+verworfen. Die Standardsprache muss über `channels?part=brandingSettings` gesetzt werden —
+mit dem **kompletten** `brandingSettings`-Objekt, sonst fallen `keywords`, `country` und
+`defaultLanguage` weg. Das Skript macht beides automatisch und zeigt Deutsch in der Übersicht
+als `haupt` statt `live`.
+
+**Nebenbefund derselben Runde:** der chinesische Kanaltext auf YouTube war noch die Fassung
+**ohne** die chinesischen Markennamen — Commit 030c6bf5 („die erfundenen Begriffe 泵翼 & Co.
+korrigieren") war nie hochgeladen worden. Mit `--alle` ist er jetzt gleichgezogen. Wer eine
+Datei hier ändert, muss sie auch pushen; das Repo ist nicht die Live-Fassung.
+
+## „in 18 Sprachen" — die Zahl steht in jeder Datei
+
+Die Zeile unter „Open Source" nennt die Zahl der **PWA-Sprachen** (`LANGS` in
+`web/src/i18n/index.tsx`), nicht die der Kanalübersetzungen. Mit `pt-PT` sind es seit 08.09.
+**18**; am 09.09. in allen Kanaldateien **und** in `yt-boilerplate.json` nachgezogen.
+Arabisch schreibt sie aus: `بثماني عشرة لغة`. **Kommt eine PWA-Sprache dazu, ist das eine
+Zeile in jeder Datei** — und die Videobeschreibungen ziehen erst beim nächsten kompletten
+`yt-batch-localize.py`-Lauf nach (~8.800 Quota-Einheiten für 172 Videos, passt an einem Tag).
 
 **Inhaltlich gleich aufgebaut in allen Sprachen:** Kopfzeile · Was die App macht · Plattformen
 (Uhren-Apps + Konto-Verknüpfungen) · fünf Punkte „Was du bekommst" · Community · Open Source ·
@@ -105,8 +151,9 @@ Nach Zahlen war das nicht noetig (Portugal: 2 Instagram-Follower, auf Facebook n
 kostete aber nur einen Aufruf, weil die Datei schon dalag, und ein Portugiese bekommt jetzt
 Portugal-Portugiesisch statt der brasilianischen Fassung.
 
-**Die 170 Videotexte bleiben vorerst ohne `pt-PT`.** Das waere ein kompletter
-Uebersetzungslauf fuer zwei Follower. Erst wenn Portugal in der Demografie auftaucht.
+**Die Videotexte haben `pt-PT` seit 09.09.** — Jan wollte die Vollfassung („wir sind im
+exponentiellen Wachstum, wir nehmen keine Abkuerzungen"). 172 Videos, 20 Sprachen je Video;
+eines faellt raus (A/B-Titeltest, `UPDATE_TITLE_NOT_ALLOWED_DURING_TEST_AND_COMPARE`).
 
 **Schreibweise beachten:** Kanaluebersetzungen nutzen Locale-Codes mit Unterstrich
 (`pt_BR`, `pt_PT`, `zh_CN`), Video-Lokalisierungen dagegen Sprachcodes mit Bindestrich

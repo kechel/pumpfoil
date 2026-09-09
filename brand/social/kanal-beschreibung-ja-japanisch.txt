@@ -16,6 +16,6 @@ Garmin、Apple Watch、Wear OS、Amazfit 用アプリに加え、iOS と Android
 セッションの共有と比較、スポットごとの記録とランキング。スポットごとにチャットグループが自動でできます。
 
 オープンソース
-AGPL-3.0 のフリーソフトウェア、17言語対応。
+AGPL-3.0 のフリーソフトウェア、18言語対応。
 
 https://pumpfoil.org

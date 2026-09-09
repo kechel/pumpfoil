@@ -16,6 +16,6 @@ Community
 Share and compare sessions, community records and leaderboards per spot – and every spot gets its own chat group automatically.
 
 Open source
-Free software under AGPL-3.0, in 17 languages.
+Free software under AGPL-3.0, in 18 languages.
 
 https://pumpfoil.org · github.com/kechel/pumpfoil

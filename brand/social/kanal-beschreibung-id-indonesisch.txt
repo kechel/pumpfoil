@@ -16,6 +16,6 @@ Komunitas
 Bagikan dan bandingkan sesi, rekor dan papan peringkat per spot – dan setiap spot otomatis punya grup chat sendiri.
 
 Sumber terbuka
-Perangkat lunak bebas dengan lisensi AGPL-3.0, dalam 17 bahasa.
+Perangkat lunak bebas dengan lisensi AGPL-3.0, dalam 18 bahasa.
 
 https://pumpfoil.org

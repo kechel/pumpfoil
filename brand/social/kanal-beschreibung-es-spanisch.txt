@@ -16,6 +16,6 @@ Comunidad
 Comparte y compara sesiones, récords y clasificaciones por spot – y cada spot tiene su grupo de chat automáticamente.
 
 Código abierto
-Software libre bajo AGPL-3.0, en 17 idiomas.
+Software libre bajo AGPL-3.0, en 18 idiomas.
 
 https://pumpfoil.org

@@ -16,6 +16,6 @@ Fellesskap
 Del og sammenlign økter, rekorder og topplister per spot – og hvert spot får automatisk sin egen chattegruppe.
 
 Åpen kildekode
-Fri programvare under AGPL-3.0, på 17 språk.
+Fri programvare under AGPL-3.0, på 18 språk.
 
 https://pumpfoil.org

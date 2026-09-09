@@ -16,6 +16,6 @@ Komunita
 Sdílej a porovnávej session, rekordy a žebříčky podle spotu – a ke každému spotu vznikne automaticky chatová skupina.
 
 Otevřený kód
-Svobodný software pod AGPL-3.0, v 17 jazycích.
+Svobodný software pod AGPL-3.0, v 18 jazycích.
 
 https://pumpfoil.org
