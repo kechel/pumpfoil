@@ -231,3 +231,45 @@ mit `--nummer` setzen, fertig. Steht sie einmal drin, bleibt sie.
 **bilibili bleibt draussen.** Dort steht der ganze Kanal bei null Aufrufen
 ausser Jans eigenen (Stand 09.09.) — eine Tabelle aus Nullen bringt nichts.
 Sobald sich etwas bewegt, ist derselbe Import in kurzer Zeit angepasst.
+
+## Der Rhythmus ab 10.09.: eine Kreuzfahrt plus zwei aus dem Rueckstand
+
+Am 09.09. standen zwoelf Beitraege online, alle aus dem Bereich 131–163 und alle binnen
+22 Stunden hochgeladen. Zusammen 346 Aufrufe — davon **262 auf einem einzigen** (132, Bast
+am Foil). **Da steckt keine Erkenntnis drin:** der Zwilling desselben Themas (139, Wollfaeden
+in 240 fps) hat vier, und die Uhrzeit erklaert es auch nicht — 132 ging um 08:55 Pekinger
+Zeit raus, im selben Fenster liegen 152 mit null und 160 mit zwei. Ein Beitrag hat Verteilung
+bekommen, elf nicht.
+
+**Deshalb ab jetzt zweigleisig:**
+
+1. **Das taegliche Video, das ohnehin auf allen Plattformen laeuft** — derselbe Clip, derselbe
+   Tag. Erst dadurch wird die RedNote-Zahl lesbar: sie steht dann neben der von Facebook,
+   TikTok und YouTube fuer dasselbe Video.
+2. **Zwei aus dem Rueckstand obendrauf.** RedNote entdeckt ueber die Suche und Beitraege
+   veralten kaum (siehe oben) — Katalogtiefe ist hier mehr wert als auf jeder anderen
+   Plattform. Zwei am Tag raeumen die 159 offenen Videos in rund drei Monaten ab, ohne dass
+   der Kanal wie ein Dump aussieht.
+
+Die Zusatzplanung fuer 10.–23.09. steht in **`scripts/rednote-plan.json`** (Datum, Nummer,
+Datei, chinesischer Titel) und liegt griffbereit unter
+`shorts-mit-musik/rednote/<JJJJ-MM-TT>/`: je zwei Videos plus `<nnr>-text.txt` mit Titel und
+fertigem chinesischen Text zum Kopieren. Erzeugt mit dem Skript im Scratchpad dieser Sitzung;
+wer die naechsten zwei Wochen plant, kopiert es sich heraus oder legt die Ordner von Hand an.
+
+**Woher die Dateien kommen — wichtig:** RedNote bekommt die **TikTok-Fassung**, und die gibt
+es erst ab Nummer **092**. Lokal liegen 130–173, auf der externen Platte 092–173, darunter
+gar nicht. Fuer 130–173 reicht ein harter Link (null Bytes), 092–129 muessen von der Platte
+kopiert werden (die 16 Videos dieser Planung: 971 MB). **Alles unter 092 braucht vorher einen
+TikTok-Render im Studio** — die YouTube-Fassung ist kein Ersatz, ihr Outro sitzt auf 68 %
+Hoehe und laeuft in RedNotes Textblock.
+
+Die Auswahl mischt bewusst die beiden Rubriken, in die unser Material dort passt: 涨知识
+(Unterwasser, Zeitlupe, Making-of, Tutorials) und 治愈系 (Spiegelwasser, Sonnenauf- und
+-untergang) plus Kinder und Tiere. Die sieben Nummern aus `fb-plan.json` sind ausgespart,
+damit sich Kreuzfahrt und Rueckstand nicht doppeln.
+
+**Der 20-Zeichen-Schnitt verstuemmelt manche Titel.** Aus „Never give up: Trail L 慢动作特写
+— 水翼在水下吸进空气" wird „Never give up" — auf einer Such-Plattform ist das ein verschenkter
+Beitrag. Fuer sieben der 28 steht der Titel deshalb von Hand in der Planung (120, 162, 113,
+108, 142, 138, 095). Wer weiterplant, liest die erzeugten Titel durch, bevor er sie nimmt.
