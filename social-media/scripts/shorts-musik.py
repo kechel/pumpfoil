@@ -90,6 +90,7 @@ LAST_RENDER_FILE = BASE / ".shorts-last-render.json"  # für „letzten Render z
 CAPTIONS_CACHE_FILE = BASE / ".captions-cache.json"  # generierte Titel/Captions je Export-Name
 YT_BATCH_CACHE_FILE = BASE / ".yt-batch-cache.json"  # Caption-Cache des Kanal-Batches (je Video-ID)
 YT_BATCH_PROGRESS_FILE = BASE / ".yt-batch-progress.json"  # dort stehen die YT-Titel zu den IDs
+YT_NUMBERS_FILE = BASE / ".yt-numbers.json"  # letzter guter Stand der Nummern auf dem Kanal
 MOVES = []  # Undo-Historie der Eimer-Verschiebungen: {"src":…, "dest":…}
 QUICK_DIRS = [  # Schnellzugriff-Chips in der Sidebar: (Label, Pfad)
     ("janhandy", "/Users/jan/bilder/20260606-janhandy/2026/mp4"),
@@ -1537,7 +1538,14 @@ YT_NUMBERS_CACHE = {"at": 0.0, "data": None}
 
 def yt_numbers(force: bool = False) -> list:
     """Video-Nummern, die schon auf dem Kanal liegen — auch die von Hand
-    hochgeladenen. Nur die Playlist, ohne Statistiken (schnell)."""
+    hochgeladenen. Nur die Playlist, ohne Statistiken (schnell).
+
+    Der letzte gute Stand landet zusaetzlich auf Platte. Der Speicher-Cache ist
+    nach jedem Dienst-Neustart leer, und wenn die API dann nicht antwortet, kam
+    frueher eine LEERE Liste heraus — fuer das Upload-Tab sieht das aus, als
+    laege noch kein einziges Video auf dem Kanal. Am 09.09. war das Kontingent
+    erschoepft, und das Tab hielt daraufhin alle 118 laengst veroeffentlichten
+    Exporte fuer offen und terminierte das neue Video 174 auf den 16.01.2027."""
     if (not force and YT_NUMBERS_CACHE["data"] is not None
             and time.time() - YT_NUMBERS_CACHE["at"] < 900):
         return YT_NUMBERS_CACHE["data"]
@@ -1559,6 +1567,7 @@ def yt_numbers(force: bool = False) -> list:
             break
     out = sorted(nums)
     YT_NUMBERS_CACHE.update(at=time.time(), data=out)
+    YT_NUMBERS_FILE.write_text(json.dumps(out))
     return out
 
 
@@ -1844,7 +1853,11 @@ class Handler(BaseHTTPRequestHandler):
                 try:
                     self._json({"numbers": yt_numbers()})
                 except (RuntimeError, OSError, ValueError, KeyError) as e:
-                    self._json({"numbers": [], "error": str(e)})
+                    # Lieber der letzte bekannte Stand als gar keiner: eine leere
+                    # Liste heisst fuer das Upload-Tab "nichts ist veroeffentlicht".
+                    alt_stand = _load_json(YT_NUMBERS_FILE, [])
+                    self._json({"numbers": alt_stand, "stale": bool(alt_stand),
+                                "error": str(e)})
             elif path == "/api/stats":
                 try:
                     self._json(stats_data())
