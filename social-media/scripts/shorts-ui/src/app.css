@@ -219,8 +219,11 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; gap: 5
    aus derselben Palette wie die Diagramme im Auswertungs-Tab (--s-* auf
    :root), damit eine Plattform ueberall gleich aussieht. */
 .captab { margin: 2px 0 6px; }
-.caprow { display: grid; grid-template-columns: 96px 1fr 1fr; gap: 0 10px;
+.caprow { display: grid; grid-template-columns: 96px 3fr 7fr; gap: 0 10px;
   align-items: start; }
+/* Leichte Linie zwischen den Zeilen — bei zwei Spalten mit langem Text sonst
+   schwer zu sehen, was zusammengehoert. Auch unter dem Spaltenkopf. */
+.caprow + .caprow { border-top: 1px solid #8882; }
 .caprow .pfname { font-size: 12px; font-weight: 700; color: var(--pf, inherit);
   padding: 6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .caprow.kopf > div { font-size: 11px; text-transform: uppercase; letter-spacing: .06em;
