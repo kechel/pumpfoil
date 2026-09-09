@@ -159,6 +159,7 @@ function ExportCard({ exp, ytReady, showTexts }: {
   const [bili, setBili] = useState<{ title: string; description: string; chars: number } | null>(null);
   const [xhs, setXhs] = useState<{ title: string; title_full: string; description: string; chars: number } | null>(null);
   const [igLong, setIgLong] = useState<{ text: string; chars: number; limit: number } | null>(null);
+  const [fb, setFb] = useState<{ text: string; tags: number; weggelassen: number } | null>(null);
   const [coverT, setCoverT] = useState("");   // eigener Zeitpunkt fürs Cover
   const [capsSource, setCapsSource] = useState("");
   const [busy, setBusy] = useState(false);
@@ -197,6 +198,7 @@ function ExportCard({ exp, ytReady, showTexts }: {
         bilibili?: { title: string; description: string; chars: number };
         rednote?: { title: string; title_full: string; description: string; chars: number };
         instagram_long?: { text: string; chars: number; limit: number };
+        facebook?: { text: string; tags: number; weggelassen: number };
       }>)
       .then((d) => {
         if (d.cached) {
@@ -205,6 +207,7 @@ function ExportCard({ exp, ytReady, showTexts }: {
         setXhs(d.rednote ?? null);
           setXhs(d.rednote ?? null);
         setIgLong(d.instagram_long?.text ? d.instagram_long : null);
+          setFb(d.facebook?.text ? d.facebook : null);
           setCapsSource(d.source === "yt-batch" ? "YouTube-Batch-Cache" : "früher generiert");
         }
       })
@@ -222,12 +225,14 @@ function ExportCard({ exp, ytReady, showTexts }: {
         error?: string; bilibili?: { title: string; description: string; chars: number };
         rednote?: { title: string; title_full: string; description: string; chars: number };
         instagram_long?: { text: string; chars: number; limit: number };
+        facebook?: { text: string; tags: number; weggelassen: number };
       }>("/api/captions", { title, name: exp.name });
       if (d.error) setErr(d.error);
       else {
         setCaps(d);
         setBili(d.bilibili ?? null);
         setIgLong(d.instagram_long?.text ? d.instagram_long : null);
+        setFb(d.facebook?.text ? d.facebook : null);
         setFrisch(true);
       }
     } catch (e) {
@@ -328,6 +333,20 @@ function ExportCard({ exp, ytReady, showTexts }: {
                       </pre>
                     }
                   />
+                  {fb && (
+                    <CapRow pf="facebook" name="Facebook" breit title={fb.text}
+                      titleFull={
+                        <>
+                          <pre>{fb.text}</pre>
+                          <div className="note">
+                            {fb.tags} Hashtags{fb.weggelassen
+                              ? ` · ${fb.weggelassen} weggelassen` : ""} — Facebook wertet
+                            mehr als 5 in der Caption als Spam und verteilt den Beitrag
+                            dann schlechter. Sonst derselbe Text wie bei Instagram.
+                          </div>
+                        </>
+                      } />
+                  )}
                   {/* Instagram und TikTok haben keinen eigenen Titel — der Text IST
                       der Titel. Deshalb steht er in der Titelspalte und nimmt gleich
                       die ganze Breite (Jan, 09.09.). Bei Instagram nur die lange
