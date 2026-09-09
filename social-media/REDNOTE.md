@@ -265,6 +265,17 @@ fuer das Leichte. **05:00** bleibt der Kreuzfahrt. Damit liegen die drei Beitrae
 rund sieben Stunden auseinander; die Reihenfolge im Tag ist 05:00 → 12:30 → 20:30. Erzeugt mit dem Skript im Scratchpad dieser Sitzung;
 wer die naechsten zwei Wochen plant, kopiert es sich heraus oder legt die Ordner von Hand an.
 
+**Der Normalfall ab 09.09.: 11:00 Pekinger Zeit.** Alle weiteren regulaeren Videos plant Jan
+auf RedNote zu **demselben Moment wie ueberall sonst** — 05:00 bei uns, und das sind in der
+Maske **11:00**. Nicht weil 11:00 dort ein guter Slot waere (die Zusatzplanung oben nutzt
+bewusst 12:30 und 20:30, das ist chinesische Prime Time), sondern damit ein Video auf allen
+Plattformen zur selben Stunde steht.
+
+**Achtung Zeitumstellung:** die 6 Stunden Abstand gelten nur in unserer Sommerzeit. China hat
+keine Sommerzeit und nur eine Zeitzone. **Ab dem 25.10.2026** sind 05:00 bei uns **12:00** in
+Peking — wer weiter denselben Moment treffen will, traegt ab dann 12:00 ein; wer stur 11:00
+stehen laesst, postet ab dann um 04:00 unserer Zeit.
+
 **Woher die Dateien kommen — wichtig:** RedNote bekommt die **TikTok-Fassung**, und die gibt
 es erst ab Nummer **092**. Lokal liegen 130–173, auf der externen Platte 092–173, darunter
 gar nicht. Fuer 130–173 reicht ein harter Link (null Bytes), 092–129 muessen von der Platte
