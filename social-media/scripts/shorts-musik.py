@@ -140,6 +140,36 @@ def _load_json(p: Path, default):
         return default
 
 
+_JSON_MEMO = {}          # Pfad -> ((mtime, groesse), Inhalt)
+_JSON_MEMO_LOCK = threading.Lock()
+
+
+def _load_json_gross(p: Path, default):
+    """Wie _load_json, haelt das Ergebnis aber im Speicher, solange sich die
+    Datei nicht aendert (Marke: mtime + Groesse).
+
+    Das Texte-Tab fragt beim Durchscrollen fuer jede der 182 Karten einmal
+    /api/captions_cache, und jede Abfrage parste bis dahin den 856 KB grossen
+    Batch-Cache plus die 320 KB Caption-Cache neu — 3,7 ms je Karte, nur fuers
+    Parsen, ueber die ganze Liste zwei Drittel einer Sekunde reine Rechenzeit.
+
+    ACHTUNG: das Ergebnis wird geteilt. Wer es aendern will, macht eine Kopie
+    (zh_begriffe() tut genau das); zum Schreiben bleibt _load_json()."""
+    try:
+        st = p.stat()
+        marke = (st.st_mtime_ns, st.st_size)
+    except OSError:
+        return default
+    with _JSON_MEMO_LOCK:
+        eintrag = _JSON_MEMO.get(p)
+        if eintrag and eintrag[0] == marke:
+            return eintrag[1]
+    daten = _load_json(p, default)
+    with _JSON_MEMO_LOCK:
+        _JSON_MEMO[p] = (marke, daten)
+    return daten
+
+
 def save_captions_cache(name: str, caps: dict):
     cache = _load_json(CAPTIONS_CACHE_FILE, {})
     cache[name] = caps
@@ -301,7 +331,7 @@ def instagram_long(caps: dict) -> dict:
 def cached_captions(name: str) -> dict:
     """Gecachte Captions zu einem Export: erst UI-Cache (per Name), sonst
     YT-Batch-Cache — Zuordnung über die laufende Nummer im YT-Titel."""
-    cache = _load_json(CAPTIONS_CACHE_FILE, {})
+    cache = _load_json_gross(CAPTIONS_CACHE_FILE, {})
     if name in cache:
         korr = zh_begriffe(cache[name])
         return {"cached": korr, "source": "ui",
@@ -310,8 +340,8 @@ def cached_captions(name: str) -> dict:
                 "instagram_long": instagram_long(korr)}
     m = NUM_RE.match(name)
     if m:
-        progress = _load_json(YT_BATCH_PROGRESS_FILE, {})
-        batch = _load_json(YT_BATCH_CACHE_FILE, {})
+        progress = _load_json_gross(YT_BATCH_PROGRESS_FILE, {})
+        batch = _load_json_gross(YT_BATCH_CACHE_FILE, {})
         for vid, entry in progress.items():
             if str(entry.get("title", "")).startswith(m.group(1) + " ") and vid in batch:
                 korr = zh_begriffe(batch[vid])
