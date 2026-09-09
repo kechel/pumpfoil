@@ -97,9 +97,14 @@ def main():
                 with lock:
                     cache[v["id"]] = caps
                     CACHE_FILE.write_text(json.dumps(cache, ensure_ascii=False))
-            r = sm.yt_localize(v["id"], caps.get("titles") or {},
-                               caps.get("descriptions") or {},
-                               str(caps.get("hashtags", "")))
+            # zh_begriffe VOR dem Push: im Cache steht bei 9 Videos noch die
+            # Wortschoepfung 泵翼 (siehe 030c6bf5). Das Studio korrigiert sie beim
+            # Lesen, dieser Weg hier tat es nicht — die chinesische YouTube-
+            # Lokalisierung ging also mit dem erfundenen Begriff raus.
+            korr = sm.zh_begriffe(caps)
+            r = sm.yt_localize(v["id"], korr.get("titles") or {},
+                               korr.get("descriptions") or {},
+                               str(korr.get("hashtags", "")))
             with lock:
                 progress[v["id"]] = {"status": "ok", "title": v["title"],
                                      "written": len(r["written"])}
