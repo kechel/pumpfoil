@@ -457,6 +457,17 @@ export default function Uploads() {
     const n = e.name.toLowerCase();
     return begriffe.every((s) => n.includes(s));
   });
+  // Treffer weit vorn im Namen zuerst. Sonst stand bei der Suche nach "120" das
+  // Video 164 oben, weil dessen Dateiname "…slomotion-120fps…" enthaelt — und
+  // Jan hat sich am 09.09. genau daran den falschen Titel gegriffen. Die Summe
+  // der Fundstellen reicht: die fuehrende Nummer sitzt auf Position 0.
+  if (begriffe.length) {
+    const rang = (name: string) => {
+      const n = name.toLowerCase();
+      return begriffe.reduce((s, b) => s + n.indexOf(b), 0);
+    };
+    sichtbar.sort((a, b) => rang(a.name) - rang(b.name));   // stabil, Rest bleibt
+  }
   return (
     <div className="uploads">
       <div className="uphead">
