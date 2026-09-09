@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { ReactNode, useCallback, useEffect, useState } from "react";
 import { pfLabel } from "./pf";
 import { api, Captions, ExportItem } from "./api";
 import { Icon } from "./icons";
@@ -54,6 +54,38 @@ function CopyBtn({ text }: { text: string }) {
   );
 }
 
+/** Ueberschrift eines Textblocks. Die ganze Zeile kopiert, nicht nur ein Knopf
+ *  daneben (Jan, 09.09.) — das Ziel ist damit so gross wie die Zeile breit ist.
+ *  Ohne `copy` bleibt sie eine normale Ueberschrift. */
+function CapHead({ pf, copy, children }:
+                 { pf?: string; copy?: string; children: ReactNode }) {
+  const [ok, setOk] = useState(false);
+  if (!copy) return <div className="caphead" data-pf={pf}>{children}</div>;
+  const kopieren = () => {
+    void navigator.clipboard.writeText(copy);
+    setOk(true);
+    setTimeout(() => setOk(false), 1200);
+  };
+  return (
+    <div
+      className="caphead copyable"
+      data-pf={pf}
+      role="button"
+      tabIndex={0}
+      title="Klicken kopiert den Text darunter"
+      onClick={kopieren}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); kopieren(); }
+      }}
+    >
+      {children}
+      <span className="copyhint">
+        <Icon name="copy" size={11} /> {ok ? "kopiert!" : "kopieren"}
+      </span>
+    </div>
+  );
+}
+
 interface YtStatus {
   configured: boolean;
   authorized: boolean;
@@ -98,8 +130,13 @@ function YtBanner({ status, refresh }: { status: YtStatus; refresh: () => void }
   );
 }
 
-function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (list: ExportItem[]) => void; ytReady: boolean }) {
+function ExportCard({ exp, onChanged, ytReady, showTexts }: {
+  exp: ExportItem; onChanged: (list: ExportItem[]) => void; ytReady: boolean; showTexts: boolean;
+}) {
   const [showCaps, setShowCaps] = useState(false);
+  // Frisch erzeugte Texte zeigt die Karte von sich aus — genau die will man
+  // ja gerade lesen (Jan, 09.09.). Der Schalter oben gilt fuer alles andere.
+  const [frisch, setFrisch] = useState(false);
   const [title, setTitle] = useState(() =>
     exp.name
       .replace(/\.mp4$/, "")
@@ -171,6 +208,7 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
         setCaps(d);
         setBili(d.bilibili ?? null);
         setIgLong(d.instagram_long?.text ? d.instagram_long : null);
+        setFrisch(true);
       }
     } catch (e) {
       setErr(String(e));
@@ -207,7 +245,7 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
           </button>
         </div>
         {showCaps && (
-          <div className="caps">
+          <div className={"caps" + (showTexts || frisch ? "" : " nurkoepfe")}>
             <div className="genrow">
               <input
                 value={title}
@@ -229,7 +267,7 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
             {caps && (
               <>
                 <div className="capblock">
-                  <div className="caphead" data-pf="youtube">Zu <b>YouTube</b> pushen (Titel-Lokalisierungen + Beschreibung)</div>
+                  <CapHead pf="youtube">Zu <b>YouTube</b> pushen (Titel-Lokalisierungen + Beschreibung)</CapHead>
                   <div className="genrow">
                     <input
                       value={ytUrl}
@@ -258,7 +296,7 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
                   {ytMsg && <div style={{ fontSize: 12 }}>{ytMsg}</div>}
                 </div>
                 <div className="capblock">
-                  <div className="caphead" data-pf="youtube"><b>YouTube</b>-Titel (Lokalisierungen) <CopyBtn text={ytTitlesText} /></div>
+                  <CapHead pf="youtube" copy={ytTitlesText}><b>YouTube</b>-Titel (Lokalisierungen)</CapHead>
                   <pre>
                     {Object.entries(caps.titles).map(([l, t]) => (
                       <div key={l}>
@@ -268,39 +306,35 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
                   </pre>
                 </div>
                 <div className="capblock">
-                  <div className="caphead" data-pf="youtube">
+                  <CapHead pf="youtube" copy={`${caps.descriptions?.de ?? ""}\n\n${caps.hashtags ?? ""}`}>
                     <b>YouTube</b>-Kurzbeschreibung (de) — beim Push kommen Hashtags + Standard-Block je Sprache automatisch dazu
-                    <CopyBtn text={`${caps.descriptions?.de ?? ""}\n\n${caps.hashtags ?? ""}`} />
-                  </div>
+                  </CapHead>
                   <pre>{(caps.descriptions?.de ?? "") + "\n\n" + (caps.hashtags ?? "")}</pre>
                 </div>
                 <div className="capblock">
-                  <div className="caphead" data-pf="instagram"><b>Instagram</b>-Caption <CopyBtn text={caps.instagram} /></div>
+                  <CapHead pf="instagram" copy={caps.instagram}><b>Instagram</b>-Caption</CapHead>
                   <pre>{caps.instagram}</pre>
                 </div>
                 {igLong && (
                   <div className="capblock">
-                    <div className="caphead" data-pf="instagram">
+                    <CapHead pf="instagram" copy={igLong.text}>
                       <b>Instagram</b>-Caption + Standardblock (EN)
-                      <CopyBtn text={igLong.text} />
                       <span className={"chars" + (igLong.chars > igLong.limit ? " over" : "")}>
                         {igLong.chars} / {igLong.limit}
                       </span>
-                    </div>
+                    </CapHead>
                     <pre>{igLong.text}</pre>
                   </div>
                 )}
                 <div className="capblock">
-                  <div className="caphead" data-pf="tiktok"><b>TikTok</b>-Caption <CopyBtn text={caps.tiktok} /></div>
+                  <CapHead pf="tiktok" copy={caps.tiktok}><b>TikTok</b>-Caption</CapHead>
                   <pre>{caps.tiktok}</pre>
                 </div>
                 {caps.kwai && (
                   <div className="capblock">
-                    <div className="caphead" data-pf="kwai">
-                      <b>Kwai</b>-Caption (pt-BR) <CopyBtn text={caps.kwai} />
-                    </div>
+                    <CapHead pf="kwai" copy={caps.kwai}><b>Kwai</b>-Caption (pt-BR)</CapHead>
                     <pre>{caps.kwai}</pre>
-                    <div style={{ fontSize: 11, opacity: 0.6 }}>
+                    <div className="note">
                       Für Kwai die <b>TikTok-Datei</b> nehmen — 9:16, O-Ton, ohne lizenzierte
                       Musik. „Im Finder zeigen“ oben, dann aufs Handy und in der App hochladen;
                       eine Schnittstelle gibt es dort nicht.
@@ -310,23 +344,22 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
                 {xhs && (
                   <>
                     <div className="capblock">
-                      <div className="caphead" data-pf="rednote">
-                        <b>RedNote</b>-Titel ({xhs.title.length}/20 Zeichen) <CopyBtn text={xhs.title} />
-                      </div>
+                      <CapHead pf="rednote" copy={xhs.title}>
+                        <b>RedNote</b>-Titel ({xhs.title.length}/20 Zeichen)
+                      </CapHead>
                       <pre>{xhs.title}</pre>
                       {xhs.title_full !== xhs.title && (
-                        <div style={{ fontSize: 11, opacity: 0.6 }}>
+                        <div className="note">
                           gekürzt aus: {xhs.title_full}
                         </div>
                       )}
                     </div>
                     <div className="capblock">
-                      <div className="caphead" data-pf="rednote">
+                      <CapHead pf="rednote" copy={xhs.description}>
                         <b>RedNote</b>-Text — Chinesisch ({xhs.chars}/1000 Zeichen)
-                        <CopyBtn text={xhs.description} />
-                      </div>
+                      </CapHead>
                       <pre>{xhs.description}</pre>
-                      <div style={{ fontSize: 11, opacity: 0.6 }}>
+                      <div className="note">
                         RedNote wird über die <b>Suche</b> gefunden, nicht nur über den Feed —
                         deshalb tragen Titel und Schlagworte dort mehr als anderswo, und alte
                         Beiträge werden weiter gefunden. Video: die <b>TikTok-Datei</b> nehmen.
@@ -337,16 +370,13 @@ function ExportCard({ exp, onChanged, ytReady }: { exp: ExportItem; onChanged: (
                 {bili && (
                   <>
                     <div className="capblock">
-                      <div className="caphead" data-pf="bilibili">
-                        <b>Bilibili</b>-Titel <CopyBtn text={bili.title} />
-                      </div>
+                      <CapHead pf="bilibili" copy={bili.title}><b>Bilibili</b>-Titel</CapHead>
                       <pre>{bili.title}</pre>
                     </div>
                     <div className="capblock">
-                      <div className="caphead" data-pf="bilibili">
+                      <CapHead pf="bilibili" copy={bili.description}>
                         <b>Bilibili</b>-Beschreibung — Englisch, Indonesisch, Thai ({bili.chars}/2000 Zeichen)
-                        <CopyBtn text={bili.description} />
-                      </div>
+                      </CapHead>
                       <pre>{bili.description}</pre>
                     </div>
                     <div className="capblock">
@@ -403,6 +433,15 @@ export default function Uploads() {
   const [exports, setExports] = useState<ExportItem[] | null>(null);
   const [yt, setYt] = useState<YtStatus>({ configured: false, authorized: false });
   const [filter, setFilter] = useState("");
+  // Ein Schalter fuer die ganze Ansicht: die Textfelder sind zum Kopieren da,
+  // nicht zum Lesen — aufgeklappt scrollt man sich sonst tot. Die Ueberschriften
+  // bleiben immer stehen, und die kopieren ja selbst.
+  const [showTexts, setShowTexts] = useState(
+    () => localStorage.getItem("shorts_showtexts") === "1");
+  const toggleTexts = () => setShowTexts((s) => {
+    localStorage.setItem("shorts_showtexts", s ? "0" : "1");
+    return !s;
+  });
 
   const refreshYt = useCallback(() => {
     void fetch("/api/yt/status").then(async (r) => setYt(await r.json()));
@@ -423,7 +462,13 @@ export default function Uploads() {
   });
   return (
     <div className="uploads">
-      <h1>Fertige Exporte ({exports.length})</h1>
+      <div className="uphead">
+        <h1>Fertige Exporte ({exports.length})</h1>
+        <button className={"btn" + (showTexts ? " primary" : "")} onClick={toggleTexts}>
+          <Icon name={showTexts ? "eye" : "eyeoff"} size={13} />{" "}
+          Textfelder {showTexts ? "ausblenden" : "einblenden"}
+        </button>
+      </div>
       <YtBanner status={yt} refresh={refreshYt} />
       <div className="expfilter">
         <input
@@ -447,7 +492,8 @@ export default function Uploads() {
         <div style={{ opacity: 0.6 }}>Kein Export passt zum Filter.</div>
       )}
       {sichtbar.map((e) => (
-        <ExportCard key={e.name} exp={e} onChanged={setExports} ytReady={yt.authorized} />
+        <ExportCard key={e.name} exp={e} onChanged={setExports} ytReady={yt.authorized}
+          showTexts={showTexts} />
       ))}
     </div>
   );

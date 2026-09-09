@@ -212,6 +212,31 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; gap: 5
 .capblock .caphead { display: flex; align-items: center; gap: 8px; font-size: 12px;
   font-weight: 400; margin-bottom: 4px; }
 .capblock .caphead b { font-weight: 700; color: var(--pf, inherit); }
+/* Die ganze Ueberschriftszeile kopiert, nicht nur ein Knopf am Rand. */
+.capblock .caphead.copyable { cursor: pointer; border-radius: 6px;
+  margin: 0 -4px 4px; padding: 1px 4px; }
+.capblock .caphead.copyable:hover { background: #8882; }
+.capblock .caphead.copyable:focus-visible { outline: 2px solid #3b82f6; outline-offset: 1px; }
+.capblock .caphead .copyhint { margin-left: auto; display: flex; align-items: center; gap: 4px;
+  font-size: 11px; opacity: 0; white-space: nowrap; }
+.capblock .caphead.copyable:hover .copyhint,
+.capblock .caphead.copyable:focus-visible .copyhint { opacity: .6; }
+
+/* Ein Schalter fuer die ganze Ansicht blendet die Textfelder weg — sie sind zum
+   Kopieren da, nicht zum Lesen, und aufgeklappt scrollt man sich tot (Jan,
+   09.09.). Die Ueberschriften bleiben stehen und kopieren ja selbst. Die
+   Cover-Vorschlaege bleiben ebenfalls: an denen erkennt Jan, welches Video das
+   ueberhaupt ist. */
+.caps.nurkoepfe .capblock pre,
+.caps.nurkoepfe .capblock .note { display: none; }
+.caps.nurkoepfe .capblock { margin-bottom: 2px; }
+
+.uphead { display: flex; align-items: center; gap: 12px; }
+.uphead h1 { flex: 1; }
+.uphead .btn { display: flex; align-items: center; gap: 5px; }
+
+.capblock .note { font-size: 11px; opacity: .6; }
+
 .capblock .caphead[data-pf="youtube"]  { --pf: var(--s-yt); }
 .capblock .caphead[data-pf="instagram"]{ --pf: var(--s-ig); }
 .capblock .caphead[data-pf="tiktok"]   { --pf: var(--s-tt); }
