@@ -76,28 +76,44 @@ const vidNum = (name: string) => {
 const toLocalInput = (d: Date) =>
   new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 
-/** Noch nicht auf YouTube geplante Exporte bekommen der Reihe nach (Dateiname)
- *  je einen Termin 24 h nach dem letzten bereits geplanten Upload. */
+/** Noch nicht auf YouTube geplante Exporte bekommen der Reihe nach je einen
+ *  Termin 24 h nach dem letzten bereits geplanten Upload.
+ *
+ *  Die Reihenfolge ist NICHT einfach die Dateinummer: zuerst kommt, was neuer
+ *  ist als alles Bekannte — das sind die naechsten Uploads. Der aeltere Rest
+ *  haengt sich hinten an. Sonst schiebt jeder Altbestand, der nie hochgeladen
+ *  wird (die beiden 000-Promos, doppelte Dateien), das frische Video um einen
+ *  weiteren Tag nach hinten (Jan, 09.09.: 174 landete auf dem 16.01.2027). */
 function nextSlots(exports: ExportItem[], up: UpState, aufYt: Set<number>): Record<string, string> {
-  const geplant = Object.values(up)
+  const geplantAt = Object.values(up)
     .map((p) => p.youtube?.publish_at)
     .filter((s): s is string => !!s)
     .map((s) => new Date(s).getTime())
     .filter((t) => !isNaN(t));
   let base: number;
-  if (geplant.length) {
-    base = Math.max(...geplant);
+  if (geplantAt.length) {
+    base = Math.max(...geplantAt);
   } else {
     const d = new Date();          // nichts geplant -> heute 05:00 als Startraster
     d.setHours(5, 0, 0, 0);
     base = d.getTime();
   }
+  // Hoechste Nummer, die schon auf dem Kanal liegt oder terminiert ist.
+  const geplantNr = Object.entries(up)
+    .filter(([, p]) => p.youtube?.publish_at || p.youtube?.video_id)
+    .map(([name]) => vidNum(name))
+    .filter((n) => n < 1e9);
+  const hoechste = Math.max(0, ...aufYt, ...geplantNr);
   // „offen" = weder per Tool hochgeladen noch schon von Hand auf dem Kanal
   const offen = exports
-    .filter((e) => !up[e.name]?.youtube?.video_id && !aufYt.has(vidNum(e.name)))
-    .sort((a, b) => vidNum(a.name) - vidNum(b.name));
+    .filter((e) => !up[e.name]?.youtube?.video_id && !aufYt.has(vidNum(e.name)));
+  const nachNr = (a: ExportItem, b: ExportItem) => vidNum(a.name) - vidNum(b.name);
+  const reihe = [
+    ...offen.filter((e) => vidNum(e.name) > hoechste).sort(nachNr),
+    ...offen.filter((e) => vidNum(e.name) <= hoechste).sort(nachNr),
+  ];
   const out: Record<string, string> = {};
-  offen.forEach((e, i) => {
+  reihe.forEach((e, i) => {
     let t = base + (i + 1) * DAY_MS;
     while (t < Date.now() + 10 * 60000) t += DAY_MS;   // nie in der Vergangenheit
     out[e.name] = toLocalInput(new Date(t));
