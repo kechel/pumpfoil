@@ -251,10 +251,18 @@ Verteilung bekommen, elf nicht.
    Plattform. Zwei am Tag raeumen die 159 offenen Videos in rund drei Monaten ab, ohne dass
    der Kanal wie ein Dump aussieht.
 
-Die Zusatzplanung fuer 10.–23.09. steht in **`scripts/rednote-plan.json`** (Datum, Nummer,
-Datei, chinesischer Titel) und liegt griffbereit unter
-`shorts-mit-musik/rednote/<JJJJ-MM-TT>/`: je zwei Videos plus `<nnr>-text.txt` mit Titel und
-fertigem chinesischen Text zum Kopieren. Erzeugt mit dem Skript im Scratchpad dieser Sitzung;
+Die Zusatzplanung fuer 09.–22.09. steht in **`scripts/rednote-plan.json`** (Datum, Uhrzeit,
+Nummer, Datei, chinesischer Titel) und liegt griffbereit unter
+`shorts-mit-musik/rednote/<JJJJ-MM-TT>/`: **genau zwei** Videos plus `<nnr>-text.txt` mit
+Titel und fertigem chinesischen Text zum Kopieren. Was nach einer Umplanung uebrig bleibt,
+raeumt das Skript weg — Dubletten loescht es (die Datei liegt dann im richtigen Ordner),
+alles andere wandert nach `_nicht-im-plan/`. Ein Ordner zeigt damit immer den Plan, sonst
+greift man beim Hochladen daneben (Jan, 09.09.: „im Ordner 2026-09-10 liegen 4 Videos??").
+
+**Uhrzeiten, beide in Pekinger Zeit** — das ist es, was die Maske erwartet: **20:30** fuer die
+Erklaerstuecke (dort wird gespeichert, und 收藏 zaehlt auf einer Such-Plattform), **12:30**
+fuer das Leichte. **05:00** bleibt der Kreuzfahrt. Damit liegen die drei Beitraege eines Tages
+rund sieben Stunden auseinander; die Reihenfolge im Tag ist 05:00 → 12:30 → 20:30. Erzeugt mit dem Skript im Scratchpad dieser Sitzung;
 wer die naechsten zwei Wochen plant, kopiert es sich heraus oder legt die Ordner von Hand an.
 
 **Woher die Dateien kommen — wichtig:** RedNote bekommt die **TikTok-Fassung**, und die gibt
