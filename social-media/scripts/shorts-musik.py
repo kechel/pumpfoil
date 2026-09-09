@@ -1536,6 +1536,27 @@ def yt_numbered_stats() -> dict:
 YT_NUMBERS_CACHE = {"at": 0.0, "data": None}
 
 
+def yt_numbers_lokal() -> list:
+    """Nummern, die schon auf dem Kanal liegen — ohne YouTube zu fragen.
+
+    Zwei Quellen, die wir ohnehin fuehren: im Batch-Fortschritt steht zu jeder
+    Video-ID der echte Kanaltitel („173 Pumpfoil 2026 …"), und im Upload-Zustand
+    stehen die per Tool hochgeladenen Exporte. Zusammen sind das 171 der 173
+    (Stand 09.09.); es fehlen nur 001 und 002, deren Titel „Pumpfoil Winter 2026"
+    das Nummernschema nicht erfuellt und die der Batch deshalb nie angefasst hat.
+    Reicht als Notnagel voellig — die Alternative war eine leere Liste."""
+    nums = set()
+    for eintrag in _load_json(YT_BATCH_PROGRESS_FILE, {}).values():
+        m = NUM_TITLE_RE.match(str(eintrag.get("title", "")))
+        if m:
+            nums.add(int(m.group(1)))
+    for name, zustand in _load_json(UPLOADS_STATE_FILE, {}).items():
+        m = NUM_RE.match(name)
+        if m and (zustand.get("youtube") or {}).get("video_id"):
+            nums.add(int(m.group(1)))
+    return sorted(nums)
+
+
 def yt_numbers(force: bool = False) -> list:
     """Video-Nummern, die schon auf dem Kanal liegen — auch die von Hand
     hochgeladenen. Nur die Playlist, ohne Statistiken (schnell).
@@ -1855,7 +1876,8 @@ class Handler(BaseHTTPRequestHandler):
                 except (RuntimeError, OSError, ValueError, KeyError) as e:
                     # Lieber der letzte bekannte Stand als gar keiner: eine leere
                     # Liste heisst fuer das Upload-Tab "nichts ist veroeffentlicht".
-                    alt_stand = _load_json(YT_NUMBERS_FILE, [])
+                    alt_stand = sorted(set(_load_json(YT_NUMBERS_FILE, []))
+                                       | set(yt_numbers_lokal()))
                     self._json({"numbers": alt_stand, "stale": bool(alt_stand),
                                 "error": str(e)})
             elif path == "/api/stats":
