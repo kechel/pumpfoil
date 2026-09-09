@@ -371,6 +371,30 @@ def nummer_setzen(zuweisungen):
     db.commit()
 
 
+def vergessen(note_ids):
+    """Einen Beitrag aus der DB nehmen, der auf RedNote geloescht wurde.
+
+    Kommt bei geplanten Beitraegen vor: Termin abgesagt, die Zeile bleibt aber
+    stehen und taucht weiter in der Dublettenpruefung auf. Messpunkte werden
+    NICHT stillschweigend mitgeloescht — hat der Beitrag welche, bricht es ab.
+    """
+    db = connect()
+    for note_id in note_ids:
+        n = db.execute("SELECT COUNT(*) c FROM post_stat WHERE platform=? AND post_id=?",
+                       (PLATTFORM, note_id)).fetchone()["c"]
+        if n:
+            sys.exit(f"{note_id} hat {n} Messpunkte — nicht geloescht. "
+                     f"Gemessene Zahlen wirft dieses Skript nicht weg.")
+        row = db.execute("SELECT title FROM post WHERE platform=? AND post_id=?",
+                         (PLATTFORM, note_id)).fetchone()
+        if not row:
+            print(f"{note_id}: nicht in der DB")
+            continue
+        db.execute("DELETE FROM post WHERE platform=? AND post_id=?", (PLATTFORM, note_id))
+        print(f"entfernt: {note_id}  {row['title']}")
+    db.commit()
+
+
 def liste():
     db = connect()
     rows = db.execute(
@@ -417,6 +441,9 @@ def main():
     ap.add_argument("--import", dest="datei", metavar="HTML",
                     help="kopiertes <div class=\"panel\"> aus 笔记管理 ('-' = stdin)")
     ap.add_argument("--note", help="Bemerkung zum Snapshot")
+    ap.add_argument("--vergessen", nargs="+", metavar="NOTE_ID",
+                    help="auf RedNote geloeschte Beitraege aus der DB nehmen "
+                         "(nur solche ohne Messpunkte)")
     ap.add_argument("--nummer", nargs="+", metavar="ID=NR",
                     help="laufende Nummer von Hand zuordnen")
     ap.add_argument("--list", action="store_true", help="aktueller Stand")
@@ -424,6 +451,8 @@ def main():
     a = ap.parse_args()
     if a.datei:
         importieren(a.datei, a.note)
+    elif a.vergessen:
+        vergessen(a.vergessen)
     elif a.nummer:
         nummer_setzen(a.nummer)
     elif a.series:
