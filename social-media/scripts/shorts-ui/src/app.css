@@ -150,6 +150,8 @@ h2.dirtitle { text-transform: none; white-space: nowrap; overflow: hidden; text-
 .mini.sel { background: #3b82f6; color: #fff; border-color: #3b82f6; }
 .pvbar { display: flex; align-items: center; gap: 8px; font-size: 12px; opacity: .9; max-width: 100%; padding: 2px 0; }
 .pvbar .nm, .pvbar .trkname { opacity: .7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Sekunden zum Ablesen: nicht mitschrumpfen und markierbar bleiben. */
+.pvbar .vsecs { flex: none; opacity: .7; white-space: nowrap; font-variant-numeric: tabular-nums; user-select: text; cursor: text; }
 
 .panel { padding: 4px 12px 10px; border-bottom: 1px solid #8884; font-size: 13px; }
 .panel .row { margin: 6px 0; display: flex; align-items: center; gap: 8px; }
