@@ -269,6 +269,20 @@ Die Auswahl mischt bewusst die beiden Rubriken, in die unser Material dort passt
 -untergang) plus Kinder und Tiere. Die sieben Nummern aus `fb-plan.json` sind ausgespart,
 damit sich Kreuzfahrt und Rueckstand nicht doppeln.
 
+### Serien gehoeren in ihre Reihenfolge
+
+Regel von Jan (09.09.), gilt fuer **jede** Plattform, nicht nur RedNote:
+
+- **Kids-Reihe** 118 → 119 → 122 → 128 → 138. Die aufsteigende Videonummer ist die
+  Drehreihenfolge, und der Rueckblick „Tag 1 bis 4" (138) steht zuletzt.
+- **Making-of immer 2-5 Tage NACH dem Original.** Zwei Paare: 100 (Mondschein-Daemmerritt
+  mit Walzer) → 103 (Making-of Taschenlampen) · 151 (Matrix-Moment, auf RedNote seit
+  08.09. online) → 158 (Matrix-Kameraflug, das Making-of).
+- **Nummerierte Reihen in Nummernfolge.** „Success or Fail" Teil 1 ist **169**, Teil 2 ist
+  **172**. Auf RedNote waere Teil 2 fast vor Teil 1 gelaufen: 169 fehlt in der
+  Kreuzfahrt-Reihe, weil es auf YouTube schon am 06.09. ausser der Reihe rausging. Deshalb
+  steht 169 jetzt am 17.09. in der Zusatzplanung, zwei Tage vor 172.
+
 **Der 20-Zeichen-Schnitt verstuemmelt manche Titel.** Aus „Never give up: Trail L 慢动作特写
 — 水翼在水下吸进空气" wird „Never give up" — auf einer Such-Plattform ist das ein verschenkter
 Beitrag. Fuer sieben der 28 steht der Titel deshalb von Hand in der Planung (120, 162, 113,
