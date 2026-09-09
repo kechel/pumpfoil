@@ -84,15 +84,15 @@ function CapCell({ copy, zeile, children }:
 }
 
 /** Eine Zeile: Plattformname farbig und fett, dann Titel und Beschreibung. */
-function CapRow({ pf, name, title, desc, titleZeile, titleFull, descFull }: {
+function CapRow({ pf, name, title, desc, titleZeile, titleFull, descFull, breit }: {
   pf: string; name: string; title?: string; desc?: string; titleZeile?: string;
-  titleFull?: ReactNode; descFull?: ReactNode;
+  titleFull?: ReactNode; descFull?: ReactNode; breit?: boolean;
 }) {
   return (
-    <div className="caprow" data-pf={pf}>
+    <div className={"caprow" + (breit ? " breit" : "")} data-pf={pf}>
       <div className="pfname">{name}</div>
       <CapCell copy={title} zeile={titleZeile}>{titleFull}</CapCell>
-      <CapCell copy={desc}>{descFull}</CapCell>
+      {!breit && <CapCell copy={desc}>{descFull}</CapCell>}
     </div>
   );
 }
@@ -328,10 +328,13 @@ function ExportCard({ exp, ytReady, showTexts }: {
                       </pre>
                     }
                   />
-                  {/* Nur die lange Fassung (Caption + Standardblock) — die kurze
-                      braucht Jan nicht, kopiert wird ohnehin immer der ganze Text. */}
-                  <CapRow pf="instagram" name="Instagram" desc={igLong?.text ?? caps.instagram}
-                    descFull={igLong && (
+                  {/* Instagram und TikTok haben keinen eigenen Titel — der Text IST
+                      der Titel. Deshalb steht er in der Titelspalte und nimmt gleich
+                      die ganze Breite (Jan, 09.09.). Bei Instagram nur die lange
+                      Fassung: kopiert wird ohnehin immer der ganze Text. */}
+                  <CapRow pf="instagram" name="Instagram" breit
+                    title={igLong?.text ?? caps.instagram}
+                    titleFull={igLong && (
                       <>
                         <pre>{igLong.text}</pre>
                         <div className={"note" + (igLong.chars > igLong.limit ? " over" : "")}>
@@ -339,9 +342,7 @@ function ExportCard({ exp, ytReady, showTexts }: {
                         </div>
                       </>
                     )} />
-                  {/* TikTok hat keinen eigenen Titel — der kurze Text IST der Titel,
-                      deshalb steht er in der Titelspalte (Jan, 09.09.). */}
-                  <CapRow pf="tiktok" name="TikTok" title={caps.tiktok} />
+                  <CapRow pf="tiktok" name="TikTok" breit title={caps.tiktok} />
                   {caps.kwai && (
                     <CapRow pf="kwai" name="Kwai" desc={caps.kwai}
                       descFull={
