@@ -237,9 +237,9 @@ Sobald sich etwas bewegt, ist derselbe Import in kurzer Zeit angepasst.
 Am 09.09. standen zwoelf Beitraege online, alle aus dem Bereich 131–163 und alle binnen
 22 Stunden hochgeladen. Zusammen 346 Aufrufe — davon **262 auf einem einzigen** (132, Bast
 am Foil). **Da steckt keine Erkenntnis drin:** der Zwilling desselben Themas (139, Wollfaeden
-in 240 fps) hat vier, und die Uhrzeit erklaert es auch nicht — 132 ging um 08:55 Pekinger
-Zeit raus, im selben Fenster liegen 152 mit null und 160 mit zwei. Ein Beitrag hat Verteilung
-bekommen, elf nicht.
+in 240 fps) hat vier, und die Uhrzeit erklaert es auch nicht — 152 (02:52), 132 (02:55) und
+160 (02:59) gingen binnen sieben Minuten raus und haben null, 262 und zwei. Ein Beitrag hat
+Verteilung bekommen, elf nicht.
 
 **Deshalb ab jetzt zweigleisig:**
 
@@ -273,3 +273,36 @@ damit sich Kreuzfahrt und Rueckstand nicht doppeln.
 — 水翼在水下吸进空气" wird „Never give up" — auf einer Such-Plattform ist das ein verschenkter
 Beitrag. Fuer sieben der 28 steht der Titel deshalb von Hand in der Planung (120, 162, 113,
 108, 142, 138, 095). Wer weiterplant, liest die erzeugten Titel durch, bevor er sie nimmt.
+
+
+## Geplante Beitraege (定时发布) und die Zeitzone
+
+Seit 09.09. plant Jan auf RedNote vor; der Reiter zeigt dann Karten **ohne Zahlenzeile**,
+dafuer mit `note-card__schedule` = 定时发布 und einem Termin. Der Import las die vorher gar
+nicht und meldete nur „24 gemeldet, 13 gelesen — weiter nach unten scrollen", was in die Irre
+fuehrte: es fehlte nichts, die elf hatten schlicht noch keine Zahlen.
+
+**Jetzt landen sie als `post`-Zeile in der DB** — Nummer und Termin, aber **kein**
+`post_stat`. Geht der Beitrag live, haengen die Zahlen an derselben `noteId`, und die Regel
+„eine Zeile nur bei geaenderten Werten" bleibt unberuehrt. Karten in 审核中 / 未通过 werden
+weiterhin uebersprungen, jetzt aber getrennt ausgewiesen statt stillschweigend.
+
+**Die Zeitangaben sind Pekinger Zeit (GMT+8).** Nur die geplanten Karten schreiben es dazu
+(`2026-09-20 05:00 （GMT+8:00 北京时间）`), die veroeffentlichten nicht — dieselbe Zeitzone
+ist es trotzdem. Beleg: die ersten fuenf Beitraege stehen laut diesem Dokument seit dem
+**07.09.** online und tragen als Zeit `2026-09-08 02:5x`. Das geht nur auf, wenn das Pekinger
+Zeit ist (07.09. abends bei uns). Der Import raeumt den Zusatz weg, damit beide Faelle
+dieselbe Zeitzone in derselben Spalte haben.
+
+**Titel-Zuordnung ueber den Anfang.** RedNote schneidet bei 20 Zeichen, unsere Captions sind
+laenger — ein eindeutiger Praefix-Treffer zaehlt deshalb wie ein exakter
+(`Success or Fail 2` → `Success or Fail 2 — 每次尝试都是进步`). Damit fanden am 09.09. alle
+elf geplanten Karten ihre Nummer von selbst; ohne die Regel waeren fuenf offen geblieben.
+
+**Erster Fund daraus: 163 steht zweimal.** Veroeffentlicht am 08.09. um 03:01, noch einmal
+geplant fuer den 11.09. Die Kreuzfahrt-Planung laeuft 162 → 173 aufsteigend, und 163 war
+unter den zwoelf von Hand hochgeladenen. Ein `SELECT number, COUNT(*) … HAVING n>1` ueber
+`post` zeigt so etwas ab jetzt sofort.
+
+Aus demselben Abgleich sind zwei Videos der Zusatzplanung getauscht worden: **164 → 143**
+(15.09.) und **162 → 98** (23.09.), beide waren in der Kreuzfahrt schon vergeben.
