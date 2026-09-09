@@ -369,7 +369,7 @@ private val LANG_NAMES = mapOf(
     "de" to "Deutsch", "gsw" to "Schwiizerdütsch", "de-AT" to "Österreichisch",
     "en" to "English", "fr" to "Français", "it" to "Italiano", "es" to "Español",
     "fi" to "Suomi", "nl" to "Nederlands", "cs" to "Čeština",
-    "pt" to "Português", "ja" to "日本語", "zh" to "中文", "ru" to "Русский", "id" to "Bahasa Indonesia",
+    "pt" to "Português (Brasil)", "pt-PT" to "Português (Portugal)", "ja" to "日本語", "zh" to "中文", "ru" to "Русский", "id" to "Bahasa Indonesia",
     // nb fehlte hier seit dem Norwegisch-Rollout — der Picker haette den rohen Code "nb" gezeigt.
     "nb" to "Norsk", "pl" to "Polski",
 )

@@ -5,7 +5,7 @@ import Foundation
 enum Loc {
     // nb fehlte hier seit dem Norwegisch-Rollout: das Overlay war da, die Sprache aber gar
     // nicht auswaehlbar. Mit pl zusammen nachgezogen.
-    static let langs = ["de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs", "pt", "ja", "zh", "ru", "id", "nb", "pl"]
+    static let langs = ["de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs", "pt", "pt-PT", "ja", "zh", "ru", "id", "nb", "pl"]
 
     // Tschechisch-Overlay (aus web/src/i18n/locales/cs.ts + app-eigene Keys). Fallback: Englisch.
     // In 10 Bloecke zerlegt: EIN Literal mit 543 Eintraegen ist fuer den
@@ -1830,9 +1830,15 @@ enum Loc {
         if lang == "id", let v = idOverlay[key] { return v }   // id-Overlay (LocExtra.swift); sonst Englisch
         if lang == "nb", let v = nbOverlay[key] { return v }   // nb-Overlay (LocExtra.swift); sonst Englisch
         if lang == "pl", let v = plOverlay[key] { return v }   // pl-Overlay (LocExtra.swift); sonst Englisch
+        // Europaeisches Portugiesisch sitzt UEBER dem brasilianischen: erst die 194
+        // abweichenden Schluessel, dann pt, dann Englisch.
+        if lang == "pt-PT" {
+            if let v = ptptOverlay[key] { return v }
+            if let v = ptOverlay[key] { return v }
+        }
         guard let row = table[key] else { return key }
         // Overlay-Sprachen fallen auf Englisch zurück (nicht Deutsch), wenn ein Key im Overlay fehlt.
-        let overlayLangs: Set<String> = ["fi", "nl", "cs", "pt", "ja", "zh", "ru", "id", "nb", "pl"]
+        let overlayLangs: Set<String> = ["fi", "nl", "cs", "pt", "pt-PT", "ja", "zh", "ru", "id", "nb", "pl"]
         let fallback = overlayLangs.contains(lang) ? (row["en"] ?? row["de"]) : row["de"]
         return row[lang] ?? fallback ?? row["en"] ?? key
     }

@@ -5,9 +5,9 @@ Die Uebersetzungen stehen fuer alle 17 Sprachen bereits in web/src/i18n/locales/
 Android und iOS halten dieselben Texte in vier grossen Tabellen:
 
   android/.../I18n.kt       Basiszeile row(de, gsw, de-AT, en, fr, it, es) + Overlays fi, nl, cs
-  android/.../I18nExtra.kt  Overlays pt, ja, zh, ru, id, nb, pl
+  android/.../I18nExtra.kt  Overlays pt, pt-PT, ja, zh, ru, id, nb, pl
   watch-apple/.../Loc.swift      Basiszeile r(...) + Overlays cs, nl, fi
-  watch-apple/.../LocExtra.swift Overlays pt, ja, zh, ru, id, nb, pl
+  watch-apple/.../LocExtra.swift Overlays pt, pt-PT, ja, zh, ru, id, nb, pl
 
 Von Hand ist das 14 Einfuegungen je Schluessel — hier eine. Eingefuegt wird jeweils am
 ANFANG des Blocks (dort stehen auch die zuletzt ergaenzten Schluessel), erkannt am
@@ -25,9 +25,9 @@ BASIS = ["de", "gsw", "de-AT", "en", "fr", "it", "es"]
 
 DATEIEN = {
     "kt_basis":  ("android/app/src/main/java/org/pumpfoil/app/I18n.kt",      ["fi", "nl", "cs"]),
-    "kt_extra":  ("android/app/src/main/java/org/pumpfoil/app/I18nExtra.kt", ["pt", "ja", "zh", "ru", "id", "nb", "pl"]),
+    "kt_extra":  ("android/app/src/main/java/org/pumpfoil/app/I18nExtra.kt", ["pt-PT", "pt", "ja", "zh", "ru", "id", "nb", "pl"]),
     "sw_basis":  ("watch-apple/Sources-iOS/Loc.swift",                        ["cs", "nl", "fi"]),
-    "sw_extra":  ("watch-apple/Sources-iOS/LocExtra.swift",                   ["pt", "ja", "zh", "ru", "id", "nb", "pl"]),
+    "sw_extra":  ("watch-apple/Sources-iOS/LocExtra.swift",                   ["pt-PT", "pt", "ja", "zh", "ru", "id", "nb", "pl"]),
 }
 
 def web_texte() -> dict:
@@ -47,21 +47,30 @@ def kt(text: str) -> str:
     """Kotlin: $ startet eine Template-Ersetzung und muss weg."""
     return text.replace("$", "\\$")
 
+def _passt(name: str, sprachen):
+    """Blockname (ptTabelle, ptptOverlayP1 …) einer Sprache zuordnen.
+
+    Laengste Uebereinstimmung zuerst, sonst schluckt "pt" den Block "ptpt" und
+    pt-PT bekaeme die brasilianischen Texte. Bindestriche fallen weg, weil sie in
+    Bezeichnern nicht vorkommen: "pt-PT" -> "ptpt".
+    """
+    for s in sorted(sprachen, key=len, reverse=True):
+        if name.startswith(s.lower().replace("-", "")):
+            return s
+    return None
+
+
 def block_sprache(zeilen, i, sprachen):
     """Zu welcher Sprache gehoert der Anker in Zeile i? Rueckwaerts die naechste Deklaration."""
     for j in range(i, -1, -1):
         m = re.search(r"(?:val|let)\s+_?(\w+?)(?:Overlay|Tabelle|tabelle)", zeilen[j])
         if m:
-            name = m.group(1).lower()
-            for s in sprachen:
-                if name.startswith(s.lower()):
-                    return s
-            return None
+            return _passt(m.group(1).lower(), sprachen)
         if re.search(r"private (?:static )?(?:let|fun)\s+_?(\w+)", zeilen[j]):
             name = re.sub(r"^_", "", re.search(r"private (?:static )?(?:let|fun)\s+_?(\w+)", zeilen[j]).group(1)).lower()
-            for s in sprachen:
-                if name.startswith(s.lower()):
-                    return s
+            treffer = _passt(name, sprachen)
+            if treffer:
+                return treffer
     return None
 
 def main():
@@ -113,6 +122,10 @@ def main():
                     wert = web.get(s, {}).get(k)
                     if wert is None:      # keine Uebersetzung -> Luecke lassen, App faellt auf Englisch
                         continue
+                    # pt-PT liegt UEBER pt: gleiche Texte gehoeren dort nicht hinein,
+                    # sonst waechst das Overlay mit Zeilen, die nichts aendern.
+                    if s == "pt-PT" and wert == web.get("pt", {}).get(k):
+                        continue
                     if swift:
                         neu.append(f'{einzug}"{k}": "{wert}",\n')
                     else:
@@ -127,7 +140,7 @@ def main():
 
     for rel, n in bilanz.items():
         print(f"{'(nur geprueft) ' if nur_zeigen else ''}{n:4d} Zeilen  {rel}")
-    fehlt = [(s, k) for s in ("fi","nl","cs","pt","ja","zh","ru","id","nb","pl") for k in keys if k not in web.get(s, {})]
+    fehlt = [(s, k) for s in ("fi","nl","cs","pt","pt-PT","ja","zh","ru","id","nb","pl") for k in keys if k not in web.get(s, {})]
     if fehlt:
         print("\nOhne Uebersetzung im Web (App faellt auf Englisch zurueck):")
         for s, k in fehlt: print(f"   {s}: {k}")
