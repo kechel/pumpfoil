@@ -1,5 +1,4 @@
-import { ReactNode, useCallback, useEffect, useState } from "react";
-import { pfLabel } from "./pf";
+import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { api, Captions, ExportItem } from "./api";
 import { Icon } from "./icons";
 
@@ -142,10 +141,9 @@ function YtBanner({ status, refresh }: { status: YtStatus; refresh: () => void }
   );
 }
 
-function ExportCard({ exp, onChanged, ytReady, showTexts }: {
-  exp: ExportItem; onChanged: (list: ExportItem[]) => void; ytReady: boolean; showTexts: boolean;
+function ExportCard({ exp, ytReady, showTexts }: {
+  exp: ExportItem; ytReady: boolean; showTexts: boolean;
 }) {
-  const [showCaps, setShowCaps] = useState(false);
   // Frisch erzeugte Texte zeigt die Karte von sich aus — genau die will man
   // ja gerade lesen (Jan, 09.09.). Der Schalter oben gilt fuer alles andere.
   const [frisch, setFrisch] = useState(false);
@@ -171,18 +169,28 @@ function ExportCard({ exp, onChanged, ytReady, showTexts }: {
 
   const thumbPf = exp.platforms.includes("tiktok") ? "tiktok" : exp.platforms[0];
 
-  const discard = useCallback(async () => {
-    if (!confirm(`Export "${exp.name}" verwerfen?\nLöscht die ${exp.platforms.length} gerenderten Dateien` +
-        (exp.source ? ` und verschiebt das Quellvideo zurück nach neue-videos-ungesichtet.` : `.`)))
-      return;
-    const d = await api.post<{ exports: ExportItem[]; error?: string }>("/api/discard_export", { name: exp.name });
-    if (d.error) setErr(d.error);
-    else onChanged(d.exports);
-  }, [exp, onChanged]);
 
-  // Beim Aufklappen: bereits generierte Texte aus dem Cache anzeigen (UI- oder YT-Batch-Cache)
+  // Erst laden, wenn die Karte ins Bild kommt. Seit die Karten immer offen sind
+  // (Jan, 09.09.) wuerden sonst alle 181 gleichzeitig /api/captions_cache
+  // abfragen, und jede Abfrage liest den 876 KB grossen YT-Batch-Cache neu.
+  const kartenRef = useRef<HTMLDivElement>(null);
+  const [imBild, setImBild] = useState(false);
   useEffect(() => {
-    if (!showCaps || caps || busy) return;
+    const el = kartenRef.current;
+    if (!el || imBild) return;
+    const beobachter = new IntersectionObserver((eintraege) => {
+      if (eintraege.some((e) => e.isIntersecting)) {
+        setImBild(true);
+        beobachter.disconnect();
+      }
+    }, { rootMargin: "300px" });
+    beobachter.observe(el);
+    return () => beobachter.disconnect();
+  }, [imBild]);
+
+  // Texte aus dem Cache anzeigen (UI- oder YT-Batch-Cache).
+  useEffect(() => {
+    if (!imBild || caps || busy) return;
     void fetch(`/api/captions_cache?name=${encodeURIComponent(exp.name)}`)
       .then(async (r) => r.json() as Promise<{
         cached: Captions | null; source?: string;
@@ -202,7 +210,7 @@ function ExportCard({ exp, onChanged, ytReady, showTexts }: {
       })
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showCaps]);
+  }, [imBild]);
 
   const generate = useCallback(async () => {
     setBusy(true);
@@ -238,32 +246,15 @@ function ExportCard({ exp, onChanged, ytReady, showTexts }: {
     : "";
 
   return (
-    <div className="exp">
+    <div className="exp" ref={kartenRef}>
       <img className="thumb" alt="" loading="lazy"
         src={`/thumb/${encodeURIComponent(exp.files?.[thumbPf] ?? exp.name)}?t=1&base=out:${thumbPf}`}
         onError={(e) => ((e.target as HTMLImageElement).style.visibility = "hidden")}
       />
       <div className="body">
         <div className="title">{exp.name.replace(/\.mp4$/, "")}</div>
-        <div className="meta">
-          {new Date(exp.mtime * 1000).toLocaleString("de-DE")} ·{" "}
-          {exp.platforms.map(pfLabel).join(" + ")}
-          {exp.source ? ` · Quelle: ${exp.source}` : " · Quelle nicht gefunden"}
-        </div>
-        <div className="btns">
-          <button className="btn" onClick={() => setShowCaps((s) => !s)}>
-            <Icon name="wand" size={13} /> Titel &amp; Captions
-          </button>
-          <button className="btn" onClick={() => void api.post("/api/reveal", { name: exp.name })}>
-            <Icon name="folder" size={13} /> Im Finder zeigen
-          </button>
-          <button className="btn" onClick={() => void discard()}>
-            <Icon name="trash" size={13} /> Verwerfen
-          </button>
-        </div>
-        {showCaps && (
-          <div className={"caps" + (zeigeTexte ? "" : " nurkoepfe")
-                          + (zeigeTexte || !caps ? "" : " ohnebedienung")}>
+        <div className={"caps" + (zeigeTexte ? "" : " nurkoepfe")
+                        + (zeigeTexte || !caps ? "" : " ohnebedienung")}>
             <div className="genrow">
               <input
                 value={title}
@@ -357,8 +348,8 @@ function ExportCard({ exp, onChanged, ytReady, showTexts }: {
                           <pre>{caps.kwai}</pre>
                           <div className="note">
                             Für Kwai die <b>TikTok-Datei</b> nehmen — 9:16, O-Ton, ohne
-                            lizenzierte Musik. „Im Finder zeigen“ oben, dann aufs Handy und in
-                            der App hochladen; eine Schnittstelle gibt es dort nicht.
+                            lizenzierte Musik. Datei aus shorts-mit-musik/tiktok/ aufs Handy und
+                            in der App hochladen; eine Schnittstelle gibt es dort nicht.
                           </div>
                         </>
                       } />
@@ -398,50 +389,49 @@ function ExportCard({ exp, onChanged, ytReady, showTexts }: {
                   )}
                 </div>
                 {bili && (
-                <div className="capblock">
-                                      <div className="caphead">
-                                        Cover-Vorschläge (1920×1080) — anklicken zum Herunterladen
-                                      </div>
-                                      {([
-                                        ["blur", "ganzes Bild, unscharfe Ränder"],
-                                        ["crop", "Bildmitte, randlos beschnitten"],
-                                      ] as const).map(([mode, label]) => (
-                                        <div key={mode} style={{ marginBottom: 8 }}>
-                                          <div style={{ fontSize: 11, opacity: 0.6, marginBottom: 3 }}>{label}</div>
-                                          <div className="covers">
-                                            {[0.2, 0.5, 0.8].map((f) => {
-                                              const t = Math.max(0.5, (exp.duration ?? 20) * f);
-                                              return <CoverPic key={f} exp={exp} t={t} mode={mode} />;
-                                            })}
-                                            {(() => {
-                                              const t = parseFloat(coverT.replace(",", "."));
-                                              if (!isFinite(t) || t < 0) return null;
-                                              const tt = Math.min(Math.max(t, 0), Math.max(0, (exp.duration ?? 1e9) - 0.1));
-                                              return <CoverPic exp={exp} t={tt} mode={mode} eigen />;
-                                            })()}
-                                          </div>
-                                        </div>
-                                      ))}
-                                      <div className="genrow" style={{ alignItems: "center" }}>
-                                        <label style={{ fontSize: 12, whiteSpace: "nowrap" }}>
-                                          eigener Zeitpunkt{" "}
-                                          <input
-                                            type="number" min={0} max={exp.duration ?? undefined} step={0.5}
-                                            style={{ width: 72 }} value={coverT} placeholder="Sek."
-                                            onChange={(e) => setCoverT(e.target.value)}
-                                          />{" "}
-                                          s{exp.duration ? ` (Video: ${exp.duration.toFixed(1)} s)` : ""}
-                                        </label>
-                                        {coverT && (
-                                          <button className="mini" onClick={() => setCoverT("")}>zurücksetzen</button>
-                                        )}
-                                      </div>
-                                    </div>
+                  <div className="capblock">
+                      <div className="caphead">
+                        Cover-Vorschläge (1920×1080) — anklicken zum Herunterladen
+                      </div>
+                      {([
+                        ["blur", "ganzes Bild, unscharfe Ränder"],
+                        ["crop", "Bildmitte, randlos beschnitten"],
+                      ] as const).map(([mode, label]) => (
+                        <div key={mode} style={{ marginBottom: 8 }}>
+                          <div style={{ fontSize: 11, opacity: 0.6, marginBottom: 3 }}>{label}</div>
+                          <div className="covers">
+                            {[0.2, 0.5, 0.8].map((f) => {
+                              const t = Math.max(0.5, (exp.duration ?? 20) * f);
+                              return <CoverPic key={f} exp={exp} t={t} mode={mode} />;
+                            })}
+                            {(() => {
+                              const t = parseFloat(coverT.replace(",", "."));
+                              if (!isFinite(t) || t < 0) return null;
+                              const tt = Math.min(Math.max(t, 0), Math.max(0, (exp.duration ?? 1e9) - 0.1));
+                              return <CoverPic exp={exp} t={tt} mode={mode} eigen />;
+                            })()}
+                          </div>
+                        </div>
+                      ))}
+                      <div className="genrow" style={{ alignItems: "center" }}>
+                        <label style={{ fontSize: 12, whiteSpace: "nowrap" }}>
+                          eigener Zeitpunkt{" "}
+                          <input
+                            type="number" min={0} max={exp.duration ?? undefined} step={0.5}
+                            style={{ width: 72 }} value={coverT} placeholder="Sek."
+                            onChange={(e) => setCoverT(e.target.value)}
+                          />{" "}
+                          s{exp.duration ? ` (Video: ${exp.duration.toFixed(1)} s)` : ""}
+                        </label>
+                        {coverT && (
+                          <button className="mini" onClick={() => setCoverT("")}>zurücksetzen</button>
+                        )}
+                      </div>
+                    </div>
                 )}
               </>
             )}
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );
@@ -510,8 +500,7 @@ export default function Uploads() {
         <div style={{ opacity: 0.6 }}>Kein Export passt zum Filter.</div>
       )}
       {sichtbar.map((e) => (
-        <ExportCard key={e.name} exp={e} onChanged={setExports} ytReady={yt.authorized}
-          showTexts={showTexts} />
+        <ExportCard key={e.name} exp={e} ytReady={yt.authorized} showTexts={showTexts} />
       ))}
     </div>
   );
