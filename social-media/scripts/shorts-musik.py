@@ -312,11 +312,9 @@ FB_TAGS_GENERISCH = {"pumpfoiling", "foil", "foiling", "hydrofoil", "dockstart",
                      "watersport", "watersports", "foillife", "pumpfoiladdict"}
 
 
-def facebook_text(caps: dict) -> dict:
-    ig = str((caps or {}).get("instagram") or "").strip()
-    if not ig:
-        return {}
-    teile = ig.split("\n\n")
+def _fb_kappen(text: str) -> dict:
+    """Hashtag-Block eines Textes auf FB_TAGS_MAX eindampfen."""
+    teile = text.split("\n\n")
     tags = teile[-1].split() if len(teile) > 1 else []
     if tags and all(x.startswith("#") for x in tags):
         gekappt = len(tags) > FB_TAGS_MAX
@@ -330,10 +328,24 @@ def facebook_text(caps: dict) -> dict:
         # In der Reihenfolge lassen, in der sie dastanden — nur die Auswahl aendert sich.
         behalten = set(sortiert[:FB_TAGS_MAX])
         teile[-1] = " ".join(x for x in tags if x in behalten)
-        text = "\n\n".join(teile)
-        return {"text": text, "tags": min(len(tags), FB_TAGS_MAX),
+        neu = "\n\n".join(teile)
+        return {"text": neu, "tags": min(len(tags), FB_TAGS_MAX),
                 "weggelassen": max(0, len(tags) - FB_TAGS_MAX), "gekappt": gekappt}
-    return {"text": ig, "tags": ig.count("#"), "weggelassen": 0, "gekappt": False}
+    return {"text": text, "tags": text.count("#"), "weggelassen": 0, "gekappt": False}
+
+
+def facebook_text(caps: dict) -> dict:
+    """Eigene Facebook-Fassung, wenn das Modell eine geliefert hat — sonst die
+    Instagram-Caption mit gekapptem Hashtag-Block. Der zweite Weg deckt die 173
+    Videos ab, die vor dem 09.09. erzeugt wurden; neu erzeugte bringen das Feld
+    selbst mit. Gekappt wird in beiden Faellen, auch beim Modell."""
+    eigen = str((caps or {}).get("facebook") or "").strip()
+    if eigen:
+        return {**_fb_kappen(eigen), "quelle": "eigen"}
+    ig = str((caps or {}).get("instagram") or "").strip()
+    if not ig:
+        return {}
+    return {**_fb_kappen(ig), "quelle": "instagram"}
 
 
 def cached_captions(name: str) -> dict:
@@ -1738,7 +1750,7 @@ Für ein kurzes Hochkant-Video (YouTube Short / Instagram Reel / TikTok) mit dem
 Antworte AUSSCHLIESSLICH mit gültigem JSON (kein Markdown, keine Code-Fences) in exakt dieser Struktur:
 {{"titles": {{{", ".join(f'"{lang}": "..."' for lang in CAPTION_LANGS)}}},
  "descriptions": {{...gleiche Sprachen wie titles...}},
- "hashtags": "...", "instagram": "...", "tiktok": "..."}}
+ "hashtags": "...", "instagram": "...", "facebook": "...", "tiktok": "..."}}
 
 Fachbegriffe (WICHTIG, häufige Fehlerquelle):
 - Die Tragfläche unter Wasser heißt "foil" / "hydrofoil" (de: "Foil", "Tragfläche").
@@ -1757,8 +1769,9 @@ Regeln:
 - Chinesisch (zh): Pumpfoil heisst 无动力水翼板 („antriebsloses Hydrofoil-Board"), kurz 水翼. Die Wortschoepfungen 泵翼 / 泵翼板 / 泵翼水翼板 sind VERBOTEN — die gibt es nicht und niemand sucht danach.
 - descriptions: 1-2 lockere, videospezifische Sätze je Sprache (gleiche Sprachcodes wie titles), passende Emojis erlaubt, KEINE Hashtags darin.
 - hashtags: EINE Zeile mit 4-6 Hashtags: #pumpfoil zuerst, danach NUR individuelle, zum konkreten Videoinhalt passende Tags. KEINE generischen Standard-Tags wie #pumpfoiling, #dockstart oder #foil.
-- instagram: lockere Caption AUSSCHLIESSLICH auf Englisch, 2-3 Sätze mit passenden Emojis, Leerzeile, dann 8-12 Hashtags (#pumpfoil zuerst, Rest videospezifisch — nicht #pumpfoiling/#dockstart/#foil). KEIN Deutsch, keine weitere Sprache — dieses Feld gilt weltweit.
-- tiktok: 1-2 kurze Sätze AUSSCHLIESSLICH auf Englisch, 4-6 Hashtags (#pumpfoil + videospezifische, keine generischen Standard-Tags). KEIN Deutsch.
+- instagram: lockere Caption AUSSCHLIESSLICH auf Englisch, 2-3 Sätze mit passenden Emojis, Leerzeile, dann 5 Hashtags (#pumpfoil zuerst, Rest videospezifisch — nicht #pumpfoiling/#dockstart/#foil). Frueher standen hier 8-12; Meta empfiehlt seit 2024 selbst 3-5, mehr bringt keine Reichweite. KEIN Deutsch, keine weitere Sprache — dieses Feld gilt weltweit.
+- facebook: 1-2 kurze Sätze AUSSCHLIESSLICH auf Englisch mit passenden Emojis, Leerzeile, dann GENAU 5 Hashtags: #pumpfoil zuerst, die anderen vier videospezifisch (nicht #pumpfoiling/#dockstart/#foil/#hydrofoil/#watersports). Facebook nennt "more than 5 hashtags in the caption" in seiner Spam-Richtlinie als Grund fuer weniger Verteilung — mehr als fuenf schaden dort also. KEIN Deutsch.
+- tiktok: 1-2 kurze Sätze AUSSCHLIESSLICH auf Englisch, 4-5 Hashtags (#pumpfoil + videospezifische, keine generischen Standard-Tags). KEIN Deutsch.
 """
 
 
