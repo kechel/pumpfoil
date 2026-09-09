@@ -339,7 +339,9 @@ function ExportCard({ exp, ytReady, showTexts }: {
                         </div>
                       </>
                     )} />
-                  <CapRow pf="tiktok" name="TikTok" desc={caps.tiktok} />
+                  {/* TikTok hat keinen eigenen Titel — der kurze Text IST der Titel,
+                      deshalb steht er in der Titelspalte (Jan, 09.09.). */}
+                  <CapRow pf="tiktok" name="TikTok" title={caps.tiktok} />
                   {caps.kwai && (
                     <CapRow pf="kwai" name="Kwai" desc={caps.kwai}
                       descFull={
