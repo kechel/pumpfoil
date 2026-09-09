@@ -216,6 +216,11 @@ function ExportCard({ exp, onChanged, ytReady, showTexts }: {
     setBusy(false);
   }, [title]);
 
+  // Textfelder: der Schalter oben, oder frisch erzeugt. Die Bedienzeilen
+  // (Arbeitstitel, Generieren, YouTube-Push) haengen daran mit dran — ausser
+  // es gibt fuer das Video noch gar keine Texte, dann braucht man sie ja.
+  const zeigeTexte = showTexts || frisch;
+
   const ytTitlesText = caps
     ? Object.entries(caps.titles).map(([l, t]) => `${l}: ${t}`).join("\n")
     : "";
@@ -245,7 +250,8 @@ function ExportCard({ exp, onChanged, ytReady, showTexts }: {
           </button>
         </div>
         {showCaps && (
-          <div className={"caps" + (showTexts || frisch ? "" : " nurkoepfe")}>
+          <div className={"caps" + (zeigeTexte ? "" : " nurkoepfe")
+                          + (zeigeTexte || !caps ? "" : " ohnebedienung")}>
             <div className="genrow">
               <input
                 value={title}
@@ -259,14 +265,14 @@ function ExportCard({ exp, onChanged, ytReady, showTexts }: {
             </div>
             {busy && <div style={{ fontSize: 12, opacity: 0.6 }}>Claude formuliert Titel in 10 Sprachen + Captions … (~30–60 s)</div>}
             {capsSource && caps && (
-              <div style={{ fontSize: 12, opacity: 0.6 }}>
+              <div className="quelle">
                 📦 aus Cache geladen ({capsSource}) — „Neu generieren" erstellt frische Texte
               </div>
             )}
             {err && <div className="log">{err}</div>}
             {caps && (
-              <>
-                <div className="capblock">
+              <div className="capgrid">
+                <div className="capblock wide bedien">
                   <CapHead pf="youtube">Zu <b>YouTube</b> pushen (Titel-Lokalisierungen + Beschreibung)</CapHead>
                   <div className="genrow">
                     <input
@@ -295,7 +301,7 @@ function ExportCard({ exp, onChanged, ytReady, showTexts }: {
                   </div>
                   {ytMsg && <div style={{ fontSize: 12 }}>{ytMsg}</div>}
                 </div>
-                <div className="capblock">
+                <div className="capblock c1">
                   <CapHead pf="youtube" copy={ytTitlesText}><b>YouTube</b>-Titel (Lokalisierungen)</CapHead>
                   <pre>
                     {Object.entries(caps.titles).map(([l, t]) => (
@@ -305,18 +311,18 @@ function ExportCard({ exp, onChanged, ytReady, showTexts }: {
                     ))}
                   </pre>
                 </div>
-                <div className="capblock">
+                <div className="capblock c2">
                   <CapHead pf="youtube" copy={`${caps.descriptions?.de ?? ""}\n\n${caps.hashtags ?? ""}`}>
                     <b>YouTube</b>-Kurzbeschreibung (de) — beim Push kommen Hashtags + Standard-Block je Sprache automatisch dazu
                   </CapHead>
                   <pre>{(caps.descriptions?.de ?? "") + "\n\n" + (caps.hashtags ?? "")}</pre>
                 </div>
-                <div className="capblock">
+                <div className="capblock c1">
                   <CapHead pf="instagram" copy={caps.instagram}><b>Instagram</b>-Caption</CapHead>
                   <pre>{caps.instagram}</pre>
                 </div>
                 {igLong && (
-                  <div className="capblock">
+                  <div className="capblock c2">
                     <CapHead pf="instagram" copy={igLong.text}>
                       <b>Instagram</b>-Caption + Standardblock (EN)
                       <span className={"chars" + (igLong.chars > igLong.limit ? " over" : "")}>
@@ -326,12 +332,12 @@ function ExportCard({ exp, onChanged, ytReady, showTexts }: {
                     <pre>{igLong.text}</pre>
                   </div>
                 )}
-                <div className="capblock">
+                <div className="capblock c1">
                   <CapHead pf="tiktok" copy={caps.tiktok}><b>TikTok</b>-Caption</CapHead>
                   <pre>{caps.tiktok}</pre>
                 </div>
                 {caps.kwai && (
-                  <div className="capblock">
+                  <div className="capblock c2">
                     <CapHead pf="kwai" copy={caps.kwai}><b>Kwai</b>-Caption (pt-BR)</CapHead>
                     <pre>{caps.kwai}</pre>
                     <div className="note">
@@ -343,7 +349,7 @@ function ExportCard({ exp, onChanged, ytReady, showTexts }: {
                 )}
                 {xhs && (
                   <>
-                    <div className="capblock">
+                    <div className="capblock c1">
                       <CapHead pf="rednote" copy={xhs.title}>
                         <b>RedNote</b>-Titel ({xhs.title.length}/20 Zeichen)
                       </CapHead>
@@ -354,7 +360,7 @@ function ExportCard({ exp, onChanged, ytReady, showTexts }: {
                         </div>
                       )}
                     </div>
-                    <div className="capblock">
+                    <div className="capblock c2">
                       <CapHead pf="rednote" copy={xhs.description}>
                         <b>RedNote</b>-Text — Chinesisch ({xhs.chars}/1000 Zeichen)
                       </CapHead>
@@ -369,17 +375,17 @@ function ExportCard({ exp, onChanged, ytReady, showTexts }: {
                 )}
                 {bili && (
                   <>
-                    <div className="capblock">
+                    <div className="capblock c1">
                       <CapHead pf="bilibili" copy={bili.title}><b>Bilibili</b>-Titel</CapHead>
                       <pre>{bili.title}</pre>
                     </div>
-                    <div className="capblock">
+                    <div className="capblock c2">
                       <CapHead pf="bilibili" copy={bili.description}>
                         <b>Bilibili</b>-Beschreibung — Englisch, Indonesisch, Thai ({bili.chars}/2000 Zeichen)
                       </CapHead>
                       <pre>{bili.description}</pre>
                     </div>
-                    <div className="capblock">
+                    <div className="capblock wide">
                       <div className="caphead">
                         Cover-Vorschläge (1920×1080) — anklicken zum Herunterladen
                       </div>
@@ -420,7 +426,7 @@ function ExportCard({ exp, onChanged, ytReady, showTexts }: {
                     </div>
                   </>
                 )}
-              </>
+              </div>
             )}
           </div>
         )}

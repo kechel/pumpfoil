@@ -229,13 +229,32 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; gap: 5
    ueberhaupt ist. */
 .caps.nurkoepfe .capblock pre,
 .caps.nurkoepfe .capblock .note { display: none; }
-.caps.nurkoepfe .capblock { margin-bottom: 2px; }
+/* Arbeitstitel, "Generieren" und der YouTube-Push gehoeren zum Bearbeiten, nicht
+   zum Kopieren — die gehen mit weg. Nur solange ein Video noch gar keine Texte
+   hat, bleiben sie stehen: sonst kaeme man nie zum ersten Generieren. */
+.caps.ohnebedienung .genrow,
+.caps.ohnebedienung .quelle,
+.caps.ohnebedienung .capblock.bedien { display: none; }
+
+/* Zwei Spalten: links der Titel, rechts die Beschreibung (Jan, 09.09.). Bei
+   halber Breite bricht mehr um, deshalb etwas mehr Zeilenabstand und ein
+   hoeheres Sichtfenster im Textfeld. */
+.capgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px;
+  align-items: start; }
+.capgrid .capblock.c1   { grid-column: 1; }
+.capgrid .capblock.c2   { grid-column: 2; }
+.capgrid .capblock.wide { grid-column: 1 / -1; }
+@media (max-width: 900px) {
+  .capgrid { grid-template-columns: 1fr; }
+  .capgrid .capblock.c1, .capgrid .capblock.c2 { grid-column: 1; }
+}
 
 .uphead { display: flex; align-items: center; gap: 12px; }
 .uphead h1 { flex: 1; }
 .uphead .btn { display: flex; align-items: center; gap: 5px; }
 
-.capblock .note { font-size: 11px; opacity: .6; }
+.capblock .note { font-size: 11px; opacity: .6; line-height: 1.45; }
+.caps .quelle { font-size: 12px; opacity: .6; }
 
 .capblock .caphead[data-pf="youtube"]  { --pf: var(--s-yt); }
 .capblock .caphead[data-pf="instagram"]{ --pf: var(--s-ig); }
@@ -248,7 +267,7 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; gap: 5
    doch mal etwas nachlesen will. */
 .capblock pre { margin: 0; font-size: 12px; font-family: inherit; white-space: pre-wrap;
   background: #8881; border: 1px solid #8883; border-radius: 8px; padding: 8px 10px;
-  max-height: 50px; overflow-y: auto; resize: vertical; }
+  max-height: 84px; overflow-y: auto; resize: vertical; line-height: 1.5; }
 .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid #8886; border-top-color: #3b82f6; border-radius: 50%; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .covers { display: flex; gap: 8px; flex-wrap: wrap; }
