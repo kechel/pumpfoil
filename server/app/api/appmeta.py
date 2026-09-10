@@ -330,10 +330,11 @@ NAECHSTES: list[dict] = [
      # und Wear wieder dasselbe „x" (s. Kommentar in android/app/build.gradle.kts).
      "note": "a display fix is ready and this goes back to Google next",
      "items": [
-         "On a round watch the note that heart rate is only measured now and then sat in the "
-         "top right corner, where the bezel cuts the screen away — almost none of it was "
-         "visible. It now stands where it belongs: in place of the unit under the heart-rate "
-         "reading, so it stays readable at any font size and your speed keeps its own room.",
+         "The heart-rate field now says how old the reading is \u2014 '59 s ago' instead of "
+         "'bpm' \u2014 as soon as the watch stops measuring continuously. Before, a note sat in "
+         "the top right corner where the bezel cuts the screen away, so almost none of it was "
+         "visible, and it did not say what it meant. Your speed keeps its own room at any "
+         "font size.",
          "The stop and discard buttons grow with the font size you set, instead of cutting "
          "off their own label.",
          "The watch uses its own GPS instead of taking the position from your phone. Until now "

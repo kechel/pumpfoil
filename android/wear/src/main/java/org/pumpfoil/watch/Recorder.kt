@@ -78,6 +78,11 @@ object Recorder {
         // der Sensor hat nie geliefert (Feldbefund u171, Xiaomi Watch 2 Pro: 11 Sessions, 0 Puls,
         // Berechtigung erteilt). Ohne diesen Zaehler scheitert der Puls STILL — s. RecorderService.
         val hrSamples: Int = 0,
+        // Sekunden seit dem letzten ECHTEN Puls-Messwert; -1 = es kam noch keiner.
+        // Damit sagt die Uhr im Puls-Feld eine nachpruefbare Tatsache („vor 45 s") statt einer
+        // Vermutung ueber die Ursache — Vorschlag Jan, 10.09.2026. Wird im GPS-Takt (1 Hz)
+        // nachgerechnet, wie `elapsedSec` und die Uhrzeit auch.
+        val hrAlterS: Int = -1,
         val status: String = "",
         val uploading: Boolean = false,   // aktiver Chunk-Upload (für UI-Indikator)
         val uploadSent: Int = 0,          // bestätigte Chunks der laufenden Session (Fortschritt)
@@ -354,6 +359,8 @@ object Recorder {
             lastRunDurationMs = 96_000, lastRunDistanceM = 480.0,
             lastRunAvgSpeedKmh = speedKmh - 0.5, lastRunMaxSpeedKmh = speedKmh + 0.9,
             hr = hr, maxHr = hr + 6, avgHr = hr - 4, hrSamples = 1,
+            // Demo: „passiv" heisst hier ein alter Wert (59 s), sonst ein frischer.
+            hrAlterS = if (pulsMessung) 0 else 59,
         )
     }
 
@@ -585,6 +592,7 @@ object Recorder {
             distanceM = distM,
             avgSpeedKmh = distM / sec * 3.6,
             elapsedSec = (tMs / 1000).toLong(),
+            hrAlterS = if (lastHrMs > 0) ((tMs - lastHrMs) / 1000).toInt() else -1,
             isFoiling = nowFoiling,
             runCount = runCount,
             runDurationMs = runDur,
@@ -608,7 +616,7 @@ object Recorder {
         if (bpm > 0) { hrSum += bpm; hrCount++; if (bpm > maxHrV) maxHrV = bpm }
         if (running) _state.value = _state.value.copy(
             hr = bpm, maxHr = maxHrV, avgHr = if (hrCount > 0) (hrSum / hrCount).toInt() else 0,
-            hrSamples = hrCount)
+            hrSamples = hrCount, hrAlterS = if (bpm > 0) 0 else _state.value.hrAlterS)
     }
 
     private fun haversine(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
