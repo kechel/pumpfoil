@@ -1069,6 +1069,22 @@ def save_upload_state(name: str, platform: str, info: dict):
     UPLOADS_STATE_FILE.write_text(json.dumps(st, ensure_ascii=False, indent=1))
 
 
+def merge_upload_state(name: str, platform: str, felder: dict):
+    """Felder ergaenzen, statt den Plattform-Eintrag zu ersetzen.
+
+    Ein von Hand gesetzter Status und der mitgeschriebene Text sollen
+    nebeneinander stehen koennen — wer zuletzt schreibt, darf den anderen
+    nicht ueberbuegeln.
+    """
+    st = uploads_state()
+    vorher = st.setdefault(name, {}).get(platform)
+    eintrag = dict(vorher) if isinstance(vorher, dict) else (
+        {"status": vorher} if vorher else {})
+    eintrag.update(felder)
+    st[name][platform] = eintrag
+    UPLOADS_STATE_FILE.write_text(json.dumps(st, ensure_ascii=False, indent=1))
+
+
 def yt_upload(path: Path, titles: dict, descriptions: dict, hashtags: str = "",
               publish_at: str = "", fallback_title: str = "",
               privacy: str = "private"):
@@ -2112,6 +2128,21 @@ class Handler(BaseHTTPRequestHandler):
             else:
                 save_upload_state(name, pf, {"status": status, "at": time.time()})
             return self._json({"ok": True, "state": uploads_state()})
+        if self.path == "/api/upload/caption":
+            # Was beim Kopieren tatsaechlich in der Zwischenablage landete, unter
+            # dem Dateinamen festhalten. Fuer Instagram gibt es sonst NICHTS, was
+            # Datei und veroeffentlichten Beitrag verbindet: dort postet Jan von
+            # Hand, und der Text wird beim Posten aus mehreren Sprachbausteinen
+            # zusammengesetzt — ein spaeterer Aehnlichkeitsvergleich Titel gegen
+            # Caption trifft daneben (Jan, 10.09.: 66 von 144 unzugeordnet).
+            name = Path(str(req.get("name", ""))).name
+            pf = str(req.get("platform", "")).strip().lower()
+            text = str(req.get("text", ""))
+            if not name or not pf or not text.strip():
+                return self._json({"error": "name, platform und text noetig"}, 400)
+            merge_upload_state(name, pf, {"caption": text[:8000],
+                                          "copied_at": time.time()})
+            return self._json({"ok": True})
         if self.path == "/api/upload/tiktok":
             name = Path(str(req.get("name", ""))).name
             path = export_file("tiktok", name)
