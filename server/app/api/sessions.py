@@ -20,7 +20,7 @@ from .. import export_track, media, models, storage
 from ..analysis import EXCLUDE_MARGIN_MS, dump_excluded_windows, excluded_windows, maybe_auto_trim, run_analysis
 from ..db import get_db
 from ..fitimport import parse_fit_bytes
-from ..clockmap import pausen as _pausen, segmente_mit_uhrzeit
+from ..clockmap import gesamt_pause_ms, pausen as _pausen, segmente_mit_uhrzeit
 from ..naming import owner_label
 from ..setup_snapshot import standard_setup
 from ..ml.features import bandpass_fft, magnitude_g
@@ -2059,8 +2059,22 @@ def reanalyze(
     user: models.User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> SessionOut:
-    """Analyse mit der aktuellen Algorithmus-Version neu rechnen (nach Tuning)."""
+    """Analyse mit der aktuellen Algorithmus-Version neu rechnen (nach Tuning).
+
+    Zweiter Zweck seit 11.09.2026: eine haengengebliebene Aufnahme BEWUSST mit dem abschliessen,
+    was da ist. `run_analysis` laeuft hier final -> `status` wird „analyzed", die Session
+    verlaesst damit die Upload-Karte. Das braucht die Detailseite fuer den Knopf „jetzt
+    auswerten": bis dahin gab es dort nur den Hinweis, dass nichts mehr nachkommt, aber keine
+    Handlung (Jans Befund).
+    """
     s = _owned(db, user, session_id)
+    # Endzeit nachtragen, falls die Uhr nie ein `/complete` geschickt hat — sonst bleibt sie NULL
+    # und die Session hat auf Dauer keine Dauer (und der Zuschnitt-Regler keine Laenge).
+    # Wanduhr-Rechnung wie in `ingest.complete_session`: letzter GPS-Zeitstempel + Pausen.
+    if s.ended_at is None and s.started_at is not None:
+        lm = storage.gps_last_ms(s.session_uuid)
+        if lm:
+            s.ended_at = s.started_at + timedelta(milliseconds=lm + gesamt_pause_ms(s))
     run_analysis(db, s)
     _spot_nachziehen(db, s)
     db.refresh(s)

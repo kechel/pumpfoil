@@ -1,7 +1,7 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, InProgressSession } from "../lib/api";
-import { WatchIcon, LocationIcon, CheckIcon, UploadIcon, InfoIcon } from "./Icons";
+import { WatchIcon, LocationIcon, CheckIcon, UploadIcon, InfoIcon, ChevronIcon } from "./Icons";
 import { useT } from "../i18n";
 
 // Prominente Live-Upload-Karte (Home + Sessions): zeigt eigene Sessions im Zwischenzustand
@@ -40,12 +40,42 @@ export function UploadProgressCard() {
 
   if (!rows || rows.length === 0) return null;
 
+  // ÜBERHOLTE Aufnahmen (die Uhr hat ihren Puffer weitergedreht, es kommt nichts mehr) gehoeren
+  // NICHT als grosse Karte auf Home und Sessions: dort steht sonst dauerhaft ein langer Hinweis
+  // ueber allem, obwohl nichts laeuft und nichts zu tun ist, solange man nicht hineingeht
+  // (Jan, 11.09.2026). Sie verschwinden aber auch nicht ganz — eine `live`-Session steht in der
+  // normalen Liste nur unter „Aussortiert" (is_pumpfoil ist NULL/False), und genau daran lag der
+  // Befund vom 03.09.: 30 haengende Uploads sahen ihre Besitzer NIRGENDS. Deshalb bleibt eine
+  // schmale Zeile mit dem Weg zur Session, und die Erklaerung samt Knopf steht auf der
+  // Detailseite.
+  const laufend = rows.filter((r) => !r.ueberholt);
+  const ueberholt = rows.filter((r) => r.ueberholt);
+
   return (
     <div className="mb-4 space-y-2">
-      {rows.map((s) => (
+      {laufend.map((s) => (
         <UploadRow key={s.id} s={s} t={t} />
       ))}
+      {ueberholt.map((s) => (
+        <SchmaleZeile key={s.id} s={s} t={t} />
+      ))}
     </div>
+  );
+}
+
+// Eine ueberholte Aufnahme in der Uebersicht: eine Zeile, kein Block. Sie sagt, was ist, und
+// fuehrt zur Session — entschieden wird dort (auswerten oder loeschen).
+function SchmaleZeile({ s, t }: { s: InProgressSession; t: ReturnType<typeof useT> }) {
+  const nav = useNavigate();
+  return (
+    <button
+      onClick={() => nav(`/sessions/${s.id}`)}
+      className="flex w-full items-center gap-2 rounded-lg border border-slate-800 bg-slate-900/40 px-3 py-2 text-left text-sm text-slate-300 hover:border-slate-700"
+    >
+      <InfoIcon className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-300" />
+      <span className="min-w-0 flex-1 truncate">{t("upload.supersededShort")}</span>
+      <ChevronIcon className="h-4 w-4 shrink-0 -rotate-90 text-slate-400" />
+    </button>
   );
 }
 
@@ -92,6 +122,18 @@ function UploadRow({
   eigeneSeite?: boolean;   // auf der Detailseite dieser Session: kein Klickziel
 }) {
   const nav = useNavigate();
+  const [busy, setBusy] = useState(false);
+  // „Jetzt auswerten": der Server rechnet final durch (status -> analyzed), danach faellt die
+  // Karte von selbst weg. Neu laden, damit die Detailseite die Zahlen zeigt statt der Karte.
+  async function auswerten() {
+    setBusy(true);
+    try {
+      await api.finalizeSession(s.id);
+      window.location.reload();
+    } catch {
+      setBusy(false);
+    }
+  }
   const pct =
     s.upload_total && s.upload_total > 0
       ? Math.min(100, Math.round((s.upload_received / s.upload_total) * 100))
@@ -161,11 +203,28 @@ function UploadRow({
         </div>
       </div>
 
-      {/* Überholt (neuere Session ist komplett da) -> anderes Angebot statt falschem Rat */}
+      {/* Überholt (neuere Session ist komplett da) -> anderes Angebot statt falschem Rat.
+          Auf der EIGENEN Seite gibt es dafuer einen Knopf: „antippen" ging dort ins Leere, weil
+          die Karte da kein Klickziel ist (Jans Befund 11.09.2026). */}
       {ueberholt ? (
-        <div className="mt-3 flex gap-2 rounded-lg bg-amber-500/10 p-2.5 leading-snug text-amber-800 dark:text-amber-200">
-          <InfoIcon className="mt-0.5 h-4 w-4 shrink-0" />
-          <span>{s.has_gps ? t("upload.supersededHint") : t("upload.supersededEmpty")}</span>
+        <div className="mt-3 rounded-lg bg-amber-500/10 p-2.5 leading-snug text-amber-800 dark:text-amber-200">
+          <div className="flex gap-2">
+            <InfoIcon className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>
+              {!s.has_gps
+                ? t("upload.supersededEmpty")
+                : eigeneSeite ? t("upload.supersededOwn") : t("upload.supersededHint")}
+            </span>
+          </div>
+          {eigeneSeite && s.has_gps && (
+            <button
+              onClick={() => { void auswerten(); }}
+              disabled={busy}
+              className="mt-2 rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-medium text-slate-950 hover:bg-brand-400 disabled:opacity-50"
+            >
+              {busy ? t("common.loading") : t("upload.analyseNow")}
+            </button>
+          )}
         </div>
       ) : stalled ? (
         <div className="mt-3 flex gap-2 rounded-lg bg-amber-500/10 p-2.5 leading-snug text-amber-800 dark:text-amber-200">
