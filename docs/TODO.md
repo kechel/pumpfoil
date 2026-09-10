@@ -777,6 +777,27 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 10.09. — Umklassifizieren loest jetzt eine Neuanalyse aus (beide Richtungen).**
+  Loch, das zwei Nutzer-Meldungen erklaerte: `PUT /{id}/classification` schrieb nur die Felder.
+  Die Analyse haengt aber an ihnen — **hin** zu Pumpfoil hebt die Schranke gegen fremde
+  DATEI-Sportarten auf (`_mensch_sagt_pumpfoil`, aus `detection='none'` wird `gps_only`),
+  **weg** von Pumpfoil laesst den Auto-Zuschnitt fallen und das Fremdkraft-Urteil entfallen.
+  Ohne Neuanalyse blieb das GESPEICHERTE Ergebnis stehen: die Aussage des Menschen aenderte
+  nichts. Jetzt wird gerechnet, sobald sich `sport_class` oder `data_quality` wirklich aendert —
+  derselbe Wert nochmal kostet keine Analyse (an vier Faellen im Testkonto per Aufrufzaehler
+  geprueft: 1 / 0 / 1 / 0).
+  **Die drei betroffenen Sessions nachgezogen** (Zustand vorher gesichert):
+  | Session | Laeufe | Foiling | |
+  |---|---|---|---|
+  | #3049 (u198, 29.08.) | 0 → **15** | 0 → **4,46 km** | von Admin auf Pumpfoil gestellt |
+  | #3316 (u198, 02.09.) | 0 → **12** | 0 → **4,19 km** | dito |
+  | #5255 (u417, 08.09.) | 0 → **22** | 0 → **1,48 km** | stand schon auf owner+pumpfoil, nur das Ergebnis war veraltet |
+  Bestandsweit war #5255 die EINZIGE Session mit diesem veralteten Nullstand (Mensch sagt
+  Pumpfoil, gespeichert `detection='none'`) — die anderen beiden hingen an der fehlenden
+  Zuordnung, nicht an der fehlenden Neuanalyse.
+  **Antworten an u198 und u417 stehen als Entwurf**, gehen raus, sobald Jan die Sessions
+  angesehen hat.
+
 - **🟢 10.09. — 94 Altsessions nachgezogen: Auto-Zuschnitt weg bei fremden Sportarten.**
   Nach `a4d5e420` (Code) auch der Bestand. Vorher gesichert nach
   `server/data/zuschnitt-sicherung-2026-09-10.json` (gitignored, aber in der Backup-Kette):
