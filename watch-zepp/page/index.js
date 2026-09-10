@@ -1058,17 +1058,26 @@ Page(
       if (!s.recording || !s.touchLocked || !w.touchShield) return;
       if (s.lockTimer) { clearTimeout(s.lockTimer); s.lockTimer = null; }
       // Kein Emoji (Projektregel: keine Standard-Emojis in der UI) und keine reine Grafik: ein
-      // Schloss allein sagt nicht, wie man weiterkommt. Zwei Textzeilen -- was los ist, und der
-      // Ausweg ueber die Tasten, zusammengesetzt aus vorhandenen Keys.
+      // Schloss allein sagt nicht, wie man weiterkommt. Zwei Zeilen auf deckendem Grund -- was
+      // los ist, und der Ausweg, zusammengesetzt aus vorhandenen Keys.
       if (!w.lockIcon) {
-        // Deckende Flaeche ZUERST, damit sie unter den Texten liegt: das Schild selbst ist
-        // transparent (es soll waehrend der Fahrt nur Wasser-Tipper abfangen, nicht die
-        // Messwerte verdecken). Ohne diese Flaeche standen die Sperr-Texte AUF der laufenden
-        // Anzeige — Jans Emulator-Runde 10.09.2026: "so ist der text ueberlagert wenn man das
-        // display beruehrt". Sie lebt genauso lange wie die Texte (s. lockTimer unten).
-        w.lockBg = w.touchShield.createWidget(hmUI.widget.FILL_RECT, {
-          x: 0, y: 0, w: DW, h: DH, color: 0x000000,
-        });
+        // Deckende Flaeche AUF DEN CANVAS gezeichnet, NICHT als eigenes Widget.
+        //
+        // Erst war es ein FILL_RECT im Schild — damit lag ein Widget UEBER w.touchCanvas, und
+        // das ist der Empfaenger von CLICK_DOWN/CLICK_UP: das 2-s-Halten zum Entsperren ging
+        // nicht mehr (Jan, 10.09.2026: "dafuer funktioniert 2s hold nicht mehr zum unlocken").
+        // Gezeichnet statt gestapelt aendert die Trefferpruefung nicht — der Canvas bleibt das
+        // oberste bedienbare Element im Schild.
+        //
+        // Warum es die Flaeche braucht: das Schild ist absichtlich transparent (es soll waehrend
+        // der ganzen Fahrt nur Wasser-Tipper abfangen, nicht die Messwerte verdecken), also
+        // standen die Sperr-Texte sonst AUF der laufenden Anzeige.
+        try {
+          w.touchCanvas.drawPoly({
+            data_array: [{ x: 0, y: 0 }, { x: DW, y: 0 }, { x: DW, y: DH }, { x: 0, y: DH }],
+            color: 0x000000,
+          });
+        } catch (e) { console.log("[pumpfoil] lock backdrop failed " + ((e && e.message) || "?")); }
         w.lockIcon = w.touchShield.createWidget(hmUI.widget.TEXT, {
           x: 0, y: Math.round(DH * 0.38), w: DW, h: Math.round(DH * 0.12),
           text: t("menu.touchLock"), text_size: Math.round(DH * 0.075), color: WHITE,
@@ -1089,13 +1098,17 @@ Page(
           text_size: Math.round(DH * 0.055),
           color: 0x9aa4b2, align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V,
         });
-        try { w.lockBg.setEnable(false); w.lockIcon.setEnable(false); w.lockHint.setEnable(false); } catch (e) {}
+        // JE EINZELN abfangen. Vorher standen alle in EINEM try: das erste, das wirft,
+        // nahm die anderen mit — und ein nicht abgeschaltetes Text-Widget schluckt die
+        // Druck-Ereignisse, die den Canvas erreichen muessen.
+        try { w.lockIcon.setEnable(false); } catch (e) {}
+        try { w.lockHint.setEnable(false); } catch (e) {}
       }
       s.lockTimer = setTimeout(() => {
         try { if (w.lockIcon) hmUI.deleteWidget(w.lockIcon); } catch (e) {}
         try { if (w.lockHint) hmUI.deleteWidget(w.lockHint); } catch (e) {}
-        try { if (w.lockBg) hmUI.deleteWidget(w.lockBg); } catch (e) {}
-        w.lockIcon = null; w.lockHint = null; w.lockBg = null; s.lockTimer = null;
+        try { if (w.touchCanvas) w.touchCanvas.clear({ x: 0, y: 0, w: DW, h: DH }); } catch (e) {}
+        w.lockIcon = null; w.lockHint = null; s.lockTimer = null;
       }, 1200);
     },
     // Automatisch = nur ab 3 Tasten (Begruendung an KEY_NUMBER), sonst die Wahl aus dem Menue.
@@ -1143,9 +1156,7 @@ Page(
       if (s.lockHoldTimer) { clearTimeout(s.lockHoldTimer); s.lockHoldTimer = null; }
       try { if (w.touchShield) hmUI.deleteWidget(w.touchShield); } catch (e) {}
       w.touchShield = null; w.touchCanvas = null; w.lockIcon = null; w.lockHint = null;
-      // lockBg gehoert mit dazu: es lebt IM Schild, wird mit ihm geloescht und darf danach
-      // nicht als Verweis auf ein weggeworfenes Widget stehen bleiben.
-      w.lockBg = null;
+
     },
     _unlockTouchTemporarily() {
       const s = this.state;
