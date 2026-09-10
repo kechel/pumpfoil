@@ -108,9 +108,11 @@ const ecLen = (e: EndCard) => (e.append ? e.hold : e.fadeIn + e.hold + e.fadeOut
 const emptyDucks = (): DuckSlot[] =>
   Array.from({ length: DUCK_N }, () => ({ start: null, end: null, music: -12, oton: 0 }));
 
-type Sel = { youtube: string | null; instagram: string | null; tiktok: string | null };
-type PvPlatform = "youtube" | "instagram" | "tiktok";
-const PF_SHORT: Record<PvPlatform, string> = { youtube: "YT", instagram: "IG", tiktok: "TT" };
+type PvPlatform = "youtube" | "instagram" | "tiktok" | "rednote";
+type Sel = Record<PvPlatform, string | null>;
+const PF_SHORT: Record<PvPlatform, string> = {
+  youtube: "YT", instagram: "IG", tiktok: "TT", rednote: "RN",
+};
 
 const OUTRO_ICONS: Record<PvPlatform, [string, string][]> = {
   // Shorts, nicht der Desktop-Player: rechts stehen dort Herz, Sprechblase,
@@ -141,16 +143,15 @@ const OUTRO_ICONS: Record<PvPlatform, [string, string][]> = {
     ["M5.5 11.5v-2a3 3 0 0 1 3-3h7m-3-3 3 3-3 3M18.5 12.5v2a3 3 0 0 1-3 3H8.5m3-3-3 3 3 3", "reshare"],
   ],
   // TikTok zeichnet GEFUELLTE Symbole, nicht konturierte (siehe OUTRO_FILL).
-  // Die Sprechblase bekommt ihre drei Punkte als eigene Kreise im selben Pfad
-  // — mit der Even-Odd-Regel stanzen sie sich aus der Flaeche heraus.
-  // TikTok und RedNote (das hart auf die TikTok-Datei verlinkt): nur Herz und
-  // Stern. Beide Apps haben vier Aktionen, aber Liken und Speichern sind die
-  // beiden, die zaehlen — auf RedNote treibt 收藏 sogar die Suche und damit die
-  // Langzeit-Reichweite. Sprechblase und Teilen-Pfeil liegen auskommentiert
-  // darunter (Jan, 08.09.: hoechstens drei Symbole, lieber zwei).
+  // Zwei Symbole, nicht vier: Liken und Speichern sind die beiden, die zaehlen
+  // (Jan, 08.09.: hoechstens drei, lieber zwei). Gespeichert wird bei TikTok
+  // mit einem LESEZEICHEN — der Stern, der hier bis 10.09. stand, gehoert
+  // RedNote. Solange beide dieselbe Datei bekamen, war das ein Kompromiss;
+  // seit RedNote einen eigenen Render hat, zeigt jede Plattform ihr Symbol.
+  // Sprechblase und Teilen-Pfeil liegen auskommentiert darunter.
   tiktok: [
     ["M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z", "heart"],
-    ["M12 2.5l2.9 5.9 6.6.9-4.8 4.6 1.2 6.5-5.9-3.1-5.9 3.1 1.2-6.5L2.5 9.3l6.6-.9z", "stern"],
+    ["M6.4 2.5h11.2a1.6 1.6 0 0 1 1.6 1.6v17.4l-7.2-4.4-7.2 4.4V4.1a1.6 1.6 0 0 1 1.6-1.6z", "lesezeichen"],
     // Punkte auf y=12, dem Mittelpunkt des Blasenkreises:
     // ["M7.9 20A9 9 0 1 0 4 16.1L2 22Z"
     //  + "M6.6 12a1.4 1.4 0 1 0 2.8 0a1.4 1.4 0 1 0-2.8 0"
@@ -158,13 +159,21 @@ const OUTRO_ICONS: Record<PvPlatform, [string, string][]> = {
     //  + "M14.6 12a1.4 1.4 0 1 0 2.8 0a1.4 1.4 0 1 0-2.8 0", "comment"],
     // ["M14 7V3l7 7-7 7v-4.1c-5 0-8.5 1.6-11 5.1 1-5 4-10 11-11z", "share"],
   ],
+  // RedNote/Xiaohongshu: Herz und STERN. Der Stern ist dort 收藏 (speichern) und
+  // damit das wichtigste Symbol ueberhaupt — auf einer Such-Plattform treibt
+  // Gespeichertes die Langzeit-Reichweite, nicht das Like. Die App zeigt in der
+  // Leiste ausserdem eine Sprechblase; die bleibt weg, zwei reichen.
+  rednote: [
+    ["M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z", "heart"],
+    ["M12 2.5l2.9 5.9 6.6.9-4.8 4.6 1.2 6.5-5.9-3.1-5.9 3.1 1.2-6.5L2.5 9.3l6.6-.9z", "stern"],
+  ],
 };
 
 // TikTok zeichnet seine Leiste gefuellt, YouTube und Instagram konturiert.
 // Ueber Videomaterial sind gefuellte Formen sogar besser lesbar — Kontur ist
 // hier keine Design-Entscheidung, sondern schlicht das, was die App zeigt.
 const OUTRO_FILL: Record<PvPlatform, boolean> = {
-  youtube: false, instagram: false, tiktok: true,
+  youtube: false, instagram: false, tiktok: true, rednote: true,
 };
 
 function drawIconPath(g: CanvasRenderingContext2D, d: string, x: number, y: number,
@@ -224,7 +233,8 @@ function Studio() {
   const [curVideo, setCurVideo] = useState<string | null>(sv("curVideo", null));
   const [curPlay, setCurPlay] = useState<string | null>(null);
   const [renderingVideo, setRenderingVideo] = useState<string | null>(null);
-  const [sel, setSel] = useState<Sel>({ youtube: null, instagram: null, tiktok: null, ...sv("sel", {}) });
+  const [sel, setSel] = useState<Sel>(
+    { youtube: null, instagram: null, tiktok: null, rednote: null, ...sv("sel", {}) });
   const [pvPlatform, setPvPlatform] = useState<PvPlatform>(sv("pvPlatform", "youtube"));
   const [trim, setTrim] = useState<{ start: number | null; end: number | null }>(sv("trim", { start: null, end: null }));
   // gespeicherte Slots auffüllen, falls TXN inzwischen größer ist — fehlende
@@ -275,6 +285,7 @@ function Studio() {
   const [fltYT, setFltYT] = useState(sv("fltYT", true));
   const [fltIG, setFltIG] = useState(sv("fltIG", true));
   const [fltTT, setFltTT] = useState(sv("fltTT", true));
+  const [fltRN, setFltRN] = useState(sv("fltRN", true));
   const [search, setSearch] = useState("");
   const [vfilter, setVfilter] = useState("");
 
@@ -283,9 +294,9 @@ function Studio() {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({
       curVideo, sel, pvPlatform, trim, texts, gain, otonGain, ducks, fade,
       sideTab, endcard, midTab, beats, cardSlogan, txAlpha, tailSecs,
-      outName, ovOn, ovSel, ovAlpha, outroOn, fltYT, fltIG, fltTT,
+      outName, ovOn, ovSel, ovAlpha, outroOn, fltYT, fltIG, fltTT, fltRN,
     }));
-  }, [curVideo, sel, pvPlatform, trim, texts, gain, otonGain, ducks, fade, outName, ovOn, ovSel, ovAlpha, outroOn, fltYT, fltIG, fltTT, sideTab, endcard, midTab, beats, cardSlogan, txAlpha, tailSecs]);
+  }, [curVideo, sel, pvPlatform, trim, texts, gain, otonGain, ducks, fade, outName, ovOn, ovSel, ovAlpha, outroOn, fltYT, fltIG, fltTT, fltRN, sideTab, endcard, midTab, beats, cardSlogan, txAlpha, tailSecs]);
   const [browserOpen, setBrowserOpen] = useState(false);
   const [dirInput, setDirInput] = useState("");
   const [log, setLog] = useState("");
@@ -1119,16 +1130,18 @@ function Studio() {
       const selecting = s[pf] !== rel;
       if (selecting) {
         // Filter der zugewiesenen Plattform ausblenden; alle aus → alle wieder an
-        const flt = { youtube: fltYT, instagram: fltIG, tiktok: fltTT, [pf]: false };
-        if (!flt.youtube && !flt.instagram && !flt.tiktok) {
-          setFltYT(true); setFltIG(true); setFltTT(true);
+        const flt = { youtube: fltYT, instagram: fltIG, tiktok: fltTT,
+                      rednote: fltRN, [pf]: false };
+        if (!flt.youtube && !flt.instagram && !flt.tiktok && !flt.rednote) {
+          setFltYT(true); setFltIG(true); setFltTT(true); setFltRN(true);
         } else {
-          setFltYT(flt.youtube); setFltIG(flt.instagram); setFltTT(flt.tiktok);
+          setFltYT(flt.youtube); setFltIG(flt.instagram);
+          setFltTT(flt.tiktok); setFltRN(flt.rednote);
         }
       }
       return { ...s, [pf]: selecting ? rel : null };
     });
-  }, [fltYT, fltIG, fltTT]);
+  }, [fltYT, fltIG, fltTT, fltRN]);
 
   const effLen = useCallback((): number | null => {
     const vid = vidRef.current;
@@ -1140,8 +1153,9 @@ function Studio() {
   const resetAll = useCallback(() => {
     if (!window.confirm("Alle Studio-Einstellungen zurücksetzen (Texte, Trim, Musikwahl, Name …)?")) return;
     localStorage.removeItem(SETTINGS_KEY);
-    setSel({ youtube: null, instagram: null, tiktok: null });
+    setSel({ youtube: null, instagram: null, tiktok: null, rednote: null });
     setFltTT(true);
+    setFltRN(true);
     setPvPlatform("youtube");
     setTrim({ start: null, end: null });
     setTailSecs(0);
@@ -1166,7 +1180,7 @@ function Studio() {
   // Pixabay-Track-IDs, die der Render je Plattform anhängt (Lizenznachweis)
   const pxSuffix = useMemo(
     () =>
-      (["youtube", "instagram", "tiktok"] as PvPlatform[]).flatMap((pf) => {
+      (["youtube", "instagram", "tiktok", "rednote"] as PvPlatform[]).flatMap((pf) => {
         const rel = sel[pf];
         if (!rel || !/(^|\/)pixabay\//i.test(rel)) return [];
         const m = rel.replace(/\.[^./]+$/, "").match(/-(\d{4,})$/);
@@ -1230,6 +1244,7 @@ function Studio() {
               youtube: outroPng("youtube", vidRef.current),
               instagram: outroPng("instagram", vidRef.current),
               tiktok: outroPng("tiktok", vidRef.current),
+              rednote: outroPng("rednote", vidRef.current),
             }
           : null,
       });
@@ -1258,7 +1273,10 @@ function Studio() {
   if (fltYT) want.push("youtube");
   if (fltIG) want.push("instagram");
   if (fltTT) want.push("tiktok");
-  const isSel = (t: Track) => sel.youtube === t.rel || sel.instagram === t.rel || sel.tiktok === t.rel;
+  if (fltRN) want.push("rednote");
+  const isSel = (t: Track) =>
+    sel.youtube === t.rel || sel.instagram === t.rel
+    || sel.tiktok === t.rel || sel.rednote === t.rel;
   const tooShort = (t: Track) => !!(t.dur && len && t.dur < len - 0.5);
   const selTracks = state.tracks.filter(isSel);
   const listTracks = state.tracks.filter(
@@ -1701,7 +1719,7 @@ function Studio() {
               {srcDur.toFixed(1)} s
             </span>
           )}
-          {(["youtube", "instagram", "tiktok"] as PvPlatform[]).map((pf) => (
+          {(["youtube", "instagram", "tiktok", "rednote"] as PvPlatform[]).map((pf) => (
             <button key={pf} className={`mini ${pvPlatform === pf ? "sel" : ""}`} onClick={() => playSelected(pf)}>
               {pfLabel(pf)}
             </button>
@@ -1950,6 +1968,9 @@ function Studio() {
           </label>
           <label>
             <input type="checkbox" checked={fltTT} onChange={(e) => setFltTT(e.target.checked)} /> TT
+          </label>
+          <label>
+            <input type="checkbox" checked={fltRN} onChange={(e) => setFltRN(e.target.checked)} /> RN
           </label>
         </div>
         <div className="scroll" hidden={sideTab !== "musik"}>
