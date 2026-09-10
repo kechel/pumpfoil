@@ -696,26 +696,6 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                 // muss man VOR der Fahrt wissen. Wir nehmen bewusst nicht die des Handys — sonst
                 // stuende in der Spur, wo das Handy lag (Vorgabe Jan, 08.09.2026). Derselbe
                 // Balken wie bei der eingefrorenen Ortung, nur mit eigenem Text.
-                if (s.gpsOhneHardware) {
-                    // Farbflaeche ueber die ganze Breite (die Fassung darf sie beschneiden,
-                    // das ist nur Farbe), der TEXT aber nur so breit wie die Sehne an dieser
-                    // Hoehe — sonst steht er hinter dem Rand. Siehe sichereBreite().
-                    Box(
-                        Modifier.align(Alignment.TopCenter).fillMaxWidth()
-                            .background(Color(0xFFB91C1C)).padding(top = 14.dp, bottom = 5.dp),
-                        contentAlignment = Alignment.TopCenter,
-                    ) {
-                        Text(
-                            I18n.t("rec.gpsNoHardware"),
-                            color = Color.White,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center,
-                            lineHeight = 14.sp,
-                            modifier = Modifier.width(sichereBreite(14.dp)),
-                        )
-                    }
-                }
                 if (s.gpsStale) {
                     // GROSS und nicht zu uebersehen (Jan, 03.09.): ein „--" im Tempo-Feld liest
                     // sich wie „ich stehe ja noch am Steg". Deshalb eine ganze Seite, die den
@@ -740,22 +720,6 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                             Text(I18n.t("rec.gpsStaleTap"), color = Color(0xFFFECACA),
                                 fontSize = 12.sp, textAlign = TextAlign.Center)
                         }
-                    } else {
-                        Box(
-                            Modifier.align(Alignment.TopCenter).fillMaxWidth()
-                                .background(Color(0xFFFBBF24)).padding(top = 14.dp, bottom = 5.dp),
-                            contentAlignment = Alignment.TopCenter,
-                        ) {
-                            Text(
-                                I18n.t("rec.gpsStale"),
-                                color = Color(0xFF0F172A),
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center,
-                                lineHeight = 14.sp,
-                                modifier = Modifier.width(sichereBreite(14.dp)),
-                            )
-                        }
                     }
                 }
                 // Alles Kleine oben sitzt in EINEM mittigen Band, nicht in den Ecken.
@@ -773,11 +737,61 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                 // statt ueber den Rand zu laufen.
                 val aktivitaet = LocalContext.current as? MainActivity
                 val bandOben = 8.dp
+                // Warnbalken und Band liegen in DERSELBEN Spalte, damit sie sich nicht
+                // ueberlagern: der Balken nimmt die volle Breite, das Band darunter nur die
+                // Sehne. Vorher waren es zwei getrennte TopCenter-Overlays, und amberner Text
+                // auf amberner Flaeche war nicht zu lesen.
                 Column(
-                    Modifier.align(Alignment.TopCenter).padding(top = bandOben)
-                        .width(sichereBreite(bandOben)),
+                    Modifier.align(Alignment.TopCenter).fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
+                  // Uhr OHNE eigenen GNSS-Empfaenger: dann gibt es gar keine Position, und das
+                  // muss man VOR der Fahrt wissen. Wir nehmen bewusst nicht die des Handys —
+                  // sonst stuende in der Spur, wo das Handy lag (Vorgabe Jan, 08.09.2026).
+                  // Derselbe Balken wie bei der eingefrorenen Ortung, nur mit eigenem Text.
+                  if (s.gpsOhneHardware) {
+                    // Farbflaeche ueber die ganze Breite (die Fassung darf sie beschneiden,
+                    // das ist nur Farbe), der TEXT aber nur so breit wie die Sehne an dieser
+                    // Hoehe — sonst steht er hinter dem Rand. Siehe sichereBreite().
+                    Box(
+                        Modifier.fillMaxWidth()
+                            .background(Color(0xFFB91C1C)).padding(top = 14.dp, bottom = 5.dp),
+                        contentAlignment = Alignment.TopCenter,
+                    ) {
+                        Text(
+                            I18n.t("rec.gpsNoHardware"),
+                            color = Color.White,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            lineHeight = 14.sp,
+                            modifier = Modifier.width(sichereBreite(14.dp)),
+                        )
+                    }
+                  }
+                  // Eingefrorene Ortung, nachdem die ganzseitige Meldung weggetippt wurde:
+                  // der schmale Balken bleibt, damit man es nicht vergisst.
+                  if (s.gpsStale && staleWeggetippt) {
+                    Box(
+                        Modifier.fillMaxWidth()
+                            .background(Color(0xFFFBBF24)).padding(top = 14.dp, bottom = 5.dp),
+                        contentAlignment = Alignment.TopCenter,
+                    ) {
+                        Text(
+                            I18n.t("rec.gpsStale"),
+                            color = Color(0xFF0F172A),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            lineHeight = 14.sp,
+                            modifier = Modifier.width(sichereBreite(14.dp)),
+                        )
+                    }
+                  }
+                  Column(
+                    Modifier.padding(top = bandOben).width(sichereBreite(bandOben)),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                  ) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically,
@@ -816,6 +830,7 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                             modifier = Modifier.fillMaxWidth(),
                         )
                     }
+                  }
                 }
             }
         } else if (showSaved) {
