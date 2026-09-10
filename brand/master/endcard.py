@@ -139,22 +139,31 @@ def paar_zeilen(paare, zeile_bild, px: int, tracking: int) -> list:
     luft = round(px * 0.55)                       # Abstand Punkt <-> Text
     links = [zeile_bild(a, px, tracking) for a, _ in paare]
     rechts = [zeile_bild(b, px, tracking) if b else None for _, b in paare]
-    l_max = max(i.width for i in links)
-    r_max = max((i.width for i in rechts if i), default=0)
     hoehe = max(i.height for i in links + [i for i in rechts if i])
-    breite = l_max + luft + punkt.width + luft + r_max
-    achse = l_max + luft + punkt.width / 2        # Mitte des Punktes
+
+    # Beide Spalten gleich breit, damit die Achse in der MITTE des Blocks liegt.
+    # Sonst zieht ein langer Name auf einer Seite den Punkt aus der Bildmitte —
+    # 苹果手表 hat vier Zeichen und stand links, also sassen die Punkte zu weit
+    # rechts (Jan, 10.09.). Alleinstehende Eintraege zaehlen dabei NICHT mit,
+    # die sitzen ohnehin mittig auf der Achse und duerfen ueberhaengen.
+    paar_breiten = [i.width for i, (_, b) in zip(links, paare) if b]
+    paar_breiten += [i.width for i in rechts if i]
+    spalte = max(paar_breiten, default=0)
+    kern = spalte + luft + punkt.width + luft + spalte
+    solo = max((i.width for i, r in zip(links, rechts) if r is None), default=0)
+    breite = max(kern, solo)
+    achse = breite / 2
+    oben = lambda i: (hoehe - i.height) // 2      # noqa: E731 — senkrecht mittig
+
     out = []
     for li, ri in zip(links, rechts):
-        img = Image.new("RGBA", (breite, hoehe), (0, 0, 0, 0))
+        img = Image.new("RGBA", (round(breite), hoehe), (0, 0, 0, 0))
         if ri is None:
-            # Einzelner Eintrag: mittig auf die Achse, nicht auf die Zeile.
-            img.alpha_composite(li, (round(achse - li.width / 2), (hoehe - li.height) // 2))
+            img.alpha_composite(li, (round(achse - li.width / 2), oben(li)))
         else:
-            img.alpha_composite(li, (l_max - li.width, (hoehe - li.height) // 2))
-            img.alpha_composite(punkt, (l_max + luft, (hoehe - punkt.height) // 2))
-            img.alpha_composite(ri, (l_max + luft + punkt.width + luft,
-                                     (hoehe - ri.height) // 2))
+            img.alpha_composite(li, (round(achse - punkt.width / 2 - luft - li.width), oben(li)))
+            img.alpha_composite(punkt, (round(achse - punkt.width / 2), oben(punkt)))
+            img.alpha_composite(ri, (round(achse + punkt.width / 2 + luft), oben(ri)))
         out.append(img)
     return out
 
