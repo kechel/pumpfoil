@@ -250,6 +250,22 @@ def maybe_auto_trim(db: DbSession, session: "models.Session") -> bool:
     Gibt True zurück, wenn ein Trim gesetzt wurde (-> neu analysieren)."""
     if session.trim_start_ms is not None or session.trim_end_ms is not None:
         return False
+    # NUR Pumpfoil-Sessions zuschneiden (Jan, 10.09.2026: „wenn wir kein Pumpfoil erkennen, dann
+    # sollte die Erkennung auch gar nix trimmen … bei seinen Sessions hat er ja selber als Wingfoil
+    # eingestuft und dann soll auch nichts getrimmt werden anhand irgendeiner Pumpfoilerkennung.
+    # Das ist doch völlig fehl am Platz dann.").
+    #
+    # Der Zuschnitt setzt auf „erster Lauf minus 15 s" — und „Lauf" heisst hier: was die
+    # PUMPFOIL-Erkennung findet. Bei einer anderen Sportart findet sie zu wenig, und dann schneidet
+    # sie echte Fahrzeit weg. Belegt an #5272 (u43, sport_class=wingfoil, Feedback 08.09.): seine
+    # ersten 9 Minuten / 2,3 km wurden nicht als Lauf erkannt, der Zuschnitt begann bei 792 s, und
+    # die Fahrt tauchte danach nur noch als „langer Startversuch" auf der Karte auf — genau das hat
+    # er gemeldet. Im Bestand traf es 94 Sessions, im Extremfall (#2986) drei Stunden.
+    #
+    # NULL = Pumpfoil (Vorgabe), s. lib/sportClass.ts und community.py. Die zweite Haelfte von Jans
+    # Regel — ohne erkannte Laeufe gar nicht trimmen — steht schon unten (`if not segs`).
+    if (session.sport_class or "pumpfoil") != "pumpfoil":
+        return False
     res = db.query(models.AnalysisResult).filter_by(session_id=session.id).first()
     segs = json.loads(res.segments_json) if res and res.segments_json else []
     if not segs:
