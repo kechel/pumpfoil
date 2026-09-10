@@ -163,7 +163,13 @@ function ReleaseStatus() {
 // in der Tabelle.
 //
 // Ein Punkt kann ein Bild tragen (`img`), das UNTER ihm gerendert wird.
-type Item = { text: string; img?: string; img_alt?: string; mit_update?: string };
+type Item = {
+  text: string; img?: string; img_alt?: string; mit_update?: string;
+  // Welche Plattform braucht welche App-Version fuer diesen Punkt? Leer/fehlt = gilt ueberall
+  // sofort (Web- und Serveraenderungen sind mit dem Deploy da). Ohne diese Marke stand ein
+  // Punkt, den nur eine Uhr kann, ohne jeden Hinweis darauf in der Liste (Befund 11.09.2026).
+  plattformen?: { name: string; version: string }[];
+};
 type Entry = { date: string; items: Item[] };
 
 // Das Datum wie bisher englisch ausgeschrieben („September 7, 2026"). Die Seite ist bewusst
@@ -216,6 +222,12 @@ export default function Changelog() {
               {e.items.map((it, i) => (
                 <li key={i}>
                   <ItemText text={it.text} />
+                  {(it.plattformen ?? []).map((p) => (
+                    <span key={p.name}
+                      className="ml-1.5 whitespace-nowrap rounded-full bg-slate-800/60 px-2 py-0.5 align-middle text-xs font-medium text-slate-300">
+                      {p.name} {p.version}
+                    </span>
+                  ))}
                   {it.img && (
                     <img src={it.img} alt={it.img_alt ?? ""} loading="lazy"
                       className="mt-2 w-full max-w-[260px] rounded-lg border border-slate-800" />

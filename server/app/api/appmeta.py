@@ -273,6 +273,18 @@ GRUPPEN = [
     (("zepp",), "Amazfit"),
 ]
 
+# Anzeigename je EINZELNER Plattform — fuer die Marke an einem Changelog-Punkt. Anders als
+# `GRUPPEN` (dort teilen sich Handy und Uhr eine Einreichung) muss hier jede fuer sich stehen:
+# ein Punkt kann die Uhr betreffen und das Handy nicht. Jan, 11.09.2026: „im changelog ist nicht
+# ersichtlich das sich die letzten changes auf garmin beziehen" — genau das behebt die Marke.
+PLATTFORM_NAMEN = {
+    "garmin": "Garmin",
+    "zepp": "Amazfit",
+    "wear": "Wear OS",
+    "android": "Android",
+    "ios": "iPhone + Apple Watch",
+}
+
 # `items` sind die Aenderungen der jeweiligen Fassung — schon so formuliert, wie sie spaeter
 # im Changelog stehen sollen. Das ist der Zweck (Jan, 05.09.): was eingereicht ist, steht
 # heute NIRGENDS, bis es veroeffentlicht wird. Bei der Freigabe wandern die Zeilen unveraendert
@@ -491,6 +503,19 @@ def changelog(plattform: str = "", version: str = "",
             punkt["img"] = z.img
             if z.img_alt:
                 punkt["img_alt"] = z.img_alt
+        # Welche Plattform braucht welche Version fuer diesen Punkt? IMMER mitschicken, nicht nur
+        # bei einer Anfrage mit `plattform` — sonst steht auf /changelog ein Punkt, den nur eine
+        # Uhr kann, ohne jeden Hinweis darauf (Jans Befund 11.09.2026). Leer = gilt ueberall
+        # sofort (Web-/Server-Aenderungen sind mit dem Deploy da).
+        if z.versionen:
+            try:
+                alle = json.loads(z.versionen) or {}
+            except ValueError:
+                alle = {}
+            marken = [{"name": PLATTFORM_NAMEN.get(k, k), "version": str(v)}
+                      for k, v in alle.items() if v]
+            if marken:
+                punkt["plattformen"] = marken
         # Kommt dieser Punkt fuer MEINE Plattform erst mit einer neueren Version?
         if plat and version and z.versionen:
             try:
