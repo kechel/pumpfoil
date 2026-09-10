@@ -1044,6 +1044,12 @@ def yt_localize(video_url: str, titles: dict, descriptions: dict,
 # API-Audit nicht bestanden hat, sperrt YouTube API-Uploads auf "privat".
 
 UPLOADS_STATE_FILE = BASE / ".uploads-state.json"  # Upload-Status je Export/Plattform
+# Rezepte: zu JEDEM Render eine JSON-Kopie aller Einstellungen. Bis 10.09. gab
+# es das nicht — die Studio-Einstellungen lagen nur im localStorage des
+# Browsers und wurden bei jeder Aenderung ueberschrieben. Damit war hinterher
+# nicht mehr feststellbar, welche Texte, Stempel, Overlays und Endcards in
+# einem fertigen Video steckten (Jan, 10.09.: „dann halt ab jetzt richtig").
+REZEPT_DIR = OUT_DIR / "rezepte"
 UPLOAD_PROGRESS = {"active": False, "label": "", "sent": 0, "total": 0}
 
 
@@ -1788,6 +1794,20 @@ def cover_image(path: Path, t: float, mode: str = "blur") -> Path:
     return out
 
 
+def rezept_liste():
+    """Die gesicherten Render-Rezepte, neueste zuerst."""
+    out = []
+    for p in sorted(REZEPT_DIR.glob("*.json")) if REZEPT_DIR.is_dir() else []:
+        r = _load_json(p, {})
+        out.append({"name": p.name,
+                    "out_name": r.get("out_name") or p.stem + ".mp4",
+                    "at": r.get("gerendert_am") or "",
+                    "quellvideo": r.get("quellvideo") or "",
+                    "plattformen": sorted((r.get("ergebnisse") or {}).keys())})
+    out.sort(key=lambda x: x["at"], reverse=True)
+    return out
+
+
 def exports_state():
     """Fertige Renders, gruppiert über die Plattform-Ordner."""
     groups = {}
@@ -1961,6 +1981,14 @@ class Handler(BaseHTTPRequestHandler):
                 self._json(list_state())
             elif path == "/api/progress":
                 self._json(PROGRESS)
+            elif path == "/api/rezepte":
+                self._json({"rezepte": rezept_liste()})
+            elif path == "/api/rezept":
+                nm = Path(query.get("name", [""])[0]).name
+                pfad = REZEPT_DIR / nm
+                if not nm.endswith(".json") or not pfad.is_file():
+                    return self._json({"error": "Rezept nicht gefunden"}, 404)
+                self._json(_load_json(pfad, {}))
             elif path == "/api/exports":
                 self._json({"exports": exports_state()})
             elif path == "/api/captions_cache":
@@ -2440,6 +2468,28 @@ class Handler(BaseHTTPRequestHandler):
             moved = str(target.relative_to(BASE))
             LAST_RENDER_FILE.write_text(json.dumps(
                 {"out_name": out_name, "src": str(video), "moved": str(target)}))
+        # Rezept sichern — auch wenn nur ein Teil der Plattformen geklappt hat.
+        # Die PNGs der Textoverlays bleiben draussen: sie sind aus den
+        # Studio-Einstellungen jederzeit neu zu zeichnen und waeren megabytegross.
+        ohne_bilder = {k: v for k, v in req.items()
+                       if k not in ("texts", "outros")}
+        ohne_bilder["texts"] = [{k: v for k, v in (t or {}).items()
+                                 if k not in ("png", "png_zh")}
+                                for t in (req.get("texts") or [])]
+        rezept = {"gerendert_am": datetime.datetime.now().astimezone().isoformat(timespec="seconds"),
+                  "out_name": out_name,
+                  "quellvideo": video.name,
+                  "verschoben_nach": moved,
+                  "ergebnisse": {pf: r.get("out") for pf, r in results.items() if r.get("ok")},
+                  "fehler": {pf: r.get("error") for pf, r in results.items() if not r.get("ok")},
+                  "studio": req.get("studio") or {},
+                  "anfrage": ohne_bilder}
+        try:
+            REZEPT_DIR.mkdir(parents=True, exist_ok=True)
+            (REZEPT_DIR / (Path(out_name).stem + ".json")).write_text(
+                json.dumps(rezept, ensure_ascii=False, indent=1))
+        except OSError as e:      # ein misslungenes Rezept darf den Render nicht kippen
+            print(f"Rezept nicht geschrieben: {e}", flush=True)
         self._json({"results": results, "moved": moved})
 
 
