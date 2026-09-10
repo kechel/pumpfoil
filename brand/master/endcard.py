@@ -23,7 +23,8 @@ import gen
 
 W, H = 1080, 1920
 RAND = 90                      # seitlicher Rand
-OUT = os.path.join(os.path.dirname(__file__), "../social/shorts-endcard-{theme}-1080x1920.png")
+OUT = os.path.join(os.path.dirname(__file__),
+                   "../social/shorts-endcard-{theme}-1080x1920{sp}.png")
 
 # Hell: fast weiss mit einem Hauch Blau, damit die Wortmarke nicht auf Papier zu schweben scheint.
 HELL = ("#ffffff", "#eef2f7", "#dde7f0")
@@ -42,6 +43,47 @@ APP_ZEILE = "FREE APP & COMMUNITY"
 # die Bildmarke, dort ein Satz.
 MOTTO = ("have fun", "keep pumping!")
 
+# Chinesische Fassung fuer RedNote (Jan, 10.09.) — dieselben Woerter wie auf der
+# Band-Endcard und in den Urteilskarten des Studios. „pump" bleibt stehen: so
+# steht es auch in unseren chinesischen Captions, uebersetzt sucht es niemand.
+APP_ZEILE_ZH = "免费应用与社区"
+MOTTO_ZH = ("玩得开心", "继续 pump！")
+SPRACHEN = {"": (APP_ZEILE, MOTTO), "-zh": (APP_ZEILE_ZH, MOTTO_ZH)}
+# Montserrat hat keine CJK-Zeichen und zeichnete nur Kaestchen. Reihenfolge:
+# Linux zuerst (dort laeuft dieses Skript), dann die Macs.
+SCHRIFTEN_ZH = [
+    ("/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc", 0),
+    ("/usr/share/fonts/truetype/noto/NotoSansCJK-Bold.ttc", 0),
+    ("/System/Library/Fonts/Hiragino Sans GB.ttc", 2),     # W6
+    ("/System/Library/Fonts/STHeiti Medium.ttc", 0),
+]
+
+
+def zh_zeile(text: str, px: int, tracking: int) -> Image.Image:
+    """Wie banner.subline_image, aber mit einer CJK-Schrift und ohne Einfaerbung
+    — die Farbe setzt der Aufrufer ohnehin selbst neu."""
+    from PIL import ImageDraw, ImageFont
+    font = None
+    for pfad, index in SCHRIFTEN_ZH:
+        if os.path.exists(pfad):
+            try:
+                font = ImageFont.truetype(pfad, px, index=index)
+                break
+            except OSError:
+                continue
+    if font is None:
+        raise SystemExit("Keine CJK-Schrift gefunden — siehe SCHRIFTEN_ZH in endcard.py.")
+    probe = ImageDraw.Draw(Image.new("RGBA", (10, 10)))
+    breiten = [probe.textlength(ch, font=font) + tracking for ch in text]
+    asc, desc = font.getmetrics()
+    img = Image.new("RGBA", (max(1, int(sum(breiten) - tracking)), asc + desc), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    x = 0.0
+    for ch, b in zip(text, breiten):
+        d.text((x, 0), ch, font=font, fill=(255, 255, 255, 255))
+        x += b
+    return img.crop(img.getbbox() or (0, 0, img.width, img.height))
+
 
 def verlauf(farben: tuple[str, str, str]) -> Image.Image:
     """Diagonaler Dreiton-Verlauf wie im Banner, nur hochkant."""
@@ -54,8 +96,13 @@ def verlauf(farben: tuple[str, str, str]) -> Image.Image:
     return Image.fromarray((lo + (hi - lo) * seg).astype(np.uint8), "RGB").convert("RGBA")
 
 
-def endcard(theme: str) -> Image.Image:
+def endcard(theme: str, sp: str = "") -> Image.Image:
     hell = theme == "light"
+    app_zeile, motto_text = SPRACHEN[sp]
+    # CJK-Zeichen fuellen die ganze Kegelhoehe, lateinische Versalien nur rund
+    # 72 % — bei gleicher Breite wirkt Chinesisch sonst deutlich groesser.
+    zh = sp == "-zh"
+    zeile_bild = zh_zeile if zh else banner.subline_image
     grund = verlauf(HELL if hell else DUNKEL)
     wellen_farbe = CYAN_HELL if hell else gen.CYAN
 
@@ -85,9 +132,9 @@ def endcard(theme: str) -> Image.Image:
     faktor = (breite * 0.80) / max(z.width for z in zeilen)
     # Die Einleitung in derselben Schrift, aber kleiner und ruhiger als die Marken darunter —
     # sie soll fuehren, nicht mit ihnen konkurrieren.
-    einleitung = banner.subline_image(APP_ZEILE, px=44, tracking=10)
+    einleitung = zeile_bild(app_zeile, px=44, tracking=4 if zh else 10)
     # Genauso breit wie die Wortmarke darueber — die beiden bilden dann eine Achse.
-    ein_faktor = breite / einleitung.width
+    ein_faktor = breite * (0.72 if zh else 1.0) / einleitung.width
     einleitung = einleitung.resize((round(einleitung.width * ein_faktor),
                                     round(einleitung.height * ein_faktor)), Image.LANCZOS)
     grau = "#475569" if hell else "#cbd5e1"     # kraeftiger, weil die Zeile jetzt traegt
@@ -110,8 +157,8 @@ def endcard(theme: str) -> Image.Image:
     # Zwei Zeilen statt einer: dieselbe Breite, halb so viele Zeichen je Zeile — also fast
     # doppelt so gross (Jan, 04.09.). Beide Zeilen mit DEMSELBEN Faktor, sonst haetten sie
     # verschieden grosse Schrift.
-    motto = [banner.subline_image(z, px=44, tracking=2) for z in MOTTO]
-    m_faktor = (breite * 0.66) / max(z.width for z in motto)
+    motto = [zeile_bild(z, px=44, tracking=2) for z in motto_text]
+    m_faktor = (breite * (0.48 if zh else 0.66)) / max(z.width for z in motto)
     motto = [z.resize((round(z.width * m_faktor), round(z.height * m_faktor)), Image.LANCZOS)
              for z in motto]
     # Auf dunklem Grund WEISS — so steht der Gruss auch in den Videos (Jan, 04.09.).
@@ -147,11 +194,12 @@ def endcard(theme: str) -> Image.Image:
 
 
 def main() -> None:
-    os.makedirs(os.path.dirname(OUT.format(theme="dark")), exist_ok=True)
+    os.makedirs(os.path.dirname(OUT.format(theme="dark", sp="")), exist_ok=True)
     for theme in ("dark", "light"):
-        ziel = OUT.format(theme=theme)
-        endcard(theme).save(ziel)
-        print(f"{ziel}  ({W}x{H})")
+        for sp in SPRACHEN:
+            ziel = OUT.format(theme=theme, sp=sp)
+            endcard(theme, sp).save(ziel)
+            print(f"{ziel}  ({W}x{H})")
 
 
 if __name__ == "__main__":
