@@ -364,7 +364,7 @@ function PublishCard({ exp, up, ytReady, ttReady, refresh, slot }: {
           {exp.duration ? ` · ${fmtDur(exp.duration)}` : ""}
         </div>
         <div className="pubvids">
-          {(["youtube", "instagram", "tiktok"] as const).map((pf) =>
+          {(["youtube", "instagram", "tiktok", "rednote"] as const).map((pf) =>
             exp.platforms.includes(pf) ? (
               <figure key={pf}>
                 <video

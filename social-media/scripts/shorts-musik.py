@@ -69,11 +69,13 @@ CAPTION_LANGS = ["de", "en", "fr", "it", "es", "fi", "nl", "cs",
 # ID/PT/ES auf YouTube).
 PORT = 8765
 PLATFORMS = ("youtube", "instagram")
-# Ordner unter shorts-mit-musik/. RedNote hat KEINEN eigenen: dort wird die
-# TikTok-Fassung hochgeladen (9:16, O-Ton, keine lizenzierte Musik), und die
-# holt Jan ueber die laufende Nummer direkt aus tiktok/. Ein zweiter Ordner
-# mit harten Links stand hier kurz, war aber nur Verwaltung ohne Nutzen.
-EXPORT_PLATFORMS = (*PLATFORMS, "tiktok")
+# Ordner unter shorts-mit-musik/. RedNote hat seit 10.09. einen EIGENEN Render:
+# vorher lief dort die TikTok-Fassung mit, aber die Endcard und die Urteilskarten
+# sind auf Chinesisch eine andere Datei, und die Outro-Symbole sind es auch
+# (TikTok speichert mit einem Lesezeichen, RedNote mit einem Stern). Ein Ordner
+# mit harten Links auf tiktok/ stand hier zwischendurch — der konnte genau das
+# nicht und ist deshalb wieder raus.
+EXPORT_PLATFORMS = (*PLATFORMS, "tiktok", "rednote")
 AUDIO_EXT = {".mp3", ".m4a", ".aac", ".wav", ".flac", ".ogg", ".opus"}
 FADE_IN = 1.0
 FADE_OUT = 2.0
@@ -792,7 +794,7 @@ def track_platforms(rel: Path):
         return ["youtube"]
     if top == "instagram":
         return ["instagram"]
-    return ["youtube", "instagram", "tiktok"]
+    return ["youtube", "instagram", "tiktok", "rednote"]
 
 
 def list_state():
@@ -1773,7 +1775,7 @@ def cover_image(path: Path, t: float, mode: str = "blur") -> Path:
 
 
 def exports_state():
-    """Fertige Renders, gruppiert über die drei Plattform-Ordner."""
+    """Fertige Renders, gruppiert über die Plattform-Ordner."""
     groups = {}
     for pf in EXPORT_PLATFORMS:
         d = OUT_DIR / pf
