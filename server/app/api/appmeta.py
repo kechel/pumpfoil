@@ -398,7 +398,11 @@ NAECHSTES: list[dict] = [
          "Heart-rate zones use the colours you set in your profile.",
          "Speed zones use the colours you set in your profile, the same way heart-rate zones "
          "already do.",
-         "The touch lock can be opened with your finger again.",
+         "The touch lock opens with your finger again \u2014 hold the screen for two seconds. "
+         "While it tells you so, it covers what is behind it instead of printing over your "
+         "speed.",
+         "The upload message stays on one line: it counts the pieces while it sends, then "
+         "simply says it is done.",
          "A single press can end a recording instead of holding, if you set that in your profile.",
          "A cleaned-up top speed, and a run that never really stopped is no longer counted "
          "as two.",
