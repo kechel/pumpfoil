@@ -1291,7 +1291,7 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
             AutoFitText(value, valueStyle, color, Modifier.fillMaxWidth(0.86f))
             // Der Puls-Hinweis (steht anstelle von „bpm") wird amber hervorgehoben, alle anderen
             // Beschriftungen bleiben grau.
-            val istHinweis = fid == 2 && !s.pulsMessung
+            val istHinweis = fid == 2 && pulsLabelWarnt(s)
             AutoFitText(label,
                 if (count == 1) MaterialTheme.typography.caption1 else MaterialTheme.typography.caption2,
                 if (istHinweis) Color(0xFFFBBF24) else Color(0xFF94A3B8),
@@ -1438,6 +1438,38 @@ private val DEFAULT_VIEWS = listOf(
 )
 
 // Feld-IDs identisch mit web/src/lib/fields.ts + Garmin Config.mc (alle 22 Felder).
+/** Beschriftung des LIVE-Puls-Felds: normalerweise „bpm", sonst wie alt der Wert ist.
+ *
+ *  Vorschlag Jan (10.09.2026): statt „Puls passiv" — ein Begriff, den niemand versteht — die
+ *  nachpruefbare Tatsache „vor 45 s". Der Text steht unter der Puls-ZAHL, also braucht er das
+ *  Wort „Puls" nicht: der Bezug ist da, und kurz bleibt er auch in jeder Sprache.
+ *
+ *  Wann er erscheint: `pulsMessung` sagt nur, ob Health Services eine Uebung haelt — das ist
+ *  unsere Vermutung ueber die URSACHE. Das ALTER ist die Beobachtung, und die deckt auch den Fall
+ *  ab, in dem die Uebung nominell laeuft, aber keine Werte kommen. Schwelle 10 s: aktiv gemessen
+ *  kommt jede Sekunde ein Wert, „vor 3 s" waere also nur Zappeln.
+ *
+ *  Drei Zustaende, damit nichts still bleibt (der Fehler, den ein Nutzer am 04.09. gemeldet hat —
+ *  81 Minuten Aufnahme mit Luecken von 29, 28 und 9 Minuten, und die Uhr sagte nichts):
+ *    - noch nie ein Wert  -> „kein Puls"
+ *    - letzter Wert alt   -> „vor 45 s" / „vor 3 min"
+ *    - frisch             -> „bpm"
+ */
+private fun pulsLabel(s: Recorder.State): String {
+    if (s.hrSamples == 0) return I18n.t("f.bpmKein")
+    val alt = s.hrAlterS
+    if (alt < PULS_ALT_ANZEIGE_S) return I18n.t("f.bpm")
+    val dauer = if (alt < 60) "$alt s" else "${alt / 60} min"
+    return I18n.t("f.bpmVor").replace("{0}", dauer)
+}
+
+/** Ab diesem Alter zeigt das Puls-Feld, wie alt der Wert ist, statt „bpm". */
+private const val PULS_ALT_ANZEIGE_S = 10
+
+/** Steht im Puls-Feld gerade eine Warnung (statt „bpm")? Dann wird die Beschriftung amber. */
+private fun pulsLabelWarnt(s: Recorder.State): Boolean =
+    s.hrSamples == 0 || s.hrAlterS >= PULS_ALT_ANZEIGE_S
+
 private fun fieldValue(id: Int, s: Recorder.State): Pair<String, String> = when (id) {
     // Schlechtes GPS -> "--" statt Phantom-Tempo (100 km/h am Steg, Nutzer-Video 05.08.).
     1 -> (if (s.gpsPoor) "--" else String.format("%.1f", s.speed3sKmh)) to I18n.t("f.kmh3s")
@@ -1460,8 +1492,7 @@ private fun fieldValue(id: Int, s: Recorder.State): Pair<String, String> = when 
     // gerechnet und bleiben richtig, auch wenn gerade passiv gemessen wird.
     // Gilt zugleich fuer eigene Layouts: LayoutPageView holt seine Beschriftungen ueber
     // dieselbe Funktion.
-    2 -> (if (s.hr > 0) s.hr.toString() else "–") to
-        (if (!s.pulsMessung) I18n.t("rec.hrPassive") else I18n.t("f.bpm"))
+    2 -> (if (s.hr > 0) s.hr.toString() else "–") to pulsLabel(s)
     8 -> (if (s.avgHr > 0) s.avgHr.toString() else "–") to I18n.t("f.bpmAvg")
     9 -> (if (s.maxHr > 0) s.maxHr.toString() else "–") to I18n.t("f.bpmMax")
     3 -> msStr(s.elapsedSec * 1000) to I18n.t("f.time")

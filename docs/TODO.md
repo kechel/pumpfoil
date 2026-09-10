@@ -774,7 +774,23 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
-- **🟢 10.09. — Puls-Hinweis steht jetzt am Puls-Feld, nicht oben im Band.** Vorschlag Jan:
+- **🟢 10.09. — Das Puls-Feld sagt jetzt, WIE ALT der Wert ist, statt „Puls passiv".**
+  Zweiter Vorschlag Jan, nachdem er fragte, was „passiver Puls" ueberhaupt bedeutet: „ginge auch
+  ‚letzter puls vor 59s' oder so?" — richtig, denn das ist die Beobachtung, waehrend „passiv"
+  unsere Vermutung ueber die URSACHE war (Health Services haelt keine Uebung). Und der Begriff war
+  Fachjargon: gemeint ist, dass die Uhr nicht durchgehend messen laesst und Werte nur alle paar
+  Minuten kommen (JoLes Session: Luecken von 29, 28 und 9 Minuten).
+  Neu in `Recorder.State`: `hrAlterS`, im GPS-Takt (1 Hz) aus `lastHrMs` nachgerechnet. Drei
+  Zustaende in `pulsLabel()`: noch nie ein Wert → „kein Puls", letzter Wert aelter als 10 s →
+  „vor 45 s"/„vor 3 min", sonst „bpm". Schwelle 10 s, weil aktiv gemessen jede Sekunde ein Wert
+  kommt. Zwei neue Schluessel (`f.bpmVor` mit `{0}`, `f.bpmKein`) in allen 17 Sprachen.
+  Gemessen im Emulator (192 dp, Faktor 1,24, fi): einzeilig, **67,5 dp von 176 dp** — vorher
+  brauchte „Syke passiivinen" 108 dp. Laengste Fassung ist nb „for 12 min siden", rund 98 dp.
+  Der Zustand `pulsMessung` bleibt im Modell (der Dienst setzt ihn weiter), entscheidet aber nicht
+  mehr die Anzeige — das Alter deckt auch den Fall ab, in dem die Uebung nominell laeuft und
+  trotzdem nichts kommt. `rec.hrPassive` ist damit unbenutzt, die 17 Texte bleiben aber stehen.
+
+- **🟢 10.09. — Puls-Hinweis vom Band ans Puls-Feld geholt (Vorstufe zum Eintrag oben).** Vorschlag Jan:
   „wird denn auf der ansicht nicht auch der puls angezeigt? warum zeigen wir das dann nicht
   anstelle des pulswertes an, die geschwindigkeit ist doch unabhaengig davon und kann trotzdem
   sichtbar bleiben." Genau richtig — und der bessere Ort, weil der Hinweis zu diesem Wert gehoert.
