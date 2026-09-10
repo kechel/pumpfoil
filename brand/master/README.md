@@ -18,6 +18,34 @@ Padding/Zoom/Offset, immer aus dem identischen Original. Nichts mehr von Hand na
 
 Beim **icon**: `dark` = navy Kachel + cyan Wellen, `light` = cyan Kachel + weiße Wellen.
 
+## Wo die Skripte laufen — VM und Mac
+
+`banner.py`, `endcard.py` und `gen.py` brauchen **numpy** und **cairosvg** (das wiederum
+libcairo) sowie **Montserrat SemiBold**. Auf der Dev-VM ist alles da. Auf dem Mac seit
+10.09. auch:
+
+    brew install cairo
+    brew install --cask font-montserrat
+    cd brand/master && python3 -m venv .venv-brand
+    ./.venv-brand/bin/pip install numpy cairosvg pillow
+    ./.venv-brand/bin/python endcard.py
+
+Das venv liegt gitignored neben den Skripten; `python3 endcard.py` ohne venv schlägt weiter
+fehl, das ist Absicht — es soll auffallen, statt still eine Ersatzschrift zu nehmen.
+
+**Eine Feinheit bei der Schrift:** die VM hat den statischen Schnitt
+`Montserrat-SemiBold.otf`, der Homebrew-Cask liefert die **variable** Datei
+`Montserrat[wght].ttf` mit einer Gewichtsachse von 100 bis 900. `banner.montserrat()` stellt
+sie deshalb ausdrücklich auf `SemiBold` — ohne das zeichnet PIL Regular, und alles wirkt
+dünner. Die beiden Wege ergeben **kein pixelgleiches** Bild: gemessen am 10.09. gegen die
+eingecheckten Endcards liegt die mittlere Abweichung bei 0,4–0,5 von 255, einzelne
+Kantenpixel weiter auseinander. Nebeneinander gelegt ist kein Unterschied zu sehen — aber
+wer ein bestehendes Asset auf der anderen Maschine neu erzeugt, bekommt eine geänderte
+Datei ohne sichtbare Änderung. **Deshalb: nur neu erzeugen, was sich inhaltlich ändert.**
+
+`endcard-band.py` braucht das alles nicht — es nimmt das fertige Lockup-PNG aus `brand/logo/`
+und läuft mit dem System-Python auf beiden Maschinen.
+
 ## Farben (KEINE Verläufe, überall identisch)
 
 - **Cyan `#22d3ee`** — Wellen, `.org`, Akzent (= Web `brand-400`, Garmin/Android/Apple/Zepp).
