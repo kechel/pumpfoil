@@ -123,9 +123,14 @@ function UploadRow({
 }) {
   const nav = useNavigate();
   const [busy, setBusy] = useState(false);
-  // „Jetzt auswerten": der Server rechnet final durch (status -> analyzed), danach faellt die
-  // Karte von selbst weg. Neu laden, damit die Detailseite die Zahlen zeigt statt der Karte.
-  async function auswerten() {
+  // „Als abgeschlossen markieren": der Server rechnet final durch (status -> analyzed), danach
+  // faellt die Karte von selbst weg. Neu laden, damit die Detailseite die Zahlen zeigt.
+  //
+  // Der Knopf hiess zuerst „jetzt auswerten" — falsch, denn AUSGEWERTET wird die Aufnahme
+  // laengst, auch mitten in der Pause (Jan, 11.09.2026: „das geht ja auch in der pause
+  // absichtlich schon laengst"). Die Entscheidung hier ist eine andere: es kommt nichts mehr
+  // nach, also den Zwischenstand zum Endstand erklaeren.
+  async function abschliessen() {
     setBusy(true);
     try {
       await api.finalizeSession(s.id);
@@ -218,11 +223,11 @@ function UploadRow({
           </div>
           {eigeneSeite && s.has_gps && (
             <button
-              onClick={() => { void auswerten(); }}
+              onClick={() => { void abschliessen(); }}
               disabled={busy}
               className="mt-2 rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-medium text-slate-950 hover:bg-brand-400 disabled:opacity-50"
             >
-              {busy ? t("common.loading") : t("upload.analyseNow")}
+              {busy ? t("common.loading") : t("upload.markFinished")}
             </button>
           )}
         </div>
