@@ -376,9 +376,6 @@ IN_REVIEW: list[dict] = [
          "COROS: the app says which mode records the best data, and what COROS does not "
          "hand over.",
      ]},
-]
-
-NAECHSTES: list[dict] = [
     {"name": "Amazfit", "version": "1.0.8",
      # 1.0.7 wurde ZWEIMAL abgelehnt, beide Male nur wegen der Store-Vorschaubilder (nie wegen der
      # App) — s. ABGELEHNT oben und brand/stores/zepp/README.md. Entscheidung Jan (10.09.2026):
@@ -391,7 +388,12 @@ NAECHSTES: list[dict] = [
      # NIE etwas erschienen, live steht 1.0.6 vom 24.08. Stuenden hier nur die vier 1.0.8-Zeilen,
      # fehlten den Nutzern die vier aus 1.0.7. Quelle ist `watch-zepp/CHANGELOG.md` (dort seit
      # 07.09. wieder gefuehrt), nicht erneut aus git rekonstruiert.
-     "note": "next Amazfit release, with everything from the version before it",
+     #
+     # EINGEREICHT 10.09.2026 11:19 (Jans Meldung). Zepp-Konsole: appId 1118995, Version 1.0.8,
+     # Application Time 2026.09.10, Status „Under Review (Can be Withdrawn)"; darunter steht
+     # 1.0.6 vom 24.08. als „Approved". MIT hochgeladen: die korrigierten eckigen
+     # Vorschaubilder — genau die waren zweimal der Ablehnungsgrund.
+     "note": "submitted 10 September, under review",
      "items": [
          "Value graphics on the watch: speed, heart rate and pump cadence as a bar, not just "
          "a number.",
@@ -409,6 +411,9 @@ NAECHSTES: list[dict] = [
          "Runs are detected the same way as on the server.",
          "Dutch, Finnish, Czech and Polish.",
      ]},
+]
+
+NAECHSTES: list[dict] = [
 ]
 
 
