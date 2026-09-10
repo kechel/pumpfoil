@@ -232,7 +232,8 @@ _APP_META: dict[str, dict[str, str]] = {
 #   3. Etwas ABGELEHNT    -> Eintrag von IN_REVIEW nach ABGELEHNT verschieben, mit der
 #                            abgelehnten Nummer. Die PUNKTE wandern mit der Fassung weiter, die
 #                            den Inhalt dann traegt (also nach NAECHSTES) — sonst stehen sie
-#                            zweimal in der Tabelle.
+#                            zweimal in der Tabelle. Die Zeile RAEUMT SICH SELBST WEG, sobald ein
+#                            Nachfolger live ist (s. `_noch_offen`) — also nicht von Hand loeschen.
 #   4. Etwas GEBAUT, das auf eine laufende Pruefung wartet -> nach NAECHSTES.
 # Bleibt eine Liste leer, blendet die Seite den ganzen Abschnitt aus.
 #
@@ -478,6 +479,34 @@ def changelog(plattform: str = "", version: str = "",
     return {"days": tage, "latest": tage[0]["date"] if tage else ""}
 
 
+def _noch_offen(abgelehnt: dict, live: list[dict]) -> bool:
+    """Soll diese abgelehnte Fassung noch auf /changelog stehen?
+
+    Vorgabe Jan (10.09.2026): „nur solange anzeigen solange keine neuere version approved wurde".
+    Die Zeile erklaert, warum angekuendigte Punkte noch fehlen — sobald ein Nachfolger LIVE ist,
+    erklaert sie nichts mehr und verschwindet. Das passiert damit von selbst, wenn `_APP_META`
+    nach der Freigabe gesetzt wird; niemand muss hier eine Zeile von Hand wegraeumen (und keine
+    bleibt aus Versehen stehen).
+
+    Verglichen wird STELLENWEISE, weil eine Zeile zwei Nummern tragen kann („1.1.27 / 1.2.27" =
+    Handy und Uhr). Erst wenn JEDE Live-Nummer ihre abgelehnte erreicht oder ueberholt hat, ist
+    die Zeile erledigt — sonst stuende sie nicht mehr da, obwohl eine der beiden Spuren noch
+    haengt. Passen die Anzahlen nicht zusammen (kaeme nur bei einer Umgruppierung vor), gilt der
+    Vergleich der jeweils hoechsten Nummer.
+    """
+    zeile = next((r for r in live if r["name"] == abgelehnt["name"]), None)
+    if zeile is None:                     # nichts live -> die Ablehnung ist die einzige Aussage
+        return True
+    aus = [x.strip() for x in str(zeile.get("version") or "").split("/") if x.strip()]
+    weg = [x.strip() for x in str(abgelehnt.get("version") or "").split("/") if x.strip()]
+    if not aus or not weg:
+        return True
+    if len(aus) != len(weg):
+        aus, weg = [max(aus, key=_ver_tupel)], [max(weg, key=_ver_tupel)]
+    # offen, solange MINDESTENS eine Spur noch hinter der abgelehnten Nummer liegt
+    return any(_neuer_als(w, a) for a, w in zip(aus, weg))
+
+
 @router.get("/releases")
 def releases() -> dict:
     """Was ist live, was liegt im Review, was wurde abgelehnt, was kommt als Naechstes.
@@ -503,7 +532,8 @@ def releases() -> dict:
     # fuer Nutzer die nuetzlichste Zeile der ganzen Tabelle (Jan, 05.09.).
     live.insert(0, {"name": "Website", "version": "always up to date",
                     "store_url": "", "note": "new things appear here first, without a store"})
-    return {"live": live, "review": IN_REVIEW, "rejected": ABGELEHNT, "next": NAECHSTES}
+    abgelehnt = [r for r in ABGELEHNT if _noch_offen(r, live)]
+    return {"live": live, "review": IN_REVIEW, "rejected": abgelehnt, "next": NAECHSTES}
 
 
 # --------------------------------------------------------------------------------------
