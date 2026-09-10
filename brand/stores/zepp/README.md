@@ -3,11 +3,16 @@
 Alles, was die Zepp-Konsole (`developer.zepp.com`, appId 1118995) an Bildern verlangt, liegt hier
 zum direkten Hochladen. **Vorgaben:** https://docs.zepp.com/docs/distribute/#appic
 
+> ⚠️ Der Link, den die Zepp-Ablehnungsmail vom 10.09.2026 nennt
+> (`docs.zepp.com/docs/guides/app-development/app-submission/#preview-images`), ist **tot** — 404 im
+> Browser wie per Abruf. Gültig ist der Pfad oben. Die neue Doku-Spiegelung wurde gegengeprüft und
+> trägt **wortgleich** denselben Text; an der Spezifikation hat sich also nichts geändert.
+
 | Konsolen-Feld | Datei hier | Vorgabe | gemessen |
 |---|---|---|---|
 | **App Icon** | `app-icon-240.png` | 240×240 PNG, kreisrund, **transparenter** Hintergrund, **kein** Rand | 240×240 RGBA, flach cyan `#22d3ee` (kein Verlauf), Kreis berührt alle vier Ränder (Alpha 255 an jeder Randmitte), Ecken transparent |
-| **Screenshots runde Uhren** | `screenshots-rund/` (8×) | 360×360 PNG, transparenter Hintergrund, mittig, **kein** Rand | 360×360 RGBA, Inhalt 360×360 an (0,0) — Rand 0 auf allen Seiten |
-| **Screenshots eckige Uhren** | `screenshots-eckig/` (7×) | 360×360 PNG, transparent, mittig, links/rechts **gleicher** Rand, oben/unten keiner | 360×360 RGBA, Inhalt **312**×360 an (24,0) — links 24, rechts **24**, oben/unten 0 |
+| **Screenshots runde Uhren** | `screenshots-rund/` (7×) | 360×360 PNG, transparenter Hintergrund, mittig, **kein** Rand | 360×360 RGBA, Inhalt 360×360 an (0,0) — Rand 0 auf allen Seiten |
+| **Screenshots eckige Uhren** | `screenshots-eckig/` (7×) | 360×360 PNG, transparent, mittig, links/rechts **gleicher** Rand, oben/unten keiner | 360×360 RGBA, Inhalt **312**×360 an (24,0) — links 24, rechts **24**, oben/unten 0; Inhalt **durchgehend deckend**, **0** halbdurchsichtige Pixel; Verhältnis 0,86667 = genau 390:450 |
 
 Quellen (hier nur Kopien, damit ein Feld einer Datei entspricht):
 `brand/app-icons/zepp-240-round.png` und `screenshots/watch/zepp/store360/{rund,eckig}/`.
@@ -44,18 +49,73 @@ Die Konsole interessiert der Dateiname nicht.
 **Beim naechsten Erweitern der Reihen:** jeder Bildschirm muss in BEIDEN Reihen vorkommen, und ein
 zweites Bild desselben Bildschirms zaehlt nicht — beides pruefen, bevor hochgeladen wird.
 
-## Der eine gefundene Regelbruch (behoben 01.09.)
+**Seit 10.09. macht das der Generator selbst.** Das Loeschen von Hand war eine Falle: aus den acht
+Rohbildern legte `scripts/zepp-store-previews.py` bei jedem Lauf wieder acht Dateien an, also auch
+das Duplikat. Jetzt erkennt es doppelte Aufnahmen (mittlere Abweichung unter `DUPLIKAT_SCHWELLE`
+= 1,0; gemessen 0,03 beim Duplikat gegen 4,32 beim naechstaehnlichsten echten Paar), ueberspringt
+sie und **laesst die Nummer frei** — die Luecke bei 06 entsteht damit von selbst, statt jedes Mal
+neu weggeraeumt zu werden.
+
+## Zwei gefundene Regelbrueche
+
+### 1. Ungerader Rand (behoben 01.09., Ursache erst 10.09. entfernt)
 
 Die eckigen Screenshots hatten Inhalt **311**×360 und damit **links 24, rechts 25** Pixel Rand.
 Die Vorgabe sagt ausdruecklich „an **equal** margins on the left and right". Mit 311 ist das
-unmoeglich: 360 − 311 = 49 ist ungerade. Der Inhalt ist deshalb jetzt **312** breit (Rand 24/24) —
-ein Pixel Breite, unsichtbar, aber die Regel ist erfuellt.
+unmoeglich: 360 − 311 = 49 ist ungerade. Der Inhalt ist deshalb **312** breit (Rand 24/24).
 
-Die runden Screenshots sind **einwandfrei** und waren es auch vorher: echte Kreise (78,2 % Deckung
-der Box = π/4, also Durchmesser genau 360), transparente Ecken, Rand 0 auf allen Seiten. Auch das
-App-Icon ist regelkonform. Womit die Haelfte der Ablehnung („circular preview image") nicht durch
-Messung erklaerbar ist — wenn sie erneut kommt, bei Zepp nachfragen, WELCHE Datei gemeint ist,
-statt hier weiter zu raten.
+**Das war am 01.09. aber nur von Hand geheilt.** Der Generator rechnete weiter
+`round(776 · 360 / 898)` = **311** — ein Lauf haette den Regelbruch zurueckgeholt. Seit 10.09.
+schnappt er den Zuschnitt vorher auf das **exakte Geraeteverhaeltnis 390:450** (das eckige Amazfit,
+s. `watch-zepp/page/index.js:140` „die 390er ist die Ausnahme"), dann fallen 312 zwangslaeufig heraus.
+
+**Und geheilt war nur EINE der beiden Ablagen.** Am 10.09. nachgemessen: `screenshots-eckig/` hier
+hatte 312 (Rand 24/24), `screenshots/watch/zepp/store360/eckig/` aber weiterhin **311** (Rand 24/25)
+— das Repo trug die kaputte und die reparierte Fassung gleichzeitig, obwohl oben steht „hier nur
+Kopien". Wer aus dem falschen Ordner hochlaedt, reicht den Regelbruch ein. Jetzt sind alle sieben
+Paare **byteweise identisch**, und weil beide Ablagen aus demselben Generatorlauf kommen, koennen
+sie nur noch gemeinsam auseinanderlaufen. **Nach jedem Lauf die Kopie erneuern:**
+
+    cp screenshots/watch/zepp/store360/eckig/*.png brand/stores/zepp/screenshots-eckig/
+
+### 2. Die runden UNTEREN Ecken des Simulatorfensters (behoben 10.09.) — Ursache der 2. Ablehnung
+
+**1.0.7 wurde am 10.09.2026 erneut abgelehnt**, diesmal nur noch das eckige Bild: „The square
+preview image does not comply with regulations. Please carefully review the preview image
+specifications and make adjustments as required for the format, size, aspect ratio, transparency
+and corresponding device shape."
+
+Nach dem Buchstaben der Vorgabe waren die Bilder in Ordnung — der Fehler steckte im **Alphakanal**.
+Gemessen in jeder der sieben Dateien: genau **42 halbdurchsichtige Pixel**, und zwar ausschliesslich
+in den **beiden UNTEREN Ecken**. Oben hart 255 (scharfe Ecke), unten eine weich ausgelaufene Rundung
+ueber ~6 px, dazu Alpha ~44 vom **macOS-Fensterschatten**. Also eine Form mit scharfen oberen und
+runden unteren Ecken — **so sieht kein Geraet aus**, und genau das trifft „corresponding device
+shape".
+
+Woher: die Rohbilder unter `screenshots/watch/zepp/raw/square/` sind Fenster-Mitschnitte
+(1004×1180 RGBA, 355 674 halbdurchsichtige Pixel = Schatten). `rand_weg()` im Generator schneidet
+nur Zeilen und Spalten weg, die **ueberwiegend hell** sind — eine runde Ecke ist das nicht, also
+ueberlebte sie den Zuschnitt und wurde mit dem Alphakanal 1:1 durchkopiert.
+
+**Behoben:** der eckige Satz wird jetzt als RGB zugeschnitten (der Alphakanal des Mitschnitts wird
+verworfen) und das Alpha danach HART gesetzt — 255 im Inhalt, 0 aussen. Kein Schatten, keine
+Rundung, keine Teildurchsichtigkeit. Nachgemessen: **0** halbdurchsichtige Pixel, Inhalt
+durchgehend deckend. Der Generator prueft das selbst und bricht ab, wenn es nicht stimmt.
+
+**Die runde Reihe blieb dabei byteweise unveraendert** (alle sieben Dateien, RGB- und
+Alpha-Abweichung 0) — sie ist von Zepp inzwischen ja akzeptiert: in der zweiten Ablehnung wird sie
+nicht mehr genannt, in der ersten („circular preview image") noch. Die Vermutung von damals, die
+Haelfte der Ablehnung sei nicht durch Messung erklaerbar, ist damit erledigt.
+
+Die runden Screenshots sind **einwandfrei**: echte Kreise (78,2 % Deckung der Box = π/4, also
+Durchmesser genau 360), transparente Ecken, Rand 0 auf allen Seiten. Auch das App-Icon ist
+regelkonform.
+
+### Fuer die dritte Runde
+
+Das Zepp-**Paket** ist von der Ablehnung nicht betroffen — 1.0.7 kann mit den korrigierten Bildern
+erneut eingereicht werden, **ohne Versions-Bump** (`watch-zepp/app.json` steht ohnehin schon auf
+1.0.8/code 11 fuer die naechste Fassung).
 
 ## ⚠️ Falle im Generator
 
