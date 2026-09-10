@@ -344,10 +344,10 @@ object Recorder {
 
     /** Nur für Screenshots/Debug: setzt einen aktiven Aufnahme-Zustand mit festen Werten,
      *  ohne echte Sensoren/GPS (siehe DemoReceiver + scripts/wear-demo.sh). */
-    fun demo(speedKmh: Double, hr: Int) {
+    fun demo(speedKmh: Double, hr: Int, pulsMessung: Boolean = true) {
         running = false   // echte Sensor-/GPS-Callbacks ignorieren, sonst überschreiben sie die Demo-Werte
         _state.value = _state.value.copy(
-            recording = true, starting = false, status = "",
+            recording = true, starting = false, status = "", pulsMessung = pulsMessung,
             speedKmh = speedKmh, speed3sKmh = speedKmh, maxSpeedKmh = speedKmh + 1.2, avgSpeedKmh = speedKmh - 0.8,
             distanceM = 1234.0, elapsedSec = 312, isFoiling = true, runCount = 3,
             runDurationMs = 84_000, runDistanceM = 420.0, runMaxSpeedKmh = speedKmh + 1.2,
