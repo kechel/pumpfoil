@@ -506,6 +506,10 @@ private let _ptOverlayP3: [String: String] = [
     "sessions.searchSpot": "Buscar spot",
     "sessions.empty": "Sem sessões",
     "sessions.oclock": "",
+    "status.analyzed": "analisada",
+    "status.complete": "processando",
+    "status.live": "● ao vivo",
+    "status.recording": "gravando",
 ]
 private let _ptOverlayP3s2: [String: String] = [
     "sd.duration": "Duração",
@@ -1447,6 +1451,10 @@ private let _jaOverlayP3: [String: String] = [
     "sessions.searchSpot": "スポットを検索",
     "sessions.empty": "セッションがありません",
     "sessions.oclock": "",
+    "status.analyzed": "解析済み",
+    "status.complete": "処理中",
+    "status.live": "● ライブ",
+    "status.recording": "記録中",
 ]
 private let _jaOverlayP3s2: [String: String] = [
     "sd.duration": "継続時間",
@@ -2388,6 +2396,10 @@ private let _zhOverlayP3: [String: String] = [
     "sessions.searchSpot": "搜索地点",
     "sessions.empty": "暂无记录",
     "sessions.oclock": "",
+    "status.analyzed": "已分析",
+    "status.complete": "处理中",
+    "status.live": "● 实时",
+    "status.recording": "记录中",
 ]
 private let _zhOverlayP3s2: [String: String] = [
     "sd.duration": "时长",
@@ -3329,6 +3341,10 @@ private let _ruOverlayP3: [String: String] = [
     "sessions.searchSpot": "Поиск спота",
     "sessions.empty": "Нет сессий",
     "sessions.oclock": "",
+    "status.analyzed": "проанализировано",
+    "status.complete": "обработка",
+    "status.live": "● в эфире",
+    "status.recording": "запись",
 ]
 private let _ruOverlayP3s2: [String: String] = [
     "sd.duration": "Длительность",
@@ -4270,6 +4286,10 @@ private let _idOverlayP3: [String: String] = [
     "sessions.searchSpot": "Cari spot",
     "sessions.empty": "Tidak ada sesi",
     "sessions.oclock": "",
+    "status.analyzed": "dianalisis",
+    "status.complete": "sedang diproses",
+    "status.live": "● live",
+    "status.recording": "merekam",
 ]
 private let _idOverlayP3s2: [String: String] = [
     "sd.duration": "Durasi",
@@ -5237,6 +5257,10 @@ private let _nbOverlayP4: [String: String] = [
     "sessions.searchSpot": "Søk spot",
     "sessions.empty": "Ingen økter",
     "sessions.oclock": "",
+    "status.analyzed": "analysert",
+    "status.complete": "behandles",
+    "status.live": "● live",
+    "status.recording": "tar opp",
 ]
 private let _nbOverlayP4s2: [String: String] = [
     "sd.duration": "Varighet",
@@ -6176,6 +6200,10 @@ private let _plOverlayP3s2: [String: String] = [
     "sessions.searchSpot": "Szukaj spotu",
     "sessions.empty": "Brak sesji",
     "sessions.oclock": "",
+    "status.analyzed": "przeanalizowana",
+    "status.complete": "przetwarzanie",
+    "status.live": "● na żywo",
+    "status.recording": "nagrywanie",
     "sd.duration": "Czas trwania",
     "hist.spotAnim": "Postęp na spocie",
     "hist.spotAnimHint": "Wybierz spot — Twoje przejazdy z tego miejsca przewijają się chronologicznie na stałej mapie (kolor = prędkość).",
