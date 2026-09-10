@@ -294,12 +294,11 @@ ABGELEHNT: list[dict] = [
              "fixed and going back with the next version"},
 ]
 
-# Nichts liegt gerade in der Pruefung (Stand 10.09.2026): Google hat Wear 1.2.27 abgelehnt, Zepp
-# 1.0.7 ebenfalls, und die jeweiligen Nachfolger sind gebaut, aber noch nicht hochgeladen. Solange
-# diese Liste leer ist, blendet /changelog den Abschnitt „Being reviewed" aus.
-IN_REVIEW: list[dict] = []
-
-NAECHSTES: list[dict] = [
+# Solange diese Liste leer ist, blendet /changelog den Abschnitt „Being reviewed" aus.
+# Stand 10.09.2026 10:10: Android Phone 1.1.28 (42) + Wear 1.2.28 (1038) sind eingereicht (Jans
+# Meldung, Play-Konsole in den Vorabpruefungen). Amazfit 1.0.8 ist noch nicht hochgeladen und steht
+# deshalb weiter unter NAECHSTES.
+IN_REVIEW: list[dict] = [
     {"name": "Android phone + Wear OS", "version": "1.1.28 / 1.2.28",
      # ERSETZT die Einreichung vom 07.09. (1.1.26/1.2.26), bevor Google sie freigegeben hat —
      # Entscheidung Jan (08.09.2026): „statt eine Woche zu warten lade ich das Update direkt neu
@@ -325,10 +324,18 @@ NAECHSTES: list[dict] = [
      # zurueck, die auf einer runden Uhr traegt; s. docs/TODO.md.
      #
      # PHONE auf 1.1.28 / 42: Code 41 wurde am 08.09. hochgeladen und ist damit verbraucht, auch
-     # wenn Play die Fassung nicht veroeffentlicht hat. Der Play-Store-Eintrag nennt weiter
-     # „Aktualisiert am 02.09." — die Handy-Spur hat also nichts ausgeliefert. Damit tragen Phone
-     # und Wear wieder dasselbe „x" (s. Kommentar in android/app/build.gradle.kts).
-     "note": "a display fix is ready and this goes back to Google next",
+     # wenn Play die Fassung nicht veroeffentlicht hat. Beim Upload am 10.09. hat Play die 42
+     # angenommen — der Bump war also noetig.
+     #
+     # DASS 1.1.27 nie ausgeliefert wurde, belegt die Play-KONSOLE: „Zuletzt veroeffentlicht am
+     # 7. September 2026", und das war 1.1.25/1.2.25. Die oeffentliche Store-Seite taugt dafuer
+     # NICHT: sie nennt „Aktualisiert am 02.09." und meint damit offenbar das Anlegen des
+     # Releases, nicht die Auslieferung (das Release zu 1.1.25 wurde am 02.09. 15:53 GMT
+     # erstellt und ging am 07.09. live). Wer hier das Store-Datum als Auslieferungsdatum liest,
+     # zieht falsche Schluesse — die Konsole fragen.
+     #
+     # Damit tragen Phone und Wear wieder dasselbe „x" (s. android/app/build.gradle.kts).
+     "note": "submitted 10 September, waiting for Google",
      "items": [
          "The heart-rate field now says how old the reading is \u2014 '59 s ago' instead of "
          "'bpm' \u2014 as soon as the watch stops measuring continuously. Before, a note sat in "
@@ -368,6 +375,9 @@ NAECHSTES: list[dict] = [
          "COROS: the app says which mode records the best data, and what COROS does not "
          "hand over.",
      ]},
+]
+
+NAECHSTES: list[dict] = [
     {"name": "Amazfit", "version": "1.0.8",
      # 1.0.7 wurde ZWEIMAL abgelehnt, beide Male nur wegen der Store-Vorschaubilder (nie wegen der
      # App) — s. ABGELEHNT oben und brand/stores/zepp/README.md. Entscheidung Jan (10.09.2026):
