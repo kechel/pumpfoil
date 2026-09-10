@@ -124,6 +124,11 @@ h2.dirtitle { text-transform: none; white-space: nowrap; overflow: hidden; text-
 .rvlbl { width: 74px; flex: none; font-size: 11px; opacity: .75; }
 .rvtxt { flex: 1; min-width: 0; font-size: 12px; padding: 4px 6px; border-radius: 6px;
   border: 1px solid #8886; background: transparent; color: inherit; resize: vertical; font-family: inherit; }
+/* Chinesische Fassung fuer RedNote: dasselbe Feld, nur ruhiger gesetzt, damit
+   die Hauptsprache die Zeile fuehrt. Leer heisst "nimm den Text daneben". */
+.rvtxt.zh, .txrow textarea.zh { border-style: dashed; opacity: .78; }
+.rvtxt.zh:focus, .txrow textarea.zh:focus { border-style: solid; opacity: 1; }
+.rvtxt.zh { flex: 0 1 34%; }
 .rvrow .tstart { width: 54px; font-size: 12px; padding: 4px; border-radius: 6px;
   border: 1px solid #8886; background: transparent; color: inherit; }
 .rvrow .thold { width: 42px; font-size: 12px; padding: 4px; border-radius: 6px;

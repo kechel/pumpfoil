@@ -2313,28 +2313,35 @@ class Handler(BaseHTTPRequestHandler):
         ducks = [d for d in (req.get("ducks") or []) if isinstance(d, dict)]
         trim_start = float(req.get("trim_start") or 0)
         trim_end = float(req["trim_end"]) if req.get("trim_end") else None
-        # Text-PNGs (Base64 vom Browser-Canvas) in Temp-Dateien auspacken
+        # Text-PNGs (Base64 vom Browser-Canvas) in Temp-Dateien auspacken.
+        # Zwei Saetze: der normale und der chinesische fuer RedNote. Das Studio
+        # schickt "png_zh" nur, wo Chinesisch ueberhaupt etwas aendert — sonst
+        # zeigt derselbe Eintrag in beiden Listen auf dieselbe Datei.
         texts = []
+        texts_zh = []
         tmp_pngs = []
-        for t in (req.get("texts") or []):
-            if not (isinstance(t, dict) and t.get("png")
-                    and t.get("start") is not None):
-                continue
-            fd, pth = tempfile.mkstemp(suffix=".png")
-            os.write(fd, base64.b64decode(t["png"].split(",", 1)[-1]))
-            os.close(fd)
-            tmp_pngs.append(pth)
-            texts.append({"start": t["start"], "hold": t.get("hold", TEXT_HOLD),
-                          "fade": t.get("fade", TEXT_FADE), "png": pth})
-        outros = {}
-        for pf, dataurl in (req.get("outros") or {}).items():
-            if not dataurl:
-                continue
+
+        def _png_datei(dataurl: str) -> str:
             fd, pth = tempfile.mkstemp(suffix=".png")
             os.write(fd, base64.b64decode(dataurl.split(",", 1)[-1]))
             os.close(fd)
             tmp_pngs.append(pth)
-            outros[pf] = Path(pth)
+            return pth
+
+        for t in (req.get("texts") or []):
+            if not (isinstance(t, dict) and t.get("png")
+                    and t.get("start") is not None):
+                continue
+            eintrag = {"start": t["start"], "hold": t.get("hold", TEXT_HOLD),
+                       "fade": t.get("fade", TEXT_FADE),
+                       "png": _png_datei(t["png"])}
+            texts.append(eintrag)
+            texts_zh.append({**eintrag, "png": _png_datei(t["png_zh"])}
+                            if t.get("png_zh") else eintrag)
+        outros = {}
+        for pf, dataurl in (req.get("outros") or {}).items():
+            if dataurl:
+                outros[pf] = Path(_png_datei(dataurl))
         out_name = re.sub(r"[/\\:\x00-\x1f]+", "-", (req.get("out_name") or "").strip())
         out_name = re.sub(r"\.mp4$", "", out_name, flags=re.I)
         # Nummer + "Pumpfoil-<Jahr>-" automatisch; manuell Getipptes gewinnt
@@ -2381,9 +2388,10 @@ class Handler(BaseHTTPRequestHandler):
                                          "erlaubten Ordner")
                 # Lizenznachweis im Dateinamen: woher die Musik DIESER Fassung stammt
                 pf_suffix = musik_suffix(rel)
-                # Chinesische Endcard/Overlay, wo es sie gibt (RedNote)
-                ec_pf, ov_pf = endcard, overlay
+                # Chinesische Endcard/Overlay/Texte, wo es sie gibt (RedNote)
+                ec_pf, ov_pf, tx_pf = endcard, overlay, texts
                 if pf in ZH_PLATTFORMEN:
+                    tx_pf = texts_zh
                     if endcard:
                         ec_pf = {**endcard, "path": zh_variante(endcard["path"])}
                     if overlay:
@@ -2394,7 +2402,7 @@ class Handler(BaseHTTPRequestHandler):
                 if old is not None and old != out:
                     old.unlink()
                 render(video, track, out, gain, fade_out, ov_pf,
-                       trim_start, trim_end, texts, outros.get(pf),
+                       trim_start, trim_end, tx_pf, outros.get(pf),
                        float(req.get("overlay_alpha", 1.0)),
                        oton_gain_db=oton_gain, ducks=ducks, endcard=ec_pf,
                        tail_secs=float(req.get("tail_secs") or 0.0))
