@@ -251,7 +251,7 @@ GRUPPEN = [
 # heute NIRGENDS, bis es veroeffentlicht wird. Bei der Freigabe wandern die Zeilen unveraendert
 # nach `Changelog.tsx` — abschreiben, nicht neu erfinden.
 IN_REVIEW: list[dict] = [
-    {"name": "Android phone + Wear OS", "version": "1.1.27 / 1.2.27",
+    {"name": "Android phone + Wear OS", "version": "1.1.27 / 1.2.28",
      # ERSETZT die Einreichung vom 07.09. (1.1.26/1.2.26), bevor Google sie freigegeben hat —
      # Entscheidung Jan (08.09.2026): „statt eine Woche zu warten lade ich das Update direkt neu
      # hoch, dann verlieren wir nur einen Tag anstatt einer ganzen Woche fuer den echten Bugfix
@@ -262,8 +262,19 @@ IN_REVIEW: list[dict] = [
      # WICHTIG: die Punkte sind ZUSAMMENGEFUEHRT. 1.1.27 ist derselbe Baum wie 1.1.26 plus die
      # vier Wear-Commits von heute — waeren hier nur die neuen drei Zeilen aufgefuehrt, fehlten
      # den Nutzern die 13 aus der ersetzten Einreichung, denn die ist nie erschienen.
-     "note": "submitted 8 September (replaces the 7 September build), waiting for Google",
+     # 10.09.2026: Google hat die WEAR-Spur (1.2.27 / Code 1037) abgelehnt — Wear App Quality
+     # Guidelines, „Wear font size": auf dem Beleg-Screenshot lag „Puls passiv" oben rechts
+     # hinter der runden Fassung. Eine abgelehnte Nummer nimmt Play nicht wieder an, deshalb
+     # 1.2.28 / 1038. Die Punkte bleiben ZUSAMMENGEFUEHRT (dieselbe Regel wie beim Ersetzen der
+     # Einreichung vom 07.09.): erschienen ist bis jetzt nichts davon.
+     "note": "resubmitted 10 September after a display fix for large system fonts, "
+             "waiting for Google",
      "items": [
+         "On a round watch the note that heart rate is only measured now and then sat in the "
+         "top right corner, where the bezel cuts the screen away — most of it was invisible, "
+         "and the touch lock for the water had the same problem in the top left. Both now sit "
+         "in the middle at the top and stay readable if you pick a larger font in the system "
+         "settings.",
          "The watch uses its own GPS instead of taking the position from your phone. Until now "
          "it asked the system for \u201ethe best location\u201c, and on a watch that can mean the "
          "phone lying on the shore — the track then shows where your phone was, not where you "
