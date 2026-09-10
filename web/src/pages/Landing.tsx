@@ -171,11 +171,12 @@ export default function Landing() {
                 10.09.2026: „eine liste aller unterstuetzter plattformen fuer google seo &
                 google ki"). Weiter unten stehen dieselben Marken nur als LOGOS — Bilder
                 traegt eine Suchmaschine nur ueber `alt`, und eine Antwort-KI zieht Text.
-                Genannt wird auch, WIE die Uhr angebunden ist: eigene App, Konto-Verknuepfung
-                oder Handy. Das gehoert nicht in den „Direkt auf der Uhr"-Absatz weiter unten —
-                der handelt bewusst von eigenen Apps, und dort waere „laeuft offline" fuer eine
-                Polar falsch. */}
-            <p className="mx-auto mt-2 max-w-2xl text-sm text-slate-400">{t("land.heroPlatforms")}</p>
+                BEWUSST OHNE Unterscheidung zwischen eigener App und Konto-Verknuepfung (Jan:
+                „unterscheide hier nicht zwischen native und link, die klammern weg") — hier
+                zaehlt nur, WAS unterstuetzt wird; das WIE steht in den Abschnitten darunter.
+                GLEICHE Schrift wie der Satz darueber: kleiner und blasser sah unruhig aus und
+                stufte die Zeile herab, sie ist nicht unwichtiger. */}
+            <p className="mx-auto mt-3 max-w-2xl text-base text-slate-300 sm:text-lg">{t("land.heroPlatforms")}</p>
 
             {/* Kompakter Promo-Block: aktueller Lieblings-Short (Click-to-Load, datensparsam);
                 rechts daneben der Titel (größer) + Social-Links darunter. */}
@@ -222,6 +223,27 @@ export default function Landing() {
                     aria-label="TikTok" className="text-slate-300 hover:text-brand-600 dark:hover:text-brand-300">
                     <svg viewBox="0 0 24 24" className="h-7 w-7" fill="currentColor" aria-hidden="true">
                       <path d="M16.5 3c.3 2.2 1.5 3.7 3.6 4v2.5c-1.3.1-2.5-.2-3.6-.9v5.9c0 3.3-2.4 5.5-5.4 5.5A5.2 5.2 0 0 1 6 14.9c0-3.2 3-5.6 6.3-4.8v2.7a2.3 2.3 0 0 0-1-.2 2.5 2.5 0 0 0 .1 5c1.4 0 2.5-1.1 2.5-2.7V3h2.6Z" />
+                    </svg>
+                  </a>
+                  <a href="https://www.facebook.com/pumpfoil" target="_blank" rel="noopener noreferrer"
+                    aria-label="Facebook" className="text-slate-300 hover:text-brand-600 dark:hover:text-brand-300">
+                    <svg viewBox="0 0 24 24" className="h-7 w-7" fill="currentColor" aria-hidden="true">
+                      <path d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.8 3.7-3.8 1.1 0 2.2.2 2.2.2v2.4h-1.2c-1.2 0-1.6.8-1.6 1.6V12h2.7l-.4 2.9h-2.3v7A10 10 0 0 0 22 12Z" />
+                    </svg>
+                  </a>
+                  {/* RedNote (Xiaohongshu). Fuer die Plattform gibt es kein etabliertes
+                      EINFARBIGES Zeichen — ihre Marke ist ein Wortzeichen in Weiss auf Rot, und
+                      ein CJK-Glyph per SVG-<text> haengt an einer Schrift, die auf dem Geraet
+                      fehlen kann. Deshalb ein Buch im gerundeten Quadrat, im Strich-Stil des
+                      Instagram-Icons daneben: 小红书 heisst „kleines rotes Buch". */}
+                  <a href="https://www.xiaohongshu.com/user/profile/6a9ef5d1000000000301c6a6"
+                    target="_blank" rel="noopener noreferrer"
+                    aria-label="RedNote (Xiaohongshu)" className="text-slate-300 hover:text-brand-600 dark:hover:text-brand-300">
+                    <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="2"
+                      strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <rect x="2" y="2" width="20" height="20" rx="5" />
+                      <path d="M7 8.6c1.7-.7 3.3-.7 5 0 1.7-.7 3.3-.7 5 0v6.8c-1.7-.7-3.3-.7-5 0-1.7-.7-3.3-.7-5 0V8.6Z" />
+                      <path d="M12 8.6v6.8" />
                     </svg>
                   </a>
                 </div>

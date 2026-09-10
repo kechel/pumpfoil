@@ -896,7 +896,7 @@ const cs: Record<string, string> = {
   "land.deep3": "Druhé měření, s fotkami a křivkami",
   "land.deep4": "Architektura systému",
   "land.heroSub": "Pumpfoil spojuje tvé hodinky s detailní analýzou: GPS trasa, vzdálenost foilingu, frekvence pumpování a fáze klouzání — automaticky z každé relace.",
-  "land.heroPlatforms": "Funguje s Garmin, Apple Watch, Wear OS a Amazfit (naše vlastní aplikace pro hodinky), s Polar, COROS, Suunto a Xiaomi (propojení účtu) a s tvým telefonem Android nebo iOS.",
+  "land.heroPlatforms": "Funguje s Garmin, Apple Watch, Wear OS, Amazfit, Polar, COROS, Suunto, Xiaomi a s tvým telefonem Android nebo iOS.",
   "land.illmenseeTitle": "Naše krásné jezero Illmensee",
   "land.videosTitle": "Pumpfoil v akci",
   "land.videosBody": "Klipy z našeho YouTube kanálu — skutečné pumpování, skutečný glide.",

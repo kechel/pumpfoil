@@ -800,7 +800,7 @@ const ru: Record<string, string> = {
   "land.deep3": "Второе измерение, с фото и графиками",
   "land.deep4": "Архитектура системы",
   "land.heroSub": "Pumpfoil связывает ваши часы с детальным анализом: GPS-трек, дистанция на фойле, каденция помпинга и фазы скольжения — автоматически из каждой сессии.",
-  "land.heroPlatforms": "Работает с Garmin, Apple Watch, Wear OS и Amazfit (наши приложения для часов), с Polar, COROS, Suunto и Xiaomi (привязка аккаунта) и с твоим телефоном Android или iOS.",
+  "land.heroPlatforms": "Работает с Garmin, Apple Watch, Wear OS, Amazfit, Polar, COROS, Suunto, Xiaomi и с твоим телефоном Android или iOS.",
   "land.illmenseeTitle": "Наш прекрасный Illmensee",
   "land.videosTitle": "Pumpfoil в действии",
   "land.videosBody": "Клипы с нашего канала на YouTube — настоящий помпинг, настоящее скольжение.",
