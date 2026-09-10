@@ -23,8 +23,12 @@ android {
         // Teilen-Dialog-Fix ist das Phone auf 1.1.21/35 nachgezogen -> „x gleich" gilt wieder.
         // 1.2.22 ist wieder ein Wear-only-Nachzug (Puls ueber Health Services): 1.2.21/1031 lag
         // beim Fund schon in der Play-Pruefung, deshalb der eigene Bump statt einer Ergaenzung.
-        versionCode = 1037
-        versionName = "1.2.27"
+        // 1.2.28/1038 ist ebenfalls Wear-only: Google hat 1.2.27/1037 abgelehnt („Wear font
+        // size" — „Puls passiv" lag oben rechts hinter der runden Fassung). Eine abgelehnte
+        // Nummer laesst Play nicht erneut einreichen, also ein Bump ohne Phone-Aenderung; das
+        // „x" laeuft damit vorruebergehend auseinander (Phone bleibt 1.1.27/41).
+        versionCode = 1038
+        versionName = "1.2.28"
     }
     buildFeatures { compose = true }
     composeOptions { kotlinCompilerExtensionVersion = "1.5.14" }

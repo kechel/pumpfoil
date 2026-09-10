@@ -37,17 +37,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.isSpecified
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.*
 import android.os.Looper
+import kotlin.math.sqrt
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -694,16 +697,24 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                 // stuende in der Spur, wo das Handy lag (Vorgabe Jan, 08.09.2026). Derselbe
                 // Balken wie bei der eingefrorenen Ortung, nur mit eigenem Text.
                 if (s.gpsOhneHardware) {
-                    Text(
-                        I18n.t("rec.gpsNoHardware"),
-                        color = Color.White,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
-                        lineHeight = 14.sp,
-                        modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth()
-                            .background(Color(0xFFB91C1C)).padding(horizontal = 10.dp, vertical = 3.dp),
-                    )
+                    // Farbflaeche ueber die ganze Breite (die Fassung darf sie beschneiden,
+                    // das ist nur Farbe), der TEXT aber nur so breit wie die Sehne an dieser
+                    // Hoehe — sonst steht er hinter dem Rand. Siehe sichereBreite().
+                    Box(
+                        Modifier.align(Alignment.TopCenter).fillMaxWidth()
+                            .background(Color(0xFFB91C1C)).padding(top = 14.dp, bottom = 5.dp),
+                        contentAlignment = Alignment.TopCenter,
+                    ) {
+                        Text(
+                            I18n.t("rec.gpsNoHardware"),
+                            color = Color.White,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            lineHeight = 14.sp,
+                            modifier = Modifier.width(sichereBreite(14.dp)),
+                        )
+                    }
                 }
                 if (s.gpsStale) {
                     // GROSS und nicht zu uebersehen (Jan, 03.09.): ein „--" im Tempo-Feld liest
@@ -730,53 +741,81 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                                 fontSize = 12.sp, textAlign = TextAlign.Center)
                         }
                     } else {
+                        Box(
+                            Modifier.align(Alignment.TopCenter).fillMaxWidth()
+                                .background(Color(0xFFFBBF24)).padding(top = 14.dp, bottom = 5.dp),
+                            contentAlignment = Alignment.TopCenter,
+                        ) {
+                            Text(
+                                I18n.t("rec.gpsStale"),
+                                color = Color(0xFF0F172A),
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center,
+                                lineHeight = 14.sp,
+                                modifier = Modifier.width(sichereBreite(14.dp)),
+                            )
+                        }
+                    }
+                }
+                // Alles Kleine oben sitzt in EINEM mittigen Band, nicht in den Ecken.
+                //
+                // Warum: auf einer runden Uhr schneidet die Fassung die Ecken komplett weg.
+                // Bei 227 dp Durchmesser sind 2 dp unter dem Scheitel nur 42 dp Breite
+                // sichtbar, 8 dp darunter 84 dp — in den Ecken selbst nichts. „Puls passiv"
+                // stand auf Alignment.TopEnd und lag damit fast vollstaendig hinter dem Rand;
+                // Google hat Version 1037 genau deswegen abgelehnt (Wear font size: „ensure
+                // that text and controls are not cut off by screen edges"). Der Wasser-Knopf
+                // oben links war aus demselben Grund kaum zu treffen.
+                //
+                // Mittig ist beides sichtbar, und weil die Breite auf die Sehne begrenzt ist,
+                // bleibt es das auch bei grosser System-Schrift: der Text bricht dann um,
+                // statt ueber den Rand zu laufen.
+                val aktivitaet = LocalContext.current as? MainActivity
+                val bandOben = 8.dp
+                Column(
+                    Modifier.align(Alignment.TopCenter).padding(top = bandOben)
+                        .width(sichereBreite(bandOben)),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        // Wassersperre: beim Pumpen schlaegt Wasser aufs Display und loest
+                        // Aktionen aus (Nutzer-Meldung 04.09.). Ein Tipp sperrt Touch, bis man
+                        // die Krone drueckt.
+                        if (aktivitaet != null && !AmbientState.aktiv.value) {
+                            Box(
+                                Modifier.clip(CircleShape)
+                                    .background(Color(0x33FFFFFF))
+                                    .clickable { aktivitaet.wassersperre() }
+                                    .padding(horizontal = 7.dp, vertical = 3.dp),
+                            ) {
+                                Text("\uD83D\uDCA7", fontSize = 12.sp)   // Wassertropfen
+                            }
+                        }
+                        // Upload-Indikator, wenn gerade Chunks hochgeladen werden.
+                        if (s.uploading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(12.dp), strokeWidth = 2.dp)
+                        }
+                    }
+                    // Puls wird NICHT aktiv gemessen: dann kommen Werte nur zufaellig, wenn die
+                    // Uhr ohnehin gerade misst — im gemeldeten Fall dreimal ueber 20 Minuten gar
+                    // nichts. Der Waechter im Service fordert die Messung neu an; bis das greift,
+                    // soll es wenigstens sichtbar sein.
+                    if (!s.pulsMessung) {
                         Text(
-                            I18n.t("rec.gpsStale"),
-                            color = Color(0xFF0F172A),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
+                            I18n.t("rec.hrPassive"),
+                            color = Color(0xFFFBBF24),
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium,
                             textAlign = TextAlign.Center,
-                            lineHeight = 14.sp,
-                            modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth()
-                                .background(Color(0xFFFBBF24)).padding(horizontal = 10.dp, vertical = 3.dp),
+                            lineHeight = 13.sp,
+                            modifier = Modifier.fillMaxWidth(),
                         )
                     }
-                }
-                // Wassersperre: kleiner Knopf oben LINKS, damit er weder mit dem Upload-Ring
-                // (oben mittig) noch mit den Seiten-Punkten (unten) kollidiert. Warum es ihn gibt:
-                // beim Pumpen schlaegt Wasser aufs Display und loest Aktionen aus (Nutzer-Meldung
-                // 04.09.). Ein Tipp sperrt Touch, bis man die Krone drueckt.
-                val aktivitaet = LocalContext.current as? MainActivity
-                if (aktivitaet != null && !AmbientState.aktiv.value) {
-                    Box(
-                        Modifier.align(Alignment.TopStart).padding(start = 6.dp, top = 2.dp)
-                            .clip(CircleShape)
-                            .background(Color(0x33FFFFFF))
-                            .clickable { aktivitaet.wassersperre() }
-                            .padding(horizontal = 7.dp, vertical = 3.dp),
-                    ) {
-                        Text("\uD83D\uDCA7", fontSize = 12.sp)   // Wassertropfen
-                    }
-                }
-                // Puls wird NICHT aktiv gemessen: dann kommen Werte nur zufaellig, wenn die Uhr
-                // ohnehin gerade misst — im gemeldeten Fall dreimal ueber 20 Minuten gar nichts.
-                // Der Waechter im Service fordert die Messung neu an; bis das greift, soll es
-                // wenigstens sichtbar sein.
-                if (!s.pulsMessung) {
-                    Text(
-                        I18n.t("rec.hrPassive"),
-                        color = Color(0xFFFBBF24),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Medium,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.align(Alignment.TopEnd).padding(end = 8.dp, top = 2.dp),
-                    )
-                }
-                // Upload-Indikator oben, wenn gerade Chunks hochgeladen werden.
-                if (s.uploading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.TopCenter).padding(top = 2.dp).size(12.dp),
-                        strokeWidth = 2.dp)
                 }
             }
         } else if (showSaved) {
@@ -978,8 +1017,11 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                     },
                     colors = ButtonDefaults.buttonColors(
                         backgroundColor = Color(0xFF34C759), contentColor = Color.White),
-                    modifier = Modifier.fillMaxWidth(0.72f).height(42.dp),
-                ) { Text(I18n.t("rec.start")) }
+                    // defaultMinSize statt height: bei grosser System-Schrift muss der Knopf
+                    // MITWACHSEN, sonst schneidet er seine eigene Beschriftung ab — dieselbe
+                    // Anforderung, an der Version 1037 gescheitert ist.
+                    modifier = Modifier.fillMaxWidth(0.72f).defaultMinSize(minHeight = 42.dp),
+                ) { Text(I18n.t("rec.start"), textAlign = TextAlign.Center) }
                 // Kein Standort = keine Strecke: das ist kein Nebenaspekt, sondern verhindert die
                 // Aufnahme. Deshalb zuerst und in Rot (der Puls-Hinweis darunter bleibt amber).
                 if (keinGnss) {
@@ -1241,6 +1283,28 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                 if (count == 1) MaterialTheme.typography.caption1 else MaterialTheme.typography.caption2,
                 Color(0xFF94A3B8), Modifier.fillMaxWidth(0.92f))
         }
+    }
+
+    /** Wie breit darf etwas sein, das `abstandOben` unter dem obersten Bildpunkt sitzt?
+     *
+     *  Auf einer RUNDEN Uhr ist das nicht die Displaybreite, sondern die Sehne des Kreises
+     *  auf dieser Hoehe — und die ist oben sehr kurz. Bei 227 dp Durchmesser (454 px bei
+     *  Faktor 2) sind 2 dp unter dem Scheitel 42 dp sichtbar, bei 8 dp sind es 84 dp, bei
+     *  24 dp erst 140 dp. Wer oben mit der vollen Breite rechnet, schreibt hinter die
+     *  Fassung; genau daran ist Version 1037 bei Google gescheitert.
+     *
+     *  Bewusst konservativ: gemessen wird an der OBERKANTE des Elements. Weiter unten waere
+     *  mehr Platz, aber ein mehrzeiliger Text soll auch in der ersten Zeile passen. Eckige
+     *  Displays (`isScreenRound == false`) bekommen die volle Breite. */
+    @Composable
+    private fun sichereBreite(abstandOben: Dp): Dp {
+        val conf = LocalConfiguration.current
+        val breite = conf.screenWidthDp.toFloat()
+        if (!conf.isScreenRound) return breite.dp
+        val r = breite / 2f
+        val mitteAbstand = r - abstandOben.value
+        val halb = sqrt((r * r - mitteAbstand * mitteAbstand).coerceAtLeast(0f))
+        return (2f * halb).dp
     }
 
     // Text, der sich verkleinert, bis er in EINE Zeile passt. Die Schriftgroessen oben sind fest
