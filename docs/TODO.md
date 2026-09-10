@@ -15,7 +15,7 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   | Ziel | Live | Lag in Pruefung | Jetzt |
   |---|---|---|---|
   | Android Phone | 1.1.25 (07.09.) | 1.1.27 (41) → **nicht ausgeliefert** | **1.1.28 (42)** — Code 41 ist beim Upload verbraucht |
-  | Wear OS | 1.2.25 (07.09.) | 1.2.27 (1037) → **abgelehnt** | **1.2.28 (1038) einreichfertig**, im Emulator geprueft |
+  | Wear OS | 1.2.25 (07.09.) | 1.2.27 (1037) → **abgelehnt** | **1.2.28 (1038) einreichfertig**, im Emulator bei 1,0 und 1,24 geprueft |
   | Zepp / Amazfit | 1.0.6 (24.08.) | 1.0.7 → **abgelehnt** | Bilder korrigiert (`e019fdd2`), einreichfertig |
   | iOS + Apple Watch | 1.1.31 (08.09.) | — | nichts offen |
   | Garmin | 1.0.85 (02.09.) | — | nichts offen |
@@ -773,6 +773,22 @@ Status „Warten auf Pruefung" ist, kostet ein Zurueckziehen nichts — nach der
 kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
+
+- **🟢 10.09. — Puls-Hinweis steht jetzt am Puls-Feld, nicht oben im Band.** Vorschlag Jan:
+  „wird denn auf der ansicht nicht auch der puls angezeigt? warum zeigen wir das dann nicht
+  anstelle des pulswertes an, die geschwindigkeit ist doch unabhaengig davon und kann trotzdem
+  sichtbar bleiben." Genau richtig — und der bessere Ort, weil der Hinweis zu diesem Wert gehoert.
+  Oben im Band standen nur **77 dp Sehne** zur Verfuegung, der Text brach zweizeilig um und lag
+  bei Faktor 1,24 **19,5 dp** auf der Geschwindigkeit (bei 1,0 schon 7,5 dp). Im Feld-Label darf er
+  92 % der Spaltenbreite nutzen und sitzt in der Bildschirmmitte: **einzeilig**, 89,5 dp bei
+  Faktor 1,0 und 108,0 dp bei 1,24, von 176 dp verfuegbar. Im Emulator dieser VM (192 dp) bei
+  beiden Schriftgroessen geprueft — Geschwindigkeit frei, alle drei Felder erhalten.
+  Umgesetzt in `fieldValue(2)`, wirkt deshalb **auch in eigenen Layouts**: `LayoutPageView` holt
+  seine Beschriftungen ueber dieselbe Funktion. Nur das Live-Feld (2), nicht Ø/Max (8/9) — die sind
+  aus dem Aufgezeichneten gerechnet und bleiben richtig.
+  **Bekannte Einschraenkung:** wer das Puls-Feld auf keiner Seite hat, sieht den Hinweis nicht
+  mehr. Die Voreinstellung hat ihn auf Seite 1 (`DEFAULT_VIEWS` = Speed + Puls), fuer eigene
+  Layouts gilt wie immer: Nutzersache.
 
 - **🔲 10.09. — Wassersperre (Wet Mode) auf Wear: kommt zurueck, aber nicht oben.** Herausgenommen
   aus 1.2.28 (Entscheidung Jan: „raus"). Sie kam am 04.09. dazu (`fb3d8e9c`, Punkt 4 aus JoLes

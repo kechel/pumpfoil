@@ -332,8 +332,8 @@ NAECHSTES: list[dict] = [
      "items": [
          "On a round watch the note that heart rate is only measured now and then sat in the "
          "top right corner, where the bezel cuts the screen away — almost none of it was "
-         "visible. It now sits in the middle at the top and stays readable if you pick a "
-         "larger font in the system settings.",
+         "visible. It now stands where it belongs: in place of the unit under the heart-rate "
+         "reading, so it stays readable at any font size and your speed keeps its own room.",
          "The stop and discard buttons grow with the font size you set, instead of cutting "
          "off their own label.",
          "The watch uses its own GPS instead of taking the position from your phone. Until now "
