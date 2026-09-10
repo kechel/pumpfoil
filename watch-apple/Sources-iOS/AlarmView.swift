@@ -19,6 +19,9 @@ struct AlarmView: View {
     @State private var patHigh = "short2"
     @State private var patLow = "long2"
     @State private var repeatMode = "once"
+    @State private var repeatS = 5
+    @State private var hrHigh = 0
+    @State private var patHr = "short1"
 
     // Ein Abschnitt = eine eigene, explizit typisierte Property. Swifts Type-Checker loest einen
     // ViewBuilder als EINEN Ausdruck auf; sechs Sections mit eigenen footer-Closures, Steppern und
@@ -39,6 +42,9 @@ struct AlarmView: View {
         .onChange(of: patHigh) { _ in saved = false }
         .onChange(of: patLow) { _ in saved = false }
         .onChange(of: repeatMode) { _ in saved = false }
+        .onChange(of: repeatS) { _ in saved = false }
+        .onChange(of: hrHigh) { _ in saved = false }
+        .onChange(of: patHr) { _ in saved = false }
     }
 
     // MARK: - Abschnitte
@@ -56,6 +62,7 @@ struct AlarmView: View {
             defaultSourceSection
             overSection
             underSection
+            hrSection
             modeSection
         }
     }
@@ -87,11 +94,27 @@ struct AlarmView: View {
         }
     }
 
+    // Puls — dritte Schwelle, unabhaengig von den beiden Speed-Grenzen. Nur eine OBERE Grenze.
+    private var hrSection: some View {
+        Section {
+            Stepper(hrLabel, value: $hrHigh, in: 0...250, step: 5)
+            patternPicker(Loc.t("alarm.pattern", lang), selection: $patHr)
+        } header: {
+            Text(Loc.t("alarm.hrTitle", lang))
+        } footer: {
+            Text(Loc.t("alarm.hrHint", lang))
+        }
+    }
+
     private var modeSection: some View {
         Section {
             Picker(Loc.t("alarm.mode", lang), selection: $repeatMode) {
                 Text(Loc.t("alarm.modeOnce", lang)).tag("once")
                 Text(Loc.t("alarm.modeContinuous", lang)).tag("continuous")
+            }
+            // Wiederholabstand nur bei „dauerhaft" — sonst hat er keine Bedeutung.
+            if repeatMode == "continuous" {
+                Stepper(repeatLabel, value: $repeatS, in: 2...60)
             }
         } footer: {
             Text(Loc.t("alarm.zeroHint", lang))
@@ -111,6 +134,8 @@ struct AlarmView: View {
     // alle Stepper-/LocalizedStringKey-Ueberladungen. Text identisch.
     private var highLabel: String { "\(Loc.t("alarm.maxSpeed", lang)): \(high) km/h" }
     private var lowLabel: String { "\(Loc.t("alarm.minSpeed", lang)): \(low) km/h" }
+    private var hrLabel: String { "\(Loc.t("alarm.maxHr", lang)): \(hrHigh) bpm" }
+    private var repeatLabel: String { "\(Loc.t("alarm.repeatEvery", lang)): \(repeatS) s" }
 
     private func patternPicker(_ title: String, selection: Binding<String>) -> some View {
         Picker(title, selection: selection) {
@@ -127,6 +152,9 @@ struct AlarmView: View {
         patHigh = (s["alarm_pattern_high"] as? String) ?? "short2"
         patLow = (s["alarm_pattern_low"] as? String) ?? "long2"
         repeatMode = (s["alarm_repeat"] as? String) ?? "once"
+        repeatS = (s["alarm_repeat_s"] as? Int) ?? 5
+        hrHigh = (s["hr_high"] as? Int) ?? 0
+        patHr = (s["alarm_pattern_hr"] as? String) ?? "short1"
         loaded = true
     }
 
@@ -140,6 +168,9 @@ struct AlarmView: View {
                 "alarm_pattern_high": patHigh,
                 "alarm_pattern_low": patLow,
                 "alarm_repeat": repeatMode,
+                "alarm_repeat_s": repeatS,
+                "hr_high": hrHigh,
+                "alarm_pattern_hr": patHr,
             ])
             saved = true
         }

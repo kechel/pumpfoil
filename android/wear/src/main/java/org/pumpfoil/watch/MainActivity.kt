@@ -303,7 +303,10 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                 c.optInt("speedHigh", 0), c.optInt("speedLow", 0),
                 c.optString("alarmPatternHigh", "short2"),
                 c.optString("alarmPatternLow", "long2"),
-                c.optString("alarmRepeat", "once"))
+                c.optString("alarmRepeat", "once"),
+                c.optInt("alarmRepeatS", 5),
+                c.optInt("hrHigh", 0),
+                c.optString("alarmPatternHr", "short1"))
             val fa = c.optJSONArray("foils")
             if (fa != null) {
                 foils = (0 until fa.length()).map { i ->
@@ -379,7 +382,7 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
         val effAlarm = if (alarmSource == "foil" && sessionFoilId != null)
             (foils.firstOrNull { it.id == sessionFoilId }?.let { alarm.copy(high = it.max, low = it.min) } ?: alarm)
         else alarm
-        AlarmEffect(s.speedKmh, effAlarm)
+        AlarmEffect(s.speedKmh, s.hr, effAlarm)
         // Gewählte Foil an den Recorder durchreichen (wird als foil_id ins Meta geschrieben).
         LaunchedEffect(sessionFoilId) { Recorder.sessionFoilId = sessionFoilId }
         // Post-Stop-Screen einblenden, sobald die Aufnahme endet (Flanke recording true->false).
@@ -1568,6 +1571,9 @@ data class WatchAlarm(
     val patHigh: String = "short2",
     val patLow: String = "long2",
     val repeat: String = "once",   // "once" = einmalig | "continuous" = dauerhaft
+    val repeatS: Int = 5,          // bei "continuous": Abstand der Wiederholungen in Sekunden
+    val hrHigh: Int = 0,           // Puls-Obergrenze in bpm (0 = aus)
+    val patHr: String = "short1",  // Muster beim Ueberschreiten der Puls-Grenze
 )
 
 // Foil-Option für die Start-Auswahl (Auto-Alarm-Korridor min–max km/h).
@@ -1687,35 +1693,58 @@ private fun StepperRow(label: String, value: Int, onChange: (Int) -> Unit) {
     }
 }
 
-// Vibrationsalarm bei Über-/Unterschreiten der Speed-Grenzen. Flanke löst sofort aus;
-// im Modus "continuous" wird alle ~3 Ticks erneut vibriert, solange drüber/drunter.
-// Der Min-Alarm warnt nur im schmalen Fenster [min-2, min) (Abfall knapp unter Min,
-// nicht dauerhaft beim Stehen) — identisch zur Garmin-Logik.
-private const val ALARM_REPEAT_TICKS = 3
+// Vibrationsalarm bei Über-/Unterschreiten der Speed-Grenzen UND über der Puls-Grenze. Die
+// Flanke löst sofort aus; im Modus "continuous" wird wiederholt, solange die Schwelle noch
+// über-/unterschritten ist — im Abstand `alarm.repeatS` (Profil, Default 5 s).
+// Der Min-Alarm warnt nur im schmalen Fenster [min-2, min) (Abfall knapp unter Min, nicht
+// dauerhaft beim Stehen) — identisch zur Garmin-Logik.
+//
+// Der Abstand wird über die UHRZEIT gemessen, nicht über Ticks: dieser Effect läuft, wenn sich
+// Speed oder Puls ÄNDERN, und das ist kein Sekundenraster. Vorher zählte er drei Durchläufe und
+// hieß „alle ~3 Ticks" — mit einem einstellbaren Sekundenwert im Profil wäre das schlicht falsch.
+//
+// Puls hat seinen EIGENEN Zustand und Zeitstempel: sonst verschluckt ein gleichzeitiger
+// Speed-Alarm ihn (Jan, 10.09.2026 — nur eine OBERE Grenze, „zu langsam" merkt man selbst).
+private fun repeatMs(alarm: WatchAlarm): Long = (alarm.repeatS.coerceAtLeast(2)) * 1000L
 
 @Composable
-fun AlarmEffect(speedKmh: Double, alarm: WatchAlarm) {
+fun AlarmEffect(speedKmh: Double, hr: Int, alarm: WatchAlarm) {
     val ctx = LocalContext.current
     var wasHigh by remember { mutableStateOf(false) }
     var wasLow by remember { mutableStateOf(false) }
-    var repeatTick by remember { mutableStateOf(0) }
-    LaunchedEffect(speedKmh, alarm) {
-        if (!alarm.enabled) { wasHigh = false; wasLow = false; repeatTick = 0; return@LaunchedEffect }
+    var wasHrHigh by remember { mutableStateOf(false) }
+    var letzteVibeMs by remember { mutableStateOf(0L) }
+    var letzteHrVibeMs by remember { mutableStateOf(0L) }
+    LaunchedEffect(speedKmh, hr, alarm) {
+        if (!alarm.enabled) {
+            wasHigh = false; wasLow = false; wasHrHigh = false
+            return@LaunchedEffect
+        }
+        val jetzt = System.currentTimeMillis()
         val over = alarm.high > 0 && speedKmh >= alarm.high
         val under = alarm.low > 0 && speedKmh < alarm.low && speedKmh >= alarm.low - 2
-        if (over && !wasHigh) vibratePattern(ctx, alarm.patHigh)
-        if (under && !wasLow) vibratePattern(ctx, alarm.patLow)
+        if (over && !wasHigh) { vibratePattern(ctx, alarm.patHigh); letzteVibeMs = jetzt }
+        if (under && !wasLow) { vibratePattern(ctx, alarm.patLow); letzteVibeMs = jetzt }
         val tripped = over || under
         if (tripped && alarm.repeat == "continuous" && (wasHigh || wasLow)) {
-            repeatTick++
-            if (repeatTick >= ALARM_REPEAT_TICKS) {
-                repeatTick = 0
+            if (jetzt - letzteVibeMs >= repeatMs(alarm)) {
+                letzteVibeMs = jetzt
                 vibratePattern(ctx, if (over) alarm.patHigh else alarm.patLow)
             }
-        } else if (!tripped) {
-            repeatTick = 0
         }
         wasHigh = over; wasLow = under
+
+        // Puls: ohne Messwert (kein Sensor/kein Kontakt) passiert nichts.
+        val hrOver = alarm.hrHigh > 0 && hr > 0 && hr > alarm.hrHigh
+        if (hrOver && !wasHrHigh) {
+            vibratePattern(ctx, alarm.patHr); letzteHrVibeMs = jetzt
+        } else if (hrOver && alarm.repeat == "continuous") {
+            if (jetzt - letzteHrVibeMs >= repeatMs(alarm)) {
+                letzteHrVibeMs = jetzt
+                vibratePattern(ctx, alarm.patHr)
+            }
+        }
+        wasHrHigh = hrOver
     }
 }
 

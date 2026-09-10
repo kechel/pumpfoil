@@ -72,6 +72,9 @@ fun AlarmScreen(onBack: () -> Unit) {
     var patHigh by remember { mutableStateOf("short2") }
     var patLow by remember { mutableStateOf("long2") }
     var repeat by remember { mutableStateOf("once") }
+    var repeatS by remember { mutableStateOf("5") }
+    var hrHigh by remember { mutableStateOf("0") }
+    var patHr by remember { mutableStateOf("short1") }
 
     LaunchedEffect(Unit) {
         try {
@@ -83,6 +86,9 @@ fun AlarmScreen(onBack: () -> Unit) {
             patHigh = s["alarm_pattern_high"]?.jsonPrimitive?.contentOrNull ?: "short2"
             patLow = s["alarm_pattern_low"]?.jsonPrimitive?.contentOrNull ?: "long2"
             repeat = s["alarm_repeat"]?.jsonPrimitive?.contentOrNull ?: "once"
+            repeatS = (s["alarm_repeat_s"]?.jsonPrimitive?.intOrNull ?: 5).toString()
+            hrHigh = (s["hr_high"]?.jsonPrimitive?.intOrNull ?: 0).toString()
+            patHr = s["alarm_pattern_hr"]?.jsonPrimitive?.contentOrNull ?: "short1"
         } catch (_: Exception) {}
         loaded = true
     }
@@ -99,6 +105,9 @@ fun AlarmScreen(onBack: () -> Unit) {
                     put("alarm_pattern_high", patHigh)
                     put("alarm_pattern_low", patLow)
                     put("alarm_repeat", repeat)
+                    put("alarm_repeat_s", repeatS.toIntOrNull() ?: 5)
+                    put("hr_high", hrHigh.toIntOrNull() ?: 0)
+                    put("alarm_pattern_hr", patHr)
                 })
                 saved = true
             } catch (_: Exception) {}
@@ -157,6 +166,14 @@ fun AlarmScreen(onBack: () -> Unit) {
                     pattern = patLow, onPattern = { patLow = it; mark() },
                 )
                 Spacer(Modifier.height(12.dp))
+                // Puls — dritte Schwelle, unabhaengig von den beiden Speed-Grenzen.
+                ThresholdCard(
+                    title = I18n.t("alarm.hrTitle"), fieldLabel = I18n.t("alarm.maxHr"),
+                    value = hrHigh, onValue = { hrHigh = it; mark() },
+                    pattern = patHr, onPattern = { patHr = it; mark() },
+                    unit = "bpm", maxLen = 3, hint = I18n.t("alarm.hrHint"),
+                )
+                Spacer(Modifier.height(12.dp))
                 // Auslösen-Modus.
                 Text(I18n.t("alarm.mode"), style = MaterialTheme.typography.labelLarge)
                 Spacer(Modifier.height(4.dp))
@@ -167,6 +184,21 @@ fun AlarmScreen(onBack: () -> Unit) {
                     ),
                     selected = repeat, onSelect = { repeat = it; mark() },
                 )
+                // Wiederholabstand nur bei „dauerhaft" — sonst hat er keine Bedeutung.
+                if (repeat == "continuous") {
+                    Spacer(Modifier.height(8.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedTextField(
+                            value = repeatS,
+                            onValueChange = { repeatS = it.filter { c -> c.isDigit() }.take(2); mark() },
+                            label = { Text(I18n.t("alarm.repeatEvery")) }, singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.width(120.dp),
+                        )
+                        Text("s")
+                    }
+                }
                 Spacer(Modifier.height(8.dp))
                 Text(I18n.t("alarm.zeroHint"),
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -188,6 +220,8 @@ private fun ThresholdCard(
     title: String, fieldLabel: String,
     value: String, onValue: (String) -> Unit,
     pattern: String, onPattern: (String) -> Unit,
+    // Puls braucht eine andere Einheit und drei Stellen (bpm bis 250), sonst identisch.
+    unit: String = "km/h", maxLen: Int = 2, hint: String? = null,
 ) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp)) {
@@ -196,14 +230,19 @@ private fun ThresholdCard(
             Row(verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
-                    value = value, onValueChange = { onValue(it.filter { c -> c.isDigit() }.take(2)) },
+                    value = value, onValueChange = { onValue(it.filter { c -> c.isDigit() }.take(maxLen)) },
                     label = { Text(fieldLabel) }, singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.width(96.dp),
                 )
-                Text("km/h")
+                Text(unit)
                 Spacer(Modifier.width(4.dp))
                 Dropdown(options = patterns(), selected = pattern, onSelect = onPattern, modifier = Modifier.weight(1f))
+            }
+            if (hint != null) {
+                Spacer(Modifier.height(6.dp))
+                Text(hint, style = MaterialTheme.typography.bodyMedium,
+                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
