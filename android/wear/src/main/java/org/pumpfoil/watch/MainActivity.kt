@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -1366,16 +1367,32 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
         LaunchedEffect(scharf) {
             if (scharf) { kotlinx.coroutines.delay(4000); scharf = false }
         }
+        // Der Knopf WAECHST mit der System-Schrift, statt seine Beschriftung abzuschneiden — dieselbe
+        // Anforderung, an der 1.2.27 (Code 1037) gescheitert ist, nur an der anderen Stelle: dort war
+        // es ein `height(42.dp)` am Start-Knopf, hier ein `size(76.dp)` um den Stopp-Knopf.
+        //
+        // Nachgemessen, warum das noetig ist: die laengste Beschriftung ist das UNTRENNBARE Wort
+        // „Vasthouden" (nl, 10 Zeichen; „Verwerfen?" im Bestaetigen-Modus ebenso). In `caption2`
+        // (12 sp) braucht es bei Faktor 1,0 rund 62 dp und passt in die 76 dp. Bei Faktor 1,24 sind
+        // es rund 77 dp — und weil es EIN Wort ist, kann es nicht umbrechen, wird also beschnitten.
+        // Deshalb keine Loesung ueber AutoFitText: Text zu schrumpfen ist das Gegenteil von „conform
+        // to the font size set by the user".
+        //
+        // `size()` bleibt (kein `defaultMinSize`): Scheibe und Ring MUESSEN rund bleiben und
+        // zueinander passen — ein Kreishintergrund auf einer nicht-quadratischen Box wird zur
+        // Ellipse. Deshalb beide Durchmesser mit demselben Faktor. Deckel bei 1,3, damit der Ring
+        // auf der kleinsten runden Uhr (192 dp) mit 125 dp nicht an den Rand stoesst.
+        val schriftSkala = LocalDensity.current.fontScale.coerceIn(1f, 1.3f)
         Box(contentAlignment = Alignment.Center) {
             CircularProgressIndicator(
                 progress = progress.coerceAtLeast(0.001f),   // immer sichtbarer Ring (zeigt „halten")
-                modifier = Modifier.size(96.dp), strokeWidth = 4.dp,
+                modifier = Modifier.size((96 * schriftSkala).dp), strokeWidth = 4.dp,
                 indicatorColor = ring)
             // Plain Box (KEIN Material-Button) -> dessen clickable würde sonst die Press-
             // Geste schlucken und onPress nie feuern.
             Box(
                 modifier = Modifier
-                    .size(76.dp)
+                    .size((76 * schriftSkala).dp)
                     .background(fill, CircleShape)
                     .pointerInput(press, bestaetigen) {
                         // Ein Druck genuegt (Profil-Einstellung): sofort ausloesen, ohne Ring.
