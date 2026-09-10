@@ -495,6 +495,17 @@ def text_window(tx, trim_start: float) -> tuple[float, float, float]:
     return s, s + 2 * fade + hold, fade
 
 
+# Alles Gezeichnete, das Text traegt, gibt es fuer RedNote auf Chinesisch: die
+# Datei heisst wie das Original, mit "-zh" am Stamm. Gibt es sie nicht, bleibt
+# es beim Original — so muss nicht jedes Overlay uebersetzt vorliegen.
+ZH_PLATTFORMEN = ("rednote",)
+
+
+def zh_variante(pfad: Path) -> Path:
+    alt = pfad.with_name(pfad.stem + "-zh" + pfad.suffix)
+    return alt if alt.is_file() else pfad
+
+
 def endcard_teile(endcard) -> tuple[float, float, float]:
     """Ein-, Stand- und Ausblendzeit einer Endcard."""
     return (max(0.05, float(endcard.get("fade_in", 0.3))),
@@ -836,8 +847,11 @@ def list_state():
     overlays = sorted(
         p.name for p in OVERLAY_DIR.glob("*.png") if not p.name.startswith(".")
     ) if OVERLAY_DIR.is_dir() else []
+    # Die "-zh"-Fassungen stehen bewusst NICHT zur Auswahl: der Render setzt sie
+    # fuer RedNote von selbst ein, in der Liste waeren sie nur doppelte Eintraege.
     endcards = sorted(
         p.name for p in ENDCARD_DIR.glob("shorts-endcard-*.png")
+        if not p.stem.endswith("-zh")
     ) if ENDCARD_DIR.is_dir() else []
     zustand = {"videos": videos, "tracks": tracks, "rendered": rendered,
                "categories": sort_categories(),
@@ -2367,15 +2381,22 @@ class Handler(BaseHTTPRequestHandler):
                                          "erlaubten Ordner")
                 # Lizenznachweis im Dateinamen: woher die Musik DIESER Fassung stammt
                 pf_suffix = musik_suffix(rel)
+                # Chinesische Endcard/Overlay, wo es sie gibt (RedNote)
+                ec_pf, ov_pf = endcard, overlay
+                if pf in ZH_PLATTFORMEN:
+                    if endcard:
+                        ec_pf = {**endcard, "path": zh_variante(endcard["path"])}
+                    if overlay:
+                        ov_pf = zh_variante(overlay)
                 out = OUT_DIR / pf / (num + base + pf_suffix + ".mp4")
                 # Altbestand mit abweichendem Suffix ersetzen statt doppeln
                 old = export_file(pf, out.name)
                 if old is not None and old != out:
                     old.unlink()
-                render(video, track, out, gain, fade_out, overlay,
+                render(video, track, out, gain, fade_out, ov_pf,
                        trim_start, trim_end, texts, outros.get(pf),
                        float(req.get("overlay_alpha", 1.0)),
-                       oton_gain_db=oton_gain, ducks=ducks, endcard=endcard,
+                       oton_gain_db=oton_gain, ducks=ducks, endcard=ec_pf,
                        tail_secs=float(req.get("tail_secs") or 0.0))
                 results[pf] = {"ok": True, "out": str(out.relative_to(BASE))}
             except subprocess.CalledProcessError as e:

@@ -28,13 +28,18 @@ INHALT_ANTEIL = 0.5
 
 HIER = os.path.dirname(os.path.abspath(__file__))
 LOGO = os.path.join(HIER, "..", "logo", "logo-horizontal-{theme}.png")
-OUT = os.path.join(HIER, "..", "social", "shorts-endcard-band-{theme}-1080x1920.png")
+OUT = os.path.join(HIER, "..", "social", "shorts-endcard-band-{theme}-1080x1920{sp}.png")
 
 HELL = ("#ffffff", "#eef2f7", "#dde7f0")
 DUNKEL = ("#020617", "#061226", "#0a1f3a")
 CYAN = "#22d3ee"
 CYAN_HELL = "#0e7490"           # auf Weiss ist das Marken-Cyan zu blass
 APP_ZEILE = "FREE APP & COMMUNITY"
+# Chinesische Fassung fuer RedNote (Jan, 10.09.). „免费" (kostenlos) ist dort das
+# Wort, das zieht, und 社区 ist derselbe Begriff wie in der Kanalbeschreibung.
+# Keine Uebersetzung von „APP": das steht in China genauso im App-Namen.
+APP_ZEILE_ZH = "免费应用与社区"
+SPRACHEN = {"": APP_ZEILE, "-zh": APP_ZEILE_ZH}
 
 # Schrift: auf der VM dieselbe wie in allen anderen Brand-Assets (Montserrat), auf dem Mac die
 # Markenschrift aus docs/BRAND.md. Der Rest ist Notnagel, damit das Skript nirgends abbricht.
@@ -43,6 +48,15 @@ SCHRIFTEN = [
     ("/System/Library/Fonts/Avenir Next.ttc", 2),          # Demi Bold (Index 4 waere Italic)
     ("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 0),
 ]
+# Fuer die chinesische Zeile: Montserrat und Avenir haben keine CJK-Zeichen und
+# wuerden nur Kaestchen zeichnen. Hiragino Sans GB W6 ist die fette Schnitt der
+# vereinfachten Fassung und auf jedem Mac dabei; Noto ist der Weg auf der VM.
+SCHRIFTEN_ZH = [
+    ("/System/Library/Fonts/Hiragino Sans GB.ttc", 2),     # W6
+    ("/System/Library/Fonts/STHeiti Medium.ttc", 0),
+    ("/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc", 0),
+    ("/usr/share/fonts/truetype/noto/NotoSansCJK-Bold.ttc", 0),
+]
 
 
 def _hex(s: str) -> tuple[int, int, int]:
@@ -50,8 +64,8 @@ def _hex(s: str) -> tuple[int, int, int]:
     return tuple(int(s[i:i + 2], 16) for i in (0, 2, 4))
 
 
-def schrift(px: int) -> ImageFont.FreeTypeFont:
-    for pfad, index in SCHRIFTEN:
+def schrift(px: int, liste=None) -> ImageFont.FreeTypeFont:
+    for pfad, index in (liste or SCHRIFTEN):
         if os.path.exists(pfad):
             try:
                 return ImageFont.truetype(pfad, px, index=index)
@@ -60,9 +74,9 @@ def schrift(px: int) -> ImageFont.FreeTypeFont:
     raise SystemExit("Keine passende Schrift gefunden — siehe SCHRIFTEN oben.")
 
 
-def gesperrt(text: str, px: int, tracking: int, farbe: str) -> Image.Image:
+def gesperrt(text: str, px: int, tracking: int, farbe: str, liste=None) -> Image.Image:
     """Versalien mit Sperrung, Zeichen fuer Zeichen — wie banner.subline_image."""
-    f = schrift(px)
+    f = schrift(px, liste)
     probe = ImageDraw.Draw(Image.new("RGBA", (1, 1)))
     breiten = [probe.textlength(ch, font=f) + tracking for ch in text]
     asc, desc = f.getmetrics()
@@ -96,7 +110,7 @@ def verlauf(farben: tuple[str, str, str], w: int, h: int) -> Image.Image:
     return img
 
 
-def band(theme: str) -> Image.Image:
+def band(theme: str, sp: str = "") -> Image.Image:
     hell = theme == "light"
     bild = Image.new("RGBA", (W, H), (0, 0, 0, 0))     # oben durchsichtig: das Video bleibt sichtbar
     streifen = verlauf(HELL if hell else DUNKEL, W, BAND_H).convert("RGBA")
@@ -115,8 +129,16 @@ def band(theme: str) -> Image.Image:
     lock = lock.crop(lock.getbbox())
     breite = W - 2 * RAND
     lock = lock.resize((breite, round(lock.height * breite / lock.width)), Image.LANCZOS)
-    zeile = gesperrt(APP_ZEILE, 52, 12, CYAN_HELL if hell else "#cbd5e1")
-    z_faktor = (breite * 0.78) / zeile.width
+    # CJK-Zeichen sind quadratisch und laufen breit — weniger Sperrung, sonst
+    # sprengt die Zeile die 78 % Breite und wird als Ganzes kleingerechnet.
+    zeile = gesperrt(SPRACHEN[sp], 52, 4 if sp == "-zh" else 12,
+                     CYAN_HELL if hell else "#cbd5e1",
+                     SCHRIFTEN_ZH if sp == "-zh" else None)
+    # Latin-Versalien fuellen nur rund 72 % der Kegelhoehe, CJK-Zeichen die
+    # ganze — bei gleicher Zeilenbreite wirkt Chinesisch deshalb deutlich
+    # groesser und schwerer als "FREE APP & COMMUNITY". 0,78 x 0,72 gleicht das
+    # aus, damit beide Fassungen nebeneinander gleich hoch aussehen.
+    z_faktor = (breite * (0.56 if sp == "-zh" else 0.78)) / zeile.width
     zeile = zeile.resize((round(zeile.width * z_faktor), round(zeile.height * z_faktor)),
                          Image.LANCZOS)
 
@@ -140,11 +162,12 @@ def band(theme: str) -> Image.Image:
 
 
 def main() -> None:
-    os.makedirs(os.path.dirname(OUT.format(theme="dark")), exist_ok=True)
+    os.makedirs(os.path.dirname(OUT.format(theme="dark", sp="")), exist_ok=True)
     for theme in ("dark", "light"):
-        ziel = os.path.normpath(OUT.format(theme=theme))
-        band(theme).save(ziel)
-        print(f"{ziel}  ({W}x{H}, unteres Drittel, oben transparent)")
+        for sp in SPRACHEN:
+            ziel = os.path.normpath(OUT.format(theme=theme, sp=sp))
+            band(theme, sp).save(ziel)
+            print(f"{ziel}  ({W}x{H}, unteres Drittel, oben transparent)")
 
 
 if __name__ == "__main__":
