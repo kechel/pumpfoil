@@ -64,7 +64,9 @@ function Details({ anzahl, children }: { anzahl: number; children: ReactNode }) 
 
 
 function ReleaseStatus() {
-  const [daten, setDaten] = useState<{ live: Release[]; review: Release[]; next: Release[] } | null>(null);
+  const [daten, setDaten] = useState<{
+    live: Release[]; review: Release[]; rejected?: Release[]; next: Release[];
+  } | null>(null);
   useEffect(() => { api.appReleases().then(setDaten).catch(() => setDaten(null)); }, []);
   if (!daten) return null;
 
@@ -74,6 +76,12 @@ function ReleaseStatus() {
   const gruppen: { titel: string; farbe: string; zeilen: Release[] }[] = [
     { titel: "Live now", farbe: "text-brand-700 dark:text-brand-400", zeilen: daten.live },
     { titel: "Being reviewed", farbe: "text-emerald-700 dark:text-emerald-400", zeilen: daten.review },
+    // Abgelehnt steht ZWISCHEN Review und Coming next, weil es genau dort passiert: die Fassung
+    // war in Pruefung, kam nicht durch, der Nachfolger steht als Naechstes an. Die Zeile bleibt,
+    // bis dieser Nachfolger freigegeben ist — sonst faellt die Erklaerung weg, warum die
+    // angekuendigten Punkte immer noch fehlen (Jan, 10.09.2026). Amber statt Rot: es ist eine
+    // Verzoegerung, kein Ausfall.
+    { titel: "Not approved", farbe: "text-amber-700 dark:text-amber-400", zeilen: daten.rejected ?? [] },
     // #ff5500 ist die Wunschfarbe; auf Weiss ist sie fuer kleine Versalien zu hell, dort eine
     // Stufe dunkler derselben Farbe.
     { titel: "Coming next", farbe: "text-[#c24100] dark:text-[#ff5500]", zeilen: daten.next },

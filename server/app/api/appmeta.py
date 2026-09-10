@@ -225,12 +225,25 @@ _APP_META: dict[str, dict[str, str]] = {
 # 05.09.2026: „ab jetzt fortlaufend aktualisieren, wenn wir neue Releases in Pruefung
 # geben, das Changelog erweitern oder eingereichte Releases freigegeben werden."
 #
-# DREI ANLAESSE, DIESE LISTEN ANZUFASSEN:
+# VIER ANLAESSE, DIESE LISTEN ANZUFASSEN:
 #   1. Etwas EINGEREICHT  -> Eintrag von NAECHSTES nach IN_REVIEW verschieben.
 #   2. Etwas FREIGEGEBEN  -> `_APP_META[...]["latest"] setzen (erst wenn der Store es
 #                            wirklich ausliefert!) UND den IN_REVIEW-Eintrag entfernen.
-#   3. Etwas GEBAUT, das auf eine laufende Pruefung wartet -> nach NAECHSTES.
+#   3. Etwas ABGELEHNT    -> Eintrag von IN_REVIEW nach ABGELEHNT verschieben, mit der
+#                            abgelehnten Nummer. Die PUNKTE wandern mit der Fassung weiter, die
+#                            den Inhalt dann traegt (also nach NAECHSTES) — sonst stehen sie
+#                            zweimal in der Tabelle.
+#   4. Etwas GEBAUT, das auf eine laufende Pruefung wartet -> nach NAECHSTES.
 # Bleibt eine Liste leer, blendet die Seite den ganzen Abschnitt aus.
+#
+# Warum es ABGELEHNT ueberhaupt gibt (Jan, 10.09.2026): „da kann als status bei der 1.0.7 einfach
+# 'rejected' stehen bleiben, und die 1.0.8 dann als in review dazukommen sobald ich die eingereicht
+# habe". Ohne diesen Zustand musste eine Ablehnung entweder verschwiegen werden (dann steht auf der
+# Seite weiter „under review", was nicht stimmt) oder die Zeile verschwand ganz — und damit die
+# Erklaerung, warum die Nutzer die angekuendigten Punkte immer noch nicht haben.
+# EINGEREICHT heisst HOCHGELADEN. Nicht „gebaut", nicht „gebumpt", nicht „liegt bei Jan bereit":
+# am 10.09. stand hier fuer Wear schon „resubmitted 10 September", waehrend Jan den Fix noch nicht
+# einmal gepullt hatte. Bis zu seiner Meldung gehoert so etwas nach NAECHSTES.
 #
 # `note` ist eine kurze englische Zeile fuer Nutzer — keine internen Begriffe, keine
 # Versionsnummern von Build-Codes, kein Jargon (dieselbe Regel wie fuer die Changelog-Texte).
@@ -250,7 +263,43 @@ GRUPPEN = [
 # im Changelog stehen sollen. Das ist der Zweck (Jan, 05.09.): was eingereicht ist, steht
 # heute NIRGENDS, bis es veroeffentlicht wird. Bei der Freigabe wandern die Zeilen unveraendert
 # nach `Changelog.tsx` — abschreiben, nicht neu erfinden.
-IN_REVIEW: list[dict] = [
+# Abgelehnt: der Store hat die Fassung geprueft und NICHT freigegeben. Die Zeile bleibt stehen,
+# bis der Nachfolger freigegeben ist — sie ist die Erklaerung dafuer, warum die angekuendigten
+# Punkte noch nicht bei den Nutzern sind. KEINE `items` hier: der Inhalt haengt an der Fassung, die
+# ihn dann wirklich ausliefert, und steht deshalb unter NAECHSTES (sonst zweimal in der Tabelle).
+# `note` bleibt sachlich und ohne Schuldzuweisung — die Seite ist oeffentlich.
+ABGELEHNT: list[dict] = [
+    {"name": "Android phone + Wear OS", "version": "1.1.27 / 1.2.27",
+     # Google, 10.09.2026, Wear App Quality Guidelines / „Wear font size": „Your app must conform
+     # to the font size set by the user in System Settings. If the user selects a larger font size,
+     # ensure that text and controls are not cut off by screen edges." Belegstelle in der Mail:
+     # „Version code 1037: In-app experience"; auf dem Screenshot war von „Puls passiv" nur „Pu" zu
+     # sehen. Die Mail nennt NUR Code 1037, ist aber app-weit formuliert („App Status: Rejected",
+     # „Changes to your app weren't published") — ob die Handy-Spur mit blockiert wurde, sagt allein
+     # die Play-Konsole. In unseren Daten ist 1.1.27 auf keinem Android-Handy je aufgetaucht
+     # (`sessions.device_model`, hoechster Android-Stand 1.1.25, gesehen am 07.09.).
+     # Geprueft wurde auf einer Pixel Watch 3 (`device_tokens` von user 6 „Google Tester",
+     # 10.09. 06:44-07:01, Session #7136) — die runde Fassung passt genau zur Ursache.
+     "note": "not approved on 10 September: text could be cut off at the screen edge with a "
+             "large system font"},
+    {"name": "Amazfit", "version": "1.0.7",
+     # Zepp, 10.09.2026: „The square preview image does not comply with regulations. Please
+     # carefully review the preview image specifications and make adjustments as required for the
+     # format, size, aspect ratio, transparency and corresponding device shape." ZWEITE Ablehnung
+     # derselben Fassung, beide Male nur die Store-Bilder — an der App hat Zepp nie etwas
+     # beanstandet. Ursache gefunden und behoben (`e019fdd2`): die eckigen Vorschaubilder trugen
+     # die runden UNTEREN Ecken des macOS-Simulatorfensters, 42 halbdurchsichtige Pixel je Datei.
+     # Details in brand/stores/zepp/README.md. Der Link aus der Ablehnungsmail ist tot (404).
+     "note": "not approved on 10 September \u2014 the store preview images, not the app itself; "
+             "fixed and going back with the next version"},
+]
+
+# Nichts liegt gerade in der Pruefung (Stand 10.09.2026): Google hat Wear 1.2.27 abgelehnt, Zepp
+# 1.0.7 ebenfalls, und die jeweiligen Nachfolger sind gebaut, aber noch nicht hochgeladen. Solange
+# diese Liste leer ist, blendet /changelog den Abschnitt „Being reviewed" aus.
+IN_REVIEW: list[dict] = []
+
+NAECHSTES: list[dict] = [
     {"name": "Android phone + Wear OS", "version": "1.1.27 / 1.2.28",
      # ERSETZT die Einreichung vom 07.09. (1.1.26/1.2.26), bevor Google sie freigegeben hat —
      # Entscheidung Jan (08.09.2026): „statt eine Woche zu warten lade ich das Update direkt neu
@@ -267,8 +316,7 @@ IN_REVIEW: list[dict] = [
      # hinter der runden Fassung. Eine abgelehnte Nummer nimmt Play nicht wieder an, deshalb
      # 1.2.28 / 1038. Die Punkte bleiben ZUSAMMENGEFUEHRT (dieselbe Regel wie beim Ersetzen der
      # Einreichung vom 07.09.): erschienen ist bis jetzt nichts davon.
-     "note": "resubmitted 10 September after a display fix for large system fonts, "
-             "waiting for Google",
+     "note": "a display fix is ready and this goes back to Google next",
      "items": [
          "On a round watch the note that heart rate is only measured now and then sat in the "
          "top right corner, where the bezel cuts the screen away — most of it was invisible, "
@@ -307,38 +355,29 @@ IN_REVIEW: list[dict] = [
          "COROS: the app says which mode records the best data, and what COROS does not "
          "hand over.",
      ]},
-    {"name": "Amazfit", "version": "1.0.7",
-     "note": "submitted 1 September, under review",
-     # KORREKTUR 07.09.2026 (Jan): hier stand „Nothing new in the app itself — this round only
-     # replaces the store images". Das stimmte nur im Vergleich zur VORIGEN Einreichung von 1.0.7 —
-     # und die wurde abgelehnt, nur wegen der Store-Vorschaubilder (s. docs/TODO.md). Fuer die
-     # NUTZER ist damit nichts davon draussen: live steht 1.0.6 vom 24.08., und alles, was 1.0.7
-     # mitbringt, kommt erst mit dieser Runde. Jans Frage war genau richtig.
+    {"name": "Amazfit", "version": "1.0.8",
+     # 1.0.7 wurde ZWEIMAL abgelehnt, beide Male nur wegen der Store-Vorschaubilder (nie wegen der
+     # App) — s. ABGELEHNT oben und brand/stores/zepp/README.md. Entscheidung Jan (10.09.2026):
+     # „wenn wir bei zepp schon neu einreichen muessen, dann bitte auch direkt die neuere version
+     # 1.0.8, beim letzten mal hat eine aenderung nur der vorschaubilder genausolange gedauert im
+     # review wie ein komplett neues release". Stimmt: die Bild-Runde vom 01.09. lag neun Tage in
+     # der Pruefung. `watch-zepp/app.json` steht ohnehin schon auf 1.0.8 / code 11.
      #
-     # Der Inhalt ist aus git rekonstruiert, weil `watch-zepp/CHANGELOG.md` nur bis 1.0.5 gefuehrt
-     # wurde: auf 1.0.6 wurde am 18.08. gebumpt (`3ff50081`), auf 1.0.7 am 26.08. um 20:15
-     # (`bedb67dc`). Alles dazwischen ist 1.0.7, alles ab dem 27.08. gehoert zu 1.0.8 — die
-     # 1.0.8-Liste war vorher eine Mischung aus beidem.
+     # PUNKTE ZUSAMMENGEFUEHRT (1.0.7 + 1.0.8), dieselbe Regel wie bei Android/Wear: von 1.0.7 ist
+     # NIE etwas erschienen, live steht 1.0.6 vom 24.08. Stuenden hier nur die vier 1.0.8-Zeilen,
+     # fehlten den Nutzern die vier aus 1.0.7. Quelle ist `watch-zepp/CHANGELOG.md` (dort seit
+     # 07.09. wieder gefuehrt), nicht erneut aus git rekonstruiert.
+     "note": "next Amazfit release, with everything from the version before it",
      "items": [
          "Value graphics on the watch: speed, heart rate and pump cadence as a bar, not just "
          "a number.",
          "Heart-rate zones use the colours you set in your profile.",
-         "The touch lock can be opened with your finger again.",
-         "A cleaned-up top speed, and a run that never really stopped is no longer counted "
-         "as two.",
-     ]},
-]
-
-NAECHSTES: list[dict] = [
-    {"name": "Amazfit", "version": "1.0.8", "note": "follows straight after the current one",
-     # Inhalt NUR gegenueber 1.0.7 (liegt in der Pruefung), nicht gegenueber der live stehenden
-     # 1.0.6 — sonst stuenden dieselben Punkte zweimal in der Tabelle. Alles ab dem 27.08.2026 im
-     # Zepp-Recorder. Der GPS-Sprung-Fix vom 16.08. ist mit 1.0.6 laengst draussen und steht
-     # deshalb in keiner der beiden Listen.
-     "items": [
          "Speed zones use the colours you set in your profile, the same way heart-rate zones "
          "already do.",
+         "The touch lock can be opened with your finger again.",
          "A single press can end a recording instead of holding, if you set that in your profile.",
+         "A cleaned-up top speed, and a run that never really stopped is no longer counted "
+         "as two.",
          "Runs are detected the same way as on the server.",
          "Dutch, Finnish, Czech and Polish.",
      ]},
@@ -418,7 +457,11 @@ def changelog(plattform: str = "", version: str = "",
 
 @router.get("/releases")
 def releases() -> dict:
-    """Was ist live, was liegt im Review, was kommt als Naechstes (fuer /changelog)."""
+    """Was ist live, was liegt im Review, was wurde abgelehnt, was kommt als Naechstes.
+
+    Fuer /changelog. Leere Listen blendet die Seite aus, `rejected` ist also nur zu sehen, solange
+    wirklich etwas abgelehnt ist.
+    """
     live = []
     for schluessel, name in GRUPPEN:
         versionen, laden = [], ""
@@ -437,7 +480,7 @@ def releases() -> dict:
     # fuer Nutzer die nuetzlichste Zeile der ganzen Tabelle (Jan, 05.09.).
     live.insert(0, {"name": "Website", "version": "always up to date",
                     "store_url": "", "note": "new things appear here first, without a store"})
-    return {"live": live, "review": IN_REVIEW, "next": NAECHSTES}
+    return {"live": live, "review": IN_REVIEW, "rejected": ABGELEHNT, "next": NAECHSTES}
 
 
 # --------------------------------------------------------------------------------------
