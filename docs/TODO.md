@@ -9,7 +9,16 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 🚀 App-Release-Stand
 
-- **🟡 10.09. — Garmin 1.0.86 GEBAUT und an Jan geliefert (noch NICHT eingereicht).**
+- **🟢 11.09. 00:50 — Garmin 1.0.86 EINGEREICHT** (Jans Meldung: „.iq ist eingereicht zur
+  pruefung"). Eingereicht wurde `pumpfoil-1.0.86.iq`, **13.540.198 B**, sha1
+  `75bb7421a43a604cc77aa9c3a286c93053fa8e2f` — **gegen Jans Download gegengeprueft**, er hat den
+  Hash geschickt und beide stimmen ueberein (die erste, kleinere .iq von 23:38 hatte nur die
+  Pausenfenster und ist ueberholt). Store-Notizen deu/eng liegen daneben als `store-notizen.txt`.
+  `IN_REVIEW` in `appmeta.py` traegt die fuenf Punkte jetzt WORTGLEICH zu den Store-Notizen.
+  **Offen nach der Freigabe:** `build-all.sh` → `_APP_META["garmin"].latest` auf 1.0.86 →
+  Changelog-Eintrag. Vorher nichts davon.
+
+- **🟡 10.09. — Garmin 1.0.86 GEBAUT und an Jan geliefert.**
   Inhalt: die Uhr schickt ihre **Pausenfenster** im `/complete` mit, damit Lauf-Uhrzeiten nach
   einer Pause stimmen (Nutzermeldung, s. Inbox-Eintrag „zwei gemeldete Fehler" unten).
   - Store-`.iq`: `/home/jan/release-staging/garmin-1.0.86/pumpfoil-1.0.86.iq`, **13.385.312 B**,
@@ -34,7 +43,7 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   | Wear OS | 1.2.25 (07.09.) | 1.2.27 (1037) → **abgelehnt** | **1.2.28 (1038) EINGEREICHT** 10.09. 10:10 |
   | Zepp / Amazfit | 1.0.6 (24.08.) | 1.0.7 → **abgelehnt** | **1.0.8 (code 11) EINGEREICHT** 10.09. 11:19 |
   | iOS + Apple Watch | 1.1.31 (08.09.) | — | nichts offen |
-  | Garmin | 1.0.85 (02.09.) | — | nichts offen |
+  | Garmin | 1.0.85 (02.09.) | — | **1.0.86 EINGEREICHT** 11.09. 00:50 |
 
   **Wear:** „Wear font size" aus den Wear App Quality Guidelines — Text darf bei grosser
   System-Schrift nicht am Bildschirmrand abgeschnitten werden. Behoben in `c424e875` + `44bae3e4`
