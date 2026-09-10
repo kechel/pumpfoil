@@ -313,14 +313,19 @@ function Studio() {
   const [search, setSearch] = useState("");
   const [vfilter, setVfilter] = useState("");
 
-  // bei jeder Änderung speichern
+  // Ein Objekt, zwei Zwecke: es ueberlebt den Reload im localStorage UND geht
+  // mit jedem Render als Rezept an den Server. Vorher lag es nur im Browser
+  // und wurde bei jeder Aenderung ueberschrieben — was in einem fertigen Video
+  // steckte, war hinterher nicht mehr feststellbar (Jan, 10.09.).
+  const studioState = useMemo(() => ({
+    curVideo, sel, pvPlatform, trim, texts, gain, otonGain, ducks, fade,
+    sideTab, endcard, midTab, beats, cardSlogan, txAlpha, tailSecs,
+    outName, ovOn, ovSel, ovAlpha, outroOn, fltYT, fltIG, fltTT, fltRN,
+  }), [curVideo, sel, pvPlatform, trim, texts, gain, otonGain, ducks, fade, outName, ovOn, ovSel, ovAlpha, outroOn, fltYT, fltIG, fltTT, fltRN, sideTab, endcard, midTab, beats, cardSlogan, txAlpha, tailSecs]);
+
   useEffect(() => {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify({
-      curVideo, sel, pvPlatform, trim, texts, gain, otonGain, ducks, fade,
-      sideTab, endcard, midTab, beats, cardSlogan, txAlpha, tailSecs,
-      outName, ovOn, ovSel, ovAlpha, outroOn, fltYT, fltIG, fltTT, fltRN,
-    }));
-  }, [curVideo, sel, pvPlatform, trim, texts, gain, otonGain, ducks, fade, outName, ovOn, ovSel, ovAlpha, outroOn, fltYT, fltIG, fltTT, fltRN, sideTab, endcard, midTab, beats, cardSlogan, txAlpha, tailSecs]);
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(studioState));
+  }, [studioState]);
   const [browserOpen, setBrowserOpen] = useState(false);
   const [dirInput, setDirInput] = useState("");
   const [log, setLog] = useState("");
@@ -1187,6 +1192,63 @@ function Studio() {
     return end - (trim.start ?? 0) + tailTotal;
   }, [trim, tailTotal]);
 
+  // ---- Rezepte: gesicherte Einstellungen eines frueheren Renders ----------
+  const [rezepte, setRezepte] = useState<
+    { name: string; out_name: string; at: string; quellvideo: string; plattformen: string[] }[]
+  >([]);
+  useEffect(() => {
+    void fetch("/api/rezepte")
+      .then(async (r) => setRezepte((await r.json()).rezepte ?? []))
+      .catch(() => {});
+  }, [state]);
+
+  const ladeRezept = useCallback(async (name: string) => {
+    if (!name) return;
+    let r: { studio?: Record<string, unknown>; quellvideo?: string; out_name?: string };
+    try {
+      r = await (await fetch(`/api/rezept?name=${encodeURIComponent(name)}`)).json();
+    } catch (e) {
+      setLog(`Rezept nicht lesbar: ${e}`);
+      return;
+    }
+    const s = r.studio;
+    if (!s || !Object.keys(s).length) {
+      setLog("Dieses Rezept hat keine Studio-Einstellungen — es ist vor dem Archiv entstanden.");
+      return;
+    }
+    const nimm = <T,>(k: string, fallback: T): T => (s[k] === undefined ? fallback : (s[k] as T));
+    setSel({ youtube: null, instagram: null, tiktok: null, rednote: null, ...nimm("sel", {}) });
+    setTrim(nimm("trim", { start: null, end: null }));
+    // Alte Rezepte kennen das zh-Feld nicht — emptyTexts() fuellt die Luecken.
+    const gespeichert = nimm<TextSlot[]>("texts", []);
+    setTexts(emptyTexts().map((leer, i) => ({ ...leer, ...(gespeichert[i] ?? {}) })));
+    setGain(nimm("gain", -12));
+    setOtonGain(nimm("otonGain", 0));
+    setDucks(nimm("ducks", emptyDucks()));
+    setFade(nimm("fade", 2));
+    setEndcard(nimm("endcard", { file: "", start: null, fadeIn: 0.3, hold: 1, fadeOut: 0.3, alpha: 1, append: false }));
+    setBeats(nimm("beats", 3));
+    setCardSlogan(nimm("cardSlogan", true));
+    setTxAlpha(nimm("txAlpha", TXA));
+    setTailSecs(nimm("tailSecs", 0));
+    setOutName(nimm("outName", ""));
+    setOvOn(nimm("ovOn", false));
+    setOvSel(nimm("ovSel", ""));
+    setOvAlpha(nimm("ovAlpha", 1));
+    setOutroOn(nimm("outroOn", true));
+    // Das Quellvideo liegt nach einem Render in videos-verarbeitet und steht
+    // dann nicht mehr zur Auswahl — dann bleibt alles andere trotzdem gesetzt.
+    const quelle = nimm<string | null>("curVideo", null);
+    if (quelle && state?.videos.includes(quelle)) {
+      pickVideo(quelle);
+      setLog("");
+    } else {
+      setLog(`Einstellungen geladen. Das Quellvideo „${r.quellvideo || quelle || "?"}“ `
+             + "liegt nicht mehr im aktuellen Ordner — aus videos-verarbeitet zurueckholen "
+             + "oder ein anderes waehlen.");
+    }
+  }, [state, pickVideo]);
+
   const resetAll = useCallback(() => {
     if (!window.confirm("Alle Studio-Einstellungen zurücksetzen (Texte, Trim, Musikwahl, Name …)?")) return;
     localStorage.removeItem(SETTINGS_KEY);
@@ -1270,6 +1332,8 @@ function Studio() {
         trim_end: trim.end,
         tail_secs: tailSecs,
         out_name: outName,
+        // Rezept: alles, woraus sich dieser Render wiederholen laesst
+        studio: studioState,
         texts: texts
           // Ein Stempel zaehlt auch ohne Unterzeile — nur Fliesstext braucht Inhalt.
           .filter((t) => t.start != null && (t.text.trim() || isStamp(t.style)))
@@ -1305,7 +1369,7 @@ function Studio() {
     setRenderingVideo(null);
     setRendering(false);
     void load();
-  }, [ready, curVideo, sel, gain, otonGain, ducks, fade, ovOn, ovSel, trim, outName, texts, outroOn, endcard, tailSecs, stopMusic, load]);
+  }, [ready, curVideo, sel, gain, otonGain, ducks, fade, ovOn, ovSel, trim, outName, texts, outroOn, endcard, tailSecs, stopMusic, load, studioState, cardSlogan]);
 
   if (!state) return <div style={{ padding: 20, opacity: 0.6 }}>lade …</div>;
 
@@ -1788,7 +1852,17 @@ function Studio() {
             </button>
           ))}
           <span className="trkname">{pvTrackName}</span>
-          <button className="mini" style={{ marginLeft: "auto" }} title="Alle Studio-Einstellungen zurücksetzen" onClick={resetAll}>
+          <select className="mini rezept" style={{ marginLeft: "auto" }} value=""
+                  title="Einstellungen eines frueheren Renders laden — Texte, Stempel, Overlay, Endcard, Musik, Trim"
+                  onChange={(e) => { void ladeRezept(e.target.value); e.target.value = ""; }}>
+            <option value="">Rezept laden …</option>
+            {rezepte.map((r) => (
+              <option key={r.name} value={r.name}>
+                {r.at.slice(0, 10)} · {r.out_name.replace(/\.mp4$/, "").slice(0, 52)}
+              </option>
+            ))}
+          </select>
+          <button className="mini" title="Alle Studio-Einstellungen zurücksetzen" onClick={resetAll}>
             Reset
           </button>
         </div>

@@ -156,6 +156,10 @@ h2.dirtitle { text-transform: none; white-space: nowrap; overflow: hidden; text-
 .pvbar { display: flex; align-items: center; gap: 8px; font-size: 12px; opacity: .9; max-width: 100%; padding: 2px 0; }
 .pvbar .nm, .pvbar .trkname { opacity: .7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* Sekunden zum Ablesen: nicht mitschrumpfen und markierbar bleiben. */
+/* Rezept-Auswahl: sieht aus wie die kleinen Knoepfe daneben, ist aber ein
+   Menue — die Liste kann lang werden. */
+.pvbar select.rezept { max-width: 240px; font-size: 11px; padding: 3px 4px;
+  border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; }
 .pvbar .vsecs { flex: none; opacity: .7; white-space: nowrap; font-variant-numeric: tabular-nums; user-select: text; cursor: text; }
 
 .panel { padding: 4px 12px 10px; border-bottom: 1px solid #8884; font-size: 13px; }
