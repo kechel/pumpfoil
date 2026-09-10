@@ -15,7 +15,7 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   | Ziel | Live | Lag in Pruefung | Jetzt |
   |---|---|---|---|
   | Android Phone | 1.1.25 (07.09.) | 1.1.27 (41) | ❓ mitblockiert? Play-Konsole prueft das, s. unten |
-  | Wear OS | 1.2.25 (07.09.) | 1.2.27 (1037) → **abgelehnt** | 1.2.28 (1038) gebaut, Upload durch Jan |
+  | Wear OS | 1.2.25 (07.09.) | 1.2.27 (1037) → **abgelehnt** | 1.2.28 (1038) gebaut + Stopp-Knopf-Fix, Upload durch Jan |
   | Zepp / Amazfit | 1.0.6 (24.08.) | 1.0.7 → **abgelehnt** | Bilder korrigiert (`e019fdd2`), einreichfertig |
   | iOS + Apple Watch | 1.1.31 (08.09.) | — | nichts offen |
   | Garmin | 1.0.85 (02.09.) | — | nichts offen |
@@ -28,6 +28,16 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   hatte eine **Pixel Watch 3** mit 1.2.27 gepairt, 10.09. 06:44-07:01, Session #7136 — damit ist
   belegt, auf welchem Geraet der Beleg-Screenshot entstand, und das ist auch das Geraet fuer die
   ausstehende Emulator-Gegenprobe mit groesster Schrift.
+
+  **🔴 Der Beleg-Screenshot liegt inzwischen vor (Jan, 10.09.) und sagt mehr als die Mail.** Er
+  zeigt den **On-Foil-Bildschirm**: „0.0 / km/h (3s)", darunter „—" und „bpm", unten die
+  Seiten-Punkte. Oben rechts steht in Amber nur noch **„Pu"**, oben links ist von der Wassersperre
+  **nichts** zu sehen — beide lagen jenseits der Fassung. Das passt auf die Prüf-Session: #7136 hat
+  **0 GPS-Chunks** (daher 0.0 km/h) und keinen Pulswert (daher „—"; der Puls reitet im GPS-Sample
+  mit). Weil kein Puls kam, war `pulsMessung` falsch — **deshalb** stand der Hinweis überhaupt da.
+  **Und die Schrift im Screenshot hat Normalmaß.** Der Hinweis war also nicht erst bei großer
+  Schrift abgeschnitten, sondern **immer**; Google hat es nur unter „Wear font size" eingeordnet.
+  Für die Nutzer heißt das: dieser Hinweis ist seit seiner Einführung nie angekommen.
 
   **Zepp:** zweite Ablehnung von 1.0.7 in Folge, wieder das eckige Vorschaubild. **Ursache
   gefunden und behoben** (`e019fdd2`): die eckigen Bilder trugen die runden UNTEREN Ecken des
