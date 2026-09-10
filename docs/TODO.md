@@ -9,6 +9,36 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 🚀 App-Release-Stand
 
+- **🔴 10.09. — BEIDE laufenden Store-Pruefungen abgelehnt: Wear OS 1.2.27 und Zepp 1.0.7.**
+  Details je Vorgang im Einreichungs-Protokoll unten; hier der Stand in einem Blick.
+
+  | Ziel | Live | Lag in Pruefung | Jetzt |
+  |---|---|---|---|
+  | Android Phone | 1.1.25 (07.09.) | 1.1.27 (41) | ❓ mitblockiert? Play-Konsole prueft das, s. unten |
+  | Wear OS | 1.2.25 (07.09.) | 1.2.27 (1037) → **abgelehnt** | 1.2.28 (1038) gebaut, Upload durch Jan |
+  | Zepp / Amazfit | 1.0.6 (24.08.) | 1.0.7 → **abgelehnt** | Grund noch nicht erfasst |
+  | iOS + Apple Watch | 1.1.31 (08.09.) | — | nichts offen |
+  | Garmin | 1.0.85 (02.09.) | — | nichts offen |
+
+  **Wear:** „Wear font size" aus den Wear App Quality Guidelines — Text darf bei grosser
+  System-Schrift nicht am Bildschirmrand abgeschnitten werden. Behoben in `c424e875` + `44bae3e4`
+  (gemeinsames Band oben mittig, Breite aus der Kreissehne; `defaultMinSize` statt fester Hoehe am
+  Start-Knopf). Die eigentliche Ursache war die ECKE einer runden Uhr, nicht die Schriftgroesse.
+  **Nachweis der Pruefung in unseren eigenen Daten:** der Play-Reviewer (user 6 „Google Tester")
+  hatte eine **Pixel Watch 3** mit 1.2.27 gepairt, 10.09. 06:44-07:01, Session #7136 — damit ist
+  belegt, auf welchem Geraet der Beleg-Screenshot entstand, und das ist auch das Geraet fuer die
+  ausstehende Emulator-Gegenprobe mit groesster Schrift.
+
+  **Zepp:** zweite Ablehnung von 1.0.7 in Folge (die erste Runde fiel nur wegen der
+  Store-Vorschaubilder). **Fuer die Nutzer ist von 1.0.7 damit weiterhin nichts draussen**, und
+  1.0.8 staut sich dahinter. Der Wortlaut der Mail fehlt noch — ohne den keine Vermutung.
+
+  **Zwei Baustellen, die davon unabhaengig JETZT falsch sind** (beides Web/Server, darf ich):
+  - `appmeta.IN_REVIEW` fuehrt Amazfit weiter als „submitted 1 September, under review" — auf
+    `/changelog` steht damit oeffentlich eine Pruefung, die es nicht mehr gibt.
+  - `appmeta.IN_REVIEW` sagt fuer Wear schon „resubmitted 10 September", obwohl das signierte AAB
+    nur Jan hochladen kann und dazu keine Meldung vorliegt. Erst nach seiner Bestaetigung wahr.
+
 - **🟡 07.09. — iOS/Apple Watch 1.1.31 (Build 35) ist einreichfertig.** Version und Build standen
   schon (werden bei euch direkt nach jeder Freigabe vorgezogen, s. `88c695c7`), gebaut wird auf
   Jans Mac. Inhalt:
@@ -689,6 +719,9 @@ kann mit der Store-Version normal aufnehmen (siehe den Meldungs-Befund oben in d
 
 | Gemeldet | Ziel | Version | Ergebnis |
 |---|---|---|---|
+| 2026-09-10 (Jans Meldung, vormittags) | Zepp | 1.0.7 | 🔴 **ABGELEHNT** (zweite Runde). **Grund noch NICHT im Repo erfasst** — der Wortlaut der Zepp-Mail liegt noch nicht vor, deshalb steht hier bewusst keine Vermutung. Zu klaeren: wieder die Store-Vorschaubilder (so war es bei der ERSTEN 1.0.7-Runde und bei 1.0.5) oder etwas an der App. **Folge fuer die Nutzer: von 1.0.7 ist damit weiterhin NICHTS draussen** — live bleibt 1.0.6 vom 24.08., und der ganze 1.0.7-Inhalt (Wert-Grafiken, Puls-Zonen aus dem Profil, Touch-Sperre per Finger, bereinigte Hoechstgeschwindigkeit) haengt jetzt in der dritten Runde. Dahinter wartet 1.0.8 in `NAECHSTES`. `appmeta` sagt noch „submitted 1 September, under review" — auf `/changelog` steht damit oeffentlich eine falsche Zeile. |
+| 2026-09-10 ~07:50 | Android Phone + Wear OS (Play) | Wear 1.2.28 (1038), Phone unveraendert 1.1.27 (41) | 🟡 **BEHOBEN + GEBUMPT, Upload durch Jan** — Commits `c424e875` + `44bae3e4`. Nur Wear nachgezogen (wie bei 1.2.21), weil Play eine abgelehnte Nummer nicht wieder annimmt. **⚠️ `appmeta` behauptet bereits „resubmitted 10 September"** — das ist erst wahr, wenn Jan das signierte AAB hochgeladen hat; solange nicht, steht auf `/changelog` oeffentlich eine Einreichung, die es nicht gibt. **Offen: (1)** hat Play die PHONE-Spur mitblockiert? Die Mail nennt nur Code 1037, aber „App Status: Rejected" und „Changes to your app weren't published" sind app-weit formuliert — aus UNSEREN Daten nicht entscheidbar (`device_tokens` hat gar keine `android`-Plattform, das Handy meldet keine Version; und `sessions.app_version` trennt iOS und Android-Handy nicht, beide `1.1.x`). Beleg gibt nur die Play-Konsole: zeigt die Produktions-Spur 41/1.1.27 als „live" oder als abgelehnt? Falls abgelehnt, Phone auf 1.1.28 / 42 bumpen. **(2)** Emulator-Gegenprobe mit groesster System-Schrift steht noch aus — und dafuer ist jetzt belegt, welches Geraet zu nehmen ist: **Pixel Watch 3** (s. Zeile darunter), nicht irgendein Large-Round-Profil. |
+| 2026-09-10 06:44-07:01 (Pruefung) | Wear OS (Play) | 1.2.27 (1037) | 🔴 **ABGELEHNT.** Mail-Wortlaut: „App Status: Rejected · Changes to your app weren't published because of the policy issue(s) listed below. If you have an older version of your app, it will still be available on Google Play." Befund: **„Issue found: Wear font size"** — „Your app must conform to the font size set by the user in System Settings. If the user selects a larger font size, ensure that text and controls are not cut off by screen edges." Belegstelle: „Version code 1037: In-app experience: Please see attached screenshot IN_APP_EXPERIENCE-333.png"; darauf war von „Puls passiv" nur „Pu" zu sehen. Rahmen: Wear App Quality Guidelines. **Zwei Tage Pruefung** (eingereicht 08.09. ~09:20). **Ursache war NICHT die Schriftgroesse, sondern die Ecke** (s. `c424e875`): der Hinweis sass auf `Alignment.TopEnd`, 2 dp unter dem Scheitel — auf einer runden Uhr (227 dp Durchmesser) sind dort nur 42 dp Breite sichtbar, in der Ecke selbst nichts. Der Text lag bei JEDER Schriftgroesse hinter der Fassung, eine grosse machte es nur sichtbar. Derselbe Fehler traf den Wasser-Knopf oben links (nicht gemeldet, aber kaum zu treffen). **Die Pruefung ist in unseren eigenen Daten nachweisbar** (read-only geprueft): `device_tokens` fuer user 6 („Google Tester", s. Memory `store-test-accounts`) zeigt eine **Pixel Watch 3** mit `app_version 1.2.27`, gepairt 10.09. 06:44, zuletzt gesehen 07:01 — dazu Session **#7136** (06:46, Start und Stopp in derselben Minute, 25 Hz). Der Beleg-Screenshot stammt also von einer runden Pixel Watch 3, und die Ablehnung kam binnen einer Stunde nach dem Test. **Merke: der Play-Reviewer hinterlaesst bei uns eine Spur** — bei der naechsten Wear-Einreichung dort nachsehen, das nennt Geraet, Version und Zeitpunkt der Pruefung, was die Mail alles nicht sagt (1.2.24 wurde am 02.09. 04:31-05:27 auf demselben Geraet geprueft). |
 | 2026-09-08 ~09:20 | Android Phone + Wear OS (Play) | 1.1.27 (41) / 1.2.27 (1037) | 🟡 **EINGEREICHT, ERSETZT die Einreichung vom 07.09.** (1.1.26/1.2.26, war noch in Pruefung). Entscheidung Jan: „statt eine Woche zu warten lade ich das Update direkt neu hoch, dann verlieren wir nur einen Tag anstatt einer ganzen Woche fuer den echten Bugfix von heute" — deckt sich mit der Regel vom 23.08. (ersetzen nur bei einem ECHTEN Fehler; die Ortung ueber das Handy ist einer). Gebaut aus `89e41292`, gegengeprueft: danach keine Aenderung mehr an `android/`, Versionen 41/1.1.27 und 1037/1.2.27, alle vier Wear-Commits enthalten. **`appmeta`-Punkte ZUSAMMENGEFUEHRT** (16 statt 3): 1.1.27 ist derselbe Baum wie 1.1.26 plus die vier Ortungs-Commits, und die ersetzte Einreichung ist nie erschienen — waeren nur die neuen drei Zeilen aufgefuehrt, fehlten den Nutzern die 13 anderen. |
 | 2026-09-07 ~17:30 | Android Phone + Wear OS (Play) | 1.1.26 (40) / 1.2.26 (1036) | 🟡 **EINGEREICHT** (Jans Meldung: „habs getestet und release jetzt"). Play-Konsole: Vorabpruefungen laufen („noch maximal 14 Minuten"), **beide Tracks auf vollstaendigen Roll-out** (Produktion 40/1.1.26, Produktion Wear OS 1036/1.2.26). Mit eingereicht: geaenderte Vorstellungsgrafik + Video im Store-Eintrag (de-DE). Enthaelt ausser dem NAECHSTES-Inhalt auch die vier Befunde aus Jans Testrunde vom selben Abend: Spot-Seite scrollt wieder (`487adeba`), Karte malt nicht mehr ueber den Inhalt (`f26d5ac0`), Spotbeschreibungs-Knoepfe je in eigener Zeile (`0611faf0`), Wetter-Titel auf der Spot-Seite (`a28e6f6b`). Bei der Freigabe: EINE Mail fuer beide Tracks, s. Memory `submission-log`. |
 | 2026-09-07 (Freigabe) | Android Phone + Wear OS (Play) | 1.1.25 (39) / 1.2.25 (1035) | ✅ **FREIGEGEBEN**, Play-Mail: „Your update to Pumpfoil, created on Sep 2, 2026 at 3:53 PM GMT, is live in the store" (15:53 GMT = 17:53 Berlin, genau diese Einreichung). Wie am 09.08. und 25.08. deckt EINE Mail beide Tracks ab. **Fuenf Tage Pruefung.** `appmeta` android=1.1.25 + wear=1.2.25 gesetzt, Changelog-Punkte 1:1 uebernommen, NAECHSTES (1.1.26/1.2.26) auf „ready to submit". **Wear war offenbar schon vor der Mail drausssen:** user 396 wechselte am 05.09. von `app_version 1.2.24` auf `1.2.25` — Pixel Watch 2, fremdes Geraet, nicht Jans Emulator. Passt zu der Beobachtung vom 23.08., dass der Wear-Track eine EIGENE Pruefung hat; hier war er schneller als Phone, und die Mail kam am Ende beider. Zu klaeren waere nur, ob dieser Nutzer in einer Testgruppe ist. **Fuer Phone gibt es keinen Feldbeleg** — und es kann auch keinen geben: iOS und Android-Handy nutzen BEIDE `1.1.x`, `sessions.app_version` unterscheidet sie also nicht (die 14 Nutzer mit „1.1.25" ab 27.08. sind iOS-Nutzer, dort ist 1.1.25 seit 27.08. live). Die Play-Store-Seite nennt die Version nicht mehr (von hier abgefragt: 1,1 MB HTML, keine Versionsangabe), ein itunes-artiges Nachschlagen gibt es fuer Play nicht. |
@@ -702,7 +735,11 @@ kann mit der Store-Version normal aufnehmen (siehe den Meldungs-Befund oben in d
 | 2026-08-13 | iOS + Apple Watch | 1.1.22 (26) | ✅ LIVE 13.08. 19:38 UTC (gegengeprueft ueber itunes.apple.com/lookup in 5 Laendern) |
 | 2026-08-06 | Zepp | 1.0.4 | ✅ FREIGEGEBEN 06.08. |
 
-**Noch NICHT eingereicht** (gebaut/gebumpt, liegt bei Jan): nichts mehr — alle drei sind draussen.
+**Noch NICHT eingereicht** (gebaut/gebumpt, liegt bei Jan): **Wear 1.2.28 / 1038** — die Behebung
+der Play-Ablehnung vom 10.09. Signiertes AAB + Upload nur Jan. Phone steht unveraendert auf
+1.1.27 / 41; ob diese Nummer noch brauchbar ist, haengt daran, ob Play die Produktions-Spur
+mitblockiert hat (s. Protokoll). Zepp: 1.0.7 ist abgelehnt, ein Nachfolger ist noch nicht
+gebaut — erst muss der Ablehnungsgrund vorliegen.
 
 ### 🟢 Apple 18.08.: falsche Versions-Zeile, in drei Minuten behoben
 Die Uebermittlung um 15:44 lief unter **„iOS 1.0.24"**, waehrend `project.yml` in beiden Targets
