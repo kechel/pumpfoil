@@ -7229,6 +7229,62 @@ Offen daraus:
     Wanduhr-Zeit. **Braucht ein Garmin-Release** → faellt unter [[native-apps-eingefroren]].
     Fuer den Bestand ist die Information verloren, alte Sessions bleiben komprimiert.
 
+  **✅ (2) UND (3) GEBAUT 10.09. — „mach das richtig, die wahren Uhrzeiten sollten schon richtig
+  angezeigt werden, egal ob pausiert oder gemerged" (Jan).** Eine Quelle fuer die Umrechnung,
+  vier Mal dieselbe Rechnung statt drei Mal eine eigene:
+  - **`server/app/clockmap.py`** — Session-ms → Wanduhr-ms. Dazu die Begriffsklaerung, an der es
+    gescheitert war: `t_start_ms` (auf den Trim re-based, nur fuer Diagramme) · Session-ms
+    (`t_start_session_ms`, Sample-Achse, AKTIVE Zeit) · Wanduhr-ms (Session-ms + die Pausen
+    davor). Gegenstuecke: `web/src/lib/clock.ts`, `android/.../Clockmap.kt`,
+    `watch-apple/Sources-iOS/Clockmap.swift`.
+  - **Neue Spalte `sessions.pause_windows`** (JSON `[[t_session_ms, dauer_ms], …]`, additive
+    Migration in `db.py`, auf prod angewandt). Die Uhr schickt sie im `/complete`
+    (`SessionCompleteIn.pauses`).
+  - **Garmin-Recorder** fuehrt die Liste mit: `_pauseListe` in `SessionRecorder.mc`, gefuellt in
+    `resume()` (und in `stop()`, falls aus der Pause heraus gestoppt wird — sonst fehlt die
+    letzte Pause in `ended_at`), persistiert in `_saveState`, gesendet von `Uploader._finalize`.
+    **Version auf 1.0.86 gebumpt** (live ist 1.0.85, nichts in Pruefung).
+  - **`ended_at` ist ab jetzt WANDUHR:** abgeleitet als `started_at + letzter GPS-Zeitstempel +
+    Pausendauer`. Vorher endete eine Session mit 44 min Pause 44 min zu frueh.
+  - **Gegenstueck dazu: `duration_ms`** neu im Payload = Laenge der SAMPLE-Achse. Der
+    Zuschnitt-Regler rechnete seine Laenge aus `ended_at - started_at` — mit Wanduhr-`ended_at`
+    haette er ab jetzt DANEBEN geschnitten. In allen drei Clients umgestellt (PWA `TrimPanel`,
+    `SessionDetailScreen.durSec`, `SessionDetailView.durSec`), jeweils mit Rueckfall auf die alte
+    Rechnung minus Pausen, falls ein alter Server antwortet.
+  - **Je Lauf `t_start_clock_ms`/`t_end_clock_ms`** in der API (Trim UND Pausen verrechnet), damit
+    kein Client wieder eigene Arithmetik erfindet. Auch die Ausschluss-Fenster und die
+    Fremdkraft-Vorschlaege laufen jetzt durch `wanduhrMs` — die stehen in Session-ms.
+  - **Gemergte Sessions waren schon richtig:** `merge.py` setzt jeden Teil auf seinen echten
+    Wanduhr-Abstand zum ersten Start (`off_ms`), die Luecken dort sind also echt.
+  - **Nachgemessen, nicht geraten** (Romans #7147, 2061 GPS-Punkte): Achsenlaenge 3280 s = exakt
+    `ended_at - started_at`, Wanduhr aber ~5900 s. Groesste Luecke auf der Achse **79 s**, Summe
+    aller Luecken > 3 s = 1256 s — das sind GPS-Ausfaelle, nicht die Pausen. Die 45 min Pause
+    stehen NIRGENDS in den hochgeladenen Daten (ein GPS-Sample ist
+    `[t_ms, lat, lon, speed, hr, hacc]`, `t_ms` ist ein Offset, kein Zeitstempel). Damit ist
+    belegt, dass es ohne die Pausenliste von der Uhr nicht geht.
+  - **Verworfen (mit Jans Zustimmung): echte Zeitstempel in die GPS-Samples.** Das aendert das
+    Upload-Format fuer alle fuenf Plattformen und bricht `index = t·hz`, weil die Accel-Achse
+    lueckenlos sein MUSS.
+  - **Reichweite:** der Trim-Teil wirkt sofort und ueberall (Server rechnet, PWA liest);
+    Android/iOS zeigen es mit ihrem naechsten Release. Der Pausen-Teil braucht Garmin 1.0.86 auf
+    der Uhr — **nur Garmin kann pausieren** (Wear/Zepp/Apple/Handy haben kein `pause()`,
+    nachgesehen). **Alte Sessions bleiben komprimiert**, die Pausendauer ist unwiederbringlich.
+  - **Alte Uhren bleiben bedient:** `pauses` ist optional im `/complete`. Fehlt es, bleibt
+    `pause_windows` NULL, der Versatz ist 0 und die Session verhaelt sich wie vorher (nur mit
+    korrektem Zuschnitt) — kein 422, keine Sonderbehandlung. Genauso in den Clients: fehlt
+    `t_start_clock_ms` bzw. `duration_ms`, rechnen sie selbst weiter.
+  - **Geprueft:** `tests/test_clockmap.py`, 5 Tests — Umrechnung, „ohne Pausen bleibt alles wie
+    es war", kaputtes JSON in der Spalte, Trim-Rueckrechnung fuer alte v1-Segmente, und der ganze
+    Weg durch `/complete` mit einer 10-min-Pause (Achse bleibt 59 s, `ended_at` = Start + 659 s).
+    `tsc --noEmit` + `npm run build` gruen (Waechter 0 Fehler), `:app:compileDebugKotlin` gruen,
+    `swiftc -parse` gruen, `monkeyc -r` fuer fenix7 (97,9 KB) UND instinct2-Lite (70,4 KB) gruen
+    — **bewusst mit `-o` in ein Wegwerf-Verzeichnis, `watch/bin` NICHT angefasst**
+    ([[watch-bin-is-live]]).
+  - **An echten Daten gegengeprueft** (Romans #7147, alte Uhr-Version, also nur der Trim-Teil):
+    Lauf 1 stand als 08:21:24 da und steht jetzt auf 08:25:47, der letzte auf 09:13:05 statt
+    09:08:42 — jeder Lauf wandert um genau die 4:23 des Zuschnitts. `duration_ms` 3280450
+    (54,7 min Achse), `ended_at` unveraendert 09:15:49, weil ohne Pausenliste nichts dazukommt.
+
   **(3) Beim Nachmessen gefunden: die Lauf-Uhrzeit in der PWA laesst `trim_start_ms` weg.**
   `runClock()` in `web/src/pages/SessionDetail.tsx:2186` rechnet `started_at + t_start_ms`, aber
   `segments_json.t_start_ms` ist **auf den Trim re-based** (der Server addiert `trim_start_ms`

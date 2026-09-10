@@ -83,7 +83,7 @@ weg (§9.5). Beides ist behoben, der Bestand nachgezogen.
 ## 1. Die eine Zeitachse
 
 Nullpunkt jeder Session ist der **Aufzeichnungsstart auf der Uhr**. Alles heißt
-`*_ms` = **Millisekunden seit Session-Start**. Es gibt drei Zeitbegriffe, und sie werden
+`*_ms` = **Millisekunden seit Session-Start**. Es gibt vier Zeitbegriffe, und sie werden
 regelmäßig verwechselt:
 
 | Begriff | Wo | Beispiel #1814 |
@@ -91,11 +91,23 @@ regelmäßig verwechselt:
 | **Session-ms** | Rohdaten (`gps/*.json`, `t0_ms`), `timebase.py`, `t_*_session_ms` | Lauf 9 = 5.111.308…5.188.309 |
 | **Trim-re-basierte ms** | `segments_json.t_start_ms`, `accel_windows_json.t_center_ms` | Lauf 9 = 4.510.005…4.587.006 |
 | **Sample-Index** | nur innerhalb von `gps.py` (`i_start`/`i_end`) | Lauf 9 = 3901…3978 |
+| **Wanduhr-ms** | `segments[].t_start_clock_ms` (nur API, `clockmap.py`) | = Session-ms, solange nicht pausiert wurde |
 
 Umrechnung: `Session-ms = re-basierte ms + sessions.trim_start_ms` (bei #1814: + 601.303 ms).
 
-Alle drei Zahlen für denselben Lauf sind verschieden. **Wer sie gleichsetzt, misst am falschen
+Alle Zahlen für denselben Lauf sind verschieden. **Wer sie gleichsetzt, misst am falschen
 Ort** — genau das ist bei der Untersuchung von #1814 passiert (dreimal, bis die Gegenprobe kam).
+
+⏰ **Und Session-ms ist NICHT die Uhrzeit.** Der Garmin-Recorder zieht Pausen von seiner
+Zeitachse ab (`SessionRecorder._elapsedMs`), damit GPS und Accel lückenlos bleiben — die Achse
+läuft also in **aktiver** Zeit. `started_at + Session-ms` liegt damit nach jeder Pause um die
+gesamte Pausendauer zu früh (gemeldet 10.09.2026: ein Lauf um 10:00 stand als 09:08 in der
+Tabelle; nachgemessen 3280 s Achse gegen ~5900 s Wanduhr). Die Pausen stehen deshalb seit
+10.09.2026 in `sessions.pause_windows` (die Uhr schickt sie im `/complete`), und
+**`app/clockmap.py` ist die EINZIGE Stelle, die daraus eine Uhrzeit macht** — Clients lesen das
+fertige `t_start_clock_ms`. `sessions.ended_at` ist ebenfalls Wanduhr; die Länge der Achse steht
+als `SessionOut.duration_ms` daneben (**wer zuschneidet, braucht diese**, nicht `ended_at`).
+Nur Garmin kann pausieren; bei allen anderen Plattformen sind Session-ms und Wanduhr-ms gleich.
 
 ---
 
@@ -442,15 +454,22 @@ Server: km/h, km und die Kadenz-Einheit (`users.pump_unit`: `hz|ppm`) entstehen 
 |---|---|
 | `segments[].t_start_ms` / `t_end_ms` | **trim-re-basiert** |
 | `segments[].t_start_session_ms` / `t_end_session_ms` | Session-ms |
+| `segments[].t_start_clock_ms` / `t_end_clock_ms` | **Wanduhr-ms** (Trim + Pausen verrechnet) — das ist der Wert für eine UHRZEIT |
+| `SessionOut.duration_ms` | Länge der Sample-Achse in Session-ms |
+| `SessionOut.pause_windows` | `[[Session-ms, Dauer]]` — Rohstoff für eigene Umrechnungen |
 | `accel_windows[].t_center_ms` | **trim-re-basiert** |
 | `SessionOut.excluded_ranges`, `fremdkraft_keep` | **Session-ms** |
 | `metrics["fremdkraft_laeufe"]` | Session-ms |
 | `POST …/exclude` mit `start_ms`/`end_ms` | **Session-ms** |
 | `POST …/exclude` mit `run_index` | Index in `segments` (Server rechnet um) |
 
-**Alle drei Clients** (Web-PWA, Android, iOS) benutzen durchgehend **nur** `t_start_ms`, also die
-re-basierte Achse — `t_start_session_ms` kommt in `web/src`, `android/app` und `Sources-iOS` gar nicht
-vor. Umgerechnet wird ausschließlich clientseitig (`* 3.6` für km/h, `%.1f`).
+**Alle drei Clients** (Web-PWA, Android, iOS) rechnen mit `t_start_ms`, also der re-basierten
+Achse — das ist für Diagramme und Spalten auch richtig. **Für eine UHRZEIT nehmen sie seit
+10.09.2026 `t_start_clock_ms`**; vorher rechneten alle drei `started_at + t_start_ms` und ließen
+damit Zuschnitt UND Pausen unter den Tisch fallen (bei der gemeldeten Session 4:23 + 44 min).
+Die Umrechnung liegt jetzt einmal im Server (`clockmap.py`) mit Gegenstücken für die Fälle, in
+denen ein Client selbst mit Session-ms hantiert: `web/src/lib/clock.ts`,
+`android/.../Clockmap.kt`, `watch-apple/Sources-iOS/Clockmap.swift`.
 
 Beim Aussortieren eines Laufs schickt das Web deshalb **den Index, nicht Millisekunden**
 (`api.excludeRun(id, run_index)`), und der Server addiert den Offset selbst (`sessions.py`:
@@ -711,6 +730,12 @@ with create_engine(os.environ['DATABASE_URL']).connect() as c:
 
 **(b) Lauf-Zeit richtig umrechnen** (re-basiert → Session): `t_start_session_ms` nehmen. Wenn das
 Feld fehlt: `t_start_ms + sessions.trim_start_ms`.
+
+**(b2) Lauf-UHRZEIT** (Session → Wanduhr): `t_start_clock_ms` nehmen und auf `started_at`
+addieren. Selbst rechnen nur, wenn das Feld fehlt (alte Antwort im Cache):
+`Session-ms + Summe der pause_windows, die vor dieser Session-ms begannen` — s.
+`server/app/clockmap.py`. Wer stattdessen `started_at + t_start_ms` rechnet, liegt um den
+Zuschnitt UND die Pausen daneben; das war in allen drei Clients so.
 
 **(c) Echte Accel-Rate aus den Dateien** (unabhängig von jedem Tag):
 

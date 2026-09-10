@@ -726,6 +726,11 @@ struct Segment: Codable {
     // den Trim verschoben. Das synchrone Abspielen haengt daran (s. SyncPlayback.swift).
     let t_start_session_ms: Double?
     let t_end_session_ms: Double?
+    // FERTIGE Uhrzeit des Laufs: ms ab `started_at` in WANDUHR-Zeit, Trim UND Pausen sind darin
+    // schon verrechnet (der Server rechnet das, s. server/app/clockmap.py). Damit hoert das
+    // Selbstrechnen auf — `t_start_ms` dafuer zu nehmen war falsch (Befund 10.09.2026).
+    let t_start_clock_ms: Double?
+    let t_end_clock_ms: Double?
     // Geglaettete Spitzen/Tiefstwerte je Fenster (1/3/5 s) — dieselbe Quelle wie der
     // Fenster-Umschalter der Detailansicht.
     let max_1s: Double?
@@ -959,6 +964,13 @@ struct SessionDetail: Codable, Identifiable {
     // "Bereich aussortieren" ungezogen die GANZE Session vor.
     let trim_start_ms: Int?
     let trim_end_ms: Int?
+    // Laenge der SAMPLE-Achse in Session-ms (aktive Zeit) — NICHT `ended_at - started_at` dafuer
+    // rechnen: das ist die Wanduhr-Spanne und bei einer pausierten Aufnahme laenger. Der
+    // Zuschnitt laeuft in Session-ms und schneidet sonst daneben.
+    let duration_ms: Int?
+    // Pausen der Aufnahme als [[session_ms, dauer_ms], …]. Damit wird aus einer Session-Zeit eine
+    // UHRZEIT — s. Clockmap.swift.
+    let pause_windows: [[Int]]?
 
     var startedDate: Date? { Self.parseDate(started_at) }
     var endedDate: Date? { ended_at.flatMap(Self.parseDate) }

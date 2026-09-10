@@ -164,6 +164,10 @@ class ChunkOut(BaseModel):
 class SessionCompleteIn(BaseModel):
     ended_at: datetime | None = None
     total_chunks: int | None = None
+    # Pausen der Aufnahme: [[t_session_ms, dauer_ms], …]. Die Sample-Zeitachse laeuft in AKTIVER
+    # Zeit weiter (die Uhr zieht Pausen ab), damit sie lueckenlos bleibt — erst damit laesst sich
+    # daraus wieder eine Uhrzeit machen. Nur der Garmin-Recorder kann pausieren.
+    pauses: list[list[int]] | None = None
 
 
 # --- Sessions / Analysis ---
@@ -194,6 +198,14 @@ class SessionOut(BaseModel):
     status: str
     trim_start_ms: int | None = None
     trim_end_ms: int | None = None
+    # Laenge der SAMPLE-Achse in Session-ms (aktive Zeit). NICHT `ended_at - started_at`
+    # ausrechnen: mit Pausen ist das die Wanduhr-Spanne und damit laenger. Alles, was in
+    # Session-Koordinaten arbeitet (Zuschneiden, Ausschluss-Fenster), braucht DIESEN Wert.
+    duration_ms: int | None = None
+    # Pausen als [[t_session_ms, dauer_ms], …] (leer = keine bekannt). Damit rechnen Clients
+    # Session-ms in eine Uhrzeit um: `started_at + t + Summe der Pausen, die vor t begannen`.
+    # Fuer Laeufe gibt es das fertig als `t_start_clock_ms` je Segment.
+    pause_windows: list[list[int]] = []
     app_version: str | None = None   # Version, mit der aufgenommen wurde (Fehlersuche)
     # Aussortierte Läufe als Zeitfenster [[start_ms, end_ms], …] (ms ab Session-Start).
     # Betrifft NUR die Auswertung — die Rohdaten bleiben, jederzeit umkehrbar.

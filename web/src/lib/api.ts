@@ -212,6 +212,13 @@ export interface SessionSummary {
   status: string;
   trim_start_ms?: number | null;
   trim_end_ms?: number | null;
+  // Laenge der SAMPLE-Achse in Session-ms (aktive Zeit), nur in der Detailansicht gesetzt.
+  // NIE `ended_at - started_at` dafuer rechnen: das ist die Wanduhr-Spanne und bei einer
+  // pausierten Aufnahme laenger — der Zuschnitt laeuft in Session-ms und schneidet sonst daneben.
+  duration_ms?: number | null;
+  // Pausen der Aufnahme als [[session_ms, dauer_ms], …]. Damit wird aus Session-ms eine Uhrzeit
+  // (s. src/lib/clock.ts); leer = keine bekannt (alle Plattformen ausser Garmin, und alte Garmins).
+  pause_windows?: number[][];
   app_version?: string | null;   // App-Version der Aufnahme (nur Besitzer/Admin sichtbar)
   // Aussortierte Läufe als Zeitfenster [[start_ms, end_ms], …] (ms ab Session-Start).
   // Nur die Auswertung ist betroffen — Rohdaten bleiben, jederzeit zurücknehmbar.

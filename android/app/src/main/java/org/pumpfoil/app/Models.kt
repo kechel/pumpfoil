@@ -312,6 +312,11 @@ data class Segment(
     // den Trim verschoben. Das synchrone Abspielen haengt daran (s. SyncPlayback.kt).
     @SerialName("t_start_session_ms") val tStartSessionMs: Double? = null,
     @SerialName("t_end_session_ms") val tEndSessionMs: Double? = null,
+    // FERTIGE Uhrzeit des Laufs: ms ab `started_at` in WANDUHR-Zeit, Trim UND Pausen sind darin
+    // schon verrechnet (der Server rechnet das, s. app/clockmap.py). Damit hoert das
+    // Selbstrechnen auf — `t_start_ms` dafuer zu nehmen war falsch (Befund 10.09.2026).
+    @SerialName("t_start_clock_ms") val tStartClockMs: Double? = null,
+    @SerialName("t_end_clock_ms") val tEndClockMs: Double? = null,
     // Geglaettete Spitzen/Tiefstwerte je Fenster (1/3/5 s) — dieselbe Quelle wie der
     // Fenster-Umschalter der Detailansicht.
     @SerialName("max_1s") val max1s: Double? = null,
@@ -944,6 +949,13 @@ data class SessionDetail(
     // "Bereich aussortieren" ungezogen die GANZE Session vor.
     @SerialName("trim_start_ms") val trimStartMs: Long? = null,
     @SerialName("trim_end_ms") val trimEndMs: Long? = null,
+    // Laenge der SAMPLE-Achse in Session-ms (aktive Zeit) — NICHT `ended_at - started_at`
+    // ausrechnen: das ist die Wanduhr-Spanne und bei einer pausierten Aufnahme laenger. Der
+    // Zuschnitt laeuft in Session-ms und schneidet sonst daneben. Nur in der Detailansicht.
+    @SerialName("duration_ms") val durationMs: Long? = null,
+    // Pausen der Aufnahme als [[session_ms, dauer_ms], …] (leer = keine bekannt). Damit wird aus
+    // einer Session-Zeit eine UHRZEIT — s. Clockmap.kt und server/app/clockmap.py.
+    @SerialName("pause_windows") val pauseWindows: List<List<Long>>? = emptyList(),
 )
 
 // Maschinen-Urteil der Sportart-Erkennung (docs/sport-classification.md, Stufe 1b). Der Text

@@ -4,6 +4,7 @@ import L from "leaflet";
 import { basiskarten } from "../lib/mapTiles";
 import { api, SessionSummary, SessionSocial as SocialData, SessionVideo } from "../lib/api";
 import { fmtDate, fmtTime } from "../lib/time";
+import { laufUhrzeitMs, pauseVersatzMs, wanduhrMs } from "../lib/clock";
 import { Card, Stat, Spinner, ErrorBox, Avatar, InfoDialog, InfoKnopf } from "../components/ui";
 import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon, EditIcon, StarIcon, CloseIcon, KeyboardIcon, WifiOffIcon, EyeIcon, EyeOffIcon, CompareIcon, ChatBubbleIcon, ShareIcon, WatchIcon, WaveIcon, ScissorsIcon, LinkIcon, CheckIcon, InstagramIcon, TikTokIcon, DownloadIcon } from "../components/Icons";
 import { Lightbox } from "../components/Lightbox";
@@ -1830,6 +1831,7 @@ export default function SessionDetail() {
       </div>
 
       <RunsTable segments={a?.segments ?? []} selected={selectedRun} onSelect={setSelectedRun} win={win} powerFor={powerFor} sessionId={session.id} compareRefs={compareRefs} startedAt={session.started_at} tz={session.tz}
+        trimStartMs={session.trim_start_ms ?? null} pausen={session.pause_windows ?? []}
         hr={session.analysis?.track_geojson?.properties?.hr ?? []}
         excluded={session.excluded_ranges ?? []}
         poweredRuns={(session.analysis?.metrics as any)?.fremdkraft_laeufe ?? []}
@@ -2043,20 +2045,28 @@ function TrimPanel({ session, onSaved, onClose }: { session: SessionSummary; onS
   // detected", und in seiner Aufnahme steckte ein Lauf von 20,1 s / 130,7 m — unsichtbar hinter
   // `trim 0..1000`. Sie ist die EINZIGE von 208 manuellen Zuschnitten mit einem Fenster unter
   // 33 Sekunden, also kein Nutzerfehler, sondern dieser Rueckfall.
-  const dauerBekannt = !!session.ended_at
-    && new Date(session.ended_at).getTime() > new Date(session.started_at).getTime();
-  const totalSec = Math.max(
-    1,
-    Math.round((new Date(session.ended_at ?? session.started_at).getTime() - new Date(session.started_at).getTime()) / 1000)
-  );
+  //
+  // ZWEITE Falle an derselben Stelle (10.09.2026): `ended_at - started_at` ist die WANDUHR-Spanne.
+  // Der Zuschnitt laeuft aber in Session-ms (aktive Zeit) — bei einer pausierten Aufnahme war der
+  // Regler also laenger als die Achse und schnitt daneben. Maßgeblich ist `duration_ms` vom
+  // Server; nur wenn das fehlt (aeltere Antwort im Cache), bleibt die alte Rechnung als Rueckfall.
+  const achseMs = typeof session.duration_ms === "number" && session.duration_ms > 0
+    ? session.duration_ms
+    : (session.ended_at
+        ? new Date(session.ended_at).getTime() - new Date(session.started_at).getTime()
+          - pauseVersatzMs(session.pause_windows, Number.MAX_SAFE_INTEGER)
+        : 0);
+  const dauerBekannt = achseMs > 0;
+  const totalSec = Math.max(1, Math.round(achseMs / 1000));
   const [a, setA] = useState(Math.round((session.trim_start_ms ?? 0) / 1000));
   const [b, setB] = useState(Math.round((session.trim_end_ms ?? totalSec * 1000) / 1000));
   // Nutzer-Feedback: die Lauf-Tabelle zeigt Ortszeit, das Zuschneiden zeigte nur Sekunden ab
   // Sessionbeginn -> man konnte nicht sehen, WO man schneidet. Beides nebeneinander schlägt die
   // Brücke (gleiche Formatierung wie die Lauf-Zeilen, Ortszeit des Spots).
   const startMs = new Date(session.started_at).getTime();
+  // Der Regler steht in Session-Sekunden, die Anzeige daneben ist eine UHRZEIT -> Pausen dazu.
   const clock = (sec: number) =>
-    fmtTime(new Date(startMs + sec * 1000).toISOString(), session.tz,
+    fmtTime(new Date(startMs + wanduhrMs(session.pause_windows, sec * 1000)).toISOString(), session.tz,
             { hour: "2-digit", minute: "2-digit", second: "2-digit" });
   const [saving, setSaving] = useState(false);
   const trimmed = session.trim_start_ms != null || session.trim_end_ms != null;
@@ -2145,6 +2155,8 @@ function RunsTable({
   compareRefs,
   startedAt,
   tz,
+  trimStartMs = null,
+  pausen = [],
   excluded = [],
   poweredRuns = [],
   hr = [],
@@ -2161,6 +2173,10 @@ function RunsTable({
   compareRefs: { sessionId: number; runIdx: number | null }[];
   startedAt: string;
   tz?: string | null;
+  // Zuschnitt-Beginn und Pausen der Aufnahme — beides braucht es, um aus einer Session-Zeit eine
+  // UHRZEIT zu machen (s. src/lib/clock.ts).
+  trimStartMs?: number | null;
+  pausen?: number[][];
   // Aussortierte Zeitfenster [[start_ms, end_ms], …] (ms ab Session-Start) + Rechte/Callback.
   excluded?: number[][];
   // Fremdkraft-Vorschläge der Erkennung (analysis.metrics.fremdkraft_laeufe) + bereits
@@ -2181,12 +2197,18 @@ function RunsTable({
   // Aussortierte/abgetrennte Läufe stehen nicht mehr in den Segmenten — die Hinweise oben sind
   // die einzige Spur davon, deshalb auch bei 0 Läufen rendern (alle aussortiert/abgetrennt).
   if (!segments.length && !excluded.length && !poweredRuns.length && !keptWindows.length) return null;
-  // Uhrzeit des Lauf-Starts = Session-Start + t_start_ms (ms ab Session-Start), in Spot-Ortszeit.
+  // Uhrzeit in Spot-Ortszeit. `uhr()` erwartet einen WANDUHR-Offset ab Session-Start; wer eine
+  // Session-Zeit hat (Ausschluss-Fenster, Fremdkraft-Vorschlaege), schickt sie durch `wanduhrMs`.
+  // Frueher stand hier `sessionStartMs + t_start_ms` — das liess den Zuschnitt weg UND die
+  // Pausen, jeder Lauf war also zu frueh (s. src/lib/clock.ts).
   const sessionStartMs = new Date(startedAt).getTime();
-  const runClock = (s: any): string =>
-    s?.t_start_ms == null
-      ? "–"
-      : fmtTime(new Date(sessionStartMs + s.t_start_ms).toISOString(), tz, { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  const uhr = (msAbStart: number): string =>
+    fmtTime(new Date(sessionStartMs + msAbStart).toISOString(), tz,
+            { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  const runClock = (s: any): string => {
+    const ms = laufUhrzeitMs(s, trimStartMs, pausen);
+    return ms == null ? "–" : uhr(ms);
+  };
   const showPower = !!powerFor && segments.some((s) => powerFor(s.avg_speed_mps, s.avg_pump_hz) != null);
   const bestDist = Math.max(...segments.map((s) => s.distance_m ?? 0));
   const hasPump = segments.some((s) => s.avg_pump_hz != null && (s.pumps ?? 0) > 0);
@@ -2252,7 +2274,7 @@ function RunsTable({
             {excluded.map(([from, to], i) => (
               <li key={`${from}-${to}`} className="flex flex-wrap items-center gap-2 text-sm text-slate-300">
                 <span className="tabular-nums">
-                  {fmtTime(new Date(sessionStartMs + from).toISOString(), tz, { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                  {uhr(wanduhrMs(pausen, from))}
                   {" · "}{fmtMMSS(Math.max(0, (to - from) / 1000))}
                 </span>
                 {canEdit && (
@@ -2284,9 +2306,7 @@ function RunsTable({
           <ul className="mt-2 space-y-1.5">
             {poweredRuns.map((r: any) => (
               <li key={`${r.t_start_ms}`} className="flex flex-wrap items-center gap-2 text-slate-300">
-                <span className="tabular-nums">
-                  {fmtTime(new Date(sessionStartMs + r.t_start_ms).toISOString(), tz, { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
-                </span>
+                <span className="tabular-nums">{uhr(wanduhrMs(pausen, r.t_start_ms))}</span>
                 <span>{poweredWhy(r)}</span>
                 {canEdit && (
                   <button onClick={() => doKeep(r, true)} disabled={busy}
@@ -2299,7 +2319,7 @@ function RunsTable({
             {keptWindows.map(([from, to]) => (
               <li key={`kept-${from}`} className="flex flex-wrap items-center gap-2 text-slate-300">
                 <span className="tabular-nums">
-                  {fmtTime(new Date(sessionStartMs + from).toISOString(), tz, { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                  {uhr(wanduhrMs(pausen, from))}
                   {" · "}{fmtMMSS(Math.max(0, (to - from) / 1000))}
                 </span>
                 <span>{t("v2.keptLabel")}</span>

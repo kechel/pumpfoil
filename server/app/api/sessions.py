@@ -20,6 +20,7 @@ from .. import export_track, media, models, storage
 from ..analysis import EXCLUDE_MARGIN_MS, dump_excluded_windows, excluded_windows, maybe_auto_trim, run_analysis
 from ..db import get_db
 from ..fitimport import parse_fit_bytes
+from ..clockmap import pausen as _pausen, segmente_mit_uhrzeit
 from ..naming import owner_label
 from ..setup_snapshot import standard_setup
 from ..ml.features import bandpass_fft, magnitude_g
@@ -106,10 +107,13 @@ _VALID_LABELS = {"pump", "glide", "not_foiling"}
 #   4 = `owner_id` dazugekommen (Profilbild verlinkt auf /foiler/<id>, 08.09.). Genau die hier
 #       beschriebene Falle ist sofort wieder zugeschnappt: bei einer FREMDEN Session war der
 #       Link da, bei den eigenen (laengst geladenen) nicht — der Server schickte 304.
-_OUT_VERSION = 4
+#   5 = Uhrzeit je Lauf (`t_start_clock_ms`) + `duration_ms` + `pause_windows` (10.09.). Ohne
+#       Bump zeigten geladene Sessions weiter die zu frueh berechneten Lauf-Zeiten.
+_OUT_VERSION = 5
 
 
-def _analysis_out(result: models.AnalysisResult | None, slim: bool = False, sens: str = "normal") -> AnalysisOut | None:
+def _analysis_out(result: models.AnalysisResult | None, slim: bool = False, sens: str = "normal",
+                  session: models.Session | None = None) -> AnalysisOut | None:
     """slim=True lässt die großen JSON-Blobs (Track/Segmente/Accel-Fenster) weg — für die
     Listenansicht. sens != "normal" (nur für den Besitzer): überlagert Foiling-Zeit/-Distanz und
     v. a. die einzelnen LÄUFE (Segmente) mit der gecachten Preset-Auswertung aus sensitivity_json,
@@ -130,6 +134,11 @@ def _analysis_out(result: models.AnalysisResult | None, slim: bool = False, sens
     segments = None
     if not slim:
         segments = p["segments"] if p else (json.loads(result.segments_json) if result.segments_json else None)
+        # Uhrzeit je Lauf fertig mitgeben (`t_start_clock_ms`): Trim UND Pausen sind darin schon
+        # verrechnet. Alle drei Clients rechneten das vorher selbst — und alle drei falsch
+        # (s. app/clockmap.py). `session` ist optional, damit alte Aufrufer nichts merken.
+        if session is not None:
+            segments = segmente_mit_uhrzeit(session, segments)
     return AnalysisOut(
         algo_version=result.algo_version,
         total_distance_m=result.total_distance_m,
@@ -185,6 +194,21 @@ def _list_ended_at(s: models.Session):
                 return max(ends)
     last_ms = storage.gps_last_ms(s.session_uuid)
     return s.started_at + timedelta(milliseconds=last_ms) if last_ms else None
+
+
+def _achsen_laenge_ms(s: models.Session) -> int | None:
+    """Laenge der SAMPLE-Achse in Session-ms (aktive Zeit) — der letzte GPS-Zeitstempel.
+    Bewusst NICHT `ended_at - started_at`: das ist die Wanduhr-Spanne und bei einer pausierten
+    Aufnahme laenger als die Achse. Wer damit zuschneidet, schneidet daneben (der Zuschnitt
+    laeuft in Session-ms). Billig: liest nur den letzten Chunk."""
+    lm = storage.gps_last_ms(s.session_uuid)
+    if lm:
+        return int(lm)
+    if s.ended_at is not None and s.started_at is not None:
+        # Kein GPS greifbar: Wanduhr-Spanne minus Pausen ist die beste Schaetzung.
+        spanne = int((s.ended_at - s.started_at).total_seconds() * 1000)
+        return max(0, spanne - sum(d for _, d in _pausen(s)))
+    return None
 
 
 def _fremdkraft_keep(s: models.Session) -> list[list[int]]:
@@ -268,6 +292,11 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
         status=s.status,
         trim_start_ms=s.trim_start_ms,
         trim_end_ms=s.trim_end_ms,
+        # Laenge der Sample-Achse (aktive Zeit) und die Pausen dazu. Beides braucht die UI, um
+        # Session-ms von Wanduhr-Zeit zu unterscheiden — `ended_at` ist ab jetzt Wanduhr und als
+        # Achsenlaenge FALSCH, sobald pausiert wurde (s. app/clockmap.py).
+        duration_ms=None if slim else _achsen_laenge_ms(s),   # liest den letzten Chunk -> kein N+1 in Listen
+        pause_windows=[[t, d] for t, d in _pausen(s)],
         excluded_ranges=[[a, b] for a, b in excluded_windows(s)],
         fremdkraft_keep=_fremdkraft_keep(s),
         data_version=int((getattr(s, "updated_at", None) or s.created_at).timestamp())
@@ -296,6 +325,7 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
             s.result, slim=slim,
             sens=((sens if sens is not None else (s.user.foil_sensitivity or "normal") if (owned and s.user) else "normal")
                   if (with_analysis and owned) else "normal"),
+            session=s,
         ) if with_analysis else None,
     )
 

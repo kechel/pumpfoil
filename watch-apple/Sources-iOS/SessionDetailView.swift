@@ -335,9 +335,16 @@ struct SessionDetailView: View {
         f.area_cm2 > 0 && f.span_cm > 0 && (f.thickness_mm ?? 0) > 0
     }
 
+    // Laenge der SAMPLE-Achse in Sekunden — die Basis fuer Zuschnitt/Aussortieren, beides laeuft
+    // in Session-ms (aktive Zeit). `ended_at - started_at` ist die WANDUHR-Spanne und bei einer
+    // pausierten Aufnahme laenger; damit schnitt der Regler daneben (Befund 10.09.2026).
     private var durSec: Double {
+        if let ms = session?.duration_ms, ms > 0 { return Double(ms) / 1000.0 }
         guard let a = session?.startedDate, let b = session?.endedDate, b > a else { return 0 }
-        return b.timeIntervalSince(a)
+        let spanne: Double = b.timeIntervalSince(a)
+        let pausenS: Double = Clockmap.pauseVersatzMs(session?.pause_windows, .greatestFiniteMagnitude) / 1000.0
+        let ohnePause: Double = spanne - pausenS
+        return ohnePause > 0 ? ohnePause : 0
     }
 
     // Teilen-Link-Sheet (Besitzer): Erklärung + Link + Kopieren + Deaktivieren.
@@ -413,7 +420,9 @@ struct SessionDetailView: View {
     /// Uhrzeit (Spot-Ortszeit) an Sekunde `sec` ab Sessionbeginn; nil, solange nichts geladen ist.
     private func clockAt(_ sec: Double) -> String? {
         guard let s = session, let start = s.startedDate else { return nil }
-        return hhmmss(start.addingTimeInterval(sec), s.tz)
+        // Der Regler steht in Session-Sekunden (aktive Zeit), daneben soll eine UHRZEIT stehen.
+        let wanduhr: Double = Clockmap.wanduhrMs(s.pause_windows, sec * 1000.0)
+        return hhmmss(start.addingTimeInterval(wanduhr / 1000.0), s.tz)
     }
 
     // Denselben Bereich AUSSORTIEREN statt zuschneiden (wie TrimPanel in der PWA): nötig, wenn der
@@ -1431,6 +1440,7 @@ struct SessionDetailView: View {
                   sessionId: s.id,
                   win: win,
                   sessionStart: TimeFmt.parseISO(s.started_at), tz: s.tz,
+                  trimStartMs: s.trim_start_ms, pausen: s.pause_windows,
                   wattFuer: wattFuer(s),
                   canEdit: s.owned == true, busy: excludeBusy,
                   onExclude: { askExcludeRun($0) },
@@ -1492,7 +1502,8 @@ struct SessionDetailView: View {
         guard w.count >= 2, let start = s.startedDate else { return "–" }
         let from: Double = Double(w[0]) / 1000.0
         let to: Double = Double(w[1]) / 1000.0
-        let clock: String = hhmmss(start.addingTimeInterval(from), s.tz)
+        let wanduhr: Double = Clockmap.wanduhrMs(s.pause_windows, Double(w[0]))
+        let clock: String = hhmmss(start.addingTimeInterval(wanduhr / 1000.0), s.tz)
         let len: String = mmss(max(0, to - from))
         return "\(clock) · \(len)"
     }
@@ -1560,7 +1571,9 @@ struct SessionDetailView: View {
 
     private func poweredClock(_ s: SessionDetail, _ ms: Int?) -> String {
         guard let ms, let start = s.startedDate else { return "–" }
-        return hhmmss(start.addingTimeInterval(Double(ms) / 1000.0), s.tz)
+        // `ms` ist Session-Zeit (aktive Zeit) -> Pausen dazu, sonst zu frueh.
+        let wanduhr: Double = Clockmap.wanduhrMs(s.pause_windows, Double(ms))
+        return hhmmss(start.addingTimeInterval(wanduhr / 1000.0), s.tz)
     }
 
     // Begründung lokalisiert aus den MESSWERTEN gebaut — metrics.grund ist deutscher Admin-Klartext
@@ -2197,6 +2210,10 @@ private struct RunsTable: View {
     // Session-Start + Spot-Zeitzone -> Startuhrzeit des Laufs (PWA: runClock).
     var sessionStart: Date? = nil
     var tz: String? = nil
+    // Zuschnitt-Beginn und Pausen der Aufnahme — beides braucht es, um aus einer Session-Zeit
+    // eine UHRZEIT zu machen (s. Clockmap.swift).
+    var trimStartMs: Int? = nil
+    var pausen: [[Int]]? = nil
     // Watt je Lauf; nil, wenn Foil-Masse oder Fahrergewicht fehlen - dann entfaellt die Spalte.
     var wattFuer: ((Double?, Double?) -> Int?)? = nil
     // Eigene Session -> je Zeile ein Knopf Lauf aussortieren (wie in der PWA-Lauf-Tabelle).
@@ -2399,9 +2416,11 @@ private struct RunsTable: View {
         }
     }
 
-    /// Startuhrzeit des Laufs in Spot-Ortszeit: Session-Start + t_start_ms.
+    /// Startuhrzeit des Laufs in Spot-Ortszeit. Zuschnitt UND Pausen sind darin verrechnet —
+    /// `t_start_ms` allein taugt dafuer NICHT (s. Clockmap.swift).
     private func startUhr(_ seg: Segment) -> String {
-        guard let start = sessionStart, let ms = seg.t_start_ms else { return "–" }
+        guard let start = sessionStart else { return "–" }
+        guard let ms = Clockmap.laufUhrzeitMs(seg, trimStartMs, pausen) else { return "–" }
         let f = DateFormatter()
         f.dateFormat = "HH:mm:ss"
         f.timeZone = TimeFmt.zone(tz)

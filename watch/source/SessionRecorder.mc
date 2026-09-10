@@ -46,6 +46,13 @@ class SessionRecorder {
     hidden var _paused = false;            // Aufnahme pausiert (Sensoren aus, FIT-Timer angehalten)
     hidden var _pausedMs = 0;              // aufsummierte Pausendauer -> _elapsedMs bleibt lückenlos
     hidden var _pauseStartedMs = 0;        // System.getTimer() beim Pausenbeginn
+    hidden var _pauseBeiMs = 0;            // Session-ms (aktive Zeit) beim Pausenbeginn
+    // Die Pausen dieser Aufnahme als [[session_ms, dauer_ms], …] — geht im /complete an den
+    // Server. WOZU: unsere Zeitachse ist AKTIVE Zeit (_elapsedMs zieht _pausedMs ab, damit der
+    // Stream lückenlos bleibt). Der Server kann daraus ohne diese Liste keine UHRZEIT machen und
+    // zeigte Läufe nach einer Pause um die gesamte Pausendauer zu früh an (Nutzermeldung
+    // 10.09.2026: ein Lauf um 10:00 stand als 09:08 in der Tabelle).
+    hidden var _pauseListe = [];
 
     hidden var _sessionUuid;
     hidden var _startedAt;
@@ -1087,7 +1094,7 @@ class SessionRecorder {
         if (_recording) { return; }
         stopped = false;
         storageFull = false;
-        _paused = false; _pausedMs = 0; _pauseStartedMs = 0;
+        _paused = false; _pausedMs = 0; _pauseStartedMs = 0; _pauseBeiMs = 0; _pauseListe = [];
         _sessionUuid = _genUuid();
         _startedAt = Time.now();
         _accelChunkIndex = 0;
@@ -1196,6 +1203,12 @@ class SessionRecorder {
 
     function stop() {
         if (!_recording) { return; }
+        // Aus der Pause heraus gestoppt: das offene Fenster noch schliessen, sonst endet die
+        // Session am Server um diese Pause zu frueh.
+        if (_paused) {
+            var offen = System.getTimer() - _pauseStartedMs;
+            if (offen > 0) { _pausedMs += offen; _pauseListe.add([_pauseBeiMs, offen]); }
+        }
         // Reihenfolge so, dass die Rohdaten SICHER geschrieben werden, bevor irgendeine
         // FIT-Operation fehlschlagen könnte — kein Crash darf die letzten Chunks kosten.
         try { Position.enableLocationEvents(Position.LOCATION_DISABLE, method(:onPosition)); } catch (e) {}
@@ -1254,6 +1267,7 @@ class SessionRecorder {
         if (!_recording || _paused) { return; }
         _paused = true;
         _pauseStartedMs = System.getTimer();
+        _pauseBeiMs = _elapsedMs();   // Position der Pause auf der Sample-Achse (s. _pauseListe)
         try { Position.enableLocationEvents(Position.LOCATION_DISABLE, method(:onPosition)); } catch (e) {}
         if (_accelOn) {
             try { Sensor.unregisterSensorDataListener(); } catch (e) {}
@@ -1281,7 +1295,9 @@ class SessionRecorder {
     // wieder scharf.
     function resume() {
         if (!_recording || !_paused) { return; }
-        _pausedMs += System.getTimer() - _pauseStartedMs;
+        var dauer = System.getTimer() - _pauseStartedMs;
+        _pausedMs += dauer;
+        if (dauer > 0) { _pauseListe.add([_pauseBeiMs, dauer]); }
         _paused = false;
         Uploader.setRecording(true);   // Aufnahme laeuft wieder -> kein Sync (s. pause())
         enableGps();
@@ -1377,7 +1393,8 @@ class SessionRecorder {
             "accel_chunks" => _accelChunkIndex,
             "accel_t0" => _accelT0,
             "gps_chunks" => _gpsChunkIndex,
-            "completed" => completed
+            "completed" => completed,
+            "pauses" => _pauseListe
         });
     }
 

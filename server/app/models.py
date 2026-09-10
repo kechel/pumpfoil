@@ -442,6 +442,16 @@ class Session(Base):
     # dort hat der Nutzer Autofahrten und vergessene Stopps ausdruecklich weggeschnitten
     # (Jan, 04.09.). NULL = unbekannt/kein Zuschnitt.
     trim_auto: Mapped[bool | None] = mapped_column(Boolean)
+    # PAUSEN der Aufnahme als JSON-Liste [[t_session_ms, dauer_ms], …]. Die Uhr schickt sie im
+    # `/complete`; NULL = die Aufnahme kannte keine Pause (oder eine alte App-Version).
+    # WOZU: die Sample-Zeitachse (GPS-`t_ms`, Accel) ist AKTIVE Zeit — der Garmin-Recorder zieht
+    # die Pausendauer ab, damit die Achse lueckenlos bleibt und `index = t·hz` gilt
+    # (`SessionRecorder._elapsedMs`). Jede UHRZEIT-Anzeige rechnet aber `started_at + t` und lag
+    # damit nach der ersten Pause um die gesamte Pausendauer zu frueh (gemeldet 10.09.2026: ein
+    # Lauf um 10:00 stand als 09:08 in der Tabelle). Mit diesen Fenstern rechnet
+    # `app/clockmap.py` Session-ms in Wanduhr-ms um — die Achse selbst bleibt unberuehrt, die
+    # Analyse merkt nichts davon.
+    pause_windows: Mapped[str | None] = mapped_column(Text)
     # Zurückgeholte Fremdkraft-Läufe (Erkennung v2): ZEITFENSTER wie excluded_ranges (JSON-Liste
     # von [start_ms, end_ms], ms ab Session-Start). Läufe in diesen Fenstern beurteilt die
     # Fremdkraft-Erkennung NICHT mehr — der Besitzer hat gesagt „der zählt doch". Bewusst dieselbe
