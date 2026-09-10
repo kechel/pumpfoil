@@ -758,9 +758,18 @@ def start_success(user: models.User = Depends(current_user), db: Session = Depen
     import json as _json
     cuts = {p: _cutoff(p) for p in PERIODS}
     agg = {p: [0, 0] for p in PERIODS}   # [total_attempts, success_runs]
+    # NUR Pumpfoil-Sessions. Startversuche gibt es sonst nicht: die Erkennung sucht das
+    # Anschieben und Aufsteigen aus eigener Kraft, und beim Wingfoilen oder am Seil ist ein Start
+    # etwas voellig anderes — ein langer Lauf sieht fuer sie wie ein langer Startversuch aus.
+    # Anlass: Feedback von u43 zu Session 5272 (08.09.2026), die sport_class="wingfoil" traegt und
+    # deren Laeufe in seine persoenliche Quote gezaehlt haben. Dieselbe Bedingung wie bei den
+    # Rekorden und Bestenlisten oben (Zeile 135): NULL gilt als Pumpfoil, und Datenmuell
+    # (data_quality != ok) zaehlt ohnehin nirgends.
     rows = (db.query(S.started_at, AR.start_attempts_json, AR.segments_json)
             .join(AR, AR.session_id == S.id)
-            .filter(S.user_id == user.id, S.deleted.isnot(True)).all())
+            .filter(S.user_id == user.id, S.deleted.isnot(True),
+                    or_(S.sport_class.is_(None), S.sport_class == "pumpfoil"),
+                    or_(S.data_quality.is_(None), S.data_quality == "ok")).all())
     for started_at, attempts_json, segs_json in rows:
         try:
             n_run = len(_json.loads(segs_json) or []) if segs_json else 0
