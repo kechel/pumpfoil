@@ -1,6 +1,6 @@
 ZEPP — BEFEHLE
 ==============
-cd ~/gits/pumpfoil/watch-zepp
+Alle Zeilen laufen aus DIESEM Verzeichnis (watch-zepp/), kein cd noetig.
 
 
 TESTING
