@@ -1079,25 +1079,23 @@ Page(
           // Der Ausweg aus der SPERRE, nicht der aus der Aufnahme (Jan, 10.09.2026: "nicht
           // 'HOLD = STOP' sondern 'HOLD = UNLOCK'"). Hier stand vorher btn.stop — auf einem
           // Sperrschirm, dessen zweite Zeile das Entsperren erklaert, war das widerspruechlich.
-          text: t("rec.stopHold") + " = " + t("btn.unlock"),
+          // Eine Aussage statt zwei: die Dauer steht hier, die frueher zweite Zeile
+          // (rec.holdFree, "2 s halten = Touch frei") sagte fast dasselbe und ist raus
+          // (Jan, 10.09.2026). Zusammengesetzt aus vorhandenen Schluesseln, damit keine
+          // 17 neuen Uebersetzungen noetig sind — laengste Fassung ist Franzoesisch
+          // "2 s Maintenir = DÉVERROUILLER" mit 29 Zeichen und passt bei 26 px auf
+          // volle Breite in der Bildschirmmitte.
+          text: "2 s " + t("rec.stopHold") + " = " + t("btn.unlock"),
           text_size: Math.round(DH * 0.055),
           color: 0x9aa4b2, align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V,
         });
-        // Zweite Zeile: der Ausweg OHNE Tasten. Ohne ihn wuesste niemand, dass langes Druecken
-        // auf den Schirm die Sperre oeffnet — und wer keine Tasten erreicht, saesse fest.
-        w.lockHint2 = w.touchShield.createWidget(hmUI.widget.TEXT, {
-          x: 0, y: Math.round(DH * 0.60), w: DW, h: Math.round(DH * 0.10),
-          text: t("rec.holdFree"), text_size: Math.round(DH * 0.05),
-          color: 0x9aa4b2, align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V,
-        });
-        try { w.lockBg.setEnable(false); w.lockIcon.setEnable(false); w.lockHint.setEnable(false); w.lockHint2.setEnable(false); } catch (e) {}
+        try { w.lockBg.setEnable(false); w.lockIcon.setEnable(false); w.lockHint.setEnable(false); } catch (e) {}
       }
       s.lockTimer = setTimeout(() => {
         try { if (w.lockIcon) hmUI.deleteWidget(w.lockIcon); } catch (e) {}
         try { if (w.lockHint) hmUI.deleteWidget(w.lockHint); } catch (e) {}
-        try { if (w.lockHint2) hmUI.deleteWidget(w.lockHint2); } catch (e) {}
         try { if (w.lockBg) hmUI.deleteWidget(w.lockBg); } catch (e) {}
-        w.lockIcon = null; w.lockHint = null; w.lockHint2 = null; w.lockBg = null; s.lockTimer = null;
+        w.lockIcon = null; w.lockHint = null; w.lockBg = null; s.lockTimer = null;
       }, 1200);
     },
     // Automatisch = nur ab 3 Tasten (Begruendung an KEY_NUMBER), sonst die Wahl aus dem Menue.
@@ -1145,7 +1143,9 @@ Page(
       if (s.lockHoldTimer) { clearTimeout(s.lockHoldTimer); s.lockHoldTimer = null; }
       try { if (w.touchShield) hmUI.deleteWidget(w.touchShield); } catch (e) {}
       w.touchShield = null; w.touchCanvas = null; w.lockIcon = null; w.lockHint = null;
-      w.lockHint2 = null;
+      // lockBg gehoert mit dazu: es lebt IM Schild, wird mit ihm geloescht und darf danach
+      // nicht als Verweis auf ein weggeworfenes Widget stehen bleiben.
+      w.lockBg = null;
     },
     _unlockTouchTemporarily() {
       const s = this.state;
