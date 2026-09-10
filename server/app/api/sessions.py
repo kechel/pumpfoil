@@ -3093,7 +3093,26 @@ def set_classification(
         # Admin sagt „doch Pumpfoil" -> gegen weitere Meldungen sperren (überlebt auch Reanalysen,
         # s. Kommentar an Session.pumpfoil_override).
         s.pumpfoil_override = True
+    # Ist die Session keine Pumpfoil-Session mehr, gehoert ein AUTOMATISCHER Zuschnitt weg: er
+    # stammt aus „erster Lauf minus 15 s" der Pumpfoil-Erkennung und schneidet bei einer anderen
+    # Sportart echte Fahrzeit ab (s. analysis.maybe_auto_trim, Jan 10.09.2026). Ohne diesen Schritt
+    # wirkte die Regel nur auf KUENFTIGE Sessions — umklassifiziert wird aber nachtraeglich, der
+    # Zuschnitt steht dann längst (Fall #5272: 792 s abgeschnitten, 9 Minuten Fahrt).
+    #
+    # NUR der automatische (`trim_auto`). Einen vom Nutzer gesetzten Zuschnitt anzufassen waere
+    # eine Anmassung — er hat ihn ausdruecklich gewaehlt. `trim_auto = None` heisst „wieder offen
+    # fuer die Automatik", genau wie beim Aufheben in set_trim.
+    zuschnitt_weg = ((s.sport_class or "pumpfoil") != "pumpfoil" and s.trim_auto
+                     and (s.trim_start_ms is not None or s.trim_end_ms is not None))
+    if zuschnitt_weg:
+        s.trim_start_ms = None
+        s.trim_end_ms = None
+        s.trim_auto = None
     db.commit()
+    if zuschnitt_weg:
+        # Danach stimmen alle Kennzahlen wieder auf die ganze Aufnahme (wie in set_trim).
+        run_analysis(db, s)
+        _spot_nachziehen(db, s)
     return {"ok": True, "sport_class": s.sport_class, "data_quality": s.data_quality,
             "sport_source": s.sport_source}
 
