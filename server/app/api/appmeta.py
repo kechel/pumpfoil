@@ -301,9 +301,10 @@ ABGELEHNT: list[dict] = [
 ]
 
 # Solange diese Liste leer ist, blendet /changelog den Abschnitt „Being reviewed" aus.
-# Stand 10.09.2026 10:10: Android Phone 1.1.28 (42) + Wear 1.2.28 (1038) sind eingereicht (Jans
-# Meldung, Play-Konsole in den Vorabpruefungen). Amazfit 1.0.8 ist noch nicht hochgeladen und steht
-# deshalb weiter unter NAECHSTES.
+# Stand 11.09.2026 00:50: Android Phone 1.1.28 (42) + Wear 1.2.28 (1038) eingereicht 10.09. 10:10,
+# Amazfit 1.0.8 eingereicht 10.09. 11:19, Garmin 1.0.86 eingereicht 11.09. 00:50 — alle drei
+# Vorgaenge liegen gleichzeitig in der Pruefung. (Der frühere Hinweis „Amazfit noch nicht
+# hochgeladen" war nur bis 10.09. 11:19 richtig.)
 IN_REVIEW: list[dict] = [
     {"name": "Android phone + Wear OS", "version": "1.1.28 / 1.2.28",
      # ERSETZT die Einreichung vom 07.09. (1.1.26/1.2.26), bevor Google sie freigegeben hat —
@@ -380,6 +381,32 @@ IN_REVIEW: list[dict] = [
          "and Suunto.",
          "COROS: the app says which mode records the best data, and what COROS does not "
          "hand over.",
+     ]},
+    {"name": "Garmin", "version": "1.0.86",
+     # EINGEREICHT 11.09.2026 00:50 (Jans Meldung: „.iq ist eingereicht zur pruefung"). Die
+     # eingereichte Datei ist `pumpfoil-1.0.86.iq`, 13.540.198 B, sha1
+     # 75bb7421a43a604cc77aa9c3a286c93053fa8e2f (gegen Jans Download geprueft, nicht nur gemeldet),
+     # 218 von 218 Varianten. Live steht 1.0.85 vom 02.09.
+     #
+     # `_APP_META["garmin"].latest` BLEIBT auf 1.0.85 und `watch/bin` bleibt unangetastet, bis die
+     # Freigabe da ist — sonst bewirbt die Website eine Version, die im Store fehlt (Fehler vom
+     # 10.08.). Danach: build-all.sh -> latest auf 1.0.86 -> Changelog-Eintrag.
+     #
+     # Die Punkte sind Jans abgesegnete Store-Notizen (`/home/jan/release-staging/garmin-1.0.86/
+     # store-notizen.txt`) — hier WORTGLEICH, damit Store-Text und Website dasselbe sagen.
+     "note": "submitted 11 September, waiting for Garmin",
+     "items": [
+         "Pause and check your runs: while the recording is paused, the watch now sends what "
+         "it has so far, so the runs of this session already show up on your phone and on "
+         "pumpfoil.org.",
+         "Correct clock times for every run. Times were shown too early when a recording had "
+         "been trimmed or paused \u2014 they now match the clock on your wrist.",
+         "New heart rate alarm: the watch can vibrate above a heart rate you set, with its own "
+         "vibration pattern. Set it in your profile under On-foil alarm.",
+         "Repeating alarms are now yours to tune: choose how many seconds pass before an alarm "
+         "repeats while you are still above or below the limit (default 5).",
+         "The start screen always shows your default foil again, also when your alarm uses "
+         "fixed speed limits.",
      ]},
     {"name": "Amazfit", "version": "1.0.8",
      # 1.0.7 wurde ZWEIMAL abgelehnt, beide Male nur wegen der Store-Vorschaubilder (nie wegen der
