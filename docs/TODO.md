@@ -776,6 +776,25 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔲 10.09. — Zepp: `MAX_PLAUSIBLE_MPS` heisst auf den anderen fuenf Recordern etwas anderes.**
+  Der Zepp-Build brach heute zum ZWEITEN Mal an einer doppelt deklarierten Konstante ab
+  (`zeus build`: „Identifier 'MAX_PLAUSIBLE_MPS' has already been declared", Zeile 82). Behoben am
+  26.08. (`8b75da7a`), am 30.08. (`0e55cb78`) wieder eingebaut — direkt UNTER den Kommentar, der
+  davor warnt. Jetzt erneut behoben (`MAX_FOIL_MPS`, existierte schon).
+  **Der Name ist deshalb so anziehend:** Wear (`Recorder.kt`) und Server (`analysis/gps.py`) nennen
+  den Pumpfoil-Deckel (32 km/h) `MAX_PLAUSIBLE_MPS`. In `watch-zepp/page/index.js` ist der Name
+  aber fuer etwas ANDERES vergeben — 30 m/s = 108 km/h als Schwelle fuer Positionsspruenge
+  (Zeile 33). Wer eine Aenderung plattformweit nachzieht, bringt den Namen mit und kollidiert.
+  **Zu erwaegen:** in `page/index.js` die Sprung-Schwelle in `MAX_SPRUNG_MPS` umbenennen und den
+  Foil-Deckel `MAX_PLAUSIBLE_MPS` nennen — dann trifft ein kopierter Nachzug die richtige
+  Konstante mit dem richtigen Wert. NICHT kurz vor einem Build machen (mechanische Umbenennung an
+  mehreren Stellen). Bis dahin schuetzt nur die Syntaxpruefung aus `watch-zepp/jk-readme.txt`.
+
+- **🔲 10.09. — Zepp-Uhr-Icon ist 124×124, `zeus build` will ≥248.** Warnung, kein Fehler; steht
+  seit 1.0.6 so und hat noch keine Ablehnung verursacht. Wenn es weg soll: 248×248 mit
+  TRANSPARENTEN Ecken erzeugen. **Nicht** die Zeile aus `brand/master/build.sh` nehmen — die macht
+  eine deckende Kachel (s. `brand/stores/zepp/README.md`, „Falle im Generator").
+
 - **🟢 10.09. — Das Puls-Feld sagt jetzt, WIE ALT der Wert ist, statt „Puls passiv".**
   Zweiter Vorschlag Jan, nachdem er fragte, was „passiver Puls" ueberhaupt bedeutet: „ginge auch
   ‚letzter puls vor 59s' oder so?" — richtig, denn das ist die Beobachtung, waehrend „passiv"
