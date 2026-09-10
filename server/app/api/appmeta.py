@@ -252,11 +252,12 @@ _APP_META: dict[str, dict[str, str]] = {
 # `applicationId` (Play schickt eine einzige Mail fuer beide Spuren), iPhone und Apple Watch
 # stecken im selben Bundle mit einer `MARKETING_VERSION`.
 #
-# HARTE REGEL (Jan, 10.09.2026): Play und Wear gehen IMMER gleichzeitig und zusammen raus — „das
-# hatte ich nur einmal getrennt eingereicht und das wurde abgewiesen". Also auch fuer einen reinen
-# Wear-Fix BEIDE Nummern bumpen und in einer Runde einreichen, nie eine Spur allein. Getrennte Zeilen wuerden zwei
-# Vorgaenge vortaeuschen, wo es einer ist (Jan, 05.09.) — deshalb je eine Zeile mit beiden
-# Versionsnummern. Garmin und Amazfit stehen fuer sich.
+# HARTE REGEL (Jan, 10.09.2026): Play und Wear gehen IMMER gleichzeitig und zusammen raus — auch
+# wenn es an einer der beiden Seiten GAR KEINE Aenderung gab. „das hatte ich nur einmal getrennt
+# eingereicht und das wurde abgewiesen … jedenfalls wollen wir das in zukunft immer zusammen machen,
+# auch wenn es keine aenderungen an app oder wear gab." Die Nummern laufen im Gleichschritt: beide
+# bumpen, beide bauen, beide in EINER Runde hochladen — selbst wenn eine Seite byteweise der
+# freigegebenen Fassung entspricht (so am 10.09.: der Fix betraf Wear, Phone bekam 1.1.28/42 mit).
 GRUPPEN = [
     (("ios", "apple"), "iPhone + Apple Watch"),
     (("android", "wear"), "Android phone + Wear OS"),
