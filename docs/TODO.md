@@ -7159,3 +7159,64 @@ Offen daraus:
   **`appmeta.garmin` bleibt auf 1.0.82 und `watch/bin` bleibt unangetastet, bis die Freigabe da
   ist** — sonst bewirbt die Website eine Version, die im Store noch nicht liegt (Fehler vom
   10.08.). Nach der Freigabe: `build-all.sh`, dann `appmeta.garmin` + Changelog.
+
+- **📥 Inbox 10.09. (Roman, user 244, `global:main` #1624) — zwei gemeldete Fehler, BEIDE bestaetigt,
+  dazu ein dritter beim Nachmessen gefunden.** Nichts davon ist gefixt; Reihenfolge und Umfang
+  braucht Jans Entscheidung.
+
+  **(1) Der Stern („Standard") wirkt RUECKWIRKEND auf alle alten Sessions.** Romans Worte: er hatte
+  drei Stabs, einen als Favorit, alle Sessions „mit diesem Stab"; nach dem Umstellen des Favoriten
+  stand der neue Stab auch in allen alten Sessions.
+  - **Ursache:** `sessions.stab_id` (ebenso `board_id`, `mast_len_cm`, `shim_deg`, `foil_id`) ist
+    beim Import meist NULL, und NULL heisst „Standard des Nutzers" — aufgeloest **beim Lesen**
+    gegen `users.settings_json`, s. `_resolve_setup()` in `server/app/api/sessions.py:339` und
+    `sessions.py:706` (Liste) und `community.py:1980` (`_eff`, also auch in Statistiken/Filtern).
+    Es ist eine Vererbung, kein Schnappschuss. Die UI verspricht aber genau das Gegenteil:
+    `setup.mastDesc` = „The star marks the default **for new sessions**".
+  - **Belegt an Romans Daten:** er hat den Schaden heute 14:32-14:34 per Hand repariert — 17
+    Sessions, im Sekundenabstand absteigend nach Datum, alle auf `stab_id = 24` gesetzt (vorher
+    NULL). Sein aktueller Standard ist `stab_id = 260` (Gong Stab Fluid H XS), vorher 24
+    (Gong Stab Trail L). Session #7147 (heute) steht noch auf NULL.
+  - **Ausmass jetzt** (6370 nicht geloeschte Sessions): `stab_id` geerbt in **567** Sessions von
+    30 Nutzern · `mast_len_cm` in **1084** von 22 · `board_id` in **455** von 14 · `foil_id` in
+    **79** von 29. Das Foil ist der ernste Teil: es geht in Vergleiche/Statistik ein, nicht nur
+    in die Anzeige.
+  - **Vorschlag (a):** beim Anlegen der Session den Standard des Nutzers **hineinschreiben**
+    (Schnappschuss) statt ihn beim Lesen zu erben. Das Foil macht die Garmin-Uhr schon so
+    (`"foil_id" => sessionFoilId` in `SessionRecorder.mc`), deswegen ist die Zahl dort klein.
+    Einmalige Migration fuer den Bestand: aktuellen Standard in die NULL-Sessions schreiben —
+    aendert nichts an der Anzeige (dasselbe wird heute schon gezeigt), friert sie nur ein.
+  - **Gegenargument, das Jan entscheiden muss:** wer erst 20 Sessions aufnimmt und DANN sein
+    Profil ausfuellt, bekommt heute alle alten Sessions nachtraeglich beschriftet. Nach dem Fix
+    bleiben die leer. Kompromiss waere: Schnappschuss ab jetzt, Bestands-NULLs beim naechsten
+    Standard-Wechsel des Nutzers mit dem ALTEN Wert festschreiben.
+
+  **(2) Lauf-Uhrzeiten nach einer Pause sind zu frueh — um die gesamte Pausendauer.** Romans
+  Beispiel: Session 08:20 gestartet, Pausen, letzter Lauf real gegen 10:00 — angezeigt gegen 09:08,
+  „as if paused time is removed".
+  - **Ursache, absichtlich so gebaut:** `SessionRecorder._elapsedMs()` (`watch/source/SessionRecorder.mc:2001`)
+    rechnet `(now - startedAt) - _pausedMs`. Der GPS-`t_ms` und die Accel-Zeitbasis sind also
+    **aktive** Zeit, damit die Achse lueckenlos bleibt (`index = t·hz` gilt nur so, s.
+    `docs/DATA-PIPELINE.md`). Nur: `ended_at` und jede Uhrzeit-Anzeige rechnen
+    `started_at + t_ms` und unterstellen damit Wanduhr-Zeit.
+  - **Nachgemessen an #7147:** `started_at` 08:21:09, `ended_at` **09:15:49** (= Start + 54:40
+    aktiv, obwohl real bis ~10:00 aufgenommen wurde), letzter Lauf `t_start_ms` 2853450 auf
+    `trim_start_ms` 263000 → angezeigt 09:13:05. Differenz zur Wanduhr ≈ 44 min = genau seine
+    Pausenzeit. Rechnung geht auf.
+  - **Nur Garmin betroffen:** Zepp und Wear haben kein manuelles Pausieren
+    (`watch-zepp/page/index.js:970`, Kommentar), Apple rechnet mit Wanduhr
+    (`watch-apple/Sources/Recorder.swift:188`, kein Pause-Begriff).
+  - **Vorschlag:** die Uhr schickt die Pausenfenster mit (`/complete`, Liste
+    `[aktive_ms_bei_pausenbeginn, dauer_ms]`), der Server speichert sie, und **nur die
+    Uhrzeit-Darstellung** addiert den bis dahin aufgelaufenen Versatz. Die Sample-Achse bleibt
+    unveraendert → Analyse/Detektor bleiben unberuehrt. `ended_at` beim `/complete` dann aus
+    Wanduhr-Zeit. **Braucht ein Garmin-Release** → faellt unter [[native-apps-eingefroren]].
+    Fuer den Bestand ist die Information verloren, alte Sessions bleiben komprimiert.
+
+  **(3) Beim Nachmessen gefunden: die Lauf-Uhrzeit in der PWA laesst `trim_start_ms` weg.**
+  `runClock()` in `web/src/pages/SessionDetail.tsx:2186` rechnet `started_at + t_start_ms`, aber
+  `segments_json.t_start_ms` ist **auf den Trim re-based** (der Server addiert `trim_start_ms`
+  selbst, wo er es braucht — s. `sessions.py:2182`). Bei #7147 sind das 263 s, also **4:23 zu
+  frueh** bei jedem Lauf; genau deshalb sah Roman den ersten Lauf „korrekt gegen 08:20" (angezeigt
+  08:21:24, real 08:25:47). Betrifft jede Session mit Zuschnitt, unabhaengig von Pausen. Einzeiler
+  im Web, unabhaengig von (2) — dieselbe Stelle in Android/iOS noch pruefen.
