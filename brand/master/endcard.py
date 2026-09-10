@@ -67,11 +67,17 @@ MOTTO_ZH = ("玩得开心", "继续 pump！")
 # in der Liste schrumpft die ganze Tafel (Jan, 10.09.: „ich finds ja jetzt zu
 # klein"). Apple schreibt seinen Namen in China zwar selbst lateinisch, aber
 # 苹果手表 versteht dort jeder — und nur so bleibt die Liste lesbar.
+# Als PAARE, nicht als fertige Zeilen: die Trennpunkte stehen alle auf einer
+# senkrechten Achse, links davon rechtsbuendig, rechts davon linksbuendig
+# (Jan, 10.09.). Mittig gesetzte Zeilen liessen die Punkte springen.
+# 苹果手表 steht unten ALLEIN, weil es als einziger Name vier Zeichen hat
+# (Jan, 10.09.). Darueber sind dann alle sechs Namen genau zwei Zeichen lang —
+# zwei links, zwei rechts vom Punkt, und die Tafel steht symmetrisch.
 ZEILEN_ZH = [
-    "苹果手表 · 佳明",   # App auf der Uhr
-    "华米 · 高驰",       # 华米 App, 高驰 ueber die Kontoanbindung
-    "颂拓 · 博能",       # ueber die Kontoanbindung
-    "手机",              # ganz ohne Uhr
+    ("佳明", "华米"),       # App auf der Uhr
+    ("高驰", "颂拓"),       # ueber die Kontoanbindung
+    ("博能", "手机"),       # Konto, und ganz ohne Uhr
+    ("苹果手表", None),     # App auf der Uhr — sitzt mittig auf der Achse
 ]
 
 SPRACHEN = {"": (APP_ZEILE, MOTTO), "-zh": (APP_ZEILE_ZH, MOTTO_ZH)}
@@ -122,6 +128,37 @@ def verlauf(farben: tuple[str, str, str]) -> Image.Image:
     return Image.fromarray((lo + (hi - lo) * seg).astype(np.uint8), "RGB").convert("RGBA")
 
 
+def paar_zeilen(paare, zeile_bild, px: int, tracking: int) -> list:
+    """Zeilen mit ausgerichteter Trennpunkt-Achse.
+
+    Alle Bilder bekommen dieselbe Breite; der Punkt sitzt in jedem auf
+    derselben x-Position. Damit stehen die Punkte uebereinander, sobald die
+    Zeilen — wie alle anderen auch — mittig gesetzt werden.
+    """
+    punkt = zeile_bild("·", px, 0)
+    luft = round(px * 0.55)                       # Abstand Punkt <-> Text
+    links = [zeile_bild(a, px, tracking) for a, _ in paare]
+    rechts = [zeile_bild(b, px, tracking) if b else None for _, b in paare]
+    l_max = max(i.width for i in links)
+    r_max = max((i.width for i in rechts if i), default=0)
+    hoehe = max(i.height for i in links + [i for i in rechts if i])
+    breite = l_max + luft + punkt.width + luft + r_max
+    achse = l_max + luft + punkt.width / 2        # Mitte des Punktes
+    out = []
+    for li, ri in zip(links, rechts):
+        img = Image.new("RGBA", (breite, hoehe), (0, 0, 0, 0))
+        if ri is None:
+            # Einzelner Eintrag: mittig auf die Achse, nicht auf die Zeile.
+            img.alpha_composite(li, (round(achse - li.width / 2), (hoehe - li.height) // 2))
+        else:
+            img.alpha_composite(li, (l_max - li.width, (hoehe - li.height) // 2))
+            img.alpha_composite(punkt, (l_max + luft, (hoehe - punkt.height) // 2))
+            img.alpha_composite(ri, (l_max + luft + punkt.width + luft,
+                                     (hoehe - ri.height) // 2))
+        out.append(img)
+    return out
+
+
 def endcard(theme: str, sp: str = "") -> Image.Image:
     hell = theme == "light"
     app_zeile, motto_text = SPRACHEN[sp]
@@ -152,8 +189,8 @@ def endcard(theme: str, sp: str = "") -> Image.Image:
     # auf einem Handy und ist drei Sekunden zu sehen; neun Namen in zwei Zeilen kann dort niemand
     # lesen (Jan, 04.09.). Weniger Zeichen je Zeile heisst groessere Schrift bei gleicher Breite.
     # Die Quelle bleibt dieselbe wie im Banner, nur die Umbruch-Regel unterscheidet sich.
-    zeilen = [zeile_bild(z, px=64, tracking=2 if zh else 6)
-              for z in (ZEILEN_ZH if zh else banner.subline_zeilen(2))]
+    zeilen = (paar_zeilen(ZEILEN_ZH, zeile_bild, px=64, tracking=2) if zh else
+              [zeile_bild(z, px=64, tracking=6) for z in banner.subline_zeilen(2)])
     # 80 % der Breite: die Markennamen sollen lesbar sein, aber die Zeile „FREE APP & COMMUNITY"
     # darueber traegt die Aussage — sie steht auf voller Breite (Jan, 04.09.).
     faktor = (breite * 0.80) / max(z.width for z in zeilen)
