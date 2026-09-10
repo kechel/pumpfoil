@@ -476,6 +476,10 @@ enum Loc {
         "sessions.searchSpot": "Hledat spot",
         "sessions.empty": "Žádné relace",
         "sessions.oclock": "hod.",
+        "status.analyzed": "vyhodnoceno",
+        "status.complete": "zpracovává se",
+        "status.live": "● živě",
+        "status.recording": "nahrávání",
     ]
     private static let _csOverlayP3s2: [String: String] = [
         "sd.duration": "Doba",
@@ -1386,6 +1390,10 @@ enum Loc {
         "sessions.searchSpot": "Spot zoeken",
         "sessions.empty": "Geen sessies",
         "sessions.oclock": "uur",
+        "status.analyzed": "geanalyseerd",
+        "status.complete": "wordt verwerkt",
+        "status.live": "● live",
+        "status.recording": "opname",
     ]
     private static let _nlOverlayP3s2: [String: String] = [
         "sd.duration": "Duur",
@@ -2460,6 +2468,10 @@ enum Loc {
         "wx.today": "Tänään",
         "wx.tomorrow": "Huomenna",
         "sessions.oclock": "",
+        "status.analyzed": "analysoitu",
+        "status.complete": "käsitellään",
+        "status.live": "● live",
+        "status.recording": "tallennus",
         "sd.duration": "Kesto",
         "sd.avgSpeed": "Ø nopeus",
         "sd.avgPump": "Ø pump",
@@ -3300,6 +3312,10 @@ enum Loc {
         "sessions.searchSpot": r("Spot suchen", "Spot sueche", "Spot suchen", "Search spot", "Chercher un spot", "Cerca spot", "Buscar spot"),
         "sessions.empty": r("Keine Sessions", "Kei Sessions", "Keine Sessions", "No sessions", "Aucune session", "Nessuna sessione", "Sin sesiones"),
         "sessions.oclock": r("Uhr", "Uhr", "Uhr", "", "", "", ""),
+        "status.analyzed": r("ausgewertet", "uusgwertet", "ausgwertet", "analyzed", "analysée", "analizzata", "analizada"),
+        "status.complete": r("wird verarbeitet", "wird verarbeitet", "wird verarbeitet", "processing", "en traitement", "in elaborazione", "procesando"),
+        "status.live": r("● live", "● live", "● live", "● live", "● live", "● live", "● en vivo"),
+        "status.recording": r("aufnahme", "Ufnahm", "Aufnahme", "recording", "enregistrement", "registrazione", "grabando"),
         "sd.duration": r("Dauer", "Duur", "Dauer", "Duration", "Durée", "Durata", "Duración"),
         // Fehlten in iOS und zeigten den ROHEN KEY (gemeldet Jan, 18.08.: "hist.spotAnim").
         // Systematisch gefunden: alle Loc.t()-Keys gegen Loc.swift/LocExtra.swift geprueft,

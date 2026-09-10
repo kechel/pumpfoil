@@ -73,6 +73,13 @@ struct SessionsView: View {
                 .onChange(of: month) { _ in Task { await load() } }
                 .onChange(of: sync.tick) { _ in Task { await load() } }
                 .task { await loadMonths() }
+                // Laeuft eine eigene Aufnahme noch (status recording/live), die Liste alle 4 s
+                // nachladen — wie die PWA und wie die Detailansicht (pollWhileLive) es tun.
+                // Ohne das aenderte sich in der Liste nichts, waehrend eine Session hochlaedt;
+                // seit die Garmin schon IN DER PAUSE sendet, ist genau das der Moment, in dem
+                // man aufs Handy schaut (Befund 11.09.2026). Endet, sobald keine
+                // Zwischen-Session mehr in der Liste steht.
+                .task(id: laeuftNoch) { await pollWhileLive() }
                 // Dateiauswahl: `.data` statt einer engeren Liste — .fit hat auf iOS keinen
                 // eigenen Typ, eine Filterung wuerde genau die Dateien ausgrauen, die gemeint
                 // sind. Geprueft wird serverseitig.
@@ -468,6 +475,19 @@ struct SessionsView: View {
         if probe.count > groups.count { setAccelAuto(false) }   // onChange(of: accelOnly) lädt neu
     }
 
+    // Steht eine eigene Aufnahme in der Liste, die noch laeuft? `own` sind nur eigene Sessions.
+    private var laeuftNoch: Bool {
+        own.contains { $0.status == "recording" || $0.status == "live" }
+    }
+
+    private func pollWhileLive() async {
+        guard laeuftNoch else { return }
+        while !Task.isCancelled, laeuftNoch {
+            try? await Task.sleep(nanoseconds: 4_000_000_000)
+            await load()
+        }
+    }
+
     private func load() async {
         loading = true; defer { loading = false }
         do {
@@ -612,7 +632,7 @@ struct SessionRow: View {
 
     @ViewBuilder private var statusText: some View {
         if session.status != "analyzed" {
-            Text(statusLabel(session.status)).font(.caption2).foregroundStyle(.orange)
+            Text(statusLabel(session.status, lang)).font(.caption2).foregroundStyle(.orange)
         }
     }
 
@@ -965,10 +985,13 @@ func sessionDateTime(_ startISO: String, _ endISO: String?, _ tz: String? = nil)
     return start + ocSuffix
 }
 
-private func statusLabel(_ s: String) -> String {
+// Uebersetzt, nicht hartcodiert (s. Android SessionsScreen.statusLabel): hier stand deutsches
+// „laeuft" bzw. „verarbeite…", egal welche Sprache der Nutzer eingestellt hatte. Dieselben
+// Schluessel wie die PWA (status.*).
+private func statusLabel(_ s: String, _ lang: String) -> String {
     switch s {
-    case "live": return "läuft"
-    case "uploaded", "processing", "analyzing": return "verarbeite…"
+    case "live", "recording", "analyzed", "complete": return Loc.t("status.\(s)", lang)
+    case "uploaded", "processing", "analyzing": return Loc.t("status.complete", lang)
     default: return s
     }
 }

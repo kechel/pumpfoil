@@ -196,6 +196,19 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
         loading = false
     }
     LaunchedEffect(scope, spot, tick, accelOnly, filter, month) { load() }
+    // Laeuft eine eigene Aufnahme noch (status recording/live), die Liste alle 4 s nachladen —
+    // wie die PWA es tut. Ohne das aenderte sich in der Liste nichts, waehrend eine Session
+    // hochlaedt; man musste den Tab wechseln oder das Detail oeffnen (Befund 11.09.2026, nachdem
+    // die Garmin ihre Daten jetzt schon IN DER PAUSE schickt). Endet von selbst, sobald keine
+    // Zwischen-Session mehr in der Liste steht.
+    // `own` sind ohnehin nur die eigenen Sessions (Scope.MINE) — es braucht keine Besitzerpruefung.
+    val laeuftNoch = own.any { it.status == "recording" || it.status == "live" }
+    LaunchedEffect(laeuftNoch, scope) {
+        while (laeuftNoch && scope == Scope.MINE) {
+            kotlinx.coroutines.delay(4000)
+            load()
+        }
+    }
     // Bei jedem Betreten neu laden (neue Sessions sofort sichtbar, wie PWA/iOS). Im NavHost ist
     // LocalLifecycleOwner der NavBackStackEntry -> ON_RESUME feuert beim Tab-Wechsel.
     val listScope = rememberCoroutineScope()
@@ -735,9 +748,12 @@ private fun GroupCard(g: CommunityGroup, modifier: Modifier, onOpen: (Int) -> Un
     }
 }
 
+// Uebersetzt, nicht hartcodiert: hier stand deutsches „laeuft" bzw. „verarbeite…" — ein
+// englischer oder japanischer Nutzer las das genauso (Befund 11.09.2026). Dieselben Schluessel
+// wie die PWA (status.*), damit Website und App dasselbe Wort zeigen.
 private fun statusLabel(s: String): String = when (s) {
-    "live" -> "läuft"
-    "uploaded", "processing", "analyzing" -> "verarbeite…"
+    "live", "recording", "analyzed", "complete" -> I18n.t("status.$s")
+    "uploaded", "processing", "analyzing" -> I18n.t("status.complete")
     else -> s
 }
 
