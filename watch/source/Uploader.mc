@@ -75,6 +75,10 @@ module Uploader {
     // werden, aber diese eine Session muss draussen bleiben: syncAll wuerde sie mit /complete
     // abschliessen, waehrend die Uhr noch weiter puffert -> halbe Session ausgewertet.
     var _activeUuid = null;
+    // Pausen-Modus: nur DANN darf die laufende Session mitgehen — und dann ausschliesslich als
+    // TEIL-Upload (kein /complete, kein lokales Aufraeumen). Gesetzt von SessionRecorder.pause(),
+    // zurueckgenommen in resume() und stop().
+    var _pauseSync = false;
     var _watch = null;
 
     function isRecordingActive() as Lang.Boolean { return _recordingActive; }
@@ -89,6 +93,13 @@ module Uploader {
     // Vom Recorder gesetzt: welche Session laeuft gerade (null = keine). Nur zum AUSSCHLIESSEN
     // in syncAll — s. _activeUuid.
     function setActiveSession(uuid) as Void { _activeUuid = uuid; }
+
+    function setPauseSync(an as Lang.Boolean) as Void { _pauseSync = an; }
+
+    // Ist DIESE Session die gerade laufende? Dann darf sie nur teil-hochgeladen werden.
+    function isPartial(uuid) as Lang.Boolean {
+        return _activeUuid != null && uuid.equals(_activeUuid);
+    }
 
     // Watchdog-Singleton (lazy).
     function watch() as RetryWatch {
@@ -197,8 +208,11 @@ module Uploader {
         if (!(sessions instanceof Lang.Array) || sessions.size() == 0) { return; }
         _queue = [];
         for (var i = 0; i < sessions.size(); i++) {
-            // Die laufende Aufnahme NIE mitschicken (auch nicht in der Pause) — sie waechst noch.
-            if (_activeUuid != null && sessions[i].equals(_activeUuid)) { continue; }
+            // Die laufende Aufnahme geht nur in der PAUSE mit, und dort als Teil-Upload
+            // (SessionSyncJob sieht das an Uploader.isPartial und schliesst sie nie ab).
+            // Waehrend die Aufnahme laeuft, bleibt sie draussen — sie waechst noch, und Connect
+            // IQ laesst waehrend einer aktiven Aktivitaet ohnehin keine Uebertragung zu.
+            if (!_pauseSync && _activeUuid != null && sessions[i].equals(_activeUuid)) { continue; }
             _queue.add(sessions[i]);
         }
         if (_queue.size() == 0) { _queue = null; return; }
@@ -211,6 +225,9 @@ module Uploader {
 
     // Nächste Session der Warteschlange starten (oder fertig).
     function _next() as Void {
+        // Aufnahme laeuft wieder (Pause beendet): den ganzen Lauf beenden, nicht nur die
+        // laufende Session. Waehrend einer aktiven Aktivitaet geht ohnehin keine Uebertragung.
+        if (_recordingActive) { _queue = null; }
         if (_queue == null || _queue.size() == 0) {
             _busy = false; _queue = null; _job = null;
             watch().arm();   // Lauf beendet -> bei Rest-Offenem den nächsten Auto-Retry planen
@@ -248,10 +265,14 @@ class SessionSyncJob {
     hidden var _idx as Lang.Number = 0;
     hidden var _pendingKind = null;      // "accel"/"gps" des gerade gesendeten Chunks
     hidden var _pauses = [];             // Pausenfenster [[session_ms, dauer_ms], …]
+    // Teil-Upload der noch LAUFENDEN Session (nur aus einer Pause heraus): am Ende /analyze
+    // statt /complete, und NIEMALS _cleanup — die Aufnahme geht ja weiter.
+    hidden var _partial as Lang.Boolean = false;
     hidden var _pendingIdx as Lang.Number = 0;
 
     function initialize(uuid as Lang.String) {
         _uuid = uuid;
+        _partial = Uploader.isPartial(uuid);
         var st = Storage.getValue("state_" + uuid);
         _meta = Storage.getValue("meta_" + uuid);
         _token = Config.getString("deviceToken");
@@ -425,6 +446,11 @@ class SessionSyncJob {
     // GPS-first; das hier ist die Client-Parität. _sa/_sg sind unabhängige Resume-Zähler pro Kind
     // -> der Reorder ist rückwärtskompatibel mit halb hochgeladenen Alt-Sessions.
     hidden function _advance() as Void {
+        // Die Pause ist vorbei und es wird wieder aufgenommen -> Teil-Upload hier abbrechen.
+        // Connect IQ laesst waehrend einer aktiven Aktivitaet keine Uebertragung zu, und die
+        // Puffer bleiben liegen: beim naechsten Sync geht es an derselben Stelle weiter
+        // (Wasserstaende sa_/sg_). KEIN Abschluss, kein Aufraeumen.
+        if (_partial && Uploader.isRecordingActive()) { Uploader.sessionDone(); return; }
         if (_phase == :start) { _phase = :gps; _idx = _sg; }
         if (_phase == :gps) {
             while (_idx < _gpsTotal) {
@@ -482,6 +508,19 @@ class SessionSyncJob {
     // gesyncte Session ist fertig. Daher immer /complete (auch bei _completed==false, z. B.
     // verwaiste Sessions ohne sauberen Stopp), sonst hingen die in einer /analyze-Endlosschleife.
     hidden function _finalize() as Void {
+        // Teil-Upload: die Aufnahme laeuft noch (Pause). NICHT abschliessen — nur einmal
+        // anstossen, dass der Server das Bisherige durchrechnet. Er haelt die Session auf
+        // `status = live`; auf dem Handy sind die Laeufe bis hierhin damit schon zu sehen.
+        if (_partial) {
+            _phase = :analyze;
+            _web(
+                Config.baseUrl() + "/api/ingest/session/" + _uuid + "/analyze",
+                {},
+                _opts(),
+                method(:onPartial)
+            );
+            return;
+        }
         _phase = :complete;
         _web(
             Config.baseUrl() + "/api/ingest/session/" + _uuid + "/complete",
@@ -489,6 +528,12 @@ class SessionSyncJob {
             _opts(),
             method(:onFinal)
         );
+    }
+
+    // Teil-Upload fertig: KEIN _cleanup (die Session laeuft weiter und braucht ihren State).
+    function onPartial(responseCode as Lang.Number, data as WebData) as Void {
+        Uploader.noteResult(responseCode);
+        Uploader.sessionDone();
     }
 
     function onFinal(responseCode as Lang.Number, data as WebData) as Void {

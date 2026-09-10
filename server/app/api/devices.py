@@ -319,6 +319,11 @@ def device_config(
         "alarmPatternHigh": settings.get("alarm_pattern_high", "short2"),
         "alarmPatternLow": settings.get("alarm_pattern_low", "long2"),
         "alarmRepeat": settings.get("alarm_repeat", "once"),
+        # Nur bei alarmRepeat == "continuous" relevant (Wiederholabstand in Sekunden).
+        "alarmRepeatS": settings.get("alarm_repeat_s", 5),
+        # Dritte Schwelle: Puls (bpm, 0 = aus) mit eigenem Vibrationsmuster.
+        "hrHigh": settings.get("hr_high", 0),
+        "alarmPatternHr": settings.get("alarm_pattern_hr", "short1"),
         # Vorwahl für den Uhr-Start: "foil" = Standard-Foil | "fixed" = feste Werte.
         "alarmDefault": settings.get("alarm_default", "foil"),
         "foils": foils_out,
