@@ -37,13 +37,14 @@ function CoverPic({ exp, t, mode, eigen }: {
   );
 }
 
-function CopyBtn({ text }: { text: string }) {
+function CopyBtn({ text, onCopied }: { text: string; onCopied?: (t: string) => void }) {
   const [ok, setOk] = useState(false);
   return (
     <button
       className="mini"
       onClick={() => {
         void navigator.clipboard.writeText(text);
+        onCopied?.(text);
         setOk(true);
         setTimeout(() => setOk(false), 1200);
       }}
@@ -56,12 +57,14 @@ function CopyBtn({ text }: { text: string }) {
 /** Eine Zelle der Texttabelle: zugeklappt EINE Zeile mit … und anklickbar zum
  *  Kopieren, aufgeklappt der volle Text (Jan, 09.09.: „den titel einzeilig mit
  *  .. so wie platz ist anklickbar zum kopieren, und rechts die beschreibung"). */
-function CapCell({ copy, zeile, children }:
-                 { copy?: string; zeile?: string; children?: ReactNode }) {
+function CapCell({ copy, zeile, children, onCopied }:
+                 { copy?: string; zeile?: string; children?: ReactNode;
+                   onCopied?: (t: string) => void }) {
   const [ok, setOk] = useState(false);
   if (!copy) return <div className="capcell leer" />;
   const kopieren = () => {
     void navigator.clipboard.writeText(copy);
+    onCopied?.(copy);
     setOk(true);
     setTimeout(() => setOk(false), 1200);
   };
@@ -84,15 +87,16 @@ function CapCell({ copy, zeile, children }:
 }
 
 /** Eine Zeile: Plattformname farbig und fett, dann Titel und Beschreibung. */
-function CapRow({ pf, name, title, desc, titleZeile, titleFull, descFull, breit }: {
+function CapRow({ pf, name, title, desc, titleZeile, titleFull, descFull, breit, onCopied }: {
   pf: string; name: string; title?: string; desc?: string; titleZeile?: string;
   titleFull?: ReactNode; descFull?: ReactNode; breit?: boolean;
+  onCopied?: (t: string) => void;
 }) {
   return (
     <div className={"caprow" + (breit ? " breit" : "")} data-pf={pf}>
       <div className="pfname">{name}</div>
-      <CapCell copy={title} zeile={titleZeile}>{titleFull}</CapCell>
-      {!breit && <CapCell copy={desc}>{descFull}</CapCell>}
+      <CapCell copy={title} zeile={titleZeile} onCopied={onCopied}>{titleFull}</CapCell>
+      {!breit && <CapCell copy={desc} onCopied={onCopied}>{descFull}</CapCell>}
     </div>
   );
 }
@@ -207,6 +211,17 @@ function ExportCard({ exp, ytReady, showTexts }: {
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [imBild]);
+
+  // Beim Kopieren mitschreiben, was tatsaechlich in der Zwischenablage landet.
+  // Nur fuer die Plattformen, auf denen Jan von Hand postet — sonst gibt es
+  // spaeter nichts, was Datei und veroeffentlichten Beitrag verbindet.
+  const merken = useCallback(
+    (pf: string) => (text: string) => {
+      void api.post("/api/upload/caption", { name: exp.name, platform: pf, text })
+        .catch(() => {});
+    },
+    [exp.name],
+  );
 
   const generate = useCallback(async () => {
     setBusy(true);
@@ -330,7 +345,7 @@ function ExportCard({ exp, ytReady, showTexts }: {
                       der Titel. Deshalb steht er in der Titelspalte und nimmt gleich
                       die ganze Breite (Jan, 09.09.). Bei Instagram nur die lange
                       Fassung: kopiert wird ohnehin immer der ganze Text. */}
-                  <CapRow pf="instagram" name="Instagram" breit
+                  <CapRow pf="instagram" onCopied={merken("instagram")} name="Instagram" breit
                     title={igLong?.text ?? caps.instagram}
                     titleFull={igLong && (
                       <>
@@ -340,9 +355,9 @@ function ExportCard({ exp, ytReady, showTexts }: {
                         </div>
                       </>
                     )} />
-                  <CapRow pf="tiktok" name="TikTok" breit title={caps.tiktok} />
+                  <CapRow pf="tiktok" onCopied={merken("tiktok")} name="TikTok" breit title={caps.tiktok} />
                   {xhs && (
-                    <CapRow pf="rednote" name="RedNote" title={xhs.title} desc={xhs.description}
+                    <CapRow pf="rednote" onCopied={merken("rednote")} name="RedNote" title={xhs.title} desc={xhs.description}
                       titleFull={
                         <>
                           <pre>{xhs.title}</pre>
@@ -364,7 +379,7 @@ function ExportCard({ exp, ytReady, showTexts }: {
                       } />
                   )}
                   {bili && (
-                    <CapRow pf="bilibili" name="Bilibili" title={bili.title} desc={bili.description}
+                    <CapRow pf="bilibili" onCopied={merken("bilibili")} name="Bilibili" title={bili.title} desc={bili.description}
                       descFull={
                         <>
                           <pre>{bili.description}</pre>
