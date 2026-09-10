@@ -76,6 +76,9 @@ enum Api {
         let alarmPatternHigh: String?   // Vibrationsmuster Max-Alarm (optional/abwärtskompatibel)
         let alarmPatternLow: String?    // Vibrationsmuster Min-Alarm
         let alarmRepeat: String?        // "once" | "continuous"
+        let alarmRepeatS: Int?          // bei "continuous": Abstand der Wiederholungen in Sekunden
+        let hrHigh: Int?                // Puls-Obergrenze in bpm (0/nil = aus)
+        let alarmPatternHr: String?     // Vibrationsmuster Puls-Alarm
         let alarmDefault: String?       // Uhr-Vorwahl: "foil" | "fixed"
         let foils: [FoilOpt]?   // Auto-Alarm je Foil (optional/abwärtskompatibel zum Cache)
         let offFoilView: [Int]? // Screen für off-foil (Auto-Umschaltung)

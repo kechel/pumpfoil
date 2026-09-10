@@ -101,6 +101,9 @@ struct WatchAlarm {
     var enabled = false; var high = 0; var low = 0
     var patHigh = "short2"; var patLow = "long2"
     var repeatMode = "once"   // "once" = einmalig | "continuous" = dauerhaft
+    var repeatS = 5           // bei "continuous": Abstand der Wiederholungen in Sekunden
+    var hrHigh = 0            // Puls-Obergrenze in bpm (0 = aus)
+    var patHr = "short1"      // Muster beim Ueberschreiten der Puls-Grenze
 }
 
 // Aufnahme: konfigurierte, wischbare Datenseiten (aus /api/devices/config) + Alarm.
@@ -129,7 +132,11 @@ struct RecordView: View {
     @State private var configTask: Task<Void, Never>?
     @State private var manualAlarm = false
     @State private var alarmDefault = "foil"   // Uhr-Vorwahl: "foil" | "fixed"
-    @State private var repeatTick = 0          // Zähler für continuous-Wiederholung
+    // Zeitstempel der letzten Vibration je Achse — der Wiederholabstand („alle x Sekunden") wird
+    // über die Uhrzeit gemessen, nicht über Aufrufe (s. checkAlarm).
+    @State private var letzteVibe = Date.distantPast
+    @State private var letzteHrVibe = Date.distantPast
+    @State private var wasHrHigh = false       // Puls über der Grenze? (eigener Zustand)
     @State private var foils: [Api.FoilOpt] = []
     @State private var showFoilPicker = false
     @State private var selectedFoilId: Int?    // für diese Session gewähltes Foil (Server-Override)
@@ -177,6 +184,7 @@ struct RecordView: View {
             }
         }
         .onChange(of: rec.speedKmh) { sp in checkAlarm(sp) }   // watchOS-9-kompatible Signatur
+        .onChange(of: rec.hr) { _ in checkHrAlarm() }          // Puls-Alarm, eigene Schwelle
         .onReceive(autoTimer) { _ in tickAutoStart() }         // Auto-Start-Vorlauf + Arming
         // Token serverseitig ungültig -> automatisch ein frisches vom iPhone anfordern
         // (Companion-Pairing). „Neu verbinden" bleibt als Code-Fallback bestehen.
@@ -680,6 +688,11 @@ struct RecordView: View {
         alarm.patHigh = c.alarmPatternHigh ?? "short2"
         alarm.patLow = c.alarmPatternLow ?? "long2"
         alarm.repeatMode = c.alarmRepeat ?? "once"
+        alarm.repeatS = c.alarmRepeatS ?? 5
+        alarm.patHr = c.alarmPatternHr ?? "short1"
+        // Puls-Grenze immer uebernehmen: sie hat keine On-Watch-Entsprechung, die man
+        // ueberschreiben koennte (anders als die Speed-Schwellen, die an der Foil-Wahl haengen).
+        alarm.hrHigh = c.hrHigh ?? 0
         // Default-Vorwahl nur EINMAL setzen — danach nicht die Nutzerwahl überschreiben.
         if !selInit {
             selInit = true
@@ -726,21 +739,46 @@ struct RecordView: View {
         }
     }
 
+    // Wiederholabstand in Sekunden, Untergrenze 2 s (wie Server und Garmin).
+    private var repeatSek: Double { Double(max(2, alarm.repeatS)) }
+
     private func checkAlarm(_ sp: Double) {
-        guard alarm.enabled else { wasHigh = false; wasLow = false; repeatTick = 0; return }
+        guard alarm.enabled else { wasHigh = false; wasLow = false; return }
         let (elow, ehigh) = effThresholds()
         let over = ehigh > 0 && sp >= Double(ehigh)
         let under = elow > 0 && sp < Double(elow) && sp >= Double(elow) - 2
-        if over && !wasHigh { playHaptic(alarm.patHigh) }
-        if under && !wasLow { playHaptic(alarm.patLow) }
+        let jetzt = Date()
+        if over && !wasHigh { playHaptic(alarm.patHigh); letzteVibe = jetzt }
+        if under && !wasLow { playHaptic(alarm.patLow); letzteVibe = jetzt }
         let tripped = over || under
+        // Der Abstand wird über die UHRZEIT gemessen, nicht über Aufrufe: diese Methode haengt an
+        // `rec.speedKmh` und laeuft damit in keinem Sekundenraster. Vorher zaehlte sie drei
+        // Aufrufe — mit einem einstellbaren Sekundenwert im Profil waere das schlicht falsch.
         if tripped && alarm.repeatMode == "continuous" && (wasHigh || wasLow) {
-            repeatTick += 1
-            if repeatTick >= 3 { repeatTick = 0; playHaptic(over ? alarm.patHigh : alarm.patLow) }
-        } else if !tripped {
-            repeatTick = 0
+            if jetzt.timeIntervalSince(letzteVibe) >= repeatSek {
+                letzteVibe = jetzt
+                playHaptic(over ? alarm.patHigh : alarm.patLow)
+            }
         }
         wasHigh = over; wasLow = under
+    }
+
+    // Puls als DRITTE Schwelle: eigener Zustand und eigener Zeitstempel, sonst verschluckt ein
+    // gleichzeitiger Speed-Alarm ihn. Nur eine OBERE Grenze (Jan, 10.09.2026). Ohne Messwert
+    // (kein Kontakt) passiert nichts.
+    private func checkHrAlarm() {
+        guard alarm.enabled, alarm.hrHigh > 0, rec.hr > 0 else { wasHrHigh = false; return }
+        let ueber = rec.hr > alarm.hrHigh
+        let jetzt = Date()
+        if ueber && !wasHrHigh {
+            playHaptic(alarm.patHr); letzteHrVibe = jetzt
+        } else if ueber && alarm.repeatMode == "continuous" {
+            if jetzt.timeIntervalSince(letzteHrVibe) >= repeatSek {
+                letzteHrVibe = jetzt
+                playHaptic(alarm.patHr)
+            }
+        }
+        wasHrHigh = ueber
     }
 
     // watchOS bietet keine frei definierbaren Waveforms -> Muster auf den nächstliegenden
