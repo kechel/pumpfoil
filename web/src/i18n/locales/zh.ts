@@ -800,6 +800,7 @@ const zh: Record<string, string> = {
   "land.deep3": "第二次实测，附照片与曲线",
   "land.deep4": "系统架构",
   "land.heroSub": "Pumpfoil 将你的手表与详尽的分析结合：GPS 轨迹、水翼距离、泵动节奏和滑行阶段 —— 每次记录都自动生成。",
+  "land.heroPlatforms": "支持 Garmin、Apple Watch、Wear OS 和 Amazfit（我们自己的手表应用），支持 Polar、COROS、Suunto 和 Xiaomi（账号关联），也支持用 Android 或 iOS 手机记录。",
   "land.illmenseeTitle": "我们美丽的 Illmensee",
   "land.videosTitle": "Pumpfoil 实战",
   "land.videosBody": "来自我们 YouTube 频道的片段 —— 真实的泵动，真实的滑行。",

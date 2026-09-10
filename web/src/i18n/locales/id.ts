@@ -800,6 +800,7 @@ const id: Record<string, string> = {
   "land.deep3": "Pengukuran kedua, dengan foto dan kurva",
   "land.deep4": "Arsitektur sistem",
   "land.heroSub": "Pumpfoil memadukan jammu dengan analisis mendetail: track GPS, jarak foiling, kadensi pump dan fase glide — otomatis dari setiap sesi.",
+  "land.heroPlatforms": "Bekerja dengan Garmin, Apple Watch, Wear OS dan Amazfit (aplikasi jam kami sendiri), dengan Polar, COROS, Suunto dan Xiaomi (tautan akun), serta dengan ponsel Android atau iOS-mu.",
   "land.illmenseeTitle": "Illmensee kami yang indah",
   "land.videosTitle": "Pumpfoil dalam aksi",
   "land.videosBody": "Klip dari kanal YouTube kami — pumping nyata, glide nyata.",

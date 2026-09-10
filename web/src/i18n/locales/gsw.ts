@@ -489,6 +489,7 @@ const gsw: Record<string, string> = {
   "land.deep3": "Zwoiti Mässig, mit Foti und Mässkurve",
   "land.deep4": "Systemarchitektur",
   "land.heroSub": "Pumpfoil verbindet dini Uhr mit ere detaillierte Analyse: GPS-Track, Foiling-Distanz, Pump-Frequänz und Gleitphase — automatisch us jedere Session.",
+  "land.heroPlatforms": "Unterstützt Garmin, Apple Watch, Wear OS und Amazfit (eigeni Uhre-Apps), Polar, COROS, Suunto und Xiaomi (Konto verbinde) sowie dis Android- oder iOS-Handy.",
   "land.illmenseeTitle": "Üse schöne Illmensee",
   "land.videosTitle": "Pumpfoil in Aktion",
   "land.videosBody": "Clips vo eusem YouTube-Kanal — echts Pumpe, echte Glide.",

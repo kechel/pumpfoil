@@ -800,6 +800,7 @@ const pt: Record<string, string> = {
   "land.deep3": "Segunda medição, com fotos e curvas",
   "land.deep4": "Arquitetura do sistema",
   "land.heroSub": "O Pumpfoil combina seu relógio com uma análise detalhada: traçado GPS, distância de foil, cadência de pump e fases de planeio — automaticamente a cada sessão.",
+  "land.heroPlatforms": "Compatível com Garmin, Apple Watch, Wear OS e Amazfit (nossos apps de relógio), com Polar, COROS, Suunto e Xiaomi (conta vinculada) e com o seu celular Android ou iOS.",
   "land.illmenseeTitle": "Nosso lindo Illmensee",
   "land.videosTitle": "Pumpfoil em ação",
   "land.videosBody": "Clipes do nosso canal no YouTube — pump de verdade, planeio de verdade.",

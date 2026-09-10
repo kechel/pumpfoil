@@ -167,6 +167,15 @@ export default function Landing() {
                 className="logo-light mx-auto h-auto w-full max-w-sm sm:max-w-md" />
             </p>
             <p className="mx-auto mt-3 max-w-2xl text-base text-slate-300 sm:text-lg">{t("land.heroSub")}</p>
+            {/* Alle unterstuetzten Plattformen als TEXT, direkt unter dem Aufmacher (Jan,
+                10.09.2026: „eine liste aller unterstuetzter plattformen fuer google seo &
+                google ki"). Weiter unten stehen dieselben Marken nur als LOGOS — Bilder
+                traegt eine Suchmaschine nur ueber `alt`, und eine Antwort-KI zieht Text.
+                Genannt wird auch, WIE die Uhr angebunden ist: eigene App, Konto-Verknuepfung
+                oder Handy. Das gehoert nicht in den „Direkt auf der Uhr"-Absatz weiter unten —
+                der handelt bewusst von eigenen Apps, und dort waere „laeuft offline" fuer eine
+                Polar falsch. */}
+            <p className="mx-auto mt-2 max-w-2xl text-sm text-slate-400">{t("land.heroPlatforms")}</p>
 
             {/* Kompakter Promo-Block: aktueller Lieblings-Short (Click-to-Load, datensparsam);
                 rechts daneben der Titel (größer) + Social-Links darunter. */}

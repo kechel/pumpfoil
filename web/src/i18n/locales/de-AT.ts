@@ -449,6 +449,7 @@ const deAT: Record<string, string> = {
   "land.deep3": "Zweite Messung, mit Fotos und Messkurven",
   "land.deep4": "Systemarchitektur",
   "land.heroSub": "Pumpfoil verbindt dei Uhr mit detaillierter Analyse: GPS-Track, Foiling-Distanz, Pump-Frequenz und Gleitphasen — automatisch aus jeder Session.",
+  "land.heroPlatforms": "Unterstützt Garmin, Apple Watch, Wear OS und Amazfit (eigene Uhren-Apps), Polar, COROS, Suunto und Xiaomi (Konto-Verknüpfung) sowie dein Android- oder iOS-Handy.",
   "land.illmenseeTitle": "Unser schöner Illmensee",
   "land.whatTitle": "Wos is Pumpfoil?",
   "land.whatBody": "Pump-Foiling heißt: aufm Hydrofoil ohne Wind, Welln oder Motor unterwegs — du hoitest di allan durch rhythmisches Pumpen obn. Pumpfoil zeichnet die Sessions mit da Uhr auf und macht sichtbar, wia laung'st foilst, wia effizient'st pumpst und wo'st fahrst.",

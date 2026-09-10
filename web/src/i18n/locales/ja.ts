@@ -800,6 +800,7 @@ const ja: Record<string, string> = {
   "land.deep3": "2回目の計測（写真と波形つき）",
   "land.deep4": "システム構成",
   "land.heroSub": "Pumpfoil はあなたのウォッチと詳細な解析を組み合わせます：GPS トラック、フォイリング距離、ポンプケイデンス、グライド区間 — すべてのセッションから自動的に。",
+  "land.heroPlatforms": "Garmin、Apple Watch、Wear OS、Amazfit（専用ウォッチアプリ）、Polar、COROS、Suunto、Xiaomi（アカウント連携）、そして Android / iOS スマートフォンに対応。",
   "land.illmenseeTitle": "私たちの美しいイルメン湖",
   "land.videosTitle": "パンプフォイル実践",
   "land.videosBody": "私たちの YouTube チャンネルのクリップ — 本物のポンピング、本物のグライド。",

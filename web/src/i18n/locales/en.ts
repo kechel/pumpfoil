@@ -919,6 +919,7 @@ const en: Record<string, string> = {
   "land.deep3": "Second measurement, with photos and curves",
   "land.deep4": "System architecture",
   "land.heroSub": "Pumpfoil pairs your watch with detailed analysis: GPS track, foiling distance, pump cadence and glide phases — automatically from every session.",
+  "land.heroPlatforms": "Works with Garmin, Apple Watch, Wear OS and Amazfit (our own watch apps), with Polar, COROS, Suunto and Xiaomi (account link), and with your Android or iOS phone.",
   "land.illmenseeTitle": "Our beautiful Illmensee",
   "land.videosTitle": "Pumpfoil in action",
   "land.videosBody": "Clips from our YouTube channel — real pumping, real glide.",
