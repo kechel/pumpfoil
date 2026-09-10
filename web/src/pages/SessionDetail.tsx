@@ -440,6 +440,14 @@ export default function SessionDetail() {
   // stehen nicht in der Session-Antwort — Gespeichert sind nur ihre Distanzen; die Linien holt
   // ein eigener, rein lesender Endpunkt, und zwar erst beim ersten Einschalten.
   const [showAttempts, setShowAttempts] = useState(gemerkt.showAttempts);
+  // Startversuche gibt es NUR beim Pumpfoilen. Anlass: Feedback von u43 zu Session 5272
+  // (08.09.2026, "Hi, this is wingfoiling, but still, my first long run is recognized as long
+  // start attempt"). Beim Wingfoilen, Efoilen oder am Seil ist ein Start etwas voellig anderes —
+  // die Erkennung sucht das Anschieben und Aufsteigen aus eigener Kraft, und ein langer Lauf
+  // sieht fuer sie wie ein langer Startversuch aus. Also gar nicht anzeigen, statt Unsinn zu
+  // erklaeren. `sport_class` ist die MENSCHLICHE Klassifikation, nicht `sport` (Aktivitaetstyp
+  // aus der Aufnahme) — 5272 traegt sport="pumpfoil" UND sport_class="wingfoil".
+  const istPumpfoil = (session?.sport_class ?? "pumpfoil") === "pumpfoil";
   const [attemptSegs, setAttemptSegs] = useState<{ points: [number, number][]; t_start_ms: number; distance_m: number; duration_s: number; outside_trim: boolean }[] | null>(null);
   const [weightKg, setWeightKg] = useState<number | null>(null);
   const compareRefs = useCompare();
@@ -635,7 +643,7 @@ export default function SessionDetail() {
   // Startversuche erst holen, wenn der Schalter das erste Mal angeht (die Rechnung laeuft
   // serverseitig ueber die Roh-GPS-Punkte — nichts, was man ungefragt bei jedem Aufruf machen will).
   useEffect(() => {
-    if (!showAttempts || attemptSegs !== null || isPublic || !session) return;
+    if (!showAttempts || attemptSegs !== null || isPublic || !session || !istPumpfoil) return;
     // Bewusst NICHT an den gespeicherten Zahlen der Kachel festmachen: die gelten nur fuer den
     // ausgewerteten Bereich, und gerade VOR dem (automatischen) Zuschnitt liegen die
     // Fehlversuche, bis der erste Start sass. Eine Session mit „4/4" kann hier trotzdem
@@ -1029,7 +1037,7 @@ export default function SessionDetail() {
     // Startversuche: gestrichelt und bernsteinfarben, damit sie sich klar von den Läufen
     // abheben — es sind ja gerade die Anläufe, die KEIN Lauf geworden sind. Eigene Karten-Ebene
     // ÜBER den Läufen (s. createPane oben), weil ihre Linien dünner sind; unter den Pumps.
-    if (showAttempts && attemptSegs?.length) {
+    if (istPumpfoil && showAttempts && attemptSegs?.length) {
       attemptSegs.forEach((v) => {
         if (v.points.length < 2) return;
         // Der Server liefert fertige Punkte (lat/lon) — bewusst keine Indizes: Versuche VOR dem
@@ -1431,7 +1439,7 @@ export default function SessionDetail() {
           value={a?.foiling_distance_m == null ? "–" : a.foiling_distance_m < 1000 ? String(Math.round(a.foiling_distance_m)) : (a.foiling_distance_m / 1000).toFixed(2)}
           sub={a?.foiling_distance_m != null && a.foiling_distance_m < 1000 ? "m" : "km"} />
         <Stat label={t("stat.foilingTime")} value={fmtMMSS(a?.foiling_time_s)} sub="min:s" />
-        <RunsStartsStat runs={segs.length} attempts={a?.start_attempts ?? null} />
+        <RunsStartsStat runs={segs.length} attempts={istPumpfoil ? (a?.start_attempts ?? null) : null} />
         <Stat label={t("sd.avgSpeed")} value={kmh(m?.avg_speed_mps)} sub="km/h" />
         {session.foil?.span_cm && session.foil?.area_cm2 && session.foil?.thickness_mm && (
           <FoilPowerStat
@@ -1520,7 +1528,7 @@ export default function SessionDetail() {
           {/* Nur zeigen, wenn es wirklich etwas zu zeigen gibt: mehr Versuche als Läufe heißt,
               dass Anläufe dabei waren, aus denen kein Lauf wurde. Beides steht schon in der
               Session-Antwort — kein zusätzlicher Aufruf nur für die Frage, ob der Schalter hin soll. */}
-          {(attemptSegs === null || attemptSegs.length > 0) && (
+          {istPumpfoil && (attemptSegs === null || attemptSegs.length > 0) && (
             <button
               onClick={() => setShowAttempts((v) => !v)}
               title={t("sd.showAttemptsHint")}
