@@ -774,6 +774,31 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔴 10.09. — Emulator-Gegenprobe zu 1.2.28: das neue Band oben KOLLIDIERT mit dem Layout.**
+  Selbst gefahren auf dieser VM (`foil_wear`, 384×384 bei dpi 320 = **192 dp**, der kleinste runde
+  Wear-Bildschirm — härter als die Pixel Watch 3 des Prüfers), Testkonto `Emu Test` (38), Build
+  1.2.28, Demo-Zustand über `DemoReceiver`.
+  - **✅ Der gemeldete Fehler ist weg** und der neue Stopp-/Verwerfen-Knopf trägt: Scheibe
+    **152 px bei Faktor 1,0** (= 76 dp) und **188 px bei 1,24** (= 94 dp = 76 × 1,24) — er wächst
+    genau mit der Schrift, die Beschriftung („Hylkää") sitzt in beiden Fällen sauber drin.
+  - **✅ UploadScreen** passt bei Faktor 1,24 auf 192 dp ohne Scrollen („lähetetään 30/62") —
+    Jans Einwand war richtig, die Sorge von vorhin war aus dem Muster geschlossen, nicht gerechnet.
+  - **🔴 REGRESSION aus `c424e875`/`44bae3e4`:** das gemeinsame Band oben MITTIG (Wassersperre +
+    Upload-Ring + „Puls passiv") liegt jetzt genau dort, wo Layouts ihre oberen Elemente haben.
+    Im Test lag der Wassertropfen über dem **„REC" des Layouts** (Element 5 bei y = 120 ‰).
+    **Tritt bei Faktor 1,0 genauso auf** — also kein Schriftgrößen-Problem, sondern eine Folge des
+    Umzugs aus den Ecken in die Mitte. Vorher lagen die Overlays in den Ecken, wo kein
+    Layout-Inhalt liegt (nur eben auch kein sichtbarer Bildschirm).
+    **Die naheliegende Lösung taugt NICHT:** dem Band eine eigene Zeile über dem Layout geben
+    würde das `Canvas` vertikal stauchen (`WatchLayout.kt:235` rechnet `h * y/1000`), während die
+    Schriftgrößen absolut bleiben — es überlappte dann mehr. Entscheidung Jan nötig, Optionen in
+    der Sitzung vom 10.09.
+  - **⚪ Nebenbefund, NICHT von uns:** in der Test-Layout-Seite überlappen Wert und Einheit
+    („15.6" über „km/h (3s)", „148"/„bpm", „1.23"/„km") — bei Faktor 1,0 genauso. Das Layout setzt
+    den Wert auf Größe 7 mit nur 120 ‰ Abstand zum Label; auf 192 dp sind das 23 dp für eine viel
+    höhere Zahl. Also eine Frage des Layout-Editors (lässt überlappende Layouts zu), nicht des
+    Renderers. Eigenes Thema.
+
 - **🔴 08.09. — Allan V, „no run detected“ nach dem Bluetooth-Rat: die Uhr hatte GAR KEINEN GPS-Fix
   (125 m, konstant).** Untersuchung read-only, Belege je Session:
 
