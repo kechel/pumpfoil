@@ -97,51 +97,58 @@ function ReleaseStatus() {
       <p className="mb-3 text-sm text-slate-400">
         Where everything stands right now — website, phone apps and watch apps.
       </p>
-      {/* Schmale Bildschirme: die Tabelle scrollt in sich, die Seite selbst nie seitwaerts. */}
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[320px] text-sm">
-          <tbody>
-            {gruppen.map((g) => (
-              <Fragment key={g.titel}>
-                <tr>
-                  <td colSpan={3} className={`pb-1 pt-3 text-xs font-semibold uppercase tracking-wide ${g.farbe}`}>
-                    {g.titel}
-                  </td>
-                </tr>
-                {g.zeilen.map((r) => (
-                  <Fragment key={`${g.titel}-${r.name}`}>
-                    <tr className="border-t border-slate-800/70">
-                      <td className="py-1.5 pr-3 whitespace-nowrap text-slate-200">{r.name}</td>
-                      <td className="py-1.5 pr-3 whitespace-nowrap font-medium text-slate-100">
-                        {r.store_url
-                          ? <a href={r.store_url} target="_blank" rel="noopener noreferrer"
-                               className="text-brand-400 hover:underline">{r.version}</a>
-                          : r.version}
-                      </td>
-                      <td className="py-1.5 text-slate-400">{r.note ?? ""}</td>
-                    </tr>
-                    {/* Was in dieser Fassung steckt. Ohne das stehen die Aenderungen einer
-                        eingereichten Version nirgends, bis sie veroeffentlicht ist.
-                        EINGEKLAPPT als Standard (Jan, 07.09.2026): die Tabelle soll auf einen
-                        Blick zeigen, WO etwas steht — die Punktelisten sind schnell laenger als
-                        die Tabelle selbst und schoben das Changelog darunter aus dem Bild. */}
-                    {r.items && r.items.length > 0 && (
-                      <tr>
-                        <td colSpan={3} className="pb-2 pl-1">
-                          <Details anzahl={r.items.length}>
-                            <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">
-                              {r.items.map((t, i) => <li key={i}>{t}</li>)}
-                            </ul>
-                          </Details>
-                        </td>
-                      </tr>
-                    )}
-                  </Fragment>
-                ))}
+      {/* KEINE Tabelle mehr. Auf dem Handy (390 px) lag die dritte Spalte komplett jenseits des
+          rechten Rands: die Notizen waren NICHT lesbar, "always up to date" brach als
+          "always up to da" ab, und ihr Umbruch in der unsichtbaren Spalte blies die Zeilenhoehen
+          zu leeren Bloecken auf (Jans Befund 10.09.2026, im Screenshot nachgestellt). Ursache war
+          `whitespace-nowrap` auf Name UND Version: "Android phone + Wear OS" und "1.1.28 / 1.2.28"
+          belegen zusammen rund 250 der 360 px, der Rest floss nach rechts hinaus.
+
+          Jetzt: auf schmalen Schirmen GESTAPELT (Name, Version, Notiz je eine Zeile), ab sm die
+          drei Spalten wie vorher. Nichts scrollt mehr seitwaerts, nichts wird abgeschnitten.
+
+          Die ersten zwei Spalten haben FESTE Breiten, keine `max-content`. Grund: jede Zeile ist
+          ihr eigenes Grid, `max-content` wird also je Zeile gerechnet und die Spalten fluchten
+          nicht (gemessen: Notiz-Beginn sprang zwischen x=420 und x=540). Feste Breiten sind fuer
+          alle Zeilen dieselbe Vorlage. 13rem traegt "Android phone + Wear OS", 9rem "1.1.28 /
+          1.2.28"; laengere Namen brechen darin um, statt das Raster zu sprengen. */}
+      <div className="text-sm">
+        {gruppen.map((g) => (
+          <Fragment key={g.titel}>
+            <div className={`pb-1 pt-3 text-xs font-semibold uppercase tracking-wide ${g.farbe}`}>
+              {g.titel}
+            </div>
+            {g.zeilen.map((r) => (
+              <Fragment key={`${g.titel}-${r.name}`}>
+                <div className="border-t border-slate-800/70 py-2 sm:grid sm:grid-cols-[13rem_9rem_1fr] sm:gap-x-3 sm:py-1.5">
+                  {/* Auf dem Handy traegt der Name die Zeile, deshalb dort etwas fetter. */}
+                  <div className="font-medium text-slate-200 sm:font-normal">{r.name}</div>
+                  <div className="font-medium text-slate-100">
+                    {r.store_url
+                      ? <a href={r.store_url} target="_blank" rel="noopener noreferrer"
+                           className="text-brand-400 hover:underline">{r.version}</a>
+                      : r.version}
+                  </div>
+                  {r.note && <div className="text-slate-400">{r.note}</div>}
+                </div>
+                {/* Was in dieser Fassung steckt. Ohne das stehen die Aenderungen einer
+                    eingereichten Version nirgends, bis sie veroeffentlicht ist.
+                    EINGEKLAPPT als Standard (Jan, 07.09.2026): die Uebersicht soll auf einen
+                    Blick zeigen, WO etwas steht — die Punktelisten sind schnell laenger als
+                    die Tabelle selbst und schoben das Changelog darunter aus dem Bild. */}
+                {r.items && r.items.length > 0 && (
+                  <div className="pb-2 pl-1">
+                    <Details anzahl={r.items.length}>
+                      <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">
+                        {r.items.map((txt, i) => <li key={i}>{txt}</li>)}
+                      </ul>
+                    </Details>
+                  </div>
+                )}
               </Fragment>
             ))}
-          </tbody>
-        </table>
+          </Fragment>
+        ))}
       </div>
     </section>
   );
