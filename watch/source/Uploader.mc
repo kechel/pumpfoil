@@ -247,6 +247,7 @@ class SessionSyncJob {
     hidden var _phase as Lang.Symbol = :idle;
     hidden var _idx as Lang.Number = 0;
     hidden var _pendingKind = null;      // "accel"/"gps" des gerade gesendeten Chunks
+    hidden var _pauses = [];             // Pausenfenster [[session_ms, dauer_ms], …]
     hidden var _pendingIdx as Lang.Number = 0;
 
     function initialize(uuid as Lang.String) {
@@ -261,6 +262,10 @@ class SessionSyncJob {
             _accelT0 = (st["accel_t0"] instanceof Lang.Dictionary) ? st["accel_t0"] : {};
             _gpsTotal = (st["gps_chunks"] instanceof Lang.Number) ? st["gps_chunks"] : 0;
             _completed = (st["completed"] == true);
+            // Pausen der Aufnahme (s. SessionRecorder._pauseListe) -> gehen im /complete mit,
+            // damit der Server aus Session-ms wieder eine Uhrzeit machen kann. Alte Sessions im
+            // Store haben den Key nicht -> leer, und der Server verhaelt sich wie vorher.
+            _pauses = (st["pauses"] instanceof Lang.Array) ? st["pauses"] : [];
         }
         var sa = Storage.getValue("sa_" + uuid); _sa = (sa == null) ? 0 : sa;
         var sg = Storage.getValue("sg_" + uuid); _sg = (sg == null) ? 0 : sg;
@@ -480,7 +485,7 @@ class SessionSyncJob {
         _phase = :complete;
         _web(
             Config.baseUrl() + "/api/ingest/session/" + _uuid + "/complete",
-            { "total_chunks" => _gpsTotal },
+            { "total_chunks" => _gpsTotal, "pauses" => _pauses },
             _opts(),
             method(:onFinal)
         );

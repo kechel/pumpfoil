@@ -139,6 +139,7 @@ def _migrate_add_indexes() -> None:
         # Detailed Setup je Session (je NULL = Standard des Nutzers aus settings_json).
         # Stab = Katalog (stabs), Board = eigene Einträge (boards); Mast/Shim sind reine Werte.
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS stab_id INTEGER REFERENCES stabs(id)",
+        "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS pause_windows TEXT",
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS mast_len_cm INTEGER",
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS shim_deg DOUBLE PRECISION",
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS board_id INTEGER REFERENCES boards(id)",

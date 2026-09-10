@@ -183,9 +183,17 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
             } finally { exportBusy = false }
         }
     }
+    // Laenge der SAMPLE-Achse in Sekunden — die Basis fuer Zuschnitt/Aussortieren, beides laeuft
+    // in Session-ms (aktive Zeit). `ended_at - started_at` ist die WANDUHR-Spanne und bei einer
+    // pausierten Aufnahme laenger; damit schnitt der Regler daneben (Befund 10.09.2026). Nur
+    // wenn `duration_ms` fehlt (aelterer Server), die alte Rechnung minus Pausen als Rueckfall.
     val durSec = remember(session) {
+        session?.durationMs?.takeIf { it > 0 }?.let { return@remember (it / 1000).toFloat() }
         val a = epochMs(session?.startedAt); val b = epochMs(session?.endedAt)
-        if (a != null && b != null && b > a) ((b - a) / 1000).toFloat() else 0f
+        if (a != null && b != null && b > a) {
+            val ohnePause = (b - a) - Clockmap.pauseVersatzMs(session?.pauseWindows, Long.MAX_VALUE)
+            if (ohnePause > 0) (ohnePause / 1000).toFloat() else 0f
+        } else 0f
     }
 
     LaunchedEffect(id, reloadTick) {
@@ -233,7 +241,9 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
     // Sekunden ab Sessionbeginn -> man konnte nicht sehen, WO man schneidet. Beides nebeneinander
     // schlägt die Brücke; die Rückfrage beim Aussortieren nennt ebenfalls Uhrzeiten.
     val clockAt: (Float) -> String? = { sec ->
-        hhmmssOffset(session?.startedAt, session?.tz, sec.toLong())
+        // Der Regler steht in Session-Sekunden (aktive Zeit), daneben soll eine UHRZEIT stehen.
+        hhmmssOffset(session?.startedAt, session?.tz,
+                     Clockmap.wanduhrMs(session?.pauseWindows, (sec * 1000).toLong()) / 1000)
     }
     fun withClock(label: String, sec: Float): String =
         label + (clockAt(sec)?.let { "   $it" } ?: "")
@@ -1086,6 +1096,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 hr = trackForRuns?.hr.orEmpty(),
                 excluded = excluded, poweredRuns = powered, keptWindows = kept,
                 canEdit = s.owned, startedAt = s.startedAt, tz = s.tz,
+                trimStartMs = s.trimStartMs, pausen = s.pauseWindows.orEmpty(),
                 win = win, wattFuer = FoilPhysics.wattRechner(s.foil, weightKg),
                 onSaved = { fresh -> selectedRun = null; SessionCache.store(fresh); onReload() },
             ) { selectedRun = if (selectedRun == it) null else it }
@@ -1558,6 +1569,10 @@ private fun RunsTable(
     canEdit: Boolean = false,
     startedAt: String = "",
     tz: String? = null,
+    // Zuschnitt-Beginn und Pausen der Aufnahme — beides braucht es, um aus einer Session-Zeit
+    // eine UHRZEIT zu machen (s. Clockmap.kt).
+    trimStartMs: Long? = null,
+    pausen: List<List<Long>> = emptyList(),
     // Glaettungsfenster der Detailansicht (1/3/5 s) — dieselbe Wahl wie im Geschwindigkeits-
     // diagramm, damit Max/Min in der Tabelle dasselbe zeigen wie die Kurve darueber.
     win: Int = 3,
@@ -1622,7 +1637,7 @@ private fun RunsTable(
                 val from = win.getOrNull(0) ?: 0L
                 val to = win.getOrNull(1) ?: from
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("${clockAt(startedAt, tz, from)} · ${mmss(((to - from).coerceAtLeast(0L) / 1000.0).toFloat())}",
+                    Text("${clockAt(startedAt, tz, Clockmap.wanduhrMs(pausen, from))} · ${mmss(((to - from).coerceAtLeast(0L) / 1000.0).toFloat())}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                     if (canEdit) {
@@ -1673,7 +1688,7 @@ private fun RunsTable(
             }
             poweredRuns.forEach { r ->
                 Column {
-                    Text("${clockAt(startedAt, tz, r.tStartMs)} · ${poweredWhy(r)}",
+                    Text("${clockAt(startedAt, tz, Clockmap.wanduhrMs(pausen, r.tStartMs))} · ${poweredWhy(r)}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                     if (canEdit) {
@@ -1692,7 +1707,7 @@ private fun RunsTable(
                 val from = win.getOrNull(0) ?: 0L
                 val to = win.getOrNull(1) ?: from
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("${clockAt(startedAt, tz, from)} · ${mmss(((to - from).coerceAtLeast(0L) / 1000.0).toFloat())} · ${I18n.t("v2.keptLabel")}",
+                    Text("${clockAt(startedAt, tz, Clockmap.wanduhrMs(pausen, from))} · ${mmss(((to - from).coerceAtLeast(0L) / 1000.0).toFloat())} · ${I18n.t("v2.keptLabel")}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                     if (canEdit) {
@@ -1735,7 +1750,8 @@ private fun RunsTable(
             // fehlten damit ganz (Jans Meldung 18.08.). Gewichte gehen bei Scroll nicht: der
             // Inhalt ist dann breiter als der Container, und Kopf und Zellen muessen exakt
             // dieselbe Breite haben, sonst laufen sie auseinander.
-            val spalten = laufSpalten(segments, win, wattFuer, maxHrImLauf, startedAt, tz)
+            val spalten = laufSpalten(segments, win, wattFuer, maxHrImLauf, startedAt, tz,
+                                      trimStartMs, pausen)
             val hScroll = rememberScrollState()
             Column(Modifier.horizontalScroll(hScroll)) {
                 Row(Modifier.padding(horizontal = 4.dp), verticalAlignment = Alignment.Bottom) {
@@ -1810,6 +1826,8 @@ private fun laufSpalten(
     maxHr: (Segment) -> Int?,
     startedAt: String,
     tz: String?,
+    trimStartMs: Long?,
+    pausen: List<List<Long>>,
 ): List<LaufSpalte> {
     val einheit = PumpUnit.unitLabel()
     // Die PWA-Keys tragen Platzhalter ({win}, {unit}); I18n.t kennt keine Interpolation.
@@ -1820,7 +1838,7 @@ private fun laufSpalten(
     fun eine(v: Double?) = if (v == null) "–" else "%.1f".format(v)
     return buildList {
         add(LaufSpalte(k("sd.colStart"), 68) { seg ->
-            seg.tStartMs?.let { clockAt(startedAt, tz, it.toLong()) } ?: "–"
+            Clockmap.laufUhrzeitMs(seg, trimStartMs, pausen)?.let { clockAt(startedAt, tz, it) } ?: "–"
         })
         // Distanz in Metern, auch oberhalb von 1000 — wie die PWA (Math.round + " m").
         add(LaufSpalte(k("sd.colDistance"), 62) { seg -> "%.0f m".format(seg.distanceM) })

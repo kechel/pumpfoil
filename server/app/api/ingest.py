@@ -5,6 +5,7 @@ erlaubt der Uhr, nach Abbruch nur Fehlendes nachzuschicken.
 """
 from __future__ import annotations
 
+import json as _json_mod
 import logging
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
@@ -12,8 +13,8 @@ from sqlalchemy.orm import Session
 
 from .. import models, storage
 from ..analysis import maybe_auto_trim, run_analysis
+from ..clockmap import gesamt_pause_ms
 from ..db import SessionLocal, get_db
-from ..setup_snapshot import standard_setup
 from ..schemas import (
     ChunkIn,
     ChunkOut,
@@ -21,6 +22,7 @@ from ..schemas import (
     SessionStartIn,
     SessionStartOut,
 )
+from ..setup_snapshot import standard_setup
 from .deps import current_device
 
 router = APIRouter(prefix="/api/ingest", tags=["ingest"])
@@ -79,7 +81,9 @@ def _altlasten_abschliessen(db: Session, device: models.DeviceToken,
             from datetime import timedelta
             lm = storage.gps_last_ms(a.session_uuid)
             if lm:
-                a.ended_at = a.started_at + timedelta(milliseconds=lm)
+                # Wanduhr-Ende, s. /complete: Pausen kommen dazu (hier praktisch immer 0 —
+                # ohne /complete hat die Uhr nie Pausen gemeldet).
+                a.ended_at = a.started_at + timedelta(milliseconds=lm + gesamt_pause_ms(a))
                 db.commit()
         log.info("ingest: schliesse Session %s ab — Geraet %s meldet eine neuere an",
                  a.session_uuid, device.id)
@@ -364,15 +368,30 @@ def complete_session(
     db: Session = Depends(get_db),
 ) -> dict:
     s = _get_owned_session(db, device, session_uuid)
+    # Pausen der Aufnahme (nur Garmin kann pausieren). Erst speichern, dann `ended_at` rechnen —
+    # die Endzeit haengt daran.
+    if body.pauses is not None:
+        fenster = []
+        for item in body.pauses:
+            try:
+                t, d = int(item[0]), int(item[1])
+            except (ValueError, TypeError, IndexError):
+                continue
+            if t >= 0 and d > 0:
+                fenster.append([t, d])
+        s.pause_windows = _json_mod.dumps(sorted(fenster)) if fenster else None
     if body.ended_at is not None:
         s.ended_at = body.ended_at
     # Fehlt die Endzeit (Uhr schickt sie nicht / Aufnahme abgebrochen), aus dem letzten
     # GPS-Zeitstempel ableiten und PERSISTIEREN — so haben alle Uploads eine Endzeit.
+    # WICHTIG: der GPS-Zeitstempel ist AKTIVE Zeit, die Pausen fehlen darin. `ended_at` ist eine
+    # WANDUHR-Zeit („wann war ich draussen"), also kommt die Pausendauer dazu — sonst endet eine
+    # Session mit 44 min Pause 44 min zu frueh (gemeldet 10.09.2026).
     if s.ended_at is None and s.started_at is not None:
         from datetime import timedelta
         lm = storage.gps_last_ms(s.session_uuid)
         if lm:
-            s.ended_at = s.started_at + timedelta(milliseconds=lm)
+            s.ended_at = s.started_at + timedelta(milliseconds=lm + gesamt_pause_ms(s))
     s.total_chunks = body.total_chunks
     s.status = "complete"
     db.commit()
