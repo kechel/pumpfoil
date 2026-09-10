@@ -821,21 +821,10 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                         CircularProgressIndicator(
                             modifier = Modifier.size(12.dp), strokeWidth = 2.dp)
                     }
-                    // Puls wird NICHT aktiv gemessen: dann kommen Werte nur zufaellig, wenn die
-                    // Uhr ohnehin gerade misst — im gemeldeten Fall dreimal ueber 20 Minuten gar
-                    // nichts. Der Waechter im Service fordert die Messung neu an; bis das greift,
-                    // soll es wenigstens sichtbar sein.
-                    if (!s.pulsMessung) {
-                        Text(
-                            I18n.t("rec.hrPassive"),
-                            color = Color(0xFFFBBF24),
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Medium,
-                            textAlign = TextAlign.Center,
-                            lineHeight = 13.sp,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
+                    // Der Puls-Hinweis stand hier und lag bei grosser System-Schrift auf dem
+                    // ersten Messwert. Er steht jetzt ANSTELLE von „bpm" am Puls-Feld selbst,
+                    // s. fieldValue(2). Im Band bleibt damit nur der Upload-Ring — er ist klein,
+                    // rund und ueberdeckt nichts.
                   }
                 }
             }
@@ -1300,9 +1289,13 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
             // nutzbar, nicht der Durchmesser — und genau dort steht bei drei Feldern das erste
             // und das dritte.
             AutoFitText(value, valueStyle, color, Modifier.fillMaxWidth(0.86f))
+            // Der Puls-Hinweis (steht anstelle von „bpm") wird amber hervorgehoben, alle anderen
+            // Beschriftungen bleiben grau.
+            val istHinweis = fid == 2 && !s.pulsMessung
             AutoFitText(label,
                 if (count == 1) MaterialTheme.typography.caption1 else MaterialTheme.typography.caption2,
-                Color(0xFF94A3B8), Modifier.fillMaxWidth(0.92f))
+                if (istHinweis) Color(0xFFFBBF24) else Color(0xFF94A3B8),
+                Modifier.fillMaxWidth(0.92f))
         }
     }
 
@@ -1451,7 +1444,24 @@ private fun fieldValue(id: Int, s: Recorder.State): Pair<String, String> = when 
     5 -> (if (s.gpsPoor) "--" else String.format("%.1f", s.speedKmh)) to I18n.t("f.kmh")
     6 -> String.format("%.1f", s.avgSpeedKmh) to I18n.t("f.kmhAvg")
     7 -> String.format("%.1f", s.maxSpeedKmh) to I18n.t("f.kmhMax")
-    2 -> (if (s.hr > 0) s.hr.toString() else "–") to I18n.t("f.bpm")
+    // Puls wird NICHT aktiv gemessen -> der Hinweis steht ANSTELLE von "bpm", nicht als Band
+    // oben (Entscheidung Jan, 10.09.2026: „warum zeigen wir das dann nicht anstelle des
+    // pulswertes an, die geschwindigkeit ist doch unabhaengig davon und kann trotzdem sichtbar
+    // bleiben"). Genau richtig: der Hinweis gehoert zu diesem Wert, und der Wert ist ohnehin
+    // leer. Oben im Band hat er bei grosser System-Schrift auf der Geschwindigkeit gelegen
+    // (gemessen: 19,5 dp Ueberlappung bei Faktor 1,24, 7,5 dp schon bei 1,0).
+    //
+    // Hier passt er einzeilig: das Label darf 92 % der Spaltenbreite nutzen und sitzt in der
+    // Bildschirmmitte, wo die Sehne breit ist — „Syke passiivinen" (laengste Uebersetzung)
+    // braucht bei Faktor 1,24 rund 128 dp von 176 dp. Oben im Band standen nur 77 dp zur
+    // Verfuegung, deshalb brach er dort zweizeilig um.
+    //
+    // Nur das LIVE-Feld (2), nicht Durchschnitt/Maximum (8/9): die sind aus dem Aufgezeichneten
+    // gerechnet und bleiben richtig, auch wenn gerade passiv gemessen wird.
+    // Gilt zugleich fuer eigene Layouts: LayoutPageView holt seine Beschriftungen ueber
+    // dieselbe Funktion.
+    2 -> (if (s.hr > 0) s.hr.toString() else "–") to
+        (if (!s.pulsMessung) I18n.t("rec.hrPassive") else I18n.t("f.bpm"))
     8 -> (if (s.avgHr > 0) s.avgHr.toString() else "–") to I18n.t("f.bpmAvg")
     9 -> (if (s.maxHr > 0) s.maxHr.toString() else "–") to I18n.t("f.bpmMax")
     3 -> msStr(s.elapsedSec * 1000) to I18n.t("f.time")
