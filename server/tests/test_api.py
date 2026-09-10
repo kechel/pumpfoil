@@ -267,3 +267,47 @@ def test_device_config_includes_foil_alarms(client):
     assert len(mine) == 1
     f = mine[0]
     assert f["label"] and 0 < f["min"] < f["max"]   # sinnvoller Korridor
+
+
+def test_setup_snapshot_beim_anlegen(client):
+    """Der Stern im Profil gilt nur fuer NEUE Sessions.
+
+    Regression zu einer Nutzermeldung vom 10.09.2026: Stab/Board/Mast/Shim standen in der Session
+    auf NULL und wurden erst beim LESEN gegen `users.settings_json` aufgeloest — ein Wechsel des
+    Standards aenderte damit die gesamte Historie. Jetzt schreibt `app/setup_snapshot.py` sie beim
+    Anlegen fest. Der Test wechselt den Standard NACH dem Anlegen und erwartet den alten Wert.
+    """
+    auth = {"Authorization": "Bearer " + client.post(
+        "/api/auth/register", json={"email": "setupsnap@b.de", "password": "supersecret"}
+    ).json()["access_token"]}
+
+    alt = client.post("/api/stabs", headers=auth, json={
+        "brand": "Snapshot", "model": "Alt", "size": "L"}).json()["id"]
+    neu = client.post("/api/stabs", headers=auth, json={
+        "brand": "Snapshot", "model": "Neu", "size": "S"}).json()["id"]
+
+    r = client.put("/api/settings", headers=auth, json={
+        "my_stabs": [alt, neu], "stab_id": alt, "mast_len_cm": 80})
+    assert r.status_code == 200, r.text
+    assert client.get("/api/settings", headers=auth).json().get("stab_id") == alt
+
+    code = client.post("/api/devices/pairing-code", headers=auth).json()["code"]
+    dev = {"X-Device-Token": client.post(
+        "/api/devices/pair", json={"code": code}).json()["device_token"]}
+    r = client.post("/api/ingest/session", headers=dev, json={
+        "session_uuid": "setup-snap-1", "started_at": "2026-09-10T09:00:00Z"})
+    assert r.status_code == 200, r.text
+    sid = r.json()["session_id"]
+
+    setup = client.get(f"/api/sessions/{sid}", headers=auth).json().get("setup") or {}
+    assert setup.get("stab", {}).get("id") == alt
+    assert setup["stab"]["is_default"] is False      # festgeschrieben, nicht geerbt
+    assert setup.get("mast_len_cm") == 80
+    assert setup.get("mast_is_default") is False
+
+    # Standard wechseln — die bestehende Session darf sich NICHT mitdrehen.
+    assert client.put("/api/settings", headers=auth, json={
+        "stab_id": neu, "mast_len_cm": 95}).status_code == 200
+    setup = client.get(f"/api/sessions/{sid}", headers=auth).json().get("setup") or {}
+    assert setup.get("stab", {}).get("id") == alt, "Standard-Wechsel hat die Historie geaendert"
+    assert setup.get("mast_len_cm") == 80

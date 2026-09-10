@@ -7186,7 +7186,23 @@ Offen daraus:
     (`"foil_id" => sessionFoilId` in `SessionRecorder.mc`), deswegen ist die Zahl dort klein.
     Einmalige Migration fuer den Bestand: aktuellen Standard in die NULL-Sessions schreiben —
     aendert nichts an der Anzeige (dasselbe wird heute schon gezeigt), friert sie nur ein.
-  - **Gegenargument, das Jan entscheiden muss:** wer erst 20 Sessions aufnimmt und DANN sein
+  - **✅ GEBAUT 10.09. (Jans Entscheidung: „ja dann so machen"), Bestand bleibt NULL.** Neues
+    Modul `server/app/setup_snapshot.py`; `standard_setup(db, user)` haengt die vier Felder beim
+    Anlegen an alle drei Wege: Uhr-Upload (`api/ingest.py:133`), Datei-Import
+    (`api/sessions.py:483`) und Zusammenfuehren (`merge.py`, dort `uebernehmen(first)` — das
+    Setup der TEILE, nicht der heutige Profil-Standard). Ids werden gegen den Katalog geprueft
+    wie beim Foil. Regressions-Test `tests/test_api.py::test_setup_snapshot_beim_anlegen`
+    wechselt den Standard NACH dem Anlegen und erwartet den alten Wert; ohne den Fix faellt er
+    (gegengeprueft, nicht nur behauptet). 57 Tests gruen, Server neu gestartet.
+    **Der Bestand bleibt absichtlich NULL** — den heutigen Standard hineinzuschreiben wuerde eine
+    Angabe einfrieren, die fuer die meisten alten Sessions falsch ist (Jan selbst: 228 von 250
+    Sessions NULL, aber ueber die Monate 5 verschiedene Stabs gefahren). Unbeschriftet ist besser
+    als falsch beschriftet.
+  - **Nebenbefund, NICHT behoben:** `api/stabs.py:116` setzt beim Loeschen eines Stabs
+    `stab_id = NULL` in **allen** Sessions — auch in den explizit gesetzten. Die Zuordnung ist
+    danach weg (der Bestaetigungsdialog sagt es immerhin: „Sessions using it fall back to your
+    default"). Nach dem Schnappschuss trifft das jetzt mehr Sessions als vorher.
+  - **Damals abgewogen (erledigt):** wer erst 20 Sessions aufnimmt und DANN sein
     Profil ausfuellt, bekommt heute alle alten Sessions nachtraeglich beschriftet. Nach dem Fix
     bleiben die leer. Kompromiss waere: Schnappschuss ab jetzt, Bestands-NULLs beim naechsten
     Standard-Wechsel des Nutzers mit dem ALTEN Wert festschreiben.
