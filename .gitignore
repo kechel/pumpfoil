@@ -74,6 +74,7 @@ vapid_private.pem
 watch-apple/Sources-iOS/Info.plist
 
 .venv-garmin/
+brand/master/.venv-brand/
 youtube/
 videos-raw/
 non-public-sdks/

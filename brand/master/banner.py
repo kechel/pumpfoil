@@ -41,12 +41,31 @@ SUB_BREITE = 0.93
 # also in der Endcard). „APPLE WATCH" ist der einzige Name, der das heute ausloest.
 ALLEIN_AB = 10
 
+def montserrat(px: int) -> "ImageFont.FreeTypeFont":
+    """Montserrat SemiBold in der Groesse px — auf der VM und auf dem Mac.
+
+    Auf der Dev-VM liegt der statische Schnitt als OTF. Auf dem Mac gibt es ihn
+    ueber `brew install --cask font-montserrat`, dort aber nur als VARIABLE
+    Schrift: eine Datei mit einer Gewichtsachse von 100 bis 900. Die muss man
+    ausdruecklich auf SemiBold stellen, sonst zeichnet PIL Regular (400) und
+    alles wirkt duenner als auf der VM. Beides ergibt dasselbe Bild — geprueft
+    am 10.09. gegen die eingecheckten Endcards.
+    """
+    fest = "/usr/share/fonts/opentype/montserrat/Montserrat-SemiBold.otf"
+    if os.path.exists(fest):
+        return ImageFont.truetype(fest, px)
+    var = os.path.expanduser("~/Library/Fonts/Montserrat[wght].ttf")
+    if os.path.exists(var):
+        f = ImageFont.truetype(var, px)
+        f.set_variation_by_name("SemiBold")
+        return f
+    return ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", px)
+
+
 def subline_image(text: str, px: int, tracking: int) -> Image.Image:
     """Eine Zeile der Plattform-Liste als tightes, transparentes Bild
     (Montserrat, cyan, gesperrt)."""
-    _mont = "/usr/share/fonts/opentype/montserrat/Montserrat-SemiBold.otf"
-    _fallback = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
-    font = ImageFont.truetype(_mont if os.path.exists(_mont) else _fallback, px)
+    font = montserrat(px)
     probe = ImageDraw.Draw(Image.new("RGBA", (10, 10)))
     widths = [probe.textlength(ch, font=font) + tracking for ch in text]
     total = int(sum(widths) - tracking)
