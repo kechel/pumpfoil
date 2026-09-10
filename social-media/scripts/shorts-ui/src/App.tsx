@@ -1012,11 +1012,16 @@ function Studio() {
     return flatten(c, txAlpha);
   }
 
+  // Die Vorschau zeigt, was fuer die GEWAEHLTE Plattform gerendert wird — beim
+  // Outro war das schon so, Texte und Endcard zogen bis 10.09. nicht mit.
+  const zhVorschau = pvPlatform === "rednote";
+
   useEffect(() => {
     setTxPreview(texts.map((tx) =>
-      tx.start != null && (tx.text.trim() || isStamp(tx.style)) ? textPng(tx) : null));
+      tx.start != null && (tx.text.trim() || isStamp(tx.style))
+        ? textPng(tx, zhVorschau) : null));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [texts, curVideo, cardSlogan, txAlpha]);
+  }, [texts, curVideo, cardSlogan, txAlpha, zhVorschau]);
 
   // Slot-Plan der Reihe: Hook, k Urteile, Schluss, echter Fail — auf die
   // vorhandenen Textslots abgebildet, damit am Render nichts anzupassen ist.
@@ -1477,7 +1482,8 @@ function Studio() {
             )}
             {endcard.file && (
               <img ref={ecImgRef} className="ovimg" alt="" style={{ opacity: 0 }}
-                   src={`/media/endcard/${encodeURIComponent(endcard.file)}`} />
+                   src={`/media/endcard/${encodeURIComponent(endcard.file)}`
+                        + (zhVorschau ? "?zh=1" : "")} />
             )}
             <img ref={outroImgRef} className="outroimg" alt="" style={{ opacity: 0 }} />
             {texts.map((_, i) =>

@@ -2034,7 +2034,13 @@ class Handler(BaseHTTPRequestHandler):
             elif path.startswith("/media/overlay/"):
                 self._file(safe_child(OVERLAY_DIR, path[len("/media/overlay/"):]))
             elif path.startswith("/media/endcard/"):
-                self._file(safe_child(ENDCARD_DIR, path[len("/media/endcard/"):]))
+                # ?zh=1 liefert die chinesische Fassung, wenn es sie gibt —
+                # damit die RedNote-Vorschau im Studio zeigt, was auch gerendert
+                # wird. Welche Datei existiert, weiss nur der Server.
+                ecp = safe_child(ENDCARD_DIR, path[len("/media/endcard/"):])
+                if query.get("zh", [""])[0] == "1":
+                    ecp = zh_variante(ecp)
+                self._file(ecp)
             elif path.startswith("/cover/"):
                 name = Path(path[len("/cover/"):]).name
                 pf = (query.get("base", ["instagram"])[0] or "instagram")
