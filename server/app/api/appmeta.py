@@ -134,9 +134,17 @@ _APP_META: dict[str, dict[str, str]] = {
     "garmin": {
         # NUR auf eine im Connect-IQ-Store FREIGEGEBENE Version setzen (Pruefung durch)!
         # Die Garmin-App vergleicht das selbst mit Config.VERSION (SessionRecorder.mc:638).
-        "latest": "1.0.85",   # LIVE im CIQ-Store 2026-09-02, SELBST GEPRUEFT (nicht nur gemeldet):
-        # die Store-Seite (`curl https://apps.garmin.com/apps/9a2a753e-…`) nennt 1.0.85.
-        # Store-Seite: "Latest Release September 1, 2026 · Version 1.0.85 · Size 71 KB" (Jan).
+        "latest": "1.0.86",   # LIVE im CIQ-Store 2026-09-11, SELBST GEPRUEFT (nicht nur gemeldet):
+        # `curl https://apps.garmin.com/api/appsLibraryExternalServices/api/asw/apps/9a2a753e-…`
+        # liefert `latestExternalVersion = 1.0.86`, `latestInternalVersion = 40`. Jans Store-Seite
+        # nennt "Latest Release September 10, 2026 · Version 1.0.86 · Size 72 KB" — das Datum ist
+        # UTC (eingereicht 11.09. 00:50 CEST = 10.09. 22:50 UTC), kein Widerspruch.
+        # Inhalt: Teil-Upload in der Pause (Laeufe schon auf dem Handy sichtbar), richtige
+        # Lauf-Uhrzeiten (Zuschnitt + Pausen), Puls-Alarm mit einstellbarem Wiederholabstand,
+        # Standard-Foil auch bei festen Alarm-Schwellen vorgewaehlt.
+        # `watch/bin` neu gebaut NACH der Freigabe: 129 von 129 Geraeten ok, catalog.json 129
+        # Eintraege, partmap.json 218 Part-Numbers.
+        # VORHER 1.0.85, live seit 02.09.: Profil-Einstellung "halten oder druecken".
         # Inhalt: die Profil-Einstellung "halten oder druecken" (settings_json.stop_mode). Im
         # press-Modus loest schon ein kurzer Druck auf START aus — das Halten funktioniert
         # unveraendert weiter, es kommt also ein Weg dazu. Anlass war ein Nutzer, auf dessen Uhr
@@ -301,10 +309,12 @@ ABGELEHNT: list[dict] = [
 ]
 
 # Solange diese Liste leer ist, blendet /changelog den Abschnitt „Being reviewed" aus.
-# Stand 11.09.2026 00:50: Android Phone 1.1.28 (42) + Wear 1.2.28 (1038) eingereicht 10.09. 10:10,
-# Amazfit 1.0.8 eingereicht 10.09. 11:19, Garmin 1.0.86 eingereicht 11.09. 00:50 — alle drei
-# Vorgaenge liegen gleichzeitig in der Pruefung. (Der frühere Hinweis „Amazfit noch nicht
-# hochgeladen" war nur bis 10.09. 11:19 richtig.)
+# Stand 11.09.2026 01:00: Android Phone 1.1.28 (42) + Wear 1.2.28 (1038) eingereicht 10.09. 10:10,
+# Amazfit 1.0.8 eingereicht 10.09. 11:19 — beide noch in Pruefung.
+# GARMIN 1.0.86 ist am 11.09. FREIGEGEBEN und steht deshalb hier nicht mehr, sondern in
+# `_APP_META` als live (Pruefung dauerte keine zwei Stunden). Seine fuenf Punkte sind in die
+# Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
+# genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
     {"name": "Android phone + Wear OS", "version": "1.1.28 / 1.2.28",
      # ERSETZT die Einreichung vom 07.09. (1.1.26/1.2.26), bevor Google sie freigegeben hat —
@@ -381,32 +391,6 @@ IN_REVIEW: list[dict] = [
          "and Suunto.",
          "COROS: the app says which mode records the best data, and what COROS does not "
          "hand over.",
-     ]},
-    {"name": "Garmin", "version": "1.0.86",
-     # EINGEREICHT 11.09.2026 00:50 (Jans Meldung: „.iq ist eingereicht zur pruefung"). Die
-     # eingereichte Datei ist `pumpfoil-1.0.86.iq`, 13.540.198 B, sha1
-     # 75bb7421a43a604cc77aa9c3a286c93053fa8e2f (gegen Jans Download geprueft, nicht nur gemeldet),
-     # 218 von 218 Varianten. Live steht 1.0.85 vom 02.09.
-     #
-     # `_APP_META["garmin"].latest` BLEIBT auf 1.0.85 und `watch/bin` bleibt unangetastet, bis die
-     # Freigabe da ist — sonst bewirbt die Website eine Version, die im Store fehlt (Fehler vom
-     # 10.08.). Danach: build-all.sh -> latest auf 1.0.86 -> Changelog-Eintrag.
-     #
-     # Die Punkte sind Jans abgesegnete Store-Notizen (`/home/jan/release-staging/garmin-1.0.86/
-     # store-notizen.txt`) — hier WORTGLEICH, damit Store-Text und Website dasselbe sagen.
-     "note": "submitted 11 September, waiting for Garmin",
-     "items": [
-         "Pause and check your runs: while the recording is paused, the watch now sends what "
-         "it has so far, so the runs of this session already show up on your phone and on "
-         "pumpfoil.org.",
-         "Correct clock times for every run. Times were shown too early when a recording had "
-         "been trimmed or paused \u2014 they now match the clock on your wrist.",
-         "New heart rate alarm: the watch can vibrate above a heart rate you set, with its own "
-         "vibration pattern. Set it in your profile under On-foil alarm.",
-         "Repeating alarms are now yours to tune: choose how many seconds pass before an alarm "
-         "repeats while you are still above or below the limit (default 5).",
-         "The start screen always shows your default foil again, also when your alarm uses "
-         "fixed speed limits.",
      ]},
     {"name": "Amazfit", "version": "1.0.8",
      # 1.0.7 wurde ZWEIMAL abgelehnt, beide Male nur wegen der Store-Vorschaubilder (nie wegen der
