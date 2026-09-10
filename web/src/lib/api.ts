@@ -1215,6 +1215,11 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify(patch),
     }),
+  // Eine haengengebliebene Aufnahme bewusst mit dem abschliessen, was da ist: der Server rechnet
+  // final durch, die Session wird „analyzed" und verlaesst die Upload-Karte. Fuer den Knopf
+  // „jetzt auswerten" auf der Detailseite einer ueberholten Session.
+  finalizeSession: (id: number) =>
+    req<SessionSummary>(`/api/sessions/${id}/reanalyze`, { method: "POST" }),
   trimSession: (id: number, trim_start_ms: number | null, trim_end_ms: number | null) =>
     req<SessionSummary>(`/api/sessions/${id}/trim`, {
       method: "PATCH",
