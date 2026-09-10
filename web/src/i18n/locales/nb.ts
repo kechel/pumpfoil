@@ -851,7 +851,7 @@ const nb: Record<string, string> = {
   "land.deep3": "Andre måling, med bilder og kurver",
   "land.deep4": "Systemarkitektur",
   "land.heroSub": "Pumpfoil kobler klokka di til detaljert analyse: GPS-spor, foiling-distanse, pumpekadens og glidefaser — automatisk fra hver økt.",
-  "land.heroPlatforms": "Fungerer med Garmin, Apple Watch, Wear OS og Amazfit (våre egne klokkeapper), med Polar, COROS, Suunto og Xiaomi (kontokobling) og med Android- eller iOS-telefonen din.",
+  "land.heroPlatforms": "Fungerer med Garmin, Apple Watch, Wear OS, Amazfit, Polar, COROS, Suunto, Xiaomi og Android- eller iOS-telefonen din.",
   "land.illmenseeTitle": "Vår vakre Illmensee",
   "land.videosTitle": "Pumpfoil i aksjon",
   "land.videosBody": "Klipp fra YouTube-kanalen vår — ekte pumping, ekte glid.",

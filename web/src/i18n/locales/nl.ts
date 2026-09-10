@@ -896,7 +896,7 @@ const nl: Record<string, string> = {
   "land.deep3": "Tweede meting, met foto's en curves",
   "land.deep4": "Systeemarchitectuur",
   "land.heroSub": "Pumpfoil verbindt je horloge met gedetailleerde analyse: GPS-track, foiling-afstand, pompfrequentie en glijfases — automatisch uit elke sessie.",
-  "land.heroPlatforms": "Werkt met Garmin, Apple Watch, Wear OS en Amazfit (onze eigen horloge-apps), met Polar, COROS, Suunto en Xiaomi (accountkoppeling) en met je Android- of iOS-telefoon.",
+  "land.heroPlatforms": "Werkt met Garmin, Apple Watch, Wear OS, Amazfit, Polar, COROS, Suunto, Xiaomi en je Android- of iOS-telefoon.",
   "land.illmenseeTitle": "Ons mooie Illmensee",
   "land.videosTitle": "Pumpfoil in actie",
   "land.videosBody": "Clips van ons YouTube-kanaal — echt pompen, echte glide.",
