@@ -21,6 +21,7 @@ from ..analysis import EXCLUDE_MARGIN_MS, dump_excluded_windows, excluded_window
 from ..db import get_db
 from ..fitimport import parse_fit_bytes
 from ..naming import owner_label
+from ..setup_snapshot import standard_setup
 from ..ml.features import bandpass_fft, magnitude_g
 from ..schemas import (
     AnalysisOut, ExcludeRunIn, IncludeRangeIn, LabelIn, LabelOut, PumpTruthIn, RawDataOut,
@@ -339,7 +340,11 @@ def _resolve_foil(db: Session, s: models.Session) -> dict | None:
 def _resolve_setup(db: Session, s: models.Session) -> dict | None:
     """Restliches Setup für die Anzeige: Stab/Mast/Shim/Board der Session, sonst der Standard
     des Besitzers (settings_json). Je Komponente `*_is_default`, damit die UI „geerbt" zeigen
-    kann. None, wenn nichts gesetzt ist (dann blendet die UI den Block aus)."""
+    kann. None, wenn nichts gesetzt ist (dann blendet die UI den Block aus).
+
+    Die Vererbung greift seit 10.09.2026 nur noch bei ALTEN Sessions: neu angelegte bekommen den
+    Standard als Schnappschuss mitgeschrieben (`app/setup_snapshot.py`), weil ein Wechsel des
+    Standards sonst die ganze Historie umschreibt — von einem Nutzer gemeldet und belegt."""
     st: dict = {}
     if s.user and s.user.settings_json:
         try:
@@ -480,6 +485,7 @@ def import_parsed_session(db, user, raw: bytes, parsed: dict, *, src_label: str,
         status="complete",
         total_chunks=1,
         foil_id=_user_default_foil_id(user),   # Standard-Foil fest zuordnen
+        **standard_setup(db, user),            # Stab/Board/Mast/Shim ebenso (s. setup_snapshot)
     )
     db.add(s)
     db.commit()

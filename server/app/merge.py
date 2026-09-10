@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session as DbSession
 
 from . import models, storage
 from .analysis import run_analysis
+from .setup_snapshot import uebernehmen
 
 
 def sync_video_mirror(db: DbSession, s: models.Session) -> None:
@@ -281,6 +282,8 @@ def merge_sessions(db: DbSession, sessions: list[models.Session]) -> models.Sess
         place_name=first.place_name, place_water=first.place_water,
         place_lat=first.place_lat, place_lon=first.place_lon,
         foil_id=first.foil_id, is_pumpfoil=first.is_pumpfoil,
+        # Setup des ERSTEN Teils uebernehmen, nicht den heutigen Profil-Standard.
+        **uebernehmen(first),
         mod_ok=any(x.mod_ok for x in sessions),
         # youtube_url (Legacy-Spiegel) setzt sync_video_mirror nach dem Übernehmen der Video-Rows.
     )

@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 from .. import models, storage
 from ..analysis import maybe_auto_trim, run_analysis
 from ..db import SessionLocal, get_db
+from ..setup_snapshot import standard_setup
 from ..schemas import (
     ChunkIn,
     ChunkOut,
@@ -130,6 +131,10 @@ def start_session(
             accel_scale=body.accel_scale,
             status="recording",
             foil_id=_foil,
+            # Restliches Setup (Stab/Board/Mast/Shim) als Schnappschuss aus dem Profil — sonst
+            # erbt die Session es beim LESEN und der Stern im Profil wirkt rueckwirkend auf die
+            # ganze Historie (s. app/setup_snapshot.py).
+            **standard_setup(db, _uu),
             sport_class=_sport_class,
             placement=(body.placement or None),
             device_model=(body.device_model or None),
