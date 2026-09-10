@@ -29,6 +29,7 @@ interface TextSlot {
   size?: number;   // Schriftgröße je Zeile (Default TXS), nur bei plain+text
   style?: TxStyle;
   shape?: TxShape;
+  zh?: string;     // chinesische Fassung fuer RedNote; leer = Originaltext
 }
 const STAMP: Record<"success" | "fail", { label: string; color: string; tilt: number }> = {
   // tilt in Grad: der Erfolg lehnt links, der Fail rechts — damit sich der
@@ -55,6 +56,27 @@ const BANNER_WORDS: Record<string, string> = {
 // Diese drei haben eigene Knoepfe mit Symbol; alle weiteren Unterordner
 // erscheinen als Chips daneben.
 const FIXED_CATS = ["aussortiert", "privat", "never-give-up"];
+// RedNote bekommt seit 10.09. einen eigenen Render, und damit koennen die
+// gezeichneten Overlays dort chinesisch sein. Fest steht hier nur, was das
+// Studio selbst schreibt — was Jan tippt, hat je Slot ein eigenes Feld (tx.zh);
+// bleibt das leer, laeuft der Originaltext mit.
+const LAT_FACE = '"Avenir Next", Avenir, "Helvetica Neue", Helvetica, sans-serif';
+const ZH_FACE = '"PingFang SC", "Hiragino Sans GB", "Heiti SC", "Microsoft YaHei", sans-serif';
+const ZH_LABEL: Record<"success" | "fail", string> = { success: "成功", fail: "失败" };
+// „pump" bleibt stehen: so steht es auch in unseren chinesischen Captions und
+// in der Kanalbeschreibung — uebersetzt sucht danach niemand.
+const ZH_CARD_SLOGAN = "玩得开心，继续 pump！";
+const ZH_REVEAL_SUBS = ["你试了一次", "你又试了一次", "你更接近了", "你没有放弃"];
+const ZH_REVEAL_HOOK = "成功\n还是失败？";
+const ZH_REVEAL_END = "去尝试，本身就是成功。\n\n剩下的只是练习。";
+const ZH_REVEAL_FAIL = "待在家里的那一天";
+const ZH_DEFAULT_LAST_TEXT = "玩得开心\n\n继续 pump！" + "\n".repeat(16);
+const ZH_DEFAULT_2ND_LAST_TEXT =
+  "加入我们的免费社区\npumpfoil.org\n\n记录、分享、对比\n你的每一次进步" + "\n".repeat(14);
+// Der Text, der wirklich gezeichnet wird.
+const txText = (tx: TextSlot, zh: boolean) =>
+  (zh && tx.zh && tx.zh.trim()) ? tx.zh : tx.text;
+
 const isStamp = (s?: TxStyle): s is "success" | "fail" => s === "success" || s === "fail";
 const shapeOf = (tx: TextSlot): TxShape => tx.shape ?? "plain";
 // Alles Gezeichnete (Urteil oder geformter Text) hat feste Masse und rastet
@@ -73,6 +95,8 @@ const emptyTexts = (): TextSlot[] =>
     start: null,
     text: i === TXN - 1 ? DEFAULT_LAST_TEXT
       : i === TXN - 2 ? DEFAULT_2ND_LAST_TEXT : "",
+    zh: i === TXN - 1 ? ZH_DEFAULT_LAST_TEXT
+      : i === TXN - 2 ? ZH_DEFAULT_2ND_LAST_TEXT : "",
     hold: TXH,
     size: TXS,
     style: "text",
@@ -626,19 +650,20 @@ function Studio() {
   //            keine Antwort), "success"/"fail" im Text in ihrer Urteilsfarbe.
   //   Urteil — Haken bzw. Kreuz mit SUCCESS/FAIL als Kopfzeile und dem Textfeld
   //            als Unterzeile, Kanten oben UND unten in der Urteilsfarbe.
-  function barPng(tx: TextSlot, w: number, h: number): string {
-    if (isStamp(tx.style)) return verdictBarPng(tx, w, h, STAMP[tx.style]);
-    return hookBarPng(tx, w, h);
+  function barPng(tx: TextSlot, w: number, h: number, zh: boolean): string {
+    if (isStamp(tx.style)) return verdictBarPng(tx, w, h, STAMP[tx.style], zh);
+    return hookBarPng(tx, w, h, zh);
   }
 
   function verdictBarPng(tx: TextSlot, w: number, h: number,
-                         cfg: { label: string; color: string }): string {
+                         cfg: { label: string; color: string }, zh: boolean): string {
     const k = w / 1080;
     const c = document.createElement("canvas");
     c.width = w;
     c.height = h;
     const g = c.getContext("2d")!;
-    const face = '"Avenir Next", Avenir, "Helvetica Neue", Helvetica, sans-serif';
+    const face = zh ? ZH_FACE : LAT_FACE;
+    const label = zh ? ZH_LABEL[tx.style as "success" | "fail"] : cfg.label;
     // Auf einem Balken ueber die ganze Breite darf das Urteil nicht so klein
     // sein wie im Stempel — sonst schwimmen vier Buchstaben in einer leeren
     // Zeile. Alle Masse haengen deshalb an FS und wachsen mit.
@@ -649,7 +674,7 @@ function Studio() {
     const setz = () => {
       g.font = `800 ${FS}px ${face}`;
       g.letterSpacing = `${LS}px`;
-      return g.measureText(cfg.label);
+      return g.measureText(label);
     };
     let m = setz();
     // measureText zaehlt die Sperrung hinter dem letzten Zeichen mit — weg damit.
@@ -668,7 +693,7 @@ function Studio() {
     const capA = m.actualBoundingBoxAscent || FS * 0.72;
     const capD = m.actualBoundingBoxDescent || 0;
 
-    const sub = tx.text.trim().split("\n").map((s) => s.trim()).filter(Boolean);
+    const sub = txText(tx, zh).trim().split("\n").map((s) => s.trim()).filter(Boolean);
     let subFs = SUB_FS;
     if (sub.length) {
       g.font = `600 ${subFs}px ${face}`;
@@ -710,7 +735,7 @@ function Studio() {
     g.fillStyle = cfg.color;
     g.textAlign = "left";
     g.textBaseline = "alphabetic";
-    g.fillText(cfg.label, x + ICON + IGAP, mid + (capA - capD) / 2);
+    g.fillText(label, x + ICON + IGAP, mid + (capA - capD) / 2);
 
     if (sub.length) {
       g.font = `600 ${subFs}px ${face}`;
@@ -727,14 +752,14 @@ function Studio() {
     return flatten(c, txAlpha);
   }
 
-  function hookBarPng(tx: TextSlot, w: number, h: number): string {
+  function hookBarPng(tx: TextSlot, w: number, h: number, zh: boolean): string {
     const k = w / 1080;
     const c = document.createElement("canvas");
     c.width = w;
     c.height = h;
     const g = c.getContext("2d")!;
-    const face = '"Avenir Next", Avenir, "Helvetica Neue", Helvetica, sans-serif';
-    const lines = tx.text.split("\n").map((s) => s.trim()).filter(Boolean);
+    const face = zh ? ZH_FACE : LAT_FACE;
+    const lines = txText(tx, zh).split("\n").map((s) => s.trim()).filter(Boolean);
     if (!lines.length) return c.toDataURL("image/png");
 
     const widest = (fs: number, ls: number) => {
@@ -769,8 +794,11 @@ function Studio() {
     g.textAlign = "left";
     lines.forEach((line, i) => {
       // Wort fuer Wort setzen, damit "success" und "fail" ihre Farbe bekommen;
-      // Satzzeichen werden abgetrennt und bleiben weiss.
-      const parts = line.match(/[\p{L}]+|[^\p{L}]+/gu) ?? [line];
+      // Satzzeichen werden abgetrennt und bleiben weiss. Chinesisch kennt keine
+      // Wortluecken — dort wird an genau den beiden Woertern getrennt, sonst
+      // faende die Tabelle nie einen Treffer ("还是失败" ist EIN Wort fuer \p{L}).
+      const parts = (zh ? line.split(/(成功|失败)/).filter(Boolean)
+                        : line.match(/[\p{L}]+|[^\p{L}]+/gu)) ?? [line];
       let x = (w - g.measureText(line).width) / 2;
       const y = top + PADY + lineH * (i + 0.5);
       for (const part of parts) {
@@ -797,7 +825,8 @@ function Studio() {
 
   // Alle Stempelmasse an einem Ort: sie sind fuer 1080 Breite entworfen und
   // haengen linear an k, damit die Karte denselben Stempel nur groesser zeigt.
-  function stampMetrics(g: CanvasRenderingContext2D, tx: TextSlot, label: string, k: number, face: string) {
+  function stampMetrics(g: CanvasRenderingContext2D, tx: TextSlot, label: string,
+                        k: number, face: string, zh: boolean) {
     const B = 12 * k, R = 20 * k, PX = 50 * k, GAP = 28 * k;
     const FS = 92 * k, LS = 10 * k, ICON = 84 * k;
     const SUB_FS = 48 * k, SUB_PY = 18 * k, SUB_PX = 40 * k, SUB_R = 12 * k, SUB_GAP = 20 * k;
@@ -815,7 +844,7 @@ function Studio() {
     const capH = capA + capD;
     const boxW = PX * 2 + ICON + GAP + labelW;
     const boxH = 41 * k * 2 + capH;
-    const sub = tx.text.trim();
+    const sub = txText(tx, zh).trim();
     let subW = 0, subH = 0;
     if (sub) {
       g.font = `600 ${SUB_FS}px ${face}`;
@@ -832,13 +861,14 @@ function Studio() {
   // Unterzeile im selben Winkel. Als Karte deckt er das ganze Bild ab und faellt
   // dabei groesser aus — dann konkurriert er mit keinem Video mehr.
   function stampPng(tx: TextSlot, w: number, h: number, slogan: boolean,
-                    card: boolean): string {
+                    card: boolean, zh: boolean): string {
     const cfg = STAMP[tx.style as "success" | "fail"];
     const c = document.createElement("canvas");
     c.width = w;
     c.height = h;
     const g = c.getContext("2d")!;
-    const face = '"Avenir Next", Avenir, "Helvetica Neue", Helvetica, sans-serif';
+    const face = zh ? ZH_FACE : LAT_FACE;
+    const label = zh ? ZH_LABEL[tx.style as "success" | "fail"] : cfg.label;
     if (card) {
       cardGround(g, w, h);
     }
@@ -846,12 +876,12 @@ function Studio() {
     // Erst messen, dann notfalls kleiner rechnen: eine lange Unterzeile darf
     // nicht aus dem Bild laufen. 0,88 laesst Platz fuer die Schraeglage.
     let k = (w / 1080) * (card ? CARD_K : 1);
-    let m = stampMetrics(g, tx, cfg.label, k, face);
+    let m = stampMetrics(g, tx, label, k, face, zh);
     const maxW = w * 0.88;
     const wide = Math.max(m.boxW, m.subW);
     if (wide > maxW) {
       k *= maxW / wide;
-      m = stampMetrics(g, tx, cfg.label, k, face);
+      m = stampMetrics(g, tx, label, k, face, zh);
     }
 
     g.translate(w / 2, h * (card ? 0.5 : 0.46));
@@ -900,7 +930,7 @@ function Studio() {
     g.letterSpacing = `${m.LS}px`;
     g.fillStyle = cfg.color;
     g.textBaseline = "alphabetic";
-    g.fillText(cfg.label, bx + m.PX + m.ICON + m.GAP,
+    g.fillText(label, bx + m.PX + m.ICON + m.GAP,
                by + m.boxH / 2 + (m.capA - m.capD) / 2);
     g.textBaseline = "middle";
 
@@ -926,20 +956,20 @@ function Studio() {
       g.letterSpacing = `${2 * sk}px`;
       g.textAlign = "center";
       g.fillStyle = CYAN;
-      g.fillText(CARD_SLOGAN, w / 2, h * 0.8);
+      g.fillText(zh ? ZH_CARD_SLOGAN : CARD_SLOGAN, w / 2, h * 0.8);
     }
     // Die Karte bleibt deckend: sie ersetzt das Bild, statt darueber zu liegen —
     // sonst geistert das Video (und das Logo-Overlay) durch das Navy.
     return flatten(c, card ? 1 : txAlpha);
   }
 
-  function textPng(tx: TextSlot): string {
+  function textPng(tx: TextSlot, zh = false): string {
     const vid = vidRef.current;
     const w = vid?.videoWidth || 1080;
     const h = vid?.videoHeight || 1920;
     const shape = shapeOf(tx);
-    if (shape === "bar") return barPng(tx, w, h);
-    if (isStamp(tx.style)) return stampPng(tx, w, h, cardSlogan, shape === "card");
+    if (shape === "bar") return barPng(tx, w, h, zh);
+    if (isStamp(tx.style)) return stampPng(tx, w, h, cardSlogan, shape === "card", zh);
     const c = document.createElement("canvas");
     c.width = w;
     c.height = h;
@@ -949,7 +979,7 @@ function Studio() {
     const karte = shape === "card";
     const fs = karte ? 76 * (w / 1080) : (tx.size ?? TXS);
     if (karte) cardGround(g, w, h);
-    g.font = `${fs}px Arial`;
+    g.font = zh ? `${fs}px ${ZH_FACE}` : `${fs}px Arial`;
     g.textAlign = "center";
     g.textBaseline = "middle";
     g.fillStyle = "#fff";
@@ -963,7 +993,7 @@ function Studio() {
     // Auf der Karte fallen die angehaengten Leerzeilen der Standardtexte weg:
     // die schieben den Text ueber dem Video nach oben, hier gibt es kein Video,
     // das freigehalten werden muss. Leerzeilen MITTEN im Text bleiben.
-    let lines = tx.text.split("\n");
+    let lines = txText(tx, zh).split("\n");
     if (karte) {
       lines = lines.map((s) => s.trimEnd());
       while (lines.length && !lines[lines.length - 1]) lines.pop();
@@ -974,10 +1004,10 @@ function Studio() {
     lines.forEach((ln, i) => g.fillText(ln, w / 2, y0 + i * lh));
     if (karte && cardSlogan) {
       const sk = w / 1080;
-      g.font = `600 ${64 * sk}px "Avenir Next", Avenir, "Helvetica Neue", Helvetica, sans-serif`;
+      g.font = `600 ${64 * sk}px ${zh ? ZH_FACE : LAT_FACE}`;
       g.letterSpacing = `${2 * sk}px`;
       g.fillStyle = CYAN;
-      g.fillText(CARD_SLOGAN, w / 2, h * 0.8);
+      g.fillText(zh ? ZH_CARD_SLOGAN : CARD_SLOGAN, w / 2, h * 0.8);
     }
     return flatten(c, txAlpha);
   }
@@ -1004,11 +1034,13 @@ function Studio() {
   function seedReveal() {
     setTexts((ts) =>
       ts.map((t, i): TextSlot => {
-        if (i === 0) return { ...t, text: REVEAL_HOOK, style: "text", shape: "bar", hold: 1.2 };
+        if (i === 0) return { ...t, text: REVEAL_HOOK, zh: ZH_REVEAL_HOOK, style: "text", shape: "bar", hold: 1.2 };
         if (i >= 1 && i <= beats)
-          return { ...t, text: REVEAL_SUBS[(i - 1) % REVEAL_SUBS.length], style: "success", shape: "plain", hold: 1.2 };
-        if (i === beats + 1) return { ...t, text: REVEAL_END, style: "text", shape: "card", hold: 2.2 };
-        if (i === beats + 2) return { ...t, text: REVEAL_FAIL, style: "fail", shape: "card", hold: 2.2 };
+          return { ...t, text: REVEAL_SUBS[(i - 1) % REVEAL_SUBS.length],
+                   zh: ZH_REVEAL_SUBS[(i - 1) % ZH_REVEAL_SUBS.length],
+                   style: "success", shape: "plain", hold: 1.2 };
+        if (i === beats + 1) return { ...t, text: REVEAL_END, zh: ZH_REVEAL_END, style: "text", shape: "card", hold: 2.2 };
+        if (i === beats + 2) return { ...t, text: REVEAL_FAIL, zh: ZH_REVEAL_FAIL, style: "fail", shape: "card", hold: 2.2 };
         return t;
       }),
     );
@@ -1238,7 +1270,14 @@ function Studio() {
           .filter((t) => t.start != null && (t.text.trim() || isStamp(t.style)))
           .map((t) => ({ start: t.start, hold: t.hold,
                          fade: isGfx(t) ? STAMP_FADE : TXF,
-                         png: textPng(t) })),
+                         png: textPng(t),
+                         // Zweites Bild nur, wo Chinesisch ueberhaupt etwas
+                         // aendert: eigener Text, ein Urteil (成功/失败) oder
+                         // eine Karte mit Spruch. Sonst waere es dieselbe
+                         // Datei ein zweites Mal durch die Leitung.
+                         png_zh: (t.zh?.trim() || isStamp(t.style)
+                                  || (shapeOf(t) === "card" && cardSlogan))
+                           ? textPng(t, true) : null })),
         outros: outroOn && vidRef.current
           ? {
               youtube: outroPng("youtube", vidRef.current),
@@ -1537,6 +1576,11 @@ function Studio() {
                       placeholder={isStamp(tx.style) ? "Unterzeile …" : shapeOf(tx) === "bar" ? "Frage der Reihe …" : "Text …"}
                       value={tx.text}
                       onChange={(e) => setTexts((ts) => ts.map((s, j) => (j === r.slot ? { ...s, text: e.target.value } : s)))} />
+                    <textarea className="rvtxt zh" rows={1} spellCheck={false} lang="zh-CN"
+                      title="Chinesische Fassung — nur fuer RedNote. Leer: derselbe Text wie links."
+                      placeholder="中文 (RedNote) …"
+                      value={tx.zh ?? ""}
+                      onChange={(e) => setTexts((ts) => ts.map((s, j) => (j === r.slot ? { ...s, zh: e.target.value } : s)))} />
                     <div className="txstyle">
                       {(["bar", "card"] as TxShape[]).map((sh) => (
                         <button key={sh}
@@ -1633,6 +1677,19 @@ function Studio() {
                     spellCheck={false}
                     value={tx.text}
                     onChange={(e) => setTexts((ts) => ts.map((t, j) => (j === i ? { ...t, text: e.target.value } : t)))}
+                  />
+                  {/* Nur RedNote bekommt diesen Text. Bleibt er leer, laeuft
+                      dort derselbe wie links — 成功/失败 und der Spruch auf der
+                      Karte sind ohnehin immer chinesisch. */}
+                  <textarea
+                    className="txt zh"
+                    rows={2}
+                    lang="zh-CN"
+                    title="Chinesische Fassung — nur fuer RedNote. Leer: derselbe Text wie oben."
+                    placeholder="中文 (RedNote) …"
+                    spellCheck={false}
+                    value={tx.zh ?? ""}
+                    onChange={(e) => setTexts((ts) => ts.map((t, j) => (j === i ? { ...t, zh: e.target.value } : t)))}
                   />
                   <input
                     type="number"

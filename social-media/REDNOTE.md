@@ -94,20 +94,45 @@ sind viele — kommt trotzdem nicht weit.
 
 ## Wie das Studio das bedient
 
-**Kein eigener Render und kein eigener Ordner.** Fuer RedNote wird die **TikTok-Fassung**
-hochgeladen — 9:16, O-Ton, keine lizenzierte Musik —, geholt ueber die laufende Nummer aus
-`shorts-mit-musik/tiktok/`. Ein zweiter Ordner mit harten Links stand hier kurz
-(`LINKED_EXPORTS`), war aber nur Verwaltung ohne Nutzen und ist am 08.09. wieder raus.
+**Eigener Render, eigener Ordner — seit 10.09.** `shorts-mit-musik/rednote/`, gleichwertig
+neben youtube/, instagram/ und tiktok/. 9:16, O-Ton, keine lizenzierte Musik; freie Musik
+(pixabay/, marcus-gruenschneder/) ist erlaubt wie bei TikTok, die Lizenzordner `youtube/`
+und `instagram/` bleiben gesperrt.
 
-**Outro:** die TikTok-Fassung zeigt seit 08.09. **Herz und Stern** — gefuellt, mittig. Der
-Stern ist 收藏, und Speichern ist auf einer Such-Plattform die wertvollste Aktion. Er passt
-zugleich fuer TikTok, wo an derselben Stelle ein Lesezeichen steht. Ein eigener
-RedNote-Render ist damit nicht noetig.
+Bis dahin lief dort die TikTok-Fassung mit, und ein Ordner mit harten Links darauf stand
+kurz (`LINKED_EXPORTS`, am 08.09. wieder raus). Beides reichte nicht mehr, sobald die
+Endcard und die Urteilskarten chinesisch sein sollen — das ist eine andere Bilddatei,
+nicht dieselbe Datei unter anderem Namen (Jan, 10.09.).
+
+**Outro:** jede Plattform zeigt jetzt ihre eigenen Symbole, gefuellt und mittig.
+**RedNote: Herz und Stern** — der Stern ist 收藏, und Speichern ist auf einer
+Such-Plattform die wertvollste Aktion. **TikTok: Herz und Lesezeichen** — dort speichert man
+mit einem Lesezeichen, nicht mit einem Stern. Bis 10.09. trug die TikTok-Leiste RedNotes
+Stern, weil beide dieselbe Datei bekamen.
 
 Sprechblase und Teilen-Pfeil liegen in `OUTRO_ICONS` auskommentiert daneben, falls die
 Leiste je wieder voller werden soll. Nur YouTube sitzt tiefer (68 % Hoehe) und wuerde in
-RedNotes eigenen Textblock am unteren Rand laufen — deshalb dort die TikTok-Fassung, nicht
-die von YouTube.
+RedNotes eigenen Textblock am unteren Rand laufen.
+
+**Chinesisch im Bild.** Was das Studio selbst schreibt, steht auf der RedNote-Fassung auf
+Chinesisch:
+
+| | andere Plattformen | RedNote |
+|---|---|---|
+| Endcard-Zeile | FREE APP & COMMUNITY | 免费应用与社区 |
+| Urteil | SUCCESS / FAIL | 成功 / 失败 |
+| Spruch auf der Karte | have fun, keep pumping! | 玩得开心，继续 pump！ |
+
+Die Endcard ist eine eigene Datei: derselbe Name mit **`-zh` am Stamm**
+(`shorts-endcard-band-dark-1080x1920-zh.png`, erzeugt von `brand/master/endcard-band.py`).
+Der Render setzt sie fuer RedNote von selbst ein und faellt aufs Original zurueck, wenn es
+keine gibt — dieselbe Regel gilt fuer Overlays. In der Endcard-Auswahl im Studio tauchen die
+zh-Dateien nicht auf.
+
+**Freier Text** kann das Studio nicht uebersetzen. Jede Textzeile hat deshalb ein zweites,
+gestricheltes Feld `中文 (RedNote)`. Bleibt es leer, laeuft dort derselbe Text wie ueberall
+sonst. Die Vorlage der Reveal-Reihe fuellt es mit; „pump" bleibt darin unuebersetzt, so
+steht es auch in unseren chinesischen Captions.
 
 **Texte:** Reiter *Texte* → Export filtern → „Titel & Captions" → Block **RedNote**. Titel
 (auf 20 Zeichen an der Wortgrenze gekuerzt) und chinesischer Text mit Schlagworten,
@@ -276,12 +301,14 @@ keine Sommerzeit und nur eine Zeitzone. **Ab dem 25.10.2026** sind 05:00 bei uns
 Peking — wer weiter denselben Moment treffen will, traegt ab dann 12:00 ein; wer stur 11:00
 stehen laesst, postet ab dann um 04:00 unserer Zeit.
 
-**Woher die Dateien kommen — wichtig:** RedNote bekommt die **TikTok-Fassung**, und die gibt
-es erst ab Nummer **092**. Lokal liegen 130–173, auf der externen Platte 092–173, darunter
-gar nicht. Fuer 130–173 reicht ein harter Link (null Bytes), 092–129 muessen von der Platte
-kopiert werden (die 16 Videos dieser Planung: 971 MB). **Alles unter 092 braucht vorher einen
-TikTok-Render im Studio** — die YouTube-Fassung ist kein Ersatz, ihr Outro sitzt auf 68 %
-Hoehe und laeuft in RedNotes Textblock.
+**Woher die Dateien kommen — wichtig:** dieser Absatz stammt aus der Zeit, als RedNote die
+TikTok-Fassung bekam. Seit 10.09. gibt es `shorts-mit-musik/rednote/`, und das ist ab dann
+die Quelle. Der Bestand davor liegt weiter nur als TikTok-Fassung vor, und die gibt es erst
+ab Nummer **092**: lokal 130–173, auf der externen Platte 092–173, darunter gar nicht.
+**Alles unter 092 braucht einen Render im Studio** — die YouTube-Fassung ist kein Ersatz,
+ihr Outro sitzt auf 68 % Hoehe und laeuft in RedNotes Textblock. Wer den Altbestand mit
+chinesischer Endcard nachziehen will, rendert ihn neu; hochgeladene Beitraege bleiben, wie
+sie sind.
 
 Die Auswahl mischt bewusst die beiden Rubriken, in die unser Material dort passt: 涨知识
 (Unterwasser, Zeitlupe, Making-of, Tutorials) und 治愈系 (Spiegelwasser, Sonnenauf- und
