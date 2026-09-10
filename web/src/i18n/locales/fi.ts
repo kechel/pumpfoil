@@ -863,6 +863,7 @@ const fi: Record<string, string> = {
   "land.deep3": "Toinen mittaus, kuvin ja käyrin",
   "land.deep4": "Järjestelmän rakenne",
   "land.heroSub": "Pumpfoil yhdistää kellosi yksityiskohtaiseen analyysiin: GPS-track, foiling-matka, pumppaustaajuus ja liukuvaiheet — automaattisesti jokaisesta sessiosta.",
+  "land.heroPlatforms": "Toimii Garminin, Apple Watchin, Wear OS:n ja Amazfitin kanssa (omat kellosovelluksemme), Polarin, COROSin, Suunton ja Xiaomin kanssa (tilin yhdistäminen) sekä Android- tai iOS-puhelimellasi.",
   "land.illmenseeTitle": "Kaunis Illmensee-järvemme",
   "land.videosTitle": "Pumpfoil toiminnassa",
   "land.videosBody": "Klippejä YouTube-kanavaltamme — aitoa pumppausta, aitoa glidea.",

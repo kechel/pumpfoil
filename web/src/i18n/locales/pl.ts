@@ -894,6 +894,7 @@ const pl: Record<string, string> = {
   "land.deep3": "Drugi pomiar, ze zdjęciami i wykresami",
   "land.deep4": "Architektura systemu",
   "land.heroSub": "Pumpfoil łączy Twój zegarek ze szczegółową analizą: ślad GPS, dystans na foilu, kadencja pomp i fazy szybowania — automatycznie z każdej sesji.",
+  "land.heroPlatforms": "Działa z Garmin, Apple Watch, Wear OS i Amazfit (nasze własne aplikacje na zegarek), z Polar, COROS, Suunto i Xiaomi (połączenie konta) oraz z telefonem Android lub iOS.",
   "land.illmenseeTitle": "Nasze piękne Illmensee",
   "land.videosTitle": "Pumpfoil w akcji",
   "land.videosBody": "Klipy z naszego kanału YouTube — prawdziwe pompowanie, prawdziwe szybowanie.",
