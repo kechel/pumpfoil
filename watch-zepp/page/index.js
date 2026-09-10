@@ -1221,10 +1221,15 @@ Page(
         // kommt, der bisherige Verweis. Und: warten Aufnahmen, steht deren Zahl immer dabei —
         // die Session "fehlt" sonst aus Nutzersicht kommentarlos (drittes Support-Muster).
         const pend = loadPending().length;
-        const hint = ((bleOk() && !getTok())
-          ? (s.code ? s.code + " → pumpfoil.org" : t("up.notLinked") + " · → " + t("menu.connect"))
-          : (s.upStatus || gps) + (s.almOn ? " · " + t("fm.alarm") : "") + " · " + conn)
-          + (pend ? " · " + pend + " " + t("up.open") : "");
+        // Laeuft ein Upload, steht NUR seine Meldung in der Zeile. Vorher hing Alarm,
+        // Verbindung und die Zahl offener Aufnahmen mit dran — zusammen lief das weit ueber
+        // den Rand hinaus (Jans Emulator-Runde 10.09.2026: "in einer zeile viiiiiiel zu lang
+        // ueber den gesamten screen hinaus"). Der Rest ist eine Sekunde spaeter wieder da.
+        const hint = s.upStatus ? s.upStatus
+          : (((bleOk() && !getTok())
+              ? (s.code ? s.code + " → pumpfoil.org" : t("up.notLinked") + " · → " + t("menu.connect"))
+              : gps + (s.almOn ? " · " + t("fm.alarm") : "") + " · " + conn)
+             + (pend ? " · " + pend + " " + t("up.open") : ""));
         w.status.setProperty(hmUI.prop.TEXT, hint);
       } else if (s.idlePage === 3) {
         this.hideBig();
@@ -2023,7 +2028,7 @@ Page(
       const el = (now - s.startedAtMs) / 1000;
       s.last = { dur: el, dist: s.dist, avg: el > 0 ? s.dist / el * 3.6 : 0, max: s.max * 3.6 };
       if (s.gps.length) {
-        s.screen = "summary"; s.upPct = 0; s.upStatus = t("up.running") + " 0% · " + t("up.keepOpen");
+        s.screen = "summary"; s.upPct = 0; s.upStatus = t("up.keepOpen");
         const list = loadPending(); list.push({ uuid: s.uuid, startedAtMs: s.startedAtMs, endedAtMs: now,
           gps: s.gps.slice(), foilId: s.foilId, accelFile: s.accelFile,
           accelSamples: s.accelSamples, accelHz: this._accelHz(), accelChunkT0: s.accelChunkT0.slice() }); savePending(list);
@@ -2055,7 +2060,9 @@ Page(
       const accelChunkCount = hasAccel ? Math.ceil(sess.accelSamples / ACCEL_CHUNK_SAMPLES) : 0;
       const dataChunkCount = gpsChunkCount + accelChunkCount;
       const total = dataChunkCount + 2; let done = 0;
-      const bump = () => { done++; if (onProg) onProg(Math.min(100, Math.round(done / total * 100))); };
+      // done/total gehen MIT: die Anzeige zeigt "5/34" statt Prozent (Jan, 10.09.2026 —
+      // "das abkuerzen als 'Uploading 5/34'"). Der Balken braucht weiter die Prozent.
+      const bump = () => { done++; if (onProg) onProg(Math.min(100, Math.round(done / total * 100)), done, total); };
       // Direkter this.request (wie Pairing) — kein Retry (der würde Folge-Requests feuern);
       // r.ok muss echt kommen, sonst Fehler (kein Schein-Erfolg).
       const req = (p) => this.reqQ(p).then((r) => {
@@ -2112,19 +2119,25 @@ Page(
       const inSummary = s.screen === "summary";
       const list = loadPending();
       if (!getTok()) { if (list.length) { s.upStatus = t("up.later") + " (" + list.length + ")"; this.rerender(); } return; }
-      if (!list.length) { if (inSummary) { s.upStatus = t("up.done") + " ✓"; this.showBar(100); this.renderSummary(); } this.applyButton(); return; }
+      if (!list.length) { if (inSummary) { s.upStatus = "✓ " + t("up.done"); this.showBar(100); this.renderSummary(); } this.applyButton(); return; }
       s.uploading = true;
       // Upload requires the Device App to stay alive for BLE/ZML. Keep the page awake for the whole
       // worker lifetime; the normal five-minute idle policy resumes on completion or failure.
       this._setBrightMode("uploading");
       console.log("[pumpfoil] upload worker start sessions=" + list.length);
-      const onProg = (pct) => { s.upPct = pct; s.upStatus = t("up.running") + " " + pct + "% · " + t("up.keepOpen"); if (inSummary) { this.showBar(pct); this.renderSummary(); } else this.renderIdle(); };
+      // KURZ: "Upload laeuft 5/34". Vorher stand hier zusaetzlich der Prozentwert UND
+      // "App offen lassen!" — auf einer runden Uhr lief die Zeile weit ueber den Rand.
+      // Das "…" aus up.running fliegt raus, sonst stuende "Upload laeuft… 5/34".
+      // Der Hinweis, die App offen zu lassen, steht jetzt EINMAL am Anfang (s. stop()).
+      const onProg = (pct, done, total) => { s.upPct = pct;
+        s.upStatus = t("up.running").replace("…", "") + " " + done + "/" + total;
+        if (inSummary) { this.showBar(pct); this.renderSummary(); } else this.renderIdle(); };
       const step = (i) => {
         if (i >= list.length) {
           s.uploading = false;
           this._setBrightMode("idle", true);
           console.log("[pumpfoil] upload worker done");
-          s.upStatus = t("up.done") + " ✓"; if (inSummary) { this.showBar(100); this.renderSummary(); } else this.renderIdle(); this.applyButton(); return;
+          s.upStatus = "✓ " + t("up.done"); if (inSummary) { this.showBar(100); this.renderSummary(); } else this.renderIdle(); this.applyButton(); return;
         }
         const sess = list[i];
         this.uploadSession(sess, onProg)
