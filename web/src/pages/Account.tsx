@@ -859,7 +859,10 @@ function AlarmEditor() {
         speed_low: Number(s?.speed_low) || 0,
         alarm_pattern_high: s?.alarm_pattern_high ?? "short2",
         alarm_pattern_low: s?.alarm_pattern_low ?? "long2",
+        hr_high: Number(s?.hr_high) || 0,
+        alarm_pattern_hr: s?.alarm_pattern_hr ?? "short1",
         alarm_repeat: s?.alarm_repeat ?? "once",
+        alarm_repeat_s: Number(s?.alarm_repeat_s) || 5,
         alarm_default: s?.alarm_default ?? "foil",
       });
       setS(res);
@@ -869,7 +872,7 @@ function AlarmEditor() {
 
   if (!s) return null;
   const patSelect = (key: string) => (
-    <select value={s[key] ?? (key.endsWith("high") ? "short2" : "long2")}
+    <select value={s[key] ?? (key.endsWith("high") ? "short2" : key.endsWith("hr") ? "short1" : "long2")}
       onChange={(e) => set(key, e.target.value)}
       className="rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-sm text-slate-100">
       {PATTERNS.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
@@ -929,7 +932,24 @@ function AlarmEditor() {
             </label>
           </div>
         </div>
-        {/* Modus */}
+        {/* Puls (Überschreiten) — dritte Schwelle, unabhängig von den beiden Speed-Grenzen */}
+        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3">
+          <div className="mb-2 text-sm font-medium text-slate-200">{t("alarm.hrTitle")}</div>
+          <div className="flex flex-wrap items-center gap-3 text-sm">
+            <label className="flex items-center gap-2">
+              <span className="text-slate-400">{t("alarm.maxHr")}</span>
+              <input type="number" min={0} max={250} value={s.hr_high ?? 0}
+                onChange={(e) => set("hr_high", e.target.value)}
+                className="w-20 rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-slate-100" />
+              <span className="text-slate-400">bpm</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <span className="text-slate-400">{t("alarm.pattern")}</span>{patSelect("alarm_pattern_hr")}
+            </label>
+          </div>
+          <p className="mt-2 text-sm text-slate-400">{t("alarm.hrHint")}</p>
+        </div>
+        {/* Modus — bei „dauerhaft" zusätzlich der Wiederholabstand */}
         <label className="flex flex-wrap items-center gap-2 text-sm">
           <span className="text-slate-400">{t("alarm.mode")}</span>
           <select value={s.alarm_repeat ?? "once"} onChange={(e) => set("alarm_repeat", e.target.value)}
@@ -937,6 +957,15 @@ function AlarmEditor() {
             <option value="once">{t("alarm.modeOnce")}</option>
             <option value="continuous">{t("alarm.modeContinuous")}</option>
           </select>
+          {(s.alarm_repeat ?? "once") === "continuous" && (
+            <>
+              <span className="text-slate-400">{t("alarm.repeatEvery")}</span>
+              <input type="number" min={2} max={60} value={s.alarm_repeat_s ?? 5}
+                onChange={(e) => set("alarm_repeat_s", e.target.value)}
+                className="w-20 rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-slate-100" />
+              <span className="text-slate-400">s</span>
+            </>
+          )}
         </label>
         <p className="text-xs text-slate-400">{t("alarm.zeroHint")}</p>
       </div>

@@ -59,7 +59,14 @@ DEFAULTS = {
     "alarm_enabled": False,
     "speed_high": 0, "speed_low": 0,
     "alarm_pattern_high": "short2", "alarm_pattern_low": "long2",
+    # Dritte Schwelle: PULS (bpm, 0 = aus). Wunsch Jan 10.09.2026 — beim Pumpen ist der Puls
+    # oft der ehrlichere Anhaltspunkt als die Geschwindigkeit. Bewusst nur eine OBERE Grenze:
+    # „zu langsam" merkt man selbst, „zu hoch im Puls" nicht.
+    "hr_high": 0, "alarm_pattern_hr": "short1",
     "alarm_repeat": "once",  # "once" = einmalig beim Überschreiten | "continuous" = dauerhaft
+    # Nur bei "continuous": Abstand der Wiederholungen in Sekunden, solange die Schwelle noch
+    # ueber-/unterschritten ist. Vorher eine Konstante von 3 s auf der Uhr.
+    "alarm_repeat_s": 5,
     "alarm_default": "foil",  # Uhr-Vorwahl bei aktivem Alarm: "foil" = Standard-Foil | "fixed" = feste Werte
     # Push-Benachrichtigungen je Typ (Default: alle an). Erweiterbar.
     "notify_prefs": {"like": True, "analyzed": True, "record": True},
@@ -531,11 +538,22 @@ def update_settings(
                 current[k] = max(0, min(60, round(float(patch[k]))))
             except (TypeError, ValueError):
                 pass
-    for k in ("alarm_pattern_high", "alarm_pattern_low"):
+    for k in ("alarm_pattern_high", "alarm_pattern_low", "alarm_pattern_hr"):
         if k in patch and patch[k] in ALARM_PATTERNS:
             current[k] = patch[k]
+    if "hr_high" in patch:
+        try:
+            current["hr_high"] = max(0, min(250, round(float(patch["hr_high"]))))
+        except (TypeError, ValueError):
+            pass
     if patch.get("alarm_repeat") in ALARM_REPEATS:
         current["alarm_repeat"] = patch["alarm_repeat"]
+    if "alarm_repeat_s" in patch:
+        # Untergrenze 2 s: kuerzer waere ein Dauerbrummen, das man nicht mehr zuordnen kann.
+        try:
+            current["alarm_repeat_s"] = max(2, min(60, round(float(patch["alarm_repeat_s"]))))
+        except (TypeError, ValueError):
+            pass
     if patch.get("alarm_default") in ALARM_DEFAULTS:
         current["alarm_default"] = patch["alarm_default"]
     # Teilen-Card-Defaults (Track-Farbe + gewaehlte Stats) — Foto ist NICHT dabei.

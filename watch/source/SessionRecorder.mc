@@ -139,6 +139,9 @@ class SessionRecorder {
     var alarmPatternHigh = "short2";  // Muster beim Überschreiten der Max-Speed
     var alarmPatternLow = "long2";    // Muster beim Unterschreiten der Min-Speed
     var alarmRepeat = "once";         // "once" = einmalig | "continuous" = dauerhaft
+    var alarmRepeatS = 5;             // bei "continuous": Abstand der Wiederholungen in s
+    var alarmHrHigh = 0;              // Puls-Obergrenze in bpm (0 = aus)
+    var alarmPatternHr = "short1";    // Muster beim Überschreiten der Puls-Grenze
     var alarmDefault = "foil";        // Website-Vorwahl für die Uhr: "foil" = Standard-Foil | "fixed" = feste Werte
     var manualAlarm = false;          // true = Vibrationsalarm auf der Website aktiviert (Master-Schalter)
     var foils = [];                   // [{id,label,min,max}] für Foil-Auswahl beim Start
@@ -434,6 +437,9 @@ class SessionRecorder {
             if (ac.hasKey("ph")) { alarmPatternHigh = ac["ph"]; }
             if (ac.hasKey("pl")) { alarmPatternLow = ac["pl"]; }
             if (ac.hasKey("rep")) { alarmRepeat = ac["rep"]; }
+            if (ac.hasKey("reps")) { alarmRepeatS = ac["reps"]; }
+            if (ac.hasKey("hrh")) { alarmHrHigh = ac["hrh"]; }
+            if (ac.hasKey("phr")) { alarmPatternHr = ac["phr"]; }
             if (ac.hasKey("def")) { alarmDefault = ac["def"]; }
         }
         // Gecachte Foil-Liste (Auto-Alarm je Foil) offline verfügbar machen.
@@ -932,11 +938,18 @@ class SessionRecorder {
                     if (data.hasKey("alarmPatternHigh") && data["alarmPatternHigh"] != null) { alarmPatternHigh = data["alarmPatternHigh"]; }
                     if (data.hasKey("alarmPatternLow") && data["alarmPatternLow"] != null) { alarmPatternLow = data["alarmPatternLow"]; }
                     if (data.hasKey("alarmRepeat") && data["alarmRepeat"] != null) { alarmRepeat = data["alarmRepeat"]; }
+                    if (data.hasKey("alarmRepeatS") && data["alarmRepeatS"] != null) { alarmRepeatS = data["alarmRepeatS"]; }
+                    if (data.hasKey("alarmPatternHr") && data["alarmPatternHr"] != null) { alarmPatternHr = data["alarmPatternHr"]; }
                 }
+                // Puls-Grenze IMMER uebernehmen (auch nach _presetsApplied): sie hat keine
+                // On-Watch-Entsprechung, die man ueberschreiben koennte — anders als Speed,
+                // wo die Foil-Auswahl auf der Uhr die Schwellen setzt.
+                if (data.hasKey("hrHigh") && data["hrHigh"] != null) { alarmHrHigh = data["hrHigh"]; }
                 if (data.hasKey("alarmDefault") && data["alarmDefault"] != null) { alarmDefault = data["alarmDefault"]; }
                 _store("alarm_config", {
                     "enabled" => data["alarmEnabled"], "high" => webHigh, "low" => webLow,
                     "ph" => alarmPatternHigh, "pl" => alarmPatternLow, "rep" => alarmRepeat,
+                    "reps" => alarmRepeatS, "hrh" => alarmHrHigh, "phr" => alarmPatternHr,
                     "def" => alarmDefault });
             }
             // Foil-Liste (Auto-Alarm je Foil) übernehmen + cachen.
@@ -1037,25 +1050,32 @@ class SessionRecorder {
     }
 
     // Default-Auswahl für den Start-Screen setzen (nur wenn noch nichts gewählt).
-    // Master-Schalter ist der Website-Alarm (manualAlarm):
-    //   aus            -> Default "Alarm: aus" (Foils bleiben im DOWN-Menü wählbar)
-    //   an + "foil"    -> Standard-Foil (erstes der Liste) als Auto-Alarm
-    //   an + "fixed"   -> feste Website-Werte
+    // ZWEI GETRENNTE DINGE, die hier bis 10.09.2026 verkoppelt waren:
+    //   1. WELCHE FOIL man fährt — reine Metadaten der Session.
+    //   2. WOHER die Alarm-Schwellen kommen (aus der Foil-Geometrie oder feste Website-Werte).
+    // Wer im Profil feste Schwellen wählt („alarmDefault = fixed"), bekam vorher `sessionFoilId
+    // = null` und auf dem Start-Screen „Foil: -" — obwohl er natürlich trotzdem auf einer Foil
+    // steht. Der Server setzte beim Upload dann seinen Profil-Standard ein, die Uhr zeigte also
+    // etwas anderes an als hinterher in der Session stand (Jan, 10.09.2026, Emulator).
+    // Jetzt: die Foil wird IMMER vorgewählt (der Server sortiert den Profil-Standard nach vorne,
+    // s. `_foil_alarm_list`), und nur die Alarm-QUELLE hängt an `alarmDefault`.
+    // Master-Schalter für den Alarm selbst bleibt der Website-Alarm (manualAlarm).
     function initAlarmSelection() {
         // Default (Foil/Alarm) nur bis zum ersten erfolgreichen CONFIG setzen — so wird nach dem
         // Pairing der Default-Foil noch gesetzt (auch wenn beim ungepairten Start mangels Foils "-"
         // stand), aber eine eigene on-watch-Auswahl (_foilChosen) NIE überschrieben.
         if (_presetsApplied || _foilChosen) { return; }
         alarmEnabled = manualAlarm;                        // Web-Master = Alarm-Default an/aus
-        if (alarmDefault.equals("foil") && foils.size() >= 1) {
+        if (foils.size() >= 1) {
             sessionFoilId = foils[0]["id"];                // Standard-Foil vorwählen (Metadaten)
             activeAlarmLabel = foils[0]["label"];
-            alarmSource = "foil";                          // Schwellen aus der Foil
         } else {
             sessionFoilId = null;
             activeAlarmLabel = "-";
-            alarmSource = "manual";                        // feste Web-Werte (speedLow/HighKmh)
         }
+        // Schwellen aus der Foil-Geometrie nur, wenn das Profil es so will — sonst die festen
+        // Website-Werte (speedLowKmh/speedHighKmh), s. effThresholds().
+        alarmSource = (alarmDefault.equals("foil") && foils.size() >= 1) ? "foil" : "manual";
     }
 
     // Nutzer hat on-watch selbst eine Foil (oder „keine") gewählt -> Default nie mehr überschreiben.
@@ -1218,6 +1238,7 @@ class SessionRecorder {
         }
         _flushGps(true);
         _recording = false;
+        Uploader.setPauseSync(false);   // ab hier ist der REGULAERE Abschluss zustaendig
         _clearCanary();                 // sauber beendet -> kein Absturz-Verdacht
         Uploader.setRecording(false);   // Aufnahme vorbei -> Auto-Retry wieder erlaubt
         Uploader.setActiveSession(null);
@@ -1285,6 +1306,13 @@ class SessionRecorder {
         // Nutzer verliert die Session bis auf den letzten Chunk. Wer am Steg pausiert, verschafft
         // sich damit selbst Platz. Die LAUFENDE Session bleibt ausgeschlossen (setActiveSession).
         Uploader.setRecording(false);
+        // Die laufende Session DARF in der Pause mitgehen — als TEIL-Upload (Jan, 10.09.2026:
+        // „waere doch schoen wenn man dann schonmal auf dem Handy die Laeufe bis dahin anschauen
+        // koennte"). Der Server rechnet schon von sich aus weiter, sobald Chunks nachkommen
+        // (`_nachrechnen_faellig`), und haelt die Session auf `status = live` — die Uhr darf ihre
+        // Daten also NICHT wegwerfen. Genau das stellt `Uploader.setPauseSync` sicher: die
+        // laufende Session wird nie mit /complete abgeschlossen und nie lokal aufgeraeumt.
+        Uploader.setPauseSync(true);
         try {
             Uploader.watch().reset();
             Uploader.syncAll();
@@ -1299,6 +1327,7 @@ class SessionRecorder {
         _pausedMs += dauer;
         if (dauer > 0) { _pauseListe.add([_pauseBeiMs, dauer]); }
         _paused = false;
+        Uploader.setPauseSync(false);  // Teil-Upload der laufenden Session beenden
         Uploader.setRecording(true);   // Aufnahme laeuft wieder -> kein Sync (s. pause())
         enableGps();
         if (_accelOn) {
@@ -1905,7 +1934,11 @@ class SessionRecorder {
     // --- Vibrationsalarm ---
     hidden var _alarmActive = false;   // aktuell über/unter Schwelle?
     hidden var _alarmTick = 0;         // s seit letztem Vibrieren (für "continuous")
-    const ALARM_REPEAT_S = 3;          // dauerhaft: alle 3 s erneut
+    // Puls-Alarm hat seinen EIGENEN Zustand: sonst würde ein gleichzeitiger Speed-Alarm ihn
+    // verschlucken (beide teilen sich sonst _alarmActive und es vibriert nur einmal).
+    hidden var _hrAlarmActive = false;
+    hidden var _hrAlarmTick = 0;
+    const ALARM_REPEAT_S_FALLBACK = 5; // wenn der Server keinen Wert liefert
     const LOW_ALARM_WINDOW_KMH = 2.0;  // Min-Alarm nur im Fenster [min-2, min)
 
     // Muster-ID -> Folge von VibeProfiles (Vibration mit Pausen via Intensität 0).
@@ -1944,13 +1977,47 @@ class SessionRecorder {
             _vibe(over ? alarmPatternHigh : alarmPatternLow);
         } else if (trip && alarmRepeat.equals("continuous")) {
             _alarmTick++;
-            if (_alarmTick >= ALARM_REPEAT_S) {
+            if (_alarmTick >= _wiederholAbstandS()) {
                 _alarmTick = 0;
                 _vibe(over ? alarmPatternHigh : alarmPatternLow);
             }
         } else if (!trip) {
             _alarmActive = false;
             _alarmTick = 0;
+        }
+        _checkHrAlarm();
+    }
+
+    // Wiederholabstand für "continuous" — aus dem Profil, mit Untergrenze 2 s (kürzer wäre ein
+    // Dauerbrummen, das man nicht mehr zuordnen kann; der Server begrenzt genauso).
+    hidden function _wiederholAbstandS() {
+        var v = (alarmRepeatS instanceof Lang.Number) ? alarmRepeatS : ALARM_REPEAT_S_FALLBACK;
+        if (v < 2) { v = 2; }
+        return v;
+    }
+
+    // Puls-Alarm: eigene Schwelle, eigenes Muster, eigener Zustand. Nur eine OBERE Grenze —
+    // „zu langsam" merkt man selbst, „zu hoch im Puls" nicht (Jan, 10.09.2026). Ohne Puls-Wert
+    // (kein Sensor, kein Kontakt) passiert nichts: `_currentHr` ist dann null oder 0.
+    hidden function _checkHrAlarm() {
+        if (alarmHrHigh == null || alarmHrHigh <= 0) { _hrAlarmActive = false; _hrAlarmTick = 0; return; }
+        var hr = _currentHr;
+        if (hr == null || hr <= 0) { _hrAlarmActive = false; _hrAlarmTick = 0; return; }
+        if (hr > alarmHrHigh) {
+            if (!_hrAlarmActive) {
+                _hrAlarmActive = true;
+                _hrAlarmTick = 0;
+                _vibe(alarmPatternHr);
+            } else if (alarmRepeat.equals("continuous")) {
+                _hrAlarmTick++;
+                if (_hrAlarmTick >= _wiederholAbstandS()) {
+                    _hrAlarmTick = 0;
+                    _vibe(alarmPatternHr);
+                }
+            }
+        } else {
+            _hrAlarmActive = false;
+            _hrAlarmTick = 0;
         }
     }
 
