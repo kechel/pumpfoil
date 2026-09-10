@@ -326,6 +326,7 @@ const S = {
   // START/STOPP sind Grossbuchstaben-Buttons; Wortlaut = Wear rec.start/rec.stop, nur gross.
   "btn.start": ["START", "START", "START", "START", "DÉMARRER", "AVVIA", "INICIAR", "INICIAR", "MULAI", "СТАРТ", "START", "START", "START", "スタート", "开始"],
   "btn.stop": ["STOPP", "STOPP", "STOPP", "STOP", "ARRÊTER", "STOP", "PARAR", "PARAR", "BERHENTI", "СТОП", "STOP", "STOP", "STOP", "ストップ", "停止"],
+  "btn.unlock":      ["ENTSPERREN", "ENTSPERRE", "ENTSPERREN", "UNLOCK", "DÉVERROUILLER", "SBLOCCA", "DESBLOQUEAR", "DESBLOQUEAR", "BUKA", "РАЗБЛОК.", "ONTGRENDELEN", "AVAA", "ODEMKNOUT", "ロック解除", "解锁"],
   "rec.stopHold":    ["Halten", "Halte", "Halten", "Hold", "Maintenir", "Tieni", "Mantén", "Segurar", "Tahan", "Держать", "Vasthouden", "Pidä", "Podržet", "長押し", "长按"],
   "rec.holdFree":    ["2 s halten = Touch frei", "2 s halte = Touch frei", "2 s halten = Touch frei", "Hold 2 s = touch free", "2 s = tactile libre", "2 s = touch libero", "2 s = táctil libre", "2 s = toque livre", "2 s = sentuh bebas", "2 с = касания вкл.", "2 s = touch vrij", "2 s = kosketus auki", "2 s = dotyk volný", "2秒長押しでタッチ解除", "长按2秒解锁触摸"],
   "menu.touchLock":  ["Touch-Sperre", "Touch-Sperri", "Touch-Sperre", "Touch lock", "Verrou tactile", "Blocco touch", "Bloqueo táctil", "Bloqueio do toque", "Kunci sentuh", "Блокировка касаний", "Touchvergrendeling", "Kosketuslukko", "Zámek dotyku", "タッチロック", "触摸锁定"],
@@ -438,6 +439,7 @@ const PL = {
   "rec.holdFree": "2 s = dotyk wolny",
   "rec.noData": "Brak danych",
   "rec.repair": "Połącz ponownie",
+  "btn.unlock": "ODBLOKUJ",
   "rec.stopHold": "Trzymaj",
   "rec.uploadNow": "Wyślij teraz",
   "up.done": "Wysłano",
@@ -467,6 +469,7 @@ const NB = {
   "rec.repair": "Koble igjen",
   "btn.start": "START",
   "btn.stop": "STOP",
+  "btn.unlock": "LÅS OPP",
   "rec.stopHold": "Hold",
   "rec.holdFree": "Hold 2 s = berøring fri",
   "menu.touchLock": "Berøringslås",
@@ -1058,6 +1061,14 @@ Page(
       // Schloss allein sagt nicht, wie man weiterkommt. Zwei Textzeilen -- was los ist, und der
       // Ausweg ueber die Tasten, zusammengesetzt aus vorhandenen Keys.
       if (!w.lockIcon) {
+        // Deckende Flaeche ZUERST, damit sie unter den Texten liegt: das Schild selbst ist
+        // transparent (es soll waehrend der Fahrt nur Wasser-Tipper abfangen, nicht die
+        // Messwerte verdecken). Ohne diese Flaeche standen die Sperr-Texte AUF der laufenden
+        // Anzeige — Jans Emulator-Runde 10.09.2026: "so ist der text ueberlagert wenn man das
+        // display beruehrt". Sie lebt genauso lange wie die Texte (s. lockTimer unten).
+        w.lockBg = w.touchShield.createWidget(hmUI.widget.FILL_RECT, {
+          x: 0, y: 0, w: DW, h: DH, color: 0x000000,
+        });
         w.lockIcon = w.touchShield.createWidget(hmUI.widget.TEXT, {
           x: 0, y: Math.round(DH * 0.38), w: DW, h: Math.round(DH * 0.12),
           text: t("menu.touchLock"), text_size: Math.round(DH * 0.075), color: WHITE,
@@ -1065,7 +1076,10 @@ Page(
         });
         w.lockHint = w.touchShield.createWidget(hmUI.widget.TEXT, {
           x: 0, y: Math.round(DH * 0.50), w: DW, h: Math.round(DH * 0.10),
-          text: (this.state.stopMode === "press" ? t("btn.stop") : t("rec.stopHold") + " = " + t("btn.stop")),
+          // Der Ausweg aus der SPERRE, nicht der aus der Aufnahme (Jan, 10.09.2026: "nicht
+          // 'HOLD = STOP' sondern 'HOLD = UNLOCK'"). Hier stand vorher btn.stop — auf einem
+          // Sperrschirm, dessen zweite Zeile das Entsperren erklaert, war das widerspruechlich.
+          text: t("rec.stopHold") + " = " + t("btn.unlock"),
           text_size: Math.round(DH * 0.055),
           color: 0x9aa4b2, align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V,
         });
@@ -1076,13 +1090,14 @@ Page(
           text: t("rec.holdFree"), text_size: Math.round(DH * 0.05),
           color: 0x9aa4b2, align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V,
         });
-        try { w.lockIcon.setEnable(false); w.lockHint.setEnable(false); w.lockHint2.setEnable(false); } catch (e) {}
+        try { w.lockBg.setEnable(false); w.lockIcon.setEnable(false); w.lockHint.setEnable(false); w.lockHint2.setEnable(false); } catch (e) {}
       }
       s.lockTimer = setTimeout(() => {
         try { if (w.lockIcon) hmUI.deleteWidget(w.lockIcon); } catch (e) {}
         try { if (w.lockHint) hmUI.deleteWidget(w.lockHint); } catch (e) {}
         try { if (w.lockHint2) hmUI.deleteWidget(w.lockHint2); } catch (e) {}
-        w.lockIcon = null; w.lockHint = null; w.lockHint2 = null; s.lockTimer = null;
+        try { if (w.lockBg) hmUI.deleteWidget(w.lockBg); } catch (e) {}
+        w.lockIcon = null; w.lockHint = null; w.lockHint2 = null; w.lockBg = null; s.lockTimer = null;
       }, 1200);
     },
     // Automatisch = nur ab 3 Tasten (Begruendung an KEY_NUMBER), sonst die Wahl aus dem Menue.
