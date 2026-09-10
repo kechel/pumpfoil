@@ -60,13 +60,18 @@ MOTTO_ZH = ("玩得开心", "继续 pump！")
 # Die uebrigen stehen mit ihrem chinesischen Namen da — danach wird dort
 # gesucht: 佳明 Garmin, 华米 Amazfit, 高驰 COROS, 颂拓 Suunto, 博能 Polar.
 # Apple Watch bleibt, wie es ist; das schreibt in China auch niemand um.
-# Gruppiert nach der Art der Anbindung, und das ergibt zugleich aehnlich breite
-# Zeilen: eine ganz gemischte Aufteilung liess die reinen CJK-Zeilen schrumpfen,
-# weil sich alle nach der breitesten richten.
+# ZWEI Eintraege je Zeile wie in der englischen Fassung, und alle Namen auf
+# Chinesisch — beides zusammen entscheidet ueber die Schriftgroesse. Alle Zeilen
+# werden nach der BREITESTEN skaliert, und "APPLE WATCH" ist mit elf
+# lateinischen Buchstaben rund doppelt so breit wie vier CJK-Zeichen: mit ihm
+# in der Liste schrumpft die ganze Tafel (Jan, 10.09.: „ich finds ja jetzt zu
+# klein"). Apple schreibt seinen Namen in China zwar selbst lateinisch, aber
+# 苹果手表 versteht dort jeder — und nur so bleibt die Liste lesbar.
 ZEILEN_ZH = [
-    "佳明 · APPLE WATCH · 华米",   # App auf der Uhr
-    "高驰 · 颂拓 · 博能",           # ueber die Kontoanbindung
-    "手机",                        # ganz ohne Uhr
+    "苹果手表 · 佳明",   # App auf der Uhr
+    "华米 · 高驰",       # 华米 App, 高驰 ueber die Kontoanbindung
+    "颂拓 · 博能",       # ueber die Kontoanbindung
+    "手机",              # ganz ohne Uhr
 ]
 
 SPRACHEN = {"": (APP_ZEILE, MOTTO), "-zh": (APP_ZEILE_ZH, MOTTO_ZH)}
