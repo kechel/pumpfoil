@@ -1073,7 +1073,7 @@ Page(
         // der ganzen Fahrt nur Wasser-Tipper abfangen, nicht die Messwerte verdecken), also
         // standen die Sperr-Texte sonst AUF der laufenden Anzeige.
         try {
-          w.touchCanvas.drawPoly({
+          w.lockCanvas.drawPoly({
             data_array: [{ x: 0, y: 0 }, { x: DW, y: 0 }, { x: DW, y: DH }, { x: 0, y: DH }],
             color: 0x000000,
           });
@@ -1104,12 +1104,17 @@ Page(
         try { w.lockIcon.setEnable(false); } catch (e) {}
         try { w.lockHint.setEnable(false); } catch (e) {}
       }
-      s.lockTimer = setTimeout(() => {
+      // Solange der Finger noch liegt (lockHoldTimer laeuft), NICHT abraeumen — sondern
+      // spaeter nochmal nachsehen. Widgets unter dem Finger zu loeschen bricht die Beruehrung
+      // ab und nimmt damit das 2-s-Entsperren mit.
+      const aufraeumen = () => {
+        if (s.lockHoldTimer) { s.lockTimer = setTimeout(aufraeumen, 400); return; }
         try { if (w.lockIcon) hmUI.deleteWidget(w.lockIcon); } catch (e) {}
         try { if (w.lockHint) hmUI.deleteWidget(w.lockHint); } catch (e) {}
-        try { if (w.touchCanvas) w.touchCanvas.clear({ x: 0, y: 0, w: DW, h: DH }); } catch (e) {}
+        try { if (w.lockCanvas) w.lockCanvas.clear({ x: 0, y: 0, w: DW, h: DH }); } catch (e) {}
         w.lockIcon = null; w.lockHint = null; s.lockTimer = null;
-      }, 1200);
+      };
+      s.lockTimer = setTimeout(aufraeumen, 1200);
     },
     // Automatisch = nur ab 3 Tasten (Begruendung an KEY_NUMBER), sonst die Wahl aus dem Menue.
     _useTouchLock() { const s = this.state; return s.touchLockPref === null ? KEY_NUMBER >= 3 : !!s.touchLockPref; },
@@ -1124,6 +1129,13 @@ Page(
       w.touchShield = hmUI.createWidget(hmUI.widget.VIEW_CONTAINER, {
         x: 0, y: 0, w: DW, h: DH, z_index: 6, modal: 1, scroll_enable: 0,
       });
+      // ZWEI Canvas: unten die Flaeche fuer die Sperr-Meldung, darueber der, der die
+      // Druck-Ereignisse bekommt. Getrennt, weil Zeichnen und Loeschen auf dem
+      // EREIGNIS-Canvas die laufende Beruehrung abbricht — dann feuert CLICK_UP, der
+      // Halte-Timer wird geloescht und das 2-s-Entsperren kommt nie an (Jan, 10.09.2026:
+      // "das overlay verschwindet einfach aber touch-lock bleibt aktiv"). Ein leerer
+      // Canvas ist durchsichtig, die Messwerte bleiben also sichtbar.
+      w.lockCanvas = w.touchShield.createWidget(hmUI.widget.CANVAS, { x: 0, y: 0, w: DW, h: DH });
       w.touchCanvas = w.touchShield.createWidget(hmUI.widget.CANVAS, { x: 0, y: 0, w: DW, h: DH });
       // Kurzer Tipper = nur der Hinweis. LANGES Druecken (2 s) gibt Touch frei — dieselbe Geste,
       // die auch UP/DOWN lang macht.
@@ -1155,7 +1167,7 @@ Page(
       if (s.lockTimer) { clearTimeout(s.lockTimer); s.lockTimer = null; }
       if (s.lockHoldTimer) { clearTimeout(s.lockHoldTimer); s.lockHoldTimer = null; }
       try { if (w.touchShield) hmUI.deleteWidget(w.touchShield); } catch (e) {}
-      w.touchShield = null; w.touchCanvas = null; w.lockIcon = null; w.lockHint = null;
+      w.touchShield = null; w.touchCanvas = null; w.lockCanvas = null; w.lockIcon = null; w.lockHint = null;
 
     },
     _unlockTouchTemporarily() {
