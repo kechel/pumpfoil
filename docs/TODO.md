@@ -9,6 +9,22 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 🚀 App-Release-Stand
 
+- **🟡 10.09. — Garmin 1.0.86 GEBAUT und an Jan geliefert (noch NICHT eingereicht).**
+  Inhalt: die Uhr schickt ihre **Pausenfenster** im `/complete` mit, damit Lauf-Uhrzeiten nach
+  einer Pause stimmen (Nutzermeldung, s. Inbox-Eintrag „zwei gemeldete Fehler" unten).
+  - Store-`.iq`: `/home/jan/release-staging/garmin-1.0.86/pumpfoil-1.0.86.iq`, **13.385.312 B**,
+    md5 `261e7662485e`, **218 von 218 Varianten, BUILD SUCCESSFUL, 0 Fehler** (19.421 Warnungen —
+    dieselben Container-Typ-Hinweise wie in jedem Build, `build.log` daneben).
+  - Test-`.prg` fuer Jans fenix 7X Pro: `Pumpfoil-fenix7xpro.prg` (97.932 B), mit `-r` gebaut.
+  - `Config.VERSION` 1.0.85 → **1.0.86**; Manifest unveraendert (129 Produkte).
+  - **`watch/bin` NICHT angefasst, `appmeta.garmin` bleibt auf 1.0.85** ([[watch-bin-is-live]]).
+  - **Freigabe-Kette (das Update lohnt sich fuer vorhandene Uhren):** 1. `.iq` einreichen
+    2. Freigabe abwarten 3. `build-all.sh` 4. `appmeta.garmin` auf **1.0.86** 5. Changelog-Eintrag.
+    Vorher NICHTS davon — sonst bewirbt die Website eine Version, die im Store fehlt (10.08.).
+  - **Test auf der Uhr:** Aufnahme starten, pausieren, fortsetzen, stoppen, hochladen. Danach
+    muessen die Lauf-Uhrzeiten in der Detailansicht mit der echten Uhr uebereinstimmen und die
+    Endzeit die Pause enthalten.
+
 - **🔴 10.09. — BEIDE laufenden Store-Pruefungen abgelehnt: Wear OS 1.2.27 und Zepp 1.0.7.**
   Details je Vorgang im Einreichungs-Protokoll unten; hier der Stand in einem Blick.
 
