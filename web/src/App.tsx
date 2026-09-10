@@ -255,6 +255,24 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
           </svg>
           TikTok
         </a>
+        <a href="https://www.facebook.com/pumpfoil" target="_blank" rel="noopener noreferrer"
+          className="mt-1 flex items-center gap-1.5 px-3 text-xs text-slate-400 hover:text-slate-300">
+          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden="true">
+            <path d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.8 3.7-3.8 1.1 0 2.2.2 2.2.2v2.4h-1.2c-1.2 0-1.6.8-1.6 1.6V12h2.7l-.4 2.9h-2.3v7A10 10 0 0 0 22 12Z" />
+          </svg>
+          Facebook
+        </a>
+        <a href="https://www.xiaohongshu.com/user/profile/6a9ef5d1000000000301c6a6"
+          target="_blank" rel="noopener noreferrer"
+          className="mt-1 flex items-center gap-1.5 px-3 text-xs text-slate-400 hover:text-slate-300">
+          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2"
+            strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <rect x="2" y="2" width="20" height="20" rx="5" />
+            <path d="M7 8.6c1.7-.7 3.3-.7 5 0 1.7-.7 3.3-.7 5 0v6.8c-1.7-.7-3.3-.7-5 0-1.7-.7-3.3-.7-5 0V8.6Z" />
+            <path d="M12 8.6v6.8" />
+          </svg>
+          RedNote
+        </a>
         <ChangelogLink />
         <Link to="/impressum" className="mt-1 px-3 text-xs text-slate-400 hover:text-slate-300">
           {t("nav.imprint")}
