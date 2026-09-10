@@ -776,6 +776,17 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔲 10.09. — Zepp gibt Framework-Fehler woertlich an den Nutzer weiter.** Im Simulator stand
+  auf dem Startbildschirm **„Error: shake timeout"** (Jans Screenshot). Der Text kommt aus dem
+  Zepp-Framework, wir haengen ihn ungefiltert an: `page/index.js:2190` macht
+  `t("common.error") + ": " + err.message`. Im Simulator ist die Ursache bekannt und harmlos (der
+  App-Side-Worker war nicht gespawnt), **auf einer echten Uhr trifft es aber jeden, dessen Handy
+  gerade nicht erreichbar ist** — und der liest dann Fachjargon in einer Sprache, die es nicht
+  gibt. Vorhanden sind schon `up.serverUnreach` und die „offline"-Behandlung; die Roh-Meldung
+  gehoert ins Log, nicht auf den Schirm. Zu klaeren, welche Framework-Fehler auf welchen unserer
+  Texte abzubilden sind — nicht blind alles auf „offline" werfen, sonst verschwindet ein echter
+  Serverfehler hinter dem falschen Wort.
+
 - **🔲 10.09. — Zepp: `MAX_PLAUSIBLE_MPS` heisst auf den anderen fuenf Recordern etwas anderes.**
   Der Zepp-Build brach heute zum ZWEITEN Mal an einer doppelt deklarierten Konstante ab
   (`zeus build`: „Identifier 'MAX_PLAUSIBLE_MPS' has already been declared", Zeile 82). Behoben am
