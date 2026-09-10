@@ -81,7 +81,11 @@ function ReleaseStatus() {
     // bis dieser Nachfolger freigegeben ist — sonst faellt die Erklaerung weg, warum die
     // angekuendigten Punkte immer noch fehlen (Jan, 10.09.2026). Amber statt Rot: es ist eine
     // Verzoegerung, kein Ausfall.
-    { titel: "Not approved", farbe: "text-amber-700 dark:text-amber-400", zeilen: daten.rejected ?? [] },
+    //
+    // Das Ausblenden macht der SERVER (`appmeta._noch_offen`): sobald jede Spur der abgelehnten
+    // Fassung live ueberholt ist, liefert `rejected` sie nicht mehr mit. Hier also nichts filtern
+    // — sonst gibt es zwei Wahrheiten.
+    { titel: "Rejected", farbe: "text-amber-700 dark:text-amber-400", zeilen: daten.rejected ?? [] },
     // #ff5500 ist die Wunschfarbe; auf Weiss ist sie fuer kleine Versalien zu hell, dort eine
     // Stufe dunkler derselben Farbe.
     { titel: "Coming next", farbe: "text-[#c24100] dark:text-[#ff5500]", zeilen: daten.next },
