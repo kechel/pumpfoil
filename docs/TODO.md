@@ -719,6 +719,14 @@ fuer TestFlight; Play genauso einen versionCode) kostet eine Runde.
 
 Neueste zuerst. Zeit = wann Jan es hier gemeldet hat (Europe/Berlin), nicht der Klick im Store.
 
+**🔴 HARTE REGEL (Jan, 10.09.2026): Play und Wear gehen IMMER gleichzeitig und zusammen raus.**
+„das hatte ich nur einmal getrennt eingereicht und das wurde abgewiesen." Also nie eine Spur allein
+hochladen, auch nicht fuer einen reinen Wear-Fix — beide Nummern zusammen bumpen und in EINER Runde
+einreichen (sie teilen ohnehin die `applicationId`, und Play schickt eine einzige Freigabe-Mail fuer
+beide Spuren, s. `appmeta.GRUPPEN`). Die Beobachtung darunter beschreibt den Wear-Track als eigene
+Pruefung — das bleibt richtig (er dauert laenger), aendert aber nichts daran, dass EINGEREICHT wird
+nur gemeinsam.
+
 **Beobachtung Wear OS (23.08.):** live ist immer noch **1.2.20** — Code vom 05.08., im Store seit
 09.08. Der Wear-Track ist damit faktisch seit dem **10.08.** in der Pruefung: damals ging 1.2.21/1031
 raus, ersetzt am 18.08. durch 1.2.23/1033 (dazwischen 1.2.22). Ein neuer Upload auf denselben Track

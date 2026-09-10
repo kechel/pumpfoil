@@ -250,7 +250,11 @@ _APP_META: dict[str, dict[str, str]] = {
 # Versionsnummern von Build-Codes, kein Jargon (dieselbe Regel wie fuer die Changelog-Texte).
 # Handy und Uhr sind EINE Einreichung: Android Phone und Wear OS teilen sich die
 # `applicationId` (Play schickt eine einzige Mail fuer beide Spuren), iPhone und Apple Watch
-# stecken im selben Bundle mit einer `MARKETING_VERSION`. Getrennte Zeilen wuerden zwei
+# stecken im selben Bundle mit einer `MARKETING_VERSION`.
+#
+# HARTE REGEL (Jan, 10.09.2026): Play und Wear gehen IMMER gleichzeitig und zusammen raus — „das
+# hatte ich nur einmal getrennt eingereicht und das wurde abgewiesen". Also auch fuer einen reinen
+# Wear-Fix BEIDE Nummern bumpen und in einer Runde einreichen, nie eine Spur allein. Getrennte Zeilen wuerden zwei
 # Vorgaenge vortaeuschen, wo es einer ist (Jan, 05.09.) — deshalb je eine Zeile mit beiden
 # Versionsnummern. Garmin und Amazfit stehen fuer sich.
 GRUPPEN = [
