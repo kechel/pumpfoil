@@ -14,8 +14,8 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
   | Ziel | Live | Lag in Pruefung | Jetzt |
   |---|---|---|---|
-  | Android Phone | 1.1.25 (07.09.) | 1.1.27 (41) | ❓ mitblockiert? Play-Konsole prueft das, s. unten |
-  | Wear OS | 1.2.25 (07.09.) | 1.2.27 (1037) → **abgelehnt** | 1.2.28 (1038) gebaut + Stopp-Knopf-Fix, Upload durch Jan |
+  | Android Phone | 1.1.25 (07.09.) | 1.1.27 (41) → **nicht ausgeliefert** | **1.1.28 (42)** — Code 41 ist beim Upload verbraucht |
+  | Wear OS | 1.2.25 (07.09.) | 1.2.27 (1037) → **abgelehnt** | **1.2.28 (1038) einreichfertig**, im Emulator geprueft |
   | Zepp / Amazfit | 1.0.6 (24.08.) | 1.0.7 → **abgelehnt** | Bilder korrigiert (`e019fdd2`), einreichfertig |
   | iOS + Apple Watch | 1.1.31 (08.09.) | — | nichts offen |
   | Garmin | 1.0.85 (02.09.) | — | nichts offen |
@@ -773,6 +773,24 @@ Status „Warten auf Pruefung" ist, kostet ein Zurueckziehen nichts — nach der
 kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
+
+- **🔲 10.09. — Wassersperre (Wet Mode) auf Wear: kommt zurueck, aber nicht oben.** Herausgenommen
+  aus 1.2.28 (Entscheidung Jan: „raus"). Sie kam am 04.09. dazu (`fb3d8e9c`, Punkt 4 aus JoLes
+  Rueckmeldung — Pixel Watch 2, selbst Wear-Entwickler) und saß zuletzt im Band oben mittig.
+  **Warum sie da nicht bleiben konnte,** im Emulator dieser VM gemessen (192 dp, Standard-Ansicht):
+  bei Schriftfaktor 1,24 endete der Chip bei 26,5 dp, die erste Ziffernzeile begann bei 19,5 dp —
+  **7 dp Ueberlappung auf dem ersten Messwert**. Bei 1,0 waren es +1,0 dp, also nur knapp gut.
+  Nachschieben half nicht: bei 1,24 reicht der Inhalt bis 168 dp, die Seiten-Punkte sitzen bei
+  176 dp. Vorher (bis 1.2.27) saß sie auf `Alignment.TopStart` mit 6/2 dp und war **hinter der
+  Fassung** — also nie tippbar.
+  **Herausnehmen kostete nichts:** der Knopf hat nie einen Nutzer erreicht. Er entstand am 04.09.,
+  das ausgelieferte 1.2.25-Bundle wurde am 02.09. gebaut; er fuhr nur in 1.2.26 (nie erschienen)
+  und 1.2.27 (abgelehnt). In `device_tokens` gibt es draussen nichts ueber 1.2.25.
+  **`MainActivity.wassersperre()` ist absichtlich stehen geblieben** — der Wet-Mode-Broadcast
+  (`com.google.android.wearable.action.ENABLE_WET_MODE` + `relaunch_component_name`) ist der
+  funktionierende Weg. Was fehlt, ist ein Platz: **eigene Pager-Seite oder Langdruck auf die
+  Flaeche**, nichts Anklickbares mehr oben. Beim Wiederaufnehmen JoLe Bescheid geben, es war sein
+  Wunsch.
 
 - **🔴 10.09. — Emulator-Gegenprobe zu 1.2.28: das neue Band oben KOLLIDIERT mit dem Layout.**
   Selbst gefahren auf dieser VM (`foil_wear`, 384×384 bei dpi 320 = **192 dp**, der kleinste runde

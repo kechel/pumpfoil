@@ -730,13 +730,16 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                 // sichtbar, 8 dp darunter 84 dp — in den Ecken selbst nichts. „Puls passiv"
                 // stand auf Alignment.TopEnd und lag damit fast vollstaendig hinter dem Rand;
                 // Google hat Version 1037 genau deswegen abgelehnt (Wear font size: „ensure
-                // that text and controls are not cut off by screen edges"). Der Wasser-Knopf
-                // oben links war aus demselben Grund kaum zu treffen.
+                // that text and controls are not cut off by screen edges").
                 //
-                // Mittig ist beides sichtbar, und weil die Breite auf die Sehne begrenzt ist,
-                // bleibt es das auch bei grosser System-Schrift: der Text bricht dann um,
-                // statt ueber den Rand zu laufen.
-                val aktivitaet = LocalContext.current as? MainActivity
+                // Mittig ist es sichtbar, und weil die Breite auf die Sehne begrenzt ist, bleibt
+                // es das auch bei grosser System-Schrift: der Text bricht dann um, statt ueber den
+                // Rand zu laufen.
+                //
+                // Im Band steht nur noch, was NICHT anklickbar ist — Puls-Hinweis und
+                // Upload-Ring. Ein Knopf hier oben wuerde bei grosser Schrift den ersten Wert
+                // ueberdecken (nachgemessen, s. unten), und genau daran ist der Wasser-Knopf
+                // ausgeschieden.
                 val bandOben = 8.dp
                 // Warnbalken und Band liegen in DERSELBEN Spalte, damit sie sich nicht
                 // ueberlagern: der Balken nimmt die volle Breite, das Band darunter nur die
@@ -793,28 +796,30 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                     Modifier.padding(top = bandOben).width(sichereBreite(bandOben)),
                     horizontalAlignment = Alignment.CenterHorizontally,
                   ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        // Wassersperre: beim Pumpen schlaegt Wasser aufs Display und loest
-                        // Aktionen aus (Nutzer-Meldung 04.09.). Ein Tipp sperrt Touch, bis man
-                        // die Krone drueckt.
-                        if (aktivitaet != null && !AmbientState.aktiv.value) {
-                            Box(
-                                Modifier.clip(CircleShape)
-                                    .background(Color(0x33FFFFFF))
-                                    .clickable { aktivitaet.wassersperre() }
-                                    .padding(horizontal = 7.dp, vertical = 3.dp),
-                            ) {
-                                Text("\uD83D\uDCA7", fontSize = 12.sp)   // Wassertropfen
-                            }
-                        }
-                        // Upload-Indikator, wenn gerade Chunks hochgeladen werden.
-                        if (s.uploading) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(12.dp), strokeWidth = 2.dp)
-                        }
+                    // KEIN Wassersperre-Knopf mehr auf der Aufnahme-Seite (Entscheidung Jan,
+                    // 10.09.2026). Er kam am 04.09. dazu (`fb3d8e9c`, Punkt 4 aus der Rueckmeldung
+                    // eines Nutzers) und sae\u00DFe hier im Band \u2014 im Emulator dieser VM nachgemessen
+                    // (192 dp, Standard-Ansicht ohne eigene Layouts): bei Schriftfaktor 1,24
+                    // endete der Chip bei 26,5 dp, die erste Ziffernzeile begann bei 19,5 dp, also
+                    // 7 dp Ueberlappung auf dem ersten Wert. Bei Faktor 1,0 waren es +1,0 dp, es
+                    // ging also nur knapp gut. Nachschieben half nicht: bei 1,24 reicht der Inhalt
+                    // bis 168 dp und die Seiten-Punkte sitzen bei 176 dp.
+                    //
+                    // Herausnehmen kostet NICHTS: der Knopf hat nie einen Nutzer erreicht. Er
+                    // entstand am 04.09., das ausgelieferte 1.2.25-Bundle wurde am 02.09. gebaut \u2014
+                    // er fuhr also nur in 1.2.26 (nie erschienen), 1.2.27 (abgelehnt) und 1.2.28.
+                    // In `device_tokens` gibt es draussen nichts ueber 1.2.25. Und bis zum Fix vom
+                    // 10.09. war er ohnehin nicht tippbar: er sass auf `Alignment.TopStart` mit
+                    // 6/2 dp, also hinter der Fassung.
+                    //
+                    // `MainActivity.wassersperre()` BLEIBT \u2014 der Wet-Mode-Broadcast ist der
+                    // funktionierende Weg und soll spaeter an einer Stelle zurueckkommen, die auf
+                    // einer runden Uhr traegt und bei grosser Schrift nichts ueberdeckt
+                    // (eigene Pager-Seite oder Langdruck). Steht in docs/TODO.md.
+                    // Upload-Indikator, wenn gerade Chunks hochgeladen werden.
+                    if (s.uploading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(12.dp), strokeWidth = 2.dp)
                     }
                     // Puls wird NICHT aktiv gemessen: dann kommen Werte nur zufaellig, wenn die
                     // Uhr ohnehin gerade misst — im gemeldeten Fall dreimal ueber 20 Minuten gar
