@@ -48,6 +48,27 @@ MOTTO = ("have fun", "keep pumping!")
 # steht es auch in unseren chinesischen Captions, uebersetzt sucht es niemand.
 APP_ZEILE_ZH = "免费应用与社区"
 MOTTO_ZH = ("玩得开心", "继续 pump！")
+
+# Die Plattform-Liste ist auf der chinesischen Fassung NICHT die uebersetzte
+# Weltliste (banner.SUBLINE), sondern die Liste fuer China aus
+# social-media/REDNOTE.md. Zwei Marken fallen dort bewusst weg:
+#   Wear OS — Google ist in China gesperrt, erreicht dort niemanden.
+#   小米 Xiaomi — unsere Anbindung laeuft ueber Mi Fitness -> Suunto, und die
+#     gibt es laut unserer eigenen App-Doku „worldwide except in China".
+#     Xiaomi zu nennen waere ein Versprechen, das beim ersten Versuch bricht,
+#     ausgerechnet vor dem Publikum, das die Marke am besten kennt.
+# Die uebrigen stehen mit ihrem chinesischen Namen da — danach wird dort
+# gesucht: 佳明 Garmin, 华米 Amazfit, 高驰 COROS, 颂拓 Suunto, 博能 Polar.
+# Apple Watch bleibt, wie es ist; das schreibt in China auch niemand um.
+# Gruppiert nach der Art der Anbindung, und das ergibt zugleich aehnlich breite
+# Zeilen: eine ganz gemischte Aufteilung liess die reinen CJK-Zeilen schrumpfen,
+# weil sich alle nach der breitesten richten.
+ZEILEN_ZH = [
+    "佳明 · APPLE WATCH · 华米",   # App auf der Uhr
+    "高驰 · 颂拓 · 博能",           # ueber die Kontoanbindung
+    "手机",                        # ganz ohne Uhr
+]
+
 SPRACHEN = {"": (APP_ZEILE, MOTTO), "-zh": (APP_ZEILE_ZH, MOTTO_ZH)}
 # Montserrat hat keine CJK-Zeichen und zeichnete nur Kaestchen. Reihenfolge:
 # Linux zuerst (dort laeuft dieses Skript), dann die Macs.
@@ -126,7 +147,8 @@ def endcard(theme: str, sp: str = "") -> Image.Image:
     # auf einem Handy und ist drei Sekunden zu sehen; neun Namen in zwei Zeilen kann dort niemand
     # lesen (Jan, 04.09.). Weniger Zeichen je Zeile heisst groessere Schrift bei gleicher Breite.
     # Die Quelle bleibt dieselbe wie im Banner, nur die Umbruch-Regel unterscheidet sich.
-    zeilen = [banner.subline_image(z, px=64, tracking=6) for z in banner.subline_zeilen(2)]
+    zeilen = [zeile_bild(z, px=64, tracking=2 if zh else 6)
+              for z in (ZEILEN_ZH if zh else banner.subline_zeilen(2))]
     # 80 % der Breite: die Markennamen sollen lesbar sein, aber die Zeile „FREE APP & COMMUNITY"
     # darueber traegt die Aussage — sie steht auf voller Breite (Jan, 04.09.).
     faktor = (breite * 0.80) / max(z.width for z in zeilen)
@@ -144,9 +166,12 @@ def endcard(theme: str, sp: str = "") -> Image.Image:
     einleitung = voll
     zeilen = [z.resize((round(z.width * faktor), round(z.height * faktor)), Image.LANCZOS)
               for z in zeilen]
-    if hell:
-        # subline_image faerbt in Marken-Cyan; auf hellem Grund umfaerben statt neu zu rendern.
-        r, g, b = banner._hex(CYAN_HELL)
+    # subline_image faerbt schon in Marken-Cyan, zh_zeile zeichnet weiss. Auf
+    # hellem Grund braucht es ohnehin die dunklere Stufe. Also: umfaerben statt
+    # neu rendern, und zwar immer dann, wenn die Farbe nicht schon stimmt.
+    zeilen_farbe = CYAN_HELL if hell else (gen.CYAN if zh else None)
+    if zeilen_farbe:
+        r, g, b = banner._hex(zeilen_farbe)
         for i, z in enumerate(zeilen):
             voll = Image.new("RGBA", z.size, (r, g, b, 255))
             voll.putalpha(z.split()[3])
