@@ -3062,6 +3062,10 @@ def set_classification(
     is_admin = bool(getattr(user, "is_admin", False))
     if s.user_id != user.id and not is_admin:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Nicht deine Session")
+    # Ausgangszustand merken: geaendert wird nur neu gerechnet, wenn sich WIRKLICH etwas
+    # aendert (sonst kostet jeder Klick auf dieselbe Kategorie eine Analyse).
+    _vorher_class = s.sport_class
+    _vorher_dq = s.data_quality
     sport = body.sport if body.sport in SPORTS else None
     dq = body.data_quality if body.data_quality in DATA_QUALITY else None
     if sport is None and dq is None:
@@ -3109,8 +3113,21 @@ def set_classification(
         s.trim_end_ms = None
         s.trim_auto = None
     db.commit()
-    if zuschnitt_weg:
-        # Danach stimmen alle Kennzahlen wieder auf die ganze Aufnahme (wie in set_trim).
+    # NEU ANALYSIEREN, sobald sich die Zuordnung wirklich geaendert hat — in BEIDE Richtungen.
+    #
+    # Die Analyse haengt an beiden Feldern, nicht nur am Zuschnitt:
+    #   - weg von Pumpfoil -> der automatische Zuschnitt faellt (oben) und das
+    #     Fremdkraft-Urteil entfaellt (analysis/__init__.py:466).
+    #   - HIN zu Pumpfoil  -> die Schranke gegen fremde DATEI-Sportarten wird aufgehoben
+    #     (`_mensch_sagt_pumpfoil`), aus `detection='none'` wird `gps_only`.
+    #
+    # Ohne die Neuanalyse blieb das GESPEICHERTE Ergebnis stehen, und die Aussage des Menschen
+    # aenderte nichts. Belegt am 10.09.2026 an zwei Nutzer-Meldungen: #5255 (u417) stand auf
+    # owner+pumpfoil und trotzdem auf 0 Laeufe — eine Neuanalyse findet 22. Und u198 haette seine
+    # beiden Sessions umstellen koennen, ohne dass sich etwas bewegt (dort: 15 Laeufe).
+    #
+    # Nur bei echter Aenderung: derselbe Wert nochmal gewaehlt kostet keine Analyse.
+    if zuschnitt_weg or s.sport_class != _vorher_class or s.data_quality != _vorher_dq:
         run_analysis(db, s)
         _spot_nachziehen(db, s)
     return {"ok": True, "sport_class": s.sport_class, "data_quality": s.data_quality,
