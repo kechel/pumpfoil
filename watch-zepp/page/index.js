@@ -79,13 +79,23 @@ const BURST_ABS_MIN_MPS = 28 / 3.6;
 // Laeufe ohne Stopp zusammen (_merge_no_stop, ohne Zeitfenster).
 const NOSTOP_MPS = 1.5;
 // Zu kurz/zu langsam = kein Lauf (Server: MIN_SEGMENT_S 5 s, Positions-Floor 2,0 m/s).
-const MIN_RUN_MS = 5000, MIN_RUN_AVG_MPS = 2.0, MAX_PLAUSIBLE_MPS = 32 / 3.6;
+// HIER STAND ZUM ZWEITEN MAL `MAX_PLAUSIBLE_MPS = 32 / 3.6` — und damit brach der Build ab
+// (10.09.2026, `zeus build`: „Identifier 'MAX_PLAUSIBLE_MPS' has already been declared").
+// Derselbe Fehler wie am 26.08. (`8b75da7a`), wieder eingebaut am 30.08. (`0e55cb78`) — direkt
+// UNTER den Kommentar, der davor warnt. Der Wert existiert oben schon als `MAX_FOIL_MPS`.
+//
+// Warum der Name so anziehend ist: die anderen fuenf Recorder nennen den Pumpfoil-Deckel
+// `MAX_PLAUSIBLE_MPS` (Wear: `Recorder.kt`, Server: `analysis/gps.py`). Wer eine Aenderung
+// plattformweit nachzieht, bringt den Namen also mit — und hier ist er schon fuer etwas
+// ANDERES vergeben (30 m/s als Schwelle fuer Positionsspruenge, Zeile 33). Beim naechsten Mal
+// die Vereinheitlichung der Namen erwaegen (steht in docs/TODO.md), bis dahin: `MAX_FOIL_MPS`.
+const MIN_RUN_MS = 5000, MIN_RUN_AVG_MPS = 2.0;
 const DEV_FAKE_GPS = false;  // true = synthetische GPS-Spur (nur Simulator-UI-Demo; echte Uhr: false)
 // MUSS mit version.name in ../app.json übereinstimmen — beides beim Bump ändern. (Zur Laufzeit
 // aus dem Paket lesen ginge nur über einen weiteren @zos-Import; die sind hier ungetestet und
 // können beim Laden crashen, deshalb bewusst eine Konstante.) Der Bump auf 1.0.4 hatte nur
 // app.json getroffen: die Uhr zeigte weiter "v1.0.3" und meldete das auch dem Server.
-const APP_VERSION = "1.0.7";
+const APP_VERSION = "1.0.8";
 // Update-Hinweis nur zeigen, wenn der Store-Stand WIRKLICH neuer ist. Vorher stand hier ein
 // !==-Vergleich: ein Entwicklungs-Build vor dem Store (1.0.6 lokal, 1.0.4 live) hat damit zum
 // "Update" auf die AELTERE Version geraten (Jans Screenshot 18.08.: "1.0.6 -> 1.0.4"). Garmin,
@@ -1330,7 +1340,7 @@ Page(
             // Sprung im Kilometerzaehler ist keine Fortsetzung (s. Garmin-Recorder).
             if (s.runIstFortsetzung) {
               const luecke = tMs - s.lastRunStartMs, strecke = dist - s.lastRunStartDist;
-              if (luecke <= 0 || strecke < 0 || strecke / (luecke / 1000) > MAX_PLAUSIBLE_MPS) {
+              if (luecke <= 0 || strecke < 0 || strecke / (luecke / 1000) > MAX_FOIL_MPS) {
                 s.runIstFortsetzung = false;
               }
             }
