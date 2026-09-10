@@ -300,7 +300,7 @@ ABGELEHNT: list[dict] = [
 IN_REVIEW: list[dict] = []
 
 NAECHSTES: list[dict] = [
-    {"name": "Android phone + Wear OS", "version": "1.1.27 / 1.2.28",
+    {"name": "Android phone + Wear OS", "version": "1.1.28 / 1.2.28",
      # ERSETZT die Einreichung vom 07.09. (1.1.26/1.2.26), bevor Google sie freigegeben hat —
      # Entscheidung Jan (08.09.2026): „statt eine Woche zu warten lade ich das Update direkt neu
      # hoch, dann verlieren wir nur einen Tag anstatt einer ganzen Woche fuer den echten Bugfix
@@ -316,13 +316,26 @@ NAECHSTES: list[dict] = [
      # hinter der runden Fassung. Eine abgelehnte Nummer nimmt Play nicht wieder an, deshalb
      # 1.2.28 / 1038. Die Punkte bleiben ZUSAMMENGEFUEHRT (dieselbe Regel wie beim Ersetzen der
      # Einreichung vom 07.09.): erschienen ist bis jetzt nichts davon.
+     #
+     # 10.09.2026, Entscheidung Jan: die WASSERSPERRE ist wieder RAUS und steht deshalb nicht mehr
+     # in der Liste („A touch lock for the water …" entfernt). Sie haette im Band oben gesessen und
+     # bei grosser System-Schrift den ersten Messwert ueberdeckt (im Emulator gemessen: Chip bis
+     # 26,5 dp, erste Ziffernzeile ab 19,5 dp). Herausnehmen kostet nichts — sie hat nie einen
+     # Nutzer erreicht (nur 1.2.26/1.2.27, beide nicht erschienen). Kommt spaeter an einer Stelle
+     # zurueck, die auf einer runden Uhr traegt; s. docs/TODO.md.
+     #
+     # PHONE auf 1.1.28 / 42: Code 41 wurde am 08.09. hochgeladen und ist damit verbraucht, auch
+     # wenn Play die Fassung nicht veroeffentlicht hat. Der Play-Store-Eintrag nennt weiter
+     # „Aktualisiert am 02.09." — die Handy-Spur hat also nichts ausgeliefert. Damit tragen Phone
+     # und Wear wieder dasselbe „x" (s. Kommentar in android/app/build.gradle.kts).
      "note": "a display fix is ready and this goes back to Google next",
      "items": [
          "On a round watch the note that heart rate is only measured now and then sat in the "
-         "top right corner, where the bezel cuts the screen away — most of it was invisible, "
-         "and the touch lock for the water had the same problem in the top left. Both now sit "
-         "in the middle at the top and stay readable if you pick a larger font in the system "
-         "settings.",
+         "top right corner, where the bezel cuts the screen away — almost none of it was "
+         "visible. It now sits in the middle at the top and stays readable if you pick a "
+         "larger font in the system settings.",
+         "The stop and discard buttons grow with the font size you set, instead of cutting "
+         "off their own label.",
          "The watch uses its own GPS instead of taking the position from your phone. Until now "
          "it asked the system for \u201ethe best location\u201c, and on a watch that can mean the "
          "phone lying on the shore — the track then shows where your phone was, not where you "
@@ -344,7 +357,6 @@ NAECHSTES: list[dict] = [
          "recording zeros.",
          "Heart rate keeps measuring: if the watch stops reporting, the app asks for it again.",
          "The always-on screen stays on while you ride.",
-         "A touch lock for the water, so spray cannot tap anything.",
          "Hold two seconds to stop, the same way the Garmin does it.",
          "Every foil in the list opens its own page, with the records set on it and the "
          "sessions ridden with it.",
