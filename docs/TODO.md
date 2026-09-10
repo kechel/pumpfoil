@@ -777,6 +777,26 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 10.09. — 94 Altsessions nachgezogen: Auto-Zuschnitt weg bei fremden Sportarten.**
+  Nach `a4d5e420` (Code) auch der Bestand. Vorher gesichert nach
+  `server/data/zuschnitt-sicherung-2026-09-10.json` (gitignored, aber in der Backup-Kette):
+  je Session `trim_start_ms`/`trim_end_ms`/`trim_auto` — damit umkehrbar. Gefahren mit
+  `DETECTOR_V2=1`. **94/94, keine Fehler, keine traegt noch einen Zuschnitt, kein manueller
+  angetastet** (13 stehen unveraendert).
+  - **Gewollte Wirkung:** vier Wingfoil-Sessions gewinnen Laeufe — #5272 (u43, der Melder)
+    7 → 8 Laeufe und 12,29 km Foiling von 13,6 km; #3826 6 → 8; #1422 10 → 11; #3045 6 → 7.
+  - **Nebenwirkung, die eine KORREKTUR ist: −377 Phantom-Laeufe** in `other`-Sessions. Es waren
+    Skiabfahrten und Fussballspiele: #2095 `alpine_skiing`, 445 min / 70 km, vorher **75 Laeufe**
+    → 0. #2092 dito 49 → 0. #3100/#2617/#2967 `soccer` (u95), 57/50/38 → 0. #3049 `running`
+    (u198) 15 → 0. Alle jetzt 0,00 km Foiling. **Ursache:** der Auto-Zuschnitt verengte die
+    Aufnahme auf das foil-aehnlichste Fenster, und DARIN fand der Detektor „Laeufe". Ueber die
+    ganze Aufnahme findet er richtigerweise nichts.
+  - **Eigener Fehler, festgehalten:** in der Sicherung stehen die Streckenwerte als 0 — ich habe
+    `total_distance_m`/`foiling_distance_m` in `metrics_json` gesucht, es sind aber eigene
+    SPALTEN von `analysis_results`. Die Lauf-Zahlen und die Zuschnittwerte sind gueltig (Umkehr
+    also moeglich), die Streckenbilanz vorher/nachher ist nicht rekonstruierbar. Beim naechsten
+    Massen-Nachzug die Sicherung gegen eine bekannte Session gegenpruefen, bevor 94 Zeilen laufen.
+
 - **🔲 10.09. — Zepp gibt Framework-Fehler woertlich an den Nutzer weiter.** Im Simulator stand
   auf dem Startbildschirm **„Error: shake timeout"** (Jans Screenshot). Der Text kommt aus dem
   Zepp-Framework, wir haengen ihn ungefiltert an: `page/index.js:2190` macht
