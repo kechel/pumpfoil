@@ -119,8 +119,15 @@ DEFAULTS = {
     "board_id": None,
     # Homespot (Spot-Name). "" -> automatisch Spot der letzten Session.
     "homespot": "",
-    # Körpergewicht (kg) — optional, für spätere Leistungsberechnung. 0 = nicht angegeben.
+    # Körpergewicht (kg) — optional. 0 = nicht angegeben. NICHT nur "für später": es bestimmt
+    # heute schon die Alarmgrenzen je Foil (`foil_physics.alarm_speeds`), und wer nichts angibt,
+    # bekommt stillschweigend 95 kg vorgesetzt (s. `devices._foil_alarm_list`).
     "weight_kg": 0,
+    # Einrichtungs-Assistent (/onboarding, noch nicht verlinkt): wann er durchlaufen wurde.
+    # None = noch nie. Reiner MERKER, damit eine spätere Weiche neue Konten genau einmal
+    # dorthin leiten kann — er schaltet von sich aus nichts. Form: {"done_at": ISO, "version": n};
+    # die Version, damit ein späterer, erweiterter Ablauf sich von diesem unterscheiden lässt.
+    "onboarding": None,
     # Was auf der oeffentlichen Foiler-Seite (`/foiler/<id>`) steht. Vorgabe Jan (08.09.2026):
     # standardmaessig Anzeigename, Beitrittsdatum, Uhr, Foil, Homespot und die allgemeinen
     # Rekorde ueber alle Foils — Rekorde fest auf ein Jahr, ohne Fensterwahl.
@@ -427,6 +434,22 @@ def update_settings(
             current["weight_kg"] = max(0, min(300, round(float(patch["weight_kg"]))))
         except (TypeError, ValueError):
             pass
+    if "onboarding" in patch:
+        # Nur die zwei bekannten Felder übernehmen, beide beschnitten: der Client schickt hier
+        # sonst irgendwann ein gewachsenes Objekt, das niemand mehr liest. None löscht den Merker
+        # (= Assistent gilt wieder als offen), damit man ihn zum Testen zurücksetzen kann.
+        v = patch["onboarding"]
+        if v is None:
+            current["onboarding"] = None
+        elif isinstance(v, dict):
+            eintrag: dict = {}
+            if v.get("done_at"):
+                eintrag["done_at"] = str(v["done_at"])[:40]
+            try:
+                eintrag["version"] = max(0, min(99, int(v.get("version") or 1)))
+            except (TypeError, ValueError):
+                eintrag["version"] = 1
+            current["onboarding"] = eintrag
     if "my_foils" in patch and isinstance(patch["my_foils"], list):
         current["my_foils"] = sorted({int(x) for x in patch["my_foils"] if isinstance(x, (int, float))})
     if "foil_id" in patch:  # Standard-Foil (null = keins)

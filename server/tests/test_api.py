@@ -230,6 +230,28 @@ def test_settings_roundtrip(client):
     assert s.get("off_foil_view") == [12, 17]   # gültige Feld-IDs (0..20), 99 raus
 
 
+def test_onboarding_merker(client):
+    """Merker des Einrichtungs-Assistenten (/onboarding): nur die zwei bekannten Felder, und
+    zurücksetzbar. Ohne die Validierung im PUT verwirft `/api/settings` den Schlüssel still —
+    der Assistent hätte dann jedes Mal wieder als offen gegolten."""
+    auth = {"Authorization": "Bearer " + client.post(
+        "/api/auth/register", json={"email": "onb@b.de", "password": "supersecret"}).json()["access_token"]}
+    assert client.get("/api/settings", headers=auth).json().get("onboarding") is None
+
+    client.put("/api/settings", headers=auth, json={"onboarding": {
+        "done_at": "2026-09-11T12:00:00Z", "version": 1, "quatsch": "weg"}})
+    o = client.get("/api/settings", headers=auth).json().get("onboarding")
+    assert o == {"done_at": "2026-09-11T12:00:00Z", "version": 1}, o
+
+    # Unbrauchbare Version -> 1, statt den Merker zu verlieren.
+    client.put("/api/settings", headers=auth, json={"onboarding": {"version": "abc"}})
+    assert client.get("/api/settings", headers=auth).json()["onboarding"] == {"version": 1}
+
+    # None löscht ihn wieder (zum Testen des Ablaufs).
+    client.put("/api/settings", headers=auth, json={"onboarding": None})
+    assert client.get("/api/settings", headers=auth).json().get("onboarding") is None
+
+
 def test_foils_and_stats_shapes(client):
     # Endpoints, auf denen Foils-Katalog/-Rechner/-Statistik der Apps bauen.
     auth = {"Authorization": "Bearer " + client.post(

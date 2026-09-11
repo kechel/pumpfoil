@@ -50,6 +50,7 @@ window.addEventListener("beforeinstallprompt", (e) => {
 window.addEventListener("appinstalled", () => { (window as any).__bip = null; });
 import Login from "./pages/Login";
 import Account from "./pages/Account";
+import Onboarding from "./pages/Onboarding";
 import Home from "./pages/Home";
 import History from "./pages/History";
 import Settings from "./pages/Settings";
@@ -168,6 +169,11 @@ const router = createBrowserRouter([
       { path: "watch-stats", element: <WatchStats /> },
       { path: "foil-rechner", element: <FoilCalculator /> },
       { path: "account", element: <Account /> },
+      // Einrichtungs-Assistent fuer neue Konten. NOCH NICHT VERLINKT (Jan, 11.09.2026:
+      // „noch nirgendwo verlinken, aber ich komme ja dann ueber die url da schon drauf") —
+      // nur direkt ueber /onboarding erreichbar, wie /foiler/:id am 08.09. Die Weiche, die
+      // neue Konten einmalig hierher leitet, kommt erst, wenn der Ablauf steht.
+      { path: "onboarding", element: <Onboarding /> },
       { path: "einstellungen", element: <Settings /> },
       { path: "konten", element: <LinkedAccounts /> },
       { path: "vergleich", element: <Compare /> },
