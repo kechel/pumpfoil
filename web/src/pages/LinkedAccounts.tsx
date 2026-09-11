@@ -34,6 +34,11 @@ export default function LinkedAccounts() {
   // Aufruf derselben URL sah dann nach „verbunden" aus, obwohl der Zustand vom Server kommt
   // (`st.linked`). Aufgefallen am 04.09. an einer echten COROS-Verknüpfung.
   const [banner, setBanner] = useState<"ok" | "cancelled" | "error" | null>(null);
+  // Kam der Nutzer aus dem Einrichtungs-Assistenten? (Merker setzt `Onboarding.tsx` vor dem
+  // Sprung zum Hersteller.) Einmal beim Aufbau lesen — ein privates Fenster wirft hier.
+  const [onbOffen] = useState(() => {
+    try { return localStorage.getItem("foil_onb_offen") === "1"; } catch { return false; }
+  });
   useEffect(() => {
     const p = new URLSearchParams(window.location.search);
     let s: string | null = null;
@@ -56,6 +61,16 @@ export default function LinkedAccounts() {
     : "border-amber-400 bg-amber-500/15 text-amber-700 font-medium dark:border-amber-500/50 dark:bg-amber-500/10 dark:text-amber-300";
   return (
     <div className="w-full">
+      {/* Wer aus dem Einrichtungs-Assistenten heraus verknuepft hat, landet nach dem Umweg ueber
+          den Hersteller hier (der Rueckweg steht serverseitig fest: `/konten?<dienst>=…`). Dann
+          einen Weg zurueck anbieten, statt ihn im Profil stehen zu lassen. Der Merker wird beim
+          Klick geloescht, damit der Hinweis nicht dauerhaft klebt. */}
+      {onbOffen && (
+        <Link to="/onboarding" onClick={() => { try { localStorage.removeItem("foil_onb_offen"); } catch { /* egal */ } }}
+          className="mb-3 inline-flex items-center gap-1 rounded-xl border border-brand-500/40 bg-brand-500/10 px-3 py-2 font-medium text-slate-100 hover:border-brand-400">
+          <ChevronIcon className="h-4 w-4 rotate-180" /> {t("onb.link.back")}
+        </Link>
+      )}
       <Link to="/einstellungen" className="mb-3 inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
         <ChevronIcon className="h-4 w-4 rotate-180" /> {t("nav.profile")}
       </Link>
