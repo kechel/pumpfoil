@@ -15,7 +15,7 @@ from datetime import datetime, timedelta, timezone
 import json
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
-from sqlalchemy import case, func, or_, select
+from sqlalchemy import case, func, literal, or_, select
 from sqlalchemy.orm import Session
 
 from .. import models, storage
@@ -748,6 +748,65 @@ def stats_series(period: str = "30d", _a: models.User = Depends(current_admin),
         return int(q.scalar() or 0)
 
     S, U, P, L = models.Session, models.User, models.SessionPhoto, models.SessionLike
+    D = models.DeviceToken
+
+    # Plattform eines Geraets. `platform` meldet die Uhr selbst beim ersten `/config` — bei Apple
+    # und Wear bleibt es oft LEER, weil die Handy-App das Token mintet und die Uhr sich nie
+    # meldet (devices.mint_device). Deshalb als Rueckfall das Etikett, das die App beim Minten
+    # mitgibt. Ohne diesen Rueckfall zaehlten Apple und Wear systematisch zu niedrig.
+    plattform = case(
+        (D.platform.in_(("garmin", "apple", "wear", "zepp")), D.platform),
+        (func.lower(func.coalesce(D.label, "")).like("%apple%"), literal("apple")),
+        (func.lower(func.coalesce(D.label, "")).like("%wear%"), literal("wear")),
+        (func.lower(func.coalesce(D.label, "")).like("%phone%"), literal("phone")),
+        else_=literal("other"),
+    )
+
+    def plat_serie() -> tuple[dict[str, dict[str, int]], dict[str, int]]:
+        """Je Tag und Plattform: wie viele NUTZER haben an dem Tag etwas uebertragen.
+
+        NUTZER und nicht Sessions (Vorgabe Jan, 11.09.2026): wer ein Konto neu verknuepft, holt
+        auf einen Schlag seine ganze Historie nach — am 07.09. waren das 1049 alte Suunto-Fahrten
+        an einem Tag. Eine Sessionzahl zeigt dann einen Ausreisser, wo in Wirklichkeit EIN Nutzer
+        etwas eingerichtet hat. Als Nutzerzahl ist derselbe Vorgang eine 1.
+
+        Datum ist `created_at`, also wann es BEI UNS ankam — die Frage ist ja, ob eine Plattform
+        noch liefert, nicht wann gefahren wurde.
+        """
+        d = func.date(S.created_at)
+        q = (db.query(d.label("d"), plattform.label("p"),
+                      func.count(func.distinct(S.user_id)).label("n"))
+             .select_from(S).join(D, D.id == S.device_id).filter(live))
+        if cut is not None:
+            q = q.filter(S.created_at >= cut)
+        je_tag: dict[str, dict[str, int]] = {}
+        for r in q.group_by(d, plattform).all():
+            je_tag.setdefault(str(r.d), {})[str(r.p)] = int(r.n)
+        # Sessions OHNE Geraet = Konto-Verknuepfung oder Datei-Import (Polar/COROS/Suunto/FIT).
+        qi = (db.query(d.label("d"), func.count(func.distinct(S.user_id)).label("n"))
+              .select_from(S).filter(live, S.device_id.is_(None)))
+        if cut is not None:
+            qi = qi.filter(S.created_at >= cut)
+        for r in qi.group_by(d).all():
+            je_tag.setdefault(str(r.d), {})["import"] = int(r.n)
+
+        # Fenster-Summe: distinct ueber den GANZEN Zeitraum, nicht die Summe der Tageswerte —
+        # wer an fuenf Tagen hochgeladen hat, ist ein Nutzer und nicht fuenf.
+        gesamt: dict[str, int] = {}
+        qg = (db.query(plattform.label("p"), func.count(func.distinct(S.user_id)).label("n"))
+              .select_from(S).join(D, D.id == S.device_id).filter(live))
+        if cut is not None:
+            qg = qg.filter(S.created_at >= cut)
+        for r in qg.group_by(plattform).all():
+            gesamt[str(r.p)] = int(r.n)
+        qgi = db.query(func.count(func.distinct(S.user_id))).select_from(S).filter(
+            live, S.device_id.is_(None))
+        if cut is not None:
+            qgi = qgi.filter(S.created_at >= cut)
+        gesamt["import"] = int(qgi.scalar() or 0)
+        return je_tag, gesamt
+
+    PLATTFORMEN = ("garmin", "apple", "wear", "zepp", "phone", "import")
     live = S.deleted.isnot(True)
     nu = series(U.created_at, U)
     # Gefahren, nicht importiert — s. Docstring.
@@ -756,11 +815,14 @@ def stats_series(period: str = "30d", _a: models.User = Depends(current_admin),
     im = series(S.created_at, S, extra=live)
     ph = series(P.created_at, P)
     li = series(L.created_at, L)
-    dates = sorted(set(nu) | set(au) | set(se) | set(im) | set(ph) | set(li))
+    # Erst hier: `plat_serie` liest `live`, das weiter oben gesetzt wird.
+    plat_tage, plat_gesamt = plat_serie()
+    dates = sorted(set(nu) | set(au) | set(se) | set(im) | set(ph) | set(li) | set(plat_tage))
     buckets = [{
         "date": d, "new_users": nu.get(d, 0), "active_users": au.get(d, 0),
         "sessions": se.get(d, 0), "imported": im.get(d, 0),
         "photos": ph.get(d, 0), "likes": li.get(d, 0),
+        **{f"p_{p}": plat_tage.get(d, {}).get(p, 0) for p in PLATTFORMEN},
     } for d in dates]
     totals = {
         "new_users": total(U, col=U.created_at),
@@ -770,6 +832,7 @@ def stats_series(period: str = "30d", _a: models.User = Depends(current_admin),
         "imported": total(S, col=S.created_at, extra=live),
         "photos": total(P, col=P.created_at),
         "likes": total(L, col=L.created_at),
+        **{f"p_{p}": plat_gesamt.get(p, 0) for p in PLATTFORMEN},
     }
     return {"period": period, "buckets": buckets, "totals": totals}
 
