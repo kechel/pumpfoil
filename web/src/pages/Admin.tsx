@@ -258,20 +258,37 @@ const GLAETTUNG: number[] = [7, 10, 30];
 
 const DAY_MS = 86400000;
 
-/** Luecken auffuellen: der Server liefert nur Tage MIT Aktivitaet. Fuer die Frage „bricht eine
- *  Plattform ein" ist das genau verkehrt — eine Plattform, die verstummt, haette sonst eine
- *  flache Linie statt eines Abfalls auf null, weil die stillen Tage schlicht fehlen. Deshalb
- *  eine LUECKENLOSE Tagesreihe vom ersten Eintrag bis heute, fehlende Tage als 0. */
-function tagesreihe(buckets: AdminStatsBucket[], key: keyof AdminStatsSeries["totals"]):
-    { zeiten: number[]; werte: number[] } {
-  if (!buckets.length) return { zeiten: [], werte: [] };
+/** Gemeinsamer Zeitraum aller Plattform-Kurven: vom ersten Tag MIT Plattform-Aktivitaet bis
+ *  heute.
+ *
+ *  NICHT der erste Tag der Bucket-Liste — die enthaelt auch die FAHRT-Daten der uebrigen Reihen,
+ *  und importierte Historie reicht bis 2018 zurueck. Die Plattform-Zahlen haengen dagegen am
+ *  ANKUNFTSDATUM, also fruehestens am Start des Projekts. Ohne diese Unterscheidung lagen acht
+ *  Jahre Achse ueber 83 echten Tagen: alle Kurven standen auf 0, weil das Sichtbare an den
+ *  rechten Rand gequetscht war (Jans Befund, 11.09.2026).
+ *
+ *  Ein gemeinsamer Zeitraum fuer ALLE Kacheln, nicht je Kachel ein eigener — sonst vergliche man
+ *  Kurven mit verschiedenen x-Achsen. */
+function plattformSpanne(buckets: AdminStatsBucket[], keys: (keyof AdminStatsSeries["totals"])[]): number[] {
+  const tage = buckets
+    .filter((b) => keys.some((k) => (b[k] as number) > 0))
+    .map((b) => new Date(b.date + "T00:00:00").getTime());
+  if (!tage.length) return [];
+  const von = Math.min(...tage);
+  const bis = Math.max(new Date(new Date().toISOString().slice(0, 10) + "T00:00:00").getTime(), von);
+  const out: number[] = [];
+  for (let t = von; t <= bis; t += DAY_MS) out.push(t);
+  return out;
+}
+
+/** Werte einer Plattform auf die gemeinsame Spanne legen. Der Server liefert nur Tage MIT
+ *  Aktivitaet; die stillen Tage muessen als 0 dazu, sonst zeigte eine verstummte Plattform eine
+ *  flache Linie statt eines Abfalls auf null — genau das, was hier auffallen soll. */
+function aufSpanne(buckets: AdminStatsBucket[], key: keyof AdminStatsSeries["totals"],
+                   spanne: number[]): number[] {
   const proTag = new Map<number, number>();
   for (const b of buckets) proTag.set(new Date(b.date + "T00:00:00").getTime(), b[key] as number);
-  const von = Math.min(...proTag.keys());
-  const bis = Math.max(new Date(new Date().toISOString().slice(0, 10) + "T00:00:00").getTime(), von);
-  const zeiten: number[] = []; const werte: number[] = [];
-  for (let t = von; t <= bis; t += DAY_MS) { zeiten.push(t); werte.push(proTag.get(t) ?? 0); }
-  return { zeiten, werte };
+  return spanne.map((t) => proTag.get(t) ?? 0);
 }
 
 /** Gleitender Mittelwert ueber `n` Tage (nachlaufend), auf einer lueckenlosen Reihe. */
@@ -301,11 +318,18 @@ function StatsSection() {
   // Plattform-Kurven laufen ueber die GANZE Historie, unabhaengig vom Zeitraum oben — ein
   // Einbruch erkennt man nur im Verlauf, nicht in einem Ausschnitt.
   const { data: alle } = useAsync<AdminStatsSeries>(() => api.adminStatsSeries("all"), []);
-  const alleSpanne = tagesreihe(alle?.buckets ?? [], "p_garmin").zeiten;
-  const alleTicks = alleSpanne.length
+  const platSpanne = plattformSpanne(alle?.buckets ?? [], PLATTFORM_METRICS.map(([k]) => k));
+  const platTicks = platSpanne.length
     ? Array.from({ length: 5 }, (_, i) =>
-        alleSpanne[0] + ((alleSpanne[alleSpanne.length - 1] - alleSpanne[0]) * i) / 4)
+        platSpanne[0] + ((platSpanne[platSpanne.length - 1] - platSpanne[0]) * i) / 4)
     : [];
+  // Eigener Datums-Formatierer: `fmtTick` oben richtet sich nach dem dort gewaehlten Zeitraum
+  // und liess bei langen Spannen das Jahr weg — auf der Plattform-Achse standen dadurch Daten
+  // ohne Jahr, die aussahen, als liefen sie rueckwaerts.
+  const platSpanTage = platSpanne.length
+    ? (platSpanne[platSpanne.length - 1] - platSpanne[0]) / DAY_MS : 0;
+  const fmtPlatTick = (ms: number) => new Date(ms).toLocaleDateString(undefined,
+    platSpanTage <= 200 ? { day: "2-digit", month: "short" } : { month: "short", year: "2-digit" });
   // Einheitlicher Zeitraum für ALLE Metriken = das gewählte Fenster (cut → jetzt), nicht nur wo Daten sind.
   const now = Date.now();
   const cut: Record<string, number> = {
@@ -398,9 +422,8 @@ function StatsSection() {
         {!alle ? <Spinner /> : (
         <div className="grid gap-4 sm:grid-cols-2">
           {PLATTFORM_METRICS.map(([key, titel, color]) => {
-            const reihe = tagesreihe(alle.buckets, key);
-            const zeiten = reihe.zeiten;
-            const werte = mittel(reihe.werte, glatt);
+            const zeiten = platSpanne;
+            const werte = mittel(aufSpanne(alle.buckets, key, zeiten), glatt);
             const jetzt = werte.length ? werte[werte.length - 1] : 0;
             const max = werte.length ? Math.max(...werte) : 0;
             const vmax = Math.max(max, 1);
@@ -429,7 +452,7 @@ function StatsSection() {
                   </div>
                 </div>
                 <div className="ml-9 mt-1 flex justify-between px-1 text-[10px] tabular-nums text-slate-500">
-                  {alleTicks.map((tk, i) => <span key={i}>{fmtTick(tk)}</span>)}
+                  {platTicks.map((tk, i) => <span key={i}>{fmtPlatTick(tk)}</span>)}
                 </div>
               </Card>
             );
