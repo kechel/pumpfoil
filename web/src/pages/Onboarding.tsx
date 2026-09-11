@@ -681,7 +681,21 @@ function UhrSchritt({ geraete, setGeraete }: {
         </Card>
       )}
 
-      <p className="mt-4 text-slate-300">{t("onb.watch.noWatch")}</p>
+      {/* „Keine Uhr?" — mit dem echten Weg dahinter statt nur als Hinweis (Vorgabe Jan).
+          WICHTIG: es gibt nichts „einzuschalten". Der Handy-Recorder laeuft NUR in den nativen
+          Apps; im Browser stoppt das System die Sensoren, sobald der Bildschirm aus geht
+          (`phonerec.pwaNote`). Ein Knopf „aktivieren" waere hier also ein Knopf, der nicht
+          halten kann, was er verspricht — die Store-Knoepfe sind die Handlung. Aufbau und Texte
+          bewusst wie die Karte im Profil, die dasselbe erklaert: eine Fassung, nicht zwei. */}
+      <Card className="mt-4 p-5">
+        <h3 className="mb-1 font-semibold">{t("phonerec.label")}</h3>
+        <p className="mb-2 text-slate-300">{t("onb.watch.noWatch")}</p>
+        <p className="rounded-lg bg-amber-500/10 px-3 py-2 text-amber-700 dark:text-amber-300">{t("phonerec.pwaNote")}</p>
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <PlayBadge />
+          <AppStoreBadge />
+        </div>
+      </Card>
     </>
   );
 }
