@@ -164,13 +164,19 @@ def _sorted_out(db: Session, user_id: int) -> tuple[int, int]:
         return 0, 0
 
 
-def _profile_hinweise(db: Session, user_id: int) -> dict:
+def _profile_hinweise(db: Session, user_id: int, user: models.User | None = None) -> dict:
     """Die Hinweis-Zahlen fuer die Startseite, an EINER Stelle gebuendelt — vier Endpunkte geben
-    ProfileOut zurueck, und die Felder sollen nie zwischen ihnen auseinanderlaufen."""
+    ProfileOut zurueck, und die Felder sollen nie zwischen ihnen auseinanderlaufen.
+
+    `user` optional, nur fuer `onboarding_due`: die Regel braucht `created_at` und den Merker,
+    also das Objekt und nicht bloss die Id. Fehlt es, bleibt das Feld false — lieber kein
+    Assistent als einer fuer jemanden, der schon fahrt."""
+    from .settings import onboarding_faellig
     anzahl, neu = _sorted_out(db, user_id)
     return {"needs_classification": _needs_classification(db, user_id),
             "needs_classification_id": _needs_classification_id(db, user_id),
-            "sorted_out": anzahl, "sorted_out_new": neu}
+            "sorted_out": anzahl, "sorted_out_new": neu,
+            "onboarding_due": onboarding_faellig(user) if user is not None else False}
 
 
 @router.post("/register", response_model=TokenOut)
@@ -195,7 +201,7 @@ def register(
 @router.get("/me", response_model=ProfileOut)
 def me(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> ProfileOut:
     return ProfileOut(id=user.id, email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "en", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), pump_unit=(user.pump_unit or "hz"), social_allowed=(user.social_allowed is not False),
-                      **_profile_hinweise(db, user.id))
+                      **_profile_hinweise(db, user.id, user))
 
 
 @router.patch("/me", response_model=ProfileOut)
@@ -232,7 +238,7 @@ def update_me(
     db.commit()
     db.refresh(user)
     return ProfileOut(id=user.id, email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "en", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), pump_unit=(user.pump_unit or "hz"), social_allowed=(user.social_allowed is not False),
-                      **_profile_hinweise(db, user.id))
+                      **_profile_hinweise(db, user.id, user))
 
 
 @router.put("/me/age-range", response_model=ProfileOut)
@@ -251,7 +257,7 @@ def set_age_range(
                       beta=True,
                       foil_sensitivity=(user.foil_sensitivity or "normal"), pump_unit=(user.pump_unit or "hz"),
                       social_allowed=(user.social_allowed is not False),
-                      **_profile_hinweise(db, user.id))
+                      **_profile_hinweise(db, user.id, user))
 
 
 @router.get("/me/reanalysis")
@@ -409,7 +415,7 @@ async def upload_avatar(
     db.commit()
     db.refresh(user)
     return ProfileOut(id=user.id, email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "en", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), pump_unit=(user.pump_unit or "hz"), social_allowed=(user.social_allowed is not False),
-                      **_profile_hinweise(db, user.id))
+                      **_profile_hinweise(db, user.id, user))
 
 
 @router.post("/login", response_model=TokenOut)

@@ -252,6 +252,40 @@ def test_onboarding_merker(client):
     assert client.get("/api/settings", headers=auth).json().get("onboarding") is None
 
 
+def test_onboarding_weiche_ist_aus(client, monkeypatch):
+    """Die Weiche zum Einrichtungs-Assistenten darf KEIN bestehendes Konto erwischen.
+
+    Der Anlass ist gemessen (11.09.2026): 497 von 498 Konten haben keinen Merker, davon 248 mit
+    eigenen Sessions. Die naheliegende Bedingung „Merker fehlt" haette die alle in einen
+    Einrichtungs-Assistenten geschickt. Deshalb hängt sie an einem STICHTAG, und dieser Test
+    hält beides fest: ohne Stichtag ist sie aus, und mit Stichtag trifft sie nur Konten, die
+    danach entstanden sind.
+    """
+    from app.api import settings as st
+    auth = {"Authorization": "Bearer " + client.post(
+        "/api/auth/register", json={"email": "weiche@b.de", "password": "supersecret"}).json()["access_token"]}
+
+    # 1) Aus (Standard): niemand wird geleitet.
+    assert st.ONBOARDING_AB is None, "Die Weiche ist AN — war das Absicht?"
+    assert client.get("/api/auth/me", headers=auth).json()["onboarding_due"] is False
+
+    from datetime import datetime, timedelta, timezone
+    jetzt = datetime.now(timezone.utc)
+
+    # 2) Stichtag in der ZUKUNFT -> auch ein frisches Konto ist aussen vor.
+    monkeypatch.setattr(st, "ONBOARDING_AB", jetzt + timedelta(days=1))
+    assert client.get("/api/auth/me", headers=auth).json()["onboarding_due"] is False
+
+    # 3) Stichtag in der VERGANGENHEIT -> das Konto ist danach entstanden, also fällig.
+    monkeypatch.setattr(st, "ONBOARDING_AB", jetzt - timedelta(days=1))
+    assert client.get("/api/auth/me", headers=auth).json()["onboarding_due"] is True
+
+    # 4) ... bis der Assistent beendet wurde. „Später fortsetzen" setzt den Merker NICHT,
+    #    deshalb ist genau das hier der Unterschied.
+    client.put("/api/settings", headers=auth, json={"onboarding": {"done_at": jetzt.isoformat(), "version": 1}})
+    assert client.get("/api/auth/me", headers=auth).json()["onboarding_due"] is False
+
+
 def test_foils_and_stats_shapes(client):
     # Endpoints, auf denen Foils-Katalog/-Rechner/-Statistik der Apps bauen.
     auth = {"Authorization": "Bearer " + client.post(

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type React from "react";
-import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { FeedbackRequestBanner } from "./components/FeedbackRequestBanner";
 import { api, clearToken, Profile } from "./lib/api";
@@ -109,7 +109,9 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
   const { t, setLang } = useI18n();
   // Import-Button (Sidebar + Mobile-Topbar) nur auf der Sessions-Seite zeigen —
   // dort gehört der FIT-Upload hin; im Profil gibt es einen eigenen Einstieg.
-  const onSessions = useLocation().pathname.startsWith("/sessions");
+  const ort = useLocation();
+  const nav = useNavigate();
+  const onSessions = ort.pathname.startsWith("/sessions");
   const [isAdmin, setIsAdmin] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [pending, setPending] = useState(0);   // offene Moderation (gemeldet + unecht) fürs Admin-Badge
@@ -142,6 +144,29 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
     if (!isAdmin) return;
     api.adminPending().then((r) => setPending(r.total)).catch(() => {});
   }, [isAdmin]);
+
+  // Weiche zum Einrichtungs-Assistenten. Die BEDINGUNG kommt komplett vom Server
+  // (`onboarding_due` = Stichtag gesetzt + Konto danach angelegt + Assistent nie beendet) —
+  // hier wird sie nicht nachgebaut, sonst gaebe es zwei Fassungen davon.
+  //
+  // Drei Riegel gegen die Unfaelle, die so eine Weiche typischerweise baut:
+  //   1. Nur von der Startseite. Wer einen geteilten Session-Link oeffnet, soll nicht
+  //      stattdessen in einem Assistenten landen.
+  //   2. Einmal je Browser-Sitzung (sessionStorage). „Spaeter fortsetzen" setzt den
+  //      Server-Merker absichtlich NICHT — ohne diesen Riegel schickte die Weiche den Nutzer
+  //      sofort wieder hinein, und er kaeme nie auf die Startseite. Beim naechsten Login ist
+  //      die Sitzung neu und der Assistent wird wieder angeboten, genau wie beschriftet.
+  //   3. Laesst sich sessionStorage nicht lesen (privates Fenster), wird NICHT geleitet: ohne
+  //      Gedaechtnis waere die Schleife aus 2. nicht zu verhindern.
+  useEffect(() => {
+    if (!profile?.onboarding_due) return;
+    if (ort.pathname !== "/" && ort.pathname !== "/home") return;
+    try {
+      if (sessionStorage.getItem("foil_onb_angeboten") === "1") return;
+      sessionStorage.setItem("foil_onb_angeboten", "1");
+    } catch { return; }
+    nav("/onboarding", { replace: true });
+  }, [profile, ort.pathname, nav]);
 
   // Social-Freigabe — für unter 13 gesperrt (Apple-Vorgabe). Age-Gate blendet NUR Chat/DM aus;
   // Foilers/Community ANSEHEN ist erlaubt (Server erlaubt Lesen, sperrt Chat/Schreiben per 403).

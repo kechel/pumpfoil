@@ -55,6 +55,11 @@ class ProfileOut(BaseModel):
     foil_sensitivity: str = "normal"   # persönliche Erkennungs-Empfindlichkeit (normal|light|attempts)
     pump_unit: str = "hz"              # Anzeige-Einheit der Pump-Kadenz: hz|ppm (nur Darstellung)
     social_allowed: bool = True   # UGC/Feed/Chat freigegeben (false = unter 13, Apple-Vorgabe)
+    # Soll dieses Konto zum Einrichtungs-Assistenten (/onboarding) geleitet werden? Die Regel
+    # steht NUR im Server (api/settings.onboarding_faellig) — der Client soll sie nicht
+    # nachbauen, sonst laufen zwei Fassungen auseinander und eine davon erwischt irgendwann
+    # Konten, die seit Wochen fahren. Heute immer false: die Weiche ist aus (kein Stichtag).
+    onboarding_due: bool = False
     # Wie viele eigene Sessions warten auf Zuordnung (docs/sport-classification.md)? Die Startseite
     # zeigt darauf einen Hinweis — ein Push allein genügt nicht: wer Push aus hat, würde nie erfahren,
     # dass seine Session aus den Auswertungen gefallen ist.

@@ -33,11 +33,16 @@ export const PROVIDER_ICONS: Record<string, (p: P) => JSX.Element> = {
 //   · Apple Watch: das Apple-Logo von oben (einfarbig, nimmt die Schriftfarbe).
 //   · Wear OS: das Google-„G" — Wear OS ist ein Google-Produkt, ein eigenes Wear-OS-Logo liegt
 //     nicht im Repo. Naeherung, bewusst gewaehlt statt nichts.
-//   · Garmin und Amazfit: KEIN Logo im Repo. Statt eines nachgezeichneten (Marken-)Zeichens
-//     steht dort unser neutrales Uhr-Symbol. Wer die echten Dateien hat: als
-//     `web/public/garmin-logo.*` bzw. `amazfit-logo.*` ablegen und hier eintragen.
+//   · Garmin und Amazfit: hier sind die Pfade schon EINGETRAGEN, die Dateien liegen aber noch
+//     nicht im Repo. Ein Markenzeichen nachzeichnen wir nicht, und solange die Datei fehlt,
+//     faellt die Kachel auf unser neutrales Uhr-Symbol zurueck (`onError`, s. Onboarding).
+//     Zum Nachliefern also NUR die Datei unter genau diesem Namen nach `web/public/` legen —
+//     kein Code, kein Deploy: `npm run build` kopiert sie, und die Kachel nimmt sie beim
+//     naechsten Laden von selbst.
 export const PLATTFORM_LOGOS: Record<string, string> = {
   polar: "/polar-logo.jpg",
   coros: "/coros-logo.png",
   suunto: "/suunto-logo.png",
+  garmin: "/garmin-logo.png",
+  amazfit: "/amazfit-logo.png",
 };
