@@ -1,10 +1,10 @@
 // Quelle der Wahrheit. Alle anderen Sprachen spiegeln diese Keys.
 // Platzhalter im Text: {name} wird per t(key, { name }) ersetzt.
 const de: Record<string, string> = {
+  "onb.resume": "Zurück zum Einrichtungs-Assistenten",
   "onb.later": "Später fortsetzen",
   "onb.never": "Nicht mehr zeigen",
   "onb.done.feedback": "Über Rückmeldungen freuen wir uns jederzeit sehr: Fehler, Ideen, Wünsche — alles ist willkommen, im Community-Chat oder über den Briefkasten rechts. Nur durch das viele Feedback aus der Community konnte ich pumpfoil.org so schnell so weit bringen.",
-  "onb.link.back": "Zurück zur Einrichtung",
   "onb.watch.g1": "„Pumpfoil“ aus dem Connect IQ Store auf die Uhr laden.",
   "onb.watch.g2": "App auf der Uhr starten — sie zeigt einen Code.",
   "onb.watch.g3": "Code hier eintragen.",

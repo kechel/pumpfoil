@@ -7,9 +7,9 @@ import { api, clearToken, Profile } from "./lib/api";
 import { applyPumpUnit } from "./lib/pumpRate";
 import { clearLastSession } from "./lib/lastSession";
 import { Avatar } from "./components/ui";
-import { SessionsIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon, SpotsIcon, HomeIcon, FoilIcon, ServerIcon, UploadIcon } from "./components/Icons";
+import { SessionsIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon, SpotsIcon, HomeIcon, FoilIcon, ServerIcon, UploadIcon, ChevronIcon } from "./components/Icons";
 import { ThemeToggle } from "./components/ThemeToggle";
-import { useI18n } from "./i18n";
+import { useI18n, useT } from "./i18n";
 import { CHANGELOG_SEEN_KEY, abonnieren, neuestesDatum } from "./lib/changelogLatest";
 import { FeedbackWidget } from "./components/FeedbackWidget";
 import { DmWidget } from "./components/DmWidget";
@@ -17,6 +17,7 @@ import { CompareBar } from "./components/CompareBar";
 import { InstallPwa } from "./components/InstallPwa";
 import { warmMySessions, warmMedia, raeumeAlteCaches } from "./lib/pwaCache";
 import { demoStart } from "./lib/demoNames";
+import { istOffen } from "./pages/Onboarding";
 
 type NavItem = { to: string; labelKey: string; shortKey?: string; icon: (p: { className?: string }) => JSX.Element; end: boolean };
 const navItems: NavItem[] = [
@@ -310,6 +311,7 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
       {/* pb groß genug, dass Seiteninhalt über die mobile Tab-Leiste UND den
           schwebenden Vergleichs-Button (CompareBar, bottom-20) gescrollt werden kann. */}
       <main className="min-w-0 flex-1 overflow-x-clip px-4 py-5 pb-32 md:px-8 md:pb-20">
+        <AssistentBand />
         <FeedbackRequestBanner />
         {children ?? <Outlet />}
       </main>
@@ -336,5 +338,35 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
         ))}
       </nav>
     </div>
+  );
+}
+
+/**
+ * „Zurueck zum Einrichtungs-Assistenten" — Band ueber dem Inhalt, solange der Assistent laeuft
+ * (Vorgabe Jan, 11.09.2026). Es gibt Wege aus dem Assistenten heraus, die wir nicht abschaffen
+ * wollen: die ausfuehrliche Uhren-Anleitung, und der OAuth-Sprung zum Hersteller geht gar nicht
+ * anders (dessen Rueckweg liegt serverseitig fest auf /konten). Statt die Links zu entfernen,
+ * fuehrt von jeder Seite EIN Weg zurueck.
+ *
+ * Der Merker ist `localStorage`, nicht der Server-Merker `settings.onboarding`: dieser hier sagt
+ * „gerade mitten drin", jener „einmal durch" — zwei verschiedene Fragen. Geloescht wird er von
+ * den drei Ausgaengen des Assistenten („Spaeter fortsetzen", „Nicht mehr zeigen", „Fertig"), also
+ * gibt es keinen Weg, auf dem das Band haengen bleibt, ohne dass man es ueber den Assistenten
+ * wieder loswird. Auf /onboarding selbst zeigt es sich nicht — dort steht man ja schon.
+ */
+function AssistentBand() {
+  const t = useT();
+  const ort = useLocation();
+  // Bei jedem Seitenwechsel neu lesen: der Merker aendert sich ausserhalb von React (im
+  // Assistenten), ein einmaliges Lesen beim Aufbau wuerde das Band nicht wieder verschwinden
+  // lassen.
+  const offen = istOffen();
+  if (!offen || ort.pathname.startsWith("/onboarding")) return null;
+  return (
+    <Link to="/onboarding"
+      className="mb-4 flex items-center gap-2 rounded-xl border border-brand-500/40 bg-brand-500/10 px-3 py-2.5 font-medium text-slate-100 hover:border-brand-400">
+      <ChevronIcon className="h-4 w-4 rotate-180 shrink-0 text-brand-400" />
+      {t("onb.resume")}
+    </Link>
   );
 }

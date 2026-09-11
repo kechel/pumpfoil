@@ -89,6 +89,19 @@ const SCHRITT_PRAEFIX: Record<string, string> = {
   garmin: "g", apple: "a", wear: "w", amazfit: "z",
 };
 
+// Merker „Assistent laeuft" (nur dieser Browser). Absichtlich localStorage und nicht der
+// Server-Merker `settings.onboarding`: der sagt „einmal durch", dieser hier „gerade mitten
+// drin" — zwei verschiedene Fragen. Jeder Zugriff in try/catch, in einem privaten Fenster
+// wirft der Zugriff selbst.
+export const ONB_OFFEN = "foil_onb_offen";
+export function offenMerken(offen: boolean) {
+  try { if (offen) localStorage.setItem(ONB_OFFEN, "1"); else localStorage.removeItem(ONB_OFFEN); }
+  catch { /* privates Fenster / Speicher gesperrt */ }
+}
+export function istOffen(): boolean {
+  try { return localStorage.getItem(ONB_OFFEN) === "1"; } catch { return false; }
+}
+
 const SPORTARTEN = ["pumpfoil", "wingfoil", "kitefoil", "surf_downwind", "efoil", "foildrive", "other"];
 
 export default function Onboarding() {
@@ -110,6 +123,12 @@ export default function Onboarding() {
   // (Alters-Riegel unter 13, Apple-Vorgabe). Ist es nicht montiert, laeuft das
   // Oeffnen-Event ins Leere -> dann gehoert der Chat-Knopf gar nicht auf die Seite.
   const [social, setSocial] = useState(true);
+
+  // „Der Assistent laeuft" merken, solange er nicht beendet oder abgebrochen wurde. Daran
+  // haengt das Band im App-Rahmen, das von jeder anderen Seite zurueckfuehrt — es gibt Wege
+  // hinaus, die wir nicht abschaffen wollen (die ausfuehrliche Uhren-Anleitung, und der
+  // OAuth-Sprung zum Hersteller geht ohnehin nicht anders).
+  useEffect(() => { offenMerken(true); }, []);
 
   useEffect(() => {
     Promise.all([
@@ -148,8 +167,9 @@ export default function Onboarding() {
   // gespeichert. Heute ist der sichtbare Unterschied noch keiner, weil die Weiche fehlt — der
   // Merker soll aber von Anfang an richtig stehen, damit sie spaeter nicht auf halbe Daten
   // trifft. Ueber /onboarding kommt man in beiden Faellen jederzeit zurueck.
-  const spaeter = () => nav("/home");
+  const spaeter = () => { offenMerken(false); nav("/home"); };
   const beenden = () => {
+    offenMerken(false);
     speichern({ onboarding: { done_at: new Date().toISOString(), version: 1 } });
     nav("/home");
   };
@@ -641,9 +661,8 @@ function KontoSchritt({ dienst }: { dienst: string }) {
       const r = dienst === "polar" ? await api.polarConnect()
               : dienst === "suunto" ? await api.suuntoConnect()
               : mcp ? await api.corosMcpConnect() : await api.corosConnect();
-      // Vor dem Sprung merken, dass der Assistent lief: /konten zeigt dann nach der Rueckkehr
-      // einen Weg zurueck. Der Rueckweg selbst liegt serverseitig fest (`/konten?<dienst>=…`).
-      try { localStorage.setItem("foil_onb_offen", "1"); } catch { /* privates Fenster */ }
+      // Der Merker steht schon (beim Betreten gesetzt) — der OAuth-Rueckweg liegt serverseitig
+      // fest auf `/konten?<dienst>=…`, und von dort fuehrt das Band im App-Rahmen zurueck.
       window.location.href = r.authorize_url;
     } catch (e) {
       setErr((e as Error).message);
