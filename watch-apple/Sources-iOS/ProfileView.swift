@@ -84,6 +84,9 @@ struct ProfileView: View {
             navRow("profile.stats", "chart.bar") { FoilStatsView() }
             navRow("profile.compare", "arrow.left.arrow.right") { CompareView() }
             navRow("settings.title", "gearshape") { SettingsView() }
+            // Einrichtungs-Assistent: fuer ALLE und jederzeit, nicht nur fuer neue Konten
+            // (die erreicht zusaetzlich die Weiche beim ersten Start, s. RootView).
+            navRow("onb.startTitle", "checklist") { OnboardingView() }
             Link(Loc.t("profile.web", lang), destination: URL(string: "https://pumpfoil.org")!)
         }
     }
