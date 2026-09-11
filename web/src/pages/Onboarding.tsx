@@ -7,6 +7,7 @@ import { LanguageGrid } from "../components/LanguageSelect";
 import { AppleIcon, GoogleIcon, PLATTFORM_LOGOS } from "../components/BrandIcons";
 import { ConnectIqButton } from "../components/ConnectIqButton";
 import { AppStoreBadge, PlayBadge, ZeppAppBadges } from "../components/StoreBadge";
+import { openChatOverlay } from "../components/DmWidget";
 import { gearMatches } from "../lib/gearSearch";
 import { useI18n } from "../i18n";
 
@@ -105,6 +106,10 @@ export default function Onboarding() {
   const [standardFoil, setStandardFoil] = useState<number | null>(null);
   const [foils, setFoils] = useState<Foil[] | null>(null);
   const [geraete, setGeraete] = useState<PairedDevice[]>([]);
+  // Social-Freigabe: das Chat-Overlay haengt in App.tsx an `social_allowed !== false`
+  // (Alters-Riegel unter 13, Apple-Vorgabe). Ist es nicht montiert, laeuft das
+  // Oeffnen-Event ins Leere -> dann gehoert der Chat-Knopf gar nicht auf die Seite.
+  const [social, setSocial] = useState(true);
 
   useEffect(() => {
     Promise.all([
@@ -113,6 +118,7 @@ export default function Onboarding() {
       api.myDevices().catch(() => [] as PairedDevice[]),
     ]).then(([p, s, d]) => {
       if (p?.foil_sensitivity) setSens(p.foil_sensitivity);
+      if (p) setSocial(p.social_allowed !== false);
       if (s) {
         const w = Number(s.weight_kg ?? 0);
         setGewicht(w > 0 ? String(w) : "");
@@ -194,7 +200,7 @@ export default function Onboarding() {
 
       {schritt === "watch" && <UhrSchritt geraete={geraete} setGeraete={setGeraete} />}
 
-      {schritt === "done" && <FertigSchritt geraete={geraete} />}
+      {schritt === "done" && <FertigSchritt geraete={geraete} social={social} />}
 
       {/* Navigation. „Ueberspringen" ist IMMER sichtbar und gleich gross wie „Weiter" — ein
           Assistent, aus dem man nicht herauskommt, ist schlimmer als keiner. */}
@@ -675,7 +681,7 @@ function Kachel({ id, label, aktiv, onClick }: {
   );
 }
 
-function FertigSchritt({ geraete }: { geraete: PairedDevice[] }) {
+function FertigSchritt({ geraete, social }: { geraete: PairedDevice[]; social: boolean }) {
   const { t } = useI18n();
   return (
     <Card className="p-5">
@@ -694,11 +700,14 @@ function FertigSchritt({ geraete }: { geraete: PairedDevice[] }) {
       <div className="mt-4 border-t border-slate-800 pt-4">
         <p className="text-slate-300">{t("onb.done.feedback")}</p>
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          <Link to="/community">
-            <Button variant="ghost">
-              <span className="flex items-center gap-1.5"><ChatBubbleIcon className="h-4 w-4" />{t("nav.chat")}</span>
+          {/* Oeffnet das Chat-Overlay direkt im globalen Community-Chat (Vorgabe Jan) — nicht
+              die Community-SEITE. Derselbe Weg, den die Spot-Chat-Knoepfe nehmen
+              (`openChatOverlay`, s. DmWidget); der Assistent bleibt dabei stehen. */}
+          {social && (
+            <Button variant="ghost" onClick={() => openChatOverlay("global:main", t("chat.globalName"))}>
+              <span className="flex items-center gap-1.5"><ChatBubbleIcon className="h-4 w-4" />{t("chat.globalName")}</span>
             </Button>
-          </Link>
+          )}
           <Button variant="ghost"
             onClick={() => window.dispatchEvent(new CustomEvent("open-feedback", { detail: "" }))}>
             <span className="flex items-center gap-1.5"><MailIcon className="h-4 w-4" />{t("feedback.open")}</span>
