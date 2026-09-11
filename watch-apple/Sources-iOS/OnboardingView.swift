@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit   // UIApplication.shared.open — wie in HomeView ausdruecklich importiert
 
 /// Einrichtungs-Assistent, portiert aus der PWA (`web/src/pages/Onboarding.tsx`).
 ///
@@ -359,7 +360,7 @@ struct OnboardingView: View {
 
     private func claim() async {
         do {
-            try await Api.pairClaim(code.trimmingCharacters(in: .whitespaces).uppercased())
+            try await Api.pairClaim(code: code.trimmingCharacters(in: .whitespaces).uppercased())
             code = ""
             geraete = ((try? await Api.myDevices()) ?? []).filter { $0.revoked_at == nil }
             claimMeldung = (true, t("onb.x.claimOk"))
