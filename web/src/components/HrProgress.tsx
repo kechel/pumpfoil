@@ -147,12 +147,19 @@ function MarkChart({ mark, reihe, mode, domain, onPick, wert, anzahl, titel, ans
     anstieg ? `${v > 0 ? "+" : ""}${Math.round(v)} bpm` : `${Math.round(v)} bpm`;
 
   const roh = useMemo<Pt[]>(() => reihe
-    .map((x) => ({
-      t: new Date(String(x.started_at ?? "")).getTime(),
-      v: Number(wert ? wert(x) : x[anstieg ? `d${mark}` : `hr${mark}`]),
-      sid: Number(x.session_id),
-      run: null,
-    }))
+    .map((x) => {
+      const q = wert ? wert(x) : x[anstieg ? `d${mark}` : `hr${mark}`];
+      return {
+        t: new Date(String(x.started_at ?? "")).getTime(),
+        // Fehlende Werte NICHT durch Number() schicken: `Number(null)` ist 0. Im absoluten Modus
+        // fing das die Bedingung „> 0" unten ab, im Anstiegs-Modus ist 0 aber ein gültiger Wert —
+        // jede Session ohne Messung an dieser Marke landete dadurch als Nulllinie im Diagramm
+        // (Jans Befund, 11.09.2026). NaN fällt gleich darunter aus dem Filter.
+        v: q == null ? NaN : Number(q),
+        sid: Number(x.session_id),
+        run: null,
+      };
+    })
     // Beim Anstieg ist 0 ein gültiger Wert und negativ auch (der Puls kann im Lauf fallen) —
     // die Bedingung „> 0" gilt nur für den absoluten Puls, wo 0 kein Messwert ist.
     .filter((p) => isFinite(p.v) && (anstieg || p.v > 0) && isFinite(p.t))
