@@ -1,5 +1,9 @@
 // Österreichisch (mit a bissl Dialekt-Färbung). Fehlendi Keys falln auf de zruck.
 const deAT: Record<string, string> = {
+  "onb.startTitle": "Einrichtungs-Assistent",
+  "onb.startSub": "Sprache, Name, Können, Foil und Uhr in ein paar Schritten — jederzeit wiederholbar.",
+  "onb.startCta": "Assistenten starten",
+  "onb.done.upload": "Hochgeladen wird nur, solang die Pumpfoil-App auf der Uhr offen und mit Handy oder WLAN verbunden ist. Ist die App zu, bleibt die Aufnahme sicher auf der Uhr und geht beim nächsten Öffnen von selber hoch. Den Fortschritt siehst du in der Uhren-App, und du kannst den Upload dort auch nachträglich starten — bei Garmin über Menü → Upload / Sync.",
   "onb.name.sub": "Er steht öffentlich unter jeder deiner Aufnahmen im Community-Feed. Ändern kannst du ihn jederzeit.",
   "onb.resume": "Zurück zum Einrichtungs-Assistenten",
   "onb.later": "Später weitermachen",

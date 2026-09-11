@@ -795,6 +795,13 @@ function FertigSchritt({ geraete, social }: { geraete: PairedDevice[]; social: b
     <Card className="p-5">
       <h3 className="mb-1 font-semibold">{t("onb.done.title")}</h3>
       <p className="text-slate-300">{geraete.length > 0 ? t("onb.done.withWatch") : t("onb.done.noWatch")}</p>
+      {/* Wann die Uhr wirklich hochlaedt (Vorgabe Jan) — der Schritt, den die meisten nicht
+          verstehen: drei Nutzermeldungen mit demselben Muster, "Session fehlt", lag aber noch auf
+          der Uhr, weil der Upload nur im Vordergrund laeuft. Nur mit verbundener Uhr zeigen, sonst
+          ist es Text ohne Anlass. Absichtlich plattform-neutral formuliert und mit Garmin als
+          benanntem Fall: Garmin hat MENU -> Einstellungen -> Upload / Sync, Apple und Wear zeigen
+          stattdessen "Jetzt hochladen" samt Fortschritt, sobald etwas aussteht. */}
+      {geraete.length > 0 && <p className="mt-3 text-slate-300">{t("onb.done.upload")}</p>}
       {/* Wo es weitergeht (Vorgabe Jan): der Assistent fragt absichtlich nur das Wichtigste ab —
           also sagen, dass unter Profil viel mehr steht, je Uhr noch mehr, und wo weitere Konten
           hinkommen. Sonst wirkt das Wenige hier wie alles, was es gibt. */}

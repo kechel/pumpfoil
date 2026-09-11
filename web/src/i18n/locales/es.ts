@@ -1,4 +1,8 @@
 const es: Record<string, string> = {
+  "onb.startTitle": "Asistente de configuración",
+  "onb.startSub": "Idioma, nombre, nivel, foil y reloj en unos pocos pasos — repetible cuando quieras.",
+  "onb.startCta": "Iniciar el asistente",
+  "onb.done.upload": "La subida solo ocurre mientras la app Pumpfoil está abierta en el reloj y conectada al móvil o al wifi. Si la app está cerrada, la grabación queda a salvo en el reloj y sube por sí sola la próxima vez que la abras. El progreso lo ves en la app del reloj, y desde ahí también puedes iniciar la subida más tarde — en Garmin con Menú → Upload / Sync.",
   "onb.name.sub": "Aparece públicamente debajo de cada una de tus grabaciones en el feed de la comunidad. Puedes cambiarlo cuando quieras.",
   "onb.resume": "Volver a la configuración",
   "onb.later": "Continuar más tarde",

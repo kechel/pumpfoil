@@ -11,6 +11,10 @@
 // beim Build). YouTube und die Kanalbeschreibung folgen derselben Trennung — Details in
 // brand/social/kanal-beschreibung-README.md.
 const ptPT: Record<string, string> = {
+  "onb.startTitle": "Assistente de configuração",
+  "onb.startSub": "Idioma, nome, nível, foil e relógio em poucos passos — podes repetir quando quiseres.",
+  "onb.startCta": "Iniciar o assistente",
+  "onb.done.upload": "O envio só acontece enquanto a aplicação Pumpfoil está aberta no relógio e ligada ao telemóvel ou ao Wi-Fi. Se a aplicação estiver fechada, a gravação fica guardada no relógio e sobe sozinha na próxima vez que a abrires. O progresso vês na aplicação do relógio, e aí também podes iniciar o envio mais tarde — no Garmin pelo Menu → Upload / Sync.",
   "onb.name.sub": "Aparece publicamente sob cada uma das tuas gravações no feed da comunidade. Podes alterá-lo a qualquer momento.",
   "onb.resume": "Voltar à configuração",
   "onb.later": "Continuar mais tarde",
