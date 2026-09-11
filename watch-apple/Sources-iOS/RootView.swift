@@ -77,6 +77,8 @@ struct MainTabView: View {
     private var socialOK: Bool { session.profile?.social_allowed != false }
     // Sichtbare Tab-IDs — Reihenfolge wie Android/Web: Home, Foilers(2), Sessions(1), Verlauf,
     // Spots, Chat, Profil. Age-Gate blendet NUR den Chat (5) aus; Foilers (2) darf man ansehen.
+    @State private var zeigeOnboarding = false
+
     private var visibleTabs: [Int] { socialOK ? [0, 2, 1, 3, 4, 5, 6] : [0, 2, 1, 3, 4, 6] }
 
     // Seiten-Stapel, Tab-Leiste und Vergleichs-Balken sind je ein eigener, explizit typisierter
@@ -91,6 +93,19 @@ struct MainTabView: View {
         .overlay(alignment: .bottom) { compareOverlay }
         .sheet(isPresented: $showCompare) {
             NavigationStack { CompareView(preselect: compare.refs) }
+        }
+        // Weiche zum Einrichtungs-Assistenten. Die BEDINGUNG kommt komplett vom Server
+        // (`onboarding_due` = Stichtag gesetzt + Konto danach angelegt + Assistent nie beendet) —
+        // hier wird sie nicht nachgebaut. Nur EINMAL je App-Lauf: „Spaeter fortsetzen" setzt den
+        // Merker am Konto absichtlich nicht, ohne die Sperre kaeme der Assistent sofort wieder.
+        .onChange(of: session.profile?.onboarding_due) { faellig in
+            if faellig == true && !OnbState.angeboten {
+                OnbState.angeboten = true
+                zeigeOnboarding = true
+            }
+        }
+        .sheet(isPresented: $zeigeOnboarding) {
+            NavigationStack { OnboardingView(onFertig: { zeigeOnboarding = false }) }
         }
     }
 

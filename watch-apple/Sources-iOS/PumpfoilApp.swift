@@ -103,6 +103,9 @@ final class SessionStore: ObservableObject {
     }
 
     func logout() {
+        // „Schon angeboten" ist eine Sperre je APP-LAUF; ohne das Zuruecksetzen waere die Zusage
+        // „beim naechsten Login nochmal" in Wahrheit „beim naechsten App-Start nochmal".
+        OnbState.angeboten = false
         Api.token = nil
         token = nil
         profile = nil

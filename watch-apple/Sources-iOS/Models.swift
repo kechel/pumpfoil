@@ -10,6 +10,10 @@ struct Profile: Codable {
     let foil_sensitivity: String?
     let pump_unit: String?      // hz|ppm — Anzeige-Einheit der Pump-Kadenz (nur Darstellung, PumpUnit.swift)
     let social_allowed: Bool?   // false = unter 13, Social-Features (UGC/Feed/Chat) gesperrt
+    // Soll dieses Konto einmalig zum Einrichtungs-Assistenten geleitet werden? Die Regel liegt
+    // KOMPLETT im Server (api/settings.onboarding_faellig: Stichtag + Konto danach angelegt +
+    // Assistent nie beendet) — hier nur gehorchen, nicht nachbauen.
+    let onboarding_due: Bool?
     let beta: Bool?             // Beta-Konto (BETA_USER_IDS) -> experimentelle Features sichtbar
     // Offene Sportart-Zuordnungen (Server: auth.py:_needs_classification) — Hinweis auf der
     // Startseite; bei genau einer Session verlinkt die ID direkt dorthin.
