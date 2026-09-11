@@ -505,12 +505,15 @@ function CommunitySection() {
         <p className="mb-3 text-sm text-slate-400">{bandInfo(band, t)}</p>
       )}
       <RecordGrid rec={data[period]} showSpot />
-      {/* Social-Feed ueber „Medien" (Jan, 30.08., nachdem er sich gefuellt hat): die Videos der
-          Community sind das Lebendigste auf der Seite, die Fotos darunter ergaenzen sie. */}
-      <SocialFeed />
       <LatestMedia />
       <Leaderboards period={period} accelOnly={accelOnly} sport={sport} band={band} />
       <TopLiked period={period} />
+      {/* Social-Feed zwischen „Best bewertet" und den Spots (Jan, 11.09.2026). Er stand seit dem
+          30.08. ganz oben ueber „Medien" — damals mit der Begruendung, die Videos der Community
+          seien das Lebendigste auf der Seite. Das gilt erst, wenn sich Leute eintragen: bis heute
+          hat es ausser Jan niemand getan, und ein Block dieser Groesse so weit oben verspricht
+          mehr, als da ist. Kommt der Feed in Gang, gehoert er wieder nach oben. */}
+      <SocialFeed />
       <SpotSection period={period} accelOnly={accelOnly} sport={sport} />
       <LayoutTeaser />
     </div>
