@@ -2,7 +2,7 @@ const pl: Record<string, string> = {
   "onb.startTitle": "Kreator konfiguracji",
   "onb.startSub": "Język, nazwa, poziom, foil i zegarek w kilku krokach — można powtórzyć w każdej chwili.",
   "onb.startCta": "Uruchom kreator",
-  "onb.done.upload": "Wysyłanie działa tylko wtedy, gdy aplikacja Pumpfoil jest otwarta na zegarku i połączona z telefonem albo Wi-Fi. Gdy aplikacja jest zamknięta, nagranie zostaje bezpiecznie na zegarku i pójdzie samo przy następnym otwarciu. Postęp widzisz w aplikacji na zegarku i możesz tam uruchomić wysyłanie także później — w Garminie przez Menu → Upload / Sync.",
+  "onb.done.upload": "§Wysyłanie działa tylko wtedy, gdy aplikacja Pumpfoil jest otwarta na zegarku i połączona z telefonem albo Wi-Fi.§ Gdy aplikacja jest zamknięta, nagranie zostaje bezpiecznie na zegarku i pójdzie samo przy następnym otwarciu. Postęp widzisz w aplikacji na zegarku i możesz tam uruchomić wysyłanie także później — w Garminie przez Menu → Upload / Sync.",
   "onb.name.sub": "Widnieje publicznie pod każdym twoim nagraniem w kanale społeczności. Możesz go zmienić w każdej chwili.",
   "onb.resume": "Powrót do konfiguracji",
   "onb.later": "Kontynuuj później",

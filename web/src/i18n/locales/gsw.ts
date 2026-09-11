@@ -3,7 +3,7 @@ const gsw: Record<string, string> = {
   "onb.startTitle": "Iirichtigs-Assistänt",
   "onb.startSub": "Sproch, Name, Chönne, Foil und Uhr i es paar Schritt — jederziit wiederholbar.",
   "onb.startCta": "Assistänt starte",
-  "onb.done.upload": "Ufeglade wird nume, solang d Pumpfoil-App uf de Uhr offe und mit em Handy oder WLAN verbunde isch. Isch d App zue, blibt d Ufnahm sicher uf de Uhr und gaht bim nächste Öffne vo sälber ufe. De Fortschritt gsehsch i de Uhre-App, und du chasch de Upload dört au nachträglich starte — bi Garmin über Menü → Upload / Sync.",
+  "onb.done.upload": "§Ufeglade wird nume, solang d Pumpfoil-App uf de Uhr offe und mit em Handy oder WLAN verbunde isch.§ Isch d App zue, blibt d Ufnahm sicher uf de Uhr und gaht bim nächste Öffne vo sälber ufe. De Fortschritt gsehsch i de Uhre-App, und du chasch de Upload dört au nachträglich starte — bi Garmin über Menü → Upload / Sync.",
   "onb.name.sub": "Er staht öffentlich under jedere vo dine Ufnahme im Community-Feed. Ändere chasch en jederziit.",
   "onb.resume": "Zrugg zum Iirichtigs-Assistänt",
   "onb.later": "Spöter wiitermache",

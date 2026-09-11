@@ -2,7 +2,7 @@ const fr: Record<string, string> = {
   "onb.startTitle": "Assistant de configuration",
   "onb.startSub": "Langue, nom, niveau, foil et montre en quelques étapes — à refaire quand tu veux.",
   "onb.startCta": "Lancer l'assistant",
-  "onb.done.upload": "L'envoi ne se fait que pendant que l'application Pumpfoil est ouverte sur la montre et connectée au téléphone ou au Wi-Fi. Si l'application est fermée, l'enregistrement reste en sécurité sur la montre et part de lui-même à la prochaine ouverture. Tu vois la progression dans l'application de la montre, et tu peux aussi y lancer l'envoi après coup — sur Garmin via Menu → Upload / Sync.",
+  "onb.done.upload": "§L'envoi ne se fait que pendant que l'application Pumpfoil est ouverte sur la montre et connectée au téléphone ou au Wi-Fi.§ Si l'application est fermée, l'enregistrement reste en sécurité sur la montre et part de lui-même à la prochaine ouverture. Tu vois la progression dans l'application de la montre, et tu peux aussi y lancer l'envoi après coup — sur Garmin via Menu → Upload / Sync.",
   "onb.name.sub": "Il apparaît publiquement sous chacun de tes enregistrements dans le fil de la communauté. Tu peux le changer à tout moment.",
   "onb.resume": "Retour à la configuration",
   "onb.later": "Continuer plus tard",

@@ -2,7 +2,7 @@ const id: Record<string, string> = {
   "onb.startTitle": "Pemandu penyiapan",
   "onb.startSub": "Bahasa, nama, tingkat, foil dan jam tangan dalam beberapa langkah — bisa diulang kapan saja.",
   "onb.startCta": "Mulai pemandu",
-  "onb.done.upload": "Unggahan hanya berjalan selama aplikasi Pumpfoil terbuka di jam tangan dan terhubung ke ponsel atau Wi-Fi. Kalau aplikasinya tertutup, rekaman tetap aman di jam tangan dan terunggah sendiri saat kamu membukanya lagi. Progresnya bisa kamu lihat di aplikasi jam tangan, dan dari sana unggahan juga bisa dimulai belakangan — di Garmin lewat Menu → Upload / Sync.",
+  "onb.done.upload": "§Unggahan hanya berjalan selama aplikasi Pumpfoil terbuka di jam tangan dan terhubung ke ponsel atau Wi-Fi.§ Kalau aplikasinya tertutup, rekaman tetap aman di jam tangan dan terunggah sendiri saat kamu membukanya lagi. Progresnya bisa kamu lihat di aplikasi jam tangan, dan dari sana unggahan juga bisa dimulai belakangan — di Garmin lewat Menu → Upload / Sync.",
   "onb.name.sub": "Nama ini tampil publik di bawah setiap rekaman kamu di feed komunitas. Bisa diubah kapan saja.",
   "onb.resume": "Kembali ke penyiapan",
   "onb.later": "Lanjut nanti",

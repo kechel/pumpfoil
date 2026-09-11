@@ -4,7 +4,7 @@ const cs: Record<string, string> = {
   "onb.startTitle": "Průvodce nastavením",
   "onb.startSub": "Jazyk, jméno, úroveň, foil a hodinky v několika krocích — kdykoli znovu.",
   "onb.startCta": "Spustit průvodce",
-  "onb.done.upload": "Nahrávání běží jen tehdy, když je aplikace Pumpfoil v hodinkách otevřená a spojená s telefonem nebo Wi-Fi. Když je aplikace zavřená, nahrávka zůstane bezpečně v hodinkách a při dalším otevření odejde sama. Průběh vidíš v aplikaci v hodinkách a můžeš tam nahrávání spustit i dodatečně — u Garminu přes Menu → Upload / Sync.",
+  "onb.done.upload": "§Nahrávání běží jen tehdy, když je aplikace Pumpfoil v hodinkách otevřená a spojená s telefonem nebo Wi-Fi.§ Když je aplikace zavřená, nahrávka zůstane bezpečně v hodinkách a při dalším otevření odejde sama. Průběh vidíš v aplikaci v hodinkách a můžeš tam nahrávání spustit i dodatečně — u Garminu přes Menu → Upload / Sync.",
   "onb.name.sub": "Zobrazuje se veřejně u každé tvé nahrávky v komunitním kanálu. Kdykoli ho můžeš změnit.",
   "onb.resume": "Zpět na nastavení",
   "onb.later": "Pokračovat později",
