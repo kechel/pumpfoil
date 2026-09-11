@@ -78,7 +78,7 @@ private object RatingClock { val startMs = android.os.SystemClock.elapsedRealtim
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpenSessions: () -> Unit = {}, onOpenCommunity: () -> Unit = {}, onOpenChatRoom: (String, String) -> Unit = { _, _ -> }, onRecord: () -> Unit = {}, onOpenSortedOut: () -> Unit = {}, social: Boolean = true) {
+fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpenSessions: () -> Unit = {}, onOpenCommunity: () -> Unit = {}, onOpenChatRoom: (String, String) -> Unit = { _, _ -> }, onRecord: () -> Unit = {}, onOpenSortedOut: () -> Unit = {}, onOnboarding: () -> Unit = {}, social: Boolean = true) {
     var profile by remember { mutableStateOf<Profile?>(null) }
     var stats by remember { mutableStateOf<OverallStats?>(null) }
     // Dieselben Kacheln zusaetzlich je Foil (PWA 30.08.). Eigene Abfrage, eigener Fehlerfall:
@@ -179,6 +179,15 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
     LaunchedEffect(tick) {
         loading = true
         profile = try { Api.me() } catch (_: Exception) { profile }
+        // Weiche zum Einrichtungs-Assistenten. Die BEDINGUNG kommt komplett vom Server
+        // (`onboardingDue` = Stichtag gesetzt + Konto danach angelegt + Assistent nie beendet) —
+        // hier wird sie nicht nachgebaut. Nur von der Startseite und nur EINMAL je App-Lauf:
+        // „Spaeter fortsetzen" setzt den Server-Merker absichtlich nicht, ohne diese Sperre
+        // schickte die Weiche den Nutzer sofort wieder hinein.
+        if (profile?.onboardingDue == true && !OnbState.angeboten) {
+            OnbState.angeboten = true
+            onOnboarding()
+        }
         latest = try { Api.sessions().take(3) } catch (_: Exception) { emptyList() }
         rooms = try { Api.chatRooms().filter { it.kind != "dm" } } catch (_: Exception) { emptyList() }   // DMs laufen im Chat-Tab
         community = try { Api.communityStats() } catch (_: Exception) { community }

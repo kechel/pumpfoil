@@ -164,7 +164,7 @@ fun MainScaffold(onLogout: () -> Unit) {
         },
     ) { pad ->
         NavHost(nav, startDestination = "home", modifier = Modifier.padding(pad)) {
-            composable("home") { HomeScreen(onOpen = { id, v -> nav.navigate("session/$id" + (v?.let { "?v=$it" } ?: "")) }, onOpenChat = { nav.switchTab("chat") }, onOpenSessions = { nav.switchTab("sessions") }, onOpenCommunity = { nav.switchTab("community") }, onOpenChatRoom = { sc, lb -> nav.navigate("chatroom/${Uri.encode(sc)}?label=${Uri.encode(lb)}") }, onRecord = { nav.navigate("record") }, onOpenSortedOut = { SessionsWunsch.setzeFilter("other"); nav.switchTab("sessions") }, social = social) }
+            composable("home") { HomeScreen(onOpen = { id, v -> nav.navigate("session/$id" + (v?.let { "?v=$it" } ?: "")) }, onOpenChat = { nav.switchTab("chat") }, onOpenSessions = { nav.switchTab("sessions") }, onOpenCommunity = { nav.switchTab("community") }, onOpenChatRoom = { sc, lb -> nav.navigate("chatroom/${Uri.encode(sc)}?label=${Uri.encode(lb)}") }, onRecord = { nav.navigate("record") }, onOpenSortedOut = { SessionsWunsch.setzeFilter("other"); nav.switchTab("sessions") }, onOnboarding = { nav.navigate("onboarding") }, social = social) }
             composable("sessions") { SessionsScreen(onOpen = { id, v -> nav.navigate("session/$id" + (v?.let { "?v=$it" } ?: "")) }, onCompare = { nav.navigate("compare") }, onSpotChat = { s -> nav.navigate("chatroom/${Uri.encode("spot:" + s)}?label=${Uri.encode(s)}") }) }
             composable("community") { CommunityScreen(onOpen = { id -> nav.navigate("session/$id") }, onFoilStats = { nav.navigate("foilstats") }, onWatchStats = { nav.navigate("watchstats") }) }
             composable("verlauf") { VerlaufScreen(onOpen = { id -> nav.navigate("session/$id") }) }
@@ -207,6 +207,7 @@ fun MainScaffold(onLogout: () -> Unit) {
                     onCompare = { nav.navigate("compare") },
                     onAccounts = { nav.navigate("accounts") },
                     onImprint = { nav.navigate("impressum") },
+                    onOnboarding = { nav.navigate("onboarding") },
                 )
             }
             composable("watch") {
@@ -240,6 +241,9 @@ fun MainScaffold(onLogout: () -> Unit) {
             composable("watchstats") { WatchStatsScreen(onBack = { nav.popBackStack() }, onFoilStats = { nav.navigate("foilstats") }) }
             composable("alarm") { AlarmScreen(onBack = { nav.popBackStack() }) }
             composable("settings") { SettingsScreen(onBack = { nav.popBackStack() }) }
+            // Einrichtungs-Assistent (portiert aus der PWA). Erreichbar ueber das Profil und
+            // ueber die Weiche fuer neue Konten (s. `onboardingDue`).
+            composable("onboarding") { OnboardingScreen(onFertig = { nav.popBackStack() }) }
             composable("datafields") {
                 DataFieldsScreen(onBack = { nav.popBackStack() },
                     onGallery = { nav.navigate("layoutgallery") })
