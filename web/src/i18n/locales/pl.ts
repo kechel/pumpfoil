@@ -1,4 +1,7 @@
 const pl: Record<string, string> = {
+  "hr.viewPeak": "Maksimum",
+  "hr.viewRise": "Wzrost",
+  "hr.viewRiseHint": "Pokazuje, o ile tętno wzrosło podczas przejazdu — w porównaniu z tętnem na jego początku. Dzięki temu przejazdy są porównywalne, nawet jeśli zaczynałeś je z różnym tętnem.",
   "onb.startTitle": "Kreator konfiguracji",
   "onb.startSub": "Język, nazwa, poziom, foil i zegarek w kilku krokach — można powtórzyć w każdej chwili.",
   "onb.startCta": "Uruchom kreator",

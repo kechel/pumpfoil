@@ -1,4 +1,7 @@
 const zh: Record<string, string> = {
+  "hr.viewPeak": "峰值",
+  "hr.viewRise": "上升幅度",
+  "hr.viewRiseHint": "显示这段滑行中心率上升了多少——以同一段滑行开始时的心率为基准。这样即使起始心率不同，也能相互比较。",
   "onb.startTitle": "设置向导",
   "onb.startSub": "几步搞定语言、名称、水平、水翼和手表——随时可以重来。",
   "onb.startCta": "启动向导",

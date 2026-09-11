@@ -1,4 +1,7 @@
 const ja: Record<string, string> = {
+  "hr.viewPeak": "最大値",
+  "hr.viewRise": "上昇幅",
+  "hr.viewRiseHint": "そのランの開始時の心拍と比べて、ランの中で心拍がどれだけ上がったかを表示します。開始時の心拍が違っていても、ラン同士を比べられます。",
   "onb.startTitle": "設定アシスタント",
   "onb.startSub": "言語、名前、レベル、フォイル、時計を数ステップで。いつでもやり直せます。",
   "onb.startCta": "アシスタントを開始",
