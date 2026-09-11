@@ -767,46 +767,56 @@ def stats_series(period: str = "30d", _a: models.User = Depends(current_admin),
 
         NUTZER und nicht Sessions (Vorgabe Jan, 11.09.2026): wer ein Konto neu verknuepft, holt
         auf einen Schlag seine ganze Historie nach — am 07.09. waren das 1049 alte Suunto-Fahrten
-        an einem Tag. Eine Sessionzahl zeigt dann einen Ausreisser, wo in Wirklichkeit EIN Nutzer
-        etwas eingerichtet hat. Als Nutzerzahl ist derselbe Vorgang eine 1.
+        an EINEM Tag. Als Sessionzahl ist das ein Ausreisser, der die Kurve unlesbar macht; als
+        Nutzerzahl ist derselbe Vorgang eine 1.
 
-        Datum ist `created_at`, also wann es BEI UNS ankam — die Frage ist ja, ob eine Plattform
+        JE TAG gezaehlt, und derselbe Nutzer an zwei Tagen zaehlt zweimal (Jan ausdruecklich).
+        Das ist dieselbe Lesart wie „aktive Nutzer" darueber: gemessen wird Aktivitaet, nicht
+        Reichweite. Die Diagramme kumulieren ueber das gewaehlte Fenster, die Fenster-Summe unten
+        ist deshalb die SUMME der Tageswerte — so endet die Kurve genau auf der Zahl daneben.
+
+        Datum ist `created_at`, also wann es BEI UNS ankam — die Frage ist, ob eine Plattform
         noch liefert, nicht wann gefahren wurde.
         """
         d = func.date(S.created_at)
+        je_tag: dict[str, dict[str, int]] = {}
         q = (db.query(d.label("d"), plattform.label("p"),
                       func.count(func.distinct(S.user_id)).label("n"))
              .select_from(S).join(D, D.id == S.device_id).filter(live))
         if cut is not None:
             q = q.filter(S.created_at >= cut)
-        je_tag: dict[str, dict[str, int]] = {}
         for r in q.group_by(d, plattform).all():
             je_tag.setdefault(str(r.d), {})[str(r.p)] = int(r.n)
-        # Sessions OHNE Geraet = Konto-Verknuepfung oder Datei-Import (Polar/COROS/Suunto/FIT).
-        qi = (db.query(d.label("d"), func.count(func.distinct(S.user_id)).label("n"))
+
+        # Sessions OHNE Geraet kommen aus einer Kontoverknuepfung oder aus einer hochgeladenen
+        # Datei. WOHER genau, steht im Praefix der session_uuid (s. sessions.py: „suunto-",
+        # „polar-", „coros-", „fit-" fuer FIT und „imp-" fuer TCX/GPX). Ein eigenes Feld gibt es
+        # dafuer nicht — das Praefix ist die einzige Quelle, und es wird beim Anlegen gesetzt.
+        # FIT und TCX/GPX sind fuer den Blick von aussen dasselbe: eine hochgeladene Datei.
+        quelle = case(
+            (S.session_uuid.like("suunto-%"), literal("suunto")),
+            (S.session_uuid.like("polar-%"), literal("polar")),
+            (S.session_uuid.like("coros-%"), literal("coros")),
+            (S.session_uuid.like("fit-%"), literal("datei")),
+            (S.session_uuid.like("imp-%"), literal("datei")),
+            else_=literal("datei"),
+        )
+        qi = (db.query(d.label("d"), quelle.label("q"),
+                       func.count(func.distinct(S.user_id)).label("n"))
               .select_from(S).filter(live, S.device_id.is_(None)))
         if cut is not None:
             qi = qi.filter(S.created_at >= cut)
-        for r in qi.group_by(d).all():
-            je_tag.setdefault(str(r.d), {})["import"] = int(r.n)
+        for r in qi.group_by(d, quelle).all():
+            je_tag.setdefault(str(r.d), {})[str(r.q)] = int(r.n)
 
-        # Fenster-Summe: distinct ueber den GANZEN Zeitraum, nicht die Summe der Tageswerte —
-        # wer an fuenf Tagen hochgeladen hat, ist ein Nutzer und nicht fuenf.
         gesamt: dict[str, int] = {}
-        qg = (db.query(plattform.label("p"), func.count(func.distinct(S.user_id)).label("n"))
-              .select_from(S).join(D, D.id == S.device_id).filter(live))
-        if cut is not None:
-            qg = qg.filter(S.created_at >= cut)
-        for r in qg.group_by(plattform).all():
-            gesamt[str(r.p)] = int(r.n)
-        qgi = db.query(func.count(func.distinct(S.user_id))).select_from(S).filter(
-            live, S.device_id.is_(None))
-        if cut is not None:
-            qgi = qgi.filter(S.created_at >= cut)
-        gesamt["import"] = int(qgi.scalar() or 0)
+        for tag in je_tag.values():
+            for p_, n_ in tag.items():
+                gesamt[p_] = gesamt.get(p_, 0) + n_
         return je_tag, gesamt
 
-    PLATTFORMEN = ("garmin", "apple", "wear", "zepp", "phone", "import")
+    PLATTFORMEN = ("garmin", "apple", "wear", "zepp", "phone",
+                   "suunto", "polar", "coros", "datei")
     live = S.deleted.isnot(True)
     nu = series(U.created_at, U)
     # Gefahren, nicht importiert — s. Docstring.

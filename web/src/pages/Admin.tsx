@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { api, SystemHealth, SystemVerlauf, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey, NewsBanner, AdminBlock, AdminStatsSeries, AdminPending, AdminUserSport, AdminSocialChannel, AdminSocialItem } from "../lib/api";
+import { api, SystemHealth, SystemVerlauf, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey, NewsBanner, AdminBlock, AdminStatsSeries, AdminPending, AdminUserSport, AdminSocialChannel, AdminSocialItem, AdminStatsBucket } from "../lib/api";
 import { Card, Spinner, ErrorBox, Avatar, NewBadge } from "../components/ui";
 import { FlagIcon, FakeIcon, HeartIcon, CameraIcon, LocationIcon } from "../components/Icons";
 import { TimeChart } from "../components/TimeChart";
@@ -222,14 +222,17 @@ const STATS_METRICS: [keyof AdminStatsSeries["totals"], string, string][] = [
   ["likes", "adm.stats.likes", "#fb7185"],
 ];
 
-// Je Plattform: wie viele NUTZER haben an dem Tag etwas uebertragen (Vorgabe Jan, 11.09.2026).
-// Bewusst Nutzer und nicht Sessions — wer ein Konto neu verknuepft, holt seine ganze Historie auf
-// einmal nach (am 07.09. waren das 1049 alte Suunto-Fahrten an EINEM Tag); als Sessionzahl waere
-// das ein Ausreisser, der die Kurve unlesbar macht, als Nutzerzahl ist es eine 1.
+// Je Plattform: wie viele NUTZER haben an dem Tag etwas uebertragen.
 //
-// Diese Reihen werden NICHT kumuliert: eine Summe ueber Tages-Distinct-Werte zaehlt denselben
-// Nutzer an jedem Tag erneut. Gezeigt wird der Tageswert, die Zahl daneben ist die echte
-// Fenster-Summe (distinct ueber den ganzen Zeitraum, vom Server).
+// Zweck ist das Erkennen von EINBRUECHEN (Jan, 11.09.2026: „kann an allem moeglichen liegen,
+// marketing, bugs, problemen, konkurrenz") — nicht eine Summe. Deshalb ein GLEITENDER MITTELWERT
+// ueber die ganze Historie statt einer kumulierten Kurve: eine Summe steigt immer und verbirgt
+// genau das, was hier auffallen soll. Der Regler daneben waehlt, wie stark geglaettet wird.
+//
+// Nutzer und nicht Sessions: wer ein Konto neu verknuepft, holt seine ganze Historie auf einmal
+// nach (am 07.09. 1049 alte Suunto-Fahrten an EINEM Tag). Als Sessionzahl ist das ein Ausreisser,
+// der die Kurve unlesbar macht; als Nutzerzahl eine 1. Derselbe Nutzer an zwei Tagen zaehlt
+// zweimal — gemessen wird Aktivitaet, nicht Reichweite.
 //
 // „Konto-Import" sind die Sessions OHNE Geraet: Polar, COROS, Suunto und hochgeladene Dateien.
 const PLATTFORM_METRICS: [keyof AdminStatsSeries["totals"], string, string][] = [
@@ -238,21 +241,71 @@ const PLATTFORM_METRICS: [keyof AdminStatsSeries["totals"], string, string][] = 
   ["p_wear", "Wear OS", "#4ade80"],
   ["p_zepp", "Amazfit", "#fbbf24"],
   ["p_phone", "Handy", "#c084fc"],
-  ["p_import", "Konto-Import", "#38bdf8"],
+  // Kontoverknuepfungen und Datei-Uploads einzeln: „Konto-Import" als eine Kurve verbarg, ob
+  // Suunto, Polar oder COROS einbricht — und das sind drei verschiedene Anbindungen mit drei
+  // verschiedenen Ausfallgruenden. „Datei" fasst FIT und TCX/GPX zusammen, fuer den Blick von
+  // aussen ist beides dasselbe.
+  ["p_suunto", "Suunto", "#f97316"],
+  ["p_polar", "Polar", "#ef4444"],
+  ["p_coros", "COROS", "#14b8a6"],
+  ["p_datei", "Datei-Upload (FIT/GPX/TCX)", "#38bdf8"],
 ];
 
+// Glaettungsfenster in Tagen. Eigene Knoepfe, nicht die Zeitraum-Knoepfe oben: dort waehlt man
+// den ANGEZEIGTEN Zeitraum, hier wie stark gemittelt wird. Beides an einen Knopf zu haengen ging
+// nicht — bei Zeitraum 10 Tage und Mittelung ueber 10 Tage bliebe ein einziger Punkt uebrig.
+const GLAETTUNG: number[] = [7, 10, 30];
+
 const DAY_MS = 86400000;
+
+/** Luecken auffuellen: der Server liefert nur Tage MIT Aktivitaet. Fuer die Frage „bricht eine
+ *  Plattform ein" ist das genau verkehrt — eine Plattform, die verstummt, haette sonst eine
+ *  flache Linie statt eines Abfalls auf null, weil die stillen Tage schlicht fehlen. Deshalb
+ *  eine LUECKENLOSE Tagesreihe vom ersten Eintrag bis heute, fehlende Tage als 0. */
+function tagesreihe(buckets: AdminStatsBucket[], key: keyof AdminStatsSeries["totals"]):
+    { zeiten: number[]; werte: number[] } {
+  if (!buckets.length) return { zeiten: [], werte: [] };
+  const proTag = new Map<number, number>();
+  for (const b of buckets) proTag.set(new Date(b.date + "T00:00:00").getTime(), b[key] as number);
+  const von = Math.min(...proTag.keys());
+  const bis = Math.max(new Date(new Date().toISOString().slice(0, 10) + "T00:00:00").getTime(), von);
+  const zeiten: number[] = []; const werte: number[] = [];
+  for (let t = von; t <= bis; t += DAY_MS) { zeiten.push(t); werte.push(proTag.get(t) ?? 0); }
+  return { zeiten, werte };
+}
+
+/** Gleitender Mittelwert ueber `n` Tage (nachlaufend), auf einer lueckenlosen Reihe. */
+function mittel(werte: number[], n: number): number[] {
+  const out: number[] = [];
+  let summe = 0;
+  for (let i = 0; i < werte.length; i++) {
+    summe += werte[i];
+    if (i >= n) summe -= werte[i - n];
+    out.push(summe / Math.min(i + 1, n));
+  }
+  return out;
+}
 
 function StatsSection() {
   const t = useT();
   const nf = useNumberFormat();
   const [period, setPeriod] = useState("30d");
+  // Eigener Regler fuer die Plattform-Kurven: dort waehlt man die GLAETTUNG, nicht den Zeitraum.
+  const [glatt, setGlatt] = useState(10);
   // „heute" = Tageszacken-Ansicht: volle Historie laden, tägliche Werte plotten (nicht kumuliert);
   // die Zahl daneben zeigt den heutigen Tageswert. Alle anderen Fenster: kumulierte Kurve.
   const daily = period === "today";
   const fetchPeriod = daily ? "all" : period;
   const { data } = useAsync<AdminStatsSeries>(() => api.adminStatsSeries(fetchPeriod), [fetchPeriod]);
   const times = (data?.buckets ?? []).map((b) => new Date(b.date + "T00:00:00").getTime());
+  // Plattform-Kurven laufen ueber die GANZE Historie, unabhaengig vom Zeitraum oben — ein
+  // Einbruch erkennt man nur im Verlauf, nicht in einem Ausschnitt.
+  const { data: alle } = useAsync<AdminStatsSeries>(() => api.adminStatsSeries("all"), []);
+  const alleSpanne = tagesreihe(alle?.buckets ?? [], "p_garmin").zeiten;
+  const alleTicks = alleSpanne.length
+    ? Array.from({ length: 5 }, (_, i) =>
+        alleSpanne[0] + ((alleSpanne[alleSpanne.length - 1] - alleSpanne[0]) * i) / 4)
+    : [];
   // Einheitlicher Zeitraum für ALLE Metriken = das gewählte Fenster (cut → jetzt), nicht nur wo Daten sind.
   const now = Date.now();
   const cut: Record<string, number> = {
@@ -323,51 +376,66 @@ function StatsSection() {
           })}
         </div>
 
-        {/* Zweites Raster: wer laedt ueber welche Plattform hoch. Steht unter den allgemeinen
-            Kurven, damit ein Ausfall einer Plattform auffaellt, ohne dass man danach sucht. */}
+        {/* Zweites Raster: wer laedt ueber welche Plattform hoch. Eigener Zeitraum (die ganze
+            Historie) und eigener Regler — hier geht es um Einbrueche, nicht um Summen. */}
         <h3 className="mt-6 text-sm font-semibold text-slate-100">
-          Nutzer mit Übertragung je Plattform
+          Aktivität je Plattform
         </h3>
         <p className="-mt-1 text-xs text-slate-400">
-          Wie viele Nutzer an dem Tag etwas übertragen haben — nicht wie viele Sessions. Eine neu
-          verknüpfte Kontoverbindung holt auf einmal die ganze Historie nach; das ist hier eine 1.
+          Nutzer pro Tag, die über diese Plattform etwas übertragen haben — gleitender Mittelwert
+          über die ganze Historie. Ein Knick nach unten heißt: von dort kommt weniger.
         </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-slate-400">Geglättet über</span>
+          {GLAETTUNG.map((n) => (
+            <button key={n} onClick={() => setGlatt(n)}
+              className={`rounded-lg px-3 py-1.5 text-xs transition-colors ${glatt === n
+                ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}>
+              {n} Tage
+            </button>
+          ))}
+        </div>
+        {!alle ? <Spinner /> : (
         <div className="grid gap-4 sm:grid-cols-2">
           {PLATTFORM_METRICS.map(([key, titel, color]) => {
-            // Tageswerte, NICHT kumuliert (s. Kommentar an PLATTFORM_METRICS).
-            const tPlot = times;
-            const vPlot = data.buckets.map((b) => b[key]);
-            const headline = data.totals[key];
-            const vmax = vPlot.length ? Math.max(...vPlot, 1) : 1;
-            const fmtY = (v: number) => nf(Math.round(v));
+            const reihe = tagesreihe(alle.buckets, key);
+            const zeiten = reihe.zeiten;
+            const werte = mittel(reihe.werte, glatt);
+            const jetzt = werte.length ? werte[werte.length - 1] : 0;
+            const max = werte.length ? Math.max(...werte) : 0;
+            const vmax = Math.max(max, 1);
             return (
               <Card key={key} className="p-3">
                 <div className="mb-1 flex items-baseline justify-between px-1">
                   <span className="text-xs uppercase tracking-wide text-slate-300">{titel}</span>
                   <span className="text-lg font-bold tabular-nums" style={{ color }}>
-                    {nf(Math.round(headline))}
-                    <span className="ml-2 text-xs font-normal text-slate-400">im Zeitraum</span>
+                    {jetzt.toFixed(1)}
+                    <span className="ml-2 text-xs font-normal text-slate-400">
+                      pro Tag · max {max.toFixed(1)}
+                    </span>
                   </span>
                 </div>
                 <div className="flex gap-1">
                   <div className="flex h-[100px] w-8 shrink-0 flex-col justify-between py-0.5 text-right text-[10px] tabular-nums text-slate-500">
-                    <span>{fmtY(vmax)}</span><span>{fmtY(vmax / 2)}</span><span>0</span>
+                    <span>{vmax.toFixed(1)}</span><span>{(vmax / 2).toFixed(1)}</span><span>0</span>
                   </div>
                   <div className="min-w-0 flex-1">
-                    {/* Zwei unsichtbare Stuetzpunkte an den Raendern halten die Skala bei 0…max —
-                        sonst skalierte TimeChart auf min…max der Werte und eine flache Reihe
-                        saehe aus wie starke Ausschlaege (dasselbe Mittel wie im System-Tab). */}
-                    <TimeChart t={[domain[0] - 1, ...tPlot, domain[1] + 1]}
-                      values={[0, ...vPlot, vmax]} color={color} domainMs={domain} height={100} />
+                    {/* Zwei unsichtbare Stuetzpunkte halten die Skala bei 0…max — sonst
+                        skalierte TimeChart auf min…max und eine ruhige Reihe saehe aus wie
+                        starke Ausschlaege (dasselbe Mittel wie im System-Tab). */}
+                    <TimeChart t={[zeiten[0] - 1, ...zeiten, zeiten[zeiten.length - 1] + 1]}
+                      values={[0, ...werte, vmax]} color={color}
+                      domainMs={[zeiten[0], zeiten[zeiten.length - 1]]} height={100} />
                   </div>
                 </div>
                 <div className="ml-9 mt-1 flex justify-between px-1 text-[10px] tabular-nums text-slate-500">
-                  {ticks.map((tk, i) => <span key={i}>{fmtTick(tk)}</span>)}
+                  {alleTicks.map((tk, i) => <span key={i}>{fmtTick(tk)}</span>)}
                 </div>
               </Card>
             );
           })}
         </div>
+        )}
         </>
       )}
     </div>

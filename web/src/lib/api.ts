@@ -648,16 +648,18 @@ export interface AdminStatsBucket {
   // Je Plattform die Zahl der NUTZER, die an dem Tag etwas uebertragen haben — nicht die Zahl
   // der Sessions. Wer ein Konto neu verknuepft, holt seine ganze Historie auf einmal nach; als
   // Sessionzahl waere das ein Ausreisser, als Nutzerzahl ist es eine 1.
-  p_garmin: number; p_apple: number; p_wear: number; p_zepp: number;
-  p_phone: number; p_import: number;
+  p_garmin: number; p_apple: number; p_wear: number; p_zepp: number; p_phone: number;
+  // Sessions ohne Geraet, aufgeschluesselt nach Quelle (Praefix der session_uuid):
+  // Kontoverknuepfungen und hochgeladene Dateien.
+  p_suunto: number; p_polar: number; p_coros: number; p_datei: number;
 }
 export interface AdminStatsSeries {
   period: string;
   buckets: AdminStatsBucket[];
   totals: { new_users: number; active_users: number; sessions: number; imported: number;
             photos: number; likes: number;
-            p_garmin: number; p_apple: number; p_wear: number; p_zepp: number;
-            p_phone: number; p_import: number };
+            p_garmin: number; p_apple: number; p_wear: number; p_zepp: number; p_phone: number;
+            p_suunto: number; p_polar: number; p_coros: number; p_datei: number };
 }
 
 /** Systemzustand des Servers (Admin). Feldnamen wie im Server (`api/health.py`) — deutsch, weil
