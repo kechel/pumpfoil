@@ -17,7 +17,20 @@ venv/
 
 # Data / raw session blobs (never commit user data)
 server/data/
-server/media/
+server/media/*
+# Ausnahme: server/media/promo/ ist KEIN Nutzerinhalt, sondern eine Handvoll
+# kuratierter Werbe-Grafiken (Endcards), die unter https://pumpfoil.org/promo/
+# zum Verlinken bereitstehen. Die kommen ueber das Repo auf die VM, damit ein
+# `git pull` reicht — MEDIA_DIR zeigt dort auf genau diesen Ordner.
+# Nur Standbilder: was hier landet, steht fuer immer in der Git-Historie, also
+# gehoeren Videos NICHT hierher (die kopiert man auf der VM von Hand).
+!server/media/promo/
+server/media/promo/*
+!server/media/promo/*.png
+!server/media/promo/*.jpg
+!server/media/promo/*.webp
+!server/media/promo/*.svg
+!server/media/promo/README.md
 *.sqlite3
 *.sqlite3*
 *.pre-pg-*
