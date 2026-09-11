@@ -31,6 +31,10 @@ interface Zeile {
   nr: number;             // Lauf-Nummer INNERHALB der Session (1-basiert)
   hr: (number | null)[];  // ein Wert je Sekunde ab Laufbeginn
   dist: number[];         // aufsummierte Strecke in Metern ab Laufbeginn, gleiche Laenge
+  // Geschwindigkeit in km/h ab Laufbeginn, gleiche Laenge. Quelle ist die FERTIG GEGLAETTETE
+  // 5-Sekunden-Reihe des Servers (`properties.speeds["5"]`, m/s) — nicht aus `dist` abgeleitet:
+  // die Punkt-fuer-Punkt-Summe traegt GPS-Rauschen, und die Karte faerbt mit denselben Zahlen.
+  spd: (number | null)[];
 }
 
 // Abstand zweier Punkte in Metern. Leaflets map.distance macht das sonst in der App, hier gibt es
@@ -75,6 +79,10 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
       const segs = a?.segments ?? [];
       const hr: (number | null)[] = a?.track_geojson?.properties?.hr ?? [];
       const coords: number[][] = a?.track_geojson?.geometry?.coordinates ?? [];
+      // Dieselbe Wahl wie in CompareMap: das 5-s-Fenster, mit Rueckfall auf die ungeglaettete
+      // Reihe fuer Altbestaende, die `speeds` noch nicht mitbringen.
+      const spdMps: number[] = a?.track_geojson?.properties?.speeds?.["5"]
+        ?? a?.track_geojson?.properties?.speeds_mps ?? [];
       if (!segs.length || !hr.length) continue;
       const idxs = it.runIdx != null ? [it.runIdx] : segs.map((_, i) => i);
       for (const ri of idxs) {
@@ -108,7 +116,12 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
           const f = soll / ist;
           for (let k = 0; k < dist.length; k++) dist[k] *= f;
         }
-        out.push({ key: `${it.key}:${ri}`, label: it.label, nr: ri + 1, hr: werte, dist });
+        const spd: (number | null)[] = [];
+        for (let k = 0; k < werte.length; k++) {
+          const v = spdMps[von + k];
+          spd.push(v != null && isFinite(v) ? v * 3.6 : null);
+        }
+        out.push({ key: `${it.key}:${ri}`, label: it.label, nr: ri + 1, hr: werte, dist, spd });
       }
     }
     return out;
@@ -194,6 +207,19 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
           <span className="tabular-nums">{hi} bpm</span>
         </div>
       </div>
+      {/* Spaltentitel EINMAL oben statt in jeder Zeile (Jan, 11.09.2026). Eigene Flex-Zeile mit
+          nur zwei Kindern: ein dehnbarer Platzhalter und dieselbe feste Breite wie die
+          Werte-Spalte darunter. Dadurch fluchten die Titel mit den Zahlen, ohne dass diese
+          Zeile die Breiten der Namens- und Canvas-Spalte kennen muesste — die sind
+          inhaltsgetrieben und liessen sich hier gar nicht nachbilden. */}
+      <div className="flex gap-2">
+        <div className="min-w-0 flex-1" />
+        <div className="flex w-[184px] shrink-0 items-center gap-1 whitespace-nowrap pb-0.5 text-[10px] leading-none text-slate-500">
+          <span className="w-10 shrink-0 text-right">bpm</span>
+          <span className="w-14 shrink-0 text-right">m</span>
+          <span className="w-[76px] shrink-0 text-right">km/h (5s)</span>
+        </div>
+      </div>
       <div className="flex gap-2">
         <div className="shrink-0">
           {zeilen.map((z) => (
@@ -227,7 +253,7 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
         {/* Werte-Spalte: zeigt fuer JEDEN Lauf die Zahlen an der Zeit-Position unter dem Zeiger.
             Immer vorhanden (auch leer), damit beim Ueberfahren nichts springt. Laeufe, die zu
             diesem Zeitpunkt schon vorbei sind, bleiben leer statt „0" zu behaupten. */}
-        <div className="w-[104px] shrink-0">
+        <div className="w-[184px] shrink-0">
           {zeilen.map((z) => {
             const i = hoverI;
             const da = i != null && i < z.hr.length;
@@ -238,13 +264,18 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
                 className="flex items-center gap-1 whitespace-nowrap text-[10px] leading-none tabular-nums text-slate-400"
                 style={{ height: ZEILE_H, marginBottom: ZEILE_LUECKE }}
               >
+                {/* Nur Zahlen — die Einheiten stehen einmal als Spaltentitel oben. Feste,
+                    rechtsbuendige Breiten, damit beim Ueberfahren nichts springt; fehlt ein
+                    Wert, steht ein Strich statt „0" (das waere eine Behauptung). */}
                 {da ? (
                   <>
-                    <span className="w-11 text-right font-semibold text-slate-200">
+                    <span className="w-10 shrink-0 text-right font-semibold text-slate-200">
                       {puls != null ? `${puls}` : "–"}
                     </span>
-                    <span className="text-slate-500">bpm</span>
-                    <span className="ml-auto">{Math.round(z.dist[i!])} m</span>
+                    <span className="w-14 shrink-0 text-right">{Math.round(z.dist[i!])}</span>
+                    <span className="w-[76px] shrink-0 text-right">
+                      {z.spd[i!] != null ? z.spd[i!]!.toFixed(1) : "–"}
+                    </span>
                   </>
                 ) : null}
               </div>
