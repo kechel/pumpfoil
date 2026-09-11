@@ -1,7 +1,7 @@
 // Tschechisch (cs / Čeština). Struktur 1:1 zu de.ts (Quelle der Wahrheit).
 // Erstübersetzung maschinell; Muttersprachler-Review empfohlen.
 const cs: Record<string, string> = {
-  "hr.viewPeak": "Maximum",
+  "hr.viewPeak": "Absolutní",
   "hr.viewRise": "Nárůst",
   "hr.viewRiseHint": "Ukazuje, o kolik tep během jízdy vystoupal — oproti tepu na začátku téže jízdy. Jízdy jsou tak porovnatelné, i když jsi je začínal s různým tepem.",
   "onb.startTitle": "Průvodce nastavením",

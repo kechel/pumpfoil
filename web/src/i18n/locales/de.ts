@@ -1,7 +1,7 @@
 // Quelle der Wahrheit. Alle anderen Sprachen spiegeln diese Keys.
 // Platzhalter im Text: {name} wird per t(key, { name }) ersetzt.
 const de: Record<string, string> = {
-  "hr.viewPeak": "Höchstpuls",
+  "hr.viewPeak": "Absolut",
   "hr.viewRise": "Anstieg",
   "hr.viewRiseHint": "Zeigt, wie weit der Puls im Lauf gestiegen ist — gegenüber dem Puls zu Beginn desselben Laufs. So sind Läufe vergleichbar, deren Ausgangspuls verschieden hoch lag.",
   "onb.startTitle": "Einrichtungs-Assistent",
