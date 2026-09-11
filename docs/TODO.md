@@ -9,6 +9,22 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 🚀 App-Release-Stand
 
+- **🟢 11.09. — Einrichtungs-Assistent auf Android und iOS portiert** (`OnboardingScreen.kt`,
+  `OnboardingView.swift`). Texte aus derselben Quelle wie die PWA erzeugt
+  (`scripts/i18n-onboarding-native.py` liest `web/src/i18n/locales/*.ts`), 96 Schluessel × 18
+  Sprachen. Android: `:app:compileDebugKotlin` gruen. iOS: `swiftc -parse` sauber, dazu der
+  Member-Abgleich von Hand (dabei vier Fehler gefunden, die der Parser NICHT meldet — s. Commit
+  `1269a4d5`).
+  - **iOS auf 1.1.32 / 36 gebumpt** (live ist 1.1.31, nichts in Pruefung) — einreichfertig, sobald
+    Jan in Xcode baut.
+  - **Android und Wear NICHT gebumpt, mit Absicht:** 1.1.28 (42) und 1.2.28 (1038) liegen seit dem
+    10.09. in der Pruefung. Die naechste Nummer haengt an deren Ausgang, und live ist weiterhin
+    1.1.25 / 1.2.25. Erst nach der Entscheidung bumpen — dann beide zusammen (harte Regel), also
+    auf 1.1.29 / 1.2.29 bzw. was dann eine Stufe ueber dem Live-Stand liegt.
+  - Der Assistent selbst ist in der PWA **scharf** (Stichtag 11.09. 09:45 UTC): neue Konten werden
+    beim ersten Login einmal hingeleitet, bestehende nie. In den Apps greift dieselbe Weiche,
+    sobald die Version draussen ist — die Bedingung kommt vom Server (`onboarding_due`).
+
 - **🟢 11.09. 00:50 — Garmin 1.0.86 EINGEREICHT** (Jans Meldung: „.iq ist eingereicht zur
   pruefung"). Eingereicht wurde `pumpfoil-1.0.86.iq`, **13.540.198 B**, sha1
   `75bb7421a43a604cc77aa9c3a286c93053fa8e2f` — **gegen Jans Download gegengeprueft**, er hat den
