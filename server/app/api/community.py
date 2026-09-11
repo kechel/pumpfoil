@@ -1343,9 +1343,22 @@ def _spot_anzahl(db: Session, accel_only: bool = False, sport: str = "all") -> i
 def community_stats(
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> dict:
-    """Community-Kennzahlen für den Willkommens-Banner: Foiler (Nutzer mit ≥1
-    sichtbaren Session), Spots (distinct place_name), Sessions gesamt. Inkl.
-    GPS-only-Läufe (accel_only=False), gecacht (5 min), damit's billig bleibt."""
+    """Community-Kennzahlen für den Willkommens-Banner: Foiler, Spots, Sessions, Pumps.
+
+    Die drei Zahlen haben ABSICHTLICH verschiedene Grundmengen — wer sie vergleicht, vergleicht
+    nicht dasselbe (nachgemessen 11.09.2026):
+    - Foiler = ALLE registrierten Konten, ohne jeden Filter (s. Kommentar unten). Bewusst die
+      höhere Zahl, solange der Banner Werbung ist (Jan, 11.09.); nur ~180 der Konten haben
+      überhaupt eine sichtbare Session. Die frühere Beschreibung „Nutzer mit ≥1 sichtbaren
+      Session" stimmte hier nicht.
+    - Spots über `_spot_anzahl` → nach `spot_id`, `place_name` nur als Rückfall für Altbestand
+      ohne Id, und über ALLE Sportarten (`sport="all"`, deckungsgleich mit der Spots-Karte).
+    - Sessions/Pumps nur Pumpfoil, inkl. GPS-only-Läufe (`accel_only=False`) — also KEIN Filter
+      auf Accel-Daten oder `pump_count`: von 1.981 Sessions sind 779 reine GPS-Aufnahmen und nur
+      1.198 haben Pumps. Die Pumps-Summe ist trotzdem de facto accel-only, weil GPS-only-Läufe
+      keine Pumps zählen — wer das je ändert, ändert diese Zahl still mit.
+
+    Gecacht (5 min), damit's billig bleibt."""
     global _stats_cache
     now = time.monotonic()
     with _stats_lock:
