@@ -1836,6 +1836,9 @@ enum Loc {
 
 
     static func t(_ key: String, _ lang: String) -> String {
+        // Einrichtungs-Assistent: eigene Tabelle in LocOnboarding.swift, aus den Web-Sprachdateien
+        // erzeugt. Zuerst gefragt, damit die grossen Tabellen dafuer nicht angefasst werden.
+        if key.hasPrefix("onb."), let v = LocOnb.t(key, lang) { return v }
         if lang == "fi", let v = fiOverlay[key] { return v }   // fi-Overlay (aus web fi.ts); sonst Englisch
         if lang == "nl", let v = nlOverlay[key] { return v }   // nl-Overlay (aus web nl.ts); sonst Englisch
         if lang == "cs", let v = csOverlay[key] { return v }   // cs-Overlay (aus web cs.ts); sonst Englisch
