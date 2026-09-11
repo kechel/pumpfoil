@@ -2,8 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api, type Foil, type PairedDevice } from "../lib/api";
 import { Button, Card, ErrorBox, Spinner } from "../components/ui";
-import { CheckIcon, ChevronIcon, FoilIcon, WatchIcon } from "../components/Icons";
+import { ChatBubbleIcon, CheckIcon, ChevronIcon, FoilIcon, MailIcon, StarIcon, WatchIcon } from "../components/Icons";
 import { LanguageGrid } from "../components/LanguageSelect";
+import { AppleIcon, GoogleIcon, PLATTFORM_LOGOS } from "../components/BrandIcons";
 import { ConnectIqButton } from "../components/ConnectIqButton";
 import { AppStoreBadge, PlayBadge, ZeppAppBadges } from "../components/StoreBadge";
 import { gearMatches } from "../lib/gearSearch";
@@ -66,6 +67,27 @@ const VERKNUEPFUNGEN = [
   { id: "suunto", label: "Suunto" },
 ] as const;
 
+// Die Kurzanleitung ist JE PLATTFORM eine andere — der Weg auf die Uhr unterscheidet sich
+// wirklich, und die generische Fassung („App auf der Uhr starten, Code eintragen") war fuer
+// Apple und Wear schlicht falsch:
+//   garmin  Eigene App auf der Uhr, Code ist der einzige Weg: auf dem Handy laeuft Garmin
+//           Connect, eine FREMDE App, die fuer uns kein Token minten kann.
+//   apple   EIN Bundle: die Watch-App ist in die iPhone-App eingebettet (project.yml,
+//           `embed: true`) und landet mit auf der gekoppelten Uhr — nichts einzeln zu
+//           installieren. Die angemeldete iPhone-App schiebt dann das Token per
+//           WatchConnectivity auf die Uhr (kein Code).
+//   wear    Sieht wie Apple aus, ist es aber NICHT: die Uhren-App kommt nicht von allein auf
+//           die Uhr. Unser eigener Code sagt es ("man kann die Uhr-App nicht vom Phone aus
+//           pushen", `WatchSync.installOnWatch`), deshalb hat die Handy-App den Knopf "Auf der
+//           Uhr installieren", der den Play Store AUF DER UHR oeffnet. Genau daran scheiterte am
+//           05.08. ein Nutzer, der auf dem Handy installiert hatte und auf die Uhr wartete.
+//   amazfit Unsere App kommt aus dem Zepp-App-Store, installiert ueber die Zepp-App am Handy.
+// Der Code bleibt bei Apple und Wear als RUECKFALL sichtbar (die Uhr-App zeigt einen, wenn das
+// Token sie nicht erreicht hat) — nur nicht mehr als der Hauptweg.
+const SCHRITT_PRAEFIX: Record<string, string> = {
+  garmin: "g", apple: "a", wear: "w", amazfit: "z",
+};
+
 const SPORTARTEN = ["pumpfoil", "wingfoil", "kitefoil", "surf_downwind", "efoil", "foildrive", "other"];
 
 export default function Onboarding() {
@@ -113,14 +135,20 @@ export default function Onboarding() {
     api.saveSettings(patch).catch((e) => setFehler((e as Error).message));
   }, []);
 
+  // Ein Weg fuer „Fertig" und „Verlassen": Merker setzen, raus. Der Merker schaltet heute noch
+  // nichts (s. Kopfkommentar) — er soll aber schon jetzt richtig gesetzt werden, damit die
+  // spaetere Weiche nicht auf halbe Daten trifft.
+  const fertig = () => {
+    speichern({ onboarding: { done_at: new Date().toISOString(), version: 1 } });
+    nav("/home");
+  };
+
   if (laden) return <Spinner />;
 
   return (
     <div className="mx-auto w-full max-w-2xl">
-      <div className="mb-1 flex items-center gap-2">
-        <h2 className="text-xl font-bold">{t("onb.title")}</h2>
-      </div>
-      <p className="mb-4 text-slate-300">{t("onb.intro")}</p>
+      <h2 className="text-xl font-bold">{t("onb.welcome")}</h2>
+      <p className="mb-4 mt-1 text-slate-300">{t("onb.intro")}</p>
 
       <Fortschritt aktiv={i} anzahl={SCHRITTE.length} />
 
@@ -187,10 +215,20 @@ export default function Onboarding() {
             // Marker fuer spaeter: von hier aus koennte `RootRoute` neue Konten einmalig
             // hierher leiten. NOCH OHNE WIRKUNG — die Weiche kommt erst, wenn der Ablauf steht
             // und Jan entschieden hat, ob die 497 bestehenden Konten ihn sehen sollen.
-            speichern({ onboarding: { done_at: new Date().toISOString(), version: 1 } });
-            nav("/home");
+            fertig();
           }}>{t("onb.finish")}</Button>
         )}
+      </div>
+
+      {/* „Assistenten verlassen" (Vorgabe Jan): unten links, abgesetzt, ueberspringt ALLES.
+          Setzt denselben Merker wie „Fertig" — wer den Assistenten bewusst verlaesst, soll von
+          einer spaeteren Weiche nicht wieder hineingeschickt werden. Ueber /onboarding kommt er
+          jederzeit zurueck, und das Beantwortete ist ohnehin schon gespeichert. */}
+      <div className="mt-6 border-t border-slate-800 pt-4">
+        <button type="button" onClick={fertig}
+          className="text-slate-400 underline hover:text-slate-300">
+          {t("onb.leave")}
+        </button>
       </div>
     </div>
   );
@@ -220,8 +258,7 @@ function SprachSchritt() {
   const { t } = useI18n();
   return (
     <Card className="p-5">
-      <h3 className="mb-1 font-semibold">{t("lang.label")}</h3>
-      <p className="mb-4 text-slate-300">{t("onb.lang.sub")}</p>
+      <h3 className="mb-3 font-semibold">{t("lang.label")}</h3>
       <LanguageGrid />
     </Card>
   );
@@ -256,7 +293,6 @@ function KoennenSchritt({ sens, gewicht, onSens, onGewicht }: {
             );
           })}
         </div>
-        <p className="mt-3 text-slate-300">{t("onb.level.effect")}</p>
       </Card>
 
       {/* Gewicht: NICHT „fuer spaeter". Es bestimmt heute schon die Alarmgrenzen je Foil
@@ -284,8 +320,7 @@ function SportSchritt({ sport, onSport }: { sport: string; onSport: (v: string) 
   const { t } = useI18n();
   return (
     <Card className="p-5">
-      <h3 className="mb-1 font-semibold">{t("onb.sport.title")}</h3>
-      <p className="mb-4 text-slate-300">{t("onb.sport.sub")}</p>
+      <h3 className="mb-3 font-semibold">{t("onb.sport.title")}</h3>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {SPORTARTEN.map((s) => {
           const aktiv = sport === s;
@@ -307,7 +342,9 @@ function SportSchritt({ sport, onSport }: { sport: string; onSport: (v: string) 
 
 /** Schritt 4: Foil. Optional (Jan: „ist ja alles optional"). Der Katalog hat ueber 1000
  *  Eintraege, deshalb ein Suchfeld statt einer Liste — und nur die ersten Treffer, damit der
- *  Schritt nicht zur Katalogseite wird (die gibt es unter /foils, dorthin fuehrt der Link). */
+ *  Schritt nicht zur Katalogseite wird. Ein Link auf /foils stand hier kurz und ist wieder raus:
+ *  er verlaesst den Assistenten (Jan). Wer sein Foil nicht findet, kann es stattdessen von hier
+ *  aus melden — derselbe Weg wie unter den Katalog-Listen (`MissingHint`). */
 function FoilSchritt({ foils, setFoils, meine, standard, onWahl }: {
   foils: Foil[] | null; setFoils: (f: Foil[]) => void;
   meine: number[]; standard: number | null; onWahl: (id: number) => void;
@@ -338,15 +375,28 @@ function FoilSchritt({ foils, setFoils, meine, standard, onWahl }: {
       </h3>
       <p className="mb-3 text-slate-300">{t("onb.foil.sub")}</p>
 
+      {/* Schon gewaehlte Foils: JEDE ZEILE anklickbar, um sie zum Standard zu machen (Vorgabe
+          Jan) — wer mehrere aus dem Profil mitbringt, entscheidet hier, welches vorne steht,
+          ohne den Assistenten fuer die Katalogseite zu verlassen. */}
       {gewaehlt.length > 0 && (
         <div className="mb-3 rounded-xl border border-brand-500/30 bg-brand-500/10 p-3">
-          <p className="mb-1 text-sm font-medium text-slate-300">{t("onb.foil.chosen")}</p>
-          {gewaehlt.map((f) => (
-            <p key={f.id} className="text-slate-100">
-              {f.brand} {f.model} <span className="text-slate-400">{f.size}</span>
-              {f.id === standard && <span className="ml-1 text-brand-400">★</span>}
-            </p>
-          ))}
+          <p className="mb-2 text-sm font-medium text-slate-300">{t("onb.foil.chosen")}</p>
+          <div className="grid gap-1">
+            {gewaehlt.map((f) => {
+              const ist = f.id === standard;
+              return (
+                <button key={f.id} type="button" onClick={() => onWahl(f.id)} aria-pressed={ist}
+                  className={`flex items-center gap-2 rounded-lg px-2 py-1.5 text-left transition ${
+                    ist ? "bg-brand-500/15" : "hover:bg-slate-800/60"}`}>
+                  <StarIcon className={`h-4 w-4 shrink-0 ${ist ? "text-brand-400" : "text-slate-500"}`} filled={ist} />
+                  <span className="min-w-0 truncate text-slate-100">
+                    {f.brand} {f.model} <span className="text-slate-400">{f.size}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          {gewaehlt.length > 1 && <p className="mt-2 text-sm text-slate-400">{t("onb.foil.defaultHint")}</p>}
         </div>
       )}
 
@@ -371,16 +421,34 @@ function FoilSchritt({ foils, setFoils, meine, standard, onWahl }: {
           ))}
         </div>
       )}
-      <p className="mt-3 text-sm text-slate-400">
-        <Link to="/foils" className="underline hover:text-slate-300">{t("onb.foil.all")}</Link>
-      </p>
+
+      {/* Foil nicht im Katalog? Dann nicht in der Sackgasse stehen lassen, sondern melden —
+          oeffnet das globale Feedback-Panel mit vorbelegtem Text (Event, s. FeedbackWidget).
+          Genau dafuer gibt es das Muster schon unter den Katalog-Listen. */}
+      <div className="mt-4 border-t border-slate-800 pt-3">
+        <p className="font-medium text-slate-100">{t("onb.foil.missing")}</p>
+        <p className="mt-1 text-slate-300">{t("onb.foil.missingHow")}</p>
+        <button type="button"
+          onClick={() => window.dispatchEvent(new CustomEvent("open-feedback", { detail: t("onb.foil.missing") }))}
+          className="mt-2 inline-flex items-center gap-1 font-semibold text-brand-700 hover:underline dark:text-brand-300">
+          <MailIcon className="h-4 w-4" /> {t("foils.missingCta")}
+        </button>
+      </div>
     </Card>
   );
 }
 
 /** Schritt 5: Uhr verbinden — der Schritt, an dem es heute bricht. Zwei Wege in EINER Auswahl:
- *  eigene Recorder-App (4 Plattformen) oder Konto-Verknuepfung (Polar/COROS/Suunto). Der
- *  Pairing-Code steht direkt darunter, und der Schritt merkt selbst, wenn die Uhr auftaucht. */
+ *  eigene Recorder-App (4 Plattformen) oder Konto-Verknuepfung (3), beide mit Marken-Zeichen.
+ *
+ *  WICHTIG, und hier stand es zuerst falsch: der Pairing-CODE ist nicht der Weg fuer alle vier
+ *  Uhren. Bei Apple Watch und Wear OS mintet die angemeldete HANDY-App ein Token und schiebt es
+ *  per WatchConnectivity bzw. Wearable Data Layer auf die Uhr (`devices.mint_device`) — da tippt
+ *  niemand einen Code ab. Der Code-Bildschirm erscheint dort nur als Rueckfall, wenn das Token
+ *  die Uhr nicht erreicht hat (Wear: `MainActivity`, nur bei leerem Token). Garmin und Amazfit
+ *  brauchen den Code dagegen immer: auf dem Handy laeuft dort eine FREMDE App (Garmin Connect,
+ *  Zepp), die fuer uns nichts minten kann. Deshalb je Plattform eine andere Kurzanleitung.
+ */
 function UhrSchritt({ geraete, setGeraete }: {
   geraete: PairedDevice[]; setGeraete: (d: PairedDevice[]) => void;
 }) {
@@ -404,6 +472,8 @@ function UhrSchritt({ geraete, setGeraete }: {
   }, [setGeraete]);
 
   const neu = geraete.length > vorher.current;
+  const istUhr = UHREN.some((u) => u.id === wahl);
+  const perCode = wahl === "garmin" || wahl === "amazfit";
 
   async function einloesen() {
     setBusy(true); setErr(null); setMsg(null);
@@ -428,22 +498,21 @@ function UhrSchritt({ geraete, setGeraete }: {
 
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {UHREN.map((u) => (
-            <Kachel key={u.id} label={u.label} aktiv={wahl === u.id} onClick={() => setWahl(u.id)} />
+            <Kachel key={u.id} id={u.id} label={u.label} aktiv={wahl === u.id} onClick={() => setWahl(u.id)} />
           ))}
         </div>
 
         <p className="mb-2 mt-4 text-sm font-medium text-slate-400">{t("onb.watch.linked")}</p>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {VERKNUEPFUNGEN.map((v) => (
-            <Kachel key={v.id} label={v.label} aktiv={wahl === v.id} onClick={() => setWahl(v.id)} />
+            <Kachel key={v.id} id={v.id} label={v.label} aktiv={wahl === v.id} onClick={() => setWahl(v.id)} />
           ))}
         </div>
       </Card>
 
-      {/* Recorder-Plattform gewaehlt: Store-Badge + Kurzanleitung + Pairing-Feld. Die
-          ausfuehrliche Anleitung mit Screenshots bleibt im Uhren-Bereich — hier absichtlich nur
-          das Noetigste (Vorgabe: „ohne viel unnoetigen text"). */}
-      {wahl && UHREN.some((u) => u.id === wahl) && (
+      {/* Recorder-Plattform gewaehlt: Store-Badge + Kurzanleitung. Die ausfuehrliche Anleitung
+          mit Screenshots bleibt im Uhren-Bereich — hier absichtlich nur das Noetigste. */}
+      {istUhr && (
         <Card className="mt-4 p-5">
           <div className="mb-3">
             {wahl === "garmin" && <ConnectIqButton />}
@@ -452,13 +521,15 @@ function UhrSchritt({ geraete, setGeraete }: {
             {wahl === "amazfit" && <ZeppAppBadges row />}
           </div>
           <ol className="list-decimal space-y-2 pl-5 text-slate-200">
-            <li>{t("onb.watch.s1")}</li>
-            <li>{t("onb.watch.s2")}</li>
-            <li>{t("onb.watch.s3")}</li>
+            {[1, 2, 3].map((n) => (
+              <li key={n}>{t(`onb.watch.${SCHRITT_PRAEFIX[wahl as string]}${n}`)}</li>
+            ))}
           </ol>
 
           <div className="mt-4">
-            <p className="mb-2 font-medium text-slate-100">{t("account.claimTitle")}</p>
+            <p className="mb-2 font-medium text-slate-100">
+              {perCode ? t("account.claimTitle") : t("onb.watch.codeFallback")}
+            </p>
             <div className="flex flex-wrap gap-2">
               <input
                 value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} maxLength={8}
@@ -481,16 +552,10 @@ function UhrSchritt({ geraete, setGeraete }: {
         </Card>
       )}
 
-      {/* Konto-Verknuepfung gewaehlt: der Weg liegt auf /konten (OAuth-Umleitung), also dorthin
-          verweisen statt den Ablauf hier zu verdoppeln. */}
-      {wahl && VERKNUEPFUNGEN.some((v) => v.id === wahl) && (
-        <Card className="mt-4 p-5">
-          <p className="mb-3 text-slate-200">{t("onb.watch.linkedHow")}</p>
-          <Link to="/konten">
-            <Button>{t("linked.title")} →</Button>
-          </Link>
-        </Card>
-      )}
+      {/* Konto-Verknuepfung: direkt hier, ohne Umweg ueber /konten (Vorgabe Jan). Den Sprung zum
+          Hersteller selbst kann uns niemand ersparen — OAuth laeuft ueber dessen Anmeldeseite.
+          Deshalb steht der Satz daneben, dass es kurz hinausgeht und die Antworten bleiben. */}
+      {wahl && !istUhr && <KontoSchritt dienst={wahl} />}
 
       {/* Uhr gemeldet — der Moment, auf den es ankommt. */}
       {(neu || geraete.length > 0) && (
@@ -511,13 +576,95 @@ function UhrSchritt({ geraete, setGeraete }: {
   );
 }
 
-function Kachel({ label, aktiv, onClick }: { label: string; aktiv: boolean; onClick: () => void }) {
+/** Eine Konto-Verknuepfung im Assistenten: Zustand holen, verbinden, fertig. Bewusst OHNE die
+ *  Sync-Steuerung und die Sportart-Filter von /konten — das ist Feinjustierung fuer spaeter, im
+ *  Einstieg zaehlt nur, dass die Verbindung steht. Ist der Dienst serverseitig nicht
+ *  eingerichtet (`available: false`), sagt die Karte das, statt einen toten Knopf zu zeigen. */
+function KontoSchritt({ dienst }: { dienst: string }) {
+  const { t } = useI18n();
+  const [st, setSt] = useState<{ available: boolean; linked: boolean } | null>(null);
+  // COROS hat zwei Wege: MCP (seit 04.09., ohne Partner-Vertrag) und die klassische Partner-API.
+  // MCP hat Vorrang, sobald er eingerichtet ist — genau wie auf /konten, damit nie beides dasteht.
+  const [mcp, setMcp] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    let weg = false;
+    (async () => {
+      if (dienst === "coros") {
+        const m = await api.corosMcpStatus().catch(() => null);
+        if (m?.available) { if (!weg) { setMcp(true); setSt(m); } return; }
+        const c = await api.corosStatus().catch(() => null);
+        if (!weg) { setMcp(false); setSt(c); }
+        return;
+      }
+      const s = dienst === "polar" ? await api.polarStatus().catch(() => null)
+              : dienst === "suunto" ? await api.suuntoStatus().catch(() => null)
+              : null;
+      if (!weg) setSt(s);
+    })();
+    return () => { weg = true; };
+  }, [dienst]);
+
+  async function verbinden() {
+    try {
+      const r = dienst === "polar" ? await api.polarConnect()
+              : dienst === "suunto" ? await api.suuntoConnect()
+              : mcp ? await api.corosMcpConnect() : await api.corosConnect();
+      // Vor dem Sprung merken, dass der Assistent lief: /konten zeigt dann nach der Rueckkehr
+      // einen Weg zurueck. Der Rueckweg selbst liegt serverseitig fest (`/konten?<dienst>=…`).
+      try { localStorage.setItem("foil_onb_offen", "1"); } catch { /* privates Fenster */ }
+      window.location.href = r.authorize_url;
+    } catch (e) {
+      setErr((e as Error).message);
+    }
+  }
+
+  if (st === null) return <Card className="mt-4 p-5"><Spinner /></Card>;
+
+  const logo = PLATTFORM_LOGOS[dienst];
+  return (
+    <Card className="mt-4 p-5">
+      <div className="mb-3 flex items-center gap-3">
+        {logo && <img src={logo} alt="" className="h-7 w-auto rounded bg-white p-1" />}
+        <h3 className="font-semibold">{t(`settings.${dienst}.title`)}</h3>
+      </div>
+      {!st.available ? (
+        <p className="text-slate-300">{t("onb.link.unavailable")}</p>
+      ) : st.linked ? (
+        <p className="flex items-center gap-1.5 font-medium text-emerald-700 dark:text-emerald-400">
+          <CheckIcon className="h-5 w-5" /> {t("onb.link.linked")}
+        </p>
+      ) : (
+        <>
+          <p className="mb-3 text-slate-300">{t("onb.link.leaves")}</p>
+          <Button onClick={() => { void verbinden(); }}>{t(`settings.${dienst}.connect`)}</Button>
+        </>
+      )}
+      {err && <div className="mt-3"><ErrorBox message={err} /></div>}
+    </Card>
+  );
+}
+
+/** Auswahl-Kachel mit Marken-Zeichen. Welche Zeichen echt sind und welche Naeherung, steht in
+ *  BrandIcons (`PLATTFORM_LOGOS`) — fuer Garmin und Amazfit liegt kein Logo im Repo, dort steht
+ *  unser neutrales Uhr-Symbol statt eines nachgezeichneten Markenzeichens. */
+function Kachel({ id, label, aktiv, onClick }: {
+  id: string; label: string; aktiv: boolean; onClick: () => void;
+}) {
+  const logo = PLATTFORM_LOGOS[id];
   return (
     <button type="button" onClick={onClick} aria-pressed={aktiv}
-      className={`min-w-0 rounded-xl border px-3 py-2.5 transition ${
+      className={`flex min-w-0 items-center gap-2 rounded-xl border px-3 py-2.5 text-left transition ${
         aktiv ? "border-brand-400 bg-brand-500/10 ring-1 ring-brand-400"
               : "border-slate-700 bg-slate-900/60 hover:border-slate-600"}`}>
-      <span className={`block truncate ${aktiv ? "font-semibold text-slate-100" : "text-slate-200"}`}>{label}</span>
+      <span className="flex h-6 w-6 shrink-0 items-center justify-center">
+        {logo ? <img src={logo} alt="" className="max-h-6 max-w-6 rounded bg-white p-0.5" />
+         : id === "apple" ? <AppleIcon className="h-5 w-5 text-slate-100" />
+         : id === "wear" ? <GoogleIcon className="h-5 w-5" />
+         : <WatchIcon className="h-5 w-5 text-slate-400" />}
+      </span>
+      <span className={`truncate ${aktiv ? "font-semibold text-slate-100" : "text-slate-200"}`}>{label}</span>
     </button>
   );
 }
@@ -528,6 +675,30 @@ function FertigSchritt({ geraete }: { geraete: PairedDevice[] }) {
     <Card className="p-5">
       <h3 className="mb-1 font-semibold">{t("onb.done.title")}</h3>
       <p className="text-slate-300">{geraete.length > 0 ? t("onb.done.withWatch") : t("onb.done.noWatch")}</p>
+      {/* Wo es weitergeht (Vorgabe Jan): der Assistent fragt absichtlich nur das Wichtigste ab —
+          also sagen, dass unter Profil viel mehr steht, je Uhr noch mehr, und wo weitere Konten
+          hinkommen. Sonst wirkt das Wenige hier wie alles, was es gibt. */}
+      <p className="mt-3 text-slate-300">{t("onb.done.more")}</p>
+
+      {/* Community-Chat + Feedback zum Schluss (Vorgabe Jan, 11.09.2026). Keine Floskel: „nur mit
+          dem vielen feedback aus der community war es mir moeglich pumpfoil.org so schnell so
+          voranzutreiben" — deshalb in der ICH-Form und am Ende, wo jemand gerade fertig
+          eingerichtet hat und das erste Mal etwas sagen koennte. Der Knopf oeffnet dasselbe
+          Panel wie der Briefkasten rechts (Event, s. FeedbackWidget). */}
+      <div className="mt-4 border-t border-slate-800 pt-4">
+        <p className="text-slate-300">{t("onb.done.feedback")}</p>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <Link to="/community">
+            <Button variant="ghost">
+              <span className="flex items-center gap-1.5"><ChatBubbleIcon className="h-4 w-4" />{t("nav.chat")}</span>
+            </Button>
+          </Link>
+          <Button variant="ghost"
+            onClick={() => window.dispatchEvent(new CustomEvent("open-feedback", { detail: "" }))}>
+            <span className="flex items-center gap-1.5"><MailIcon className="h-4 w-4" />{t("feedback.open")}</span>
+          </Button>
+        </div>
+      </div>
     </Card>
   );
 }

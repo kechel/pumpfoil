@@ -23,3 +23,21 @@ export const PROVIDER_ICONS: Record<string, (p: P) => JSX.Element> = {
   google: GoogleIcon,
   apple: AppleIcon,
 };
+
+// Marken-Zeichen der Recorder-Plattformen und Konto-Verknuepfungen, fuer die Auswahl-Kacheln im
+// Einrichtungs-Assistenten (Vorgabe Jan, 11.09.2026: „bitte die brand icons bei all diesen mit in
+// den buttons anzeigen").
+//
+// Was hier ECHT ist und was nicht — bitte nicht stillschweigend „vervollstaendigen":
+//   · Polar, COROS, Suunto: die Herstellerlogos, die schon auf /konten stehen (web/public).
+//   · Apple Watch: das Apple-Logo von oben (einfarbig, nimmt die Schriftfarbe).
+//   · Wear OS: das Google-„G" — Wear OS ist ein Google-Produkt, ein eigenes Wear-OS-Logo liegt
+//     nicht im Repo. Naeherung, bewusst gewaehlt statt nichts.
+//   · Garmin und Amazfit: KEIN Logo im Repo. Statt eines nachgezeichneten (Marken-)Zeichens
+//     steht dort unser neutrales Uhr-Symbol. Wer die echten Dateien hat: als
+//     `web/public/garmin-logo.*` bzw. `amazfit-logo.*` ablegen und hier eintragen.
+export const PLATTFORM_LOGOS: Record<string, string> = {
+  polar: "/polar-logo.jpg",
+  coros: "/coros-logo.png",
+  suunto: "/suunto-logo.png",
+};
