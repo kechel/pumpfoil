@@ -375,9 +375,10 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
  *
  * Der Merker ist `localStorage`, nicht der Server-Merker `settings.onboarding`: dieser hier sagt
  * „gerade mitten drin", jener „einmal durch" — zwei verschiedene Fragen. Geloescht wird er von
- * den drei Ausgaengen des Assistenten („Spaeter fortsetzen", „Nicht mehr zeigen", „Fertig"), also
- * gibt es keinen Weg, auf dem das Band haengen bleibt, ohne dass man es ueber den Assistenten
- * wieder loswird. Auf /onboarding selbst zeigt es sich nicht — dort steht man ja schon.
+ * „Nicht mehr zeigen" und „Fertig", also bei „beendet oder abgebrochen". „Spaeter fortsetzen"
+ * laesst ihn ABSICHTLICH stehen: dieser Ausgang verspricht die Rueckkehr, und das Band ist der
+ * Weg dorthin (samt gemerktem Schritt). Los wird man es also ueber den Assistenten selbst.
+ * Auf /onboarding zeigt es sich nicht — dort steht man ja schon.
  */
 function AssistentBand() {
   const t = useT();

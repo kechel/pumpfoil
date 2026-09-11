@@ -194,10 +194,15 @@ export default function Onboarding() {
   // gespeichert. Heute ist der sichtbare Unterschied noch keiner, weil die Weiche fehlt — der
   // Merker soll aber von Anfang an richtig stehen, damit sie spaeter nicht auf halbe Daten
   // trifft. Ueber /onboarding kommt man in beiden Faellen jederzeit zurueck.
-  // „Spaeter fortsetzen" BEHAELT den Schritt — das ist die Zusage des Knopfs. „Nicht mehr
-  // zeigen" und „Fertig" raeumen ihn weg: wer den Assistenten spaeter freiwillig aus dem Profil
-  // holt, faengt vorn an und nicht auf dem Schlussbildschirm.
-  const spaeter = () => { offenMerken(false); nav("/home"); };
+  // „Spaeter fortsetzen" laesst BEIDE Merker stehen — den Schritt und das „laeuft". Das ist die
+  // Zusage des Knopfs, und das Band oben bleibt damit der Weg zurueck. Vorher loeschte dieser
+  // Ausgang das „laeuft" und widersprach so dem gemerkten Schritt: der Assistent haette
+  // weitergemacht, wo man war, nur fand man ihn nicht mehr (Jans Befund, 11.09.2026).
+  //   Weg ist das Band erst nach „Nicht mehr zeigen" oder „Fertig" — also genau bei „beendet
+  //   oder abgebrochen", wie vorgegeben. Die beiden raeumen auch den Schritt weg: wer den
+  //   Assistenten spaeter freiwillig aus dem Profil holt, faengt vorn an und nicht auf dem
+  //   Schlussbildschirm.
+  const spaeter = () => nav("/home");
   const beenden = () => {
     offenMerken(false);
     schrittMerken(null);
