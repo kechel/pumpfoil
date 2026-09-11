@@ -441,7 +441,53 @@ IN_REVIEW: list[dict] = [
      ]},
 ]
 
+# „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
+# einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
+    {"name": "iOS + Apple Watch", "version": "1.1.32",
+     # Inhalt = alles seit Commit 189564c6, aus dem 1.1.31 am 07.09. 15:12 eingereicht wurde.
+     # Der Schnitt ist wichtig: Datei-Import und Wetterkarte entstanden am 08.09. ABENDS, also
+     # nach jener Einreichung — sie sind bis heute in keiner freigegebenen Fassung.
+     # Die Apple-Watch-App hat sich mitveraendert (Puls-Alarm), es ist EIN Bundle: nach der
+     # Freigabe also BEIDE Schluessel setzen, "ios" und "apple".
+     "note": "built, waiting to be uploaded",
+     "items": [
+         "A setup assistant walks new accounts once through the settings that matter — "
+         "language, display name, level, weight, sport, foil and connecting your watch. "
+         "Everything in it is optional, and you can start it again any time from your profile.",
+         "New heart rate alarm: the watch can vibrate above a heart rate you set, with its own "
+         "vibration pattern. And for repeating alarms you choose how many seconds pass between "
+         "buzzes.",
+         "Correct clock times for every run. After trimming or pausing a recording the times "
+         "were shown too early — they are right now.",
+         "The weather at your spot now shows the water level, the water temperature and the "
+         "gusts, and says where each number comes from.",
+         "FIT, TCX and GPX files can be uploaded straight from the app.",
+         "Portuguese (Portugal) as the 18th language.",
+         "Status labels are translated, and the session list refreshes by itself while a "
+         "recording is still running.",
+     ]},
+    {"name": "Android phone + Wear OS", "version": "after 1.1.28 / 1.2.28",
+     # KEINE Nummer: 1.1.28 / 1.2.28 liegen seit dem 10.09. in der Pruefung, und die naechste
+     # Nummer haengt an deren Ausgang (eine abgelehnte nimmt Play nicht wieder an). Erst danach
+     # bumpen — und dann beide zusammen, das ist die harte Regel.
+     #
+     # Der Schnitt ist hier ein anderer als bei iOS: eingereicht wurde am 10.09. um 10:10, also
+     # stecken Wetterkarte, Datei-Import und pt-PT schon in 1.1.28. Hier stehen nur die vier
+     # Punkte, die DANACH entstanden sind — sonst laesen Nutzer dieselbe Zeile zweimal.
+     "note": "built, waiting for 1.1.28 / 1.2.28 to clear review first",
+     "items": [
+         "A setup assistant walks new accounts once through the settings that matter — "
+         "language, display name, level, weight, sport, foil and connecting your watch. "
+         "Everything in it is optional, and you can start it again any time from your profile.",
+         "New heart rate alarm: the watch can vibrate above a heart rate you set, with its own "
+         "vibration pattern. And for repeating alarms you choose how many seconds pass between "
+         "buzzes.",
+         "Correct clock times for every run. After trimming or pausing a recording the times "
+         "were shown too early — they are right now.",
+         "Status labels are translated, and the session list refreshes by itself while a "
+         "recording is still running.",
+     ]},
 ]
 
 
