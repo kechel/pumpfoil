@@ -141,10 +141,15 @@ export default function Onboarding() {
     api.saveSettings(patch).catch((e) => setFehler((e as Error).message));
   }, []);
 
-  // Ein Weg fuer „Fertig" und „Verlassen": Merker setzen, raus. Der Merker schaltet heute noch
-  // nichts (s. Kopfkommentar) — er soll aber schon jetzt richtig gesetzt werden, damit die
-  // spaetere Weiche nicht auf halbe Daten trifft.
-  const fertig = () => {
+  // Zwei Wege hinaus, und der Unterschied ist GENAU der Merker (Vorgabe Jan):
+  //   `spaeter()`  laesst ihn leer -> eine spaetere Weiche zeigt den Assistenten wieder.
+  //   `beenden()`  setzt ihn -> er kommt nicht mehr von selbst. „Fertig" am Ende auch.
+  // Beides verlaesst die Seite; das Beantwortete ist ohnehin schon Schritt fuer Schritt
+  // gespeichert. Heute ist der sichtbare Unterschied noch keiner, weil die Weiche fehlt — der
+  // Merker soll aber von Anfang an richtig stehen, damit sie spaeter nicht auf halbe Daten
+  // trifft. Ueber /onboarding kommt man in beiden Faellen jederzeit zurueck.
+  const spaeter = () => nav("/home");
+  const beenden = () => {
     speichern({ onboarding: { done_at: new Date().toISOString(), version: 1 } });
     nav("/home");
   };
@@ -226,23 +231,21 @@ export default function Onboarding() {
             <Button onClick={weiter}>{t("onb.next")}</Button>
           </>
         ) : (
-          <Button onClick={() => {
-            // Marker fuer spaeter: von hier aus koennte `RootRoute` neue Konten einmalig
-            // hierher leiten. NOCH OHNE WIRKUNG — die Weiche kommt erst, wenn der Ablauf steht
-            // und Jan entschieden hat, ob die 497 bestehenden Konten ihn sehen sollen.
-            fertig();
-          }}>{t("onb.finish")}</Button>
+          <Button onClick={beenden}>{t("onb.finish")}</Button>
         )}
       </div>
 
-      {/* „Assistenten verlassen" (Vorgabe Jan): unten links, abgesetzt, ueberspringt ALLES.
-          Setzt denselben Merker wie „Fertig" — wer den Assistenten bewusst verlaesst, soll von
-          einer spaeteren Weiche nicht wieder hineingeschickt werden. Ueber /onboarding kommt er
-          jederzeit zurueck, und das Beantwortete ist ohnehin schon gespeichert. */}
-      <div className="mt-6 border-t border-slate-800 pt-4">
-        <button type="button" onClick={fertig}
+      {/* Zwei Wege hinaus, unten links abgesetzt (Vorgabe Jan): einmal mit Wiedervorlage,
+          einmal endgueltig. Bewusst als Textlinks und nicht als Knoepfe — sie sollen erreichbar
+          sein, aber nicht mit „Weiter" um Aufmerksamkeit ringen. */}
+      <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 border-t border-slate-800 pt-4">
+        <button type="button" onClick={spaeter}
           className="text-slate-400 underline hover:text-slate-300">
-          {t("onb.leave")}
+          {t("onb.later")}
+        </button>
+        <button type="button" onClick={beenden}
+          className="text-slate-400 underline hover:text-slate-300">
+          {t("onb.never")}
         </button>
       </div>
     </div>
