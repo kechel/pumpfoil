@@ -57,7 +57,11 @@ export default defineConfig({
         // Googlebot führt keinen Service Worker aus und bekam die Datei — für Menschen (und
         // für die Prüfung in der Search Console) war sie aber unerreichbar.
         navigateFallbackDenylist: [
-          /^\/api/, /^\/media/, /^\/demo/, /-oauth(\?|$)/,
+          // /promo kam am 11.09.2026 dazu: die Endcards zum Verlinken in Foren lagen richtig
+          // auf dem Server, der SW beantwortete den Aufruf aber aus dem Cache mit der App-Shell
+          // — im Browser stand dann „Unexpected Application Error! 404 Not Found" aus dem
+          // Router. Genau der Fall, den der Absatz darueber beschreibt.
+          /^\/api/, /^\/media/, /^\/demo/, /^\/promo/, /-oauth(\?|$)/,
           /^\/sitemap\.xml$/, /^\/robots\.txt$/, /^\/\.well-known/,
           // Search Console legt eine Datei wie `google1a2b3c4d5e.html` in den Wurzelordner.
           /^\/google[0-9a-f]+\.html$/,
