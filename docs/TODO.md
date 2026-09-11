@@ -9,6 +9,18 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 🚀 App-Release-Stand
 
+- **🟢 11.09. 13:16 — iOS/Apple Watch 1.1.32 (Build 36) EINGEREICHT** (Jans Meldung: „Warten auf
+  Pruefung"). Der Eintrag steht in `appmeta.IN_REVIEW` und damit auf `/changelog` unter „Being
+  reviewed". Inhalt = alles seit Commit `189564c6`, aus dem 1.1.31 am 07.09. 15:12 eingereicht
+  wurde: Einrichtungs-Assistent, Puls-Alarm mit Wiederholabstand, richtige Lauf-Uhrzeiten,
+  Wetterkarte (Pegel/Wassertemperatur/Boeen), Datei-Import (FIT/TCX/GPX), Portugiesisch
+  (Portugal), uebersetzte Status-Anzeigen + selbst nachladende Liste.
+  - **Nach der Freigabe:** `_APP_META["ios"]` UND `_APP_META["apple"]` auf 1.1.32 (ein Bundle),
+    IN_REVIEW-Eintrag entfernen, Changelog-Punkte eintragen. Apple schickt ZWEI Mails — erst
+    „eligible for distribution" (nur Pruefung durch), dann „ready for distribution"; erst die
+    zweite ist die Freigabe.
+  - Naechste iOS-Nummer danach: **1.1.33 / 37**.
+
 - **🟢 11.09. — Einrichtungs-Assistent auf Android und iOS portiert** (`OnboardingScreen.kt`,
   `OnboardingView.swift`). Texte aus derselben Quelle wie die PWA erzeugt
   (`scripts/i18n-onboarding-native.py` liest `web/src/i18n/locales/*.ts`), 96 Schluessel × 18

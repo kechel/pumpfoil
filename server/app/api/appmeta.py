@@ -328,6 +328,32 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    {"name": "iOS + Apple Watch", "version": "1.1.32",
+     # Inhalt = alles seit Commit 189564c6, aus dem 1.1.31 am 07.09. 15:12 eingereicht wurde.
+     # Der Schnitt ist wichtig: Datei-Import und Wetterkarte entstanden am 08.09. ABENDS, also
+     # nach jener Einreichung — sie sind bis heute in keiner freigegebenen Fassung.
+     # EINGEREICHT 11.09.2026 13:16 (Jans Meldung: „Warten auf Pruefung", Version 1.1.32 (36)).
+     # Die Apple-Watch-App hat sich mitveraendert (Puls-Alarm), es ist EIN Bundle: nach der
+     # Freigabe also BEIDE Schluessel setzen, "ios" und "apple". Und Apple schickt ZWEI Mails —
+     # erst „eligible for distribution" (nur Pruefung durch), dann „ready for distribution".
+     # Erst die zweite ist die Freigabe.
+     "note": "submitted 11 September, waiting for Apple",
+     "items": [
+         "A setup assistant walks new accounts once through the settings that matter — "
+         "language, display name, level, weight, sport, foil and connecting your watch. "
+         "Everything in it is optional, and you can start it again any time from your profile.",
+         "New heart rate alarm: the watch can vibrate above a heart rate you set, with its own "
+         "vibration pattern. And for repeating alarms you choose how many seconds pass between "
+         "buzzes.",
+         "Correct clock times for every run. After trimming or pausing a recording the times "
+         "were shown too early — they are right now.",
+         "The weather at your spot now shows the water level, the water temperature and the "
+         "gusts, and says where each number comes from.",
+         "FIT, TCX and GPX files can be uploaded straight from the app.",
+         "Portuguese (Portugal) as the 18th language.",
+         "Status labels are translated, and the session list refreshes by itself while a "
+         "recording is still running.",
+     ]},
     {"name": "Android phone + Wear OS", "version": "1.1.28 / 1.2.28",
      # ERSETZT die Einreichung vom 07.09. (1.1.26/1.2.26), bevor Google sie freigegeben hat —
      # Entscheidung Jan (08.09.2026): „statt eine Woche zu warten lade ich das Update direkt neu
@@ -444,29 +470,6 @@ IN_REVIEW: list[dict] = [
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
-    {"name": "iOS + Apple Watch", "version": "1.1.32",
-     # Inhalt = alles seit Commit 189564c6, aus dem 1.1.31 am 07.09. 15:12 eingereicht wurde.
-     # Der Schnitt ist wichtig: Datei-Import und Wetterkarte entstanden am 08.09. ABENDS, also
-     # nach jener Einreichung — sie sind bis heute in keiner freigegebenen Fassung.
-     # Die Apple-Watch-App hat sich mitveraendert (Puls-Alarm), es ist EIN Bundle: nach der
-     # Freigabe also BEIDE Schluessel setzen, "ios" und "apple".
-     "note": "built, waiting to be uploaded",
-     "items": [
-         "A setup assistant walks new accounts once through the settings that matter — "
-         "language, display name, level, weight, sport, foil and connecting your watch. "
-         "Everything in it is optional, and you can start it again any time from your profile.",
-         "New heart rate alarm: the watch can vibrate above a heart rate you set, with its own "
-         "vibration pattern. And for repeating alarms you choose how many seconds pass between "
-         "buzzes.",
-         "Correct clock times for every run. After trimming or pausing a recording the times "
-         "were shown too early — they are right now.",
-         "The weather at your spot now shows the water level, the water temperature and the "
-         "gusts, and says where each number comes from.",
-         "FIT, TCX and GPX files can be uploaded straight from the app.",
-         "Portuguese (Portugal) as the 18th language.",
-         "Status labels are translated, and the session list refreshes by itself while a "
-         "recording is still running.",
-     ]},
     {"name": "Android phone + Wear OS", "version": "after 1.1.28 / 1.2.28",
      # KEINE Nummer: 1.1.28 / 1.2.28 liegen seit dem 10.09. in der Pruefung, und die naechste
      # Nummer haengt an deren Ausgang (eine abgelehnte nimmt Play nicht wieder an). Erst danach
