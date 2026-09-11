@@ -164,20 +164,28 @@ DEFAULTS = {
 # Schalter der oeffentlichen Foiler-Seite (ohne `enabled`, das steht fuer die ganze Seite).
 # --- Wer wird zum Einrichtungs-Assistenten geleitet? -------------------------------------------
 #
-# AUS. `None` heisst: NIEMAND wird geleitet, `onboarding_due` ist fuer jeden false. Der Assistent
-# ist nur ueber die Adresse /onboarding erreichbar.
+# SCHARF seit dem 11.09.2026, 09:45 UTC (Jan: „dann jetzt in der pwa live schalten").
 #
-# Und so MUSS das Einschalten aussehen: ein DATUM, ab dem ein Konto angelegt sein muss. Die
-# naheliegende Bedingung „Merker fehlt" waere ein Unfall — nachgemessen am 11.09.2026 haben
-# 497 von 498 Konten keinen Merker, darunter 248 mit eigenen Sessions und 395 mit gepairter
-# Uhr. Die haetten alle beim naechsten Laden einen Einrichtungs-Assistenten vor der Nase, nach
-# Wochen des Fahrens. Der Stichtag schliesst das aus, statt sich darauf zu verlassen, dass
-# jemand daran denkt.
+# Der Wert ist ein DATUM, und das ist der ganze Sicherheitsmechanismus: nur Konten, die NACH
+# diesem Zeitpunkt angelegt wurden, werden zum Assistenten geleitet. Die naheliegende Bedingung
+# „Merker fehlt" waere ein Unfall gewesen — nachgemessen am 11.09.2026 hatten 497 von 498 Konten
+# keinen Merker, darunter 248 mit eigenen Sessions und 395 mit gepairter Uhr. Die haetten alle
+# beim naechsten Laden einen Einrichtungs-Assistenten vor der Nase gehabt, nach Wochen des
+# Fahrens. Bestehende Konten sind durch den Stichtag dauerhaft aussen vor; freiwillig kommen sie
+# ueber den Knopf im Profil hinein (ganz unten, ueber „Daten & Konto").
 #
-# Zum Einschalten also: hier ein Datum eintragen (der Tag, an dem der Assistent scharf gestellt
-# wird, in UTC) — bestehende Konten sind damit dauerhaft aussen vor, und es trifft nur, wer sich
-# DANACH registriert (zuletzt rund 8 Konten am Tag).
-ONBOARDING_AB: datetime | None = None
+# Die Uhrzeit ist mit Absicht kein Mitternacht: das juengste Konto entstand am selben Tag
+# 09:31 UTC, eine Stichzeit um 00:00 haette also Leute erwischt, die sich Stunden vorher
+# registriert und schon alles eingerichtet hatten. Bei rund 8 Registrierungen am Tag ist das
+# kein theoretischer Fall. Sie darf aber auch nicht in der ZUKUNFT liegen, sonst ist die Weiche
+# faktisch aus und die Konten aus dem Zwischenfenster sind dauerhaft ausgenommen — genau das hat
+# `test_onboarding_weiche_stichtag` beim Scharfstellen gefangen (erster Versuch 10:00 UTC,
+# eingetragen um 09:57). Der Wert liegt jetzt sicher zwischen der letzten Registrierung (09:31)
+# und dem Zeitpunkt des Deploys.
+#
+# `None` schaltet die Weiche wieder komplett aus (niemand wird geleitet); der Assistent bleibt
+# dann nur ueber /onboarding und den Profil-Knopf erreichbar.
+ONBOARDING_AB: datetime | None = datetime(2026, 9, 11, 9, 45, 0, tzinfo=timezone.utc)
 
 
 def onboarding_faellig(user: models.User) -> bool:

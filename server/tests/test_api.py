@@ -252,25 +252,26 @@ def test_onboarding_merker(client):
     assert client.get("/api/settings", headers=auth).json().get("onboarding") is None
 
 
-def test_onboarding_weiche_ist_aus(client, monkeypatch):
-    """Die Weiche zum Einrichtungs-Assistenten darf KEIN bestehendes Konto erwischen.
+def test_onboarding_weiche_stichtag(client, monkeypatch):
+    """Die Weiche zum Einrichtungs-Assistenten darf KEIN Konto von VOR dem Stichtag erwischen.
 
-    Der Anlass ist gemessen (11.09.2026): 497 von 498 Konten haben keinen Merker, davon 248 mit
+    Der Anlass ist gemessen (11.09.2026): 497 von 498 Konten hatten keinen Merker, davon 248 mit
     eigenen Sessions. Die naheliegende Bedingung „Merker fehlt" haette die alle in einen
-    Einrichtungs-Assistenten geschickt. Deshalb hängt sie an einem STICHTAG, und dieser Test
-    hält beides fest: ohne Stichtag ist sie aus, und mit Stichtag trifft sie nur Konten, die
-    danach entstanden sind.
+    Einrichtungs-Assistenten geschickt. Deshalb hängt sie an einem STICHTAG.
+
+    Seit dem 11.09.2026, 10:00 UTC ist sie scharf (`ONBOARDING_AB` gesetzt). Der Test prüft
+    daher nicht mehr „ist aus", sondern die Eigenschaft, auf die es ankommt: ein Stichtag ist
+    gesetzt, er liegt nicht in der Zukunft, und ein Konto von davor wird NICHT geleitet.
     """
     from app.api import settings as st
+    from datetime import datetime, timedelta, timezone
+    jetzt = datetime.now(timezone.utc)
     auth = {"Authorization": "Bearer " + client.post(
         "/api/auth/register", json={"email": "weiche@b.de", "password": "supersecret"}).json()["access_token"]}
 
-    # 1) Aus (Standard): niemand wird geleitet.
-    assert st.ONBOARDING_AB is None, "Die Weiche ist AN — war das Absicht?"
-    assert client.get("/api/auth/me", headers=auth).json()["onboarding_due"] is False
-
-    from datetime import datetime, timedelta, timezone
-    jetzt = datetime.now(timezone.utc)
+    # 1) Scharf, und der Stichtag liegt in der Vergangenheit — sonst wäre die Weiche faktisch aus.
+    assert st.ONBOARDING_AB is not None, "Die Weiche ist AUS — war das Absicht?"
+    assert st.ONBOARDING_AB <= jetzt, "Stichtag liegt in der Zukunft, die Weiche greift nie."
 
     # 2) Stichtag in der ZUKUNFT -> auch ein frisches Konto ist aussen vor.
     monkeypatch.setattr(st, "ONBOARDING_AB", jetzt + timedelta(days=1))
