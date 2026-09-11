@@ -278,8 +278,22 @@ export default function Onboarding() {
         <div className="flex-1" />
         {schritt !== "done" ? (
           <>
-            <Button variant="ghost" onClick={weiter}>{t("onb.skip")}</Button>
-            <Button onClick={weiter}>{t("onb.next")}</Button>
+            {/* Ueberspringen bekommt das doppelte Winkelzeichen (»), Weiter das einfache —
+                dieselbe Richtung, aber unterscheidbar, und beide aus dem vorhandenen
+                ChevronIcon statt aus einem Emoji (memory no-standard-emojis-in-ui). Das zweite
+                Winkel liegt bewusst dicht am ersten, sonst liest es sich wie zwei Knoepfe. */}
+            <Button variant="ghost" onClick={weiter}>
+              <span className="flex items-center gap-1">
+                {t("onb.skip")}
+                <span className="flex items-center" aria-hidden>
+                  <ChevronIcon className="h-4 w-4" />
+                  <ChevronIcon className="-ml-2 h-4 w-4" />
+                </span>
+              </span>
+            </Button>
+            <Button onClick={weiter}>
+              <span className="flex items-center gap-1">{t("onb.next")}<ChevronIcon className="h-4 w-4" /></span>
+            </Button>
           </>
         ) : (
           <Button onClick={beenden}>{t("onb.finish")}</Button>
