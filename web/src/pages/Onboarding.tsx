@@ -553,7 +553,7 @@ function UhrSchritt({ geraete, setGeraete }: {
         </div>
 
         <p className="mb-2 mt-4 text-sm font-medium text-slate-400">{t("onb.watch.linked")}</p>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {VERKNUEPFUNGEN.map((v) => (
             <Kachel key={v.id} id={v.id} label={v.label} aktiv={wahl === v.id} onClick={() => setWahl(v.id)} />
           ))}
@@ -701,7 +701,11 @@ function KontoSchritt({ dienst }: { dienst: string }) {
 function Kachel({ id, label, aktiv, onClick }: {
   id: string; label: string; aktiv: boolean; onClick: () => void;
 }) {
-  const logo = PLATTFORM_LOGOS[id];
+  // Fehlt die Logo-Datei noch (Garmin, Amazfit), meldet das <img> einen Fehler und wir zeigen
+  // das neutrale Uhr-Symbol. Dadurch reicht spaeter das ABLEGEN der Datei unter dem in
+  // PLATTFORM_LOGOS eingetragenen Namen — ohne Code-Aenderung.
+  const [logoFehlt, setLogoFehlt] = useState(false);
+  const logo = logoFehlt ? undefined : PLATTFORM_LOGOS[id];
   return (
     <button type="button" onClick={onClick} aria-pressed={aktiv}
       className={`flex min-w-0 items-center gap-2 rounded-xl border px-3 py-2.5 text-left transition ${
@@ -714,7 +718,8 @@ function Kachel({ id, label, aktiv, onClick }: {
           oben begrenzt, damit die Kachel auf dem Handy (zwei Spalten) nicht platzt. Die
           Marken-SVGs (Apple, Google) sind quadratisch und bleiben bei 20 px. */}
       <span className="flex h-7 shrink-0 items-center">
-        {logo ? <img src={logo} alt="" className="h-6 w-auto max-w-[4.5rem] rounded bg-white object-contain p-0.5" />
+        {logo ? <img src={logo} alt="" onError={() => setLogoFehlt(true)}
+                     className="h-6 w-auto max-w-[4rem] rounded bg-white object-contain p-0.5" />
          : id === "apple" ? <AppleIcon className="h-5 w-5 text-slate-100" />
          : id === "wear" ? <GoogleIcon className="h-5 w-5" />
          : <WatchIcon className="h-5 w-5 text-slate-400" />}

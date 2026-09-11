@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
@@ -161,6 +162,45 @@ DEFAULTS = {
 }
 
 # Schalter der oeffentlichen Foiler-Seite (ohne `enabled`, das steht fuer die ganze Seite).
+# --- Wer wird zum Einrichtungs-Assistenten geleitet? -------------------------------------------
+#
+# AUS. `None` heisst: NIEMAND wird geleitet, `onboarding_due` ist fuer jeden false. Der Assistent
+# ist nur ueber die Adresse /onboarding erreichbar.
+#
+# Und so MUSS das Einschalten aussehen: ein DATUM, ab dem ein Konto angelegt sein muss. Die
+# naheliegende Bedingung „Merker fehlt" waere ein Unfall — nachgemessen am 11.09.2026 haben
+# 497 von 498 Konten keinen Merker, darunter 248 mit eigenen Sessions und 395 mit gepairter
+# Uhr. Die haetten alle beim naechsten Laden einen Einrichtungs-Assistenten vor der Nase, nach
+# Wochen des Fahrens. Der Stichtag schliesst das aus, statt sich darauf zu verlassen, dass
+# jemand daran denkt.
+#
+# Zum Einschalten also: hier ein Datum eintragen (der Tag, an dem der Assistent scharf gestellt
+# wird, in UTC) — bestehende Konten sind damit dauerhaft aussen vor, und es trifft nur, wer sich
+# DANACH registriert (zuletzt rund 8 Konten am Tag).
+ONBOARDING_AB: datetime | None = None
+
+
+def onboarding_faellig(user: models.User) -> bool:
+    """Soll dieses Konto zum Einrichtungs-Assistenten geleitet werden?
+
+    Drei Bedingungen, alle noetig: der Stichtag ist ueberhaupt gesetzt (sonst ist die Weiche
+    aus), das Konto ist danach entstanden, und der Assistent wurde noch nicht beendet. Der
+    Merker entsteht nur durch „Fertig" oder „Nicht mehr zeigen" — „Spaeter fortsetzen" laesst
+    ihn absichtlich leer, damit der Assistent beim naechsten Login wieder angeboten wird (gegen
+    eine Endlosschleife INNERHALB einer Sitzung schuetzt der Client, nicht dieser Wert).
+    """
+    if ONBOARDING_AB is None:
+        return False
+    erstellt = user.created_at
+    if erstellt is None:
+        return False
+    if erstellt.tzinfo is None:                      # Altbestand ohne Zeitzone
+        erstellt = erstellt.replace(tzinfo=timezone.utc)
+    if erstellt < ONBOARDING_AB:
+        return False
+    return not (_merged(user).get("onboarding") or None)
+
+
 PUBLIC_PROFILE_KEYS = ("join", "watch", "foil", "homespot", "records", "media", "spots",
                        "sessions", "titles", "channel")
 

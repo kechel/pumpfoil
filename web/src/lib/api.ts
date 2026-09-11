@@ -529,6 +529,10 @@ export interface Profile {
   foil_sensitivity?: string;   // persönliche Erkennungs-Empfindlichkeit (normal|light|attempts)
   pump_unit?: "hz" | "ppm";    // Anzeige-Einheit der Pump-Kadenz (nur Darstellung, ppm = Hz×60)
   social_allowed?: boolean;   // false = unter 13, UGC/Feed/Chat gesperrt (Apple-Vorgabe)
+  // Soll dieses Konto einmalig zum Einrichtungs-Assistenten geleitet werden? Die Regel liegt
+  // KOMPLETT im Server (api/settings.onboarding_faellig, Stichtag) — hier nur gehorchen, nicht
+  // nachbauen. Heute immer false: die Weiche ist aus.
+  onboarding_due?: boolean;
   // Eigene Sessions, die auf eine Zuordnung warten (docs/sport-classification.md) + die neueste
   // davon, damit der Hinweis direkt dorthin verlinkt.
   needs_classification?: number;
