@@ -508,14 +508,17 @@ function CommunitySection() {
       <LatestMedia />
       <Leaderboards period={period} accelOnly={accelOnly} sport={sport} band={band} />
       <TopLiked period={period} />
-      {/* Social-Feed zwischen „Best bewertet" und den Spots (Jan, 11.09.2026). Er stand seit dem
-          30.08. ganz oben ueber „Medien" — damals mit der Begruendung, die Videos der Community
-          seien das Lebendigste auf der Seite. Das gilt erst, wenn sich Leute eintragen: bis heute
-          hat es ausser Jan niemand getan, und ein Block dieser Groesse so weit oben verspricht
-          mehr, als da ist. Kommt der Feed in Gang, gehoert er wieder nach oben. */}
+      {/* Reihenfolge unter „Best bewertet" (Jan, 11.09.2026): erst die Uhr-Layouts, dann der
+          Social-Feed, dann die Spots.
+          Die LAYOUTS standen ganz unten und duerfen prominenter werden — daran beteiligen sich
+          Leute wirklich. Der SOCIAL-FEED stand seit dem 30.08. ganz oben ueber „Medien", damals
+          mit der Begruendung, die Videos der Community seien das Lebendigste auf der Seite. Das
+          gilt erst, wenn sich Leute eintragen: bis heute hat es ausser Jan niemand getan, und ein
+          Block dieser Groesse so weit oben verspricht mehr, als da ist. Kommt der Feed in Gang,
+          gehoert er wieder nach oben. */}
+      <LayoutTeaser />
       <SocialFeed />
       <SpotSection period={period} accelOnly={accelOnly} sport={sport} />
-      <LayoutTeaser />
     </div>
   );
 }
