@@ -896,6 +896,10 @@ function FertigSchritt({ geraete, social }: { geraete: PairedDevice[]; social: b
             <span className="flex items-center gap-1.5"><MailIcon className="h-4 w-4" />{t("feedback.open")}</span>
           </Button>
         </div>
+        {/* Unser Spruch als letztes Wort (Vorgabe Jan). Bewusst NICHT ueber i18n und bewusst
+            NICHT uebersetzt: er ist in jeder Sprache derselbe (memory motto) — 18 gleiche
+            Eintraege waeren nur Gelegenheit, dass einer davon abweicht. */}
+        <p className="mt-4 font-semibold text-brand-600 dark:text-brand-300">Have fun, keep pumping!</p>
       </div>
     </Card>
   );
