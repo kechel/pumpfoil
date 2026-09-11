@@ -88,7 +88,11 @@ export function LanguageGrid({ className = "" }: { className?: string }) {
   const { lang, setLang } = useI18n();
   return (
     <div role="group" aria-label="Sprache / Language"
-      className={`grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 ${className}`}>
+      // HOECHSTENS drei Spalten (Vorgabe Jan): bei vier blieb fuer den Namen so wenig Platz,
+      // dass „Português (Brasil)" und „Português (Portugal)" beide zu „Português (…" wurden —
+      // also genau die Unterscheidung verschwand, um die es bei den beiden geht. Dasselbe traf
+      // Schwiizerdütsch, Österreichisch und Bahasa Indonesia.
+      className={`grid grid-cols-2 gap-2 sm:grid-cols-3 ${className}`}>
       {LANGS.map((l) => {
         const aktiv = lang === l.code;
         return (
