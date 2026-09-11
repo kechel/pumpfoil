@@ -53,6 +53,10 @@ object Api {
         prefs(ctx).edit().putString("token", t).apply()
     }
     fun logout(ctx: Context) {
+        // „Schon angeboten" ist eine Sperre je APP-LAUF; ohne das Zuruecksetzen waere die
+        // Zusage „beim naechsten Login nochmal" in Wahrheit „beim naechsten App-Start
+        // nochmal" — wer sich ohne Neustart neu anmeldet, saehe den Assistenten nicht.
+        OnbState.angeboten = false
         token = null
         // mintedWearToken mitlöschen: nach Account-Wechsel darf nicht der alte Token
         // an die Uhr geschoben werden (sonst lädt die Uhr ins falsche Konto hoch).
