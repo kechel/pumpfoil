@@ -1,6 +1,6 @@
 // Schwiizerdütsch (Schweizer Mundart). Fehlendi Keys falled uf Hochdütsch (de) zrugg.
 const gsw: Record<string, string> = {
-  "hr.viewPeak": "Höchschtpuls",
+  "hr.viewPeak": "Absolut",
   "hr.viewRise": "Aastieg",
   "hr.viewRiseHint": "Zeigt, wie wiit de Puls im Lauf gstiege isch — im Vergliich zum Puls am Aafang vom gliiche Lauf. So sind Läuf vergliichbar, wo de Uusgangspuls verschiide hoch gsi isch.",
   "onb.startTitle": "Iirichtigs-Assistänt",

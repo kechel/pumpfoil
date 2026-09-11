@@ -1,6 +1,6 @@
 // Österreichisch (mit a bissl Dialekt-Färbung). Fehlendi Keys falln auf de zruck.
 const deAT: Record<string, string> = {
-  "hr.viewPeak": "Höchstpuls",
+  "hr.viewPeak": "Absolut",
   "hr.viewRise": "Anstieg",
   "hr.viewRiseHint": "Zeigt, wie weit der Puls im Lauf gestiegen ist — gegenüber dem Puls zu Beginn desselben Laufs. So sind Läufe vergleichbar, deren Ausgangspuls verschieden hoch war.",
   "onb.startTitle": "Einrichtungs-Assistent",

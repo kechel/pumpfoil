@@ -1,5 +1,5 @@
 const es: Record<string, string> = {
-  "hr.viewPeak": "Máximo",
+  "hr.viewPeak": "Absoluto",
   "hr.viewRise": "Aumento",
   "hr.viewRiseHint": "Muestra cuánto subió el pulso durante el run — respecto al pulso al inicio de ese mismo run. Así los runs se pueden comparar aunque los empezaras con pulsos distintos.",
   "onb.startTitle": "Asistente de configuración",
