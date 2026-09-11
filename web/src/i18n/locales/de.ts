@@ -1,6 +1,8 @@
 // Quelle der Wahrheit. Alle anderen Sprachen spiegeln diese Keys.
 // Platzhalter im Text: {name} wird per t(key, { name }) ersetzt.
 const de: Record<string, string> = {
+  "onb.later": "Später fortsetzen",
+  "onb.never": "Nicht mehr zeigen",
   "onb.done.feedback": "Über Rückmeldungen freuen wir uns jederzeit sehr: Fehler, Ideen, Wünsche — alles ist willkommen, im Community-Chat oder über den Briefkasten rechts. Nur durch das viele Feedback aus der Community konnte ich pumpfoil.org so schnell so weit bringen.",
   "onb.link.back": "Zurück zur Einrichtung",
   "onb.watch.g1": "„Pumpfoil“ aus dem Connect IQ Store auf die Uhr laden.",
@@ -17,7 +19,6 @@ const de: Record<string, string> = {
   "onb.watch.z3": "App auf der Uhr starten — sie zeigt einen Code, den hier eintragen.",
   "onb.watch.codeFallback": "Zeigt deine Uhr trotzdem einen Code? Dann hier eintragen.",
   "onb.welcome": "Willkommen bei pumpfoil.org",
-  "onb.leave": "Assistenten verlassen",
   "onb.foil.defaultHint": "Antippen macht ein Foil zum Standard (★) — das gilt dann für neue Aufnahmen.",
   "onb.foil.missing": "Dein Foil ist nicht dabei?",
   "onb.foil.missingHow": "Sag uns über den Briefkasten rechts, wie dein Foil genau heißt — Marke, Modell und Größe. Dann tragen wir es zeitnah in den Katalog ein.",
