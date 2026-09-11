@@ -222,6 +222,25 @@ const STATS_METRICS: [keyof AdminStatsSeries["totals"], string, string][] = [
   ["likes", "adm.stats.likes", "#fb7185"],
 ];
 
+// Je Plattform: wie viele NUTZER haben an dem Tag etwas uebertragen (Vorgabe Jan, 11.09.2026).
+// Bewusst Nutzer und nicht Sessions — wer ein Konto neu verknuepft, holt seine ganze Historie auf
+// einmal nach (am 07.09. waren das 1049 alte Suunto-Fahrten an EINEM Tag); als Sessionzahl waere
+// das ein Ausreisser, der die Kurve unlesbar macht, als Nutzerzahl ist es eine 1.
+//
+// Diese Reihen werden NICHT kumuliert: eine Summe ueber Tages-Distinct-Werte zaehlt denselben
+// Nutzer an jedem Tag erneut. Gezeigt wird der Tageswert, die Zahl daneben ist die echte
+// Fenster-Summe (distinct ueber den ganzen Zeitraum, vom Server).
+//
+// „Konto-Import" sind die Sessions OHNE Geraet: Polar, COROS, Suunto und hochgeladene Dateien.
+const PLATTFORM_METRICS: [keyof AdminStatsSeries["totals"], string, string][] = [
+  ["p_garmin", "Garmin", "#22d3ee"],
+  ["p_apple", "Apple Watch", "#a3a3a3"],
+  ["p_wear", "Wear OS", "#4ade80"],
+  ["p_zepp", "Amazfit", "#fbbf24"],
+  ["p_phone", "Handy", "#c084fc"],
+  ["p_import", "Konto-Import", "#38bdf8"],
+];
+
 const DAY_MS = 86400000;
 
 function StatsSection() {
@@ -259,6 +278,7 @@ function StatsSection() {
         ))}
       </div>
       {!data ? <Spinner /> : (
+        <>
         <div className="grid gap-4 sm:grid-cols-2">
           {STATS_METRICS.map(([key, labelKey, color]) => {
             // „heute": tägliche Werte (24h-Zacken); sonst kumulierte Kurve, bis "jetzt" verlängert.
@@ -302,6 +322,53 @@ function StatsSection() {
             );
           })}
         </div>
+
+        {/* Zweites Raster: wer laedt ueber welche Plattform hoch. Steht unter den allgemeinen
+            Kurven, damit ein Ausfall einer Plattform auffaellt, ohne dass man danach sucht. */}
+        <h3 className="mt-6 text-sm font-semibold text-slate-100">
+          Nutzer mit Übertragung je Plattform
+        </h3>
+        <p className="-mt-1 text-xs text-slate-400">
+          Wie viele Nutzer an dem Tag etwas übertragen haben — nicht wie viele Sessions. Eine neu
+          verknüpfte Kontoverbindung holt auf einmal die ganze Historie nach; das ist hier eine 1.
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {PLATTFORM_METRICS.map(([key, titel, color]) => {
+            // Tageswerte, NICHT kumuliert (s. Kommentar an PLATTFORM_METRICS).
+            const tPlot = times;
+            const vPlot = data.buckets.map((b) => b[key]);
+            const headline = data.totals[key];
+            const vmax = vPlot.length ? Math.max(...vPlot, 1) : 1;
+            const fmtY = (v: number) => nf(Math.round(v));
+            return (
+              <Card key={key} className="p-3">
+                <div className="mb-1 flex items-baseline justify-between px-1">
+                  <span className="text-xs uppercase tracking-wide text-slate-300">{titel}</span>
+                  <span className="text-lg font-bold tabular-nums" style={{ color }}>
+                    {nf(Math.round(headline))}
+                    <span className="ml-2 text-xs font-normal text-slate-400">im Zeitraum</span>
+                  </span>
+                </div>
+                <div className="flex gap-1">
+                  <div className="flex h-[100px] w-8 shrink-0 flex-col justify-between py-0.5 text-right text-[10px] tabular-nums text-slate-500">
+                    <span>{fmtY(vmax)}</span><span>{fmtY(vmax / 2)}</span><span>0</span>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    {/* Zwei unsichtbare Stuetzpunkte an den Raendern halten die Skala bei 0…max —
+                        sonst skalierte TimeChart auf min…max der Werte und eine flache Reihe
+                        saehe aus wie starke Ausschlaege (dasselbe Mittel wie im System-Tab). */}
+                    <TimeChart t={[domain[0] - 1, ...tPlot, domain[1] + 1]}
+                      values={[0, ...vPlot, vmax]} color={color} domainMs={domain} height={100} />
+                  </div>
+                </div>
+                <div className="ml-9 mt-1 flex justify-between px-1 text-[10px] tabular-nums text-slate-500">
+                  {ticks.map((tk, i) => <span key={i}>{fmtTick(tk)}</span>)}
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+        </>
       )}
     </div>
   );
