@@ -1,4 +1,8 @@
 const en: Record<string, string> = {
+  "onb.startTitle": "Setup assistant",
+  "onb.startSub": "Language, name, level, foil and watch in a few steps — repeat it any time.",
+  "onb.startCta": "Start the assistant",
+  "onb.done.upload": "Uploading only happens while the Pumpfoil app is open on the watch and connected to your phone or Wi-Fi. If the app is closed, the recording stays safely on the watch and goes up by itself the next time you open it. You can see the progress in the watch app, and start the upload there later too — on Garmin via Menu → Upload / Sync.",
   "onb.name.sub": "It shows publicly under every recording of yours in the community feed. You can change it any time.",
   "onb.resume": "Back to setup",
   "onb.later": "Continue later",

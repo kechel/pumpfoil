@@ -1,4 +1,8 @@
 const zh: Record<string, string> = {
+  "onb.startTitle": "设置向导",
+  "onb.startSub": "几步搞定语言、名称、水平、水翼和手表——随时可以重来。",
+  "onb.startCta": "启动向导",
+  "onb.done.upload": "只有在手表上的 Pumpfoil 应用处于打开状态、并连接手机或 Wi-Fi 时才会上传。应用关闭时，记录会安全地留在手表上，下次打开应用会自动上传。进度可以在手表应用里查看，也能在那里事后手动开始上传——Garmin 在「菜单 → Upload / Sync」里。",
   "onb.name.sub": "它会公开显示在社区动态里你的每一条记录下面。随时可以修改。",
   "onb.resume": "回到设置",
   "onb.later": "以后再继续",

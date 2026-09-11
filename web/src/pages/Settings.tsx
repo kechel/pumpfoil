@@ -366,6 +366,18 @@ export default function Settings() {
         <NotificationsToggle />
       </Card>
 
+      {/* Einstieg in den Einrichtungs-Assistenten — fuer ALLE und jederzeit (Vorgabe Jan,
+          11.09.2026). Damit ist /onboarding ab jetzt verlinkt: bisher kam man nur ueber die
+          Adresse hin. Die automatische WEICHE fuer neue Konten ist davon unberuehrt und weiter
+          aus (settings.ONBOARDING_AB) — dieser Knopf ist der freiwillige Weg hinein, auch fuer
+          die Konten, die der Assistent nie von selbst erwischen wird. Bewusst ganz unten
+          direkt ueber „Daten & Konto": es ist kein taeglicher Weg, aber er soll auffindbar sein. */}
+      <Card className="mt-4 p-5">
+        <h3 className="mb-1 font-semibold">{t("onb.startTitle")}</h3>
+        <p className="mb-3 text-sm text-slate-300">{t("onb.startSub")}</p>
+        <Link to="/onboarding"><Button variant="ghost">{t("onb.startCta")}</Button></Link>
+      </Card>
+
       <Card className="mt-4 p-5">
         <h3 className="mb-1 font-semibold">{t("profile.dataTitle")}</h3>
         <p className="mb-3 text-sm text-slate-300">{t("profile.dataHint")}</p>

@@ -1,6 +1,10 @@
 // Niederländisch (nl). Struktur 1:1 zu de.ts (Quelle der Wahrheit).
 // Erstübersetzung maschinell (informelles je/jij); Muttersprachler-Review empfohlen.
 const nl: Record<string, string> = {
+  "onb.startTitle": "Instelhulp",
+  "onb.startSub": "Taal, naam, niveau, foil en horloge in een paar stappen — altijd te herhalen.",
+  "onb.startCta": "Hulp starten",
+  "onb.done.upload": "Uploaden gebeurt alleen zolang de Pumpfoil-app op het horloge open is en met je telefoon of wifi verbonden. Is de app dicht, dan blijft de opname veilig op het horloge en gaat hij bij het volgende openen vanzelf omhoog. De voortgang zie je in de horloge-app, en daar kun je het uploaden ook later starten — bij Garmin via Menu → Upload / Sync.",
   "onb.name.sub": "Hij staat openbaar onder elke opname van je in de community-feed. Je kunt hem altijd wijzigen.",
   "onb.resume": "Terug naar de instelling",
   "onb.later": "Later verdergaan",

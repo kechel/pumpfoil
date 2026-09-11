@@ -1,4 +1,8 @@
 const fi: Record<string, string> = {
+  "onb.startTitle": "Käyttöönottoapuri",
+  "onb.startSub": "Kieli, nimi, taso, foili ja kello parissa vaiheessa — voit toistaa milloin vain.",
+  "onb.startCta": "Käynnistä apuri",
+  "onb.done.upload": "Lataus tapahtuu vain, kun Pumpfoil-sovellus on kellossa auki ja yhteydessä puhelimeen tai Wi-Fiin. Jos sovellus on kiinni, tallenne pysyy turvassa kellossa ja lähtee itsestään, kun avaat sovelluksen seuraavan kerran. Edistymisen näet kellon sovelluksessa, ja voit käynnistää latauksen siellä myös jälkikäteen — Garminissa valikosta Menu → Upload / Sync.",
   "onb.name.sub": "Se näkyy julkisesti jokaisen tallenteesi yhteydessä yhteisön syötteessä. Voit muuttaa sen milloin vain.",
   "onb.resume": "Takaisin käyttöönottoon",
   "onb.later": "Jatka myöhemmin",
