@@ -56,9 +56,15 @@ class User(Base):
     hidden: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     # Bevorzugte UI-Sprache (de, gsw, de-AT, en, fr, it, es). Default Deutsch.
     language: Mapped[str] = mapped_column(String(8), default="en", server_default="en")
-    # Persönliche Erkennungs-Empfindlichkeit (normal|light|attempts) — übersteuert die
-    # Foil-Limits NUR für die eigene Auswertung (leichte/langsame Fahrer, Startversuche);
-    # Community/Rekorde nutzen immer "normal". Siehe analysis.gps.SENSITIVITY_PRESETS.
+    # Persönliche Erkennungs-Empfindlichkeit (normal|light|attempts) — übersteuert die vier
+    # Foil-Limits (leichte/langsame Fahrer, kurze Startversuche). Die Stufe des BESITZERS ist die
+    # maßgebliche Auswertung seiner Sessions, ÜBERALL: Community, Rekorde und Bestenlisten lesen
+    # dieselben kanonischen Spalten, und die sind mit genau diesem Preset gerechnet.
+    #   Hier stand bis 11.09.2026 das Gegenteil ("Community/Rekorde nutzen immer normal"). Das war
+    #   seit dem 08.07. falsch; analysis/gps.py hatte es am 01.09. schon richtiggestellt und dort
+    #   auch nachgemessen (12 von 12 Sessions). Nur dieser Kommentar blieb stehen — wer hier
+    #   nachsieht, glaubt sonst, die Einstellung sei eine reine Privatansicht.
+    # Siehe analysis.gps.SENSITIVITY_PRESETS (Quelle der Wahrheit).
     foil_sensitivity: Mapped[str] = mapped_column(String(16), default="normal", server_default="normal")
     # Anzeige der Pump-Kadenz: "hz" (1.43 Hz) oder "ppm" (86 Pumps/min). Reine DARSTELLUNG, kein
     # Einfluss auf Analyse oder Rekorde — Nutzerwunsch: Hz sind zu technisch, man kann sich nichts

@@ -69,3 +69,47 @@ export function LanguageFlags({ className = "", alsLinks = false }:
     </div>
   );
 }
+
+// Sprachauswahl als KACHELN: Flagge + Eigenbezeichnung nebeneinander, alle 18 Sprachen
+// gleichzeitig sichtbar. Vorgabe Jan (11.09.2026) fuer den Einrichtungs-Assistenten: die
+// Sprache soll dort nicht als Frage stehen, sondern als Erstes aenderbar da sein — „gerne mit
+// allen flaggen nebeneinander noch einmal so wie auf der oeffentlichen startseite, gern auch mit
+// der bezeichnung wie im drop-down daneben".
+//
+// Anlass: es gab Nutzer, die die Sprache vor der Registrierung nicht gewaehlt hatten. Die
+// Flaggen-Reihe (`LanguageFlags`) allein reicht dafuer nicht — eine Flagge ist fuer den, der
+// seine Sprache sucht, kein Text, und einige Flaggen sehen bei 18 Eintraegen nebeneinander
+// aehnlich aus (CH/AT, BR/PT).
+//
+// Feste Spaltenzahl je Breite statt `flex-wrap`, damit die Kacheln ein Raster bilden und die
+// Namen untereinander stehen; `truncate` haelt lange Eigenbezeichnungen („Bahasa Indonesia",
+// „Português (Portugal)") in der Kachel, statt das Raster zu sprengen.
+export function LanguageGrid({ className = "" }: { className?: string }) {
+  const { lang, setLang } = useI18n();
+  return (
+    <div role="group" aria-label="Sprache / Language"
+      className={`grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 ${className}`}>
+      {LANGS.map((l) => {
+        const aktiv = lang === l.code;
+        return (
+          <button
+            key={l.code}
+            type="button"
+            onClick={() => setLang(l.code)}
+            lang={l.code}
+            aria-pressed={aktiv}
+            className={`flex min-w-0 items-center gap-2 rounded-xl border px-3 py-2.5 text-left transition ${
+              aktiv
+                ? "border-brand-400 bg-brand-500/10 ring-1 ring-brand-400"
+                : "border-slate-700 bg-slate-900/60 hover:border-slate-600"}`}
+          >
+            <span className="shrink-0 text-xl leading-none">{l.flag}</span>
+            <span className={`truncate ${aktiv ? "font-semibold text-slate-100" : "text-slate-200"}`}>
+              {l.native}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}

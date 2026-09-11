@@ -213,7 +213,9 @@ def update_me(
         user.language = _clean_lang(body.language, fallback=user.language or "en")
     # Persönliche Erkennungs-Empfindlichkeit: bei Änderung im HINTERGRUND die EIGENEN Sessions
     # (nur die noch nicht für dieses Preset gecachten) reanalysieren — Request kommt sofort zurück,
-    # PWA pollt /me/reanalysis für die Fortschrittsanzeige. Community/Rekorde bleiben Standard.
+    # PWA pollt /me/reanalysis für die Fortschrittsanzeige. Die Reanalyse schreibt die KANONISCHEN
+    # Spalten um, das gewählte Preset gilt also auch in Community und Rekorden (s. models.User
+    # .foil_sensitivity und analysis/gps.py) — hier stand bis 11.09.2026 "bleiben Standard".
     # Anzeige-Einheit der Kadenz: reine Darstellung -> KEINE Reanalyse, kein Einfluss auf Rekorde.
     if body.pump_unit is not None:
         user.pump_unit = body.pump_unit if body.pump_unit in ("hz", "ppm") else "hz"
