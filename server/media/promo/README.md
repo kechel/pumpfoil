@@ -19,3 +19,16 @@ Symlinks: die Route loest den Pfad auf und weist alles ab, was aus dem Ordner hi
 
 Die Adresse liefert `Cache-Control: max-age=86400` — eine ersetzte Datei ist also nach
 spaetestens einem Tag ueberall neu, nicht erst nach den 90 Tagen des `/media`-Mounts.
+
+## Was hier liegt
+
+| Datei | Groesse | wofuer |
+|---|---|---|
+| `shorts-endcard-dark-1080x1920.png` | 1080 × 1920 | volle Aufloesung, Shorts-Format |
+| `shorts-endcard-light-1080x1920.png` | 1080 × 1920 | dieselbe, helle Fassung |
+| `shorts-endcard-dark-400x711.png` | 400 × 711 | fuers Forum: laedt sofort, passt in einen Beitrag |
+| `shorts-endcard-light-400x711.png` | 400 × 711 | dieselbe, helle Fassung |
+
+Die kleinen Fassungen sind aus den grossen herunterskaliert (Lanczos, `optimize=True`), also
+rund 110 KB statt 375 KB bei gleichem Seitenverhaeltnis. Wer eine andere Breite braucht: aus der
+1080er Fassung neu rechnen, nicht aus der 400er — zweimal skalieren kostet sichtbar Schaerfe.
