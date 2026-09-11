@@ -658,8 +658,14 @@ function Kachel({ id, label, aktiv, onClick }: {
       className={`flex min-w-0 items-center gap-2 rounded-xl border px-3 py-2.5 text-left transition ${
         aktiv ? "border-brand-400 bg-brand-500/10 ring-1 ring-brand-400"
               : "border-slate-700 bg-slate-900/60 hover:border-slate-600"}`}>
-      <span className="flex h-6 w-6 shrink-0 items-center justify-center">
-        {logo ? <img src={logo} alt="" className="max-h-6 max-w-6 rounded bg-white p-0.5" />
+      {/* Zwei Sorten Zeichen, zwei Groessen-Regeln. Die Hersteller-Logos sind WORTMARKEN mit
+          Verhaeltnis 2,5:1 (Suunto) bis 5,4:1 (Polar) — in einem quadratischen 24er-Kaestchen
+          werden sie dadurch nur ein paar Pixel hoch und unlesbar (Jans Befund an den
+          Konto-Kacheln). Also ueber die HOEHE skalieren und die Breite frei lassen, nur nach
+          oben begrenzt, damit die Kachel auf dem Handy (zwei Spalten) nicht platzt. Die
+          Marken-SVGs (Apple, Google) sind quadratisch und bleiben bei 20 px. */}
+      <span className="flex h-7 shrink-0 items-center">
+        {logo ? <img src={logo} alt="" className="h-6 w-auto max-w-[4.5rem] rounded bg-white object-contain p-0.5" />
          : id === "apple" ? <AppleIcon className="h-5 w-5 text-slate-100" />
          : id === "wear" ? <GoogleIcon className="h-5 w-5" />
          : <WatchIcon className="h-5 w-5 text-slate-400" />}
