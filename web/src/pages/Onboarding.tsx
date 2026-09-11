@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api, type Foil, type PairedDevice } from "../lib/api";
 import { Button, Card, ErrorBox, Spinner } from "../components/ui";
-import { ChatBubbleIcon, CheckIcon, ChevronIcon, FoilIcon, MailIcon, StarIcon, WatchIcon } from "../components/Icons";
+import { ChatBubbleIcon, CheckIcon, ChevronIcon, FoilIcon, MailIcon, StarIcon, TrashIcon, WatchIcon } from "../components/Icons";
 import { LanguageGrid } from "../components/LanguageSelect";
 import { AppleIcon, GoogleIcon, PLATTFORM_LOGOS } from "../components/BrandIcons";
 import { ConnectIqButton } from "../components/ConnectIqButton";
@@ -195,6 +195,15 @@ export default function Onboarding() {
             setMeineFoils(nm); setStandardFoil(id);
             speichern({ my_foils: nm, foil_id: id });
           }}
+          onEntfernen={(id) => {
+            const nm = meineFoils.filter((x) => x !== id);
+            // War es das Standard-Foil, MUSS `foil_id` mit weg: der Server erzwingt „Default
+            // impliziert Mitgliedschaft" (api/settings.py) und wuerde das Foil sonst sofort
+            // wieder in `my_foils` aufnehmen — das Entfernen waere wirkungslos.
+            const nd = standardFoil === id ? null : standardFoil;
+            setMeineFoils(nm); setStandardFoil(nd);
+            speichern({ my_foils: nm, foil_id: nd });
+          }}
         />
       )}
 
@@ -351,9 +360,10 @@ function SportSchritt({ sport, onSport }: { sport: string; onSport: (v: string) 
  *  Schritt nicht zur Katalogseite wird. Ein Link auf /foils stand hier kurz und ist wieder raus:
  *  er verlaesst den Assistenten (Jan). Wer sein Foil nicht findet, kann es stattdessen von hier
  *  aus melden — derselbe Weg wie unter den Katalog-Listen (`MissingHint`). */
-function FoilSchritt({ foils, setFoils, meine, standard, onWahl }: {
+function FoilSchritt({ foils, setFoils, meine, standard, onWahl, onEntfernen }: {
   foils: Foil[] | null; setFoils: (f: Foil[]) => void;
-  meine: number[]; standard: number | null; onWahl: (id: number) => void;
+  meine: number[]; standard: number | null;
+  onWahl: (id: number) => void; onEntfernen: (id: number) => void;
 }) {
   const { t } = useI18n();
   const [q, setQ] = useState("");
@@ -390,15 +400,26 @@ function FoilSchritt({ foils, setFoils, meine, standard, onWahl }: {
           <div className="grid gap-1">
             {gewaehlt.map((f) => {
               const ist = f.id === standard;
+              // Zwei Ziele in einer Zeile, deshalb KEIN Knopf im Knopf (das erlaubt HTML nicht):
+              // links Stern + Name als Standard-Wahl, rechts der Papierkorb.
               return (
-                <button key={f.id} type="button" onClick={() => onWahl(f.id)} aria-pressed={ist}
-                  className={`flex items-center gap-2 rounded-lg px-2 py-1.5 text-left transition ${
-                    ist ? "bg-brand-500/15" : "hover:bg-slate-800/60"}`}>
-                  <StarIcon className={`h-4 w-4 shrink-0 ${ist ? "text-brand-400" : "text-slate-500"}`} filled={ist} />
-                  <span className="min-w-0 truncate text-slate-100">
-                    {f.brand} {f.model} <span className="text-slate-400">{f.size}</span>
-                  </span>
-                </button>
+                <div key={f.id}
+                  className={`flex items-center gap-1 rounded-lg transition ${ist ? "bg-brand-500/15" : ""}`}>
+                  <button type="button" onClick={() => onWahl(f.id)} aria-pressed={ist}
+                    className="flex min-w-0 flex-1 items-center gap-2 rounded-lg px-2 py-1.5 text-left hover:bg-slate-800/60">
+                    <StarIcon className={`h-4 w-4 shrink-0 ${ist ? "text-brand-400" : "text-slate-500"}`} filled={ist} />
+                    <span className="min-w-0 truncate text-slate-100">
+                      {f.brand} {f.model} <span className="text-slate-400">{f.size}</span>
+                    </span>
+                  </button>
+                  {/* Versehen direkt zurueecknehmen (Vorgabe Jan) — ohne Rueckfrage, es ist eine
+                      Einstellung, keine Loeschung von Daten: das Foil bleibt im Katalog. */}
+                  <button type="button" onClick={() => onEntfernen(f.id)}
+                    title={t("foils.remove")} aria-label={t("foils.remove")}
+                    className="shrink-0 rounded-lg p-1.5 text-slate-500 hover:bg-slate-800/60 hover:text-red-700 dark:hover:text-red-300">
+                    <TrashIcon className="h-4 w-4" />
+                  </button>
+                </div>
               );
             })}
           </div>
