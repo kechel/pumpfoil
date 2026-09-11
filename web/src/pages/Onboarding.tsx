@@ -102,12 +102,32 @@ export function istOffen(): boolean {
   try { return localStorage.getItem(ONB_OFFEN) === "1"; } catch { return false; }
 }
 
+// Der ERREICHTE Schritt, daneben. Wer mitten im Assistenten woanders hingeht (die ausfuehrliche
+// Uhren-Anleitung, der Sprung zum Hersteller) und ueber das Band zurueckkommt, soll dort
+// weitermachen, wo er war — nicht wieder bei der Sprache (Jan, 11.09.2026).
+//
+// Gespeichert wird die ID, nicht der Index: eine umsortierte Reihenfolge wuerde sonst stumm auf
+// den falschen Schritt zeigen. Unbekannte ID -> von vorn.
+const ONB_SCHRITT = "foil_onb_schritt";
+function schrittLesen(): number {
+  try {
+    const i = (SCHRITTE as readonly string[]).indexOf(localStorage.getItem(ONB_SCHRITT) || "");
+    return i >= 0 ? i : 0;
+  } catch { return 0; }
+}
+function schrittMerken(i: number | null) {
+  try {
+    if (i === null) localStorage.removeItem(ONB_SCHRITT);
+    else localStorage.setItem(ONB_SCHRITT, SCHRITTE[i]);
+  } catch { /* egal */ }
+}
+
 const SPORTARTEN = ["pumpfoil", "wingfoil", "kitefoil", "surf_downwind", "efoil", "foildrive", "other"];
 
 export default function Onboarding() {
   const { t } = useI18n();
   const nav = useNavigate();
-  const [i, setI] = useState(0);
+  const [i, setI] = useState(schrittLesen);
   const [laden, setLaden] = useState(true);
   const [fehler, setFehler] = useState<string | null>(null);
 
@@ -135,6 +155,7 @@ export default function Onboarding() {
   // hinaus, die wir nicht abschaffen wollen (die ausfuehrliche Uhren-Anleitung, und der
   // OAuth-Sprung zum Hersteller geht ohnehin nicht anders).
   useEffect(() => { offenMerken(true); }, []);
+  useEffect(() => { schrittMerken(i); }, [i]);
 
   useEffect(() => {
     Promise.all([
@@ -173,9 +194,13 @@ export default function Onboarding() {
   // gespeichert. Heute ist der sichtbare Unterschied noch keiner, weil die Weiche fehlt — der
   // Merker soll aber von Anfang an richtig stehen, damit sie spaeter nicht auf halbe Daten
   // trifft. Ueber /onboarding kommt man in beiden Faellen jederzeit zurueck.
+  // „Spaeter fortsetzen" BEHAELT den Schritt — das ist die Zusage des Knopfs. „Nicht mehr
+  // zeigen" und „Fertig" raeumen ihn weg: wer den Assistenten spaeter freiwillig aus dem Profil
+  // holt, faengt vorn an und nicht auf dem Schlussbildschirm.
   const spaeter = () => { offenMerken(false); nav("/home"); };
   const beenden = () => {
     offenMerken(false);
+    schrittMerken(null);
     speichern({ onboarding: { done_at: new Date().toISOString(), version: 1 } });
     nav("/home");
   };
