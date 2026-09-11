@@ -859,7 +859,17 @@ function FertigSchritt({ geraete, social }: { geraete: PairedDevice[]; social: b
           ist es Text ohne Anlass. Absichtlich plattform-neutral formuliert und mit Garmin als
           benanntem Fall: Garmin hat MENU -> Einstellungen -> Upload / Sync, Apple und Wear zeigen
           stattdessen "Jetzt hochladen" samt Fortschritt, sobald etwas aussteht. */}
-      {geraete.length > 0 && <p className="mt-3 text-slate-300">{t("onb.done.upload")}</p>}
+      {geraete.length > 0 && (
+        /* Der erste Satz ist die Bedingung, an der die meisten scheitern — deshalb fett. Die
+           Auszeichnung laeuft ueber die §-Marken im Text (dieselbe Konvention wie beim
+           Community-Satz, s. CommunityStats): ungerade Abschnitte werden hervorgehoben. So
+           bleibt die Wortstellung je Sprache erhalten, statt den Satz im Code zu zerschneiden. */
+        <p className="mt-3 text-slate-300">
+          {t("onb.done.upload").split("§").map((teil, n) =>
+            n % 2 === 1 ? <strong key={n} className="font-semibold text-slate-100">{teil}</strong>
+                        : <span key={n}>{teil}</span>)}
+        </p>
+      )}
       {/* Wo es weitergeht (Vorgabe Jan): der Assistent fragt absichtlich nur das Wichtigste ab —
           also sagen, dass unter Profil viel mehr steht, je Uhr noch mehr, und wo weitere Konten
           hinkommen. Sonst wirkt das Wenige hier wie alles, was es gibt. */}

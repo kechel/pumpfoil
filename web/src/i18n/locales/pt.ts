@@ -2,7 +2,7 @@ const pt: Record<string, string> = {
   "onb.startTitle": "Assistente de configuração",
   "onb.startSub": "Idioma, nome, nível, foil e relógio em poucas etapas — pode repetir quando quiser.",
   "onb.startCta": "Iniciar o assistente",
-  "onb.done.upload": "O envio só acontece enquanto o app Pumpfoil está aberto no relógio e conectado ao celular ou ao Wi-Fi. Se o app estiver fechado, a gravação fica guardada no relógio e sobe sozinha na próxima vez que você abrir. O progresso você vê no app do relógio, e de lá também dá para iniciar o envio depois — no Garmin pelo Menu → Upload / Sync.",
+  "onb.done.upload": "§O envio só acontece enquanto o app Pumpfoil está aberto no relógio e conectado ao celular ou ao Wi-Fi.§ Se o app estiver fechado, a gravação fica guardada no relógio e sobe sozinha na próxima vez que você abrir. O progresso você vê no app do relógio, e de lá também dá para iniciar o envio depois — no Garmin pelo Menu → Upload / Sync.",
   "onb.name.sub": "Ele aparece publicamente embaixo de cada gravação sua no feed da comunidade. Você pode mudar quando quiser.",
   "onb.resume": "Voltar à configuração",
   "onb.later": "Continuar depois",

@@ -2,7 +2,7 @@ const nb: Record<string, string> = {
   "onb.startTitle": "Oppsettveiviser",
   "onb.startSub": "Språk, navn, nivå, foil og klokke i noen få steg — kan gjentas når som helst.",
   "onb.startCta": "Start veiviseren",
-  "onb.done.upload": "Opplasting skjer bare mens Pumpfoil-appen er åpen på klokka og tilkoblet telefonen eller Wi-Fi. Er appen lukket, blir opptaket liggende trygt på klokka og går opp av seg selv neste gang du åpner den. Framdriften ser du i klokkeappen, og der kan du også starte opplastingen i etterkant — på Garmin via Meny → Upload / Sync.",
+  "onb.done.upload": "§Opplasting skjer bare mens Pumpfoil-appen er åpen på klokka og tilkoblet telefonen eller Wi-Fi.§ Er appen lukket, blir opptaket liggende trygt på klokka og går opp av seg selv neste gang du åpner den. Framdriften ser du i klokkeappen, og der kan du også starte opplastingen i etterkant — på Garmin via Meny → Upload / Sync.",
   "onb.name.sub": "Det står offentlig under hvert av opptakene dine i fellesskapsstrømmen. Du kan endre det når som helst.",
   "onb.resume": "Tilbake til oppsettet",
   "onb.later": "Fortsett senere",
