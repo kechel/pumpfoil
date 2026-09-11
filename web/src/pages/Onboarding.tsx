@@ -899,7 +899,7 @@ function FertigSchritt({ geraete, social }: { geraete: PairedDevice[]; social: b
         {/* Unser Spruch als letztes Wort (Vorgabe Jan). Bewusst NICHT ueber i18n und bewusst
             NICHT uebersetzt: er ist in jeder Sprache derselbe (memory motto) — 18 gleiche
             Eintraege waeren nur Gelegenheit, dass einer davon abweicht. */}
-        <p className="mt-4 font-semibold text-brand-600 dark:text-brand-300">Have fun, keep pumping!</p>
+        <p className="mt-7 text-center text-lg font-semibold text-brand-600 dark:text-brand-300">Have fun, keep pumping!</p>
       </div>
     </Card>
   );
