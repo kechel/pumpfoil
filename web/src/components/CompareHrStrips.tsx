@@ -53,7 +53,7 @@ function meterZwischen(a: number[], b: number[]): number {
 const MAX_LUECKE_M = 200;
 
 const ZEILE_H = 13;
-const ZEILE_LUECKE = 4;
+const ZEILE_LUECKE = 8;
 
 export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
   const t = useT();
@@ -229,14 +229,14 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
             {[false, true].map((v) => (
               <button key={String(v)} type="button" onClick={() => setzeAnstieg(v)}
                 aria-pressed={anstieg === v}
-                className={`rounded px-2 py-0.5 text-[11px] ${anstieg === v
+                className={`rounded px-2.5 py-1 text-sm ${anstieg === v
                   ? "bg-brand-500 font-semibold text-slate-950" : "text-slate-300 hover:text-slate-100"}`}>
                 {t(v ? "hr.viewRise" : "hr.viewPeak")}
               </button>
             ))}
           </div>
         </div>
-        <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+        <div className="flex items-center gap-1.5 text-sm text-slate-400">
           {hoverI != null && (
             <span className="mr-1 rounded bg-slate-800 px-1.5 py-0.5 font-semibold tabular-nums text-slate-200">
               {dauer(hoverI)}
@@ -257,10 +257,10 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
           inhaltsgetrieben und liessen sich hier gar nicht nachbilden. */}
       <div className="flex gap-2">
         <div className="min-w-0 flex-1" />
-        <div className="flex w-[184px] shrink-0 items-center gap-1 whitespace-nowrap pb-0.5 text-[10px] leading-none text-slate-500">
-          <span className="w-10 shrink-0 text-right">{anstieg ? "Δ bpm" : "bpm"}</span>
+        <div className="flex w-[184px] shrink-0 items-center gap-1 whitespace-nowrap pb-1 text-sm leading-none text-slate-400">
+          <span className="w-12 shrink-0 text-right">{anstieg ? "Δ bpm" : "bpm"}</span>
           <span className="w-14 shrink-0 text-right">m</span>
-          <span className="w-[76px] shrink-0 text-right">km/h (5s)</span>
+          <span className="w-[72px] shrink-0 text-right">km/h (5s)</span>
         </div>
       </div>
       <div className="flex gap-2">
@@ -268,7 +268,7 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
           {zeilen.map((z) => (
             <div
               key={z.key}
-              className="flex items-center justify-end gap-1 text-[10px] leading-none text-slate-400"
+              className="flex items-center justify-end gap-1.5 text-sm leading-none text-slate-400"
               style={{ height: ZEILE_H, marginBottom: ZEILE_LUECKE }}
             >
               {z.label && <span className="pf-name max-w-[9rem] truncate">{z.label}</span>}
@@ -288,7 +288,7 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
           onPointerLeave={() => setHoverI(null)}
         >
           <canvas ref={canvasRef} className="cursor-crosshair" />
-          <div className="mt-1 flex justify-between text-[10px] tabular-nums text-slate-500">
+          <div className="mt-1 flex justify-between text-sm tabular-nums text-slate-400">
             <span>0:00</span>
             <span>{dauer(maxLen)}</span>
           </div>
@@ -304,7 +304,7 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
             return (
               <div
                 key={z.key}
-                className="flex items-center gap-1 whitespace-nowrap text-[10px] leading-none tabular-nums text-slate-400"
+                className="flex items-center gap-1 whitespace-nowrap text-sm leading-none tabular-nums text-slate-300"
                 style={{ height: ZEILE_H, marginBottom: ZEILE_LUECKE }}
               >
                 {/* Nur Zahlen — die Einheiten stehen einmal als Spaltentitel oben. Feste,
@@ -312,11 +312,11 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
                     Wert, steht ein Strich statt „0" (das waere eine Behauptung). */}
                 {da ? (
                   <>
-                    <span className="w-10 shrink-0 text-right font-semibold text-slate-200">
+                    <span className="w-12 shrink-0 text-right font-semibold text-slate-100">
                       {puls == null ? "–" : anstieg && puls > 0 ? `+${puls}` : `${puls}`}
                     </span>
                     <span className="w-14 shrink-0 text-right">{Math.round(z.dist[i!])}</span>
-                    <span className="w-[76px] shrink-0 text-right">
+                    <span className="w-[72px] shrink-0 text-right">
                       {z.spd[i!] != null ? z.spd[i!]!.toFixed(1) : "–"}
                     </span>
                   </>
