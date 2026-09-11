@@ -651,9 +651,7 @@ struct HomeWeatherCard: View {
             wasserZeile
             // Quellenangabe — dieselben drei Quellen wie im Web (Open-Meteo immer, die anderen
             // nur, wenn ihr Block auch Daten geliefert hat).
-            Text(Loc.t("wx.source", lang) + ": Open-Meteo.com"
-                 + (sw.pegel != nil ? " · PEGELONLINE" : "")
-                 + (sw.water?.source.map { " · " + $0 } ?? ""))
+            Text(quellenText)
                 .font(.caption2).foregroundStyle(.secondary)
         }
         .padding(12)
@@ -665,19 +663,50 @@ struct HomeWeatherCard: View {
     /// damit der Ausdruck im `body` kurz bleibt (s. Memory `ios-swift-typecheck-hang`).
     @ViewBuilder private var pegelZeile: some View {
         if let pg = sw.pegel, let v = pg.value {
-            Text(Loc.t("wx.level", lang) + ": "
-                 + String(format: "%.0f", v) + " " + (pg.unit ?? "cm")
-                 + trendPfeil(pg.trend) + "  " + pegelOrt(pg))
-                .font(.caption).foregroundStyle(.secondary)
+            Text(pegelText(pg, v)).font(.caption).foregroundStyle(.secondary)
         }
+    }
+
+    /// Die drei Wetter-Zeilen bauen ihren Text in EINZELNEN, explizit typisierten Schritten.
+    /// Vorher stand je eine Kette aus fuenf bis sieben `+` im View — fuer Swifts Type-Checker
+    /// EIN Ausdruck, in dem er alle Ueberladungen von `+` durchprobiert. Jans Build brach am
+    /// 11.09.2026 genau daran ab („unable to type-check this expression in reasonable time").
+    /// Gleiche Ausgabe, nur in Anweisungen zerlegt.
+    private func pegelText(_ pg: Pegel, _ v: Double) -> String {
+        let wert: String = String(format: "%.0f", v)
+        let einheit: String = pg.unit ?? "cm"
+        var out: String = Loc.t("wx.level", lang)
+        out += ": "
+        out += wert
+        out += " "
+        out += einheit
+        out += trendPfeil(pg.trend)
+        out += "  "
+        out += pegelOrt(pg)
+        return out
+    }
+
+    private func wasserText(_ w: WaterTemp, _ c: Double) -> String {
+        var out: String = "🌊 "
+        out += Loc.t("wx.water", lang)
+        out += ": "
+        out += String(format: "%.1f °C", c)
+        out += wasserSpanne(w)
+        return out
+    }
+
+    private var quellenText: String {
+        var out: String = Loc.t("wx.source", lang)
+        out += ": Open-Meteo.com"
+        if sw.pegel != nil { out += " · PEGELONLINE" }
+        if let q = sw.water?.source { out += " · "; out += q }
+        return out
     }
 
     /// Wassertemperatur: aktuell, Tagesspanne, Mittel.
     @ViewBuilder private var wasserZeile: some View {
         if let w = sw.water, let c = w.current {
-            Text("🌊 " + Loc.t("wx.water", lang) + ": " + String(format: "%.1f °C", c)
-                 + wasserSpanne(w))
-                .font(.caption).foregroundStyle(.secondary)
+            Text(wasserText(w, c)).font(.caption).foregroundStyle(.secondary)
         }
     }
 
