@@ -1,6 +1,7 @@
 """FastAPI-App. Liefert /api/* und (falls gebaut) die SPA aus web/dist."""
 from __future__ import annotations
 
+import re
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -214,6 +215,48 @@ def tiktok_oauth(code: str = "", state: str = ""):
 @app.get("/meta-oauth")
 def meta_oauth(code: str = "", state: str = ""):
     return _oauth_bridge("Instagram", "/api/meta/code", code)
+
+
+# Erlaubte Dateitypen mit ihrem Content-Type. Bewusst eine feste Liste und kein `mimetypes`:
+# was hier ausgeliefert wird, soll im Browser ANGEZEIGT werden (Bild/Video), nicht irgendetwas
+# sein, das jemand spaeter versehentlich in den Ordner legt.
+PROMO_TYPEN = {
+    ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+    ".webp": "image/webp", ".gif": "image/gif", ".svg": "image/svg+xml",
+    ".mp4": "video/mp4", ".webm": "video/webm",
+}
+
+
+@app.get("/promo/{name}")
+def promo_datei(name: str) -> FileResponse:
+    """Oeffentliche Werbe-Grafiken und -Clips (u. a. die Endcards aus dem Shorts-Studio) unter
+    einer kurzen, teilbaren Adresse: `https://pumpfoil.org/promo/<datei>`.
+
+    Gedacht zum Verlinken in Foren — deshalb ohne Login und ohne Verweis irgendwo auf der Seite.
+    Was in `server/media/promo/` liegt, ist damit fuer jeden erreichbar, der die Adresse kennt;
+    der Ordner ist KEIN Ablageort fuer irgendetwas anderes.
+
+    Warum eine eigene Route und nicht einfach der `/media`-Mount: der setzt fuer alles unter
+    `/media/` ein `immutable`-Caching ueber 90 Tage (Fotos sind dort inhalts-eindeutig). Eine
+    Endcard, die unter demselben Namen ersetzt wird, bliebe damit in Browsern und Foren drei
+    Monate lang die alte. Hier steht ein Tag — lange genug, um billig zu sein, kurz genug, um
+    eine Korrektur ankommen zu lassen.
+    """
+    from fastapi import HTTPException
+
+    # Kein Pfad, kein Verzeichniswechsel: nur ein einfacher Dateiname.
+    if not re.fullmatch(r"[A-Za-z0-9._-]{1,80}", name) or name.startswith("."):
+        raise HTTPException(404, "nicht gefunden")
+    ordner = (settings.media_dir / "promo").resolve()
+    ziel = (ordner / name).resolve()
+    # Doppelt gesichert: auch ein durchgerutschter Name darf den Ordner nicht verlassen.
+    if ordner not in ziel.parents or not ziel.is_file():
+        raise HTTPException(404, "nicht gefunden")
+    typ = PROMO_TYPEN.get(ziel.suffix.lower())
+    if not typ:
+        raise HTTPException(404, "nicht gefunden")
+    return FileResponse(ziel, media_type=typ,
+                        headers={"Cache-Control": "public, max-age=86400"})
 
 
 @app.get("/demo/wear-fgs.webm")
