@@ -175,6 +175,12 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
 
   function logout() {
     clearToken();
+    // „Schon angeboten" ist eine Sperre JE BROWSER-SITZUNG, damit die Weiche niemand in eine
+    // Schleife schickt, der gerade „Spaeter fortsetzen" geklickt hat. Beim Abmelden muss sie weg,
+    // sonst waere die Zusage „beim naechsten Login nochmal" in Wahrheit „beim naechsten
+    // Browser-Start nochmal": wer sich im SELBEN Tab neu anmeldet, bekaeme den Assistenten nicht
+    // wieder angeboten. sessionStorage ueberlebt ein Abmelden naemlich.
+    try { sessionStorage.removeItem("foil_onb_angeboten"); } catch { /* privates Fenster */ }
     // Harte Navigation: Auth-Token ist kein reaktiver State, sonst bliebe die
     // App-Shell bis zum Reload gemountet -> Landing wird so garantiert frisch geladen.
     window.location.assign("/");
