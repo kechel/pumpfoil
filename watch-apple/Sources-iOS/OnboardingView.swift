@@ -20,6 +20,7 @@ import UIKit   // UIApplication.shared.open — wie in HomeView ausdruecklich im
 struct OnboardingView: View {
     var onFertig: () -> Void = {}
 
+    @Environment(\.dismiss) private var dismiss
     @AppStorage("appLang") private var lang = "de"
     @AppStorage("phone_rec_enabled") private var phoneRecEnabled = false
     @AppStorage(OnbState.schrittKey) private var schrittId = ""
@@ -292,7 +293,7 @@ struct OnboardingView: View {
     // „Nicht mehr zeigen" raeumt ihn weg und setzt den Merker am Konto.
     private var ausgangSection: some View {
         Section {
-            Button(t("onb.later")) { onFertig() }.buttonStyle(.borderless)
+            Button(t("onb.later")) { onFertig(); dismiss() }.buttonStyle(.borderless)
             Button(t("onb.never")) { beenden() }.buttonStyle(.borderless)
         }
     }
@@ -370,11 +371,14 @@ struct OnboardingView: View {
     }
 
     private func beenden() {
-        schrittId = ""
         OnbState.angeboten = true
         let jetzt = ISO8601DateFormatter().string(from: Date())
         Task { try? await Api.saveSettings(["onboarding": ["done_at": jetzt, "version": 1]]) }
+        // ERST schliessen, dann den Schritt zuruecksetzen: andersherum stand fuer einen
+        // Wimpernschlag wieder Schritt 1 da, bevor die Ansicht wegging.
         onFertig()
+        dismiss()
+        schrittId = ""
     }
 }
 
