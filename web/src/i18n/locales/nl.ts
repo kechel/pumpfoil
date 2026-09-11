@@ -1,6 +1,7 @@
 // Niederländisch (nl). Struktur 1:1 zu de.ts (Quelle der Wahrheit).
 // Erstübersetzung maschinell (informelles je/jij); Muttersprachler-Review empfohlen.
 const nl: Record<string, string> = {
+  "onb.name.sub": "Hij staat openbaar onder elke opname van je in de community-feed. Je kunt hem altijd wijzigen.",
   "onb.resume": "Terug naar de instelling",
   "onb.later": "Later verdergaan",
   "onb.never": "Niet meer tonen",

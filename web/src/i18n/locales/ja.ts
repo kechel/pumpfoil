@@ -1,4 +1,5 @@
 const ja: Record<string, string> = {
+  "onb.name.sub": "コミュニティのフィードで、あなたの記録それぞれの下に公開されます。いつでも変更できます。",
   "onb.resume": "設定に戻る",
   "onb.later": "あとで続ける",
   "onb.never": "今後は表示しない",

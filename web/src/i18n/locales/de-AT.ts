@@ -1,5 +1,6 @@
 // Österreichisch (mit a bissl Dialekt-Färbung). Fehlendi Keys falln auf de zruck.
 const deAT: Record<string, string> = {
+  "onb.name.sub": "Er steht öffentlich unter jeder deiner Aufnahmen im Community-Feed. Ändern kannst du ihn jederzeit.",
   "onb.resume": "Zurück zum Einrichtungs-Assistenten",
   "onb.later": "Später weitermachen",
   "onb.never": "Nicht mehr anzeigen",

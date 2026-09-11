@@ -1,4 +1,5 @@
 const it: Record<string, string> = {
+  "onb.name.sub": "Compare pubblicamente sotto ogni tua registrazione nel feed della community. Puoi cambiarlo quando vuoi.",
   "onb.resume": "Torna alla configurazione",
   "onb.later": "Continua più tardi",
   "onb.never": "Non mostrare più",

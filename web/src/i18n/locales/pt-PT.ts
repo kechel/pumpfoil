@@ -11,6 +11,7 @@
 // beim Build). YouTube und die Kanalbeschreibung folgen derselben Trennung — Details in
 // brand/social/kanal-beschreibung-README.md.
 const ptPT: Record<string, string> = {
+  "onb.name.sub": "Aparece publicamente sob cada uma das tuas gravações no feed da comunidade. Podes alterá-lo a qualquer momento.",
   "onb.resume": "Voltar à configuração",
   "onb.later": "Continuar mais tarde",
   "onb.never": "Não mostrar mais",

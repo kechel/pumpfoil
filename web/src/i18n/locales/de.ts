@@ -1,6 +1,7 @@
 // Quelle der Wahrheit. Alle anderen Sprachen spiegeln diese Keys.
 // Platzhalter im Text: {name} wird per t(key, { name }) ersetzt.
 const de: Record<string, string> = {
+  "onb.name.sub": "Er steht öffentlich unter jeder deiner Aufnahmen im Community-Feed. Ändern kannst du ihn jederzeit.",
   "onb.resume": "Zurück zum Einrichtungs-Assistenten",
   "onb.later": "Später fortsetzen",
   "onb.never": "Nicht mehr zeigen",

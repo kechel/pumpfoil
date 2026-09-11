@@ -1,4 +1,5 @@
 const es: Record<string, string> = {
+  "onb.name.sub": "Aparece públicamente debajo de cada una de tus grabaciones en el feed de la comunidad. Puedes cambiarlo cuando quieras.",
   "onb.resume": "Volver a la configuración",
   "onb.later": "Continuar más tarde",
   "onb.never": "No mostrar más",
