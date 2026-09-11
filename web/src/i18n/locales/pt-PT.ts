@@ -11,6 +11,9 @@
 // beim Build). YouTube und die Kanalbeschreibung folgen derselben Trennung — Details in
 // brand/social/kanal-beschreibung-README.md.
 const ptPT: Record<string, string> = {
+  "hr.viewPeak": "Máximo",
+  "hr.viewRise": "Aumento",
+  "hr.viewRiseHint": "Mostra quanto a frequência cardíaca subiu durante o run — em relação à do início do mesmo run. Assim é possível comparar runs mesmo tendo começado com frequências diferentes.",
   "onb.startTitle": "Assistente de configuração",
   "onb.startSub": "Idioma, nome, nível, foil e relógio em poucos passos — podes repetir quando quiseres.",
   "onb.startCta": "Iniciar o assistente",

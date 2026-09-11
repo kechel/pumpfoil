@@ -1,4 +1,7 @@
 const fr: Record<string, string> = {
+  "hr.viewPeak": "Maximum",
+  "hr.viewRise": "Hausse",
+  "hr.viewRiseHint": "Montre de combien la fréquence cardiaque est montée pendant le run — par rapport à celle du début de ce même run. Les runs deviennent comparables même si tu les as commencés à des fréquences différentes.",
   "onb.startTitle": "Assistant de configuration",
   "onb.startSub": "Langue, nom, niveau, foil et montre en quelques étapes — à refaire quand tu veux.",
   "onb.startCta": "Lancer l'assistant",

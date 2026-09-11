@@ -35,6 +35,9 @@ interface Zeile {
   // 5-Sekunden-Reihe des Servers (`properties.speeds["5"]`, m/s) — nicht aus `dist` abgeleitet:
   // die Punkt-fuer-Punkt-Summe traegt GPS-Rauschen, und die Karte faerbt mit denselben Zahlen.
   spd: (number | null)[];
+  // Anstieg gegenüber dem ersten GEMESSENEN Puls dieses Laufs. Der erste Wert kann fehlen (der
+  // Sensor braucht ein paar Sekunden), deshalb nicht hr[0], sondern der erste nicht-leere.
+  delta: (number | null)[];
 }
 
 // Abstand zweier Punkte in Metern. Leaflets map.distance macht das sonst in der App, hier gibt es
@@ -54,6 +57,17 @@ const ZEILE_LUECKE = 4;
 
 export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
   const t = useT();
+  // Zwei Lesarten derselben Streifen (Jan, 11.09.2026): der absolute Puls, oder der ANSTIEG
+  // gegenüber dem Start-Puls DESSELBEN Laufs. Der Anstieg macht Läufe vergleichbar, deren
+  // Ausgangspuls verschieden hoch lag. Dieselbe Wahl wie in der Trainingskurve, deshalb auch
+  // derselbe Merker — wer so liest, liest überall so.
+  const [anstieg, setAnstieg] = useState(() => {
+    try { return localStorage.getItem("hrRise") === "1"; } catch { return false; }
+  });
+  const setzeAnstieg = (v: boolean) => {
+    setAnstieg(v);
+    try { localStorage.setItem("hrRise", v ? "1" : "0"); } catch { /* privates Fenster */ }
+  };
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const boxRef = useRef<HTMLDivElement | null>(null);
 
@@ -121,7 +135,9 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
           const v = spdMps[von + k];
           spd.push(v != null && isFinite(v) ? v * 3.6 : null);
         }
-        out.push({ key: `${it.key}:${ri}`, label: it.label, nr: ri + 1, hr: werte, dist, spd });
+        const basis = werte.find((v) => v != null) ?? null;
+        const delta = werte.map((v) => (v != null && basis != null ? v - basis : null));
+        out.push({ key: `${it.key}:${ri}`, label: it.label, nr: ri + 1, hr: werte, dist, spd, delta });
       }
     }
     return out;
@@ -140,6 +156,16 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
     [items],
   );
   const [lo, hi] = bereich;
+  // Eigener Bereich fuer den Anstieg: die absolute Skala (z. B. 100…170) passt darauf nicht.
+  // Ueber ALLE Zeilen, damit dieselbe Farbe in jeder Zeile dasselbe bedeutet. Mindestens 10 bpm
+  // Spanne, sonst faerbt Messrauschen die halbe Rampe aus.
+  const dBereich = useMemo<[number, number]>(() => {
+    const alle = zeilen.flatMap((z) => z.delta).filter((v): v is number => v != null);
+    if (!alle.length) return [0, 10];
+    const min = Math.min(...alle, 0);
+    return [min, Math.max(Math.max(...alle), min + 10)];
+  }, [zeilen]);
+  const [dLo, dHi] = dBereich;
 
   const maxLen = useMemo(() => zeilen.reduce((m, z) => Math.max(m, z.hr.length), 0), [zeilen]);
 
@@ -163,15 +189,20 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
       // Ab Lauf-Ende nach rechts bleibt er sichtbar — hell weiss, dunkel dunkelgrau.
       g.fillStyle = hell ? "#ffffff" : "#1e293b";
       g.fillRect(0, y, w, ZEILE_H);
-      for (let i = 0; i < z.hr.length; i++) {
-        const v = z.hr[i];
+      const reihe = anstieg ? z.delta : z.hr;
+      for (let i = 0; i < reihe.length; i++) {
+        const v = reihe[i];
         const x0 = (i / maxLen) * w;
         const x1 = ((i + 1) / maxLen) * w;
         // Kein Messwert -> WEISS (Jan, 04.09.). Vorher blieb der Streifen dort einfach in der
         // Hintergrundfarbe, im dunklen Modus also dunkelgrau — das sah nach „niedrige Zone" aus
         // statt nach „nicht gemessen". Stehengebliebene Pulswerte nimmt die Analyse heraus
         // (detect_v2.puls_ohne_eingefrorene), sie landen also hier als null.
-        g.fillStyle = v == null ? "#ffffff" : hrColor(v, bereich);
+        // Im Anstiegs-Modus NICHT hrColor: das faerbt alles <= 0 weiss („nicht gemessen"), und
+        // ein Anstieg von 0 oder ein fallender Puls sind echte Werte, keine Luecke.
+        g.fillStyle = v == null ? "#ffffff"
+          : anstieg ? rampColor((v - dLo) / Math.max(dHi - dLo, 1))
+          : hrColor(v, bereich);
         g.fillRect(x0, y, Math.max(x1 - x0, 1), ZEILE_H);
       }
     });
@@ -181,7 +212,7 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
       g.fillStyle = hell ? "rgba(15,23,42,0.75)" : "rgba(255,255,255,0.8)";
       g.fillRect(Math.round(x), 0, 1, h);
     }
-  }, [zeilen, maxLen, bereich, hell, hoverI]);
+  }, [zeilen, maxLen, bereich, hell, hoverI, anstieg, dLo, dHi]);
 
   const dauer = (n: number) => `${Math.floor(n / 60)}:${String(n % 60).padStart(2, "0")}`;
 
@@ -190,21 +221,33 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
   return (
     <Card className="p-3">
       <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
-        <h3 className="text-sm font-semibold text-slate-200">
-          {t("field.2")} · {t("compare.runsTitle").replace("{count}", String(zeilen.length))}
-        </h3>
+        <div className="flex flex-wrap items-center gap-2">
+          <h3 className="text-sm font-semibold text-slate-200">
+            {t("field.2")} · {t("compare.runsTitle").replace("{count}", String(zeilen.length))}
+          </h3>
+          <div className="inline-flex rounded-lg border border-slate-700 p-0.5">
+            {[false, true].map((v) => (
+              <button key={String(v)} type="button" onClick={() => setzeAnstieg(v)}
+                aria-pressed={anstieg === v}
+                className={`rounded px-2 py-0.5 text-[11px] ${anstieg === v
+                  ? "bg-brand-500 font-semibold text-slate-950" : "text-slate-300 hover:text-slate-100"}`}>
+                {t(v ? "hr.viewRise" : "hr.viewPeak")}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
           {hoverI != null && (
             <span className="mr-1 rounded bg-slate-800 px-1.5 py-0.5 font-semibold tabular-nums text-slate-200">
               {dauer(hoverI)}
             </span>
           )}
-          <span className="tabular-nums">{lo}</span>
+          <span className="tabular-nums">{anstieg ? (dLo > 0 ? `+${dLo}` : dLo) : lo}</span>
           <span
             className="inline-block h-2 w-24 rounded"
             style={{ background: `linear-gradient(to right, ${rampColor(0)}, ${rampColor(0.5)}, ${rampColor(1)})` }}
           />
-          <span className="tabular-nums">{hi} bpm</span>
+          <span className="tabular-nums">{anstieg ? `+${dHi}` : hi} bpm</span>
         </div>
       </div>
       {/* Spaltentitel EINMAL oben statt in jeder Zeile (Jan, 11.09.2026). Eigene Flex-Zeile mit
@@ -215,7 +258,7 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
       <div className="flex gap-2">
         <div className="min-w-0 flex-1" />
         <div className="flex w-[184px] shrink-0 items-center gap-1 whitespace-nowrap pb-0.5 text-[10px] leading-none text-slate-500">
-          <span className="w-10 shrink-0 text-right">bpm</span>
+          <span className="w-10 shrink-0 text-right">{anstieg ? "Δ bpm" : "bpm"}</span>
           <span className="w-14 shrink-0 text-right">m</span>
           <span className="w-[76px] shrink-0 text-right">km/h (5s)</span>
         </div>
@@ -257,7 +300,7 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
           {zeilen.map((z) => {
             const i = hoverI;
             const da = i != null && i < z.hr.length;
-            const puls = da ? z.hr[i!] : null;
+            const puls = da ? (anstieg ? z.delta[i!] : z.hr[i!]) : null;
             return (
               <div
                 key={z.key}
@@ -270,7 +313,7 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
                 {da ? (
                   <>
                     <span className="w-10 shrink-0 text-right font-semibold text-slate-200">
-                      {puls != null ? `${puls}` : "–"}
+                      {puls == null ? "–" : anstieg && puls > 0 ? `+${puls}` : `${puls}`}
                     </span>
                     <span className="w-14 shrink-0 text-right">{Math.round(z.dist[i!])}</span>
                     <span className="w-[76px] shrink-0 text-right">

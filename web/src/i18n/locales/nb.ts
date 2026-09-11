@@ -1,4 +1,7 @@
 const nb: Record<string, string> = {
+  "hr.viewPeak": "Topp",
+  "hr.viewRise": "Økning",
+  "hr.viewRiseHint": "Viser hvor mye pulsen steg i løpet av turen — sammenlignet med pulsen ved starten av samme tur. Slik blir turene sammenlignbare selv om du startet dem med ulik puls.",
   "onb.startTitle": "Oppsettveiviser",
   "onb.startSub": "Språk, navn, nivå, foil og klokke i noen få steg — kan gjentas når som helst.",
   "onb.startCta": "Start veiviseren",

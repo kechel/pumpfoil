@@ -1103,7 +1103,7 @@ HR_MARKEN = (30, 60, 120, 300)   # Sekunden: nach 30 s, 1, 2 und 5 Minuten Lauf
 HR_RASTER = tuple(range(10, 301, 5))
 # Version des Cache-Inhalts. Aendert sich die Markenliste oder die Rechnung, hochzaehlen — der
 # Leser rechnet dann von selbst neu, statt dass jemand die Spalte von Hand leeren muss.
-HR_CACHE_V = 3   # 3: zusaetzlich das feine Raster (HR_RASTER)
+HR_CACHE_V = 4   # 3: zusaetzlich das feine Raster (HR_RASTER) · 4: dazu der ANSTIEG je Marke
 
 
 def _hr_by_min(uuid: str, segs_json: str | None) -> dict:
@@ -1149,7 +1149,11 @@ def _hr_by_min(uuid: str, segs_json: str | None) -> dict:
     # Unterschied zwischen „einmal lesen" und „63-mal lesen".
     # GPS liegt bei 1 Hz -> ein Index ≈ eine Sekunde. Dieselbe Näherung, mit der `gps_hz` überall
     # im Projekt geführt wird (docs/DATA-PIPELINE.md).
-    laeufe: list[tuple[float, list[int | None]]] = []
+    # Je Lauf zusätzlich den START-Puls: der erste gemessene Wert des Laufs. Er ist die Bezugslinie
+    # für die Anstiegs-Ansicht (Jan, 11.09.2026) — „wie weit ist mein Puls in dieser Zeit
+    # gestiegen" statt „wie hoch war er". Das macht Läufe vergleichbar, deren Ausgangspuls
+    # verschieden hoch lag (nach einer Pause, später am Tag, an einem kalten Tag).
+    laeufe: list[tuple[float, list[int | None], int | None]] = []
     grenze = max(max(HR_MARKEN), max(HR_RASTER))
     for sg in segs:
         a, b = sg.get("i_start"), sg.get("i_end")
@@ -1163,33 +1167,46 @@ def _hr_by_min(uuid: str, segs_json: str | None) -> dict:
             if v:
                 bisher = v if bisher is None else max(bisher, v)
             lauf_max.append(bisher)
-        laeufe.append((dauer, lauf_max))
+        # Erster GEMESSENER Wert, nicht hr[a]: am Laufanfang fehlt der Puls oft ein paar Sekunden.
+        basis = next((v for v in hr[int(a):ende + 1] if v), None)
+        laeufe.append((dauer, lauf_max, basis))
 
-    def marke_werte(marke: int) -> list[int]:
-        """Höchstpuls bis Sekunde `marke`, je Lauf — Läufe, die kürzer waren, zählen nicht mit."""
-        werte = []
-        for dauer, lauf_max in laeufe:
+    def marke_werte(marke: int) -> tuple[list[int], list[int]]:
+        """Je Lauf der Höchstpuls bis Sekunde `marke` — und der ANSTIEG gegenüber dem Start-Puls
+        desselben Laufs. Läufe, die kürzer waren, zählen nicht mit.
+
+        Der Anstieg wird JE LAUF gebildet und erst danach gemittelt. Median(Höchst) minus
+        Median(Start) wäre etwas anderes und im Zweifel falsch: die beiden Mediane können von
+        verschiedenen Läufen stammen."""
+        werte, anstieg = [], []
+        for dauer, lauf_max, basis in laeufe:
             if dauer < marke or not lauf_max:
                 continue
             v = lauf_max[min(marke, len(lauf_max) - 1)]
             if v:
                 werte.append(v)
-        return werte
+                if basis:
+                    anstieg.append(v - basis)
+        return werte, anstieg
 
     for marke in HR_MARKEN:
-        werte = marke_werte(marke)
+        werte, anstieg = marke_werte(marke)
         if werte:
             # Median über die Läufe, nicht der Bestwert — ein Ausreißer soll die Kurve nicht
             # verziehen.
-            out[str(marke)] = {"med": round(_st.median(werte)), "n": len(werte)}
+            eintrag = {"med": round(_st.median(werte)), "n": len(werte)}
+            if anstieg:
+                eintrag["dmed"] = round(_st.median(anstieg))
+            out[str(marke)] = eintrag
     # Das Raster kompakt: zwei gleich lange Listen statt 59 Objekte. Fehlt ein Wert (kein Lauf
     # war so lang), steht dort `null`.
-    med, anz = [], []
+    med, anz, dmed = [], [], []
     for marke in HR_RASTER:
-        werte = marke_werte(marke)
+        werte, anstieg = marke_werte(marke)
         med.append(round(_st.median(werte)) if werte else None)
         anz.append(len(werte))
-    out["raster"] = {"med": med, "n": anz}
+        dmed.append(round(_st.median(anstieg)) if anstieg else None)
+    out["raster"] = {"med": med, "n": anz, "dmed": dmed}
     return out
 
 
@@ -1245,13 +1262,17 @@ def hr_progress(
         if werte:
             eintrag = {"session_id": sid, "started_at": ts.isoformat() if ts else None,
                        **{f"hr{k}": v["med"] for k, v in werte.items()},
-                       **{f"n{k}": v["n"] for k, v in werte.items()}}
+                       **{f"n{k}": v["n"] for k, v in werte.items()},
+                       # Anstieg gegenüber dem Start-Puls, je Marke. Fehlt, wenn kein Lauf einen
+                       # Start-Puls hatte — dann zeigt die Umschaltung für diese Session nichts.
+                       **{f"d{k}": v["dmed"] for k, v in werte.items() if v.get("dmed") is not None}}
             # Das Raster nur auf Anforderung mitschicken: es ist je Session eine Liste mit 59
             # Zahlen. Die festen Marken brauchen das nicht, und die nativen Apps holen es
             # (noch) nicht — ohne `grid=1` bleibt die Antwort so klein wie bisher.
             if grid and isinstance(raster, dict):
                 eintrag["g"] = raster.get("med")
                 eintrag["gn"] = raster.get("n")
+                eintrag["dg"] = raster.get("dmed")
             reihe.append(eintrag)
     if dirty:
         db.commit()

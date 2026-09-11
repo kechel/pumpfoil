@@ -1473,7 +1473,9 @@ export interface HrProgress {
   // je Marke) und `gn` (Zahl der Laeufe). Gleiche Laenge und Reihenfolge wie `grid`.
   grid?: number[];
   series: { session_id: number; started_at: string | null;
-            g?: (number | null)[]; gn?: number[];
+            // `g`/`gn` = Median-Puls und Lauf-Zahl je Raster-Marke, `dg` derselbe Median fuer den
+            // ANSTIEG gegenueber dem Start-Puls. Je Marke daneben `hr<n>` bzw. `d<n>`.
+            g?: (number | null)[]; gn?: number[]; dg?: (number | null)[];
             [k: string]: number | string | null | (number | null)[] | number[] | undefined }[];
 }
 

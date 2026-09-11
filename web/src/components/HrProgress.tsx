@@ -19,6 +19,17 @@ import { LineChart, DAY_MS, type Mode, type Pt } from "../pages/History";
 export function HrProgress({ mode, domain, onPick }: { mode: Mode; domain: [number, number]; onPick: (p: Pt) => void }) {
   const t = useT();
   const [data, setData] = useState<HrProgressData | null>(null);
+  // Zwei Lesarten derselben Daten (Jan, 11.09.2026): der HÖCHSTPULS nach n Sekunden, oder der
+  // ANSTIEG gegenüber dem Start-Puls desselben Laufs. Der Anstieg macht Läufe vergleichbar,
+  // deren Ausgangspuls verschieden hoch lag — nach einer Pause, später am Tag, bei Kälte.
+  // Die Wahl bleibt im localStorage: wer so liest, will das nicht jedes Mal neu einstellen.
+  const [anstieg, setAnstieg] = useState(() => {
+    try { return localStorage.getItem("hrRise") === "1"; } catch { return false; }
+  });
+  const setzeAnstieg = (v: boolean) => {
+    setAnstieg(v);
+    try { localStorage.setItem("hrRise", v ? "1" : "0"); } catch { /* privates Fenster */ }
+  };
 
   useEffect(() => {
     api.hrProgress(undefined, true).then(setData).catch(() => setData(null));
@@ -32,13 +43,28 @@ export function HrProgress({ mode, domain, onPick }: { mode: Mode; domain: [numb
   return (
     <Card className="p-4">
       <h3 className="mb-1 font-semibold">{t("hr.progressTitle")}</h3>
-      <p className="mb-4 text-sm text-slate-300">{t("hr.progressHint")}</p>
+      <p className="mb-3 text-sm text-slate-300">{t("hr.progressHint")}</p>
+      <div className="mb-4">
+        <div className="inline-flex rounded-xl border border-slate-700 p-0.5">
+          {[false, true].map((v) => (
+            <button key={String(v)} type="button" onClick={() => setzeAnstieg(v)}
+              aria-pressed={anstieg === v}
+              className={`rounded-lg px-3 py-1.5 text-sm ${anstieg === v
+                ? "bg-brand-500 font-semibold text-slate-950" : "text-slate-300 hover:text-slate-100"}`}>
+              {t(v ? "hr.viewRise" : "hr.viewPeak")}
+            </button>
+          ))}
+        </div>
+        {anstieg && <p className="mt-2 text-sm text-slate-300">{t("hr.viewRiseHint")}</p>}
+      </div>
       <div className="grid gap-4 sm:grid-cols-2">
         {marken.map((m) => (
-          <MarkChart key={m} mark={m} reihe={reihe} mode={mode} domain={domain} onPick={onPick} />
+          <MarkChart key={m} mark={m} reihe={reihe} mode={mode} domain={domain} onPick={onPick}
+            anstieg={anstieg} />
         ))}
       </div>
-      <EigenerZeitpunkt data={data} reihe={reihe} mode={mode} domain={domain} onPick={onPick} />
+      <EigenerZeitpunkt data={data} reihe={reihe} mode={mode} domain={domain} onPick={onPick}
+        anstieg={anstieg} />
     </Card>
   );
 }
@@ -53,9 +79,9 @@ export function HrProgress({ mode, domain, onPick }: { mode: Mode; domain: [numb
  * Die Wahl bleibt im localStorage — wer sich fuer 45 s interessiert, will das beim naechsten
  * Besuch nicht wieder einstellen.
  */
-function EigenerZeitpunkt({ data, reihe, mode, domain, onPick }: {
+function EigenerZeitpunkt({ data, reihe, mode, domain, onPick, anstieg }: {
   data: HrProgressData; reihe: HrProgressData["series"]; mode: Mode;
-  domain: [number, number]; onPick: (p: Pt) => void;
+  domain: [number, number]; onPick: (p: Pt) => void; anstieg: boolean;
 }) {
   const t = useT();
   const raster = data.grid ?? [];
@@ -66,7 +92,7 @@ function EigenerZeitpunkt({ data, reihe, mode, domain, onPick }: {
   if (raster.length < 2) return null;
 
   const i = Math.max(0, raster.indexOf(sek));
-  const mitWert = reihe.filter((x) => x.g?.[i] != null).length;
+  const mitWert = reihe.filter((x) => (anstieg ? x.dg?.[i] : x.g?.[i]) != null).length;
 
   return (
     <div className="mt-6 border-t border-slate-800 pt-4">
@@ -94,8 +120,9 @@ function EigenerZeitpunkt({ data, reihe, mode, domain, onPick }: {
           <MarkChart
             mark={sek} reihe={reihe} mode={mode} domain={domain} onPick={onPick}
             titel={t("hr.afterSecondsExact", { sec: String(sek) })}
-            wert={(x) => x.g?.[i] ?? null}
+            wert={(x) => (anstieg ? x.dg?.[i] : x.g?.[i]) ?? null}
             anzahl={(x) => x.gn?.[i] ?? 0}
+            anstieg={anstieg}
           />
         </div>
       )}
@@ -103,9 +130,11 @@ function EigenerZeitpunkt({ data, reihe, mode, domain, onPick }: {
   );
 }
 
-function MarkChart({ mark, reihe, mode, domain, onPick, wert, anzahl, titel }: {
+function MarkChart({ mark, reihe, mode, domain, onPick, wert, anzahl, titel, anstieg = false }: {
   mark: number; reihe: HrProgressData["series"]; mode: Mode; domain: [number, number];
   onPick: (p: Pt) => void;
+  /** true = ANSTIEG gegenüber dem Start-Puls statt des Höchstpulses. */
+  anstieg?: boolean;
   // Frei waehlbarer Zeitpunkt: dieselbe Darstellung, nur eine andere Wertquelle. Ohne diese
   // beiden Funktionen liest das Diagramm wie bisher `hr{mark}` / `n{mark}`.
   wert?: (x: HrProgressData["series"][number]) => number | null | undefined;
@@ -113,17 +142,21 @@ function MarkChart({ mark, reihe, mode, domain, onPick, wert, anzahl, titel }: {
   titel?: string;
 }) {
   const t = useT();
-  const fmt = (v: number) => `${Math.round(v)} bpm`;
+  // Beim Anstieg gehört das Vorzeichen dazu: „+12 bpm" ist eine andere Aussage als „12 bpm".
+  const fmt = (v: number) =>
+    anstieg ? `${v > 0 ? "+" : ""}${Math.round(v)} bpm` : `${Math.round(v)} bpm`;
 
   const roh = useMemo<Pt[]>(() => reihe
     .map((x) => ({
       t: new Date(String(x.started_at ?? "")).getTime(),
-      v: Number(wert ? wert(x) : x[`hr${mark}`]),
+      v: Number(wert ? wert(x) : x[anstieg ? `d${mark}` : `hr${mark}`]),
       sid: Number(x.session_id),
       run: null,
     }))
-    .filter((p) => isFinite(p.v) && p.v > 0 && isFinite(p.t))
-    .sort((a, b) => a.t - b.t), [reihe, mark, wert]);
+    // Beim Anstieg ist 0 ein gültiger Wert und negativ auch (der Puls kann im Lauf fallen) —
+    // die Bedingung „> 0" gilt nur für den absoluten Puls, wo 0 kein Messwert ist.
+    .filter((p) => isFinite(p.v) && (anstieg || p.v > 0) && isFinite(p.t))
+    .sort((a, b) => a.t - b.t), [reihe, mark, wert, anstieg]);
 
   // Fenster-Logik wie bei den übrigen Diagrammen — nur mit umgekehrtem Vorzeichen: beim Puls ist
   // NIEDRIG das bessere Ergebnis, also der kleinste Wert im Fenster statt des größten, und
@@ -156,7 +189,10 @@ function MarkChart({ mark, reihe, mode, domain, onPick, wert, anzahl, titel }: {
   const werte = roh.map((p) => p.v);
   const cur = pts.length ? pts[pts.length - 1].v : 0;
   // y-Achse nicht bei 0 beginnen lassen: der interessante Bereich liegt zwischen 110 und 175 bpm.
-  const vmin = werte.length ? Math.max(0, Math.min(...werte) - 8) : 0;
+  // Beim Anstieg darf die Achse unter 0 gehen — ein Lauf, in dem der Puls fällt, ist ein echtes
+  // Ergebnis und keine Null.
+  const vmin = !werte.length ? 0
+    : anstieg ? Math.min(...werte) - 4 : Math.max(0, Math.min(...werte) - 8);
 
   return (
     <div>
@@ -172,7 +208,7 @@ function MarkChart({ mark, reihe, mode, domain, onPick, wert, anzahl, titel }: {
         {t("hr.fromRuns", { runs: laeufe, sessions: roh.length })}
         {werte.length > 1 && (
           <span className="ml-2 tabular-nums">
-            {Math.round(werte[0])} → {Math.round(werte[werte.length - 1])} bpm
+            {fmt(werte[0])} → {fmt(werte[werte.length - 1])}
           </span>
         )}
       </div>
