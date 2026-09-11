@@ -1,4 +1,5 @@
 const fi: Record<string, string> = {
+  "onb.name.sub": "Se näkyy julkisesti jokaisen tallenteesi yhteydessä yhteisön syötteessä. Voit muuttaa sen milloin vain.",
   "onb.resume": "Takaisin käyttöönottoon",
   "onb.later": "Jatka myöhemmin",
   "onb.never": "Älä näytä enää",

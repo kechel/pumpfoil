@@ -1,4 +1,5 @@
 const zh: Record<string, string> = {
+  "onb.name.sub": "它会公开显示在社区动态里你的每一条记录下面。随时可以修改。",
   "onb.resume": "回到设置",
   "onb.later": "以后再继续",
   "onb.never": "不再显示",

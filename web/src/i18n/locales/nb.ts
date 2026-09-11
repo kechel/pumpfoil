@@ -1,4 +1,5 @@
 const nb: Record<string, string> = {
+  "onb.name.sub": "Det står offentlig under hvert av opptakene dine i fellesskapsstrømmen. Du kan endre det når som helst.",
   "onb.resume": "Tilbake til oppsettet",
   "onb.later": "Fortsett senere",
   "onb.never": "Ikke vis igjen",

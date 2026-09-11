@@ -1,4 +1,5 @@
 const id: Record<string, string> = {
+  "onb.name.sub": "Nama ini tampil publik di bawah setiap rekaman kamu di feed komunitas. Bisa diubah kapan saja.",
   "onb.resume": "Kembali ke penyiapan",
   "onb.later": "Lanjut nanti",
   "onb.never": "Jangan tampilkan lagi",

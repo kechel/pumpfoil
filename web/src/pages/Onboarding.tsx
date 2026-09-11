@@ -123,6 +123,12 @@ export default function Onboarding() {
   // (Alters-Riegel unter 13, Apple-Vorgabe). Ist es nicht montiert, laeuft das
   // Oeffnen-Event ins Leere -> dann gehoert der Chat-Knopf gar nicht auf die Seite.
   const [social, setSocial] = useState(true);
+  // Anzeigename: bei der Registrierung mit E-Mail ist er Pflichtfeld, bei Google und Apple wird
+  // er NIE gefragt — dort kommt er still vom Anbieter (oauth.py), bei Google also meist der
+  // echte Vor- und Nachname. Das betrifft 297 der 498 Konten (gemessen 11.09.2026), 108 davon
+  // tragen einen Namen mit Leerzeichen. Er steht oeffentlich unter jeder Aufnahme — deshalb
+  // gehoert er in den Assistenten, einmal sichtbar und aenderbar.
+  const [name, setName] = useState("");
 
   // „Der Assistent laeuft" merken, solange er nicht beendet oder abgebrochen wurde. Daran
   // haengt das Band im App-Rahmen, das von jeder anderen Seite zurueckfuehrt — es gibt Wege
@@ -137,7 +143,7 @@ export default function Onboarding() {
       api.myDevices().catch(() => [] as PairedDevice[]),
     ]).then(([p, s, d]) => {
       if (p?.foil_sensitivity) setSens(p.foil_sensitivity);
-      if (p) setSocial(p.social_allowed !== false);
+      if (p) { setSocial(p.social_allowed !== false); setName(p.display_name || ""); }
       if (s) {
         const w = Number(s.weight_kg ?? 0);
         setGewicht(w > 0 ? String(w) : "");
@@ -185,7 +191,7 @@ export default function Onboarding() {
 
       {fehler && <div className="mb-4"><ErrorBox message={fehler} /></div>}
 
-      {schritt === "lang" && <SprachSchritt />}
+      {schritt === "lang" && <SprachSchritt name={name} setName={setName} />}
 
       {schritt === "level" && (
         <KoennenSchritt
@@ -292,12 +298,66 @@ function Fortschritt({ aktiv, anzahl }: { aktiv: number; anzahl: number }) {
 /** Schritt 1: Sprache. Bewusst KEINE Frage, sondern die Auswahl gleich sichtbar und aenderbar
  *  (Vorgabe Jan) — es gab Nutzer, die vor der Registrierung keine Sprache gewaehlt hatten. Der
  *  Wechsel wirkt sofort und wird ueber `setLang` auch am Konto gespeichert. */
-function SprachSchritt() {
+function SprachSchritt({ name, setName }: { name: string; setName: (v: string) => void }) {
   const { t } = useI18n();
   return (
-    <Card className="p-5">
-      <h3 className="mb-3 font-semibold">{t("lang.label")}</h3>
-      <LanguageGrid />
+    <>
+      <Card className="p-5">
+        <h3 className="mb-3 font-semibold">{t("lang.label")}</h3>
+        <LanguageGrid />
+      </Card>
+      <NameKarte name={name} setName={setName} />
+    </>
+  );
+}
+
+/** Anzeigename — im SELBEN Schritt direkt unter der Sprachwahl (Vorgabe Jan). Aufbau bewusst
+ *  wie im Profil (Feld + Speichern + Fehlermeldung), damit es niemand zweimal lernen muss.
+ *
+ *  Beim BEARBEITEN nummeriert der Server einen belegten Namen NICHT durch (anders als beim
+ *  Anlegen) — er antwortet 409. Die Meldung muss also stehen, sonst tippt jemand einen Namen ein,
+ *  der lautlos nicht ankommt. Gespeichert wird per Knopf und nicht bei jedem Tastendruck: eine
+ *  Eindeutigkeitspruefung je Buchstabe waere sinnlos und laut. */
+function NameKarte({ name, setName }: { name: string; setName: (v: string) => void }) {
+  const { t } = useI18n();
+  const [busy, setBusy] = useState(false);
+  const [ok, setOk] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function speichern() {
+    setErr(null); setOk(false); setBusy(true);
+    try {
+      const p = await api.updateProfile(name.trim());
+      setOk(true);
+      // Wie im Profil: den App-Rahmen mitziehen, damit der Name in der Seitenleiste sofort stimmt.
+      window.dispatchEvent(new CustomEvent("foil:profile", { detail: p }));
+    } catch (e) {
+      const st = String(e);
+      setErr(st.includes("bereits") ? t("profile.nameTaken")
+           : st.includes("2–40") ? t("profile.nameLen") : t("profile.saveError"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Card className="mt-4 p-5">
+      <h3 className="mb-1 font-semibold">{t("profile.displayName")}</h3>
+      <p className="mb-3 text-slate-300">{t("onb.name.sub")}</p>
+      <div className="flex gap-2">
+        <input
+          value={name}
+          onChange={(e) => { setName(e.target.value); setOk(false); setErr(null); }}
+          maxLength={40}
+          placeholder={t("profile.namePlaceholder")}
+          className="min-w-0 flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100"
+        />
+        <Button onClick={() => { void speichern(); }} disabled={busy || name.trim().length < 2} className="shrink-0">
+          {busy ? "…" : <><CheckIcon className="h-4 w-4 sm:hidden" /><span className="hidden sm:inline">{t("common.save")}</span></>}
+        </Button>
+      </div>
+      {ok && <p className="mt-2 text-emerald-700 dark:text-emerald-400">{t("profile.saved")}</p>}
+      {err && <p className="mt-2 text-red-700 dark:text-red-300">{err}</p>}
     </Card>
   );
 }

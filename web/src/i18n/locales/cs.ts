@@ -1,6 +1,7 @@
 // Tschechisch (cs / Čeština). Struktur 1:1 zu de.ts (Quelle der Wahrheit).
 // Erstübersetzung maschinell; Muttersprachler-Review empfohlen.
 const cs: Record<string, string> = {
+  "onb.name.sub": "Zobrazuje se veřejně u každé tvé nahrávky v komunitním kanálu. Kdykoli ho můžeš změnit.",
   "onb.resume": "Zpět na nastavení",
   "onb.later": "Pokračovat později",
   "onb.never": "Už nezobrazovat",

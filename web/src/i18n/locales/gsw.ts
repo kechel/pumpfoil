@@ -1,5 +1,6 @@
 // Schwiizerdütsch (Schweizer Mundart). Fehlendi Keys falled uf Hochdütsch (de) zrugg.
 const gsw: Record<string, string> = {
+  "onb.name.sub": "Er staht öffentlich under jedere vo dine Ufnahme im Community-Feed. Ändere chasch en jederziit.",
   "onb.resume": "Zrugg zum Iirichtigs-Assistänt",
   "onb.later": "Spöter wiitermache",
   "onb.never": "Nüme zeige",
