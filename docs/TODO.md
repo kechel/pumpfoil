@@ -9,6 +9,16 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 🚀 App-Release-Stand
 
+- **🟢 12.09. — Amazfit/Zepp 1.0.8 IST LIVE.** Zepp-Mail: „The application Pumpfoil (1.0.8)
+  you submitted has been approved and added to the ZEPP app store." Eingereicht 10.09. 11:19,
+  also zwei Tage Pruefung — nach ZWEI Ablehnungen von 1.0.7, beide Male nur wegen der
+  Store-Vorschaubilder und nie wegen der App. Die korrigierten eckigen Bilder gingen mit.
+  - `_APP_META["zepp"]` auf 1.0.8, IN_REVIEW-Eintrag raus, **neun** Changelog-Punkte eingetragen
+    (zusammengefuehrt aus 1.0.7 + 1.0.8 — von 1.0.7 ist nie etwas bei Nutzern angekommen).
+  - Der ABGELEHNT-Eintrag zu 1.0.7 ist von SELBST aus der Tabelle verschwunden: `_noch_offen`
+    blendet ihn aus, sobald eine neuere Fassung live ist. Nachgeprueft an `/api/app/releases`.
+  - Naechste Zepp-Nummer: **1.0.9 / code 12**.
+
 - **🟢 12.09. — iOS/Apple Watch 1.1.32 (Build 36) IST LIVE.** Beide Apple-Mails kamen ueber
   Nacht; die zweite („ready for distribution") ist die Freigabe. **Gegengeprueft an der Store-API**
   in de/us/ch: alle drei melden 1.1.32, `currentVersionReleaseDate` 2026-09-12T00:06:41Z — diesmal
