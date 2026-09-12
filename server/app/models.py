@@ -1398,3 +1398,28 @@ class HealthAlert(Base):
     seit: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     letzte_meldung: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
+
+
+class ClientSeen(Base):
+    """Wer hat an welchem TAG ueber welchen Client hereingeschaut — eine Zeile je (Nutzer, Client,
+    Tag), nie mehr.
+
+    Bewusst KEIN Zugriffs-Protokoll: hier steht nicht, WANN oder WIE OFT jemand da war, nur dass
+    dieser Nutzer an diesem Tag diesen Client benutzt hat. Damit laesst sich genau eine Frage
+    beantworten — „Nutzer pro Tag je Client" in der Admin-Uebersicht, dieselbe Kennzahl wie bei
+    „Aktivitaet je Plattform" —, und keine, die einen einzelnen Menschen durch seinen Tag verfolgt.
+    Das ist der Weg, den [[no-analytics-ever]] fuer echten Bedarf offenlaesst: serverseitige,
+    anonyme Aggregate aus eigenen Daten, keine Drittdienste, kein Tracking-Speicher im Browser.
+
+    `client` ist die Kennung aus dem Header `X-Pumpfoil-Client`, auf die FAMILIE reduziert:
+    "web" (PWA), "android", "ios". Die Version daran wird verworfen — sie gehoert nicht zur Frage.
+    Ein Client ohne Kennung (aeltere App-Fassungen, fremde Aufrufe) zaehlt als "unbekannt".
+    """
+
+    __tablename__ = "client_seen"
+    __table_args__ = (UniqueConstraint("user_id", "client", "tag", name="uq_client_seen"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    client: Mapped[str] = mapped_column(String(16), index=True)
+    tag: Mapped[date] = mapped_column(Date, index=True)

@@ -652,6 +652,10 @@ export interface AdminStatsBucket {
   // Sessions ohne Geraet, aufgeschluesselt nach Quelle (Praefix der session_uuid):
   // Kontoverknuepfungen und hochgeladene Dateien.
   p_suunto: number; p_polar: number; p_coros: number; p_datei: number;
+  // Wer hat an dem Tag ueber welchen Client HEREINGESCHAUT — ohne jede Aufnahme. Quelle ist
+  // `client_seen`: eine Zeile je Nutzer, Client und Tag, kein Zugriffs-Protokoll. Die Reihe
+  // beginnt am 12.09.2026, vorher wurde das nicht festgehalten.
+  c_web: number; c_android: number; c_ios: number; c_unbekannt: number;
 }
 export interface AdminStatsSeries {
   period: string;
@@ -659,7 +663,8 @@ export interface AdminStatsSeries {
   totals: { new_users: number; active_users: number; sessions: number; imported: number;
             photos: number; likes: number;
             p_garmin: number; p_apple: number; p_wear: number; p_zepp: number; p_phone: number;
-            p_suunto: number; p_polar: number; p_coros: number; p_datei: number };
+            p_suunto: number; p_polar: number; p_coros: number; p_datei: number;
+            c_web: number; c_android: number; c_ios: number; c_unbekannt: number };
 }
 
 /** Systemzustand des Servers (Admin). Feldnamen wie im Server (`api/health.py`) — deutsch, weil
