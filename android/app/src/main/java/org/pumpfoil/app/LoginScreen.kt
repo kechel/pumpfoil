@@ -80,6 +80,9 @@ fun LoginScreen(onLoggedIn: () -> Unit) {
     var resetMsg by remember { mutableStateOf<String?>(null) }
     var showImprint by remember { mutableStateOf(false) }
     var langMenu by remember { mutableStateOf(false) }
+    // Hat der Mensch die Sprache auf DIESEM Bildschirm angefasst? Nur dann ueberschreiben wir
+    // damit sein Konto — sonst gewaenne das Geraet ueber eine Wahl, die er woanders getroffen hat.
+    var sprachGewaehlt by remember { mutableStateOf(false) }
     var anbieter by remember { mutableStateOf<List<OAuthProvider>>(emptyList()) }
     // Fuer die Anbieter-Knoepfe: welche der beiden offiziellen Fassungen gilt gerade. Dieselbe
     // Entscheidung wie in PumpfoilTheme — der Profil-Schalter gewinnt ueber die System-Einstellung.
@@ -156,6 +159,17 @@ fun LoginScreen(onLoggedIn: () -> Unit) {
                                     val t = if (register) Api.register(email.trim(), password, name.trim())
                                             else Api.login(email.trim(), password)
                                     Api.saveToken(ctx, t)
+                                    // Wer hier die Sprache umgestellt hat, meint das Konto — nicht
+                                    // nur diesen einen Bildschirm. Ohne das Sichern holt
+                                    // MainActivity beim naechsten ON_RESUME das Profil und
+                                    // ueberschreibt die Wahl wieder (Nutzermeldung 12.09.2026:
+                                    // „switch to other app and back" und es stand wieder Englisch
+                                    // da). Bei der REGISTRIERUNG steht sie schon im Konto, die
+                                    // schickt Api.register mit — hier geht es um bestehende Konten.
+                                    // Vor onLoggedIn, damit das Profil danach den neuen Wert hat.
+                                    if (!register && sprachGewaehlt) {
+                                        try { Api.updateLanguage(I18n.lang) } catch (_: Exception) {}
+                                    }
                                     WatchSync.pushPairing(ctx)
                                     onLoggedIn()
                                 } catch (e: Exception) { error = e.message }
@@ -265,6 +279,7 @@ fun LoginScreen(onLoggedIn: () -> Unit) {
                                 I18n.LANGS.forEach { l ->
                                     DropdownMenuItem(text = { Text(I18n.langName(l)) }, onClick = {
                                         I18n.set(ctx, l); lang = l; langMenu = false
+                                        sprachGewaehlt = true
                                     })
                                 }
                             }

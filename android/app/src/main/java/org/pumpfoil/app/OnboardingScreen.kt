@@ -253,6 +253,7 @@ object OnbState {
 @Composable
 private fun SprachKarte(ctx: Context) {
     var lang by remember { mutableStateOf(I18n.lang) }
+    val scope = rememberCoroutineScope()
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(I18n.t("onb.x.lang"), fontWeight = FontWeight.Bold)
@@ -263,9 +264,12 @@ private fun SprachKarte(ctx: Context) {
                         onClick = {
                             lang = code
                             I18n.set(ctx, code)
-                            // Auch am Konto sichern, wie in der PWA — sonst spricht die naechste
-                            // Anmeldung auf einem anderen Geraet wieder die alte Sprache.
-                            kotlinx.coroutines.GlobalScope.let { }
+                            // Auch AM KONTO sichern, nicht nur lokal. Ohne das holt MainActivity
+                            // bei jedem ON_RESUME das Profil und ueberschreibt die eben getroffene
+                            // Wahl wieder mit der alten Sprache — gemeldet von einem Nutzer:
+                            // „switch to other app and back to Pumpfoil app" und es stand wieder
+                            // Englisch da (12.09.2026, seine Profilsprache war tatsaechlich `en`).
+                            scope.launch { try { Api.updateLanguage(code) } catch (_: Exception) {} }
                         },
                         label = { Text(I18n.langName(code)) },
                     )

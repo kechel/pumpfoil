@@ -99,6 +99,12 @@ struct OnboardingView: View {
                 ForEach(Loc.langs, id: \.self) { c in Text(Loc.langName(c)).tag(c) }
             }
             .pickerStyle(.navigationLink)
+            // Auch AM KONTO sichern, nicht nur in `appLang`. Ohne das schreibt
+            // `SessionStore.profile.didSet` beim naechsten Profil-Laden die alte Sprache zurueck
+            // — gemeldet von einem Nutzer (12.09.2026): App wechseln und zurueck, und es stand
+            // wieder Englisch da. `onChange(of:)` hier EINPARAMETRIG: die zweiparametrige
+            // Fassung ist iOS 17, das Projekt zielt auf 16.
+            .onChange(of: lang) { neu in Task { try? await Api.updateLanguage(neu) } }
         }
     }
 
