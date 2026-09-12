@@ -851,6 +851,25 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **📥 12.09. (James, u17, `dm:17-230` #1498) — Ø-Geschwindigkeit auf der Teilen-Card.**
+  Wortlaut: „Possible to have the average speed when sharing ? Thanks". Die Card bietet acht
+  Werte (Foiling, Laeufe, Pumps, Top-Speed, Foil-Zeit, Laengster, Strecke/Pump, Ø Pumps/min) —
+  einen Schnitt hat sie nicht.
+  - **Die Daten liegen vor, der Einbau waere klein:** je Lauf steht `avg_speed_mps` schon im
+    Segment (`gps.py:620`), fuer die ganze Aufnahme ergibt er sich aus `foiling_distance_m /
+    foiling_time_s` — also der Schnitt WAEHREND des Foilens, nicht ueber die Aufnahme samt
+    Pausen. Zwei Stellen: `sharecard.stat_catalog` (beide Zweige) und `ShareDialog`
+    (`STAT_ORDER`, `STAT_LABEL`, `availableStats`).
+  - **🛑 NICHT einfach einbauen — Ansage Jan, 12.09.:** „teilen-dialog passen wir ein andermal
+    an, bitte nur merken, da gibt es schon viel zum einstellen und platzprobleme, das muss ich
+    mir erst nochmal anschauen damit die ux nicht leidet". Ein neunter Schalter in einem Dialog,
+    der schon Farbmodus, Stat-Auswahl, Foto samt Abdunklung, Track, Textfarbe, Lauf-Auswahl und
+    Titel traegt, ist eine UX-Frage, keine Codefrage. Erst Jans Entwurf, dann bauen.
+  - Ich hatte es am 12.09. schon gebaut und auf Jans Zwischenruf wieder zurueckgenommen
+    (nichts committet). James ist geantwortet: steht auf der Liste, ohne Termin.
+  - Sein aelterer Wunsch aus derselben Ecke (09.07., #160: Stats des ausgewaehlten Laufs im Bild
+    statt Scrollen) ist ERLEDIGT — die Lauf-Auswahl im Teilen-Dialog gibt es.
+
 - **💡 12.09. (Jan) — On-Foil-Erkennung noch einmal besser machen.** „das stimmt, inzwischen
   haben wir ja auch viel mehr daten die wir dafuer auswerten koennen, aber das machen wir ein
   andermal." NICHT JETZT — hier steht nur, was dann zur Hand ist.
