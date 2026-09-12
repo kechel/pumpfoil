@@ -20,6 +20,11 @@ struct LoginView: View {
     @State private var busy = false
     @State private var error: String?
     @State private var resetMsg: String?
+    @State private var anbieter: [Api.OAuthProvider] = []
+    // Haelt die Browser-Sitzung am Leben: laeuft die Variable aus dem Gueltigkeitsbereich,
+    // schliesst iOS das Fenster sofort wieder.
+    @State private var webSitzung: ASWebAuthenticationSession?
+    @State private var ankerFenster = AuthAnker()
 
     // Der Body war EIN Ausdruck mit 13 Geschwistern im VStack (71 Zeilen) und stand mit >500 ms im
     // Build-Log: Swifts Type-Checker loest einen ViewBuilder als einen einzigen Ausdruck auf, und der
@@ -32,6 +37,9 @@ struct LoginView: View {
                 background
                 ScrollView { card }
             }
+            // Anbieterliste holen. Faellt der Aufruf aus, bleibt die Liste leer und es fehlt
+            // nur ein Knopf — die Anmeldung per E-Mail und Apple laeuft unveraendert.
+            .task { anbieter = await Api.oauthProviders() }
         }
     }
 
@@ -108,6 +116,60 @@ struct LoginView: View {
             onRequest: { $0.requestedScopes = [.fullName, .email] },
             onCompletion: handleApple)
             .signInWithAppleButtonStyle(.black).frame(height: 44).disabled(busy)
+        anbieterBlock
+    }
+
+    /// Weitere Anbieter (Facebook & Co.) ueber den SYSTEMBROWSER — kein fremdes SDK in der App,
+    /// also auch keine App-Ereignisse an Meta. Google und Apple fallen raus: Apple hat hier
+    /// seinen nativen Knopf, Google gehoert auf iOS nicht in die Reihe.
+    ///
+    /// Was der Server ausblendet (OAUTH_<P>_HIDDEN), kommt gar nicht erst an — die Freischaltung
+    /// nach Metas Freigabe braucht deshalb KEIN neues App-Release.
+    @ViewBuilder private var anbieterBlock: some View {
+        ForEach(anbieter.filter { $0.id != "google" && $0.id != "apple" }, id: \.id) { p in
+            if let hinweis = p.note {
+                Text(hinweis).font(.footnote).foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            Button {
+                starteAnbieter(p.id)
+            } label: {
+                Text(Loc.t("login.continueWith", lang).replacingOccurrences(of: "{provider}", with: p.label))
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(p.id == "facebook" ? Color(red: 0.094, green: 0.467, blue: 0.949) : .accentColor)
+            .frame(height: 44)
+            .disabled(busy)
+        }
+    }
+
+    /// Anmeldung im Systembrowser oeffnen und auf den Ruecksprung warten.
+    ///
+    /// `ASWebAuthenticationSession` ist Apples eigener Weg dafuer: eigener Prozess, echte
+    /// Adresszeile, und die Sitzung endet automatisch, sobald unser Schema aufgerufen wird.
+    /// `prefersEphemeralWebBrowserSession` bleibt AUS — sonst waere eine schon bestehende
+    /// Facebook-Sitzung im Browser nutzlos und der Mensch muesste sein Passwort tippen.
+    private func starteAnbieter(_ id: String) {
+        error = nil
+        let roh = Api.baseURL + "/api/auth/oauth/" + id + "/start?app=1&lang="
+        let url = URL(string: roh + (lang.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? lang))
+        guard let url else { return }
+        let sitzung = ASWebAuthenticationSession(url: url, callbackURLScheme: "pumpfoil") { rueck, _ in
+            // Das Token steht im FRAGMENT (…#token=…), nicht in der Query — so wie im Web.
+            guard let rueck,
+                  let frag = URLComponents(url: rueck, resolvingAgainstBaseURL: false)?.fragment
+            else { return }
+            let token = frag.split(separator: "&")
+                .first { $0.hasPrefix("token=") }
+                .map { String($0.dropFirst("token=".count)) }?
+                .removingPercentEncoding
+            guard let token, !token.isEmpty else { return }
+            Task { await session.browserAuth(token: token) }
+        }
+        sitzung.presentationContextProvider = ankerFenster
+        sitzung.start()
+        webSitzung = sitzung
     }
 
     private var footerRow: some View {
@@ -187,5 +249,17 @@ struct LoginView: View {
             else { try await session.login(email: email, password: password) }
         } catch { self.error = error.localizedDescription }
         busy = false
+    }
+}
+
+
+/// Fenster-Anker fuer `ASWebAuthenticationSession`. iOS verlangt einen Presentation-Context;
+/// ohne ihn startet die Sitzung nicht. Eigene kleine Klasse, weil das Protokoll von NSObject
+/// erben muss und eine SwiftUI-View das nicht kann.
+final class AuthAnker: NSObject, ASWebAuthenticationPresentationContextProviding {
+    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+        UIApplication.shared.connectedScenes
+            .compactMap { ($0 as? UIWindowScene)?.keyWindow }
+            .first ?? ASPresentationAnchor()
     }
 }

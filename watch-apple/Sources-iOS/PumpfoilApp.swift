@@ -94,6 +94,13 @@ final class SessionStore: ObservableObject {
         await finishAuth(t)
     }
 
+    /// Anmeldung ueber den Systembrowser (Facebook & Co.): das Token kommt fertig aus dem
+    /// Ruecksprung `pumpfoil://auth#token=...` und muss nur noch uebernommen werden — derselbe
+    /// Abschluss wie bei allen anderen Wegen, damit Profil und Uhr-Verknuepfung mitlaufen.
+    func browserAuth(token t: String) async {
+        await finishAuth(t)
+    }
+
     private func finishAuth(_ t: String) async {
         Api.token = t
         token = t

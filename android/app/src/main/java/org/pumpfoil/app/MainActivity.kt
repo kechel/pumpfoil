@@ -1,6 +1,7 @@
 package org.pumpfoil.app
 
 import android.net.Uri
+import kotlinx.coroutines.flow.MutableStateFlow
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -77,7 +78,46 @@ class MainActivity : ComponentActivity() {
         I18n.load(applicationContext)
         PumpUnit.load(applicationContext)   // Pump-Kadenz als Hz oder Pumps/min (Profil-Einstellung)
         WatchSync.pushPairing(applicationContext)   // eingeloggt -> Wear-Uhr (Data Layer) verknüpfen
+        OAuthRuecksprung.verarbeite(applicationContext, intent?.data)   // Kaltstart aus dem Browser
         setContent { PumpfoilTheme { App() } }
+    }
+
+    /** Ruecksprung aus dem Systembrowser, waehrend die App schon laeuft (der Normalfall:
+     *  `singleTask` liefert das Ergebnis hierher statt in eine zweite Activity). */
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        OAuthRuecksprung.verarbeite(applicationContext, intent.data)
+    }
+}
+
+/**
+ * Anbieter-Anmeldung ueber den Systembrowser (Facebook & Co.).
+ *
+ * Warum Browser und nicht Metas SDK: das SDK meldet App-Ereignisse an Meta — Installationen,
+ * Sitzungen, Nutzung. So etwas laeuft bei uns nirgends, und im Impressum steht ausdruecklich,
+ * dass es kein Facebook-Skript und keinen Pixel gibt. Der Browser-Weg braucht nichts davon.
+ *
+ * Ablauf: Knopf oeffnet `…/oauth/<anbieter>/start?app=1` im Browser · dort meldet sich der
+ * Mensch an · unser Callback leitet auf `pumpfoil://auth#token=…` · das Manifest faengt das ab
+ * und landet hier. Das Ziel steht FEST im Server (`APP_SCHEMA`), ist also kein Parameter, den
+ * jemand umbiegen koennte.
+ */
+object OAuthRuecksprung {
+    /** Wurde gerade ein Token uebernommen? Die Login-Maske beobachtet das und geht weiter. */
+    val angemeldet = MutableStateFlow(0)
+
+    fun verarbeite(ctx: android.content.Context, uri: Uri?) {
+        if (uri == null || uri.scheme != "pumpfoil" || uri.host != "auth") return
+        // Das Token steht im FRAGMENT (…#token=…), nicht in der Query — genau wie im Web.
+        // Im Fragment landet es nicht in Server-Logs und nicht im Verlauf des Browsers.
+        val frag = uri.fragment ?: return
+        val token = frag.split("&").firstOrNull { it.startsWith("token=") }
+            ?.removePrefix("token=")?.let { Uri.decode(it) } ?: return
+        if (token.isBlank()) return
+        Api.saveToken(ctx, token)
+        WatchSync.pushPairing(ctx)
+        angemeldet.value = angemeldet.value + 1
     }
 }
 
