@@ -461,6 +461,31 @@ NAECHSTES: list[dict] = [
          "were shown too early — they are right now.",
          "Status labels are translated, and the session list refreshes by itself while a "
          "recording is still running.",
+         # Ab hier: was am 12.09. dazukam, nachdem 1.1.28 / 1.2.28 schon eingereicht waren.
+         # Facebook wird ABSICHTLICH nicht genannt — der Knopf ist noch verborgen, bis Meta die
+         # erweiterte Freigabe erteilt. Die App holt die Anbieterliste vom Server, der Punkt
+         # stimmt also so oder so.
+         "You can sign in with your Google or Apple account in the app itself. It opens your "
+         "normal browser for that, so nothing extra follows you around.",
+         "The heart rate curve can show how far you are above your resting heart rate, not only "
+         "the plain number.",
+         "The language you pick in the app now stays with your account, so app and website say "
+         "the same thing on every device.",
+         "Your watch shows its own brand and model instead of always calling itself a Garmin.",
+     ]},
+    {"name": "iPhone + Apple Watch", "version": "1.1.33",
+     # 1.1.32 ist seit dem 12.09. live und es liegt NICHTS in der Pruefung — die Nummer steht
+     # also fest (1.1.33 / Build 37), anders als bei Android. Gebaut ist alles, eingereicht wird
+     # auf Jans Mac.
+     "note": "built, waiting to be submitted",
+     "items": [
+         "You can sign in with your Google or Apple account in the app itself. It opens your "
+         "normal browser for that, so nothing extra follows you around.",
+         "The heart rate curve can show how far you are above your resting heart rate, not only "
+         "the plain number.",
+         "The language you pick in the app now stays with your account, so app and website say "
+         "the same thing on every device.",
+         "Your watch shows its own brand and model instead of always calling itself a Garmin.",
      ]},
 ]
 
