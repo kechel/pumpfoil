@@ -3,25 +3,36 @@ import Foundation
 // Lokalisierung nach Profil-Sprache (in UserDefaults "appLang", gesetzt nach Login).
 // NICHT Geräte-Locale. Fallback de. Wording wie web/src/i18n/locales/*.
 enum Loc {
-    // nb fehlte hier seit dem Norwegisch-Rollout: das Overlay war da, die Sprache aber gar
-    // nicht auswaehlbar. Mit pl zusammen nachgezogen.
-    static let langs = ["de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs", "pt", "pt-PT", "ja", "zh", "ru", "id", "nb", "pl"]
+    // <i18n-langs> ERZEUGT von scripts/i18n-langs.py — NICHT von Hand aendern
+    // Quelle: web/src/i18n/index.tsx. Reihenfolge wie dort — die Sprachauswahl sieht damit auf
+    // allen Plattformen gleich aus.
+    static let langs = ["de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs", "pl", "pt", "pt-PT", "ja", "zh", "ru", "id", "nb"]
 
-    // Eigenbezeichnung je Sprache — EINE Tabelle fuer die ganze App. Sie stand bis 12.09.2026
-    // zweimal da (Einstellungen, Assistent). In der Android-App war dieselbe Verdopplung der
-    // Grund, warum im Login-Fenster Kuerzel statt Sprachnamen standen; hier ziehen wir sie
-    // vorsorglich zusammen. Wortlaut identisch mit web/src/i18n/index.tsx — dort ist die Quelle.
+    /// Eigenbezeichnung je Sprache.
     static let langNames: [String: String] = [
-        "de": "Deutsch", "gsw": "Schwiizerdütsch", "de-AT": "Österreichisch",
-        "en": "English", "fr": "Français", "it": "Italiano", "es": "Español",
-        "fi": "Suomi", "nl": "Nederlands", "cs": "Čeština", "pl": "Polski",
-        "pt": "Português (Brasil)", "pt-PT": "Português (Portugal)",
-        "ja": "日本語", "zh": "中文", "ru": "Русский", "id": "Bahasa Indonesia",
+        "de": "Deutsch",
+        "gsw": "Schwiizerdütsch",
+        "de-AT": "Österreichisch",
+        "en": "English",
+        "fr": "Français",
+        "it": "Italiano",
+        "es": "Español",
+        "fi": "Suomi",
+        "nl": "Nederlands",
+        "cs": "Čeština",
+        "pl": "Polski",
+        "pt": "Português (Brasil)",
+        "pt-PT": "Português (Portugal)",
+        "ja": "日本語",
+        "zh": "中文",
+        "ru": "Русский",
+        "id": "Bahasa Indonesia",
         "nb": "Norsk",
     ]
 
     /// Anzeigename einer Sprache; unbekannt -> das Kuerzel, damit nie eine leere Zeile steht.
     static func langName(_ l: String) -> String { langNames[l] ?? l }
+    // </i18n-langs>
 
     // Tschechisch-Overlay (aus web/src/i18n/locales/cs.ts + app-eigene Keys). Fallback: Englisch.
     // In 10 Bloecke zerlegt: EIN Literal mit 543 Eintraegen ist fuer den

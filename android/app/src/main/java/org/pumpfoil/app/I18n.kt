@@ -9,24 +9,36 @@ import androidx.compose.runtime.setValue
 // genau diese 7 Locales pflegen). Fallback: de. Erweiterbar — Strings je Screen ergänzen.
 // Wording, wo möglich, identisch mit web/src/i18n/locales/*.
 object I18n {
-    val LANGS = listOf("de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs", "pt", "pt-PT", "ja", "zh", "ru", "id", "nb", "pl")
+    // <i18n-langs> ERZEUGT von scripts/i18n-langs.py — NICHT von Hand aendern
+    // Quelle: web/src/i18n/index.tsx. Reihenfolge wie dort — die Sprachauswahl sieht damit auf
+    // allen Plattformen gleich aus.
+    val LANGS = listOf("de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs", "pl", "pt", "pt-PT", "ja", "zh", "ru", "id", "nb")
 
-    // Eigenbezeichnung je Sprache — EINE Tabelle fuer die ganze App. Sie stand bis 12.09.2026
-    // dreimal da (Login, Einstellungen, Assistent), und genau die im Login war stehengeblieben:
-    // Polnisch, Norwegisch und Portugiesisch (Portugal) fehlten, dort erschien dann das blosse
-    // Kuerzel, und "pt" hiess noch "Português" statt "Português (Brasil)" (Jans Befund).
-    // Wortlaut identisch mit web/src/i18n/index.tsx — dort ist die Quelle.
+    /** Eigenbezeichnung je Sprache. */
     val LANG_NAMES = mapOf(
-        "de" to "Deutsch", "gsw" to "Schwiizerdütsch", "de-AT" to "Österreichisch",
-        "en" to "English", "fr" to "Français", "it" to "Italiano", "es" to "Español",
-        "fi" to "Suomi", "nl" to "Nederlands", "cs" to "Čeština", "pl" to "Polski",
-        "pt" to "Português (Brasil)", "pt-PT" to "Português (Portugal)",
-        "ja" to "日本語", "zh" to "中文", "ru" to "Русский", "id" to "Bahasa Indonesia",
+        "de" to "Deutsch",
+        "gsw" to "Schwiizerdütsch",
+        "de-AT" to "Österreichisch",
+        "en" to "English",
+        "fr" to "Français",
+        "it" to "Italiano",
+        "es" to "Español",
+        "fi" to "Suomi",
+        "nl" to "Nederlands",
+        "cs" to "Čeština",
+        "pl" to "Polski",
+        "pt" to "Português (Brasil)",
+        "pt-PT" to "Português (Portugal)",
+        "ja" to "日本語",
+        "zh" to "中文",
+        "ru" to "Русский",
+        "id" to "Bahasa Indonesia",
         "nb" to "Norsk",
     )
 
     /** Anzeigename einer Sprache; unbekannt -> das Kuerzel, damit nie eine leere Zeile steht. */
     fun langName(l: String): String = LANG_NAMES[l] ?: l
+    // </i18n-langs>
     var lang by mutableStateOf("de")
         private set
 
