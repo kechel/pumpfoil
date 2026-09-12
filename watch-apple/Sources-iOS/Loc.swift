@@ -1,7 +1,9 @@
 import Foundation
 
 // Lokalisierung nach Profil-Sprache (in UserDefaults "appLang", gesetzt nach Login).
-// NICHT Geräte-Locale. Fallback de. Wording wie web/src/i18n/locales/*.
+// Vor dem ersten Login gilt die GERÄTESPRACHE (`systemLang()`, von PumpfoilApp.init() einmal
+// in "appLang" geschrieben); was wir nicht können, wird ENGLISCH, nicht Deutsch.
+// Wording wie web/src/i18n/locales/*.
 enum Loc {
     // <i18n-langs> ERZEUGT von scripts/i18n-langs.py — NICHT von Hand aendern
     // Quelle: web/src/i18n/index.tsx. Reihenfolge wie dort — die Sprachauswahl sieht damit auf
@@ -32,6 +34,32 @@ enum Loc {
 
     /// Anzeigename einer Sprache; unbekannt -> das Kuerzel, damit nie eine leere Zeile steht.
     static func langName(_ l: String) -> String { langNames[l] ?? l }
+
+    /// Geraetesprache auf unsere Sprachen abbilden — dieselben Regeln wie in der PWA
+    /// (`detectInitialLang`), von dort erzeugt. Unbekannt -> ENGLISCH, niemals Deutsch
+    /// (Vorgabe Jan, 12.09.2026, nach der Meldung eines franzoesischen Nutzers).
+    static func systemLang() -> String {
+        let tag = (Locale.preferredLanguages.first ?? "en").lowercased()
+        if tag.hasPrefix("de-at") { return "de-AT" }
+        if tag.hasPrefix("de-ch") || tag.hasPrefix("gsw") { return "gsw" }
+        if tag.hasPrefix("de") { return "de" }
+        if tag.hasPrefix("fr") { return "fr" }
+        if tag.hasPrefix("it") { return "it" }
+        if tag.hasPrefix("es") { return "es" }
+        if tag.hasPrefix("fi") { return "fi" }
+        if tag.hasPrefix("nl") { return "nl" }
+        if tag.hasPrefix("cs") { return "cs" }
+        if tag.hasPrefix("pl") { return "pl" }
+        if tag.hasPrefix("pt-pt") { return "pt-PT" }
+        if tag.hasPrefix("pt") { return "pt" }
+        if tag.hasPrefix("ja") { return "ja" }
+        if tag.hasPrefix("zh") { return "zh" }
+        if tag.hasPrefix("ru") { return "ru" }
+        if tag.hasPrefix("id") { return "id" }
+        if tag.hasPrefix("nb") || tag.hasPrefix("nn") || tag.hasPrefix("no") { return "nb" }
+        if tag.hasPrefix("en") { return "en" }
+        return "en"
+    }
     // </i18n-langs>
 
     // Tschechisch-Overlay (aus web/src/i18n/locales/cs.ts + app-eigene Keys). Fallback: Englisch.

@@ -7,6 +7,15 @@ struct PumpfoilApp: App {
     @StateObject private var sync = SyncManager.shared
 
     init() {
+        // Vor der ersten eigenen Wahl gilt die GERAETESPRACHE, nicht Deutsch. Die ~33
+        // `@AppStorage("appLang")` in den Views tragen alle den Standard "de" — der greift nur,
+        // solange der Schluessel fehlt, also genuegt es, ihn hier EINMAL zu setzen, statt 33
+        // Stellen anzufassen. Unbekannte Geraetesprache -> Englisch (Vorgabe Jan, 12.09.2026).
+        // Dieselbe Luecke wie in der Android-App, dort am selben Tag gemeldet und behoben.
+        if UserDefaults.standard.string(forKey: "appLang") == nil {
+            UserDefaults.standard.set(Loc.systemLang(), forKey: "appLang")
+        }
+
         // Nav-Bar + Statusleisten-Bereich global in Marken-Cyan (dunkle Titel/Inhalte), einmalig
         // über die UIKit-Appearance — stabil, kein per-View toolbarBackground (das löste in
         // NavigationStacks einen SwiftUI-Update-Zyklus/Hang aus, z. B. beim Zurück aus dem Chat).
@@ -46,7 +55,8 @@ final class SessionStore: ObservableObject {
     @Published var token: String? = Api.token
     @Published var profile: Profile? {
         didSet {
-            UserDefaults.standard.set(profile?.language ?? "de", forKey: "appLang")
+            // Kein Profil (abgemeldet) -> Geraetesprache, nicht hart Deutsch.
+            UserDefaults.standard.set(profile?.language ?? Loc.systemLang(), forKey: "appLang")
             // Anzeige-Einheit der Pump-Kadenz spiegeln (nur wenn bekannt — beim Abmelden nicht
             // die lokale Wahl wegwerfen).
             if let u = profile?.pump_unit { PumpUnit.store(u) }

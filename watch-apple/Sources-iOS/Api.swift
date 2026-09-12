@@ -23,7 +23,11 @@ enum Api {
     }
 
     // Aktuell gewählte UI-Sprache der App -> Profilsprache bei NEUEM Konto.
-    private static var uiLang: String { UserDefaults.standard.string(forKey: "appLang") ?? "de" }
+    // Geht als Profilsprache mit, wenn hier ein Konto ENTSTEHT — deshalb darf der Rueckfall
+    // nicht Deutsch sein: sonst traegt ein franzoesisches Geraet Deutsch ins Konto ein und die
+    // PWA zeigt es spaeter auch auf Deutsch. PumpfoilApp.init() setzt den Schluessel beim ersten
+    // Start, der Rueckfall hier ist nur der Guertel zum Hosentraeger.
+    private static var uiLang: String { UserDefaults.standard.string(forKey: "appLang") ?? Loc.systemLang() }
 
     static func register(email: String, password: String, name: String) async throws -> String {
         var body: [String: Any] = ["email": email, "password": password, "language": uiLang]

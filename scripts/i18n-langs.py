@@ -15,8 +15,12 @@ in beiden Apps ganz am Ende. Eine neue Sprache kostete acht Aenderungen; jetzt e
 Skriptlauf.
 
 WAS ERZEUGT WIRD (zwischen den Markern, alles dazwischen wird ersetzt):
-  · android/app/src/main/java/org/pumpfoil/app/I18n.kt   -> LANGS + LANG_NAMES + langName()
-  · watch-apple/Sources-iOS/Loc.swift                    -> langs + langNames + langName()
+  · android/app/src/main/java/org/pumpfoil/app/I18n.kt   -> LANGS + LANG_NAMES + langName() + systemLang()
+  · watch-apple/Sources-iOS/Loc.swift                    -> langs + langNames + langName() + systemLang()
+
+`systemLang()` kommt aus `detectInitialLang` derselben Datei: welche Geraetesprache auf
+welche unserer Sprachen faellt, und dass Unbekanntes auf ENGLISCH landet. Bis zum
+12.09.2026 gab es das in den Handy-Apps gar nicht — sie starteten hart auf Deutsch.
 
 WAS NUR GEPRUEFT WIRD (nicht erzeugbar, weil dort Struktur und nicht nur Daten steht):
   · web `type Lang`  · web `DICTS`  · server `auth.SUPPORTED_LANGS`
@@ -46,8 +50,32 @@ def lies_quelle() -> list[tuple[str, str, str]]:
     return treffer
 
 
-def kotlin(sprachen) -> str:
+def lies_regeln() -> tuple[list[tuple[list[str], str]], str]:
+    """Die Geraetesprachen-Regeln aus `detectInitialLang` — ([Praefixe], Ziel) in Reihenfolge.
+
+    Die Reihenfolge ist inhaltlich wichtig: `de-at` muss VOR `de` stehen, sonst wird aus
+    Oesterreich Hochdeutsch. Deshalb wird die Funktion gelesen und nicht neu erfunden.
+    """
+    s = QUELLE.read_text(encoding="utf-8")
+    block = s[s.index("export function detectInitialLang"):]
+    block = block[:block.index("\n}")]
+    regeln = []
+    for zeile in block.splitlines():
+        m = re.search(r'return "([^"]+)";', zeile)
+        if not m or "startsWith" not in zeile:
+            continue
+        regeln.append((re.findall(r'startsWith\("([^"]+)"\)', zeile), m.group(1)))
+    rueckfall = re.findall(r'return "([^"]+)";', block)[-1]
+    if not regeln:
+        sys.exit(f"Keine Sprach-Regeln in {QUELLE} gefunden — hat sich detectInitialLang geaendert?")
+    return regeln, rueckfall
+
+
+def kotlin(sprachen, regeln, rueckfall) -> str:
     codes = ", ".join(f'"{c}"' for c, _, _ in sprachen)
+    kregeln = "\n".join(
+        "        if (" + " || ".join(f'tag.startsWith("{p}")' for p in pre) + f') return "{ziel}"'
+        for pre, ziel in regeln)
     zeilen = "\n".join(f'        "{c}" to "{n}",' for c, _, n in sprachen)
     return f"""{ANFANG}
     // Quelle: web/src/i18n/index.tsx. Reihenfolge wie dort — die Sprachauswahl sieht damit auf
@@ -61,11 +89,25 @@ def kotlin(sprachen) -> str:
 
     /** Anzeigename einer Sprache; unbekannt -> das Kuerzel, damit nie eine leere Zeile steht. */
     fun langName(l: String): String = LANG_NAMES[l] ?: l
+
+    /**
+     * Geraetesprache auf unsere Sprachen abbilden — dieselben Regeln wie in der PWA
+     * (`detectInitialLang`), von dort erzeugt. Unbekannt -> ENGLISCH, niemals Deutsch
+     * (Vorgabe Jan, 12.09.2026, nach der Meldung eines franzoesischen Nutzers).
+     */
+    fun systemLang(): String {{
+        val tag = java.util.Locale.getDefault().toLanguageTag().lowercase()
+{kregeln}
+        return "{rueckfall}"
+    }}
     {ENDE}"""
 
 
-def swift(sprachen) -> str:
+def swift(sprachen, regeln, rueckfall) -> str:
     codes = ", ".join(f'"{c}"' for c, _, _ in sprachen)
+    sregeln = "\n".join(
+        "        if " + " || ".join(f'tag.hasPrefix("{p}")' for p in pre) + f' {{ return "{ziel}" }}'
+        for pre, ziel in regeln)
     zeilen = "\n".join(f'        "{c}": "{n}",' for c, _, n in sprachen)
     return f"""{ANFANG}
     // Quelle: web/src/i18n/index.tsx. Reihenfolge wie dort — die Sprachauswahl sieht damit auf
@@ -79,6 +121,15 @@ def swift(sprachen) -> str:
 
     /// Anzeigename einer Sprache; unbekannt -> das Kuerzel, damit nie eine leere Zeile steht.
     static func langName(_ l: String) -> String {{ langNames[l] ?? l }}
+
+    /// Geraetesprache auf unsere Sprachen abbilden — dieselben Regeln wie in der PWA
+    /// (`detectInitialLang`), von dort erzeugt. Unbekannt -> ENGLISCH, niemals Deutsch
+    /// (Vorgabe Jan, 12.09.2026, nach der Meldung eines franzoesischen Nutzers).
+    static func systemLang() -> String {{
+        let tag = (Locale.preferredLanguages.first ?? "en").lowercased()
+{sregeln}
+        return "{rueckfall}"
+    }}
     {ENDE}"""
 
 
@@ -138,11 +189,13 @@ def main() -> int:
     args = ap.parse_args()
 
     sprachen = lies_quelle()
+    regeln, rueckfall = lies_regeln()
     print(f"{len(sprachen)} Sprachen aus {QUELLE.relative_to(WURZEL)}:")
-    print("  " + " · ".join(f"{f} {c}" for c, f, _ in sprachen) + "\n")
+    print("  " + " · ".join(f"{f} {c}" for c, f, _ in sprachen))
+    print(f"{len(regeln)} Geraetesprachen-Regeln aus detectInitialLang, Rueckfall: {rueckfall}\n")
 
-    ersetze(WURZEL / "android/app/src/main/java/org/pumpfoil/app/I18n.kt", kotlin(sprachen), args.echt)
-    ersetze(WURZEL / "watch-apple/Sources-iOS/Loc.swift", swift(sprachen), args.echt)
+    ersetze(WURZEL / "android/app/src/main/java/org/pumpfoil/app/I18n.kt", kotlin(sprachen, regeln, rueckfall), args.echt)
+    ersetze(WURZEL / "watch-apple/Sources-iOS/Loc.swift", swift(sprachen, regeln, rueckfall), args.echt)
 
     fehler = pruefe(sprachen)
     print("\nNur geprueft (nicht erzeugbar):")
