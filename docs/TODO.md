@@ -881,10 +881,24 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     „Mayor"?), was passiert bei Streit, und wie verhindert man Unfug — ein Spot-Name ist oeffentlich
     und steht unter den Aufnahmen aller anderen. Es gibt bereits `spots.name` + `name_source`, ein
     Override ist also technisch nur ein Schreibweg plus Rechtefrage.
-  - **Zwischenloesung, Ansage Jan (12.09.):** von Hand aendern. Ihm geantwortet (DM 1675) und um
-    die genaue Schreibweise gebeten (Barcelona Forum / Barcelona Fòrum / Parc del Fòrum) — und
-    darum, die anderen vier zu fragen, bevor der Name fuer alle wechselt. **Sobald er antwortet,
-    aendern.**
+  - **🟢 ERLEDIGT 12.09.: Spot 50 heisst jetzt „Barcelona Forum"** (`name_source` town -> manual),
+    auf Jans Ansage hin und nach der Pruefung, ob ein Rename Folgeschaeden hat. Er hat keine:
+    | | |
+    |---|---|
+    | `sessions.place_name` | 59 umgezogen, 0 Reste |
+    | Chat-Scope | 12 Nachrichten von `spot:Sant Adrià de Besòs` nach `spot:Barcelona Forum` |
+    | `chat_room_state` | 13 Zeilen mit, keine Kollision am Ziel (sonst haette die Funktion zusammengefuehrt) |
+    | Homespot | 0 betroffen |
+    | Rekorde | unberuehrt — `record_snapshots.key` traegt `spot:<ID>`, nicht den Namen |
+    | kuenftige Sessions | `assign_one` setzt `place_name = sp.name`, fragt also NICHT erneut den Ort ab |
+    - **Warum das gefahrlos war:** `spots.rename_spot_row` gibt es laengst und zieht alle drei
+      namensbasierten Stellen mit; `POST /api/admin/spots/{id}/rename` ruft genau sie auf. Ich habe
+      denselben Weg genommen und den Audit-Eintrag mitgeschrieben.
+    - **Die einzige Stelle, die einen manuellen Namen zurueckdrehen koennte,** ist die
+      Zaehler-Suffix-Aufraeumung in `resweep` (Schritt 4): sie greift nur bei Namen der Form
+      `<Basis> <2-9>`. „Barcelona Forum" passt nicht darauf. `name_source='manual'` wird sonst
+      NIRGENDS als Schutz geprueft — wer dort einmal einen Automatismus ergaenzt, muss daran denken.
+    - Clement ist informiert (DM 1675 + 1676) und kann die Schreibweise noch aendern lassen.
   - **Nebenbei aufgefallen, noch offen:** am 28.08. hat er im Spot-Chat gefragt „Could you please
     tag me as the Mayor of this spot?" — darauf hat nie jemand geantwortet.
 
