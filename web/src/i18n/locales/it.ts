@@ -158,8 +158,6 @@ const it: Record<string, string> = {
   "login.haveAccount": "Hai già un account? Accedi",
   "login.newHere": "Nuovo qui? Registrati",
   "login.enterEmail": "Inserisci la tua e-mail qui sopra.",
-  "login.oauthNoEmail": "Facebook non ci ha dato un indirizzo e-mail, quindi non abbiamo potuto creare un account. Accedi di nuovo autorizzando l’indirizzo e-mail — oppure usa e-mail e password.",
-  "login.oauthFailed": "L’accesso tramite questo servizio non ha funzionato. Riprova oppure usa e-mail e password.",
   "login.resetSent": "Se esiste un account per questa e-mail, un link di reimpostazione è in arrivo.",
   "login.nameTaken": "Questo nome visualizzato è già in uso.",
   "login.nameLen": "Nome visualizzato: 2–40 caratteri.",

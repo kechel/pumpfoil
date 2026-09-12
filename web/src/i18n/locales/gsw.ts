@@ -159,8 +159,6 @@ const gsw: Record<string, string> = {
   "login.haveAccount": "Scho en Account? Aamälde",
   "login.newHere": "Nöi da? Registriere",
   "login.enterEmail": "Bitte obe dini E-Mail iigä.",
-  "login.oauthNoEmail": "Facebook het üs kei E-Mail-Adrässe gäh, drum hemmer kes Konto chöne aalege. Mäld di nomal aa und gib d E-Mail-Adrässe frei — oder nimm E-Mail und Passwort.",
-  "login.oauthFailed": "D Aameldig über de Aabieter het nöd klappet. Probier s nomal oder nimm E-Mail und Passwort.",
   "login.resetSent": "Falls es Konto zu dere E-Mail git, isch en Reset-Link underwägs.",
   "login.nameTaken": "Dä Aazeigename isch scho vergä.",
   "login.nameLen": "Aazeigename: 2–40 Zeiche.",

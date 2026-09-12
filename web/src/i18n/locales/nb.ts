@@ -198,8 +198,6 @@ const nb: Record<string, string> = {
   "login.haveAccount": "Har du allerede konto? Logg inn",
   "login.newHere": "Ny her? Registrer deg",
   "login.enterEmail": "Skriv inn e-postadressen din over.",
-  "login.oauthNoEmail": "Facebook ga oss ingen e-postadresse, så vi kunne ikke opprette en konto. Logg inn på nytt og gi tilgang til e-postadressen — eller bruk e-post og passord.",
-  "login.oauthFailed": "Innlogging via den tjenesten fungerte ikke. Prøv igjen eller bruk e-post og passord.",
   "login.resetSent": "Finnes det en konto for denne e-postadressen, er en lenke for tilbakestilling på vei.",
   "login.nameTaken": "Dette visningsnavnet er allerede tatt.",
   "login.nameLen": "Visningsnavn: 2–40 tegn.",

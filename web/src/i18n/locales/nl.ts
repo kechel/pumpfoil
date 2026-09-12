@@ -185,8 +185,6 @@ const nl: Record<string, string> = {
   "login.haveAccount": "Al een account? Inloggen",
   "login.newHere": "Nieuw hier? Registreren",
   "login.enterEmail": "Vul hierboven je e-mailadres in.",
-  "login.oauthNoEmail": "Facebook heeft ons geen e-mailadres gegeven, daarom konden we geen account aanmaken. Meld je opnieuw aan en geef het e-mailadres vrij — of gebruik e-mail en wachtwoord.",
-  "login.oauthFailed": "Aanmelden via die aanbieder is niet gelukt. Probeer het opnieuw of gebruik e-mail en wachtwoord.",
   "login.resetSent": "Als er een account met dit e-mailadres bestaat, is er een reset-link onderweg.",
   "login.nameTaken": "Deze weergavenaam is al bezet.",
   "login.nameLen": "Weergavenaam: 2–40 tekens.",

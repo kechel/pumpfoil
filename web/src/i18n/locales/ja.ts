@@ -178,8 +178,6 @@ const ja: Record<string, string> = {
   "login.haveAccount": "すでにアカウントをお持ちですか？ログイン",
   "login.newHere": "初めてですか？登録",
   "login.enterEmail": "上にメールアドレスを入力してください。",
-  "login.oauthNoEmail": "Facebook からメールアドレスが渡されなかったため、アカウントを作成できませんでした。もう一度サインインしてメールアドレスを許可するか、メールとパスワードでお入りください。",
-  "login.oauthFailed": "この方法でのサインインに失敗しました。もう一度お試しになるか、メールとパスワードをお使いください。",
   "login.resetSent": "このメールアドレスのアカウントが存在する場合、リセットリンクを送信します。",
   "login.nameTaken": "この表示名はすでに使われています。",
   "login.nameLen": "表示名：2〜40文字。",

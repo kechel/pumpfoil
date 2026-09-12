@@ -189,8 +189,6 @@ const ptPT: Record<string, string> = {
   "login.haveAccount": "Já tem uma conta? Entrar",
   "login.newHere": "Novo por aqui? Regista-te",
   "login.enterEmail": "Escreve o teu e-mail acima.",
-  "login.oauthNoEmail": "O Facebook não nos deu um endereço de e-mail, por isso não foi possível criar a conta. Inicia sessão outra vez e autoriza o e-mail — ou usa e-mail e palavra-passe.",
-  "login.oauthFailed": "O início de sessão por esse fornecedor não resultou. Tenta de novo ou usa e-mail e palavra-passe.",
   "login.resetSent": "Se existir uma conta para este e-mail, um link de redefinição está a caminho.",
   "login.nameTaken": "Este nome de exibição já está em uso.",
   "login.nameLen": "Nome de exibição: 2–40 caracteres.",

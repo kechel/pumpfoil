@@ -201,8 +201,6 @@ const en: Record<string, string> = {
   "login.haveAccount": "Already have an account? Log in",
   "login.newHere": "New here? Sign up",
   "login.enterEmail": "Please enter your email above.",
-  "login.oauthNoEmail": "Facebook did not give us an email address, so we could not create an account. Sign in again and allow the email address — or use email and password.",
-  "login.oauthFailed": "Signing in with that provider did not work. Try again or use email and password.",
   "login.resetSent": "If an account exists for this email, a reset link is on its way.",
   "login.nameTaken": "This display name is already taken.",
   "login.nameLen": "Display name: 2–40 characters.",
