@@ -1,6 +1,7 @@
 package org.pumpfoil.app
 
 import android.content.Context
+import android.net.Uri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.builtins.ListSerializer
@@ -1152,6 +1153,21 @@ object Api {
         json.decodeFromString(MintResp.serializer(),
             http("POST", "/api/devices/mint?label=$l", null, auth = true)).device_token
     }
+
+    /** Anbieter, die der Server fuer den BROWSER-Login freigegeben hat (Facebook & Co.).
+     *  Google und Apple stehen dort auch drin, haben in den Apps aber ihren eigenen nativen
+     *  Weg — die filtert die Anmeldemaske heraus. Ist ein Anbieter serverseitig ausgeblendet
+     *  (OAUTH_<P>_HIDDEN), fehlt er hier und der Knopf erscheint gar nicht erst: die
+     *  Freischaltung nach Metas Freigabe braucht damit KEIN neues App-Release. */
+    suspend fun oauthProviders(): List<OAuthProvider> = withContext(Dispatchers.IO) {
+        try { json.decodeFromString(http("GET", "/api/auth/oauth/providers", null, auth = false)) }
+        catch (_: Exception) { emptyList() }
+    }
+
+    /** Adresse, die der Knopf im Systembrowser oeffnet. `app=1` sagt dem Server, dass der
+     *  Rueckweg auf `pumpfoil://auth` gehen soll statt auf die Website. */
+    fun oauthStartUrl(id: String, lang: String): String =
+        "$BASE/api/auth/oauth/$id/start?app=1&lang=" + Uri.encode(lang)
 
     // Garmin Reverse-Pairing: der auf der Uhr angezeigte Code wird hier eingelöst.
     // `label` = die im Assistenten gewaehlte Marke. Stand bis 11.09.2026 fest auf "Garmin" —

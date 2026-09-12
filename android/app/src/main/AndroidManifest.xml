@@ -30,10 +30,22 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTask"
             android:theme="@style/Theme.Pumpfoil.Starting">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- Ruecksprung aus dem Systembrowser nach einer Anbieter-Anmeldung (Facebook &
+                 Co.). Der Server leitet am Ende auf `pumpfoil://auth#token=...`; dieses
+                 Schema faengt genau das ab und bringt uns zurueck in die App.
+                 singleTask, damit der Ruecksprung die BESTEHENDE Activity erreicht
+                 (onNewIntent) statt eine zweite danebenzustellen. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="pumpfoil" android:host="auth" />
             </intent-filter>
         </activity>
 

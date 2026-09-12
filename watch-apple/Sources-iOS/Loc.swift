@@ -391,6 +391,7 @@ enum Loc {
         "login.toRegister": "Ještě nemáš účet? Zaregistruj se",
         "login.toLogin": "Už máš účet? Přihlas se",
         "login.or": "nebo",
+        "login.continueWith": "Pokračovat přes {provider}",
         "login.google": "Přihlásit se přes Google",
         "profile.foils": "Foily",
         "profile.foilsSub": "Katalog · moje a výchozí",
@@ -1305,6 +1306,7 @@ enum Loc {
         "login.toRegister": "Nog geen account? Registreren",
         "login.toLogin": "Al een account? Inloggen",
         "login.or": "of",
+        "login.continueWith": "Doorgaan met {provider}",
         "login.google": "Inloggen met Google",
         "profile.foils": "Foils",
         "profile.foilsSub": "Catalogus · mijn & standaard",
@@ -1890,6 +1892,7 @@ enum Loc {
 
     // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/fi.ts.
     private static let _fiOverlayP11: [String: String] = [
+    "login.continueWith": "Jatka: {provider}",
     "account.activityPumpfoil": "Pumpfoil (yleinen)",
     "account.addLayoutPage": "+ Lisää oma näyttö",
     "account.autoStart": "Aloita tallennus automaattisesti, kun lähden liikkeelle (GPS)",
@@ -3178,6 +3181,7 @@ enum Loc {
         "login.toRegister": r("Noch kein Konto? Registrieren", "No kes Konto? Registriere", "Noch kein Konto? Registrieren", "No account? Register", "Pas de compte ? S'inscrire", "Nessun account? Registrati", "¿Sin cuenta? Regístrate"),
         "login.toLogin": r("Schon ein Konto? Anmelden", "Scho es Konto? Aamelde", "Schon ein Konto? Anmelden", "Have an account? Sign in", "Déjà un compte ? Se connecter", "Hai un account? Accedi", "¿Ya tienes cuenta? Inicia sesión"),
         "login.or": r("oder", "oder", "oder", "or", "ou", "o", "o"),
+        "login.continueWith": r("Weiter mit {provider}", "Wiiter mit {provider}", "Weiter mit {provider}", "Continue with {provider}", "Continuer avec {provider}", "Continua con {provider}", "Continuar con {provider}"),
         "login.google": r("Mit Google anmelden", "Mit Google aamelde", "Mit Google anmelden", "Sign in with Google", "Se connecter avec Google", "Accedi con Google", "Iniciar sesión con Google"),
         "profile.foils": r("Foils", "Foils", "Foils", "Foils", "Foils", "Foils", "Foils"),
         "profile.foilsSub": r("Katalog · meine & Standard", "Katalog · myni & Standard", "Katalog · meine & Standard", "Catalog · mine & default", "Catalogue · les miens & défaut", "Catalogo · i miei & predefinito", "Catálogo · míos & predet."),

@@ -69,6 +69,13 @@ targets:
         NSMotionUsageDescription: "Beschleunigungsdaten zur Pump-/Gleit-Erkennung während der Aufnahme."
         UIBackgroundModes:
           - location
+        # Ruecksprung aus dem Systembrowser nach einer Anbieter-Anmeldung (Facebook & Co.).
+        # `ASWebAuthenticationSession` braucht das Schema hier angemeldet, sonst findet iOS den
+        # Weg zurueck in die App nicht. Der Server leitet auf `pumpfoil://auth#token=...`.
+        CFBundleURLTypes:
+          - CFBundleURLName: org.pumpfoil.coolwatch.auth
+            CFBundleURLSchemes:
+              - pumpfoil
     entitlements:
       path: Sources-iOS/Pumpfoil.entitlements
       properties:

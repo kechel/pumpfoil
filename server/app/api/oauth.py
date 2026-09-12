@@ -43,6 +43,12 @@ from .auth import _clean_lang, next_free_display_name
 
 router = APIRouter(prefix="/api/auth/oauth", tags=["oauth"])
 
+# Ruecksprungziel der nativen Apps. FEST verdrahtet, nicht aus dem Request: waere es ein
+# Parameter, haetten wir eine offene Weiterleitung, ueber die sich jemand unser frisch
+# ausgestelltes Token zuschicken lassen koennte. Beide Apps melden dieses Schema beim
+# Betriebssystem an (iOS: CFBundleURLSchemes, Android: intent-filter).
+APP_SCHEMA = "pumpfoil://auth"
+
 # Provider-Registry: Endpunkte + Scopes + Feature-Flags.
 PROVIDERS: dict[str, dict] = {
     "google": {
@@ -205,10 +211,18 @@ def providers() -> list[dict]:
 
 
 @router.get("/{provider}/start")
-def start(provider: str, lang: str | None = None):
+def start(provider: str, lang: str | None = None, app: int | None = None):
     """Startet den Login: leitet zum Provider-Consent weiter (state+PKCE im Cookie).
+
     `lang` = aktuell gewählte UI-Sprache der öffentlichen Seite; wird über ein Cookie
-    durch den Redirect-Roundtrip getragen und bei NEUEN Konten als Profilsprache gesetzt."""
+    durch den Redirect-Roundtrip getragen und bei NEUEN Konten als Profilsprache gesetzt.
+
+    `app=1` = der Aufruf kommt aus einer NATIVEN APP, die den Systembrowser geöffnet hat
+    (iOS `ASWebAuthenticationSession`, Android Custom Tabs). Dann endet der Callback nicht
+    auf der Website, sondern auf `APP_SCHEMA` — daran erkennt das Betriebssystem, dass es
+    zurück in die App gehört. Bewusst ein FESTES Ziel und kein Parameter: ein frei
+    wählbares Rücksprungziel wäre eine offene Weiterleitung, über die sich ein fremder
+    Anbieter unser frisches Token schicken lassen könnte."""
     cfg = _enabled(provider)
     state = secrets.token_urlsafe(24)
     params = {
@@ -241,6 +255,8 @@ def start(provider: str, lang: str | None = None):
         resp.set_cookie("oauth_pkce", verifier, max_age=600, httponly=True, secure=secure, samesite=samesite)
     if lang:
         resp.set_cookie("oauth_lang", _clean_lang(lang), max_age=600, httponly=True, secure=secure, samesite=samesite)
+    if app:
+        resp.set_cookie("oauth_app", "1", max_age=600, httponly=True, secure=secure, samesite=samesite)
     return resp
 
 
@@ -315,6 +331,7 @@ async def callback(
     oauth_state: str | None = Cookie(None),
     oauth_pkce: str | None = Cookie(None),
     oauth_lang: str | None = Cookie(None),
+    oauth_app: str | None = Cookie(None),
 ):
     """Tauscht den Code gegen ein Token, ermittelt die Identität, loggt ein/registriert
     und leitet mit unserem JWT zurück ins Frontend (#token=...)."""
@@ -353,10 +370,13 @@ async def callback(
     jwt = create_access_token(user.id)
     # 303 (See Other): erzwingt GET auf das Frontend. Wichtig bei Apple, dessen Callback
     # ein POST ist — ein 307 würde die Methode beibehalten -> POST auf "/" -> 405.
-    resp = RedirectResponse(f"{get_settings().base_url}/#token={jwt}", status_code=303)
+    ziel = (f"{APP_SCHEMA}#token={jwt}" if oauth_app == "1"
+            else f"{get_settings().base_url}/#token={jwt}")
+    resp = RedirectResponse(ziel, status_code=303)
     resp.delete_cookie("oauth_state")
     resp.delete_cookie("oauth_pkce")
     resp.delete_cookie("oauth_lang")
+    resp.delete_cookie("oauth_app")
     return resp
 
 

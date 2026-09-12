@@ -32,6 +32,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.material3.ButtonDefaults
+import android.net.Uri
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -51,6 +55,9 @@ import kotlinx.coroutines.launch
 // Gebrandeter Login: Hintergrundbild + Scrim + Card. Reihenfolge wie die PWA:
 // Wortmarke · Untertitel · E-Mail · Passwort · [Name] · Fehler · Anmelden ·
 // Passwort vergessen · Umschalten · oder · Google · Sprache · Impressum.
+/** Facebook-Markenblau (#1877F2) — Metas Vorgabe fuer den Anmelde-Knopf. */
+private val FACEBOOK_BLAU = Color(0xFF1877F2)
+
 @Composable
 fun LoginScreen(onLoggedIn: () -> Unit) {
     val ctx = LocalContext.current
@@ -64,6 +71,12 @@ fun LoginScreen(onLoggedIn: () -> Unit) {
     var resetMsg by remember { mutableStateOf<String?>(null) }
     var showImprint by remember { mutableStateOf(false) }
     var langMenu by remember { mutableStateOf(false) }
+    var anbieter by remember { mutableStateOf<List<OAuthProvider>>(emptyList()) }
+    LaunchedEffect(Unit) { anbieter = Api.oauthProviders() }
+    // Kommt der Mensch aus dem Browser zurueck, hat MainActivity das Token schon gespeichert —
+    // hier nur noch weiterschalten.
+    val rueck by OAuthRuecksprung.angemeldet.collectAsState()
+    LaunchedEffect(rueck) { if (rueck > 0 && Api.token != null) onLoggedIn() }
     var lang by remember { mutableStateOf(I18n.lang) }
 
     if (showImprint) { ImpressumScreen(onBack = { showImprint = false }); return }
@@ -169,6 +182,38 @@ fun LoginScreen(onLoggedIn: () -> Unit) {
                         },
                         enabled = !busy, modifier = Modifier.fillMaxWidth(),
                     ) { Text(I18n.t("login.google")) }
+
+                    // Weitere Anbieter (Facebook & Co.) ueber den SYSTEMBROWSER — kein fremdes
+                    // SDK in der App, also auch keine App-Ereignisse an Meta. Google und Apple
+                    // fliegen raus: die haben hier ihren eigenen nativen Weg (Apple auf iOS).
+                    // Was der Server ausblendet, kommt hier gar nicht erst an — die Freischaltung
+                    // nach Metas Freigabe braucht deshalb kein neues Release.
+                    anbieter.filter { it.id != "google" && it.id != "apple" }.forEach { p ->
+                        Spacer(Modifier.height(8.dp))
+                        p.note?.let {
+                            Text(it, style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
+                                textAlign = TextAlign.Center)
+                        }
+                        Button(
+                            onClick = {
+                                error = null
+                                // Systembrowser statt WebView: nur dort sieht der Mensch die
+                                // echte Adresszeile und eine schon bestehende Facebook-Sitzung.
+                                runCatching {
+                                    ctx.startActivity(android.content.Intent(
+                                        android.content.Intent.ACTION_VIEW,
+                                        Uri.parse(Api.oauthStartUrl(p.id, I18n.lang))))
+                                }.onFailure { error = it.message }
+                            },
+                            enabled = !busy, modifier = Modifier.fillMaxWidth(),
+                            colors = if (p.id == "facebook")
+                                ButtonDefaults.buttonColors(containerColor = FACEBOOK_BLAU,
+                                                            contentColor = Color.White)
+                            else ButtonDefaults.buttonColors(),
+                        ) { Text(I18n.t("login.continueWith").replace("{provider}", p.label)) }
+                    }
 
                     Spacer(Modifier.height(12.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {

@@ -1042,3 +1042,13 @@ fun gearMatches(text: String, query: String): Boolean {
     val t = text.lowercase()
     return worte.all { t.contains(it) }
 }
+
+
+/** Ein Anmelde-Anbieter aus GET /api/auth/oauth/providers. `note` = befristeter Hinweis
+ *  ueber dem Knopf (der Server setzt ihn ueber OAUTH_<P>_NOTE). */
+@Serializable
+data class OAuthProvider(
+    val id: String = "",
+    val label: String = "",
+    val note: String? = null,
+)

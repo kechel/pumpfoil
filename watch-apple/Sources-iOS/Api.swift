@@ -277,6 +277,21 @@ enum Api {
     /// "Garmin" in der Geraeteliste und unter jeder ihrer Aufnahmen im Feed. Der Server korrigiert
     /// das seit 12.09. anhand der vom Geraet gemeldeten Plattform (`naming.geraete_label`); hier
     /// steht die Wurzel, damit das Label von vornherein stimmt.
+    /// Ein Anmelde-Anbieter aus `GET /api/auth/oauth/providers`.
+    /// `note` = befristeter Hinweis ueber dem Knopf (Server: `OAUTH_<P>_NOTE`).
+    struct OAuthProvider: Decodable, Identifiable {
+        let id: String
+        let label: String
+        let note: String?
+    }
+
+    /// Anbieter, die der Server fuer den Browser-Login freigegeben hat. Ist einer ausgeblendet
+    /// (`OAUTH_<P>_HIDDEN`), fehlt er hier — die Freischaltung braucht kein App-Release.
+    /// Faellt der Aufruf aus, kommt eine leere Liste: dann fehlt nur ein Knopf.
+    static func oauthProviders() async -> [OAuthProvider] {
+        (try? await request("/api/auth/oauth/providers", method: "GET", body: nil, auth: false)) ?? []
+    }
+
     static func pairClaim(code: String, label: String = "Garmin") async throws {
         let _: ClaimResponse = try await request(
             "/api/devices/pair-claim", method: "POST",
