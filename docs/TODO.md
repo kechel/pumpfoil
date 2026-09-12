@@ -851,6 +851,29 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **💡 12.09. (Jan) — On-Foil-Erkennung noch einmal besser machen.** „das stimmt, inzwischen
+  haben wir ja auch viel mehr daten die wir dafuer auswerten koennen, aber das machen wir ein
+  andermal." NICHT JETZT — hier steht nur, was dann zur Hand ist.
+  - **Datenlage am 12.09.2026:** 6880 Sessions (6879 davon mit Accel), 2321 als Pumpfoil erkannt,
+    **25 128 erkannte Laeufe**. Dazu als GOLD: **456 Pump-Wahrheiten** (Tap-to-Label, s.
+    [[pump-groundtruth]]), 31 Handmarkierungen und **11 Sessions, in denen ein Mensch dem
+    Detektor ausdruecklich widersprochen hat** (`pumpfoil_override`). Das Modell selbst
+    (`foil_rf.pkl`, 14 Merkmale, F1 0,97) stammt aus einer deutlich kleineren Basis.
+  - **Zwei konkrete Anlaesse aus Kenjis Meldung (07.09., 1:1-Chat):**
+    1. **Es gibt keine STRENGERE Stufe als `normal`.** Die drei Presets (`normal` 2,8/2,5 m/s,
+       min 5 s · `light` 2,4/2,2, min 3 s · `attempts` 2,2/2,0, min 2 s) lockern alle nur — sie
+       sind fuer Anfaenger und leichte Fahrer gebaut. Wer das Gegenteil will, hat nichts.
+    2. **`MIN_SEGMENT_S = 5` ist eine Setzung, keine Wahrheit.** Kenjis Laeufe dauern 7–16 s, zwei
+       liegen also zwei Sekunden ueber der Schwelle. Wer nach sieben Sekunden abschmiert, haelt
+       das fuer einen misslungenen Versuch; die Software nennt es einen Lauf.
+  - **Zu beachten, wenn es losgeht:** die Stufe des Besitzers ist die massgebliche Auswertung
+    UEBERALL (Community, Rekorde, Bestenlisten — s. [[per-user-detection-sensitivity]]). Eine
+    neue Stufe oder verschobene Schwellen aendern also veroeffentlichte Zahlen. Und Aenderungen
+    an der Pipeline brauchen Jans OK plus Befund, verifizierten Fix und Regressionspruefung.
+  - **Getrennt davon, billiger:** „Startversuche" stehen als Distanzliste neben den Laeufen. Dass
+    ein Mensch das als mitgezaehlte Foiling-Zeit liest, ist nachvollziehbar (genau Kenjis
+    Verdacht: 33 Versuche, 7 Laeufe). Das waere eine Frage der Benennung, keine des Detektors.
+
 - **🟢 12.09. — Eine neue Sprache kostet jetzt EINE Aenderung statt acht.**
   `scripts/i18n-langs.py` erzeugt die Sprachliste und die Eigenbezeichnungen fuer beide nativen
   Apps aus `web/src/i18n/index.tsx` — demselben Muster wie `i18n-onboarding-native.py`.
