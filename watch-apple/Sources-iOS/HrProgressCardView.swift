@@ -19,10 +19,15 @@ struct HrProgressCardView: View {
     /// ohne Daten nichts zeichnet, wird in einem LazyVStack womoeglich nie angelegt; ein `.task`
     /// an ihr feuerte dann nie und sie bliebe fuer immer leer (genau das war der Fehler, Jan 18.08.).
     let daten: HrProgress?
+    /// Absoluter Puls oder ANSTIEG gegenueber dem Puls zu Beginn desselben Laufs. Gleiche
+    /// Umschaltung wie in PWA und Android-App; der Server liefert den Anstieg als `d<marke>` mit.
+    @State private var anstieg = false
 
     var body: some View {
-        if let m = marken, !m.isEmpty {
-            karte(m)
+        // Auch mit leerer Liste zeichnen, sobald ueberhaupt Daten da sind: sonst verschwaende
+        // die Karte beim Umschalten und man kaeme nicht zurueck.
+        if daten?.series?.isEmpty == false {
+            karte(marken ?? [])
         }
     }
 
@@ -36,7 +41,10 @@ struct HrProgressCardView: View {
             var n = 0
             for p in reihe {
                 n += p.laeufe[m] ?? 0
-                guard let v = p.werte[m], v > 0, let iso = p.started_at,
+                // „> 0" gilt NUR fuer den absoluten Puls, wo 0 kein Messwert ist. Ein Anstieg
+                // von 0 oder darunter ist ein echter Wert (Puls blieb gleich oder fiel).
+                let roh: Double? = anstieg ? p.anstieg[m] : p.werte[m]
+                guard let v = roh, anstieg || v > 0, let iso = p.started_at,
                       let ts = HrProgressCardView.zeit(iso) else { continue }
                 punkte.append(VPt(t: ts, v: v))
             }
@@ -50,6 +58,19 @@ struct HrProgressCardView: View {
         VStack(alignment: .leading, spacing: 6) {
             Text(Loc.t("hr.progressTitle", lang)).font(.headline)
             Text(Loc.t("hr.progressHint", lang)).font(.callout).foregroundStyle(.secondary)
+            Picker("", selection: $anstieg) {
+                Text(Loc.t("hr.viewPeak", lang)).tag(false)
+                Text(Loc.t("hr.viewRise", lang)).tag(true)
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            if anstieg {
+                Text(Loc.t("hr.viewRiseHint", lang)).font(.callout).foregroundStyle(.secondary)
+            }
+            if m.isEmpty {
+                // Kein Lauf mit Start-Puls -> in dieser Ansicht gibt es nichts zu zeigen.
+                Text(Loc.t("hr.pickNone", lang)).font(.callout).foregroundStyle(.secondary)
+            }
             ForEach(m, id: \.mark) { eintrag in
                 abschnitt(eintrag)
             }
@@ -66,13 +87,14 @@ struct HrProgressCardView: View {
         let letzt: Double = e.pts.last?.v ?? 0
         let tiefster: Double = e.pts.map { $0.v }.min() ?? 0
         // y-Achse NICHT bei 0: der interessante Bereich liegt zwischen ~110 und ~175 bpm.
-        let vmin: Double = max(0, tiefster - 8)
+        // Im Anstiegs-Modus darf sie unter 0 gehen — ein gefallener Puls ist ein Ergebnis.
+        let vmin: Double = anstieg ? tiefster - 4 : max(0, tiefster - 8)
         let bereich: (Double, Double) = (e.pts.first?.t ?? 0, e.pts.last?.t ?? 1)
         VStack(alignment: .leading, spacing: 2) {
             HStack {
                 Text(titel(e.mark)).font(.subheadline).fontWeight(.semibold)
                 Spacer()
-                Text("\(Int(letzt.rounded())) bpm").font(.subheadline).bold()
+                Text(HrProgressCardView.bpm(letzt, anstieg)).font(.subheadline).bold()
                     .foregroundStyle(Self.hrFarbe)
             }
             Text(untertitel(laeufe: e.laeufe, sessions: e.pts.count, erst: erst, letzt: letzt))
@@ -96,7 +118,14 @@ struct HrProgressCardView: View {
         let basis: String = Loc.t("hr.fromRuns", lang)
             .replacingOccurrences(of: "{runs}", with: "\(laeufe)")
             .replacingOccurrences(of: "{sessions}", with: "\(sessions)")
-        return "\(basis)  \(Int(erst.rounded())) → \(Int(letzt.rounded())) bpm"
+        return "\(basis)  \(HrProgressCardView.bpm(erst, anstieg)) → \(HrProgressCardView.bpm(letzt, anstieg))"
+    }
+
+    /// Pulswert beschriften. Im Anstiegs-Modus MIT Vorzeichen: „+18 bpm" liest sich als Zunahme,
+    /// „18 bpm" waere von einem absoluten Wert nicht zu unterscheiden.
+    private static func bpm(_ v: Double, _ anstieg: Bool) -> String {
+        let n: Int = Int(v.rounded())
+        return (anstieg && n > 0) ? "+\(n) bpm" : "\(n) bpm"
     }
 
     /// Rose wie in der PWA (#f43f5e) — Puls hat dort durchgehend diese Farbe.
