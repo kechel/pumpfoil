@@ -48,13 +48,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
-private val LANG_LABEL = mapOf(
-    "de" to "Deutsch", "gsw" to "Schwiizerdütsch", "de-AT" to "Österreichisch",
-    "en" to "English", "fr" to "Français", "it" to "Italiano", "es" to "Español",
-    "fi" to "Suomi", "nl" to "Nederlands", "cs" to "Čeština",
-    "pt" to "Português", "ja" to "日本語", "zh" to "中文", "ru" to "Русский", "id" to "Bahasa Indonesia",
-)
-
 // Gebrandeter Login: Hintergrundbild + Scrim + Card. Reihenfolge wie die PWA:
 // Wortmarke · Untertitel · E-Mail · Passwort · [Name] · Fehler · Anmelden ·
 // Passwort vergessen · Umschalten · oder · Google · Sprache · Impressum.
@@ -183,11 +176,11 @@ fun LoginScreen(onLoggedIn: () -> Unit) {
                             TextButton(onClick = { langMenu = true }) {
                                 Icon(Icons.Filled.Language, contentDescription = null, modifier = Modifier.size(18.dp))
                                 Spacer(Modifier.width(6.dp))
-                                Text(LANG_LABEL[lang] ?: "Deutsch", style = MaterialTheme.typography.bodySmall)
+                                Text(I18n.langName(lang), style = MaterialTheme.typography.bodySmall)
                             }
                             DropdownMenu(expanded = langMenu, onDismissRequest = { langMenu = false }) {
                                 I18n.LANGS.forEach { l ->
-                                    DropdownMenuItem(text = { Text(LANG_LABEL[l] ?: l) }, onClick = {
+                                    DropdownMenuItem(text = { Text(I18n.langName(l)) }, onClick = {
                                         I18n.set(ctx, l); lang = l; langMenu = false
                                     })
                                 }

@@ -1,11 +1,6 @@
 import SwiftUI
 
 // Sprachnamen in der jeweiligen Sprache (Reihenfolge = Loc.langs).
-private let langNames = ["de": "Deutsch", "gsw": "Schwiizerdütsch", "de-AT": "Österreichisch",
-                         "en": "English", "fr": "Français", "it": "Italiano", "es": "Español", "fi": "Suomi",
-                         "nl": "Nederlands", "cs": "Čeština", "pt": "Português (Brasil)", "pt-PT": "Português (Portugal)", "ja": "日本語",
-                         "zh": "中文", "ru": "Русский", "id": "Bahasa Indonesia",
-                         "nb": "Norsk", "pl": "Polski"]
 
 // Allgemeine Einstellungen: Gewicht, Homespot, Design (Theme), Push-Benachrichtigungen.
 // Bewusst Standard-Bindings + .onChange(of:) (kein derived Binding) — release-robust.
@@ -247,7 +242,7 @@ struct SettingsView: View {
         Section(Loc.t("settings.language", lang)) {
             Picker(Loc.t("settings.language", lang), selection: $lang) {
                 ForEach(Loc.langs, id: \.self) { code in
-                    Text(langNames[code] ?? code).tag(code)
+                    Text(Loc.langName(code)).tag(code)
                 }
             }
         }
