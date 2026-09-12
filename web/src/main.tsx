@@ -63,6 +63,7 @@ import PublicSession from "./pages/PublicSession";
 import Compare from "./pages/Compare";
 import Labeling from "./pages/Labeling";
 import Impressum from "./pages/Impressum";
+import Datenloeschung from "./pages/Datenloeschung";
 import Changelog from "./pages/Changelog";
 import Import from "./pages/Import";
 import Foiler from "./pages/Foiler";
@@ -126,6 +127,9 @@ const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
   { path: "/reset", element: <Reset /> },
   { path: "/impressum", element: <Impressum /> },
+  // Statusseite fuer Facebook-Loeschanfragen — die Adresse gibt der Data-Deletion-Callback
+  // zurueck, Meta prueft sie vor der Freigabe. Oeffentlich, ohne Login.
+  { path: "/datenloeschung", element: <Datenloeschung /> },
   { path: "/changelog", element: <Changelog /> },
   // Eine eigene Adresse je Sprache fuer die oeffentliche Startseite: /en/, /fr/, /ja/ …
   // Statische Pfade wie /login gewinnen in React Router gegen dieses dynamische Segment,

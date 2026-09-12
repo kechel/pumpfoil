@@ -956,6 +956,12 @@ const de: Record<string, string> = {
   "adm.noActions": "Noch keine Aktionen.",
 
   // Impressum / Datenschutz (de + en; übrige erben de)
+  "del.title": "Datenlöschung",
+  "del.done": "Deine Anfrage ist angekommen. Die Verknüpfung zwischen deinem Facebook-Konto und pumpfoil.org ist entfernt — wir haben keinen Zugriff mehr auf deine Facebook-Daten, und ein Anmelden über Facebook ist damit nicht mehr möglich.",
+  "del.code": "Vorgangsnummer:",
+  "del.restTitle": "Dein pumpfoil.org-Konto besteht weiter",
+  "del.rest": "Deine Aufnahmen, Spots und Beiträge bleiben erhalten. Das ist Absicht: an einem Konto hängen auch Rekorde und Unterhaltungen mit anderen, und so etwas löschen wir nicht ungefragt von außen.",
+  "del.how": "Willst du auch das Konto und alles darin löschen, geht das jederzeit selbst: im Profil unter „Daten & Konto“. Die Löschung ist vollständig und endgültig.",
   "imp.title": "Impressum",
   "imp.whoSees": "Datenschutz",
   "imp.intro": "Diese App ist eine Community: Foil-Sessions werden mit anderen geteilt. Hier steht genau, welche Daten für wen sichtbar sind.",
