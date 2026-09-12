@@ -84,6 +84,22 @@ export default function Impressum() {
           </ul>
         </section>
 
+        {/* Facebook — derselbe Aufbau wie Google und Apple darueber. Der letzte Punkt (kein
+            Skript, kein Pixel) steht bewusst drin: viele verbinden „Facebook-Login" mit
+            Nachverfolgung, und bei uns ist es eine Weiterleitung auf Knopfdruck. */}
+        <section className="rounded-xl border border-slate-700 bg-slate-900/40 p-4">
+          <h3 className="mb-2 font-semibold text-slate-200">{t("imp.fbTitle")}</h3>
+          <p className="mb-2 text-slate-300">{t("imp.fbIntro")}</p>
+          <ul className="list-disc space-y-1 pl-5 text-slate-200">
+            {li("imp.fb1")}
+            {li("imp.fb2")}
+            {li("imp.fb3")}
+            {li("imp.fb4")}
+            {li("imp.fb5")}
+          </ul>
+          <p className="mt-2 text-xs text-slate-400" dangerouslySetInnerHTML={{ __html: t("imp.fbNote") }} />
+        </section>
+
         <section className="rounded-xl border border-slate-700 bg-slate-900/40 p-4">
           <h3 className="mb-2 font-semibold text-slate-200">{t("imp.connTitle")}</h3>
           <p className="mb-2 text-slate-300">{t("imp.connIntro")}</p>
