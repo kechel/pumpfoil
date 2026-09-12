@@ -2,11 +2,6 @@ import SwiftUI
 import UIKit
 import AuthenticationServices
 
-private let LANG_LABEL: [String: String] = [
-    "de": "Deutsch", "gsw": "Schwiizerdütsch", "de-AT": "Österreichisch",
-    "en": "English", "fr": "Français", "it": "Italiano", "es": "Español",
-]
-
 // Gebrandeter Login: Hintergrundbild + Scrim + Card. Reihenfolge wie die PWA:
 // Wortmarke · Untertitel · E-Mail · Passwort · [Name] · Fehler · Anmelden ·
 // Passwort vergessen · Umschalten · oder · Apple · Sprache · Impressum.
@@ -21,6 +16,9 @@ struct LoginView: View {
     @State private var error: String?
     @State private var resetMsg: String?
     @Environment(\.colorScheme) private var farbschema
+    /// Hat der Mensch die Sprache auf DIESEM Bildschirm angefasst? Nur dann ueberschreiben wir
+    /// damit sein Konto — sonst gewaenne das Geraet ueber eine Wahl, die er woanders getroffen hat.
+    @State private var sprachGewaehlt = false
     @State private var anbieter: [Api.OAuthProvider] = []
     // Haelt die Browser-Sitzung am Leben: laeuft die Variable aus dem Gueltigkeitsbereich,
     // schliesst iOS das Fenster sofort wieder.
@@ -200,7 +198,7 @@ struct LoginView: View {
     private var langMenu: some View {
         Menu {
             ForEach(Loc.langs, id: \.self) { l in
-                Button(LANG_LABEL[l] ?? l) { lang = l }
+                Button(Loc.langName(l)) { lang = l; sprachGewaehlt = true }
             }
         } label: {
             Label(langMenuLabel, systemImage: "globe").font(.footnote)
@@ -222,7 +220,7 @@ struct LoginView: View {
         Loc.t(register ? "login.toLogin" : "login.toRegister", lang)
     }
     private var langMenuLabel: String {
-        LANG_LABEL[lang] ?? "Deutsch"
+        Loc.langName(lang)
     }
     private var passwordContentType: UITextContentType {
         register ? .newPassword : .password
@@ -262,7 +260,14 @@ struct LoginView: View {
         busy = true; error = nil; resetMsg = nil
         do {
             if register { try await session.register(email: email, password: password, name: name) }
-            else { try await session.login(email: email, password: password) }
+            else {
+                try await session.login(email: email, password: password)
+                // Wer hier die Sprache umgestellt hat, meint das Konto — nicht nur diesen einen
+                // Bildschirm. Ohne das Sichern schreibt `SessionStore.profile.didSet` beim
+                // naechsten Profil-Laden die alte Sprache zurueck nach `appLang`.
+                // Bei der REGISTRIERUNG steht sie schon im Konto (Api.register schickt sie mit).
+                if sprachGewaehlt { try? await Api.updateLanguage(lang) }
+            }
         } catch { self.error = error.localizedDescription }
         busy = false
     }
