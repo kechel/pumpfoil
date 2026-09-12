@@ -474,6 +474,8 @@ NAECHSTES: list[dict] = [
          "Your watch shows its own brand and model instead of always calling itself a Garmin.",
          "The app now starts in the language your phone is set to, instead of always starting "
          "in German. If we do not have your language yet, it starts in English.",
+         "Every language is named in its own language on the sign-in screen. Some of them only "
+         "showed a short code there, which is hard to pick if it is your language.",
      ]},
     {"name": "iPhone + Apple Watch", "version": "1.1.33",
      # 1.1.32 ist seit dem 12.09. live und es liegt NICHTS in der Pruefung — die Nummer steht
@@ -490,6 +492,8 @@ NAECHSTES: list[dict] = [
          "Your watch shows its own brand and model instead of always calling itself a Garmin.",
          "The app now starts in the language your phone is set to, instead of always starting "
          "in German. If we do not have your language yet, it starts in English.",
+         "Every language is named in its own language on the sign-in screen. Some of them only "
+         "showed a short code there, which is hard to pick if it is your language.",
      ]},
 ]
 
