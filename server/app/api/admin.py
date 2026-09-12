@@ -750,6 +750,7 @@ def stats_series(period: str = "30d", _a: models.User = Depends(current_admin),
 
     S, U, P, L = models.Session, models.User, models.SessionPhoto, models.SessionLike
     D = models.DeviceToken
+    C = models.ClientSeen
 
     # Plattform eines Geraets. `platform` meldet die Uhr selbst beim ersten `/config` — bei Apple
     # und Wear bleibt es oft LEER, weil die Handy-App das Token mintet und die Uhr sich nie
@@ -816,8 +817,35 @@ def stats_series(period: str = "30d", _a: models.User = Depends(current_admin),
                 gesamt[p_] = gesamt.get(p_, 0) + n_
         return je_tag, gesamt
 
+    def client_serie() -> tuple[dict[str, dict[str, int]], dict[str, int]]:
+        """Je Tag und Client: wie viele NUTZER haben hereingeschaut — ohne jede Aufnahme.
+
+        Quelle ist `client_seen` (eine Zeile je Nutzer, Client und Tag, s. models.ClientSeen),
+        NICHT ein Zugriffs-Protokoll: wann und wie oft jemand da war, steht nirgends. Damit
+        beantwortet die Kurve genau eine Frage — schauen ueberhaupt noch Leute herein, und ueber
+        welchen Weg. Ein Einbruch in einer Spur heisst: von dort kommt keiner mehr.
+
+        Gleiche Lesart wie bei den Plattform-Kurven: derselbe Nutzer an zwei Tagen zaehlt zweimal.
+        Die Reihe beginnt erst am 12.09.2026 — vorher wurde das nicht festgehalten.
+        """
+        je_tag: dict[str, dict[str, int]] = {}
+        q = db.query(C.tag.label("d"), C.client.label("c"),
+                     func.count(func.distinct(C.user_id)).label("n"))
+        if cut is not None:
+            q = q.filter(C.tag >= cut.date())
+        for r in q.group_by(C.tag, C.client).all():
+            je_tag.setdefault(str(r.d), {})[str(r.c)] = int(r.n)
+        gesamt: dict[str, int] = {}
+        for tag in je_tag.values():
+            for c_, n_ in tag.items():
+                gesamt[c_] = gesamt.get(c_, 0) + n_
+        return je_tag, gesamt
+
     PLATTFORMEN = ("garmin", "apple", "wear", "zepp", "phone",
                    "suunto", "polar", "coros", "datei")
+    # Clients, ueber die jemand hereinschaut. "unbekannt" ist kein Fehler, sondern eine
+    # App-Fassung, die die Kennung noch nicht schickt (bzw. ein Aufruf ohne sie).
+    CLIENTS = ("web", "android", "ios", "unbekannt")
     live = S.deleted.isnot(True)
     nu = series(U.created_at, U)
     # Gefahren, nicht importiert — s. Docstring.
@@ -828,12 +856,15 @@ def stats_series(period: str = "30d", _a: models.User = Depends(current_admin),
     li = series(L.created_at, L)
     # Erst hier: `plat_serie` liest `live`, das weiter oben gesetzt wird.
     plat_tage, plat_gesamt = plat_serie()
-    dates = sorted(set(nu) | set(au) | set(se) | set(im) | set(ph) | set(li) | set(plat_tage))
+    cli_tage, cli_gesamt = client_serie()
+    dates = sorted(set(nu) | set(au) | set(se) | set(im) | set(ph) | set(li)
+                   | set(plat_tage) | set(cli_tage))
     buckets = [{
         "date": d, "new_users": nu.get(d, 0), "active_users": au.get(d, 0),
         "sessions": se.get(d, 0), "imported": im.get(d, 0),
         "photos": ph.get(d, 0), "likes": li.get(d, 0),
         **{f"p_{p}": plat_tage.get(d, {}).get(p, 0) for p in PLATTFORMEN},
+        **{f"c_{c}": cli_tage.get(d, {}).get(c, 0) for c in CLIENTS},
     } for d in dates]
     totals = {
         "new_users": total(U, col=U.created_at),
@@ -844,6 +875,7 @@ def stats_series(period: str = "30d", _a: models.User = Depends(current_admin),
         "photos": total(P, col=P.created_at),
         "likes": total(L, col=L.created_at),
         **{f"p_{p}": plat_gesamt.get(p, 0) for p in PLATTFORMEN},
+        **{f"c_{c}": cli_gesamt.get(c, 0) for c in CLIENTS},
     }
     return {"period": period, "buckets": buckets, "totals": totals}
 

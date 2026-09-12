@@ -251,6 +251,16 @@ const PLATTFORM_METRICS: [keyof AdminStatsSeries["totals"], string, string][] = 
   ["p_datei", "Datei-Upload (FIT/GPX/TCX)", "#38bdf8"],
 ];
 
+// Die Clients, ueber die jemand hereinschaut — reine ZUGRIFFSFRAGE, ohne Aufnahmen. „unbekannt"
+// steht bewusst dabei: das sind App-Fassungen, die die Kennung `X-Pumpfoil-Client` noch nicht
+// schicken. Ohne die Kachel verschwaende ein Teil der Nutzer stillschweigend aus dem Bild.
+const CLIENT_METRICS: [keyof AdminStatsSeries["totals"], string, string][] = [
+  ["c_web", "PWA (Website)", "#22d3ee"],
+  ["c_android", "Android-App", "#4ade80"],
+  ["c_ios", "iPhone-App", "#a78bfa"],
+  ["c_unbekannt", "ohne Kennung", "#94a3b8"],
+];
+
 // Glaettungsfenster in Tagen. Eigene Knoepfe, nicht die Zeitraum-Knoepfe oben: dort waehlt man
 // den ANGEZEIGTEN Zeitraum, hier wie stark gemittelt wird. Beides an einen Knopf zu haengen ging
 // nicht — bei Zeitraum 10 Tage und Mittelung ueber 10 Tage bliebe ein einziger Punkt uebrig.
@@ -351,9 +361,62 @@ function StatsSection() {
   const ticks = Array.from({ length: 5 }, (_, i) => domain[0] + ((domain[1] - domain[0]) * i) / 4);
   const fmtTick = (ms: number) => new Date(ms).toLocaleDateString(undefined,
     spanDays <= 120 ? { day: "2-digit", month: "short" } : { month: "short", year: "2-digit" });
+  // „Wer schaut herein" laeuft wie die Plattform-Kurven ueber die ganze Historie und ist vom
+  // Zeitraum oben unabhaengig — die Reihe ist ohnehin jung (ab 12.09.2026).
+  const cliSpanne = plattformSpanne(alle?.buckets ?? [], CLIENT_METRICS.map(([k]) => k));
+  const cliTicks = cliSpanne.length
+    ? Array.from({ length: 5 }, (_, i) =>
+        cliSpanne[0] + ((cliSpanne[cliSpanne.length - 1] - cliSpanne[0]) * i) / 4)
+    : [];
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap gap-2">
+      <h3 className="text-sm font-semibold text-slate-100">Wer schaut herein</h3>
+      <p className="-mt-1 text-xs text-slate-400">
+        Nutzer pro Tag je Client — ohne jede Aufnahme, einfach wer die App oder die Website
+        geöffnet hat. Festgehalten wird ein Eintrag je Nutzer, Client und Tag; wann und wie oft,
+        steht nirgends. Die Reihe beginnt am 12.09.2026.
+      </p>
+      {!alle ? <Spinner /> : cliSpanne.length === 0 ? (
+        <p className="text-xs text-slate-400">Noch keine Tage erfasst.</p>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {CLIENT_METRICS.map(([key, titel, color]) => {
+            const werte = aufSpanne(alle.buckets, key, cliSpanne);
+            const heute = werte.length ? werte[werte.length - 1] : 0;
+            const max = werte.length ? Math.max(...werte) : 0;
+            const vmax = Math.max(max, 1);
+            return (
+              <Card key={key} className="p-3">
+                <div className="mb-1 flex items-baseline justify-between px-1">
+                  <span className="text-xs uppercase tracking-wide text-slate-300">{titel}</span>
+                  <span className="text-lg font-bold tabular-nums" style={{ color }}>
+                    {nf(heute)}
+                    <span className="ml-2 text-xs font-normal text-slate-400">
+                      heute · max {nf(max)}
+                    </span>
+                  </span>
+                </div>
+                <div className="flex gap-1">
+                  <div className="flex h-[100px] w-8 shrink-0 flex-col justify-between py-0.5 text-right text-[10px] tabular-nums text-slate-500">
+                    <span>{nf(vmax)}</span><span>{nf(Math.round(vmax / 2))}</span><span>0</span>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    {/* Zwei unsichtbare Stuetzpunkte halten die Skala bei 0…max — wie bei den
+                        Plattform-Kacheln, sonst sieht eine ruhige Reihe wild aus. */}
+                    <TimeChart t={[cliSpanne[0] - 1, ...cliSpanne, cliSpanne[cliSpanne.length - 1] + 1]}
+                      values={[0, ...werte, vmax]} color={color}
+                      domainMs={[cliSpanne[0] - 1, cliSpanne[cliSpanne.length - 1] + 1]} height={100} />
+                  </div>
+                </div>
+                <div className="ml-9 mt-1 flex justify-between px-1 text-[10px] tabular-nums text-slate-500">
+                  {cliTicks.map((tk, i) => <span key={i}>{fmtPlatTick(tk)}</span>)}
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+      <div className="flex flex-wrap gap-2 pt-2">
         {STATS_PERIODS.map(([k, lk]) => (
           <button key={k} onClick={() => setPeriod(k)}
             className={`rounded-lg px-3 py-1.5 text-xs transition-colors ${period === k ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}>

@@ -1,9 +1,10 @@
 """Gemeinsame FastAPI-Dependencies: aktueller Nutzer (JWT) und Gerät (Device-Token)."""
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 
-from fastapi import Depends, Header, HTTPException, Response, status
+from fastapi import Depends, Header, HTTPException, Request, Response, status
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
@@ -13,8 +14,51 @@ from ..security import create_access_token, decode_access_token, token_exp, toke
 
 _bearer = HTTPBearer(auto_error=False)
 
+# Client-Familien, die wir unterscheiden. Die Kennung kommt aus `X-Pumpfoil-Client`
+# ("web" | "android/1.1.28" | "ios/1.1.32"); die VERSION wird verworfen, sie gehoert nicht zur
+# Frage „wer schaut herein".
+_CLIENTS = ("web", "android", "ios")
+
+# Schon heute geschriebene (Nutzer, Client, Tag) — je Worker-Prozess. Verhindert, dass jeder
+# Request einen INSERT versucht: ohne das waeren es bei 4 Workern zehntausende Schreibversuche
+# am Tag fuer eine Handvoll Zeilen. Der Cache darf verloren gehen (Neustart) — dann steht der
+# eine INSERT je Nutzer/Client/Tag eben nochmal an und faellt in ON CONFLICT DO NOTHING.
+_gesehen: set[tuple[int, str, date]] = set()
+
+
+def client_familie(request: Request | None) -> str:
+    """Client-Familie aus dem Header. Ohne Kennung -> "unbekannt" (aeltere App-Fassungen)."""
+    if request is None:
+        return "unbekannt"
+    roh = (request.headers.get("X-Pumpfoil-Client") or "").strip().lower()
+    fam = roh.split("/", 1)[0]
+    return fam if fam in _CLIENTS else "unbekannt"
+
+
+def _client_merken(db: Session, user_id: int, request: Request | None) -> None:
+    """Einen Tages-Eintrag je Nutzer und Client anlegen — hoechstens einen, nie mehr.
+
+    Bewusst KEIN Zugriffs-Protokoll (s. models.ClientSeen): kein Zeitpunkt, keine Haeufigkeit,
+    keine Adresse. Fehler hier duerfen NIE einen Request kippen — das laeuft mitten in der
+    Authentifizierung, also auf jedem einzelnen Aufruf.
+    """
+    fam = client_familie(request)
+    heute = datetime.now(timezone.utc).date()
+    schluessel = (user_id, fam, heute)
+    if schluessel in _gesehen:
+        return
+    try:
+        db.execute(pg_insert(models.ClientSeen)
+                   .values(user_id=user_id, client=fam, tag=heute)
+                   .on_conflict_do_nothing(constraint="uq_client_seen"))
+        db.commit()
+        _gesehen.add(schluessel)
+    except Exception:
+        db.rollback()
+
 
 def current_user(
+    request: Request,
     response: Response,
     creds: HTTPAuthorizationCredentials | None = Depends(_bearer),
     db: Session = Depends(get_db),
@@ -51,6 +95,10 @@ def current_user(
     if last is None or now - last > timedelta(hours=1):
         user.last_seen_at = now
         db.commit()
+    # Getrennt von der Stunden-Drosselung oben: wer zuerst die PWA und zehn Minuten spaeter die
+    # App oeffnet, soll an dem Tag fuer BEIDE zaehlen. Der Prozess-Cache haelt es trotzdem bei
+    # einem Schreibversuch je Nutzer/Client/Tag.
+    _client_merken(db, user.id, request)
     return user
 
 
