@@ -36,6 +36,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.material3.ButtonDefaults
 import android.net.Uri
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -58,6 +60,13 @@ import kotlinx.coroutines.launch
 /** Facebook-Markenblau (#1877F2) — Metas Vorgabe fuer den Anmelde-Knopf. */
 private val FACEBOOK_BLAU = Color(0xFF1877F2)
 
+// Googles Vorgabewerte fuer den Anmelde-Knopf (Sign in with Google Branding Guidelines).
+private val GOOGLE_GRUND_DUNKEL = Color(0xFF131314)
+private val GOOGLE_RAHMEN_HELL = Color(0xFF747775)
+private val GOOGLE_RAHMEN_DUNKEL = Color(0xFF8E918F)
+private val GOOGLE_TEXT_HELL = Color(0xFF1F1F1F)
+private val GOOGLE_TEXT_DUNKEL = Color(0xFFE3E3E3)
+
 @Composable
 fun LoginScreen(onLoggedIn: () -> Unit) {
     val ctx = LocalContext.current
@@ -72,6 +81,13 @@ fun LoginScreen(onLoggedIn: () -> Unit) {
     var showImprint by remember { mutableStateOf(false) }
     var langMenu by remember { mutableStateOf(false) }
     var anbieter by remember { mutableStateOf<List<OAuthProvider>>(emptyList()) }
+    // Fuer die Anbieter-Knoepfe: welche der beiden offiziellen Fassungen gilt gerade. Dieselbe
+    // Entscheidung wie in PumpfoilTheme — der Profil-Schalter gewinnt ueber die System-Einstellung.
+    val dunkel = when (ThemeState.mode) {
+        "light" -> false
+        "dark" -> true
+        else -> isSystemInDarkTheme()
+    }
     LaunchedEffect(Unit) { anbieter = Api.oauthProviders() }
     // Kommt der Mensch aus dem Browser zurueck, hat MainActivity das Token schon gespeichert —
     // hier nur noch weiterschalten.
@@ -169,6 +185,11 @@ fun LoginScreen(onLoggedIn: () -> Unit) {
                     Text(I18n.t("login.or"), style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
                     Spacer(Modifier.height(8.dp))
+                    // Google-Knopf in der OFFIZIELLEN Fassung (Sign in with Google Branding
+                    // Guidelines): helles Thema weiss mit Rahmen #747775 und Text #1F1F1F,
+                    // dunkles #131314 mit Rahmen #8E918F und Text #E3E3E3. Feste Hexwerte und
+                    // KEINE Theme-Farben: die Vorgabe nennt genau diese Toene, und das
+                    // vierfarbige "G" daneben ist ohnehin unveraenderlich.
                     OutlinedButton(
                         onClick = {
                             busy = true; error = null
@@ -181,7 +202,17 @@ fun LoginScreen(onLoggedIn: () -> Unit) {
                             }
                         },
                         enabled = !busy, modifier = Modifier.fillMaxWidth(),
-                    ) { Text(I18n.t("login.google")) }
+                        shape = MaterialTheme.shapes.medium,
+                        border = BorderStroke(1.dp, if (dunkel) GOOGLE_RAHMEN_DUNKEL else GOOGLE_RAHMEN_HELL),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = if (dunkel) GOOGLE_GRUND_DUNKEL else Color.White,
+                            contentColor = if (dunkel) GOOGLE_TEXT_DUNKEL else GOOGLE_TEXT_HELL),
+                    ) {
+                        Icon(painterResource(R.drawable.ic_google_g), contentDescription = null,
+                            tint = Color.Unspecified, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(10.dp))
+                        Text(I18n.t("login.google"))
+                    }
 
                     // Weitere Anbieter (Facebook & Co.) ueber den SYSTEMBROWSER — kein fremdes
                     // SDK in der App, also auch keine App-Ereignisse an Meta. Google und Apple
@@ -212,7 +243,14 @@ fun LoginScreen(onLoggedIn: () -> Unit) {
                                 ButtonDefaults.buttonColors(containerColor = FACEBOOK_BLAU,
                                                             contentColor = Color.White)
                             else ButtonDefaults.buttonColors(),
-                        ) { Text(I18n.t("login.continueWith").replace("{provider}", p.label)) }
+                        ) {
+                            if (p.id == "facebook") {
+                                Icon(painterResource(R.drawable.ic_facebook_f), contentDescription = null,
+                                    tint = Color.Unspecified, modifier = Modifier.size(20.dp))
+                                Spacer(Modifier.width(10.dp))
+                            }
+                            Text(I18n.t("login.continueWith").replace("{provider}", p.label))
+                        }
                     }
 
                     Spacer(Modifier.height(12.dp))
