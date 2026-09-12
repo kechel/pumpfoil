@@ -1423,3 +1423,31 @@ class ClientSeen(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     client: Mapped[str] = mapped_column(String(16), index=True)
     tag: Mapped[date] = mapped_column(Date, index=True)
+
+
+class PageHit(Base):
+    """Seitenaufrufe der oeffentlichen Website — eine Zeile je Tag und Art, sonst nichts.
+
+    Bewusst NICHT aus dem Zugriffs-Log abgeleitet: dort sind 87 % der Aufrufe von `GET /` unsere
+    EIGENEN Pruefungen (localhost + die Sonde der Proxy-VM, gemessen 12.09.2026 ueber zwei Tage:
+    2310 von 2641), und der Rest verteilt sich auf 212 Adressen mit je ein bis zwei Aufrufen —
+    also Crawler. Dazu kommt, dass der Service Worker die Huelle aus dem Cache liefert, ein
+    wiederkehrender Besucher den Server also gar nicht erst fragt. Eine Log-Zahl haette beides
+    falsch: zu hoch durch uns selbst, zu niedrig bei echten Leuten.
+
+    Deshalb zaehlt die LAUFENDE Seite selbst: einmal je Seitenaufruf meldet sich das JS. Ein
+    Crawler, der nur HTML einliest, taucht dadurch gar nicht erst auf; wer sich per User-Agent
+    als Bot zu erkennen gibt, wird getrennt gezaehlt (`art="bot"`) — so ist die Stoergroesse
+    sichtbar, statt in der Zahl zu stecken.
+
+    Gespeichert wird EIN ZAEHLER je Tag. Keine Adresse, keine Kennung, kein Verlauf je Besucher —
+    aus derselben Ueberlegung wie bei [[ClientSeen]]: die Frage ist „kommt jemand", nicht „wer".
+    """
+
+    __tablename__ = "page_hits"
+    __table_args__ = (UniqueConstraint("tag", "art", name="uq_page_hit"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    tag: Mapped[date] = mapped_column(Date, index=True)
+    art: Mapped[str] = mapped_column(String(16))   # "web" = laufende Seite, "bot" = deklarierter Crawler
+    zahl: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
