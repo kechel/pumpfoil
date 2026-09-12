@@ -178,8 +178,6 @@ const zh: Record<string, string> = {
   "login.haveAccount": "已有账号？登录",
   "login.newHere": "初次使用？注册",
   "login.enterEmail": "请在上方填写你的邮箱。",
-  "login.oauthNoEmail": "Facebook 没有提供电子邮箱地址，因此无法创建账号。请重新登录并允许共享邮箱地址，或改用邮箱和密码登录。",
-  "login.oauthFailed": "通过该方式登录失败。请重试，或改用邮箱和密码登录。",
   "login.resetSent": "如果该邮箱存在对应账号，重置链接将随即发出。",
   "login.nameTaken": "此显示名称已被占用。",
   "login.nameLen": "显示名称：2–40 个字符。",

@@ -208,8 +208,6 @@ const de: Record<string, string> = {
   "login.haveAccount": "Schon einen Account? Login",
   "login.newHere": "Neu hier? Registrieren",
   "login.enterEmail": "Bitte oben deine E-Mail eintragen.",
-  "login.oauthNoEmail": "Facebook hat uns keine E-Mail-Adresse gegeben, deshalb konnten wir kein Konto anlegen. Melde dich noch einmal an und gib die E-Mail-Adresse frei — oder nimm E-Mail und Passwort.",
-  "login.oauthFailed": "Die Anmeldung über den Anbieter hat nicht geklappt. Versuch es noch einmal oder nimm E-Mail und Passwort.",
   "login.resetSent": "Falls ein Konto zu dieser E-Mail existiert, ist ein Reset-Link unterwegs.",
   "login.nameTaken": "Dieser Anzeigename ist schon vergeben.",
   "login.nameLen": "Anzeigename: 2–40 Zeichen.",
