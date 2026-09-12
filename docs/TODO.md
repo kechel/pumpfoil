@@ -9,6 +9,24 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 🚀 App-Release-Stand
 
+- **🟡 12.09. 22:27 — iOS/Apple Watch 1.1.33 (Build 37) EINGEREICHT.** Jans Meldung aus App Store
+  Connect: „Heute um 22:27 · iOS 1.1.33 · Jan Kechel · 1 Element · Warten auf Pruefung".
+  **Zwei Einreichungen an einem Tag** — 1.1.32 ging um 00:06 UTC live —, und das hat einen Grund:
+  der Sprach-Start war ein echter Fehler fuer jeden zweiten Neuzugang (54 % der Neukonten der
+  letzten 30 Tage sind nicht deutschsprachig, und die App startete hart auf Deutsch).
+  - **Inhalt (6 Punkte, wortgleich in `IN_REVIEW`):** Start in der Geraetesprache statt Deutsch ·
+    Anmeldung mit Google/Apple in der App ueber den Systembrowser · Puls-Kurve wahlweise als
+    Anstieg ueber den Ruhepuls · gewaehlte Sprache bleibt am Konto · die Uhr nennt ihre eigene
+    Marke statt immer „Garmin" · jede Sprache steht mit ihrem eigenen Namen in der Anmeldemaske.
+  - **Von Jan im Simulator geprueft:** Apple-Anmeldung funktioniert; Geraet auf Spanisch, App neu
+    installiert → Anmeldebildschirm spanisch. Danach schaltete die App auf Deutsch zurueck, weil
+    sein Konto (u8) `language = de` traegt — die Profilsprache gewinnt ueber die Geraetesprache,
+    genau so gewollt. Auch dass KEIN Assistent kam, ist richtig: u8 ist vom 26.06., der Stichtag
+    ist der 11.09.
+  - **Naechste iOS-Nummer: 1.1.34 / 38.**
+  - **Nach der Freigabe:** `_APP_META["ios"]` UND `["apple"]` auf 1.1.33, `IN_REVIEW`-Eintrag raus,
+    Changelog-Punkte eintragen — erst wenn der Store wirklich ausliefert, nicht schon bei der Mail.
+
 - **🟢 12.09. — Amazfit/Zepp 1.0.8 IST LIVE.** Zepp-Mail: „The application Pumpfoil (1.0.8)
   you submitted has been approved and added to the ZEPP app store." Eingereicht 10.09. 11:19,
   also zwei Tage Pruefung — nach ZWEI Ablehnungen von 1.0.7, beide Male nur wegen der
