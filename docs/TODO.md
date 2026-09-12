@@ -1062,7 +1062,8 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Flaeche**, nichts Anklickbares mehr oben. Beim Wiederaufnehmen JoLe Bescheid geben, es war sein
   Wunsch.
 
-- **🔴 10.09. — Emulator-Gegenprobe zu 1.2.28: das neue Band oben KOLLIDIERT mit dem Layout.**
+- **🟢 10.09. — Emulator-Gegenprobe zu 1.2.28: Stopp-Knopf trägt; die Band-Kollision war am
+  selben Vormittag behoben (s. u.).**
   Selbst gefahren auf dieser VM (`foil_wear`, 384×384 bei dpi 320 = **192 dp**, der kleinste runde
   Wear-Bildschirm — härter als die Pixel Watch 3 des Prüfers), Testkonto `Emu Test` (38), Build
   1.2.28, Demo-Zustand über `DemoReceiver`.
@@ -1071,16 +1072,29 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     genau mit der Schrift, die Beschriftung („Hylkää") sitzt in beiden Fällen sauber drin.
   - **✅ UploadScreen** passt bei Faktor 1,24 auf 192 dp ohne Scrollen („lähetetään 30/62") —
     Jans Einwand war richtig, die Sorge von vorhin war aus dem Muster geschlossen, nicht gerechnet.
-  - **🔴 REGRESSION aus `c424e875`/`44bae3e4`:** das gemeinsame Band oben MITTIG (Wassersperre +
-    Upload-Ring + „Puls passiv") liegt jetzt genau dort, wo Layouts ihre oberen Elemente haben.
-    Im Test lag der Wassertropfen über dem **„REC" des Layouts** (Element 5 bei y = 120 ‰).
-    **Tritt bei Faktor 1,0 genauso auf** — also kein Schriftgrößen-Problem, sondern eine Folge des
-    Umzugs aus den Ecken in die Mitte. Vorher lagen die Overlays in den Ecken, wo kein
-    Layout-Inhalt liegt (nur eben auch kein sichtbarer Bildschirm).
-    **Die naheliegende Lösung taugt NICHT:** dem Band eine eigene Zeile über dem Layout geben
-    würde das `Canvas` vertikal stauchen (`WatchLayout.kt:235` rechnet `h * y/1000`), während die
-    Schriftgrößen absolut bleiben — es überlappte dann mehr. Entscheidung Jan nötig, Optionen in
-    der Sitzung vom 10.09.
+  - **🟢 ERLEDIGT NOCH AM SELBEN VORMITTAG — diese Zeile war ab 09:38 veraltet und stand trotzdem
+    bis zum 12.09. als offener Blocker hier.** Befund um 08:53 war: das gemeinsame Band oben MITTIG
+    (Wassersperre + Upload-Ring + „Puls passiv") liegt genau dort, wo Layouts ihre oberen Elemente
+    haben — der Wassertropfen lag über dem **„REC" des Layouts** (Element 5 bei y = 120 ‰), bei
+    Schriftfaktor 1,0 genauso. Kein Schriftgrößen-Problem, sondern eine Folge des Umzugs aus den
+    Ecken in die Mitte (`c424e875`/`44bae3e4`).
+    **Behoben wurde es nicht durch eine Layout-Entscheidung, sondern indem das Band LEER wurde:**
+    - `2853e94a` (09:14) — Wassersperre raus von der Aufnahme-Seite (Entscheidung Jan).
+    - `05b23d50` (09:28) + `d4c95793` (09:38) — der Puls-Hinweis steht seitdem ANSTELLE von „bpm"
+      am Puls-Feld, nicht mehr im Band.
+
+    Übrig ist im Band **nur der Upload-Ring**: 12 dp, rund, ab `bandOben = 8.dp`, also 8–20 dp auf
+    einem 192-dp-Bildschirm. Das oberste Layout-Element liegt bei 120 ‰ = 23 dp — es berührt sich
+    nicht, und der Ring erscheint ohnehin nur, solange Chunks hochgeladen werden.
+    **Alle drei Commits stecken in 1.2.28**, das seit dem 10.09. in der Prüfung liegt. Es ist also
+    NICHTS offen und es braucht keine Entscheidung.
+    **Lehre:** ein 🔴-Eintrag, der noch am selben Tag repariert wird, muss auch am selben Tag
+    umgeschrieben werden — sonst trägt ihn die nächste Sitzung als Blocker weiter (genau das ist
+    am 12.09. passiert, Jan musste es richtigstellen).
+    Die damals notierte Alternative bleibt als Warnung stehen, falls je wieder etwas ins Band soll:
+    dem Band eine eigene Zeile über dem Layout zu geben taugt NICHT — das staucht das `Canvas`
+    vertikal (`WatchLayout.kt:235` rechnet `h * y/1000`), während die Schriftgrößen absolut
+    bleiben, und es überlappt danach mehr.
   - **⚪ Nebenbefund, NICHT von uns:** in der Test-Layout-Seite überlappen Wert und Einheit
     („15.6" über „km/h (3s)", „148"/„bpm", „1.23"/„km") — bei Faktor 1,0 genauso. Das Layout setzt
     den Wert auf Größe 7 mit nur 120 ‰ Abstand zum Label; auf 192 dp sind das 23 dp für eine viel
