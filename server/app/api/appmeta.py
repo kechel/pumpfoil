@@ -228,7 +228,16 @@ _APP_META: dict[str, dict[str, str]] = {
         # store_url bleibt LEER, und das aendert sich nicht mehr: fuer die Pumpfoil-App im
         # Zepp-Store existiert keine Web-Adresse (Jan, 07.08.) — man kommt nur ueber die
         # Zepp-Handy-App dran, die auf /uhr verlinkt ist (ZeppAppBadges -> App Store / Play).
-        "latest": "1.0.6",
+        "latest": "1.0.8",   # FREIGEGEBEN 2026-09-12 (Zepp-Mail: „The application Pumpfoil (1.0.8)
+        # you submitted has been approved and added to the ZEPP app store"). Eingereicht 10.09.
+        # 11:19, also zwei Tage Pruefung — nach ZWEI Ablehnungen von 1.0.7, beide Male nur wegen
+        # der Store-Vorschaubilder. Die korrigierten eckigen Bilder gingen mit 1.0.8 mit.
+        # Inhalt (zusammengefuehrt aus 1.0.7 + 1.0.8, von 1.0.7 ist nie etwas erschienen):
+        # Wertegrafiken auf der Uhr, Puls- und Geschwindigkeitszonen in den Profilfarben,
+        # Touch-Sperre wieder per Finger, einzeilige Upload-Meldung, Aufnahme per einfachem
+        # Druck beenden, bereinigte Hoechstgeschwindigkeit, Lauferkennung wie auf dem Server,
+        # Niederlaendisch/Finnisch/Tschechisch/Polnisch.
+        # Vorher 1.0.6, live seit 24.08.
         "min_supported": "",
         # Zepp-Store-Adresse ist mir nicht bekannt (die App ist im Zepp-Telefon-Store, nicht im Web).
         # Leer lassen statt raten — der Hinweis auf der Uhr braucht keinen Link.
@@ -426,41 +435,6 @@ IN_REVIEW: list[dict] = [
          "and Suunto.",
          "COROS: the app says which mode records the best data, and what COROS does not "
          "hand over.",
-     ]},
-    {"name": "Amazfit", "version": "1.0.8",
-     # 1.0.7 wurde ZWEIMAL abgelehnt, beide Male nur wegen der Store-Vorschaubilder (nie wegen der
-     # App) — s. ABGELEHNT oben und brand/stores/zepp/README.md. Entscheidung Jan (10.09.2026):
-     # „wenn wir bei zepp schon neu einreichen muessen, dann bitte auch direkt die neuere version
-     # 1.0.8, beim letzten mal hat eine aenderung nur der vorschaubilder genausolange gedauert im
-     # review wie ein komplett neues release". Stimmt: die Bild-Runde vom 01.09. lag neun Tage in
-     # der Pruefung. `watch-zepp/app.json` steht ohnehin schon auf 1.0.8 / code 11.
-     #
-     # PUNKTE ZUSAMMENGEFUEHRT (1.0.7 + 1.0.8), dieselbe Regel wie bei Android/Wear: von 1.0.7 ist
-     # NIE etwas erschienen, live steht 1.0.6 vom 24.08. Stuenden hier nur die vier 1.0.8-Zeilen,
-     # fehlten den Nutzern die vier aus 1.0.7. Quelle ist `watch-zepp/CHANGELOG.md` (dort seit
-     # 07.09. wieder gefuehrt), nicht erneut aus git rekonstruiert.
-     #
-     # EINGEREICHT 10.09.2026 11:19 (Jans Meldung). Zepp-Konsole: appId 1118995, Version 1.0.8,
-     # Application Time 2026.09.10, Status „Under Review (Can be Withdrawn)"; darunter steht
-     # 1.0.6 vom 24.08. als „Approved". MIT hochgeladen: die korrigierten eckigen
-     # Vorschaubilder — genau die waren zweimal der Ablehnungsgrund.
-     "note": "submitted 10 September, under review",
-     "items": [
-         "Value graphics on the watch: speed, heart rate and pump cadence as a bar, not just "
-         "a number.",
-         "Heart-rate zones use the colours you set in your profile.",
-         "Speed zones use the colours you set in your profile, the same way heart-rate zones "
-         "already do.",
-         "The touch lock opens with your finger again \u2014 hold the screen for two seconds. "
-         "While it tells you so, it covers what is behind it instead of printing over your "
-         "speed.",
-         "The upload message stays on one line: it counts the pieces while it sends, then "
-         "simply says it is done.",
-         "A single press can end a recording instead of holding, if you set that in your profile.",
-         "A cleaned-up top speed, and a run that never really stopped is no longer counted "
-         "as two.",
-         "Runs are detected the same way as on the server.",
-         "Dutch, Finnish, Czech and Polish.",
      ]},
 ]
 
