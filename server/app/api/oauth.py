@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import hmac
 import json
 import os
 import secrets
@@ -60,6 +61,17 @@ PROVIDERS: dict[str, dict] = {
         "scope": "name email",
         "pkce": False,
         "response_mode": "form_post",
+    },
+    # Facebook: Graph API. `pkce` wird unterstuetzt. Der Nutzer kann die E-Mail-Freigabe
+    # ABWAEHLEN, und Konten, die nur mit Telefonnummer angelegt wurden, haben gar keine —
+    # dann greift der Rueckfall auf die synthetische Adresse (s. `_login_or_create`).
+    "facebook": {
+        "label": "Facebook",
+        "authorize_url": "https://www.facebook.com/v26.0/dialog/oauth",
+        "token_url": "https://graph.facebook.com/v26.0/oauth/access_token",
+        "userinfo_url": "https://graph.facebook.com/v26.0/me?fields=id,first_name,email",
+        "scope": "public_profile,email",
+        "pkce": True,
     },
     "strava": {
         "label": "Strava",
@@ -224,6 +236,19 @@ def _identity(provider: str, cfg: dict, token: dict) -> tuple[str, str | None, s
         # Nur VORNAME als Anzeigename — kein Nachname (Datenschutz).
         name = claims.get("given_name") or (claims.get("name") or "").split(" ")[0].strip() or None
         return sub, claims.get("email"), name
+    if provider == "facebook":
+        # Graph API: Felder stehen schon in der `userinfo_url`. Nur VORNAME als Anzeigename
+        # (kein Nachname) — dieselbe Regel wie bei Google/Apple.
+        try:
+            r = httpx.get(cfg["userinfo_url"],
+                          headers={"Authorization": f"Bearer {token.get('access_token', '')}"},
+                          timeout=15)
+            data = r.json() if r.status_code == 200 else {}
+        except Exception:  # noqa: BLE001
+            data = {}
+        sub = str(data.get("id") or "")
+        name = (data.get("first_name") or "").strip() or None
+        return sub, (data.get("email") or None), name
     if provider == "strava":
         ath = token.get("athlete") or {}
         sub = str(ath.get("id") or "")
@@ -407,3 +432,69 @@ def native_google(body: NativeAuthIn, db: Session = Depends(get_db)) -> TokenOut
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid Google token")
     user = _login_or_create(db, "google", claims["sub"], claims.get("email"), body.name or claims.get("name"), language=body.language)
     return TokenOut(access_token=create_access_token(user.id))
+
+
+# ---------------------------------------------------------------------------
+# Facebook: Data Deletion Request Callback
+#
+# Meta verlangt das, BEVOR eine App live gehen darf: wer bei Facebook die Verbindung zu unserer
+# App kappt, loest damit eine Loeschanfrage aus. Facebook schickt einen `signed_request` (mit
+# unserem App-Geheimnis signiert) und erwartet JSON mit `url` und `confirmation_code` — HTML
+# oder ein fehlendes Feld gilt als Fehlschlag, und ein spaeter still scheiternder Callback kann
+# eine bereits freigegebene App einschraenken.
+#
+# WAS WIR LOESCHEN: die Verknuepfung zu Facebook (`oauth_identities`). Das KONTO bleibt stehen.
+# Das ist Absicht und muss so bleiben, solange Jan nichts anderes sagt: an einem Konto haengen
+# Aufnahmen, Rekorde und Beitraege anderer Leute, und ein von aussen ausgeloester Webhook ist
+# nicht der Ort, an dem so etwas unwiderruflich verschwindet. Die vollstaendige Loeschung gibt es
+# weiterhin im Profil (DELETE /api/auth/me) — dort, wo der Mensch sie bewusst ausloest.
+_FB_SIGNED_ALG = "HMAC-SHA256"
+
+
+def _fb_signed_request(roh: str, secret: str) -> dict | None:
+    """`signed_request` pruefen und auspacken. None = Signatur falsch oder unlesbar."""
+    try:
+        sig_b64, payload_b64 = roh.split(".", 1)
+    except ValueError:
+        return None
+
+    def _b64(teil: str) -> bytes:
+        return base64.urlsafe_b64decode(teil + "=" * (-len(teil) % 4))
+
+    try:
+        sig = _b64(sig_b64)
+        daten = json.loads(_b64(payload_b64))
+    except Exception:  # noqa: BLE001
+        return None
+    if daten.get("algorithm") != _FB_SIGNED_ALG:
+        return None
+    erwartet = hmac.new(secret.encode(), payload_b64.encode(), hashlib.sha256).digest()
+    # Zeitkonstant vergleichen — ein `==` waere hier eine Einladung zum Ausprobieren.
+    if not hmac.compare_digest(sig, erwartet):
+        return None
+    return daten
+
+
+@router.post("/facebook/data-deletion")
+async def facebook_data_deletion(request: Request, db: Session = Depends(get_db)) -> dict:
+    """Loeschanfrage aus Facebook. Trennt die Verknuepfung; das Konto bleibt bestehen."""
+    creds = _creds("facebook")
+    secret = creds.get("client_secret")
+    if not secret:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "not configured")
+    form = await request.form()
+    daten = _fb_signed_request(str(form.get("signed_request") or ""), secret)
+    if not daten or not daten.get("user_id"):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "bad signed_request")
+
+    subject = str(daten["user_id"])
+    (db.query(models.OAuthIdentity)
+       .filter(models.OAuthIdentity.provider == "facebook",
+               models.OAuthIdentity.subject == subject).delete(synchronize_session=False))
+    db.commit()
+
+    # Der Code muss die Anfrage wiederauffindbar machen — ohne die Facebook-ID preiszugeben,
+    # denn die Statusseite ist oeffentlich. Ein Hash mit unserem Geheimnis leistet beides.
+    code = hmac.new(secret.encode(), f"fbdel:{subject}".encode(), hashlib.sha256).hexdigest()[:16]
+    basis = get_settings().base_url.rstrip("/")
+    return {"url": f"{basis}/datenloeschung?code={code}", "confirmation_code": code}

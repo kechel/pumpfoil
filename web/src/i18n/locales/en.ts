@@ -912,6 +912,12 @@ const en: Record<string, string> = {
   "adm.deletePhotoConfirm": "Delete photo?",
   "adm.noActions": "No actions yet.",
 
+  "del.title": "Data deletion",
+  "del.done": "We received your request. The link between your Facebook account and pumpfoil.org has been removed — we no longer have access to your Facebook data, and signing in with Facebook is no longer possible.",
+  "del.code": "Reference:",
+  "del.restTitle": "Your pumpfoil.org account still exists",
+  "del.rest": "Your sessions, spots and posts are still there. That is deliberate: an account also carries records and conversations with other people, and we do not delete those on an outside request.",
+  "del.how": "If you want the account and everything in it gone as well, you can do that yourself at any time: in your profile under “Data & account”. That deletion is complete and final.",
   "imp.title": "Imprint",
   "imp.whoSees": "Privacy",
   "imp.intro": "This app is a community: foil sessions are shared with others. Here's exactly which data is visible to whom.",
