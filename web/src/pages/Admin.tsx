@@ -261,6 +261,13 @@ const CLIENT_METRICS: [keyof AdminStatsSeries["totals"], string, string][] = [
   ["c_unbekannt", "ohne Kennung", "#94a3b8"],
 ];
 
+// Seitenaufrufe der oeffentlichen Website. Zwei Reihen, damit die Stoergroesse SICHTBAR ist
+// statt in der Zahl zu stecken: „bot" sind die, die sich per User-Agent als Crawler ausweisen.
+const HIT_METRICS: [keyof AdminStatsSeries["totals"], string, string][] = [
+  ["h_web", "Seitenaufrufe", "#f59e0b"],
+  ["h_bot", "davon erkannte Bots", "#94a3b8"],
+];
+
 // Glaettungsfenster in Tagen. Eigene Knoepfe, nicht die Zeitraum-Knoepfe oben: dort waehlt man
 // den ANGEZEIGTEN Zeitraum, hier wie stark gemittelt wird. Beides an einen Knopf zu haengen ging
 // nicht — bei Zeitraum 10 Tage und Mittelung ueber 10 Tage bliebe ein einziger Punkt uebrig.
@@ -364,6 +371,7 @@ function StatsSection() {
   // „Wer schaut herein" laeuft wie die Plattform-Kurven ueber die ganze Historie und ist vom
   // Zeitraum oben unabhaengig — die Reihe ist ohnehin jung (ab 12.09.2026).
   const cliSpanne = plattformSpanne(alle?.buckets ?? [], CLIENT_METRICS.map(([k]) => k));
+  const hitSpanne = plattformSpanne(alle?.buckets ?? [], HIT_METRICS.map(([k]) => k));
   const cliTicks = cliSpanne.length
     ? Array.from({ length: 5 }, (_, i) =>
         cliSpanne[0] + ((cliSpanne[cliSpanne.length - 1] - cliSpanne[0]) * i) / 4)
@@ -372,10 +380,46 @@ function StatsSection() {
     <div className="space-y-3">
       <h3 className="text-sm font-semibold text-slate-100">Wer schaut herein</h3>
       <p className="-mt-1 text-xs text-slate-400">
-        Nutzer pro Tag je Client — ohne jede Aufnahme, einfach wer die App oder die Website
-        geöffnet hat. Festgehalten wird ein Eintrag je Nutzer, Client und Tag; wann und wie oft,
-        steht nirgends. Die Reihe beginnt am 12.09.2026.
+        Oben die Aufrufe der öffentlichen Website pro Tag, darunter die angemeldeten Nutzer je
+        Client. Beides zählt die laufende Seite selbst, nicht das Zugriffs-Log — dort sind 87 %
+        der Aufrufe unsere eigenen Prüfungen, und wer wiederkommt, bekommt die Seite aus dem
+        Cache. Gespeichert wird eine Tageszahl bzw. ein Eintrag je Nutzer, Client und Tag; wann
+        und wie oft jemand da war, steht nirgends. Die Reihen beginnen am 12.09.2026.
       </p>
+      {!alle ? <Spinner /> : hitSpanne.length > 0 && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {HIT_METRICS.map(([key, titel, color]) => {
+            const werte = aufSpanne(alle.buckets, key, hitSpanne);
+            const heute = werte.length ? werte[werte.length - 1] : 0;
+            const max = werte.length ? Math.max(...werte) : 0;
+            const vmax = Math.max(max, 1);
+            return (
+              <Card key={key} className="p-3">
+                <div className="mb-1 flex items-baseline justify-between px-1">
+                  <span className="text-xs uppercase tracking-wide text-slate-300">{titel}</span>
+                  <span className="text-lg font-bold tabular-nums" style={{ color }}>
+                    {nf(heute)}
+                    <span className="ml-2 text-xs font-normal text-slate-400">
+                      heute · max {nf(max)}
+                    </span>
+                  </span>
+                </div>
+                <div className="flex gap-1">
+                  <div className="flex h-[100px] w-8 shrink-0 flex-col justify-between py-0.5 text-right text-[10px] tabular-nums text-slate-500">
+                    <span>{nf(vmax)}</span><span>{nf(Math.round(vmax / 2))}</span><span>0</span>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <TimeChart t={[hitSpanne[0] - 1, ...hitSpanne, hitSpanne[hitSpanne.length - 1] + 1]}
+                      values={[0, ...werte, vmax]} color={color}
+                      domainMs={[hitSpanne[0] - 1, hitSpanne[hitSpanne.length - 1] + 1]} height={100} />
+                  </div>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+      <h3 className="pt-2 text-sm font-semibold text-slate-100">Angemeldete je Client</h3>
       {!alle ? <Spinner /> : cliSpanne.length === 0 ? (
         <p className="text-xs text-slate-400">Noch keine Tage erfasst.</p>
       ) : (

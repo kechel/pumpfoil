@@ -12,7 +12,11 @@ noch nicht verfuegbare Version).
 import json
 import os
 
-from fastapi import APIRouter, Depends
+from datetime import datetime, timezone
+
+from fastapi import APIRouter, Depends, Request
+from sqlalchemy import update
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 
 from .. import models
@@ -666,3 +670,45 @@ def latest(platform: str = "") -> dict:
     if not m:
         return {"latest": "", "min_supported": "", "store_url": ""}
     return dict(m)
+
+# Zeichenfolgen, an denen sich ein Crawler selbst zu erkennen gibt. Die Liste muss NICHT
+# vollstaendig sein und soll es auch nicht: wer sich nicht meldet, faellt ohnehin nicht auf,
+# weil er unser JS nicht ausfuehrt und diesen Endpunkt damit nie erreicht. Sie trennt nur die
+# wenigen, die rendern (Googlebot und Verwandte), von den Menschen.
+_BOT_KENNUNGEN = (
+    "bot", "crawl", "spider", "slurp", "curl", "wget", "python-requests", "headless",
+    "lighthouse", "pingdom", "uptime", "monitor", "preview", "scrape", "fetcher",
+)
+
+
+def _ist_bot(ua: str) -> bool:
+    u = ua.lower()
+    return any(k in u for k in _BOT_KENNUNGEN)
+
+
+@router.post("/hit")
+def seiten_aufruf(request: Request, db: Session = Depends(get_db)) -> dict:
+    """Ein Seitenaufruf der laufenden Website. Oeffentlich, ohne Anmeldung.
+
+    Gezaehlt wird EINE Zahl je Tag (models.PageHit) — keine Adresse, keine Kennung, kein Verlauf.
+    Aufgerufen wird das aus dem JS der Seite, nicht vom Server abgeleitet: im Zugriffs-Log sind
+    87 % der `GET /` unsere eigenen Pruefungen, und wiederkehrende Besucher holen die Huelle aus
+    dem Service-Worker-Cache, tauchen dort also gar nicht auf.
+
+    Fehler hier duerfen nichts kippen — es ist ein Zaehler, kein Dienst.
+    """
+    art = "bot" if _ist_bot(request.headers.get("User-Agent") or "") else "web"
+    heute = datetime.now(timezone.utc).date()
+    try:
+        # Erst anlegen (falls der Tag neu ist), dann hochzaehlen. Das Hochzaehlen passiert ATOMAR
+        # in SQL, nicht in Python: mit vier Workern gingen sonst Aufrufe verloren.
+        db.execute(pg_insert(models.PageHit)
+                   .values(tag=heute, art=art, zahl=0)
+                   .on_conflict_do_nothing(constraint="uq_page_hit"))
+        db.execute(update(models.PageHit)
+                   .where(models.PageHit.tag == heute, models.PageHit.art == art)
+                   .values(zahl=models.PageHit.zahl + 1))
+        db.commit()
+    except Exception:
+        db.rollback()
+    return {"ok": True}

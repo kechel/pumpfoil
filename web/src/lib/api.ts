@@ -656,6 +656,11 @@ export interface AdminStatsBucket {
   // `client_seen`: eine Zeile je Nutzer, Client und Tag, kein Zugriffs-Protokoll. Die Reihe
   // beginnt am 12.09.2026, vorher wurde das nicht festgehalten.
   c_web: number; c_android: number; c_ios: number; c_unbekannt: number;
+  // Seitenaufrufe der oeffentlichen Website — Tageszahlen, keine Nutzer. Gezaehlt von der
+  // LAUFENDEN Seite (POST /api/app/hit), nicht aus dem Zugriffs-Log: dort sind 87 % der
+  // Aufrufe unsere eigenen Pruefungen, und wiederkehrende Besucher holen die Seite aus dem
+  // Service-Worker-Cache. `h_bot` sind die, die sich per User-Agent als Crawler ausweisen.
+  h_web: number; h_bot: number;
 }
 export interface AdminStatsSeries {
   period: string;
@@ -664,7 +669,8 @@ export interface AdminStatsSeries {
             photos: number; likes: number;
             p_garmin: number; p_apple: number; p_wear: number; p_zepp: number; p_phone: number;
             p_suunto: number; p_polar: number; p_coros: number; p_datei: number;
-            c_web: number; c_android: number; c_ios: number; c_unbekannt: number };
+            c_web: number; c_android: number; c_ios: number; c_unbekannt: number;
+            h_web: number; h_bot: number };
 }
 
 /** Systemzustand des Servers (Admin). Feldnamen wie im Server (`api/health.py`) — deutsch, weil
@@ -1340,6 +1346,8 @@ export const api = {
   adminPending: () => req<AdminPending>("/api/admin/pending"),
   adminBlocks: () => req<AdminBlock[]>("/api/admin/blocks"),
   newsBanner: () => req<NewsBanner>("/api/app/news"),
+  /** Einen Seitenaufruf melden. Zaehlt EINE Zahl je Tag, ohne jede Kennung — s. models.PageHit. */
+  seitenAufruf: () => req<{ ok: boolean }>("/api/app/hit", { method: "POST" }),
   adminHealth: () => req<SystemHealth>("/api/admin/health"),
   adminHealthVerlauf: (stunden: number) => req<SystemVerlauf>(`/api/admin/health/verlauf?fenster=${stunden}`),
 

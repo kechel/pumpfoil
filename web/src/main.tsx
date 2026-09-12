@@ -6,7 +6,7 @@ import "leaflet/dist/leaflet.css";
 import "./lib/leafletKeyboard";
 import "./index.css";
 
-import { getToken, setToken } from "./lib/api";
+import { api, getToken, setToken } from "./lib/api";
 import { APP_BUILD } from "./buildInfo";
 import { applyTheme, getTheme, watchSystemTheme } from "./lib/theme";
 import { applyFontScale, getFontScale } from "./lib/fontscale";
@@ -196,5 +196,16 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     </I18nProvider>
   </React.StrictMode>
 );
+
+// Einen Seitenaufruf melden — EINMAL je Laden der Seite, fuer JEDEN Besucher. Bewusst HIER und
+// nicht in `App`: die App-Huelle rendert nur fuer Angemeldete, Gaeste bekommen `Landing` — ein
+// Zaehler in App haette also ausgerechnet die oeffentliche Website nicht gezaehlt.
+//
+// Warum ueberhaupt aus der laufenden Seite und nicht aus dem Zugriffs-Log: dort sind 87 % der
+// Aufrufe von `GET /` unsere EIGENEN Pruefungen (localhost + Proxy-Sonde, gemessen 12.09.2026
+// ueber zwei Tage: 2310 von 2641), und wer wiederkommt, bekommt die Huelle aus dem
+// Service-Worker-Cache und fragt den Server gar nicht erst. Der Server fuehrt daraus nur eine
+// Tageszahl (models.PageHit): keine Kennung, keine Adresse, nichts im Browser gespeichert.
+api.seitenAufruf().catch(() => {});
 
 // Service Worker wird via vite-plugin-pwa (useRegisterSW in PwaStatus) registriert.

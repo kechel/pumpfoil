@@ -751,6 +751,7 @@ def stats_series(period: str = "30d", _a: models.User = Depends(current_admin),
     S, U, P, L = models.Session, models.User, models.SessionPhoto, models.SessionLike
     D = models.DeviceToken
     C = models.ClientSeen
+    H = models.PageHit
 
     # Plattform eines Geraets. `platform` meldet die Uhr selbst beim ersten `/config` — bei Apple
     # und Wear bleibt es oft LEER, weil die Handy-App das Token mintet und die Uhr sich nie
@@ -846,6 +847,8 @@ def stats_series(period: str = "30d", _a: models.User = Depends(current_admin),
     # Clients, ueber die jemand hereinschaut. "unbekannt" ist kein Fehler, sondern eine
     # App-Fassung, die die Kennung noch nicht schickt (bzw. ein Aufruf ohne sie).
     CLIENTS = ("web", "android", "ios", "unbekannt")
+    # Seitenaufrufe der oeffentlichen Website (models.PageHit) — reine Tageszahlen, keine Nutzer.
+    HITS = ("web", "bot")
     live = S.deleted.isnot(True)
     nu = series(U.created_at, U)
     # Gefahren, nicht importiert — s. Docstring.
@@ -857,14 +860,26 @@ def stats_series(period: str = "30d", _a: models.User = Depends(current_admin),
     # Erst hier: `plat_serie` liest `live`, das weiter oben gesetzt wird.
     plat_tage, plat_gesamt = plat_serie()
     cli_tage, cli_gesamt = client_serie()
+    # Seitenaufrufe: schon als Tageszahl gespeichert, hier nur einlesen.
+    hit_tage: dict[str, dict[str, int]] = {}
+    hq = db.query(H.tag, H.art, H.zahl)
+    if cut is not None:
+        hq = hq.filter(H.tag >= cut.date())
+    for r in hq.all():
+        hit_tage.setdefault(str(r.tag), {})[str(r.art)] = int(r.zahl or 0)
+    hit_gesamt: dict[str, int] = {}
+    for tag in hit_tage.values():
+        for a_, n_ in tag.items():
+            hit_gesamt[a_] = hit_gesamt.get(a_, 0) + n_
     dates = sorted(set(nu) | set(au) | set(se) | set(im) | set(ph) | set(li)
-                   | set(plat_tage) | set(cli_tage))
+                   | set(plat_tage) | set(cli_tage) | set(hit_tage))
     buckets = [{
         "date": d, "new_users": nu.get(d, 0), "active_users": au.get(d, 0),
         "sessions": se.get(d, 0), "imported": im.get(d, 0),
         "photos": ph.get(d, 0), "likes": li.get(d, 0),
         **{f"p_{p}": plat_tage.get(d, {}).get(p, 0) for p in PLATTFORMEN},
         **{f"c_{c}": cli_tage.get(d, {}).get(c, 0) for c in CLIENTS},
+        **{f"h_{a}": hit_tage.get(d, {}).get(a, 0) for a in HITS},
     } for d in dates]
     totals = {
         "new_users": total(U, col=U.created_at),
@@ -876,6 +891,7 @@ def stats_series(period: str = "30d", _a: models.User = Depends(current_admin),
         "likes": total(L, col=L.created_at),
         **{f"p_{p}": plat_gesamt.get(p, 0) for p in PLATTFORMEN},
         **{f"c_{c}": cli_gesamt.get(c, 0) for c in CLIENTS},
+        **{f"h_{a}": hit_gesamt.get(a, 0) for a in HITS},
     }
     return {"period": period, "buckets": buckets, "totals": totals}
 
