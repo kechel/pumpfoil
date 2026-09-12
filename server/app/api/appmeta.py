@@ -436,6 +436,29 @@ IN_REVIEW: list[dict] = [
          "COROS: the app says which mode records the best data, and what COROS does not "
          "hand over.",
      ]},
+    {"name": "iPhone + Apple Watch", "version": "1.1.33",
+     # 12.09.2026 22:27 EINGEREICHT (Jans Meldung aus App Store Connect: "Heute um 22:27,
+     # iOS 1.1.33, 1 Element, Warten auf Pruefung"). Build 37. 1.1.32 ging am selben Tag um
+     # 00:06 UTC live — also zwei Einreichungen an einem Tag, was hier ungewoehnlich ist und
+     # einen Grund hat: der Sprach-Start war ein echter Fehler fuer jeden zweiten Neuzugang.
+     #
+     # NACH DER FREIGABE: `_APP_META["ios"]` UND `["apple"]` auf 1.1.33 (ein Bundle, zwei
+     # Abzeichen), diesen Eintrag entfernen, Changelog-Punkte eintragen. Erst wenn der Store
+     # es wirklich ausliefert — die Freigabe-Mail allein genuegt nicht (Regel vom 10.08.).
+     "note": "submitted 12 September, waiting for Apple",
+     "items": [
+         "You can sign in with your Google or Apple account in the app itself. It opens your "
+         "normal browser for that, so nothing extra follows you around.",
+         "The heart rate curve can show how far you are above your resting heart rate, not only "
+         "the plain number.",
+         "The language you pick in the app now stays with your account, so app and website say "
+         "the same thing on every device.",
+         "Your watch shows its own brand and model instead of always calling itself a Garmin.",
+         "The app now starts in the language your phone is set to, instead of always starting "
+         "in German. If we do not have your language yet, it starts in English.",
+         "Every language is named in its own language on the sign-in screen. Some of them only "
+         "showed a short code there, which is hard to pick if it is your language.",
+     ]},
 ]
 
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
@@ -465,24 +488,6 @@ NAECHSTES: list[dict] = [
          # Facebook wird ABSICHTLICH nicht genannt — der Knopf ist noch verborgen, bis Meta die
          # erweiterte Freigabe erteilt. Die App holt die Anbieterliste vom Server, der Punkt
          # stimmt also so oder so.
-         "You can sign in with your Google or Apple account in the app itself. It opens your "
-         "normal browser for that, so nothing extra follows you around.",
-         "The heart rate curve can show how far you are above your resting heart rate, not only "
-         "the plain number.",
-         "The language you pick in the app now stays with your account, so app and website say "
-         "the same thing on every device.",
-         "Your watch shows its own brand and model instead of always calling itself a Garmin.",
-         "The app now starts in the language your phone is set to, instead of always starting "
-         "in German. If we do not have your language yet, it starts in English.",
-         "Every language is named in its own language on the sign-in screen. Some of them only "
-         "showed a short code there, which is hard to pick if it is your language.",
-     ]},
-    {"name": "iPhone + Apple Watch", "version": "1.1.33",
-     # 1.1.32 ist seit dem 12.09. live und es liegt NICHTS in der Pruefung — die Nummer steht
-     # also fest (1.1.33 / Build 37), anders als bei Android. Gebaut ist alles, eingereicht wird
-     # auf Jans Mac.
-     "note": "built, waiting to be submitted",
-     "items": [
          "You can sign in with your Google or Apple account in the app itself. It opens your "
          "normal browser for that, so nothing extra follows you around.",
          "The heart rate curve can show how far you are above your resting heart rate, not only "
