@@ -141,8 +141,17 @@ struct LoginView: View {
             Button {
                 starteAnbieter(p.id)
             } label: {
-                Text(Loc.t("login.continueWith", lang).replacingOccurrences(of: "{provider}", with: p.label))
-                    .frame(maxWidth: .infinity)
+                HStack(spacing: 10) {
+                    if p.id == "facebook" {
+                        // Weisse Buchstabenform aus dem Asset-Katalog (SVG, vektoriell erhalten)
+                        // — dieselben Pfaddaten wie in der PWA. Auf dem blauen Knopf zeigt Meta
+                        // genau diese Fassung, nicht das runde Zeichen.
+                        Image("FacebookF").resizable().renderingMode(.original)
+                            .frame(width: 20, height: 20)
+                    }
+                    Text(Loc.t("login.continueWith", lang).replacingOccurrences(of: "{provider}", with: p.label))
+                }
+                .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
             .tint(p.id == "facebook" ? Color(red: 0.094, green: 0.467, blue: 0.949) : .accentColor)
