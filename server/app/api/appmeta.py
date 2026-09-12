@@ -49,7 +49,15 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.31",   # FREIGEGEBEN 2026-09-08 abends, ZWEITE Apple-Mail
+        "latest": "1.1.32",   # FREIGEGEBEN 2026-09-12, ZWEITE Apple-Mail („ready for
+        # distribution", ueber Nacht; die erste „eligible for distribution" kam kurz davor).
+        # GEGENGEPRUEFT an der Store-API in de/us/ch: alle drei melden 1.1.32 mit
+        # currentVersionReleaseDate 2026-09-12T00:06:41Z — diesmal ohne Cache-Nachhang.
+        # Eingereicht 11.09. 13:16, also gut 11 Stunden Pruefung.
+        # Inhalt: Einrichtungs-Assistent, Puls-Alarm mit Wiederholabstand, richtige Lauf-Uhrzeiten,
+        # Wetterkarte mit Pegel/Wassertemperatur/Boeen, Datei-Import (FIT/TCX/GPX), Portugiesisch
+        # (Portugal), uebersetzte Status-Anzeigen + selbst nachladende Liste.
+        # Vorher 1.1.31, live seit 2026-09-08 abends, ZWEITE Apple-Mail
         # („The following app is ready for distribution: App Version Number: 1.1.31“). Hinweis von
         # Jan an diesem Abend: von Apple kommen NORMALERWEISE ZWEI Mails — erst „Review of your
         # submission has been completed. It is now eligible for distribution“ (nur das Ende der
@@ -179,7 +187,11 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.31",   # FREIGEGEBEN 2026-09-08 — dieselbe Einreichung wie "ios" (ein Bundle,
+        "latest": "1.1.32",   # FREIGEGEBEN 2026-09-12 — dieselbe Einreichung wie "ios" (ein Bundle,
+        # eine MARKETING_VERSION), zweite Apple-Mail, an der Store-API gegengeprueft.
+        # Fuer die WATCH-App bringt 1.1.32 den PULS-ALARM: die Uhr vibriert oberhalb eines selbst
+        # gesetzten Pulses, mit eigenem Muster und einstellbarem Wiederholabstand.
+        # Vorher 1.1.31, freigegeben 2026-09-08 — dieselbe Einreichung wie "ios" (ein Bundle,
         # eine MARKETING_VERSION), zweite Apple-Mail. Fuer die WATCH-App bringt 1.1.31 die
         # Modellmeldung: bis dahin sah jede Apple Watch fuer uns gleich aus, jetzt steht in
         # `sessions.device_model`, welches Modell aufgenommen hat (Simulator-Aufnahmen melden sich
@@ -283,6 +295,10 @@ PLATTFORM_NAMEN = {
     "wear": "Wear OS",
     "android": "Android",
     "ios": "iPhone + Apple Watch",
+    # Apple Watch und iPhone stecken in EINEM Bundle mit einer MARKETING_VERSION, deshalb derselbe
+    # Name. Ohne diesen Eintrag fiel `PLATTFORM_NAMEN.get(k, k)` auf den rohen Schluessel zurueck
+    # und auf /changelog stand als Marke woertlich „apple" (so bei den beiden Punkten vom 08.09.).
+    "apple": "iPhone + Apple Watch",
 }
 
 # `items` sind die Aenderungen der jeweiligen Fassung — schon so formuliert, wie sie spaeter
@@ -321,39 +337,16 @@ ABGELEHNT: list[dict] = [
 ]
 
 # Solange diese Liste leer ist, blendet /changelog den Abschnitt „Being reviewed" aus.
-# Stand 11.09.2026 01:00: Android Phone 1.1.28 (42) + Wear 1.2.28 (1038) eingereicht 10.09. 10:10,
+# Stand 12.09.2026: Android Phone 1.1.28 (42) + Wear 1.2.28 (1038) eingereicht 10.09. 10:10,
 # Amazfit 1.0.8 eingereicht 10.09. 11:19 — beide noch in Pruefung.
+# iOS + APPLE WATCH 1.1.32 ist in der Nacht auf den 12.09. FREIGEGEBEN und steht deshalb hier
+# nicht mehr, sondern in `_APP_META` als live (beide Schluessel, ein Bundle). Seine sieben Punkte
+# sind unveraendert in die Changelog-Tabelle gewandert, mit `versionen = {"ios": "1.1.32"}`.
 # GARMIN 1.0.86 ist am 11.09. FREIGEGEBEN und steht deshalb hier nicht mehr, sondern in
 # `_APP_META` als live (Pruefung dauerte keine zwei Stunden). Seine fuenf Punkte sind in die
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
-    {"name": "iOS + Apple Watch", "version": "1.1.32",
-     # Inhalt = alles seit Commit 189564c6, aus dem 1.1.31 am 07.09. 15:12 eingereicht wurde.
-     # Der Schnitt ist wichtig: Datei-Import und Wetterkarte entstanden am 08.09. ABENDS, also
-     # nach jener Einreichung — sie sind bis heute in keiner freigegebenen Fassung.
-     # EINGEREICHT 11.09.2026 13:16 (Jans Meldung: „Warten auf Pruefung", Version 1.1.32 (36)).
-     # Die Apple-Watch-App hat sich mitveraendert (Puls-Alarm), es ist EIN Bundle: nach der
-     # Freigabe also BEIDE Schluessel setzen, "ios" und "apple". Und Apple schickt ZWEI Mails —
-     # erst „eligible for distribution" (nur Pruefung durch), dann „ready for distribution".
-     # Erst die zweite ist die Freigabe.
-     "note": "submitted 11 September, waiting for Apple",
-     "items": [
-         "A setup assistant walks new accounts once through the settings that matter — "
-         "language, display name, level, weight, sport, foil and connecting your watch. "
-         "Everything in it is optional, and you can start it again any time from your profile.",
-         "New heart rate alarm: the watch can vibrate above a heart rate you set, with its own "
-         "vibration pattern. And for repeating alarms you choose how many seconds pass between "
-         "buzzes.",
-         "Correct clock times for every run. After trimming or pausing a recording the times "
-         "were shown too early — they are right now.",
-         "The weather at your spot now shows the water level, the water temperature and the "
-         "gusts, and says where each number comes from.",
-         "FIT, TCX and GPX files can be uploaded straight from the app.",
-         "Portuguese (Portugal) as the 18th language.",
-         "Status labels are translated, and the session list refreshes by itself while a "
-         "recording is still running.",
-     ]},
     {"name": "Android phone + Wear OS", "version": "1.1.28 / 1.2.28",
      # ERSETZT die Einreichung vom 07.09. (1.1.26/1.2.26), bevor Google sie freigegeben hat —
      # Entscheidung Jan (08.09.2026): „statt eine Woche zu warten lade ich das Update direkt neu
@@ -561,8 +554,16 @@ def changelog(plattform: str = "", version: str = "",
                 alle = json.loads(z.versionen) or {}
             except ValueError:
                 alle = {}
-            marken = [{"name": PLATTFORM_NAMEN.get(k, k), "version": str(v)}
-                      for k, v in alle.items() if v]
+            # Doppelte Marken zusammenfassen: "ios" und "apple" sind dieselbe Einreichung mit
+            # derselben Nummer und ergaeben sonst zwei gleiche Abzeichen nebeneinander (dieselbe
+            # Entdoppelung wie in der Live-Tabelle weiter unten).
+            marken: list[dict] = []
+            for k, v in alle.items():
+                if not v:
+                    continue
+                eintrag = {"name": PLATTFORM_NAMEN.get(k, k), "version": str(v)}
+                if eintrag not in marken:
+                    marken.append(eintrag)
             if marken:
                 punkt["plattformen"] = marken
         # Kommt dieser Punkt fuer MEINE Plattform erst mit einer neueren Version?

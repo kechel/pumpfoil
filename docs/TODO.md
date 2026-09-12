@@ -9,17 +9,16 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 🚀 App-Release-Stand
 
-- **🟢 11.09. 13:16 — iOS/Apple Watch 1.1.32 (Build 36) EINGEREICHT** (Jans Meldung: „Warten auf
-  Pruefung"). Der Eintrag steht in `appmeta.IN_REVIEW` und damit auf `/changelog` unter „Being
-  reviewed". Inhalt = alles seit Commit `189564c6`, aus dem 1.1.31 am 07.09. 15:12 eingereicht
-  wurde: Einrichtungs-Assistent, Puls-Alarm mit Wiederholabstand, richtige Lauf-Uhrzeiten,
-  Wetterkarte (Pegel/Wassertemperatur/Boeen), Datei-Import (FIT/TCX/GPX), Portugiesisch
-  (Portugal), uebersetzte Status-Anzeigen + selbst nachladende Liste.
-  - **Nach der Freigabe:** `_APP_META["ios"]` UND `_APP_META["apple"]` auf 1.1.32 (ein Bundle),
-    IN_REVIEW-Eintrag entfernen, Changelog-Punkte eintragen. Apple schickt ZWEI Mails — erst
-    „eligible for distribution" (nur Pruefung durch), dann „ready for distribution"; erst die
-    zweite ist die Freigabe.
-  - Naechste iOS-Nummer danach: **1.1.33 / 37**.
+- **🟢 12.09. — iOS/Apple Watch 1.1.32 (Build 36) IST LIVE.** Beide Apple-Mails kamen ueber
+  Nacht; die zweite („ready for distribution") ist die Freigabe. **Gegengeprueft an der Store-API**
+  in de/us/ch: alle drei melden 1.1.32, `currentVersionReleaseDate` 2026-09-12T00:06:41Z — diesmal
+  ohne den Cache-Nachhang von frueheren Malen. Eingereicht 11.09. 13:16, also gut 11 Stunden Pruefung.
+  - `_APP_META["ios"]` UND `_APP_META["apple"]` stehen auf 1.1.32 (ein Bundle), der IN_REVIEW-Eintrag
+    ist raus, drei Changelog-Punkte sind eingetragen (`versionen = {"ios": …, "apple": …}`).
+  - Dabei einen Anzeigefehler behoben: `PLATTFORM_NAMEN` kannte den Schluessel `apple` nicht, also
+    stand auf /changelog woertlich „apple" als zweite Marke (seit dem 08.09. oeffentlich sichtbar).
+    Jetzt derselbe Name wie `ios` plus Entdoppelung — ein Abzeichen statt zwei.
+  - **Naechste iOS-Nummer: 1.1.33 / 37.** Wartet auf die `pairClaim`-Wurzel (s. Inbox 12.09.).
 
 - **🟢 11.09. — Einrichtungs-Assistent auf Android und iOS portiert** (`OnboardingScreen.kt`,
   `OnboardingView.swift`). Texte aus derselben Quelle wie die PWA erzeugt
