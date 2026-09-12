@@ -5,8 +5,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 
-// Lokalisierung nach der im Profil gewählten Sprache (NICHT der Geräte-Locale, da wir nur
-// genau diese 7 Locales pflegen). Fallback: de. Erweiterbar — Strings je Screen ergänzen.
+// Lokalisierung nach der im Profil gewählten Sprache. Solange es keine gibt (erster Start,
+// noch kein Login), gilt die GERÄTESPRACHE über `systemLang()` — und was wir nicht können,
+// wird ENGLISCH, nicht Deutsch. Der alte Kommentar hier behauptete das Gegenteil („NICHT der
+// Geräte-Locale, da wir nur genau diese 7 Locales pflegen") und stimmte doppelt nicht mehr:
+// es sind 18 Sprachen, und hart Deutsch war der Fehler, den ein Nutzer am 12.09.2026 meldete.
 // Wording, wo möglich, identisch mit web/src/i18n/locales/*.
 object I18n {
     // <i18n-langs> ERZEUGT von scripts/i18n-langs.py — NICHT von Hand aendern
@@ -38,14 +41,48 @@ object I18n {
 
     /** Anzeigename einer Sprache; unbekannt -> das Kuerzel, damit nie eine leere Zeile steht. */
     fun langName(l: String): String = LANG_NAMES[l] ?: l
+
+    /**
+     * Geraetesprache auf unsere Sprachen abbilden — dieselben Regeln wie in der PWA
+     * (`detectInitialLang`), von dort erzeugt. Unbekannt -> ENGLISCH, niemals Deutsch
+     * (Vorgabe Jan, 12.09.2026, nach der Meldung eines franzoesischen Nutzers).
+     */
+    fun systemLang(): String {
+        val tag = java.util.Locale.getDefault().toLanguageTag().lowercase()
+        if (tag.startsWith("de-at")) return "de-AT"
+        if (tag.startsWith("de-ch") || tag.startsWith("gsw")) return "gsw"
+        if (tag.startsWith("de")) return "de"
+        if (tag.startsWith("fr")) return "fr"
+        if (tag.startsWith("it")) return "it"
+        if (tag.startsWith("es")) return "es"
+        if (tag.startsWith("fi")) return "fi"
+        if (tag.startsWith("nl")) return "nl"
+        if (tag.startsWith("cs")) return "cs"
+        if (tag.startsWith("pl")) return "pl"
+        if (tag.startsWith("pt-pt")) return "pt-PT"
+        if (tag.startsWith("pt")) return "pt"
+        if (tag.startsWith("ja")) return "ja"
+        if (tag.startsWith("zh")) return "zh"
+        if (tag.startsWith("ru")) return "ru"
+        if (tag.startsWith("id")) return "id"
+        if (tag.startsWith("nb") || tag.startsWith("nn") || tag.startsWith("no")) return "nb"
+        if (tag.startsWith("en")) return "en"
+        return "en"
+    }
     // </i18n-langs>
-    var lang by mutableStateOf("de")
+    // Vor jeder eigenen Wahl gilt die GERAETESPRACHE, nicht Deutsch. Bis zum 12.09.2026 stand
+    // hier hart "de": ein franzoesischer Nutzer bekam die App auf Deutsch UND schickte beim
+    // Registrieren `language: "de"` mit (Api.register/googleSignIn lesen `I18n.lang`) — damit
+    // stand Deutsch dann auch im Profil und galt in der PWA weiter. Gemeldet von einem Nutzer
+    // am 12.09.2026: „everything is in german up to the moment you change it into the
+    // parameters … it concerns only the google app". Die Wear-App macht es seit jeher richtig.
+    var lang by mutableStateOf(systemLang())
         private set
 
     private fun prefs(ctx: Context) = ctx.getSharedPreferences("pumpfoil", Context.MODE_PRIVATE)
-    fun load(ctx: Context) { lang = prefs(ctx).getString("lang", "de") ?: "de" }
+    fun load(ctx: Context) { lang = prefs(ctx).getString("lang", null) ?: systemLang() }
     fun set(ctx: Context, l: String) {
-        val v = if (l in LANGS) l else "de"
+        val v = if (l in LANGS) l else systemLang()
         lang = v
         prefs(ctx).edit().putString("lang", v).apply()
     }
