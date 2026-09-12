@@ -267,7 +267,7 @@ private fun SprachKarte(ctx: Context) {
                             // Anmeldung auf einem anderen Geraet wieder die alte Sprache.
                             kotlinx.coroutines.GlobalScope.let { }
                         },
-                        label = { Text(ONB_LANG_NAMES[code] ?: code) },
+                        label = { Text(I18n.langName(code)) },
                     )
                 }
             }
@@ -589,10 +589,3 @@ private fun FertigKarte(mitUhr: Boolean) {
     }
 }
 
-private val ONB_LANG_NAMES = mapOf(
-    "de" to "Deutsch", "gsw" to "Schwiizerdütsch", "de-AT" to "Österreichisch",
-    "en" to "English", "fr" to "Français", "it" to "Italiano", "es" to "Español",
-    "fi" to "Suomi", "nl" to "Nederlands", "cs" to "Čeština",
-    "pt" to "Português (Brasil)", "pt-PT" to "Português (Portugal)", "ja" to "日本語",
-    "zh" to "中文", "ru" to "Русский", "id" to "Bahasa Indonesia", "nb" to "Norsk", "pl" to "Polski",
-)

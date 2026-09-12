@@ -96,7 +96,7 @@ struct OnboardingView: View {
     private var sprachSection: some View {
         Section(t("onb.x.lang")) {
             Picker(t("onb.x.lang"), selection: $lang) {
-                ForEach(Loc.langs, id: \.self) { c in Text(onbLangNames[c] ?? c).tag(c) }
+                ForEach(Loc.langs, id: \.self) { c in Text(Loc.langName(c)).tag(c) }
             }
             .pickerStyle(.navigationLink)
         }
@@ -401,9 +401,3 @@ private let onbStufen = [OnbStufe(id: "beginner", sens: "attempts"),
                          OnbStufe(id: "inter", sens: "light"),
                          OnbStufe(id: "pro", sens: "normal")]
 
-private let onbLangNames = ["de": "Deutsch", "gsw": "Schwiizerdütsch", "de-AT": "Österreichisch",
-                            "en": "English", "fr": "Français", "it": "Italiano", "es": "Español",
-                            "fi": "Suomi", "nl": "Nederlands", "cs": "Čeština",
-                            "pt": "Português (Brasil)", "pt-PT": "Português (Portugal)",
-                            "ja": "日本語", "zh": "中文", "ru": "Русский",
-                            "id": "Bahasa Indonesia", "nb": "Norsk", "pl": "Polski"]
