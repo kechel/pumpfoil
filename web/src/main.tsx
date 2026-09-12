@@ -32,10 +32,20 @@ watchSystemTheme();
 applyFontScale(getFontScale());
 
 // OAuth-Rücksprung: Token kommt als #token=… zurück -> speichern + Hash entfernen.
+// Schlaegt die Anmeldung fehl, kommt stattdessen #oauth_error=… — der Server legt dann bewusst
+// KEIN Konto an (z. B. weil Facebook keine E-Mail-Adresse mitgegeben hat, s. api/oauth.py).
+// Hier nur merken und den Hash putzen; die Login-Seite zeigt die Meldung.
+export const OAUTH_FEHLER_KEY = "foil_oauth_fehler";
 (() => {
   const m = window.location.hash.match(/[#&]token=([^&]+)/);
   if (m) {
     setToken(decodeURIComponent(m[1]));
+    history.replaceState(null, "", window.location.pathname + window.location.search);
+    return;
+  }
+  const f = window.location.hash.match(/[#&]oauth_error=([^&]+)/);
+  if (f) {
+    try { sessionStorage.setItem(OAUTH_FEHLER_KEY, decodeURIComponent(f[1])); } catch { /* egal */ }
     history.replaceState(null, "", window.location.pathname + window.location.search);
   }
 })();

@@ -198,6 +198,8 @@ const pl: Record<string, string> = {
   "login.haveAccount": "Masz już konto? Zaloguj się",
   "login.newHere": "Pierwszy raz? Zarejestruj się",
   "login.enterEmail": "Podaj powyżej swój adres e-mail.",
+  "login.oauthNoEmail": "Facebook nie przekazał nam adresu e-mail, więc nie mogliśmy założyć konta. Zaloguj się jeszcze raz i udostępnij adres e-mail — albo użyj e-maila i hasła.",
+  "login.oauthFailed": "Logowanie przez tego dostawcę się nie udało. Spróbuj ponownie albo użyj e-maila i hasła.",
   "login.resetSent": "Jeśli konto dla tego adresu istnieje, link do resetu jest już w drodze.",
   "login.nameTaken": "Ta nazwa wyświetlana jest już zajęta.",
   "login.nameLen": "Nazwa wyświetlana: 2–40 znaków.",

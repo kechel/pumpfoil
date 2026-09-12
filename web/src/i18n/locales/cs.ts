@@ -185,6 +185,8 @@ const cs: Record<string, string> = {
   "login.haveAccount": "Už máš účet? Přihlásit",
   "login.newHere": "Jsi tu nový? Registrovat",
   "login.enterEmail": "Zadej prosím výše svůj e-mail.",
+  "login.oauthNoEmail": "Facebook nám nedal e-mailovou adresu, takže jsme nemohli vytvořit účet. Přihlas se znovu a povol e-mailovou adresu — nebo použij e-mail a heslo.",
+  "login.oauthFailed": "Přihlášení přes tohoto poskytovatele nevyšlo. Zkus to znovu nebo použij e-mail a heslo.",
   "login.resetSent": "Pokud k tomuto e-mailu existuje účet, odkaz pro reset už je na cestě.",
   "login.nameTaken": "Toto zobrazované jméno je už obsazené.",
   "login.nameLen": "Zobrazované jméno: 2–40 znaků.",

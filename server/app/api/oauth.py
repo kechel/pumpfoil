@@ -52,6 +52,7 @@ PROVIDERS: dict[str, dict] = {
         "userinfo_url": "https://openidconnect.googleapis.com/v1/userinfo",
         "scope": "openid email profile",
         "pkce": True,
+        "email_required": True,
     },
     "apple": {
         "label": "Apple",
@@ -61,6 +62,7 @@ PROVIDERS: dict[str, dict] = {
         "scope": "name email",
         "pkce": False,
         "response_mode": "form_post",
+        "email_required": True,
     },
     # Facebook: Graph API. `pkce` wird unterstuetzt. Der Nutzer kann die E-Mail-Freigabe
     # ABWAEHLEN, und Konten, die nur mit Telefonnummer angelegt wurden, haben gar keine —
@@ -72,6 +74,7 @@ PROVIDERS: dict[str, dict] = {
         "userinfo_url": "https://graph.facebook.com/v26.0/me?fields=id,first_name,email",
         "scope": "public_profile,email",
         "pkce": True,
+        "email_required": True,
     },
     "strava": {
         "label": "Strava",
@@ -348,6 +351,26 @@ async def callback(
     subject, email, name = _identity(provider, cfg, token)
     if not subject:
         raise HTTPException(status.HTTP_502_BAD_GATEWAY, "No identity from provider")
+
+    # Kein Konto ohne erreichbare Adresse anlegen.
+    #
+    # Bei Anbietern, die normalerweise eine E-Mail liefern, kann sie trotzdem fehlen: Facebook
+    # laesst die Freigabe ABWAEHLEN und kennt — anders als Apple mit "Hide My Email" — keine
+    # Ersatzadresse. Die eigene Feld-Doku sagt es klar: "This field will not be returned if no
+    # valid email address is available." Das Feld fehlt dann einfach.
+    #
+    # Frueher wurde daraus stillschweigend `<provider>_<subject>@oauth.local` (s.
+    # `_login_or_create`). Das ist fuer Strava/Garmin richtig — die liefern NIE eine Adresse und
+    # sind reine Verknuepfungen —, fuer einen LOGIN-Anbieter aber eine Falle: das Konto haette
+    # ein Zufallspasswort, das niemand kennt, und eine Adresse, an die kein Zurueck-setzen-Link
+    # gehen kann. In den nativen Apps, die nur E-Mail + Passwort und den eigenen Anbieter haben,
+    # kaeme so jemand nie wieder hinein.
+    #
+    # Deshalb hier abbrechen statt ein unbrauchbares Konto anzulegen. Der Weg zurueck ist ein
+    # Klick: noch einmal anmelden und die E-Mail freigeben.
+    if cfg.get("email_required") and not email:
+        ziel = f"{get_settings().base_url}/#oauth_error=no_email&provider={provider}"
+        return RedirectResponse(ziel, status_code=303)
 
     user = _login_or_create(db, provider, subject, email, name, language=oauth_lang)
     jwt = create_access_token(user.id)
