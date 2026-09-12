@@ -35,6 +35,10 @@ enum Loc {
 
     // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/cs.ts.
     private static let _csOverlayP11: [String: String] = [
+    "hr.viewPeak": "Absolutní",
+    "hr.viewRise": "Nárůst",
+    "hr.viewRiseHint": "Ukazuje, o kolik tep během jízdy vystoupal — oproti tepu na začátku téže jízdy. Jízdy jsou tak porovnatelné, i když jsi je začínal s různým tepem.",
+    "hr.pickNone": "Zatím je takhle dlouhých jízd málo. Posuň jezdec doleva.",
     "account.activityPumpfoil": "Pumpfoil (obecné)",
     "account.addLayoutPage": "+ Vložit vlastní obrazovku",
     "account.autoStart": "Spustit nahrávání automaticky, když se rozjedu (GPS)",
@@ -950,6 +954,10 @@ enum Loc {
 
     // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/nl.ts.
     private static let _nlOverlayP11: [String: String] = [
+    "hr.viewPeak": "Absoluut",
+    "hr.viewRise": "Stijging",
+    "hr.viewRiseHint": "Laat zien hoeveel je hartslag tijdens de run is gestegen — ten opzichte van de hartslag aan het begin van diezelfde run. Zo zijn runs vergelijkbaar, ook als je ze met verschillende hartslagen begon.",
+    "hr.pickNone": "Nog te weinig runs van deze lengte. Schuif verder naar links.",
     "account.activityPumpfoil": "Pumpfoil (generiek)",
     "account.addLayoutPage": "+ Eigen scherm invoegen",
     "account.autoStart": "Opname automatisch starten zodra ik wegvaar (GPS)",
@@ -1892,6 +1900,10 @@ enum Loc {
 
     // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/fi.ts.
     private static let _fiOverlayP11: [String: String] = [
+    "hr.viewPeak": "Absoluuttinen",
+    "hr.viewRise": "Nousu",
+    "hr.viewRiseHint": "Näyttää, kuinka paljon syke nousi vedon aikana — verrattuna saman vedon alun sykkeeseen. Näin vedot ovat vertailukelpoisia, vaikka aloitussyke olisi ollut eri.",
+    "hr.pickNone": "Näin pitkiä vetoja on vielä liian vähän. Vedä säädintä vasemmalle.",
     "login.continueWith": "Jatka: {provider}",
     "account.activityPumpfoil": "Pumpfoil (yleinen)",
     "account.addLayoutPage": "+ Lisää oma näyttö",
@@ -3043,6 +3055,10 @@ enum Loc {
         // Community-Rekord „Meiste Carves >180°" (Paritaet Punkt 9, 17.08.).
         "rec.carves180": r("Meiste Carves >180°", "Meischti Carves >180°", "Meiste Carves >180°", "Most carves >180°", "Plus de carves >180°", "Più carve >180°", "Más carves >180°"),
         // Trainingskurve (Paritaet Punkt 6, 17.08.). Aus den PWA-Locales GENERIERT.
+        "hr.viewPeak": r("Absolut", "Absolut", "Absolut", "Absolute", "Absolu", "Assoluto", "Absoluto"),
+        "hr.viewRise": r("Anstieg", "Aastieg", "Anstieg", "Rise", "Hausse", "Aumento", "Aumento"),
+        "hr.viewRiseHint": r("Zeigt, wie weit der Puls im Lauf gestiegen ist — gegenüber dem Puls zu Beginn desselben Laufs. So sind Läufe vergleichbar, deren Ausgangspuls verschieden hoch lag.", "Zeigt, wie wiit de Puls im Lauf gstiege isch — im Vergliich zum Puls am Aafang vom gliiche Lauf. So sind Läuf vergliichbar, wo de Uusgangspuls verschiide hoch gsi isch.", "Zeigt, wie weit der Puls im Lauf gestiegen ist — gegenüber dem Puls zu Beginn desselben Laufs. So sind Läufe vergleichbar, deren Ausgangspuls verschieden hoch war.", "Shows how far your heart rate climbed during the run — measured against the rate at the start of that same run. That makes runs comparable even when you started them at different heart rates.", "Montre de combien la fréquence cardiaque est montée pendant le run — par rapport à celle du début de ce même run. Les runs deviennent comparables même si tu les as commencés à des fréquences différentes.", "Mostra di quanto è salita la frequenza cardiaca durante la run — rispetto a quella all'inizio della stessa run. Così le run sono confrontabili anche se le hai iniziate con frequenze diverse.", "Muestra cuánto subió el pulso durante el run — respecto al pulso al inicio de ese mismo run. Así los runs se pueden comparar aunque los empezaras con pulsos distintos."),
+        "hr.pickNone": r("Hier gibt es noch zu wenige Läufe. Zieh den Regler weiter nach links.", "Do gits no z weni Läuf. Zieh de Regler wiiter nach links.", "Hier gibt es noch zu wenige Läufe. Zieh den Regler weiter nach links.", "Not enough runs this long yet. Drag the slider further left.", "Pas encore assez de runs aussi longs. Décale le curseur vers la gauche.", "Non ci sono ancora abbastanza run così lunghi. Sposta il cursore a sinistra.", "Aún no hay suficientes runs tan largos. Mueve el control a la izquierda."),
         "hr.progressTitle": r("Trainingskurve: Puls beim Pumpen", "Trainingskurve: Puls bim Pumpe", "Trainingskurve: Puls beim Pumpen", "Training curve: heart rate while pumping", "Courbe d'entraînement : pouls en pumping", "Curva di allenamento: battito durante il pump", "Curva de entrenamiento: pulso al bombear"),
         "hr.progressHint": r("Wie hoch dein Puls nach 30 Sekunden, 1, 2 und 5 Minuten Pumpen steigt.", "Wie hoch din Puls nach 30 Sekunde, 1, 2 und 5 Minute Pumpe staigt.", "Wie hoch dein Puls nach 30 Sekunden, 1, 2 und 5 Minuten Pumpen steigt.", "How high your pulse climbs after 30 seconds, 1, 2 and 5 minutes of pumping.", "À quelle hauteur monte ton pouls après 30 secondes, 1, 2 et 5 minutes de pumping.", "Quanto sale il battito dopo 30 secondi, 1, 2 e 5 minuti di pump.", "Cuánto sube tu pulso tras 30 segundos, 1, 2 y 5 minutos bombeando."),
         "hr.afterSeconds": r("nach {sec} Sekunden", "nach {sec} Sekunde", "nach {sec} Sekunden", "after {sec} seconds", "après {sec} secondes", "dopo {sec} secondi", "tras {sec} segundos"),

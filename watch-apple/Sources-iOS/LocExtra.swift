@@ -17,6 +17,10 @@ let ptOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/pt.ts.
 private let _ptOverlayP11: [String: String] = [
+    "hr.viewPeak": "Absoluto",
+    "hr.viewRise": "Aumento",
+    "hr.viewRiseHint": "Mostra o quanto a frequência cardíaca subiu durante o run — em relação à do início do mesmo run. Assim dá para comparar runs mesmo tendo começado com frequências diferentes.",
+    "hr.pickNone": "Ainda há poucos runs assim longos. Arrasta o cursor para a esquerda.",
     "foilStats.hint": "Quais números as pessoas alcançam em qual foil (comunidade). Contam apenas sessões de pumpfoil com deteção por acelerómetro — outros desportos (wing, eFoil, foildrive, wakethief), gravações só de GPS e dados marcados como incorretos ficam de fora.",
     "watchStats.hint": "Quais números são feitos com qual relógio — média da comunidade por modelo. Aqui conta cada gravação: todos os desportos, com ou sem dados de acelerómetro.",
     "spotcmp.title": "Recordes do spot",
@@ -963,6 +967,10 @@ let jaOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/ja.ts.
 private let _jaOverlayP11: [String: String] = [
+    "hr.viewPeak": "実測値",
+    "hr.viewRise": "上昇幅",
+    "hr.viewRiseHint": "そのランの開始時の心拍と比べて、ランの中で心拍がどれだけ上がったかを表示します。開始時の心拍が違っていても、ラン同士を比べられます。",
+    "hr.pickNone": "この長さのランはまだ足りません。スライダーを左に戻してください。",
     "foilStats.hint": "ã©ã®ãã©ã¤ã«ã§ã©ããªæ°å¤ãåºããï¼ã³ãã¥ããã£ï¼ã カウントされるのは加速度センサーで判定されたパンプフォイルのセッションのみです。他の競技（ウィング、eFoil、フォイルドライブ、ウェイクシーフ）、GPSのみの記録、誤りとして印を付けたデータは含まれません。",
     "watchStats.hint": "どの数値がどのウォッチで記録されたか — モデルごとのコミュニティ集計。 ここではすべての記録が対象です。競技を問わず、加速度データの有無も問いません。",
     "spotcmp.title": "スポット記録",
@@ -1909,6 +1917,10 @@ let zhOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/zh.ts.
 private let _zhOverlayP11: [String: String] = [
+    "hr.viewPeak": "实测值",
+    "hr.viewRise": "上升幅度",
+    "hr.viewRiseHint": "显示这段滑行中心率上升了多少——以同一段滑行开始时的心率为基准。这样即使起始心率不同，也能相互比较。",
+    "hr.pickNone": "这个长度的滑行还太少。请把滑块往左拖。",
     "foilStats.hint": "äººä»¬å¨åªæ¬¾æ°´ç¿¼ä¸åå¾åªäºæ°æ®ï¼ç¤¾åºï¼ã 仅统计带加速度识别的 pumpfoil 记录 — 其他运动（wing、eFoil、foildrive、wakethief）、仅 GPS 的记录以及被标记为错误的数据不计入。",
     "watchStats.hint": "哪些数据是用哪块手表骑出来的 —— 按型号的社区汇总。 这里统计所有记录：不限运动项目，有无加速度数据都算。",
     "spotcmp.title": "地点纪录",
@@ -2855,6 +2867,10 @@ let ruOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/ru.ts.
 private let _ruOverlayP11: [String: String] = [
+    "hr.viewPeak": "Абсолютный",
+    "hr.viewRise": "Прирост",
+    "hr.viewRiseHint": "Показывает, насколько пульс вырос за заезд — относительно пульса в начале того же заезда. Так заезды сравнимы, даже если начинались с разного пульса.",
+    "hr.pickNone": "Таких длинных заездов пока мало. Сдвинь ползунок левее.",
     "foilStats.hint": "ÐÐ°ÐºÐ¸Ðµ Ð¿Ð¾ÐºÐ°Ð·Ð°ÑÐµÐ»Ð¸ Ð´Ð¾ÑÑÐ¸Ð³Ð°ÑÑÑÑ Ð½Ð° ÐºÐ°ÐºÐ¾Ð¼ ÑÐ¾Ð¹Ð»Ðµ (ÑÐ¾Ð¾Ð±ÑÐµÑÑÐ²Ð¾). Учитываются только сессии pumpfoil с определением по акселерометру — другие виды (wing, eFoil, foildrive, wakethief), записи только по GPS и данные, помеченные как ошибочные, не входят.",
     "watchStats.hint": "Какие показатели достигаются на каких часах — совокупные данные сообщества по каждой модели. Здесь учитывается всё: любые виды спорта, с данными акселерометра и без них.",
     "spotcmp.title": "Рекорды спота",
@@ -3801,6 +3817,10 @@ let idOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/id.ts.
 private let _idOverlayP11: [String: String] = [
+    "hr.viewPeak": "Absolut",
+    "hr.viewRise": "Kenaikan",
+    "hr.viewRiseHint": "Menunjukkan seberapa jauh detak jantung naik selama run — dibandingkan detak di awal run yang sama. Dengan begitu run bisa dibandingkan meski dimulai dari detak yang berbeda.",
+    "hr.pickNone": "Belum cukup run sepanjang itu. Geser slider ke kiri.",
     "foilStats.hint": "Angka apa yang dicapai orang di foil mana (komunitas). Hanya sesi pumpfoil dengan deteksi accel yang dihitung — olahraga lain (wing, eFoil, foildrive, wakethief), rekaman GPS saja, dan data yang ditandai keliru tidak ikut.",
     "watchStats.hint": "Angka apa yang dicapai dengan jam mana — agregat komunitas per model. Di sini semua dihitung: semua olahraga, dengan atau tanpa data accel.",
     "spotcmp.title": "Rekor spot",
@@ -4746,6 +4766,10 @@ let nbOverlay: [String: String] = {
 
 // Spalten der Lauf-Tabelle, aus web/src/i18n/locales/nb.ts.
 private let _nbOverlayP11: [String: String] = [
+    "hr.viewPeak": "Absolutt",
+    "hr.viewRise": "Økning",
+    "hr.viewRiseHint": "Viser hvor mye pulsen steg i løpet av turen — sammenlignet med pulsen ved starten av samme tur. Slik blir turene sammenlignbare selv om du startet dem med ulik puls.",
+    "hr.pickNone": "For få turer så lange ennå. Dra glideren lenger til venstre.",
     "foilStats.hint": "Hvilke tall folk oppnår på hvilken foil (fellesskapet). Bare pumpfoil-økter med accel-gjenkjenning telles — andre sporter (wing, eFoil, foildrive, wakethief), rene GPS-opptak og data merket som feil er ikke med.",
     "watchStats.hint": "Hvilke tall som kjøres med hvilken klokke — samlet fra fellesskapet per modell. Her teller alt: alle sporter, med og uten accel-data.",
     "spotcmp.title": "Spot-rekorder",
@@ -5718,6 +5742,10 @@ let plOverlay: [String: String] = {
 }()
 
 private let _plOverlayP1: [String: String] = [
+    "hr.viewPeak": "Absolutny",
+    "hr.viewRise": "Wzrost",
+    "hr.viewRiseHint": "Pokazuje, o ile tętno wzrosło podczas przejazdu — w porównaniu z tętnem na jego początku. Dzięki temu przejazdy są porównywalne, nawet jeśli zaczynałeś je z różnym tętnem.",
+    "hr.pickNone": "Za mało tak długich przejazdów. Przesuń suwak w lewo.",
     "foilStats.hint": "Jakie wartości osiąga się na jakim foilu (społeczność). Liczą się tylko sesje pumpfoil z wykrywaniem po akcelerometrze — inne sporty (wing, eFoil, foildrive, wakethief), nagrania tylko z GPS i dane oznaczone jako błędne nie są uwzględniane.",
     "watchStats.hint": "Jakie wartości osiąga się na jakim zegarku — zbiorczo w całej społeczności, według modelu. Tutaj liczy się każde nagranie: wszystkie sporty, z danymi akcelerometru i bez nich.",
     "spotcmp.title": "Rekordy spotu",
@@ -6676,6 +6704,10 @@ let ptptOverlay: [String: String] = {
 
 private let _ptptOverlayP1: [String: String] = [
     // Anker fuer scripts/i18n-port.py (siehe I18nExtra.kt).
+    "hr.viewPeak": "Absoluto",
+    "hr.viewRise": "Aumento",
+    "hr.viewRiseHint": "Mostra quanto a frequência cardíaca subiu durante o run — em relação à do início do mesmo run. Assim é possível comparar runs mesmo tendo começado com frequências diferentes.",
+    "hr.pickNone": "Ainda há poucos runs assim longos. Arrasta o cursor para a esquerda.",
     "login.continueWith": "Continuar com {provider}",
     "cr.foilAll": "Todos os foils",
     "account.addLayoutPage": "+ Inserir ecrã próprio",

@@ -20,6 +20,7 @@ struct LoginView: View {
     @State private var busy = false
     @State private var error: String?
     @State private var resetMsg: String?
+    @Environment(\.colorScheme) private var farbschema
     @State private var anbieter: [Api.OAuthProvider] = []
     // Haelt die Browser-Sitzung am Leben: laeuft die Variable aus dem Gueltigkeitsbereich,
     // schliesst iOS das Fenster sofort wieder.
@@ -115,7 +116,13 @@ struct LoginView: View {
         SignInWithAppleButton(.signIn,
             onRequest: { $0.requestedScopes = [.fullName, .email] },
             onCompletion: handleApple)
-            .signInWithAppleButtonStyle(.black).frame(height: 44).disabled(busy)
+            // Apples Vorgabe waehlt die Fassung nach dem KONTRAST zum Hintergrund, nicht nach
+            // dem Thema: „White Style: use this style on dark backgrounds", „Black Style: …
+            // don't use it on black or dark backgrounds." Die Karte hier ist
+            // `Color(.systemBackground)`, kippt also mit dem Systemthema — der Knopf muss
+            // mitkippen, sonst steht im Dunkelmodus Schwarz auf Schwarz.
+            .signInWithAppleButtonStyle(farbschema == .dark ? .white : .black)
+            .frame(height: 44).disabled(busy)
         anbieterBlock
     }
 

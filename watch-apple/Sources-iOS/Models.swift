@@ -260,6 +260,9 @@ struct HrSeriesPoint: Codable, Identifiable {
     let werte: [Int: Double]
     /// Marke (Sekunden) -> Anzahl beteiligter Laeufe.
     let laeufe: [Int: Int]
+    /// Marke (Sekunden) -> ANSTIEG gegenueber dem Puls zu Beginn desselben Laufs (`d<marke>`).
+    /// Fehlt, wenn kein Lauf einen Start-Puls hatte — dann zeigt die Umschaltung dort nichts.
+    let anstieg: [Int: Double]
 
     var id: Int { session_id ?? 0 }
 
@@ -276,6 +279,7 @@ struct HrSeriesPoint: Codable, Identifiable {
         var ts: String? = nil
         var v: [Int: Double] = [:]
         var n: [Int: Int] = [:]
+        var a: [Int: Double] = [:]
         for k in c.allKeys {
             let name: String = k.stringValue
             if name == "session_id" { sid = try? c.decode(Int.self, forKey: k); continue }
@@ -284,6 +288,10 @@ struct HrSeriesPoint: Codable, Identifiable {
                 v[m] = try? c.decode(Double.self, forKey: k)
             } else if name.hasPrefix("n"), let m = Int(name.dropFirst(1)) {
                 n[m] = try? c.decode(Int.self, forKey: k)
+            } else if name.hasPrefix("d"), let m = Int(name.dropFirst(1)) {
+                // `d<marke>` = Anstieg. Die Pruefung auf "n" steht davor und faengt "n60" ab;
+                // "d60" kann damit nicht verwechselt werden.
+                a[m] = try? c.decode(Double.self, forKey: k)
             }
         }
         session_id = sid
@@ -292,6 +300,7 @@ struct HrSeriesPoint: Codable, Identifiable {
         // wirklich gelieferte Werte, kein compactMapValues noetig.
         werte = v
         laeufe = n
+        anstieg = a
     }
 
     func encode(to encoder: Encoder) throws {
