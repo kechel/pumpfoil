@@ -851,6 +851,20 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 12.09. — Eine neue Sprache kostet jetzt EINE Aenderung statt acht.**
+  `scripts/i18n-langs.py` erzeugt die Sprachliste und die Eigenbezeichnungen fuer beide nativen
+  Apps aus `web/src/i18n/index.tsx` — demselben Muster wie `i18n-onboarding-native.py`.
+  Trockenlauf ist der Standard, geschrieben nur mit `--echt`.
+  - **Vorgehen bei einer neuen Sprache:** Eintrag in `web/src/i18n/index.tsx` (LANGS, `type Lang`,
+    `DICTS`) + Locale-Datei + `SUPPORTED_LANGS` im Server, dann `python3 scripts/i18n-langs.py
+    --echt`. Was das Skript nicht erzeugen kann (Typ, DICTS, Server), PRUEFT es und endet mit
+    Code 1, wenn etwas fehlt — taugt also auch als Wachhund in einem Vorab-Check.
+  - **Warum:** dieselbe Liste stand an ACHT Stellen, zweimal ist eine Kopie stehengeblieben
+    (Android- und iOS-Anmeldemaske, dort standen Kuerzel statt Sprachnamen). Ausserdem lief die
+    Reihenfolge auseinander — Polnisch stand im Web nach Tschechisch, in beiden Apps am Ende.
+  - Die erzeugten Bloecke stehen zwischen `// <i18n-langs>` und `// </i18n-langs>`; alles
+    dazwischen wird ersetzt, von Hand aendert man dort nichts.
+
 - **💡 12.09. (Jan) — Konten zusammenfuehren.** Entstanden aus der Facebook-Anmeldung.
   **Entscheidung dazu steht schon fest** (Jan, 12.09.): wer seine E-Mail bei Facebook NICHT
   freigibt, bekommt trotzdem ein Konto. Das geht, weil die Zuordnung nicht an der Adresse haengt,
