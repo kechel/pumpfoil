@@ -15,6 +15,7 @@ from .. import models, storage
 from ..analysis import maybe_auto_trim, run_analysis
 from ..clockmap import gesamt_pause_ms
 from ..db import SessionLocal, get_db
+from ..naming import ist_gattung, modell_aus_session
 from ..schemas import (
     ChunkIn,
     ChunkOut,
@@ -148,6 +149,14 @@ def start_session(
             expected_chunks=body.expected_chunks,
         )
         db.add(s)
+        # Uhr-Bezeichnung aus der Aufnahme nachziehen. Beim PAIRING kennt der Server das Modell
+        # nicht — Apple und Wear melden dort nichts, und das Label kommt vom pairenden Client
+        # (die Apps schickten dort bis 11.09.2026 fest "Garmin"). In der Aufnahme steht es aber:
+        # `device_model` = "Watch7,12 · watchOS 26.6". Nur eine GATTUNG wird ersetzt, ein bereits
+        # aufgeloester Modellname (Garmin-Partmap, Wear `Build.MODEL`) bleibt unangetastet.
+        _modell = modell_aus_session(body.device_model)
+        if _modell and ist_gattung(device.label):
+            device.label = _modell[:120]
         db.commit()
         db.refresh(s)
     elif s.user_id != device.user_id:

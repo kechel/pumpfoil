@@ -38,3 +38,29 @@ def test_handy_recorder_nicht_betroffen():
 def test_leeres_label_bekommt_die_plattform():
     assert geraete_label(None, "apple") == "Apple Watch"
     assert geraete_label("  ", "wear") == "Wear OS"
+
+
+# --- Modell aus der Aufnahme (sessions.device_model) -------------------------
+from app.naming import modell_aus_session  # noqa: E402
+
+
+def test_apple_kennung_wird_uebersetzt():
+    # `WKInterfaceDevice.model` gibt nur "Apple Watch" — die Serie steckt in utsname.machine.
+    assert modell_aus_session("Watch7,12 · watchOS 26.6") == "Apple Watch Ultra 3"
+    assert modell_aus_session("Watch6,9 · watchOS 26.6") == "Apple Watch Series 7 45 mm"
+    assert modell_aus_session("Watch5,10 · watchOS 10.6.2") == "Apple Watch SE 44 mm"
+
+
+def test_unbekannte_apple_kennung_faellt_auf_die_gattung():
+    # Lieber "Apple Watch" als eine Kennung, die niemandem etwas sagt — oder ein geratener Name.
+    assert modell_aus_session("Watch9,3 · watchOS 30.0") == "Apple Watch"
+
+
+def test_fremde_modellnamen_bleiben_wie_sie_sind():
+    assert modell_aus_session("SM-R915F") == "SM-R915F"
+    assert modell_aus_session("Google Pixel 9a · Android 17") == "Google Pixel 9a"
+
+
+def test_simulator_ist_kein_geraet():
+    for wert in ("Simulator · watchOS 26.5", "arm64 · watchOS 26.5", "", None):
+        assert modell_aus_session(wert) is None
