@@ -167,13 +167,26 @@ def _b64url(b: bytes) -> str:
     return base64.urlsafe_b64encode(b).rstrip(b"=").decode()
 
 
+def _versteckt(provider: str) -> bool:
+    """Anbieter ist eingerichtet, soll aber (noch) NICHT als Knopf erscheinen.
+
+    Gedacht fuer die Phase zwischen „eingerichtet" und „vom Anbieter freigegeben": Facebook
+    liefert `public_profile`/`email` zunaechst nur an Konten mit einer Rolle in der App
+    (Standard Access). Ein oeffentlicher Knopf wuerde also fuer JEDEN ANDEREN in einer
+    Fehlermeldung enden. Mit `OAUTH_<P>_HIDDEN=1` bleibt der Anbieter voll funktionsfaehig —
+    `/start` und `/callback` arbeiten normal, man kommt ueber die URL hinein und kann testen —,
+    nur die Knopfleiste zeigt ihn nicht. Zum Freischalten die Zeile aus der .env nehmen.
+    """
+    return os.environ.get(f"OAUTH_{provider.upper()}_HIDDEN", "").strip() in ("1", "true", "yes")
+
+
 @router.get("/providers")
 def providers() -> list[dict]:
     """Liste der aktivierten Provider (für die Login-Buttons)."""
     out = []
     for p, cfg in PROVIDERS.items():
         creds = _creds(p)
-        if creds.get("client_id") and creds.get("client_secret"):
+        if creds.get("client_id") and creds.get("client_secret") and not _versteckt(p):
             out.append({"id": p, "label": cfg["label"]})
     return out
 
