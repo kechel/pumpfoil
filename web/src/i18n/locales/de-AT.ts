@@ -157,6 +157,8 @@ const deAT: Record<string, string> = {
   "login.haveAccount": "Schon an Account? Login",
   "login.newHere": "Neu do? Registrier di",
   "login.enterEmail": "Bitte obn dei E-Mail eintragn.",
+  "login.oauthNoEmail": "Facebook hat uns keine E-Mail-Adresse gegeben, drum konnten wir kein Konto anlegen. Meld dich noch einmal an und gib die E-Mail-Adresse frei — oder nimm E-Mail und Passwort.",
+  "login.oauthFailed": "Die Anmeldung über den Anbieter hat nicht geklappt. Probier's noch einmal oder nimm E-Mail und Passwort.",
   "login.resetSent": "Falls a Konto zu der E-Mail existiert, is a Reset-Link unterwegs.",
   "login.nameTaken": "Der Anzeigename is scho vergebn.",
   "login.nameLen": "Anzeigename: 2–40 Zeichen.",

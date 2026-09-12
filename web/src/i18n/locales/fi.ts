@@ -172,6 +172,8 @@ const fi: Record<string, string> = {
   "login.haveAccount": "Onko sinulla jo tili? Kirjaudu",
   "login.newHere": "Uusi täällä? Rekisteröidy",
   "login.enterEmail": "Syötä sähköpostisi yllä olevaan kenttään.",
+  "login.oauthNoEmail": "Facebook ei antanut meille sähköpostiosoitetta, joten tiliä ei voitu luoda. Kirjaudu uudelleen ja salli sähköpostiosoite — tai käytä sähköpostia ja salasanaa.",
+  "login.oauthFailed": "Kirjautuminen tämän palvelun kautta ei onnistunut. Yritä uudelleen tai käytä sähköpostia ja salasanaa.",
   "login.resetSent": "Jos tähän sähköpostiin liittyy tili, nollauslinkki on matkalla.",
   "login.nameTaken": "Tämä näyttönimi on jo varattu.",
   "login.nameLen": "Näyttönimi: 2–40 merkkiä.",

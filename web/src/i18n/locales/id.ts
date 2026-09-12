@@ -178,6 +178,8 @@ const id: Record<string, string> = {
   "login.haveAccount": "Sudah punya akun? Masuk",
   "login.newHere": "Baru di sini? Daftar",
   "login.enterEmail": "Silakan masukkan emailmu di atas.",
+  "login.oauthNoEmail": "Facebook tidak memberi kami alamat email, jadi akun tidak bisa dibuat. Masuk sekali lagi dan izinkan alamat email — atau pakai email dan kata sandi.",
+  "login.oauthFailed": "Masuk lewat penyedia itu tidak berhasil. Coba lagi atau pakai email dan kata sandi.",
   "login.resetSent": "Jika ada akun untuk email ini, tautan reset sedang dikirim.",
   "login.nameTaken": "Nama tampilan ini sudah dipakai.",
   "login.nameLen": "Nama tampilan: 2–40 karakter.",

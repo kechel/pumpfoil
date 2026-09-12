@@ -4,6 +4,7 @@ import { api, setToken } from "../lib/api";
 import { Button, Card, ErrorBox } from "../components/ui";
 import { PROVIDER_ICONS, FacebookGlyphIcon } from "../components/BrandIcons";
 import { useI18n, TFunc } from "../i18n";
+import { OAUTH_FEHLER_KEY } from "../main";
 import { LanguageSelect } from "../components/LanguageSelect";
 import { ThemeToggle } from "../components/ThemeToggle";
 
@@ -57,6 +58,18 @@ export default function Login() {
   const [forgotMsg, setForgotMsg] = useState<string | null>(null);
   const [providers, setProviders] = useState<{ id: string; label: string; note?: string }[]>([]);
   const nav = useNavigate();
+
+  // Fehlgeschlagene Anbieter-Anmeldung (main.tsx hat sie beim Ruecksprung gemerkt). Einmal
+  // anzeigen, dann wegraeumen — sonst stuende sie beim naechsten Aufruf der Seite wieder da.
+  useEffect(() => {
+    try {
+      const f = sessionStorage.getItem(OAUTH_FEHLER_KEY);
+      if (f) {
+        sessionStorage.removeItem(OAUTH_FEHLER_KEY);
+        setError(t(f === "no_email" ? "login.oauthNoEmail" : "login.oauthFailed"));
+      }
+    } catch { /* privates Fenster ohne sessionStorage: dann eben keine Meldung */ }
+  }, [t]);
 
   useEffect(() => { api.oauthProviders().then(setProviders).catch(() => {}); }, []);
 
