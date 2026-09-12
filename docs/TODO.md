@@ -869,6 +869,25 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **📥 12.09. (Clement, u31, Feedback #127 aus der iOS-App) — Spot-Namen von den Fahrern aendern
+  lassen.** Wortlaut: „where can we edit the name of the spot? … the default name of the spot is
+  not that good, it should be Barcelona Forum!"
+  - **Er hat nichts uebersehen, es geht schlicht nicht.** Spot-Namen kommen automatisch aus dem
+    naechsten Ort (`spots.name_source = 'town'`). Sein Spot ist **#50 „Sant Adrià de Besòs"**,
+    41.4078 / 2.2258 — auf der Karte richtig, aber so nennt es dort niemand; es ist der Parc del
+    Fòrum in Barcelona. 59 Aufnahmen von 5 Fahrern.
+  - **Die Idee ist gut und gehoert geprueft:** wer an einem Spot faehrt, kennt seinen Namen besser
+    als jede Ortsdatenbank. Offene Fragen dabei: WER darf umbenennen (der erste? die Mehrheit? der
+    „Mayor"?), was passiert bei Streit, und wie verhindert man Unfug — ein Spot-Name ist oeffentlich
+    und steht unter den Aufnahmen aller anderen. Es gibt bereits `spots.name` + `name_source`, ein
+    Override ist also technisch nur ein Schreibweg plus Rechtefrage.
+  - **Zwischenloesung, Ansage Jan (12.09.):** von Hand aendern. Ihm geantwortet (DM 1675) und um
+    die genaue Schreibweise gebeten (Barcelona Forum / Barcelona Fòrum / Parc del Fòrum) — und
+    darum, die anderen vier zu fragen, bevor der Name fuer alle wechselt. **Sobald er antwortet,
+    aendern.**
+  - **Nebenbei aufgefallen, noch offen:** am 28.08. hat er im Spot-Chat gefragt „Could you please
+    tag me as the Mayor of this spot?" — darauf hat nie jemand geantwortet.
+
 - **📥 12.09. (James, u17, `dm:17-230` #1498) — Ø-Geschwindigkeit auf der Teilen-Card.**
   Wortlaut: „Possible to have the average speed when sharing ? Thanks". Die Card bietet acht
   Werte (Foiling, Laeufe, Pumps, Top-Speed, Foil-Zeit, Laengster, Strecke/Pump, Ø Pumps/min) —
