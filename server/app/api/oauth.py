@@ -180,6 +180,13 @@ def _versteckt(provider: str) -> bool:
     return os.environ.get(f"OAUTH_{provider.upper()}_HIDDEN", "").strip() in ("1", "true", "yes")
 
 
+def _hinweis(provider: str) -> str:
+    """Zusatz am Knopf-Text, aus `OAUTH_<P>_NOTE`. Fuer befristete Zustaende gedacht — etwa einen
+    Anbieter, der zwar sichtbar sein soll (Aufnahme fuers App-Review), aber noch nicht fuer alle
+    funktioniert. Leer = kein Zusatz. Kein Rebuild noetig, die Login-Seite zeigt `label` an."""
+    return os.environ.get(f"OAUTH_{provider.upper()}_NOTE", "").strip()
+
+
 @router.get("/providers")
 def providers() -> list[dict]:
     """Liste der aktivierten Provider (für die Login-Buttons)."""
@@ -187,7 +194,13 @@ def providers() -> list[dict]:
     for p, cfg in PROVIDERS.items():
         creds = _creds(p)
         if creds.get("client_id") and creds.get("client_secret") and not _versteckt(p):
-            out.append({"id": p, "label": cfg["label"]})
+            eintrag = {"id": p, "label": cfg["label"]}
+            # Hinweis als EIGENES Feld, nicht an den Namen gehaengt: die Login-Seite setzt ihn
+            # als Zeile ueber den Knopf, damit „Weiter mit Facebook" sauber lesbar bleibt.
+            zusatz = _hinweis(p)
+            if zusatz:
+                eintrag["note"] = zusatz
+            out.append(eintrag)
     return out
 
 

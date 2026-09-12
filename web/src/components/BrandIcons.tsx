@@ -19,9 +19,21 @@ export const AppleIcon = ({ className = "h-4 w-4" }: P) => (
   </svg>
 );
 
+// Facebook-"f" in der Markenfarbe (#1877F2) — das offizielle Zeichen aus den Meta-Brand-Resources.
+// Wie beim Google-"G" farbig und nicht `currentColor`: die Marke ist Teil des Logos, und Meta
+// verlangt fuer „Continue with Facebook" entweder das blaue Zeichen oder eine vollflaechig blaue
+// Schaltflaeche. Unsere Knoepfe sind einheitlich neutral, also das farbige Zeichen darauf.
+export const FacebookIcon = ({ className = "h-4 w-4" }: P) => (
+  <svg className={className} viewBox="0 0 36 36" aria-hidden="true">
+    <path fill="#1877F2" d="M36 18C36 8.06 27.94 0 18 0S0 8.06 0 18c0 8.98 6.58 16.43 15.19 17.78V23.2h-4.57V18h4.57v-3.97c0-4.51 2.69-7 6.8-7 1.97 0 4.03.35 4.03.35v4.43h-2.27c-2.24 0-2.94 1.39-2.94 2.81V18h5l-.8 5.2h-4.2v12.58C29.42 34.43 36 26.98 36 18z"/>
+    <path fill="#fff" d="M25.01 23.2l.8-5.2h-5v-3.38c0-1.42.7-2.81 2.94-2.81h2.27V7.38s-2.06-.35-4.03-.35c-4.11 0-6.8 2.49-6.8 7V18h-4.57v5.2h4.57v12.58a18.2 18.2 0 0 0 5.62 0V23.2h4.2z"/>
+  </svg>
+);
+
 export const PROVIDER_ICONS: Record<string, (p: P) => JSX.Element> = {
   google: GoogleIcon,
   apple: AppleIcon,
+  facebook: FacebookIcon,
 };
 
 // Marken-Zeichen der Recorder-Plattformen und Konto-Verknuepfungen, fuer die Auswahl-Kacheln im

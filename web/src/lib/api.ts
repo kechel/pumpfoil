@@ -1074,7 +1074,8 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ email, password }),
     }),
-  oauthProviders: () => req<{ id: string; label: string }[]>("/api/auth/oauth/providers"),
+  /** `note` = befristeter Hinweis ueber dem Knopf (Server: OAUTH_<P>_NOTE), sonst nicht gesetzt. */
+  oauthProviders: () => req<{ id: string; label: string; note?: string }[]>("/api/auth/oauth/providers"),
   forgotPassword: (email: string) =>
     req<{ ok: boolean }>("/api/auth/forgot-password", { method: "POST", body: JSON.stringify({ email }) }),
   resetPassword: (token: string, new_password: string) =>
