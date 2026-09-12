@@ -12,6 +12,7 @@ from .. import models
 from .appmeta import _APP_META
 from ..config import get_settings
 from ..db import get_db
+from ..naming import geraete_label
 from ..ratelimit import rate_limit
 from ..schemas import (
     DeviceTokenOut,
@@ -166,6 +167,13 @@ def device_config(
                 # unbekannter Wert nicht als Modellname durchrutscht.
                 device.label = pn[:120]
         _hide_replaced_siblings(db, device)
+    # Gattungs-Label auf die GEMELDETE Plattform ziehen. Greift dort, wo es keine Part-Number gibt
+    # (Apple, Wear): das Label kommt vom pairenden Client und war bei Apple fest "Garmin".
+    # Ein echter Modellname bleibt unberuehrt — `geraete_label` ersetzt nur eine Gattung.
+    if p is not None and p != "":
+        neu_label = geraete_label(device.label, device.platform)
+        if neu_label != device.label:
+            device.label = neu_label; dirty = True
     # Canary-Meldung der Uhr: die letzte Aufnahme mit dynamischem Layout ist nicht sauber
     # beendet worden. Zählen (nicht überschreiben) — daraus lernt der Modell-Kill-Switch.
     # Zaehler ATOMAR in SQL hochsetzen, nicht in Python. Mit 4 uvicorn-Workern gehen sonst
@@ -556,7 +564,8 @@ def list_devices(
             # Wie viele Sessions haengen dran? Entscheidet, ob die Oberflaeche „entfernen" anbieten
             # darf (0 = fehlgeschlagener Pairing-Versuch, s. /forget) oder nur „widerrufen".
             "sessions": int(sess_n.get(d.id, 0)),
-            "label": d.label,
+            # Gattungs-Label ("Garmin") durch die gemeldete Plattform ersetzen — s. naming.geraete_label.
+            "label": geraete_label(d.label, d.platform),
             "created_at": d.created_at.isoformat() if d.created_at else None,
             "last_seen_at": d.last_seen_at.isoformat() if d.last_seen_at else None,
             "revoked_at": d.revoked_at.isoformat() if d.revoked_at else None,

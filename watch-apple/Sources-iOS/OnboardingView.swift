@@ -361,7 +361,8 @@ struct OnboardingView: View {
 
     private func claim() async {
         do {
-            try await Api.pairClaim(code: code.trimmingCharacters(in: .whitespaces).uppercased())
+            try await Api.pairClaim(code: code.trimmingCharacters(in: .whitespaces).uppercased(),
+                                    label: Api.markeLabel(wahl))
             code = ""
             geraete = ((try? await Api.myDevices()) ?? []).filter { $0.revoked_at == nil }
             claimMeldung = (true, t("onb.x.claimOk"))

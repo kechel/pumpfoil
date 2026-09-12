@@ -272,10 +272,25 @@ enum Api {
 
     // Garmin Reverse-Pairing: der auf der Uhr angezeigte Code wird hier eingelöst.
     struct ClaimResponse: Decodable { let ok: Bool }
-    static func pairClaim(code: String) async throws {
+    /// `label` = die Marke, die der Nutzer im Assistenten gewaehlt hat. Stand hier bis 11.09.2026
+    /// fest auf "Garmin" — dadurch trugen 20 Apple Watches, 5 Amazfit und eine Wear-Uhr den Namen
+    /// "Garmin" in der Geraeteliste und unter jeder ihrer Aufnahmen im Feed. Der Server korrigiert
+    /// das seit 12.09. anhand der vom Geraet gemeldeten Plattform (`naming.geraete_label`); hier
+    /// steht die Wurzel, damit das Label von vornherein stimmt.
+    static func pairClaim(code: String, label: String = "Garmin") async throws {
         let _: ClaimResponse = try await request(
             "/api/devices/pair-claim", method: "POST",
-            body: ["code": code.trimmingCharacters(in: .whitespaces).uppercased(), "label": "Garmin"], auth: true)
+            body: ["code": code.trimmingCharacters(in: .whitespaces).uppercased(), "label": label], auth: true)
+    }
+
+    /// Anzeigename zur im Assistenten gewaehlten Marke (gleiche Tabelle wie server-seitig).
+    static func markeLabel(_ wahl: String?) -> String {
+        switch wahl {
+        case "apple": return "Apple Watch"
+        case "wear": return "Wear OS"
+        case "amazfit": return "Amazfit"
+        default: return "Garmin"
+        }
     }
 
     // Garmin Forward-Pairing: Code erzeugen -> in Garmin-Connect-App eintragen.

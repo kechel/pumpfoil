@@ -21,7 +21,7 @@ from ..analysis import EXCLUDE_MARGIN_MS, dump_excluded_windows, excluded_window
 from ..db import get_db
 from ..fitimport import parse_fit_bytes
 from ..clockmap import gesamt_pause_ms, pausen as _pausen, segmente_mit_uhrzeit
-from ..naming import owner_label
+from ..naming import geraete_label, owner_label
 from ..setup_snapshot import standard_setup
 from ..ml.features import bandpass_fft, magnitude_g
 from ..schemas import (
@@ -770,7 +770,8 @@ def list_sessions(
     # Uhr-/Geräte-Bezeichnung je Session im Batch (kein N+1); nur erster Teil vor "/".
     dids = {s.device_id for s in rows if s.device_id}
     if dids:
-        dmap = dict(db.query(models.DeviceToken.id, models.DeviceToken.label)
+        dmap = dict((i, geraete_label(l, pl)) for i, l, pl in
+                    db.query(models.DeviceToken.id, models.DeviceToken.label, models.DeviceToken.platform)
                     .filter(models.DeviceToken.id.in_(dids)).all())
         for o, s in zip(outs, rows):
             lbl = dmap.get(s.device_id) if s.device_id else None
@@ -887,7 +888,8 @@ def list_in_progress(
         .scalar()
     )
     dids = {s.device_id for s in rows if s.device_id}
-    dmap = dict(db.query(models.DeviceToken.id, models.DeviceToken.label)
+    dmap = dict((i, geraete_label(l, pl)) for i, l, pl in
+                db.query(models.DeviceToken.id, models.DeviceToken.label, models.DeviceToken.platform)
                 .filter(models.DeviceToken.id.in_(dids)).all()) if dids else {}
     out = []
     for s in rows:
