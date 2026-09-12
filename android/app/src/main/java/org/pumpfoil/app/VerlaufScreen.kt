@@ -34,6 +34,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -41,6 +42,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -272,6 +274,11 @@ private fun MetricChartCard(data: List<Pair<Long, HistoryPoint>>, metric: HMetri
 private fun HrProgressCard() {
     var daten by remember { mutableStateOf<HrProgress?>(null) }
     var geladen by remember { mutableStateOf(false) }
+    // Absoluter Puls oder ANSTIEG gegenueber dem Puls zu Beginn desselben Laufs. Der Server
+    // liefert den Anstieg als `d<marke>` neben `hr<marke>` mit; fehlt er (kein Lauf hatte einen
+    // Start-Puls), bleibt die Umschaltung fuer diese Marke leer. Gleiche Umschaltung wie in der
+    // PWA, dort gemerkt in localStorage "hrRise" — hier je Sitzung, das reicht fuer einen Blick.
+    var anstieg by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         daten = try { Api.hrProgress() } catch (_: Exception) { null }
         geladen = true
@@ -280,18 +287,19 @@ private fun HrProgressCard() {
     if (!geladen || d == null || d.series.isEmpty()) return
 
     // Je Marke die Punkte einsammeln; Marken ohne einen einzigen Wert fallen weg.
-    val proMarke = remember(d) {
+    val proMarke = remember(d, anstieg) {
         d.marks.mapNotNull { m ->
             val pts = d.series.mapNotNull { s ->
                 val t = s["started_at"]?.jsonPrimitive?.contentOrNull?.let { epochMsIso(it) }
-                val v = s["hr$m"]?.jsonPrimitive?.doubleOrNull
-                if (t != null && v != null && v > 0) Pt(t, v) else null
+                val v = s[if (anstieg) "d$m" else "hr$m"]?.jsonPrimitive?.doubleOrNull
+                // "> 0" gilt NUR fuer den absoluten Puls, wo 0 kein Messwert ist. Ein Anstieg
+                // von 0 oder darunter ist ein echter Wert (Puls blieb gleich oder fiel).
+                if (t != null && v != null && (anstieg || v > 0)) Pt(t, v) else null
             }.sortedBy { it.t }
             val laeufe = d.series.sumOf { s -> s["n$m"]?.jsonPrimitive?.intOrNull ?: 0 }
             if (pts.size >= 2) Triple(m, pts, laeufe) else null
         }
     }
-    if (proMarke.isEmpty()) return
 
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp)) {
@@ -299,22 +307,53 @@ private fun HrProgressCard() {
             Text(I18n.t("hr.progressHint"), style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 2.dp, bottom = 8.dp))
+            // Zwei Segmente im hauseigenen Muster (wie AccelSeg in CommunityScreen) statt
+            // SegmentedButton: der ist in Material3 noch experimentell und bricht den Build.
+            Row(verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(bottom = 8.dp)) {
+                @Composable
+                fun seg(aktiv: Boolean, text: String, onClick: () -> Unit) {
+                    Surface(onClick = onClick, shape = MaterialTheme.shapes.small,
+                        color = if (aktiv) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.surfaceVariant) {
+                        Text(text, style = MaterialTheme.typography.labelMedium, maxLines = 1,
+                            color = if (aktiv) MaterialTheme.colorScheme.onPrimary
+                                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
+                    }
+                }
+                seg(!anstieg, I18n.t("hr.viewPeak")) { anstieg = false }
+                Spacer(Modifier.width(4.dp))
+                seg(anstieg, I18n.t("hr.viewRise")) { anstieg = true }
+            }
+            if (anstieg) {
+                Text(I18n.t("hr.viewRiseHint"), style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 8.dp))
+            }
+            if (proMarke.isEmpty()) {
+                // Kein Lauf mit Start-Puls -> in dieser Ansicht gibt es nichts zu zeigen.
+                Text(I18n.t("hr.pickNone"), style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             proMarke.forEach { (marke, pts, laeufe) ->
                 val bereich = Pair(pts.first().t, pts.last().t)
                 // y-Achse NICHT bei 0: der interessante Bereich liegt zwischen ~110 und ~175 bpm.
-                val vmin = (pts.minOf { it.v } - 8).coerceAtLeast(0.0)
+                // Im Anstiegs-Modus darf sie unter 0 gehen — ein gefallener Puls ist ein Ergebnis.
+                val vmin = if (anstieg) pts.minOf { it.v } - 4
+                           else (pts.minOf { it.v } - 8).coerceAtLeast(0.0)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(
                         if (marke < 60) I18n.t("hr.afterSeconds").replace("{sec}", "$marke")
                         else I18n.t("hr.afterMinutes").replace("{min}", "${marke / 60}"),
                         style = MaterialTheme.typography.labelLarge)
-                    Text("${pts.last().v.roundToInt()} bpm", style = MaterialTheme.typography.labelLarge,
+                    Text(bpmText(pts.last().v, anstieg), style = MaterialTheme.typography.labelLarge,
                         color = HR_FARBE)
                 }
                 Text(
                     I18n.t("hr.fromRuns").replace("{runs}", "$laeufe")
                         .replace("{sessions}", "${pts.size}") +
-                        "  ${pts.first().v.roundToInt()} → ${pts.last().v.roundToInt()} bpm",
+                        "  ${bpmText(pts.first().v, anstieg)} → ${bpmText(pts.last().v, anstieg)}",
                     style = MaterialTheme.typography.bodyMedium)
                 LineChart(pts, HR_FARBE, bereich,
                     Modifier.fillMaxWidth().height(110.dp).padding(top = 4.dp, bottom = 10.dp),
@@ -324,6 +363,13 @@ private fun HrProgressCard() {
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
+}
+
+/** Pulswert beschriften. Im Anstiegs-Modus MIT Vorzeichen: "+18 bpm" liest sich als Zunahme,
+ *  "18 bpm" waere von einem absoluten Wert nicht zu unterscheiden. */
+private fun bpmText(v: Double, anstieg: Boolean): String {
+    val n = v.roundToInt()
+    return if (anstieg && n > 0) "+$n bpm" else "$n bpm"
 }
 
 /** Rose wie in der PWA (#f43f5e) — Puls hat dort durchgehend diese Farbe. */
