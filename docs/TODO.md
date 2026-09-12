@@ -899,8 +899,26 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
       `<Basis> <2-9>`. „Barcelona Forum" passt nicht darauf. `name_source='manual'` wird sonst
       NIRGENDS als Schutz geprueft — wer dort einmal einen Automatismus ergaenzt, muss daran denken.
     - Clement ist informiert (DM 1675 + 1676) und kann die Schreibweise noch aendern lassen.
-  - **Nebenbei aufgefallen, noch offen:** am 28.08. hat er im Spot-Chat gefragt „Could you please
-    tag me as the Mayor of this spot?" — darauf hat nie jemand geantwortet.
+  - **Daraus entstanden: „Mayor" eines Spots (Idee, NICHT gebaut).** Clement hatte am 28.08. im
+    Spot-Chat gefragt „Could you please tag me as the Mayor of this spot?". Gemeint ist der
+    Foursquare/Swarm-Titel: wer die meisten Check-ins an einem Ort hat, traegt ihn, bis ihn jemand
+    ueberholt — ein Spass-Abzeichen fuer den Stammgast, KEINE Rechte. **So etwas gibt es bei uns
+    nirgends** (ganzer Baum durchsucht: Server, Web, beide Apps, Doku). Das Naechstliegende sind
+    die Spot-Rekorde, die aber eine einzelne Bestleistung auszeichnen, nicht die Treue.
+    - **Warum man es NICHT auf Zuruf vergeben darf** — an Spot 50 nachgezaehlt:
+      | Fahrer | Aufnahmen | Foiling | dabei seit |
+      |---|---|---|---|
+      | Manu (u119) | **32** | 44,7 km | 24.07. |
+      | Joan (u457) | 11 | 1,8 km | 11.09. |
+      | Clement (u31) | 8 | 17,2 km | **12.07.** |
+      | Thomas A (u91) | 5 | 3,3 km | 05.09. |
+      | Tomás (u106) | 3 | 0,6 km | 08.09. |
+      Nach der Foursquare-Logik waere es **Manu**, nicht der, der zuerst gefragt hat. Und fuenf
+      Leute lesen dort mit. Dieselbe „wer darf das"-Falle wie beim Spot-Namen, nur sichtbarer.
+    - **Falls gebaut:** muss aus den Daten fallen, und die eigentliche Frage ist woraus — Anzahl
+      Aufnahmen (Manu), gefoilte Kilometer (Manu) oder Dauer der Zugehoerigkeit (Clement). Passt
+      inhaltlich zum Skalda-Brainstorm ueber Community-Stats und Abzeichen.
+    - **Jan hat ihm am 12.09. selbst im Spot-Chat geantwortet** — hier ist nichts offen.
 
 - **📥 12.09. (James, u17, `dm:17-230` #1498) — Ø-Geschwindigkeit auf der Teilen-Card.**
   Wortlaut: „Possible to have the average speed when sharing ? Thanks". Die Card bietet acht
