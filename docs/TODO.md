@@ -841,6 +841,32 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **💡 12.09. (Jan) — Konten zusammenfuehren.** Entstanden aus der Facebook-Anmeldung.
+  **Entscheidung dazu steht schon fest** (Jan, 12.09.): wer seine E-Mail bei Facebook NICHT
+  freigibt, bekommt trotzdem ein Konto. Das geht, weil die Zuordnung nicht an der Adresse haengt,
+  sondern an der **App-scoped User ID** von Facebook — die ist fuer unsere App eindeutig und
+  dauerhaft stabil, steht in `oauth_identities.subject`, und `_login_or_create` sucht ZUERST
+  danach. Wer ohne E-Mail kommt, landet beim naechsten Mal wieder in seinem Konto.
+  - **Folge 1 (der Anlass):** so ein Konto hat die synthetische Adresse
+    `facebook_<id>@oauth.local` und damit kein „Passwort vergessen". In den nativen Apps, die nur
+    E-Mail + Passwort und den eigenen Anbieter kennen, kaeme die Person nie hinein.
+  - **Folge 2:** wer schon per E-Mail registriert ist und spaeter Facebook nimmt, bekommt ein
+    ZWEITES Konto — die Zusammenfuehrung ueber die Adresse greift nur, wenn eine kommt.
+  - **Jans Idee:** im Profil ein „zweites Konto uebernehmen": angemeldet per Facebook, dort
+    E-Mail + Passwort des anderen Kontos eingeben, damit sich der Mensch fuer das zweite Konto
+    ausweist — danach wandert alles zusammen. Deckt beide Folgen ab und ist ehrlicher als jede
+    automatische Heuristik.
+  - **Was daran nicht trivial ist** (fuer den, der es baut): Aufnahmen, Rekorde, Spot-Notizen,
+    Fotos, Chat-Beitraege, Likes und Geraete-Tokens muessen mitwandern; der Anzeigename kollidiert
+    (beide existieren ja); die Rekord-Schnappschuesse und Bestenlisten muessen danach neu
+    gerechnet werden; und das Ganze ist **nicht umkehrbar** — also mit derselben Sorgfalt wie die
+    DSGVO-Loeschung, inklusive Rueckfrage und Trockenlauf.
+  - **NICHT JETZT BAUEN** (Jan ausdruecklich). Erst wenn es einen echten Fall gibt.
+  - Verwandt: der anbieterunabhaengige **Browser-Login in den Apps** (System-Browser statt
+    Meta-SDK, also ohne Tracking) wuerde Folge 1 ebenfalls loesen. Gemessen 12.09.: von 301 reinen
+    Google-/Apple-Konten ist genau **1** in der fremden Geraete-Welt unterwegs — fuer sich genommen
+    also keine Rechtfertigung. Mit den Facebook-Konten ohne E-Mail koennte sich das aendern.
+
 - **🟢 12.09. — Apple Watches (und Amazfit) wurden als „Garmin" angezeigt. SERVERSEITIG
   BEHOBEN, Wurzel liegt beim naechsten App-Release.**
   Gefunden beim Durchsehen der Neuanmeldungen: `Api.pairClaim` schickt in der iOS- UND der
