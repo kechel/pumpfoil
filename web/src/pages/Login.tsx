@@ -23,14 +23,20 @@ import { ThemeToggle } from "../components/ThemeToggle";
  *
  * Nicht erfuellbar und bewusst hingenommen: die Hausschriften (Roboto bei Google, SF Pro bei
  * Apple). Wir setzen die Systemschrift wie auf der ganzen Seite.
+ *
+ * HIER KEINE `slate`-KLASSEN VERWENDEN, auch nicht fuers Ueberfahren. Der Hellmodus dreht die
+ * slate-Skala ueber CSS-Variablen um (index.css) — `hover:bg-slate-50` wurde im Hellmodus also
+ * zu einem DUNKLEN Grund unter dunkler Schrift, und der Knopf war beim Ueberfahren nicht mehr zu
+ * lesen (Jans Befund, 12.09.2026). Diese Knoepfe tragen feste Markenfarben und duerfen an der
+ * Umkehr gar nicht teilnehmen: jeder Zustand als eigener Hexwert.
  */
 const PROVIDER_STYLE: Record<string, string> = {
   google:
-    "border-[#747775] bg-white text-[#1f1f1f] hover:bg-slate-50 " +
+    "border-[#747775] bg-white text-[#1f1f1f] hover:bg-[#f8f9fa] " +
     "dark:border-[#8e918f] dark:bg-[#131314] dark:text-[#e3e3e3] dark:hover:bg-[#1e1f20]",
   apple:
-    "border-black bg-black text-white hover:bg-slate-900 " +
-    "dark:border-white dark:bg-white dark:text-black dark:hover:bg-slate-100",
+    "border-black bg-black text-white hover:bg-[#1a1a1a] " +
+    "dark:border-white dark:bg-white dark:text-black dark:hover:bg-[#f0f0f0]",
   facebook:
     "border-[#1877f2] bg-[#1877f2] text-white hover:bg-[#166fe0] " +
     "dark:border-[#1877f2] dark:bg-[#1877f2] dark:hover:bg-[#166fe0]",
