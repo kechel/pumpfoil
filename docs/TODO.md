@@ -842,6 +842,33 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 12.09. — Apple Watches (und Amazfit) wurden als „Garmin" angezeigt. SERVERSEITIG
+  BEHOBEN, Wurzel liegt beim naechsten App-Release.**
+  Gefunden beim Durchsehen der Neuanmeldungen: `Api.pairClaim` schickt in der iOS- UND der
+  Android-App fest `"label": "Garmin"` mit (`Sources-iOS/Api.swift`, `app/.../Api.kt`) — beide
+  Einrichtungs-Assistenten rufen es auf, egal welche Marke der Nutzer gewaehlt hat. Der Server
+  ersetzt ein Gattungs-Label sonst durch den Modellnamen aus der PART-NUMBER, die aber nur
+  Connect IQ liefert. Also blieb bei Apple/Wear „Garmin" stehen.
+  - **Sichtbar war es an drei Stellen**, eine davon oeffentlich: unter jeder Aufnahme im
+    Community-Feed (`SessionRow.tsx`), in Konto → Geraete (`Account.tsx`) und im Uhr-Schritt des
+    Assistenten (`Onboarding.tsx`). Betroffen: **26 Tokens** (20 Apple, 5 Amazfit, 1 Wear) und
+    **17 Aufnahmen von 8 Nutzern**, aelteste vom 23.07., ueber die iOS-Versionen 1.1.15 bis 1.1.31.
+  - **Fix (live seit 12.09.):** `naming.geraete_label(label, platform)` korrigiert beim LESEN —
+    die vom Geraet GEMELDETE Plattform ist die verlaessliche Quelle (nur die Garmin-App schickt
+    kein `p=`). Angewendet in `devices` (Liste + Check-in), `sessions`, `community`, `admin`.
+    Ein echter Modellname wird nie angefasst. Keine Massen-Aenderung in der DB noetig: die alten
+    Zeilen sehen sofort richtig aus, und beim naechsten Check-in zieht das gespeicherte Label nach.
+    Regressionstest `tests/test_geraete_label.py` (5 Faelle).
+  - **Nebenwirkung, bewusst in Kauf genommen:** `/mint` entdoppelt gleichnamige, nie benutzte
+    Companion-Tokens ueber `label ==`. Ein Apple-Token, das jetzt „Apple Watch" statt „Garmin"
+    heisst, faellt damit in dieselbe Aufraeum-Regel wie alle anderen Apple-Tokens — gewollt,
+    Tokens mit Sessions bleiben ohnehin unangetastet.
+  - **OFFEN — beim naechsten Release mitnehmen:** die Wurzel ist in beiden Apps schon gepatcht
+    (`pairClaim(code:label:)` + `markeLabel(wahl)`, Android `:app:compileDebugKotlin` gruen,
+    iOS `swiftc -parse` sauber + Member-Abgleich). Sie geht mit **iOS 1.1.33** und der
+    Android-Version nach 1.1.28 raus. **Nicht gebumpt** — 1.1.32 bzw. 1.1.28/1.2.28 liegen in
+    der Pruefung.
+
 - **🟢 10.09. — Umklassifizieren loest jetzt eine Neuanalyse aus (beide Richtungen).**
   Loch, das zwei Nutzer-Meldungen erklaerte: `PUT /{id}/classification` schrieb nur die Felder.
   Die Analyse haengt aber an ihnen — **hin** zu Pumpfoil hebt die Schranke gegen fremde

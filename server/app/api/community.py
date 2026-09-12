@@ -24,7 +24,7 @@ from .. import models
 from ..accounts import is_new_account
 from ..db import get_db
 from ..media import thumb_url as _thumb
-from ..naming import owner_label, owner_label_sql
+from ..naming import geraete_label, owner_label, owner_label_sql
 from ..tzlookup import tz_name, tz_of
 from ..videos import client_wants_all_videos, filter_videos
 from ..weather import spot_water_temp, spot_weather
@@ -1834,7 +1834,9 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
             meine = {sid for (sid,) in db.query(models.SessionLike.session_id)
                      .filter(models.SessionLike.session_id.in_(ids),
                              models.SessionLike.user_id == user.id).all()}
-            geraete = dict(db.query(models.DeviceToken.id, models.DeviceToken.label)
+            geraete = dict((i, geraete_label(l, pl)) for i, l, pl in
+                           db.query(models.DeviceToken.id, models.DeviceToken.label,
+                                    models.DeviceToken.platform)
                            .filter(models.DeviceToken.id.in_({r.device_id for r in rows if r.device_id}))
                            .all()) if any(r.device_id for r in rows) else {}
             foils = {f.id: f for f in db.query(models.Foil)
@@ -2013,7 +2015,8 @@ def _attach_social(db: Session, user: models.User, briefs: list[dict]) -> list[d
 
     # Uhr-/Geräte-Bezeichnung im Batch (nur erster Teil vor "/").
     dids = {b.get("device_id") for b in briefs if b.get("device_id")}
-    dmap = dict(db.query(models.DeviceToken.id, models.DeviceToken.label)
+    dmap = dict((i, geraete_label(l, pl)) for i, l, pl in
+                db.query(models.DeviceToken.id, models.DeviceToken.label, models.DeviceToken.platform)
                 .filter(models.DeviceToken.id.in_(dids)).all()) if dids else {}
     for b in briefs:
         sid = b["session_id"]

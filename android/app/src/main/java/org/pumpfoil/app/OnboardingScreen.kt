@@ -469,7 +469,7 @@ private fun UhrKarte(ctx: Context, geraete: List<PairedDevice>, setGeraete: (Lis
                         busy = true
                         scope.launch {
                             meldung = try {
-                                Api.pairClaim(code.trim().uppercase())
+                                Api.pairClaim(code.trim().uppercase(), Api.markeLabel(wahl))
                                 code = ""
                                 setGeraete(try { Api.myDevices().filter { it.revokedAt == null } } catch (_: Exception) { geraete })
                                 true to I18n.t("onb.x.claimOk")

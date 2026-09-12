@@ -1154,9 +1154,21 @@ object Api {
     }
 
     // Garmin Reverse-Pairing: der auf der Uhr angezeigte Code wird hier eingelöst.
-    suspend fun pairClaim(code: String): Unit = withContext(Dispatchers.IO) {
-        val body = buildJsonObject { put("code", code.trim().uppercase()); put("label", "Garmin") }.toString()
+    // `label` = die im Assistenten gewaehlte Marke. Stand bis 11.09.2026 fest auf "Garmin" —
+    // dadurch trugen fremde Uhren den Namen "Garmin" in der Geraeteliste und unter jeder ihrer
+    // Aufnahmen im Feed (dieselbe Zeile gab es in der iOS-App). Der Server korrigiert das seit
+    // dem 12.09. anhand der gemeldeten Plattform (naming.geraete_label); hier steht die Wurzel.
+    suspend fun pairClaim(code: String, label: String = "Garmin"): Unit = withContext(Dispatchers.IO) {
+        val body = buildJsonObject { put("code", code.trim().uppercase()); put("label", label) }.toString()
         http("POST", "/api/devices/pair-claim", body, auth = true)
+    }
+
+    // Anzeigename zur gewaehlten Marke (gleiche Tabelle wie server-seitig).
+    fun markeLabel(wahl: String?): String = when (wahl) {
+        "apple" -> "Apple Watch"
+        "wear" -> "Wear OS"
+        "amazfit" -> "Amazfit"
+        else -> "Garmin"
     }
 
     // Garmin Forward-Pairing: Code erzeugen -> in die Garmin-Connect-App-Einstellungen eintragen.

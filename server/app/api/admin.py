@@ -21,6 +21,7 @@ from sqlalchemy.orm import Session
 from .. import models, storage
 from ..accounts import NEW_ACCOUNT_AGE_S, is_new_account
 from ..db import get_db
+from ..naming import geraete_label
 from ..media import delete_media
 from ..security import hash_password
 from .deps import current_admin
@@ -274,7 +275,7 @@ def _user_watches(db: Session, uid: int) -> list[dict]:
         out.append({
             "platform": d.platform,
             # Uhr-Label wie beim Badge kürzen (erster Teil vor "/"; lange partNumber-Gruppen).
-            "name": model or (d.label.split("/")[0].strip() if d.label else None)
+            "name": model or ((geraete_label(d.label, d.platform) or "").split("/")[0].strip() or None)
                     or _PLATFORM_NAME.get(d.platform or "", d.platform or "?"),
             "version": d.app_version,
             "last_seen_at": d.last_seen_at.isoformat() if d.last_seen_at else None,
