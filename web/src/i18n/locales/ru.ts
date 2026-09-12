@@ -1782,6 +1782,15 @@ const ru: Record<string, string> = {
   "foiler.basisGps": "Только GPS",
   "foiler.basisAccelTip": "Рекорды среди записей с датчиком движения",
   "foiler.basisGpsTip": "Рекорды среди записей без датчика движения — часы в режиме GPS и импорт из аккаунта",
+  // Spot-Namen aendern lassen (Vorschlag, kein Selbstbedienen) — 12.09.2026
+  "spotRename.cta": "Предложить название",
+  "spotRename.title": "Предложить другое название спота",
+  "spotRename.hint": "Названия спотов берутся автоматически от ближайшего населённого пункта, поэтому часто не совпадают с тем, как его называют на месте. Пришлите своё предложение — мы посмотрим и поменяем название вручную. Оно действует для всех, кто катается здесь.",
+  "spotRename.current": "Текущее название",
+  "spotRename.proposed": "Ваше предложение",
+  "spotRename.reason": "Почему? (необязательно)",
+  "spotRename.send": "Отправить предложение",
+  "spotRename.sent": "Спасибо! Предложение у нас. Мы смотрим каждое отдельно.",
 };
 
 export default ru;

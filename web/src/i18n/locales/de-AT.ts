@@ -1673,6 +1673,15 @@ const deAT: Record<string, string> = {
   "foiler.basisGps": "Nur GPS",
   "foiler.basisAccelTip": "Rekorde unter allen Aufnahmen mit Bewegungssensor",
   "foiler.basisGpsTip": "Rekorde unter den Aufnahmen ohne Bewegungssensor — Uhren im GPS-Modus und Konto-Importe",
+  // Spot-Namen aendern lassen (Vorschlag, kein Selbstbedienen) — 12.09.2026
+  "spotRename.cta": "Namen vorschlagen",
+  "spotRename.title": "Anderen Spot-Namen vorschlagen",
+  "spotRename.hint": "Spot-Namen kommen automatisch vom nächstgelegenen Ort und treffen oft nicht das, was die Leut vor Ort sagen. Schick uns deinen Vorschlag — wir schauen ihn uns an und ändern den Namen dann per Hand. Er gilt für alle, die da fahren.",
+  "spotRename.current": "Jetziger Name",
+  "spotRename.proposed": "Dein Vorschlag",
+  "spotRename.reason": "Warum? (freiwillig)",
+  "spotRename.send": "Vorschlag schicken",
+  "spotRename.sent": "Danke! Dein Vorschlag ist bei uns. Wir schauen uns jeden einzeln an.",
 };
 
 export default deAT

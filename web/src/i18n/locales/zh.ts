@@ -1779,6 +1779,15 @@ const zh: Record<string, string> = {
   "foiler.basisGps": "仅 GPS",
   "foiler.basisAccelTip": "在带运动传感器的记录中的成绩",
   "foiler.basisGpsTip": "在没有运动传感器的记录中的成绩 — GPS 模式的手表和账号导入",
+  // Spot-Namen aendern lassen (Vorschlag, kein Selbstbedienen) — 12.09.2026
+  "spotRename.cta": "建议名称",
+  "spotRename.title": "为该地点建议其他名称",
+  "spotRename.hint": "地点名称是自动取自最近的地名，因此常常与当地人实际的叫法不符。把你的建议发给我们，我们会看过之后手动修改名称。该名称对所有在此下水的人都有效。",
+  "spotRename.current": "当前名称",
+  "spotRename.proposed": "你的建议",
+  "spotRename.reason": "为什么？（可选）",
+  "spotRename.send": "发送建议",
+  "spotRename.sent": "谢谢！我们已收到你的建议，会逐条查看。",
 };
 
 export default zh;

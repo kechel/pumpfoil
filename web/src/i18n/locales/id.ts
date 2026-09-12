@@ -1782,6 +1782,15 @@ const id: Record<string, string> = {
   "foiler.basisGps": "Hanya GPS",
   "foiler.basisAccelTip": "Rekor di antara rekaman dengan sensor gerak",
   "foiler.basisGpsTip": "Rekor di antara rekaman tanpa sensor gerak — jam dalam mode GPS dan impor akun",
+  // Spot-Namen aendern lassen (Vorschlag, kein Selbstbedienen) — 12.09.2026
+  "spotRename.cta": "Usulkan nama",
+  "spotRename.title": "Usulkan nama spot yang lain",
+  "spotRename.hint": "Nama spot diambil otomatis dari tempat terdekat, jadi sering tidak sesuai dengan sebutan orang-orang di sana. Kirim usulanmu — kami lihat dulu, lalu mengganti namanya secara manual. Nama itu berlaku untuk semua yang main di sini.",
+  "spotRename.current": "Nama sekarang",
+  "spotRename.proposed": "Usulanmu",
+  "spotRename.reason": "Kenapa? (opsional)",
+  "spotRename.send": "Kirim usulan",
+  "spotRename.sent": "Terima kasih! Usulanmu sudah sampai. Kami melihat satu per satu.",
 };
 
 export default id;

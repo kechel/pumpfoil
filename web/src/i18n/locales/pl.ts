@@ -1766,6 +1766,15 @@ const pl: Record<string, string> = {
   "foiler.basisGps": "Tylko GPS",
   "foiler.basisAccelTip": "Rekordy wśród nagrań z czujnikiem ruchu",
   "foiler.basisGpsTip": "Rekordy wśród nagrań bez czujnika ruchu — zegarki w trybie GPS i import z konta",
+  // Spot-Namen aendern lassen (Vorschlag, kein Selbstbedienen) — 12.09.2026
+  "spotRename.cta": "Zaproponuj nazwę",
+  "spotRename.title": "Zaproponuj inną nazwę spotu",
+  "spotRename.hint": "Nazwy spotów są brane automatycznie z najbliższej miejscowości, więc często nie oddają tego, jak mówią o nich ludzie na miejscu. Wyślij nam swoją propozycję — przyjrzymy się jej i zmienimy nazwę ręcznie. Obowiązuje wszystkich, którzy tu pływają.",
+  "spotRename.current": "Obecna nazwa",
+  "spotRename.proposed": "Twoja propozycja",
+  "spotRename.reason": "Dlaczego? (opcjonalnie)",
+  "spotRename.send": "Wyślij propozycję",
+  "spotRename.sent": "Dzięki! Twoja propozycja do nas dotarła. Przyglądamy się każdej z osobna.",
 };
 
 export default pl;

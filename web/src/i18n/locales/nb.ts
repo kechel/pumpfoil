@@ -1758,6 +1758,15 @@ const nb: Record<string, string> = {
   "foiler.basisGps": "Bare GPS",
   "foiler.basisAccelTip": "Rekorder blant alle opptak med bevegelsessensor",
   "foiler.basisGpsTip": "Rekorder blant opptak uten bevegelsessensor — klokker i GPS-modus og kontoimport",
+  // Spot-Namen aendern lassen (Vorschlag, kein Selbstbedienen) — 12.09.2026
+  "spotRename.cta": "Foreslå et navn",
+  "spotRename.title": "Foreslå et annet spotnavn",
+  "spotRename.hint": "Spotnavn hentes automatisk fra nærmeste sted, så de treffer ofte ikke det folk faktisk kaller stedet. Send oss forslaget ditt — vi ser på det og endrer navnet for hånd. Det gjelder for alle som kjører her.",
+  "spotRename.current": "Nåværende navn",
+  "spotRename.proposed": "Forslaget ditt",
+  "spotRename.reason": "Hvorfor? (valgfritt)",
+  "spotRename.send": "Send forslag",
+  "spotRename.sent": "Takk! Forslaget ditt er hos oss. Vi ser på hvert enkelt.",
 };
 
 export default nb;
