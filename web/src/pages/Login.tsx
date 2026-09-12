@@ -2,10 +2,43 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api, setToken } from "../lib/api";
 import { Button, Card, ErrorBox } from "../components/ui";
-import { PROVIDER_ICONS } from "../components/BrandIcons";
+import { PROVIDER_ICONS, FacebookGlyphIcon } from "../components/BrandIcons";
 import { useI18n, TFunc } from "../i18n";
 import { LanguageSelect } from "../components/LanguageSelect";
 import { ThemeToggle } from "../components/ThemeToggle";
+
+/**
+ * Knopf-Fassung je Anbieter — jeweils die OFFIZIELLE (Vorgabe Jan, 12.09.2026: „ich mag lieber
+ * immer die perfekte offizielle variante, das ist auch wiedererkennung fuer die nutzer").
+ *
+ * Jeder Anbieter schreibt etwas anderes vor, deshalb sieht die Reihe absichtlich uneinheitlich
+ * aus. Je Modus die vorgesehene Fassung, weil unsere Seite hell UND dunkel kann:
+ *   · Google — hell: weiss mit Rahmen #747775 und Text #1F1F1F; dunkel: #131314 mit Rahmen
+ *     #8E918F und Text #E3E3E3. Das „G" bleibt vierfarbig.
+ *   · Apple — hell: schwarzer Knopf mit weissem Zeichen; dunkel: weisser Knopf mit schwarzem
+ *     Zeichen. Beide Fassungen stehen so in den „Sign in with Apple"-Vorgaben; das Zeichen nimmt
+ *     ueber `currentColor` von selbst die richtige Farbe.
+ *   · Facebook — #1877F2 mit weisser Schrift und weisser Buchstabenform, in beiden Modi.
+ * Der Wortlaut („Weiter mit …") ist bei allen dreien zugelassen.
+ *
+ * Nicht erfuellbar und bewusst hingenommen: die Hausschriften (Roboto bei Google, SF Pro bei
+ * Apple). Wir setzen die Systemschrift wie auf der ganzen Seite.
+ */
+const PROVIDER_STYLE: Record<string, string> = {
+  google:
+    "border-[#747775] bg-white text-[#1f1f1f] hover:bg-slate-50 " +
+    "dark:border-[#8e918f] dark:bg-[#131314] dark:text-[#e3e3e3] dark:hover:bg-[#1e1f20]",
+  apple:
+    "border-black bg-black text-white hover:bg-slate-900 " +
+    "dark:border-white dark:bg-white dark:text-black dark:hover:bg-slate-100",
+  facebook:
+    "border-[#1877f2] bg-[#1877f2] text-white hover:bg-[#166fe0] " +
+    "dark:border-[#1877f2] dark:bg-[#1877f2] dark:hover:bg-[#166fe0]",
+};
+
+// Neutraler Rueckfall fuer Anbieter ohne eigene Vorgabe (Strava, Garmin …).
+const PROVIDER_STYLE_STD =
+  "border-slate-700 bg-slate-800/60 text-slate-100 hover:bg-slate-700";
 
 export default function Login() {
   const { t, lang } = useI18n();
@@ -134,16 +167,17 @@ export default function Login() {
             </div>
             <div className="flex flex-col gap-2">
               {providers.map((p) => {
-                const Icon = PROVIDER_ICONS[p.id];
+                // Auf dem blauen Facebook-Knopf die weisse Buchstabenform, sonst das runde Zeichen.
+                const Icon = p.id === "facebook" ? FacebookGlyphIcon : PROVIDER_ICONS[p.id];
                 return (
-                  // Fragment, damit ein Hinweis ueber SEINEM Knopf steht und nicht am Listenende.
+                  // Eigener Rahmen je Anbieter, damit ein Hinweis ueber SEINEM Knopf steht.
                   <div key={p.id} className="flex flex-col gap-1">
                     {p.note && (
                       <span className="text-center text-xs text-amber-700 dark:text-amber-300">{p.note}</span>
                     )}
                     <a
                       href={`/api/auth/oauth/${p.id}/start?lang=${encodeURIComponent(lang)}`}
-                      className="flex items-center justify-center gap-2.5 rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-2.5 text-sm font-medium text-slate-100 hover:bg-slate-700"
+                      className={`flex items-center justify-center gap-2.5 rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors ${PROVIDER_STYLE[p.id] ?? PROVIDER_STYLE_STD}`}
                     >
                       {Icon && <Icon className="h-5 w-5" />}
                       {t("login.continueWith", { provider: p.label })}

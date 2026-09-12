@@ -30,6 +30,14 @@ export const FacebookIcon = ({ className = "h-4 w-4" }: P) => (
   </svg>
 );
 
+// Dasselbe „f" als reine Buchstabenform in `currentColor` — das ist die Fassung, die Meta AUF
+// dem blauen Knopf zeigt. Das runde Zeichen oben waere dort blau auf blau.
+export const FacebookGlyphIcon = ({ className = "h-4 w-4" }: P) => (
+  <svg className={className} viewBox="0 0 36 36" aria-hidden="true" fill="currentColor">
+    <path d="M22.68 36V22.05h4.71l.89-5.83h-5.6v-3.78c0-1.6.78-3.15 3.29-3.15H28.5V4.33S26.19 4 23.98 4c-4.6 0-7.61 2.79-7.61 7.84v4.38H11.2v5.83h5.17V36h6.31z"/>
+  </svg>
+);
+
 export const PROVIDER_ICONS: Record<string, (p: P) => JSX.Element> = {
   google: GoogleIcon,
   apple: AppleIcon,
