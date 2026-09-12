@@ -22,6 +22,7 @@ import { getLastSession, setLastSessionsSearch } from "../lib/lastSession";
 import { setCompare } from "../lib/compare";
 import { openChatOverlay } from "../components/DmWidget";
 import { ytId, videoPlatform } from "../components/VideoModal";
+import { SpotRenameRequest } from "../components/SpotRenameRequest";
 import { useT } from "../i18n";
 
 const PAGE = 20;
@@ -339,6 +340,13 @@ export default function Sessions() {
           })()}
         </select>
         {spot && <SpotChatToggle spot={spotName} t={t} />}
+        {/* Anderen Spot-Namen VORSCHLAGEN (nicht selbst setzen) — nur bei einem echten Spot mit
+            numerischer id; Namens-Gruppen aus dem Altbestand haben keine Spot-Zeile, die man
+            umbenennen koennte. Begruendung fuers Vorschlagen statt Aendern steht in der
+            Komponente. */}
+        {spot && /^\d+$/.test(spot) && (
+          <SpotRenameRequest spotId={Number(spot)} spotName={spotName} />
+        )}
         {/* Weg zur Import-Seite — in DERSELBEN Zeile wie die Filter, links vom Accel-Umschalter,
             beide zusammen rechtsbuendig (Jan, 07.09.2026). Deshalb traegt der LINK jetzt `ml-auto`
             und der Umschalter nicht mehr: `ml-auto` schiebt alles ab hier nach rechts, die zwei

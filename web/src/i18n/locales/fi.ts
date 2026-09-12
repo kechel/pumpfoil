@@ -1818,6 +1818,15 @@ const fi: Record<string, string> = {
   "foiler.basisGps": "Vain GPS",
   "foiler.basisAccelTip": "Ennätykset liikeanturilla tehdyistä tallenteista",
   "foiler.basisGpsTip": "Ennätykset tallenteista ilman liikeanturia — GPS-tilan kellot ja tilituonnit",
+  // Spot-Namen aendern lassen (Vorschlag, kein Selbstbedienen) — 12.09.2026
+  "spotRename.cta": "Ehdota nimeä",
+  "spotRename.title": "Ehdota spotille toista nimeä",
+  "spotRename.hint": "Spottien nimet otetaan automaattisesti lähimmästä paikasta, joten ne eivät useinkaan vastaa sitä, mitä paikalliset sanovat. Lähetä ehdotuksesi — katsomme sen ja vaihdamme nimen käsin. Se koskee kaikkia, jotka foilaavat täällä.",
+  "spotRename.current": "Nykyinen nimi",
+  "spotRename.proposed": "Ehdotuksesi",
+  "spotRename.reason": "Miksi? (vapaaehtoinen)",
+  "spotRename.send": "Lähetä ehdotus",
+  "spotRename.sent": "Kiitos! Ehdotuksesi on meillä. Katsomme jokaisen erikseen.",
 };
 
 export default fi;

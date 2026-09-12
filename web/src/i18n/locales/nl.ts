@@ -1836,6 +1836,15 @@ const nl: Record<string, string> = {
   "foiler.basisGps": "Alleen GPS",
   "foiler.basisAccelTip": "Records onder alle opnames met bewegingssensor",
   "foiler.basisGpsTip": "Records onder de opnames zonder bewegingssensor — horloges in GPS-modus en accountimports",
+  // Spot-Namen aendern lassen (Vorschlag, kein Selbstbedienen) — 12.09.2026
+  "spotRename.cta": "Naam voorstellen",
+  "spotRename.title": "Een andere spotnaam voorstellen",
+  "spotRename.hint": "Spotnamen komen automatisch van de dichtstbijzijnde plaats, dus ze kloppen vaak niet met wat de mensen ter plekke zeggen. Stuur ons je voorstel — we kijken ernaar en passen de naam met de hand aan. Hij geldt voor iedereen die hier vaart.",
+  "spotRename.current": "Huidige naam",
+  "spotRename.proposed": "Jouw voorstel",
+  "spotRename.reason": "Waarom? (optioneel)",
+  "spotRename.send": "Voorstel versturen",
+  "spotRename.sent": "Bedankt! Je voorstel is bij ons. We bekijken ze stuk voor stuk.",
 };
 
 export default nl;

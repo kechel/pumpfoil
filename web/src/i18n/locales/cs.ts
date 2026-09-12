@@ -1835,6 +1835,15 @@ const cs: Record<string, string> = {
   "foiler.basisGps": "Jen GPS",
   "foiler.basisAccelTip": "Rekordy mezi záznamy s pohybovým senzorem",
   "foiler.basisGpsTip": "Rekordy mezi záznamy bez pohybového senzoru — hodinky v režimu GPS a importy z účtu",
+  // Spot-Namen aendern lassen (Vorschlag, kein Selbstbedienen) — 12.09.2026
+  "spotRename.cta": "Navrhnout název",
+  "spotRename.title": "Navrhnout jiný název spotu",
+  "spotRename.hint": "Názvy spotů se berou automaticky z nejbližšího místa, takže často neodpovídají tomu, jak jim říkají místní. Pošli nám svůj návrh — podíváme se na něj a název pak změníme ručně. Platí pro všechny, kdo tu jezdí.",
+  "spotRename.current": "Současný název",
+  "spotRename.proposed": "Tvůj návrh",
+  "spotRename.reason": "Proč? (nepovinné)",
+  "spotRename.send": "Odeslat návrh",
+  "spotRename.sent": "Díky! Tvůj návrh je u nás. Díváme se na každý zvlášť.",
 };
 
 export default cs;

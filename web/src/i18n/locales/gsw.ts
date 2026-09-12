@@ -1667,6 +1667,15 @@ const gsw: Record<string, string> = {
   "foiler.basisGps": "Nur GPS",
   "foiler.basisAccelTip": "Rekord under allne Ufnahme mit Bewegigssensor",
   "foiler.basisGpsTip": "Rekord under de Ufnahme ohni Bewegigssensor — Uhre im GPS-Modus und Konto-Import",
+  // Spot-Namen aendern lassen (Vorschlag, kein Selbstbedienen) — 12.09.2026
+  "spotRename.cta": "Name vorschlah",
+  "spotRename.title": "En andere Spot-Name vorschlah",
+  "spotRename.hint": "Spot-Näme chömed automatisch vom nächschte Ort und treffed oft nöd das, wo d Lüüt vor Ort säged. Schick öis dis Vorschlag — mir luegeds a und ändered de Name denn vo Hand. Er gilt für alli, wo da fahred.",
+  "spotRename.current": "Jetzige Name",
+  "spotRename.proposed": "Dis Vorschlag",
+  "spotRename.reason": "Warum? (freiwillig)",
+  "spotRename.send": "Vorschlag schicke",
+  "spotRename.sent": "Merci! Dis Vorschlag isch bi öis. Mir lueged jede einzeln a.",
 };
 
 export default gsw

@@ -1776,6 +1776,15 @@ const ja: Record<string, string> = {
   "foiler.basisGps": "GPSのみ",
   "foiler.basisAccelTip": "モーションセンサーありの記録の中での記録",
   "foiler.basisGpsTip": "モーションセンサーなしの記録の中での記録 — GPSモードのウォッチとアカウント取り込み",
+  // Spot-Namen aendern lassen (Vorschlag, kein Selbstbedienen) — 12.09.2026
+  "spotRename.cta": "名前を提案",
+  "spotRename.title": "別のスポット名を提案する",
+  "spotRename.hint": "スポット名は最寄りの地名から自動的に付けられるため、現地で実際に呼ばれている名前とずれることがよくあります。提案を送ってください。こちらで確認したうえで、手作業で名前を変更します。名前はここで乗るすべての人に表示されます。",
+  "spotRename.current": "現在の名前",
+  "spotRename.proposed": "あなたの提案",
+  "spotRename.reason": "理由（任意）",
+  "spotRename.send": "提案を送る",
+  "spotRename.sent": "ありがとうございます。提案を受け取りました。ひとつずつ確認します。",
 };
 
 export default ja;
