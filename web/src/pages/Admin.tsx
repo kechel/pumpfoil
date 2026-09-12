@@ -254,7 +254,14 @@ const PLATTFORM_METRICS: [keyof AdminStatsSeries["totals"], string, string][] = 
 // Glaettungsfenster in Tagen. Eigene Knoepfe, nicht die Zeitraum-Knoepfe oben: dort waehlt man
 // den ANGEZEIGTEN Zeitraum, hier wie stark gemittelt wird. Beides an einen Knopf zu haengen ging
 // nicht — bei Zeitraum 10 Tage und Mittelung ueber 10 Tage bliebe ein einziger Punkt uebrig.
-const GLAETTUNG: number[] = [7, 10, 30];
+// 24 h = ungeglaettet (der rohe Tageswert). 7 Tage stand hier bis 12.09. und ist wieder raus:
+// zu nah an 10, der Unterschied war im Bild nicht zu sehen.
+const GLAETTUNG: number[] = [1, 3, 10, 30];
+
+/** Beschriftung eines Glaettungsfensters. 1 Tag heisst fuer den Leser „24 h", nicht „1 Tage". */
+function glattLabel(n: number): string {
+  return n === 1 ? "24 h" : `${n} Tage`;
+}
 
 const DAY_MS = 86400000;
 
@@ -415,7 +422,7 @@ function StatsSection() {
             <button key={n} onClick={() => setGlatt(n)}
               className={`rounded-lg px-3 py-1.5 text-xs transition-colors ${glatt === n
                 ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}>
-              {n} Tage
+              {glattLabel(n)}
             </button>
           ))}
         </div>
