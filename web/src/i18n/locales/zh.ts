@@ -1484,6 +1484,7 @@ const zh: Record<string, string> = {
   "cls.ownerAsk": "另一位 foiler 认为这次会话不是 pumpfoil。你能归一下类吗？在此之前它不会出现在任何统计中。如果确实是 pumpfoil，告诉我们一声，我们来看看。",
   "cls.pickErr": "无法保存",
   "cls.sport.kitefoil": "Kitefoil",
+  "cls.sport.parawing": "Parawing (lowkite / parakite)",
   "cls.sport.pumpfoil": "Pumpfoil",
   "cls.sport.wingfoil": "Wingfoil",
   "cls.thanks": "谢谢！我们会请所有者为这次会话归类。",

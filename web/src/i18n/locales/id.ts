@@ -1508,6 +1508,7 @@ const id: Record<string, string> = {
   "cls.ownerAsk": "Foiler lain berpendapat sesi ini bukan pumpfoil. Bisakah kamu mengklasifikasikannya? Sampai saat itu ia tidak muncul di statistik mana pun. Kalau memang benar pumpfoil, beri tahu kami dan kami akan melihatnya.",
   "cls.pickErr": "Tidak bisa disimpan",
   "cls.sport.kitefoil": "Kitefoil",
+  "cls.sport.parawing": "Parawing (lowkite / parakite)",
   "cls.sport.pumpfoil": "Pumpfoil",
   "cls.sport.wingfoil": "Wingfoil",
   "cls.thanks": "Terima kasih! Pemiliknya akan diminta mengklasifikasikan sesi ini.",

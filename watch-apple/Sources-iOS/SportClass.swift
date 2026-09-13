@@ -9,8 +9,10 @@ import Foundation
 // „wake" seit 05.08. in drei Kategorien aufgeteilt (beim Pumpen verschiedene Dinge):
 // wakethief = Welle eines FREMDEN Boots mitnehmen · towed = am Seil hinterm Boot · surf_wave =
 // Ozeanwelle am Strand. `wake` bleibt nur als Label für Altbestände (nicht mehr auswählbar).
-let SPORTS = ["pumpfoil", "wingfoil", "kitefoil", "surf_downwind", "surf_wave",
-              "sup_paddle", "wakethief", "towed", "efoil", "foildrive", "other"]
+// `parawing` seit 13.09.2026: Lowkite / Parawing / Parakite sind dasselbe (Jan).
+let SPORTS = ["pumpfoil", "wingfoil", "kitefoil", "parawing", "surf_downwind",
+              "surf_wave", "sup_paddle", "wakethief", "towed", "efoil",
+              "foildrive", "other"]
 
 /// Datenqualität — Müll/Dopplung, zählt nirgends.
 let DATA_QUALITY = ["ok", "false_data", "duplicate", "test"]

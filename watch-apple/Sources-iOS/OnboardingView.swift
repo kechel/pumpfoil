@@ -157,7 +157,8 @@ struct OnboardingView: View {
     private var sportSection: some View {
         Section(t("onb.sport.title")) {
             Picker(t("onb.sport.title"), selection: $sport) {
-                ForEach(["pumpfoil", "wingfoil", "kitefoil", "surf_downwind", "efoil", "foildrive", "other"],
+                ForEach(["pumpfoil", "wingfoil", "kitefoil", "parawing", "surf_downwind", "efoil",
+                         "foildrive", "other"],
                         id: \.self) { s in Text(t("onb.x.sport.\(s)")).tag(s) }
             }
             .pickerStyle(.navigationLink)

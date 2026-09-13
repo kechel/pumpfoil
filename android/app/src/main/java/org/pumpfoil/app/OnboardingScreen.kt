@@ -360,7 +360,8 @@ private fun GewichtKarte(gewicht: String, onGewicht: (String) -> Unit) {
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SportKarte(sport: String, onSport: (String) -> Unit) {
-    val arten = listOf("pumpfoil", "wingfoil", "kitefoil", "surf_downwind", "efoil", "foildrive", "other")
+    val arten = listOf("pumpfoil", "wingfoil", "kitefoil", "parawing", "surf_downwind", "efoil",
+                       "foildrive", "other")
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(I18n.t("onb.sport.title"), fontWeight = FontWeight.Bold)

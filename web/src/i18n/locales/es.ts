@@ -1334,6 +1334,7 @@ const es: Record<string, string> = {
   "cls.ownerAsk": "Otro foiler cree que esta sesión no es pumpfoil. ¿Podrías clasificarla? Hasta entonces no aparecerá en ninguna estadística. Si de verdad fue pumpfoil, dínoslo y lo miramos.",
   "cls.pickErr": "No se pudo guardar",
   "cls.sport.kitefoil": "Kitefoil",
+  "cls.sport.parawing": "Parawing (lowkite / parakite)",
   "cls.sport.pumpfoil": "Pumpfoil",
   "cls.sport.wingfoil": "Wingfoil",
   "cls.thanks": "¡Gracias! Se le pedirá al propietario que clasifique esta sesión.",

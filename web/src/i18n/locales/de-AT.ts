@@ -1350,6 +1350,7 @@ const deAT: Record<string, string> = {
   "cls.ownerAsk": "A anderer Foiler glaubt, dass diese Session kein Pumpfoilen ist. Magst sie kurz richtig zuordnen? Bis dahin scheint sie in keiner Auswertung auf. Wenn's doch Pumpfoilen war, sag's uns — dann schaut wer von uns drauf.",
   "cls.pickErr": "Hat nicht gespeichert werden können",
   "cls.sport.kitefoil": "Kitefoil",
+  "cls.sport.parawing": "Parawing (Lowkite / Parakite)",
   "cls.sport.pumpfoil": "Pumpfoil",
   "cls.sport.wingfoil": "Wingfoil",
   "cls.thanks": "Danke! Der Besitzer wird gebeten, die Session zuzuordnen.",

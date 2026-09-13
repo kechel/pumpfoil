@@ -1565,6 +1565,7 @@ const nl: Record<string, string> = {
   "cls.ownerAsk": "Een andere foiler denkt dat deze sessie geen pumpfoil is. Zou je hem kunnen classificeren? Tot dan verschijnt hij in geen enkele statistiek. Als het echt pumpfoil was, zeg het ons dan even en we kijken ernaar.",
   "cls.pickErr": "Opslaan mislukt",
   "cls.sport.kitefoil": "Kitefoil",
+  "cls.sport.parawing": "Parawing (lowkite / parakite)",
   "cls.sport.pumpfoil": "Pumpfoil",
   "cls.sport.wingfoil": "Wingfoil",
   "cls.thanks": "Bedankt! De eigenaar wordt gevraagd deze sessie te classificeren.",

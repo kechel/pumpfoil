@@ -1536,6 +1536,7 @@ const pl: Record<string, string> = {
   "cls.sport.pumpfoil": "Pumpfoil",
   "cls.sport.wingfoil": "Wingfoil",
   "cls.sport.kitefoil": "Kitefoil",
+  "cls.sport.parawing": "Parawing (lowkite / parakite)",
   "cls.sport.surf_wave": "Fala oceaniczna (surfing)",
   "cls.sport.wakethief": "Wake thief (fala przepływającej łodzi)",
   "cls.sport.towed": "Na holu (lina za łodzią)",

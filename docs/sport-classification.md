@@ -13,7 +13,13 @@ sich unterschiedlich verhalten müssen:
 
 | Achse | Werte | Bedeutung | Wirkung |
 |---|---|---|---|
-| **`sport`** | `pumpfoil` (Default), `wingfoil`, `kitefoil`, `surf_downwind`, `surf_wave`, `sup_paddle`, `wakethief`, `towed`, `efoil`, `foildrive`, `other` | **echte Daten einer anderen Sportart** | raus aus den Pumpfoil-Rekorden, aber **eigene Rekorde/Stats/Spots je Sportart** möglich (Jans Wunsch: „stats und rekorde fuer die anderen kategorien anzeigbar machen", „spots dann auch je nach kategorie") |
+| **`sport`** | `pumpfoil` (Default), `wingfoil`, `kitefoil`, `parawing`, `surf_downwind`, `surf_wave`, `sup_paddle`, `wakethief`, `towed`, `efoil`, `foildrive`, `other` | **echte Daten einer anderen Sportart** | raus aus den Pumpfoil-Rekorden, aber **eigene Rekorde/Stats/Spots je Sportart** möglich (Jans Wunsch: „stats und rekorde fuer die anderen kategorien anzeigbar machen", „spots dann auch je nach kategorie") |
+
+**Parawing: drei Namen, EINE Kategorie** (13.09.2026). Lowkite, Parawing und Parakite bezeichnen
+dasselbe Geraet (Jans Ansage) — ein Tuchfluegel ohne Gestaenge, mit dem angeschoben wird und der
+danach oft weggepackt wird. Drei Kategorien fuer eine Sache haetten die Auswertung zersplittert,
+ohne etwas zu unterscheiden. Deshalb gibt es den einen Wert `parawing`, und alle drei Namen
+stehen im Label („Parawing (Lowkite / Parakite)"), damit jeder seine Bezeichnung wiederfindet.
 
 **Fremde Wellenkraft: drei Kategorien statt einer** (05.08.2026). Bis dahin gab es das Sammelbecken
 `wake` („Wake / Boot"). Beim Pumpen sind das aber verschiedene Dinge, und genau die Unterscheidung
