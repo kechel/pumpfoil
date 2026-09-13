@@ -78,11 +78,15 @@ def stat_catalog(ar, seg=None):
         dur = seg.get("duration_s") or 0
         pumps = int(seg.get("pumps") or 0)
         spd = seg.get("max_speed_mps") or 0
+        # Der Lauf traegt seinen Schnitt schon als eigenes Feld (gps.py schreibt avg_speed_mps
+        # je Segment) — beim EINZELNEN Lauf ist das der Schnitt ueber genau diesen Lauf.
+        avg = seg.get("avg_speed_mps") or 0
         ppm = round(seg.get("pumps_per_min") or 0) if (pumps > 0 and dur > 0) else None
         return [
             ("foiling", "Foiling", _km(dist), dist > 0),
             ("runs", "Läufe", "1", False),
             ("pumps", "Pumps", str(pumps), pumps > 0),
+            ("avgspeed", "Ø Speed", f"{avg*3.6:.1f} km/h", avg > 0),
             ("speed", "Top-Speed", f"{spd*3.6:.1f} km/h", spd > 0),
             ("time", "Foil-Zeit", _mmss(dur), dur > 0),
             ("longest", "Längster", _km(dist), False),
@@ -92,10 +96,15 @@ def stat_catalog(ar, seg=None):
     ppm = None
     if (ar.foiling_time_s or 0) > 0 and (ar.pump_count or 0) > 0:
         ppm = round(ar.pump_count / (ar.foiling_time_s / 60.0))
+    # Schnitt ueber die ganze Aufnahme: Foiling-Strecke durch Foil-ZEIT, also der Schnitt WAEHREND
+    # des Foilens — nicht ueber die Aufnahme samt Pausen und Rueckwegen. Ein gespeichertes Feld
+    # dafuer gibt es nicht, beide Summanden stehen aber in `ar`.
+    avg = ((ar.foiling_distance_m or 0) / ar.foiling_time_s) if (ar.foiling_time_s or 0) > 0 else 0
     items = [
         ("foiling", "Foiling", _km(ar.foiling_distance_m), (ar.foiling_distance_m or 0) > 0),
         ("runs", "Läufe", str(ar.num_runs or 0), (ar.num_runs or 0) > 0),
         ("pumps", "Pumps", str(ar.pump_count or 0), (ar.pump_count or 0) > 0),
+        ("avgspeed", "Ø Speed", f"{avg*3.6:.1f} km/h", avg > 0),
         ("speed", "Top-Speed", f"{(ar.max_speed_mps or 0)*3.6:.1f} km/h", (ar.max_speed_mps or 0) > 0),
         ("time", "Foil-Zeit", _mmss(ar.foiling_time_s), (ar.foiling_time_s or 0) > 0),
         ("longest", "Längster", _km(ar.best_distance_m), (ar.best_distance_m or 0) > 0),

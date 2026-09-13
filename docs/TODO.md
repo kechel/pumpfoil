@@ -920,25 +920,28 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
       inhaltlich zum Skalda-Brainstorm ueber Community-Stats und Abzeichen.
     - **Jan hat ihm am 12.09. selbst im Spot-Chat geantwortet** — hier ist nichts offen.
 
-- **📥 12.09. (James, u17, `dm:17-230` #1498) — Ø-Geschwindigkeit auf der Teilen-Card.**
-  Wortlaut: „Possible to have the average speed when sharing ? Thanks". Die Card bietet acht
-  Werte (Foiling, Laeufe, Pumps, Top-Speed, Foil-Zeit, Laengster, Strecke/Pump, Ø Pumps/min) —
-  einen Schnitt hat sie nicht.
-  - **Die Daten liegen vor, der Einbau waere klein:** je Lauf steht `avg_speed_mps` schon im
-    Segment (`gps.py:620`), fuer die ganze Aufnahme ergibt er sich aus `foiling_distance_m /
-    foiling_time_s` — also der Schnitt WAEHREND des Foilens, nicht ueber die Aufnahme samt
-    Pausen. Zwei Stellen: `sharecard.stat_catalog` (beide Zweige) und `ShareDialog`
-    (`STAT_ORDER`, `STAT_LABEL`, `availableStats`).
-  - **🛑 NICHT einfach einbauen — Ansage Jan, 12.09.:** „teilen-dialog passen wir ein andermal
-    an, bitte nur merken, da gibt es schon viel zum einstellen und platzprobleme, das muss ich
-    mir erst nochmal anschauen damit die ux nicht leidet". Ein neunter Schalter in einem Dialog,
-    der schon Farbmodus, Stat-Auswahl, Foto samt Abdunklung, Track, Textfarbe, Lauf-Auswahl und
-    Titel traegt, ist eine UX-Frage, keine Codefrage. Erst Jans Entwurf, dann bauen.
-  - Ich hatte es am 12.09. schon gebaut und auf Jans Zwischenruf wieder zurueckgenommen
-    (nichts committet). James ist geantwortet: steht auf der Liste, ohne Termin.
+- **🟢 13.09. ERLEDIGT (James, u17, `dm:17-230` #1498) — Ø-Geschwindigkeit auf der Teilen-Card.**
+  Sein Wortlaut: „Possible to have the average speed when sharing ? Thanks".
+  - **Sitzt zwischen „Pumps" und „Top-Speed"** (Vorgabe Jan, 13.09.: „da ist doch easy platz fuer
+    einen weiteren button avg. speed zwischen pumps & top-speed, auch mit dem avg. icon wie bei
+    pumps/min") — die beiden Geschwindigkeiten stehen damit nebeneinander, Schnitt vor Spitze,
+    und das Ø macht die Art des Werts auf einen Blick klar, genau wie bei „Ø Pumps/min".
+  - **Woher die Zahl kommt, und warum zweimal verschieden:** beim EINZELNEN Lauf steht
+    `avg_speed_mps` schon im Segment (`gps.py:620`); fuer die ganze Aufnahme gibt es kein solches
+    Feld, dort ist es `foiling_distance_m / foiling_time_s`. Das ist mit Absicht der Schnitt
+    WAEHREND des Foilens und nicht ueber die Aufnahme samt Pausen und Rueckwegen — sonst stuende
+    dort eine Zahl, die mit dem Fahren nichts zu tun hat.
+  - **Nachgerechnet an Session 2179:** ganze Aufnahme 2043 m in 521 s -> Ø 14,1 km/h neben
+    Top-Speed 16,7; Lauf 1 183 m in 46 s -> Ø 14,0 neben 16,2. Beide Wege gegen die Rohwerte
+    geprueft.
+  - **Erst zurueckgestellt, dann doch gebaut:** am 12.09. hatte ich es schon fertig und auf Jans
+    Zwischenruf zurueckgenommen („da gibt es schon viel zum einstellen und platzprobleme, das muss
+    ich mir erst nochmal anschauen damit die ux nicht leidet"). Er hat sich den Dialog danach
+    angesehen und den Platz freigegeben. Die Reihenfolge — erst schauen, dann bauen — war richtig:
+    die Position hat sich dadurch geaendert.
   - Sein aelterer Wunsch aus derselben Ecke (09.07., #160: Stats des ausgewaehlten Laufs im Bild
-    statt Scrollen) ist ERLEDIGT — die Lauf-Auswahl im Teilen-Dialog gibt es.
-
+    statt Scrollen) war schon vorher erledigt.
+  - **Offen: James Bescheid sagen**, dass es drin ist.
 - **💡 12.09. (Jan) — On-Foil-Erkennung noch einmal besser machen.** „das stimmt, inzwischen
   haben wir ja auch viel mehr daten die wir dafuer auswerten koennen, aber das machen wir ein
   andermal." NICHT JETZT — hier steht nur, was dann zur Hand ist.

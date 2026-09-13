@@ -11,9 +11,11 @@ import { useCloseOnBack } from "../lib/useCloseOnBack";
 // Card kommt server-generiert; das Foto wird lokal per Canvas darunter komponiert.
 
 const N = 1080;
-const STAT_ORDER = ["foiling", "runs", "pumps", "speed", "time", "longest", "distance", "pumprate"] as const;
+// Reihenfolge wie auf der Card. „Ø Speed" steht zwischen Pumps und Top-Speed (Vorgabe Jan,
+// 13.09.2026) — die beiden Geschwindigkeiten damit nebeneinander, Schnitt vor Spitze.
+const STAT_ORDER = ["foiling", "runs", "pumps", "avgspeed", "speed", "time", "longest", "distance", "pumprate"] as const;
 const STAT_LABEL: Record<string, string> = {
-  foiling: "Foiling", runs: "Läufe", pumps: "Pumps", speed: "Top-Speed",
+  foiling: "Foiling", runs: "Läufe", pumps: "Pumps", avgspeed: "Ø Speed", speed: "Top-Speed",
   time: "Foil-Zeit", longest: "Längster", distance: "Strecke/Pump", pumprate: "Ø Pumps/min",
 };
 
@@ -21,6 +23,8 @@ function availableStats(a: any): string[] {
   if (!a) return [];
   const ok: Record<string, boolean> = {
     foiling: a.foiling_distance_m > 0, runs: a.num_runs > 0, pumps: a.pump_count > 0,
+    // Schnitt = Foiling-Strecke / Foil-Zeit; ohne eines von beiden gibt es ihn nicht.
+    avgspeed: a.foiling_time_s > 0 && a.foiling_distance_m > 0,
     speed: a.max_speed_mps > 0, time: a.foiling_time_s > 0, longest: a.best_distance_m > 0,
     distance: a.foiling_distance_m > 0 && a.pump_count > 0, pumprate: a.foiling_time_s > 0 && a.pump_count > 0,
   };
