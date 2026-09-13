@@ -206,7 +206,6 @@ const fi: Record<string, string> = {
 
   // Sprache
   "lang.label": "Kieli",
-  "lang.hint": "Käyttöliittymän kieli.",
 
   // Stat-Kacheln
   "stat.sessions": "Sessiot",

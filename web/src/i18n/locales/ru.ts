@@ -210,7 +210,6 @@ const ru: Record<string, string> = {
   "profile.saveError": "Ошибка при сохранении.",
 
   "lang.label": "Язык",
-  "lang.hint": "Язык интерфейса.",
 
   "stat.sessions": "Сессии",
   "stat.runs": "Заезды",

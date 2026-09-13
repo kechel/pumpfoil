@@ -242,7 +242,6 @@ const de: Record<string, string> = {
 
   // Sprache
   "lang.label": "Sprache",
-  "lang.hint": "Sprache der Oberfläche.",
 
   // Stat-Kacheln
   "stat.sessions": "Sessions",

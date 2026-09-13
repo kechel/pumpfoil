@@ -210,7 +210,6 @@ const id: Record<string, string> = {
   "profile.saveError": "Kesalahan saat menyimpan.",
 
   "lang.label": "Bahasa",
-  "lang.hint": "Bahasa antarmuka.",
 
   "stat.sessions": "Sesi",
   "stat.runs": "Run",

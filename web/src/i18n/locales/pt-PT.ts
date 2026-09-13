@@ -220,7 +220,6 @@ const ptPT: Record<string, string> = {
   "profile.nameLen": "2–40 caracteres.",
   "profile.saveError": "Erro ao guardar.",
   "lang.label": "Idioma",
-  "lang.hint": "Idioma da interface.",
 
   "stat.sessions": "Sessões",
   "stat.runs": "Voltas",

@@ -228,7 +228,6 @@ const nb: Record<string, string> = {
   "profile.nameLen": "2–40 tegn.",
   "profile.saveError": "Feil ved lagring.",
   "lang.label": "Språk",
-  "lang.hint": "Språk i grensesnittet.",
   "stat.sessions": "Økter",
   "stat.runs": "Runs",
   "stat.runsStarts": "Turer/starter",

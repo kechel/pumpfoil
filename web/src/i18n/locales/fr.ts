@@ -190,7 +190,6 @@ const fr: Record<string, string> = {
   "profile.saveError": "Erreur lors de l'enregistrement.",
 
   "lang.label": "Langue",
-  "lang.hint": "Langue de l'interface.",
 
   "stat.sessions": "Sessions",
   "stat.runs": "Runs",

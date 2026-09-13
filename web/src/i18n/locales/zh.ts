@@ -210,7 +210,6 @@ const zh: Record<string, string> = {
   "profile.saveError": "保存时出错。",
 
   "lang.label": "语言",
-  "lang.hint": "界面语言。",
 
   "stat.sessions": "记录数",
   "stat.runs": "航段",

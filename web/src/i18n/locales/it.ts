@@ -190,7 +190,6 @@ const it: Record<string, string> = {
   "profile.saveError": "Errore durante il salvataggio.",
 
   "lang.label": "Lingua",
-  "lang.hint": "Lingua dell'interfaccia.",
 
   "stat.sessions": "Sessioni",
   "stat.runs": "Run",

@@ -210,7 +210,6 @@ const ja: Record<string, string> = {
   "profile.saveError": "保存中にエラーが発生しました。",
 
   "lang.label": "言語",
-  "lang.hint": "インターフェースの言語。",
 
   "stat.sessions": "セッション",
   "stat.runs": "ラン",
