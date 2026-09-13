@@ -1915,10 +1915,16 @@ function Studio() {
           </div>
           {/* Endcard: statt ins Video gerendert erst hier entschieden */}
           <div className="ecard">
+            {/* Zwei Zeilen statt einer: Beschriftung und „keine" oben, die
+                Varianten darunter. In einer Zeile war das die breiteste Stelle
+                der ganzen Spalte und hat sie auf 380 px festgenagelt — Platz,
+                der in der Mitte bei der Vorschau fehlte (Jan, 13.09.). */}
             <div className="row ecpick">
               Endcard
               <button className={`chip ${endcard.file ? "" : "on"}`}
                       onClick={() => setEndcard({ ...endcard, file: "" })}>keine</button>
+            </div>
+            <div className="row ecpick ecvar">
               {(state?.endcards ?? []).map((f) => (
                 <button key={f} className={`chip ${endcard.file === f ? "on" : ""}`}
                         title={f}

@@ -36,7 +36,10 @@ body { margin: 0; }
 .tab:hover { background: #8882; }
 .tab.on { background: #3b82f622; border-color: #3b82f688; }
 
-.studio { flex: 1; display: grid; grid-template-columns: 290px 1fr 380px; min-height: 0; }
+/* Rechte Spalte so schmal, wie ihr breitester Inhalt es zulaesst: jedes
+   Pixel hier fehlt in der Mitte, wo die Vorschau steht. 380 px waren es nur
+   wegen der Endcard-Zeile, die jetzt auf zwei Zeilen steht (Jan, 13.09.). */
+.studio { flex: 1; display: grid; grid-template-columns: 290px 1fr 330px; min-height: 0; }
 .col { display: flex; flex-direction: column; overflow: hidden; }
 .col.left { border-right: 1px solid #8884; }
 .col.right { border-left: 1px solid #8884; }
@@ -403,6 +406,9 @@ table.cmp { max-width: 520px; }
 .ecard .ecsum { margin-left: auto; font-size: 11px; opacity: .55; font-variant-numeric: tabular-nums; }
 .ecard .echint { font-size: 11px; opacity: .5; margin: 2px 0 6px; }
 .ecard .ecpick { flex-wrap: wrap; gap: 5px; }
+/* Varianten-Zeile: direkt unter der Beschriftung, ohne den Abstand einer
+   eigenen Einstellungszeile. */
+.ecard .ecvar { margin-top: -2px; }
 .ecard .ecalpha { flex: 1 1 150px; min-width: 130px; }
 .ecard .ecalpha input[type=range] { flex: 1; min-width: 60px; }
 .ecard .ecalpha b { font-weight: 500; font-variant-numeric: tabular-nums; min-width: 34px; text-align: right; }
