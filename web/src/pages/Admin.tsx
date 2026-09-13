@@ -204,10 +204,27 @@ function OverviewTab() {
   );
 }
 
-// Verlaufsgrafik (Fenster wie Community): neue/aktive Nutzer, neue Sessions, Fotos, Likes.
-const STATS_PERIODS: [string, string][] = [
-  ["today", "period.today"], ["10d", "period.10d"], ["30d", "period.30d"], ["365d", "period.365d"], ["all", "period.all"],
-];
+// ============================ Verlaufsgrafiken im Admin ============================
+//
+// ZWEI SCHALTER, klar getrennt (Neubau 13.09.2026 auf Jans Befund: „irgendwie bringen wir hier
+// fenster-groesse und anzeige-zeitraum durcheinander"):
+//
+//   1. ZEITRAUM  — welcher Ausschnitt der x-Achse zu sehen ist (10 Tage / 30 Tage / 1 Jahr).
+//   2. FENSTER   — worueber ein einzelner Punkt aufsummiert ist (24 h … 1 Jahr, oder „Gesamt"
+//                  als mitlaufende Gesamtsumme seit Beginn).
+//
+// Der Trick, der die beiden entkoppelt: das FENSTER wird immer ueber die GANZE Historie gerechnet
+// und erst DANACH auf den Zeitraum beschnitten. Damit ist jede Kombination sinnvoll — auch „10
+// Tage zeigen, ueber 30 Tage summiert". Vorher hing beides an einem Knopf und an drei
+// verschiedenen Stellen: die Nutzerkurven waren fest kumuliert (ausser bei „heute", das
+// heimlich auf Tageswerte umschaltete), die Plattformkurven hatten einen eigenen
+// Glaettungsregler, und „Wer schaut herein" hatte gar keinen und lief immer ueber alles. Drei
+// Kacheln nebeneinander zeigten also drei verschiedene Rechnungen auf drei verschiedenen Achsen.
+//
+// Warum Summe und nicht Mittelwert: „kumuliert" ist die Frage, die man an diese Zahlen stellt
+// („wie viele in den letzten 3 Tagen"). Die Form der Kurve ist dieselbe wie beim gleitenden
+// Mittel — es aendert sich nur der Maßstab —, ein Einbruch bleibt also genauso sichtbar, wie es
+// fuer die Plattform-Kacheln gedacht war.
 const STATS_METRICS: [keyof AdminStatsSeries["totals"], string, string][] = [
   ["new_users", "adm.stats.newUsers", "#22d3ee"],
   ["active_users", "adm.stats.activeUsers", "#a3e635"],
@@ -222,19 +239,15 @@ const STATS_METRICS: [keyof AdminStatsSeries["totals"], string, string][] = [
   ["likes", "adm.stats.likes", "#fb7185"],
 ];
 
-// Je Plattform: wie viele NUTZER haben an dem Tag etwas uebertragen.
+// Je Plattform: wie viele NUTZER haben etwas uebertragen.
 //
 // Zweck ist das Erkennen von EINBRUECHEN (Jan, 11.09.2026: „kann an allem moeglichen liegen,
-// marketing, bugs, problemen, konkurrenz") — nicht eine Summe. Deshalb ein GLEITENDER MITTELWERT
-// ueber die ganze Historie statt einer kumulierten Kurve: eine Summe steigt immer und verbirgt
-// genau das, was hier auffallen soll. Der Regler daneben waehlt, wie stark geglaettet wird.
+// marketing, bugs, problemen, konkurrenz").
 //
 // Nutzer und nicht Sessions: wer ein Konto neu verknuepft, holt seine ganze Historie auf einmal
 // nach (am 07.09. 1049 alte Suunto-Fahrten an EINEM Tag). Als Sessionzahl ist das ein Ausreisser,
 // der die Kurve unlesbar macht; als Nutzerzahl eine 1. Derselbe Nutzer an zwei Tagen zaehlt
 // zweimal — gemessen wird Aktivitaet, nicht Reichweite.
-//
-// „Konto-Import" sind die Sessions OHNE Geraet: Polar, COROS, Suunto und hochgeladene Dateien.
 const PLATTFORM_METRICS: [keyof AdminStatsSeries["totals"], string, string][] = [
   ["p_garmin", "Garmin", "#22d3ee"],
   ["p_apple", "Apple Watch", "#a3a3a3"],
@@ -268,36 +281,34 @@ const HIT_METRICS: [keyof AdminStatsSeries["totals"], string, string][] = [
   ["h_bot", "davon erkannte Bots", "#94a3b8"],
 ];
 
-// Glaettungsfenster in Tagen. Eigene Knoepfe, nicht die Zeitraum-Knoepfe oben: dort waehlt man
-// den ANGEZEIGTEN Zeitraum, hier wie stark gemittelt wird. Beides an einen Knopf zu haengen ging
-// nicht — bei Zeitraum 10 Tage und Mittelung ueber 10 Tage bliebe ein einziger Punkt uebrig.
-// 24 h = ungeglaettet (der rohe Tageswert). 7 Tage stand hier bis 12.09. und ist wieder raus:
-// zu nah an 10, der Unterschied war im Bild nicht zu sehen.
-const GLAETTUNG: number[] = [1, 3, 10, 30];
-
-/** Beschriftung eines Glaettungsfensters. 1 Tag heisst fuer den Leser „24 h", nicht „1 Tage". */
-function glattLabel(n: number): string {
-  return n === 1 ? "24 h" : `${n} Tage`;
-}
-
 const DAY_MS = 86400000;
 
-/** Gemeinsamer Zeitraum aller Plattform-Kurven: vom ersten Tag MIT Plattform-Aktivitaet bis
- *  heute.
+/** Anzeigezeitraum: was auf der x-Achse zu sehen ist. */
+const ZEITRAUM: [number, string][] = [[10, "10 Tage"], [30, "30 Tage"], [365, "1 Jahr"]];
+
+/** Fensterlaenge: worueber ein einzelner Punkt summiert wird. `Infinity` = seit Beginn. */
+const FENSTER: number[] = [1, 3, 10, 30, 365, Infinity];
+
+function fensterLabel(n: number): string {
+  if (n === 1) return "24 h";
+  if (n === 365) return "1 Jahr";
+  return n === Infinity ? "Gesamt" : `${n} Tage`;
+}
+
+/** Beschriftung neben der Kopfzahl — sagt, WORUEBER die Zahl geht. */
+function fensterZusatz(n: number): string {
+  if (n === 1) return "heute";
+  return n === Infinity ? "gesamt" : `letzte ${fensterLabel(n)}`;
+}
+
+/** Lueckenlose Tagesachse ueber die ganze Historie (erster Bucket-Tag bis heute).
  *
- *  NICHT der erste Tag der Bucket-Liste — die enthaelt auch die FAHRT-Daten der uebrigen Reihen,
- *  und importierte Historie reicht bis 2018 zurueck. Die Plattform-Zahlen haengen dagegen am
- *  ANKUNFTSDATUM, also fruehestens am Start des Projekts. Ohne diese Unterscheidung lagen acht
- *  Jahre Achse ueber 83 echten Tagen: alle Kurven standen auf 0, weil das Sichtbare an den
- *  rechten Rand gequetscht war (Jans Befund, 11.09.2026).
- *
- *  Ein gemeinsamer Zeitraum fuer ALLE Kacheln, nicht je Kachel ein eigener — sonst vergliche man
- *  Kurven mit verschiedenen x-Achsen. */
-function plattformSpanne(buckets: AdminStatsBucket[], keys: (keyof AdminStatsSeries["totals"])[]): number[] {
-  const tage = buckets
-    .filter((b) => keys.some((k) => (b[k] as number) > 0))
-    .map((b) => new Date(b.date + "T00:00:00").getTime());
-  if (!tage.length) return [];
+ *  Lueckenlos ist Pflicht: der Server liefert nur Tage MIT Werten. Ohne die stillen Tage als 0
+ *  zeigte eine verstummte Plattform eine flache Linie statt eines Abfalls auf null — genau das,
+ *  was hier auffallen soll. */
+function tagesachse(buckets: AdminStatsBucket[]): number[] {
+  if (!buckets.length) return [];
+  const tage = buckets.map((b) => new Date(b.date + "T00:00:00").getTime());
   const von = Math.min(...tage);
   const bis = Math.max(new Date(new Date().toISOString().slice(0, 10) + "T00:00:00").getTime(), von);
   const out: number[] = [];
@@ -305,279 +316,177 @@ function plattformSpanne(buckets: AdminStatsBucket[], keys: (keyof AdminStatsSer
   return out;
 }
 
-/** Werte einer Plattform auf die gemeinsame Spanne legen. Der Server liefert nur Tage MIT
- *  Aktivitaet; die stillen Tage muessen als 0 dazu, sonst zeigte eine verstummte Plattform eine
- *  flache Linie statt eines Abfalls auf null — genau das, was hier auffallen soll. */
-function aufSpanne(buckets: AdminStatsBucket[], key: keyof AdminStatsSeries["totals"],
-                   spanne: number[]): number[] {
+/** Werte einer Reihe auf die Tagesachse legen (fehlende Tage = 0). */
+function aufAchse(buckets: AdminStatsBucket[], key: keyof AdminStatsSeries["totals"],
+                  achse: number[]): number[] {
   const proTag = new Map<number, number>();
   for (const b of buckets) proTag.set(new Date(b.date + "T00:00:00").getTime(), b[key] as number);
-  return spanne.map((t) => proTag.get(t) ?? 0);
+  return achse.map((t) => proTag.get(t) ?? 0);
 }
 
-/** Gleitender Mittelwert ueber `n` Tage (nachlaufend), auf einer lueckenlosen Reihe. */
-function mittel(werte: number[], n: number): number[] {
+/** Nachlaufende Fenstersumme ueber `n` Tage; `Infinity` = mitlaufende Gesamtsumme. */
+function fensterSumme(werte: number[], n: number): number[] {
   const out: number[] = [];
   let summe = 0;
   for (let i = 0; i < werte.length; i++) {
     summe += werte[i];
-    if (i >= n) summe -= werte[i - n];
-    out.push(summe / Math.min(i + 1, n));
+    if (n !== Infinity && i >= n) summe -= werte[i - n];
+    out.push(summe);
   }
   return out;
+}
+
+/** Erster Tag, an dem diese Reihe ueberhaupt etwas gemessen hat.
+ *
+ *  Davor wird NICHT gezeichnet: „Angemeldete je Client" und die Seitenaufrufe gibt es erst seit
+ *  dem 12.09.2026, und eine Linie auf 0 fuer die Zeit davor behauptete, es sei damals niemand da
+ *  gewesen — dabei haben wir schlicht nicht gezaehlt. */
+function ersterTag(werte: number[], achse: number[]): number {
+  const i = werte.findIndex((v) => v > 0);
+  return i < 0 ? Infinity : achse[i];
+}
+
+/** Eine Kachel: Kopfzahl + Kurve + Datumsleiste. Alle vier Raster nutzen dieselbe — vorher waren
+ *  es vier fast gleiche Kopien, die genau deshalb auseinandergelaufen sind. */
+function VerlaufKachel({ titel, color, achse, werte, domain, ticks, fmtTick, zusatz, nf, kommastelle }: {
+  titel: string; color: string; achse: number[]; werte: number[];
+  domain: [number, number]; ticks: number[]; fmtTick: (ms: number) => string;
+  zusatz: string; nf: (n: number) => string; kommastelle?: boolean;
+}) {
+  const ab = ersterTag(werte, achse);
+  // Sichtbarer Ausschnitt: Fenster ist schon gerechnet, hier wird nur beschnitten.
+  const idx = achse.map((t, i) => [t, i] as const)
+    .filter(([t]) => t >= Math.max(domain[0], ab) && t <= domain[1]);
+  const tPlot = idx.map(([t]) => t);
+  const vPlot = idx.map(([, i]) => werte[i]);
+  const zahl = (v: number) => (kommastelle ? v.toFixed(1) : nf(Math.round(v)));
+  const kopf = vPlot.length ? vPlot[vPlot.length - 1] : 0;
+  const max = vPlot.length ? Math.max(...vPlot) : 0;
+  const vmax = Math.max(max, 1);
+  return (
+    <Card className="p-3">
+      <div className="mb-1 flex items-baseline justify-between px-1">
+        <span className="text-xs uppercase tracking-wide text-slate-300">{titel}</span>
+        <span className="text-lg font-bold tabular-nums" style={{ color }}>
+          {zahl(kopf)}
+          <span className="ml-2 text-xs font-normal text-slate-400">{zusatz} · max {zahl(max)}</span>
+        </span>
+      </div>
+      <div className="flex gap-1">
+        <div className="flex h-[100px] w-9 shrink-0 flex-col justify-between py-0.5 text-right text-[10px] tabular-nums text-slate-500">
+          <span>{zahl(vmax)}</span><span>{zahl(vmax / 2)}</span><span>0</span>
+        </div>
+        <div className="min-w-0 flex-1">
+          {vPlot.length === 0 ? (
+            <div className="flex h-[100px] items-center justify-center text-[11px] text-slate-500">
+              keine Daten in diesem Zeitraum
+            </div>
+          ) : (
+            /* Zwei unsichtbare Stuetzpunkte halten die Skala bei 0…max — sonst skaliert
+               TimeChart auf min…max und eine ruhige Reihe saehe aus wie starke Ausschlaege. */
+            <TimeChart t={[domain[0] - 1, ...tPlot, domain[1] + 1]}
+              values={[0, ...vPlot, vmax]} color={color} domainMs={domain} height={100} />
+          )}
+        </div>
+      </div>
+      <div className="ml-10 mt-1 flex justify-between px-1 text-[10px] tabular-nums text-slate-500">
+        {ticks.map((tk, i) => <span key={i}>{fmtTick(tk)}</span>)}
+      </div>
+    </Card>
+  );
 }
 
 function StatsSection() {
   const t = useT();
   const nf = useNumberFormat();
-  const [period, setPeriod] = useState("30d");
-  // Eigener Regler fuer die Plattform-Kurven: dort waehlt man die GLAETTUNG, nicht den Zeitraum.
-  const [glatt, setGlatt] = useState(10);
-  // „heute" = Tageszacken-Ansicht: volle Historie laden, tägliche Werte plotten (nicht kumuliert);
-  // die Zahl daneben zeigt den heutigen Tageswert. Alle anderen Fenster: kumulierte Kurve.
-  const daily = period === "today";
-  const fetchPeriod = daily ? "all" : period;
-  const { data } = useAsync<AdminStatsSeries>(() => api.adminStatsSeries(fetchPeriod), [fetchPeriod]);
-  const times = (data?.buckets ?? []).map((b) => new Date(b.date + "T00:00:00").getTime());
-  // Plattform-Kurven laufen ueber die GANZE Historie, unabhaengig vom Zeitraum oben — ein
-  // Einbruch erkennt man nur im Verlauf, nicht in einem Ausschnitt.
-  const { data: alle } = useAsync<AdminStatsSeries>(() => api.adminStatsSeries("all"), []);
-  const platSpanne = plattformSpanne(alle?.buckets ?? [], PLATTFORM_METRICS.map(([k]) => k));
-  const platTicks = platSpanne.length
-    ? Array.from({ length: 5 }, (_, i) =>
-        platSpanne[0] + ((platSpanne[platSpanne.length - 1] - platSpanne[0]) * i) / 4)
-    : [];
-  // Eigener Datums-Formatierer: `fmtTick` oben richtet sich nach dem dort gewaehlten Zeitraum
-  // und liess bei langen Spannen das Jahr weg — auf der Plattform-Achse standen dadurch Daten
-  // ohne Jahr, die aussahen, als liefen sie rueckwaerts.
-  const platSpanTage = platSpanne.length
-    ? (platSpanne[platSpanne.length - 1] - platSpanne[0]) / DAY_MS : 0;
-  const fmtPlatTick = (ms: number) => new Date(ms).toLocaleDateString(undefined,
-    platSpanTage <= 200 ? { day: "2-digit", month: "short" } : { month: "short", year: "2-digit" });
-  // Einheitlicher Zeitraum für ALLE Metriken = das gewählte Fenster (cut → jetzt), nicht nur wo Daten sind.
+  // Zwei getrennte Schalter, EINMAL fuer alle Grafiken darunter (Vorgabe Jan, 13.09.2026).
+  const [tage, setTage] = useState(30);        // Anzeigezeitraum
+  const [fenster, setFenster] = useState(1);   // Fensterlaenge der Summe
+  // EIN Abruf fuer alles: „all". Das Fenster muss ueber die ganze Historie laufen koennen, auch
+  // wenn nur 10 Tage zu sehen sind — sonst waere „30 Tage summiert" im 10-Tage-Ausschnitt eine
+  // Luege (es fehlten die 20 Tage davor).
+  const { data } = useAsync<AdminStatsSeries>(() => api.adminStatsSeries("all"), []);
+  const achse = tagesachse(data?.buckets ?? []);
   const now = Date.now();
-  const cut: Record<string, number> = {
-    "10d": now - 10 * DAY_MS, "30d": now - 30 * DAY_MS, "365d": now - 365 * DAY_MS,
-  };
-  const start = (period === "all" || daily)
-    ? (times.length ? Math.min(...times) : now - 30 * DAY_MS)
-    : cut[period];
-  const domain: [number, number] = [start, Math.max(now, start + DAY_MS)];
-  // ~4 Datums-Ticks gleichmäßig über den Zeitraum (wie /verlauf).
-  const spanDays = (domain[1] - domain[0]) / DAY_MS;
+  const domain: [number, number] = [now - tage * DAY_MS, now];
   const ticks = Array.from({ length: 5 }, (_, i) => domain[0] + ((domain[1] - domain[0]) * i) / 4);
   const fmtTick = (ms: number) => new Date(ms).toLocaleDateString(undefined,
-    spanDays <= 120 ? { day: "2-digit", month: "short" } : { month: "short", year: "2-digit" });
-  // „Wer schaut herein" laeuft wie die Plattform-Kurven ueber die ganze Historie und ist vom
-  // Zeitraum oben unabhaengig — die Reihe ist ohnehin jung (ab 12.09.2026).
-  const cliSpanne = plattformSpanne(alle?.buckets ?? [], CLIENT_METRICS.map(([k]) => k));
-  const hitSpanne = plattformSpanne(alle?.buckets ?? [], HIT_METRICS.map(([k]) => k));
-  const cliTicks = cliSpanne.length
-    ? Array.from({ length: 5 }, (_, i) =>
-        cliSpanne[0] + ((cliSpanne[cliSpanne.length - 1] - cliSpanne[0]) * i) / 4)
-    : [];
+    tage <= 120 ? { day: "2-digit", month: "short" } : { month: "short", year: "2-digit" });
+  const zusatz = fensterZusatz(fenster);
+  const reihe = (key: keyof AdminStatsSeries["totals"]) =>
+    fensterSumme(aufAchse(data?.buckets ?? [], key, achse), fenster);
+
+  const knopf = (aktiv: boolean) =>
+    `rounded-lg px-3 py-1.5 text-xs transition-colors ${aktiv
+      ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`;
+
+  const raster = (metriken: [keyof AdminStatsSeries["totals"], string, string][], uebersetzt: boolean) => (
+    <div className="grid gap-4 sm:grid-cols-2">
+      {metriken.map(([key, titel, color]) => (
+        <VerlaufKachel key={key} titel={uebersetzt ? t(titel) : titel} color={color}
+          achse={achse} werte={reihe(key)} domain={domain} ticks={ticks} fmtTick={fmtTick}
+          zusatz={zusatz} nf={nf} />
+      ))}
+    </div>
+  );
+
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-semibold text-slate-100">Wer schaut herein</h3>
-      <p className="-mt-1 text-xs text-slate-400">
-        Oben die Aufrufe der öffentlichen Website pro Tag, darunter die angemeldeten Nutzer je
-        Client. Beides zählt die laufende Seite selbst, nicht das Zugriffs-Log — dort sind 87 %
-        der Aufrufe unsere eigenen Prüfungen, und wer wiederkommt, bekommt die Seite aus dem
-        Cache. Gespeichert wird eine Tageszahl bzw. ein Eintrag je Nutzer, Client und Tag; wann
-        und wie oft jemand da war, steht nirgends. Die Reihen beginnen am 12.09.2026.
-      </p>
-      {!alle ? <Spinner /> : hitSpanne.length > 0 && (
-        <div className="grid gap-4 sm:grid-cols-2">
-          {HIT_METRICS.map(([key, titel, color]) => {
-            const werte = aufSpanne(alle.buckets, key, hitSpanne);
-            const heute = werte.length ? werte[werte.length - 1] : 0;
-            const max = werte.length ? Math.max(...werte) : 0;
-            const vmax = Math.max(max, 1);
-            return (
-              <Card key={key} className="p-3">
-                <div className="mb-1 flex items-baseline justify-between px-1">
-                  <span className="text-xs uppercase tracking-wide text-slate-300">{titel}</span>
-                  <span className="text-lg font-bold tabular-nums" style={{ color }}>
-                    {nf(heute)}
-                    <span className="ml-2 text-xs font-normal text-slate-400">
-                      heute · max {nf(max)}
-                    </span>
-                  </span>
-                </div>
-                <div className="flex gap-1">
-                  <div className="flex h-[100px] w-8 shrink-0 flex-col justify-between py-0.5 text-right text-[10px] tabular-nums text-slate-500">
-                    <span>{nf(vmax)}</span><span>{nf(Math.round(vmax / 2))}</span><span>0</span>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <TimeChart t={[hitSpanne[0] - 1, ...hitSpanne, hitSpanne[hitSpanne.length - 1] + 1]}
-                      values={[0, ...werte, vmax]} color={color}
-                      domainMs={[hitSpanne[0] - 1, hitSpanne[hitSpanne.length - 1] + 1]} height={100} />
-                  </div>
-                </div>
-              </Card>
-            );
-          })}
-        </div>
-      )}
-      <h3 className="pt-2 text-sm font-semibold text-slate-100">Angemeldete je Client</h3>
-      {!alle ? <Spinner /> : cliSpanne.length === 0 ? (
-        <p className="text-xs text-slate-400">Noch keine Tage erfasst.</p>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
-          {CLIENT_METRICS.map(([key, titel, color]) => {
-            const werte = aufSpanne(alle.buckets, key, cliSpanne);
-            const heute = werte.length ? werte[werte.length - 1] : 0;
-            const max = werte.length ? Math.max(...werte) : 0;
-            const vmax = Math.max(max, 1);
-            return (
-              <Card key={key} className="p-3">
-                <div className="mb-1 flex items-baseline justify-between px-1">
-                  <span className="text-xs uppercase tracking-wide text-slate-300">{titel}</span>
-                  <span className="text-lg font-bold tabular-nums" style={{ color }}>
-                    {nf(heute)}
-                    <span className="ml-2 text-xs font-normal text-slate-400">
-                      heute · max {nf(max)}
-                    </span>
-                  </span>
-                </div>
-                <div className="flex gap-1">
-                  <div className="flex h-[100px] w-8 shrink-0 flex-col justify-between py-0.5 text-right text-[10px] tabular-nums text-slate-500">
-                    <span>{nf(vmax)}</span><span>{nf(Math.round(vmax / 2))}</span><span>0</span>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    {/* Zwei unsichtbare Stuetzpunkte halten die Skala bei 0…max — wie bei den
-                        Plattform-Kacheln, sonst sieht eine ruhige Reihe wild aus. */}
-                    <TimeChart t={[cliSpanne[0] - 1, ...cliSpanne, cliSpanne[cliSpanne.length - 1] + 1]}
-                      values={[0, ...werte, vmax]} color={color}
-                      domainMs={[cliSpanne[0] - 1, cliSpanne[cliSpanne.length - 1] + 1]} height={100} />
-                  </div>
-                </div>
-                <div className="ml-9 mt-1 flex justify-between px-1 text-[10px] tabular-nums text-slate-500">
-                  {cliTicks.map((tk, i) => <span key={i}>{fmtPlatTick(tk)}</span>)}
-                </div>
-              </Card>
-            );
-          })}
-        </div>
-      )}
-      <div className="flex flex-wrap gap-2 pt-2">
-        {STATS_PERIODS.map(([k, lk]) => (
-          <button key={k} onClick={() => setPeriod(k)}
-            className={`rounded-lg px-3 py-1.5 text-xs transition-colors ${period === k ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}>
-            {t(lk)}
-          </button>
-        ))}
-      </div>
-      {!data ? <Spinner /> : (
-        <>
-        <div className="grid gap-4 sm:grid-cols-2">
-          {STATS_METRICS.map(([key, labelKey, color]) => {
-            // „heute": tägliche Werte (24h-Zacken); sonst kumulierte Kurve, bis "jetzt" verlängert.
-            let tPlot: number[]; let vPlot: number[]; let headline: number;
-            if (daily) {
-              tPlot = times;
-              vPlot = data.buckets.map((b) => b[key]);
-              const todayKey = new Date().toISOString().slice(0, 10);
-              headline = data.buckets.find((b) => b.date === todayKey)?.[key] ?? 0;
-            } else {
-              let acc = 0;
-              const cum = data.buckets.map((b) => (acc += b[key]));
-              tPlot = [...times, domain[1]];
-              vPlot = [...cum, acc];
-              headline = data.totals[key];
-            }
-            // Y-Skala: gleiche min/max-Ableitung wie TimeChart (min..max der geplotteten Werte).
-            const vmax = vPlot.length ? Math.max(...vPlot) : 1;
-            const vmin = vPlot.length ? Math.min(...vPlot) : 0;
-            const fmtY = (v: number) => nf(Math.round(v));
-            return (
-              <Card key={key} className="p-3">
-                <div className="mb-1 flex items-baseline justify-between px-1">
-                  <span className="text-xs uppercase tracking-wide text-slate-300">{t(labelKey)}</span>
-                  <span className="text-lg font-bold tabular-nums" style={{ color }}>{nf(Math.round(headline))}</span>
-                </div>
-                <div className="flex gap-1">
-                  <div className="flex h-[100px] w-8 shrink-0 flex-col justify-between py-0.5 text-right text-[10px] tabular-nums text-slate-500">
-                    <span>{fmtY(vmax)}</span>
-                    <span>{fmtY((vmax + vmin) / 2)}</span>
-                    <span>{fmtY(vmin)}</span>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <TimeChart t={tPlot} values={vPlot} color={color} domainMs={domain} height={100} />
-                  </div>
-                </div>
-                <div className="ml-9 mt-1 flex justify-between px-1 text-[10px] tabular-nums text-slate-500">
-                  {ticks.map((tk, i) => <span key={i}>{fmtTick(tk)}</span>)}
-                </div>
-              </Card>
-            );
-          })}
-        </div>
-
-        {/* Zweites Raster: wer laedt ueber welche Plattform hoch. Eigener Zeitraum (die ganze
-            Historie) und eigener Regler — hier geht es um Einbrueche, nicht um Summen. */}
-        <h3 className="mt-6 text-sm font-semibold text-slate-100">
-          Aktivität je Plattform
-        </h3>
-        <p className="-mt-1 text-xs text-slate-400">
-          Nutzer pro Tag, die über diese Plattform etwas übertragen haben — gleitender Mittelwert
-          über die ganze Historie. Ein Knick nach unten heißt: von dort kommt weniger.
-        </p>
+      {/* Die zwei Schalter stehen GANZ OBEN und gelten fuer alles darunter. */}
+      <Card className="flex flex-col gap-2 p-3">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-slate-400">Geglättet über</span>
-          {GLAETTUNG.map((n) => (
-            <button key={n} onClick={() => setGlatt(n)}
-              className={`rounded-lg px-3 py-1.5 text-xs transition-colors ${glatt === n
-                ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}>
-              {glattLabel(n)}
+          <span className="w-28 shrink-0 text-xs text-slate-400">Zeitraum</span>
+          {ZEITRAUM.map(([n, label]) => (
+            <button key={n} onClick={() => setTage(n)} className={knopf(tage === n)}>{label}</button>
+          ))}
+          <span className="text-[11px] text-slate-500">welcher Ausschnitt zu sehen ist</span>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="w-28 shrink-0 text-xs text-slate-400">Summiert über</span>
+          {FENSTER.map((n) => (
+            <button key={String(n)} onClick={() => setFenster(n)} className={knopf(fenster === n)}>
+              {fensterLabel(n)}
             </button>
           ))}
+          <span className="text-[11px] text-slate-500">worüber ein Punkt zählt</span>
         </div>
-        {!alle ? <Spinner /> : (
-        <div className="grid gap-4 sm:grid-cols-2">
-          {PLATTFORM_METRICS.map(([key, titel, color]) => {
-            const zeiten = platSpanne;
-            const werte = mittel(aufSpanne(alle.buckets, key, zeiten), glatt);
-            const jetzt = werte.length ? werte[werte.length - 1] : 0;
-            const max = werte.length ? Math.max(...werte) : 0;
-            const vmax = Math.max(max, 1);
-            return (
-              <Card key={key} className="p-3">
-                <div className="mb-1 flex items-baseline justify-between px-1">
-                  <span className="text-xs uppercase tracking-wide text-slate-300">{titel}</span>
-                  <span className="text-lg font-bold tabular-nums" style={{ color }}>
-                    {jetzt.toFixed(1)}
-                    <span className="ml-2 text-xs font-normal text-slate-400">
-                      pro Tag · max {max.toFixed(1)}
-                    </span>
-                  </span>
-                </div>
-                <div className="flex gap-1">
-                  <div className="flex h-[100px] w-8 shrink-0 flex-col justify-between py-0.5 text-right text-[10px] tabular-nums text-slate-500">
-                    <span>{vmax.toFixed(1)}</span><span>{(vmax / 2).toFixed(1)}</span><span>0</span>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    {/* Zwei unsichtbare Stuetzpunkte halten die Skala bei 0…max — sonst
-                        skalierte TimeChart auf min…max und eine ruhige Reihe saehe aus wie
-                        starke Ausschlaege (dasselbe Mittel wie im System-Tab). */}
-                    <TimeChart t={[zeiten[0] - 1, ...zeiten, zeiten[zeiten.length - 1] + 1]}
-                      values={[0, ...werte, vmax]} color={color}
-                      domainMs={[zeiten[0], zeiten[zeiten.length - 1]]} height={100} />
-                  </div>
-                </div>
-                <div className="ml-9 mt-1 flex justify-between px-1 text-[10px] tabular-nums text-slate-500">
-                  {platTicks.map((tk, i) => <span key={i}>{fmtPlatTick(tk)}</span>)}
-                </div>
-              </Card>
-            );
-          })}
-        </div>
-        )}
+        <p className="text-[11px] text-slate-500">
+          Beides ist unabhängig: das Fenster wird über die ganze Historie gerechnet und erst danach
+          auf den Zeitraum beschnitten. „30 Tage summiert" stimmt also auch im 10-Tage-Ausschnitt.
+          „24 h" ist der rohe Tageswert, „Gesamt" die mitlaufende Summe seit Beginn.
+        </p>
+      </Card>
+
+      {!data ? <Spinner /> : (
+        <>
+          <h3 className="pt-2 text-sm font-semibold text-slate-100">Nutzung</h3>
+          {raster(STATS_METRICS, true)}
+
+          <h3 className="pt-4 text-sm font-semibold text-slate-100">Aktivität je Plattform</h3>
+          <p className="-mt-1 text-xs text-slate-400">
+            Nutzer, die über diese Plattform etwas übertragen haben. Ein Knick nach unten heißt:
+            von dort kommt weniger.
+          </p>
+          {raster(PLATTFORM_METRICS, false)}
+
+          <h3 className="pt-4 text-sm font-semibold text-slate-100">Wer schaut herein</h3>
+          <p className="-mt-1 text-xs text-slate-400">
+            Aufrufe der öffentlichen Website und angemeldete Nutzer je Client. Beides zählt die
+            laufende Seite selbst, nicht das Zugriffs-Log — dort sind 87 % der Aufrufe unsere
+            eigenen Prüfungen, und wer wiederkommt, bekommt die Seite aus dem Cache. Gespeichert
+            wird eine Tageszahl bzw. ein Eintrag je Nutzer, Client und Tag; wann und wie oft
+            jemand da war, steht nirgends. Die Reihen beginnen am 12.09.2026 — davor wird nichts
+            gezeichnet, weil damals nicht gezählt wurde.
+          </p>
+          {raster(HIT_METRICS, false)}
+          <h3 className="pt-4 text-sm font-semibold text-slate-100">Angemeldete je Client</h3>
+          {raster(CLIENT_METRICS, false)}
         </>
       )}
     </div>
   );
 }
+
 
 // ---------------------------------------------------------------- Blocks ----
 function BlocksTab() {
