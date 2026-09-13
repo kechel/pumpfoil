@@ -3124,6 +3124,7 @@ enum Loc {
         "cls.sport.pumpfoil": r("Pumpfoil", "Pumpfoil", "Pumpfoil", "Pumpfoil", "Pumpfoil", "Pumpfoil", "Pumpfoil"),
         "cls.sport.wingfoil": r("Wingfoil", "Wingfoil", "Wingfoil", "Wingfoil", "Wingfoil", "Wingfoil", "Wingfoil"),
         "cls.sport.kitefoil": r("Kitefoil", "Kitefoil", "Kitefoil", "Kitefoil", "Kitefoil", "Kitefoil", "Kitefoil"),
+        "cls.sport.parawing": r("Parawing (Lowkite / Parakite)", "Parawing (Lowkite / Parakite)", "Parawing (Lowkite / Parakite)", "Parawing (low kite / parakite)", "Parawing (lowkite / parakite)", "Parawing (lowkite / parakite)", "Parawing (lowkite / parakite)"),
         "cls.sport.surf_downwind": r("Surf / Downwind", "Surf / Downwind", "Surf / Downwind", "Surf / downwind", "Surf / downwind", "Surf / downwind", "Surf / downwind"),
         "cls.sport.sup_paddle": r("SUP / Paddeln", "SUP / Paddeln", "SUP / Paddeln", "SUP / paddling", "SUP / paddling", "SUP / paddling", "SUP / paddling"),
         "cls.sport.surf_wave": r("Ozeanwelle (Surfen)", "Ozeanwälle (Surfe)", "Ozeanwelle (Surfen)", "Ocean wave (surf)", "Vague océanique (surf)", "Onda dell'oceano (surf)", "Ola del océano (surf)"),

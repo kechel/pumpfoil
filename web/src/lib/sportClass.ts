@@ -6,8 +6,11 @@
 // „wake" seit 05.08. in drei Kategorien aufgeteilt (beim Pumpen sind das verschiedene Dinge):
 // wakethief = Welle eines FREMDEN Boots mitnehmen · towed = am Seil hinterm Boot · surf_wave =
 // Ozeanwelle am Strand. `wake` bleibt nur als Label für Altbestände (nicht mehr auswählbar).
-export const SPORTS = ["pumpfoil", "wingfoil", "kitefoil", "surf_downwind", "surf_wave",
-                       "sup_paddle", "wakethief", "towed", "efoil", "foildrive", "other"] as const;
+// `parawing` seit 13.09.2026: Lowkite / Parawing / Parakite sind dasselbe (Jan) — ein Wert,
+// alle drei Namen im Label.
+export const SPORTS = ["pumpfoil", "wingfoil", "kitefoil", "parawing", "surf_downwind",
+                       "surf_wave", "sup_paddle", "wakethief", "towed", "efoil",
+                       "foildrive", "other"] as const;
 /** Datenqualität — Müll/Dopplung, zählt nirgends. */
 export const DATA_QUALITY = ["ok", "false_data", "duplicate", "test"] as const;
 

@@ -1564,6 +1564,7 @@ const cs: Record<string, string> = {
   "cls.ownerAsk": "Jiný foiler si myslí, že tahle relace není pumpfoil. Zařadil bys ji? Do té doby se neobjeví v žádné statistice. Pokud to opravdu pumpfoil byl, dej nám vědět a podíváme se.",
   "cls.pickErr": "Nepodařilo se uložit",
   "cls.sport.kitefoil": "Kitefoil",
+  "cls.sport.parawing": "Parawing (lowkite / parakite)",
   "cls.sport.pumpfoil": "Pumpfoil",
   "cls.sport.wingfoil": "Wingfoil",
   "cls.thanks": "Díky! Majitel bude požádán, aby tuto relaci zařadil.",

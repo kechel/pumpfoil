@@ -1529,6 +1529,7 @@ const fi: Record<string, string> = {
   "cls.ownerAsk": "Toinen foilaaja arvelee, ettei tämä sessio ole pumpfoilia. Voisitko luokitella sen? Siihen asti se ei näy missään tilastossa. Jos se todella oli pumpfoilia, kerro meille niin katsomme asiaa.",
   "cls.pickErr": "Tallennus ei onnistunut",
   "cls.sport.kitefoil": "Kitefoil",
+  "cls.sport.parawing": "Parawing (lowkite / parakite)",
   "cls.sport.pumpfoil": "Pumpfoil",
   "cls.sport.wingfoil": "Wingfoil",
   "cls.thanks": "Kiitos! Omistajaa pyydetään luokittelemaan tämä sessio.",

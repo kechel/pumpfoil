@@ -3106,8 +3106,11 @@ def delete_video(
 # am Seil hinter einem Boot geschleppt (keine Eigenleistung), `surf_wave` = Ozeanwelle am Strand.
 # `wake` ist damit NICHT mehr auswählbar; die drei Altbestände behalten den Wert und ihr Label,
 # damit nichts unbeschriftet dasteht (Umsortieren ist eine Einzelfall-Entscheidung des Besitzers).
-SPORTS = ("pumpfoil", "wingfoil", "kitefoil", "surf_downwind", "surf_wave", "sup_paddle",
-          "wakethief", "towed", "efoil", "foildrive", "other")
+# `parawing` kam am 13.09.2026 dazu (Jan): Lowkite, Parawing und Parakite sind DASSELBE —
+# ein Tuchfluegel ohne Gestaenge, der angeschoben und oft wieder weggepackt wird. Deshalb
+# EIN Wert und alle drei Namen im Label, statt drei Kategorien fuer eine Sache.
+SPORTS = ("pumpfoil", "wingfoil", "kitefoil", "parawing", "surf_downwind", "surf_wave",
+          "sup_paddle", "wakethief", "towed", "efoil", "foildrive", "other")
 # Stillgelegte Werte: NICHT mehr zuordenbar (die Validierung prüft nur SPORTS), aber ihre
 # Altbestände bleiben sichtbar — Kategorie-Ansichten iterieren SPORTS + SPORTS_LEGACY, sonst
 # fielen bestehende Sessions bei einer Umbenennung stumm aus jeder Kategorie heraus.
