@@ -929,6 +929,21 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **📥 13.09. — Landingpages der Zusatz-Domains: Text bestätigen, dann übersetzen.** Die sieben
+  Seiten (`server/app/landing.py`) sind seit heute live — lb1 proxyt die Domains durch, www und
+  Zertifikate stehen. Zwei Dinge sind bewusst offen gelassen:
+  - **Sprache:** vorerst nur Deutsch. Die 18 Sprachen erst, wenn Jan mit Aufbau und Text
+    zufrieden ist — sonst übersetzt man 18 mal einen Entwurf. Verfahren wäre dasselbe wie bei
+    der Teilen-Karte: eine Quelle, ein Generator, kein Doppeltpflegen.
+  - **`lowkitefoil.org` ist ein ENTWURF.** Der Begriff ist Jans eigener; ich habe ihn gelesen als
+    „kleiner Schirm, viel Pumpen" und den Text entsprechend geschrieben. Vor der Bewerbung der
+    Domain bitte gegenlesen — dasselbe gilt abgeschwächt für `wakethief` und `paddleup`.
+  - **Messen:** welche Domain überhaupt Besucher bekommt, steht derzeit nur im Apache-Log auf
+    lb1. `PageHit` zählt nur Tag + Art und braucht JavaScript, die Landingpages haben keins. Falls
+    das interessiert: serverseitig je Host zählen wäre hier sauber, weil kein Service-Worker-Cache
+    dazwischenliegt. Erst sinnvoll, wenn die Domains irgendwo verlinkt sind — sonst misst man
+    Crawler.
+
 - **📥 13.09. — Die Foil-Suche verzeiht keinen Tippfehler.** Ein Neuzugang (u542, angelegt 12:31)
   suchte im Einrichtungs-Assistenten nach „Gong **Trial** V3 XL" und bekam null Treffer. Das Foil
   ist da: `Gong TRAIL XL` (#2) und `Gong TRAIL V3 ATMO PERF XL` (#474), beide 135 cm / 1940 cm² /
