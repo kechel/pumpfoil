@@ -163,21 +163,21 @@ SEITEN: tuple[Seite, ...] = (
     ),
     Seite(
         host="parawing.org",
-        titel="Parawing, Lowkite, Parakite — Sessions auswerten",
-        beschreibung="Parawing, Lowkite, Parakite — drei Namen, ein Gerät. Sessions mit der "
-                     "Sportuhr aufzeichnen: Läufe, Pumps, Gleitphasen, Geschwindigkeit.",
+        titel="Parawing, Pocketwing, Lowkite — Sessions auswerten",
+        beschreibung="Parawing, Pocketwing, Lowkite, Parakite — ein Gerät, viele Namen. Sessions "
+                     "mit der Sportuhr aufzeichnen: Läufe, Pumps, Gleitphasen, Geschwindigkeit.",
         h1="Parawing",
-        claim="Lowkite, Parawing, Parakite — drei Namen, ein Gerät.",
+        claim="Parawing, Pocketwing, Lowkite — viele Namen, ein Gerät.",
         absaetze=(
             "Der Antrieb, der in die Hosentasche passt: ein Tuchflügel ohne Gestänge, kein "
             "Schlauch, keine Streben, "
-            "zusammengelegt kaum größer als eine Jacke. Angeschoben wird damit ähnlich wie "
-            "mit einem Wing — und wenn das Board läuft, wandert der Schirm bei vielen "
-            "einfach weg und die Dünung übernimmt.",
-            "Der Gedanke dahinter ist derselbe wie bei Lowkite: je besser der Flügel trägt, "
-            "desto weniger Zug braucht es. Ein kleiner Schirm reicht zum Anschieben, den "
-            "Rest machen Dünung und Beine — und man ist bei Bedingungen unterwegs, bei "
-            "denen andere noch am Strand aufbauen.",
+            "zusammengelegt kaum größer als eine Jacke. Geflogen wird er an kurzen Leinen — das "
+            "ist näher am Kite als am Wing. Und wenn das Board läuft, wandert der Schirm "
+            "weg: ab da ist es reines, ungetriebenes Foilen.",
+            "Der Gedanke dahinter steckt schon im Namen Lowkite, den Gong für seine Schirme "
+            "benutzt: je besser der Flügel trägt, desto weniger Zug braucht es. Ein kleines "
+            "Tuch reicht zum Anschieben, den Rest machen Dünung und Beine — und man ist bei "
+            "Bedingungen unterwegs, bei denen andere noch am Strand aufbauen.",
             "Weil der Antrieb wechselt, wird die Auswertung interessant: welcher Teil der "
             "Session war angeschoben, welcher getragen, und wie lange hielten die Läufe "
             "ohne Zug? pumpfoil.org zerlegt die Aufzeichnung in genau diese Abschnitte.",

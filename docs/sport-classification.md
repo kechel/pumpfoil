@@ -15,11 +15,24 @@ sich unterschiedlich verhalten müssen:
 |---|---|---|---|
 | **`sport`** | `pumpfoil` (Default), `wingfoil`, `kitefoil`, `parawing`, `surf_downwind`, `surf_wave`, `sup_paddle`, `wakethief`, `towed`, `efoil`, `foildrive`, `other` | **echte Daten einer anderen Sportart** | raus aus den Pumpfoil-Rekorden, aber **eigene Rekorde/Stats/Spots je Sportart** möglich (Jans Wunsch: „stats und rekorde fuer die anderen kategorien anzeigbar machen", „spots dann auch je nach kategorie") |
 
-**Parawing: drei Namen, EINE Kategorie** (13.09.2026). Lowkite, Parawing und Parakite bezeichnen
-dasselbe Geraet (Jans Ansage) — ein Tuchfluegel ohne Gestaenge, mit dem angeschoben wird und der
-danach oft weggepackt wird. Drei Kategorien fuer eine Sache haetten die Auswertung zersplittert,
-ohne etwas zu unterscheiden. Deshalb gibt es den einen Wert `parawing`, und alle drei Namen
-stehen im Label („Parawing (Lowkite / Parakite)"), damit jeder seine Bezeichnung wiederfindet.
+**Parawing: viele Namen, EINE Kategorie** (13.09.2026). Ein Tuchfluegel ohne Gestaenge, an
+KURZEN Leinen geflogen (naeher am Kite als am Wing), mit dem angeschoben wird und der danach
+weggepackt wird — ab da ist es reines, ungetriebenes Foilen. Die Szene nennt dasselbe Geraet
+*parawing, pocketwing, lowkite, para-tow kite, D-wing* (Foiling Magazine, „New Sensation:
+Exploring the Birth of the Parawing"). Mehrere Kategorien fuer eine Sache haetten die Auswertung
+zersplittert, ohne etwas zu unterscheiden — daher der eine Wert `parawing`.
+
+Bei der Wahl des Labels sind zwei Dinge zu beachten, die 13.09.2026 recherchiert wurden:
+- **„Lowkite" ist Gongs eigener Produktname** (gong-galaxy.com/collections/lowkite), kein
+  neutrales Wort. Es steht im Label, weil viele ihr Geraet so nennen — aber nicht an erster Stelle.
+- **Gong hat im Maerz 2025 eine EU-Wortmarke auf „Parawing" angemeldet**, obwohl sie ihre eigenen
+  Schirme Lowkites nennen; die Anmeldung laeuft beim EUIPO und wird als Griff nach einem
+  generischen Begriff kritisiert. Falls sie durchgeht, ist das Label neu zu bewerten.
+- **„Pocketwing"** geht auf Sam Reynolds zurueck, einen der Vorlaeufer, und ist markenfrei.
+  Deshalb steht es zuerst: „Parawing (Pocketwing / Lowkite)".
+
+Historie: Vorlaeufer waren Sam Reynolds' Pocket Wing und Cynbads Modellraketen-Fallschirm-
+Downwinder; breit wurde es im Sommer 2024 mit Greg Drexlers Maliko Parawing.
 
 **Fremde Wellenkraft: drei Kategorien statt einer** (05.08.2026). Bis dahin gab es das Sammelbecken
 `wake` („Wake / Boot"). Beim Pumpen sind das aber verschiedene Dinge, und genau die Unterscheidung

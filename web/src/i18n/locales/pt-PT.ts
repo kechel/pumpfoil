@@ -1502,7 +1502,7 @@ const ptPT: Record<string, string> = {
   "cls.ownerAsk": "Outro foiler acha que esta sessão não é pumpfoil. Podias classificá-la? Até lá não aparece em nenhuma estatística. Se foi mesmo pumpfoil, é só dizeres-nos que vamos ver.",
   "cls.pickErr": "Não foi possível guardar",
   "cls.sport.kitefoil": "Kitefoil",
-  "cls.sport.parawing": "Parawing (lowkite / parakite)",
+  "cls.sport.parawing": "Parawing (pocketwing / lowkite)",
   "cls.sport.pumpfoil": "Pumpfoil",
   "cls.sport.wingfoil": "Wingfoil",
   "cls.thanks": "Obrigado! O dono será convidado a classificar esta sessão.",
