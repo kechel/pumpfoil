@@ -2322,8 +2322,23 @@ Page(
         } catch (e) {}
         const hz = a.accelHz || ACCEL_DEFAULT_HZ;
         const t0s = a.accelChunkT0 || [];
+        // Fehlende Chunk-Startzeiten ergaenzen: die Kopfdaten werden nur alle zehn GPS-Punkte
+        // geschrieben, nach einem Absturz fehlen also die letzten ein, zwei Eintraege.
+        //
+        // FORTSCHREIBEN statt neu rechnen. Bis 13.09.2026 stand hier
+        //     t0s.push(Math.round(t0s.length * ACCEL_CHUNK_SAMPLES / hz * 1000))
+        // — die mittlere Rate ab Null. Der Wert landet damit HINTER dem letzten echten Eintrag,
+        // und ein einziger Rueckschritt genuegt: der Server verwirft dann die exakte Zeitachse
+        // komplett und faellt auf die gemessene Durchschnittsrate zurueck (`timebase.py`:
+        // „t0_ms nicht streng wachsend"). Belegt an einer 17-Minuten-Session, bei der genau der
+        // LETZTE von 142 Eintraegen fehlte: 1 010 254 ms gemessen, 1 002 667 ms aus der Formel —
+        // 7,6 Sekunden rueckwaerts, und die ganze Achse war hin. Genau die schlechtere Achse hat
+        // am 10.08. schon einmal 124 Sekunden Fehler verursacht (docs/DATA-PIPELINE.md §9.1).
         const needed = Math.ceil(samples / ACCEL_CHUNK_SAMPLES);
-        while (t0s.length < needed) t0s.push(Math.round(t0s.length * ACCEL_CHUNK_SAMPLES / hz * 1000));
+        const schritt = Math.round(ACCEL_CHUNK_SAMPLES / hz * 1000);
+        while (t0s.length < needed) {
+          t0s.push(t0s.length ? t0s[t0s.length - 1] + schritt : 0);
+        }
         const eintrag = { uuid: a.uuid, startedAtMs: a.startedAtMs, endedAtMs: end,
           foilId: a.foilId, accelFile: a.accelFile, accelSamples: samples,
           accelHz: hz, accelChunkT0: t0s };
