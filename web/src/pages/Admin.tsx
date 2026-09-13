@@ -301,26 +301,45 @@ function fensterZusatz(n: number): string {
   return n === Infinity ? "gesamt" : `letzte ${fensterLabel(n)}`;
 }
 
-/** Lueckenlose Tagesachse ueber die ganze Historie (erster Bucket-Tag bis heute).
+/** Lueckenlose Tagesachse ueber die ganze Historie, als Datums-ZEICHENKETTEN ("2026-09-13").
  *
  *  Lueckenlos ist Pflicht: der Server liefert nur Tage MIT Werten. Ohne die stillen Tage als 0
  *  zeigte eine verstummte Plattform eine flache Linie statt eines Abfalls auf null — genau das,
- *  was hier auffallen soll. */
-function tagesachse(buckets: AdminStatsBucket[]): number[] {
+ *  was hier auffallen soll.
+ *
+ *  ZEICHENKETTEN UND UTC-SCHRITTE, NICHT `+ 86400000` AUF EINEM LOKALEN ZEITSTEMPEL. Genau das
+ *  stand hier am 13.09.2026 fuer ein paar Minuten und liess ALLE Grafiken ausser „Nutzung" auf
+ *  null stehen (Jans Befund). Grund: die Reihe beginnt am 26.12.2018, also in der Winterzeit.
+ *  Wer von dort in exakten 24-Stunden-Schritten weitergeht, landet nach der naechsten
+ *  Zeitumstellung auf 01:00 Uhr statt Mitternacht — und der Abgleich mit den Tageswerten, die an
+ *  Mitternacht haengen, findet dann nichts mehr. Gemessen: gesucht war 2026-09-11T22:00Z, der
+ *  naechste Achsenpunkt lag auf 2026-09-10T23:00Z. Ueber ein Datum als Zeichenkette kann das
+ *  nicht passieren. */
+function tagesachse(buckets: AdminStatsBucket[]): string[] {
   if (!buckets.length) return [];
-  const tage = buckets.map((b) => new Date(b.date + "T00:00:00").getTime());
-  const von = Math.min(...tage);
-  const bis = Math.max(new Date(new Date().toISOString().slice(0, 10) + "T00:00:00").getTime(), von);
-  const out: number[] = [];
-  for (let t = von; t <= bis; t += DAY_MS) out.push(t);
+  const heute = new Date().toISOString().slice(0, 10);
+  let tag = buckets.reduce((a, b) => (b.date < a ? b.date : a), buckets[0].date);
+  const out: string[] = [];
+  // In UTC weiterzaehlen: dort hat jeder Tag wirklich 24 Stunden.
+  let d = new Date(tag + "T00:00:00Z");
+  while (tag <= heute) {
+    out.push(tag);
+    d = new Date(d.getTime() + DAY_MS);
+    tag = d.toISOString().slice(0, 10);
+  }
   return out;
+}
+
+/** Die Achse als lokale Mitternachts-Zeitstempel — nur zum Zeichnen. */
+function achseMs(achse: string[]): number[] {
+  return achse.map((t) => new Date(t + "T00:00:00").getTime());
 }
 
 /** Werte einer Reihe auf die Tagesachse legen (fehlende Tage = 0). */
 function aufAchse(buckets: AdminStatsBucket[], key: keyof AdminStatsSeries["totals"],
-                  achse: number[]): number[] {
-  const proTag = new Map<number, number>();
-  for (const b of buckets) proTag.set(new Date(b.date + "T00:00:00").getTime(), b[key] as number);
+                  achse: string[]): number[] {
+  const proTag = new Map<string, number>();
+  for (const b of buckets) proTag.set(b.date, b[key] as number);
   return achse.map((t) => proTag.get(t) ?? 0);
 }
 
@@ -407,6 +426,7 @@ function StatsSection() {
   // Luege (es fehlten die 20 Tage davor).
   const { data } = useAsync<AdminStatsSeries>(() => api.adminStatsSeries("all"), []);
   const achse = tagesachse(data?.buckets ?? []);
+  const achseZeit = achseMs(achse);
   const now = Date.now();
   const domain: [number, number] = [now - tage * DAY_MS, now];
   const ticks = Array.from({ length: 5 }, (_, i) => domain[0] + ((domain[1] - domain[0]) * i) / 4);
@@ -424,7 +444,7 @@ function StatsSection() {
     <div className="grid gap-4 sm:grid-cols-2">
       {metriken.map(([key, titel, color]) => (
         <VerlaufKachel key={key} titel={uebersetzt ? t(titel) : titel} color={color}
-          achse={achse} werte={reihe(key)} domain={domain} ticks={ticks} fmtTick={fmtTick}
+          achse={achseZeit} werte={reihe(key)} domain={domain} ticks={ticks} fmtTick={fmtTick}
           zusatz={zusatz} nf={nf} />
       ))}
     </div>
