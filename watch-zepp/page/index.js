@@ -95,7 +95,7 @@ const DEV_FAKE_GPS = false;  // true = synthetische GPS-Spur (nur Simulator-UI-D
 // aus dem Paket lesen ginge nur über einen weiteren @zos-Import; die sind hier ungetestet und
 // können beim Laden crashen, deshalb bewusst eine Konstante.) Der Bump auf 1.0.4 hatte nur
 // app.json getroffen: die Uhr zeigte weiter "v1.0.3" und meldete das auch dem Server.
-const APP_VERSION = "1.0.9";
+const APP_VERSION = "1.0.10";
 
 // Wie lange der Stopp-Bildschirm nach einem Tastendruck stehen bleibt, bevor die vorherige
 // Seite zurueckkommt. Fuenf Sekunden reichen zum Lesen und Antippen, und ein Fehlgriff ist
@@ -257,6 +257,29 @@ const getClaim = () => store.getItem("claimToken", "") || "";
 const loadPending = () => { try { return JSON.parse(store.getItem("pending", "[]")) || []; } catch (e) { return []; } };
 const savePending = (a) => { try { store.setItem("pending", JSON.stringify(a)); } catch (e) {} };
 const removePending = (uuid) => savePending(loadPending().filter((s) => s.uuid !== uuid));
+
+// Wasserstand je Session: wie viele GPS- und Accel-Bloecke der Server schon bestaetigt hat.
+// Verfahren von der Garmin-Uhr uebernommen (`_sa`/`_sg` in watch/source/Uploader.mc) — GETRENNT
+// nach Art, weil beide Arten ihre eigene Nummerierung ab 0 haben.
+//
+// EIGENER, WINZIGER SCHLUESSEL und nicht im `pending`-Eintrag: den grossen Block anzufassen hiesse
+// ihn zu parsen UND neu zu schreiben (bei zwei Stunden 287 KB), und das mitten im Upload, wo der
+// Speicher ohnehin knapp ist. Hier sind es zwei Zahlen.
+//
+// WOFUER (GitHub #4, 13.09.2026): bis hierher begann JEDER Versuch wieder bei Block 0. Cesars
+// Upload starb reproduzierbar bei Block 108 von 2341 — zehn Neustarts haetten zehnmal dieselben
+// 108 Bloecke geschickt. Er hatte das im Ticket sogar beschrieben („the transfer seemed to restart
+// from zero"), wir hatten es nur nicht gelesen. Jetzt kommt jeder Versuch ein Stueck weiter.
+// Ein veralteter Stand ist ungefaehrlich: der Server ueberschreibt gleiche (Session, Art, Index).
+const markeKey = (uuid) => "sent:" + uuid;
+const ladeMarke = (uuid) => {
+  try {
+    const teile = String(store.getItem(markeKey(uuid), "0/0")).split("/");
+    return { gps: parseInt(teile[0], 10) || 0, accel: parseInt(teile[1], 10) || 0 };
+  } catch (e) { return { gps: 0, accel: 0 }; }
+};
+const setzeMarke = (uuid, gps, accel) => { try { store.setItem(markeKey(uuid), gps + "/" + accel); } catch (e) {} };
+const loescheMarke = (uuid) => { try { store.setItem(markeKey(uuid), ""); } catch (e) {} };
 
 const makeUuid = (now) => "zepp-" + now + "-" + Math.floor(Math.random() * 1e9).toString(36);
 const pad = (n) => (n < 10 ? "0" + n : "" + n);
@@ -2184,7 +2207,14 @@ Page(
       const gpsChunkCount = Math.ceil(sess.gps.length / GPS_CHUNK);
       const accelChunkCount = hasAccel ? Math.ceil(sess.accelSamples / ACCEL_CHUNK_SAMPLES) : 0;
       const dataChunkCount = gpsChunkCount + accelChunkCount;
-      const total = dataChunkCount + 2; let done = 0;
+      // Wo der letzte Versuch stehen geblieben ist. Nie weiter als das, was es zu senden gibt —
+      // sonst bliebe nach einer Aenderung an den Blockgroessen ein Rest ungesendet.
+      const marke = ladeMarke(sess.uuid);
+      const vonGps = Math.min(marke.gps, gpsChunkCount);
+      const vonAccel = Math.min(marke.accel, accelChunkCount);
+      // Die Anzeige zaehlt das schon Erledigte mit, sonst faengt ein fortgesetzter Upload
+      // wieder bei "1/2341" an, obwohl er in Wahrheit bei 109 weitermacht.
+      const total = dataChunkCount + 2; let done = vonGps + vonAccel;
       // done/total gehen MIT: die Anzeige zeigt "5/34" statt Prozent (Jan, 10.09.2026 —
       // "das abkuerzen als 'Uploading 5/34'"). Der Balken braucht weiter die Prozent.
       const bump = () => { done++; if (onProg) onProg(Math.min(100, Math.round(done / total * 100)), done, total); };
@@ -2195,22 +2225,63 @@ Page(
         if (!r || r.ok !== true) throw new Error(t("up.serverUnreach"));
         return r;
       });
-      // Build and release one GPS slice at a time. Keeping every slice alive for a long session —
-      // especially when several flush workers accidentally overlapped — exhausted watch memory.
-      const sendGpsChunk = (index) => {
-        if (index >= gpsChunkCount) return Promise.resolve();
-        const data = sess.gps.slice(index * GPS_CHUNK, (index + 1) * GPS_CHUNK);
+      // Bloecke NACHEINANDER senden, ohne die Promises aneinanderzuhaengen.
+      //
+      // WARUM NICHT REKURSIV (Fehlerbild vom 13.09.2026, GitHub #4, César/mesarpe): die alte
+      // Fassung gab die Promise des NAECHSTEN Blocks zurueck —
+      //     return req({...}).then(() => sendGpsChunk(index + 1));
+      // Damit blieb Ebene 0 offen, bis die letzte Ebene fertig war, und weil die `.then`-Funktion
+      // im Gueltigkeitsbereich von `sendGpsChunk(index)` entsteht, hielt sie diesen Bereich samt
+      // `data` am Leben. Es lag also nicht EIN Block im Speicher, sondern alle bisherigen. Bei
+      // einer Zwei-Stunden-Session (2339 Bloecke) starb die Uhr bei Block 108 mit "Out of Memory"
+      // — noch in den GPS-Bloecken, die Accel-Datei war da nicht einmal geoeffnet. Die Absicht im
+      // alten Kommentar ("build and release one slice at a time") war richtig; die Promise-Kette
+      // hat sie zunichte gemacht.
+      //
+      // `folge` ruft den naechsten Schritt AUS dem Erfolgs-Handler heraus auf und gibt ihn NICHT
+      // zurueck. Damit endet der Gueltigkeitsbereich jedes Schrittes, sobald er gesendet ist, und
+      // offen ist immer nur die eine aeussere Promise. Der Aufrufstapel waechst nicht mit: jeder
+      // Schritt laeuft in einer eigenen Microtask.
+      const folge = (von, anzahl, schritt) => new Promise((fertig, fehler) => {
+        const naechster = (i) => {
+          if (i >= anzahl) return fertig();
+          schritt(i).then(() => { bump(); naechster(i + 1); }, fehler);
+        };
+        naechster(von);
+      });
+
+      const sendGpsChunks = () => folge(vonGps, gpsChunkCount, (index) => {
+        const von = index * GPS_CHUNK;
+        const data = sess.gps.slice(von, von + GPS_CHUNK);
         return req({ method: "CHUNK", token: tok, session_uuid: sess.uuid, index,
                      kind: "gps", encoding: "json", count: data.length, data })
-          .then(() => { bump(); return sendGpsChunk(index + 1); });
-      };
+          .then((r) => {
+            // Gesendete Punkte SOFORT freigeben. `flushPending` hat die ganze Warteschlange per
+            // JSON.parse im Speicher — bei zwei Stunden sind das rund 7200 Punkte und damit gut
+            // 1,2 MB, die liegen, bevor der erste Block rausgeht. Genau daran ist der Upload
+            // gestorben (GitHub #4: „Out of Memory" bei Block 108 von 2341, noch in den
+            // GPS-Bloecken). Ab hier sinkt der Verbrauch waehrend des Uploads, statt zu stehen.
+            //
+            // UNGEFAEHRLICH, weil `list` in `flushPending` nur eine PARSE-KOPIE ist: der
+            // persistente Stand in `store` wird erst bei `removePending` angefasst. Bricht der
+            // Upload ab, faellt diese Kopie weg und der naechste Versuch liest frisch.
+            for (let i = von; i < von + data.length; i++) sess.gps[i] = 0;
+            // Wasserstand nur alle 25 Bloecke schreiben. Jeder Schreibvorgang geht in den Flash;
+            // bei 2341 Bloecken waeren das 2341 Schreibzugriffe fuer nichts. Verliert ein Absturz
+            // die letzten paar Bloecke, werden sie beim naechsten Versuch erneut gesendet — der
+            // Server ueberschreibt gleiche (Session, Art, Index).
+            if (index % 25 === 24 || index === gpsChunkCount - 1) setzeMarke(sess.uuid, index + 1, vonAccel);
+            return r;
+          });
+      });
       const sendAccelChunks = () => {
         if (!accelChunkCount) return Promise.resolve();
         let fd = -1;
         try { fd = openSync({ path: sess.accelFile, flag: O_RDONLY }); }
         catch (e) { return Promise.reject(new Error("accelerometer file unavailable")); }
-        const send = (index) => {
-          if (index >= accelChunkCount) return Promise.resolve();
+        // Dieselbe Kette wie oben, und hier waere sie noch teurer: je Ebene haengen ein
+        // ArrayBuffer (768 Byte) UND die Base64-Zeichenkette (~1 KB) mit drin.
+        const send = folge(vonAccel, accelChunkCount, (index) => {
           const count = Math.min(ACCEL_CHUNK_SAMPLES, sess.accelSamples - index * ACCEL_CHUNK_SAMPLES);
           const byteLength = count * 6;
           const buffer = new ArrayBuffer(byteLength);
@@ -2225,12 +2296,16 @@ Page(
           const t0 = t0s[index] != null ? t0s[index] : Math.round(index * ACCEL_CHUNK_SAMPLES / accelHz * 1000);
           return req({ method: "CHUNK", token: tok, session_uuid: sess.uuid, index,
                        kind: "accel", encoding: "int16-b64", t0_ms: t0, count, data })
-            .then(() => { bump(); return send(index + 1); });
-        };
-        return send(0).then((value) => { try { closeSync({ fd }); } catch (e) {} return value; },
+            .then((r) => {
+              if (index % 25 === 24 || index === accelChunkCount - 1)
+                setzeMarke(sess.uuid, gpsChunkCount, index + 1);
+              return r;
+            });
+        });
+        return send.then((value) => { try { closeSync({ fd }); } catch (e) {} return value; },
           (err) => { try { closeSync({ fd }); } catch (e) {} throw err; });
       };
-      return req({ method: "START", token: tok, meta }).then(() => { bump(); return sendGpsChunk(0); })
+      return req({ method: "START", token: tok, meta }).then(() => { bump(); return sendGpsChunks(); })
         .then(() => sendAccelChunks())
         .then(() => req({ method: "COMPLETE", token: tok, session_uuid: sess.uuid,
                           ended_at_ms: sess.endedAtMs, total_chunks: dataChunkCount })).then(bump);
@@ -2254,8 +2329,15 @@ Page(
       // "App offen lassen!" — auf einer runden Uhr lief die Zeile weit ueber den Rand.
       // Das "…" aus up.running fliegt raus, sonst stuende "Upload laeuft… 5/34".
       // Der Hinweis, die App offen zu lassen, steht jetzt EINMAL am Anfang (s. stop()).
+      // Neu gezeichnet wird nur, wenn sich das ANGEZEIGTE aendert — also beim Prozentsprung.
+      // Vorher lief bei JEDEM Block ein voller Bildaufbau: bei einer Zwei-Stunden-Session sind
+      // das 2341 Neuzeichnungen fuer 100 sichtbare Zustaende. Das kostete Rechenzeit, die dem
+      // Aufraeumen fehlte, und liess die Uhr waehrend des Uploads traege wirken.
+      let letztesPct = -1;
       const onProg = (pct, done, total) => { s.upPct = pct;
         s.upStatus = t("up.running").replace("…", "") + " " + done + "/" + total;
+        if (pct === letztesPct) return;
+        letztesPct = pct;
         if (inSummary) { this.showBar(pct); this.renderSummary(); } else this.renderIdle(); };
       const step = (i) => {
         if (i >= list.length) {
@@ -2268,6 +2350,7 @@ Page(
         this.uploadSession(sess, onProg)
           .then(() => {
             if (sess.accelFile) { try { rmSync({ path: sess.accelFile }); } catch (e) {} }
+            loescheMarke(sess.uuid);   // Session ist durch — der Wasserstand hat keinen Zweck mehr
             removePending(sess.uuid); step(i + 1);
           })
           .catch((err) => {

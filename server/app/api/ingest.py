@@ -177,6 +177,16 @@ def start_session(
         },
     )
     _altlasten_abschliessen(db, device, s, background)
+    # ACHTUNG, wer das benutzt: die Liste traegt NUR die Indizes, die Art (gps/accel) faellt weg.
+    # Das geht gut, solange ein Client EINEN durchlaufenden Zaehler ueber beide Arten fuehrt — so
+    # machen es Wear (Recorder.kt: ein `chunkIndex` fuer gps und accel) und die Apple Watch
+    # (Recorder.swift, ebenso). Fuer die beiden ist die Liste eindeutig.
+    #
+    # Ein Client mit GETRENNTER Nummerierung je Art (beide ab 0) darf sie NICHT verwenden: er
+    # wuerde Accel-Bloecke ueberspringen, weil ein GPS-Block mit derselben Nummer angekommen ist,
+    # und dabei stumm Daten verlieren. Genau so nummeriert die Zepp-Uhr; sie setzt deshalb — wie
+    # die Garmin-Uhr — auf einen EIGENEN Wasserstand je Art auf dem Geraet (13.09.2026).
+    # Wer die Liste je nach Art braucht, ergaenzt sie hier um das Feld, statt sie umzudeuten.
     received = [c.index for c in s.chunks]
     return SessionStartOut(session_id=s.id, received_chunks=sorted(set(received)))
 
