@@ -32,8 +32,10 @@ eine Handvoll Datenpakete an und dann nichts mehr. Derselbe Melder hatte sechs F
 
 **Und ein Tastendruck zeigt jetzt den Stopp-Bildschirm**, statt sichtbar nichts zu tun. So
 verhalten sich die eingebauten Zepp-Aktivitäten auch: der Druck beendet nichts, er macht nur
-sichtbar, wo das Beenden liegt. Ein Fehlgriff ist damit folgenlos und trotzdem erkennbar.
-Vorgeschlagen vom selben Melder.
+sichtbar, wo das Beenden liegt. Bleibt er unbeantwortet, kommt nach **fünf Sekunden** von selbst
+die Seite zurück, die vorher zu sehen war — ein Fehlgriff ist damit spurlos weg, statt den Rest
+der Fahrt stehen zu bleiben. Wer in der Zeit selbst weiterblättert, behält die Kontrolle: dann
+springt nichts mehr zurück. Vorgeschlagen vom selben Melder.
 
 Beendet wird eine Aufnahme weiterhin über langes SELECT (oder kurzes, wenn im Profil so
 eingestellt) und über den Stopp-Bildschirm.
