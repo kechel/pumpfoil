@@ -9,6 +9,24 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 🚀 App-Release-Stand
 
+- **🟢 13.09. — Android Phone 1.1.28 + Wear OS 1.2.28 SIND LIVE.** Play-Mail: „Your update to
+  Pumpfoil, created on Sep 10, 2026 at 8:09 AM GMT, is live in the store." Der Zeitstempel passt
+  auf unsere Einreichung vom 10.09. 10:09 Berlin; wie immer deckt EINE Mail beide Tracks ab.
+  **Drei Tage Pruefung** — nach der Ablehnung von 1.2.27 am 10.09. („Wear font size").
+  - **Nicht nur geglaubt, im Feld belegt:** drei Geraete-Tokens melden `app_version 1.2.28`, das
+    letzte am 13.09. um 07:13. Das sind echte Nutzer — der Play-Pruefer lief am 10.09. mit
+    **1.2.27**, dem abgelehnten Stand, und existiert dort genau einmal. Fuer das PHONE geht dieser
+    Beleg nicht: iOS und Android-Handy zaehlen beide `1.1.x`, die Version allein unterscheidet sie
+    nicht. 1.2.x ist dagegen eindeutig Wear.
+  - `_APP_META["android"]` auf **1.1.28**, `["wear"]` auf **1.2.28**, IN_REVIEW-Eintrag raus,
+    **17 Changelog-Punkte** eingetragen (mit `versionen`, damit die Marke am Punkt steht).
+  - Die ABGELEHNT-Zeile zu 1.1.27 / 1.2.27 ist von SELBST aus der Tabelle verschwunden, sobald
+    die neuere Fassung live war (`_noch_offen`) — nachgeprueft an `/api/app/releases`.
+  - **Naechste Nummer steht damit fest: 1.1.29 / 1.2.29**, beide zusammen. Der NAECHSTES-Eintrag
+    traegt sie jetzt statt „after 1.1.28" und wartet nur noch auf Jans Upload. Inhalt: elf
+    Punkte, darunter der Einrichtungs-Assistent, der Start in der Geraetesprache, die
+    Anbieter-Anmeldung ueber den Systembrowser und der Puls-Anstieg.
+
 - **🟡 12.09. 22:27 — iOS/Apple Watch 1.1.33 (Build 37) EINGEREICHT.** Jans Meldung aus App Store
   Connect: „Heute um 22:27 · iOS 1.1.33 · Jan Kechel · 1 Element · Warten auf Pruefung".
   **Zwei Einreichungen an einem Tag** — 1.1.32 ging um 00:06 UTC live —, und das hat einen Grund:
