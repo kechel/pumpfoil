@@ -9,9 +9,28 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 🚀 App-Release-Stand
 
-- **🟡 13.09. — Amazfit/Zepp 1.0.9 (code 12) EINGEREICHT**, einen Tag nach der Freigabe von 1.0.8.
-  Zepp-Konsole: appId 1118995, Application Time 2026.09.13, „Under Review (Can be Withdrawn)";
-  darunter 1.0.8 vom 12.09. als „Approved".
+- **🟡 13.09. 20:5x — Amazfit/Zepp 1.0.10 (code 13) EINGEREICHT.** Zepp-Konsole: appId 1118995,
+  Application Time 2026.09.13, „Under Review (Can be Withdrawn)"; darunter 1.0.8 vom 12.09. als
+  „Approved". **1.0.9 wurde zurueckgezogen und nie ausgeliefert** — sie lag im Review, als Cesar
+  (GitHub #4) meldete, dass sein Upload weiter mit „Out of Memory" abbricht (Block 108 von 2341).
+  Statt ihn auf zwei Review-Runden warten zu lassen — bei Zepp sind das Wochen — ging der Fix
+  gleich mit. Der Inhalt von 1.0.9 ist unveraendert enthalten.
+  - **Was 1.0.10 zusaetzlich bringt** (vier Punkte, alle am 13.09. im Emulator belegt):
+    abgebrochene Uploads setzen fort statt bei 0 neu zu beginnen · die GPS-Spur liegt in einer
+    Binaerdatei statt im Speicher · beide Dateien werden nur zum Schreiben geoeffnet (Zepp OS
+    vertraegt keine zweite gleichzeitig offene Datei) · eine wiederhergestellte Aufnahme behaelt
+    ihre genaue Zeitachse.
+  - **Pruefung, die dahinter steht** (Jan im Emulator, ~2,5 Stunden): fuenf Aufnahmen von
+    12 s bis 17 min · Abbruch mitten im Upload und mitten in der Aufnahme · 192 bzw. 226 von
+    226 Bloecken ohne Luecke und ohne Doppelte · `time_base=exact_chunks` · gemessene Rate
+    18,07 gegen gemeldete 18 Hz · Strecke 3575 m gegen 3,60 km auf der Uhr. Drei Fehler kamen
+    dabei heraus, die in kurzen Laeufen alle unsichtbar waren — das ist der Anlass fuer den
+    neuen Abschnitt „Qualitaet geht vor Tempo" in `CLAUDE.md`.
+  - **Gemessen nebenbei:** der Upload schafft 3,5 Bloecke/s. Cesars 2339 Bloecke sind damit rund
+    elf Minuten am Stueck — ohne Fortsetzen konnte das nie klappen, ganz unabhaengig vom Speicher.
+  - **Nach der Freigabe:** `_APP_META["zepp"]` auf **1.0.10**, IN_REVIEW-Eintrag raus,
+    Changelog-Punkte eintragen — UND Cesar Bescheid geben (in DM 1712 versprochen, und die Mail
+    vom 13.09. 18:56 kuendigt es an).
   - **Anlass war eine Nutzerantwort, keine Planung.** Die Rundmail an die elf Amazfit-Konten ging
     um 09:19 raus, um **10:43** kam Sams Beschreibung („if a button is pressed it exits the app
     straight away"), um **11:30** war die Ursache behoben. Deshalb zwei Einreichungen an
