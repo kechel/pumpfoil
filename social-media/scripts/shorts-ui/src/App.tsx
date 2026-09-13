@@ -10,7 +10,7 @@ import Stats from "./Stats";
 const TXN = 10;
 const TXF = 0.5;
 const TXH = 2.0;
-const TXS = 60;
+const TXS = 80;   // Standard-Schriftgroesse eines Textslots (Jan, 13.09.)
 const OUTRO_SECS = 2.5;
 const OUTRO_SECS_LONG = 4.0;
 const OUTRO_LONG_AB = 20.0;
@@ -70,9 +70,9 @@ const ZH_REVEAL_SUBS = ["你试了一次", "你又试了一次", "你更接近�
 const ZH_REVEAL_HOOK = "成功\n还是失败？";
 const ZH_REVEAL_END = "去尝试，本身就是成功。\n\n剩下的只是练习。";
 const ZH_REVEAL_FAIL = "待在家里的那一天";
-const ZH_DEFAULT_LAST_TEXT = "玩得开心\n\n继续 pump！" + "\n".repeat(16);
+const ZH_DEFAULT_LAST_TEXT = "玩得开心\n\n继续 pump！" + "\n".repeat(12);
 const ZH_DEFAULT_2ND_LAST_TEXT =
-  "加入我们的免费社区\npumpfoil.org\n\n记录、分享、对比\n你的每一次进步" + "\n".repeat(14);
+  "加入我们的免费社区\npumpfoil.org\n\n记录、分享、对比\n你的每一次进步" + "\n".repeat(10);
 // Der Text, der wirklich gezeichnet wird.
 const txText = (tx: TextSlot, zh: boolean) =>
   (zh && tx.zh && tx.zh.trim()) ? tx.zh : tx.text;
@@ -84,12 +84,14 @@ const shapeOf = (tx: TextSlot): TxShape => tx.shape ?? "plain";
 const isGfx = (tx: TextSlot) => isStamp(tx.style) || shapeOf(tx) !== "plain";
 // Standardtexte in den beiden untersten Slots. Die Leerzeilen sind Absicht: die
 // Zeilen werden vertikal zentriert (siehe drawText), die Leerzeilen schieben den
-// Text nach oben. Die Anzahl ist so gewaehlt, dass beide Bloecke auf derselben
-// Hoehe beginnen — bei 3 Zeilen braucht es 16 Leerzeilen, bei 5 nur noch 14.
-const DEFAULT_LAST_TEXT = "have fun\n\nkeep pumping!" + "\n".repeat(16);
+// Text nach oben. Der Abstand von 2 zwischen den beiden Zahlen haelt sie auf
+// derselben Hoehe: der eine Block hat drei Zeilen, der andere fuenf. Seit der
+// Standard 80 statt 60 gross ist, wiegt jede Leerzeile mehr — deshalb vier
+// weniger als vorher, 16/14 wurden 12/10 (Jan, 13.09.).
+const DEFAULT_LAST_TEXT = "have fun\n\nkeep pumping!" + "\n".repeat(12);
 const DEFAULT_2ND_LAST_TEXT =
   "join our free community\nat https://pumpfoil.org\n\n"
-  + "track, share and compare\nyour progress" + "\n".repeat(14);
+  + "track, share and compare\nyour progress" + "\n".repeat(10);
 const emptyTexts = (): TextSlot[] =>
   Array.from({ length: TXN }, (_, i) => ({
     start: null,
