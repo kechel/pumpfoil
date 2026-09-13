@@ -22,10 +22,21 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
     **17 Changelog-Punkte** eingetragen (mit `versionen`, damit die Marke am Punkt steht).
   - Die ABGELEHNT-Zeile zu 1.1.27 / 1.2.27 ist von SELBST aus der Tabelle verschwunden, sobald
     die neuere Fassung live war (`_noch_offen`) — nachgeprueft an `/api/app/releases`.
-  - **Naechste Nummer steht damit fest: 1.1.29 / 1.2.29**, beide zusammen. Der NAECHSTES-Eintrag
-    traegt sie jetzt statt „after 1.1.28" und wartet nur noch auf Jans Upload. Inhalt: elf
-    Punkte, darunter der Einrichtungs-Assistent, der Start in der Geraetesprache, die
-    Anbieter-Anmeldung ueber den Systembrowser und der Puls-Anstieg.
+  - **🟡 GEBUMPT UND EINREICHFERTIG: Phone 1.1.29 (43) + Wear 1.2.29 (1039)**, beide zusammen
+    (harte Regel). `:app:compileDebugKotlin` und `:wear:compileDebugKotlin` gruen. Jan muss nur
+    noch das signierte AAB bauen und hochladen — Ansage 13.09.: „der einrichtungs-assistent
+    allein lohnt schon ein release".
+    - Inhalt (elf Punkte, wortgleich in `NAECHSTES`): Einrichtungs-Assistent · Start in der
+      GERAETESPRACHE statt hart Deutsch · Anmeldung mit Google/Apple ueber den Systembrowser ·
+      Puls-Anstieg in der Trainingskurve · gewaehlte Sprache bleibt am Konto · die Uhr nennt ihre
+      eigene Marke statt „Garmin" · vollstaendige Sprachliste in der Anmeldemaske · Sprachwahl
+      ganz oben · Puls-Alarm mit Wiederholabstand · richtige Lauf-Uhrzeiten · uebersetzte Status.
+    - **Warum es sich lohnt, in einer Zahl:** von den drei Android-Neukonten des 12.09. hat
+      **keines** den Assistenten gesehen (Web 2/2, iOS 2/3, Android 0/3) — er ist dort schlicht
+      noch nicht draussen. An einem normalen Tag kommt rund ein Drittel der Neukonten ueber
+      Android.
+    - Nach der Freigabe: `_APP_META` auf 1.1.29 / 1.2.29, NAECHSTES-Eintrag nach IN_REVIEW und
+      dann raus, Changelog-Punkte eintragen. **Naechste Nummer danach: 1.1.30 / 1.2.30.**
 
 - **🟡 12.09. 22:27 — iOS/Apple Watch 1.1.33 (Build 37) EINGEREICHT.** Jans Meldung aus App Store
   Connect: „Heute um 22:27 · iOS 1.1.33 · Jan Kechel · 1 Element · Warten auf Pruefung".
