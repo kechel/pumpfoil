@@ -163,42 +163,27 @@ SEITEN: tuple[Seite, ...] = (
     ),
     Seite(
         host="parawing.org",
-        titel="Parawing — Sessions aufzeichnen und auswerten",
-        beschreibung="Parawing-Sessions mit der Sportuhr aufzeichnen: Läufe, Pumps, "
-                     "Gleitphasen und Geschwindigkeit, ausgewertet auf dem Server.",
+        titel="Parawing, Lowkite, Parakite — Sessions auswerten",
+        beschreibung="Parawing, Lowkite, Parakite — drei Namen, ein Gerät. Sessions mit der "
+                     "Sportuhr aufzeichnen: Läufe, Pumps, Gleitphasen, Geschwindigkeit.",
         h1="Parawing",
-        claim="Der Antrieb, der in die Hosentasche passt.",
+        claim="Lowkite, Parawing, Parakite — drei Namen, ein Gerät.",
         absaetze=(
-            "Ein Parawing ist ein Tuchflügel ohne Gestänge: kein Schlauch, keine Streben, "
+            "Der Antrieb, der in die Hosentasche passt: ein Tuchflügel ohne Gestänge, kein "
+            "Schlauch, keine Streben, "
             "zusammengelegt kaum größer als eine Jacke. Angeschoben wird damit ähnlich wie "
             "mit einem Wing — und wenn das Board läuft, wandert der Schirm bei vielen "
             "einfach weg und die Dünung übernimmt.",
+            "Der Gedanke dahinter ist derselbe wie bei Lowkite: je besser der Flügel trägt, "
+            "desto weniger Zug braucht es. Ein kleiner Schirm reicht zum Anschieben, den "
+            "Rest machen Dünung und Beine — und man ist bei Bedingungen unterwegs, bei "
+            "denen andere noch am Strand aufbauen.",
             "Weil der Antrieb wechselt, wird die Auswertung interessant: welcher Teil der "
             "Session war angeschoben, welcher getragen, und wie lange hielten die Läufe "
             "ohne Zug? pumpfoil.org zerlegt die Aufzeichnung in genau diese Abschnitte.",
         ),
         bild="landing-spots.webp",
         bild_alt="Spot-Karte mit aufgezeichneten Sessions",
-    ),
-    Seite(
-        # ENTWURF — der Begriff ist Jans eigener; Text vor der Freischaltung bestaetigen lassen.
-        host="lowkitefoil.org",
-        titel="Low Kite Foil — wenig Kite, viel Flügel",
-        beschreibung="Kitefoilen mit kleinem Schirm und viel Pumpen. Sessions mit der "
-                     "Sportuhr aufzeichnen und auf dem Server auswerten lassen.",
-        h1="Low Kite Foil",
-        claim="Wenig Kite, viel Flügel.",
-        absaetze=(
-            "Je besser der Flügel trägt, desto weniger Kite braucht es. Ein kleiner Schirm "
-            "reicht zum Anschieben, den Rest machen Dünung und Beine. Wer so fährt, ist bei "
-            "Bedingungen unterwegs, bei denen andere noch am Strand aufbauen — und arbeitet "
-            "dafür deutlich mehr mit dem eigenen Rhythmus.",
-            "Damit verschiebt sich auch, was man messen will: nicht Höchstgeschwindigkeit, "
-            "sondern wie lange ein Lauf ohne Zug trägt. pumpfoil.org zählt die Pumps, misst "
-            "die Kadenz und zeigt die Gleitphasen zwischen ihnen.",
-        ),
-        bild="landing-track.webp",
-        bild_alt="Aufgezeichnete Session mit Karte und Geschwindigkeitsverlauf",
     ),
 )
 
@@ -212,6 +197,11 @@ ALIASSE: dict[str, str] = {
     "sup-foil.org": "supfoil.org",
     "wake-thief.org": "wakethief.org",
     "parawingfoil.org": "parawing.org",
+    # Lowkite, Parawing und Parakite sind dasselbe (Jan, 13.09.2026) — also EINE
+    # Seite. Zwei Domains mit demselben Text waeren fuer Google eine Dublette und
+    # wuerden sich gegenseitig verdraengen. Die drei Namen stehen dafuer sichtbar
+    # im Text von parawing.org, damit man sie dort auch findet.
+    "lowkitefoil.org": "parawing.org",
 }
 
 # Reine Schutz-Domains: gekauft, damit sie niemand anders hat. Eine eigene Seite waere ein
