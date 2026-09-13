@@ -1788,18 +1788,18 @@ const zh: Record<string, string> = {
   "spotRename.reason": "为什么？（可选）",
   "spotRename.send": "发送建议",
   "spotRename.sent": "谢谢！我们已收到你的建议，会逐条查看。",
-  // Teilen-Karte: bewusst ENGLISCH, gleicher Grund wie bei ja — die Kartenschrift kennt
-  // keine chinesischen Zeichen, die CJK-Schrift auf dem Server kein Latein.
-  "share.stat.foiling": "Foiling",
-  "share.stat.runs": "Runs",
-  "share.stat.pumps": "Pumps",
-  "share.stat.avgspeed": "Ø Speed",
-  "share.stat.speed": "Top speed",
-  "share.stat.time": "Foil time",
-  "share.stat.longest": "Longest",
-  "share.stat.distance": "Distance/pump",
-  "share.stat.pumprate": "Ø Pumps/min",
-  "share.run": "Run {n}",
+  // Teilen-Karte, Wortwahl aus den bestehenden App-Texten (rec.longestRun „最长航段",
+  // rec.sessionTime „上翼时长", sd.avgSpeed …). Gerendert mit Noto Sans CJK SC.
+  "share.stat.foiling": "上翼距离",
+  "share.stat.runs": "航段",
+  "share.stat.pumps": "泵动",
+  "share.stat.avgspeed": "Ø 速度",
+  "share.stat.speed": "最高速度",
+  "share.stat.time": "上翼时长",
+  "share.stat.longest": "最长航段",
+  "share.stat.distance": "距离/泵动",
+  "share.stat.pumprate": "泵动/分",
+  "share.run": "航段 {n}",
 };
 
 export default zh;

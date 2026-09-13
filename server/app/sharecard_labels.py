@@ -133,16 +133,16 @@ LABELS: dict[str, dict[str, str]] = {
         "share.run": 'Run {n}',
     },
     "ja": {
-        "share.stat.foiling": 'Foiling',
-        "share.stat.runs": 'Runs',
-        "share.stat.pumps": 'Pumps',
-        "share.stat.avgspeed": 'Ø Speed',
-        "share.stat.speed": 'Top speed',
-        "share.stat.time": 'Foil time',
-        "share.stat.longest": 'Longest',
-        "share.stat.distance": 'Distance/pump',
-        "share.stat.pumprate": 'Ø Pumps/min',
-        "share.run": 'Run {n}',
+        "share.stat.foiling": 'フォイリング',
+        "share.stat.runs": 'ラン',
+        "share.stat.pumps": 'ポンプ',
+        "share.stat.avgspeed": 'Ø 速度',
+        "share.stat.speed": '最高速度',
+        "share.stat.time": 'オンフォイル時間',
+        "share.stat.longest": '最長ラン',
+        "share.stat.distance": '距離/ポンプ',
+        "share.stat.pumprate": 'ポンプ/分',
+        "share.run": 'ラン {n}',
     },
     "nb": {
         "share.stat.foiling": 'Foiling',
@@ -217,18 +217,57 @@ LABELS: dict[str, dict[str, str]] = {
         "share.run": 'Заезд {n}',
     },
     "zh": {
-        "share.stat.foiling": 'Foiling',
-        "share.stat.runs": 'Runs',
-        "share.stat.pumps": 'Pumps',
-        "share.stat.avgspeed": 'Ø Speed',
-        "share.stat.speed": 'Top speed',
-        "share.stat.time": 'Foil time',
-        "share.stat.longest": 'Longest',
-        "share.stat.distance": 'Distance/pump',
-        "share.stat.pumprate": 'Ø Pumps/min',
-        "share.run": 'Run {n}',
+        "share.stat.foiling": '上翼距离',
+        "share.stat.runs": '航段',
+        "share.stat.pumps": '泵动',
+        "share.stat.avgspeed": 'Ø 速度',
+        "share.stat.speed": '最高速度',
+        "share.stat.time": '上翼时长',
+        "share.stat.longest": '最长航段',
+        "share.stat.distance": '距离/泵动',
+        "share.stat.pumprate": '泵动/分',
+        "share.run": '航段 {n}',
     },
 }
+
+FORMATE: dict[str, dict[str, str]] = {
+    "cs": {"dez": ',', "tsd": ' ', "datum": '%d.%m.%Y'},
+    "de": {"dez": ',', "tsd": '.', "datum": '%d.%m.%Y'},
+    "de-AT": {"dez": ',', "tsd": '.', "datum": '%d.%m.%Y'},
+    "en": {"dez": '.', "tsd": ',', "datum": '%d %b %Y'},
+    "es": {"dez": ',', "tsd": '.', "datum": '%d/%m/%Y'},
+    "fi": {"dez": ',', "tsd": ' ', "datum": '%d.%m.%Y'},
+    "fr": {"dez": ',', "tsd": ' ', "datum": '%d/%m/%Y'},
+    "gsw": {"dez": ',', "tsd": '.', "datum": '%d.%m.%Y'},
+    "id": {"dez": ',', "tsd": '.', "datum": '%d/%m/%Y'},
+    "it": {"dez": ',', "tsd": '.', "datum": '%d/%m/%Y'},
+    "ja": {"dez": '.', "tsd": ',', "datum": '%Y年%m月%d日'},
+    "nb": {"dez": ',', "tsd": ' ', "datum": '%d.%m.%Y'},
+    "nl": {"dez": ',', "tsd": '.', "datum": '%d-%m-%Y'},
+    "pl": {"dez": ',', "tsd": ' ', "datum": '%d.%m.%Y'},
+    "pt": {"dez": ',', "tsd": '.', "datum": '%d/%m/%Y'},
+    "pt-PT": {"dez": ',', "tsd": '.', "datum": '%d/%m/%Y'},
+    "ru": {"dez": ',', "tsd": ' ', "datum": '%d.%m.%Y'},
+    "zh": {"dez": '.', "tsd": ',', "datum": '%Y年%m月%d日'},
+}
+
+
+def _fm(lang: str | None) -> dict[str, str]:
+    return FORMATE.get(lang or "") or FORMATE["en"]
+
+
+def zahl(v: float, stellen: int, lang: str | None) -> str:
+    """Zahl in der Schreibweise der Sprache: Dezimalzeichen und Tausendertrennung."""
+    fm = _fm(lang)
+    s = f"{v:,.{stellen}f}"          # immer erst englisch: 1,234.5
+    ganz, _, rest = s.partition(".")
+    ganz = ganz.replace(",", fm["tsd"]) if fm["tsd"] else ganz.replace(",", "")
+    return ganz + (fm["dez"] + rest if rest else "")
+
+
+def datum(d, lang: str | None) -> str:
+    """Datum im Muster der Sprache."""
+    return d.strftime(_fm(lang)["datum"])
 
 
 def t(key: str, lang: str | None) -> str:
