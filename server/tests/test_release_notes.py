@@ -24,8 +24,14 @@ def test_keine_zeile_von_hand(zustand, liste):
 def test_review_sagt_eingereicht_und_wer_prueft():
     for e in A.IN_REVIEW:
         note = A._note(e, "review")
-        assert note.startswith("submitted "), note
-        assert "waiting for " in note, note
+        if e.get("freigegeben"):
+            # Durchgewunken, aber noch nicht ausgeliefert — dann darf dort nicht mehr stehen,
+            # der Store pruefe noch.
+            assert note.startswith("approved "), note
+            assert "waiting for" not in note, note
+        else:
+            assert note.startswith("submitted "), note
+            assert "waiting for " in note, note
         # Der eigentliche Regressionsfall: unter „Being reviewed" darf nie stehen, dass etwas
         # noch hochgeladen werden muss.
         assert "upload" not in note.lower(), note
