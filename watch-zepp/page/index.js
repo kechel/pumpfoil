@@ -727,7 +727,7 @@ Page(
       lockHoldTimer: null,   // laeuft, solange auf die Touch-Sperre gedrueckt wird
       touchLocked: false, brightMode: "system", brightUntilMs: 0,
       geo: null, geoSpeedPrev: null, hrSensor: null, hrCallback: null, hrUpdatedMs: 0, _hrLogged: false, w: {},
-      accelSensor: null, accelCallback: null, accelFd: -1, accelBuffer: [], accelSamples: 0,
+      accelSensor: null, accelCallback: null, accelBuffer: [], accelSamples: 0, accelBytes: 0,
       accelFirstMs: 0, accelLastMs: 0, accelChunkT0: [], accelFile: "", _accelLogged: false,
       // GPS-Datei. `gps` bleibt als RUECKFALL bestehen: laesst sich die Datei nicht oeffnen,
       // zeichnet die Uhr wie vor 1.0.10 in den Speicher auf, statt gar nichts aufzuzeichnen.
@@ -753,18 +753,37 @@ Page(
         : ACCEL_DEFAULT_HZ;
     },
 
+    /**
+     * Wie `_flushGpsBuffer`: OEFFNEN, an fester Position schreiben, SCHLIESSEN.
+     *
+     * Diese Datei blieb bis 13.09.2026 waehrend der ganzen Aufnahme offen, und das ging jahrelang
+     * gut — SOLANGE ES DIE EINZIGE WAR. Seit die Spur ebenfalls in eine Datei geht, schrieb der
+     * Accelerometer nur noch seinen ersten Block: 128 Samples (7,5 s) in einer 13-Minuten-Aufnahme,
+     * waehrend GPS seine 65 Bloecke vollstaendig ablegte. Die Reihenfolge passt genau — Accel
+     * schreibt zuerst (nach 7,5 s), GPS zum ersten Mal nach 12,6 s, und ab da war Schluss.
+     *
+     * Zepp OS vertraegt offenbar keine zweite offene Datei. Deshalb ist ab hier NIE MEHR ALS EINE
+     * gleichzeitig offen, und beide schreiben an einer ausdruecklichen Position statt auf einen
+     * Dateizeiger zu vertrauen.
+     */
     _flushAccelBuffer() {
       const s = this.state;
-      if (s.accelFd < 0 || !s.accelBuffer.length) return;
+      if (!s.accelFile || !s.accelBuffer.length) return;
       const values = s.accelBuffer;
       const buffer = new ArrayBuffer(values.length * 2);
       const view = new DataView(buffer);
       for (let i = 0; i < values.length; i++) view.setInt16(i * 2, values[i], true);
+      let fd = -1;
       try {
-        const written = writeSync({ fd: s.accelFd, buffer });
-        if (written !== buffer.byteLength) throw new Error("short accelerometer write");
+        fd = openSync({ path: s.accelFile, flag: O_RDWR });
+        const written = writeSync({ fd, buffer,
+          options: { offset: 0, length: buffer.byteLength, position: s.accelBytes } });
+        closeSync({ fd }); fd = -1;
+        if (written !== buffer.byteLength) throw new Error("short accelerometer write " + written);
+        s.accelBytes += buffer.byteLength;
         s.accelBuffer = [];
       } catch (e) {
+        if (fd >= 0) { try { closeSync({ fd }); } catch (e2) {} }
         console.log("[pumpfoil] accelerometer write failed " + ((e && e.message) || e));
       }
     },
@@ -847,10 +866,12 @@ Page(
 
     _startAccel() {
       const s = this.state;
-      s.accelFile = accelPath(s.uuid); s.accelBuffer = []; s.accelSamples = 0;
+      s.accelFile = accelPath(s.uuid); s.accelBuffer = []; s.accelSamples = 0; s.accelBytes = 0;
       s.accelFirstMs = 0; s.accelLastMs = 0; s.accelChunkT0 = []; s._accelLogged = false;
       try {
-        s.accelFd = openSync({ path: s.accelFile, flag: O_RDWR | O_CREAT | O_TRUNC });
+        // Nur ANLEGEN und sofort wieder schliessen — s. _flushAccelBuffer.
+        const fd = openSync({ path: s.accelFile, flag: O_RDWR | O_CREAT | O_TRUNC });
+        closeSync({ fd });
         s.accelSensor = new Accelerometer();
         s.accelCallback = () => {
           if (!s.recording) return;
@@ -877,6 +898,9 @@ Page(
         s.accelSensor.start();
       } catch (e) {
         console.log("[pumpfoil] accelerometer unavailable " + ((e && e.message) || e));
+        // Ohne Datei gibt es nichts zu schreiben. Den Namen loeschen, sonst versucht jeder
+        // Puffer-Lauf vergeblich zu oeffnen und fuellt das Log.
+        s.accelFile = "";
         this._stopAccel();
       }
     },
@@ -886,8 +910,7 @@ Page(
       try { s.accelSensor && s.accelCallback && s.accelSensor.offChange(s.accelCallback); } catch (e) {}
       try { s.accelSensor && s.accelSensor.stop(); } catch (e) {}
       this._flushAccelBuffer();
-      try { if (s.accelFd >= 0) closeSync({ fd: s.accelFd }); } catch (e) {}
-      s.accelFd = -1; s.accelSensor = null; s.accelCallback = null;
+      s.accelSensor = null; s.accelCallback = null;
       // The file is authoritative. If a storage write failed, never advertise samples that are not
       // actually recoverable; otherwise every retry would end in a short-read failure.
       try {
