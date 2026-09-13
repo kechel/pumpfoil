@@ -903,6 +903,44 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **📥 13.09. — Amazfit: nur 4 von 21 Aufnahmen waren je brauchbar. Elf Nutzer angeschrieben,
+  Antworten abwarten.**
+  Auslöser war Jans Vermutung, die Amazfit-Leute seien abgesprungen, weil das Release so lange
+  gedauert hat. Die Daten sagen etwas anderes — und Schlimmeres.
+  - **Bilanz:** 21 Aufnahmen von 11 Konten, **4 mit erkannten Läufen**. Nach Version:
+    | | Aufnahmen | brauchbar |
+    |---|---|---|
+    | vor 1.0.6 (ohne Versionsangabe) | 7 | 0 |
+    | mit 1.0.6 | 14 | 4 (29 %) |
+  - **Es liegt NICHT an der Version.** u158 hat am 27.08. dreimal mit derselben App aufgenommen —
+    zweimal ohne Lauf, einmal mit fünf. Und seine beiden leeren Aufnahmen sind **vollständig**
+    angekommen (121/121 und 124/124 Pakete): dort ging nichts verloren, die Erkennung fand nichts.
+  - **Wirklich auffällig sind vier Konten**, bei denen fast nichts ankam: u132 (1–4 Pakete je
+    Aufnahme), u177 (je 1), u352 (1), **u346 (3–67, sechs Versuche)**. Ob dort die AUFNAHME oder
+    die ÜBERTRAGUNG abbrach, ist von hier **nicht** zu unterscheiden: die alte Zepp-Fassung meldet
+    kein `expected_chunks`, und `sessions.total_chunks` bleibt leer. Deshalb wurde gefragt statt
+    geraten.
+  - **Warum wir es nicht nachstellen können:** der Zepp-Build läuft nur auf Jans Mac, und es gibt
+    auf dieser Plattform keine Absturz-Kanarien — **0 von 38** Zepp-Tokens melden je einen Absturz
+    oder vollen Speicher (Garmin: 19 von 202). Die Antworten der Nutzer sind die einzige Spur.
+  - **🛑 1.0.8 behebt das NICHT.** Die neun Punkte darin sind Balkengrafiken, Zonenfarben,
+    Touch-Sperre, Upload-Meldung, ein Druck zum Stoppen, Lauferkennung wie am Server und vier
+    Sprachen. Wer „das ist jetzt behoben" verspricht, enttäuscht ein zweites Mal.
+  - **Mails raus am 13.09. um 10:19–10:24** (Jan, elf Stück, je in der Sprache des Empfängers,
+    Betreff mit `[pumpfoil.org]`). Aufhänger ist das Update und die Bitte um eine zweite Chance;
+    die Beobachtung steht als Entschuldigung dabei, die Frage nach dem, was die Uhr anzeigte,
+    erst am Schluss. Vier Fassungen: fast nichts angekommen (4) · hat funktioniert (3) ·
+    gekoppelt aber nie aufgenommen (3) · hängender Upload (1, u439).
+  - **Was mit den Antworten zu tun ist:** sie sind der einzige Hinweis darauf, ob die Aufnahme
+    oder die Übertragung abbricht. Schließt sich die App von selbst? Ist die Aufnahme weg, wenn
+    das Display ausgeht? Meldet die Uhr den Upload als fertig? Je nach Antwort ist es ein
+    Lebenszyklus-Problem der Zepp-App oder eines der Übertragung — zwei völlig verschiedene
+    Baustellen.
+  - **Unabhängig davon einbauen, wenn wieder etwas an der Zepp-App gemacht wird:**
+    `expected_chunks` mitschicken. Ohne die Zahl ist „Uhr hat wenig aufgenommen" von „Upload blieb
+    stecken" grundsätzlich nicht zu trennen — auf Garmin und Wear geht genau das.
+
+
 - **🟢 13.09. BEHOBEN — `/complete` wurde quittiert, aber wieder zurueckgedreht: 12 Aufnahmen von
   9 echten Nutzern hingen fuer immer als „laedt hoch".**
   Aufgefallen bei Jans Emulator-Test („die uhr hat upload angezeigt und fertig gemeldet, trotzdem
