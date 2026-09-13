@@ -929,6 +929,29 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **📥 13.09. — Die Foil-Suche verzeiht keinen Tippfehler.** Ein Neuzugang (u542, angelegt 12:31)
+  suchte im Einrichtungs-Assistenten nach „Gong **Trial** V3 XL" und bekam null Treffer. Das Foil
+  ist da: `Gong TRAIL XL` (#2) und `Gong TRAIL V3 ATMO PERF XL` (#474), beide 135 cm / 1940 cm² /
+  28,2 mm — ein vertauschter Buchstabe.
+  - **Ursache:** `gearsearch.wort_bedingung` macht je Wort ein `ILIKE '%wort%'`. Das ist gut fuer
+    Wortreihenfolge und Groessenzahlen („axis png 1300 v2" findet `AXIS PNG V2 1300`), aber bei
+    einem Dreher findet es NICHTS — kein „meintest du …?".
+  - **Warum das teuer ist:** im Code steht der Befund vom 17.08. direkt daneben — *wer sein Teil
+    nicht findet, legt einen privaten Eintrag an, und das Teil steht zweimal im Katalog*. In
+    diesem Fall ist es nur deshalb nicht passiert, weil der Nutzer stattdessen das Meldeformular
+    genommen hat. Zwei Minuten spaeter hatte er es selbst gefunden und den Assistenten fertig
+    gemacht (12:38, Gewicht 75, Empfindlichkeit light) — aber genau hier verliert man Leute.
+  - **Machbarer Weg:** `pg_trgm` ist auf dem Server **verfuegbar, aber nicht installiert**
+    (`pg_available_extensions` geprueft 13.09.). Damit liesse sich bei NULL Treffern ein zweiter,
+    unscharfer Lauf anhaengen und als „meintest du …?" anbieten — die normale Suche bliebe
+    unveraendert, es kaeme nur ein Rueckfall dazu. Alternative ohne Extension: Treffer in Python
+    nachranken (Levenshtein ueber die Marken-/Modellnamen), bei ~1200 Foils vertretbar.
+  - **NICHT tun:** „trial" als Alias auf die Gong-Eintraege schreiben. Das kuriert einen einzelnen
+    Tippfehler und laedt dazu ein, den naechsten genauso zu kurieren — der Katalog ist kein
+    Tippfehler-Woerterbuch (s. [[catalog-research-checks]]).
+  - Nutzer ist informiert (DM 1713). Jan loescht die Meldung unkommentiert, sie ist erledigt.
+
+
 - **🟢 13.09. URSACHE DER LEEREN AMAZFIT-AUFNAHMEN GEFUNDEN UND BEHOBEN — eine Taste oder eine
   unbekannte Wischgeste hat die App samt laufender Aufnahme beendet.**
   Gefunden durch die Rundmail von heute Morgen: Sam Barnes (u346, **Amazfit Active 2 Round**)
