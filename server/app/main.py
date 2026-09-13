@@ -7,10 +7,12 @@ from pathlib import Path
 
 from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import (FileResponse, HTMLResponse, PlainTextResponse, RedirectResponse,
+                               Response)
 from fastapi.staticfiles import StaticFiles
 
 from .api import admin, appmeta, auth, boards, chat, community, coros, coros_mcp, devices, feedback, foils, health as health_api, ingest, layouts, ml, oauth, polar, push, sessions, settings as settings_api, social, spotnotes, stabs, strava, suunto, transfers
+from . import landing
 from .api.deps import require_social
 from .config import get_settings
 from .db import init_db
@@ -128,6 +130,75 @@ async def canonical_domain(request: Request, call_next):
             target += f"?{request.url.query}"
         return RedirectResponse(target, status_code=301)
     return await call_next(request)
+
+
+# --- Zusatz-Domains: eigene Landingpage statt blosser Weiterleitung. ---
+# foilers.org & Co. zeigten bis 13.09.2026 nur einen 301 auf pumpfoil.org (Apache auf lb1) und
+# tauchten dadurch in keiner Suche auf. Jetzt bekommt jede eine eigene kurze Seite; ALLES
+# andere unter diesen Hosts geht weiter nach pumpfoil.org. Details: app/landing.py.
+#
+# WICHTIG fuer lb1: damit `certbot --apache renew` weiter funktioniert, muss die
+# ACME-Ausnahme im vhost bleiben (LocationMatch wie bei pumpfoil.org) — hier kommt
+# /.well-known/ bewusst als 404 heraus und nicht als Umleitung, damit eine fehlende
+# Ausnahme sofort auffaellt statt still eine falsche Datei auszuliefern.
+@app.middleware("http")
+async def landing_domains(request: Request, call_next):
+    fall = landing.fuer_host(request.headers.get("host") or "")
+    if fall is None:
+        return await call_next(request)
+
+    art, wert = fall
+    pfad = request.url.path
+    anhang = f"?{request.url.query}" if request.url.query else ""
+    if art == "umleiten":
+        return RedirectResponse(f"{wert}{pfad}{anhang}", status_code=301)
+
+    seite = wert
+    if pfad == "/":
+        # Kurz cachebar: der Text aendert sich selten, aber ein Tippfehler soll nicht tagelang
+        # in Proxys haengen.
+        return HTMLResponse(landing.html(seite), headers={"Cache-Control": "public, max-age=600"})
+    if pfad == "/robots.txt":
+        return PlainTextResponse(landing.robots(seite.host))
+    if pfad == "/sitemap.xml":
+        return Response(landing.sitemap(seite.host), media_type="application/xml")
+    if pfad.startswith("/.well-known/"):
+        return Response(status_code=404)
+
+    name = pfad.lstrip("/")
+    if name in landing.ASSETS and (settings.web_dist / name).is_file():
+        return FileResponse(settings.web_dist / name,
+                            headers={"Cache-Control": "public, max-age=86400"})
+
+    # Jeder andere Pfad gehoert der App — und die wohnt auf pumpfoil.org.
+    return RedirectResponse(f"{landing.ZIEL}{pfad}{anhang}", status_code=301)
+
+
+# --- Vorschau der Landingpages UNTER pumpfoil.org. ---
+# Solange der Proxy auf lb1 die Zusatz-Domains noch umleitet, kaeme man an die neuen Seiten
+# sonst gar nicht heran (diese VM erreicht die eigenen Domains von aussen nicht). Hier laeuft
+# derselbe Code wie spaeter auf foilers.org — nur der Host ist ein anderer.
+# `noindex`, damit die Vorschau nicht doppelt im Suchindex landet. Kann weg, sobald alle
+# Domains wirklich durchgereicht werden.
+@app.get("/landing-vorschau/{host}")
+def landing_vorschau(host: str) -> Response:
+    kopf = {"X-Robots-Tag": "noindex, nofollow", "Cache-Control": "no-cache"}
+    seite = landing.KANONISCH.get(host.lower())
+    if seite is None:
+        liste = "".join(
+            f'<li><a href="/landing-vorschau/{s.host}">{s.host}</a> — {s.h1}</li>'
+            for s in landing.SEITEN)
+        return HTMLResponse(
+            f"<!doctype html><meta charset=utf-8><title>Landing-Vorschau</title>"
+            f"<body style='font:16px system-ui;background:#020617;color:#f8fafc;padding:2rem'>"
+            f"<h1>Landing-Vorschau</h1><ul style='line-height:2'>{liste}</ul>",
+            status_code=(200 if not host else 404), headers=kopf)
+    return HTMLResponse(landing.html(seite), headers=kopf)
+
+
+@app.get("/landing-vorschau")
+def landing_vorschau_index() -> Response:
+    return landing_vorschau("")
 
 
 @app.get("/api/health")
