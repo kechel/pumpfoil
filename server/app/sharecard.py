@@ -16,9 +16,20 @@ from PIL import Image, ImageDraw, ImageFont
 
 _REPO = Path(__file__).resolve().parents[2]
 _LOGO = _REPO / "web" / "public" / "wordmark-h-dark.png"
+from .sharecard_labels import datum as _D
 from .sharecard_labels import t as _L
+from .sharecard_labels import zahl as _Z
 
 _FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSans%s.ttf"
+
+# Japanisch und Chinesisch brauchen eine EIGENE Schrift: DejaVuSans hat keine CJK-Zeichen, und
+# die Standard-Rueckfallschrift der VM (DroidSansFallbackFull) hat umgekehrt kein Latein, keine
+# Ziffern und keinen Schraegstrich — mit ihr kaeme „14.1 km/h" als leere Kaestchen heraus
+# (nachgemessen 13.09.2026). Noto Sans CJK kann BEIDES und wird deshalb nur fuer diese zwei
+# Sprachen genommen; alle anderen behalten DejaVu, damit sich ihr Kartenbild nicht aendert.
+# Die .ttc buendelt mehrere Schnitte, deshalb der Index: 0 = JP, 2 = SC (vereinfachtes Chinesisch).
+_FONT_CJK = "/usr/share/fonts/opentype/noto/NotoSansCJK%s.ttc"
+_CJK_INDEX = {"ja": 0, "zh": 2}
 
 NAVY = (2, 6, 23)
 WATER = (12, 20, 38)
@@ -35,12 +46,16 @@ SHADES = {
 }
 
 
-def _font(sz, bold=True):
+def _font(sz, bold=True, lang=None):
+    idx = _CJK_INDEX.get(lang or "")
+    if idx is not None:
+        return ImageFont.truetype(_FONT_CJK % ("-Bold" if bold else "-Regular"), sz, index=idx)
     return ImageFont.truetype(_FONT % ("-Bold" if bold else ""), sz)
 
 
-def _km(m):
-    return f"{m/1000:.1f} km" if m and m >= 1000 else f"{round(m or 0)} m"
+def _km(m, lang=None):
+    return (f"{_Z(m/1000, 1, lang)} km" if m and m >= 1000
+            else f"{_Z(round(m or 0), 0, lang)} m")
 
 
 def _mmss(sec):
@@ -48,13 +63,13 @@ def _mmss(sec):
     return f"{sec//60}:{sec%60:02d}"
 
 
-def _perpump(m, pumps):
+def _perpump(m, pumps, lang=None):
     """On-Foil-Meter pro Pump (Gleit-Effizienz). Kleine Werte mit 1 Dezimale."""
     pumps = int(pumps or 0)
     if not m or pumps <= 0:
-        return "0 m"
+        return f"{_Z(0, 0, lang)} m"
     v = m / pumps
-    return f"{v:.1f} m" if v < 10 else f"{round(v)} m"
+    return f"{_Z(v, 1, lang)} m" if v < 10 else f"{_Z(round(v), 0, lang)} m"
 
 
 def _ramp(stops, t):
@@ -85,15 +100,15 @@ def stat_catalog(ar, seg=None, lang: str | None = None):
         avg = seg.get("avg_speed_mps") or 0
         ppm = round(seg.get("pumps_per_min") or 0) if (pumps > 0 and dur > 0) else None
         return [
-            ("foiling", _L("share.stat.foiling", lang), _km(dist), dist > 0),
+            ("foiling", _L("share.stat.foiling", lang), _km(dist, lang), dist > 0),
             ("runs", _L("share.stat.runs", lang), "1", False),
-            ("pumps", _L("share.stat.pumps", lang), str(pumps), pumps > 0),
-            ("avgspeed", _L("share.stat.avgspeed", lang), f"{avg*3.6:.1f} km/h", avg > 0),
-            ("speed", _L("share.stat.speed", lang), f"{spd*3.6:.1f} km/h", spd > 0),
+            ("pumps", _L("share.stat.pumps", lang), _Z(pumps, 0, lang), pumps > 0),
+            ("avgspeed", _L("share.stat.avgspeed", lang), f"{_Z(avg * 3.6, 1, lang)} km/h", avg > 0),
+            ("speed", _L("share.stat.speed", lang), f"{_Z(spd * 3.6, 1, lang)} km/h", spd > 0),
             ("time", _L("share.stat.time", lang), _mmss(dur), dur > 0),
-            ("longest", _L("share.stat.longest", lang), _km(dist), False),
-            ("distance", _L("share.stat.distance", lang), _perpump(dist, pumps), dist > 0 and pumps > 0),
-            ("pumprate", _L("share.stat.pumprate", lang), str(ppm or 0), ppm is not None),
+            ("longest", _L("share.stat.longest", lang), _km(dist, lang), False),
+            ("distance", _L("share.stat.distance", lang), _perpump(dist, pumps, lang), dist > 0 and pumps > 0),
+            ("pumprate", _L("share.stat.pumprate", lang), _Z(ppm or 0, 0, lang), ppm is not None),
         ]
     ppm = None
     if (ar.foiling_time_s or 0) > 0 and (ar.pump_count or 0) > 0:
@@ -103,16 +118,16 @@ def stat_catalog(ar, seg=None, lang: str | None = None):
     # dafuer gibt es nicht, beide Summanden stehen aber in `ar`.
     avg = ((ar.foiling_distance_m or 0) / ar.foiling_time_s) if (ar.foiling_time_s or 0) > 0 else 0
     items = [
-        ("foiling", _L("share.stat.foiling", lang), _km(ar.foiling_distance_m), (ar.foiling_distance_m or 0) > 0),
-        ("runs", _L("share.stat.runs", lang), str(ar.num_runs or 0), (ar.num_runs or 0) > 0),
-        ("pumps", _L("share.stat.pumps", lang), str(ar.pump_count or 0), (ar.pump_count or 0) > 0),
-        ("avgspeed", _L("share.stat.avgspeed", lang), f"{avg*3.6:.1f} km/h", avg > 0),
-        ("speed", _L("share.stat.speed", lang), f"{(ar.max_speed_mps or 0)*3.6:.1f} km/h", (ar.max_speed_mps or 0) > 0),
+        ("foiling", _L("share.stat.foiling", lang), _km(ar.foiling_distance_m, lang), (ar.foiling_distance_m or 0) > 0),
+        ("runs", _L("share.stat.runs", lang), _Z(ar.num_runs or 0, 0, lang), (ar.num_runs or 0) > 0),
+        ("pumps", _L("share.stat.pumps", lang), _Z(ar.pump_count or 0, 0, lang), (ar.pump_count or 0) > 0),
+        ("avgspeed", _L("share.stat.avgspeed", lang), f"{_Z(avg * 3.6, 1, lang)} km/h", avg > 0),
+        ("speed", _L("share.stat.speed", lang), f"{_Z((ar.max_speed_mps or 0) * 3.6, 1, lang)} km/h", (ar.max_speed_mps or 0) > 0),
         ("time", _L("share.stat.time", lang), _mmss(ar.foiling_time_s), (ar.foiling_time_s or 0) > 0),
-        ("longest", _L("share.stat.longest", lang), _km(ar.best_distance_m), (ar.best_distance_m or 0) > 0),
-        ("distance", _L("share.stat.distance", lang), _perpump(ar.foiling_distance_m, ar.pump_count),
+        ("longest", _L("share.stat.longest", lang), _km(ar.best_distance_m, lang), (ar.best_distance_m or 0) > 0),
+        ("distance", _L("share.stat.distance", lang), _perpump(ar.foiling_distance_m, ar.pump_count, lang),
          (ar.foiling_distance_m or 0) > 0 and (ar.pump_count or 0) > 0),
-        ("pumprate", _L("share.stat.pumprate", lang), str(ppm or 0), ppm is not None),
+        ("pumprate", _L("share.stat.pumprate", lang), _Z(ppm or 0, 0, lang), ppm is not None),
     ]
     return items
 
@@ -220,14 +235,14 @@ def render_share_png(session, ar, water_rings, *, color="cyan", stats=None,
 
     # Header (Ueberschrift in Brand-Blau; optionaler eigener Titel, sonst Spot-Name)
     head = (title or session.place_name or "Session")
-    date_str = session.started_at.astimezone().strftime("%d.%m.%Y")
+    date_str = _D(session.started_at.astimezone(), lang)
     sub = f"{session.place_name} · {date_str}" if (title and session.place_name) else date_str
     if hl is not None:                       # Einzel-Lauf: im Untertitel ausweisen
         sub = _L("share.run", lang).replace("{n}", str(hl + 1)) + f" · {sub}"
-    d.text((px(90), px(64)), head, font=_font(px(58)), fill=(*prim, 255))
+    d.text((px(90), px(64)), head, font=_font(px(58), lang=lang), fill=(*prim, 255))
     # Untertitel (Ort · Datum): im gewaehlten Blau (prim) + fett — die kleine Schrift war
     # in der Sekundaerfarbe (hellgrau) auf hellem Hintergrund/Foto schlecht lesbar.
-    d.text((px(90), px(128)), sub, font=_font(px(30)), fill=(*prim, 255))
+    d.text((px(90), px(128)), sub, font=_font(px(30), lang=lang), fill=(*prim, 255))
 
     # Stats: bei Einzel-Lauf-Highlight aus dem gewaehlten Lauf, sonst Session-Summe.
     seg_for_stats = segs_all[hl] if hl is not None else None
@@ -241,8 +256,8 @@ def render_share_png(session, ar, water_rings, *, color="cyan", stats=None,
         lbl, val, _ok = cat[k]
         r, c = divmod(i, 3)
         x, y = gx + c * cw, gy + r * px(115)
-        d.text((x, y), val, font=_font(px(50)), fill=(*prim, 255))
-        d.text((x, y + px(58)), lbl.upper(), font=_font(px(24), False), fill=(*sec, 255))
+        d.text((x, y), val, font=_font(px(50), lang=lang), fill=(*prim, 255))
+        d.text((x, y + px(58)), lbl.upper(), font=_font(px(24), False, lang), fill=(*sec, 255))
 
     # Logo (Variante passend zur Text-Schattierung: helle Texte -> weisses Logo, dunkle -> navy)
     logo_path = _REPO / "web" / "public" / sh["logo"]
