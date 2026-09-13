@@ -59,6 +59,33 @@ Zwei systemd-Timer (User `jan`, oneshot), Skripte in `deploy/`:
 - Remote: **`git@github.com:kechel/pumpfoil.git`** (`origin/main`). **Standing: nach jedem Commit
   zu GitHub pushen** — Jan hält `main` immer aktuell auf GitHub.
 
+## Qualität geht vor Tempo (ab 13.09.2026)
+
+**Jan:** „ab sofort viel mehr auf qualität und qualitätssicherung achten … wir haben inzwischen
+200 aktive nutzer die auf eine mehr oder weniger stabile app vertrauen. dieses amazfit-desaster
+kostet uns jetzt schon vertrauen, reputation und nutzer"
+
+Das Projekt ist aus dem Bastelstadium heraus. Ein Fehler kostet nicht mehr einen Nachmittag,
+sondern Nutzer — und bei den Store-Apps dauert jede Korrektur Wochen, weil eine Einreichung
+dazwischenhängt. Konkret, aus dem Abend, an dem die Regel entstand:
+
+- **Vor jeder Einreichung ein LANGER Testlauf**, nicht zwanzig Sekunden. Am 13.09. tauchten drei
+  Fehler auf, die kurze Läufe alle durchgewunken hätten: der GPS-Schreibpfad brach ab dem zweiten
+  Block ab (>2 min nötig), der Accel-Pfad ebenso, und die Zeitachse kippte erst bei 142 Blöcken
+  (>15 min).
+- **Gegen die vorige Fassung vergleichen, mit Zahlen.** Gefunden wurde der Hauptfehler durch eine
+  Tabelle — 18/11/27 Punkte (alter Build) gegen 10/10/10 (neuer). Einzeln sah jede Session
+  plausibel aus.
+- **Fehler nie nur einmal melden.** Ein „log once"-Wächter ließ die Meldung genau einmal durch;
+  dadurch sah ein kaputter Schreibpfad aus wie „die Aufnahme hört auf".
+- **Der AUFNAHME-Pfad ist gefährlicher als der Upload-Pfad.** Ein kaputter Upload lässt sich
+  wiederholen, eine kaputte Aufnahme ist weg.
+- **Server-Daten prüfen, nicht den Bildschirm:** Lücken/Doppelte in `ingest_chunks`, Dauer gegen
+  Punktzahl, `metrics_json.time_base`.
+- **Nicht diagnostizieren, bevor es belegt ist.** Eine Vermutung als Vermutung kennzeichnen.
+- **Was sich testen lässt, wird getestet** — Server mit pytest, reine Funktionen der Uhren-Apps
+  in Node nachstellen (Binärformat-Rundlauf, Fortsetz-Simulation über viele Abbrüche).
+
 ## Konventionen
 
 - **Release-Tabelle auf `/changelog`:** die oeffentliche Changelog-Seite zeigt oben, welche
