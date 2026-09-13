@@ -1495,6 +1495,58 @@ def my_spots(user: models.User = Depends(current_user), db: Session = Depends(ge
     return [{"spot": p, "count": int(n), "spot_id": sid} for p, n, _, sid in rows]
 
 
+@router.get("/spot-mine")
+def spot_mine(spot_id: int, user: models.User = Depends(current_user),
+              db: Session = Depends(get_db)) -> dict:
+    """Hat dieser Nutzer an DIESEM Spot schon einmal aufgenommen? (fuer „Namen vorschlagen")
+
+    Vorgabe Jan (12.09.2026): den Knopf nur zeigen, „bei spots an denen man selber auch mind.
+    eine session gefahren ist (egal ob pumpfoil oder nicht oder on-foil erkannt)".
+
+    Genau dieses „egal" macht `my-spots` als Quelle untauglich, gleich zweimal:
+      1. `my-spots` laesst `is_pumpfoil = False` bewusst weg (aussortierte Orte sollen aus der
+         eigenen Spotliste verschwinden) — hier sollen sie aber zaehlen.
+      2. **Wichtiger:** eine Aufnahme bekommt ueberhaupt nur dann eine `spot_id`, wenn sie
+         Pumpfoil IST und mindestens ein Lauf erkannt wurde (`spots.assign_one`). Wer hier war,
+         aber ohne erkannten Lauf, haengt also an gar keinem Spot — er traegt nur
+         `place_lat`/`place_lon`. Deshalb reicht ein Blick auf `spot_id` nicht.
+
+    Also zwei Wege, und einer genuegt:
+      · eine eigene Aufnahme traegt diese `spot_id`, ODER
+      · der Startpunkt einer eigenen Aufnahme liegt IM Spot-Polygon.
+
+    Der Punkt-in-Polygon-Test laeuft direkt in Grad. Das ist erlaubt, weil unsere Projektion
+    (`spots._project`) beide Achsen nur linear skaliert — Enthaltensein bleibt dabei erhalten.
+    Vorfilter ueber eine grobe Grad-Schachtel, damit nicht der ganze eigene Bestand durch Shapely
+    muss.
+
+    Geloeschte Aufnahmen zaehlen nicht.
+    """
+    n = (db.query(func.count()).select_from(models.Session)
+         .filter(models.Session.user_id == user.id, models.Session.deleted.isnot(True),
+                 models.Session.spot_id == spot_id).scalar() or 0)
+    if n:
+        return {"mine": True, "sessions": int(n)}
+
+    sp = db.get(models.Spot, spot_id)
+    if sp is None or not sp.poly_wkt or sp.lat is None:
+        return {"mine": False, "sessions": 0}
+    try:
+        from shapely import wkt as _wkt
+        from shapely.geometry import Point
+        poly = _wkt.loads(sp.poly_wkt)
+    except Exception:  # noqa: BLE001
+        return {"mine": False, "sessions": 0}
+    kandidaten = (db.query(models.Session.place_lat, models.Session.place_lon)
+                  .filter(models.Session.user_id == user.id, models.Session.deleted.isnot(True),
+                          models.Session.place_lat.isnot(None),
+                          models.Session.place_lat.between(float(sp.lat) - 0.25, float(sp.lat) + 0.25),
+                          models.Session.place_lon.between(float(sp.lon) - 0.25, float(sp.lon) + 0.25))
+                  .all())
+    treffer = sum(1 for la, lo in kandidaten if poly.contains(Point(float(lo), float(la))))
+    return {"mine": treffer > 0, "sessions": int(treffer)}
+
+
 SPOT_TRACK_MAX_PTS = 150   # je Session herunterrechnen -> Bulk-Payload bleibt klein
 
 
