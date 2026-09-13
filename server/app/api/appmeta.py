@@ -403,7 +403,13 @@ IN_REVIEW: list[dict] = [
      # Der Schnitt ist hier ein anderer als bei iOS: eingereicht wurde am 10.09. um 10:10, also
      # stecken Wetterkarte, Datei-Import und pt-PT schon in 1.1.28. Hier stehen nur die vier
      # Punkte, die DANACH entstanden sind — sonst laesen Nutzer dieselbe Zeile zweimal.
-     "note": "built, waiting to be uploaded",
+     # 13.09.2026 08:56 EINGEREICHT (Jans Meldung aus der Play-Konsole: Produktion 43 = 1.1.29,
+     # Produktion Wear OS 1039 = 1.2.29, beide auf vollstaendigen Roll-out, Vorabpruefungen
+     # laufen). Die `note` hier ist am 13.09. nachgezogen worden: beim Verschieben nach IN_REVIEW
+     # war der Eintrag umgehaengt, der Satz aber stehen geblieben — auf der oeffentlichen Seite
+     # stand dann unter „Being reviewed" das Wort „waiting to be uploaded". Beim Umhaengen also
+     # IMMER beides anfassen, Liste UND note.
+     "note": "submitted 13 September, waiting for Google",
      "items": [
          "A setup assistant walks new accounts once through the settings that matter — "
          "language, display name, level, weight, sport, foil and connecting your watch. "
