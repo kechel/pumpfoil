@@ -83,6 +83,18 @@ AUSDRUECKLICHEN Position, statt auf einen Dateizeiger zu vertrauen. Damit ist ni
 Datei gleichzeitig offen. Der Accelerometer hatte seine Datei jahrelang dauerhaft offen, und das
 ging gut — solange es die einzige war.
 
+**Eine wiederhergestellte Aufnahme behaelt ihre genaue Zeitachse.** Der Server baut die
+Accel-Zeitachse aus den Startzeiten der einzelnen Bloecke — das ist die belastbare Variante; die
+Ersatzvariante (eine mittlere Rate ueber alles) lag am 10.08. schon einmal 124 Sekunden daneben.
+Nach einem Absturz fehlen die letzten ein, zwei Startzeiten, weil die Kopfdaten nur alle zehn
+GPS-Punkte geschrieben werden. Sie wurden bisher aus der mittleren Rate ab Null nachgerechnet —
+und landeten damit HINTER dem letzten echten Wert. Ein einziger Rueckschritt genuegt, und der
+Server verwirft die exakte Achse komplett.
+
+Belegt an einer 17-Minuten-Session: genau der letzte von 142 Eintraegen fehlte, gemessen
+1 010 254 ms, aus der Formel 1 002 667 ms — 7,6 Sekunden rueckwaerts. Jetzt wird der letzte
+bekannte Wert fortgeschrieben statt neu gerechnet.
+
 **Aufnahmen von vor 1.0.10 gehen weiter hoch.** Wer eine haengende Session in der Warteschlange
 hat — Cesar zum Beispiel — traegt sie dort noch als Array. Der alte Weg bleibt deshalb erhalten,
 und `recoverActive` versteht beide Formate. Faellt das Anlegen der Datei aus, zeichnet die Uhr
