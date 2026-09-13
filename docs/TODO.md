@@ -935,17 +935,16 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   - **Sprache:** vorerst nur Deutsch. Die 18 Sprachen erst, wenn Jan mit Aufbau und Text
     zufrieden ist — sonst übersetzt man 18 mal einen Entwurf. Verfahren wäre dasselbe wie bei
     der Teilen-Karte: eine Quelle, ein Generator, kein Doppeltpflegen.
-  - **🔴 `wakethief.org` kollidiert mit einer bestehenden Marke — Entscheidung offen.**
-    Recherche 13.09.: **Wake Thief, LLC** ist ein US-Foiler (Devon), seit 2020 unter
-    `wakethief.com`, über 500 getestete Foils, 100+ Review-Videos, Affiliate-Verträge mit AXIS —
-    und **AXIS verkauft eine ganze Produktlinie unter dem Namen** (Wake Thief Edition / Surf
-    Edition / Original Edition, im Sortiment bei MACkite und REAL Watersports). Folgen: (a) die
-    Sichtbarkeit, wegen der die Domain gekauft wurde, entsteht gegen einen sechs Jahre alten
-    `.com` mit Produktlinie kaum; (b) eine Foiling-Seite unter fast identischem Namen im selben
-    Themenfeld ist heikler als eine reine Weiterleitung. **Jans Entscheidung**, drei Wege: Seite
-    lassen · zurück auf 301 wie vorher · Titel und Text so umschreiben, dass klar nicht die Marke
-    gemeint ist. Die interne Sportart-Kategorie `wakethief` ist davon kaum betroffen (nur Label
-    in der App, keine Domain).
+  - **✅ `wakethief.org`: entschieden, Seite bleibt** (Jan, 13.09.). Zur Lage: **Wake Thief, LLC**
+    ist ein US-Foiler (Devon), seit 2020 unter `wakethief.com`, und **AXIS verkauft eine
+    Produktlinie unter dem Namen** (Wake Thief Edition / Surf / Original). Ich hatte das als
+    Risiko vorgelegt; Jans Entscheidung nach Kenntnis der Fakten: *„da wir wake-thief und
+    wakethief als eigenstehenden Begriff für eine allgemeine Sportart beschreiben, sehe ich da
+    kein Problem, wir behaupten nirgends irgendwas mit der Marke zu tun zu haben und wir
+    verweisen klar auf pumpfoil.org als Name, Marke, Begriff und unsere Seite und App."* Das
+    trägt: die Seite beschreibt die Technik, nennt keine Marke, und Kopf wie Fußzeile führen
+    pumpfoil.org als Absender. **Nicht erneut aufmachen.** Falls es je doch ein Thema wird, ist
+    der Rückbau eine Zeile in `landing.ALIASSE`.
   - **`paddleup.org` ist bestätigt.** „Paddle up" = die Paddelarbeit, bis das Board auf dem Foil
     steht („less time struggling to paddle up"). Text kann stehen bleiben.
   - **`parawing.org` ist recherchiert und korrigiert** (s. `docs/sport-classification.md`):
