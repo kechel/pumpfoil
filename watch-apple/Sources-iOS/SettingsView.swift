@@ -43,12 +43,15 @@ struct SettingsView: View {
     // (Archive hing minutenlang). Reihenfolge und Inhalte sind unveraendert.
     var body: some View {
         Form {
+            // Sprache GANZ OBEN (Vorgabe Jan, 13.09.2026, wie in der PWA): wer die Seite in
+            // einer Sprache vor sich hat, die er nicht liest, muss hier als Erstes fuendig
+            // werden statt an sechs Abschnitten vorbeizuscrollen.
+            languageSection
             weightSection
             zonenSection
             spZonenSection
             homespotSection
             designSection
-            languageSection
             pumpUnitSection
             sensitivitySection
             notificationsSection

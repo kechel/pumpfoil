@@ -161,6 +161,19 @@ fun SettingsScreen(onBack: () -> Unit) {
             return@Scaffold
         }
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
+            // Sprache GANZ OBEN (Vorgabe Jan, 13.09.2026, wie in der PWA): wer die Seite in
+            // einer Sprache vor sich hat, die er nicht liest, muss hier als Erstes fuendig
+            // werden statt an sechs Bloecken vorbeizuscrollen. Wirkt sofort lokal und geht ans
+            // Profil, synct also zu Web und Uhr.
+            Text(I18n.t("settings.language"), style = MaterialTheme.typography.labelLarge)
+            Spacer(Modifier.height(4.dp))
+            Dropdown(
+                options = I18n.LANGS.map { it to (I18n.langName(it)) },
+                selected = lang,
+                onSelect = { l -> lang = l; I18n.set(ctx, l); scope.launch { try { Api.updateLanguage(l) } catch (_: Exception) {} } },
+            )
+            Spacer(Modifier.height(16.dp))
+
             // Gewicht.
             Text("${I18n.t("settings.weight")} (kg)", style = MaterialTheme.typography.labelLarge)
             OutlinedTextField(
@@ -231,16 +244,6 @@ fun SettingsScreen(onBack: () -> Unit) {
             Dropdown(
                 options = listOf("auto" to I18n.t("settings.auto"), "light" to I18n.t("settings.light"), "dark" to I18n.t("settings.dark")),
                 selected = theme, onSelect = { theme = it; ThemeState.set(ctx, it) },
-            )
-            Spacer(Modifier.height(16.dp))
-
-            // Sprache (sofort lokal + ans Profil, synct zu Web/Uhr).
-            Text(I18n.t("settings.language"), style = MaterialTheme.typography.labelLarge)
-            Spacer(Modifier.height(4.dp))
-            Dropdown(
-                options = I18n.LANGS.map { it to (I18n.langName(it)) },
-                selected = lang,
-                onSelect = { l -> lang = l; I18n.set(ctx, l); scope.launch { try { Api.updateLanguage(l) } catch (_: Exception) {} } },
             )
             Spacer(Modifier.height(16.dp))
 
