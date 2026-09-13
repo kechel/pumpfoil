@@ -111,8 +111,13 @@ mit einem Lesezeichen, nicht mit einem Stern. Bis 10.09. trug die TikTok-Leiste 
 Stern, weil beide dieselbe Datei bekamen.
 
 Sprechblase und Teilen-Pfeil liegen in `OUTRO_ICONS` auskommentiert daneben, falls die
-Leiste je wieder voller werden soll. Nur YouTube sitzt tiefer (68 % Hoehe) und wuerde in
-RedNotes eigenen Textblock am unteren Rand laufen.
+Leiste je wieder voller werden soll.
+
+**Seit 13.09. sitzen die Icons auf ALLEN Plattformen exakt mittig.** YouTube stand vorher
+tiefer (68 % Hoehe, naeher an seiner Bedienleiste) — genau dort liegt aber die Band-Endcard,
+die das untere Drittel einnimmt: wer beides zusammen einblendete, hatte die Icons im
+Endcard-Streifen stehen. Mittig ist ausserdem auf jeder Plattform sicherer Raum, und auf
+RedNote lief die tiefe Fassung ohnehin in den eigenen Textblock am unteren Rand.
 
 **Chinesisch im Bild.** Was das Studio selbst schreibt, steht auf der RedNote-Fassung auf
 Chinesisch:
@@ -305,8 +310,8 @@ stehen laesst, postet ab dann um 04:00 unserer Zeit.
 TikTok-Fassung bekam. Seit 10.09. gibt es `shorts-mit-musik/rednote/`, und das ist ab dann
 die Quelle. Der Bestand davor liegt weiter nur als TikTok-Fassung vor, und die gibt es erst
 ab Nummer **092**: lokal 130–173, auf der externen Platte 092–173, darunter gar nicht.
-**Alles unter 092 braucht einen Render im Studio** — die YouTube-Fassung ist kein Ersatz,
-ihr Outro sitzt auf 68 % Hoehe und laeuft in RedNotes Textblock. Wer den Altbestand mit
+**Alles unter 092 braucht einen Render im Studio** — die YouTube-Fassung ist bis einschliesslich
+12.09. kein Ersatz, ihr Outro sitzt dort auf 68 % Hoehe und laeuft in RedNotes Textblock. Wer den Altbestand mit
 chinesischer Endcard nachziehen will, rendert ihn neu; hochgeladene Beitraege bleiben, wie
 sie sind.
 

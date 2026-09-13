@@ -606,8 +606,12 @@ function Studio() {
     const gap = 54;
     const total = items.length * size + (items.length - 1) * gap;
     let x = (w - total) / 2;
-    // YT: unteres Drittel wie gehabt; IG/TikTok: exakt mittig (Safe-Space)
-    const y = pf === "youtube" ? h * 0.68 : h / 2 - size / 2;
+    // Auf ALLEN Plattformen exakt mittig. YouTube sass bis 13.09. tiefer
+    // (68 % Hoehe, naeher an seiner Bedienleiste) — genau dort liegt aber die
+    // Band-Endcard, die das untere Drittel einnimmt. Wer beides zusammen
+    // einblendet, hatte die Icons im Endcard-Streifen stehen (Jan, 13.09.).
+    // Mittig ist ausserdem auf jeder Plattform sicherer Raum.
+    const y = h / 2 - size / 2;
     const fuellen = OUTRO_FILL[pf];
     g.strokeStyle = "#fff";
     g.fillStyle = "#fff";
