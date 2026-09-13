@@ -394,27 +394,6 @@ IN_REVIEW: list[dict] = [
          "Every language is named in its own language on the sign-in screen. Some of them only "
          "showed a short code there, which is hard to pick if it is your language.",
      ]},
-]
-
-# „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
-# einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
-NAECHSTES: list[dict] = [
-    {"name": "iPhone + Apple Watch", "version": "after 1.1.33",
-     # KEINE feste Nummer: 1.1.33 liegt seit dem 12.09. bei Apple. Was danach kommt, steht hier.
-     #
-     # Entstanden aus einem Fehler von mir (13.09.2026): ich hatte diesen Punkt zuerst in den
-     # IN_REVIEW-Eintrag von 1.1.33 geschrieben — in eine Fassung also, die Jan schon hochgeladen
-     # hatte und die die Aenderung gar nicht enthaelt. Auf `/changelog` haette damit oeffentlich
-     # gestanden, Apple pruefe gerade etwas, das nicht im Paket ist. Merke: ein IN_REVIEW-Eintrag
-     # ist ab dem Upload EINGEFROREN; alles Spaetere gehoert nach NAECHSTES.
-     "note": "built, waiting for 1.1.33 to clear review first",
-     "items": [
-         "The language setting sits at the very top of your settings now. If the app is in a "
-         "language you cannot read, that is the one thing you need to find first.",
-         "A recording that can no longer be finished is now a single quiet line instead of a "
-         "large notice sitting on top of your screen. It still leads you to the recording, "
-         "where you decide: analyse it with what we have, or delete it.",
-     ]},
     {"name": "Android phone + Wear OS", "version": "1.1.29 / 1.2.29",
      # 13.09.2026: 1.1.28 / 1.2.28 sind LIVE, damit steht die naechste Nummer fest — 1.1.29 /
      # 1.2.29, beide zusammen (harte Regel). Gebaut ist alles, hochladen kann nur Jan.
@@ -451,6 +430,27 @@ NAECHSTES: list[dict] = [
          "in German. If we do not have your language yet, it starts in English.",
          "Every language is named in its own language on the sign-in screen. Some of them only "
          "showed a short code there, which is hard to pick if it is your language.",
+         "The language setting sits at the very top of your settings now. If the app is in a "
+         "language you cannot read, that is the one thing you need to find first.",
+         "A recording that can no longer be finished is now a single quiet line instead of a "
+         "large notice sitting on top of your screen. It still leads you to the recording, "
+         "where you decide: analyse it with what we have, or delete it.",
+     ]},
+]
+
+# „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
+# einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
+NAECHSTES: list[dict] = [
+    {"name": "iPhone + Apple Watch", "version": "after 1.1.33",
+     # KEINE feste Nummer: 1.1.33 liegt seit dem 12.09. bei Apple. Was danach kommt, steht hier.
+     #
+     # Entstanden aus einem Fehler von mir (13.09.2026): ich hatte diesen Punkt zuerst in den
+     # IN_REVIEW-Eintrag von 1.1.33 geschrieben — in eine Fassung also, die Jan schon hochgeladen
+     # hatte und die die Aenderung gar nicht enthaelt. Auf `/changelog` haette damit oeffentlich
+     # gestanden, Apple pruefe gerade etwas, das nicht im Paket ist. Merke: ein IN_REVIEW-Eintrag
+     # ist ab dem Upload EINGEFROREN; alles Spaetere gehoert nach NAECHSTES.
+     "note": "built, waiting for 1.1.33 to clear review first",
+     "items": [
          "The language setting sits at the very top of your settings now. If the app is in a "
          "language you cannot read, that is the one thing you need to find first.",
          "A recording that can no longer be finished is now a single quiet line instead of a "

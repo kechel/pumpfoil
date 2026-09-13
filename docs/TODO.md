@@ -22,10 +22,12 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
     **17 Changelog-Punkte** eingetragen (mit `versionen`, damit die Marke am Punkt steht).
   - Die ABGELEHNT-Zeile zu 1.1.27 / 1.2.27 ist von SELBST aus der Tabelle verschwunden, sobald
     die neuere Fassung live war (`_noch_offen`) — nachgeprueft an `/api/app/releases`.
-  - **🟡 GEBUMPT UND EINREICHFERTIG: Phone 1.1.29 (43) + Wear 1.2.29 (1039)**, beide zusammen
-    (harte Regel). `:app:compileDebugKotlin` und `:wear:compileDebugKotlin` gruen. Jan muss nur
-    noch das signierte AAB bauen und hochladen — Ansage 13.09.: „der einrichtungs-assistent
-    allein lohnt schon ein release".
+  - **🟡 13.09. EINGEREICHT: Phone 1.1.29 (43) + Wear 1.2.29 (1039)**, beide Spuren auf
+    VOLLSTAENDIGEN Roll-out. Jans Meldung aus der Play-Konsole: „Produktion 43 (1.1.29) ·
+    Produktion (Wear OS) 1039 (1.2.29)", Vorabpruefungen liefen noch („noch maximal 14 Minuten").
+    Damit ZWEI Einreichungen an einem Tag — 1.1.28 ging am Vormittag live. Ansage Jan: „der
+    einrichtungs-assistent allein lohnt schon ein release".
+    - `:app:compileDebugKotlin` und `:wear:compileDebugKotlin` waren gruen.
     - Inhalt (elf Punkte, wortgleich in `NAECHSTES`): Einrichtungs-Assistent · Start in der
       GERAETESPRACHE statt hart Deutsch · Anmeldung mit Google/Apple ueber den Systembrowser ·
       Puls-Anstieg in der Trainingskurve · gewaehlte Sprache bleibt am Konto · die Uhr nennt ihre
@@ -35,8 +37,11 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
       **keines** den Assistenten gesehen (Web 2/2, iOS 2/3, Android 0/3) — er ist dort schlicht
       noch nicht draussen. An einem normalen Tag kommt rund ein Drittel der Neukonten ueber
       Android.
-    - Nach der Freigabe: `_APP_META` auf 1.1.29 / 1.2.29, NAECHSTES-Eintrag nach IN_REVIEW und
-      dann raus, Changelog-Punkte eintragen. **Naechste Nummer danach: 1.1.30 / 1.2.30.**
+    - Der Eintrag steht jetzt unter IN_REVIEW (12 Punkte). Nach der Freigabe: `_APP_META` auf
+      1.1.29 / 1.2.29, Eintrag raus, Changelog-Punkte eintragen — erst wenn Play wirklich
+      ausliefert. Der harte Beleg kommt wie heute aus `device_tokens` (1.2.x ist eindeutig Wear,
+      1.1.x waere mit iOS verwechselbar). **Naechste Nummer danach: 1.1.30 / 1.2.30 — erst
+      bumpen, wenn der Ausgang feststeht**, eine abgelehnte nimmt Play nicht wieder an.
 
 - **🟡 12.09. 22:27 — iOS/Apple Watch 1.1.33 (Build 37) EINGEREICHT.** Jans Meldung aus App Store
   Connect: „Heute um 22:27 · iOS 1.1.33 · Jan Kechel · 1 Element · Warten auf Pruefung".
