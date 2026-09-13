@@ -977,10 +977,11 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     trägt: die Seite beschreibt die Technik, nennt keine Marke, und Kopf wie Fußzeile führen
     pumpfoil.org als Absender. **Nicht erneut aufmachen.** Falls es je doch ein Thema wird, ist
     der Rückbau eine Zeile in `landing.ALIASSE`.
-    Zusätzlich auf Jans Vorschlag: **kanonisch ist `wake-thief.org` MIT Bindestrich** — optisch
-    klar getrennt von der Marke, trifft die Suchabsicht („wake thief" mit Leerzeichen) aber
-    genauso; `wakethief.org` leitet dorthin. Das ist die einzige Domain, bei der die
-    Bindestrich-Variante die Seite trägt. Die Seite selbst beschreibt seitdem ausdrücklich die
+    Kanonisch ist seit dem Abend des 13.09. **`wake-thieving.org`** — die am selben Tag
+    dazugekaufte Domain, die die TECHNIK benennt statt des Geräts und damit am weitesten von der
+    Marke entfernt steht. `wake-thief.org` und `wakethief.org` leiten dorthin. Zwischenschritt
+    war `wake-thief.org`, solange lb1 die neue Domain noch nicht durchreichte; seit dem
+    Zertifikat über 26 Namen ist das erledigt. Die Seite selbst beschreibt seitdem ausdrücklich die
     TECHNIK: Titel „Wake Thieving", Dock Start vom Steg, „ohne Leine, ohne Zug" — der Google-
     Wissenspanel führt die Disziplin ebenfalls vor der Produktserie.
   - **`paddleup.org` ist bestätigt.** „Paddle up" = die Paddelarbeit, bis das Board auf dem Foil
