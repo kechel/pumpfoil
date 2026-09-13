@@ -1682,6 +1682,18 @@ const deAT: Record<string, string> = {
   "spotRename.reason": "Warum? (freiwillig)",
   "spotRename.send": "Vorschlag schicken",
   "spotRename.sent": "Danke! Dein Vorschlag ist bei uns. Wir schauen uns jeden einzeln an.",
+  // Beschriftung der Teilen-Karte (PNG) UND der Auswahl im Teilen-Dialog — eine Quelle
+  // fuer beide, damit Vorschau und Bild nie verschiedene Woerter zeigen.
+  "share.stat.foiling": "Foiling",
+  "share.stat.runs": "Läufe",
+  "share.stat.pumps": "Pumps",
+  "share.stat.avgspeed": "Ø Speed",
+  "share.stat.speed": "Top-Speed",
+  "share.stat.time": "Foil-Zeit",
+  "share.stat.longest": "Längster",
+  "share.stat.distance": "Strecke/Pump",
+  "share.stat.pumprate": "Ø Pumps/min",
+  "share.run": "Lauf {n}",
 };
 
 export default deAT

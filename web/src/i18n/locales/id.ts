@@ -1791,6 +1791,18 @@ const id: Record<string, string> = {
   "spotRename.reason": "Kenapa? (opsional)",
   "spotRename.send": "Kirim usulan",
   "spotRename.sent": "Terima kasih! Usulanmu sudah sampai. Kami melihat satu per satu.",
+  // Beschriftung der Teilen-Karte (PNG) UND der Auswahl im Teilen-Dialog — eine Quelle
+  // fuer beide, damit Vorschau und Bild nie verschiedene Woerter zeigen.
+  "share.stat.foiling": "Foiling",
+  "share.stat.runs": "Run",
+  "share.stat.pumps": "Pump",
+  "share.stat.avgspeed": "Ø Kecepatan",
+  "share.stat.speed": "Kecepatan maks",
+  "share.stat.time": "Waktu foil",
+  "share.stat.longest": "Terpanjang",
+  "share.stat.distance": "Jarak/pump",
+  "share.stat.pumprate": "Ø Pump/mnt",
+  "share.run": "Run {n}",
 };
 
 export default id;

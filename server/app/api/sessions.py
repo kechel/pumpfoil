@@ -2006,6 +2006,10 @@ def share_card(
     title: str = "",
     shade: str = "light",
     highlight: int = -1,   # einzelnen Lauf hervorheben (0-basiert); <0 = alle
+    # Sprache der Beschriftung. Der Client schickt seine UI-Sprache mit — sie ist das, was der
+    # Mensch gerade sieht; ohne Angabe gilt die Profilsprache. Bis 13.09.2026 gab es den
+    # Parameter nicht und die Karte war fuer ALLE deutsch beschriftet.
+    lang: str | None = None,
     user: models.User = Depends(current_user),
     db: Session = Depends(get_db),
 ):
@@ -2028,7 +2032,8 @@ def share_card(
     sh = shade if shade in ("light", "dark") else "light"
     png = sharecard.render_share_png(s, ar, rings, color=color, stats=stat_keys, bg=bg,
                                      track=bool(track), title=ttl, shade=sh,
-                                     highlight=highlight if highlight >= 0 else None)
+                                     highlight=highlight if highlight >= 0 else None,
+                                     lang=(lang or user.language))
     return Response(content=png, media_type="image/png",
                     headers={"Cache-Control": "private, max-age=300"})
 

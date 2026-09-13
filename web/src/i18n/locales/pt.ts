@@ -1791,6 +1791,18 @@ const pt: Record<string, string> = {
   "spotRename.reason": "Por quê? (opcional)",
   "spotRename.send": "Enviar sugestão",
   "spotRename.sent": "Obrigado! Sua sugestão chegou até nós. A gente olha uma por uma.",
+  // Beschriftung der Teilen-Karte (PNG) UND der Auswahl im Teilen-Dialog — eine Quelle
+  // fuer beide, damit Vorschau und Bild nie verschiedene Woerter zeigen.
+  "share.stat.foiling": "Foiling",
+  "share.stat.runs": "Runs",
+  "share.stat.pumps": "Pumps",
+  "share.stat.avgspeed": "Ø Velocidade",
+  "share.stat.speed": "Vel. máxima",
+  "share.stat.time": "Tempo de foil",
+  "share.stat.longest": "Mais longo",
+  "share.stat.distance": "Distância/pump",
+  "share.stat.pumprate": "Ø Pumps/min",
+  "share.run": "Run {n}",
 };
 
 export default pt;

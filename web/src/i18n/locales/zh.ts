@@ -1788,6 +1788,18 @@ const zh: Record<string, string> = {
   "spotRename.reason": "为什么？（可选）",
   "spotRename.send": "发送建议",
   "spotRename.sent": "谢谢！我们已收到你的建议，会逐条查看。",
+  // Teilen-Karte: bewusst ENGLISCH, gleicher Grund wie bei ja — die Kartenschrift kennt
+  // keine chinesischen Zeichen, die CJK-Schrift auf dem Server kein Latein.
+  "share.stat.foiling": "Foiling",
+  "share.stat.runs": "Runs",
+  "share.stat.pumps": "Pumps",
+  "share.stat.avgspeed": "Ø Speed",
+  "share.stat.speed": "Top speed",
+  "share.stat.time": "Foil time",
+  "share.stat.longest": "Longest",
+  "share.stat.distance": "Distance/pump",
+  "share.stat.pumprate": "Ø Pumps/min",
+  "share.run": "Run {n}",
 };
 
 export default zh;

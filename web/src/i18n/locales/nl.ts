@@ -1845,6 +1845,18 @@ const nl: Record<string, string> = {
   "spotRename.reason": "Waarom? (optioneel)",
   "spotRename.send": "Voorstel versturen",
   "spotRename.sent": "Bedankt! Je voorstel is bij ons. We bekijken ze stuk voor stuk.",
+  // Beschriftung der Teilen-Karte (PNG) UND der Auswahl im Teilen-Dialog — eine Quelle
+  // fuer beide, damit Vorschau und Bild nie verschiedene Woerter zeigen.
+  "share.stat.foiling": "Foiling",
+  "share.stat.runs": "Runs",
+  "share.stat.pumps": "Pumps",
+  "share.stat.avgspeed": "Ø Snelheid",
+  "share.stat.speed": "Topsnelheid",
+  "share.stat.time": "Foiltijd",
+  "share.stat.longest": "Langste",
+  "share.stat.distance": "Afstand/pump",
+  "share.stat.pumprate": "Ø Pumps/min",
+  "share.run": "Run {n}",
 };
 
 export default nl;

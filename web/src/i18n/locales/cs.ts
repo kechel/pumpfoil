@@ -1844,6 +1844,18 @@ const cs: Record<string, string> = {
   "spotRename.reason": "Proč? (nepovinné)",
   "spotRename.send": "Odeslat návrh",
   "spotRename.sent": "Díky! Tvůj návrh je u nás. Díváme se na každý zvlášť.",
+  // Beschriftung der Teilen-Karte (PNG) UND der Auswahl im Teilen-Dialog — eine Quelle
+  // fuer beide, damit Vorschau und Bild nie verschiedene Woerter zeigen.
+  "share.stat.foiling": "Foiling",
+  "share.stat.runs": "Jízdy",
+  "share.stat.pumps": "Pumpy",
+  "share.stat.avgspeed": "Ø Rychlost",
+  "share.stat.speed": "Max. rychlost",
+  "share.stat.time": "Čas na foilu",
+  "share.stat.longest": "Nejdelší",
+  "share.stat.distance": "Vzdálenost/pump",
+  "share.stat.pumprate": "Ø Pumpy/min",
+  "share.run": "Jízda {n}",
 };
 
 export default cs;

@@ -1675,6 +1675,18 @@ const fr: Record<string, string> = {
   "spotRename.reason": "Pourquoi ? (facultatif)",
   "spotRename.send": "Envoyer la proposition",
   "spotRename.sent": "Merci ! Ta proposition nous est parvenue. Nous les examinons une par une.",
+  // Beschriftung der Teilen-Karte (PNG) UND der Auswahl im Teilen-Dialog — eine Quelle
+  // fuer beide, damit Vorschau und Bild nie verschiedene Woerter zeigen.
+  "share.stat.foiling": "Foiling",
+  "share.stat.runs": "Runs",
+  "share.stat.pumps": "Pumps",
+  "share.stat.avgspeed": "Ø Vitesse",
+  "share.stat.speed": "Vitesse max",
+  "share.stat.time": "Temps foil",
+  "share.stat.longest": "Plus long",
+  "share.stat.distance": "Distance/pump",
+  "share.stat.pumprate": "Ø Pumps/min",
+  "share.run": "Run {n}",
 };
 
 export default fr;
