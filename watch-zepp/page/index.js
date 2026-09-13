@@ -731,7 +731,7 @@ Page(
       accelFirstMs: 0, accelLastMs: 0, accelChunkT0: [], accelFile: "", _accelLogged: false,
       // GPS-Datei. `gps` bleibt als RUECKFALL bestehen: laesst sich die Datei nicht oeffnen,
       // zeichnet die Uhr wie vor 1.0.10 in den Speicher auf, statt gar nichts aufzuzeichnen.
-      gpsFd: -1, gpsFile: "", gpsBuffer: [], gpsCount: 0, gpsLastMs: 0, _gpsLogged: false,
+      gpsFile: "", gpsBuffer: [], gpsCount: 0, gpsLastMs: 0, gpsFehler: 0,
       _fi: 0, _flat: null, _flon: null,
     },
 
@@ -772,35 +772,71 @@ Page(
     _startGps() {
       const s = this.state;
       s.gpsFile = gpsPath(s.uuid); s.gpsBuffer = []; s.gpsCount = 0; s.gpsLastMs = 0;
-      s._gpsLogged = false;
+      s.gpsFehler = 0;
       try {
-        s.gpsFd = openSync({ path: s.gpsFile, flag: O_RDWR | O_CREAT | O_TRUNC });
+        // Nur ANLEGEN und sofort wieder schliessen. Die Datei bleibt NICHT offen — s. _flushGpsBuffer.
+        const fd = openSync({ path: s.gpsFile, flag: O_RDWR | O_CREAT | O_TRUNC });
+        closeSync({ fd });
       } catch (e) {
         // Kein Abbruch: ohne Datei laeuft der alte Weg ueber `s.gps` weiter.
-        s.gpsFd = -1; s.gpsFile = "";
+        s.gpsFile = "";
         console.log("[pumpfoil] gps file unavailable, keeping track in memory");
       }
     },
 
+    /**
+     * Puffer an die Datei anhaengen: OEFFNEN, an fester Position schreiben, SCHLIESSEN.
+     *
+     * WARUM NICHT EINE DAUERHAFT OFFENE DATEI (Befund 13.09.2026 im Emulator): so war es zuerst
+     * gebaut, und dann schrieb jede Aufnahme GENAU EINEN Block — GPS wie Accelerometer. Drei
+     * Sessions in Folge hatten exakt 10 Punkte und exakt 128 Samples, waehrend dieselbe Fassung
+     * ohne die GPS-Datei 27 Punkte ueber drei Bloecke schrieb. Die zweite dauerhaft offene Datei
+     * hat also auch den Accel-Pfad mitgerissen, der vorher monatelang lief.
+     *
+     * Woran genau es lag, weiss ich nicht — deshalb ist das hier so gebaut, dass es unabhaengig
+     * von der Vermutung stimmt: es ist nie eine zweite Datei dauerhaft offen, und geschrieben
+     * wird an einer AUSDRUECKLICHEN Position (`gpsCount * 18`) statt auf einen Dateizeiger zu
+     * vertrauen, den wir nicht kontrollieren. Bei einem GPS-Punkt pro Sekunde faellt das alle
+     * zehn Sekunden an — das kostet nichts.
+     */
     _flushGpsBuffer() {
       const s = this.state;
-      if (s.gpsFd < 0 || !s.gpsBuffer.length) return;
+      if (!s.gpsFile || !s.gpsBuffer.length) return;
+      let fd = -1;
       try {
         const buffer = gpsToBytes(s.gpsBuffer);
-        const written = writeSync({ fd: s.gpsFd, buffer });
-        if (written !== buffer.byteLength) throw new Error("short gps write");
+        fd = openSync({ path: s.gpsFile, flag: O_RDWR });
+        const written = writeSync({ fd, buffer,
+          options: { offset: 0, length: buffer.byteLength, position: s.gpsCount * GPS_REC_BYTES } });
+        closeSync({ fd }); fd = -1;
+        if (written !== buffer.byteLength) throw new Error("short gps write " + written);
         s.gpsCount += s.gpsBuffer.length;
         s.gpsBuffer = [];
+        s.gpsFehler = 0;
       } catch (e) {
-        // Puffer NICHT verwerfen — der naechste Versuch nimmt ihn mit (wie beim Accelerometer).
-        if (!s._gpsLogged) { s._gpsLogged = true; console.log("[pumpfoil] gps write failed " + ((e && e.message) || e)); }
+        if (fd >= 0) { try { closeSync({ fd }); } catch (e2) {} }
+        // JEDEN Fehlschlag melden, nicht nur den ersten. Die erste Fassung loggte einmal und
+        // schwieg dann — dadurch sah ein kaputter Schreibpfad wie „die Aufnahme hoert auf" aus,
+        // und ich habe einen Abend lang die falsche Stelle gesucht.
+        console.log("[pumpfoil] gps write failed " + ((e && e.message) || e));
+        // Nach drei Fehlschlaegen in Folge zurueck auf den Weg von 1.0.9: Spur im Speicher. Der
+        // ist erprobt. Lieber viel Speicher als eine Aufnahme, die stumm bei zehn Punkten endet.
+        //
+        // ABER nur, solange noch NICHTS in der Datei steht: waere schon ein Block geschrieben,
+        // wuerde der Wechsel ihn abhaengen (der Upload liest entweder Datei ODER Array, nicht
+        // beides) und damit genau die Daten wegwerfen, die schon sicher waren. Dann lieber
+        // weiter versuchen — der Puffer waechst, aber das ist das Verhalten von 1.0.9 und
+        // niemand verliert etwas.
+        if (++s.gpsFehler >= 3 && s.gpsCount === 0) {
+          console.log("[pumpfoil] gps file giving up, keeping track in memory");
+          for (const p of s.gpsBuffer) s.gps.push(p);
+          s.gpsBuffer = []; s.gpsFile = ""; s.gpsCount = 0;
+        }
       }
     },
 
     _stopGps() {
-      const s = this.state;
       this._flushGpsBuffer();
-      if (s.gpsFd >= 0) { try { closeSync({ fd: s.gpsFd }); } catch (e) {} s.gpsFd = -1; }
     },
 
     /** Wie viele GPS-Punkte die laufende Aufnahme hat — egal ob Datei oder Rueckfall. */
@@ -2390,7 +2426,17 @@ Page(
       const folge = (von, anzahl, schritt) => new Promise((fertig, fehler) => {
         const naechster = (i) => {
           if (i >= anzahl) return fertig();
-          schritt(i).then(() => { bump(); naechster(i + 1); }, fehler);
+          let p;
+          try { p = schritt(i); } catch (e) { return fehler(e); }
+          p.then(() => {
+            // ACHTUNG, der Preis der Schleife: dieser Schritt haengt an KEINER Promise mehr, die
+            // jemand prueft. Wirft hier etwas — und `bump()` zeichnet den Bildschirm neu, also
+            // UI-Code —, stirbt die Kette STUMM: die aeussere Promise wird nie erfuellt,
+            // `s.uploading` bleibt true, und der Upload-Knopf tut bis zum App-Neustart nichts
+            // mehr. Die alte rekursive Fassung hat solche Fehler nach aussen gereicht; hier muss
+            // man sie von Hand weiterreichen. (Gefunden 13.09.2026 beim Emulator-Test.)
+            try { bump(); naechster(i + 1); } catch (e) { fehler(e); }
+          }, fehler);
         };
         naechster(von);
       });
