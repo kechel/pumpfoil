@@ -40,6 +40,10 @@ springt nichts mehr zurück. Vorgeschlagen vom selben Melder.
 Beendet wird eine Aufnahme weiterhin über langes SELECT (oder kurzes, wenn im Profil so
 eingestellt) und über den Stopp-Bildschirm.
 
+**Aufgeräumt:** auf den Datenseiten steht nicht mehr „Halten = STOPP" in der Statuszeile. Der
+Hinweis stand dort auf jeder Seite, obwohl er sich nie ändert; jetzt zeigt die Zeile nur noch den
+GPS-Zustand und ob gerade ein Lauf läuft. Auf dem Stopp-Bildschirm bleibt er.
+
 ## 1.0.8 — 2026-08-31
 
 Built and version-bumped; goes to the store right after 1.0.7 clears review.

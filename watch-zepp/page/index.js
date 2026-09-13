@@ -1921,9 +1921,15 @@ Page(
       this._clearLayout();
       w.page.setProperty(hmUI.prop.TEXT, (pg + 1) + "/" + n);
       this.renderFields([entry[1], entry[2], entry[3]]);
+      // Auf den DATENSEITEN steht kein „Halten = STOPP" mehr (Jan, 13.09.2026: „was soll diese
+      // anzeige Hold = STOP auf allen seiten?"). Der Hinweis kam daher, dass hier der rote
+      // STOPP-Knopf ausgeblendet ist — er sollte sagen, dass langes Halten trotzdem ueberall
+      // beendet. Seit heute bringt JEDER Tastendruck den Stopp-Bildschirm, der Weg ist also von
+      // selbst auffindbar. Damit bleibt in der Zeile nur noch, was sich wirklich aendert: der
+      // GPS-Zustand und ob gerade ein Lauf laeuft. Auf dem Stopp-Bildschirm selbst steht der
+      // Hinweis weiterhin — dort ist er die Bedienung und keine Wiederholung.
       w.status.setProperty(hmUI.prop.TEXT, (s.fix ? "GPS ●" : t("gps.searching"))
-        + (s.foiling ? " · " + t("f.runActive") : "")
-        + " · " + t("rec.stopHold") + " = " + t("btn.stop"));
+        + (s.foiling ? " · " + t("f.runActive") : ""));
     },
     renderSummary() {
       const s = this.state, w = s.w, last = s.last || { dist: 0, dur: 0, avg: 0, max: 0 };
