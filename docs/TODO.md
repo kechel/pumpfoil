@@ -945,6 +945,12 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     trägt: die Seite beschreibt die Technik, nennt keine Marke, und Kopf wie Fußzeile führen
     pumpfoil.org als Absender. **Nicht erneut aufmachen.** Falls es je doch ein Thema wird, ist
     der Rückbau eine Zeile in `landing.ALIASSE`.
+    Zusätzlich auf Jans Vorschlag: **kanonisch ist `wake-thief.org` MIT Bindestrich** — optisch
+    klar getrennt von der Marke, trifft die Suchabsicht („wake thief" mit Leerzeichen) aber
+    genauso; `wakethief.org` leitet dorthin. Das ist die einzige Domain, bei der die
+    Bindestrich-Variante die Seite trägt. Die Seite selbst beschreibt seitdem ausdrücklich die
+    TECHNIK: Titel „Wake Thieving", Dock Start vom Steg, „ohne Leine, ohne Zug" — der Google-
+    Wissenspanel führt die Disziplin ebenfalls vor der Produktserie.
   - **`paddleup.org` ist bestätigt.** „Paddle up" = die Paddelarbeit, bis das Board auf dem Foil
     steht („less time struggling to paddle up"). Text kann stehen bleiben.
   - **`parawing.org` ist recherchiert und korrigiert** (s. `docs/sport-classification.md`):
