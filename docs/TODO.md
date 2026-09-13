@@ -898,6 +898,37 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 13.09. BEHOBEN — `/complete` wurde quittiert, aber wieder zurueckgedreht: 12 Aufnahmen von
+  9 echten Nutzern hingen fuer immer als „laedt hoch".**
+  Aufgefallen bei Jans Emulator-Test („die uhr hat upload angezeigt und fertig gemeldet, trotzdem
+  sehe ich das"). Es war kein Emulator-Sonderfall.
+  - **Befund:** `run_analysis` schrieb am Ende `status = "analyzed" if final else "live"` —
+    BEDINGUNGSLOS. Die Zwischenanalyse (`final=False`, angestossen waehrend die Chunks laufen)
+    braucht Minuten; kam `/complete` in dieser Zeit an, setzte es korrekt „complete", und die noch
+    laufende Zwischenanalyse schrieb danach wieder „live".
+  - **Belegt an den Zeitstempeln:** #8322 `/complete` 08:19:00, ueberschreibende Analyse 08:22:05
+    (+185 s); #8323 08:22:02 / 08:23:19 (+77 s). Im Log stehen beide `/complete` mit **200 OK** —
+    die Uhr hat also zu Recht „fertig" gemeldet und ihre Kopie freigegeben.
+  - **Der Fingerabdruck, mit dem sich die Faelle finden lassen:** `total_chunks` gesetzt UND Status
+    `live`. Diese Spalte schreibt AUSSCHLIESSLICH `/complete`.
+  - **Folgen fuer die Betroffenen:** ewige Upload-Karte mit dem falschen Rat „bring deine Uhr in
+    Reichweite", keine Benachrichtigung, kein Auto-Zuschnitt, in der Liste nur unter
+    „Aussortiert". Betroffen u287, u433, u156, u225, u511, u227, u505, **u531** (Neuzugang vom
+    12.09., vollstaendige Aufnahme mit 9 Laeufen), u139 — dazu drei eigene Testkonten.
+  - **Fix:** die Entscheidung steckt jetzt in `analysis.neuer_status(alt, final)` — final gewinnt
+    immer, die Zwischenanalyse setzt `live` nur aus `recording`/`live`/`None`. Ausgelagert, damit
+    ein Test die ECHTE Funktion pruefen kann und nicht eine Kopie der Logik
+    (`tests/test_status_nicht_zurueckdrehen.py`, 10 Faelle).
+  - **Reparatur:** alle 12 mit `run_analysis(final=True)` nachgezogen, Ist-Zustand vorher
+    gesichert. **Kein einziger Wert hat sich geaendert** (Laeufe, Pumps, Foiling identisch) — es
+    war wirklich nur der Status. Bewusst NICHT ueber `_analyze_in_background` gelaufen: das haette
+    `notify_session_analyzed` ausgeloest und Tage alte Meldungen nachtraeglich verschickt
+    ([[no-retroactive-push]]). Der Auto-Zuschnitt ist aus demselben Grund der Vorsicht
+    ausgelassen — er haette ihre Zahlen nachtraeglich veraendert.
+  - **Uebrig bleiben 23 echte Haenger** (nie ein `/complete`, Chunks fehlen wirklich) — das ist der
+    normale Fall „Uhr war nicht in Reichweite" und kein Fehler.
+
+
 - **📥 12.09. (Clement, u31, Feedback #127 aus der iOS-App) — Spot-Namen von den Fahrern aendern
   lassen.** Wortlaut: „where can we edit the name of the spot? … the default name of the spot is
   not that good, it should be Barcelona Forum!"

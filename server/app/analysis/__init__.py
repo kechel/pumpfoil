@@ -307,6 +307,31 @@ def attempt_distances(gps_samples, gps_hz) -> list:
         return []
 
 
+def neuer_status(alt: str | None, final: bool) -> str:
+    """Welchen Status bekommt die Session nach einer Analyse?
+
+    Die finale Analyse setzt immer `analyzed`. Die ZWISCHENanalyse setzt `live` — aber nur,
+    solange die Aufnahme ueberhaupt noch laeuft. Einen erreichten Abschluss dreht sie nicht
+    zurueck.
+
+    Die Einschraenkung ist der ganze Zweck dieser Funktion (13.09.2026). Vorher stand an der
+    Aufrufstelle `"analyzed" if final else "live"`, bedingungslos. Die Zwischenanalyse laeuft
+    aber minutenlang, waehrend die Chunks noch hochladen; kam `/complete` in dieser Zeit an,
+    setzte es korrekt „complete" — und die noch laufende Zwischenanalyse schrieb danach wieder
+    „live". Die Uhr bekam ihr 200 OK und meldete „fertig", die Aufnahme hing trotzdem fuer immer
+    in der Upload-Karte, ohne Benachrichtigung, ohne Auto-Zuschnitt, in der Liste nur unter
+    „Aussortiert".
+
+    Gemessen an dem Tag: #8322 `/complete` 08:19:00, ueberschreibende Analyse 08:22:05 (+185 s);
+    #8323 08:22:02 / 08:23:19 (+77 s). Im Bestand betraf es 12 Aufnahmen von 9 echten Nutzern,
+    die aelteste vom 07.09. Der Fingerabdruck ist `total_chunks` bei Status „live" — diese Spalte
+    setzt AUSSCHLIESSLICH `/complete`.
+    """
+    if final:
+        return "analyzed"
+    return "live" if alt in ("recording", "live", None) else alt
+
+
 def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -> "models.AnalysisResult":
     """Lädt die Rohdaten der Session, rechnet die Analyse und persistiert das Ergebnis.
 
@@ -702,7 +727,18 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
                 # Keine belegbare Klasse -> in KEINER Auswertung, bis der Besitzer zuordnet.
                 session.needs_classification = True
 
-    session.status = "analyzed" if final else "live"
+    # Einen ERREICHTEN Abschluss nie zurueckdrehen. Bis 13.09.2026 stand hier
+    # `session.status = "analyzed" if final else "live"` — bedingungslos, auch in der
+    # Zwischenanalyse. Die laeuft aber MINUTENLANG, waehrend die Chunks noch hochladen, und wenn
+    # `/complete` in dieser Zeit ankommt, setzt es korrekt „complete" … und die noch laufende
+    # Zwischenanalyse schrieb danach wieder „live". Die Uhr bekam ihr 200 OK und meldete „fertig",
+    # die Session hing trotzdem fuer immer in der Upload-Karte.
+    #
+    # Gemessen am 13.09.: #8322 `/complete` 08:19:00, ueberschreibende Analyse 08:22:05 (+185 s);
+    # #8323 08:22:02 / 08:23:19 (+77 s). Im Bestand betraf es 12 Aufnahmen von 9 echten Nutzern,
+    # aelteste vom 07.09. Der Fingerabdruck ist `total_chunks` bei Status „live": diese Spalte
+    # setzt AUSSCHLIESSLICH `/complete`.
+    session.status = neuer_status(session.status, final)
     # ZUletzt-geaendert-Stempel: die Session-Detailantwort baut daraus ihr ETag, und die Clients
     # (PWA + Apps) cachen darueber. Ohne diesen Stempel liefert der Server nach einer Reanalyse
     # weiter "304 – nicht geaendert": die LISTE zeigt die neuen Werte (frisch gerechnet), das
