@@ -436,6 +436,31 @@ IN_REVIEW: list[dict] = [
          "large notice sitting on top of your screen. It still leads you to the recording, "
          "where you decide: analyse it with what we have, or delete it.",
      ]},
+    {"name": "Amazfit", "version": "1.0.9",
+     # 13.09.2026 EINGEREICHT, einen Tag nach der Freigabe von 1.0.8. Zepp-Konsole: appId 1118995,
+     # Version 1.0.9, Application Time 2026.09.13, Status „Under Review (Can be Withdrawn)";
+     # darunter 1.0.8 vom 12.09. als „Approved".
+     #
+     # ANLASS war eine Nutzerantwort, keine Planung: die Rundmail an die elf Amazfit-Konten ging
+     # um 09:19 raus, um 10:43 kam die Beschreibung, die den Fehler erklaerte, und um 11:30 war er
+     # behoben. Deshalb zwei Einreichungen an aufeinanderfolgenden Tagen.
+     #
+     # NACH DER FREIGABE: `_APP_META["zepp"]` auf 1.0.9, diesen Eintrag entfernen,
+     # Changelog-Punkte eintragen. Naechste Nummer danach: 1.0.10 / code 13 — der Update-Hinweis
+     # vertraegt das, `istNeuer` in page/index.js vergleicht die Teile als ZAHLEN (nachgeprueft
+     # 13.09.), ein lexikalischer Vergleich haette 1.0.10 fuer aelter als 1.0.9 gehalten.
+     "note": "submitted 13 September, waiting for the Zepp store",
+     "items": [
+         "A recording no longer ends when you press a button or swipe. Until now a single press "
+         "could close the app and take the running recording with it — on some watches that "
+         "happened on every press, which is why so few Amazfit recordings ever arrived complete.",
+         "A button press now shows the stop screen instead, the way the other activities on the "
+         "watch do. It stops nothing by itself; it only shows you where stopping lives, and your "
+         "previous screen comes back on its own after five seconds.",
+         "The data pages no longer repeat \u201ehold = stop\u201c in the status line. That line "
+         "now shows only what changes while you ride \u2014 satellite fix and whether a run is "
+         "under way.",
+     ]},
 ]
 
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
