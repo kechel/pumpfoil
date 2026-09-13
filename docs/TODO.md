@@ -928,12 +928,15 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     weiter ueber langes SELECT (bzw. kurzes, wenn im Profil so eingestellt) und den
     Stopp-Bildschirm. **Zepp auf 1.0.9 / code 12 gebumpt**, CHANGELOG.md ergaenzt, `node --check`
     sauber. Bauen und einreichen kann nur Jan (Mac).
-  - **🔲 OFFEN, Sams zweiter Vorschlag:** „On other activities when you press a button it gives a
-    menu with stop / pause / resume. Which helps avoid accidentally ending the recording."
-    Heute tut ein Druck waehrend der Aufnahme sichtbar NICHTS — harmlos, aber verwirrend. Billigste
-    Umsetzung ohne neues Widget: bei einem sonst unbehandelten Druck auf **Seite 0 springen**, das
-    ist bereits der Stopp-Bildschirm. Entscheidung Jan; auf echter Hardware pruefen kann nur er
-    bzw. Sam, der sich dafuer angeboten hat.
+  - **🟢 Sams zweiter Vorschlag ist gleich mit drin** („On other activities when you press a
+    button it gives a menu with stop / pause / resume"). Entscheidung Jan am selben Tag: „ja wenn
+    das so zepp ueblich ist, dann bitte genau so machen." Ein Tastendruck waehrend der Aufnahme
+    springt jetzt auf den **Stopp-Bildschirm** (Seite 0 des Rings) — ohne neues Widget, die Seite
+    gibt es laengst. Der Druck BEENDET nichts, er macht nur sichtbar, wo das Beenden liegt.
+    Dreifach verknuepft: BACK, kurzer SELECT-Druck im Halte-Modus, und jede sonstige Taste.
+    Wichtig war der Zwischenschritt: nach dem reinen Sicherheits-Fix tat ein Druck sichtbar GAR
+    nichts, und das macht genauso ratlos wie ein Absturz. Auf echter Hardware pruefen kann nur Jan
+    bzw. Sam, der sich angeboten hat.
   - **🔲 OFFEN, unabhaengig davon:** die Zepp-App schickt weiterhin kein `expected_chunks` (bei
     allen vier Aufnahmen von heute leer). Ohne die Zahl ist „Uhr hat wenig aufgenommen" nicht von
     „Upload blieb stecken" zu trennen — auf Garmin und Wear geht genau das.

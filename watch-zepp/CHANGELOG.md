@@ -30,6 +30,11 @@ eine Taste, deren Code keiner unserer vier Konstanten entspricht — damit fiel 
 Das passt auf den Bestand: von 21 Amazfit-Aufnahmen waren nur 4 brauchbar, bei den übrigen kamen
 eine Handvoll Datenpakete an und dann nichts mehr. Derselbe Melder hatte sechs Fehlversuche.
 
+**Und ein Tastendruck zeigt jetzt den Stopp-Bildschirm**, statt sichtbar nichts zu tun. So
+verhalten sich die eingebauten Zepp-Aktivitäten auch: der Druck beendet nichts, er macht nur
+sichtbar, wo das Beenden liegt. Ein Fehlgriff ist damit folgenlos und trotzdem erkennbar.
+Vorgeschlagen vom selben Melder.
+
 Beendet wird eine Aufnahme weiterhin über langes SELECT (oder kurzes, wenn im Profil so
 eingestellt) und über den Stopp-Bildschirm.
 

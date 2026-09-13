@@ -813,7 +813,7 @@ Page(
             const click = (event === KEY_EVENT_CLICK);
             if (key === KEY_BACK) {
               if (s.recording) {
-                if (long || click) this._showTouchLock();
+                if (long || click) { this._showTouchLock(); this._toStopScreen(); }
                 return true;
               }
               return false;
@@ -833,6 +833,7 @@ Page(
               if (key === KEY_SELECT && click) {
                 if (s.stopMode === "press") { this.stop(); return true; }
                 if (s.touchLocked) this._showTouchLock();
+                this._toStopScreen();
                 return true;
               }
               // JEDE andere Taste konsumieren statt sie ans System zu geben.
@@ -849,7 +850,11 @@ Page(
               // Handvoll Datenpakete, Sam allein sechs Fehlversuche. Waehrend der Aufnahme gibt
               // es deshalb keinen Weg mehr, auf dem eine Taste die App verlassen kann —
               // beendet wird ueber langes SELECT (bzw. kurzes, wenn im Profil so eingestellt).
-              if (!click || (key !== KEY_UP && key !== KEY_DOWN)) { if (s.touchLocked) this._showTouchLock(); return true; }
+              if (!click || (key !== KEY_UP && key !== KEY_DOWN)) {
+                if (s.touchLocked) this._showTouchLock();
+                this._toStopScreen();
+                return true;
+              }
               if (s.touchLocked) this._showTouchLock();
               // Seitenzahl aus dem Ring des AKTUELLEN Zustands (on-foil/off-foil), nicht mehr aus
               // s.views — die Sätze sind unterschiedlich lang (s. _ring).
@@ -1076,6 +1081,27 @@ Page(
     // ---- Button pro Screen/Seite ----
     setButton(text, nc, pc, ink, fn) { const w = this.state.w; if (w.btn) hmUI.deleteWidget(w.btn); w.btn = hmUI.createWidget(hmUI.widget.BUTTON, { ...BUTTON, text, normal_color: nc, press_color: pc, color: ink, click_func: fn }); },
     hideButton() { const w = this.state.w; if (w.btn) { hmUI.deleteWidget(w.btn); w.btn = null; } },
+    /** Auf den Stopp-Bildschirm springen (Seite 0 des Aufnahme-Rings).
+     *
+     *  So verhalten sich die eingebauten Zepp-Aktivitaeten: ein Tastendruck waehrend der Aufnahme
+     *  zeigt die Stopp-Auswahl, statt stumm nichts zu tun. Vorgeschlagen von Sam Barnes am
+     *  13.09.2026 („On other activities when you press a button it gives a menu with stop, pause,
+     *  resume. Which helps avoid accidently ending the recording."), Entscheidung Jan am selben
+     *  Tag: wenn es Zepp-ueblich ist, genau so.
+     *
+     *  Wichtig ist der Unterschied zu vorher: der Druck BEENDET nichts, er macht nur sichtbar,
+     *  wo das Beenden liegt. Ein Fehlgriff ist damit folgenlos UND erkennbar — vorher beendete er
+     *  die ganze App samt Aufnahme, und danach (nach dem Fix von heute) tat er sichtbar gar
+     *  nichts, was genauso ratlos macht.
+     */
+    _toStopScreen() {
+      const s = this.state;
+      if (!s.recording || s.page === 0) return;
+      s.page = 0;
+      this.applyButton();
+      this.renderRecording();
+    },
+
     _showTouchLock() {
       const s = this.state, w = s.w;
       if (!s.recording || !s.touchLocked || !w.touchShield) return;
