@@ -125,7 +125,14 @@ _APP_META: dict[str, dict[str, str]] = {
         # Ein Nutzer mit 1.1.14 bekam dadurch einen Update-Hinweis, den Play nicht einloesen konnte
         # ("update button just opens google play and does not offer nor start update"). Deshalb: erst
         # eintragen, wenn Freigabe DA und Roll-out bei 100 % — "eingereicht" genuegt nie.
-        "latest": "1.1.25",   # LIVE 2026-09-07: Play-Mail „is live in the store", Release
+        "latest": "1.1.28",   # LIVE 2026-09-13: Play-Mail „Your update to Pumpfoil, created on
+        # Sep 10, 2026 at 8:09 AM GMT, is live in the store." Der Zeitstempel passt auf unsere
+        # Einreichung vom 10.09. 10:09 Berlin (Phone 1.1.28/42 + Wear 1.2.28/1038). Wie immer
+        # deckt EINE Mail beide Tracks ab (gleiche applicationId).
+        # BELEG AUS UNSEREN DATEN, nicht nur die Mail: drei Geraete-Tokens melden `app_version
+        # 1.2.28`, das letzte am 13.09. um 07:13 — also echte Nutzer, nicht der Pruefer (der lief
+        # am 10.09. mit 1.2.27, dem abgelehnten Stand, genau ein Token).
+        # Vorher 1.1.25, LIVE 2026-09-07: Play-Mail „is live in the store", Release
         # erstellt 02.09. 15:53 GMT (= 17:53 Berlin, genau diese Einreichung). Wie am
         # 09.08. und 25.08. deckt EINE Mail beide Tracks ab (gleiche applicationId).
         # created on Aug 26, 2026 at 7:26 PM GMT, is live in the store"). Der Zeitstempel passt auf
@@ -174,7 +181,11 @@ _APP_META: dict[str, dict[str, str]] = {
         # 05.08. 15:06 GMT). Eingereicht war 1.2.20/1030 zusammen mit Phone 1.1.20/34.
         # Der gebaute Nachzug 1.2.21/1031 (Token-Heilung bei Config-401) ist NOCH NICHT
         # eingereicht — hier also nicht eintragen. Vorher: 1.2.18/1028, live seit 04.08.
-        "latest": "1.2.25",   # LIVE 2026-09-07, dieselbe Play-Mail wie android. Zusaetzlich
+        "latest": "1.2.28",   # LIVE 2026-09-13, dieselbe Play-Mail wie android (Release erstellt
+        # 10.09. 08:09 GMT). Im Feld belegt: drei Tokens mit `app_version 1.2.28`, zuletzt am
+        # 13.09. 07:13. 1.2.27 war der ABGELEHNTE Stand und existiert im Feld nur einmal — das
+        # war der Play-Pruefer am 10.09.
+        # Vorher 1.2.25, LIVE 2026-09-07, dieselbe Play-Mail wie android. Zusaetzlich
         # im Feld belegt, nicht nur geglaubt: user 396 wechselte am 05.09. von 1.2.24 auf
         # `app_version 1.2.25` — Pixel Watch 2, fremdes Geraet, nicht Jans Emulator. Also war
         # der Wear-Track schon VOR der Mail draussen (er hat eine eigene Pruefung, s. TODO).
@@ -360,82 +371,6 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
-    {"name": "Android phone + Wear OS", "version": "1.1.28 / 1.2.28",
-     # ERSETZT die Einreichung vom 07.09. (1.1.26/1.2.26), bevor Google sie freigegeben hat —
-     # Entscheidung Jan (08.09.2026): „statt eine Woche zu warten lade ich das Update direkt neu
-     # hoch, dann verlieren wir nur einen Tag anstatt einer ganzen Woche fuer den echten Bugfix
-     # von heute". Ein neuer Upload auf denselben Track ersetzt die laufende Pruefung; das ist
-     # laut der Regel vom 23.08. nur bei einem ECHTEN Fehler richtig, und die Ortung ueber das
-     # Handy ist einer.
-     #
-     # WICHTIG: die Punkte sind ZUSAMMENGEFUEHRT. 1.1.27 ist derselbe Baum wie 1.1.26 plus die
-     # vier Wear-Commits von heute — waeren hier nur die neuen drei Zeilen aufgefuehrt, fehlten
-     # den Nutzern die 13 aus der ersetzten Einreichung, denn die ist nie erschienen.
-     # 10.09.2026: Google hat die WEAR-Spur (1.2.27 / Code 1037) abgelehnt — Wear App Quality
-     # Guidelines, „Wear font size": auf dem Beleg-Screenshot lag „Puls passiv" oben rechts
-     # hinter der runden Fassung. Eine abgelehnte Nummer nimmt Play nicht wieder an, deshalb
-     # 1.2.28 / 1038. Die Punkte bleiben ZUSAMMENGEFUEHRT (dieselbe Regel wie beim Ersetzen der
-     # Einreichung vom 07.09.): erschienen ist bis jetzt nichts davon.
-     #
-     # 10.09.2026, Entscheidung Jan: die WASSERSPERRE ist wieder RAUS und steht deshalb nicht mehr
-     # in der Liste („A touch lock for the water …" entfernt). Sie haette im Band oben gesessen und
-     # bei grosser System-Schrift den ersten Messwert ueberdeckt (im Emulator gemessen: Chip bis
-     # 26,5 dp, erste Ziffernzeile ab 19,5 dp). Herausnehmen kostet nichts — sie hat nie einen
-     # Nutzer erreicht (nur 1.2.26/1.2.27, beide nicht erschienen). Kommt spaeter an einer Stelle
-     # zurueck, die auf einer runden Uhr traegt; s. docs/TODO.md.
-     #
-     # PHONE auf 1.1.28 / 42: Code 41 wurde am 08.09. hochgeladen und ist damit verbraucht, auch
-     # wenn Play die Fassung nicht veroeffentlicht hat. Beim Upload am 10.09. hat Play die 42
-     # angenommen — der Bump war also noetig.
-     #
-     # DASS 1.1.27 nie ausgeliefert wurde, belegt die Play-KONSOLE: „Zuletzt veroeffentlicht am
-     # 7. September 2026", und das war 1.1.25/1.2.25. Die oeffentliche Store-Seite taugt dafuer
-     # NICHT: sie nennt „Aktualisiert am 02.09." und meint damit offenbar das Anlegen des
-     # Releases, nicht die Auslieferung (das Release zu 1.1.25 wurde am 02.09. 15:53 GMT
-     # erstellt und ging am 07.09. live). Wer hier das Store-Datum als Auslieferungsdatum liest,
-     # zieht falsche Schluesse — die Konsole fragen.
-     #
-     # Damit tragen Phone und Wear wieder dasselbe „x" (s. android/app/build.gradle.kts).
-     "note": "submitted 10 September, waiting for Google",
-     "items": [
-         "The heart-rate field now says how old the reading is \u2014 '59 s ago' instead of "
-         "'bpm' \u2014 as soon as the watch stops measuring continuously. Before, a note sat in "
-         "the top right corner where the bezel cuts the screen away, so almost none of it was "
-         "visible, and it did not say what it meant. Your speed keeps its own room at any "
-         "font size.",
-         "The stop and discard buttons grow with the font size you set, instead of cutting "
-         "off their own label.",
-         "The watch uses its own GPS instead of taking the position from your phone. Until now "
-         "it asked the system for \u201ethe best location\u201c, and on a watch that can mean the "
-         "phone lying on the shore — the track then shows where your phone was, not where you "
-         "rode. On one watch model half of all recordings were affected.",
-         "\u201eGPS ready\u201c on the start screen now means the watch itself has a fix. It used "
-         "to turn green on a position that came from the phone, which promised something the "
-         "recording could not deliver.",
-         "A watch without any GPS of its own says so before you start, instead of recording a "
-         "track that is not yours. Heart rate and movement are still recorded.",
-         "COROS can be connected from the app at all — it pointed at the wrong address and "
-         "always reported itself as unavailable, while it had been working on the website "
-         "for days.",
-         "You can choose which sport modes we import from a connected account, and the note "
-         "under each account now says what actually happens: Polar sends new trainings by "
-         "itself, COROS is fetched once a day.",
-         "A recording without a single position says so, instead of showing an empty page.",
-         "The spot page shows the records for that spot, the weather and the water level, and the spot descriptions — at the top, the way the website does it. Some of that was missing entirely.",
-         "The watch says it plainly when it never got a GPS fix, instead of quietly "
-         "recording zeros.",
-         "Heart rate keeps measuring: if the watch stops reporting, the app asks for it again.",
-         "The always-on screen stays on while you ride.",
-         "Hold two seconds to stop, the same way the Garmin does it.",
-         "Every foil in the list opens its own page, with the records set on it and the "
-         "sessions ridden with it.",
-         "An account import shows a progress bar while it runs, and says in your language "
-         "what came of it — how many were imported and why the others were not.",
-         "Xiaomi and Redmi watches: the app explains the official way in, through Mi Fitness "
-         "and Suunto.",
-         "COROS: the app says which mode records the best data, and what COROS does not "
-         "hand over.",
-     ]},
     {"name": "iPhone + Apple Watch", "version": "1.1.33",
      # 12.09.2026 22:27 EINGEREICHT (Jans Meldung aus App Store Connect: "Heute um 22:27,
      # iOS 1.1.33, 1 Element, Warten auf Pruefung"). Build 37. 1.1.32 ging am selben Tag um
@@ -477,15 +412,16 @@ NAECHSTES: list[dict] = [
          "The language setting sits at the very top of your settings now. If the app is in a "
          "language you cannot read, that is the one thing you need to find first.",
      ]},
-    {"name": "Android phone + Wear OS", "version": "after 1.1.28 / 1.2.28",
-     # KEINE Nummer: 1.1.28 / 1.2.28 liegen seit dem 10.09. in der Pruefung, und die naechste
-     # Nummer haengt an deren Ausgang (eine abgelehnte nimmt Play nicht wieder an). Erst danach
-     # bumpen — und dann beide zusammen, das ist die harte Regel.
+    {"name": "Android phone + Wear OS", "version": "1.1.29 / 1.2.29",
+     # 13.09.2026: 1.1.28 / 1.2.28 sind LIVE, damit steht die naechste Nummer fest — 1.1.29 /
+     # 1.2.29, beide zusammen (harte Regel). Gebaut ist alles, hochladen kann nur Jan.
+     # Vorher stand hier bewusst keine Nummer, weil eine abgelehnte Fassung von Play nicht
+     # wieder angenommen wird und der Ausgang der Pruefung deshalb abzuwarten war.
      #
      # Der Schnitt ist hier ein anderer als bei iOS: eingereicht wurde am 10.09. um 10:10, also
      # stecken Wetterkarte, Datei-Import und pt-PT schon in 1.1.28. Hier stehen nur die vier
      # Punkte, die DANACH entstanden sind — sonst laesen Nutzer dieselbe Zeile zweimal.
-     "note": "built, waiting for 1.1.28 / 1.2.28 to clear review first",
+     "note": "built, waiting to be uploaded",
      "items": [
          "A setup assistant walks new accounts once through the settings that matter — "
          "language, display name, level, weight, sport, foil and connecting your watch. "
