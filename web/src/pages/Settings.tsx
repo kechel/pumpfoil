@@ -200,6 +200,17 @@ export default function Settings() {
 
       <InstallPwa className="mb-4 md:hidden" />
 
+      {/* Sprache GANZ OBEN, unter den Knoepfen und ueber dem Profilbild (Vorgabe Jan,
+          13.09.2026). Sie stand vorher weit unten zwischen Homespot und Pump-Einheit — wer die
+          Seite in einer Sprache vor sich hat, die er nicht liest, muss aber genau hier als
+          Erstes fuendig werden und nicht erst scrollen. Dieselbe Ueberlegung wie im
+          Einrichtungs-Assistenten, wo die Sprache Schritt 1 ist. */}
+      <Card className="mb-4 p-5">
+        <h3 className="mb-1 font-semibold">{t("lang.label")}</h3>
+        <p className="mb-3 text-sm text-slate-300">{t("lang.hint")}</p>
+        <LanguageSelect />
+      </Card>
+
       <Card className="mb-4 p-5">
         <h3 className="mb-1 font-semibold">{t("profile.avatar")}</h3>
         <p className="mb-3 text-sm text-slate-300">{t("profile.avatarHint")}</p>
@@ -273,12 +284,6 @@ export default function Settings() {
       </Card>
 
       <PublicProfileCard onSaved={flashSaved} />
-
-      <Card className="mt-4 p-5">
-        <h3 className="mb-1 font-semibold">{t("lang.label")}</h3>
-        <p className="mb-3 text-sm text-slate-300">{t("lang.hint")}</p>
-        <LanguageSelect />
-      </Card>
 
       <Card className="mt-4 p-5">
         <h3 className="mb-1 font-semibold">{t("pumpunit.label")}</h3>
