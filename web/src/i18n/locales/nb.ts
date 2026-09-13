@@ -1767,6 +1767,18 @@ const nb: Record<string, string> = {
   "spotRename.reason": "Hvorfor? (valgfritt)",
   "spotRename.send": "Send forslag",
   "spotRename.sent": "Takk! Forslaget ditt er hos oss. Vi ser på hvert enkelt.",
+  // Beschriftung der Teilen-Karte (PNG) UND der Auswahl im Teilen-Dialog — eine Quelle
+  // fuer beide, damit Vorschau und Bild nie verschiedene Woerter zeigen.
+  "share.stat.foiling": "Foiling",
+  "share.stat.runs": "Runs",
+  "share.stat.pumps": "Pumps",
+  "share.stat.avgspeed": "Ø Fart",
+  "share.stat.speed": "Toppfart",
+  "share.stat.time": "Foiltid",
+  "share.stat.longest": "Lengste",
+  "share.stat.distance": "Distanse/pump",
+  "share.stat.pumprate": "Ø Pumps/min",
+  "share.run": "Run {n}",
 };
 
 export default nb;

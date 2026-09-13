@@ -1827,6 +1827,18 @@ const fi: Record<string, string> = {
   "spotRename.reason": "Miksi? (vapaaehtoinen)",
   "spotRename.send": "Lähetä ehdotus",
   "spotRename.sent": "Kiitos! Ehdotuksesi on meillä. Katsomme jokaisen erikseen.",
+  // Beschriftung der Teilen-Karte (PNG) UND der Auswahl im Teilen-Dialog — eine Quelle
+  // fuer beide, damit Vorschau und Bild nie verschiedene Woerter zeigen.
+  "share.stat.foiling": "Foilaus",
+  "share.stat.runs": "Vedot",
+  "share.stat.pumps": "Pumput",
+  "share.stat.avgspeed": "Ø Nopeus",
+  "share.stat.speed": "Huippunopeus",
+  "share.stat.time": "Foilaika",
+  "share.stat.longest": "Pisin",
+  "share.stat.distance": "Matka/pumppu",
+  "share.stat.pumprate": "Ø Pumput/min",
+  "share.run": "Veto {n}",
 };
 
 export default fi;

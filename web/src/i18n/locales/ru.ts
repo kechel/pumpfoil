@@ -1791,6 +1791,18 @@ const ru: Record<string, string> = {
   "spotRename.reason": "Почему? (необязательно)",
   "spotRename.send": "Отправить предложение",
   "spotRename.sent": "Спасибо! Предложение у нас. Мы смотрим каждое отдельно.",
+  // Beschriftung der Teilen-Karte (PNG) UND der Auswahl im Teilen-Dialog — eine Quelle
+  // fuer beide, damit Vorschau und Bild nie verschiedene Woerter zeigen.
+  "share.stat.foiling": "Фойлинг",
+  "share.stat.runs": "Заезды",
+  "share.stat.pumps": "Пампы",
+  "share.stat.avgspeed": "Ø Скорость",
+  "share.stat.speed": "Макс. скорость",
+  "share.stat.time": "Время фойла",
+  "share.stat.longest": "Длиннейший",
+  "share.stat.distance": "Дистанция/памп",
+  "share.stat.pumprate": "Ø Пампы/мин",
+  "share.run": "Заезд {n}",
 };
 
 export default ru;

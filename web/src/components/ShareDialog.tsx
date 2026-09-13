@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { api, getToken } from "../lib/api";
-import { useT } from "../i18n";
+import { useI18n } from "../i18n";
 import { CloseIcon, ShareIcon, CameraIcon, DownloadIcon } from "./Icons";
 import { useCloseOnBack } from "../lib/useCloseOnBack";
 
@@ -14,9 +14,14 @@ const N = 1080;
 // Reihenfolge wie auf der Card. „Ø Speed" steht zwischen Pumps und Top-Speed (Vorgabe Jan,
 // 13.09.2026) — die beiden Geschwindigkeiten damit nebeneinander, Schnitt vor Spitze.
 const STAT_ORDER = ["foiling", "runs", "pumps", "avgspeed", "speed", "time", "longest", "distance", "pumprate"] as const;
-const STAT_LABEL: Record<string, string> = {
-  foiling: "Foiling", runs: "Läufe", pumps: "Pumps", avgspeed: "Ø Speed", speed: "Top-Speed",
-  time: "Foil-Zeit", longest: "Längster", distance: "Strecke/Pump", pumprate: "Ø Pumps/min",
+// Beschriftung: DIESELBEN Schluessel, die der Server fuer das PNG benutzt
+// (`scripts/i18n-sharecard.py` erzeugt daraus `server/app/sharecard_labels.py`). Frueher stand
+// hier eine feste deutsche Liste — dann zeigte die Auswahl deutsche Woerter und das Bild
+// haette theoretisch andere zeigen koennen. Eine Quelle, kein Auseinanderlaufen.
+const STAT_KEY: Record<string, string> = {
+  foiling: "share.stat.foiling", runs: "share.stat.runs", pumps: "share.stat.pumps",
+  avgspeed: "share.stat.avgspeed", speed: "share.stat.speed", time: "share.stat.time",
+  longest: "share.stat.longest", distance: "share.stat.distance", pumprate: "share.stat.pumprate",
 };
 
 function availableStats(a: any): string[] {
@@ -50,7 +55,7 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, initialHighligh
   initialHighlight?: number | null;   // in der Detailansicht ausgewählter Lauf -> vorauswählen
   onClose: () => void;
 }) {
-  const t = useT();
+  const { t, lang } = useI18n();
   useCloseOnBack(true, onClose);
   const avail = availableStats(analysis);
   const hasHr = !!((analysis?.track_geojson?.properties?.hr || []).some((v: number | null) => v != null));
@@ -139,6 +144,8 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, initialHighligh
         // "none" = explizit KEINE Stats (sonst interpretiert der Server "leer" als Default=alle).
         q.set("stats", chosen.length ? chosen.join(",") : "none");
         if (cardTitle.trim()) q.set("title", cardTitle.trim());
+        // Sprache der Beschriftung: was der Mensch gerade SIEHT, nicht was im Profil steht.
+        q.set("lang", lang);
         const res = await fetch(`/api/sessions/${sessionId}/share.png?${q}`, { headers: tok ? { Authorization: `Bearer ${tok}` } : {} });
         if (!res.ok || !alive) return;
         const img = await loadImg(URL.createObjectURL(await res.blob()));
@@ -149,7 +156,7 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, initialHighligh
     }, 160);
     return () => { alive = false; clearTimeout(id); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [color, [...sel].sort().join(","), hasPhoto, showTrack, shade, cardTitle, highlight]);
+  }, [color, [...sel].sort().join(","), hasPhoto, showTrack, shade, cardTitle, highlight, lang]);
 
   async function pickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0]; if (!f) return;
@@ -344,7 +351,7 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, initialHighligh
         <div className="mb-4 flex flex-wrap gap-2">
           {avail.map((k) => (
             <button key={k} onClick={() => toggle(k)} className={`rounded-lg px-2.5 py-1 text-sm ${sel.has(k) ? "bg-brand-500/20 text-brand-300" : "bg-slate-800 text-slate-400 hover:bg-slate-700"}`}>
-              {STAT_LABEL[k]}
+              {t(STAT_KEY[k])}
             </button>
           ))}
         </div>

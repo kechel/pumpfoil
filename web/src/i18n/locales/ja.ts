@@ -1785,6 +1785,22 @@ const ja: Record<string, string> = {
   "spotRename.reason": "理由（任意）",
   "spotRename.send": "提案を送る",
   "spotRename.sent": "ありがとうございます。提案を受け取りました。ひとつずつ確認します。",
+  // Teilen-Karte: bewusst ENGLISCH. Die Karte ist ein PNG, gerendert mit DejaVuSans —
+  // darin gibt es keine japanischen Zeichen, und die einzige CJK-Schrift auf dem Server
+  // (DroidSansFallbackFull) hat umgekehrt KEIN Latein, keine Ziffern und keinen
+  // Schraegstrich (nachgemessen 13.09.2026). Ein Label wie „距離/ポンプ" kaeme also in
+  // jedem Fall teils als leere Kaestchen heraus. Damit Auswahl-Dialog und Bild dasselbe
+  // sagen, steht hier ebenfalls Englisch. Loesbar mit fonts-noto-cjk auf dem Server.
+  "share.stat.foiling": "Foiling",
+  "share.stat.runs": "Runs",
+  "share.stat.pumps": "Pumps",
+  "share.stat.avgspeed": "Ø Speed",
+  "share.stat.speed": "Top speed",
+  "share.stat.time": "Foil time",
+  "share.stat.longest": "Longest",
+  "share.stat.distance": "Distance/pump",
+  "share.stat.pumprate": "Ø Pumps/min",
+  "share.run": "Run {n}",
 };
 
 export default ja;

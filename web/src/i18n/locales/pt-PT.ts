@@ -1785,6 +1785,18 @@ const ptPT: Record<string, string> = {
   "spotRename.reason": "Porquê? (opcional)",
   "spotRename.send": "Enviar sugestão",
   "spotRename.sent": "Obrigado! A tua sugestão chegou até nós. Vemos cada uma delas.",
+  // Beschriftung der Teilen-Karte (PNG) UND der Auswahl im Teilen-Dialog — eine Quelle
+  // fuer beide, damit Vorschau und Bild nie verschiedene Woerter zeigen.
+  "share.stat.foiling": "Foiling",
+  "share.stat.runs": "Runs",
+  "share.stat.pumps": "Pumps",
+  "share.stat.avgspeed": "Ø Velocidade",
+  "share.stat.speed": "Vel. máxima",
+  "share.stat.time": "Tempo de foil",
+  "share.stat.longest": "Mais longo",
+  "share.stat.distance": "Distância/pump",
+  "share.stat.pumprate": "Ø Pumps/min",
+  "share.run": "Run {n}",
 };
 
 export default ptPT;

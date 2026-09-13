@@ -16,6 +16,8 @@ from PIL import Image, ImageDraw, ImageFont
 
 _REPO = Path(__file__).resolve().parents[2]
 _LOGO = _REPO / "web" / "public" / "wordmark-h-dark.png"
+from .sharecard_labels import t as _L
+
 _FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSans%s.ttf"
 
 NAVY = (2, 6, 23)
@@ -72,7 +74,7 @@ HR_STOPS = [(34, 197, 94), (234, 179, 8), (249, 115, 22), (239, 68, 68)]    # gr
 # Stat-Katalog: key -> (Label, Wert, Verfuegbar). Reihenfolge = Default.
 # seg != None -> Stats EINES Laufs (Einzel-Lauf-Teilen): Werte aus dem Segment, und die
 # bei einem einzelnen Lauf sinnlosen/redundanten Stats (Läufe, Längster, Strecke=Foiling) aus.
-def stat_catalog(ar, seg=None):
+def stat_catalog(ar, seg=None, lang: str | None = None):
     if seg is not None:
         dist = seg.get("distance_m") or 0
         dur = seg.get("duration_s") or 0
@@ -83,15 +85,15 @@ def stat_catalog(ar, seg=None):
         avg = seg.get("avg_speed_mps") or 0
         ppm = round(seg.get("pumps_per_min") or 0) if (pumps > 0 and dur > 0) else None
         return [
-            ("foiling", "Foiling", _km(dist), dist > 0),
-            ("runs", "Läufe", "1", False),
-            ("pumps", "Pumps", str(pumps), pumps > 0),
-            ("avgspeed", "Ø Speed", f"{avg*3.6:.1f} km/h", avg > 0),
-            ("speed", "Top-Speed", f"{spd*3.6:.1f} km/h", spd > 0),
-            ("time", "Foil-Zeit", _mmss(dur), dur > 0),
-            ("longest", "Längster", _km(dist), False),
-            ("distance", "Strecke/Pump", _perpump(dist, pumps), dist > 0 and pumps > 0),
-            ("pumprate", "Ø Pumps/min", str(ppm or 0), ppm is not None),
+            ("foiling", _L("share.stat.foiling", lang), _km(dist), dist > 0),
+            ("runs", _L("share.stat.runs", lang), "1", False),
+            ("pumps", _L("share.stat.pumps", lang), str(pumps), pumps > 0),
+            ("avgspeed", _L("share.stat.avgspeed", lang), f"{avg*3.6:.1f} km/h", avg > 0),
+            ("speed", _L("share.stat.speed", lang), f"{spd*3.6:.1f} km/h", spd > 0),
+            ("time", _L("share.stat.time", lang), _mmss(dur), dur > 0),
+            ("longest", _L("share.stat.longest", lang), _km(dist), False),
+            ("distance", _L("share.stat.distance", lang), _perpump(dist, pumps), dist > 0 and pumps > 0),
+            ("pumprate", _L("share.stat.pumprate", lang), str(ppm or 0), ppm is not None),
         ]
     ppm = None
     if (ar.foiling_time_s or 0) > 0 and (ar.pump_count or 0) > 0:
@@ -101,16 +103,16 @@ def stat_catalog(ar, seg=None):
     # dafuer gibt es nicht, beide Summanden stehen aber in `ar`.
     avg = ((ar.foiling_distance_m or 0) / ar.foiling_time_s) if (ar.foiling_time_s or 0) > 0 else 0
     items = [
-        ("foiling", "Foiling", _km(ar.foiling_distance_m), (ar.foiling_distance_m or 0) > 0),
-        ("runs", "Läufe", str(ar.num_runs or 0), (ar.num_runs or 0) > 0),
-        ("pumps", "Pumps", str(ar.pump_count or 0), (ar.pump_count or 0) > 0),
-        ("avgspeed", "Ø Speed", f"{avg*3.6:.1f} km/h", avg > 0),
-        ("speed", "Top-Speed", f"{(ar.max_speed_mps or 0)*3.6:.1f} km/h", (ar.max_speed_mps or 0) > 0),
-        ("time", "Foil-Zeit", _mmss(ar.foiling_time_s), (ar.foiling_time_s or 0) > 0),
-        ("longest", "Längster", _km(ar.best_distance_m), (ar.best_distance_m or 0) > 0),
-        ("distance", "Strecke/Pump", _perpump(ar.foiling_distance_m, ar.pump_count),
+        ("foiling", _L("share.stat.foiling", lang), _km(ar.foiling_distance_m), (ar.foiling_distance_m or 0) > 0),
+        ("runs", _L("share.stat.runs", lang), str(ar.num_runs or 0), (ar.num_runs or 0) > 0),
+        ("pumps", _L("share.stat.pumps", lang), str(ar.pump_count or 0), (ar.pump_count or 0) > 0),
+        ("avgspeed", _L("share.stat.avgspeed", lang), f"{avg*3.6:.1f} km/h", avg > 0),
+        ("speed", _L("share.stat.speed", lang), f"{(ar.max_speed_mps or 0)*3.6:.1f} km/h", (ar.max_speed_mps or 0) > 0),
+        ("time", _L("share.stat.time", lang), _mmss(ar.foiling_time_s), (ar.foiling_time_s or 0) > 0),
+        ("longest", _L("share.stat.longest", lang), _km(ar.best_distance_m), (ar.best_distance_m or 0) > 0),
+        ("distance", _L("share.stat.distance", lang), _perpump(ar.foiling_distance_m, ar.pump_count),
          (ar.foiling_distance_m or 0) > 0 and (ar.pump_count or 0) > 0),
-        ("pumprate", "Ø Pumps/min", str(ppm or 0), ppm is not None),
+        ("pumprate", _L("share.stat.pumprate", lang), str(ppm or 0), ppm is not None),
     ]
     return items
 
@@ -125,7 +127,7 @@ DIM = (100, 116, 139)     # gedimmte Laeufe, wenn ein einzelner Lauf hervorgehob
 
 def render_share_png(session, ar, water_rings, *, color="cyan", stats=None,
                      bg="navy", size=1080, track=True, title=None, shade="light",
-                     highlight=None) -> bytes:
+                     highlight=None, lang: str | None = None) -> bytes:
     sh = SHADES.get(shade, SHADES["light"])
     prim, sec = sh["prim"], sh["sec"]
     W = H = size
@@ -221,7 +223,7 @@ def render_share_png(session, ar, water_rings, *, color="cyan", stats=None,
     date_str = session.started_at.astimezone().strftime("%d.%m.%Y")
     sub = f"{session.place_name} · {date_str}" if (title and session.place_name) else date_str
     if hl is not None:                       # Einzel-Lauf: im Untertitel ausweisen
-        sub = f"Lauf {hl + 1} · {sub}"
+        sub = _L("share.run", lang).replace("{n}", str(hl + 1)) + f" · {sub}"
     d.text((px(90), px(64)), head, font=_font(px(58)), fill=(*prim, 255))
     # Untertitel (Ort · Datum): im gewaehlten Blau (prim) + fett — die kleine Schrift war
     # in der Sekundaerfarbe (hellgrau) auf hellem Hintergrund/Foto schlecht lesbar.
@@ -229,7 +231,7 @@ def render_share_png(session, ar, water_rings, *, color="cyan", stats=None,
 
     # Stats: bei Einzel-Lauf-Highlight aus dem gewaehlten Lauf, sonst Session-Summe.
     seg_for_stats = segs_all[hl] if hl is not None else None
-    _catalog = stat_catalog(ar, seg_for_stats)
+    _catalog = stat_catalog(ar, seg_for_stats, lang)
     cat = {k: (lbl, v, ok) for k, lbl, v, ok in _catalog}
     order = [k for k, *_ in _catalog]
     want = stats if stats is not None else [k for k in order if cat[k][2]]

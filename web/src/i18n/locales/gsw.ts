@@ -1676,6 +1676,18 @@ const gsw: Record<string, string> = {
   "spotRename.reason": "Warum? (freiwillig)",
   "spotRename.send": "Vorschlag schicke",
   "spotRename.sent": "Merci! Dis Vorschlag isch bi öis. Mir lueged jede einzeln a.",
+  // Beschriftung der Teilen-Karte (PNG) UND der Auswahl im Teilen-Dialog — eine Quelle
+  // fuer beide, damit Vorschau und Bild nie verschiedene Woerter zeigen.
+  "share.stat.foiling": "Foiling",
+  "share.stat.runs": "Läuf",
+  "share.stat.pumps": "Pumps",
+  "share.stat.avgspeed": "Ø Speed",
+  "share.stat.speed": "Top-Speed",
+  "share.stat.time": "Foil-Ziit",
+  "share.stat.longest": "Längschte",
+  "share.stat.distance": "Strecki/Pump",
+  "share.stat.pumprate": "Ø Pumps/min",
+  "share.run": "Lauf {n}",
 };
 
 export default gsw
