@@ -203,6 +203,12 @@ ALIASSE: dict[str, str] = {
     # Suchabsicht („wake thief" mit Leerzeichen) aber genauso. Bei allen anderen Paaren
     # traegt die Variante OHNE Bindestrich die Seite.
     "wakethief.org": "wake-thief.org",
+    # wake-thieving.org am 13.09.2026 dazugekauft — der Name der TECHNIK, und damit
+    # eigentlich der beste Kandidat fuer die Hauptdomain (die Seite heisst ohnehin
+    # „Wake Thieving"). Steht hier vorerst NUR als Weiterleitung: der Proxy auf lb1 kennt
+    # sie noch nicht, und ein Umschwenken wuerde die laufende Seite auf eine tote Adresse
+    # schicken. Sobald lb1 sie durchreicht, ist der Tausch zwei Zeilen — s. Seite unten.
+    "wake-thieving.org": "wake-thief.org",
     "parawingfoil.org": "parawing.org",
     # Lowkite, Parawing und Parakite sind dasselbe (Jan, 13.09.2026) — also EINE
     # Seite. Zwei Domains mit demselben Text waeren fuer Google eine Dublette und

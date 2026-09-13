@@ -13,11 +13,12 @@ import pytest
 from app import landing
 
 # Wortwoertlich aus der Strato-Uebersicht vom 13.09.2026 (13 Eintraege, alle A auf dieselbe
-# Adresse). Die Liste ist die Quelle, gegen die geprueft wird — nicht umgekehrt.
+# Adresse), plus wake-thieving.org, am selben Tag dazugekauft. Die Liste ist die Quelle,
+# gegen die geprueft wird — nicht umgekehrt.
 STRATO = [
     "downwind-foil.org", "foilers.org", "lowkitefoil.org", "paddle-up.org", "paddleup.org",
     "parawing.org", "parawingfoil.org", "pump-foil.org", "pumpfoil.org", "sup-foil.org",
-    "supfoil.org", "wake-thief.org", "wakethief.org",
+    "supfoil.org", "wake-thief.org", "wake-thieving.org", "wakethief.org",
 ]
 
 
