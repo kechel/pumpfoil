@@ -123,17 +123,20 @@ SEITEN: tuple[Seite, ...] = (
         bild_alt="Auswertung einer SUP-Foil-Session mit Pumps und Kadenz",
     ),
     Seite(
-        host="wakethief.org",
-        titel="wake thief — fremde Wellen, eigene Runde",
-        beschreibung="Bootswellen abgreifen und pumpend weiterfahren. Jede Runde einzeln "
-                     "aufgezeichnet und ausgewertet — mit der Sportuhr, ohne Zusatzgerät.",
+        host="wake-thief.org",
+        titel="Wake Thieving — fremde Wellen, eigene Runde",
+        beschreibung="Wake Thieving: die Welle eines fremden Boots mitnehmen und ohne Leine "
+                     "weiterpumpen. Jede Runde einzeln aufgezeichnet und ausgewertet.",
         h1="Wake thief",
         claim="Fremde Wellen, eigene Runde.",
         absaetze=(
             "Jedes Boot, jede Fähre, jeder Frachter lässt eine Welle liegen. Wer foilt, kann "
-            "sie sich nehmen: einmal anschieben lassen und dann im eigenen Rhythmus "
-            "weiterfahren, bis die nächste kommt. Das kostet niemanden etwas — die Welle "
-            "wäre sonst am Ufer verlaufen.",
+            "sie sich nehmen: vom Steg oder aus dem Wasser in die nachlaufenden Wellen "
+            "starten, einmal anschieben lassen und dann im eigenen Rhythmus weiterfahren, "
+            "bis die nächste kommt. Ohne Leine, ohne Zug — darin liegt der ganze Reiz. Die "
+            "Szene nennt es Wake Thieving.",
+            "Das kostet niemanden etwas: die Welle wäre sonst am Ufer verlaufen. Und weil "
+            "der Antrieb nur ein Anstoß ist, ist fast alles danach Eigenleistung.",
             "Wie weit man von einer geklauten Welle tatsächlich kommt, schätzt man im Wasser "
             "regelmäßig falsch. pumpfoil.org legt die Zahlen daneben: jeder Lauf mit Dauer, "
             "Strecke und längster Gleitphase, dazu die Pump-Kadenz, die ihn getragen hat.",
@@ -195,7 +198,11 @@ KANONISCH: dict[str, Seite] = {s.host: s for s in SEITEN}
 ALIASSE: dict[str, str] = {
     "paddle-up.org": "paddleup.org",
     "sup-foil.org": "supfoil.org",
-    "wake-thief.org": "wakethief.org",
+    # Richtung hier bewusst mit Bindestrich als kanonisch (Jan, 13.09.2026): "wake-thief"
+    # ist optisch klar von der Marke "Wake Thief" / @wakethief getrennt, trifft die
+    # Suchabsicht („wake thief" mit Leerzeichen) aber genauso. Bei allen anderen Paaren
+    # traegt die Variante OHNE Bindestrich die Seite.
+    "wakethief.org": "wake-thief.org",
     "parawingfoil.org": "parawing.org",
     # Lowkite, Parawing und Parakite sind dasselbe (Jan, 13.09.2026) — also EINE
     # Seite. Zwei Domains mit demselben Text waeren fuer Google eine Dublette und
