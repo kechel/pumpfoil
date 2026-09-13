@@ -941,7 +941,8 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     die Position hat sich dadurch geaendert.
   - Sein aelterer Wunsch aus derselben Ecke (09.07., #160: Stats des ausgewaehlten Laufs im Bild
     statt Scrollen) war schon vorher erledigt.
-  - **Offen: James Bescheid sagen**, dass es drin ist.
+  - James ist informiert (DM 1679): wo der Knopf sitzt, dass er wegen der gespeicherten
+    Stat-Auswahl einmal von Hand angehakt werden muss, und wie der Schnitt gerechnet wird.
 - **💡 12.09. (Jan) — On-Foil-Erkennung noch einmal besser machen.** „das stimmt, inzwischen
   haben wir ja auch viel mehr daten die wir dafuer auswerten koennen, aber das machen wir ein
   andermal." NICHT JETZT — hier steht nur, was dann zur Hand ist.
