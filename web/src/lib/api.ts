@@ -889,6 +889,11 @@ export const api = {
   publicVideos: () => req<{ videos: { id: string; title: string; published: string }[]; channel: string }>("/api/public/videos"),
 
   mySpots: () => req<{ spot: string; count: number }[]>("/api/sessions/my-spots"),
+  // Habe ICH an diesem Spot schon aufgenommen? Zaehlt bewusst JEDE eigene Aufnahme dort, auch
+  // aussortierte und solche ohne erkannten Lauf (die haengen an gar keinem Spot und werden
+  // serverseitig geometrisch gefunden). Gate fuer „Namen vorschlagen".
+  spotMine: (spotId: number) =>
+    req<{ mine: boolean; sessions: number }>(`/api/sessions/spot-mine?spot_id=${spotId}`),
   // `runs` = je Lauf eine eigene Linie (seit 31.08.); `track` = die komplette Aufnahme, bleibt
   // fuer draussen laufende App-Versionen erhalten. Neue Clients nehmen `runs`, wenn nicht leer.
   spotTracks: (spot: string) => req<{ session_id: number; started_at: string | null; foiling_km: number; track: [number, number, number | null][]; runs: [number, number, number | null][][] }[]>(

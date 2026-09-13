@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { api, getToken } from "../lib/api";
 import { useT } from "../i18n";
 import { TagIcon } from "./Icons";
@@ -27,7 +27,20 @@ import { useCloseOnBack } from "../lib/useCloseOnBack";
 export function SpotRenameRequest({ spotId, spotName }: { spotId: number; spotName: string }) {
   const t = useT();
   const [offen, setOffen] = useState(false);
-  if (!getToken()) return null;      // Feedback braucht ein Konto
+  // NUR fuer Leute, die hier selbst schon aufgenommen haben (Vorgabe Jan, 12.09.2026) — wer den
+  // Spot nur anschaut, soll ihn nicht benennen wollen. Die Frage beantwortet der Server, weil sie
+  // von hier aus nicht zu beantworten ist: eine Aufnahme ohne erkannten Lauf haengt an gar keinem
+  // Spot (s. `/spot-mine`). Solange die Antwort laeuft, steht hier nichts — ein Knopf, der nach
+  // einer Sekunde wieder verschwindet, waere schlimmer als einer, der etwas spaeter kommt.
+  const [meiner, setMeiner] = useState(false);
+  const angemeldet = !!getToken();
+  useEffect(() => {
+    if (!angemeldet) return;
+    let weg = false;
+    api.spotMine(spotId).then((r) => { if (!weg) setMeiner(!!r.mine); }).catch(() => {});
+    return () => { weg = true; };
+  }, [spotId, angemeldet]);
+  if (!angemeldet || !meiner) return null;
   return (
     <>
       <button
