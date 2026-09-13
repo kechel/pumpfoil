@@ -1143,6 +1143,37 @@ function Studio() {
     [curPlay, gain, stopMusic, trim.start],
   );
 
+  // Pfeiltasten im Musik-Reiter: eine Spur weiter oder zurueck, und sie laeuft
+  // sofort los. Nur bei offenem Reiter — und nicht, wenn der Fokus in einem
+  // Eingabefeld steht, sonst waere das Suchfeld nicht mehr zu bedienen.
+  const musikListeRef = useRef<Track[]>([]);
+  useEffect(() => {
+    if (sideTab !== "musik") return;
+    const taste = (e: KeyboardEvent) => {
+      if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const fokus = document.activeElement as HTMLElement | null;
+      if (fokus && (/^(INPUT|TEXTAREA|SELECT)$/.test(fokus.tagName) || fokus.isContentEditable)) return;
+      const liste = musikListeRef.current;
+      if (!liste.length) return;
+      e.preventDefault();          // sonst scrollt die Liste unter einem weg
+      const runter = e.key === "ArrowDown";
+      const i = liste.findIndex((t) => t.rel === curPlay);
+      // Ohne laufende Spur faengt es am passenden Ende an.
+      const ziel = i < 0 ? (runter ? 0 : liste.length - 1)
+        : Math.max(0, Math.min(liste.length - 1, i + (runter ? 1 : -1)));
+      if (ziel !== i) togglePlay(liste[ziel]);
+    };
+    window.addEventListener("keydown", taste);
+    return () => window.removeEventListener("keydown", taste);
+  }, [sideTab, curPlay, togglePlay]);
+
+  // Die laufende Spur im Blick behalten, wenn man sich durchtastet.
+  useEffect(() => {
+    if (sideTab !== "musik" || !curPlay) return;
+    document.querySelector(".trk.playing")?.scrollIntoView({ block: "nearest" });
+  }, [sideTab, curPlay]);
+
   const playSelected = useCallback(
     (pf: PvPlatform) => {
       setPvPlatform(pf);
@@ -1394,6 +1425,11 @@ function Studio() {
       t.platforms.some((p) => want.includes(p)) &&
       !tooShort(t),
   );
+  // Genau die Reihenfolge, in der die Spuren dastehen — die Pfeiltasten weiter
+  // unten laufen daran entlang. Als Ref, weil die Liste erst hier entsteht und
+  // ein Effekt sie zur Tastendruckzeit lesen soll, nicht zur Renderzeit.
+  musikListeRef.current = [...selTracks, ...listTracks];
+
   const isStarred = !!(curVideo && starred.has(curVideo));
   const pvTrackName =
     sel[pvPlatform]?.split("/").pop()?.replace(/\.[^.]+$/, "")
@@ -1874,7 +1910,8 @@ function Studio() {
           <button className={sideTab === "set" ? "on" : ""} onClick={() => setSideTab("set")}>
             Einstellungen
           </button>
-          <button className={sideTab === "musik" ? "on" : ""} onClick={() => setSideTab("musik")}>
+          <button className={sideTab === "musik" ? "on" : ""} onClick={() => setSideTab("musik")}
+                  title="↑ und ↓ schalten zur vorigen bzw. nächsten Spur — sie spielt sofort">
             Musik{selTracks.length ? ` (${selTracks.length})` : ""}
           </button>
         </div>
