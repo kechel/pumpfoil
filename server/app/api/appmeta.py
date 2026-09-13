@@ -53,7 +53,7 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.32",   # FREIGEGEBEN 2026-09-12, ZWEITE Apple-Mail („ready for
+        "latest": "1.1.33",   # FREIGEGEBEN 2026-09-12, ZWEITE Apple-Mail („ready for
         # distribution", ueber Nacht; die erste „eligible for distribution" kam kurz davor).
         # GEGENGEPRUEFT an der Store-API in de/us/ch: alle drei melden 1.1.32 mit
         # currentVersionReleaseDate 2026-09-12T00:06:41Z — diesmal ohne Cache-Nachhang.
@@ -202,7 +202,7 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.32",   # FREIGEGEBEN 2026-09-12 — dieselbe Einreichung wie "ios" (ein Bundle,
+        "latest": "1.1.33",   # FREIGEGEBEN 2026-09-12 — dieselbe Einreichung wie "ios" (ein Bundle,
         # eine MARKETING_VERSION), zweite Apple-Mail, an der Store-API gegengeprueft.
         # Fuer die WATCH-App bringt 1.1.32 den PULS-ALARM: die Uhr vibriert oberhalb eines selbst
         # gesetzten Pulses, mit eigenem Muster und einstellbarem Wiederholabstand.
@@ -348,6 +348,12 @@ def _note(e: dict, zustand: str) -> str:
     (`wartet_auf`).
     """
     if zustand == "review":
+        # Zwischen „durchgewunken" und „im Store" liegt bei Apple und Google noch ein Schritt:
+        # die Fassung ist freigegeben, wird aber erst ausgeliefert. „waiting for Apple" waere ab
+        # der Freigabe falsch, „live" waere zu frueh — `_APP_META` wird erst gesetzt, wenn der
+        # Store es wirklich ausliefert (Regel vom 10.08.2026). Dafuer dieser dritte Zustand.
+        if e.get("freigegeben"):
+            return f"approved {_datum(e['freigegeben'])}, appearing in the store shortly"
         return f"submitted {_datum(e['eingereicht'])}, waiting for {PRUEFER[e['name']]}"
     if zustand == "next":
         wartet = e.get("wartet_auf")
@@ -434,29 +440,6 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
-    {"name": "iPhone + Apple Watch", "version": "1.1.33",
-     # 12.09.2026 22:27 EINGEREICHT (Jans Meldung aus App Store Connect: "Heute um 22:27,
-     # iOS 1.1.33, 1 Element, Warten auf Pruefung"). Build 37. 1.1.32 ging am selben Tag um
-     # 00:06 UTC live — also zwei Einreichungen an einem Tag, was hier ungewoehnlich ist und
-     # einen Grund hat: der Sprach-Start war ein echter Fehler fuer jeden zweiten Neuzugang.
-     #
-     # NACH DER FREIGABE: `_APP_META["ios"]` UND `["apple"]` auf 1.1.33 (ein Bundle, zwei
-     # Abzeichen), diesen Eintrag entfernen, Changelog-Punkte eintragen. Erst wenn der Store
-     # es wirklich ausliefert — die Freigabe-Mail allein genuegt nicht (Regel vom 10.08.).
-     "eingereicht": "2026-09-12",
-     "items": [
-         "You can sign in with your Google or Apple account in the app itself. It opens your "
-         "normal browser for that, so nothing extra follows you around.",
-         "The heart rate curve can show how far you are above your resting heart rate, not only "
-         "the plain number.",
-         "The language you pick in the app now stays with your account, so app and website say "
-         "the same thing on every device.",
-         "Your watch shows its own brand and model instead of always calling itself a Garmin.",
-         "The app now starts in the language your phone is set to, instead of always starting "
-         "in German. If we do not have your language yet, it starts in English.",
-         "Every language is named in its own language on the sign-in screen. Some of them only "
-         "showed a short code there, which is hard to pick if it is your language.",
-     ]},
     {"name": "Android phone + Wear OS", "version": "1.1.29 / 1.2.29",
      # 13.09.2026: 1.1.28 / 1.2.28 sind LIVE, damit steht die naechste Nummer fest — 1.1.29 /
      # 1.2.29, beide zusammen (harte Regel). Gebaut ist alles, hochladen kann nur Jan.
@@ -548,15 +531,16 @@ IN_REVIEW: list[dict] = [
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
-    {"name": "iPhone + Apple Watch", "version": "after 1.1.33",
-     # KEINE feste Nummer: 1.1.33 liegt seit dem 12.09. bei Apple. Was danach kommt, steht hier.
+    {"name": "iPhone + Apple Watch", "version": "1.1.34",
+     # 1.1.33 ist am 13.09.2026 ausgeliefert worden („The following app is ready for
+     # distribution", App Store Connect) — damit steht die naechste Nummer fest. Bis dahin stand
+     # hier bewusst „after 1.1.33" ohne Nummer, weil der Ausgang der Pruefung offen war.
      #
      # Entstanden aus einem Fehler von mir (13.09.2026): ich hatte diesen Punkt zuerst in den
      # IN_REVIEW-Eintrag von 1.1.33 geschrieben — in eine Fassung also, die Jan schon hochgeladen
      # hatte und die die Aenderung gar nicht enthaelt. Auf `/changelog` haette damit oeffentlich
      # gestanden, Apple pruefe gerade etwas, das nicht im Paket ist. Merke: ein IN_REVIEW-Eintrag
      # ist ab dem Upload EINGEFROREN; alles Spaetere gehoert nach NAECHSTES.
-     "wartet_auf": "1.1.33",
      "items": [
          "The language setting sits at the very top of your settings now. If the app is in a "
          "language you cannot read, that is the one thing you need to find first.",

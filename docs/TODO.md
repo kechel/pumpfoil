@@ -69,6 +69,19 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
       1.1.x waere mit iOS verwechselbar). **Naechste Nummer danach: 1.1.30 / 1.2.30 — erst
       bumpen, wenn der Ausgang feststeht**, eine abgelehnte nimmt Play nicht wieder an.
 
+- **🟢 13.09. — iOS/Apple Watch 1.1.33 AUSGELIEFERT.** Zwei Mails kurz nacheinander: erst
+  „Review of your submission has been completed. It is now eligible for distribution"
+  (Submission `be7e0a0d-512e-4b35-a5fb-8f6d24074765`), dann „The following app is ready for
+  distribution · App Version Number: 1.1.33 · Platform: iOS". Erst die ZWEITE loest bei uns etwas
+  aus — die Freigabe-Mail allein genuegt nicht (Regel vom 10.08.). Nachgezogen: `_APP_META["ios"]`
+  UND `["apple"]` auf 1.1.33, IN_REVIEW-Eintrag entfernt, die sechs Punkte stehen im oeffentlichen
+  Changelog (`changelog_items`, 13.09., pos 21–26, `versionen={"ios":"1.1.33","apple":"1.1.33"}`).
+  „Coming next" traegt jetzt die feste Nummer **1.1.34** statt „after 1.1.33".
+  - Zwischen beiden Mails lagen rund zwanzig Minuten. Fuer genau dieses Fenster gibt es seit heute
+    einen dritten Zustand in `_note`: `freigegeben` -> „approved 13 September, appearing in the
+    store shortly". Sonst haette auf der oeffentlichen Seite weiter „waiting for Apple" gestanden,
+    was zu dem Zeitpunkt nicht mehr stimmte.
+
 - **🟡 12.09. 22:27 — iOS/Apple Watch 1.1.33 (Build 37) EINGEREICHT.** Jans Meldung aus App Store
   Connect: „Heute um 22:27 · iOS 1.1.33 · Jan Kechel · 1 Element · Warten auf Pruefung".
   **Zwei Einreichungen an einem Tag** — 1.1.32 ging um 00:06 UTC live —, und das hat einen Grund:
