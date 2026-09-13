@@ -39,7 +39,7 @@ body { margin: 0; }
 /* Rechte Spalte so schmal, wie ihr breitester Inhalt es zulaesst: jedes
    Pixel hier fehlt in der Mitte, wo die Vorschau steht. 380 px waren es nur
    wegen der Endcard-Zeile, die jetzt auf zwei Zeilen steht (Jan, 13.09.). */
-.studio { flex: 1; display: grid; grid-template-columns: 290px 1fr 330px; min-height: 0; }
+.studio { flex: 1; display: grid; grid-template-columns: 203px 1fr 330px; min-height: 0; }
 .col { display: flex; flex-direction: column; overflow: hidden; }
 .col.left { border-right: 1px solid #8884; }
 .col.right { border-left: 1px solid #8884; }
@@ -132,9 +132,9 @@ h2.dirtitle { text-transform: none; white-space: nowrap; overflow: hidden; text-
 .rvtxt.zh, .txrow textarea.zh { border-style: dashed; opacity: .78; }
 .rvtxt.zh:focus, .txrow textarea.zh:focus { border-style: solid; opacity: 1; }
 .rvtxt.zh { flex: 0 1 34%; }
-.rvrow .tstart { width: 54px; font-size: 12px; padding: 4px; border-radius: 6px;
+.rvrow .tstart { width: 43px; font-size: 12px; padding: 4px; border-radius: 6px;
   border: 1px solid #8886; background: transparent; color: inherit; }
-.rvrow .thold { width: 42px; font-size: 12px; padding: 4px; border-radius: 6px;
+.rvrow .thold { width: 34px; font-size: 12px; padding: 4px; border-radius: 6px;
   border: 1px solid #8886; background: transparent; color: inherit; }
 .rvhint { font-size: 11px; opacity: .55; line-height: 1.35; }
 /* Trennlinie sitzt schon am Umschalter — nicht doppelt ziehen */
@@ -142,10 +142,10 @@ h2.dirtitle { text-transform: none; white-space: nowrap; overflow: hidden; text-
 
 .texts { display: flex; flex-direction: column; gap: 3px; margin-top: 4px; border-top: 1px solid #8884; padding-top: 6px; }
 .txrow { display: flex; align-items: flex-start; gap: 4px; }
-.txrow textarea { width: 110px; font-size: 12px; padding: 2px 6px; line-height: 1.25; min-height: 0; border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; resize: vertical; font-family: inherit; }
-.txrow .thold { width: 40px; font-size: 12px; padding: 2px 3px; border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; }
-.txrow .tsize { width: 44px; font-size: 12px; padding: 2px 3px; border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; }
-.txrow .tstart { width: 50px; font-size: 12px; padding: 2px 3px; border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; }
+.txrow textarea { width: 88px; font-size: 12px; padding: 2px 6px; line-height: 1.25; min-height: 0; border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; resize: vertical; font-family: inherit; }
+.txrow .thold { width: 32px; font-size: 12px; padding: 2px 3px; border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; }
+.txrow .tsize { width: 35px; font-size: 12px; padding: 2px 3px; border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; }
+.txrow .tstart { width: 40px; font-size: 12px; padding: 2px 3px; border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; }
 .namebox { display: flex; flex-direction: column; gap: 3px; padding: 6px 0; }
 .namebox input { width: 100%; font-size: 13px; padding: 6px 8px; border-radius: 6px; border: 1px solid #8886; background: transparent; color: inherit; }
 .namebox .nfix { display: flex; flex-wrap: wrap; gap: 8px; font-size: 11px; opacity: .6; }
