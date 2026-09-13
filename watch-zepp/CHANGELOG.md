@@ -52,11 +52,30 @@ nicht mit, und Fehler werden weiter sauber durchgereicht.
 Block ein voller Bildaufbau: 2341 Neuzeichnungen fuer 100 sichtbare Zustaende. Das kostete
 Rechenzeit, die dem Aufraeumen fehlte.
 
-**Was NICHT behoben ist** und der naechste Schritt waere: `persistActive()` schreibt bei jedem
-zehnten GPS-Punkt die komplette Aufnahme neu als JSON weg — am Ende einer Zwei-Stunden-Session
-287 KB, alle zehn Sekunden, zusammen ueber 100 MB in den Flash. Richtig waere, GPS wie den
-Accelerometer in eine DATEI zu schreiben und blockweise zu lesen; dann verschwindet auch der
-1,2-MB-Sockel beim Upload. Das ist ein groesserer Eingriff und ohne Hardware nicht pruefbar.
+**Die GPS-Spur liegt jetzt in einer Datei, nicht mehr im Speicher.** Das war der eigentliche
+Grund fuer den Speichermangel. `persistActive()` schrieb bei jedem zehnten Punkt die KOMPLETTE
+Aufnahme neu als JSON weg — nach zwei Stunden 287 KB, alle zehn Sekunden, zusammen ueber 100 MB
+in den Flash; und beim Upload parste `flushPending()` denselben Klotz als Objektgraph zurueck,
+gut 1,2 MB, bevor der erste Block rausging.
+
+Jetzt haengt die Spur wie die Beschleunigungsdaten als feste Saetze an einer Binaerdatei (18 Byte
+je Punkt: t_ms, lat, lon, Geschwindigkeit, Puls, Genauigkeit) und wird blockweise zurueckgelesen.
+Zwei Stunden sind damit 45 KB Datei statt 287 KB JSON alle zehn Sekunden, und im Speicher liegt
+immer nur EIN Block. Wear und Apple machen es seit jeher so (je Block eine Datei) und hatten das
+Problem deshalb nie.
+
+Die hochgeladenen Zahlen aendern sich dadurch NICHT: die Rundungen sind dieselben wie bisher beim
+Erzeugen des Punktes. Nachgerechnet mit Randwerten (Suedhalbkugel, Westlaenge, beide negativ,
+327 km/h, Datumsgrenze) und ueber 2543 Punkte blockweise — Byte fuer Byte dasselbe JSON.
+
+**Aufnahmen von vor 1.0.10 gehen weiter hoch.** Wer eine haengende Session in der Warteschlange
+hat — Cesar zum Beispiel — traegt sie dort noch als Array. Der alte Weg bleibt deshalb erhalten,
+und `recoverActive` versteht beide Formate. Faellt das Anlegen der Datei aus, zeichnet die Uhr
+wie vorher in den Speicher auf, statt gar nicht aufzuzeichnen.
+
+Die Laenge der Aufnahme steht nach einem Absturz im letzten Satz der Datei und nicht mehr in den
+Kopfdaten — die werden nur alle zehn Punkte geschrieben, das Ende laege sonst bis zu neun
+Sekunden zu frueh.
 
 ## 1.0.9 — 2026-09-13
 

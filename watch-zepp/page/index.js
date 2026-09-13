@@ -300,6 +300,54 @@ function distM(a, b, c, d) {
 // Handy/Companion per BLE verbunden? (Uhr hat kein eigenes Internet.) Fallback true, falls API fehlt.
 const bleOk = () => { try { return getConnectStatus() !== false; } catch (e) { return true; } };
 const accelPath = (uuid) => "accel-" + uuid + ".bin";
+
+// ---- GPS als BINAERDATEI (seit 1.0.10) -------------------------------------------------------
+// VORHER lag die Spur als Array im Speicher, und `persistActive()` schrieb bei jedem zehnten
+// Punkt die GANZE Aufnahme neu als JSON weg. Gemessen am 13.09.2026: nach zwei Stunden sind das
+// 287 KB pro Sicherung, alle zehn Sekunden, zusammen ueber 100 MB in den Flash — und beim Upload
+// parste `flushPending()` denselben Klotz als Objektgraph zurueck (gut 1,2 MB), bevor der erste
+// Block rausging. Daran ist Cesars Upload gestorben (GitHub #4, "Out of Memory" bei Block 108).
+//
+// Jetzt wie beim Accelerometer: feste Saetze ans Dateiende anhaengen, blockweise zurueckliefern.
+// Der Verbrauch haengt damit nicht mehr an der Laenge der Aufnahme. Wear und Apple machen es
+// genauso (je Block eine Datei) und hatten das Problem deshalb nie.
+//
+// EIN SATZ = 18 Byte, little endian:
+//   0  int32  t_ms          Offset zu started_at
+//   4  int32  lat * 1e6
+//   8  int32  lon * 1e6
+//   12 int16  speed * 100   (cm/s)
+//   14 int16  hr            (0 = keiner)
+//   16 int16  h_acc_m       sechstes Feld des Vertrags (docs/data-format.md), bei Zepp immer 0
+// Die Rundungen sind DIESELBEN wie bisher beim Erzeugen des Punktes, die hochgeladenen Zahlen
+// aendern sich also nicht.
+const GPS_REC_BYTES = 18;
+const gpsPath = (uuid) => "gps-" + uuid + ".bin";
+
+const gpsToBytes = (punkte) => {
+  const buffer = new ArrayBuffer(punkte.length * GPS_REC_BYTES);
+  const v = new DataView(buffer);
+  for (let i = 0; i < punkte.length; i++) {
+    const p = punkte[i], o = i * GPS_REC_BYTES;
+    v.setInt32(o, p[0] | 0, true);
+    v.setInt32(o + 4, Math.round(p[1] * 1e6), true);
+    v.setInt32(o + 8, Math.round(p[2] * 1e6), true);
+    v.setInt16(o + 12, clampI16(p[3] * 100), true);
+    v.setInt16(o + 14, clampI16(p[4] || 0), true);
+    v.setInt16(o + 16, clampI16(p[5] || 0), true);
+  }
+  return buffer;
+};
+
+const bytesToGps = (buffer, anzahl) => {
+  const v = new DataView(buffer), out = [];
+  for (let i = 0; i < anzahl; i++) {
+    const o = i * GPS_REC_BYTES;
+    out.push([v.getInt32(o, true), v.getInt32(o + 4, true) / 1e6, v.getInt32(o + 8, true) / 1e6,
+              v.getInt16(o + 12, true) / 100, v.getInt16(o + 14, true), v.getInt16(o + 16, true)]);
+  }
+  return out;
+};
 const clampI16 = (v) => Math.max(-32768, Math.min(32767, Math.round(v)));
 const bytesToBase64 = (bytes, length) => {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -681,6 +729,9 @@ Page(
       geo: null, geoSpeedPrev: null, hrSensor: null, hrCallback: null, hrUpdatedMs: 0, _hrLogged: false, w: {},
       accelSensor: null, accelCallback: null, accelFd: -1, accelBuffer: [], accelSamples: 0,
       accelFirstMs: 0, accelLastMs: 0, accelChunkT0: [], accelFile: "", _accelLogged: false,
+      // GPS-Datei. `gps` bleibt als RUECKFALL bestehen: laesst sich die Datei nicht oeffnen,
+      // zeichnet die Uhr wie vor 1.0.10 in den Speicher auf, statt gar nichts aufzuzeichnen.
+      gpsFd: -1, gpsFile: "", gpsBuffer: [], gpsCount: 0, gpsLastMs: 0, _gpsLogged: false,
       _fi: 0, _flat: null, _flon: null,
     },
 
@@ -716,6 +767,46 @@ Page(
       } catch (e) {
         console.log("[pumpfoil] accelerometer write failed " + ((e && e.message) || e));
       }
+    },
+
+    _startGps() {
+      const s = this.state;
+      s.gpsFile = gpsPath(s.uuid); s.gpsBuffer = []; s.gpsCount = 0; s.gpsLastMs = 0;
+      s._gpsLogged = false;
+      try {
+        s.gpsFd = openSync({ path: s.gpsFile, flag: O_RDWR | O_CREAT | O_TRUNC });
+      } catch (e) {
+        // Kein Abbruch: ohne Datei laeuft der alte Weg ueber `s.gps` weiter.
+        s.gpsFd = -1; s.gpsFile = "";
+        console.log("[pumpfoil] gps file unavailable, keeping track in memory");
+      }
+    },
+
+    _flushGpsBuffer() {
+      const s = this.state;
+      if (s.gpsFd < 0 || !s.gpsBuffer.length) return;
+      try {
+        const buffer = gpsToBytes(s.gpsBuffer);
+        const written = writeSync({ fd: s.gpsFd, buffer });
+        if (written !== buffer.byteLength) throw new Error("short gps write");
+        s.gpsCount += s.gpsBuffer.length;
+        s.gpsBuffer = [];
+      } catch (e) {
+        // Puffer NICHT verwerfen — der naechste Versuch nimmt ihn mit (wie beim Accelerometer).
+        if (!s._gpsLogged) { s._gpsLogged = true; console.log("[pumpfoil] gps write failed " + ((e && e.message) || e)); }
+      }
+    },
+
+    _stopGps() {
+      const s = this.state;
+      this._flushGpsBuffer();
+      if (s.gpsFd >= 0) { try { closeSync({ fd: s.gpsFd }); } catch (e) {} s.gpsFd = -1; }
+    },
+
+    /** Wie viele GPS-Punkte die laufende Aufnahme hat — egal ob Datei oder Rueckfall. */
+    _gpsGesamt() {
+      const s = this.state;
+      return s.gpsFile ? s.gpsCount + s.gpsBuffer.length : s.gps.length;
     },
 
     _startAccel() {
@@ -2080,7 +2171,10 @@ Page(
       if (s.recording) {
         const el = Date.now() - s.startedAtMs;
         if (fix) {
-          s.gps.push([el, Math.round(lat * 1e6) / 1e6, Math.round(lon * 1e6) / 1e6, Math.round(speedRaw * 100) / 100, hr, 0]);
+          const punkt = [el, Math.round(lat * 1e6) / 1e6, Math.round(lon * 1e6) / 1e6,
+                         Math.round(speedRaw * 100) / 100, hr, 0];
+          s.gpsLastMs = el;
+          if (s.gpsFile) s.gpsBuffer.push(punkt); else s.gps.push(punkt);
           // Distanz NICHT ueber einen Sprung hinweg aufsummieren — sonst waechst die angezeigte
           // Strecke um den Sprung, und der Lauf daneben bekommt eine Distanz, die es nie gab.
           if (s.prev && !jump) s.dist += distM(s.prev[0], s.prev[1], lat, lon);
@@ -2088,7 +2182,10 @@ Page(
           s.spdMaxClean = maxKandidat(s.burstBuf || (s.burstBuf = []), sampleNow, speed);
           if (s.spdMaxClean > s.max) s.max = s.spdMaxClean;
           if (s.almOn) this._checkAlarm(speed * 3.6);   // Vibrationsalarm bei Speed-Grenzen
-          if (s.gps.length % GPS_CHUNK === 0) this.persistActive();
+          // Alle zehn Punkte an die Datei anhaengen und die (winzigen) Kopfdaten sichern.
+          if (s.gpsFile) {
+            if (s.gpsBuffer.length >= GPS_CHUNK) { this._flushGpsBuffer(); this.persistActive(); }
+          } else if (s.gps.length % GPS_CHUNK === 0) this.persistActive();
         }
         // Lauf-Erkennung: erst glätten (auch ohne Fix, damit das Fenster altert), dann Automat.
         this._pushSpeed(s.cur, el, fix);
@@ -2117,15 +2214,48 @@ Page(
     persistActive() {
       const s = this.state;
       try {
-        store.setItem("active", JSON.stringify({ uuid: s.uuid, startedAtMs: s.startedAtMs, gps: s.gps,
-          foilId: s.foilId, accelFile: s.accelFile, accelSamples: s.accelSamples,
-          accelHz: this._accelHz(), accelChunkT0: s.accelChunkT0 }));
+        // Nur noch KOPFDATEN. Die Spur liegt in der Datei — frueher stand sie hier mit drin und
+        // wurde bei jedem zehnten Punkt vollstaendig neu geschrieben (nach zwei Stunden 287 KB,
+        // alle zehn Sekunden). Jetzt haengt die Groesse dieses Eintrags nicht mehr an der Laenge
+        // der Aufnahme.
+        const a = { uuid: s.uuid, startedAtMs: s.startedAtMs, foilId: s.foilId,
+          accelFile: s.accelFile, accelSamples: s.accelSamples, accelHz: this._accelHz(),
+          accelChunkT0: s.accelChunkT0, gpsLastMs: s.gpsLastMs };
+        if (s.gpsFile) { a.gpsFile = s.gpsFile; a.gpsCount = s.gpsCount; }
+        else a.gps = s.gps;                       // Rueckfall ohne Datei
+        store.setItem("active", JSON.stringify(a));
       } catch (e) {}
     },
     recoverActive() {
       let a = null; try { a = JSON.parse(store.getItem("active", "null")); } catch (e) {}
-      if (a && a.gps && a.gps.length) {
-        const end = a.startedAtMs + (a.gps[a.gps.length - 1][0] || 0);
+      // Zwei Formate: seit 1.0.10 liegt die Spur in einer Datei, davor als Array im Eintrag.
+      // Eine Aufnahme, die vor dem Update lief, muss trotzdem hochgehen.
+      let gpsCount = 0;
+      if (a && a.gpsFile) {
+        // Die DATEIGROESSE zaehlt, nicht der gemerkte Stand: ein Absturz kann angehaengt haben,
+        // ohne dass die Kopfdaten noch geschrieben wurden.
+        try {
+          const g = statSync({ path: a.gpsFile });
+          if (g && g.size > 0) gpsCount = Math.floor(g.size / GPS_REC_BYTES);
+        } catch (e) {}
+      }
+      // Ende der Aufnahme: aus dem LETZTEN Satz der Datei, nicht aus den Kopfdaten. Die werden
+      // nur alle zehn Punkte geschrieben, nach einem Absturz laege das Ende sonst bis zu neun
+      // Sekunden zu frueh. Ein Satz sind 18 Byte — das kostet nichts.
+      let letzteMs = (a && a.gpsLastMs) || 0;
+      if (gpsCount) {
+        try {
+          const fd = openSync({ path: a.gpsFile, flag: O_RDONLY });
+          const buffer = new ArrayBuffer(GPS_REC_BYTES);
+          const n = readSync({ fd, buffer, options: { position: (gpsCount - 1) * GPS_REC_BYTES,
+            length: GPS_REC_BYTES } });
+          try { closeSync({ fd }); } catch (e) {}
+          if (n === GPS_REC_BYTES) letzteMs = bytesToGps(buffer, 1)[0][0];
+        } catch (e) {}
+      }
+      const altGps = (a && a.gps && a.gps.length) ? a.gps : null;
+      if (a && (gpsCount || altGps)) {
+        const end = a.startedAtMs + (altGps ? (altGps[altGps.length - 1][0] || 0) : letzteMs);
         let samples = a.accelSamples || 0;
         try {
           const info = a.accelFile ? statSync({ path: a.accelFile }) : null;
@@ -2135,13 +2265,17 @@ Page(
         const t0s = a.accelChunkT0 || [];
         const needed = Math.ceil(samples / ACCEL_CHUNK_SAMPLES);
         while (t0s.length < needed) t0s.push(Math.round(t0s.length * ACCEL_CHUNK_SAMPLES / hz * 1000));
-        const list = loadPending(); list.push({ uuid: a.uuid, startedAtMs: a.startedAtMs, endedAtMs: end,
-          gps: a.gps, foilId: a.foilId, accelFile: a.accelFile, accelSamples: samples,
-          accelHz: hz, accelChunkT0: t0s }); savePending(list);
-      } else if (a && a.accelFile) {
+        const eintrag = { uuid: a.uuid, startedAtMs: a.startedAtMs, endedAtMs: end,
+          foilId: a.foilId, accelFile: a.accelFile, accelSamples: samples,
+          accelHz: hz, accelChunkT0: t0s };
+        if (altGps) eintrag.gps = altGps;
+        else { eintrag.gpsFile = a.gpsFile; eintrag.gpsCount = gpsCount; }
+        const list = loadPending(); list.push(eintrag); savePending(list);
+      } else if (a && (a.accelFile || a.gpsFile)) {
         // A session without a persisted GPS point cannot be analyzed or uploaded. Do not leave its
-        // binary sensor file orphaned after a reboot during the first seconds of recording.
-        try { rmSync({ path: a.accelFile }); } catch (e) {}
+        // binary sensor files orphaned after a reboot during the first seconds of recording.
+        if (a.accelFile) { try { rmSync({ path: a.accelFile }); } catch (e) {} }
+        if (a.gpsFile) { try { rmSync({ path: a.gpsFile }); } catch (e) {} }
       }
       store.setItem("active", "");
     },
@@ -2160,6 +2294,7 @@ Page(
       // alles Ungetestete auf Hardware — schlaegt es fehl, laeuft die Aufnahme normal weiter.
       try { setWakeUpRelaunch({ relaunch: true }); } catch (e) {}
       this._resetRun();   // Lauf-Zähler/-Kennzahlen gehören zur Session (wie Garmin/Wear)
+      this._startGps();
       this._startAccel();
       this.persistActive();
       this.hideBar();
@@ -2169,23 +2304,28 @@ Page(
     },
     stop() {
       const s = this.state, now = Date.now();
+      this._stopGps();
       this._stopAccel();
       this._disableTouchLock();
       this._setBrightMode("idle", true);
       s.recording = false;
       const el = (now - s.startedAtMs) / 1000;
       s.last = { dur: el, dist: s.dist, avg: el > 0 ? s.dist / el * 3.6 : 0, max: s.max * 3.6 };
-      if (s.gps.length) {
+      if (this._gpsGesamt()) {
         s.screen = "summary"; s.upPct = 0; s.upStatus = t("up.keepOpen");
-        const list = loadPending(); list.push({ uuid: s.uuid, startedAtMs: s.startedAtMs, endedAtMs: now,
-          gps: s.gps.slice(), foilId: s.foilId, accelFile: s.accelFile,
-          accelSamples: s.accelSamples, accelHz: this._accelHz(), accelChunkT0: s.accelChunkT0.slice() }); savePending(list);
+        const eintrag = { uuid: s.uuid, startedAtMs: s.startedAtMs, endedAtMs: now,
+          foilId: s.foilId, accelFile: s.accelFile, accelSamples: s.accelSamples,
+          accelHz: this._accelHz(), accelChunkT0: s.accelChunkT0.slice() };
+        if (s.gpsFile) { eintrag.gpsFile = s.gpsFile; eintrag.gpsCount = s.gpsCount; }
+        else eintrag.gps = s.gps.slice();
+        const list = loadPending(); list.push(eintrag); savePending(list);
         store.setItem("active", "");
         this.applyButton(); this.renderSummary(); this.showBar(0);
         this.flushPending();
       } else {
         s.screen = "idle"; s.idlePage = 0; s.upStatus = t("rec.noData");
         if (s.accelFile) { try { rmSync({ path: s.accelFile }); } catch (e) {} }
+        if (s.gpsFile) { try { rmSync({ path: s.gpsFile }); } catch (e) {} }
         store.setItem("active", "");
         this.applyButton(); this.renderIdle();
       }
@@ -2204,7 +2344,12 @@ Page(
       const meta = { session_uuid: sess.uuid, started_at_ms: sess.startedAtMs, sport: "pumpfoil",
         gps_hz: GPS_HZ, accel_hz: accelHz, accel_scale: hasAccel ? ACCEL_SCALE : 0, app_version: APP_VERSION };
       if (sess.foilId != null) meta.foil_id = sess.foilId;   // gewählte Foil (Metadaten)
-      const gpsChunkCount = Math.ceil(sess.gps.length / GPS_CHUNK);
+      // Seit 1.0.10 liegt die Spur in einer Datei. Der alte Weg ueber das Array bleibt drin:
+      // Aufnahmen, die vor dem Update gemacht wurden, warten noch in der Warteschlange (Cesar hat
+      // genau so eine) und muessen weiter hochgehen.
+      const gpsAusDatei = !!(sess.gpsFile && sess.gpsCount > 0);
+      const gpsAnzahl = gpsAusDatei ? sess.gpsCount : ((sess.gps && sess.gps.length) || 0);
+      const gpsChunkCount = Math.ceil(gpsAnzahl / GPS_CHUNK);
       const accelChunkCount = hasAccel ? Math.ceil(sess.accelSamples / ACCEL_CHUNK_SAMPLES) : 0;
       const dataChunkCount = gpsChunkCount + accelChunkCount;
       // Wo der letzte Versuch stehen geblieben ist. Nie weiter als das, was es zu senden gibt —
@@ -2250,7 +2395,41 @@ Page(
         naechster(von);
       });
 
-      const sendGpsChunks = () => folge(vonGps, gpsChunkCount, (index) => {
+      // Wasserstand nur alle 25 Bloecke schreiben. Jeder Schreibvorgang geht in den Flash; bei
+      // 2341 Bloecken waeren das 2341 Schreibzugriffe fuer nichts. Verliert ein Absturz die
+      // letzten paar Bloecke, werden sie beim naechsten Versuch erneut gesendet — der Server
+      // ueberschreibt gleiche (Session, Art, Index).
+      const gpsMarke = (index) => {
+        if (index % 25 === 24 || index === gpsChunkCount - 1) setzeMarke(sess.uuid, index + 1, vonAccel);
+      };
+
+      // Aus der Datei: immer nur EIN Block im Speicher, genau wie beim Accelerometer.
+      const sendGpsAusDatei = () => {
+        let fd = -1;
+        try { fd = openSync({ path: sess.gpsFile, flag: O_RDONLY }); }
+        catch (e) { return Promise.reject(new Error("gps file unavailable")); }
+        const send = folge(vonGps, gpsChunkCount, (index) => {
+          const von = index * GPS_CHUNK;
+          const count = Math.min(GPS_CHUNK, gpsAnzahl - von);
+          const byteLength = count * GPS_REC_BYTES;
+          const buffer = new ArrayBuffer(byteLength);
+          let bytesRead = 0;
+          try {
+            bytesRead = readSync({ fd, buffer, options: { position: von * GPS_REC_BYTES,
+              length: byteLength } });
+          } catch (e) { return Promise.reject(e); }
+          if (bytesRead !== byteLength) return Promise.reject(new Error("short gps read"));
+          const data = bytesToGps(buffer, count);
+          return req({ method: "CHUNK", token: tok, session_uuid: sess.uuid, index,
+                       kind: "gps", encoding: "json", count, data })
+            .then((r) => { gpsMarke(index); return r; });
+        });
+        return send.then((value) => { try { closeSync({ fd }); } catch (e) {} return value; },
+          (err) => { try { closeSync({ fd }); } catch (e) {} throw err; });
+      };
+
+      // Rueckfall: Spur steht als Array im Eintrag (Aufnahmen von vor 1.0.10).
+      const sendGpsAusArray = () => folge(vonGps, gpsChunkCount, (index) => {
         const von = index * GPS_CHUNK;
         const data = sess.gps.slice(von, von + GPS_CHUNK);
         return req({ method: "CHUNK", token: tok, session_uuid: sess.uuid, index,
@@ -2266,14 +2445,13 @@ Page(
             // persistente Stand in `store` wird erst bei `removePending` angefasst. Bricht der
             // Upload ab, faellt diese Kopie weg und der naechste Versuch liest frisch.
             for (let i = von; i < von + data.length; i++) sess.gps[i] = 0;
-            // Wasserstand nur alle 25 Bloecke schreiben. Jeder Schreibvorgang geht in den Flash;
-            // bei 2341 Bloecken waeren das 2341 Schreibzugriffe fuer nichts. Verliert ein Absturz
-            // die letzten paar Bloecke, werden sie beim naechsten Versuch erneut gesendet — der
-            // Server ueberschreibt gleiche (Session, Art, Index).
-            if (index % 25 === 24 || index === gpsChunkCount - 1) setzeMarke(sess.uuid, index + 1, vonAccel);
+            gpsMarke(index);
             return r;
           });
       });
+
+      const sendGpsChunks = () => (!gpsChunkCount ? Promise.resolve()
+        : gpsAusDatei ? sendGpsAusDatei() : sendGpsAusArray());
       const sendAccelChunks = () => {
         if (!accelChunkCount) return Promise.resolve();
         let fd = -1;
@@ -2350,6 +2528,7 @@ Page(
         this.uploadSession(sess, onProg)
           .then(() => {
             if (sess.accelFile) { try { rmSync({ path: sess.accelFile }); } catch (e) {} }
+            if (sess.gpsFile) { try { rmSync({ path: sess.gpsFile }); } catch (e) {} }
             loescheMarke(sess.uuid);   // Session ist durch — der Wasserstand hat keinen Zweck mehr
             removePending(sess.uuid); step(i + 1);
           })
@@ -2371,7 +2550,7 @@ Page(
       if (s.hbTimer) clearInterval(s.hbTimer);
       if (s.stopBackTimer) clearTimeout(s.stopBackTimer);
       this._disableTouchLock();
-      if (s.recording) { this._stopAccel(); this.persistActive(); }
+      if (s.recording) { this._stopGps(); this._stopAccel(); this.persistActive(); }
       try { offGesture(); } catch (e) {}
       try { s.geo && s.geo.stop && s.geo.stop(); } catch (e) {}
       try { s.hrSensor && s.hrCallback && s.hrSensor.offCurrentChange(s.hrCallback); } catch (e) {}
