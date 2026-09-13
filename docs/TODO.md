@@ -961,6 +961,39 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **📥 13.09. — GitHub-Vorgaenge: vier offen, KEINER je beantwortet.** Gefunden mit dem neuen
+  Skill `posteingang` (`.claude/skills/posteingang/`). Das ist der Anlass dafuer, dass es ihn
+  gibt — zwei fertige Pull Requests von aussen lagen wochenlang ohne ein Wort, und Issue #4
+  beschrieb den Fehler, an dem wir spaeter einen ganzen Abend gesucht haben.
+  - **#2 (elmanu13, franzoesisches Label) — ERLEDIGT, selbst uebernommen.** `"Mes"` war als
+    Tab-Beschriftung unvollstaendig; jetzt `"Les miennes"`, wie er vorschlug (vgl. es „Mías",
+    pt „Minhas"). **Jan: PR schliessen mit Dank und dem Hinweis, dass es direkt uebernommen ist.**
+  - **#4 (mesarpe/César, Out of Memory) — ERLEDIGT in 1.0.10.** Ursache war nicht die Dateigroesse,
+    sondern dass der Upload NIE fortsetzte und die Spur komplett im Speicher lag. **Jan: schliessen,
+    sobald der Zepp-Store 1.0.10 freigibt** — nicht vorher, sonst steht dort „behoben" und er hat
+    es noch nicht.
+  - **#3 (elmanu13, Zepp 1.0.6, Entwurf vom 22.08.) — nicht mehr zusammenfuehrbar.** Baut
+    `page/index.js` mit 1254 Zeilen auf einem Stand um, von dem wir weit weg sind. **Jan:
+    schliessen mit Dank und Begruendung.** Vorher diese drei Ideen hierher gerettet:
+    - **Groessere Bloecke: GPS 10 → 20 Punkte, Accel 128 → 256 Samples.** Halbiert die Blockzahl.
+      Césars 2341 waeren ~1170, und aus elf Minuten Upload wuerden fuenfeinhalb (gemessen
+      13.09.: 3,5 Bloecke/s). Der Speicher je Block verdoppelt sich, die Zahl halbiert sich —
+      unterm Strich etwa neutral im Verbrauch, aber halb so viele BLE-Runden. **Lohnt eine
+      Pruefung**, am besten zusammen mit dem naechsten Zepp-Release.
+    - Pulszonen ueber `Workout.getUserHrZoneSettings()` (Zepp OS 4.2). Bei uns kommen die Zonen
+      aus dem Profil — waere eine Alternative, kein Ersatz.
+    - Oberflaechen-Umbau fuer die T-Rex 3 (Puls-Ring, groessere Typografie). Geschmacksfrage.
+    - **NICHT uebernehmen: parallele Uploads (bis zu 4 gleichzeitig).** Widerspricht dem, was in
+      `reqQ` steht: zml macht pro Request einen BLE-Handshake, parallele Anfragen wuergen sich
+      gegenseitig ab (undefined/shake timeout). Das ist teuer erkauftes Wissen.
+  - **🔵 #5 (RPJoshL, Wear OS) — EIGENE SITZUNG, nicht nebenbei** (Jans Ansage). Der Titel sagt
+    „fix touchlock and add previews", tatsaechlich steckt darin: ein **Attribution-Context** fuer
+    Sensor- und Standortzugriffe (Android-API zur Nachvollziehbarkeit), die Berechtigung
+    `WATCH_TOUCH`, Compose-Preview-Abhaengigkeiten — und ein Umbau von `MainActivity.kt` mit
+    **1076 hinzugefuegten und 930 geloeschten Zeilen**. Nichts davon ist bei uns im Baum
+    (13.09. geprueft). Wear 1.2.29 liegt gerade bei Google; ein Umbau dieser Groesse in genau
+    dieser Datei will gelesen und einzeln bewertet werden.
+
 - **📥 13.09. — Landingpages der Zusatz-Domains: Text bestätigen, dann übersetzen.** Die sieben
   Seiten (`server/app/landing.py`) sind seit heute live — lb1 proxyt die Domains durch, www und
   Zertifikate stehen. Zwei Dinge sind bewusst offen gelassen:
