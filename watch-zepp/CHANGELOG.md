@@ -10,6 +10,29 @@ This changelog covers the Zepp OS watch app only.
 > and possibly after the upload — it is listed under 1.0.7. **Keep this file current with every
 > bump**, then nobody has to dig through commits again.
 
+## 1.0.9 — 2026-09-13
+
+**Die Aufnahme überlebt jetzt einen Tastendruck.** Bis hierher konnte ein einziger Druck auf die
+Taste — oder eine Wischgeste, die wir nicht kannten — die App beenden und die laufende Aufnahme
+mitnehmen.
+
+Die Ursache lag an drei Stellen im selben Muster: unser Tasten- und Gesten-Callback gab `false`
+zurück, wenn es mit einer Eingabe nichts anzufangen wusste. Bei Zepp heisst `false` aber nicht
+„nichts tun", sondern „das System soll es behandeln" — und das System schliesst die App. Während
+einer Aufnahme wird deshalb ab jetzt JEDE Eingabe konsumiert; das gilt auch für den Fehlerfall im
+Callback, der vorher ebenfalls auf `false` fiel.
+
+Gemeldet von einem Nutzer mit einer **Amazfit Active 2 (Round)** am 13.09.2026: „if a button is
+pressed it exits the app straight away. Accidental presses are quite easy." Diese Uhr hat genau
+eine Taste, deren Code keiner unserer vier Konstanten entspricht — damit fiel jeder Druck in den
+`return false`-Zweig.
+
+Das passt auf den Bestand: von 21 Amazfit-Aufnahmen waren nur 4 brauchbar, bei den übrigen kamen
+eine Handvoll Datenpakete an und dann nichts mehr. Derselbe Melder hatte sechs Fehlversuche.
+
+Beendet wird eine Aufnahme weiterhin über langes SELECT (oder kurzes, wenn im Profil so
+eingestellt) und über den Stopp-Bildschirm.
+
 ## 1.0.8 — 2026-08-31
 
 Built and version-bumped; goes to the store right after 1.0.7 clears review.

@@ -903,6 +903,42 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 13.09. URSACHE DER LEEREN AMAZFIT-AUFNAHMEN GEFUNDEN UND BEHOBEN — eine Taste oder eine
+  unbekannte Wischgeste hat die App samt laufender Aufnahme beendet.**
+  Gefunden durch die Rundmail von heute Morgen: Sam Barnes (u346, **Amazfit Active 2 Round**)
+  antwortete binnen 24 Minuten und beschrieb den Mechanismus genau — „It now keeps running even
+  when the screen times out. **However if a button is pressed it exits the app straight away.
+  Accidental presses are quite easy. And it will close if I swipe back from page 1.**"
+  - **Die Ursache lag dreimal im selben Muster** (`watch-zepp/page/index.js`): der Tasten- bzw.
+    Gesten-Callback gab `false` zurueck, wenn er mit einer Eingabe nichts anzufangen wusste. Bei
+    Zepp heisst `false` aber NICHT „nichts tun", sondern „das System soll es behandeln" — und das
+    System schliesst die App. Mit ihr stirbt die Aufnahme.
+      1. jede Taste ausser BACK/SELECT/UP/DOWN waehrend der Aufnahme,
+      2. jede Geste, die keiner der vier Richtungen entspricht,
+      3. der `catch`-Zweig des Tasten-Callbacks — der Kommentar dort sagte „lieber tut die Taste
+         nichts", aber `return false` tat nicht nichts, sondern genau das Schlimmste.
+  - **Warum gerade die Active 2:** sie hat genau EINE Taste, deren Code offenbar keiner unserer
+    vier Konstanten entspricht. Damit fiel JEDER Druck in Zweig 1. Der Tasten-Pfad war ohnehin auf
+    echter Hardware nie getestet — der Simulator hat keine Hardware-Tasten, das stand als Warnung
+    im Code.
+  - **Passt auf den Bestand:** 17 von 21 Amazfit-Aufnahmen hatten nur eine Handvoll Pakete, Sam
+    allein sechs Fehlversuche. Seine drei Testaufnahmen von heute mit 1.0.8 liefen 3 min, 17 s und
+    2 min — laenger als frueher (der Bildschirm-Timeout ist weg), aber immer noch abrupt zu Ende.
+  - **Fix:** waehrend der Aufnahme wird JEDE Eingabe konsumiert, auch im Fehlerfall. Beendet wird
+    weiter ueber langes SELECT (bzw. kurzes, wenn im Profil so eingestellt) und den
+    Stopp-Bildschirm. **Zepp auf 1.0.9 / code 12 gebumpt**, CHANGELOG.md ergaenzt, `node --check`
+    sauber. Bauen und einreichen kann nur Jan (Mac).
+  - **🔲 OFFEN, Sams zweiter Vorschlag:** „On other activities when you press a button it gives a
+    menu with stop / pause / resume. Which helps avoid accidentally ending the recording."
+    Heute tut ein Druck waehrend der Aufnahme sichtbar NICHTS — harmlos, aber verwirrend. Billigste
+    Umsetzung ohne neues Widget: bei einem sonst unbehandelten Druck auf **Seite 0 springen**, das
+    ist bereits der Stopp-Bildschirm. Entscheidung Jan; auf echter Hardware pruefen kann nur er
+    bzw. Sam, der sich dafuer angeboten hat.
+  - **🔲 OFFEN, unabhaengig davon:** die Zepp-App schickt weiterhin kein `expected_chunks` (bei
+    allen vier Aufnahmen von heute leer). Ohne die Zahl ist „Uhr hat wenig aufgenommen" nicht von
+    „Upload blieb stecken" zu trennen — auf Garmin und Wear geht genau das.
+
+
 - **📥 13.09. — Amazfit: nur 4 von 21 Aufnahmen waren je brauchbar. Elf Nutzer angeschrieben,
   Antworten abwarten.**
   Auslöser war Jans Vermutung, die Amazfit-Leute seien abgesprungen, weil das Release so lange
