@@ -228,7 +228,6 @@ const pl: Record<string, string> = {
   "profile.nameLen": "2–40 znaków.",
   "profile.saveError": "Błąd podczas zapisywania.",
   "lang.label": "Język",
-  "lang.hint": "Język interfejsu.",
   "stat.sessions": "Sesje",
   "stat.runs": "Przejazdy",
   "stat.runsStarts": "Przejazdy/starty",

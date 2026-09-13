@@ -206,8 +206,10 @@ export default function Settings() {
           Erstes fuendig werden und nicht erst scrollen. Dieselbe Ueberlegung wie im
           Einrichtungs-Assistenten, wo die Sprache Schritt 1 ist. */}
       <Card className="mb-4 p-5">
-        <h3 className="mb-1 font-semibold">{t("lang.label")}</h3>
-        <p className="mb-3 text-sm text-slate-300">{t("lang.hint")}</p>
+        {/* Kein Erklaersatz darunter (Vorgabe Jan, 13.09.2026): „Sprache der Oberflaeche."
+            sagte nichts, was die Ueberschrift „Sprache" ueber einer Liste von Sprachen nicht
+            schon sagt. `mb-3` wandert deshalb an die Ueberschrift. */}
+        <h3 className="mb-3 font-semibold">{t("lang.label")}</h3>
         <LanguageSelect />
       </Card>
 

@@ -219,7 +219,6 @@ const nl: Record<string, string> = {
 
   // Sprache
   "lang.label": "Taal",
-  "lang.hint": "Taal van de interface.",
 
   // Stat-Kacheln
   "stat.sessions": "Sessies",

@@ -219,7 +219,6 @@ const cs: Record<string, string> = {
 
   // Sprache
   "lang.label": "Jazyk",
-  "lang.hint": "Jazyk rozhraní.",
 
   // Stat-Kacheln
   "stat.sessions": "Relace",

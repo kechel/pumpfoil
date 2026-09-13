@@ -187,7 +187,6 @@ const deAT: Record<string, string> = {
   "profile.nameLen": "2–40 Zeichen.",
   "profile.saveError": "Fehler beim Speichern.",
   "lang.label": "Sproch",
-  "lang.hint": "Sproch von der Oberfläche.",
 
   "stat.sessions": "Sessions",
   "stat.runs": "Läuf",

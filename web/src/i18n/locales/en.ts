@@ -233,7 +233,6 @@ const en: Record<string, string> = {
   "profile.saveError": "Error while saving.",
 
   "lang.label": "Language",
-  "lang.hint": "Interface language.",
 
   "stat.sessions": "Sessions",
   "stat.runs": "Runs",

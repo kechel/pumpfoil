@@ -191,7 +191,6 @@ const gsw: Record<string, string> = {
   "profile.saveError": "Fähler bim Spichere.",
 
   "lang.label": "Sproch",
-  "lang.hint": "Sproch vo de Oberflächi.",
 
   "stat.sessions": "Sessions",
   "stat.runs": "Läuf",
