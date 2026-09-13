@@ -68,6 +68,21 @@ Die hochgeladenen Zahlen aendern sich dadurch NICHT: die Rundungen sind dieselbe
 Erzeugen des Punktes. Nachgerechnet mit Randwerten (Suedhalbkugel, Westlaenge, beide negativ,
 327 km/h, Datumsgrenze) und ueber 2543 Punkte blockweise — Byte fuer Byte dasselbe JSON.
 
+**Beide Dateien werden nur zum Schreiben geoeffnet und sofort wieder geschlossen.** Zepp OS
+vertraegt offenbar keine zweite gleichzeitig offene Datei — belegt im Emulator am 13.09.2026 in
+zwei Stufen: zuerst hielt die neue GPS-Datei dauerhaft offen, und dann schrieb JEDE Aufnahme
+genau einen Block, bei GPS wie beim Accelerometer (drei Sessions in Folge exakt 10 Punkte und
+exakt 128 Samples, waehrend dieselbe Fassung ohne GPS-Datei 27 Punkte ueber drei Bloecke
+schrieb). Nach dem Umbau der GPS-Seite lief diese sauber durch — 65 Bloecke, 650 Punkte, keine
+Luecke —, der Accelerometer aber schrieb weiter nur seinen ersten Block: 7,5 Sekunden in einer
+Aufnahme von 13 Minuten. Die Reihenfolge passt genau, Accel schreibt zuerst (nach 7,5 s), GPS
+zum ersten Mal nach 12,6 s, und ab da war Schluss.
+
+Jetzt oeffnen beide nur fuer den einzelnen Schreibvorgang und schreiben an einer
+AUSDRUECKLICHEN Position, statt auf einen Dateizeiger zu vertrauen. Damit ist nie mehr als eine
+Datei gleichzeitig offen. Der Accelerometer hatte seine Datei jahrelang dauerhaft offen, und das
+ging gut — solange es die einzige war.
+
 **Aufnahmen von vor 1.0.10 gehen weiter hoch.** Wer eine haengende Session in der Warteschlange
 hat — Cesar zum Beispiel — traegt sie dort noch als Array. Der alte Weg bleibt deshalb erhalten,
 und `recoverActive` versteht beide Formate. Faellt das Anlegen der Datei aus, zeichnet die Uhr
