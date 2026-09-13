@@ -10,6 +10,54 @@ This changelog covers the Zepp OS watch app only.
 > and possibly after the upload — it is listed under 1.0.7. **Keep this file current with every
 > bump**, then nobody has to dig through commits again.
 
+## 1.0.10 — 2026-09-13
+
+**1.0.9 wurde nie ausgeliefert.** Sie lag beim Zepp-Store im Review, als Cesar (GitHub #4,
+mesarpe) meldete, dass der Upload bei ihm weiterhin mit „Out of Memory" abbricht — bei Block
+**108 von 2341**. Jan hat 1.0.9 deshalb zurueckgezogen; ihr gesamter Inhalt geht mit 1.0.10 raus
+(siehe den Abschnitt darunter), plus die drei Punkte hier.
+
+**Ein abgebrochener Upload macht jetzt dort weiter, wo er stehen geblieben ist.** Das ist der
+wichtigere der beiden Punkte. Bis hierher begann JEDER Versuch wieder bei Block 0 — zehn
+Neustarts haetten zehnmal dieselben 108 Bloecke geschickt und waeren nie weitergekommen. Cesar
+hatte genau das im Ticket beschrieben („the transfer seemed to restart from zero despite partial
+completion"), wir hatten es nur nicht gelesen.
+
+Die Uhr merkt sich jetzt je Session, wie viele GPS- und Accel-Bloecke der Server bestaetigt hat,
+und setzt dort auf. Verfahren von der Garmin-Uhr uebernommen (`_sa`/`_sg` in `Uploader.mc`),
+GETRENNT nach Art — die Zepp-Uhr nummeriert beide Arten ab 0, das Feld `received_chunks` des
+Servers waere hier also mehrdeutig (Wear und Apple Watch duerfen es benutzen, die fuehren EINEN
+Zaehler ueber beide Arten). Der Stand steht unter einem eigenen, winzigen Schluessel und nicht im
+`pending`-Block: den anzufassen hiesse, ihn zu parsen und neu zu schreiben, mitten im Upload.
+
+Durchgerechnet mit Cesars Zahlen: selbst wenn die Uhr weiterhin alle 108 Bloecke stirbt, sind
+seine 2339 Bloecke nach 24 Versuchen vollstaendig oben, ohne eine einzige Luecke.
+
+**Der Upload gibt Speicher frei, waehrend er laeuft.** Bisher hielt er die ganze Aufnahme bis zum
+Schluss. `flushPending()` parst die komplette Warteschlange per `JSON.parse` in den Speicher —
+bei zwei Stunden Aufnahme sind das rund 7200 GPS-Punkte und damit gut 1,2 MB, die liegen, BEVOR
+der erste Block rausgeht. Cesar stirbt bei Block 108, also nicht am Parsen selbst, sondern kurz
+danach: der Muell der ersten hundert Requests gibt den Rest. Gesendete Punkte werden jetzt sofort
+freigegeben, der Verbrauch sinkt also waehrend des Uploads, statt zu stehen. Ungefaehrlich, weil
+`list` nur eine Parse-Kopie ist — der persistente Stand wird erst bei `removePending` angefasst,
+und ein abgebrochener Upload liest beim naechsten Versuch frisch.
+
+**Die Bloecke haengen nicht mehr als Promise-Kette aneinander.** `sendGpsChunk` gab die Promise
+des naechsten Blocks zurueck, womit Ebene 0 offen blieb, bis die letzte fertig war. Gemessen sind
+das rund 225 Byte je Ebene — bei 108 Ebenen also keine 25 KB und damit NICHT die Ursache, wie
+zwischendurch vermutet. Die Schleife bleibt trotzdem: sie ist sparsamer, der Aufrufstapel waechst
+nicht mit, und Fehler werden weiter sauber durchgereicht.
+
+**Der Fortschritt wird nur noch bei jedem Prozentsprung neu gezeichnet.** Vorher lief bei jedem
+Block ein voller Bildaufbau: 2341 Neuzeichnungen fuer 100 sichtbare Zustaende. Das kostete
+Rechenzeit, die dem Aufraeumen fehlte.
+
+**Was NICHT behoben ist** und der naechste Schritt waere: `persistActive()` schreibt bei jedem
+zehnten GPS-Punkt die komplette Aufnahme neu als JSON weg — am Ende einer Zwei-Stunden-Session
+287 KB, alle zehn Sekunden, zusammen ueber 100 MB in den Flash. Richtig waere, GPS wie den
+Accelerometer in eine DATEI zu schreiben und blockweise zu lesen; dann verschwindet auch der
+1,2-MB-Sockel beim Upload. Das ist ein groesserer Eingriff und ohne Hardware nicht pruefbar.
+
 ## 1.0.9 — 2026-09-13
 
 **Die Aufnahme überlebt jetzt einen Tastendruck.** Bis hierher konnte ein einziger Druck auf die
