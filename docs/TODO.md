@@ -9,6 +9,32 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 🚀 App-Release-Stand
 
+- **🟡 13.09. — Amazfit/Zepp 1.0.9 (code 12) EINGEREICHT**, einen Tag nach der Freigabe von 1.0.8.
+  Zepp-Konsole: appId 1118995, Application Time 2026.09.13, „Under Review (Can be Withdrawn)";
+  darunter 1.0.8 vom 12.09. als „Approved".
+  - **Anlass war eine Nutzerantwort, keine Planung.** Die Rundmail an die elf Amazfit-Konten ging
+    um 09:19 raus, um **10:43** kam Sams Beschreibung („if a button is pressed it exits the app
+    straight away"), um **11:30** war die Ursache behoben. Deshalb zwei Einreichungen an
+    aufeinanderfolgenden Tagen — das ist hier die Ausnahme und war es wert.
+  - **Inhalt (3 Punkte):** Aufnahme ueberlebt jeden Tastendruck und jede Wischgeste · Tastendruck
+    zeigt den Stopp-Bildschirm und kehrt nach 5 s zurueck · „Halten = STOPP" ist von den
+    Datenseiten runter.
+  - **Startklar-Pruefung vor dem Build:** `DEV_FAKE_GPS` false · Version an beiden Stellen
+    (`app.json` 1.0.9/12 und `APP_VERSION`) · `node --check` sauber · 7 runde + 7 eckige Bilder +
+    Icon (unveraendert, von Zepp bei 1.0.8 akzeptiert). Jans Zeilennummern aus dem grep (93/2004/
+    2031) stimmten mit dem Repo ueberein — damit war belegt, dass er den gefixten Stand baut.
+  - **🆕 Die Store-Texte liegen jetzt im Repo:** `scripts/zepp-store-texte.py` haelt App Name,
+    Introduction, Details und New Version Introduction fuer alle 17 Uhr-Sprachen und prueft die
+    Grenzen der Zepp-Konsole (30 / 40 / 600 / 100 Zeichen). Vorher wurden diese 68 Felder bei
+    jeder Einreichung neu erfunden. Beim naechsten Mal aendert sich nur die New Version
+    Introduction.
+  - **Naechste Zepp-Nummer: 1.0.10 / code 13.** Traegt der Update-Hinweis: `istNeuer` in
+    `page/index.js` vergleicht die Versionsteile als ZAHLEN (nachgeprueft 13.09.) — ein
+    lexikalischer Vergleich haette 1.0.10 fuer aelter als 1.0.9 gehalten.
+  - **Nach der Freigabe:** `_APP_META["zepp"]` auf 1.0.9, IN_REVIEW-Eintrag raus,
+    Changelog-Punkte eintragen. Und **Sam Bescheid geben** — ihm ist im Chat zugesagt, dass er
+    sich nicht selbst darum kuemmern muss (DM 1712).
+
 - **🟢 13.09. — Android Phone 1.1.28 + Wear OS 1.2.28 SIND LIVE.** Play-Mail: „Your update to
   Pumpfoil, created on Sep 10, 2026 at 8:09 AM GMT, is live in the store." Der Zeitstempel passt
   auf unsere Einreichung vom 10.09. 10:09 Berlin; wie immer deckt EINE Mail beide Tracks ab.
