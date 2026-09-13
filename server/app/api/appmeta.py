@@ -290,8 +290,18 @@ _APP_META: dict[str, dict[str, str]] = {
 # am 10.09. stand hier fuer Wear schon „resubmitted 10 September", waehrend Jan den Fix noch nicht
 # einmal gepullt hatte. Bis zu seiner Meldung gehoert so etwas nach NAECHSTES.
 #
-# `note` ist eine kurze englische Zeile fuer Nutzer — keine internen Begriffe, keine
-# Versionsnummern von Build-Codes, kein Jargon (dieselbe Regel wie fuer die Changelog-Texte).
+# DIE STATUSZEILE WIRD ERZEUGT, NICHT GESCHRIEBEN (seit 13.09.2026, s. `_note`). Ein Eintrag
+# traegt nur noch die Angaben, die sich nicht ableiten lassen:
+#     IN_REVIEW  -> "eingereicht": "2026-09-13"        -> „submitted 13 September, waiting for X"
+#     NAECHSTES  -> nichts                             -> „built, waiting to be uploaded"
+#                   oder "wartet_auf": "1.1.33"        -> „built, waiting for 1.1.33 to clear …"
+#     ABGELEHNT  -> "abgelehnt" + "grund"              -> „not approved on 10 September: …"
+# Wer prueft, steht in `PRUEFER`. Ein `note`-Feld von Hand gibt es hier NICHT mehr — genau das
+# hatte am 13.09. dazu gefuehrt, dass unter der Ueberschrift „Being reviewed" die Zeile „built,
+# waiting to be uploaded" stand: der Eintrag war verschoben, der Satz nicht. Jetzt genuegt das
+# Verschieben.
+# Der erzeugte Satz bleibt, was er war: kurz, englisch, fuer Nutzer — keine internen Begriffe,
+# keine Build-Codes, kein Jargon (dieselbe Regel wie fuer die Changelog-Texte).
 # Handy und Uhr sind EINE Einreichung: Android Phone und Wear OS teilen sich die
 # `applicationId` (Play schickt eine einzige Mail fuer beide Spuren), iPhone und Apple Watch
 # stecken im selben Bundle mit einer `MARKETING_VERSION`.
@@ -302,6 +312,58 @@ _APP_META: dict[str, dict[str, str]] = {
 # auch wenn es keine aenderungen an app oder wear gab." Die Nummern laufen im Gleichschritt: beide
 # bumpen, beide bauen, beide in EINER Runde hochladen — selbst wenn eine Seite byteweise der
 # freigegebenen Fassung entspricht (so am 10.09.: der Fix betraf Wear, Phone bekam 1.1.28/42 mit).
+# Wer prueft. Das ist der EINZIGE Teil des Review-Satzes, der nicht aus dem Zustand folgt —
+# alles andere (das Wort „submitted", das Datum, „waiting for") wird erzeugt, s. `_note`.
+PRUEFER = {
+    "iPhone + Apple Watch": "Apple",
+    "Android phone + Wear OS": "Google",
+    "Amazfit": "the Zepp store",
+    "Garmin": "the Connect IQ store",
+}
+
+
+def _datum(iso: str) -> str:
+    """„2026-09-13" -> „13 September". Mit Jahr, sobald es nicht das laufende ist — sonst stuende
+    im Januar „submitted 13 September" ohne erkennbar zu sein, dass das vier Monate her ist."""
+    from datetime import date
+    d = date.fromisoformat(iso)
+    heute = date.today()
+    return f"{d.day} {d.strftime('%B')}" + (f" {d.year}" if d.year != heute.year else "")
+
+
+def _note(e: dict, zustand: str) -> str:
+    """Die Statuszeile fuer /changelog — ERZEUGT, nicht von Hand geschrieben.
+
+    WARUM (Jan, 13.09.2026): „kann die spalte im abschnitt 'being reviewed' nicht komplett
+    automatisch aus den metadaten erzeugt werden? dann muessen wir da nie was von hand machen."
+    Anlass war ein Widerspruch auf der oeffentlichen Seite: unter der Ueberschrift „Being
+    reviewed" stand woertlich „built, waiting to be uploaded". Beim Verschieben nach IN_REVIEW
+    war der Eintrag umgehaengt, der Satz aber stehen geblieben.
+
+    Jetzt folgt der Satz aus der LISTE, in der ein Eintrag steht. Ein solcher Widerspruch ist
+    damit nicht mehr formulierbar — verschieben genuegt, und die Zeile stimmt.
+
+    Von Hand bleiben nur die Angaben, die sich nicht ableiten lassen: das Datum (`eingereicht`
+    bzw. `abgelehnt`), der Ablehnungsgrund (`grund`) und die Fassung, auf die gewartet wird
+    (`wartet_auf`).
+    """
+    if zustand == "review":
+        return f"submitted {_datum(e['eingereicht'])}, waiting for {PRUEFER[e['name']]}"
+    if zustand == "next":
+        wartet = e.get("wartet_auf")
+        return (f"built, waiting for {wartet} to clear review first" if wartet
+                else "built, waiting to be uploaded")
+    if zustand == "rejected":
+        satz = f"not approved on {_datum(e['abgelehnt'])}"
+        return f"{satz}: {e['grund']}" if e.get("grund") else satz
+    return ""
+
+
+def _mit_note(liste: list[dict], zustand: str) -> list[dict]:
+    """Eintraege fuer die Ausgabe, jeder mit erzeugter `note`. Das Original bleibt unberuehrt."""
+    return [{**e, "note": _note(e, zustand)} for e in liste]
+
+
 GRUPPEN = [
     (("ios", "apple"), "iPhone + Apple Watch"),
     (("android", "wear"), "Android phone + Wear OS"),
@@ -346,8 +408,8 @@ ABGELEHNT: list[dict] = [
      # (`sessions.device_model`, hoechster Android-Stand 1.1.25, gesehen am 07.09.).
      # Geprueft wurde auf einer Pixel Watch 3 (`device_tokens` von user 6 „Google Tester",
      # 10.09. 06:44-07:01, Session #7136) — die runde Fassung passt genau zur Ursache.
-     "note": "not approved on 10 September: text could be cut off at the screen edge with a "
-             "large system font"},
+     "abgelehnt": "2026-09-10",
+     "grund": "text could be cut off at the screen edge with a large system font"},
     {"name": "Amazfit", "version": "1.0.7",
      # Zepp, 10.09.2026: „The square preview image does not comply with regulations. Please
      # carefully review the preview image specifications and make adjustments as required for the
@@ -356,8 +418,9 @@ ABGELEHNT: list[dict] = [
      # beanstandet. Ursache gefunden und behoben (`e019fdd2`): die eckigen Vorschaubilder trugen
      # die runden UNTEREN Ecken des macOS-Simulatorfensters, 42 halbdurchsichtige Pixel je Datei.
      # Details in brand/stores/zepp/README.md. Der Link aus der Ablehnungsmail ist tot (404).
-     "note": "not approved on 10 September \u2014 the store preview images, not the app itself; "
-             "fixed and going back with the next version"},
+     "abgelehnt": "2026-09-10",
+     "grund": "the store preview images were the problem, not the app itself; fixed and going "
+              "back with the next version"},
 ]
 
 # Solange diese Liste leer ist, blendet /changelog den Abschnitt „Being reviewed" aus.
@@ -380,7 +443,7 @@ IN_REVIEW: list[dict] = [
      # NACH DER FREIGABE: `_APP_META["ios"]` UND `["apple"]` auf 1.1.33 (ein Bundle, zwei
      # Abzeichen), diesen Eintrag entfernen, Changelog-Punkte eintragen. Erst wenn der Store
      # es wirklich ausliefert — die Freigabe-Mail allein genuegt nicht (Regel vom 10.08.).
-     "note": "submitted 12 September, waiting for Apple",
+     "eingereicht": "2026-09-12",
      "items": [
          "You can sign in with your Google or Apple account in the app itself. It opens your "
          "normal browser for that, so nothing extra follows you around.",
@@ -405,11 +468,11 @@ IN_REVIEW: list[dict] = [
      # Punkte, die DANACH entstanden sind — sonst laesen Nutzer dieselbe Zeile zweimal.
      # 13.09.2026 08:56 EINGEREICHT (Jans Meldung aus der Play-Konsole: Produktion 43 = 1.1.29,
      # Produktion Wear OS 1039 = 1.2.29, beide auf vollstaendigen Roll-out, Vorabpruefungen
-     # laufen). Die `note` hier ist am 13.09. nachgezogen worden: beim Verschieben nach IN_REVIEW
-     # war der Eintrag umgehaengt, der Satz aber stehen geblieben — auf der oeffentlichen Seite
-     # stand dann unter „Being reviewed" das Wort „waiting to be uploaded". Beim Umhaengen also
-     # IMMER beides anfassen, Liste UND note.
-     "note": "submitted 13 September, waiting for Google",
+     # laufen). Bis 13.09. stand hier eine von Hand geschriebene Zeile, und die war beim
+     # Verschieben nach IN_REVIEW stehen geblieben: unter „Being reviewed" las man „built,
+     # waiting to be uploaded". Genau deshalb wird der Satz jetzt erzeugt (s. `_note`) — hier
+     # steht nur noch das Datum.
+     "eingereicht": "2026-09-13",
      "items": [
          "A setup assistant walks new accounts once through the settings that matter — "
          "language, display name, level, weight, sport, foil and connecting your watch. "
@@ -455,7 +518,7 @@ IN_REVIEW: list[dict] = [
      # Changelog-Punkte eintragen. Naechste Nummer danach: 1.0.10 / code 13 — der Update-Hinweis
      # vertraegt das, `istNeuer` in page/index.js vergleicht die Teile als ZAHLEN (nachgeprueft
      # 13.09.), ein lexikalischer Vergleich haette 1.0.10 fuer aelter als 1.0.9 gehalten.
-     "note": "submitted 13 September, waiting for the Zepp store",
+     "eingereicht": "2026-09-13",
      "items": [
          "A recording no longer ends when you press a button or swipe. Until now a single press "
          "could close the app and take the running recording with it — on some watches that "
@@ -480,7 +543,7 @@ NAECHSTES: list[dict] = [
      # hatte und die die Aenderung gar nicht enthaelt. Auf `/changelog` haette damit oeffentlich
      # gestanden, Apple pruefe gerade etwas, das nicht im Paket ist. Merke: ein IN_REVIEW-Eintrag
      # ist ab dem Upload EINGEFROREN; alles Spaetere gehoert nach NAECHSTES.
-     "note": "built, waiting for 1.1.33 to clear review first",
+     "wartet_auf": "1.1.33",
      "items": [
          "The language setting sits at the very top of your settings now. If the app is in a "
          "language you cannot read, that is the one thing you need to find first.",
@@ -637,7 +700,10 @@ def releases() -> dict:
     live.insert(0, {"name": "Website", "version": "always up to date",
                     "store_url": "", "note": "new things appear here first, without a store"})
     abgelehnt = [r for r in ABGELEHNT if _noch_offen(r, live)]
-    return {"live": live, "review": IN_REVIEW, "rejected": abgelehnt, "next": NAECHSTES}
+    return {"live": live,
+            "review": _mit_note(IN_REVIEW, "review"),
+            "rejected": _mit_note(abgelehnt, "rejected"),
+            "next": _mit_note(NAECHSTES, "next")}
 
 
 # --------------------------------------------------------------------------------------
