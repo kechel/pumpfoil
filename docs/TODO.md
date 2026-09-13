@@ -935,9 +935,22 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   - **Sprache:** vorerst nur Deutsch. Die 18 Sprachen erst, wenn Jan mit Aufbau und Text
     zufrieden ist — sonst übersetzt man 18 mal einen Entwurf. Verfahren wäre dasselbe wie bei
     der Teilen-Karte: eine Quelle, ein Generator, kein Doppeltpflegen.
-  - **`lowkitefoil.org` ist ein ENTWURF.** Der Begriff ist Jans eigener; ich habe ihn gelesen als
-    „kleiner Schirm, viel Pumpen" und den Text entsprechend geschrieben. Vor der Bewerbung der
-    Domain bitte gegenlesen — dasselbe gilt abgeschwächt für `wakethief` und `paddleup`.
+  - **🔴 `wakethief.org` kollidiert mit einer bestehenden Marke — Entscheidung offen.**
+    Recherche 13.09.: **Wake Thief, LLC** ist ein US-Foiler (Devon), seit 2020 unter
+    `wakethief.com`, über 500 getestete Foils, 100+ Review-Videos, Affiliate-Verträge mit AXIS —
+    und **AXIS verkauft eine ganze Produktlinie unter dem Namen** (Wake Thief Edition / Surf
+    Edition / Original Edition, im Sortiment bei MACkite und REAL Watersports). Folgen: (a) die
+    Sichtbarkeit, wegen der die Domain gekauft wurde, entsteht gegen einen sechs Jahre alten
+    `.com` mit Produktlinie kaum; (b) eine Foiling-Seite unter fast identischem Namen im selben
+    Themenfeld ist heikler als eine reine Weiterleitung. **Jans Entscheidung**, drei Wege: Seite
+    lassen · zurück auf 301 wie vorher · Titel und Text so umschreiben, dass klar nicht die Marke
+    gemeint ist. Die interne Sportart-Kategorie `wakethief` ist davon kaum betroffen (nur Label
+    in der App, keine Domain).
+  - **`paddleup.org` ist bestätigt.** „Paddle up" = die Paddelarbeit, bis das Board auf dem Foil
+    steht („less time struggling to paddle up"). Text kann stehen bleiben.
+  - **`parawing.org` ist recherchiert und korrigiert** (s. `docs/sport-classification.md`):
+    kurze Leinen statt „wie ein Wing", Label „Parawing (Pocketwing / Lowkite)", und die offene
+    EU-Markenanmeldung von Gong auf das Wort „Parawing" ist dort notiert.
   - **Messen:** welche Domain überhaupt Besucher bekommt, steht derzeit nur im Apache-Log auf
     lb1. `PageHit` zählt nur Tag + Art und braucht JavaScript, die Landingpages haben keins. Falls
     das interessiert: serverseitig je Host zählen wäre hier sauber, weil kein Service-Worker-Cache
