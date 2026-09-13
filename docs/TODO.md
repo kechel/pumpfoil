@@ -934,6 +934,12 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     springt jetzt auf den **Stopp-Bildschirm** (Seite 0 des Rings) — ohne neues Widget, die Seite
     gibt es laengst. Der Druck BEENDET nichts, er macht nur sichtbar, wo das Beenden liegt.
     Dreifach verknuepft: BACK, kurzer SELECT-Druck im Halte-Modus, und jede sonstige Taste.
+    **Und Jans Zusatz, der den Ausschlag gibt:** bleibt der Stopp-Bildschirm unbeantwortet, kommt
+    nach **fuenf Sekunden** von selbst die vorherige Seite zurueck (`STOP_AUTOBACK_MS`). Ohne das
+    bliebe ein Fehlgriff den Rest der Fahrt stehen — man faehrt weiter und schaut auf den
+    Stopp-Bildschirm statt auf Tempo und Puls, und mit nassen Fingern und aktiver Wassersperre
+    kommt man da nicht ohne Weiteres wieder weg. Wer selbst blaettert oder wischt, bestellt die
+    Rueckkehr ab (`_cancelStopBack`) — eine eigene Entscheidung wird nie ueberschrieben.
     Wichtig war der Zwischenschritt: nach dem reinen Sicherheits-Fix tat ein Druck sichtbar GAR
     nichts, und das macht genauso ratlos wie ein Absturz. Auf echter Hardware pruefen kann nur Jan
     bzw. Sam, der sich angeboten hat.

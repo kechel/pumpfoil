@@ -96,6 +96,11 @@ const DEV_FAKE_GPS = false;  // true = synthetische GPS-Spur (nur Simulator-UI-D
 // können beim Laden crashen, deshalb bewusst eine Konstante.) Der Bump auf 1.0.4 hatte nur
 // app.json getroffen: die Uhr zeigte weiter "v1.0.3" und meldete das auch dem Server.
 const APP_VERSION = "1.0.9";
+
+// Wie lange der Stopp-Bildschirm nach einem Tastendruck stehen bleibt, bevor die vorherige
+// Seite zurueckkommt. Fuenf Sekunden reichen zum Lesen und Antippen, und ein Fehlgriff ist
+// danach spurlos weg (Vorgabe Jan, 13.09.2026).
+const STOP_AUTOBACK_MS = 5000;
 // Update-Hinweis nur zeigen, wenn der Store-Stand WIRKLICH neuer ist. Vorher stand hier ein
 // !==-Vergleich: ein Entwicklungs-Build vor dem Store (1.0.6 lokal, 1.0.4 live) hat damit zum
 // "Update" auf die AELTERE Version geraten (Jans Screenshot 18.08.: "1.0.6 -> 1.0.4"). Garmin,
@@ -646,6 +651,8 @@ Page(
       foils: [], foilId: null, foilLabel: "—", almOn: false, almSrc: "foil", almLow: 0, almHigh: 0,
       vibrator: null, buzzer: null, _almActive: false, _foilInit: false,
       timer: null, pollTimer: null, hbTimer: null, lockTimer: null, unlockTimer: null,
+      // Rueckkehr vom Stopp-Bildschirm nach einem versehentlichen Tastendruck, s. _toStopScreen.
+      stopBackTimer: null, stopBackPage: 0,
       lockHoldTimer: null,   // laeuft, solange auf die Touch-Sperre gedrueckt wird
       touchLocked: false, brightMode: "system", brightUntilMs: 0,
       geo: null, geoSpeedPrev: null, hrSensor: null, hrCallback: null, hrUpdatedMs: 0, _hrLogged: false, w: {},
@@ -859,6 +866,7 @@ Page(
               // Seitenzahl aus dem Ring des AKTUELLEN Zustands (on-foil/off-foil), nicht mehr aus
               // s.views — die Sätze sind unterschiedlich lang (s. _ring).
               const last = this._ringLen() + 1;
+              this._cancelStopBack();   // er blaettert selbst -> nicht mehr automatisch zurueck
               if (key === KEY_UP) s.page = s.page <= 0 ? last : s.page - 1;
               else s.page = s.page >= last ? 0 : s.page + 1;
               this.applyButton(); this.renderRecording();
@@ -901,6 +909,7 @@ Page(
           if (s.recording) {
             // Seiten: [STOPP] + Ring des Zustands + [STOPP] — beide Enden = Stop-Screen, kein Wrap.
             const last = this._ringLen() + 1;
+            this._cancelStopBack();   // er wischt selbst -> nicht mehr automatisch zurueck
             s.page = Math.max(0, Math.min(last, s.page + dir));
             this.applyButton(); this.renderRecording();
             return true;
@@ -1097,9 +1106,32 @@ Page(
     _toStopScreen() {
       const s = this.state;
       if (!s.recording || s.page === 0) return;
+      s.stopBackPage = s.page;
       s.page = 0;
       this.applyButton();
       this.renderRecording();
+      // Nach STOP_AUTOBACK_MS von selbst zurueck auf die Seite, die vorher zu sehen war
+      // (Vorgabe Jan, 13.09.2026). Ohne das bliebe ein Fehlgriff den Rest der Fahrt stehen: man
+      // faehrt weiter und schaut auf den Stopp-Bildschirm statt auf Tempo und Puls — mit nassen
+      // Fingern und aktiver Wassersperre kommt man da nicht ohne Weiteres wieder weg.
+      // Die Aufnahme laeuft dabei durchgehend; diese Seite ist nur eine Ansicht.
+      this._cancelStopBack();
+      s.stopBackTimer = setTimeout(() => {
+        s.stopBackTimer = null;
+        // Nur zurueck, wenn seither NICHTS passiert ist: noch am Aufnehmen und noch auf Seite 0.
+        // Hat der Mensch inzwischen selbst geblaettert, hat er entschieden — dann nicht
+        // hineinregieren.
+        if (!s.recording || s.page !== 0) return;
+        s.page = Math.max(0, Math.min(this._ringLen() + 1, s.stopBackPage));
+        this.applyButton();
+        this.renderRecording();
+      }, STOP_AUTOBACK_MS);
+    },
+
+    /** Die Rueckkehr abbestellen — sobald der Mensch selbst blaettert oder stoppt. */
+    _cancelStopBack() {
+      const s = this.state;
+      if (s.stopBackTimer) { clearTimeout(s.stopBackTimer); s.stopBackTimer = null; }
     },
 
     _showTouchLock() {
@@ -2248,6 +2280,7 @@ Page(
       if (s.timer) clearInterval(s.timer);
       if (s.pollTimer) clearTimeout(s.pollTimer);
       if (s.hbTimer) clearInterval(s.hbTimer);
+      if (s.stopBackTimer) clearTimeout(s.stopBackTimer);
       this._disableTouchLock();
       if (s.recording) { this._stopAccel(); this.persistActive(); }
       try { offGesture(); } catch (e) {}
