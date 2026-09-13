@@ -12,8 +12,20 @@ struct UploadProgressCard: View {
         Group {
             if !rows.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
-                    ForEach(rows) { s in
+                    // UEBERHOLTE Aufnahmen (die Uhr hat ihren Puffer weitergedreht, es kommt
+                    // nichts mehr) stehen NICHT als grosse Karte ueber allem — dort saesse sonst
+                    // dauerhaft ein langer Hinweis, obwohl nichts laeuft und nichts zu tun ist,
+                    // solange man nicht hineingeht (Jan, 11.09.2026; in der PWA seit demselben
+                    // Tag so). Ganz verschwinden duerfen sie auch nicht: eine `live`-Session
+                    // steht in der Liste nur unter „Aussortiert", und genau daran lag der Befund
+                    // vom 03.09. — 30 haengende Uploads sahen ihre Besitzer NIRGENDS. Deshalb
+                    // eine schmale Zeile mit dem Weg zur Session; entschieden wird dort.
+                    ForEach(rows.filter { $0.ueberholt != true }) { s in
                         NavigationLink { SessionDetailView(id: s.id) } label: { UploadCardRow(s: s) }
+                            .buttonStyle(.plain)
+                    }
+                    ForEach(rows.filter { $0.ueberholt == true }) { s in
+                        NavigationLink { SessionDetailView(id: s.id) } label: { SchmaleZeile() }
                             .buttonStyle(.plain)
                     }
                 }
@@ -28,6 +40,26 @@ struct UploadProgressCard: View {
             let secs: UInt64 = rows.isEmpty ? 20 : 4
             try? await Task.sleep(nanoseconds: secs * 1_000_000_000)
         }
+    }
+}
+
+/// Eine ueberholte Aufnahme in der Uebersicht: eine Zeile, kein Block. Gegenstueck zu
+/// `SchmaleZeile` in der PWA und in der Android-App.
+private struct SchmaleZeile: View {
+    @AppStorage("appLang") private var lang = "de"
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "info.circle").foregroundStyle(.secondary)
+            Text(Loc.t("upload.supersededShort", lang))
+                .font(.callout).foregroundStyle(.secondary)
+                .lineLimit(1).truncationMode(.tail)
+            Spacer(minLength: 4)
+            Image(systemName: "chevron.right").font(.footnote).foregroundStyle(.tertiary)
+        }
+        .padding(.horizontal, 12).padding(.vertical, 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
     }
 }
 

@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CloudUpload
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Card
@@ -29,6 +30,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -51,8 +53,39 @@ fun UploadProgressCard(onOpen: (Int) -> Unit, modifier: Modifier = Modifier) {
     }
     if (rows.isEmpty()) return
     // Column (mit Bottom-Abstand) nur wenn gerendert -> kein Phantom-Gap, wenn leer.
+    // UEBERHOLTE Aufnahmen (die Uhr hat ihren Puffer weitergedreht, es kommt nichts mehr) stehen
+    // NICHT als grosse Karte ueber allem — dort saesse sonst dauerhaft ein langer Hinweis, obwohl
+    // nichts laeuft und nichts zu tun ist, solange man nicht hineingeht (Jan, 11.09.2026; in der
+    // PWA seit demselben Tag so). Sie verschwinden aber auch nicht: eine `live`-Session steht in
+    // der Liste nur unter „Aussortiert", und genau daran lag der Befund vom 03.09. — 30
+    // haengende Uploads sahen ihre Besitzer NIRGENDS. Deshalb bleibt eine schmale Zeile mit dem
+    // Weg zur Session; entschieden wird dort (auswerten oder loeschen).
+    val laufend = rows.filter { !it.ueberholt }
+    val ueberholt = rows.filter { it.ueberholt }
     Column(modifier.padding(bottom = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        rows.forEach { s -> UploadRow(s, onOpen) }
+        laufend.forEach { s -> UploadRow(s, onOpen) }
+        ueberholt.forEach { s -> SchmaleZeile(s, onOpen) }
+    }
+}
+
+/** Eine ueberholte Aufnahme in der Uebersicht: eine Zeile, kein Block. Sie sagt, was ist, und
+ *  fuehrt zur Session. Gegenstueck zu `SchmaleZeile` in der PWA. */
+@Composable
+private fun SchmaleZeile(s: InProgressSession, onOpen: (Int) -> Unit) {
+    Row(
+        Modifier.fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
+            .clickable { onOpen(s.id) }
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(Icons.Filled.Info, null, tint = MaterialTheme.colorScheme.tertiary,
+            modifier = Modifier.size(16.dp))
+        Spacer(Modifier.width(8.dp))
+        Text(I18n.t("upload.supersededShort"), style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
+        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
     }
 }
 
