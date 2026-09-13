@@ -123,11 +123,11 @@ SEITEN: tuple[Seite, ...] = (
         bild_alt="Auswertung einer SUP-Foil-Session mit Pumps und Kadenz",
     ),
     Seite(
-        host="wake-thief.org",
+        host="wake-thieving.org",
         titel="Wake Thieving — fremde Wellen, eigene Runde",
         beschreibung="Wake Thieving: die Welle eines fremden Boots mitnehmen und ohne Leine "
                      "weiterpumpen. Jede Runde einzeln aufgezeichnet und ausgewertet.",
-        h1="Wake thief",
+        h1="Wake Thieving",
         claim="Fremde Wellen, eigene Runde.",
         absaetze=(
             "Jedes Boot, jede Fähre, jeder Frachter lässt eine Welle liegen. Wer foilt, kann "
@@ -198,17 +198,13 @@ KANONISCH: dict[str, Seite] = {s.host: s for s in SEITEN}
 ALIASSE: dict[str, str] = {
     "paddle-up.org": "paddleup.org",
     "sup-foil.org": "supfoil.org",
-    # Richtung hier bewusst mit Bindestrich als kanonisch (Jan, 13.09.2026): "wake-thief"
-    # ist optisch klar von der Marke "Wake Thief" / @wakethief getrennt, trifft die
-    # Suchabsicht („wake thief" mit Leerzeichen) aber genauso. Bei allen anderen Paaren
-    # traegt die Variante OHNE Bindestrich die Seite.
-    "wakethief.org": "wake-thief.org",
-    # wake-thieving.org am 13.09.2026 dazugekauft — der Name der TECHNIK, und damit
-    # eigentlich der beste Kandidat fuer die Hauptdomain (die Seite heisst ohnehin
-    # „Wake Thieving"). Steht hier vorerst NUR als Weiterleitung: der Proxy auf lb1 kennt
-    # sie noch nicht, und ein Umschwenken wuerde die laufende Seite auf eine tote Adresse
-    # schicken. Sobald lb1 sie durchreicht, ist der Tausch zwei Zeilen — s. Seite unten.
-    "wake-thieving.org": "wake-thief.org",
+    # DIE TECHNIK, nicht das Geraet: kanonisch ist seit 13.09.2026 abends `wake-thieving.org`
+    # (Jan, sobald lb1 sie durchreichte und das Zertifikat sie enthielt — 26 Namen). Sie ist der
+    # Name der DISZIPLIN und steht damit am weitesten von der Marke „Wake Thief" / @wakethief
+    # entfernt; Googles Wissenspanel fuehrt die Technik ebenfalls vor der Produktserie. Die
+    # beiden aelteren Schreibweisen leiten hierher.
+    "wakethief.org": "wake-thieving.org",
+    "wake-thief.org": "wake-thieving.org",
     "parawingfoil.org": "parawing.org",
     # Lowkite, Parawing und Parakite sind dasselbe (Jan, 13.09.2026) — also EINE
     # Seite. Zwei Domains mit demselben Text waeren fuer Google eine Dublette und
