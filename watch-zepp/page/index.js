@@ -95,7 +95,7 @@ const DEV_FAKE_GPS = false;  // true = synthetische GPS-Spur (nur Simulator-UI-D
 // aus dem Paket lesen ginge nur über einen weiteren @zos-Import; die sind hier ungetestet und
 // können beim Laden crashen, deshalb bewusst eine Konstante.) Der Bump auf 1.0.4 hatte nur
 // app.json getroffen: die Uhr zeigte weiter "v1.0.3" und meldete das auch dem Server.
-const APP_VERSION = "1.0.8";
+const APP_VERSION = "1.0.9";
 // Update-Hinweis nur zeigen, wenn der Store-Stand WIRKLICH neuer ist. Vorher stand hier ein
 // !==-Vergleich: ein Entwicklungs-Build vor dem Store (1.0.6 lokal, 1.0.4 live) hat damit zum
 // "Update" auf die AELTERE Version geraten (Jans Screenshot 18.08.: "1.0.6 -> 1.0.4"). Garmin,
@@ -818,7 +818,9 @@ Page(
               }
               return false;
             }
-            if (!long && !click) return false;      // PRESS/RELEASE ignorieren (sonst doppelt)
+            // PRESS/RELEASE ignorieren (sonst doppelt) — aber WAEHREND DER AUFNAHME trotzdem
+            // konsumieren, s. Begruendung unten.
+            if (!long && !click) return s.recording;
             if (s.recording) {
               if (key === KEY_SELECT && long) { this.stop(); return true; }
               if ((key === KEY_UP || key === KEY_DOWN) && long) {
@@ -833,7 +835,21 @@ Page(
                 if (s.touchLocked) this._showTouchLock();
                 return true;
               }
-              if (!click || (key !== KEY_UP && key !== KEY_DOWN)) return false;
+              // JEDE andere Taste konsumieren statt sie ans System zu geben.
+              //
+              // Das war die Ursache der leeren Amazfit-Aufnahmen (Sam Barnes, Active 2 Round,
+              // 13.09.2026): „if a button is pressed it exits the app straight away. Accidental
+              // presses are quite easy." Hier stand `return false` — und ein `false` heisst bei
+              // Zepp nicht „nichts tun", sondern „das System soll es behandeln", und das System
+              // beendet die App. Mit ihr stirbt die laufende Aufnahme. Die Active 2 hat genau
+              // EINE Taste, deren Code offenbar keiner unserer vier Konstanten entspricht; damit
+              // fiel JEDER Druck in diesen Zweig.
+              //
+              // Im Bestand passte das Muster: 17 von 21 Amazfit-Aufnahmen hatten nur eine
+              // Handvoll Datenpakete, Sam allein sechs Fehlversuche. Waehrend der Aufnahme gibt
+              // es deshalb keinen Weg mehr, auf dem eine Taste die App verlassen kann —
+              // beendet wird ueber langes SELECT (bzw. kurzes, wenn im Profil so eingestellt).
+              if (!click || (key !== KEY_UP && key !== KEY_DOWN)) { if (s.touchLocked) this._showTouchLock(); return true; }
               if (s.touchLocked) this._showTouchLock();
               // Seitenzahl aus dem Ring des AKTUELLEN Zustands (on-foil/off-foil), nicht mehr aus
               // s.views — die Sätze sind unterschiedlich lang (s. _ring).
@@ -859,7 +875,10 @@ Page(
               return true;
             }
             return false;
-            } catch (e) { return false; }
+            // Auch im Fehlerfall waehrend der Aufnahme konsumieren: ein `false` wuerde die App
+            // beenden und die Aufnahme mitnehmen. Der alte Kommentar sagte „lieber tut die Taste
+            // nichts" — `return false` tat aber nicht nichts, sondern genau das Schlimmste.
+            } catch (e) { return !!s.recording; }
           },
         });
       } catch (e) {}
@@ -869,7 +888,11 @@ Page(
           if (s.recording && s.touchLocked) { this._showTouchLock(); return true; }
           const dir = (e === GESTURE_LEFT || e === GESTURE_UP) ? 1
                     : (e === GESTURE_RIGHT || e === GESTURE_DOWN) ? -1 : 0;
-          if (dir === 0) return false;
+          // Unbekannte Geste waehrend der Aufnahme: konsumieren, nicht weiterreichen. Dasselbe
+          // Loch wie beim Tasten-Callback — `false` heisst „System behandelt es", und das
+          // beendet die App samt laufender Aufnahme (Sam Barnes, 13.09.2026: „it will close if
+          // I swipe back").
+          if (dir === 0) return !!s.recording;
           if (s.recording) {
             // Seiten: [STOPP] + Ring des Zustands + [STOPP] — beide Enden = Stop-Screen, kein Wrap.
             const last = this._ringLen() + 1;
