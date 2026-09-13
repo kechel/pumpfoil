@@ -411,6 +411,9 @@ NAECHSTES: list[dict] = [
      "items": [
          "The language setting sits at the very top of your settings now. If the app is in a "
          "language you cannot read, that is the one thing you need to find first.",
+         "A recording that can no longer be finished is now a single quiet line instead of a "
+         "large notice sitting on top of your screen. It still leads you to the recording, "
+         "where you decide: analyse it with what we have, or delete it.",
      ]},
     {"name": "Android phone + Wear OS", "version": "1.1.29 / 1.2.29",
      # 13.09.2026: 1.1.28 / 1.2.28 sind LIVE, damit steht die naechste Nummer fest — 1.1.29 /
@@ -450,6 +453,9 @@ NAECHSTES: list[dict] = [
          "showed a short code there, which is hard to pick if it is your language.",
          "The language setting sits at the very top of your settings now. If the app is in a "
          "language you cannot read, that is the one thing you need to find first.",
+         "A recording that can no longer be finished is now a single quiet line instead of a "
+         "large notice sitting on top of your screen. It still leads you to the recording, "
+         "where you decide: analyse it with what we have, or delete it.",
      ]},
 ]
 
