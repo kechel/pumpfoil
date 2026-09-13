@@ -1480,7 +1480,7 @@ const nb: Record<string, string> = {
   "cls.sport.pumpfoil": "Pumpfoil",
   "cls.sport.wingfoil": "Wingfoil",
   "cls.sport.kitefoil": "Kitefoil",
-  "cls.sport.parawing": "Parawing (lowkite / parakite)",
+  "cls.sport.parawing": "Parawing (pocketwing / lowkite)",
   "cls.sport.surf_wave": "Havbølge (surf)",
   "cls.sport.wakethief": "Wake thief (bølge fra en båt som passerer)",
   "cls.sport.towed": "Slept (tau bak en båt)",

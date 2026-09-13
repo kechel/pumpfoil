@@ -1481,7 +1481,7 @@ const ja: Record<string, string> = {
   "cls.ownerAsk": "別のフォイラーが、このセッションはパンプフォイルではないと考えています。分類していただけますか？ それまでは統計に一切表示されません。本当にパンプフォイルだった場合は、教えていただければ確認します。",
   "cls.pickErr": "保存できませんでした",
   "cls.sport.kitefoil": "カイトフォイル",
-  "cls.sport.parawing": "パラウィング（ローカイト／パラカイト）",
+  "cls.sport.parawing": "パラウィング（ポケットウィング／ローカイト）",
   "cls.sport.pumpfoil": "パンプフォイル",
   "cls.sport.wingfoil": "ウイングフォイル",
   "cls.thanks": "ありがとうございます！ 所有者にこのセッションの分類をお願いします。",

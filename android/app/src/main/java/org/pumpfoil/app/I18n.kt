@@ -378,7 +378,7 @@ private fun sTabelle(): Map<String, Map<String, String>> = mapOf(
     "cls.sport.pumpfoil" to row("Pumpfoil", "Pumpfoil", "Pumpfoil", "Pumpfoil", "Pumpfoil", "Pumpfoil", "Pumpfoil"),
     "cls.sport.wingfoil" to row("Wingfoil", "Wingfoil", "Wingfoil", "Wingfoil", "Wingfoil", "Wingfoil", "Wingfoil"),
     "cls.sport.kitefoil" to row("Kitefoil", "Kitefoil", "Kitefoil", "Kitefoil", "Kitefoil", "Kitefoil", "Kitefoil"),
-    "cls.sport.parawing" to row("Parawing (Lowkite / Parakite)", "Parawing (Lowkite / Parakite)", "Parawing (Lowkite / Parakite)", "Parawing (low kite / parakite)", "Parawing (lowkite / parakite)", "Parawing (lowkite / parakite)", "Parawing (lowkite / parakite)"),
+    "cls.sport.parawing" to row("Parawing (Pocketwing / Lowkite)", "Parawing (Pocketwing / Lowkite)", "Parawing (Pocketwing / Lowkite)", "Parawing (pocketwing / lowkite)", "Parawing (pocketwing / lowkite)", "Parawing (pocketwing / lowkite)", "Parawing (pocketwing / lowkite)"),
     "cls.sport.surf_downwind" to row("Surf / Downwind", "Surf / Downwind", "Surf / Downwind", "Surf / downwind", "Surf / downwind", "Surf / downwind", "Surf / downwind"),
     "cls.sport.sup_paddle" to row("SUP / Paddeln", "SUP / Paddeln", "SUP / Paddeln", "SUP / paddling", "SUP / paddling", "SUP / paddling", "SUP / paddling"),
     "cls.sport.surf_wave" to row("Ozeanwelle (Surfen)", "Ozeanwälle (Surfe)", "Ozeanwelle (Surfen)", "Ocean wave (surf)", "Vague océanique (surf)", "Onda dell'oceano (surf)", "Ola del océano (surf)"),

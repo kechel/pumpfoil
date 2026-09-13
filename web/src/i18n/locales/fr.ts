@@ -1336,7 +1336,7 @@ const fr: Record<string, string> = {
   "cls.ownerAsk": "Un autre foileur pense que cette session n'est pas du pumpfoil. Pourrais-tu la classer ? En attendant elle n'apparaîtra dans aucune statistique. Si c'était vraiment du pumpfoil, dis-le-nous et nous regarderons.",
   "cls.pickErr": "Enregistrement impossible",
   "cls.sport.kitefoil": "Kitefoil",
-  "cls.sport.parawing": "Parawing (lowkite / parakite)",
+  "cls.sport.parawing": "Parawing (pocketwing / lowkite)",
   "cls.sport.pumpfoil": "Pumpfoil",
   "cls.sport.wingfoil": "Wingfoil",
   "cls.thanks": "Merci ! Le propriétaire sera invité à classer cette session.",

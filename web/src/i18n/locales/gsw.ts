@@ -1344,7 +1344,7 @@ const gsw: Record<string, string> = {
   "cls.ownerAsk": "En andere Foiler meint, dass die Session kei Pumpfoile isch. Magsch sie churz richtig zuordne? Bis denn erschiint sie i kei Uswertig. Wenn s doch Pumpfoile gsi isch, säg s üs — denn luegt öpper vo üs druf.",
   "cls.pickErr": "Hät nöd chöne gspeicheret werde",
   "cls.sport.kitefoil": "Kitefoil",
-  "cls.sport.parawing": "Parawing (Lowkite / Parakite)",
+  "cls.sport.parawing": "Parawing (Pocketwing / Lowkite)",
   "cls.sport.pumpfoil": "Pumpfoil",
   "cls.sport.wingfoil": "Wingfoil",
   "cls.thanks": "Merci! De Bsitzer wird bete, d Session zuezordne.",
