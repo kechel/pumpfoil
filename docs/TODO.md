@@ -961,6 +961,13 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **📥 14.09. — iOS 1.1.34 und Android 1.1.30 warten BEWUSST.** Jan: „keine blocker oder grossen
+  bugs, dann kann das release noch warten, da kommt sicher noch was dazu die tage." Beide sind
+  gebaut und stehen unter „Coming next" auf /changelog — vier Punkte bei iOS, zwei bei Android,
+  darunter die Uebersetzungen und die Sportart `parawing`. **Nicht nachfragen, ob eingereicht
+  wird**; Jan sammelt. Wenn etwas dazukommt, gehoert es in dieselben NAECHSTES-Eintraege.
+
+
 - **📥 14.09. — `Loc.swift`: zwei Schluessel stehen doppelt, die zweite Fassung ist tot.**
   `sd.colMaxHr` (Zeile 3042 in `__t1P1s3` und 3804 in `__t3P4`) und `common.loading` (3186 in
   `__t1P2`, 3446 in `__t2P1`). Zusammengefuehrt wird mit `merge { a, _ in a }`, also gewinnt der
