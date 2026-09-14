@@ -242,7 +242,7 @@ struct LoginView: View {
         case .success(let auth):
             guard let cred = auth.credential as? ASAuthorizationAppleIDCredential,
                   let data = cred.identityToken, let token = String(data: data, encoding: .utf8) else {
-                error = "Apple-Anmeldung fehlgeschlagen"; return
+                error = Loc.t("err.appleSignIn", lang); return
             }
             let name = cred.fullName?.givenName ?? ""
             Task {

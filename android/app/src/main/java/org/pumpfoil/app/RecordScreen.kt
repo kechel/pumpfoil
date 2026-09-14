@@ -180,7 +180,7 @@ fun RecordScreen(onBack: () -> Unit) {
                 title = { Text(I18n.t("rec.title")) },
                 navigationIcon = {
                     IconButton(onClick = { if (!st.recording) onBack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = I18n.t("a11y.back"))
                     }
                 },
             )
@@ -192,7 +192,7 @@ fun RecordScreen(onBack: () -> Unit) {
         ) {
             when {
                 st.recording -> RecordingBody(st)
-                st.status == "gespeichert" || st.status == "speichere…" -> SavedBody(st, onBack)
+                st.status == "saved" || st.status == "saving" -> SavedBody(st, onBack)
                 else -> {
                     // Idle: Titel + Hinweis, Live-GPS-Status (wie Uhr), Autostart, Foil-Auswahl, START.
                     Spacer(Modifier.height(8.dp))
@@ -368,13 +368,13 @@ private fun RecordingBody(st: Recorder.State) {
 @Composable
 private fun SavedBody(st: Recorder.State, onBack: () -> Unit) {
     Spacer(Modifier.height(30.dp))
-    Text(if (st.status == "speichere…") I18n.t("rec.saving") else I18n.t("rec.saved"),
+    Text(if (st.status == "saving") I18n.t("rec.saving") else I18n.t("rec.saved"),
         style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.primary)
     Spacer(Modifier.height(12.dp))
     val info = when {
         st.uploading -> I18n.t("rec.upRunning")
         st.uploadError == "offline" -> I18n.t("rec.upLater")
-        st.pendingCount == 0 && st.status == "gespeichert" -> I18n.t("rec.upDone")
+        st.pendingCount == 0 && st.status == "saved" -> I18n.t("rec.upDone")
         else -> ""
     }
     if (info.isNotEmpty()) Text(info, style = MaterialTheme.typography.bodyMedium,

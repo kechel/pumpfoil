@@ -961,6 +961,17 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **📥 14.09. — `Loc.swift`: zwei Schluessel stehen doppelt, die zweite Fassung ist tot.**
+  `sd.colMaxHr` (Zeile 3042 in `__t1P1s3` und 3804 in `__t3P4`) und `common.loading` (3186 in
+  `__t1P2`, 3446 in `__t2P1`). Zusammengefuehrt wird mit `merge { a, _ in a }`, also gewinnt der
+  ERSTE — die spaeteren Eintraege sind toter Code. Bei `sd.colMaxHr` unterscheiden sie sich
+  inhaltlich: live sind „FC max" (fr/it) und „FC máx" (es), tot sind „Pouls max", „Battito max",
+  „Pulso máx.". Kein sichtbarer Fehler, aber eine Falle: wer die tote Zeile aendert, wundert sich,
+  warum nichts passiert. **Kein Absturz** — die Doppelten stehen in verschiedenen Teiltabellen,
+  ein Swift-Dictionary-Literal mit doppeltem Schluessel waere dagegen ein Absturz beim Start
+  (s. Memory `ios-swift-typecheck-hang`). Gefunden beim Uebersetzungs-Durchgang am 14.09.
+
+
 - **📥 13.09. — GitHub-Vorgaenge: vier offen, KEINER je beantwortet.** Gefunden mit dem neuen
   Skill `posteingang` (`.claude/skills/posteingang/`). Das ist der Anlass dafuer, dass es ihn
   gibt — zwei fertige Pull Requests von aussen lagen wochenlang ohne ein Wort, und Issue #4

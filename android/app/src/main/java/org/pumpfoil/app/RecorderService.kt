@@ -118,7 +118,7 @@ class RecorderService : Service(), SensorEventListener {
     private fun notification(): Notification {
         val ch = "phone-rec"
         val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        nm.createNotificationChannel(NotificationChannel(ch, "Aufnahme", NotificationManager.IMPORTANCE_LOW))
+        nm.createNotificationChannel(NotificationChannel(ch, I18n.t("rec.notifChannel"), NotificationManager.IMPORTANCE_LOW))
         // Tippen fuehrt zurueck in die App (auf der Uhr fehlte das auch — dort landete man beim
         // Watchface und kam nur ueber den App-Starter zurueck). REORDER_TO_FRONT holt die
         // laufende Activity nach vorn, statt eine zweite zu starten.
@@ -129,7 +129,7 @@ class RecorderService : Service(), SensorEventListener {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         return Notification.Builder(this, ch)
             .setContentTitle("Pumpfoil")
-            .setContentText("Aufnahme läuft")
+            .setContentText(I18n.t("rec.recording"))
             .setSmallIcon(android.R.drawable.ic_media_play)
             .setOngoing(true)
             .setContentIntent(zurueck)

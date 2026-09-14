@@ -112,7 +112,7 @@ fun LinkedAccountsScreen(onBack: () -> Unit) {
             TopAppBar(
                 title = { Text(I18n.t("accounts.title")) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück") }
+                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = I18n.t("a11y.back")) }
                 },
             )
         },

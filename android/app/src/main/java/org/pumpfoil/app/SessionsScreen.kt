@@ -661,7 +661,7 @@ private fun SessionStatsRow(a: Analysis, m: Metrics?) {
     val parts = buildList {
         a.foilingDistanceM?.let { add("%.2f km".format(it / 1000.0)) }
         a.foilingTimeS?.let { add(fmtDur(it)) }
-        m?.numSegments?.let { if (it > 0) add("$it " + if (it == 1) "Lauf" else "Läufe") }
+        m?.numSegments?.let { if (it > 0) add("$it " + I18n.t(if (it == 1) "unit.run" else "unit.runs")) }
         m?.avgSpeedMps?.let { add("Ø %.1f km/h".format(it * 3.6)) }
         a.pumpCount?.let { pc -> add("↕ $pc" + (m?.avgPumpHz?.let { " · " + PumpUnit.fmt(it) } ?: "")) }
         m?.avgHr?.let { if (it > 0) add("$it" + (m.maxHr?.let { mx -> "/$mx" } ?: "") + " bpm") }
@@ -834,7 +834,7 @@ fun CommunityItemRow(c: CommunityItem, modifier: Modifier = Modifier, onClick: (
                 }
             }
             val stats = buildList {
-                if (c.runs > 0) add("${c.runs} " + if (c.runs == 1) "Lauf" else "Läufe")
+                if (c.runs > 0) add("${c.runs} " + I18n.t(if (c.runs == 1) "unit.run" else "unit.runs"))
                 if (c.foilingKm > 0) add("%.2f km".format(c.foilingKm))
                 c.maxSpeedMps?.let { add("max %.1f km/h".format(it * 3.6)) }
             }

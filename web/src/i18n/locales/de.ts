@@ -1198,6 +1198,7 @@ const de: Record<string, string> = {
   "watches.linkViaSuunto": "über Mi Fitness → Suunto",
   "watches.nFitbit": "Drittanbieter-Apps wurden eingestellt.",
   "watches.nStrava": "Import wäre technisch machbar, liefert per API aber keinen hochfrequenten Roh-Accel (also keine Pump-Erkennung) und steht hinter Paywall + API-Auflagen, die nicht zum offenen Projekt passen — daher bewusst nicht integriert.",
+  "watches.subStrava": "Aktivitäts-Portal",
 
   "import.title": "Aktivität importieren",
   "import.short": "Import",
@@ -1736,6 +1737,9 @@ const de: Record<string, string> = {
   "lay.selectHint": "Ein Element in der Vorschau oder unten anwählen, um es zu ändern.",
   "lay.delElement": "Element entfernen",
   "lay.field": "Datenfeld",
+  "lay.size.rect": "rechteckig",
+  "lay.size.smallest": "kleinste unterstützte",
+  "lay.size.noLayout": "kein Layout-Support",
   "lay.text": "Eigener Text",
   "lay.textHint": "Max. {n} Zeichen. Wird NICHT übersetzt — andere Nutzer sehen ihn in deiner Sprache.",
   "lay.size": "Größe",

@@ -72,7 +72,7 @@ fun WatchScreen(
             TopAppBar(
                 title = { Text(I18n.t("nav.watch")) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück") }
+                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = I18n.t("a11y.back")) }
                 },
             )
         },
