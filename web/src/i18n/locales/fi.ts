@@ -1039,6 +1039,7 @@ const fi: Record<string, string> = {
   "watches.linkViaSuunto": "Mi Fitness → Suunto",
   "watches.nFitbit": "Kolmannen osapuolen sovellukset lopetettiin.",
   "watches.nStrava": "Tuonti olisi teknisesti mahdollista, mutta API ei anna korkeataajuista raakakiihtyvyyttä (siis ei pump-tunnistusta) ja on maksumuurin + API-ehtojen takana, jotka eivät sovi avoimeen projektiin — siksi tietoisesti integroimatta.",
+  "watches.subStrava": "aktiviteettiportaali",
 
   "import.title": "Tuo aktiviteetti",
   "import.short": "Tuonti",
@@ -1612,6 +1613,9 @@ const fi: Record<string, string> = {
   "lay.edit": "Muokkaa",
   "lay.empty": "Tässä luokassa ei ole vielä asettelua.",
   "lay.field": "Tietokenttä",
+  "lay.size.rect": "suorakulmainen",
+  "lay.size.smallest": "pienin tuettu",
+  "lay.size.noLayout": "ei omia asetteluja",
   "lay.galleryEmpty": "Mitään ei ole vielä julkaistu. Julkaise asettelusi — sitten muut näkevät sen täällä.",
   "lay.galleryHint": "Selaa muiden foilaajien julkaisemia asetteluja ja kopioi ne omaan profiiliisi. Esikatselu käyttää oletuksena kellosi kokoa — voit kopioida minkä tahansa asettelun, myös toiselle koolle tai muodolle suunnitellun (sijainnit ovat suhteellisia).",
   "lay.galleryTitle": "Yhteisön asettelut",

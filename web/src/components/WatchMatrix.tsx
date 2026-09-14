@@ -10,7 +10,9 @@ type Status = "avail" | "planned" | "import" | "no" | "nope";
 type StoreKind = "ciq" | "appstore" | "play";                 // theme-aware Store-Badge
 type Account = { logo: string; alt: string; labelKey: string; imgClass?: string }; // Import per Konto-Verknüpfung (Hinweis, kein Link)
 
-const ROWS: { name: string; sub: string; gps: Cap; hr: Cap; pump: Cap; status: Status; noteKey?: string; statusNoteKey?: string; store?: StoreKind; account?: Account; zepp?: boolean }[] = [
+// `sub` ist die Modell-/Markenzeile und bleibt unuebersetzt (Eigennamen). Nur wo dort ein
+// erklaerender Text stand, gibt es `subKey` — s. Strava (14.09.2026).
+const ROWS: { name: string; sub?: string; subKey?: string; gps: Cap; hr: Cap; pump: Cap; status: Status; noteKey?: string; statusNoteKey?: string; store?: StoreKind; account?: Account; zepp?: boolean }[] = [
   { name: "Garmin", sub: "Connect IQ · Fenix, Forerunner, Epix …", gps: "yes", hr: "yes", pump: "yes", status: "avail", noteKey: "watches.nGarmin", store: "ciq" },
   { name: "Apple Watch", sub: "watchOS", gps: "yes", hr: "yes", pump: "yes", status: "avail", noteKey: "watches.nApple", store: "appstore" },
   { name: "Wear OS", sub: "Samsung Galaxy, Google Pixel, TicWatch …", gps: "yes", hr: "yes", pump: "yes", status: "avail", noteKey: "watches.nWear", store: "play" },
@@ -29,7 +31,7 @@ const ROWS: { name: string; sub: string; gps: Cap; hr: Cap; pump: Cap; status: S
   { name: "COROS", sub: "Apex, Vertix …", gps: "yes", hr: "yes", pump: "no", status: "import", noteKey: "watches.nSuunto",
     account: { logo: "/coros-logo.png", alt: "COROS", labelKey: "watches.linkAccount", imgClass: "h-6 w-auto" } },
   { name: "Fitbit", sub: "—", gps: "no", hr: "no", pump: "no", status: "no", noteKey: "watches.nFitbit" },
-  { name: "Strava", sub: "Aktivitäts-Portal", gps: "yes", hr: "yes", pump: "no", status: "nope", noteKey: "watches.nStrava" },
+  { name: "Strava", subKey: "watches.subStrava", gps: "yes", hr: "yes", pump: "no", status: "nope", noteKey: "watches.nStrava" },
 ];
 
 const CAP_ICON: Record<"partial" | "no", string> = { partial: "~", no: "–" };
@@ -90,7 +92,7 @@ export function WatchMatrix() {
         {ROWS.map((r) => (
           <div key={r.name} className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
             <div className="font-semibold">{r.name}</div>
-            <div className="text-xs text-slate-400">{r.sub}</div>
+            <div className="text-xs text-slate-400">{r.subKey ? t(r.subKey) : r.sub}</div>
             {r.noteKey && <div className="mt-0.5 text-xs text-slate-500">{t(r.noteKey)}</div>}
             <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
               {capChip("watches.colGps", r.gps)}
@@ -119,7 +121,7 @@ export function WatchMatrix() {
               <tr key={r.name} className="border-t border-slate-800">
                 <td className="px-4 py-3">
                   <div className="font-semibold">{r.name}</div>
-                  <div className="text-xs text-slate-400">{r.sub}</div>
+                  <div className="text-xs text-slate-400">{r.subKey ? t(r.subKey) : r.sub}</div>
                   {r.noteKey && <div className="mt-0.5 text-xs text-slate-500">{t(r.noteKey)}</div>}
                 </td>
                 <td className="px-4 py-3 text-center">{cap(r.gps)}</td>

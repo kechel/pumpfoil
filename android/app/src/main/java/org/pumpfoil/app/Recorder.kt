@@ -244,7 +244,7 @@ object Recorder {
         runCount = 0; runStartMs = 0; runStartDist = 0.0; runMaxMps = 0.0
         lastRunDurMs = 0; lastRunDistM = 0.0; lastRunAvgMps = 0.0; lastRunMaxMps = 0.0
         lastRunStartMs = 0L; lastRunStartDist = 0.0; minSpeedSeitEnde = 99.0; runIstFortsetzung = false
-        _state.value = State(recording = true, status = "Aufnahme läuft",
+        _state.value = State(recording = true, status = "recording",
             pendingCount = RecStore.pendingCount(ctx))
         scope.launch { flushLoop() }
     }
@@ -254,14 +254,14 @@ object Recorder {
         running = false
         val ctx = appCtx ?: return
         scope.launch {
-            _state.value = _state.value.copy(recording = false, status = "speichere…")
+            _state.value = _state.value.copy(recording = false, status = "saving")
             try {
                 flushAll()
                 RecStore.writeComplete(ctx, uuid, JSONObject()
                     .put("ended_at", nowIso()).put("total_chunks", chunkIndex))
             } catch (e: Exception) { android.util.Log.e("Recorder", "stop/flush", e) }
             _state.value = _state.value.copy(
-                status = "gespeichert", pendingCount = RecStore.pendingCount(ctx))
+                status = "saved", pendingCount = RecStore.pendingCount(ctx))
             drain(ctx)
         }
     }

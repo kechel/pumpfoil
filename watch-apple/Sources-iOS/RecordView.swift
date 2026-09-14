@@ -44,7 +44,7 @@ struct RecordView: View {
         NavigationStack {
             VStack(spacing: 16) {
                 if rec.recording { recordingBody }
-                else if rec.status == "gespeichert" || rec.status == "speichere…" { savedBody }
+                else if rec.status == "saved" || rec.status == "saving" { savedBody }
                 else { idleBody }
             }
             .padding(20)
@@ -277,7 +277,7 @@ struct RecordView: View {
     }
 
     private var savedTitleText: String {
-        rec.status == "speichere…" ? Loc.t("rec.saving", lang) : Loc.t("rec.saved", lang)
+        rec.status == "saving" ? Loc.t("rec.saving", lang) : Loc.t("rec.saved", lang)
     }
 
     @ViewBuilder private var savedInfoLine: some View {
@@ -289,7 +289,7 @@ struct RecordView: View {
     private var savedInfoText: String {
         if rec.uploading { return Loc.t("rec.upRunning", lang) }
         if rec.uploadError == "offline" { return Loc.t("rec.upLater", lang) }
-        if rec.pendingCount == 0 && rec.status == "gespeichert" { return Loc.t("rec.upDone", lang) }
+        if rec.pendingCount == 0 && rec.status == "saved" { return Loc.t("rec.upDone", lang) }
         return ""
     }
 

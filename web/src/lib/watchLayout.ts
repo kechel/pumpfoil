@@ -257,16 +257,20 @@ export function valueColor(fieldId: number, colorByValue: boolean,
 // 454×454; 108 round, 8 semioctagon = Instinct-Klasse, 5 rectangle) — hier die häufigsten als
 // Auswahl. Apple/Wear melden ihre echten Maße künftig beim Config-Abruf; bis dahin gängige Größen.
 export type WatchShape = "round" | "rect" | "semioctagon";
-export const PREVIEW_SIZES: { id: string; label: string; w: number; h: number; shape: WatchShape }[] = [
-  { id: "g176", label: "Garmin 176×176 (Instinct, kein Layout-Support)", w: 176, h: 176, shape: "semioctagon" },
-  { id: "g208", label: "Garmin 208×208 (kein Layout-Support)", w: 208, h: 208, shape: "round" },
-  { id: "g218", label: "Garmin 218×218 (kleinste unterstützte)", w: 218, h: 218, shape: "round" },
+// `label` ist die reine GROESSENANGABE und bleibt in jeder Sprache gleich (Zahlen und
+// Modellnamen uebersetzt man nicht). Was daran erklaerender Text war, steht seit 14.09.2026 in
+// `noteKey` — vorher stand „kein Layout-Support" und „kleinste unterstützte" auf Deutsch in der
+// Auswahlliste, egal welche Sprache eingestellt war (gefunden mit scripts/unuebersetzt.py).
+export const PREVIEW_SIZES: { id: string; label: string; noteKey?: string; w: number; h: number; shape: WatchShape }[] = [
+  { id: "g176", label: "Garmin 176×176 · Instinct", noteKey: "lay.size.noLayout", w: 176, h: 176, shape: "semioctagon" },
+  { id: "g208", label: "Garmin 208×208", noteKey: "lay.size.noLayout", w: 208, h: 208, shape: "round" },
+  { id: "g218", label: "Garmin 218×218", noteKey: "lay.size.smallest", w: 218, h: 218, shape: "round" },
   { id: "g240", label: "Garmin 240×240", w: 240, h: 240, shape: "round" },
   { id: "g260", label: "Garmin 260×260", w: 260, h: 260, shape: "round" },
   { id: "g280", label: "Garmin 280×280", w: 280, h: 280, shape: "round" },
   { id: "g390", label: "Garmin 390×390", w: 390, h: 390, shape: "round" },
   { id: "g454", label: "Garmin 454×454", w: 454, h: 454, shape: "round" },
-  { id: "g282r", label: "Garmin 282×470 (rechteckig)", w: 282, h: 470, shape: "rect" },
+  { id: "g282r", label: "Garmin 282×470", noteKey: "lay.size.rect", w: 282, h: 470, shape: "rect" },
   { id: "a396", label: "Apple Watch 396×484", w: 396, h: 484, shape: "rect" },
   { id: "a416", label: "Apple Watch 416×496", w: 416, h: 496, shape: "rect" },
   { id: "w450", label: "Wear OS 450×450", w: 450, h: 450, shape: "round" },

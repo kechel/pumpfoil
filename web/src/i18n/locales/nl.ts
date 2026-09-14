@@ -1072,6 +1072,7 @@ const nl: Record<string, string> = {
   "watches.linkViaSuunto": "via Mi Fitness → Suunto",
   "watches.nFitbit": "Apps van derden zijn stopgezet.",
   "watches.nStrava": "Import zou technisch kunnen, maar levert via de API geen hoogfrequente ruwe accel (dus geen pompdetectie) en zit achter een paywall + API-voorwaarden die niet bij het open project passen — daarom bewust niet geïntegreerd.",
+  "watches.subStrava": "activiteitenportaal",
 
   "import.title": "Activiteit importeren",
   "import.short": "Import",
@@ -1647,6 +1648,9 @@ const nl: Record<string, string> = {
   "lay.edit": "Bewerken",
   "lay.empty": "Nog geen lay-out in deze categorie.",
   "lay.field": "Dataveld",
+  "lay.size.rect": "rechthoekig",
+  "lay.size.smallest": "kleinste ondersteunde",
+  "lay.size.noLayout": "geen eigen indelingen",
   "lay.galleryEmpty": "Nog niets gepubliceerd. Publiceer je lay-out — dan zien anderen hem hier.",
   "lay.galleryHint": "Blader door lay-outs die andere riders publiceerden en kopieer ze naar je eigen profiel. Het voorbeeld gebruikt standaard jouw horlogemaat — je kunt elke lay-out kopiëren, ook een die voor een andere maat of vorm is ontworpen (posities zijn relatief).",
   "lay.galleryTitle": "Community-lay-outs",

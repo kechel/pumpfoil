@@ -118,7 +118,7 @@ export default function LayoutGallery() {
         </select>
         <select value={sizeId} onChange={(e) => setSizeId(e.target.value)}
           className="rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-2 text-sm text-slate-100">
-          {PREVIEW_SIZES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
+          {PREVIEW_SIZES.map((s) => <option key={s.id} value={s.id}>{s.noteKey ? `${s.label} (${t(s.noteKey)})` : s.label}</option>)}
         </select>
         <label className="inline-flex items-center gap-2 text-sm text-slate-300">
           <input type="checkbox" checked={showData} onChange={(e) => setShowData(e.target.checked)}

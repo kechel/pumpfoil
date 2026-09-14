@@ -1072,6 +1072,7 @@ const cs: Record<string, string> = {
   "watches.linkViaSuunto": "přes Mi Fitness → Suunto",
   "watches.nFitbit": "Aplikace třetích stran byly ukončeny.",
   "watches.nStrava": "Import by byl technicky proveditelný, ale přes API neposkytuje vysokofrekvenční surový accel (tedy žádné rozpoznání pumpnutí) a je za paywallem + API podmínkami, které se k otevřenému projektu nehodí — proto záměrně neintegrováno.",
+  "watches.subStrava": "portál aktivit",
 
   "import.title": "Importovat aktivitu",
   "import.short": "Import",
@@ -1646,6 +1647,9 @@ const cs: Record<string, string> = {
   "lay.edit": "Upravit",
   "lay.empty": "V této kategorii zatím žádné rozvržení.",
   "lay.field": "Datové pole",
+  "lay.size.rect": "obdélníkové",
+  "lay.size.smallest": "nejmenší podporovaná",
+  "lay.size.noLayout": "bez vlastních rozvržení",
   "lay.galleryEmpty": "Zatím nic zveřejněného. Zveřejni své rozvržení — ostatní ho pak uvidí tady.",
   "lay.galleryHint": "Prohlédni si rozvržení zveřejněná jinými jezdci a zkopíruj si je do vlastního profilu. Náhled ve výchozím stavu používá velikost tvých hodinek — zkopírovat můžeš libovolné rozvržení, i navržené pro jinou velikost či tvar (pozice jsou relativní).",
   "lay.galleryTitle": "Rozvržení komunity",

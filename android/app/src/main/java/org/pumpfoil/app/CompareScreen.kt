@@ -185,7 +185,7 @@ fun CompareScreen(onBack: () -> Unit, onOpen: (Int) -> Unit = {}) {
             TopAppBar(
                 title = { Text(I18n.t("compare.title")) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück") }
+                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = I18n.t("a11y.back")) }
                 },
                 actions = {
                     if (selected.isNotEmpty()) TextButton(onClick = { CompareStore.clear(); onBack() }) { Text(I18n.t("compare.clear")) }

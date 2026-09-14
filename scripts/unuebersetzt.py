@@ -65,6 +65,39 @@ PLATTFORMEN = {
                 ("watch-zepp", "app-side/*.js", (), "Zepp (Bruecke)")],
 }
 
+# ABSICHTLICH DEUTSCH — mit Grund. Ohne diese Liste ist die Ausgabe nie null, und eine Pruefung,
+# die immer Treffer meldet, liest irgendwann niemand mehr. Wer hier etwas eintraegt, schreibt den
+# Grund dazu; wer eine Zeile streicht, hat den Fall behoben.
+ERLAUBT = {
+    "web/src/pages/Systemarchitektur.tsx":
+        "Die Seite ist laut eigener Kopfzeile nur auf Deutsch — bewusste Entscheidung.",
+    "web/src/pages/Admin.tsx":
+        "Admin-Bereich, den nur Jan sieht.",
+    "web/src/lib/fields.ts":
+        "`label` ist ein INTERNER Name. Angezeigt wird `t(`field.<id>`)` — nachgeprueft 14.09.2026.",
+    "web/src/components/LanguageSelect.tsx":
+        "„Sprache / Language“ ist absichtlich zweisprachig: wer die Oberflaeche nicht "
+        "lesen kann, soll genau diesen Eintrag finden.",
+    "web/src/pages/NerdAnalysen.tsx":  "Titel/Beschreibung einer nur deutschen Seite.",
+    "web/src/pages/NerdAnalysen2.tsx": "Titel/Beschreibung einer nur deutschen Seite.",
+    "web/src/pages/NerdAnalysen3.tsx": "Titel/Beschreibung einer nur deutschen Seite.",
+    "web/src/App.tsx":
+        "Tooltip am Navigationseintrag zu einer nur deutschen Seite — ein uebersetzter Tooltip "
+        "wuerde Inhalte versprechen, die es in der Sprache nicht gibt.",
+}
+
+# Einzelne Texte, die ueberall erlaubt sind — mit Grund.
+ERLAUBT_TEXTE = {
+    "↻ Rating-Test zurücksetzen":
+        "Steht in beiden Handy-Apps hinter #if DEBUG bzw. BuildConfig.DEBUG und wird nie "
+        "ausgeliefert. Entwickler-Werkzeug, darf deutsch sein.",
+}
+
+# In eingesetzten Ausdruecken stehen VARIABLENNAMEN, kein Anzeigetext: \(b.von) in Swift,
+# ${b.von} in Kotlin/JS. Ohne diese Bereinigung meldet das Skript „von"/„bis" aus Bezeichnern
+# als deutsche Woerter (14.09.2026: vier Fehlalarme allein aus zwei Zeilen).
+EINSETZUNG = re.compile(r"\\\((?:[^()]|\([^()]*\))*\)|\$\{(?:[^{}]|\{[^{}]*\})*\}")
+
 LITERAL = re.compile(r'"((?:[^"\\\n]|\\.){2,})"')
 # "key.mit.punkten": …  /  "key" to …  — eine Zeile aus einer Sprachtabelle.
 TABELLENZEILE = re.compile(r'"[\w.]+"\s*(?::|to\s)')
@@ -75,8 +108,11 @@ def einstufen(zeile: str) -> str:
         return "LOG"
     if SCREENREADER.search(zeile):
         return "SCREENREADER"
-    # Ein Vergleich gegen eine Zeichenkette ist ein Zustandswert, kein Anzeigetext.
-    if re.search(r'[=!]=+\s*"|"\s*[=!]=+|\.equals\(', zeile):
+    # Ein Vergleich gegen eine Zeichenkette ist ein Zustandswert, kein Anzeigetext. `.includes`
+    # gehoert dazu: Login.tsx erkennt daran die deutschen Fehlertexte des Servers und setzt
+    # eine UEBERSETZTE Meldung dafuer ein — vorbildlich, aber es sah nach einem Fehler aus.
+    if re.search(r'[=!]=+\s*"|"\s*[=!]=+|\.equals\(|\.includes\(\s*"|\.contains\(\s*"|'
+                 r'\.hasPrefix\(\s*"|\.startsWith\(\s*"', zeile):
         return "INTERN"
     return "SICHTBAR"
 
@@ -114,7 +150,7 @@ def main() -> int:
     args = ap.parse_args()
 
     namen = [args.nur] if args.nur else list(PLATTFORMEN)
-    gesamt = {"SICHTBAR": 0, "SCREENREADER": 0, "INTERN": 0, "LOG": 0}
+    gesamt = {"SICHTBAR": 0, "SCREENREADER": 0, "INTERN": 0, "LOG": 0, "ERLAUBT": 0}
 
     for name in namen:
         if name not in PLATTFORMEN:
@@ -127,7 +163,24 @@ def main() -> int:
             for p in sorted(basis.glob(muster)):
                 if any(a in str(p.relative_to(basis)) for a in aus):
                     continue
+                imblock = False
                 for nr, zeile in enumerate(p.read_text(encoding="utf-8", errors="replace").splitlines(), 1):
+                    # Mehrzeilige Kommentare: /* … */ und JSX {/* … */}. Deutscher Fliesstext
+                    # darin ist Doku, kein Anzeigetext.
+                    if imblock:
+                        if "*/" in zeile:
+                            imblock = False
+                            zeile = zeile.split("*/", 1)[1]
+                        else:
+                            continue
+                    while "/*" in zeile:
+                        vor, rest = zeile.split("/*", 1)
+                        if "*/" in rest:
+                            zeile = vor + rest.split("*/", 1)[1]
+                        else:
+                            zeile = vor
+                            imblock = True
+                            break
                     s = zeile.lstrip()
                     if s.startswith(("//", "*", "/*", "#")):
                         continue
@@ -141,17 +194,22 @@ def main() -> int:
                     code = codeteil(zeile)
                     for m in LITERAL.finditer(code):
                         lit = m.group(1)
-                        if UMLAUTE.search(lit) or WOERTER.search(lit):
-                            funde.append((einstufen(zeile), str(p.relative_to(WURZEL)), nr, lit))
+                        if lit in ERLAUBT_TEXTE:
+                            continue
+                        pruef = EINSETZUNG.sub(" ", lit)
+                        if UMLAUTE.search(pruef) or WOERTER.search(pruef):
+                            rel = str(p.relative_to(WURZEL))
+                            art = "ERLAUBT" if rel in ERLAUBT else einstufen(zeile)
+                            funde.append((art, rel, nr, lit))
         titel = PLATTFORMEN[name][0][3].split(" (")[0]
         print(f"\n{'=' * 78}\n{titel}\n{'=' * 78}")
         if not funde:
             print("  nichts gefunden")
             continue
-        for art in ("SICHTBAR", "SCREENREADER", "INTERN", "LOG"):
+        for art in ("SICHTBAR", "SCREENREADER", "INTERN", "LOG", "ERLAUBT"):
             teil = [f for f in funde if f[0] == art]
             gesamt[art] += len(teil)
-            if not teil or (art in ("INTERN", "LOG") and not args.alles):
+            if not teil or (art in ("INTERN", "LOG", "ERLAUBT") and not args.alles):
                 if teil:
                     print(f"  [{art}] {len(teil)} — mit --alles anzeigen")
                 continue

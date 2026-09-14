@@ -702,7 +702,7 @@ struct SessionRow: View {
         var parts: [String] = []
         if let d = a.foiling_distance_m { parts.append(String(format: "%.2f km", d / 1000)) }
         if let t = a.foiling_time_s { parts.append(fmtDur(t)) }
-        if let n = m?.num_segments, n > 0 { parts.append("\(n) " + (n == 1 ? "Lauf" : "Läufe")) }
+        if let n = m?.num_segments, n > 0 { parts.append("\(n) " + Loc.t(n == 1 ? "unit.run" : "unit.runs", lang)) }
         if let s = m?.avg_speed_mps { parts.append(String(format: "Ø %.1f km/h", s * 3.6)) }
         if let p = a.pump_count {
             var s = "↕ \(p)"

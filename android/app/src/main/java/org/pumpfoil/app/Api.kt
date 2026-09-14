@@ -119,7 +119,7 @@ object Api {
             val code = conn.responseCode
             if (code !in 200..299) {
                 val err = conn.errorStream?.bufferedReader()?.readText() ?: ""
-                throw RuntimeException("Anhang fehlgeschlagen ($code): $err")
+                throw RuntimeException(I18n.t("err.attachFailed").replace("{code}", code.toString()) + ": $err")
             }
         }
 
@@ -314,7 +314,7 @@ object Api {
             val code = conn.responseCode
             if (code !in 200..299) {
                 val err = conn.errorStream?.bufferedReader()?.readText() ?: ""
-                throw RuntimeException("Upload fehlgeschlagen ($code): $err")
+                throw RuntimeException(I18n.t("err.uploadFailed").replace("{code}", code.toString()) + ": $err")
             }
         }
 
@@ -348,7 +348,7 @@ object Api {
             val code = conn.responseCode
             if (code !in 200..299) {
                 val err = conn.errorStream?.bufferedReader()?.readText() ?: ""
-                throw RuntimeException("Import fehlgeschlagen ($code): $err")
+                throw RuntimeException(I18n.t("err.importFailed").replace("{code}", code.toString()) + ": $err")
             }
             val body = conn.inputStream.bufferedReader().readText()
             val o = json.parseToJsonElement(body).jsonObject
@@ -378,7 +378,7 @@ object Api {
             val code = conn.responseCode
             if (code !in 200..299) {
                 val err = conn.errorStream?.bufferedReader()?.readText() ?: ""
-                throw RuntimeException("Avatar-Upload fehlgeschlagen ($code): $err")
+                throw RuntimeException(I18n.t("err.avatarFailed").replace("{code}", code.toString()) + ": $err")
             }
         }
 
@@ -1085,7 +1085,7 @@ object Api {
         val code = conn.responseCode
         if (code !in 200..299) {
             val err = conn.errorStream?.bufferedReader()?.readText() ?: ""
-            throw RuntimeException("Upload fehlgeschlagen ($code): $err")
+            throw RuntimeException(I18n.t("err.uploadFailed").replace("{code}", code.toString()) + ": $err")
         }
     }
 
@@ -1212,7 +1212,7 @@ object Api {
         }
         if (code !in 200..299) {
             if (code == 401) { appContext?.let { logout(it) }; onUnauthorized?.invoke() }
-            throw RuntimeException(if (code == 401) "Sitzung abgelaufen" else "Serverfehler ($code)")
+            throw RuntimeException(if (code == 401) I18n.t("err.sessionExpired") else "Serverfehler ($code)")
         }
         return conn.inputStream.use { it.readBytes() }
     }
@@ -1251,8 +1251,8 @@ object Api {
             }
             throw RuntimeException(
                 when {
-                    code == 401 && auth -> "Sitzung abgelaufen"
-                    code == 401 -> "E-Mail oder Passwort falsch"
+                    code == 401 && auth -> I18n.t("err.sessionExpired")
+                    code == 401 -> I18n.t("login.badCreds")
                     else -> "Serverfehler ($code)"
                 }
             )

@@ -283,7 +283,7 @@ export default function LayoutEditor() {
           <div className="mb-3 flex flex-wrap items-center gap-2">
             <select value={sizeId} onChange={(ev) => { setSizeId(ev.target.value); setSizeTouched(true); }}
               className="rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-2 text-sm text-slate-100">
-              {PREVIEW_SIZES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
+              {PREVIEW_SIZES.map((s) => <option key={s.id} value={s.id}>{s.noteKey ? `${s.label} (${t(s.noteKey)})` : s.label}</option>)}
             </select>
             <label className="inline-flex items-center gap-2 text-sm text-slate-300">
               <input type="checkbox" checked={showData} onChange={(ev) => setShowData(ev.target.checked)}

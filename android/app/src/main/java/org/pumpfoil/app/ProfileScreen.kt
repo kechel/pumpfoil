@@ -118,13 +118,13 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
                 if (avatar != null) {
                     AsyncImage(
                         model = avatar,
-                        contentDescription = "Profilbild ändern",
+                        contentDescription = I18n.t("a11y.avatarChange"),
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.size(56.dp).clip(CircleShape).clickable { pickAvatar() },
                     )
                 } else {
                     Icon(
-                        Icons.Filled.AccountCircle, contentDescription = "Profilbild hinzufügen",
+                        Icons.Filled.AccountCircle, contentDescription = I18n.t("a11y.avatarAdd"),
                         modifier = Modifier.size(56.dp).clip(CircleShape).clickable { pickAvatar() },
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -137,7 +137,7 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
                     }
                 }
                 IconButton(onClick = { draftName = profile?.displayName ?: ""; editing = true }) {
-                    Icon(Icons.Filled.Edit, contentDescription = "Anzeigename ändern")
+                    Icon(Icons.Filled.Edit, contentDescription = I18n.t("a11y.nameChange"))
                 }
             }
             Spacer(Modifier.height(20.dp))
@@ -263,7 +263,7 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
                         Text("AUS (18+)")
                     }
                 }
-                Text("App neu starten, damit Foilers/Chat-Tabs (aus)geblendet werden.",
+                Text(I18n.t("profile.restartHint"),
                     style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Spacer(Modifier.height(24.dp))

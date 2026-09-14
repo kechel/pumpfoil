@@ -625,7 +625,7 @@ struct CommunityRow: View {
     private var statsText: String? {
         var parts: [String] = []
         if let r = item.runs, r > 0 {
-            let unit: String = r == 1 ? "Lauf" : "Läufe"
+            let unit: String = Loc.t(r == 1 ? "unit.run" : "unit.runs", lang)
             parts.append("\(r) \(unit)")
         }
         if let km = item.foiling_km, km > 0 { parts.append(String(format: "%.2f km", km)) }

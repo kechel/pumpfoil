@@ -87,7 +87,7 @@ fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, 
                 title = { Text("📍 $spot" + (spotLabel?.let { " · $it" } ?: ""), maxLines = 1) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = I18n.t("a11y.back"))
                     }
                 },
                 actions = {

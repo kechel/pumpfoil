@@ -144,7 +144,7 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         // nach einem App-Update läuft). Leerer Wert würde die Server-Validierung verletzen.
         if !Api.appVersion.isEmpty { meta["app_version"] = Api.appVersion }
         Store.writeMeta(uuid, meta)
-        recording = true; status = "Aufnahme läuft"; pendingCount = Store.pendingCount()
+        recording = true; status = "recording"; pendingCount = Store.pendingCount()
         elapsedSec = 0; speedKmh = 0; distanceM = 0; runCount = 0; isFoiling = false; track = []
 
         loc.requestWhenInUseAuthorization()   // + Background-Mode „location" => Hintergrund-Track (blauer Balken)
@@ -167,10 +167,10 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         loc.stopUpdatingLocation()
         motion.stopAccelerometerUpdates()
         flushTimer?.invalidate(); flushTimer = nil
-        status = "speichere…"
+        status = "saving"
         flushAll()
         Store.writeComplete(uuid, ["ended_at": Self.nowIso(), "total_chunks": chunkIndex])
-        status = "gespeichert"; pendingCount = Store.pendingCount()
+        status = "saved"; pendingCount = Store.pendingCount()
         Task { await drain() }
     }
 
