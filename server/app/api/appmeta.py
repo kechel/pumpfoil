@@ -547,6 +547,23 @@ NAECHSTES: list[dict] = [
          "A recording that can no longer be finished is now a single quiet line instead of a "
          "large notice sitting on top of your screen. It still leads you to the recording, "
          "where you decide: analyse it with what we have, or delete it.",
+         "Parawing is a sport you can pick for a session. Lowkite, parawing and parakite are "
+         "the same thing, so they share one entry.",
+         "German words that had slipped into the English interface are gone — among them the "
+         "run count under every session, which said \u201eL\u00e4ufe\u201c in every language, "
+         "the error messages and the text while a recording uploads. Reported by a rider.",
+     ]},
+
+    # Android bekommt denselben Schnitt: 1.1.29 / 1.2.29 liegen seit 13.09. 08:56 bei Google,
+    # alles danach gehoert hierher. Ohne diesen Eintrag stuende auf /changelog nur die iOS-Seite
+    # unter „Coming next", obwohl an Android genauso weitergearbeitet wurde.
+    {"name": "Android phone + Wear OS", "version": "1.1.30 / 1.2.30",
+     "items": [
+         "Parawing is a sport you can pick for a session. Lowkite, parawing and parakite are "
+         "the same thing, so they share one entry.",
+         "German words that had slipped into the English interface are gone — among them the "
+         "run count under every session, the error messages, the notification while a recording "
+         "runs, and eighteen labels that only a screen reader reads out. Reported by a rider.",
      ]},
 ]
 
