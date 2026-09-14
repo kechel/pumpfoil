@@ -1152,7 +1152,11 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     stecken" grundsätzlich nicht zu trennen — auf Garmin und Wear geht genau das.
 
 
-- **🟢 13.09. BEHOBEN — `/complete` wurde quittiert, aber wieder zurueckgedreht: 12 Aufnahmen von
+- **🟢 14.09. WIRKLICH BEHOBEN — `/complete` wurde quittiert, aber wieder zurueckgedreht.**
+  **Der Fix vom 13.09. hat NICHT gereicht; der Fehler kam am 14.09. zurueck.** Chronologie und
+  Befund von gestern stehen unveraendert darunter, die Nachbesserung steht am Ende.
+
+- **🔴→🟢 13.09. (erster, unvollstaendiger Anlauf) — 12 Aufnahmen von
   9 echten Nutzern hingen fuer immer als „laedt hoch".**
   Aufgefallen bei Jans Emulator-Test („die uhr hat upload angezeigt und fertig gemeldet, trotzdem
   sehe ich das"). Es war kein Emulator-Sonderfall.
@@ -1179,6 +1183,36 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     `notify_session_analyzed` ausgeloest und Tage alte Meldungen nachtraeglich verschickt
     ([[no-retroactive-push]]). Der Auto-Zuschnitt ist aus demselben Grund der Vorsicht
     ausgelassen — er haette ihre Zahlen nachtraeglich veraendert.
+  - **🔴 NACHBESSERUNG 14.09. — der Waechter griff nicht, gemeldet von einem Nutzer.**
+    PeterH (u171): „Momentan haengt auch der Upload der aktuellen Session, obwohl alle Segmente
+    uebertragen wurden." Session **#8448**, Fingerabdruck exakt wie gestern: 1164/1164 Chunks,
+    `/complete` 18:34:00 mit 200 OK, ueberschreibende Analyse 18:36:19 (+139 s). Der Fix von
+    08:33 war zu dem Zeitpunkt seit Stunden live (Serverstart 10:43).
+    - **Warum `neuer_status` nicht half:** `SessionLocal` laeuft mit `expire_on_commit=False`, und
+      zwischen `db.get()` in `_analyze_in_background` und dem Waechter am Ende von `run_analysis`
+      steht KEIN commit/refresh. `session.status` war also das Speicherabbild von vor Minuten —
+      der Waechter verglich gegen „live" und schrieb „live", obwohl in der DB „complete" stand.
+      Er half nur, wenn die Zwischenanalyse NACH dem Abschluss STARTET. Der echte Fall ist, dass
+      sie schon laeuft: genau der Fall, den er abdecken sollte.
+    - **Und warum der Test gruen blieb:** er pruefte `neuer_status()` direkt. Die Entscheidung war
+      richtig, nur die EINGABE war falsch — das sieht ein Test der reinen Funktion nie. Die
+      Lehre aus der Qualitaetsregel angewandt: ein Test muss den Weg fahren, nicht das Urteil.
+    - **Fix:** die Datenbank entscheidet, nicht unser Speicherabbild. `final=True` setzt weiter
+      `analyzed` ueber das ORM; die Zwischenanalyse fasst `status` gar nicht mehr an, sondern
+      schreibt nach dem Commit ein BEDINGTES `UPDATE … WHERE status IN ('recording','live')`.
+      Bedingung und Schreibvorgang stecken in einer Anweisung — es bleibt kein Fenster.
+      `neuer_status()` ist damit tot und entfernt.
+    - **Neuer Test** (`tests/test_status_nicht_zurueckdrehen.py`): faehrt den ECHTEN Weg — ORM-Objekt
+      mit veraltetem Status, `/complete` von einer zweiten Verbindung dazwischen, danach die
+      Zwischenanalyse. **Gegenprobe gemacht:** gegen den Stand vom 13.09. faellt er, mit dem Fix
+      ist er gruen. Volle Suite 134 gruen.
+    - **Reparatur:** sechs haengende Aufnahmen (u106, u457, u505, u385, u296, u225) final
+      nachgezogen; #8448 hatte sich um 22:00:55 selbst geloest, weil PeterH eine neue Aufnahme
+      startete und `_altlasten_abschliessen` griff. Danach 0 Faelle mit dem Fingerabdruck.
+      **Abweichung zu gestern, bewusst:** der Auto-Zuschnitt lief diesmal MIT (er gehoert zum
+      normalen `/complete`-Weg), also haben fuenf der sechs jetzt Trim-Grenzen, die sie vorher
+      nicht hatten. Push unterdrueckt wie gestern, `analyzed_notified` gesetzt
+      ([[no-retroactive-push]]).
   - **Uebrig bleiben 23 echte Haenger** (nie ein `/complete`, Chunks fehlen wirklich) — das ist der
     normale Fall „Uhr war nicht in Reichweite" und kein Fehler.
 
