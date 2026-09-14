@@ -307,31 +307,6 @@ def attempt_distances(gps_samples, gps_hz) -> list:
         return []
 
 
-def neuer_status(alt: str | None, final: bool) -> str:
-    """Welchen Status bekommt die Session nach einer Analyse?
-
-    Die finale Analyse setzt immer `analyzed`. Die ZWISCHENanalyse setzt `live` — aber nur,
-    solange die Aufnahme ueberhaupt noch laeuft. Einen erreichten Abschluss dreht sie nicht
-    zurueck.
-
-    Die Einschraenkung ist der ganze Zweck dieser Funktion (13.09.2026). Vorher stand an der
-    Aufrufstelle `"analyzed" if final else "live"`, bedingungslos. Die Zwischenanalyse laeuft
-    aber minutenlang, waehrend die Chunks noch hochladen; kam `/complete` in dieser Zeit an,
-    setzte es korrekt „complete" — und die noch laufende Zwischenanalyse schrieb danach wieder
-    „live". Die Uhr bekam ihr 200 OK und meldete „fertig", die Aufnahme hing trotzdem fuer immer
-    in der Upload-Karte, ohne Benachrichtigung, ohne Auto-Zuschnitt, in der Liste nur unter
-    „Aussortiert".
-
-    Gemessen an dem Tag: #8322 `/complete` 08:19:00, ueberschreibende Analyse 08:22:05 (+185 s);
-    #8323 08:22:02 / 08:23:19 (+77 s). Im Bestand betraf es 12 Aufnahmen von 9 echten Nutzern,
-    die aelteste vom 07.09. Der Fingerabdruck ist `total_chunks` bei Status „live" — diese Spalte
-    setzt AUSSCHLIESSLICH `/complete`.
-    """
-    if final:
-        return "analyzed"
-    return "live" if alt in ("recording", "live", None) else alt
-
-
 def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -> "models.AnalysisResult":
     """Lädt die Rohdaten der Session, rechnet die Analyse und persistiert das Ergebnis.
 
@@ -738,7 +713,22 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     # #8323 08:22:02 / 08:23:19 (+77 s). Im Bestand betraf es 12 Aufnahmen von 9 echten Nutzern,
     # aelteste vom 07.09. Der Fingerabdruck ist `total_chunks` bei Status „live": diese Spalte
     # setzt AUSSCHLIESSLICH `/complete`.
-    session.status = neuer_status(session.status, final)
+    # 14.09.2026 — der Waechter von gestern greift NICHT, und Peters Session #8448 hat es
+    # bewiesen (`/complete` 18:34:00, ueberschreibende Analyse 18:36:19, +139 s). Grund:
+    # `SessionLocal` laeuft mit `expire_on_commit=False`, und zwischen `db.get()` am Anfang von
+    # `_analyze_in_background` und dieser Zeile steht in `run_analysis` KEIN commit/refresh.
+    # `session.status` ist also noch der Wert von vor mehreren Minuten — der Waechter verglich
+    # gegen „live" und schrieb „live", obwohl in der DB laengst „complete" stand. Er half nur,
+    # wenn die Zwischenanalyse NACH dem Abschluss STARTET; der eigentliche Fall ist aber, dass
+    # sie schon laeuft.
+    #
+    # Deshalb entscheidet jetzt die DATENBANK, nicht unser Speicherabbild: der Status wird fuer
+    # die Zwischenanalyse gar nicht mehr ueber das ORM gesetzt (SQLAlchemy schreibt nur
+    # geaenderte Felder), sondern nach dem Commit in EINER bedingten Anweisung. Bedingung und
+    # Schreibvorgang stecken damit in demselben Statement — es bleibt kein Fenster, in dem ein
+    # `/complete` dazwischenrutschen kann.
+    if final:
+        session.status = "analyzed"      # ein Abschluss gewinnt immer
     # ZUletzt-geaendert-Stempel: die Session-Detailantwort baut daraus ihr ETag, und die Clients
     # (PWA + Apps) cachen darueber. Ohne diesen Stempel liefert der Server nach einer Reanalyse
     # weiter "304 – nicht geaendert": die LISTE zeigt die neuen Werte (frisch gerechnet), das
@@ -746,5 +736,14 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     # 12 wenn ich die Session oeffne". Nur ein Zeitstempel — an der Analyse selbst aendert er nichts.
     session.updated_at = datetime.now(timezone.utc)
     db.commit()
+    if not final:
+        # „live" NUR setzen, solange kein Abschluss erreicht ist. `synchronize_session=False`
+        # ist hier richtig: das ORM-Objekt traegt `status` nicht als geaenderte Spalte, es gibt
+        # also nichts abzugleichen.
+        db.query(models.Session).filter(
+            models.Session.id == session.id,
+            models.Session.status.in_(("recording", "live")),
+        ).update({"status": "live"}, synchronize_session=False)
+        db.commit()
     db.refresh(result)
     return result
