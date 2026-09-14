@@ -406,6 +406,8 @@ export default function SessionDetail() {
   const [unmerging, setUnmerging] = useState(false);
   const [searchParams] = useSearchParams();
   const [session, setSession] = useState<SessionSummary | null>(null);
+  // Fuer welche Session die Karte schon eingepasst wurde (s. Karten-Effekt).
+  const gefittetFuer = useRef<number | null>(null);
   // Nach dem SPEICHERN: eigenen State setzen UND die gecachten Listen nachziehen. Ohne das
   // zeigte die Session-Liste Foil, Stab/Mast und Beschriftung bis zum naechsten echten Reload
   // alt an (Feedback Jan, 27.08.) — sie liest beim Zurueckkommen aus einem Modul-Cache, und
@@ -685,14 +687,32 @@ export default function SessionDetail() {
   // Analyse durch den Detail-Aufruf gerade getriggert, oder "live" = gps_only-Vorabanalyse da,
   // Accel lädt noch), still nachpollen und die fertige Version übernehmen -> Läufe/Längen/Pumps
   // aktualisieren sich automatisch (4a: seamless nachladen).
+  // 14.09.2026: das Ergebnis wird nur UEBERNOMMEN, wenn sich wirklich etwas geaendert hat.
+  // Vorher rief der Poll bedingungslos `setSession(fresh)` — alle 4 s ein NEUES Objekt, auch wenn
+  // die Antwort Byte fuer Byte dieselbe war. React sieht eine neue Referenz, also lief jeder
+  // Effekt und jedes `useMemo` mit `session` in den Abhaengigkeiten erneut, darunter der
+  // Karten-Effekt mit seinem `fitBounds`. Gemeldet von einem Nutzer (14.09.), dessen Aufnahme
+  // wegen eines Server-Fehlers dauerhaft auf „live" stand: „der Zoom der Karte resettet sich alle
+  // paar Sekunden, was die grafische Analyse der Runs sehr beeintraechtigt."
+  // `data_version` ist der Stempel der letzten Analyse — genau die Frage, die hier zaehlt.
+  // Gibt der Server ihn nicht mit (aeltere Fassung), bleibt es beim alten Verhalten.
+  const pollStatus = session?.status;
+  const pollFremd = isPublic || session?.owned === false;
   useEffect(() => {
-    if (isPublic || !session || session.owned === false
-        || (session.status !== "live" && session.status !== "recording")) return;
+    if (pollFremd || (pollStatus !== "live" && pollStatus !== "recording")) return;
     const iv = setInterval(() => {
-      api.session(Number(id)).then(setSession).catch(() => {});
+      api.session(Number(id)).then((fresh) => {
+        setSession((cur) => {
+          if (cur && cur.data_version != null && fresh.data_version != null
+              && cur.data_version === fresh.data_version && cur.status === fresh.status) {
+            return cur;      // nichts Neues -> dieselbe Referenz, React rendert gar nicht erst
+          }
+          return fresh;
+        });
+      }).catch(() => {});
     }, 4000);
     return () => clearInterval(iv);
-  }, [isPublic, session, id]);
+  }, [pollFremd, pollStatus, id]);
 
   // HR-Bereich der Foiling-Punkte (für die Puls-Farbskala).
   // Bereich + Farbe kommen aus lib/trackColors — dieselbe Rechnung wie Vergleichskarte und
@@ -927,7 +947,15 @@ export default function SessionDetail() {
       mapObj.current.createPane("posPane"); mapObj.current.getPane("posPane")!.style.zIndex = "650";
       trackLayer.current = L.layerGroup().addTo(mapObj.current);
     }
-    mapObj.current.fitBounds(L.latLngBounds(coords), { padding: [24, 24] });
+    // EINMAL je Session einpassen — was die Ueberschrift immer behauptet hat, der Code aber nicht
+    // hielt: die Abhaengigkeit ist `[session]`, und bei einer laufenden Aufnahme kommt alle paar
+    // Sekunden ein neues Objekt. Jedes Mal sprang die Ansicht zurueck, mitten hinein, waehrend
+    // jemand einen Lauf ansah (Nutzermeldung 14.09.). Wer selbst gezoomt hat, behaelt das jetzt;
+    // fuer den Blick auf die ganze Strecke gibt es die Lauf-Auswahl, die bewusst einpasst.
+    if (gefittetFuer.current !== session.id) {
+      gefittetFuer.current = session.id;
+      mapObj.current.fitBounds(L.latLngBounds(coords), { padding: [24, 24] });
+    }
     setTimeout(() => mapObj.current?.invalidateSize(), 100);
   }, [session]);
 

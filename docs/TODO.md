@@ -1213,6 +1213,21 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
       normalen `/complete`-Weg), also haben fuenf der sechs jetzt Trim-Grenzen, die sie vorher
       nicht hatten. Push unterdrueckt wie gestern, `analyzed_notified` gesetzt
       ([[no-retroactive-push]]).
+  - **🟢 14.09. MIT BEHOBEN — eine unvollstaendige Session liess sich nicht ordentlich ansehen.**
+    Zweite Haelfte von PeterHs Meldung: „der Zoom der Karte resettet sich alle paar Sekunden, was
+    die grafische Analyse der Runs sehr beeintraechtigt." Zwei unabhaengige Ursachen, beide im Web:
+    - **Der Poll uebernahm bedingungslos.** `SessionDetail.tsx` rief alle 4 s
+      `api.session(id).then(setSession)` — ein NEUES Objekt auch dann, wenn die Antwort identisch
+      war. React sieht eine neue Referenz, also lief jeder Effekt und jedes `useMemo` mit
+      `session` in den Abhaengigkeiten erneut. Jetzt wird `data_version` verglichen (der Stempel
+      der letzten Analyse, aus dem der Server ohnehin sein ETag baut, `schemas.py:221`) und bei
+      Gleichstand dieselbe Referenz zurueckgegeben — React rendert dann gar nicht erst. Das Feld
+      stand seit jeher in der Antwort und wurde vom Frontend NIE benutzt.
+    - **Die Karte passte bei jedem Durchlauf neu ein.** Der Effekt heisst im Kommentar seit je
+      „einmal je Session", haengt aber an `[session]`. Jetzt merkt sich `gefittetFuer` die
+      Session-ID; wer selbst gezoomt hat, behaelt seine Ansicht. Das bewusste Einpassen bei der
+      Lauf-Auswahl (Zeile ~1073) bleibt.
+    `tsc --noEmit` + `npm run build` gruen, `data_version` an einer echten Antwort gegengeprueft.
   - **Uebrig bleiben 23 echte Haenger** (nie ein `/complete`, Chunks fehlen wirklich) — das ist der
     normale Fall „Uhr war nicht in Reichweite" und kein Fehler.
 
