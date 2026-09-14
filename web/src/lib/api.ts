@@ -205,6 +205,10 @@ export interface Metrics {
 export interface SessionSummary {
   tz?: string | null;   // IANA-Zeitzone des Spots — Uhrzeiten in Spot-Ortszeit anzeigen
   id: number;
+  // Stempel der letzten Analyse (Sekunden, aus `sessions.updated_at`) — derselbe Wert, aus dem
+  // der Server sein ETag baut. Damit laesst sich beantworten „ist wirklich etwas Neues da?",
+  // ohne die ganze Antwort zu vergleichen (Track/Segmente/Accel sind gross).
+  data_version?: number | null;
   session_uuid: string;
   sport: string;
   started_at: string;
