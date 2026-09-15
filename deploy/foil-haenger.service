@@ -1,0 +1,10 @@
+[Unit]
+Description=pumpfoil.org — auf "complete" haengengebliebene Sessions abschliessen
+After=postgresql.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=jan
+WorkingDirectory=/home/jan/garmin-connect-iq/server
+ExecStart=/home/jan/garmin-connect-iq/server/.venv/bin/python /home/jan/garmin-connect-iq/scripts/haengende-sessions-abschliessen.py

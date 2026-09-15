@@ -1,0 +1,14 @@
+[Unit]
+Description=Alle 3 Stunden pruefen, ob eine Session auf "complete" haengengeblieben ist
+
+[Timer]
+# Drei Stunden (Jans Vorgabe). Grosszuegiger Takt als bei der Live-Analyse, weil der Fall
+# selten ist und die Ursache behoben: das hier ist ein Netz, kein Arbeitspferd. Die Aufnahme
+# erreicht ihren Besitzer damit spaetestens drei Stunden nach dem Upload — die beiden
+# Rueckwege (Session ansehen, naechster Upload) greifen ohnehin frueher, wenn jemand etwas tut.
+OnBootSec=10min
+OnUnitActiveSec=3h
+Persistent=true
+
+[Install]
+WantedBy=timers.target
