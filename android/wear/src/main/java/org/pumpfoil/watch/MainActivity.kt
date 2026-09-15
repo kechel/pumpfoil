@@ -1262,9 +1262,17 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                         // Berechtigung erteilt — der Sensor schwieg, und die Uhr sagte nichts.
                         // Der Berechtigungs-Hinweis oben deckt diesen Fall NICHT ab; amber statt
                         // rot, weil eine Session ohne Puls auswertbar bleibt (anders als ohne GPS).
+                        // 15.09.2026: NICHT mehr pauschal „Uhr fester tragen". Dieser Satz
+                        // schob dem Nutzer die Schuld zu, auch wenn die Uhr die Messung nie
+                        // gestartet hat — PeterH (u171) las ihn eine Woche lang nach jeder
+                        // Session, waehrend die Ursache eine Plattform-Regression auf seiner
+                        // Xiaomi war (Wear OS 5). `pulsMessung` sagt, ob Health Services
+                        // ueberhaupt eine Uebung gehalten hat: nur DANN ist das Armband eine
+                        // plausible Erklaerung, und dann steht es als FRAGE da, nicht als Vorwurf.
                         if (s.hrSamples == 0 && hrPermGranted) {
                             Spacer(Modifier.height(6.dp))
-                            Text(I18n.t("rec.hrNone"), style = MaterialTheme.typography.caption2,
+                            Text(I18n.t(if (s.pulsMessung) "rec.hrNone" else "rec.hrNoneOff"),
+                                style = MaterialTheme.typography.caption2,
                                 color = Color(0xFFF59E0B), textAlign = TextAlign.Center)
                         }
                         Spacer(Modifier.height(12.dp))
