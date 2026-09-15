@@ -961,6 +961,30 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔲 Roman (u244), Instinct 3 Solar: die UHR startet ~10 min nach jeder Pumpfoil-Session neu.
+  Unsere Garmin-Spur „das ist ein bekanntes Garmin-Problem" ist damit vom Tisch.**
+  - **Seine Beschreibung (14.09.):** „I use the watch a lot for running and tennis and I have never
+    seen this behavior with normal Garmin activities. When it happens after a pumpfoil session, I
+    see the Garmin logo and it stays there for about 5-10 minutes … It usually happens around
+    10 minutes after finishing the session. It doesn't matter whether your app is still open or I
+    already left it, and it also doesn't matter whether I already transferred the session."
+    Bluetooth auf der Uhr immer an, am Handy nur zum Uebertragen.
+  - **Garmin-Logo = Neustart der Uhr**, nicht ein Absturz unserer App. Passt dazu: alle drei
+    Geraete-Tokens von u244 haben `layout_canary_count = 0` und `storage_full_count = 0` — waere
+    unsere App gestorben, staende dort etwas.
+  - **Die heisse Spur steht in unserem eigenen Code.** `watch/source/FoilApp.mc:9`: „Der fruehere
+    (:background)-Service loeste beim Phone-Settings-Sync vermutlich einen OOM/Reboot aus." Wir
+    haben also schon einmal einen Uhr-Neustart verursacht, und zwar beim Settings-Sync ueber
+    Bluetooth. Der Zeitversatz von ~10 Minuten passt dazu besser als ein Zufall. HEUTE hat die App
+    keinen Hintergrundteil mehr (kein `registerForTemporalEvent`, kein `ServiceDelegate`,
+    15.09. gegengeprueft) — die Frage ist also, was beim naechsten Bluetooth-Kontakt mit dem
+    passiert, was wir auf der Uhr LIEGEN lassen.
+  - **Zu messen:** wie viel Speicher eine Session auf dem Geraet belegt und wann er freigegeben
+    wird (s. `docs/WATCH-STORAGE.md`), und ob der Neustart am Settings-/Aktivitaets-Sync haengt.
+    Er faehrt lange Sessions (87 und 96 Minuten am 14./15.09.), inzwischen auf 1.0.86.
+  - **Ihm steht eine Antwort zu:** wir hatten auf Garmin gezeigt, er hat das sauber widerlegt.
+
+
 - **🟡 14./15.09. — PeterH (u171) bekommt seit dem 08.09. keinen Puls mehr. Befund: mit hoher
   Wahrscheinlichkeit NICHT unser Fehler, sondern Wear OS 5 auf seiner Xiaomi Watch 2 Pro.**
   - **Gemessen, je Version** (Anteil GPS-Punkte mit Pulswert, aus den Rohdaten):
