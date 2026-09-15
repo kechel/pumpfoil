@@ -961,6 +961,56 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟡 14./15.09. — PeterH (u171) bekommt seit dem 08.09. keinen Puls mehr. Befund: mit hoher
+  Wahrscheinlichkeit NICHT unser Fehler, sondern Wear OS 5 auf seiner Xiaomi Watch 2 Pro.**
+  - **Gemessen, je Version** (Anteil GPS-Punkte mit Pulswert, aus den Rohdaten):
+    1.2.20 0 % · 1.2.23 100 % (13 340 Punkte) · 1.2.24 100 % · **1.2.25 0 %** (21 859) · 1.2.28 0 %.
+    Die Grenze liegt exakt zwischen 1.2.24 und 1.2.25; 1.2.25 ging am 07.09. live, er hat am
+    08.09. aktualisiert.
+  - **Warum es trotzdem nicht 1.2.25 ist.** Alle anderen Wear-Nutzer liegen auf 1.2.25/1.2.28 bei
+    94-100 %. Wichtiger noch: die mittlere Halte-Kette identischer Pulswerte ist dort **1,0** —
+    der Wert aendert sich jede Sekunde, Health Services misst also aktiv. (Die Abdeckung in
+    Prozent taugt als Beleg NICHT: bis zum 04.09. schrieben wir den letzten bekannten Wert in
+    jeden GPS-Punkt, 60 identische Werte ergeben ebenfalls 100 %.)
+  - **Die fuenf Puls-Aenderungen zwischen 1.2.24 und 1.2.25, alle ausgeschlossen:** `pulsRecht()`
+    (greift erst ab Android 15, er hat 14) · die gedrehte Start-Reihenfolge (greift nur bei
+    FEHLENDER Berechtigung, seine ist erteilt — die Uhr fragt nicht mehr) · `runMaxHr` und
+    `hrColor` (Statistik/Darstellung) · der Manifest-Zusatz (nimmt nichts weg) ·
+    `starteVordergrund()` mit dynamischem FGS-Typ (auf Android 14 zaehlt `BODY_SENSORS`, es
+    fliegt keine SecurityException — und sein Test mit dauerhaft eingeschaltetem Display haette
+    den Hintergrund-Pfad ohnehin umgangen).
+  - **Sein Test 14.09. 22:45** (#8474): 196 GPS-Punkte, 1,5-6 km/h, Display die ganze Zeit an,
+    **0 Pulswerte**. Uhr meldet **Wear OS 5.0**. Die uhr-eigene Puls-App misst normal.
+  - **Fundlage im Netz, mehrfach unabhaengig:** Watch 2 Pro nach dem Wear-OS-5-Update → Fremd-Apps
+    und Fremd-Zifferblaetter bekommen dauerhaft 0, native App misst. XDA „Watch 2 pro wear os 5
+    issues", Wear-OS-Community „Health Services doesn't show heart rate in Xiaomi Watch 2 Pro",
+    xiaomi.eu (2024 schon einmal dasselbe Muster, damals falscher Zeitstempel am Pulswert, von
+    Xiaomi per Update behoben).
+  - **🔲 OFFEN, das letzte Glied:** kam das Wear-OS-5-Update bei ihm um den 08.09.? Gefragt am
+    15.09. Vorgeschlagene Versuche: Koerpersensoren auf „Immer zulassen", und Updates der
+    System-App „Health Services" ueber den Play Store der Uhr deinstallieren (nicht die App).
+
+- **🔲 Wear: der Hinweis „Uhr fester tragen" beschuldigt den Nutzer.** `rec.hrNone`
+  (`MainActivity.kt:1265`) erscheint bei `hrSamples == 0 && hrPermGranted` — also auch dann, wenn
+  die Plattform den Puls gar nicht liefert. PeterH liest das seit einer Woche nach jeder Session,
+  obwohl weder er noch sein Armband etwas dafuer koennen. Zugesagt am 14.09., geht erst nach der
+  laufenden Pruefung von 1.2.29.
+
+- **🔲 Wear/alle Uhren: wir sind bei Puls-Ausfaellen blind.** Ob der Vordergrund-Dienst mit `health`
+  hochkam, ob die Health-Services-Uebung startete und wie viele Werte ankamen, endet in einer
+  Logzeile AUF DER UHR, die wir nie sehen. Drei Zahlen zur Session gemeldet (FGS-Typ,
+  Uebung gestartet ja/nein, Anzahl empfangener Pulswerte) haetten den Abend vom 14.09. von
+  fuenf Stunden auf fuenf Minuten verkuerzt.
+
+- **🔲 Ohne GPS-Empfang geht der Puls VOLLSTAENDIG verloren — alle sechs Recorder.** Der Puls reist
+  ausschliesslich im GPS-Datensatz mit (`[t_ms, lat, lon, speed, hr_bpm, h_acc]`, s.
+  `docs/data-format.md`); Accel-Chunks sind reine int16-Tripel, `meta.json` traegt nichts.
+  Belegt an PeterHs Indoor-Testsession #8471: 32 Accel-Chunks, **null** GPS-Punkte, also auch
+  keine Stelle, an der ein Pulswert haette landen koennen. Betrifft nicht nur Indoor-Tests —
+  auch unter Baeumen, vor dem ersten Fix oder bei einem Aussetzer fehlt der Puls in genau diesen
+  Abschnitten und sieht hinterher wie ein Sensorproblem aus. Behebung fasst den Upload-Vertrag an
+  (eigener Puls-Kanal oder positionslose Datensaetze) → Server + alle sechs Recorder, eigene Sitzung.
+
 - **📥 14.09. — iOS 1.1.34 und Android 1.1.30 warten BEWUSST.** Jan: „keine blocker oder grossen
   bugs, dann kann das release noch warten, da kommt sicher noch was dazu die tage." Beide sind
   gebaut und stehen unter „Coming next" auf /changelog — vier Punkte bei iOS, zwei bei Android,
