@@ -1015,13 +1015,22 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     15.09. Vorgeschlagene Versuche: Koerpersensoren auf „Immer zulassen", und Updates der
     System-App „Health Services" ueber den Play Store der Uhr deinstallieren (nicht die App).
 
-- **🔲 Wear: der Hinweis „Uhr fester tragen" beschuldigt den Nutzer.** `rec.hrNone`
+- **🟢 15.09. BEHOBEN — Wear: der Hinweis „Uhr fester tragen" beschuldigte den Nutzer.**
+  Jetzt unterscheidet `pulsMessung`: lief die Health-Services-Uebung, steht der Satz als FRAGE
+  da („sitzt die Uhr fest genug?"); lief sie gar nicht, sagt der neue Schluessel `rec.hrNoneOff`
+  die Wahrheit — „die Uhr hat die Messung nicht gestartet". Beide Texte in allen 17 Sprachen.
+  Auf den anderen Recordern gibt es diesen Hinweis nicht (gegengeprueft). ALT: `rec.hrNone`
   (`MainActivity.kt:1265`) erscheint bei `hrSamples == 0 && hrPermGranted` — also auch dann, wenn
   die Plattform den Puls gar nicht liefert. PeterH liest das seit einer Woche nach jeder Session,
   obwohl weder er noch sein Armband etwas dafuer koennen. Zugesagt am 14.09., geht erst nach der
   laufenden Pruefung von 1.2.29.
 
-- **🔲 Wear/alle Uhren: wir sind bei Puls-Ausfaellen blind.** Ob der Vordergrund-Dienst mit `health`
+- **🟢 15.09. GEBAUT — Wear/alle Uhren: wir waren bei Puls-Ausfaellen blind.**
+  `/complete` nimmt jetzt zwei optionale Angaben: `hr_samples` (wie viele Werte wirklich ankamen,
+  0 ist eine gueltige Antwort) und `hr_source` (`active` | `passive` | `none`). Zwei nullable
+  Spalten in `sessions`, plattform-neutral in `docs/ingest-contract.md` beschrieben. **Wear OS
+  sendet es; die anderen fuenf Recorder koennen nachziehen** — fehlt die Angabe, laesst der
+  Server die gespeicherten Werte in Ruhe. ALT: Ob der Vordergrund-Dienst mit `health`
   hochkam, ob die Health-Services-Uebung startete und wie viele Werte ankamen, endet in einer
   Logzeile AUF DER UHR, die wir nie sehen. Drei Zahlen zur Session gemeldet (FGS-Typ,
   Uebung gestartet ja/nein, Anzahl empfangener Pulswerte) haetten den Abend vom 14.09. von
@@ -1043,7 +1052,10 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   wird**; Jan sammelt. Wenn etwas dazukommt, gehoert es in dieselben NAECHSTES-Eintraege.
 
 
-- **📥 14.09. — `Loc.swift`: zwei Schluessel stehen doppelt, die zweite Fassung ist tot.**
+- **🟢 15.09. ERLEDIGT — `Loc.swift`: zwei tote Doppel-Eintraege entfernt.** `sd.colMaxHr` (aus
+  `__t3P4`) und `common.loading` (aus `__t2P1`); lebendig sind die Fassungen in `__t1*`, weil
+  `_t1.merging(_t2) { a, _ in a }.merging(_t3)` die erste gewinnen laesst. Systematisch geprueft:
+  948 Basis-Schluessel, vorher 2 Doppel, jetzt 0. An der Anzeige aendert sich nichts. ALT:
   `sd.colMaxHr` (Zeile 3042 in `__t1P1s3` und 3804 in `__t3P4`) und `common.loading` (3186 in
   `__t1P2`, 3446 in `__t2P1`). Zusammengefuehrt wird mit `merge { a, _ in a }`, also gewinnt der
   ERSTE — die spaeteren Eintraege sind toter Code. Bei `sd.colMaxHr` unterscheiden sie sich
