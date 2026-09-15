@@ -64,7 +64,7 @@ targets:
         NSLocationWhenInUseUsageDescription: "Zeigt deine Foil-Spots und Sessions in deiner Nähe auf der Karte."
         NSMicrophoneUsageDescription: "Zum Diktieren von Chat-Nachrichten per Sprache."
         NSSpeechRecognitionUsageDescription: "Wandelt deine gesprochenen Chat-Nachrichten in Text um."
-        # „Record on Phone" (Beta): Hintergrund-Aufnahme GPS + Bewegung.
+        # „Record on Phone": Hintergrund-Aufnahme GPS + Bewegung (freigegeben, kein Beta).
         NSLocationAlwaysAndWhenInUseUsageDescription: "Zeichnet den GPS-Track deiner Session auf — auch im Hintergrund, wenn das Handy in der Tasche ist."
         NSMotionUsageDescription: "Beschleunigungsdaten zur Pump-/Gleit-Erkennung während der Aufnahme."
         UIBackgroundModes:

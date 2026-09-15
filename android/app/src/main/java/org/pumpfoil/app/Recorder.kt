@@ -25,7 +25,7 @@ import java.util.Locale
 import java.util.TimeZone
 import java.util.UUID
 
-// Handy-Recorder (Beta „Record on Phone"): puffert GPS (1 Hz) + Accel (~50 Hz), lädt in Chunks
+// Handy-Recorder („Record on Phone", freigegeben): puffert GPS (1 Hz) + Accel (~50 Hz), lädt in Chunks
 // gemäß Raw-Ingest-Contract hoch. Android-Sensorik liefert RecorderService. Portiert aus dem
 // Wear-Recorder (Wear OS = Android) — Puffer-/Lauf-/Upload-Logik identisch, ohne HR-Sensor.
 object Recorder {
