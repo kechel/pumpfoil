@@ -69,6 +69,10 @@ async function handle(req) {
       // Layout-Paket (gemischte Seiten-Saetze + Definitionen + Voreinstellung des Schalters).
       language: b && b.language, latestVersion: b && b.latestVersion, pauseView: b && b.pauseView,
       layoutsOn: b && b.layoutsOn, layouts: b && b.layouts, pages: b && b.pages,
+      // Wassersperre aus dem Profil ("auto" | "on" | "off"). Nur die VORBELEGUNG fuer
+      // "Automatisch" — die Wahl im Uhr-Menue gewinnt und ueberlebt den App-Start
+      // (dasselbe Muster wie layoutsOn, s. Kommentar bei den Foil-Knoepfen).
+      waterLock: b && b.waterLock,
       offFoilPages: b && b.offFoilPages, pausePages: b && b.pausePages, browseAll: b && b.browseAll,
       // Wert-Skalen der Layout-Grafiken. FEHLTEN hier zuerst: die Uhr liest `r.hrZones`, aber die
       // Whitelist liess sie nicht durch — genau der Fehler, vor dem der Kommentar oben warnt
