@@ -1114,6 +1114,12 @@ export const api = {
     req<{ ok: boolean; gnss_mode: string }>(`/api/devices/${id}/gnss-mode`, {
       method: "PUT", body: JSON.stringify({ gnss_mode }),
     }),
+  // Wassersperre je Uhr: auto | on | off. Nicht fuer Garmin — unser Aufnahme-Bildschirm hat
+  // dort gar keine Tipp-Behandlung, ein Wassertropfen kann also nichts ausloesen.
+  setDeviceWaterLock: (id: number, water_lock: string) =>
+    req<{ ok: boolean; water_lock: string }>(`/api/devices/${id}/water-lock`, {
+      method: "PUT", body: JSON.stringify({ water_lock }),
+    }),
   setDeviceRecordMode: (id: number, record_mode: string) =>
     req<{ ok: boolean; record_mode: string }>(`/api/devices/${id}/record-mode`, {
       method: "PUT", body: JSON.stringify({ record_mode }),
@@ -1605,6 +1611,7 @@ export interface PairedDevice {
   model_id: string | null;    // Katalog-/Download-ID -> /api/app/download/<id>
   record_mode: string;        // Aufzeichnungsmodus dieser Uhr (full|lite|gps)
   gnss_mode?: string;         // GNSS-Stufe dieser Uhr (best|l1|two|gps), nur Garmin ab 1.0.77
+  water_lock?: string;        // Wassersperre dieser Uhr (auto|on|off); nicht fuer Garmin
   low_accel: boolean;         // FR55 & Co.: 'full' wird automatisch auf 'lite' gekappt
   // Displaymaße/Form aus dem Build-Katalog (nur Garmin; Apple/Wear melden sie noch nicht) —
   // damit die Layout-Vorschau die ECHTE Größe dieser Uhr nutzen kann.

@@ -144,6 +144,8 @@ class DeviceToken(Base):
     # Akku — deshalb je Uhr einstellbar wie der Aufzeichnungsmodus (Jan, 16.08.), statt es fuer
     # alle gleich zu entscheiden. Die Uhr holt den Wert beim App-Start ueber /config.
     gnss_mode: Mapped[str | None] = mapped_column(String(8))
+    # Wassersperre dieser Uhr: "auto" (Uhr entscheidet) | "on" | "off"; None = Nutzer-Default.
+    water_lock: Mapped[str | None] = mapped_column(String(8))
     # Soft-Revoke: Token ungültig, Record bleibt (Session-Zuordnung + Historie erhalten).
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     # Canary der dynamischen Layouts: die Uhr setzt beim Aufnahme-Start ein Storage-Flag und

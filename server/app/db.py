@@ -121,6 +121,10 @@ def _migrate_add_indexes() -> None:
         # ausschliesslich in einer Logzeile AUF DER UHR, die wir nie zu sehen bekommen. Das hat
         # bei PeterH (u171) eine Woche gekostet. `hr_source`: active = aktive Messung angefordert
         # und geliefert · passive = nur mitgelesen, was das System ohnehin misst · none = nichts.
+        # Wassersperre je Uhr (15.09.2026): "auto" | "on" | "off", NULL = Nutzer-Default.
+        # Je GERAET und nicht je Nutzer, weil es eine Eigenschaft der Uhr ist — eine Uhr mit
+        # zwei Tasten laesst sich kaum wieder entsperren, eine Apple Watch sperrt systemweit.
+        "ALTER TABLE device_tokens ADD COLUMN IF NOT EXISTS water_lock VARCHAR(8)",
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS hr_samples INTEGER",
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS hr_source VARCHAR(16)",
         # Aufnahme-Gerät (Modell + OS) — nur zur Fehlersuche.

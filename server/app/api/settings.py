@@ -23,6 +23,10 @@ DEFAULTS = {
     "auto_start": True,
     # Aufzeichnungsmodus: full | lite | gps (für speicherarme Uhren).
     "record_mode": "full",
+    # Wassersperre auf der Uhr: "auto" = die Uhr entscheidet selbst (Zepp z. B. nur ab drei
+    # Tasten, weil man sich sonst aussperrt) | "on" | "off". Je Uhr uebersteuerbar
+    # (device_tokens.water_lock) — anders als `stop_mode` ist das eine Eigenschaft des Geraets.
+    "water_lock": "auto",
     # Wie eine Aktion auf der UHR ausgeloest wird, die heute ZWEI SEKUNDEN HALTEN verlangt
     # (Aufnahme beenden, Verwerfen): "hold" = halten wie bisher (Default), "press" = ein Druck
     # genuegt. Gilt fuer ALLE eigenen Uhren, nicht je Geraet — Jans Vorgabe: eine Gewohnheit hat
@@ -454,6 +458,8 @@ def update_settings(
         current["auto_start"] = bool(patch["auto_start"])
     if "record_mode" in patch and patch["record_mode"] in ("full", "lite", "gps"):
         current["record_mode"] = patch["record_mode"]
+    if "water_lock" in patch and patch["water_lock"] in ("auto", "on", "off"):
+        current["water_lock"] = patch["water_lock"]
     if "stop_mode" in patch and patch["stop_mode"] in ("hold", "press"):
         current["stop_mode"] = patch["stop_mode"]
     if "activity_type" in patch and patch["activity_type"] in ("surfing", "openwater", "pumpfoil"):

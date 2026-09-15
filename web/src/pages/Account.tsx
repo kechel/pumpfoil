@@ -238,6 +238,10 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
     setDevices((ds) => (ds ? ds.map((x) => (x.id === id ? { ...x, gnss_mode: mode } : x)) : ds));
     api.setDeviceGnssMode(id, mode).catch(() => load());
   };
+  const setWaterLock = (id: number, mode: string) => {
+    setDevices((ds) => (ds ? ds.map((x) => (x.id === id ? { ...x, water_lock: mode } : x)) : ds));
+    api.setDeviceWaterLock(id, mode).catch(() => load());
+  };
   const fmt = (s: string | null) => (s ? new Date(s).toLocaleString() : "–");
 
   if (!devices) return null;
@@ -326,6 +330,24 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
                       <option value="gps">{t("account.gnssModeGps")}</option>
                     </select>
                     <p className="mt-1 text-sm text-slate-400">{t("account.gnssModeHint")}</p>
+                  </div>
+                )}
+                {/* Wassersperre je Uhr — NICHT fuer Garmin: unser Aufnahme-Bildschirm hat dort
+                    gar keine Tipp-Behandlung (`RecordDelegate` kennt nur Tasten), ein
+                    Wassertropfen kann also nichts ausloesen. Ueberall sonst schon: beim Pumpen
+                    schlaegt dauernd Wasser aufs Display (gemeldet 27.07. und 04.09.).
+                    „Automatisch" heisst: die Uhr entscheidet selbst — auf einer Uhr mit zwei
+                    Tasten wuerde man sich sonst aussperren. */}
+                {!d.revoked_at && d.platform !== "garmin" && (
+                  <div className="mt-2">
+                    <label className="mb-1 block text-xs text-slate-400">{t("account.waterLock")}</label>
+                    <select value={d.water_lock ?? "auto"} onChange={(e) => setWaterLock(d.id, e.target.value)}
+                      className="w-full max-w-sm truncate rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100">
+                      <option value="auto">{t("account.waterLockAuto")}</option>
+                      <option value="on">{t("account.waterLockOn")}</option>
+                      <option value="off">{t("account.waterLockOff")}</option>
+                    </select>
+                    <p className="mt-1 text-sm text-slate-400">{t("account.waterLockHint")}</p>
                   </div>
                 )}
                 {/* Eigene Layouts je Uhr: hat sie einen Absturz gemeldet, sind sie für DIESE Uhr
