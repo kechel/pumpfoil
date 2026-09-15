@@ -118,10 +118,19 @@ def _effective_water_lock(device: models.DeviceToken, settings: dict) -> str:
     eigenes Schild ueber unsere Oberflaeche. Garmin braucht nichts — unser Aufnahme-Bildschirm
     hat dort gar keine Tipp-Behandlung.
 
-    "auto" heisst deshalb: die Uhr entscheidet, ob sie es einschaltet. Zepp tut das nur ab drei
-    Tasten — auf einer Uhr mit zweien kaeme man sonst nicht mehr heraus. "on"/"off" ueberstimmt
-    diese Entscheidung. Je GERAET, nicht je Nutzer: es ist eine Eigenschaft der Uhr, keine
-    Bediengewohnheit des Menschen (anders als `stop_mode`, s. dort).
+    DIE DREI WERTE, und was sie fuer den Nutzer bedeuten (Jan, 15.09.: „mach per Default das
+    Verhalten unveraendert fuer alle Nutzer"):
+
+      "off"   gar keine Sperre, auch kein Knopf.
+      "auto"  SO WIE BISHER AUF DIESER PLATTFORM — der Default, und er aendert fuer niemanden
+              etwas. Auf Zepp heisst das: automatisch sperren, aber nur ab drei Tasten (auf
+              einer Uhr mit zweien kaeme man nicht mehr heraus) — das laeuft dort seit Juli.
+              Auf Apple Watch und Wear OS heisst es: die Uhr BIETET die Sperre an, schaltet sie
+              aber NICHT von selbst ein. Niemand bekommt seine Uhr ungefragt gesperrt.
+      "on"    beim Start der Aufnahme automatisch sperren.
+
+    Wer es anders will, findet es im Profil oder fragt im Chat. Je GERAET, nicht je Nutzer: es
+    ist eine Eigenschaft der Uhr, keine Bediengewohnheit des Menschen (anders als `stop_mode`).
     """
     dev = device.water_lock if device.water_lock in WATER_LOCK_MODES else None
     base = dev or settings.get("water_lock", "auto")

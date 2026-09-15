@@ -89,6 +89,10 @@ enum Api {
         // Profil-Einstellung: "hold" (Default) = 2 s halten, "press" = ein Tipp genuegt.
         // Gilt fuer alle Uhren des Nutzers; nil = alte Antwort/Cache -> halten wie bisher.
         let stopMode: String?
+        // Wassersperre: "auto" (Default) | "on" | "off". "auto" heisst hier ANBIETEN, aber nicht
+        // von selbst einschalten — bestehende Nutzer sollen nichts Neues vorfinden, was ihre Uhr
+        // ungefragt sperrt. "on" sperrt beim Start der Aufnahme. nil = alte Antwort/Cache -> auto.
+        let waterLock: String?
         // Eigene Layouts (F2/F3). `pages`/`offFoilPages`/`pausePages` sind GEMISCHT: ein Eintrag ist
         // entweder eine 3-Feld-Seite ([Int]) oder eine Layout-ID (Int) -- deshalb LayoutPrimOrList
         // statt [[Int]]. `layouts` bildet Layout-ID -> Definition ab. `layoutsOn` ist nur die

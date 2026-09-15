@@ -151,6 +151,8 @@ struct RecordView: View {
     @State private var autoStart = false                // GPS-Auto-Start (Config-Default, auf der Uhr umschaltbar)
     // Profil-Einstellung „ein Tipp statt 2 s halten" (gilt fuer alle Uhren des Nutzers).
     @State private var pressStattHalten = false
+    /// Wassersperre aus dem Profil: "auto" (anbieten, nicht selbst einschalten) | "on" | "off".
+    @State private var wassersperre = "auto"
     @State private var autoMon = AutoStartMonitor()     // Idle-GPS-Monitor für Auto-Start
     @State private var autoCountdown = 10               // s Vorlauf ab Betreten des Start-Screens, bis scharf
     @State private var autoArmed = false                // Monitor aktiv (Countdown durch)?
@@ -220,7 +222,15 @@ struct RecordView: View {
         // (_drawLayoutPage kehrt vor _drawPageDots zurueck, RecordView.mc:98-115). Sonst
         // liegen zwei Punktreihen mit verschiedener Anzahl uebereinander.
         .tabViewStyle(.page(indexDisplayMode: currentPageIsLayout ? .never : .automatic))
-        .onChange(of: rec.isRecording) { r in if r { page = 2 } }
+        .onChange(of: rec.isRecording) { r in
+            if r {
+                page = 2
+                // Nur bei "on" von selbst sperren. "auto" bietet den Knopf nur an — wer die
+                // Sperre nie wollte, soll sie nicht ploetzlich vorfinden (Jan, 15.09.: „per
+                // Default das Verhalten unveraendert fuer alle Nutzer").
+                if wassersperre == "on" { WKInterfaceDevice.current().enableWaterLock() }
+            }
+        }
         .onChange(of: page) { p in if p >= 2 && p <= views.count + 1 { lastDataPage = p } }
         .onChange(of: rec.isFoiling) { foiling in onFoilingChanged(foiling) }
         .overlay(alignment: .top) { uploadBadge }
@@ -554,9 +564,28 @@ struct RecordView: View {
             // 3 s halten zum Stoppen; Ring füllt sich sichtbar als Fortschritt (wie Garmin Stop-Halten).
             HoldToStopButton(label: pressStattHalten ? WLoc.t("rec.stop", lang) : WLoc.t("rec.stopHold", lang),
                              press: pressStattHalten) { Task { await rec.stop() } }
+            wassersperreButton
             Text(hint).font(.caption2).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    /// Wassersperre („Water Lock"): sperrt den Bildschirm, bis man die Krone dreht.
+    ///
+    /// Beim Pumpen schlaegt dauernd Wasser aufs Display und loest Aktionen aus — auf Zepp haben
+    /// wir dafuer seit Juli ein eigenes Schild gebaut, hier gibt es Besseres: Apples eigene
+    /// Sperre legt das GANZE System still, nicht nur unsere App, und wirft beim Entsperren das
+    /// Wasser aus dem Lautsprecher. `enableWaterLock()` ist dokumentiert und fuer Dritt-Apps
+    /// erlaubt, solange eine Workout-Session laeuft — die haelt unser Recorder ohnehin.
+    ///
+    /// Der Knopf sitzt auf der Stopp-Seite, wo die Aktionen ohnehin liegen: einen Wischer von
+    /// den Daten entfernt, aber nicht dort, wo man ihn versehentlich trifft.
+    @ViewBuilder private var wassersperreButton: some View {
+        if wassersperre != "off" {
+            Button(WLoc.t("rec.waterLock", lang)) { WKInterfaceDevice.current().enableWaterLock() }
+                .font(.caption2)
+                .buttonStyle(.bordered)
+        }
     }
 
     // Verwerfen-Seite (ganz außen): 3 s halten -> Aufnahme löschen ohne Upload (orange statt rot).
@@ -705,6 +734,7 @@ struct RecordView: View {
             }
             autoStart = c.autoStart ?? false                   // Config-Default; danach auf der Uhr umschaltbar
             pressStattHalten = (c.stopMode ?? "hold") == "press"
+            wassersperre = c.waterLock ?? "auto"
         }
         if let off = c.offFoilView, !off.isEmpty { offFoil = off }
         // Pausen-Screen (zwischen den Läufen) — fehlt der Key, bleibt der lokale Default.
