@@ -78,13 +78,31 @@ export default defineConfig({
               backgroundSync: { name: "like-queue", options: { maxRetentionTime: 24 * 60 } },
             },
           },
+          // Sessionlisten: SOFORT aus dem Cache zeigen, parallel nachladen (15.09.2026).
+          //
+          // Vorher stand hier NetworkFirst mit 4 s Timeout — die PWA wartete also erst aufs
+          // Netz, bevor ueberhaupt etwas zu sehen war, und lieferte nach dem Timeout trotzdem
+          // den alten Stand. Genau umgekehrt ist es richtig (Jan): „die PWA soll moeglichst
+          // sofort und ohne Verzoegerung das Gecachte anzeigen und gleichzeitig ein Update
+          // requesten … und wenn es keine Aenderung gibt, soll gar nichts passieren."
+          //
+          // StaleWhileRevalidate liefert den Cache ohne Wartezeit und frischt ihn im
+          // Hintergrund auf. Der Haken: DIESELBE Antwort bekommt auch die Nachpruefung der
+          // Seite — sie erfuehre also nie von einer Aenderung. Deshalb traegt der
+          // Nachpruef-Aufruf `fresh=1` und wird hier ausgenommen: er geht garantiert ans Netz,
+          // und `Sessions.tsx` mischt sein Ergebnis ein (gleiche Referenz bei Gleichstand ->
+          // kein Render, kein Scroll-Sprung).
           {
             // Community-Feed: letzter geladener Stand offline (Suche = eigene URLs -> offline Miss)
-            urlPattern: ({ url }) => url.pathname === "/api/community/sessions",
-            handler: "NetworkFirst",
+            // `sessions-grouped` MIT aufnehmen: das ist der Endpunkt, den die Sessions- und die
+            // Community-Seite wirklich benutzen. Die Regel traf bisher exakt `/api/community/
+            // sessions` — der Feed war also ueberhaupt nicht gecacht und lud jedes Mal neu.
+            urlPattern: ({ url }) =>
+              (url.pathname === "/api/community/sessions" ||
+               url.pathname === "/api/community/sessions-grouped") && !url.searchParams.has("fresh"),
+            handler: "StaleWhileRevalidate",
             options: {
               cacheName: "api-community",
-              networkTimeoutSeconds: 4,
               expiration: { maxEntries: 8, maxAgeSeconds: 7 * 24 * 3600 },
               cacheableResponse: { statuses: [200] },
             },
@@ -92,13 +110,12 @@ export default defineConfig({
           {
             // Meine Sessions: Liste + Monate + Stats
             urlPattern: ({ url }) =>
-              url.pathname === "/api/sessions" ||
-              url.pathname === "/api/sessions/months" ||
-              url.pathname === "/api/sessions/stats",
-            handler: "NetworkFirst",
+              (url.pathname === "/api/sessions" ||
+               url.pathname === "/api/sessions/months" ||
+               url.pathname === "/api/sessions/stats") && !url.searchParams.has("fresh"),
+            handler: "StaleWhileRevalidate",
             options: {
               cacheName: "api-my-sessions",
-              networkTimeoutSeconds: 4,
               expiration: { maxEntries: 12, maxAgeSeconds: 7 * 24 * 3600 },
               cacheableResponse: { statuses: [200] },
             },
