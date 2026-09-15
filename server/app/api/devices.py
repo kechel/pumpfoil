@@ -106,6 +106,28 @@ def _effective_gnss_mode(device: models.DeviceToken, settings: dict) -> str:
     return base if base in GNSS_MODES else "best"
 
 
+WATER_LOCK_MODES = ("auto", "on", "off")
+
+
+def _effective_water_lock(device: models.DeviceToken, settings: dict) -> str:
+    """Wassersperre dieser Uhr: Geraete-Override vor Nutzer-Default, sonst "auto".
+
+    Beim Pumpen schlaegt dauernd Wasser aufs Display und loest Aktionen aus (gemeldet 27.07. und
+    04.09.). Wie eine Uhr das loest, ist Sache der Uhr: die Apple Watch kann Apples eigene
+    Wassersperre anfordern (systemweit, Krone gibt frei), auf Wear OS und Zepp legen wir ein
+    eigenes Schild ueber unsere Oberflaeche. Garmin braucht nichts — unser Aufnahme-Bildschirm
+    hat dort gar keine Tipp-Behandlung.
+
+    "auto" heisst deshalb: die Uhr entscheidet, ob sie es einschaltet. Zepp tut das nur ab drei
+    Tasten — auf einer Uhr mit zweien kaeme man sonst nicht mehr heraus. "on"/"off" ueberstimmt
+    diese Entscheidung. Je GERAET, nicht je Nutzer: es ist eine Eigenschaft der Uhr, keine
+    Bediengewohnheit des Menschen (anders als `stop_mode`, s. dort).
+    """
+    dev = device.water_lock if device.water_lock in WATER_LOCK_MODES else None
+    base = dev or settings.get("water_lock", "auto")
+    return base if base in WATER_LOCK_MODES else "auto"
+
+
 def _plat_fuer_hinweis(p: str | None, device: models.DeviceToken) -> str:
     """Plattform, deren Store-Version der Uhr als Update-Hinweis vorgehalten wird.
 
@@ -304,6 +326,9 @@ def device_config(
         "recordMode": _effective_record_mode(device, settings),
         # GNSS-Stufe je Uhr (best|l1|two|gps) — Uhren vor 1.0.77 ignorieren den Schluessel.
         "gnssMode": _effective_gnss_mode(device, settings),
+        # Wassersperre: "auto" (Uhr entscheidet) | "on" | "off". Aeltere Uhr-Versionen
+        # ignorieren den Schluessel und verhalten sich wie bisher.
+        "waterLock": _effective_water_lock(device, settings),
         # Halten oder Druecken fuer die Uhr-Aktionen, die heute 2 s Halten verlangen
         # (Beenden, Verwerfen): "hold" (Default) | "press". Gilt fuer alle Uhren des Nutzers;
         # bewusst KEIN Geraete-Override — anders als recordMode/gnssMode ist das eine
@@ -696,6 +721,30 @@ def set_device_gnss_mode(
     d.gnss_mode = mode
     db.commit()
     return {"ok": True, "gnss_mode": mode}
+
+
+@router.put("/{device_id}/water-lock")
+def set_device_water_lock(
+    device_id: int, body: dict,
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """Wassersperre (auto|on|off) fuer EINE Uhr setzen — wie Aufzeichnungsmodus und GNSS-Stufe.
+
+    Warum abschaltbar: die Sperre nimmt die Bedienung weg, bis man eine Taste drueckt. Wer
+    seine Uhr unter dem Neopren traegt oder ohnehin nur Tasten benutzt, will das nicht.
+    Greift beim naechsten App-Start (die Uhr holt `/config`), kein Uhr-Update noetig.
+    """
+    d = db.get(models.DeviceToken, device_id)
+    if d is None or d.user_id != user.id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Gerät nicht gefunden")
+    if d.revoked_at is not None:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Gerät ist widerrufen")
+    mode = (body or {}).get("water_lock")
+    if mode not in WATER_LOCK_MODES:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Ungültige Wassersperre")
+    d.water_lock = mode
+    db.commit()
+    return {"ok": True, "water_lock": mode}
 
 
 def _partmap() -> dict:
