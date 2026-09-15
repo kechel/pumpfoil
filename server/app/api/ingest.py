@@ -412,6 +412,12 @@ def complete_session(
         if lm:
             s.ended_at = s.started_at + timedelta(milliseconds=lm + gesamt_pause_ms(s))
     s.total_chunks = body.total_chunks
+    # Puls-Diagnose nur uebernehmen, wenn sie mitkommt — sonst wuerde ein erneutes /complete
+    # einer alten App-Version (Retry/Watchdog) eine schon gemeldete Angabe wieder loeschen.
+    if body.hr_samples is not None:
+        s.hr_samples = body.hr_samples
+    if body.hr_source:
+        s.hr_source = body.hr_source[:16]
     s.status = "complete"
     db.commit()
 

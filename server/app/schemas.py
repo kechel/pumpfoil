@@ -173,6 +173,12 @@ class SessionCompleteIn(BaseModel):
     # Zeit weiter (die Uhr zieht Pausen ab), damit sie lueckenlos bleibt — erst damit laesst sich
     # daraus wieder eine Uhrzeit machen. Nur der Garmin-Recorder kann pausieren.
     pauses: list[list[int]] | None = None
+    # Puls-Diagnose (optional, seit 15.09.2026): wie viele Pulswerte der Recorder waehrend der
+    # Aufnahme wirklich bekommen hat, und wie. "active" = Messung aktiv angefordert und
+    # geliefert · "passive" = nur mitgelesen · "none" = gar nichts. Ohne diese Angaben ist ein
+    # Puls-Ausfall von aussen nicht von „Nutzer traegt die Uhr locker" zu unterscheiden.
+    hr_samples: int | None = None
+    hr_source: str | None = None
 
 
 # --- Sessions / Analysis ---
