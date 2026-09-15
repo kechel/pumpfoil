@@ -605,10 +605,34 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
         res["metrics"]["max_pump_hz"] = round(max(seg_max), 3) if seg_max else None
         res["metrics"]["min_pump_hz"] = round(min(seg_min), 3) if seg_min else None
 
-    result = db.query(models.AnalysisResult).filter_by(session_id=session.id).first()
-    if result is None:
-        result = models.AnalysisResult(session_id=session.id)
-        db.add(result)
+    # Die Ergebniszeile ATOMAR reservieren, statt erst zu schauen und dann einzufuegen.
+    #
+    # Bis 15.09.2026 stand hier `first()` und, wenn nichts da war, ein `db.add(...)`. Zwischen
+    # dem Lesen und dem Commit am Ende dieser Funktion vergehen aber Sekunden bis Minuten — und
+    # in dieser Zeit kann eine ZWEITE Analyse derselben Session die Zeile anlegen. Dann bricht
+    # der Commit mit „duplicate key value violates unique constraint
+    # analysis_results_session_id_key" ab, und weil das die FINALE Analyse treffen kann, bleibt
+    # die Session fuer immer auf „complete" stehen: in der Liste als „wird verarbeitet", ohne
+    # Benachrichtigung, ohne Auto-Zuschnitt.
+    #
+    # Belegt an Jans Session #8517 (15.09.): `/complete` um 14:55:32 mit 200 OK, eine Sekunde
+    # spaeter starb die finale Analyse genau daran. Die Gelegenheiten dafuer sind zahlreich —
+    # Chunk-Upload, Oeffnen der Detailseite und `/complete` stossen jeweils eine Analyse an,
+    # und der Server laeuft mit vier Arbeitern.
+    #
+    # `ON CONFLICT DO NOTHING` macht Reservieren und Pruefen zu EINER Anweisung. Legt gerade
+    # jemand anders an, wartet das Statement auf dessen Commit und ueberspringt dann — in
+    # beiden Faellen gibt es hinterher genau eine Zeile, und wir arbeiten auf ihr weiter.
+    # `algo_version` und `created_at` sind hier nur Platzhalter: die echten Werte setzt der
+    # Block direkt darunter.
+    from sqlalchemy.dialects.postgresql import insert as _pg_insert
+    db.execute(
+        _pg_insert(models.AnalysisResult)
+        .values(session_id=session.id, algo_version=res["algo_version"],
+                created_at=datetime.now(timezone.utc))
+        .on_conflict_do_nothing(index_elements=["session_id"])
+    )
+    result = db.query(models.AnalysisResult).filter_by(session_id=session.id).one()
 
     result.algo_version = res["algo_version"]
     result.total_distance_m = res["total_distance_m"]

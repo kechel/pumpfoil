@@ -1873,6 +1873,20 @@ def get_session(
         # Analyse ausloesen.
         if has_gps and (s.result is None or _nachrechnen_faellig(db, s)):
             background_tasks.add_task(_analyze_in_background, s.id, False)
+    # SICHERHEITSNETZ (15.09.2026): eine Session, die `/complete` bekommen hat, deren FINALE
+    # Analyse aber gestorben ist, kam bisher NIE mehr weiter — es gab keinen Weg zurueck.
+    # Sie stand fuer immer als „wird verarbeitet" in der Liste, ohne Benachrichtigung und ohne
+    # Auto-Zuschnitt. Genau so passiert an #8517 und #8504 (beide 15.09.), als zwei Analysen
+    # gleichzeitig die Ergebniszeile anlegen wollten. Die Ursache ist behoben (s. run_analysis),
+    # aber ein Weg zurueck muss es geben — sonst kostet der naechste unbekannte Fehler wieder
+    # eine Aufnahme. Der Lauf setzt `analyzed` und hoert damit von selbst auf.
+    elif s.user_id == user.id and s.status == "complete":
+        import logging as _logging
+
+        from .ingest import _analyze_in_background
+        _logging.getLogger(__name__).info(
+            "sessions: %s haengt auf 'complete' — finale Analyse nachgeholt", s.id)
+        background_tasks.add_task(_analyze_in_background, s.id, True)
     like_count = int(
         db.query(func.count()).select_from(models.SessionLike).filter_by(session_id=s.id).scalar() or 0)
     liked = db.query(models.SessionLike).filter_by(session_id=s.id, user_id=user.id).first() is not None
