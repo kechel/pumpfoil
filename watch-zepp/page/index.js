@@ -718,6 +718,10 @@ Page(
       updateVersion: "", layoutsPref: null, layoutsServerDefault: false,
       // null = automatisch (haengt an der Tastenzahl, s. _useTouchLock), true/false = Wahl.
       touchLockPref: null,
+      // Vorbelegung vom Server ("auto" | "on" | "off"); "auto" laesst die Tastenzahl
+      // entscheiden — genau das Verhalten von vorher, es aendert sich also fuer niemanden
+      // etwas, der nichts einstellt.
+      waterLockServer: "auto",
       // Foil & Alarm (entkoppelt): Foil = Metadaten (+ Auto-Schwellen); Alarm An/Aus; Quelle Auto/Manuell.
       foils: [], foilId: null, foilLabel: "—", almOn: false, almSrc: "foil", almLow: 0, almHigh: 0,
       vibrator: null, buzzer: null, _almActive: false, _foilInit: false,
@@ -1167,6 +1171,7 @@ Page(
         // wenn im Profil keine Sprache steht -> setLang() faellt dann auf Englisch.
         if (r && typeof r.language !== "undefined") { store.setItem("lang", r.language || ""); setLang(r.language); }
         if (r && typeof r.layoutsOn !== "undefined") s.layoutsServerDefault = !!r.layoutsOn;
+        if (r && typeof r.waterLock === "string" && r.waterLock) s.waterLockServer = r.waterLock;
         if (r && Array.isArray(r.views) && r.views.length) s.views = r.views;
         if (r && Array.isArray(r.offFoilView) && r.offFoilView.length) s.offFoil = r.offFoilView;
         if (r && typeof r.autoStart !== "undefined") s.autoStart = !!r.autoStart;
@@ -1371,7 +1376,16 @@ Page(
       s.lockTimer = setTimeout(aufraeumen, 1200);
     },
     // Automatisch = nur ab 3 Tasten (Begruendung an KEY_NUMBER), sonst die Wahl aus dem Menue.
-    _useTouchLock() { const s = this.state; return s.touchLockPref === null ? KEY_NUMBER >= 3 : !!s.touchLockPref; },
+    // Automatisch = erst der Server-Wert, und nur bei "auto" die Tastenzahl. Ab drei Tasten,
+    // weil man sich auf einer Uhr mit zweien sonst aussperrt. Eine Wahl im Uhr-Menue
+    // (touchLockPref) schlaegt beides und ueberlebt den App-Start.
+    _useTouchLock() {
+      const s = this.state;
+      if (s.touchLockPref !== null) return !!s.touchLockPref;
+      if (s.waterLockServer === "on") return true;
+      if (s.waterLockServer === "off") return false;
+      return KEY_NUMBER >= 3;
+    },
     _lockTouch() {
       const s = this.state, w = s.w;
       if (!s.recording || !this._useTouchLock()) return;
@@ -1564,7 +1578,7 @@ Page(
       // Gleiches Muster fuer die Touch-Sperre: bei "Automatisch" steht der aufgeloeste Zustand
       // dahinter, damit sichtbar ist, was die Tastenzahl des Modells ergibt.
       const lockTxt = s.touchLockPref === null
-        ? t("common.auto") + " (" + onOff(KEY_NUMBER >= 3) + ")"
+        ? t("common.auto") + " (" + onOff(this._useTouchLock()) + ")"
         : onOff(s.touchLockPref);
       w.foilBtns = [
         mk(ys[0], t("fm.alarm") + ": " + onOff(s.almOn), () => { s.almOn = !s.almOn; this.renderIdle(); }),

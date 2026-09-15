@@ -1606,8 +1606,15 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     von selbst sperren (**Default, aendert fuer bestehende Nutzer nichts** — Jans Vorgabe) ·
     `on` = beim Start sperren · `off` = gar nicht. Auf Zepp heisst `auto` weiter „automatisch ab
     drei Tasten", also ebenfalls unveraendert.
-  - Texte in allen 17 Sprachen je Uhr. 🔲 **Offen:** Zepp liest den Server-Wert noch nicht, dort
-    gilt weiter die Einstellung im Uhr-Menue.
+  - Texte in allen 17 Sprachen je Uhr.
+  - **🟢 Zepp haengt jetzt auch am Server** (15.09.): die Bruecke laesst `waterLock` durch, und
+    `_useTouchLock()` fragt erst den Server-Wert, dann die Tastenzahl. **Vorrang wie bei den
+    Layouts** — die Wahl im Uhr-Menue gewinnt und ueberlebt den App-Start, der Server-Wert ist nur
+    die Vorbelegung fuer „Automatisch" (`page/index.js`, Kommentar bei den Foil-Knoepfen: „der
+    Server-Wert ist nur die Vorbelegung, nicht ein Veto"). Der Menue-Text zeigt den AUFGELOESTEN
+    Zustand in Klammern, also „Automatisch (An)". Alle 18 Kombinationen (3 Server x 3 lokal x
+    2 Tastenzahlen) nachgerechnet: bei `auto` ohne lokale Wahl kommt exakt das bisherige
+    Verhalten heraus, es aendert sich also fuer niemanden etwas.
 
 - **🔲→🟢 10.09. (ersetzt durch den Eintrag darueber) — Wassersperre (Wet Mode) auf Wear: kommt zurueck, aber nicht oben.** Herausgenommen
   aus 1.2.28 (Entscheidung Jan: „raus"). Sie kam am 04.09. dazu (`fb3d8e9c`, Punkt 4 aus JoLes
