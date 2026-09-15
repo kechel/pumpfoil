@@ -522,7 +522,12 @@ function MySessionsList({ myName, accelOnly, onShowAll }:
     }
     const obs = new IntersectionObserver((e) => { if (e[0].isIntersecting) fetchPage(monthRef.current, false); }, { rootMargin: "300px" });
     if (sentinelRef.current) obs.observe(sentinelRef.current);
+    // Rueckkehr aus dem Hintergrund: `revalidateHead` haengt sonst nur am Mount, eine schon
+    // offene Liste bliebe also beliebig lange alt (Jan, 15.09.2026 — PWA dauerhaft im Hintergrund).
+    const beiRueckkehr = () => { if (document.visibilityState === "visible") revalidateHead(monthRef.current); };
+    document.addEventListener("visibilitychange", beiRueckkehr);
     return () => {
+      document.removeEventListener("visibilitychange", beiRueckkehr);
       obs.disconnect();
       // Aktuellen Listen-Zustand + Scroll-Position sichern (für die Rückkehr aus dem Detail).
       listCache.set(cacheKey(), { items: itemsRef.current, offset: offsetRef.current, hasMore: hasMoreRef.current, scrollY: window.scrollY });
@@ -925,15 +930,54 @@ function CommunityList({ name, spot, accelOnly, onShowAll }:
       .finally(() => { loadingRef.current = false; setLoading(false); });
   };
 
+  // Erste Seite frisch holen und einmischen — das Gegenstueck zu `revalidateHead` der
+  // „Meine"-Liste, das hier bis 15.09.2026 FEHLTE. Ohne das zeigte ein Cache-Treffer seinen Stand
+  // unveraendert weiter, bis ein echter Reload die modulweite Map wegwarf. Genau so gemeldet
+  // (Jan, 15.09.): „wenn ich die pwa die ganze zeit im hintergrund habe und dann neu auf sessions
+  // gehe, muss ich immer erst mit strg-r reloaden um neuere sessions zu sehen."
+  //
+  // Gemischt wird ueber (user_id|date|spot) — der Schluessel einer Tages-Gruppe. Die frische
+  // erste Seite gewinnt und behaelt die Reihenfolge des Servers; was der Cache darueber hinaus
+  // hat (nachgeladene Seiten), haengt sich hinten an. Damit ist das Ergebnis dasselbe wie nach
+  // einem echten Neuladen plus Weiterscrollen.
+  const gruppenKey = (g: CommunityGroup) => `${g.user_id}|${g.date}|${g.spot ?? ""}`;
+  async function revalidateCommunityHead() {
+    try {
+      const fresh = await api.communitySessionsGrouped(
+        PAGE, 0, { name: name || undefined, spot: spot || undefined, accelOnly, sport: "all" });
+      if (!fresh.length) return;
+      const frisch = new Set(fresh.map(gruppenKey));
+      const rest = itemsRef.current.filter((g) => !frisch.has(gruppenKey(g)));
+      const merged = [...fresh, ...rest];
+      // Nichts Neues und nichts geaendert -> Zustand nicht anfassen (kein Render, kein Scroll-Sprung).
+      if (merged.length === itemsRef.current.length
+          && merged.every((g, i) => g === itemsRef.current[i])) return;
+      itemsRef.current = merged;
+      offsetRef.current = merged.length;
+      setItems(merged);
+      communityCache.set(`${name}|${spot}|${accelOnly}`,
+                         { items: merged, offset: offsetRef.current, more: moreRef.current });
+    } catch { /* offline/Fehler: der Cache bleibt einfach stehen */ }
+  }
+
   useEffect(() => {
     const cached = communityCache.get(`${name}|${spot}|${accelOnly}`);
     if (cached && cached.items.length) {
       setItems(cached.items); offsetRef.current = cached.offset; moreRef.current = cached.more;
+      itemsRef.current = cached.items;
       restoreRef.current = true;  // nach dem Render die markierte Karte einscrollen
+      revalidateCommunityHead();  // im Hintergrund neue Sessions nachziehen
     } else {
       moreRef.current = true; offsetRef.current = 0; load(true);
     }
-    return () => { communityCache.set(`${name}|${spot}|${accelOnly}`, { items: itemsRef.current, offset: offsetRef.current, more: moreRef.current }); };
+    // Lag die PWA lange im Hintergrund, laeuft beim Zurueckkommen KEIN Mount — ohne das hier
+    // bliebe eine schon offene Liste beliebig lange alt stehen.
+    const beiRueckkehr = () => { if (document.visibilityState === "visible") revalidateCommunityHead(); };
+    document.addEventListener("visibilitychange", beiRueckkehr);
+    return () => {
+      document.removeEventListener("visibilitychange", beiRueckkehr);
+      communityCache.set(`${name}|${spot}|${accelOnly}`, { items: itemsRef.current, offset: offsetRef.current, more: moreRef.current });
+    };
   }, [name, spot, accelOnly]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     const o = new IntersectionObserver((e) => { if (e[0].isIntersecting) load(false); }, { rootMargin: "400px" });
