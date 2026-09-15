@@ -4,7 +4,7 @@ import android.content.Context
 import org.json.JSONObject
 import java.io.File
 
-// Persistente Ablage der auf dem HANDY aufgezeichneten Sessions (Beta „Record on Phone").
+// Persistente Ablage der auf dem HANDY aufgezeichneten Sessions („Record on Phone", freigegeben).
 // Aufnahme schreibt IMMER zuerst hierhin (crash-/offline-sicher); Recorder.drain lädt später
 // hoch. Layout: filesDir/phone-sessions/<uuid>/{meta.json, chunk-000000.json…, complete.json}.
 // Eigenes Verzeichnis (getrennt von evtl. anderen Quellen). 1:1 aus dem Wear-Recorder portiert.

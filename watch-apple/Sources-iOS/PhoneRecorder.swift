@@ -2,7 +2,8 @@ import Foundation
 import CoreLocation
 import CoreMotion
 
-// „Record on Phone" (Beta): das iPhone selbst als Recorder. GPS (CoreLocation, 1 Hz) + Accel
+// „Record on Phone": das iPhone selbst als Recorder (freigegeben, KEIN Beta — nur der
+// Schalter „Handy-Recorder" im Profil schaltet ihn sichtbar). GPS (CoreLocation, 1 Hz) + Accel
 // (CoreMotion, ~50 Hz, bereits in g) laufen im Hintergrund (Background-Location hält die App am
 // Leben, Screen aus / in der Tasche). Rohdaten werden lokal gepuffert (crash-/offline-sicher) und
 // über den Raw-Ingest-Contract mit einem geminteten „Phone"-Device-Token hochgeladen. Puffer-/Lauf-/
