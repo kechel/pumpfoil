@@ -1586,7 +1586,30 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   mehr. Die Voreinstellung hat ihn auf Seite 1 (`DEFAULT_VIEWS` = Speed + Puls), fuer eigene
   Layouts gilt wie immer: Nutzersache.
 
-- **🔲 10.09. — Wassersperre (Wet Mode) auf Wear: kommt zurueck, aber nicht oben.** Herausgenommen
+- **🟢 15.09. UMGESETZT — Wassersperre kommt zurueck, gekruemmt am Rand (Wear) bzw. als Apples
+  eigene Sperre (Apple Watch); im Profil je Uhr abschaltbar.**
+  - **Wear OS:** der Knopf sitzt jetzt in einem `CurvedLayout` (`anchor = 270f`) — gar nicht im
+    rechteckigen Inhaltsfluss, die 7-dp-Kollision mit der ersten Ziffernzeile kann also nicht
+    entstehen. **Die Idee stammt von JoLe (u396, PR #5); uebernommen haben wir sie, nicht seinen
+    Code** (Jan: „wir machen das ordentlich selber"). Statt seines Emojis ein gezeichneter
+    Tropfen (Projektregel), und OHNE seine Laufzeit-Abfrage auf `WATCH_TOUCH` — die Berechtigung
+    steht in keiner Dokumentation, und ein Entwickler mit demselben Anwendungsfall bekommt
+    Samsungs Gegenstueck trotz Manifest und Abfrage nie erteilt. Nur deklariert: greift der
+    Broadcast, sperrt er systemweit; greift er nicht, faengt unser eigenes Schild die Tropfen ab
+    (2 s Halten gibt frei — dieselbe Geste und dieselben Texte wie auf Zepp).
+  - **Apple Watch:** `enableWaterLock()`, dokumentiert und fuer Dritt-Apps erlaubt, solange eine
+    Workout-Session laeuft (die haelt unser Recorder). Sperrt das ganze System, Krone gibt frei.
+    Knopf auf der Stopp-Seite.
+  - **Garmin bekommt nichts** — und braucht auch nichts: `RecordDelegate` kennt nur Tasten, es
+    gibt gar keine Tipp-Behandlung. Connect IQ bietet ohnehin keine Schnittstelle dafuer.
+  - **Einstellbar je UHR** (`device_tokens.water_lock`, Profil): `auto` = anbieten, aber nicht
+    von selbst sperren (**Default, aendert fuer bestehende Nutzer nichts** — Jans Vorgabe) ·
+    `on` = beim Start sperren · `off` = gar nicht. Auf Zepp heisst `auto` weiter „automatisch ab
+    drei Tasten", also ebenfalls unveraendert.
+  - Texte in allen 17 Sprachen je Uhr. 🔲 **Offen:** Zepp liest den Server-Wert noch nicht, dort
+    gilt weiter die Einstellung im Uhr-Menue.
+
+- **🔲→🟢 10.09. (ersetzt durch den Eintrag darueber) — Wassersperre (Wet Mode) auf Wear: kommt zurueck, aber nicht oben.** Herausgenommen
   aus 1.2.28 (Entscheidung Jan: „raus"). Sie kam am 04.09. dazu (`fb3d8e9c`, Punkt 4 aus JoLes
   Rueckmeldung — Pixel Watch 2, selbst Wear-Entwickler) und saß zuletzt im Band oben mittig.
   **Warum sie da nicht bleiben konnte,** im Emulator dieser VM gemessen (192 dp, Standard-Ansicht):

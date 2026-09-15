@@ -37,6 +37,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Path
+import androidx.wear.compose.foundation.CurvedLayout
+import androidx.wear.compose.foundation.curvedComposable
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -255,6 +262,13 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
         // Profil-Einstellung: "hold" (Default) = 2 s halten, "press" = ein Druck genuegt.
         // Gilt fuer alle Uhren des Nutzers (kein Geraete-Override) — s. /api/devices/config.
         var stopMode by remember { mutableStateOf("hold") }
+        // Wassersperre aus dem Profil: "auto" = anbieten, aber NICHT von selbst einschalten
+        // (Default, aendert fuer bestehende Nutzer nichts) | "on" = beim Start sperren | "off".
+        var wasserSperrModus by remember { mutableStateOf("auto") }
+        // Ist der Touch gerade gesperrt? Wie auf Zepp: ein Schild ueber der Oberflaeche schluckt
+        // die Tropfen, 2 s Halten gibt wieder frei.
+        var touchGesperrt by remember { mutableStateOf(false) }
+        var sperrHinweis by remember { mutableStateOf(false) }
         // Eigene Layouts (F2/F3). `pages`/`offFoilPages` sind gemischte Saetze: ein Eintrag ist
         // entweder eine 3-Feld-Seite oder eine Layout-ID. `layoutsOn` ist nur die VOREINSTELLUNG
         // des Schalters beim App-Start — danach entscheidet der Nutzer am Handgelenk (wie Garmin).
@@ -296,6 +310,7 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
             }
             autoStart = c.optBoolean("autoStart", false)
             stopMode = c.optString("stopMode", "hold")
+            wasserSperrModus = c.optString("waterLock", "auto")
             manualAlarm = c.optBoolean("alarmEnabled", false)
             alarmDefault = c.optString("alarmDefault", "foil")
             alarm = WatchAlarm(
@@ -560,6 +575,11 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                 } else if (s.isFoiling && pager.currentPage == summaryPage) {
                     pager.animateScrollToPage(lastData)
                 }
+            }
+            // Beim Start automatisch sperren — NUR bei "on". "auto" bietet den Knopf bloss an;
+            // wer die Sperre nie wollte, findet nichts vor, was seine Uhr ungefragt stilllegt.
+            LaunchedEffect(s.recording) {
+                if (s.recording && wasserSperrModus == "on") touchGesperrt = true
             }
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
                 HorizontalPager(state = pager, modifier = Modifier.fillMaxSize()) { page ->
@@ -829,6 +849,83 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                     // s. fieldValue(2). Im Band bleibt damit nur der Upload-Ring — er ist klein,
                     // rund und ueberdeckt nichts.
                   }
+                }
+                // WASSERSPERRE — der Knopf ist zurueck, aber GEKRUEMMT am Rand.
+                //
+                // Warum dort: er sass bis zum 10.09. im oberen Band und ragte bei Schriftfaktor
+                // 1,24 sieben dp in die erste Ziffernzeile; nachschieben ging nicht, weil der
+                // Inhalt bis 168 dp reicht und die Seiten-Punkte bei 176 dp sitzen. Deshalb kam
+                // er raus — und das gemeldete Problem blieb ungeloest. Ein `CurvedLayout` liegt
+                // gar nicht im rechteckigen Inhaltsfluss, die Kollision kann also nicht
+                // entstehen. Die Idee stammt von JoLe (u396, PR #5); uebernommen haben wir sie,
+                // nicht seinen Code.
+                //
+                // Kein Emoji als Beschriftung (Projektregel) — ein gezeichneter Tropfen.
+                if (wasserSperrModus != "off" && !touchGesperrt) {
+                    CurvedLayout(anchor = 270f, modifier = Modifier.fillMaxSize()) {
+                        curvedComposable {
+                            Box(
+                                Modifier
+                                    .clip(CircleShape)
+                                    .background(Color(0x33FFFFFF))
+                                    .clickable {
+                                        touchGesperrt = true
+                                        // Zusaetzlich Apples Gegenstueck auf Wear versuchen: greift
+                                        // der System-Broadcast, sperrt er das GANZE System und ist
+                                        // damit besser als unser Schild. Greift er nicht (die
+                                        // Berechtigung wird Dritt-Apps offenbar nicht erteilt,
+                                        // s. `wassersperre()`), bleibt unser Schild.
+                                        wassersperre()
+                                    }
+                                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                WasserTropfen(Modifier.size(14.dp))
+                            }
+                        }
+                    }
+                }
+                // Das Schild: schluckt jede Beruehrung, bis 2 s gehalten wird. Dieselbe Geste und
+                // dieselben Texte wie auf der Zepp-Uhr, damit beide gleich zu bedienen sind.
+                if (touchGesperrt) {
+                    Box(
+                        Modifier
+                            .fillMaxSize()
+                            .pointerInput(Unit) {
+                                awaitEachGesture {
+                                    awaitFirstDown(requireUnconsumed = false)
+                                    val start = System.currentTimeMillis()
+                                    var lang = false
+                                    while (true) {
+                                        val e = awaitPointerEvent()
+                                        if (System.currentTimeMillis() - start >= 2000L) lang = true
+                                        if (e.changes.none { it.pressed }) break
+                                    }
+                                    if (lang) { touchGesperrt = false; sperrHinweis = false }
+                                    else sperrHinweis = true
+                                }
+                            },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        // Kurzer Tipper zeigt, was los ist UND wie man rauskommt — ein Schloss
+                        // allein beantwortet die zweite Frage nicht.
+                        if (sperrHinweis) {
+                            LaunchedEffect(Unit) {
+                                kotlinx.coroutines.delay(1500)
+                                sperrHinweis = false
+                            }
+                            Column(
+                                Modifier.background(Color(0xE6000000), CircleShape)
+                                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                            ) {
+                                Text(I18n.t("rec.touchLock"), color = Color.White,
+                                     fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                Text(I18n.t("rec.holdFree"), color = Color(0xFFCBD5E1),
+                                     fontSize = 11.sp, textAlign = TextAlign.Center)
+                            }
+                        }
+                    }
                 }
             }
         } else if (showSaved) {
@@ -1843,6 +1940,23 @@ fun AmbientRecordingScreen(s: Recorder.State) {
                 color = Color(0xFF9AA4B2), fontSize = 14.sp,
             )
         }
+    }
+}
+
+/** Wassertropfen fuer den Sperr-Knopf. Gezeichnet statt Emoji: System-Emojis rendern je
+ *  Hersteller anders gross, und die Projektregel verbietet sie in der Oberflaeche. */
+@Composable
+private fun WasserTropfen(modifier: Modifier = Modifier) {
+    Canvas(modifier) {
+        val b = size.minDimension
+        val pfad = Path().apply {
+            moveTo(b * 0.5f, 0f)                                     // Spitze oben
+            cubicTo(b * 0.5f, b * 0.35f, b * 0.95f, b * 0.5f, b * 0.95f, b * 0.68f)
+            cubicTo(b * 0.95f, b * 0.93f, b * 0.05f, b * 0.93f, b * 0.05f, b * 0.68f)
+            cubicTo(b * 0.05f, b * 0.5f, b * 0.5f, b * 0.35f, b * 0.5f, 0f)
+            close()
+        }
+        drawPath(pfad, Color.White)
     }
 }
 
