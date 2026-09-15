@@ -3443,7 +3443,6 @@ enum Loc {
         "period.today": r("Heute", "Hütt", "Heit", "Today", "Aujourd'hui", "Oggi", "Hoy"),
         // In der Spot-Ansicht heisst die Wetterkarte wie in der PWA — nicht „am Homespot".
         "spot.weatherTitle": r("Wetter & Pegel", "Wätter & Pegel", "Wetter & Pegel", "Weather & water level", "Météo & niveau d'eau", "Meteo e livello dell'acqua", "Tiempo y nivel del agua"),
-        "common.loading": r("lädt …", "lädt …", "lädt …", "loading …", "chargement …", "caricamento …", "cargando …"),
         // Foil-Detailseite (Rekorde + Sessions je Foil), Wortlaut wie in der PWA.
         "foilDetail.records": r("Community-Rekorde mit diesem Foil", "Community-Rekörd mit däm Foil", "Community-Rekorde mit dem Foil", "Community records with this foil", "Records de la communauté avec ce foil", "Record della community con questo foil", "Récords de la comunidad con este foil"),
         "foilDetail.community": r("{sessions} Sessions von {users} Fahrern", "{sessions} Sessions vo {users} Fahrer", "{sessions} Sessions von {users} Fahrern", "{sessions} sessions by {users} riders", "{sessions} sessions de {users} riders", "{sessions} sessioni di {users} rider", "{sessions} sesiones de {users} riders"),
@@ -3801,7 +3800,6 @@ enum Loc {
         "sd.colAvgPump": r("Ø Pump {unit}", "Ø Pump {unit}", "Ø Pump {unit}", "Ø pump {unit}", "Ø pump {unit}", "Ø pump {unit}", "Ø pump {unit}"),
         "sd.colPumpMaxMin": r("Pump {unit} 5s (max/min)", "Pump {unit} 5s (max/min)", "Pump {unit} 5s (max/min)", "Pump {unit} 5s (max/min)", "Pump {unit} 5s (max/min)", "Pump {unit} 5s (max/min)", "Pump {unit} 5s (máx/mín)"),
         "sd.colGlide": r("längste Gleitphase", "längschti Gleitphase", "längste Gleitphase", "longest glide", "plus longue glisse", "planata più lunga", "planeo más largo"),
-        "sd.colMaxHr": r("Max. Puls", "Max. Puls", "Max. Puls", "Max HR", "Pouls max", "Battito max", "Pulso máx."),
     ]
 
     private static let __t3P1: [String: [String: String]] = [
