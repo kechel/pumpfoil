@@ -8,6 +8,25 @@ erhalten.
 Bis heute gab es **keine einzige** behördliche Anfrage. Diese Festlegung entsteht nicht aus
 einem Anlass, sondern damit im Fall der Fälle nicht improvisiert wird.
 
+## 0. Wie das praktisch abläuft
+
+Jede Anfrage wird **zuerst schriftlich aufgearbeitet**, bevor irgendetwas beantwortet wird — im
+Projekt-Chat mit dem KI-Assistenten, der den Datenbestand kennt. Der leistet dabei die Vorarbeit,
+die sonst unter Zeitdruck untergeht:
+
+- die Anfrage in klare Einzelfragen zerlegen und benennen, was genau verlangt wird,
+- **nachsehen, welche dieser Daten es bei uns überhaupt gibt** — oft ist die ehrliche Antwort
+  „haben wir nicht" (wir speichern zum Beispiel keine Zugriffstoken der Anmelde-Anbieter und
+  keine Klarnamen, wo ein Vorname reicht),
+- den kleinstmöglichen Datensatz bestimmen, der die Anfrage beantwortet,
+- und die Dokumentation nach Abschnitt 4 gleich mitschreiben.
+
+**Die rechtliche Bewertung ersetzt das nicht.** Der Assistent ist kein Rechtsbeistand. Ob eine
+Anfrage rechtmäßig ist, ob sie angefochten wird und was herausgegeben werden darf, entscheidet
+der Verantwortliche — bei ernsthaften Zweifeln, bei Fristsetzung oder bei Anfechtung mit
+anwaltlichem Rat. Die Vorarbeit sorgt dafür, dass diese Entscheidung auf einem vollständigen,
+belegten Sachverhalt getroffen wird statt aus dem Bauch.
+
 ## 1. Rechtmäßigkeit wird geprüft
 
 Jede Anfrage wird zuerst darauf geprüft, ob sie überhaupt rechtmäßig ist: Ist die anfragende
