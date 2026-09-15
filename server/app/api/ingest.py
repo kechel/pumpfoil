@@ -289,6 +289,43 @@ def upload_chunk(
     return ChunkOut(ok=True, index=body.index)
 
 
+# Wie lange eine auf `complete` haengende Session in Ruhe sein muss, bevor der Aufraeum-Lauf
+# sie anfasst. Eine gerade laufende finale Analyse braucht Minuten; ohne diese Frist fielen wir
+# ihr in den Ruecken und stellten eine zweite daneben.
+HAENGER_RUHE_MIN = 15
+
+
+def haenger_faellig(s: "models.Session", jetzt=None) -> bool:
+    """Ist diese Session auf `complete` haengengeblieben und reif fuer die finale Analyse?
+
+    `complete` heisst: die Uhr hat `/complete` geschickt und eine Quittung bekommen, sie darf
+    ihre Kopie also loeschen. Fertig ist die Session damit NICHT — die finale Analyse laeuft
+    hinterher. Stirbt sie, bleibt die Aufnahme fuer immer in diesem Zwischenzustand: in der
+    Liste als „wird verarbeitet", ohne Benachrichtigung, ohne Auto-Zuschnitt, aus der Community
+    ausgeblendet (`community.py` filtert nur `recording`/`live` — `complete` faellt durch alle
+    Raster). Passiert am 15.09.2026 an #8517 und #8504, als zwei Analysen gleichzeitig die
+    Ergebniszeile anlegen wollten.
+
+    BEWUSST NUR `complete`: bei `live`/`recording` kann die Uhr noch Daten halten, und ein
+    verfruehter Abschluss wuerde ihr sagen, sie duerfe sie wegwerfen. Die raeumt
+    `_altlasten_abschliessen` auf, wenn dasselbe Geraet die naechste Aufnahme anmeldet.
+
+    Eine Funktion und kein Filter im Aufraeum-Skript, aus demselben Grund wie bei
+    `_nachrechnen_faellig`: es soll nur EINE Definition davon geben, und sie soll pruefbar sein.
+    """
+    from datetime import datetime, timedelta, timezone
+
+    if s.deleted or s.status != "complete":
+        return False
+    jetzt = jetzt or datetime.now(timezone.utc)
+    stand = s.updated_at or s.created_at
+    if stand is None:
+        return True
+    if stand.tzinfo is None:
+        stand = stand.replace(tzinfo=timezone.utc)
+    return stand <= jetzt - timedelta(minutes=HAENGER_RUHE_MIN)
+
+
 def _analyze_in_background(session_id: int, final: bool = True) -> None:
     """Analyse in eigener DB-Session (die Request-Session ist nach Antwort geschlossen)."""
     db = SessionLocal()
