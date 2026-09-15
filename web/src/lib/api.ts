@@ -1140,7 +1140,11 @@ export const api = {
       _activeUploads--;
     }
   },
-  sessions: (params?: { limit?: number; offset?: number; month?: string; filter?: string; accelOnly?: boolean; foilId?: number }) => {
+  // `fresh: true` haengt `fresh=1` an. Der Service Worker nimmt solche Aufrufe von seinem
+  // Cache AUS (s. vite.config.ts) — sie gehen garantiert ans Netz. Gedacht fuer die
+  // Nachpruefung einer schon angezeigten Liste: die Anzeige kommt sofort aus dem Cache, die
+  // Wahrheit kommt hierueber nach. Der Server ignoriert den Zusatzparameter.
+  sessions: (params?: { limit?: number; offset?: number; month?: string; filter?: string; accelOnly?: boolean; foilId?: number; fresh?: boolean }) => {
     const qs = new URLSearchParams();
     if (params?.limit != null) qs.set("limit", String(params.limit));
     if (params?.offset != null) qs.set("offset", String(params.offset));
@@ -1149,6 +1153,7 @@ export const api = {
     if (params?.accelOnly) qs.set("accel_only", "true");
     // Genau ein Foil (Foil-Detailseite): meine Sessions mit diesem Fluegel.
     if (params?.foilId) qs.set("foil_id", String(params.foilId));
+    if (params?.fresh) qs.set("fresh", "1");
     const q = qs.toString();
     return req<SessionSummary[]>(`/api/sessions${q ? "?" + q : ""}`);
   },
@@ -1214,12 +1219,13 @@ export const api = {
   },
   communitySessionsGrouped: (limit = 20, offset = 0, opts: { name?: string; spot?: string; accelOnly?: boolean;
       // "all" = alle Sportarten (Liste "was ist neu"); sonst genau eine (Community-Ansichten).
-      sport?: string } = {}) => {
+      sport?: string; fresh?: boolean } = {}) => {
     const p = new URLSearchParams({ limit: String(limit), offset: String(offset) });
     if (opts.name) p.set("name", opts.name);
     if (opts.spot) p.set("spot", opts.spot);
     if (opts.accelOnly === false) p.set("accel_only", "false");
     if (opts.sport) p.set("sport", opts.sport);
+    if (opts.fresh) p.set("fresh", "1");   // am Service-Worker-Cache vorbei, s. `sessions`
     return req<CommunityGroup[]>(`/api/community/sessions-grouped?${p}`);
   },
   spotSessions: (spot: string, accelOnly = true) =>

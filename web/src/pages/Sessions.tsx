@@ -471,7 +471,10 @@ function MySessionsList({ myName, accelOnly, onShowAll }:
   // aus dem Detail erhalten, aber neue Sessions erscheinen sofort (Cache „greift" online nicht dauerhaft).
   async function revalidateHead(monthVal: string) {
     try {
-      const fresh = await api.sessions({ limit: PAGE, offset: 0, month: monthVal || undefined, filter: filterRef.current, accelOnly: accelRef.current });
+      // `fresh: true` geht am Service-Worker-Cache vorbei. Ohne das bekaeme die Nachpruefung
+      // seit 15.09. dieselbe gecachte Antwort wie die Anzeige (StaleWhileRevalidate) und
+      // koennte nie etwas Neues melden.
+      const fresh = await api.sessions({ limit: PAGE, offset: 0, month: monthVal || undefined, filter: filterRef.current, accelOnly: accelRef.current, fresh: true });
       const known = new Set(itemsRef.current.map((s) => s.id));
       const added = fresh.filter((s) => !known.has(s.id));
       // Bekannte Eintraege MITziehen, nicht nur neue einfuegen: sonst bleibt eine anderswo
@@ -944,7 +947,7 @@ function CommunityList({ name, spot, accelOnly, onShowAll }:
   async function revalidateCommunityHead() {
     try {
       const fresh = await api.communitySessionsGrouped(
-        PAGE, 0, { name: name || undefined, spot: spot || undefined, accelOnly, sport: "all" });
+        PAGE, 0, { name: name || undefined, spot: spot || undefined, accelOnly, sport: "all", fresh: true });
       if (!fresh.length) return;
       const frisch = new Set(fresh.map(gruppenKey));
       const rest = itemsRef.current.filter((g) => !frisch.has(gruppenKey(g)));
