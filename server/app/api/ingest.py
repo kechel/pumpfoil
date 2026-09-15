@@ -64,7 +64,9 @@ def _altlasten_abschliessen(db: Session, device: models.DeviceToken,
            .filter(models.Session.device_id == device.id,
                    models.Session.id != aktuelle.id,
                    models.Session.deleted.is_(False),
-                   models.Session.status.in_(("recording", "live")),
+                   # „complete" ist seit 15.09. mit dabei: eine Session, deren finale Analyse
+                   # gestorben ist, haengt sonst fuer immer als „wird verarbeitet" fest.
+                   models.Session.status.in_(("recording", "live", "complete")),
                    models.Session.started_at < aktuelle.started_at)
            .all())
     jetzt = datetime.now(timezone.utc)

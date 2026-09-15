@@ -169,7 +169,15 @@ export function SessionCard({
       onPointerMove={onPointerMove}
       onClickCapture={onClickCapture}
     >
-      <Card className={`flex items-start justify-between gap-3 p-4 transition-colors hover:border-slate-700 hover:bg-slate-900 ${inCompare ? "ring-2 ring-brand-500" : highlight ? "ring-2 ring-brand-400 ring-offset-2 ring-offset-slate-950" : ""}`}>
+      <Card className={`flex flex-col gap-2 p-4 transition-colors hover:border-slate-700 hover:bg-slate-900 ${inCompare ? "ring-2 ring-brand-500" : highlight ? "ring-2 ring-brand-400 ring-offset-2 ring-offset-slate-950" : ""}`}>
+        {/* Status in eine EIGENE Zeile darueber (Jan, 15.09.2026). Vorher stand er rechts neben
+            dem Inhalt, in einer `shrink-0`-Spalte: die gab nie Platz ab, und weil die
+            Inhaltsspalte `min-w-0` traegt, schrumpfte immer sie. Auf dem Handy quetschte das den
+            Text bis auf Wortbreite — Datum und alle Setup-Abzeichen brachen einzeln um. Auf
+            Englisch fiel es kaum auf, auf DEUTSCH zerlegte es die Karte: „wird verarbeitet" ist
+            gut doppelt so breit wie „processing". */}
+        {statusBadge && <div className="flex">{statusBadge}</div>}
+        <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 gap-3">
           <div className="flex shrink-0 flex-col items-center gap-1.5">
             <Avatar name={avatarName ?? name} url={avatarUrl} size={44} />
@@ -235,7 +243,6 @@ export function SessionCard({
             {videoEl}
             {trackEl}
           </div>
-          {statusBadge}
           {needsClassification ? (
             <span className="rounded-lg bg-amber-500/15 px-2 py-0.5 text-sm text-amber-800 dark:text-amber-200">
               {t("cls.needsBadge")}
@@ -246,6 +253,7 @@ export function SessionCard({
             </span>
           ) : null}
           <ChevronIcon className="h-5 w-5 text-slate-400" />
+        </div>
         </div>
       </Card>
     </Link>
