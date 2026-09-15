@@ -194,12 +194,23 @@ def _hinweis(provider: str) -> str:
 
 
 @router.get("/providers")
-def providers() -> list[dict]:
-    """Liste der aktivierten Provider (für die Login-Buttons)."""
+def providers(show: str | None = None) -> list[dict]:
+    """Liste der aktivierten Provider (für die Login-Buttons).
+
+    `show=<anbieter>` blendet EINEN versteckten Anbieter wieder ein (s. `_versteckt`). Gebaut
+    fuer das App-Review von Meta (15.09.2026): der Pruefer muss den Facebook-Knopf sehen und
+    anklicken koennen, waehrend er fuer alle anderen noch aus ist. Die Login-Seite reicht den
+    Parameter aus ihrer eigenen URL durch, der Pruefer bekommt also einen Link wie
+    `https://pumpfoil.org/login?show=facebook`.
+
+    Kein Geheimnis und kein Risiko: der Anmeldeweg selbst (`/start`, `/callback`) war nie
+    gesperrt — man kam schon immer ueber die URL hinein. Der Parameter macht nur den KNOPF
+    sichtbar und erspart es, einen halbfertigen Anbieter fuer alle freizuschalten.
+    """
     out = []
     for p, cfg in PROVIDERS.items():
         creds = _creds(p)
-        if creds.get("client_id") and creds.get("client_secret") and not _versteckt(p):
+        if creds.get("client_id") and creds.get("client_secret") and (not _versteckt(p) or p == show):
             eintrag = {"id": p, "label": cfg["label"]}
             # Hinweis als EIGENES Feld, nicht an den Namen gehaengt: die Login-Seite setzt ihn
             # als Zeile ueber den Knopf, damit „Weiter mit Facebook" sauber lesbar bleibt.

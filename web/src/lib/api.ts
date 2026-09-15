@@ -1084,7 +1084,10 @@ export const api = {
       body: JSON.stringify({ email, password }),
     }),
   /** `note` = befristeter Hinweis ueber dem Knopf (Server: OAUTH_<P>_NOTE), sonst nicht gesetzt. */
-  oauthProviders: () => req<{ id: string; label: string; note?: string }[]>("/api/auth/oauth/providers"),
+  // `show` blendet EINEN versteckten Anbieter wieder ein — fuer Store-/Plattform-Reviews, bei
+  // denen ein Pruefer den Knopf sehen muss, bevor er fuer alle freigeschaltet ist.
+  oauthProviders: (show?: string) => req<{ id: string; label: string; note?: string }[]>(
+    `/api/auth/oauth/providers${show ? `?show=${encodeURIComponent(show)}` : ""}`),
   forgotPassword: (email: string) =>
     req<{ ok: boolean }>("/api/auth/forgot-password", { method: "POST", body: JSON.stringify({ email }) }),
   resetPassword: (token: string, new_password: string) =>

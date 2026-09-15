@@ -58,7 +58,12 @@ export default function Login() {
   const [providers, setProviders] = useState<{ id: string; label: string; note?: string }[]>([]);
   const nav = useNavigate();
 
-  useEffect(() => { api.oauthProviders().then(setProviders).catch(() => {}); }, []);
+  // `?show=<anbieter>` aus der Adresszeile durchreichen: macht einen noch versteckten
+  // Anmelde-Knopf sichtbar, ohne ihn fuer alle freizuschalten (Meta-App-Review, 15.09.2026).
+  useEffect(() => {
+    const show = new URLSearchParams(window.location.search).get("show") || undefined;
+    api.oauthProviders(show).then(setProviders).catch(() => {});
+  }, []);
 
   function forgot() {
     setError(null); setForgotMsg(null);
