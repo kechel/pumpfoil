@@ -1191,18 +1191,28 @@
   },
   {
     "brand": "AXIS",
-    "model": "Skinny",
+    "model": "Skinny Surf",
     "size": "280/43"
   },
   {
     "brand": "AXIS",
-    "model": "Skinny",
+    "model": "Skinny Surf",
     "size": "300/45"
   },
   {
     "brand": "AXIS",
-    "model": "Skinny",
+    "model": "Skinny Surf",
     "size": "320/48"
+  },
+  {
+    "brand": "AXIS",
+    "model": "Skinny",
+    "size": "250/20"
+  },
+  {
+    "brand": "AXIS",
+    "model": "Skinny Surf",
+    "size": "340/50"
   },
   {
     "brand": "Roam Foils",
