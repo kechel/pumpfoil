@@ -320,8 +320,19 @@ object Recorder {
         scope.launch {
             _state.value = _state.value.copy(recording = false, status = I18n.t("rec.saving"))
             flushAll()
+            // Puls-Diagnose mitschreiben (15.09.2026). Ohne sie ist ein Puls-Ausfall von
+            // aussen nicht von „Nutzer traegt die Uhr zu locker" zu unterscheiden — genau daran
+            // haben wir bei PeterH (u171) eine Woche verloren, waehrend die Ursache eine
+            // Plattform-Regression auf seiner Uhr war. Jetzt steht in jeder Aufnahme, ob
+            // ueberhaupt gemessen wurde und wie viele Werte ankamen.
             LocalStore.writeComplete(ctx, uuid, JSONObject()
-                .put("ended_at", nowIso()).put("total_chunks", chunkIndex))
+                .put("ended_at", nowIso()).put("total_chunks", chunkIndex)
+                .put("hr_samples", hrCount)
+                .put("hr_source", when {
+                    hrCount == 0 -> "none"
+                    _state.value.pulsMessung -> "active"
+                    else -> "passive"
+                }))
             _state.value = _state.value.copy(
                 status = I18n.t("saved.title"), pendingCount = LocalStore.pendingCount(ctx))
             drain(ctx)   // sofort hochladen, falls gepairt + online
@@ -483,7 +494,11 @@ object Recorder {
             }.awaitAll()
         }
         val comp = LocalStore.readJson(java.io.File(dir, "complete.json"))
-        Api.complete(sid, comp?.optString("ended_at") ?: nowIso(), comp?.optInt("total_chunks") ?: chunkIndex)
+        Api.complete(sid, comp?.optString("ended_at") ?: nowIso(), comp?.optInt("total_chunks") ?: chunkIndex,
+                     // -1 / null = nicht gemeldet; der Server laesst das Feld dann in Ruhe.
+                     // Abgebrochene Aufnahmen (synthetisches complete.json) haben es nicht.
+                     comp?.optInt("hr_samples", -1)?.takeIf { it >= 0 },
+                     comp?.optString("hr_source")?.takeIf { it.isNotEmpty() })
         LocalStore.delete(ctx, sid)   // erst NACH /complete -> serverseitig sicher vorhanden
     }
 

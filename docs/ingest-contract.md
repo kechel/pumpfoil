@@ -56,9 +56,26 @@ token on the device and reuse it for every upload.
 
 4. **Complete** `POST /api/ingest/session/{session_uuid}/complete`
    ```json
-   { "ended_at": "2026-06-23T08:42:00Z", "total_chunks": 12 }
+   { "ended_at": "2026-06-23T08:42:00Z", "total_chunks": 12,
+     "hr_samples": 4812, "hr_source": "active" }
    ```
    Triggers final analysis (and auto-trim of trailing drive-home, etc.).
+
+   **`hr_samples` / `hr_source` are optional heart-rate diagnostics** (since 2026-09-15).
+   Send them if your recorder can tell — they cost one integer and one short string, and they
+   answer the question a missing pulse otherwise leaves open: *did the watch measure at all?*
+
+   - `hr_samples` — how many heart-rate values the recorder actually received during the
+     recording. `0` is a valid, meaningful answer.
+   - `hr_source` — `"active"` if the recorder explicitly requested measurement and got values,
+     `"passive"` if it only read along with whatever the system was measuring anyway,
+     `"none"` if nothing arrived at all.
+
+   Why this exists: without it, a recording with no pulse is indistinguishable from a user
+   wearing the watch too loosely. That cost us a week on one report, while the real cause was a
+   platform regression on the user's watch — the recorder knew, but only said so in a log line
+   on the device that nobody can read. Omit the fields and the server leaves the stored values
+   untouched, so a retried `/complete` from an older build never erases a reported diagnosis.
 
 ## Payload formats
 

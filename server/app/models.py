@@ -406,6 +406,11 @@ class Session(Base):
     # Aufnahme-Platzierung, von der Uhr/App gemeldet: None/"" = Uhr am Handgelenk, "phone" = Handy
     # (Tasche/Hüfte, „Record on Phone"-Beta). Für spätere platzierungs-spezifische Pump-Analyse.
     placement: Mapped[str | None] = mapped_column(String(16))
+    # Puls-Diagnose, vom Recorder beim Abschluss gemeldet (optional, alte App-Versionen
+    # schicken sie nicht). `hr_samples` = wie viele Pulswerte wirklich ankamen,
+    # `hr_source` = wie sie zustande kamen ("active" | "passive" | "none").
+    hr_samples: Mapped[int | None] = mapped_column(Integer)
+    hr_source: Mapped[str | None] = mapped_column(String(16))
     # Aufnahme-Gerät (Modell + OS), von der App gemeldet — z. B. "Pixel 7 · Android 14" oder
     # "iPhone15,2 · iOS 17.5". Rein zur gezielten Fehlersuche (welches Telefon/OS).
     device_model: Mapped[str | None] = mapped_column(String(80))

@@ -104,9 +104,15 @@ object Api {
         post("/api/ingest/session/$uuid/chunk", body)
     }
 
-    suspend fun complete(uuid: String, endedAt: String, totalChunks: Int) = withContext(Dispatchers.IO) {
-        post("/api/ingest/session/$uuid/complete",
-            JSONObject().put("ended_at", endedAt).put("total_chunks", totalChunks))
+    suspend fun complete(uuid: String, endedAt: String, totalChunks: Int,
+                         hrSamples: Int? = null, hrSource: String? = null) = withContext(Dispatchers.IO) {
+        val body = JSONObject().put("ended_at", endedAt).put("total_chunks", totalChunks)
+        // Puls-Diagnose nur mitschicken, wenn sie vorliegt — ein aelterer Server ignoriert
+        // unbekannte Felder ohnehin, aber ein leeres Feld wuerde eine gemeldete Angabe
+        // ueberschreiben, wenn /complete ein zweites Mal laeuft (Retry/Watchdog).
+        hrSamples?.let { body.put("hr_samples", it) }
+        hrSource?.let { body.put("hr_source", it) }
+        post("/api/ingest/session/$uuid/complete", body)
     }
 
     private fun get(path: String): JSONObject {

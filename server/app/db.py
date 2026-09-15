@@ -116,6 +116,13 @@ def _migrate_add_indexes() -> None:
         "UPDATE sessions SET updated_at = created_at WHERE updated_at IS NULL",
         # Aufnahme-Platzierung (Handy-Recorder „Record on Phone" = 'phone', sonst Uhr).
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS placement VARCHAR(16)",
+        # Puls-Diagnose der Aufnahme (15.09.2026). Ein Puls-Ausfall war bisher nur am Ergebnis
+        # sichtbar — „keine Werte da" —, und ob der Recorder ueberhaupt gemessen hat, stand
+        # ausschliesslich in einer Logzeile AUF DER UHR, die wir nie zu sehen bekommen. Das hat
+        # bei PeterH (u171) eine Woche gekostet. `hr_source`: active = aktive Messung angefordert
+        # und geliefert · passive = nur mitgelesen, was das System ohnehin misst · none = nichts.
+        "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS hr_samples INTEGER",
+        "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS hr_source VARCHAR(16)",
         # Aufnahme-Gerät (Modell + OS) — nur zur Fehlersuche.
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS device_model VARCHAR(80)",
         # Öffentlicher Teilen-Token (read-only Session-Link ohne Login).
