@@ -1215,6 +1215,16 @@
     "size": "340/50"
   },
   {
+    "brand": "AXIS",
+    "model": "Pump",
+    "size": "460/60 V1"
+  },
+  {
+    "brand": "AXIS",
+    "model": "Pump",
+    "size": "460/60 V2"
+  },
+  {
     "brand": "Roam Foils",
     "model": "Carve",
     "size": "340"
