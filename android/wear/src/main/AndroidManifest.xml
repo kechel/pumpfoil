@@ -20,6 +20,14 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Wet Mode („Wassersperre"): der Broadcast ENABLE_WET_MODE sperrt systemweit und ist damit
+         besser als unser eigenes Schild. Die Berechtigung steht in KEINER Dokumentation, und ein
+         Entwickler mit demselben Anwendungsfall bekommt Samsungs Gegenstueck trotz Manifest und
+         Laufzeit-Abfrage nie erteilt — sie ist sehr wahrscheinlich signaturgeschuetzt. Deshalb
+         hier NUR deklariert: wo eine Uhr sie vergibt, greift der Broadcast; wo nicht, faengt
+         unser Schild die Tropfen ab. Eine Laufzeit-Abfrage waere ein Dialog, der zuverlaessig
+         abgelehnt wird — das hilft niemandem. -->
+    <uses-permission android:name="com.google.android.clockwork.settings.WATCH_TOUCH" />
 
     <application
         android:allowBackup="true"
