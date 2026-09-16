@@ -963,35 +963,37 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
-- **🔲 Kartenhintergrund im TEILEN-BILD (James, u17, `dm:17-230` 15.09.): „Possible to have the
-  satellite view when sharing?" — gemerkt, NICHT beantwortet (Jan, 16.09.).**
-  - **Auf dem TEILEN-LINK geht es laengst.** `SessionDetail.tsx:937` ruft `basiskarten(...)` ohne
-    `isPublic`-Bedingung, und die oeffentliche Route `/s/:token` rendert dieselbe Seite — der
-    Umschalter Karte ↔ Satellit ist dort also da, samt appweit gemerkter Wahl. Wer das meint,
-    braucht nur den Hinweis.
-  - **Was fehlt, ist das quadratische TEILEN-BILD.** Das rendert der Server (`sharecard.py`,
-    PIL), Hintergrund heute: `navy` oder `transparent` (Foto vom Nutzer darunter). James'
-    Formulierung ist wortgleich zu seiner Bitte vom 05.09. („average speed when sharing"), und
-    die ging eindeutig um den Teilen-Dialog — sicher ist es aber nicht.
-  - **Wir zeichnen dort schon eine Karte:** `sharecard.py:205` malt die Wasserflaeche als
-    Silhouette hinter den Track, aus Overpass-Daten (`_wasser_silhouette`). Nur bei einem
-    Hintergrundfoto faellt sie weg.
-  - **⚠️ LIZENZFRAGE, der eigentliche Grund fuer die Pause:** das Teilen-Bild VERLAESST unsere
-    Seite — der Nutzer postet es. Das ist etwas anderes als eine Karte im Browser.
-    **OpenStreetMap:** die Tile Usage Policy verbietet Massenabruf und fremde Dienste auf
-    `tile.openstreetmap.org`. **Esri World Imagery** (unsere Browser-Quelle seit 26.08.): fuer
-    das Weiterverbreiten eines daraus gebauten Bildes findet sich keine klare Erlaubnis, in den
-    Web-Bedingungen steht sogar, die Dienste duerften ohne schriftliche Zustimmung nicht
-    reproduziert oder uebertragen werden. Fuer ein Bild, das Nutzer oeffentlich posten, zu
-    unsicher — das braucht Jans Entscheidung, nicht meine.
-  - **Praktisch kaeme dazu:** der Dialog holt `share.png` bei JEDER Aenderung neu (Farbe, Stats,
-    Titel, entprellt 160 ms). Jede Vorschau wuerde Kacheln nachladen.
-  - **Vorschlag, falls es weitergeht:** die vorhandene Wasser-Silhouette zu einer EIGENEN
-    gezeichneten Karte ausbauen (Ufer, Inseln, evtl. Stege) aus denselben Overpass-Daten. Gehoert
-    uns, kein fremder Dienst, kein Kachel-Nachladen, nur die Namensnennung
-    „© OpenStreetMap contributors". Die Wahl im Dialog waere dann **Foto · Karte · Einfarbig**.
-  - **🔲 Offen zuerst:** James fragen, ob er den Link oder das Bild meint — spart womoeglich die
-    ganze Arbeit.
+- **✅ GEBAUT 16.09.2026 — Kartenhintergrund im TEILEN-BILD** (James, u17, `dm:17-230` 15.09.:
+  „Possible to have the satellite view when sharing?").
+  - **Jans Entscheidung 16.09. zur offenen Lizenzfrage:** „teilen der satteliten Bilder mit
+    leaflet Nennung im Bild wie in der pwa ist ok". Damit ist die Quellennennung die BEDINGUNG
+    des Features, nicht ein Detail — sie wird fest ins Bild gebrannt und ist bewusst nicht
+    abschaltbar (`sharecard.py`, Test `test_kartenhintergrund.py`). Die Bedenken, die die Sache
+    bis dahin pausiert hatten, stehen unten weiter: Esris Web-Bedingungen erlauben das
+    Weiterverbreiten nicht ausdruecklich. Jan kennt sie und hat entschieden.
+  - **Gebaut:** `server/app/maptiles.py` holt die Kacheln (Esri World Imagery bzw.
+    OpenStreetMap, dieselben zwei Ebenen wie die PWA), setzt sie zusammen und schneidet sie auf
+    den Bildausschnitt. `sharecard.render_share_png` nimmt `bg=satellit|karte`, legt den
+    Ausschnitt passgenau unter den Track und brennt die Nennung hinein. Im Teilen-Dialog eine
+    Zeile **Ohne · Karte · Satellit** plus das bisherige Foto; die Wahl merkt sich das Profil.
+  - **Helligkeit:** derselbe Regler wie beim Foto (Jan, 16.09.). Sein Startwert ist GEMESSEN,
+    nicht geraten — `_schleier` misst das 80. Perzentil in genau den drei Baendern, in denen Text
+    steht. Der erste Versuch mittelte ueber das ganze Bild und lag daneben: die dunkle
+    Meeresflaeche zog den Schnitt so weit herunter, dass die helle Stadt unter der Ueberschrift
+    ungedimmt blieb.
+  - **Zu James:** auf dem TEILEN-LINK ging es laengst — `SessionDetail.tsx` ruft `basiskarten(...)`
+    ohne `isPublic`-Bedingung, und `/s/:token` rendert dieselbe Seite. Jetzt kann er beides.
+  - **Kosten, gemessen:** Bild mit Karte 96–236 ms und 138–208 KB (JPEG statt PNG — als PNG waren
+    es 1,17 MB, und der Dialog holt die Vorschau bei jeder Aenderung neu). Kacheln liegen in
+    `server/data/cache/tiles`, vom Backup ausgenommen. Faellt der Kachel-Server aus, entsteht das
+    Bild ohne Karte — nie ein Fehler, nie ein Haenger (5 s Zeitgrenze, eigener Test).
+  - **🔲 Offen:** James antworten, dass es jetzt da ist.
+  - **Nicht gebaut, bleibt als Ausweg notiert:** die vorhandene Wasser-Silhouette
+    (`_wasser_silhouette`, Overpass) zu einer eigenen gezeichneten Karte ausbauen — gehoert uns,
+    kein fremder Dienst. Der Weg bleibt richtig, falls Esri je Aerger macht.
+  - **Bedenken, die stehen bleiben:** OSMs Tile Usage Policy verbietet Massenabruf (wir cachen
+    auf Platte und schicken einen benennenden User-Agent); Esris Web-Bedingungen sagen, die
+    Dienste duerften ohne schriftliche Zustimmung nicht reproduziert oder uebertragen werden.
 
 - **🔲 Roman (u244), Instinct 3 Solar: die UHR startet ~10 min nach jeder Pumpfoil-Session neu.
   Unsere Garmin-Spur „das ist ein bekanntes Garmin-Problem" ist damit vom Tisch.**

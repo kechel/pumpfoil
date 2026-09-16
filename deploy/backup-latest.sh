@@ -21,7 +21,10 @@ mv -f "$LATEST/db.dump.tmp" "$LATEST/db.dump"
 
 # 2) Roh-Daten + Medien als Hardlinks spiegeln (--link-dest = Quelle -> identische
 #    Dateien werden gehardlinkt statt kopiert; --delete hält latest = aktueller Stand)
-rsync -a --delete --link-dest="$PROJECT/data/"  "$PROJECT/data/"  "$LATEST/data/"
+#    `data/cache/` bleibt draußen: dort liegt ausschließlich Nachladbares (derzeit die
+#    Kartenkacheln fürs Teilen-Bild, s. server/app/maptiles.py). Es zu sichern kostete
+#    dreistellige MB in der täglichen Pull-Kette und rettete nichts.
+rsync -a --delete --exclude='cache/' --link-dest="$PROJECT/data/"  "$PROJECT/data/"  "$LATEST/data/"
 rsync -a --delete --link-dest="$PROJECT/media/" "$PROJECT/media/" "$LATEST/media/"
 
 # 3) Geheimnisse verschlüsselt dazulegen (GPG an Jans Key, s. backup-secrets.sh) — Fehler
