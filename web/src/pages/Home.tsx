@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { fmtDate } from "../lib/time";
 import { Link } from "react-router-dom";
 import { api, CommunityRecords, RecordSet, CommunitySession, Leaders, LeaderRow, CommunityPhoto, WatchLayout, FoilBand } from "../lib/api";
@@ -429,39 +429,44 @@ function CommunitySection() {
   const [bands, setBands] = useState<FoilBand[]>([]);
   const [bandKey, setBandKey] = useState("all");
   const band = bands.find((b) => b.key === bandKey);
+  // Alles, was den Inhalt der Rekorde aendert — wechselt eines davon, sind die gemerkten
+  // Zeitraeume wertlos. Die Sportart gehoert ausdruecklich dazu (Jan, 16.09.2026).
+  const filterKey = `${accelOnly}|${sport}|${bandKey}`;
+  const geholt = useRef<{ key: string; perioden: Set<string> }>({ key: "", perioden: new Set() });
 
-  // ZWEI Aufrufe mit Absicht (16.09.2026). Der erste darf aus dem Service-Worker-Cache kommen
-  // und steht damit sofort da; der zweite geht garantiert ans Netz (`fresh`) und ersetzt den
-  // Stand nur, wenn er sich wirklich geaendert hat. Anlass: dieser Aufruf ist der teuerste der
-  // Seite — 268 KB, ueber die echte Verbindung 1,25 s —, und bis er da war, blieb die halbe
-  // Community-Seite leer. Der Vergleich ueber JSON kostet bei dieser Groesse Bruchteile einer
-  // Millisekunde und erspart ein zweites Rendern, wenn sich nichts getan hat.
+  // Rekorde werden ZEITRAUMWEISE geholt und behalten (16.09.2026). Die Seite zeigt immer genau
+  // einen Zeitraum, geliefert wurden bis dahin alle fuenf: 268 KB roh, 50 KB gzip, 254 ms
+  // Rechenzeit — bei Jan ueber die echte Verbindung 1,25 s, und so lange blieb die halbe
+  // Community-Seite leer. Vier Fuenftel davon sah nie jemand.
+  // Schon geholte Zeitraeume bleiben liegen, ein Wechsel zurueck steht also sofort da; ein
+  // Wechsel von Genauigkeit, Sportart oder Foil-Band wirft alles weg (`filterKey`).
+  //
+  // ZWEI Aufrufe je Zeitraum, mit Absicht: der erste darf aus dem Service-Worker-Cache kommen
+  // und steht sofort da, der zweite geht garantiert ans Netz (`fresh`) und ersetzt den Stand nur
+  // bei echter Aenderung. Sie laufen NACHEINANDER, nicht nebeneinander — beim ersten Anlauf
+  // standen sie parallel, und bei leerem Cache gingen dann beide ans Netz; Jan gemeldet:
+  // „jetzt laedt die community seite noch langsamer". Ob der erste aus dem Cache kam, verraet
+  // `fetch` nicht, aber die Zeit tut es: Cache antwortet in Millisekunden.
   useEffect(() => {
-    let lebt = true;
-    // Erst der (moeglicherweise gecachte) Aufruf, NACHHER die Nachpruefung — und die nur, wenn
-    // der erste aus dem Cache kam.
-    //
-    // Beim ersten Anlauf (16.09.2026) standen beide Aufrufe nebeneinander. Das war schlechter
-    // als vorher: beim ersten Besuch ist der Cache leer, also gingen BEIDE ans Netz — zweimal
-    // 268 KB gleichzeitig, die sich die Verbindungen auch noch mit den uebrigen acht Aufrufen
-    // der Seite teilen. Jan gemeldet: „jetzt laedt die community seite noch langsamer".
-    //
-    // Woran wir erkennen, ob der erste aus dem Cache kam: an der Zeit. `fetch` verraet es nicht,
-    // aber der Unterschied ist eindeutig — Cache antwortet in Millisekunden, das Netz brauchte
-    // gemessene 1,25 s. Liegt die Antwort ueber der Schwelle, war sie ohnehin frisch und eine
-    // zweite Anfrage waere reine Verschwendung.
+    const g = geholt.current;
+    if (g.key !== filterKey) { g.key = filterKey; g.perioden = new Set(); setData(null); }
+    if (g.perioden.has(period)) return;      // dieser Zeitraum liegt schon vor -> sofort da
+    g.perioden.add(period);
+    const meinKey = filterKey;
+    // Spaete Antwort eines inzwischen abgewaehlten Filters verwerfen.
+    const uebernehmen = (d: CommunityRecords) =>
+      setData((alt) => (geholt.current.key !== meinKey ? alt : { ...(alt || {}), ...d }));
+
     const begonnen = performance.now();
-    api.communityRecords(accelOnly, sport, bandKey).then((d) => {
-      if (!lebt) return;
-      setData(d);
+    api.communityRecords(accelOnly, sport, bandKey, undefined, false, period).then((d) => {
+      uebernehmen(d);
       if (performance.now() - begonnen > CACHE_SCHWELLE_MS) return;   // kam vom Netz, also frisch
-      const gezeigt = JSON.stringify(d);
-      return api.communityRecords(accelOnly, sport, bandKey, undefined, true).then((frisch) => {
-        if (lebt && JSON.stringify(frisch) !== gezeigt) setData(frisch);
+      const gezeigt = JSON.stringify(d[period as keyof CommunityRecords]);
+      return api.communityRecords(accelOnly, sport, bandKey, undefined, true, period).then((frisch) => {
+        if (JSON.stringify(frisch[period as keyof CommunityRecords]) !== gezeigt) uebernehmen(frisch);
       });
-    }).catch(() => {});
-    return () => { lebt = false; };
-  }, [accelOnly, sport, bandKey]);
+    }).catch(() => { g.perioden.delete(period); });   // gescheitert -> beim naechsten Mal erneut
+  }, [filterKey, period]);
 
   useEffect(() => {
     api.foilBands(accelOnly, sport).then((bs) => {
@@ -478,14 +483,13 @@ function CommunitySection() {
     api.communitySports().then(setSports).catch(() => {});
   }, []);
 
-  // Kopf + Zaehlersatz haengen NICHT an den Rekorden. /api/community/records ist 268 KB
-  // und braucht rund eine Sekunde, /api/community/stats sind 58 Byte. Solange beides
-  // hinter `if (!data)` stand, erschien der Zaehlersatz erst mit den Rekorden und fing
-  // seinen eigenen Abruf auch erst dann an (Jan, 16.09.2026: „die rekorde sind laengst
-  // sichtbar, der zaehlersatz wird erst angezeigt wenn auch die medien darunter
-  // eingeblendet werden“). Der Rest darf warten — er steht darunter, da springt nichts.
-  const kopf = (
-    <>
+  // KEINE Sperre auf `data` mehr (16.09.2026). Frueher stand hier `if (!data) return null;` —
+  // damit warteten Kopf, Zaehlersatz, Filter, Medien, Ranglisten, Layouts und Spots alle auf den
+  // teuersten Aufruf der Seite, obwohl ihre eigenen Daten in 2–10 ms da sind (nachgemessen).
+  // `RecordGrid` kommt ohne Daten aus und zeichnet „–"-Kacheln derselben Groesse, die sich
+  // fuellen, sobald die Rekorde eintreffen — es springt also nichts nach.
+  return (
+    <div>
       <div className="mb-2 flex items-center gap-2">
         <CommunityIcon className="h-7 w-7 text-brand-400" />
         <h2 className="text-2xl font-bold">{t("home.community")}</h2>
@@ -501,12 +505,6 @@ function CommunitySection() {
         </div>
       </div>
       <CommunityStats className="mb-3" />
-    </>
-  );
-  if (!data) return <div>{kopf}</div>;
-  return (
-    <div>
-      {kopf}
       <div className="mb-3 flex flex-wrap items-center gap-1">
         {PERIODS.map(([k, labelKey]) => (
           <button
@@ -549,7 +547,7 @@ function CommunitySection() {
       {band && bandInfo(band, t) && (
         <p className="mb-3 text-sm text-slate-400">{bandInfo(band, t)}</p>
       )}
-      <RecordGrid rec={data[period]} showSpot />
+      <RecordGrid rec={data?.[period as keyof CommunityRecords]} showSpot />
       <LatestMedia />
       <Leaderboards period={period} accelOnly={accelOnly} sport={sport} band={band} />
       <TopLiked period={period} />

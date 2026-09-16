@@ -15,7 +15,7 @@ import { FeedbackWidget } from "./components/FeedbackWidget";
 import { DmWidget } from "./components/DmWidget";
 import { CompareBar } from "./components/CompareBar";
 import { InstallPwa } from "./components/InstallPwa";
-import { warmMySessions, warmMedia, raeumeAlteCaches } from "./lib/pwaCache";
+import { warmMySessions, warmMedia, raeumeAlteCaches, leerePersoenlicheCaches } from "./lib/pwaCache";
 import { demoStart } from "./lib/demoNames";
 import { istOffen } from "./pages/Onboarding";
 
@@ -173,7 +173,7 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
   const social = profile?.social_allowed !== false;
   const items = isAdmin ? [...navItems, adminItem] : navItems;
 
-  function logout() {
+  async function logout() {
     clearToken();
     // „Schon angeboten" ist eine Sperre JE BROWSER-SITZUNG, damit die Weiche niemand in eine
     // Schleife schickt, der gerade „Spaeter fortsetzen" geklickt hat. Beim Abmelden muss sie weg,
@@ -181,6 +181,11 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
     // Browser-Start nochmal": wer sich im SELBEN Tab neu anmeldet, bekaeme den Assistenten nicht
     // wieder angeboten. sessionStorage ueberlebt ein Abmelden naemlich.
     try { sessionStorage.removeItem("foil_onb_angeboten"); } catch { /* privates Fenster */ }
+    // Nutzerbezogene PWA-Caches wegwerfen, sonst zeigt das Geraet dem naechsten Anmelder kurz
+    // die Sessions, Einstellungen und den Namen seines Vorgaengers (s. pwaCache.ts).
+    // MIT `await`: die harte Navigation unten raeumt die Seite ab, eine noch laufende Loeschung
+    // waere damit abgeschnitten. Sie ist rein lokal und in Millisekunden durch.
+    await leerePersoenlicheCaches();
     // Harte Navigation: Auth-Token ist kein reaktiver State, sonst bliebe die
     // App-Shell bis zum Reload gemountet -> Landing wird so garantiert frisch geladen.
     window.location.assign("/");

@@ -100,14 +100,30 @@ export default defineConfig({
             // `/api/community/stats` ist MIT dabei, obwohl er winzig ist (58 Bytes, 2 ms): es
             // geht dort nicht um Tempo, sondern darum, dass die Zeile „Wir sind schon N
             // Pumpfoiler …" sofort dasteht statt nachzuploppen — und offline ueberhaupt.
+            // Die uebrigen Bloecke der Community-Seite sind ALLE billig — nachgemessen am
+            // 16.09.2026: leaders 10 ms/4 KB, spots 9 ms/4 KB, latest-photos 8 ms/3 KB,
+            // top-liked 9 ms/19 KB, layouts 6 ms/10 KB, social/feed 3 ms/15 KB. Sie stehen hier
+            // also nicht wegen des Servers, sondern damit die Seite beim Wiederkommen sofort
+            // vollstaendig dasteht statt blockweise nachzuploppen — und offline ueberhaupt.
             urlPattern: ({ url }) =>
               (url.pathname === "/api/community/sessions" ||
                url.pathname === "/api/community/sessions-grouped" ||
-               url.pathname === "/api/community/stats") && !url.searchParams.has("fresh"),
+               url.pathname === "/api/community/stats" ||
+               url.pathname === "/api/community/leaders" ||
+               url.pathname === "/api/community/spots" ||
+               url.pathname === "/api/community/sports" ||
+               url.pathname === "/api/community/foil-bands" ||
+               url.pathname === "/api/community/latest-photos" ||
+               url.pathname === "/api/community/top-liked" ||
+               url.pathname === "/api/layouts/community" ||
+               url.pathname === "/api/social/feed" ||
+               // Spot-Liste fuer das Auswahlfeld auf der Sessions-Seite (39 KB) — oeffentlich.
+               url.pathname === "/api/community/spot-map") && !url.searchParams.has("fresh"),
             handler: "StaleWhileRevalidate",
             options: {
               cacheName: "api-community",
-              expiration: { maxEntries: 8, maxAgeSeconds: 7 * 24 * 3600 },
+              // Je Block mehrere Filterkombinationen (Zeitraum, Genauigkeit, Sportart, Band).
+              expiration: { maxEntries: 60, maxAgeSeconds: 7 * 24 * 3600 },
               cacheableResponse: { statuses: [200] },
             },
           },
@@ -131,13 +147,34 @@ export default defineConfig({
             // Antwort. Deshalb sofort aus dem Cache zeigen und im Hintergrund auffrischen; die
             // Seite holt sich die Wahrheit mit `fresh=1` daneben (s. Home.tsx) — solche Aufrufe
             // nimmt die Regel aus, sonst bekaeme auch die Nachpruefung den alten Stand.
+            // Kopfzeile der Sessions-Seite: Umschalter „Meine / <Homespot> / Alle" und der
+            // Titel mit dem eigenen Namen. Alle drei Aufrufe sind winzig und schnell (3–5 ms,
+            // 0,4–1,2 KB), aber ohne sie erscheint der Homespot-Knopf erst nach einer
+            // Netz-Runde — genau das, was Jan am 16.09.2026 gemeldet hat.
+            // EIGENER Cache-Name: `api-konto` steht in pwaCache.PERSOENLICHE_CACHES und wird
+            // beim Abmelden geleert. Nutzerbezogenes gehoert NIE in einen Cache, der das
+            // Abmelden ueberlebt.
+            urlPattern: ({ url }) =>
+              (url.pathname === "/api/settings" ||
+               url.pathname === "/api/auth/me" ||
+               url.pathname === "/api/sessions/my-spots") && !url.searchParams.has("fresh"),
+            handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "api-konto",
+              expiration: { maxEntries: 8, maxAgeSeconds: 7 * 24 * 3600 },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
+          {
             urlPattern: ({ url }) =>
               url.pathname === "/api/community/records" && !url.searchParams.has("fresh"),
             handler: "StaleWhileRevalidate",
             options: {
               cacheName: "api-community-records",
-              // Je Kombination aus Genauigkeit, Sportart und Foil-Band eine eigene URL.
-              expiration: { maxEntries: 24, maxAgeSeconds: 7 * 24 * 3600 },
+              // Je Kombination aus Genauigkeit, Sportart, Foil-Band UND Zeitraum eine eigene
+              // URL — seit die Seite nur noch den angezeigten Zeitraum holt, sind es fuenfmal
+              // mehr Schluessel, dafuer je ein Fuenftel so gross.
+              expiration: { maxEntries: 80, maxAgeSeconds: 7 * 24 * 3600 },
               cacheableResponse: { statuses: [200] },
             },
           },

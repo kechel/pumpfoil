@@ -9,6 +9,22 @@ const MEDIA_CACHE = "media";        // identisch mit vite.config runtimeCaching 
 // /media/-URLs (Avatare, Fotos) proaktiv in den media-Cache laden, damit sie auch
 // nach Neustart/offline sicher da sind. CacheFirst greift sonst erst nach dem
 // ersten erfolgreichen Abruf — der bei cold start fehlen kann.
+// Laufzeit-Caches mit NUTZERBEZOGENEN Antworten. Beim Abmelden müssen die weg: sonst sähe der
+// nächste Anmelder auf demselben Gerät für einen Moment die Sessions, Einstellungen und den
+// Namen seines Vorgängers, bevor die Hintergrund-Auffrischung greift (StaleWhileRevalidate
+// liefert erst den Cache, dann das Netz). Namen identisch mit vite.config.ts.
+// Öffentliche Caches (media, static-img) bleiben — die gehören niemandem.
+const PERSOENLICHE_CACHES = ["api-my-sessions", "api-session-detail-v2", "api-session-detail",
+                             "api-konto"];
+
+/** Alles Nutzerbezogene aus den PWA-Caches werfen — beim Abmelden aufzurufen. */
+export async function leerePersoenlicheCaches(): Promise<void> {
+  if (typeof window === "undefined" || !("caches" in window)) return;
+  for (const name of PERSOENLICHE_CACHES) {
+    try { await caches.delete(name); } catch { /* egal */ }
+  }
+}
+
 /** Alte Versionen des Session-Caches wegräumen (nach einem Namenswechsel). */
 export async function raeumeAlteCaches(): Promise<void> {
   if (typeof window === "undefined" || !("caches" in window)) return;
