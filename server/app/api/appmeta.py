@@ -125,7 +125,12 @@ _APP_META: dict[str, dict[str, str]] = {
         # Ein Nutzer mit 1.1.14 bekam dadurch einen Update-Hinweis, den Play nicht einloesen konnte
         # ("update button just opens google play and does not offer nor start update"). Deshalb: erst
         # eintragen, wenn Freigabe DA und Roll-out bei 100 % — "eingereicht" genuegt nie.
-        "latest": "1.1.28",   # LIVE 2026-09-13: Play-Mail „Your update to Pumpfoil, created on
+        "latest": "1.1.29",   # LIVE 2026-09-16: Play-Mail „Your update to Pumpfoil, created on
+        # Sep 13, 2026 at 6:55 AM GMT, is live in the store." Passt auf unsere Einreichung vom
+        # 13.09. 08:56 Berlin (Phone 1.1.29/43 + Wear 1.2.29/1039). DREI Tage Pruefung.
+        # Im Feld belegt, nicht nur die Mail: zwei Geraete-Tokens melden `app_version 1.2.29`,
+        # zuletzt am 16.09. um 05:56 — also echte Nutzer, der Roll-out laeuft wirklich.
+        # Vorher 1.1.28, LIVE 2026-09-13: Play-Mail „Your update to Pumpfoil, created on
         # Sep 10, 2026 at 8:09 AM GMT, is live in the store." Der Zeitstempel passt auf unsere
         # Einreichung vom 10.09. 10:09 Berlin (Phone 1.1.28/42 + Wear 1.2.28/1038). Wie immer
         # deckt EINE Mail beide Tracks ab (gleiche applicationId).
@@ -181,7 +186,11 @@ _APP_META: dict[str, dict[str, str]] = {
         # 05.08. 15:06 GMT). Eingereicht war 1.2.20/1030 zusammen mit Phone 1.1.20/34.
         # Der gebaute Nachzug 1.2.21/1031 (Token-Heilung bei Config-401) ist NOCH NICHT
         # eingereicht — hier also nicht eintragen. Vorher: 1.2.18/1028, live seit 04.08.
-        "latest": "1.2.28",   # LIVE 2026-09-13, dieselbe Play-Mail wie android (Release erstellt
+        "latest": "1.2.29",   # LIVE 2026-09-16, dieselbe Play-Mail wie android (Release erstellt
+        # 13.09. 06:55 GMT). Im Feld belegt: zwei Tokens mit `app_version 1.2.29`, zuletzt am
+        # 16.09. um 05:56. Inhalt u. a. der Puls-Alarm und — fuer Vladimir (u187) gemeldet — das
+        # deutsche „laeuft" in der Sessionliste, das nun endlich uebersetzt drausssen ist.
+        # Vorher 1.2.28, LIVE 2026-09-13, dieselbe Play-Mail wie android (Release erstellt
         # 10.09. 08:09 GMT). Im Feld belegt: drei Tokens mit `app_version 1.2.28`, zuletzt am
         # 13.09. 07:13. 1.2.27 war der ABGELEHNTE Stand und existiert im Feld nur einmal — das
         # war der Play-Pruefer am 10.09.
@@ -440,54 +449,6 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
-    {"name": "Android phone + Wear OS", "version": "1.1.29 / 1.2.29",
-     # 13.09.2026: 1.1.28 / 1.2.28 sind LIVE, damit steht die naechste Nummer fest — 1.1.29 /
-     # 1.2.29, beide zusammen (harte Regel). Gebaut ist alles, hochladen kann nur Jan.
-     # Vorher stand hier bewusst keine Nummer, weil eine abgelehnte Fassung von Play nicht
-     # wieder angenommen wird und der Ausgang der Pruefung deshalb abzuwarten war.
-     #
-     # Der Schnitt ist hier ein anderer als bei iOS: eingereicht wurde am 10.09. um 10:10, also
-     # stecken Wetterkarte, Datei-Import und pt-PT schon in 1.1.28. Hier stehen nur die vier
-     # Punkte, die DANACH entstanden sind — sonst laesen Nutzer dieselbe Zeile zweimal.
-     # 13.09.2026 08:56 EINGEREICHT (Jans Meldung aus der Play-Konsole: Produktion 43 = 1.1.29,
-     # Produktion Wear OS 1039 = 1.2.29, beide auf vollstaendigen Roll-out, Vorabpruefungen
-     # laufen). Bis 13.09. stand hier eine von Hand geschriebene Zeile, und die war beim
-     # Verschieben nach IN_REVIEW stehen geblieben: unter „Being reviewed" las man „built,
-     # waiting to be uploaded". Genau deshalb wird der Satz jetzt erzeugt (s. `_note`) — hier
-     # steht nur noch das Datum.
-     "eingereicht": "2026-09-13",
-     "items": [
-         "A setup assistant walks new accounts once through the settings that matter — "
-         "language, display name, level, weight, sport, foil and connecting your watch. "
-         "Everything in it is optional, and you can start it again any time from your profile.",
-         "New heart rate alarm: the watch can vibrate above a heart rate you set, with its own "
-         "vibration pattern. And for repeating alarms you choose how many seconds pass between "
-         "buzzes.",
-         "Correct clock times for every run. After trimming or pausing a recording the times "
-         "were shown too early — they are right now.",
-         "Status labels are translated, and the session list refreshes by itself while a "
-         "recording is still running.",
-         # Ab hier: was am 12.09. dazukam, nachdem 1.1.28 / 1.2.28 schon eingereicht waren.
-         # Facebook wird ABSICHTLICH nicht genannt — der Knopf ist noch verborgen, bis Meta die
-         # erweiterte Freigabe erteilt. Die App holt die Anbieterliste vom Server, der Punkt
-         # stimmt also so oder so.
-         "You can sign in with your Google or Apple account in the app itself. It opens your "
-         "normal browser for that, so nothing extra follows you around.",
-         "The heart rate curve can show how far you are above your resting heart rate, not only "
-         "the plain number.",
-         "The language you pick in the app now stays with your account, so app and website say "
-         "the same thing on every device.",
-         "Your watch shows its own brand and model instead of always calling itself a Garmin.",
-         "The app now starts in the language your phone is set to, instead of always starting "
-         "in German. If we do not have your language yet, it starts in English.",
-         "Every language is named in its own language on the sign-in screen. Some of them only "
-         "showed a short code there, which is hard to pick if it is your language.",
-         "The language setting sits at the very top of your settings now. If the app is in a "
-         "language you cannot read, that is the one thing you need to find first.",
-         "A recording that can no longer be finished is now a single quiet line instead of a "
-         "large notice sitting on top of your screen. It still leads you to the recording, "
-         "where you decide: analyse it with what we have, or delete it.",
-     ]},
     {"name": "Amazfit", "version": "1.0.10",
      # 13.09.2026 EINGEREICHT, einen Tag nach der Freigabe von 1.0.8. Zepp-Konsole: appId 1118995,
      # Application Time 2026.09.13, Status „Under Review (Can be Withdrawn)"; darunter 1.0.8 vom
