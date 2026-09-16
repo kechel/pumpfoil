@@ -89,6 +89,11 @@ export default function Home() {
  * „AR unter 9" (10) — die bleiben also drin, aber die Schwelle greift, sobald man zusätzlich
  * Sportart oder „nur präzise" einschränkt.
  */
+/** Bis zu dieser Antwortzeit gilt eine Antwort als aus dem Service-Worker-Cache: der Cache
+ *  antwortet in Millisekunden, das Netz brauchte fuer diesen Aufruf gemessene 1,25 s. Nur dann
+ *  lohnt die Nachpruefung mit `fresh=1`. */
+const CACHE_SCHWELLE_MS = 400;
+
 const MIN_BAND_FAHRER = 3;
 
 export const PERIODS: [string, string][] = [
@@ -433,16 +438,27 @@ function CommunitySection() {
   // Millisekunde und erspart ein zweites Rendern, wenn sich nichts getan hat.
   useEffect(() => {
     let lebt = true;
-    let gezeigt: string | null = null;
+    // Erst der (moeglicherweise gecachte) Aufruf, NACHHER die Nachpruefung — und die nur, wenn
+    // der erste aus dem Cache kam.
+    //
+    // Beim ersten Anlauf (16.09.2026) standen beide Aufrufe nebeneinander. Das war schlechter
+    // als vorher: beim ersten Besuch ist der Cache leer, also gingen BEIDE ans Netz — zweimal
+    // 268 KB gleichzeitig, die sich die Verbindungen auch noch mit den uebrigen acht Aufrufen
+    // der Seite teilen. Jan gemeldet: „jetzt laedt die community seite noch langsamer".
+    //
+    // Woran wir erkennen, ob der erste aus dem Cache kam: an der Zeit. `fetch` verraet es nicht,
+    // aber der Unterschied ist eindeutig — Cache antwortet in Millisekunden, das Netz brauchte
+    // gemessene 1,25 s. Liegt die Antwort ueber der Schwelle, war sie ohnehin frisch und eine
+    // zweite Anfrage waere reine Verschwendung.
+    const begonnen = performance.now();
     api.communityRecords(accelOnly, sport, bandKey).then((d) => {
       if (!lebt) return;
-      gezeigt = JSON.stringify(d);
       setData(d);
-    }).catch(() => {});
-    api.communityRecords(accelOnly, sport, bandKey, undefined, true).then((d) => {
-      if (!lebt) return;
-      const neu = JSON.stringify(d);
-      if (neu !== gezeigt) { gezeigt = neu; setData(d); }
+      if (performance.now() - begonnen > CACHE_SCHWELLE_MS) return;   // kam vom Netz, also frisch
+      const gezeigt = JSON.stringify(d);
+      return api.communityRecords(accelOnly, sport, bandKey, undefined, true).then((frisch) => {
+        if (lebt && JSON.stringify(frisch) !== gezeigt) setData(frisch);
+      });
     }).catch(() => {});
     return () => { lebt = false; };
   }, [accelOnly, sport, bandKey]);
