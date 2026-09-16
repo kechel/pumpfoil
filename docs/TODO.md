@@ -963,6 +963,33 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔴 GPS-LUECKEN AUF GARMIN — 20 von 41 der neuesten Sessions unter 90 % Abdeckung, und in
+  mehreren fallen die Luecken in die AKTIVE Zeit.** Gefunden 16.09.2026 beim Nachgehen von Andis
+  Meldung; mit seiner Session hat es am Ende nichts zu tun, aber es ist der groessere Fund.
+  - **Gemessen** (rohe `data/<uuid>/gps/*.json`, Abdeckung = Punkte / Sekunden der Zeitspanne):
+    ```
+    Session  Nutzer  fehlende s  idle-Anteil IN der Luecke  idle-Anteil gesamt
+      8570    u139        1092                        4 %               17 %
+      8557    u524        1581                       14 %               32 %
+      8571    u287        1106                        8 %               29 %
+      8601    u449         611                       17 %               17 %
+      8350     u72         308                       88 %               66 %
+      8594    u535        1289                       93 %               88 %
+    ```
+  - **Der idle-Vergleich ist der Kern.** Bei u72 und u535 liegen die Luecken ueberwiegend in
+    Ruhephasen — da fehlt nichts, was zaehlt. Bei u139, u524, u287 ist es UMGEKEHRT: in den
+    Luecken ist der idle-Anteil deutlich NIEDRIGER als im Rest der Aufnahme, das GPS faellt dort
+    also gerade waehrend des Fahrens aus. Bei u139 sind das 18 Minuten, zu 96 % aktive Zeit.
+  - **Folge:** zu kurze Distanzen, zerschnittene oder ganz fehlende Laeufe — genau bei den
+    Vielfahrern. Das ist der AUFNAHME-Pfad, also die gefaehrliche Seite (CLAUDE.md).
+  - **Was schon ausgeschlossen ist:** die App duennt NICHT aus. `SessionRecorder.onPosition`
+    (watch/source/SessionRecorder.mc:1760) legt jedes Ereignis in den Puffer, kein Bewegungs-
+    oder Genauigkeitsfilter. Die Punkte kommen also gar nicht erst an.
+  - **🔲 Naechster Schritt:** Abdeckung gegen `device_tokens.gnss_mode` und das Uhrenmodell
+    korrelieren. Verdacht ist eine Spar-GNSS-Stufe; falls das stimmt, gehoert eine Warnung an die
+    Einstellung oder die Stufe raus. Vorher NICHT an Nutzer kommunizieren — erst der Beleg.
+
+
 - **✅ GEBAUT 16.09.2026 — Spots-Seite nativ: Suche statt der Liste aller 231 Spots.**
   Jans Frage: „warum ist auf ios und android in /spots unter der karte eine riesen lange liste
   aller spots? in der pwa ist die nicht, gibt es da einen grund fuer?" — Antwort: einen, aber
