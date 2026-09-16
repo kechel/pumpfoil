@@ -729,21 +729,64 @@ def foil_bands(accel_only: bool = True, sport: str = "pumpfoil",
     return out
 
 
+_rec_lock = threading.Lock()
+_rec_cache: dict[tuple, tuple[float, dict]] = {}
+_REC_TTL = 300.0   # 5 min, wie bei /stats
+_REC_MAX = 64      # Deckel: Spot-Rekorde koennen sonst beliebig viele Schluessel erzeugen
+
+
 @router.get("/records")
 def community_records(accel_only: bool = True, sport: str = "pumpfoil", foil_band: str = "all",
-                      spot: str | None = None,
+                      spot: str | None = None, period: str | None = None,
                       _user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
     """`spot`: Rekorde NUR an diesem Spot (numerisch = `spot_id`, sonst `place_name`, s.
     `_spot_cond`). Serverseitig war dafuer nichts zu bauen — `_record_entry`, `_time_record` und
     `_carve_record` kennen den Parameter seit jeher, nur dieser Endpunkt reichte ihn nicht durch
     (Nutzer-Idee aus dem Feedback, Jan 06.09.2026: dieselben Rekorde je Spot).
+
+    `period`: NUR diesen Zeitraum berechnen. Die Antwort behaelt die Form `{zeitraum: {...}}`,
+    enthaelt dann aber nur den einen Schluessel. Ohne Angabe kommen weiter alle fuenf — alte
+    Clients merken nichts.
+
+    Zwei Sparmassnahmen, beide am 16.09.2026 nachgemessen (Jan: „dieser Aufruf dauert 1,25s"):
+
+    1. NUR DER ANGEZEIGTE ZEITRAUM. Die Seite zeigt immer genau einen (`data[period]`), geliefert
+       wurden alle fuenf — 268 KB roh / 50 KB gzip / 254 ms, davon vier Fuenftel ungesehen.
+       Nebenbei: `365d` und `all` sind Byte fuer Byte gleich, solange das Projekt juenger als ein
+       Jahr ist.
+    2. SERVER-CACHE, 5 Minuten. Vorher rechnete jeder Request alles neu, fuer jeden Nutzer
+       einzeln. Der Schluessel enthaelt alle Filter; `viewer_id` NICHT — es beeinflusst das
+       Ergebnis nur bei versteckten Konten (`or_(U.hidden.isnot(True), U.id == viewer_id)`),
+       und die gehen deshalb am Cache vorbei statt ihn zu vergiften.
     """
+    zeitraeume = [period] if period in PERIODS else list(PERIODS)
+    key = (accel_only, sport, foil_band, spot, tuple(zeitraeume))
+    versteckt = bool(getattr(_user, "hidden", False))
+    jetzt = time.monotonic()
+    if not versteckt:
+        with _rec_lock:
+            treffer = _rec_cache.get(key)
+            if treffer and jetzt - treffer[0] < _REC_TTL:
+                return treffer[1]
+
     # EIN Cache fuer den ganzen Request: die Zeit-Metriken teilen sich damit ihre Basisdaten
     # ueber alle fuenf Zeitraeume (s. _time_rows).
     cache: dict = {}
-    return {p: {m: _record_entry(db, m, _cutoff(p), spot=spot, viewer_id=_user.id,
-                                 accel_only=accel_only, sport=sport,
-                                 cache=cache, foil_band=foil_band) for m in METRICS} for p in PERIODS}
+    out = {p: {m: _record_entry(db, m, _cutoff(p), spot=spot, viewer_id=_user.id,
+                                accel_only=accel_only, sport=sport,
+                                cache=cache, foil_band=foil_band) for m in METRICS}
+           for p in zeitraeume}
+
+    if not versteckt:
+        with _rec_lock:
+            if len(_rec_cache) >= _REC_MAX:
+                for k, (t0, _v) in list(_rec_cache.items()):
+                    if jetzt - t0 >= _REC_TTL:
+                        _rec_cache.pop(k, None)
+                if len(_rec_cache) >= _REC_MAX:
+                    _rec_cache.clear()
+            _rec_cache[key] = (jetzt, out)
+    return out
 
 
 @router.get("/start-success")

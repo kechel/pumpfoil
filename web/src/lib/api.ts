@@ -1188,11 +1188,15 @@ export const api = {
   /** `spot`: nur Rekorde an diesem Spot (numerische id oder Ortsname, s. `community._spot_cond`). */
   // `fresh: true` haengt `fresh=1` an und geht damit am Service-Worker-Cache vorbei (s.
   // vite.config.ts) — fuer die Nachpruefung eines schon angezeigten Standes.
+  // `period`: nur DIESEN Zeitraum holen. Die Antwort behaelt die Form `{zeitraum: {...}}`, ist
+  // aber ein Fuenftel so gross — die Seite zeigt ohnehin immer nur einen. Ohne Angabe kommen
+  // weiter alle fuenf (Spot- und Foil-Rekorde brauchen das, sie suchen sich das erste Fenster
+  // mit Inhalt selbst).
   communityRecords: (accelOnly = true, sport = "pumpfoil", foilBand = "all", spot?: string,
-                     fresh?: boolean) =>
+                     fresh?: boolean, period?: string) =>
     req<CommunityRecords>(`/api/community/records?${new URLSearchParams({
       accel_only: String(accelOnly), sport, foil_band: foilBand,
-      ...(spot ? { spot } : {}), ...(fresh ? { fresh: "1" } : {}),
+      ...(spot ? { spot } : {}), ...(period ? { period } : {}), ...(fresh ? { fresh: "1" } : {}),
     })}`),
   /** Die Foil-Baender fuer das Dropdown — MIT Sessionzahl und Fahrerzahl je Band, damit die
    *  Oberflaeche duenne Gruppen ausblenden kann (ein Rekord aus zwei Fahrern ist keiner). */
