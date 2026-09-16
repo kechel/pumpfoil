@@ -1024,7 +1024,11 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   - **Vorbedingungen, bevor irgendetwas gebaut wird:** Ist-Zustand sichern
     (Memory `keep-all-sources-of-truth`), `DETECTOR_V2`-Falle beachten
     (`reanalyse-detector-v2-env`), und Aenderungen an der Pipeline erst mit Jans OK (CLAUDE.md).
-  - **NICHT heute.** Steht hier, damit es nicht verlorengeht.
+  - **NICHT heute, und nicht nebenbei.** Jan am 16.09.2026: „Später, das will ich gut planen und
+    kommunizieren." Wer hier weitermacht, faengt also NICHT mit Code an, sondern holt sich von Jan
+    Plan und Ankuendigung. Der Grund liegt auf der Hand: ein Umschalter auf eine zweite Erkennung
+    aendert jedem Nutzer seine Zahlen — Laeufe, Distanzen, Rekorde. Das ist eine Produkt- und
+    Kommunikationsentscheidung, keine technische.
 
 - **✅ GEBAUT 16.09.2026 — Spots-Seite nativ: Suche statt der Liste aller 231 Spots.**
   Jans Frage: „warum ist auf ios und android in /spots unter der karte eine riesen lange liste
