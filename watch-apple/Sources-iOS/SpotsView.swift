@@ -55,6 +55,8 @@ struct SpotsView: View {
     // Suchfeld. Ohne Eingabe erscheint jetzt also KEINE Liste: gesucht wird ueber die Karte oder
     // ueber die Suchleiste.
     @State private var suche = ""
+    // Filter „nur mit Beschreibung" — rein clientseitig, `spot-map` liefert die Zahl je Spot mit.
+    @State private var nurNotes = false
     @State private var loading = false
     @State private var error: String?
     @State private var region = MKCoordinateRegion(
@@ -73,6 +75,7 @@ struct SpotsView: View {
     var body: some View {
         NavigationStack(path: $navPath) {
             List {
+                kopfSection
                 mapSection
                 // Spot-Vergleich direkt unter der Karte — dieselbe Stelle wie in der PWA.
                 SpotCompareView()
@@ -86,7 +89,9 @@ struct SpotsView: View {
             // `.searchable` statt eines eigenen Feldes ueber der Karte: auf iOS gehoert die
             // Suche in die Navigationsleiste, und sie verschwindet beim Scrollen von selbst.
             .searchable(text: $suche, prompt: Loc.t("home.spotPick", lang))
-            .navigationTitle(Loc.t("nav.spots", lang))
+            // Spot-Zahl im Titel — wie in der PWA-Ueberschrift.
+            .navigationTitle(sichtbar.isEmpty ? Loc.t("nav.spots", lang)
+                                              : "\(Loc.t("nav.spots", lang)) (\(sichtbar.count))")
             .brandToolbar(Loc.t("nav.spots", lang))
             .overlay { if loading && items.isEmpty { ProgressView() } }
             .refreshable { await load() }
@@ -182,12 +187,36 @@ struct SpotsView: View {
         }
     }
 
+    /// Der Filter wirkt auf die KARTE genauso wie auf die Treffer — wie in der PWA, wo `spots`
+    /// die gefilterte Menge ist und die Marker daraus entstehen.
+    private var sichtbar: [SpotMapItem] {
+        nurNotes ? items.filter { ($0.notes ?? 0) > 0 } : items
+    }
+    private var mitNotes: Int { items.filter { ($0.notes ?? 0) > 0 }.count }
+
     /// Treffer zum Suchtext. Ohne Eingabe leer — dann steht unter der Karte nur der Vergleich.
     private var treffer: [SpotMapItem] {
         let n = suche.trimmingCharacters(in: .whitespaces).lowercased()
         guard !n.isEmpty else { return [] }
-        return items.filter {
+        return sichtbar.filter {
             $0.spot.lowercased().contains(n) || ($0.water?.lowercased().contains(n) ?? false)
+        }
+    }
+
+    /// Filterzeile + Erklaertext. In der PWA steht der Filter rechts neben der Ueberschrift und
+    /// der Text darunter; hier sitzt der Titel in der Navigationsleiste, also bekommen beide
+    /// eine eigene Zeile ueber der Karte.
+    @ViewBuilder private var kopfSection: some View {
+        Section {
+            if mitNotes > 0 {
+                Toggle(isOn: $nurNotes) {
+                    Text("\(Loc.t("spots.onlyWithNotes", lang)) (\(mitNotes))")
+                }
+                .onChange(of: nurNotes) { _ in buendeln() }   // Pins sofort nachziehen
+            }
+            // Dritter Nutzer in Folge suchte in der PWA einen Knopf zum Anlegen, den es bewusst
+            // nicht gibt. Einmal erklaeren, wie Spots entstehen.
+            Text(Loc.t("spots.autoHint", lang)).font(.footnote).foregroundStyle(.secondary)
         }
     }
 
@@ -238,8 +267,11 @@ struct SpotsView: View {
         letzteSpanne = region.span.longitudeDelta
         letzteMitte = region.center
         let dLat = region.span.latitudeDelta, dLon = region.span.longitudeDelta
-        guard !items.isEmpty, dLat > 0, dLon > 0 else { buendel = []; return }
-        let sicht = items.filter {
+        // `sichtbar` statt `items`: der Filter „nur mit Beschreibung" soll auch die Pins
+        // ausduennen, nicht nur die Trefferliste — genau wie in der PWA.
+        let grund = sichtbar
+        guard !grund.isEmpty, dLat > 0, dLon > 0 else { buendel = []; return }
+        let sicht = grund.filter {
             abs($0.lat - region.center.latitude) <= dLat * 0.65
                 && abs($0.lon - region.center.longitude) <= dLon * 0.65
         }

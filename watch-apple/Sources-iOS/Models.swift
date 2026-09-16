@@ -382,6 +382,9 @@ struct SpotMapItem: Codable, Identifiable {
     let lat: Double
     let lon: Double
     let sessions: Int
+    // Zahl der sichtbaren Spot-Beschreibungen. Der Server liefert sie seit jeher mit; hier kam sie
+    // erst am 16.09.2026 an, fuer den Filter „nur mit Beschreibung" (bis dahin nur Web).
+    let notes: Int?
     var id: String { spot }
 }
 

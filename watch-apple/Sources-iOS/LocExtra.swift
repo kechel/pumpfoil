@@ -9,9 +9,15 @@ import Foundation
 // In 10 Bloecke zerlegt: EIN Literal mit 543 Eintraegen ist fuer den
 // Swift-Type-Checker EIN Ausdruck, dessen Kosten ueberproportional wachsen (der Build hing
 // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
+    // Spots-Suche (16.09.2026) — aus web/src/i18n/locales/pt.ts.
+    private let _ptOverlaySpotsSuche: [String: String] = [
+        "home.spotPick": "Escolha um spot …",
+        "spots.onlyWithNotes": "Só com descrição",
+        "spots.autoHint": "Você não precisa criar spots: eles aparecem automaticamente assim que alguém envia uma sessão em um lugar novo. Os nomes de lugares e águas vêm do OpenStreetMap — logo após o envio, o nome pode demorar alguns minutos.",
+    ]
 let ptOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_ptOverlayP1, _ptOverlayP1s2, _ptOverlayP2, _ptOverlayP2s2, _ptOverlayP3, _ptOverlayP3s2, _ptOverlayP4, _ptOverlayP4s2, _ptOverlayP5, _ptOverlayP5s2, _ptOverlayP6, _ptOverlayP6s2, _ptOverlayP7, _ptOverlayP7s2, _ptOverlayP8, _ptOverlayP8s2, _ptOverlayP9, _ptOverlayP9s2, _ptOverlayP10, _ptOverlayP10s2, _ptOverlayP11, _ptOverlayP11s2, _ptOverlayP11s8, _ptOverlayP11s7, _ptOverlayP11s3, _ptOverlayP11s4, _ptOverlayP11s5, _ptOverlayP11s6] { d.merge(p) { a, _ in a } }
+    for p in [_ptOverlaySpotsSuche, _ptOverlayP1, _ptOverlayP1s2, _ptOverlayP2, _ptOverlayP2s2, _ptOverlayP3, _ptOverlayP3s2, _ptOverlayP4, _ptOverlayP4s2, _ptOverlayP5, _ptOverlayP5s2, _ptOverlayP6, _ptOverlayP6s2, _ptOverlayP7, _ptOverlayP7s2, _ptOverlayP8, _ptOverlayP8s2, _ptOverlayP9, _ptOverlayP9s2, _ptOverlayP10, _ptOverlayP10s2, _ptOverlayP11, _ptOverlayP11s2, _ptOverlayP11s8, _ptOverlayP11s7, _ptOverlayP11s3, _ptOverlayP11s4, _ptOverlayP11s5, _ptOverlayP11s6] { d.merge(p) { a, _ in a } }
     return d
 }()
 
@@ -960,9 +966,15 @@ private let _ptOverlayP10s2: [String: String] = [
 // In 10 Bloecke zerlegt: EIN Literal mit 543 Eintraegen ist fuer den
 // Swift-Type-Checker EIN Ausdruck, dessen Kosten ueberproportional wachsen (der Build hing
 // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
+    // Spots-Suche (16.09.2026) — aus web/src/i18n/locales/ja.ts.
+    private let _jaOverlaySpotsSuche: [String: String] = [
+        "home.spotPick": "スポットを選択 …",
+        "spots.onlyWithNotes": "説明があるものだけ",
+        "spots.autoHint": "スポットを自分で作る必要はありません。誰かが新しい場所でセッションをアップロードすると自動的に作成されます。地名や水域名は OpenStreetMap から取得され、アップロード直後は表示まで数分かかることがあります。",
+    ]
 let jaOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_jaOverlayP1, _jaOverlayP1s2, _jaOverlayP2, _jaOverlayP2s2, _jaOverlayP3, _jaOverlayP3s2, _jaOverlayP4, _jaOverlayP4s2, _jaOverlayP5, _jaOverlayP5s2, _jaOverlayP6, _jaOverlayP6s2, _jaOverlayP7, _jaOverlayP7s2, _jaOverlayP8, _jaOverlayP8s2, _jaOverlayP9, _jaOverlayP9s2, _jaOverlayP10, _jaOverlayP10s2, _jaOverlayP11, _jaOverlayP11s2, _jaOverlayP11s8, _jaOverlayP11s7, _jaOverlayP11s3, _jaOverlayP11s4, _jaOverlayP11s5, _jaOverlayP11s6] { d.merge(p) { a, _ in a } }
+    for p in [_jaOverlaySpotsSuche, _jaOverlayP1, _jaOverlayP1s2, _jaOverlayP2, _jaOverlayP2s2, _jaOverlayP3, _jaOverlayP3s2, _jaOverlayP4, _jaOverlayP4s2, _jaOverlayP5, _jaOverlayP5s2, _jaOverlayP6, _jaOverlayP6s2, _jaOverlayP7, _jaOverlayP7s2, _jaOverlayP8, _jaOverlayP8s2, _jaOverlayP9, _jaOverlayP9s2, _jaOverlayP10, _jaOverlayP10s2, _jaOverlayP11, _jaOverlayP11s2, _jaOverlayP11s8, _jaOverlayP11s7, _jaOverlayP11s3, _jaOverlayP11s4, _jaOverlayP11s5, _jaOverlayP11s6] { d.merge(p) { a, _ in a } }
     return d
 }()
 
@@ -1911,9 +1923,15 @@ private let _jaOverlayP10s2: [String: String] = [
 // In 10 Bloecke zerlegt: EIN Literal mit 543 Eintraegen ist fuer den
 // Swift-Type-Checker EIN Ausdruck, dessen Kosten ueberproportional wachsen (der Build hing
 // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
+    // Spots-Suche (16.09.2026) — aus web/src/i18n/locales/zh.ts.
+    private let _zhOverlaySpotsSuche: [String: String] = [
+        "home.spotPick": "选择一个地点 …",
+        "spots.onlyWithNotes": "仅显示有说明的",
+        "spots.autoHint": "无需自己创建 spot：只要有人在新地点上传 session，spot 就会自动出现。地名和水域名称来自 OpenStreetMap——上传后名称可能需要几分钟才会显示。",
+    ]
 let zhOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_zhOverlayP1, _zhOverlayP1s2, _zhOverlayP2, _zhOverlayP2s2, _zhOverlayP3, _zhOverlayP3s2, _zhOverlayP4, _zhOverlayP4s2, _zhOverlayP5, _zhOverlayP5s2, _zhOverlayP6, _zhOverlayP6s2, _zhOverlayP7, _zhOverlayP7s2, _zhOverlayP8, _zhOverlayP8s2, _zhOverlayP9, _zhOverlayP9s2, _zhOverlayP10, _zhOverlayP10s2, _zhOverlayP11, _zhOverlayP11s2, _zhOverlayP11s8, _zhOverlayP11s7, _zhOverlayP11s3, _zhOverlayP11s4, _zhOverlayP11s5, _zhOverlayP11s6] { d.merge(p) { a, _ in a } }
+    for p in [_zhOverlaySpotsSuche, _zhOverlayP1, _zhOverlayP1s2, _zhOverlayP2, _zhOverlayP2s2, _zhOverlayP3, _zhOverlayP3s2, _zhOverlayP4, _zhOverlayP4s2, _zhOverlayP5, _zhOverlayP5s2, _zhOverlayP6, _zhOverlayP6s2, _zhOverlayP7, _zhOverlayP7s2, _zhOverlayP8, _zhOverlayP8s2, _zhOverlayP9, _zhOverlayP9s2, _zhOverlayP10, _zhOverlayP10s2, _zhOverlayP11, _zhOverlayP11s2, _zhOverlayP11s8, _zhOverlayP11s7, _zhOverlayP11s3, _zhOverlayP11s4, _zhOverlayP11s5, _zhOverlayP11s6] { d.merge(p) { a, _ in a } }
     return d
 }()
 
@@ -2862,9 +2880,15 @@ private let _zhOverlayP10s2: [String: String] = [
 // In 10 Bloecke zerlegt: EIN Literal mit 543 Eintraegen ist fuer den
 // Swift-Type-Checker EIN Ausdruck, dessen Kosten ueberproportional wachsen (der Build hing
 // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
+    // Spots-Suche (16.09.2026) — aus web/src/i18n/locales/ru.ts.
+    private let _ruOverlaySpotsSuche: [String: String] = [
+        "home.spotPick": "Выберите спот …",
+        "spots.onlyWithNotes": "Только с описанием",
+        "spots.autoHint": "Споты не нужно создавать: они появляются автоматически, как только кто-то загружает сессию в новом месте. Названия мест и водоёмов берутся из OpenStreetMap — сразу после загрузки название может появиться через несколько минут.",
+    ]
 let ruOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_ruOverlayP1, _ruOverlayP1s2, _ruOverlayP2, _ruOverlayP2s2, _ruOverlayP3, _ruOverlayP3s2, _ruOverlayP4, _ruOverlayP4s2, _ruOverlayP5, _ruOverlayP5s2, _ruOverlayP6, _ruOverlayP6s2, _ruOverlayP7, _ruOverlayP7s2, _ruOverlayP8, _ruOverlayP8s2, _ruOverlayP9, _ruOverlayP9s2, _ruOverlayP10, _ruOverlayP10s2, _ruOverlayP11, _ruOverlayP11s2, _ruOverlayP11s8, _ruOverlayP11s7, _ruOverlayP11s3, _ruOverlayP11s4, _ruOverlayP11s5, _ruOverlayP11s6] { d.merge(p) { a, _ in a } }
+    for p in [_ruOverlaySpotsSuche, _ruOverlayP1, _ruOverlayP1s2, _ruOverlayP2, _ruOverlayP2s2, _ruOverlayP3, _ruOverlayP3s2, _ruOverlayP4, _ruOverlayP4s2, _ruOverlayP5, _ruOverlayP5s2, _ruOverlayP6, _ruOverlayP6s2, _ruOverlayP7, _ruOverlayP7s2, _ruOverlayP8, _ruOverlayP8s2, _ruOverlayP9, _ruOverlayP9s2, _ruOverlayP10, _ruOverlayP10s2, _ruOverlayP11, _ruOverlayP11s2, _ruOverlayP11s8, _ruOverlayP11s7, _ruOverlayP11s3, _ruOverlayP11s4, _ruOverlayP11s5, _ruOverlayP11s6] { d.merge(p) { a, _ in a } }
     return d
 }()
 
@@ -3813,9 +3837,15 @@ private let _ruOverlayP10s2: [String: String] = [
 // In 10 Bloecke zerlegt: EIN Literal mit 543 Eintraegen ist fuer den
 // Swift-Type-Checker EIN Ausdruck, dessen Kosten ueberproportional wachsen (der Build hing
 // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
+    // Spots-Suche (16.09.2026) — aus web/src/i18n/locales/id.ts.
+    private let _idOverlaySpotsSuche: [String: String] = [
+        "home.spotPick": "Pilih spot …",
+        "spots.onlyWithNotes": "Hanya yang ada deskripsi",
+        "spots.autoHint": "Kamu tidak perlu membuat spot: spot muncul otomatis begitu seseorang mengunggah sesi di tempat baru. Nama tempat dan perairan berasal dari OpenStreetMap — sesaat setelah unggahan, namanya bisa butuh beberapa menit.",
+    ]
 let idOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_idOverlayP1, _idOverlayP1s2, _idOverlayP2, _idOverlayP2s2, _idOverlayP3, _idOverlayP3s2, _idOverlayP4, _idOverlayP4s2, _idOverlayP5, _idOverlayP5s2, _idOverlayP6, _idOverlayP6s2, _idOverlayP7, _idOverlayP7s2, _idOverlayP8, _idOverlayP8s2, _idOverlayP9, _idOverlayP9s2, _idOverlayP10, _idOverlayP10s2, _idOverlayP11, _idOverlayP11s2, _idOverlayP11s8, _idOverlayP11s7, _idOverlayP11s3, _idOverlayP11s4, _idOverlayP11s5, _idOverlayP11s6] { d.merge(p) { a, _ in a } }
+    for p in [_idOverlaySpotsSuche, _idOverlayP1, _idOverlayP1s2, _idOverlayP2, _idOverlayP2s2, _idOverlayP3, _idOverlayP3s2, _idOverlayP4, _idOverlayP4s2, _idOverlayP5, _idOverlayP5s2, _idOverlayP6, _idOverlayP6s2, _idOverlayP7, _idOverlayP7s2, _idOverlayP8, _idOverlayP8s2, _idOverlayP9, _idOverlayP9s2, _idOverlayP10, _idOverlayP10s2, _idOverlayP11, _idOverlayP11s2, _idOverlayP11s8, _idOverlayP11s7, _idOverlayP11s3, _idOverlayP11s4, _idOverlayP11s5, _idOverlayP11s6] { d.merge(p) { a, _ in a } }
     return d
 }()
 
@@ -4763,9 +4793,15 @@ private let _idOverlayP10s2: [String: String] = [
 // Englischen). Anlass: erster norwegischer Nutzer (Sogndal, 05.08.2026); nn/no landen
 // ebenfalls hier. In Bloecke zerlegt wie die anderen Overlays — EIN Riesen-Literal laesst
 // den Swift-Type-Checker im Release-Build minutenlang kauen.
+    // Spots-Suche (16.09.2026) — aus web/src/i18n/locales/nb.ts.
+    private let _nbOverlaySpotsSuche: [String: String] = [
+        "home.spotPick": "Velg en spot …",
+        "spots.onlyWithNotes": "Kun med beskrivelse",
+        "spots.autoHint": "Du oppretter aldri spots selv: de dukker opp automatisk så snart noen laster opp en økt fra et nytt sted. Navn på steder og vann kommer fra OpenStreetMap — rett etter en opplasting kan det ta et par minutter før navnet vises.",
+    ]
 let nbOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_nbOverlayP1, _nbOverlayP1s2, _nbOverlayP2, _nbOverlayP2s2, _nbOverlayP3, _nbOverlayP3s2, _nbOverlayP4, _nbOverlayP4s2, _nbOverlayP5, _nbOverlayP5s2, _nbOverlayP6, _nbOverlayP6s2, _nbOverlayP7, _nbOverlayP7s2, _nbOverlayP8, _nbOverlayP8s2, _nbOverlayP9, _nbOverlayP9s2, _nbOverlayP10, _nbOverlayP10s2, _nbOverlayP11, _nbOverlayP11s2, _nbOverlayP11s7, _nbOverlayP11s6, _nbOverlayP11s3, _nbOverlayP11s4, _nbOverlayP11s5] { d.merge(p) { a, _ in a } }
+    for p in [_nbOverlaySpotsSuche, _nbOverlayP1, _nbOverlayP1s2, _nbOverlayP2, _nbOverlayP2s2, _nbOverlayP3, _nbOverlayP3s2, _nbOverlayP4, _nbOverlayP4s2, _nbOverlayP5, _nbOverlayP5s2, _nbOverlayP6, _nbOverlayP6s2, _nbOverlayP7, _nbOverlayP7s2, _nbOverlayP8, _nbOverlayP8s2, _nbOverlayP9, _nbOverlayP9s2, _nbOverlayP10, _nbOverlayP10s2, _nbOverlayP11, _nbOverlayP11s2, _nbOverlayP11s7, _nbOverlayP11s6, _nbOverlayP11s3, _nbOverlayP11s4, _nbOverlayP11s5] { d.merge(p) { a, _ in a } }
     return d
 }()
 
@@ -5742,9 +5778,15 @@ private let _nbOverlayP10s2: [String: String] = [
 
 // Polnisch — 17. Sprache (28.08.). In Bloecke geteilt wie die anderen Overlays: ein
 // einziges Riesen-Literal laesst den Swift-Type-Checker minutenlang kauen.
+    // Spots-Suche (16.09.2026) — aus web/src/i18n/locales/pl.ts.
+    private let _plOverlaySpotsSuche: [String: String] = [
+        "home.spotPick": "Wybierz spot …",
+        "spots.onlyWithNotes": "Tylko z opisem",
+        "spots.autoHint": "Spotów nigdy nie tworzysz sam: pojawiają się automatycznie, gdy tylko ktoś wyśle sesję z nowego miejsca. Nazwy miejsc i akwenów pochodzą z OpenStreetMap — zaraz po wysyłce nazwa może pojawić się dopiero po kilku minutach.",
+    ]
 let plOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_plOverlayP1, _plOverlayP1s2, _plOverlayP1s7, _plOverlayP1s6, _plOverlayP1s3, _plOverlayP1s4, _plOverlayP1s5, _plOverlayP2, _plOverlayP2s2, _plOverlayP2s3, _plOverlayP3, _plOverlayP3s2, _plOverlayP3s3, _plOverlayP4, _plOverlayP4s2, _plOverlayP4s3, _plOverlayP5, _plOverlayP5s2, _plOverlayP5s3, _plOverlayP6] { d.merge(p) { a, _ in a } }
+    for p in [_plOverlaySpotsSuche, _plOverlayP1, _plOverlayP1s2, _plOverlayP1s7, _plOverlayP1s6, _plOverlayP1s3, _plOverlayP1s4, _plOverlayP1s5, _plOverlayP2, _plOverlayP2s2, _plOverlayP2s3, _plOverlayP3, _plOverlayP3s2, _plOverlayP3s3, _plOverlayP4, _plOverlayP4s2, _plOverlayP4s3, _plOverlayP5, _plOverlayP5s2, _plOverlayP5s3, _plOverlayP6] { d.merge(p) { a, _ in a } }
     return d
 }()
 
@@ -6705,9 +6747,15 @@ private let _plOverlayP6: [String: String] = [
 // faellt auf ptOverlay zurueck (Loc.t). 174 davon stammen aus web/src/i18n/locales/pt-PT.ts,
 // 20 sind app-eigene Schluessel ohne Web-Entsprechung (telemóvel, ecrã, palavra-passe,
 // gostos, utilizadores, ligar/desligar statt conectar/desconectar).
+    // Spots-Suche (16.09.2026) — aus web/src/i18n/locales/pt-PT.ts.
+    private let _ptptOverlaySpotsSuche: [String: String] = [
+        "home.spotPick": "Escolhe um spot …",
+        "spots.onlyWithNotes": "Só com descrição",
+        "spots.autoHint": "Não precisas de criar spots: aparecem automaticamente assim que alguém envia uma sessão num sítio novo. Os nomes de lugares e águas vêm do OpenStreetMap — logo após o envio, o nome pode demorar alguns minutos.",
+    ]
 let ptptOverlay: [String: String] = {
     var d: [String: String] = [:]
-    for p in [_ptptOverlayP1, _ptptOverlayP2, _ptptOverlayP3, _ptptOverlayP4] { d.merge(p) { a, _ in a } }
+    for p in [_ptptOverlaySpotsSuche, _ptptOverlayP1, _ptptOverlayP2, _ptptOverlayP3, _ptptOverlayP4] { d.merge(p) { a, _ in a } }
     return d
 }()
 
