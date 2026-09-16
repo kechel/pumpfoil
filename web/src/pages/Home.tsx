@@ -425,8 +425,26 @@ function CommunitySection() {
   const [bandKey, setBandKey] = useState("all");
   const band = bands.find((b) => b.key === bandKey);
 
+  // ZWEI Aufrufe mit Absicht (16.09.2026). Der erste darf aus dem Service-Worker-Cache kommen
+  // und steht damit sofort da; der zweite geht garantiert ans Netz (`fresh`) und ersetzt den
+  // Stand nur, wenn er sich wirklich geaendert hat. Anlass: dieser Aufruf ist der teuerste der
+  // Seite — 268 KB, ueber die echte Verbindung 1,25 s —, und bis er da war, blieb die halbe
+  // Community-Seite leer. Der Vergleich ueber JSON kostet bei dieser Groesse Bruchteile einer
+  // Millisekunde und erspart ein zweites Rendern, wenn sich nichts getan hat.
   useEffect(() => {
-    api.communityRecords(accelOnly, sport, bandKey).then(setData).catch(() => {});
+    let lebt = true;
+    let gezeigt: string | null = null;
+    api.communityRecords(accelOnly, sport, bandKey).then((d) => {
+      if (!lebt) return;
+      gezeigt = JSON.stringify(d);
+      setData(d);
+    }).catch(() => {});
+    api.communityRecords(accelOnly, sport, bandKey, undefined, true).then((d) => {
+      if (!lebt) return;
+      const neu = JSON.stringify(d);
+      if (neu !== gezeigt) { gezeigt = neu; setData(d); }
+    }).catch(() => {});
+    return () => { lebt = false; };
   }, [accelOnly, sport, bandKey]);
 
   useEffect(() => {

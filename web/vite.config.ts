@@ -121,6 +121,23 @@ export default defineConfig({
             },
           },
           {
+            // Community-REKORDE: der mit Abstand teuerste Aufruf der Community-Seite — gemessen
+            // am 16.09.2026 lokal 271 ms und 268 KB, ueber die echte Verbindung 1,25 s (Jan).
+            // Fuenf Zeitfenster (heute/10d/30d/365d/alle) mit je zwoelf Kategorien, in EINER
+            // Antwort. Deshalb sofort aus dem Cache zeigen und im Hintergrund auffrischen; die
+            // Seite holt sich die Wahrheit mit `fresh=1` daneben (s. Home.tsx) — solche Aufrufe
+            // nimmt die Regel aus, sonst bekaeme auch die Nachpruefung den alten Stand.
+            urlPattern: ({ url }) =>
+              url.pathname === "/api/community/records" && !url.searchParams.has("fresh"),
+            handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "api-community-records",
+              // Je Kombination aus Genauigkeit, Sportart und Foil-Band eine eigene URL.
+              expiration: { maxEntries: 24, maxAgeSeconds: 7 * 24 * 3600 },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
+          {
             // Session-Detail (+ neighbors + social/Fotos): die letzten ~10 Sessions
             // (proaktiv vorgewärmt) bzw. zuletzt angesehene.
             urlPattern: ({ url }) =>
