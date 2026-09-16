@@ -963,32 +963,41 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
-- **🔴 GPS-LUECKEN AUF GARMIN — 20 von 41 der neuesten Sessions unter 90 % Abdeckung, und in
-  mehreren fallen die Luecken in die AKTIVE Zeit.** Gefunden 16.09.2026 beim Nachgehen von Andis
-  Meldung; mit seiner Session hat es am Ende nichts zu tun, aber es ist der groessere Fund.
-  - **Gemessen** (rohe `data/<uuid>/gps/*.json`, Abdeckung = Punkte / Sekunden der Zeitspanne):
-    ```
-    Session  Nutzer  fehlende s  idle-Anteil IN der Luecke  idle-Anteil gesamt
-      8570    u139        1092                        4 %               17 %
-      8557    u524        1581                       14 %               32 %
-      8571    u287        1106                        8 %               29 %
-      8601    u449         611                       17 %               17 %
-      8350     u72         308                       88 %               66 %
-      8594    u535        1289                       93 %               88 %
-    ```
-  - **Der idle-Vergleich ist der Kern.** Bei u72 und u535 liegen die Luecken ueberwiegend in
-    Ruhephasen — da fehlt nichts, was zaehlt. Bei u139, u524, u287 ist es UMGEKEHRT: in den
-    Luecken ist der idle-Anteil deutlich NIEDRIGER als im Rest der Aufnahme, das GPS faellt dort
-    also gerade waehrend des Fahrens aus. Bei u139 sind das 18 Minuten, zu 96 % aktive Zeit.
-  - **Folge:** zu kurze Distanzen, zerschnittene oder ganz fehlende Laeufe — genau bei den
-    Vielfahrern. Das ist der AUFNAHME-Pfad, also die gefaehrliche Seite (CLAUDE.md).
-  - **Was schon ausgeschlossen ist:** die App duennt NICHT aus. `SessionRecorder.onPosition`
-    (watch/source/SessionRecorder.mc:1760) legt jedes Ereignis in den Puffer, kein Bewegungs-
-    oder Genauigkeitsfilter. Die Punkte kommen also gar nicht erst an.
-  - **🔲 Naechster Schritt:** Abdeckung gegen `device_tokens.gnss_mode` und das Uhrenmodell
-    korrelieren. Verdacht ist eine Spar-GNSS-Stufe; falls das stimmt, gehoert eine Warnung an die
-    Einstellung oder die Stufe raus. Vorher NICHT an Nutzer kommunizieren — erst der Beleg.
-
+- **🟡 GPS-LUECKEN AUF GARMIN — belegt als EMPFANGSABRISS, nicht als unser Fehler** (16.09.2026,
+  beim Nachgehen von Andis Meldung u72; mit seinem Fall hat es am Ende nichts zu tun).
+  - **Ausgangsbefund:** 20 von 41 der neuesten Garmin-Sessions unter 90 % GPS-Abdeckung
+    (Punkte / Sekunden der Zeitspanne, aus den rohen `data/<uuid>/gps/*.json`). Bei u139 fehlen
+    1092 s, bei u524 1581 s.
+  - **Drei Erklaerungen geprueft, zwei ausgeschlossen:**
+    1. *Die App duennt aus.* NEIN — `SessionRecorder.onPosition` (watch/source/SessionRecorder.mc)
+       legt jedes Ereignis in den Puffer, kein Bewegungs- oder Genauigkeitsfilter.
+    2. *Eine Spar-GNSS-Stufe.* NEIN — 267 von 272 ausgewerteten Sessions stehen auf der
+       Voreinstellung, und die IST die hoechste (`best`, `_effective_gnss_mode`). Genau EINE
+       Session lief auf `two`. (Jans Verdacht, sauber widerlegt.)
+    3. *Die Uhr liefert langsamer als 1 Hz.* NEIN — der Median-Takt ist auf JEDEM Modell exakt
+       1000 ms; 91–99 % der Fehlzeit stammt aus Luecken ab 5 s. Es ist bursty, nicht langsam.
+  - **Belegt ist stattdessen Empfangsverlust.** Die Genauigkeit bricht vor der Luecke ein und
+    erholt sich danach (74 Sessions): ueber alle Punkte liegen 96,7 % auf der besten Stufe 4 —
+    beim letzten Punkt VOR einer Luecke nur noch 54,3 %, beim ersten Punkt danach 42,6 %. Der
+    Anteil der schlechteren Stufe 3 steigt von 3,3 % auf 45,6 %. Das ist eine 14-fache
+    Anreicherung genau an den Luecken.
+  - **Physikalisch passt das zur Sportart:** das Handgelenk geht beim Pumpen ins Wasser, der
+    Koerper schattet die Antenne ab. Deshalb liegen die Luecken bei manchen Nutzern in der
+    AKTIVEN Zeit (u139: 4 % idle in der Luecke gegen 17 % im Schnitt — GPS faellt beim Fahren
+    aus) und bei anderen in den Pausen (u72: 88 % gegen 66 % — Arm im Wasser beim Sitzen).
+  - **Die Spanne ist Modellsache**, nicht Einstellungssache: Median-Abdeckung je part_number von
+    71 % (006-B3869-00, n=7) bis 99 % (006-B4375-00, n=11). Antennenqualitaet.
+  - **Die Analyse behandelt es bereits bewusst:** `GAP_SPLIT_S = 15` beendet einen Lauf an einer
+    Luecke darueber, `GAP_FILL_S = 2` schliesst kurze. Dazwischen (2–15 s) wird die Luecke als
+    GERADE ueberbrueckt — auf einer Kurve ist das zu wenig Distanz.
+  - **🔲 Was sich lohnen wuerde, in dieser Reihenfolge:**
+    1. Abdeckung je Session berechnen und BEI SCHLECHTEM WERT ANZEIGEN („GPS-Empfang war
+       lueckenhaft — Distanz und Laufzahl koennen zu niedrig sein"). Kostet nichts und nimmt
+       genau die Reklamationen vorweg, von denen Andis eine war.
+    2. Distanz ueber ueberbrueckte Luecken aus der Geschwindigkeit an beiden Enden schaetzen
+       statt aus der Sehne.
+    3. Erst danach ueberlegen, ob `GAP_SPLIT_S = 15` noch die richtige Grenze ist.
+  - **NICHT tun:** den Nutzern raten, an der GNSS-Stufe zu drehen. Sie stehen schon auf der besten.
 
 - **✅ GEBAUT 16.09.2026 — Spots-Seite nativ: Suche statt der Liste aller 231 Spots.**
   Jans Frage: „warum ist auf ios und android in /spots unter der karte eine riesen lange liste
