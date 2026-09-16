@@ -987,7 +987,17 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     es 1,17 MB, und der Dialog holt die Vorschau bei jeder Aenderung neu). Kacheln liegen in
     `server/data/cache/tiles`, vom Backup ausgenommen. Faellt der Kachel-Server aus, entsteht das
     Bild ohne Karte — nie ein Fehler, nie ein Haenger (5 s Zeitgrenze, eigener Test).
-  - **🔲 Offen:** James antworten, dass es jetzt da ist.
+  - **✅ James geantwortet 16.09.** (`dm:17-230`), auf Englisch wie der ganze Faden, mit den
+    FRANZOESISCHEN Knopfbeschriftungen aus seiner Oberflaeche („Fond": Aucune / Carte /
+    Satellite) — die deutschen haetten ihn suchen lassen. Changelog-Punkt steht ebenfalls
+    (16.09., „Share images can now use a map or satellite background (web app for now)").
+  - **🔲 OFFEN: Port in die nativen Apps** (Jan, 16.09.: „nicht aber ios/android native app, da
+    kommt es in 1-2 woche dann mit"). Serverseitig ist nichts mehr zu tun — beide brauchen nur
+    `bg=satellit|karte` an `share.png`, die Hintergrund-Zeile im Teilen-Dialog und den
+    Helligkeitsregler daran. Den gemessenen Startwert liefert der Header `X-Card-Dim`.
+    Sprachschluessel sind da (`map.street`, `map.satellite`, `share.noPhoto`, `share.background`).
+    ACHTUNG beim Port: die Antwort ist bei Kartenhintergrund **JPEG**, sonst PNG — wer den
+    Medientyp fest verdrahtet, bekommt ein kaputtes Bild.
   - **Nicht gebaut, bleibt als Ausweg notiert:** die vorhandene Wasser-Silhouette
     (`_wasser_silhouette`, Overpass) zu einer eigenen gezeichneten Karte ausbauen — gehoert uns,
     kein fremder Dienst. Der Weg bleibt richtig, falls Esri je Aerger macht.
