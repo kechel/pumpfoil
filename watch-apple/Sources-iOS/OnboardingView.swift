@@ -303,20 +303,27 @@ struct OnboardingView: View {
     /// beiden war der kleinere. Getrennt ist auch klarer, WAS uebersprungen wird: der Schritt.
     private var navSection: some View {
         Section {
-            HStack {
-                if i > 0 { Button(t("onb.back")) { schrittId = schritte[i - 1] }.buttonStyle(.borderless) }
-                Spacer()
+            // EINE Zeile, nicht drei. In einer `Form` wird jedes Element zu einer eigenen Zeile
+            // MIT Trennlinie — ein zweites Element ergab einen abgehackten Strich quer unter
+            // „Weiter" (Jans Bildschirmfoto, 16.09.2026). Der ZStack legt „Ueberspringen"
+            // deshalb MITTIG UEBER dieselbe Zeile: echte Mitte, unabhaengig davon, wie breit
+            // „Zurueck" und „Weiter" gerade sind (mit Spacern waere sie nur dann mittig, wenn
+            // beide gleich breit sind — auf Schritt 1 gibt es „Zurueck" gar nicht).
+            ZStack {
                 if schritte[i] != "done" {
-                    Button(t("onb.next")) { schrittId = schritte[i + 1] }.buttonStyle(.borderless).bold()
-                } else {
-                    Button(t("onb.finish")) { beenden() }.buttonStyle(.borderless).bold()
+                    Button(t("onb.skip")) { schrittId = schritte[i + 1] }
+                        .buttonStyle(.borderless)
+                        .foregroundStyle(.secondary)
                 }
-            }
-            if schritte[i] != "done" {
-                Button(t("onb.skip")) { schrittId = schritte[i + 1] }
-                    .buttonStyle(.borderless)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .center)
+                HStack {
+                    if i > 0 { Button(t("onb.back")) { schrittId = schritte[i - 1] }.buttonStyle(.borderless) }
+                    Spacer()
+                    if schritte[i] != "done" {
+                        Button(t("onb.next")) { schrittId = schritte[i + 1] }.buttonStyle(.borderless).bold()
+                    } else {
+                        Button(t("onb.finish")) { beenden() }.buttonStyle(.borderless).bold()
+                    }
+                }
             }
         }
     }
