@@ -157,11 +157,21 @@ export default defineConfig({
             urlPattern: ({ url }) =>
               (url.pathname === "/api/settings" ||
                url.pathname === "/api/auth/me" ||
-               url.pathname === "/api/sessions/my-spots") && !url.searchParams.has("fresh"),
+               url.pathname === "/api/sessions/my-spots" ||
+               // Verlaufsseite (/verlauf). Gemessen am 16.09.2026 quer durch den Bestand, je
+               // beim ZWEITEN Aufruf (der erste fuellt `AnalysisResult.hr_by_min_json` und ist
+               // deshalb nicht aussagekraeftig): `hr-progress` 2,5 ms bei 22 Sessions, 22 ms bei
+               // 29, 130 ms bei 538, 345 ms bei 855. Fuer Vielfahrer ist das der teuerste Aufruf
+               // der Seite; `history` (12 ms, 25 KB) und `spot-tracks` (5 ms, 36 KB) stehen
+               // wegen ihrer Groesse mit drin.
+               url.pathname === "/api/sessions/history" ||
+               url.pathname === "/api/sessions/hr-progress" ||
+               url.pathname === "/api/sessions/spot-tracks") && !url.searchParams.has("fresh"),
             handler: "StaleWhileRevalidate",
             options: {
               cacheName: "api-konto",
-              expiration: { maxEntries: 8, maxAgeSeconds: 7 * 24 * 3600 },
+              // `spot-tracks` hat je Spot eine eigene URL — deshalb reichlich Plaetze.
+              expiration: { maxEntries: 40, maxAgeSeconds: 7 * 24 * 3600 },
               cacheableResponse: { statuses: [200] },
             },
           },
