@@ -1010,6 +1010,34 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     56,9 / 32,9 / 56,9 / 16,9 km/h. Das ist ein GPS-Sprung, den `OUTLIER_STEP_M` nicht erwischt
     hat — beim Pumpfoilen gibt es keine 57 km/h.
 
+  - **🔴 REGRESSIONSLAUF 16.09.2026 — die Regel ist SO NICHT SICHER. Zwei Befunde.**
+    Skript: `scripts/regression-merge-touchdown.py` (patcht die Regel zur LAUFZEIT, aendert nichts
+    am Quelltext, schreibt nichts). 150 Sessions, 148 unveraendert, 2 geaendert (1,3 %).
+    1. **Session 8446 (u270): harmlos** — 15 → 14 Laeufe, Foil-Distanz +16 m.
+    2. **Session 8490 (MARCS EIGENE): 2 Laeufe → NULL.** Die zusammengefuehrte Strecke
+       verschwindet komplett. Ursache ist keine der Merge-Stufen, sondern eine WECHSELWIRKUNG:
+       aus zwei Laeufen wird einer von 247 s bei gleichmaessigen 12,8 km/h, und genau so etwas
+       stuft `_fremdkraft_laeufe` als Fremdkraft ein — Begruendung im Ergebnis woertlich:
+       „247 s am Stueck bei 12,8 km/h, Puls-Antwort nur -8 bpm gegen die Ruhe davor".
+       `powered_share` springt von 0,0 auf 1,0, die Session steht danach ohne Laeufe da.
+       Nebenbei kuerzt `_repair_deadreckoning` den zusammengefuehrten Lauf von 1158 auf 917 m.
+    **Das ist der eigentliche Fund:** Laeufe zusammenzufuehren ist keine lokale Aenderung. Laengere
+    Laeufe laufen in Gates, die auf kurze Laeufe geeicht sind. Wer die Merge-Regel anfasst, muss
+    `_fremdkraft_laeufe` und `_repair_deadreckoning` mitdenken.
+
+  - **⚠️ MEINE EICHUNG VON VORHIN WAR METHODISCH FALSCH — beide Male. Nicht weiterverwenden.**
+    1. Ich rechnete die Positions-Geschwindigkeit selbst nach, statt die Arrays zu nehmen, die die
+       Regel bekommt. An Marcs Stelle ergab das einen Einbruch von 1 s, die Pipeline sieht 2 s —
+       die vorgeschlagene Schwelle „Dip <= 1 s" haette ausgerechnet seinen Fall nicht geloest.
+    2. Schwerer: **`pump`/`glide` im Accel ist KEINE Wahrheit fuer „derselbe Lauf".** Auf der
+       grossen Basis (6822 Luecken aus 487 Accel-Sessions) sind 94 % als „aktiv" markiert. Das
+       heisst nicht, dass wir zu 94 % falsch trennen — beim Pumpfoilen wird zwischen zwei Laeufen
+       fast immer gepumpt, naemlich um wieder hochzukommen. Der Accel unterscheidet nicht, ob
+       jemand AUF dem Foil pumpt oder UM wieder draufzukommen.
+    **Eine belastbare Wahrheit fuer diese Frage steckt nicht in den Sensordaten.** Sie muesste von
+    Menschen kommen — Video oder das vorhandene Tap-to-Label (s. `pump-tap-labeling`). Das gehoert
+    in die v3.
+
 
 - **🟡 GPS-LUECKEN AUF GARMIN — belegt als EMPFANGSABRISS, nicht als unser Fehler** (16.09.2026,
   beim Nachgehen von Andis Meldung u72; mit seinem Fall hat es am Ende nichts zu tun).
