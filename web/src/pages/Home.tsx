@@ -478,9 +478,14 @@ function CommunitySection() {
     api.communitySports().then(setSports).catch(() => {});
   }, []);
 
-  if (!data) return null;
-  return (
-    <div>
+  // Kopf + Zaehlersatz haengen NICHT an den Rekorden. /api/community/records ist 268 KB
+  // und braucht rund eine Sekunde, /api/community/stats sind 58 Byte. Solange beides
+  // hinter `if (!data)` stand, erschien der Zaehlersatz erst mit den Rekorden und fing
+  // seinen eigenen Abruf auch erst dann an (Jan, 16.09.2026: „die rekorde sind laengst
+  // sichtbar, der zaehlersatz wird erst angezeigt wenn auch die medien darunter
+  // eingeblendet werden“). Der Rest darf warten — er steht darunter, da springt nichts.
+  const kopf = (
+    <>
       <div className="mb-2 flex items-center gap-2">
         <CommunityIcon className="h-7 w-7 text-brand-400" />
         <h2 className="text-2xl font-bold">{t("home.community")}</h2>
@@ -496,6 +501,12 @@ function CommunitySection() {
         </div>
       </div>
       <CommunityStats className="mb-3" />
+    </>
+  );
+  if (!data) return <div>{kopf}</div>;
+  return (
+    <div>
+      {kopf}
       <div className="mb-3 flex flex-wrap items-center gap-1">
         {PERIODS.map(([k, labelKey]) => (
           <button

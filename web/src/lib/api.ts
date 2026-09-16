@@ -1203,7 +1203,11 @@ export const api = {
   carveStats: () => req<{ windows: Record<string, { s: number; m: number; l: number }> }>("/api/community/carve-stats"),
   communitySpots: (accelOnly = true, sport = "pumpfoil") =>
     req<{ mine: string[]; all: string[] }>(`/api/community/spots?accel_only=${accelOnly}&sport=${sport}`),
-  communityStats: () => req<{ foilers: number; spots: number; sessions: number; pumps: number }>(`/api/community/stats`),
+  // `fresh` geht am Service-Worker-Cache vorbei (s. vite.config.ts) — die Zahlen aendern sich
+  // mit jeder Session, der gecachte Stand ist also immer ein bisschen alt.
+  communityStats: (fresh?: boolean) =>
+    req<{ foilers: number; spots: number; sessions: number; pumps: number }>(
+      `/api/community/stats${fresh ? "?fresh=1" : ""}`),
   spotRecords: (spot: string, period = "all", accelOnly = true, sport = "pumpfoil") =>
     req<RecordSet>(`/api/community/spot-records?spot=${encodeURIComponent(spot)}&period=${period}&accel_only=${accelOnly}&sport=${sport}`),
   spotCompare: (period = "all", accelOnly = false) =>
