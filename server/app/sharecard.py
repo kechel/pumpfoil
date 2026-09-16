@@ -16,6 +16,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 _REPO = Path(__file__).resolve().parents[2]
 _LOGO = _REPO / "web" / "public" / "wordmark-h-dark.png"
+from . import maptiles
 from .sharecard_labels import datum as _D
 from .sharecard_labels import t as _L
 from .sharecard_labels import zahl as _Z
@@ -140,9 +141,49 @@ def available_stats(ar):
 DIM = (100, 116, 139)     # gedimmte Laeufe, wenn ein einzelner Lauf hervorgehoben wird
 
 
+def _schleier(karte, S: float) -> float:
+    """Wie stark der Kartenausschnitt abgedunkelt werden muss, damit die Texte lesbar bleiben.
+
+    Ein fester Wert taugt nicht: dunkles Wasser braucht kaum etwas, eine OpenStreetMap-Flaeche
+    oder eine verschneite Luftaufnahme sehr viel.
+
+    Gemessen wird NICHT das ganze Bild, sondern genau die drei Baender, in denen Text steht —
+    Ueberschrift oben, Zahlen unten, Quellennennung ganz unten. Der Mittelwert ueber das ganze
+    Bild fuehrt in die Irre: bei der ersten Fassung zog die dunkle Meeresflaeche den Schnitt so
+    weit herunter, dass die helle Stadt unter der Ueberschrift ungedimmt blieb (Barcelona Forum,
+    16.09.2026 nachgestellt). Und innerhalb der Baender zaehlt nicht der Schnitt, sondern das
+    80. Perzentil: ein heller Fleck unter der Haelfte einer Zeile macht sie schon unlesbar.
+
+    Der Schleier ist NAVY (Helligkeit ~8), gesucht ist der Anteil d mit `L·(1-d) + 8·d <= ZIEL`.
+    Untergrenze 0,25, damit auch ueber dunklem Wasser ein ruhiger Grund entsteht statt eines
+    unruhigen Fotos; Obergrenze 0,8, damit die Karte nicht zur reinen Farbflaeche wird.
+    """
+    import numpy as _np
+    l = _np.asarray(karte.convert("L"), dtype=_np.float32)
+    def band(x0, y0, x1, y1):
+        a = l[round(y0 * S):round(y1 * S), round(x0 * S):round(x1 * S)]
+        return float(_np.percentile(a, 80)) if a.size else 0.0
+    hell = max(band(90, 55, 990, 175),      # Ueberschrift + Untertitel
+               band(90, 760, 990, 960),     # Stat-Kacheln
+               band(90, 990, 700, 1040))    # Quellennennung
+    ZIEL = 80.0
+    d = 0.25 if hell <= ZIEL else (hell - ZIEL) / max(hell - 8.0, 1.0)
+    return max(0.25, min(0.8, d))
+
+
 def render_share_png(session, ar, water_rings, *, color="cyan", stats=None,
                      bg="navy", size=1080, track=True, title=None, shade="light",
-                     highlight=None, lang: str | None = None) -> bytes:
+                     highlight=None, lang: str | None = None, dim: float | None = None,
+                     info: dict | None = None) -> bytes:
+    """`bg`: navy | transparent | satellit | karte.
+
+    „satellit"/„karte" legen einen echten Kartenausschnitt unter das ganze Bild, passgenau zur
+    Projektion des Tracks (s. `maptiles.hintergrund`), darueber einen Schleier, damit Ueberschrift
+    und Zahlen lesbar bleiben. `dim=None` (Standard) misst die noetige Staerke am Ausschnitt
+    (s. `_schleier`); ein Wert 0…0,85 setzt sie fest — der Regler im Teilen-Dialog. Die Quellennennung wird dabei FEST ins Bild
+    gebrannt — das ist die Bedingung, unter der Jan das Teilen am 16.09.2026 freigegeben hat, und
+    darf nicht zur Option werden.
+    """
     sh = SHADES.get(shade, SHADES["light"])
     prim, sec = sh["prim"], sh["sec"]
     W = H = size
@@ -175,7 +216,12 @@ def render_share_png(session, ar, water_rings, *, color="cyan", stats=None,
         vmax = max([s for s in speeds if s] or [1])
         colfn = lambda i: _ramp(CYAN_STOPS, (speeds[i] if i < len(speeds) else 0) / max(vmax, 1e-6))
 
-    if track and len(coords) >= 2:
+    karte = bg if bg in maptiles.EBENEN else None
+    karte_da = False
+
+    # Projektion IMMER rechnen, wenn es eine Spur gibt — der Kartenhintergrund braucht sie auch
+    # dann, wenn der Track selbst ausgeblendet ist (`track=0`).
+    if len(coords) >= 2:
         lons = np.array([c[0] for c in coords], float)
         lats = np.array([c[1] for c in coords], float)
         n = len(coords)
@@ -202,7 +248,27 @@ def render_share_png(session, ar, water_rings, *, color="cyan", stats=None,
         cmx, cmy = (minx + maxx) / 2, (miny + maxy) / 2
         def toXY(x, y): return (cxp + (x - cmx) * sc, cyp - (y - cmy) * sc)
 
-        if water_rings and bg != "transparent":
+        if karte:
+            # Umkehrung von toXY fuer die BILDECKEN — der Ausschnitt ist das ganze Quadrat, nicht
+            # nur der Track-Kasten, sonst endete die Karte mitten im Bild.
+            def geo(sx, sy):
+                return (cmy - (sy - cyp) / sc) / my, (cmx + (sx - cxp) / sc) / mx   # lat, lon
+            lat_o, lon_l = geo(0, 0)
+            lat_u, lon_r = geo(W, H)
+            hg = maptiles.hintergrund(lat_o, lat_u, lon_l, lon_r, W, H, karte)
+            if hg is not None:                      # None = Kacheln nicht bekommen -> bleibt navy
+                img.paste(hg.convert("RGBA"), (0, 0))
+                schleier = _schleier(hg, S) if dim is None or dim < 0 else max(0.0, min(0.85, float(dim)))
+                if schleier > 0:
+                    img.alpha_composite(Image.new("RGBA", (W, H), (*NAVY, round(255 * schleier))))
+                karte_da = True
+                if info is not None:
+                    info["dim"] = round(schleier, 3)
+
+        # Die gemalte Wasser-Silhouette entfaellt ueber einer echten Karte — dort IST das Wasser.
+        # `track` gehoert hier mit in die Bedingung: wer den Track abwaehlt, hatte auch vorher
+        # schon keine Silhouette (die stand im selben Block).
+        if track and water_rings and bg != "transparent" and not karte_da:
             for ring in water_rings:
                 pts = [toXY(p[1] * mx, p[0] * my) for p in ring]
                 if len(pts) >= 3:
@@ -210,11 +276,13 @@ def render_share_png(session, ar, water_rings, *, color="cyan", stats=None,
         lw = max(px(10), 3)
         dimw = max(px(6), 2)
         hlw = lw + max(px(4), 2)
+        # Ohne Track wurde die Projektion nur fuer den Kartenausschnitt gebraucht — nichts malen.
+        zu_zeichnen = range(n - 1) if track else range(0)
 
         def _pts(i):
             return toXY(xs[i], ys[i]), toXY(xs[i + 1], ys[i + 1])
 
-        for i in range(n - 1):
+        for i in zu_zeichnen:
             if not (foil[i] and foil[i + 1]):     # nur innerhalb der Laeufe
                 continue
             if hl is not None and run_of[i] == hl and run_of[i + 1] == hl:
@@ -225,7 +293,7 @@ def render_share_png(session, ar, water_rings, *, color="cyan", stats=None,
             fill = (*DIM, 255) if hl is not None else (*colfn(i + 1), 255)
             d.line([p0, p1], fill=fill, width=dimw if hl is not None else lw)
         if hl is not None:                        # hervorgehobener Lauf: voll + dicker, oben
-            for i in range(n - 1):
+            for i in zu_zeichnen:
                 if not (run_of[i] == hl and run_of[i + 1] == hl):
                     continue
                 p0, p1 = _pts(i)
@@ -266,6 +334,21 @@ def render_share_png(session, ar, water_rings, *, color="cyan", stats=None,
         lh = px(54); logo = logo.resize((round(logo.width * lh / logo.height), lh), Image.LANCZOS)
         img.alpha_composite(logo, (W - px(90) - logo.width, H - px(90)))
 
+    # QUELLENNENNUNG — nicht optional (s. Doku oben). Mit dunkler Kontur, damit sie auf hellem
+    # Sand genauso lesbar ist wie auf dunklem Wasser; die Lizenz verlangt lesbar, nicht vorhanden.
+    if karte_da:
+        d.text((px(90), H - px(76)), maptiles.nennung(karte), font=_font(px(24), False, lang),
+               fill=(*WHITE, 230), stroke_width=max(1, px(2)), stroke_fill=(0, 0, 0, 180))
+
     buf = io.BytesIO()
-    (img if bg == "transparent" else img.convert("RGB")).save(buf, "PNG")
+    if karte_da:
+        # Ein Kartenhintergrund ist ein FOTO — als PNG wurde dieselbe Karte 1,17 MB gross, als
+        # JPEG 190 KB. Die Vorschau im Teilen-Dialog wird bei jeder Einstellung neu geholt; ein
+        # Megabyte pro Handgriff waere ueber Mobilfunk nicht zu vertreten. Flaechen und Text
+        # (navy) bleiben PNG — dort ist PNG kleiner UND schaerfer.
+        img.convert("RGB").save(buf, "JPEG", quality=88, optimize=True)
+        if info is not None:
+            info["format"] = "jpeg"
+    else:
+        (img if bg == "transparent" else img.convert("RGB")).save(buf, "PNG")
     return buf.getvalue()

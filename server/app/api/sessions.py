@@ -2015,7 +2015,13 @@ def share_card(
     session_id: int,
     color: str = "cyan",
     stats: str | None = None,
+    # navy | transparent | satellit | karte. Die beiden Karten-Werte legen einen echten
+    # Kartenausschnitt unter das Bild (Esri-Luftbild bzw. OpenStreetMap, dieselben Ebenen wie in
+    # der PWA) und brennen die Quellennennung hinein — Freigabe Jan, 16.09.2026.
     bg: str = "navy",
+    # Schleier ueber der Karte. <0 = automatisch aus der gemessenen Helligkeit des
+    # Ausschnitts (s. sharecard._schleier); der Regler im Teilen-Dialog setzt ihn fest.
+    dim: float = -1.0,
     track: int = 1,
     title: str = "",
     shade: str = "light",
@@ -2044,12 +2050,19 @@ def share_card(
     rings = _wasser_silhouette(db, ar)
     ttl = (title or "").strip()[:40] or None
     sh = shade if shade in ("light", "dark") else "light"
+    info: dict = {}
     png = sharecard.render_share_png(s, ar, rings, color=color, stats=stat_keys, bg=bg,
                                      track=bool(track), title=ttl, shade=sh,
                                      highlight=highlight if highlight >= 0 else None,
-                                     lang=(lang or user.language))
-    return Response(content=png, media_type="image/png",
-                    headers={"Cache-Control": "private, max-age=300"})
+                                     lang=(lang or user.language), dim=(None if dim < 0 else dim), info=info)
+    kopf = {"Cache-Control": "private, max-age=300"}
+    # Bei automatisch bestimmtem Schleier den verwendeten Wert mitschicken — der Teilen-Dialog
+    # setzt damit seinen Helligkeitsregler an die gemessene Stelle (Jan, 16.09.2026: „wir haben
+    # einen slider fuer die helligkeit bei bilder, den bitte auch fuer die karte verwenden").
+    if "dim" in info:
+        kopf["X-Card-Dim"] = str(info["dim"])
+    art = "image/jpeg" if info.get("format") == "jpeg" else "image/png"
+    return Response(content=png, media_type=art, headers=kopf)
 
 
 @router.get("/{session_id}/neighbors")

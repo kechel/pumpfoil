@@ -67,7 +67,14 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, initialHighligh
   const segments: any[] = analysis?.segments ?? [];
   const [highlight, setHighlight] = useState(initialHighlight ?? -1);   // -1 = alle Läufe, sonst 0-basierter Lauf
   const [cardTitle, setCardTitle] = useState("");     // optionaler eigener Titel/Text
+  // Kartenhintergrund: "" = keiner, sonst die Ebene wie in der PWA-Karte. Foto und Karte
+  // schliessen sich aus — beides sind Hintergruende, und die Karte muss deckungsgleich unter dem
+  // Track liegen, was sie unter einem verschobenen Foto nicht kann.
+  const [karte, setKarte] = useState<"" | "karte" | "satellit">("");
   const [hasPhoto, setHasPhoto] = useState(false);
+  // Ebene, fuer die der Server seinen gemessenen Schleierwert schon geliefert hat. Beim ersten
+  // Bild einer Ebene fragen wir ihn automatisch an (dim=-1) und stellen den Regler danach.
+  const autoFuer = useRef<string>("");
   const [busy, setBusy] = useState(false);
   const [shareErr, setShareErr] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -92,6 +99,9 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, initialHighligh
       if (typeof sh.dim === "number") setDim(sh.dim);
       if (typeof sh.track === "boolean") setShowTrack(sh.track);
       if (sh.shade === "light" || sh.shade === "dark") setShade(sh.shade);
+      // Hintergrund nur uebernehmen, wenn KEIN Session-Foto vorliegt — das hat Vorrang und ist
+      // oben schon gesetzt worden.
+      if ((sh.karte === "karte" || sh.karte === "satellit") && !defaultPhoto) setKarte(sh.karte);
     }).catch(() => {}).finally(() => setLoaded(true));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -112,11 +122,11 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, initialHighligh
   useEffect(() => {
     if (!loaded) return;
     const id = setTimeout(() => {
-      api.saveSettings({ share: { color, stats: STAT_ORDER.filter((k) => sel.has(k)), dim, track: showTrack, shade } }).catch(() => {});
+      api.saveSettings({ share: { color, stats: STAT_ORDER.filter((k) => sel.has(k)), dim, track: showTrack, shade, karte } }).catch(() => {});
     }, 500);
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [color, [...sel].sort().join(","), dim, showTrack, shade, loaded]);
+  }, [color, [...sel].sort().join(","), dim, showTrack, shade, karte, loaded]);
 
   // Dim ändert nur den Scrim -> lokal neu zeichnen (kein Server-Refetch).
   useEffect(() => { draw(); /* eslint-disable-next-line */ }, [dim]);
@@ -139,7 +149,11 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, initialHighligh
       try {
         const tok = getToken();
         const chosen = STAT_ORDER.filter((k) => sel.has(k));
-        const q = new URLSearchParams({ color, bg: hasPhoto ? "transparent" : "navy", track: showTrack ? "1" : "0", shade });
+        const hintergrund = hasPhoto ? "transparent" : (karte || "navy");
+        // Erstes Bild einer Kartenebene: Schleier vom Server messen lassen (s. sharecard._schleier).
+        const brauchtAuto = !!karte && !hasPhoto && autoFuer.current !== karte;
+        const q = new URLSearchParams({ color, bg: hintergrund, track: showTrack ? "1" : "0", shade });
+        if (karte && !hasPhoto) q.set("dim", brauchtAuto ? "-1" : String(dim));
         if (showTrack && highlight >= 0) q.set("highlight", String(highlight));
         // "none" = explizit KEINE Stats (sonst interpretiert der Server "leer" als Default=alle).
         q.set("stats", chosen.length ? chosen.join(",") : "none");
@@ -151,12 +165,25 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, initialHighligh
         const img = await loadImg(URL.createObjectURL(await res.blob()));
         if (!alive) return;
         cardRef.current = img; draw();
+        if (brauchtAuto) {
+          autoFuer.current = karte;
+          const gemessen = parseFloat(res.headers.get("X-Card-Dim") || "");
+          // Das kostet EIN zusaetzliches Rendern: der neue Regler-Wert loest den Effekt erneut
+          // aus, diesmal mit festem `dim`. Das Bild ist dasselbe, die Kacheln liegen im
+          // Server-Cache — dafuer steht der Regler an der gemessenen statt an einer geratenen
+          // Stelle, und alles danach laeuft ueber denselben Weg wie beim Foto.
+          if (!Number.isNaN(gemessen) && Math.abs(gemessen - dim) > 0.001) setDim(gemessen);
+        }
       } catch { /* ignore */ }
       finally { if (alive) setLoading(false); }
     }, 160);
     return () => { alive = false; clearTimeout(id); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [color, [...sel].sort().join(","), hasPhoto, showTrack, shade, cardTitle, highlight, lang]);
+    // `dim` steht hier drin, weil der Schleier bei der Karte SERVERSEITIG ins Bild kommt (beim
+    // Foto dagegen lokal, s. den Effekt darueber). Der Regler loest also eine Neuberechnung aus —
+    // entprellt, und die Kacheln kommen aus dem Plattencache.
+  }, [color, [...sel].sort().join(","), hasPhoto, showTrack, shade, cardTitle, highlight, lang,
+      karte, karte && !hasPhoto ? dim : 0]);
 
   async function pickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0]; if (!f) return;
@@ -165,6 +192,7 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, initialHighligh
     // Cover-Fit als Start
     const s = Math.max(N / img.width, N / img.height);
     xf.current = { x: (N - img.width * s) / 2, y: (N - img.height * s) / 2, w: img.width * s, h: img.height * s };
+    setKarte("");                 // Foto und Karte schliessen sich aus
     setHasPhoto(true); requestAnimationFrame(draw);
   }
 
@@ -313,14 +341,27 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, initialHighligh
           </>
         )}
 
-        {/* Foto-Hintergrund links + Lauf-Auswahl rechts in einer Zeile. */}
+        {/* Hintergrund: ohne / Karte / Satellit / Foto. Die Karte kommt vom Server und liegt
+            deckungsgleich unter dem Track; die Quellennennung steht fest im Bild (Bedingung der
+            Freigabe, s. server/app/maptiles.py). */}
+        <div className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400">{t("share.background")}</div>
+        <div className="mb-3 flex gap-2">
+          {([["", "share.noPhoto"], ["karte", "map.street"], ["satellit", "map.satellite"]] as const).map(([k, lbl]) => (
+            <button key={k}
+              onClick={() => { photoRef.current = null; setHasPhoto(false); setKarte(k); }}
+              className={`${seg} ${!hasPhoto && karte === k ? "bg-brand-500 text-slate-950" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}>
+              {t(lbl)}
+            </button>
+          ))}
+        </div>
+
+        {/* Foto waehlen links + Lauf-Auswahl rechts. Ein zweites „Ohne" steht hier NICHT:
+            das gibt es eine Zeile hoeher in der Hintergrund-Wahl, und zwei gleich beschriftete
+            Knoepfe im selben Dialog sind eine Falle. */}
         <div className="mb-3 flex items-center gap-2">
           <button onClick={() => fileRef.current?.click()} className="flex items-center gap-1.5 rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-700">
             <CameraIcon className="h-4 w-4" /> {hasPhoto ? t("share.changePhoto") : t("share.addPhoto")}
           </button>
-          {hasPhoto && (
-            <button onClick={() => { photoRef.current = null; setHasPhoto(false); }} className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-700">{t("share.noPhoto")}</button>
-          )}
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={pickPhoto} />
           {showTrack && segments.length >= 2 && (
             <select value={highlight} onChange={(e) => setHighlight(parseInt(e.target.value))}
@@ -335,7 +376,10 @@ export function ShareDialog({ sessionId, analysis, defaultPhoto, initialHighligh
           )}
         </div>
 
-        {hasPhoto && (
+        {/* Helligkeitsregler — derselbe fuer Foto UND Karte (Jan, 16.09.2026). Beim Foto wirkt er
+            sofort und lokal, bei der Karte ueber den Server (der Schleier ist dort Teil des
+            gerenderten Bildes). Sein Startwert bei der Karte ist gemessen, nicht geraten. */}
+        {(hasPhoto || karte) && (
           <input type="range" min={0} max={0.85} step={0.05} value={dim}
             onChange={(e) => setDim(parseFloat(e.target.value))} className="mb-3 w-full accent-brand-500" />
         )}
