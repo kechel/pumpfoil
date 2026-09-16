@@ -284,17 +284,32 @@ struct OnboardingView: View {
         } footer: { Text(t("onb.watch.noWatch")) }
     }
 
+    /// Die §-Marken im Text als FETT auszeichnen — dieselbe Konvention wie in der PWA
+    /// (`Onboarding.tsx`: an „§" teilen, ungerade Abschnitte hervorheben). So bleibt die
+    /// Wortstellung je Sprache erhalten, statt den Satz im Code zu zerschneiden.
+    /// iOS hat die Marke bisher nur WEGGEWORFEN — die Hervorhebung fiel damit ersatzlos aus.
+    private func markiert(_ text: String) -> Text {
+        text.components(separatedBy: "§").enumerated().reduce(Text("")) { bisher, teil in
+            bisher + (teil.offset % 2 == 1 ? Text(teil.element).bold() : Text(teil.element))
+        }
+    }
+
+    /// Letzter Schritt. Alles in NORMALER Schriftgroesse (Jan, 16.09.2026: „hier ist die schrift
+    /// zu klein, alles normale schriftgroesse, fett nur ‚Das war's.' und ‚Hochgeladen wird nur
+    /// …' — so wie in der pwa"). Vorher stand hier dreimal `.footnote`, zweimal zusaetzlich
+    /// ausgegraut: ausgerechnet die Seite, die erklaert, wie es weitergeht, war die am
+    /// schwersten lesbare. „Das war's." steht jetzt als fette Zeile IM Inhalt statt als
+    /// Abschnitts-Ueberschrift — als Ueberschrift waere es klein und grau, also das Gegenteil.
     private var fertigSection: some View {
         Section {
+            Text(t("onb.done.title")).bold()
             Text(geraete.isEmpty ? t("onb.done.noWatch") : t("onb.done.withWatch"))
-            if !geraete.isEmpty {
-                Text(t("onb.done.upload").replacingOccurrences(of: "§", with: "")).font(.footnote)
-            }
-            Text(t("onb.done.more")).font(.footnote).foregroundStyle(.secondary)
-            Text(t("onb.done.feedback")).font(.footnote).foregroundStyle(.secondary)
+            if !geraete.isEmpty { markiert(t("onb.done.upload")) }
+            Text(t("onb.done.more"))
+            Text(t("onb.done.feedback"))
             Text("Have fun, keep pumping!").font(.headline).foregroundStyle(.tint)
                 .frame(maxWidth: .infinity, alignment: .center)
-        } header: { Text(t("onb.done.title")) }
+        }
     }
 
     /// „Ueberspringen" steht in einer EIGENEN, zentrierten Zeile (Jan, 16.09.2026: „ueberall skip
