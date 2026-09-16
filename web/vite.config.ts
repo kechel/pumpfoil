@@ -97,9 +97,13 @@ export default defineConfig({
             // `sessions-grouped` MIT aufnehmen: das ist der Endpunkt, den die Sessions- und die
             // Community-Seite wirklich benutzen. Die Regel traf bisher exakt `/api/community/
             // sessions` — der Feed war also ueberhaupt nicht gecacht und lud jedes Mal neu.
+            // `/api/community/stats` ist MIT dabei, obwohl er winzig ist (58 Bytes, 2 ms): es
+            // geht dort nicht um Tempo, sondern darum, dass die Zeile „Wir sind schon N
+            // Pumpfoiler …" sofort dasteht statt nachzuploppen — und offline ueberhaupt.
             urlPattern: ({ url }) =>
               (url.pathname === "/api/community/sessions" ||
-               url.pathname === "/api/community/sessions-grouped") && !url.searchParams.has("fresh"),
+               url.pathname === "/api/community/sessions-grouped" ||
+               url.pathname === "/api/community/stats") && !url.searchParams.has("fresh"),
             handler: "StaleWhileRevalidate",
             options: {
               cacheName: "api-community",

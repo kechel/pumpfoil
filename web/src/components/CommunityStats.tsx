@@ -8,7 +8,21 @@ export function CommunityStats({ className = "" }: { className?: string }) {
   const t = useT();
   const nf = useNumberFormat();
   const [stats, setStats] = useState<{ foilers: number; spots: number; sessions: number; pumps: number } | null>(null);
-  useEffect(() => { api.communityStats().then(setStats).catch(() => {}); }, []);
+  // Zuerst der (gecachte) Stand, damit die Zeile sofort dasteht; direkt danach die Wahrheit.
+  // Anders als bei den Rekorden IMMER beide: die Antwort ist 58 Bytes gross, der zweite Aufruf
+  // kostet also nichts — und die Zahlen wachsen mit jeder hochgeladenen Session, der gecachte
+  // Stand ist damit praktisch immer ein bisschen alt.
+  useEffect(() => {
+    let lebt = true;
+    api.communityStats().then((s) => {
+      if (!lebt) return;
+      setStats(s);
+      return api.communityStats(true).then((frisch) => {
+        if (lebt && JSON.stringify(frisch) !== JSON.stringify(s)) setStats(frisch);
+      });
+    }).catch(() => {});
+    return () => { lebt = false; };
+  }, []);
   if (!stats) return null;
 
   // Alle vier Zahlen durch den sprachabhaengigen Formatierer (auch sessions/foilers wachsen
