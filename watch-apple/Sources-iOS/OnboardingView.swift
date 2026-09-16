@@ -27,6 +27,8 @@ struct OnboardingView: View {
 
     @State private var geladen = false
     @State private var name = ""
+    /// Der Name, wie er aus dem Profil kam — Vergleichsgroesse fuer den Speichern-Knopf.
+    @State private var nameOriginal = ""
     @State private var nameBusy = false
     @State private var nameMeldung: (ok: Bool, text: String)?
     @State private var sens = "normal"
@@ -68,13 +70,19 @@ struct OnboardingView: View {
 
     // MARK: - Abschnitte
 
+    /// EINE Zeile statt eines Kastens (Jan, 16.09.2026): „die ganze box und text oben weg und
+    /// nur eine textzeile: Setup-Assistent Step 1 of 6". Die Einleitung („ein paar Fragen, alle
+    /// freiwillig") und der Fortschrittsbalken sind raus — der Schrittzaehler sagt dasselbe auf
+    /// einem Sechstel des Platzes, und auf einem Telefon zaehlt jede Zeile ueber der ersten
+    /// Eingabe. `listRowBackground(.clear)` nimmt die Karte weg, sonst waere es wieder ein Kasten.
     private var kopfSection: some View {
         Section {
-            Text(t("onb.intro")).font(.footnote).foregroundStyle(.secondary)
-            ProgressView(value: Double(i + 1), total: Double(schritte.count))
-            Text(t("onb.step").replacingOccurrences(of: "{n}", with: "\(i + 1)")
-                    .replacingOccurrences(of: "{total}", with: "\(schritte.count)"))
+            Text(t("onb.startTitle") + " · "
+                 + t("onb.step").replacingOccurrences(of: "{n}", with: "\(i + 1)")
+                       .replacingOccurrences(of: "{total}", with: "\(schritte.count)"))
                 .font(.caption).foregroundStyle(.secondary)
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets(top: 2, leading: 20, bottom: 2, trailing: 20))
         }
     }
 
@@ -94,7 +102,9 @@ struct OnboardingView: View {
     }
 
     private var sprachSection: some View {
-        Section(t("onb.x.lang")) {
+        // Ohne Abschnitts-Ueberschrift: „Language" stand zweimal untereinander, einmal als
+        // Ueberschrift und einmal im Auswahlfeld selbst (Jan, 16.09.2026).
+        Section {
             Picker(t("onb.x.lang"), selection: $lang) {
                 ForEach(Loc.langs, id: \.self) { c in Text(Loc.langName(c)).tag(c) }
             }
@@ -111,12 +121,18 @@ struct OnboardingView: View {
     private var nameSection: some View {
         Section {
             TextField(t("onb.x.namePh"), text: $name)
-            Button(t("onb.x.save")) { Task { await nameSpeichern() } }
-                .disabled(nameBusy || name.trimmingCharacters(in: .whitespaces).count < 2)
+            // „Speichern" erscheint erst, wenn wirklich etwas am vorbelegten Namen geaendert
+            // wurde (Jan, 16.09.2026). Vorher stand der Knopf immer da — grau und ohne Wirkung,
+            // was aussieht, als haette man etwas zu tun. Verglichen wird gegen den Stand aus
+            // dem Profil, nicht gegen leer: fast jeder kommt mit einem Namen hier an.
+            if name.trimmingCharacters(in: .whitespaces) != nameOriginal {
+                Button(t("onb.x.save")) { Task { await nameSpeichern() } }
+                    .disabled(nameBusy || name.trimmingCharacters(in: .whitespaces).count < 2)
+            }
             if let m = nameMeldung {
                 Text(m.text).font(.caption).foregroundStyle(m.ok ? Color.green : Color.red)
             }
-        } header: { Text(t("onb.x.name")) } footer: { Text(t("onb.name.sub")) }
+        } header: { Text(t("onb.x.name")) }
     }
 
     private var koennenSection: some View {
@@ -281,17 +297,26 @@ struct OnboardingView: View {
         } header: { Text(t("onb.done.title")) }
     }
 
+    /// „Ueberspringen" steht in einer EIGENEN, zentrierten Zeile (Jan, 16.09.2026: „ueberall skip
+    /// zentriert statt so an das next rangeklatscht"). Direkt neben „Weiter" lagen zwei Knoepfe
+    /// mit gegensaetzlicher Bedeutung einen Daumen voneinander entfernt — und der harmlosere von
+    /// beiden war der kleinere. Getrennt ist auch klarer, WAS uebersprungen wird: der Schritt.
     private var navSection: some View {
         Section {
             HStack {
                 if i > 0 { Button(t("onb.back")) { schrittId = schritte[i - 1] }.buttonStyle(.borderless) }
                 Spacer()
                 if schritte[i] != "done" {
-                    Button(t("onb.skip") + " »") { schrittId = schritte[i + 1] }.buttonStyle(.borderless)
                     Button(t("onb.next")) { schrittId = schritte[i + 1] }.buttonStyle(.borderless).bold()
                 } else {
                     Button(t("onb.finish")) { beenden() }.buttonStyle(.borderless).bold()
                 }
+            }
+            if schritte[i] != "done" {
+                Button(t("onb.skip")) { schrittId = schritte[i + 1] }
+                    .buttonStyle(.borderless)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
             }
         }
     }
@@ -320,6 +345,7 @@ struct OnboardingView: View {
         if schrittId.isEmpty || !schritte.contains(schrittId) { schrittId = schritte[0] }
         if let p = try? await Api.getProfile() {
             name = p.display_name ?? ""
+            nameOriginal = name.trimmingCharacters(in: .whitespaces)
             sens = p.foil_sensitivity ?? "normal"
         }
         if let s = try? await Api.settings() {
@@ -339,6 +365,9 @@ struct OnboardingView: View {
         defer { nameBusy = false }
         do {
             _ = try await Api.updateDisplayName(name.trimmingCharacters(in: .whitespaces))
+            // Der gespeicherte Stand ist ab jetzt der Vergleichswert — sonst bliebe der
+            // Speichern-Knopf stehen, obwohl es nichts mehr zu speichern gibt.
+            nameOriginal = name.trimmingCharacters(in: .whitespaces)
             nameMeldung = (true, t("onb.x.saved"))
         } catch {
             let s = "\(error)"
