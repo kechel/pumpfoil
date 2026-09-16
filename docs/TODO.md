@@ -981,10 +981,16 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     beim letzten Punkt VOR einer Luecke nur noch 54,3 %, beim ersten Punkt danach 42,6 %. Der
     Anteil der schlechteren Stufe 3 steigt von 3,3 % auf 45,6 %. Das ist eine 14-fache
     Anreicherung genau an den Luecken.
-  - **Physikalisch passt das zur Sportart:** das Handgelenk geht beim Pumpen ins Wasser, der
-    Koerper schattet die Antenne ab. Deshalb liegen die Luecken bei manchen Nutzern in der
-    AKTIVEN Zeit (u139: 4 % idle in der Luecke gegen 17 % im Schnitt — GPS faellt beim Fahren
-    aus) und bei anderen in den Pausen (u72: 88 % gegen 66 % — Arm im Wasser beim Sitzen).
+  - **Was der Abriss bedeutet — Jans Korrektur (16.09.2026):** „unter wasser gibts eigentlich
+    nicht beim pumpen, das ist ein sturz 😉". Meine erste Erklaerung (Handgelenk taucht beim
+    Pumpen ein) ist damit vom Tisch, und die Daten lesen sich scharfer: eine Luecke MITTEN in
+    der aktiven Zeit ist ein STURZ — der Fahrer liegt im Wasser, Uhr unter der Oberflaeche.
+    Deshalb liegen die Luecken bei u139 zu 96 % in aktiver Zeit (4 % idle in der Luecke gegen
+    17 % im Schnitt) und bei u72 ueberwiegend in den Pausen (88 % gegen 66 %) — der eine faellt
+    beim Fahren, der andere sitzt mit dem Arm im Wasser.
+    **Daraus wird ein Signal, kein Aergernis:** eine GPS-Luecke plus der passende Accel-Verlauf
+    (Aufschlag, dann Ruhe, dann Wiederaufstieg) ist ein Sturz-Detektor, den wir heute nicht
+    haben. Das gehoert in die v3 unten, nicht in einen Schnellschuss.
   - **Die Spanne ist Modellsache**, nicht Einstellungssache: Median-Abdeckung je part_number von
     71 % (006-B3869-00, n=7) bis 99 % (006-B4375-00, n=11). Antennenqualitaet.
   - **Die Analyse behandelt es bereits bewusst:** `GAP_SPLIT_S = 15` beendet einen Lauf an einer
@@ -998,6 +1004,27 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
        statt aus der Sehne.
     3. Erst danach ueberlegen, ob `GAP_SPLIT_S = 15` noch die richtige Grenze ist.
   - **NICHT tun:** den Nutzern raten, an der GNSS-Stufe zu drehen. Sie stehen schon auf der besten.
+  - **🔲 Gehoert in die Erkennung v3** (s. eigener Eintrag): die GPS-Luecken mit dem Accel an
+    derselben Stelle korrelieren. Nicht heute — Jan: „aber nicht heute".
+
+- **🔲 ERKENNUNG v3 — neu trainieren, UMSCHALTBAR ausliefern, die Nutzer entscheiden lassen.**
+  Jans Plan vom 16.09.2026, im Wortlaut: „da trainieren wir dann alles entsprechend neu und bauen
+  eine v3 der erkennung, am besten dann auch umschaltbar erstmal, und die user sollen dann
+  entscheiden was besser/schlechter ist, dann bekommen wir echtes feedback".
+  - **Warum jetzt sinnvoll:** seit dem v2-Training ist der Bestand vielfach groesser. Dasselbe
+    sagte Jan zum On-Foil-Modell („die ist auch gut glaube ich, werden wir irgendwann nochmal neu
+    trainieren, wir haben ja inzwischen viel mehr daten, aber nicht heute").
+  - **Neuer Eingang, den v2 nicht kennt:** GPS-Luecken als Sturz-Signal, mit dem Accel an
+    derselben Stelle korreliert (s. Eintrag oben). Ein Sturz mitten im Lauf ist heute nur ein
+    Loch in der Spur; er koennte Laufgrenze, Startversuch-Zaehlung und Erfolgsquote schaerfen.
+  - **Der eigentliche Punkt ist das UMSCHALTEN.** v2 und v3 nebeneinander anbieten und die
+    Nutzer waehlen lassen, statt intern zu entscheiden. Das ist die einzige Art, an echtes
+    Urteil zu kommen — unsere Kennzahlen sagen nur, ob v3 dem Trainingsziel naeher kommt, nicht
+    ob die Laeufe fuer den Fahrer richtiger aussehen.
+  - **Vorbedingungen, bevor irgendetwas gebaut wird:** Ist-Zustand sichern
+    (Memory `keep-all-sources-of-truth`), `DETECTOR_V2`-Falle beachten
+    (`reanalyse-detector-v2-env`), und Aenderungen an der Pipeline erst mit Jans OK (CLAUDE.md).
+  - **NICHT heute.** Steht hier, damit es nicht verlorengeht.
 
 - **✅ GEBAUT 16.09.2026 — Spots-Seite nativ: Suche statt der Liste aller 231 Spots.**
   Jans Frage: „warum ist auf ios und android in /spots unter der karte eine riesen lange liste
