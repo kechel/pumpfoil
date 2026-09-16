@@ -963,6 +963,26 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **✅ GEBAUT 16.09.2026 — Spots-Seite nativ: Suche statt der Liste aller 231 Spots.**
+  Jans Frage: „warum ist auf ios und android in /spots unter der karte eine riesen lange liste
+  aller spots? in der pwa ist die nicht, gibt es da einen grund fuer?" — Antwort: einen, aber
+  einen nachtraeglichen. Beide Apps starteten am 25.06.2026 als REINE Liste (die Karte war noch
+  nicht gebaut), am selben Tag kam die Karte dazu, Commit-Text woertlich „Liste darunter wie
+  gehabt". `docs/native-functions-parity.md` hatte das spaeter als bewusste Anpassung abgehakt
+  („nativ Liste statt Suchfeld"); in `PARITY-AUDIT.md` und hier stand nichts davon.
+  - **Jetzt:** Android ein Suchfeld ueber der Karte, iOS `.searchable` in der Navigationsleiste
+    (dort gehoert die Suche hin und sie verschwindet beim Scrollen). Ohne Eingabe KEINE Liste —
+    gesucht wird ueber die Karte oder das Feld, genau wie in der PWA. Treffer nach Sessionzahl,
+    Zeile mit Gewaesser (ohne das sind „Berlin 3" und „Berlin 4" gleich), Tipp oeffnet wie bisher
+    die Spot-Seite. Gesucht wird in Name UND Gewaesser.
+  - **Kein neuer Sprachschluessel noetig:** `home.spotPick` („Spot wählen …" / „Pick a spot …")
+    gibt es in beiden Apps bereits und passt als Platzhalter.
+  - **🔲 Noch nur Web:** Filter „nur mit Beschreibung", Spot-Zaehler in der Ueberschrift, der
+    Erklaertext „Spots entstehen automatisch". Fuer den Filter fehlt `notes` in beiden nativen
+    Datenmodellen (`SpotMapItem`) — der Server liefert es laengst mit.
+  - **Geht mit dem naechsten Store-Release raus**, zusammen mit dem Kartenhintergrund fuers
+    Teilen-Bild.
+
 - **✅ GEBAUT 16.09.2026 — Kartenhintergrund im TEILEN-BILD** (James, u17, `dm:17-230` 15.09.:
   „Possible to have the satellite view when sharing?").
   - **Jans Entscheidung 16.09. zur offenen Lizenzfrage:** „teilen der satteliten Bilder mit

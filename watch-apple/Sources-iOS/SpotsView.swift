@@ -36,8 +36,9 @@ struct SpotBuendel: Identifiable {
     }
 }
 
-// Spots: native MapKit-Karte mit Pins (Session-Anzahl) + Liste darunter
-// (spiegelt web/Spots; auf iOS idiomatisch via MapKit, kein API-Key nötig).
+// Spots: native MapKit-Karte mit Pins (Session-Anzahl); darunter der Spot-Vergleich und — nur
+// bei einer Suche — die Treffer (spiegelt web/Spots; auf iOS idiomatisch via MapKit und
+// `.searchable`, kein API-Key nötig).
 struct SpotsView: View {
     @AppStorage("appLang") private var lang = "de"
     // Karten-Ebene appweit (s. MapTiles.swift).
@@ -46,6 +47,14 @@ struct SpotsView: View {
     // wie in CommunityView, wo genau dieser Fehler schon einmal auftrat.
     @State private var navPath = NavigationPath()
     @State private var items: [SpotMapItem] = []
+    // Suchtext. Er ERSETZT die frueher hier stehende Liste ALLER Spots (Jan, 16.09.2026: „warum
+    // ist auf ios und android in /spots unter der karte eine riesen lange liste aller spots?").
+    // Die gab es nur historisch: beide Apps starteten am 25.06. als reine Liste, die Karte kam
+    // einen Commit spaeter obendrauf und die Liste blieb „wie gehabt" stehen — inzwischen 231
+    // Zeilen, durch die niemand scrollt. Die PWA hatte sie nie, dort steht ueber der Karte ein
+    // Suchfeld. Ohne Eingabe erscheint jetzt also KEINE Liste: gesucht wird ueber die Karte oder
+    // ueber die Suchleiste.
+    @State private var suche = ""
     @State private var loading = false
     @State private var error: String?
     @State private var region = MKCoordinateRegion(
@@ -74,6 +83,9 @@ struct SpotsView: View {
             .navigationDestination(for: SpotDest.self) { d in SpotSessionsView(spot: d.spot, vorgegebeneSpotId: d.spotId) }
             // Rekord-Karten des Vergleichs fuehren zu genau der Session, die den Wert haelt.
             .navigationDestination(for: SpotCmpSessionDest.self) { d in SessionDetailView(id: d.id) }
+            // `.searchable` statt eines eigenen Feldes ueber der Karte: auf iOS gehoert die
+            // Suche in die Navigationsleiste, und sie verschwindet beim Scrollen von selbst.
+            .searchable(text: $suche, prompt: Loc.t("home.spotPick", lang))
             .navigationTitle(Loc.t("nav.spots", lang))
             .brandToolbar(Loc.t("nav.spots", lang))
             .overlay { if loading && items.isEmpty { ProgressView() } }
@@ -170,11 +182,23 @@ struct SpotsView: View {
         }
     }
 
+    /// Treffer zum Suchtext. Ohne Eingabe leer — dann steht unter der Karte nur der Vergleich.
+    private var treffer: [SpotMapItem] {
+        let n = suche.trimmingCharacters(in: .whitespaces).lowercased()
+        guard !n.isEmpty else { return [] }
+        return items.filter {
+            $0.spot.lowercased().contains(n) || ($0.water?.lowercased().contains(n) ?? false)
+        }
+    }
+
     @ViewBuilder private var listSection: some View {
         Section {
             if let error { Text(error).foregroundStyle(.secondary) }
-            ForEach(items) { s in
+            ForEach(treffer) { s in
                 NavigationLink(value: SpotDest(spot: s.spot, spotId: s.spot_id)) { spotRow(s) }
+            }
+            if !suche.trimmingCharacters(in: .whitespaces).isEmpty && treffer.isEmpty {
+                Text(Loc.t("spots.empty", lang)).foregroundStyle(.secondary)
             }
             if items.isEmpty && !loading && error == nil {
                 Text(Loc.t("spots.empty", lang)).foregroundStyle(.secondary)
@@ -185,7 +209,14 @@ struct SpotsView: View {
     private func spotRow(_ s: SpotMapItem) -> some View {
         HStack {
             Image(systemName: "mappin.circle.fill").foregroundStyle(Color.accentColor)
-            Text(s.spot)
+            // Gewaesser mit in die Zeile: „Berlin 3" und „Berlin 4" waren vorher nicht zu
+            // unterscheiden — genau dafuer steht es im PWA-Auswahlfeld.
+            VStack(alignment: .leading, spacing: 1) {
+                Text(s.spot)
+                if let w = s.water, !w.isEmpty, w != s.spot {
+                    Text(w).font(.caption).foregroundStyle(.secondary)
+                }
+            }
             Spacer()
             Text("\(s.sessions)").font(.subheadline).foregroundStyle(.secondary)
         }
