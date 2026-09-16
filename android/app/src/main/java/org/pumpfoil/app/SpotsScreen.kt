@@ -11,13 +11,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -54,6 +57,14 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
     var items by remember { mutableStateOf<List<SpotMapItem>>(emptyList()) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    // Suchtext. Er ERSETZT die frueher hier stehende Liste ALLER Spots (Jan, 16.09.2026: „warum
+    // ist auf ios und android in /spots unter der karte eine riesen lange liste aller spots?").
+    // Die gab es nur historisch: beide Apps starteten am 25.06. als reine Liste, die Karte kam
+    // einen Commit spaeter obendrauf und die Liste blieb „wie gehabt" stehen — inzwischen 231
+    // Zeilen, durch die niemand scrollt. Die PWA hatte sie nie, dort steht ueber der Karte ein
+    // Suchfeld. Ohne Eingabe erscheint jetzt also KEINE Liste: gesucht wird ueber die Karte oder
+    // ueber dieses Feld.
+    var suche by remember { mutableStateOf("") }
 
     suspend fun load() {
         loading = true
@@ -83,10 +94,34 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
     }
     DisposableEffect(karte) { onDispose { karte.onDetach() } }
 
+    // Treffer zum Suchtext. Ohne Eingabe leer — dann steht unter der Karte nur der Spot-Vergleich.
+    val treffer = remember(items, suche) {
+        val n = suche.trim().lowercase()
+        if (n.isEmpty()) emptyList()
+        else items.filter {
+            it.spot.lowercase().contains(n) || (it.water?.lowercase()?.contains(n) == true)
+        }
+    }
+
     Scaffold(topBar = { PumpfoilTopBar(I18n.t("nav.spots")) }) { pad ->
         val scope = rememberCoroutineScope()
         Box(Modifier.padding(pad)) {
           Column(Modifier.fillMaxSize()) {
+            // Suchfeld ueber der Karte — dieselbe Stelle wie in der PWA.
+            OutlinedTextField(
+                value = suche,
+                onValueChange = { suche = it },
+                singleLine = true,
+                placeholder = { Text(I18n.t("home.spotPick")) },
+                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                trailingIcon = {
+                    if (suche.isNotEmpty()) {
+                        Icon(Icons.Filled.Close, contentDescription = null,
+                             modifier = Modifier.clickable { suche = "" })
+                    }
+                },
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+            )
             // Die Karte steht FEST oben und scrollt nicht mit.
             //
             // Nicht aus Geschmack, sondern weil osmdroid es erzwingt (Jan, 02.09.): als
@@ -134,16 +169,30 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
                     if (items.isEmpty() && !loading && error == null) {
                         item { Text(I18n.t("spots.empty"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                     }
-                    items(items) { s ->
+                    // NUR Treffer, und nur bei einer Eingabe. Sortiert wie zuvor nach
+                    // Sessionzahl, damit der meistgefahrene Spot gleicher Namensfamilie
+                    // („Berlin 3" / „Berlin 4") oben steht.
+                    items(treffer) { s ->
                         ListItem(
                             modifier = Modifier.clickable { onOpenSpot(s.spot) },
                             headlineContent = { Text(s.spot) },
-                            supportingContent = { Text("${s.sessions} ${I18n.t("nav.sessions")}") },
+                            // Gewaesser mit in die Zeile: „Berlin 3" und „Berlin 4" waren vorher
+                            // nicht zu unterscheiden — genau dafuer steht es im PWA-Auswahlfeld.
+                            supportingContent = {
+                                val w = s.water?.takeIf { it.isNotBlank() && it != s.spot }
+                                Text(listOfNotNull(w, "${s.sessions} ${I18n.t("nav.sessions")}").joinToString(" · "))
+                            },
                             leadingContent = {
                                 Icon(Icons.Filled.Place, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                             },
                         )
                         HorizontalDivider()
+                    }
+                    if (suche.isNotBlank() && treffer.isEmpty()) {
+                        item {
+                            Text(I18n.t("spots.empty"), Modifier.padding(16.dp),
+                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
                     }
                 }
             }

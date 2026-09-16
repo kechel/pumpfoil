@@ -66,8 +66,16 @@ Kein Code nötig — Kern-Interaktionen decken sich.
 ## Restbereiche (Abschluss-Sweep) — geprüft, größtenteils deckungsgleich
 - **Verlauf**: Modus-Umschalter + Metriken/Werte ✅. Chart-Punkt-Klick → Session + Hover-Tooltip ⚠️
   (nur Web; auf Mobil fummelig — Session über Liste erreichbar). SpotProgression-Animation ❌ (§5, geräteabhängig).
-- **Spots**: Karten-Marker → Spot-Sessions ✅, Spot-Liste → Sessions ✅. Such-Fokus auf Karte ⚠️
-  (nativ Liste statt Suchfeld). Marker in Marken-Cyan ✅.
+- **Spots**: Karten-Marker → Spot-Sessions ✅, Spot-Suche → Sessions ✅ (16.09.2026). Marker in
+  Marken-Cyan ✅. Filter „nur mit Beschreibung", Spot-Zähler in der Überschrift und der
+  Erklärtext „Spots entstehen automatisch" ⚠️ (nur Web).
+  Bis 16.09. stand hier „nativ Liste statt Suchfeld" als bewusste Anpassung — sie war in
+  Wahrheit ein Überbleibsel: beide Apps starteten am 25.06. als reine Liste, die Karte kam einen
+  Commit später obendrauf und die Liste blieb „wie gehabt" darunter stehen. Inzwischen waren das
+  231 ungefilterte Zeilen (Jan, 16.09.: „eine riesen lange liste aller spots"). Jetzt sucht man
+  wie im Web: Android mit einem Feld über der Karte, iOS über `.searchable` in der
+  Navigationsleiste; ohne Eingabe erscheint keine Liste. Die Trefferzeile trägt das Gewässer mit,
+  sonst sind „Berlin 3" und „Berlin 4" nicht zu unterscheiden.
 - **Home**: Feedback-Sheet ✅, Chat-Button ✅, Records Accel/alle-Toggle ✅, Wetter ✅, Meine Chats ✅,
   letzte Sessions → Detail ✅. Deckungsgleich.
 - **Profil**: Avatar ändern ✅, Name bearbeiten ✅, Abmelden/Konto löschen (Bestätigung) ✅, Nav-Links ✅.
