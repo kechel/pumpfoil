@@ -963,6 +963,54 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟡 LAUF-TRENNUNG IM TURN — geeicht an Accel-Wahrheit, Regel gefunden, NICHT gebaut**
+  (16.09.2026; Auslöser Feedback #136 von Marc u546: „Einzig einen langen Lauf heute hat das
+  Programm automatisch in zwei Läufe aufgetrennt, weil wohl im Turn eine recht niedrige
+  Geschwindigkeit war.")
+  - **Marcs Fall, Session 8490:** zwei Laeufe 438 m + 721 m, in Wahrheit einer von 1159 m. Alle
+    drei Tests von `_merge_no_stop` verfehlen KNAPP: Uhr-Speed 5,1 gegen NOSTOP_SPEED 5,4 km/h ·
+    Positions-MINIMUM 5,1 gegen NOSTOP_POS_SPEED 9,0 km/h · Luecke 7 s gegen
+    NOSTOP_TOUCHDOWN_S 5 s. Der Positionsverlauf in der Luecke ist 5,1 → 8,8 → 11,2 → 11,4 →
+    12,0 → 15,3 km/h; gestanden hat er nie. Das Accel sagt in der Luecke `pump`.
+  - **Warum das Minimum die falsche Groesse ist:** ein einzelner Messpunkt am Rand kippt die
+    Regel. Jans Einwand gegen meinen ersten Vorschlag (Median) war aber ebenso richtig — bei
+    einer langen Luecke waere auch der Median hoch, obwohl mittendrin jemand steht. Die Groesse,
+    die die Regel MEINT, ist die DAUER des Einbruchs: ein Stopp ist eine Dauer, kein Punkt.
+  - **Geeicht an einer echten Wahrheit** (Jans Vorschlag): aus 839 Accel-Sessions 170 Laufpaare
+    mit Luecke ≤ 30 s, bei denen Accel-Fenster IN der Luecke liegen. Wahrheit = Anteil
+    `pump`/`glide` dort. Ergebnis: **129 aktiv, 28 echte Pause, 13 unklar** — drei Viertel der
+    Trennstellen sind gar keine Pause.
+  - **Ueber alle Luecken trennen die GPS-Merkmale die Klassen NICHT:** Lueckendauer 21 s (aktiv)
+    gegen 19 s (Pause), Positions-Minimum 1,4 gegen 1,5 km/h. Beste Regel 88 % Praezision bei
+    82 % Grundrate — praktisch wertlos.
+  - **IM KURZEN BEREICH GIBT ES EINE KANTE, und sie ist scharf:**
+    ```
+    Regel (gegen die Accel-Wahrheit)          richtig  falsch  Praezision
+    Luecke <=  5 s · Dip <5,4 km/h <= 1 s           3       0       100 %
+    Luecke <=  7 s · Dip <5,4 km/h <= 1 s           4       0       100 %
+    Luecke <=  8 s · Dip <5,4 km/h <= 1 s           7       1        88 %
+    Luecke <= 10 s · Dip <5,4 km/h <= 1 s          12       3        80 %
+    ```
+  - **Was ab 8 s hereinbricht, ist der Kern der Sache:** drei der sechs echten Pausen mit kurzer
+    Luecke bewegen sich mit **9 bis 13 km/h ohne zu pumpen** (#5004 Lauf 3: pos-Median 12,7 km/h,
+    kein Dip, Accel 0 % aktiv; ebenso #2950 Lauf 9 und #8609 Lauf 4). Treiben, ausgleiten,
+    geschoben werden — im GPS nicht von einem laufenden Lauf zu unterscheiden. **Das ist die
+    prinzipielle Grenze einer reinen GPS-Regel**, keine Frage der Schwellenwahl.
+  - **🔲 VORSCHLAG (nicht gebaut, braucht Jans OK + Regressionslauf):** in `_merge_no_stop` den
+    Test `pos_min >= NOSTOP_SPEED` durch „laengster zusammenhaengender Einbruch unter
+    NOSTOP_SPEED ≤ 1 s" ersetzen und `NOSTOP_TOUCHDOWN_S` von 5 auf 7 s heben. Wirkung auf den
+    Bestand: **60 von 4153 Laufpaaren (1,4 %)** wuerden neu zusammengefuehrt.
+  - **Die Wirkung liegt fast ganz bei GPS-only:** mit Accel 3 von 3322 Paaren (0,09 %), ohne
+    Accel 57 von 831 (6,86 %). Grund: mit Accel ueberbrueckt das On-Foil-Modell den weichen
+    Moment, der Lauf wird gar nicht erst getrennt. GPS-only-Aufnahmen sind 19 % der Sessions,
+    tragen aber 95 % der betroffenen Stellen.
+  - **⚠️ Kleine Stichprobe:** die 100 % bei ≤ 7 s stehen auf 4 Faellen. Die Kante ist plausibel
+    und passt zum Mechanismus, aber sie ist nicht breit belegt.
+  - **Nebenbefund, eigenes Thema:** Session 8269 (u157) hat in der Luecke Positionswerte von
+    56,9 / 32,9 / 56,9 / 16,9 km/h. Das ist ein GPS-Sprung, den `OUTLIER_STEP_M` nicht erwischt
+    hat — beim Pumpfoilen gibt es keine 57 km/h.
+
+
 - **🟡 GPS-LUECKEN AUF GARMIN — belegt als EMPFANGSABRISS, nicht als unser Fehler** (16.09.2026,
   beim Nachgehen von Andis Meldung u72; mit seinem Fall hat es am Ende nichts zu tun).
   - **Ausgangsbefund:** 20 von 41 der neuesten Garmin-Sessions unter 90 % GPS-Abdeckung
