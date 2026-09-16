@@ -66,9 +66,15 @@ enum Loc {
     // In 10 Bloecke zerlegt: EIN Literal mit 543 Eintraegen ist fuer den
     // Swift-Type-Checker EIN Ausdruck, dessen Kosten ueberproportional wachsen (der Build hing
     // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
-    static let csOverlay: [String: String] = {
+            // Spots-Suche (16.09.2026) — aus web/src/i18n/locales/cs.ts.
+        private static let _csOverlaySpotsSuche: [String: String] = [
+            "home.spotPick": "Vybrat spot …",
+            "spots.onlyWithNotes": "Jen s popisem",
+            "spots.autoHint": "Spoty nemusíš zakládat: vznikají automaticky, jakmile někdo nahraje session z nového místa. Názvy míst a vod pocházejí z OpenStreetMap — těsně po nahrání může název pár minut chybět.",
+        ]
+static let csOverlay: [String: String] = {
         var d: [String: String] = [:]
-        for p in [_csOverlayP1, _csOverlayP1s2, _csOverlayP1s5, _csOverlayP1s4, _csOverlayP1s3, _csOverlayP2, _csOverlayP2s2, _csOverlayP3, _csOverlayP3s2, _csOverlayP4, _csOverlayP4s2, _csOverlayP5, _csOverlayP5s2, _csOverlayP6, _csOverlayP6s2, _csOverlayP7, _csOverlayP7s2, _csOverlayP8, _csOverlayP8s2, _csOverlayP9, _csOverlayP9s2, _csOverlayP10, _csOverlayP10s2, _csOverlayP11, _csOverlayP11s2, _csOverlayP11s3, _csOverlayP11s4] { d.merge(p) { a, _ in a } }
+        for p in [_csOverlaySpotsSuche, _csOverlayP1, _csOverlayP1s2, _csOverlayP1s5, _csOverlayP1s4, _csOverlayP1s3, _csOverlayP2, _csOverlayP2s2, _csOverlayP3, _csOverlayP3s2, _csOverlayP4, _csOverlayP4s2, _csOverlayP5, _csOverlayP5s2, _csOverlayP6, _csOverlayP6s2, _csOverlayP7, _csOverlayP7s2, _csOverlayP8, _csOverlayP8s2, _csOverlayP9, _csOverlayP9s2, _csOverlayP10, _csOverlayP10s2, _csOverlayP11, _csOverlayP11s2, _csOverlayP11s3, _csOverlayP11s4] { d.merge(p) { a, _ in a } }
         return d
     }()
 
@@ -986,9 +992,15 @@ enum Loc {
     // In 10 Bloecke zerlegt: EIN Literal mit 543 Eintraegen ist fuer den
     // Swift-Type-Checker EIN Ausdruck, dessen Kosten ueberproportional wachsen (der Build hing
     // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
-    static let nlOverlay: [String: String] = {
+            // Spots-Suche (16.09.2026) — aus web/src/i18n/locales/nl.ts.
+        private static let _nlOverlaySpotsSuche: [String: String] = [
+            "home.spotPick": "Spot kiezen …",
+            "spots.onlyWithNotes": "Alleen met beschrijving",
+            "spots.autoHint": "Spots hoef je niet aan te maken: ze verschijnen automatisch zodra iemand op een nieuwe plek een sessie uploadt. Plaats- en waternamen komen uit OpenStreetMap — direct na een upload kan de naam nog een paar minuten ontbreken.",
+        ]
+static let nlOverlay: [String: String] = {
         var d: [String: String] = [:]
-        for p in [_nlOverlayP1, _nlOverlayP1s2, _nlOverlayP1s5, _nlOverlayP1s4, _nlOverlayP1s3, _nlOverlayP2, _nlOverlayP2s2, _nlOverlayP3, _nlOverlayP3s2, _nlOverlayP4, _nlOverlayP4s2, _nlOverlayP5, _nlOverlayP5s2, _nlOverlayP6, _nlOverlayP6s2, _nlOverlayP7, _nlOverlayP7s2, _nlOverlayP8, _nlOverlayP8s2, _nlOverlayP9, _nlOverlayP9s2, _nlOverlayP10, _nlOverlayP10s2, _nlOverlayP11, _nlOverlayP11s2, _nlOverlayP11s3, _nlOverlayP11s4] { d.merge(p) { a, _ in a } }
+        for p in [_nlOverlaySpotsSuche, _nlOverlayP1, _nlOverlayP1s2, _nlOverlayP1s5, _nlOverlayP1s4, _nlOverlayP1s3, _nlOverlayP2, _nlOverlayP2s2, _nlOverlayP3, _nlOverlayP3s2, _nlOverlayP4, _nlOverlayP4s2, _nlOverlayP5, _nlOverlayP5s2, _nlOverlayP6, _nlOverlayP6s2, _nlOverlayP7, _nlOverlayP7s2, _nlOverlayP8, _nlOverlayP8s2, _nlOverlayP9, _nlOverlayP9s2, _nlOverlayP10, _nlOverlayP10s2, _nlOverlayP11, _nlOverlayP11s2, _nlOverlayP11s3, _nlOverlayP11s4] { d.merge(p) { a, _ in a } }
         return d
     }()
 
@@ -1933,9 +1945,15 @@ enum Loc {
     // In 10 Bloecke zerlegt: EIN Literal mit 509 Eintraegen ist fuer den
     // Swift-Type-Checker EIN Ausdruck, dessen Kosten ueberproportional wachsen (der Build hing
     // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
-    static let fiOverlay: [String: String] = {
+            // Spots-Suche (16.09.2026) — aus web/src/i18n/locales/fi.ts.
+        private static let _fiOverlaySpotsSuche: [String: String] = [
+            "home.spotPick": "Valitse spotti …",
+            "spots.onlyWithNotes": "Vain kuvauksen kanssa",
+            "spots.autoHint": "Spotteja ei tarvitse luoda itse: ne syntyvät automaattisesti heti, kun joku lataa session uudesta paikasta. Paikkojen ja vesistöjen nimet tulevat OpenStreetMapista — heti latauksen jälkeen nimi voi puuttua muutaman minuutin.",
+        ]
+static let fiOverlay: [String: String] = {
         var d: [String: String] = [:]
-        for p in [_fiOverlayP1, _fiOverlayP1s2, _fiOverlayP1s5, _fiOverlayP1s4, _fiOverlayP1s3, _fiOverlayP2, _fiOverlayP2s2, _fiOverlayP3, _fiOverlayP3s2, _fiOverlayP4, _fiOverlayP4s2, _fiOverlayP5, _fiOverlayP5s2, _fiOverlayP6, _fiOverlayP6s2, _fiOverlayP7, _fiOverlayP7s2, _fiOverlayP8, _fiOverlayP8s2, _fiOverlayP9, _fiOverlayP9s2, _fiOverlayP10, _fiOverlayP11, _fiOverlayP11s2, _fiOverlayP11s3, _fiOverlayP11s4, _fiOverlayP11s5] { d.merge(p) { a, _ in a } }
+        for p in [_fiOverlaySpotsSuche, _fiOverlayP1, _fiOverlayP1s2, _fiOverlayP1s5, _fiOverlayP1s4, _fiOverlayP1s3, _fiOverlayP2, _fiOverlayP2s2, _fiOverlayP3, _fiOverlayP3s2, _fiOverlayP4, _fiOverlayP4s2, _fiOverlayP5, _fiOverlayP5s2, _fiOverlayP6, _fiOverlayP6s2, _fiOverlayP7, _fiOverlayP7s2, _fiOverlayP8, _fiOverlayP8s2, _fiOverlayP9, _fiOverlayP9s2, _fiOverlayP10, _fiOverlayP11, _fiOverlayP11s2, _fiOverlayP11s3, _fiOverlayP11s4, _fiOverlayP11s5] { d.merge(p) { a, _ in a } }
         return d
     }()
 
@@ -2869,10 +2887,18 @@ enum Loc {
     // minutenlang genau in dieser Datei). Zusammengefuehrt beim ersten Zugriff.
     static let _t1: [String: [String: String]] = {
         var d: [String: [String: String]] = [:]
-        for p in [__t1P1, __t1P1s2, __t1P1s3, __t1P1s4, __t1P1s5, __t1P2, __t1P2s2, __t1P3, __t1P3s2, __t1P4, __t1P4s2, __t1P5] { d.merge(p) { a, _ in a } }
+        for p in [__tSpotsSuche, __t1P1, __t1P1s2, __t1P1s3, __t1P1s4, __t1P1s5, __t1P2, __t1P2s2, __t1P3, __t1P3s2, __t1P4, __t1P4s2, __t1P5] { d.merge(p) { a, _ in a } }
         return d
     }()
 
+    // Spots-Suche (16.09.2026): ersetzt die Liste aller Spots unter der Karte.
+    // Eigener kleiner Block — die bestehenden sind nach dem 50-Eintrags-Limit geschnitten,
+    // das fuer den Swift-Type-Checker gilt (s. Kommentar an `_t1`).
+    private static let __tSpotsSuche: [String: [String: String]] = [
+        "home.spotPick": r("Spot wählen …", "Spot wähle …", "Spot auswählen …", "Pick a spot …", "Choisir un spot …", "Scegli uno spot …", "Elegir un spot …"),
+        "spots.onlyWithNotes": r("Nur mit Beschreibung", "Nur mit Bschriibig", "Nur mit Beschreibung", "With description only", "Avec description uniquement", "Solo con descrizione", "Solo con descripción"),
+        "spots.autoHint": r("Spots musst du nicht anlegen: Sie entstehen automatisch, sobald jemand an einem neuen Ort eine Session hochlädt. Ort- und Gewässernamen kommen aus OpenStreetMap — direkt nach dem Upload kann der Name noch ein paar Minuten fehlen.", "Spots muesch nöd aalegge: Die entstönd automatisch, sobald öpper an eme neue Ort e Session ueladt. Orts- und Gwässernäme chömed us OpenStreetMap — grad nach em Upload cha de Name na es paar Minute fähle.", "Spots musst du nicht anlegen: Sie entstehen automatisch, sobald jemand an einem neuen Ort eine Session hochlädt. Ort- und Gewässernamen kommen aus OpenStreetMap — direkt nach dem Upload kann der Name noch ein paar Minuten fehlen.", "You never create spots yourself: they appear automatically as soon as someone uploads a session at a new location. Place and water names come from OpenStreetMap — right after an upload the name can take a few minutes to show up.", "Tu n'as pas à créer de spots : ils apparaissent automatiquement dès que quelqu'un téléverse une session à un nouvel endroit. Les noms de lieux et de plans d'eau viennent d'OpenStreetMap — juste après un envoi, le nom peut mettre quelques minutes à apparaître.", "Non devi creare gli spot: compaiono automaticamente appena qualcuno carica una sessione in un posto nuovo. I nomi di luoghi e specchi d'acqua vengono da OpenStreetMap — subito dopo l'upload il nome può tardare qualche minuto.", "No tienes que crear spots: aparecen automáticamente en cuanto alguien sube una sesión en un lugar nuevo. Los nombres de lugares y aguas vienen de OpenStreetMap — justo después de subir, el nombre puede tardar unos minutos."),
+    ]
     private static let __t1P1: [String: [String: String]] = [
         "foilStats.hint": r("Welche Werte werden mit welchem Foil gefahren (Community). Gezählt werden nur Pumpfoil-Sessions mit Accel-Erkennung — andere Sportarten (Wing, eFoil, Foildrive, Wakethief), GPS-only-Aufnahmen und als fehlerhaft markierte Daten sind nicht dabei.", "Weli Wärt mit welem Foil gfahre wärde (Community). Zellt wärded nume Pumpfoil-Sessions mit Accel-Erkennig — anderi Sportarte (Wing, eFoil, Foildrive, Wakethief), GPS-only-Ufnahme und als fählerhaft markierti Date sind nöd debi.", "Wöche Werte werdn mit wöchem Foil gfahrn (Community). Gezählt werdn nur Pumpfoil-Sessions mit Accel-Erkennung — andere Sportarten (Wing, eFoil, Foildrive, Wakethief), GPS-only-Aufnahmen und ois fehlerhaft markierte Daten san net dabei.", "Which numbers people achieve on which foil (community). Only pumpfoil sessions with accel detection are counted — other sports (wing, eFoil, foildrive, wakethief), GPS-only recordings and data marked as faulty are left out.", "Quelles valeurs sont atteintes avec quel foil (communauté). Seules les sessions de pumpfoil avec détection accéléromètre sont comptées — les autres sports (wing, eFoil, foildrive, wakethief), les enregistrements GPS seuls et les données marquées comme erronées sont exclus.", "Quali valori si ottengono con quale foil (community). Contano solo le sessioni di pumpfoil con rilevamento accelerometrico — altri sport (wing, eFoil, foildrive, wakethief), registrazioni solo GPS e dati segnati come errati restano fuori.", "Qué valores se logran con qué foil (comunidad). Solo cuentan las sesiones de pumpfoil con detección por acelerómetro — otros deportes (wing, eFoil, foildrive, wakethief), grabaciones solo GPS y datos marcados como erróneos quedan fuera."),
         "watchStats.hint": r("Welche Werte werden mit welcher Uhr gefahren — Community-Aggregat je Modell. Hier zählt jede Aufnahme: alle Sportarten, mit und ohne Accel-Daten.", "Weli Wärt wärded mit weler Uhr gfahre — Community-Aggregat je Modäll. Do zellt jedi Ufnahm: alli Sportarte, mit und ohni Accel-Date.", "Welche Werte werden mit welcher Uhr gefahren — Community-Aggregat je Modell. Do zöhlt jede Aufnahme: olle Sportartn, mit und ohne Accel-Datn.", "Which numbers are ridden with which watch — community aggregate per model. Everything counts here: every sport, with or without accel data.", "Quels chiffres avec quelle montre — agrégat communautaire par modèle. Ici tout compte : tous les sports, avec ou sans données accéléromètre.", "Quali valori con quale orologio — aggregato community per modello. Qui conta ogni registrazione: tutti gli sport, con o senza dati accelerometrici.", "Qué valores con qué reloj — agregado de la comunidad por modelo. Aquí cuenta cada grabación: todos los deportes, con o sin datos de acelerómetro."),

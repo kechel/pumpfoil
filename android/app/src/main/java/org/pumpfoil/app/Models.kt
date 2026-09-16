@@ -690,6 +690,9 @@ data class SpotMapItem(
     val lat: Double = 0.0,
     val lon: Double = 0.0,
     val sessions: Int = 0,
+    // Zahl der sichtbaren Spot-Beschreibungen. Der Server liefert sie seit jeher mit; hier kam sie
+    // erst am 16.09.2026 an, fuer den Filter „nur mit Beschreibung" (bis dahin nur Web).
+    val notes: Int = 0,
 )
 
 @Serializable

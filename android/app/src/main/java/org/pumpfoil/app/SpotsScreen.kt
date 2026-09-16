@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -14,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -65,6 +67,8 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
     // Suchfeld. Ohne Eingabe erscheint jetzt also KEINE Liste: gesucht wird ueber die Karte oder
     // ueber dieses Feld.
     var suche by remember { mutableStateOf("") }
+    // Filter „nur mit Beschreibung" — rein clientseitig, `spot-map` liefert die Zahl je Spot mit.
+    var nurNotes by remember { mutableStateOf(false) }
 
     suspend fun load() {
         loading = true
@@ -94,19 +98,39 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
     }
     DisposableEffect(karte) { onDispose { karte.onDetach() } }
 
+    // Der Filter wirkt auf die KARTE genauso wie auf die Treffer — wie in der PWA, wo `spots`
+    // die gefilterte Menge ist und die Marker daraus entstehen.
+    val sichtbar = remember(items, nurNotes) { if (nurNotes) items.filter { it.notes > 0 } else items }
+    val mitNotes = remember(items) { items.count { it.notes > 0 } }
+
     // Treffer zum Suchtext. Ohne Eingabe leer — dann steht unter der Karte nur der Spot-Vergleich.
-    val treffer = remember(items, suche) {
+    val treffer = remember(sichtbar, suche) {
         val n = suche.trim().lowercase()
         if (n.isEmpty()) emptyList()
-        else items.filter {
+        else sichtbar.filter {
             it.spot.lowercase().contains(n) || (it.water?.lowercase()?.contains(n) == true)
         }
     }
 
-    Scaffold(topBar = { PumpfoilTopBar(I18n.t("nav.spots")) }) { pad ->
+    // Spot-Zahl im Titel — wie in der PWA-Ueberschrift.
+    val titel = if (sichtbar.isEmpty()) I18n.t("nav.spots") else "${I18n.t("nav.spots")} (${sichtbar.size})"
+    Scaffold(topBar = { PumpfoilTopBar(titel) }) { pad ->
         val scope = rememberCoroutineScope()
         Box(Modifier.padding(pad)) {
           Column(Modifier.fillMaxSize()) {
+            // Filterzeile ueber dem Suchfeld. In der PWA steht sie rechts neben der Ueberschrift;
+            // hier sitzt der Titel in der TopBar, also bekommt sie eine eigene Zeile.
+            if (mitNotes > 0) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 4.dp)
+                        .clickable { nurNotes = !nurNotes },
+                ) {
+                    Checkbox(checked = nurNotes, onCheckedChange = { nurNotes = it })
+                    Text("${I18n.t("spots.onlyWithNotes")} ($mitNotes)",
+                         style = MaterialTheme.typography.bodyMedium)
+                }
+            }
             // Suchfeld ueber der Karte — dieselbe Stelle wie in der PWA.
             OutlinedTextField(
                 value = suche,
@@ -153,7 +177,7 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
             // 3. Der Inhalt darunter bekommt einen DECKENDEN Hintergrund. Compose-Flaechen sind
             //    sonst durchsichtig, und dann scheint alles durch, was dahinter liegt.
             SpotsMap(
-                karte, items, onOpenSpot,
+                karte, sichtbar, onOpenSpot,
                 Modifier.fillMaxWidth().height(220.dp).clipToBounds(),
             )
             Refreshable(refreshing = loading, onRefresh = { scope.launch { load() } }) {
@@ -165,6 +189,14 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
                     if (items.isNotEmpty()) {
                         // Spot-Vergleich direkt unter der Karte — dieselbe Stelle wie in der PWA.
                         item { SpotCompareSection(onOpenSession = onOpenSession, onOpenSpot = onOpenSpot) }
+                    }
+                    // „Spots entstehen automatisch" — dritter Nutzer in Folge suchte in der PWA
+                    // einen Knopf zum Anlegen, den es bewusst nicht gibt. Steht dort ueber der
+                    // Karte; hier unten, weil oben schon Filter und Suchfeld sitzen.
+                    item {
+                        Text(I18n.t("spots.autoHint"), Modifier.padding(16.dp),
+                             style = MaterialTheme.typography.bodySmall,
+                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     if (items.isEmpty() && !loading && error == null) {
                         item { Text(I18n.t("spots.empty"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }

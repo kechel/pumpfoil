@@ -977,9 +977,15 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     die Spot-Seite. Gesucht wird in Name UND Gewaesser.
   - **Kein neuer Sprachschluessel noetig:** `home.spotPick` („Spot wählen …" / „Pick a spot …")
     gibt es in beiden Apps bereits und passt als Platzhalter.
-  - **🔲 Noch nur Web:** Filter „nur mit Beschreibung", Spot-Zaehler in der Ueberschrift, der
-    Erklaertext „Spots entstehen automatisch". Fuer den Filter fehlt `notes` in beiden nativen
-    Datenmodellen (`SpotMapItem`) — der Server liefert es laengst mit.
+  - **✅ Nachgezogen am selben Tag (Jan: „Ja bitte auch"):** Filter „nur mit Beschreibung",
+    Spot-Zaehler im Titel, Erklaertext „Spots entstehen automatisch". `notes` steht jetzt in
+    beiden `SpotMapItem`-Modellen; der Server lieferte es laengst mit. Der Filter duennt AUCH die
+    Karten-Pins aus, nicht nur die Trefferliste — sonst waere er in der Karte wirkungslos.
+    Sprachschluessel: `spots.onlyWithNotes` und `spots.autoHint` in allen 18 Sprachen aus den
+    PWA-Sprachdateien uebernommen, nicht neu uebersetzt. Dabei aufgefallen: `home.spotPick` gab
+    es auf iOS NUR im Portugiesisch-Overlay — der Platzhalter der Suchleiste haette allen
+    anderen den rohen Schluessel gezeigt (`Loc.t` gibt bei fehlendem Key den Key zurueck).
+    Steht jetzt in der Kerntabelle und allen elf Overlays.
   - **Geht mit dem naechsten Store-Release raus**, zusammen mit dem Kartenhintergrund fuers
     Teilen-Bild.
 

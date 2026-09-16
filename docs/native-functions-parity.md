@@ -67,8 +67,8 @@ Kein Code nötig — Kern-Interaktionen decken sich.
 - **Verlauf**: Modus-Umschalter + Metriken/Werte ✅. Chart-Punkt-Klick → Session + Hover-Tooltip ⚠️
   (nur Web; auf Mobil fummelig — Session über Liste erreichbar). SpotProgression-Animation ❌ (§5, geräteabhängig).
 - **Spots**: Karten-Marker → Spot-Sessions ✅, Spot-Suche → Sessions ✅ (16.09.2026). Marker in
-  Marken-Cyan ✅. Filter „nur mit Beschreibung", Spot-Zähler in der Überschrift und der
-  Erklärtext „Spots entstehen automatisch" ⚠️ (nur Web).
+  Marken-Cyan ✅. Filter „nur mit Beschreibung" ✅, Spot-Zähler im Titel ✅, Erklärtext
+  „Spots entstehen automatisch" ✅ (alle 16.09.2026). Damit deckungsgleich.
   Bis 16.09. stand hier „nativ Liste statt Suchfeld" als bewusste Anpassung — sie war in
   Wahrheit ein Überbleibsel: beide Apps starteten am 25.06. als reine Liste, die Karte kam einen
   Commit später obendrauf und die Liste blieb „wie gehabt" darunter stehen. Inzwischen waren das
