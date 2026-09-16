@@ -963,6 +963,36 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔲 Kartenhintergrund im TEILEN-BILD (James, u17, `dm:17-230` 15.09.): „Possible to have the
+  satellite view when sharing?" — gemerkt, NICHT beantwortet (Jan, 16.09.).**
+  - **Auf dem TEILEN-LINK geht es laengst.** `SessionDetail.tsx:937` ruft `basiskarten(...)` ohne
+    `isPublic`-Bedingung, und die oeffentliche Route `/s/:token` rendert dieselbe Seite — der
+    Umschalter Karte ↔ Satellit ist dort also da, samt appweit gemerkter Wahl. Wer das meint,
+    braucht nur den Hinweis.
+  - **Was fehlt, ist das quadratische TEILEN-BILD.** Das rendert der Server (`sharecard.py`,
+    PIL), Hintergrund heute: `navy` oder `transparent` (Foto vom Nutzer darunter). James'
+    Formulierung ist wortgleich zu seiner Bitte vom 05.09. („average speed when sharing"), und
+    die ging eindeutig um den Teilen-Dialog — sicher ist es aber nicht.
+  - **Wir zeichnen dort schon eine Karte:** `sharecard.py:205` malt die Wasserflaeche als
+    Silhouette hinter den Track, aus Overpass-Daten (`_wasser_silhouette`). Nur bei einem
+    Hintergrundfoto faellt sie weg.
+  - **⚠️ LIZENZFRAGE, der eigentliche Grund fuer die Pause:** das Teilen-Bild VERLAESST unsere
+    Seite — der Nutzer postet es. Das ist etwas anderes als eine Karte im Browser.
+    **OpenStreetMap:** die Tile Usage Policy verbietet Massenabruf und fremde Dienste auf
+    `tile.openstreetmap.org`. **Esri World Imagery** (unsere Browser-Quelle seit 26.08.): fuer
+    das Weiterverbreiten eines daraus gebauten Bildes findet sich keine klare Erlaubnis, in den
+    Web-Bedingungen steht sogar, die Dienste duerften ohne schriftliche Zustimmung nicht
+    reproduziert oder uebertragen werden. Fuer ein Bild, das Nutzer oeffentlich posten, zu
+    unsicher — das braucht Jans Entscheidung, nicht meine.
+  - **Praktisch kaeme dazu:** der Dialog holt `share.png` bei JEDER Aenderung neu (Farbe, Stats,
+    Titel, entprellt 160 ms). Jede Vorschau wuerde Kacheln nachladen.
+  - **Vorschlag, falls es weitergeht:** die vorhandene Wasser-Silhouette zu einer EIGENEN
+    gezeichneten Karte ausbauen (Ufer, Inseln, evtl. Stege) aus denselben Overpass-Daten. Gehoert
+    uns, kein fremder Dienst, kein Kachel-Nachladen, nur die Namensnennung
+    „© OpenStreetMap contributors". Die Wahl im Dialog waere dann **Foto · Karte · Einfarbig**.
+  - **🔲 Offen zuerst:** James fragen, ob er den Link oder das Bild meint — spart womoeglich die
+    ganze Arbeit.
+
 - **🔲 Roman (u244), Instinct 3 Solar: die UHR startet ~10 min nach jeder Pumpfoil-Session neu.
   Unsere Garmin-Spur „das ist ein bekanntes Garmin-Problem" ist damit vom Tisch.**
   - **Seine Beschreibung (14.09.):** „I use the watch a lot for running and tennis and I have never
