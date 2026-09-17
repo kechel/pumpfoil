@@ -1112,6 +1112,26 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     gewesen, muessten sie hier genauso anfallen — es werden dieselben Bytes geschrieben, nur in
     vier mal so vielen Stuecken. Sie fallen nicht an. Der Zuwachs von vorher war also Heap, der
     nie zurueckkam: die Signatur grosser Einzelanforderungen in einem zerstueckelten Heap.
+  - **🔴 ES TRIFFT NICHT NUR DIE INSTINCT 2 — Sessiondauern je Speicherklasse** (17.09.2026,
+    Median je Modell, nur Aufnahmen mit Ende und < 10 h):
+    ```
+       Budget  Uhr                              Aufn.  Median   <10 min
+       98.304  Instinct 2                          22   1,0 min     77 %
+       98.304  Instinct 2S                         15   8,1 min     53 %
+      131.072  fenix 5 / quatix 5                  18   4,4 min     72 %   <- NEU
+      131.072  Forerunner 55                       57  27,1 min     28 %
+      131.072  Instinct 3 Solar                    55  58,0 min     18 %
+
+      Lite-Klasse (<=128 KB):  5 Modelle, 167 Aufnahmen, Median der Mediane   8,1 min
+      darueber:               30 Modelle, 1139 Aufnahmen,                    51,3 min
+    ```
+    **Sechsmal kuerzer.** Der neue Fund ist die **fenix 5**: 72 % ihrer Aufnahmen unter zehn
+    Minuten, dasselbe Bild wie die Instinct 2 — und KEIN EINZIGER dieser Nutzer hat sich je
+    gemeldet. Die Schwelle des Fixes (<=131.072) deckt alle fuenf Modelle ab.
+    **Nicht wegerklaeren:** Forerunner 55 (27 min) und Instinct 3 Solar (58 min) liegen unter
+    derselben Grenze und sind deutlich weniger betroffen — das nominelle Budget ist also nicht
+    die ganze Geschichte. Und ein paar grosse Uhren zeigen auch kurze Mediane (epix Pro 51 mm
+    0,4 min bei n=5, Descent Mk2 0,7 bei n=7); bei den Fallzahlen eher Zufall als Muster.
   - **🔲 Offen vor einer Einreichung:** ein LANGER Lauf mit dem Fix (zwei Stunden, wie ein echter
     Nutzer), Version bumpen, und `watch/bin` neu bauen — beim Commit `7ce93882` bewusst NICHT
     gebaut, es ist also nichts live. Danach den sechs Betroffenen Bescheid geben (u479, u460,
