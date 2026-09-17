@@ -18,7 +18,7 @@ import { UploadProgressCard } from "../components/UploadProgressCard";
 import { TrackPreview } from "../components/TrackPreview";
 import { SpotWeather } from "../components/SpotWeather";
 import { SpotNotes } from "../components/SpotNotes";
-import { getLastSession, setLastSessionsSearch } from "../lib/lastSession";
+import { getLastSession, setLastSessionsSearch, setLastSessionsFilter } from "../lib/lastSession";
 import { setCompare } from "../lib/compare";
 import { openChatOverlay } from "../components/DmWidget";
 import { ytId, videoPlatform } from "../components/VideoModal";
@@ -262,6 +262,19 @@ export default function Sessions() {
   // Aktuelle Listen-Query merken (scope/spot/filter/month), damit der Zurück-Link im Detail
   // wieder in denselben Scope/Filter zurückführt.
   useEffect(() => { setLastSessionsSearch(`?${sp.toString()}`); }, [sp]);
+  // Denselben Filter auch als Objekt merken: „älter/neuer" im Detail navigiert damit innerhalb
+  // GENAU dieser Liste (Jan, 17.09.2026). `accelOnly` steht bewusst nicht in der URL, deshalb
+  // hier eigens mit hinein; `sport` ist auf der Sessions-Seite immer „alle".
+  useEffect(() => {
+    setLastSessionsFilter({
+      scope: spot ? "all" : (scope === "all" ? "all" : "mine"),
+      spot: spot || undefined,
+      sport: "all",
+      accelOnly,
+      filter: sp.get("filter") === "other" ? "other" : "pump",
+      month: sp.get("month") || undefined,
+    });
+  }, [sp, scope, spot, accelOnly]);
 
   const isMine = scope === "mine" && !spot;
   const setScope = (next: "mine" | "all", nextSpot = "") => {

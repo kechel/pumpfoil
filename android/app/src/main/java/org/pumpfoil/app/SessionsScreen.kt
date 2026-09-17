@@ -196,6 +196,17 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
         loading = false
     }
     LaunchedEffect(scope, spot, tick, accelOnly, filter, month) { load() }
+    // Denselben Filter merken: „älter/neuer" im Detail navigiert damit innerhalb GENAU dieser
+    // Liste statt immer durch die eigenen Sessions (Jan, 17.09.2026). sport="all" wie oben.
+    LaunchedEffect(scope, spot, accelOnly, filter, month) {
+        NachbarFilter.merken(when (scope) {
+            Scope.MINE -> NachbarFilter(scope = "mine", accelOnly = accelOnly,
+                                        filter = filter, month = month.ifBlank { null })
+            Scope.ALL -> NachbarFilter(scope = "all", sport = "all", accelOnly = accelOnly)
+            Scope.SPOT -> NachbarFilter(scope = "all", spot = spot.ifBlank { null },
+                                        sport = "all", accelOnly = accelOnly)
+        })
+    }
     // Laeuft eine eigene Aufnahme noch (status recording/live), die Liste alle 4 s nachladen —
     // wie die PWA es tut. Ohne das aenderte sich in der Liste nichts, waehrend eine Session
     // hochlaedt; man musste den Tab wechseln oder das Detail oeffnen (Befund 11.09.2026, nachdem

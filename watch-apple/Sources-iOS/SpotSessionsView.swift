@@ -108,6 +108,10 @@ struct SpotSessionsView: View {
                 if all.count > rows.count { showAll = true; rows = all }
             }
             items = rows
+            // „Älter/neuer" im Detail soll an DIESEM Spot bleiben, über alle Fahrer — mit
+            // demselben Accel-Filter, den diese Liste gerade zeigt (Jan, 17.09.2026).
+            NachbarFilter.aktuell = NachbarFilter(scope: "all", spot: spot, sport: "all",
+                                                  accelOnly: only && !showAll)
             error = nil
         } catch { self.error = error.localizedDescription }
     }

@@ -75,6 +75,10 @@ fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, 
                 if (all.size > rows.size) { showAll = true; rows = all }
             }
             items = rows
+            // „Älter/neuer" im Detail soll an DIESEM Spot bleiben, über alle Fahrer — mit
+            // demselben Accel-Filter, den diese Liste gerade zeigt (Jan, 17.09.2026).
+            NachbarFilter.merken(NachbarFilter(scope = "all", spot = spot, sport = "all",
+                                               accelOnly = only && !showAll))
             error = null
         } catch (e: Exception) { error = e.message }
         loading = false

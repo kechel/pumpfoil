@@ -1319,7 +1319,23 @@ export const api = {
   createShareLink: (id: number) => req<{ token: string; path: string }>(`/api/sessions/${id}/share`, { method: "POST" }),
   revokeShareLink: (id: number) => req<{ ok: boolean }>(`/api/sessions/${id}/share`, { method: "DELETE" }),
   publicSession: (token: string) => req<SessionSummary>(`/api/public/session/${encodeURIComponent(token)}`),
-  sessionNeighbors: (id: number) => req<{ older: number | null; newer: number | null }>(`/api/sessions/${id}/neighbors`),
+  // „Älter/neuer" folgt dem Filter der Liste, aus der man kam (s. lastSession.ts). Ohne
+  // Angaben antwortet der Server wie bisher: eigene Sessions, gleiche Art.
+  sessionNeighbors: (id: number, f?: {
+    scope?: "mine" | "all"; spot?: string; sport?: string;
+    accelOnly?: boolean; filter?: "pump" | "other"; month?: string;
+  }) => {
+    const q = new URLSearchParams();
+    if (f?.scope === "all") q.set("scope", "all");
+    if (f?.spot) q.set("spot", f.spot);
+    if (f?.sport) q.set("sport", f.sport);
+    if (f?.accelOnly) q.set("accel_only", "true");
+    if (f?.filter === "other") q.set("filter", "other");
+    if (f?.month) q.set("month", f.month);
+    const s = q.toString();
+    return req<{ older: number | null; newer: number | null }>(
+      `/api/sessions/${id}/neighbors${s ? `?${s}` : ""}`);
+  },
   deleteSession: (id: number) => req<{ ok: boolean }>(`/api/sessions/${id}`, { method: "DELETE" }),
   // Alle EIGENEN AUSSORTIERTEN auf einmal (Server erzwingt owner + filter=other serverseitig).
   deleteAllOtherSessions: () => req<{ ok: boolean; deleted: number }>(`/api/sessions/other/all`, { method: "DELETE" }),
