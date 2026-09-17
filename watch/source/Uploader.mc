@@ -134,6 +134,33 @@ module Uploader {
     // (~±30 %) — sie soll 0,6 MB von 13 MB unterscheiden, nicht eine Tankuhr sein.
     const KB_PER_ACCEL_CHUNK = 9;
     const KB_PER_GPS_CHUNK = 5;
+    // Auf speicherknappen Uhren schreibt der Recorder NUR 30 statt 120 Samples je GPS-Chunk
+    // (`SessionRecorder._gpsChunkTarget`, Begruendung dort) — ein Chunk ist dort also ~1,2 KB
+    // statt ~5 KB. Ohne diese Anpassung schaetzte `pendingKb()` den Puffer VIERFACH zu gross und
+    // die Restzeit-Warnung schluege genau auf den Uhren zu frueh an, die wir gerade entlasten.
+    // Aufgerundet auf 2: die ganze Rechnung ist eine Schaetzung (~±30 %), und zu hoch zu liegen
+    // ist bei einer Voll-Warnung die harmlosere Richtung.
+    const KB_PER_GPS_CHUNK_LOWMEM = 2;
+
+    // Dieselbe Schwelle wie im Recorder. Bewusst hier dupliziert statt durchgereicht: der
+    // Uploader laeuft auch OHNE laufende Aufnahme (Sync im Hintergrund), hat also keinen
+    // Recorder zur Hand. Wer die Schwelle aendert, aendert sie an beiden Stellen.
+    var _kbGps = null;
+
+    function kbProGpsChunk() as Lang.Number {
+        if (_kbGps == null) {
+            _kbGps = KB_PER_GPS_CHUNK;
+            try {
+                var st = System.getSystemStats();
+                if (st != null && (st has :totalMemory) && st.totalMemory != null
+                        && st.totalMemory <= 131072) {
+                    _kbGps = KB_PER_GPS_CHUNK_LOWMEM;
+                }
+            } catch (e) {
+            }
+        }
+        return _kbGps;
+    }
 
     function pendingKb() as Lang.Number {
         var s = Storage.getValue("sessions");
@@ -146,7 +173,7 @@ module Uploader {
             var g = st.hasKey("gps_chunks") ? st["gps_chunks"] : 0;
             // Die Zähler sind Indizes des LETZTEN Chunks -> +1 ergibt die Anzahl.
             if (a instanceof Lang.Number && a >= 0) { kb += (a + 1) * KB_PER_ACCEL_CHUNK; }
-            if (g instanceof Lang.Number && g >= 0) { kb += (g + 1) * KB_PER_GPS_CHUNK; }
+            if (g instanceof Lang.Number && g >= 0) { kb += (g + 1) * kbProGpsChunk(); }
         }
         return kb;
     }
