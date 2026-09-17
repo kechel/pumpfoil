@@ -963,6 +963,27 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔲 96-KB-UHREN SCHALTEN STILL AUF GPS-ONLY — der Nutzer erfaehrt es nirgends richtig.**
+  Anlass: Matthias (u214, Instinct 2X Solar) fragte am 17.09.2026 nach der Mail zum
+  Absturz-Fix zurueck: „Kann ich dann den Aufzeichnungsmodus auf 'voll' lassen oder muss ich
+  'Sparsam' wählen?"
+  - **Die Antwort ist: es ist egal** — und genau das ist das Problem. `SessionRecorder._isLowMem()`
+    erzwingt `gpsOnly` bei `totalMemory <= 100000`; die Instinct-2-Familie hat 98.304. Sein Token
+    steht auf `record_mode='full'`, aufgezeichnet wird trotzdem nur GPS: ALLE seine Sessions sind
+    `detection=gps_only`, `pump_count` leer.
+  - **Was der Nutzer sieht:** in der Uhr-App steht bei der Aufnahmerate „GPS" (`recordRateLabel()`).
+    Das ist alles. Wer den Schalter bewusst auf „voll" gestellt hat, wundert sich zu Recht ueber
+    fehlende Pumps und findet keinen Grund. Im Profil auf der Website steht die Einstellung
+    weiterhin so da, als wuerde sie wirken.
+  - **🔲 Vorschlag:** an der Einstellung selbst einen Hinweis zeigen, wenn die betroffene Uhr am
+    Konto haengt — „Deine Instinct 2X zeichnet immer nur GPS auf, dafuer reicht ihr Speicher
+    nicht. Pumps werden dort nicht gezaehlt." Die Geraeteliste kennt die Part-Number, die Schwelle
+    steht fest; es braucht also keine neue Abfrage. Betrifft dieselben Modelle wie der
+    GPS-Chunk-Fix (Instinct 2 / 2S / 2X und was sonst <= 100.000 meldet).
+  - **Matthias hat nachgefragt. Wie viele andere es sich einfach nicht erklaeren konnten, wissen
+    wir nicht** — und das ist das Muster dieses Tages: gemeldet wird fast nichts.
+
+
 - **🔴 APPLE-RELAY-KONTEN BEKOMMEN KEINE MAIL VON UNS — 85 von 569 Konten (14,9 %), 46 davon
   aktiv.** Gefunden 17.09.2026, als Jans Mails an zwei Instinct-2-Nutzer zurueckkamen:
   `550 5.1.1 <jan@kechel.de>: unauthorized sender` von `privaterelay-mta-ms-prod.v.aaplimg.com`.
