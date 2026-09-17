@@ -164,6 +164,10 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
         maybeShowRating()
     }
 
+    // Wer von der Startseite aus eine Session oeffnet, kommt aus KEINER gefilterten Liste —
+    // dann sollen „aelter/neuer" dort wieder durch die eigenen Sessions gehen und nicht durch
+    // den Spot, den man vorhin angeschaut hat (s. NachbarFilter.kt).
+    LaunchedEffect(Unit) { NachbarFilter.merken(NachbarFilter.Leer) }
     LaunchedEffect(Unit) { news = runCatching { Api.newsBanner() }.getOrNull() }
     LaunchedEffect(tick) { incomingXfer = try { Api.transfersIncoming().size } catch (_: Exception) { 0 } }
     // In-App-Update-Hinweis: fragt die (manuell gepflegte) neueste Store-Version ab.

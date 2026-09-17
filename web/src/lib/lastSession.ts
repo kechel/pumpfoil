@@ -29,3 +29,28 @@ export function setLastSessionsSearch(search: string) {
 export function getLastSessionsSearch(): string {
   return lastSessionsSearch;
 }
+
+// Filter der Liste, aus der man ins Detail gekommen ist — „älter/neuer" dort soll GENAU
+// dieser Liste folgen (Jan, 17.09.2026: „wenn ich auf meine bin, mit nur Accel, dann auch
+// bei meinen nur Accel die frühere … wenn ich aber an diesem Spot bin, die nächste an
+// meinem Spot von allen Fahrern"). Absichtlich derselbe Merker-Ansatz wie beim Zurück-Link
+// oben: wer das Detail über einen Rekord oder die Startseite betritt, hat keinen Listen-
+// Kontext — dann bleibt es beim Standard (eigene Sessions), so wie bisher.
+export type NachbarFilter = {
+  scope?: "mine" | "all";
+  spot?: string;
+  sport?: string;
+  accelOnly?: boolean;
+  filter?: "pump" | "other";
+  month?: string;
+};
+
+let lastFilter: NachbarFilter = {};
+
+export function setLastSessionsFilter(f: NachbarFilter) {
+  lastFilter = f;
+}
+
+export function getLastSessionsFilter(): NachbarFilter {
+  return lastFilter;
+}

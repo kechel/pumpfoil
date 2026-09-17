@@ -505,6 +505,10 @@ struct HomeView: View {
 
     private func load() async {
         loading = true; defer { loading = false }
+        // Wer von der Startseite aus eine Session öffnet, kommt aus KEINER gefilterten Liste —
+        // dann sollen „älter/neuer" dort wieder durch die eigenen Sessions gehen und nicht durch
+        // den Spot, den man vorhin angeschaut hat (s. NachbarFilter.swift).
+        NachbarFilter.aktuell = .leer
         if let s = try? await Api.stats(accelOnly: accelOnly, period: zeitraum, sport: sportart) {
             let r = s.records
             let noAccel = (r?.distance?.value ?? 0) == 0 && (r?.duration?.value ?? 0) == 0 && (r?.speed?.value ?? 0) == 0

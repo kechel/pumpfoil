@@ -110,10 +110,12 @@ enum Api {
         try await request("/api/sessions/in-progress", method: "GET", body: nil, auth: true)
     }
 
-    // Nachbar-Sessions (älter/neuer) für die Vor/Zurück-Navigation im Detail.
+    // Nachbar-Sessions (älter/neuer) für die Vor/Zurück-Navigation im Detail. Mit dem Filter der
+    // Liste, aus der man kam (s. NachbarFilter.swift) — ohne Angaben antwortet der Server wie
+    // bisher: eigene Sessions, gleiche Art wie die aktuelle.
     struct Neighbors: Decodable { let older: Int?; let newer: Int? }
-    static func sessionNeighbors(_ id: Int) async throws -> Neighbors {
-        try await request("/api/sessions/\(id)/neighbors", method: "GET", body: nil, auth: true)
+    static func sessionNeighbors(_ id: Int, query: String = "") async throws -> Neighbors {
+        try await request("/api/sessions/\(id)/neighbors\(query)", method: "GET", body: nil, auth: true)
     }
 
     // Eigenes Passwort ändern (PUT-Alias; funktioniert auch für iOS).

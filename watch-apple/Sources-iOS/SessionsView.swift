@@ -501,6 +501,18 @@ struct SessionsView: View {
                 groups = spot.isEmpty ? [] : (try await Api.communitySessionsGrouped(spot: spot, accelOnly: accelOnly, sport: "all"))
                 await maybeShowAllForSpot()
             }
+            // Denselben Filter merken: „älter/neuer" im Detail navigiert damit innerhalb GENAU
+            // dieser Liste statt immer durch die eigenen Sessions (Jan, 17.09.2026).
+            switch scope {
+            case .mine:
+                NachbarFilter.aktuell = NachbarFilter(scope: "mine", accelOnly: accelOnly,
+                                                      filter: filter, month: month.isEmpty ? nil : month)
+            case .all:
+                NachbarFilter.aktuell = NachbarFilter(scope: "all", sport: "all", accelOnly: accelOnly)
+            case .spot:
+                NachbarFilter.aktuell = NachbarFilter(scope: "all", spot: spot.isEmpty ? nil : spot,
+                                                      sport: "all", accelOnly: accelOnly)
+            }
             error = nil
         } catch { self.error = error.localizedDescription }
     }

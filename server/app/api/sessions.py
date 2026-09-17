@@ -11,7 +11,7 @@ from datetime import datetime, timedelta, timezone
 
 import numpy as np
 from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Request, Response, UploadFile, status
-from sqlalchemy import Integer, and_, cast, func, not_, or_
+from sqlalchemy import Integer, and_, cast, func, not_, or_, tuple_
 from sqlalchemy.dialects.postgresql import JSONB
 from pydantic import BaseModel
 from sqlalchemy.orm import Session, joinedload, object_session
@@ -30,6 +30,7 @@ from ..schemas import (
 )
 from ..tzlookup import tz_name
 from ..videos import client_wants_all_videos, filter_videos
+from .community import _community, _spot_cond
 from .deps import current_user, require_social
 
 MAX_FIT_BYTES = 25 * 1024 * 1024  # 25 MB
@@ -2068,45 +2069,102 @@ def share_card(
 @router.get("/{session_id}/neighbors")
 def session_neighbors(
     session_id: int,
+    scope: str = "mine",
+    spot: str | None = None,
+    sport: str = "all",
+    accel_only: bool = False,
+    filter: str | None = None,
+    month: str | None = None,
+    foil_id: int | None = None,
+    name: str | None = None,
     user: models.User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> dict:
-    """Vorherige/nächste EIGENE Session (nach Startzeit) — für die Detail-Navigation,
-    ohne die ganze Liste zu laden. Bleibt in derselben Kategorie wie die aktuelle Session:
-    aus einer aussortierten Session navigiert 'älter/neuer' zu aussortierten (nicht zu den
-    erkannten Pumpfoil-Sessions) — passend zum Listen-Filter pump/other."""
+    """Vorherige/nächste Session (nach Startzeit) — für die Detail-Navigation, ohne die ganze
+    Liste zu laden.
+
+    Die Nachbarn folgen GENAU der Liste, aus der man gekommen ist (Jan, 17.09.2026: „wenn ich
+    auf meine bin, mit nur Accel, dann auch bei meinen nur Accel die frühere oder nächste
+    Session … wenn ich aber an diesem Spot bin, die nächste an meinem Spot von allen Fahrern").
+    Die Parameter heißen deshalb wie die der Listen-Endpunkte:
+
+    - `scope="mine"` (Default) + `filter`/`month`/`accel_only`/`foil_id` -> eigene Sessions,
+      identisch zu `GET /api/sessions`.
+    - `scope="all"` oder gesetztes `spot` -> community-sichtbare Sessions ALLER Fahrer,
+      identisch zu `GET /api/community/sessions` (inkl. `sport`, `accel_only`, `name`).
+
+    OHNE Parameter bleibt es beim bisherigen Verhalten (eigene Sessions, gleiche Art wie die
+    aktuelle) — ältere App-Versionen fragen genau so und ändern sich nicht.
+    """
     s = db.get(models.Session, session_id)
     if s is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Session not found")
-    # „Gleiche Art" mit der IDENTISCHEN Definition wie die Liste (inkl. persönlichem
-    # Empfindlichkeits-Preset) — sonst springt man im Aussortiert-Filter zu Pump-Sessions.
-    sens = (user.foil_sensitivity or "normal")
-    if sens != "normal":
-        s_pump = bool(s.is_pumpfoil)
-        if not s_pump:
-            ar = db.query(models.AnalysisResult).filter_by(session_id=s.id).first()
-            if ar and ar.sensitivity_json:
-                try:
-                    s_pump = int((json.loads(ar.sensitivity_json).get(sens) or {}).get("num_runs") or 0) > 0
-                except (ValueError, AttributeError, TypeError):
-                    pass
-        preset_runs = func.coalesce(cast(func.jsonb_extract_path_text(
-            cast(models.AnalysisResult.sensitivity_json, JSONB), sens, "num_runs"), Integer), 0)
-        is_pump = or_(models.Session.is_pumpfoil.is_(True), preset_runs > 0)
-        base = (db.query(models.Session.id)
-                .outerjoin(models.AnalysisResult, models.AnalysisResult.session_id == models.Session.id)
-                .filter(models.Session.user_id == user.id, models.Session.deleted.isnot(True),
-                        is_pump if s_pump else not_(is_pump)))
+
+    if scope == "all" or spot:
+        # Fremde Fahrer: dieselben Sichtbarkeits- und Sportfilter wie der Community-Feed.
+        base = _community(db.query(models.Session.id), user.id, accel_only, sport)
+        if spot:
+            base = base.filter(_spot_cond(spot))
+        if name:
+            base = base.filter(func.lower(models.User.display_name).like(f"%{name.lower()}%"))
+        if foil_id:
+            base = base.filter(models.Session.foil_id == foil_id)
     else:
-        same_kind = (models.Session.is_pumpfoil.is_(True) if s.is_pumpfoil
-                     else models.Session.is_pumpfoil.isnot(True))
-        base = db.query(models.Session.id).filter(
-            models.Session.user_id == user.id,
-            models.Session.deleted.isnot(True),
-            same_kind,
-        )
-    older = base.filter(models.Session.started_at < s.started_at).order_by(models.Session.started_at.desc()).first()
-    newer = base.filter(models.Session.started_at > s.started_at).order_by(models.Session.started_at.asc()).first()
+        # „Gleiche Art" mit der IDENTISCHEN Definition wie die Liste (inkl. persönlichem
+        # Empfindlichkeits-Preset) — sonst springt man im Aussortiert-Filter zu Pump-Sessions.
+        # Ohne `filter` entscheidet die aktuelle Session, welche Art gemeint ist.
+        sens = (user.foil_sensitivity or "normal")
+        andere = filter == "other" if filter in ("pump", "other") else None
+        if sens != "normal":
+            if andere is None:
+                s_pump = bool(s.is_pumpfoil)
+                if not s_pump:
+                    ar = db.query(models.AnalysisResult).filter_by(session_id=s.id).first()
+                    if ar and ar.sensitivity_json:
+                        try:
+                            s_pump = int((json.loads(ar.sensitivity_json).get(sens) or {}).get("num_runs") or 0) > 0
+                        except (ValueError, AttributeError, TypeError):
+                            pass
+                andere = not s_pump
+            preset_runs = func.coalesce(cast(func.jsonb_extract_path_text(
+                cast(models.AnalysisResult.sensitivity_json, JSONB), sens, "num_runs"), Integer), 0)
+            is_pump = or_(models.Session.is_pumpfoil.is_(True), preset_runs > 0)
+            base = (db.query(models.Session.id)
+                    .outerjoin(models.AnalysisResult, models.AnalysisResult.session_id == models.Session.id)
+                    .filter(models.Session.user_id == user.id, models.Session.deleted.isnot(True),
+                            not_(is_pump) if andere else is_pump))
+        else:
+            if andere is None:
+                andere = not s.is_pumpfoil
+            same_kind = (models.Session.is_pumpfoil.isnot(True) if andere
+                         else models.Session.is_pumpfoil.is_(True))
+            base = db.query(models.Session.id).filter(
+                models.Session.user_id == user.id,
+                models.Session.deleted.isnot(True),
+                same_kind,
+            )
+            if accel_only:
+                base = base.outerjoin(models.AnalysisResult,
+                                      models.AnalysisResult.session_id == models.Session.id)
+        if accel_only:
+            base = base.filter(models.AnalysisResult.detection == "model")
+        if foil_id:
+            base = base.filter(models.Session.foil_id == foil_id)
+        if month:
+            try:
+                m_start, m_end = _month_bounds(month)
+            except (ValueError, IndexError):
+                raise HTTPException(status.HTTP_400_BAD_REQUEST, "month must be YYYY-MM")
+            base = base.filter(models.Session.started_at >= m_start, models.Session.started_at < m_end)
+
+    # Sekundär nach id sortieren: zwei Sessions mit identischem Startzeitpunkt (zwei Fahrer am
+    # selben Spot, gleiche Sekunde) hätten sich sonst gegenseitig übersprungen.
+    hier = (s.started_at, s.id)
+    paar = tuple_(models.Session.started_at, models.Session.id)
+    older = base.filter(paar < hier).order_by(models.Session.started_at.desc(),
+                                              models.Session.id.desc()).first()
+    newer = base.filter(paar > hier).order_by(models.Session.started_at.asc(),
+                                              models.Session.id.asc()).first()
     return {"older": older[0] if older else None, "newer": newer[0] if newer else None}
 
 

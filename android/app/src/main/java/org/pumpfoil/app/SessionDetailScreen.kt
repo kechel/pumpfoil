@@ -210,7 +210,9 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
             loading = false
         }
     }
-    LaunchedEffect(id) { neighbors = try { Api.sessionNeighbors(id) } catch (_: Exception) { null } }
+    // Mit dem Filter der Liste, aus der man kam: „älter/neuer" bleibt in derselben Menge
+    // (meine / alle / ein Spot, nur Accel, Monat). Ohne Listen-Besuch ist der Merker leer.
+    LaunchedEffect(id) { neighbors = try { Api.sessionNeighbors(id, NachbarFilter.aktuell) } catch (_: Exception) { null } }
     // 4a: eigene In-Progress-Session (recording/live) -> nachpollen. Der GET triggert server-seitig
     // die gps_only-Vorabanalyse; sobald sie/der fertige Upload da ist, aktualisiert sich das Detail
     // (Track/Läufe/Pumps) seamless. Stoppt, sobald der Status nicht mehr recording/live ist.

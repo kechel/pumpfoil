@@ -1,3 +1,4 @@
+import { setLastSessionsFilter } from "../lib/lastSession";
 import { useEffect, useRef, useState } from "react";
 import { fmtDate } from "../lib/time";
 import { foilLabel } from "../lib/foilLabel";
@@ -147,6 +148,10 @@ const setupLabels = (s: { setup?: { stab?: { brand: string; model: string; size:
 
 export default function PersonalHome() {
   const t = useT();
+  // Wer von der Startseite aus eine Session öffnet, kommt aus KEINER gefilterten Liste — dann
+  // sollen „älter/neuer" dort wieder durch die eigenen Sessions gehen und nicht durch den
+  // Spot, den man vorhin angeschaut hat (s. lastSession.ts).
+  useEffect(() => { setLastSessionsFilter({}); }, []);
   const nf = useNumberFormat();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [stats, setStats] = useState<OverallStats | null>(null);

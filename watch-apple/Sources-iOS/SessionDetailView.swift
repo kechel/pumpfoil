@@ -1727,7 +1727,7 @@ struct SessionDetailView: View {
             }
             session = s
             carve = try? await Api.sessionCarves(sid)   // Carve-Bögen (nur Anzeige)
-            neighbors = try? await Api.sessionNeighbors(sid)
+            neighbors = try? await Api.sessionNeighbors(sid, query: NachbarFilter.aktuell.query)
             liked = s.liked ?? false
             likeCount = s.like_count ?? 0
             caption = s.caption ?? ""

@@ -23,7 +23,7 @@ import { carveColor } from "../lib/turns";
 import { setPumpUnit, usePumpFmt } from "../lib/pumpRate";
 import type { CarveData } from "../lib/api";
 import { useCompare, toggleCompare, refKey } from "../lib/compare";
-import { setLastSession, getLastSessionsSearch } from "../lib/lastSession";
+import { setLastSession, getLastSessionsSearch, getLastSessionsFilter } from "../lib/lastSession";
 import { useT } from "../i18n";
 import { TransferPicker } from "../components/TransferPicker";
 import { CompareHrStrips } from "../components/CompareHrStrips";
@@ -422,7 +422,10 @@ export default function SessionDetail() {
   useEffect(() => {
     if (isPublic) return;   // öffentlicher Link: keine authentifizierten Nachbar-/Verlauf-Abfragen
     setLastSession(Number(id));  // Liste hebt die zuletzt geöffnete Session hervor
-    api.sessionNeighbors(Number(id))
+    // Mit dem Filter der Liste, aus der man kam: „älter/neuer" bleibt in derselben Menge
+    // (meine / alle / ein Spot, nur Accel, Sportart, Monat). Ohne Listen-Besuch ist der
+    // Merker leer -> Serverdefault (eigene Sessions), wie bisher.
+    api.sessionNeighbors(Number(id), getLastSessionsFilter())
       .then((n) => setNeighbors({ older: n.older ?? undefined, newer: n.newer ?? undefined }))
       .catch(() => {});
   }, [id, isPublic]);
