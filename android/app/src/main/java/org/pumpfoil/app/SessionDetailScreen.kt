@@ -70,6 +70,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -81,6 +82,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -452,6 +454,18 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
     }
 }
 
+// Bedienzeilen kompakt halten. Material3 blaeht JEDES Chip, jeden Schalter und jeden Knopf auf
+// mindestens 48 dp Antippflaeche auf (LocalMinimumInteractiveComponentEnforcement) — unsichtbar,
+// aber bei den fuenf Bedienzeilen ueber der Karte und den Lauf-Nummern darunter summierte sich das
+// zu einer halben Bildschirmhoehe Leerraum (Jan, 17.09.2026: „viel weniger Padding und Spacing in
+// dem Bereich"). Hier faellt nur dieser unsichtbare Rahmen weg; die Elemente selbst behalten ihre
+// Groesse (Chip 32 dp, Schalter 32 dp) und bleiben bequem treffbar.
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun Kompakt(content: @Composable () -> Unit) {
+    CompositionLocalProvider(LocalMinimumInteractiveComponentEnforcement provides false) { content() }
+}
+
 @OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpenSession: (Int) -> Unit = {}, onReload: () -> Unit = {},
@@ -550,7 +564,9 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
     }
     Column(
         Modifier.verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        // 8 dp, nicht 12: die Seite besteht ueberwiegend aus kurzen Zeilen (Ort, Zeit, Knopfzeilen),
+        // da wirkte der groessere Abstand zusammen mit den Antippflaechen wie Leerraum (Jan, 17.09.).
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         // Eigene Session laedt noch hoch -> dieselbe Karte wie in Home/Sessions statt einer
         // eigenen Notiz (Jan, 01.09.). Verschwindet von selbst, sobald der Upload durch ist.
@@ -593,9 +609,11 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
         // Vor/Zurück zu Nachbar-Sessions (wie Web): deaktiviert, wenn es keine gibt.
         neighbors?.let { nb ->
             if (nb.older != null || nb.newer != null) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    TextButton(onClick = { nb.older?.let(onOpenSession) }, enabled = nb.older != null) { Text(I18n.t("sd.older")) }
-                    TextButton(onClick = { nb.newer?.let(onOpenSession) }, enabled = nb.newer != null) { Text(I18n.t("sd.newer")) }
+                Kompakt {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        TextButton(onClick = { nb.older?.let(onOpenSession) }, enabled = nb.older != null) { Text(I18n.t("sd.older")) }
+                        TextButton(onClick = { nb.newer?.let(onOpenSession) }, enabled = nb.newer != null) { Text(I18n.t("sd.newer")) }
+                    }
                 }
             }
         }
@@ -628,39 +646,66 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 Text("$likeCount")
             }
         }
-        s.placeName?.takeIf { it.isNotBlank() }?.let {
-            Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        // Ort, Gewaesser, Zeit, Uhr und Bildtext gehoeren zusammen und stehen deshalb in einem
+        // eigenen Block mit 2 dp Abstand — als einzelne Kinder der Seiten-Column lagen 8 dp
+        // zwischen jeder Textzeile, was oben wie eine halbe leere Seite wirkte (Jan, 17.09.).
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            s.placeName?.takeIf { it.isNotBlank() }?.let {
+                Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            s.placeWater?.takeIf { it.isNotBlank() && it != s.placeName }?.let {
+                Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            // Start–End-Zeit + Dauer (wie Web); End-Zeit kommt vom Server (ggf. aus letztem GPS abgeleitet).
+            run {
+                val sMs = epochMs(s.startedAt); val eMs = epochMs(s.endedAt)
+                if (sMs != null && eMs != null && eMs > sMs) {
+                    val secs = ((eMs - sMs) / 1000).toInt()
+                    val dur = if (secs >= 3600) "%d:%02d h".format(secs / 3600, (secs % 3600) / 60)
+                              else "%d:%02d min".format(secs / 60, secs % 60)
+                    val oc = I18n.t("sessions.oclock").let { if (it.isBlank()) "" else " $it" }
+                    Text("${hhmmLoc(s.startedAt, s.tz)} – ${hhmmLoc(s.endedAt, s.tz)}$oc · ${I18n.t("sd.duration")} $dur",
+                        style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            // Uhr-Badge: mit welcher Uhr aufgenommen.
+            s.deviceLabel?.takeIf { it.isNotBlank() }?.let {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Filled.Watch, contentDescription = null, modifier = Modifier.size(14.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(Modifier.width(4.dp))
+                    Text(it, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            if (caption.isNotBlank()) Text(caption)
         }
-        s.placeWater?.takeIf { it.isNotBlank() && it != s.placeName }?.let {
-            Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        // Start–End-Zeit + Dauer (wie Web); End-Zeit kommt vom Server (ggf. aus letztem GPS abgeleitet).
-        run {
-            val sMs = epochMs(s.startedAt); val eMs = epochMs(s.endedAt)
-            if (sMs != null && eMs != null && eMs > sMs) {
-                val secs = ((eMs - sMs) / 1000).toInt()
-                val dur = if (secs >= 3600) "%d:%02d h".format(secs / 3600, (secs % 3600) / 60)
-                          else "%d:%02d min".format(secs / 60, secs % 60)
-                val oc = I18n.t("sessions.oclock").let { if (it.isBlank()) "" else " $it" }
-                Text("${hhmmLoc(s.startedAt, s.tz)} – ${hhmmLoc(s.endedAt, s.tz)}$oc · ${I18n.t("sd.duration")} $dur",
-                    style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        // Medien (Videos + Fotos): Besitzer kann Fotos hochladen + YouTube-Videos verlinken
+        // (mehrere, wie PWA). Tippen -> Vollbild/Video.
+        var photos by remember(s.id) { mutableStateOf<List<SessionPhoto>>(emptyList()) }
+        var videos by remember(s.id) { mutableStateOf<List<SessionVideo>>(emptyList()) }
+        var lightboxIdx by remember(s.id) { mutableStateOf<Int?>(null) }
+        val ctx = LocalContext.current
+        suspend fun reloadPhotos() { photos = try { Api.sessionPhotos(s.id) } catch (_: Exception) { emptyList() } }
+        suspend fun reloadVideos() {
+            videos = try { Api.sessionVideos(s.id) } catch (_: Exception) {
+                // Fallback (alter Server): Legacy-Feld als Einzelvideo zeigen.
+                s.youtubeUrl?.let { listOf(SessionVideo(0, it)) } ?: emptyList()
             }
         }
-        // Uhr-Badge: mit welcher Uhr aufgenommen.
-        s.deviceLabel?.takeIf { it.isNotBlank() }?.let {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Filled.Watch, contentDescription = null, modifier = Modifier.size(14.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                Spacer(Modifier.width(4.dp))
-                Text(it, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        LaunchedEffect(s.id) { reloadPhotos(); reloadVideos() }
+        val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+            if (uri != null) scope.launch {
+                val bytes = withContext(Dispatchers.IO) {
+                    ctx.contentResolver.openInputStream(uri)?.use { it.readBytes() }?.let { downscaleJpeg(it) }
+                }
+                if (bytes != null) { try { Api.uploadSessionPhoto(s.id, bytes); reloadPhotos() } catch (_: Exception) {} }
             }
         }
-        if (caption.isNotBlank()) Text(caption)
-        if (s.owned) {
-            TextButton(onClick = { draftCaption = caption; editCaption = true }) {
-                Text(if (caption.isBlank()) I18n.t("sd.captionAdd") else I18n.t("sd.captionEdit"))
-            }
-        }
+        // Zustand des „Video verlinken"-Dialogs: steht hier oben, weil der Knopf dazu jetzt in
+        // der gemeinsamen Knopfzeile sitzt, der Dialog selbst aber weiter unten gezeigt wird.
+        var videoDialog by remember(s.id) { mutableStateOf(false) }
+        var videoUrl by remember(s.id) { mutableStateOf("") }
+        var videoErr by remember(s.id) { mutableStateOf<String?>(null) }
         // Setup dieser Session: Foil, Stab, Mastlaenge, Shim, Board — OHNE Labels, alles in EINER
         // umbrechenden Zeile. Die Label-Spalte darueber brauchte viel zu viel Platz (Jan, 29.07.);
         // dieselbe Form hat die iOS-App und die PWA (FoilSelect.tsx). Ein Feld erscheint nur, wenn
@@ -674,11 +719,14 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             val shimTxt = setup?.shimDeg?.let { fmtShim(it) }
             val boardTxt = setup?.board?.name
             val zeigeFoil = allFoils.isNotEmpty()
-            if (zeigeFoil || stabTxt != null || mastTxt != null || shimTxt != null || boardTxt != null) {
+            Kompakt {
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
+                    TextButton(onClick = { draftCaption = caption; editCaption = true }) {
+                        Text(if (caption.isBlank()) I18n.t("sd.captionAdd") else I18n.t("sd.captionEdit"))
+                    }
                     if (zeigeFoil) {
                         FoilDropdown(
                             all = allFoils, mineIds = mineIds, selectedId = s.foil?.id,
@@ -736,6 +784,12 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                             },
                         )
                     }
+                    OutlinedButton(onClick = {
+                        picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                    }) { Text(I18n.t("sd.addPhoto")) }
+                    OutlinedButton(onClick = { videoUrl = ""; videoErr = null; videoDialog = true }) {
+                        Text(I18n.t("meta.linkVideo"))
+                    }
                 }
             }
         }
@@ -744,28 +798,6 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
         // Fremde können nur bitten. Der amber Kasten erscheint, solange eine Bitte offen ist.
         if (s.owned) ClassificationNotice(s, scope, onReload)
 
-        // Medien (Videos + Fotos): Besitzer kann Fotos hochladen + YouTube-Videos verlinken
-        // (mehrere, wie PWA). Tippen -> Vollbild/Video.
-        var photos by remember(s.id) { mutableStateOf<List<SessionPhoto>>(emptyList()) }
-        var videos by remember(s.id) { mutableStateOf<List<SessionVideo>>(emptyList()) }
-        var lightboxIdx by remember(s.id) { mutableStateOf<Int?>(null) }
-        val ctx = LocalContext.current
-        suspend fun reloadPhotos() { photos = try { Api.sessionPhotos(s.id) } catch (_: Exception) { emptyList() } }
-        suspend fun reloadVideos() {
-            videos = try { Api.sessionVideos(s.id) } catch (_: Exception) {
-                // Fallback (alter Server): Legacy-Feld als Einzelvideo zeigen.
-                s.youtubeUrl?.let { listOf(SessionVideo(0, it)) } ?: emptyList()
-            }
-        }
-        LaunchedEffect(s.id) { reloadPhotos(); reloadVideos() }
-        val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-            if (uri != null) scope.launch {
-                val bytes = withContext(Dispatchers.IO) {
-                    ctx.contentResolver.openInputStream(uri)?.use { it.readBytes() }?.let { downscaleJpeg(it) }
-                }
-                if (bytes != null) { try { Api.uploadSessionPhoto(s.id, bytes); reloadPhotos() } catch (_: Exception) {} }
-            }
-        }
         // Festes 2-spaltiges Grid: Videos (falls verlinkt) + Fotos, alle Kacheln gleich groß (16:9).
         val shownVideos = videos.filter { youtubeId(it.youtubeUrl) != null }
         val total = shownVideos.size + photos.size
@@ -823,17 +855,6 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             PhotoLightbox(photos, startIdx, onClose = { lightboxIdx = null })
         }
         if (s.owned) {
-            var videoDialog by remember { mutableStateOf(false) }
-            var videoUrl by remember { mutableStateOf("") }
-            var videoErr by remember { mutableStateOf<String?>(null) }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = {
-                    picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                }) { Text(I18n.t("sd.addPhoto")) }
-                OutlinedButton(onClick = { videoUrl = ""; videoErr = null; videoDialog = true }) {
-                    Text(I18n.t("meta.linkVideo"))
-                }
-            }
             if (videoDialog) {
                 AlertDialog(
                     onDismissRequest = { videoDialog = false },
@@ -917,64 +938,71 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                         (colorMode == ColorMode.PUMP && !hasPump) ||
                         (colorMode == ColorMode.TURNS && !hasCarves)) colorMode = ColorMode.SPEED
                 }
-                // Farbmodus (Speed/Puls/Pump) + Marker-Umschalter in DERSELBEN Zeile (rechts).
-                if (hasHr || hasPump || hasCarves) {
-                    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilterChip(selected = colorMode == ColorMode.SPEED, onClick = { colorMode = ColorMode.SPEED }, label = { Text(I18n.t("sd.colorSpeed")) }, colors = cyanChipColors())
-                        if (hasHr) FilterChip(selected = colorMode == ColorMode.HR, onClick = { colorMode = ColorMode.HR }, label = { Text(I18n.t("sd.colorPuls")) }, colors = cyanChipColors())
-                        if (hasPump) FilterChip(selected = colorMode == ColorMode.PUMP, onClick = { colorMode = ColorMode.PUMP }, label = { Text(I18n.t("sd.colorPump")) }, colors = cyanChipColors())
-                        if (hasCarves) FilterChip(selected = colorMode == ColorMode.TURNS, onClick = { colorMode = ColorMode.TURNS }, label = { Text("Carves") }, colors = cyanChipColors())
-                    }
-                }
-                // Zweite Zeile: links die Glättung (nur im Speed-Modus), rechts die
-                // Startversuche. Jan, 02.09.: die obere Zeile ist waagerecht scrollbar, ein
-                // Schalter am Ende wäre dort halb versteckt. Diese Zeile scrollt NICHT, deshalb
-                // gibt es sie jetzt IMMER — sonst verschwände der Schalter in den anderen
-                // Farbmodi (Puls/Pump/Carves), wo es keine Glättung gibt.
-                // Glaettung: nur im Speed-Modus — bei Puls/Pump/Carves gibt es nichts zu
-                // glaetten (die PWA macht es genauso). Eigene Zeile, links.
-                if (colorMode == ColorMode.SPEED) {
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Text(I18n.t("sd.smoothing"), style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(end = 8.dp))
-                        listOf(1, 3, 5).forEach { w ->
-                            FilterChip(selected = win == w, onClick = { win = w }, label = { Text("${w}s") },
-                                colors = cyanChipColors(), modifier = Modifier.padding(end = 8.dp))
-                        }
-                    }
-                }
-                // Die zwei Schalter in einer eigenen, UMBRECHENDEN Zeile (FlowRow), rechts.
-                // Vorher stand „Marker" am Ende der oberen Zeile — und die scrollt waagerecht,
-                // der Schalter hing also halb ausserhalb (Jans Screenshot 02.09.).
-                val pumpAnzahl = a?.pumpCount
-                val zeigeMarker = pumpAnzahl != null && pumpAnzahl > 0
-                // Startversuche nur anbieten, wenn es welche gibt (oder noch geladen wird).
-                // Bewusst NICHT an der Kachel-Zahl festmachen: die gilt nur fuer den ausgewerteten
-                // Bereich, Versuche vor dem Zuschnitt kommen dort nicht vor.
-                val zeigeVersuchsSchalter = attempts == null || attempts!!.isNotEmpty()
-                if (zeigeMarker || zeigeVersuchsSchalter) {
-                    FlowRow(
-                        Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End,
-                        verticalArrangement = Arrangement.Center,
-                    ) {
-                        if (zeigeMarker) {
-                            Row(verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(end = 12.dp)) {
-                                Text(I18n.t("sd.markerShort"), style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                Spacer(Modifier.width(4.dp))
-                                Switch(checked = showPumps, onCheckedChange = { showPumps = it })
+                // Die Bedienzeilen ueber der Karte in EINEM Block mit engem Abstand: als
+                // einzelne Kinder der Seiten-Column lagen 12 dp dazwischen, plus je 16 dp
+                // unsichtbarer Antippflaeche ober- und unterhalb (siehe Kompakt).
+                Kompakt {
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        // Farbmodus (Speed/Puls/Pump) + Marker-Umschalter in DERSELBEN Zeile (rechts).
+                        if (hasHr || hasPump || hasCarves) {
+                            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                FilterChip(selected = colorMode == ColorMode.SPEED, onClick = { colorMode = ColorMode.SPEED }, label = { Text(I18n.t("sd.colorSpeed")) }, colors = cyanChipColors())
+                                if (hasHr) FilterChip(selected = colorMode == ColorMode.HR, onClick = { colorMode = ColorMode.HR }, label = { Text(I18n.t("sd.colorPuls")) }, colors = cyanChipColors())
+                                if (hasPump) FilterChip(selected = colorMode == ColorMode.PUMP, onClick = { colorMode = ColorMode.PUMP }, label = { Text(I18n.t("sd.colorPump")) }, colors = cyanChipColors())
+                                if (hasCarves) FilterChip(selected = colorMode == ColorMode.TURNS, onClick = { colorMode = ColorMode.TURNS }, label = { Text("Carves") }, colors = cyanChipColors())
                             }
                         }
-                        if (zeigeVersuchsSchalter) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(I18n.t("sd.showAttempts"), style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                Spacer(Modifier.width(4.dp))
-                                Switch(checked = showAttempts, onCheckedChange = { showAttempts = it })
+                        // Zweite Zeile: links die Glättung (nur im Speed-Modus), rechts die
+                        // Startversuche. Jan, 02.09.: die obere Zeile ist waagerecht scrollbar, ein
+                        // Schalter am Ende wäre dort halb versteckt. Diese Zeile scrollt NICHT, deshalb
+                        // gibt es sie jetzt IMMER — sonst verschwände der Schalter in den anderen
+                        // Farbmodi (Puls/Pump/Carves), wo es keine Glättung gibt.
+                        // Glaettung: nur im Speed-Modus — bei Puls/Pump/Carves gibt es nichts zu
+                        // glaetten (die PWA macht es genauso). Eigene Zeile, links.
+                        if (colorMode == ColorMode.SPEED) {
+                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                Text(I18n.t("sd.smoothing"), style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(end = 8.dp))
+                                listOf(1, 3, 5).forEach { w ->
+                                    FilterChip(selected = win == w, onClick = { win = w }, label = { Text("${w}s") },
+                                        colors = cyanChipColors(), modifier = Modifier.padding(end = 8.dp))
+                                }
+                            }
+                        }
+                        // Die zwei Schalter in einer eigenen, UMBRECHENDEN Zeile (FlowRow), rechts.
+                        // Vorher stand „Marker" am Ende der oberen Zeile — und die scrollt waagerecht,
+                        // der Schalter hing also halb ausserhalb (Jans Screenshot 02.09.).
+                        val pumpAnzahl = a?.pumpCount
+                        val zeigeMarker = pumpAnzahl != null && pumpAnzahl > 0
+                        // Startversuche nur anbieten, wenn es welche gibt (oder noch geladen wird).
+                        // Bewusst NICHT an der Kachel-Zahl festmachen: die gilt nur fuer den ausgewerteten
+                        // Bereich, Versuche vor dem Zuschnitt kommen dort nicht vor.
+                        val zeigeVersuchsSchalter = attempts == null || attempts!!.isNotEmpty()
+                        if (zeigeMarker || zeigeVersuchsSchalter) {
+                            FlowRow(
+                                Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End,
+                                verticalArrangement = Arrangement.Center,
+                            ) {
+                                if (zeigeMarker) {
+                                    Row(verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(end = 12.dp)) {
+                                        Text(I18n.t("sd.markerShort"), style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Spacer(Modifier.width(4.dp))
+                                        Switch(checked = showPumps, onCheckedChange = { showPumps = it })
+                                    }
+                                }
+                                if (zeigeVersuchsSchalter) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(I18n.t("sd.showAttempts"), style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Spacer(Modifier.width(4.dp))
+                                        Switch(checked = showAttempts, onCheckedChange = { showAttempts = it })
+                                    }
+                                }
                             }
                         }
                     }
@@ -1034,28 +1062,32 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 // FlowRow, nicht Row: bei 15 Laeufen (kommt vor, s. u270) liefe eine Zeile aus dem
                 // Bild. Die Tabelle weiter unten bleibt, sie zeigt ja zusaetzlich die Werte.
                 if (segs.isNotEmpty()) {
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                    ) {
-                        Text(I18n.t("sd.run"), style = MaterialTheme.typography.bodySmall,
-                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                             modifier = Modifier.align(Alignment.CenterVertically))
-                        segs.indices.forEach { i ->
-                            val aktiv = selectedRun == i
-                            FilterChip(
-                                selected = aktiv,
-                                onClick = { selectedRun = if (aktiv) null else i },
-                                label = { Text("${i + 1}") },
-                            )
-                        }
-                        if (selectedRun != null) {
-                            FilterChip(
-                                selected = false,
-                                onClick = { selectedRun = null },
-                                label = { Text(I18n.t("sd.allRuns")) },
-                            )
+                    Kompakt {
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(I18n.t("sd.run"), style = MaterialTheme.typography.bodySmall,
+                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                 modifier = Modifier.align(Alignment.CenterVertically))
+                            segs.indices.forEach { i ->
+                                val aktiv = selectedRun == i
+                                FilterChip(
+                                    selected = aktiv,
+                                    onClick = { selectedRun = if (aktiv) null else i },
+                                    label = { Text("${i + 1}") },
+                                    colors = cyanChipColors(),
+                                )
+                            }
+                            if (selectedRun != null) {
+                                FilterChip(
+                                    selected = false,
+                                    onClick = { selectedRun = null },
+                                    label = { Text(I18n.t("sd.allRuns")) },
+                                    colors = cyanChipColors(),
+                                )
+                            }
                         }
                     }
                 }
