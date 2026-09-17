@@ -972,10 +972,12 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     ist egal — Jan hat es mit `jan@pumpfoil.org` erneut versucht, mit demselben Ergebnis.
   - **Stand der Domains (17.09. gemessen):** `pumpfoil.org` hat GAR KEINEN SPF-Eintrag,
     `kechel.de` hat `v=spf1 redirect=_spf.strato.com`. Beide liegen bei Strato.
-  - **🔲 Zu tun:** (1) TXT-Eintrag auf pumpfoil.org: `v=spf1 redirect=_spf.strato.com` — geprueft
-    unbedenklich, weil die App selbst ueber `smtp.strato.de` sendet (SMTP_HOST), Strato also der
-    einzige Absender ist. NUR EIN SPF-Eintrag je Domain. (2) Bei Apple die Domain `pumpfoil.org`
-    eintragen und verifizieren lassen. (3) Als Email Sources BEIDE Adressen registrieren.
+  - **✅ ERLEDIGT 17.09.:** SPF ueber den Strato-Haken „Standard-SPF" gesetzt, und bei Apple
+    registriert — Domain `pumpfoil.org` plus die Adressen `info@`, `noreply@` und `jan@`. Apple
+    meldet „Successfully Registered: 1 Domains and Subdomains, 3 Email addresses".
+    **Wer hier je einen Absender ergaenzt, muss ihn dort nachtragen** — sonst prallt Mail an
+    Apple-Relay-Konten wieder mit `550 unauthorized sender` ab, und zwar ohne dass es jemand
+    meldet. Das ist der Punkt: der Fehler ist STILL.
   - **Passwort-Zuruecksetzen ist NICHT betroffen — ich hatte das zuerst als zweiten Fehler
     notiert, Jan hat widersprochen und recht behalten.** Nachgeprueft: alle 85 Relay-Konten haben
     zwar ein `password_hash`, aber der OAuth-Weg setzt dort ein ZUFALLSPASSWORT, das der Nutzer
