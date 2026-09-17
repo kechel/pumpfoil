@@ -1047,10 +1047,35 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     aufloesbar ueber `watch/bin/foil-instinct2.prg.debug.xml` desselben Builds.
     Nebenbefund aus dem Code: auf dieser Klasse ist der Accel gar nicht aktiv (`_isLowMem()`
     erzwingt `gpsOnly` ab ≤100 kB Gesamtspeicher), der Hauptverbraucher faellt also schon weg.
-  - **🔲 OFFEN, beides bei Jan:** (1) die Terminal-Ausgabe von `monkeydo` zum Absturz — im
-    Release-Build nur Adressen, aber Fehlerart und Aufrufkette sagen die Stelle. (2) DERSELBE
-    Lauf mit `foil-instinct2-1.0.80-vergleich.prg` (startet 8,2 kB tiefer). Erreicht der alte
-    Build die 85 kB gar nicht, ist die Ursache schwarz auf weiss.
+  - **✅ URSACHE GEFUNDEN — die Adressen aufgeloest (gegen `watch/bin/foil-instinct2.prg.debug.xml`
+    desselben Builds):**
+    ```
+      onPosition   SessionRecorder.mc:1778   if (_gpsBuf.size() >= GPS_CHUNK_SAMPLES) { _flushGps(false); }
+        _flushGps  SessionRecorder.mc:2064   _store("cg_…", _gpsBuf)
+          _store   SessionRecorder.mc:1366   Storage.setValue(key, value)   <- hier reisst es
+    ```
+    Es stirbt beim SCHREIBEN EINES GPS-BLOCKS in den Object Store. Der `try/catch` in `_store`
+    faengt das nicht: er ist fuer „Store voll" gebaut, und ein Out-of-Memory ist in Monkey C
+    nicht abfangbar.
+  - **🔴 DER EIGENTLICHE FEHLER — der Schutz existiert nur fuer den Accel:**
+    ```
+      ACCEL_CHUNK_SAMPLES = 1500   -> auf Uhren <=128 KB halbiert auf 750  (_accelChunkTarget)
+      GPS_CHUNK_SAMPLES   = 120    -> Konstante, KEINE Anpassung fuer kleine Uhren
+    ```
+    Und auf dieser Klasse ist der Accel ohnehin abgeschaltet (`_isLowMem()` erzwingt `gpsOnly`) —
+    GPS ist dort also der EINZIGE Schreiber, und ausgerechnet der ist ungeschuetzt. Ein GPS-Block
+    sind laut `Uploader.mc:129` rund 5 KB, die beim Serialisieren am Stueck allokiert werden
+    muessen. Bei 6–8 kB Rest ist das der Schuss, der trifft.
+    **Damit haengen beide Befunde zusammen:** die +8,2 kB Code seit 1.0.80 haben die Reserve so
+    weit gedrueckt, dass die ungeschuetzte 5-KB-Allokation nicht mehr passt. Deshalb kippt es
+    jetzt und vorher nicht.
+  - **🔲 VORSCHLAG (Uhr-Code, braucht Jans OK):** `_gpsChunkTarget()` nach dem Muster von
+    `_accelChunkTarget()` — auf Uhren <=128 KB etwa 30 statt 120 Samples, also ~1,2 KB
+    Spitzenallokation statt 5 KB. Kleine, begrenzte Aenderung an einer Stelle; behebt die
+    Ursache statt nur Luft zu schaffen. Kosten: mehr Upload-Round-Trips auf diesen Uhren.
+  - **🔲 Weiter offen:** derselbe Emulator-Lauf mit `foil-instinct2-1.0.80-vergleich.prg` zur
+    Gegenprobe (startet 8,2 kB tiefer). Erreicht der alte Build die 85 kB gar nicht, ist die
+    Kette vollstaendig belegt.
   - **Ursprungslage: der Test liegt bei Jan, nicht bei mir.**
     **Alles vorbereitet unter `/home/jan/instinct2-test/`** (17.09.2026): beide Builds plus
     `ANLEITUNG.md`.
