@@ -1022,10 +1022,21 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     JETZT: u479s Versuch war der 15.09.
     Die `analyzed`-Quote taeuscht, weil ein Stummel von 40 Sekunden genauso sauber durch die
     Analyse geht wie eine volle Session. Wer hier auf Status-Zaehler schaut, sieht nichts.
-  - **🔲 NAECHSTER SCHRITT — Emulator-Test (Jans Vorschlag).** Simulator (`bin/simulator`) und
-    Xvfb liegen auf der VM, headless machbar. Ziel: Heap zur Laufzeit beobachten statt aus
-    Dateigroessen zu schliessen. **LANGER Lauf, nicht zwanzig Sekunden** (CLAUDE.md) — der
-    Juli-Crash kam erst beim Session-START, andere erst nach Minuten.
+  - **🔲 NAECHSTER SCHRITT — Emulator-Test. LIEGT BEI JAN, nicht bei mir.**
+    **Alles vorbereitet unter `/home/jan/instinct2-test/`** (17.09.2026): beide Builds plus
+    `ANLEITUNG.md`.
+    ```
+      foil-instinct2-1.0.86-aktuell.prg    71.628 B   frei 26.676
+      foil-instinct2-1.0.80-vergleich.prg  63.420 B   frei 34.884   (Budget 98.304)
+    ```
+    Ablauf: Speicher im Leerlauf notieren, dann AUFNAHME starten (dort sprengte es im Juli), und
+    **lange laufen lassen — nicht zwanzig Sekunden** (CLAUDE.md). Dasselbe mit 1.0.80. Laeuft die
+    alte durch und die neue nicht, ist es belegt.
+    **Ich kann das NICHT selbst fahren** — der Simulator ist gegen Debian 12 gebaut und startet
+    auf der Debian-13-VM nicht (webkit2gtk-4.0 gegen 4.1, libsoup2 gegen libsoup3; der komplette
+    Debian-12-Stapel daneben loest alle Abhaengigkeiten auf, segfaultet dann am GTK-Unterbau).
+    Sauber ginge nur ein Container, und den baue ich nicht nebenbei auf der Maschine, die
+    `foil-server` ausliefert. Festgehalten in Memory `connectiq-simulator-nicht-auf-vm`.
   - **🔲 Danach zu entscheiden:** die vier 27.08.-Commits fuer die Lite-Geraete wieder
     herausnehmen (`excludeAnnotations`, wie schon fuer andere Bausteine), statt an der Uhr zu
     sparen, die genug Speicher hat.
