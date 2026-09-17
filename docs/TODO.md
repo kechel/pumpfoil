@@ -1132,6 +1132,28 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     derselben Grenze und sind deutlich weniger betroffen — das nominelle Budget ist also nicht
     die ganze Geschichte. Und ein paar grosse Uhren zeigen auch kurze Mediane (epix Pro 51 mm
     0,4 min bei n=5, Descent Mk2 0,7 bei n=7); bei den Fallzahlen eher Zufall als Muster.
+  - **✅ FIX AUF BEIDEN SPEICHERKLASSEN BESTAETIGT (Jan, 17.09.2026 abends, 1.0.87):**
+    ```
+                              Budget   Leerlauf   Aufnahme-Boden        frei
+      Instinct 2 (nur GPS)   91,8 kB       74,9   74,2–74,5 stabil   ~17 kB
+      fenix 5 (Accel+GPS)   123,8 kB       75,9   77,5      stabil   ~46 kB
+    ```
+    Instinct 2: vier Ruecksprunge auf denselben Boden ueber einen langen Lauf; dazu ZWEI weitere
+    Sessions nacheinander (Stopp + Neustart ohne den Emulator zu beenden) — Boden 74,2 -> 74,4 ->
+    74,5 -> 74,4. **Rund 0,15 kB je wartender, nicht hochgeladener Session**, also im Rauschen.
+    Damit ist auch der letzte Zweifel weg: waeren die frueheren ~12 kB der gespeicherte
+    Datenbestand gewesen, muesste der Boden nach einer kompletten Session sichtbar hoeher liegen.
+    Er tut es nicht — es war Heap, der nie zurueckkam.
+    fenix 5: dort ist der Accel AKTIV (`_isLowMem()` greift erst <=100 KB), also die hoehere Last.
+    Der Aufnahmestart kostet +4,6 kB, der Boden faellt danach auf 77,5 — unter den Wert direkt
+    nach dem Start. Der Heap gibt dort sogar die Anlaufallokationen zurueck.
+  - **🔲 OFFEN, neu aufgeworfen:** die fenix 5 hat im Leerlauf **47,9 kB frei**, die Instinct 2 nur
+    18,5. Mit so viel Luft duerfte sie eigentlich nicht nach vier Minuten in dieselbe Wand laufen.
+    Der Median der fenix-5-Nutzer liegt aber bei 4,4 min (72 % unter zehn Minuten). Entweder
+    frisst der Accel-Pfad die Luft entsprechend schneller — oder ihre kurzen Sessions haben eine
+    ANDERE Ursache und ich habe beide Modelle vorschnell in einen Topf geworfen. Nicht geklaert.
+    Dasselbe gilt fuer fenix 5X (10,6 min) und fenix 6 Pro (24,8 min), die gar keine Lite-Geraete
+    sind — dort greift der Fix nicht.
   - **🔲 Offen vor einer Einreichung:** ein LANGER Lauf mit dem Fix (zwei Stunden, wie ein echter
     Nutzer), Version bumpen, und `watch/bin` neu bauen — beim Commit `7ce93882` bewusst NICHT
     gebaut, es ist also nichts live. Danach den sechs Betroffenen Bescheid geben (u479, u460,
