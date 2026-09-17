@@ -1001,8 +1001,27 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   - **Mechanismus** (s. Memory `garmin-instinct2-lowmem`): auf diesen Uhren zaehlt der Code gegen
     dasselbe 96-KB-Budget wie der Heap. Jedes Kilobyte Code fehlt zur Laufzeit. Der Juli-Befund
     war: App startet mit ~13 KB Luft, der Session-Start (Accel 25 Hz + FIT + Puffer) sprengt sie.
-  - **Gute Nachricht: es kostet keine Daten.** 85 von 89 Aufnahmen der Familie sind sauber
-    `analyzed`. Die App stirbt, aber das schon Geschriebene kommt an.
+  - **🔴 ES IST EIN TOTALAUSFALL, KEIN DIAGNOSE-ZAEHLER.** Ich hatte hier zuerst „kostet keine
+    Daten" geschrieben, weil 85 von 89 Aufnahmen `analyzed` sind. Das war falsch, und Jan hat es
+    sofort gesehen: „wenn die abstuerzt, wird ja nicht weiter aufgenommen, das heisst der
+    Datenverlust ist der ganze Rest der Session ab dem Absturz". Nachgemessen:
+    ```
+      Nutzer  Aufn.  ohne Ende   Foil-km GESAMT  Laeufe GESAMT  laengste Aufnahme
+      u479        7          7             0,00              0            0,0 min
+      u460        7          6             0,00              0            1,4 min
+      u214        0          –             0,00              0                  –
+      u496       11          5             0,03              1            1,1 min
+      u142       14          8             0,03              1            7,6 min
+      u481        7          5             0,19              2            8,1 min
+      zum Vergleich, uebrige Garmin: Ø 1,20 Foil-km und Ø 6,2 Laeufe JE Aufnahme
+    ```
+    Sechs Nutzer, 46 Aufnahmen, zusammen 0,25 km und 4 Laeufe. Der Verlauf ist eindeutig —
+    u479 am 15.09.: Start um 17:57, 18:06, 18:10, 18:13, 18:17, 18:17, jede ohne Ende. Sechs
+    Versuche in zwanzig Minuten, nichts aufgezeichnet. u496 elf Versuche in 48 Minuten.
+    **Diese Leute standen am Wasser und sind mit nichts nach Hause gegangen.** Der Fehler laeuft
+    JETZT: u479s Versuch war der 15.09.
+    Die `analyzed`-Quote taeuscht, weil ein Stummel von 40 Sekunden genauso sauber durch die
+    Analyse geht wie eine volle Session. Wer hier auf Status-Zaehler schaut, sieht nichts.
   - **🔲 NAECHSTER SCHRITT — Emulator-Test (Jans Vorschlag).** Simulator (`bin/simulator`) und
     Xvfb liegen auf der VM, headless machbar. Ziel: Heap zur Laufzeit beobachten statt aus
     Dateigroessen zu schliessen. **LANGER Lauf, nicht zwanzig Sekunden** (CLAUDE.md) — der
