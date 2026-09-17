@@ -364,7 +364,20 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                 syncing = true
                 configJob = scope.launch {
                     try {
-                        val c = Api.deviceConfig(appVersion(ctx), wantLayouts = layoutsPref != false)
+                        // Lauf-Marke JETZT auslesen: lag sie noch, ist die App in der letzten
+                        // Aufnahme gestorben. Der Aufruf loescht sie, es wird also genau einmal
+                        // gemeldet (s. LocalStore.holeUndLoescheLaufMarke).
+                        //
+                        // NUR wenn gerade NICHT aufgenommen wird: waehrend einer laufenden
+                        // Aufnahme liegt die Marke voellig zu Recht da. Kehrt der Nutzer in die
+                        // App zurueck, waehrend er faehrt, wuerde sie sonst als Absturz gemeldet
+                        // UND geloescht — der echte Absturz danach bliebe unbemerkt. Die
+                        // Kurzschluss-Auswertung sorgt dafuer, dass sie dann gar nicht erst
+                        // angefasst wird.
+                        val abgebrochen = !Recorder.state.value.recording &&
+                            LocalStore.holeUndLoescheLaufMarke(ctx)
+                        val c = Api.deviceConfig(appVersion(ctx), wantLayouts = layoutsPref != false,
+                                                 laufAbgebrochen = abgebrochen)
                         applyConfig(c)
                         Api.cacheConfig(ctx, c)
                     } catch (e: ApiException) {
