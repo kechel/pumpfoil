@@ -38,6 +38,7 @@ class SessionRecorder {
     // Bestehende Retries/Reconnect (3/10/30 s) fangen BT-Aussetzer weiterhin ab.
     const ACCEL_CHUNK_SAMPLES = 1500; // 60 s -> ~12 KB base64
     const GPS_CHUNK_SAMPLES = 120;    // 120 s (klein, halbiert die GPS-Round-Trips)
+    const GPS_CHUNK_SAMPLES_LOWMEM = 30;   // ~1,2 KB statt ~5 KB am Stueck — s. _gpsChunkTarget()
     const SPEED_AVG_SAMPLES = 3;     // 3-s-Geschwindigkeit
 
     hidden var _fitSession;
@@ -125,6 +126,7 @@ class SessionRecorder {
     hidden var _accelHz = ACCEL_HZ;  // tatsächlich genutzte Rate (für Meta/Server)
     hidden var _lowMem = null;       // Speicherarme Uhr (~96 KB)? null=noch nicht geprüft
     hidden var _accelTgt = null;     // Accel-Chunk-Zielgröße (kleiner auf ≤128-KB-Uhren)
+    hidden var _gpsTgt = null;   // s. _gpsChunkTarget()
     hidden var _idleSpeed = 0.0; // letzte GPS-Geschwindigkeit im Idle (für Auto-Start)
     hidden var _autoStreak = 0;  // aufeinanderfolgende schnelle Idle-Ticks
     hidden var _idleTicks = 0;   // 1-Hz-Ticks auf dem Start-Screen (Auto-Start-Vorlauf)
@@ -627,7 +629,10 @@ class SessionRecorder {
         var gpsOnly = recordMode.equals("gps") || _isLowMem();
         var hz = gpsOnly ? 0 : (recordMode.equals("lite") ? ACCEL_HZ_LITE : ACCEL_HZ);
         var accel = (hz * 60.0 / ACCEL_CHUNK_SAMPLES) * Uploader.KB_PER_ACCEL_CHUNK;
-        var gps = (60.0 / GPS_CHUNK_SAMPLES) * Uploader.KB_PER_GPS_CHUNK;
+        // Chunk-ZIEL, nicht die Konstante: auf kleinen Uhren sind es 30 Samples, also mehr
+        // Chunks je Minute bei entsprechend kleinerem Chunk — die KB/min bleiben gleich, aber
+        // die Rechnung muss zur tatsaechlichen Geometrie passen (s. Uploader.pendingKb()).
+        var gps = (60.0 / _gpsChunkTarget()) * Uploader.kbProGpsChunk();
         return accel + gps;
     }
 
@@ -1518,6 +1523,45 @@ class SessionRecorder {
     // kleiner: senkt den RAM-Peak beim Aufnehmen (_accelBuf) UND beim Upload (base64+JSON+HTTP je
     // Chunk) → keine OOM-Crashes über lange Sessions / große Uploads (Feld-Feedback, fenix 5).
     // Große Uhren behalten 1500 (volle Payload, weniger Round-Trips). Einmal geprüft + gecacht.
+    // GPS-Chunk-Zielgroesse — dasselbe Muster wie `_accelChunkTarget()` darunter, und aus einem
+    // Grund, der am 17.09.2026 im Emulator belegt wurde.
+    //
+    // BEFUND: die Instinct-2-Klasse (96 KB) stirbt waehrend der Aufnahme mit „IQ!". Der
+    // aufgeloeste Stack zeigt genau hierhin:
+    //     onPosition -> _flushGps -> _store -> Storage.setValue
+    // Ein GPS-Chunk sind 120 Samples a ~40 B JSON ≈ 5 KB, die beim Schreiben AM STUECK
+    // serialisiert werden muessen. `_store` faengt zwar die „Object Store voll"-Ausnahme ab —
+    // ein Out-of-Memory ist in Monkey C aber NICHT abfangbar.
+    //
+    // Warum die Groesse der EINZELANFORDERUNG der Hebel ist und nicht der freie Speicher
+    // insgesamt: im Emulator kippte 1.0.86 bei 85,6 von 91,8 kB (6,2 kB frei), 1.0.80 bei 77,5
+    // (14,3 kB FREI). Beide nach rund 12 kB Zuwachs, also nach zwei bis drei geschriebenen
+    // Bloecken — vier bis sechs Minuten Aufnahme. Genau dort liegen die Sessions der Betroffenen
+    // (u479, u460, u496: 0,1 bis 8 Minuten, zusammen 0,25 Foil-km). Mit 14,3 kB frei scheitert
+    // keine 5-KB-Anforderung an Platzmangel — sie scheitert an FRAGMENTIERUNG. Dagegen hilft
+    // nur, kleiner anzufordern.
+    //
+    // WAS NICHT HALF, gepruefte Sackgasse: Code einsparen. Zwischen 1.0.80 und 1.0.86 ist die
+    // App um 8.208 B gewachsen, 1.0.80 startet entsprechend 7,3 kB tiefer — und stuerzt trotzdem
+    // nach derselben Datenmenge ab. Der Sockel verschiebt sich, die Reichweite nicht.
+    //
+    // Preis: viermal so viele GPS-Round-Trips beim Upload auf diesen Uhren. Das ist der Tausch,
+    // den wir eingehen — ein Round-Trip mehr kostet Sekunden, ein Absturz die ganze Session.
+    hidden function _gpsChunkTarget() {
+        if (_gpsTgt == null) {
+            _gpsTgt = GPS_CHUNK_SAMPLES;
+            try {
+                var st = System.getSystemStats();
+                if (st != null && (st has :totalMemory) && st.totalMemory != null
+                        && st.totalMemory <= 131072) {
+                    _gpsTgt = GPS_CHUNK_SAMPLES_LOWMEM;
+                }
+            } catch (e) {
+            }
+        }
+        return _gpsTgt;
+    }
+
     hidden function _accelChunkTarget() {
         if (_accelTgt == null) {
             _accelTgt = ACCEL_CHUNK_SAMPLES;   // Default 1500
@@ -1775,7 +1819,7 @@ class SessionRecorder {
             var deg = info.position.toDegrees();
             var spd = info.speed == null ? 0.0 : info.speed;
             _gpsBuf.add([_elapsedMs(), deg[0], deg[1], spd, _currentHr, info.accuracy]);
-            if (_gpsBuf.size() >= GPS_CHUNK_SAMPLES) { _flushGps(false); }
+            if (_gpsBuf.size() >= _gpsChunkTarget()) { _flushGps(false); }
         } catch (e) {
             // Einzelnen Punkt verwerfen, Aufnahme läuft weiter.
         }
@@ -2060,7 +2104,7 @@ class SessionRecorder {
 
     function _flushGps(force) {
         if (_gpsBuf.size() == 0) { return; }
-        if (!force && _gpsBuf.size() < GPS_CHUNK_SAMPLES) { return; }
+        if (!force && _gpsBuf.size() < _gpsChunkTarget()) { return; }
         if (!_store("cg_" + _sessionUuid + "_" + _gpsChunkIndex, _gpsBuf)) {
             _gpsBuf = [];   // Store voll: Chunk verwerfen (kein unbegrenztes Wachsen), s. _flushAccel
             storageDropped++;
