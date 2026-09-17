@@ -976,11 +976,16 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     unbedenklich, weil die App selbst ueber `smtp.strato.de` sendet (SMTP_HOST), Strato also der
     einzige Absender ist. NUR EIN SPF-Eintrag je Domain. (2) Bei Apple die Domain `pumpfoil.org`
     eintragen und verifizieren lassen. (3) Als Email Sources BEIDE Adressen registrieren.
-  - **🔴 Das trifft nicht nur Ankuendigungen: PASSWORT-ZURUECKSETZEN geht an diese 85 Konten
-    ebenfalls nicht.** Die App verschickt als `noreply@pumpfoil.org` (`SMTP_FROM`), und die ist
-    genauso wenig registriert. Wer sein Passwort vergisst, bekommt nichts und sieht nicht, warum.
-    Das laeuft seit es Apple-Login gibt und ist niemandem aufgefallen — gemeldet hat es keiner,
-    was zum Muster dieses Tages passt.
+  - **Passwort-Zuruecksetzen ist NICHT betroffen — ich hatte das zuerst als zweiten Fehler
+    notiert, Jan hat widersprochen und recht behalten.** Nachgeprueft: alle 85 Relay-Konten haben
+    zwar ein `password_hash`, aber der OAuth-Weg setzt dort ein ZUFALLSPASSWORT, das der Nutzer
+    nie zu sehen bekommt (`oauth.py:416`, `hash_password(secrets.token_urlsafe(24))`), und alle
+    85 haben eine Apple-Verknuepfung. Sie melden sich per Apple-Login an; „Passwort vergessen"
+    ist fuer sie kein Weg. `noreply@pumpfoil.org` trotzdem mit registrieren — schadet nicht und
+    macht sichtbar, was sendet.
+  - **✅ SPF steht (17.09.):** Jan hat bei Strato den Haken „Standard-SPF" gesetzt;
+    `v=spf1 redirect=_spf.strato.com` wird lokal, bei Google und bei Cloudflare ausgespielt, die
+    Kette loest auf sechs Strato-Netze mit `-all` auf.
   - **Zwischenloesung fuer die zwei von heute:** Chat-Nachrichten liegen fertig (u214, u479),
     beide sind in den letzten Tagen aktiv gewesen.
 
