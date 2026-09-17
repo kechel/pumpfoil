@@ -1160,13 +1160,20 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     konnte die App mitten in einer Aufnahme beenden, und alles danach war verloren. Die
     GPS-Daten werden jetzt in kleineren Stücken geschrieben, damit ist die Ursache weg."
     `appmeta.IN_REVIEW` traegt den Eintrag mit der ganzen Kette.
-  - **🔲 NACH DER FREIGABE, in dieser Reihenfolge:** `_APP_META["garmin"]["latest"]` auf 1.0.87
-    (NUR wenn der Store sie wirklich ausliefert — selbst pruefen, nicht nur der Mail glauben),
-    IN_REVIEW-Eintrag raus, Changelog-Punkt eintragen („Garmin watches with little memory, such
-    as the Instinct 2, no longer crash during a recording."), und den Betroffenen Bescheid geben:
-    **u479, u460, u496, u481, u142, u214** — die wissen bis heute nicht, dass wir den Fehler
-    kennen. Bei den fenix-5-Fahrern NICHT behaupten, ihr Problem sei geloest: dass ihre kurzen
-    Sessions dieselbe Ursache haben, ist nicht belegt (s. offener Punkt oben).
+  - **✅ FREIGEGEBEN UND LIVE 17.09.2026.** Zweifach belegt statt nur gemeldet: die Store-API
+    liefert `latestExternalVersion = 1.0.87` / intern 41, und Session #8700 kam um 18:11 von
+    Jans fenix 7X Pro mit `app_version 1.0.87` — also von einer Uhr, die das Update wirklich
+    aus dem Store gezogen hat. `_APP_META["garmin"]["latest"]` steht auf 1.0.87, der
+    IN_REVIEW-Eintrag ist raus, der Changelog-Punkt getragen.
+  - **🔲 OFFEN: die Mails an die sieben Betroffenen** — u142, u479, u214, u460, u481, u496, u328.
+    Fertig formuliert, je in der Sprache des Nutzers (4x de, 1x en, 1x fr), Adresse + Betreff +
+    Text liegen bei Jan. Keiner der sieben hat je den Chat oder Push benutzt, Mail ist der
+    einzige Kanal. Zwei Adressen sind Apple Private Relay — kommt eine Zustellfehlermeldung,
+    bleibt nur der Chat.
+    **NICHT angeschrieben:** die 23 weiteren Lite-Uhren-Nutzer ohne Absturzmeldung, darunter die
+    fenix-5-Fahrer mit ihren auffaellig kurzen Sessions. Dass deren Problem dieselbe Ursache hat,
+    ist NICHT belegt. Wer sie erreichen will, nimmt den News-Banner — allgemein gehalten, ohne
+    Behauptung ueber den Einzelfall.
   - **🔲 Noch offen und NICHT gemacht:** `watch/bin` neu bauen. Das sind die Direkt-Downloads von
     der Seite; ein `build-all`-Lauf veroeffentlicht sofort. Bewusst Jans Entscheidung — damit
     waeren die Betroffenen schon vor der Store-Freigabe versorgt.
