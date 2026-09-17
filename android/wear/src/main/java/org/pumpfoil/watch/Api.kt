@@ -78,10 +78,16 @@ object Api {
     // version: gemeldete App-Version (fuer den Update-Hinweis), p=wear als Plattform.
     // lay=1 heisst "diese Uhr will eigene Layouts" — auf Wear ohne Speichergrenze, aber der Server
     // nutzt denselben Parameter wie bei Garmin, also schicken wir ihn, wenn der Schalter an ist.
-    suspend fun deviceConfig(version: String = "", wantLayouts: Boolean = false): JSONObject = withContext(Dispatchers.IO) {
+    // `crash=3` meldet, dass die letzte Aufnahme nicht sauber geendet hat — derselbe Parameter,
+    // den die Garmin-App seit 1.0.77 nutzt (`devices.py`, Lauf-Canary). Die 3 ist dort die Phase
+    // „waehrend der Aufnahme"; eine andere Phase kennen wir auf Wear nicht, unsere Marke liegt
+    // ausschliesslich waehrend einer laufenden Aufnahme.
+    suspend fun deviceConfig(version: String = "", wantLayouts: Boolean = false,
+                             laufAbgebrochen: Boolean = false): JSONObject = withContext(Dispatchers.IO) {
         val v = if (version.isNotEmpty()) "&v=" + java.net.URLEncoder.encode(version, "UTF-8") else ""
         val lay = if (wantLayouts) "&lay=1" else ""
-        get("/api/devices/config?p=wear$v$lay")
+        val crash = if (laufAbgebrochen) "&crash=3" else ""
+        get("/api/devices/config?p=wear$v$lay$crash")
     }
 
     // Letzte erfolgreiche Config cachen — damit die Uhr offline mit den zuletzt

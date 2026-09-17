@@ -31,6 +31,38 @@ object LocalStore {
         if (v == null) e.remove(PREF_LAYOUTS) else e.putBoolean(PREF_LAYOUTS, v)
         e.apply()
     }
+    // --- Lauf-Marke: hat die letzte Aufnahme sauber geendet? ---------------------------------
+    //
+    // Gegenstueck zum `run_canary` der Garmin-App (dort seit 1.0.77). Gesetzt beim Start einer
+    // Aufnahme, geloescht beim sauberen Ende. Liegt sie beim naechsten App-Start noch da, ist die
+    // App waehrend einer Aufnahme gestorben — und das erfahren wir sonst NIE.
+    //
+    // Anlass (u171, 17.09.2026): seine Session #8705 lief laut Zeitstempel 30,5 Minuten, GPS UND
+    // Accel enden aber beide auf Sekunde 1619 von 1831. Die App war 3 Minuten 32 vorher weg, er
+    // ist ahnungslos weitergefahren, und bei uns kam davon nichts an. Seine Worte: „Nach dem Run
+    // schaue ich auf die Uhr und stelle fest, dass die Pumpfoil- und Workout-App neu gestartet
+    // hatten und der Run verloren war."
+    //
+    // REIN DIAGNOSTISCH: daran haengt keine Abschaltung. Eine Uhr, die ihren Vordergrund-Dienst
+    // regelmaessig abgeraeumt bekommt (bei manchen Herstellern der Normalfall), soll sich davon
+    // nicht selbst Funktionen abklemmen.
+    private const val PREF_LAUF_MARKE = "lauf_marke"
+    fun setzeLaufMarke(ctx: Context) {
+        ctx.getSharedPreferences("pumpfoil", Context.MODE_PRIVATE)
+            .edit().putBoolean(PREF_LAUF_MARKE, true).apply()
+    }
+    fun loescheLaufMarke(ctx: Context) {
+        ctx.getSharedPreferences("pumpfoil", Context.MODE_PRIVATE)
+            .edit().remove(PREF_LAUF_MARKE).apply()
+    }
+    /** Lag die Marke noch? Der Aufruf LOESCHT sie — gemeldet werden soll das EREIGNIS, einmal. */
+    fun holeUndLoescheLaufMarke(ctx: Context): Boolean {
+        val p = ctx.getSharedPreferences("pumpfoil", Context.MODE_PRIVATE)
+        if (!p.getBoolean(PREF_LAUF_MARKE, false)) return false
+        p.edit().remove(PREF_LAUF_MARKE).apply()
+        return true
+    }
+
     fun dir(ctx: Context, uuid: String) = File(root(ctx), uuid).apply { mkdirs() }
 
     fun writeMeta(ctx: Context, uuid: String, meta: JSONObject) =

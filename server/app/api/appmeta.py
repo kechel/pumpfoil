@@ -561,6 +561,10 @@ NAECHSTES: list[dict] = [
          "Your watch now tells us which model it is when a recording arrives, so your watch "
          "shows up by name instead of just \u201cWear OS\u201d. It only helps us find faults "
          "that affect one kind of watch \u2014 nothing about it is shared with anyone.",
+         "If the app is killed mid-recording \u2014 some watches do that to save battery \u2014 "
+         "the recording now ends where the data ends, instead of claiming the minutes you rode "
+         "after it had already stopped. The watch also tells us it happened, so we can see how "
+         "often it does.",
          "Parawing is a sport you can pick for a session. Lowkite, parawing and parakite are "
          "the same thing, so they share one entry.",
          "German words that had slipped into the English interface are gone — among them the "

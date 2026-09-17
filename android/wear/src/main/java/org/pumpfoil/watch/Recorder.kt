@@ -269,6 +269,22 @@ object Recorder {
     }
     private fun elapsedMs() = (System.currentTimeMillis() - startMs).toInt()
 
+    /** Millisekunden seit 1970 -> dasselbe ISO-Format wie `nowIso()`. */
+    private fun isoVonMillis(ms: Long): String {
+        val f = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
+        f.timeZone = TimeZone.getTimeZone("UTC")
+        return f.format(java.util.Date(ms))
+    }
+
+    /** `started_at` (ISO, UTC) plus `ms` Millisekunden. Bei unlesbarem Start: null. */
+    private fun isoPlusMs(startIso: String, ms: Long): String? = try {
+        val f = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
+        f.timeZone = TimeZone.getTimeZone("UTC")
+        isoVonMillis(f.parse(startIso)!!.time + ms)
+    } catch (_: Throwable) {
+        null
+    }
+
     // Aufnahme startet rein lokal: KEIN Netz nötig (kein Pairing, kein Online).
     // Rohdaten werden persistent in den LocalStore geschrieben; der Upload passiert
     // später per drain(), sobald die Uhr gepairt + online ist.
@@ -284,6 +300,9 @@ object Recorder {
         accelHzActual = if (recordMode == "lite") ACCEL_HZ_LITE else ACCEL_HZ
         uuid = UUID.randomUUID().toString()
         startMs = System.currentTimeMillis()
+        // Lauf-Marke setzen: liegt sie beim naechsten App-Start noch da, ist die App waehrend
+        // dieser Aufnahme gestorben (s. LocalStore.setzeLaufMarke).
+        LocalStore.setzeLaufMarke(ctx)
         chunkIndex = 0
         synchronized(lock) { accel.clear(); gps.clear(); spWin.clear() }
         prevLat = Double.NaN; prevLon = Double.NaN; alteFixes = 0; lastHrMs = 0
@@ -325,6 +344,7 @@ object Recorder {
             // haben wir bei PeterH (u171) eine Woche verloren, waehrend die Ursache eine
             // Plattform-Regression auf seiner Uhr war. Jetzt steht in jeder Aufnahme, ob
             // ueberhaupt gemessen wurde und wie viele Werte ankamen.
+            LocalStore.loescheLaufMarke(ctx)   // sauberes Ende -> keine Absturz-Meldung
             LocalStore.writeComplete(ctx, uuid, JSONObject()
                 .put("ended_at", nowIso()).put("total_chunks", chunkIndex)
                 .put("hr_samples", hrCount)
@@ -347,6 +367,7 @@ object Recorder {
         val ctx = appCtx ?: return
         val sid = uuid
         scope.launch {
+            LocalStore.loescheLaufMarke(ctx)   // verworfen ist auch ein sauberes Ende
             LocalStore.delete(ctx, sid)
             _state.value = _state.value.copy(
                 recording = false, status = "", pendingCount = LocalStore.pendingCount(ctx))
@@ -429,14 +450,47 @@ object Recorder {
     // Abgebrochene Aufnahmen (kein complete.json) finalisieren: synthetisches complete.json
     // mit der Anzahl persistierter Chunks -> Session wird normal hochgeladen statt zu stranden.
     // Die gerade laufende Aufnahme bleibt ausgenommen.
+    //
+    // ENDZEITPUNKT AUS DEN DATEN, nicht `nowIso()` — bis 17.09.2026 stand hier die Uhrzeit der
+    // RETTUNG. Eine so wiederhergestellte Session behauptete damit Zeit, fuer die sie keine
+    // Daten hat: bei u171 (#8705) lief sie angeblich 30,5 Minuten, GPS UND Accel enden aber
+    // beide auf Sekunde 1619 von 1831 — die App war 3 Minuten 32 vorher gestorben, und er ist
+    // ahnungslos weitergefahren. Die Auswertung stoert das nicht (sie trimmt auf die Daten),
+    // die angezeigte Dauer und jede Abdeckungs-Rechnung aber schon.
     private fun recoverInterrupted(ctx: Context) {
         val active = if (running) uuid else null
         for (dir in LocalStore.interruptedSessions(ctx, active)) {
-            val n = LocalStore.chunkFiles(dir).size
-            if (n == 0) { continue }
+            val chunks = LocalStore.chunkFiles(dir)
+            if (chunks.isEmpty()) { continue }
             LocalStore.writeComplete(ctx, dir.name, JSONObject()
-                .put("ended_at", nowIso()).put("total_chunks", n))
+                .put("ended_at", endeAusDaten(dir, chunks)).put("total_chunks", chunks.size))
         }
+    }
+
+    /**
+     * Wann hat diese abgebrochene Aufnahme wirklich aufgehoert?
+     *
+     * Erste Wahl ist der letzte GPS-Messpunkt: seine Millisekunde ist relativ zum Start, und
+     * `started_at` steht in der meta.json — zusammen ergibt das den echten Zeitpunkt. Gibt es
+     * keine GPS-Chunks (reine Accel-Aufnahme, Uhr ohne Fix), bleibt die Schreibzeit der juengsten
+     * Chunk-Datei: der Puffer wird alle 10 s geleert, die liegt also hoechstens 10 s daneben.
+     * Faellt beides aus, lieber `nowIso()` als gar nichts — dann ist es wie vorher.
+     */
+    private fun endeAusDaten(dir: java.io.File, chunks: List<java.io.File>): String = try {
+        val start = LocalStore.readJson(java.io.File(dir, "meta.json"))?.optString("started_at")
+        val letzteGps = chunks.filter { LocalStore.chunkKind(it) == "gps" }.maxByOrNull { it.name }
+        var iso: String? = null
+        if (start != null && start.isNotEmpty() && letzteGps != null) {
+            val data = LocalStore.readJson(letzteGps)?.optJSONArray("data")
+            if (data != null && data.length() > 0) {
+                // Ein GPS-Sample ist [elapsedMs, lat, lon, …] — s. flushGps().
+                val ms = data.optJSONArray(data.length() - 1)?.optLong(0) ?: 0L
+                if (ms > 0) iso = isoPlusMs(start, ms)
+            }
+        }
+        iso ?: isoVonMillis(chunks.maxOf { it.lastModified() })
+    } catch (_: Throwable) {
+        nowIso()
     }
 
     // Wie viele Chunks parallel? Über eigenes Netz der Uhr (WLAN/LTE/Ethernet) aggressiv (6),
