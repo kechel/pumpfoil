@@ -549,9 +549,15 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
     # Ueberhang: was ein Overlay hinten braucht, verlaengert das Ergebnis von
     # selbst — sonst wuerde eine Karte mit 2,2 s Standzeit am Videoende einfach
     # abgeschnitten. Das Feld in der Oberflaeche ist nur noch ein Mindestwert.
+    #
+    # Mit `halten` genau NICHT: dort ist das Videoende die Grenze, und was
+    # darueber hinausragt, wird abgeschnitten statt das Ergebnis zu verlaengern
+    # (Jan, 17.09.). Ein von Hand gesetzter Anhang und eine angehaengte Endcard
+    # bleiben davon unberuehrt — die sind ausdruecklich so gewollt.
     over = 0.0
-    for tx in texts or []:
-        over = max(over, text_window(tx, start)[1] - dur)
+    if not halten:
+        for tx in texts or []:
+            over = max(over, text_window(tx, start)[1] - dur)
     # Die angehaengte Endcard kommt HINTER dem eingefrorenen Rest:
     # erst die Karte auf dem stehenden Bild, dann die Endcard.
     ec_append = bool(endcard and endcard.get("append") and endcard.get("path"))
