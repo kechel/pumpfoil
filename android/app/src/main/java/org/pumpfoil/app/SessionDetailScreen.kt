@@ -1023,17 +1023,45 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                         }
                     }
                 }
+                // Lauf-Auswahl DIREKT unter der Karte — wie in der PWA (SessionDetail.tsx,
+                // „1. Lauf-Auswahl direkt unter der Karte"). Gemeldet von u171 am 17.09.2026:
+                // „In der Android-App fehlen in der Session-Ansicht die Nummern für die einzelnen
+                // Runs unter der Karte, was die Run-Auswahl immer in Gescrolle ausarten lässt,
+                // weil sie nur über die Liste anwählbar sind." Der Umweg ueber die Karte selbst
+                // half ihm nicht: „Dazu ist mein Display echt zu klein und ungenau. Besonders da
+                // ich momentan immer an einer Wand entlang fahre und sich viel überlappt."
+                //
+                // FlowRow, nicht Row: bei 15 Laeufen (kommt vor, s. u270) liefe eine Zeile aus dem
+                // Bild. Die Tabelle weiter unten bleibt, sie zeigt ja zusaetzlich die Werte.
+                if (segs.isNotEmpty()) {
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    ) {
+                        Text(I18n.t("sd.run"), style = MaterialTheme.typography.bodySmall,
+                             color = MaterialTheme.colorScheme.onSurfaceVariant,
+                             modifier = Modifier.align(Alignment.CenterVertically))
+                        segs.indices.forEach { i ->
+                            val aktiv = selectedRun == i
+                            FilterChip(
+                                selected = aktiv,
+                                onClick = { selectedRun = if (aktiv) null else i },
+                                label = { Text("${i + 1}") },
+                            )
+                        }
+                        if (selectedRun != null) {
+                            FilterChip(
+                                selected = false,
+                                onClick = { selectedRun = null },
+                                label = { Text(I18n.t("sd.allRuns")) },
+                            )
+                        }
+                    }
+                }
                 // Farb-Legende (min→max) für den gewählten Modus — wie PWA.
                 if (colorMode == ColorMode.TURNS) CarveLegend(carve?.counts, carveGMax)
                 else ColorLegend(colorMode, hrRange, pumpRange)
-                selectedRun?.let { sel ->
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("${I18n.t("home.runs")} #${sel + 1}", style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.primary)
-                        Spacer(Modifier.width(8.dp))
-                        TextButton(onClick = { selectedRun = null }) { Text(I18n.t("sd.clearSelection")) }
-                    }
-                }
             }
         }
         // Leistungs-Karte (theoretische Pump-Leistung bei Ø-/Top-Speed). hasSpecs: Katalog-Einträge
