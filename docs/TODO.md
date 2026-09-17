@@ -1034,9 +1034,12 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     ```
     **Monoton steigend, kein Saegezahn.** Es kippt VOR der rechnerischen Decke — eine einzelne
     Anforderung brauchte mehr als der Rest hergab.
-    Der Lauf lief DURCHGEHEND, ohne Eingriff — Jan hat nichts zurueckgespult und nichts geaendert
-    (ich hatte das hier zuerst falsch stehen, samt einer Schlussfolgerung darueber, ob der
-    Anstieg an den Daten oder an der Zeit haengt. Die Frage ist OFFEN).
+    Der 1.0.86-Lauf lief DURCHGEHEND, ohne Eingriff (ich hatte hier zuerst faelschlich ein
+    Zurueckspulen behauptet).
+    **Der Anstieg haengt an der DATENMENGE, nicht an der Zeit — am Vergleichslauf belegt:** als
+    Jans FIT-Datei zu Ende war, blieb der Wert flach (73,2 → 73,6 in zwei Minuten); nach dem
+    Zurueckspulen stieg er sofort wieder (73,6 → 76,4). Ein zeitbasiertes Leck haette auch ohne
+    neue Positionen weitergefressen. Passt zum Fundort: es sind die GPS-Bloecke.
     **Die Absturzmeldung aus `monkeydo`:**
     ```
       Error: Out Of Memory Error
