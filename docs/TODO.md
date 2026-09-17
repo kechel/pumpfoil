@@ -1022,7 +1022,36 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     JETZT: u479s Versuch war der 15.09.
     Die `analyzed`-Quote taeuscht, weil ein Stummel von 40 Sekunden genauso sauber durch die
     Analyse geht wie eine volle Session. Wer hier auf Status-Zaehler schaut, sieht nichts.
-  - **🔲 NAECHSTER SCHRITT — Emulator-Test. LIEGT BEI JAN, nicht bei mir.**
+  - **✅ IM EMULATOR REPRODUZIERT (Jan, 17.09.2026 abends).** Instinct 2 / Solar / Dual Power,
+    `foil-instinct2-1.0.86-aktuell.prg`, Simulator-Speicheranzeige (Budget dort 91,8 kB):
+    ```
+      Startbildschirm, keine Aufnahme     73,3 kB      18,5 kB frei
+      Aufnahme laeuft                     74,2 kB
+                                          76,5 kB
+                                          78,6 kB
+                                          83,6 kB       8,2 kB frei
+      ABSTURZ („IQ!")                     85,6 kB       6,2 kB frei
+    ```
+    **Monoton steigend, kein Saegezahn.** Es kippt VOR der rechnerischen Decke — eine einzelne
+    Anforderung brauchte mehr als der Rest hergab.
+    Der Lauf lief DURCHGEHEND, ohne Eingriff — Jan hat nichts zurueckgespult und nichts geaendert
+    (ich hatte das hier zuerst falsch stehen, samt einer Schlussfolgerung darueber, ob der
+    Anstieg an den Daten oder an der Zeit haengt. Die Frage ist OFFEN).
+    **Die Absturzmeldung aus `monkeydo`:**
+    ```
+      Error: Out Of Memory Error
+      Details: Failed invoking <symbol>
+      Stack:  0x10005bad · 0x100024b1 · 0x10006141
+    ```
+    Bestaetigt die Art: echter OOM, keine Ausnahme aus unserem Code. Nur Adressen, weil Release —
+    aufloesbar ueber `watch/bin/foil-instinct2.prg.debug.xml` desselben Builds.
+    Nebenbefund aus dem Code: auf dieser Klasse ist der Accel gar nicht aktiv (`_isLowMem()`
+    erzwingt `gpsOnly` ab ≤100 kB Gesamtspeicher), der Hauptverbraucher faellt also schon weg.
+  - **🔲 OFFEN, beides bei Jan:** (1) die Terminal-Ausgabe von `monkeydo` zum Absturz — im
+    Release-Build nur Adressen, aber Fehlerart und Aufrufkette sagen die Stelle. (2) DERSELBE
+    Lauf mit `foil-instinct2-1.0.80-vergleich.prg` (startet 8,2 kB tiefer). Erreicht der alte
+    Build die 85 kB gar nicht, ist die Ursache schwarz auf weiss.
+  - **Ursprungslage: der Test liegt bei Jan, nicht bei mir.**
     **Alles vorbereitet unter `/home/jan/instinct2-test/`** (17.09.2026): beide Builds plus
     `ANLEITUNG.md`.
     ```
