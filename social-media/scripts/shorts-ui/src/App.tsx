@@ -308,6 +308,9 @@ function Studio() {
   const [ovSel, setOvSel] = useState(sv("ovSel", ""));
   const [ovAlpha, setOvAlpha] = useState(sv("ovAlpha", 0.5));
   const [outroOn, setOutroOn] = useState(sv("outroOn", true));
+  // „Bis zum letzten Bild": Endcard, Outro-Icons und jeder Text, der am
+  // Schluss ohnehin noch steht, blenden nicht mehr aus (Jan, 17.09.).
+  const [halten, setHalten] = useState(sv("halten", false));
   const [fltYT, setFltYT] = useState(sv("fltYT", true));
   const [fltIG, setFltIG] = useState(sv("fltIG", true));
   const [fltTT, setFltTT] = useState(sv("fltTT", true));
@@ -322,8 +325,8 @@ function Studio() {
   const studioState = useMemo(() => ({
     curVideo, sel, pvPlatform, trim, texts, gain, otonGain, ducks, fade,
     sideTab, endcard, midTab, beats, cardSlogan, txAlpha, tailSecs,
-    outName, ovOn, ovSel, ovAlpha, outroOn, fltYT, fltIG, fltTT, fltRN,
-  }), [curVideo, sel, pvPlatform, trim, texts, gain, otonGain, ducks, fade, outName, ovOn, ovSel, ovAlpha, outroOn, fltYT, fltIG, fltTT, fltRN, sideTab, endcard, midTab, beats, cardSlogan, txAlpha, tailSecs]);
+    outName, ovOn, ovSel, ovAlpha, outroOn, halten, fltYT, fltIG, fltTT, fltRN,
+  }), [curVideo, sel, pvPlatform, trim, texts, gain, otonGain, ducks, fade, outName, ovOn, ovSel, ovAlpha, outroOn, halten, fltYT, fltIG, fltTT, fltRN, sideTab, endcard, midTab, beats, cardSlogan, txAlpha, tailSecs]);
 
   useEffect(() => {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(studioState));
@@ -372,8 +375,8 @@ function Studio() {
   const outroCacheRef = useRef<{ key: string; url: string }>({ key: "", url: "" });
 
   // Live-Werte für den rAF-Loop (State-Snapshot ohne Re-Subscribe)
-  const live = useRef({ trim, texts, outroOn, pvPlatform, curPlay, ducks, gain, otonGain, endcard, tailSecs, tailTotal, overhang });
-  live.current = { trim, texts, outroOn, pvPlatform, curPlay, ducks, gain, otonGain, endcard, tailSecs, tailTotal, overhang };
+  const live = useRef({ trim, texts, outroOn, halten, pvPlatform, curPlay, ducks, gain, otonGain, endcard, tailSecs, tailTotal, overhang });
+  live.current = { trim, texts, outroOn, halten, pvPlatform, curPlay, ducks, gain, otonGain, endcard, tailSecs, tailTotal, overhang };
 
   const load = useCallback(async () => {
     const s = await api.list();
@@ -486,7 +489,7 @@ function Studio() {
     const loop = () => {
       const vid = vidRef.current;
       if (vid) {
-        const { trim, texts, outroOn, pvPlatform, ducks, gain, otonGain, endcard,
+        const { trim, texts, outroOn, halten, pvPlatform, ducks, gain, otonGain, endcard,
                 tailSecs, tailTotal } = live.current;
         const vdur = isFinite(vid.duration) ? vid.duration : 0;
         const endT = trim.end ?? vdur;
@@ -546,8 +549,11 @@ function Studio() {
           }
           const fd = isGfx(tx) ? STAMP_FADE : TXF;
           const e = tx.start + 2 * fd + (tx.hold ?? TXH);
-          const a = Math.max(0, Math.min(Math.min((t - tx.start) / fd, (e - t) / fd), 1));
-          el.style.opacity = String(a);
+          const auf = (t - tx.start) / fd;
+          // Wie im Render: was am Schluss noch steht, blendet mit „halten"
+          // nicht aus und laeuft ueber den angehaengten Teil weiter.
+          const ab = halten && e >= endT - 0.05 ? 1 : (e - t) / fd;
+          el.style.opacity = String(Math.max(0, Math.min(Math.min(auf, ab), 1)));
         });
         const ec = ecImgRef.current;
         if (ec) {
@@ -559,7 +565,8 @@ function Studio() {
               : (endcard.start as number);
             const e0 = s0 + endcard.fadeIn + endcard.hold;
             const auf = (t - s0) / Math.max(0.05, endcard.fadeIn);
-            const ab = endcard.append ? 1
+            const ab = endcard.append
+              || (halten && e0 + endcard.fadeOut >= endT - 0.05) ? 1
               : (e0 + endcard.fadeOut - t) / Math.max(0.05, endcard.fadeOut);
             ec.style.opacity = String(endcard.alpha * Math.max(0, Math.min(Math.min(auf, ab), 1)));
           }
@@ -571,9 +578,10 @@ function Studio() {
             const end = trim.end ?? dur;
             const effLen = end - (trim.start ?? 0);
             const secs = effLen > OUTRO_LONG_AB ? OUTRO_SECS_LONG : OUTRO_SECS;
-            const st = Math.max(trim.start ?? 0, end - secs);
+            const bezug = halten ? end + tailTotal : end;
+            const st = Math.max(trim.start ?? 0, bezug - secs);
             const a = Math.max(0, Math.min((t - st) / TXF, 1))
-              * (tailTotal > 0 ? Math.max(0, Math.min((end - t) / TXF, 1)) : 1);
+              * (tailTotal > 0 && !halten ? Math.max(0, Math.min((end - t) / TXF, 1)) : 1);
             const key = pvPlatform + "|" + vid.videoWidth;
             if (a > 0 && outroCacheRef.current.key !== key) {
               outroCacheRef.current = { key, url: outroPng(pvPlatform, vid) };
@@ -1273,6 +1281,7 @@ function Studio() {
     setOvSel(nimm("ovSel", ""));
     setOvAlpha(nimm("ovAlpha", 1));
     setOutroOn(nimm("outroOn", true));
+    setHalten(nimm("halten", false));
     // Das Quellvideo liegt nach einem Render in videos-verarbeitet und steht
     // dann nicht mehr zur Auswahl — dann bleibt alles andere trotzdem gesetzt.
     const quelle = nimm<string | null>("curVideo", null);
@@ -1305,6 +1314,7 @@ function Studio() {
     setOvOn(true);
     setOvAlpha(0.5);
     setOutroOn(true);
+    setHalten(false);
     setFltYT(true);
     setFltIG(true);
     setSearch("");
@@ -1368,6 +1378,7 @@ function Studio() {
         trim_start: trim.start,
         trim_end: trim.end,
         tail_secs: tailSecs,
+        halten,
         out_name: outName,
         // Rezept: alles, woraus sich dieser Render wiederholen laesst
         studio: studioState,
@@ -1406,7 +1417,7 @@ function Studio() {
     setRenderingVideo(null);
     setRendering(false);
     void load();
-  }, [ready, curVideo, sel, gain, otonGain, ducks, fade, ovOn, ovSel, trim, outName, texts, outroOn, endcard, tailSecs, stopMusic, load, studioState, cardSlogan]);
+  }, [ready, curVideo, sel, gain, otonGain, ducks, fade, ovOn, ovSel, trim, outName, texts, outroOn, halten, endcard, tailSecs, stopMusic, load, studioState, cardSlogan]);
 
   if (!state) return <div style={{ padding: 20, opacity: 0.6 }}>lade …</div>;
 
@@ -1954,6 +1965,12 @@ function Studio() {
           <div className="row">
             <label>
               <input type="checkbox" checked={outroOn} onChange={(e) => setOutroOn(e.target.checked)} /> Outro-Icons (letzte 2,5–4 s)
+            </label>
+          </div>
+          <div className="row">
+            <label title="Endcard, Outro-Icons und jeder Text, der am Schluss ohnehin noch steht, bleiben bis zum letzten Bild stehen — ohne Ausblenden, auch über einen angehängten Teil hinweg. Was du bewusst früher enden lässt, behält seine Zeiten.">
+              <input type="checkbox" checked={halten}
+                     onChange={(e) => setHalten(e.target.checked)} /> bis zum letzten Bild
             </label>
           </div>
           {/* Endcard: statt ins Video gerendert erst hier entschieden */}

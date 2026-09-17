@@ -532,7 +532,8 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
            texts: list = None, outro: Path = None,
            overlay_alpha: float = 1.0,
            oton_gain_db: float = 0.0, ducks: list = None,
-           endcard: dict = None, tail_secs: float = 0.0):
+           endcard: dict = None, tail_secs: float = 0.0,
+           halten: bool = False):
     full = duration_of(video)
     start = max(0.0, min(trim_start or 0.0, full))
     end = min(trim_end, full) if trim_end else full
@@ -632,10 +633,15 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
         inputs += ["-loop", "1", "-i", str(tx["png"])]
         idx = n_inputs
         n_inputs += 1
+        # „Bis zum letzten Bild": was am Schluss ohnehin noch steht, blendet
+        # nicht mehr aus und laeuft ueber den angehaengten Teil weiter. Nur
+        # solche Texte — ein Text, den Jan bewusst vorher enden laesst, behaelt
+        # seine Zeiten (Jan, 17.09.).
+        aus = (f",fade=t=out:st={e - fade:.3f}:d={fade:.3f}:alpha=1"
+               if not (halten and e >= dur - 0.05) else "")
         fc_parts.append(
             f"[{idx}:v]format=rgba"
-            f",fade=t=in:st={s:.3f}:d={fade:.3f}:alpha=1"
-            f",fade=t=out:st={e - fade:.3f}:d={fade:.3f}:alpha=1[t{i}];"
+            f",fade=t=in:st={s:.3f}:d={fade:.3f}:alpha=1{aus}[t{i}];"
             f"{vsrc}[t{i}]overlay=0:0:format=auto[v{i}]")
         vsrc = f"[v{i}]"
     # Endcard: ganzflaechiges Bild an frei gewaehlter Stelle, mit eigener
@@ -657,7 +663,10 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
         alpha = max(0.05, min(float(endcard.get("alpha", 1.0)), 1.0))
         aa = f",colorchannelmixer=aa={alpha:.3f}" if alpha < 1 else ""
         # Angehaengt bleibt sie bis zum letzten Bild stehen — kein Ausblenden.
-        aus = ("" if ec_append else
+        # Mit `halten` gilt dasselbe fuer eine frei gesetzte Endcard, die bis
+        # ans Ende reicht.
+        ec_bis_ende = ec_append or (halten and s0 + fi + hold + fo >= dur - 0.05)
+        aus = ("" if ec_bis_ende else
                f",fade=t=out:st={s0 + fi + hold:.3f}:d={fo:.3f}:alpha=1")
         fc_parts.append(
             f"[{idx}:v]format=rgba,scale={w}:{h}{aa}"
@@ -669,9 +678,14 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
         inputs += ["-loop", "1", "-i", str(outro)]
         idx = n_inputs
         n_inputs += 1
-        st = max(0.0, dur - (OUTRO_SECS_LONG if dur > OUTRO_LONG_AB else OUTRO_SECS))
-        outro_fade = (f",fade=t=out:st={max(st, dur - TEXT_FADE):.3f}"
-                      f":d={TEXT_FADE}:alpha=1" if tail else "")
+        # Ohne `halten` sitzen die Icons in den letzten Sekunden des VIDEOS und
+        # blenden vor dem angehaengten Teil aus. Mit `halten` zaehlen sie vom
+        # Ende der GANZEN Ausgabe und bleiben bis zum letzten Bild stehen.
+        bezug = total if halten else dur
+        st = max(0.0, bezug - (OUTRO_SECS_LONG if dur > OUTRO_LONG_AB else OUTRO_SECS))
+        outro_fade = ("" if halten else
+                      (f",fade=t=out:st={max(st, dur - TEXT_FADE):.3f}"
+                       f":d={TEXT_FADE}:alpha=1" if tail else ""))
         fc_parts.append(
             f"[{idx}:v]format=rgba"
             f",fade=t=in:st={st:.3f}:d={TEXT_FADE}:alpha=1{outro_fade}[outro];"
@@ -2439,7 +2453,8 @@ class Handler(BaseHTTPRequestHandler):
                        trim_start, trim_end, tx_pf, outros.get(pf),
                        float(req.get("overlay_alpha", 1.0)),
                        oton_gain_db=oton_gain, ducks=ducks, endcard=ec_pf,
-                       tail_secs=float(req.get("tail_secs") or 0.0))
+                       tail_secs=float(req.get("tail_secs") or 0.0),
+                       halten=bool(req.get("halten")))
                 results[pf] = {"ok": True, "out": str(out.relative_to(BASE))}
             except subprocess.CalledProcessError as e:
                 results[pf] = {"ok": False, "error": (e.stderr or "")[-400:]}
