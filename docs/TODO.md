@@ -963,6 +963,14 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔲 Android-Sessionsliste: der Accel-Umschalter liegt ÜBER den Scope-Knöpfen.** Beim
+  Emulator-Test der Nachbar-Navigation am 17.09.2026 aufgefallen (Screenshot `t1.png`/`t3.png`,
+  Gerät Pixel 1080×2400, Sprache fi): die Chip-Gruppe „vain kiihtyvyys | kaikki" wird über die
+  Knopfreihe „Omat | 📍Illmensee | Kaikki" gezeichnet — vom dritten Knopf bleibt nur das „K"
+  sichtbar, antippbar ist er trotzdem. Betrifft nur die Android-App (`SessionsScreen.kt`,
+  Kopfbereich); PWA und iOS setzen die beiden Reihen untereinander. Vermutlich eine Zeile, die
+  nicht umbricht. Kein Datenverlust, reine Optik — aber der Knopf sieht kaputt aus.
+
 - **🔲 96-KB-UHREN SCHALTEN STILL AUF GPS-ONLY — der Nutzer erfaehrt es nirgends richtig.**
   Anlass: Matthias (u214, Instinct 2X Solar) fragte am 17.09.2026 nach der Mail zum
   Absturz-Fix zurueck: „Kann ich dann den Aufzeichnungsmodus auf 'voll' lassen oder muss ich
