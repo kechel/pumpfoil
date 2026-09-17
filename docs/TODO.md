@@ -963,6 +963,55 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔴 INSTINCT-2-KLASSE STUERZT IN DER AUFNAHME AB — Speicherluft seit 1.0.80 um ein Viertel
+  geschrumpft** (gemessen 17.09.2026, ausgeloest durch Jans Frage nach Auffaelligkeiten).
+  - **Befund aus den Geraetemeldungen:** 13 Geraete melden Abstuerze in `crash_phase = 3`
+    (= PHASE_RECORD, waehrend der Aufnahme). Sie verteilen sich nicht gleichmaessig:
+    ```
+                                        Uhren   mit Absturz in der Aufnahme   Ereignisse
+      Instinct-2-Familie (2 / 2S / 2X)     16                    6  (38 %)           28
+      alle uebrigen Garmin                206                    7  ( 3 %)            7
+    ```
+    7 % der Flotte tragen 80 % aller Aufnahme-Abstuerze.
+  - **Es ist NICHT schon immer so.** Jede Uhr der Familie, die nur 1.0.85/86 fuhr, meldet
+    Abstuerze (4–8 je); jede, die nur aeltere Versionen fuhr, meldet null. Die Nutzung ist dabei
+    ausgeglichen: 43 Aufnahmen vor dem 06.09., 46 danach. Besonders deutlich: u214s zweites Token
+    hat SECHS Abstuerze und NULL Aufnahmen — die App stirbt, bevor je etwas aufgenommen wurde.
+  - **⚠️ Kontrollgruppe duenn:** die Absturzmeldung gibt es erst ab 1.0.77 (23.08., „Lauf-Canary").
+    Uhren auf 68–76 KONNTEN nicht melden. Sauber vergleichbar sind nur 1.0.79/80 gegen 1.0.85/86,
+    und auf der alten Seite stehen zwei Geraete.
+  - **Die harte Zahl — `instinct2`-Build gegen das 96-KB-Budget (98304 B), je Commit gebaut:**
+    ```
+      1.0.80  ba105491   63.420 B   frei 34.884
+              abcb99aa   64.172 B   +  752   Klassische Datenseiten: Schrift messen statt raten
+              7424734d   66.860 B   +2.688   Start-/Gespeichert-Screen: Text bricht um
+              8d5626c9   67.628 B   +  768   Eine Farbskala fuer alles (Speed-Zonen)
+              4787d034   69.196 B   +1.568   Restzeit des Puffers anzeigen und vorwarnen
+              cf467e40   69.196 B   +    0   Polnisch (Sprachtabellen nicht im Lite-Build)
+              3bd27df1   69.500 B   +  304
+              0e55cb78   69.596 B   +   96
+      1.0.83  6d0eceb9   69.660 B   +   64
+      1.0.85             70.380 B
+      1.0.86  HEAD       71.628 B   frei 26.676
+    ```
+    **+8.208 B von 1.0.80 auf 1.0.86 — ein Viertel der freien Luft.** VIER UI-Commits vom 27.08.
+    machen 5.776 B davon aus, also 93 % des Sprungs auf 1.0.83. Groesster Einzelposten ist der
+    Umbruch-Text (+2.688), zweitgroesster die Puffer-Warnung (+1.568) — letztere ist genau das,
+    was Jan vermutet hatte („wir haben ja auch erst neuerdings Warnungen auf der Instinct 2").
+  - **Mechanismus** (s. Memory `garmin-instinct2-lowmem`): auf diesen Uhren zaehlt der Code gegen
+    dasselbe 96-KB-Budget wie der Heap. Jedes Kilobyte Code fehlt zur Laufzeit. Der Juli-Befund
+    war: App startet mit ~13 KB Luft, der Session-Start (Accel 25 Hz + FIT + Puffer) sprengt sie.
+  - **Gute Nachricht: es kostet keine Daten.** 85 von 89 Aufnahmen der Familie sind sauber
+    `analyzed`. Die App stirbt, aber das schon Geschriebene kommt an.
+  - **🔲 NAECHSTER SCHRITT — Emulator-Test (Jans Vorschlag).** Simulator (`bin/simulator`) und
+    Xvfb liegen auf der VM, headless machbar. Ziel: Heap zur Laufzeit beobachten statt aus
+    Dateigroessen zu schliessen. **LANGER Lauf, nicht zwanzig Sekunden** (CLAUDE.md) — der
+    Juli-Crash kam erst beim Session-START, andere erst nach Minuten.
+  - **🔲 Danach zu entscheiden:** die vier 27.08.-Commits fuer die Lite-Geraete wieder
+    herausnehmen (`excludeAnnotations`, wie schon fuer andere Bausteine), statt an der Uhr zu
+    sparen, die genug Speicher hat.
+
+
 - **🟡 LAUF-TRENNUNG IM TURN — geeicht an Accel-Wahrheit, Regel gefunden, NICHT gebaut**
   (16.09.2026; Auslöser Feedback #136 von Marc u546: „Einzig einen langen Lauf heute hat das
   Programm automatisch in zwei Läufe aufgetrennt, weil wohl im Turn eine recht niedrige
