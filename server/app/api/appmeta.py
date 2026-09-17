@@ -531,7 +531,33 @@ NAECHSTES: list[dict] = [
     # alles danach gehoert hierher. Ohne diesen Eintrag stuende auf /changelog nur die iOS-Seite
     # unter „Coming next", obwohl an Android genauso weitergearbeitet wurde.
     {"name": "Android phone + Wear OS", "version": "1.1.30 / 1.2.30",
+     # GEBAUT 17.09.2026, noch NICHT hochgeladen. Beide Punkte kommen von u171 (Xiaomi Watch 2
+     # Pro), am selben Abend gemeldet.
+     #
+     # 1. PULS: der Waechter, der die Health-Services-Uebung neu anfordert, lief NIE, wenn der
+     #    Start schon beim ersten Mal scheiterte — seine Bedingung war `letzterHsMs > 0`, und
+     #    dieser Wert entsteht erst bei einem Messwert oder einem GELUNGENEN Start. Genau der
+     #    haeufigste Fehlerfall fiel damit durch: eine andere App haelt die Uebung, Health
+     #    Services erlaubt nur eine. Der Melder laesst parallel eine Workout-App laufen.
+     #    Belegt an seinen Daten: Session #8705 (17.09. 16:38) null Pulswerte, dann stuerzten
+     #    beide Apps ab, Session #8706 (17:11) hatte 2036. Seine Worte: „Kann die App ja nicht
+     #    immer zum Absturz bringen, damit das läuft."
+     #    WICHTIG fuer die Einordnung: wir hatten das zuvor als Wear-OS-5-Plattformfehler
+     #    abgelegt, weil sich zwischen 1.2.24 und 1.2.25 nichts Passendes fand. Gesucht wurde
+     #    nach einer AENDERUNG, nicht nach einer fehlenden Wiederholung.
+     #
+     # 2. LAUF-AUSWAHL: die Nummern der Laeufe stehen jetzt direkt unter der Karte, wie in der
+     #    PWA. Bisher ging die Auswahl nur ueber die Tabelle weiter unten oder durch Antippen der
+     #    Spur — beides hat er begruendet abgelehnt: „Dazu ist mein Display echt zu klein und
+     #    ungenau. Besonders da ich momentan immer an einer Wand entlang fahre und sich viel
+     #    überlappt."
      "items": [
+         "Heart rate comes back on its own. If another app was holding the watch\u2019s workout "
+         "session when a recording started, we never got a reading and never asked again \u2014 "
+         "for the whole session. Now we retry, so the heart rate appears as soon as the other "
+         "app lets go.",
+         "The run numbers are back under the map in the Android app. Picking a run no longer "
+         "means scrolling down to the table.",
          "Parawing is a sport you can pick for a session. Lowkite, parawing and parakite are "
          "the same thing, so they share one entry.",
          "German words that had slipped into the English interface are gone — among them the "

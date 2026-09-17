@@ -45,6 +45,8 @@ class RecorderService : Service(), SensorEventListener {
     // Waechter unten: bleibt die Messung stehen, fordern wir sie neu an, statt stumm auf den
     // passiven Sensor zurueckzufallen.
     private var letzterHsMs = 0L
+    /** Beginn der Puls-Anforderung. Bezugspunkt des Waechters, solange NIE ein Wert kam. */
+    private var pulsSeitMs = 0L
     private var hsNeustarts = 0
     private var waechter: java.util.concurrent.ScheduledExecutorService? = null
     private val locMgr by lazy { getSystemService(Context.LOCATION_SERVICE) as LocationManager }
@@ -194,6 +196,7 @@ class RecorderService : Service(), SensorEventListener {
             return
         }
         hsDelivered = false
+        if (pulsSeitMs == 0L) pulsSeitMs = System.currentTimeMillis()
         try {
             val client = HealthServices.getClient(this).exerciseClient
             hsClient = client
@@ -274,6 +277,23 @@ class RecorderService : Service(), SensorEventListener {
      * Hoechstens PULS_MAX_NEUSTARTS Versuche: laeuft die Uhr in einen Zustand, in dem keine
      * Uebung moeglich ist (fremde App haelt sie dauerhaft), soll das nicht die ganze Aufnahme
      * lang alle zwei Minuten neu probieren.
+     *
+     * ER LAEUFT AUCH, WENN NIE EIN WERT KAM — das war bis 17.09.2026 der Fehler. Die Bedingung
+     * lautete `letzterHsMs > 0 && …`, und `letzterHsMs` wird nur gesetzt, wenn ein Wert ankommt
+     * ODER der Uebungsstart GELINGT. Scheiterte der Start, blieb es bei 0 und der Waechter feuerte
+     * kein einziges Mal — genau in dem Fall, den der Kommentar an `startExerciseAsync` als
+     * haeufigsten nennt: eine andere App haelt die Uebung, Health Services erlaubt nur eine.
+     *
+     * Gemeldet von u171 (Xiaomi Watch 2 Pro), der neben unserer App eine Workout-App mitlaufen
+     * laesst. Seine Zahlen: Session #8705 am 17.09. um 16:38 null Pulswerte, danach stuerzten
+     * beide Apps ab, und Session #8706 um 17:11 hatte 2036 — ein frischer Prozess bekam die
+     * Uebung, unser Waechter haette sie vorher nie nachgefordert. Seine Formulierung: „Kann die
+     * App ja nicht immer zum Absturz bringen, damit das läuft."
+     * Wir hatten das zuvor als Wear-OS-5-Plattformfehler eingeordnet, weil sich im Unterschied
+     * zwischen 1.2.24 und 1.2.25 nichts fand — gesucht wurde aber nach einer AENDERUNG, nicht
+     * nach einer fehlenden Wiederholung.
+     *
+     * Bezugspunkt ist jetzt `pulsSeitMs`: der Start der Aufnahme, falls nie ein Wert kam.
      */
     private fun starteWaechter() {
         if (waechter != null) return
@@ -282,13 +302,19 @@ class RecorderService : Service(), SensorEventListener {
         ex.scheduleWithFixedDelay({
             try {
                 if (!Recorder.state.value.recording) return@scheduleWithFixedDelay
-                val still = System.currentTimeMillis() - letzterHsMs
-                if (letzterHsMs > 0 && still > PULS_STILL_MS && hsNeustarts < PULS_MAX_NEUSTARTS) {
+                // Nie ein Wert bekommen? Dann zaehlt die Stille ab dem Aufnahmestart.
+                val seit = if (letzterHsMs > 0) letzterHsMs else pulsSeitMs
+                val still = System.currentTimeMillis() - seit
+                if (seit > 0 && still > PULS_STILL_MS && hsNeustarts < PULS_MAX_NEUSTARTS) {
                     hsNeustarts++
                     android.util.Log.w("Pumpfoil",
                         "Puls seit ${still / 1000} s still — Uebung neu anfordern ($hsNeustarts)")
                     Recorder.setPulsMessung(false)
                     stopHeartRate()
+                    // Uhr neu stellen, BEVOR wir es wieder versuchen. Ohne das bliebe `still` nach
+                    // dem ersten Versuch dauerhaft ueber der Schwelle und der Waechter feuerte im
+                    // 60-s-Takt des Zeitplans statt im gemeinten PULS_STILL_MS-Abstand.
+                    pulsSeitMs = System.currentTimeMillis()
                     startHeartRate()
                 }
             } catch (_: Throwable) {
@@ -335,7 +361,7 @@ class RecorderService : Service(), SensorEventListener {
     private fun stopEverything(save: Boolean = true) {
         sensors.unregisterListener(this)
         waechter?.shutdownNow(); waechter = null
-        hsNeustarts = 0; letzterHsMs = 0L
+        hsNeustarts = 0; letzterHsMs = 0L; pulsSeitMs = 0L
         stopHeartRate()
         try { locMgr.removeUpdates(gpsListener) } catch (_: SecurityException) {}
         if (save) Recorder.stop() else Recorder.discard()
