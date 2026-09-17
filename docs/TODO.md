@@ -963,6 +963,28 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔴 APPLE-RELAY-KONTEN BEKOMMEN KEINE MAIL VON UNS — 85 von 569 Konten (14,9 %), 46 davon
+  aktiv.** Gefunden 17.09.2026, als Jans Mails an zwei Instinct-2-Nutzer zurueckkamen:
+  `550 5.1.1 <jan@kechel.de>: unauthorized sender` von `privaterelay-mta-ms-prod.v.aaplimg.com`.
+  - **Ursache:** Apples „Hide My Email"-Relay nimmt NUR Mail von Absendern an, die im
+    Apple-Developer-Konto unter *Certificates, Identifiers & Profiles → More → Sign in with Apple
+    for Email Communication* registriert UND per SPF verifiziert sind. Die Absenderadresse selbst
+    ist egal — Jan hat es mit `jan@pumpfoil.org` erneut versucht, mit demselben Ergebnis.
+  - **Stand der Domains (17.09. gemessen):** `pumpfoil.org` hat GAR KEINEN SPF-Eintrag,
+    `kechel.de` hat `v=spf1 redirect=_spf.strato.com`. Beide liegen bei Strato.
+  - **🔲 Zu tun:** (1) TXT-Eintrag auf pumpfoil.org: `v=spf1 redirect=_spf.strato.com` — geprueft
+    unbedenklich, weil die App selbst ueber `smtp.strato.de` sendet (SMTP_HOST), Strato also der
+    einzige Absender ist. NUR EIN SPF-Eintrag je Domain. (2) Bei Apple die Domain `pumpfoil.org`
+    eintragen und verifizieren lassen. (3) Als Email Sources BEIDE Adressen registrieren.
+  - **🔴 Das trifft nicht nur Ankuendigungen: PASSWORT-ZURUECKSETZEN geht an diese 85 Konten
+    ebenfalls nicht.** Die App verschickt als `noreply@pumpfoil.org` (`SMTP_FROM`), und die ist
+    genauso wenig registriert. Wer sein Passwort vergisst, bekommt nichts und sieht nicht, warum.
+    Das laeuft seit es Apple-Login gibt und ist niemandem aufgefallen — gemeldet hat es keiner,
+    was zum Muster dieses Tages passt.
+  - **Zwischenloesung fuer die zwei von heute:** Chat-Nachrichten liegen fertig (u214, u479),
+    beide sind in den letzten Tagen aktiv gewesen.
+
+
 - **🔴 INSTINCT-2-KLASSE STUERZT IN DER AUFNAHME AB — Speicherluft seit 1.0.80 um ein Viertel
   geschrumpft** (gemessen 17.09.2026, ausgeloest durch Jans Frage nach Auffaelligkeiten).
   - **Befund aus den Geraetemeldungen:** 13 Geraete melden Abstuerze in `crash_phase = 3`
