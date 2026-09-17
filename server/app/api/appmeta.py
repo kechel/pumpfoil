@@ -449,6 +449,43 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    {"name": "Garmin", "version": "1.0.87",
+     # 17.09.2026 EINGEREICHT (Jans Meldung). EIN Punkt, ein Fehler — gefunden, weil Jan nach
+     # Auffaelligkeiten in den Zahlen gefragt hat, NICHT weil sich jemand beschwert haette.
+     #
+     # Die Kette, falls sie jemand nachlesen will (ausfuehrlich in docs/TODO.md):
+     # 13 Geraete meldeten Abstuerze in `crash_phase = 3` (= waehrend der Aufnahme), 6 davon aus
+     # der Instinct-2-Familie: 16 Uhren tragen 28 von 35 Ereignissen. Diese sechs Nutzer haben
+     # ueber 46 Aufnahmen zusammen 0,25 Foil-km geschafft — eine normale Garmin-Aufnahme bringt
+     # allein 1,20 km. u479 startete am 15.09. sechsmal in zwanzig Minuten, jede Aufnahme ohne
+     # Ende, null Ergebnis. Keiner der sechs hat sich je gemeldet.
+     #
+     # Im Emulator reproduziert und die drei Stack-Adressen gegen die debug.xml aufgeloest:
+     #     onPosition -> _flushGps -> _store -> Storage.setValue
+     # Ein GPS-Block sind 120 Samples a ~40 B JSON, also ~5 KB, die AM STUECK serialisiert werden
+     # muessen. `_store` faengt die „Object Store voll"-Ausnahme ab — ein Out-of-Memory ist in
+     # Monkey C nicht abfangbar.
+     #
+     # GEPRUEFTE SACKGASSE, damit sie niemand nochmal geht: Code einsparen hilft NICHT. 1.0.80
+     # startet 7,3 kB tiefer als 1.0.86 und stuerzt nach derselben Datenmenge ab (bei 14,3 kB
+     # nominell FREI). Es ist Fragmentierung, nicht Platzmangel — deshalb ist die Groesse der
+     # EINZELANFORDERUNG der Hebel und nicht der Sockel.
+     #
+     # Fix: `_gpsChunkTarget()` nach dem Muster von `_accelChunkTarget()`, auf Uhren <=128 KB
+     # 30 statt 120 Samples. Verifiziert auf drei Uhren — Instinct 2 (nur GPS), fenix 5 (Accel
+     # UND GPS) und fenix 7X Pro als Gegenprobe, dass sich fuer grosse Uhren nichts aendert.
+     # Aus monotonem Wachstum bis zum Absturz wird ein Saegezahn mit stehendem Boden.
+     #
+     # NACH DER FREIGABE: `_APP_META["garmin"]["latest"]` auf 1.0.87, diesen Eintrag entfernen,
+     # Changelog-Punkt eintragen, und den Betroffenen Bescheid geben (Liste in docs/TODO.md).
+     "eingereicht": "2026-09-17",
+     "items": [
+         "Watches with little memory no longer quit in the middle of a recording. It hit the "
+         "Instinct 2 / 2S / 2X, the f\u0113nix 5 and the Forerunner 55, and when it happened, "
+         "everything after that point was gone. Six riders had managed 250 metres of foiling "
+         "between them across 46 recordings before we found it \u2014 none of them had written "
+         "to us. Position data is now written in smaller pieces, which removes the cause.",
+     ]},
     {"name": "Amazfit", "version": "1.0.10",
      # 13.09.2026 EINGEREICHT, einen Tag nach der Freigabe von 1.0.8. Zepp-Konsole: appId 1118995,
      # Application Time 2026.09.13, Status „Under Review (Can be Withdrawn)"; darunter 1.0.8 vom
