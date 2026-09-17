@@ -558,6 +558,9 @@ NAECHSTES: list[dict] = [
          "app lets go.",
          "The run numbers are back under the map in the Android app. Picking a run no longer "
          "means scrolling down to the table.",
+         "Your watch now tells us which model it is when a recording arrives, so your watch "
+         "shows up by name instead of just \u201cWear OS\u201d. It only helps us find faults "
+         "that affect one kind of watch \u2014 nothing about it is shared with anyone.",
          "Parawing is a sport you can pick for a session. Lowkite, parawing and parakite are "
          "the same thing, so they share one entry.",
          "German words that had slipped into the English interface are gone — among them the "

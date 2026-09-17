@@ -468,6 +468,26 @@ object Recorder {
         // einer LAUFENDEN Aufnahme darf sie NICHT gesendet werden: sie waere zu klein, und der
         // Fortschritt liefe ueber sein eigenes Ziel hinaus.
         meta.put("expected_chunks", chunkFiles.size)
+        // Uhr-Modell MIT DER AUFNAHME melden — bis 17.09.2026 tat das nur die Apple Watch, und
+        // der Server ist laengst darauf eingerichtet (`naming.modell_aus_session` nennt „Wear:
+        // SM-R915F" als Beispiel, `ingest.py` zieht daraus das Geraete-Label nach).
+        //
+        // Warum es noetig ist: beim PAIRING kommt das Label nicht immer von der Uhr. Von 122
+        // Wear-Aufnahmen der letzten 45 Tage liefen 77 unter der blossen Gattung „Wear OS", von
+        // 15 verschiedenen Nutzern — wir wussten also bei der Mehrheit unserer Wear-Flotte nicht,
+        // welche Uhr das ueberhaupt ist. Aufgefallen bei der Puls-Untersuchung zu u171: sein
+        // aelteres Token trug noch „Xiaomi Watch 2 Pro", sein aktuelles nur noch „Wear OS".
+        //
+        // MANUFACTURER nur als Rueckfall: `Build.MODEL` ist der Name, den auch das Pairing nimmt,
+        // und ein doppelter Hersteller davor macht aus „SM-L705F" nur „samsung SM-L705F". Ist
+        // MODEL leer — genau der Fall, der oben zur Gattung gefuehrt hat —, ist der Hersteller
+        // immer noch besser als nichts. Bleibt beides leer, schicken wir das Feld GAR NICHT:
+        // ein leerer Wert wuerde ein bereits aufgeloestes Label ueberschreiben.
+        val geraet = android.os.Build.MODEL?.trim()?.takeIf { it.isNotEmpty() }
+            ?: android.os.Build.MANUFACTURER?.trim()?.takeIf { it.isNotEmpty() }
+        if (geraet != null) {
+            meta.put("device_model", "$geraet · Wear OS (Android ${android.os.Build.VERSION.RELEASE})")
+        }
         val res = Api.startSession(meta)
         val received = HashSet<Int>()
         res.optJSONArray("received_chunks")?.let { a ->
