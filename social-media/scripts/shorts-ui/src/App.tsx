@@ -347,7 +347,9 @@ function Studio() {
   const srcDur = curVideo ? state?.vdurs?.[curVideo] ?? 0 : 0;
   const vidEnd = useMemo(() => trim.end ?? srcDur, [srcDur, trim.end]);
   const overhang = useMemo(() => {
-    if (!vidEnd) return 0;
+    // Mit „bis zum letzten Bild" verlaengert kein Text mehr das Ergebnis — das
+    // Videoende ist die Grenze, ueberstehende Standzeit wird abgeschnitten.
+    if (!vidEnd || halten) return 0;
     let o = 0;
     for (const tx of texts) {
       if (tx.start == null || !(tx.text.trim() || isStamp(tx.style))) continue;
@@ -355,7 +357,7 @@ function Studio() {
       o = Math.max(o, tx.start + 2 * fd + tx.hold - vidEnd);
     }
     return Math.max(0, o);
-  }, [texts, vidEnd]);
+  }, [texts, vidEnd, halten]);
   const tailTotal = useMemo(
     () => Math.max(tailSecs, overhang) + (endcard.file && endcard.append ? ecLen(endcard) : 0),
     [tailSecs, overhang, endcard],
