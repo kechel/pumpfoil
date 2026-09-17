@@ -1194,11 +1194,11 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     Jans fenix 7X Pro mit `app_version 1.0.87` — also von einer Uhr, die das Update wirklich
     aus dem Store gezogen hat. `_APP_META["garmin"]["latest"]` steht auf 1.0.87, der
     IN_REVIEW-Eintrag ist raus, der Changelog-Punkt getragen.
-  - **🔲 OFFEN: die Mails an die sieben Betroffenen** — u142, u479, u214, u460, u481, u496, u328.
-    Fertig formuliert, je in der Sprache des Nutzers (4x de, 1x en, 1x fr), Adresse + Betreff +
-    Text liegen bei Jan. Keiner der sieben hat je den Chat oder Push benutzt, Mail ist der
-    einzige Kanal. Zwei Adressen sind Apple Private Relay — kommt eine Zustellfehlermeldung,
-    bleibt nur der Chat.
+  - **✅ ALLE SIEBEN BENACHRICHTIGT (17.09., Mail).** u142, u479, u214, u460, u481, u496, u328 —
+    je in der Sprache des Nutzers (5x de, 1x en, 1x fr). Keiner der sieben hat je den Chat oder
+    Push benutzt, Mail war der einzige Kanal. Die zwei Apple-Relay-Adressen prallten zuerst ab
+    (`550 unauthorized sender`) — nach der Absender-Registrierung bei Apple (s. eigener Eintrag)
+    gingen auch sie durch. Die vorbereiteten Chat-Nachrichten wurden damit nicht gebraucht.
     **NICHT angeschrieben:** die 23 weiteren Lite-Uhren-Nutzer ohne Absturzmeldung, darunter die
     fenix-5-Fahrer mit ihren auffaellig kurzen Sessions. Dass deren Problem dieselbe Ursache hat,
     ist NICHT belegt. Wer sie erreichen will, nimmt den News-Banner — allgemein gehalten, ohne
