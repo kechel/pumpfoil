@@ -1096,10 +1096,23 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     bis sechs Minuten Aufnahme. Genau dort liegen die Sessions der Betroffenen (0,1 bis 8 min).
     Dass 1.0.80 mit 14,3 kB frei stirbt, spricht fuer Fragmentierung, nicht fuer Erschoepfung —
     und genau dagegen hilft ein kleinerer Block.
-  - **🔲 Der Fix wird damit wichtiger, nicht unwichtiger:** `_gpsChunkTarget()` nach dem Muster
-    von `_accelChunkTarget()`, auf Uhren <=128 KB etwa 30 statt 120 Samples. ~1,2 KB
-    Spitzenanforderung statt 5 KB. Braucht Jans OK (Uhr-Code) und danach denselben Emulator-Lauf
-    als Gegenprobe — er ist jetzt ja reproduzierbar.
+  - **✅ FIX GEBAUT UND IM EMULATOR BESTAETIGT (`7ce93882`, 17.09.2026).** `_gpsChunkTarget()`
+    nach dem Muster von `_accelChunkTarget()`: auf Uhren <=128 KB 30 statt 120 Samples, also
+    ~1,2 KB Spitzenanforderung statt ~5 KB. `Uploader.pendingKb()` zieht mit (sonst schaetzte es
+    den Puffer vierfach zu gross und die Restzeit-Warnung schluege genau hier zu frueh an).
+    **Messreihe des Fix-Builds (Sockel 74,9):**
+    ```
+      74,9 -> 76,1 -> 75,8 -> 77,1 -> 74,9      Saegezahn, KEIN Nettowachstum
+    ```
+    Zum Vergleich, beide Vorgaenger: strikt monoton bis zum Absturz, kein einziger Ruecklauf.
+    **Das beweist nebenbei den Mechanismus:** waeren die ~12 kB der gespeicherte DATENBESTAND
+    gewesen, muessten sie hier genauso anfallen — es werden dieselben Bytes geschrieben, nur in
+    vier mal so vielen Stuecken. Sie fallen nicht an. Der Zuwachs von vorher war also Heap, der
+    nie zurueckkam: die Signatur grosser Einzelanforderungen in einem zerstueckelten Heap.
+  - **🔲 Offen vor einer Einreichung:** ein LANGER Lauf mit dem Fix (zwei Stunden, wie ein echter
+    Nutzer), Version bumpen, und `watch/bin` neu bauen — beim Commit `7ce93882` bewusst NICHT
+    gebaut, es ist also nichts live. Danach den sechs Betroffenen Bescheid geben (u479, u460,
+    u496, u481, u142, u214); die wissen bis heute nicht, dass wir den Fehler kennen.
 
 
 - **🟡 LAUF-TRENNUNG IM TURN — geeicht an Accel-Wahrheit, Regel gefunden, NICHT gebaut**
