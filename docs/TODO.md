@@ -1100,10 +1100,13 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     nach dem Muster von `_accelChunkTarget()`: auf Uhren <=128 KB 30 statt 120 Samples, also
     ~1,2 KB Spitzenanforderung statt ~5 KB. `Uploader.pendingKb()` zieht mit (sonst schaetzte es
     den Puffer vierfach zu gross und die Restzeit-Warnung schluege genau hier zu frueh an).
-    **Messreihe des Fix-Builds (Sockel 74,9):**
+    **Messreihe des Fix-Builds — Saegezahn, KEIN Nettowachstum:**
     ```
-      74,9 -> 76,1 -> 75,8 -> 77,1 -> 74,9      Saegezahn, KEIN Nettowachstum
+      74,9 -> 76,1 -> 75,8 -> 77,1 -> 74,9 -> 77,2 -> 74,9      (Jans Ablesungen)
+      BODEN: 74,2 und stabil — er bleibt ueber alle Zyklen stehen, nichts driftet.
     ```
+    (Die abgelesenen Tiefpunkte liegen etwas ueber dem echten Boden: die Screenshots entstanden
+    jeweils kurz NACH dem Tiefpunkt. Jan hat 74,2 direkt beobachtet.)
     Zum Vergleich, beide Vorgaenger: strikt monoton bis zum Absturz, kein einziger Ruecklauf.
     **Das beweist nebenbei den Mechanismus:** waeren die ~12 kB der gespeicherte DATENBESTAND
     gewesen, muessten sie hier genauso anfallen — es werden dieselben Bytes geschrieben, nur in
