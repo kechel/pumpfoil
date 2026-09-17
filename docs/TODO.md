@@ -1076,27 +1076,30 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     `_accelChunkTarget()` — auf Uhren <=128 KB etwa 30 statt 120 Samples, also ~1,2 KB
     Spitzenallokation statt 5 KB. Kleine, begrenzte Aenderung an einer Stelle; behebt die
     Ursache statt nur Luft zu schaffen. Kosten: mehr Upload-Round-Trips auf diesen Uhren.
-  - **🔲 Weiter offen:** derselbe Emulator-Lauf mit `foil-instinct2-1.0.80-vergleich.prg` zur
-    Gegenprobe (startet 8,2 kB tiefer). Erreicht der alte Build die 85 kB gar nicht, ist die
-    Kette vollstaendig belegt.
-  - **Ursprungslage: der Test liegt bei Jan, nicht bei mir.**
-    **Alles vorbereitet unter `/home/jan/instinct2-test/`** (17.09.2026): beide Builds plus
-    `ANLEITUNG.md`.
+  - **🔴 GEGENPROBE 1.0.80 — STUERZT GENAUSO AB. Meine Codegroessen-These ist damit WIDERLEGT.**
     ```
-      foil-instinct2-1.0.86-aktuell.prg    71.628 B   frei 26.676
-      foil-instinct2-1.0.80-vergleich.prg  63.420 B   frei 34.884   (Budget 98.304)
+                 Start    Absturz   frei beim Absturz   gestiegen
+      1.0.86      73,3       85,6             6,2 kB     12,3 kB
+      1.0.80      66,0       77,5            14,3 kB     11,5 kB
     ```
-    Ablauf: Speicher im Leerlauf notieren, dann AUFNAHME starten (dort sprengte es im Juli), und
-    **lange laufen lassen — nicht zwanzig Sekunden** (CLAUDE.md). Dasselbe mit 1.0.80. Laeuft die
-    alte durch und die neue nicht, ist es belegt.
-    **Ich kann das NICHT selbst fahren** — der Simulator ist gegen Debian 12 gebaut und startet
-    auf der Debian-13-VM nicht (webkit2gtk-4.0 gegen 4.1, libsoup2 gegen libsoup3; der komplette
-    Debian-12-Stapel daneben loest alle Abhaengigkeiten auf, segfaultet dann am GTK-Unterbau).
-    Sauber ginge nur ein Container, und den baue ich nicht nebenbei auf der Maschine, die
-    `foil-server` ausliefert. Festgehalten in Memory `connectiq-simulator-nicht-auf-vm`.
-  - **🔲 Danach zu entscheiden:** die vier 27.08.-Commits fuer die Lite-Geraete wieder
-    herausnehmen (`excludeAnnotations`, wie schon fuer andere Bausteine), statt an der Uhr zu
-    sparen, die genug Speicher hat.
+    Der alte Build kippt mit **14,3 kB nominell frei** — von „zu wenig Speicher" kann also keine
+    Rede sein. Konstant ist nicht die Decke, sondern der ZURUECKGELEGTE WEG: beide sterben nach
+    rund 12 kB Zuwachs, egal wo sie starten. Die 7,3 kB Vorsprung kaufen 1.0.80 NICHTS.
+    **Damit ist der Codezuwachs seit 1.0.80 nicht die Ursache.** In den Nutzerdaten korrelierte
+    er, aber das war vermutlich ein Artefakt — die Absturzmeldung gibt es erst ab 1.0.77, und die
+    Kontrollgruppe auf alten Versionen waren zwei Geraete. Genau der Vorbehalt, der oben steht.
+    Wer den Abschnitt „Speicherluft um ein Viertel geschrumpft" liest: die MESSUNG stimmt
+    (+8.208 B), die SCHLUSSFOLGERUNG daraus nicht.
+  - **Was uebrig bleibt, ist der Fundort aus dem Stack: das Schreiben des GPS-Blocks.** Die Zahlen
+    passen: ein Block deckt 120 s ab und ist ~5 KB. Nach zwei bis drei Bloecken ist der Heap so
+    zerstueckelt, dass die naechste 5-KB-Anforderung nicht mehr AM STUECK passt — das sind vier
+    bis sechs Minuten Aufnahme. Genau dort liegen die Sessions der Betroffenen (0,1 bis 8 min).
+    Dass 1.0.80 mit 14,3 kB frei stirbt, spricht fuer Fragmentierung, nicht fuer Erschoepfung —
+    und genau dagegen hilft ein kleinerer Block.
+  - **🔲 Der Fix wird damit wichtiger, nicht unwichtiger:** `_gpsChunkTarget()` nach dem Muster
+    von `_accelChunkTarget()`, auf Uhren <=128 KB etwa 30 statt 120 Samples. ~1,2 KB
+    Spitzenanforderung statt 5 KB. Braucht Jans OK (Uhr-Code) und danach denselben Emulator-Lauf
+    als Gegenprobe — er ist jetzt ja reproduzierbar.
 
 
 - **🟡 LAUF-TRENNUNG IM TURN — geeicht an Accel-Wahrheit, Regel gefunden, NICHT gebaut**
