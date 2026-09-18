@@ -25,6 +25,13 @@ struct ShareCardView: View {
     @State private var highlight = -1   // -1 = alle Läufe, sonst 0-basiert (Vorauswahl via .onAppear)
     @State private var loaded = false
 
+    // Hintergrund statt Foto: "" = einfarbig (navy) | "karte" | "satellit". PWA hat das seit dem
+    // 16.09.2026, den Apps fehlte es (Jan, 18.09.). Ein gewaehltes Foto gewinnt.
+    @State private var karte = ""
+    /// Fuer welche Ebene der Server den Schleier schon gemessen hat — sonst messe er bei jedem
+    /// Reglerzug neu und der Regler zappelte.
+    @State private var autoFuer: String?
+
     // Foto-Hintergrund (optional, wie die PWA): darunter komponiert, Card kommt dann transparent.
     @State private var photo: UIImage?
     @State private var photoItem: PhotosPickerItem?
@@ -68,11 +75,15 @@ struct ShareCardView: View {
     private var configKey: String {
         let stats: String = sel.sorted().joined(separator: ",")
         let withPhoto: Bool = photoVersion > 0 && photo != nil
-        return "\(color)|\(stats)|\(track)|\(shade)|\(title)|\(withPhoto)|\(highlight)|\(loaded)"
+        // `dim` NUR bei Karten-Hintergrund im Schluessel: dort kommt der Schleier serverseitig
+        // ins Bild, der Regler muss also ein neues Bild holen. Beim Foto zeichnet ihn
+        // `updatePreview()` lokal — dann waere ein Neuladen je Reglerzug pure Verschwendung.
+        let kartenDim: String = (!karte.isEmpty && photo == nil) ? String(dim) : "-"
+        return "\(color)|\(stats)|\(track)|\(shade)|\(title)|\(withPhoto)|\(highlight)|\(loaded)|\(karte)|\(kartenDim)"
     }
     private var saveKey: String {
         let stats: String = sel.sorted().joined(separator: ",")
-        return "\(color)|\(stats)|\(track)|\(shade)|\(dim)|\(loaded)"
+        return "\(color)|\(stats)|\(track)|\(shade)|\(dim)|\(karte)|\(loaded)"
     }
 
     // Dieser Body war 121 Zeilen und der teuerste Ausdruck der App (>500 ms im Build-Log): zehn
@@ -205,6 +216,7 @@ struct ShareCardView: View {
             Spacer()
             runPicker
         }
+        hintergrundPicker
         dimSlider
     }
 
@@ -233,8 +245,25 @@ struct ShareCardView: View {
         }
     }
 
+    /// Hintergrund: einfarbig | Karte | Satellit. Ein Foto gewinnt und blendet die Zeile aus —
+    /// zwei Hintergruende gleichzeitig gibt es nicht (wie PWA und Android).
+    @ViewBuilder private var hintergrundPicker: some View {
+        if photo == nil {
+            Picker("", selection: $karte) {
+                Text(Loc.t("share.noPhoto", lang)).tag("")
+                Text(Loc.t("map.street", lang)).tag("karte")
+                Text(Loc.t("map.satellite", lang)).tag("satellit")
+            }
+            .pickerStyle(.segmented)
+            .onChange(of: karte) { _ in autoFuer = nil }
+        }
+    }
+
     @ViewBuilder private var dimSlider: some View {
-        if photo != nil {
+        if photo != nil || !karte.isEmpty {
+            // `updatePreview()` zeichnet den Schleier nur UNTER einem Foto; bei der Karte
+            // steckt er schon im Serverbild, der Regler loest dort ueber `refreshKey` ein
+            // Neuladen aus.
             Slider(value: $dim, in: 0...0.85) { _ in } .onChange(of: dim) { _ in updatePreview() }
         }
     }
@@ -315,6 +344,7 @@ struct ShareCardView: View {
             if let tr = sh["track"] as? Bool { track = tr }
             if let s = sh["shade"] as? String, s == "light" || s == "dark" { shade = s }
             if let d = sh["dim"] as? Double { dim = d }
+            if let k = sh["karte"] as? String, k == "karte" || k == "satellit" { karte = k }
         }
         highlight = initialHighlight   // #37: gewählter Lauf aus der Detailansicht
         // Default-Hintergrund: erstes Foto der Session (wie PWA). /media ist öffentlich.
@@ -334,10 +364,24 @@ struct ShareCardView: View {
         try? await Task.sleep(nanoseconds: 220_000_000)
         if Task.isCancelled { return }
         let chosen = Self.statOrder.filter { sel.contains($0) }
-        let bg = photo != nil ? "transparent" : "navy"
-        if let data = try? await Api.shareCard(session.id, color: color, stats: chosen, track: track, title: title, shade: shade, bg: bg, highlight: highlight) {
+        let bg = photo != nil ? "transparent" : (karte.isEmpty ? "navy" : karte)
+        let kartenBg = !karte.isEmpty && photo == nil
+        // Erstes Bild einer Ebene: messen lassen (-1), danach den festen Wert schicken.
+        let brauchtAuto = kartenBg && autoFuer != karte
+        let werte = try? await Api.shareCardMitDim(
+            session.id, color: color, stats: chosen, track: track, title: title, shade: shade,
+            bg: bg, highlight: highlight,
+            dim: !kartenBg ? nil : (brauchtAuto ? -1 : dim))
+        if let (data, gemessen) = werte {
             cardImage = UIImage(data: data)
             updatePreview()
+            if brauchtAuto {
+                autoFuer = karte
+                // Kostet EIN zusaetzliches Rendern (der neue Reglerwert loest refresh erneut aus,
+                // diesmal mit festem dim) — dafuer steht der Regler an der gemessenen Stelle, und
+                // die Kacheln liegen dann im Plattencache des Servers.
+                if let g = gemessen, abs(g - dim) > 0.001 { dim = g }
+            }
         }
         loading = false
     }
@@ -347,7 +391,7 @@ struct ShareCardView: View {
         try? await Task.sleep(nanoseconds: 500_000_000)
         if Task.isCancelled { return }
         let chosen = Self.statOrder.filter { sel.contains($0) }
-        try? await Api.saveSettings(["share": ["color": color, "stats": chosen, "track": track, "shade": shade, "dim": dim]])
+        try? await Api.saveSettings(["share": ["color": color, "stats": chosen, "track": track, "shade": shade, "dim": dim, "karte": karte]])
     }
 
     // Foto (Cover-Fit + Zoom/Pan) + Scrim (dim) + server-Card zusammensetzen — wie das Canvas
