@@ -56,7 +56,7 @@ das Duplikat. Jetzt erkennt es doppelte Aufnahmen (mittlere Abweichung unter `DU
 sie und **laesst die Nummer frei** — die Luecke bei 06 entsteht damit von selbst, statt jedes Mal
 neu weggeraeumt zu werden.
 
-## Zwei gefundene Regelbrueche
+## Drei Ablehnungen, drei Befunde
 
 ### 1. Ungerader Rand (behoben 01.09., Ursache erst 10.09. entfernt)
 
@@ -111,11 +111,57 @@ Die runden Screenshots sind **einwandfrei**: echte Kreise (78,2 % Deckung der Bo
 Durchmesser genau 360), transparente Ecken, Rand 0 auf allen Seiten. Auch das App-Icon ist
 regelkonform.
 
-### Fuer die dritte Runde
+### 3. Die dritte Ablehnung (18.09.2026) — und warum Messen hier nicht mehr weiterhilft
 
-Das Zepp-**Paket** ist von der Ablehnung nicht betroffen — 1.0.7 kann mit den korrigierten Bildern
-erneut eingereicht werden, **ohne Versions-Bump** (`watch-zepp/app.json` steht ohnehin schon auf
-1.0.8/code 11 fuer die naechste Fassung).
+**1.0.10 wurde am 18.09.2026 abgelehnt**, zum dritten Mal in Folge und zum dritten Mal **nur wegen
+der eckigen Vorschaubilder**: „Update the preview images. Affected: square-screen preview 1, 2, 3,
+4, 5, 6 and 7." Am **Paket** hat Zepp bis heute nichts beanstandet.
+
+**Vorher nachgemessen (18.09., alle sieben Dateien):** 360×360 PNG · Inhalt 312×360 mittig ·
+Rand links 24, rechts 24 · oben/unten 0 · Alpha ausschliesslich 0 oder 255, kein einziger
+halbdurchsichtiger Pixel. Die Doku wurde am selben Tag erneut abgerufen und sagt woertlich, was
+sie im September sagte: „The output size: 360×360px, format: PNG", „The background of screenshots
+should be transparent and not have a fill color", und fuer eckige Geraete „in the middle of the
+square transparent background, with an equal margins on the left and right, and no margins on the
+top or bottom".
+
+**Damit ist belegt: die geschriebene Regel ist nicht das, wonach geprueft wird.** Drei Ablehnungen
+gegen einen Satz Bilder, der die Vorgabe Wort fuer Wort erfuellt — weiter nach dem Text zu bauen
+heisst, ein viertes Mal zu raten.
+
+**Was diese Mail zum ersten Mal mitbringt: KORRIGIERTE BEISPIELBILDER.** „A corrected example is
+attached at the end of this message for reference … Please make sure the image you re-upload
+matches it." Sieben Anhaenge, `PREVIEW IMAGE SQUARE SCREEN 1` bis `7`. Das ist die erste
+nachmessbare Vorgabe, die es zu diesem Punkt je gab.
+
+**➡️ Naechster Schritt: diese Anhaenge sichern** (nach `screenshots/watch/zepp/beispiel-zepp/`),
+Leinwand, Inhaltsbox, Seitenverhaeltnis, Eckenradius und Alphakanal daran messen und den
+Generator auf die gemessenen Werte stellen — nicht auf den Doku-Text. Ohne die Beispiele hat die
+vierte Runde dieselbe Trefferwahrscheinlichkeit wie die ersten drei.
+
+Der Link in der Mail (`…/app-development/app-submission/#preview-images`) ist weiterhin **tot**
+(404, am 18.09. erneut geprueft).
+
+**Punkt 3 der Mail** war nur eine Empfehlung — „We recommend adding a feedback email" — und ist
+erledigt: `scripts/zepp-store-texte.py` haengt seit dem 18.09. an jeden Details-Text eine
+Kontaktzeile mit `info@pumpfoil.org`, in allen 17 Sprachen. Der franzoesische Text stand bei
+599 von 600 Zeichen und wurde dafuer gekuerzt; die Laengenpruefung laeuft gegen Text **plus**
+Zeile.
+
+### Zum Versions-Bump
+
+**Das Zepp-Paket ist von keiner der drei Ablehnungen betroffen** — beanstandet wurden jedes Mal
+nur die Bilder. Eine abgelehnte Fassung kann also mit korrigierten Bildern erneut eingereicht
+werden, ohne dass am Code etwas passieren muss.
+
+Stand 18.09.2026 gibt es trotzdem zwei Wege, und die Wahl gehoert Jan:
+
+- **1.0.10 nochmal**, nur mit neuen Bildern. Das Paket ist gebaut und geprueft (Jans
+  Emulatorlauf vom 13.09., ~2,5 Stunden), es kaeme ohne weiteren Aufwand zurueck ins Review.
+- **1.0.11 stattdessen** (`app.json` steht schon auf 1.0.11/code 14). Sie traegt den Inhalt von
+  1.0.10 **plus** Puls-Alarm, Vibrationsmuster, Wiederholung, Aufzeichnungsmodus und die
+  Sperr-Anzeige. Dafuer ist sie noch nie auf einer Uhr gelaufen und braucht denselben langen
+  Testlauf. Da eine Zepp-Runde Wochen dauert, spart dieser Weg im Erfolgsfall eine ganze Runde.
 
 ## ⚠️ Falle im Generator
 

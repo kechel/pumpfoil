@@ -377,6 +377,12 @@ def _note(e: dict, zustand: str) -> str:
             return f"approved {_datum(e['freigegeben'])}, appearing in the store shortly"
         return f"submitted {_datum(e['eingereicht'])}, waiting for {PRUEFER[e['name']]}"
     if zustand == "next":
+        # „built" ist eine Tatsachenbehauptung und war am 18.09.2026 fuer Amazfit 1.0.11 falsch:
+        # der Code lag fertig im Baum, gebaut hat ihn niemand (Zepp-Builds laufen nur auf Jans
+        # Mac). Genau diese Verwechslung von „fertig geschrieben" und „gebaut" hat am 10.09. schon
+        # eine falsche Zeile auf der oeffentlichen Seite erzeugt. Deshalb dieser vierte Zustand.
+        if e.get("nicht_gebaut"):
+            return "finished, waiting to be built and uploaded"
         wartet = e.get("wartet_auf")
         return (f"built, waiting for {wartet} to clear review first" if wartet
                 else "built, waiting to be uploaded")
@@ -448,6 +454,27 @@ ABGELEHNT: list[dict] = [
      "abgelehnt": "2026-09-10",
      "grund": "the store preview images were the problem, not the app itself; fixed and going "
               "back with the next version"},
+    {"name": "Amazfit", "version": "1.0.10",
+     # Zepp, 18.09.2026 — DRITTE Ablehnung in Folge, und zum dritten Mal geht es NICHT um die App,
+     # sondern um die eckigen Vorschaubilder („Update the preview images. Affected: square-screen
+     # preview 1, 2, 3, 4, 5, 6 and 7"). Am Code hat Zepp bis heute nichts beanstandet.
+     #
+     # WAS DIESE MAIL NEU HAT: Zepp hat KORRIGIERTE BEISPIELBILDER angehaengt („A corrected example
+     # is attached ... Please make sure the image you re-upload matches it") — die erste ueberhaupt
+     # nachmessbare Vorgabe. Die Textregel erfuellen unsere Bilder naemlich Punkt fuer Punkt:
+     # 360x360 PNG, Inhalt 312x360 mittig, Rand links 24 und rechts 24, oben/unten keiner, Alpha
+     # hart 0/255 (nachgemessen 18.09. an allen sieben Dateien). Die dritte Ablehnung ist damit ein
+     # Beleg, dass die geschriebene Regel NICHT das ist, wonach geprueft wird.
+     #
+     # Der Link in der Mail (docs.zepp.com/docs/guides/app-development/app-submission/#preview-images)
+     # ist weiterhin TOT (404, am 18.09. erneut abgerufen). Gueltig ist docs.zepp.com/docs/distribute/.
+     #
+     # Punkt 3 der Mail war nur eine Empfehlung („We recommend adding a feedback email") und ist
+     # erledigt: `scripts/zepp-store-texte.py` haengt jetzt an jeden Details-Text eine Kontaktzeile
+     # mit info@pumpfoil.org, in allen 17 Sprachen.
+     "abgelehnt": "2026-09-18",
+     "grund": "the store preview images again, not the app itself; Zepp sent corrected examples "
+              "this time, so the next set is measured against those"},
 ]
 
 # Solange diese Liste leer ist, blendet /changelog den Abschnitt „Being reviewed" aus.
@@ -553,44 +580,6 @@ IN_REVIEW: list[dict] = [
          "and nothing gets written into your profile behind your back.",
      ]},
 
-    {"name": "Amazfit", "version": "1.0.10",
-     # 13.09.2026 EINGEREICHT, einen Tag nach der Freigabe von 1.0.8. Zepp-Konsole: appId 1118995,
-     # Application Time 2026.09.13, Status „Under Review (Can be Withdrawn)"; darunter 1.0.8 vom
-     # 12.09. als „Approved".
-     #
-     # 1.0.9 WURDE NIE AUSGELIEFERT. Sie lag im Review, als Cesar (GitHub #4) meldete, dass sein
-     # Upload weiter mit „Out of Memory" abbricht — bei Block 108 von 2341. Jan hat sie deshalb
-     # zurueckgezogen und als 1.0.10 (code 13) mit dem Speicher-Fix neu eingereicht, statt Cesar
-     # auf zwei Review-Runden warten zu lassen; bei Zepp sind das Wochen. Der Inhalt von 1.0.9
-     # geht damit unveraendert mit raus — deshalb steht er unten weiter in `items`, ergaenzt um
-     # den Upload-Punkt. Die Store-Texte bleiben wie eingereicht (Jan: „die ganzen texte lassen
-     # wir so wie sie sind"), die Datei heisst darum weiter store-texte-1.0.9.csv.
-     #
-     # ANLASS fuer 1.0.9 war eine Nutzerantwort, keine Planung: die Rundmail an die elf
-     # Amazfit-Konten ging um 09:19 raus, um 10:43 kam die Beschreibung, die den Fehler erklaerte,
-     # und um 11:30 war er behoben.
-     #
-     # NACH DER FREIGABE: `_APP_META["zepp"]` auf 1.0.10, diesen Eintrag entfernen,
-     # Changelog-Punkte eintragen. Der Update-Hinweis vertraegt die 10 an der dritten Stelle:
-     # `istNeuer` in page/index.js vergleicht die Teile als ZAHLEN (nachgeprueft 13.09.), ein
-     # lexikalischer Vergleich haette 1.0.10 fuer aelter als 1.0.9 gehalten.
-     "eingereicht": "2026-09-13",
-     "items": [
-         "A long recording uploads without running out of memory. The watch used to hold the "
-         "whole recording while sending it — on a two-hour session that is around 7200 positions, "
-         "and the upload stopped part way with \u201eOut of Memory\u201c. Positions are now "
-         "released as they go out, so the longer the ride, the more this matters. Reported by a "
-         "rider whose upload stopped at block 108 of 2341.",
-         "A recording no longer ends when you press a button or swipe. Until now a single press "
-         "could close the app and take the running recording with it — on some watches that "
-         "happened on every press, which is why so few Amazfit recordings ever arrived complete.",
-         "A button press now shows the stop screen instead, the way the other activities on the "
-         "watch do. It stops nothing by itself; it only shows you where stopping lives, and your "
-         "previous screen comes back on its own after five seconds.",
-         "The data pages no longer repeat \u201ehold = stop\u201c in the status line. That line "
-         "now shows only what changes while you ride \u2014 satellite fix and whether a run is "
-         "under way.",
-     ]},
 
     {"name": "iPhone + Apple Watch", "version": "1.1.34",
      "eingereicht": "2026-09-18",
@@ -647,11 +636,33 @@ IN_REVIEW: list[dict] = [
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
     {"name": "Amazfit", "version": "1.0.11",
-     # 1.0.10 (code 13) liegt seit 13.09.2026 bei Zepp im Review — ein IN_REVIEW-Eintrag ist ab
-     # dem Upload eingefroren, alles Spaetere gehoert hierher. Deshalb app.json auf 1.0.11 /
-     # code 14 gebumpt, sobald diese Aenderung dazukam (18.09.2026).
-     "wartet_auf": "1.0.10",
+     # Der Code liegt fertig im Baum, GEBAUT ist er nicht — Zepp-Builds laufen nur auf Jans Mac.
+     "nicht_gebaut": True,
+     # 1.0.11 (code 14) traegt jetzt AUCH den Inhalt von 1.0.10: die wurde am 18.09.2026 von Zepp
+     # abgelehnt — wieder nur wegen der eckigen Vorschaubilder, nie wegen der App. Die vier Punkte
+     # von 1.0.10 stehen deshalb hier oben, die fuenf eigenen darunter; sonst stuende der Inhalt
+     # zweimal in der Tabelle (Regel 3 im Kopf). `wartet_auf: 1.0.10` ist entfallen, es gibt nichts
+     # mehr, worauf zu warten waere.
+     #
+     # OB 1.0.11 GEBAUT WIRD oder 1.0.10 mit neuen Bildern nochmal hochgeht, entscheidet Jan:
+     # der Ablehnungsgrund sitzt ausschliesslich in den Store-Bildern, das Paket von 1.0.10 war
+     # in Ordnung. Fuer 1.0.11 spricht, dass es fertig ist und eine Zepp-Runde Wochen dauert;
+     # dagegen, dass es noch nicht auf einer Uhr gelaufen ist.
      "items": [
+         "A long recording uploads without running out of memory. The watch used to hold the "
+         "whole recording while sending it — on a two-hour session that is around 7200 positions, "
+         "and the upload stopped part way with \u201eOut of Memory\u201c. Positions are now "
+         "released as they go out, so the longer the ride, the more this matters. Reported by a "
+         "rider whose upload stopped at block 108 of 2341.",
+         "A recording no longer ends when you press a button or swipe. Until now a single press "
+         "could close the app and take the running recording with it — on some watches that "
+         "happened on every press, which is why so few Amazfit recordings ever arrived complete.",
+         "A button press now shows the stop screen instead, the way the other activities on the "
+         "watch do. It stops nothing by itself; it only shows you where stopping lives, and your "
+         "previous screen comes back on its own after five seconds.",
+         "The data pages no longer repeat \u201ehold = stop\u201c in the status line. That line "
+         "now shows only what changes while you ride \u2014 satellite fix and whether a run is "
+         "under way.",
          "The watch shows your foil again when your alarm limits are set by hand. Picking "
          "fixed limits in your profile used to leave the watch saying \u201eno foil\u201c on the "
          "start screen, although the ride was recorded with your default foil anyway \u2014 what "

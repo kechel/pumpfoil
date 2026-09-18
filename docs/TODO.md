@@ -9,6 +9,40 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 🚀 App-Release-Stand
 
+- **🔴 18.09. — Amazfit/Zepp 1.0.10 ABGELEHNT. Dritte Ablehnung in Folge, dritte Mal die
+  Vorschaubilder.** Zepp: „Update the preview images. Affected: square-screen preview 1, 2, 3, 4,
+  5, 6 and 7." **Am Paket hat Zepp bis heute nie etwas beanstandet** — weder 1.0.7 noch 1.0.10.
+  - **Vorher nachgemessen (alle sieben eckigen Dateien, 18.09.):** 360×360 PNG · Inhalt 312×360
+    mittig · Rand links 24, rechts 24 · oben/unten 0 · Alpha ausschliesslich 0 oder 255, kein
+    einziger halbdurchsichtiger Pixel. Die Doku am selben Tag erneut abgerufen
+    (`docs.zepp.com/docs/distribute/`, der Link AUS der Mail ist weiter tot, 404) — sie verlangt
+    woertlich genau das. **Unsere Bilder erfuellen die geschriebene Regel Punkt fuer Punkt.**
+  - **Damit ist belegt, dass die geschriebene Regel nicht das ist, wonach geprueft wird.** Drei
+    Ablehnungen gegen einen regelkonformen Satz. Ein viertes Mal nach dem Doku-Text zu bauen,
+    waere Raten.
+  - **🔑 NEU UND ENTSCHEIDEND: Zepp hat korrigierte BEISPIELBILDER angehaengt** („A corrected
+    example is attached … Please make sure the image you re-upload matches it", sieben Anhaenge
+    `PREVIEW IMAGE SQUARE SCREEN 1`–`7`). Das ist die erste nachmessbare Vorgabe zu diesem Punkt,
+    die es je gab. **🔲 OFFEN: Jan muss die Anhaenge bereitstellen** (nach
+    `screenshots/watch/zepp/beispiel-zepp/`); dann Leinwand, Inhaltsbox, Seitenverhaeltnis,
+    Eckenradius und Alphakanal daran messen und `scripts/zepp-store-previews.py` auf die
+    **gemessenen** Werte stellen statt auf den Doku-Text.
+  - **✅ Punkt 3 der Mail erledigt** (war nur eine Empfehlung): `scripts/zepp-store-texte.py`
+    haengt jetzt an jeden Details-Text eine Kontaktzeile mit `info@pumpfoil.org`, in allen
+    17 Sprachen. Franzoesisch stand bei 599/600 Zeichen und wurde gekuerzt; die Laengenpruefung
+    laeuft gegen Text **plus** Zeile. Die CSV heisst ausserdem nicht mehr fest
+    `store-texte-1.0.9.csv`, sondern traegt die Version aus `app.json`.
+  - **appmeta nachgezogen:** 1.0.10 von IN_REVIEW nach ABGELEHNT, die vier Punkte sind in den
+    1.0.11-Eintrag gewandert (jetzt neun), `wartet_auf: 1.0.10` ist raus. Dazu ein vierter
+    Zustand in `_note`: „finished, waiting to be built and uploaded" — 1.0.11 ist geschrieben,
+    aber NICHT gebaut, und „built" waere eine falsche Tatsachenbehauptung auf einer
+    oeffentlichen Seite (derselbe Fehler wie am 10.09. bei Wear).
+  - **🔲 ENTSCHEIDUNG JAN: 1.0.10 nochmal oder gleich 1.0.11?** 1.0.10 ist gebaut und geprueft
+    (Emulatorlauf 13.09., ~2,5 h) und kaeme ohne Aufwand zurueck ins Review. 1.0.11 traegt
+    zusaetzlich Puls-Alarm, Vibrationsmuster, Wiederholung, Aufzeichnungsmodus und die
+    Sperr-Anzeige, ist aber noch nie auf einer Uhr gelaufen und braucht denselben langen
+    Testlauf. Eine Zepp-Runde dauert Wochen — im Erfolgsfall spart 1.0.11 eine ganze Runde.
+
 - **🟡 18.09. 13:32 — iOS/Apple Watch 1.1.34 (Build 38) EINGEREICHT.** App Store Connect:
   „iOS-App 1.1.34 · 1.1.34 (38) · Warten auf Pruefung", Uebermittlungskennung
   `0aa1ae51-a3b4-44cb-b02e-6def74eea28e`, uebermittelt von Jan Kechel. Gebaut aus `9f193f11`
