@@ -42,6 +42,8 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.viewinterop.AndroidView
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberUpdatedState
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonPrimitive
 import org.osmdroid.config.Configuration
 import org.osmdroid.events.DelayedMapListener
 import org.osmdroid.events.MapListener
@@ -70,11 +72,22 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
     // Filter „nur mit Beschreibung" — rein clientseitig, `spot-map` liefert die Zahl je Spot mit.
     var nurNotes by remember { mutableStateOf(false) }
 
+    // Eigener Homespot (Name aus dem Profil) — die Karte startet darauf, statt auf alle Spots
+    // einzupassen (Jan, 18.09.2026: „kann die karte vielleicht einfach den eigenen homespot
+    // immer default ins zentrum schieben?"). Leer, wenn keiner gesetzt ist oder die Abfrage
+    // scheitert; dann bleibt es beim Einpassen.
+    var homespot by remember { mutableStateOf("") }
+
     suspend fun load() {
         loading = true
         try { items = Api.spotMap().sortedByDescending { it.sessions }; error = null }
         catch (e: Exception) { error = e.message }
         loading = false
+    }
+    LaunchedEffect(Unit) {
+        homespot = try {
+            Api.settings()["homespot"]?.jsonPrimitive?.contentOrNull ?: ""
+        } catch (_: Exception) { "" }
     }
     LaunchedEffect(Unit) { load() }
 
@@ -187,7 +200,7 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
             // 3. Der Inhalt darunter bekommt einen DECKENDEN Hintergrund. Compose-Flaechen sind
             //    sonst durchsichtig, und dann scheint alles durch, was dahinter liegt.
             SpotsMap(
-                karte, sichtbar, onOpenSpot,
+                karte, sichtbar, onOpenSpot, homespot,
                 Modifier.fillMaxWidth().height(220.dp).clipToBounds(),
             )
             Refreshable(refreshing = loading, onRefresh = { scope.launch { load() } }) {
@@ -325,6 +338,7 @@ private fun SpotsMap(
     karte: MapView,
     items: List<SpotMapItem>,
     onOpenSpot: (String) -> Unit,
+    homespot: String = "",
     modifier: Modifier = Modifier,
 ) {
     // Damit der Zoom-Listener (einmalig gesetzt) immer die aktuellen Daten sieht.
@@ -360,7 +374,15 @@ private fun SpotsMap(
         // Spots dem Nutzer die Ansicht weg (s. SpotsKarte).
         if (SpotsKarte.vorhanden) return@LaunchedEffect
         val pts = items.map { GeoPoint(it.lat, it.lon) }
-        if (pts.size == 1) {
+        // Homespot ins Zentrum, wenn es einen gibt und er in der Liste steht. Das ist die
+        // Ansicht, die fast jeden interessiert — das Einpassen ueber ALLE Spots zeigte die halbe
+        // Welt, und danach musste jeder erst zu sich hinnavigieren.
+        val heim = homespot.takeIf { it.isNotBlank() }
+            ?.let { h -> items.firstOrNull { it.spot.equals(h, ignoreCase = true) } }
+        if (heim != null) {
+            karte.controller.setZoom(HEIM_ZOOM)
+            karte.controller.setCenter(GeoPoint(heim.lat, heim.lon))
+        } else if (pts.size == 1) {
             karte.controller.setZoom(11.0)
             karte.controller.setCenter(pts[0])
         } else if (pts.size > 1) {
@@ -410,6 +432,16 @@ private fun SpotsMap(
         )
     }
 }
+
+/**
+ * Zoom fuer die Startansicht auf dem eigenen Homespot.
+ *
+ * 9 zeigt die Region, nicht den Steg: bei 1080 px Bildbreite und 256er-Kacheln sind das
+ * 360 / (256 * 2^9) * 1080 = 2,97 Laengengrade, auf 48 Grad Nord also gut 220 km. Der eigene
+ * Spot liegt damit in der Mitte, die Nachbarspots sind mit im Bild — und wer naeher will,
+ * zoomt; der Ausschnitt bleibt dann gemerkt (s. SpotsKarte).
+ */
+private const val HEIM_ZOOM = 9.0
 
 // Overlays neu setzen: ein Pin je Buendel. Einzelner Spot -> zu seinen Sessions; mehrere ->
 // hineinzoomen, damit der Nutzer selbst waehlt.
