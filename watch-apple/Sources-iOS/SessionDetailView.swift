@@ -575,9 +575,16 @@ struct SessionDetailView: View {
         // Die eingefrorene Ortung trifft auch Aufnahmen MIT Accel (detection == "model") —
         // deshalb hier zusaetzlich zum Nur-GPS-Fall pruefen, sonst bliebe genau der gemeldete
         // Fall vom 03.09. stumm.
-        if let m = s.analysis?.metrics, m.detection == "gps_only" || m.gps_frozen == true,
+        // Der Satz zur eingefrorenen Ortung behauptet „no distance, no speed and no runs" — er
+        // gilt deshalb nur ohne erkannte Laeufe (18.09.2026, gemeldet von einem Fahrer mit
+        // 15 Laeufen in der Session). `gps_frozen_share` rechnet ueber die GANZE Aufnahme samt
+        // Pausen; wer viel steht, reisst die Schwelle, obwohl die Ortung waehrend der Fahrt
+        // sauber misst.
+        let ohneLaeufe = (s.analysis?.segments ?? []).isEmpty
+        if let m = s.analysis?.metrics,
+           m.detection == "gps_only" || (m.gps_frozen == true && ohneLaeufe),
            s.status != "live" {
-            Text(nurGpsText(m))
+            Text(nurGpsText(m, ohneLaeufe: ohneLaeufe))
                 .font(.subheadline)
                 .padding(10)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -586,10 +593,11 @@ struct SessionDetailView: View {
         }
     }
 
-    private func nurGpsText(_ m: Metrics) -> String {
+    private func nurGpsText(_ m: Metrics, ohneLaeufe: Bool) -> String {
         // Eingefrorene Ortung zuerst: sie erklaert „keine Strecke, keine Laeufe" viel genauer
-        // als der allgemeine Nur-GPS-Hinweis (Fall vom 03.09.).
-        if m.gps_frozen == true { return Loc.t("sd.gpsFrozen", lang) }
+        // als der allgemeine Nur-GPS-Hinweis (Fall vom 03.09.) — aber nur, wenn wirklich keine
+        // Laeufe herauskamen; sonst behauptet der Satz etwas, das man daneben widerlegt sieht.
+        if m.gps_frozen == true && ohneLaeufe { return Loc.t("sd.gpsFrozen", lang) }
         if let hz = m.accel_hz_effective, hz > 0 {
             return Loc.t("sd.lowRateWarning", lang)
                 .replacingOccurrences(of: "{hz}", with: String(Int(hz.rounded())))

@@ -570,7 +570,15 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
         // Eingefrorene Ortung: das Geraet hat dieselbe Position wiederholt statt neu zu messen.
         // Ohne diesen Hinweis steht der Nutzer vor „0 Laeufe, 0,0 km/h" und haelt die App fuer
         // kaputt — genau so am 03.09. gemeldet.
-        if (mdet?.gpsFrozen == true && s.status != "live") {
+        //
+        // NUR wenn wirklich keine Laeufe herauskamen (18.09.2026). Der Satz behauptet woertlich
+        // „no distance, no speed and no runs"; bei einer Session MIT Laeufen ist er falsch, und
+        // genau so gemeldet. `gps_frozen_share` rechnet naemlich ueber die GANZE Aufnahme samt
+        // Pausen — beim Melder lagen 2527 von 2909 wiederholten Fixes in den Pausen, er foilte
+        // 671 s von 6255 s. Wer viel steht, reisst die 60-%-Schwelle, obwohl die Ortung waehrend
+        // der Fahrt sauber arbeitet (56 markierte Sessions, 44 davon mit Laeufen, 18 Nutzer).
+        val zeigeEingefroren = mdet?.gpsFrozen == true && s.analysis?.segments.orEmpty().isEmpty()
+        if (zeigeEingefroren && s.status != "live") {
             Card(
                 Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
@@ -582,7 +590,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             }
             Spacer(Modifier.height(8.dp))
         }
-        if (mdet?.detection == "gps_only" && mdet.gpsFrozen != true && s.status != "live") {
+        if (mdet?.detection == "gps_only" && !zeigeEingefroren && s.status != "live") {
             val hzEff = mdet.accelHzEffective
             val warnText = if (hzEff != null && hzEff > 0)
                 I18n.t("sd.lowRateWarning").replace("{hz}", Math.round(hzEff).toString())
