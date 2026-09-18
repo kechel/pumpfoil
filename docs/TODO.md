@@ -55,6 +55,35 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
     nur ab." Er macht deshalb **neue Aufnahmen aus dem Zepp-Emulator**; das ist der belastbare
     Weg. Die gemessene Maske bleibt bis dahin drin (sie schadet nicht und entspricht Zepps
     eigener Auslieferung), ist aber ausdruecklich **nicht** als gefundene Ursache zu lesen.
+  - **🔑 JANS ERKLAERUNG PASST AUF DIE ZEITACHSE — und meine nicht.** Jan (18.09.): „es sind
+    identische Bilder. Dann liegt es vielleicht daran, dass ich die in allen Sprachen die gleichen
+    einfach genommen habe, und die Screens sind aber gar nicht in den unterschiedlichen Sprachen."
+    Nachgeprueft, und es passt luekenlos:
+    - Die Ablehnung nennt **genau 16 Sprachen**: cs de en es fi fr id it ja nb nl pl pt-br pt-pt
+      ru zh. Das ist unsere Uhr-Sprachliste (17) **minus gsw und de-AT** (die kennt die
+      Zepp-Konsole nicht) **plus** die pt-Aufteilung in pt-BR/pt-PT. Es sind also alle
+      Sprach-Eintraege, die Jan angelegt hat — 7 Bildschirme x 16 Sprachen = 112 Bilder.
+    - Die 17 Sprach-Texte entstanden am **13.09. 14:15** (`4c71c9c9`). **1.0.8** ging am
+      **10.09. 11:19** hoch — da gab es die Sprach-Eintraege noch gar nicht — und wurde
+      **freigegeben**. **1.0.10** ging am **13.09. abends** hoch, als erste Einreichung MIT den
+      16 Sprachen, und wurde abgelehnt.
+    - **Die Bilder sind in beiden Einreichungen byteweise dieselben** (kein Commit dazwischen).
+      Die einzige Groesse, die sich geaendert hat, ist damit: dieselben **englischen** Aufnahmen
+      liegen jetzt auch unter de, zh, ru, ja … Ein Pruefer, der `preview-zh-square-1` oeffnet,
+      sieht eine englische Oberflaeche.
+    - **Das ist die einzige Erklaerung, die beides erklaert** — warum derselbe Satz einmal
+      durchging und einmal nicht. Meine Deutung mit den gerundeten Ecken erklaert das NICHT
+      (die Bilder waren am 12.09. schon genauso scharfkantig) und ist damit vom Tisch als
+      Ursache; die gemessene Maske bleibt nur als Angleichung an Zepps eigene Auslieferung drin.
+      **Bewiesen ist es trotzdem nicht** — die Mail benennt keine Eigenschaft, die Zuordnung ist
+      Indizienlage ueber die Zeitachse.
+  - **➡️ WEG (Jan): erneut einreichen und die Sprach-Vorschauen wieder herausnehmen.** Nur den
+    Standardsatz stehen lassen. **WICHTIG dabei: die uebersetzten TEXTE nicht mit wegwerfen** —
+    beanstandet wurden ausschliesslich Bilder, und die 68 Textfelder sind geprueft und im Repo
+    (`brand/stores/zepp/store-texte-1.0.11.csv`). Falls die Konsole Bilder nur zusammen mit dem
+    ganzen Sprach-Eintrag loeschen laesst, ist das ein echter Verlust und gehoert abgewogen.
+    Die Alternative — 112 wirklich lokalisierte Aufnahmen — ist machbar (die Uhr-App SPRICHT alle
+    17 Sprachen), aber fuer diese Runde unverhaeltnismaessig.
   - **Bilanz der drei Ablehnungen:** nur bei der zweiten (10.09.) ist die Ursache belegt —
     42 halbdurchsichtige Pixel je Datei, ausschliesslich in den beiden UNTEREN Ecken, Alpha ~44
     vom macOS-Fensterschatten, also scharfe obere und runde untere Ecken. Bei der ersten (01.09.)

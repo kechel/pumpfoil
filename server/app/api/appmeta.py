@@ -654,6 +654,7 @@ NAECHSTES: list[dict] = [
      # in Ordnung. Fuer 1.0.11 spricht, dass es fertig ist und eine Zepp-Runde Wochen dauert;
      # dagegen, dass es noch nicht auf einer Uhr gelaufen ist.
      "items": [
+         "On square watches the page number in the top right corner is no longer clipped. The corners of those displays are heavily rounded, and the number sat in the very corner \u2014 on the \u201e1/4\u201c the last digit lost a piece.",
          "A long recording uploads without running out of memory. The watch used to hold the "
          "whole recording while sending it — on a two-hour session that is around 7200 positions, "
          "and the upload stopped part way with \u201eOut of Memory\u201c. Positions are now "
