@@ -178,6 +178,24 @@ Kontaktzeile mit `info@pumpfoil.org`, in allen 17 Sprachen. Der franzoesische Te
 599 von 600 Zeichen und wurde dafuer gekuerzt; die Laengenpruefung laeuft gegen Text **plus**
 Zeile.
 
+### 🔑 Vorschaubilder gehoeren NUR in die Standardsprache
+
+In der Zepp-Konsole steht bei jeder Sprache das Haekchen **„Use the app introduction screenshot
+in default language"**. Ist es gesetzt, nimmt der Store die Bilder der Standardsprache und sonst
+keine — die uebersetzten **Texte** (App Name, Introduction, Details, New Version Introduction)
+bleiben davon unberuehrt. Jan hat es am 18.09.2026 fuer alle Sprachen gesetzt.
+
+**Warum das wichtig ist:** die Sprach-Eintraege entstanden am 13.09.2026 (`4c71c9c9`, 17 Sprachen).
+Bis dahin gab es sie nicht — **1.0.8** ging am 10.09. ohne sie hoch und wurde **freigegeben**,
+**1.0.10** am 13.09. mit ihnen und wurde **abgelehnt**, bei **byteweise identischen** Bildern.
+Ohne das Haekchen lagen unter jeder der 16 Sprachen dieselben **englischen** Aufnahmen; wer
+`preview-zh-square-1` oeffnete, sah eine englische Oberflaeche. Das ist die einzige Groesse, die
+sich zwischen der Freigabe und der Ablehnung geaendert hat.
+
+**Regel daraus:** Vorschaubilder nur in der Standardsprache pflegen. Ein zweiter Satz je Sprache
+waere nur mit wirklich lokalisierten Aufnahmen ehrlich — 7 Bildschirme x 16 Sprachen = 112 Stueck,
+und die Uhr-App spricht zwar alle 17 Sprachen, der Aufwand steht aber in keinem Verhaeltnis.
+
 ### Zum Versions-Bump
 
 **Das Zepp-Paket ist von keiner der drei Ablehnungen betroffen** — beanstandet wurden jedes Mal
