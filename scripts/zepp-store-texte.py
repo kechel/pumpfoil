@@ -40,7 +40,7 @@ TEXTE = {
   "Pumpfoil macht deine Uhr zum Aufnahmegerät fürs Pumpfoilen. Sie zeichnet GPS-Spur, Puls und die Bewegung deines Arms auf und schickt alles an pumpfoil.org, wo Läufe, Pumps und Gleitphasen automatisch erkannt werden.\n\nWährend der Fahrt siehst du Tempo, Puls und Pump-Kadenz — als Zahl oder als Balken, in den Farben deiner eigenen Zonen. Eine Touch-Sperre verhindert, dass Spritzwasser etwas verstellt. Aufnahmen bleiben auf der Uhr, bis sie übertragen sind; eine abgerissene Verbindung kostet dich also nix.\n\nKostenlos, ohne Werbung, ohne Tracking.",
   "Behoben: Tastendruck oder Wischen konnte die App und damit die Aufnahme beenden."),
  "fr": ("French", "Enregistreur pump foil, pumpfoil.org",
-  "Pumpfoil transforme ta montre en enregistreur pour le pump foil. Elle enregistre ta trace GPS, ton rythme cardiaque et le mouvement de ton bras, puis envoie le tout à pumpfoil.org, où les runs, les pumps et les phases de glisse sont détectés automatiquement.\n\nPendant la session tu vois la vitesse, le cardio et la cadence de pump, en chiffres ou en barres, aux couleurs de tes propres zones. Un verrouillage tactile empêche les éclaboussures de tout dérégler. Les enregistrements restent sur la montre jusqu'au transfert : une connexion perdue ne coûte rien.\n\nGratuit, sans publicité, sans traçage.",
+  "Pumpfoil transforme ta montre en enregistreur pour le pump foil. Elle enregistre ta trace GPS, ton cardio et le mouvement de ton bras, puis envoie tout à pumpfoil.org, où les runs, les pumps et les phases de glisse sont détectés automatiquement.\n\nPendant la session tu vois vitesse, cardio et cadence de pump, en chiffres ou en barres, aux couleurs de tes zones. Un verrouillage tactile empêche les éclaboussures de tout dérégler. Les enregistrements restent sur la montre jusqu'au transfert : une connexion perdue ne coûte rien.\n\nGratuit, sans publicité, sans traçage.",
   "Corrigé : un appui ou un geste pouvait fermer l'app et arrêter l'enregistrement."),
  "it": ("Italian", "Registratore pump foil, pumpfoil.org",
   "Pumpfoil trasforma il tuo orologio in un registratore per il pump foil. Registra la traccia GPS, il battito e il movimento del braccio, poi manda tutto a pumpfoil.org, dove run, pump e fasi di planata vengono riconosciuti automaticamente.\n\nMentre navighi vedi velocità, battito e cadenza di pump — come numeri o come barre, nei colori delle tue zone. Il blocco touch impedisce che gli schizzi cambino qualcosa. Le registrazioni restano sull'orologio finché non sono trasferite: una connessione persa non ti costa nulla.\n\nGratis, senza pubblicità, senza tracciamento.",
@@ -82,6 +82,38 @@ TEXTE = {
 
 # Reihenfolge wie in watch-zepp/page/index.js (LANGS), Englisch vorgezogen — das ist die Sprache,
 # die im Store-Formular als Erstes drankommt.
+# Kontaktzeile, an JEDEN Details-Text angehaengt. Zepp hat sie am 18.09.2026 in der
+# Ablehnung von 1.0.10 angeregt („We recommend adding a feedback email"), und sie ist auch
+# ohne Ablehnung richtig: im Zepp-Store gibt es keinen Rueckkanal, der Store verlinkt weder
+# unsere Seite noch ein Formular. `info@pumpfoil.org` ist die registrierte Adresse (s. TODO
+# 1156). Die Laengenpruefung unten laeuft gegen Text PLUS Zeile — Franzoesisch stand bei
+# 599/600 und wurde dafuer gekuerzt.
+KONTAKT = {
+ "en": "Feedback: info@pumpfoil.org",
+ "de": "Feedback: info@pumpfoil.org",
+ "gsw": "Feedback: info@pumpfoil.org",
+ "de-AT": "Feedback: info@pumpfoil.org",
+ "fr": "Contact : info@pumpfoil.org",
+ "it": "Contatti: info@pumpfoil.org",
+ "es": "Contacto: info@pumpfoil.org",
+ "pt": "Contato: info@pumpfoil.org",
+ "id": "Masukan: info@pumpfoil.org",
+ "ru": "Обратная связь: info@pumpfoil.org",
+ "nl": "Feedback: info@pumpfoil.org",
+ "fi": "Palaute: info@pumpfoil.org",
+ "cs": "Zpětná vazba: info@pumpfoil.org",
+ "ja": "お問い合わせ: info@pumpfoil.org",
+ "zh": "反馈: info@pumpfoil.org",
+ "nb": "Tilbakemelding: info@pumpfoil.org",
+ "pl": "Kontakt: info@pumpfoil.org",
+}
+
+
+def details(code: str) -> str:
+    """Details-Text plus Kontaktzeile — das ist, was in den Store geht."""
+    return TEXTE[code][2] + "\n\n" + KONTAKT[code]
+
+
 REIHE = ["en", "de", "gsw", "de-AT", "fr", "it", "es", "pt", "id", "ru", "nl", "fi", "cs",
          "ja", "zh", "nb", "pl"]
 
@@ -94,7 +126,8 @@ def main() -> int:
     wurzel = pathlib.Path(__file__).resolve().parents[1]
     fehler = []
     for c in REIHE:
-        lang, intro, det, neu = TEXTE[c]
+        lang, intro, _, neu = TEXTE[c]
+        det = details(c)
         for feld, wert in (("app_name", NAME), ("app_introduction", intro),
                            ("app_details", det), ("new_version_introduction", neu)):
             if len(wert) > GRENZE[feld]:
@@ -108,18 +141,23 @@ def main() -> int:
     print(f"{len(REIHE)} Sprachen, alle innerhalb 30 / 40 / 600 / 100:\n")
     print(f"{'code':<6} {'Sprache':<21} {'Intro':>8} {'Details':>10} {'Neu':>9}")
     for c in REIHE:
-        lang, intro, det, neu = TEXTE[c]
+        lang, intro, _, neu = TEXTE[c]
+        det = details(c)
         print(f"{c:<6} {lang:<21} {len(intro):>5}/40 {len(det):>7}/600 {len(neu):>5}/100")
 
-    ziel = wurzel / "brand/stores/zepp/store-texte-1.0.9.csv"
+    # Dateiname traegt die Version aus app.json — sonst heisst die CSV nach drei Einreichungen
+    # immer noch „1.0.9" und niemand weiss, welcher Satz im Store steht.
+    import json
+    ver = json.loads((wurzel / "watch-zepp/app.json").read_text(encoding="utf-8"))["app"]["version"]["name"]
+    ziel = wurzel / f"brand/stores/zepp/store-texte-{ver}.csv"
     if args.echt:
         with ziel.open("w", newline="", encoding="utf-8") as f:
             w = csv.writer(f, quoting=csv.QUOTE_ALL)
             w.writerow(["code", "language", "app_name", "app_introduction", "app_details",
                         "new_version_introduction"])
             for c in REIHE:
-                lang, intro, det, neu = TEXTE[c]
-                w.writerow([c, lang, NAME, intro, det, neu])
+                lang, intro, _, neu = TEXTE[c]
+                w.writerow([c, lang, NAME, intro, details(c), neu])
         print(f"\ngeschrieben: {ziel.relative_to(wurzel)}")
     else:
         print("\nTROCKENLAUF — mit --echt die CSV schreiben.")
