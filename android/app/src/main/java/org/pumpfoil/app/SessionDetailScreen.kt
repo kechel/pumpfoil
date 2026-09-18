@@ -456,18 +456,6 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
     }
 }
 
-// Bedienzeilen kompakt halten. Material3 blaeht JEDES Chip, jeden Schalter und jeden Knopf auf
-// mindestens 48 dp Antippflaeche auf (LocalMinimumInteractiveComponentEnforcement) — unsichtbar,
-// aber bei den fuenf Bedienzeilen ueber der Karte und den Lauf-Nummern darunter summierte sich das
-// zu einer halben Bildschirmhoehe Leerraum (Jan, 17.09.2026: „viel weniger Padding und Spacing in
-// dem Bereich"). Hier faellt nur dieser unsichtbare Rahmen weg; die Elemente selbst behalten ihre
-// Groesse (Chip 32 dp, Schalter 32 dp) und bleiben bequem treffbar.
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun Kompakt(content: @Composable () -> Unit) {
-    CompositionLocalProvider(LocalMinimumInteractiveComponentEnforcement provides false) { content() }
-}
-
 @OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpenSession: (Int) -> Unit = {}, onReload: () -> Unit = {},

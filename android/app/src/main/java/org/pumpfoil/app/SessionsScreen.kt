@@ -91,7 +91,7 @@ import kotlinx.serialization.json.jsonPrimitive
 
 private enum class Scope { MINE, SPOT, ALL }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onSpotChat: (String) -> Unit = {}) {
     var scope by remember { mutableStateOf(Scope.MINE) }
@@ -255,24 +255,41 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
         Column(Modifier.padding(pad).fillMaxSize()) {
             // Live-Upload-Karte ganz oben (Parität zur PWA); NICHT in Community.
             UploadProgressCard(onOpen = { onOpen(it, null) }, modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp))
-            // Scope-Umschalter (scrollbar) + Accel/alle-Umschalter rechts.
-            Row(
+            // Scope-Umschalter + Accel/alle-Umschalter in EINER umbrechenden Zeile.
+            //
+            // Vorher: die Scope-Chips lagen in einem waagerecht scrollbaren Row mit `weight(1f)`,
+            // der Accel-Umschalter fest daneben. Sobald die Beschriftungen laenger wurden — ein
+            // langer Homespot-Name oder eine Sprache mit langen Woertern (im Test fi:
+            // „vain kiihtyvyys" / „kaikki") — blieb fuer die Chips so wenig Platz, dass der
+            // dritte MITTEN IM CHIP abgeschnitten wurde: vom gefuellten „Kaikki" war nur noch
+            // ein „K" zu sehen und es sah aus wie ein Darstellungsfehler (Jan, 17.09.2026).
+            // Scrollen half nicht, weil man den Rand nicht als Rand erkennt.
+            //
+            // FlowRow loest das so wie die PWA (`flex flex-wrap`): passt alles in eine Zeile,
+            // steht es in einer Zeile; sonst rutscht der Accel-Umschalter nach unten — ganz
+            // sichtbar statt halb abgeschnitten.
+            // Kompakt, damit die zweite Zeile die Kopfzone nicht in die Hoehe treibt (s. Kompakt.kt).
+            Kompakt {
+            FlowRow(
                 Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                Row(Modifier.weight(1f).horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(selected = scope == Scope.MINE, onClick = { spot = ""; scope = Scope.MINE }, label = { Text(I18n.t("sessions.mine")) }, colors = cyanChipColors())
-                    if (homespot.isNotBlank()) {
-                        FilterChip(
-                            selected = scope == Scope.SPOT && spot == homespot,
-                            onClick = { spot = homespot; scope = Scope.SPOT },
-                            label = { Text("📍$homespot") }, colors = cyanChipColors(),
-                        )
-                    }
-                    FilterChip(selected = scope == Scope.ALL && spot.isBlank(), onClick = { spot = ""; scope = Scope.ALL }, label = { Text(I18n.t("sessions.all")) }, colors = cyanChipColors())
+                FilterChip(selected = scope == Scope.MINE, onClick = { spot = ""; scope = Scope.MINE }, label = { Text(I18n.t("sessions.mine")) }, colors = cyanChipColors())
+                if (homespot.isNotBlank()) {
+                    FilterChip(
+                        selected = scope == Scope.SPOT && spot == homespot,
+                        onClick = { spot = homespot; scope = Scope.SPOT },
+                        // Ein langer Spotname darf die Zeile nicht sprengen: eine Zeile, am Ende
+                        // gekuerzt. Der ganze Name steht ohnehin in der Ueberschrift darueber.
+                        label = { Text("📍$homespot", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        colors = cyanChipColors(),
+                        modifier = Modifier.weight(1f, fill = false),
+                    )
                 }
-                Spacer(Modifier.width(8.dp))
+                FilterChip(selected = scope == Scope.ALL && spot.isBlank(), onClick = { spot = ""; scope = Scope.ALL }, label = { Text(I18n.t("sessions.all")) }, colors = cyanChipColors())
                 AccelSeg(accelOnly) { accel.set(it) }
+            }
             }
             // Spot-Auswahl als Dropdown (statt Freitext, der exakte Namen brauchte).
             Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
