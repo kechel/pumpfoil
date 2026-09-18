@@ -1060,21 +1060,23 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Fundstelle einzeln nachgelesen. Ergebnis — **alle offenen Luecken liegen auf Amazfit/Zepp**,
   ausser einer auf Wear:
 
-  1. **Puls-Alarm fehlt auf Amazfit.** `hrHigh` + `alarmPatternHr` kommen gar nicht an: die
-     Whitelist in `watch-zepp/app-side/index.js` laesst sie nicht durch, und `_checkAlarm(kmh)`
-     in `page/index.js` prueft nur die Geschwindigkeit. Garmin, Wear OS und Apple Watch haben den
-     Puls-Alarm vollstaendig. Genau der Fall, vor dem der Kommentar an der Whitelist selbst warnt
-     (`hrZones` fehlten dort schon einmal).
-  2. **Aufzeichnungsmodus wirkt nicht auf Amazfit.** `recordMode` (full/lite/gps) wird nicht
-     durchgelassen; die Uhr nimmt immer 25 Hz. Wer im Profil „sparsam" oder „nur GPS" waehlt,
-     bekommt es auf Amazfit nicht — und das ist die Plattform mit der OOM-Geschichte.
-  3. **Vibrationsmuster und Wiederholung fehlen auf Amazfit.** `alarmPatternHigh/Low`,
-     `alarmRepeat`, `alarmRepeatS` kommen nicht an; `_vibrate()` ist ein einziges Muster, einmal
-     pro Ueberschreitung. Man kann „zu schnell" nicht von „zu langsam" unterscheiden.
-  4. **Aktivitaetstyp fehlt auf Wear OS und Amazfit.** `activityType` (surfing/openwater) setzt
-     Garmin in die FIT-Session und Apple in den HealthKit-Typ; `RecorderService.kt:238` nagelt
-     `ExerciseType.WORKOUT` fest. Kosmetisch — betrifft, wie die Aufnahme in der Health-App der
-     Uhr erscheint.
+  1. **✅ ERLEDIGT 18.09. (`4832051b`) — Puls-Alarm auf Amazfit.**
+  2. **✅ ERLEDIGT 18.09. (`4832051b`) — Aufzeichnungsmodus auf Amazfit** (gps startet den Sensor
+     nicht, lite nimmt FREQ_MODE_NORMAL). Entschieden nur beim START einer Aufnahme.
+  3. **✅ ERLEDIGT 18.09. (`4832051b`) — Vibrationsmuster + Wiederholung auf Amazfit.**
+     Ursache bei 1–3 war dieselbe: die Whitelist in `watch-zepp/app-side/index.js` liess die
+     Schluessel nicht durch — genau der Fall, vor dem der Kommentar dort bei `hrZones` warnt.
+  4. **❌ WAR KEINE LUECKE — meine Durchsicht war hier falsch.** Ich hatte „`activityType` fehlt
+     auf Wear OS und Amazfit" notiert und behauptet, Apple setze damit den HealthKit-Typ. Beim
+     Nachlesen am 18.09.: die Apple-Treffer meines Greps waren `location.activityType`
+     (CoreLocation) und `cfg.activityType = .other` — gleichnamige, voellig andere Felder. Apple
+     liest den Server-Schluessel GAR NICHT.
+     Tatsaechlich ist `activityType` ("surfing"/"openwater") ein GARMIN-Begriff: er setzt die
+     Sportart der FIT-Session, damit die Aufnahme in Garmin Connect in der richtigen Kategorie
+     landet. Wear, Apple und Zepp erzeugen keine FIT-Datei — es gibt dort also nichts zu setzen.
+     Offen bleibt davon nur eine Kleinigkeit OHNE Bezug zu diesem Schluessel: `RecorderService.kt`
+     nagelt `ExerciseType.WORKOUT` fest, und Health Services kennt genauere Typen. Das betrifft
+     allein, wie die Aufnahme in der Health-App der Uhr erscheint.
 
   **Ausdruecklich KEINE Luecken** (nachgelesen, nicht geraten): `gnssMode` und `storageBudgetKb`
   sind Connect-IQ-Eigenheiten (GNSS-Wahl per API, kein `freeStorage`) und ergeben anderswo keinen
@@ -1082,7 +1084,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Tipp-Behandlung (Kommentar in `_effective_water_lock`). `speedScale` ist ein Altschluessel nur
   fuer Garmin bis 1.0.80, heute lesen alle `speedZones`.
 
-  Reihenfolge nach Nutzen: 2 (Datenverlust-Risiko) → 1 (fehlendes Feature) → 3 → 4.
+  Reihenfolge war: 2 → 1 → 3; 1–3 sind durch, 4 hat sich als Irrtum erwiesen.
   Amazfit 1.0.10 liegt im Review, app.json steht schon auf 1.0.11; Zepp-Build nur auf Jans Mac.
 
 - **🔲 96-KB-UHREN SCHALTEN STILL AUF GPS-ONLY — der Nutzer erfaehrt es nirgends richtig.**

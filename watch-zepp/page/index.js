@@ -1453,6 +1453,26 @@ Page(
       // "das overlay verschwindet einfach aber touch-lock bleibt aktiv"). Ein leerer
       // Canvas ist durchsichtig, die Messwerte bleiben also sichtbar.
       w.lockCanvas = w.touchShield.createWidget(hmUI.widget.CANVAS, { x: 0, y: 0, w: DW, h: DH });
+      // DAUERHAFTE Zustandsanzeige, schmal am unteren Rand.
+      //
+      // Bis 18.09.2026 gab es hier gar keine: die Sperre war unsichtbar, bis man die Uhr
+      // beruehrte — dann erschien fuer 1,2 s die Meldung und verschwand wieder. Wer die Uhr nur
+      // ansah, konnte nicht wissen, ob gesperrt ist. Auf Wear OS zeigt dafuer seit heute ein
+      // Schloss an der Stelle des Wassertropfens; hier gibt es keinen Tropfen (die Sperre kommt
+      // aus dem Menue), deshalb eine Zeile mit dem vorhandenen, uebersetzten Text — kein Emoji
+      // (Projektregel) und keine 17 neuen Uebersetzungen.
+      //
+      // VOR den Ereignis-Canvas angelegt und mit setEnable(false): ein bedienbares Widget
+      // darueber wuerde die Druck-Ereignisse schlucken, die das 2-s-Entsperren braucht (genau
+      // der Fehler vom 10.09.2026, s. Kommentar unten).
+      try {
+        w.lockMark = w.touchShield.createWidget(hmUI.widget.TEXT, {
+          x: 0, y: Math.round(DH * 0.88), w: DW, h: Math.round(DH * 0.09),
+          text: t("menu.touchLock"), text_size: Math.round(DH * 0.05),
+          color: 0x9aa4b2, align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V,
+        });
+        w.lockMark.setEnable(false);
+      } catch (e) { w.lockMark = null; }
       w.touchCanvas = w.touchShield.createWidget(hmUI.widget.CANVAS, { x: 0, y: 0, w: DW, h: DH });
       // Kurzer Tipper = nur der Hinweis. LANGES Druecken (2 s) gibt Touch frei — dieselbe Geste,
       // die auch UP/DOWN lang macht.
@@ -1484,8 +1504,10 @@ Page(
       if (s.lockTimer) { clearTimeout(s.lockTimer); s.lockTimer = null; }
       if (s.lockHoldTimer) { clearTimeout(s.lockHoldTimer); s.lockHoldTimer = null; }
       try { if (w.touchShield) hmUI.deleteWidget(w.touchShield); } catch (e) {}
-      w.touchShield = null; w.touchCanvas = null; w.lockCanvas = null; w.lockIcon = null; w.lockHint = null;
-
+      // `lockMark` haengt IM Schild, wird also mit ihm geloescht — den Zeiger trotzdem nullen,
+      // sonst verweist er auf ein weggeraeumtes Widget.
+      w.touchShield = null; w.touchCanvas = null; w.lockCanvas = null; w.lockIcon = null;
+      w.lockHint = null; w.lockMark = null;
     },
     _unlockTouchTemporarily() {
       const s = this.state;
