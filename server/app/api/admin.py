@@ -669,8 +669,27 @@ def pending(_a: models.User = Depends(current_admin), db: Session = Depends(get_
     chat = int(db.query(func.count()).select_from(models.ChatMessage)
                .filter(models.ChatMessage.report_count > 0,
                        models.ChatMessage.hidden.isnot(True)).scalar() or 0)
+    # Social-Feed: wartende Kanal-Einreichungen PLUS gemeldete Videos. Beides landet im selben
+    # Reiter und beides braucht eine Entscheidung, deshalb eine Zahl (Jan, 18.09.2026: „heute
+    # z.B. bei social-feed" fehlte die Anzeige — die Freigabe lag stumm im Reiter).
+    social = int(db.query(func.count()).select_from(models.SocialChannel)
+                 .filter(models.SocialChannel.pending_url.isnot(None)).scalar() or 0)
+    social += int(db.query(func.count()).select_from(models.SocialItem)
+                  .filter(models.SocialItem.reports > 0,
+                          models.SocialItem.blocked.isnot(True)).scalar() or 0)
+    # Rueckmeldungen: alles, was NICHT gesternt ist. Der Stern ist kein „erledigt", sondern ein
+    # Aufheben — Jan sammelt dort Zitate fuer spaetere Werbung („die will ich mir nur aufheben
+    # weil das schoene zitate sind"). Abgearbeitet wird per Loeschen; genau diese Trennung macht
+    # `DELETE /feedback/all` schon, das ebenfalls nur die ungesternten nimmt.
+    feedback = int(db.query(func.count()).select_from(models.Feedback)
+                   .filter(models.Feedback.starred.isnot(True)).scalar() or 0)
+    # Spot-Beschreibungen: eine Meldung blendet sofort aus, erst der Blick eines Admins
+    # entscheidet endgueltig — bis dahin ist es eine offene Aufgabe.
+    spots = int(db.query(func.count()).select_from(models.SpotNote)
+                .filter(models.SpotNote.hidden.is_(True)).scalar() or 0)
     return {"flagged": flagged, "fake": fake, "suspect": suspect, "chat": chat,
-            "total": flagged + fake + suspect + chat}
+            "social": social, "feedback": feedback, "spots": spots,
+            "total": flagged + fake + suspect + chat + social + feedback + spots}
 
 
 @router.get("/overview")

@@ -640,7 +640,15 @@ export interface AdminOverview {
   flagged: number; fake: number; reported: number; photos: number; photos_blocked: number; likes: number;
 }
 
-export interface AdminPending { flagged: number; fake: number; suspect?: number; chat?: number; total: number; }
+export interface AdminPending {
+  flagged: number; fake: number; suspect?: number; chat?: number;
+  // Seit 18.09.2026 auch diese drei — sie waren nur im Reiter zu sehen, also erst nach dem
+  // Aufmachen. `feedback` zaehlt die UNGESTERNTEN: der Stern hebt ein Zitat auf, er hakt
+  // nichts ab. `social` = wartende Kanaele + gemeldete Videos. `spots` = ausgeblendete
+  // Spot-Beschreibungen, die auf eine Entscheidung warten.
+  social?: number; feedback?: number; spots?: number;
+  total: number;
+}
 
 export interface AdminStatsBucket {
   date: string; new_users: number; active_users: number;
