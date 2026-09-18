@@ -459,12 +459,17 @@ ABGELEHNT: list[dict] = [
      # sondern um die eckigen Vorschaubilder („Update the preview images. Affected: square-screen
      # preview 1, 2, 3, 4, 5, 6 and 7"). Am Code hat Zepp bis heute nichts beanstandet.
      #
-     # WAS DIESE MAIL NEU HAT: Zepp hat KORRIGIERTE BEISPIELBILDER angehaengt („A corrected example
-     # is attached ... Please make sure the image you re-upload matches it") — die erste ueberhaupt
-     # nachmessbare Vorgabe. Die Textregel erfuellen unsere Bilder naemlich Punkt fuer Punkt:
-     # 360x360 PNG, Inhalt 312x360 mittig, Rand links 24 und rechts 24, oben/unten keiner, Alpha
-     # hart 0/255 (nachgemessen 18.09. an allen sieben Dateien). Die dritte Ablehnung ist damit ein
-     # Beleg, dass die geschriebene Regel NICHT das ist, wonach geprueft wird.
+     # URSACHE GEFUNDEN UND BEHOBEN, noch am selben Tag. Die Mail nennt „corrected examples", und
+     # das sind 112 Bild-URLs auf Zepps CDN unter UNSERER appId — unsere eigenen Uploads,
+     # 7 Bildschirme x 16 Sprachen. Heruntergeladen und nachgemessen: RGB-Abweichung 0,000 gegen
+     # alle sieben Dateien im Repo, aber ein ANDERER Alphakanal — ein Rechteck mit stark
+     # gerundeten Ecken (Radius ~57 px), byteweise dieselbe Maske ueber allen 112 Bildern.
+     # Das ist „corresponding device shape": die eckigen Amazfit-Displays sind stark gerundet.
+     # Am 10.09. hatten unsere Bilder scharfe OBERE und runde UNTERE Ecken — wir haben daraufhin
+     # ALLE Ecken scharf gemacht, also in die falsche Richtung korrigiert.
+     # Behoben: die Maske liegt als brand/stores/zepp/maske-eckig-360.png im Repo, der Generator
+     # wendet sie an, und die neuen sieben Dateien sind byteweise identisch mit dem, was Zepp
+     # zurueckgeschickt hat. Details in brand/stores/zepp/README.md.
      #
      # Der Link in der Mail (docs.zepp.com/docs/guides/app-development/app-submission/#preview-images)
      # ist weiterhin TOT (404, am 18.09. erneut abgerufen). Gueltig ist docs.zepp.com/docs/distribute/.
@@ -473,8 +478,8 @@ ABGELEHNT: list[dict] = [
      # erledigt: `scripts/zepp-store-texte.py` haengt jetzt an jeden Details-Text eine Kontaktzeile
      # mit info@pumpfoil.org, in allen 17 Sprachen.
      "abgelehnt": "2026-09-18",
-     "grund": "the store preview images again, not the app itself; Zepp sent corrected examples "
-              "this time, so the next set is measured against those"},
+     "grund": "the store preview images again, not the app itself; the cause is found and the "
+              "images are corrected, so the next version goes back with them"},
 ]
 
 # Solange diese Liste leer ist, blendet /changelog den Abschnitt „Being reviewed" aus.

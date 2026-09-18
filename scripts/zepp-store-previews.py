@@ -60,6 +60,9 @@ DUPLIKAT_SCHWELLE = 1.0
 WURZEL = pathlib.Path(__file__).resolve().parent.parent
 ROH = WURZEL / 'screenshots/watch/zepp/raw'
 ZIEL = pathlib.Path(os.environ.get('ZEPP_OUT') or WURZEL / 'screenshots/watch/zepp/store360')
+# Die Alpha-Maske fuer den eckigen Satz, gemessen aus Zepps Ruecklieferung vom 18.09.2026
+# (Herkunft und Messung s. unten im Schreibteil sowie brand/stores/zepp/README.md).
+MASKE_ECKIG = WURZEL / 'brand/stores/zepp/maske-eckig-360.png'
 SAETZE = [('circle', 'rund', 'rund'), ('square', 'eckig', 'eckig')]
 
 
@@ -177,11 +180,29 @@ def main() -> None:
             if breite % 2:
                 fehler.append(f'{quelle}: Inhaltsbreite {breite} ist ungerade -> Rand links != rechts')
                 continue
-            # Alpha des eckigen Satzes HART: 255 im Inhalt, 0 aussen. Damit koennen weder die runden
-            # unteren Fensterecken noch der macOS-Schatten aus dem Rohbild durchschlagen (s. Kopf).
-            eckmaske = np.zeros((KANTE, KANTE), dtype=np.uint8)
-            eckmaske[:, (KANTE - breite) // 2:(KANTE + breite) // 2] = 255
-            maske = Image.fromarray(eckmaske)
+            # Alpha des eckigen Satzes: GEMESSEN aus Zepps eigener Ruecklieferung, nicht gerechnet.
+            # Bis zum 18.09.2026 stand hier ein hartes Rechteck (255 im 312 breiten Band, 0 aussen).
+            # Das hat Zepp dreimal abgelehnt — zuletzt mit sieben angehaengten Bildern und dem Satz
+            # „Please make sure the image you re-upload matches it". Nachgemessen: diese Bilder sind
+            # UNSERE (RGB-Abweichung 0,000 gegen alle sieben Dateien im Repo), nur mit einer
+            # zusaetzlichen Alpha-Maske — einem Rechteck mit stark abgerundeten Ecken, Radius ~57 px
+            # bei 312x360. Dieselbe Maske liegt ueber allen 112 Bildern (7 Bildschirme x 16
+            # Sprachen), sie ist also erzeugt und nicht von Hand gemalt. Genau das meint
+            # „corresponding device shape": die eckigen Amazfit-Displays sind stark gerundet, ein
+            # scharfes Rechteck ist keine Geraeteform. Am 10.09. hatten die Bilder scharfe OBERE
+            # und runde UNTERE Ecken — da war die Richtung des Fixes falsch, nicht nur die Umsetzung.
+            maske = Image.open(MASKE_ECKIG).convert('L')
+            if maske.size != (KANTE, KANTE):
+                fehler.append(f'{MASKE_ECKIG}: {maske.size}, erwartet {KANTE}x{KANTE}')
+                continue
+            m = np.asarray(maske)
+            # Der deckende Kern muss genau im Inhaltsband liegen — sonst passt die Maske nicht zur
+            # berechneten Breite und wir schneiden Bildinhalt weg, ohne es zu merken.
+            xs = np.where(m.max(axis=0) > 0)[0]
+            if (int(xs.min()), int(xs.max())) != ((KANTE - breite) // 2, (KANTE + breite) // 2 - 1):
+                fehler.append(f'{quelle}: Maske deckt x{xs.min()}..{xs.max()}, '
+                              f'Inhalt liegt bei {(KANTE - breite) // 2}..{(KANTE + breite) // 2 - 1}')
+                continue
         fertig = []
         for i, (p, (x0, y0, x1, y1)) in enumerate(felder, 1):
             with Image.open(p) as im:
@@ -191,7 +212,7 @@ def main() -> None:
                 aus = roh.crop((x0, y0, x1, y1)).resize((breite, KANTE), Image.LANCZOS)
             leinwand = Image.new('RGBA', (KANTE, KANTE), (0, 0, 0, 0))
             leinwand.paste(aus, ((KANTE - breite) // 2, 0))
-            leinwand.putalpha(maske)   # rund: Kreis randlos · eckig: Rechteck mit gleichem Rand
+            leinwand.putalpha(maske)   # rund: Kreis randlos · eckig: Zepps gemessene Geraeteform
             fertig.append((i, p, leinwand))
 
         # 3b) Doppelte Aufnahmen NICHT schreiben -- und die Nummer der uebrigen NICHT verschieben.
@@ -232,9 +253,14 @@ def main() -> None:
             l, r = int(xs.min()), int(KANTE - xs.max() - 1)
             o, u = int(ys.min()), int(KANTE - ys.max() - 1)
             if form == 'eckig':
-                teil = int(((al > 0) & (al < 255)).sum())
-                if teil:
-                    fehler.append(f'{ziel_p.name}: {teil} halbdurchsichtige Pixel (Fensterrundung/Schatten?)')
+                # Bis 18.09.2026 wurde hier „0 halbdurchsichtige Pixel" verlangt. Das war die
+                # Regel fuer ein hartes Rechteck; die gemessene Maske hat gerundete Ecken und
+                # damit zwangslaeufig eine weiche Kante. Statt eines Zaehlers wird jetzt gegen die
+                # Maske selbst geprueft — der Alphakanal des Ergebnisses MUSS ihr genau entsprechen.
+                if not np.array_equal(al, m):
+                    ab = int((al != m).sum())
+                    fehler.append(f'{ziel_p.name}: Alphakanal weicht in {ab} Pixeln von '
+                                  f'{MASKE_ECKIG.name} ab')
                 if l != r or o or u:
                     fehler.append(f'{ziel_p.name}: Rand l/r/o/u = {l}/{r}/{o}/{u}, erwartet gleich l/r und 0 o/u')
             elif (l, r, o, u) != (0, 0, 0, 0):

@@ -12,7 +12,8 @@ zum direkten Hochladen. **Vorgaben:** https://docs.zepp.com/docs/distribute/#app
 |---|---|---|---|
 | **App Icon** | `app-icon-240.png` | 240×240 PNG, kreisrund, **transparenter** Hintergrund, **kein** Rand | 240×240 RGBA, flach cyan `#22d3ee` (kein Verlauf), Kreis berührt alle vier Ränder (Alpha 255 an jeder Randmitte), Ecken transparent |
 | **Screenshots runde Uhren** | `screenshots-rund/` (7×) | 360×360 PNG, transparenter Hintergrund, mittig, **kein** Rand | 360×360 RGBA, Inhalt 360×360 an (0,0) — Rand 0 auf allen Seiten |
-| **Screenshots eckige Uhren** | `screenshots-eckig/` (7×) | 360×360 PNG, transparent, mittig, links/rechts **gleicher** Rand, oben/unten keiner | 360×360 RGBA, Inhalt **312**×360 an (24,0) — links 24, rechts **24**, oben/unten 0; Inhalt **durchgehend deckend**, **0** halbdurchsichtige Pixel; Verhältnis 0,86667 = genau 390:450 |
+| **Screenshots eckige Uhren** | `screenshots-eckig/` (7×) | 360×360 PNG, transparent, mittig, links/rechts **gleicher** Rand, oben/unten keiner, **Geräteform** (gerundete Ecken) | 360×360 RGBA, Inhalt **312**×360 an (24,0) — links 24, rechts **24**, oben/unten 0; Alphakanal = `maske-eckig-360.png`, **byteweise identisch** mit Zepps eigener Rücklieferung vom 18.09.; Verhältnis 0,86667 = genau 390:450 |
+| **Alpha-Maske eckig** | `maske-eckig-360.png` | — (kein Konsolen-Feld) | 360×360 Graustufen, gemessen aus Zepps Rücklieferung: Rechteck 312×360 mit Eckenradius ≈ 57 px, 428 weiche Randpixel |
 
 Quellen (hier nur Kopien, damit ein Feld einer Datei entspricht):
 `brand/app-icons/zepp-240-round.png` und `screenshots/watch/zepp/store360/{rund,eckig}/`.
@@ -134,10 +135,39 @@ attached at the end of this message for reference … Please make sure the image
 matches it." Sieben Anhaenge, `PREVIEW IMAGE SQUARE SCREEN 1` bis `7`. Das ist die erste
 nachmessbare Vorgabe, die es zu diesem Punkt je gab.
 
-**➡️ Naechster Schritt: diese Anhaenge sichern** (nach `screenshots/watch/zepp/beispiel-zepp/`),
-Leinwand, Inhaltsbox, Seitenverhaeltnis, Eckenradius und Alphakanal daran messen und den
-Generator auf die gemessenen Werte stellen — nicht auf den Doku-Text. Ohne die Beispiele hat die
-vierte Runde dieselbe Trefferwahrscheinlichkeit wie die ersten drei.
+#### Die Anhaenge sind UNSERE eigenen Bilder — und genau das ist die Antwort
+
+Die Mail bindet keine Dateien ein, sondern **112 Bild-URLs** auf Zepps eigenem CDN:
+`img-cdn.zepp.com/1118995/preview-<sprache>-square-<n><zeitstempel>.png` — **1118995 ist unsere
+appId**, also unsere eigenen Uploads, 7 Bildschirme x 16 Sprachen. Der Mail-Baustein setzt
+dieselbe Liste zweimal ein, einmal als „Affected" und einmal als „corrected example"; deshalb
+steht sie im Text hundertfach.
+
+**Heruntergeladen und nachgemessen (18.09.2026):**
+
+| | unser Upload | Zepps Ruecklieferung |
+|---|---|---|
+| Leinwand | 360×360 RGBA | 360×360 RGBA |
+| Inhalt | 312×360 an (24,0) | 312×360 an (24,0) |
+| **RGB** | — | **Abweichung 0,000 gegen alle sieben Repo-Dateien** |
+| **Alpha** | hart 0/255, scharfe Ecken | **Rechteck mit stark gerundeten Ecken**, Radius ≈ 57 px, 428 weiche Randpixel |
+
+Es ist also **Bild fuer Bild unser eigenes**, ergaenzt um **eine** Alpha-Maske — dieselbe ueber
+allen 112 Dateien, in allen 16 Sprachen, byteweise identisch. Sie ist erzeugt, nicht gemalt.
+
+**Damit ist „corresponding device shape" endlich belegt statt geraten:** die eckigen
+Amazfit-Displays sind stark gerundet, ein scharfes Rechteck ist keine Geraeteform. Am 10.09.
+hatten unsere Bilder scharfe OBERE und runde UNTERE Ecken; wir haben daraufhin **alle** Ecken
+scharf gemacht — die Richtung war falsch, gemeint waren alle vier **rund**.
+
+**Behoben (18.09.):** die Maske liegt als `maske-eckig-360.png` hier im Ordner und wird vom
+Generator angewandt, statt ein Rechteck zu rechnen. Die Nachpruefung zaehlt nicht mehr
+halbdurchsichtige Pixel (das war die Regel fuers Rechteck), sondern vergleicht den Alphakanal
+**Pixel fuer Pixel mit der Maske**. Ergebnis: alle sieben neuen Dateien sind **byteweise
+identisch** mit dem, was Zepp als „corrected example" zurueckgeschickt hat. Die Rohbilder und
+die runde Reihe sind unveraendert (nachgemessen: Abweichung 0 in allen sieben runden Dateien).
+
+Zepps Ruecklieferung liegt zum Nachprüfen unter `screenshots/watch/zepp/zepp-rueckmeldung/`.
 
 Der Link in der Mail (`…/app-development/app-submission/#preview-images`) ist weiterhin **tot**
 (404, am 18.09. erneut geprueft).
