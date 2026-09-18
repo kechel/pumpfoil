@@ -249,7 +249,12 @@ export default function Sessions() {
   useEffect(() => { resetAccelAuto(); }, [spot]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    api.getSettings().then((s) => { setHomespot((s.homespot as string) ?? ""); setHomespotId((s.homespot_id as number | null) ?? null); }).catch(() => {});
+    // Wie auf der Startseite der ABGELEITETE Wert (s. settings.py): ohne ihn fehlte der
+    // Reiter „Homespot" allen, die ihn nie im Profil gesetzt haben — also fast allen.
+    api.getSettings().then((s) => {
+      setHomespot((s.homespot_effective as string) ?? (s.homespot as string) ?? "");
+      setHomespotId((s.homespot_effective_id as number | null) ?? (s.homespot_id as number | null) ?? null);
+    }).catch(() => {});
     api.mySpots().then((l) => setMeineSpots(l.map((x) => x.spot))).catch(() => {});
     api.spotMap(false).then((m) => setSpots(   // alle Spots (auch GPS) als {id,name}
       // Gewaesser mitnehmen: „Berlin 3" und „Berlin 4" sind sonst im Auswahlfeld nicht

@@ -125,7 +125,13 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
     val tick by WatchSync.tick.collectAsState()
 
     LaunchedEffect(Unit) {
-        homespot = try { Api.settings()["homespot"]?.jsonPrimitive?.contentOrNull ?: "" } catch (_: Exception) { "" }
+        // `homespot_effective`: bei leerem Profilwert leitet der Server ihn aus der letzten
+        // Session ab (s. settings.py). Ohne das fehlte der Knopf „Homespot" allen, die ihn
+        // nie gesetzt haben — 555 von 572 Konten.
+        homespot = try {
+            val st = Api.settings()
+            (st["homespot_effective"] ?: st["homespot"])?.jsonPrimitive?.contentOrNull ?: ""
+        } catch (_: Exception) { "" }
         spots = try { Api.spots(accelOnly = false).all } catch (_: Exception) { emptyList() }
         // Einmal die Karte holen, nur fuer die Zuordnung Name -> spot_id. Billig (ein Aufruf) und
         // die Alternative waere ein neuer Endpunkt fuer denselben Zusammenhang.

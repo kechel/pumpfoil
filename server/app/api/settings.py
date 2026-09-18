@@ -419,6 +419,31 @@ def get_settings(user: models.User = Depends(current_user), db: Session = Depend
     # Homespot ist namensbasiert (mit Apps geteilt); zusätzlich die spot_id für neue Clients.
     from ..spots import spot_id_by_name
     m["homespot_id"] = spot_id_by_name(db, m["homespot"]) if m.get("homespot") else None
+    # „Automatisch (letzte Session)" — GENAU DAS versprach die Profil-Auswahl schon (leerer Wert
+    # heisst dort `profile.homespotAuto`), implementiert war es aber nirgends: jeder Leser
+    # behandelte leer als „kein Homespot". Nachgezaehlt am 18.09.2026: von 572 Konten haben 17
+    # einen gesetzt, 269 weitere haben Sessions und damit einen ableitbaren. Bei denen blieben
+    # Wetterkarte, „Homespot"-Reiter und Spot-Chat-Vorwahl leer, obwohl wir es wussten.
+    # (Jan: „Wenn kein Homespot gesetzt ist Default Fallback für alle Homespot abfragen genauso".)
+    #
+    # ZWEI FELDER, bewusst: `homespot` bleibt der GESETZTE Wert (leer = nicht gesetzt), damit die
+    # Profil-Auswahl weiter „Automatisch" anzeigen kann und ein Speichern nichts festschreibt,
+    # was der Nutzer nie gewaehlt hat. Wer den Spot BENUTZT, liest `homespot_effective`.
+    # NICHT im oeffentlichen Profil verwenden (`community.py`): was dort steht, hat der Nutzer
+    # selbst eingetragen — ein abgeleiteter Ort waere eine Veroeffentlichung ohne Entscheidung.
+    if m.get("homespot"):
+        m["homespot_effective"] = m["homespot"]
+        m["homespot_effective_id"] = m["homespot_id"]
+        m["homespot_auto"] = False
+    else:
+        letzte = (db.query(models.Session.place_name, models.Session.spot_id)
+                  .filter(models.Session.user_id == user.id, models.Session.deleted.isnot(True),
+                          models.Session.is_pumpfoil.isnot(False),
+                          models.Session.place_name.isnot(None), models.Session.place_name != "")
+                  .order_by(models.Session.started_at.desc()).first())
+        m["homespot_effective"] = letzte[0] if letzte else ""
+        m["homespot_effective_id"] = (letzte[1] if letzte else None)
+        m["homespot_auto"] = bool(letzte)
     # Puls-Zonen: nie gesetzt -> Vorschlag aus dem eigenen gemessenen Hoechstpuls mitliefern,
     # zusammen mit dem Hinweis, DASS es nur ein Vorschlag ist (die Oberflaeche zeigt das an und
     # speichert erst, wenn der Nutzer bestaetigt/aendert).
