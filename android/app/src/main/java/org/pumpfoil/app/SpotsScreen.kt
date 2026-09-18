@@ -373,7 +373,23 @@ private fun SpotsMap(
                 // Bild. Eine Stufe naeher genuegt — die Karte darf umlaufen, sie soll nur nicht
                 // so weit draussen starten. Zweites `post`, damit der Zoom des Einpassens schon
                 // uebernommen ist, wenn wir ihn lesen.
-                karte.post { karte.controller.setZoom(karte.zoomLevelDouble + 1.0) }
+                karte.post {
+                    karte.controller.setZoom(karte.zoomLevelDouble + 1.0)
+                    // Und den Blick um 30 % der sichtbaren Breite nach OSTEN schieben, die Karte
+                    // wandert dadurch nach links (Jan, 18.09.2026: „die default spots karte noch
+                    // ca 30% weiter nach links verschieben"). Grund: die Spots ballen sich in
+                    // Europa, und beim reinen Einpassen lag dieser Haufen am rechten Rand.
+                    // Drittes `post`, damit die Projektion den neuen Zoom schon kennt — sonst
+                    // rechnen wir mit der sichtbaren Breite von VORHER.
+                    karte.post {
+                        val sicht = karte.boundingBox ?: return@post
+                        val c = karte.mapCenter
+                        val neuLon = c.longitude + sicht.longitudeSpanWithDateLine * 0.30
+                        // Datumsgrenze: 190° gibt es nicht, das waeren -170°.
+                        val norm = ((neuLon + 540.0) % 360.0) - 180.0
+                        karte.controller.setCenter(GeoPoint(c.latitude, norm))
+                    }
+                }
             }
         }
     }

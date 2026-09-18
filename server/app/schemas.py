@@ -198,6 +198,14 @@ class AnalysisOut(BaseModel):
     # Nur die ANZAHL, nicht die Distanzen — die Detailansicht zeigt "Laeufe/Starts".
     # None = keine Versuchsdaten (dann zeigt die Kachel wie bisher nur die Laeufe).
     start_attempts: int | None = None
+    # Laeufe und laengster Lauf. Standen bis 18.09.2026 NICHT hier — und weil der Teilen-Dialog
+    # seine Kachel-Auswahl aus genau diesem Objekt ableitet, waren „Laeufe" und „laengster Lauf"
+    # in KEINEM Client waehlbar: die PWA prueft `a.num_runs > 0`, das war immer `undefined > 0`,
+    # also false; Android hatte die beiden daraufhin fest auf false gesetzt. Das PNG kann sie
+    # laengst (`sharecard.py`, Zeilen „runs"/„longest"), die Spalten liegen im AnalysisResult.
+    # Jan, 18.09.2026: „na dann bitte nachziehen, das ist doch quatsch."
+    num_runs: int | None = None
+    best_distance_m: float | None = None
 
 
 class SessionOut(BaseModel):

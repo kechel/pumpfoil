@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -239,6 +238,10 @@ internal fun SocialPlayerOverlay(z: SocialFeedZustand) {
     // das Fenster als Ursache der schwarzen Flaeche verdaechtigt. Es war die Groesse (das iframe
     // war 0 hoch). Deshalb ist der Weg jetzt wieder frei — die Zurueck-Taste erledigt
     // `onDismissRequest`, ein eigener BackHandler ist dafuer nicht mehr noetig.
+    // Leisten VOR dem Dialog messen (s. leistenRaender) — `navigationBarsPadding()` meldete
+    // im Dialogfenster 0, die Fusszeile lag dann unter der Navigationsleiste.
+    val (_, leisteUnten) = leistenRaender()
+
     Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         Box(Modifier.fillMaxSize().background(Color.Black)) {
             // Kein oberer Rand mehr fuer das X (Jan, 02.09.: „kann das Video bis nach ganz oben
@@ -247,7 +250,7 @@ internal fun SocialPlayerOverlay(z: SocialFeedZustand) {
             // Unten nur noch ein Hauch Abstand zur Fusszeile.
             // Schwarz bis unter die Leisten, Inhalt nicht: die Fusszeile lag sonst unter der
             // Navigationsleiste.
-            Column(Modifier.fillMaxSize().navigationBarsPadding().padding(bottom = 2.dp)) {
+            Column(Modifier.fillMaxSize().padding(bottom = leisteUnten + 2.dp)) {
                 Box(
                     // Nur ein Hauch Seitenrand (vorher 52 dp fuer die Pfeile). Der Player
                     // letterboxt hochkant aufgenommene Clips: passt das Video in die Breite,
