@@ -13,6 +13,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -83,7 +86,9 @@ import java.io.File
 
 private const val N = 1080f   // Card-/Composite-Kantenlänge in px (wie die PWA)
 
-private val STAT_ORDER = listOf("foiling", "runs", "pumps", "speed", "time", "longest", "distance", "pumprate")
+// Reihenfolge wie in der PWA (`web/components/ShareDialog.tsx`, STAT_ORDER) — „avgspeed"
+// fehlte hier ganz, die Kachel war auf Android also nicht waehlbar (Jan, 18.09.2026).
+private val STAT_ORDER = listOf("foiling", "runs", "pumps", "avgspeed", "speed", "time", "longest", "distance", "pumprate")
 
 // Foto-Rechteck in 1080-Einheiten (wie web/xf): Position + Größe des Hintergrundfotos.
 private data class Xf(val x: Float, val y: Float, val w: Float, val h: Float)
@@ -137,6 +142,9 @@ private fun availableStats(s: SessionDetail): List<String> {
         "foiling" to ((a.foilingDistanceM ?: 0.0) > 0),
         "runs" to false,
         "pumps" to ((a.pumpCount ?: 0) > 0),
+        // Schnitt = Foiling-Strecke / Foil-Zeit; ohne eines von beiden gibt es ihn nicht
+        // (dieselbe Bedingung wie in der PWA).
+        "avgspeed" to ((a.foilingTimeS ?: 0.0) > 0 && (a.foilingDistanceM ?: 0.0) > 0),
         "speed" to ((a.maxSpeedMps ?: 0.0) > 0),
         "time" to ((a.foilingTimeS ?: 0.0) > 0),
         "longest" to false,
@@ -267,6 +275,19 @@ fun ShareDialog(session: SessionDetail, initialHighlight: Int = -1, onDismiss: (
         }
     }
 
+    // System-Leisten AUSSERHALB des Dialogfensters messen: hier laeuft der Code noch in der
+    // Komposition der Activity, und dort stimmen die Insets. IM Dialogfenster meldete
+    // `systemBarsPadding()` unten 0 — deshalb lag die Teilen-Schaltflaeche unter der
+    // Gestenleiste, und der Scrollweg endete zu frueh. Zweimal gemeldet: 08.09.2026 (Galaxy
+    // S23) und 18.09.2026 („es fehlen die save insets unten, ich kann nicht weit genug nach
+    // oben scrollen"). Beim ersten Mal war die Antwort `decorFitsSystemWindows=false` plus
+    // `systemBarsPadding()` — offensichtlich nicht verlaesslich. Jetzt feste dp aus der
+    // Activity, das kann das Dialogfenster nicht verschlucken.
+    val dichte = LocalDensity.current
+    val leisten = WindowInsets.systemBars
+    val randOben = with(dichte) { leisten.getTop(this).toDp() }
+    val randUnten = with(dichte) { leisten.getBottom(this).toDp() }
+
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         // Bei usePlatformDefaultWidth=false bestimmt der Inhalt selbst seine Hoehe. Die scrollbare
         // Column war damit UNBEGRENZT hoch: das Fenster wuchs ueber den Bildschirm hinaus, die
@@ -283,7 +304,8 @@ fun ShareDialog(session: SessionDetail, initialHighlight: Int = -1, onDismiss: (
         // Nutzer mit Galaxy S23 („die Taste ist unter den Display Tasten"). Seit targetSdk 35
         // erzwingt Android edge-to-edge, das Fenster reicht also bis unter die Leisten.
         Box(
-            Modifier.fillMaxSize().systemBarsPadding().imePadding().padding(vertical = 12.dp),
+            Modifier.fillMaxSize().imePadding()
+                .padding(top = randOben + 12.dp, bottom = randUnten + 12.dp),
             contentAlignment = Alignment.Center,
         ) {
         Column(
