@@ -403,10 +403,11 @@ function VerlaufKachel({ titel, color, achse, werte, domain, ticks, fmtTick, zus
               keine Daten in diesem Zeitraum
             </div>
           ) : (
-            /* Zwei unsichtbare Stuetzpunkte halten die Skala bei 0…max — sonst skaliert
-               TimeChart auf min…max und eine ruhige Reihe saehe aus wie starke Ausschlaege. */
-            <TimeChart t={[domain[0] - 1, ...tPlot, domain[1] + 1]}
-              values={[0, ...vPlot, vmax]} color={color} domainMs={domain} height={100} />
+            /* Feste Skala 0…max per `yRange` — sonst skaliert TimeChart auf min…max und eine
+               ruhige Reihe saehe aus wie starke Ausschlaege. Frueher standen dafuer zwei
+               Stuetzpunkte am Rand der Reihe; die zogen die Linie sichtbar dorthin. */
+            <TimeChart t={tPlot} values={vPlot} color={color} domainMs={domain}
+              yRange={[0, vmax]} height={100} />
           )}
         </div>
       </div>
@@ -645,11 +646,9 @@ function VerlaufsDiagramme() {
             const max = zahlen.length ? Math.max(...zahlen) : 0;
             const vmax = r.fest100 ? 100 : Math.max(max, 1);
             const vmin = 0;
-            // TimeChart skaliert auf min..max der Werte. Fuer eine feste Skala haengen wir zwei
-            // unsichtbare Stuetzpunkte an den Rand des Zeitraums — billiger als eine zweite
-            // Diagramm-Komponente, und die Linie bleibt dieselbe.
-            const tPlot = [domain[0] - 1, ...t, domain[1] + 1];
-            const vPlot = [vmin, ...werte, vmax];
+            // Feste Skala vmin..vmax bekommt der Chart per `yRange` gesagt. Frueher hingen
+            // dafuer zwei Stuetzpunkte am Rand der Reihe — die waren nicht unsichtbar, sondern
+            // zogen die Linie an beiden Raendern senkrecht auf 0 bzw. Maximum.
             return (
               <Card key={String(r.key)} className="p-3">
                 <div className="mb-1 flex items-baseline justify-between px-1">
@@ -666,7 +665,8 @@ function VerlaufsDiagramme() {
                     <span>{vmax.toFixed(0)}</span><span>{(vmax / 2).toFixed(0)}</span><span>0</span>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <TimeChart t={tPlot} values={vPlot} color={r.farbe} domainMs={domain} height={100} />
+                    <TimeChart t={t} values={werte} color={r.farbe} domainMs={domain}
+                      yRange={[vmin, vmax]} height={100} />
                   </div>
                 </div>
                 <div className="ml-9 mt-1 flex justify-between px-1 text-[10px] tabular-nums text-slate-500">

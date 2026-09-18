@@ -19,6 +19,7 @@ export function TimeChart({
   color = "#22d3ee",
   height = 120,
   domainMs,
+  yRange,
   spans = [],
   selection,
   onSelect,
@@ -29,6 +30,8 @@ export function TimeChart({
   color?: string;
   height?: number;
   domainMs: [number, number];
+  /** Feste y-Skala [min, max]. Ohne Angabe skaliert der Chart auf min…max der Werte. */
+  yRange?: [number, number];
   spans?: LabelSpan[];
   selection?: [number, number] | null;
   onSelect?: (range: [number, number]) => void;
@@ -43,9 +46,17 @@ export function TimeChart({
   const span = Math.max(t1 - t0, 1);
   const xFor = (ms: number) => ((ms - t0) / span) * W;
 
+  // Feste Skala, wenn der Aufrufer eine vorgibt — sonst wie bisher aus den Werten.
+  //
+  // Warum es die Angabe gibt: wer 0…max erzwingen wollte, haengte bisher zwei „unsichtbare"
+  // Stuetzpunkte knapp ausserhalb des Zeitraums an die Reihe. Unsichtbar waren sie aber nicht:
+  // in x lagen sie 1 ms neben dem Rand, in y auf 0 bzw. Maximum — die Linie zog also an BEIDEN
+  // Raendern senkrecht dorthin. Auf der Admin-Seite sah jede Kurve dadurch rechts wie ein
+  // Ausschlag aus und links wie ein Einbruch (Jan, 18.09.2026: „ganz rechts haben alle grafen
+  // noch so einen peak im diagramm, das ist verwirrend").
   const nums = values.filter((v): v is number => v != null);
-  const vmin = nums.length ? Math.min(...nums) : 0;
-  const vmax = nums.length ? Math.max(...nums) : 1;
+  const vmin = yRange ? yRange[0] : (nums.length ? Math.min(...nums) : 0);
+  const vmax = yRange ? yRange[1] : (nums.length ? Math.max(...nums) : 1);
   const vspan = Math.max(vmax - vmin, 1e-6);
   const yFor = (v: number) => H - 6 - ((v - vmin) / vspan) * (H - 12);
 
