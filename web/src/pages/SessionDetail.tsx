@@ -1246,6 +1246,12 @@ export default function SessionDetail() {
   const m = a?.metrics;
   const segs: any[] = a?.segments ?? [];
   const owned = session.owned !== false;
+  // Der Satz zur eingefrorenen Ortung behauptet „no distance, no speed and no runs" — er darf
+  // deshalb nur erscheinen, wenn das auch eintrat (Begruendung an der Ausgabestelle weiter unten).
+  // EINE Groesse fuer beide Hinweise: der GPS-only-Hinweis darf nicht ebenfalls verschwinden,
+  // nur weil das Merkmal gesetzt ist — sonst stuende bei einer gps_only-Session MIT Laeufen gar
+  // nichts mehr da.
+  const zeigeEingefroren = !!m?.gps_frozen && segs.length === 0;
 
   // Theoretische Leistung (W) für oben + je Lauf. Ohne Pump-Frequenz pauschal +50 W.
   const fo = session.foil;
@@ -1452,13 +1458,26 @@ export default function SessionDetail() {
       )}
       {/* Eingefrorene Ortung: das Gerät hat dieselbe Position wiederholt statt neu zu messen.
           Ohne diesen Hinweis steht der Nutzer vor „0 Läufe, 0,0 km/h" und hält die App für
-          kaputt — genau so ist es am 03.09. gemeldet worden. */}
-      {m?.gps_frozen && session.status !== "live" && (
+          kaputt — genau so ist es am 03.09. gemeldet worden.
+
+          NUR wenn wirklich keine Läufe herauskamen (seit 18.09.2026). Der Hinweis behauptet
+          wörtlich „no distance, no speed and no runs" — bei einer Session MIT Läufen ist das
+          schlicht falsch, und genau so gemeldet (u244: „the session itself seems to have been
+          recorded and saved normally. I can see the GPS track and all the data").
+          Warum der Befund trotzdem stimmt und der Satz nicht: `gps_frozen_share` rechnet über
+          die GANZE Aufnahme, Pausen eingeschlossen. Bei dem Melder liegen 2527 der 2909
+          wiederholten Fixes in den Pausen und nur 382 in den Läufen — er foilt 671 s von
+          6255 s. Wer viel steht, reißt die 60-%-Schwelle, obwohl die Ortung während der Fahrt
+          einwandfrei arbeitet. Nachgemessen am 18.09.: von 56 markierten Sessions haben 44
+          Läufe, betroffen sind 18 Nutzer.
+          Die MESSUNG bleibt, wie sie ist (sie ist ein Diagnose-Merkmal) — nur der Satz, der
+          eine Folge behauptet, erscheint jetzt ausschließlich, wenn die Folge eingetreten ist. */}
+      {zeigeEingefroren && session.status !== "live" && (
         <div className="mb-4 rounded-xl border border-amber-600/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-300">
           {t("sd.gpsFrozen")}
         </div>
       )}
-      {m?.detection === "gps_only" && !m?.gps_frozen && session.status !== "live" && (
+      {m?.detection === "gps_only" && !zeigeEingefroren && session.status !== "live" && (
         <div className="mb-4 rounded-xl border border-amber-600/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
           {m.accel_hz_effective != null && m.accel_hz_effective > 0
             ? t("sd.lowRateWarning", { hz: Math.round(m.accel_hz_effective) })
