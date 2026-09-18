@@ -618,6 +618,8 @@ NAECHSTES: list[dict] = [
          "where you left it for as long as the app is running.",
          "Ticking \u201eonly with a description\u201c updates the map at once. The pins used to sit "
          "there until you zoomed, which made the filter look broken.",
+         "The spot map no longer shows the Earth twice side by side when it is zoomed all the "
+         "way out, and it does not start that far out either.",
      ]},
 ]
 
