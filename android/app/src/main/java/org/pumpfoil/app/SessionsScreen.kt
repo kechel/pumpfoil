@@ -291,11 +291,23 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                 AccelSeg(accelOnly) { accel.set(it) }
             }
             }
-            // Spot-Auswahl als Dropdown (statt Freitext, der exakte Namen brauchte).
-            Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
-                SpotDropdown(spots, spotLabels, if (scope == Scope.SPOT) spot else "") { sel ->
-                    if (sel.isBlank()) { spot = ""; if (scope == Scope.SPOT) scope = Scope.ALL }
-                    else { spot = sel; scope = Scope.SPOT }
+            // Spot-Auswahl als Dropdown (statt Freitext, der exakte Namen brauchte) — und rechts
+            // in derselben Zeile der Datei-Import, damit er keine eigene Zeile mehr kostet
+            // (Jan, 18.09.2026). Nur in „Meine": ein Import erzeugt immer eine EIGENE Session,
+            // und in einer fremden Liste waere der Knopf sinnlos.
+            Kompakt {
+                Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically) {
+                    SpotDropdown(spots, spotLabels, if (scope == Scope.SPOT) spot else "") { sel ->
+                        if (sel.isBlank()) { spot = ""; if (scope == Scope.SPOT) scope = Scope.ALL }
+                        else { spot = sel; scope = Scope.SPOT }
+                    }
+                    if (scope == Scope.MINE) {
+                        Spacer(Modifier.weight(1f))
+                        ImportFileButton({ neueId ->
+                            if (neueId != null) onOpen(neueId, null) else scopeC.launch { load() }
+                        })
+                    }
                 }
             }
             // Sportart-Filter + Monat (nur eigene, scrollbar) — wie PWA.
@@ -335,14 +347,6 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                             )
                         }
                     }
-                }
-            }
-            // Datei-Import, rechts unter den Filtern — dieselbe Stelle wie in der PWA (Jan,
-            // 07.09.2026: „sollten die nicht in meine Sessions oben rechts unter den Filtern
-            // stehen?"). Nur in „Meine": ein Import erzeugt immer eine EIGENE Session.
-            if (scope == Scope.MINE) {
-                ImportFileButton { neueId ->
-                    if (neueId != null) onOpen(neueId, null) else scopeC.launch { load() }
                 }
             }
             // Aussortiert-Ansicht: WARUM eine Aufnahme hier liegt und was man tun kann. Stand

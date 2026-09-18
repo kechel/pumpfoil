@@ -2,10 +2,8 @@ package org.pumpfoil.app
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -23,7 +21,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -44,7 +41,7 @@ import kotlinx.coroutines.withContext
  * Aufrufer oeffnet sie bzw. laedt die Liste neu, genau wie die PWA es tut.
  */
 @Composable
-fun ImportFileButton(onImported: (Int?) -> Unit) {
+fun ImportFileButton(onImported: (Int?) -> Unit, modifier: Modifier = Modifier) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     var busy by remember { mutableStateOf(false) }
@@ -102,19 +99,28 @@ fun ImportFileButton(onImported: (Int?) -> Unit) {
         }
     }
 
-    Row(
-        Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 2.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.End,
+    // Schmal: Symbol + „FIT". Vorher stand hier „FIT/TCX/GPX importieren" in einer EIGENEN,
+    // ganzbreiten Zeile — in manchen Sprachen fast die halbe Bildbreite fuer eine Funktion, die
+    // die meisten nie brauchen (Jan, 18.09.2026: „der fit upload button ist riesen gross und
+    // breit, koennen wir den nur icon + fit nennen und in die zeile 'alle spots' rechtsbuendig
+    // mit nehmen?"). Der Aufrufer setzt ihn jetzt rechts in die Spot-Zeile.
+    //
+    // „FIT" bleibt unuebersetzt — es ist ein Dateiformat, kein Wort. Die volle, uebersetzte
+    // Beschriftung wandert in die `contentDescription` des Symbols, damit ein Screenreader
+    // weiterhin „FIT/TCX/GPX importieren" vorliest (dieselbe Regel wie bei den achtzehn
+    // Bezeichnungen, die am 13.09. nachgezogen wurden).
+    OutlinedButton(
+        onClick = { waehler.launch(arrayOf("*/*")) },
+        enabled = !busy,
+        modifier = modifier,
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
     ) {
-        OutlinedButton(onClick = { waehler.launch(arrayOf("*/*")) }, enabled = !busy) {
-            Icon(Icons.Filled.FileUpload, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.width(6.dp))
-            Text(
-                if (busy) I18n.t("sessions.importing") + (if (fortschritt.isNotEmpty()) " $fortschritt" else "") + " …"
-                else I18n.t("sessions.uploadFitZip")
-            )
-        }
+        Icon(Icons.Filled.FileUpload, contentDescription = I18n.t("sessions.uploadFitZip"),
+             modifier = Modifier.size(18.dp))
+        Spacer(Modifier.width(4.dp))
+        // Waehrend des Imports die Fortschrittszahl statt „FIT" — der Knopf soll nicht auf
+        // „importiere 3/12 …" anwachsen und die Zeile wieder sprengen.
+        Text(if (busy) fortschritt.ifEmpty { "…" } else "FIT")
     }
 
     if (meldung != null) {

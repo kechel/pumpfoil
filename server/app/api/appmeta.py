@@ -610,6 +610,9 @@ NAECHSTES: list[dict] = [
          "When no heart rate was measured, the watch says so plainly instead of hinting that you "
          "wore it wrong \u2014 and the recording now tells us whether a reading arrived at all, "
          "so we can tell a missing chest strap from a fault of ours.",
+         "The button that imports a FIT, TCX or GPX file is now a small \u201eFIT\u201c button at "
+         "the right of the spot row instead of a wide bar of its own, and it only appears while "
+         "you are looking at your own sessions \u2014 an import always creates one of yours.",
      ]},
 ]
 
