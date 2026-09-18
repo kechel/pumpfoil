@@ -103,7 +103,6 @@ struct SessionsView: View {
         uploadCardSection
         if scope == .mine { transfersAndSuggestions }
         filterSection
-        importSection
         aussortiertErklaerung
         spotRecordsSection
         spotWeatherSection
@@ -291,30 +290,6 @@ struct SessionsView: View {
         }
     }
 
-    // Knopf rechts unter den Filtern, nur in „Meine": ein Import erzeugt immer eine EIGENE
-    // Session, in der Community-Ansicht waere er irrefuehrend (dieselbe Begruendung wie im Web).
-    @ViewBuilder private var importSection: some View {
-        if scope == .mine {
-            Section {
-                HStack {
-                    Spacer()
-                    Button { zeigeWaehler = true } label: {
-                        Label(importLaeuft
-                              ? Loc.t("sessions.importing", lang)
-                                + (importFortschritt.isEmpty ? "" : " " + importFortschritt) + " …"
-                              : Loc.t("sessions.uploadFitZip", lang),
-                              systemImage: "square.and.arrow.down")
-                            .font(.subheadline)
-                    }
-                    .buttonStyle(.bordered)
-                    .disabled(importLaeuft)
-                }
-                .listRowInsets(EdgeInsets(top: 2, leading: 16, bottom: 2, trailing: 16))
-                .listRowSeparator(.hidden)
-            }
-        }
-    }
-
     private var importMeldungBinding: Binding<Bool> {
         Binding(get: { importMeldung != nil }, set: { if !$0 { importMeldung = nil } })
     }
@@ -442,7 +417,34 @@ struct SessionsView: View {
                 chip("📍\(homespot)", scope == .spot && spot == homespot) { spot = homespot; scope = .spot }
             }
             chip(Loc.t("sessions.all", lang), scope == .all && spot.isEmpty) { spot = ""; scope = .all }
+            // Datei-Import RECHTS in derselben Zeile, schmal (Jan, 18.09.2026: „auf ios kann der
+            // import fit button auch nur icon + fit und nach oben rechtsbuendig neben
+            // mine|spot|all"). Vorher stand „Import FIT/TCX/GPX" in einer eigenen, fast
+            // bildbreiten Zeile unter den Filtern — viel Platz fuer etwas, das die meisten nie
+            // brauchen. Dieselbe Loesung wie in der Android-App.
+            if scope == .mine {
+                Spacer()
+                importKnopf
+            }
         }
+    }
+
+    /// Schmaler Import-Knopf: Symbol + „FIT". Nur in „Meine" — ein Import erzeugt immer eine
+    /// EIGENE Session, in der Community-Ansicht waere er irrefuehrend (wie im Web).
+    ///
+    /// „FIT" bleibt unuebersetzt (Dateiformat, kein Wort); die vollstaendige, uebersetzte
+    /// Beschriftung steht als `accessibilityLabel` dahinter, damit VoiceOver weiter
+    /// „FIT/TCX/GPX importieren" vorliest. Waehrend des Imports zeigt der Knopf die
+    /// Fortschrittszahl statt „importiere 3/12 …", sonst waere er wieder so breit wie vorher.
+    @ViewBuilder private var importKnopf: some View {
+        Button { zeigeWaehler = true } label: {
+            Label(importLaeuft ? (importFortschritt.isEmpty ? "…" : importFortschritt) : "FIT",
+                  systemImage: "square.and.arrow.down")
+                .font(.subheadline)
+        }
+        .buttonStyle(.bordered)
+        .disabled(importLaeuft)
+        .accessibilityLabel(Loc.t("sessions.uploadFitZip", lang))
     }
 
     private func chip(_ label: String, _ active: Bool, _ action: @escaping () -> Void) -> some View {

@@ -659,6 +659,10 @@ NAECHSTES: list[dict] = [
          "When you share a session you can put the map or the satellite image behind it instead of "
          "a photo, and the brightness slider works for those too. Average speed, run count and "
          "longest run are tiles you can pick now \u2014 they were never selectable on any device.",
+         "The spot map can be zoomed with two fingers again. It sat inside the scrolling list, "
+         "which swallowed the gesture \u2014 now it sits above the list, the way it does on Android.",
+         "The button that imports a FIT, TCX or GPX file is a small \u201eFIT\u201c button at the "
+         "right of the filter row instead of a wide bar of its own.",
      ]},
 
     # Android bekommt denselben Schnitt: 1.1.29 / 1.2.29 liegen seit 13.09. 08:56 bei Google,
