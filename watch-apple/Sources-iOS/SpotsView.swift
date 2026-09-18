@@ -77,14 +77,27 @@ struct SpotsView: View {
     // ließen das Archive hängen. Reihenfolge, Layout und Texte sind unverändert.
     var body: some View {
         NavigationStack(path: $navPath) {
-            List {
-                kopfSection
-                mapSection
-                // Spot-Vergleich direkt unter der Karte — dieselbe Stelle wie in der PWA.
-                SpotCompareView()
-                listSection
+            // Die Karte liegt FEST UEBER der Liste, nicht als Listenzeile darin.
+            //
+            // Als Zeile schluckte die Liste die Zwei-Finger-Geste: zoomen ging gar nicht, und
+            // Knoepfe zum Zoomen gibt es in SwiftUIs `Map` nicht (Jan, 18.09.2026: „ich kann
+            // garnicht zoomen mit zwei fingern und + / - buttons gibts auch keine"). Dasselbe
+            // hatte er am 31.08. schon einmal gemeldet; damals war ein NavigationLink in der
+            // Zeile die Ursache, der ist laengst weg — die Zeile selbst blieb aber das Problem.
+            // Auf Android sitzt die Karte aus genau dem Grund ueber der Liste (`SpotsScreen.kt`).
+            //
+            // Preis: die Karte laesst sich nicht mehr wegscrollen. Auf Android ist das seit jeher
+            // so, und eine Karte, die man nicht bedienen kann, ist der schlechtere Tausch.
+            VStack(spacing: 0) {
+                karteOben
+                List {
+                    kopfSection
+                    // Spot-Vergleich direkt unter der Karte — dieselbe Stelle wie in der PWA.
+                    SpotCompareView()
+                    listSection
+                }
+                .listStyle(.insetGrouped)
             }
-            .listStyle(.insetGrouped)
             // Wert-basiertes Ziel statt eines Links IN der Kartenzeile (s. `annotation`).
             .navigationDestination(for: SpotDest.self) { d in SpotSessionsView(spot: d.spot, vorgegebeneSpotId: d.spotId) }
             // Rekord-Karten des Vergleichs fuehren zu genau der Session, die den Wert haelt.
@@ -102,12 +115,10 @@ struct SpotsView: View {
         }
     }
 
-    @ViewBuilder private var mapSection: some View {
+    @ViewBuilder private var karteOben: some View {
         if !items.isEmpty {
-            Section {
-                spotKarte
+            spotKarte
                 .frame(height: KARTE_HOEHE)
-                .listRowInsets(EdgeInsets())
                 .background(GeometryReader { geo in
                     // Echte Breite nachreichen (Voreinstellung 390) und einmal neu buendeln.
                     Color.clear.onAppear { kartenBreite = Double(geo.size.width); buendeln() }
@@ -119,7 +130,6 @@ struct SpotsView: View {
                 .onChange(of: region.center.latitude) { _ in buendelnFallsNoetig(); SpotsKarte.merken(region) }
                 .onChange(of: region.center.longitude) { _ in buendelnFallsNoetig(); SpotsKarte.merken(region) }
                 .mitKartenUmschalter()
-            }
         }
     }
 
@@ -358,7 +368,10 @@ struct SpotsView: View {
         guard let ziel else { fitRegion(s); return }
         // Zoom wie auf Android (HEIM_ZOOM 9): die Region um den Spot, nicht der Steg. Ein Grad
         // Laenge sind gut 2,5 Grad Spanne auf dem Handy -> hier direkt als Spanne gesetzt.
-        let spanne: Double = s.count == 1 ? 0.35 : 2.6
+        // Etwas weiter als der erste Versuch (2,6 Grad war geraten und zu eng, Jan 18.09.):
+        // der eigene Spot in der Mitte, die Nachbarn im Bild. MapKit weitet die Spanne fuer das
+        // Seitenverhaeltnis ohnehin noch auf.
+        let spanne: Double = s.count == 1 ? 0.5 : 4.0
         region = sichereRegion(CLLocationCoordinate2D(latitude: ziel.lat, longitude: ziel.lon),
                                MKCoordinateSpan(latitudeDelta: spanne, longitudeDelta: spanne))
     }
