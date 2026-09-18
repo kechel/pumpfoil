@@ -42,6 +42,24 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
       neuen Dateien sind byteweise identisch mit dem, was Zepp zurueckgeschickt hat.** Die runde
       Reihe ist unveraendert (Abweichung 0 in allen sieben). Zepps Ruecklieferung liegt zum
       Nachpruefen unter `screenshots/watch/zepp/zepp-rueckmeldung/`.
+  - **⚠️ GEGENPROBE, die alles relativiert: derselbe eckige Satz wurde am 12.09. FREIGEGEBEN.**
+    Die eckigen Bilder wurden zuletzt am **10.09. 08:23** geaendert (`e019fdd2`). 1.0.8 ging am
+    **10.09. 11:19** hoch, also mit genau diesen Dateien, und wurde am **12.09. freigegeben**.
+    1.0.10 ging am 13.09. mit **byteweise denselben** Dateien hoch (zwischen dem 10.09. und heute
+    beruehrt kein einziger Commit `screenshots-eckig/` oder `store360/eckig/`) — und wurde
+    abgelehnt. **Ein und derselbe Satz: einmal durch, einmal nicht.**
+    Daraus folgt zweierlei: (1) die Bilder allein erklaeren die Ablehnung nicht, (2) meine
+    Deutung der gerundeten Ecken ist eine **Schlussfolgerung, kein Beleg** — ich kann nicht
+    zeigen, dass die Maske von einem Pruefer stammt und nicht einfach von der Konsole beim
+    Hochladen erzeugt wird. Jan (18.09.): „sonst, wenn wir hier rumraten, die lehnen das doch
+    nur ab." Er macht deshalb **neue Aufnahmen aus dem Zepp-Emulator**; das ist der belastbare
+    Weg. Die gemessene Maske bleibt bis dahin drin (sie schadet nicht und entspricht Zepps
+    eigener Auslieferung), ist aber ausdruecklich **nicht** als gefundene Ursache zu lesen.
+  - **Bilanz der drei Ablehnungen:** nur bei der zweiten (10.09.) ist die Ursache belegt —
+    42 halbdurchsichtige Pixel je Datei, ausschliesslich in den beiden UNTEREN Ecken, Alpha ~44
+    vom macOS-Fensterschatten, also scharfe obere und runde untere Ecken. Bei der ersten (01.09.)
+    und der dritten (18.09.) nennt die Mail keine pruefbare Eigenschaft, sondern die
+    Standardliste „format, dimensions, proportions, transparency, and corresponding device shape".
   - **✅ Punkt 3 der Mail erledigt** (war nur eine Empfehlung): `scripts/zepp-store-texte.py`
     haengt jetzt an jeden Details-Text eine Kontaktzeile mit `info@pumpfoil.org`, in allen
     17 Sprachen. Franzoesisch stand bei 599/600 Zeichen und wurde gekuerzt; die Laengenpruefung
