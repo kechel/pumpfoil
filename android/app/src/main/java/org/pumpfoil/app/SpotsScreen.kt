@@ -93,6 +93,12 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
         Configuration.getInstance().userAgentValue = ctx.packageName
         MapView(ctx).apply {
             setMultiTouchControls(true)
+            // KEINE Kartenwiederholung: osmdroid kachelt die Welt sonst waagerecht endlos
+            // weiter, und beim Uebersichts-Zoom stand die Erde fast zweimal im Bild
+            // (Jan, 18.09.2026, Screenshot). Senkrecht genauso abschalten, sonst klebt beim
+            // Herauszoomen Antarktis ueber Groenland.
+            setHorizontalMapRepetitionEnabled(false)
+            setVerticalMapRepetitionEnabled(false)
             // Gemerkten Ausschnitt herstellen, BEVOR `update` unten das Einpassen erwaegt
             // (dieselbe Reihenfolge wie in der PWA). Sonst gibt es ein sichtbares Springen.
             val v = SpotsKarte.holen()
@@ -341,6 +347,11 @@ private fun SpotsMap(
         }, 150))
     }
 
+    // Mindest-Zoom setzen, sobald die Karte ihre Breite kennt. Ohne das waehlt
+    // `zoomToBoundingBox` ueber alle Spots (Europa bis Australien) einen Zoom, bei dem die
+    // Weltkarte SCHMALER als das Bild ist — genau der zu grosse Default nach dem App-Start.
+    LaunchedEffect(karte) { karte.post { karte.setMinZoomLevel(minZoomFuer(karte)) } }
+
     // Pins neu zeichnen, sobald sich die DATENMENGE aendert — also beim Nachladen UND beim
     // Umschalten von „nur mit Beschreibung".
     //
@@ -365,7 +376,12 @@ private fun SpotsMap(
             karte.controller.setCenter(pts[0])
         } else if (pts.size > 1) {
             val bb = BoundingBox.fromGeoPoints(pts)
-            karte.post { karte.zoomToBoundingBox(bb.increaseByScale(1.3f), false, 48) }
+            // Mindest-Zoom VOR dem Einpassen, sonst zoomt osmdroid erst zu weit heraus und
+            // korrigiert sich danach sichtbar.
+            karte.post {
+                karte.setMinZoomLevel(minZoomFuer(karte))
+                karte.zoomToBoundingBox(bb.increaseByScale(1.3f), false, 48)
+            }
         }
     }
     MapTiles.MitUmschalter(modifier) { ebene ->
@@ -422,4 +438,20 @@ private fun zeichnePins(map: MapView, items: List<SpotMapItem>, onOpenSpot: (Str
 private fun sichern(map: MapView) {
     val c = map.mapCenter
     SpotsKarte.merken(c.latitude, c.longitude, map.zoomLevelDouble)
+}
+
+/**
+ * Kleinster Zoom, bei dem die Weltkarte die Kartenbreite noch FUELLT.
+ *
+ * Bei Zoom z ist die Welt `kachelbreite * 2^z` Pixel breit. Gesucht ist das z, bei dem das
+ * gerade die Breite der Kartenflaeche erreicht: `z = log2(breite / kachelbreite)`. Bei 1080 px
+ * und 256er-Kacheln sind das rund 2,08 — darunter beginnt die Welt, sich zu wiederholen (und
+ * ohne Wiederholung bliebe seitlich Leerraum). Die Kachelgroesse kommt aus der Quelle, weil
+ * Satellit und Strasse unterschiedlich kacheln koennen.
+ */
+private fun minZoomFuer(map: MapView): Double {
+    val breite = if (map.width > 0) map.width else map.context.resources.displayMetrics.widthPixels
+    val kachel = map.tileProvider?.tileSource?.tileSizePixels?.takeIf { it > 0 } ?: 256
+    if (breite <= 0) return 2.0
+    return kotlin.math.max(1.0, kotlin.math.log2(breite.toDouble() / kachel.toDouble()))
 }
