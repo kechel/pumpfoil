@@ -93,10 +93,20 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
         Configuration.getInstance().userAgentValue = ctx.packageName
         MapView(ctx).apply {
             setMultiTouchControls(true)
-            controller.setZoom(5.0)
+            // Gemerkten Ausschnitt herstellen, BEVOR `update` unten das Einpassen erwaegt
+            // (dieselbe Reihenfolge wie in der PWA). Sonst gibt es ein sichtbares Springen.
+            val v = SpotsKarte.holen()
+            if (v != null) { controller.setZoom(v.third); controller.setCenter(GeoPoint(v.first, v.second)) }
+            else controller.setZoom(5.0)
+            // Jede Bewegung mitschreiben. `DelayedMapListener` wartet, bis das Schwenken/Zoomen
+            // zur Ruhe kommt — sonst schreibt jeder Frame einer Wischbewegung mit.
+            addMapListener(DelayedMapListener(object : MapListener {
+                override fun onScroll(e: ScrollEvent?): Boolean { sichern(this@apply); return false }
+                override fun onZoom(e: ZoomEvent?): Boolean { sichern(this@apply); return false }
+            }, 200L))
         }
     }
-    DisposableEffect(karte) { onDispose { karte.onDetach() } }
+    DisposableEffect(karte) { onDispose { sichern(karte); karte.onDetach() } }
 
     // Der Filter wirkt auf die KARTE genauso wie auf die Treffer — wie in der PWA, wo `spots`
     // die gefilterte Menge ist und die Marker daraus entstehen.
@@ -321,6 +331,7 @@ private fun SpotsMap(
     val daten = rememberUpdatedState(items)
     val oeffne = rememberUpdatedState(onOpenSpot)
     // Der Listener haengt an der KARTE, nicht am Listeneintrag — deshalb nur einmal setzen.
+    // Beim Zoomen muessen die Pins neu, weil sich die Buendelung mit dem Zoom aendert.
     LaunchedEffect(karte) {
         karte.addMapListener(DelayedMapListener(object : MapListener {
             override fun onScroll(e: ScrollEvent?): Boolean = false
@@ -328,6 +339,34 @@ private fun SpotsMap(
                 zeichnePins(karte, daten.value, oeffne.value); return true
             }
         }, 150))
+    }
+
+    // Pins neu zeichnen, sobald sich die DATENMENGE aendert — also beim Nachladen UND beim
+    // Umschalten von „nur mit Beschreibung".
+    //
+    // Das hing bis 18.09.2026 an einem Merker am View (`map.tag`) im `update`-Block der
+    // AndroidView, und darin steckte der Fehler: gemeldet von Jan („wenn ich 'nur mit
+    // beschreibung' auswaehle werden die bubbles erst ausgeblendet wenn ich in der karte zoome,
+    // das sollte sofort geupdated werden"). Der Merker verglich nur Anzahl und ersten Spotnamen,
+    // und der `update`-Block ist der falsche Ort fuer eine Datenaenderung — er laeuft, wann
+    // Compose die View neu bindet, nicht wenn sich die Liste aendert. Erst der Zoom-Listener
+    // zeichnete dann neu, deshalb „erst beim Zoomen".
+    //
+    // Ein LaunchedEffect auf `items` laeuft genau einmal je Datenstand — dieselbe Ersparnis wie
+    // der Merker (Pins bauen heisst eine Bitmap je Buendel), aber am richtigen Auslöser.
+    LaunchedEffect(karte, items) {
+        zeichnePins(karte, items, oeffne.value)
+        // Einpassen NUR ohne gemerkten Ausschnitt — sonst reisst ein spaeteres Neuladen der
+        // Spots dem Nutzer die Ansicht weg (s. SpotsKarte).
+        if (SpotsKarte.vorhanden) return@LaunchedEffect
+        val pts = items.map { GeoPoint(it.lat, it.lon) }
+        if (pts.size == 1) {
+            karte.controller.setZoom(11.0)
+            karte.controller.setCenter(pts[0])
+        } else if (pts.size > 1) {
+            val bb = BoundingBox.fromGeoPoints(pts)
+            karte.post { karte.zoomToBoundingBox(bb.increaseByScale(1.3f), false, 48) }
+        }
     }
     MapTiles.MitUmschalter(modifier) { ebene ->
         AndroidView(
@@ -340,24 +379,9 @@ private fun SpotsMap(
                 (karte.parent as? android.view.ViewGroup)?.removeView(karte)
                 karte
             },
-            update = { map ->
-                MapTiles.anwenden(map, ebene)
-                // Merker am View: `update` laeuft bei jeder Recomposition, und Pins neu bauen
-                // heisst eine Bitmap je Buendel plus neues Einpassen.
-                val stand = "${'$'}{items.size}:${'$'}{items.firstOrNull()?.spot}"
-                if (map.tag != stand) {
-                    map.tag = stand
-                    zeichnePins(map, items, onOpenSpot)
-                    val pts = items.map { GeoPoint(it.lat, it.lon) }
-                    if (pts.size == 1) {
-                        map.controller.setZoom(11.0)
-                        map.controller.setCenter(pts[0])
-                    } else if (pts.size > 1) {
-                        val bb = BoundingBox.fromGeoPoints(pts)
-                        map.post { map.zoomToBoundingBox(bb.increaseByScale(1.3f), false, 48) }
-                    }
-                }
-            },
+            // Nur noch die Kachel-Ebene: Pins und Ausschnitt haengen am LaunchedEffect oben,
+            // nicht an der Neubindung der View (s. Kommentar dort).
+            update = { map -> MapTiles.anwenden(map, ebene) },
         )
     }
 }
@@ -392,4 +416,10 @@ private fun zeichnePins(map: MapView, items: List<SpotMapItem>, onOpenSpot: (Str
         })
     }
     map.invalidate()
+}
+
+/** Mittelpunkt + Zoom der Spots-Karte merken (s. SpotsKarte). */
+private fun sichern(map: MapView) {
+    val c = map.mapCenter
+    SpotsKarte.merken(c.latitude, c.longitude, map.zoomLevelDouble)
 }
