@@ -645,6 +645,20 @@ NAECHSTES: list[dict] = [
          "start screen, although the ride was recorded with your default foil anyway \u2014 what "
          "you ride and where the alarm limits come from are two separate things. Garmin was "
          "fixed on 10 September; Wear OS, Apple Watch and Amazfit follow now.",
+         "\u201eOlder\u201c and \u201enewer\u201c inside a session now stay in the list you came "
+         "from \u2014 your own sessions, one spot across all riders, or everything \u2014 and keep "
+         "the filters you had set. Before, they always walked through your own sessions.",
+         "\u201eYour spot\u201c now works even if you never picked one in your profile: we take "
+         "the spot of your last session. The profile always offered \u201eautomatic (last "
+         "session)\u201c, but nothing behind it did that \u2014 so the weather card, the spot tab "
+         "and the spot comparison stayed empty for almost everyone. What you pick yourself still "
+         "wins, and nothing gets written into your profile behind your back.",
+         "The spot map keeps the part of the world you were looking at, and it opens where you "
+         "ride: your home spot, otherwise the spot of your last session. It used to fit every spot "
+         "in the world into the frame on every visit.",
+         "When you share a session you can put the map or the satellite image behind it instead of "
+         "a photo, and the brightness slider works for those too. Average speed, run count and "
+         "longest run are tiles you can pick now \u2014 they were never selectable on any device.",
      ]},
 
     # Android bekommt denselben Schnitt: 1.1.29 / 1.2.29 liegen seit 13.09. 08:56 bei Google,

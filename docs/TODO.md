@@ -1041,17 +1041,18 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   — oder ihn stillschweigend aus dem haeufigsten eigenen Spot ableiten und im Profil anzeigen,
   wo er sich korrigieren laesst. Nicht entschieden, gehoert Jan.
 
-- **🔲 NACH dem Android-Release: iOS und Amazfit nachziehen.** Jan, 18.09.2026: „wir machen ios
-  und amazfit sobald android fertig zum release ist". Was genau ansteht:
-  - **iOS, Spots-Karte:** `fitRegion(s)` laeuft in jedem `load()` (`SpotsView.swift`) — der
-    Ausschnitt wird also bei jedem Besuch auf alle Spots zurueckgesetzt. Dieselbe Beschwerde wie
-    auf Android (18.09.), dort in `75f29f0e` behoben; PWA hat es laengst (`Spots.tsx`,
-    sessionStorage). Der Beschreibungs-Filter ist auf iOS NICHT betroffen — dort haengt die
-    Buendelung schon an `region`-Aenderungen, nicht an einem View-Merker.
-  - **Amazfit:** die vier Paritaets-Luecken aus dem Eintrag weiter unten (Puls-Alarm,
-    Aufzeichnungsmodus, Vibrationsmuster/Wiederholung, Aktivitaetstyp). Reihenfolge und Belege
-    stehen dort. Die Foil-/Alarm-Entkopplung ist schon drin (`78aa27ea`), app.json steht auf
-    1.0.11/code 14 — Amazfit 1.0.10 liegt noch bei Zepp im Review, es eilt also nicht.
+- **✅ 18.09.2026 ERLEDIGT — iOS und Amazfit nachgezogen.** Jan: „wir machen ios und amazfit
+  sobald android fertig zum release ist". Beides ist durch:
+  - **iOS (1.1.34 / Build 38):** Spots-Ausschnitt wird gemerkt und die Karte startet auf dem
+    eigenen Spot (`SpotsKarte.swift`, `SpotsView`) · Homespot-Fallback an drei Stellen
+    (Sessions-Reiter, Wetterkarte, Spot-Vergleich) · „aelter/neuer" folgt dem Listen-Filter
+    (`NachbarFilter.swift`) · Teilen: Karte/Satellit als Hintergrund samt servergemessenem
+    Schleier, dazu die Kacheln Schnitt/Laeufe/laengster Lauf · Foil und Alarm-Schwellen
+    entkoppelt (Apple Watch). Neun Changelog-Punkte stehen im 1.1.34-Eintrag.
+    **Alles nur `swiftc -parse`-geprueft — bauen und ansehen kann es nur Jan.**
+  - **Amazfit (1.0.11 / code 14):** drei der vier Paritaets-Luecken behoben (`4832051b`), dazu
+    die Sperr-Anzeige (`53882b31`); die vierte (`activityType`) war ein Irrtum meiner Durchsicht,
+    Begruendung steht im Paritaets-Eintrag. Wartet ohnehin auf die Freigabe von 1.0.10.
 
 - **🔲 UHREN-PARITAET: was Garmin kann und die anderen nicht.** Systematisch geprueft am
   18.09.2026 (Anlass: der Foil-/Alarm-Fix von Garmin 10.09. war auf Wear, Apple und Zepp nie
