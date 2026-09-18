@@ -9,8 +9,16 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 🚀 App-Release-Stand
 
-- **🟡 18.09.2026 — Jan BAUT Android 1.1.30 (44) + Wear OS 1.2.30 (1040) aus Commit
-  `9f52ab2d`.** Seine Meldung: „getestet und baue jetzt das release daraus". Das ist GEBAUT,
+- **🟡 18.09.2026 — Jan baut und laedt Android 1.1.30 (44) + Wear OS 1.2.30 (1040) hoch, aus
+  Commit `e5890fd6`.** Seine Ansage: „dann release ich jetzt android & wear". Der Inhalt ist damit
+  eingefroren: was in `e5890fd6` steht, IST 1.1.30/1.2.30 (15 Punkte + die Nachtraege, s.
+  appmeta). Jede weitere Android-Aenderung braucht einen NEUEN Eintrag (1.1.31 / 1.2.31).
+  **Sobald Jan den Upload bestaetigt:** appmeta-Eintrag von NAECHSTES nach IN_REVIEW, mit
+  `"eingereicht": "2026-09-18"`. Vorher NICHT — „eingereicht" heisst hochgeladen, nicht gebaut.
+  Der frueher hier notierte Build aus `9f52ab2d` wurde durch diesen ersetzt (Jan hat danach noch
+  den FIT-Knopf, die Spots-Karte, die Touch-Sperre und den Homespot-Fallback bekommen).
+
+- **(ersetzt) 18.09.2026 — erster Build-Versuch aus `9f52ab2d`.** Seine Meldung: „getestet und baue jetzt das release daraus". Das ist GEBAUT,
   nicht hochgeladen — der appmeta-Eintrag bleibt deshalb in `NAECHSTES`, bis Jan den Upload
   meldet (s. den Kommentar in `appmeta.py`: EINGEREICHT heisst HOCHGELADEN).
   **Nachtrag 18.09., nach dem ersten Bauen:** Jan hat noch den FIT-Import-Knopf schmaler haben
