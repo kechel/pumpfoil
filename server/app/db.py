@@ -124,6 +124,9 @@ def _migrate_add_indexes() -> None:
         # Wassersperre je Uhr (15.09.2026): "auto" | "on" | "off", NULL = Nutzer-Default.
         # Je GERAET und nicht je Nutzer, weil es eine Eigenschaft der Uhr ist — eine Uhr mit
         # zwei Tasten laesst sich kaum wieder entsperren, eine Apple Watch sperrt systemweit.
+        # Changelog: Funktionspunkt vs. Store-Ereignis (18.09.2026, s. models.ChangelogItem.art).
+        "ALTER TABLE changelog_items ADD COLUMN IF NOT EXISTS art VARCHAR(16) DEFAULT 'punkt'",
+        "UPDATE changelog_items SET art = 'punkt' WHERE art IS NULL",
         "ALTER TABLE device_tokens ADD COLUMN IF NOT EXISTS water_lock VARCHAR(8)",
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS hr_samples INTEGER",
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS hr_source VARCHAR(16)",
