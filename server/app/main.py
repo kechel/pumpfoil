@@ -362,7 +362,14 @@ def stop_screen_demo() -> FileResponse:
 _YT_CHANNEL_ID = "UCb_1b-TkdGE4kZWX17HDH9g"
 _YT_FEED = f"https://www.youtube.com/feeds/videos.xml?channel_id={_YT_CHANNEL_ID}"
 _YT_TTL_S = 3600.0
-_yt_cache: dict = {"at": 0.0, "videos": []}
+# Wartezeit nach einem FEHLGESCHLAGENEN Abruf. Ohne die wurde bei leerem Cache die TTL gar nicht
+# beachtet (`and _yt_cache["videos"]`) und JEDER Aufruf der oeffentlichen Startseite ging erneut
+# zu YouTube — je oefter der Feed scheitert, desto haerter fragen wir nach. Genau diese
+# Rueckkopplung hat Jan am 18.09.2026 vermutet („vielleicht ist es ein rate-limit, und wir rufen
+# yt noch irgendwie selber auf staendig"). Ein Rate-Limit war es nicht (der Feed antwortet auch
+# aus Jans Netz mit 404, und es sind nur ~54 Aufrufe am Tag) — der Fehler bleibt trotzdem einer.
+_YT_FEHL_TTL_S = 600.0
+_yt_cache: dict = {"at": 0.0, "videos": [], "fehl_at": 0.0}
 
 
 @app.get("/api/public/videos")
@@ -373,7 +380,13 @@ def public_videos() -> dict:
     from xml.etree import ElementTree as ET
 
     now = time.time()
+    # Frische Daten -> ausliefern.
     if now - _yt_cache["at"] < _YT_TTL_S and _yt_cache["videos"]:
+        return {"videos": _yt_cache["videos"], "channel": "https://www.youtube.com/@pumpfoil-org"}
+    # Der letzte Versuch ist gescheitert und liegt noch nicht lange zurueck -> NICHT erneut
+    # fragen, sondern das ausliefern, was wir haben (auch wenn es alt ist). Sonst fragt jeder
+    # Seitenaufruf nach, solange der Feed kaputt ist.
+    if now - _yt_cache["fehl_at"] < _YT_FEHL_TTL_S:
         return {"videos": _yt_cache["videos"], "channel": "https://www.youtube.com/@pumpfoil-org"}
     try:
         r = httpx.get(_YT_FEED, timeout=10)
@@ -388,9 +401,13 @@ def public_videos() -> dict:
                 if vid:
                     vids.append({"id": vid, "title": title, "published": pub})
             if vids:
-                _yt_cache.update(at=now, videos=vids[:12])
+                _yt_cache.update(at=now, videos=vids[:12], fehl_at=0.0)
+            else:
+                _yt_cache["fehl_at"] = now
+        else:
+            _yt_cache["fehl_at"] = now
     except Exception:  # noqa: BLE001 — Feed-Ausfall darf die Startseite nicht stören
-        pass
+        _yt_cache["fehl_at"] = now
     return {"videos": _yt_cache["videos"], "channel": "https://www.youtube.com/@pumpfoil-org"}
 
 
