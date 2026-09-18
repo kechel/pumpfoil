@@ -593,6 +593,23 @@ NAECHSTES: list[dict] = [
          "start screen, although the ride was recorded with your default foil anyway \u2014 what "
          "you ride and where the alarm limits come from are two separate things. Garmin was "
          "fixed on 10 September; Wear OS, Apple Watch and Amazfit follow now.",
+         "The spot page opens with a search box instead of a list of every spot we know \u2014 "
+         "with 231 of them the list was longer than the rest of the page put together.",
+         "You can narrow the spot list to the ones that have a description, and each spot says "
+         "how many riders have been there, with the same explanation the website gives.",
+         "\u201eOlder\u201c and \u201enewer\u201c inside a session now stay in the list you came "
+         "from \u2014 your own sessions, one spot across all riders, or everything \u2014 and keep "
+         "the filters you had set. Before, they always walked through your own sessions.",
+         "The session view wastes far less empty space above the map, so the map and the run "
+         "numbers are there without scrolling; in the session list the third button no longer "
+         "gets cut in half when the labels are long.",
+         "A recording that can no longer be finished is now a single quiet line instead of a "
+         "large notice sitting on top of your screen. It still leads you to the recording, "
+         "where you decide: analyse it with what we have, or delete it.",
+         "Wear OS has the water lock back, drawn along the curve of a round screen.",
+         "When no heart rate was measured, the watch says so plainly instead of hinting that you "
+         "wore it wrong \u2014 and the recording now tells us whether a reading arrived at all, "
+         "so we can tell a missing chest strap from a fault of ours.",
      ]},
 ]
 
