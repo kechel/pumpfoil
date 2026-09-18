@@ -284,7 +284,9 @@ const HIT_METRICS: [keyof AdminStatsSeries["totals"], string, string][] = [
 const DAY_MS = 86400000;
 
 /** Anzeigezeitraum: was auf der x-Achse zu sehen ist. */
-const ZEITRAUM: [number, string][] = [[10, "10 Tage"], [30, "30 Tage"], [365, "1 Jahr"]];
+const ZEITRAUM: [number, string][] = [
+  [10, "10 Tage"], [30, "30 Tage"], [90, "3 Monate"], [180, "6 Monate"], [365, "1 Jahr"],
+];
 
 /** Fensterlaenge: worueber ein einzelner Punkt summiert wird. `Infinity` = seit Beginn. */
 const FENSTER: number[] = [1, 3, 10, 30, 365, Infinity];
