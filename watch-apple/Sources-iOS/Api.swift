@@ -905,6 +905,42 @@ enum Api {
     }
 
     // Teilbare Session-Card (server-gerendertes PNG). Params spiegeln web/ShareDialog.
+    /// Teilen-Bild vom Server. `bg`: "navy" | "transparent" (Foto legt die App drueber) |
+    /// "karte" | "satellit".
+    ///
+    /// `dim` NUR bei Karten-Hintergrund mitgeben — dort legt der SERVER den Schleier ins Bild
+    /// (beim Foto zeichnet ihn die App selbst). `dim = -1` heisst „messen": der Server sucht die
+    /// passende Staerke und meldet sie in `X-Card-Dim`, damit der Regler an der gemessenen statt
+    /// an einer geratenen Stelle steht (wie PWA und Android).
+    ///
+    /// Rueckgabe: Bild + gemessener Schleier (nil, wenn der Server keinen gemeldet hat).
+    static func shareCardMitDim(_ id: Int, color: String, stats: [String], track: Bool, title: String, shade: String, bg: String = "navy", highlight: Int = -1, dim: Double? = nil) async throws -> (Data, Double?) {
+        guard var comps = URLComponents(string: baseURL + "/api/sessions/\(id)/share.png") else { throw ApiError.badURL }
+        var q = [
+            URLQueryItem(name: "color", value: color),
+            URLQueryItem(name: "bg", value: bg),
+            URLQueryItem(name: "track", value: track ? "1" : "0"),
+            URLQueryItem(name: "shade", value: shade),
+        ]
+        q.append(URLQueryItem(name: "stats", value: stats.isEmpty ? "none" : stats.joined(separator: ",")))
+        let tt = title.trimmingCharacters(in: .whitespaces)
+        if !tt.isEmpty { q.append(URLQueryItem(name: "title", value: tt)) }
+        if track && highlight >= 0 { q.append(URLQueryItem(name: "highlight", value: String(highlight))) }
+        if let dim { q.append(URLQueryItem(name: "dim", value: String(dim))) }
+        // Sprache der Beschriftung: was der Mensch gerade SIEHT, nicht was im Profil steht.
+        q.append(URLQueryItem(name: "lang", value: UserDefaults.standard.string(forKey: "appLang") ?? "de"))
+        comps.queryItems = q
+        guard let url = comps.url else { throw ApiError.badURL }
+        var req = URLRequest(url: url)
+        if let t = token { req.setValue("Bearer \(t)", forHTTPHeaderField: "Authorization") }
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        let http = resp as? HTTPURLResponse
+        let code = http?.statusCode ?? -1
+        guard (200..<300).contains(code) else { throw ApiError.http(code, "") }
+        let gemessen = http?.value(forHTTPHeaderField: "X-Card-Dim").flatMap(Double.init)
+        return (data, gemessen)
+    }
+
     static func shareCard(_ id: Int, color: String, stats: [String], track: Bool, title: String, shade: String, bg: String = "navy", highlight: Int = -1) async throws -> Data {
         guard var comps = URLComponents(string: baseURL + "/api/sessions/\(id)/share.png") else { throw ApiError.badURL }
         var q = [

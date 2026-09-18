@@ -952,6 +952,7 @@ static let csOverlay: [String: String] = {
         "share.stat.runs": "Jízdy",
         "share.stat.pumps": "Pumpnutí",
         "share.stat.speed": "Top rychlost",
+        "share.stat.avgspeed": "Ø Rychlost",
         "share.stat.time": "Čas na foilu",
         "share.stat.longest": "Nejdelší",
         "share.stat.distance": "Vzdálenost",
@@ -1878,6 +1879,7 @@ static let nlOverlay: [String: String] = {
         "share.stat.runs": "Runs",
         "share.stat.pumps": "Pumps",
         "share.stat.speed": "Topsnelheid",
+        "share.stat.avgspeed": "Ø Snelheid",
         "share.stat.time": "Foil-tijd",
         "share.stat.longest": "Langste",
         "share.stat.distance": "Afstand",
@@ -2492,6 +2494,7 @@ static let fiOverlay: [String: String] = {
         "share.stat.runs": "Osuudet",
         "share.stat.pumps": "Pumppaukset",
         "share.stat.speed": "Huippunopeus",
+        "share.stat.avgspeed": "Ø Nopeus",
         "share.stat.time": "Foil-aika",
         "share.stat.longest": "Pisin",
         "share.stat.distance": "Matka",
@@ -3955,6 +3958,7 @@ static let fiOverlay: [String: String] = {
         "share.stat.runs": r("Läufe", "Läuf", "Läufe", "Runs", "Runs", "Run", "Tramos"),
         "share.stat.pumps": r("Pumps", "Pumps", "Pumps", "Pumps", "Pumps", "Pump", "Pumps"),
         "share.stat.speed": r("Top-Speed", "Top-Speed", "Top-Speed", "Top speed", "Vitesse max", "Velocità max", "Vel. máx"),
+        "share.stat.avgspeed": r("Ø Speed", "Ø Speed", "Ø Speed", "Ø Speed", "Ø Vitesse", "Ø Velocità", "Ø Velocidad"),
     ]
     private static let __t3P2s2: [String: [String: String]] = [
         "share.stat.time": r("Foil-Zeit", "Foil-Ziit", "Foil-Zeit", "Foil time", "Temps foil", "Tempo foil", "Tiempo foil"),

@@ -45,7 +45,29 @@ fun SpotRecordsSection(spot: String, accelOnly: Boolean, onOpen: (Int) -> Unit) 
         }
     }
 
-    val daten = alle ?: return
+    // WAEHREND DES LADENS die Ueberschrift schon zeigen, nicht nichts.
+    //
+    // Das ist kein Schoenheits-, sondern ein Anker-Problem gewesen. Dieser Abschnitt ist der
+    // ERSTE Eintrag der Spot-Liste. Solange er `return` machte, war er 0 Pixel hoch, und die
+    // LazyColumn verankerte sich am ersten SICHTBAREN Eintrag — also an der ersten Session.
+    // Kamen Rekorde, Wetter und Beschreibungen danach an, wuchsen sie OBERHALB des Ankers ein,
+    // und die Ansicht stand ploetzlich mitten in der Sessionliste. Genau so gemeldet (Jan,
+    // 18.09.2026): „meine -> illmensee -> meine -> illmensee ist beim 2ten mal nach unten
+    // gescrollt … irgendwoher muss da noch ein wert gespeichert sein" — gespeichert war nichts,
+    // der Anker rutschte. Beim ERSTEN Besuch fiel es nicht auf, weil die Sessionliste da noch
+    // leer war und es nichts gab, worauf er rutschen konnte.
+    //
+    // Mit der Ueberschrift ab dem ersten Bild hat der Eintrag von Anfang an Hoehe, der Anker
+    // bleibt auf Position 0, und alles Nachgeladene waechst UNTERHALB davon ein.
+    val daten = alle
+    if (daten == null) {
+        Text(I18n.t("rec.spotTitle"), style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp))
+        return
+    }
+    // Kein Rekord in KEINEM Fenster -> der Block verschwindet ganz (eine Reihe „–" hilft
+    // niemandem). Das passiert erst NACH dem Laden, also im Zustand „oben", und schadet nicht.
     if (fenster.none { hatRekorde(daten[it]) }) return
 
     Column(Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) {

@@ -95,7 +95,6 @@ private enum class Scope { MINE, SPOT, ALL }
 @Composable
 fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onSpotChat: (String) -> Unit = {}) {
     var scope by remember { mutableStateOf(Scope.MINE) }
-    val listenStand = androidx.compose.foundation.lazy.rememberLazyListState()
     var homespot by remember { mutableStateOf("") }
     var spot by remember { mutableStateOf("") }          // aktiver Spot (für SPOT-Scope)
     // Name -> spot_id (fuer die Spot-Beschreibungen; die Spot-Auswahl selbst bleibt namensbasiert).
@@ -119,6 +118,23 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
     // "aussortiert" -> Tabwechsel, s. SessionsWunsch).
     var filter by remember { mutableStateOf(SessionsWunsch.abholen() ?: "pump") }
     var month by remember { mutableStateOf("") }           // "YYYY-MM" | "" (nur eigene)
+    // EIN EIGENER Scrollzustand JE LISTE — nicht einer fuer alle mit einem Ruecksprung.
+    //
+    // Erst hatte ich `rememberLazyListState()` plus `scrollToItem(0)` bei jedem Wechsel. Das hat
+    // nicht gereicht (Jan, 18.09.2026, zweite Meldung): „meine -> illmensee -> meine -> illmensee
+    // ist beim 2ten mal nach unten gescrollt". Kein Wunder — der Ruecksprung ist ein Aufruf zu
+    // EINEM Zeitpunkt, und die Spot-Ansicht baut sich danach weiter auf: Rekorde, Wetter und
+    // Beschreibungen kommen als eigene Eintraege nach, jeder aus seiner eigenen Abfrage. Wer
+    // gegen asynchron nachwachsenden Inhalt einmalig an den Anfang springt, verliert das Rennen
+    // irgendwann.
+    //
+    // `remember(scope, spot, filter, month)` dreht es um: eine andere Liste bekommt einen FRISCHEN
+    // Zustand, und ein frischer Zustand steht bei 0 — es gibt gar nichts, was zurueckspringen
+    // muesste. Die Rueckkehr aus einer Session aendert keinen der vier Schluessel, dort bleibt die
+    // Position also erhalten.
+    val listenStand = remember(scope, spot, filter, month) {
+        androidx.compose.foundation.lazy.LazyListState()
+    }
     var months by remember { mutableStateOf<List<MonthCount>>(emptyList()) }
     var weather by remember { mutableStateOf<SpotWeather?>(null) }
     var incoming by remember { mutableStateOf<List<Transfer>>(emptyList()) }
@@ -203,19 +219,6 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
         loading = false
     }
     LaunchedEffect(scope, spot, tick, accelOnly, filter, month) { load() }
-    // Andere Liste = neuer Anfang.
-    //
-    // Die LazyColumn hatte keinen eigenen Zustand, Compose merkte sich also den Scrollstand an
-    // ihrer Stelle in der Komposition — und der ueberlebte den Wechsel des Scopes. Gemeldet von
-    // Jan (18.09.2026): „auf session, dann auf illmensee (ansicht ist korrekt ganz oben), dann
-    // auf meine, dann wieder auf illmensee -> dann ist die ansicht gescrollt, man landet
-    // irgendwo weiter unten und nicht ganz oben bei den rekorden des spots". Am Spot stehen oben
-    // Rekorde, Wetter und Beschreibungen — genau die sieht man dann nicht.
-    //
-    // Der Filter zaehlt mit: „Pumpfoil" und „Aussortiert" sind ebenso verschiedene Listen, und
-    // ein Monatswechsel auch. NICHT dabei ist die Rueckkehr aus einer Session — dort aendert
-    // sich nichts von beidem, der Stand bleibt also erhalten.
-    LaunchedEffect(scope, spot, filter, month) { listenStand.scrollToItem(0) }
     // Denselben Filter merken: „älter/neuer" im Detail navigiert damit innerhalb GENAU dieser
     // Liste statt immer durch die eigenen Sessions (Jan, 17.09.2026). sport="all" wie oben.
     LaunchedEffect(scope, spot, accelOnly, filter, month) {
