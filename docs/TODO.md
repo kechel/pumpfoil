@@ -77,7 +77,14 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
       Ursache; die gemessene Maske bleibt nur als Angleichung an Zepps eigene Auslieferung drin.
       **Bewiesen ist es trotzdem nicht** — die Mail benennt keine Eigenschaft, die Zuordnung ist
       Indizienlage ueber die Zeitachse.
-  - **➡️ WEG (Jan): erneut einreichen und die Sprach-Vorschauen wieder herausnehmen.** Nur den
+  - **✅ 18.09. ERLEDIGT — der Hebel in der Konsole ist gefunden.** Jan: „ich habe bei allen
+    vorschaubildern 'Use the app introduction screenshot in default language' angehakt, dann nimmt
+    er die bilder die oben stehen und sonst nix." Genau das war noetig: der Store zieht jetzt nur
+    den Standardsatz, und die **uebersetzten Texte bleiben stehen** — die Sorge, 60+ geprufte
+    Textfelder zu verlieren, ist damit vom Tisch. Steht als Regel in
+    `brand/stores/zepp/README.md`: Vorschaubilder nur in der Standardsprache.
+  - **(erledigt durch das Haekchen) Urspruenglicher Weg: erneut einreichen und die
+    Sprach-Vorschauen herausnehmen.** Nur den
     Standardsatz stehen lassen. **WICHTIG dabei: die uebersetzten TEXTE nicht mit wegwerfen** —
     beanstandet wurden ausschliesslich Bilder, und die 68 Textfelder sind geprueft und im Repo
     (`brand/stores/zepp/store-texte-1.0.11.csv`). Falls die Konsole Bilder nur zusammen mit dem
