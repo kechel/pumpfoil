@@ -14,6 +14,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.wear.ambient.AmbientLifecycleObserver
@@ -35,6 +36,9 @@ import androidx.wear.compose.foundation.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -888,26 +892,51 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                 // nicht seinen Code.
                 //
                 // Kein Emoji als Beschriftung (Projektregel) — ein gezeichneter Tropfen.
-                if (wasserSperrModus != "off" && !touchGesperrt) {
+                // Der Tropfen bleibt WAEHREND der Sperre stehen — gedimmt und ohne Funktion,
+                // nur als Zustandsanzeige. Vorher verschwand er beim Sperren, und damit die
+                // einzige sichtbare Spur des Zustands: wer die Uhr ansah, sah nichts und erfuhr
+                // es erst beim Beruehren (Jan, 18.09.2026: „soll der nicht anzeigen wenn die
+                // wassersperre an ist? ich glaube das ist gerade genau umgekehrt"). Die Apple
+                // Watch macht mit ihrem Tropfen beides: im Control Center schaltet er ein, und
+                // waehrend der Sperre bleibt er oben als Anzeige stehen. Genau das hier.
+                //
+                // Gesperrt steht dort ein SCHLOSS, entsperrt der Tropfen. Warum nicht einfach
+                // derselbe Tropfen blasser: „Symbol vorhanden = an" ist Apples Loesung, bei uns
+                // aber nicht nutzbar, weil der Tropfen ZUGLEICH der Einschaltknopf ist —
+                // Anwesenheit kann also nicht den Zustand bedeuten. Etablierte Zwei-Zustands-
+                // Symbole gibt es nicht; Garmin nimmt fuer genau diesen Zustand ein
+                // Vorhaengeschloss, und das ist unmissverstaendlich (Jan, 18.09.2026: „gibt es
+                // ggf. etablierte unterschiedliche icons fuer wassersperre aktiviert / nicht
+                // aktiviert?").
+                //
+                // Antippen macht der Tropfen nur im ENTSPERRTEN Zustand. Gesperrt liegt das
+                // Schild darueber und faengt den Tipp ohnehin ab (und zeigt die Freigabe-Geste);
+                // das Schloss ist reine Anzeige und deshalb ohne `clickable`.
+                if (wasserSperrModus != "off") {
                     CurvedLayout(anchor = 270f, modifier = Modifier.fillMaxSize()) {
                         curvedComposable {
                             Box(
                                 Modifier
                                     .clip(CircleShape)
-                                    .background(Color(0x33FFFFFF))
-                                    .clickable {
-                                        touchGesperrt = true
-                                        // Zusaetzlich Apples Gegenstueck auf Wear versuchen: greift
-                                        // der System-Broadcast, sperrt er das GANZE System und ist
-                                        // damit besser als unser Schild. Greift er nicht (die
-                                        // Berechtigung wird Dritt-Apps offenbar nicht erteilt,
-                                        // s. `wassersperre()`), bleibt unser Schild.
-                                        wassersperre()
-                                    }
+                                    .background(Color(if (touchGesperrt) 0x1AFFFFFF else 0x33FFFFFF))
+                                    .then(
+                                        if (touchGesperrt) Modifier
+                                        else Modifier.clickable {
+                                            touchGesperrt = true
+                                            // Zusaetzlich Apples Gegenstueck auf Wear versuchen:
+                                            // greift der System-Broadcast, sperrt er das GANZE
+                                            // System und ist damit besser als unser Schild.
+                                            // Greift er nicht (die Berechtigung wird Dritt-Apps
+                                            // offenbar nicht erteilt, s. `wassersperre()`),
+                                            // bleibt unser Schild.
+                                            wassersperre()
+                                        }
+                                    )
                                     .padding(horizontal = 8.dp, vertical = 4.dp),
                                 contentAlignment = Alignment.Center,
                             ) {
-                                WasserTropfen(Modifier.size(14.dp))
+                                if (touchGesperrt) Schloss(Modifier.size(14.dp).alpha(0.85f))
+                                else WasserTropfen(Modifier.size(14.dp))
                             }
                         }
                     }
@@ -1984,6 +2013,32 @@ private fun WasserTropfen(modifier: Modifier = Modifier) {
             close()
         }
         drawPath(pfad, Color.White)
+    }
+}
+
+/** Vorhaengeschloss fuer den GESPERRTEN Zustand. Gezeichnet wie der Tropfen daneben: keine
+ *  Standard-Emojis in der Oberflaeche (Projektregel), und das Wear-Modul zieht keine
+ *  Material-Icons herein. Buegel als Strich-Bogen, Korpus als gefuelltes Rechteck. */
+@Composable
+private fun Schloss(modifier: Modifier = Modifier) {
+    Canvas(modifier) {
+        val b = size.minDimension
+        val korpusOben = b * 0.45f
+        // Buegel: Halbkreis oben, so breit wie die halbe Figur.
+        drawArc(
+            color = Color.White,
+            startAngle = 180f, sweepAngle = 180f, useCenter = false,
+            topLeft = Offset(b * 0.27f, b * 0.14f),
+            size = Size(b * 0.46f, b * 0.46f),
+            style = Stroke(width = b * 0.12f),
+        )
+        // Korpus.
+        drawRoundRect(
+            color = Color.White,
+            topLeft = Offset(b * 0.16f, korpusOben),
+            size = Size(b * 0.68f, b * 0.48f),
+            cornerRadius = CornerRadius(b * 0.1f, b * 0.1f),
+        )
     }
 }
 

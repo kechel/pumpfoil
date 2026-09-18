@@ -622,6 +622,9 @@ NAECHSTES: list[dict] = [
          "planet before you begin.",
          "The share sheet has room for the share button again on phones with a gesture bar, "
          "and the average speed is a tile you can pick like the others.",
+         "Wear OS shows whether the touch lock is on: the water drop switches it on, and a "
+         "padlock sits in its place while it is locked. Until now the drop simply vanished, so "
+         "the only way to find out was to touch the watch.",
      ]},
 ]
 
