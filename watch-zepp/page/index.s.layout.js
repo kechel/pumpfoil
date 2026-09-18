@@ -16,7 +16,18 @@ const c = (y, h, color, size) => ({
 export const TITLE = { ...c(12, 40, 0x22d3ee, 34), text: "Pumpfoil" };
 // Version + Seitenanzeige teilen sich die Zeile unter dem Titel.
 export const VER = { ...c(52, 22, 0x64748b, 18), text: "" };
-export const PAGE = { x: 0, y: px(14), w: W - px(20), h: px(32), color: 0x64748b, text_size: px(24), align_h: hmUI.align.RIGHT, align_v: hmUI.align.CENTER_V, text: "" };
+// Die Seitenanzeige („1/4") stand bis 18.09.2026 auf y px(14) mit px(20) Rand — also in der
+// aeussersten Ecke oben rechts. Auf einem EckGeraet ist dort nichts mehr: die Displays sind stark
+// gerundet. Nachgemessen an Zepps eigener Auslieferung unserer Vorschaubilder (Eckenradius ~71 px
+// bei 390x450, Maske in brand/stores/zepp/maske-eckig-360.png): von der „4" fielen rund 10 % weg,
+// weitere Pixel lagen in der weichen Kante. Gefunden hat es Jan im Vorschaubild.
+// Dieselbe Falle war auf den RUNDEN Geraeten schon einmal da (Commit 9b20e8b1, „runde
+// Seitenanzeige lag ausserhalb des Kreises") — dort steht die Anzeige deshalb auf y px(36) mit
+// px(120) Rand. Hier reicht weniger, weil nur die Ecke rundet und nicht der ganze Rand.
+// Die Werte sind gegen die Maske GERECHNET, nicht geschaetzt: bei y px(22) (Glyphe 29..45) und
+// px(30) Rand (rechte Kante x=360) liegt jeder Pixel im deckenden Bereich, mit 4 px Reserve nach
+// rechts und nach oben.
+export const PAGE = { x: 0, y: px(22), w: W - px(30), h: px(32), color: 0x64748b, text_size: px(24), align_h: hmUI.align.RIGHT, align_v: hmUI.align.CENTER_V, text: "" };
 
 export const F0V = { ...c(78, 68, 0x22d3ee, 62), text: "–" };
 export const F0L = { ...c(144, 26, 0x9aa4b2, 23), text: "" };
