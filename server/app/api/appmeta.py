@@ -635,24 +635,22 @@ IN_REVIEW: list[dict] = [
          "The button that imports a FIT, TCX or GPX file is a small \u201eFIT\u201c button at the "
          "right of the filter row instead of a wide bar of its own.",
      ]},
-]
-
-# „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
-# einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
-NAECHSTES: list[dict] = [
     {"name": "Amazfit", "version": "1.0.11",
-     # Der Code liegt fertig im Baum, GEBAUT ist er nicht — Zepp-Builds laufen nur auf Jans Mac.
-     "nicht_gebaut": True,
-     # 1.0.11 (code 14) traegt jetzt AUCH den Inhalt von 1.0.10: die wurde am 18.09.2026 von Zepp
-     # abgelehnt — wieder nur wegen der eckigen Vorschaubilder, nie wegen der App. Die vier Punkte
-     # von 1.0.10 stehen deshalb hier oben, die fuenf eigenen darunter; sonst stuende der Inhalt
-     # zweimal in der Tabelle (Regel 3 im Kopf). `wartet_auf: 1.0.10` ist entfallen, es gibt nichts
-     # mehr, worauf zu warten waere.
+     "eingereicht": "2026-09-18",
+     # EINGEREICHT 18.09.2026 aus Commit 612ca209. Zepp-Konsole: appId 1118995,
+     # Application Time 2026.09.18, „Under Review (Can be Withdrawn)"; darunter 1.0.8 vom
+     # 12.09. als „Approved". AB HIER EINGEFROREN — alles Weitere nach NAECHSTES (1.0.12).
      #
-     # OB 1.0.11 GEBAUT WIRD oder 1.0.10 mit neuen Bildern nochmal hochgeht, entscheidet Jan:
-     # der Ablehnungsgrund sitzt ausschliesslich in den Store-Bildern, das Paket von 1.0.10 war
-     # in Ordnung. Fuer 1.0.11 spricht, dass es fertig ist und eine Zepp-Runde Wochen dauert;
-     # dagegen, dass es noch nicht auf einer Uhr gelaufen ist.
+     # Sie traegt den Inhalt von 1.0.10 mit, die am 18.09. abgelehnt wurde — wieder nur
+     # wegen der Store-Bilder, nie wegen der App (s. den ABGELEHNT-Eintrag).
+     # Geaendert hat sich zur abgelehnten Runde NICHT der Bildinhalt, sondern wo die Bilder
+     # liegen: in der Konsole steht jetzt bei jeder Sprache „Use the app introduction
+     # screenshot in default language", der Store zieht also nur den Standardsatz. Vorher
+     # lagen dieselben ENGLISCHEN Aufnahmen unter allen 16 Sprachen. Dazu ein frischer Satz
+     # aus dem Emulator (vier Ansichten je Form, englisch, v1.0.11); die Pairing-Bilder hat
+     # Jan weggelassen. Die Store-TEXTE sind unveraendert — Zepp hat sie nie beanstandet,
+     # Punkt 3 der Ablehnung war eine Empfehlung. Die Fassung mit Kontaktzeile liegt fertig
+     # in brand/stores/zepp/store-texte-1.0.11.csv fuer die naechste Runde.
      "items": [
          "On square watches the page number in the top right corner is no longer clipped. The corners of those displays are heavily rounded, and the number sat in the very corner \u2014 on the \u201e1/4\u201c the last digit lost a piece.",
          "A long recording uploads without running out of memory. The watch used to hold the "
@@ -685,6 +683,11 @@ NAECHSTES: list[dict] = [
          "as long as it is locked. Until now the watch looked completely normal and you only "
          "found out by touching it.",
      ]},
+]
+
+# „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
+# einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
+NAECHSTES: list[dict] = [
 
 
     # Android bekommt denselben Schnitt: 1.1.29 / 1.2.29 liegen seit 13.09. 08:56 bei Google,
