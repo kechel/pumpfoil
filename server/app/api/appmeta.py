@@ -613,6 +613,11 @@ NAECHSTES: list[dict] = [
          "The button that imports a FIT, TCX or GPX file is now a small \u201eFIT\u201c button at "
          "the right of the spot row instead of a wide bar of its own, and it only appears while "
          "you are looking at your own sessions \u2014 an import always creates one of yours.",
+         "The spot map keeps the part of the world you were looking at. Zooming in, opening a "
+         "spot and coming back used to drop you on the map of all spots again \u2014 it now stays "
+         "where you left it for as long as the app is running.",
+         "Ticking \u201eonly with a description\u201c updates the map at once. The pins used to sit "
+         "there until you zoomed, which made the filter look broken.",
      ]},
 ]
 
