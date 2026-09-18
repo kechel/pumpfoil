@@ -9,6 +9,28 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 🚀 App-Release-Stand
 
+- **🟡 18.09. 13:32 — iOS/Apple Watch 1.1.34 (Build 38) EINGEREICHT.** App Store Connect:
+  „iOS-App 1.1.34 · 1.1.34 (38) · Warten auf Pruefung", Uebermittlungskennung
+  `0aa1ae51-a3b4-44cb-b02e-6def74eea28e`, uebermittelt von Jan Kechel. Gebaut aus `9f193f11`
+  (letzter Code-Commit darin: `7b3f05e0`). appmeta-Eintrag von NAECHSTES nach IN_REVIEW
+  verschoben, `"eingereicht": "2026-09-18"`, Server neu gestartet — `/api/app/releases` meldet
+  „submitted 18 September, waiting for Apple". **AB HIER EINGEFROREN:** jede weitere
+  iOS-Aenderung braucht einen neuen NAECHSTES-Eintrag (**1.1.35 / Build 39**), sonst kuendigt
+  `/changelog` oeffentlich etwas an, das nicht im Paket ist — genau der Fehler vom 13.09.
+  - **Inhalt: elf Punkte** (wortgleich in `IN_REVIEW`): Sprachwahl ganz oben · unbeendbare
+    Aufnahme als stille Zeile · Parawing als Sportart · deutsche Woerter aus der englischen
+    Oberflaeche raus · Foil und Alarm-Schwellen entkoppelt · „aelter/neuer" bleibt in der Liste,
+    aus der man kam · „dein Spot" auch ohne Profil-Eintrag · Spots-Karte merkt den Ausschnitt und
+    startet am eigenen Spot · Teilen mit Karte/Satellit plus Schnitt/Laeufe/laengster Lauf ·
+    Spots-Karte wieder mit zwei Fingern zoombar · FIT-Import als schmaler Knopf.
+  - **Vor der Einreichung gefahren, alles gruen** (Protokoll s. „ERLEDIGT — iOS und Amazfit
+    nachgezogen" weiter unten): Parse-Check ueber alle Swift-Dateien · keine doppelten
+    Sprachschluessel · 0 sichtbare deutsche Texte · 667/667 iPhone- und 77/77 Watch-Schluessel
+    in den Tabellen · 18 Sprachen deckungsgleich mit der PWA.
+  - **Nach der Freigabe** (erst mit der ZWEITEN Apple-Mail, „ready for distribution" — die erste
+    sagt nur „eligible"): `_APP_META["ios"]` UND `["apple"]` auf 1.1.34, IN_REVIEW-Eintrag raus,
+    die elf Punkte als `changelog_items` mit `versionen={"ios":"1.1.34","apple":"1.1.34"}`.
+
 - **🟡 18.09.2026 — Jan baut und laedt Android 1.1.30 (44) + Wear OS 1.2.30 (1040) hoch, aus
   Commit `5c2be2e7`.** Seine Ansage: „ok, ich release jetzt android & waer aus diesem commit".
   (Vorher war `e5890fd6` angesagt; danach kamen noch Teilen-Dialog, Scroll-Anker und die

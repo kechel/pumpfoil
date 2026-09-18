@@ -591,35 +591,12 @@ IN_REVIEW: list[dict] = [
          "now shows only what changes while you ride \u2014 satellite fix and whether a run is "
          "under way.",
      ]},
-]
-
-# „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
-# einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
-NAECHSTES: list[dict] = [
-    {"name": "Amazfit", "version": "1.0.11",
-     # 1.0.10 (code 13) liegt seit 13.09.2026 bei Zepp im Review — ein IN_REVIEW-Eintrag ist ab
-     # dem Upload eingefroren, alles Spaetere gehoert hierher. Deshalb app.json auf 1.0.11 /
-     # code 14 gebumpt, sobald diese Aenderung dazukam (18.09.2026).
-     "wartet_auf": "1.0.10",
-     "items": [
-         "The watch shows your foil again when your alarm limits are set by hand. Picking "
-         "fixed limits in your profile used to leave the watch saying \u201eno foil\u201c on the "
-         "start screen, although the ride was recorded with your default foil anyway \u2014 what "
-         "you ride and where the alarm limits come from are two separate things. Garmin was "
-         "fixed on 10 September; Wear OS, Apple Watch and Amazfit follow now.",
-         "The pulse alarm works on Amazfit too. A heart-rate limit set in your profile simply "
-         "never reached the watch — now it buzzes when you go over it, with its own pattern.",
-         "High-speed, low-speed and pulse alarms feel different from each other now, and a "
-         "repeating alarm repeats instead of buzzing once. Both were settings you could pick in "
-         "your profile that the watch could not see.",
-         "\u201eEconomical\u201c and \u201eGPS only\u201c from your profile now work on Amazfit. "
-         "The watch always recorded at the full rate, whatever you had chosen.",
-         "You can see that the touch lock is on: a line at the bottom of the screen says so for "
-         "as long as it is locked. Until now the watch looked completely normal and you only "
-         "found out by touching it.",
-     ]},
 
     {"name": "iPhone + Apple Watch", "version": "1.1.34",
+     "eingereicht": "2026-09-18",
+     # EINGEREICHT 18.09.2026 13:32 aus Commit 9f193f11 (Code-Stand 7b3f05e0), Build 38,
+     # Uebermittlungskennung 0aa1ae51-a3b4-44cb-b02e-6def74eea28e, „Warten auf Pruefung".
+     # AB HIER EINGEFROREN: alles Weitere gehoert in einen neuen NAECHSTES-Eintrag (1.1.35).
      # 1.1.33 ist am 13.09.2026 ausgeliefert worden („The following app is ready for
      # distribution", App Store Connect) — damit steht die naechste Nummer fest. Bis dahin stand
      # hier bewusst „after 1.1.33" ohne Nummer, weil der Ausgang der Pruefung offen war.
@@ -664,6 +641,34 @@ NAECHSTES: list[dict] = [
          "The button that imports a FIT, TCX or GPX file is a small \u201eFIT\u201c button at the "
          "right of the filter row instead of a wide bar of its own.",
      ]},
+]
+
+# „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
+# einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
+NAECHSTES: list[dict] = [
+    {"name": "Amazfit", "version": "1.0.11",
+     # 1.0.10 (code 13) liegt seit 13.09.2026 bei Zepp im Review — ein IN_REVIEW-Eintrag ist ab
+     # dem Upload eingefroren, alles Spaetere gehoert hierher. Deshalb app.json auf 1.0.11 /
+     # code 14 gebumpt, sobald diese Aenderung dazukam (18.09.2026).
+     "wartet_auf": "1.0.10",
+     "items": [
+         "The watch shows your foil again when your alarm limits are set by hand. Picking "
+         "fixed limits in your profile used to leave the watch saying \u201eno foil\u201c on the "
+         "start screen, although the ride was recorded with your default foil anyway \u2014 what "
+         "you ride and where the alarm limits come from are two separate things. Garmin was "
+         "fixed on 10 September; Wear OS, Apple Watch and Amazfit follow now.",
+         "The pulse alarm works on Amazfit too. A heart-rate limit set in your profile simply "
+         "never reached the watch — now it buzzes when you go over it, with its own pattern.",
+         "High-speed, low-speed and pulse alarms feel different from each other now, and a "
+         "repeating alarm repeats instead of buzzing once. Both were settings you could pick in "
+         "your profile that the watch could not see.",
+         "\u201eEconomical\u201c and \u201eGPS only\u201c from your profile now work on Amazfit. "
+         "The watch always recorded at the full rate, whatever you had chosen.",
+         "You can see that the touch lock is on: a line at the bottom of the screen says so for "
+         "as long as it is locked. Until now the watch looked completely normal and you only "
+         "found out by touching it.",
+     ]},
+
 
     # Android bekommt denselben Schnitt: 1.1.29 / 1.2.29 liegen seit 13.09. 08:56 bei Google,
     # alles danach gehoert hierher. Ohne diesen Eintrag stuende auf /changelog nur die iOS-Seite
