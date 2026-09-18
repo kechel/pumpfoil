@@ -159,6 +159,10 @@ def _analysis_out(result: models.AnalysisResult | None, slim: bool = False, sens
         # Bewusst NICHT vom Preset ueberlagert: die Versuche kommen immer aus dem festen
         # attempts-Preset (analysis/__init__.py), unabhaengig von der Empfindlichkeit.
         start_attempts=_attempt_count(result),
+        # Laufzahl folgt dem Empfindlichkeits-Preset (wie foiling_time/-distance oben), die
+        # laengste Lauf-Distanz bleibt die kanonische Spalte — das Preset-JSON fuehrt sie nicht.
+        num_runs=(p["num_runs"] if (p and p.get("num_runs") is not None) else result.num_runs),
+        best_distance_m=result.best_distance_m,
     )
 
 

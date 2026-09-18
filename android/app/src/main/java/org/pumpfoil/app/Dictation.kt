@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -113,12 +112,16 @@ fun DictationOverlay(existing: String, title: String, onDismiss: () -> Unit, onR
         if (!granted) permLauncher.launch(Manifest.permission.RECORD_AUDIO) else start()
     }
 
+    // Leisten VOR dem Dialog messen (s. leistenRaender) — im Dialogfenster meldete
+    // `systemBarsPadding()` 0, und die Knopfreihe lag unter der Navigationsleiste.
+    val (leisteOben, leisteUnten) = leistenRaender()
+
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         Column(
             // Hintergrund bis unter die Leisten, Inhalt nicht: sonst liegt die Knopfreihe
             // (Abbrechen · Noch mal · Bearbeiten · Senden) unter der Navigationsleiste.
             Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface)
-                .systemBarsPadding().padding(24.dp),
+                .padding(top = leisteOben, bottom = leisteUnten).padding(24.dp),
             verticalArrangement = Arrangement.SpaceBetween,
         ) {
             Column(Modifier.fillMaxWidth()) {

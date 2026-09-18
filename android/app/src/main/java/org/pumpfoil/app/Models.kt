@@ -251,6 +251,10 @@ data class Analysis(
     // Zahl der Startversuche (attempts-Preset, reines GPS: >= 2 s ueber ~8 km/h). null = keine
     // Daten -> die Kachel zeigt dann wie frueher nur die Laufzahl.
     @SerialName("start_attempts") val startAttempts: Int? = null,
+    // Laeufe + laengster Lauf: NUR fuer die Kachel-Auswahl im Teilen-Dialog. Der Server schickt
+    // sie seit 18.09.2026 mit (s. AnalysisOut) — vorher konnte kein Client die beiden anbieten.
+    @SerialName("num_runs") val numRuns: Int? = null,
+    @SerialName("best_distance_m") val bestDistanceM: Double? = null,
     @SerialName("track_geojson") val trackGeojson: JsonElement? = null,
     // Foiling-Läufe (Index-Bereiche in track_geojson.coordinates) — nur diese werden gezeichnet.
     // Nullable: die schlanke Listen-Analyse liefert "segments": null (nicht nur fehlend).

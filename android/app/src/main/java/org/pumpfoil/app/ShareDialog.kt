@@ -13,10 +13,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -135,19 +131,19 @@ private fun composeCard(card: android.graphics.Bitmap?, photo: android.graphics.
 
 private fun availableStats(s: SessionDetail): List<String> {
     val a = s.analysis ?: return emptyList()
-    // Exakt wie die PWA (web/components/ShareDialog.tsx): „runs" und „longest" liegen NICHT
-    // im Analysis-Objekt (num_runs/best_distance_m sind serverseitig separate Spalten) → dort
-    // nie wählbar. Wir spiegeln das, damit die Auswahl 1:1 zur PWA passt (6 statt 8 Chips).
+    // Bedingungen wie in der PWA (web/components/ShareDialog.tsx). „runs" und „longest" standen
+    // hier fest auf false, weil das Analysis-Objekt die beiden Zahlen nicht enthielt — seit
+    // 18.09.2026 schickt der Server sie mit (AnalysisOut), also sind sie jetzt waehlbar.
     val ok = mapOf(
         "foiling" to ((a.foilingDistanceM ?: 0.0) > 0),
-        "runs" to false,
+        "runs" to ((a.numRuns ?: 0) > 0),
         "pumps" to ((a.pumpCount ?: 0) > 0),
         // Schnitt = Foiling-Strecke / Foil-Zeit; ohne eines von beiden gibt es ihn nicht
         // (dieselbe Bedingung wie in der PWA).
         "avgspeed" to ((a.foilingTimeS ?: 0.0) > 0 && (a.foilingDistanceM ?: 0.0) > 0),
         "speed" to ((a.maxSpeedMps ?: 0.0) > 0),
         "time" to ((a.foilingTimeS ?: 0.0) > 0),
-        "longest" to false,
+        "longest" to ((a.bestDistanceM ?: 0.0) > 0),
         "distance" to ((a.totalDistanceM ?: 0.0) > 0),
         "pumprate" to ((a.foilingTimeS ?: 0.0) > 0 && (a.pumpCount ?: 0) > 0),
     )
@@ -283,10 +279,7 @@ fun ShareDialog(session: SessionDetail, initialHighlight: Int = -1, onDismiss: (
     // oben scrollen"). Beim ersten Mal war die Antwort `decorFitsSystemWindows=false` plus
     // `systemBarsPadding()` — offensichtlich nicht verlaesslich. Jetzt feste dp aus der
     // Activity, das kann das Dialogfenster nicht verschlucken.
-    val dichte = LocalDensity.current
-    val leisten = WindowInsets.systemBars
-    val randOben = with(dichte) { leisten.getTop(this).toDp() }
-    val randUnten = with(dichte) { leisten.getBottom(this).toDp() }
+    val (randOben, randUnten) = leistenRaender()
 
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         // Bei usePlatformDefaultWidth=false bestimmt der Inhalt selbst seine Hoehe. Die scrollbare
