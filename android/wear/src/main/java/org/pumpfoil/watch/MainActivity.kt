@@ -331,13 +331,27 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
             }
             // Default-Auswahl (bis der Nutzer wechselt) — entkoppelt wie Garmin: Alarm-An/Aus vom
             // Web-Master, Foil separat (Metadaten + Auto-Schwellen). alarm.high/low = feste Web-Werte.
+            // ZWEI GETRENNTE DINGE, die hier bis 18.09.2026 verkoppelt waren — derselbe Fehler,
+            // der auf Garmin am 10.09. behoben wurde (SessionRecorder.initAlarmSelection):
+            //   1. WELCHE Foil man fährt — reine Metadaten der Session.
+            //   2. WOHER die Alarm-Schwellen kommen (Foil-Geometrie oder feste Website-Werte).
+            // Wer im Profil feste Schwellen wählt („alarmDefault = fixed"), bekam vorher
+            // `sessionFoilId = null`, auf dem Start-Screen „Foil: —" und in den Einstellungen
+            // „kein Foil" angehakt — obwohl er natürlich trotzdem auf seiner Foil steht. Beim
+            // Upload setzte der Server dann den Profil-Standard ein (ingest.py: fehlt `foil_id`,
+            // greift `settings.foil_id`), die Uhr zeigte also etwas anderes an, als hinterher in
+            // der Session stand (Jan, 18.09.2026, Wear-Emulator).
+            // Jetzt: die Foil wird IMMER vorgewählt — der Server sortiert den Profil-Standard
+            // nach vorne (`_foil_alarm_list`) — und nur die Schwellen-QUELLE hängt an
+            // `alarmDefault`. Master-Schalter für den Alarm selbst bleibt der Website-Alarm.
             if (foilLabel.isEmpty()) {
                 alarm = alarm.copy(enabled = manualAlarm)
-                if (alarmDefault == "foil" && foils.isNotEmpty()) {
-                    sessionFoilId = foils[0].id; foilLabel = foils[0].label; alarmSource = "foil"
+                if (foils.isNotEmpty()) {
+                    sessionFoilId = foils[0].id; foilLabel = foils[0].label
                 } else {
-                    sessionFoilId = null; foilLabel = "—"; alarmSource = "manual"
+                    sessionFoilId = null; foilLabel = "—"
                 }
+                alarmSource = if (alarmDefault == "foil" && foils.isNotEmpty()) "foil" else "manual"
             }
             val ofa = c.optJSONArray("offFoilView")
             if (ofa != null && ofa.length() > 0) {

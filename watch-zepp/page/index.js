@@ -1200,8 +1200,14 @@ Page(
         if (r && !s._foilInit) {
           s._foilInit = true;
           s.almOn = !!r.alarmEnabled;
-          if ((r.alarmDefault || "foil") === "foil" && s.foils.length) { s.foilId = s.foils[0].id; s.foilLabel = s.foils[0].label; s.almSrc = "foil"; }
-          else { s.foilId = null; s.foilLabel = "—"; s.almSrc = "manual"; }
+          // Foil und Schwellen-Quelle sind ZWEI DINGE (bis 18.09.2026 verkoppelt, wie auf Garmin
+          // bis 10.09.): wer im Profil feste Schwellen waehlt, faehrt trotzdem seine Foil. Vorher
+          // stand hier „kein Foil", waehrend der Server beim Upload den Profil-Standard einsetzte.
+          // Foil also IMMER vorwaehlen (der Server sortiert den Standard nach vorne), nur almSrc
+          // folgt der Profil-Vorwahl.
+          if (s.foils.length) { s.foilId = s.foils[0].id; s.foilLabel = s.foils[0].label; }
+          else { s.foilId = null; s.foilLabel = "—"; }
+          s.almSrc = ((r.alarmDefault || "foil") === "foil" && s.foils.length) ? "foil" : "manual";
         }
         s.paired = true;
         if (s.brightMode === "idle") this._setBrightMode("idle");

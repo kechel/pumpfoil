@@ -727,11 +727,14 @@ struct RecordView: View {
             selInit = true
             alarm.enabled = c.alarmEnabled                     // Web-Master = Alarm-Default
             alarm.low = c.speedLow; alarm.high = c.speedHigh   // manuelle Schwellen = feste Web-Werte
-            if alarmDefault == "foil", let f = foils.first {
-                selectedFoilId = f.id; alarmSource = "foil"    // Standard-Foil (Metadaten + Auto-Schwellen)
-            } else {
-                selectedFoilId = nil; alarmSource = "manual"
-            }
+            // Foil und Schwellen-Quelle sind ZWEI DINGE (bis 18.09.2026 verkoppelt, wie auf
+            // Garmin bis 10.09. und Wear bis 18.09.): wer feste Schwellen wählt, fährt trotzdem
+            // seine Foil. Vorher stand hier „kein Foil", während der Server beim Upload den
+            // Profil-Standard einsetzte — die Uhr zeigte etwas anderes als die Session.
+            // Die Foil wird jetzt IMMER vorgewählt (Server sortiert den Standard nach vorne),
+            // nur `alarmSource` folgt der Profil-Vorwahl.
+            selectedFoilId = foils.first?.id
+            alarmSource = (alarmDefault == "foil" && !foils.isEmpty) ? "foil" : "manual"
             autoStart = c.autoStart ?? false                   // Config-Default; danach auf der Uhr umschaltbar
             pressStattHalten = (c.stopMode ?? "hold") == "press"
             wassersperre = c.waterLock ?? "auto"

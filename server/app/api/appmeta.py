@@ -504,6 +504,19 @@ IN_REVIEW: list[dict] = [
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
+    {"name": "Amazfit", "version": "1.0.11",
+     # 1.0.10 (code 13) liegt seit 13.09.2026 bei Zepp im Review — ein IN_REVIEW-Eintrag ist ab
+     # dem Upload eingefroren, alles Spaetere gehoert hierher. Deshalb app.json auf 1.0.11 /
+     # code 14 gebumpt, sobald diese Aenderung dazukam (18.09.2026).
+     "wartet_auf": "1.0.10",
+     "items": [
+         "The watch shows your foil again when your alarm limits are set by hand. Picking "
+         "fixed limits in your profile used to leave the watch saying \u201eno foil\u201c on the "
+         "start screen, although the ride was recorded with your default foil anyway \u2014 what "
+         "you ride and where the alarm limits come from are two separate things. Garmin was "
+         "fixed on 10 September; Wear OS, Apple Watch and Amazfit follow now.",
+     ]},
+
     {"name": "iPhone + Apple Watch", "version": "1.1.34",
      # 1.1.33 ist am 13.09.2026 ausgeliefert worden („The following app is ready for
      # distribution", App Store Connect) — damit steht die naechste Nummer fest. Bis dahin stand
@@ -525,6 +538,11 @@ NAECHSTES: list[dict] = [
          "German words that had slipped into the English interface are gone — among them the "
          "run count under every session, which said \u201eL\u00e4ufe\u201c in every language, "
          "the error messages and the text while a recording uploads. Reported by a rider.",
+         "The watch shows your foil again when your alarm limits are set by hand. Picking "
+         "fixed limits in your profile used to leave the watch saying \u201eno foil\u201c on the "
+         "start screen, although the ride was recorded with your default foil anyway \u2014 what "
+         "you ride and where the alarm limits come from are two separate things. Garmin was "
+         "fixed on 10 September; Wear OS, Apple Watch and Amazfit follow now.",
      ]},
 
     # Android bekommt denselben Schnitt: 1.1.29 / 1.2.29 liegen seit 13.09. 08:56 bei Google,
@@ -570,6 +588,11 @@ NAECHSTES: list[dict] = [
          "German words that had slipped into the English interface are gone — among them the "
          "run count under every session, the error messages, the notification while a recording "
          "runs, and eighteen labels that only a screen reader reads out. Reported by a rider.",
+         "The watch shows your foil again when your alarm limits are set by hand. Picking "
+         "fixed limits in your profile used to leave the watch saying \u201eno foil\u201c on the "
+         "start screen, although the ride was recorded with your default foil anyway \u2014 what "
+         "you ride and where the alarm limits come from are two separate things. Garmin was "
+         "fixed on 10 September; Wear OS, Apple Watch and Amazfit follow now.",
      ]},
 ]
 
