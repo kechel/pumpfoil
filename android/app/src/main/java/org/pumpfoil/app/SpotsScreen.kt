@@ -72,11 +72,22 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
     // Filter „nur mit Beschreibung" — rein clientseitig, `spot-map` liefert die Zahl je Spot mit.
     var nurNotes by remember { mutableStateOf(false) }
 
-    // Eigener Homespot (Name aus dem Profil) — die Karte startet darauf, statt auf alle Spots
-    // einzupassen (Jan, 18.09.2026: „kann die karte vielleicht einfach den eigenen homespot
-    // immer default ins zentrum schieben?"). Leer, wenn keiner gesetzt ist oder die Abfrage
-    // scheitert; dann bleibt es beim Einpassen.
-    var homespot by remember { mutableStateOf("") }
+    // Spot, auf dem die Karte startet — Name, in `items` nachgeschlagen.
+    //
+    // Erst wollte ich hier nur den Homespot nehmen (Jan, 18.09.2026: „kann die karte vielleicht
+    // einfach den eigenen homespot immer default ins zentrum schieben?"). Nachgezaehlt in der DB:
+    // von 572 Konten haben genau 17 einen Homespot gesetzt. Der Default haette also 555 Nutzern
+    // nichts gebracht. 269 von ihnen haben aber Sessions — wir WISSEN, wo sie fahren, wir haben
+    // es nur nicht benutzt. Deshalb eine Kette:
+    //   1. Homespot aus dem Profil (17)
+    //   2. sonst der Spot der LETZTEN eigenen Session (269) — `/api/sessions/my-spots` ist genau
+    //      danach sortiert (neueste zuerst, s. `my_spots`)
+    //   3. sonst (288 Konten ohne jede Session) der meistbefahrene Spot ueberhaupt — `items` ist
+    //      nach Sessions sortiert, also `first()`. Heute ist das Illmensee mit 310 Sessions; auf
+    //      Jans Frage „koennen wir da einfach Illmensee als zentrale nehmen?" ist das die
+    //      abgeleitete Antwort statt einer verdrahteten: zieht ein anderer Spot vorbei, wandert
+    //      der Default von selbst mit.
+    var startSpot by remember { mutableStateOf("") }
 
     suspend fun load() {
         loading = true
@@ -85,9 +96,11 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
         loading = false
     }
     LaunchedEffect(Unit) {
-        homespot = try {
-            Api.settings()["homespot"]?.jsonPrimitive?.contentOrNull ?: ""
+        val hs = try {
+            Api.settings()["homespot"]?.jsonPrimitive?.contentOrNull?.trim() ?: ""
         } catch (_: Exception) { "" }
+        startSpot = if (hs.isNotBlank()) hs
+                    else try { Api.mySpots().firstOrNull()?.spot ?: "" } catch (_: Exception) { "" }
     }
     LaunchedEffect(Unit) { load() }
 
@@ -200,7 +213,7 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
             // 3. Der Inhalt darunter bekommt einen DECKENDEN Hintergrund. Compose-Flaechen sind
             //    sonst durchsichtig, und dann scheint alles durch, was dahinter liegt.
             SpotsMap(
-                karte, sichtbar, onOpenSpot, homespot,
+                karte, sichtbar, onOpenSpot, startSpot,
                 Modifier.fillMaxWidth().height(220.dp).clipToBounds(),
             )
             Refreshable(refreshing = loading, onRefresh = { scope.launch { load() } }) {
@@ -338,7 +351,7 @@ private fun SpotsMap(
     karte: MapView,
     items: List<SpotMapItem>,
     onOpenSpot: (String) -> Unit,
-    homespot: String = "",
+    startSpot: String = "",
     modifier: Modifier = Modifier,
 ) {
     // Damit der Zoom-Listener (einmalig gesetzt) immer die aktuellen Daten sieht.
@@ -373,46 +386,19 @@ private fun SpotsMap(
         // Einpassen NUR ohne gemerkten Ausschnitt — sonst reisst ein spaeteres Neuladen der
         // Spots dem Nutzer die Ansicht weg (s. SpotsKarte).
         if (SpotsKarte.vorhanden) return@LaunchedEffect
-        val pts = items.map { GeoPoint(it.lat, it.lon) }
-        // Homespot ins Zentrum, wenn es einen gibt und er in der Liste steht. Das ist die
-        // Ansicht, die fast jeden interessiert — das Einpassen ueber ALLE Spots zeigte die halbe
-        // Welt, und danach musste jeder erst zu sich hinnavigieren.
-        val heim = homespot.takeIf { it.isNotBlank() }
+        // Die Kette aus `startSpot` (s. dort), zuletzt der meistbefahrene Spot — `items` ist
+        // nach Sessions sortiert.
+        //
+        // Das Einpassen ueber ALLE Spots ist damit weg, und mit ihm meine zwei Kruecken dafuer
+        // („eine Zoomstufe naeher", „30 % nach Osten"). Beide linderten nur, dass die Startansicht
+        // die halbe Welt zeigte; ein konkreter Spot in der Mitte loest es an der Wurzel.
+        val ziel = startSpot.takeIf { it.isNotBlank() }
             ?.let { h -> items.firstOrNull { it.spot.equals(h, ignoreCase = true) } }
-        if (heim != null) {
-            karte.controller.setZoom(HEIM_ZOOM)
-            karte.controller.setCenter(GeoPoint(heim.lat, heim.lon))
-        } else if (pts.size == 1) {
-            karte.controller.setZoom(11.0)
-            karte.controller.setCenter(pts[0])
-        } else if (pts.size > 1) {
-            val bb = BoundingBox.fromGeoPoints(pts)
-            karte.post {
-                karte.zoomToBoundingBox(bb.increaseByScale(1.3f), false, 48)
-                // EINE Zoomstufe naeher als das reine Einpassen (Jan, 18.09.2026: „nimm einfach
-                // eine zoomstufe groesser als default als vorher"). Das Einpassen ueber alle
-                // Spots spannt von Europa bis Australien; danach war die Erde fast zweimal im
-                // Bild. Eine Stufe naeher genuegt — die Karte darf umlaufen, sie soll nur nicht
-                // so weit draussen starten. Zweites `post`, damit der Zoom des Einpassens schon
-                // uebernommen ist, wenn wir ihn lesen.
-                karte.post {
-                    karte.controller.setZoom(karte.zoomLevelDouble + 1.0)
-                    // Und den Blick um 30 % der sichtbaren Breite nach OSTEN schieben, die Karte
-                    // wandert dadurch nach links (Jan, 18.09.2026: „die default spots karte noch
-                    // ca 30% weiter nach links verschieben"). Grund: die Spots ballen sich in
-                    // Europa, und beim reinen Einpassen lag dieser Haufen am rechten Rand.
-                    // Drittes `post`, damit die Projektion den neuen Zoom schon kennt — sonst
-                    // rechnen wir mit der sichtbaren Breite von VORHER.
-                    karte.post {
-                        val sicht = karte.boundingBox ?: return@post
-                        val c = karte.mapCenter
-                        val neuLon = c.longitude + sicht.longitudeSpanWithDateLine * 0.30
-                        // Datumsgrenze: 190° gibt es nicht, das waeren -170°.
-                        val norm = ((neuLon + 540.0) % 360.0) - 180.0
-                        karte.controller.setCenter(GeoPoint(c.latitude, norm))
-                    }
-                }
-            }
+            ?: items.firstOrNull()
+        if (ziel != null) {
+            // Ein einziger Spot auf der Karte -> naeher ran, da gibt es keine Nachbarn zu zeigen.
+            karte.controller.setZoom(if (items.size == 1) 11.0 else HEIM_ZOOM)
+            karte.controller.setCenter(GeoPoint(ziel.lat, ziel.lon))
         }
     }
     MapTiles.MitUmschalter(modifier) { ebene ->
