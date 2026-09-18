@@ -973,6 +973,18 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔲 NACH dem Android-Release: iOS und Amazfit nachziehen.** Jan, 18.09.2026: „wir machen ios
+  und amazfit sobald android fertig zum release ist". Was genau ansteht:
+  - **iOS, Spots-Karte:** `fitRegion(s)` laeuft in jedem `load()` (`SpotsView.swift`) — der
+    Ausschnitt wird also bei jedem Besuch auf alle Spots zurueckgesetzt. Dieselbe Beschwerde wie
+    auf Android (18.09.), dort in `75f29f0e` behoben; PWA hat es laengst (`Spots.tsx`,
+    sessionStorage). Der Beschreibungs-Filter ist auf iOS NICHT betroffen — dort haengt die
+    Buendelung schon an `region`-Aenderungen, nicht an einem View-Merker.
+  - **Amazfit:** die vier Paritaets-Luecken aus dem Eintrag weiter unten (Puls-Alarm,
+    Aufzeichnungsmodus, Vibrationsmuster/Wiederholung, Aktivitaetstyp). Reihenfolge und Belege
+    stehen dort. Die Foil-/Alarm-Entkopplung ist schon drin (`78aa27ea`), app.json steht auf
+    1.0.11/code 14 — Amazfit 1.0.10 liegt noch bei Zepp im Review, es eilt also nicht.
+
 - **🔲 UHREN-PARITAET: was Garmin kann und die anderen nicht.** Systematisch geprueft am
   18.09.2026 (Anlass: der Foil-/Alarm-Fix von Garmin 10.09. war auf Wear, Apple und Zepp nie
   nachgezogen worden — Jan: „wohl vergessen auf die anderen zu uebernehmen"). Methode: alle
