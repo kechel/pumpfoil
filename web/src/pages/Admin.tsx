@@ -37,9 +37,16 @@ export default function Admin() {
   // Offene Moderationszahlen für Tab-Badges (leichtes /admin/pending).
   const [pending, setPending] = useState<AdminPending | null>(null);
   useEffect(() => { api.adminPending().then(setPending).catch(() => {}); }, []);
+  // Alle Reiter, in denen wirklich etwas zu ENTSCHEIDEN ist, tragen ihre Zahl im Menue —
+  // ohne dass man sie aufmachen muss (Jan, 18.09.2026). Bewusst OHNE Zahl bleiben:
+  // „classify" (needs_classification ist KEINE Warteschlange, die Nutzer ordnen selbst zu),
+  // „photos" (`blocked` ist das Ergebnis einer Entscheidung, keine offene Aufgabe) und alles
+  // rein Beobachtende (Nutzer, Sessions, geloescht, News, Sperren, Protokoll, System).
   const badge: Partial<Record<Tab, number>> = {
     flagged: pending?.flagged ?? 0, fake: pending?.fake ?? 0,
     suspect: pending?.suspect ?? 0, chat: pending?.chat ?? 0,
+    social: pending?.social ?? 0, feedback: pending?.feedback ?? 0,
+    spots: pending?.spots ?? 0,
   };
   return (
     <div>
