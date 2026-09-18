@@ -268,9 +268,22 @@ object Api {
         json.decodeFromString(CarveStats.serializer(), http("GET", "/api/community/carve-stats", null, auth = true))
     }
 
-    // Nachbar-Sessions (älter/neuer) für die Vor/Zurück-Navigation im Detail.
-    suspend fun sessionNeighbors(id: Int): Neighbors = withContext(Dispatchers.IO) {
-        json.decodeFromString(Neighbors.serializer(), http("GET", "/api/sessions/$id/neighbors", null, auth = true))
+    // Nachbar-Sessions (älter/neuer) für die Vor/Zurück-Navigation im Detail. Mit dem Filter der
+    // Liste, aus der man kam (s. NachbarFilter) — ohne Angaben antwortet der Server wie bisher:
+    // eigene Sessions, gleiche Art wie die aktuelle.
+    suspend fun sessionNeighbors(id: Int, f: NachbarFilter = NachbarFilter.Leer): Neighbors = withContext(Dispatchers.IO) {
+        val q = StringBuilder()
+        fun add(k: String, v: String) {
+            q.append(if (q.isEmpty()) "?" else "&").append(k).append('=')
+                .append(java.net.URLEncoder.encode(v, "UTF-8"))
+        }
+        if (f.scope == "all") add("scope", "all")
+        f.spot?.takeIf { it.isNotBlank() }?.let { add("spot", it) }
+        f.sport?.takeIf { it.isNotBlank() }?.let { add("sport", it) }
+        if (f.accelOnly) add("accel_only", "true")
+        if (f.filter == "other") add("filter", "other")
+        f.month?.takeIf { it.isNotBlank() }?.let { add("month", it) }
+        json.decodeFromString(Neighbors.serializer(), http("GET", "/api/sessions/$id/neighbors$q", null, auth = true))
     }
 
     suspend fun sessionPhotos(id: Int): List<SessionPhoto> = withContext(Dispatchers.IO) {
