@@ -1010,6 +1010,20 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   **Nachprüfen (rein lesend):**
   `cd server && DATABASE_URL="$(sed -n 's/^DATABASE_URL=//p' .env)" .venv/bin/python -c "from app.api.social import feed_erreichbar; print(feed_erreichbar('UCb_1b-TkdGE4kZWX17HDH9g'))"`
 
+  **NACHTRAG 18.09., 08:0x — es ist NICHT unsere IP.** Jan hat denselben Link aus seinem eigenen
+  Netz geoeffnet: „ich bekomme genauso 404". Damit ist auch die Rate-Limit-These erledigt, die
+  wir beide hatten — nachgezaehlt im Journal sind es ohnehin nur **54 Aufrufe von
+  `/api/public/videos` an einem ganzen Tag**, maximal 6 in einer Stunde. Es ist also eine
+  Stoerung bei YouTube oder das Ende des Endpunkts.
+
+  **Dabei gefunden und behoben** (unabhaengig von der Ursache, `main.py`): `/api/public/videos`
+  beachtete die Cache-Zeit nur, WENN schon Videos drin standen (`and _yt_cache["videos"]`).
+  Blieb der Cache leer — also genau waehrend einer Stoerung —, ging JEDER Aufruf der
+  oeffentlichen Startseite erneut zu YouTube: je laenger es kaputt ist, desto haerter fragen wir
+  nach. Jetzt gibt es eine Wartezeit nach Fehlversuchen (10 min) und in der Zeit wird der letzte
+  bekannte Stand ausgeliefert, auch wenn er alt ist. Gemessen: nach einem Fehlversuch je Worker
+  antwortet der Endpunkt in 0,8 ms statt 60 ms.
+
   **Zu entscheiden (Jan):** ist das eine Stoerung bei YouTube (dann abwarten und nichts aendern)
   oder das Ende des Endpunkts (dann braucht der Feed eine andere Quelle)? Unabhaengig davon:
   `feed_erreichbar` hat keinen zweiten Versuch und blockiert die Freigabe hart — ein einzelner
