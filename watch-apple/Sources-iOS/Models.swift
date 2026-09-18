@@ -837,6 +837,10 @@ struct Analysis: Codable {
     // Zahl der Startversuche (attempts-Preset, reines GPS: >= 2 s ueber ~8 km/h). nil = keine
     // Daten -> die Kachel zeigt dann wie frueher nur die Laufzahl.
     let start_attempts: Int?
+    // Laeufe + laengster Lauf: NUR fuer die Kachel-Auswahl im Teilen-Dialog. Der Server schickt
+    // sie seit 18.09.2026 mit (AnalysisOut) — vorher konnte KEIN Client die beiden anbieten.
+    let num_runs: Int?
+    let best_distance_m: Double?
 }
 
 // Session-weite Kennzahlen (metrics_json) — Basis für den Stats-Block in der Liste.

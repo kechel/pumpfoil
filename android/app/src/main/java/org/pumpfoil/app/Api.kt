@@ -876,16 +876,31 @@ object Api {
 
     // Teilbare Session-Card (server-gerendertes PNG). Params spiegeln web/ShareDialog:
     // color=cyan|speed|hr, stats=komma-Keys, bg=navy, track=0|1, title, shade=light|dark.
+    /**
+     * Teilen-Bild vom Server. `bg`: "navy" | "transparent" (Foto kommt lokal drueber) |
+     * "karte" | "satellit".
+     *
+     * `dim` NUR bei Karten-Hintergrund mitgeben — dort legt der SERVER den Schleier ins Bild
+     * (beim Foto zeichnet ihn die App selbst, s. `composeCard`). `dim = -1` heisst „messen":
+     * der Server sucht die passende Staerke und meldet sie in `X-Card-Dim` zurueck, damit der
+     * Regler an der gemessenen statt an einer geratenen Stelle steht (wie die PWA).
+     *
+     * Rueckgabe: Bild + gemessener Schleier (null, wenn der Server keinen gemeldet hat).
+     */
     suspend fun shareCard(
         id: Int, color: String, stats: List<String>, track: Boolean, title: String, shade: String,
-        bg: String = "navy", highlight: Int = -1,
-    ): ByteArray = withContext(Dispatchers.IO) {
+        bg: String = "navy", highlight: Int = -1, dim: Float? = null,
+    ): Pair<ByteArray, Float?> = withContext(Dispatchers.IO) {
         val q = StringBuilder("?color=$color&bg=$bg&track=${if (track) 1 else 0}&shade=$shade")
         // "none" = explizit KEINE Stats (sonst interpretiert der Server "leer" als Default=alle) — #36.
         q.append("&stats=").append(java.net.URLEncoder.encode(if (stats.isEmpty()) "none" else stats.joinToString(","), "UTF-8"))
         if (title.isNotBlank()) q.append("&title=").append(java.net.URLEncoder.encode(title.trim(), "UTF-8"))
         if (track && highlight >= 0) q.append("&highlight=$highlight")
-        httpBytes("/api/sessions/$id/share.png$q")
+        dim?.let { q.append("&dim=").append(it) }
+        // Sprache der Beschriftung: was der Mensch gerade SIEHT, nicht was im Profil steht.
+        q.append("&lang=").append(java.net.URLEncoder.encode(I18n.lang, "UTF-8"))
+        val (bytes, kopf) = httpBytesMitHeader("/api/sessions/$id/share.png$q", "X-Card-Dim")
+        bytes to kopf?.toFloatOrNull()
     }
 
     /** Eigene Session als Datei: kind = "gpx" | "fit". Nur der Besitzer, der Server prueft das. */
@@ -1214,6 +1229,24 @@ object Api {
     private data class MintResp(val device_token: String)
 
     // Authentifizierter GET, der rohe Bytes zurückgibt (z. B. share.png).
+    /** Wie `httpBytes`, gibt zusaetzlich einen Antwort-Header zurueck (fuer `X-Card-Dim`). */
+    private fun httpBytesMitHeader(path: String, header: String): Pair<ByteArray, String?> {
+        val conn = (URL(BASE + path).openConnection() as HttpURLConnection).apply {
+            requestMethod = "GET"; connectTimeout = 15000; readTimeout = 30000
+            token?.let { setRequestProperty("Authorization", "Bearer $it") }
+        }
+        val code = conn.responseCode
+        conn.getHeaderField("X-Refresh-Token")?.takeIf { it.isNotBlank() }?.let { rt ->
+            token = rt; appContext?.let { c -> prefs(c).edit().putString("token", rt).apply() }
+        }
+        if (code !in 200..299) {
+            if (code == 401) { appContext?.let { logout(it) }; onUnauthorized?.invoke() }
+            throw RuntimeException(if (code == 401) I18n.t("err.sessionExpired") else "Serverfehler ($code)")
+        }
+        val wert = conn.getHeaderField(header)
+        return conn.inputStream.use { it.readBytes() } to wert
+    }
+
     private fun httpBytes(path: String): ByteArray {
         val conn = (URL(BASE + path).openConnection() as HttpURLConnection).apply {
             requestMethod = "GET"; connectTimeout = 15000; readTimeout = 30000

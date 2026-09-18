@@ -250,7 +250,9 @@ internal fun SocialPlayerOverlay(z: SocialFeedZustand) {
             // Unten nur noch ein Hauch Abstand zur Fusszeile.
             // Schwarz bis unter die Leisten, Inhalt nicht: die Fusszeile lag sonst unter der
             // Navigationsleiste.
-            Column(Modifier.fillMaxSize().padding(bottom = leisteUnten + 2.dp)) {
+            // Mindest-Boden, falls die Messung 0 meldet (s. Leisten.kt). Kein grosser
+            // Zuschlag: hier scrollt nichts, er wuerde nur das Video kleiner machen.
+            Column(Modifier.fillMaxSize().padding(bottom = maxOf(leisteUnten, MIN_UNTEN))) {
                 Box(
                     // Nur ein Hauch Seitenrand (vorher 52 dp fuer die Pfeile). Der Player
                     // letterboxt hochkant aufgenommene Clips: passt das Video in die Breite,

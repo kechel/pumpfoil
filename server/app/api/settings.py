@@ -665,13 +665,23 @@ def update_settings(
         if p.get("color") in ("cyan", "speed", "hr"):
             sh["color"] = p["color"]
         if isinstance(p.get("stats"), list):
-            sh["stats"] = [str(x) for x in p["stats"] if isinstance(x, str)][:8]
+            # 12, nicht 8: waehlbar sind neun Kacheln (seit „avgspeed" am 18.09.2026 und seit
+            # „runs"/„longest" ueberhaupt anwaehlbar sind). Bei 8 fiel bei voller Auswahl still
+            # eine heraus, und beim naechsten Oeffnen fehlte sie.
+            sh["stats"] = [str(x) for x in p["stats"] if isinstance(x, str)][:12]
         if isinstance(p.get("dim"), (int, float)):
             sh["dim"] = max(0.0, min(0.9, float(p["dim"])))
         if isinstance(p.get("track"), bool):
             sh["track"] = p["track"]
         if p.get("shade") in ("light", "dark"):
             sh["shade"] = p["shade"]
+        # Kartenebene als Hintergrund ("" = einfarbig | "karte" | "satellit"). FEHLTE hier, und
+        # damit lief das Speichern ins Leere: die PWA schickt den Wert seit dem 16.09.2026 und
+        # liest ihn auch zurueck (`sh.karte`) — nur ankommen konnte er nie, die Wahl fiel also
+        # bei jedem Oeffnen wieder auf einfarbig zurueck. Gefunden am 18.09.2026 beim Nachziehen
+        # derselben Funktion in die Apps.
+        if p.get("karte") in ("", "karte", "satellit"):
+            sh["karte"] = p["karte"]
         current["share"] = sh
     if "start_threshold_m" in patch:
         try:

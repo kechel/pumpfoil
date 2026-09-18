@@ -95,6 +95,7 @@ private enum class Scope { MINE, SPOT, ALL }
 @Composable
 fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onSpotChat: (String) -> Unit = {}) {
     var scope by remember { mutableStateOf(Scope.MINE) }
+    val listenStand = androidx.compose.foundation.lazy.rememberLazyListState()
     var homespot by remember { mutableStateOf("") }
     var spot by remember { mutableStateOf("") }          // aktiver Spot (für SPOT-Scope)
     // Name -> spot_id (fuer die Spot-Beschreibungen; die Spot-Auswahl selbst bleibt namensbasiert).
@@ -202,6 +203,19 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
         loading = false
     }
     LaunchedEffect(scope, spot, tick, accelOnly, filter, month) { load() }
+    // Andere Liste = neuer Anfang.
+    //
+    // Die LazyColumn hatte keinen eigenen Zustand, Compose merkte sich also den Scrollstand an
+    // ihrer Stelle in der Komposition — und der ueberlebte den Wechsel des Scopes. Gemeldet von
+    // Jan (18.09.2026): „auf session, dann auf illmensee (ansicht ist korrekt ganz oben), dann
+    // auf meine, dann wieder auf illmensee -> dann ist die ansicht gescrollt, man landet
+    // irgendwo weiter unten und nicht ganz oben bei den rekorden des spots". Am Spot stehen oben
+    // Rekorde, Wetter und Beschreibungen — genau die sieht man dann nicht.
+    //
+    // Der Filter zaehlt mit: „Pumpfoil" und „Aussortiert" sind ebenso verschiedene Listen, und
+    // ein Monatswechsel auch. NICHT dabei ist die Rueckkehr aus einer Session — dort aendert
+    // sich nichts von beidem, der Stand bleibt also erhalten.
+    LaunchedEffect(scope, spot, filter, month) { listenStand.scrollToItem(0) }
     // Denselben Filter merken: „älter/neuer" im Detail navigiert damit innerhalb GENAU dieser
     // Liste statt immer durch die eigenen Sessions (Jan, 17.09.2026). sport="all" wie oben.
     LaunchedEffect(scope, spot, accelOnly, filter, month) {
@@ -364,7 +378,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                     if (loading && empty) {
                         CircularProgressIndicator(Modifier.align(Alignment.Center))
                     } else {
-                        LazyColumn(Modifier.fillMaxSize()) {
+                        LazyColumn(Modifier.fillMaxSize(), state = listenStand) {
                             error?.let { e -> item { Text(e, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error) } }
                             // Reihenfolge wie in der PWA: Rekorde, Wetter, Beschreibungen, dann die
                             // Sessions (Jan, 07.09.: „die 3 muessen nach oben wie in der pwa").
