@@ -750,6 +750,11 @@ def changelog(plattform: str = "", version: str = "",
         if not tage or tage[-1]["date"] != iso:
             tage.append({"date": iso, "items": []})
         punkt: dict = {"text": z.text}
+        # Store-Ereignisse („eingereicht", „freigegeben") tragen ihre Art mit, damit die Seite sie
+        # ruhiger setzen kann als einen Funktionspunkt. Der Standard bleibt weg — ein Feld, das bei
+        # 99 % der Zeilen „punkt" sagt, kostet nur Platz in der Antwort.
+        if (z.art or "punkt") != "punkt":
+            punkt["art"] = z.art
         if z.img:
             punkt["img"] = z.img
             if z.img_alt:

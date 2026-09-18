@@ -165,6 +165,9 @@ function ReleaseStatus() {
 // Ein Punkt kann ein Bild tragen (`img`), das UNTER ihm gerendert wird.
 type Item = {
   text: string; img?: string; img_alt?: string; mit_update?: string;
+  // "ereignis" = ein Schritt im Store-Lauf (eingereicht / freigegeben), kein Funktionspunkt.
+  // Fehlt das Feld, ist es ein normaler Punkt — der Server schickt nur die Ausnahme mit.
+  art?: string;
   // Welche Plattform braucht welche App-Version fuer diesen Punkt? Leer/fehlt = gilt ueberall
   // sofort (Web- und Serveraenderungen sind mit dem Deploy da). Ohne diese Marke stand ein
   // Punkt, den nur eine Uhr kann, ohne jeden Hinweis darauf in der Liste (Befund 11.09.2026).
@@ -220,7 +223,14 @@ export default function Changelog() {
             <h2 className="mb-2 text-sm font-semibold text-brand-600 dark:text-brand-300">{tagLang(e.date)}</h2>
             <ul className="list-disc space-y-1.5 pl-5 text-sm text-slate-200">
               {e.items.map((it, i) => (
-                <li key={i}>
+                // Store-Ereignisse stehen ohne Aufzaehlungspunkt und gedaempft: sie erzaehlen
+                // nicht, was du kannst, sondern wo eine Fassung steht. Die SCHRIFTGROESSE bleibt
+                // gleich — kleiner setzen waere genau der Fehler, den die Regel „Hinweise nie
+                // winzig" meint.
+                <li key={i}
+                    className={it.art === "ereignis"
+                      ? "-ml-5 list-none border-l-2 border-slate-700 pl-3 text-slate-400"
+                      : undefined}>
                   <ItemText text={it.text} />
                   {(it.plattformen ?? []).map((p) => (
                     <span key={p.name}

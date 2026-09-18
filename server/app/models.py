@@ -1251,6 +1251,20 @@ class ChangelogItem(Base):
     # der Server an einer Stelle, nicht jede der vier Apps fuer sich; die Live-Version je
     # Plattform kennt er schon aus `appmeta._APP_META`.
     versionen: Mapped[str | None] = mapped_column(Text)
+    # „punkt" = eine Funktion/Korrektur, wie bisher. „ereignis" = ein Schritt im Store-Lauf
+    # („zur Pruefung eingereicht", „freigegeben"). Getrennt, weil beides verschieden gelesen wird:
+    # ein Punkt sagt, was du kannst, ein Ereignis sagt, wo eine Fassung gerade steht.
+    #
+    # Idee von Jan (18.09.2026): „immer wenn ein neues Release in einem der Stores eingeliefert
+    # wurde, also nur kurz Android Release Version 1.2.3 zur Pruefung eingereicht … genauso auch,
+    # wann irgendeine Version approved wurde. Dann hat man da auch schoen die Historie." Die
+    # Tabelle oben auf /changelog zeigt naemlich nur den JETZIGEN Stand — sobald eine Fassung live
+    # geht, verschwindet die Einreichung daraus spurlos, und wie lange eine Pruefung gedauert hat,
+    # ist danach nirgends mehr zu sehen.
+    #
+    # `versionen` traegt bei einem Ereignis die betroffene Fassung (z. B. {"android": "1.1.30",
+    # "wear": "1.2.30"}) — damit steht die Nummer strukturiert da und nicht nur im Text.
+    art: Mapped[str] = mapped_column(String(16), default="punkt", server_default="punkt")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
