@@ -65,6 +65,16 @@ async function handle(req) {
       // Halten oder kurzer Druck fuer STOPP (Profil-Einstellung, gilt fuer alle Uhren).
       stopMode: b && b.stopMode, colorByValue: b && b.colorByValue,
       foils: b && b.foils, alarmEnabled: b && b.alarmEnabled, alarmDefault: b && b.alarmDefault, speedHigh: b && b.speedHigh, speedLow: b && b.speedLow,
+      // Puls-Grenze, Vibrationsmuster, Wiederholung und Aufzeichnungsmodus. FEHLTEN hier —
+      // und damit konnte die Uhr sie nicht kennen, egal was sie koennte: kein Puls-Alarm,
+      // ein einziges Vibrationsmuster, keine Wiederholung, und „sparsam"/„nur GPS" aus dem
+      // Profil wirkte nicht (immer 25 Hz). Garmin, Wear OS und Apple Watch haben das alles
+      // laengst; geprueft und aufgeschrieben am 18.09.2026 (Paritaets-Durchsicht in
+      // docs/TODO.md). GENAU DER FEHLER, vor dem der Kommentar unten bei hrZones warnt.
+      hrHigh: b && b.hrHigh, alarmPatternHigh: b && b.alarmPatternHigh,
+      alarmPatternLow: b && b.alarmPatternLow, alarmPatternHr: b && b.alarmPatternHr,
+      alarmRepeat: b && b.alarmRepeat, alarmRepeatS: b && b.alarmRepeatS,
+      recordMode: b && b.recordMode,
       // Neu durchgelassen: Profil-Sprache (i18n), Update-Hinweis, Pausen-Screen und das
       // Layout-Paket (gemischte Seiten-Saetze + Definitionen + Voreinstellung des Schalters).
       language: b && b.language, latestVersion: b && b.latestVersion, pauseView: b && b.pauseView,

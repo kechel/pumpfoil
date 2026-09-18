@@ -607,6 +607,13 @@ NAECHSTES: list[dict] = [
          "start screen, although the ride was recorded with your default foil anyway \u2014 what "
          "you ride and where the alarm limits come from are two separate things. Garmin was "
          "fixed on 10 September; Wear OS, Apple Watch and Amazfit follow now.",
+         "The pulse alarm works on Amazfit too. A heart-rate limit set in your profile simply "
+         "never reached the watch — now it buzzes when you go over it, with its own pattern.",
+         "High-speed, low-speed and pulse alarms feel different from each other now, and a "
+         "repeating alarm repeats instead of buzzing once. Both were settings you could pick in "
+         "your profile that the watch could not see.",
+         "\u201eEconomical\u201c and \u201eGPS only\u201c from your profile now work on Amazfit. "
+         "The watch always recorded at the full rate, whatever you had chosen.",
      ]},
 
     {"name": "iPhone + Apple Watch", "version": "1.1.34",
