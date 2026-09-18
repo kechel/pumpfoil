@@ -9,6 +9,33 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 🚀 App-Release-Stand
 
+- **🟡 18.09. — Amazfit/Zepp 1.0.11 (code 14) EINGEREICHT, aus Commit `612ca209`.**
+  Zepp-Konsole: appId 1118995, Application Time 2026.09.18, „Under Review (Can be Withdrawn)";
+  darunter 1.0.8 vom 12.09. als „Approved". appmeta-Eintrag von NAECHSTES nach IN_REVIEW,
+  `"eingereicht": "2026-09-18"`, Server neu gestartet, `/api/app/releases` gegengeprueft.
+  **AB HIER EINGEFROREN** — alles Weitere gehoert in einen neuen NAECHSTES-Eintrag (1.0.12).
+  - **Inhalt: zehn Punkte**, die vier von 1.0.10 (Upload setzt fort · GPS-Spur in einer Datei ·
+    nur eine Datei gleichzeitig offen · Zeitachse nach Wiederherstellung) plus die sechs eigenen
+    (Foil trotz fester Alarm-Schwellen · Puls-Alarm · unterscheidbare Vibrationsmuster und
+    Wiederholung · „sparsam"/„nur GPS" · sichtbare Touch-Sperre · Seitenanzeige nicht mehr in der
+    gerundeten Ecke).
+  - **Was sich gegenueber der abgelehnten Runde geaendert hat, ist NICHT der Bildinhalt, sondern
+    wo die Bilder liegen:** in der Konsole steht jetzt bei jeder Sprache „Use the app introduction
+    screenshot in default language". Dazu ein frischer Emulator-Satz, **vier** Ansichten je Form
+    (Ruhe mit START · Aufnahme laeuft · Stopp · Zusammenfassung), englisch, v1.0.11. Die
+    Pairing-Bilder hat Jan weggelassen; die zugehoerigen Rohbilder und das August-Archiv sind
+    auf seine Ansage aus dem Repo geflogen.
+  - **Die Store-TEXTE blieben unveraendert.** Zepp hat sie nie beanstandet, Punkt 3 der Ablehnung
+    war eine Empfehlung. Die Fassung mit der Kontaktzeile liegt fertig in
+    `brand/stores/zepp/store-texte-1.0.11.csv` und geht bei der naechsten Runde mit.
+  - **`APP_VERSION` stand noch auf 1.0.10** waehrend `app.json` schon 1.0.11 trug — aufgefallen an
+    Jans Emulator-Screenshots, die alle „v1.0.10" zeigten, behoben in `afa9986c`. Genau dieser
+    Fehler steht seit dem Bump auf 1.0.4 als Warnung im Kommentar darueber. **Gehoert in die
+    Startklar-Pruefung: Version an BEIDEN Stellen.**
+  - **Nach der Freigabe:** `_APP_META["zepp"]` auf 1.0.11, IN_REVIEW-Eintrag raus,
+    Changelog-Punkte eintragen. Die ABGELEHNT-Zeile von 1.0.10 raeumt sich dann selbst weg
+    (`_noch_offen`) — nicht von Hand loeschen.
+
 - **🔴 18.09. — Amazfit/Zepp 1.0.10 ABGELEHNT. Dritte Ablehnung in Folge, dritte Mal die
   Vorschaubilder.** Zepp: „Update the preview images. Affected: square-screen preview 1, 2, 3, 4,
   5, 6 and 7." **Am Paket hat Zepp bis heute nie etwas beanstandet** — weder 1.0.7 noch 1.0.10.
