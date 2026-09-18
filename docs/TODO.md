@@ -10,7 +10,9 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 ## 🚀 App-Release-Stand
 
 - **🟡 18.09.2026 — Jan baut und laedt Android 1.1.30 (44) + Wear OS 1.2.30 (1040) hoch, aus
-  Commit `e5890fd6`.** Seine Ansage: „dann release ich jetzt android & wear". Der Inhalt ist damit
+  Commit `5c2be2e7`.** Seine Ansage: „ok, ich release jetzt android & waer aus diesem commit".
+  (Vorher war `e5890fd6` angesagt; danach kamen noch Teilen-Dialog, Scroll-Anker und die
+  i18n-Nachtraege dazu, deshalb der neuere Stand.) Der Inhalt ist damit
   eingefroren: was in `e5890fd6` steht, IST 1.1.30/1.2.30 (15 Punkte + die Nachtraege, s.
   appmeta). Jede weitere Android-Aenderung braucht einen NEUEN Eintrag (1.1.31 / 1.2.31).
   **Sobald Jan den Upload bestaetigt:** appmeta-Eintrag von NAECHSTES nach IN_REVIEW, mit
@@ -980,6 +982,40 @@ Status „Warten auf Pruefung" ist, kostet ein Zurueckziehen nichts — nach der
 kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
+
+- **🔴 YOUTUBE-RSS ANTWORTET NICHT MEHR — der Social-Feed haengt daran KOMPLETT.** Gemessen am
+  18.09.2026, 07:36, Anlass war Jans Frage zu James' Kanal-Freigabe.
+
+  **Was verifiziert ist:**
+  - `https://www.youtube.com/feeds/videos.xml?channel_id=UC…` antwortet **404** — auch fuer
+    `UCb_1b-TkdGE4kZWX17HDH9g` (unser eigener Kanal), der **heute 06:02 noch 35 Videos
+    geliefert** hat (`social_channels.fetched_at`, `social_items` 35 Zeilen). Zwischen 06:02 und
+    07:36 hat sich also etwas geaendert.
+  - Der 404 kommt vom `server: YouTube RSS Feeds server` selbst, Body ist Googles
+    „Error 404 (Not Found)" — kein Drosselungs- oder Quota-Hinweis.
+  - Alternativen ebenfalls tot: `playlist_id=UU…` (Uploads-Playlist), ohne `www`, mit und ohne
+    `SOCS`-Cookie, verschiedene User-Agents. Bei James' Kennung kommt **500** statt 404.
+  - Die normalen Kanalseiten gehen weiter (HTTP 200, 580–820 KB) — es ist NUR der Feed-Endpunkt.
+
+  **Was daraus folgt:** `feed_erreichbar()` in `api/social.py` ist die Gegenprobe VOR jeder
+  Freigabe und schlaegt damit bei JEDEM Kanal fehl — freigeben kann Jan gerade gar nichts. Und
+  der stuendliche Abruf freigegebener Kanaele liefert nichts mehr, solange das so bleibt (der
+  Feed ist die einzige Quelle, s. Modell-Kommentar bei `SocialChannel`).
+
+  **Was NICHT die Ursache war** (beides gemessen, beides widerlegt): das `?si=…` am Link — mit und
+  ohne loest `kanal_id_aufloesen` dieselbe Kennung auf; und ein Kanal „ohne Videos" — James'
+  Kennung `UCp3PHehkK0mokfmIwaTfv3A` ist richtig (canonical, externalId, browseId und itemprop
+  sagen alle dasselbe), und seine Shorts sind da.
+
+  **Nachprüfen (rein lesend):**
+  `cd server && DATABASE_URL="$(sed -n 's/^DATABASE_URL=//p' .env)" .venv/bin/python -c "from app.api.social import feed_erreichbar; print(feed_erreichbar('UCb_1b-TkdGE4kZWX17HDH9g'))"`
+
+  **Zu entscheiden (Jan):** ist das eine Stoerung bei YouTube (dann abwarten und nichts aendern)
+  oder das Ende des Endpunkts (dann braucht der Feed eine andere Quelle)? Unabhaengig davon:
+  `feed_erreichbar` hat keinen zweiten Versuch und blockiert die Freigabe hart — ein einzelner
+  Schluckauf bei YouTube heisst heute „Kanal-Kennung nicht auffindbar", und der Nutzer wartet
+  weiter. Ein Wiederholungsversuch plus die Moeglichkeit, trotz fehlender Gegenprobe freizugeben,
+  waere robuster. Das ist ein Moderationsweg — nicht ohne Jans Entscheidung.
 
 - **🔲 Der Homespot ist praktisch unbenutzt: 17 von 572 Konten.** Gezaehlt am 18.09.2026 aus
   `settings_json`, Anlass war Jans Frage „haben eigentlich alle einen default spot?". Verteilung:
