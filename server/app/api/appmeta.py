@@ -624,7 +624,8 @@ NAECHSTES: list[dict] = [
          "and the average speed is a tile you can pick like the others.",
          "Wear OS shows whether the touch lock is on: the water drop switches it on, and a "
          "padlock sits in its place while it is locked. Until now the drop simply vanished, so "
-         "the only way to find out was to touch the watch.",
+         "the only way to find out was to touch the watch. Hold to unlock and the padlock "
+         "springs open the moment you have held it long enough, so you know when to let go.",
      ]},
 ]
 

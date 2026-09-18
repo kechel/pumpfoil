@@ -273,6 +273,17 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
         // die Tropfen, 2 s Halten gibt wieder frei.
         var touchGesperrt by remember { mutableStateOf(false) }
         var sperrHinweis by remember { mutableStateOf(false) }
+        // Haltebeginn (0 = kein Finger) und „die 2 s sind voll". Letzteres schaltet das Symbol
+        // um, WAEHREND noch gehalten wird — sonst weiss man nicht, wann man loslassen darf
+        // (Jan, 18.09.2026: „das waere das richtige feedback wann ich endlich loslassen darf").
+        var haltenSeit by remember { mutableStateOf(0L) }
+        val freigabeReif = remember { mutableStateOf(false) }
+        LaunchedEffect(haltenSeit) {
+            freigabeReif.value = false
+            if (haltenSeit == 0L) return@LaunchedEffect
+            kotlinx.coroutines.delay(SPERRE_HALTEN_MS)
+            freigabeReif.value = true
+        }
         // Eigene Layouts (F2/F3). `pages`/`offFoilPages` sind gemischte Saetze: ein Eintrag ist
         // entweder eine 3-Feld-Seite oder eine Layout-ID. `layoutsOn` ist nur die VOREINSTELLUNG
         // des Schalters beim App-Start — danach entscheidet der Nutzer am Handgelenk (wie Garmin).
@@ -935,8 +946,11 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                                     .padding(horizontal = 8.dp, vertical = 4.dp),
                                 contentAlignment = Alignment.Center,
                             ) {
-                                if (touchGesperrt) Schloss(Modifier.size(14.dp).alpha(0.85f))
-                                else WasserTropfen(Modifier.size(14.dp))
+                                if (touchGesperrt) {
+                                    // Offenes Schloss = „du darfst loslassen". Geschlossen =
+                                    // gesperrt, weiter halten.
+                                    Schloss(Modifier.size(14.dp).alpha(0.85f), offen = freigabeReif.value)
+                                } else WasserTropfen(Modifier.size(14.dp))
                             }
                         }
                     }
@@ -950,14 +964,19 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                             .pointerInput(Unit) {
                                 awaitEachGesture {
                                     awaitFirstDown(requireUnconsumed = false)
-                                    val start = System.currentTimeMillis()
-                                    var lang = false
+                                    // Ab hier laeuft der Timer oben (LaunchedEffect) und schaltet
+                                    // nach SPERRE_HALTEN_MS das Symbol auf „offen" um. Vorher wurde
+                                    // die Haltedauer aus den Pointer-Events gerechnet — die kommen
+                                    // bei einem STILL liegenden Finger aber gar nicht, das Umschalten
+                                    // waere also ausgerechnet im Normalfall ausgeblieben.
+                                    haltenSeit = System.currentTimeMillis()
                                     while (true) {
                                         val e = awaitPointerEvent()
-                                        if (System.currentTimeMillis() - start >= 2000L) lang = true
                                         if (e.changes.none { it.pressed }) break
                                     }
-                                    if (lang) { touchGesperrt = false; sperrHinweis = false }
+                                    val reif = freigabeReif.value
+                                    haltenSeit = 0L
+                                    if (reif) { touchGesperrt = false; sperrHinweis = false }
                                     else sperrHinweis = true
                                 }
                             },
@@ -2020,15 +2039,17 @@ private fun WasserTropfen(modifier: Modifier = Modifier) {
  *  Standard-Emojis in der Oberflaeche (Projektregel), und das Wear-Modul zieht keine
  *  Material-Icons herein. Buegel als Strich-Bogen, Korpus als gefuelltes Rechteck. */
 @Composable
-private fun Schloss(modifier: Modifier = Modifier) {
+private fun Schloss(modifier: Modifier = Modifier, offen: Boolean = false) {
     Canvas(modifier) {
         val b = size.minDimension
         val korpusOben = b * 0.45f
-        // Buegel: Halbkreis oben, so breit wie die halbe Figur.
+        // Buegel: Halbkreis oben, so breit wie die halbe Figur. „Offen" heisst: der Buegel sitzt
+        // nach rechts versetzt und hoeher, sein linkes Bein trifft den Korpus also nicht mehr —
+        // dieselbe Bildsprache wie `lock_open` in Material Symbols.
         drawArc(
             color = Color.White,
             startAngle = 180f, sweepAngle = 180f, useCenter = false,
-            topLeft = Offset(b * 0.27f, b * 0.14f),
+            topLeft = Offset(b * (if (offen) 0.43f else 0.27f), b * (if (offen) 0.06f else 0.14f)),
             size = Size(b * 0.46f, b * 0.46f),
             style = Stroke(width = b * 0.12f),
         )
@@ -2041,6 +2062,9 @@ private fun Schloss(modifier: Modifier = Modifier) {
         )
     }
 }
+
+/** Halten zum Freigeben der Touch-Sperre. Eine Zahl fuer Timer UND Geste. */
+private const val SPERRE_HALTEN_MS = 2000L
 
 private fun ambientZeit(sek: Long): String = String.format("%d:%02d", sek / 60, sek % 60)
 
