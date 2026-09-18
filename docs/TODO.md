@@ -20,13 +20,28 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   - **Damit ist belegt, dass die geschriebene Regel nicht das ist, wonach geprueft wird.** Drei
     Ablehnungen gegen einen regelkonformen Satz. Ein viertes Mal nach dem Doku-Text zu bauen,
     waere Raten.
-  - **🔑 NEU UND ENTSCHEIDEND: Zepp hat korrigierte BEISPIELBILDER angehaengt** („A corrected
-    example is attached … Please make sure the image you re-upload matches it", sieben Anhaenge
-    `PREVIEW IMAGE SQUARE SCREEN 1`–`7`). Das ist die erste nachmessbare Vorgabe zu diesem Punkt,
-    die es je gab. **🔲 OFFEN: Jan muss die Anhaenge bereitstellen** (nach
-    `screenshots/watch/zepp/beispiel-zepp/`); dann Leinwand, Inhaltsbox, Seitenverhaeltnis,
-    Eckenradius und Alphakanal daran messen und `scripts/zepp-store-previews.py` auf die
-    **gemessenen** Werte stellen statt auf den Doku-Text.
+  - **✅ URSACHE GEFUNDEN UND BEHOBEN, am selben Tag** — aus der `.eml`, die Jan geschickt hat.
+    Die Mail haengt nichts an, sie bindet **112 Bild-URLs** ein:
+    `img-cdn.zepp.com/1118995/preview-<sprache>-square-<n>.png`. **1118995 ist UNSERE appId** —
+    das sind unsere eigenen Uploads, 7 Bildschirme x 16 Sprachen, und derselbe Baustein setzt sie
+    zweimal ein, einmal als „Affected" und einmal als „corrected example". Daher die hundertfache
+    Wiederholung im Text.
+    - **Heruntergeladen und nachgemessen:** RGB-Abweichung **0,000** gegen alle sieben Dateien im
+      Repo — es sind Bild fuer Bild unsere. Anders ist nur der **Alphakanal**: ein Rechteck mit
+      **stark gerundeten Ecken** (Radius ≈ 57 px, 428 weiche Randpixel), byteweise **dieselbe
+      Maske ueber allen 112 Bildern** und allen 16 Sprachen. Erzeugt, nicht gemalt.
+    - **Das ist „corresponding device shape"** — die eckigen Amazfit-Displays sind stark gerundet,
+      ein scharfes Rechteck ist keine Geraeteform. **Am 10.09. haben wir in die falsche Richtung
+      korrigiert:** die Bilder hatten damals scharfe OBERE und runde UNTERE Ecken (Fensterschatten
+      aus dem Simulator), und wir haben daraufhin ALLE Ecken scharf gemacht. Gemeint waren alle
+      vier **rund**.
+    - **Behoben:** die Maske liegt als `brand/stores/zepp/maske-eckig-360.png` im Repo,
+      `scripts/zepp-store-previews.py` wendet sie an statt ein Rechteck zu rechnen, und die
+      Nachpruefung zaehlt nicht mehr halbdurchsichtige Pixel (das war die Regel fuers Rechteck),
+      sondern vergleicht den Alphakanal **Pixel fuer Pixel** mit der Maske. **Ergebnis: die sieben
+      neuen Dateien sind byteweise identisch mit dem, was Zepp zurueckgeschickt hat.** Die runde
+      Reihe ist unveraendert (Abweichung 0 in allen sieben). Zepps Ruecklieferung liegt zum
+      Nachpruefen unter `screenshots/watch/zepp/zepp-rueckmeldung/`.
   - **✅ Punkt 3 der Mail erledigt** (war nur eine Empfehlung): `scripts/zepp-store-texte.py`
     haengt jetzt an jeden Details-Text eine Kontaktzeile mit `info@pumpfoil.org`, in allen
     17 Sprachen. Franzoesisch stand bei 599/600 Zeichen und wurde gekuerzt; die Laengenpruefung
