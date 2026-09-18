@@ -18,7 +18,8 @@ import { getConnectStatus } from "@zos/ble";
 // des Zifferblatts; recoverActive() nimmt dann die gesicherte Aufnahme wieder auf.
 import { setWakeUpRelaunch, setPageBrightTime, resetPageBrightTime } from "@zos/display";
 import { BasePage } from "@zeppos/zml/base-page";
-import { Geolocation, HeartRate, Accelerometer, Vibrator, Buzzer, FREQ_MODE_HIGH } from "@zos/sensor";
+import { Geolocation, HeartRate, Accelerometer, Vibrator, Buzzer, FREQ_MODE_HIGH,
+         FREQ_MODE_NORMAL, VIBRATOR_SCENE_SHORT_MIDDLE, VIBRATOR_SCENE_DURATION_LONG } from "@zos/sensor";
 import { openSync, closeSync, writeSync, readSync, statSync, rmSync,
          O_RDONLY, O_RDWR, O_CREAT, O_TRUNC } from "@zos/fs";
 import { TITLE, VER, PAGE, F0V, F0L, F1V, F1L, F2V, F2L, STATUS, BUTTON } from "zosLoader:./index.[pf].layout.js";
@@ -724,7 +725,14 @@ Page(
       waterLockServer: "auto",
       // Foil & Alarm (entkoppelt): Foil = Metadaten (+ Auto-Schwellen); Alarm An/Aus; Quelle Auto/Manuell.
       foils: [], foilId: null, foilLabel: "—", almOn: false, almSrc: "foil", almLow: 0, almHigh: 0,
-      vibrator: null, buzzer: null, _almActive: false, _foilInit: false,
+      // Puls-Grenze (0 = aus) + Vibrationsmuster je Grenze + Wiederholung. Kamen bis
+      // 18.09.2026 gar nicht an der Uhr an (s. app-side/index.js).
+      almHrHigh: 0, almPatHigh: "short2", almPatLow: "long2", almPatHr: "short1",
+      almRepeat: "once", almRepeatS: 5,
+      // Aufzeichnungsmodus aus dem Profil: full (25 Hz) | lite (sparsam) | gps (nur GPS).
+      recordMode: "full",
+      vibrator: null, buzzer: null, _almActive: false, _almHrActive: false,
+      _almLetztMs: 0, _almPattTimer: null, _foilInit: false,
       timer: null, pollTimer: null, hbTimer: null, lockTimer: null, unlockTimer: null,
       // Rueckkehr vom Stopp-Bildschirm nach einem versehentlichen Tastendruck, s. _toStopScreen.
       stopBackTimer: null, stopBackPage: 0,
@@ -870,6 +878,25 @@ Page(
 
     _startAccel() {
       const s = this.state;
+      // Aufzeichnungsmodus aus dem Profil (bis 18.09.2026 kam er hier nie an, s.
+      // app-side/index.js — die Uhr nahm IMMER 25 Hz, egal was im Profil stand).
+      //
+      //   "gps"  -> Beschleunigungssensor gar nicht starten. Der Server sieht dann eine reine
+      //             GPS-Aufnahme, genau wie bei einer Uhr ohne brauchbaren Sensor.
+      //   "lite" -> niedrigere Sensorrate (FREQ_MODE_NORMAL statt HIGH). Die ECHTE Rate misst
+      //             die Uhr ohnehin selbst und meldet sie mit (`_accelHz`), der Server rechnet
+      //             also mit dem, was wirklich ankam.
+      //   "full" -> wie bisher.
+      //
+      // Entschieden wird NUR hier, beim Start einer Aufnahme. Waehrend eine laeuft, wird nichts
+      // umgeschaltet: der Aufnahmeweg ist der gefaehrlichere von beiden.
+      if (s.recordMode === "gps") {
+        s.accelFile = ""; s.accelSensor = null; s.accelCallback = null;
+        s.accelBuffer = []; s.accelSamples = 0; s.accelBytes = 0;
+        s.accelFirstMs = 0; s.accelLastMs = 0; s.accelChunkT0 = []; s._accelLogged = false;
+        console.log("[pumpfoil] recordMode=gps -> accelerometer aus");
+        return;
+      }
       s.accelFile = accelPath(s.uuid); s.accelBuffer = []; s.accelSamples = 0; s.accelBytes = 0;
       s.accelFirstMs = 0; s.accelLastMs = 0; s.accelChunkT0 = []; s._accelLogged = false;
       try {
@@ -898,7 +925,7 @@ Page(
           } catch (e) {}
         };
         s.accelSensor.onChange(s.accelCallback);
-        s.accelSensor.setFreqMode(FREQ_MODE_HIGH);
+        s.accelSensor.setFreqMode(s.recordMode === "lite" ? FREQ_MODE_NORMAL : FREQ_MODE_HIGH);
         s.accelSensor.start();
       } catch (e) {
         console.log("[pumpfoil] accelerometer unavailable " + ((e && e.message) || e));
@@ -1197,6 +1224,22 @@ Page(
         // Foil-/Alarm-Config übernehmen; Default-Auswahl einmalig (bis App-Ende).
         if (r && Array.isArray(r.foils)) s.foils = r.foils.map((f) => ({ id: f.id, label: f.label, min: f.min, max: f.max }));
         if (r) { s.almLow = r.speedLow || 0; s.almHigh = r.speedHigh || 0; }
+        if (r) {
+          // Puls-Grenze, Muster und Wiederholung. Die Vorgaben stehen im Zustand, ein
+          // fehlender Schluessel (aelterer Server) aendert also nichts.
+          if (typeof r.hrHigh === "number") s.almHrHigh = r.hrHigh;
+          if (r.alarmPatternHigh) s.almPatHigh = r.alarmPatternHigh;
+          if (r.alarmPatternLow) s.almPatLow = r.alarmPatternLow;
+          if (r.alarmPatternHr) s.almPatHr = r.alarmPatternHr;
+          if (r.alarmRepeat) s.almRepeat = r.alarmRepeat;
+          if (typeof r.alarmRepeatS === "number") s.almRepeatS = r.alarmRepeatS;
+          // Aufzeichnungsmodus NUR merken — er wirkt beim naechsten START der Aufnahme
+          // (`_startAccel`), nicht mitten in einer laufenden. Der Aufnahmeweg ist der
+          // gefaehrlichere, dort wird nichts umgeschaltet, waehrend er schreibt.
+          if (r.recordMode === "full" || r.recordMode === "lite" || r.recordMode === "gps") {
+            s.recordMode = r.recordMode;
+          }
+        }
         if (r && !s._foilInit) {
           s._foilInit = true;
           s.almOn = !!r.alarmEnabled;
@@ -1776,6 +1819,11 @@ Page(
     },
 
     // Vibrationsalarm: effektive Schwellen (Foil oder manuell) gegen die aktuelle km/h.
+    //
+    // Bis 18.09.2026 gab es hier EIN Muster fuer alles und nur einmal pro Ueberschreitung —
+    // „zu schnell" war von „zu langsam" nicht zu unterscheiden, und eine Wiederholung
+    // („continuous") kannte die Uhr nicht. Beides hatten Garmin, Wear OS und Apple Watch
+    // laengst; die Werte kamen hier nur nie an (s. app-side/index.js).
     _checkAlarm(kmh) {
       const s = this.state;
       let lo = s.almLow, hi = s.almHigh;
@@ -1786,8 +1834,72 @@ Page(
       const over = hi > 0 && kmh > hi;
       const under = lo > 0 && kmh < lo && kmh >= lo - 2;
       const trip = over || under;
-      if (trip && !s._almActive) { s._almActive = true; this._vibrate(); }
-      else if (!trip) { s._almActive = false; }
+      if (trip) {
+        // Neu ueberschritten -> sofort. Weiter ueberschritten -> nur bei „continuous", und
+        // dann im Profil-Abstand (min. 2 s, wie der Server ihn begrenzt).
+        const jetzt = Date.now();
+        const neu = !s._almActive;
+        const wieder = s.almRepeat === "continuous" &&
+                       jetzt - s._almLetztMs >= Math.max(2, s.almRepeatS) * 1000;
+        if (neu || wieder) {
+          s._almActive = true;
+          s._almLetztMs = jetzt;
+          this._vibratePattern(over ? s.almPatHigh : s.almPatLow);
+        }
+      } else {
+        s._almActive = false;
+      }
+      this._checkHrAlarm();
+    },
+
+    // Dritte Grenze: Puls. Eigenes Muster, eigener Merker — sie kann gleichzeitig mit der
+    // Geschwindigkeit ausloesen, und dann sollen es zwei unterscheidbare Meldungen sein.
+    _checkHrAlarm() {
+      const s = this.state;
+      const hr = (s.hrUpdatedMs && Date.now() - s.hrUpdatedMs <= 10000) ? s.hr : 0;
+      const ueber = s.almHrHigh > 0 && hr > 0 && hr > s.almHrHigh;
+      if (ueber) {
+        const jetzt = Date.now();
+        const wieder = s.almRepeat === "continuous" &&
+                       jetzt - s._almLetztMs >= Math.max(2, s.almRepeatS) * 1000;
+        if (!s._almHrActive || wieder) {
+          s._almHrActive = true;
+          s._almLetztMs = jetzt;
+          this._vibratePattern(s.almPatHr);
+        }
+      } else {
+        s._almHrActive = false;
+      }
+    },
+
+    // Muster-ID -> Folge von Vibrationen. IDs identisch mit Web, Garmin und Wear OS
+    // (`vibratePattern` in MainActivity.kt): short1 · short2 · long2 · lsl.
+    //
+    // Zepp OS kennt keine Millisekunden-Wellenform, sondern Szenen mit geraetedefinierter
+    // Laenge (`VIBRATOR_SCENE_*`). Deckungsgleich nachbauen geht also nicht — was zaehlt, ist
+    // dass die drei Alarme UNTERSCHEIDBAR sind. Lang = DURATION_LONG, kurz = SHORT_MIDDLE,
+    // mehrere Stoesse mit Pause dazwischen.
+    _vibratePattern(muster) {
+      const s = this.state;
+      const L = VIBRATOR_SCENE_DURATION_LONG, K = VIBRATOR_SCENE_SHORT_MIDDLE;
+      const folge = muster === "short1" ? [K]
+                  : muster === "long2"  ? [L, L]
+                  : muster === "lsl"    ? [L, K, L]
+                  : [K, K];                        // short2 (Vorgabe)
+      if (s._almPattTimer) { clearTimeout(s._almPattTimer); s._almPattTimer = null; }
+      const stoss = (i) => {
+        if (i >= folge.length) return;
+        try {
+          if (!s.vibrator) s.vibrator = new Vibrator();
+          s.vibrator.stop();
+          s.vibrator.setMode({ mode: folge[i] });
+          s.vibrator.start();
+        } catch (e) {}
+        if (i + 1 < folge.length) {
+          s._almPattTimer = setTimeout(() => stoss(i + 1), 450);
+        }
+      };
+      stoss(0);
     },
     _vibrate() {
       const s = this.state;
