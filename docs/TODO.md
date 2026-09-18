@@ -13,10 +13,11 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   `9f52ab2d`.** Seine Meldung: „getestet und baue jetzt das release daraus". Das ist GEBAUT,
   nicht hochgeladen — der appmeta-Eintrag bleibt deshalb in `NAECHSTES`, bis Jan den Upload
   meldet (s. den Kommentar in `appmeta.py`: EINGEREICHT heisst HOCHGELADEN).
-  **Inhalt ist ab jetzt eingefroren:** was in `9f52ab2d` steht, ist 1.1.30/1.2.30. Jede weitere
-  Android-Aenderung braucht einen NEUEN NAECHSTES-Eintrag (1.1.31 / 1.2.31) — sie darf NICHT in
-  die 14 Punkte von 1.1.30 wandern, sonst kuendigt `/changelog` etwas an, das nicht im Paket ist
-  (derselbe Fehler wie am 13.09. bei iOS 1.1.33).
+  **Nachtrag 18.09., nach dem ersten Bauen:** Jan hat noch den FIT-Import-Knopf schmaler haben
+  wollen und baut aus einem NEUEREN Stand — 1.1.30/1.2.30 traegt jetzt 15 Punkte. Eingefroren ist
+  der Inhalt erst mit dem UPLOAD; ab dann braucht jede Android-Aenderung einen neuen
+  NAECHSTES-Eintrag (1.1.31 / 1.2.31), sonst kuendigt `/changelog` etwas an, das nicht im Paket
+  ist (derselbe Fehler wie am 13.09. bei iOS 1.1.33).
 
 - **🟡 13.09. 20:5x — Amazfit/Zepp 1.0.10 (code 13) EINGEREICHT.** Zepp-Konsole: appId 1118995,
   Application Time 2026.09.13, „Under Review (Can be Withdrawn)"; darunter 1.0.8 vom 12.09. als
