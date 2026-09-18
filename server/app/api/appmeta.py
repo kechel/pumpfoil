@@ -614,6 +614,9 @@ NAECHSTES: list[dict] = [
          "your profile that the watch could not see.",
          "\u201eEconomical\u201c and \u201eGPS only\u201c from your profile now work on Amazfit. "
          "The watch always recorded at the full rate, whatever you had chosen.",
+         "You can see that the touch lock is on: a line at the bottom of the screen says so for "
+         "as long as it is locked. Until now the watch looked completely normal and you only "
+         "found out by touching it.",
      ]},
 
     {"name": "iPhone + Apple Watch", "version": "1.1.34",
