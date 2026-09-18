@@ -96,7 +96,7 @@ const DEV_FAKE_GPS = false;  // true = synthetische GPS-Spur (nur Simulator-UI-D
 // aus dem Paket lesen ginge nur über einen weiteren @zos-Import; die sind hier ungetestet und
 // können beim Laden crashen, deshalb bewusst eine Konstante.) Der Bump auf 1.0.4 hatte nur
 // app.json getroffen: die Uhr zeigte weiter "v1.0.3" und meldete das auch dem Server.
-const APP_VERSION = "1.0.10";
+const APP_VERSION = "1.0.11";
 
 // Wie lange der Stopp-Bildschirm nach einem Tastendruck stehen bleibt, bevor die vorherige
 // Seite zurueckkommt. Fuenf Sekunden reichen zum Lesen und Antippen, und ein Fehlgriff ist
