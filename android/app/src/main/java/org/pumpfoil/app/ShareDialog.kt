@@ -171,6 +171,13 @@ fun ShareDialog(session: SessionDetail, initialHighlight: Int = -1, onDismiss: (
 
     // Foto-Hintergrund (optional, wie die PWA): darunter komponiert, Card kommt dann transparent.
     var photo by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
+    // Hintergrund statt Foto: "" = einfarbig (navy) | "karte" | "satellit". Die PWA hat das seit
+    // dem 16.09.2026, den Apps fehlte es (Jan, 18.09.: „es fehlt die moeglichkeit die karte statt
+    // eines fotos zu verwenden"). Ein Foto gewinnt, solange eines gewaehlt ist.
+    var karte by remember { mutableStateOf("") }
+    // Fuer welche Ebene der Server den Schleier schon gemessen hat — ohne das messe er bei jedem
+    // Reglerzug neu und der Regler zappelte.
+    var autoFuer by remember { mutableStateOf<String?>(null) }
     var card by remember { mutableStateOf<android.graphics.Bitmap?>(null) }   // server-Card (navy o. transparent)
     var xf by remember { mutableStateOf(Xf(0f, 0f, N, N)) }                    // Foto-Rechteck in 1080-Einheiten
     var previewPx by remember { mutableStateOf(1) }
@@ -200,6 +207,8 @@ fun ShareDialog(session: SessionDetail, initialHighlight: Int = -1, onDismiss: (
             sh?.get("track")?.jsonPrimitive?.booleanOrNull?.let { track = it }
             sh?.get("shade")?.jsonPrimitive?.contentOrNull?.let { if (it == "light" || it == "dark") shade = it }
             sh?.get("dim")?.jsonPrimitive?.doubleOrNull?.let { dim = it.toFloat() }
+            // Gewaehlte Kartenebene merken sich beide Seiten gleich (PWA: `share.karte`).
+            sh?.get("karte")?.jsonPrimitive?.contentOrNull?.let { if (it == "karte" || it == "satellit") karte = it }
         } catch (_: Exception) {}
         // Default-Hintergrund: erstes Foto der Session (wie PWA). /media ist öffentlich.
         try {
@@ -217,15 +226,32 @@ fun ShareDialog(session: SessionDetail, initialHighlight: Int = -1, onDismiss: (
     }
 
     // Card (server) neu holen bei Aenderung — entprellt. Mit Foto: transparenter Hintergrund.
-    LaunchedEffect(color, sel, track, shade, title, photo != null, highlight, loaded) {
+    // `dim` steht in den Schluesseln, WEIL der Schleier bei der Karte serverseitig ins Bild
+    // kommt (beim Foto zeichnet ihn `composeCard` lokal). Nur bei Karte, sonst holte jeder
+    // Reglerzug beim Foto ein neues Bild.
+    LaunchedEffect(color, sel, track, shade, title, photo != null, highlight, loaded, karte,
+                   if (karte.isNotEmpty() && photo == null) dim else 0f) {
         if (!loaded) return@LaunchedEffect
         loading = true
         delay(220)
         try {
             val chosen = STAT_ORDER.filter { sel.contains(it) }
-            val bg = if (photo != null) "transparent" else "navy"
-            val b = Api.shareCard(session.id, color, chosen, track, title, shade, bg, highlight)
+            val bg = if (photo != null) "transparent" else karte.ifEmpty { "navy" }
+            val kartenBg = karte.isNotEmpty() && photo == null
+            // Erstes Bild einer Ebene: messen lassen (-1), danach den festen Wert schicken.
+            val brauchtAuto = kartenBg && autoFuer != karte
+            val (b, gemessen) = Api.shareCard(
+                session.id, color, chosen, track, title, shade, bg, highlight,
+                dim = if (!kartenBg) null else if (brauchtAuto) -1f else dim,
+            )
             card = BitmapFactory.decodeByteArray(b, 0, b.size)
+            if (brauchtAuto) {
+                autoFuer = karte
+                // Kostet EIN zusaetzliches Rendern (der neue Reglerwert loest den Effekt erneut
+                // aus, diesmal mit festem dim) — dafuer steht der Regler an der gemessenen Stelle.
+                // Die Kacheln liegen dann im Plattencache des Servers.
+                if (gemessen != null && kotlin.math.abs(gemessen - dim) > 0.001f) dim = gemessen
+            }
         } catch (_: Exception) {} finally { loading = false }
     }
 
@@ -235,7 +261,7 @@ fun ShareDialog(session: SessionDetail, initialHighlight: Int = -1, onDismiss: (
     }
 
     // Default speichern (entprellt).
-    LaunchedEffect(color, sel, track, shade, dim, loaded) {
+    LaunchedEffect(color, sel, track, shade, dim, karte, loaded) {
         if (!loaded) return@LaunchedEffect
         delay(500)
         try {
@@ -246,6 +272,7 @@ fun ShareDialog(session: SessionDetail, initialHighlight: Int = -1, onDismiss: (
                     put("track", track)
                     put("shade", shade)
                     put("dim", dim.toDouble())
+                    put("karte", karte)
                 })
             })
         } catch (_: Exception) {}
@@ -297,8 +324,11 @@ fun ShareDialog(session: SessionDetail, initialHighlight: Int = -1, onDismiss: (
         // Nutzer mit Galaxy S23 („die Taste ist unter den Display Tasten"). Seit targetSdk 35
         // erzwingt Android edge-to-edge, das Fenster reicht also bis unter die Leisten.
         Box(
-            Modifier.fillMaxSize().imePadding()
-                .padding(top = randOben + 12.dp, bottom = randUnten + 12.dp),
+            // OBEN kein eigener Inset-Abstand: das Dialogfenster haelt die Statusleiste schon
+            // frei, mein zusaetzlicher Rand kam obendrauf und liess oben viel Luft stehen
+            // (Jan, 18.09.2026: „dafuer ist oben seehr viel platz, ggf. insets doppelt oben
+            // jetzt?"). UNTEN bleibt es beim gemessenen Wert — dort fehlte er ja.
+            Modifier.fillMaxSize().imePadding().padding(vertical = 12.dp),
             contentAlignment = Alignment.Center,
         ) {
         Column(
@@ -370,6 +400,21 @@ fun ShareDialog(session: SessionDetail, initialHighlight: Int = -1, onDismiss: (
                 }
             }
 
+            // Hintergrund: einfarbig | Karte | Satellit. Ein Foto gewinnt und blendet die Zeile
+            // aus — zwei Hintergruende gleichzeitig gibt es nicht (wie in der PWA).
+            if (photo == null) {
+                val ebenen = listOf("" to "share.noPhoto", "karte" to "map.street", "satellit" to "map.satellite")
+                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                    ebenen.forEachIndexed { i, (k, lbl) ->
+                        SegmentedButton(
+                            selected = karte == k,
+                            onClick = { if (karte != k) { karte = k; autoFuer = null } },
+                            shape = SegmentedButtonDefaults.itemShape(i, ebenen.size),
+                        ) { Text(I18n.t(lbl)) }
+                    }
+                }
+            }
+
             // Foto-Hintergrund links + Lauf-Auswahl rechts in einer Zeile.
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 androidx.compose.material3.OutlinedButton(onClick = { picker.launch("image/*") }) {
@@ -398,7 +443,9 @@ fun ShareDialog(session: SessionDetail, initialHighlight: Int = -1, onDismiss: (
                     }
                 }
             }
-            if (photo != null) {
+            // Helligkeitsregler fuer Foto UND Karte. Beim Foto wirkt er sofort (lokal
+            // gezeichnet), bei der Karte holt er ein neues Bild vom Server — entprellt, s. oben.
+            if (photo != null || karte.isNotEmpty()) {
                 Slider(value = dim, onValueChange = { dim = it }, valueRange = 0f..0.85f, steps = 16)
             }
 
@@ -432,6 +479,15 @@ fun ShareDialog(session: SessionDetail, initialHighlight: Int = -1, onDismiss: (
                 Spacer(Modifier.width(8.dp))
                 Text(I18n.t("sd.share"))
             }
+
+            // Luft UNTER dem Knopf, und zwar im scrollbaren Inhalt. Damit laesst sich der Knopf
+            // immer ueber die Gestenleiste schieben, egal was das Dialogfenster an Insets meldet
+            // (Jan, 18.09.2026: „mach doch bitte einfach auf android fix zusaetzliches padding
+            // von z.b. 50px unter den teilen button … das stoert ja nicht wenn man das hoeher
+            // scrollen kann als es inhalt hat, aber es schadet immer wenn man dann garnicht
+            // teilen kann"). Bewusst gemessene Leiste PLUS ein fester Zuschlag: die Leiste kann
+            // 0 melden, der Zuschlag traegt dann allein.
+            Spacer(Modifier.height(randUnten + ZUSATZ_UNTEN))
         }
         }
     }

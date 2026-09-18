@@ -68,6 +68,9 @@ struct SpotsView: View {
     @State private var kartenBreite: Double = 390
     @State private var letzteSpanne: Double = 0
     @State private var letzteMitte = CLLocationCoordinate2D(latitude: 0, longitude: 0)
+    /// Eigener Spot fuer die Startansicht (`homespot_effective`, s. settings.py).
+    @State private var eigenerSpot = ""
+    @State private var spotGeholt = false
 
     // Ein Abschnitt = eine eigene Teil-View: Swifts Type-Checker löst einen ViewBuilder als EINEN
     // Ausdruck auf, und Karte samt Pin-Label (verschachtelte Closures) plus Liste in einem Body
@@ -110,9 +113,11 @@ struct SpotsView: View {
                     Color.clear.onAppear { kartenBreite = Double(geo.size.width); buendeln() }
                 })
                 // MKCoordinateRegion ist nicht Equatable -> auf die Skalare hoeren.
-                .onChange(of: region.span.longitudeDelta) { _ in buendelnFallsNoetig() }
-                .onChange(of: region.center.latitude) { _ in buendelnFallsNoetig() }
-                .onChange(of: region.center.longitude) { _ in buendelnFallsNoetig() }
+                // Dieselben drei Haken merken den Ausschnitt mit (s. SpotsKarte) — eigene
+                // Beobachter dafuer waeren dieselben Skalare zweimal.
+                .onChange(of: region.span.longitudeDelta) { _ in buendelnFallsNoetig(); SpotsKarte.merken(region) }
+                .onChange(of: region.center.latitude) { _ in buendelnFallsNoetig(); SpotsKarte.merken(region) }
+                .onChange(of: region.center.longitude) { _ in buendelnFallsNoetig(); SpotsKarte.merken(region) }
                 .mitKartenUmschalter()
             }
         }
@@ -323,13 +328,39 @@ struct SpotsView: View {
 
     private func load() async {
         loading = true; defer { loading = false }
+        // Eigener Spot EINMAL holen, vor dem ersten Ausschnitt — `startAusschnitt` braucht ihn.
+        // Scheitert die Abfrage, bleibt er leer und die Kette faellt auf den meistbefahrenen Spot.
+        if !spotGeholt {
+            spotGeholt = true
+            let einst = try? await Api.settings()
+            eigenerSpot = (einst?["homespot_effective"] as? String)
+                ?? (einst?["homespot"] as? String) ?? ""
+        }
         do {
             let s = try await Api.spotMap().sorted { $0.sessions > $1.sessions }
             items = s
-            fitRegion(s)
+            startAusschnitt(s)
             buendeln()
             error = nil
         } catch { self.error = error.localizedDescription }
+    }
+
+    /// Startansicht — dieselbe Kette wie auf Android (`SpotsScreen.kt`):
+    ///   0. ein gemerkter Ausschnitt gewinnt immer (der Nutzer hat ihn selbst gewaehlt)
+    ///   1. der eigene Spot: `homespot_effective` (gesetzter Homespot, sonst letzte Session)
+    ///   2. sonst der meistbefahrene Spot ueberhaupt — `s` ist nach Sessions sortiert
+    /// Das Einpassen ueber ALLE Spots (fitRegion) bleibt nur fuer den Fall ohne jeden Spot.
+    private func startAusschnitt(_ s: [SpotMapItem]) {
+        if let r = SpotsKarte.holen() { region = r; return }
+        let ziel = eigenerSpot.isEmpty
+            ? s.first
+            : (s.first { $0.spot.caseInsensitiveCompare(eigenerSpot) == .orderedSame } ?? s.first)
+        guard let ziel else { fitRegion(s); return }
+        // Zoom wie auf Android (HEIM_ZOOM 9): die Region um den Spot, nicht der Steg. Ein Grad
+        // Laenge sind gut 2,5 Grad Spanne auf dem Handy -> hier direkt als Spanne gesetzt.
+        let spanne: Double = s.count == 1 ? 0.35 : 2.6
+        region = sichereRegion(CLLocationCoordinate2D(latitude: ziel.lat, longitude: ziel.lon),
+                               MKCoordinateSpan(latitudeDelta: spanne, longitudeDelta: spanne))
     }
 
     // Kartenausschnitt an alle Spots anpassen. Zwischenwerte explizit Double — die Mischung aus

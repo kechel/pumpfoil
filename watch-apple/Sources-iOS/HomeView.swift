@@ -522,7 +522,10 @@ struct HomeView: View {
             }
         }
         latest = Array(((try? await Api.sessions()) ?? []).prefix(3))
-        let hs = (try? await Api.settings())?["homespot"] as? String
+        // `homespot_effective` statt `homespot` (s. settings.py): sonst blieb die Wetterkarte
+        // bei fast allen aus, obwohl das Profil „Automatisch (letzte Session)" versprach.
+        let einst = try? await Api.settings()
+        let hs = (einst?["homespot_effective"] as? String) ?? (einst?["homespot"] as? String)
         if let hs, !hs.isEmpty { weather = try? await Api.spotWeather(hs) } else { weather = nil }
         incomingXfer = ((try? await Api.transfersIncoming()) ?? []).count
         startSuccess = try? await Api.startSuccess()

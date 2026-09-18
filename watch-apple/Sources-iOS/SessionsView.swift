@@ -173,7 +173,12 @@ struct SessionsView: View {
         // Startfilter von aussen (Startseiten-Hinweis "aussortiert") — nur beim ersten Aufbau.
         if startFilter != "pump", filter == "pump" { filter = startFilter }
         if homespot.isEmpty {
-            homespot = ((try? await Api.settings())?["homespot"] as? String) ?? ""
+            // `homespot_effective`: bei leerem Profilwert leitet der Server ihn aus der letzten
+            // Session ab (s. settings.py). Ohne das fehlte der Knopf „📍Spot" zwischen „Meine"
+            // und „Alle" bei 97 % der Konten — gesehen hat ihn also fast niemand.
+            let s = try? await Api.settings()
+            homespot = (s?["homespot_effective"] as? String)
+                ?? (s?["homespot"] as? String) ?? ""
         }
         suggestions = (try? await Api.mergeSuggestions()) ?? []
         spotNames = (try? await Api.spots(accelOnly: false))?.all ?? []

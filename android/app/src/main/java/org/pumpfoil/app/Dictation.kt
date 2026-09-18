@@ -121,7 +121,12 @@ fun DictationOverlay(existing: String, title: String, onDismiss: () -> Unit, onR
             // Hintergrund bis unter die Leisten, Inhalt nicht: sonst liegt die Knopfreihe
             // (Abbrechen · Noch mal · Bearbeiten · Senden) unter der Navigationsleiste.
             Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface)
-                .padding(top = leisteOben, bottom = leisteUnten).padding(24.dp),
+                // Unten mindestens MIN_UNTEN, auch wenn die Messung 0 meldet — sonst klebt
+                // die Knopfreihe (Abbrechen · Noch mal · Bearbeiten · Senden) an der
+                // Gestenleiste. Der Dialog scrollt nicht, deshalb der Boden statt des
+                // grossen Zuschlags (s. Leisten.kt).
+                .padding(top = leisteOben, bottom = maxOf(leisteUnten, MIN_UNTEN))
+                .padding(24.dp),
             verticalArrangement = Arrangement.SpaceBetween,
         ) {
             Column(Modifier.fillMaxWidth()) {

@@ -12,7 +12,9 @@ struct ShareCardView: View {
     var initialHighlight: Int = -1   // in der Detailansicht gewählter Lauf als Vorauswahl (#37)
     @Environment(\.dismiss) private var dismiss
 
-    private static let statOrder = ["foiling", "runs", "pumps", "speed", "time", "longest", "distance", "pumprate"]
+    // Reihenfolge wie in der PWA (`web/components/ShareDialog.tsx`, STAT_ORDER) — „avgspeed"
+    // fehlte hier ganz, die Kachel war auf iOS also nicht waehlbar (gemeldet 18.09.2026).
+    private static let statOrder = ["foiling", "runs", "pumps", "avgspeed", "speed", "time", "longest", "distance", "pumprate"]
 
     @State private var color = "cyan"
     @State private var sel: Set<String> = []
@@ -40,15 +42,18 @@ struct ShareCardView: View {
 
     private var avail: [String] {
         guard let a = session.analysis else { return [] }
-        // Exakt wie die PWA: „runs"/„longest" liegen NICHT im Analysis-Objekt (num_runs/
-        // best_distance_m sind serverseitig separate Spalten) -> dort nie wählbar (6 statt 8).
+        // Bedingungen wie in der PWA. „runs"/„longest" standen hier fest auf false, weil das
+        // Analysis-Objekt die beiden Zahlen nicht enthielt — seit 18.09.2026 schickt der Server
+        // sie mit (AnalysisOut), also sind sie jetzt waehlbar.
         let ok: [String: Bool] = [
             "foiling": (a.foiling_distance_m ?? 0) > 0,
-            "runs": false,
+            "runs": (a.num_runs ?? 0) > 0,
             "pumps": (a.pump_count ?? 0) > 0,
+            // Schnitt = Foiling-Strecke / Foil-Zeit; ohne eines von beiden gibt es ihn nicht.
+            "avgspeed": (a.foiling_time_s ?? 0) > 0 && (a.foiling_distance_m ?? 0) > 0,
             "speed": (a.max_speed_mps ?? 0) > 0,
             "time": (a.foiling_time_s ?? 0) > 0,
-            "longest": false,
+            "longest": (a.best_distance_m ?? 0) > 0,
             "distance": (a.total_distance_m ?? 0) > 0,
             "pumprate": (a.foiling_time_s ?? 0) > 0 && (a.pump_count ?? 0) > 0,
         ]

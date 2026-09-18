@@ -121,9 +121,11 @@ struct SpotCompareView: View {
     /// Vorbelegung: der eigene Homespot, sobald bekannt (wie im Web).
     private func homespotVorbelegen() async {
         guard sel.isEmpty else { return }
-        if let d = try? await Api.settings(), let h = d["homespot"] as? String, !h.isEmpty {
-            sel = h
-        }
+        // `homespot_effective` (s. settings.py): sonst stand der Spot-Vergleich bei fast allen
+        // ohne Vorbelegung da.
+        guard let d = try? await Api.settings() else { return }
+        let h = (d["homespot_effective"] as? String) ?? (d["homespot"] as? String) ?? ""
+        if !h.isEmpty { sel = h }
     }
 }
 
