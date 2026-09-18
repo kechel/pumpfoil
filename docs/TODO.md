@@ -1048,8 +1048,20 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     (Sessions-Reiter, Wetterkarte, Spot-Vergleich) · „aelter/neuer" folgt dem Listen-Filter
     (`NachbarFilter.swift`) · Teilen: Karte/Satellit als Hintergrund samt servergemessenem
     Schleier, dazu die Kacheln Schnitt/Laeufe/laengster Lauf · Foil und Alarm-Schwellen
-    entkoppelt (Apple Watch). Neun Changelog-Punkte stehen im 1.1.34-Eintrag.
+    entkoppelt (Apple Watch) · nach Jans Test am 18.09. dazu: die Spots-Karte laesst sich
+    wieder mit zwei Fingern zoomen (sie lag in der scrollenden Liste, die die Geste schluckte)
+    und der FIT-Import ist ein schmaler Knopf rechts in der Filterzeile (`7b3f05e0`).
+    **Elf** Changelog-Punkte stehen im 1.1.34-Eintrag.
     **Alles nur `swiftc -parse`-geprueft — bauen und ansehen kann es nur Jan.**
+
+    **Freigabe-Pruefung 18.09. (vor der Einreichung gefahren, alles gruen):** Baum sauber,
+    `MARKETING_VERSION 1.1.34` / `CURRENT_PROJECT_VERSION 38` in beiden Targets · Parse-Check
+    ueber alle 130 Swift-Dateien fehlerfrei · `scripts/i18n-doppelte-schluessel.py` ohne Fund
+    (ein doppelter Schluessel stuerzt Swift zur Laufzeit ab) · `scripts/unuebersetzt.py --nur ios`
+    meldet 0 sichtbare deutsche Texte · alle 667 fest benutzten `Loc.t`-Schluessel sind in den
+    Tabellen vorhanden, ebenso alle 77 der Apple Watch (die zwei Treffer `cls.sport.` und
+    `accounts.sync.why.` sind zusammengesetzte Praefixe, kein Fehler) · 18 Sprachen deckungsgleich
+    mit der PWA.
   - **Amazfit (1.0.11 / code 14):** drei der vier Paritaets-Luecken behoben (`4832051b`), dazu
     die Sperr-Anzeige (`53882b31`); die vierte (`activityType`) war ein Irrtum meiner Durchsicht,
     Begruendung steht im Paritaets-Eintrag. Wartet ohnehin auf die Freigabe von 1.0.10.
