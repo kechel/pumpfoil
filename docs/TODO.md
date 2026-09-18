@@ -963,6 +963,38 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔲 UHREN-PARITAET: was Garmin kann und die anderen nicht.** Systematisch geprueft am
+  18.09.2026 (Anlass: der Foil-/Alarm-Fix von Garmin 10.09. war auf Wear, Apple und Zepp nie
+  nachgezogen worden — Jan: „wohl vergessen auf die anderen zu uebernehmen"). Methode: alle
+  Schluessel aus `devices.py::_config_payload` gegen die vier Uhr-Quellbaeume gegrept, jede
+  Fundstelle einzeln nachgelesen. Ergebnis — **alle offenen Luecken liegen auf Amazfit/Zepp**,
+  ausser einer auf Wear:
+
+  1. **Puls-Alarm fehlt auf Amazfit.** `hrHigh` + `alarmPatternHr` kommen gar nicht an: die
+     Whitelist in `watch-zepp/app-side/index.js` laesst sie nicht durch, und `_checkAlarm(kmh)`
+     in `page/index.js` prueft nur die Geschwindigkeit. Garmin, Wear OS und Apple Watch haben den
+     Puls-Alarm vollstaendig. Genau der Fall, vor dem der Kommentar an der Whitelist selbst warnt
+     (`hrZones` fehlten dort schon einmal).
+  2. **Aufzeichnungsmodus wirkt nicht auf Amazfit.** `recordMode` (full/lite/gps) wird nicht
+     durchgelassen; die Uhr nimmt immer 25 Hz. Wer im Profil „sparsam" oder „nur GPS" waehlt,
+     bekommt es auf Amazfit nicht — und das ist die Plattform mit der OOM-Geschichte.
+  3. **Vibrationsmuster und Wiederholung fehlen auf Amazfit.** `alarmPatternHigh/Low`,
+     `alarmRepeat`, `alarmRepeatS` kommen nicht an; `_vibrate()` ist ein einziges Muster, einmal
+     pro Ueberschreitung. Man kann „zu schnell" nicht von „zu langsam" unterscheiden.
+  4. **Aktivitaetstyp fehlt auf Wear OS und Amazfit.** `activityType` (surfing/openwater) setzt
+     Garmin in die FIT-Session und Apple in den HealthKit-Typ; `RecorderService.kt:238` nagelt
+     `ExerciseType.WORKOUT` fest. Kosmetisch — betrifft, wie die Aufnahme in der Health-App der
+     Uhr erscheint.
+
+  **Ausdruecklich KEINE Luecken** (nachgelesen, nicht geraten): `gnssMode` und `storageBudgetKb`
+  sind Connect-IQ-Eigenheiten (GNSS-Wahl per API, kein `freeStorage`) und ergeben anderswo keinen
+  Sinn. `waterLock` fehlt auf Garmin ABSICHTLICH — unser Aufnahme-Bildschirm hat dort keine
+  Tipp-Behandlung (Kommentar in `_effective_water_lock`). `speedScale` ist ein Altschluessel nur
+  fuer Garmin bis 1.0.80, heute lesen alle `speedZones`.
+
+  Reihenfolge nach Nutzen: 2 (Datenverlust-Risiko) → 1 (fehlendes Feature) → 3 → 4.
+  Amazfit 1.0.10 liegt im Review, app.json steht schon auf 1.0.11; Zepp-Build nur auf Jans Mac.
+
 - **🔲 96-KB-UHREN SCHALTEN STILL AUF GPS-ONLY — der Nutzer erfaehrt es nirgends richtig.**
   Anlass: Matthias (u214, Instinct 2X Solar) fragte am 17.09.2026 nach der Mail zum
   Absturz-Fix zurueck: „Kann ich dann den Aufzeichnungsmodus auf 'voll' lassen oder muss ich
