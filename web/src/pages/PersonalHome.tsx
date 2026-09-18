@@ -180,7 +180,10 @@ export default function PersonalHome() {
   useEffect(() => {
     api.getProfile().then(setProfile).catch(() => {});
     api.sessions({ limit: 3 }).then(setLatest).catch(() => setLatest([]));
-    api.getSettings().then((s) => setHomespot((s.homespot as string) ?? "")).catch(() => {});
+    // `homespot_effective`, nicht `homespot`: bei leerem Profilwert leitet der Server ihn aus
+    // der letzten Session ab (s. settings.py). Vorher blieb die Wetterkarte bei 96 % der
+    // Nutzer aus, obwohl das Profil „Automatisch (letzte Session)" versprach.
+    api.getSettings().then((s) => setHomespot((s.homespot_effective as string) ?? (s.homespot as string) ?? "")).catch(() => {});
   }, []);
   useEffect(() => {
     api.statsByFoil(accelOnly, period, sport || undefined).then(setByFoil).catch(() => setByFoil([]));

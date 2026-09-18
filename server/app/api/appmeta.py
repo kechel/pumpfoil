@@ -628,6 +628,11 @@ NAECHSTES: list[dict] = [
          "padlock sits in its place while it is locked. Until now the drop simply vanished, so "
          "the only way to find out was to touch the watch. Hold to unlock and the padlock "
          "springs open the moment you have held it long enough, so you know when to let go.",
+         "\u201eYour spot\u201c now works even if you never picked one in your profile: we take "
+         "the spot of your last session. The profile always offered \u201eautomatic (last "
+         "session)\u201c, but nothing behind it did that \u2014 so the weather card, the spot tab "
+         "and the spot chat stayed empty for almost everyone. What you pick yourself still wins, "
+         "and nothing gets written into your profile behind your back.",
      ]},
 ]
 

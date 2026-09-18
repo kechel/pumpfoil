@@ -80,8 +80,9 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
     // nichts gebracht. 269 von ihnen haben aber Sessions — wir WISSEN, wo sie fahren, wir haben
     // es nur nicht benutzt. Deshalb eine Kette:
     //   1. Homespot aus dem Profil (17)
-    //   2. sonst der Spot der LETZTEN eigenen Session (269) — `/api/sessions/my-spots` ist genau
-    //      danach sortiert (neueste zuerst, s. `my_spots`)
+    //   2. sonst der Spot der LETZTEN eigenen Session (269) — das leitet der Server ab und
+    //      liefert es als `homespot_effective` (s. settings.py); dort gilt es fuer ALLE
+    //      Homespot-Leser, nicht nur fuer diese Karte
     //   3. sonst (288 Konten ohne jede Session) der meistbefahrene Spot ueberhaupt — `items` ist
     //      nach Sessions sortiert, also `first()`. Heute ist das Illmensee mit 310 Sessions; auf
     //      Jans Frage „koennen wir da einfach Illmensee als zentrale nehmen?" ist das die
@@ -96,11 +97,13 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
         loading = false
     }
     LaunchedEffect(Unit) {
-        val hs = try {
-            Api.settings()["homespot"]?.jsonPrimitive?.contentOrNull?.trim() ?: ""
+        // Punkt 1 und 2 der Kette macht jetzt der Server (`homespot_effective`: gesetzter Wert,
+        // sonst letzte eigene Session — s. settings.py). Hier bleibt nur Punkt 3 uebrig, und der
+        // steckt unten in `items.firstOrNull()`. Der zweite Aufruf (`mySpots`) faellt damit weg.
+        startSpot = try {
+            val st = Api.settings()
+            (st["homespot_effective"] ?: st["homespot"])?.jsonPrimitive?.contentOrNull?.trim() ?: ""
         } catch (_: Exception) { "" }
-        startSpot = if (hs.isNotBlank()) hs
-                    else try { Api.mySpots().firstOrNull()?.spot ?: "" } catch (_: Exception) { "" }
     }
     LaunchedEffect(Unit) { load() }
 
