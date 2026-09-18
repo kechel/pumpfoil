@@ -618,10 +618,10 @@ NAECHSTES: list[dict] = [
          "where you left it for as long as the app is running.",
          "Ticking \u201eonly with a description\u201c updates the map at once. The pins used to sit "
          "there until you zoomed, which made the filter look broken.",
-         "The spot map opens on your home spot, with the neighbouring spots in view. It used "
-         "to fit every spot in the world into the frame, so everyone had to navigate to "
-         "themselves first. Without a home spot set it still shows them all, one zoom step "
-         "closer than before.",
+         "The spot map opens where you ride, with the neighbouring spots in view: your home "
+         "spot if you set one, otherwise the spot of your last session. It used to fit every "
+         "spot in the world into the frame, so everyone had to navigate to themselves first. "
+         "Brand new and no sessions yet? Then it opens on the busiest spot of all.",
          "The share sheet has room for the share button again on phones with a gesture bar, "
          "and the average speed is a tile you can pick like the others.",
          "Wear OS shows whether the touch lock is on: the water drop switches it on, and a "

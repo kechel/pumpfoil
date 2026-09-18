@@ -973,6 +973,16 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔲 Der Homespot ist praktisch unbenutzt: 17 von 572 Konten.** Gezaehlt am 18.09.2026 aus
+  `settings_json`, Anlass war Jans Frage „haben eigentlich alle einen default spot?". Verteilung:
+  17 mit Homespot, 555 ohne — davon 269 MIT Sessions (wir wissen also, wo sie fahren) und 286
+  ohne jede Session. Fuer die Spots-Karte ist das geloest (Kette Homespot → letzter eigener Spot
+  → meistbefahrener Spot), aber die Frage bleibt: der Homespot steuert noch mehr (Sessions-Tab
+  „Homespot", Spot-Chat-Vorwahl, Wetter), und 96 % der Nutzer haben ihn nie gesetzt.
+  Naheliegend: nach der dritten Session am selben Spot EINMAL fragen „als Homespot merken?"
+  — oder ihn stillschweigend aus dem haeufigsten eigenen Spot ableiten und im Profil anzeigen,
+  wo er sich korrigieren laesst. Nicht entschieden, gehoert Jan.
+
 - **🔲 NACH dem Android-Release: iOS und Amazfit nachziehen.** Jan, 18.09.2026: „wir machen ios
   und amazfit sobald android fertig zum release ist". Was genau ansteht:
   - **iOS, Spots-Karte:** `fitRegion(s)` laeuft in jedem `load()` (`SpotsView.swift`) — der
