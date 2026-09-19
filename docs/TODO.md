@@ -84,9 +84,31 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
     Mechanismus wie bei PeterH (u171), wo eine fremde App die Health-Services-Uebung hielt und
     der Puls nie ankam. **Unbelegt**, aber die naheliegendste Erklaerung; belegbar erst durch
     eine Aufnahme ohne die zweite App.
-  - **Zu tun:** (1) Jans OK fuer die Gate-Regel, dann umsetzen + die drei Sessions neu rechnen.
-    (2) Foilbert antworten. (3) Pruefen, ob u455 (zwei betroffene Sessions, dieselbe 125) davon
-    weiss — er hat sich nie gemeldet.
+  - **✅ 19.09. UMGESETZT (Jans OK: „dann mach es bitte alles richtig").** Regel an ZWEI Stellen,
+    nicht nur einer — und das war die Falle: der erste Fix sass nur in `gps.py` (v1-Pfad), die
+    Neuberechnung ergab trotzdem 0 Laeufe. **`DETECTOR_V2` hat ein eigenes Genauigkeits-Gate**
+    (`detect_v2.py:113`), das jedes Fenster als RUHE einstufte. Erst nachdem die
+    Genauigkeitsspalte dort VOR der Fensterbildung auf NaN gesetzt wird, greift es. Direkt
+    darueber stand schon der Praezedenzfall `puls_ohne_eingefrorene` mit dem Kommentar
+    „Stehengebliebene Werte sind keine Messwerte" — dieselbe Regel, nur fuer den Puls.
+  - **Ergebnis fuer #9023:** 15 Laeufe, Spitze 18,1 km/h, 1219 m Foil-Strecke, 317 s auf dem
+    Foil, `is_pumpfoil = True`. Laengster Lauf 40,0 s ueber 133 m.
+  - **Vollstaendigkeit geprueft: alle 7046 Sessions durchsucht** (29 s), genau drei melden einen
+    konstanten Wert ueber 15 m, alle 125. Die beiden anderen (u455, #5285 und #8131) bleiben auch
+    nach der Korrektur bei 0 Laeufen — in den Spuren steckt wirklich nichts (255 bzw. 656
+    Punkte). Keine Nachricht noetig.
+  - **Regression:** A/B ueber 178 Sessions durch `analyze_gps` (rein rechnend, NICHT ueber
+    `run_analysis` — das committet selbst): 177 identisch, 1 abweichend, naemlich #9023.
+    Die 56 Garmin-Sessions mit konstant 4 m sind unberuehrt, sie passierten das Gate ohnehin.
+    Einziger weiterer Nutzer von `hacc_m` ist das Gate selbst; die Uhren-Qualitaetsseite liest
+    die Genauigkeit aus den ROHDATEN (`scripts/uhren-qualitaet.py`), nicht aus den Fenstern.
+  - **Foilbert ist geantwortet** (1:1, `dm:230-574`): was los war, seine echten Zahlen, und die
+    Bitte um eine Aufnahme ohne Waterspeed wegen der 4,91 Hz.
+  - **🔲 OFFEN, bewusst nachgeordnet (Jan: „wenn die Anzeige auf der Uhr falsch ist, dauert das
+    einen kompletten Release-Zyklus — das muss man doch nicht vorziehen"):** die Wear-App hat
+    dasselbe Gate fuer die LIVE-Anzeige (`Recorder.kt:643`, `poor = accuracyM > 20.0`). Bei
+    konstant 125 m zeigt die Uhr waehrend der Fahrt kein Tempo. Dieselbe Regel gehoert dort hin,
+    geht aber erst mit der uebernaechsten Wear-Fassung raus.
 
 - **🔴 19.09. — Amazfit 1.0.11 ZURUECKGEZOGEN: `DEV_FAKE_GPS` stand auf `true`.**
   Zepp-Konsole: „Withdrawn". Der Store hat nichts beanstandet — der Fehler war unserer.

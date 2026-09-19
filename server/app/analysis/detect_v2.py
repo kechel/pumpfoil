@@ -485,6 +485,18 @@ def detect_v2(
     # Kurve noch Kacheln noch die Fremdkraft-Regel darauf hereinfallen (s. Funktion).
     hr = puls_ohne_eingefrorene(t_ms, hr)
     hacc = np.array([float(s[5]) if len(s) > 5 and s[5] is not None else np.nan for s in gps])
+    # Dieselbe Logik wie eine Zeile darueber beim Puls: was sich ueber die GANZE Aufnahme nicht
+    # bewegt, ist kein Messwert. Meldet ein Geraet durchgehend denselben Genauigkeitswert, ist er
+    # ein Platzhalter — dann darf das Gate unten (`hacc > MAX_HACC`) nicht darauf hereinfallen.
+    #
+    # Belegt am 19.09.2026 an Session #9023 (Wear OS 1.2.29): 6926-mal exakt 125,0 m, zwei
+    # Stunden ohne jede Streuung, waehrend andere Wear-Uhren 3-25 m mit normaler Schwankung
+    # liefern. Jedes Fenster wurde damit als RUHE eingestuft — 0 Laeufe, 0 km/h, „kein Pumpfoil",
+    # obwohl in der Spur 20 echte Laeufe bis 18,1 km/h stecken. Ein konstanter Wert UNTER der
+    # Schwelle aendert nichts (Garmin meldet fest 4 und passiert ohnehin); im ganzen Bestand
+    # sind genau 3 Sessions von 2 Nutzern betroffen, alle mit 125.
+    if np.isfinite(hacc).any() and float(np.ptp(hacc[np.isfinite(hacc)])) == 0.0:
+        hacc = np.full_like(hacc, np.nan)
     speed_raw = np.array([float(s[3]) if len(s) > 3 and s[3] is not None else np.nan for s in gps])
 
     lat, lon = v1._fill_invalid_coords(lat, lon)
