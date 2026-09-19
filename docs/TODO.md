@@ -378,6 +378,18 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
     Sperr-Anzeige, ist aber noch nie auf einer Uhr gelaufen und braucht denselben langen
     Testlauf. Eine Zepp-Runde dauert Wochen — im Erfolgsfall spart 1.0.11 eine ganze Runde.
 
+- **🟢 19.09. — iOS/Apple Watch 1.1.34 AUSGELIEFERT.** Zweite Apple-Mail: „The following app is
+  ready for distribution · App Version Number: 1.1.34 · Platform: iOS". Eingereicht 18.09. 13:32,
+  also **gut einen Tag Pruefung** — die schnellste Runde bisher.
+  - Nachgezogen: `_APP_META["ios"]` UND `["apple"]` auf 1.1.34 (ein Bundle, eine
+    MARKETING_VERSION), IN_REVIEW-Eintrag entfernt, `/api/app/latest?platform=ios` liefert 1.1.34.
+  - **Zwoelf Changelog-Punkte** in `changelog_items` (19.09.) mit
+    `versionen={"ios":"1.1.34","apple":"1.1.34"}` — **in der neuen Kurzform**, nicht aus den
+    appmeta-Texten uebernommen. Aus 11 langen Punkten wurden 12 kurze (der Teilen-Punkt war zwei
+    Aenderungen), Laenge jetzt 47-96 statt bis 380 Zeichen. Dazu das Ereignis „approved and live
+    in the App Store".
+  - **Naechste iOS-Nummer: 1.1.35 / Build 39.**
+
 - **🟡 18.09. 13:32 — iOS/Apple Watch 1.1.34 (Build 38) EINGEREICHT.** App Store Connect:
   „iOS-App 1.1.34 · 1.1.34 (38) · Warten auf Pruefung", Uebermittlungskennung
   `0aa1ae51-a3b4-44cb-b02e-6def74eea28e`, uebermittelt von Jan Kechel. Gebaut aus `9f193f11`
