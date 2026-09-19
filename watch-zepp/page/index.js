@@ -91,7 +91,18 @@ const NOSTOP_MPS = 1.5;
 // ANDERES vergeben (30 m/s als Schwelle fuer Positionsspruenge, Zeile 33). Beim naechsten Mal
 // die Vereinheitlichung der Namen erwaegen (steht in docs/TODO.md), bis dahin: `MAX_FOIL_MPS`.
 const MIN_RUN_MS = 5000, MIN_RUN_AVG_MPS = 2.0;
-const DEV_FAKE_GPS = false;  // true = synthetische GPS-Spur (nur Simulator-UI-Demo; echte Uhr: false)
+// Synthetische GPS-Spur fuer den Simulator. Der Wert steht NICHT hier, sondern in der
+// ERZEUGTEN, gitignorierten `devflags.js` — geschrieben von `npm run dev` (true) bzw.
+// `npm run build` (false), s. watch-zepp/zepp.mjs.
+//
+// WARUM NICHT MEHR HIER (19.09.2026): als Konstante im Quelltext musste sie fuer die
+// Store-Screenshots von Hand auf true gesetzt werden — und blieb am 18.09. stehen, bis sie
+// im eingereichten 1.0.11 landete. Jans Grundregel: Code wird NIE fuers Testen geaendert,
+// was fotografiert wird, muss das sein, was ausgeliefert wird. Jetzt ist die Datei mit dem
+// Wert gar nicht versioniert; ein `true` kann nicht mehr committet oder vergessen werden,
+// und `git status` bleibt sauber. Fehlt sie, bricht der Build ab — genau richtig, dann hat
+// jemand `zeus build` direkt aufgerufen statt `npm run build`.
+import { DEV_FAKE_GPS } from "./devflags.js";
 // MUSS mit version.name in ../app.json übereinstimmen — beides beim Bump ändern. (Zur Laufzeit
 // aus dem Paket lesen ginge nur über einen weiteren @zos-Import; die sind hier ungetestet und
 // können beim Laden crashen, deshalb bewusst eine Konstante.) Der Bump auf 1.0.4 hatte nur
