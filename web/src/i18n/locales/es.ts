@@ -771,7 +771,7 @@ const es: Record<string, string> = {
   "alarm.maxSpeed": "Máx",
   "alarm.minSpeed": "Mín",
   "alarm.pattern": "Patrón",
-  "alarm.mode": "Activación",
+  "alarm.mode": "Activación para velocidad y pulso",
   "alarm.modeOnce": "una vez al cruzar",
   "alarm.modeContinuous": "continuo mientras esté por encima/debajo",
   "alarm.zeroHint": "Consejo: 0 km/h desactiva ese umbral.",

@@ -367,8 +367,13 @@ def device_config(
         "hrHigh": settings.get("hr_high", 0),
         "alarmPatternHr": settings.get("alarm_pattern_hr", "short1"),
         # Marken-Alarme waehrend eines Laufs: Strecke (m) und Zeit (s), je 0 = aus.
-        # Modus "once" = einmal je Lauf, "every" = bei jedem Vielfachen. Zaehlung beginnt mit
-        # jedem neuen Lauf von vorn; ausserhalb eines Laufs passiert nichts.
+        # Modus "once" = NUR BEI dieser Marke, "every" = bei jedem Vielfachen. Zaehlung beginnt
+        # mit jedem neuen Lauf von vorn; ausserhalb eines Laufs passiert nichts.
+        #
+        # `alarmRepeat`/`alarmRepeatS` gelten hier NICHT (Jan, 19.09.2026): „der macht nur sinn
+        # bei einer grenze die man auch wieder unterschreiten kann, strecke und zeit kann aber
+        # nicht mehr weniger werden." Eine Marke faellt genau einmal — „dauerhaft, solange
+        # ueberschritten" waere ein Dauerton bis zum Ende des Laufs.
         "runDistM": int(settings.get("run_dist_m", 0) or 0),
         "runDistMode": settings.get("run_dist_mode", "once"),
         "alarmPatternDist": settings.get("alarm_pattern_dist", "short1"),

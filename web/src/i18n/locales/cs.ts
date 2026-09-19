@@ -1114,7 +1114,7 @@ const cs: Record<string, string> = {
   "alarm.maxSpeed": "Max",
   "alarm.minSpeed": "Min",
   "alarm.pattern": "Vzor",
-  "alarm.mode": "Spouštění",
+  "alarm.mode": "Spuštění u rychlosti a tepu",
   "alarm.modeOnce": "jednorázově při překročení/podkročení",
   "alarm.modeContinuous": "trvale, dokud je nad/pod",
   "alarm.zeroHint": "Tip: 0 km/h příslušnou hranici vypne.",

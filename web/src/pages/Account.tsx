@@ -983,6 +983,24 @@ function AlarmEditor() {
           </div>
           <p className="mt-2 text-sm text-slate-400">{t("alarm.hrHint")}</p>
         </div>
+        {/* Modus — bei „dauerhaft" zusätzlich der Wiederholabstand */}
+        <label className="flex flex-wrap items-center gap-2 text-sm">
+          <span className="text-slate-400">{t("alarm.mode")}</span>
+          <select value={s.alarm_repeat ?? "once"} onChange={(e) => set("alarm_repeat", e.target.value)}
+            className="rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-slate-100">
+            <option value="once">{t("alarm.modeOnce")}</option>
+            <option value="continuous">{t("alarm.modeContinuous")}</option>
+          </select>
+          {(s.alarm_repeat ?? "once") === "continuous" && (
+            <>
+              <span className="text-slate-400">{t("alarm.repeatEvery")}</span>
+              <input type="number" min={2} max={60} value={s.alarm_repeat_s ?? 5}
+                onChange={(e) => set("alarm_repeat_s", e.target.value)}
+                className="w-20 rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-slate-100" />
+              <span className="text-slate-400">s</span>
+            </>
+          )}
+        </label>
         {/* Marken waehrend eines Laufs: Strecke und Zeit. Anders als Tempo und Puls sind das
             keine Grenzwerte, die man ueber- oder unterschreitet, sondern Punkte, die man
             ERREICHT — deshalb je ein eigener Modus (einmal je Lauf / bei jedem Vielfachen).
@@ -1031,24 +1049,6 @@ function AlarmEditor() {
           </div>
           <p className="mt-2 text-sm text-slate-400">{t("alarm.markHint")}</p>
         </div>
-        {/* Modus — bei „dauerhaft" zusätzlich der Wiederholabstand */}
-        <label className="flex flex-wrap items-center gap-2 text-sm">
-          <span className="text-slate-400">{t("alarm.mode")}</span>
-          <select value={s.alarm_repeat ?? "once"} onChange={(e) => set("alarm_repeat", e.target.value)}
-            className="rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-slate-100">
-            <option value="once">{t("alarm.modeOnce")}</option>
-            <option value="continuous">{t("alarm.modeContinuous")}</option>
-          </select>
-          {(s.alarm_repeat ?? "once") === "continuous" && (
-            <>
-              <span className="text-slate-400">{t("alarm.repeatEvery")}</span>
-              <input type="number" min={2} max={60} value={s.alarm_repeat_s ?? 5}
-                onChange={(e) => set("alarm_repeat_s", e.target.value)}
-                className="w-20 rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-slate-100" />
-              <span className="text-slate-400">s</span>
-            </>
-          )}
-        </label>
         <p className="text-xs text-slate-400">{t("alarm.zeroHint")}</p>
       </div>
 

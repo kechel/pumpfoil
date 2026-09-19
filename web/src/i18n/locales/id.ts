@@ -1001,7 +1001,7 @@ const id: Record<string, string> = {
   "alarm.maxSpeed": "Maks",
   "alarm.minSpeed": "Min",
   "alarm.pattern": "Pola",
-  "alarm.mode": "Pemicu",
+  "alarm.mode": "Pemicu untuk kecepatan dan detak jantung",
   "alarm.modeOnce": "sekali saat melewati",
   "alarm.modeContinuous": "terus-menerus selama di atas/bawah",
   "alarm.zeroHint": "Tips: 0 km/h menonaktifkan ambang itu.",

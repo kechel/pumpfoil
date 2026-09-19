@@ -1001,7 +1001,7 @@ const ja: Record<string, string> = {
   "alarm.maxSpeed": "最高",
   "alarm.minSpeed": "最低",
   "alarm.pattern": "パターン",
-  "alarm.mode": "トリガー",
+  "alarm.mode": "速度と心拍のトリガー",
   "alarm.modeOnce": "超えたときに1回",
   "alarm.modeContinuous": "超過／下回っている間ずっと",
   "alarm.zeroHint": "ヒント：0 km/h でそのしきい値を無効にします。",

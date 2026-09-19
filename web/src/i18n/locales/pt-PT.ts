@@ -1002,7 +1002,7 @@ const ptPT: Record<string, string> = {
   "alarm.maxSpeed": "Máx.",
   "alarm.minSpeed": "Mín.",
   "alarm.pattern": "Padrão",
-  "alarm.mode": "Disparo",
+  "alarm.mode": "Disparo para velocidade e frequência cardíaca",
   "alarm.modeOnce": "uma vez ao cruzar",
   "alarm.modeContinuous": "continuamente enquanto acima/abaixo",
   "alarm.zeroHint": "Dica: 0 km/h desativa aquele limite.",

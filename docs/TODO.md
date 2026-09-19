@@ -1442,6 +1442,12 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
       aus den Foil-Daten, sie stehen fest im Profil.
     - Fuer Wear, Apple und Zepp gilt dasselbe: den vorhandenen An/Aus-Schalter mitbenutzen,
       keine neuen Menuepunkte.
+  - **⚠️ `alarmRepeat`/`alarmRepeatS` NICHT auf die Marken anwenden (Jan, 19.09.2026):** „der
+    macht nur sinn bei einer grenze die man auch wieder unterschreiten kann, strecke und zeit
+    kann aber nicht mehr weniger werden." Eine Marke faellt genau einmal; „dauerhaft, solange
+    ueberschritten" waere ein Dauerton bis zum Ende des Laufs. In der Oberflaeche steht die
+    Ausloese-Zeile deshalb jetzt VOR den beiden Marken-Bloecken und heisst „Ausloesen bei Tempo
+    und Puls" — vorher stand sie darunter und sah aus, als gaelte sie fuer alle fuenf.
 
   **3. „the app always goes into the background, so I only see the watch face" — die Ursache ist
   unsere eigene.** In `MainActivity.onEnterAmbient` steht:
