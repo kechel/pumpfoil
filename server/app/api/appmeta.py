@@ -663,29 +663,15 @@ IN_REVIEW: list[dict] = [
          "The button that imports a FIT, TCX or GPX file is a small \u201eFIT\u201c button at the "
          "right of the filter row instead of a wide bar of its own.",
      ]},
-]
-
-# „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
-# einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
-NAECHSTES: list[dict] = [
     {"name": "Amazfit", "version": "1.0.11",
-     # Der Code liegt fertig im Baum, aber das Paket muss NEU gebaut werden.
-     "nicht_gebaut": True,
-     # ZURUECKGEZOGEN am 19.09.2026, wenige Stunden nach dem Upload — Zepp-Konsole:
-     # "Withdrawn". Grund war NICHT der Store, sondern ein Schalter im eigenen Code:
-     # `DEV_FAKE_GPS` stand auf true. Damit liest die Uhr die echte Ortung gar nicht mehr
-     # (`s.geo` wird uebersprungen) und schreibt stattdessen eine erfundene Spur ab
-     # 47.66/9.355 mit 19-24 km/h. Jede Aufnahme jedes Amazfit-Nutzers waere eine
-     # Phantom-Session am Bodensee gewesen — und als echte Session hochgeladen.
-     #
-     # BELEGT an Jans eigenen Screenshots: sie zeigen 22,1 km/h und 19 m, im eckigen wie
-     # im runden Satz identisch. Nachgerechnet aus dem Generator ergibt Sekunde 4 genau
-     # 22,1 km/h und 18,8 m. Zwei echte Laeufe treffen nie dieselbe Nachkommastelle.
-     #
-     # URSACHE IST DER ABLAUF, NICHT DIE SORGFALT: fuer die Store-Screenshots MUSS der
-     # Schalter an sein (der Simulator speist kein GPS ein) — und danach wird gebaut.
-     # Deshalb steht die Pruefung jetzt im Build (`npm run build` in watch-zepp), nicht
-     # mehr nur als Satz in der Startklar-Liste.
+     "eingereicht": "2026-09-19",
+     # ZWEITER Anlauf. Der erste (18.09.) wurde am 19.09. zurueckgezogen, weil
+     # `DEV_FAKE_GPS` auf true stand — die Uhr haette nie eine echte Position gelesen.
+     # Der neue Build ist am Paket selbst nachgeprueft: in 12 von 24 kompilierten
+     # Dateien steht der echte GPS-Pfad (getLatitude/getLongitude), im zurueckgezogenen
+     # waren es 0 von 24. Bilder und Texte in der Konsole sind unveraendert.
+     # Kann das nochmal passieren? Nein: `npm run build` setzt den Schalter selbst und
+     # loescht dist/, wenn im fertigen Paket der echte Pfad fehlt (watch-zepp/zepp.mjs).
      "items": [
          "On square watches the page number in the top right corner is no longer clipped. The corners of those displays are heavily rounded, and the number sat in the very corner \u2014 on the \u201e1/4\u201c the last digit lost a piece.",
          "A long recording uploads without running out of memory. The watch used to hold the "
@@ -718,6 +704,11 @@ NAECHSTES: list[dict] = [
          "as long as it is locked. Until now the watch looked completely normal and you only "
          "found out by touching it.",
      ]},
+]
+
+# „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
+# einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
+NAECHSTES: list[dict] = [
 
 
 
