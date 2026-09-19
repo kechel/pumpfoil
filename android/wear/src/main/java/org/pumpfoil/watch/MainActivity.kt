@@ -71,6 +71,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import org.json.JSONObject
 
+/** Wie lange die App im Leerlauf sichtbar bleibt, bevor das Watchface wieder Vorrang bekommt.
+ *  Zehn Minuten: lang genug, um am Steg auf Wind/Welle zu warten, ohne die Uhr anzufassen —
+ *  kurz genug, dass eine versehentlich offene App nicht den ganzen Tag gedimmt stehen bleibt. */
+private const val LEERLAUF_FRIST_MS = 10 * 60 * 1000L
+
 class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecycleCallback {
     private val perms = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()) {}
@@ -98,19 +103,46 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
         setContent { AppUi() }
     }
 
+    /** Wann wir im Leerlauf ins Ambient gegangen sind (0 = nicht im Leerlauf-Ambient). */
+    private var leerlaufSeit = 0L
+
     override fun onEnterAmbient(details: AmbientLifecycleObserver.AmbientDetails) {
-        if (!Recorder.state.value.recording) {
-            moveTaskToBack(true)        // im Leerlauf hat das Watchface Vorrang
-            return
-        }
         AmbientState.aktiv.value = true
         AmbientState.einbrennschutz.value = details.burnInProtectionRequired
+        // Im Leerlauf NICHT mehr sofort zurueckweichen (bis 19.09.2026 stand hier ein
+        // `moveTaskToBack(true)` direkt an dieser Stelle).
+        //
+        // Gemeldet von u447 (Galaxy Watch Ultra): „the app always goes into the background, so I
+        // only see the watch face instead of the app." Das war keine Samsung-Eigenart, sondern
+        // genau diese Zeile — waehrend der AUFNAHME blieb die App stehen, DAVOR schob sie sich
+        // selbst weg. Genau davor steht man aber auf dem Board und will starten; die Uhr laesst
+        // sich mit nassen Haenden im Wasser kaum bedienen. Jan: „wenn man die aktivitaet startet
+        // das immer on screen bleiben, das ist auch normal beim joggen und so."
+        //
+        // Der urspruengliche Grund bleibt gueltig — die App soll nicht stundenlang gedimmt vor
+        // dem Watchface stehen, wenn man sie nur kurz geoeffnet hat. Deshalb kein Entweder-oder,
+        // sondern eine Frist: erst nach LEERLAUF_FRIST_MS ohne Aufnahme treten wir zurueck,
+        // geprueft im Systemtakt unten (~1/min).
+        leerlaufSeit = if (Recorder.state.value.recording) 0L else android.os.SystemClock.elapsedRealtime()
     }
 
     /** Systemtakt (~1/min): nur dann darf im Ambient neu gezeichnet werden. */
-    override fun onUpdateAmbient() { AmbientState.takt.value += 1 }
+    override fun onUpdateAmbient() {
+        AmbientState.takt.value += 1
+        if (Recorder.state.value.recording) {
+            leerlaufSeit = 0L           // Aufnahme laeuft -> bleiben, solange sie laeuft
+            return
+        }
+        if (leerlaufSeit == 0L) leerlaufSeit = android.os.SystemClock.elapsedRealtime()
+        if (android.os.SystemClock.elapsedRealtime() - leerlaufSeit >= LEERLAUF_FRIST_MS) {
+            moveTaskToBack(true)        // nach der Frist hat das Watchface wieder Vorrang
+        }
+    }
 
-    override fun onExitAmbient() { AmbientState.aktiv.value = false }
+    override fun onExitAmbient() {
+        AmbientState.aktiv.value = false
+        leerlaufSeit = 0L
+    }
 
     /**
      * Wassersperre („Wet Mode"): sperrt die Bedienung, bis man die Krone drueckt.

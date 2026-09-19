@@ -709,6 +709,19 @@ IN_REVIEW: list[dict] = [
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
+    {"name": "Android phone + Wear OS", "version": "1.1.31 / 1.2.31",
+     # Die Nummer ist noch NICHT in build.gradle.kts gebumpt: 1.1.30 / 1.2.30 liegen seit dem
+     # 18.09. bei Google, und eine abgelehnte Nummer nimmt Play nicht wieder an — gebumpt wird
+     # erst, wenn der Ausgang feststeht. 1.1.31 stimmt aber in beiden Faellen.
+     "nicht_gebaut": True,
+     "items": [
+         "On Wear OS the app stays on screen while you wait to start. It used to drop back to "
+         "the watch face after a few seconds \u2014 which is exactly the moment you are standing "
+         "on the board with wet hands and want to hit start. It now stays up for ten minutes, "
+         "and for as long as a recording runs. Reported by a rider on a Galaxy Watch Ultra.",
+     ]},
+
+
 
 
 

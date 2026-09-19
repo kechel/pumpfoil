@@ -1405,9 +1405,19 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   - **Belegt, dass es NICHT die Aufzeichnung betrifft:** seine zehn Aufnahmen laufen sauber durch
     — 139,4 min / 91,3 min / 83,2 min, alle mit Endzeit, 9 bis 25 Laeufe. Der Vordergrund-Dienst
     haelt. Es ist ausschliesslich die ANZEIGE vor dem Start.
-  - **Zu entscheiden:** im Leerlauf gar nicht mehr zurueckweichen? Oder erst nach ein paar
-    Minuten? Der Rueckzug kam aus dem Wunsch, die App nicht dauerhaft gedimmt stehen zu lassen —
-    das ist auf dem Wasser aber genau das Gewuenschte.
+  - **✅ 19.09. GEBAUT (Jan: „kommt mit ins naechste release bitte").** Kein Entweder-oder,
+    sondern eine Frist: `onEnterAmbient` weicht nicht mehr sofort zurueck, sondern merkt sich den
+    Zeitpunkt; der Systemtakt (`onUpdateAmbient`, ~1/min) tritt erst nach **zehn Minuten** ohne
+    Aufnahme zurueck. Damit bleibt der urspruengliche Grund gueltig — eine versehentlich offene
+    App steht nicht den ganzen Tag gedimmt vor dem Watchface —, und der Fall auf dem Wasser ist
+    geloest. Laeuft eine Aufnahme, bleibt die App wie bisher oben, ohne Frist.
+    `:wear:compileDebugKotlin` sauber.
+  - **Version NICHT gebumpt:** 1.1.30 / 1.2.30 liegen bei Google, eine abgelehnte Nummer nimmt
+    Play nicht wieder an. Der appmeta-Eintrag steht als 1.1.31 / 1.2.31 unter NAECHSTES mit
+    `nicht_gebaut`; gebumpt wird, wenn der Ausgang feststeht.
+  - **🔲 Punkt 1 und 2 (Live-Laufzeit, On-Foil-Alarme) sind NICHT gebaut** — das sind echte
+    Funktionen, keine Korrektur, und sie brauchen eine Runde Entwurf (wo steht die Zeit auf der
+    Uhr, welche Muster vibrieren, wie sieht die Einstellung im Profil aus).
 
 
 
