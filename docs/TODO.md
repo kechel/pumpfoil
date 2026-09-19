@@ -85,9 +85,18 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
     fuers testen / screenshotten der release-candidates — und DAS DARF NIE SEIN." Was getestet
     und fotografiert wird, MUSS das sein, was ausgeliefert wird. Der Schalter bleibt der einzige
     Verstoss dagegen, und er ist jetzt so gebaut, dass er sich selbst wieder wegraeumt: `npm run
-    dev` setzt ihn und stellt ihn beim Beenden zurueck, auch bei Strg-C — danach ist
-    `git status` sauber. Jans Praezisierung, warum das trotzdem in Ordnung geht: „aber ICH MUSS
-    KEINE DATEI EDITIEREN" und „keine echte uhr ruft jemals npm run dev auf".
+    dev` setzt ihn, ohne eine Code-Datei anzufassen. Jans Praezisierungen dazu: „aber ICH MUSS
+    KEINE DATEI EDITIEREN", „keine echte uhr ruft jemals npm run dev auf" und, entscheidend:
+    „code-dateien darfst du nicht aendern, sonst werden die bei abbruch oder so nicht
+    zurueckgesetzt und wir haben SALAT".
+  - **Endstand des Mechanismus:** der Wert steht in `page/devflags.js` — **erzeugt und
+    gitignoriert**, `page/index.js` importiert sie nur. Nachgemessen: nach `npm run dev` ist
+    `index.js` byteweise identisch. Ein `true` kann damit weder committet werden noch einen
+    Abbruch ueberleben, und `git status` zeigt nie etwas an. Eine ENV-Variable ginge NICHT: der
+    Uhr-Code laeuft nicht in Node, `process.env` existiert dort nicht, der Wert muss beim
+    Buendeln feststehen — und `zeus` kennt kein `--define`.
+    **Nebenwirkung, gewollt:** `zeus build` direkt bricht jetzt ab („Could not resolve
+    ./devflags.js"), die Datei entsteht erst durch die npm-Skripte.
   - **✅ 19.09. 13:25 NEU GEBAUT UND WIEDER EINGEREICHT.** Zepp-Konsole: Application Time
     2026.09.19, „Under Review (Can be Withdrawn)". Nummer unveraendert 1.0.11 / code 14
     (zurueckgezogen ist nicht abgelehnt), Bilder und Texte in der Konsole unangetastet.

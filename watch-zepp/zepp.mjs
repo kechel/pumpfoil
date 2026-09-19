@@ -10,8 +10,11 @@
 // Schalter an sein (der Simulator speist kein GPS ein) — und unmittelbar danach wird gebaut. Eine
 // Zeile in einer Checkliste schuetzt davor nicht; ein Mensch soll sich das nicht merken muessen.
 //
-// Jans Vorgabe: „das soll nur automatisch bei zeus dev aber NIE bei zeus build aktiviert sein."
-// Genau das macht dieses Skript — es SETZT den Wert vor jedem Lauf, statt ihn zu pruefen:
+// Jans Vorgabe: „das soll nur automatisch bei zeus dev aber NIE bei zeus build aktiviert sein",
+// und vor allem: „ICH MUSS KEINE DATEI EDITIEREN". Deshalb liegt der Wert NICHT im Quelltext,
+// sondern in der erzeugten, GITIGNORIERTEN `page/devflags.js`, die dieses Skript vor jedem Lauf
+// schreibt. Eine ENV-Variable ginge nicht: der Uhr-Code laeuft nicht in Node, `process.env` gibt
+// es dort nicht, der Wert muss beim Buendeln feststehen — und `zeus` kennt kein `--define`.
 //
 //     npm run dev     ->  DEV_FAKE_GPS = true   ->  zeus dev     (Simulator, Screenshots)
 //     npm run build   ->  DEV_FAKE_GPS = false  ->  zeus build   (Store-Paket)
@@ -27,21 +30,17 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const WURZEL = dirname(fileURLToPath(import.meta.url));
-const QUELLE = join(WURZEL, "page", "index.js");
-const ZEILE = /^const DEV_FAKE_GPS = (true|false);/m;
+const QUELLE = join(WURZEL, "page", "index.js");   // nur noch fuer den Versionsabgleich
+const FLAGS = join(WURZEL, "page", "devflags.js");
 
+/** Schreibt `page/devflags.js`. Die Datei ist gitignoriert und wird bei JEDEM Lauf neu erzeugt —
+ *  im Arbeitsbaum bleibt damit nichts stehen, was jemand vergessen koennte. */
 function schalter(wert) {
-  const txt = readFileSync(QUELLE, "utf8");
-  const treffer = txt.match(ZEILE);
-  if (!treffer) {
-    console.error(`ABBRUCH: in ${QUELLE} steht keine Zeile "const DEV_FAKE_GPS = …;".`);
-    console.error("Wurde sie umbenannt? Dann gehoert dieses Skript mit angepasst.");
-    process.exit(1);
-  }
-  if (treffer[1] === String(wert)) return treffer[1];
-  writeFileSync(QUELLE, txt.replace(ZEILE, `const DEV_FAKE_GPS = ${wert};`), "utf8");
-  console.log(`DEV_FAKE_GPS: ${treffer[1]} -> ${wert}`);
-  return treffer[1];
+  writeFileSync(FLAGS,
+    "// ERZEUGT von zepp.mjs — nicht von Hand aendern, nicht versionieren (s. .gitignore).\n" +
+    "// true = synthetische GPS-Spur fuer den Simulator, false = echte Ortung.\n" +
+    `export const DEV_FAKE_GPS = ${wert};\n`, "utf8");
+  console.log(`page/devflags.js: DEV_FAKE_GPS = ${wert}`);
 }
 
 /** Alle Dateien unter einem Verzeichnis (fuer die Nachpruefung des Pakets). */
@@ -134,23 +133,10 @@ if (!["dev", "build", "pruefe"].includes(modus)) {
 if (modus === "pruefe") process.exit(paketPruefen() ? 0 : 1);
 
 if (modus === "dev") {
-  // Der Wert wird fuer den Simulator gesetzt und beim Beenden WIEDER ZURUECKGESETZT — auch bei
-  // Strg-C. Damit bleibt der Arbeitsbaum sauber, und genau der Fall vom 18.09. kann sich nicht
-  // wiederholen: dort blieb `true` nach den Screenshots stehen und ging in den naechsten Build.
-  // Jans Grundregel dazu: Code wird NIE fuers Testen geaendert — was fotografiert wird, muss das
-  // sein, was ausgeliefert wird. Diese Zeile bleibt der einzige Verstoss, und er raeumt sich
-  // selbst wieder weg, statt auf ein menschliches Gedaechtnis zu setzen.
-  const vorher = schalter(true);
-  let zurueck = false;
-  const aufraeumen = () => {
-    if (zurueck) return;
-    zurueck = true;
-    schalter(vorher === "true");
-  };
-  for (const sig of ["SIGINT", "SIGTERM", "SIGHUP"]) process.on(sig, () => { aufraeumen(); process.exit(0); });
-  process.on("exit", aufraeumen);
+  // Kein Aufraeumen noetig: `devflags.js` ist gitignoriert und wird beim naechsten `npm run build`
+  // ohnehin ueberschrieben. Im VERSIONIERTEN Code steht nie ein `true`.
+  schalter(true);
   const r = spawnSync("zeus", ["dev"], { stdio: "inherit", cwd: WURZEL });
-  aufraeumen();
   process.exit(r.status ?? 1);
 }
 

@@ -13,3 +13,7 @@ selenium-debug.log
 *.ntvs*
 *.njsproj
 *.sln
+
+# Erzeugt von zepp.mjs (npm run dev/build) — traegt DEV_FAKE_GPS.
+# BEWUSST nicht versioniert: so kann kein `true` in eine Einreichung geraten.
+page/devflags.js
