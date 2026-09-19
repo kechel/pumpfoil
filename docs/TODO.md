@@ -1430,6 +1430,18 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     Werte liegen in der Konfiguration bereit, es fehlt nur die Auswertung waehrend eines Laufs;
     (b) **die Profil-Einstellungen in die nativen Apps portieren** (iOS und Android), Jans
     ausdrueckliche Ansage. Vorlage ist der Alarm-Block in `web/src/pages/Account.tsx`.
+  - **🔑 AUF DER UHR NUR AN/AUS — keine weiteren Einstellungen (Jan, 19.09.2026):** „es wird
+    langsam zu aufwaendig das alles in der uhr einzutragen, also einfach im profil einstellen,
+    und die uhr kann das nur global aktivieren oder deaktivieren." Die Marken-Alarme haengen
+    also am VORHANDENEN Schalter, sie bekommen keinen eigenen Menuepunkt.
+    - Garmin hat genau das schon: `RecordDelegate.mc:277` zeigt `fm.alarm` mit An/Aus
+      (`SessionRecorder.alarmEnabled`, aus `Config.getBool("alarmEnabled")`). Dort ist also
+      **nichts** an der Oberflaeche zu tun — nur die Auswertung von `runDistM`/`runTimeS`
+      dazuhaengen, gegated auf denselben Schalter.
+    - `alarmSource` (Foil-Schwellen vs. feste Werte) bleibt unberuehrt: die Marken kommen nicht
+      aus den Foil-Daten, sie stehen fest im Profil.
+    - Fuer Wear, Apple und Zepp gilt dasselbe: den vorhandenen An/Aus-Schalter mitbenutzen,
+      keine neuen Menuepunkte.
 
   **3. „the app always goes into the background, so I only see the watch face" — die Ursache ist
   unsere eigene.** In `MainActivity.onEnterAmbient` steht:
