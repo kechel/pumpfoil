@@ -49,6 +49,34 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
     liegt bisher bei vier Nutzern ueberhaupt (u185, u375, u393, u589) — Connect IQ aktualisiert
     nicht von selbst, die Verbreitung braucht Wochen.
 
+- **✅ 19.09. — Store-Pruefroboter im Spot-Chat: Gate gebaut, zwei Sichtbarkeits-Luecken zu.**
+  Jan sah im Chat von Vaires-sur-Marne eine Nachricht von „google-tester@kechel.de" und fragte,
+  warum ein ausgeblendetes Konto sichtbar ist.
+  - **Es war gar nicht unser Testkonto.** Googles Pre-Launch-Report faehrt die App vor jeder
+    Freigabe automatisch ab, tippt gefundene Zeichenketten in jedes Textfeld und schickt sie los —
+    dabei landete **unser eigenes Testlogin** als oeffentliche Nachricht im Spot-Chat, bei einem
+    Konto sogar als Anzeigename. Der Absender war `vikkibatista.94593@gmail.com`.
+  - **Und es ist jedes Mal ein anderes Konto:** 34 solcher Wegwerf-Konten seit dem 24.07.
+    (5,8 % aller Konten), zusammen **0 Sessions** und 4 Chat-Nachrichten. „Das Testkonto
+    ausblenden" kann deshalb prinzipiell nicht wirken.
+  - **GATE (neu, `chat.py::_ist_store_testroboter`):** wer unser Store-Testlogin postet UND es
+    ist seine allererste Nachricht UND er ist kein Admin -> Nachricht wird gar nicht erst gezeigt,
+    Konto auf `hidden`. Bewusst OHNE Fehlermeldung nach aussen, sonst meldet der Pre-Launch-Report
+    einen Fehler in unserer App. Die beiden Zusatzschranken sind Jans Vorgabe („falls ich die doch
+    mal reinkopiere"). Geprueft: greift bei exakter Adresse, in Grossbuchstaben und mitten im
+    Satz, beim Apple-Login — greift NICHT bei normalem Text, bei einem Konto mit Vorgeschichte
+    und nicht bei Admins.
+  - **ZWEI ECHTE LUECKEN nebenbei gefunden:** der Chatraum selbst filtert ausgeblendete Verfasser
+    (`liste()`), aber `/active` (Spot-Entdeckung) zeigte deren Text als **Vorschau** und zaehlte
+    ihn mit, `/all-spots` zaehlte ihn ebenfalls. Die Regel steht jetzt als `_visible_author_fuer()`
+    an einer Stelle statt dreimal abgeschrieben.
+  - **Rueckwirkend NUR die vier Bewiesenen ausgeblendet** (u148, u299, u466, u473) plus ihre vier
+    Nachrichten. Jans Entscheidung gegen mein Muster-Angebot: „die anderen sind regulaere, echte
+    Google-User, die halt nur noch keine Session hochgeladen haben. Aber die kommen ja vielleicht
+    wieder." Richtig so — die Adress-Heuristik (`vorname+nachname.NNNNN@gmail.com`) haette 33
+    Konten getroffen, von denen beweisbar nur drei Roboter sind. Vor dem Schreiben je Konto
+    gegengeprueft, dass es die Adresse wirklich gepostet hat.
+
 - **🔲 19.09. — BEFUND, wartet auf Jans OK: eine konstante Genauigkeitsangabe loescht eine
   ganze Session.** Gemeldet von Foilbert (u574) im Community-Chat: erste Session, wird als „kein
   Pumpfoil" eingestuft, kein Tempo, nur Farben auf der Karte, und „only 5hz although I set it to

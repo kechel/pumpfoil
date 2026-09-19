@@ -2,6 +2,7 @@
 scope = "session:<id>" | "spot:<name>". Polling-basiert (kein Realtime nötig)."""
 from __future__ import annotations
 
+import logging
 import re
 from datetime import datetime, timedelta, timezone
 
@@ -16,6 +17,8 @@ from ..naming import owner_label, owner_label_sql
 from ..push import send_push, wants
 from ..ratelimit import enforce_user_tiers
 from .deps import current_admin, current_user
+
+log = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 
@@ -208,6 +211,41 @@ def list_messages(
             for m, name, avatar, created in rows]
 
 
+# Die Store-Testlogins, die wir Google und Apple in ihren Konsolen hinterlegen. Sie stehen
+# NICHT im Chat und haben dort auch nichts zu suchen.
+_STORE_TESTLOGINS = ("google-tester@kechel.de", "apple-tester@kechel.de")
+
+
+def _ist_store_testroboter(db: Session, user: models.User, text: str) -> bool:
+    """Postet hier gerade ein Store-Pruefroboter seine allererste Nachricht?
+
+    HINTERGRUND (19.09.2026): Googles Pre-Launch-Report faehrt die App vor jeder Freigabe
+    automatisch ab, tippt gefundene Zeichenketten in jedes Textfeld und schickt sie los. Dabei
+    landete viermal unser eigenes Testlogin `google-tester@kechel.de` als oeffentliche Nachricht
+    in einem Spot-Chat — einmal sogar als Anzeigename des Kontos, weshalb es aussah, als haette
+    unser Testkonto gepostet. Tatsaechlich meldet sich der Roboter bei JEDEM Lauf mit einem
+    frischen Wegwerf-Konto an (34 seit dem 24.07., 5,8 % aller Konten, zusammen 0 Sessions).
+    „Das Testkonto ausblenden" kann deshalb prinzipiell nicht wirken — es gibt jedes Mal eine
+    neue Identitaet, und nur an DIESEM Text ist sie zu erkennen.
+
+    ZWEI SCHRANKEN, damit die Regel niemanden Echtes trifft (Jans Vorgabe: „vielleicht auch nur,
+    wenn noch nie eine andere Nachricht von dem gleichen Account kam … falls ich die doch mal
+    reinkopiere"):
+      1. Es muss die ALLERERSTE Nachricht dieses Kontos sein.
+      2. Admins sind ausgenommen.
+    Wer die Adresse spaeter einmal zitiert — im Support, aus Versehen, aus Spass — bleibt also
+    unberuehrt.
+    """
+    if user.is_admin:
+        return False
+    klein = text.lower()
+    if not any(adr in klein for adr in _STORE_TESTLOGINS):
+        return False
+    schon_da = (db.query(models.ChatMessage.id)
+                .filter(models.ChatMessage.user_id == user.id).first())
+    return schon_da is None
+
+
 @router.post("")
 def post_message(
     body: PostIn, scope: str = Query(...),
@@ -263,8 +301,16 @@ def post_message(
             status.HTTP_429_TOO_MANY_REQUESTS,
             "Bitte denselben Text nicht in mehrere Räume posten.",
         )
-    m = models.ChatMessage(scope=scope, user_id=user.id, text=text)
+    # Store-Pruefroboter: Nachricht gar nicht erst zeigen und das Wegwerf-Konto ausblenden
+    # (s. `_ist_store_testroboter`). Bewusst KEIN Fehler nach aussen — der Roboter soll seinen
+    # Durchlauf normal beenden, sonst meldet der Pre-Launch-Report einen Fehler in unserer App.
+    roboter = _ist_store_testroboter(db, user, text)
+    m = models.ChatMessage(scope=scope, user_id=user.id, text=text, hidden=roboter)
     db.add(m)
+    if roboter:
+        user.hidden = True
+        log.info("Store-Testroboter erkannt: u%s (%s) in %s — Konto ausgeblendet",
+                 user.id, user.email, scope)
     db.flush()
     # Eigene Nachricht gilt als gelesen; Raum nicht mehr „verlassen".
     st = _state(db, user.id, scope)
@@ -760,6 +806,16 @@ def bot_messages(
             for m, name, avatar in reversed(rows)]
 
 
+def _visible_author_fuer(user: models.User):
+    """Nachrichten ausgeblendeter Nutzer sind fuer alle unsichtbar — ausser fuer sie selbst.
+
+    Dieselbe Regel wie in `liste()`; hier als Funktion, weil sie am 19.09.2026 in zwei
+    Uebersichten gefehlt hat (`/active`, `/all-spots`). Ein `hidden`-Konto blieb dort im Zaehler
+    und mit seinem Text in der Vorschau sichtbar, obwohl der Chatraum selbst nichts mehr zeigte.
+    """
+    return or_(models.User.hidden.isnot(True), models.User.id == user.id)
+
+
 @router.get("/active")
 def active_rooms(
     hours: int = 48, limit: int = 3,
@@ -775,9 +831,15 @@ def active_rooms(
         .filter(models.ChatRoomState.user_id == user.id,
                 models.ChatRoomState.left.isnot(True)).all()
     }
+    # Ausgeblendete VERFASSER zaehlen hier genauso wenig wie ausgeblendete Nachrichten. Ohne den
+    # Join stand am 19.09.2026 der Text eines Play-Store-Testroboters als Vorschau eines
+    # Spot-Chats und wurde in den Zaehler eingerechnet — die Liste selbst (`liste()`, oben)
+    # filtert den Verfasser laengst, diese beiden Uebersichten nicht.
     rows = (
         db.query(models.ChatMessage.scope, func.count(models.ChatMessage.id).label("n"))
-        .filter(models.ChatMessage.hidden.isnot(True), models.ChatMessage.created_at >= since)
+        .join(models.User, models.User.id == models.ChatMessage.user_id)
+        .filter(models.ChatMessage.hidden.isnot(True), models.ChatMessage.created_at >= since,
+                _visible_author_fuer(user))
         .group_by(models.ChatMessage.scope)
         .order_by(func.count(models.ChatMessage.id).desc())
         .all()
@@ -790,7 +852,9 @@ def active_rooms(
             continue
         last = (
             db.query(models.ChatMessage)
-            .filter(models.ChatMessage.scope == scope, models.ChatMessage.hidden.isnot(True))
+            .join(models.User, models.User.id == models.ChatMessage.user_id)
+            .filter(models.ChatMessage.scope == scope, models.ChatMessage.hidden.isnot(True),
+                    _visible_author_fuer(user))
             .order_by(models.ChatMessage.id.desc()).first()
         )
         out.append({
@@ -814,7 +878,9 @@ def all_spot_chats(user: models.User = Depends(current_user), db: Session = Depe
         db.query(models.ChatMessage.scope,
                  func.count(models.ChatMessage.id).label("n"),
                  func.max(models.ChatMessage.created_at).label("last"))
-        .filter(models.ChatMessage.hidden.isnot(True), models.ChatMessage.scope.like("spot:%"))
+        .join(models.User, models.User.id == models.ChatMessage.user_id)
+        .filter(models.ChatMessage.hidden.isnot(True), models.ChatMessage.scope.like("spot:%"),
+                _visible_author_fuer(user))
         .group_by(models.ChatMessage.scope)
         .order_by(func.max(models.ChatMessage.created_at).desc())
         .all()
