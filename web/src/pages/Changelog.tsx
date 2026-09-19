@@ -63,9 +63,41 @@ function Details({ anzahl, children }: { anzahl: number; children: ReactNode }) 
 }
 
 
+/** Ein aktuell bekanntes Problem — die Warnbox ganz oben. */
+type Problem = { titel: string; text: string; note?: string };
+
+/** Warnbox ueber bekannte Probleme, die JETZT Nutzer treffen.
+ *
+ *  Warum ueber der Release-Tabelle und nicht darin: die Tabelle sagt, welche Fassung wo steht,
+ *  aber nicht, dass die live stehende kaputt ist. Ein Amazfit-Nutzer liest dort „Amazfit 1.0.8"
+ *  und haelt das fuer den Normalbetrieb, waehrend ihm Aufnahmen abbrechen (Jan, 18.09.2026).
+ *
+ *  Der Server liefert die Liste; ist sie leer, verschwindet der ganze Block. Die Wartezeile
+ *  („waiting for the Zepp store since 13 September — 6 days") wird dort ERZEUGT, damit die Zahl
+ *  von selbst weiterlaeuft, statt von Hand nachgepflegt zu werden und zu veralten.
+ */
+function BekannteProbleme({ probleme }: { probleme: Problem[] }) {
+  if (!probleme.length) return null;
+  return (
+    <section className="mb-6 rounded-xl border border-amber-600/40 bg-amber-500/10 p-4">
+      <h2 className="mb-2 text-sm font-bold text-amber-800 dark:text-amber-300">Known problems right now</h2>
+      <ul className="space-y-2">
+        {probleme.map((p, i) => (
+          <li key={i} className="text-sm text-amber-800 dark:text-amber-200">
+            <span className="font-semibold">{p.titel}:</span> {p.text}
+            {p.note && (
+              <div className="mt-0.5 text-amber-700 dark:text-amber-400">{p.note}</div>
+            )}
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 function ReleaseStatus() {
   const [daten, setDaten] = useState<{
-    live: Release[]; review: Release[]; rejected?: Release[]; next: Release[];
+    live: Release[]; review: Release[]; rejected?: Release[]; next: Release[]; probleme?: Problem[];
   } | null>(null);
   useEffect(() => { api.appReleases().then(setDaten).catch(() => setDaten(null)); }, []);
   if (!daten) return null;
@@ -92,6 +124,8 @@ function ReleaseStatus() {
   ].filter((g) => g.zeilen.length > 0);
 
   return (
+    <>
+    <BekannteProbleme probleme={daten.probleme ?? []} />
     <section className="mb-8 rounded-xl border border-slate-800 bg-slate-900/40 p-4">
       <h2 className="mb-1 text-sm font-bold text-slate-100">Release status</h2>
       <p className="mb-3 text-sm text-slate-400">
@@ -151,6 +185,7 @@ function ReleaseStatus() {
         ))}
       </div>
     </section>
+    </>
   );
 }
 
