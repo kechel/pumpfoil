@@ -429,6 +429,34 @@ PLATTFORM_NAMEN = {
 # Punkte noch nicht bei den Nutzern sind. KEINE `items` hier: der Inhalt haengt an der Fassung, die
 # ihn dann wirklich ausliefert, und steht deshalb unter NAECHSTES (sonst zweimal in der Tabelle).
 # `note` bleibt sachlich und ohne Schuldzuweisung — die Seite ist oeffentlich.
+# Bekannte Probleme, die JETZT Nutzer treffen — die Warnbox ganz oben auf /changelog.
+#
+# Jans Auftrag (18.09.2026): „wir sollten im changelog ganz oben noch eine kleine warnbox ueber
+# aktuelle bekannte probleme anzeigen, aktuell vor allem das amazfit nicht funktioniert und wir
+# sehnlichst auf die naechste freigabe seit datum der ersten einreichung nach dem zuletzt
+# akzeptierten release."
+#
+# WARUM ES DIE TABELLE DARUEBER NICHT SCHON LEISTET: sie sagt, welche Fassung wo steht — aber
+# nicht, dass die live stehende KAPUTT ist. Ein Amazfit-Nutzer liest dort „Amazfit 1.0.8" und
+# haelt das fuer den normalen Betrieb, waehrend ihm jede zweite Aufnahme abbricht.
+#
+# `seit` ist BEWUSST NICHT das Datum der laufenden Einreichung, sondern das der ERSTEN nach der
+# letzten Freigabe. Sonst wuerde die Wartezeit bei jeder Ablehnung auf null springen und genau
+# das verschweigen, was weh tut: fuer Amazfit steht dort der 13.09. (1.0.10), obwohl inzwischen
+# 1.0.11 im Review liegt — gewartet wird seit dem 13., nicht seit dem 18.
+#
+# Ein Eintrag verschwindet, sobald das Problem behoben AUSGELIEFERT ist — also beim Setzen von
+# `_APP_META[...]["latest"]`, nicht schon bei der Einreichung.
+BEKANNTE_PROBLEME: list[dict] = [
+    {"titel": "Amazfit watches",
+     "text": "Recordings can break: a button press can close the app and take the running "
+             "recording with it, and a long recording can fail to upload with an out-of-memory "
+             "error. Both are fixed, but the store still carries 1.0.8 from 12 September.",
+     "wartet_auf": "the Zepp store",
+     "seit": "2026-09-13"},
+]
+
+
 ABGELEHNT: list[dict] = [
     {"name": "Android phone + Wear OS", "version": "1.1.27 / 1.2.27",
      # Google, 10.09.2026, Wear App Quality Guidelines / „Wear font size": „Your app must conform
@@ -847,10 +875,22 @@ def releases() -> dict:
     live.insert(0, {"name": "Website", "version": "always up to date",
                     "store_url": "", "note": "new things appear here first, without a store"})
     abgelehnt = [r for r in ABGELEHNT if _noch_offen(r, live)]
+    # Bekannte Probleme mit ERZEUGTER Wartezeile — die Tage zaehlen von selbst weiter, damit
+    # niemand ein Datum von Hand nachpflegen muss (und es dadurch veraltet).
+    from datetime import date
+    probleme = []
+    for pr in BEKANNTE_PROBLEME:
+        e = {"titel": pr["titel"], "text": pr["text"]}
+        if pr.get("seit"):
+            tage = (date.today() - date.fromisoformat(pr["seit"])).days
+            e["note"] = (f"waiting for {pr.get('wartet_auf') or 'the store'} since "
+                         f"{_datum(pr['seit'])} \u2014 {tage} days")
+        probleme.append(e)
     return {"live": live,
             "review": _mit_note(IN_REVIEW, "review"),
             "rejected": _mit_note(abgelehnt, "rejected"),
-            "next": _mit_note(NAECHSTES, "next")}
+            "next": _mit_note(NAECHSTES, "next"),
+            "probleme": probleme}
 
 
 # --------------------------------------------------------------------------------------
