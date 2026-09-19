@@ -2072,10 +2072,14 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   (s. Memory `ios-swift-typecheck-hang`). Gefunden beim Uebersetzungs-Durchgang am 14.09.
 
 
-- **📥 13.09. — GitHub-Vorgaenge: vier offen, KEINER je beantwortet.** Gefunden mit dem neuen
-  Skill `posteingang` (`.claude/skills/posteingang/`). Das ist der Anlass dafuer, dass es ihn
-  gibt — zwei fertige Pull Requests von aussen lagen wochenlang ohne ein Wort, und Issue #4
-  beschrieb den Fehler, an dem wir spaeter einen ganzen Abend gesucht haben.
+- **📥 13.09. — GitHub-Vorgaenge: vier offen. ❗ KEIN OFFENER PUNKT — Jan, 19.09.2026:**
+  „merk dir endlich mal das wir auf github nicht antworten und das schoen ignorieren, die
+  requests haben wir alle eingearbeitet laengst." **Auf GitHub wird nicht geantwortet.** Das Repo
+  ist oeffentlich, aber kein Support-Kanal; der Inhalt fremder PRs wird geprueft und selbst
+  eingearbeitet, danach ist der Vorgang inhaltlich erledigt — unabhaengig davon, ob er dort noch
+  offen steht. **Diese Zeilen sind Dokumentation, keine Aufgabenliste**, und gehoeren in keine
+  Statusmeldung. Ich hatte sie am 19.09. dreimal als offen gemeldet; das war falsch.
+  Details unten stehen weiter, weil der INHALT der Vorgaenge dokumentiert gehoert.
   - **#2 (elmanu13, franzoesisches Label) — ERLEDIGT, selbst uebernommen.** `"Mes"` war als
     Tab-Beschriftung unvollstaendig; jetzt `"Les miennes"`, wie er vorschlug (vgl. es „Mías",
     pt „Minhas"). **Jan: PR schliessen mit Dank und dem Hinweis, dass es direkt uebernommen ist.**
