@@ -134,8 +134,23 @@ if (!["dev", "build", "pruefe"].includes(modus)) {
 if (modus === "pruefe") process.exit(paketPruefen() ? 0 : 1);
 
 if (modus === "dev") {
-  schalter(true);
+  // Der Wert wird fuer den Simulator gesetzt und beim Beenden WIEDER ZURUECKGESETZT — auch bei
+  // Strg-C. Damit bleibt der Arbeitsbaum sauber, und genau der Fall vom 18.09. kann sich nicht
+  // wiederholen: dort blieb `true` nach den Screenshots stehen und ging in den naechsten Build.
+  // Jans Grundregel dazu: Code wird NIE fuers Testen geaendert — was fotografiert wird, muss das
+  // sein, was ausgeliefert wird. Diese Zeile bleibt der einzige Verstoss, und er raeumt sich
+  // selbst wieder weg, statt auf ein menschliches Gedaechtnis zu setzen.
+  const vorher = schalter(true);
+  let zurueck = false;
+  const aufraeumen = () => {
+    if (zurueck) return;
+    zurueck = true;
+    schalter(vorher === "true");
+  };
+  for (const sig of ["SIGINT", "SIGTERM", "SIGHUP"]) process.on(sig, () => { aufraeumen(); process.exit(0); });
+  process.on("exit", aufraeumen);
   const r = spawnSync("zeus", ["dev"], { stdio: "inherit", cwd: WURZEL });
+  aufraeumen();
   process.exit(r.status ?? 1);
 }
 

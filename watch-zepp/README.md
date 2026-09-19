@@ -57,6 +57,9 @@ Ingest-Vertrag: `docs/ingest-contract.md` (Path A: start → chunks[gps json] �
 ## Bauen / Testen (auf Jans Rechner — hier nicht baubar)
 
 > **⚠️ NICHT `zeus dev` / `zeus build` direkt aufrufen.** Nimm `npm run dev` und `npm run build`.
+> **Du editierst nie eine Datei** — das Skript setzt `DEV_FAKE_GPS` für den Simulator und stellt
+> es beim Beenden (auch bei Strg-C) wieder zurück; `git status` ist danach sauber. Eine echte Uhr
+> ruft `npm run dev` nie auf, deshalb kann die Fake-Spur auf keinem Gerät je aktiv sein.
 > Die setzen `DEV_FAKE_GPS` selbst — im Simulator auf `true`, im Store-Paket auf `false` — und
 > prüfen das fertige Paket nach. **Warum:** am 18.09.2026 ging 1.0.11 mit `DEV_FAKE_GPS = true`
 > in den Zepp-Store und musste zurückgezogen werden. Der Bundler hatte den echten GPS-Pfad

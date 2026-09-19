@@ -81,6 +81,13 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
     haelt. Was in der Datei steht, ist damit egal.
   - **`zeus dev` / `zeus build` NICHT mehr direkt aufrufen** — steht als Warnkasten in
     `watch-zepp/README.md`.
+  - **GRUNDREGEL, von Jan festgehalten (19.09.):** „der fehler ist ja das du CODE AENDERST nur
+    fuers testen / screenshotten der release-candidates — und DAS DARF NIE SEIN." Was getestet
+    und fotografiert wird, MUSS das sein, was ausgeliefert wird. Der Schalter bleibt der einzige
+    Verstoss dagegen, und er ist jetzt so gebaut, dass er sich selbst wieder wegraeumt: `npm run
+    dev` setzt ihn und stellt ihn beim Beenden zurueck, auch bei Strg-C — danach ist
+    `git status` sauber. Jans Praezisierung, warum das trotzdem in Ordnung geht: „aber ICH MUSS
+    KEINE DATEI EDITIEREN" und „keine echte uhr ruft jemals npm run dev auf".
   - **✅ 19.09. 13:25 NEU GEBAUT UND WIEDER EINGEREICHT.** Zepp-Konsole: Application Time
     2026.09.19, „Under Review (Can be Withdrawn)". Nummer unveraendert 1.0.11 / code 14
     (zurueckgezogen ist nicht abgelehnt), Bilder und Texte in der Konsole unangetastet.
