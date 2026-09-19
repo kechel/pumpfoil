@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from .. import kontensync, models
 from ..config import get_settings
+from ..accounts import ist_store_roboter_adresse
 from ..db import get_db
 from ..media import delete_media
 from ..mailer import send_email
@@ -191,6 +192,8 @@ def register(
     user = models.User(
         email=body.email.lower(), password_hash=hash_password(body.password), display_name=name,
         language=_clean_lang(body.language),
+        # Automatische Store-Pruefkonten gar nicht erst sichtbar werden lassen.
+        hidden=ist_store_roboter_adresse(body.email) or None,
     )
     db.add(user)
     db.commit()

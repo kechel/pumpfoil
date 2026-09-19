@@ -36,6 +36,7 @@ from sqlalchemy.orm import Session
 
 from .. import models
 from ..config import get_settings
+from ..accounts import ist_store_roboter_adresse
 from ..db import get_db
 from ..schemas import TokenOut
 from ..security import create_access_token, hash_password
@@ -416,6 +417,9 @@ def _login_or_create(db: Session, provider: str, subject: str, email: str | None
                 password_hash=hash_password(secrets.token_urlsafe(24)),
                 display_name=display,
                 language=_clean_lang(language),
+                # Automatische Store-Pruefkonten gar nicht erst sichtbar werden lassen
+                # (s. accounts.ist_store_roboter_adresse).
+                hidden=ist_store_roboter_adresse(login_email) or None,
             )
             db.add(user)
             db.flush()
