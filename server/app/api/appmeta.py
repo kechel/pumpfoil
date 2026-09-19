@@ -53,7 +53,10 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.33",   # FREIGEGEBEN 2026-09-12, ZWEITE Apple-Mail („ready for
+        "latest": "1.1.34",   # FREIGEGEBEN 2026-09-19, ZWEITE Apple-Mail („The following app
+        # is ready for distribution · App Version Number: 1.1.34 · Platform: iOS"). Eingereicht
+        # 18.09. 13:32, also gut einen Tag Pruefung. Vorher 1.1.33, s. unten.
+        # ALT: "latest": "1.1.33",   # FREIGEGEBEN 2026-09-12, ZWEITE Apple-Mail („ready for
         # distribution", ueber Nacht; die erste „eligible for distribution" kam kurz davor).
         # GEGENGEPRUEFT an der Store-API in de/us/ch: alle drei melden 1.1.32 mit
         # currentVersionReleaseDate 2026-09-12T00:06:41Z — diesmal ohne Cache-Nachhang.
@@ -223,7 +226,10 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.33",   # FREIGEGEBEN 2026-09-12 — dieselbe Einreichung wie "ios" (ein Bundle,
+        "latest": "1.1.34",   # FREIGEGEBEN 2026-09-19 — dieselbe Einreichung wie "ios" (ein Bundle,
+        # eine MARKETING_VERSION). Fuer die WATCH-App bringt 1.1.34: Foil und Alarm-Schwellen sind
+        # entkoppelt — feste Grenzen im Profil liessen die Uhr „kein Foil" anzeigen.
+        # ALT: "latest": "1.1.33",   # FREIGEGEBEN 2026-09-12 — dieselbe Einreichung wie "ios" (ein Bundle,
         # eine MARKETING_VERSION), zweite Apple-Mail, an der Store-API gegengeprueft.
         # Fuer die WATCH-App bringt 1.1.32 den PULS-ALARM: die Uhr vibriert oberhalb eines selbst
         # gesetzten Pulses, mit eigenem Muster und einstellbarem Wiederholabstand.
@@ -614,55 +620,6 @@ IN_REVIEW: list[dict] = [
      ]},
 
 
-    {"name": "iPhone + Apple Watch", "version": "1.1.34",
-     "eingereicht": "2026-09-18",
-     # EINGEREICHT 18.09.2026 13:32 aus Commit 9f193f11 (Code-Stand 7b3f05e0), Build 38,
-     # Uebermittlungskennung 0aa1ae51-a3b4-44cb-b02e-6def74eea28e, „Warten auf Pruefung".
-     # AB HIER EINGEFROREN: alles Weitere gehoert in einen neuen NAECHSTES-Eintrag (1.1.35).
-     # 1.1.33 ist am 13.09.2026 ausgeliefert worden („The following app is ready for
-     # distribution", App Store Connect) — damit steht die naechste Nummer fest. Bis dahin stand
-     # hier bewusst „after 1.1.33" ohne Nummer, weil der Ausgang der Pruefung offen war.
-     #
-     # Entstanden aus einem Fehler von mir (13.09.2026): ich hatte diesen Punkt zuerst in den
-     # IN_REVIEW-Eintrag von 1.1.33 geschrieben — in eine Fassung also, die Jan schon hochgeladen
-     # hatte und die die Aenderung gar nicht enthaelt. Auf `/changelog` haette damit oeffentlich
-     # gestanden, Apple pruefe gerade etwas, das nicht im Paket ist. Merke: ein IN_REVIEW-Eintrag
-     # ist ab dem Upload EINGEFROREN; alles Spaetere gehoert nach NAECHSTES.
-     "items": [
-         "The language setting sits at the very top of your settings now. If the app is in a "
-         "language you cannot read, that is the one thing you need to find first.",
-         "A recording that can no longer be finished is now a single quiet line instead of a "
-         "large notice sitting on top of your screen. It still leads you to the recording, "
-         "where you decide: analyse it with what we have, or delete it.",
-         "Parawing is a sport you can pick for a session. Lowkite, parawing and parakite are "
-         "the same thing, so they share one entry.",
-         "German words that had slipped into the English interface are gone — among them the "
-         "run count under every session, which said \u201eL\u00e4ufe\u201c in every language, "
-         "the error messages and the text while a recording uploads. Reported by a rider.",
-         "The watch shows your foil again when your alarm limits are set by hand. Picking "
-         "fixed limits in your profile used to leave the watch saying \u201eno foil\u201c on the "
-         "start screen, although the ride was recorded with your default foil anyway \u2014 what "
-         "you ride and where the alarm limits come from are two separate things. Garmin was "
-         "fixed on 10 September; Wear OS, Apple Watch and Amazfit follow now.",
-         "\u201eOlder\u201c and \u201enewer\u201c inside a session now stay in the list you came "
-         "from \u2014 your own sessions, one spot across all riders, or everything \u2014 and keep "
-         "the filters you had set. Before, they always walked through your own sessions.",
-         "\u201eYour spot\u201c now works even if you never picked one in your profile: we take "
-         "the spot of your last session. The profile always offered \u201eautomatic (last "
-         "session)\u201c, but nothing behind it did that \u2014 so the weather card, the spot tab "
-         "and the spot comparison stayed empty for almost everyone. What you pick yourself still "
-         "wins, and nothing gets written into your profile behind your back.",
-         "The spot map keeps the part of the world you were looking at, and it opens where you "
-         "ride: your home spot, otherwise the spot of your last session. It used to fit every spot "
-         "in the world into the frame on every visit.",
-         "When you share a session you can put the map or the satellite image behind it instead of "
-         "a photo, and the brightness slider works for those too. Average speed, run count and "
-         "longest run are tiles you can pick now \u2014 they were never selectable on any device.",
-         "The spot map can be zoomed with two fingers again. It sat inside the scrolling list, "
-         "which swallowed the gesture \u2014 now it sits above the list, the way it does on Android.",
-         "The button that imports a FIT, TCX or GPX file is a small \u201eFIT\u201c button at the "
-         "right of the filter row instead of a wide bar of its own.",
-     ]},
     {"name": "Amazfit", "version": "1.0.11",
      "eingereicht": "2026-09-19",
      # ZWEITER Anlauf. Der erste (18.09.) wurde am 19.09. zurueckgezogen, weil
