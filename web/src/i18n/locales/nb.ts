@@ -1047,7 +1047,7 @@ const nb: Record<string, string> = {
   "alarm.maxSpeed": "Maks",
   "alarm.minSpeed": "Min",
   "alarm.pattern": "Mønster",
-  "alarm.mode": "Utløser",
+  "alarm.mode": "Utløsning for fart og puls",
   "alarm.modeOnce": "én gang ved kryssing",
   "alarm.modeContinuous": "kontinuerlig så lenge over/under",
   "alarm.zeroHint": "Tips: 0 km/h slår av den grensen.",

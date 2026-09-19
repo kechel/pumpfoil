@@ -1114,7 +1114,7 @@ const nl: Record<string, string> = {
   "alarm.maxSpeed": "Max",
   "alarm.minSpeed": "Min",
   "alarm.pattern": "Patroon",
-  "alarm.mode": "Activeren",
+  "alarm.mode": "Activering bij snelheid en hartslag",
   "alarm.modeOnce": "eenmalig bij over-/onderschrijden",
   "alarm.modeContinuous": "continu, zolang erboven/eronder",
   "alarm.zeroHint": "Tip: 0 km/h schakelt de betreffende grens uit.",

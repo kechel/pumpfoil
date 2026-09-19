@@ -1090,7 +1090,7 @@ const pl: Record<string, string> = {
   "alarm.maxSpeed": "Maks.",
   "alarm.minSpeed": "Min.",
   "alarm.pattern": "Wzór",
-  "alarm.mode": "Wyzwalanie",
+  "alarm.mode": "Wyzwalanie dla prędkości i tętna",
   "alarm.modeOnce": "raz przy przekroczeniu",
   "alarm.modeContinuous": "stale, dopóki powyżej/poniżej",
   "alarm.zeroHint": "Wskazówka: 0 km/h wyłącza dany próg.",

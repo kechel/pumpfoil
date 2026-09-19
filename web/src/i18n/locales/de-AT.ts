@@ -637,7 +637,7 @@ const deAT: Record<string, string> = {
   "alarm.maxSpeed": "Max",
   "alarm.minSpeed": "Min",
   "alarm.pattern": "Muster",
-  "alarm.mode": "Auslösen",
+  "alarm.mode": "Auslösen bei Tempo und Puls",
   "alarm.modeOnce": "einmalig beim Über-/Unterschreiten",
   "alarm.modeContinuous": "dauerhaft, solange drüber/drunter",
   "alarm.zeroHint": "Tipp: 0 km/h schaltet die jeweilige Grenze aus.",

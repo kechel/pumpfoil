@@ -1081,7 +1081,7 @@ const fi: Record<string, string> = {
   "alarm.maxSpeed": "Maks.",
   "alarm.minSpeed": "Min.",
   "alarm.pattern": "Kuvio",
-  "alarm.mode": "Laukaisu",
+  "alarm.mode": "Laukaisu nopeudelle ja sykkeelle",
   "alarm.modeOnce": "kerran ylitettäessä/alitettaessa",
   "alarm.modeContinuous": "jatkuvasti, niin kauan kuin yli/alle",
   "alarm.zeroHint": "Vinkki: 0 km/h kytkee kyseisen rajan pois.",

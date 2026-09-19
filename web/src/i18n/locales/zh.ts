@@ -1001,7 +1001,7 @@ const zh: Record<string, string> = {
   "alarm.maxSpeed": "最高",
   "alarm.minSpeed": "最低",
   "alarm.pattern": "模式",
-  "alarm.mode": "触发",
+  "alarm.mode": "速度与心率的触发方式",
   "alarm.modeOnce": "越过时提醒一次",
   "alarm.modeContinuous": "在高于/低于时持续提醒",
   "alarm.zeroHint": "提示：0 km/h 表示停用该阈值。",

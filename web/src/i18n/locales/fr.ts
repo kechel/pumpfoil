@@ -773,7 +773,7 @@ const fr: Record<string, string> = {
   "alarm.maxSpeed": "Max",
   "alarm.minSpeed": "Min",
   "alarm.pattern": "Motif",
-  "alarm.mode": "Déclenchement",
+  "alarm.mode": "Déclenchement pour vitesse et cardio",
   "alarm.modeOnce": "une fois au franchissement",
   "alarm.modeContinuous": "en continu tant que dépassé",
   "alarm.zeroHint": "Astuce : 0 km/h désactive ce seuil.",

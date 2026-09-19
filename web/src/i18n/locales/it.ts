@@ -771,7 +771,7 @@ const it: Record<string, string> = {
   "alarm.maxSpeed": "Max",
   "alarm.minSpeed": "Min",
   "alarm.pattern": "Schema",
-  "alarm.mode": "Attivazione",
+  "alarm.mode": "Attivazione per velocità e battito",
   "alarm.modeOnce": "una volta al superamento",
   "alarm.modeContinuous": "in continuo finché sopra/sotto",
   "alarm.zeroHint": "Suggerimento: 0 km/h disattiva quella soglia.",

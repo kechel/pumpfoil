@@ -687,7 +687,7 @@ const gsw: Record<string, string> = {
   "alarm.maxSpeed": "Max",
   "alarm.minSpeed": "Min",
   "alarm.pattern": "Muster",
-  "alarm.mode": "Uslöse",
+  "alarm.mode": "Uslöse bi Tempo und Puls",
   "alarm.modeOnce": "eimal bim Über-/Underschriite",
   "alarm.modeContinuous": "dauerhaft, solang drüber/drunter",
   "alarm.zeroHint": "Tipp: 0 km/h schaltet die Gränze us.",

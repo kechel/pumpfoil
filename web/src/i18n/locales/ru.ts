@@ -1001,7 +1001,7 @@ const ru: Record<string, string> = {
   "alarm.maxSpeed": "Макс",
   "alarm.minSpeed": "Мин",
   "alarm.pattern": "Паттерн",
-  "alarm.mode": "Срабатывание",
+  "alarm.mode": "Срабатывание для скорости и пульса",
   "alarm.modeOnce": "один раз при пересечении",
   "alarm.modeContinuous": "постоянно, пока выше/ниже",
   "alarm.zeroHint": "Совет: 0 км/ч отключает этот порог.",

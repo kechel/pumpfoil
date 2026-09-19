@@ -1132,7 +1132,7 @@ const en: Record<string, string> = {
   "alarm.maxSpeed": "Max",
   "alarm.minSpeed": "Min",
   "alarm.pattern": "Pattern",
-  "alarm.mode": "Trigger",
+  "alarm.mode": "Trigger for speed and heart rate",
   "alarm.modeOnce": "once when crossing",
   "alarm.modeContinuous": "continuously while above/below",
   "alarm.zeroHint": "Tip: 0 km/h disables that threshold.",
