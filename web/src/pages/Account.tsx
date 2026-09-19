@@ -1028,6 +1028,7 @@ function AlarmEditor() {
               <span className="text-slate-400">{t("alarm.pattern")}</span>{patSelect("alarm_pattern_dist")}
             </label>
           </div>
+          <p className="mt-2 text-sm font-semibold text-amber-700 dark:text-amber-300">{t("alarm.markSoon")}</p>
         </div>
         <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3">
           <div className="mb-2 text-sm font-medium text-slate-200">{t("alarm.timeTitle")}</div>
@@ -1048,6 +1049,7 @@ function AlarmEditor() {
             </label>
           </div>
           <p className="mt-2 text-sm text-slate-400">{t("alarm.markHint")}</p>
+          <p className="mt-2 text-sm font-semibold text-amber-700 dark:text-amber-300">{t("alarm.markSoon")}</p>
         </div>
         <p className="text-xs text-slate-400">{t("alarm.zeroHint")}</p>
       </div>
