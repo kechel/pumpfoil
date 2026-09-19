@@ -104,6 +104,18 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
     die Genauigkeit aus den ROHDATEN (`scripts/uhren-qualitaet.py`), nicht aus den Fenstern.
   - **Foilbert ist geantwortet** (1:1, `dm:230-574`): was los war, seine echten Zahlen, und die
     Bitte um eine Aufnahme ohne Waterspeed wegen der 4,91 Hz.
+  - **Nachgesehen, ob noch etwas neu zu rechnen ist (Jans Frage) — NEIN, nichts.** Drei Suchen
+    ueber den ganzen Bestand:
+    1. **Dieselbe Falle bei anderen Spalten:** die Tempospalte ist in 2 Sessions konstant (u38,
+       beide 0) — dort steht die Uhr aber auch wirklich still, Positionsstrecke 0 m ueber 292
+       bzw. 209 Punkte. Kein Opfer, nichts zu tun.
+    2. **0 Laeufe trotz Bewegung:** 598 Sessions aus unseren eigenen Apps haben 0 Laeufe. Filtert
+       man auf „mindestens 60 s im Pumpfoil-Band 9-28 km/h und kaum Schnellfahrt", bleiben 37 —
+       **alle mit `detection = model`**, dort hat also der Beschleunigungs-Detektor hingesehen
+       und Nein gesagt. Das ist eine Frage der Detektor-Guete, kein Neurechnen-Fall. (Die ersten
+       3242 Treffer eines groberen Filters waren importierte Radtouren, 50-70 km ueber Stunden.)
+    3. **Veralteter Analyse-Stand:** gibt es nicht. Alle 7047 Sessions stehen auf
+       `algo_version = v2-windows-1`, und keine einzige `model`-Session ohne `accel_axis`.
   - **🔲 OFFEN, bewusst nachgeordnet (Jan: „wenn die Anzeige auf der Uhr falsch ist, dauert das
     einen kompletten Release-Zyklus — das muss man doch nicht vorziehen"):** die Wear-App hat
     dasselbe Gate fuer die LIVE-Anzeige (`Recorder.kt:643`, `poor = accuracyM > 20.0`). Bei
