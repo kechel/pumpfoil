@@ -49,6 +49,42 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
     liegt bisher bei vier Nutzern ueberhaupt (u185, u375, u393, u589) — Connect IQ aktualisiert
     nicht von selbst, die Verbreitung braucht Wochen.
 
+- **🔴 19.09. — DSGVO-LOESCHUNG WAR KAPUTT. Ein Nutzer hat sie am 18.09. angefordert und blieb
+  stehen.** Gefunden beim Durchsehen neuer Sessions: u588 hatte 142 Sessions mit NULL GPS-Punkten.
+  - **Die Kette, aus dem Protokoll belegt.** 18.09., 07:57 angemeldet, Suunto verknuepft, Historie
+    synchronisiert. Dann 10:07:27 `DELETE /api/integrations/suunto` (200 OK — er trennt die
+    Verknuepfung), 10:07:47 `DELETE /api/auth/me` -> **500**,
+    `ForeignKeyViolation … "chat_room_state_user_id_fkey"`. Er hatte 44 Chatraum-Zustaende, allein
+    vom Durchblaettern der Spot-Chats.
+  - **ZWEI FEHLER, beide schwer.**
+    1. `delete_me` raeumte **8 Tabellen** ab, waehrend **44 Fremdschluessel** auf `users` zeigen.
+       Die Loeschung scheiterte also an praktisch jedem Konto mit Chat-Verlauf, Rueckmeldung,
+       Push-Abo oder Plattform-Verknuepfung. Der Admin-Weg (`delete_user`) kannte sogar nur vier.
+    2. `_purge_session` loescht die Rohdaten-Verzeichnisse **mitten in der Transaktion**. Beim
+       Rollback kamen die Zeilen zurueck, die Dateien nicht — seine 142 GPS-Spuren waren weg, das
+       Konto blieb. Ein halb geloeschter Mensch, der sich fuer geloescht hielt.
+  - **BEHOBEN, neues Modul `app/loeschung.py`** mit zwei Regeln im Kopf: erst die Datenbank, dann
+    die Dateien — und die Aufraeumliste wird **aus den Modell-Metadaten abgeleitet**, nicht von
+    Hand gefuehrt. Eine kuenftige Tabelle mit Fremdschluessel auf `users` faellt damit nicht mehr
+    durchs Raster: NOT NULL -> Zeile loeschen, nullable -> auf NULL setzen (Rekord-Historien
+    bleiben erhalten, nur ohne Personenbezug). Beide Endpunkte benutzen jetzt denselben Weg.
+  - **Drei Tests** (`tests/test_konto_loeschen.py`): Konto MIT Chat-Verlauf verschwindet restlos ·
+    Dateien fallen nicht, wenn der Commit platzt · die Verweisliste wird wirklich abgeleitet
+    (>= 40 Verweise, Stichproben auf `chat_room_state`, `feedback`, `suunto_links`,
+    `push_subscriptions`, `social_channels`).
+  - **Das Konto ist am 19.09. endgueltig geloescht.** Bilanz: 44 Chatraum-Zustaende, 18
+    Import-Sporteinstellungen, Geraete-Token, OAuth-Identitaet, Sync-Stand, Sichtungseintrag, 162
+    Sessions samt Analysen. Gegengeprueft: kein Verweis mehr ueber irgendeinen der 44
+    Fremdschluessel, die Adresse nirgends mehr in der Datenbank. **Null Dateien** dabei geloescht —
+    die waren schon am 18.09. gefallen, was die Ursachenkette bestaetigt.
+  - **Jan hat ihm eine Bestaetigungsmail geschickt** (Vorlage in der Memory
+    `loeschbestaetigung-mail`), mit Dank fuers Auffinden des Fehlers und dem Zusatz, dass keine
+    weitere Mail folgt.
+  - **🔲 OFFEN:** die Suche im Journal reicht nur bis 10.09. zurueck — ob VORHER schon jemand
+    vergeblich geloescht hat, laesst sich daran nicht mehr sehen. Kandidaten waeren Konten mit
+    Sessions ohne Rohdaten; ausser den 142 dieses Nutzers gibt es genau zwei solche Sessions im
+    ganzen Bestand (je eine bei `fit` und ohne Praefix), also vermutlich keine weiteren Faelle.
+
 - **✅ 19.09. — Store-Pruefroboter im Spot-Chat: Gate gebaut, zwei Sichtbarkeits-Luecken zu.**
   Jan sah im Chat von Vaires-sur-Marne eine Nachricht von „google-tester@kechel.de" und fragte,
   warum ein ausgeblendetes Konto sichtbar ist.

@@ -588,16 +588,12 @@ def delete_user(user_id: int, admin: models.User = Depends(current_admin), db: S
     u = _get_user(db, user_id)
     if u.id == admin.id:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Sich selbst löschen? Nein.")
-    for s in db.query(models.Session).filter_by(user_id=user_id).all():
-        _purge_session(db, s)
-    # vom Nutzer auf FREMDE Sessions gesetzte Likes/Votes
-    db.query(models.SessionLike).filter_by(user_id=user_id).delete()
-    db.query(models.SessionVote).filter_by(user_id=user_id).delete()
-    db.query(models.DeviceToken).filter_by(user_id=user_id).delete()
-    db.query(models.PairingCode).filter_by(user_id=user_id).delete()
-    delete_media(u.avatar_url)
+    # Derselbe Weg wie bei der Selbstloeschung (s. app/loeschung.py) — vorher standen hier vier
+    # Tabellen von 44, die Loeschung scheiterte also an fast jedem Konto mit Chat-Verlauf.
+    # Protokolleintrag VOR dem Commit, sonst faellt er mit dem Nutzer.
     _log(db, admin, "user_delete", "user", user_id, detail=u.email)
-    db.delete(u)
+    from .. import loeschung
+    loeschung.konto_loeschen(db, u)
     db.commit()
     return {"ok": True}
 
