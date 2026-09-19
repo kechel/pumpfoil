@@ -72,8 +72,12 @@ DEFAULTS = {
     # u447 am 19.09.2026, Erweiterung von Jan). Anders als Speed und Puls sind das keine
     # Grenzwerte, die man ueber- oder unterschreitet, sondern MARKEN, die man erreicht — deshalb
     # je ein eigener Modus:
-    #   "once"  = einmal je Lauf, wenn die Marke faellt (der Ansporn, 100 m zu knacken)
-    #   "every" = bei jedem Vielfachen (alle 100 m, alle 30 s …) — die Rueckmeldung im Takt
+    #   "once"  = NUR BEI dieser Marke, einmal je Lauf (der Ansporn, 100 m zu knacken)
+    #   "every" = ALLE 100 m / alle 30 s, also bei jedem Vielfachen
+    # Die Oberflaeche sagt „nur bei 100 m" bzw. „alle 100 m" — bewusst nicht „einmalig/
+    # wiederholt": das las sich wie die Zahl der Vibrationen statt wie die Marke. Jan,
+    # 19.09.2026: „fortlaufend will das niemand der 100m schon geschafft hat und dann 3km
+    # weiter foilt."
     # Beide zaehlen JE LAUF und beginnen bei jedem neuen Lauf von vorn; ausserhalb eines Laufs
     # passiert nichts. 0 = aus. Alle fuenf Alarme laufen unabhaengig nebeneinander.
     "run_dist_m": 0, "run_dist_mode": "once", "alarm_pattern_dist": "short1",

@@ -989,19 +989,23 @@ function AlarmEditor() {
             Beide zaehlen je Lauf und fangen bei jedem neuen Lauf von vorn an. */}
         <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3">
           <div className="mb-2 text-sm font-medium text-slate-200">{t("alarm.distTitle")}</div>
+          {/* Auswahl VOR der Zahl: zusammen ergeben sie einen Satz — „nur bei 100 m" oder
+              „alle 100 m". Zuerst stand hier eine Beschriftung „Marke bei" und die Auswahl
+              dahinter mit „einmal/wiederholt"; das las sich wie die Zahl der Vibrationen statt
+              wie die Marke. Jan, 19.09.2026: „fortlaufend will das niemand der 100m schon
+              geschafft hat und dann 3km weiter foilt". */}
           <div className="flex flex-wrap items-center gap-3 text-sm">
             <label className="flex items-center gap-2">
-              <span className="text-slate-400">{t("alarm.runDist")}</span>
+              <select value={s.run_dist_mode ?? "once"} onChange={(e) => set("run_dist_mode", e.target.value)}
+                className="rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-slate-100">
+                <option value="once">{t("alarm.markOnce")}</option>
+                <option value="every">{t("alarm.markEvery")}</option>
+              </select>
               <input type="number" min={0} max={5000} step={10} value={s.run_dist_m ?? 0}
                 onChange={(e) => set("run_dist_m", e.target.value)}
                 className="w-24 rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-slate-100" />
               <span className="text-slate-400">m</span>
             </label>
-            <select value={s.run_dist_mode ?? "once"} onChange={(e) => set("run_dist_mode", e.target.value)}
-              className="rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-slate-100">
-              <option value="once">{t("alarm.markOnce")}</option>
-              <option value="every">{t("alarm.markEvery")}</option>
-            </select>
             <label className="flex items-center gap-2">
               <span className="text-slate-400">{t("alarm.pattern")}</span>{patSelect("alarm_pattern_dist")}
             </label>
@@ -1011,17 +1015,16 @@ function AlarmEditor() {
           <div className="mb-2 text-sm font-medium text-slate-200">{t("alarm.timeTitle")}</div>
           <div className="flex flex-wrap items-center gap-3 text-sm">
             <label className="flex items-center gap-2">
-              <span className="text-slate-400">{t("alarm.runTime")}</span>
+              <select value={s.run_time_mode ?? "once"} onChange={(e) => set("run_time_mode", e.target.value)}
+                className="rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-slate-100">
+                <option value="once">{t("alarm.markOnce")}</option>
+                <option value="every">{t("alarm.markEvery")}</option>
+              </select>
               <input type="number" min={0} max={3600} step={5} value={s.run_time_s ?? 0}
                 onChange={(e) => set("run_time_s", e.target.value)}
                 className="w-24 rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-slate-100" />
               <span className="text-slate-400">s</span>
             </label>
-            <select value={s.run_time_mode ?? "once"} onChange={(e) => set("run_time_mode", e.target.value)}
-              className="rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-slate-100">
-              <option value="once">{t("alarm.markOnce")}</option>
-              <option value="every">{t("alarm.markEvery")}</option>
-            </select>
             <label className="flex items-center gap-2">
               <span className="text-slate-400">{t("alarm.pattern")}</span>{patSelect("alarm_pattern_time")}
             </label>
