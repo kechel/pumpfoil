@@ -1374,6 +1374,21 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔁 WIEDERKEHREND: Uhren-Statistik alle paar Wochen neu erzeugen** (Jan, 19.09.2026).
+  Die Seite `/watch-stats` sagt selbst „Re-run every few weeks" und nennt das Datum des
+  Schnappschusses — steht dort ein altes, ist die Aussage schwaecher, als sie sein muesste.
+
+  ```
+  cd server && DATABASE_URL="$(sed -n 's/^DATABASE_URL=//p' .env)" .venv/bin/python ../scripts/uhren-qualitaet.py --json ../analyse/uhren/uhren-qualitaet.json
+  ```
+
+  Rein lesend, dauert ein paar Minuten (liest je Session die Rohpunkte), schreibt nur die
+  JSON-Datei. Kein Server-Neustart noetig — der Endpunkt liest die Datei je Anfrage.
+  - **Lauf vom 19.09.2026:** Stand 2026-09-05 -> 2026-09-19. **1034 -> 1556 Aufnahmen**,
+    **1090 -> 1644 Stunden**, **118 -> 173 Nutzer**, **26 -> 40 Modelle**. In zwei Wochen also
+    gut die Haelfte mehr Messgrundlage und 14 Modelle mehr.
+
+
 - **📥 19.09. — Philippe (u447, Galaxy Watch Ultra): Live-Laufzeit, On-Foil-Alarme, und die App
   geht ins Watchface.** Rueckmeldung ueber `/foiler/447`, von Jan im 1:1 beantwortet.
   Drei Punkte, der dritte ist ein BEFUND, kein Wunsch:
