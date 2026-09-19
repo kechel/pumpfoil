@@ -9,6 +9,28 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 🚀 App-Release-Stand
 
+- **🔲 19.09. — Wirkt der Low-Mem-Fix (Garmin 1.0.87)? NOCH KEINE DATEN.** Nachgesehen, weil
+  1.0.87 seit dem 17.09. live ist und verspricht: „Garmin watches with little memory, such as the
+  Instinct 2 or the fēnix 5, no longer quit in the middle of a recording."
+  - **Die letzte Aufnahme von einer Instinct 2 ist vom 10.09.** — eine Woche VOR der Freigabe.
+    Seither hat keiner der sechs Instinct-2-Nutzer (u125, u184, u264, u369, u460, u496) etwas
+    hochgeladen, und auch keine fēnix 5 (letzte Aktivitaet 17.08.). Die Frage ist also nicht
+    beantwortbar, nicht negativ beantwortet.
+  - **Der Zustand VORHER ist dafuer eindeutig** (43 Garmin-Aufnahmen dieser Nutzer, Laenge ueber
+    die GPS-Punkte gemessen): **36 unter zwei Minuten**, nur 3 ueber zehn, laengste 52 min. Bei
+    u496 sind alle elf Aufnahmen vom 09./10.09. kuerzer als eine Minute, sechs davon haben
+    **null** Punkte; u460 hat am 07.09. sechs Aufnahmen mit null Punkten. Das ist genau das Bild,
+    das der Fix beheben soll.
+  - **Methodik fuer die Wiedervorlage:** `sessions.device_model` ist bei Garmin LEER — das Modell
+    steht nur in `device_tokens.label`/`part_number`. Zuordnung Session->Uhr geht ueber
+    `user_id` plus `app_version` (Garmin = 1.0.x, Wear = 1.2.x, iOS/Android = 1.1.x); mehrere
+    dieser Nutzer haben zusaetzlich eine Wear-Uhr, ohne diesen Filter mischt man die Plattformen.
+    Die Aufnahmelaenge steht in KEINER Spalte (`ended_at` ist meist NULL, `duration_s` gibt es
+    nicht) — brauchbar ist `len(storage.load_gps(uuid))`, ein Punkt je Sekunde.
+  - **Erst wieder ansehen, wenn einer dieser sechs Nutzer mit 1.0.87 hochgeladen hat.** 1.0.87
+    liegt bisher bei vier Nutzern ueberhaupt (u185, u375, u393, u589) — Connect IQ aktualisiert
+    nicht von selbst, die Verbreitung braucht Wochen.
+
 - **🟡 18.09. — Amazfit/Zepp 1.0.11 (code 14) EINGEREICHT, aus Commit `612ca209`.**
   Zepp-Konsole: appId 1118995, Application Time 2026.09.18, „Under Review (Can be Withdrawn)";
   darunter 1.0.8 vom 12.09. als „Approved". appmeta-Eintrag von NAECHSTES nach IN_REVIEW,
