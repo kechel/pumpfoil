@@ -380,7 +380,30 @@ def analyze_gps(samples: list, gps_hz: int = 1, mask_override=None, impulse_time
     # (z. B. beim Zurückschwimmen meldet die Uhr Tempo, obwohl man kaum vom Fleck kommt).
     pos_speed_s = _running_median(speed_from_pos, win)
 
-    quality_ok = np.isnan(hacc) | (hacc <= MAX_HACC)
+    # Genauigkeits-Gate — aber nur, wenn die Angabe ueberhaupt eine Messung ist.
+    #
+    # Meldet ein Geraet ueber die GANZE Aufnahme denselben Wert, ist das kein Messwert, sondern
+    # ein Platzhalter. Nachgewiesen am 19.09.2026 an Session #9023 (Wear OS 1.2.29): 6926-mal
+    # exakt 125,0 m, zwei Stunden lang, ohne jede Streuung — waehrend andere Wear-Uhren 3 bis
+    # 25 m mit normaler Schwankung liefern. Das Gate verwarf damit 100 % der Punkte, es blieben
+    # 0 Laeufe, und weil `max_speed_mps` aus den erkannten Laeufen gebildet wird, stand ueberall
+    # 0,0 km/h — waehrend die Karte weiter aus den Rohpunkten einfaerbte. Genau so gemeldet
+    # („no speed results, only different colors on the map").
+    # Dieselben Punkte ohne das Gate: 20 Laeufe, 18,1 km/h, 1308 m Foil-Strecke.
+    #
+    # WARUM DAS NICHT BREIT WIRKT: ein konstanter Wert UNTER der Schwelle aendert nichts (er
+    # passiert das Gate ohnehin) — und genau das sind die Garmins, die fest 4 melden. Gemessen an
+    # den 800 juengsten Sessions: 451 variabel, 101 ohne Angabe, 56 konstant <= 15 m (alle
+    # unveraendert), 3 konstant > 15 m. Nur diese drei aendern sich.
+    #
+    # Bewusst NICHT „Ausreisser ignorieren": eine Uhr, die zwischendurch ehrlich 80 m meldet,
+    # soll weiterhin ausgesiebt werden. Nur die voellig unbewegte Spalte ist informationslos.
+    hacc_echt = hacc[~np.isnan(hacc)]
+    hacc_konstant = hacc_echt.size > 0 and float(np.ptp(hacc_echt)) == 0.0
+    if hacc_konstant:
+        quality_ok = np.ones(len(samples), dtype=bool)
+    else:
+        quality_ok = np.isnan(hacc) | (hacc <= MAX_HACC)
 
     # Foiling-Maske: entweder vom ML-Modell (Override) oder aus der GPS-Heuristik.
     if mask_override is not None:
