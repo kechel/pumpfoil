@@ -55,15 +55,22 @@ Device".
 Ingest-Vertrag: `docs/ingest-contract.md` (Path A: start → chunks[gps json] → complete).
 
 ## Bauen / Testen (auf Jans Rechner — hier nicht baubar)
+
+> **⚠️ NICHT `zeus dev` / `zeus build` direkt aufrufen.** Nimm `npm run dev` und `npm run build`.
+> Die setzen `DEV_FAKE_GPS` selbst — im Simulator auf `true`, im Store-Paket auf `false` — und
+> prüfen das fertige Paket nach. **Warum:** am 18.09.2026 ging 1.0.11 mit `DEV_FAKE_GPS = true`
+> in den Zepp-Store und musste zurückgezogen werden. Der Bundler hatte den echten GPS-Pfad
+> komplett wegoptimiert (im `.zab` nachgemessen: `_flat`/`_flon` drin, `getLatitude` **nicht**);
+> jede Aufnahme wäre eine erfundene Spur am Bodensee geworden. Der Ablauf **verlangt** den
+> Schalter für die Store-Screenshots und man baut unmittelbar danach — das muss sich niemand
+> merken müssen.
+
 ```bash
 cd watch-zepp
 rm -rf dist .zeus build   # ZUERST: der Zeus-Cache mischt sonst alten und neuen Code
-zeus dev            # Simulator (Balance 2), Live-Reload
-# Der Simulator speist KEIN GPS ein. page/index.js hat dafür DEV_FAKE_GPS (steht auf FALSE):
-# zum Testen von Aufnahme+Upload im Simulator kurz auf true setzen — und vor Uhr/Release
-# wieder auf false. (Stand hier früher falsch als "=true" beschrieben.)
+npm run dev         # Simulator + Live-Reload, DEV_FAKE_GPS wird auf true gesetzt
 zeus preview        # QR für echte Uhr (Zepp-App)
-zeus build          # Store-Paket für die Zepp-Konsole
+npm run build       # Store-Paket: DEV_FAKE_GPS=false, Versionsabgleich, Nachprüfung des .zab
 # WICHTIG (Simulator): nach jedem Code-Change/`git pull` den Simulator KOMPLETT neu starten
 # (zeus dev beenden + Fenster schließen + neu). Hot-Reload spawnt den App-Side-Worker NICHT neu
 # -> sonst 'shake timeout' bei allen Requests. Worker lebt, sobald im JS-Log `[pumpfoil] app-side
