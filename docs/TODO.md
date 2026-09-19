@@ -1374,6 +1374,43 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **📥 19.09. — Philippe (u447, Galaxy Watch Ultra): Live-Laufzeit, On-Foil-Alarme, und die App
+  geht ins Watchface.** Rueckmeldung ueber `/foiler/447`, von Jan im 1:1 beantwortet.
+  Drei Punkte, der dritte ist ein BEFUND, kein Wunsch:
+
+  **1. Laufzeit live, und die Endzeit sofort beim Sturz.** „it would be awesome to see the run
+  time live, and to instantly get the final time as soon as you fall." Die Uhr erkennt Laeufe
+  bereits selbst (`Recorder.kt`), die Zeit ist also da — sie wird nur nicht angezeigt.
+
+  **2. On-Foil-Alarme nach Strecke und Zeit (Jans Erweiterung, 19.09.).** Nicht nur ein einzelner
+  Schwellwert, sondern beides in zwei Formen:
+  - **einmalig**, z. B. „bei 100 m" oder „bei 30 s" — der Ansporn, eine Marke zu knacken
+  - **wiederkehrend**, z. B. „alle 100 m", „alle 30 Sekunden", „jede Minute"
+  Strecke und Zeit unabhaengig einstellbar. Passt zu den vorhandenen Alarmen (Puls, Tempo) und
+  koennte dieselben Vibrationsmuster nutzen, die mit Amazfit 1.0.11 dazugekommen sind.
+
+  **3. „the app always goes into the background, so I only see the watch face" — die Ursache ist
+  unsere eigene.** In `MainActivity.onEnterAmbient` steht:
+  ```kotlin
+  if (!Recorder.state.value.recording) {
+      moveTaskToBack(true)        // im Leerlauf hat das Watchface Vorrang
+      return
+  }
+  ```
+  Ambient greift nach dem Bildschirm-Timeout. **Waehrend der Aufnahme** bleibt die App also
+  stehen (gewollt, seit 04.09.), **davor** schieben wir sie aktiv weg. Genau dieser Moment ist
+  aber der kritische: man steht auf dem Board, will starten — und bekommt das Zifferblatt.
+  Jan dazu: „waehrend des foilens kann man schlecht die uhr bedienen, darum sollte wenn man die
+  aktivitaet startet das immer on screen bleiben, das ist auch normal beim joggen und so."
+  - **Belegt, dass es NICHT die Aufzeichnung betrifft:** seine zehn Aufnahmen laufen sauber durch
+    — 139,4 min / 91,3 min / 83,2 min, alle mit Endzeit, 9 bis 25 Laeufe. Der Vordergrund-Dienst
+    haelt. Es ist ausschliesslich die ANZEIGE vor dem Start.
+  - **Zu entscheiden:** im Leerlauf gar nicht mehr zurueckweichen? Oder erst nach ein paar
+    Minuten? Der Rueckzug kam aus dem Wunsch, die App nicht dauerhaft gedimmt stehen zu lassen —
+    das ist auf dem Wasser aber genau das Gewuenschte.
+
+
+
 - **🔴 YOUTUBE-RSS ANTWORTET NICHT MEHR — der Social-Feed haengt daran KOMPLETT.** Gemessen am
   18.09.2026, 07:36, Anlass war Jans Frage zu James' Kanal-Freigabe.
 
