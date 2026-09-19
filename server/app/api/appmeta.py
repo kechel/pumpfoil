@@ -714,7 +714,7 @@ NAECHSTES: list[dict] = [
      # 18.09. bei Google, und eine abgelehnte Nummer nimmt Play nicht wieder an — gebumpt wird
      # erst, wenn der Ausgang feststeht. 1.1.31 stimmt aber in beiden Faellen.
      "items": [
-         "On Wear OS the app now stays on screen until you close it \u2014 it used to fall back to the watch face on its own, worst of all mid-run.",
+         "On Wear OS the app now stays on screen until you close it.",
      ]},
 
 
