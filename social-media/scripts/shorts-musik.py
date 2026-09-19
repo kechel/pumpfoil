@@ -365,6 +365,45 @@ def ffprobe(path, *args):
     return out.stdout.strip()
 
 
+def drehung_entfernen(out: Path) -> str:
+    """Rotations-Flag aus dem fertigen Video nehmen, falls eines mitgekommen ist.
+
+    Handy-Aufnahmen liegen quer auf der Platte (1920x1080) und tragen im Kopf
+    ein `rotation=-90`; ffmpeg richtet sie beim Dekodieren selbst auf, unser
+    Ergebnis hat also schon 1080x1920. Sobald aber `tpad` in der Filterkette
+    steht — und das tut es bei jedem angehaengten Schluss —, landet die Drehung
+    ZUSAETZLICH im Kopf der Ausgabe. Ein Player, der sie beachtet (VLC), dreht
+    das aufgerichtete Bild ein zweites Mal: das Video liegt quer (Jan, 19.09.,
+    an Video 185 gesehen; im Studio sah es richtig aus, weil die Vorschau die
+    QUELLE zeigt und die stimmt).
+
+    Nachgemessen hilft weder `-metadata:s:v:0 rotate=0` noch ein Filter davor.
+    Was hilft: ein Kopier-Pass, dem die Eingangsdrehung mit `-display_rotation`
+    auf 0 gesetzt wird. Ohne Neukodierung — die Bilder bleiben Bit fuer Bit
+    dieselben, es wird nur der Container neu geschrieben.
+    """
+    try:
+        rot = ffprobe(out, "-select_streams", "v:0",
+                      "-show_entries", "stream_side_data=rotation",
+                      "-of", "csv=p=0:nk=1")
+    except (subprocess.CalledProcessError, OSError):
+        return ""
+    if not rot.strip() or rot.strip() in ("0", "0.000000"):
+        return ""
+    tmp = out.with_name(out.stem + ".ohne-drehung.mp4")
+    try:
+        subprocess.run(["ffmpeg", "-y", "-v", "error",
+                        "-display_rotation:v:0", "0", "-i", str(out),
+                        "-map", "0", "-c", "copy",
+                        "-movflags", "+faststart", str(tmp)], check=True)
+        tmp.replace(out)
+    except (subprocess.CalledProcessError, OSError) as e:
+        tmp.unlink(missing_ok=True)
+        print(f"Rotations-Flag blieb stehen ({out.name}): {e}", flush=True)
+        return ""
+    return rot.strip()
+
+
 def duration_of(path):
     return float(ffprobe(path, "-show_entries", "format=duration", "-of", "csv=p=0"))
 
@@ -728,6 +767,7 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
     if proc.wait() != 0:
         raise subprocess.CalledProcessError(proc.returncode, cmd,
                                             stderr="\n".join(errtail))
+    drehung_entfernen(out)
     PROGRESS["pct"] = 100.0
 
 
