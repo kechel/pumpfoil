@@ -49,6 +49,45 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
     liegt bisher bei vier Nutzern ueberhaupt (u185, u375, u393, u589) — Connect IQ aktualisiert
     nicht von selbst, die Verbreitung braucht Wochen.
 
+- **🔲 19.09. — BEFUND, wartet auf Jans OK: eine konstante Genauigkeitsangabe loescht eine
+  ganze Session.** Gemeldet von Foilbert (u574) im Community-Chat: erste Session, wird als „kein
+  Pumpfoil" eingestuft, kein Tempo, nur Farben auf der Karte, und „only 5hz although I set it to
+  25hz". Alle drei Beobachtungen stimmen — und haengen zusammen.
+  - **Session #9023, Wear OS 1.2.29, 146 min, 6926 GPS-Punkte.** Seine Uhr meldet als horizontale
+    Genauigkeit **6926-mal exakt 125,0 m**. Das ist keine Messung, das ist ein Platzhalter; andere
+    Wear-Uhren liefern 3-25 m mit Streuung. Unser Gate `MAX_HACC = 15.0` wirft damit **100 % der
+    Punkte** weg -> keine Lauf-Kandidaten -> 0 Laeufe -> `is_pumpfoil = False`.
+  - **Und daher auch „kein Tempo":** `max_speed_mps` wird aus den ERKANNTEN LAEUFEN gebildet
+    (`gps.py:484`, `default=0.0`). Ohne Laeufe steht dort 0, waehrend die Karte weiter aus den
+    Rohpunkten einfaerbt — genau das Bild, das er beschreibt.
+  - **Gegenprobe, rein rechnerisch (nichts gespeichert):** dieselben Punkte, nur die
+    Genauigkeitsspalte geleert, mit SEINER Stufe („light"):
+
+    | | Laeufe | max | Foil-Strecke |
+    |---|---|---|---|
+    | wie jetzt | **0** | 0,0 km/h | 0 m |
+    | ohne Genauigkeits-Gate | **20** | 18,1 km/h | 1308 m |
+
+    Darunter ein Lauf von 33,9 s ueber 127 m mit 13,6 km/h Schnitt. Das ist eine echte erste
+    Session, keine Rauschauswertung.
+  - **VORSCHLAG:** ist `h_acc` ueber die GANZE Aufnahme konstant, traegt es keine Information —
+    dann nicht darauf gaten (wie bei fehlender Angabe). **Regressions-Check ueber die 800
+    juengsten Sessions:** 451 haben variable Werte (unberuehrt), 101 gar keine (unberuehrt),
+    **56 einen konstanten Wert <= 15 m** — das sind die Garmins mit ihrer festen 4, die das Gate
+    ohnehin passieren, also **keine Aenderung** —, und **3 einen konstanten Wert > 15 m**. Nur
+    diese drei aendern sich: #9023 (0 -> 20 Laeufe), #5285 (0 -> 1), #8131 (0 -> 0).
+    Die Regel ist damit chirurgisch, nicht breit.
+  - **Zweiter, UNABHAENGIGER Punkt — die 4,91 Hz.** Angefordert 25, gemessen 4,91; unter der
+    Schwelle `MODEL_MIN_ACCEL_HZ = 8.0` -> `detection = gps_only`, also keine Pumps, keine
+    Kadenz. In der ganzen Wear-Flotte gibt es nur vier Sessions unter 15 Hz, seine ist mit 4,91
+    die niedrigste (sonst 41-56 Hz). Er hatte **Waterspeed parallel laufen** — derselbe
+    Mechanismus wie bei PeterH (u171), wo eine fremde App die Health-Services-Uebung hielt und
+    der Puls nie ankam. **Unbelegt**, aber die naheliegendste Erklaerung; belegbar erst durch
+    eine Aufnahme ohne die zweite App.
+  - **Zu tun:** (1) Jans OK fuer die Gate-Regel, dann umsetzen + die drei Sessions neu rechnen.
+    (2) Foilbert antworten. (3) Pruefen, ob u455 (zwei betroffene Sessions, dieselbe 125) davon
+    weiss — er hat sich nie gemeldet.
+
 - **🔴 19.09. — Amazfit 1.0.11 ZURUECKGEZOGEN: `DEV_FAKE_GPS` stand auf `true`.**
   Zepp-Konsole: „Withdrawn". Der Store hat nichts beanstandet — der Fehler war unserer.
   - **Was das Paket getan haette:** mit dem Schalter ueberspringt `sample()` die echte Ortung
