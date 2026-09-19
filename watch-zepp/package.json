@@ -4,6 +4,8 @@
   "description": "Pumpfoil recorder for Zepp OS (Amazfit)",
   "main": "app.js",
   "scripts": {
+    "dev": "node zepp.mjs dev",
+    "build": "node zepp.mjs build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

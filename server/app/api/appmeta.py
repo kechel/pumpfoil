@@ -663,22 +663,29 @@ IN_REVIEW: list[dict] = [
          "The button that imports a FIT, TCX or GPX file is a small \u201eFIT\u201c button at the "
          "right of the filter row instead of a wide bar of its own.",
      ]},
+]
+
+# „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
+# einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
+NAECHSTES: list[dict] = [
     {"name": "Amazfit", "version": "1.0.11",
-     "eingereicht": "2026-09-18",
-     # EINGEREICHT 18.09.2026 aus Commit 612ca209. Zepp-Konsole: appId 1118995,
-     # Application Time 2026.09.18, „Under Review (Can be Withdrawn)"; darunter 1.0.8 vom
-     # 12.09. als „Approved". AB HIER EINGEFROREN — alles Weitere nach NAECHSTES (1.0.12).
+     # Der Code liegt fertig im Baum, aber das Paket muss NEU gebaut werden.
+     "nicht_gebaut": True,
+     # ZURUECKGEZOGEN am 19.09.2026, wenige Stunden nach dem Upload — Zepp-Konsole:
+     # "Withdrawn". Grund war NICHT der Store, sondern ein Schalter im eigenen Code:
+     # `DEV_FAKE_GPS` stand auf true. Damit liest die Uhr die echte Ortung gar nicht mehr
+     # (`s.geo` wird uebersprungen) und schreibt stattdessen eine erfundene Spur ab
+     # 47.66/9.355 mit 19-24 km/h. Jede Aufnahme jedes Amazfit-Nutzers waere eine
+     # Phantom-Session am Bodensee gewesen — und als echte Session hochgeladen.
      #
-     # Sie traegt den Inhalt von 1.0.10 mit, die am 18.09. abgelehnt wurde — wieder nur
-     # wegen der Store-Bilder, nie wegen der App (s. den ABGELEHNT-Eintrag).
-     # Geaendert hat sich zur abgelehnten Runde NICHT der Bildinhalt, sondern wo die Bilder
-     # liegen: in der Konsole steht jetzt bei jeder Sprache „Use the app introduction
-     # screenshot in default language", der Store zieht also nur den Standardsatz. Vorher
-     # lagen dieselben ENGLISCHEN Aufnahmen unter allen 16 Sprachen. Dazu ein frischer Satz
-     # aus dem Emulator (vier Ansichten je Form, englisch, v1.0.11); die Pairing-Bilder hat
-     # Jan weggelassen. Die Store-TEXTE sind unveraendert — Zepp hat sie nie beanstandet,
-     # Punkt 3 der Ablehnung war eine Empfehlung. Die Fassung mit Kontaktzeile liegt fertig
-     # in brand/stores/zepp/store-texte-1.0.11.csv fuer die naechste Runde.
+     # BELEGT an Jans eigenen Screenshots: sie zeigen 22,1 km/h und 19 m, im eckigen wie
+     # im runden Satz identisch. Nachgerechnet aus dem Generator ergibt Sekunde 4 genau
+     # 22,1 km/h und 18,8 m. Zwei echte Laeufe treffen nie dieselbe Nachkommastelle.
+     #
+     # URSACHE IST DER ABLAUF, NICHT DIE SORGFALT: fuer die Store-Screenshots MUSS der
+     # Schalter an sein (der Simulator speist kein GPS ein) — und danach wird gebaut.
+     # Deshalb steht die Pruefung jetzt im Build (`npm run build` in watch-zepp), nicht
+     # mehr nur als Satz in der Startklar-Liste.
      "items": [
          "On square watches the page number in the top right corner is no longer clipped. The corners of those displays are heavily rounded, and the number sat in the very corner \u2014 on the \u201e1/4\u201c the last digit lost a piece.",
          "A long recording uploads without running out of memory. The watch used to hold the "
@@ -711,11 +718,7 @@ IN_REVIEW: list[dict] = [
          "as long as it is locked. Until now the watch looked completely normal and you only "
          "found out by touching it.",
      ]},
-]
 
-# „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
-# einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
-NAECHSTES: list[dict] = [
 
 
     # Android bekommt denselben Schnitt: 1.1.29 / 1.2.29 liegen seit 13.09. 08:56 bei Google,

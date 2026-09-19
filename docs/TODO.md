@@ -49,6 +49,42 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
     liegt bisher bei vier Nutzern ueberhaupt (u185, u375, u393, u589) — Connect IQ aktualisiert
     nicht von selbst, die Verbreitung braucht Wochen.
 
+- **🔴 19.09. — Amazfit 1.0.11 ZURUECKGEZOGEN: `DEV_FAKE_GPS` stand auf `true`.**
+  Zepp-Konsole: „Withdrawn". Der Store hat nichts beanstandet — der Fehler war unserer.
+  - **Was das Paket getan haette:** mit dem Schalter ueberspringt `sample()` die echte Ortung
+    (`s.geo`) vollstaendig und erzeugt eine synthetische Spur ab 47.66/9.355 mit 19-24 km/h.
+    Jede Aufnahme jedes Amazfit-Nutzers waere eine Phantom-Session am Bodensee geworden — und
+    als echte Session hochgeladen.
+  - **BEWIESEN am eingereichten `.zab`** (Jan hat es geschickt), nicht vermutet. Auspacken geht
+    drei Ebenen tief: `.zab` -> zwoelf `.zpk` -> `device.zip` -> `page/index.bin`. In der
+    Zeichentabelle der kompilierten Datei:
+
+    | gesucht | im Paket |
+    |---|---|
+    | `_flat`, `_flon` (nur im Fake-Zweig) | **gefunden** |
+    | `getLatitude`, `getLongitude`, `getStatus` (nur im echten Zweig) | **nicht da** |
+    | 47.66 / 9.355 als Double | **gefunden** |
+
+    Der Bundler hat den echten GPS-Pfad also komplett wegoptimiert. Vorher schon aus den
+    Screenshots ableitbar: sie zeigen 22,1 km/h und 19 m, im eckigen wie im runden Satz
+    identisch — der Generator liefert in Sekunde 4 genau 22,1 km/h und 18,8 m.
+  - **URSACHE IST DER ABLAUF, NICHT DIE SORGFALT.** Fuer die Store-Screenshots MUSS der Schalter
+    an sein (der Simulator speist kein GPS ein), und unmittelbar danach wird gebaut. Jan dazu:
+    „das war eine furchtbare loesung von dir das ich das immer manuell setzen musste .. war klar
+    das das schiefgeht irgendwann." Er hat recht: der Punkt stand seit 1.0.9 als erster in der
+    Startklar-Liste und hat trotzdem nicht gehalten. Eine Zeile Text ist keine Sicherung.
+  - **✅ BEHOBEN, strukturell:** `watch-zepp/zepp.mjs` plus zwei npm-Skripte. `npm run dev` setzt
+    den Schalter auf `true` und startet den Simulator, `npm run build` setzt ihn auf `false`,
+    gleicht `app.json` gegen `APP_VERSION` ab (der zweite Fehler von gestern), baut und prueft
+    **das Ergebnis**: fehlt im Paket `getLatitude`/`getLongitude`, bricht es ab UND **loescht
+    `dist/`** — ein Paket, das man nicht mehr hochladen kann, ist die einzige Sicherung, die
+    haelt. Was in der Datei steht, ist damit egal.
+  - **`zeus dev` / `zeus build` NICHT mehr direkt aufrufen** — steht als Warnkasten in
+    `watch-zepp/README.md`.
+  - **Zu tun:** neu bauen mit `npm run build`, Bilder und Texte stehen unveraendert in der
+    Konsole, dann wieder einreichen. Nummer bleibt 1.0.11 / code 14 (zurueckgezogen, nicht
+    abgelehnt — Zepp nimmt sie wieder an).
+
 - **🟡 18.09. — Amazfit/Zepp 1.0.11 (code 14) EINGEREICHT, aus Commit `612ca209`.**
   Zepp-Konsole: appId 1118995, Application Time 2026.09.18, „Under Review (Can be Withdrawn)";
   darunter 1.0.8 vom 12.09. als „Approved". appmeta-Eintrag von NAECHSTES nach IN_REVIEW,
