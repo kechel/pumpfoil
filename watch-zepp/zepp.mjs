@@ -20,7 +20,8 @@
 // Nach dem Bauen wird das ERGEBNIS geprueft, nicht die Eingabe: enthaelt das Paket die Fake-Spur,
 // ohne den echten GPS-Pfad zu enthalten, bricht das Skript ab UND loescht die Ausgabe — ein
 // Paket, das man nicht mehr hochladen kann, ist die einzige Sicherung, die wirklich haelt.
-import { readFileSync, writeFileSync, existsSync, rmSync, readdirSync, statSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, rmSync, readdirSync, statSync, mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { spawnSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -56,38 +57,55 @@ function dateien(pfad, raus = []) {
 
 /** Traegt das gebaute Paket die Fake-Spur statt der echten Ortung?
  *
- *  BINAER suchen, nicht als Text: `zeus build` uebersetzt `page/index.js` nach `page/index.bin`,
- *  und das liegt im .zab noch zweimal verpackt (zab -> zpk -> device.zip). Die Bezeichner stehen
- *  dort aber weiterhin in der Zeichentabelle — am zurueckgezogenen Paket vom 18.09. nachgemessen:
- *  `_flat`/`_flon` waren drin, `getLatitude`/`getLongitude`/`getStatus` NICHT. Der Bundler wirft
- *  bei `const DEV_FAKE_GPS = true` den echten Zweig komplett weg. Genau daran ist es erkennbar.
+ *  DREI EBENEN AUSPACKEN, nicht im rohen Puffer suchen. Erste Fassung dieses Skripts tat genau
+ *  das und waere bei JEDEM Build falsch Alarm geschlagen: die inneren Archive sind DEFLATE-
+ *  komprimiert, `strings` auf dem .zab findet weder `getLatitude` noch `_flat` (nachgemessen am
+ *  zurueckgezogenen Paket: 0 Treffer auf beiden). Der Weg ist
+ *      dist/*.zab  ->  *.zpk  ->  device.zip  ->  page/index.bin
+ *  und erst in der Zeichentabelle dieser kompilierten Datei stehen die Bezeichner.
+ *
+ *  Woran es erkennbar ist (am kaputten 1.0.11 vom 18.09. geeicht): bei `DEV_FAKE_GPS = true`
+ *  wirft der Bundler den echten Zweig komplett weg — `_flat`/`_flon` sind drin,
+ *  `getLatitude`/`getLongitude`/`getStatus` fehlen.
  */
 function paketPruefen() {
-  const ziele = ["dist", "build"].map((d) => join(WURZEL, d));
-  const alle = ziele.flatMap((z) => dateien(z));
-  if (!alle.length) {
-    console.warn("Hinweis: kein dist/ oder build/ gefunden — Nachpruefung uebersprungen.");
-    return true;
-  }
-  const hat = (buf, wort) => buf.includes(Buffer.from(wort, "latin1"));
-  let echt = 0, fake = 0;
-  for (const f of alle) {
-    let buf;
-    try { buf = readFileSync(f); } catch { continue; }
-    // Ein .zab/.zpk ist ein ZIP (Methode "store" bei den inneren Dateien) — die Bezeichner sind
-    // darin unkomprimiert zu finden, deshalb genuegt die Suche im rohen Puffer.
-    if (hat(buf, "getLatitude") || hat(buf, "getLongitude")) echt++;
-    if (hat(buf, "_flat") && hat(buf, "_flon")) fake++;
-  }
-  if (echt === 0) {
-    console.error("\nABBRUCH: im gebauten Paket ist KEIN Aufruf der echten Ortung zu finden");
-    console.error(`(getLatitude/getLongitude), dafuer die synthetische Spur in ${fake} Datei(en).`);
-    console.error("Genau so ging 1.0.11 am 18.09. in den Store — s. Kopf dieses Skripts.");
-    for (const z of ziele) if (existsSync(z)) { rmSync(z, { recursive: true, force: true }); console.error(`geloescht: ${z}`); }
+  const dist = join(WURZEL, "dist");
+  const zabs = dateien(dist).filter((f) => f.endsWith(".zab"));
+  if (!zabs.length) {
+    console.error("ABBRUCH: in dist/ liegt kein .zab — wurde ueberhaupt gebaut?");
     return false;
   }
-  console.log(`Nachpruefung: echter GPS-Pfad in ${echt} Datei(en) — in Ordnung.`);
-  return true;
+  const zab = zabs.sort()[zabs.length - 1];
+  const tmp = mkdtempSync(join(tmpdir(), "zepp-pruef-"));
+  const auspacken = (archiv, ziel) =>
+    spawnSync("unzip", ["-o", "-q", archiv, "-d", ziel], { stdio: "pipe" }).status === 0;
+  try {
+    if (!auspacken(zab, tmp)) { console.error(`ABBRUCH: ${zab} laesst sich nicht auspacken.`); return false; }
+    for (const zpk of dateien(tmp).filter((f) => f.endsWith(".zpk"))) auspacken(zpk, zpk + ".aus");
+    for (const dz of dateien(tmp).filter((f) => f.endsWith("device.zip"))) auspacken(dz, dz + ".aus");
+    const hat = (buf, wort) => buf.includes(Buffer.from(wort, "latin1"));
+    let echt = 0, fake = 0, bins = 0;
+    for (const f of dateien(tmp).filter((f) => f.endsWith(".bin"))) {
+      const buf = readFileSync(f);
+      bins++;
+      if (hat(buf, "getLatitude") || hat(buf, "getLongitude")) echt++;
+      if (hat(buf, "_flat") && hat(buf, "_flon")) fake++;
+    }
+    if (!bins) { console.error("ABBRUCH: im Paket ist keine kompilierte .bin zu finden."); return false; }
+    if (echt === 0) {
+      console.error("\nABBRUCH: im gebauten Paket ist KEIN Aufruf der echten Ortung zu finden");
+      console.error(`(getLatitude/getLongitude in 0 von ${bins} .bin), Fake-Spur in ${fake}.`);
+      console.error("Genau so ging 1.0.11 am 18.09. in den Store — s. Kopf dieses Skripts.");
+      rmSync(dist, { recursive: true, force: true });
+      console.error(`geloescht: ${dist}`);
+      return false;
+    }
+    console.log(`Nachpruefung: echter GPS-Pfad in ${echt} von ${bins} kompilierten Dateien` +
+                (fake ? `, Fake-Zweig zusaetzlich in ${fake}` : "") + " — in Ordnung.");
+    return true;
+  } finally {
+    rmSync(tmp, { recursive: true, force: true });
+  }
 }
 
 /** app.json und APP_VERSION muessen dieselbe Nummer tragen. */
@@ -105,10 +123,15 @@ function versionPruefen() {
 }
 
 const modus = process.argv[2];
-if (modus !== "dev" && modus !== "build") {
-  console.error("Aufruf: node zepp.mjs dev | build   (oder npm run dev / npm run build)");
+if (!["dev", "build", "pruefe"].includes(modus)) {
+  console.error("Aufruf: node zepp.mjs dev | build | pruefe");
+  console.error("  dev    Simulator, DEV_FAKE_GPS = true");
+  console.error("  build  Store-Paket, DEV_FAKE_GPS = false, mit Nachpruefung");
+  console.error("  pruefe nur das schon gebaute dist/*.zab nachpruefen");
   process.exit(2);
 }
+
+if (modus === "pruefe") process.exit(paketPruefen() ? 0 : 1);
 
 if (modus === "dev") {
   schalter(true);

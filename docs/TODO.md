@@ -81,9 +81,19 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
     haelt. Was in der Datei steht, ist damit egal.
   - **`zeus dev` / `zeus build` NICHT mehr direkt aufrufen** — steht als Warnkasten in
     `watch-zepp/README.md`.
-  - **Zu tun:** neu bauen mit `npm run build`, Bilder und Texte stehen unveraendert in der
-    Konsole, dann wieder einreichen. Nummer bleibt 1.0.11 / code 14 (zurueckgezogen, nicht
-    abgelehnt — Zepp nimmt sie wieder an).
+  - **✅ 19.09. 13:25 NEU GEBAUT UND WIEDER EINGEREICHT.** Zepp-Konsole: Application Time
+    2026.09.19, „Under Review (Can be Withdrawn)". Nummer unveraendert 1.0.11 / code 14
+    (zurueckgezogen ist nicht abgelehnt), Bilder und Texte in der Konsole unangetastet.
+    **Am Paket selbst nachgeprueft** statt an der Quelle: 12 von 24 kompilierten Dateien
+    enthalten `getLatitude`/`getLongitude`, beim zurueckgezogenen waren es 0 von 24. Beide
+    Zweige im Bytecode ist der RICHTIGE Zustand — die Konstante steht auf false, der Bundler
+    behaelt beide, die Uhr nimmt zur Laufzeit den echten.
+  - **⚠️ Die erste Fassung des Waechters war selbst kaputt** und haette JEDEN Build
+    faelschlich abgebrochen: sie suchte im rohen `.zab`, aber die inneren Archive sind
+    DEFLATE-komprimiert — `strings` findet dort weder `getLatitude` noch `_flat` (0 Treffer auf
+    beiden Seiten, nachgemessen). Es muessen drei Ebenen ausgepackt werden:
+    `.zab` -> `.zpk` -> `device.zip` -> `page/index.bin`. Behoben und an BEIDEN Paketen geeicht,
+    bevor Jan ihn benutzt hat. `node zepp.mjs pruefe` prueft ein schon gebautes Paket nachtraeglich.
 
 - **🟡 18.09. — Amazfit/Zepp 1.0.11 (code 14) EINGEREICHT, aus Commit `612ca209`.**
   Zepp-Konsole: appId 1118995, Application Time 2026.09.18, „Under Review (Can be Withdrawn)";
