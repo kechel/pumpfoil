@@ -11,6 +11,9 @@ from sqlalchemy.orm import Session
 from .. import kontensync, models
 from ..config import get_settings
 from ..accounts import ist_store_roboter_adresse
+from .. import loeschung
+import logging
+
 from ..db import get_db
 from ..media import delete_media
 from ..mailer import send_email
@@ -19,6 +22,8 @@ from ..schemas import AgeRangeIn, ForgotIn, LoginIn, PasswordChangeIn, ProfileIn
 from ..ratelimit import rate_limit
 from ..security import create_access_token, hash_password, new_token, verify_password
 from .deps import current_user
+
+log = logging.getLogger(__name__)
 
 RESET_TTL_MIN = 60
 
@@ -327,24 +332,16 @@ def export_me(user: models.User = Depends(current_user), db: Session = Depends(g
 
 @router.delete("/me")
 def delete_me(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
-    """DSGVO: eigenes Konto + ALLE Daten unwiderruflich löschen."""
-    for s in db.query(models.Session).filter_by(user_id=user.id).all():
-        _purge_session(db, s)
-    db.query(models.SessionLike).filter_by(user_id=user.id).delete()
-    db.query(models.SessionVote).filter_by(user_id=user.id).delete()
-    # Spot-Beschreibungen: eigene Texte + Fotodateien weg, dazu die eigenen Herzchen/Meldungen
-    # auf FREMDEN Beschreibungen. DSGVO-Loeschung ist absolut — nichts stehen lassen.
-    from .spotnotes import _note_weg
-    for n in db.query(models.SpotNote).filter_by(user_id=user.id).all():
-        _note_weg(db, n)
-    db.query(models.SpotNoteLike).filter_by(user_id=user.id).delete()
-    db.query(models.SpotNoteVote).filter_by(user_id=user.id).delete()
-    db.query(models.DeviceToken).filter_by(user_id=user.id).delete()
-    db.query(models.PairingCode).filter_by(user_id=user.id).delete()
-    db.query(models.OAuthIdentity).filter_by(user_id=user.id).delete()
-    delete_media(user.avatar_url)
-    db.delete(user)
-    db.commit()
+    """DSGVO: eigenes Konto + ALLE Daten unwiderruflich löschen.
+
+    Die Arbeit macht `app.loeschung.konto_loeschen` — hier stand bis zum 19.09.2026 eine von
+    Hand gefuehrte Liste von acht Tabellen, waehrend 44 Fremdschluessel auf `users` zeigen.
+    Jede Loeschung eines Kontos mit Chat-Verlauf endete deshalb in HTTP 500, und weil die
+    Rohdaten schon VOR dem Commit von der Platte flogen, blieb ein halb geloeschtes Konto
+    zurueck. Begruendung und die beiden Regeln stehen im Kopf von `loeschung.py`.
+    """
+    bilanz = loeschung.konto_loeschen(db, user)
+    log.info("Konto geloescht: u%s — %s", user.id, bilanz)
     return {"ok": True}
 
 
