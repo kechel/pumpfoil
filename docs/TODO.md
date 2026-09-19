@@ -25,8 +25,26 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
     steht nur in `device_tokens.label`/`part_number`. Zuordnung Session->Uhr geht ueber
     `user_id` plus `app_version` (Garmin = 1.0.x, Wear = 1.2.x, iOS/Android = 1.1.x); mehrere
     dieser Nutzer haben zusaetzlich eine Wear-Uhr, ohne diesen Filter mischt man die Plattformen.
-    Die Aufnahmelaenge steht in KEINER Spalte (`ended_at` ist meist NULL, `duration_s` gibt es
-    nicht) — brauchbar ist `len(storage.load_gps(uuid))`, ein Punkt je Sekunde.
+    Die Aufnahmelaenge steht in keiner Spalte (`duration_s` gibt es nicht) — brauchbar ist
+    `len(storage.load_gps(uuid))`, ein Punkt je Sekunde.
+  - **KORREKTUR (Jans Einwand, 19.09.): `ended_at` ist KEIN Datenmuell, sondern ein
+    Absturzsignal.** Ich hatte es als „meist NULL" abgetan; flottenweit ist es in **87 %**
+    gesetzt. Geschrieben wird es in `/complete` (`api/ingest.py`) — entweder schickt die Uhr es
+    mit, oder es wird aus dem letzten GPS-Zeitstempel plus Pausendauer abgeleitet. Fehlt es, ist
+    `/complete` nie gelaufen. Damit lassen sich zwei Ausfaelle trennen, beide rund VIERMAL so
+    haeufig wie im Rest der Flotte:
+
+    | Garmin, Status `analyzed` | Flotte (60 Tage) | Instinct-2-Nutzer |
+    |---|---|---|
+    | Aufnahmen | 1354 | 40 |
+    | Endzeit vorhanden | 1178 (87 %) | 19 (48 %) |
+    | keine Endzeit, aber GPS-Punkte da (mittendrin gestorben) | 24 (1,8 %) | 3 (7,5 %) |
+    | gar keine GPS-Punkte (leer angekommen) | 152 (11 %) | 18 (45 %) |
+
+    **Der zweite Fall ist der haeufigere und der mehrdeutigere:** „null Punkte" kann heissen, die
+    App starb vor dem ersten Fix — oder die Uhr bekam nie einen Fix. Letzteres war bei Allan die
+    Ursache und hat mit Speicher nichts zu tun. Der Low-Mem-Fix laesst sich damit plausibel
+    machen, nicht belegen; dafuer braucht es Aufnahmen MIT 1.0.87.
   - **Erst wieder ansehen, wenn einer dieser sechs Nutzer mit 1.0.87 hochgeladen hat.** 1.0.87
     liegt bisher bei vier Nutzern ueberhaupt (u185, u375, u393, u589) — Connect IQ aktualisiert
     nicht von selbst, die Verbreitung braucht Wochen.
