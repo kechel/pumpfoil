@@ -1076,7 +1076,7 @@ const fi: Record<string, string> = {
   "alarm.timeTitle": "Aika ajon aikana",
   "alarm.markOnce": "vain kohdassa",
   "alarm.markEvery": "joka",
-  "alarm.markHint": "0 poistaa käytöstä. Lasketaan ajoa kohti ensimmäisestä havaitusta metristä — ajon ulkopuolella ei tapahdu mitään.",
+  "alarm.markHint": "0 poistaa käytöstä. Lasketaan ajoa kohti ensimmäisestä havaitusta metristä — ajon ulkopuolella ei tapahdu mitään. Tulossa kelloihin pian.",
   "alarm.repeatEvery": "toista joka",
   "alarm.maxSpeed": "Maks.",
   "alarm.minSpeed": "Min.",

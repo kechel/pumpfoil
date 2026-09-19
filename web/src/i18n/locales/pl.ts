@@ -1085,7 +1085,7 @@ const pl: Record<string, string> = {
   "alarm.timeTitle": "Czas w przejeździe",
   "alarm.markOnce": "tylko przy",
   "alarm.markEvery": "co",
-  "alarm.markHint": "0 wyłącza. Liczone dla każdego przejazdu od pierwszego wykrytego metra — poza przejazdem nic się nie dzieje.",
+  "alarm.markHint": "0 wyłącza. Liczone dla każdego przejazdu od pierwszego wykrytego metra — poza przejazdem nic się nie dzieje. Wkrótce na zegarkach.",
   "alarm.repeatEvery": "powtarzaj co",
   "alarm.maxSpeed": "Maks.",
   "alarm.minSpeed": "Min.",

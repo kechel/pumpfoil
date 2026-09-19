@@ -1109,7 +1109,7 @@ const nl: Record<string, string> = {
   "alarm.timeTitle": "Tijd in een run",
   "alarm.markOnce": "alleen bij",
   "alarm.markEvery": "elke",
-  "alarm.markHint": "0 zet het uit. Geteld per run, vanaf de eerste herkende meter — buiten een run gebeurt er niets.",
+  "alarm.markHint": "0 zet het uit. Geteld per run, vanaf de eerste herkende meter — buiten een run gebeurt er niets. Binnenkort op de horloges.",
   "alarm.repeatEvery": "herhalen elke",
   "alarm.maxSpeed": "Max",
   "alarm.minSpeed": "Min",

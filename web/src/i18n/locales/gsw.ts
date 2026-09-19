@@ -682,7 +682,7 @@ const gsw: Record<string, string> = {
   "alarm.timeTitle": "Ziit im Lauf",
   "alarm.markOnce": "nur bi",
   "alarm.markEvery": "alli",
-  "alarm.markHint": "0 schaltet ab. Zellt wird pro Lauf, ab em erste erkennte Meter — usserhalb vomene Lauf passiert nüt.",
+  "alarm.markHint": "0 schaltet ab. Zellt wird pro Lauf, ab em erste erkennte Meter — usserhalb vomene Lauf passiert nüt. D Uhre chöi das bald.",
   "alarm.repeatEvery": "wiederhole alli",
   "alarm.maxSpeed": "Max",
   "alarm.minSpeed": "Min",

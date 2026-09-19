@@ -1042,7 +1042,7 @@ const nb: Record<string, string> = {
   "alarm.timeTitle": "Tid i en run",
   "alarm.markOnce": "bare ved",
   "alarm.markEvery": "hver",
-  "alarm.markHint": "0 slår det av. Telles per run, fra første registrerte meter — utenfor en run skjer ingenting.",
+  "alarm.markHint": "0 slår det av. Telles per run, fra første registrerte meter — utenfor en run skjer ingenting. Kommer snart på klokkene.",
   "alarm.repeatEvery": "gjenta hvert",
   "alarm.maxSpeed": "Maks",
   "alarm.minSpeed": "Min",

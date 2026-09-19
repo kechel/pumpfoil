@@ -766,7 +766,7 @@ const es: Record<string, string> = {
   "alarm.timeTitle": "Tiempo en el run",
   "alarm.markOnce": "solo a",
   "alarm.markEvery": "cada",
-  "alarm.markHint": "0 lo desactiva. Se cuenta por run, desde el primer metro detectado — fuera de un run no pasa nada.",
+  "alarm.markHint": "0 lo desactiva. Se cuenta por run, desde el primer metro detectado — fuera de un run no pasa nada. Pronto disponible en los relojes.",
   "alarm.repeatEvery": "repetir cada",
   "alarm.maxSpeed": "Máx",
   "alarm.minSpeed": "Mín",

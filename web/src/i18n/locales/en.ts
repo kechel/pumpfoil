@@ -1127,7 +1127,7 @@ const en: Record<string, string> = {
   "alarm.timeTitle": "Time in a run",
   "alarm.markOnce": "only at",
   "alarm.markEvery": "every",
-  "alarm.markHint": "0 turns it off. Counted per run, from the first metre detected — nothing happens outside a run.",
+  "alarm.markHint": "0 turns it off. Counted per run, from the first metre detected — nothing happens outside a run. Coming to the watches soon.",
   "alarm.repeatEvery": "repeat every",
   "alarm.maxSpeed": "Max",
   "alarm.minSpeed": "Min",
