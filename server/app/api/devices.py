@@ -366,6 +366,15 @@ def device_config(
         # Dritte Schwelle: Puls (bpm, 0 = aus) mit eigenem Vibrationsmuster.
         "hrHigh": settings.get("hr_high", 0),
         "alarmPatternHr": settings.get("alarm_pattern_hr", "short1"),
+        # Marken-Alarme waehrend eines Laufs: Strecke (m) und Zeit (s), je 0 = aus.
+        # Modus "once" = einmal je Lauf, "every" = bei jedem Vielfachen. Zaehlung beginnt mit
+        # jedem neuen Lauf von vorn; ausserhalb eines Laufs passiert nichts.
+        "runDistM": int(settings.get("run_dist_m", 0) or 0),
+        "runDistMode": settings.get("run_dist_mode", "once"),
+        "alarmPatternDist": settings.get("alarm_pattern_dist", "short1"),
+        "runTimeS": int(settings.get("run_time_s", 0) or 0),
+        "runTimeMode": settings.get("run_time_mode", "once"),
+        "alarmPatternTime": settings.get("alarm_pattern_time", "short2"),
         # Vorwahl für den Uhr-Start: "foil" = Standard-Foil | "fixed" = feste Werte.
         "alarmDefault": settings.get("alarm_default", "foil"),
         "foils": foils_out,

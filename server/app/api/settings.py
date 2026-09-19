@@ -68,6 +68,16 @@ DEFAULTS = {
     # oft der ehrlichere Anhaltspunkt als die Geschwindigkeit. Bewusst nur eine OBERE Grenze:
     # „zu langsam" merkt man selbst, „zu hoch im Puls" nicht.
     "hr_high": 0, "alarm_pattern_hr": "short1",
+    # Vierte und fuenfte Schwelle: LAUFSTRECKE und LAUFZEIT waehrend eines Laufs (Wunsch von
+    # u447 am 19.09.2026, Erweiterung von Jan). Anders als Speed und Puls sind das keine
+    # Grenzwerte, die man ueber- oder unterschreitet, sondern MARKEN, die man erreicht — deshalb
+    # je ein eigener Modus:
+    #   "once"  = einmal je Lauf, wenn die Marke faellt (der Ansporn, 100 m zu knacken)
+    #   "every" = bei jedem Vielfachen (alle 100 m, alle 30 s …) — die Rueckmeldung im Takt
+    # Beide zaehlen JE LAUF und beginnen bei jedem neuen Lauf von vorn; ausserhalb eines Laufs
+    # passiert nichts. 0 = aus. Alle fuenf Alarme laufen unabhaengig nebeneinander.
+    "run_dist_m": 0, "run_dist_mode": "once", "alarm_pattern_dist": "short1",
+    "run_time_s": 0, "run_time_mode": "once", "alarm_pattern_time": "short2",
     "alarm_repeat": "once",  # "once" = einmalig beim Überschreiten | "continuous" = dauerhaft
     # Nur bei "continuous": Abstand der Wiederholungen in Sekunden, solange die Schwelle noch
     # ueber-/unterschritten ist. Vorher eine Konstante von 3 s auf der Uhr.
@@ -222,6 +232,8 @@ NOTIFY_TYPES = ("like", "analyzed", "record")
 # Erlaubte Vibrationsmuster + Modi (IDs identisch mit Web + Uhr).
 ALARM_PATTERNS = {"short1", "short2", "long2", "lsl"}
 ALARM_REPEATS = {"once", "continuous"}
+# Marken-Alarme (Strecke/Zeit): einmal je Lauf oder bei jedem Vielfachen.
+MARKE_MODI = {"once", "every"}
 ALARM_DEFAULTS = {"foil", "fixed"}
 
 
@@ -640,7 +652,8 @@ def update_settings(
                 current[k] = max(0, min(60, round(float(patch[k]))))
             except (TypeError, ValueError):
                 pass
-    for k in ("alarm_pattern_high", "alarm_pattern_low", "alarm_pattern_hr"):
+    for k in ("alarm_pattern_high", "alarm_pattern_low", "alarm_pattern_hr",
+              "alarm_pattern_dist", "alarm_pattern_time"):
         if k in patch and patch[k] in ALARM_PATTERNS:
             current[k] = patch[k]
     if "hr_high" in patch:
@@ -648,6 +661,19 @@ def update_settings(
             current["hr_high"] = max(0, min(250, round(float(patch["hr_high"]))))
         except (TypeError, ValueError):
             pass
+    # Marken-Alarme: Strecke in Metern (10..5000), Zeit in Sekunden (5..3600), 0 = aus.
+    # Die Untergrenzen sind keine Willkuer: unter 10 m bzw. 5 s waere der Alarm im Dauerfeuer,
+    # und genau das soll er nicht sein.
+    for schluessel, kleinster, groesster in (("run_dist_m", 10, 5000), ("run_time_s", 5, 3600)):
+        if schluessel in patch:
+            try:
+                wert = round(float(patch[schluessel]))
+            except (TypeError, ValueError):
+                wert = 0
+            current[schluessel] = 0 if wert <= 0 else max(kleinster, min(groesster, wert))
+    for schluessel in ("run_dist_mode", "run_time_mode"):
+        if patch.get(schluessel) in MARKE_MODI:
+            current[schluessel] = patch[schluessel]
     if patch.get("alarm_repeat") in ALARM_REPEATS:
         current["alarm_repeat"] = patch["alarm_repeat"]
     if "alarm_repeat_s" in patch:
