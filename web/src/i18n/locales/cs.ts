@@ -1109,7 +1109,7 @@ const cs: Record<string, string> = {
   "alarm.timeTitle": "Čas v jízdě",
   "alarm.markOnce": "jen při",
   "alarm.markEvery": "každých",
-  "alarm.markHint": "0 vypíná. Počítá se pro každou jízdu od prvního rozpoznaného metru — mimo jízdu se nic neděje.",
+  "alarm.markHint": "0 vypíná. Počítá se pro každou jízdu od prvního rozpoznaného metru — mimo jízdu se nic neděje. Na hodinkách brzy.",
   "alarm.repeatEvery": "opakovat každých",
   "alarm.maxSpeed": "Max",
   "alarm.minSpeed": "Min",

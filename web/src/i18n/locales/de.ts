@@ -1235,7 +1235,7 @@ const de: Record<string, string> = {
   "alarm.timeTitle": "Zeit im Lauf",
   "alarm.markOnce": "nur bei",
   "alarm.markEvery": "alle",
-  "alarm.markHint": "0 schaltet ab. Gezählt wird je Lauf, ab dem ersten erkannten Meter — außerhalb eines Laufs passiert nichts.",
+  "alarm.markHint": "0 schaltet ab. Gezählt wird je Lauf, ab dem ersten erkannten Meter — außerhalb eines Laufs passiert nichts. Die Uhren unterstützen das in Kürze.",
   "alarm.repeatEvery": "wiederholen alle",
   "alarm.maxSpeed": "Max",
   "alarm.minSpeed": "Min",

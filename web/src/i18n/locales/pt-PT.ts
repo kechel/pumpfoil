@@ -997,7 +997,7 @@ const ptPT: Record<string, string> = {
   "alarm.timeTitle": "Tempo no run",
   "alarm.markOnce": "apenas em",
   "alarm.markEvery": "a cada",
-  "alarm.markHint": "0 desliga. Contado por run, desde o primeiro metro detetado — fora de um run não acontece nada.",
+  "alarm.markHint": "0 desliga. Contado por run, desde o primeiro metro detetado — fora de um run não acontece nada. Em breve nos relógios.",
   "alarm.repeatEvery": "repetir a cada",
   "alarm.maxSpeed": "Máx.",
   "alarm.minSpeed": "Mín.",
