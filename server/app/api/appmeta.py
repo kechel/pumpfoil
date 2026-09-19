@@ -314,8 +314,8 @@ _APP_META: dict[str, dict[str, str]] = {
 # DIE STATUSZEILE WIRD ERZEUGT, NICHT GESCHRIEBEN (seit 13.09.2026, s. `_note`). Ein Eintrag
 # traegt nur noch die Angaben, die sich nicht ableiten lassen:
 #     IN_REVIEW  -> "eingereicht": "2026-09-13"        -> „submitted 13 September, waiting for X"
-#     NAECHSTES  -> nichts                             -> „built, waiting to be uploaded"
-#                   oder "wartet_auf": "1.1.33"        -> „built, waiting for 1.1.33 to clear …"
+#     NAECHSTES  -> nichts                             -> „current development"
+#                   (bewusst OHNE Aussage zum Bauzustand, s. `_note`)
 #     ABGELEHNT  -> "abgelehnt" + "grund"              -> „not approved on 10 September: …"
 # Wer prueft, steht in `PRUEFER`. Ein `note`-Feld von Hand gibt es hier NICHT mehr — genau das
 # hatte am 13.09. dazu gefuehrt, dass unter der Ueberschrift „Being reviewed" die Zeile „built,
@@ -365,8 +365,8 @@ def _note(e: dict, zustand: str) -> str:
     damit nicht mehr formulierbar — verschieben genuegt, und die Zeile stimmt.
 
     Von Hand bleiben nur die Angaben, die sich nicht ableiten lassen: das Datum (`eingereicht`
-    bzw. `abgelehnt`), der Ablehnungsgrund (`grund`) und die Fassung, auf die gewartet wird
-    (`wartet_auf`).
+    bzw. `abgelehnt`) und der Ablehnungsgrund (`grund`). NAECHSTES traegt gar nichts mehr —
+    dort steht immer „current development".
     """
     if zustand == "review":
         # Zwischen „durchgewunken" und „im Store" liegt bei Apple und Google noch ein Schritt:
@@ -377,15 +377,15 @@ def _note(e: dict, zustand: str) -> str:
             return f"approved {_datum(e['freigegeben'])}, appearing in the store shortly"
         return f"submitted {_datum(e['eingereicht'])}, waiting for {PRUEFER[e['name']]}"
     if zustand == "next":
-        # „built" ist eine Tatsachenbehauptung und war am 18.09.2026 fuer Amazfit 1.0.11 falsch:
-        # der Code lag fertig im Baum, gebaut hat ihn niemand (Zepp-Builds laufen nur auf Jans
-        # Mac). Genau diese Verwechslung von „fertig geschrieben" und „gebaut" hat am 10.09. schon
-        # eine falsche Zeile auf der oeffentlichen Seite erzeugt. Deshalb dieser vierte Zustand.
-        if e.get("nicht_gebaut"):
-            return "finished, waiting to be built and uploaded"
-        wartet = e.get("wartet_auf")
-        return (f"built, waiting for {wartet} to clear review first" if wartet
-                else "built, waiting to be uploaded")
+        # Schlicht „current development" — KEINE Aussage darueber, ob schon gebaut oder
+        # hochladefertig. Jan, 19.09.2026: „das wird released wenn ich denke das es ein release
+        # wuerdig ist, einfach 'current development'." Vorher stand hier ein Dreiklang aus
+        # „built, waiting to be uploaded" / „built, waiting for X to clear review first" /
+        # „finished, waiting to be built and uploaded". Alle drei behaupteten etwas ueber den
+        # Bauzustand, das entweder niemanden interessiert oder falsch war — am 18.09. stand
+        # „built" an einer Fassung, die niemand gebaut hatte. Eine Zeile, die nichts behauptet,
+        # kann auch nicht falsch werden.
+        return "current development"
     if zustand == "rejected":
         satz = f"not approved on {_datum(e['abgelehnt'])}"
         return f"{satz}: {e['grund']}" if e.get("grund") else satz
@@ -713,12 +713,8 @@ NAECHSTES: list[dict] = [
      # Die Nummer ist noch NICHT in build.gradle.kts gebumpt: 1.1.30 / 1.2.30 liegen seit dem
      # 18.09. bei Google, und eine abgelehnte Nummer nimmt Play nicht wieder an — gebumpt wird
      # erst, wenn der Ausgang feststeht. 1.1.31 stimmt aber in beiden Faellen.
-     "nicht_gebaut": True,
      "items": [
-         "On Wear OS the app stays on screen while you wait to start. It used to drop back to "
-         "the watch face after a few seconds \u2014 which is exactly the moment you are standing "
-         "on the board with wet hands and want to hit start. It now stays up for ten minutes, "
-         "and for as long as a recording runs. Reported by a rider on a Galaxy Watch Ultra.",
+         "On Wear OS your watch keeps showing the app the whole time it is open. It used to fall back to the watch face on its own \u2014 worst of all mid-run, when you are on the foil with wet hands, cannot operate the watch and suddenly see neither your speed nor your time. It now stays until you close it yourself. Reported by a rider on a Galaxy Watch Ultra.",
      ]},
 
 

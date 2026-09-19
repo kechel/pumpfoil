@@ -1382,12 +1382,27 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   time live, and to instantly get the final time as soon as you fall." Die Uhr erkennt Laeufe
   bereits selbst (`Recorder.kt`), die Zeit ist also da — sie wird nur nicht angezeigt.
 
-  **2. On-Foil-Alarme nach Strecke und Zeit (Jans Erweiterung, 19.09.).** Nicht nur ein einzelner
-  Schwellwert, sondern beides in zwei Formen:
-  - **einmalig**, z. B. „bei 100 m" oder „bei 30 s" — der Ansporn, eine Marke zu knacken
-  - **wiederkehrend**, z. B. „alle 100 m", „alle 30 Sekunden", „jede Minute"
-  Strecke und Zeit unabhaengig einstellbar. Passt zu den vorhandenen Alarmen (Puls, Tempo) und
-  koennte dieselben Vibrationsmuster nutzen, die mit Amazfit 1.0.11 dazugekommen sind.
+  **2. ✅ On-Foil-Alarme nach Strecke und Zeit — im Profil GEBAUT, wartet auf Jans Abnahme.**
+  Jans Rahmen (19.09.): „wir haben da schon zwei, basierend auf speed und puls, da einfach im
+  profil noch 2 weitere aehnliche moglichkeiten erlauben, auch alle parallel … das schau ich mir
+  dann an, und wenn das passt, dann auf allen uhren nachziehen fuer die naechsten releases."
+  - **Modell wie die vorhandenen drei**, aber mit einem Unterschied, der im Code steht: Tempo und
+    Puls sind GRENZEN, die man ueber- oder unterschreitet — Strecke und Zeit sind MARKEN, die man
+    erreicht. Deshalb je ein eigener Modus statt des gemeinsamen `alarm_repeat`:
+    `once` = einmal je Lauf · `every` = bei jedem Vielfachen. Beide zaehlen JE LAUF und fangen mit
+    jedem neuen Lauf von vorn an; ausserhalb eines Laufs passiert nichts.
+  - **Neue Einstellungen:** `run_dist_m` (10-5000, 0 = aus) + `run_dist_mode` +
+    `alarm_pattern_dist`, dazu `run_time_s` (5-3600) + `run_time_mode` + `alarm_pattern_time`.
+    Die Untergrenzen sind keine Willkuer: darunter waere es Dauerfeuer.
+  - **Fertig:** Server-Einstellungen samt Pruefung, Uhr-Konfiguration (`devices._config_payload`:
+    `runDistM`, `runDistMode`, `alarmPatternDist`, `runTimeS`, `runTimeMode`, `alarmPatternTime`),
+    Profil-Oberflaeche in der PWA, sieben neue Texte in allen **18** Sprachen. Nebenbei behoben:
+    `patSelect` riet das Vorgabe-Muster aus der Endung des Schluessels („high" -> short2) — mit
+    fuenf Alarmen traegt das nicht mehr, jetzt eine ausdrueckliche Zuordnung.
+  - **🔲 NACH JANS ABNAHME:** (a) auf die vier Uhren ziehen (Garmin, Wear, Apple, Zepp) — die
+    Werte liegen in der Konfiguration bereit, es fehlt nur die Auswertung waehrend eines Laufs;
+    (b) **die Profil-Einstellungen in die nativen Apps portieren** (iOS und Android), Jans
+    ausdrueckliche Ansage. Vorlage ist der Alarm-Block in `web/src/pages/Account.tsx`.
 
   **3. „the app always goes into the background, so I only see the watch face" — die Ursache ist
   unsere eigene.** In `MainActivity.onEnterAmbient` steht:
@@ -1405,13 +1420,15 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   - **Belegt, dass es NICHT die Aufzeichnung betrifft:** seine zehn Aufnahmen laufen sauber durch
     — 139,4 min / 91,3 min / 83,2 min, alle mit Endzeit, 9 bis 25 Laeufe. Der Vordergrund-Dienst
     haelt. Es ist ausschliesslich die ANZEIGE vor dem Start.
-  - **✅ 19.09. GEBAUT (Jan: „kommt mit ins naechste release bitte").** Kein Entweder-oder,
-    sondern eine Frist: `onEnterAmbient` weicht nicht mehr sofort zurueck, sondern merkt sich den
-    Zeitpunkt; der Systemtakt (`onUpdateAmbient`, ~1/min) tritt erst nach **zehn Minuten** ohne
-    Aufnahme zurueck. Damit bleibt der urspruengliche Grund gueltig — eine versehentlich offene
-    App steht nicht den ganzen Tag gedimmt vor dem Watchface —, und der Fall auf dem Wasser ist
-    geloest. Laeuft eine Aufnahme, bleibt die App wie bisher oben, ohne Frist.
-    `:wear:compileDebugKotlin` sauber.
+  - **✅ 19.09. GEBAUT.** `moveTaskToBack` ist **ersatzlos raus** — die App bleibt auf dem
+    Schirm, solange sie laeuft. Meine erste Fassung baute eine Zehn-Minuten-Frist ein; Jan hat
+    sie verworfen, und zu Recht: „die uhr muss waehrend der gesamten zeit in der die app laeuft
+    on screen bleiben, im start-screen ist das noch am aller unwichtigsten, wenn die dann
+    waehrend des on-foils verschwindet ist natuerlich am schlimmsten."
+    **Ich hatte den Fall falsch herum erzaehlt** — auch im Changelog-Text, der dadurch keinen
+    Sinn ergab: der Startbildschirm war mein Aufhaenger, weil die Meldung von dort kam, aber der
+    schlimme Fall ist die Aufnahme. Wer die App zumacht, macht sie zu; das ist die einzige Art,
+    sie loszuwerden. `:wear:compileDebugKotlin` sauber.
   - **Version NICHT gebumpt:** 1.1.30 / 1.2.30 liegen bei Google, eine abgelehnte Nummer nimmt
     Play nicht wieder an. Der appmeta-Eintrag steht als 1.1.31 / 1.2.31 unter NAECHSTES mit
     `nicht_gebaut`; gebumpt wird, wenn der Ausgang feststeht.

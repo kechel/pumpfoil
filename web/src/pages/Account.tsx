@@ -883,6 +883,12 @@ function AlarmEditor() {
         alarm_pattern_low: s?.alarm_pattern_low ?? "long2",
         hr_high: Number(s?.hr_high) || 0,
         alarm_pattern_hr: s?.alarm_pattern_hr ?? "short1",
+        run_dist_m: Number(s?.run_dist_m) || 0,
+        run_dist_mode: s?.run_dist_mode ?? "once",
+        alarm_pattern_dist: s?.alarm_pattern_dist ?? "short1",
+        run_time_s: Number(s?.run_time_s) || 0,
+        run_time_mode: s?.run_time_mode ?? "once",
+        alarm_pattern_time: s?.alarm_pattern_time ?? "short2",
         alarm_repeat: s?.alarm_repeat ?? "once",
         alarm_repeat_s: Number(s?.alarm_repeat_s) || 5,
         alarm_default: s?.alarm_default ?? "foil",
@@ -893,8 +899,14 @@ function AlarmEditor() {
   }
 
   if (!s) return null;
+  // Vorgabe je Alarm — vorher aus der Endung des Schluessels geraten ("high" -> short2 …).
+  // Mit fuenf Alarmen traegt das nicht mehr: `alarm_pattern_dist` endet auf nichts davon.
+  const PATTERN_VORGABE: Record<string, string> = {
+    alarm_pattern_high: "short2", alarm_pattern_low: "long2", alarm_pattern_hr: "short1",
+    alarm_pattern_dist: "short1", alarm_pattern_time: "short2",
+  };
   const patSelect = (key: string) => (
-    <select value={s[key] ?? (key.endsWith("high") ? "short2" : key.endsWith("hr") ? "short1" : "long2")}
+    <select value={s[key] ?? PATTERN_VORGABE[key] ?? "long2"}
       onChange={(e) => set(key, e.target.value)}
       className="rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-sm text-slate-100">
       {PATTERNS.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
@@ -970,6 +982,51 @@ function AlarmEditor() {
             </label>
           </div>
           <p className="mt-2 text-sm text-slate-400">{t("alarm.hrHint")}</p>
+        </div>
+        {/* Marken waehrend eines Laufs: Strecke und Zeit. Anders als Tempo und Puls sind das
+            keine Grenzwerte, die man ueber- oder unterschreitet, sondern Punkte, die man
+            ERREICHT — deshalb je ein eigener Modus (einmal je Lauf / bei jedem Vielfachen).
+            Beide zaehlen je Lauf und fangen bei jedem neuen Lauf von vorn an. */}
+        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3">
+          <div className="mb-2 text-sm font-medium text-slate-200">{t("alarm.distTitle")}</div>
+          <div className="flex flex-wrap items-center gap-3 text-sm">
+            <label className="flex items-center gap-2">
+              <span className="text-slate-400">{t("alarm.runDist")}</span>
+              <input type="number" min={0} max={5000} step={10} value={s.run_dist_m ?? 0}
+                onChange={(e) => set("run_dist_m", e.target.value)}
+                className="w-24 rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-slate-100" />
+              <span className="text-slate-400">m</span>
+            </label>
+            <select value={s.run_dist_mode ?? "once"} onChange={(e) => set("run_dist_mode", e.target.value)}
+              className="rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-slate-100">
+              <option value="once">{t("alarm.markOnce")}</option>
+              <option value="every">{t("alarm.markEvery")}</option>
+            </select>
+            <label className="flex items-center gap-2">
+              <span className="text-slate-400">{t("alarm.pattern")}</span>{patSelect("alarm_pattern_dist")}
+            </label>
+          </div>
+        </div>
+        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3">
+          <div className="mb-2 text-sm font-medium text-slate-200">{t("alarm.timeTitle")}</div>
+          <div className="flex flex-wrap items-center gap-3 text-sm">
+            <label className="flex items-center gap-2">
+              <span className="text-slate-400">{t("alarm.runTime")}</span>
+              <input type="number" min={0} max={3600} step={5} value={s.run_time_s ?? 0}
+                onChange={(e) => set("run_time_s", e.target.value)}
+                className="w-24 rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-slate-100" />
+              <span className="text-slate-400">s</span>
+            </label>
+            <select value={s.run_time_mode ?? "once"} onChange={(e) => set("run_time_mode", e.target.value)}
+              className="rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-slate-100">
+              <option value="once">{t("alarm.markOnce")}</option>
+              <option value="every">{t("alarm.markEvery")}</option>
+            </select>
+            <label className="flex items-center gap-2">
+              <span className="text-slate-400">{t("alarm.pattern")}</span>{patSelect("alarm_pattern_time")}
+            </label>
+          </div>
+          <p className="mt-2 text-sm text-slate-400">{t("alarm.markHint")}</p>
         </div>
         {/* Modus — bei „dauerhaft" zusätzlich der Wiederholabstand */}
         <label className="flex flex-wrap items-center gap-2 text-sm">
