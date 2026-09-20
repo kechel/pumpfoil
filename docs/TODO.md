@@ -1386,6 +1386,27 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **📥 20.09. — Uhr-Etikett widerspricht der Part-Number, und das Etikett gewinnt.** Token 1062
+  (Jan) heisst `fēnix® 7X Pro`, meldet aber `part_number = 006-B3888-00` — das ist die
+  Instinct 2 (dieselbe Nummer wie seine Tokens 1059-1061). Ursache: `devices.py:190` ersetzt ein
+  Label nur, wenn es GENERISCH ist („Garmin", „Wear", „Zepp", …); ein echter Modellname bleibt
+  stehen, auch wenn die Hardware widerspricht. Gesetzt wird das Label beim Pairing
+  (`pair_claim`: `p.label or body.label or "Garmin"`), also aus einer Angabe, nicht aus der
+  Hardware. Folge: 10 Instinct-2-Aufnahmen standen unter „fenix 7X Pro" — und so etwas landet
+  auch in der Uhren-Statistik und in jeder Modell-Auswertung.
+  - **Vorschlag:** loest `pn` auf ein bekanntes Modell auf, gewinnt die Part-Number. Sie kommt von
+    der Hardware, das Label ist geraten. Einen Umbenennen-Weg fuer Nutzer gibt es nicht
+    (geprueft), es wuerde also nichts ueberschrieben, was jemand selbst gesetzt hat. **Jans OK
+    steht aus.**
+  - **Nebenbefund, nur fuer den Emulator:** der CIQ-Simulator teilt den Object Store der App
+    UEBER DIE GERAETE HINWEG. Instinct- und fenix-Simulator benutzten denselben gespeicherten
+    `deviceToken` (alle 22 Sessions am 20.09. haengen an Token 1062) und dieselbe
+    Upload-Warteschlange. Beim Testen heisst das: eine haengende Session der einen Uhr blockiert
+    auch die andere, und „App-Daten loeschen" trifft beide. Trennen lassen sich die Aufnahmen
+    hinterher nur an den Daten — die Instinct faehrt wegen `_isLowMem()` GPS-only (null
+    Accel-Chunks, `detection = gps_only`), die fenix liefert Accel.
+
+
 - **🔁 WIEDERKEHREND: Uhren-Statistik alle paar Wochen neu erzeugen** (Jan, 19.09.2026).
   Die Seite `/watch-stats` sagt selbst „Re-run every few weeks" und nennt das Datum des
   Schnappschusses — steht dort ein altes, ist die Aussage schwaecher, als sie sein muesste.
