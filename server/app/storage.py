@@ -37,6 +37,7 @@ def ensure_session_dir(session_uuid: str) -> Path:
     d = session_dir(session_uuid)
     (d / "gps").mkdir(parents=True, exist_ok=True)
     (d / "accel").mkdir(parents=True, exist_ok=True)
+    (d / "gyro").mkdir(parents=True, exist_ok=True)
     return d
 
 
@@ -65,6 +66,25 @@ def save_accel_chunk(session_uuid: str, index: int, b64: str, t0_ms: int | None 
     if t0_ms is not None:
         (d / "accel" / f"{index}.t0").write_text(str(int(t0_ms)))
     # int16, 3 Achsen pro Sample
+    return len(raw) // 2 // 3
+
+
+def save_gyro_chunk(session_uuid: str, index: int, b64: str, t0_ms: int | None = None) -> int:
+    """Drehraten-Chunk ablegen — gleiche Form wie Accel, eigenes Verzeichnis.
+
+    EIGENER KANAL, bewusst nicht an den Accel drangehaengt: jeder vorhandene Recorder (Garmin,
+    Wear, Apple Watch, Zepp) schreibt drei Achsen je Sample, und die Auswertung liest genau das.
+    Sechs Achsen in denselben Chunk zu packen haette jede Alt-Aufnahme unlesbar gemacht.
+
+    Format: int16 little-endian, drei Achsen (x, y, z) je Sample, `GYRO_SCALE` Schritte je rad/s
+    (s. docs/data-format.md). Die Analyse liest das heute NICHT — die Daten werden gesammelt,
+    damit spaeter ueberhaupt etwas zum Auswerten da ist (Pump-/Turn-Erkennung, s. docs/TODO.md).
+    """
+    d = ensure_session_dir(session_uuid)
+    raw = base64.b64decode(b64)
+    (d / "gyro" / f"{index}.bin").write_bytes(raw)
+    if t0_ms is not None:
+        (d / "gyro" / f"{index}.t0").write_text(str(int(t0_ms)))
     return len(raw) // 2 // 3
 
 

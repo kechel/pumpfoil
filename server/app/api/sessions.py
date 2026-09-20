@@ -869,12 +869,21 @@ def list_in_progress(
     # Chunk-Zahlen je (Session, Kind) in EINER Abfrage — kein N+1.
     gps_n: dict[int, int] = {}
     accel_n: dict[int, int] = {}
+    gyro_n: dict[int, int] = {}
     for sid, kind, n in (
         db.query(models.IngestChunk.session_id, models.IngestChunk.kind, func.count())
         .filter(models.IngestChunk.session_id.in_(ids))
         .group_by(models.IngestChunk.session_id, models.IngestChunk.kind).all()
     ):
-        (gps_n if kind == "gps" else accel_n)[sid] = int(n)
+        # AUSDRUECKLICH je Kanal, nicht „alles ausser gps": seit es einen dritten gibt (`gyro`,
+        # Handy-Recorder ab Android 1.1.31 / iOS 1.1.36) haette dessen Zahl sonst die Accel-Zahl
+        # ueberschrieben.
+        if kind == "gps":
+            gps_n[sid] = int(n)
+        elif kind == "accel":
+            accel_n[sid] = int(n)
+        elif kind == "gyro":
+            gyro_n[sid] = int(n)
     # Zeitpunkt des zuletzt empfangenen Chunks je Session — Client erkennt darüber einen
     # ins Stocken geratenen Upload (>5 min still) und zeigt dann den „App auf der Uhr erneut
     # öffnen"-Hinweis.
@@ -900,6 +909,7 @@ def list_in_progress(
     for s in rows:
         g = gps_n.get(s.id, 0)
         a = accel_n.get(s.id, 0)
+        gy = gyro_n.get(s.id, 0)
         lbl = dmap.get(s.device_id) if s.device_id else None
         out.append({
             "id": s.id,
@@ -908,7 +918,10 @@ def list_in_progress(
             "tz": tz_name(s.place_lat, s.place_lon),
             "status": s.status,
             "device_label": lbl.split("/")[0].strip() if lbl else None,
-            "upload_received": g + a,
+            # ALLE Kanaele, auch Gyro: `expected_chunks` kommt vom Client und zaehlt einen
+            # gemeinsamen Chunk-Index ueber alle Kanaele hoch. Ohne das Gyro hier stuende der
+            # Fortschritt bei einer Handy-Aufnahme mit Kreisel dauerhaft unter 100 %.
+            "upload_received": g + a + gy,
             "upload_total": s.expected_chunks,   # None bis Clients es senden (Phase 3)
             "gps_received": g,
             "accel_received": a,

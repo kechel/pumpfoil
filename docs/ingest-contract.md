@@ -42,7 +42,7 @@ token on the device and reuse it for every upload.
    ```json
    {
      "index": 0,
-     "kind": "gps" | "accel",
+     "kind": "gps" | "accel" | "gyro",
      "encoding": "json" | "int16-b64",
      "t0_ms": 0,
      "count": 0,
@@ -108,6 +108,22 @@ Recommended rate 1 Hz, ~60 samples per chunk.
   axis alignment is not critical — but keep x/y/z consistent.
 - Buffer to disk during recording (90k samples/h); upload in chunks; delete a chunk after the
   server acks it. Uploads may happen any time after the session (token + buffer persist).
+
+### Gyro chunk (`kind: "gyro"`, `encoding: "int16-b64"`) — optional, since 2026-09-20
+
+Same shape as the accel chunk, samples interleaved **x, y, z**. Convert raw to **rad/s by
+dividing by 1024** (value `1024` = 1 rad/s, range ±32 rad/s ≈ ±1830 °/s).
+
+- **The scale is fixed in this contract**, not announced per session — there is no `gyro_scale`
+  field. Rate equals `accel_hz`; the real rate comes from the `.t0` sidecars, as with accel.
+- **Send it only if the device actually has a gyroscope.** No gyro, no chunks — nothing else
+  changes. It is a separate channel on purpose: every existing recorder writes three axes per
+  accel sample and the analysis reads exactly that.
+- **Optional for a new recorder.** The server stores it (`data/<uuid>/gyro/`) and counts it in
+  `ingest_chunks`, but **the analysis does not read it yet** — it is being collected so there is
+  data to work with later. It roughly doubles the raw size of a recording, so a device on a
+  metered connection may reasonably skip it.
+- Today only the phone recorders send it (Android 1.1.31+, iOS 1.1.36+).
 
 ## Platform notes
 

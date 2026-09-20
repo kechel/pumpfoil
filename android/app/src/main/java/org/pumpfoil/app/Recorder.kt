@@ -31,6 +31,10 @@ import java.util.UUID
 object Recorder {
     const val ACCEL_HZ = 50          // Handys können hoch; >=15 Hz nötig für Pumps
     const val ACCEL_SCALE = 2048.0   // int16 2048 == 1 g
+    // Drehrate. Android liefert TYPE_GYROSCOPE in rad/s; 1024 Schritte je rad/s passen mit
+    // +/-32 rad/s (rund 1830 Grad/s) bequem in int16 und lassen 0,001 rad/s Aufloesung.
+    // Gleiche Bauart wie ACCEL_SCALE, damit der Kanal sich genauso liest.
+    const val GYRO_SCALE = 1024.0    // int16 1024 == 1 rad/s
     private const val G = 9.80665
     private const val UPLOAD_POOL = 6   // parallele Chunk-Uploads (Handy hat echtes Netz)
 
@@ -179,6 +183,11 @@ object Recorder {
     private val trackPts = ArrayList<DoubleArray>()
     private val accel = ArrayList<Short>(16384)
     private var accelT0 = 0
+    // Kreisel, falls das Geraet einen hat. Eigener Puffer und eigener Chunk-Kanal — der Accel
+    // hat sein Format mit drei Achsen, und alle vorhandenen Recorder und die Auswertung lesen
+    // genau das (s. docs/data-format.md).
+    private val gyro = ArrayList<Short>(16384)
+    private var gyroT0 = 0
     private val gps = ArrayList<DoubleArray>(256)
     private var prevLat = Double.NaN
     private var prevLon = Double.NaN
@@ -220,7 +229,7 @@ object Recorder {
         uuid = UUID.randomUUID().toString()
         startMs = System.currentTimeMillis()
         chunkIndex = 0
-        synchronized(lock) { accel.clear(); gps.clear(); spWin.clear() }
+        synchronized(lock) { accel.clear(); gyro.clear(); gps.clear(); spWin.clear() }
         prevLat = Double.NaN; prevLon = Double.NaN
         distM = 0.0; maxMps = 0.0
         val meta = JSONObject()
@@ -383,6 +392,17 @@ object Recorder {
         }
     }
 
+    /** Drehrate in rad/s (TYPE_GYROSCOPE). Wird nur aufgerufen, wenn das Geraet einen Kreisel hat. */
+    fun addGyro(x: Float, y: Float, z: Float) {
+        if (!running) return
+        synchronized(lock) {
+            if (gyro.isEmpty()) gyroT0 = elapsedMs()
+            gyro.add(toI16(x * GYRO_SCALE))
+            gyro.add(toI16(y * GYRO_SCALE))
+            gyro.add(toI16(z * GYRO_SCALE))
+        }
+    }
+
     // Standschwelle fuer die LIVE-Distanz. Ohne sie summiert jeder GPS-Fix seinen Abstand zum
     // Vorgaenger auf — auch wenn die Uhr am Steg liegt und nur der Empfang zittert. Gemessen an
     // 400 echten Sessions (26.08.): die ungefilterte Punkt-zu-Punkt-Summe liegt bis zu 53 %
@@ -466,7 +486,7 @@ object Recorder {
     private suspend fun flushLoop() {
         while (running) { delay(10_000); flushAll() }
     }
-    private fun flushAll() { flushAccel(); flushGps() }
+    private fun flushAll() { flushAccel(); flushGyro(); flushGps() }
 
     private fun flushAccel() {
         val ctx = appCtx ?: return
@@ -481,6 +501,25 @@ object Recorder {
         val b64 = Base64.encodeToString(bb.array(), Base64.NO_WRAP)
         RecStore.writeChunk(ctx, uuid, chunkIndex, JSONObject()
             .put("index", chunkIndex).put("kind", "accel").put("encoding", "int16-b64")
+            .put("t0_ms", t0).put("count", buf.size / 3).put("data", b64))
+        chunkIndex++
+    }
+
+    // Wie flushAccel, nur anderer Kanal. Hat das Geraet keinen Kreisel, ist der Puffer immer
+    // leer und es entsteht kein einziger Chunk — alte Aufnahmen und Uhren aendern sich nicht.
+    private fun flushGyro() {
+        val ctx = appCtx ?: return
+        val buf: ShortArray; val t0: Int
+        synchronized(lock) {
+            if (gyro.isEmpty()) return
+            buf = ShortArray(gyro.size) { gyro[it] }; t0 = gyroT0
+            gyro.clear()
+        }
+        val bb = ByteBuffer.allocate(buf.size * 2).order(ByteOrder.LITTLE_ENDIAN)
+        for (s in buf) bb.putShort(s)
+        val b64 = Base64.encodeToString(bb.array(), Base64.NO_WRAP)
+        RecStore.writeChunk(ctx, uuid, chunkIndex, JSONObject()
+            .put("index", chunkIndex).put("kind", "gyro").put("encoding", "int16-b64")
             .put("t0_ms", t0).put("count", buf.size / 3).put("data", b64))
         chunkIndex++
     }

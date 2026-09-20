@@ -43,6 +43,10 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
 
     private let ACCEL_HZ = 50.0
     private let ACCEL_SCALE = 2048.0
+    // Drehrate. CoreMotion liefert `rotationRate` in rad/s; 1024 Schritte je rad/s passen mit
+    // +/-32 rad/s (rund 1830 Grad/s) bequem in int16. Gleicher Wert wie in der Android-App
+    // (`Recorder.GYRO_SCALE`) — ein Format fuer beide Handys.
+    private let GYRO_SCALE = 1024.0
 
     private let loc = CLLocationManager()
     private let motion = CMMotionManager()
@@ -52,6 +56,10 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
     // Puffer (unter lock)
     private var accelBuf: [Int16] = []
     private var accelT0Ms = 0
+    // Kreisel, falls vorhanden. Eigener Puffer und eigener Chunk-Kanal — der Accel hat sein
+    // Format mit drei Achsen, und alle vorhandenen Recorder lesen genau das.
+    private var gyroBuf: [Int16] = []
+    private var gyroT0Ms = 0
     private var gpsBuf: [[Double]] = []
 
     // Live-Kennzahlen
@@ -128,7 +136,7 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         uuid = UUID().uuidString
         startMs = Date().timeIntervalSince1970 * 1000
         chunkIndex = 0
-        lock.lock(); accelBuf.removeAll(); gpsBuf.removeAll(); spWin.removeAll(); lock.unlock()
+        lock.lock(); accelBuf.removeAll(); gyroBuf.removeAll(); gpsBuf.removeAll(); spWin.removeAll(); lock.unlock()
         prevLat = .nan; prevLon = .nan; distM = 0; maxMps = 0
         foiling = false; foilEnter = 0; foilExit = 0; runEndedMs = -100000
         runCnt = 0; runStartMs = 0; runStartDist = 0; runMaxMps = 0
@@ -157,6 +165,15 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
                 self.addAccel(a.x, a.y, a.z)
             }
         }
+        // Kreisel NUR, wenn das Geraet einen hat. Dieselbe Rate wie der Accel, damit beide
+        // Kanaele zeitlich zusammenpassen.
+        if motion.isGyroAvailable {
+            motion.gyroUpdateInterval = 1.0 / ACCEL_HZ
+            motion.startGyroUpdates(to: motionQ) { [weak self] data, _ in
+                guard let self, let r = data?.rotationRate else { return }
+                self.addGyro(r.x, r.y, r.z)
+            }
+        }
         flushTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.flushAll() }
         }
@@ -167,6 +184,7 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         recording = false
         loc.stopUpdatingLocation()
         motion.stopAccelerometerUpdates()
+        motion.stopGyroUpdates()
         flushTimer?.invalidate(); flushTimer = nil
         status = "saving"
         flushAll()
@@ -226,6 +244,19 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
             self.accelBuf.append(self.toI16(x * self.ACCEL_SCALE))
             self.accelBuf.append(self.toI16(y * self.ACCEL_SCALE))
             self.accelBuf.append(self.toI16(z * self.ACCEL_SCALE))
+            self.lock.unlock()
+        }
+    }
+
+    /// Drehrate in rad/s (CMGyroData.rotationRate).
+    nonisolated func addGyro(_ x: Double, _ y: Double, _ z: Double) {
+        Task { @MainActor in
+            guard self.recording else { return }
+            self.lock.lock()
+            if self.gyroBuf.isEmpty { self.gyroT0Ms = self.elapsedMs() }
+            self.gyroBuf.append(self.toI16(x * self.GYRO_SCALE))
+            self.gyroBuf.append(self.toI16(y * self.GYRO_SCALE))
+            self.gyroBuf.append(self.toI16(z * self.GYRO_SCALE))
             self.lock.unlock()
         }
     }
@@ -340,7 +371,7 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
 
     // MARK: Flush (lokal persistieren)
 
-    private func flushAll() { flushAccel(); flushGps() }
+    private func flushAll() { flushAccel(); flushGyro(); flushGps() }
 
     private func flushAccel() {
         lock.lock()
@@ -351,6 +382,22 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         for s in buf { var le = s.littleEndian; withUnsafeBytes(of: &le) { data.append(contentsOf: $0) } }
         Store.writeChunk(uuid, chunkIndex, [
             "index": chunkIndex, "kind": "accel", "encoding": "int16-b64",
+            "t0_ms": t0, "count": buf.count / 3, "data": data.base64EncodedString(),
+        ])
+        chunkIndex += 1
+    }
+
+    // Wie flushAccel, nur anderer Kanal. Ohne Kreisel bleibt der Puffer leer und es entsteht
+    // kein einziger Chunk — alte Aufnahmen und die Uhren aendern sich nicht.
+    private func flushGyro() {
+        lock.lock()
+        if gyroBuf.isEmpty { lock.unlock(); return }
+        let buf = gyroBuf; let t0 = gyroT0Ms; gyroBuf.removeAll()
+        lock.unlock()
+        var data = Data(capacity: buf.count * 2)
+        for s in buf { var le = s.littleEndian; withUnsafeBytes(of: &le) { data.append(contentsOf: $0) } }
+        Store.writeChunk(uuid, chunkIndex, [
+            "index": chunkIndex, "kind": "gyro", "encoding": "int16-b64",
             "t0_ms": t0, "count": buf.count / 3, "data": data.base64EncodedString(),
         ])
         chunkIndex += 1

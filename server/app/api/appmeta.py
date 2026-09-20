@@ -702,6 +702,14 @@ NAECHSTES: list[dict] = [
          "On Wear OS the app now stays on screen until you close it.",
          "The two new on-foil alarms are in the profile of the Android app.",
          "Wear OS vibrates at the distance and time marks set in your profile.",
+         "The phone recorder also records the gyroscope, if the phone has one.",
+     ]},
+
+    {"name": "iPhone + Apple Watch", "version": "1.1.36",
+     # 1.1.35 liegt seit 20.09. 08:50 bei Apple und ist ab da eingefroren — alles Weitere
+     # gehoert hierher. project.yml bleibt auf 1.1.35, bis der Ausgang feststeht.
+     "items": [
+         "The phone recorder also records the gyroscope, if the phone has one.",
      ]},
 
     {"name": "Amazfit", "version": "1.0.12",
