@@ -1386,6 +1386,29 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **📥 20.09. — Instinct 2: Upload-OOM war die haengende Session, nicht der Speicherbedarf.**
+  Nach dem Loeschen der Simulator-App-Daten laufen Aufnahme, Speichern und Upload auf 1.0.88
+  durch (Jan: "gespeichert ohne absturz"). Vorher starb die App bei JEDEM Versuch an derselben
+  Stelle — `Uploader.mc:484`, `Storage.getValue("cg_"+uuid+"_"+idx)`, aufgeloest aus dem Stack
+  `0x100008ae`/`0x100007fb` gegen die `debug.xml` desselben Builds. Blockiert hat Session
+  `1789660996-599333044` vom 17.09.: sie stand vorn in der Warteschlange (`syncAll` arbeitet
+  `sessions` in Aufnahmereihenfolge ab), riss die App am ersten Chunk um, und alles dahinter kam
+  nie dran — zwei Laeufe lang erreichte den Server von dieser Uhr gar nichts mehr.
+  - **Damit ist die Frage beantwortet, ob die neuen Marken schuld waren: nein.** Sie kosten 1.248 B
+    im PRG-Abbild (72.012 -> 73.260 B auf instinct2), die blockierende Session stammt aber vom
+    17.09. und damit aus 1.0.87. Ein sauberer A/B-Lauf gegen 1.0.87 wurde nie gefahren, weil der
+    Speicherzustand sich mit jedem Versuch aendert; er ist jetzt auch nicht mehr noetig.
+  - **🔲 OFFEN, Jans OK steht aus — Selbstheilung beim Chunk-Lesen.** Ein Chunk, der sich nicht
+    laden laesst, legt die Uhr DAUERHAFT lahm: OOM ist in Monkey C nicht abfangbar (SDK-Doku
+    `Monkey_C/Exceptions_and_Errors.html`: "These errors cannot be caught", Out of Memory steht in
+    der Liste), und `Toybox.Application.Storage` hat keine Groessenabfrage — nur `getValue`,
+    `setValue`, `deleteValue`, `clearValues`. Vorschlag: (a) vor dem Lesen `freeMemory` gegen die
+    erwartete Chunk-Groesse pruefen und sonst sauber abbrechen statt zu sterben; (b) Canary wie
+    beim Lauf — `up_bad = <uuid>|<index>` vor dem Lesen, nach dem Absenden loeschen; findet der
+    naechste Start denselben Eintrag vor, wird genau dieser Chunk uebersprungen. Canary nur
+    schreiben, wenn `freeMemory` knapp ist, dann zahlen grosse Uhren nichts.
+
+
 - **📥 20.09. — Uhr-Etikett widerspricht der Part-Number, und das Etikett gewinnt.** Token 1062
   (Jan) heisst `fēnix® 7X Pro`, meldet aber `part_number = 006-B3888-00` — das ist die
   Instinct 2 (dieselbe Nummer wie seine Tokens 1059-1061). Ursache: `devices.py:190` ersetzt ein
