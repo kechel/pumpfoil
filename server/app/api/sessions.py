@@ -295,6 +295,9 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
         started_at=s.started_at,
         ended_at=_list_ended_at(s),
         status=s.status,
+        # Wo das Geraet war. Die Lage-Ansicht (Pitch/Roll/Gierrate) haengt daran: nur „board"
+        # misst das Brett, am Koerper misst es den Fahrer.
+        placement=s.placement,
         trim_start_ms=s.trim_start_ms,
         trim_end_ms=s.trim_end_ms,
         # Laenge der Sample-Achse (aktive Zeit) und die Pausen dazu. Beides braucht die UI, um
@@ -2523,6 +2526,16 @@ def set_meta(
     """Eigene Beschriftung (max 30 Zeichen) + optionale YouTube-URL setzen (nur Besitzer).
     Nur mitgeschickte Felder werden geändert; "" leert das jeweilige Feld."""
     s = _owned(db, user, session_id)
+    if body.placement is not None:
+        # NUR ADMINS (Jan, 20.09.: „ausser admins kann ja keiner seine session so markieren").
+        # Damit braucht die Lage-Ansicht selbst kein zweites Gate: sie erscheint, wenn die
+        # Markierung steht — und stehen kann sie nur, wenn ein Admin sie gesetzt hat.
+        if not user.is_admin:
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "Nur Admins")
+        wert = body.placement.strip().lower()
+        if wert not in ("", "board", "phone"):
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "placement: board | phone | (leer)")
+        s.placement = wert or None
     if body.caption is not None:
         cap = body.caption.strip()
         if len(cap) > CAPTION_MAX:

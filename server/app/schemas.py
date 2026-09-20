@@ -226,6 +226,9 @@ class SessionOut(BaseModel):
     # Fuer Laeufe gibt es das fertig als `t_start_clock_ms` je Segment.
     pause_windows: list[list[int]] = []
     app_version: str | None = None   # Version, mit der aufgenommen wurde (Fehlersuche)
+    # "board" = Handy war am Brett befestigt -> Lage-Auswertung (Pitch/Roll/Gierrate) moeglich.
+    # "phone" = am Koerper, misst den Fahrer. None = Uhr oder unbekannt.
+    placement: str | None = None
     # Aussortierte Läufe als Zeitfenster [[start_ms, end_ms], …] (ms ab Session-Start).
     # Betrifft NUR die Auswertung — die Rohdaten bleiben, jederzeit umkehrbar.
     excluded_ranges: list[list[int]] = []
@@ -317,6 +320,12 @@ class SessionMetaIn(BaseModel):
     mast_len_cm: int | None = None
     shim_deg: float | None = None
     board_id: int | None = None
+    # Wo das Geraet waehrend der Aufnahme war: "board" = Handy am Board befestigt, "phone" =
+    # am Koerper (Tasche/Huefte/Arm). Nur "board" macht die Lage-Auswertung sinnvoll — am
+    # Koerper misst das Handy den Fahrer, nicht das Brett. **Nur Admins duerfen das setzen**
+    # (Jan, 20.09.): die Auswertung dahinter ist roh, und solange sie das ist, soll sie
+    # niemand versehentlich aufrufen. "" = zurueck auf unbekannt.
+    placement: str | None = None
 
 
 class SessionVideoIn(BaseModel):
