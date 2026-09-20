@@ -1386,6 +1386,25 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 20.09. — Garmin 1.0.88 EINGEREICHT** (Jans Meldung „ist hochgeladen").
+  - Paket: `/home/jan/release-staging/garmin-1.0.88/pumpfoil-1.0.88.iq`, **13.731.873 B**,
+    sha1 `6ea21ca350aea26c57f2641f9f20cf3b3b91ba55`, md5 `31ce2b2dfa5c7070277d19e58370adf3`,
+    **218 von 218 Geraeten, BUILD SUCCESSFUL, 0 Fehler** (19.421 Warnungen, dieselben
+    Container-Typ-Hinweise wie in jedem Build; `build.log` daneben).
+  - Uhr-Code aus Commit `aa935d4e`. Store-Notizen deu/eng liegen als `store-notizen.txt` daneben
+    und stehen WORTGLEICH in `IN_REVIEW`.
+  - Test-`.prg` fuer Jan: `Pumpfoil-fenix7xpro.prg` (100.348 B) und `Pumpfoil-instinct2.prg`
+    (73.244 B), beide mit `-r` gebaut, beide von Jan im Emulator gefahren — Aufnahme, Speichern
+    und Upload liefen durch.
+  - Inhalt: On-Foil-Marken nach Strecke und Zeit im Lauf · Pairing-Code frei vom Teildisplay der
+    Instinct-Klasse · Puffer-Schaetzung zaehlt nicht mehr einen Chunk je wartender Session zu viel.
+  - **`watch/bin` NICHT angefasst, `_APP_META["garmin"]` bleibt auf 1.0.87** ([[watch-bin-is-live]]).
+  - **Freigabe-Kette, in dieser Reihenfolge:** 1. Freigabe abwarten 2. `build-all.sh`
+    3. `_APP_META["garmin"].latest` auf **1.0.88** 4. `IN_REVIEW`-Eintrag entfernen
+    5. Changelog-Ereignis. Vorher NICHTS davon — sonst bewirbt die Website eine Version, die der
+    Store noch nicht ausliefert.
+
+
 - **📥 20.09. — Instinct 2: Upload-OOM war die haengende Session, nicht der Speicherbedarf.**
   Nach dem Loeschen der Simulator-App-Daten laufen Aufnahme, Speichern und Upload auf 1.0.88
   durch (Jan: "gespeichert ohne absturz"). Vorher starb die App bei JEDEM Versuch an derselben
