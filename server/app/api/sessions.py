@@ -3403,6 +3403,82 @@ def appeal_classification(
     return {"ok": True}
 
 
+# --- Abmessungen des Rigs fuer die Lage-Zeichnung -------------------------------------------
+# GEMESSEN ist nur, was der Nutzer gepflegt hat: Spannweite und Flaeche kommen aus dem Katalog
+# (`foils`/`stabs`), Mastlaenge und Boardlaenge aus der Session bzw. seinem Standard-Setup. Die
+# mittlere Fluegeltiefe ergibt sich daraus als Flaeche/Spannweite — die Zeichnung muss sie nicht
+# raten.
+#
+# NICHT gemessen und deshalb hier als ANNAHME, bis Jan nachmisst (20.09.2026): wo Mast und
+# Fluegel LAENGS sitzen. Jans Beschreibung ist die Vorlage — „das Foil ist ziemlich genau zentral
+# in der Mitte unter dem Board, der Stab ist kurz hinter dem Ende des Boards", der Mast am
+# hinteren Ende. Daraus als Anteil der Boardlaenge, Nullpunkt ist der Frontfluegel:
+X_MAST_ANTEIL = -0.38      # Mast, vom Frontfluegel nach hinten (Boardende liegt bei -0.5)
+X_STAB_ANTEIL = -0.62      # Stab, also knapp hinter dem Boardende
+# Rueckfall, wenn im Setup nichts steht. Bewusst ein typisches Pump-Setup, keine Nullen: eine
+# Zeichnung ohne Masse waere keine Zeichnung.
+RIG_STANDARD = {"board_len_cm": 110.0, "mast_len_cm": 75.0,
+                "foil_span_cm": 120.0, "foil_area_cm2": 1200.0,
+                "stab_span_cm": 40.0, "stab_area_cm2": 200.0}
+
+
+def _rig_geometrie(db: Session, s: models.Session) -> dict:
+    """Abmessungen des Foils in ZENTIMETERN, plus die Laengspositionen (x, nach vorn positiv).
+
+    Nullpunkt ist der Frontfluegel: er traegt den Auftrieb und ist damit der Punkt, um den die
+    Zeichnung in allen drei Ansichten dreht. Jeder Wert traegt in `gemessen` mit, ob er aus den
+    Daten kommt oder eine Annahme ist — die Oberflaeche soll das sagen koennen.
+    """
+    st: dict = {}
+    if s.user and s.user.settings_json:
+        try:
+            st = json.loads(s.user.settings_json) or {}
+        except ValueError:
+            st = {}
+
+    g: dict = {}
+    gemessen: dict[str, bool] = {}
+
+    def setze(feld: str, wert, standard: float) -> None:
+        g[feld] = float(wert) if wert else standard
+        gemessen[feld] = bool(wert)
+
+    foil_id = s.foil_id if s.foil_id is not None else st.get("foil_id")
+    foil = db.get(models.Foil, int(foil_id)) if foil_id else None
+    setze("foil_span_cm", foil.span_cm if foil else None, RIG_STANDARD["foil_span_cm"])
+    setze("foil_area_cm2", foil.area_cm2 if foil else None, RIG_STANDARD["foil_area_cm2"])
+
+    stab_id = s.stab_id if s.stab_id is not None else st.get("stab_id")
+    stab = db.get(models.Stab, int(stab_id)) if stab_id else None
+    setze("stab_span_cm", stab.span_cm if stab else None, RIG_STANDARD["stab_span_cm"])
+    setze("stab_area_cm2", stab.area_cm2 if stab else None, RIG_STANDARD["stab_area_cm2"])
+
+    setze("mast_len_cm", s.mast_len_cm if s.mast_len_cm is not None else st.get("mast_len_cm"),
+          RIG_STANDARD["mast_len_cm"])
+
+    board_id = s.board_id if s.board_id is not None else st.get("board_id")
+    board = db.get(models.Board, int(board_id)) if board_id else None
+    setze("board_len_cm", board.length_cm if board else None, RIG_STANDARD["board_len_cm"])
+
+    # Mittlere Fluegeltiefe = Flaeche / Spannweite. Fuer Jans SIRUS 2000 sind das 12,8 cm, fuer
+    # den Stab Fluid H 4,8 cm — die Zeichnung bekommt damit echte Proportionen statt Schaetzern.
+    g["foil_chord_cm"] = round(g["foil_area_cm2"] / max(g["foil_span_cm"], 1.0), 1)
+    g["stab_chord_cm"] = round(g["stab_area_cm2"] / max(g["stab_span_cm"], 1.0), 1)
+
+    lb = g["board_len_cm"]
+    g["x_foil_cm"] = 0.0
+    g["x_mast_cm"] = round(X_MAST_ANTEIL * lb, 1)
+    g["x_stab_cm"] = round(X_STAB_ANTEIL * lb, 1)
+    g["fuse_len_cm"] = round(abs(g["x_stab_cm"] - g["x_foil_cm"]), 1)
+    gemessen["x_mast_cm"] = gemessen["x_stab_cm"] = False     # s. Kommentar oben
+    g["shim_deg"] = float(s.shim_deg if s.shim_deg is not None else (st.get("shim_deg") or 0.0))
+    g["gemessen"] = gemessen
+    g["name"] = {"foil": f"{foil.brand} {foil.model}" if foil else None,
+                 "stab": f"{stab.brand} {stab.model}" if stab else None,
+                 "board": board.name if board else None}
+    return g
+
+
 @router.get("/{session_id}/attitude")
 def board_lage(
     session_id: int,
@@ -3447,19 +3523,24 @@ def board_lage(
     except (ValueError, AttributeError):
         segmente = []
     laeufe = len(segmente)
+    off = int(s.trim_start_ms or 0)
     if run is not None:
         if not 0 <= run < laeufe:
             raise HTTPException(status.HTTP_404_NOT_FOUND, "Lauf gibt es nicht")
-        off = int(s.trim_start_ms or 0)
         g = segmente[run]
         von = int(g.get("t_start_session_ms", int(g["t_start_ms"]) + off))
         bis = int(g.get("t_end_session_ms", int(g["t_end_ms"]) + off))
 
+    # Nullpunkt-Bezug: ALLE Laeufe, auch wenn nur einer gezeigt wird. Die Null ist eine
+    # Eigenschaft der Montage, nicht des Ausschnitts — sonst spraenge der Winkel beim
+    # Umschalten zwischen den Laeufen.
     erg = lage.lage_berechnen(acc, t_acc, gyr, t_gyr,
                               ziel_hz=hz, yaw_fenster_s=yaw_window_s,
-                              t_von_ms=von, t_bis_ms=bis)
+                              t_von_ms=von, t_bis_ms=bis,
+                              ref_bereiche_ms=lage.laufbereiche(segmente, off))
     erg["session_id"] = s.id
     erg["run"] = run
     erg["runs"] = laeufe
     erg["placement"] = s.placement
+    erg["rig"] = _rig_geometrie(db, s)
     return erg

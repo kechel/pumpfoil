@@ -1386,6 +1386,24 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔲 20.09. — Lage-Ansicht: drei Dinge, die noch offen sind.**
+  1. **Jan misst nach** (angeboten): **Rumpflaenge** (Frontfluegel ↔ Stab), **Position des Mastes
+     auf dem Rumpf** und **wo der Mastkasten auf dem Board sitzt**. Alles andere steht schon in
+     den Daten — Spannweite und Flaeche aus dem Katalog, Mastlaenge und Boardlaenge aus dem
+     Setup, die Fluegeltiefe als Flaeche/Spannweite. Bis dahin leitet
+     `sessions.py:_rig_geometrie` die Laengspositionen aus Jans Beschreibung ab (Frontfluegel
+     mittig unterm Board, Mast am Heck, Stab knapp dahinter) — als Anteil der Boardlaenge, und
+     jedes Feld sagt in `rig.gemessen`, ob es gemessen oder angenommen ist.
+  2. **Die RICHTUNG von Nicken und Rollen ist noch nicht belegt.** Der Nullpunkt faengt ab, WIE
+     das Handy montiert war, aber nicht, ob es dabei auf dem Kopf oder rueckwaerts lag — dann
+     sind die Vorzeichen gespiegelt. Der Betrag stimmt trotzdem. **Laesst sich aus den Daten
+     klaeren**, ohne dass jemand etwas notieren muss: die integrierte Gierrate gegen die
+     Kursaenderung aus dem GPS legen. Laufen sie gegenlaeufig, ist die Hochachse gespiegelt —
+     dann stimmt auch das Rollen andersherum. Erst sinnvoll mit einer echten Fahrt.
+  3. **Fenstergroessen fuers Gieren feintunen**, sobald eine echte Pump-Session am Brett
+     aufgenommen ist (0,1 / 0,5 / 1 / 3 / 5 s stehen zur Wahl).
+
+
 - **📋 20.09. — Zepp „Workout Extension" geprueft: kein Ersatz fuer unseren Recorder, aber ein
   moegliches ZUSATZ-Produkt. Nicht jetzt, als Plan festgehalten.**
   Anlass: ein Nutzer schickte Jan eine Gemini-Antwort mit der Empfehlung, die Amazfit-App als
