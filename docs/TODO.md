@@ -1386,6 +1386,30 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 20.09. 17:17 — Feedback #141 (u146, iOS): „Spitfire 1180 fehlt" -> eingetragen, plus eine
+  zweite Luecke und ein Verdacht auf einen ALTEN Fehler.**
+  - Marke ist **AXIS**, und wir hatten die Reihe laengst — aber nur sechs Groessen (780, 840, 900,
+    960, 1030, 1100). Der Hersteller fuehrt **acht bis zehn**: 720, 780, 840, 900, 960, 1030,
+    1100, 1180 (die AXIS-Seite listet zusaetzlich 620 und 670).
+  - **AXIS benennt nach SPANNWEITE in mm, nicht nach Flaeche** — unsere eigenen Zeilen belegen es
+    (780 -> `span_cm 78,0`, `area_cm2 886`). Wer die Groessenzahl fuer die Flaeche haelt, traegt
+    Unsinn ein.
+  - **Flaeche abgeleitet, nicht geraten:** AXIS/Haendler veroeffentlichen Spannweite UND Streckung,
+    und AR = b²/A ist eine Definition. Die Streckungsliste (9,13 / 8,66 / 8,26 / 7,84 / 7,25 /
+    7,14 / 6,87 / 6,47) laesst sich eindeutig zuordnen, weil **fuenf der sechs vorhandenen Zeilen
+    exakt getroffen** werden. Eingetragen: **1180** (118 cm / 1525 cm²) und **720** (72 cm /
+    801 cm²), beide mit `specs_estimated = true`.
+  - **620 und 670 bewusst NICHT**: die stehen nur in einer Auflistung ohne jede Kennzahl.
+  - **⚠️ VERDACHT auf einen bestehenden Fehler, NICHT angefasst:** fuer die **900** sagt die
+    Haendlerliste AR 7,25, unsere Zeile ergibt 7,50 (90²/1080). Waere 7,25 richtig, muesste die
+    Flaeche **1117** statt 1080 cm² sein. Fuenf von sechs Zeilen stimmen exakt, diese eine nicht —
+    das riecht nach einem Zahlendreher bei uns. Ich habe sie stehen lassen: eine gepflegte Zahl
+    auf Verdacht zu ueberschreiben waere schlimmer als sie zu melden. Braucht eine Herstellerquelle
+    mit der Flaeche im Klartext.
+  - **Nebenbei repariert:** der Foil-Seeder trug `specs_estimated` gar nicht mit. Die Spalte gab es
+    laengst, aber eine abgeleitete Zahl stand damit ununterscheidbar neben einer veroeffentlichten.
+
+
 - **📋 20.09. — PLAN: Board-Lage-Ansicht je Lauf (Pitch/Roll/Yaw) aus dem Handy am Board.**
   Jans Auftrag: „schonmal voll die coole ansicht planen". **Nichts davon ist gebaut.**
 
