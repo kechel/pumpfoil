@@ -10,7 +10,8 @@ import zipfile
 from datetime import datetime, timedelta, timezone
 
 import numpy as np
-from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Request, Response, UploadFile, status
+from fastapi import (APIRouter, BackgroundTasks, Depends, File, HTTPException, Query, Request,
+                     Response, UploadFile, status)
 from sqlalchemy import Integer, and_, cast, func, not_, or_, tuple_
 from sqlalchemy.dialects.postgresql import JSONB
 from pydantic import BaseModel
@@ -18,6 +19,7 @@ from sqlalchemy.orm import Session, joinedload, object_session
 
 from .. import export_track, media, models, storage
 from ..analysis import EXCLUDE_MARGIN_MS, dump_excluded_windows, excluded_windows, maybe_auto_trim, run_analysis
+from ..analysis import lage
 from ..db import get_db
 from ..fitimport import parse_fit_bytes
 from ..clockmap import gesamt_pause_ms, pausen as _pausen, segmente_mit_uhrzeit
@@ -3399,3 +3401,65 @@ def appeal_classification(
     s.appeal_at = datetime.now(timezone.utc)
     db.commit()
     return {"ok": True}
+
+
+@router.get("/{session_id}/attitude")
+def board_lage(
+    session_id: int,
+    run: int | None = Query(None, description="Index des Laufs; ohne Angabe die ganze Aufnahme"),
+    yaw_window_s: float = Query(1.0, ge=0.1, le=10.0),
+    hz: float = Query(20.0, ge=2.0, le=50.0),
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Lage des Bretts (Pitch/Roll absolut, Gierwinkel-Aenderung je Fenster) fuer einen Lauf.
+
+    AUF ABRUF gerechnet, nichts gespeichert: eine Stunde bei 120 Hz sind 430.000 Samples je
+    Achse — das gehoert nicht in die Analyse-Tabelle. Ein Lauf dauert 30-300 s, das Fenster
+    dafuer ist in Millisekunden gerechnet.
+
+    Nur sinnvoll fuer `placement = "board"`; bei allem anderen misst das Geraet den Fahrer und
+    nicht das Brett. Der Endpunkt liefert trotzdem, sagt aber im Feld `placement`, woran man ist —
+    die Oberflaeche entscheidet, ob sie es zeigt.
+    """
+    s = _readable(db, session_id)
+    uuid = s.session_uuid
+
+    acc = storage.load_accel(uuid)
+    gyr = storage.load_gyro(uuid)
+    if len(acc) < 4:
+        return {"ok": False, "grund": "keine Beschleunigungsdaten", "placement": s.placement}
+    t_acc = lage.zeitachse(storage.load_accel_t0(uuid), storage.chunk_laengen(uuid, "accel"))
+    t_gyr = lage.zeitachse(storage.load_gyro_t0(uuid), storage.chunk_laengen(uuid, "gyro"))
+    if len(t_acc) != len(acc):
+        # Ohne `.t0`-Sidecars laesst sich keine exakte Achse bauen (Altbestand, FIT-Import).
+        # Lieber nichts liefern als eine geratene Zeitachse — genau davor warnt DATA-PIPELINE.
+        return {"ok": False, "grund": "keine exakte Zeitachse", "placement": s.placement}
+    if len(t_gyr) != len(gyr):
+        gyr, t_gyr = np.empty((0, 3)), np.empty(0)
+
+    # Lauf-Fenster in SESSION-ms. Die gespeicherten Segmente sind auf den Trim re-based
+    # (docs/DATA-PIPELINE.md) -> Trim-Offset wieder drauf, sonst liegt das Fenster daneben.
+    von = bis = None
+    laeufe = 0
+    try:
+        segmente = json.loads(s.result.segments_json) if s.result and s.result.segments_json else []
+    except (ValueError, AttributeError):
+        segmente = []
+    laeufe = len(segmente)
+    if run is not None:
+        if not 0 <= run < laeufe:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Lauf gibt es nicht")
+        off = int(s.trim_start_ms or 0)
+        g = segmente[run]
+        von = int(g.get("t_start_session_ms", int(g["t_start_ms"]) + off))
+        bis = int(g.get("t_end_session_ms", int(g["t_end_ms"]) + off))
+
+    erg = lage.lage_berechnen(acc, t_acc, gyr, t_gyr,
+                              ziel_hz=hz, yaw_fenster_s=yaw_window_s,
+                              t_von_ms=von, t_bis_ms=bis)
+    erg["session_id"] = s.id
+    erg["run"] = run
+    erg["runs"] = laeufe
+    erg["placement"] = s.placement
+    return erg

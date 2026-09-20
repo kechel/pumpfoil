@@ -194,6 +194,50 @@ def load_accel_t0(session_uuid: str) -> dict[int, int]:
     return out
 
 
+def load_gyro(session_uuid: str) -> np.ndarray:
+    """Alle Gyro-Chunks zu einem (N, 3) int16-Array (raw, ungeskaliert). Leer = kein Kreisel."""
+    d = session_dir(session_uuid) / "gyro"
+    if not d.exists():
+        return np.empty((0, 3), dtype=np.int16)
+    parts = [np.frombuffer(f.read_bytes(), dtype="<i2")
+             for f in sorted(d.glob("*.bin"), key=lambda p: int(p.stem))]
+    if not parts:
+        return np.empty((0, 3), dtype=np.int16)
+    flat = np.concatenate(parts)
+    n = (flat.size // 3) * 3
+    return flat[:n].reshape(-1, 3)
+
+
+def load_gyro_t0(session_uuid: str) -> dict[int, int]:
+    """Chunk-Index -> Startzeit in ms fuer den Gyro-Kanal (wie `load_accel_t0`)."""
+    d = session_dir(session_uuid) / "gyro"
+    if not d.exists():
+        return {}
+    out: dict[int, int] = {}
+    for f in d.glob("*.t0"):
+        try:
+            out[int(f.stem)] = int(f.read_text().strip())
+        except (ValueError, OSError):
+            continue
+    return out
+
+
+def chunk_laengen(session_uuid: str, kind: str) -> dict[int, int]:
+    """Chunk-Index -> Zahl der Samples. Zusammen mit den `.t0`-Sidecars ergibt das eine EXAKTE
+    Zeitachse je Kanal — noetig, weil Accel und Gyro auf Android verschieden schnell laufen
+    (Pixel 7a: 120,5 gegen 60,3 Hz, beide bei angeforderten 50)."""
+    d = session_dir(session_uuid) / kind
+    if not d.exists():
+        return {}
+    out: dict[int, int] = {}
+    for f in d.glob("*.bin"):
+        try:
+            out[int(f.stem)] = f.stat().st_size // 2 // 3
+        except (ValueError, OSError):
+            continue
+    return out
+
+
 def save_foil_status(session_uuid: str, foil_status: list) -> None:
     """Optionale Ground-Truth (foil_status je gps-Sample) für späteres Training."""
     d = ensure_session_dir(session_uuid)
