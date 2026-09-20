@@ -344,7 +344,13 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                 c.optString("alarmRepeat", "once"),
                 c.optInt("alarmRepeatS", 5),
                 c.optInt("hrHigh", 0),
-                c.optString("alarmPatternHr", "short1"))
+                c.optString("alarmPatternHr", "short1"),
+                c.optInt("runDistM", 0),
+                c.optString("runDistMode", "once"),
+                c.optString("alarmPatternDist", "short1"),
+                c.optInt("runTimeS", 0),
+                c.optString("runTimeMode", "once"),
+                c.optString("alarmPatternTime", "short2"))
             val fa = c.optJSONArray("foils")
             if (fa != null) {
                 foils = (0 until fa.length()).map { i ->
@@ -448,6 +454,13 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
             (foils.firstOrNull { it.id == sessionFoilId }?.let { alarm.copy(high = it.max, low = it.min) } ?: alarm)
         else alarm
         AlarmEffect(s.speedKmh, s.hr, effAlarm)
+        // Die Marken wertet der Recorder aus: nur dort ist bekannt, wo ein Lauf ANFAENGT und
+        // wann ein Touchdown nur eine Fortsetzung ist (sonst kaeme die 100-m-Marke doppelt).
+        LaunchedEffect(alarm.enabled, alarm.runDistM, alarm.runDistMode, alarm.patDist,
+                       alarm.runTimeS, alarm.runTimeMode, alarm.patTime) {
+            Recorder.setzeMarken(alarm.enabled, alarm.runDistM, alarm.runDistMode, alarm.patDist,
+                                 alarm.runTimeS, alarm.runTimeMode, alarm.patTime)
+        }
         // Gewählte Foil an den Recorder durchreichen (wird als foil_id ins Meta geschrieben).
         LaunchedEffect(sessionFoilId) { Recorder.sessionFoilId = sessionFoilId }
         // Post-Stop-Screen einblenden, sobald die Aufnahme endet (Flanke recording true->false).
@@ -1762,6 +1775,14 @@ data class WatchAlarm(
     val repeatS: Int = 5,          // bei "continuous": Abstand der Wiederholungen in Sekunden
     val hrHigh: Int = 0,           // Puls-Obergrenze in bpm (0 = aus)
     val patHr: String = "short1",  // Muster beim Ueberschreiten der Puls-Grenze
+    // Marken IM LAUF: Punkte, die man ERREICHT (Strecke/Zeit koennen nicht weniger werden) —
+    // eigener Modus je Marke ("once" = nur bei N | "every" = jedes Vielfache), KEIN repeat/repeatS.
+    val runDistM: Int = 0,         // Marke alle/bei N Metern im Lauf (0 = aus)
+    val runDistMode: String = "once",
+    val patDist: String = "short1",
+    val runTimeS: Int = 0,         // Marke alle/bei N Sekunden im Lauf (0 = aus)
+    val runTimeMode: String = "once",
+    val patTime: String = "short2",
 )
 
 // Foil-Option für die Start-Auswahl (Auto-Alarm-Korridor min–max km/h).
@@ -1965,7 +1986,7 @@ private fun vibrate(ctx: Context, ms: Long) {
 
 // Muster-ID -> Waveform (off/on-Dauern in ms, beginnend mit off). IDs identisch mit
 // Web + Garmin (short1/short2/long2/lsl).
-private fun vibratePattern(ctx: Context, pattern: String) {
+internal fun vibratePattern(ctx: Context, pattern: String) {
     val timings = when (pattern) {
         "short1" -> longArrayOf(0, 150)
         "long2" -> longArrayOf(0, 500, 150, 500)

@@ -156,6 +156,47 @@ object Recorder {
         return if (w > 32.0 / 3.6) 0.0 else w
     }
 
+    // --- Marken im Lauf (Strecke/Zeit) ---
+    // Keine Grenzwerte, die man ueber- oder unterschreitet, sondern Punkte, die man ERREICHT:
+    // Strecke und Zeit koennen nicht weniger werden. Darum je ein eigener Modus ("once" = nur
+    // bei N | "every" = bei jedem Vielfachen) und KEIN alarm.repeat/repeatS.
+    private var markAn = false
+    private var markDistM = 0
+    private var markDistMode = "once"
+    private var markPatDist = "short1"
+    private var markTimeS = 0
+    private var markTimeMode = "once"
+    private var markPatTime = "short2"
+    private var markDistN = 0     // wie viele Strecken-Marken in DIESEM Lauf schon vibriert haben
+    private var markTimeN = 0
+
+    /** Aus dem Profil (MainActivity, /api/devices/config) — inkl. des On-Watch-An/Aus. */
+    fun setzeMarken(an: Boolean, distM: Int, distMode: String, patDist: String,
+                    timeS: Int, timeMode: String, patTime: String) {
+        markAn = an
+        markDistM = distM; markDistMode = distMode; markPatDist = patDist
+        markTimeS = timeS; markTimeMode = timeMode; markPatTime = patTime
+    }
+
+    // Einmal je GPS-Fix, solange ein Lauf laeuft. Der Vergleich braucht keine Hysterese —
+    // beide Groessen wachsen nur.
+    private fun pruefeMarken(tMs: Long, dist: Double) {
+        if (!markAn) return
+        val ctx = appCtx ?: return
+        if (markDistM > 0 && (markDistN == 0 || markDistMode == "every")) {
+            if (dist - runStartDist >= (markDistN + 1).toDouble() * markDistM) {
+                markDistN++
+                vibratePattern(ctx, markPatDist)
+            }
+        }
+        if (markTimeS > 0 && (markTimeN == 0 || markTimeMode == "every")) {
+            if ((tMs - runStartMs) / 1000 >= (markTimeN + 1).toLong() * markTimeS) {
+                markTimeN++
+                vibratePattern(ctx, markPatTime)
+            }
+        }
+    }
+
     // Lauf-Erkennung mit Hysterese; pflegt bei Flanken die Lauf-Metriken (tMs/dist/sp in SI).
     private fun updateFoilingRun(sp3Kmh: Double, tMs: Long, dist: Double, spMps: Double): Boolean {
         if (!foiling) {
@@ -199,6 +240,7 @@ object Recorder {
                         runStartDist = dist
                         runMaxMps = spdMaxClean
                         runMaxHr = if (lastHr > 0 && tMs - lastHrMs <= PULS_ALT_MS) lastHr else 0
+                        markDistN = 0; markTimeN = 0   // neuer Lauf -> Marken von vorn
                     }
                 }
             }
@@ -324,6 +366,7 @@ object Recorder {
         running = true
         foiling = false; foilEnterStreak = 0; foilExitStreak = 0; runEndedMs = -100000L
         runCount = 0; runStartMs = 0; runStartDist = 0.0; runMaxMps = 0.0
+        markDistN = 0; markTimeN = 0
         lastRunDurMs = 0; lastRunDistM = 0.0; lastRunAvgMps = 0.0; lastRunMaxMps = 0.0
         lastRunStartMs = 0L; lastRunStartDist = 0.0; minSpeedSeitEnde = 99.0; runIstFortsetzung = false
         runMaxHr = 0; lastRunMaxHr = 0
@@ -667,6 +710,7 @@ object Recorder {
         // drei Sekunden lang oben und kann so einen Phantom-Lauf starten.
         val sp3 = if (spWin.isEmpty()) sp else spWin.map { it[1] }.sorted()[spWin.size / 2]
         val nowFoiling = updateFoilingRun(sp3 * 3.6, tMs.toLong(), distM, sp)
+        if (nowFoiling) pruefeMarken(tMs.toLong(), distM)
         // aktueller Lauf live (solange foilend), sonst letzter Lauf
         val runDur = if (nowFoiling) (tMs.toLong() - runStartMs).coerceAtLeast(0) else lastRunDurMs
         val runDist = if (nowFoiling) (distM - runStartDist).coerceAtLeast(0.0) else lastRunDistM

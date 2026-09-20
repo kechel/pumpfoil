@@ -154,6 +154,22 @@ final class Recorder: NSObject, ObservableObject {
     private let minRunAvgMps = 2.0          // langsamer = kein Lauf (Server: MOVE_FLOOR_MPS)
     private var runIstFortsetzung = false   // setzt den vorigen Lauf fort -> nicht neu zaehlen
 
+    // --- Marken im Lauf (Strecke/Zeit) ---
+    // Keine Grenzwerte, die man ueber- oder unterschreitet, sondern Punkte, die man ERREICHT:
+    // Strecke und Zeit koennen nicht weniger werden. Darum je ein eigener Modus und KEIN
+    // repeatMode/repeatS. Gesetzt aus dem Profil (RecordView.applyConfig).
+    var markAn = false
+    var markDistM = 0
+    var markDistMode = "once"
+    var markPatDist = "short1"
+    var markTimeS = 0
+    var markTimeMode = "once"
+    var markPatTime = "short2"
+    /// Haptik zum Muster — die Zuordnung Muster -> WKHapticType liegt in RecordView.playHaptic.
+    var onMark: ((String) -> Void)?
+    private var markDistN = 0   // wie viele Strecken-Marken in DIESEM Lauf schon gespielt haben
+    private var markTimeN = 0
+
     private func maxKandidat(_ v: Double) -> Double {
         burstRing[burstPos] = v
         burstPos = (burstPos + 1) % burstRing.count
@@ -231,6 +247,7 @@ final class Recorder: NSObject, ObservableObject {
         runCount = 0; runStartMs = 0; runStartDist = 0; runMaxMps = 0; runMaxHr = 0; lastRunMaxHrV = 0
         lastRunDurMs = 0; lastRunDistM = 0; lastRunAvgMps = 0; lastRunMaxMps = 0
         lastRunStartMs = 0; lastRunStartDist = 0; minSpeedSeitEnde = 99.0; runIstFortsetzung = false
+        markDistN = 0; markTimeN = 0
         runDurationMs = 0; runDistanceM = 0; runMaxSpeedKmh = 0
         lastRunDurationMs = 0; lastRunDistanceM = 0; lastRunAvgSpeedKmh = 0; lastRunMaxSpeedKmh = 0; lastRunMaxHr = 0
         status = WLoc.t("rec.recording", UserDefaults.standard.string(forKey: "appLang") ?? "de")
@@ -283,6 +300,7 @@ final class Recorder: NSObject, ObservableObject {
                     } else {
                         // Lauf-Start auf den Dwell-Beginn zurückdatieren (wie Garmin).
                         runStartMs = tMs - runEnterDwellMs; runStartDist = dist; runMaxMps = spdMaxClean; runMaxHr = hr > 0 ? hr : 0
+                        markDistN = 0; markTimeN = 0   // neuer Lauf -> Marken von vorn
                     }
                 }
             }
@@ -324,6 +342,24 @@ final class Recorder: NSObject, ObservableObject {
         lastRunAvgSpeedKmh = lastRunAvgMps * 3.6
         lastRunMaxSpeedKmh = lastRunMaxMps * 3.6
         lastRunMaxHr = lastRunMaxHrV
+        if isFoiling { pruefeMarken(tMs: tMs, dist: dist) }
+    }
+
+    // Einmal je Tick, solange ein Lauf laeuft. Ohne Hysterese — beide Groessen wachsen nur.
+    private func pruefeMarken(tMs: Int, dist: Double) {
+        guard markAn else { return }
+        if markDistM > 0, markDistN == 0 || markDistMode == "every" {
+            if dist - runStartDist >= Double((markDistN + 1) * markDistM) {
+                markDistN += 1
+                onMark?(markPatDist)
+            }
+        }
+        if markTimeS > 0, markTimeN == 0 || markTimeMode == "every" {
+            if (tMs - runStartMs) / 1000 >= (markTimeN + 1) * markTimeS {
+                markTimeN += 1
+                onMark?(markPatTime)
+            }
+        }
     }
 
     func stop() async {

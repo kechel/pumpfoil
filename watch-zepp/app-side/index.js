@@ -74,6 +74,12 @@ async function handle(req) {
       hrHigh: b && b.hrHigh, alarmPatternHigh: b && b.alarmPatternHigh,
       alarmPatternLow: b && b.alarmPatternLow, alarmPatternHr: b && b.alarmPatternHr,
       alarmRepeat: b && b.alarmRepeat, alarmRepeatS: b && b.alarmRepeatS,
+      // Marken IM LAUF (Strecke/Zeit). Muessen hier durch, sonst kennt die Uhr sie nicht —
+      // s. den Absatz darueber.
+      runDistM: b && b.runDistM, runDistMode: b && b.runDistMode,
+      alarmPatternDist: b && b.alarmPatternDist,
+      runTimeS: b && b.runTimeS, runTimeMode: b && b.runTimeMode,
+      alarmPatternTime: b && b.alarmPatternTime,
       recordMode: b && b.recordMode,
       // Neu durchgelassen: Profil-Sprache (i18n), Update-Hinweis, Pausen-Screen und das
       // Layout-Paket (gemischte Seiten-Saetze + Definitionen + Voreinstellung des Schalters).

@@ -144,6 +144,16 @@ class SessionRecorder {
     var alarmRepeatS = 5;             // bei "continuous": Abstand der Wiederholungen in s
     var alarmHrHigh = 0;              // Puls-Obergrenze in bpm (0 = aus)
     var alarmPatternHr = "short1";    // Muster beim Überschreiten der Puls-Grenze
+    // Marken IM LAUF (Strecke/Zeit). Keine Grenzwerte, die man über- oder unterschreitet,
+    // sondern Punkte, die man ERREICHT — Strecke und Zeit können nicht weniger werden.
+    // Darum je ein eigener Modus ("once" = nur bei N | "every" = bei jedem Vielfachen) und
+    // KEIN alarmRepeat/alarmRepeatS (Jan, 19.09.2026).
+    var runDistM = 0;                 // Marke alle/bei N Metern im Lauf (0 = aus)
+    var runDistMode = "once";
+    var alarmPatternDist = "short1";
+    var runTimeS = 0;                 // Marke alle/bei N Sekunden im Lauf (0 = aus)
+    var runTimeMode = "once";
+    var alarmPatternTime = "short2";
     var alarmDefault = "foil";        // Website-Vorwahl für die Uhr: "foil" = Standard-Foil | "fixed" = feste Werte
     var manualAlarm = false;          // true = Vibrationsalarm auf der Website aktiviert (Master-Schalter)
     var foils = [];                   // [{id,label,min,max}] für Foil-Auswahl beim Start
@@ -443,6 +453,12 @@ class SessionRecorder {
             if (ac.hasKey("hrh")) { alarmHrHigh = ac["hrh"]; }
             if (ac.hasKey("phr")) { alarmPatternHr = ac["phr"]; }
             if (ac.hasKey("def")) { alarmDefault = ac["def"]; }
+            if (ac.hasKey("rd")) { runDistM = ac["rd"]; }
+            if (ac.hasKey("rdm")) { runDistMode = ac["rdm"]; }
+            if (ac.hasKey("pd")) { alarmPatternDist = ac["pd"]; }
+            if (ac.hasKey("rt")) { runTimeS = ac["rt"]; }
+            if (ac.hasKey("rtm")) { runTimeMode = ac["rtm"]; }
+            if (ac.hasKey("pt")) { alarmPatternTime = ac["pt"]; }
         }
         // Gecachte Foil-Liste (Auto-Alarm je Foil) offline verfügbar machen.
         var fc = Storage.getValue("foils_config");
@@ -951,11 +967,21 @@ class SessionRecorder {
                 // wo die Foil-Auswahl auf der Uhr die Schwellen setzt.
                 if (data.hasKey("hrHigh") && data["hrHigh"] != null) { alarmHrHigh = data["hrHigh"]; }
                 if (data.hasKey("alarmDefault") && data["alarmDefault"] != null) { alarmDefault = data["alarmDefault"]; }
+                // Marken: wie die Puls-Grenze IMMER vom Web übernehmen — es gibt kein
+                // On-Watch-Gegenstück, das man damit überschreiben könnte.
+                if (data.hasKey("runDistM") && data["runDistM"] != null) { runDistM = data["runDistM"]; }
+                if (data.hasKey("runDistMode") && data["runDistMode"] != null) { runDistMode = data["runDistMode"]; }
+                if (data.hasKey("alarmPatternDist") && data["alarmPatternDist"] != null) { alarmPatternDist = data["alarmPatternDist"]; }
+                if (data.hasKey("runTimeS") && data["runTimeS"] != null) { runTimeS = data["runTimeS"]; }
+                if (data.hasKey("runTimeMode") && data["runTimeMode"] != null) { runTimeMode = data["runTimeMode"]; }
+                if (data.hasKey("alarmPatternTime") && data["alarmPatternTime"] != null) { alarmPatternTime = data["alarmPatternTime"]; }
                 _store("alarm_config", {
                     "enabled" => data["alarmEnabled"], "high" => webHigh, "low" => webLow,
                     "ph" => alarmPatternHigh, "pl" => alarmPatternLow, "rep" => alarmRepeat,
                     "reps" => alarmRepeatS, "hrh" => alarmHrHigh, "phr" => alarmPatternHr,
-                    "def" => alarmDefault });
+                    "def" => alarmDefault,
+                    "rd" => runDistM, "rdm" => runDistMode, "pd" => alarmPatternDist,
+                    "rt" => runTimeS, "rtm" => runTimeMode, "pt" => alarmPatternTime });
             }
             // Foil-Liste (Auto-Alarm je Foil) übernehmen + cachen.
             if (data.hasKey("foils") && data["foils"] instanceof Lang.Array) {
@@ -1147,6 +1173,7 @@ class SessionRecorder {
         _lastRunDurMs = 0; _lastRunDistM = 0.0; _lastRunMaxSpeed = 0.0; _lastRunAvgSpeed = 0.0;
         _lastRunStartMs = 0; _lastRunStartDist = 0.0; _minSpeedSeitEnde = 99.0; _runIstFortsetzung = false;
         _runMaxHr = 0; _lastRunMaxHr = 0;
+        resetMarks();
 
         // Roh-Accel ist OPTIONAL: ältere/abweichende Geräte ohne SensorLogging bzw.
         // ohne Roh-Beschleunigungs-Stream zeichnen GPS-only auf (Server -> gps_only).
@@ -1457,7 +1484,10 @@ class SessionRecorder {
             _speedRing[_speedRingPos] = spd;
             _speedRingPos = (_speedRingPos + 1) % SPEED_AVG_SAMPLES;
             _checkAlarm(speed3s());
-            _updateRun(speed3sMed(), spd, distanceM(), elapsedTimeMs());
+            var distJetzt = distanceM();
+            var tJetzt = elapsedTimeMs();
+            _updateRun(speed3sMed(), spd, distJetzt, tJetzt);
+            if (_foiling) { _checkMarks(distJetzt, tJetzt); }
             // KEIN Live-Upload während der Aktivität: Garmin meldet sonst „Übertragung
             // während der Aktivität nicht möglich". Chunks landen laufend in Storage
             // (onAccel/onPosition); hochgeladen wird erst nach Stopp bzw. auf der
@@ -1640,6 +1670,7 @@ class SessionRecorder {
                         _runStartDist = dist;
                         _runMaxSpeed = _spdMaxClean;
                         _runMaxHr = (_currentHr != null && _currentHr > 0) ? _currentHr : 0;
+                        resetMarks();   // neuer Lauf -> Marken von vorn (Fortsetzung nicht)
                     }
                 }
             }
@@ -2030,6 +2061,43 @@ class SessionRecorder {
             _alarmTick = 0;
         }
         _checkHrAlarm();
+    }
+
+    // --- Marken im Lauf (Strecke/Zeit) ---
+    // Wie viele Marken in DIESEM Lauf schon vibriert haben. Bei "once" bleibt es bei 1, bei
+    // "every" zählt es hoch — die nächste Marke liegt immer bei (Zähler+1) × Abstand.
+    hidden var _markDistN = 0;
+    hidden var _markTimeN = 0;
+
+    // Zählerstand eines Laufs zurücksetzen. NICHT bei einer Fortsetzung (Touchdown zwischen zwei
+    // Pumps): das ist derselbe Lauf, sonst käme die 100-m-Marke ein zweites Mal.
+    function resetMarks() {
+        _markDistN = 0;
+        _markTimeN = 0;
+    }
+
+    // Einmal je Tick, solange _foiling. Strecke und Zeit zählen ab Lauf-Start und können nur
+    // wachsen — deshalb reicht der Vergleich mit der nächsten Marke, ohne Hysterese.
+    hidden function _checkMarks(dist, tMs) {
+        if (!alarmEnabled) { return; }
+        if (runDistM instanceof Lang.Number && runDistM > 0) {
+            if (_markDistN == 0 || runDistMode.equals("every")) {
+                var imLauf = dist - _runStartDist;
+                if (imLauf >= (_markDistN + 1) * runDistM) {
+                    _markDistN++;
+                    _vibe(alarmPatternDist);
+                }
+            }
+        }
+        if (runTimeS instanceof Lang.Number && runTimeS > 0) {
+            if (_markTimeN == 0 || runTimeMode.equals("every")) {
+                var sekImLauf = (tMs - _runStartMs) / 1000;
+                if (sekImLauf >= (_markTimeN + 1) * runTimeS) {
+                    _markTimeN++;
+                    _vibe(alarmPatternTime);
+                }
+            }
+        }
     }
 
     // Wiederholabstand für "continuous" — aus dem Profil, mit Untergrenze 2 s (kürzer wäre ein

@@ -79,6 +79,14 @@ enum Api {
         let alarmRepeatS: Int?          // bei "continuous": Abstand der Wiederholungen in Sekunden
         let hrHigh: Int?                // Puls-Obergrenze in bpm (0/nil = aus)
         let alarmPatternHr: String?     // Vibrationsmuster Puls-Alarm
+        // Marken IM LAUF: Punkte, die man ERREICHT (Strecke/Zeit koennen nicht weniger werden) —
+        // je ein eigener Modus ("once" = nur bei N | "every" = jedes Vielfache), KEIN alarmRepeat.
+        let runDistM: Int?              // Marke alle/bei N Metern im Lauf (0/nil = aus)
+        let runDistMode: String?        // "once" | "every"
+        let alarmPatternDist: String?
+        let runTimeS: Int?              // Marke alle/bei N Sekunden im Lauf (0/nil = aus)
+        let runTimeMode: String?
+        let alarmPatternTime: String?
         let alarmDefault: String?       // Uhr-Vorwahl: "foil" | "fixed"
         let foils: [FoilOpt]?   // Auto-Alarm je Foil (optional/abwärtskompatibel zum Cache)
         let offFoilView: [Int]? // Screen für off-foil (Auto-Umschaltung)
