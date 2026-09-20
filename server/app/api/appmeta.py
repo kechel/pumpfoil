@@ -661,6 +661,22 @@ IN_REVIEW: list[dict] = [
          "as long as it is locked. Until now the watch looked completely normal and you only "
          "found out by touching it.",
      ]},
+
+    {"name": "Garmin", "version": "1.0.88",
+     "eingereicht": "2026-09-20",
+     # EINGEREICHT 20.09.2026 (Jans Meldung „ist hochgeladen"). Paket:
+     # /home/jan/release-staging/garmin-1.0.88/pumpfoil-1.0.88.iq, 13.731.873 B,
+     # sha1 6ea21ca350aea26c57f2641f9f20cf3b3b91ba55, 218 von 218 Geraeten, 0 Fehler.
+     # Uhr-Code aus Commit aa935d4e. AB HIER EINGEFROREN: alles Weitere gehoert in einen neuen
+     # NAECHSTES-Eintrag (1.0.89).
+     # NACH DER FREIGABE, in dieser Reihenfolge: build-all.sh -> _APP_META["garmin"].latest auf
+     # 1.0.88 -> diesen Eintrag entfernen -> Changelog-Ereignis. Vorher NICHTS davon, sonst
+     # bewirbt die Website eine Version, die der Store noch nicht ausliefert.
+     "items": [
+         "Garmin watches vibrate at the distance and time marks set in your profile.",
+         "The pairing code sits lower, clear of the round sub-screen on Instinct watches.",
+         "The estimate of the remaining buffer counted one chunk too many per waiting recording.",
+     ]},
 ]
 
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
@@ -682,16 +698,6 @@ NAECHSTES: list[dict] = [
      "items": [
          "The two new on-foil alarms are in the profile of the iPhone app.",
          "The Apple Watch vibrates at the distance and time marks set in your profile.",
-     ]},
-
-    {"name": "Garmin", "version": "1.0.88",
-     # 1.0.87 ist seit 17.09. im CIQ-Store, nichts liegt in Pruefung -> Config.mc ist auf 1.0.88
-     # gebumpt. Die Direkt-Downloads auf pumpfoil.org tragen die Nummer ab dem naechsten
-     # build-all-Lauf (watch/bin ist live).
-     "items": [
-         "Garmin watches vibrate at the distance and time marks set in your profile.",
-         "The pairing code sits lower, clear of the round sub-screen on Instinct watches.",
-         "The estimate of the remaining buffer counted one chunk too many per waiting recording.",
      ]},
 
     {"name": "Amazfit", "version": "1.0.12",
