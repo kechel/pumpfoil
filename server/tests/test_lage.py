@@ -8,8 +8,8 @@ import math
 import numpy as np
 import pytest
 
-from app.analysis.lage import (ACCEL_SCALE, GYRO_SCALE, hub_berechnen, lage_berechnen,
-                               laufbereiche, zeitachse)
+from app.analysis.lage import (ACCEL_SCALE, GYRO_SCALE, hauptachse, hub_berechnen,
+                               lage_berechnen, laufbereiche, zeitachse)
 
 
 def _ruhend(n, hz, kipp_grad=0.0, achse="pitch"):
@@ -284,3 +284,31 @@ def test_hub_steht_in_der_lage_antwort():
     hub = np.array(r["hub_cm"])
     assert 8.0 < np.abs(hub).max() < 12.0, np.abs(hub).max()
     assert r["kennzahlen"]["hub_pp_cm"] > 12.0                # Spitze-Spitze rund 20 cm
+
+
+# --- Ausrichtung um die Senkrechte -----------------------------------------------------------
+# Jans Frage (20.09.): „was ist, wenn das Handy um die Senkrechte um 45 Grad gedreht liegt?"
+# Der Nullpunkt hilft dort nicht — er faengt Neigung ab, nicht verdrehte Mess-ACHSEN.
+
+def test_hauptachse_findet_eine_eingebaute_drehung_wieder():
+    """Eine Nick-Schwingung, kuenstlich um 45° verdreht -> die Hauptachse wandert um 45° mit."""
+    t = np.arange(2000) / 50.0
+    nick = 8.0 * np.sin(2 * np.pi * 1.0 * t) + 0.4 * np.random.default_rng(7).standard_normal(len(t))
+    roll = 0.4 * np.random.default_rng(8).standard_normal(len(t))
+    gerade, klar = hauptachse(nick, roll)
+    assert abs(gerade) < 5.0, gerade          # laengs: fast reines Nicken (0° nach dem Falten)
+    assert klar > 5.0, klar                   # und das eindeutig
+
+    w = math.radians(45)
+    c, sn = math.cos(w), math.sin(w)
+    gedreht, klar2 = hauptachse(nick * c - roll * sn, nick * sn + roll * c)
+    # Das Ergebnis ist eine Achse auf (-90, 90] — 45° und -135° waeren dieselbe Lage.
+    assert abs(gedreht - 45.0) < 5.0, gedreht
+    assert klar2 > 5.0
+
+
+def test_hauptachse_sagt_es_wenn_es_keine_vorzugsrichtung_gibt():
+    """Rundes Gewackel ohne Vorzugsrichtung -> Klarheit nahe 1, der Winkel ist dann bedeutungslos."""
+    rng = np.random.default_rng(11)
+    _, klar = hauptachse(rng.standard_normal(2000), rng.standard_normal(2000))
+    assert klar < 1.5, klar
