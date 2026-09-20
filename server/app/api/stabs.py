@@ -11,6 +11,7 @@ warten. Gute private Einträge übernehmen wir später von Hand in den globalen 
 from __future__ import annotations
 
 import json
+import re
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
@@ -44,6 +45,16 @@ def _out(s: models.Stab) -> dict:
         # MITGELIEFERT, aber nicht zum Anzeigen (s. foils.py).
         "aliases": s.aliases or None,
     }
+
+
+def _vergleichsworte(*teile: str) -> set[str]:
+    """Bezeichnung in vergleichbare Worte zerlegen: klein, ohne Satzzeichen, Reihenfolge egal.
+
+    Genau die Sicht, die auch `gearsearch.wort_bedingung` auf eine Eingabe hat — nur eben als
+    Menge statt als SQL. „460/60 V2" wird zu {460, 60, v2}, „Stab fluid H" zu {stab, fluid, h}.
+    """
+    roh = " ".join(t or "" for t in teile).lower()
+    return {w for w in re.split(r"[^0-9a-zà-ÿ]+", roh) if w}
 
 
 def _visible(db: Session, user: models.User):
@@ -84,8 +95,34 @@ def brands(user: models.User = Depends(current_user), db: Session = Depends(get_
 def create_stab(
     body: StabIn, user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> dict:
-    """Eigene Bezeichnung anlegen. Gibt es die Variante schon (Katalog oder eigene), kommt
-    genau diese zurück — kein Duplikat (die Variante ist DB-weit eindeutig)."""
+    """Eigene Bezeichnung anlegen — aber erst nachsehen, ob es das Teil schon gibt.
+
+    Zwei Stufen, beide geben den VORHANDENEN Eintrag zurück statt einen neuen anzulegen:
+
+    1. **Zeichengleich** (Marke/Modell/Größe exakt) — die Variante ist DB-weit eindeutig.
+    2. **So, als hätte man gesucht und zugeordnet** (Jan, 20.09.2026). Anlass: von zwölf privat
+       angelegten Stabs waren zwei Produkte, die längst im Katalog stehen — `Gong Stab Fluid H L`
+       (id 263) und `Gong Stab Trail L` (id 24). Wer sein Teil nicht findet, legt es privat an,
+       und dann steht dasselbe Produkt zweimal da; genau diese Ursache steht schon über
+       `gearsearch.py`.
+
+    Stufe 2 vergleicht WORTWEISE und reihenfolgeunabhängig — dieselbe Sicht, die die Suche auf
+    eine Eingabe hat. Zugeordnet wird nur, wenn
+
+      * die MARKE wortgleich ist (nach Normalisierung), und
+      * die Worte der Eingabe vollständig in einem Katalogeintrag vorkommen, und
+      * **genau ein** Eintrag das erfüllt.
+
+    Das dritte Kriterium ist der Schutz: `Gong / Trail / L` passt auf `Stab Trail L` UND auf drei
+    `Tail Wing … Trail L` — mehrdeutig, also wird wie bisher ein privater Eintrag angelegt. Lieber
+    ein Duplikat als eine stille Fehlzuordnung ([[catalog-research-checks]], Pflichtprüfung 4:
+    nie auf Namensähnlichkeit zusammenführen).
+
+    Was Stufe 2 fängt, an echten Meldungen nachgestellt: `Takoon / Glide 220 / 220` ->
+    `TAKOON Foil Stab Glide 220` · `Gong / Stab fluid H L / L` -> `Gong Stab Fluid H L` ·
+    `NAISH / 2D / 250` -> `Naish 2D Stabilizer 250`. Ein Vertipper wie `Naich` bleibt ein
+    privater Eintrag — das ist richtig so, wir raten nicht.
+    """
     brand, model, size = body.brand.strip(), body.model.strip(), body.size.strip()
     if not brand or not model:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Marke und Modell sind nötig")
@@ -96,12 +133,21 @@ def create_stab(
         # kollidieren lassen -> als Treffer behandeln wäre falsch, also 409.
         if dupe.user_id not in (None, user.id):
             raise HTTPException(status.HTTP_409_CONFLICT, "Bezeichnung bereits vergeben")
-        return _out(dupe)
+        return _out(dupe) | {"matched": True}
+
+    eingabe = _vergleichsworte(brand, model, size)
+    marke = _vergleichsworte(brand)
+    treffer = [r for r in _visible(db, user).all()
+               if _vergleichsworte(r.brand) == marke
+               and eingabe <= _vergleichsworte(r.brand, r.model, r.size)]
+    if len(treffer) == 1:
+        return _out(treffer[0]) | {"matched": True}
+
     s = models.Stab(user_id=user.id, brand=brand, model=model, size=size)
     db.add(s)
     db.commit()
     db.refresh(s)
-    return _out(s)
+    return _out(s) | {"matched": False}
 
 
 @router.delete("/{stab_id}", status_code=status.HTTP_204_NO_CONTENT)
