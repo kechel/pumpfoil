@@ -1415,15 +1415,16 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     Masse stehen — also Groessen eintragen, Masse leer lassen.
     - Quelle: https://www.naish.com/products/2024-2d-stabilizer
 
-  **B — Produkt existiert, aber die Quelle gibt die Masse nicht her (Luecke stehen lassen):**
-  - **Gong `Stab Trail V3`** (Meldung #472 `Gong / Trail / L`) — existiert als Pumping-Stab, die
-    Groessen laufen in **cm** (43 und 47 belegt), nicht in L/XL/XXL. Das passt zu unseren
-    vorhandenen `Gong Stab Curve` (36-53 cm) und `Stab Pro Fluid` (38-47 cm).
-  - **Gong `Stab Curve H` XXL** (Meldung #459) — wir haben S/M/L/XL mit Massen; ob es ein XXL
-    gibt, sagt nur ein Forenbeitrag, nicht der Hersteller.
-  - Beide Male dasselbe Hindernis wie am 17.08.: **gong-galaxy.com ist nicht auslesbar** — damals
-    HTTP 429, heute liefert der Abruf nur abgeschnittenen Inhalt ohne Datenblatt. Ohne
-    Herstellerbeleg kein Eintrag.
+  **B — Gong: eine Meldung war KEINE Luecke, die andere bleibt offen.**
+  - ⚠️ **KORREKTUR meines eigenen Entwurfs von vorhin:** `Gong | Stab Trail | L` **gibt es
+    laengst** (id 24, dazu XL und XXL). Ich hatte „fehlt" geschrieben, weil meine Pruefabfrage
+    bei 22 Zeilen abgeschnitten war und ich das Ergebnis fuer vollstaendig hielt — genau der
+    Fehler, vor dem Pflichtpruefung 1 warnt („,Fehlt' darf nie aus einem Spaltentreffer
+    folgen"), nur diesmal aus einem abgeschnittenen. Meldung #472 gehoert damit zu Klasse C.
+  - **Gong `Stab Curve H` XXL** (Meldung #459) bleibt offen — wir haben S/M/L/XL mit Massen; ob
+    es ein XXL gibt, sagt nur ein Forenbeitrag, nicht der Hersteller. **gong-galaxy.com ist
+    nicht auslesbar** (am 17.08. HTTP 429, heute nur abgeschnittener Inhalt ohne Datenblatt).
+    Ohne Herstellerbeleg kein Eintrag.
 
   **C — steht laengst im Katalog, gehoert als ALIAS statt als neue Zeile (genau der Fall, fuer
   den die `aliases`-Spalte am 19.08. gebaut wurde):**
@@ -1446,9 +1447,34 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     `Foil Stab Pump HA 100`. Nicht entscheidbar, also nicht zuordnen.
   - #470 `- / Stabless / 0` ist Jans eigener Eintrag (user 2), keine Meldung.
 
-  **🔲 Entscheidung bei Jan:** A eintragen (3 Marken/Reihen, rund 20 Zeilen, alle mit Quelle)?
-  C als Aliase nachtragen? Und soll ich der Frage aus C nachgehen, warum ein zeichengleicher
-  Treffer nicht gefunden wurde?
+  **🟢 20.09. EINGETRAGEN** (Jan: „recherchiere alle Foils, die du findest und update die
+  Datenbank. Moeglichst aus echten Quellen natuerlich"). Alles ueber die Seed-Dateien, damit es
+  einen Seed auf eine leere Datenbank ueberlebt:
+  - **`foils.json` +10:** KPARTS `SKAL` 570/690/840/990/1150/1450 und `AROS` 560/680/830/980,
+    je mit Spannweite, Flaeche und Dicke. Die Groessenzahl IST die Flaeche — gegengerechnet ueber
+    die vom Hersteller angegebene Streckung (81²/690 = 9,5 · 97²/990 = 9,5 · 111²/1150 = 10,7 ·
+    95²/560 = 16,1 · 106²/830 = 13,5). Alle zehn Zeilen stimmen, also ist die Lesart belegt und
+    nicht angenommen.
+  - **`stabs.json` +22:** KPARTS `Mako Pump` 55/75/100, `Mako Carve Pro` XS/S/M/L, `Thazard V2`
+    160/180 · AlpineFoil `HA` 48/65/80/101/130/165, `HA Curve` 130, `SHA` 188/239 · Naish
+    `2D Stabilizer` 160/180/210/250.
+  - **Drei Aliase** auf vorhandene Zeilen: `TAKOON Foil Stab Glide 220` -> „Glide 220",
+    `AXIS Pump 460/60 V1+V2` -> „Pump 460|460".
+  - **Der Stab-Seeder traegt jetzt `span_cm`/`area_cm2` mit**, wenn sie in der Datei stehen. Die
+    Spalten gab es laengst und elf Gong-Zeilen waren gefuellt — die kamen aber aus einem
+    Einmal-Skript und waeren bei einem Seed auf eine leere Datenbank still verschwunden. Gesucht
+    werden Masse weiterhin nicht; wo der Hersteller sie selbst veroeffentlicht, werden sie jetzt
+    aber nicht mehr weggeworfen.
+  - Stand danach: **1097 Foils · 352 Stabs (16 privat)**, null doppelte Varianten.
+
+  **Bewusst NICHT eingetragen:** AlpineFoil `HA 163 CURVE` — die Herstellerseite nennt dazu
+  130 cm², das widerspricht dem Namen. Und Naish `2D` steht ohne Masse, weil Naish dazu nur
+  Streckungen veroeffentlicht (6,2 / 5,5 / 6,3 / 7,1); die vorhandenen Naish-Stabs stehen ebenso.
+
+  **🔲 Offen:** warum hat ein Nutzer `Gong Stab Fluid H L` privat angelegt, obwohl die Zeile
+  zeichengleich im Katalog steht (id 263)? Dasselbe bei `Gong Stab Trail L` (id 24). Zwei von
+  zwoelf Meldungen sind Produkte, die wir HABEN — das ist eher eine Frage an die Suche als an
+  den Katalog.
 
 
 - **🟢 20.09. 08:50 — iOS + Apple Watch 1.1.35 (39) EINGEREICHT.** Jans Meldung: „Warten auf
