@@ -8505,5 +8505,25 @@
     "area_cm2": 980,
     "thickness_mm": 14.0,
     "is_baseline": false
+  },
+  {
+    "brand": "AXIS",
+    "model": "Spitfire",
+    "size": "720",
+    "span_cm": 72.0,
+    "area_cm2": 801.0,
+    "thickness_mm": null,
+    "is_baseline": false,
+    "specs_estimated": true
+  },
+  {
+    "brand": "AXIS",
+    "model": "Spitfire",
+    "size": "1180",
+    "span_cm": 118.0,
+    "area_cm2": 1525.0,
+    "thickness_mm": null,
+    "is_baseline": false,
+    "specs_estimated": true
   }
 ]

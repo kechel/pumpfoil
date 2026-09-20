@@ -229,6 +229,11 @@ def _seed_foils() -> None:
                 span_cm=r["span_cm"], area_cm2=r["area_cm2"],
                 thickness_mm=r.get("thickness_mm"),   # darf fehlen = unbekannt
                 thickness_estimated=bool(r.get("thickness_estimated")),
+                # Flaeche/Spannweite nicht direkt vom Hersteller, sondern aus zwei seiner Zahlen
+                # abgeleitet (z. B. Flaeche = Spannweite² / Streckung). Die Spalte gab es laengst,
+                # der Seeder hat sie nur nie mitgetragen — seit 20.09.2026 tut er es, sonst stuende
+                # eine abgeleitete Zahl ununterscheidbar neben einer veroeffentlichten.
+                specs_estimated=bool(r.get("specs_estimated")),
                 is_baseline=bool(r.get("is_baseline")),
                 aliases=(r.get("aliases") or None),
             ))
