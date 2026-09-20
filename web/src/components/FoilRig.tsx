@@ -157,17 +157,26 @@ function Bezug() {
   );
 }
 
-/** SEITENANSICHT fuer das Nicken. Nase nach rechts. */
-export function SeitenAnsicht({ rig, pitch }: { rig: Rig; pitch: number }) {
+/**
+ * SEITENANSICHT fuer das Nicken. Nase nach rechts.
+ *
+ * `hub` hebt und senkt das ganze Rig gegenueber der gestrichelten Linie. Das geht ohne
+ * Umrechnung, weil hier ohnehin in Zentimetern gezeichnet wird — 12 cm Hub sind 12 cm im Bild.
+ * Der Bildausschnitt rechnet `hubBereich` mit ein, damit er waehrend des Abspielens still steht
+ * statt mitzuatmen.
+ */
+export function SeitenAnsicht({ rig, pitch, hub = 0, hubBereich = 0 }: {
+  rig: Rig; pitch: number; hub?: number; hubBereich?: number;
+}) {
   const m = rig.mast_len_cm, a = rig.board_len_cm / 2;
   const eckpunkte: [number, number][] = [
-    [a, m + BOARD_DICKE], [-a, m + BOARD_DICKE], [-a, m],
-    [rig.x_stab_cm - rig.stab_chord_cm, 0], [rig.foil_chord_cm, 0],
+    [a, m + BOARD_DICKE + hubBereich], [-a, m + BOARD_DICKE + hubBereich], [-a, m],
+    [rig.x_stab_cm - rig.stab_chord_cm, -hubBereich], [rig.foil_chord_cm, -hubBereich],
   ];
   return (
     <svg viewBox={rahmen(eckpunkte, 25)} className="h-40 w-full" preserveAspectRatio="xMidYMid meet">
       <Bezug />
-      <g transform={`rotate(${-pitch})`}>
+      <g transform={`translate(0 ${-hub}) rotate(${-pitch})`}>
         <path d={boardSeite(rig.board_len_cm, m)} className={BOARD} />
         {/* Mast: von der Seite ein Blatt, nach unten leicht schmaler. */}
         <path className={MAST} d={[

@@ -1400,7 +1400,23 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
      klaeren**, ohne dass jemand etwas notieren muss: die integrierte Gierrate gegen die
      Kursaenderung aus dem GPS legen. Laufen sie gegenlaeufig, ist die Hochachse gespiegelt —
      dann stimmt auch das Rollen andersherum. Erst sinnvoll mit einer echten Fahrt.
-  3. **Fenstergroessen fuers Gieren feintunen**, sobald eine echte Pump-Session am Brett
+  3. **Ausrichtung automatisch bestimmen** (Jan, 20.09.: „der eine macht das Handy quer auf dem
+     Kopf, ein anderer laengs mit Display nach oben"). Die HALBE Arbeit ist schon getan: die
+     Richtung „oben" kommt aus der Schwerkraft waehrend der Laeufe, damit sind auf-dem-Kopf und
+     jede Neigung bereits abgefangen — und der Hub braucht gar nichts weiter, der haengt NUR an
+     „oben". Offen ist allein die Drehung UM die Hochachse, also welche Geraeteachse nach vorn
+     zeigt; davon haengt ab, ob Nicken und Rollen vertauscht oder gespiegelt sind.
+     **Weg dorthin, ohne dass jemand etwas notieren muss:** die waagerechte Beschleunigung gegen
+     die GPS-Geschwindigkeit legen — die Achse, deren Beschleunigung mit `d(Tempo)/dt`
+     korreliert, zeigt nach vorn, und das Vorzeichen der Korrelation gibt vorn/hinten. Die
+     Gierrate gegen die Kursaenderung liefert die Gegenprobe fuer oben/unten. Beides braucht
+     eine echte Fahrt mit GPS.
+  4. **Hub: das Fenster ist bisher fest auf 3 s.** Der Endpunkt kann `height_window_s` schon,
+     die Oberflaeche bietet es nicht an. Erst mit einer echten Pump-Session entscheiden, ob ein
+     Umschalter noetig ist — bei rund 1 Hz sind 3 s der richtige Wert, und jeder Regler mehr
+     laedt dazu ein, sich die Zahl schoenzudrehen (bei 8 s kamen an Jans Handwedel-Aufnahme
+     333 cm heraus).
+  5. **Fenstergroessen fuers Gieren feintunen**, sobald eine echte Pump-Session am Brett
      aufgenommen ist (0,1 / 0,5 / 1 / 3 / 5 s stehen zur Wahl).
 
 

@@ -1943,6 +1943,11 @@ def get_session(
         out.device_label = dev.label.split("/")[0].strip() if dev and dev.label else None
     out.device_model = s.device_model  # Aufnahme-Gerät (Modell + OS) — nur zur Fehlersuche
     out.app_version = s.app_version    # App-Version DIESER Aufnahme (Fehlersuche, s. models.py)
+    # Kreisel vorhanden? Ein gezielter Treffer, kein Zählen — die Oberfläche will nur wissen, ob
+    # es die Lage-Ansicht überhaupt geben kann. `device_model` taugt dafür NICHT: das setzen die
+    # Uhren-Apps auch ("Watch7,12 · watchOS 26.6").
+    out.has_gyro = db.query(models.IngestChunk.id).filter(
+        models.IngestChunk.session_id == s.id, models.IngestChunk.kind == "gyro").first() is not None
     if s.user_id == user.id:
         out.share_token = s.share_token  # nur der Besitzer sieht den (ggf. gesetzten) Teilen-Token
     # Endzeit für die Anzeige: viele (chunk-hochgeladene) Sessions haben kein ended_at.
@@ -3484,6 +3489,8 @@ def board_lage(
     session_id: int,
     run: int | None = Query(None, description="Index des Laufs; ohne Angabe die ganze Aufnahme"),
     yaw_window_s: float = Query(1.0, ge=0.1, le=10.0),
+    height_window_s: float = Query(3.0, ge=1.0, le=10.0,
+                                   description="Ab welcher Dauer die Hoehe als „ausgerichtet\" gilt"),
     hz: float = Query(20.0, ge=2.0, le=50.0),
     user: models.User = Depends(current_user),
     db: Session = Depends(get_db),
@@ -3537,7 +3544,8 @@ def board_lage(
     erg = lage.lage_berechnen(acc, t_acc, gyr, t_gyr,
                               ziel_hz=hz, yaw_fenster_s=yaw_window_s,
                               t_von_ms=von, t_bis_ms=bis,
-                              ref_bereiche_ms=lage.laufbereiche(segmente, off))
+                              ref_bereiche_ms=lage.laufbereiche(segmente, off),
+                              hub_fenster_s=height_window_s)
     erg["session_id"] = s.id
     erg["run"] = run
     erg["runs"] = laeufe
