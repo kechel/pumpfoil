@@ -1914,7 +1914,7 @@ export default function SessionDetail() {
           <button
             onClick={async () => {
               setUnmerging(true);
-              try { const r = await api.unmergeSession(session.id); invalidateSessionListCache(); nav(`/sessions/${r.ids[0]}`); }
+              try { const r = await api.unmergeSession(session.id); await invalidateSessionListCache(); nav(`/sessions/${r.ids[0]}`); }
               catch { setUnmerging(false); }
             }}
             disabled={unmerging}
@@ -1957,7 +1957,13 @@ export default function SessionDetail() {
             <button
               onClick={() => {
                 if (!confirm(t("sd.deleteConfirm"))) return;
-                api.deleteSession(session.id).then(() => { invalidateSessionListCache(); nav("/sessions"); }).catch((e) => alert(t("sd.deleteFail") + e));
+                // ERST aufraeumen, DANN navigieren: `invalidateSessionListCache` wirft auch die
+                // Listen aus den PWA-Caches, und das ist asynchron. Ohne das Warten mountet die
+                // Liste vorher und der Service Worker liefert ihr die geloeschte Session erneut.
+                api.deleteSession(session.id)
+                  .then(() => invalidateSessionListCache())
+                  .then(() => nav("/sessions"))
+                  .catch((e) => alert(t("sd.deleteFail") + e));
               }}
               className="rounded-lg border border-red-300 bg-red-500/10 px-3 py-1.5 text-xs text-red-700 hover:bg-red-500/20 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300 dark:hover:bg-red-950/60"
             >

@@ -128,7 +128,7 @@ export default function Compare() {
   async function doMerge() {
     if (!canMergeIds) return;
     setMerging(true); setMergeErr(null);
-    try { const r = await api.mergeSessions(canMergeIds); invalidateSessionListCache(); clearCompare(); setLastSession(r.id); nav(`/sessions/${r.id}`); }
+    try { const r = await api.mergeSessions(canMergeIds); await invalidateSessionListCache(); clearCompare(); setLastSession(r.id); nav(`/sessions/${r.id}`); }
     catch (e) {
       const raw = e instanceof Error ? e.message : String(e);
       const m = raw.match(/\{"detail":"(.*?)"\}/);

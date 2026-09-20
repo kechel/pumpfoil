@@ -24,6 +24,7 @@ import { openChatOverlay } from "../components/DmWidget";
 import { ytId, videoPlatform } from "../components/VideoModal";
 import { SpotRenameRequest } from "../components/SpotRenameRequest";
 import { useT } from "../i18n";
+import { verwerfeSessionListen } from "../lib/pwaCache";
 
 const PAGE = 20;
 
@@ -77,7 +78,7 @@ function IncomingTransfers({ onAccepted }: { onAccepted: () => void }) {
   function accept(tr: Transfer) {
     setBusy(tr.id);
     api.transferAccept(tr.id)
-      .then(() => { setRows((l) => l.filter((x) => x.id !== tr.id)); invalidateSessionListCache(); onAccepted(); })
+      .then(async () => { setRows((l) => l.filter((x) => x.id !== tr.id)); await invalidateSessionListCache(); onAccepted(); })
       .catch((e) => alert(String(e))).finally(() => setBusy(null));
   }
   function decline(tr: Transfer) {
@@ -137,11 +138,18 @@ const communityCache = new Map<string, { items: CommunityGroup[]; offset: number
 // Erzwingt beim naechsten Mount einen Refetch (statt Cache) — noetig z.B. nach Merge/
 // Loeschen, weil die noch gemountete Liste beim Wegnavigieren sonst ihre veralteten
 // Items zurueck in den Cache schreibt.
+//
+// Seit 20.09.2026 raeumt das ZUSAETZLICH die Listen aus den PWA-Caches (s. `verwerfeSessionListen`):
+// `/api/sessions` und `/api/community/sessions-grouped` laufen auf StaleWhileRevalidate, der
+// Service Worker lieferte dem frischen Abruf also weiter den alten Stand samt geloeschter
+// Session. Der Rueckgabewert ist das Versprechen dafuer — wer gleich danach zur Liste
+// navigiert, muss es ABWARTEN, sonst mountet sie vor dem Aufraeumen.
 let listDirty = false;
-export function invalidateSessionListCache() {
+export function invalidateSessionListCache(): Promise<void> {
   listDirty = true;
   listCache.clear();
   communityCache.clear();
+  return verwerfeSessionListen();
 }
 
 // Eine BEARBEITETE Session in den gecachten Listen ersetzen. Absichtlich nicht
@@ -639,7 +647,7 @@ function MySessionsList({ myName, accelOnly, onShowAll }:
             onClick={() => {
               if (!confirm(t("sessions.deleteAllOtherConfirm", { n: items.length }))) return;
               api.deleteAllOtherSessions()
-                .then((r) => { invalidateSessionListCache(); setItems([]); alert(t("sessions.deleteAllOtherDone", { n: r.deleted })); })
+                .then(async (r) => { await invalidateSessionListCache(); setItems([]); alert(t("sessions.deleteAllOtherDone", { n: r.deleted })); })
                 .catch((e) => alert(String(e)));
             }}
             className="ml-auto rounded-lg border border-red-500/50 px-2.5 py-1.5 text-xs text-red-600 hover:bg-red-500/10 dark:text-red-400"
