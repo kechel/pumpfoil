@@ -53,7 +53,16 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.34",   # FREIGEGEBEN 2026-09-19, ZWEITE Apple-Mail („The following app
+        "latest": "1.1.35",   # FREIGEGEBEN 2026-09-20, ZWEITE Apple-Mail („The following app is
+        # ready for distribution · App Version Number: 1.1.35 · Platform: iOS"). Eingereicht am
+        # SELBEN Tag um 08:50, Uebermittlung 833dcb6b-cff7-41ba-b860-1137d0121939 — also nur
+        # wenige Stunden Pruefung. Gebaut aus Commit b0060b66.
+        # Inhalt: die beiden neuen On-Foil-Marken (Strecke/Zeit im Lauf) im Profil der iPhone-App
+        # und ihre Auswertung auf der Apple Watch.
+        # ⚠️ Die PRODUKTSEITE zeigte beim Setzen noch 1.1.34 („vor 22 Std."). Das ist die bekannte
+        # Store-Propagation und KEIN Grund zu warten: ausschlaggebend ist die zweite Mail, so steht
+        # es in [[submission-log]] (bei 1.1.31 war es genauso).
+        # ALT: "latest": "1.1.34",   # FREIGEGEBEN 2026-09-19, ZWEITE Apple-Mail („The following app
         # is ready for distribution · App Version Number: 1.1.34 · Platform: iOS"). Eingereicht
         # 18.09. 13:32, also gut einen Tag Pruefung. Vorher 1.1.33, s. unten.
         # ALT: "latest": "1.1.33",   # FREIGEGEBEN 2026-09-12, ZWEITE Apple-Mail („ready for
@@ -241,7 +250,10 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.34",   # FREIGEGEBEN 2026-09-19 — dieselbe Einreichung wie "ios" (ein Bundle,
+        "latest": "1.1.35",   # FREIGEGEBEN 2026-09-20 — dieselbe Einreichung wie "ios" (ein Bundle,
+        # eine MARKETING_VERSION). Fuer die WATCH-App bringt 1.1.35: die Apple Watch vibriert bei
+        # den neuen Marken nach Strecke und Zeit im Lauf, die im Profil eingestellt werden.
+        # ALT: "latest": "1.1.34",   # FREIGEGEBEN 2026-09-19 — dieselbe Einreichung wie "ios" (ein Bundle,
         # eine MARKETING_VERSION). Fuer die WATCH-App bringt 1.1.34: Foil und Alarm-Schwellen sind
         # entkoppelt — feste Grenzen im Profil liessen die Uhr „kein Foil" anzeigen.
         # ALT: "latest": "1.1.33",   # FREIGEGEBEN 2026-09-12 — dieselbe Einreichung wie "ios" (ein Bundle,
@@ -675,19 +687,6 @@ IN_REVIEW: list[dict] = [
          "You can see that the touch lock is on: a line at the bottom of the screen says so for "
          "as long as it is locked. Until now the watch looked completely normal and you only "
          "found out by touching it.",
-     ]},
-
-    {"name": "iPhone + Apple Watch", "version": "1.1.35",
-     "eingereicht": "2026-09-20",
-     # EINGEREICHT 20.09.2026 08:50 Berlin, Uebermittlungskennung
-     # 833dcb6b-cff7-41ba-b860-1137d0121939, „iOS-App 1.1.35 (39) — Warten auf Pruefung".
-     # GEBAUT AUS COMMIT b0060b66 (von Jan genannt). Der einzige watch-apple-Commit darin seit
-     # 1.1.34 ist 39993b60 — der Inhalt der Einreichung ist damit genau der Marken-Port.
-     # EIN Bundle, EINE MARKETING_VERSION: bei der Freigabe BEIDE Schluessel setzen (ios UND
-     # apple). AB HIER EINGEFROREN, alles Weitere nach NAECHSTES (1.1.36).
-     "items": [
-         "The two new on-foil alarms are in the profile of the iPhone app.",
-         "The Apple Watch vibrates at the distance and time marks set in your profile.",
      ]},
 ]
 
