@@ -1477,9 +1477,18 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   den Katalog.
 
 
-- **🟢 20.09. 08:50 — iOS + Apple Watch 1.1.35 (39) EINGEREICHT.** Jans Meldung: „Warten auf
-  Pruefung", Uebermittlungskennung `833dcb6b-cff7-41ba-b860-1137d0121939`, uebermittelt
-  20. Sept. 2026 um 08:50 Uhr.
+- **🟢 20.09. — iOS + Apple Watch 1.1.35 (39) EINGEREICHT UND AM SELBEN TAG FREIGEGEBEN.**
+  Eingereicht 08:50 („Warten auf Pruefung", Uebermittlungskennung
+  `833dcb6b-cff7-41ba-b860-1137d0121939`), Freigabe per ZWEITER Apple-Mail („The following app is
+  ready for distribution · App Version Number: 1.1.35 · Platform: iOS") am selben Tag — also nur
+  wenige Stunden Pruefung, deutlich schneller als die 11-28 h der letzten Male.
+  **Kette abgearbeitet:** `_APP_META["ios"]` UND `["apple"]` auf 1.1.35 (ein Bundle, eine
+  MARKETING_VERSION) · `IN_REVIEW`-Eintrag entfernt · zwei Changelog-Punkte mit
+  `versionen {"ios": "1.1.35", "apple": "1.1.35"}` · Ereignis-Zeile. Gegengeprueft ueber
+  `/api/app/latest?platform=ios` und `?platform=apple`, beide 1.1.35.
+  - **⚠️ Die Produktseite zeigte beim Setzen noch 1.1.34** („vor 22 Std."). Das ist die bekannte
+    Store-Propagation und war KEIN Grund zu warten: ausschlaggebend ist die zweite Mail
+    ([[submission-log]]) — bei 1.1.31 war es genauso.
   - **Gebaut aus Commit `b0060b66`** (von Jan genannt). Der einzige `watch-apple`-Commit darin
     seit der Freigabe von 1.1.34 ist `39993b60` — der Inhalt ist also genau der Marken-Port.
     `project.yml` steht auf `MARKETING_VERSION 1.1.35` / `CURRENT_PROJECT_VERSION 39` in beiden
