@@ -255,10 +255,16 @@ def _seed_foils() -> None:
 def _seed_stabs() -> None:
     """Stab-Katalog aus app/data/stabs.json befüllen (nur Bezeichnungen).
 
-    Bewusst NUR Marke/Modell/Größe — genau die Bezeichnung, die der Nutzer auswählt und angezeigt
-    bekommt (z. B. „GONG Stab Trail L"). Maße werden nirgends verrechnet, also pflegen wir sie
-    auch nicht; fehlt eine Bezeichnung im Katalog, legt der Nutzer sie sich privat selbst an
-    (`Stab.user_id`). Idempotent je Variante wie `_seed_foils`.
+    In erster Linie Marke/Modell/Größe — genau die Bezeichnung, die der Nutzer auswählt und
+    angezeigt bekommt (z. B. „GONG Stab Trail L"). Maße werden nirgends VERRECHNET, wir gehen sie
+    also nicht suchen; fehlt eine Bezeichnung im Katalog, legt der Nutzer sie sich privat selbst
+    an (`Stab.user_id`). Idempotent je Variante wie `_seed_foils`.
+
+    Seit 20.09.2026 trägt der Seeder `span_cm`/`area_cm2` MIT, wenn sie in der Datei stehen. Die
+    Spalten gab es längst und elf Gong-Zeilen waren auch gefüllt — nur kamen die aus einem
+    Einmal-Skript und wären bei einem Seed auf eine leere Datenbank still verschwunden. Wo ein
+    Hersteller die Zahlen selbst veröffentlicht (KPARTS, AlpineFoil), ist das Wegwerfen die
+    schlechtere Wahl als das Mitschreiben. Gesucht wird weiterhin nichts.
     """
     import json
     from pathlib import Path
@@ -278,17 +284,31 @@ def _seed_stabs() -> None:
             if key in existing:
                 continue
             db.add(models.Stab(brand=key[0], model=key[1], size=key[2],
-                               aliases=(r.get("aliases") or None)))
+                               aliases=(r.get("aliases") or None),
+                               span_cm=r.get("span_cm"), area_cm2=r.get("area_cm2")))
             added += 1
         # Zweitbezeichnungen auch bei vorhandenen Zeilen nachtragen (Begruendung s. _seed_foils).
         geaendert = 0
+        datei = json.loads(f.read_text())
         mit_alias = {(r["brand"], r["model"], r["size"]): (r.get("aliases") or None)
-                     for r in json.loads(f.read_text()) if r.get("aliases")}
-        if mit_alias:
+                     for r in datei if r.get("aliases")}
+        # Masse ebenso auf VORHANDENE Zeilen nachtragen — sonst bliebe eine Zeile, die es schon
+        # gab (z. B. `AlpineFoil HA 175`), fuer immer ohne die inzwischen belegten Zahlen.
+        mit_massen = {(r["brand"], r["model"], r["size"]): (r.get("span_cm"), r.get("area_cm2"))
+                      for r in datei if r.get("span_cm") or r.get("area_cm2")}
+        if mit_alias or mit_massen:
             for row in db.query(models.Stab).filter(models.Stab.user_id.is_(None)).all():
-                soll = mit_alias.get((row.brand, row.model, row.size))
+                schluessel = (row.brand, row.model, row.size)
+                soll = mit_alias.get(schluessel)
                 if soll and row.aliases != soll:
                     row.aliases = soll
+                    geaendert += 1
+                span, flaeche = mit_massen.get(schluessel, (None, None))
+                if span is not None and row.span_cm is None:
+                    row.span_cm = span
+                    geaendert += 1
+                if flaeche is not None and row.area_cm2 is None:
+                    row.area_cm2 = flaeche
                     geaendert += 1
         if added or geaendert:
             # 4 uvicorn-Worker seeden gleichzeitig. Der Zweite läuft entweder in

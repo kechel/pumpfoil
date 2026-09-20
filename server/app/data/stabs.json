@@ -547,7 +547,8 @@
   {
     "brand": "TAKOON",
     "model": "Foil Stab Glide",
-    "size": "220"
+    "size": "220",
+    "aliases": "Glide 220"
   },
   {
     "brand": "F-One",
@@ -1217,12 +1218,14 @@
   {
     "brand": "AXIS",
     "model": "Pump",
-    "size": "460/60 V1"
+    "size": "460/60 V1",
+    "aliases": "Pump 460|460"
   },
   {
     "brand": "AXIS",
     "model": "Pump",
-    "size": "460/60 V2"
+    "size": "460/60 V2",
+    "aliases": "Pump 460|460"
   },
   {
     "brand": "Roam Foils",
@@ -1532,12 +1535,161 @@
     "brand": "AlpineFoil",
     "model": "HA",
     "size": "175",
-    "aliases": "HA175|HA 175|HA 175 High Performance"
+    "aliases": "HA175|HA 175|HA 175 High Performance",
+    "span_cm": 38.5,
+    "area_cm2": 175
   },
   {
     "brand": "Levitaz",
     "model": "Stabilizer",
     "size": "180",
     "aliases": "Stabilizator 180|Free Series 180"
+  },
+  {
+    "brand": "KPARTS",
+    "model": "Mako Pump",
+    "size": "55",
+    "span_cm": 24.0,
+    "area_cm2": 55
+  },
+  {
+    "brand": "KPARTS",
+    "model": "Mako Pump",
+    "size": "75",
+    "span_cm": 27.0,
+    "area_cm2": 75
+  },
+  {
+    "brand": "KPARTS",
+    "model": "Mako Pump",
+    "size": "100",
+    "span_cm": 30.5,
+    "area_cm2": 100,
+    "aliases": "Pump 100"
+  },
+  {
+    "brand": "KPARTS",
+    "model": "Mako Carve Pro",
+    "size": "XS",
+    "span_cm": 28.5,
+    "area_cm2": 115
+  },
+  {
+    "brand": "KPARTS",
+    "model": "Mako Carve Pro",
+    "size": "S",
+    "span_cm": 31.5,
+    "area_cm2": 125
+  },
+  {
+    "brand": "KPARTS",
+    "model": "Mako Carve Pro",
+    "size": "M",
+    "span_cm": 35.0,
+    "area_cm2": 130
+  },
+  {
+    "brand": "KPARTS",
+    "model": "Mako Carve Pro",
+    "size": "L",
+    "span_cm": 37.0,
+    "area_cm2": 145
+  },
+  {
+    "brand": "KPARTS",
+    "model": "Thazard V2",
+    "size": "160",
+    "span_cm": 35.5,
+    "area_cm2": 160
+  },
+  {
+    "brand": "KPARTS",
+    "model": "Thazard V2",
+    "size": "180",
+    "span_cm": 38.0,
+    "area_cm2": 180
+  },
+  {
+    "brand": "AlpineFoil",
+    "model": "HA",
+    "size": "48",
+    "span_cm": 30.0,
+    "area_cm2": 48
+  },
+  {
+    "brand": "AlpineFoil",
+    "model": "HA",
+    "size": "65",
+    "span_cm": 31.0,
+    "area_cm2": 62
+  },
+  {
+    "brand": "AlpineFoil",
+    "model": "HA",
+    "size": "80",
+    "span_cm": 34.0,
+    "area_cm2": 77
+  },
+  {
+    "brand": "AlpineFoil",
+    "model": "HA",
+    "size": "101",
+    "span_cm": 36.0,
+    "area_cm2": 101
+  },
+  {
+    "brand": "AlpineFoil",
+    "model": "HA",
+    "size": "130",
+    "span_cm": 36.0,
+    "area_cm2": 130
+  },
+  {
+    "brand": "AlpineFoil",
+    "model": "HA",
+    "size": "165",
+    "span_cm": 35.0,
+    "area_cm2": 165
+  },
+  {
+    "brand": "AlpineFoil",
+    "model": "HA Curve",
+    "size": "130",
+    "span_cm": 36.0,
+    "area_cm2": 130
+  },
+  {
+    "brand": "AlpineFoil",
+    "model": "SHA",
+    "size": "188",
+    "span_cm": 44.3,
+    "area_cm2": 188
+  },
+  {
+    "brand": "AlpineFoil",
+    "model": "SHA",
+    "size": "239",
+    "span_cm": 44.3,
+    "area_cm2": 239
+  },
+  {
+    "brand": "Naish",
+    "model": "2D Stabilizer",
+    "size": "160"
+  },
+  {
+    "brand": "Naish",
+    "model": "2D Stabilizer",
+    "size": "180"
+  },
+  {
+    "brand": "Naish",
+    "model": "2D Stabilizer",
+    "size": "210"
+  },
+  {
+    "brand": "Naish",
+    "model": "2D Stabilizer",
+    "size": "250"
   }
 ]
