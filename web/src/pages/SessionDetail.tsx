@@ -1685,9 +1685,10 @@ export default function SessionDetail() {
             `syncPlayback` schon 14 % Drift gekostet hat. */}
         {/* Markieren duerfen nur Admins (Server prueft es ebenfalls). Ohne diesen Schalter
             gaebe es keinen Weg, eine Aufnahme als „am Brett" zu kennzeichnen — und damit auch
-            die Lage-Ansicht nie. */}
+            die Lage-Ansicht nie. Deshalb als sichtbares Bedienelement in normaler Schriftgroesse:
+            als text-xs ohne Rahmen hat Jan ihn am 20.09. schlicht nicht gefunden. */}
         {isAdmin && owned && !fullscreen && (
-          <label className="mt-3 inline-flex cursor-pointer items-center gap-2 text-xs text-slate-300">
+          <label className="mt-3 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-slate-800/60 px-3 py-2 text-sm text-slate-200 ring-1 ring-slate-700 hover:bg-slate-800">
             <input
               type="checkbox"
               checked={session.placement === "board"}
