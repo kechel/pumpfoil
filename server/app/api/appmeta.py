@@ -161,7 +161,8 @@ _APP_META: dict[str, dict[str, str]] = {
     "garmin": {
         # NUR auf eine im Connect-IQ-Store FREIGEGEBENE Version setzen (Pruefung durch)!
         # Die Garmin-App vergleicht das selbst mit Config.VERSION (SessionRecorder.mc:638).
-        "latest": "1.0.88",   # LIVE im CIQ-Store 2026-09-20, wenige Minuten nach dem Upload.
+        "latest": "1.0.88",   # LIVE im CIQ-Store 2026-09-20, wenige Minuten nach dem Upload —
+        # bei Garmin der NORMALFALL, nicht die Ausnahme (Jan: „garmin geht immer sehr schnell").
         # BELEG AUS UNSEREN DATEN, nicht nur Jans Meldung: sein PHYSISCHES Geraet (Token 297,
         # part_number 006-B4376-00, fenix 7X Pro) meldete um 08:14:43 noch `1.0.87` und um
         # 08:21:52 dann `1.0.88`, dazu Session 9371 mit GPS UND Accel um 08:21:49. Eine echte Uhr
