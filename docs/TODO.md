@@ -1416,7 +1416,27 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
      Umschalter noetig ist — bei rund 1 Hz sind 3 s der richtige Wert, und jeder Regler mehr
      laedt dazu ein, sich die Zahl schoenzudrehen (bei 8 s kamen an Jans Handwedel-Aufnahme
      333 cm heraus).
-  5. **Fenstergroessen fuers Gieren feintunen**, sobald eine echte Pump-Session am Brett
+  5. **„Am Brett" automatisch erkennen** (Jan, 20.09.: „das klar erkennbare Pump-Muster sollte
+     eindeutig sein, dann brauchen wir den Umschalter gar nicht mehr"). Erst mit Daten angehen;
+     Jan nimmt zum Vergleich bewusst auch mit dem Handy IN DER TASCHE auf.
+     **Der staerkste Unterschied ist vermutlich gar nicht das Pump-Muster, sondern die
+     Ausrichtung:** am Brett festgeschnallt steht die Schwerkraftrichtung im Geraet praktisch
+     fest (nur die paar Grad Nicken und Rollen), in der Tasche wandert sie mit jedem
+     Beinanwinkeln um Zehnergrade. Als Zahl: die Streuung der Schwerkraftrichtung ueber den
+     Lauf. Dazu als Kandidaten, alles schon berechnet oder billig zu haben:
+     `roll_amplitude_deg` / `pitch_amplitude_deg` (am Brett klein und regelmaessig),
+     `gier_rms_deg_s` (in der Tasche deutlich groesser), und wie SAUBER eine einzige Frequenz
+     das Spektrum dominiert — am Brett der Pumptakt mit Oberwellen, in der Tasche breitbandig.
+     **Die Falle liegt bei den Etiketten, nicht beim Verfahren.** `placement` kennt heute nur
+     `board` und `phone`, und `phone` ist zugleich der Standard — eine unangeschaute Session
+     sieht also genauso aus wie eine bewusst in der Tasche aufgenommene. Damit ist die
+     Gegenprobe wertlos. Vor der ersten Vergleichsaufnahme also entweder einen dritten Wert
+     (`pocket`) einfuehren oder Jan sagt ausdruecklich, welche Sessions die Taschen-Aufnahmen
+     sind.
+     **Der Umschalter verschwindet auch danach nicht**, er wird zum Override: er ist die Quelle
+     der Wahrheit, aus der die Erkennung ueberhaupt lernt und gegen die sie geprueft wird —
+     dieselbe Rolle wie der Admin-Override bei der Pumpfoil-Klassifikation.
+  6. **Fenstergroessen fuers Gieren feintunen**, sobald eine echte Pump-Session am Brett
      aufgenommen ist (0,1 / 0,5 / 1 / 3 / 5 s stehen zur Wahl).
 
 
