@@ -1386,6 +1386,89 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **📋 20.09. — PLAN: Board-Lage-Ansicht je Lauf (Pitch/Roll/Yaw) aus dem Handy am Board.**
+  Jans Auftrag: „schonmal voll die coole ansicht planen". **Nichts davon ist gebaut.**
+
+  **Reihenfolge — die Zusammenfuehrung ist NICHT die Vorbedingung.** Jan vermutete sie als
+  ersten Schritt, schreibt aber selbst „davon unabhaengig geht aber auch allein mit dem
+  phone-recorder". Das stimmt: das Board-Handy schreibt GPS, Accel UND Gyro in EINE Session, auf
+  EINEM Takt. Die Ansicht braucht also kein zweites Geraet. Das Zusammenfuehren mit der Uhr ist
+  fuer den ANDEREN Zweck da (Handgelenk-Pumperkennung gegen Board-Wahrheit) und kommt spaeter —
+  sonst blockiert das groessere Stueck das kleinere, das schon Wert liefert.
+
+  **1. Montage-Angabe (Vorbedingung, klein).** Ohne sie ist die Lage bedeutungslos: in Tasche,
+  Jacke oder am Arm misst das Handy den Koerper, nicht das Board (genau der „arm-confound" aus
+  [[board-imu-experiment]]). `sessions.placement` gibt es schon, steht aber bei beiden
+  Handy-Recordern stumpf auf `"phone"`.
+  - Neuer Wert `"board"`, gesetzt ueber einen Schalter im Start-Screen des Recorders
+    („Handy am Board befestigt"), und **nachtraeglich aenderbar an der Session** — vergessen wird
+    das sonst genau einmal und die Aufnahme ist fuer die Auswertung verloren.
+  - Die Ansicht erscheint NUR bei `placement = "board"` und vorhandenen Gyro-Chunks.
+
+  **2. Achsen-Kalibrierung (der eigentliche Knackpunkt).** Das Handy liegt in beliebiger Lage in
+  seiner Halterung. Geraeteachsen -> Board-Achsen (vorne/rechts/oben) aus den Daten:
+  - **Oben** = Schwerkraft, per Tiefpass. **LIVE schaetzen, nicht einmal annehmen** — am
+    19.07. lag das Board-Handy erst flach und wurde zwischen den Versuchen umgedreht
+    (Z-Schwerkraft kippt um ±1 g). Eine feste Achse anzunehmen geht schief.
+  - **Vorne** = Laengsbeschleunigung gegen den GPS-Kurs korreliert; bleibt ein konstanter
+    Yaw-Versatz, den der GPS-Kurs im geraden Lauf aufloest.
+  - Beides steht als loesbar schon in [[board-imu-experiment]] („Gravitation→up;
+    GPS-Laengsbeschleunigung→forward, 1 konstanter Yaw-Offset").
+
+  **3. Lage-Schaetzung.** Komplementaer- oder Madgwick-Filter: Gyro traegt die schnellen
+  Aenderungen im Stroke, die Schwerkraft haelt den Nullpunkt. Damit werden **Pitch und Roll
+  driftfrei UND dynamisch** — das ist der Gewinn gegenueber Accel allein, der unter Pumpbewegung
+  von der Bewegung dominiert ist.
+  - **YAW: kein absoluter Winkel.** Uns fehlt ein Magnetometer, wir zeichnen keines auf.
+    Jans Frage („zappelt man oder haelt man das Board gerade") ist trotzdem beantwortbar, nur
+    anders: die **Gier-RATE** wird direkt gemessen und braucht keine Integration. Daraus ein
+    Ruhe-Mass (RMS der Gierrate im Lauf, evtl. Spektrum) plus die kurzfristige Abweichung vom
+    GPS-Kurs. **Als Gradzahl darstellen waere gelogen** — als „ruhig/unruhig" mit Zahl nicht.
+
+  **4. Wo gerechnet wird: auf Abruf, nichts speichern.** Eine Stunde bei 46 Hz sind 165.000
+  Samples je Achse — das gehoert nicht in die Analyse-Tabelle. Ein LAUF dauert 30-300 s. Also:
+  Endpunkt „Lage fuer Lauf N", rechnet die Filterung ueber genau dieses Fenster und liefert eine
+  heruntergerechnete Reihe (~10 Hz reicht fuer die Anzeige, 300-3000 Punkte). Kein Schema-Wechsel,
+  keine Reanalyse, jederzeit verwerfbar. **Der Detektor wird nicht angefasst** — Aenderungen daran
+  brauchen ohnehin Jans OK.
+
+  **5. ⚠️ Die Zeitachsen-Falle.** Drei Zeitbegriffe treffen hier aufeinander: Accel/Gyro auf ihrer
+  eigenen Achse (`metrics_json.time_base`, `accel_axis`), GPS bei 1 Hz, Lauf-Segmente in
+  Session-ms. `syncPlayback.ts` hat genau daran schon einmal 14 % Drift gehabt — Sample-Index ist
+  NICHT Sekunden. Die Achse kommt aus belegten Ankern (`i_start`/`i_end` +
+  `t_start_session_ms`), nicht aus „~1 Punkt/s". Vorher `docs/DATA-PIPELINE.md` lesen.
+
+  **6. Die Ansicht** (neu, beim Oeffnen eines Laufs):
+  - **Kurven ueber die Lauflaenge**: Pitch, Roll, Gierrate, dazu Tempo und die erkannten Pumps als
+    Marker — damit sieht man sofort, ob das Nicken auf der Pump-Kadenz liegt.
+  - **Board-Schaubild** in den drei Ansichten aus Jans Skizze (Seitenansicht/von vorn/von oben),
+    das sich beim Abspielen mitbewegt und die Gradzahlen zeigt. Abspiel-Mechanik gibt es schon
+    (`syncPlayback.ts`, Video-Sync).
+  - Offene Gestaltungsfrage: x-Achse Zeit oder Strecke. Strecke liest sich bei Pumpfoil besser
+    („wo im Lauf"), Zeit passt zur Wiedergabe. Vermutlich Zeit, mit Strecke als zweiter Skala.
+
+  **7. 🔒 Sichtbarkeit — NICHT ueber `profile.beta`.** Das Flag ist seit 16.07. fuer ALLE `true`
+  und ausdruecklich oeffentlich; „nur fuer Jan" darf da nicht dran ([[beta-flag-public]]).
+  Richtig: `BETA_USER_IDS` in `config.py` — laut derselben Notiz genau fuer solche gezielten
+  Gates aufgehoben und aktuell ungenutzt — plus eine **nicht verlinkte Route** (dasselbe Muster
+  wie `/onboarding`). Also: unsichtbar fuer alle, erreichbar fuer jan@kechel.de.
+
+  **8. 🔲 NOTIERT, Jans Vorgabe:** **Uebernahme auf die nativen Apps (iOS/Android) ERST, wenn die
+  Ansicht fix und fertig und getestet ist.** Bis dahin bleibt sie PWA-only. (Passt zu
+  [[native-apps-eingefroren]]: nichts an den nativen Apps ohne Jans Ansage.)
+
+  **9. SPAETER, eigenes Stueck: Sessions von Uhr und Handy zusammenfuehren.** Zweck ist die
+  gemeinsame Auswertung (Board-Wahrheit gegen Handgelenk-Pumperkennung), nicht diese Ansicht.
+  - Grob ueber die Uhrzeit (beide Geraete NTP-synchron; bei zwei Uhren war es <1 s), fein ueber
+    Kreuzkorrelation der GPS-Geschwindigkeitsprofile, am besten ueber den **Klopf-Impuls**
+    (3× aufs Board, s. Impuls-Sync in [[board-imu-experiment]]).
+  - **Warnung aus der Praxis:** am 19.07. war genau diese Korrelation zu schwach (r ≈ 0,3), weil
+    das Handy 6 Minuten frueher lief. Eine halbe Pump-Periode sind bei 1,4 Hz 0,36 s — fuer
+    Pump-fuer-Pump reicht „ungefaehr" nicht.
+  - Abzugrenzen von `mergeSessions`: das fuehrt zwei Teile DERSELBEN Aufnahme zusammen. Hier
+    bleiben es zwei Sessions, die nur eine gemeinsame Zeitachse bekommen.
+
+
 - **📥 20.09. — 12 neue privat angelegte Stabs recherchiert. ENTWURF, nichts eingetragen.**
   Seit der letzten Runde (17.08., „312 Stabs, 4 privat") sind es 16 private Stabs. Ein privat
   angelegter Stab heisst: der Nutzer hat sein Teil nicht gefunden — das ist der verlaessliche
