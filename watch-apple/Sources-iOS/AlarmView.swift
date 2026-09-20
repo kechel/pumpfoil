@@ -22,6 +22,14 @@ struct AlarmView: View {
     @State private var repeatS = 5
     @State private var hrHigh = 0
     @State private var patHr = "short1"
+    // Marken: die Zahlen sind vierstellig (bis 5000 m / 3600 s) — dafuer taugt kein Stepper,
+    // das waeren hunderte Tipper. Darum Textfeld mit Zahlentastatur, wie in SetupView.
+    @State private var distM = "0"
+    @State private var distMode = "once"
+    @State private var patDist = "short1"
+    @State private var timeS = "0"
+    @State private var timeMode = "once"
+    @State private var patTime = "short2"
 
     // Ein Abschnitt = eine eigene, explizit typisierte Property. Swifts Type-Checker loest einen
     // ViewBuilder als EINEN Ausdruck auf; sechs Sections mit eigenen footer-Closures, Steppern und
@@ -45,6 +53,12 @@ struct AlarmView: View {
         .onChange(of: repeatS) { _ in saved = false }
         .onChange(of: hrHigh) { _ in saved = false }
         .onChange(of: patHr) { _ in saved = false }
+        .onChange(of: distM) { _ in saved = false }
+        .onChange(of: distMode) { _ in saved = false }
+        .onChange(of: patDist) { _ in saved = false }
+        .onChange(of: timeS) { _ in saved = false }
+        .onChange(of: timeMode) { _ in saved = false }
+        .onChange(of: patTime) { _ in saved = false }
     }
 
     // MARK: - Abschnitte
@@ -64,6 +78,8 @@ struct AlarmView: View {
             underSection
             hrSection
             modeSection
+            distSection
+            timeSection
         }
     }
 
@@ -116,8 +132,32 @@ struct AlarmView: View {
             if repeatMode == "continuous" {
                 Stepper(repeatLabel, value: $repeatS, in: 2...60)
             }
+        }
+    }
+
+    // Marken waehrend eines Laufs: Strecke und Zeit. Keine Grenzwerte, die man ueber- oder
+    // unterschreitet, sondern Punkte, die man ERREICHT — deshalb je ein eigener Modus und
+    // KEIN Wiederholabstand aus `alarm_repeat_s`.
+    private var distSection: some View {
+        Section(Loc.t("alarm.distTitle", lang)) {
+            markModePicker(selection: $distMode)
+            markValueRow(text: $distM, unit: "m")
+            patternPicker(Loc.t("alarm.pattern", lang), selection: $patDist)
+        }
+    }
+
+    private var timeSection: some View {
+        Section {
+            markModePicker(selection: $timeMode)
+            markValueRow(text: $timeS, unit: "s")
+            patternPicker(Loc.t("alarm.pattern", lang), selection: $patTime)
+        } header: {
+            Text(Loc.t("alarm.timeTitle", lang))
         } footer: {
-            Text(Loc.t("alarm.zeroHint", lang))
+            VStack(alignment: .leading, spacing: 6) {
+                Text(Loc.t("alarm.markHint", lang))
+                Text(Loc.t("alarm.zeroHint", lang))
+            }
         }
     }
 
@@ -137,6 +177,25 @@ struct AlarmView: View {
     private var hrLabel: String { "\(Loc.t("alarm.maxHr", lang)): \(hrHigh) bpm" }
     private var repeatLabel: String { "\(Loc.t("alarm.repeatEvery", lang)): \(repeatS) s" }
 
+    // Die Auswahl steht VOR der Zahl: zusammen ergeben sie einen Satz — „nur bei 100 m" oder
+    // „alle 100 m".
+    private func markModePicker(selection: Binding<String>) -> some View {
+        Picker("", selection: selection) {
+            Text(Loc.t("alarm.markOnce", lang)).tag("once")
+            Text(Loc.t("alarm.markEvery", lang)).tag("every")
+        }
+        .pickerStyle(.segmented)
+    }
+
+    private func markValueRow(text: Binding<String>, unit: String) -> some View {
+        HStack {
+            TextField("0", text: text)
+                .keyboardType(.numberPad)
+                .multilineTextAlignment(.trailing)
+            Text(unit).foregroundStyle(.secondary)
+        }
+    }
+
     private func patternPicker(_ title: String, selection: Binding<String>) -> some View {
         Picker(title, selection: selection) {
             ForEach(patterns, id: \.0) { id, label in Text(label).tag(id) }
@@ -155,6 +214,12 @@ struct AlarmView: View {
         repeatS = (s["alarm_repeat_s"] as? Int) ?? 5
         hrHigh = (s["hr_high"] as? Int) ?? 0
         patHr = (s["alarm_pattern_hr"] as? String) ?? "short1"
+        distM = String((s["run_dist_m"] as? Int) ?? 0)
+        distMode = (s["run_dist_mode"] as? String) ?? "once"
+        patDist = (s["alarm_pattern_dist"] as? String) ?? "short1"
+        timeS = String((s["run_time_s"] as? Int) ?? 0)
+        timeMode = (s["run_time_mode"] as? String) ?? "once"
+        patTime = (s["alarm_pattern_time"] as? String) ?? "short2"
         loaded = true
     }
 
@@ -171,6 +236,12 @@ struct AlarmView: View {
                 "alarm_repeat_s": repeatS,
                 "hr_high": hrHigh,
                 "alarm_pattern_hr": patHr,
+                "run_dist_m": Int(distM) ?? 0,
+                "run_dist_mode": distMode,
+                "alarm_pattern_dist": patDist,
+                "run_time_s": Int(timeS) ?? 0,
+                "run_time_mode": timeMode,
+                "alarm_pattern_time": patTime,
             ])
             saved = true
         }

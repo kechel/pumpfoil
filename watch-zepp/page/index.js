@@ -740,6 +740,12 @@ Page(
       // 18.09.2026 gar nicht an der Uhr an (s. app-side/index.js).
       almHrHigh: 0, almPatHigh: "short2", almPatLow: "long2", almPatHr: "short1",
       almRepeat: "once", almRepeatS: 5,
+      // Marken IM LAUF: Punkte, die man ERREICHT (Strecke und Zeit koennen nicht weniger
+      // werden) — je ein eigener Modus ("once" = nur bei N | "every" = jedes Vielfache) und
+      // KEIN almRepeat/almRepeatS. _markDistN/_markTimeN zaehlen je Lauf.
+      runDistM: 0, runDistMode: "once", almPatDist: "short1",
+      runTimeS: 0, runTimeMode: "once", almPatTime: "short2",
+      _markDistN: 0, _markTimeN: 0,
       // Aufzeichnungsmodus aus dem Profil: full (25 Hz) | lite (sparsam) | gps (nur GPS).
       recordMode: "full",
       vibrator: null, buzzer: null, _almActive: false, _almHrActive: false,
@@ -1244,6 +1250,12 @@ Page(
           if (r.alarmPatternHr) s.almPatHr = r.alarmPatternHr;
           if (r.alarmRepeat) s.almRepeat = r.alarmRepeat;
           if (typeof r.alarmRepeatS === "number") s.almRepeatS = r.alarmRepeatS;
+          if (typeof r.runDistM === "number") s.runDistM = r.runDistM;
+          if (r.runDistMode) s.runDistMode = r.runDistMode;
+          if (r.alarmPatternDist) s.almPatDist = r.alarmPatternDist;
+          if (typeof r.runTimeS === "number") s.runTimeS = r.runTimeS;
+          if (r.runTimeMode) s.runTimeMode = r.runTimeMode;
+          if (r.alarmPatternTime) s.almPatTime = r.alarmPatternTime;
           // Aufzeichnungsmodus NUR merken — er wirkt beim naechsten START der Aufnahme
           // (`_startAccel`), nicht mitten in einer laufenden. Der Aufnahmeweg ist der
           // gefaehrlichere, dort wird nichts umgeschaltet, waehrend er schreibt.
@@ -1750,6 +1762,7 @@ Page(
               s.runStartDist = dist;
               s.runMaxMps = s.spdMaxClean;
               s.runMaxHr = s.hr > 0 ? s.hr : 0;
+              s._markDistN = 0; s._markTimeN = 0;   // neuer Lauf -> Marken von vorn
             }
             console.log("[pumpfoil] run start speed=" + (v3 * 3.6).toFixed(1));
           }
@@ -1796,6 +1809,7 @@ Page(
       s.foiling = false; s._prevFoil = false;
       s.enterStreak = 0; s.exitStreak = 0; s.runEndedMs = -100000;
       s.runStartMs = 0; s.runStartDist = 0; s.runMaxMps = 0; s.runCount = 0;
+      s._markDistN = 0; s._markTimeN = 0;
       // burstBuf = 15-s-Fenster fuer die Max-Saeuberung; spdMaxClean = gesaeuberter Wert des
       // LAUFENDEN Ticks (maxKandidat darf pro Tick nur EINMAL laufen, sonst halbiert sich das
       // Fenster durch Doppel-Eintraege).
@@ -1902,6 +1916,24 @@ Page(
         }
       } else {
         s._almHrActive = false;
+      }
+    },
+
+    // Marken im Lauf (Strecke/Zeit): einmal je Tick, solange ein Lauf laeuft. Ohne Hysterese —
+    // beide Groessen wachsen nur, deshalb reicht der Vergleich mit der naechsten Marke.
+    _checkMarks(dist, tMs) {
+      const s = this.state;
+      if (s.runDistM > 0 && (s._markDistN === 0 || s.runDistMode === "every")) {
+        if (dist - s.runStartDist >= (s._markDistN + 1) * s.runDistM) {
+          s._markDistN++;
+          this._vibratePattern(s.almPatDist);
+        }
+      }
+      if (s.runTimeS > 0 && (s._markTimeN === 0 || s.runTimeMode === "every")) {
+        if ((tMs - s.runStartMs) / 1000 >= (s._markTimeN + 1) * s.runTimeS) {
+          s._markTimeN++;
+          this._vibratePattern(s.almPatTime);
+        }
       }
     },
 
@@ -2414,6 +2446,7 @@ Page(
         // Lauf-Erkennung: erst glätten (auch ohne Fix, damit das Fenster altert), dann Automat.
         this._pushSpeed(s.cur, el, fix);
         this._updateRun(s.sp3, s.cur, s.dist, el);
+        if (s.almOn && s.foiling) this._checkMarks(s.dist, el);
         // Zustandswechsel: Ring des neuen Zustands von vorne (erste Datenseite = 1, Seite 0 ist der
         // Stopp-Screen) + eine kurze Vibration als Rückmeldung — wie RecordView._vibeSwitch bzw.
         // die Wear-Flanke. Es gibt auf Zepp nur den einen Vibrator (auch fürs Alarm-Signal).

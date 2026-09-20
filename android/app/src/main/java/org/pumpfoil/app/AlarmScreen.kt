@@ -75,6 +75,12 @@ fun AlarmScreen(onBack: () -> Unit) {
     var repeatS by remember { mutableStateOf("5") }
     var hrHigh by remember { mutableStateOf("0") }
     var patHr by remember { mutableStateOf("short1") }
+    var distM by remember { mutableStateOf("0") }
+    var distMode by remember { mutableStateOf("once") }
+    var patDist by remember { mutableStateOf("short1") }
+    var timeS by remember { mutableStateOf("0") }
+    var timeMode by remember { mutableStateOf("once") }
+    var patTime by remember { mutableStateOf("short2") }
 
     LaunchedEffect(Unit) {
         try {
@@ -89,6 +95,12 @@ fun AlarmScreen(onBack: () -> Unit) {
             repeatS = (s["alarm_repeat_s"]?.jsonPrimitive?.intOrNull ?: 5).toString()
             hrHigh = (s["hr_high"]?.jsonPrimitive?.intOrNull ?: 0).toString()
             patHr = s["alarm_pattern_hr"]?.jsonPrimitive?.contentOrNull ?: "short1"
+            distM = (s["run_dist_m"]?.jsonPrimitive?.intOrNull ?: 0).toString()
+            distMode = s["run_dist_mode"]?.jsonPrimitive?.contentOrNull ?: "once"
+            patDist = s["alarm_pattern_dist"]?.jsonPrimitive?.contentOrNull ?: "short1"
+            timeS = (s["run_time_s"]?.jsonPrimitive?.intOrNull ?: 0).toString()
+            timeMode = s["run_time_mode"]?.jsonPrimitive?.contentOrNull ?: "once"
+            patTime = s["alarm_pattern_time"]?.jsonPrimitive?.contentOrNull ?: "short2"
         } catch (_: Exception) {}
         loaded = true
     }
@@ -108,6 +120,12 @@ fun AlarmScreen(onBack: () -> Unit) {
                     put("alarm_repeat_s", repeatS.toIntOrNull() ?: 5)
                     put("hr_high", hrHigh.toIntOrNull() ?: 0)
                     put("alarm_pattern_hr", patHr)
+                    put("run_dist_m", distM.toIntOrNull() ?: 0)
+                    put("run_dist_mode", distMode)
+                    put("alarm_pattern_dist", patDist)
+                    put("run_time_s", timeS.toIntOrNull() ?: 0)
+                    put("run_time_mode", timeMode)
+                    put("alarm_pattern_time", patTime)
                 })
                 saved = true
             } catch (_: Exception) {}
@@ -199,6 +217,24 @@ fun AlarmScreen(onBack: () -> Unit) {
                         Text("s")
                     }
                 }
+                Spacer(Modifier.height(12.dp))
+                // Marken waehrend eines Laufs: Strecke und Zeit. Keine Grenzwerte, die man
+                // ueber- oder unterschreitet, sondern Punkte, die man ERREICHT — deshalb je ein
+                // eigener Modus und KEIN Wiederholabstand aus `alarm_repeat_s`.
+                MarkCard(
+                    title = I18n.t("alarm.distTitle"), unit = "m", maxLen = 4,
+                    mode = distMode, onMode = { distMode = it; mark() },
+                    value = distM, onValue = { distM = it; mark() },
+                    pattern = patDist, onPattern = { patDist = it; mark() },
+                )
+                Spacer(Modifier.height(12.dp))
+                MarkCard(
+                    title = I18n.t("alarm.timeTitle"), unit = "s", maxLen = 4,
+                    mode = timeMode, onMode = { timeMode = it; mark() },
+                    value = timeS, onValue = { timeS = it; mark() },
+                    pattern = patTime, onPattern = { patTime = it; mark() },
+                    hint = I18n.t("alarm.markHint"),
+                )
                 Spacer(Modifier.height(8.dp))
                 Text(I18n.t("alarm.zeroHint"),
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -239,6 +275,46 @@ private fun ThresholdCard(
                 Spacer(Modifier.width(4.dp))
                 Dropdown(options = patterns(), selected = pattern, onSelect = onPattern, modifier = Modifier.weight(1f))
             }
+            if (hint != null) {
+                Spacer(Modifier.height(6.dp))
+                Text(hint, style = MaterialTheme.typography.bodyMedium,
+                     color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
+// Wie ThresholdCard, aber mit der Modus-Auswahl VOR der Zahl: zusammen ergeben sie einen Satz
+// („nur bei 100 m" / „alle 100 m"). Ein Zahlenfeld mit nachgestelltem „einmal/wiederholt" las
+// sich wie die Zahl der Vibrationen statt wie die Marke.
+@Composable
+private fun MarkCard(
+    title: String, unit: String, maxLen: Int,
+    mode: String, onMode: (String) -> Unit,
+    value: String, onValue: (String) -> Unit,
+    pattern: String, onPattern: (String) -> Unit,
+    hint: String? = null,
+) {
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(12.dp)) {
+            Text(title, style = MaterialTheme.typography.labelLarge)
+            Spacer(Modifier.height(8.dp))
+            Row(verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Dropdown(
+                    options = listOf("once" to I18n.t("alarm.markOnce"), "every" to I18n.t("alarm.markEvery")),
+                    selected = mode, onSelect = onMode, modifier = Modifier.width(140.dp),
+                )
+                OutlinedTextField(
+                    value = value, onValueChange = { onValue(it.filter { c -> c.isDigit() }.take(maxLen)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.width(104.dp),
+                )
+                Text(unit)
+            }
+            Spacer(Modifier.height(8.dp))
+            Dropdown(options = patterns(), selected = pattern, onSelect = onPattern)
             if (hint != null) {
                 Spacer(Modifier.height(6.dp))
                 Text(hint, style = MaterialTheme.typography.bodyMedium,

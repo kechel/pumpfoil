@@ -672,6 +672,31 @@ NAECHSTES: list[dict] = [
      # erst, wenn der Ausgang feststeht. 1.1.31 stimmt aber in beiden Faellen.
      "items": [
          "On Wear OS the app now stays on screen until you close it.",
+         "The two new on-foil alarms are in the profile of the Android app.",
+         "Wear OS vibrates at the distance and time marks set in your profile.",
+     ]},
+
+    {"name": "iPhone + Apple Watch", "version": "1.1.35",
+     # 1.1.34 ist seit 19.09. freigegeben, nichts liegt bei Apple -> project.yml ist schon auf
+     # 1.1.35 / Build 39 gebumpt (Apple nimmt eine freigegebene Nummer nicht wieder an).
+     "items": [
+         "The two new on-foil alarms are in the profile of the iPhone app.",
+         "The Apple Watch vibrates at the distance and time marks set in your profile.",
+     ]},
+
+    {"name": "Garmin", "version": "1.0.88",
+     # 1.0.87 ist seit 17.09. im CIQ-Store, nichts liegt in Pruefung -> Config.mc ist auf 1.0.88
+     # gebumpt. Die Direkt-Downloads auf pumpfoil.org tragen die Nummer ab dem naechsten
+     # build-all-Lauf (watch/bin ist live).
+     "items": [
+         "Garmin watches vibrate at the distance and time marks set in your profile.",
+     ]},
+
+    {"name": "Amazfit", "version": "1.0.12",
+     # Nummer NICHT in app.json gebumpt: 1.0.11 liegt seit 19.09. beim Zepp-Store. Gebumpt wird
+     # erst, wenn der Ausgang feststeht — wie bei Android.
+     "items": [
+         "Amazfit watches vibrate at the distance and time marks set in your profile.",
      ]},
 
 

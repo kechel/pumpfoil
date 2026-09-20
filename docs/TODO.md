@@ -1409,7 +1409,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   time live, and to instantly get the final time as soon as you fall." Die Uhr erkennt Laeufe
   bereits selbst (`Recorder.kt`), die Zeit ist also da — sie wird nur nicht angezeigt.
 
-  **2. ✅ On-Foil-Alarme nach Strecke und Zeit — im Profil GEBAUT, wartet auf Jans Abnahme.**
+  **2. ✅ On-Foil-Alarme nach Strecke und Zeit — ABGENOMMEN und ueberall gebaut (20.09.2026).**
   Jans Rahmen (19.09.): „wir haben da schon zwei, basierend auf speed und puls, da einfach im
   profil noch 2 weitere aehnliche moglichkeiten erlauben, auch alle parallel … das schau ich mir
   dann an, und wenn das passt, dann auf allen uhren nachziehen fuer die naechsten releases."
@@ -1426,10 +1426,24 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     Profil-Oberflaeche in der PWA, sieben neue Texte in allen **18** Sprachen. Nebenbei behoben:
     `patSelect` riet das Vorgabe-Muster aus der Endung des Schluessels („high" -> short2) — mit
     fuenf Alarmen traegt das nicht mehr, jetzt eine ausdrueckliche Zuordnung.
-  - **🔲 NACH JANS ABNAHME:** (a) auf die vier Uhren ziehen (Garmin, Wear, Apple, Zepp) — die
-    Werte liegen in der Konfiguration bereit, es fehlt nur die Auswertung waehrend eines Laufs;
-    (b) **die Profil-Einstellungen in die nativen Apps portieren** (iOS und Android), Jans
-    ausdrueckliche Ansage. Vorlage ist der Alarm-Block in `web/src/pages/Account.tsx`.
+  - **✅ 20.09. ABGENOMMEN und umgesetzt** („ok, so ist prima, dann die profilconfig der neuen on
+    foil alarme und anordnung zu den nativen apps portieren und auf alle uhren"):
+    - **Native Apps:** `AlarmScreen.kt` und `AlarmView.swift` haben beide Marken-Bloecke in der
+      Anordnung der PWA (drei Grenzen · Ausloese-Zeile · Strecke · Zeit, Auswahl VOR der Zahl).
+      Sechs neue Schluessel ueber `scripts/i18n-port.py` in alle vier Tabellen, `alarm.mode` mit
+      dem neuen Wortlaut ersetzt. **`alarm.markSoon` ist BEWUSST NICHT dabei** (Jan: „die warnung
+      das das erst kommt in den nativen apps weglassen, die werden ja auch verzoegert released").
+    - **Vier Uhren:** Auswertung im Lauf, gegated auf den vorhandenen An/Aus-Schalter, kein neuer
+      Menuepunkt. Garmin `SessionRecorder._checkMarks` · Wear `Recorder.pruefeMarken` (dort, weil
+      nur der Recorder `runIstFortsetzung` kennt) · Apple `Recorder.pruefeMarken` mit `onMark`-
+      Rueckruf fuer die Haptik · Zepp `_checkMarks` (+ die sechs Schluessel durch die Whitelist in
+      `app-side/index.js`, sonst kaemen sie nie an der Uhr an).
+    - **Zaehler je Lauf:** `_markDistN`/`_markTimeN` werden nur beim Start eines NEUEN Laufs auf 0
+      gesetzt — **nicht bei einer Fortsetzung** (Touchdown zwischen zwei Pumps), sonst kaeme die
+      100-m-Marke ein zweites Mal.
+    - **Versionen:** Garmin `1.0.88` und iOS/Apple `1.1.35` gebumpt (in beiden Stores liegt nichts
+      in Pruefung). Android/Wear und Zepp **nicht** — 1.1.30/1.2.30 und 1.0.11 liegen gerade bei
+      Google bzw. Zepp, eine abgelehnte Nummer nimmt kein Store wieder an.
   - **🔑 AUF DER UHR NUR AN/AUS — keine weiteren Einstellungen (Jan, 19.09.2026):** „es wird
     langsam zu aufwaendig das alles in der uhr einzutragen, also einfach im profil einstellen,
     und die uhr kann das nur global aktivieren oder deaktivieren." Die Marken-Alarme haengen

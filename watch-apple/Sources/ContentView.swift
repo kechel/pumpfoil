@@ -104,6 +104,13 @@ struct WatchAlarm {
     var repeatS = 5           // bei "continuous": Abstand der Wiederholungen in Sekunden
     var hrHigh = 0            // Puls-Obergrenze in bpm (0 = aus)
     var patHr = "short1"      // Muster beim Ueberschreiten der Puls-Grenze
+    // Marken IM LAUF: Punkte, die man ERREICHT — eigener Modus je Marke, KEIN repeatMode/repeatS.
+    var runDistM = 0          // Marke alle/bei N Metern im Lauf (0 = aus)
+    var runDistMode = "once"  // "once" = nur bei N | "every" = jedes Vielfache
+    var patDist = "short1"
+    var runTimeS = 0          // Marke alle/bei N Sekunden im Lauf (0 = aus)
+    var runTimeMode = "once"
+    var patTime = "short2"
 }
 
 // Aufnahme: konfigurierte, wischbare Datenseiten (aus /api/devices/config) + Alarm.
@@ -172,6 +179,9 @@ struct RecordView: View {
             }
         }
         .task {
+            // Die Marken wertet der Recorder aus: nur dort ist bekannt, wo ein Lauf ANFAENGT und
+            // wann ein Touchdown nur eine Fortsetzung ist (sonst kaeme die 100-m-Marke doppelt).
+            rec.onMark = { muster in playHaptic(muster) }
             startConfigLoad()
             rec.refreshPending()   // wie viele Sessions warten lokal?
             await rec.drain()      // gepairt + online -> jetzt hochladen
@@ -187,6 +197,7 @@ struct RecordView: View {
         }
         .onChange(of: rec.speedKmh) { sp in checkAlarm(sp) }   // watchOS-9-kompatible Signatur
         .onChange(of: rec.hr) { _ in checkHrAlarm() }          // Puls-Alarm, eigene Schwelle
+        .onChange(of: alarm.enabled) { _ in syncMarks() }      // An/Aus gilt auch fuer die Marken
         .onReceive(autoTimer) { _ in tickAutoStart() }         // Auto-Start-Vorlauf + Arming
         // Token serverseitig ungültig -> automatisch ein frisches vom iPhone anfordern
         // (Companion-Pairing). „Neu verbinden" bleibt als Code-Fallback bestehen.
@@ -722,6 +733,13 @@ struct RecordView: View {
         // Puls-Grenze immer uebernehmen: sie hat keine On-Watch-Entsprechung, die man
         // ueberschreiben koennte (anders als die Speed-Schwellen, die an der Foil-Wahl haengen).
         alarm.hrHigh = c.hrHigh ?? 0
+        // Marken wie die Puls-Grenze immer uebernehmen — kein On-Watch-Gegenstueck.
+        alarm.runDistM = c.runDistM ?? 0
+        alarm.runDistMode = c.runDistMode ?? "once"
+        alarm.patDist = c.alarmPatternDist ?? "short1"
+        alarm.runTimeS = c.runTimeS ?? 0
+        alarm.runTimeMode = c.runTimeMode ?? "once"
+        alarm.patTime = c.alarmPatternTime ?? "short2"
         // Default-Vorwahl nur EINMAL setzen — danach nicht die Nutzerwahl überschreiben.
         if !selInit {
             selInit = true
@@ -749,6 +767,18 @@ struct RecordView: View {
         }
         // Aufzeichnungsmodus persistieren -> Recorder liest beim Start (offline-tauglich).
         UserDefaults.standard.set(c.recordMode ?? "full", forKey: "recordMode")
+        syncMarks()
+    }
+
+    /// Marken-Einstellungen an den Recorder durchreichen (inkl. des On-Watch-An/Aus).
+    private func syncMarks() {
+        rec.markAn = alarm.enabled
+        rec.markDistM = alarm.runDistM
+        rec.markDistMode = alarm.runDistMode
+        rec.markPatDist = alarm.patDist
+        rec.markTimeS = alarm.runTimeS
+        rec.markTimeMode = alarm.runTimeMode
+        rec.markPatTime = alarm.patTime
     }
 
     // Flanke löst sofort aus; im Modus "continuous" alle ~3 Ticks erneut, solange drüber/drunter.
