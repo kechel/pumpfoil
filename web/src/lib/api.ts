@@ -113,6 +113,29 @@ export interface Foil {
   aliases?: string | null;
 }
 
+/** Antwort von `/api/sessions/{id}/attitude`. Zeiten sind Session-ms. */
+export type BoardAttitude = {
+  ok: boolean;
+  grund?: string;
+  placement?: string | null;
+  run?: number | null;
+  runs?: number;
+  hz?: number;
+  rechen_hz?: number;
+  quelle_hz?: { accel: number | null; gyro: number | null };
+  yaw_fenster_s?: number;
+  nullpunkt?: "ruhe" | "mittelwert";
+  hat_gyro?: boolean;
+  t_ms?: number[];
+  pitch_deg?: number[];
+  roll_deg?: number[];
+  gier_delta_deg?: number[];
+  kennzahlen?: {
+    pitch_amplitude_deg: number; roll_amplitude_deg: number; gier_rms_deg_s: number;
+    pitch_hz: number | null; ruhe_anteil: number; bias_abgezogen: boolean;
+  };
+};
+
 // Stabilizer (Rear Wing) — NUR die Bezeichnung („GONG Stab Trail L"); Maße pflegen wir nicht,
 // es rechnet nichts damit. is_own = eigener, privater Eintrag (nicht im globalen Katalog).
 export interface Stab {
@@ -224,6 +247,10 @@ export interface SessionSummary {
   // (s. src/lib/clock.ts); leer = keine bekannt (alle Plattformen ausser Garmin, und alte Garmins).
   pause_windows?: number[][];
   app_version?: string | null;   // App-Version der Aufnahme (nur Besitzer/Admin sichtbar)
+  // Wo das Gerät bei der Aufnahme war: "board" = Handy am Brett befestigt (nur dann ist die
+  // Lage-Ansicht sinnvoll), "phone" = am Körper, null = Uhr oder unbekannt. Setzen dürfen das
+  // nur Admins — deshalb braucht die Ansicht selbst kein zweites Gate.
+  placement?: string | null;
   // Aussortierte Läufe als Zeitfenster [[start_ms, end_ms], …] (ms ab Session-Start).
   // Nur die Auswertung ist betroffen — Rohdaten bleiben, jederzeit zurücknehmbar.
   excluded_ranges?: number[][];
@@ -1020,6 +1047,15 @@ export const api = {
   stabCreate: (s: { brand: string; model: string; size: string }) =>
     req<Stab>("/api/stabs", { method: "POST", body: JSON.stringify(s) }),
   stabDelete: (id: number) => req<void>(`/api/stabs/${id}`, { method: "DELETE" }),
+
+  /** Lage des Bretts für einen Lauf (Pitch/Roll absolut, Gierwinkel-Änderung je Fenster). */
+  boardAttitude: (sessionId: number, o: { run?: number | null; yawWindowS?: number; hz?: number } = {}) => {
+    const q = new URLSearchParams();
+    if (o.run != null) q.set("run", String(o.run));
+    if (o.yawWindowS != null) q.set("yaw_window_s", String(o.yawWindowS));
+    if (o.hz != null) q.set("hz", String(o.hz));
+    return req<BoardAttitude>(`/api/sessions/${sessionId}/attitude${q.toString() ? "?" + q : ""}`);
+  },
   boards: () => req<Board[]>("/api/boards"),
   boardCreate: (b: { name: string; volume_l?: number | null; length_cm?: number | null }) =>
     req<Board>("/api/boards", { method: "POST", body: JSON.stringify(b) }),
@@ -1280,7 +1316,9 @@ export const api = {
   history: () => req<HistoryPoint[]>("/api/sessions/history"),
   inProgress: () => req<InProgressSession[]>("/api/sessions/in-progress"),
   updateSessionMeta: (id: number, patch: { caption?: string; youtube_url?: string; foil_id?: number | null;
-    stab_id?: number | null; mast_len_cm?: number | null; shim_deg?: number | null; board_id?: number | null }) =>
+    stab_id?: number | null; mast_len_cm?: number | null; shim_deg?: number | null; board_id?: number | null;
+    // "board" | "phone" | "" — nur Admins, der Server weist alle anderen mit 403 ab.
+    placement?: string }) =>
     req<SessionSummary>(`/api/sessions/${id}/meta`, {
       method: "PATCH",
       body: JSON.stringify(patch),
