@@ -243,6 +243,38 @@ def hub_berechnen(a_vert_ms2: np.ndarray, dt_s: float, fenster_s: float) -> np.n
     return z * 100.0
 
 
+def hauptachse(pitch: np.ndarray, roll: np.ndarray) -> tuple[float, float]:
+    """Um welchen Winkel liegt das Geraet um die SENKRECHTE gedreht? Plus: wie klar ist das?
+
+    NUR DIAGNOSE, es wird nichts damit gerechnet — aber die Zahl beantwortet die Frage, die
+    beim ersten echten Lauf ansteht: liegt das Handy laengs, quer oder diagonal auf dem Brett?
+
+    Der Nullpunkt hilft hier NICHT. Er faengt ab, wie das Geraet GENEIGT ist; eine Drehung um die
+    Senkrechte dreht dagegen die Mess-ACHSEN, und das kann kein Versatz heilen. Liegt das Handy
+    45° diagonal, zeigt ein reines Nicken des Bretts zu je rund 71 % als Nicken UND als Rollen.
+
+    Zu finden ist es trotzdem ohne GPS: Pumpen ist im Kern eine NICK-Schwingung. Die Richtung,
+    in der die Neigung am staerksten schwingt, ist also die Nickachse des Bretts. Das ist die
+    Hauptkomponente der Punktwolke (Nicken, Rollen) — nachgerechnet an einer Aufnahme, in die
+    45° hineingedreht wurden: gefunden wurden -45,0°.
+
+    Das Ergebnis ist eine ACHSE, keine Richtung — der Eigenvektor zeigt beliebig in die eine oder
+    andere Haelfte. Darum auf (-90°, 90°] gefaltet: 0° = laengs, ±90° = quer, dazwischen
+    diagonal. Die verbleibende 180°-Zweideutigkeit (Nase vorn oder hinten) dreht nur das
+    VORZEICHEN des Nickens und braucht das GPS. Und die Annahme „Nicken dominiert" gilt fuer eine
+    Pump-Strecke — beim Carven nicht. `klarheit` sagt, wie sehr man der Zahl trauen darf.
+    """
+    X = np.column_stack([pitch - pitch.mean(), roll - roll.mean()])
+    if len(X) < 8:
+        return 0.0, 0.0
+    w, v = np.linalg.eigh(np.cov(X.T))
+    haupt = v[:, int(np.argmax(w))]
+    winkel = float(np.degrees(np.arctan2(haupt[1], haupt[0])))
+    winkel = (winkel + 90.0) % 180.0 - 90.0        # Achse, nicht Richtung -> auf (-90, 90]
+    klarheit = float(max(w) / max(min(w), 1e-9))
+    return round(winkel, 1), round(min(klarheit, 999.0), 1)
+
+
 def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
                    gyr_raw: np.ndarray, t_gyr_ms: np.ndarray,
                    *, ziel_hz: float = 20.0, yaw_fenster_s: float = 1.0,
@@ -375,6 +407,7 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
         return round(float(f[m][np.argmax(A[m])]), 2) if m.any() else None
 
     _hub_hz = hauptfrequenz(hub) if hub is not None else None
+    _achse, _klar = hauptachse(pitch, roll)
     return {
         "ok": True,
         "hz": round(rechen_hz / schritt, 2),
@@ -409,6 +442,9 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
             # der Grenze jeden Rest hochzieht. Beim echten Pumpen (rund 1 Hz gegen 0,33 Hz
             # Grenze) ist der Abstand gross genug. Faktor 2 als Mindestabstand.
             "hub_sicher": bool(_hub_hz is not None and _hub_hz >= 2.0 / hub_fenster_s),
+            # Wie das Geraet um die Senkrechte gedreht liegt — s. `hauptachse`. Reine Diagnose:
+            # nahe 0° oder 180° heisst laengs, nahe ±90° quer, dazwischen diagonal.
+            "ausrichtung_deg": _achse, "ausrichtung_klarheit": _klar,
             "ruhe_anteil": round(float(still.mean()), 3),
             "bias_abgezogen": bool(still.sum() > RUHE_MIN_S * rechen_hz),
         },

@@ -1406,11 +1406,21 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
      jede Neigung bereits abgefangen — und der Hub braucht gar nichts weiter, der haengt NUR an
      „oben". Offen ist allein die Drehung UM die Hochachse, also welche Geraeteachse nach vorn
      zeigt; davon haengt ab, ob Nicken und Rollen vertauscht oder gespiegelt sind.
-     **Weg dorthin, ohne dass jemand etwas notieren muss:** die waagerechte Beschleunigung gegen
-     die GPS-Geschwindigkeit legen — die Achse, deren Beschleunigung mit `d(Tempo)/dt`
-     korreliert, zeigt nach vorn, und das Vorzeichen der Korrelation gibt vorn/hinten. Die
-     Gierrate gegen die Kursaenderung liefert die Gegenprobe fuer oben/unten. Beides braucht
-     eine echte Fahrt mit GPS.
+     **Die ACHSE braucht dafuer gar kein GPS** (20.09. nachgerechnet, Anlass war Jans Frage
+     „was, wenn das Handy 45° diagonal liegt?"). Pumpen ist im Kern eine Nick-Schwingung, also
+     ist die Richtung, in der die Neigung am staerksten schwingt, die Nickachse des Bretts —
+     die Hauptkomponente der Punktwolke (Nicken, Rollen). An Aufnahme 9473 geprueft: kuenstlich
+     45° hineingedreht, gefunden -45,0°, Eigenwertverhaeltnis 8,1:1. Steht seit 20.09. als
+     Diagnose in `kennzahlen.ausrichtung_deg` / `ausrichtung_klarheit` (gefaltet auf
+     (-90°, 90°]: 0° laengs, ±90° quer) — **es wird noch nichts damit gerechnet**, weil die
+     Annahme „Nicken dominiert" an einer echten Pump-Strecke zu belegen ist. Beim Carven gilt
+     sie nicht.
+     **GPS braucht nur noch das VORZEICHEN:** Nase vorn oder hinten, also die verbleibende
+     180°-Zweideutigkeit. Dafuer die waagerechte Beschleunigung gegen `d(Tempo)/dt` legen; die
+     Gierrate gegen die Kursaenderung ist die Gegenprobe fuer oben/unten.
+     **Was der Nullpunkt hier NICHT kann:** er faengt ab, wie das Geraet GENEIGT ist. Eine
+     Drehung um die Senkrechte dreht dagegen die Mess-ACHSEN — bei 45° diagonal zeigt ein reines
+     Nicken des Bretts zu je rund 71 % als Nicken UND als Rollen. Das heilt kein Versatz.
   4. **Hub: das Fenster ist bisher fest auf 3 s.** Der Endpunkt kann `height_window_s` schon,
      die Oberflaeche bietet es nicht an. Erst mit einer echten Pump-Session entscheiden, ob ein
      Umschalter noetig ist — bei rund 1 Hz sind 3 s der richtige Wert, und jeder Regler mehr
