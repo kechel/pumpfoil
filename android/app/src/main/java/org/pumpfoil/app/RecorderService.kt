@@ -81,6 +81,14 @@ class RecorderService : Service(), SensorEventListener {
         sensors.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)?.let {
             sensors.registerListener(this, it, 1_000_000 / Recorder.accelHzActual) // µs period
         }
+        // Kreisel NUR, wenn das Geraet einen hat — `getDefaultSensor` gibt sonst null und es
+        // wird nichts registriert. Dieselbe Rate wie der Accel, damit beide Kanaele zeitlich
+        // zusammenpassen. Der ungefilterte TYPE_GYROSCOPE ist Absicht: TYPE_GYROSCOPE_UNCALIBRATED
+        // waere fuer eine spaetere Auswertung ehrlicher, wird aber nicht von jedem Geraet
+        // geliefert, und wir wollen den Kanal ueberall haben, wo es ueberhaupt einen Kreisel gibt.
+        sensors.getDefaultSensor(Sensor.TYPE_GYROSCOPE)?.let {
+            sensors.registerListener(this, it, 1_000_000 / Recorder.accelHzActual)
+        }
     }
 
     private fun startLocation() {
@@ -108,8 +116,9 @@ class RecorderService : Service(), SensorEventListener {
     }
 
     override fun onSensorChanged(e: SensorEvent) {
-        if (e.sensor.type == Sensor.TYPE_ACCELEROMETER) {
-            Recorder.addAccel(e.values[0], e.values[1], e.values[2])
+        when (e.sensor.type) {
+            Sensor.TYPE_ACCELEROMETER -> Recorder.addAccel(e.values[0], e.values[1], e.values[2])
+            Sensor.TYPE_GYROSCOPE -> Recorder.addGyro(e.values[0], e.values[1], e.values[2])
         }
     }
     override fun onAccuracyChanged(s: Sensor?, a: Int) {}

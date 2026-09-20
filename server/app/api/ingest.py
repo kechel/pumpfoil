@@ -261,6 +261,13 @@ def upload_chunk(
         if not isinstance(body.data, str):
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "accel data must be base64 string")
         n = storage.save_accel_chunk(session_uuid, body.index, body.data, t0_ms=body.t0_ms)
+    elif body.kind == "gyro":
+        # Drehrate, nur von den Handy-Recordern und nur wenn das Geraet einen Kreisel hat.
+        # Die Auswertung liest den Kanal heute nicht — er wird gesammelt, damit spaeter Daten
+        # da sind (s. storage.save_gyro_chunk und docs/data-format.md).
+        if not isinstance(body.data, str):
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "gyro data must be base64 string")
+        n = storage.save_gyro_chunk(session_uuid, body.index, body.data, t0_ms=body.t0_ms)
     else:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, f"unknown kind {body.kind!r}")
 
