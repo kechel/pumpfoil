@@ -998,7 +998,7 @@ const ptPT: Record<string, string> = {
   "alarm.markOnce": "apenas em",
   "alarm.markEvery": "a cada",
   "alarm.markHint": "0 desliga. Contado por run, desde o primeiro metro detetado — fora de um run não acontece nada.",
-  "alarm.markSoon": "Em breve nos relógios.",
+  "alarm.markSoon": "Disponível no Garmin desde a versão 1.0.88. Em breve nos outros relógios.",
   "alarm.repeatEvery": "repetir a cada",
   "alarm.maxSpeed": "Máx.",
   "alarm.minSpeed": "Mín.",

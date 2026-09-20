@@ -767,7 +767,7 @@ const it: Record<string, string> = {
   "alarm.markOnce": "solo a",
   "alarm.markEvery": "ogni",
   "alarm.markHint": "0 disattiva. Conteggio per run, dal primo metro rilevato — fuori da un run non succede nulla.",
-  "alarm.markSoon": "Presto disponibile sugli orologi.",
+  "alarm.markSoon": "Disponibile su Garmin dalla versione 1.0.88. Presto sugli altri orologi.",
   "alarm.repeatEvery": "ripeti ogni",
   "alarm.maxSpeed": "Max",
   "alarm.minSpeed": "Min",

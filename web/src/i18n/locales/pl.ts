@@ -1086,7 +1086,7 @@ const pl: Record<string, string> = {
   "alarm.markOnce": "tylko przy",
   "alarm.markEvery": "co",
   "alarm.markHint": "0 wyłącza. Liczone dla każdego przejazdu od pierwszego wykrytego metra — poza przejazdem nic się nie dzieje.",
-  "alarm.markSoon": "Wkrótce na zegarkach.",
+  "alarm.markSoon": "Na Garminie od wersji 1.0.88. Wkrótce na pozostałych zegarkach.",
   "alarm.repeatEvery": "powtarzaj co",
   "alarm.maxSpeed": "Maks.",
   "alarm.minSpeed": "Min.",

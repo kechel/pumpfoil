@@ -1043,7 +1043,7 @@ const nb: Record<string, string> = {
   "alarm.markOnce": "bare ved",
   "alarm.markEvery": "hver",
   "alarm.markHint": "0 slår det av. Telles per run, fra første registrerte meter — utenfor en run skjer ingenting.",
-  "alarm.markSoon": "Kommer snart på klokkene.",
+  "alarm.markSoon": "På Garmin fra versjon 1.0.88. Kommer snart på de andre klokkene.",
   "alarm.repeatEvery": "gjenta hvert",
   "alarm.maxSpeed": "Maks",
   "alarm.minSpeed": "Min",
