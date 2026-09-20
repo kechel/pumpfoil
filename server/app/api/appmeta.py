@@ -690,6 +690,8 @@ NAECHSTES: list[dict] = [
      # build-all-Lauf (watch/bin ist live).
      "items": [
          "Garmin watches vibrate at the distance and time marks set in your profile.",
+         "The pairing code sits lower, clear of the round sub-screen on Instinct watches.",
+         "The estimate of the remaining buffer counted one chunk too many per waiting recording.",
      ]},
 
     {"name": "Amazfit", "version": "1.0.12",
