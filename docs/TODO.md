@@ -1386,6 +1386,56 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **📋 20.09. — Zepp „Workout Extension" geprueft: kein Ersatz fuer unseren Recorder, aber ein
+  moegliches ZUSATZ-Produkt. Nicht jetzt, als Plan festgehalten.**
+  Anlass: ein Nutzer schickte Jan eine Gemini-Antwort mit der Empfehlung, die Amazfit-App als
+  „Sportmodus" statt als Mini-App zu bauen — das wuerde GPS-Abrisse, Sleep-Abstuerze und
+  Akkuverbrauch „sofort auf Systemebene" loesen. Nachgeprueft an der Zepp-Doku:
+
+  **Was daran nicht stimmt.** Einen eigenen Sportmodus kann ein Dritter auf Zepp OS NICHT
+  registrieren. „Workout Extension" ist ein **Plug-in fuer die System-Workout-App**, das dort
+  zusaetzliche Datenseiten zeichnet — die Aufzeichnung bleibt die des Systems. Der von Gemini
+  genannte `zeppos-workout`-Manager existiert nicht.
+
+  **Und es ist kein Build-Zuschnitt wie bei Garmin.** Jans Frage war, ob man es wie in unserer
+  `monkey.jungle` je Geraeteklasse bauen koennte, ohne die anderen kaputtzumachen. Zwei
+  getrennte Antworten:
+  - **Mehrere Zuschnitte gehen bei Zepp grundsaetzlich** — `app.json` kennt mehrere `targets`,
+    wir nutzen bisher nur einen (`common`, rund 480 + eckig 390). Das waere also machbar.
+  - **Hier hilft es trotzdem nicht:** laut Doku ist eine Workout Extension „an independent
+    application with an independent appId". Kein Target unserer App, sondern ein ZWEITES Produkt
+    mit eigener Einreichung und eigener Pruefung.
+
+  **Reichweite.** Zepp OS 3.5, sechs Modelle (T-Rex 3, Cheetah Pro/Round/Square, T-Rex Ultra,
+  Falcon). Von unseren Amazfit-Nutzern deckt das rund ein Drittel ab; Balance, Balance 2,
+  Active 2 und GTR 4 fielen raus.
+
+  **Was die Doku NICHT sagt** — und was alles entscheidet: ob eine Extension den rohen
+  Beschleunigungsstrom lesen, Dateien schreiben und hochladen darf. Die genannten Grenzen sind
+  rein grafisch (EINE Seite, kein Scrollen, keine Gesten, eingeschraenkte Tasten) — das allein
+  passt schon nicht auf unsere Recorder-Oberflaeche.
+
+  **Die Praemisse war ausserdem falsch.** „Laeuft nicht richtig" stimmte, lag aber nicht an
+  fehlenden Systemrechten: ein Tastendruck beendete die App samt Aufnahme, und lange Uploads
+  starben an „Out of Memory", weil die ganze Aufnahme beim Senden im Speicher lag. Beides ist in
+  **1.0.11** behoben und liegt seit 19.09. beim Zepp-Store.
+
+  **🔲 WENN wir es spaeter angehen, dann so** (und erst, wenn 1.0.11 draussen ist und wir sehen,
+  ob die Abstuerze wirklich weg sind):
+  1. Zuerst die offene Frage klaeren: darf eine Extension `@zos/sensor` Accelerometer, `@zos/fs`
+     und den Transfer benutzen? Ohne das ist es nur eine Anzeige und fuer uns wertlos.
+  2. Wenn ja: als ZUSATZ zum bestehenden Recorder fuer die sechs Modelle, nicht als Ersatz. Die
+     Mehrheit unserer Amazfit-Fahrer behaelt die normale App.
+  3. Eigener appId, eigene Einreichung — also auch eigener Pflegeaufwand und eine zweite
+     Store-Zeile in `appmeta`.
+
+  **Was wir SCHON tun, und was der Nutzer eigentlich meinte:** auf jeder Plattform, die es
+  Dritten anbietet, nutzen wir den Systemweg — Garmin `ActivityRecording` (+ `SensorLogging`),
+  Apple Watch `HKWorkoutSession`, Wear OS Vordergrunddienst mit
+  `foregroundServiceType="location|health"`. Zepp ist die einzige Plattform ohne diesen Weg;
+  dort nutzen wir `setWakeUpRelaunch(true)` und `setPageBrightTime`.
+
+
 - **🟢 20.09. 17:17 — Feedback #141 (u146, iOS): „Spitfire 1180 fehlt" -> eingetragen, plus eine
   zweite Luecke und ein Verdacht auf einen ALTEN Fehler.**
   - Marke ist **AXIS**, und wir hatten die Reihe laengst — aber nur sechs Groessen (780, 840, 900,
