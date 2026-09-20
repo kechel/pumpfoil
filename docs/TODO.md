@@ -1386,6 +1386,20 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟢 20.09. 08:50 — iOS + Apple Watch 1.1.35 (39) EINGEREICHT.** Jans Meldung: „Warten auf
+  Pruefung", Uebermittlungskennung `833dcb6b-cff7-41ba-b860-1137d0121939`, uebermittelt
+  20. Sept. 2026 um 08:50 Uhr.
+  - **Stand eindeutig:** der einzige `watch-apple`-Commit seit der Freigabe von 1.1.34 ist
+    `39993b60`. `project.yml` steht auf `MARKETING_VERSION 1.1.35` / `CURRENT_PROJECT_VERSION 39`
+    in beiden Targets.
+  - Inhalt: die beiden neuen On-Foil-Marken im Profil der iPhone-App (Anordnung wie in der PWA,
+    Auswahl vor der Zahl) und ihre Auswertung auf der Apple Watch. **Ohne** den Hinweis
+    „Coming to the watches soon" — der steht bewusst nur in der PWA.
+  - EIN Bundle, EINE `MARKETING_VERSION`: bei der Freigabe **beide** `appmeta`-Schluessel setzen
+    (`ios` UND `apple`). Und erst nach der ZWEITEN Apple-Mail bzw. wenn die Produktseite die
+    Nummer zeigt ([[submission-log]]).
+
+
 - **🟢 20.09. — Garmin 1.0.88 EINGEREICHT UND NOCH AM SELBEN TAG LIVE.** Hochgeladen ~08:17,
   live ~08:21. Das ist bei Garmin NORMAL, nicht die Ausnahme (Jan, 20.09.: „garmin geht immer
   sehr schnell") — anders als Apple (Stunden bis gut ein Tag) und Google (bis zu drei Tage).

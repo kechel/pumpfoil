@@ -676,6 +676,18 @@ IN_REVIEW: list[dict] = [
          "as long as it is locked. Until now the watch looked completely normal and you only "
          "found out by touching it.",
      ]},
+
+    {"name": "iPhone + Apple Watch", "version": "1.1.35",
+     "eingereicht": "2026-09-20",
+     # EINGEREICHT 20.09.2026 08:50 Berlin, Uebermittlungskennung
+     # 833dcb6b-cff7-41ba-b860-1137d0121939, „iOS-App 1.1.35 (39) — Warten auf Pruefung".
+     # Der einzige watch-apple-Commit seit 1.1.34 ist 39993b60, der Stand ist also eindeutig.
+     # EIN Bundle, EINE MARKETING_VERSION: bei der Freigabe BEIDE Schluessel setzen (ios UND
+     # apple). AB HIER EINGEFROREN, alles Weitere nach NAECHSTES (1.1.36).
+     "items": [
+         "The two new on-foil alarms are in the profile of the iPhone app.",
+         "The Apple Watch vibrates at the distance and time marks set in your profile.",
+     ]},
 ]
 
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
@@ -689,14 +701,6 @@ NAECHSTES: list[dict] = [
          "On Wear OS the app now stays on screen until you close it.",
          "The two new on-foil alarms are in the profile of the Android app.",
          "Wear OS vibrates at the distance and time marks set in your profile.",
-     ]},
-
-    {"name": "iPhone + Apple Watch", "version": "1.1.35",
-     # 1.1.34 ist seit 19.09. freigegeben, nichts liegt bei Apple -> project.yml ist schon auf
-     # 1.1.35 / Build 39 gebumpt (Apple nimmt eine freigegebene Nummer nicht wieder an).
-     "items": [
-         "The two new on-foil alarms are in the profile of the iPhone app.",
-         "The Apple Watch vibrates at the distance and time marks set in your profile.",
      ]},
 
     {"name": "Amazfit", "version": "1.0.12",
