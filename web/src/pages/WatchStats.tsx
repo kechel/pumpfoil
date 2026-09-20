@@ -29,14 +29,24 @@ type Qualitaet = Awaited<ReturnType<typeof api.watchQuality>> | null;
 // Ab dieser Zahl abwaerts (also 3 und weniger) wird die Zeile als duenn gekennzeichnet.
 const WENIG_NUTZER = 3;
 
-function Uhrenqualitaet({ d }: { d: Qualitaet }) {
+/** Freitext-Filter ueber den Modellnamen: Teiltreffer, Gross/Klein egal, leer = alles.
+ *  Beide Tabellen benutzen denselben Begriff — sie zeigen dieselben Uhren aus zwei Blickwinkeln,
+ *  und getrennte Suchfelder waeren nur doppelte Arbeit fuer denselben Gedanken. */
+function passend<T>(zeilen: T[], name: (z: T) => string, suche: string): T[] {
+  const q = suche.trim().toLowerCase();
+  if (!q) return [...zeilen];
+  return zeilen.filter((z) => (name(z) ?? "").toLowerCase().includes(q));
+}
+
+function Uhrenqualitaet({ d, suche }: { d: Qualitaet; suche: string }) {
   const t = useT();
   if (!d || !d.modelle?.length) return null;
 
   // Nach Sessions sortiert. Frueher stand hier eine Urteilsspalte und die Reihenfolge folgte
   // ihr -- das Urteil ist weg (Jan, 05.09.: das sollen Nutzer selbst entscheiden), also
   // entscheidet jetzt die Datenmenge ueber die Reihenfolge.
-  const zeilen = [...d.modelle].sort((a, b) => b.sessions - a.sessions);
+  const zeilen = passend(d.modelle, (m) => m.modell, suche)
+    .sort((a, b) => b.sessions - a.sessions);
 
   return (
     <section id="wie-gut" className="mt-10 scroll-mt-24">
@@ -51,6 +61,9 @@ function Uhrenqualitaet({ d }: { d: Qualitaet }) {
       <p className="mb-3 rounded-lg bg-slate-800/60 p-2.5 text-sm text-slate-300">
         {t("watchQuality.new")}
       </p>
+      {zeilen.length === 0 ? (
+        <Card className="p-6 text-center text-slate-300">{t("watchStats.noMatch")}</Card>
+      ) : (
       <div className="overflow-x-auto rounded-2xl border border-slate-800">
         <table className="w-full min-w-[560px] border-collapse text-sm">
           <thead>
@@ -100,6 +113,7 @@ function Uhrenqualitaet({ d }: { d: Qualitaet }) {
           </tbody>
         </table>
       </div>
+      )}
       <p className="mt-3 text-sm text-slate-400">{t("watchQuality.note")}</p>
     </section>
   );
@@ -113,7 +127,11 @@ export default function WatchStats() {
   // Die Qualitaets-Zahlen holt die SEITE, nicht der Abschnitt: der Sprunglink oben darf nur
   // erscheinen, wenn es unten auch etwas gibt (der Abschnitt zeichnet ohne Daten gar nichts).
   const [qualitaet, setQualitaet] = useState<Qualitaet>(null);
-  const sort = useSort<Row>(rows, "sessions", "desc");
+  const [suche, setSuche] = useState("");
+  // GEFILTERT in die Sortierung, nicht danach: sonst sortiert `useSort` den ganzen Bestand und
+  // die Auswahl darunter waere eine andere Reihenfolge als die, die man angeklickt hat.
+  const gefiltert = rows ? passend(rows, (r) => r.watch, suche) : null;
+  const sort = useSort<Row>(gefiltert, "sessions", "desc");
 
   useEffect(() => { api.watchStats().then(setRows).catch(() => setRows([])); }, []);
   useEffect(() => { api.watchQuality().then(setQualitaet).catch(() => setQualitaet(null)); }, []);
@@ -139,18 +157,37 @@ export default function WatchStats() {
           <FoilIcon className="h-4 w-4" /> <span className="hidden sm:inline">{t("stats.short")}</span>
         </Link>
       </div>
-      <p className="mb-2 text-sm text-slate-300">{t("watchStats.hint")}</p>
-      {qualitaet?.modelle?.length ? (
-        <a href="#wie-gut" onClick={zurQualitaet}
-          className="mb-4 inline-flex items-center gap-1 text-sm font-medium text-brand-600 dark:text-brand-300 hover:underline">
-          <ChevronIcon className="h-4 w-4 rotate-90" /> {t("watchQuality.title")}
-        </a>
-      ) : null}
+      <p className="mb-3 text-sm text-slate-300">{t("watchStats.hint")}</p>
+
+      {/* Suche links, Sprunglink rechts. EIN Suchfeld fuer beide Tabellen (Jan, 20.09.): sie
+          zeigen dieselben Uhren aus zwei Blickwinkeln. Auf dem Handy bricht die Zeile um, der
+          Link rutscht unter das Feld. */}
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <input
+          type="search" value={suche} onChange={(e) => setSuche(e.target.value)}
+          placeholder={t("watchStats.search")} aria-label={t("watchStats.search")}
+          className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 sm:w-64"
+        />
+        {qualitaet?.modelle?.length ? (
+          <a href="#wie-gut" onClick={zurQualitaet}
+            className="inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:underline dark:text-brand-300 sm:ml-auto">
+            <ChevronIcon className="h-4 w-4 rotate-90" />
+            {t("watchStats.scrollTo")} {t("watchQuality.title")}
+          </a>
+        ) : null}
+      </div>
+
+      {/* Zwei Abschnitte, zwei Ueberschriften (Jan, 20.09.: „watch stats sind beide abschnitte,
+          oben foiling per watch unten rekording per watch"). Die Seitenueberschrift bleibt die
+          Klammer darueber. */}
+      <h3 className="mb-2 text-lg font-bold">{t("watchStats.sectionFoiling")}</h3>
 
       {!rows ? (
         <Spinner />
       ) : rows.length === 0 ? (
         <Card className="p-8 text-center text-slate-300">{t("watchStats.none")}</Card>
+      ) : sort.sorted!.length === 0 ? (
+        <Card className="p-8 text-center text-slate-300">{t("watchStats.noMatch")}</Card>
       ) : (
         <div className="overflow-x-auto rounded-2xl border border-slate-800">
           <table className="w-full min-w-[680px] border-collapse text-sm">
@@ -184,7 +221,7 @@ export default function WatchStats() {
         </div>
       )}
 
-      <Uhrenqualitaet d={qualitaet} />
+      <Uhrenqualitaet d={qualitaet} suche={suche} />
     </div>
   );
 }
