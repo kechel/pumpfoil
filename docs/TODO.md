@@ -1398,10 +1398,16 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   - **BELEG FUER DIE FREIGABE, nicht nur Jans Meldung:** sein PHYSISCHES Geraet (Token 297,
     `006-B4376-00`) meldete um 08:14:43 noch 1.0.87 und um 08:21:52 dann 1.0.88, dazu Session
     9371 mit GPS und Accel um 08:21:49. Eine echte Uhr bekommt eine Version nur ueber den Store.
-  - **⚠️ Die Store-API taugt NICHT mehr als Gegenprobe:**
-    `apps.garmin.com/api/appsLibraryExternal/rest/apps/<id>` liefert 404 mit einer HTML-Seite,
-    ebenso `/versions` und der alte `services/appstore`-Pfad. Der Pfad hat sich geaendert; wer
-    ihn braucht, muss ihn neu suchen. Bis dahin sind unsere eigenen `device_tokens` der Beleg.
+  - **GEGENGEPRUEFT an der Store-Seite:** `latestExternalVersion = 1.0.88`,
+    `latestInternalVersion = 42`.
+  - **⚠️ Der REST-Pfad der Store-API ist weg, die Daten sind es nicht.**
+    `apps.garmin.com/api/appsLibraryExternal/rest/apps/<id>` liefert 404 mit einer HTML-Seite
+    (ebenso `/versions` und der alte `services/appstore`-Pfad) — auch Minuten spaeter noch, es
+    war also kein Aussetzer waehrend des Updates. Die Seite selbst ist eine Next.js-App und
+    traegt die Werte in `__NEXT_DATA__`. **So geht die Gegenprobe jetzt:**
+    ```
+    curl -s https://apps.garmin.com/apps/9a2a753e-b52f-4587-aee4-900caf5cb351 | grep -o '"latestExternalVersion":"[^"]*"'
+    ```
   - Ursprungsmeldung Jans: „ist hochgeladen", dann „1.0.88 auf meiner echten uhr ueber iq store
     installiert, ist schon verfuegbar, und echte session hochgeladen".
   - Paket: `/home/jan/release-staging/garmin-1.0.88/pumpfoil-1.0.88.iq`, **13.731.873 B**,

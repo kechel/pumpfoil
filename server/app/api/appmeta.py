@@ -168,9 +168,11 @@ _APP_META: dict[str, dict[str, str]] = {
         # 08:21:52 dann `1.0.88`, dazu Session 9371 mit GPS UND Accel um 08:21:49. Eine echte Uhr
         # bekommt eine neue Version nur ueber den Store. Jans Wortlaut: „1.0.88 auf meiner echten
         # uhr ueber iq store installiert, ist schon verfuegbar, und echte session hochgeladen".
-        # Die Store-API taugte diesmal NICHT als Gegenprobe: `apps.garmin.com/api/
-        # appsLibraryExternal/rest/apps/<id>` liefert seit diesem Tag 404 mit einer HTML-Seite,
-        # der Pfad hat sich geaendert. Wer das erneut braucht, muss ihn erst neu suchen.
+        # GEGENGEPRUEFT an der Store-Seite: latestExternalVersion 1.0.88, latestInternalVersion 42.
+        # ACHTUNG, der REST-Pfad der Store-API ist weg: `apps.garmin.com/api/appsLibraryExternal/
+        # rest/apps/<id>` liefert 404 mit einer HTML-Seite (ebenso `/versions`). Die Werte stehen
+        # jetzt in der Produktseite selbst (Next.js, `__NEXT_DATA__`):
+        #   curl -s https://apps.garmin.com/apps/<uuid> | grep -o '"latestExternalVersion":"[^"]*"'
         # Inhalt: On-Foil-Marken nach Strecke und Zeit im Lauf, Pairing-Code frei vom Teildisplay
         # der Instinct-Klasse, Puffer-Schaetzung zaehlt nicht mehr einen Chunk je wartender
         # Session zu viel. `watch/bin` ist auf 1.0.88 gebaut (129 von 129, 0 Fehler).
