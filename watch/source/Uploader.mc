@@ -171,9 +171,18 @@ module Uploader {
             if (!(st instanceof Lang.Dictionary)) { continue; }
             var a = st.hasKey("accel_chunks") ? st["accel_chunks"] : 0;
             var g = st.hasKey("gps_chunks") ? st["gps_chunks"] : 0;
-            // Die Zähler sind Indizes des LETZTEN Chunks -> +1 ergibt die Anzahl.
-            if (a instanceof Lang.Number && a >= 0) { kb += (a + 1) * KB_PER_ACCEL_CHUNK; }
-            if (g instanceof Lang.Number && g >= 0) { kb += (g + 1) * kbProGpsChunk(); }
+            // Die Zaehler sind bereits die ANZAHL, nicht der Index des letzten Chunks:
+            // `_flushAccel`/`_flushGps` erhoehen `_accelChunkIndex`/`_gpsChunkIndex` NACH dem
+            // erfolgreichen Schreiben, und `_saveState` sichert den erhoehten Wert. Bis
+            // 20.09.2026 stand hier +1 — das buchte je wartender Session einen Accel- und einen
+            // GPS-Chunk zu viel (auf grossen Uhren 9+5 = 14 KB, auf kleinen 9+2 = 11 KB), und
+            // zwar AUCH fuer Sessions mit null Chunks. Bei sieben wartenden Sessions waren das
+            // rund 100 KB Puffer, den es nicht gab -> `storageMinutesLeft()` fiel auf 0 und die
+            // Uhr warnte mitten in einer frischen Aufnahme „~0 min bis Speicher voll".
+            // Gegenprobe am Server: Session 9341 lieferte GPS-Chunks mit den Indizes 0..21,
+            // also 22 Stueck — `gps_chunks` stand auf 22, nicht auf 21.
+            if (a instanceof Lang.Number && a > 0) { kb += a * KB_PER_ACCEL_CHUNK; }
+            if (g instanceof Lang.Number && g > 0) { kb += g * kbProGpsChunk(); }
         }
         return kb;
     }
