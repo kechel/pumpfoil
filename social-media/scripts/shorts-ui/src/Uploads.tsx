@@ -162,6 +162,10 @@ function ExportCard({ exp, ytReady, showTexts }: {
   const [igLong, setIgLong] = useState<{ text: string; chars: number; limit: number } | null>(null);
   const [coverT, setCoverT] = useState("");   // eigener Zeitpunkt fürs Cover
   const [capsSource, setCapsSource] = useState("");
+  // Ob die Cache-Abfrage schon durch ist. Vorher ist "keine Texte" nicht zu
+  // unterscheiden von "noch nicht nachgesehen" — und genau daran haing der
+  // Schalter oben (siehe unten bei ohnebedienung).
+  const [geladen, setGeladen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [ytUrl, setYtUrl] = useState("");
@@ -207,8 +211,9 @@ function ExportCard({ exp, ytReady, showTexts }: {
           setIgLong(d.instagram_long?.text ? d.instagram_long : null);
           setCapsSource(d.source === "yt-batch" ? "YouTube-Batch-Cache" : "früher generiert");
         }
+        setGeladen(true);
       })
-      .catch(() => {});
+      .catch(() => setGeladen(true));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [imBild]);
 
@@ -266,8 +271,15 @@ function ExportCard({ exp, ytReady, showTexts }: {
       />
       <div className="body">
         <div className="title">{exp.name.replace(/\.mp4$/, "")}</div>
+        {/* Die Bedienzeilen bleiben nur stehen, wenn wirklich feststeht, dass
+            es fuer dieses Video noch keine Texte gibt — sonst kaeme man nie
+            zum ersten Generieren. Vorher stand hier `!caps`, und das ist
+            waehrend der Cache-Abfrage IMMER wahr: beim Scrollen blitzten
+            deshalb in jeder frisch nachgeladenen Karte Arbeitstitel und
+            "Generieren" auf, obwohl der Schalter oben auf "ausblenden" stand
+            (Jan, 20.09.). */}
         <div className={"caps" + (zeigeTexte ? "" : " nurkoepfe")
-                        + (zeigeTexte || !caps ? "" : " ohnebedienung")}>
+                        + (!zeigeTexte && !(geladen && !caps) ? " ohnebedienung" : "")}>
             <div className="genrow">
               <input
                 value={title}
