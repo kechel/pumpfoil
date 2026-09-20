@@ -1419,11 +1419,33 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Aenderungen im Stroke, die Schwerkraft haelt den Nullpunkt. Damit werden **Pitch und Roll
   driftfrei UND dynamisch** — das ist der Gewinn gegenueber Accel allein, der unter Pumpbewegung
   von der Bewegung dominiert ist.
+  - **PITCH und ROLL sind ABSOLUTE Winkel gegen die Horizontale** und brauchen KEIN gleitendes
+    Fenster (Jan, 20.09.: „nur fuer pitch und roll machen wir auch die gesamtauslenkung
+    gegenueber der horizontalen"). Genau das liefert die Schwerkraft als Anker — im Gegensatz zu
+    Yaw, wo es keinen gibt. Damit ist die Darstellung geradeaus: **Winkel ueber die Zeit, und
+    beim Pumpen sieht das wie eine Schwingung auf der Pump-Kadenz aus** („so aehnlich wie eine
+    Sinuskurve"). Genau dieses Bild war 2026-06-27 am Mast schon zu ahnen (Pitch ±15°), aber bei
+    10 Hz und 42 s nicht sauber zu quantifizieren.
+  - **Der NULLPUNKT ist die einzige Unschaerfe**, und Jan nimmt sie ausdruecklich in Kauf
+    („oder eben einer angenommenen horizontalen … das ist nicht so schlimm"): das Board hat im
+    Flug eine Trimmlage, und die Halterung des Handys bringt ihren eigenen Versatz mit. Zwei
+    Wege, beide billig: **(a)** Ruhephase vor dem Lauf als Null (Board liegt flach) — genauer,
+    aber nicht immer vorhanden; **(b)** Mittelwert ueber den Lauf als Null — immer verfuegbar,
+    zeigt die AUSLENKUNG statt des absoluten Anstellwinkels. Vorschlag: (b) als Vorgabe, (a)
+    wenn eine Ruhephase erkennbar ist, und in der Anzeige dazuschreiben, welche gilt.
   - **YAW: kein absoluter Winkel — aber die AENDERUNG ueber ein kurzes Fenster schon** (Jans
     Vorschlag vom 20.09., und er ist richtig). Ein absoluter Kurs braeuchte ein Magnetometer, das
     wir nicht aufzeichnen; die Integration ueber Minuten laeuft weg. Ueber 1-5 s laeuft sie
     aber kaum weg — also: **gleitendes Fenster, einstellbar 1/3/5 s**, Anzeige „in dieser Sekunde
     hat sich das Board um X° gedreht". Bei 50 Hz sind das 50/150/250 Samples.
+    - **Auch 1/10 s geht** (Jan, 20.09.) — 5 Samples, und der Fehler wird dabei KLEINER statt
+      groesser (Bias × Fensterlaenge: 0,002 rad = 0,11°). Das Fenster ist damit keine
+      Genauigkeits-Schraube, sondern eine **Was-sehe-ich-Schraube**:
+      · **0,1 s** ≈ die Momentan-Drehrate, nur in Grad statt rad/s. Liegt INNERHALB eines
+        Pumpzyklus (1,4 Hz = 0,7 s Periode) — zeigt also das Zappeln je Stroke.
+      · **1 s** = Bewegung ueber einen ganzen Pumpzyklus.
+      · **3-5 s** = die Kurve/der Carve als Ganzes.
+      Vorschlag: 0,1 / 0,5 / 1 / 3 / 5 s zur Auswahl, Vorgabe 1 s.
     - **Fehlerabschaetzung, damit die Fenstergroesse eine begruendete Wahl ist:** der Fehler ist
       im Wesentlichen Gyro-Bias × Fensterlaenge. Roh liegt ein MEMS-Bias bei ~0,02 rad/s -> rund
       **1,1° je Sekunde**, ueber 5 s schon ~5,7°. **Bias aus einer Ruhephase vor dem Lauf
@@ -1459,14 +1481,17 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   - **Board-Schaubild** in den drei Ansichten aus Jans Skizze (Seitenansicht/von vorn/von oben),
     das sich beim Abspielen mitbewegt und die Gradzahlen zeigt. Abspiel-Mechanik gibt es schon
     (`syncPlayback.ts`, Video-Sync).
-  - Offene Gestaltungsfrage: x-Achse Zeit oder Strecke. Strecke liest sich bei Pumpfoil besser
-    („wo im Lauf"), Zeit passt zur Wiedergabe. Vermutlich Zeit, mit Strecke als zweiter Skala.
+  - **x-Achse ist die ZEIT** (Jan, 20.09., entschieden). Strecke hoechstens als zweite Skala
+    darueber — die Wiedergabe laeuft auf der Zeit, und alles in dieser Ansicht (Pumps,
+    Gierfenster, Nick-Schwingung) ist ein Zeitvorgang.
 
-  **7. 🔒 Sichtbarkeit — NICHT ueber `profile.beta`.** Das Flag ist seit 16.07. fuer ALLE `true`
-  und ausdruecklich oeffentlich; „nur fuer Jan" darf da nicht dran ([[beta-flag-public]]).
-  Richtig: `BETA_USER_IDS` in `config.py` — laut derselben Notiz genau fuer solche gezielten
-  Gates aufgehoben und aktuell ungenutzt — plus eine **nicht verlinkte Route** (dasselbe Muster
-  wie `/onboarding`). Also: unsichtbar fuer alle, erreichbar fuer jan@kechel.de.
+  **7. 🔒 Sichtbarkeit: NUR FUER ADMINS** (Jan, 20.09.: „,nur fuer mich' koennen wir erweitern zu
+  ,nur fuer admins'"). Das vereinfacht es deutlich — `is_admin` steht laengst am Profil, es
+  braucht also weder ein neues Flag noch eine Namensliste; `BETA_USER_IDS` bleibt ungenutzt.
+  - **NICHT ueber `profile.beta`**: das Flag ist seit 16.07. fuer ALLE `true` und ausdruecklich
+    oeffentlich ([[beta-flag-public]]) — das waere genau das falsche Werkzeug.
+  - Dazu eine **nicht verlinkte Route** (Muster wie `/onboarding`), damit die Ansicht auch
+    Admins nicht im Weg steht, solange sie roh ist.
 
   **8. 🔲 NOTIERT, Jans Vorgabe:** **Uebernahme auf die nativen Apps (iOS/Android) ERST, wenn die
   Ansicht fix und fertig und getestet ist.** Bis dahin bleibt sie PWA-only. (Passt zu
