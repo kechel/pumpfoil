@@ -26,14 +26,20 @@ class PairView extends WatchUi.View {
         // werden und der neue Code wird sofort sichtbar.
         if (!_rec.pairCode.equals("")) {
             dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(w / 2, h * 0.18, Graphics.FONT_XTINY, "Code:", Graphics.TEXT_JUSTIFY_CENTER);
+            // Der ganze Block sitzt tiefer als frueher (0.18/0.40/0.62), weil die
+            // Instinct-2-Klasse oben rechts ein rundes TEILDISPLAY hat: laut simulator.json
+            // belegt es x 113..175, y 0..62 von 176x176 — alles darin ist verdeckt. „Code:"
+            // stand auf 0.18 (y 32..47) und verlor dort seinen Doppelpunkt. Ab y >= 62 ist
+            // die Zeile frei. Platz dafuer kommt aus der grossen Luecke zwischen Code und
+            // „pumpfoil.org" (war 0.22 der Hoehe), die jetzt eine normale Zeilenluecke ist.
+            dc.drawText(w / 2, h * 0.38, Graphics.FONT_XTINY, "Code:", Graphics.TEXT_JUSTIFY_CENTER);
             dc.setColor(Config.BRAND_CYAN, Graphics.COLOR_TRANSPARENT);
             // WICHTIG: alphanumerische Font — der Code enthält Buchstaben (FONT_NUMBER_*
             // zeigt nur Ziffern und würde die Buchstaben verschlucken).
-            dc.drawText(w / 2, h * 0.40, Graphics.FONT_LARGE, _rec.pairCode, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+            dc.drawText(w / 2, h * 0.60, Graphics.FONT_LARGE, _rec.pairCode, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
             dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-            dc.drawText(w / 2, h * 0.62, Graphics.FONT_XTINY, "pumpfoil.org", Graphics.TEXT_JUSTIFY_CENTER);
-            dc.drawText(w / 2, h * 0.62 + 22, Graphics.FONT_XTINY, Strings.s("pair.enterThere"), Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(w / 2, h * 0.71, Graphics.FONT_XTINY, "pumpfoil.org", Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(w / 2, h * 0.71 + 18, Graphics.FONT_XTINY, Strings.s("pair.enterThere"), Graphics.TEXT_JUSTIFY_CENTER);
         } else if (_rec.pairing) {
             // Re-Pair-Versuch läuft (oder ist gescheitert): Status/Fehler zeigen — auch wenn noch
             // ein gültiges Pairing besteht. Sonst „passiert nichts" bei ENTER ohne Verbindung.
