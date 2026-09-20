@@ -1386,6 +1386,71 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **📥 20.09. — 12 neue privat angelegte Stabs recherchiert. ENTWURF, nichts eingetragen.**
+  Seit der letzten Runde (17.08., „312 Stabs, 4 privat") sind es 16 private Stabs. Ein privat
+  angelegter Stab heisst: der Nutzer hat sein Teil nicht gefunden — das ist der verlaessliche
+  Ausloeser laut [[catalog-research-checks]]. Private FOILS gibt es nicht, `foils` hat keine
+  `user_id`; dort ist `feedback` der einzige Weg (dort nichts Neues: #67 „Marke AFS" ist vom
+  04.08. und war am 05.08. erledigt).
+  **Nichts davon ist in die DB geschrieben** — Katalog-Entwuerfe gehen erst an Jan.
+
+  **A — echt neu und belegt, eintragbar:**
+  - **KPARTS Watersports** (franzoesisch) — bisher NULL Zeilen bei uns, weder Foil noch Stab.
+    Meldung #471 `KPART / Pump / 100` ist deren **MAKO PUMP 100**.
+    - `MAKO PUMP`: 55 (Spann 24 cm) · 75 (27 cm) · **100 (30,5 cm)**
+    - `MAKO CARVE PRO`: XS 115 cm² / 28,5 cm · S 125 / 31,5 · M 130 / 35 · L 145 / 37
+    - Quellen: https://kparts-watersports.com/en/produit/mako-pump/ ·
+      https://kparts-watersports.com/en/produit/mako-carve-pro/
+  - **AlpineFoil HA-Reihe** — wir haben genau EINE Zeile (`AlpineFoil | HA | 175`). Meldung #461
+    `Alpinefoil / HA80 / 80` ist die **HA 80**, und die Herstellerseite listet die ganze Reihe MIT
+    Flaeche und Spannweite: HA 48 (48 cm² / 300 mm) · HA 65 (62 / 310) · **HA 80 (77 / 340)** ·
+    HA 101 (101 / 360) · HA 130 (130 / 360) · HA 130 CURVE (130 / 360) · HA 165 (165 / 350) ·
+    HA 175 (175 / 385) · SHA 188 (188 / 443) · SHA 239 (239 / 443).
+    - ⚠️ `HA 163 CURVE` steht dort mit 130 cm² — der Name widerspricht der Zahl. **Auslassen**,
+      bis die Quelle eindeutig ist (lieber Luecke als geraten).
+    - Quelle: https://www.alpinefoil.com/en/kitefoil-windfoil-store/stabilizer/
+  - **Naish 2D Stabilizer** — Meldung #473 `NAISH / 2D / 250`. Groessen **160 · 180 · 210 · 250**.
+    Naish veroeffentlicht dazu NUR Streckungen (6,2 / 5,5 / 6,3 / 7,1), keine Flaeche und keine
+    Spannweite. Das passt zu unseren vorhandenen Naish-Stabs (Jet / Jet HA), die ebenfalls ohne
+    Masse stehen — also Groessen eintragen, Masse leer lassen.
+    - Quelle: https://www.naish.com/products/2024-2d-stabilizer
+
+  **B — Produkt existiert, aber die Quelle gibt die Masse nicht her (Luecke stehen lassen):**
+  - **Gong `Stab Trail V3`** (Meldung #472 `Gong / Trail / L`) — existiert als Pumping-Stab, die
+    Groessen laufen in **cm** (43 und 47 belegt), nicht in L/XL/XXL. Das passt zu unseren
+    vorhandenen `Gong Stab Curve` (36-53 cm) und `Stab Pro Fluid` (38-47 cm).
+  - **Gong `Stab Curve H` XXL** (Meldung #459) — wir haben S/M/L/XL mit Massen; ob es ein XXL
+    gibt, sagt nur ein Forenbeitrag, nicht der Hersteller.
+  - Beide Male dasselbe Hindernis wie am 17.08.: **gong-galaxy.com ist nicht auslesbar** — damals
+    HTTP 429, heute liefert der Abruf nur abgeschnittenen Inhalt ohne Datenblatt. Ohne
+    Herstellerbeleg kein Eintrag.
+
+  **C — steht laengst im Katalog, gehoert als ALIAS statt als neue Zeile (genau der Fall, fuer
+  den die `aliases`-Spalte am 19.08. gebaut wurde):**
+  - #465 `Gong / Stab fluid H L / L` -> `Gong | Stab Fluid H | L` (id 263, 37 cm / 163 cm²).
+    **Zeichengleich bis auf Gross-/Kleinschreibung.** Dass der Nutzer trotzdem selbst angelegt
+    hat, ist der interessanteste Befund der Runde — entweder die Suche greift nicht, oder der
+    „selbst anlegen"-Weg ist leichter zu finden als die Suche. Wert, sich anzuschauen.
+  - #466/#467/#468 `Takoon / Glide` bzw. `Glide 220` -> `TAKOON | Foil Stab Glide | 220` (id 62).
+    Derselbe Nutzer hat es dreimal angelegt, einmal ohne Groesse.
+  - #469 `Axis / Pump 460 / 460` -> `AXIS | Pump | 460/60 V1` und `V2` (ids 477/478).
+
+  **D — gehoert NICHT in den Stab-Katalog (Pflichtpruefung 3, Kategorie):**
+  - #479 `Naich / Hover Kite Macro Chip / 100x40` ist ein **BOARD**: Naish Hover Kite Macrochip,
+    ein 100-cm-Kitefoil-Board; „100x40" sind Laenge x Breite. („Naich" ist ausserdem Naish.)
+    Quelle: https://www.naish.com/products/kite-foil-hover-macro-chip
+
+  **E — nicht belegbar, bleibt privat (wie schon am 17.08. bei drei anderen):**
+  - #458 `Takoon / HM / 100` — eine Reihe „HM" gibt es bei Takoon nicht. Wahrscheinlich ein
+    Vertipper fuer „HA", aber 100 gibt es SOWOHL als `Foil Stab Glide HA 100` ALS AUCH als
+    `Foil Stab Pump HA 100`. Nicht entscheidbar, also nicht zuordnen.
+  - #470 `- / Stabless / 0` ist Jans eigener Eintrag (user 2), keine Meldung.
+
+  **🔲 Entscheidung bei Jan:** A eintragen (3 Marken/Reihen, rund 20 Zeilen, alle mit Quelle)?
+  C als Aliase nachtragen? Und soll ich der Frage aus C nachgehen, warum ein zeichengleicher
+  Treffer nicht gefunden wurde?
+
+
 - **🟢 20.09. 08:50 — iOS + Apple Watch 1.1.35 (39) EINGEREICHT.** Jans Meldung: „Warten auf
   Pruefung", Uebermittlungskennung `833dcb6b-cff7-41ba-b860-1137d0121939`, uebermittelt
   20. Sept. 2026 um 08:50 Uhr.
