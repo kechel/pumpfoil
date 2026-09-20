@@ -34,6 +34,25 @@ Der Bezug kommt aus den ROHEN Samples der Laufbereiche, nicht aus dem Rechenfens
 die Null dieselbe, egal ob gerade ein einzelner Lauf oder die ganze Aufnahme gezeigt wird.
 Sonst spraenge der Winkel beim Umschalten zwischen den Laeufen.
 
+DER HUB (Hoehenaenderung) IST EIN BANDBEGRENZTES ERGEBNIS, KEINE HOEHE. Aus der Lage kennen
+wir die Richtung „oben"; damit laesst sich der senkrechte Anteil der Beschleunigung
+herausrechnen und zweimal integrieren. Zweimal integrieren heisst aber: jeder noch so kleine
+Rest-Fehler waechst quadratisch mit der Zeit — nach einer Minute ist aus 0,01 m/s² ein Fehler
+von 18 Metern geworden. Absolute Hoehe ist damit ausgeschlossen, und zwar prinzipiell, nicht
+aus Schlamperei.
+
+Was BLEIBT, ist das Auf und Ab im Takt des Pumpens. Deshalb wird die doppelte Integration im
+Frequenzbereich gemacht (−1/ω²) und alles Langsamere als das eingestellte Fenster verworfen:
+bei 3 s also alles unter 0,33 Hz. Im durchgelassenen Band ist das Ergebnis amplitudentreu und
+ohne Phasenverzug — anders als bei hintereinandergeschalteten Hochpaessen, die bei 1 Hz und
+3-s-Grenze rund ein Viertel der Amplitude schlucken wuerden. Der Preis ist, dass langsames
+Steigen und Sinken (ueber die Wasseroberflaeche hinaus) NICHT gemessen wird. Genau das meinte
+Jan mit „es kann sich ja im Mittel ueber 3 s immer ausrichten".
+
+WARUM DAS IM PUMPBAND TROTZDEM STIMMT: ein Lagefehler von 1° laesst rund 0,17 m/s² Schwerkraft
+in die Senkrechte lecken. Bei 1 Hz wird daraus nach zweimaliger Integration (Faktor 1/ω² =
+1/39,5) ein Fehler von vier Millimetern. Bei 0,1 Hz waeren es 43 cm — deswegen das Band.
+
 ZWEI ZEITACHSEN. Accel und Gyro laufen NICHT zwingend gleich schnell: auf dem iPhone beide exakt
 50 Hz mit identischen Chunk-Startzeiten, auf einem Pixel 7a dagegen 120,5 gegen 60,3 Hz (bei
 angeforderten 50 — Android behandelt die Rate als Wunsch). Deshalb wird jeder Kanal aus seinen
@@ -64,6 +83,13 @@ LAUF_RAND_MAX_MS = 3000.0
 LAUF_REST_MIN_MS = 2000.0
 # So viele Samples muss ein Bezugsbereich mindestens haben, sonst ist der Median Zufall.
 BEZUG_MIN_SAMPLES = 10
+# Hub: oberes Ende des Bandes. Ueber 4 Hz gibt es keine Brettbewegung mehr, nur noch Rauschen
+# und Schlaege vom Wasser — die wuerden zweimal integriert nur die Kurve verwackeln.
+HUB_OBEN_HZ = 4.0
+G_MS2 = 9.80665
+# Unter dieser Fensterzahl ist die Frequenzaufloesung zu grob: passt das Fenster nicht mehrfach
+# in den Lauf, schneidet die untere Bandgrenze das Nutzsignal mit weg.
+HUB_MIN_FENSTER = 3.0
 
 
 def zeitachse(t0_ms: dict[int, int], laengen: dict[int, int]) -> np.ndarray:
@@ -170,11 +196,59 @@ def _pitch_roll(v: np.ndarray) -> tuple[float, float]:
             float(np.degrees(np.arctan2(v[1], v[2]))))
 
 
+def _bandmaske(f: np.ndarray, unten: float, oben: float) -> np.ndarray:
+    """Durchlassband mit WEICHEN Raendern.
+
+    Eine harte Kante im Frequenzbereich klingelt im Zeitbereich — das saehe wie eine Schwingung
+    aus, die es nicht gibt. Deshalb an beiden Enden ein Kosinus-Uebergang statt einer Stufe.
+    """
+    m = np.ones(len(f))
+    m[f <= 0] = 0.0
+    unterer = (f > 0) & (f < unten)
+    m[unterer] = 0.5 - 0.5 * np.cos(np.pi * np.clip((f[unterer] - unten / 2) / (unten / 2), 0, 1))
+    oberer = f > oben
+    m[oberer] = 0.5 + 0.5 * np.cos(np.pi * np.clip((f[oberer] - oben) / (0.5 * oben), 0, 1))
+    return m
+
+
+def hub_berechnen(a_vert_ms2: np.ndarray, dt_s: float, fenster_s: float) -> np.ndarray | None:
+    """Senkrechte Auslenkung in ZENTIMETERN aus der senkrechten Beschleunigung.
+
+    Zweimal integrieren heisst im Frequenzbereich: mit −1/ω² multiplizieren. Zusammen mit der
+    Bandmaske ist das exakt und ohne Phasenverzug — der Zeitbereich braucht dafuer drei
+    Hochpaesse hintereinander und bezahlt sie mit Amplitude (s. Kopfkommentar).
+
+    None, wenn das Stueck zu kurz fuer das gewuenschte Fenster ist — lieber nichts zeigen als
+    eine Kurve, die nur aus der Bandgrenze besteht.
+    """
+    n = len(a_vert_ms2)
+    dauer = n * dt_s
+    if n < 32 or dauer < HUB_MIN_FENSTER * fenster_s:
+        return None
+    # NUR den Mittelwert abziehen — KEINE Ausgleichsgerade. Der Versuch, zusaetzlich einen
+    # linearen Trend zu entfernen, hat genau das Gegenteil bewirkt: bei einem fast-periodischen
+    # Signal (29,98 statt 30 Zyklen im Fenster) findet die Ausgleichsgerade eine Steigung, und
+    # die abgezogene Rampe hat ihre Energie dort, wo 1/ω² am staerksten verstaerkt. Nachgemessen
+    # an einer reinen 1-Hz-Schwingung: im Band 0,2-0,4 Hz vorher 2·10⁻¹², nach dem Trendabzug 41
+    # — die zurueckgerechnete Amplitude stieg dadurch bei 5-s-Fenster von 12,0 auf 16,2 cm.
+    # Was tiefe Frequenzen angeht, ist die Bandmaske zustaendig, und die kann es besser.
+    x = a_vert_ms2 - a_vert_ms2.mean()
+    F = np.fft.rfft(x)
+    f = np.fft.rfftfreq(n, dt_s)
+    w = 2 * np.pi * f
+    H = np.zeros_like(F)
+    nz = f > 0
+    H[nz] = -F[nz] / (w[nz] ** 2)
+    z = np.fft.irfft(H * _bandmaske(f, 1.0 / fenster_s, HUB_OBEN_HZ), n)
+    return z * 100.0
+
+
 def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
                    gyr_raw: np.ndarray, t_gyr_ms: np.ndarray,
                    *, ziel_hz: float = 20.0, yaw_fenster_s: float = 1.0,
                    t_von_ms: float | None = None, t_bis_ms: float | None = None,
-                   ref_bereiche_ms: list[tuple[float, float]] | None = None) -> dict:
+                   ref_bereiche_ms: list[tuple[float, float]] | None = None,
+                   hub_fenster_s: float = 3.0) -> dict:
     """Pitch/Roll (absolut, in Grad) und Gierwinkel-Aenderung je Fenster (Grad).
 
     `acc_raw`/`gyr_raw` sind die int16-Rohwerte, `t_*_ms` die zugehoerigen Zeitachsen. Das
@@ -251,6 +325,17 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
         pitch[i] = _wickel(p_vor + (1 - alpha[i]) * _wickel(pitch_a[i] - p_vor))
         roll[i] = _wickel(r_vor + (1 - alpha[i]) * _wickel(roll_a[i] - r_vor))
 
+    # Senkrechte Beschleunigung fuer den Hub. Die Richtung „oben" kommt aus der GEFILTERTEN
+    # Lage, nicht aus dem tiefpassgefilterten Beschleunigungsvektor: waehrend des Pumpens ist
+    # der rohe Vektor von der Bewegung dominiert, der Filter traegt dagegen den Kreisel mit.
+    # Hier stehen pitch/roll noch OHNE Nullpunkt, sind also die absolute Lage gegen die
+    # Schwerkraft — genau das, was die Projektion braucht.
+    pr, rr = np.radians(pitch), np.radians(roll)
+    oben = np.column_stack([-np.sin(pr), np.cos(pr) * np.sin(rr), np.cos(pr) * np.cos(rr)])
+    # Der Beschleunigungsmesser liest im Stillstand +1 g entlang „oben" — der bleibt abzuziehen.
+    a_vert = (np.einsum("ij,ij->i", acc, oben) - 1.0) * G_MS2
+    hub = hub_berechnen(a_vert, 1.0 / rechen_hz, hub_fenster_s)
+
     # Gierrate = Drehratenvektor auf die Schwerkraft projiziert (s. Kopfkommentar).
     gier_rate = np.degrees(np.einsum("ij,ij->i", gyr, g_hut))
     # Aenderung ueber das gleitende Fenster: Integral, dann Differenz zweier Stuetzstellen.
@@ -289,6 +374,7 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
         m = (f > 0.3) & (f < 4.0)
         return round(float(f[m][np.argmax(A[m])]), 2) if m.any() else None
 
+    _hub_hz = hauptfrequenz(hub) if hub is not None else None
     return {
         "ok": True,
         "hz": round(rechen_hz / schritt, 2),
@@ -305,11 +391,24 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
         "pitch_deg": [round(float(x), 2) for x in pitch[aus]],
         "roll_deg": [round(float(x), 2) for x in roll[aus]],
         "gier_delta_deg": [round(float(x), 2) for x in gier_delta[aus]],
+        "hub_cm": [round(float(x), 1) for x in hub[aus]] if hub is not None else None,
+        "hub_fenster_s": hub_fenster_s,
         "kennzahlen": {
             "pitch_amplitude_deg": round(float(np.percentile(np.abs(pitch), 95)), 1),
             "roll_amplitude_deg": round(float(np.percentile(np.abs(roll), 95)), 1),
             "gier_rms_deg_s": round(float(np.sqrt(np.mean(gier_rate ** 2))), 1),
             "pitch_hz": hauptfrequenz(pitch),
+            # Hub von unten nach oben, robust gegen einzelne Ausreisser (5./95. Perzentil).
+            "hub_pp_cm": (round(float(np.percentile(hub, 95) - np.percentile(hub, 5)), 1)
+                          if hub is not None else None),
+            "hub_hz": _hub_hz,
+            # Liegt die Bewegung zu dicht an der unteren Bandgrenze, ist die Zahl WERTLOS — und
+            # zwar ohne dass man es ihr ansieht. Belegt an Jans Aufnahme 9473 (0,32 Hz von Hand
+            # gewedelt): 12,9 cm bei 1-s-Fenster, 41,7 bei 3 s, 147,4 bei 5 s, 333,4 bei 8 s.
+            # Das Handy hat sich nie 3,3 m bewegt — das ist die 1/ω²-Verstaerkung, die dicht an
+            # der Grenze jeden Rest hochzieht. Beim echten Pumpen (rund 1 Hz gegen 0,33 Hz
+            # Grenze) ist der Abstand gross genug. Faktor 2 als Mindestabstand.
+            "hub_sicher": bool(_hub_hz is not None and _hub_hz >= 2.0 / hub_fenster_s),
             "ruhe_anteil": round(float(still.mean()), 3),
             "bias_abgezogen": bool(still.sum() > RUHE_MIN_S * rechen_hz),
         },

@@ -1654,74 +1654,101 @@ export default function SessionDetail() {
           )}
         </div>
 
-        {/* 1. Lauf-Auswahl direkt unter der Karte (über den Abspiel-Steuerungen). */}
-        {segs.length > 0 && (
-          <div className={`flex flex-wrap items-center gap-1.5 ${fullscreen ? "shrink-0 bg-slate-950 px-2 pt-2" : "mt-3"}`}>
-            <span className="mr-1 text-xs text-slate-400">{t("sd.run")}</span>
-            <span className="mr-1 hidden items-center gap-1 text-[10px] text-slate-500 sm:inline-flex"
-              title={t("sd.hotkeysTitle")}><KeyboardIcon className="h-3.5 w-3.5" /> 1–9 · ←→ · F{playMode ? " · ␣" : ""}</span>
-            {segs.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setSelectedRun(selectedRun === i ? null : i)}
-                className={`rounded-lg px-2.5 py-1 text-xs tabular-nums ${selectedRun === i ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200 hover:bg-slate-700"} ${playRunIdx === i ? "ring-2 ring-brand-400" : ""}`}
-              >
-                {i + 1}
-              </button>
-            ))}
-            {selectedRun != null && (
-              <button
-                onClick={() => setSelectedRun(null)}
-                className="rounded-lg bg-slate-800 px-2.5 py-1 text-xs text-slate-200 hover:bg-slate-700"
-              >
-                {t("sd.allRuns")}
-              </button>
-            )}
-          </div>
-        )}
+        {/* 1. Lauf-Auswahl, Brett-Schalter und Lage-Ansicht.
 
-        {/* 1b. Lage des Bretts — derselbe Lauf, dieselbe Wiedergabe. Der Abschnitt haengt am
-            `progress` der Karte: eine zweite Zeitachse zu bauen waere genau der Fehler, der
-            `syncPlayback` schon 14 % Drift gekostet hat. */}
-        {/* Markieren duerfen nur Admins (Server prueft es ebenfalls). Ohne diesen Schalter
-            gaebe es keinen Weg, eine Aufnahme als „am Brett" zu kennzeichnen — und damit auch
-            die Lage-Ansicht nie. Deshalb als sichtbares Bedienelement in normaler Schriftgroesse:
-            als text-xs ohne Rahmen hat Jan ihn am 20.09. schlicht nicht gefunden. */}
-        {isAdmin && owned && !fullscreen && (
-          <label className="mt-3 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-slate-800/60 px-3 py-2 text-sm text-slate-200 ring-1 ring-slate-700 hover:bg-slate-800">
-            <input
-              type="checkbox"
-              checked={session.placement === "board"}
-              onChange={(e) => {
-                const wert = e.target.checked ? "board" : "phone";
-                api.updateSessionMeta(session.id, { placement: wert })
-                  .then((frisch) => setSession((alt) => (alt ? { ...alt, placement: frisch.placement } : alt)))
-                  .catch(() => {});
-              }}
-              className="h-4 w-4 rounded border-slate-600 bg-slate-800"
-            />
-            {t("board.markBoard")}
-          </label>
-        )}
+            REIHENFOLGE HAENGT AN DER ANSICHT (Jan, 20.09.): in der Lage-Ansicht sollen Karte,
+            Animation und Kurven ohne Trenner hintereinanderstehen, damit alles zusammen auf
+            EINEN Bildschirm passt. Die Bedienelemente wandern dafuer unter die Kurven. In der
+            normalen Kartenansicht bleibt alles, wo es war. Im Vollbild ebenfalls — dort haben
+            die Lauf-Knoepfe eine eigene Leiste, die oben bleiben muss. */}
+        {(() => {
+          const untenAnordnen = zeigeLage && !fullscreen;
 
-        {session.placement === "board" && !fullscreen && (
-          <div className="mt-3">
-            <button
-              onClick={() => setZeigeLage((v) => !v)}
-              className={`inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium ${zeigeLage
-                ? "bg-brand-500 text-slate-950" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
-            >
-              {zeigeLage ? t("board.map") : t("board.show")}
-            </button>
-            {zeigeLage && (
-              <div className="mt-3">
-                <h3 className="mb-2 text-lg font-bold">{t("board.title")}</h3>
-                <BoardAttitude sessionId={session.id} run={selectedRun}
-                  progress={progress} playMode={playMode} />
-              </div>
-            )}
-          </div>
-        )}
+          const laufWahl = segs.length > 0 && (
+            <div className={`flex flex-wrap items-center gap-1.5 ${fullscreen ? "shrink-0 bg-slate-950 px-2 pt-2" : "mt-3"}`}>
+              <span className="mr-1 text-xs text-slate-400">{t("sd.run")}</span>
+              <span className="mr-1 hidden items-center gap-1 text-[10px] text-slate-500 sm:inline-flex"
+                title={t("sd.hotkeysTitle")}><KeyboardIcon className="h-3.5 w-3.5" /> 1–9 · ←→ · F{playMode ? " · ␣" : ""}</span>
+              {segs.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setSelectedRun(selectedRun === i ? null : i)}
+                  className={`rounded-lg px-2.5 py-1 text-xs tabular-nums ${selectedRun === i ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200 hover:bg-slate-700"} ${playRunIdx === i ? "ring-2 ring-brand-400" : ""}`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+              {selectedRun != null && (
+                <button
+                  onClick={() => setSelectedRun(null)}
+                  className="rounded-lg bg-slate-800 px-2.5 py-1 text-xs text-slate-200 hover:bg-slate-700"
+                >
+                  {t("sd.allRuns")}
+                </button>
+              )}
+            </div>
+          );
+
+          // Markieren duerfen nur Admins (Server prueft es ebenfalls). Ohne diesen Schalter
+          // gaebe es keinen Weg, eine Aufnahme als „am Brett" zu kennzeichnen — und damit auch
+          // die Lage-Ansicht nie. Deshalb als sichtbares Bedienelement in normaler
+          // Schriftgroesse: als text-xs ohne Rahmen hat Jan ihn am 20.09. nicht gefunden.
+          //
+          // NUR BEI AUFNAHMEN MIT KREISEL. Den liefern ausschliesslich die Handy-Recorder; an
+          // einer Uhren-Session stand der Schalter bisher trotzdem und versprach eine Ansicht,
+          // die es dort gar nicht geben kann. Eine bereits markierte Session behaelt ihn, sonst
+          // liesse sich die Markierung nicht mehr zuruecknehmen.
+          const brettSchalter = isAdmin && owned && !fullscreen
+            && (session.has_gyro || session.placement === "board") && (
+            <label className="mt-3 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-slate-800/60 px-3 py-2 text-sm text-slate-200 ring-1 ring-slate-700 hover:bg-slate-800">
+              <input
+                type="checkbox"
+                checked={session.placement === "board"}
+                onChange={(e) => {
+                  const wert = e.target.checked ? "board" : "phone";
+                  api.updateSessionMeta(session.id, { placement: wert })
+                    .then((frisch) => setSession((alt) => (alt ? { ...alt, placement: frisch.placement } : alt)))
+                    .catch(() => {});
+                }}
+                className="h-4 w-4 rounded border-slate-600 bg-slate-800"
+              />
+              {t("board.markBoard")}
+            </label>
+          );
+
+          const lageSchalter = session.placement === "board" && !fullscreen && (
+            <div className="mt-3">
+              <button
+                onClick={() => setZeigeLage((v) => !v)}
+                className={`inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium ${zeigeLage
+                  ? "bg-brand-500 text-slate-950" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
+              >
+                {zeigeLage ? t("board.map") : t("board.show")}
+              </button>
+            </div>
+          );
+
+          // Die Ansicht selbst haengt am `progress` der Karte — eine zweite Zeitachse zu bauen
+          // waere genau der Fehler, der `syncPlayback` schon 14 % Drift gekostet hat.
+          const lageAnsicht = untenAnordnen && (
+            <div className="mt-3">
+              <BoardAttitude sessionId={session.id} run={selectedRun}
+                progress={progress} playMode={playMode} />
+            </div>
+          );
+
+          return (
+            <>
+              {!untenAnordnen && laufWahl}
+              {!untenAnordnen && brettSchalter}
+              {!untenAnordnen && lageSchalter}
+              {lageAnsicht}
+              {untenAnordnen && laufWahl}
+              {untenAnordnen && brettSchalter}
+              {untenAnordnen && lageSchalter}
+            </>
+          );
+        })()}
 
         {/* 2. Skala der Farbverteilung + Geschwindigkeitsanzeige. */}
         <div className={`flex flex-wrap items-center gap-4 px-1 ${fullscreen ? "shrink-0 bg-slate-950 p-2" : "mt-2"}`}>

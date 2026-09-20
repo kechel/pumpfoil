@@ -8,8 +8,8 @@ import math
 import numpy as np
 import pytest
 
-from app.analysis.lage import (ACCEL_SCALE, GYRO_SCALE, lage_berechnen, laufbereiche,
-                               zeitachse)
+from app.analysis.lage import (ACCEL_SCALE, GYRO_SCALE, hub_berechnen, lage_berechnen,
+                               laufbereiche, zeitachse)
 
 
 def _ruhend(n, hz, kipp_grad=0.0, achse="pitch"):
@@ -218,3 +218,69 @@ def test_laufbereiche_kuerzt_die_raender_und_rechnet_den_trim_ein():
                              "t_start_session_ms": 60_000, "t_end_session_ms": 70_000}],
                            trim_offset_ms=5000)
     assert (a, b) == (61_500, 68_500)
+
+
+# --- Hub: zweimal integrieren, aber nur im Band ----------------------------------------------
+
+def _senkrechte_schwingung(amplitude_m, f_hz, dauer_s, hz=50.0):
+    """Beschleunigung einer reinen Auf-/Ab-Schwingung: z = A·sin(ωt) -> z̈ = -A·ω²·sin(ωt)."""
+    t = np.arange(int(dauer_s * hz)) / hz
+    w = 2 * math.pi * f_hz
+    return -amplitude_m * w ** 2 * np.sin(w * t), 1.0 / hz
+
+
+@pytest.mark.parametrize("fenster", [1.0, 3.0, 5.0, 10.0])
+def test_hub_gibt_die_amplitude_unabhaengig_vom_fenster_zurueck(fenster):
+    """12 cm Hub bei 1 Hz müssen 12 cm bleiben — das Fenster ist eine Bandgrenze, kein Regler.
+
+    Der Test hat einen echten Fehler gefunden: ein zusaetzlicher Abzug der Ausgleichsgeraden
+    liess die Amplitude bei 5-s-Fenster auf 16,2 cm steigen. Bei einem fast-periodischen Signal
+    findet die Gerade eine Steigung, und die Rampe landet genau dort, wo 1/ω² am staerksten
+    verstaerkt.
+    """
+    a, dt = _senkrechte_schwingung(0.12, 1.0, 30.0)
+    z = hub_berechnen(a, dt, fenster)
+    assert z is not None
+    assert 11.5 < np.abs(z).max() < 12.5, np.abs(z).max()
+
+
+def test_hub_verwirft_versatz_und_langsames():
+    """Ein konstanter Messfehler und eine Bewegung unterhalb des Bandes duerfen nichts ergeben.
+
+    Das ist die Eigenschaft, die den Ansatz ueberhaupt tragfaehig macht: zweimal integrieren
+    laesst jeden Versatz quadratisch weglaufen — 0,01 m/s² werden in einer Minute zu 18 m.
+    """
+    a, dt = _senkrechte_schwingung(0.12, 1.0, 30.0)
+    assert np.abs(hub_berechnen(np.full(len(a), 0.3), dt, 3.0)).max() < 0.1
+    langsam, dt2 = _senkrechte_schwingung(0.20, 0.05, 30.0)     # 20 s Periode, 20 cm
+    assert np.abs(hub_berechnen(langsam, dt2, 3.0)).max() < 1.0
+
+
+def test_hub_lehnt_zu_kurze_stuecke_ab():
+    """Passt das Fenster nicht mehrfach in den Lauf, schneidet die Bandgrenze das Nutzsignal mit
+    weg — dann lieber nichts liefern als eine Kurve, die nur aus der Grenze besteht."""
+    a, dt = _senkrechte_schwingung(0.12, 1.0, 4.0)
+    assert hub_berechnen(a, dt, 3.0) is None
+
+
+def test_hub_steht_in_der_lage_antwort():
+    """Ende zu Ende: gekipptes Geraet, das auf und ab schwingt -> der Hub landet im Ergebnis.
+
+    Gekippt ist wichtig: die Senkrechte kommt aus der berechneten LAGE, nicht aus der z-Achse
+    des Geraets. Läge das Handy quer, wäre z waagerecht und der Hub steckte in x oder y.
+    """
+    hz, n, kipp = 50.0, 2000, 25.0
+    t = np.arange(n) / hz
+    w = 2 * math.pi * 1.0
+    a_vert_g = -0.10 * w ** 2 * np.sin(w * t) / 9.80665       # 10 cm Hub, in g
+    k = math.radians(kipp)
+    # Schwerkraft + senkrechte Beschleunigung, beides in den gekippten Geraetachsen.
+    oben = np.array([-math.sin(k), 0.0, math.cos(k)])
+    acc = ((1.0 + a_vert_g)[:, None] * oben) * ACCEL_SCALE
+    tms = t * 1000.0
+    r = lage_berechnen(acc.astype(np.int16), tms, np.zeros((n, 3), dtype=np.int16), tms,
+                       ziel_hz=20, hub_fenster_s=3.0)
+    assert r["ok"] and r["hub_cm"] is not None
+    hub = np.array(r["hub_cm"])
+    assert 8.0 < np.abs(hub).max() < 12.0, np.abs(hub).max()
+    assert r["kennzahlen"]["hub_pp_cm"] > 12.0                # Spitze-Spitze rund 20 cm

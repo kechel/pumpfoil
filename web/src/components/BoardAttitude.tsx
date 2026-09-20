@@ -41,37 +41,78 @@ function Kachel({ label, hinweis, kind, children }: {
 }
 
 /**
- * Die drei Kurven über die Zeit, mit Zeiger.
+ * Die Kurven über die Zeit, mit Zeiger — einzeln oder alle in einem Bild.
  *
  * Der Zeiger stand vorher auf festem `#e2e8f0` — im Hellmodus weiß auf weiß und damit unsichtbar
  * (Jan, 20.09.). Farben kommen hier deshalb aus slate-Klassen, die mit dem Theme kippen; die
  * Kurvenfarben selbst sind Mitteltöne, die auf beiden Gründen tragen.
+ *
+ * IM GEMEINSAMEN BILD wird jede Reihe auf IHR EIGENES Maximum normiert. Anders geht es nicht:
+ * Grad und Zentimeter haben keinen gemeinsamen Maßstab, und ein Gierwinkel von 40° würde ein
+ * Nicken von 6° sonst platt auf die Mittellinie drücken. Verglichen werden also Form und Takt,
+ * nicht Beträge — deshalb steht in der Legende zu jeder Farbe ihr eigener Bereich.
  */
-function Kurven({ d, pos, onZeigen, onWeg }: {
-  d: Lage; pos: number; onZeigen: (p: number) => void; onWeg: () => void;
+function Kurven({ reihen, t_ms, pos, zusammen, onZeigen, onWeg }: {
+  reihen: { name: string; werte: number[]; farbe: string; einheit: string }[];
+  t_ms: number[]; pos: number; zusammen: boolean;
+  onZeigen: (p: number) => void; onWeg: () => void;
 }) {
-  const t = d.t_ms ?? [];
-  const reihen = [
-    { name: "Nicken", werte: d.pitch_deg ?? [], farbe: "#38bdf8" },
-    { name: "Rollen", werte: d.roll_deg ?? [], farbe: "#f59e0b" },
-    { name: "Gieren", werte: d.gier_delta_deg ?? [], farbe: "#a78bfa" },
-  ];
   const W = 1000, H = 150;
-  const t0 = t[0] ?? 0, t1 = t[t.length - 1] ?? 1;
+  const t0 = t_ms[0] ?? 0, t1 = t_ms[t_ms.length - 1] ?? 1;
   const spanne = Math.max(1, t1 - t0);
-  const idx = t.length ? Math.min(t.length - 1, Math.round(pos * (t.length - 1))) : 0;
+  const idx = t_ms.length ? Math.min(t_ms.length - 1, Math.round(pos * (t_ms.length - 1))) : 0;
+  const x = Math.min(W - 1, Math.max(1, pos * W));   // am Rand hineinziehen, sonst halb außerhalb
   const zeigen = (e: React.MouseEvent<SVGSVGElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
     onZeigen(Math.min(1, Math.max(0, (e.clientX - r.left) / Math.max(1, r.width))));
   };
+  const skala = (werte: number[]) => Math.max(1, ...werte.map((v) => Math.abs(v)));
+  const linie = (werte: number[], max: number) =>
+    werte.map((v, i) => `${((t_ms[i] - t0) / spanne) * W},${H / 2 - (v / max) * (H / 2 - 6)}`).join(" ");
+
+  if (zusammen) {
+    return (
+      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-2">
+        <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="h-44 w-full cursor-crosshair"
+          onMouseMove={zeigen} onMouseLeave={onWeg}>
+          <line x1={0} y1={H / 2} x2={W} y2={H / 2} className="stroke-slate-500" strokeWidth={1}
+            vectorEffect="non-scaling-stroke" />
+          {reihen.map((r) => (
+            <polyline key={r.name} points={linie(r.werte, skala(r.werte))} fill="none"
+              stroke={r.farbe} strokeWidth={2} vectorEffect="non-scaling-stroke" />
+          ))}
+          <line x1={x} y1={0} x2={x} y2={H} className="stroke-slate-300" strokeWidth={1.5}
+            vectorEffect="non-scaling-stroke" />
+          {reihen.map((r) => r.werte[idx] == null ? null : (
+            <circle key={r.name} cx={x} cy={H / 2 - (r.werte[idx] / skala(r.werte)) * (H / 2 - 6)}
+              r={4} fill={r.farbe} className="stroke-slate-900" strokeWidth={1.5}
+              vectorEffect="non-scaling-stroke" />
+          ))}
+        </svg>
+        <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+          {reihen.map((r) => (
+            <span key={r.name} className="inline-flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full" style={{ background: r.farbe }} />
+              <span className="font-semibold" style={{ color: r.farbe }}>{r.name}</span>
+              {r.werte[idx] != null && (
+                <span className="tabular-nums font-semibold text-slate-200">
+                  {r.werte[idx] > 0 ? "+" : ""}{r.werte[idx].toFixed(1)}{r.einheit}
+                </span>
+              )}
+              <span className="tabular-nums text-slate-400">
+                (±{skala(r.werte).toFixed(0)}{r.einheit})
+              </span>
+            </span>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-2">
       {reihen.map((r) => {
-        const max = Math.max(5, ...r.werte.map((v) => Math.abs(v)));
-        const y = (v: number) => H / 2 - (v / max) * (H / 2 - 6);
-        const punkte = r.werte.map((v, i) => `${((t[i] - t0) / spanne) * W},${y(v)}`).join(" ");
-        // Zeiger am Rand ganz hineinziehen, sonst liegt die halbe Linie außerhalb des Bildes.
-        const x = Math.min(W - 1, Math.max(1, pos * W));
+        const max = skala(r.werte);
         const wert = r.werte[idx];
         return (
           <div key={r.name} className="rounded-xl border border-slate-800 bg-slate-900/40 p-2">
@@ -79,22 +120,22 @@ function Kurven({ d, pos, onZeigen, onWeg }: {
               <span className="font-semibold" style={{ color: r.farbe }}>{r.name}</span>
               <span className="tabular-nums text-slate-400">
                 {wert != null && <span className="mr-2 font-semibold text-slate-200">
-                  {wert > 0 ? "+" : ""}{wert.toFixed(1)}°
+                  {wert > 0 ? "+" : ""}{wert.toFixed(1)}{r.einheit}
                 </span>}
-                ±{max.toFixed(0)}°
+                ±{max.toFixed(0)}{r.einheit}
               </span>
             </div>
             <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="h-20 w-full cursor-crosshair"
               onMouseMove={zeigen} onMouseLeave={onWeg}>
               <line x1={0} y1={H / 2} x2={W} y2={H / 2} className="stroke-slate-500" strokeWidth={1}
                 vectorEffect="non-scaling-stroke" />
-              <polyline points={punkte} fill="none" stroke={r.farbe} strokeWidth={2}
+              <polyline points={linie(r.werte, max)} fill="none" stroke={r.farbe} strokeWidth={2}
                 vectorEffect="non-scaling-stroke" />
               <line x1={x} y1={0} x2={x} y2={H} className="stroke-slate-300" strokeWidth={1.5}
                 vectorEffect="non-scaling-stroke" />
               {wert != null && (
-                <circle cx={x} cy={y(wert)} r={4} fill={r.farbe} className="stroke-slate-900"
-                  strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
+                <circle cx={x} cy={H / 2 - (wert / max) * (H / 2 - 6)} r={4} fill={r.farbe}
+                  className="stroke-slate-900" strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
               )}
             </svg>
           </div>
@@ -115,6 +156,7 @@ export default function BoardAttitude({ sessionId, run, progress, playMode }: {
   const [d, setD] = useState<Lage | null>(null);
   const [laden, setLaden] = useState(true);
   const [maus, setMaus] = useState<number | null>(null);
+  const [zusammen, setZusammen] = useState(false);
 
   useEffect(() => {
     setLaden(true);
@@ -138,6 +180,11 @@ export default function BoardAttitude({ sessionId, run, progress, playMode }: {
     );
   }
 
+  const hubReihe = d.hub_cm ?? null;
+  const hub = hubReihe?.[idx] ?? 0;
+  // Bildausschnitt der Seitenansicht: einmal aus dem ganzen Lauf bestimmt, damit er beim
+  // Abspielen still steht statt mitzuatmen.
+  const hubBereich = hubReihe ? Math.max(...hubReihe.map((v) => Math.abs(v))) : 0;
   const pitch = d.pitch_deg?.[idx] ?? 0;
   const roll = d.roll_deg?.[idx] ?? 0;
   const gier = d.gier_delta_deg?.[idx] ?? 0;
@@ -145,6 +192,12 @@ export default function BoardAttitude({ sessionId, run, progress, playMode }: {
   const rig = d.rig;
   const tMs = d.t_ms ?? [];
   const sek = tMs.length ? (tMs[idx] - tMs[0]) / 1000 : 0;
+  const reihen = [
+    { name: t("board.pitch"), werte: d.pitch_deg ?? [], farbe: "#38bdf8", einheit: "°" },
+    { name: t("board.roll"), werte: d.roll_deg ?? [], farbe: "#f59e0b", einheit: "°" },
+    { name: t("board.yaw"), werte: d.gier_delta_deg ?? [], farbe: "#a78bfa", einheit: "°" },
+    ...(hubReihe ? [{ name: t("board.height"), werte: hubReihe, farbe: "#34d399", einheit: " cm" }] : []),
+  ];
   const NULLTEXT: Record<string, string> = {
     laeufe: "board.zeroRuns", mittelteil: "board.zeroMid", fenster: "board.zeroMean",
   };
@@ -155,7 +208,7 @@ export default function BoardAttitude({ sessionId, run, progress, playMode }: {
       {rig && (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <Kachel label={t("board.pitch")} hinweis={t("board.pitchHint")} kind={pitch}>
-            <SeitenAnsicht rig={rig} pitch={pitch} />
+            <SeitenAnsicht rig={rig} pitch={pitch} hub={hub} hubBereich={hubBereich} />
           </Kachel>
           <Kachel label={t("board.roll")} hinweis={t("board.rollHint")} kind={roll}>
             <FrontAnsicht rig={rig} roll={roll} pitch={pitch} />
@@ -166,8 +219,18 @@ export default function BoardAttitude({ sessionId, run, progress, playMode }: {
         </div>
       )}
 
+      <Kurven reihen={reihen} t_ms={tMs} pos={pos} zusammen={zusammen}
+        onZeigen={setMaus} onWeg={() => setMaus(null)} />
+
+      {/* Bedienelemente UNTER die Kurven (Jan, 20.09.): oben soll Karte, Animation und Kurve
+          ohne Trenner hintereinander stehen, damit alles zusammen auf einen Bildschirm passt. */}
       <div className="flex flex-wrap items-center gap-2 text-sm">
-        <span className="text-slate-400">{t("board.window")}</span>
+        <button onClick={() => setZusammen((v) => !v)}
+          className={`rounded-lg px-2.5 py-1 text-xs font-medium ${zusammen
+            ? "bg-brand-500 text-slate-950" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}>
+          {t(zusammen ? "board.separate" : "board.combined")}
+        </button>
+        <span className="ml-2 text-slate-400">{t("board.window")}</span>
         {FENSTER.map((f) => (
           <button key={f} onClick={() => setFenster(f)}
             className={`rounded-lg px-2.5 py-1 text-xs ${f === fenster
@@ -181,8 +244,6 @@ export default function BoardAttitude({ sessionId, run, progress, playMode }: {
         </span>
       </div>
 
-      <Kurven d={d} pos={pos} onZeigen={setMaus} onWeg={() => setMaus(null)} />
-
       {k && (
         <p className="text-xs text-slate-400">
           {t("board.stats", {
@@ -191,8 +252,17 @@ export default function BoardAttitude({ sessionId, run, progress, playMode }: {
             yaw: k.gier_rms_deg_s.toFixed(0),
           })}
           {k.pitch_hz ? ` · ${t("board.cadence", { hz: k.pitch_hz.toFixed(2) })}` : ""}
+          {k.hub_pp_cm ? ` · ${t("board.heaveStat", { cm: k.hub_pp_cm.toFixed(0), s: String(d.hub_fenster_s ?? 3) })}` : ""}
           {` · ${t(nullText)}`}
           {d.quelle_hz ? ` · ${d.quelle_hz.accel} / ${d.quelle_hz.gyro ?? "–"} Hz` : ""}
+        </p>
+      )}
+
+      {/* Warnung in NORMALER Schriftgroesse (Projektregel: Hinweise nie kleiner als der Fliesstext)
+          und in amber, das als Nicht-slate-Ton beide Farbmodi ausdruecklich braucht. */}
+      {k?.hub_pp_cm != null && k.hub_sicher === false && (
+        <p className="rounded-lg bg-amber-100 px-3 py-2 text-sm text-amber-800 dark:bg-amber-500/10 dark:text-amber-300">
+          {t("board.heaveShaky", { s: String(d.hub_fenster_s ?? 3) })}
         </p>
       )}
 

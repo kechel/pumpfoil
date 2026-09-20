@@ -261,6 +261,9 @@ class SessionOut(BaseModel):
     tz: str | None = None           # IANA-Zeitzone des Spots — Uhrzeiten in Spot-Ortszeit anzeigen
     device_label: str | None = None  # Uhr-/Geräte-Bezeichnung der Aufnahme (nur Detailansicht)
     device_model: str | None = None  # Aufnahme-Gerät (Modell + OS) — nur Detailansicht, additiv
+    # Kam ein Kreisel mit? Nur die Handy-Recorder liefern einen — Uhren nicht. Gate für die
+    # Lage-Ansicht: ohne Kreisel gäbe es dort nur eine verrauschte Neigung und gar kein Gieren.
+    has_gyro: bool | None = None
     share_token: str | None = None    # öffentlicher Teilen-Token (nur dem Besitzer geliefert)
     caption: str | None = None  # eigene Beschriftung des Besitzers
     youtube_url: str | None = None  # Legacy-Spiegel: erstes YOUTUBE-Video (alle Clients)

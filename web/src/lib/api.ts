@@ -144,9 +144,16 @@ export type BoardAttitude = {
   pitch_deg?: number[];
   roll_deg?: number[];
   gier_delta_deg?: number[];
+  // Senkrechte Auslenkung in cm — BANDBEGRENZT: nur das Auf und Ab im Pumptakt, keine absolute
+  // Hoehe. null, wenn das Stueck zu kurz fuers gewaehlte Fenster ist.
+  hub_cm?: number[] | null;
+  hub_fenster_s?: number;
   kennzahlen?: {
     pitch_amplitude_deg: number; roll_amplitude_deg: number; gier_rms_deg_s: number;
     pitch_hz: number | null; ruhe_anteil: number; bias_abgezogen: boolean;
+    hub_pp_cm?: number | null; hub_hz?: number | null;
+    // false = die Bewegung liegt zu dicht an der unteren Bandgrenze, die Zahl ist dann wertlos.
+    hub_sicher?: boolean;
   };
 };
 
@@ -307,6 +314,9 @@ export interface SessionSummary {
   thumb_url?: string | null;
   device_label?: string | null;
   device_model?: string | null;
+  // Kam ein Kreisel mit? Nur die Handy-Recorder liefern einen, Uhren nicht — Gate fuer die
+  // Lage-Ansicht (ohne Kreisel gaebe es dort nur eine verrauschte Neigung und kein Gieren).
+  has_gyro?: boolean | null;
   // Fahrergewicht des BESITZERS (kg) — die theoretische Leistung haengt quadratisch davon ab,
   // also muss sie mit SEINEM Gewicht gerechnet werden, egal wer zuschaut. Nur in der
   // Einzel-Session-Ausgabe (Listen zeigen keine Leistung).
