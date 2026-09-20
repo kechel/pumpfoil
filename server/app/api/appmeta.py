@@ -681,7 +681,8 @@ IN_REVIEW: list[dict] = [
      "eingereicht": "2026-09-20",
      # EINGEREICHT 20.09.2026 08:50 Berlin, Uebermittlungskennung
      # 833dcb6b-cff7-41ba-b860-1137d0121939, „iOS-App 1.1.35 (39) — Warten auf Pruefung".
-     # Der einzige watch-apple-Commit seit 1.1.34 ist 39993b60, der Stand ist also eindeutig.
+     # GEBAUT AUS COMMIT b0060b66 (von Jan genannt). Der einzige watch-apple-Commit darin seit
+     # 1.1.34 ist 39993b60 — der Inhalt der Einreichung ist damit genau der Marken-Port.
      # EIN Bundle, EINE MARKETING_VERSION: bei der Freigabe BEIDE Schluessel setzen (ios UND
      # apple). AB HIER EINGEFROREN, alles Weitere nach NAECHSTES (1.1.36).
      "items": [

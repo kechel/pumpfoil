@@ -1389,9 +1389,10 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 - **🟢 20.09. 08:50 — iOS + Apple Watch 1.1.35 (39) EINGEREICHT.** Jans Meldung: „Warten auf
   Pruefung", Uebermittlungskennung `833dcb6b-cff7-41ba-b860-1137d0121939`, uebermittelt
   20. Sept. 2026 um 08:50 Uhr.
-  - **Stand eindeutig:** der einzige `watch-apple`-Commit seit der Freigabe von 1.1.34 ist
-    `39993b60`. `project.yml` steht auf `MARKETING_VERSION 1.1.35` / `CURRENT_PROJECT_VERSION 39`
-    in beiden Targets.
+  - **Gebaut aus Commit `b0060b66`** (von Jan genannt). Der einzige `watch-apple`-Commit darin
+    seit der Freigabe von 1.1.34 ist `39993b60` — der Inhalt ist also genau der Marken-Port.
+    `project.yml` steht auf `MARKETING_VERSION 1.1.35` / `CURRENT_PROJECT_VERSION 39` in beiden
+    Targets.
   - Inhalt: die beiden neuen On-Foil-Marken im Profil der iPhone-App (Anordnung wie in der PWA,
     Auswahl vor der Zahl) und ihre Auswertung auf der Apple Watch. **Ohne** den Hinweis
     „Coming to the watches soon" — der steht bewusst nur in der PWA.
@@ -1454,15 +1455,25 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     im PRG-Abbild (72.012 -> 73.260 B auf instinct2), die blockierende Session stammt aber vom
     17.09. und damit aus 1.0.87. Ein sauberer A/B-Lauf gegen 1.0.87 wurde nie gefahren, weil der
     Speicherzustand sich mit jedem Versuch aendert; er ist jetzt auch nicht mehr noetig.
-  - **🔲 OFFEN, Jans OK steht aus — Selbstheilung beim Chunk-Lesen.** Ein Chunk, der sich nicht
-    laden laesst, legt die Uhr DAUERHAFT lahm: OOM ist in Monkey C nicht abfangbar (SDK-Doku
-    `Monkey_C/Exceptions_and_Errors.html`: "These errors cannot be caught", Out of Memory steht in
-    der Liste), und `Toybox.Application.Storage` hat keine Groessenabfrage — nur `getValue`,
-    `setValue`, `deleteValue`, `clearValues`. Vorschlag: (a) vor dem Lesen `freeMemory` gegen die
-    erwartete Chunk-Groesse pruefen und sonst sauber abbrechen statt zu sterben; (b) Canary wie
-    beim Lauf — `up_bad = <uuid>|<index>` vor dem Lesen, nach dem Absenden loeschen; findet der
-    naechste Start denselben Eintrag vor, wird genau dieser Chunk uebersprungen. Canary nur
-    schreiben, wenn `freeMemory` knapp ist, dann zahlen grosse Uhren nichts.
+  - **⚪ NICHT GEBAUT, Jans Entscheidung vom 20.09.:** „die selbstheilung brauchen wir nicht
+    mehr, die instinct ist kein einziges mal mehr abgestuerzt beim testen seit dem chunk-zaehler
+    + 1 fix."
+    - **Zur Einordnung, damit die Begruendung im Repo stimmt:** der `+1`-Fix sitzt in
+      `Uploader.pendingKb()` und wirkt nur auf die ANZEIGE (`storageMinutesLeft`) und auf den
+      gemeldeten `storage_full_kb`. Er liegt NICHT im Absturzpfad — der war
+      `_advance` -> `Storage.getValue("cg_…")`. Zwischen den abstuerzenden und den laufenden
+      Versuchen wurden ausserdem die Simulator-App-Daten geloescht, und damit verschwand die
+      blockierende Session. Das ist die weit wahrscheinlichere Ursache. „Seit dem Fix kein
+      Absturz" ist also KEIN Beleg dafuer, dass ein unlesbarer Chunk nicht wiederkommen kann.
+    - Wer es spaeter doch baut, findet hier den fertigen Entwurf: Ein Chunk, der sich nicht
+      laden laesst, legt die Uhr DAUERHAFT lahm: OOM ist in Monkey C nicht abfangbar (SDK-Doku
+      `Monkey_C/Exceptions_and_Errors.html`: "These errors cannot be caught", Out of Memory steht
+      in der Liste), und `Toybox.Application.Storage` hat keine Groessenabfrage — nur `getValue`,
+      `setValue`, `deleteValue`, `clearValues`. Vorschlag: (a) vor dem Lesen `freeMemory` gegen
+      die erwartete Chunk-Groesse pruefen und sonst sauber abbrechen statt zu sterben; (b) Canary
+      wie beim Lauf — `up_bad = <uuid>|<index>` vor dem Lesen, nach dem Absenden loeschen; findet
+      der naechste Start denselben Eintrag vor, wird genau dieser Chunk uebersprungen. Canary nur
+      schreiben, wenn `freeMemory` knapp ist, dann zahlen grosse Uhren nichts.
 
 
 - **📥 20.09. — Uhr-Etikett widerspricht der Part-Number, und das Etikett gewinnt.** Token 1062

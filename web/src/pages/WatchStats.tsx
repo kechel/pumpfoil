@@ -8,6 +8,7 @@ import { useSort, SortHead } from "../components/SortableTable";
 import { useT } from "../i18n";
 
 type Row = Awaited<ReturnType<typeof api.watchStats>>[number];
+type Qualitaet = Awaited<ReturnType<typeof api.watchQuality>> | null;
 
 /**
  * „Wie gut zeichnen die Uhren auf?" — gemessen an unseren eigenen Aufnahmen, nicht an
@@ -28,10 +29,8 @@ type Row = Awaited<ReturnType<typeof api.watchStats>>[number];
 // Ab dieser Zahl abwaerts (also 3 und weniger) wird die Zeile als duenn gekennzeichnet.
 const WENIG_NUTZER = 3;
 
-function Uhrenqualitaet() {
+function Uhrenqualitaet({ d }: { d: Qualitaet }) {
   const t = useT();
-  const [d, setD] = useState<Awaited<ReturnType<typeof api.watchQuality>> | null>(null);
-  useEffect(() => { api.watchQuality().then(setD).catch(() => setD(null)); }, []);
   if (!d || !d.modelle?.length) return null;
 
   // Nach Sessions sortiert. Frueher stand hier eine Urteilsspalte und die Reihenfolge folgte
@@ -40,7 +39,7 @@ function Uhrenqualitaet() {
   const zeilen = [...d.modelle].sort((a, b) => b.sessions - a.sessions);
 
   return (
-    <section className="mt-10">
+    <section id="wie-gut" className="mt-10 scroll-mt-24">
       <h3 className="mb-1 text-lg font-bold">{t("watchQuality.title")}</h3>
       <p className="mb-2 text-sm text-slate-400">
         {t("watchQuality.lead", { sessions: String(d.sessions ?? 0), hours: String(d.stunden ?? 0),
@@ -111,9 +110,22 @@ export default function WatchStats() {
   const t = useT();
   const pf = usePumpFmt();
   const [rows, setRows] = useState<Row[] | null>(null);
+  // Die Qualitaets-Zahlen holt die SEITE, nicht der Abschnitt: der Sprunglink oben darf nur
+  // erscheinen, wenn es unten auch etwas gibt (der Abschnitt zeichnet ohne Daten gar nichts).
+  const [qualitaet, setQualitaet] = useState<Qualitaet>(null);
   const sort = useSort<Row>(rows, "sessions", "desc");
 
   useEffect(() => { api.watchStats().then(setRows).catch(() => setRows([])); }, []);
+  useEffect(() => { api.watchQuality().then(setQualitaet).catch(() => setQualitaet(null)); }, []);
+
+  // Weicher Sprung statt Sprung mit Ruck; der href bleibt stehen, damit Mittelklick und
+  // Tastatur weiter funktionieren.
+  const zurQualitaet = (e: React.MouseEvent) => {
+    const ziel = document.getElementById("wie-gut");
+    if (!ziel) return;
+    e.preventDefault();
+    ziel.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
     <div className="w-full">
@@ -127,7 +139,13 @@ export default function WatchStats() {
           <FoilIcon className="h-4 w-4" /> <span className="hidden sm:inline">{t("stats.short")}</span>
         </Link>
       </div>
-      <p className="mb-4 text-sm text-slate-300">{t("watchStats.hint")}</p>
+      <p className="mb-2 text-sm text-slate-300">{t("watchStats.hint")}</p>
+      {qualitaet?.modelle?.length ? (
+        <a href="#wie-gut" onClick={zurQualitaet}
+          className="mb-4 inline-flex items-center gap-1 text-sm font-medium text-brand-600 dark:text-brand-300 hover:underline">
+          <ChevronIcon className="h-4 w-4 rotate-90" /> {t("watchQuality.title")}
+        </a>
+      ) : null}
 
       {!rows ? (
         <Spinner />
@@ -166,7 +184,7 @@ export default function WatchStats() {
         </div>
       )}
 
-      <Uhrenqualitaet />
+      <Uhrenqualitaet d={qualitaet} />
     </div>
   );
 }
