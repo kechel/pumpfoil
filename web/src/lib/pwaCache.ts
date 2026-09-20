@@ -25,6 +25,39 @@ export async function leerePersoenlicheCaches(): Promise<void> {
   }
 }
 
+/**
+ * Die gecachten SESSION-LISTEN aus den PWA-Caches werfen — nach Löschen, Zusammenführen und
+ * Auftrennen aufzurufen.
+ *
+ * WARUM DAS NÖTIG IST (Jan, 20.09.2026: „die session-listen aktualisieren sich nicht richtig
+ * wenn ich sessions loesche in der pwa, in allen 3 ansichten"): `/api/sessions` und
+ * `/api/community/sessions-grouped` laufen seit dem 15.09. auf **StaleWhileRevalidate**. Der
+ * Service Worker liefert also erst den alten Stand und frischt ihn nur im Hintergrund auf. Die
+ * Seite macht alles richtig — sie wirft ihren eigenen Cache weg und lädt neu —, bekommt vom SW
+ * aber dieselbe Antwort von vorhin, samt der gerade gelöschten Session. Genau deshalb betrifft
+ * es alle drei Ansichten: die Regel deckt die eigene Liste UND die Community-/Spot-Liste ab.
+ *
+ * Ein `fresh=1` am Aufruf würde nur den einen Abruf heilen — der gecachte Eintrag bliebe alt und
+ * käme beim nächsten Öffnen der Liste ein weiteres Mal hoch. Deshalb der Eintrag selbst raus.
+ *
+ * Aus `api-community` werden NUR die Listen entfernt: Rekorde, Spots und der Social-Feed stehen
+ * dort, damit die Seite beim Wiederkommen sofort vollständig dasteht — eine gelöschte Session
+ * ändert an ihnen nichts.
+ */
+export async function verwerfeSessionListen(): Promise<void> {
+  if (typeof window === "undefined" || !("caches" in window)) return;
+  try { await caches.delete("api-my-sessions"); } catch { /* egal */ }
+  try {
+    const cache = await caches.open("api-community");
+    for (const req of await cache.keys()) {
+      const pfad = new URL(req.url).pathname;
+      if (pfad === "/api/community/sessions" || pfad === "/api/community/sessions-grouped") {
+        await cache.delete(req);
+      }
+    }
+  } catch { /* egal */ }
+}
+
 /** Alte Versionen des Session-Caches wegräumen (nach einem Namenswechsel). */
 export async function raeumeAlteCaches(): Promise<void> {
   if (typeof window === "undefined" || !("caches" in window)) return;
