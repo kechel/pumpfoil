@@ -997,7 +997,7 @@ const ru: Record<string, string> = {
   "alarm.markOnce": "только на",
   "alarm.markEvery": "каждые",
   "alarm.markHint": "0 отключает. Считается для каждого заезда с первого распознанного метра — вне заезда ничего не происходит.",
-  "alarm.markSoon": "Скоро появится на часах.",
+  "alarm.markSoon": "На Garmin начиная с версии 1.0.88. Скоро и на других часах.",
   "alarm.repeatEvery": "повторять каждые",
   "alarm.maxSpeed": "Макс",
   "alarm.minSpeed": "Мин",

@@ -1110,7 +1110,7 @@ const nl: Record<string, string> = {
   "alarm.markOnce": "alleen bij",
   "alarm.markEvery": "elke",
   "alarm.markHint": "0 zet het uit. Geteld per run, vanaf de eerste herkende meter — buiten een run gebeurt er niets.",
-  "alarm.markSoon": "Binnenkort op de horloges.",
+  "alarm.markSoon": "Op Garmin vanaf versie 1.0.88. Binnenkort op de andere horloges.",
   "alarm.repeatEvery": "herhalen elke",
   "alarm.maxSpeed": "Max",
   "alarm.minSpeed": "Min",

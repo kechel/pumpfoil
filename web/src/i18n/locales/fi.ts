@@ -1077,7 +1077,7 @@ const fi: Record<string, string> = {
   "alarm.markOnce": "vain kohdassa",
   "alarm.markEvery": "joka",
   "alarm.markHint": "0 poistaa käytöstä. Lasketaan ajoa kohti ensimmäisestä havaitusta metristä — ajon ulkopuolella ei tapahdu mitään.",
-  "alarm.markSoon": "Tulossa kelloihin pian.",
+  "alarm.markSoon": "Garminissa versiosta 1.0.88 alkaen. Tulossa pian muihin kelloihin.",
   "alarm.repeatEvery": "toista joka",
   "alarm.maxSpeed": "Maks.",
   "alarm.minSpeed": "Min.",

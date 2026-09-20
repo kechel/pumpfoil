@@ -1236,7 +1236,7 @@ const de: Record<string, string> = {
   "alarm.markOnce": "nur bei",
   "alarm.markEvery": "alle",
   "alarm.markHint": "0 schaltet ab. Gezählt wird je Lauf, ab dem ersten erkannten Meter — außerhalb eines Laufs passiert nichts.",
-  "alarm.markSoon": "Die Uhren unterstützen das in Kürze.",
+  "alarm.markSoon": "Auf Garmin ab Version 1.0.88. Die anderen Uhren folgen in Kürze.",
   "alarm.repeatEvery": "wiederholen alle",
   "alarm.maxSpeed": "Max",
   "alarm.minSpeed": "Min",
