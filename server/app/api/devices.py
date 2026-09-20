@@ -185,12 +185,25 @@ def device_config(
         device.platform = p[:16]; dirty = True
     if pn is not None and pn != "":
         device.part_number = pn[:32]; dirty = True
-        # Generisches Label durch das echte Modell ersetzen, sobald auflösbar.
+        # Label aus der PART-NUMBER setzen, sobald sie auf ein Modell auflöst — sie kommt von der
+        # HARDWARE und sticht damit jedes Label, das beim Pairing gesetzt wurde.
+        #
+        # Bis 20.09.2026 wurde nur ein GENERISCHES Label ersetzt („Garmin", „Wear", …); ein echter
+        # Modellname blieb stehen, auch wenn die Part-Number widersprach. Gesetzt wird das Label in
+        # `pair_claim` aus `p.label or body.label or "Garmin"`, also aus einer ANGABE beim Pairing,
+        # nicht aus der Uhr. Gefunden an Jans Token 1062: Label „fēnix® 7X Pro", Part-Number
+        # `006-B3888-00` = Instinct 2 — zehn Instinct-Aufnahmen standen dadurch unter fenix, und das
+        # geht in die Uhren-Statistik und jede Modell-Auswertung ein.
+        #
+        # Es gibt KEINEN Weg, eine Uhr umzubenennen, und es soll auch keinen geben (Jan,
+        # 20.09.2026) — hier wird also nie etwas überschrieben, was jemand selbst gesetzt hat.
+        # Bestehende falsche Etiketten heilen sich beim nächsten Config-Abruf der Uhr selbst.
         model = _partmap().get(pn)
-        if not device.label or device.label.lower() in ("garmin", "wear", "apple", "watch", "amazfit", "zepp"):
-            if model:
+        if model:
+            if device.label != model["name"][:120]:
                 device.label = model["name"][:120]
-            elif p == "zepp":
+        elif not device.label or device.label.lower() in ("garmin", "wear", "apple", "watch", "amazfit", "zepp"):
+            if p == "zepp":
                 # Zepp liefert keine Part-Number, deshalb schickt die Uhr ab 1.0.5 ihren MODELLNAMEN
                 # in `pn` (getDeviceInfo). Ohne das stand bei jedem Amazfit-Gerät nur „Amazfit" —
                 # bei einer Fehlermeldung war nicht erkennbar, um welche Uhr es ging. Nur hier als
