@@ -19,6 +19,7 @@ import { SessionUploadCard } from "../components/UploadProgressCard";
 import { openChatOverlay } from "../components/DmWidget";
 import { computeFoilPowerAtSpeed, DEFAULT_RIDER, riderWeightFor, calculateAR, calculateCLmax, calculateStallSpeed, calculateOptimalSpeed } from "../lib/foilPhysics";
 import { rampColor, hrColor, hrRange as hrRangeOf, speedColor, optimalColor, OPTIMAL_SPAN } from "../lib/trackColors";
+import BoardAttitude from "../components/BoardAttitude";
 import { carveColor } from "../lib/turns";
 import { setPumpUnit, usePumpFmt } from "../lib/pumpRate";
 import type { CarveData } from "../lib/api";
@@ -434,6 +435,9 @@ export default function SessionDetail() {
   const gemerkt = useRef(ladeSessionView()).current;
   const [colorMode, setColorMode] = useState<ColorMode>(gemerkt.colorMode);
   const [selectedRun, setSelectedRun] = useState<number | null>(null);
+  // Lage-Abschnitt (Nicken/Rollen/Gieren). Nur bei „Handy am Brett" — und markieren duerfen das
+  // nur Admins, deshalb braucht der Abschnitt selbst kein weiteres Gate.
+  const [zeigeLage, setZeigeLage] = useState(false);
   const [speedMin, setSpeedMin] = useState(8);
   const [speedMax, setSpeedMax] = useState(25);
   const [autoScaleOn, setAutoScaleOn] = useState(true);
@@ -1672,6 +1676,48 @@ export default function SessionDetail() {
               >
                 {t("sd.allRuns")}
               </button>
+            )}
+          </div>
+        )}
+
+        {/* 1b. Lage des Bretts — derselbe Lauf, dieselbe Wiedergabe. Der Abschnitt haengt am
+            `progress` der Karte: eine zweite Zeitachse zu bauen waere genau der Fehler, der
+            `syncPlayback` schon 14 % Drift gekostet hat. */}
+        {/* Markieren duerfen nur Admins (Server prueft es ebenfalls). Ohne diesen Schalter
+            gaebe es keinen Weg, eine Aufnahme als „am Brett" zu kennzeichnen — und damit auch
+            die Lage-Ansicht nie. */}
+        {isAdmin && owned && !fullscreen && (
+          <label className="mt-3 inline-flex cursor-pointer items-center gap-2 text-xs text-slate-300">
+            <input
+              type="checkbox"
+              checked={session.placement === "board"}
+              onChange={(e) => {
+                const wert = e.target.checked ? "board" : "phone";
+                api.updateSessionMeta(session.id, { placement: wert })
+                  .then((frisch) => setSession((alt) => (alt ? { ...alt, placement: frisch.placement } : alt)))
+                  .catch(() => {});
+              }}
+              className="h-4 w-4 rounded border-slate-600 bg-slate-800"
+            />
+            {t("board.markBoard")}
+          </label>
+        )}
+
+        {session.placement === "board" && !fullscreen && (
+          <div className="mt-3">
+            <button
+              onClick={() => setZeigeLage((v) => !v)}
+              className={`inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium ${zeigeLage
+                ? "bg-brand-500 text-slate-950" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
+            >
+              {zeigeLage ? t("board.map") : t("board.show")}
+            </button>
+            {zeigeLage && (
+              <div className="mt-3">
+                <h3 className="mb-2 text-lg font-bold">{t("board.title")}</h3>
+                <BoardAttitude sessionId={session.id} run={selectedRun}
+                  progress={progress} playMode={playMode} />
+              </div>
             )}
           </div>
         )}
