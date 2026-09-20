@@ -124,7 +124,21 @@ export type BoardAttitude = {
   rechen_hz?: number;
   quelle_hz?: { accel: number | null; gyro: number | null };
   yaw_fenster_s?: number;
-  nullpunkt?: "ruhe" | "mittelwert";
+  // Woher der Nullpunkt kommt: aus den erkannten Laeufen (gut), aus dem Mittelteil des
+  // Fensters (kein Lauf erkannt) oder notfalls aus dem ganzen Fenster.
+  nullpunkt?: "laeufe" | "mittelteil" | "fenster";
+  null_pitch_deg?: number;
+  null_roll_deg?: number;
+  // Abmessungen des Foils in ZENTIMETERN fuer die Zeichnung. `gemessen` sagt je Feld, ob der
+  // Wert aus den Daten kommt oder eine Annahme ist (die Laengspositionen sind bisher Annahme).
+  rig?: {
+    foil_span_cm: number; foil_area_cm2: number; foil_chord_cm: number;
+    stab_span_cm: number; stab_area_cm2: number; stab_chord_cm: number;
+    mast_len_cm: number; board_len_cm: number; shim_deg: number;
+    x_foil_cm: number; x_mast_cm: number; x_stab_cm: number; fuse_len_cm: number;
+    gemessen: Record<string, boolean>;
+    name: { foil: string | null; stab: string | null; board: string | null };
+  };
   hat_gyro?: boolean;
   t_ms?: number[];
   pitch_deg?: number[];

@@ -21,6 +21,19 @@ DIE GIERRATE MUSS AUF DIE SCHWERKRAFT PROJIZIERT WERDEN, nicht einfach die Z-Ach
 genommen: in der Kurve ist das Brett gerollt, seine Hochachse zeigt dann nicht nach oben. Sonst
 lecken Roll- und Nickrate genau dann in die Yaw-Zahl, wenn sie am interessantesten ist.
 
+DER NULLPUNKT IST NICHT DIE RUHELAGE. Zuerst stand hier der Mittelwert ueber die ruhigsten
+Abschnitte — und genau die sind die falschen: still liegt das Brett am Strand, im Auto oder auf
+dem Kopf, nicht unter dem Fahrer. Ein Handy, das am Brett nach oben zeigt, wenn es angeschnallt
+wird, und beim Fahren um 80° gerollt ist, bekam so eine Null aus dem Sand — im ersten Test von
+Jan (20.09.) stand Roll dauerhaft bei -84°. Bezug ist deshalb die MITTLERE LAGE WAEHREND DER
+LAEUFE, und zwar als Median: ein Sturz, bei dem das Brett durch die Gegend fliegt, verschiebt
+einen Mittelwert, einen Median nicht. Gibt es keine erkannten Laeufe (Trockenuebung, kein GPS),
+bleibt der Mittelteil des Fensters — Anfang und Ende sind auch dort das Unbrauchbare.
+
+Der Bezug kommt aus den ROHEN Samples der Laufbereiche, nicht aus dem Rechenfenster: so bleibt
+die Null dieselbe, egal ob gerade ein einzelner Lauf oder die ganze Aufnahme gezeigt wird.
+Sonst spraenge der Winkel beim Umschalten zwischen den Laeufen.
+
 ZWEI ZEITACHSEN. Accel und Gyro laufen NICHT zwingend gleich schnell: auf dem iPhone beide exakt
 50 Hz mit identischen Chunk-Startzeiten, auf einem Pixel 7a dagegen 120,5 gegen 60,3 Hz (bei
 angeforderten 50 — Android behandelt die Rate als Wunsch). Deshalb wird jeder Kanal aus seinen
@@ -42,6 +55,15 @@ TAU_S = 1.5
 RUHE_GYRO_RADS = 0.15      # Drehrate darunter gilt als still
 RUHE_ACCEL_G = 0.08        # Abweichung des Betrags von 1 g darunter gilt als still
 RUHE_MIN_S = 0.5
+# Nullpunkt-Bezug: Anteil des Fensters, der als „Mittelteil" gilt, wenn es keine Laeufe gibt.
+MITTELTEIL = 0.6
+# Ein Lauf beginnt mit dem Anschieben und endet oft im Sturz — beide Raender taugen nicht als
+# Bezug. Je Seite gekuerzt, aber gedeckelt, damit von einem kurzen Lauf etwas uebrig bleibt.
+LAUF_RAND_ANTEIL = 0.15
+LAUF_RAND_MAX_MS = 3000.0
+LAUF_REST_MIN_MS = 2000.0
+# So viele Samples muss ein Bezugsbereich mindestens haben, sonst ist der Median Zufall.
+BEZUG_MIN_SAMPLES = 10
 
 
 def zeitachse(t0_ms: dict[int, int], laengen: dict[int, int]) -> np.ndarray:
@@ -98,10 +120,61 @@ def ruhe_maske(acc_g: np.ndarray, gyr: np.ndarray) -> np.ndarray:
     return (np.abs(betrag - 1.0) < RUHE_ACCEL_G) & (np.linalg.norm(gyr, axis=1) < RUHE_GYRO_RADS)
 
 
+def laufbereiche(segmente: list[dict], trim_offset_ms: int = 0) -> list[tuple[float, float]]:
+    """Zeitbereiche der erkannten Laeufe in SESSION-ms, an den Raendern gekuerzt.
+
+    Die gespeicherten Segmente sind auf den Trim re-based (docs/DATA-PIPELINE.md) — ohne den
+    Offset liegt das Fenster daneben. `t_*_session_ms` traegt die Session-ms schon fertig.
+    """
+    aus: list[tuple[float, float]] = []
+    for g in segmente:
+        try:
+            a = float(g.get("t_start_session_ms", float(g["t_start_ms"]) + trim_offset_ms))
+            b = float(g.get("t_end_session_ms", float(g["t_end_ms"]) + trim_offset_ms))
+        except (KeyError, TypeError, ValueError):
+            continue
+        if b <= a:
+            continue
+        rand = min(LAUF_RAND_ANTEIL * (b - a), LAUF_RAND_MAX_MS)
+        if (b - a) - 2 * rand >= LAUF_REST_MIN_MS:
+            a, b = a + rand, b - rand
+        aus.append((a, b))
+    return aus
+
+
+def _bezugsrichtung(acc_raw: np.ndarray, t_ms: np.ndarray,
+                    bereiche: list[tuple[float, float]]) -> np.ndarray | None:
+    """Mittlere Schwerkraftrichtung in den Bereichen — komponentenweiser MEDIAN.
+
+    Median der normierten Vektoren statt Mittelwert der Winkel: er kennt keinen ±180°-Sprung
+    (deshalb auch kein `_wickel` noetig) und ein Sturz zieht ihn nicht weg. Fuer die Richtung
+    reicht das; eine echte geometrische Mediane braucht es dafuer nicht.
+    """
+    if not bereiche or len(acc_raw) == 0:
+        return None
+    m = np.zeros(len(t_ms), dtype=bool)
+    for a, b in bereiche:
+        m |= (t_ms >= a) & (t_ms <= b)
+    if m.sum() < BEZUG_MIN_SAMPLES:
+        return None
+    v = acc_raw[m] / ACCEL_SCALE
+    v = v / np.clip(np.linalg.norm(v, axis=1, keepdims=True), 1e-6, None)
+    med = np.median(v, axis=0)
+    n = np.linalg.norm(med)
+    return med / n if n > 1e-6 else None
+
+
+def _pitch_roll(v: np.ndarray) -> tuple[float, float]:
+    """Nick- und Rollwinkel einer Schwerkraftrichtung. Eine Stelle fuer beide Verwendungen."""
+    return (float(np.degrees(np.arctan2(-v[0], np.hypot(v[1], v[2])))),
+            float(np.degrees(np.arctan2(v[1], v[2]))))
+
+
 def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
                    gyr_raw: np.ndarray, t_gyr_ms: np.ndarray,
                    *, ziel_hz: float = 20.0, yaw_fenster_s: float = 1.0,
-                   t_von_ms: float | None = None, t_bis_ms: float | None = None) -> dict:
+                   t_von_ms: float | None = None, t_bis_ms: float | None = None,
+                   ref_bereiche_ms: list[tuple[float, float]] | None = None) -> dict:
     """Pitch/Roll (absolut, in Grad) und Gierwinkel-Aenderung je Fenster (Grad).
 
     `acc_raw`/`gyr_raw` sind die int16-Rohwerte, `t_*_ms` die zugehoerigen Zeitachsen. Das
@@ -160,6 +233,8 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
     a_norm = acc / np.clip(np.linalg.norm(acc, axis=1, keepdims=True), 1e-6, None)
     pitch_a = np.degrees(np.arctan2(-a_norm[:, 0], np.hypot(a_norm[:, 1], a_norm[:, 2])))
     roll_a = np.degrees(np.arctan2(a_norm[:, 1], a_norm[:, 2]))
+    # Dieselbe Rechnung wie `_pitch_roll`, nur vektorisiert — bewusst nebeneinander: ueber
+    # 400.000 Samples ist die Schleifenvariante keine Option.
 
     # Komplementaerfilter: Kreisel treibt, Schwerkraft zieht zurueck.
     dt = np.diff(t_s, prepend=t_s[0])
@@ -184,16 +259,21 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
     gier_delta = np.zeros(len(t))
     gier_delta[schritte:] = integral[schritte:] - integral[:-schritte]
 
-    # Nullpunkt: eine Ruhephase ist genauer, der Mittelwert immer verfuegbar.
-    def _mittel_winkel(w: np.ndarray) -> float:
-        """Mittelwert von WINKELN — ueber den Einheitskreis, nicht arithmetisch. Sonst liegt der
-        Nullpunkt von Werten um ±180° herum bei 0 statt bei 180."""
-        return float(np.degrees(np.arctan2(np.sin(np.radians(w)).mean(),
-                                           np.cos(np.radians(w)).mean())))
-    if still.sum() > RUHE_MIN_S * rechen_hz:
-        null_p, null_r, null_quelle = _mittel_winkel(pitch[still]), _mittel_winkel(roll[still]), "ruhe"
-    else:
-        null_p, null_r, null_quelle = _mittel_winkel(pitch), _mittel_winkel(roll), "mittelwert"
+    # Nullpunkt — die mittlere Lage WAEHREND DER FAHRT, nicht die Ruhelage (s. Kopfkommentar).
+    # Erste Wahl sind die uebergebenen Laufbereiche, und zwar aus den Rohsamples: damit haengt
+    # die Null nicht am gerade gezeigten Ausschnitt.
+    bezug = _bezugsrichtung(acc_raw, t_acc_ms, ref_bereiche_ms or [])
+    null_quelle = "laeufe"
+    if bezug is None:
+        # Kein Lauf erkannt: der Mittelteil des Fensters. Aufbauen und Einpacken liegen aussen,
+        # der Sturz meist am Ende — was bleibt, ist das Brauchbarste, das ohne Erkennung da ist.
+        rand = (1.0 - MITTELTEIL) / 2.0 * (bis - von)
+        bezug = _bezugsrichtung(acc_raw, t_acc_ms, [(von + rand, bis - rand)])
+        null_quelle = "mittelteil"
+    if bezug is None:
+        bezug = np.median(a_norm, axis=0)
+        null_quelle = "fenster"
+    null_p, null_r = _pitch_roll(bezug)
     pitch = _wickel(pitch - null_p)
     roll = _wickel(roll - null_r)
 
@@ -218,6 +298,8 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
                       "gyro": round(float(_quellrate(t_gyr_ms)), 1) if hat_gyro else None},
         "yaw_fenster_s": yaw_fenster_s,
         "nullpunkt": null_quelle,
+        "null_pitch_deg": round(null_p, 2),
+        "null_roll_deg": round(null_r, 2),
         "hat_gyro": bool(hat_gyro),
         "t_ms": [round(float(x)) for x in t[aus]],
         "pitch_deg": [round(float(x), 2) for x in pitch[aus]],
