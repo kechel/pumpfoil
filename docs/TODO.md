@@ -1419,13 +1419,28 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Aenderungen im Stroke, die Schwerkraft haelt den Nullpunkt. Damit werden **Pitch und Roll
   driftfrei UND dynamisch** — das ist der Gewinn gegenueber Accel allein, der unter Pumpbewegung
   von der Bewegung dominiert ist.
-  - **YAW: kein absoluter Winkel.** Uns fehlt ein Magnetometer, wir zeichnen keines auf.
-    Jans Frage („zappelt man oder haelt man das Board gerade") ist trotzdem beantwortbar, nur
-    anders: die **Gier-RATE** wird direkt gemessen und braucht keine Integration. Daraus ein
-    Ruhe-Mass (RMS der Gierrate im Lauf, evtl. Spektrum) plus die kurzfristige Abweichung vom
-    GPS-Kurs. **Als Gradzahl darstellen waere gelogen** — als „ruhig/unruhig" mit Zahl nicht.
+  - **YAW: kein absoluter Winkel — aber die AENDERUNG ueber ein kurzes Fenster schon** (Jans
+    Vorschlag vom 20.09., und er ist richtig). Ein absoluter Kurs braeuchte ein Magnetometer, das
+    wir nicht aufzeichnen; die Integration ueber Minuten laeuft weg. Ueber 1-5 s laeuft sie
+    aber kaum weg — also: **gleitendes Fenster, einstellbar 1/3/5 s**, Anzeige „in dieser Sekunde
+    hat sich das Board um X° gedreht". Bei 50 Hz sind das 50/150/250 Samples.
+    - **Fehlerabschaetzung, damit die Fenstergroesse eine begruendete Wahl ist:** der Fehler ist
+      im Wesentlichen Gyro-Bias × Fensterlaenge. Roh liegt ein MEMS-Bias bei ~0,02 rad/s -> rund
+      **1,1° je Sekunde**, ueber 5 s schon ~5,7°. **Bias aus einer Ruhephase vor dem Lauf
+      abziehen** (Board liegt still) druekt das auf ~0,1-0,6° bei 1 s und ~0,6-2,9° bei 5 s.
+      Ohne diesen Abzug ist 5 s grenzwertig, mit ihm brauchbar.
+    - **⚠️ Die Gierrate muss auf die SCHWERKRAFT projiziert werden**, nicht einfach die Z-Achse
+      des Geraets genommen: in der Kurve ist das Board gerollt, seine Hochachse zeigt dann nicht
+      nach oben. Sonst lecken Roll- und Nickrate genau dann in die Yaw-Zahl, wenn sie am
+      interessantesten ist. Ein Skalarprodukt `omega · g_hut`, die Schwerkraftrichtung haben wir
+      ohnehin.
+    - **Kostenlose Gegenprobe: der GPS-Kurs.** Ueber 3-5 s ist dessen Aenderung eine UNABHAENGIGE
+      Messung derselben Groesse — taugt zur Pruefung und sogar zur Bias-Korrektur. Dasselbe
+      Prinzip wie Accel+Gyro bei Pitch/Roll: Gyro schnell, GPS driftfrei.
+    - Zusaetzlich ein Ruhe-Mass ueber den ganzen Lauf (RMS der Gierrate) — das beantwortet
+      „zappelt man" in einer Zahl.
 
-  **4. Wo gerechnet wird: auf Abruf, nichts speichern.** Eine Stunde bei 46 Hz sind 165.000
+  **4. Wo gerechnet wird: auf Abruf, nichts speichern.** Eine Stunde bei 50 Hz sind 180.000
   Samples je Achse — das gehoert nicht in die Analyse-Tabelle. Ein LAUF dauert 30-300 s. Also:
   Endpunkt „Lage fuer Lauf N", rechnet die Filterung ueber genau dieses Fenster und liefert eine
   heruntergerechnete Reihe (~10 Hz reicht fuer die Anzeige, 300-3000 Punkte). Kein Schema-Wechsel,
