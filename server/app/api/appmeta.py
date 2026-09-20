@@ -161,7 +161,19 @@ _APP_META: dict[str, dict[str, str]] = {
     "garmin": {
         # NUR auf eine im Connect-IQ-Store FREIGEGEBENE Version setzen (Pruefung durch)!
         # Die Garmin-App vergleicht das selbst mit Config.VERSION (SessionRecorder.mc:638).
-        "latest": "1.0.87",   # LIVE im CIQ-Store 2026-09-17, ZWEIFACH belegt (nicht nur Jans
+        "latest": "1.0.88",   # LIVE im CIQ-Store 2026-09-20, wenige Minuten nach dem Upload.
+        # BELEG AUS UNSEREN DATEN, nicht nur Jans Meldung: sein PHYSISCHES Geraet (Token 297,
+        # part_number 006-B4376-00, fenix 7X Pro) meldete um 08:14:43 noch `1.0.87` und um
+        # 08:21:52 dann `1.0.88`, dazu Session 9371 mit GPS UND Accel um 08:21:49. Eine echte Uhr
+        # bekommt eine neue Version nur ueber den Store. Jans Wortlaut: „1.0.88 auf meiner echten
+        # uhr ueber iq store installiert, ist schon verfuegbar, und echte session hochgeladen".
+        # Die Store-API taugte diesmal NICHT als Gegenprobe: `apps.garmin.com/api/
+        # appsLibraryExternal/rest/apps/<id>` liefert seit diesem Tag 404 mit einer HTML-Seite,
+        # der Pfad hat sich geaendert. Wer das erneut braucht, muss ihn erst neu suchen.
+        # Inhalt: On-Foil-Marken nach Strecke und Zeit im Lauf, Pairing-Code frei vom Teildisplay
+        # der Instinct-Klasse, Puffer-Schaetzung zaehlt nicht mehr einen Chunk je wartender
+        # Session zu viel. `watch/bin` ist auf 1.0.88 gebaut (129 von 129, 0 Fehler).
+        # ALT: "latest": "1.0.87",   # LIVE im CIQ-Store 2026-09-17, ZWEIFACH belegt (nicht nur Jans
         # Meldung): die Store-API liefert `latestExternalVersion = 1.0.87`,
         # `latestInternalVersion = 41`; und im Feld steht Session #8700 von Jans fenix 7X Pro mit
         # `app_version 1.0.87`, hochgeladen am 17.09. um 18:11 — also von einer Uhr, die das
@@ -660,22 +672,6 @@ IN_REVIEW: list[dict] = [
          "You can see that the touch lock is on: a line at the bottom of the screen says so for "
          "as long as it is locked. Until now the watch looked completely normal and you only "
          "found out by touching it.",
-     ]},
-
-    {"name": "Garmin", "version": "1.0.88",
-     "eingereicht": "2026-09-20",
-     # EINGEREICHT 20.09.2026 (Jans Meldung „ist hochgeladen"). Paket:
-     # /home/jan/release-staging/garmin-1.0.88/pumpfoil-1.0.88.iq, 13.731.873 B,
-     # sha1 6ea21ca350aea26c57f2641f9f20cf3b3b91ba55, 218 von 218 Geraeten, 0 Fehler.
-     # Uhr-Code aus Commit aa935d4e. AB HIER EINGEFROREN: alles Weitere gehoert in einen neuen
-     # NAECHSTES-Eintrag (1.0.89).
-     # NACH DER FREIGABE, in dieser Reihenfolge: build-all.sh -> _APP_META["garmin"].latest auf
-     # 1.0.88 -> diesen Eintrag entfernen -> Changelog-Ereignis. Vorher NICHTS davon, sonst
-     # bewirbt die Website eine Version, die der Store noch nicht ausliefert.
-     "items": [
-         "Garmin watches vibrate at the distance and time marks set in your profile.",
-         "The pairing code sits lower, clear of the round sub-screen on Instinct watches.",
-         "The estimate of the remaining buffer counted one chunk too many per waiting recording.",
      ]},
 ]
 

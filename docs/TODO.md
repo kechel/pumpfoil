@@ -1386,7 +1386,21 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
-- **🟢 20.09. — Garmin 1.0.88 EINGEREICHT** (Jans Meldung „ist hochgeladen").
+- **🟢 20.09. — Garmin 1.0.88 EINGEREICHT UND NOCH AM SELBEN TAG LIVE.** Freigabe kam binnen
+  Minuten (hochgeladen ~08:17, live ~08:21). **Kette komplett abgearbeitet:** `build-all.sh`
+  (129 von 129, 0 Fehler, `catalog.json` durchgaengig 1.0.88) -> `_APP_META["garmin"].latest` auf
+  1.0.88 -> `IN_REVIEW`-Eintrag entfernt -> drei Changelog-Punkte mit `versionen {"garmin":
+  "1.0.88"}` plus zwei Ereignis-Zeilen (eingereicht / freigegeben). Gegengeprueft:
+  `/api/app/latest?platform=garmin` = 1.0.88, `/api/app/devices` = 129 Geraete, alle 1.0.88.
+  - **BELEG FUER DIE FREIGABE, nicht nur Jans Meldung:** sein PHYSISCHES Geraet (Token 297,
+    `006-B4376-00`) meldete um 08:14:43 noch 1.0.87 und um 08:21:52 dann 1.0.88, dazu Session
+    9371 mit GPS und Accel um 08:21:49. Eine echte Uhr bekommt eine Version nur ueber den Store.
+  - **⚠️ Die Store-API taugte diesmal NICHT als Gegenprobe:**
+    `apps.garmin.com/api/appsLibraryExternal/rest/apps/<id>` liefert 404 mit einer HTML-Seite,
+    ebenso `/versions` und der alte `services/appstore`-Pfad. Der Pfad hat sich geaendert; wer
+    ihn braucht, muss ihn neu suchen. Bis dahin sind unsere eigenen `device_tokens` der Beleg.
+  - Ursprungsmeldung Jans: „ist hochgeladen", dann „1.0.88 auf meiner echten uhr ueber iq store
+    installiert, ist schon verfuegbar, und echte session hochgeladen".
   - Paket: `/home/jan/release-staging/garmin-1.0.88/pumpfoil-1.0.88.iq`, **13.731.873 B**,
     sha1 `6ea21ca350aea26c57f2641f9f20cf3b3b91ba55`, md5 `31ce2b2dfa5c7070277d19e58370adf3`,
     **218 von 218 Geraeten, BUILD SUCCESSFUL, 0 Fehler** (19.421 Warnungen, dieselben
