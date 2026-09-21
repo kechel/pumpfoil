@@ -1076,9 +1076,17 @@ export const api = {
   stabDelete: (id: number) => req<void>(`/api/stabs/${id}`, { method: "DELETE" }),
 
   /** Lage des Bretts für einen Lauf (Pitch/Roll absolut, Gierwinkel-Änderung je Fenster). */
-  boardAttitude: (sessionId: number, o: { run?: number | null; yawWindowS?: number; hz?: number } = {}) => {
+  boardAttitude: (sessionId: number, o: {
+    run?: number | null; yawWindowS?: number; hz?: number;
+    // Freies Fenster in Session-ms — fuer Startversuche, die keine Lauf-Nummer haben.
+    vonMs?: number | null; bisMs?: number | null;
+  } = {}) => {
     const q = new URLSearchParams();
     if (o.run != null) q.set("run", String(o.run));
+    if (o.run == null && o.vonMs != null && o.bisMs != null) {
+      q.set("from_ms", String(Math.round(o.vonMs)));
+      q.set("to_ms", String(Math.round(o.bisMs)));
+    }
     if (o.yawWindowS != null) q.set("yaw_window_s", String(o.yawWindowS));
     if (o.hz != null) q.set("hz", String(o.hz));
     return req<BoardAttitude>(`/api/sessions/${sessionId}/attitude${q.toString() ? "?" + q : ""}`);

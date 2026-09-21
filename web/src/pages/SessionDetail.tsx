@@ -435,6 +435,9 @@ export default function SessionDetail() {
   const gemerkt = useRef(ladeSessionView()).current;
   const [colorMode, setColorMode] = useState<ColorMode>(gemerkt.colorMode);
   const [selectedRun, setSelectedRun] = useState<number | null>(null);
+  // Ausgewaehlter STARTVERSUCH (Index in `attemptSegs`). Schliesst sich mit `selectedRun` aus:
+  // beide schneiden denselben Zeitraum zu, zwei gleichzeitige Auswahlen waeren nicht darstellbar.
+  const [selectedAttempt, setSelectedAttempt] = useState<number | null>(null);
   // Lage-Abschnitt (Nicken/Rollen/Gieren). Nur bei „Handy am Brett" — und markieren duerfen das
   // nur Admins, deshalb braucht der Abschnitt selbst kein weiteres Gate.
   const [zeigeLage, setZeigeLage] = useState(false);
@@ -467,6 +470,9 @@ export default function SessionDetail() {
   const [playing, setPlaying] = useState(false);      // läuft gerade (vs. pausiert)
   const [playMul, setPlayMul] = useState(8);          // Tempo-Faktor (1× ≈ Echtzeit bei ~1 Hz GPS)
   const [progress, setProgress] = useState(0);        // 0..1 (für Fortschrittsbalken)
+  // ABSOLUTE Zeit des Abspielzeigers in Session-ms. Der Bruchteil oben taugt nur fuer den
+  // Balken; wer einen anderen Zeitraum zeigt (Lage-Ansicht), braucht die echte Zeit.
+  const [playTMs, setPlayTMs] = useState<number | null>(null);
   const [playStarted, setPlayStarted] = useState(false); // Controls (Tempo/Timeline/…) erst nach dem 1. Play
   // Live-Werte beim Abspielen (für coole Videos): aktuelles Tempo (km/h) + Strecke (m) des Laufs.
   // Live-Werte beim Abspielen. `hr` = Puls am aktuellen Punkt, null wenn die Session keinen hat
@@ -653,7 +659,10 @@ export default function SessionDetail() {
   // Startversuche erst holen, wenn der Schalter das erste Mal angeht (die Rechnung laeuft
   // serverseitig ueber die Roh-GPS-Punkte — nichts, was man ungefragt bei jedem Aufruf machen will).
   useEffect(() => {
-    if (!showAttempts || attemptSegs !== null || isPublic || !session || !istPumpfoil) return;
+    // Auch fuer die LAGE-ANSICHT: dort sind die Versuche auswaehlbar wie Laeufe (Jan, 21.09.),
+    // und gerade bei einer Brett-Aufnahme gibt es oft gar keinen erkannten Lauf — dann waeren
+    // die Knoepfe ohne diese zweite Bedingung nie da.
+    if ((!showAttempts && !zeigeLage) || attemptSegs !== null || isPublic || !session || !istPumpfoil) return;
     // Bewusst NICHT an den gespeicherten Zahlen der Kachel festmachen: die gelten nur fuer den
     // ausgewerteten Bereich, und gerade VOR dem (automatischen) Zuschnitt liegen die
     // Fehlversuche, bis der erste Start sass. Eine Session mit „4/4" kann hier trotzdem
@@ -661,7 +670,7 @@ export default function SessionDetail() {
     api.sessionAttempts(Number(id))
       .then((r) => setAttemptSegs(r.attempts ?? []))
       .catch(() => setAttemptSegs([]));
-  }, [showAttempts, attemptSegs, id, isPublic, session]);
+  }, [showAttempts, zeigeLage, attemptSegs, id, isPublic, session]);
 
   // Öffentlicher Link ungültig/widerrufen -> nach 5 s zur Startseite.
   useEffect(() => {
@@ -799,9 +808,46 @@ export default function SessionDetail() {
     return Array.from({ length: n }, (_, i) => i);
   }, [session, selectedRun]);
 
+  /**
+   * Track-Index -> SESSION-Millisekunde.
+   *
+   * Gebraucht, seit die Lage-Ansicht einen ANDEREN Zeitraum zeigen kann als die Karte (die
+   * Karte haengt am Zuschnitt, die Lage-Ansicht zeigt ohne Lauf-Auswahl die ganze Aufnahme).
+   * Den Abspielzeiger als BRUCHTEIL weiterzugeben war deshalb falsch: bei 37 s Karte gegen
+   * 11,8 min Lage lagen beide voellig auseinander, und bei ausgewaehltem Lauf passte es nur,
+   * weil die Zeitraeume dann zufaellig gleich sind (Jans Befund 21.09.).
+   *
+   * Die Anker sind die Laeufe: sie tragen `i_start`/`i_end` UND `t_start_ms`/`t_end_ms`
+   * (auf den Trim re-based, also + `trim_start_ms`). Dazwischen und ausserhalb wird mit 1 Hz
+   * fortgeschrieben — `gps_hz` ist projektweit 1 (docs/DATA-PIPELINE.md).
+   */
+  const indexZuSessionMs = useMemo(() => {
+    const off = session?.trim_start_ms ?? 0;
+    const anker: { i: number; t: number }[] = [];
+    for (const g of (session?.analysis?.segments ?? []) as any[]) {
+      if (g.i_start != null && g.t_start_ms != null) anker.push({ i: g.i_start, t: g.t_start_ms + off });
+      if (g.i_end != null && g.t_end_ms != null) anker.push({ i: g.i_end, t: g.t_end_ms + off });
+    }
+    anker.sort((a, b) => a.i - b.i);
+    return (idx: number): number => {
+      if (!anker.length) return off + idx * 1000;
+      if (idx <= anker[0].i) return anker[0].t - (anker[0].i - idx) * 1000;
+      const letzter = anker[anker.length - 1];
+      if (idx >= letzter.i) return letzter.t + (idx - letzter.i) * 1000;
+      for (let k = 0; k < anker.length - 1; k++) {
+        const a = anker[k], b = anker[k + 1];
+        if (idx >= a.i && idx <= b.i) {
+          return b.i === a.i ? a.t : a.t + ((idx - a.i) / (b.i - a.i)) * (b.t - a.t);
+        }
+      }
+      return off + idx * 1000;
+    };
+  }, [session]);
+
   // Wechselt die Timeline (Lauf-Auswahl/Session), Wiedergabe zurücksetzen.
   useEffect(() => {
-    playheadRef.current = 0; setProgress(0); setPlaying(false); setPlayMode(false); setPlayStarted(false);
+    playheadRef.current = 0; setProgress(0); setPlayTMs(null);
+    setPlaying(false); setPlayMode(false); setPlayStarted(false);
   }, [playTimeline]);
 
   // Beim Abspielen der GANZEN Session: welcher Lauf läuft gerade? (fürs Ring-Highlight unten).
@@ -1203,6 +1249,7 @@ export default function SessionDetail() {
     for (let k = 0; k < drawn; k++) addSeg(k);
     renderTip(drawn, headF - drawn);
     setReadout(readoutAt(headF));
+    setPlayTMs(indexZuSessionMs(playTimeline[Math.min(drawn, lastIdx)] ?? 0));
 
     if (!playing) return;   // pausiert: Standbild, keine Animation
 
@@ -1218,6 +1265,7 @@ export default function SessionDetail() {
       renderTip(hi, headF - hi);
       playheadRef.current = headF;
       setProgress(lastIdx > 0 ? headF / lastIdx : 0);
+      setPlayTMs(indexZuSessionMs(playTimeline[Math.min(Math.floor(headF), lastIdx)] ?? 0));
       setReadout(readoutAt(headF));
       if (headF >= lastIdx) { setPlaying(false); return; }
       raf = requestAnimationFrame(step);
@@ -1676,20 +1724,47 @@ export default function SessionDetail() {
               {segs.map((_, i) => (
                 <button
                   key={i}
-                  onClick={() => setSelectedRun(selectedRun === i ? null : i)}
+                  onClick={() => { setSelectedRun(selectedRun === i ? null : i); setSelectedAttempt(null); }}
                   className={`rounded-lg px-2.5 py-1 text-xs tabular-nums ${selectedRun === i ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200 hover:bg-slate-700"} ${playRunIdx === i ? "ring-2 ring-brand-400" : ""}`}
                 >
                   {i + 1}
                 </button>
               ))}
-              {selectedRun != null && (
+              {(selectedRun != null || selectedAttempt != null) && (
                 <button
-                  onClick={() => setSelectedRun(null)}
+                  onClick={() => { setSelectedRun(null); setSelectedAttempt(null); }}
                   className="rounded-lg bg-slate-800 px-2.5 py-1 text-xs text-slate-200 hover:bg-slate-700"
                 >
                   {t("sd.allRuns")}
                 </button>
               )}
+            </div>
+          );
+
+          // Startversuche als eigene Knoepfe (Jan, 21.09.: „vielleicht auch die Startversuche
+          // auswaehlbar machen als weitere Buttons neben den Laeufen"). Bewusst eine eigene
+          // Reihe in Bernstein — es sind KEINE Laeufe, und die Nummerierung soll sich nicht
+          // mit der der Laeufe vermischen. Nur in der Lage-Ansicht: dort schneiden sie den
+          // Zeitraum zu, auf der Karte gibt es dafuer schon den Anzeigen-Schalter.
+          const versuchWahl = untenAnordnen && (attemptSegs?.length ?? 0) > 0 && (
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              <span className="mr-1 text-xs text-slate-400">{t("sd.attemptsLabel")}</span>
+              {attemptSegs!.map((v, i) => (
+                <button
+                  key={i}
+                  title={`${v.distance_m} m · ${v.duration_s.toFixed(0)} s`}
+                  onClick={() => {
+                    const an = selectedAttempt === i ? null : i;
+                    setSelectedAttempt(an);
+                    if (an != null) { setSelectedRun(null); setShowAttempts(true); }
+                  }}
+                  className={`rounded-lg px-2.5 py-1 text-xs tabular-nums ${selectedAttempt === i
+                    ? "bg-amber-500 font-semibold text-slate-950"
+                    : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
+                >
+                  {i + 1} <span className="opacity-70">· {Math.round(v.distance_m)} m</span>
+                </button>
+              ))}
             </div>
           );
 
@@ -1734,10 +1809,15 @@ export default function SessionDetail() {
 
           // Die Ansicht selbst haengt am `progress` der Karte — eine zweite Zeitachse zu bauen
           // waere genau der Fehler, der `syncPlayback` schon 14 % Drift gekostet hat.
+          const gewaehlterVersuch = selectedAttempt != null
+            ? attemptSegs?.[selectedAttempt] ?? null : null;
           const lageAnsicht = untenAnordnen && (
             <div className="mt-3">
               <BoardAttitude sessionId={session.id} run={selectedRun}
-                progress={progress} playMode={playMode}
+                vonMs={gewaehlterVersuch?.t_start_ms ?? null}
+                bisMs={gewaehlterVersuch
+                  ? gewaehlterVersuch.t_start_ms + gewaehlterVersuch.duration_s * 1000 : null}
+                progress={progress} playMode={playMode} playTMs={playTMs}
                 startedAt={session.started_at} tz={session.tz}
                 pausen={session.pause_windows ?? []} />
             </div>
@@ -1750,6 +1830,7 @@ export default function SessionDetail() {
               {!untenAnordnen && lageSchalter}
               {lageAnsicht}
               {untenAnordnen && laufWahl}
+              {versuchWahl}
               {untenAnordnen && brettSchalter}
               {untenAnordnen && lageSchalter}
             </>

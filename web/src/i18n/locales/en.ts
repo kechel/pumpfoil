@@ -87,6 +87,7 @@ const en: Record<string, string> = {
   "watchStats.hint": "Which numbers are ridden with which watch — community aggregate per model. Everything counts here: every sport, with or without accel data.",
   "watchStats.search": "Search watch…",
   "sd.boardGpsWarning": "This was recorded with the phone on the board. Run detection here relies on GPS alone — the motion model is trained on wrist recordings and does not fit a board. Runs may be missing or over-counted.",
+  "sd.attemptsLabel": "Attempt:",
   "board.title": "Board attitude",
   "board.show": "Attitude",
   "board.map": "Map",

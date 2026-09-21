@@ -185,12 +185,19 @@ function Kurven({ reihen, t_ms, pos, zusammen, uhrzeit, onZeigen, onWeg }: {
   );
 }
 
-export default function BoardAttitude({ sessionId, run, progress, playMode,
-                                       startedAt, tz, pausen }: {
+export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, playMode,
+                                       playTMs, startedAt, tz, pausen }: {
   sessionId: number;
   run: number | null;
+  // Alternativ zum Lauf: ein freies Fenster (Startversuch). `run` hat Vorrang.
+  vonMs?: number | null;
+  bisMs?: number | null;
   progress: number;      // 0..1, kommt aus der Wiedergabe der Detailansicht
   playMode: boolean;
+  // ABSOLUTE Zeit des Abspielzeigers in Session-ms. Vorrang vor `progress`: die Karte kann
+  // einen anderen Zeitraum zeigen als diese Ansicht (Zuschnitt gegen ganze Aufnahme), dann
+  // ergibt ein gemeinsamer Bruchteil zwei verschiedene Stellen.
+  playTMs?: number | null;
   startedAt: string;             // ISO-Start der Aufnahme — fuer die Uhrzeit an der Achse
   tz?: string | null;            // Ortszeit des Spots (s. lib/time.ts)
   pausen?: number[][] | null;    // Pausenfenster, s. lib/clock.ts
@@ -208,16 +215,32 @@ export default function BoardAttitude({ sessionId, run, progress, playMode,
 
   useEffect(() => {
     setLaden(true);
-    api.boardAttitude(sessionId, { run, yawWindowS: fenster, hz: 20 })
+    api.boardAttitude(sessionId, { run, vonMs, bisMs, yawWindowS: fenster, hz: 20 })
       .then(setD).catch(() => setD(null)).finally(() => setLaden(false));
-  }, [sessionId, run, fenster]);
+  }, [sessionId, run, vonMs, bisMs, fenster]);
 
   // Beim Abspielen führt die Wiedergabe, sonst die Maus; ohne beides steht der Zeiger am Ende.
-  const pos = playMode ? Math.min(1, Math.max(0, progress)) : (maus ?? 1);
+  // Im Abspielmodus ueber die ECHTE Zeit, nicht ueber den Bruchteil (s. `playTMs`) — nur wenn
+  // die Karte keine Zeit liefert, bleibt der Bruchteil als Rueckfall.
   const idx = useMemo(() => {
+    const t = d?.t_ms ?? [];
+    if (!t.length) return 0;
+    if (playMode && playTMs != null) {
+      // Naechstgelegene Stuetzstelle; ausserhalb des Bereichs der jeweilige Rand.
+      let lo = 0, hi = t.length - 1;
+      while (lo < hi) { const m = (lo + hi) >> 1; if (t[m] < playTMs) lo = m + 1; else hi = m; }
+      if (lo > 0 && Math.abs(t[lo - 1] - playTMs) <= Math.abs(t[lo] - playTMs)) lo--;
+      return lo;
+    }
+    const p = playMode ? Math.min(1, Math.max(0, progress)) : (maus ?? 1);
+    return Math.min(t.length - 1, Math.round(p * (t.length - 1)));
+  }, [d, playMode, playTMs, progress, maus]);
+  // Stellung des Zeigers in DIESER Ansicht — aus dem Index, damit Linie und Zahl nie auseinander
+  // laufen koennen.
+  const pos = useMemo(() => {
     const n = d?.t_ms?.length ?? 0;
-    return n ? Math.min(n - 1, Math.round(pos * (n - 1))) : 0;
-  }, [d, pos]);
+    return n > 1 ? idx / (n - 1) : 0;
+  }, [d, idx]);
 
   if (laden) return <div className="py-8"><Spinner /></div>;
   if (!d || !d.ok) {
