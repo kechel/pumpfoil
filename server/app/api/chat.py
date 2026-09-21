@@ -8,6 +8,7 @@ from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from .. import models
@@ -48,7 +49,7 @@ def _require_access(scope: str, user_id: int) -> None:
 
 
 def _blocked_between(db: Session, a: int, b: int) -> bool:
-    from sqlalchemy import and_, or_
+    from sqlalchemy import and_
     return db.query(models.UserBlock.id).filter(or_(
         and_(models.UserBlock.blocker_id == a, models.UserBlock.blocked_id == b),
         and_(models.UserBlock.blocker_id == b, models.UserBlock.blocked_id == a),
@@ -193,7 +194,6 @@ def list_messages(
     if not user.is_admin:
         q = q.filter(models.ChatMessage.hidden.isnot(True))
     # Versteckte Testkonten: ihre Nachrichten nur für sie selbst sichtbar.
-    from sqlalchemy import or_
     q = q.filter(or_(models.User.hidden.isnot(True), models.User.id == user.id))
     if after:
         # Neue Nachrichten seit `after`: aufsteigend ab dem Cursor.
@@ -610,7 +610,7 @@ def my_rooms(
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> list[dict]:
     """„Meine Chats" mit Ungelesen-Zähler + letzter Nachricht. Verlassene ausgeblendet."""
-    from sqlalchemy import func, or_
+    from sqlalchemy import func
 
     # Nachrichten ausgeblendeter Testkonten sind für andere unsichtbar (wie in list_messages)
     # -> dürfen weder als „letzte Nachricht" noch als Ungelesen zählen (sonst ein (1)-Badge,
