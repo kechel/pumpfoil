@@ -216,7 +216,15 @@ export function FrontAnsicht({ rig, roll, pitch }: { rig: Rig; roll: number; pit
   return (
     <svg viewBox={rahmen(eckpunkte, 40)} className="h-40 w-full" preserveAspectRatio="xMidYMid meet">
       <Bezug />
-      <g transform={`rotate(${-roll})`}>
+      {/* ROLLEN DREHT ANDERSHERUM ALS NICKEN, und das ist kein Tippfehler.
+          Im Brett-System zeigt die Querachse nach LINKS (Rechtssystem: x nach vorn, z nach oben),
+          auf dem Bildschirm zeigt x nach RECHTS. Wer von hinten auf das Brett schaut, sieht links
+          links — die seitliche Achse ist also gespiegelt, und mit ihr der Drehsinn. Jan am
+          21.09.2026 an seiner ersten echten Pump-Aufnahme: „ganz am Ende beim Gleiten bin ich nach
+          links gekippt und nicht nach rechts, so wie es gerade in der Animation dargestellt wird."
+          Beim NICKEN gibt es das Problem nicht: dort liegt die Nase bei +x und damit rechts im
+          Bild, wie es sein soll. */}
+      <g transform={`rotate(${roll})`}>
         <rect className={BOARD} x={-bBoard / 2} y={-(zBoard + BOARD_DICKE)}
           width={bBoard} height={BOARD_DICKE} rx={BOARD_DICKE / 2.2} />
         <rect className={MAST} x={-(MAST_DICKE * FRONT_UEBERHOEHUNG) / 2} y={-zBoard}
@@ -241,7 +249,13 @@ export function Drauf({ rig, yaw }: { rig: Rig; yaw: number }) {
   return (
     <svg viewBox={rahmen(eckpunkte, 40)} className="h-40 w-full" preserveAspectRatio="xMidYMid meet">
       <Bezug />
-      <g transform={`rotate(${-yaw})`}>
+      {/* Dieselbe Spiegelung wie in der Frontansicht: von oben gesehen liegt die linke Seite des
+          Bretts auch links im Bild, die Querachse zeigt aber nach links und der Bildschirm nach
+          rechts. ⚠️ ANDERS ALS BEIM ROLLEN IST DAS NICHT AM WASSER GEPRUEFT — die Richtung des
+          Gierens (welches Vorzeichen eine Linkskurve hat) ist bisher an keiner Aufnahme belegt.
+          Wenn beides zugleich falsch waere, hoben sie sich vorher auf. Beim naechsten Mal an
+          einer bekannten Kurve gegenpruefen. */}
+      <g transform={`rotate(${yaw})`}>
         <rect className={MAST} x={-RUMPF_DICKE / 2} y={-rig.x_foil_cm}
           width={RUMPF_DICKE} height={Math.max(1, rig.x_foil_cm - rig.x_stab_cm)} />
         <path d={fluegelOben(rig.foil_span_cm, rig.foil_chord_cm, rig.x_foil_cm)} className={TEIL} />
