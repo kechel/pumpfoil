@@ -1274,12 +1274,11 @@ export default function SessionDetail() {
     }
     // Tempo (km/h, interpoliert) + zurückgelegte Strecke (m) an der Float-Kopfposition.
     const readoutAt = (headF: number): { v: number; d: number; hr: number | null } => {
-      const hi = Math.min(Math.floor(headF), lastIdx), frac = headF - Math.floor(headF);
-      const va = speeds[playTimeline[hi]] ?? 0;
-      const vb = speeds[playTimeline[Math.min(hi + 1, lastIdx)]] ?? va;
-      const v = Math.max(0, (va + (vb - va) * Math.min(frac, 1)) * 3.6);
-      let d = prefix[hi] ?? 0;
-      if (hi < lastIdx) d += (prefix[hi + 1] - prefix[hi]) * Math.min(frac, 1);
+      // Wie die Spitze: auf ganze GPS-Punkte. Ein Zwischenwert waere erfunden — dieselbe
+      // Begruendung, die beim Puls schon immer galt (s. unten).
+      const hi = Math.min(Math.floor(headF), lastIdx);
+      const v = Math.max(0, (speeds[playTimeline[hi]] ?? 0) * 3.6);
+      const d = prefix[hi] ?? 0;
       // Puls NICHT interpolieren: er kommt als ganze Schläge pro Minute und springt ohnehin nur
       // sekundenweise — ein Zwischenwert wäre erfunden. Fehlt er, bleibt das Badge weg.
       const h = hr[playTimeline[hi]];
@@ -1315,8 +1314,6 @@ export default function SessionDetail() {
       const a = playTimeline[k], b = playTimeline[k + 1];
       return b === a + 1 && map.distance(coords[a], coords[b]) <= MAX_GAP;
     };
-    const lerp = (a: [number, number], b: [number, number], f: number): [number, number] =>
-      [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f];
     // Permanentes Segment k->k+1 (Linie + ggf. Pump-Marker am Zielpunkt, eigene Pane = oben).
     const addSeg = (k: number) => {
       const a = playTimeline[k], b = playTimeline[k + 1];
@@ -1330,18 +1327,24 @@ export default function SessionDetail() {
     };
     // Bewegliche Spitze: interpoliertes Teilstück von Punkt hi zum nächsten + Positionsmarker
     // an der interpolierten Stelle -> kontinuierlicher Verlauf statt punktweisem Springen.
-    const renderTip = (hi: number, frac: number) => {
+    /**
+     * Spitze der gezeichneten Spur. SETZT AUF GANZE GPS-PUNKTE, wird also NICHT zwischen ihnen
+     * interpoliert.
+     *
+     * Vorher wanderte sie fein zwischen zwei Punkten — das sah fluessiger aus, behauptete aber
+     * eine Ortsgenauigkeit, die es nicht gibt: das GPS liefert genau einen Punkt je Sekunde, und
+     * was dazwischen gezeichnet wird, ist geraten. Jans Entscheidung (21.09.): „GPS vielleicht
+     * nicht interpolieren, das verwirrt und sieht falsch aus, man kann ruhig sehen das wir da
+     * nur jede Sekunde einen Punkt bekommen."
+     *
+     * Die LAGE-Ansicht laeuft weiter fein — sie hat mit 20 Hz wirklich 20 Werte je Sekunde.
+     * Der Unterschied ist keine Ungereimtheit, sondern genau der Unterschied der beiden Quellen.
+     */
+    const renderTip = (hi: number) => {
       const a = coords[playTimeline[hi]];
       if (!a) return;
-      let p: [number, number] = a;
-      if (hi < lastIdx && frac > 0 && adj(hi)) {
-        p = lerp(a, coords[playTimeline[hi + 1]], Math.min(frac, 1));
-        if (!tipRef.current) tipRef.current = L.polyline([a, p], { color: colorAt(playTimeline[hi + 1]), weight: 5, opacity: 0.95 }).addTo(lg);
-        else { tipRef.current.setLatLngs([a, p]); tipRef.current.setStyle({ color: colorAt(playTimeline[hi + 1]) }); }
-      } else if (tipRef.current) {
-        tipRef.current.setLatLngs([a, a]);
-      }
-      setPos(p);
+      if (tipRef.current) tipRef.current.setLatLngs([a, a]);
+      setPos(a);
     };
 
     // Bis zum aktuellen (Float-)Kopf neu aufbauen (Farb-/Lauf-/Pump-Änderungen greifen live).
@@ -1352,7 +1355,7 @@ export default function SessionDetail() {
       L.circleMarker(coords[playTimeline[0]], { radius: 5, color: "#052e16", weight: 1.5, fillColor: "#22c55e", fillOpacity: 1 }).addTo(lg);
     let drawn = Math.floor(headF);
     for (let k = 0; k < drawn; k++) addSeg(k);
-    renderTip(drawn, headF - drawn);
+    renderTip(drawn);
     setReadout(readoutAt(headF));
     setPlayTMs(zeitBeiKopf(headF));
 
@@ -1367,7 +1370,7 @@ export default function SessionDetail() {
       const hi = Math.floor(headF);
       for (let k = drawn; k < hi; k++) addSeg(k);
       drawn = hi;
-      renderTip(hi, headF - hi);
+      renderTip(hi);
       playheadRef.current = headF;
       setProgress(lastIdx > 0 ? headF / lastIdx : 0);
       setPlayTMs(zeitBeiKopf(headF));
