@@ -2548,10 +2548,17 @@ def set_meta(
         # Dieselbe Schranke wie `placement`: es beschreibt die Montage derselben Aufnahme.
         if not user.is_admin:
             raise HTTPException(status.HTTP_403_FORBIDDEN, "Nur Admins")
-        g = int(body.attitude_rot_deg) % 360
-        if g not in (0, 90, 180, 270):
-            raise HTTPException(status.HTTP_400_BAD_REQUEST, "attitude_rot_deg: 0 | 90 | 180 | 270")
-        s.attitude_rot_deg = g or None
+        # -1 = zurueck auf AUTOMATIK (NULL). Noetig, weil `None` im Body schon „nicht
+        # mitgeschickt" bedeutet und deshalb nicht zum Loeschen taugt.
+        if int(body.attitude_rot_deg) < 0:
+            s.attitude_rot_deg = None
+        else:
+            g = int(body.attitude_rot_deg) % 360
+            if g not in (0, 90, 180, 270):
+                raise HTTPException(status.HTTP_400_BAD_REQUEST,
+                                    "attitude_rot_deg: -1 (auto) | 0 | 90 | 180 | 270")
+            # 0 ausdruecklich SPEICHERN: „ungedreht" ist eine Aussage, „automatisch" eine andere.
+            s.attitude_rot_deg = g
     if body.caption is not None:
         cap = body.caption.strip()
         if len(cap) > CAPTION_MAX:
@@ -3563,7 +3570,14 @@ def board_lage(
                               t_von_ms=von, t_bis_ms=bis,
                               ref_bereiche_ms=lage.laufbereiche(segmente, off),
                               hub_fenster_s=height_window_s,
-                              rot_deg=float(s.attitude_rot_deg or 0))
+                              # None = Automatik (Start-Heuristik). Ein gesetzter Wert gewinnt.
+                              rot_deg=(float(s.attitude_rot_deg)
+                                       if s.attitude_rot_deg is not None else None),
+                              # ECHTE Lauf-Anfaenge, nicht die an den Raendern gekuerzten aus
+                              # `laufbereiche` — die Heuristik lebt genau von der ersten Sekunde.
+                              lauf_starts_ms=[float(g.get("t_start_session_ms",
+                                                          float(g["t_start_ms"]) + off))
+                                              for g in segmente if g.get("t_start_ms") is not None])
     erg["session_id"] = s.id
     erg["run"] = run
     erg["runs"] = laeufe

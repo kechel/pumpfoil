@@ -83,6 +83,11 @@ LAUF_RAND_MAX_MS = 3000.0
 LAUF_REST_MIN_MS = 2000.0
 # So viele Samples muss ein Bezugsbereich mindestens haben, sonst ist der Median Zufall.
 BEZUG_MIN_SAMPLES = 10
+# Start-Heuristik fuer die Montage-Richtung (Jan, 21.09.): „ein Start wird praktisch nie mit
+# Stall beginnen koennen, man muss beim Start immer erst bergab fahren, sonst wird es ein Sturz."
+# Zeigt die Rechnung am Lauf-ANFANG die Nase nach OBEN, liegt das Handy andersherum.
+START_FENSTER_S = 1.0      # so lange nach dem Lauf-Start wird gemittelt
+START_SCHWELLE_GRAD = 5.0  # darunter ist das Signal zu schwach fuer eine Entscheidung
 # Hub: oberes Ende des Bandes. Ueber 4 Hz gibt es keine Brettbewegung mehr, nur noch Rauschen
 # und Schlaege vom Wasser — die wuerden zweimal integriert nur die Kurve verwackeln.
 HUB_OBEN_HZ = 4.0
@@ -275,12 +280,35 @@ def hauptachse(pitch: np.ndarray, roll: np.ndarray) -> tuple[float, float]:
     return round(winkel, 1), round(min(klarheit, 999.0), 1)
 
 
+def startlage(pitch: np.ndarray, t_ms: np.ndarray,
+              lauf_starts_ms: list[float] | None) -> float | None:
+    """Mittleres Nicken in der ersten Sekunde der Laeufe. None, wenn es keine Laeufe gibt.
+
+    Grundlage der Richtungs-Heuristik (s. `START_FENSTER_S`): am Anfang eines Laufs faehrt man
+    BERGAB — anders kommt man nicht auf Geschwindigkeit, mit der Nase nach oben endet es im
+    Sturz. Kommt hier ein deutlich POSITIVER Wert heraus, ist nicht die Physik falsch, sondern
+    die Blickrichtung: das Handy liegt um 180° gedreht auf dem Brett.
+
+    Je Lauf gemittelt und dann ueber die Laeufe, nicht ueber alle Samples zusammen — sonst
+    bestimmt der laengste Lauf das Ergebnis allein.
+    """
+    if not lauf_starts_ms:
+        return None
+    werte = []
+    for a in lauf_starts_ms:
+        m = (t_ms >= a) & (t_ms <= a + START_FENSTER_S * 1000.0)
+        if m.sum() >= 3:
+            werte.append(float(pitch[m].mean()))
+    return float(np.mean(werte)) if werte else None
+
+
 def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
                    gyr_raw: np.ndarray, t_gyr_ms: np.ndarray,
                    *, ziel_hz: float = 20.0, yaw_fenster_s: float = 1.0,
                    t_von_ms: float | None = None, t_bis_ms: float | None = None,
                    ref_bereiche_ms: list[tuple[float, float]] | None = None,
-                   hub_fenster_s: float = 3.0, rot_deg: float = 0.0) -> dict:
+                   hub_fenster_s: float = 3.0, rot_deg: float | None = None,
+                   lauf_starts_ms: list[float] | None = None) -> dict:
     """Pitch/Roll (absolut, in Grad) und Gierwinkel-Aenderung je Fenster (Grad).
 
     `acc_raw`/`gyr_raw` sind die int16-Rohwerte, `t_*_ms` die zugehoerigen Zeitachsen. Das
@@ -324,8 +352,13 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
     # Messung, nicht das Ergebnis: danach rechnet alles weiter, als laege das Geraet laengs mit
     # der Nase nach vorn. Bei 180° laeuft es auf „x und y umdrehen" hinaus, genau das Noetige,
     # wenn das Handy andersherum auf dem Brett klebt.
-    if rot_deg:
-        w = np.radians(rot_deg)
+    # None = automatisch. Fuer die Rechnung zunaechst ungedreht; die 0-gegen-180-Frage laesst
+    # sich danach exakt am Ergebnis entscheiden, weil eine 180°-Drehung um die Hochachse nichts
+    # weiter tut, als Nicken und Rollen umzukehren (Gieren und Hub bleiben, wie sie sind).
+    auto = rot_deg is None
+    rot_wirksam = 0.0 if auto else float(rot_deg)
+    if rot_wirksam:
+        w = np.radians(rot_wirksam)
         c, sn = np.cos(w), np.sin(w)
         for v in (acc, gyr):
             x, y = v[:, 0].copy(), v[:, 1].copy()
@@ -395,8 +428,8 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
     # gehoert also auch auf den Bezug, sonst zeigt der Nullpunkt in eine andere Richtung als die
     # Messung und beides hebt sich nicht mehr sauber auf.
     bezug = _bezugsrichtung(acc_raw, t_acc_ms, ref_bereiche_ms or [])
-    if bezug is not None and rot_deg:
-        w = np.radians(rot_deg); c, sn = np.cos(w), np.sin(w)
+    if bezug is not None and rot_wirksam:
+        w = np.radians(rot_wirksam); c, sn = np.cos(w), np.sin(w)
         bezug = np.array([bezug[0] * c - bezug[1] * sn, bezug[0] * sn + bezug[1] * c, bezug[2]])
     null_quelle = "laeufe"
     if bezug is None:
@@ -404,8 +437,8 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
         # der Sturz meist am Ende — was bleibt, ist das Brauchbarste, das ohne Erkennung da ist.
         rand = (1.0 - MITTELTEIL) / 2.0 * (bis - von)
         bezug = _bezugsrichtung(acc_raw, t_acc_ms, [(von + rand, bis - rand)])
-        if bezug is not None and rot_deg:
-            w = np.radians(rot_deg); c, sn = np.cos(w), np.sin(w)
+        if bezug is not None and rot_wirksam:
+            w = np.radians(rot_wirksam); c, sn = np.cos(w), np.sin(w)
             bezug = np.array([bezug[0] * c - bezug[1] * sn, bezug[0] * sn + bezug[1] * c, bezug[2]])
         null_quelle = "mittelteil"
     if bezug is None:
@@ -414,6 +447,20 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
     null_p, null_r = _pitch_roll(bezug)
     pitch = _wickel(pitch - null_p)
     roll = _wickel(roll - null_r)
+
+    # Richtungs-Heuristik. Erst HIER, weil sie den fertigen, auf den Nullpunkt bezogenen Winkel
+    # braucht. Das Umkehren ist exakt und nicht genaehert: eine 180°-Drehung um die Hochachse
+    # negiert Nicken und Rollen, sonst nichts.
+    start_nicken = startlage(pitch, t, lauf_starts_ms)
+    rot_vorschlag = None
+    if start_nicken is not None and abs(start_nicken) >= START_SCHWELLE_GRAD:
+        rot_vorschlag = 180.0 if start_nicken > 0 else 0.0
+    rot_quelle = "manuell" if not auto else ("heuristik" if rot_vorschlag is not None else "keine")
+    if auto and rot_vorschlag == 180.0:
+        pitch, roll = -pitch, -roll
+        null_p, null_r = -null_p, -null_r
+        rot_wirksam = 180.0
+        start_nicken = -start_nicken
 
     schritt = max(1, int(round(rechen_hz / ziel_hz)))
     aus = slice(None, None, schritt)
@@ -428,7 +475,16 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
         return round(float(f[m][np.argmax(A[m])]), 2) if m.any() else None
 
     _hub_hz = hauptfrequenz(hub) if hub is not None else None
-    _achse, _klar = hauptachse(pitch, roll)
+    # NUR ueber die Laufbereiche, nie ueber die ganze Aufnahme: ein Ueberschlag am Ende
+    # ueberstimmt das Pumpen um Groessenordnungen. An #9484 belegt — ganze Aufnahme -86,1°
+    # (Klarheit 19,5, in Wahrheit der Sturz), nur die Laeufe +14,0° (Klarheit 367).
+    if ref_bereiche_ms:
+        _m = np.zeros(len(t), dtype=bool)
+        for _a, _b in ref_bereiche_ms:
+            _m |= (t >= _a) & (t <= _b)
+        _achse, _klar = hauptachse(pitch[_m], roll[_m]) if _m.sum() >= 8 else hauptachse(pitch, roll)
+    else:
+        _achse, _klar = hauptachse(pitch, roll)
     return {
         "ok": True,
         "hz": round(rechen_hz / schritt, 2),
@@ -438,7 +494,11 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
                       "gyro": round(float(_quellrate(t_gyr_ms)), 1) if hat_gyro else None},
         "yaw_fenster_s": yaw_fenster_s,
         "nullpunkt": null_quelle,
-        "rot_deg": rot_deg,
+        "rot_deg": rot_wirksam,
+        "rot_quelle": rot_quelle,          # manuell | heuristik | keine
+        # Mittleres Nicken in der ersten Sekunde der Laeufe, NACH der Drehung. Sollte negativ
+        # sein (bergab); ein positiver Wert heisst, dass die Heuristik nicht greifen konnte.
+        "start_nicken_deg": None if start_nicken is None else round(start_nicken, 1),
         "null_pitch_deg": round(null_p, 2),
         "null_roll_deg": round(null_r, 2),
         "hat_gyro": bool(hat_gyro),

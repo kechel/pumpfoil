@@ -186,7 +186,7 @@ function Kurven({ reihen, t_ms, pos, zusammen, uhrzeit, onZeigen, onWeg }: {
 }
 
 export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, playMode,
-                                       playTMs, onZeit, startedAt, tz, pausen }: {
+                                       playTMs, onZeit, onHinweis, startedAt, tz, pausen }: {
   sessionId: number;
   run: number | null;
   // Alternativ zum Lauf: ein freies Fenster (Startversuch). `run` hat Vorrang.
@@ -201,6 +201,9 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
   // Meldet die Zeit unter der Maus nach oben (Session-ms), damit die KARTE bis dorthin
   // gezeichnet wird. null = Maus ist weg.
   onZeit?: (tMs: number | null) => void;
+  // Warnhinweise nach oben melden statt sie hier zu zeigen: Jan will sie unter dem
+  // Abspielen-Knopf haben, und der steht in der Detailansicht.
+  onHinweis?: (text: string | null) => void;
   startedAt: string;             // ISO-Start der Aufnahme — fuer die Uhrzeit an der Achse
   tz?: string | null;            // Ortszeit des Spots (s. lib/time.ts)
   pausen?: number[][] | null;    // Pausenfenster, s. lib/clock.ts
@@ -214,7 +217,8 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
   const [d, setD] = useState<Lage | null>(null);
   const [laden, setLaden] = useState(true);
   const [maus, setMaus] = useState<number | null>(null);
-  const [zusammen, setZusammen] = useState(false);
+  // Standard: alles in EINEM Bild (Jan, 21.09.) — der Vergleich der Kurven ist der Zweck.
+  const [zusammen, setZusammen] = useState(true);
 
   useEffect(() => {
     setLaden(true);
@@ -242,6 +246,15 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
     const p = playMode ? Math.min(1, Math.max(0, progress)) : 1;
     return Math.min(t.length - 1, Math.round(p * (t.length - 1)));
   }, [d, playMode, playTMs, progress, maus]);
+
+  // Hub-Warnung nach oben melden (s. `onHinweis`).
+  // Bewusst aus `d`, nicht aus dem spaeteren `k`: Hooks muessen VOR den fruehen Returns stehen.
+  const hubUnsicher = d?.kennzahlen?.hub_pp_cm != null && d.kennzahlen.hub_sicher === false;
+  const hubFenster = d?.hub_fenster_s ?? 3;
+  useEffect(() => {
+    onHinweis?.(hubUnsicher ? t("board.heaveShaky", { s: String(hubFenster) }) : null);
+    return () => onHinweis?.(null);
+  }, [hubUnsicher, hubFenster, onHinweis, t]);
 
   // Zeit unter der Maus nach oben melden. Als Effekt, nicht im Zeichnen: `onZeit` setzt oben
   // Zustand, und das waehrend des Renderns waere eine Schleife.
@@ -342,14 +355,6 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
           {k.hub_pp_cm ? ` · ${t("board.heaveStat", { cm: k.hub_pp_cm.toFixed(0), s: String(d.hub_fenster_s ?? 3) })}` : ""}
           {` · ${t(nullText)}`}
           {d.quelle_hz ? ` · ${d.quelle_hz.accel} / ${d.quelle_hz.gyro ?? "–"} Hz` : ""}
-        </p>
-      )}
-
-      {/* Warnung in NORMALER Schriftgroesse (Projektregel: Hinweise nie kleiner als der Fliesstext)
-          und in amber, das als Nicht-slate-Ton beide Farbmodi ausdruecklich braucht. */}
-      {k?.hub_pp_cm != null && k.hub_sicher === false && (
-        <p className="rounded-lg bg-amber-100 px-3 py-2 text-sm text-amber-800 dark:bg-amber-500/10 dark:text-amber-300">
-          {t("board.heaveShaky", { s: String(d.hub_fenster_s ?? 3) })}
         </p>
       )}
 
