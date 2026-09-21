@@ -210,7 +210,7 @@ function Kurven({ reihen, t_ms, pos, zusammen, uhrzeit, auswahlVon, auswahlBis, 
 }
 
 export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, playMode,
-                                       playTMs, onZeit, onHinweis, startedAt, tz, pausen }: {
+                                       playTMs, onZeit, onHinweis, randS, startedAt, tz, pausen }: {
   sessionId: number;
   run: number | null;
   // Alternativ zum Lauf: ein freies Fenster (Startversuch). `run` hat Vorrang.
@@ -228,6 +228,9 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
   // Warnhinweise nach oben melden statt sie hier zu zeigen: Jan will sie unter dem
   // Abspielen-Knopf haben, und der steht in der Detailansicht.
   onHinweis?: (text: string | null) => void;
+  // Sekunden vor und nach der Auswahl, die mitgezeigt werden. Kommt von oben, damit Karte,
+  // Wiedergabe und Kurven denselben Rand benutzen.
+  randS?: number;
   startedAt: string;             // ISO-Start der Aufnahme — fuer die Uhrzeit an der Achse
   tz?: string | null;            // Ortszeit des Spots (s. lib/time.ts)
   pausen?: number[][] | null;    // Pausenfenster, s. lib/clock.ts
@@ -246,9 +249,9 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
 
   useEffect(() => {
     setLaden(true);
-    api.boardAttitude(sessionId, { run, vonMs, bisMs, yawWindowS: fenster, hz: 20 })
+    api.boardAttitude(sessionId, { run, vonMs, bisMs, yawWindowS: fenster, hz: 20, padS: randS })
       .then(setD).catch(() => setD(null)).finally(() => setLaden(false));
-  }, [sessionId, run, vonMs, bisMs, fenster]);
+  }, [sessionId, run, vonMs, bisMs, fenster, randS]);
 
   // Beim Abspielen führt die Wiedergabe, sonst die Maus; ohne beides steht der Zeiger am Ende.
   // Im Abspielmodus ueber die ECHTE Zeit, nicht ueber den Bruchteil (s. `playTMs`) — nur wenn

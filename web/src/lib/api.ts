@@ -1087,6 +1087,8 @@ export const api = {
     run?: number | null; yawWindowS?: number; hz?: number;
     // Freies Fenster in Session-ms — fuer Startversuche, die keine Lauf-Nummer haben.
     vonMs?: number | null; bisMs?: number | null;
+    // Sekunden vor und nach der Auswahl, die mitgezeigt werden (Server-Standard 10).
+    padS?: number;
   } = {}) => {
     const q = new URLSearchParams();
     if (o.run != null) q.set("run", String(o.run));
@@ -1096,6 +1098,7 @@ export const api = {
     }
     if (o.yawWindowS != null) q.set("yaw_window_s", String(o.yawWindowS));
     if (o.hz != null) q.set("hz", String(o.hz));
+    if (o.padS != null) q.set("pad_s", String(o.padS));
     return req<BoardAttitude>(`/api/sessions/${sessionId}/attitude${q.toString() ? "?" + q : ""}`);
   },
   boards: () => req<Board[]>("/api/boards"),
