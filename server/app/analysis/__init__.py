@@ -409,8 +409,29 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
         gps_samples = [s for s in gps_samples
                        if not any(a <= s[0] <= b for a, b in _wins)]
 
+    # AM BRETT MONTIERT -> das Handgelenk-Modell NICHT benutzen (Jans OK, 21.09.2026).
+    # `foil_rf.pkl` ist ausschliesslich auf Handgelenk-Aufnahmen trainiert, und drei seiner 14
+    # Merkmale sind Amplituden (`accel_rms`, `pump_rms`, `hf_rms`). Am Brett kommt davon nur ein
+    # Bruchteil an: im gemeinsamen Zeitfenster von #9484 (Handy am Brett) und #9485 (fenix am
+    # Arm), gemessen in den Sekunden mit echter Bewegung, 0,26x / 0,29x / 0,40x. Das Modell liegt
+    # dort also ausserhalb seines Gueltigkeitsbereichs und verwarf an #9484 JEDEN Lauf — 2 von
+    # 568 GPS-Sekunden hielt es fuer Foiling, das reine GPS fand sehr wohl einen Lauf (29 m,
+    # 3,8 m/s). Ergebnis war `is_pumpfoil = False`, die Session verschwand aus der normalen Liste.
+    # Die Abtastrate ist NICHT das Problem: `extract_features` normiert die RMS-Werte ueber
+    # 1-s-Fenster mit der echten `accel_hz`.
+    # SPAETER: ein eigenes Modell fuer „am Brett", sobald genug solcher Aufnahmen da sind — dann
+    # faellt diese Abzweigung wieder weg (Jan, 21.09.).
+    # UND die Aufnahme muss wirklich von einem Handy stammen. `placement` beschreibt, wo das
+    # HANDY lag — an einer Aufnahme ohne Handy-Sensorik ist der Wert bedeutungslos. Ohne diese
+    # zweite Bedingung haette die Umstellung eine falsch markierte GARMIN-Session (#8546, App
+    # 1.0.86, kein `device_model`) mitgerissen: der Trockenlauf zeigte 118 Pumps -> 0, weil der
+    # GPS-Weg keine Pumps zaehlt. Ein verirrtes Kennzeichen darf keine gueltigen Daten kosten.
+    # Kriterium ist der Kreisel — den liefern nur die Handy-Recorder, und genau daran haengt
+    # auch der Schalter in der Oberflaeche (eine Bedeutung, eine Pruefung).
+    am_brett = (getattr(session, "placement", None) == "board"
+                and bool(storage.chunk_laengen(session.session_uuid, "gyro")))
     # Accel nur nutzen, wenn die (effektive) Rate hoch genug fürs Modell ist — sonst wie gps_only.
-    accel_usable = accel.shape[0] > 0 and accel_hz >= MODEL_MIN_ACCEL_HZ
+    accel_usable = accel.shape[0] > 0 and accel_hz >= MODEL_MIN_ACCEL_HZ and not am_brett
 
     # Foiling-Maske: ML-Modell (GPS+Accel), Fallback = GPS-Heuristik in analyze_gps.
     from .foil_model import detect_jumps, predict_foiling_mask
@@ -422,7 +443,7 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
         # Präziser Start: nur starke Aufsprung-Impulse (Jump) zum Snappen verwenden.
         impulses = detect_jumps(accel, accel_hz, session.accel_scale)
         detection = "model"
-    elif _gps_only_ok(session.sport) or _mensch_sagt_pumpfoil(session):
+    elif am_brett or _gps_only_ok(session.sport) or _mensch_sagt_pumpfoil(session):
         # Wassersport-FIT ohne Beschleunigung (z. B. Surf-Modus): nur grobe GPS-
         # Heuristik (Speed-Band + Glätte). Über-/Untererkennung möglich -> Warnung.
         # Zweiter Weg hierher: ein Mensch hat die Session als Pumpfoil eingestuft, dann zaehlt
@@ -464,7 +485,14 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
         # gueltige Laeufe IHRER Sportart und gehoeren in die eigenen Statistiken. Befund bei der
         # v2-Einfuehrung: #1175 (owner-klassifiziert wingfoil) verlor sonst alle 4 Laeufe.
         _judge = (session.sport_class or "pumpfoil") == "pumpfoil"
-        res = analyze_session_v2(session, judge_fremdkraft=_judge, **(_preset_kw or {}))
+        # `detection` allein reicht NICHT: v2 holt sich die Modellmaske selbst
+        # (`model_mask_on_timebase`) und haette am Brett weiter mit dem Handgelenk-Modell
+        # gerechnet. Der Schalter muss durchgereicht werden — dann faellt v2 auf die
+        # GPS-Heuristik zurueck (Tempoband + Glaette + Verweildauer), genau wie bei gps_only.
+        _v2_kw = dict(_preset_kw or {})
+        if am_brett:
+            _v2_kw["use_model"] = False
+        res = analyze_session_v2(session, judge_fremdkraft=_judge, **_v2_kw)
         res.pop("windows", None)
         res.pop("timebase", None)
         if detection == "none":
@@ -484,6 +512,11 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     # Vorschau); identisch zu den kanonischen Spalten oben.
     res_personal = res if _sens != "normal" else None
     res.setdefault("metrics", {})["detection"] = detection
+    # WARUM das Modell uebersprungen wurde. Ohne das laege der Grund nur an der Rate, und die
+    # Oberflaeche wuerde bei einer Brett-Aufnahme „Accel-Rate zu niedrig" behaupten — bei 61 Hz
+    # schlicht falsch.
+    if am_brett:
+        res["metrics"]["model_skipped"] = "board"
     if accel.shape[0] > 0:
         res["metrics"]["accel_hz_effective"] = round(accel_hz, 2)   # tatsächliche Rate (kann != getaggt)
         # Herkunft der Achse, auf der Pumps/Gleitphasen WIRKLICH gerechnet wurden. Vorher log das

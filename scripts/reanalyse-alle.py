@@ -2,6 +2,11 @@
 """Reanalysiert alle nicht geloeschten Sessions und protokolliert Vorher/Nachher.
 
     cd server && .venv/bin/python ../scripts/reanalyse-alle.py [--dry] [--limit N]
+    cd server && .venv/bin/python ../scripts/reanalyse-alle.py --session 9484 --session 9473
+
+Mit `--session` nur diese IDs — fuer eine eng begrenzte Aenderung, die nachweislich nur wenige
+Sessions betrifft. Dann ist ein Lauf ueber den ganzen Bestand reine Last ohne Erkenntnis, und
+jedes Wegwerf-Skript daneben waere genau das, was dieses hier ersetzen soll.
 
 SCHREIBT in die DB (ausser mit --dry). Vorher `analysis_results` sichern:
     pg_dump -t analysis_results -Fc -f <datei>
@@ -37,6 +42,8 @@ def main() -> None:
     ap.add_argument("--dry", action="store_true", help="nichts schreiben")
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--pause", type=float, default=0.05)
+    ap.add_argument("--session", type=int, action="append", default=[],
+                    help="nur diese Session-IDs (mehrfach angebbar)")
     args = ap.parse_args()
 
     if not os.path.exists(".env"):
@@ -73,6 +80,14 @@ def main() -> None:
             ids.append(sid)
         else:
             ohne_daten.append(sid)
+    if args.session:
+        gewuenscht = set(args.session)
+        fehlt = gewuenscht - set(ids)
+        ids = [i for i in ids if i in gewuenscht]
+        if fehlt:
+            # Ausdruecklich melden statt still weniger zu rechnen: eine getippte ID, die es
+            # nicht gibt (oder deren GPS-Rohdaten fehlen), soll auffallen.
+            print(f"NICHT DABEI (unbekannt oder ohne GPS-Rohdaten): {sorted(fehlt)}", flush=True)
     if args.limit:
         ids = ids[: args.limit]
 
