@@ -1,5 +1,6 @@
 const fi: Record<string, string> = {
   "hr.viewPeak": "Absoluuttinen",
+  "session.onBoard": "laudassa",
   "hr.viewRise": "Nousu",
   "hr.viewRiseHint": "Näyttää, kuinka paljon syke nousi vedon aikana — verrattuna saman vedon alun sykkeeseen. Näin vedot ovat vertailukelpoisia, vaikka aloitussyke olisi ollut eri.",
   "onb.startTitle": "Käyttöönottoapuri",

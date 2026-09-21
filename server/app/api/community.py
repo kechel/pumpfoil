@@ -78,6 +78,9 @@ BRIEF_COLS = (AR.foiling_distance_m, AR.max_speed_mps, AR.num_runs,
               S.foil_id, U.created_at, S.device_id, S.ended_at, S.youtube_url,
               # Restliches Setup + Besitzer, in _attach_social zu Labels aufgeloest (Batch).
               S.stab_id, S.board_id, S.mast_len_cm, S.user_id, S.sport_class,
+              # Wo das Geraet lag ("board" = Handy am Brett) — die Liste schreibt das an die
+              # Geraete-Bezeichnung. Bewusst HIER und nicht am Ende eingefuegt, s. naechster Satz.
+              S.placement,
               # place_lat/place_lon MUESSEN die letzten beiden bleiben: sessions-grouped greift
               # positionsbasiert darauf zu (r[nb-2], r[nb-1]).
               S.place_lat, S.place_lon)
@@ -158,7 +161,7 @@ def _community(query, viewer_id: int | None = None, accel_only: bool = True,
 def _brief(fdist, max_speed, num_runs, sid, ts, uname, place, avatar, caption=None, track_preview=None,
            foil_id=None, author_created_at=None, device_id=None, ended=None, youtube=None,
            stab_id=None, board_id=None, mast_len_cm=None, owner_id=None, sport_class=None,
-           lat=None, lon=None) -> dict:
+           placement=None, lat=None, lon=None) -> dict:
     return {
         "session_id": sid,
         "started_at": ts.isoformat() if ts else None,
@@ -178,6 +181,9 @@ def _brief(fdist, max_speed, num_runs, sid, ts, uname, place, avatar, caption=No
         "foil": None,  # in _attach_social aufgelöst (nur wenn foil_id gesetzt)
         "device_id": device_id,
         "device_label": None,  # in _attach_social aufgelöst (Uhr-Bezeichnung)
+        # "board" = Handy war am Brett; die Oberflaeche haengt das an die Geraete-Bezeichnung
+        # ("Phone · am Brett"). null = Uhr oder Handy am Koerper.
+        "placement": placement,
         # Setup der Session; None-Werte heissen "nicht gesetzt" -> dann greift der Standard des
         # BESITZERS, den _attach_social nachlaedt. Ergebnis steht in "setup" (None = nichts da).
         "stab_id": stab_id, "board_id": board_id, "mast_len_cm": mast_len_cm, "owner_id": owner_id,

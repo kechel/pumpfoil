@@ -2,6 +2,7 @@
 // Erstübersetzung maschinell (informelles je/jij); Muttersprachler-Review empfohlen.
 const nl: Record<string, string> = {
   "hr.viewPeak": "Absoluut",
+  "session.onBoard": "op de board",
   "hr.viewRise": "Stijging",
   "hr.viewRiseHint": "Laat zien hoeveel je hartslag tijdens de run is gestegen — ten opzichte van de hartslag aan het begin van diezelfde run. Zo zijn runs vergelijkbaar, ook als je ze met verschillende hartslagen begon.",
   "onb.startTitle": "Instelhulp",

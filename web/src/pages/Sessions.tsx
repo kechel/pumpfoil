@@ -25,6 +25,7 @@ import { ytId, videoPlatform } from "../components/VideoModal";
 import { SpotRenameRequest } from "../components/SpotRenameRequest";
 import { useT } from "../i18n";
 import { verwerfeSessionListen } from "../lib/pwaCache";
+import { useWiederAufwachen } from "../lib/useWiederAufwachen";
 
 const PAGE = 20;
 
@@ -480,7 +481,11 @@ function MySessionsList({ myName, accelOnly, onShowAll }:
     loadingRef.current = true; setLoading(true); setError(null);
     try {
       const off = replace ? 0 : offsetRef.current;
-      const page = await api.sessions({ limit: PAGE, offset: off, month: monthVal || undefined, filter: filterRef.current, accelOnly: accelRef.current });
+      // `fresh` bei jedem NEU-Aufbau der Liste: sonst beantwortet der Service Worker
+      // (StaleWhileRevalidate) den Wechsel zwischen „meine / alle / am Spot" aus seinem Cache,
+      // und man sieht denselben Stand wie vorher — Jans Befund 21.09.2026. Beim Nachladen
+      // weiterer Seiten ist der Cache dagegen erwuenscht (alte Seiten aendern sich nicht).
+      const page = await api.sessions({ limit: PAGE, offset: off, month: monthVal || undefined, filter: filterRef.current, accelOnly: accelRef.current, fresh: replace });
       offsetRef.current = off + page.length;
       hasMoreRef.current = page.length === PAGE;
       setHasMore(hasMoreRef.current);
@@ -551,18 +556,18 @@ function MySessionsList({ myName, accelOnly, onShowAll }:
     }
     const obs = new IntersectionObserver((e) => { if (e[0].isIntersecting) fetchPage(monthRef.current, false); }, { rootMargin: "300px" });
     if (sentinelRef.current) obs.observe(sentinelRef.current);
-    // Rueckkehr aus dem Hintergrund: `revalidateHead` haengt sonst nur am Mount, eine schon
-    // offene Liste bliebe also beliebig lange alt (Jan, 15.09.2026 — PWA dauerhaft im Hintergrund).
-    const beiRueckkehr = () => { if (document.visibilityState === "visible") revalidateHead(monthRef.current); };
-    document.addEventListener("visibilitychange", beiRueckkehr);
     return () => {
-      document.removeEventListener("visibilitychange", beiRueckkehr);
       obs.disconnect();
       // Aktuellen Listen-Zustand + Scroll-Position sichern (für die Rückkehr aus dem Detail).
       listCache.set(cacheKey(), { items: itemsRef.current, offset: offsetRef.current, hasMore: hasMoreRef.current, scrollY: window.scrollY });
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Rueckkehr aus dem Hintergrund: `revalidateHead` haengt sonst nur am Mount, eine schon offene
+  // Liste bliebe beliebig lange alt (Jan, 15.09.2026). Seit 21.09. ueber `useWiederAufwachen`,
+  // weil `visibilitychange` den Laptop-Zuklappen-Fall nicht abdeckt — dort feuert nur `focus`.
+  useWiederAufwachen(() => revalidateHead(monthRef.current));
 
   // accel|alle umgeschaltet -> Liste zurücksetzen und neu laden (Erst-Mount überspringen).
   useEffect(() => {
@@ -707,6 +712,7 @@ function MySessionsList({ myName, accelOnly, onShowAll }:
               foil={s.foil ? foilLabel(s.foil) : null}
               {...setupLabels(s)}
               deviceLabel={s.device_label}
+              placement={s.placement}
               caption={s.caption}
               avatarName={myName}
               avatarUrl={avatar}
@@ -768,6 +774,7 @@ export function renderCommunitySession(s: CommunitySession, t: (k: string) => st
       sportLabel={s.sport_class && s.sport_class !== "pumpfoil" ? t(`cls.sport.${s.sport_class}`) : null}
       {...setupLabels(s)}
       deviceLabel={s.device_label}
+              placement={s.placement}
       caption={s.caption}
       name={s.name}
       avatarName={s.name}

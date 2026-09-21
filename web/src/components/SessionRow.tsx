@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { geraeteText } from "../lib/deviceLabel";
 import { Link } from "react-router-dom";
 import { api, CommunitySession } from "../lib/api";
 import { Avatar, NewBadge } from "./ui";
@@ -99,7 +100,7 @@ export function SessionRow({ s, showName = true, showSpot = true }: { s: Communi
                 · {fmtTime(s.started_at!, s.tz)}{s.ended_at && <>{` ${t("sessions.timeTo")} `}{fmtTime(s.ended_at, s.tz)}</>}{t("sessions.oclock") && ` ${t("sessions.oclock")}`}
               </span>
             )}
-            {s.device_label && <span className="ml-1 inline-flex items-center gap-1"> · <WatchIcon className="h-3 w-3" /> {s.device_label}</span>}
+            {s.device_label && <span className="ml-1 inline-flex items-center gap-1"> · <WatchIcon className="h-3 w-3" /> {geraeteText(s.device_label, s.placement, t)}</span>}
           </div>
           {s.caption && <div className="truncate text-[11px] italic text-slate-300">{s.caption}</div>}
         </div>

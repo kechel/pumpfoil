@@ -88,6 +88,22 @@ BEZUG_MIN_SAMPLES = 10
 # Zeigt die Rechnung am Lauf-ANFANG die Nase nach OBEN, liegt das Handy andersherum.
 START_FENSTER_S = 1.0      # so lange nach dem Lauf-Start wird gemittelt
 START_SCHWELLE_GRAD = 5.0  # darunter ist das Signal zu schwach fuer eine Entscheidung
+# Montage-DREHUNG um die Hochachse, automatisch gesucht (s. `montage_drehung`). Nur im PUMPBAND:
+# die langsame Drift beim Aufrichten des Bretts ist viel groesser als der Pumpausschlag und wuerde
+# die Hauptkomponente sonst an sich ziehen.
+MONTAGE_BAND_HZ = (0.6, 2.5)
+MONTAGE_KLARHEIT_MIN = 3.0   # Verhaeltnis der Eigenwerte; darunter ist keine Achse zu erkennen
+MONTAGE_MIN_GRAD = 10.0      # darunter lohnt das Drehen nicht, es waere nur Rauschen
+MONTAGE_MIN_SAMPLES = 64     # je Laufbereich; darunter traegt er nichts zur Achse bei
+MONTAGE_VORLAUF_S = 10.0     # Einschwingzeit des Filters vor dem ersten Lauf-Anfang
+# GEGENPROBE DES GIERENS AM GPS-KURS (Jan, 21.09.: „das Gieren muesste aus dem GPS-Track auch
+# eindeutig ableitbar sein"). Kurs ueber Grund und Gieren sind DIESELBE Groesse, nicht ein
+# Stellvertreter — damit laesst sich das Vorzeichen belegen statt herleiten.
+GIER_GPS_FENSTER_S = 4.0       # Vergleichsfenster; 1 s waere bei 1-Hz-GPS fast nur Rauschen
+GIER_GPS_MIN_TEMPO = 2.5       # m/s; darunter ist der Kurs aus zwei GPS-Punkten bedeutungslos
+GIER_GPS_MIN_PUNKTE = 60       # Stuetzstellen auf dem Rechenraster
+GIER_GPS_MIN_KURS_GRAD = 15.0  # so weit muss sich der Kurs ueberhaupt drehen (Spannweite)
+GIER_GPS_MIN_R = 0.6           # erst ab dieser Korrelation wird dem Ergebnis geglaubt
 # Hub: oberes Ende des Bandes. Ueber 4 Hz gibt es keine Brettbewegung mehr, nur noch Rauschen
 # und Schlaege vom Wasser — die wuerden zweimal integriert nur die Kurve verwackeln.
 HUB_OBEN_HZ = 4.0
@@ -95,6 +111,10 @@ G_MS2 = 9.80665
 # Unter dieser Fensterzahl ist die Frequenzaufloesung zu grob: passt das Fenster nicht mehrfach
 # in den Lauf, schneidet die untere Bandgrenze das Nutzsignal mit weg.
 HUB_MIN_FENSTER = 3.0
+# Langsamer als das pumpt niemand — darunter ist es Drift, Welle oder das Aufrichten des Bretts.
+# Gilt fuer den gemeldeten Takt und fuer die Wahl des Hub-Fensters, NICHT fuer die Frage, ob der
+# Hub belastbar ist (dort zaehlt, was tatsaechlich durchs Band kam).
+PUMP_UNTEN_HZ = 0.5
 
 
 def zeitachse(t0_ms: dict[int, int], laengen: dict[int, int]) -> np.ndarray:
@@ -280,6 +300,264 @@ def hauptachse(pitch: np.ndarray, roll: np.ndarray) -> tuple[float, float]:
     return round(winkel, 1), round(min(klarheit, 999.0), 1)
 
 
+def kurs_aus_gps(gps: list | None) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Kurs ueber Grund (Grad, 0 = Nord, im Uhrzeigersinn) + Tempo aus der GPS-Spur.
+
+    `gps` ist die Rohliste aus `storage.load_gps`: [t_ms, lat, lon, speed, hr, h_acc]. Das
+    Tempo-Feld wird NICHT benutzt — es ist bei Android durchgaengig 0 (an #9535 geprueft);
+    gerechnet wird aus den Positionen. Der Kurs kommt entwickelt (`unwrap`) zurueck, sonst
+    springt eine Nordfahrt staendig um 360°.
+    """
+    if not gps or len(gps) < 4:
+        return np.empty(0), np.empty(0), np.empty(0)
+    t = np.array([r[0] for r in gps], dtype=float)
+    la = np.array([r[1] for r in gps], dtype=float)
+    lo = np.array([r[2] for r in gps], dtype=float)
+    if not np.all(np.diff(t) > 0):
+        ord_ = np.argsort(t)
+        t, la, lo = t[ord_], la[ord_], lo[ord_]
+        behalt = np.concatenate([[True], np.diff(t) > 0])
+        t, la, lo = t[behalt], la[behalt], lo[behalt]
+        if len(t) < 4:
+            return np.empty(0), np.empty(0), np.empty(0)
+    # Lokale Meter reichen: ueber einen Lauf sind das ein paar hundert Meter, die Kruemmung der
+    # Erde traegt dort nichts bei.
+    x = (lo - lo.mean()) * 111320.0 * np.cos(np.radians(la.mean()))
+    y = (la - la.mean()) * 110540.0
+    dx = np.gradient(x, t / 1000.0)
+    dy = np.gradient(y, t / 1000.0)
+    return t, np.degrees(np.unwrap(np.arctan2(dx, dy))), np.hypot(dx, dy)
+
+
+def gier_gegen_gps(t_ms: np.ndarray, gier_delta_deg: np.ndarray, fenster_s: float,
+                   gps: list | None,
+                   ref_bereiche_ms: list[tuple[float, float]]) -> dict | None:
+    """Vergleicht unser Gieren mit der Kursaenderung aus dem Track. None, wenn zu duenn.
+
+    WOZU: das Vorzeichen des Gierens laesst sich nicht aus der Zeichnung ablesen und nicht aus
+    der Physik raten — wohl aber MESSEN. Faehrt man eine Rechtskurve, waechst der Kurs ueber
+    Grund; dreht unsere Zahl dabei in die andere Richtung, ist sie gespiegelt.
+
+    Verglichen wird die Aenderung ueber DASSELBE Fenster, an denselben Zeitpunkten, und nur dort,
+    wo der Kurs ueberhaupt etwas bedeutet: im Lauf und oberhalb von `GIER_GPS_MIN_TEMPO`. Die
+    Steigung liegt nicht bei genau 1 — das Brett dreht sich beim Carven staerker, als die Spur es
+    zeigt (Drift), und 1-Hz-GPS verschmiert schnelle Kurven. Das VORZEICHEN ist die Aussage, der
+    Betrag nur ein Plausibilitaetsmass.
+    """
+    t_gps, kurs, tempo = kurs_aus_gps(gps)
+    if len(t_gps) < 4 or len(t_ms) < 8:
+        return None
+    hz = (len(t_ms) - 1) * 1000.0 / max(t_ms[-1] - t_ms[0], 1e-9)
+    n = int(round(fenster_s * hz))
+    if n < 1 or n >= len(t_ms):
+        return None
+    k_bei = np.interp(t_ms, t_gps, kurs)
+    v_bei = np.interp(t_ms, t_gps, tempo)
+    d_kurs = np.full(len(t_ms), np.nan)
+    d_kurs[n:] = k_bei[n:] - k_bei[:-n]
+    m = np.zeros(len(t_ms), dtype=bool)
+    for a, b in ref_bereiche_ms:
+        # Das GANZE Fenster muss im Lauf liegen, nicht nur sein Ende — sonst vergleicht man
+        # eine Kursaenderung vom Anschieben mit einem Gieren aus der Fahrt.
+        m |= (t_ms >= a + fenster_s * 1000.0) & (t_ms <= b)
+    m &= np.isfinite(d_kurs) & (v_bei > GIER_GPS_MIN_TEMPO)
+    if m.sum() < GIER_GPS_MIN_PUNKTE:
+        return None
+    A, B = d_kurs[m], np.asarray(gier_delta_deg, dtype=float)[m]
+    spanne = float(A.max() - A.min())
+    if spanne < GIER_GPS_MIN_KURS_GRAD or A.std() < 1e-6 or B.std() < 1e-6:
+        return None
+    return {"n": int(m.sum()),
+            "kurs_spanne_deg": round(spanne, 1),
+            "steigung": round(float(np.polyfit(A, B, 1)[0]), 2),
+            "r": round(float(np.corrcoef(A, B)[0, 1]), 3)}
+
+
+def _bandpass(x: np.ndarray, hz: float, lo: float, hi: float) -> np.ndarray:
+    """Nur das Band zwischen `lo` und `hi` behalten. Ueber die FFT, also ohne Phasenverzug."""
+    n = len(x)
+    if n < 8 or hz <= 0:
+        return x - x.mean()
+    f = np.fft.rfftfreq(n, 1.0 / hz)
+    X = np.fft.rfft(x - x.mean())
+    X[(f < lo) | (f > hi)] = 0.0
+    return np.fft.irfft(X, n)
+
+
+def montage_achse_aus_kreisel(gyr_raw: np.ndarray, t_gyr_ms: np.ndarray,
+                          bezug: np.ndarray | None,
+                          ref_bereiche_ms: list[tuple[float, float]]) -> tuple[float, float]:
+    """Montage-Achse DIREKT aus der Drehrate. Liefert (Winkel, Klarheit), Winkel auf (-90, 90].
+
+    Jan, 21.09.2026: „das Nicken doch auch aus dem Gyro oder etwa nicht?" — richtig, und damit
+    braucht die Achse den Umweg ueber den Komplementaerfilter gar nicht. Pumpen ist eine
+    Nickschwingung, also eine DREHUNG um die Querachse des Bretts, und genau die misst der
+    Kreisel unmittelbar. Die Richtung, in der die waagerechte Drehrate im Pumpband am staerksten
+    schwingt, ist die Querachse; `hauptachse` findet sie als Hauptkomponente.
+
+    WARUM DAS BESSER IST ALS UEBER DIE WINKEL: der Umweg kostet jeden Fehler des Filters — die
+    Schwerkraftrichtung ist beim Pumpen von der Bewegung dominiert, der Bezug ist geschaetzt, und
+    beides faerbt auf die Winkel ab. Die Drehrate hat davon nichts. Nachgemessen an Jans beiden
+    Aufnahmen: dasselbe Ergebnis auf 0,9° bzw. 1,1° genau, aber mit 14,5 statt 7,4 (#9535) und
+    20,8 statt 6,9 (#9528) doppelt bis viermal so klar aus dem Rauschen gehoben.
+
+    Die Kanaele kommen in derselben Zuordnung wie in `lage_berechnen` (Nickrate = y, Rollrate =
+    x), damit der Winkel dieselbe Bedeutung hat wie der aus `hauptachse(pitch, roll)`.
+
+    `bezug` ist die mittlere Schwerkraftrichtung waehrend der Laeufe; sie richtet „waagerecht"
+    aus, bevor projiziert wird. Ohne sie wuerde bei einem stark geneigt klebenden Geraet ein Teil
+    des GIERENS in die Querachse lecken. None = ungedreht nehmen.
+    """
+    if len(gyr_raw) < 8 or len(t_gyr_ms) != len(gyr_raw) or not ref_bereiche_ms:
+        return 0.0, 0.0
+    hz = (len(t_gyr_ms) - 1) * 1000.0 / max(t_gyr_ms[-1] - t_gyr_ms[0], 1e-9)
+    if hz < 2 * MONTAGE_BAND_HZ[1]:      # unter Nyquist des Pumpbands ist nichts zu holen
+        return 0.0, 0.0
+    g = gyr_raw / GYRO_SCALE
+    if bezug is not None:
+        g = g @ _dreh_auf_oben(bezug).T
+    lo, hi = MONTAGE_BAND_HZ
+    nick, roll = [], []
+    for a, b in ref_bereiche_ms:
+        m = (t_gyr_ms >= a) & (t_gyr_ms <= b)
+        if m.sum() < MONTAGE_MIN_SAMPLES:
+            continue
+        # Je Laufbereich einzeln gefiltert, dann aneinandergehaengt — der Sprung zwischen zwei
+        # Laeufen ist kein Signal (s. `aufnahme_eigenschaften`).
+        nick.append(_bandpass(g[m, 1], hz, lo, hi))
+        roll.append(_bandpass(g[m, 0], hz, lo, hi))
+    if not nick:
+        return 0.0, 0.0
+    return hauptachse(np.concatenate(nick), np.concatenate(roll))
+
+
+def aufnahme_eigenschaften(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
+                           gyr_raw: np.ndarray, t_gyr_ms: np.ndarray,
+                           ref_bereiche_ms: list[tuple[float, float]],
+                           lauf_starts_ms: list[float] | None,
+                           gps: list | None = None,
+                           rot_vorgabe: float | None = None) -> dict:
+    """Alles, was zur AUFNAHME gehoert und nicht zum gezeigten Ausschnitt.
+
+    Liefert `rot_deg` (Montage-Drehung um die Hochachse), `klarheit`, `quelle` und `gier_vz`
+    (+1/-1, Gegenprobe des Gierens am GPS-Kurs) samt den Zahlen dahinter in `gier_gps`.
+
+    WARUM EIN EIGENER DURCHGANG: wie das Handy auf dem Brett klebt, ist eine Eigenschaft der
+    AUFNAHME — so wie der Nullpunkt. Rechnet man es aus dem gerade gezeigten Ausschnitt, steht
+    das Brett je nach ausgewaehltem Lauf anders im Bild. An #9484 belegt: Lauf 0 entschied sich
+    fuer 0°, Lauf 1 fuer 180°, dasselbe Handy in derselben Aufnahme.
+
+    DIE MONTAGE-DREHUNG war bis 21.09. Handarbeit: ein Admin stellte je Aufnahme 0/90/180/270
+    ein. Jan hat das Handy an zwei Nachmittagen dreimal verschieden angeklebt — quer (#9528),
+    diagonal (#9535) — und diagonal laesst sich mit Vierteldrehungen gar nicht geraderuecken:
+    bei 45° zeigt ein reines Nicken des Bretts zu je rund 71 % als Nicken UND als Rollen.
+    Gesucht wird in zwei Schritten:
+
+    1. DIE ACHSE — aus der DREHRATE, nicht aus den Winkeln (s. `montage_achse_aus_kreisel`). Pumpen
+       ist eine Nickschwingung, also eine Drehung um die Querachse, und die misst der Kreisel
+       unmittelbar. Nur im PUMPBAND gesucht: ueber einen ganzen Lauf ist die langsame Drift
+       (Aufrichten, Welle, Kurve) um ein Vielfaches groesser als der Pumpausschlag und zoege die
+       Hauptkomponente zu sich. Ohne Kreisel (Altbestand) bleibt der Umweg ueber die fertigen
+       Winkel — dasselbe Verfahren, nur unschaerfer.
+    2. DIE RICHTUNG. Die Achse ist auf (-90°, 90°] gefaltet, sie weiss nicht, ob die Nase vorn
+       oder hinten liegt. Das entscheidet die Start-Heuristik (s. `START_SCHWELLE_GRAD`): am
+       Lauf-Anfang faehrt man bergab. Sie wird NACH der Achsen-Drehung gerechnet, denn erst dann
+       ist „Nicken" wirklich das Nicken des Bretts.
+
+    DAS GIEREN wird am Track gegengeprueft (s. `gier_gegen_gps`). Die Rechnung liefert es im
+    Rechtssystem, also positiv nach LINKS; nach aussen gilt die Flieger-Konvention „positiv =
+    nach rechts", passend zum Rollen (positiv = nach rechts) und zum Kurs ueber Grund. Weil das
+    eine Eigenschaft des UEBERTRAGUNGSFORMATS ist und nicht der Aufnahme, ist das fest
+    eingebaut — die Gegenprobe kehrt es nur um, wenn eine Aufnahme dem DEUTLICH widerspricht
+    (`GIER_GPS_MIN_R`). Genau das faengt eine kuenftige Plattform ab, die ihren Kreisel
+    spiegelverkehrt schreibt, ohne dass es jemandem auffallen muesste.
+    """
+    leer = {"rot_deg": 0.0 if rot_vorgabe is None else float(rot_vorgabe),
+            "klarheit": None, "quelle": "manuell" if rot_vorgabe is not None else "keine",
+            "gier_vz": 1, "gier_gps": None}
+    if not ref_bereiche_ms:
+        return leer
+    starts = [float(x) for x in (lauf_starts_ms or [])]
+    von = min([a for a, _ in ref_bereiche_ms] + starts)
+    bis = max(b for _, b in ref_bereiche_ms)
+    # Vorlauf, damit der Komplementaerfilter eingeschwungen ist, bevor der erste Lauf anfaengt:
+    # faengt das Fenster GENAU am Lauf-Start an, ist die erste Sekunde der Einschwingvorgang und
+    # nicht die Lage (an #9535 gemessen: -19,0° statt -6,1°) — und genau die erste Sekunde ist
+    # es, auf die sich die Start-Heuristik stuetzt.
+    von -= MONTAGE_VORLAUF_S * 1000.0
+
+    def _pass(rot: float) -> dict:
+        # `_roh=True`: das sind die Durchgaenge, die die Eigenschaften erst SUCHEN — sie duerfen
+        # nicht zurueckrufen. Das Gier-Fenster ist hier das der GPS-Gegenprobe, nicht das der
+        # Anzeige; auf Nicken und Rollen hat es keinen Einfluss.
+        return lage_berechnen(acc_raw, t_acc_ms, gyr_raw, t_gyr_ms, ziel_hz=20.0,
+                              yaw_fenster_s=GIER_GPS_FENSTER_S,
+                              t_von_ms=von, t_bis_ms=bis, ref_bereiche_ms=ref_bereiche_ms,
+                              rot_deg=rot, _roh=True)
+
+    # Die Achse braucht keinen Durchgang: sie kommt direkt aus der Drehrate. Der Bezug ist
+    # derselbe wie in `lage_berechnen`, damit „waagerecht" dasselbe heisst.
+    bezug = _bezugsrichtung(acc_raw, t_acc_ms, ref_bereiche_ms)
+    achse, klarheit = montage_achse_aus_kreisel(gyr_raw, t_gyr_ms, bezug, ref_bereiche_ms)
+
+    erg = _pass(0.0 if rot_vorgabe is None else float(rot_vorgabe))
+    if not erg.get("ok"):
+        return leer
+
+    # --- Gieren gegen den Track. Unabhaengig von der Montage: eine Drehung um die Hochachse
+    #     laesst das Gieren unberuehrt, deshalb zaehlt hier schon der erste Durchgang.
+    gps_pruef = gier_gegen_gps(np.asarray(erg["t_ms"], dtype=float),
+                               np.asarray(erg["gier_delta_deg"], dtype=float),
+                               GIER_GPS_FENSTER_S, gps, ref_bereiche_ms)
+    gier_vz = 1
+    if gps_pruef and abs(gps_pruef["r"]) >= GIER_GPS_MIN_R and gps_pruef["steigung"] < 0:
+        gier_vz = -1
+
+    if rot_vorgabe is not None:
+        return {"rot_deg": float(rot_vorgabe), "klarheit": None, "quelle": "manuell",
+                "gier_vz": gier_vz, "gier_gps": gps_pruef}
+
+    t = np.asarray(erg["t_ms"], dtype=float)
+    pitch = np.asarray(erg["pitch_deg"], dtype=float)
+    if klarheit < MONTAGE_KLARHEIT_MIN:
+        # RUECKFALL ohne (brauchbaren) Kreisel: dieselbe Hauptkomponente, aber auf den fertigen
+        # Winkeln. Kostet jeden Fehler des Filters und ist entsprechend unschaerfer — an Jans
+        # Aufnahmen Klarheit 7 statt 15-21 — aber fuer eine Aufnahme ohne Drehrate ist es das
+        # Einzige, was es gibt.
+        hz = float(erg["hz"])
+        lo, hi = MONTAGE_BAND_HZ
+        stueck_p, stueck_r = [], []
+        roll = np.asarray(erg["roll_deg"], dtype=float)
+        for a, b in ref_bereiche_ms:
+            m = (t >= a) & (t <= b)
+            if m.sum() < MONTAGE_MIN_SAMPLES:
+                continue
+            stueck_p.append(_bandpass(pitch[m], hz, lo, hi))
+            stueck_r.append(_bandpass(roll[m], hz, lo, hi))
+        if stueck_p:
+            achse, klarheit = hauptachse(np.concatenate(stueck_p), np.concatenate(stueck_r))
+
+    rot = 0.0
+    teile = []
+    if klarheit >= MONTAGE_KLARHEIT_MIN and abs(achse) >= MONTAGE_MIN_GRAD:
+        rot = float(achse)
+        teile.append("achse")
+        erg = _pass(rot)
+        if not erg.get("ok"):
+            return leer
+        t = np.asarray(erg["t_ms"], dtype=float)
+        pitch = np.asarray(erg["pitch_deg"], dtype=float)
+
+    start_nicken = startlage(pitch, t, starts or None)
+    if start_nicken is not None and abs(start_nicken) >= START_SCHWELLE_GRAD:
+        teile.append("heuristik")
+        if start_nicken > 0:
+            rot = (rot + 180.0) % 360.0
+    return {"rot_deg": round(rot, 1), "klarheit": klarheit,
+            "quelle": "+".join(teile) or "keine",
+            "gier_vz": gier_vz, "gier_gps": gps_pruef}
+
+
 def startlage(pitch: np.ndarray, t_ms: np.ndarray,
               lauf_starts_ms: list[float] | None) -> float | None:
     """Mittleres Nicken in der ersten Sekunde der Laeufe. None, wenn es keine Laeufe gibt.
@@ -336,7 +614,8 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
                    t_von_ms: float | None = None, t_bis_ms: float | None = None,
                    ref_bereiche_ms: list[tuple[float, float]] | None = None,
                    hub_fenster_s: float | None = None, rot_deg: float | None = None,
-                   lauf_starts_ms: list[float] | None = None) -> dict:
+                   lauf_starts_ms: list[float] | None = None,
+                   gps: list | None = None, _roh: bool = False) -> dict:
     """Pitch/Roll (absolut, in Grad) und Gierwinkel-Aenderung je Fenster (Grad).
 
     `acc_raw`/`gyr_raw` sind die int16-Rohwerte, `t_*_ms` die zugehoerigen Zeitachsen. Das
@@ -385,6 +664,20 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
     # weiter tut, als Nicken und Rollen umzukehren (Gieren und Hub bleiben, wie sie sind).
     auto = rot_deg is None
     rot_wirksam = 0.0 if auto else float(rot_deg)
+    achse_klarheit = None
+    rot_quelle = "manuell"
+    gier_vz, gier_gps = 1, None
+    if not _roh:
+        # Montage-Drehung und Gier-Vorzeichen kommen ueber ALLE Laufbereiche und sind damit
+        # unabhaengig vom gezeigten Ausschnitt (s. `aufnahme_eigenschaften`). `_roh` markiert
+        # die Durchgaenge, die genau das erst ermitteln.
+        _eig = aufnahme_eigenschaften(acc_raw, t_acc_ms, gyr_raw, t_gyr_ms,
+                                      ref_bereiche_ms or [], lauf_starts_ms, gps,
+                                      rot_vorgabe=None if auto else float(rot_deg))
+        gier_vz, gier_gps = _eig["gier_vz"], _eig["gier_gps"]
+        if auto:
+            rot_wirksam = _eig["rot_deg"]
+            achse_klarheit, rot_quelle = _eig["klarheit"], _eig["quelle"]
     if rot_wirksam:
         w = np.radians(rot_wirksam)
         c, sn = np.cos(w), np.sin(w)
@@ -467,7 +760,13 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
     hub = hub_berechnen(a_vert, 1.0 / rechen_hz, hub_fenster_s or 3.0)
 
     # Gierrate = Drehratenvektor auf die Schwerkraft projiziert (s. Kopfkommentar).
-    gier_rate = np.degrees(np.einsum("ij,ij->i", gyr, g_hut))
+    # VORZEICHEN: die Projektion liefert das Rechtssystem, also positiv nach LINKS. Nach aussen
+    # gilt „positiv = nach RECHTS" — dieselbe Richtung wie beim Rollen (positiv = nach rechts)
+    # und wie beim Kurs ueber Grund, der im Uhrzeigersinn waechst. Belegt am GPS: ueber #9528
+    # und #9535 lag die Steigung Gieren/Kursaenderung vor dieser Umkehr bei -0,7 bis -1,1
+    # (r bis -0,85), also spiegelverkehrt. `gier_vz` kann das je Aufnahme noch einmal umkehren,
+    # falls eine Plattform ihren Kreisel andersherum schreibt (s. `aufnahme_eigenschaften`).
+    gier_rate = -gier_vz * np.degrees(np.einsum("ij,ij->i", gyr, g_hut))
     # Aenderung ueber das gleitende Fenster: Integral, dann Differenz zweier Stuetzstellen.
     integral = np.concatenate([[0.0], np.cumsum(gier_rate[1:] * dt[1:])])
     schritte = max(1, int(round(yaw_fenster_s * rechen_hz)))
@@ -480,13 +779,13 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
     # Richtungs-Heuristik. Erst HIER, weil sie den fertigen, auf den Nullpunkt bezogenen Winkel
     # braucht. Das Umkehren ist exakt und nicht genaehert: eine 180°-Drehung um die Hochachse
     # negiert Nicken und Rollen, sonst nichts.
-    def hauptfrequenz(sig: np.ndarray) -> float | None:
+    def hauptfrequenz(sig: np.ndarray, unten: float = 0.3, oben: float = 4.0) -> float | None:
         s0 = sig - sig.mean()
         if len(s0) < 32:
             return None
         f = np.fft.rfftfreq(len(s0), 1.0 / rechen_hz)
         A = np.abs(np.fft.rfft(s0))
-        m = (f > 0.3) & (f < 4.0)
+        m = (f > unten) & (f < oben)
         return round(float(f[m][np.argmax(A[m])]), 2) if m.any() else None
 
     # HUB-FENSTER AM PUMPTAKT AUSRICHTEN, nicht an einer festen Zahl.
@@ -498,20 +797,19 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
     # Also die Grenze auf die HAELFTE des gemessenen Takts legen: bei 1,33 Hz sind das 1,5 s.
     # Gedeckelt, damit weder ein Ausreisser noch eine fehlende Messung Unsinn ergibt.
     if hub_fenster_s is None:
-        _takt = hauptfrequenz(pitch)
+        # AUS DEM PUMPBAND, nicht aus dem ganzen Spektrum. Ueber einem engen Ausschnitt ist die
+        # groesste Amplitude im Nicken oft die langsame Drift und nicht das Pumpen: an Lauf 2 von
+        # #9535 fand die Suche ab 0,3 Hz genau die 0,3 Hz, das Fenster lief in den Deckel (5 s)
+        # und der Hub kam mit 37 cm statt 21 cm heraus. Mit der unteren Grenze bei PUMP_UNTEN_HZ
+        # bleibt nur uebrig, was ueberhaupt ein Pumptakt sein kann.
+        _takt = hauptfrequenz(pitch, unten=PUMP_UNTEN_HZ)
         hub_fenster_s = float(min(5.0, max(1.0, 2.0 / _takt))) if _takt else 3.0
         hub = hub_berechnen(a_vert, 1.0 / rechen_hz, hub_fenster_s)
 
+    # Nur noch Auskunft: die Drehung ist oben schon angewandt, das Nicken am Lauf-Anfang sollte
+    # jetzt negativ sein (bergab). Bleibt es positiv, hat die Heuristik nicht gegriffen — meist,
+    # weil im Fenster gar kein Lauf-Anfang liegt.
     start_nicken = startlage(pitch, t, lauf_starts_ms)
-    rot_vorschlag = None
-    if start_nicken is not None and abs(start_nicken) >= START_SCHWELLE_GRAD:
-        rot_vorschlag = 180.0 if start_nicken > 0 else 0.0
-    rot_quelle = "manuell" if not auto else ("heuristik" if rot_vorschlag is not None else "keine")
-    if auto and rot_vorschlag == 180.0:
-        pitch, roll = -pitch, -roll
-        null_p, null_r = -null_p, -null_r
-        rot_wirksam = 180.0
-        start_nicken = -start_nicken
 
     schritt = max(1, int(round(rechen_hz / ziel_hz)))
     aus = slice(None, None, schritt)
@@ -537,8 +835,17 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
                       "gyro": round(float(_quellrate(t_gyr_ms)), 1) if hat_gyro else None},
         "yaw_fenster_s": yaw_fenster_s,
         "nullpunkt": null_quelle,
-        "rot_deg": rot_wirksam,
-        "rot_quelle": rot_quelle,          # manuell | heuristik | keine
+        "rot_deg": round(rot_wirksam, 1),
+        # manuell | achse | heuristik | achse+heuristik | keine
+        "rot_quelle": rot_quelle,
+        # Wie deutlich die Pump-Achse aus dem Rauschen ragt (Eigenwert-Verhaeltnis). None, wenn
+        # gar nicht gesucht wurde (manuelle Vorgabe).
+        "rot_klarheit": achse_klarheit,
+        # Gegenprobe des Gierens am GPS-Kurs: {n, kurs_spanne_deg, steigung, r}. Die Steigung
+        # sollte positiv sein (beide drehen gleich herum); None, wenn zu wenig Kurven im Lauf
+        # liegen oder keine Spur da ist. `gier_umgekehrt` sagt, ob sie das Vorzeichen gedreht hat.
+        "gier_gps": gier_gps,
+        "gier_umgekehrt": gier_vz < 0,
         # Mittleres Nicken in der ersten Sekunde der Laeufe, NACH der Drehung. Sollte negativ
         # sein (bergab); ein positiver Wert heisst, dass die Heuristik nicht greifen konnte.
         "start_nicken_deg": None if start_nicken is None else round(start_nicken, 1),
@@ -555,7 +862,7 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
             "pitch_amplitude_deg": round(float(np.percentile(np.abs(pitch), 95)), 1),
             "roll_amplitude_deg": round(float(np.percentile(np.abs(roll), 95)), 1),
             "gier_rms_deg_s": round(float(np.sqrt(np.mean(gier_rate ** 2))), 1),
-            "pitch_hz": hauptfrequenz(pitch),
+            "pitch_hz": hauptfrequenz(pitch, unten=PUMP_UNTEN_HZ),
             # Hub von unten nach oben, robust gegen einzelne Ausreisser (5./95. Perzentil).
             "hub_pp_cm": (round(float(np.percentile(hub, 95) - np.percentile(hub, 5)), 1)
                           if hub is not None else None),

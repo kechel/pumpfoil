@@ -1,5 +1,6 @@
 const pt: Record<string, string> = {
   "hr.viewPeak": "Absoluto",
+  "session.onBoard": "na prancha",
   "hr.viewRise": "Aumento",
   "hr.viewRiseHint": "Mostra o quanto a frequência cardíaca subiu durante o run — em relação à do início do mesmo run. Assim dá para comparar runs mesmo tendo começado com frequências diferentes.",
   "onb.startTitle": "Assistente de configuração",

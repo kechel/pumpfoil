@@ -1407,6 +1407,49 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+### 21.09.2026 — Haengende Aufnahmen, Apple-Abschluss, Android-Upload-Anzeige
+
+- [x] **Bestand abgeschlossen (21.09., Jans Freigabe „Ja bitte machen"):** 16 der 28 haengenden
+  Aufnahmen ausgewertet und geschlossen — die, bei denen seit >= 12 h kein Chunk mehr kam.
+  Skript `scripts/haenger-abschliessen.py` (Ist-Zustand vorher nach `server/data/haenger-vorher-*.json`).
+  **Bewusst NICHT gepusht** („Deine Session ist ausgewertet") — nachtraeglich pushen ist verboten,
+  die Fahrten sind bis zu 6 Wochen alt. 4 waren noch zu frisch (#9425 hatte 1,4 h vorher noch
+  einen Chunk geschickt — laedt also wirklich noch), 8 haben nie einen Chunk bekommen und wurden
+  nicht angefasst.
+- [ ] **Automatik fuer haengende Aufnahmen (Jans Punkt 2).** Bedingung von ihm: „nur wenn die
+  Fahrten trotzdem seamless vervollstaendigt und neu abgeschlossen werden falls die Daten doch
+  noch gepusht werden, nicht dass der Server da irgendwas anderes sendet das Uhren oder Handys
+  zum Absturz bringen wuerde." **Das Sicherheitsnetz dafuer steht schon** und stammt aus seiner
+  eigenen Vorgabe vom 06.09.: `ingest.session_status` meldet einer Uhr erst dann „complete"
+  (= du darfst loeschen), wenn ALLE Chunks da sind; fehlt etwas, antwortet es weiter „live" und
+  der Uploader schickt ueber `received_chunks` nur das Fehlende nach. Es wird also kein neues
+  Signal gesendet, der Vertrag bleibt derselbe. **Was fehlt, ist nur der zeitliche Ausloeser:**
+  heute schliesst `_altlasten_abschliessen` nur ab, wenn DASSELBE Geraet eine neuere Aufnahme
+  anmeldet — genau das passiert bei diesen Nutzern nie. Vorschlag: `haenger_faellig` auf
+  `live`/`recording` erweitern, aber mit 12 h Ruhe statt 15 min. **Achtung:** der Kommentar dort
+  sagt ausdruecklich „BEWUSST NUR `complete`" — diese Entscheidung waere zu revidieren, nicht
+  stillschweigend zu ueberschreiben. Restrisiko: 4 Altbestand-Sessions haben `expected_chunks = 0`,
+  dort greift das Netz nicht.
+- [ ] **Apple: warum wird nie abgeschlossen? (Jans Punkt 3, „spaeter, aber nicht vergessen").**
+  10 von 10 haengenden Apple-Aufnahmen stehen in `live`, Garmin dagegen 8 von 17. #8651 hatte
+  **alle 143 von 143 Chunks** und blieb trotzdem sechs Tage haengen — der Abschluss-Aufruf kam
+  nie. Das ist kein Upload-Problem, sondern der letzte Schritt in `watch-apple/Sources/`.
+  Apps sind eingefroren, braucht Jans Ansage.
+- [ ] **Android Phone-Recorder: Upload sichtbar machen und entkoppeln (Jan, 21.09.).** Heute
+  laedt die Android-App die Aufnahme offenbar nur hoch, solange der Phone-Recording-Screen offen
+  ist, und die Anzeige ist „arg unscheinbar". Gewuenscht: Fortschrittsanzeige wie auf der
+  Garmin-Uhr — in unserem Cyan, mit Balken und „x/y Chunks" —, Upload **laeuft im Hintergrund
+  weiter**, wenn man einen anderen Screen oeffnet, und **startet beim App-Start automatisch**,
+  wenn noch nicht abgeschlossene Aufnahmen vorliegen. (Native, eingefroren — braucht Jans Ansage.)
+- [ ] **Nutzer 533 verliert seit dem 12.09. jede Aufnahme.** Forerunner 55, 12 Sessions, null
+  erkannt, Empfindlichkeit steht schon auf `attempts`. Gemessene Accel-Rate 1,6–6,2 Hz (getaggt
+  10/25), Puffer 4x voll (zuletzt 21.09. 15:45), ein Absturz `crash_phase = 3` (= mitten in der
+  Aufnahme) am 21.09. 19:32. Andere FR55-Nutzer laufen einwandfrei (20/20, 6/6) — es ist diese
+  Uhr, nicht das Modell. Vermutete Kette (unbelegt): Puffer voll -> Accel-Chunks fallen aus ->
+  Rate unter dem 15-Hz-Tor -> `gps_only` -> keine Laeufe. Franzoesischsprachig.
+
+
+
 - **🔲 21.09. — Die Montage-Richtung muss auch 90°/270° automatisch finden. Jans erste echte
   Pump-Aufnahme hat gezeigt, dass 0/180 nicht reicht.**
   An #9528 (Handy QUER am Brett) sah Jan es sofort: „beim Nicken sieht man fast nichts und beim

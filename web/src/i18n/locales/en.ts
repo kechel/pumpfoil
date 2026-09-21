@@ -119,6 +119,7 @@ const en: Record<string, string> = {
   "board.heaveShaky": "Heave is not trustworthy here: the motion is slower than the {s}-second window allows, and down there every small error gets blown up. With real pumping at about one stroke per second it holds.",
   "board.rigAssumed": "fuselage {fuse} cm and the fore-aft positions are still estimates",
   "board.markBoard": "Phone was on the board",
+  "session.onBoard": "on board",
   "watchStats.scrollTo": "Scroll to:",
   "watchStats.noMatch": "Nothing found.",
   "watchStats.sectionFoiling": "Foiling per watch",

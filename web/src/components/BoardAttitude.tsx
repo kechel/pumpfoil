@@ -329,16 +329,37 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
     );
   }
 
-  const hub = hubReihe?.[idx] ?? 0;
-  // Bildausschnitt der Seitenansicht: einmal aus dem ganzen Lauf bestimmt, damit er beim
-  // Abspielen still steht statt mitzuatmen.
-  const hubBereich = hubReihe ? Math.max(...hubReihe.map((v) => Math.abs(v))) : 0;
+  const tMs = d.t_ms ?? [];
+  // Bildausschnitt der Seitenansicht: einmal bestimmt, damit er beim Abspielen still steht
+  // statt mitzuatmen — aber NUR aus dem ausgewaehlten Lauf, nicht aus dem Rand davor und
+  // danach. Dort liegt das Brett am Steg, wird umgedreht oder fliegt beim Sturz durch die
+  // Gegend; der Hub kommt aus zweimaligem Integrieren und schlaegt dann auf ueber 140 cm aus
+  // (#9535 gemessen: im Lauf 15 cm, ueber die ganze Aufnahme 147 cm). Der Rahmen war damit
+  // dreimal so hoch wie das Rig und alles darin winzig — Jans Befund am 21.09.2026: „warum ist
+  // das board links so klein?". Zusaetzlich ein robustes Maximum (95. Perzentil), damit auch
+  // innerhalb eines Laufs ein einzelner Ausschlag nicht den Maszstab bestimmt.
+  const hubImLauf = (() => {
+    if (!hubReihe?.length) return [];
+    const von = d.auswahl_von_ms, bis = d.auswahl_bis_ms;
+    if (von == null || bis == null || !tMs.length) return hubReihe;
+    const nur = hubReihe.filter((_, i) => tMs[i] >= von && tMs[i] <= bis);
+    return nur.length >= 8 ? nur : hubReihe;
+  })();
+  const hubBereich = (() => {
+    if (!hubImLauf.length) return 0;
+    const sortiert = hubImLauf.map((v) => Math.abs(v)).sort((a, b) => a - b);
+    const p95 = sortiert[Math.min(sortiert.length - 1, Math.floor(sortiert.length * 0.95))];
+    return Math.max(2, p95);
+  })();
+  // Steht der Zeiger im Rand, kann der Hub weit ausserhalb des Rahmens liegen. Dann am Rand
+  // anstehen lassen, statt das Rig aus dem Bild fliegen zu lassen: dort ist die Zahl aus der
+  // doppelten Integration ohnehin nicht belastbar, die Kurve darunter zeigt sie trotzdem.
+  const hub = Math.max(-hubBereich, Math.min(hubBereich, hubReihe?.[idx] ?? 0));
   const pitch = d.pitch_deg?.[idx] ?? 0;
   const roll = d.roll_deg?.[idx] ?? 0;
   const gier = d.gier_delta_deg?.[idx] ?? 0;
   const k = d.kennzahlen;
   const rig = d.rig;
-  const tMs = d.t_ms ?? [];
   const sek = tMs.length ? (tMs[idx] - tMs[0]) / 1000 : 0;
   const NULLTEXT: Record<string, string> = {
     laeufe: "board.zeroRuns", mittelteil: "board.zeroMid", fenster: "board.zeroMean",
@@ -398,6 +419,18 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
           {k.pitch_hz ? ` · ${t("board.cadence", { hz: k.pitch_hz.toFixed(2) })}` : ""}
           {k.hub_pp_cm ? ` · ${t("board.heaveStat", { cm: k.hub_pp_cm.toFixed(0), s: String(d.hub_fenster_s ?? 3) })}` : ""}
           {` · ${t(nullText)}`}
+          {/* Was die Automatik gefunden hat, sichtbar machen — sonst ist nicht zu unterscheiden,
+              ob das Brett schief steht oder die Montage falsch erkannt wurde. */}
+          {d.rot_deg != null
+            ? ` · ${t("board.mounting")} ${Math.round(d.rot_deg)}°${
+              d.rot_quelle && d.rot_quelle !== "manuell" ? ` (${t("board.mountAuto")})` : ""}`
+            : ""}
+          {/* Die GPS-Gegenprobe mit anzeigen: sie belegt das Vorzeichen des Gierens und faellt
+              auf, wenn eine Aufnahme aus der Reihe taenzt. */}
+          {d.gier_gps
+            ? ` · ${t("board.yaw")}/GPS ${d.gier_gps.steigung.toFixed(2)} (r ${d.gier_gps.r.toFixed(2)})${
+              d.gier_umgekehrt ? " ↔" : ""}`
+            : ""}
           {d.quelle_hz ? ` · ${d.quelle_hz.accel} / ${d.quelle_hz.gyro ?? "–"} Hz` : ""}
         </p>
       )}

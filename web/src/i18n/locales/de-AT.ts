@@ -80,6 +80,7 @@ const deAT: Record<string, string> = {
   "board.zeroStill": "Nullpunkt aus einer Ruhephase",
   "board.zeroMean": "Nullpunkt = Mittelwert des Laufs",
   "board.markBoard": "Handy war am Brett",
+  "session.onBoard": "am Brett",
   "watchStats.scrollTo": "Springen zu:",
   "watchStats.noMatch": "Nix gfundn.",
   "watchStats.sectionFoiling": "Foilen je Uhr",

@@ -2,6 +2,7 @@
 // Erstübersetzung maschinell; Muttersprachler-Review empfohlen.
 const cs: Record<string, string> = {
   "hr.viewPeak": "Absolutní",
+  "session.onBoard": "na prkně",
   "hr.viewRise": "Nárůst",
   "hr.viewRiseHint": "Ukazuje, o kolik tep během jízdy vystoupal — oproti tepu na začátku téže jízdy. Jízdy jsou tak porovnatelné, i když jsi je začínal s různým tepem.",
   "onb.startTitle": "Průvodce nastavením",

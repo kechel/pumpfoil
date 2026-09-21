@@ -1,5 +1,6 @@
 const id: Record<string, string> = {
   "hr.viewPeak": "Absolut",
+  "session.onBoard": "di papan",
   "hr.viewRise": "Kenaikan",
   "hr.viewRiseHint": "Menunjukkan seberapa jauh detak jantung naik selama run — dibandingkan detak di awal run yang sama. Dengan begitu run bisa dibandingkan meski dimulai dari detak yang berbeda.",
   "onb.startTitle": "Pemandu penyiapan",
