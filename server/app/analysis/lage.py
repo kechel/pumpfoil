@@ -302,6 +302,34 @@ def startlage(pitch: np.ndarray, t_ms: np.ndarray,
     return float(np.mean(werte)) if werte else None
 
 
+def _dreh_auf_oben(bezug: np.ndarray) -> np.ndarray:
+    """Kleinste Drehung, die `bezug` auf (0,0,1) legt — Rodrigues.
+
+    WARUM ES EINE DREHUNG SEIN MUSS und kein Abzug: Nick- und Rollwinkel sind keine Groessen,
+    die man einzeln verrechnen darf. Zieht man den Montagewinkel als ZAHL ab, stimmt das nur,
+    solange das Brett aufrecht liegt. Kippt es auf den Kopf, kehrt sich die gemessene Neigung
+    mit um, und aus „16,5° abziehen" wird „16,5° dazu" — der Fehler verdoppelt sich.
+
+    Belegt an #9484 (Jan, 21.09.): auf dem Steg stand das Brett kopfueber und nachweislich
+    waagerecht. Die Anzeige zeigte richtig Rollen -177,6°, aber **+28,7° Nicken** — das Doppelte
+    der 16,5°, mit denen das Handy schraeg auf dem Brett klebte. Nach der Drehung bleibt davon
+    nichts.
+
+    Der Sonderfall `bezug ≈ -z` (Handy mit dem Display nach unten montiert) hat keine eindeutige
+    Achse; dort tut es jede senkrechte, genommen wird die x-Achse.
+    """
+    z = np.array([0.0, 0.0, 1.0])
+    a = bezug / max(float(np.linalg.norm(bezug)), 1e-9)
+    c = float(np.dot(a, z))
+    if c > 1.0 - 1e-9:
+        return np.eye(3)
+    if c < -1.0 + 1e-9:
+        return np.diag([1.0, -1.0, -1.0])      # 180° um x
+    v = np.cross(a, z)
+    K = np.array([[0.0, -v[2], v[1]], [v[2], 0.0, -v[0]], [-v[1], v[0], 0.0]])
+    return np.eye(3) + K + K @ K * (1.0 / (1.0 + c))
+
+
 def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
                    gyr_raw: np.ndarray, t_gyr_ms: np.ndarray,
                    *, ziel_hz: float = 20.0, yaw_fenster_s: float = 1.0,
@@ -365,6 +393,29 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
             v[:, 0] = x * c - y * sn
             v[:, 1] = x * sn + y * c
 
+    # BEZUG ALS DREHUNG statt als Abzug (s. `_dreh_auf_oben`). Er kommt aus den ROHEN Samples der
+    # Laufbereiche und muss die Montage-Drehung von oben mitgemacht haben, sonst zeigt er in eine
+    # andere Richtung als die Messung.
+    bezug = _bezugsrichtung(acc_raw, t_acc_ms, ref_bereiche_ms or [])
+    null_quelle = "laeufe"
+    if bezug is None:
+        # Kein Lauf erkannt: der Mittelteil des Fensters. Aufbauen und Einpacken liegen aussen,
+        # der Sturz meist am Ende — was bleibt, ist das Brauchbarste ohne Erkennung.
+        rand = (1.0 - MITTELTEIL) / 2.0 * (bis - von)
+        bezug = _bezugsrichtung(acc_raw, t_acc_ms, [(von + rand, bis - rand)])
+        null_quelle = "mittelteil"
+    if bezug is None:
+        bezug = acc.mean(axis=0)
+        bezug = bezug / max(float(np.linalg.norm(bezug)), 1e-9)
+        null_quelle = "fenster"
+    if rot_wirksam:
+        _w = np.radians(rot_wirksam); _c, _s = np.cos(_w), np.sin(_w)
+        bezug = np.array([bezug[0] * _c - bezug[1] * _s, bezug[0] * _s + bezug[1] * _c, bezug[2]])
+    null_p, null_r = _pitch_roll(bezug)     # nur Auskunft: wie schief das Geraet auf dem Brett klebt
+    _R = _dreh_auf_oben(bezug)
+    acc = acc @ _R.T
+    gyr = gyr @ _R.T
+
     t_s = t / 1000.0
     still = ruhe_maske(acc, gyr)
     # Bias aus den Ruhephasen. Ohne ihn laeuft die Gier-Integration mit rund 1°/s weg.
@@ -421,32 +472,8 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
     gier_delta = np.zeros(len(t))
     gier_delta[schritte:] = integral[schritte:] - integral[:-schritte]
 
-    # Nullpunkt — die mittlere Lage WAEHREND DER FAHRT, nicht die Ruhelage (s. Kopfkommentar).
-    # Erste Wahl sind die uebergebenen Laufbereiche, und zwar aus den Rohsamples: damit haengt
-    # die Null nicht am gerade gezeigten Ausschnitt.
-    # ACHTUNG: `_bezugsrichtung` liest die ROHEN Samples — die sind noch ungedreht. Die Drehung
-    # gehoert also auch auf den Bezug, sonst zeigt der Nullpunkt in eine andere Richtung als die
-    # Messung und beides hebt sich nicht mehr sauber auf.
-    bezug = _bezugsrichtung(acc_raw, t_acc_ms, ref_bereiche_ms or [])
-    if bezug is not None and rot_wirksam:
-        w = np.radians(rot_wirksam); c, sn = np.cos(w), np.sin(w)
-        bezug = np.array([bezug[0] * c - bezug[1] * sn, bezug[0] * sn + bezug[1] * c, bezug[2]])
-    null_quelle = "laeufe"
-    if bezug is None:
-        # Kein Lauf erkannt: der Mittelteil des Fensters. Aufbauen und Einpacken liegen aussen,
-        # der Sturz meist am Ende — was bleibt, ist das Brauchbarste, das ohne Erkennung da ist.
-        rand = (1.0 - MITTELTEIL) / 2.0 * (bis - von)
-        bezug = _bezugsrichtung(acc_raw, t_acc_ms, [(von + rand, bis - rand)])
-        if bezug is not None and rot_wirksam:
-            w = np.radians(rot_wirksam); c, sn = np.cos(w), np.sin(w)
-            bezug = np.array([bezug[0] * c - bezug[1] * sn, bezug[0] * sn + bezug[1] * c, bezug[2]])
-        null_quelle = "mittelteil"
-    if bezug is None:
-        bezug = np.median(a_norm, axis=0)
-        null_quelle = "fenster"
-    null_p, null_r = _pitch_roll(bezug)
-    pitch = _wickel(pitch - null_p)
-    roll = _wickel(roll - null_r)
+    # KEIN Abzug des Nullpunkts mehr — er steckt seit 21.09. als DREHUNG in `acc`/`gyr`
+    # (s. `_dreh_auf_oben` weiter oben). `null_p`/`null_r` stehen nur noch als Auskunft.
 
     # Richtungs-Heuristik. Erst HIER, weil sie den fertigen, auf den Nullpunkt bezogenen Winkel
     # braucht. Das Umkehren ist exakt und nicht genaehert: eine 180°-Drehung um die Hochachse

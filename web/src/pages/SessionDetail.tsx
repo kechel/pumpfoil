@@ -1915,14 +1915,6 @@ export default function SessionDetail() {
                 ? <><span className="inline-block h-3 w-3" style={{ borderLeft: "3px solid currentColor", borderRight: "3px solid currentColor" }} /> {t("sd.pause")}</>
                 : <><PlayIcon className="h-4 w-4" /> {t("sd.play")}</>}
             </button>
-            {/* Hinweis aus der Lage-Ansicht. In NORMALER Schriftgroesse (Projektregel: Hinweise
-                nie kleiner als der Fliesstext) und in amber — ein Nicht-slate-Ton braucht beide
-                Farbmodi ausdruecklich. */}
-            {lageHinweis && !fullscreen && (
-              <p className="basis-full rounded-lg bg-amber-100 px-3 py-2 text-sm text-amber-800 dark:bg-amber-500/10 dark:text-amber-300">
-                {lageHinweis}
-              </p>
-            )}
             {/* Controls erst nach dem ersten Abspielen-Klick — vorher braucht man sie nicht. */}
             {playStarted && (
               <>
@@ -1966,6 +1958,16 @@ export default function SessionDetail() {
               </>
             )}
           </div>
+        )}
+
+        {/* Hinweis aus der Lage-Ansicht — UNTER der ganzen Abspiel-Leiste, nicht zwischen
+            Knopf und Steuerung (Jan, 21.09.). In normaler Schriftgroesse: Hinweise nie
+            kleiner als der Fliesstext. Amber ist ein Nicht-slate-Ton und braucht deshalb beide
+            Farbmodi ausdruecklich. */}
+        {lageHinweis && !fullscreen && (
+          <p className="mt-2 rounded-lg bg-amber-100 px-3 py-2 text-sm text-amber-800 dark:bg-amber-500/10 dark:text-amber-300">
+            {lageHinweis}
+          </p>
         )}
 
         {/* 4. Labeln (Pump-Marken) — nur am PC. Der Umschalter „Pumps taggen" + „Label" sitzt unten
