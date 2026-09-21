@@ -1410,6 +1410,17 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     Medianabstand 3,4 m gegen 4,4 m bei Versatz 0, mit sauberem Minimum in der Umgebung
     (5,0 / 5,0 / 4,4 / 3,6 / **3,4** / 5,6 / 7,1 m). Das ist der bessere Weg — auch weil der Ort
     im Stillstand kein Signal hat, aber auch nicht luegt.
+  - **Und es braucht gar keine Laeufe** (Jans Praezisierung, 21.09.: „ueber die gesamte
+    gleichzeitige Zeit aller GPS-Punkte, gueltig dann fuer die gesamte Zeit"). Nachgerechnet,
+    drei Varianten, dieselbe Antwort: alle Punkte ungewichtet **+2,0 s** (Minimum 3,61 m), alle
+    Punkte mit dem Tempo gewichtet +1,4 s (4,91 m), nur Sekunden mit Bewegung +2,0 s (3,40 m).
+    Also rund **+1,7 ± 0,3 s**. Der ungewichtete Lauf ueber ALLES ist der praktischste: er
+    braucht keine Lauf-Erkennung — und die fehlt in genau den Aufnahmen, um die es geht.
+    Stillstands-Sekunden schaden nicht, sie tragen nur nichts bei (dort ist die Kurve flach).
+  - **Zwei Sekunden sind zu viel fuer Uhrendrift** — beide Geraete haengen an GPS bzw. Netzzeit.
+    Wahrscheinlicher ist es die Konvention von `started_at`: wann ein Recorder den Start stempelt
+    gegenueber dem ersten Sample. Das waere systematisch je Plattform und liesse sich einmal
+    bestimmen, statt je Session zu schaetzen. Zu pruefen, sobald es mehrere Paare gibt.
   - **Erreichbare Genauigkeit:** der Ortsabgleich hatte heute nur 38 Sekunden Bewegung. Bei
     rund 5,7 m Rauschen auf der Differenz und 4 m/s Fahrt sind das ~1,4 s pro Stuetzstelle,
     gemittelt ueber einen 33-s-Lauf also rund 0,25 s. Fuer Puls und Laufzuordnung reicht das
