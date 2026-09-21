@@ -312,3 +312,44 @@ def test_hauptachse_sagt_es_wenn_es_keine_vorzugsrichtung_gibt():
     rng = np.random.default_rng(11)
     _, klar = hauptachse(rng.standard_normal(2000), rng.standard_normal(2000))
     assert klar < 1.5, klar
+
+
+# --- Montagewinkel: als DREHUNG verrechnen, nicht als Abzug -----------------------------------
+# Jans Befund vom 21.09.: auf dem Steg stand das Brett kopfueber und nachweislich waagerecht.
+# Die Anzeige zeigte richtig Rollen -177,6°, aber +28,7° Nicken — das Doppelte der 16,5°, mit
+# denen das Handy schraeg auf dem Brett klebte.
+
+def _mit_montagewinkel(kipp_grad, n, hz, kopfueber):
+    """Geraet um `kipp_grad` schief auf dem Brett; Brett waagerecht, aufrecht oder auf dem Kopf."""
+    k = math.radians(kipp_grad)
+    oben = np.array([-math.sin(k), 0.0, math.cos(k)])      # Weltoben in Geraetekoordinaten
+    if kopfueber:
+        oben = -oben                                       # Brett gedreht -> Oben spiegelt sich
+    acc = np.tile(oben * ACCEL_SCALE, (n, 1)).astype(np.int16)
+    t = np.arange(n) * (1000.0 / hz)
+    return acc, t, np.zeros((n, 3), dtype=np.int16), t
+
+
+def test_montagewinkel_faellt_auch_kopfueber_heraus():
+    """Waagerechtes Brett heisst 0° Nicken — aufrecht WIE auf dem Kopf.
+
+    Der frueher verwendete Abzug des Nullpunkts als ZAHL leistet das nicht: kippt das Brett,
+    kehrt sich die gemessene Neigung mit um, und aus „16,5 abziehen" wird „16,5 dazu". Genau
+    das ergab an #9484 die +28,7° auf dem Steg. Mit der Drehung bleibt nichts uebrig.
+    """
+    hz, n, kipp = 50.0, 1500, 16.5
+    for kopfueber in (False, True):
+        acc, t, gyr, tg = _mit_montagewinkel(kipp, n, hz, kopfueber)
+        # Bezug aus einem "Lauf" in der aufrechten Lage — so wie es die Pipeline macht.
+        ref_acc, ref_t, _, _ = _mit_montagewinkel(kipp, n, hz, False)
+        r = lage_berechnen(np.vstack([ref_acc, acc]),
+                           np.concatenate([ref_t, ref_t[-1] + 1000 + t]),
+                           np.zeros((2 * n, 3), dtype=np.int16),
+                           np.concatenate([ref_t, ref_t[-1] + 1000 + t]),
+                           ziel_hz=20, ref_bereiche_ms=[(0.0, float(ref_t[-1]))])
+        assert r["ok"]
+        # Der Montagewinkel selbst wird als Auskunft gemeldet ...
+        assert abs(r["null_pitch_deg"] - kipp) < 1.0, r["null_pitch_deg"]
+        # ... und darf im Ergebnis NICHT mehr auftauchen. Zweite Haelfte = die zu pruefende Lage.
+        p = np.array(r["pitch_deg"])[len(r["pitch_deg"]) // 2 + 40:]
+        assert abs(p).max() < 4.0, (kopfueber, abs(p).max())
