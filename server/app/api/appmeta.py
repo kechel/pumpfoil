@@ -523,14 +523,14 @@ PLATTFORM_NAMEN = {
 #
 # Ein Eintrag verschwindet, sobald das Problem behoben AUSGELIEFERT ist — also beim Setzen von
 # `_APP_META[...]["latest"]`, nicht schon bei der Einreichung.
-BEKANNTE_PROBLEME: list[dict] = [
-    {"titel": "Amazfit watches",
-     "text": "Recordings can break: a button press can close the app and take the running "
-             "recording with it, and a long recording can fail to upload with an out-of-memory "
-             "error. Both are fixed, but the store still carries 1.0.8 from 12 September.",
-     "wartet_auf": "the Zepp store",
-     "seit": "2026-09-13"},
-]
+# LEER = die Warnbox erscheint gar nicht. Das ist der Normalzustand, kein vergessener Eintrag.
+#
+# Zuletzt drin: Amazfit, vom 18.09. bis zum 21.09.2026 — Aufnahmen brachen bei einem Tastendruck
+# ab und lange Uploads starben an „Out of Memory". Beides ist mit 1.0.11 ausgeliefert, damit ist
+# der Eintrag nach der eigenen Regel oben faellig gewesen (er geht beim Setzen von `latest`, nicht
+# schon bei der Einreichung). Gewartet wurde 8 Tage, gerechnet ab der ersten Einreichung nach der
+# letzten Freigabe (13.09., 1.0.10) — nicht ab der Einreichung von 1.0.11.
+BEKANNTE_PROBLEME: list[dict] = []
 
 
 ABGELEHNT: list[dict] = [
