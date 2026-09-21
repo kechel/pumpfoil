@@ -853,7 +853,7 @@ export default function SessionDetail() {
    * NUR in der Lage-Ansicht: an einer normalen Session soll „Lauf auswaehlen und abspielen"
    * unveraendert genau den Lauf zeigen.
    */
-  const LAGE_RAND_S = 10;
+  const LAGE_RAND_S = 20;   // 10 waren Jan zu wenig (21.09.)
 
   // Zeitfenster des ausgewaehlten Startversuchs in Session-ms — eine Quelle fuer Karte,
   // Wiedergabe und Lage-Ansicht, damit die drei nie auseinanderlaufen koennen.
