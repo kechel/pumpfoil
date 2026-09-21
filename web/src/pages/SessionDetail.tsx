@@ -1483,9 +1483,13 @@ export default function SessionDetail() {
       )}
       {m?.detection === "gps_only" && !zeigeEingefroren && session.status !== "live" && (
         <div className="mb-4 rounded-xl border border-amber-600/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
-          {m.accel_hz_effective != null && m.accel_hz_effective > 0
-            ? t("sd.lowRateWarning", { hz: Math.round(m.accel_hz_effective) })
-            : t("sd.gpsWarning")}
+          {/* Am Brett ist das Modell ABSICHTLICH aussen vor — dann waere „Rate zu niedrig"
+              eine falsche Erklaerung (die Aufnahme hat 61 Hz). */}
+          {m.model_skipped === "board"
+            ? t("sd.boardGpsWarning")
+            : m.accel_hz_effective != null && m.accel_hz_effective > 0
+              ? t("sd.lowRateWarning", { hz: Math.round(m.accel_hz_effective) })
+              : t("sd.gpsWarning")}
         </div>
       )}
 
@@ -1733,7 +1737,9 @@ export default function SessionDetail() {
           const lageAnsicht = untenAnordnen && (
             <div className="mt-3">
               <BoardAttitude sessionId={session.id} run={selectedRun}
-                progress={progress} playMode={playMode} />
+                progress={progress} playMode={playMode}
+                startedAt={session.started_at} tz={session.tz}
+                pausen={session.pause_windows ?? []} />
             </div>
           );
 

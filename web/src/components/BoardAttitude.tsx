@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { api, BoardAttitude as Lage } from "../lib/api";
 import { Spinner } from "./ui";
 import { useT } from "../i18n";
+import { fmtTime } from "../lib/time";
+import { wanduhrMs } from "../lib/clock";
 import { Drauf, FrontAnsicht, SeitenAnsicht } from "./FoilRig";
 
 /**
@@ -52,9 +54,43 @@ function Kachel({ label, hinweis, kind, children }: {
  * Nicken von 6° sonst platt auf die Mittellinie drücken. Verglichen werden also Form und Takt,
  * nicht Beträge — deshalb steht in der Legende zu jeder Farbe ihr eigener Bereich.
  */
-function Kurven({ reihen, t_ms, pos, zusammen, onZeigen, onWeg }: {
+/**
+ * Uhrzeit-Achse unter dem Diagramm (Jan, 21.09.: „dann finde ich auch das zugehoerige Video
+ * leichter").
+ *
+ * Als HTML ueber den Zeichnungen, NICHT als Text im SVG: die Diagramme laufen mit
+ * `preserveAspectRatio="none"`, jede Schrift darin waere verzerrt. Die Beschriftungen sitzen
+ * deshalb prozentual in einem Streifen mit derselben Innenbreite wie die Zeichnung.
+ *
+ * Die Zeiten sind SESSION-ms und muessen durch `wanduhrMs`: der Garmin-Recorder zieht Pausen aus
+ * der Sample-Achse heraus, und wer das ueberspringt, liegt nach der ersten Pause um deren ganze
+ * Dauer daneben (belegt 10.09.: ein Lauf um 10:00 stand als 09:08 da).
+ */
+function Zeitachse({ t_ms, uhrzeit }: { t_ms: number[]; uhrzeit: (t: number) => string }) {
+  if (t_ms.length < 2) return null;
+  const t0 = t_ms[0], t1 = t_ms[t_ms.length - 1];
+  const n = 5;
+  const marken = Array.from({ length: n }, (_, i) => t0 + ((t1 - t0) * i) / (n - 1));
+  return (
+    <div className="relative mt-1 h-4 select-none text-[10px] tabular-nums text-slate-400">
+      {marken.map((t, i) => (
+        <span key={i} className="absolute whitespace-nowrap"
+          style={{
+            left: `${(100 * (t - t0)) / Math.max(1, t1 - t0)}%`,
+            // Erste Marke linksbuendig, letzte rechtsbuendig, Rest zentriert — sonst haengen die
+            // aeusseren Beschriftungen halb ausserhalb.
+            transform: i === 0 ? "none" : i === n - 1 ? "translateX(-100%)" : "translateX(-50%)",
+          }}>
+          {uhrzeit(t)}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function Kurven({ reihen, t_ms, pos, zusammen, uhrzeit, onZeigen, onWeg }: {
   reihen: { name: string; werte: number[]; farbe: string; einheit: string }[];
-  t_ms: number[]; pos: number; zusammen: boolean;
+  t_ms: number[]; pos: number; zusammen: boolean; uhrzeit: (t: number) => string;
   onZeigen: (p: number) => void; onWeg: () => void;
 }) {
   const W = 1000, H = 150;
@@ -105,13 +141,14 @@ function Kurven({ reihen, t_ms, pos, zusammen, onZeigen, onWeg }: {
             </span>
           ))}
         </div>
+        <Zeitachse t_ms={t_ms} uhrzeit={uhrzeit} />
       </div>
     );
   }
 
   return (
     <div className="space-y-2">
-      {reihen.map((r) => {
+      {reihen.map((r, ri) => {
         const max = skala(r.werte);
         const wert = r.werte[idx];
         return (
@@ -138,6 +175,9 @@ function Kurven({ reihen, t_ms, pos, zusammen, onZeigen, onWeg }: {
                   className="stroke-slate-900" strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
               )}
             </svg>
+            {/* Nur unter der letzten Kurve — alle teilen dieselbe Zeitachse, fuenfmal dasselbe
+                darunter waere nur Rauschen. */}
+            {ri === reihen.length - 1 && <Zeitachse t_ms={t_ms} uhrzeit={uhrzeit} />}
           </div>
         );
       })}
@@ -145,13 +185,21 @@ function Kurven({ reihen, t_ms, pos, zusammen, onZeigen, onWeg }: {
   );
 }
 
-export default function BoardAttitude({ sessionId, run, progress, playMode }: {
+export default function BoardAttitude({ sessionId, run, progress, playMode,
+                                       startedAt, tz, pausen }: {
   sessionId: number;
   run: number | null;
   progress: number;      // 0..1, kommt aus der Wiedergabe der Detailansicht
   playMode: boolean;
+  startedAt: string;             // ISO-Start der Aufnahme — fuer die Uhrzeit an der Achse
+  tz?: string | null;            // Ortszeit des Spots (s. lib/time.ts)
+  pausen?: number[][] | null;    // Pausenfenster, s. lib/clock.ts
 }) {
   const t = useT();
+  const startMs = new Date(startedAt).getTime();
+  const uhrzeit = (tSessionMs: number) =>
+    fmtTime(new Date(startMs + wanduhrMs(pausen, tSessionMs)).toISOString(), tz,
+            { hour: "2-digit", minute: "2-digit", second: "2-digit" });
   const [fenster, setFenster] = useState(1);
   const [d, setD] = useState<Lage | null>(null);
   const [laden, setLaden] = useState(true);
@@ -219,7 +267,7 @@ export default function BoardAttitude({ sessionId, run, progress, playMode }: {
         </div>
       )}
 
-      <Kurven reihen={reihen} t_ms={tMs} pos={pos} zusammen={zusammen}
+      <Kurven reihen={reihen} t_ms={tMs} pos={pos} zusammen={zusammen} uhrzeit={uhrzeit}
         onZeigen={setMaus} onWeg={() => setMaus(null)} />
 
       {/* Bedienelemente UNTER die Kurven (Jan, 20.09.): oben soll Karte, Animation und Kurve
@@ -240,6 +288,7 @@ export default function BoardAttitude({ sessionId, run, progress, playMode }: {
         ))}
         <span className="ml-auto tabular-nums text-xs text-slate-400">
           {t(playMode ? "board.atPlay" : maus != null ? "board.atMouse" : "board.atEnd")}
+          {tMs.length ? ` · ${uhrzeit(tMs[idx])}` : ""}
           {" · "}{sek.toFixed(1)} s
         </span>
       </div>
