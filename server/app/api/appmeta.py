@@ -646,6 +646,10 @@ NAECHSTES: list[dict] = [
          "recording stopped after four and a half minutes.",
          "If the start button is greyed out, tapping it now says why — waiting for GPS, or an "
          "upload still running. It used to do nothing at all, which reads like a broken app.",
+         "While a recording runs, the data pages show how long it has been going. Those pages "
+         "hide the stop button on purpose, and without a running clock they looked exactly like "
+         "the start screen — one rider thought the app had lost its buttons while it was in fact "
+         "recording.",
      ]},
 
 
