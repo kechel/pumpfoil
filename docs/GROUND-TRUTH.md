@@ -242,16 +242,47 @@ Pumps." Physikalisch richtig — der Absprung überträgt Energie ins Foil wie e
 | #9535 Lauf 2 | 61 cm/s | mitten im Lauf, t+16 s |
 | #9528 | 76 cm/s | mitten im Lauf, t+21 s |
 
-Beim echten Dropstart vom Steg (#9484) ist der Absprung der stärkste Einzelstoß der Aufzeichnung,
-mit Abstand. Bei #9535 und #9528 nicht — dort lag das Brett vorher **umgedreht im Wasser**
-(Rollen bei −176°, der Dreh liegt bei t−7 s), es war also ein Wasserstart und kein Absprung; die
-ersten Stöße liegen mit 48–56 cm/s im normalen Bereich des Laufs.
+### Die zwei Startarten — und was VOR dem Lauf passiert
 
-**Folge: kein Sonderfall im Ableiter.** Der Absprung übersteht jede Hub-Schwelle sowieso und soll
-das auch. Die Unterscheidung Absprung/Wasserstart ist für das Labeln unerheblich — beides sind
-Pumpstöße.
+Jans Beschreibung (21.09.2026), weil sie die Signale erklärt:
 
-Eine Zahl mit Vorbehalt: die 80 cm des Absprungs dauern aufwärts 1,14 s und liegen damit dicht an
+- **Normaler Start mit Anlauf:** „das Board steht auf dem Steg auf dem Kopf, wird um 180 Grad
+  gedreht so dass das Foil dann neben dem Steg unter Wasser ist, dann folgt der Anlauf und Sprung
+  darauf."
+- **Dropstart:** „beim Dropstart hängt das Board gehalten nur am hinteren Ende schräg nach unten,
+  und wird dann ‚losgelassen' mit etwas Schwung und man springt aus dem Stand drauf."
+
+**Gemessen, #9535 (normaler Start mit Anlauf), je Lauf gleich:**
+
+| | |
+|---|---|
+| t−22 … −17 s | kopfüber auf dem Steg (Rollen ±178°), Tempo 0,1–0,6 m/s, Hub bis 28 cm/s |
+| t−9,2 s | **die 180°-Drehung** (Rollen +105°) — nur 5 cm/s Hub |
+| t−3,3 s | aufrecht, Tempo 0,0 |
+| t−2,1 s | **Anlauf und Sprung:** 54 cm/s, Tempo 0,8 → 2,0 → 3,9 → 5,1 m/s |
+
+**#9484 (Dropstart):** kopfüber bis t−17, Drehung bei t−16, dann steht das Brett still (Tempo 0,0,
+Hub 4–6 cm/s), bei t−5,2 wird es angehoben (28 cm/s), und bei **t−2,3 kommt das Loslassen mit
+Sprung: 81 cm Hub in 1,13 s = 72 cm/s**, Nicken +41°, Tempo 2,0 m/s. Das ist der stärkste
+Einzelstoß der ganzen Aufzeichnung — Jans „oft der stärkste aller Pumps", belegt.
+
+Bei #9535/#9528 ist der Sprung dagegen normal stark (48–58 cm/s, im Bereich des Laufmedians von
+50–54); dort ist der stärkste Stoß mitten im Lauf. Beide Startarten sind also Pumpstöße, beide
+sollen zählen — **kein Sonderfall im Ableiter.**
+
+**Was aber gefiltert werden MUSS: das Hantieren vor dem Start.** Das Umdrehen selbst ist harmlos
+(5–7 cm/s in allen drei Aufnahmen). Das Herumtragen und Ablegen, während das Brett kopfüber liegt,
+kommt dagegen auf **22–28 cm/s** und würde eine Tempo-Schwelle von 10–15 cm/s passieren.
+
+Zwei Wege, das auszuschließen, beide mit schon vorhandenen Größen:
+
+1. **Lauf-Grenze plus kurzes Vorfenster** (empfohlen, weil unabhängig von der Lage-Rechnung).
+   Gemessen liegen alle Sprünge bei t−2,1 bis −2,3 s, alle Drehungen bei t−9 bis −16 s.
+   **Ein Vorfenster von 4 s** trennt beides in allen drei Aufnahmen sauber.
+2. **Kopfüber ausschließen** (|Rollen| > 120°) und ein Mindesttempo verlangen — das Hantieren
+   findet bei 0,1–0,6 m/s statt, der Sprung ab 0,8 m/s.
+
+Eine Zahl mit Vorbehalt: die 81 cm des Dropstarts dauern aufwärts 1,13 s und liegen damit dicht an
 der unteren Bandgrenze (Fenster 1,39 s ≈ 0,7 Hz). Die Amplitude ist dort schon beschnitten —
 „groß" stimmt, der exakte Wert nicht.
 
@@ -352,8 +383,9 @@ wäre der saubere Beleg.
 2. **Ableiter bauen** (Nickschwingung → `pump_truth` mit eigenem `take`) + Paar-Sessions
    verknüpfen.
 3. **Marker-Definition umsetzen:** tiefster Punkt = Minimum des Hubs, einer je Zyklus, gültig ab
-   einem Aufwärts-Tempo von ~10–15 cm/s (Abschnitt 5). Gegenprobe je Aufnahme gegen den
-   Pump-Zähler der parallel laufenden Uhr — kein Handtippen nötig.
+   einem Aufwärts-Tempo von ~10–15 cm/s, gezählt nur im Lauf plus 4 s Vorfenster (Abschnitt 5).
+   Gegenprobe je Aufnahme gegen den Pump-Zähler der parallel laufenden Uhr — kein Handtippen
+   nötig.
 4. **Sammeln: 8–10 Nutzer × 5 min** → erste ehrliche Messung, wie gut die heutige Pump-Erkennung
    ist. Ergebnis ist eine Zahl, die es bisher nicht gibt.
 5. **Persönliches Kadenzband** aus der vorhandenen Historie (kein Handy nötig, 92 Nutzer sofort).
