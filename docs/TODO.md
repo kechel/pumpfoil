@@ -1390,6 +1390,47 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔴 21.09. — DER AUTO-ZUSCHNITT TRIFFT 38 NUTZER, nicht nur Jans Brett-Session. Gemessen.**
+  Anlass war Jans Frage „hat das Auswirkungen auf alle?". Antwort: der Mechanismus laeuft fuer
+  JEDE Pumpfoil-Session, und in einem Randfall schneidet er echte Fahrt weg.
+
+  **Was er ist:** `maybe_auto_trim` (`server/app/analysis/__init__.py`) setzt nach der ersten
+  Analyse den Zuschnitt automatisch auf **[erster erkannter Lauf − 15 s, letzter Lauf + 15 s]**,
+  wenn der Nutzer keinen eigenen gesetzt hat. Gedacht gegen die Autofahrt und den Weg zum
+  Wasser. Alles ausserhalb faellt aus Karte und Auswertung.
+
+  **Verbreitung** (Bestand heute): 2364 Sessions tragen einen automatischen Zuschnitt, 213 einen
+  von Hand gesetzten, 4741 gar keinen.
+
+  **Der Schadensfall, scharf abgegrenzt:** Fenster unter 2 Minuten bei einer Aufnahme ueber
+  10 Minuten -> **81 Sessions von 48 Nutzern**, und **alle 81 haben genau EINEN erkannten Lauf**.
+  Das ist die Signatur: ein kurzer Lauf gefunden, der ganze Rest abgeschnitten.
+
+  **Und es ist wirklich Fahrt, nicht Stillstand.** Je Session nachgezaehlt, wie viele Sekunden
+  ueber 2 m/s AUSSERHALB des Zuschnitts liegen: **59 der 81 Sessions** haben mindestens 20 s
+  davon, zusammen **188 Minuten weggeschnittene Fahrt bei 38 Nutzern**. Extremfall #3878:
+  1339 Sekunden (22 Minuten) Fahrt draussen gegen 89 Sekunden drin. Weitere: #8109 394 s
+  draussen / 13 s drin, #624 282 s / 8 s.
+
+  **Was es die Betroffenen kostet:** die Karte zeigt nur das Fenster, und `total_distance_m`
+  zaehlt nur darin — #624 steht mit 70 m fuer eine 100-Minuten-Aufnahme da. NICHT betroffen
+  sind die Startversuche (die rechnet `attempt_distances` bewusst auf dem ungetrimmten Satz,
+  Jans Fix vom 02.09.) und die neue Lage-Ansicht (die ignoriert den Zuschnitt).
+
+  **🔲 Vorschlag (ANALYSE-PIPELINE, erst mit Jans OK):**
+  1. Nicht zuschneiden, wenn das Fenster nur einen Bruchteil der Aufnahme behaelt — Faustzahl
+     unter 10 % der Dauer ODER unter 2 Minuten absolut. Lieber gar kein Zuschnitt als ein
+     falscher: ein fehlender kostet etwas Autofahrt im Bild, ein falscher die halbe Session.
+  2. Die STARTVERSUCHE beim Zuschnitt mitzaehlen, nicht nur die Laeufe. Sie liegen schon
+     ungetrimmt vor, es ist also nur eine Frage der Verwendung.
+  3. Danach die 81 Sessions gezielt neu analysieren (`reanalyse-alle.py --session …`) und
+     vorher/nachher gegenueberstellen. **`--dry` schuetzt dabei NICHT**, `run_analysis`
+     committet selbst — vorher `pg_dump -t analysis_results`.
+  4. Offen lassen, ob bestehende automatische Zuschnitte pauschal zurueckgesetzt werden oder
+     nur die pathologischen. Ein Nutzer, der sich an seinen Zuschnitt gewoehnt hat, soll ihn
+     nicht ueber Nacht verlieren.
+
+
 - **📋 21.09. — Session #9484 von Hand geradegezogen (Jans Ansage: „nur fuer diese eine Session
   erstmal, Pipeline-Aenderungen fuer alle spaeter").**
   Gesetzt: `trim_start_ms = 0`, `trim_end_ms = 711781` (die ganze Aufnahme), **`trim_auto = False`**
