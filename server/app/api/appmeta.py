@@ -61,12 +61,14 @@ _APP_META: dict[str, dict[str, str]] = {
         # Inhalt: der Handy-Recorder zeichnet zusaetzlich das Gyroskop auf, falls vorhanden.
         # EINGEREICHT am Abend des 20.09., gebaut aus Commit b8ec06f1 (19:02:40, trug
         # MARKETING_VERSION 1.1.36 / Build 40); davor 99df0974 um 18:55:44 „iOS auf 1.1.36 /
-        # Build 40 gebumpt". Der Upload ist auf die MINUTE belegt: Apples Mail „The following
-        # build has completed processing · Build Number: 40 · Version Number: 1.1.36" kam um
-        # 19:05. Die Einreichung zur Pruefung liegt danach (Apple laesst erst nach der
-        # Verarbeitung einreichen), die Freigabe bei 21.09. 04:28:55 — macht **gut neun Stunden
-        # Pruefung**, passend zu 1.1.33 (11 h). Unbelegt bleibt nur die Spanne zwischen fertiger
-        # Verarbeitung und dem Einreichen-Klick, also Minuten.
+        # Build 40 gebumpt". Der Upload ist auf gut zwei Minuten eingegrenzt: NACH dem Commit
+        # (19:02:40) und VOR 19:05 — denn um 19:05 kam Apples Mail „The following build has
+        # completed processing · Build Number: 40 · Version Number: 1.1.36", und die meldet das
+        # ENDE der Verarbeitung, nicht den Upload. Der Build war damit um 19:05 fuer TestFlight
+        # verfuegbar. Freigabe 21.09. 04:28:55 — macht rund NEUN EINHALB STUNDEN, passend zu
+        # 1.1.33 (11 h). Dass der Upload-Zeitpunkt zugleich der Einreichungszeitpunkt ist, gilt
+        # hier, weil Jan beides in einem Zug macht (seine Ansage 21.09.); grundsaetzlich sind es
+        # zwei Schritte, die auseinanderliegen koennen.
         # ALT: "latest": "1.1.35",   # FREIGEGEBEN 2026-09-20, ZWEITE Apple-Mail („The following app
         # is ready for distribution · App Version Number: 1.1.35 · Platform: iOS"). Eingereicht am
         # SELBEN Tag um 08:50, Uebermittlung 833dcb6b-cff7-41ba-b860-1137d0121939 — also nur
