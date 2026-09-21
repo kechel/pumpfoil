@@ -124,9 +124,20 @@ function Kurven({ reihen, t_ms, pos, zusammen, uhrzeit, auswahlVon, auswahlBis, 
     const r = e.currentTarget.getBoundingClientRect();
     onZeigen(Math.min(1, Math.max(0, (e.clientX - r.left) / Math.max(1, r.width))));
   };
-  const skala = (werte: number[]) => Math.max(1, ...werte.map((v) => Math.abs(v)));
-  const linie = (werte: number[], max: number) =>
-    werte.map((v, i) => `${((t_ms[i] - t0) / spanne) * W},${H / 2 - (v / max) * (H / 2 - 6)}`).join(" ");
+  // Die Punktlisten aendern sich nur mit den DATEN, nicht mit dem Zeiger. Sie bei jedem Bild
+  // neu zu bauen hiess vier Reihen à mehrere hundert Punkte, 60-mal je Sekunde — spuerbar
+  // (Jans „sehr ruckelig", 21.09.). Jetzt einmal, und die Wiedergabe bewegt nur noch Linie
+  // und Punkte.
+  const gerechnet = useMemo(() => reihen.map((r) => {
+    const max = Math.max(1, ...r.werte.map((v) => Math.abs(v)));
+    return {
+      max,
+      punkte: r.werte
+        .map((v, i) => `${((t_ms[i] - t0) / spanne) * W},${H / 2 - (v / max) * (H / 2 - 6)}`)
+        .join(" "),
+    };
+  }), [reihen, t_ms, t0, spanne]);
+  const skala = (i: number) => gerechnet[i].max;
 
   if (zusammen) {
     return (
@@ -136,20 +147,20 @@ function Kurven({ reihen, t_ms, pos, zusammen, uhrzeit, auswahlVon, auswahlBis, 
           <Randmarken t_ms={t_ms} von={auswahlVon} bis={auswahlBis} W={W} H={H} />
           <line x1={0} y1={H / 2} x2={W} y2={H / 2} className="stroke-slate-500" strokeWidth={1}
             vectorEffect="non-scaling-stroke" />
-          {reihen.map((r) => (
-            <polyline key={r.name} points={linie(r.werte, skala(r.werte))} fill="none"
+          {reihen.map((r, i) => (
+            <polyline key={r.name} points={gerechnet[i].punkte} fill="none"
               stroke={r.farbe} strokeWidth={2} vectorEffect="non-scaling-stroke" />
           ))}
           <line x1={x} y1={0} x2={x} y2={H} className="stroke-slate-300" strokeWidth={1.5}
             vectorEffect="non-scaling-stroke" />
-          {reihen.map((r) => r.werte[idx] == null ? null : (
-            <circle key={r.name} cx={x} cy={H / 2 - (r.werte[idx] / skala(r.werte)) * (H / 2 - 6)}
+          {reihen.map((r, i) => r.werte[idx] == null ? null : (
+            <circle key={r.name} cx={x} cy={H / 2 - (r.werte[idx] / skala(i)) * (H / 2 - 6)}
               r={4} fill={r.farbe} className="stroke-slate-900" strokeWidth={1.5}
               vectorEffect="non-scaling-stroke" />
           ))}
         </svg>
         <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs">
-          {reihen.map((r) => (
+          {reihen.map((r, i) => (
             <span key={r.name} className="inline-flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-full" style={{ background: r.farbe }} />
               <span className="font-semibold" style={{ color: r.farbe }}>{r.name}</span>
@@ -159,7 +170,7 @@ function Kurven({ reihen, t_ms, pos, zusammen, uhrzeit, auswahlVon, auswahlBis, 
                 </span>
               )}
               <span className="tabular-nums text-slate-400">
-                (±{skala(r.werte).toFixed(0)}{r.einheit})
+                (±{skala(i).toFixed(0)}{r.einheit})
               </span>
             </span>
           ))}
@@ -172,7 +183,7 @@ function Kurven({ reihen, t_ms, pos, zusammen, uhrzeit, auswahlVon, auswahlBis, 
   return (
     <div className="space-y-2">
       {reihen.map((r, ri) => {
-        const max = skala(r.werte);
+        const max = skala(ri);
         const wert = r.werte[idx];
         return (
           <div key={r.name} className="rounded-xl border border-slate-800 bg-slate-900/40 p-2">
@@ -190,7 +201,7 @@ function Kurven({ reihen, t_ms, pos, zusammen, uhrzeit, auswahlVon, auswahlBis, 
               <Randmarken t_ms={t_ms} von={auswahlVon} bis={auswahlBis} W={W} H={H} />
               <line x1={0} y1={H / 2} x2={W} y2={H / 2} className="stroke-slate-500" strokeWidth={1}
                 vectorEffect="non-scaling-stroke" />
-              <polyline points={linie(r.werte, max)} fill="none" stroke={r.farbe} strokeWidth={2}
+              <polyline points={gerechnet[ri].punkte} fill="none" stroke={r.farbe} strokeWidth={2}
                 vectorEffect="non-scaling-stroke" />
               <line x1={x} y1={0} x2={x} y2={H} className="stroke-slate-300" strokeWidth={1.5}
                 vectorEffect="non-scaling-stroke" />
@@ -318,12 +329,14 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
   const rig = d.rig;
   const tMs = d.t_ms ?? [];
   const sek = tMs.length ? (tMs[idx] - tMs[0]) / 1000 : 0;
-  const reihen = [
+  // Bewusst gemerkt: beim Abspielen rendert diese Ansicht 60-mal je Sekunde, und ein frisches
+  // Array wuerde jede Memoisierung darunter wertlos machen.
+  const reihen = useMemo(() => [
     { name: t("board.pitch"), werte: d.pitch_deg ?? [], farbe: "#38bdf8", einheit: "°" },
     { name: t("board.roll"), werte: d.roll_deg ?? [], farbe: "#f59e0b", einheit: "°" },
     { name: t("board.yaw"), werte: d.gier_delta_deg ?? [], farbe: "#a78bfa", einheit: "°" },
     ...(hubReihe ? [{ name: t("board.height"), werte: hubReihe, farbe: "#34d399", einheit: " cm" }] : []),
-  ];
+  ], [d, hubReihe, t]);
   const NULLTEXT: Record<string, string> = {
     laeufe: "board.zeroRuns", mittelteil: "board.zeroMid", fenster: "board.zeroMean",
   };
