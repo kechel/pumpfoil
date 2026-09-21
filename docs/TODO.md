@@ -1391,6 +1391,35 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔴 21.09. — Die Amazfit-App stirbt an der SYSTEM-Tastensperre der Uhr, nicht an unserer.**
+  u352 hat es selbst eingegrenzt und mit Foto belegt (Amazfit-Schnellmenue, Schloss-Symbol aktiv):
+  „Wenn ich die Tastensperre aktivieren wird die App nach gewisser Zeit beendet." Gegenprobe
+  ohne Sperre: **#9505, 10,6 Minuten, 113 von 113 Chunks, lueckenlos** — die App haelt also
+  problemlos durch. Mit Sperre: #9501 (4,5 min) und #9502 (4,0 min).
+
+  **Das ist die Sperre des BETRIEBSSYSTEMS, nicht unsere.** Wir haben eine eigene
+  (Wassersperre, `_lockTouch`), die den Bildschirm anlaesst und die App am Leben — genau fuer
+  diesen Zweck gebaut. Sie ist auf seiner Uhr aber AUS, und zwar nach unserer eigenen Regel:
+  automatisch nur ab **drei Tasten** (`KEY_NUMBER >= 3`), damit man sich auf einer
+  Zwei-Tasten-Uhr nicht aussperrt. Die GTR 4 hat zwei. Wer also auf so einer Uhr eine Sperre
+  will, greift zwangslaeufig zur System-Sperre — und die bringt die App um.
+
+  **⚠️ Ehrlich zum Stand von 1.0.12:** die Auffrischung der Bildschirmzeit hilft gegen den
+  Verlust des Wertes, aber sehr wahrscheinlich NICHT gegen die System-Sperre — die schaltet den
+  Bildschirm ab, und dagegen kommt eine Mini-App nicht an. Der Fix bleibt richtig, loest aber
+  nicht diesen Fall.
+
+  **🔲 Zu entscheiden (Produkt, Jan):**
+  1. **Die Wassersperre auf Zwei-Tasten-Uhren anbieten?** Entsperrt wird mit langem Druck auf
+     KEY_UP/KEY_DOWN — ob das auf der GTR 4 erreichbar ist, muss VORHER geprueft werden, sonst
+     sperrt man Leute wirklich aus. Das war der Grund fuer die Drei-Tasten-Regel.
+  2. **Den Nutzern sagen, dass die System-Sperre die Aufnahme beendet.** Das ist die einzige
+     Auskunft, die heute schon hilft — im Uhr-Menue an der Wassersperre und/oder in der
+     Hilfe/FAQ.
+  3. Erst wenn beides nicht traegt, ist es wieder das Sportmodus-Thema (s. Workout Extension):
+     nur eine System-Aktivitaet ueberlebt die System-Sperre.
+
+
 - **🔴 21.09. — Amazfit: die App wird beim Bildschirm-Aus WEITER beendet. 1.0.11 rettet nur die
   Daten.** Und meine erste Lesart der Zahlen war zu optimistisch, die korrigiere ich hier.
 
