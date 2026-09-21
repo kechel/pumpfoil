@@ -1390,6 +1390,65 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔴 21.09. — Erste echte Brett-Aufnahme ausgewertet (Handy 9484 + fenix 9485). Drei Befunde,
+  zwei davon brauchen Jans OK.**
+
+  **Was ankam:** beim Handy NICHTS verloren — 203 erwartete Chunks, 61 GPS + 71 Accel + 71 Gyro
+  = 203. Raten 61,2 / 60,3 Hz, `time_base = exact_chunks`.
+
+  **1. Das Handy hat nur 11,9 von 32 Minuten aufgezeichnet.** Alle drei Kanaele enden gemeinsam
+  bei 711 s, die Chunk-Abstaende davor sind luecklos 10 s. Aufnahme lief also 07:32:22 bis
+  **07:44:13**, nicht bis 08:04. Jans Annahme („ging erst am Ende aus, als es kopfueber an Land
+  lag") stimmt nicht — das Wasser war rund 20 Minuten frueher drin.
+
+  **2. 🔲 `ended_at` luegt um 20 Minuten — derselbe Fehler, der auf Wear gerade behoben wurde.**
+  `Recorder.recoverInterrupted` im PHONE-Recorder stempelt `ended_at = nowIso()`, also den
+  Zeitpunkt der Wiederherstellung nach dem Neustart. Deshalb steht an 9484 08:04:41, obwohl die
+  Daten 07:44:13 enden. Wear macht es seit 1.2.30 richtig: `endeAusDaten()` nimmt den letzten
+  GPS-Zeitstempel, sonst die Dateizeit des letzten Chunks
+  (`wear/.../watch/Recorder.kt:522`). **Zu tun: dieselbe Funktion in
+  `android/app/.../app/Recorder.kt` uebernehmen.** Native Apps sind eingefroren -> erst mit Jans
+  Ansage. iOS pruefen, ob es dort denselben Weg gibt.
+
+  **3. 🔲 Der Auto-Zuschnitt hat 11,5 der 11,9 Minuten weggeschnitten.** `trim_start_ms=688755`,
+  `trim_end_ms=725781` — ein Fenster von **37 Sekunden**. Ursache: die Erkennung fand genau
+  EINEN Lauf, und zwar die letzten 7 Sekunden vor dem Ausfall (703,8-710,8 s); `maybe_auto_trim`
+  setzt dann auf [erster Lauf − 15 s, letzter Lauf + 15 s]. Danach findet die Neuanalyse im
+  Zuschnitt **null Laeufe** und nur zwei Startversuche (26,2 m / 33,1 m).
+  **Das ist exakt der Fehlermodus von #5272** (u43, 08.09.), gegen den damals die
+  Sportart-Bedingung eingebaut wurde — der greift hier nicht, weil die Session Pumpfoil IST.
+  Vorschlag, ANALYSE-PIPELINE, also **erst mit Jans OK**: nicht zuschneiden, wenn die erkannten
+  Laeufe nur einen winzigen Teil der Aufnahme abdecken (Faustzahl: unter 10 % der Dauer), und
+  die STARTVERSUCHE beim Zuschnitt mitzaehlen — sie werden ohnehin auf dem ungetrimmten Satz
+  gerechnet (`attempt_distances`). Vor einer Aenderung ein Regressions-Check ueber den Bestand:
+  wie viele Sessions haengen heute an einem solchen Mini-Zuschnitt?
+
+  **4. Warum der lange Run im Handy fehlt: er war nicht drin.** Die Uhr fand zwei Laeufe,
+  **07:30:01** (52 m) und **07:51:11** (142 m). Das Handy lief 07:32:22-07:44:13 — der erste Lauf
+  war zwei Minuten VOR dem Start des Handys, der zweite sieben Minuten NACH seinem Ausfall.
+  Kein Erkennungsproblem, ein Datenproblem. Fuer die Lage-Ansicht bleiben die Pumpversuche
+  dazwischen.
+
+  **5. ✅ Die Ausrichtungs-Erkennung traegt an echten Daten.** `ausrichtung_deg = -86,1°` bei
+  Klarheit **19,5** — also fast exakt quer montiert, und viel eindeutiger als die 8,1 vom
+  Handwedel-Test. Damit ist die Annahme „die Neigung schwingt bevorzugt um EINE Achse" an einer
+  echten Aufnahme bestaetigt. Der Nullpunkt kam mangels Laeufen aus dem Mittelteil.
+
+  **6. 🔲 Startversuche in der Lage-Ansicht** (Jans Wunsch): auswaehlbar wie Laeufe und
+  standardmaessig mitzeigen, nicht nur erkannte Laeufe — und als Bezug fuer den Nullpunkt
+  zulassen. `start_attempts_json` speichert bisher nur DISTANZEN; die Zeiten liefert der
+  Endpunkt, der die Versuchs-Spuren fuer die Karte baut.
+
+- **📋 21.09. — Wann das Android-Handy hochlaedt: an genau DREI Stellen, kein Hintergrund-Sync.**
+  Jans Frage („macht die das einfach immer oder nur wenn ich den Phone Recorder starte?").
+  `Recorder.drain()` wird gerufen (1) beim Beenden einer Aufnahme, (2) beim OEFFNEN des
+  Recorder-Bildschirms (`RecordScreen`, `LaunchedEffect`), (3) beim Tippen auf „jetzt
+  hochladen". **Sonst nichts** — kein WorkManager, kein periodischer Job, kein Nachholen, wenn
+  das Netz wiederkommt, und auch nicht beim blossen Start der App. Nach einem Neustart des
+  Handys bleibt eine fertige Aufnahme also liegen, bis jemand den Recorder-Bildschirm oeffnet.
+  Ob das reicht, ist eine Produktfrage — als Befund festgehalten, nicht als Fehler.
+
+
 - **🔲 20.09. — Lage-Ansicht: drei Dinge, die noch offen sind.**
   1. **Jan misst nach** (angeboten): **Rumpflaenge** (Frontfluegel ↔ Stab), **Position des Mastes
      auf dem Rumpf** und **wo der Mastkasten auf dem Board sitzt**. Alles andere steht schon in
