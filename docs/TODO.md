@@ -1391,12 +1391,38 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
-- **✅ 21.09. — 1.0.11 im Feld belegt: erste Amazfit-Aufnahme nach der Freigabe lief durch.**
-  u352 (Amazfit GTR 4) hat direkt nach unserer Nachricht getestet, zu Hause, ohne echtes Pumpen
-  (#9501, 13:25, 4,5 min). **Beide Fehler, um die es ging, sind damit im Feld erledigt:**
-  32 von 32 Chunks angekommen (der Upload starb vorher an „Out of Memory"), und das GPS deckt
-  **100 %** der 268 Sekunden ab — die Aufnahme ist also nicht unterwegs abgebrochen. Erste
-  Amazfit-Aufnahme ueberhaupt, bei der beides stimmt.
+- **🔴 21.09. — Amazfit: die App wird beim Bildschirm-Aus WEITER beendet. 1.0.11 rettet nur die
+  Daten.** Und meine erste Lesart der Zahlen war zu optimistisch, die korrigiere ich hier.
+
+  u352 (Amazfit GTR 4, App 1.0.11) hat direkt nach unserer Nachricht getestet (#9501, 13:25, zu
+  Hause, kein echtes Pumpen). **Seine Meldung:** „Nach circa 4,5 Minuten kommt dann das
+  Ziffernblatt und anschliessend, wenn ich die App wieder reinwill, ist sie beendet. Hat
+  vermutlich mit dem Energiesparen zu tun. So war es aber auch in der alten Version."
+
+  **Was 1.0.11 wirklich geleistet hat:** 32 von 32 Chunks sind angekommen, die 268 Sekunden sind
+  vollstaendig da. Ich hatte daraus geschlossen, die Aufnahme sei durchgelaufen — **falsch**. Sie
+  wurde nach 4,5 Minuten abgewuergt; gerettet wurde sie beim naechsten Oeffnen durch
+  `recoverActive()`, das eine unbeendete Aufnahme in die Upload-Queue nimmt. Aus Datenverlust ist
+  also eine abgeschnittene Aufnahme geworden — ein Fortschritt, aber nicht die Loesung.
+
+  **🔲 URSACHE, im Code gefunden.** Beim Start setzen wir beides richtig:
+  `_setBrightMode("recording")` (Bildschirmzeit auf ~24 Tage) und
+  `setWakeUpRelaunch({relaunch: true})`. Aber: **die Bildschirmzeit wird waehrend der Aufnahme
+  NIE aufgefrischt.** `heartbeat()` tut das alle 20 s — und steigt in der ersten Zeile aus, wenn
+  aufgenommen wird (`if (s.recording) return;`). Dass der Wert verloren geht, wissen wir schon:
+  im Kommentar bei `_setBrightMode` steht seit dem T-Rex-3-Feldtest „the five-minute value
+  appears to be lost or capped after certain events", und genau deshalb frischt der LEERLAUF-Pfad
+  alle 20 s nach. Der Aufnahme-Pfad hat dieselbe Behandlung nie bekommen.
+
+  **Vorschlag (NATIVE APP, also erst mit Jans Ansage):** im `heartbeat()` vor dem
+  `return` bei laufender Aufnahme die Bildschirmzeit neu setzen — dieselbe Auffrischung, die im
+  Leerlauf nachweislich hilft. Klein, und es nutzt genau das, was sich schon bewaehrt hat.
+  Danach im Feld gegenpruefen: haelt eine Aufnahme laenger als 4,5 Minuten durch?
+  Kaeme mit **1.0.12**, das ohnehin geplant ist.
+
+  **Falls es damit nicht reicht,** ist es der Punkt, an dem die Sportmodus-Frage wieder hochkommt
+  (s. den Eintrag zur Workout Extension) — dann waere die Lebensdauer wirklich nichts, was eine
+  Mini-App selbst regeln kann.
 
 - **🔲 21.09. — Bei niedriger Accel-Rate misst das Modell ein Band, das es nicht geben kann.**
   An #9501 aufgefallen: 9,4 Hz gemessen (9 angefordert, die Uhr haelt sich also daran). Das
