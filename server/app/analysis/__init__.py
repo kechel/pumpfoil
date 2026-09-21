@@ -241,6 +241,20 @@ def dump_excluded_windows(wins: list[tuple[int, int]]) -> str | None:
 
 
 AUTO_TRIM_MARGIN_MS = 15000  # 15 s Puffer vor erstem Start / nach letztem Ende
+# UNTERGRENZEN, unter denen lieber GAR NICHT zugeschnitten wird (Jans OK, 21.09.2026).
+#
+# Der Zuschnitt setzt auf „erster erkannter Lauf − 15 s bis letzter + 15 s". Findet die Erkennung
+# nur EINEN kurzen Lauf, schneidet er alles andere weg — auch echte Fahrt. Im Bestand gemessen:
+# 81 Sessions von 48 Nutzern behielten unter 2 Minuten aus einer Aufnahme ueber 10 Minuten, und
+# ALLE 81 hatten genau einen erkannten Lauf. Bei 59 davon liegen mindestens 20 s echte Fahrt
+# (>2 m/s) ausserhalb des Fensters, zusammen 188 Minuten bei 38 Nutzern; Extremfall #3878 mit
+# 22 Minuten draussen gegen 89 Sekunden drin. Sichtbar wird es als absurde Gesamtstrecke — #624
+# stand mit 70 m fuer eine 100-Minuten-Aufnahme da.
+#
+# Die Abwaegung ist einseitig: ein FEHLENDER Zuschnitt kostet etwas Autofahrt im Bild, ein
+# FALSCHER die halbe Session. Also im Zweifel nicht zuschneiden.
+AUTO_TRIM_MIN_ANTEIL = 0.10     # weniger als 10 % der Aufnahme uebrig -> nicht zuschneiden
+AUTO_TRIM_MIN_FENSTER_MS = 120000   # ... oder weniger als 2 Minuten absolut
 
 
 def maybe_auto_trim(db: DbSession, session: "models.Session") -> bool:
@@ -272,12 +286,36 @@ def maybe_auto_trim(db: DbSession, session: "models.Session") -> bool:
         return False
     first = min(int(s["t_start_ms"]) for s in segs)
     last = max(int(s["t_end_ms"]) for s in segs)
+    # STARTVERSUCHE MITZAEHLEN. Sie liegen typisch VOR dem ersten geglueckten Start — genau in
+    # dem Bereich, den der Zuschnitt sonst wegnimmt. Sie werden ohnehin auf dem ungetrimmten Satz
+    # gerechnet (`attempt_distances`, Jans Fix vom 02.09.), es ist also nur eine Frage der
+    # Verwendung. Ohne das bleibt der Zuschnitt bei „21-mal angeschoben, beim 22. gestanden"
+    # hinter allen 21 Versuchen zurueck.
+    try:
+        from .gps import SENSITIVITY_PRESETS, analyze_gps
+        _roh = storage.load_gps(session.session_uuid)
+        if _roh:
+            _v = analyze_gps(_roh, gps_hz=session.gps_hz or 1,
+                             **(SENSITIVITY_PRESETS.get("attempts") or {}))
+            for _sg in (_v.get("segments") or []):
+                _a, _b = int(_sg["t_start_ms"]), int(_sg["t_end_ms"])
+                if _b > _a:
+                    first = min(first, _a)
+                    last = max(last, _b)
+    except Exception:
+        pass        # Ein Fehler hier darf den Zuschnitt nie kippen — dann eben nur die Laeufe.
     new_start = max(0, first - AUTO_TRIM_MARGIN_MS)
     new_end = last + AUTO_TRIM_MARGIN_MS
     # Nur trimmen, wenn dadurch wirklich nennenswert etwas wegfällt (>30 s).
     gps = storage.load_gps(session.session_uuid)
     total_end = int(gps[-1][0]) if gps else new_end
     if new_start < 30000 and new_end > total_end - 30000:
+        return False
+    # ... und NICHT, wenn davon zu wenig uebrig bliebe (s. AUTO_TRIM_MIN_*). Beide Schranken
+    # zusammen: der Anteil faengt die langen Aufnahmen, die absolute Zahl die kurzen.
+    fenster = new_end - new_start
+    if total_end > 0 and (fenster < AUTO_TRIM_MIN_FENSTER_MS
+                          or fenster < AUTO_TRIM_MIN_ANTEIL * total_end):
         return False
     session.trim_start_ms = new_start
     session.trim_end_ms = new_end
