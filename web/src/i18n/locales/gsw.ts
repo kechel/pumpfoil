@@ -80,6 +80,7 @@ const gsw: Record<string, string> = {
   "board.zeroStill": "Nullpunkt aus einer Ruhephase",
   "board.zeroMean": "Nullpunkt = Mittelwert des Laufs",
   "board.markBoard": "Handy war am Brett",
+  "session.onBoard": "am Brätt",
   "watchStats.scrollTo": "Spring zue:",
   "watchStats.noMatch": "Nuet gfunde.",
   "watchStats.sectionFoiling": "Foile pro Uhr",

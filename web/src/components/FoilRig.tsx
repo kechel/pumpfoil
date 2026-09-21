@@ -141,15 +141,25 @@ const TEIL = "fill-slate-400";      // slate kippt selbst mit dem Theme -> nur E
 const MAST = "fill-slate-500";      // 500 ist in beiden Themes derselbe Mittelton
 
 /**
- * Waagerechte als Bezug, plus Drehpunkt-Fadenkreuz am Frontfluegel.
+ * Die WASSERLINIE als Bezug, plus Drehpunkt-Fadenkreuz am Frontfluegel.
  *
- * Bewusst viel breiter als jedes Bild: die viewBox schneidet ab, und so endet die Linie nie
- * mitten im Bild, egal wie gross der Ausschnitt gerade ausfaellt.
+ * `hoehe` ist die Hoehe der Linie ueber dem Frontfluegel in Zentimetern. Sie lag zuerst auf
+ * Hoehe des Fluegels selbst (0) — das war zwar der Drehpunkt der Zeichnung, aber eben nicht die
+ * Wasseroberflaeche: beim Foilen steht der Fluegel tief unten und das Brett darueber in der
+ * Luft. Jan am 21.09.2026: „zeichne die horizontale Linie mal so etwa 40 cm hoeher (oder wenn
+ * die Masthoehe bekannt ist genau in der Mitte als Referenzlinie), dann entspricht das eher der
+ * echten Wasserlinie". Die Masthoehe kennen wir, also genau die Mitte — bei seinem 85er Mast
+ * sind das die 42,5 cm, die er geschaetzt hat. Reine Darstellung, an keiner Zahl haengt etwas.
+ *
+ * Das Fadenkreuz bleibt beim Fluegel: es markiert, worum sich die Zeichnung dreht.
+ *
+ * Die Linie ist bewusst viel breiter als jedes Bild: die viewBox schneidet ab, und so endet sie
+ * nie mitten im Bild, egal wie gross der Ausschnitt gerade ausfaellt.
  */
-function Bezug() {
+function Bezug({ hoehe = 0 }: { hoehe?: number }) {
   return (
     <g>
-      <line x1={-400} y1={0} x2={400} y2={0} className="stroke-slate-500"
+      <line x1={-400} y1={-hoehe} x2={400} y2={-hoehe} className="stroke-slate-500"
         strokeDasharray="6 7" strokeWidth={1} vectorEffect="non-scaling-stroke" />
       <circle cx={0} cy={0} r={3.2} fill="none" className="stroke-slate-400"
         strokeWidth={1.4} vectorEffect="non-scaling-stroke" />
@@ -175,7 +185,7 @@ export function SeitenAnsicht({ rig, pitch, hub = 0, hubBereich = 0 }: {
   ];
   return (
     <svg viewBox={rahmen(eckpunkte, 25)} className="h-40 w-full" preserveAspectRatio="xMidYMid meet">
-      <Bezug />
+      <Bezug hoehe={rig.mast_len_cm / 2} />
       <g transform={`translate(0 ${-hub}) rotate(${-pitch})`}>
         <path d={boardSeite(rig.board_len_cm, m)} className={BOARD} />
         {/* Mast: von der Seite ein Blatt, nach unten leicht schmaler. */}
@@ -215,7 +225,7 @@ export function FrontAnsicht({ rig, roll, pitch }: { rig: Rig; roll: number; pit
   ];
   return (
     <svg viewBox={rahmen(eckpunkte, 40)} className="h-40 w-full" preserveAspectRatio="xMidYMid meet">
-      <Bezug />
+      <Bezug hoehe={rig.mast_len_cm / 2} />
       {/* ROLLEN DREHT ANDERSHERUM ALS NICKEN, und das ist kein Tippfehler.
           Im Brett-System zeigt die Querachse nach LINKS (Rechtssystem: x nach vorn, z nach oben),
           auf dem Bildschirm zeigt x nach RECHTS. Wer von hinten auf das Brett schaut, sieht links
@@ -249,12 +259,14 @@ export function Drauf({ rig, yaw }: { rig: Rig; yaw: number }) {
   return (
     <svg viewBox={rahmen(eckpunkte, 40)} className="h-40 w-full" preserveAspectRatio="xMidYMid meet">
       <Bezug />
-      {/* Dieselbe Spiegelung wie in der Frontansicht: von oben gesehen liegt die linke Seite des
-          Bretts auch links im Bild, die Querachse zeigt aber nach links und der Bildschirm nach
-          rechts. ⚠️ ANDERS ALS BEIM ROLLEN IST DAS NICHT AM WASSER GEPRUEFT — die Richtung des
-          Gierens (welches Vorzeichen eine Linkskurve hat) ist bisher an keiner Aufnahme belegt.
-          Wenn beides zugleich falsch waere, hoben sie sich vorher auf. Beim naechsten Mal an
-          einer bekannten Kurve gegenpruefen. */}
+      {/* Die Nase zeigt hier nach OBEN (Bildschirm-y = -x des Bretts). Eine Rechtskurve schwenkt
+          sie also nach rechts, im Uhrzeigersinn — und genau das ist ein POSITIVER SVG-Winkel.
+          Damit dreht die Draufsicht gleichsinnig mit der Zahl, anders als die Frontansicht.
+          Das Vorzeichen des Gierens ist seit 21.09.2026 am GPS BELEGT und nicht mehr hergeleitet
+          (Jan: „das Gieren muesste aus dem GPS-Track auch eindeutig ableitbar sein"): der Server
+          zaehlt Rechtskurven positiv, so wie der Kurs ueber Grund waechst, und prueft das je
+          Aufnahme am Track nach — s. `lage.gier_gegen_gps`. An #9528 und #9535 kam die Steigung
+          Gieren/Kursaenderung mit 0,90 und 1,13 heraus (r 0,89 bzw. 0,60). */}
       <g transform={`rotate(${yaw})`}>
         <rect className={MAST} x={-RUMPF_DICKE / 2} y={-rig.x_foil_cm}
           width={RUMPF_DICKE} height={Math.max(1, rig.x_foil_cm - rig.x_stab_cm)} />

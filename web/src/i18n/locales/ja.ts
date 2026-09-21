@@ -1,5 +1,6 @@
 const ja: Record<string, string> = {
   "hr.viewPeak": "実測値",
+  "session.onBoard": "ボード搭載",
   "hr.viewRise": "上昇幅",
   "hr.viewRiseHint": "そのランの開始時の心拍と比べて、ランの中で心拍がどれだけ上がったかを表示します。開始時の心拍が違っていても、ラン同士を比べられます。",
   "onb.startTitle": "設定アシスタント",

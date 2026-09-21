@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { geraeteText } from "../lib/deviceLabel";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import L from "leaflet";
 import { basiskarten } from "../lib/mapTiles";
@@ -1657,7 +1658,7 @@ export default function SessionDetail() {
           <span className="inline-flex items-center gap-1 rounded bg-slate-800 px-2 py-1"
                 title={[session.device_model, session.app_version && `App ${session.app_version}`]
                   .filter(Boolean).join(" · ") || undefined}>
-            <WatchIcon className="h-3.5 w-3.5" /> {session.device_label}
+            <WatchIcon className="h-3.5 w-3.5" /> {geraeteText(session.device_label, session.placement, t)}
             {session.owned && session.app_version && (
               <span className="text-slate-400">· {session.app_version}</span>
             )}
@@ -2215,10 +2216,14 @@ export default function SessionDetail() {
                 ganz nach unten zu den anderen Schaltern, die die SESSION betreffen (Sportart,
                 Daten in Ordnung) — Jans Anordnung, 21.09. Oben stoerten sie zwischen Karte und
                 Grafiken.
-                NUR ADMINS und nur bei Aufnahmen MIT Kreisel: den liefern allein die
-                Handy-Recorder, an einer Uhren-Session waere die Markierung sinnlos. Eine bereits
-                markierte Session behaelt die Box, sonst liesse sich nichts zuruecknehmen. */}
-            {isAdmin && (session.has_gyro || session.placement === "board") && (
+                Nur bei Aufnahmen MIT Kreisel: den liefern allein die Handy-Recorder, an einer
+                Uhren-Session waere die Markierung sinnlos. Eine bereits markierte Session behaelt
+                die Box, sonst liesse sich nichts zuruecknehmen.
+                Die Admin-Schranke ist am 21.09.2026 gefallen (Jan: „dann darf ab jetzt jeder
+                selber entscheiden ob das am Board war oder nicht, falls nicht wuerden wir das eh
+                merken anhand der Daten") — der Server prueft dasselbe Merkmal noch einmal, eine
+                ausgeblendete Schaltflaeche ist keine Zugriffskontrolle. */}
+            {(session.has_gyro || session.placement === "board") && (
               <div className="inline-flex flex-wrap items-center gap-3 rounded-lg bg-slate-800/60 px-3 py-2 ring-1 ring-slate-700">
                 <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-slate-200">
                   <input

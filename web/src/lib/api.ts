@@ -129,6 +129,18 @@ export type BoardAttitude = {
   nullpunkt?: "laeufe" | "mittelteil" | "fenster";
   null_pitch_deg?: number;
   null_roll_deg?: number;
+  // Montage-Drehung um die Hochachse, die tatsaechlich gerechnet wurde — bei „automatisch" die
+  // gefundene. `rot_quelle` sagt, woher sie kommt: manuell | achse | heuristik | achse+heuristik
+  // | keine; `rot_klarheit` ist das Eigenwert-Verhaeltnis der Pump-Achse (je groesser, desto
+  // eindeutiger liegt das Geraet).
+  rot_deg?: number;
+  rot_quelle?: string;
+  rot_klarheit?: number | null;
+  // Gegenprobe des Gierens am GPS-Kurs: beide messen dasselbe, die Steigung sollte also nahe 1
+  // liegen. null, wenn im Lauf zu wenig Kurven liegen. `gier_umgekehrt` = die Aufnahme hat dem
+  // Vorzeichen widersprochen und es wurde gedreht.
+  gier_gps?: { n: number; kurs_spanne_deg: number; steigung: number; r: number } | null;
+  gier_umgekehrt?: boolean;
   // Abmessungen des Foils in ZENTIMETERN fuer die Zeichnung. `gemessen` sagt je Feld, ob der
   // Wert aus den Daten kommt oder eine Annahme ist (die Laengspositionen sind bisher Annahme).
   rig?: {
@@ -484,6 +496,9 @@ export interface SpotAgg {
 }
 
 export interface CommunitySession {
+  // "board" = Handy war am Brett (Feed + „alle"-Tab haengen das an die
+  // Geraete-Bezeichnung); null = Uhr oder Handy am Koerper.
+  placement?: string | null;
   sport_class?: string | null;   // null/"pumpfoil" = Pumpfoilen; sonst kennzeichnet die Karte es
   // Setup der Aufnahme (Session-Wert, sonst Standard des Besitzers). Je Teil optional —
   // fehlt es, zeigt die Karte den Chip gar nicht.

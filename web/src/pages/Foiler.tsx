@@ -399,6 +399,7 @@ export default function Foiler() {
                 foil={s.foil ? foilLabel(s.foil) : null}
                 {...setupLabels(s)}
                 deviceLabel={s.device_label}
+              placement={s.placement}
                 caption={s.caption}
                 avatarName={d.name}
                 avatarUrl={d.avatar_url}

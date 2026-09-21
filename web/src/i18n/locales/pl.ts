@@ -1,5 +1,6 @@
 const pl: Record<string, string> = {
   "hr.viewPeak": "Absolutny",
+  "session.onBoard": "na desce",
   "hr.viewRise": "Wzrost",
   "hr.viewRiseHint": "Pokazuje, o ile tętno wzrosło podczas przejazdu — w porównaniu z tętnem na jego początku. Dzięki temu przejazdy są porównywalne, nawet jeśli zaczynałeś je z różnym tętnem.",
   "onb.startTitle": "Kreator konfiguracji",

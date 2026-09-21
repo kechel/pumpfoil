@@ -1,4 +1,5 @@
 import { ReactNode, useRef, useState } from "react";
+import { geraeteText } from "../lib/deviceLabel";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { Card, Avatar } from "./ui";
@@ -20,7 +21,7 @@ function fmtSpan(start: string, end: string) {
 // Avatar + Datum (+ optionaler Name), optionale Zeit/Dauer, Spot/Sport, Beschriftung,
 // frei einsetzbarer Stats-Block, rechts Like + Vorschaubild + optionaler Status.
 export function SessionCard({
-  sessionId, startedAt, endedAt, tz, spot, foil, sportLabel, stab, mast, board, deviceLabel, caption,
+  sessionId, startedAt, endedAt, tz, spot, foil, sportLabel, stab, mast, board, deviceLabel, placement, caption,
   avatarName, avatarUrl, name, stats, thumbUrl, photoCount = 0, youtubeUrl, videoUrl,
   likeCount0 = 0, liked0 = false, statusBadge, trackPreview, highlight = false, owned = false,
   sportClass, dataQuality, needsClassification = false,
@@ -40,6 +41,7 @@ export function SessionCard({
   mast?: string | null;
   board?: string | null;
   deviceLabel?: string | null;   // Uhr-/Geräte-Bezeichnung der Aufnahme
+  placement?: string | null;     // "board" = Handy war am Brett (s. lib/deviceLabel.ts)
   caption?: string | null;
   avatarName?: string | null;
   avatarUrl?: string | null;
@@ -231,7 +233,7 @@ export function SessionCard({
                   <BoardIcon className="h-3.5 w-3.5" /> {board}
                 </span>
               )}
-              {deviceLabel && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300"><WatchIcon className="h-3.5 w-3.5" /> {deviceLabel}</span>}
+              {deviceLabel && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300"><WatchIcon className="h-3.5 w-3.5" /> {geraeteText(deviceLabel, placement, t)}</span>}
             </div>
             {stats}
           </div>

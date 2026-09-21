@@ -1,9 +1,13 @@
-"""`placement = "board"` an einer Session setzen — nur Admins.
+"""`placement = "board"` an einer Session setzen — jeder Besitzer, aber nur bei Handy-Aufnahmen.
 
 Anlass (Jan, 20.09.2026): die Lage-Ansicht (Pitch/Roll/Gierrate) ist nur sinnvoll, wenn das Handy
-AM BRETT befestigt war; in Tasche, Jacke oder am Arm misst es den Fahrer. Die Markierung ist
-admin-only — damit braucht die Ansicht selbst kein zweites Gate: sie erscheint, wenn die
-Markierung steht, und stehen kann sie nur, wenn ein Admin sie gesetzt hat.
+AM BRETT befestigt war; in Tasche, Jacke oder am Arm misst es den Fahrer.
+
+Bis 21.09.2026 war das admin-only, solange die Lage-Rechnung noch wackelte. Dann Jan: „der Stand
+ist ok so solange der nur bei Phone-Recordings angeboten wird, dann darf ab jetzt jeder selber
+entscheiden ob das am Board war oder nicht, falls nicht wuerden wir das eh merken anhand der
+Daten." Geblieben ist damit keine Rechte-, sondern eine SINN-Schranke: an einer Uhren-Session
+gibt es keinen Kreisel und damit keine Lage.
 """
 import base64
 import math
@@ -64,12 +68,43 @@ def test_admin_darf_markieren_und_es_kommt_zurueck(client):
     assert wieder["placement"] == "board"
 
 
-def test_normaler_nutzer_darf_nicht(client):
+def test_besitzer_ohne_adminrechte_darf_auch(client):
+    """Seit 21.09.2026: kein Admin noetig — es ist die eigene Aufnahme."""
     auth = _konto(client, "board-normal@example.com")
     s = _session(client, auth, "placement-uuid-2")
     r = client.patch(f"/api/sessions/{s['id']}/meta", json={"placement": "board"}, headers=auth)
-    assert r.status_code == 403, r.text
-    assert client.get(f"/api/sessions/{s['id']}", headers=auth).json()["placement"] == "phone"
+    assert r.status_code == 200, r.text
+    assert client.get(f"/api/sessions/{s['id']}", headers=auth).json()["placement"] == "board"
+
+
+def test_uhren_aufnahme_laesst_sich_nicht_markieren(client):
+    """Die verbleibende Schranke: ohne Handy-Recorder gibt es keine Lage, also auch nichts zu
+    markieren. Erkennbar daran, dass der Recorder kein `placement` gemeldet hat und kein
+    Kreisel-Chunk existiert."""
+    auth = _konto(client, "board-uhr@example.com", admin=True)   # selbst als Admin nicht
+    code = client.post("/api/devices/pairing-code", headers=auth).json()["code"]
+    dev = {"X-Device-Token": client.post("/api/devices/pair",
+                                         json={"code": code, "label": "fenix"}).json()["device_token"]}
+    # Uhren-Anmeldung: OHNE `placement`.
+    sid = client.post("/api/ingest/session", headers=dev,
+                      json={"session_uuid": "placement-uuid-uhr",
+                            "started_at": "2026-09-20T09:00:00Z"}).json()["session_id"]
+    client.post("/api/ingest/session/placement-uuid-uhr/chunk", headers=dev,
+                json={"index": 0, "kind": "gps", "encoding": "json", "data": _gps()})
+    r = client.patch(f"/api/sessions/{sid}/meta", json={"placement": "board"}, headers=auth)
+    assert r.status_code == 400, r.text
+    # Und die Montage-Drehung haengt an derselben Schranke.
+    r2 = client.patch(f"/api/sessions/{sid}/meta", json={"attitude_rot_deg": 90}, headers=auth)
+    assert r2.status_code == 400, r2.text
+
+
+def test_fremder_darf_nicht(client):
+    """Gelockert wurde nur die Admin-Schranke, nicht der Besitz."""
+    auth_a = _konto(client, "board-eigner@example.com")
+    s = _session(client, auth_a, "placement-uuid-fremd")
+    auth_b = _konto(client, "board-fremder@example.com")
+    r = client.patch(f"/api/sessions/{s['id']}/meta", json={"placement": "board"}, headers=auth_b)
+    assert r.status_code in (403, 404), r.text
 
 
 def test_unsinniger_wert_wird_abgelehnt(client):
@@ -90,7 +125,7 @@ def test_leerer_wert_setzt_zurueck(client):
 
 def test_andere_meta_felder_bleiben_unberuehrt(client):
     """Die Markierung darf nichts anderes anfassen — `set_meta` aendert nur gesendete Felder."""
-    auth = _konto(client, "board-rest@example.com", admin=True)
+    auth = _konto(client, "board-rest@example.com")
     s = _session(client, auth, "placement-uuid-5")
     client.patch(f"/api/sessions/{s['id']}/meta", json={"caption": "Testlauf"}, headers=auth)
     client.patch(f"/api/sessions/{s['id']}/meta", json={"placement": "board"}, headers=auth)

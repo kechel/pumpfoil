@@ -121,6 +121,7 @@ const de: Record<string, string> = {
   "board.heaveShaky": "Der Hub ist hier nicht belastbar: die Bewegung ist langsamer als das {s}-Sekunden-Fenster zulässt, und dort wird beim Umrechnen jeder kleine Fehler stark vergrößert. Beim Pumpen mit rund einer Bewegung pro Sekunde stimmt er.",
   "board.rigAssumed": "Rumpf {fuse} cm und die Längspositionen sind noch geschätzt",
   "board.markBoard": "Handy war am Brett",
+  "session.onBoard": "am Brett",
   "watchStats.scrollTo": "Springen zu:",
   "watchStats.noMatch": "Nichts gefunden.",
   "watchStats.sectionFoiling": "Foilen je Uhr",

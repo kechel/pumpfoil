@@ -2523,6 +2523,30 @@ def _clean_youtube(raw: str | None) -> str | None:
     return "https://" + url.split("://", 1)[1]
 
 
+def _handy_aufnahme(db: Session, s: models.Session) -> bool:
+    """Kam die Aufnahme von einem HANDY-Recorder? Nur dort ist die Brett-Markierung sinnvoll.
+
+    Zwei Merkmale, und das erste ist das verlaessliche:
+
+    1. `placement` ist gesetzt. Das meldet der Handy-Recorder schon bei `/api/ingest/session`
+       ("phone"), die Uhren-Apps melden es nie — in der Datenbank steht es bei 128 Aufnahmen und
+       ist bei 7206 leer. Es ist ab der ersten Sekunde da, unabhaengig davon, welche Chunks schon
+       angekommen sind.
+    2. Sonst der KREISEL: den liefern ebenfalls allein die Handy-Recorder. Faengt den Fall ab,
+       dass `placement` einmal auf leer gesetzt wurde — sonst waere die Aufnahme danach fuer
+       immer gesperrt. `device_model` taugt als Merkmal NICHT, das setzen die Uhren-Apps auch
+       ("Watch7,12 · watchOS 26.6").
+
+    Der Kreisel ALLEIN war zu streng (Tests 21.09.): eine Aufnahme ist ein Handy-Recording,
+    sobald sie angemeldet ist — die Gyro-Chunks kommen erst spaeter, und ohne Bewegungsrechte
+    gar nicht.
+    """
+    if s.placement is not None:
+        return True
+    return db.query(models.IngestChunk.id).filter(
+        models.IngestChunk.session_id == s.id, models.IngestChunk.kind == "gyro").first() is not None
+
+
 @router.patch("/{session_id}/meta", response_model=SessionOut)
 @router.put("/{session_id}/meta", response_model=SessionOut)  # PUT-Alias für Clients ohne PATCH (Android HttpURLConnection)
 def set_meta(
@@ -2534,20 +2558,28 @@ def set_meta(
     """Eigene Beschriftung (max 30 Zeichen) + optionale YouTube-URL setzen (nur Besitzer).
     Nur mitgeschickte Felder werden geändert; "" leert das jeweilige Feld."""
     s = _owned(db, user, session_id)
+    # MONTAGE-ANGABEN: jeder Besitzer, aber nur bei HANDY-Aufnahmen.
+    #
+    # Bis 21.09.2026 durften das nur Admins (Jan, 20.09.: „ausser admins kann ja keiner seine
+    # session so markieren") — solange die Lage-Rechnung noch wackelte. Jetzt steht sie, und Jan
+    # am 21.09.: „der Stand ist ok so solange der nur bei Phone-Recordings angeboten wird, dann
+    # darf ab jetzt jeder selber entscheiden ob das am Board war oder nicht, falls nicht wuerden
+    # wir das eh merken anhand der Daten."
+    #
+    # Die verbleibende Schranke ist also keine Rechte-, sondern eine SINN-Frage: an einer
+    # Uhren-Session gibt es keinen Kreisel und damit keine Lage — die Markierung waere dort
+    # nur eine Falle. Sie steht hier und nicht nur in der Oberflaeche, weil eine ausgeblendete
+    # Schaltflaeche keine Zugriffskontrolle ist.
+    if body.placement is not None or body.attitude_rot_deg is not None:
+        if not _handy_aufnahme(db, s):
+            raise HTTPException(status.HTTP_400_BAD_REQUEST,
+                                "Nur bei Handy-Aufnahmen: ohne Kreisel gibt es keine Lage")
     if body.placement is not None:
-        # NUR ADMINS (Jan, 20.09.: „ausser admins kann ja keiner seine session so markieren").
-        # Damit braucht die Lage-Ansicht selbst kein zweites Gate: sie erscheint, wenn die
-        # Markierung steht — und stehen kann sie nur, wenn ein Admin sie gesetzt hat.
-        if not user.is_admin:
-            raise HTTPException(status.HTTP_403_FORBIDDEN, "Nur Admins")
         wert = body.placement.strip().lower()
         if wert not in ("", "board", "phone"):
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "placement: board | phone | (leer)")
         s.placement = wert or None
     if body.attitude_rot_deg is not None:
-        # Dieselbe Schranke wie `placement`: es beschreibt die Montage derselben Aufnahme.
-        if not user.is_admin:
-            raise HTTPException(status.HTTP_403_FORBIDDEN, "Nur Admins")
         # -1 = zurueck auf AUTOMATIK (NULL). Noetig, weil `None` im Body schon „nicht
         # mitgeschickt" bedeutet und deshalb nicht zum Loeschen taugt.
         if int(body.attitude_rot_deg) < 0:
@@ -3619,6 +3651,10 @@ def board_lage(
                               # None = Automatik (Start-Heuristik). Ein gesetzter Wert gewinnt.
                               rot_deg=(float(s.attitude_rot_deg)
                                        if s.attitude_rot_deg is not None else None),
+                              # Die Spur als GEGENPROBE fuers Gieren: Kurs ueber Grund und
+                              # Gieren sind dieselbe Groesse (s. `lage.gier_gegen_gps`). Roh,
+                              # ungetrimmt — die Funktion sucht sich ihre Laufbereiche selbst.
+                              gps=storage.load_gps(uuid),
                               # ECHTE Lauf-Anfaenge, nicht die an den Raendern gekuerzten aus
                               # `laufbereiche` — die Heuristik lebt genau von der ersten Sekunde.
                               lauf_starts_ms=[float(g.get("t_start_session_ms",

@@ -1,4 +1,5 @@
 import { setLastSessionsFilter } from "../lib/lastSession";
+import { useWiederAufwachen } from "../lib/useWiederAufwachen";
 import { useEffect, useRef, useState } from "react";
 import { fmtDate } from "../lib/time";
 import { foilLabel } from "../lib/foilLabel";
@@ -177,9 +178,18 @@ export default function PersonalHome() {
   // true, solange der Zeitraum noch nicht von Hand gewaehlt wurde -> Rueckfall erlaubt.
   const autoRef = useRef(true);
 
+  // Die letzten Sessions NEU holen — beim Aufbau der Seite und immer, wenn sie aus dem
+  // Hintergrund zurueckkommt. Vorher hing das allein am Mount: wer die PWA tagelang offen liess
+  // (oder den Laptop zuklappte), sah bis Strg-R denselben Stand. `fresh` geht dabei am
+  // Service-Worker-Cache vorbei, sonst antwortet der mit genau der alten Liste.
+  const letzteHolen = () => {
+    api.sessions({ limit: 3, fresh: true }).then(setLatest).catch(() => setLatest([]));
+  };
+  useWiederAufwachen(letzteHolen);
+
   useEffect(() => {
     api.getProfile().then(setProfile).catch(() => {});
-    api.sessions({ limit: 3 }).then(setLatest).catch(() => setLatest([]));
+    letzteHolen();
     // `homespot_effective`, nicht `homespot`: bei leerem Profilwert leitet der Server ihn aus
     // der letzten Session ab (s. settings.py). Vorher blieb die Wetterkarte bei 96 % der
     // Nutzer aus, obwohl das Profil „Automatisch (letzte Session)" versprach.
@@ -327,6 +337,7 @@ export default function PersonalHome() {
               foil={s.foil ? foilLabel(s.foil) : null}
               {...setupLabels(s)}
               deviceLabel={s.device_label}
+              placement={s.placement}
               caption={s.caption}
               avatarName={profile?.display_name}
               avatarUrl={profile?.avatar_url}
