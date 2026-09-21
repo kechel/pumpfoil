@@ -186,7 +186,7 @@ function Kurven({ reihen, t_ms, pos, zusammen, uhrzeit, onZeigen, onWeg }: {
 }
 
 export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, playMode,
-                                       playTMs, startedAt, tz, pausen }: {
+                                       playTMs, onZeit, startedAt, tz, pausen }: {
   sessionId: number;
   run: number | null;
   // Alternativ zum Lauf: ein freies Fenster (Startversuch). `run` hat Vorrang.
@@ -198,6 +198,9 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
   // einen anderen Zeitraum zeigen als diese Ansicht (Zuschnitt gegen ganze Aufnahme), dann
   // ergibt ein gemeinsamer Bruchteil zwei verschiedene Stellen.
   playTMs?: number | null;
+  // Meldet die Zeit unter der Maus nach oben (Session-ms), damit die KARTE bis dorthin
+  // gezeichnet wird. null = Maus ist weg.
+  onZeit?: (tMs: number | null) => void;
   startedAt: string;             // ISO-Start der Aufnahme — fuer die Uhrzeit an der Achse
   tz?: string | null;            // Ortszeit des Spots (s. lib/time.ts)
   pausen?: number[][] | null;    // Pausenfenster, s. lib/clock.ts
@@ -225,6 +228,10 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
   const idx = useMemo(() => {
     const t = d?.t_ms ?? [];
     if (!t.length) return 0;
+    // DIE MAUS HAT VORRANG. Sie schiebt zugleich die Karte (s. `onZeit`), und die schaltet dabei
+    // in den Abspielmodus — ohne diesen Vorrang wuerde die Ansicht danach ihrer eigenen
+    // Rueckmeldung folgen statt der Maus.
+    if (maus != null) return Math.min(t.length - 1, Math.round(maus * (t.length - 1)));
     if (playMode && playTMs != null) {
       // Naechstgelegene Stuetzstelle; ausserhalb des Bereichs der jeweilige Rand.
       let lo = 0, hi = t.length - 1;
@@ -232,9 +239,17 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
       if (lo > 0 && Math.abs(t[lo - 1] - playTMs) <= Math.abs(t[lo] - playTMs)) lo--;
       return lo;
     }
-    const p = playMode ? Math.min(1, Math.max(0, progress)) : (maus ?? 1);
+    const p = playMode ? Math.min(1, Math.max(0, progress)) : 1;
     return Math.min(t.length - 1, Math.round(p * (t.length - 1)));
   }, [d, playMode, playTMs, progress, maus]);
+
+  // Zeit unter der Maus nach oben melden. Als Effekt, nicht im Zeichnen: `onZeit` setzt oben
+  // Zustand, und das waehrend des Renderns waere eine Schleife.
+  const tMsAlle = d?.t_ms;
+  useEffect(() => {
+    if (!onZeit) return;
+    onZeit(maus != null && tMsAlle?.length ? tMsAlle[idx] : null);
+  }, [maus, idx, tMsAlle, onZeit]);
   // Stellung des Zeigers in DIESER Ansicht — aus dem Index, damit Linie und Zahl nie auseinander
   // laufen koennen.
   const pos = useMemo(() => {

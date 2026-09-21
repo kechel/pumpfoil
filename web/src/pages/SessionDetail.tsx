@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import L from "leaflet";
 import { basiskarten } from "../lib/mapTiles";
@@ -831,6 +831,13 @@ export default function SessionDetail() {
     };
   }, [session]);
 
+  // Neuzeichnen der Karte anstossen, wenn die Maus in der Lage-Ansicht den Zeiger verschiebt.
+  // Ein Zaehler statt der Position selbst: die Position steht in `playheadRef` (die grosse
+  // Karten-Effekt liest sie dort ohnehin), der Zaehler loest nur den Neuaufbau aus.
+  const [zeigerTick, setZeigerTick] = useState(0);
+  const zeigerRaf = useRef(0);
+  const zeigerZuletzt = useRef(0);
+
   // Zeitfenster des ausgewaehlten Startversuchs in Session-ms — eine Quelle fuer Karte,
   // Wiedergabe und Lage-Ansicht, damit die drei nie auseinanderlaufen koennen.
   const versuchFenster = useMemo<[number, number] | null>(() => {
@@ -862,6 +869,38 @@ export default function SessionDetail() {
     if (segs.length) { const a: number[] = []; segs.forEach((s: any) => push(s, a)); return a; }
     return Array.from({ length: n }, (_, i) => i);
   }, [session, selectedRun, versuchFenster, indexZuSessionMs]);
+
+  /**
+   * Die Karte bis zu einer Zeit zeichnen (Jan, 21.09.: „wenn ich in den Lage-Bildern mit der
+   * Maus rumfahre, dann will ich das auch die GPS-Ansicht genau bis dahin angezeigt wird").
+   *
+   * Der Abspielmodus IST die Teilstrecken-Anzeige — deshalb schaltet das Ueberfahren ihn ein
+   * und pausiert. Absichtlich ohne Zuruecksetzen beim Verlassen: ein zurueckspringender Track
+   * waere unruhiger als einer, der stehen bleibt.
+   *
+   * ZWEIFACH gedrosselt, und das mit Absicht: der Karten-Effekt baut die Spur KOMPLETT neu auf
+   * (ein Segment je GPS-Punkt). Ein Bildaufbau allein wuerde das bei 60 Mausereignissen pro
+   * Sekunde 60-mal tun — bei 568 Punkten geht das, bei einer Zwei-Stunden-Aufnahme mit
+   * Tausenden nicht mehr. Darum zusaetzlich ein Mindestabstand von 50 ms (rund 20 Aktualisierungen
+   * je Sekunde); fluessig genug fuers Auge, und die Last bleibt gedeckelt.
+   */
+  const zeigeZeitAufKarte = useCallback((tMs: number | null) => {
+    if (tMs == null || !playTimeline.length) return;
+    const jetzt = performance.now();
+    if (jetzt - zeigerZuletzt.current < 50) return;
+    zeigerZuletzt.current = jetzt;
+    cancelAnimationFrame(zeigerRaf.current);
+    zeigerRaf.current = requestAnimationFrame(() => {
+      let best = 0, bestAbw = Infinity;
+      for (let k = 0; k < playTimeline.length; k++) {
+        const abw = Math.abs(indexZuSessionMs(playTimeline[k]) - tMs);
+        if (abw < bestAbw) { bestAbw = abw; best = k; }
+      }
+      playheadRef.current = best;
+      setPlayMode(true); setPlaying(false); setPlayStarted(true);
+      setZeigerTick((n) => n + 1);
+    });
+  }, [playTimeline, indexZuSessionMs]);
 
   // Wechselt die Timeline (Lauf-Auswahl/Session), Wiedergabe zurücksetzen.
   useEffect(() => {
@@ -1291,7 +1330,7 @@ export default function SessionDetail() {
     };
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
-  }, [playMode, playing, playMul, playTimeline, session, colorMode, selectedRun, showPumps, speedMin, speedMax, win, hrRange, pumpRange, optimalKmh, fullscreen, carveData]);
+  }, [playMode, playing, playMul, playTimeline, session, colorMode, selectedRun, showPumps, speedMin, speedMax, win, hrRange, pumpRange, optimalKmh, fullscreen, carveData, zeigerTick]);
 
   if (error) {
     // Öffentlicher Link ungültig/widerrufen -> freundliche Meldung + Auto-Redirect (siehe Effekt oben).
@@ -1834,6 +1873,7 @@ export default function SessionDetail() {
                 vonMs={versuchFenster?.[0] ?? null}
                 bisMs={versuchFenster?.[1] ?? null}
                 progress={progress} playMode={playMode} playTMs={playTMs}
+                onZeit={zeigeZeitAufKarte}
                 startedAt={session.started_at} tz={session.tz}
                 pausen={session.pause_windows ?? []} />
             </div>
