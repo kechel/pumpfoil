@@ -1286,6 +1286,23 @@ export default function SessionDetail() {
       return { v, d, hr: h != null && h > 0 ? h : null };
     };
 
+    /**
+     * Zeit des Abspielkopfs in Session-ms — ZWISCHEN den GPS-Punkten interpoliert.
+     *
+     * `headF` ist eine Kommazahl, die Spitze auf der Karte wird damit auch schon fein
+     * gezeichnet. Fuer die Lage-Ansicht habe ich sie erst abgerundet, also auf ganze
+     * GPS-Sekunden — und die Foil-Grafiken sprangen dadurch im Sekundentakt, obwohl die Lage
+     * mit 20 Hz vorliegt (Jans „sehr ruckelig", 21.09.). Hier wird deshalb dieselbe Kommazahl
+     * verwendet wie fuer die Spitze.
+     */
+    const zeitBeiKopf = (headF: number): number => {
+      const hi = Math.min(Math.floor(headF), lastIdx);
+      const frac = headF - hi;
+      const t0 = indexZuSessionMs(playTimeline[hi] ?? 0);
+      const t1 = indexZuSessionMs(playTimeline[Math.min(hi + 1, lastIdx)] ?? 0);
+      return t0 + (t1 - t0) * Math.min(Math.max(frac, 0), 1);
+    };
+
     const colorAt = (i: number): string => {
       if (colorMode === "optimal") return optimalColor((speeds[i] ?? 0) * 3.6, optimalKmh ?? 0);
       if (colorMode === "pump") { const v = phz[i]; const [lo, hi] = pumpRange; return v == null ? "#64748b" : rampColor((v - lo) / Math.max(hi - lo, 1e-6)); }
@@ -1337,7 +1354,7 @@ export default function SessionDetail() {
     for (let k = 0; k < drawn; k++) addSeg(k);
     renderTip(drawn, headF - drawn);
     setReadout(readoutAt(headF));
-    setPlayTMs(indexZuSessionMs(playTimeline[Math.min(drawn, lastIdx)] ?? 0));
+    setPlayTMs(zeitBeiKopf(headF));
 
     if (!playing) return;   // pausiert: Standbild, keine Animation
 
@@ -1353,7 +1370,7 @@ export default function SessionDetail() {
       renderTip(hi, headF - hi);
       playheadRef.current = headF;
       setProgress(lastIdx > 0 ? headF / lastIdx : 0);
-      setPlayTMs(indexZuSessionMs(playTimeline[Math.min(Math.floor(headF), lastIdx)] ?? 0));
+      setPlayTMs(zeitBeiKopf(headF));
       setReadout(readoutAt(headF));
       // Am Ende von vorn (Jan, 21.09.) — fuer eine Bildschirmaufzeichnung soll die Runde
       // weiterlaufen, ohne dass jemand nachklickt. `playing` bleibt an; der Zaehler laesst den
