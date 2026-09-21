@@ -153,7 +153,18 @@ _APP_META: dict[str, dict[str, str]] = {
         # Ein Nutzer mit 1.1.14 bekam dadurch einen Update-Hinweis, den Play nicht einloesen konnte
         # ("update button just opens google play and does not offer nor start update"). Deshalb: erst
         # eintragen, wenn Freigabe DA und Roll-out bei 100 % — "eingereicht" genuegt nie.
-        "latest": "1.1.29",   # LIVE 2026-09-16: Play-Mail „Your update to Pumpfoil, created on
+        "latest": "1.1.30",   # LIVE 2026-09-21, 04:28: Play-Mail „Your update to Pumpfoil,
+        # created on Sep 18, 2026 at 5:38 AM GMT, is live in the store." Passt auf unsere
+        # Einreichung vom 18.09. 07:38 Berlin (Phone 1.1.30/44 + Wear 1.2.30/1040), also
+        # DREI TAGE Pruefung — wie bei 1.1.29 und 1.1.28, das ist inzwischen der Normalfall.
+        # Zufall am Rande: die Apple-Freigabe fuer iOS 1.1.36 kam am selben Morgen um 04:28:55.
+        # ⚠️ ANDERS ALS SONST NOCH NICHT IM FELD BELEGT: `app_version 1.2.30` melden bisher genau
+        # zwei Geraete, und beide sind KEINE Nutzer — der Play-Pruefer (user 6 „Google Tester",
+        # Pixel Watch 3, zuletzt 21.09. 04:05, also 23 Minuten VOR der Mail) und Jans eigener
+        # Wear-Emulator vom 18.09. Der Roll-out beginnt also gerade erst. Die Zeile stuetzt sich
+        # hier allein auf die Play-Mail; die ist fuer Play die massgebliche Quelle (die
+        # oeffentliche Store-Seite nennt keine Version, s. Notiz vom 10.09.).
+        # ALT: "latest": "1.1.29",   # LIVE 2026-09-16: Play-Mail „Your update to Pumpfoil, created on
         # Sep 13, 2026 at 6:55 AM GMT, is live in the store." Passt auf unsere Einreichung vom
         # 13.09. 08:56 Berlin (Phone 1.1.29/43 + Wear 1.2.29/1039). DREI Tage Pruefung.
         # Im Feld belegt, nicht nur die Mail: zwei Geraete-Tokens melden `app_version 1.2.29`,
@@ -241,7 +252,10 @@ _APP_META: dict[str, dict[str, str]] = {
         # 05.08. 15:06 GMT). Eingereicht war 1.2.20/1030 zusammen mit Phone 1.1.20/34.
         # Der gebaute Nachzug 1.2.21/1031 (Token-Heilung bei Config-401) ist NOCH NICHT
         # eingereicht — hier also nicht eintragen. Vorher: 1.2.18/1028, live seit 04.08.
-        "latest": "1.2.29",   # LIVE 2026-09-16, dieselbe Play-Mail wie android (Release erstellt
+        "latest": "1.2.30",   # LIVE 2026-09-21, dieselbe Play-Mail wie android (Release erstellt
+        # 18.09. 05:38 GMT) — eine Mail deckt immer beide Spuren ab. Beleg und der Hinweis, dass
+        # der Roll-out noch nicht im Feld sichtbar ist, stehen bei "android".
+        # ALT: "latest": "1.2.29",   # LIVE 2026-09-16, dieselbe Play-Mail wie android (Release erstellt
         # 13.09. 06:55 GMT). Im Feld belegt: zwei Tokens mit `app_version 1.2.29`, zuletzt am
         # 16.09. um 05:56. Inhalt u. a. der Puls-Alarm und — fuer Vladimir (u187) gemeldet — das
         # deutsche „laeuft" in der Sessionliste, das nun endlich uebersetzt drausssen ist.
@@ -572,99 +586,35 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
-    {"name": "Android phone + Wear OS", "version": "1.1.30 / 1.2.30",
-     "eingereicht": "2026-09-18",
-     # EINGEREICHT 18.09.2026 aus Commit 5c2be2e7 (Play-Konsole: „Aenderungen, die ueberprueft
-     # werden", Produktion 44 / Wear OS 1040, Vorabpruefungen liefen noch). AB HIER EINGEFROREN:
-     # alles Weitere gehoert in einen neuen NAECHSTES-Eintrag (1.1.31 / 1.2.31).
-     # Urspruenglich gebaut am 17.09.; bis zum Upload kamen Teilen-Dialog, Scroll-Anker,
-     # Homespot-Fallback und die i18n-Nachtraege dazu. Beide Punkte kommen von u171 (Xiaomi Watch 2
-     # Pro), am selben Abend gemeldet.
-     #
-     # 1. PULS: der Waechter, der die Health-Services-Uebung neu anfordert, lief NIE, wenn der
-     #    Start schon beim ersten Mal scheiterte — seine Bedingung war `letzterHsMs > 0`, und
-     #    dieser Wert entsteht erst bei einem Messwert oder einem GELUNGENEN Start. Genau der
-     #    haeufigste Fehlerfall fiel damit durch: eine andere App haelt die Uebung, Health
-     #    Services erlaubt nur eine. Der Melder laesst parallel eine Workout-App laufen.
-     #    Belegt an seinen Daten: Session #8705 (17.09. 16:38) null Pulswerte, dann stuerzten
-     #    beide Apps ab, Session #8706 (17:11) hatte 2036. Seine Worte: „Kann die App ja nicht
-     #    immer zum Absturz bringen, damit das läuft."
-     #    WICHTIG fuer die Einordnung: wir hatten das zuvor als Wear-OS-5-Plattformfehler
-     #    abgelegt, weil sich zwischen 1.2.24 und 1.2.25 nichts Passendes fand. Gesucht wurde
-     #    nach einer AENDERUNG, nicht nach einer fehlenden Wiederholung.
-     #
-     # 2. LAUF-AUSWAHL: die Nummern der Laeufe stehen jetzt direkt unter der Karte, wie in der
-     #    PWA. Bisher ging die Auswahl nur ueber die Tabelle weiter unten oder durch Antippen der
-     #    Spur — beides hat er begruendet abgelehnt: „Dazu ist mein Display echt zu klein und
-     #    ungenau. Besonders da ich momentan immer an einer Wand entlang fahre und sich viel
-     #    überlappt."
+    {"name": "Android phone + Wear OS", "version": "1.1.31 / 1.2.31",
+     "eingereicht": "2026-09-21",
+     # EINGEREICHT 21.09. 06:00 — Jan hat den Build, den er selbst schon als Tester auf dem
+     # Handy hatte, in Produktion „promoted". Play-Konsole: „Aenderungen, die ueberprueft
+     # werden", Vorabpruefungen liefen noch, Produktion 45 (1.1.31) und Produktion (Wear OS)
+     # 1041 (1.2.31), verwaltete Veroeffentlichung AUS — es geht nach der Freigabe also direkt
+     # live. Beide Spuren zusammen, wie es die harte Regel vom 10.09. verlangt.
+     # Gebumpt waren die Nummern schon mit Commit b8ec06f1 (20.09. 19:02), damals noch waehrend
+     # 1.1.30 / 1.2.30 in Pruefung lagen — das ging auf, weil der Ausgang eine Freigabe war
+     # (eine ABGELEHNTE Nummer nimmt Play nicht wieder an, dann haette es 1.1.32 werden muessen).
+     # AB HIER EINGEFROREN: alles Weitere gehoert in einen neuen NAECHSTES-Eintrag.
      "items": [
-         "Heart rate comes back on its own. If another app was holding the watch\u2019s workout "
-         "session when a recording started, we never got a reading and never asked again \u2014 "
-         "for the whole session. Now we retry, so the heart rate appears as soon as the other "
-         "app lets go.",
-         "The run numbers are back under the map in the Android app. Picking a run no longer "
-         "means scrolling down to the table.",
-         "Your watch now tells us which model it is when a recording arrives, so your watch "
-         "shows up by name instead of just \u201cWear OS\u201d. It only helps us find faults "
-         "that affect one kind of watch \u2014 nothing about it is shared with anyone.",
-         "If the app is killed mid-recording \u2014 some watches do that to save battery \u2014 "
-         "the recording now ends where the data ends, instead of claiming the minutes you rode "
-         "after it had already stopped. The watch also tells us it happened, so we can see how "
-         "often it does.",
-         "Parawing is a sport you can pick for a session. Lowkite, parawing and parakite are "
-         "the same thing, so they share one entry.",
-         "German words that had slipped into the English interface are gone — among them the "
-         "run count under every session, the error messages, the notification while a recording "
-         "runs, and eighteen labels that only a screen reader reads out. Reported by a rider.",
-         "The watch shows your foil again when your alarm limits are set by hand. Picking "
-         "fixed limits in your profile used to leave the watch saying \u201eno foil\u201c on the "
-         "start screen, although the ride was recorded with your default foil anyway \u2014 what "
-         "you ride and where the alarm limits come from are two separate things. Garmin was "
-         "fixed on 10 September; Wear OS, Apple Watch and Amazfit follow now.",
-         "The spot page opens with a search box instead of a list of every spot we know \u2014 "
-         "with 231 of them the list was longer than the rest of the page put together.",
-         "You can narrow the spot list to the ones that have a description, and each spot says "
-         "how many riders have been there, with the same explanation the website gives.",
-         "\u201eOlder\u201c and \u201enewer\u201c inside a session now stay in the list you came "
-         "from \u2014 your own sessions, one spot across all riders, or everything \u2014 and keep "
-         "the filters you had set. Before, they always walked through your own sessions.",
-         "The session view wastes far less empty space above the map, so the map and the run "
-         "numbers are there without scrolling; in the session list the third button no longer "
-         "gets cut in half when the labels are long.",
-         "A recording that can no longer be finished is now a single quiet line instead of a "
-         "large notice sitting on top of your screen. It still leads you to the recording, "
-         "where you decide: analyse it with what we have, or delete it.",
-         "Wear OS has the water lock back, drawn along the curve of a round screen.",
-         "When no heart rate was measured, the watch says so plainly instead of hinting that you "
-         "wore it wrong \u2014 and the recording now tells us whether a reading arrived at all, "
-         "so we can tell a missing chest strap from a fault of ours.",
-         "The button that imports a FIT, TCX or GPX file is now a small \u201eFIT\u201c button at "
-         "the right of the spot row instead of a wide bar of its own, and it only appears while "
-         "you are looking at your own sessions \u2014 an import always creates one of yours.",
-         "The spot map keeps the part of the world you were looking at. Zooming in, opening a "
-         "spot and coming back used to drop you on the map of all spots again \u2014 it now stays "
-         "where you left it for as long as the app is running.",
-         "Ticking \u201eonly with a description\u201c updates the map at once. The pins used to sit "
-         "there until you zoomed, which made the filter look broken.",
-         "The spot map opens where you ride, with the neighbouring spots in view: your home "
-         "spot if you set one, otherwise the spot of your last session. It used to fit every "
-         "spot in the world into the frame, so everyone had to navigate to themselves first. "
-         "Brand new and no sessions yet? Then it opens on the busiest spot of all.",
-         "The share sheet has room for the share button again on phones with a gesture bar, "
-         "and the average speed is a tile you can pick like the others.",
-         "Wear OS shows whether the touch lock is on: the water drop switches it on, and a "
-         "padlock sits in its place while it is locked. Until now the drop simply vanished, so "
-         "the only way to find out was to touch the watch. Hold to unlock and the padlock "
-         "springs open the moment you have held it long enough, so you know when to let go.",
-         "\u201eYour spot\u201c now works even if you never picked one in your profile: we take "
-         "the spot of your last session. The profile always offered \u201eautomatic (last "
-         "session)\u201c, but nothing behind it did that \u2014 so the weather card, the spot tab "
-         "and the spot chat stayed empty for almost everyone. What you pick yourself still wins, "
-         "and nothing gets written into your profile behind your back.",
+         "On Wear OS the app now stays on screen until you close it.",
+         "The two new on-foil alarms are in the profile of the Android app.",
+         "Wear OS vibrates at the distance and time marks set in your profile.",
+         "The phone recorder also records the gyroscope, if the phone has one.",
      ]},
 
+    # iOS/Apple: 1.1.36 ist am 21.09. FREIGEGEBEN und steht deshalb hier nicht mehr, sondern in
+    # `_APP_META` als live (beide Schluessel, ein Bundle). Sein Punkt ist in die Changelog-Tabelle
+    # gewandert, mit `versionen = {"ios": "1.1.36", "apple": "1.1.36"}`.
+    # Als Naechstes steht fuer iOS nichts an: die Lage-Ansicht (Nicken/Rollen/Gieren, Hub) ist
+    # bewusst erst in der PWA — Jans Vorgabe, uebernehmen auf die nativen Apps erst, wenn sie
+    # fix, fertig und getestet ist.
 
+    # Android + Wear: 1.1.30 / 1.2.30 sind am 21.09. FREIGEGEBEN und stehen deshalb hier nicht
+    # mehr, sondern in `_APP_META` als live (eine Play-Mail deckt beide Spuren ab). Die 21 Punkte
+    # sind in die Changelog-Tabelle gewandert, mit `versionen = {"android": "1.1.30",
+    # "wear": "1.2.30"}`, dazu ein Freigabe-Ereignis.
     {"name": "Amazfit", "version": "1.0.11",
      "eingereicht": "2026-09-19",
      # ZWEITER Anlauf. Der erste (18.09.) wurde am 19.09. zurueckgezogen, weil
@@ -711,24 +661,6 @@ IN_REVIEW: list[dict] = [
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
-    {"name": "Android phone + Wear OS", "version": "1.1.31 / 1.2.31",
-     # Die Nummer ist noch NICHT in build.gradle.kts gebumpt: 1.1.30 / 1.2.30 liegen seit dem
-     # 18.09. bei Google, und eine abgelehnte Nummer nimmt Play nicht wieder an — gebumpt wird
-     # erst, wenn der Ausgang feststeht. 1.1.31 stimmt aber in beiden Faellen.
-     "items": [
-         "On Wear OS the app now stays on screen until you close it.",
-         "The two new on-foil alarms are in the profile of the Android app.",
-         "Wear OS vibrates at the distance and time marks set in your profile.",
-         "The phone recorder also records the gyroscope, if the phone has one.",
-     ]},
-
-    # iOS/Apple: 1.1.36 ist am 21.09. FREIGEGEBEN und steht deshalb hier nicht mehr, sondern in
-    # `_APP_META` als live (beide Schluessel, ein Bundle). Sein Punkt ist in die Changelog-Tabelle
-    # gewandert, mit `versionen = {"ios": "1.1.36", "apple": "1.1.36"}`.
-    # Als Naechstes steht fuer iOS nichts an: die Lage-Ansicht (Nicken/Rollen/Gieren, Hub) ist
-    # bewusst erst in der PWA — Jans Vorgabe, uebernehmen auf die nativen Apps erst, wenn sie
-    # fix, fertig und getestet ist.
-
     {"name": "Amazfit", "version": "1.0.12",
      # Nummer NICHT in app.json gebumpt: 1.0.11 liegt seit 19.09. beim Zepp-Store. Gebumpt wird
      # erst, wenn der Ausgang feststeht — wie bei Android.
