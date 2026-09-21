@@ -1391,6 +1391,33 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔲 21.09. — Die Montage-Richtung muss auch 90°/270° automatisch finden. Jans erste echte
+  Pump-Aufnahme hat gezeigt, dass 0/180 nicht reicht.**
+  An #9528 (Handy QUER am Brett) sah Jan es sofort: „beim Nicken sieht man fast nichts und beim
+  Rollen sieht man einen Rhythmus, der eigentlich das Nicken sein sollte." Nachgemessen ueber
+  alle vier Drehungen, mit der fenix (#9529, 77 Pumps in 53 s = 1,45 Hz) als unabhaengiger
+  Referenz:
+
+  | Drehung | Nick-Takt | Start-Nicken |
+  |---|---|---|
+  | 0° | 0,52 Hz (Unsinn) | −26,0° |
+  | 90° | **1,48 Hz** | +44,4° (Nase hoch — unmoeglich) |
+  | 180° | 0,52 Hz | +26,0° |
+  | **270°** | **1,48 Hz** | **−44,4°** (bergab — richtig) |
+
+  Die Start-Heuristik entscheidet also sauber zwischen 90 und 270 — sie kann nur die ACHSE nicht
+  finden, weil das Vertauschen von Nicken und Rollen kein Vorzeichenwechsel ist und sich nicht
+  nachtraeglich rechnen laesst. #9528 steht jetzt von Hand auf 270.
+
+  **Weg zur Automatik, jetzt belegbar:** die Drehung suchen, unter der das NICKEN im Pumpband
+  (0,5-3 Hz) am staerksten schwingt, dann mit der Startlage die 180°-Frage entscheiden. Das
+  laesst sich billig machen, ohne den Filter je Kandidat neu zu rechnen: eine Drehung um die
+  Hochachse ist eine konstante orthogonale Abbildung, man kann also den fertigen Oben-Vektor
+  drehen und Nicken/Rollen daraus neu ableiten. Die Hauptachsen-Rechnung allein taugt NICHT —
+  sie lieferte hier −61,9° bei Klarheit 5,7 und damit einen schlechteren Zuschnitt als die
+  glatten 270° (Nicken −55..+8 gegen −32..+7).
+
+
 - **🔴 21.09. — 18 Aufnahmen haengen im Zustand `live` fest, mit Daten. 18 Nutzer betroffen.**
   Beim Rundgang gefunden. Sie haben nie ein `/complete` bekommen, liegen also fuer immer als
   „laeuft" da und werden nie ausgewertet — obwohl **4221 Chunks** da sind.

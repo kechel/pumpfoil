@@ -335,7 +335,7 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
                    *, ziel_hz: float = 20.0, yaw_fenster_s: float = 1.0,
                    t_von_ms: float | None = None, t_bis_ms: float | None = None,
                    ref_bereiche_ms: list[tuple[float, float]] | None = None,
-                   hub_fenster_s: float = 3.0, rot_deg: float | None = None,
+                   hub_fenster_s: float | None = None, rot_deg: float | None = None,
                    lauf_starts_ms: list[float] | None = None) -> dict:
     """Pitch/Roll (absolut, in Grad) und Gierwinkel-Aenderung je Fenster (Grad).
 
@@ -462,7 +462,9 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
     oben = np.column_stack([-np.sin(pr), np.cos(pr) * np.sin(rr), np.cos(pr) * np.cos(rr)])
     # Der Beschleunigungsmesser liest im Stillstand +1 g entlang „oben" — der bleibt abzuziehen.
     a_vert = (np.einsum("ij,ij->i", acc, oben) - 1.0) * G_MS2
-    hub = hub_berechnen(a_vert, 1.0 / rechen_hz, hub_fenster_s)
+    # Erster Durchgang mit dem Vorgabewert; steht `hub_fenster_s` auf None, wird er unten
+    # anhand des gemessenen Pumptakts noch einmal gerechnet.
+    hub = hub_berechnen(a_vert, 1.0 / rechen_hz, hub_fenster_s or 3.0)
 
     # Gierrate = Drehratenvektor auf die Schwerkraft projiziert (s. Kopfkommentar).
     gier_rate = np.degrees(np.einsum("ij,ij->i", gyr, g_hut))
@@ -478,6 +480,28 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
     # Richtungs-Heuristik. Erst HIER, weil sie den fertigen, auf den Nullpunkt bezogenen Winkel
     # braucht. Das Umkehren ist exakt und nicht genaehert: eine 180°-Drehung um die Hochachse
     # negiert Nicken und Rollen, sonst nichts.
+    def hauptfrequenz(sig: np.ndarray) -> float | None:
+        s0 = sig - sig.mean()
+        if len(s0) < 32:
+            return None
+        f = np.fft.rfftfreq(len(s0), 1.0 / rechen_hz)
+        A = np.abs(np.fft.rfft(s0))
+        m = (f > 0.3) & (f < 4.0)
+        return round(float(f[m][np.argmax(A[m])]), 2) if m.any() else None
+
+    # HUB-FENSTER AM PUMPTAKT AUSRICHTEN, nicht an einer festen Zahl.
+    #
+    # Der Hub kommt aus zweimaligem Integrieren; alles unterhalb der Bandgrenze wird dabei
+    # gnadenlos verstaerkt. Ein festes 3-s-Fenster (Grenze 0,33 Hz) ist fuer Pumpen bei 1,3 Hz
+    # viel zu weit: an Jans erster echter Pump-Aufnahme (#9528, 21.09.) kamen damit 52,8 cm
+    # heraus, mit 1 s dagegen 20,2 cm — und nur die zweite Zahl ist physikalisch plausibel.
+    # Also die Grenze auf die HAELFTE des gemessenen Takts legen: bei 1,33 Hz sind das 1,5 s.
+    # Gedeckelt, damit weder ein Ausreisser noch eine fehlende Messung Unsinn ergibt.
+    if hub_fenster_s is None:
+        _takt = hauptfrequenz(pitch)
+        hub_fenster_s = float(min(5.0, max(1.0, 2.0 / _takt))) if _takt else 3.0
+        hub = hub_berechnen(a_vert, 1.0 / rechen_hz, hub_fenster_s)
+
     start_nicken = startlage(pitch, t, lauf_starts_ms)
     rot_vorschlag = None
     if start_nicken is not None and abs(start_nicken) >= START_SCHWELLE_GRAD:
@@ -492,14 +516,6 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
     schritt = max(1, int(round(rechen_hz / ziel_hz)))
     aus = slice(None, None, schritt)
 
-    def hauptfrequenz(sig: np.ndarray) -> float | None:
-        s0 = sig - sig.mean()
-        if len(s0) < 32:
-            return None
-        f = np.fft.rfftfreq(len(s0), 1.0 / rechen_hz)
-        A = np.abs(np.fft.rfft(s0))
-        m = (f > 0.3) & (f < 4.0)
-        return round(float(f[m][np.argmax(A[m])]), 2) if m.any() else None
 
     _hub_hz = hauptfrequenz(hub) if hub is not None else None
     # NUR ueber die Laufbereiche, nie ueber die ganze Aufnahme: ein Ueberschlag am Ende
@@ -548,9 +564,15 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
             # zwar ohne dass man es ihr ansieht. Belegt an Jans Aufnahme 9473 (0,32 Hz von Hand
             # gewedelt): 12,9 cm bei 1-s-Fenster, 41,7 bei 3 s, 147,4 bei 5 s, 333,4 bei 8 s.
             # Das Handy hat sich nie 3,3 m bewegt — das ist die 1/ω²-Verstaerkung, die dicht an
-            # der Grenze jeden Rest hochzieht. Beim echten Pumpen (rund 1 Hz gegen 0,33 Hz
-            # Grenze) ist der Abstand gross genug. Faktor 2 als Mindestabstand.
-            "hub_sicher": bool(_hub_hz is not None and _hub_hz >= 2.0 / hub_fenster_s),
+            # der Grenze jeden Rest hochzieht.
+            #
+            # FAKTOR 1,5, nicht 2 (korrigiert 21.09. an der ersten echten Pump-Aufnahme #9528):
+            # seit das Fenster selbst dem Pumptakt folgt (2/Takt), liegt die Bandgrenze per
+            # Konstruktion bei der Haelfte des Takts — ein Faktor 2 haette dann JEDE Aufnahme
+            # als unsicher gemeldet, auch die saubere. Bei #9528 (Takt 1,48 Hz, Fenster 1,35 s,
+            # Hub bei 1,33 Hz) ist der Abstand zur Grenze 1,8-fach, und die 22,8 cm sind
+            # physikalisch plausibel.
+            "hub_sicher": bool(_hub_hz is not None and _hub_hz >= 1.5 / hub_fenster_s),
             # Wie das Geraet um die Senkrechte gedreht liegt — s. `hauptachse`. Reine Diagnose:
             # nahe 0° oder 180° heisst laengs, nahe ±90° quer, dazwischen diagonal.
             "ausrichtung_deg": _achse, "ausrichtung_klarheit": _klar,
