@@ -225,9 +225,35 @@ herausgefiltert.** Zwei Folgen:
   Bandamplitude des Nickens. Das ist eine prinzipielle Grenze der doppelten Integration
   (s. Kopfkommentar in `lage.py`), keine Einstellung.
 
-**Was als Restunschärfe bleibt:** der Dropstart am Lauf-Anfang. Dort gibt es einen großen, schnellen
-Hub, der kein Pumpstoß ist. Den fängt keine Hub-Schwelle, sondern nur der Lauf-Anfang selbst — die
-ersten Zyklen eines Laufs sollten beim Labeln ausgenommen oder eigens markiert werden.
+### Der Dropstart zählt mit — kein Sonderfall
+
+Hier stand zuerst, der Absprung am Lauf-Anfang sei ein großer schneller Hub, der KEIN Pumpstoß ist
+und ausgenommen werden müsse. Jan, 21.09.2026: „wenn der Dropstart selber auch als Pump gilt ist
+das nicht verkehrt, da springe ich ja auch aufs Board drauf, das ist sogar oft der stärkste aller
+Pumps." Physikalisch richtig — der Absprung überträgt Energie ins Foil wie ein Pumpstoß, nur mehr.
+
+**Nachgemessen, stärkster Zyklus je Lauf (Aufwärts-Tempo):**
+
+| | stärkster Zyklus | wo |
+|---|---|---|
+| #9484 Lauf 1 (Steg-Dropstart) | **70 cm/s** (80 cm in 1,14 s) | **beim Absprung**, t−2,3 s |
+| #9484 Lauf 2 | 39 cm/s | beim Absprung, t−1,9 s |
+| #9535 Lauf 1 | 63 cm/s | mitten im Lauf, t+28 s |
+| #9535 Lauf 2 | 61 cm/s | mitten im Lauf, t+16 s |
+| #9528 | 76 cm/s | mitten im Lauf, t+21 s |
+
+Beim echten Dropstart vom Steg (#9484) ist der Absprung der stärkste Einzelstoß der Aufzeichnung,
+mit Abstand. Bei #9535 und #9528 nicht — dort lag das Brett vorher **umgedreht im Wasser**
+(Rollen bei −176°, der Dreh liegt bei t−7 s), es war also ein Wasserstart und kein Absprung; die
+ersten Stöße liegen mit 48–56 cm/s im normalen Bereich des Laufs.
+
+**Folge: kein Sonderfall im Ableiter.** Der Absprung übersteht jede Hub-Schwelle sowieso und soll
+das auch. Die Unterscheidung Absprung/Wasserstart ist für das Labeln unerheblich — beides sind
+Pumpstöße.
+
+Eine Zahl mit Vorbehalt: die 80 cm des Absprungs dauern aufwärts 1,14 s und liegen damit dicht an
+der unteren Bandgrenze (Fenster 1,39 s ≈ 0,7 Hz). Die Amplitude ist dort schon beschnitten —
+„groß" stimmt, der exakte Wert nicht.
 
 ---
 
