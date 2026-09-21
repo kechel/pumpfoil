@@ -1458,11 +1458,17 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   gerechnet (`attempt_distances`). Vor einer Aenderung ein Regressions-Check ueber den Bestand:
   wie viele Sessions haengen heute an einem solchen Mini-Zuschnitt?
 
-  **4. Warum der lange Run im Handy fehlt: er war nicht drin.** Die Uhr fand zwei Laeufe,
-  **07:30:01** (52 m) und **07:51:11** (142 m). Das Handy lief 07:32:22-07:44:13 — der erste Lauf
-  war zwei Minuten VOR dem Start des Handys, der zweite sieben Minuten NACH seinem Ausfall.
-  Kein Erkennungsproblem, ein Datenproblem. Fuer die Lage-Ansicht bleiben die Pumpversuche
-  dazwischen.
+  **4. Warum der lange Run im Handy fehlt: er war nicht drin.** Die Uhr fand zunaechst zwei
+  Laeufe, **07:30:01** (52 m, 10,4 km/h) und **07:51:11** (142 m, 15,4 km/h). Den ersten hat Jan
+  am 21.09. selbst aussortiert (`excluded_ranges = [[187000, 207000]]`) — das war er, wie er
+  sagt, **zum Auto rennend**. Bleibt EIN echter Lauf um 07:51:11. Das Handy lief
+  07:32:22-07:44:13, also sieben Minuten VOR diesem Lauf zu Ende. In seinem ganzen Fenster gab
+  es auf KEINEM der beiden Geraete einen erkannten Lauf; drin sind nur Pumpversuche. Kein
+  Erkennungsproblem, ein Datenproblem.
+  **Nebenbei ein etikettiertes Gegenbeispiel geschenkt bekommen:** 52 m bei 10,4 km/h zum Auto
+  gerannt, und der Detektor nannte es einen Foil-Lauf. Gehoert zu
+  `detector-negative-examples` — und ist ein Fall, in dem die Beschleunigung am Handgelenk das
+  Gegenteil des Brett-Problems zeigt: beim Laufen ist sie GROSS.
 
   **5. ✅ Die Ausrichtungs-Erkennung traegt an echten Daten.** `ausrichtung_deg = -86,1°` bei
   Klarheit **19,5** — also fast exakt quer montiert, und viel eindeutiger als die 8,1 vom
