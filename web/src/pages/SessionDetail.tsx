@@ -1355,7 +1355,18 @@ export default function SessionDetail() {
       setProgress(lastIdx > 0 ? headF / lastIdx : 0);
       setPlayTMs(indexZuSessionMs(playTimeline[Math.min(Math.floor(headF), lastIdx)] ?? 0));
       setReadout(readoutAt(headF));
-      if (headF >= lastIdx) { setPlaying(false); return; }
+      // Am Ende von vorn (Jan, 21.09.) — fuer eine Bildschirmaufzeichnung soll die Runde
+      // weiterlaufen, ohne dass jemand nachklickt. `playing` bleibt an; der Zaehler laesst den
+      // Karten-Effekt neu aufbauen, und der startet bei `playheadRef` = 0 samt Animation.
+      // Die Spur muss dafuer wirklich neu gezeichnet werden: sie waechst Stueck fuer Stueck,
+      // ein blosses Zuruecksetzen des Kopfes liesse das alte Bild stehen.
+      if (headF >= lastIdx) {
+        if (lastIdx <= 0) { setPlaying(false); return; }
+        playheadRef.current = 0;
+        setProgress(0);
+        setZeigerTick((z) => z + 1);
+        return;
+      }
       raf = requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);
