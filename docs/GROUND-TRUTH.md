@@ -208,10 +208,15 @@ also **Faktor 31 im Tempo und rund Faktor 250 in der Energie** (Weg × Kraft ∝
 
 **Als EINE Größe formulieren, nicht als zwei Schwellen.** „Mindestens 5 cm UND schnell" ist genau
 das Aufwärts-Tempo Δh/Δt — dieselbe Physik in einer Zahl, ohne Kombinationen, in denen sich zwei
-Schwellen widersprechen können. An den Daten stabil: Median 53 cm/s, 5. Perzentil 13–26 cm/s. Eine
-Schwelle bei **10–15 cm/s** behält praktisch alles Echte und verwirft das Langsame. Der Wert ist
-bewusst noch nicht festgeschrieben — er wird an den ersten Fremd-Aufnahmen nachgezogen (Jan: „auch
-das finden wir dann mit mehr Daten besser raus").
+Schwellen widersprechen können. An den Daten: Median 53 cm/s, 5. Perzentil 13–26 cm/s; eine
+Schwelle bei **10–15 cm/s** behielte praktisch alles Echte.
+
+> ⚠️ **Diese Zahl ist eine HYPOTHESE, keine Kalibrierung.** Sie kommt aus drei Aufnahmen eines
+> einzigen Fahrers mit zwei Starttechniken. Jan, 21.09.2026: „es gibt viele verschiedene
+> Start-Techniken, die Leute probieren alles Mögliche, ich kann nur 3-4 davon, es gibt sicher
+> 50-100, das können wir jetzt noch nicht festlegen." Wie der Wert bestimmt wird, sobald Daten da
+> sind, steht in **Abschnitt 6: Messplan**. Bis dahin gilt keine Zahl aus diesem Abschnitt als
+> festgelegt.
 
 **Grenze, die dabei bekannt sein muss: der Hub ist bandbegrenzt.** Das Fenster richtet sich am
 Pumptakt aus (hier 1,39–1,53 s), was einem Hochpass bei rund 0,7 Hz entspricht. Eine Bewegung
@@ -293,10 +298,11 @@ nicht das Nicken. Über alle drei Aufnahmen, nur Marken über 10 cm/s:
 Das Nicken unterscheidet **gar nicht** — beim Hantieren liegt es bei 6°, also genau im
 Pump-Bereich (das Brett wird ja flach getragen). Das Rollen trennt vollständig.
 
-**Grenze 45° in beiden Richtungen** ist das Optimum aus den Daten: behält 98,3 % der echten Pumps;
-enger (20–30°) fällt auf 96,1 %, ohne beim Hantieren irgendetwas dazuzugewinnen. Was bei 45°
+**Grenze 45° in beiden Richtungen** wäre nach diesen Daten das Optimum: behält 98,3 % der echten
+Pumps; enger (20–30°) fällt auf 96,1 %, ohne beim Hantieren etwas dazuzugewinnen. Was bei 45°
 wegfällt, sind Marken mit 54–65° Neigung mitten im Lauf — mit hoher Wahrscheinlichkeit Stürze am
-Laufende, also zu Recht keine Pumps.
+Laufende, also zu Recht keine Pumps. **Auch das ist eine Hypothese aus n = 1** (s. Kasten oben);
+eine Technik, bei der das Brett schräger geht, würde sie kippen.
 
 **Zwei Kriterien, die sich ergänzen statt zu ersetzen:**
 
@@ -315,7 +321,93 @@ der unteren Bandgrenze (Fenster 1,39 s ≈ 0,7 Hz). Die Amplitude ist dort schon
 
 ---
 
-## 6. Gestalt der Personalisierung
+## 6. Messplan: wie die Kriterien bestimmt werden, wenn Daten da sind
+
+Die Zahlen in Abschnitt 5 stammen aus **einem** Fahrer, drei Aufnahmen, zwei Starttechniken.
+Jan schätzt, dass es 50–100 Starttechniken gibt und er 3–4 davon beherrscht. Festlegen lässt sich
+daraus nichts — wohl aber das **Verfahren**, mit dem jedes Kriterium später bestimmt wird. Das ist
+der Zweck dieses Abschnitts: wenn die Daten kommen, soll niemand neu nachdenken müssen, wie
+gemessen wird.
+
+### Drei verschiedene Sorten von Kriterien, nicht vermischen
+
+| Sorte | Beispiel | Status |
+|---|---|---|
+| **Definition** | „tiefster Punkt = Pump-Marker" | Entscheidung, nicht messbar. Steht. |
+| **Physik** | „auf dem Kopf kann nicht gepumpt werden"; „Energie = Weg × Kraft" | sicher richtig; nur die ZAHL ist offen |
+| **Zahl** | 10–15 cm/s, 45°, 4 s Vorfenster | **offen**, Hypothese aus n = 1 |
+
+Nur die dritte Sorte ist Gegenstand des Messplans. Die erste ändert sich nur, wenn Jan die
+Definition ändert; die zweite gar nicht.
+
+### 6a. Schwellen über das Plateau bestimmen, nicht über einen Bestwert
+
+Für jede Schwelle (Aufwärts-Tempo, Lagegrenze, Vorfenster) wird sie **durchgefahren** und die
+Pump-Zahl je Lauf dagegen aufgetragen. Eine brauchbare Schwelle zeigt ein **Plateau** — einen
+Bereich, in dem die Zahl sich kaum ändert. Gewählt wird die Mitte des Plateaus, nicht das Maximum
+irgendeiner Gütezahl.
+
+Entscheidend: **das Plateau muss bei allen Fahrern an derselben Stelle liegen.** Liegt es bei
+jedem anders, ist die Schwelle kein globaler Parameter, sondern ein persönlicher — und gehört in
+die Kalibrier-Schicht aus Abschnitt 7. Genau diese Frage kann man mit n = 1 nicht stellen.
+
+Gibt es gar kein Plateau, ist das Kriterium nicht robust und muss ersetzt werden, nicht getunt.
+
+### 6b. Fehler getrennt messen, mit getrennten Bezugsgrößen
+
+Falschpositive und Falschnegative brauchen verschiedene Referenzen — es gibt keine einzelne
+„Trefferquote", die beides fasst:
+
+- **Falschpositive:** Kandidaten-Marken, die alle Kriterien passieren, aber **außerhalb jedes
+  Laufs und außerhalb des Startfensters** liegen. Maßzahl: Marken je Minute Nicht-Lauf-Zeit.
+  Diese Zeit ist reichlich vorhanden (Anfahrt, Pause, Steg, Einpacken) und braucht keine Labels —
+  dort darf schlicht kein Pumpstoß sein.
+- **Falschnegative:** Lücken im Lauf, in denen keine Marke gesetzt wurde, obwohl die
+  **Bandamplitude des Nickens** rhythmische Bewegung zeigt. Die Bandamplitude ist unabhängig von
+  der Marker-Logik und damit eine echte zweite Meinung.
+- **Quer dazu die Gegenprobe am zweiten Gerät:** das Verhältnis Brett-Marken zu Uhr-Pumpzahl je
+  Lauf. Nicht als Wahrheit — der Uhr-Zähler hat eigene Fehler —, sondern als **Streuungsmaß**:
+  wenn das Verhältnis bei allen Fahrern ähnlich liegt, arbeiten beide Seiten konsistent; streut es
+  stark, weiß man, dass eine der beiden Seiten fahrerabhängig ist.
+
+### 6c. Starttechniken: clustern, nicht katalogisieren
+
+50–100 Techniken lassen sich nicht auflisten, und das ist auch nicht nötig. Die Frage ist nicht
+„welche Technik war das", sondern **„erzeugt irgendeine Technik ein Ereignis, das meine Kriterien
+falsch einordnen?"**
+
+Verfahren: das Fenster von 30 s vor bis 5 s nach jedem Lauf-Anfang als Merkmalsvektor beschreiben
+— Dauer kopfüber, Zeitpunkt der Drehung, Nick-/Rollverlauf, Tempoverlauf, Hub und Aufwärts-Tempo
+des stärksten Zyklus —, dann clustern. Anschließend **je Cluster** prüfen, ob die Kriterien aus
+Abschnitt 5 halten. Ein Cluster, in dem sie versagen, ist ein konkreter, benennbarer Fall und kein
+diffuses „funktioniert manchmal nicht".
+
+Die beiden Techniken, die wir kennen, bilden damit von selbst die ersten zwei Cluster (normaler
+Start mit Anlauf, Dropstart) — und ihre Signaturen aus Abschnitt 5 sind die ersten Etiketten.
+
+### 6d. Nach Fahrer trennen, nicht nach Session
+
+Jede Schwelle wird **leave-one-rider-out** gewählt und geprüft: bestimmt an allen Fahrern außer
+einem, gemessen an dem einen. Sonst wird die Schwelle auf denselben Daten gewählt, auf denen sie
+bewertet wird — und mit n = 1 ist das nicht nur ungenau, sondern bedeutungslos.
+
+**Daraus folgt die Mindestzahl:** unter 8–10 Fahrern lohnt keine Schwellen-Bestimmung. Vorher ist
+die einzige sinnvolle Messung die aus Abschnitt 3a — wie gut das Vorhandene arbeitet.
+
+### 6e. Was zuerst nachgemessen wird, sobald die zweite Aufnahme eines fremden Fahrers da ist
+
+Eine einzige Fremd-Aufnahme beantwortet schon drei Fragen, für die es keine Schwellen braucht:
+
+1. Liegt der Pumptakt im Nicken, oder bei ihm woanders (Montage-Automatik, Klarheit)?
+2. Trennt das Rollen das Hantieren auch bei ihm (die 173° gegen 3°)?
+3. Stimmt die Marken-Zahl mit dem Pump-Zähler seiner Uhr in derselben Größenordnung?
+
+Alle drei sind Ja/Nein und brauchen keine Kalibrierung. Fällt eine davon anders aus als bei Jan,
+ist das die wichtigste Information, die wir aus der ersten Fremd-Aufnahme ziehen können.
+
+---
+
+## 7. Gestalt der Personalisierung
 
 ### Die Prämisse trägt — gemessen
 
@@ -363,7 +455,7 @@ wäre der saubere Beleg.
 
 ---
 
-## 7. Datenmodell — was schon passt
+## 8. Datenmodell — was schon passt
 
 - **`pump_truth`** (`session_id`, `t_ms`, `run_idx`, `take`, `created_at`) passt unverändert.
   Brett-abgeleitete Marken können mit eigenem `take` neben den getippten liegen und bleiben
@@ -378,7 +470,7 @@ wäre der saubere Beleg.
 
 ---
 
-## 8. Haken, die bekannt sein sollten
+## 9. Haken, die bekannt sein sollten
 
 1. **Reichweite.** 13 von 298 Nutzern haben je Uhr *und* Handy-Recorder benutzt (nicht einmal
    zwingend gleichzeitig). Bei der On-Foil-Zeit sieht es gut aus — 152 Nutzer haben kumuliert über
@@ -403,16 +495,19 @@ wäre der saubere Beleg.
 
 ---
 
-## 9. Reihenfolge
+## 10. Reihenfolge
 
 1. **Handgelenk + Stance ins Profil, Montageort an die Session.** Kostet fast nichts, ist
    nachträglich unmöglich. **Muss vor dem Sammeln stehen.**
 2. **Ableiter bauen** (Nickschwingung → `pump_truth` mit eigenem `take`) + Paar-Sessions
    verknüpfen.
-3. **Marker-Definition umsetzen:** tiefster Punkt = Minimum des Hubs, einer je Zyklus; gültig ab
-   einem Aufwärts-Tempo von ~10–15 cm/s, bei |Nicken| und |Rollen| < 45° und oberhalb eines
-   Mindesttempos bzw. im Lauf plus 4 s Vorfenster (Abschnitt 5). Gegenprobe je Aufnahme gegen den
-   Pump-Zähler der parallel laufenden Uhr — kein Handtippen nötig.
+3. **Marker-Definition umsetzen:** tiefster Punkt = Minimum des Hubs, einer je Zyklus. Die
+   Schwellen (Aufwärts-Tempo, Lagegrenze, Vorfenster) **zunächst als Startwerte** aus Abschnitt 5
+   einsetzen und als solche kennzeichnen — festgelegt werden sie erst nach dem Messplan in
+   Abschnitt 6, ab 8–10 Fahrern. Gegenprobe je Aufnahme gegen den Pump-Zähler der parallel
+   laufenden Uhr.
+   Bei der ERSTEN Fremd-Aufnahme die drei Ja/Nein-Fragen aus 6e beantworten — sie brauchen keine
+   Kalibrierung und sind das Wertvollste, was eine einzelne Aufnahme hergibt.
 4. **Sammeln: 8–10 Nutzer × 5 min** → erste ehrliche Messung, wie gut die heutige Pump-Erkennung
    ist. Ergebnis ist eine Zahl, die es bisher nicht gibt.
 5. **Persönliches Kadenzband** aus der vorhandenen Historie (kein Handy nötig, 92 Nutzer sofort).
@@ -425,7 +520,7 @@ Verbesserung unbelegbar.
 
 ---
 
-## 10. Beschaffung
+## 11. Beschaffung
 
 Jan hat am 21.09.2026 ein Video aufgenommen, das die Lage-Ansicht neben der Fahrt zeigt — oben die
 Animation, unten Nicken, Gieren, Rollen und die Kurven parallel. Jeder sieht darin unmittelbar,
