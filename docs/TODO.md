@@ -1390,6 +1390,63 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔲 21.09. — PLAN: gleichzeitige Aufnahmen zweier Geraete verknuepfen (Uhr + Handy am Brett).**
+  Jans Ziel: „die beste Analyse die moeglich ist aus den gesamt-daten beider aufzeichnungen als
+  eine" — ausdruecklich **nicht in den Daten, sondern in der Auswertung**. Oberflaeche und
+  automatisches Erkennen kommen spaeter; markieren darf es ohnehin nur ein Admin.
+
+  **`merge.py` ist NICHT der Weg und darf es nicht werden.** Es haengt Aufnahmen chronologisch
+  aneinander (Weg A, fuer nacheinander aufgezeichnete Teile) und lehnt diesen Fall bewusst ab:
+  „Sessions ueberschneiden sich zeitlich (parallele Aufnahme)", dazu „verschiedene
+  Uhren/Geraete". Beides richtig — aneinandergehaengt kaeme die Strecke doppelt heraus. Gebraucht
+  wird eine zweite, andere Beziehung: eine VERKNUEPFUNG, die beide Sessions stehen laesst.
+
+  **1. Zeitsynchronisation — der einzige wirklich schwierige Teil, und er ist loesbar.**
+  Jans Vorschlag (21.09.): die erkannten LAEUFE uebereinanderlegen und mitteln. An den Daten von
+  heute nachgerechnet, mit zwei Verfahren:
+  - Kreuzkorrelation der GPS-TEMPO-Reihen: bester Versatz +3 s, aber nur r = 0,38 — zu schwach.
+    Kein Wunder, in dieser Aufnahme steht das Tempo fast durchgehend bei null.
+  - Abgleich ueber den ORT, beschraenkt auf Sekunden mit Bewegung (Jans Idee): **+2 s**,
+    Medianabstand 3,4 m gegen 4,4 m bei Versatz 0, mit sauberem Minimum in der Umgebung
+    (5,0 / 5,0 / 4,4 / 3,6 / **3,4** / 5,6 / 7,1 m). Das ist der bessere Weg — auch weil der Ort
+    im Stillstand kein Signal hat, aber auch nicht luegt.
+  - **Erreichbare Genauigkeit:** der Ortsabgleich hatte heute nur 38 Sekunden Bewegung. Bei
+    rund 5,7 m Rauschen auf der Differenz und 4 m/s Fahrt sind das ~1,4 s pro Stuetzstelle,
+    gemittelt ueber einen 33-s-Lauf also rund 0,25 s. Fuer Puls und Laufzuordnung reicht das
+    dicke; fuer den Vergleich EINZELNER Pumpstoesse (Zyklus ~1 s) ist es grenzwertig.
+  - **Feinabgleich spaeter:** beide Geraete sehen denselben Pumprhythmus (Brett nickt, Arm
+    schwingt mit). Die Einhuellenden im Pumpband (0,3-3 Hz) kreuzkorreliert, sobald beide
+    denselben Lauf aufgezeichnet haben, sollten unter 100 ms liegen. **Heute nicht moeglich** —
+    es gibt keinen gemeinsamen Lauf (s. Befund oben).
+  - **Nicht nur EIN Versatz:** zwei Geraete haben zwei Quarze. 100 ppm Drift sind ueber 30 min
+    schon 180 ms. Ueber mehrere Laeufe also Versatz UND Gang schaetzen (Gerade statt Konstante),
+    sonst stimmt die Synchronisation am Anfang und am Ende nicht gleichzeitig.
+
+  **2. Wer was beitraegt** (Kanal-Zustaendigkeit, statt zu mitteln):
+  | Groesse | Quelle | warum |
+  |---|---|---|
+  | Puls | nur die Uhr | das Handy hat keinen |
+  | Lage, Hub des Bretts | nur das Handy am Brett | die Uhr misst den Arm |
+  | Pump-Zahl und -Takt | heute die Uhr (Modell gilt dort) | am Brett fehlt das Modell |
+  | Laufe/Segmentierung | die laengere/bessere Aufnahme | heute die Uhr |
+  | GPS-Spur | je Abschnitt die bessere Genauigkeit | beide melden `h_acc` |
+  | Abdeckung | Vereinigung beider Zeitraeume | heute: Handy 11,9 min, Uhr 36,7 min |
+
+  **3. Umsetzung, in dieser Reihenfolge:**
+  1. Beziehung `paired_session_id` (oder eine eigene Tabelle) + `zeitversatz_ms` + ein
+     Guetemass. Admin-only, kein UI.
+  2. Versatz aus dem Ortsabgleich ueber die erkannten Laeufe, wie oben; Guete = Medianabstand.
+  3. LESESEITIG zusammensetzen — die Detailansicht holt den Puls aus der Partner-Session, die
+     Lage-Ansicht ihre Daten vom Handy. Nichts wird kopiert, nichts ueberschrieben.
+  4. Erst danach ueberlegen, ob es eine gemeinsame Auswertung als EINE Session braucht.
+
+  **4. Der eigentliche Gewinn (Jan): Ground Truth fuer das Pump-Modell.** Dass die Beschleunigung
+  am Handgelenk voellig anders aussieht als am Brett, ist erwartbar — aber das Brett zeigt, WANN
+  wirklich gepumpt wurde. Damit laesst sich die Erkennung aus dem Handgelenk gegen eine echte
+  Wahrheit messen, statt gegen abgezaehlte Videos. Setzt eine Aufnahme voraus, in der BEIDE
+  Geraete denselben Lauf haben — die fehlt bisher.
+
+
 - **🔴 21.09. — Erste echte Brett-Aufnahme ausgewertet (Handy 9484 + fenix 9485). Drei Befunde,
   zwei davon brauchen Jans OK.**
 
