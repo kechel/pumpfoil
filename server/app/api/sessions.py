@@ -3491,6 +3491,10 @@ def board_lage(
     yaw_window_s: float = Query(1.0, ge=0.1, le=10.0),
     height_window_s: float = Query(3.0, ge=1.0, le=10.0,
                                    description="Ab welcher Dauer die Hoehe als „ausgerichtet\" gilt"),
+    # Freies Fenster in SESSION-ms — fuer Startversuche, die keine Lauf-Nummer haben. Die
+    # Oberflaeche holt ihre Zeiten aus `/attempts` (dort stehen sie schon in Session-ms).
+    from_ms: int | None = Query(None, ge=0),
+    to_ms: int | None = Query(None, ge=0),
     hz: float = Query(20.0, ge=2.0, le=50.0),
     user: models.User = Depends(current_user),
     db: Session = Depends(get_db),
@@ -3537,6 +3541,10 @@ def board_lage(
         g = segmente[run]
         von = int(g.get("t_start_session_ms", int(g["t_start_ms"]) + off))
         bis = int(g.get("t_end_session_ms", int(g["t_end_ms"]) + off))
+    elif from_ms is not None and to_ms is not None:
+        if to_ms <= from_ms:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "to_ms muss groesser als from_ms sein")
+        von, bis = int(from_ms), int(to_ms)
 
     # Nullpunkt-Bezug: ALLE Laeufe, auch wenn nur einer gezeigt wird. Die Null ist eine
     # Eigenschaft der Montage, nicht des Ausschnitts — sonst spraenge der Winkel beim
