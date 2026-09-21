@@ -637,10 +637,15 @@ IN_REVIEW: list[dict] = [
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
     {"name": "Amazfit", "version": "1.0.12",
-     # Nummer NICHT in app.json gebumpt: 1.0.11 liegt seit 19.09. beim Zepp-Store. Gebumpt wird
-     # erst, wenn der Ausgang feststeht — wie bei Android.
+     # GEBUMPT auf 1.0.12 / code 15, nachdem 1.0.11 am 21.09. freigegeben wurde.
      "items": [
          "Amazfit watches vibrate at the distance and time marks set in your profile.",
+         "A recording keeps the screen awake for as long as it runs. The watch was told once at "
+         "the start and never reminded, and Zepp quietly drops that setting — after a few "
+         "minutes the watch face came back and the app was gone. Reported by a rider whose "
+         "recording stopped after four and a half minutes.",
+         "If the start button is greyed out, tapping it now says why — waiting for GPS, or an "
+         "upload still running. It used to do nothing at all, which reads like a broken app.",
      ]},
 
 
