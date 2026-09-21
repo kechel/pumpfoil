@@ -474,6 +474,9 @@ export default function SessionDetail() {
   // ECHTE Zeit je Track-Punkt (Session-ms) vom Server. null = noch nicht da oder nicht
   // nutzbar, dann greift die Schaetzung in `indexZuSessionMs`.
   const [trackZeiten, setTrackZeiten] = useState<number[] | null>(null);
+  // Laenge der Wiedergabe in Sekunden (Luecken gedeckelt) — fuer Balken und Zeitangabe. Vorher
+  // stand dort die Zahl der GPS-Punkte, was „ein Punkt = eine Sekunde" unterstellte.
+  const [spielDauerS, setSpielDauerS] = useState(0);
   const [progress, setProgress] = useState(0);        // 0..1 (für Fortschrittsbalken)
   // ABSOLUTE Zeit des Abspielzeigers in Session-ms. Der Bruchteil oben taugt nur fuer den
   // Balken; wer einen anderen Zeitraum zeigt (Lage-Ansicht), braucht die echte Zeit.
@@ -1306,6 +1309,40 @@ export default function SessionDetail() {
     };
 
     /**
+     * ABSPIEL-ZEITACHSE: zu jedem Eintrag der Liste die aufgelaufene Wiedergabezeit in ms.
+     *
+     * Die Wiedergabe lief bisher ueber den INDEX — ein GPS-Punkt je Sekunde bei 1x. Das ist nur
+     * ungefaehr Echtzeit (die Punkte kommen mit 998 statt 1000 ms) und faellt ganz auseinander,
+     * wo das GPS eine Luecke hat. Jan will 1:1 (21.09.: „mir geht es um die 1:1
+     * Echtzeit-Wiedergabe der Play-Funktion mit den Animationen und Lage-Kurven"), also laeuft
+     * die Wiedergabe jetzt ueber die ZEIT und der Index folgt ihr.
+     *
+     * LUECKEN WERDEN GEDECKELT. Bei „alle Laeufe" haengt die Liste Laeufe aneinander, zwischen
+     * denen Minuten liegen — die auszusitzen waere kein Realismus, sondern ein Standbild. Ueber
+     * `LUECKE_MAX_MS` hinaus wird gesprungen; innerhalb eines Laufs (und mit dem Rand darum)
+     * gibt es solche Spruenge nicht, dort ist die Wiedergabe exakt 1:1.
+     */
+    const LUECKE_MAX_MS = 2000;
+    const listeZeiten = playTimeline.map((i) => indexZuSessionMs(i));
+    const spielT: number[] = new Array(listeZeiten.length);
+    spielT[0] = 0;
+    for (let k = 1; k < listeZeiten.length; k++) {
+      spielT[k] = spielT[k - 1] + Math.min(Math.max(listeZeiten[k] - listeZeiten[k - 1], 0), LUECKE_MAX_MS);
+    }
+    const spielDauer = spielT[spielT.length - 1] || 1;
+    if (Math.abs(spielDauerS - spielDauer / 1000) > 0.05) setSpielDauerS(spielDauer / 1000);
+    /** Abspielzeit -> Kommazahl-Index in der Liste. */
+    const kopfBeiSpielzeit = (e: number): number => {
+      if (e <= 0) return 0;
+      if (e >= spielDauer) return lastIdx;
+      let lo = 0, hi = lastIdx;
+      while (lo < hi) { const m = (lo + hi) >> 1; if (spielT[m] <= e) lo = m + 1; else hi = m; }
+      const k = Math.max(0, lo - 1);
+      const w = spielT[k + 1] - spielT[k];
+      return k + (w > 0 ? (e - spielT[k]) / w : 0);
+    };
+
+    /**
      * Zeit des Abspielkopfs in Session-ms — ZWISCHEN den GPS-Punkten interpoliert.
      *
      * `headF` ist eine Kommazahl, die Spitze auf der Karte wird damit auch schon fein
@@ -1378,21 +1415,28 @@ export default function SessionDetail() {
     renderTip(drawn);
     setReadout(readoutAt(headF));
     setPlayTMs(zeitBeiKopf(headF));
+    setProgress(spielT[Math.min(Math.floor(headF), lastIdx)] / spielDauer);
 
     if (!playing) return;   // pausiert: Standbild, keine Animation
 
     let raf = 0;
     let last = performance.now();
-    const PPS = 1;   // ~1 GPS-Punkt/s -> 1× ≈ Echtzeit
+    // Wo stehen wir auf der ABSPIEL-Zeitachse? Aus dem aktuellen Kopf zurueckgerechnet, damit
+    // Pause, Sprung per Maus und Schleifen-Neustart alle denselben Einstieg haben.
+    let e = spielT[Math.min(Math.floor(headF), lastIdx)]
+            + (headF % 1) * ((spielT[Math.min(Math.floor(headF) + 1, lastIdx)]
+                              - spielT[Math.min(Math.floor(headF), lastIdx)]) || 0);
     const step = (now: number) => {
       const dt = (now - last) / 1000; last = now;
-      headF = Math.min(headF + dt * playMul * PPS, lastIdx);
+      // 1x = 1000 ms Aufnahme je Sekunde Wanduhr. Exakt, nicht „ungefaehr ein GPS-Punkt".
+      e = Math.min(e + dt * playMul * 1000, spielDauer);
+      headF = kopfBeiSpielzeit(e);
       const hi = Math.floor(headF);
       for (let k = drawn; k < hi; k++) addSeg(k);
       drawn = hi;
       renderTip(hi);
       playheadRef.current = headF;
-      setProgress(lastIdx > 0 ? headF / lastIdx : 0);
+      setProgress(e / spielDauer);
       setPlayTMs(zeitBeiKopf(headF));
       setReadout(readoutAt(headF));
       // Am Ende von vorn (Jan, 21.09.) — fuer eine Bildschirmaufzeichnung soll die Runde
@@ -1400,7 +1444,7 @@ export default function SessionDetail() {
       // Karten-Effekt neu aufbauen, und der startet bei `playheadRef` = 0 samt Animation.
       // Die Spur muss dafuer wirklich neu gezeichnet werden: sie waechst Stueck fuer Stueck,
       // ein blosses Zuruecksetzen des Kopfes liesse das alte Bild stehen.
-      if (headF >= lastIdx) {
+      if (e >= spielDauer) {
         if (lastIdx <= 0) { setPlaying(false); return; }
         playheadRef.current = 0;
         setProgress(0);
@@ -2028,7 +2072,7 @@ export default function SessionDetail() {
                     <div className="h-full rounded-full bg-brand-400" style={{ width: `${Math.round(progress * 100)}%` }} />
                   </div>
                   <span className="w-20 shrink-0 text-right text-[11px] tabular-nums text-slate-400">
-                    {fmtMMSS(progress * (playTimeline.length - 1))} / {fmtMMSS(playTimeline.length - 1)}
+                    {fmtMMSS(progress * spielDauerS)} / {fmtMMSS(spielDauerS)}
                   </span>
                 </div>
               </>
