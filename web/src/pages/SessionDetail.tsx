@@ -438,9 +438,11 @@ export default function SessionDetail() {
   // Ausgewaehlter STARTVERSUCH (Index in `attemptSegs`). Schliesst sich mit `selectedRun` aus:
   // beide schneiden denselben Zeitraum zu, zwei gleichzeitige Auswahlen waeren nicht darstellbar.
   const [selectedAttempt, setSelectedAttempt] = useState<number | null>(null);
-  // Lage-Abschnitt (Nicken/Rollen/Gieren). Nur bei „Handy am Brett" — und markieren duerfen das
-  // nur Admins, deshalb braucht der Abschnitt selbst kein weiteres Gate.
-  const [zeigeLage, setZeigeLage] = useState(false);
+  // Lage-Abschnitt (Nicken/Rollen/Gieren). KEIN eigener Schalter mehr (Jan, 21.09.: „gar nicht
+  // mehr per Button extra einblendbar machen, sobald ‚Handy am Brett' immer anzeigen"). Er
+  // haengt allein an der Markierung, und die darf nur ein Admin setzen — damit braucht der
+  // Abschnitt kein weiteres Gate.
+  const zeigeLage = session?.placement === "board";
   const [speedMin, setSpeedMin] = useState(8);
   const [speedMax, setSpeedMax] = useState(25);
   const [autoScaleOn, setAutoScaleOn] = useState(true);
@@ -1829,18 +1831,6 @@ export default function SessionDetail() {
             </div>
           );
 
-          const lageSchalter = session.placement === "board" && !fullscreen && (
-            <div className="mt-3">
-              <button
-                onClick={() => setZeigeLage((v) => !v)}
-                className={`inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium ${zeigeLage
-                  ? "bg-brand-500 text-slate-950" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
-              >
-                {zeigeLage ? t("board.map") : t("board.show")}
-              </button>
-            </div>
-          );
-
           // Die Ansicht selbst haengt am `progress` der Karte — eine zweite Zeitachse zu bauen
           // waere genau der Fehler, der `syncPlayback` schon 14 % Drift gekostet hat.
           const lageAnsicht = untenAnordnen && (
@@ -1858,11 +1848,9 @@ export default function SessionDetail() {
           return (
             <>
               {!untenAnordnen && laufWahl}
-              {!untenAnordnen && lageSchalter}
               {lageAnsicht}
               {untenAnordnen && laufWahl}
               {versuchWahl}
-              {untenAnordnen && lageSchalter}
             </>
           );
         })()}
