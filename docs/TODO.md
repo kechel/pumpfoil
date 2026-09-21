@@ -1391,6 +1391,29 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **✅ 21.09. — 1.0.11 im Feld belegt: erste Amazfit-Aufnahme nach der Freigabe lief durch.**
+  u352 (Amazfit GTR 4) hat direkt nach unserer Nachricht getestet, zu Hause, ohne echtes Pumpen
+  (#9501, 13:25, 4,5 min). **Beide Fehler, um die es ging, sind damit im Feld erledigt:**
+  32 von 32 Chunks angekommen (der Upload starb vorher an „Out of Memory"), und das GPS deckt
+  **100 %** der 268 Sekunden ab — die Aufnahme ist also nicht unterwegs abgebrochen. Erste
+  Amazfit-Aufnahme ueberhaupt, bei der beides stimmt.
+
+- **🔲 21.09. — Bei niedriger Accel-Rate misst das Modell ein Band, das es nicht geben kann.**
+  An #9501 aufgefallen: 9,4 Hz gemessen (9 angefordert, die Uhr haelt sich also daran). Das
+  Modell rechnet `hf_rms` ueber **3-15 Hz** — bei 9,4 Hz Abtastung liegt die Nyquist-Grenze bei
+  4,7 Hz. Zwei Drittel des Bandes gibt es gar nicht, der Rest ist von Aliasing betroffen. Eines
+  von drei Amplituden-Merkmalen ist damit Unsinn, und die Session laeuft trotzdem ueber den
+  Modellweg, weil `MODEL_MIN_ACCEL_HZ = 8.0` sie durchlaesst.
+  **Verbreitung** (alle Amazfit-Sessions mit gemessener Rate, 21 Stueck): 8 ueber 30 Hz
+  (Mittel 93), 7 zwischen 16 und 30 (24), **3 zwischen 8 und 16 (10,2)**, 3 unter 8 (die fallen
+  schon heute auf `gps_only`). Die Raten schwanken je Aufnahme extrem — 4,9 / 9,4 / 25,9 / 113 —,
+  das ist kein Nutzer-Schalter, sondern was das jeweilige Geraet schafft.
+  **Zu klaeren, ANALYSE-PIPELINE, also erst mit Jans OK:** ob die Schranke von 8 Hz zu niedrig
+  liegt. Sauber waere etwa die doppelte obere Bandgrenze (30 Hz); das wuerde aber Sessions, die
+  heute ueber das Modell laufen, auf `gps_only` schieben — vorher messen, wie viele und mit
+  welcher Folge. Alternativ das Band an die Rate anpassen, statt es fest zu lassen.
+
+
 - **✅ 21.09. — Montage-Drehung ist jetzt einstellbar (`sessions.attitude_rot_deg`), weil sie
   sich NICHT messen laesst.**
   Jans Befund: beim Dropstart zeigte die Lage-Ansicht **+43° Nase hoch**, tatsaechlich haengt
