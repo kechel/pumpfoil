@@ -2784,6 +2784,41 @@ def _turn_events(lat: np.ndarray, lon: np.ndarray, i0: int, i1: int,
     return ev
 
 
+@router.get("/{session_id}/track-times")
+def get_track_times(
+    session_id: int,
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    """ECHTE Zeit je Punkt der Kartenspur, in SESSION-Millisekunden. Read-only.
+
+    WOZU: die Oberflaeche braucht zu einem Track-Index die Zeit — fuer den Abspielzeiger, der
+    Karte und Lage-Ansicht zusammenhaelt. Bisher hat sie das GESCHAETZT: linear zwischen den
+    Lauf-Ankern (`i_start`/`t_start_ms`) und aussen mit 1 Hz fortgeschrieben. Das geht schief,
+    sobald das GPS eine Luecke hat — die Interpolation verteilt sie ueber den ganzen Bereich
+    dazwischen. An #9484 (57 s Luecke) waren das im Fenster vor Lauf 1 bis zu **9,7 Sekunden
+    Versatz**, die bis zum Laufbeginn auf null zusammenliefen: das Nicken lief sichtbar aus dem
+    Takt (Jans Befund 21.09.).
+
+    Die Spur besteht aus den zugeschnittenen, nicht ausgeschlossenen GPS-Samples — hier wird
+    genau dieselbe Auswahl noch einmal gebildet. Die Oberflaeche prueft die ANZAHL gegen die
+    Punkte der Spur und faellt auf ihre Schaetzung zurueck, wenn sie nicht passt; damit kann
+    eine kuenftige Abweichung in der Pipeline hier nichts verschieben.
+    """
+    s = _readable(db, session_id)
+    gps = storage.load_gps(s.session_uuid)
+    if not gps:
+        return {"t_ms": []}
+    lo = int(s.trim_start_ms) if s.trim_start_ms is not None else 0
+    hi = int(s.trim_end_ms) if s.trim_end_ms is not None else None
+    from ..analysis import excluded_windows
+    aus = excluded_windows(s)
+    t = [int(r[0]) for r in gps
+         if r[0] >= lo and (hi is None or r[0] <= hi)
+         and not any(a <= r[0] <= b for a, b in aus)]
+    return {"t_ms": t}
+
+
 @router.get("/{session_id}/attempts")
 def get_attempts(
     session_id: int,

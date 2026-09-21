@@ -1310,6 +1310,11 @@ export const api = {
   sessionAttempts: (id: number) =>
     req<{ attempts: { points: [number, number][]; t_start_ms: number; distance_m: number; duration_s: number; avg_speed_mps: number; outside_trim: boolean }[] }>(
       `/api/sessions/${id}/attempts`),
+
+  // ECHTE Zeit je Punkt der Kartenspur (Session-ms). Ohne sie muss die Oberflaeche den Index
+  // in eine Zeit SCHAETZEN, und das geht bei GPS-Luecken schief (s. Endpunkt).
+  sessionTrackTimes: (id: number) =>
+    req<{ t_ms: number[] }>(`/api/sessions/${id}/track-times`),
   sessionCarves: (id: number) =>
     req<CarveData>(`/api/sessions/${id}/carves`),
   communitySessions: (limit = 20, offset = 0, opts: { name?: string; spot?: string; accelOnly?: boolean;
