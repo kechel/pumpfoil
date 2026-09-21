@@ -795,19 +795,6 @@ export default function SessionDetail() {
   // Play-Timeline: geordnete Punkt-Indizes, die abgespielt werden — der gewählte Lauf,
   // sonst alle Foiling-Läufe nacheinander, sonst (GPS-only) die ganze Spur. ~1 Hz GPS,
   // d.h. ein Index ≈ eine Sekunde.
-  const playTimeline = useMemo<number[]>(() => {
-    const gj = session?.analysis?.track_geojson;
-    if (!gj) return [];
-    const n = gj.geometry.coordinates.length;
-    const segs = session?.analysis?.segments ?? [];
-    const push = (s: any, out: number[]) => {
-      for (let i = s.i_start; i <= s.i_end && i < n; i++) out.push(i);
-    };
-    if (selectedRun != null && segs[selectedRun]) { const a: number[] = []; push(segs[selectedRun], a); return a; }
-    if (segs.length) { const a: number[] = []; segs.forEach((s: any) => push(s, a)); return a; }
-    return Array.from({ length: n }, (_, i) => i);
-  }, [session, selectedRun]);
-
   /**
    * Track-Index -> SESSION-Millisekunde.
    *
@@ -843,6 +830,38 @@ export default function SessionDetail() {
       return off + idx * 1000;
     };
   }, [session]);
+
+  // Zeitfenster des ausgewaehlten Startversuchs in Session-ms — eine Quelle fuer Karte,
+  // Wiedergabe und Lage-Ansicht, damit die drei nie auseinanderlaufen koennen.
+  const versuchFenster = useMemo<[number, number] | null>(() => {
+    const v = selectedAttempt != null ? attemptSegs?.[selectedAttempt] : null;
+    return v ? [v.t_start_ms, v.t_start_ms + v.duration_s * 1000] : null;
+  }, [selectedAttempt, attemptSegs]);
+
+  const playTimeline = useMemo<number[]>(() => {
+    const gj = session?.analysis?.track_geojson;
+    if (!gj) return [];
+    const n = gj.geometry.coordinates.length;
+    const segs = session?.analysis?.segments ?? [];
+    const push = (s: any, out: number[]) => {
+      for (let i = s.i_start; i <= s.i_end && i < n; i++) out.push(i);
+    };
+    if (selectedRun != null && segs[selectedRun]) { const a: number[] = []; push(segs[selectedRun], a); return a; }
+    // Ausgewaehlter STARTVERSUCH: die Track-Punkte in seinem Zeitfenster abspielen (Jan, 21.09.:
+    // er will die Versuche fuer ein Praesentationsvideo mit den Grafiken zusammen abspielen).
+    // Versuche haben keine `i_start`/`i_end` — sie kommen als Zeiten aus `/attempts` —, deshalb
+    // hier ueber die Zeitachse zurueckgesucht. Liegt der Versuch ausserhalb des Zuschnitts, ist
+    // er im Track gar nicht enthalten; dann bleibt die Liste leer und die Wiedergabe zeigt
+    // nichts — genau das passiert an #9484, solange der kaputte Zuschnitt steht.
+    if (versuchFenster) {
+      const [va, vb] = versuchFenster;
+      const a: number[] = [];
+      for (let i = 0; i < n; i++) { const t = indexZuSessionMs(i); if (t >= va && t <= vb) a.push(i); }
+      if (a.length >= 2) return a;
+    }
+    if (segs.length) { const a: number[] = []; segs.forEach((s: any) => push(s, a)); return a; }
+    return Array.from({ length: n }, (_, i) => i);
+  }, [session, selectedRun, versuchFenster, indexZuSessionMs]);
 
   // Wechselt die Timeline (Lauf-Auswahl/Session), Wiedergabe zurücksetzen.
   useEffect(() => {
@@ -1809,14 +1828,11 @@ export default function SessionDetail() {
 
           // Die Ansicht selbst haengt am `progress` der Karte — eine zweite Zeitachse zu bauen
           // waere genau der Fehler, der `syncPlayback` schon 14 % Drift gekostet hat.
-          const gewaehlterVersuch = selectedAttempt != null
-            ? attemptSegs?.[selectedAttempt] ?? null : null;
           const lageAnsicht = untenAnordnen && (
             <div className="mt-3">
               <BoardAttitude sessionId={session.id} run={selectedRun}
-                vonMs={gewaehlterVersuch?.t_start_ms ?? null}
-                bisMs={gewaehlterVersuch
-                  ? gewaehlterVersuch.t_start_ms + gewaehlterVersuch.duration_s * 1000 : null}
+                vonMs={versuchFenster?.[0] ?? null}
+                bisMs={versuchFenster?.[1] ?? null}
                 progress={progress} playMode={playMode} playTMs={playTMs}
                 startedAt={session.started_at} tz={session.tz}
                 pausen={session.pause_windows ?? []} />

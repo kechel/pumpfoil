@@ -1390,6 +1390,21 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **📋 21.09. — Session #9484 von Hand geradegezogen (Jans Ansage: „nur fuer diese eine Session
+  erstmal, Pipeline-Aenderungen fuer alle spaeter").**
+  Gesetzt: `trim_start_ms = 0`, `trim_end_ms = 711781` (die ganze Aufnahme), **`trim_auto = False`**
+  — damit fasst `maybe_auto_trim` den Zuschnitt nicht wieder an —, und `pumpfoil_override = True`.
+  Danach neu analysiert.
+  **Ergebnis:** aus 0 Laeufen wurden **2** (07:37:37 / 26 m und 07:44:05 / 33 m), die Karte hat
+  wieder alle 568 Track-Punkte statt der 22 im 37-Sekunden-Fenster, `is_pumpfoil` steht auf True.
+  Beide frueheren „Startversuche" sind damit richtige Laeufe — `/attempts` liefert
+  folgerichtig nichts mehr, denn geglueckte Versuche SIND die Laeufe.
+  **Das ist eine Handkorrektur an einer Session, keine Loesung.** Die Pipeline-Aenderung steht
+  weiter aus (s. den Befund zum Auto-Zuschnitt): nicht zuschneiden, wenn die erkannten Laeufe
+  nur einen Bruchteil der Aufnahme abdecken, und die Startversuche mitzaehlen. Solange die
+  fehlt, trifft es jede weitere Brett-Aufnahme genauso.
+
+
 - **🔲 21.09. — PLAN: gleichzeitige Aufnahmen zweier Geraete verknuepfen (Uhr + Handy am Brett).**
   Jans Ziel: „die beste Analyse die moeglich ist aus den gesamt-daten beider aufzeichnungen als
   eine" — ausdruecklich **nicht in den Daten, sondern in der Auswertung**. Oberflaeche und
