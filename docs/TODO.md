@@ -1246,8 +1246,10 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   überhaupt nicht (`longest_glide_s` ist die Lücke zwischen *erkannten* Pumps, erbt also jeden
   Fehler). **Wir wissen nicht, wie gut die Pump-Erkennung arbeitet.** Eine 10-min-Paar-Aufnahme
   liefert ~810 Marken, mehr als alles bisher Getippte. Zielmengen: 8–10 Nutzer × 5 min zum MESSEN,
-  10–15 × 10 min für ein Gleit-Modell. **Zuerst nötig (nachträglich unmöglich): Handgelenk +
-  Stance ins Profil, Montageort an die Session.** Reihenfolge, Speicherbedarf der Personalisierung
+  10–15 × 10 min für ein Gleit-Modell. **Marker-Definition steht** (Jan): tiefster Punkt =
+  Minimum des Hubs, einer je Zyklus — nachgemessen 104 gegen 103/106 Marken der Pump-Zähler, also
+  ~1 %; Handtippen entfällt, der Label-Editor kann weg sobald der Ableiter steht. **Zuerst nötig
+  (nachträglich unmöglich): Handgelenk + Stance ins Profil, Montageort an die Session.** Reihenfolge, Speicherbedarf der Personalisierung
   und fünf Haken stehen im Dokument. Beschaffung: Jans Short zur Lage-Ansicht, veröffentlicht
   sobald die Android-Version freigegeben ist.
 
