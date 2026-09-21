@@ -13,10 +13,13 @@ Format der JSON-Datei: eine Liste von Objekten.
       "text": "…",
       "versionen": {"garmin": "1.0.86"},   # optional; leer = gilt ueberall sofort
       "img": null, "img_alt": null,        # optional
+      "art": "punkt",                      # optional; "ereignis" = Schritt im Store-Lauf
       "entwurf": false}]                   # optional; true haelt den Punkt zurueck
 
-`pos` wird NICHT angegeben: das Skript zaehlt je Tag hinter den vorhandenen Punkten weiter, in
-der Reihenfolge der Datei. Deutsche Anfuehrungszeichen und Gedankenstriche gehoeren in die
+`pos` wird NICHT angegeben: das Skript zaehlt je Tag hinter den vorhandenen weiter, in der
+Reihenfolge der Datei — Punkte ab 0, EREIGNISSE ab 100. Getrennte Baender, damit ein neues
+Ereignis sich nicht zwischen die Funktionspunkte schiebt (so liegen die Zeilen seit 18.09. in
+der Tabelle, und die Anzeige sortiert nach `pos`). Deutsche Anfuehrungszeichen und Gedankenstriche gehoeren in die
 JSON-Datei, nicht in eine Kommandozeile (s. Memory `german-quotes-in-scripts`).
 """
 import argparse
@@ -48,15 +51,21 @@ def main() -> None:
         sys.exit("Die Datei muss eine nicht-leere Liste enthalten.")
 
     db = SessionLocal()
-    naechste_pos: dict[date, int] = {}
+    naechste_pos: dict[tuple[date, str], int] = {}
     neu = []
     for p in punkte:
         tag = date.fromisoformat(p["tag"])
-        if tag not in naechste_pos:
+        art = p.get("art", "punkt")
+        if art not in ("punkt", "ereignis"):
+            sys.exit(f"Unbekannte art {art!r} — erlaubt sind \"punkt\" und \"ereignis\".")
+        basis = 100 if art == "ereignis" else 0
+        if (tag, art) not in naechste_pos:
             vorhanden = (db.query(models.ChangelogItem)
-                         .filter(models.ChangelogItem.tag == tag).all())
-            naechste_pos[tag] = max((z.pos for z in vorhanden), default=-1) + 1
-            print(f"{tag}: {len(vorhanden)} Punkt(e) vorhanden, weiter bei pos {naechste_pos[tag]}")
+                         .filter(models.ChangelogItem.tag == tag,
+                                 models.ChangelogItem.art == art).all())
+            naechste_pos[(tag, art)] = max((z.pos for z in vorhanden), default=basis - 1) + 1
+            print(f"{tag} [{art}]: {len(vorhanden)} vorhanden, weiter bei pos "
+                  f"{naechste_pos[(tag, art)]}")
         # Denselben Text am selben Tag nicht zweimal anlegen — ein zweiter Aufruf derselben
         # Datei soll nichts doppeln (die Punkte stehen oeffentlich).
         schon = (db.query(models.ChangelogItem)
@@ -66,14 +75,14 @@ def main() -> None:
             print(f"  UEBERSPRUNGEN (steht schon da, id {schon.id}): {p['text'][:60]}")
             continue
         zeile = models.ChangelogItem(
-            tag=tag, pos=naechste_pos[tag], text=p["text"],
+            tag=tag, pos=naechste_pos[(tag, art)], text=p["text"], art=art,
             img=p.get("img"), img_alt=p.get("img_alt"),
             entwurf=bool(p.get("entwurf", False)),
             versionen=json.dumps(p["versionen"], ensure_ascii=False) if p.get("versionen") else None,
         )
-        naechste_pos[tag] += 1
+        naechste_pos[(tag, art)] += 1
         neu.append(zeile)
-        print(f"  pos {zeile.pos}: {p['text'][:70]}")
+        print(f"  pos {zeile.pos} [{art}]: {p['text'][:70]}")
         if zeile.versionen:
             print(f"        versionen={zeile.versionen}")
 

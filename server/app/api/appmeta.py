@@ -53,8 +53,17 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.35",   # FREIGEGEBEN 2026-09-20, ZWEITE Apple-Mail („The following app is
-        # ready for distribution · App Version Number: 1.1.35 · Platform: iOS"). Eingereicht am
+        "latest": "1.1.36",   # FREIGEGEBEN 2026-09-21, ZWEITE Apple-Mail („The following app is
+        # ready for distribution · App Version Number: 1.1.36 · Platform: iOS").
+        # GEGENGEPRUEFT an der Store-API in de/us/gb/ch: alle vier melden 1.1.36 mit
+        # currentVersionReleaseDate 2026-09-21T02:28:55Z (04:28 Berlin) — diesmal ohne
+        # Cache-Nachhang, die Produktseite war sofort auf dem neuen Stand.
+        # Inhalt: der Handy-Recorder zeichnet zusaetzlich das Gyroskop auf, falls vorhanden.
+        # ⚠️ Die EINREICHUNG dieser Fassung ist uns nicht gemeldet worden — der Zeitpunkt fehlt
+        # deshalb im Protokoll und es gibt kein „submitted"-Ereignis im Changelog. Nicht
+        # geschaetzt (s. [[submission-log]]).
+        # ALT: "latest": "1.1.35",   # FREIGEGEBEN 2026-09-20, ZWEITE Apple-Mail („The following app
+        # is ready for distribution · App Version Number: 1.1.35 · Platform: iOS"). Eingereicht am
         # SELBEN Tag um 08:50, Uebermittlung 833dcb6b-cff7-41ba-b860-1137d0121939 — also nur
         # wenige Stunden Pruefung. Gebaut aus Commit b0060b66.
         # Inhalt: die beiden neuen On-Foil-Marken (Strecke/Zeit im Lauf) im Profil der iPhone-App
@@ -250,7 +259,9 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.35",   # FREIGEGEBEN 2026-09-20 — dieselbe Einreichung wie "ios" (ein Bundle,
+        "latest": "1.1.36",   # FREIGEGEBEN 2026-09-21 — dieselbe Einreichung wie "ios" (ein Bundle,
+        # dieselbe MARKETING_VERSION in project.yml). Beleg s. dort.
+        # ALT: "latest": "1.1.35",   # FREIGEGEBEN 2026-09-20 — dieselbe Einreichung wie "ios" (ein Bundle,
         # eine MARKETING_VERSION). Fuer die WATCH-App bringt 1.1.35: die Apple Watch vibriert bei
         # den neuen Marken nach Strecke und Zeit im Lauf, die im Profil eingestellt werden.
         # ALT: "latest": "1.1.34",   # FREIGEGEBEN 2026-09-19 — dieselbe Einreichung wie "ios" (ein Bundle,
@@ -704,12 +715,12 @@ NAECHSTES: list[dict] = [
          "The phone recorder also records the gyroscope, if the phone has one.",
      ]},
 
-    {"name": "iPhone + Apple Watch", "version": "1.1.36",
-     # 1.1.35 liegt seit 20.09. 08:50 bei Apple und ist ab da eingefroren — alles Weitere
-     # gehoert hierher. project.yml bleibt auf 1.1.35, bis der Ausgang feststeht.
-     "items": [
-         "The phone recorder also records the gyroscope, if the phone has one.",
-     ]},
+    # iOS/Apple: 1.1.36 ist am 21.09. FREIGEGEBEN und steht deshalb hier nicht mehr, sondern in
+    # `_APP_META` als live (beide Schluessel, ein Bundle). Sein Punkt ist in die Changelog-Tabelle
+    # gewandert, mit `versionen = {"ios": "1.1.36", "apple": "1.1.36"}`.
+    # Als Naechstes steht fuer iOS nichts an: die Lage-Ansicht (Nicken/Rollen/Gieren, Hub) ist
+    # bewusst erst in der PWA — Jans Vorgabe, uebernehmen auf die nativen Apps erst, wenn sie
+    # fix, fertig und getestet ist.
 
     {"name": "Amazfit", "version": "1.0.12",
      # Nummer NICHT in app.json gebumpt: 1.0.11 liegt seit 19.09. beim Zepp-Store. Gebumpt wird
