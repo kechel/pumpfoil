@@ -2338,7 +2338,16 @@ Page(
       // selbst auffindbar. Damit bleibt in der Zeile nur noch, was sich wirklich aendert: der
       // GPS-Zustand und ob gerade ein Lauf laeuft. Auf dem Stopp-Bildschirm selbst steht der
       // Hinweis weiterhin — dort ist er die Bedienung und keine Wiederholung.
-      w.status.setProperty(hmUI.prop.TEXT, (s.fix ? "GPS ●" : t("gps.searching"))
+      // DIE LAUFZEIT STEHT HIER, und zwar zuerst. Ohne sie sieht eine Datenseite waehrend der
+      // Aufnahme genauso aus wie der Startbildschirm: gleicher Titel, Felder, "GPS ●" — und der
+      // STOPP-Knopf ist hier bewusst ausgeblendet. u352 hat daraus am 21.09.2026 geschlossen,
+      // die App sei kaputt ("beim zweiten Start kommt auch kein Start bzw. Stop mehr"), waehrend
+      // sie in Wahrheit aufzeichnete; sein Foto zeigt genau diese Seite ("1/2").
+      //
+      // Das ist KEIN Wiederholen des Hinweises "Halten = STOPP", der hier zu Recht raus ist
+      // (Jan, 13.09.): eine laufende Uhr ist ZUSTAND, und genau dafuer ist diese Zeile da.
+      const laufzeit = mmss(Math.max(0, (Date.now() - s.startedAtMs) / 1000));
+      w.status.setProperty(hmUI.prop.TEXT, laufzeit + " · " + (s.fix ? "GPS ●" : t("gps.searching"))
         + (s.foiling ? " · " + t("f.runActive") : ""));
     },
     renderSummary() {
