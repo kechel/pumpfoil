@@ -471,6 +471,9 @@ export default function SessionDetail() {
   const [playMode, setPlayMode] = useState(false);   // Wiedergabe-Modus aktiv (Teilstrecke sichtbar)
   const [playing, setPlaying] = useState(false);      // läuft gerade (vs. pausiert)
   const [playMul, setPlayMul] = useState(8);          // Tempo-Faktor (1× ≈ Echtzeit bei ~1 Hz GPS)
+  // ECHTE Zeit je Track-Punkt (Session-ms) vom Server. null = noch nicht da oder nicht
+  // nutzbar, dann greift die Schaetzung in `indexZuSessionMs`.
+  const [trackZeiten, setTrackZeiten] = useState<number[] | null>(null);
   const [progress, setProgress] = useState(0);        // 0..1 (für Fortschrittsbalken)
   // ABSOLUTE Zeit des Abspielzeigers in Session-ms. Der Bruchteil oben taugt nur fuer den
   // Balken; wer einen anderen Zeitraum zeigt (Lage-Ansicht), braucht die echte Zeit.
@@ -797,6 +800,16 @@ export default function SessionDetail() {
   // Play-Timeline: geordnete Punkt-Indizes, die abgespielt werden — der gewählte Lauf,
   // sonst alle Foiling-Läufe nacheinander, sonst (GPS-only) die ganze Spur. ~1 Hz GPS,
   // d.h. ein Index ≈ eine Sekunde.
+  // Die echten Zeiten holen. Nur in der eigenen Ansicht (der Endpunkt verlangt ein Konto).
+  useEffect(() => {
+    if (isPublic || !session?.analysis?.track_geojson) return;
+    let weg = false;
+    api.sessionTrackTimes(Number(id))
+      .then((r) => { if (!weg) setTrackZeiten(r.t_ms ?? null); })
+      .catch(() => { if (!weg) setTrackZeiten(null); });
+    return () => { weg = true; };
+  }, [id, isPublic, session?.analysis?.track_geojson]);
+
   /**
    * Track-Index -> SESSION-Millisekunde.
    *
@@ -811,6 +824,13 @@ export default function SessionDetail() {
    * fortgeschrieben — `gps_hz` ist projektweit 1 (docs/DATA-PIPELINE.md).
    */
   const indexZuSessionMs = useMemo(() => {
+    // ERSTE WAHL: die echten Zeiten vom Server. Nur wenn ihre ANZAHL zur Spur passt — sonst
+    // zeigte eine kuenftige Abweichung in der Pipeline hier lautlos auf die falschen Punkte.
+    const nPunkte = session?.analysis?.track_geojson?.geometry?.coordinates?.length ?? 0;
+    if (trackZeiten && nPunkte > 0 && trackZeiten.length === nPunkte) {
+      return (idx: number): number =>
+        trackZeiten[Math.min(Math.max(Math.round(idx), 0), trackZeiten.length - 1)];
+    }
     const off = session?.trim_start_ms ?? 0;
     const anker: { i: number; t: number }[] = [];
     for (const g of (session?.analysis?.segments ?? []) as any[]) {
@@ -831,7 +851,7 @@ export default function SessionDetail() {
       }
       return off + idx * 1000;
     };
-  }, [session]);
+  }, [session, trackZeiten]);
 
   // Neuzeichnen der Karte anstossen, wenn die Maus in der Lage-Ansicht den Zeiger verschiebt.
   // Ein Zaehler statt der Position selbst: die Position steht in `playheadRef` (die grosse
