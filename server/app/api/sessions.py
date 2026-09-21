@@ -3540,8 +3540,8 @@ def board_lage(
     session_id: int,
     run: int | None = Query(None, description="Index des Laufs; ohne Angabe die ganze Aufnahme"),
     yaw_window_s: float = Query(1.0, ge=0.1, le=10.0),
-    height_window_s: float = Query(3.0, ge=1.0, le=10.0,
-                                   description="Ab welcher Dauer die Hoehe als „ausgerichtet\" gilt"),
+    height_window_s: float | None = Query(None, ge=1.0, le=10.0,
+                                          description="Hub-Fenster in s; leer = am Pumptakt ausgerichtet"),
     # Freies Fenster in SESSION-ms — fuer Startversuche, die keine Lauf-Nummer haben. Die
     # Oberflaeche holt ihre Zeiten aus `/attempts` (dort stehen sie schon in Session-ms).
     from_ms: int | None = Query(None, ge=0),
