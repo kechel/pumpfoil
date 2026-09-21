@@ -1239,6 +1239,17 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   Memory `board-imu-experiment`, `docs/nerd`-Seiten.)
 - **Pump-Zähler kalibrieren** (unter-erkennt ~2× lt. Label-App-Wahrheit) — Jans OK offen; physisch
   erst via X5-Rig. (Memory `pump-groundtruth`.)
+- **🎯 Ground Truth aus Handy-am-Brett-Aufnahmen → [`docs/GROUND-TRUTH.md`](GROUND-TRUTH.md)**
+  (21.09.2026). Das Brett IST die Wahrheit für die Uhr: Pumpen ist eine Nickschwingung, die der
+  Kreisel unmittelbar misst — kein Armwedeln dazwischen. Gemessener Stand: die Pump-Zählung ist auf
+  **einem** Fahrer geeicht (422 von 456 Marken = 93 % Nutzer 2), die Gleit-Erkennung gibt es
+  überhaupt nicht (`longest_glide_s` ist die Lücke zwischen *erkannten* Pumps, erbt also jeden
+  Fehler). **Wir wissen nicht, wie gut die Pump-Erkennung arbeitet.** Eine 10-min-Paar-Aufnahme
+  liefert ~810 Marken, mehr als alles bisher Getippte. Zielmengen: 8–10 Nutzer × 5 min zum MESSEN,
+  10–15 × 10 min für ein Gleit-Modell. **Zuerst nötig (nachträglich unmöglich): Handgelenk +
+  Stance ins Profil, Montageort an die Session.** Reihenfolge, Speicherbedarf der Personalisierung
+  und fünf Haken stehen im Dokument. Beschaffung: Jans Short zur Lage-Ansicht, veröffentlicht
+  sobald die Android-Version freigegeben ist.
 
 ## 🗒️ Doku-Hygiene
 - [x] **`docs/PARITY-AUDIT.md` aktualisiert** (2026-07-22): war schon auf 07-13 gepflegt (fast volle
