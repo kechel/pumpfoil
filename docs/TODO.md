@@ -1391,6 +1391,33 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔴 21.09. — 18 Aufnahmen haengen im Zustand `live` fest, mit Daten. 18 Nutzer betroffen.**
+  Beim Rundgang gefunden. Sie haben nie ein `/complete` bekommen, liegen also fuer immer als
+  „laeuft" da und werden nie ausgewertet — obwohl **4221 Chunks** da sind.
+
+  | Plattform | Sessions | Chunks |
+  |---|---|---|
+  | Apple Watch | 11 | 2763 |
+  | Amazfit | 4 | 917 |
+  | Garmin | 2 | 19 |
+  | Wear OS | 1 | 522 |
+
+  Aelteste: #8356 (Garmin, **41 Tage**), #3419 (Amazfit, 584 Chunks, 17 Tage), #5263 (Apple,
+  161 Chunks, 13 Tage).
+
+  **Warum der Aufraeumer sie nicht holt:** `foil-haenger.timer` laeuft alle drei Stunden und
+  sucht Sessions im Zustand **`complete`** — also solche, die abgeschlossen gemeldet, aber nicht
+  analysiert wurden („0 auf 'complete', davon 0 faellig"). Wer nie `/complete` schickt, faellt
+  durch. Das ist eine Luecke, kein Fehler im Skript.
+
+  **🔲 Vorschlag (erst mit Jans OK, weil es `run_analysis` ausloest):** den Aufraeumer um einen
+  zweiten Fall erweitern — `live`-Sessions, die seit N Stunden keinen Chunk mehr bekommen haben,
+  abschliessen und analysieren. Vorher zu klaeren: (1) das N, gross genug fuer echte Pausen
+  (Vorschlag 12 h, die laengste echte Aufnahme im Bestand ist 2,5 h); (2) `ended_at` aus den
+  DATEN nehmen, nicht aus `now()` — derselbe Fehler wie beim Phone-Recorder; (3) ob Apple eine
+  eigene Ursache hat (11 von 18 ist kein Zufall bei 50 Apple-Sessions in 7 Tagen).
+
+
 - **🔴 21.09. — Die Amazfit-App stirbt an der SYSTEM-Tastensperre der Uhr, nicht an unserer.**
   u352 hat es selbst eingegrenzt und mit Foto belegt (Amazfit-Schnellmenue, Schloss-Symbol aktiv):
   „Wenn ich die Tastensperre aktivieren wird die App nach gewisser Zeit beendet." Gegenprobe

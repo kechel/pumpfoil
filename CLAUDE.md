@@ -35,7 +35,8 @@ Zwei systemd-Timer (User `jan`, oneshot), Skripte in `deploy/`:
 - `foil-backup-latest.timer` → täglich 03:30 → `backup-latest.sh`: `pg_dump` (custom, atomar) +
   `server/data` + `server/media` als Hardlinks nach `/opt/foil/backups/pumpfoil.org/latest-backup/`
   (Pull-Quelle für externen Backup-Server). `BASE` per `BACKUP_BASE` überschreibbar.
-- `foil-backup-snapshot.timer` → Mi 04:00 → `backup-snapshot.sh`: `cp -al` → permanenter
+- `foil-backup-snapshot.timer` → **monatlich am 1., 04:00** (`OnCalendar=*-*-01`, am 21.09.2026
+  gegen die Unit geprueft; hier stand vorher „Mi 04:00", das war nie so) → `backup-snapshot.sh`: `cp -al` → permanenter
   Hardlink-Snapshot unter `…/hardlink-snapshots/<stamp>`.
 - `backup-secrets.sh` (von `backup-latest.sh` mit aufgerufen): `server/.env` +
   `vapid_private.pem` + Garmin-`developer_key.der` **GPG-verschlüsselt an Jans Key**
