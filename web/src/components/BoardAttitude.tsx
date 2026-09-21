@@ -88,9 +88,31 @@ function Zeitachse({ t_ms, uhrzeit }: { t_ms: number[]; uhrzeit: (t: number) => 
   );
 }
 
-function Kurven({ reihen, t_ms, pos, zusammen, uhrzeit, onZeigen, onWeg }: {
+/**
+ * Graue Flaechen links und rechts, wo der RAND liegt (die 10 s vor und nach dem Lauf).
+ *
+ * Ohne das waere nicht zu sehen, wo der Lauf wirklich anfaengt — und genau der Anlauf ist der
+ * Grund, warum der Rand ueberhaupt mitgezeigt wird.
+ */
+function Randmarken({ t_ms, von, bis, W, H }: {
+  t_ms: number[]; von?: number | null; bis?: number | null; W: number; H: number;
+}) {
+  if (von == null || bis == null || t_ms.length < 2) return null;
+  const t0 = t_ms[0], t1 = t_ms[t_ms.length - 1], spanne = Math.max(1, t1 - t0);
+  const x = (t: number) => Math.min(W, Math.max(0, ((t - t0) / spanne) * W));
+  const a = x(von), b = x(bis);
+  return (
+    <g className="fill-slate-500" opacity={0.14}>
+      {a > 0 && <rect x={0} y={0} width={a} height={H} />}
+      {b < W && <rect x={b} y={0} width={W - b} height={H} />}
+    </g>
+  );
+}
+
+function Kurven({ reihen, t_ms, pos, zusammen, uhrzeit, auswahlVon, auswahlBis, onZeigen, onWeg }: {
   reihen: { name: string; werte: number[]; farbe: string; einheit: string }[];
   t_ms: number[]; pos: number; zusammen: boolean; uhrzeit: (t: number) => string;
+  auswahlVon?: number | null; auswahlBis?: number | null;
   onZeigen: (p: number) => void; onWeg: () => void;
 }) {
   const W = 1000, H = 150;
@@ -111,6 +133,7 @@ function Kurven({ reihen, t_ms, pos, zusammen, uhrzeit, onZeigen, onWeg }: {
       <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-2">
         <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="h-44 w-full cursor-crosshair"
           onMouseMove={zeigen} onMouseLeave={onWeg}>
+          <Randmarken t_ms={t_ms} von={auswahlVon} bis={auswahlBis} W={W} H={H} />
           <line x1={0} y1={H / 2} x2={W} y2={H / 2} className="stroke-slate-500" strokeWidth={1}
             vectorEffect="non-scaling-stroke" />
           {reihen.map((r) => (
@@ -164,6 +187,7 @@ function Kurven({ reihen, t_ms, pos, zusammen, uhrzeit, onZeigen, onWeg }: {
             </div>
             <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="h-20 w-full cursor-crosshair"
               onMouseMove={zeigen} onMouseLeave={onWeg}>
+              <Randmarken t_ms={t_ms} von={auswahlVon} bis={auswahlBis} W={W} H={H} />
               <line x1={0} y1={H / 2} x2={W} y2={H / 2} className="stroke-slate-500" strokeWidth={1}
                 vectorEffect="non-scaling-stroke" />
               <polyline points={linie(r.werte, max)} fill="none" stroke={r.farbe} strokeWidth={2}
@@ -319,6 +343,7 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
       )}
 
       <Kurven reihen={reihen} t_ms={tMs} pos={pos} zusammen={zusammen} uhrzeit={uhrzeit}
+        auswahlVon={d.auswahl_von_ms} auswahlBis={d.auswahl_bis_ms}
         onZeigen={setMaus} onWeg={() => setMaus(null)} />
 
       {/* Bedienelemente UNTER die Kurven (Jan, 20.09.): oben soll Karte, Animation und Kurve

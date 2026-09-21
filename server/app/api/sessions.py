@@ -3511,6 +3511,8 @@ def board_lage(
     # Oberflaeche holt ihre Zeiten aus `/attempts` (dort stehen sie schon in Session-ms).
     from_ms: int | None = Query(None, ge=0),
     to_ms: int | None = Query(None, ge=0),
+    pad_s: float = Query(10.0, ge=0.0, le=60.0,
+                         description="Zusaetzliche Sekunden vor und nach der Auswahl"),
     hz: float = Query(20.0, ge=2.0, le=50.0),
     user: models.User = Depends(current_user),
     db: Session = Depends(get_db),
@@ -3562,6 +3564,15 @@ def board_lage(
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "to_ms muss groesser als from_ms sein")
         von, bis = int(from_ms), int(to_ms)
 
+    # Rand um die Auswahl (Jan, 21.09.: „10 Sekunden vor und nach dem erkannten Lauf noch mit
+    # sehen"). Der Anlauf und das Ende sind oft das Interessante — der Dropstart liegt VOR dem
+    # ersten Punkt, den die Geschwindigkeit als Lauf zaehlt. Die Auswahl selbst geht ungekuerzt
+    # mit zurueck, damit die Kurven zeigen koennen, wo der Lauf wirklich anfaengt.
+    auswahl = (von, bis) if von is not None and bis is not None else None
+    if auswahl and pad_s:
+        von = max(0, int(von - pad_s * 1000))
+        bis = int(bis + pad_s * 1000)
+
     # Nullpunkt-Bezug: ALLE Laeufe, auch wenn nur einer gezeigt wird. Die Null ist eine
     # Eigenschaft der Montage, nicht des Ausschnitts — sonst spraenge der Winkel beim
     # Umschalten zwischen den Laeufen.
@@ -3578,6 +3589,9 @@ def board_lage(
                               lauf_starts_ms=[float(g.get("t_start_session_ms",
                                                           float(g["t_start_ms"]) + off))
                                               for g in segmente if g.get("t_start_ms") is not None])
+    # Die ungekuerzte Auswahl, damit die Oberflaeche den Rand vom Lauf unterscheiden kann.
+    erg["auswahl_von_ms"] = auswahl[0] if auswahl else None
+    erg["auswahl_bis_ms"] = auswahl[1] if auswahl else None
     erg["session_id"] = s.id
     erg["run"] = run
     erg["runs"] = laeufe
