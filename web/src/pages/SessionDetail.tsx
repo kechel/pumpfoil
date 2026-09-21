@@ -835,6 +835,9 @@ export default function SessionDetail() {
   // Ein Zaehler statt der Position selbst: die Position steht in `playheadRef` (die grosse
   // Karten-Effekt liest sie dort ohnehin), der Zaehler loest nur den Neuaufbau aus.
   const [zeigerTick, setZeigerTick] = useState(0);
+  // Hinweis aus der Lage-Ansicht (z. B. „Hub nicht belastbar"). Er steht bewusst NICHT dort,
+  // sondern unter dem Abspielen-Knopf — Jans Anordnung, 21.09.
+  const [lageHinweis, setLageHinweis] = useState<string | null>(null);
   const zeigerRaf = useRef(0);
   const zeigerZuletzt = useRef(0);
 
@@ -1826,60 +1829,6 @@ export default function SessionDetail() {
             </div>
           );
 
-          // Markieren duerfen nur Admins (Server prueft es ebenfalls). Ohne diesen Schalter
-          // gaebe es keinen Weg, eine Aufnahme als „am Brett" zu kennzeichnen — und damit auch
-          // die Lage-Ansicht nie. Deshalb als sichtbares Bedienelement in normaler
-          // Schriftgroesse: als text-xs ohne Rahmen hat Jan ihn am 20.09. nicht gefunden.
-          //
-          // NUR BEI AUFNAHMEN MIT KREISEL. Den liefern ausschliesslich die Handy-Recorder; an
-          // einer Uhren-Session stand der Schalter bisher trotzdem und versprach eine Ansicht,
-          // die es dort gar nicht geben kann. Eine bereits markierte Session behaelt ihn, sonst
-          // liesse sich die Markierung nicht mehr zuruecknehmen.
-          const brettSchalter = isAdmin && owned && !fullscreen
-            && (session.has_gyro || session.placement === "board") && (
-            <label className="mt-3 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-slate-800/60 px-3 py-2 text-sm text-slate-200 ring-1 ring-slate-700 hover:bg-slate-800">
-              <input
-                type="checkbox"
-                checked={session.placement === "board"}
-                onChange={(e) => {
-                  const wert = e.target.checked ? "board" : "phone";
-                  api.updateSessionMeta(session.id, { placement: wert })
-                    .then((frisch) => setSession((alt) => (alt ? { ...alt, placement: frisch.placement } : alt)))
-                    .catch(() => {});
-                }}
-                className="h-4 w-4 rounded border-slate-600 bg-slate-800"
-              />
-                {t("board.markBoard")}
-            </label>
-          );
-
-          /* WIE das Handy auf dem Brett lag. Nicht messbar: die Hauptachse der Neigung findet
-             die ACHSE, aber nicht die Richtung — 14° und 194° sehen in den Daten gleich aus.
-             Belegt an dieser Session: beim Dropstart zeigte die Ansicht +43° Nase HOCH, in
-             Wahrheit haengt das Brett dort rund 45° nach unten (Jan, 21.09.). Der Versuch, die
-             Richtung aus dem GPS zu holen, lieferte auf denselben Daten -0,64 / -0,27 / +0,18
-             — unbrauchbar. Also von Hand, und nur fuer Admins, wie die Markierung selbst. */
-          const drehWahl = isAdmin && owned && !fullscreen && session.placement === "board" && (
-            <div className="mt-2 flex flex-wrap items-center gap-1.5">
-              <span className="mr-1 text-sm text-slate-300">{t("board.mounting")}</span>
-              {[0, 90, 180, 270].map((g) => (
-                <button
-                  key={g}
-                  onClick={() => api.updateSessionMeta(session.id, { attitude_rot_deg: g })
-                    .then((frisch) => setSession((alt) => (alt
-                      ? { ...alt, attitude_rot_deg: frisch.attitude_rot_deg } : alt)))
-                    .catch(() => {})}
-                  className={`rounded-lg px-2.5 py-1 text-xs tabular-nums ${(session.attitude_rot_deg ?? 0) === g
-                    ? "bg-brand-500 font-semibold text-slate-950"
-                    : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
-                >
-                  {g}°
-                </button>
-              ))}
-              <span className="ml-1 text-xs text-slate-400">{t("board.mountingHint")}</span>
-            </div>
-          );
-
           const lageSchalter = session.placement === "board" && !fullscreen && (
             <div className="mt-3">
               <button
@@ -1900,7 +1849,7 @@ export default function SessionDetail() {
                 vonMs={versuchFenster?.[0] ?? null}
                 bisMs={versuchFenster?.[1] ?? null}
                 progress={progress} playMode={playMode} playTMs={playTMs}
-                onZeit={zeigeZeitAufKarte}
+                onZeit={zeigeZeitAufKarte} onHinweis={setLageHinweis}
                 startedAt={session.started_at} tz={session.tz}
                 pausen={session.pause_windows ?? []} />
             </div>
@@ -1909,14 +1858,10 @@ export default function SessionDetail() {
           return (
             <>
               {!untenAnordnen && laufWahl}
-              {!untenAnordnen && brettSchalter}
-              {!untenAnordnen && drehWahl}
               {!untenAnordnen && lageSchalter}
               {lageAnsicht}
               {untenAnordnen && laufWahl}
               {versuchWahl}
-              {untenAnordnen && brettSchalter}
-              {untenAnordnen && drehWahl}
               {untenAnordnen && lageSchalter}
             </>
           );
@@ -1982,6 +1927,14 @@ export default function SessionDetail() {
                 ? <><span className="inline-block h-3 w-3" style={{ borderLeft: "3px solid currentColor", borderRight: "3px solid currentColor" }} /> {t("sd.pause")}</>
                 : <><PlayIcon className="h-4 w-4" /> {t("sd.play")}</>}
             </button>
+            {/* Hinweis aus der Lage-Ansicht. In NORMALER Schriftgroesse (Projektregel: Hinweise
+                nie kleiner als der Fliesstext) und in amber — ein Nicht-slate-Ton braucht beide
+                Farbmodi ausdruecklich. */}
+            {lageHinweis && !fullscreen && (
+              <p className="basis-full rounded-lg bg-amber-100 px-3 py-2 text-sm text-amber-800 dark:bg-amber-500/10 dark:text-amber-300">
+                {lageHinweis}
+              </p>
+            )}
             {/* Controls erst nach dem ersten Abspielen-Klick — vorher braucht man sie nicht. */}
             {playStarted && (
               <>
@@ -2148,6 +2101,55 @@ export default function SessionDetail() {
         <div className="mt-8 border-t border-slate-800 pt-4">
           <div className="flex flex-wrap items-center gap-2">
             <ClassPickers sessionId={session.id} compact />
+            {/* „Handy war am Brett" und die Montage-Drehung gehoeren zusammen in EINE Box und
+                ganz nach unten zu den anderen Schaltern, die die SESSION betreffen (Sportart,
+                Daten in Ordnung) — Jans Anordnung, 21.09. Oben stoerten sie zwischen Karte und
+                Grafiken.
+                NUR ADMINS und nur bei Aufnahmen MIT Kreisel: den liefern allein die
+                Handy-Recorder, an einer Uhren-Session waere die Markierung sinnlos. Eine bereits
+                markierte Session behaelt die Box, sonst liesse sich nichts zuruecknehmen. */}
+            {isAdmin && (session.has_gyro || session.placement === "board") && (
+              <div className="inline-flex flex-wrap items-center gap-3 rounded-lg bg-slate-800/60 px-3 py-2 ring-1 ring-slate-700">
+                <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-slate-200">
+                  <input
+                    type="checkbox"
+                    checked={session.placement === "board"}
+                    onChange={(e) => {
+                      const wert = e.target.checked ? "board" : "phone";
+                      api.updateSessionMeta(session.id, { placement: wert })
+                        .then((frisch) => setSession((alt) => (alt
+                          ? { ...alt, placement: frisch.placement } : alt)))
+                        .catch(() => {});
+                    }}
+                    className="h-4 w-4 rounded border-slate-600 bg-slate-800"
+                  />
+                  {t("board.markBoard")}
+                </label>
+                {/* Die Richtung laesst sich nicht messen — die Hauptachse findet die ACHSE, nicht
+                    die Richtung. Der Server raet sie aus der Startlage („beim Start faehrt man
+                    bergab"); hier laesst sie sich ueberstimmen. */}
+                {session.placement === "board" && (
+                  <span className="inline-flex flex-wrap items-center gap-1.5">
+                    <span className="text-sm text-slate-300">{t("board.mounting")}</span>
+                    {[null, 0, 90, 180, 270].map((g) => (
+                      <button
+                        key={String(g)}
+                        onClick={() => api.updateSessionMeta(session.id,
+                          { attitude_rot_deg: g ?? -1 })   /* -1 = zurueck auf Automatik */
+                          .then((frisch) => setSession((alt) => (alt
+                            ? { ...alt, attitude_rot_deg: frisch.attitude_rot_deg } : alt)))
+                          .catch(() => {})}
+                        className={`rounded-lg px-2.5 py-1 text-xs tabular-nums ${(session.attitude_rot_deg ?? null) === g
+                          ? "bg-brand-500 font-semibold text-slate-950"
+                          : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
+                      >
+                        {g === null ? t("board.mountAuto") : `${g}°`}
+                      </button>
+                    ))}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
