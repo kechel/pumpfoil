@@ -1390,6 +1390,25 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **✅ 21.09. — Montage-Drehung ist jetzt einstellbar (`sessions.attitude_rot_deg`), weil sie
+  sich NICHT messen laesst.**
+  Jans Befund: beim Dropstart zeigte die Lage-Ansicht **+43° Nase hoch**, tatsaechlich haengt
+  das Brett dort rund 45° nach UNTEN. Betrag stimmt also sehr gut, das Vorzeichen war verdreht.
+  **Warum das nicht automatisch geht:** `hauptachse` findet die ACHSE, aber nicht die Richtung —
+  14° und 194° sind in den Daten nicht zu unterscheiden. Der naheliegende Ausweg, die Richtung
+  aus dem GPS zu holen (Vorwaerts-Beschleunigung der Geraete-x-Achse gegen `dv/dt`), wurde
+  ausprobiert und liefert auf denselben Daten **-0,64 / -0,27 / +0,18** — unbrauchbar. Ursache
+  vermutlich: 1-Hz-GPS, stark geglaettet, ueber Laeufe von 7-8 Sekunden. Mit einem laengeren
+  Lauf nochmal versuchen, bevor man es verwirft.
+  **Also von Hand**, Werte 0/90/180/270, Admin-only wie die Brett-Markierung selbst. Gedreht
+  wird die MESSUNG (Accel und Gyro um die Hochachse), nicht das Ergebnis — danach rechnet alles
+  weiter, als laege das Geraet laengs mit der Nase nach vorn. Der Nullpunkt-Bezug wird
+  mitgedreht, sonst heben sich beide nicht mehr auf.
+  #9484 steht auf **180°**; der Dropstart zeigt damit -43° statt +43°.
+  🔲 Offen: automatisch bestimmen, sobald es eine Aufnahme mit einem laengeren gemeinsamen Lauf
+  gibt (s. Plan zur Geraete-Verknuepfung).
+
+
 - **🔴 21.09. — DER AUTO-ZUSCHNITT TRIFFT 38 NUTZER, nicht nur Jans Brett-Session. Gemessen.**
   Anlass war Jans Frage „hat das Auswirkungen auf alle?". Antwort: der Mechanismus laeuft fuer
   JEDE Pumpfoil-Session, und in einem Randfall schneidet er echte Fahrt weg.
@@ -1594,10 +1613,14 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   `detector-negative-examples` — und ist ein Fall, in dem die Beschleunigung am Handgelenk das
   Gegenteil des Brett-Problems zeigt: beim Laufen ist sie GROSS.
 
-  **5. ✅ Die Ausrichtungs-Erkennung traegt an echten Daten.** `ausrichtung_deg = -86,1°` bei
-  Klarheit **19,5** — also fast exakt quer montiert, und viel eindeutiger als die 8,1 vom
-  Handwedel-Test. Damit ist die Annahme „die Neigung schwingt bevorzugt um EINE Achse" an einer
-  echten Aufnahme bestaetigt. Der Nullpunkt kam mangels Laeufen aus dem Mittelteil.
+  **5. ⚠️ KORREKTUR (21.09., spaeter am Tag): meine Ausrichtungs-Messung war ein Artefakt.**
+  Ich hatte `ausrichtung_deg = -86,1°` bei Klarheit 19,5 gemeldet und daraus „fast exakt quer
+  montiert" geschlossen — an einer echten Aufnahme bestaetigt. **Falsch.** Die Zahl kam ueber
+  die GANZE Aufnahme, und dort dominiert der UEBERSCHLAG am Ende (Roll-Amplitude 179°), nicht
+  das Pumpen. Nur ueber die Laeufe gerechnet steht sie bei **+14,0° mit Klarheit 367** (Lauf 1)
+  bzw. +62,3° / 10,5 (Lauf 0, sehr kurz). Das Handy lag also LAENGS, nicht quer.
+  **Lehre fuers Verfahren:** `hauptachse` nur ueber die Laeufe rechnen, nie ueber die ganze
+  Aufnahme — Stuerze und Ueberschlaege ueberstimmen das Pumpen um Groessenordnungen.
 
   **6. 🔲 Startversuche in der Lage-Ansicht** (Jans Wunsch): auswaehlbar wie Laeufe und
   standardmaessig mitzeigen, nicht nur erkannte Laeufe — und als Bezug fuer den Nullpunkt

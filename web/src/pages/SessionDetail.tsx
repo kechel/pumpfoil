@@ -1849,8 +1849,35 @@ export default function SessionDetail() {
                 }}
                 className="h-4 w-4 rounded border-slate-600 bg-slate-800"
               />
-              {t("board.markBoard")}
+                {t("board.markBoard")}
             </label>
+          );
+
+          /* WIE das Handy auf dem Brett lag. Nicht messbar: die Hauptachse der Neigung findet
+             die ACHSE, aber nicht die Richtung — 14° und 194° sehen in den Daten gleich aus.
+             Belegt an dieser Session: beim Dropstart zeigte die Ansicht +43° Nase HOCH, in
+             Wahrheit haengt das Brett dort rund 45° nach unten (Jan, 21.09.). Der Versuch, die
+             Richtung aus dem GPS zu holen, lieferte auf denselben Daten -0,64 / -0,27 / +0,18
+             — unbrauchbar. Also von Hand, und nur fuer Admins, wie die Markierung selbst. */
+          const drehWahl = isAdmin && owned && !fullscreen && session.placement === "board" && (
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              <span className="mr-1 text-sm text-slate-300">{t("board.mounting")}</span>
+              {[0, 90, 180, 270].map((g) => (
+                <button
+                  key={g}
+                  onClick={() => api.updateSessionMeta(session.id, { attitude_rot_deg: g })
+                    .then((frisch) => setSession((alt) => (alt
+                      ? { ...alt, attitude_rot_deg: frisch.attitude_rot_deg } : alt)))
+                    .catch(() => {})}
+                  className={`rounded-lg px-2.5 py-1 text-xs tabular-nums ${(session.attitude_rot_deg ?? 0) === g
+                    ? "bg-brand-500 font-semibold text-slate-950"
+                    : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
+                >
+                  {g}°
+                </button>
+              ))}
+              <span className="ml-1 text-xs text-slate-400">{t("board.mountingHint")}</span>
+            </div>
           );
 
           const lageSchalter = session.placement === "board" && !fullscreen && (
@@ -1883,11 +1910,13 @@ export default function SessionDetail() {
             <>
               {!untenAnordnen && laufWahl}
               {!untenAnordnen && brettSchalter}
+              {!untenAnordnen && drehWahl}
               {!untenAnordnen && lageSchalter}
               {lageAnsicht}
               {untenAnordnen && laufWahl}
               {versuchWahl}
               {untenAnordnen && brettSchalter}
+              {untenAnordnen && drehWahl}
               {untenAnordnen && lageSchalter}
             </>
           );

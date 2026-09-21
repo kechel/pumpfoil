@@ -320,6 +320,9 @@ export interface SessionSummary {
   // Kam ein Kreisel mit? Nur die Handy-Recorder liefern einen, Uhren nicht — Gate fuer die
   // Lage-Ansicht (ohne Kreisel gaebe es dort nur eine verrauschte Neigung und kein Gieren).
   has_gyro?: boolean | null;
+  // Montage-Drehung des Handys auf dem Brett um die Hochachse (0/90/180/270). Laesst sich NICHT
+  // messen: die Neigungs-Hauptachse findet die Achse, nicht die Richtung.
+  attitude_rot_deg?: number | null;
   // Fahrergewicht des BESITZERS (kg) — die theoretische Leistung haengt quadratisch davon ab,
   // also muss sie mit SEINEM Gewicht gerechnet werden, egal wer zuschaut. Nur in der
   // Einzel-Session-Ausgabe (Listen zeigen keine Leistung).
@@ -1353,7 +1356,9 @@ export const api = {
   updateSessionMeta: (id: number, patch: { caption?: string; youtube_url?: string; foil_id?: number | null;
     stab_id?: number | null; mast_len_cm?: number | null; shim_deg?: number | null; board_id?: number | null;
     // "board" | "phone" | "" — nur Admins, der Server weist alle anderen mit 403 ab.
-    placement?: string }) =>
+    placement?: string;
+    // Montage-Drehung 0/90/180/270 — ebenfalls nur Admins.
+    attitude_rot_deg?: number }) =>
     req<SessionSummary>(`/api/sessions/${id}/meta`, {
       method: "PATCH",
       body: JSON.stringify(patch),
