@@ -69,8 +69,8 @@ Belegt an Jans Aufnahmen vom 21.09.2026 (#9528 und #9535, Handy am Brett, fenix 
 
 Zwei Sorten Labels sind daraus ableitbar:
 
-1. **Pump-Ereignisse** — je Extremum der Nickschwingung ein Pumpstoß, mit Zeitstempel.
-   ~810 Ereignisse je 10 Minuten bei 1,35 Hz.
+1. **Pump-Ereignisse** — je Minimum des Hubs ein Pumpstoß („tiefster Punkt", s. Abschnitt 5),
+   mit Zeitstempel. ~810 Ereignisse je 10 Minuten bei 1,35 Hz.
 2. **Sekundentakt Pumpen/Gleiten** — aus der Bandamplitude des Nickens je Sekunde. **Das ist es,
    was der Gleit-Erkennung bis heute fehlt:** eine echte Aussage darüber, wann gerade nicht
    gepumpt wird, unabhängig davon, ob ein Pump-Zähler etwas gefunden hat.
@@ -140,20 +140,51 @@ Nachmittagen dreimal verschieden angeklebt: längs, quer, diagonal).
 
 ---
 
-## 5. Den Label-Generator einmal von Hand belegen
+## 5. Was „ein Pumpstoß" ist — die Definition, nicht die Messung
 
-Die Brett-Wahrheit ist erst eine Wahrheit, wenn sie gegen etwas Unabhängiges geprüft wurde.
+Hier stand zuerst, der Label-Generator müsse „einmal von Hand belegt" werden. Das war falsch
+formuliert und hat Jan zu Recht die Frage abgenötigt, ob ich dem Kreisel am Brett nicht traue.
+Tue ich — die Sensoren waren nie das Problem. Offen war der ÜBERSETZUNGSSCHRITT, und der besteht
+aus zwei Definitionsfragen:
 
-**Heute gibt es keine Überlappung:** die getippten Marken liegen in #295 und #354 (Juni 2026,
-nur Uhr), die Brett-Aufnahmen sind #9484/#9528/#9535 (September). Kein einziger Zeitpunkt ist
-doppelt belegt.
+1. **Welcher Punkt im Zyklus ist der Pumpstoß?** Maximum des Nickens, Nulldurchgang, Extremum der
+   Nickrate — das sind bis zu einer Viertelperiode (~180 ms bei 1,39 Hz) auseinander.
+2. **Ist ein Zyklus ein Pump oder zwei?** Das Rollen hat bei der HALBEN Pumpfrequenz doppelt so
+   viel Amplitude wie bei der ganzen (0,53–0,65° gegen 0,25–0,34°) — das abwechselnde Belasten.
+   Ein Zyklus könnte also als „ein Pump" oder als „ein Bein" gezählt werden.
 
-**Eine einzige Paar-Aufnahme, bei der zusätzlich zum Video getippt wird** (Tap-to-Label, s.
-Memory `pump-tap-labeling`), belegt das Verfahren: Brett-abgeleitete Marken gegen getippte,
-Abweichung in Millisekunden und in der Anzahl. Danach kann der Ableiter alleine laufen und
-skaliert beliebig.
+**Beides ist entschieden (Jan, 21.09.2026): „ich würde immer den tiefsten Punkt als Marker
+benutzen eines Pumps."** Der tiefste Punkt ist das Minimum des Hubs (`lage.hub_berechnen`), einer
+je Zyklus. Damit ist die Definition gesetzt und unmittelbar rechenbar.
 
-Ohne diesen Schritt würden wir ein Modell auf Labels trainieren, deren Fehler wir nicht kennen.
+**Nachgemessen ergibt diese Definition:**
+
+| | Marken aus dem Brett | Pump-Zähler Handy | Pump-Zähler fenix (parallel) |
+|---|---|---|---|
+| #9535 | 104 (1,35 Hz) | 103 (1,34 Hz) | 106 in 80 s (1,32 Hz) |
+| #9528 | 66 (1,44 Hz) | — | 77 in 53 s (1,45 Hz) |
+
+Eine Marke Abweichung bei #9535, 1 % bei #9528 — gegen zwei unabhängige Handgelenk-Zähler. Und die
+Phase ist stabil: beim tiefsten Punkt liegt das Nicken im Median bei −2,6° / −3,5° / −5,0°, also
+leicht nasenab, in allen drei Läufen gleich.
+
+**Damit entfällt das Handtippen.** Was bleibt, ist die unabhängige Gegenprobe — und die zieht nur
+um: **in jeder Paar-Aufnahme liegt eine Uhr-Aufnahme daneben, deren eigener Pump-Zähler eine
+unabhängige Schätzung ist.** Genau damit sind die Zahlen oben geprüft. Die Kontrolle steckt also
+künftig in der Datenerhebung selbst, dauerhaft und für jeden Nutzer, statt in einer Oberfläche,
+die jemand bedienen muss.
+
+**Folge: der Label-Editor kann weg**, sobald der Ableiter steht und Daten kommen (Jans
+Entscheidung, 21.09.2026). Betroffen wären `/sessions/:id/label` (`Labeling.tsx`), die
+`labels`-Endpunkte, die `pump-truth`-Endpunkte samt `compare` und `app/pumptruth.py`. Die
+bestehenden 456 getippten Marken bleiben als historischer Vergleichspunkt erhalten — sie
+überlappen mit keiner Brett-Aufnahme (#295/#354 vom Juni sind uhr-only), taugen also nicht zur
+Gegenprobe, wohl aber als Beleg, wie die Eichung entstanden ist.
+
+**Eine Restunschärfe bleibt und soll benannt sein:** die Randfälle. Sehr sanfte Pumpstöße dicht
+über dem Rauschen, der Übergang ins Gleiten, der Dropstart am Lauf-Anfang — dort entscheidet die
+Mindesthöhe des Hub-Minimums, ob ein Zyklus zählt. Das ist ein Schwellenwert im Ableiter, kein
+Messfehler, und er lässt sich später an den dann vorhandenen Daten nachziehen.
 
 ---
 
@@ -251,7 +282,9 @@ wäre der saubere Beleg.
    nachträglich unmöglich. **Muss vor dem Sammeln stehen.**
 2. **Ableiter bauen** (Nickschwingung → `pump_truth` mit eigenem `take`) + Paar-Sessions
    verknüpfen.
-3. **Label-Generator einmal von Hand belegen** (eine Paar-Aufnahme mit Tap-Labels).
+3. **Marker-Definition umsetzen:** tiefster Punkt = Minimum des Hubs, einer je Zyklus
+   (Abschnitt 5). Gegenprobe je Aufnahme gegen den Pump-Zähler der parallel laufenden Uhr — kein
+   Handtippen nötig.
 4. **Sammeln: 8–10 Nutzer × 5 min** → erste ehrliche Messung, wie gut die heutige Pump-Erkennung
    ist. Ergebnis ist eine Zahl, die es bisher nicht gibt.
 5. **Persönliches Kadenzband** aus der vorhandenen Historie (kein Handy nötig, 92 Nutzer sofort).
