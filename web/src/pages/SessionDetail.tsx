@@ -843,6 +843,18 @@ export default function SessionDetail() {
   const zeigerRaf = useRef(0);
   const zeigerZuletzt = useRef(0);
 
+  /**
+   * Rand um eine Auswahl in der Lage-Ansicht, in Sekunden.
+   *
+   * EINE Zahl fuer Karte, Wiedergabe und Kurven — sie geht auch als `pad_s` an den Endpunkt.
+   * Liefen die drei mit verschiedenen Raendern, zeigte die Karte wieder etwas anderes als die
+   * Kurven, und genau das hat heute schon einmal den Abspielzeiger auseinandergetrieben.
+   *
+   * NUR in der Lage-Ansicht: an einer normalen Session soll „Lauf auswaehlen und abspielen"
+   * unveraendert genau den Lauf zeigen.
+   */
+  const LAGE_RAND_S = 10;
+
   // Zeitfenster des ausgewaehlten Startversuchs in Session-ms — eine Quelle fuer Karte,
   // Wiedergabe und Lage-Ansicht, damit die drei nie auseinanderlaufen koennen.
   const versuchFenster = useMemo<[number, number] | null>(() => {
@@ -858,7 +870,22 @@ export default function SessionDetail() {
     const push = (s: any, out: number[]) => {
       for (let i = s.i_start; i <= s.i_end && i < n; i++) out.push(i);
     };
-    if (selectedRun != null && segs[selectedRun]) { const a: number[] = []; push(segs[selectedRun], a); return a; }
+    // Track-Punkte in einem Zeitfenster (Session-ms) — fuer Auswahlen MIT Rand.
+    const imFenster = (va: number, vb: number): number[] => {
+      const a: number[] = [];
+      for (let i = 0; i < n; i++) { const t = indexZuSessionMs(i); if (t >= va && t <= vb) a.push(i); }
+      return a;
+    };
+    const randMs = zeigeLage ? LAGE_RAND_S * 1000 : 0;
+    if (selectedRun != null && segs[selectedRun]) {
+      const g: any = segs[selectedRun];
+      if (randMs && g.i_start != null && g.i_end != null) {
+        // Jan, 21.09.: „das Abspielen soll aber auch diese Vor-/Nach-Zeit mitnehmen."
+        const a = imFenster(indexZuSessionMs(g.i_start) - randMs, indexZuSessionMs(g.i_end) + randMs);
+        if (a.length >= 2) return a;
+      }
+      const a: number[] = []; push(g, a); return a;
+    }
     // Ausgewaehlter STARTVERSUCH: die Track-Punkte in seinem Zeitfenster abspielen (Jan, 21.09.:
     // er will die Versuche fuer ein Praesentationsvideo mit den Grafiken zusammen abspielen).
     // Versuche haben keine `i_start`/`i_end` — sie kommen als Zeiten aus `/attempts` —, deshalb
@@ -866,14 +893,12 @@ export default function SessionDetail() {
     // er im Track gar nicht enthalten; dann bleibt die Liste leer und die Wiedergabe zeigt
     // nichts — genau das passiert an #9484, solange der kaputte Zuschnitt steht.
     if (versuchFenster) {
-      const [va, vb] = versuchFenster;
-      const a: number[] = [];
-      for (let i = 0; i < n; i++) { const t = indexZuSessionMs(i); if (t >= va && t <= vb) a.push(i); }
+      const a = imFenster(versuchFenster[0] - randMs, versuchFenster[1] + randMs);
       if (a.length >= 2) return a;
     }
     if (segs.length) { const a: number[] = []; segs.forEach((s: any) => push(s, a)); return a; }
     return Array.from({ length: n }, (_, i) => i);
-  }, [session, selectedRun, versuchFenster, indexZuSessionMs]);
+  }, [session, selectedRun, versuchFenster, indexZuSessionMs, zeigeLage]);
 
   /**
    * Die Karte bis zu einer Zeit zeichnen (Jan, 21.09.: „wenn ich in den Lage-Bildern mit der
@@ -1839,7 +1864,7 @@ export default function SessionDetail() {
                 vonMs={versuchFenster?.[0] ?? null}
                 bisMs={versuchFenster?.[1] ?? null}
                 progress={progress} playMode={playMode} playTMs={playTMs}
-                onZeit={zeigeZeitAufKarte} onHinweis={setLageHinweis}
+                onZeit={zeigeZeitAufKarte} onHinweis={setLageHinweis} randS={LAGE_RAND_S}
                 startedAt={session.started_at} tz={session.tz}
                 pausen={session.pause_windows ?? []} />
             </div>
