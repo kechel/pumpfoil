@@ -1248,7 +1248,10 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
   liefert ~810 Marken, mehr als alles bisher Getippte. Zielmengen: 8–10 Nutzer × 5 min zum MESSEN,
   10–15 × 10 min für ein Gleit-Modell. **Marker-Definition steht** (Jan): tiefster Punkt =
   Minimum des Hubs, einer je Zyklus — nachgemessen 104 gegen 103/106 Marken der Pump-Zähler, also
-  ~1 %; Handtippen entfällt, der Label-Editor kann weg sobald der Ableiter steht. **Zuerst nötig
+  ~1 %; Handtippen entfällt, der Label-Editor kann weg sobald der Ableiter steht. **Die Schwellen
+  sind NICHT festgelegt** — sie stammen aus n = 1 mit zwei von geschätzt 50–100 Starttechniken;
+  Abschnitt 6 des Dokuments hält stattdessen das Messverfahren fest (Plateau statt Bestwert,
+  Falschpositive auf Nicht-Lauf-Zeit, Starttechniken clustern, leave-one-rider-out). **Zuerst nötig
   (nachträglich unmöglich): Handgelenk + Stance ins Profil, Montageort an die Session.** Reihenfolge, Speicherbedarf der Personalisierung
   und fünf Haken stehen im Dokument. Beschaffung: Jans Short zur Lage-Ansicht, veröffentlicht
   sobald die Android-Version freigegeben ist.
