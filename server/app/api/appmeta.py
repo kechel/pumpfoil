@@ -325,7 +325,18 @@ _APP_META: dict[str, dict[str, str]] = {
         # store_url bleibt LEER, und das aendert sich nicht mehr: fuer die Pumpfoil-App im
         # Zepp-Store existiert keine Web-Adresse (Jan, 07.08.) — man kommt nur ueber die
         # Zepp-Handy-App dran, die auf /uhr verlinkt ist (ZeppAppBadges -> App Store / Play).
-        "latest": "1.0.8",   # FREIGEGEBEN 2026-09-12 (Zepp-Mail: „The application Pumpfoil (1.0.8)
+        "latest": "1.0.11",  # FREIGEGEBEN 2026-09-21 (Zepp-Mail: „The application Pumpfoil
+        # (1.0.11) you submitted has been approved and added to the ZEPP app store"). Nummer AUS
+        # DER MAIL, wie es die Regel verlangt. Eingereicht 19.09. — also ZWEI TAGE, und damit die
+        # schnellste Zepp-Runde bisher; davor lagen 1.0.9 und 1.0.10 dreimal in Folge an den
+        # Store-Vorschaubildern fest, 1.0.10 wurde am 19.09. zurueckgezogen und mit korrigierten
+        # Bildern als 1.0.11 neu eingereicht.
+        # DAS IST DIE WICHTIGE: hier stecken die beiden Fehler drin, an denen die Amazfit-Uhren
+        # bisher praktisch unbrauchbar waren — ein Tastendruck beendete die laufende Aufnahme,
+        # und lange Uploads starben an „Out of Memory", weil die ganze Aufnahme beim Senden im
+        # Speicher lag. Dazu Puls-Alarm, Alarmmuster, Sparmodus/GPS-only und die Anzeige der
+        # Tastensperre.
+        # ALT: "latest": "1.0.8",   # FREIGEGEBEN 2026-09-12 (Zepp-Mail: „The application Pumpfoil (1.0.8)
         # you submitted has been approved and added to the ZEPP app store"). Eingereicht 10.09.
         # 11:19, also zwei Tage Pruefung — nach ZWEI Ablehnungen von 1.0.7, beide Male nur wegen
         # der Store-Vorschaubilder. Die korrigierten eckigen Bilder gingen mit 1.0.8 mit.
@@ -615,47 +626,11 @@ IN_REVIEW: list[dict] = [
     # mehr, sondern in `_APP_META` als live (eine Play-Mail deckt beide Spuren ab). Die 21 Punkte
     # sind in die Changelog-Tabelle gewandert, mit `versionen = {"android": "1.1.30",
     # "wear": "1.2.30"}`, dazu ein Freigabe-Ereignis.
-    {"name": "Amazfit", "version": "1.0.11",
-     "eingereicht": "2026-09-19",
-     # ZWEITER Anlauf. Der erste (18.09.) wurde am 19.09. zurueckgezogen, weil
-     # `DEV_FAKE_GPS` auf true stand — die Uhr haette nie eine echte Position gelesen.
-     # Der neue Build ist am Paket selbst nachgeprueft: in 12 von 24 kompilierten
-     # Dateien steht der echte GPS-Pfad (getLatitude/getLongitude), im zurueckgezogenen
-     # waren es 0 von 24. Bilder und Texte in der Konsole sind unveraendert.
-     # Kann das nochmal passieren? Nein: `npm run build` setzt den Schalter selbst und
-     # loescht dist/, wenn im fertigen Paket der echte Pfad fehlt (watch-zepp/zepp.mjs).
-     "items": [
-         "On square watches the page number in the top right corner is no longer clipped. The corners of those displays are heavily rounded, and the number sat in the very corner \u2014 on the \u201e1/4\u201c the last digit lost a piece.",
-         "A long recording uploads without running out of memory. The watch used to hold the "
-         "whole recording while sending it — on a two-hour session that is around 7200 positions, "
-         "and the upload stopped part way with \u201eOut of Memory\u201c. Positions are now "
-         "released as they go out, so the longer the ride, the more this matters. Reported by a "
-         "rider whose upload stopped at block 108 of 2341.",
-         "A recording no longer ends when you press a button or swipe. Until now a single press "
-         "could close the app and take the running recording with it — on some watches that "
-         "happened on every press, which is why so few Amazfit recordings ever arrived complete.",
-         "A button press now shows the stop screen instead, the way the other activities on the "
-         "watch do. It stops nothing by itself; it only shows you where stopping lives, and your "
-         "previous screen comes back on its own after five seconds.",
-         "The data pages no longer repeat \u201ehold = stop\u201c in the status line. That line "
-         "now shows only what changes while you ride \u2014 satellite fix and whether a run is "
-         "under way.",
-         "The watch shows your foil again when your alarm limits are set by hand. Picking "
-         "fixed limits in your profile used to leave the watch saying \u201eno foil\u201c on the "
-         "start screen, although the ride was recorded with your default foil anyway \u2014 what "
-         "you ride and where the alarm limits come from are two separate things. Garmin was "
-         "fixed on 10 September; Wear OS, Apple Watch and Amazfit follow now.",
-         "The pulse alarm works on Amazfit too. A heart-rate limit set in your profile simply "
-         "never reached the watch — now it buzzes when you go over it, with its own pattern.",
-         "High-speed, low-speed and pulse alarms feel different from each other now, and a "
-         "repeating alarm repeats instead of buzzing once. Both were settings you could pick in "
-         "your profile that the watch could not see.",
-         "\u201eEconomical\u201c and \u201eGPS only\u201c from your profile now work on Amazfit. "
-         "The watch always recorded at the full rate, whatever you had chosen.",
-         "You can see that the touch lock is on: a line at the bottom of the screen says so for "
-         "as long as it is locked. Until now the watch looked completely normal and you only "
-         "found out by touching it.",
-     ]},
+    # Amazfit: 1.0.11 ist am 21.09. FREIGEGEBEN und steht deshalb hier nicht mehr, sondern in
+    # `_APP_META` als live. Die 10 Punkte sind in die Changelog-Tabelle gewandert, mit
+    # `versionen = {"zepp": "1.0.11"}`, dazu ein Freigabe-Ereignis. Der Punkt zum Foil auf dem
+    # Startbildschirm stand dort schon fuer Android/Wear vom selben Tag — er hat `zepp` dazu
+    # bekommen, statt zweimal am selben Tag zu erscheinen.
 ]
 
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
