@@ -148,6 +148,10 @@ export type BoardAttitude = {
   // Hoehe. null, wenn das Stueck zu kurz fuers gewaehlte Fenster ist.
   hub_cm?: number[] | null;
   hub_fenster_s?: number;
+  // Der ausgewaehlte Lauf/Versuch OHNE den Rand von `pad_s` — die Kurven markieren damit, wo er
+  // wirklich anfaengt und aufhoert. null, wenn die ganze Aufnahme gezeigt wird.
+  auswahl_von_ms?: number | null;
+  auswahl_bis_ms?: number | null;
   kennzahlen?: {
     pitch_amplitude_deg: number; roll_amplitude_deg: number; gier_rms_deg_s: number;
     pitch_hz: number | null; ruhe_anteil: number; bias_abgezogen: boolean;
