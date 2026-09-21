@@ -181,10 +181,53 @@ bestehenden 456 getippten Marken bleiben als historischer Vergleichspunkt erhalt
 überlappen mit keiner Brett-Aufnahme (#295/#354 vom Juni sind uhr-only), taugen also nicht zur
 Gegenprobe, wohl aber als Beleg, wie die Eichung entstanden ist.
 
-**Eine Restunschärfe bleibt und soll benannt sein:** die Randfälle. Sehr sanfte Pumpstöße dicht
-über dem Rauschen, der Übergang ins Gleiten, der Dropstart am Lauf-Anfang — dort entscheidet die
-Mindesthöhe des Hub-Minimums, ob ein Zyklus zählt. Das ist ein Schwellenwert im Ableiter, kein
-Messfehler, und er lässt sich später an den dann vorhandenen Daten nachziehen.
+### Wann ein Zyklus als Pumpstoß zählt
+
+Auch das ist entschieden, und zwar physikalisch (Jan, 21.09.2026): „ein Pump ist es nur wenn mind.
+5 cm oder so Hub gemessen wurden innerhalb einer sehr kurzen Zeit, es muss ja Energie übertragen
+werden, und das ist Weg mal Kraft, und die Kraft ist nur groß bei ‚schnellem' Pumpen; 5 cm über
+3 Sekunden ist dann eher schon ein Glide."
+
+**Gemessen je Pumpzyklus** (Tiefpunkt zum folgenden Hochpunkt):
+
+| | #9535 | #9528 |
+|---|---|---|
+| Hub aufwärts (Median) | 18,6 cm | 19,5 cm |
+| **Dauer dafür** | **0,36 s** | **0,36 s** |
+| Aufwärts-Tempo | 53 cm/s | 53 cm/s |
+| Zyklusdauer | 0,73 s | 0,68 s |
+| Anteil unter 5 cm Hub | 2 % | 2 % |
+| 5. Perzentil Hub / Tempo | 8,8 cm / 13 cm/s | 6,4 cm / 26 cm/s |
+
+Beide Aufnahmen liefern dieselben Zahlen, obwohl das Handy völlig verschieden klebte (134° gegen
+268°) — das ist ein weiterer Beleg, dass die Kette trägt. Die „sehr kurze Zeit" ist demnach
+**0,36 s**, und die 5 cm sind ein bequemer Boden, der 2 % der Zyklen abschneidet.
+
+Das Energie-Argument trägt quantitativ: 5 cm über 3 s sind 1,7 cm/s gegen die gemessenen 53 cm/s,
+also **Faktor 31 im Tempo und rund Faktor 250 in der Energie** (Weg × Kraft ∝ A²f²).
+
+**Als EINE Größe formulieren, nicht als zwei Schwellen.** „Mindestens 5 cm UND schnell" ist genau
+das Aufwärts-Tempo Δh/Δt — dieselbe Physik in einer Zahl, ohne Kombinationen, in denen sich zwei
+Schwellen widersprechen können. An den Daten stabil: Median 53 cm/s, 5. Perzentil 13–26 cm/s. Eine
+Schwelle bei **10–15 cm/s** behält praktisch alles Echte und verwirft das Langsame. Der Wert ist
+bewusst noch nicht festgeschrieben — er wird an den ersten Fremd-Aufnahmen nachgezogen (Jan: „auch
+das finden wir dann mit mehr Daten besser raus").
+
+**Grenze, die dabei bekannt sein muss: der Hub ist bandbegrenzt.** Das Fenster richtet sich am
+Pumptakt aus (hier 1,39–1,53 s), was einem Hochpass bei rund 0,7 Hz entspricht. Eine Bewegung
+„5 cm über 3 Sekunden" (0,33 Hz) ist damit **schon vor jeder Schwelle aus `hub_cm`
+herausgefiltert.** Zwei Folgen:
+
+- **Gut:** langsames Auf und Ab kann sich gar nicht als Pumpstoß einschleichen. Jans Kriterium ist
+  zum Teil bereits durch die Bandgrenze erzwungen.
+- **Preis:** langsamen Hub können wir überhaupt nicht messen. Zwischen „sehr langsam gepumpt" und
+  „gleitet" lässt sich über den Hub deshalb nicht unterscheiden — dafür bleibt nur die
+  Bandamplitude des Nickens. Das ist eine prinzipielle Grenze der doppelten Integration
+  (s. Kopfkommentar in `lage.py`), keine Einstellung.
+
+**Was als Restunschärfe bleibt:** der Dropstart am Lauf-Anfang. Dort gibt es einen großen, schnellen
+Hub, der kein Pumpstoß ist. Den fängt keine Hub-Schwelle, sondern nur der Lauf-Anfang selbst — die
+ersten Zyklen eines Laufs sollten beim Labeln ausgenommen oder eigens markiert werden.
 
 ---
 
@@ -282,9 +325,9 @@ wäre der saubere Beleg.
    nachträglich unmöglich. **Muss vor dem Sammeln stehen.**
 2. **Ableiter bauen** (Nickschwingung → `pump_truth` mit eigenem `take`) + Paar-Sessions
    verknüpfen.
-3. **Marker-Definition umsetzen:** tiefster Punkt = Minimum des Hubs, einer je Zyklus
-   (Abschnitt 5). Gegenprobe je Aufnahme gegen den Pump-Zähler der parallel laufenden Uhr — kein
-   Handtippen nötig.
+3. **Marker-Definition umsetzen:** tiefster Punkt = Minimum des Hubs, einer je Zyklus, gültig ab
+   einem Aufwärts-Tempo von ~10–15 cm/s (Abschnitt 5). Gegenprobe je Aufnahme gegen den
+   Pump-Zähler der parallel laufenden Uhr — kein Handtippen nötig.
 4. **Sammeln: 8–10 Nutzer × 5 min** → erste ehrliche Messung, wie gut die heutige Pump-Erkennung
    ist. Ergebnis ist eine Zahl, die es bisher nicht gibt.
 5. **Persönliches Kadenzband** aus der vorhandenen Historie (kein Handy nötig, 92 Nutzer sofort).
