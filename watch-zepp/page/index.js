@@ -107,7 +107,7 @@ import { DEV_FAKE_GPS } from "./devflags.js";
 // aus dem Paket lesen ginge nur über einen weiteren @zos-Import; die sind hier ungetestet und
 // können beim Laden crashen, deshalb bewusst eine Konstante.) Der Bump auf 1.0.4 hatte nur
 // app.json getroffen: die Uhr zeigte weiter "v1.0.3" und meldete das auch dem Server.
-const APP_VERSION = "1.0.11";
+const APP_VERSION = "1.0.12";
 
 // Wie lange der Stopp-Bildschirm nach einem Tastendruck stehen bleibt, bevor die vorherige
 // Seite zurueckkommt. Fuenf Sekunden reichen zum Lesen und Antippen, und ein Fehlgriff ist
@@ -706,6 +706,7 @@ Page(
   BasePage({
     state: {
       screen: "idle", idlePage: 0, page: 0,
+      idleHint: "", idleHintTimer: null,   // kurzlebige Auskunft in der Statuszeile
       recording: false, startedAtMs: 0, uuid: "",
       paired: false, code: "",
       fix: false, autoTicks: 0,
@@ -1314,7 +1315,23 @@ Page(
     // Hintergrund-Reconnect: alle 20s (außer Aufnahme) neu verbinden/Config holen + Queue senden.
     heartbeat() {
       const s = this.state;
-      if (s.recording) return;
+      if (s.recording) {
+        // BILDSCHIRMZEIT AUCH WAEHREND DER AUFNAHME AUFFRISCHEN (u352, GTR 4, 21.09.2026:
+        // „Nach circa 4,5 Minuten kommt dann das Ziffernblatt und anschliessend, wenn ich die
+        // App wieder reinwill, ist sie beendet.").
+        //
+        // Beim Start setzen wir sie auf RECORDING_BRIGHT_MS (~24 Tage) — einmal. Dass dieser
+        // Wert verlorengeht oder gekappt wird, wissen wir seit dem T-Rex-3-Feldtest; genau
+        // deshalb frischt der LEERLAUF-Pfad unten alle 20 s nach (s. Kommentar in
+        // `_setBrightMode`). Der Aufnahme-Pfad hat dieselbe Behandlung nie bekommen, weil diese
+        // Funktion vorher in der ersten Zeile ausgestiegen ist — und dann schaltet der
+        // Bildschirm ab und Zepp raeumt die App rund 10 Sekunden spaeter weg.
+        //
+        // Nur das Auffrischen, sonst nichts: Verbinden und Senden bleiben waehrend der Aufnahme
+        // aus, damit die BLE-Warteschlange dem Upload-Worker gehoert.
+        this._setBrightMode("recording");
+        return;
+      }
       if (s.brightMode === "idle") this._setBrightMode("idle");
       // Do not enqueue CONFIG requests while the single upload worker owns the BLE request queue.
       if (s.uploading) return;
@@ -1550,6 +1567,29 @@ Page(
       if (s.unlockTimer) { clearTimeout(s.unlockTimer); s.unlockTimer = null; }
       this._removeTouchShield();
     },
+    /**
+     * Warum der Start-Knopf gerade nicht geht — fuer vier Sekunden in die Statuszeile.
+     *
+     * Er war bisher ausgegraut MIT LEEREM HANDLER: tippen tat nichts, und nichts erklaerte es.
+     * Genau so liest sich das als kaputte App. Anlass ist u352 am 21.09.2026, der nach einem
+     * Neustart der App meldete „beim zweiten Start kommt auch kein Start bzw. Stop mehr" —
+     * der Knopf war da, nur grau und stumm. Welcher der beiden Gruende es war, liesse sich am
+     * Bildschirm jetzt ablesen.
+     *
+     * Dieselbe Linie wie „Berechtigungen nie stumm scheitern": ein Ergebnis, das der Nutzer
+     * nicht sieht, ist kein Ergebnis.
+     */
+    _warumKeinStart() {
+      const s = this.state;
+      s.idleHint = s.uploading ? t("up.running") : t("gps.searching");
+      if (s.idleHintTimer) { try { clearTimeout(s.idleHintTimer); } catch (e) {} }
+      s.idleHintTimer = setTimeout(() => {
+        s.idleHint = ""; s.idleHintTimer = null;
+        try { this.renderIdle(); } catch (e) {}
+      }, 4000);
+      this.renderIdle();
+    },
+
     applyButton() {
       const s = this.state;
       if (s.recording) {
@@ -1559,7 +1599,7 @@ Page(
         this.setButton(t("common.done"), CYAN, CYAN_P, INK, () => this.done());
       } else if (s.idlePage === 0) {
         if (s.fix && !s.uploading) this.setButton(t("btn.start"), GPS_READY, GPS_READY_P, INK, () => this.start());
-        else this.setButton(t("btn.start"), GPS_WAIT, GPS_WAIT_P, MUTED, () => {});
+        else this.setButton(t("btn.start"), GPS_WAIT, GPS_WAIT_P, MUTED, () => this._warumKeinStart());
       } else if (s.idlePage === 1) {
         if (s.paired) this.setButton(t("rec.repair"), CYAN, CYAN_P, INK, () => this.repair());
         else this.setButton(t("pair.gen"), CYAN, CYAN_P, INK, () => this.beginPairing());
@@ -1625,7 +1665,7 @@ Page(
         // Verbindung und die Zahl offener Aufnahmen mit dran — zusammen lief das weit ueber
         // den Rand hinaus (Jans Emulator-Runde 10.09.2026: "in einer zeile viiiiiiel zu lang
         // ueber den gesamten screen hinaus"). Der Rest ist eine Sekunde spaeter wieder da.
-        const hint = s.upStatus ? s.upStatus
+        const hint = s.idleHint ? s.idleHint : s.upStatus ? s.upStatus
           : (((bleOk() && !getTok())
               ? (s.code ? s.code + " → pumpfoil.org" : t("up.notLinked") + " · → " + t("menu.connect"))
               : gps + (s.almOn ? " · " + t("fm.alarm") : "") + " · " + conn)
