@@ -308,6 +308,18 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
     return n > 1 ? idx / (n - 1) : 0;
   }, [d, idx]);
 
+  // ALLE Hooks stehen VOR den fruehen Returns. `reihen` hing zwischenzeitlich dahinter, und
+  // React zaehlte beim naechsten Rendern einen Hook mehr — Fehler #310, die Seite war weg.
+  const hubReihe = d?.hub_cm ?? null;
+  // Gemerkt, weil diese Ansicht beim Abspielen 60-mal je Sekunde rendert: ein frisches Array
+  // wuerde die Memoisierung der Kurven-Polylinien darunter wertlos machen.
+  const reihen = useMemo(() => [
+    { name: t("board.pitch"), werte: d?.pitch_deg ?? [], farbe: "#38bdf8", einheit: "°" },
+    { name: t("board.roll"), werte: d?.roll_deg ?? [], farbe: "#f59e0b", einheit: "°" },
+    { name: t("board.yaw"), werte: d?.gier_delta_deg ?? [], farbe: "#a78bfa", einheit: "°" },
+    ...(hubReihe ? [{ name: t("board.height"), werte: hubReihe, farbe: "#34d399", einheit: " cm" }] : []),
+  ], [d, hubReihe, t]);
+
   if (laden) return <div className="py-8"><Spinner /></div>;
   if (!d || !d.ok) {
     return (
@@ -317,7 +329,6 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
     );
   }
 
-  const hubReihe = d.hub_cm ?? null;
   const hub = hubReihe?.[idx] ?? 0;
   // Bildausschnitt der Seitenansicht: einmal aus dem ganzen Lauf bestimmt, damit er beim
   // Abspielen still steht statt mitzuatmen.
@@ -329,14 +340,6 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
   const rig = d.rig;
   const tMs = d.t_ms ?? [];
   const sek = tMs.length ? (tMs[idx] - tMs[0]) / 1000 : 0;
-  // Bewusst gemerkt: beim Abspielen rendert diese Ansicht 60-mal je Sekunde, und ein frisches
-  // Array wuerde jede Memoisierung darunter wertlos machen.
-  const reihen = useMemo(() => [
-    { name: t("board.pitch"), werte: d.pitch_deg ?? [], farbe: "#38bdf8", einheit: "°" },
-    { name: t("board.roll"), werte: d.roll_deg ?? [], farbe: "#f59e0b", einheit: "°" },
-    { name: t("board.yaw"), werte: d.gier_delta_deg ?? [], farbe: "#a78bfa", einheit: "°" },
-    ...(hubReihe ? [{ name: t("board.height"), werte: hubReihe, farbe: "#34d399", einheit: " cm" }] : []),
-  ], [d, hubReihe, t]);
   const NULLTEXT: Record<string, string> = {
     laeufe: "board.zeroRuns", mittelteil: "board.zeroMid", fenster: "board.zeroMean",
   };
