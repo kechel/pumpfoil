@@ -1410,13 +1410,48 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   `android/app/.../app/Recorder.kt` uebernehmen.** Native Apps sind eingefroren -> erst mit Jans
   Ansage. iOS pruefen, ob es dort denselben Weg gibt.
 
-  **3. 🔲 Der Auto-Zuschnitt hat 11,5 der 11,9 Minuten weggeschnitten.** `trim_start_ms=688755`,
+  **3a. ✅ WARUM DIE SESSION NICHT ALS NORMALE SESSION ERSCHEINT — und Jans Vermutung war
+  richtig.** `is_pumpfoil = False`, deshalb liegt 9484 im Aussortiert-Topf. Die Kette:
+  `detection = "model"` (Accel da, 61,2 Hz ≥ Mindestrate) -> das ON-FOIL-MODELL entscheidet ->
+  es haelt **2 von 568** GPS-Sekunden fuer Foiling (0,4 %; die fenix: 42 von 1952 = 2,2 %) ->
+  zwei aufeinanderfolgende Sekunden sind kuerzer als `MIN_SEGMENT_S = 5` -> **0 Laeufe** ->
+  `is_pumpfoil = n_runs > 0` = False.
+  **Nicht der Zuschnitt ist schuld** (das war meine erste Vermutung und sie war falsch): auch auf
+  den UNGETRIMMTEN Daten findet die volle Kette 0 Laeufe. Das reine GPS dagegen findet einen
+  (705-711 s, 29 m, 3,80 m/s Schnitt) — das Modell verwirft ihn.
+  **Gemessen, warum:** drei der 14 Merkmale sind AMPLITUDEN (`accel_rms`, `pump_rms`, `hf_rms`),
+  und die haengen an der Montage. Im gemeinsamen Zeitfenster beider Geraete (07:32:22-07:44:13,
+  568 gegen 680 Sekunden), und nur in den Sekunden mit echter Bewegung (>1 m/s):
+
+  | Merkmal | Handy am Brett | fenix am Arm | Verhaeltnis |
+  |---|---|---|---|
+  | `accel_rms` | 0,0328 | 0,1258 | **0,26x** |
+  | `pump_rms`  | 0,0334 | 0,1148 | **0,29x** |
+  | `hf_rms`    | 0,0232 | 0,0578 | 0,40x |
+
+  Am Brett kommt also rund **ein Viertel bis ein Drittel** der Amplitude an, die das Modell vom
+  Handgelenk kennt — `foil_rf.pkl` ist ausschliesslich auf Handgelenk-Daten trainiert. Die Raten
+  sind NICHT das Problem: `extract_features` rechnet die RMS-Werte ueber 1-s-Fenster mit der
+  echten `accel_hz`, 61 Hz sind sauber normiert.
+  **Vorschlag (ANALYSE-PIPELINE, erst mit Jans OK):** bei `placement == "board"` das
+  Handgelenk-Modell NICHT benutzen, sondern den GPS-Weg gehen (`detection = "gps_only"`) — es
+  ist ausserhalb seines Gueltigkeitsbereichs. Fuer 9484 ergaebe das 1 Lauf und
+  `is_pumpfoil = True` (vmax 3,98 m/s liegt unter dem 30-km/h-Gate). Sauberer, aber teurer waere
+  ein eigenes Brett-Modell, sobald genug Brett-Aufnahmen da sind.
+
+  **3b. 🔲 Der Auto-Zuschnitt hat 11,5 der 11,9 Minuten weggeschnitten.** `trim_start_ms=688755`,
   `trim_end_ms=725781` — ein Fenster von **37 Sekunden**. Ursache: die Erkennung fand genau
   EINEN Lauf, und zwar die letzten 7 Sekunden vor dem Ausfall (703,8-710,8 s); `maybe_auto_trim`
   setzt dann auf [erster Lauf − 15 s, letzter Lauf + 15 s]. Danach findet die Neuanalyse im
   Zuschnitt **null Laeufe** und nur zwei Startversuche (26,2 m / 33,1 m).
   **Das ist exakt der Fehlermodus von #5272** (u43, 08.09.), gegen den damals die
   Sportart-Bedingung eingebaut wurde — der greift hier nicht, weil die Session Pumpfoil IST.
+  **Der Zuschnitt ist ausserdem verwaist:** er zeigt auf ein Fenster, dessen Lauf es in der
+  jetzigen Analyse gar nicht mehr gibt. Erklaerung dafuer ist vermutlich die Reihenfolge beim
+  Hochladen — eine fruehe Analyse mit GPS aber ohne (genug) Accel laeuft als `gps_only`, findet
+  den Lauf ueber die GPS-Zustandsmaschine, setzt den Zuschnitt, und die spaetere Analyse mit
+  Accel nimmt den Modell-Weg und findet nichts mehr. Das waere zu belegen, bevor man es fixt.
+  **Fuer die ANSICHT bleibt der Zuschnitt trotzdem schaedlich:** er versteckt 11,5 Minuten.
   Vorschlag, ANALYSE-PIPELINE, also **erst mit Jans OK**: nicht zuschneiden, wenn die erkannten
   Laeufe nur einen winzigen Teil der Aufnahme abdecken (Faustzahl: unter 10 % der Dauer), und
   die STARTVERSUCHE beim Zuschnitt mitzaehlen — sie werden ohnehin auf dem ungetrimmten Satz
