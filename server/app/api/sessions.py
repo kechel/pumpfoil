@@ -300,6 +300,7 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
         # Wo das Geraet war. Die Lage-Ansicht (Pitch/Roll/Gierrate) haengt daran: nur „board"
         # misst das Brett, am Koerper misst es den Fahrer.
         placement=s.placement,
+        attitude_rot_deg=s.attitude_rot_deg,
         trim_start_ms=s.trim_start_ms,
         trim_end_ms=s.trim_end_ms,
         # Laenge der Sample-Achse (aktive Zeit) und die Pausen dazu. Beides braucht die UI, um
@@ -2543,6 +2544,14 @@ def set_meta(
         if wert not in ("", "board", "phone"):
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "placement: board | phone | (leer)")
         s.placement = wert or None
+    if body.attitude_rot_deg is not None:
+        # Dieselbe Schranke wie `placement`: es beschreibt die Montage derselben Aufnahme.
+        if not user.is_admin:
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "Nur Admins")
+        g = int(body.attitude_rot_deg) % 360
+        if g not in (0, 90, 180, 270):
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "attitude_rot_deg: 0 | 90 | 180 | 270")
+        s.attitude_rot_deg = g or None
     if body.caption is not None:
         cap = body.caption.strip()
         if len(cap) > CAPTION_MAX:
@@ -3553,7 +3562,8 @@ def board_lage(
                               ziel_hz=hz, yaw_fenster_s=yaw_window_s,
                               t_von_ms=von, t_bis_ms=bis,
                               ref_bereiche_ms=lage.laufbereiche(segmente, off),
-                              hub_fenster_s=height_window_s)
+                              hub_fenster_s=height_window_s,
+                              rot_deg=float(s.attitude_rot_deg or 0))
     erg["session_id"] = s.id
     erg["run"] = run
     erg["runs"] = laeufe

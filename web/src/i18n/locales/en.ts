@@ -88,6 +88,8 @@ const en: Record<string, string> = {
   "watchStats.search": "Search watch…",
   "sd.boardGpsWarning": "This was recorded with the phone on the board. Run detection here relies on GPS alone — the motion model is trained on wrist recordings and does not fit a board. Runs may be missing or over-counted.",
   "sd.attemptsLabel": "Attempt:",
+  "board.mounting": "Mounting rotation:",
+  "board.mountingHint": "how the phone sat on the board — 180° swaps nose and lean",
   "board.title": "Board attitude",
   "board.show": "Attitude",
   "board.map": "Map",

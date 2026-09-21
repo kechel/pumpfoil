@@ -280,7 +280,7 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
                    *, ziel_hz: float = 20.0, yaw_fenster_s: float = 1.0,
                    t_von_ms: float | None = None, t_bis_ms: float | None = None,
                    ref_bereiche_ms: list[tuple[float, float]] | None = None,
-                   hub_fenster_s: float = 3.0) -> dict:
+                   hub_fenster_s: float = 3.0, rot_deg: float = 0.0) -> dict:
     """Pitch/Roll (absolut, in Grad) und Gierwinkel-Aenderung je Fenster (Grad).
 
     `acc_raw`/`gyr_raw` sind die int16-Rohwerte, `t_*_ms` die zugehoerigen Zeitachsen. Das
@@ -319,6 +319,18 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
         gyr = np.column_stack([np.interp(t, t_gyr_ms, gyr_raw[:, j] / GYRO_SCALE) for j in range(3)])
     else:
         gyr = np.zeros_like(acc)
+
+    # MONTAGE-DREHUNG um die Hochachse (s. `models.Session.attitude_rot_deg`). Gedreht wird die
+    # Messung, nicht das Ergebnis: danach rechnet alles weiter, als laege das Geraet laengs mit
+    # der Nase nach vorn. Bei 180° laeuft es auf „x und y umdrehen" hinaus, genau das Noetige,
+    # wenn das Handy andersherum auf dem Brett klebt.
+    if rot_deg:
+        w = np.radians(rot_deg)
+        c, sn = np.cos(w), np.sin(w)
+        for v in (acc, gyr):
+            x, y = v[:, 0].copy(), v[:, 1].copy()
+            v[:, 0] = x * c - y * sn
+            v[:, 1] = x * sn + y * c
 
     t_s = t / 1000.0
     still = ruhe_maske(acc, gyr)
@@ -379,13 +391,22 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
     # Nullpunkt — die mittlere Lage WAEHREND DER FAHRT, nicht die Ruhelage (s. Kopfkommentar).
     # Erste Wahl sind die uebergebenen Laufbereiche, und zwar aus den Rohsamples: damit haengt
     # die Null nicht am gerade gezeigten Ausschnitt.
+    # ACHTUNG: `_bezugsrichtung` liest die ROHEN Samples — die sind noch ungedreht. Die Drehung
+    # gehoert also auch auf den Bezug, sonst zeigt der Nullpunkt in eine andere Richtung als die
+    # Messung und beides hebt sich nicht mehr sauber auf.
     bezug = _bezugsrichtung(acc_raw, t_acc_ms, ref_bereiche_ms or [])
+    if bezug is not None and rot_deg:
+        w = np.radians(rot_deg); c, sn = np.cos(w), np.sin(w)
+        bezug = np.array([bezug[0] * c - bezug[1] * sn, bezug[0] * sn + bezug[1] * c, bezug[2]])
     null_quelle = "laeufe"
     if bezug is None:
         # Kein Lauf erkannt: der Mittelteil des Fensters. Aufbauen und Einpacken liegen aussen,
         # der Sturz meist am Ende — was bleibt, ist das Brauchbarste, das ohne Erkennung da ist.
         rand = (1.0 - MITTELTEIL) / 2.0 * (bis - von)
         bezug = _bezugsrichtung(acc_raw, t_acc_ms, [(von + rand, bis - rand)])
+        if bezug is not None and rot_deg:
+            w = np.radians(rot_deg); c, sn = np.cos(w), np.sin(w)
+            bezug = np.array([bezug[0] * c - bezug[1] * sn, bezug[0] * sn + bezug[1] * c, bezug[2]])
         null_quelle = "mittelteil"
     if bezug is None:
         bezug = np.median(a_norm, axis=0)
@@ -417,6 +438,7 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
                       "gyro": round(float(_quellrate(t_gyr_ms)), 1) if hat_gyro else None},
         "yaw_fenster_s": yaw_fenster_s,
         "nullpunkt": null_quelle,
+        "rot_deg": rot_deg,
         "null_pitch_deg": round(null_p, 2),
         "null_roll_deg": round(null_r, 2),
         "hat_gyro": bool(hat_gyro),

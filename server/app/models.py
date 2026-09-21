@@ -408,6 +408,14 @@ class Session(Base):
     # Aufnahme-Platzierung, von der Uhr/App gemeldet: None/"" = Uhr am Handgelenk, "phone" = Handy
     # (Tasche/Hüfte, „Record on Phone"-Beta). Für spätere platzierungs-spezifische Pump-Analyse.
     placement: Mapped[str | None] = mapped_column(String(16))
+    # Wie das HANDY auf dem Brett gedreht lag, in Grad um die Hochachse (0/90/180/270).
+    # NULL/0 = so, wie die Geraeteachsen liegen. Noetig, weil sich das nicht messen laesst: die
+    # Neigungs-Hauptachse (`kennzahlen.ausrichtung_deg`) findet die ACHSE, aber nicht die
+    # Richtung — 14° und 194° sehen in den Daten gleich aus. Belegt an #9484: beim Dropstart
+    # zeigte die Ansicht +43° Nase HOCH, tatsaechlich haengt das Brett dort rund 45° nach unten
+    # (Jan, 21.09.). Der Versuch, die Richtung aus dem GPS zu holen (Vorwaerts-Beschleunigung
+    # gegen dv/dt), lieferte -0,64 / -0,27 / +0,18 auf denselben Daten — unbrauchbar.
+    attitude_rot_deg: Mapped[int | None] = mapped_column(Integer)
     # Puls-Diagnose, vom Recorder beim Abschluss gemeldet (optional, alte App-Versionen
     # schicken sie nicht). `hr_samples` = wie viele Pulswerte wirklich ankamen,
     # `hr_source` = wie sie zustande kamen ("active" | "passive" | "none").
