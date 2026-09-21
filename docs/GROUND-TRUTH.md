@@ -274,13 +274,40 @@ sollen zählen — **kein Sonderfall im Ableiter.**
 (5–7 cm/s in allen drei Aufnahmen). Das Herumtragen und Ablegen, während das Brett kopfüber liegt,
 kommt dagegen auf **22–28 cm/s** und würde eine Tempo-Schwelle von 10–15 cm/s passieren.
 
-Zwei Wege, das auszuschließen, beide mit schon vorhandenen Größen:
+#### Die Lage als Gültigkeitsbedingung
 
-1. **Lauf-Grenze plus kurzes Vorfenster** (empfohlen, weil unabhängig von der Lage-Rechnung).
-   Gemessen liegen alle Sprünge bei t−2,1 bis −2,3 s, alle Drehungen bei t−9 bis −16 s.
-   **Ein Vorfenster von 4 s** trennt beides in allen drei Aufnahmen sauber.
-2. **Kopfüber ausschließen** (|Rollen| > 120°) und ein Mindesttempo verlangen — das Hantieren
-   findet bei 0,1–0,6 m/s statt, der Sprung ab 0,8 m/s.
+Jan, 21.09.2026: „Pumps gibt es nur wenn das Board mehr oder weniger horizontal ist, in Nick und
+Roll Richtung, auf dem Kopf pumpen ist physikalisch nicht möglich, dann wäre das Board ja 1 m
+unter Wasser."
+
+Physikalisch zwingend, und aus den Daten fällt heraus, dass es das **Rollen** ist, das trennt —
+nicht das Nicken. Über alle drei Aufnahmen, nur Marken über 10 cm/s:
+
+| | echte Pumps (178 Marken) | Hantieren (13 Marken) |
+|---|---|---|
+| \|Nicken\| Median | 4,3° | 6,0° |
+| \|Nicken\| 95. Perzentil | 17,6° | 15,3° |
+| **\|Rollen\| Median** | **2,8°** | **173,4°** |
+| \|Rollen\| 95. Perzentil | 9,1° | 178,8° |
+
+Das Nicken unterscheidet **gar nicht** — beim Hantieren liegt es bei 6°, also genau im
+Pump-Bereich (das Brett wird ja flach getragen). Das Rollen trennt vollständig.
+
+**Grenze 45° in beiden Richtungen** ist das Optimum aus den Daten: behält 98,3 % der echten Pumps;
+enger (20–30°) fällt auf 96,1 %, ohne beim Hantieren irgendetwas dazuzugewinnen. Was bei 45°
+wegfällt, sind Marken mit 54–65° Neigung mitten im Lauf — mit hoher Wahrscheinlichkeit Stürze am
+Laufende, also zu Recht keine Pumps.
+
+**Zwei Kriterien, die sich ergänzen statt zu ersetzen:**
+
+1. **Lage** (|Nicken| < 45° **und** |Rollen| < 45°). Killt das Kopfüber-Hantieren vollständig und
+   **unabhängig von der Lauf-Erkennung** — das ist der entscheidende Vorteil, denn genau dort, wo
+   die Lauf-Erkennung schwach ist (Anfänger, kurze Startversuche), wäre ein Vorfenster wertlos.
+2. **Tempo oder Lauf-Fenster.** 3 der 13 Hantier-Marken passieren die Lage-Grenze, weil das Brett
+   dabei schon aufrecht stand (#9484, Anheben bei t−5,2: 25 cm Hub, Rollen −0,4°). Dagegen hilft
+   nur das Tempo: Hantieren findet bei 0,1–0,6 m/s statt, der Sprung ab 0,8 m/s. Alternativ die
+   Lauf-Grenze plus **4 s Vorfenster** — gemessen liegen alle Sprünge bei t−2,1 bis −2,3 s, alle
+   Drehungen bei t−9 bis −16 s.
 
 Eine Zahl mit Vorbehalt: die 81 cm des Dropstarts dauern aufwärts 1,13 s und liegen damit dicht an
 der unteren Bandgrenze (Fenster 1,39 s ≈ 0,7 Hz). Die Amplitude ist dort schon beschnitten —
@@ -382,10 +409,10 @@ wäre der saubere Beleg.
    nachträglich unmöglich. **Muss vor dem Sammeln stehen.**
 2. **Ableiter bauen** (Nickschwingung → `pump_truth` mit eigenem `take`) + Paar-Sessions
    verknüpfen.
-3. **Marker-Definition umsetzen:** tiefster Punkt = Minimum des Hubs, einer je Zyklus, gültig ab
-   einem Aufwärts-Tempo von ~10–15 cm/s, gezählt nur im Lauf plus 4 s Vorfenster (Abschnitt 5).
-   Gegenprobe je Aufnahme gegen den Pump-Zähler der parallel laufenden Uhr — kein Handtippen
-   nötig.
+3. **Marker-Definition umsetzen:** tiefster Punkt = Minimum des Hubs, einer je Zyklus; gültig ab
+   einem Aufwärts-Tempo von ~10–15 cm/s, bei |Nicken| und |Rollen| < 45° und oberhalb eines
+   Mindesttempos bzw. im Lauf plus 4 s Vorfenster (Abschnitt 5). Gegenprobe je Aufnahme gegen den
+   Pump-Zähler der parallel laufenden Uhr — kein Handtippen nötig.
 4. **Sammeln: 8–10 Nutzer × 5 min** → erste ehrliche Messung, wie gut die heutige Pump-Erkennung
    ist. Ergebnis ist eine Zahl, die es bisher nicht gibt.
 5. **Persönliches Kadenzband** aus der vorhandenen Historie (kein Handy nötig, 92 Nutzer sofort).
