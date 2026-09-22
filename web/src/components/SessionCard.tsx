@@ -233,7 +233,16 @@ export function SessionCard({
                   <BoardIcon className="h-3.5 w-3.5" /> {board}
                 </span>
               )}
-              {deviceLabel && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300"><WatchIcon className="h-3.5 w-3.5" /> {geraeteText(deviceLabel, placement, t)}</span>}
+              {deviceLabel && (
+                // Sonderbehandlung wie beim Skateboard: "Handy am Brett" ist der Sonderfall,
+                // den man auf den ersten Blick sehen soll, nicht erst beim genauen Lesen.
+                <span className={`ml-2 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs ${
+                  placement === "board"
+                    ? "bg-brand-500/20 font-semibold text-brand-700 dark:text-brand-300"
+                    : "bg-slate-800 text-slate-300"}`}>
+                  <WatchIcon className="h-3.5 w-3.5" /> {geraeteText(deviceLabel, placement, t)}
+                </span>
+              )}
             </div>
             {stats}
           </div>
