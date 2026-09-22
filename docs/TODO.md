@@ -1408,6 +1408,26 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+### 22.09.2026 — Foil Scoot als Sportart aufnehmen
+
+- [ ] **„Foil Scoot" als weitere Sportart** (Jan, 22.09.2026: „Foil Scoot als weitere sportart
+  mit aufnehmen"). Nur notiert, noch nichts gebaut.
+  **Wo es ueberall haengt** (die Liste ist an mehreren Stellen dieselbe, sonst laeuft sie
+  auseinander):
+  - `web/src/lib/sportClass.ts` — `SPORTS` (heute: pumpfoil, wingfoil, kitefoil, parawing,
+    surf_downwind, surf_wave, sup_paddle, wakethief, towed, efoil, foildrive, other).
+  - Der Sprachschluessel `cls.sport.<key>` in allen 18 Sprachdateien
+    (`web/src/i18n/locales/*.ts`), danach `scripts/i18n-port.py` fuer Android + iOS.
+  - Server: die zulaessigen Werte fuer `sessions.sport_class` (Pruefung beim Setzen) und die
+    Zuordnung aus FIT-/Import-Sportarten in `server/app/importsports.py`.
+  - Android `SportClass.kt` und iOS — beide halten dieselbe Liste; Apps sind eingefroren, also
+    erst Web + Server, die nativen Listen bei der naechsten Einreichung mit.
+  **Vorher zu klaeren:** wie der Schluessel heisst (`foil_scoot`?) und ob eine automatische
+  Zuordnung ueberhaupt moeglich ist — oder ob es wie die anderen Nicht-Pumpfoil-Sportarten rein
+  vom Nutzer gesetzt wird (Regel: keine haendische Zuordnung durch uns,
+  `needs_classification` ist keine Warteschlange).
+
+
 ### 21.09.2026 — Haengende Aufnahmen, Apple-Abschluss, Android-Upload-Anzeige
 
 - [x] **Bestand abgeschlossen (21.09., Jans Freigabe „Ja bitte machen"):** 16 der 28 haengenden
