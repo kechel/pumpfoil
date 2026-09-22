@@ -735,6 +735,8 @@ const deAT: Record<string, string> = {
   "foilDetail.sessions": "Sessions mit dem Foil",
   "foilDetail.none": "Mit dem Foil is no kane Session aufgnommen.",
   "foilStats.none": "No kane Sessions mit dem Foil.",
+  "foilStats.onlyBoard": "Nur Aufnahmen mitm Handy am Brett",
+  "foilStats.noneBoard": "No kane Aufnahmen mitm Handy am Brett und gwähltem Foil.",
   "foilStats.colFoil": "Foil",
   "foilStats.colSessions": "Sessions",
   "foilStats.colUsers": "Foiler",

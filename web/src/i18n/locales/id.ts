@@ -1085,6 +1085,8 @@ const id: Record<string, string> = {
   "foilDetail.sessions": "Sesi dengan foil ini",
   "foilDetail.none": "Belum ada sesi yang direkam dengan foil ini.",
   "foilStats.none": "Belum ada sesi dengan foil terpilih.",
+  "foilStats.onlyBoard": "Hanya rekaman dengan ponsel di papan",
+  "foilStats.noneBoard": "Belum ada sesi dengan ponsel di papan dan foil terpilih.",
   "foilStats.colFoil": "Foil",
   "foilStats.colSessions": "Sesi",
   "foilStats.colUsers": "Foiler",

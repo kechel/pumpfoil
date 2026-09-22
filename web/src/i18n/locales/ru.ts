@@ -1085,6 +1085,8 @@ const ru: Record<string, string> = {
   "foilDetail.sessions": "Сессии на этом фойле",
   "foilDetail.none": "На этом фойле пока нет записанных сессий.",
   "foilStats.none": "Пока нет сессий с выбранным фойлом.",
+  "foilStats.onlyBoard": "Только записи с телефоном на доске",
+  "foilStats.noneBoard": "Пока нет сессий с телефоном на доске и выбранным фойлом.",
   "foilStats.colFoil": "Фойл",
   "foilStats.colSessions": "Сессии",
   "foilStats.colUsers": "Фойлеры",

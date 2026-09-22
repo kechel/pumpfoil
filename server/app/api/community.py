@@ -1435,8 +1435,14 @@ def community_stats(
 
 
 @router.get("/foil-stats")
-def foil_stats(_user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
-    """Community-Aggregat je Foil (nur Sessions mit explizit gewähltem Foil)."""
+def foil_stats(only_board: bool = False, _user: models.User = Depends(current_user),
+               db: Session = Depends(get_db)) -> list[dict]:
+    """Community-Aggregat je Foil (nur Sessions mit explizit gewähltem Foil).
+
+    `only_board=1` zaehlt NUR Aufnahmen mit dem Handy am Brett. Die sind genauer als eine
+    Uhr am Handgelenk (fester Sitz, hohe Rate, Kreisel dabei), aber es gibt erst eine
+    Handvoll davon — die Zahlen daraus sind also lange duenn, bevor sie tragen.
+    """
     rows = (
         _community(db.query(
             S.foil_id,
@@ -1449,6 +1455,7 @@ def foil_stats(_user: models.User = Depends(current_user), db: Session = Depends
             func.max(AR.best_duration_s),
             func.avg(AR.avg_cadence_hz),
         ), _user.id).filter(S.foil_id.isnot(None))
+        .filter(S.placement == "board" if only_board else true())
         .group_by(S.foil_id).all()
     )
     if not rows:

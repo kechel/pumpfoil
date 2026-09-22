@@ -1198,6 +1198,8 @@ const nl: Record<string, string> = {
   "foilDetail.sessions": "Sessies met deze foil",
   "foilDetail.none": "Er zijn nog geen sessies met deze foil opgenomen.",
   "foilStats.none": "Nog geen sessies met gekozen foil.",
+  "foilStats.onlyBoard": "Alleen opnames met de telefoon op de board",
+  "foilStats.noneBoard": "Nog geen sessies met de telefoon op de board en gekozen foil.",
   "foilStats.colFoil": "Foil",
   "foilStats.colSessions": "Sessies",
   "foilStats.colUsers": "Foilers",

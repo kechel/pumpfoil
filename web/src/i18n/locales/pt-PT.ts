@@ -1083,6 +1083,8 @@ const ptPT: Record<string, string> = {
   "foilDetail.sessions": "Sessões com este foil",
   "foilDetail.none": "Ainda não há sessões gravadas com este foil.",
   "foilStats.none": "Ainda sem sessões com um foil escolhido.",
+  "foilStats.onlyBoard": "Apenas gravações com o telemóvel na prancha",
+  "foilStats.noneBoard": "Ainda sem sessões com o telemóvel na prancha e um foil escolhido.",
   "foilStats.colFoil": "Foil",
   "foilStats.colSessions": "Sessões",
   "foilStats.colUsers": "Foilers",

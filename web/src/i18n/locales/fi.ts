@@ -1165,6 +1165,8 @@ const fi: Record<string, string> = {
   "foilDetail.sessions": "Sessiot tällä foililla",
   "foilDetail.none": "Tällä foililla ei ole vielä tallennettuja sessioita.",
   "foilStats.none": "Ei vielä sessioita valitulla foililla.",
+  "foilStats.onlyBoard": "Vain tallennukset puhelin laudassa",
+  "foilStats.noneBoard": "Ei vielä sessioita, joissa puhelin on laudassa ja foili valittuna.",
   "foilStats.colFoil": "Foil",
   "foilStats.colSessions": "Sessiot",
   "foilStats.colUsers": "Foilaajat",

@@ -132,3 +132,51 @@ def test_andere_meta_felder_bleiben_unberuehrt(client):
     d = client.get(f"/api/sessions/{s['id']}", headers=auth).json()
     assert d["caption"] == "Testlauf"
     assert d["placement"] == "board"
+
+
+def _gezaehlte_session(uid: int, foil_id: int, placement: str | None):
+    """Eine community-sichtbare Pumpfoil-Session mit Accel-Erkennung, direkt in der DB."""
+    import uuid as _uuid
+    from datetime import datetime, timezone
+
+    from app import models
+    from app.db import SessionLocal
+    db = SessionLocal()
+    s = models.Session(session_uuid=str(_uuid.uuid4()),
+                       started_at=datetime(2026, 9, 20, 9, 0, tzinfo=timezone.utc),
+                       user_id=uid, foil_id=foil_id, placement=placement,
+                       is_pumpfoil=True, sport_class="pumpfoil", status="analyzed")
+    db.add(s)
+    db.flush()
+    db.add(models.AnalysisResult(session_id=s.id, algo_version="test", detection="model",
+                                 num_runs=1, foiling_distance_m=1000.0, foiling_time_s=250.0,
+                                 pump_count=400))
+    db.commit()
+    db.close()
+
+
+def test_foil_stats_nur_brett_zaehlt_nur_brett_aufnahmen(client):
+    """`only_board=1` zaehlt NUR Aufnahmen mit dem Handy am Brett.
+
+    Sinn des Schalters (Jan, 22.09.2026): ein Handy am Brett misst genauer als eine Uhr am
+    Handgelenk. Der Filter muss deshalb wirklich trennen — nicht nur die Spalte mitschleppen.
+    """
+    auth = _konto(client, "foilstats-brett@example.com")
+    from app import models
+    from app.db import SessionLocal
+    db = SessionLocal()
+    uid = db.query(models.User).filter_by(email="foilstats-brett@example.com").first().id
+    zwei_foils = db.query(models.Foil).limit(2).all()
+    assert len(zwei_foils) == 2, "Der Foil-Katalog ist leer — Seed fehlt."
+    brett_foil, uhr_foil = zwei_foils[0].id, zwei_foils[1].id
+    db.close()
+
+    _gezaehlte_session(uid, brett_foil, "board")
+    _gezaehlte_session(uid, uhr_foil, None)      # Uhr am Handgelenk
+
+    alle = client.get("/api/community/foil-stats", headers=auth).json()
+    nur_brett = client.get("/api/community/foil-stats?only_board=1", headers=auth).json()
+
+    assert {r["foil_id"] for r in alle} >= {brett_foil, uhr_foil}
+    assert [r["foil_id"] for r in nur_brett] == [brett_foil]
+    assert next(r for r in nur_brett if r["foil_id"] == brett_foil)["sessions"] == 1

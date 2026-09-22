@@ -1085,6 +1085,8 @@ const ja: Record<string, string> = {
   "foilDetail.sessions": "このフォイルでのセッション",
   "foilDetail.none": "このフォイルで記録されたセッションはまだありません。",
   "foilStats.none": "まだフォイルを選んだセッションがありません。",
+  "foilStats.onlyBoard": "ボードに装着したスマホの記録のみ",
+  "foilStats.noneBoard": "ボードにスマホを装着し、フォイルを選んだセッションはまだありません。",
   "foilStats.colFoil": "フォイル",
   "foilStats.colSessions": "セッション",
   "foilStats.colUsers": "フォイラー",

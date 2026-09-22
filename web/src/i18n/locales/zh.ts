@@ -1085,6 +1085,8 @@ const zh: Record<string, string> = {
   "foilDetail.sessions": "使用这支水翼的活动",
   "foilDetail.none": "还没有人用这支水翼记录过活动。",
   "foilStats.none": "暂无选定水翼的记录。",
+  "foilStats.onlyBoard": "仅手机装在板上的记录",
+  "foilStats.noneBoard": "暂无手机装在板上且选定水翼的记录。",
   "foilStats.colFoil": "水翼",
   "foilStats.colSessions": "记录数",
   "foilStats.colUsers": "玩家数",

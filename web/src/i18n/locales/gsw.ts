@@ -788,6 +788,8 @@ const gsw: Record<string, string> = {
   "foilDetail.sessions": "Sessions mit dem Foil",
   "foilDetail.none": "Mit dem Foil isch na kei Session ufgnoh.",
   "foilStats.none": "No kei Sessions mit gwähltem Foil.",
+  "foilStats.onlyBoard": "Nur Ufnahme mitem Händy am Brätt",
+  "foilStats.noneBoard": "No kei Ufnahme mitem Händy am Brätt und gwähltem Foil.",
   "foilStats.colFoil": "Foil",
   "foilStats.colSessions": "Sessions",
   "foilStats.colUsers": "Foiler",
