@@ -1408,6 +1408,26 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+### 22.09.2026 — Polar in der falschen Uhr-Sportart: Pierre (Nico)
+
+- [ ] **Pierre (Nico), u624: seine Polar schreibt `running` in die Datei — beide Aufnahmen
+  aussortiert.** Jans Frage: „wurden die sessions via polar von Pierre (Nico) als pumpfoil
+  erkannt oder automatisch aussortiert?" Antwort: **aussortiert**. #9579 (22.09., 54 min,
+  4537 m) und #9578 (19.09.) stehen auf `sport_class = other`, `detection = none`, 0 Laeufe.
+  **Kein Fehler, sondern die Regel:** `running` ist von der GPS-only-Erkennung ausgeschlossen —
+  ohne Beschleunigung laesst sich Foilen nicht von Rad/Ski/Laufen trennen. Derselbe Fall wie
+  Nutzer 198 (07.09., Suunto im Lauf-Modus).
+  **Der Ausweg ist schon gebaut:** stuft ER die Session als Pumpfoil ein, greift
+  `_mensch_sagt_pumpfoil` und die GPS-only-Erkennung laeuft. Die Schaltflaeche dafuer hat er
+  (`ClassPickers` an jeder eigenen Session). **Wir ordnen das NICHT fuer ihn zu** — harte Regel.
+  Offen ist also nur, ob ihm das jemand sagt; das waere eine Nachricht, keine Code-Aenderung.
+  **Wie gross das Thema insgesamt ist, gemessen:** als `other` aussortiert mit Quelle „default"
+  sind 1944 `cycling`, 508 `running`, 359 `alpine_skiing`, 198 `soccer`, 167 Langlauf, 70
+  `hiking` … — das sind ganz ueberwiegend Sammel-Importe echter anderer Sportarten, also
+  richtig. Die falsch Aussortierten stecken im `running`-Topf (6 Nutzer), und sie lassen sich
+  von echten Laeufen nicht automatisch trennen. Deshalb bleibt es beim Nutzer-Weg.
+
+
 ### 22.09.2026 — Foil Scoot als Sportart aufnehmen
 
 - [x] **„Foil Scoot" als weitere Sportart — ERLEDIGT 22.09.2026** (Jan: „Foil Scoot als weitere
@@ -1622,11 +1642,16 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   appears to be lost or capped after certain events", und genau deshalb frischt der LEERLAUF-Pfad
   alle 20 s nach. Der Aufnahme-Pfad hat dieselbe Behandlung nie bekommen.
 
-  **Vorschlag (NATIVE APP, also erst mit Jans Ansage):** im `heartbeat()` vor dem
-  `return` bei laufender Aufnahme die Bildschirmzeit neu setzen — dieselbe Auffrischung, die im
-  Leerlauf nachweislich hilft. Klein, und es nutzt genau das, was sich schon bewaehrt hat.
+  **✅ GEBAUT (d86ca6cc, 21.09.) — und damit ist Jans Frage „lohnt sich 1.0.12?" beantwortet.**
+  Im `heartbeat()` wird die Bildschirmzeit jetzt AUCH bei laufender Aufnahme aufgefrischt,
+  bevor die Funktion aussteigt — dieselbe Auffrischung alle 20 s, die im Leerlauf seit dem
+  T-Rex-3-Feldtest nachweislich hilft.
+  **🔲 OFFEN IST NUR NOCH DIE EINREICHUNG.** 1.0.12 (code 15) liegt gebaut da; Klettermax und
+  u352 fahren auf 1.0.11 und haben den Fix deshalb NICHT. Jan, 22.09.: „habe gerade mit
+  Klettermax am See seine Amazfit besprochen, er hat auch aufgezeichnet, aber irgendwann was die
+  uhr wohl wieder auf ziffernblatt" — genau dieses Symptom. Einreichen kann nur Jan (Build auf
+  seinem Mac).
   Danach im Feld gegenpruefen: haelt eine Aufnahme laenger als 4,5 Minuten durch?
-  Kaeme mit **1.0.12**, das ohnehin geplant ist.
 
   **Falls es damit nicht reicht,** ist es der Punkt, an dem die Sportmodus-Frage wieder hochkommt
   (s. den Eintrag zur Workout Extension) — dann waere die Lebensdauer wirklich nichts, was eine
@@ -2665,6 +2690,20 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     Kette loest auf sechs Strato-Netze mit `-all` auf.
   - **Zwischenloesung fuer die zwei von heute:** Chat-Nachrichten liegen fertig (u214, u479),
     beide sind in den letzten Tagen aktiv gewesen.
+  - **✅ GEGENGEPRUEFT 22.09.2026 — der Server KANN senden, die Zugangsdaten stehen.** Jan
+    vermutete, es fehlten noch seine SMTP-Daten („vermutlich braucht das aber noch meine smtp
+    zugangsdaten damit du ueber den strato server senden kannst"). Sie stehen bereits alle sechs
+    in `server/.env`, und der Login gegen `smtp.strato.de:465` (SSL) laeuft durch — geprueft mit
+    EHLO+LOGIN+QUIT, **ohne eine Mail zu senden**. Absender ist `Pumpfoil
+    <noreply@pumpfoil.org>`, also genau eine der drei bei Apple registrierten Adressen.
+  - **🔲 WAS NOCH FEHLT, und es ist keine Code-Frage:** ein BELEG, dass Mail bei einem
+    Relay-Konto ankommt. Den gibt es nur durch einen echten Versand an eine `@privaterelay.
+    appleid.com`-Adresse — also an einen Nutzer. Das entscheidet Jan, nicht ich.
+  - **🔲 UND EIN ZWEITER PUNKT, der leicht untergeht:** registriert ist `jan@pumpfoil.org`.
+    Die zurueckgekommenen Mails kamen von **`jan@kechel.de`** — diese Domain ist bei Apple NICHT
+    hinterlegt. Wer aus dem eigenen Mailprogramm an ein Relay-Konto schreibt, muss also
+    `@pumpfoil.org` als Absender waehlen, sonst prallt es weiter ab. Der Server ist davon nicht
+    betroffen, er sendet ohnehin als `noreply@pumpfoil.org`.
 
 
 - **🔴 INSTINCT-2-KLASSE STUERZT IN DER AUFNAHME AB — Speicherluft seit 1.0.80 um ein Viertel
