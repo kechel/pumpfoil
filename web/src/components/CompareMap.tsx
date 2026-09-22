@@ -123,6 +123,14 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
       mapObj.current = L.map(mapRef.current, { zoomControl: false, maxZoom: 22 });
       L.control.zoom({ position: "bottomright" }).addTo(mapObj.current);
       basiskarten(mapObj.current, { street: t("map.street"), satellite: t("map.satellite") }, { maxZoom: 22 });
+      // Eigene Ebene fuer die Pump-Marken, wie in der Einzelansicht. Ohne sie entscheidet die
+      // Reihenfolge: die Linien des ZWEITEN Eintrags uebermalen die Marken des ersten — genau
+      // das war im Vergleich zu sehen (Jan, 22.09.). Ueber den Strecken, unter dem Laufzeiger.
+      mapObj.current.createPane("pumpPane");
+      mapObj.current.getPane("pumpPane")!.style.zIndex = "640";
+      // Der Laufzeiger gehoert ueber die Marken, sonst verschwindet er beim Abspielen darunter.
+      mapObj.current.createPane("posPane");
+      mapObj.current.getPane("posPane")!.style.zIndex = "650";
       layer.current = L.layerGroup().addTo(mapObj.current);
     }
     const all: [number, number][] = [];
@@ -169,7 +177,8 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
   // faerbt die Wiedergabe anders als die Karte, die man eine Sekunde vorher angesehen hat.
   const bahnen = useMemo(() => {
     const m = new Map<number, {
-      pts: [number, number][]; farbe: string; name: string; farbeAn: (i: number) => string;
+      pts: [number, number][]; farbe: string; eintragFarbe: string; name: string;
+      farbeAn: (i: number) => string;
     }>();
     for (const it of items) {
       if (m.has(it.session.id)) continue;
@@ -194,6 +203,9 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
       m.set(it.session.id, {
         pts: c.map((p: [number, number]) => [p[1], p[0]] as [number, number]),
         farbe: it.riderColor,
+        // Farbe des EINTRAGS: bei zwei Aufnahmen desselben Fahrers (Uhr + Handy am Brett) ist
+        // `farbe` fuer beide gleich — die Pump-Marken brauchen die unterscheidende Farbe.
+        eintragFarbe: it.color,
         name: it.rider ?? "—",
         farbeAn,
       });
@@ -257,7 +269,7 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
         if (!vorher) continue;
         const p = bahn.pts[Math.min(vorher.i_end, bahn.pts.length - 1)];
         if (!p) continue;
-        L.circleMarker(p, { radius: 5, color: bahn.farbe, weight: 2, fillColor: "#0f172a", fillOpacity: 0.55, opacity: 0.55 })
+        L.circleMarker(p, { pane: "posPane", radius: 5, color: bahn.farbe, weight: 2, fillColor: "#0f172a", fillOpacity: 0.55, opacity: 0.55 })
           .addTo(lg);
         continue;
       }
@@ -279,11 +291,24 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
         L.polyline([a, b], { color: bahn.farbeAn(k + 1), weight: 4, opacity: 0.95 }).addTo(lg);
       }
 
+      // Pump-Marken mitwachsen lassen: nur die, die der Zeiger schon passiert hat. Sie erst am
+      // Ende komplett einzublenden waere kein Abspielen, sondern ein Sprung — und die Frage,
+      // fuer die der Knopf da ist (welches Geraet findet WANN einen Stoss), haengt am Zeitpunkt.
+      if (showPumps) {
+        for (const pidx of lauf.pump_idx ?? []) {
+          if (pidx > bis || !bahn.pts[pidx]) continue;
+          L.circleMarker(bahn.pts[pidx], {
+            pane: "pumpPane", radius: 3, color: "#f8fafc", weight: 1.2,
+            fillColor: bahn.eintragFarbe, fillOpacity: 0.95,
+          }).addTo(lg);
+        }
+      }
+
       const a = bahn.pts[Math.floor(i)], b = bahn.pts[Math.min(Math.ceil(i), bahn.pts.length - 1)];
       if (!a) continue;
       const g = i - Math.floor(i);
       const p: [number, number] = b ? [a[0] + (b[0] - a[0]) * g, a[1] + (b[1] - a[1]) * g] : a;
-      L.circleMarker(p, { radius: 7, color: "#ffffff", weight: 2, fillColor: bahn.farbe, fillOpacity: 1 })
+      L.circleMarker(p, { pane: "posPane", radius: 7, color: "#ffffff", weight: 2, fillColor: bahn.farbe, fillOpacity: 1 })
         .addTo(lg);
     }
   };
@@ -309,7 +334,7 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
     };
     raf = requestAnimationFrame(schritt);
     return () => cancelAnimationFrame(raf);
-  }, [plan, spielt, tempo, bahnen]);
+  }, [plan, spielt, tempo, bahnen, showPumps]);
 
   useEffect(() => {
     const map = mapObj.current;
@@ -352,7 +377,7 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
           for (const pidx of seg.pump_idx ?? []) {
             if (!coords[pidx]) continue;
             L.circleMarker(coords[pidx], {
-              radius: 3, color: "#f8fafc", weight: 1.2,
+              pane: "pumpPane", radius: 3, color: "#f8fafc", weight: 1.2,
               fillColor: it.color, fillOpacity: 0.95,
             }).addTo(lg);
           }
