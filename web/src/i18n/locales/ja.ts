@@ -695,6 +695,8 @@ const ja: Record<string, string> = {
   "sd.colPitchRhythm": "ピッチのリズム",
   "sd.colHeave": "上下動",
   "sd.mountInherited": "録画全体から引き継ぎ — このランでは信号が不明瞭でした",
+  "sd.mountSlipped": "他のランと姿勢が合いません — 端末がずれた可能性があります",
+  "sd.mountDisputed": "このランでは向きが不明瞭でした — 信号がより明確なランから引き継ぎました",
   "sd.colGlide": "最長グライド",
   "sd.colMaxHr": "最大心拍",
   "hr.progressTitle": "トレーニング曲線：ポンピング中の心拍",

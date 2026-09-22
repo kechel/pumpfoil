@@ -551,6 +551,8 @@ const gsw: Record<string, string> = {
   "sd.colPitchRhythm": "Nick-Takt",
   "sd.colHeave": "Hub",
   "sd.mountInherited": "vo dr ganze Ufnahm uebernoh — i dem Lauf isch s Signal z unklar gsi",
+  "sd.mountSlipped": "Die Lag passt nid zu de andere Laeuf — s Geraet isch wohl verrutscht",
+  "sd.mountDisputed": "D Richtig isch i dem Lauf unklar gsi — uebernoh vom Lauf mit em klarere Signal",
   "sd.colGlide": "längschti Gleitphase",
   "sd.colMaxHr": "Max. Puls",
   "hr.progressTitle": "Trainingskurve: Puls bim Pumpe",

@@ -719,6 +719,8 @@ const nl: Record<string, string> = {
   "sd.colPitchRhythm": "stampritme",
   "sd.colHeave": "dompbeweging",
   "sd.mountInherited": "overgenomen van de hele opname — het signaal in deze run was te onduidelijk",
+  "sd.mountSlipped": "Deze stand past niet bij de andere runs — het toestel is waarschijnlijk verschoven",
+  "sd.mountDisputed": "De richting was in deze run onduidelijk — overgenomen uit de run met het sterkere signaal",
   "sd.colGlide": "langste glijfase",
   "sd.colMaxHr": "Max. hartslag",
   "hr.progressTitle": "Trainingscurve: hartslag tijdens pumpen",

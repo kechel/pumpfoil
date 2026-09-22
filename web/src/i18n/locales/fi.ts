@@ -702,6 +702,8 @@ const fi: Record<string, string> = {
   "sd.colPitchRhythm": "nyökkäystahti",
   "sd.colHeave": "nousu",
   "sd.mountInherited": "otettu koko tallenteesta — signaali tässä ajossa oli liian epäselvä",
+  "sd.mountSlipped": "Tämä asento ei sovi muihin ajoihin — laite on luultavasti liikahtanut",
+  "sd.mountDisputed": "Suunta jäi tässä ajossa epäselväksi — otettu ajosta, jossa signaali oli selvempi",
   "sd.colGlide": "pisin liukuvaihe",
   "sd.colMaxHr": "Maks. syke",
   "hr.progressTitle": "Harjoituskäyrä: syke pumpatessa",

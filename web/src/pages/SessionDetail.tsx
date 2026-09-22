@@ -2949,11 +2949,15 @@ function RunsTable({
                       zwei Laeufen verrutschen. Grau, wenn sie nicht aus diesem Lauf stammt,
                       sondern von der ganzen Aufnahme geerbt ist — dann war das Signal hier zu
                       unklar, und die Zahl ist keine eigene Messung. */}
-                  <td className={`px-3 py-2 tabular-nums ${k.rot_eigen ? "" : "text-slate-500"}`}
-                    title={k.rot_eigen
-                      ? `${t("board.mountAuto")} · ${k.rot_klarheit ?? "–"}`
+                  <td className={`px-3 py-2 tabular-nums ${
+                    k.rot_verrutscht ? "text-amber-600 dark:text-amber-300"
+                      : k.rot_eigen ? "" : "text-slate-500"}`}
+                    title={k.rot_verrutscht ? t("sd.mountSlipped")
+                      : k.rot_strittig ? t("sd.mountDisputed")
+                      : k.rot_eigen ? `${t("board.mountAuto")} · ${k.rot_klarheit ?? "–"}`
                       : t("sd.mountInherited")}>
                     {k.rot_deg != null ? `${Math.round(k.rot_deg)}°` : "–"}
+                    {k.rot_verrutscht ? " ⚠" : k.rot_strittig ? " ?" : ""}
                   </td>
                 </tr>
               ))}

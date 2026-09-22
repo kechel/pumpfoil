@@ -96,6 +96,12 @@ MONTAGE_KLARHEIT_MIN = 3.0   # Verhaeltnis der Eigenwerte; darunter ist keine Ac
 MONTAGE_MIN_GRAD = 10.0      # darunter lohnt das Drehen nicht, es waere nur Rauschen
 MONTAGE_MIN_SAMPLES = 64     # je Laufbereich; darunter traegt er nichts zur Achse bei
 MONTAGE_VORLAUF_S = 10.0     # Einschwingzeit des Filters vor dem ersten Lauf-Anfang
+# Bis hierhin gelten zwei Laeufe als DIESELBE Montage (Achse mod 180). Jan, 22.09.2026:
+# „innerhalb einer session wird sich das eher garnicht oder merklich stark aendern (also nur bei
+# verrutschen)". Genau so sehen die Daten aus: #9528 Lauf 0 gegen die ganze Aufnahme 0,0°,
+# #9535 zwischen seinen beiden Laeufen 3,0°. Das ist Rechen-Rauschen. Ein echtes Verrutschen
+# waere ein Sprung, kein Driften — dazwischen gibt es nichts, was man sinnvoll mitteln koennte.
+MONTAGE_GLEICH_GRAD = 25.0
 # GEGENPROBE DES GIERENS AM GPS-KURS (Jan, 21.09.: „das Gieren muesste aus dem GPS-Track auch
 # eindeutig ableitbar sein"). Kurs ueber Grund und Gieren sind DIESELBE Groesse, nicht ein
 # Stellvertreter — damit laesst sich das Vorzeichen belegen statt herleiten.
@@ -960,21 +966,91 @@ def kennzahlen_je_lauf(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
     """
     if not ref_bereiche_ms:
         return []
-    # Bezugswert: die Drehung ueber ALLE Laeufe — Rueckfall fuer Laeufe ohne klares Signal.
+    # Bezugswert ueber ALLE Laeufe — Rueckfall fuer Laeufe ohne eigenes klares Signal.
     ganze = aufnahme_eigenschaften(acc_raw, t_acc_ms, gyr_raw, t_gyr_ms, ref_bereiche_ms,
                                    lauf_starts_ms, gps=gps, rot_vorgabe=rot_vorgabe)
     starts = [float(x) for x in (lauf_starts_ms or [])]
-    aus: list[dict] = []
+
+    # --- Schritt 1: je Lauf die eigene Drehung suchen -----------------------------------------
+    eigen: list[dict] = []
     for i, (a, b) in enumerate(ref_bereiche_ms):
-        eig = aufnahme_eigenschaften(acc_raw, t_acc_ms, gyr_raw, t_gyr_ms, [(a, b)],
-                                     [starts[i]] if i < len(starts) else None,
-                                     gps=gps, rot_vorgabe=rot_vorgabe)
-        klar = eig.get("klarheit")
-        eigen = rot_vorgabe is None and klar is not None and klar >= MONTAGE_KLARHEIT_MIN
-        rot = float(eig["rot_deg"]) if eigen else float(ganze["rot_deg"])
+        e = aufnahme_eigenschaften(acc_raw, t_acc_ms, gyr_raw, t_gyr_ms, [(a, b)],
+                                   [starts[i]] if i < len(starts) else None,
+                                   gps=gps, rot_vorgabe=rot_vorgabe)
+        klar = e.get("klarheit")
+        eigen.append({
+            "rot": float(e["rot_deg"]),
+            # Die ACHSE ohne die Richtungsfrage: eine 180°-Drehung ist dieselbe Achse.
+            "achse": float(e["rot_deg"]) % 180.0,
+            "klar": klar,
+            "quelle": e["quelle"],
+            # Hat die Start-Heuristik in DIESEM Lauf ueberhaupt gegriffen?
+            "richtung_gemessen": "heuristik" in (e["quelle"] or ""),
+            "brauchbar": klar is not None and klar >= MONTAGE_KLARHEIT_MIN,
+        })
+
+    # --- Schritt 2: gleiche Montage zusammenfassen --------------------------------------------
+    # Jans Vorgabe: innerhalb einer Session aendert sich die Montage gar nicht oder deutlich.
+    # Also: der klarste Lauf gibt die Achse vor, alle Laeufe in Reichweite bekommen GENAU DIESE
+    # Achse (das 3°-Rauschen zwischen zwei Laeufen ist keine Information). Wer weit daneben
+    # liegt, ist verrutscht — oder falsch erkannt; beides bleibt sichtbar, statt gemittelt zu
+    # werden. Der Abstand wird auf dem Kreis mod 180 gemessen, sonst waeren 179° und 1° „weit".
+    def _abstand(x: float, y: float) -> float:
+        d = abs(x - y) % 180.0
+        return min(d, 180.0 - d)
+
+    klarste = max((e for e in eigen if e["brauchbar"]), key=lambda e: e["klar"], default=None)
+    if klarste is not None and rot_vorgabe is None:
+        gruppe = [e for e in eigen if e["brauchbar"]
+                  and _abstand(e["achse"], klarste["achse"]) <= MONTAGE_GLEICH_GRAD]
+        # Klarheitsgewichtetes Mittel der Gruppe, um den Kreis herum gerechnet.
+        gew = np.array([e["klar"] for e in gruppe], dtype=float)
+        win = np.radians(2.0 * np.array([e["achse"] for e in gruppe], dtype=float))
+        achse_gem = float(np.degrees(np.arctan2((gew * np.sin(win)).sum(),
+                                                (gew * np.cos(win)).sum())) / 2.0) % 180.0
+    else:
+        gruppe, achse_gem = [], None
+
+    # --- Schritt 3: Richtung. Wo die Start-Heuristik nicht gegriffen hat, gilt die Mehrheit ----
+    # Ist bei diesem Lauf die Achse um 180° gedreht worden? NICHT ueber `_abstand` pruefen: der
+    # rechnet mod 180, und genau dort ist 180° dasselbe wie 0°. Gefragt ist der Abstand auf dem
+    # VOLLEN Kreis zwischen der gefundenen Drehung und ihrer eigenen Achse.
+    def _ist_gedreht(e: dict) -> bool:
+        return abs(((e["rot"] - e["achse"]) % 360.0) - 180.0) < 90.0
+
+    # EINE Richtung fuer die ganze Gruppe, gewichtet nach Klarheit. Begruendung wie bei der
+    # Achse: dasselbe Handy dreht sich zwischen zwei Laeufen nicht um 180°, ohne dass sich die
+    # Achse mitbewegt. An #9484 ist genau das der Fall — Lauf 0 sagt „nicht gedreht" (Klarheit
+    # 7,5), Lauf 1 sagt „gedreht" (19,8), die Achsen liegen 19° auseinander, sind also dieselbe.
+    # Eine der beiden Start-Heuristiken irrt; die klarere gewinnt, und die ueberstimmte wird
+    # gekennzeichnet statt stillschweigend umgebogen.
+    gemessen = [e for e in eigen if e["richtung_gemessen"] and e["brauchbar"]]
+    mehrheit = None
+    if gemessen:
+        dafuer = sum(e["klar"] for e in gemessen if _ist_gedreht(e))
+        gesamt = sum(e["klar"] for e in gemessen)
+        mehrheit = dafuer * 2 > gesamt
+
+    aus: list[dict] = []
+    for i, ((a, b), e) in enumerate(zip(ref_bereiche_ms, eigen)):
+        verrutscht = False
+        strittig = False
+        if rot_vorgabe is not None:
+            rot, quelle = float(rot_vorgabe), "manuell"
+        elif achse_gem is None or not e["brauchbar"]:
+            rot, quelle = float(ganze["rot_deg"]), "geerbt"
+        elif e in gruppe:
+            # Gemeinsame Achse; die Richtung aus dem Lauf selbst, sonst aus der Mehrheit.
+            gedreht = bool(mehrheit) if mehrheit is not None else _ist_gedreht(e)
+            rot = (achse_gem + 180.0) % 360.0 if gedreht else achse_gem
+            strittig = e["richtung_gemessen"] and _ist_gedreht(e) != gedreht
+            quelle = ("achse+mehrheit" if not e["richtung_gemessen"] or strittig
+                      else e["quelle"])
+        else:
+            rot, quelle, verrutscht = e["rot"], e["quelle"], True
         erg = lage_berechnen(acc_raw, t_acc_ms, gyr_raw, t_gyr_ms, ziel_hz=20.0,
                              t_von_ms=a, t_bis_ms=b, ref_bereiche_ms=[(a, b)],
-                             rot_deg=rot, _roh=True)
+                             rot_deg=rot % 360.0, _roh=True)
         if not erg.get("ok"):
             aus.append({"lauf": i, "ok": False})
             continue
@@ -989,10 +1065,15 @@ def kennzahlen_je_lauf(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
             "hub_pp_cm": k["hub_pp_cm"],
             "hub_hz": k["hub_hz"],
             "hub_sicher": k["hub_sicher"],
-            # Die Drehung DIESES Laufs — und ob sie aus ihm selbst kommt oder geerbt ist.
-            "rot_deg": round(rot, 1),
-            "rot_klarheit": klar,
-            "rot_eigen": bool(eigen),
-            "rot_quelle": eig["quelle"] if eigen else ganze["quelle"],
+            "rot_deg": round(rot % 360.0, 1),
+            "rot_klarheit": e["klar"],
+            "rot_eigen": bool(quelle not in ("geerbt", "manuell")),
+            "rot_quelle": quelle,
+            # Dieser Lauf passt NICHT zur Montage der uebrigen — Handy verrutscht oder
+            # Fehlgriff. Bewusst nicht stillschweigend eingeebnet.
+            "rot_verrutscht": verrutscht,
+            # Die Start-Heuristik dieses Laufs sagte das Gegenteil und wurde von der klareren
+            # Mehrheit ueberstimmt. Kein Fehler, aber eine Stelle, an der man hinschauen darf.
+            "rot_strittig": strittig,
         })
     return aus

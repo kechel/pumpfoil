@@ -604,6 +604,8 @@ const fr: Record<string, string> = {
   "sd.colPitchRhythm": "rythme de tangage",
   "sd.colHeave": "pilonnement",
   "sd.mountInherited": "repris de l'enregistrement entier — le signal de ce run était trop flou",
+  "sd.mountSlipped": "Cette position ne colle pas aux autres runs — l'appareil a sans doute bougé",
+  "sd.mountDisputed": "Le sens était incertain dans ce run — repris du run au signal le plus net",
   "sd.colGlide": "plus longue glisse",
   "sd.colMaxHr": "Pouls max",
   "hr.progressTitle": "Courbe d'entraînement : pouls en pumping",

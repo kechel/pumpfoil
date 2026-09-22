@@ -702,6 +702,8 @@ const ptPT: Record<string, string> = {
   "sd.colPitchRhythm": "ritmo de arfagem",
   "sd.colHeave": "elevação",
   "sd.mountInherited": "herdado da gravação inteira — o sinal neste run estava pouco claro",
+  "sd.mountSlipped": "Esta posição não bate certo com os outros runs — o aparelho deve ter escorregado",
+  "sd.mountDisputed": "A direção não ficou clara neste run — herdada do run com o sinal mais nítido",
   "sd.colGlide": "planeio mais longo",
   "sd.colMaxHr": "Pulso máx.",
   "hr.progressTitle": "Curva de treino: pulso a bombear",

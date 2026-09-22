@@ -820,6 +820,8 @@ const de: Record<string, string> = {
   "sd.colPitchRhythm": "Nick-Takt",
   "sd.colHeave": "Hub",
   "sd.mountInherited": "von der ganzen Aufnahme uebernommen — in diesem Lauf war das Signal zu unklar",
+  "sd.mountSlipped": "Diese Lage passt nicht zu den anderen Laeufen — das Geraet ist vermutlich verrutscht",
+  "sd.mountDisputed": "Die Richtung war in diesem Lauf unklar — uebernommen aus dem Lauf mit dem deutlicheren Signal",
   "sd.colGlide": "längste Gleitphase",
   "sd.colMaxHr": "Max. Puls",
   "hr.progressTitle": "Trainingskurve: Puls beim Pumpen",

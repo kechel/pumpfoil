@@ -675,3 +675,48 @@ def test_verrutschtes_handy_wird_je_lauf_neu_gefunden():
     # beiden gerecht wuerde — sie liegt zwangslaeufig irgendwo dazwischen.
     ganze = aufnahme_eigenschaften(acc, tms, gyr, tms, ref, starts)
     assert min(abs(ganze["rot_deg"] - 0.0), abs(ganze["rot_deg"] - 60.0)) > 5, ganze["rot_deg"]
+
+
+def test_gleiche_montage_bekommt_in_allen_laeufen_dieselbe_zahl():
+    """Zwei Laeufe, dasselbe Klebeband — dann steht in beiden Zeilen GENAU dieselbe Drehung.
+
+    Jan, 22.09.2026: „innerhalb einer session wird sich das eher garnicht oder merklich stark
+    aendern (also nur bei verrutschen)." Das 1-2°-Rauschen zwischen zwei Laeufen ist damit keine
+    Information, sondern Rechenstreuung — es wird zusammengefasst statt angezeigt.
+    """
+    stuecke = [_pumpstrecke(40.0, dauer_s=40.0, ab_s=2.0),
+               _pumpstrecke(43.0, dauer_s=40.0, ab_s=2.0)]      # 3° auseinander = dieselbe Montage
+    hz = 50.0
+    acc = np.concatenate([x[0] for x in stuecke])
+    gyr = np.concatenate([x[2] for x in stuecke])
+    tms = np.arange(len(acc)) / hz * 1000.0
+    n0 = len(stuecke[0][1])
+    ref = [(2500.0, (n0 - 1) / hz * 1000.0),
+           ((n0 + 125) / hz * 1000.0, (len(acc) - 1) / hz * 1000.0)]
+    starts = [2000.0, (n0 + 100) / hz * 1000.0]
+    k = kennzahlen_je_lauf(acc, tms, gyr, tms, ref, starts)
+    assert len(k) == 2 and all(x["ok"] for x in k)
+    assert k[0]["rot_deg"] == k[1]["rot_deg"], [x["rot_deg"] for x in k]
+    assert not any(x["rot_verrutscht"] for x in k)
+    # Und der gemeinsame Wert liegt zwischen den beiden Einzelmessungen, nicht auf einer davon.
+    assert 38.0 <= k[0]["rot_deg"] <= 45.0, k[0]["rot_deg"]
+
+
+def test_ein_verrutschter_lauf_bleibt_sichtbar():
+    """Springt die Achse deutlich, wird NICHT gemittelt — der Lauf behaelt seine eigene Zahl."""
+    stuecke = [_pumpstrecke(0.0, dauer_s=40.0, ab_s=2.0),
+               _pumpstrecke(60.0, dauer_s=40.0, ab_s=2.0)]
+    hz = 50.0
+    acc = np.concatenate([x[0] for x in stuecke])
+    gyr = np.concatenate([x[2] for x in stuecke])
+    tms = np.arange(len(acc)) / hz * 1000.0
+    n0 = len(stuecke[0][1])
+    ref = [(2500.0, (n0 - 1) / hz * 1000.0),
+           ((n0 + 125) / hz * 1000.0, (len(acc) - 1) / hz * 1000.0)]
+    starts = [2000.0, (n0 + 100) / hz * 1000.0]
+    k = kennzahlen_je_lauf(acc, tms, gyr, tms, ref, starts)
+    assert len(k) == 2 and all(x["ok"] for x in k)
+    assert abs(k[1]["rot_deg"] - 60.0) < 5, k[1]["rot_deg"]
+    assert (k[0]["rot_deg"] % 360) < 5 or (k[0]["rot_deg"] % 360) > 355, k[0]["rot_deg"]
+    # Genau EINER faellt aus der Reihe — der mit der kleineren Klarheit gilt als verrutscht.
+    assert sum(1 for x in k if x["rot_verrutscht"]) == 1, [x["rot_verrutscht"] for x in k]

@@ -170,6 +170,10 @@ export type BoardAttitude = {
     // Die Montage-Drehung DIESES Laufs. `rot_eigen` = aus dem Lauf selbst gefunden; false
     // heisst, sie ist von der ganzen Aufnahme geerbt (Signal im Lauf zu unklar).
     rot_deg?: number; rot_klarheit?: number | null; rot_eigen?: boolean; rot_quelle?: string;
+    // `rot_verrutscht`: die Achse dieses Laufs passt nicht zu den uebrigen (Handy verrutscht
+    // oder Fehlgriff). `rot_strittig`: die Richtung dieses Laufs wurde von der klareren
+    // Mehrheit ueberstimmt.
+    rot_verrutscht?: boolean; rot_strittig?: boolean;
   }[];
   // Der ausgewaehlte Lauf/Versuch OHNE den Rand von `pad_s` — die Kurven markieren damit, wo er
   // wirklich anfaengt und aufhoert. null, wenn die ganze Aufnahme gezeigt wird.
