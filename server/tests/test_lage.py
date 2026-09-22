@@ -609,3 +609,39 @@ def test_ohne_erkannten_lauf_zaehlt_der_ganze_ausschnitt():
     takt = r["kennzahlen"]["pitch_hz"]
     assert takt is None or takt <= 0.6, takt
     assert r["hub_fenster_s"] >= 3.0, r["hub_fenster_s"]
+
+
+def test_kennzahlen_je_lauf_stehen_in_der_antwort():
+    """Jeder Lauf bekommt seine eigenen Zahlen — und sein eigenes Hub-Fenster.
+
+    Jan, 22.09.2026: „sollte eher als zusaetzliche stats-zeile in der tabelle je lauf angezeigt
+    & berechnet werden oder?" — ja, fuer alles, was vom Lauf abhaengt. Der Test baut deshalb
+    zwei Laeufe mit VERSCHIEDENEM Takt: kaeme das Fenster weiterhin aus der ganzen Aufnahme,
+    hiessen beide Zeilen gleich.
+    """
+    hz, pause_s, lauf_s = 50.0, 10.0, 40.0
+    n_p, n_l = int(pause_s * hz), int(lauf_s * hz)
+    teile, takte = [], (1.5, 0.8)
+    for takt in takte:
+        tl = np.arange(n_l) / hz
+        teile.append(np.zeros(n_p))
+        teile.append(8.0 * np.sin(2 * np.pi * takt * tl))
+    theta = np.concatenate(teile)
+    t = np.arange(len(theta)) / hz
+    d_theta = np.gradient(theta, 1.0 / hz)
+    th, dth = np.radians(theta), np.radians(d_theta)
+    acc = (np.column_stack([-np.sin(th), np.zeros_like(th), np.cos(th)]) * ACCEL_SCALE).astype(np.int16)
+    gyr = (np.column_stack([np.zeros_like(dth), dth, np.zeros_like(dth)]) * GYRO_SCALE).astype(np.int16)
+    tms = t * 1000.0
+    ref = [(pause_s * 1000.0, (pause_s + lauf_s) * 1000.0),
+           ((2 * pause_s + lauf_s) * 1000.0, (2 * pause_s + 2 * lauf_s) * 1000.0)]
+    r = lage_berechnen(acc, tms, gyr, tms, ziel_hz=20.0, ref_bereiche_ms=ref)
+    assert r["ok"]
+    k = r["laeufe"]
+    assert len(k) == 2 and all(x["ok"] for x in k)
+    for x, takt in zip(k, takte):
+        assert abs(x["pitch_hz"] - takt) < 0.1, (x["pitch_hz"], takt)
+        assert abs(x["hub_fenster_s"] - 2.0 / takt) < 0.2, x["hub_fenster_s"]
+    # Und die beiden Zeilen unterscheiden sich wirklich — sonst kaeme das Fenster doch wieder
+    # aus der ganzen Aufnahme.
+    assert k[0]["hub_fenster_s"] != k[1]["hub_fenster_s"]

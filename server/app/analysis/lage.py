@@ -838,6 +838,42 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
         hub_fenster_s = float(min(5.0, max(1.0, 2.0 / _takt))) if _takt else 3.0
         hub = hub_berechnen(a_vert, 1.0 / rechen_hz, hub_fenster_s)
 
+    # KENNZAHLEN JE LAUF (Jan, 22.09.2026: „sollte eher als zusaetzliche stats-zeile in der
+    # tabelle je lauf angezeigt & berechnet werden oder?").
+    #
+    # Ja — fuer die Haelfte der Zeile, die ueberhaupt vom Lauf abhaengt: Nicken, Rollen, Gieren,
+    # Pumptakt, Hub. Die andere Haelfte (Montage-Drehung, Gier/GPS-Gegenprobe, Abtastraten) ist
+    # eine Eigenschaft der AUFNAHME und je Lauf per Konstruktion dieselbe Zahl — sie stuende dann
+    # in jeder Zeile gleich und wuerde die Tabelle nur breiter machen.
+    #
+    # In EINEM Durchgang, nicht ein Abruf je Lauf: der Komplementaerfilter laeuft ohnehin schon
+    # ueber das ganze Fenster, hier werden nur noch die fertigen Reihen je Laufbereich
+    # ausgewertet. Der Hub wird je Lauf EINZELN integriert und bekommt sein eigenes Fenster aus
+    # dem eigenen Takt — genau darum geht es ja: ein Lauf mit 1,4 Hz und einer mit 0,6 Hz
+    # vertragen nicht dieselbe Bandgrenze.
+    laeufe_kennz: list[dict] = []
+    for _i, (_a, _b) in enumerate(ref_bereiche_ms or []):
+        _m = (t >= _a) & (t <= _b)
+        if _m.sum() < 32:
+            laeufe_kennz.append({"lauf": _i, "ok": False})
+            continue
+        _takt_l = hauptfrequenz(pitch[_m], unten=PUMP_UNTEN_HZ)
+        _fen_l = float(min(5.0, max(1.0, 2.0 / _takt_l))) if _takt_l else 3.0
+        _hub_l = hub_berechnen(a_vert[_m], 1.0 / rechen_hz, _fen_l)
+        _hub_hz_l = hauptfrequenz(_hub_l) if _hub_l is not None else None
+        laeufe_kennz.append({
+            "lauf": _i, "ok": True,
+            "pitch_amplitude_deg": round(float(np.percentile(np.abs(pitch[_m]), 95)), 1),
+            "roll_amplitude_deg": round(float(np.percentile(np.abs(roll[_m]), 95)), 1),
+            "gier_rms_deg_s": round(float(np.sqrt(np.mean(gier_rate[_m] ** 2))), 1),
+            "pitch_hz": _takt_l,
+            "hub_fenster_s": round(_fen_l, 1),
+            "hub_pp_cm": (round(float(np.percentile(_hub_l, 95) - np.percentile(_hub_l, 5)), 1)
+                          if _hub_l is not None else None),
+            "hub_hz": _hub_hz_l,
+            "hub_sicher": bool(_hub_hz_l is not None and _hub_hz_l >= 1.5 / _fen_l),
+        })
+
     # Nur noch Auskunft: die Drehung ist oben schon angewandt, das Nicken am Lauf-Anfang sollte
     # jetzt negativ sein (bergab). Bleibt es positiv, hat die Heuristik nicht gegriffen — meist,
     # weil im Fenster gar kein Lauf-Anfang liegt.
@@ -891,6 +927,8 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
         "gier_delta_deg": [round(float(x), 2) for x in gier_delta[aus]],
         "hub_cm": [round(float(x), 1) for x in hub[aus]] if hub is not None else None,
         "hub_fenster_s": hub_fenster_s,
+        # Dieselben Groessen je erkanntem Lauf, in der Reihenfolge von `ref_bereiche_ms`.
+        "laeufe": laeufe_kennz,
         "kennzahlen": {
             "pitch_amplitude_deg": round(float(np.percentile(np.abs(pitch), 95)), 1),
             "roll_amplitude_deg": round(float(np.percentile(np.abs(roll), 95)), 1),

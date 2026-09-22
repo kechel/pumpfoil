@@ -3,7 +3,7 @@ import { geraeteText } from "../lib/deviceLabel";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import L from "leaflet";
 import { basiskarten } from "../lib/mapTiles";
-import { api, SessionSummary, SessionSocial as SocialData, SessionVideo } from "../lib/api";
+import { api, BoardAttitude as Lage, SessionSummary, SessionSocial as SocialData, SessionVideo } from "../lib/api";
 import { fmtDate, fmtTime } from "../lib/time";
 import { laufUhrzeitMs, pauseVersatzMs, wanduhrMs } from "../lib/clock";
 import { Card, Stat, Spinner, ErrorBox, Avatar, InfoDialog, InfoKnopf } from "../components/ui";
@@ -871,6 +871,20 @@ export default function SessionDetail() {
     { grad: null, quelle: null });
   const merkeMontage = useCallback(
     (grad: number | null, quelle: string | null) => setMontageAuto({ grad, quelle }), []);
+  // Kennzahlen JE LAUF fuer die Tabelle (Jan, 22.09.: „sollte eher als zusaetzliche stats-zeile
+  // in der tabelle je lauf angezeigt & berechnet werden"). EIN Abruf fuer alle Laeufe, und mit
+  // `hz: 2` bewusst die groebste erlaubte Aufloesung: die Kennzahlen rechnet der Server intern
+  // mit voller Rate, herunter geregelt werden nur die Kurven — die wir hier gar nicht brauchen.
+  const [laufKennz, setLaufKennz] = useState<NonNullable<Lage["laeufe"]>>([]);
+  const hatLagedaten = !!session?.has_gyro || session?.placement === "board";
+  useEffect(() => {
+    if (!session?.id || !hatLagedaten) { setLaufKennz([]); return; }
+    let weg = false;
+    api.boardAttitude(session.id, { hz: 2 })
+      .then((d) => { if (!weg) setLaufKennz(d.ok ? (d.laeufe ?? []) : []); })
+      .catch(() => { if (!weg) setLaufKennz([]); });
+    return () => { weg = true; };
+  }, [session?.id, hatLagedaten]);
   const zeigerRaf = useRef(0);
   const zeigerZuletzt = useRef(0);
 
@@ -1913,7 +1927,11 @@ export default function SessionDetail() {
           const untenAnordnen = zeigeLage && !fullscreen;
 
           const laufWahl = segs.length > 0 && (
-            <div className={`flex flex-wrap items-center gap-1.5 ${fullscreen ? "shrink-0 bg-slate-950 px-2 pt-2" : "mt-3"}`}>
+            <div className={`flex flex-wrap items-center gap-1.5 ${fullscreen
+              ? "shrink-0 bg-slate-950 px-2 pt-2"
+              /* In der Lage-Ansicht traegt die gemeinsame Zeile mit den Startversuchen den
+                 Abstand (s. unten), sonst stuende er zweimal drin. */
+              : untenAnordnen ? "" : "mt-3"}`}>
               <span className="mr-1 text-xs text-slate-400">{t("sd.run")}</span>
               <span className="mr-1 hidden items-center gap-1 text-[10px] text-slate-500 sm:inline-flex"
                 title={t("sd.hotkeysTitle")}><KeyboardIcon className="h-3.5 w-3.5" /> 1–9 · ←→ · F{playMode ? " · ␣" : ""}</span>
@@ -1943,7 +1961,7 @@ export default function SessionDetail() {
           // mit der der Laeufe vermischen. Nur in der Lage-Ansicht: dort schneiden sie den
           // Zeitraum zu, auf der Karte gibt es dafuer schon den Anzeigen-Schalter.
           const versuchWahl = untenAnordnen && (attemptSegs?.length ?? 0) > 0 && (
-            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            <div className="flex flex-wrap items-center gap-1.5">
               <span className="mr-1 text-xs text-slate-400">{t("sd.attemptsLabel")}</span>
               {attemptSegs!.map((v, i) => (
                 <button
@@ -1983,8 +2001,16 @@ export default function SessionDetail() {
             <>
               {!untenAnordnen && laufWahl}
               {lageAnsicht}
-              {untenAnordnen && laufWahl}
-              {versuchWahl}
+              {/* Laeufe und Startversuche NEBENEINANDER in einer Zeile (Jan, 22.09.2026) — zwei
+                  Zeilen untereinander kosteten Hoehe, und die Lage-Ansicht soll mit Karte und
+                  Kurven zusammen auf einen Bildschirm passen. Bei schmalem Fenster bricht die
+                  Versuchs-Gruppe als Ganzes um, nicht mitten in den Knoepfen. */}
+              {untenAnordnen && (laufWahl || versuchWahl) && (
+                <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2">
+                  {laufWahl}
+                  {versuchWahl}
+                </div>
+              )}
             </>
           );
         })()}
@@ -2209,7 +2235,7 @@ export default function SessionDetail() {
         excluded={session.excluded_ranges ?? []}
         poweredRuns={(session.analysis?.metrics as any)?.fremdkraft_laeufe ?? []}
         keptWindows={session.fremdkraft_keep ?? []}
-        canEdit={owned && !isPublic} onSaved={uebernehmen} />
+        canEdit={owned && !isPublic} onSaved={uebernehmen} laufKennz={laufKennz} />
 
       {/* Puls je Lauf — dieselbe Darstellung wie im Vergleich, hier nur fuer diese eine Session.
           Ohne Fahrer-Beschriftung (jede Zeile waere derselbe Name), nur mit der Lauf-Nummer.
@@ -2604,11 +2630,14 @@ function RunsTable({
   keptWindows = [],
   canEdit = false,
   onSaved,
+  laufKennz = [],
 }: {
   segments: any[];
   selected: number | null;
   onSelect: (i: number | null) => void;
   win: "1" | "3" | "5";
+  // Kennzahlen der Lage je Lauf, s. die Tabelle am Ende dieser Komponente.
+  laufKennz?: NonNullable<Lage["laeufe"]>;
   powerFor?: (avgMps?: number | null, pumpHz?: number | null) => number | null;
   sessionId: number;
   compareRefs: { sessionId: number; runIdx: number | null }[];
@@ -2865,6 +2894,61 @@ function RunsTable({
           </tbody>
         </table>
       </Card>
+      )}
+      {/* LAGE JE LAUF (Jan, 22.09.2026: „sollte eher als zusaetzliche stats-zeile in der tabelle
+          je lauf angezeigt & berechnet werden oder?").
+          Bewusst eine eigene kleine Tabelle unter der grossen statt weiterer Spalten: die grosse
+          hat schon 15 und scrollt waagerecht, und diese Zahlen gibt es nur bei Handy-am-Brett —
+          sie wuerden bei allen anderen Aufnahmen als leere Spalten mitlaufen.
+          Was hier NICHT steht: Montage-Drehung, Gier/GPS-Gegenprobe und die Abtastraten. Die
+          gehoeren zur AUFNAHME und waeren in jeder Zeile dieselbe Zahl; sie bleiben unter der
+          Lage-Ansicht stehen. */}
+      {laufKennz.some((k) => k.ok) && (
+        <Card className="mt-4 overflow-x-auto">
+          <p className="px-3 pt-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+            {t("sd.attitudePerRun")}
+          </p>
+          <table className="w-full min-w-[520px] text-sm">
+            <thead>
+              <tr className="border-b border-slate-800 text-left text-xs uppercase tracking-wide text-slate-400">
+                <th className="px-3 py-2 font-medium">#</th>
+                <th className="px-3 py-2 font-medium">{t("board.pitch")}</th>
+                <th className="px-3 py-2 font-medium">{t("board.roll")}</th>
+                <th className="px-3 py-2 font-medium">{t("board.yaw")}</th>
+                <th className="px-3 py-2 font-medium">{t("sd.colPitchRhythm")}</th>
+                <th className="px-3 py-2 font-medium">{t("sd.colHeave")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {laufKennz.filter((k) => k.ok).map((k) => (
+                <tr
+                  key={k.lauf}
+                  onClick={() => onSelect(selected === k.lauf ? null : k.lauf)}
+                  className={`cursor-pointer border-b border-slate-800/50 hover:bg-slate-800/50 ${
+                    selected === k.lauf ? "bg-brand-500/20" : ""}`}
+                >
+                  <td className="px-3 py-2 tabular-nums">{k.lauf + 1}</td>
+                  <td className="px-3 py-2 tabular-nums">±{k.pitch_amplitude_deg?.toFixed(0)}°</td>
+                  <td className="px-3 py-2 tabular-nums">±{k.roll_amplitude_deg?.toFixed(0)}°</td>
+                  <td className="px-3 py-2 tabular-nums">{k.gier_rms_deg_s?.toFixed(0)}°/s</td>
+                  <td className="px-3 py-2 tabular-nums">
+                    {k.pitch_hz != null ? `${k.pitch_hz.toFixed(2)} Hz` : "–"}
+                  </td>
+                  {/* Ein unsicherer Hub wird nicht verschwiegen und nicht kommentiert — er steht
+                      in Klammern. Die Erklaerung dazu haengt an der Lage-Ansicht, wo man sie
+                      braucht; hier wuerde sie die Zeile sprengen. */}
+                  <td className={`px-3 py-2 tabular-nums ${k.hub_sicher ? "" : "text-slate-500"}`}
+                    title={k.hub_sicher ? undefined : t("board.heaveShaky", {
+                      s: (k.hub_fenster_s ?? 3).toFixed(1).replace(/\.0$/, "") })}>
+                    {k.hub_pp_cm != null
+                      ? (k.hub_sicher ? `${k.hub_pp_cm.toFixed(0)} cm` : `(${k.hub_pp_cm.toFixed(0)} cm)`)
+                      : "–"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
       )}
       {segments.length > 0 && (
         <p className="mt-2 px-1 text-xs text-slate-400">
