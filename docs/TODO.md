@@ -1441,7 +1441,16 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Garmin-Uhr — in unserem Cyan, mit Balken und „x/y Chunks" —, Upload **laeuft im Hintergrund
   weiter**, wenn man einen anderen Screen oeffnet, und **startet beim App-Start automatisch**,
   wenn noch nicht abgeschlossene Aufnahmen vorliegen. (Native, eingefroren — braucht Jans Ansage.)
-- [ ] **Nutzer 533 verliert seit dem 12.09. jede Aufnahme.** Forerunner 55, 12 Sessions, null
+- [x] **Nutzer 533 verliert seit dem 12.09. jede Aufnahme — auf GPS-only gestellt (22.09.).**
+  Der Accel war aktiv (`lite`, 10 Hz angefordert), **gemessen kamen 1,6-2,5 Hz** — unter dem
+  15-Hz-Tor, also wurde jede Aufnahme ohnehin als `gps_only` ausgewertet. Die Uhr bezahlte die
+  ungenutzten Daten mit vollem Puffer und einem Absturz mitten in der Aufnahme. Geraet 1006 steht
+  jetzt auf `record_mode = 'gps'`, der Nutzer hat eine kurze DM auf Franzoesisch bekommen (#1874).
+  Damit das nicht jedem FR55-Nutzer von Hand passieren muss, greift es ab `e47b7edf` beim
+  Verknuepfen automatisch. **Was das NICHT loest:** seine Aufnahmen laufen schon heute ueber den
+  GPS-Weg und werden trotzdem nicht als Pumpfoil erkannt (0 Laeufe bei 400-1000 m). Die Umstellung
+  rettet die Aufnahme, nicht die Erkennung — das ist noch offen.
+  Urspruenglicher Befund: Forerunner 55, 12 Sessions, null
   erkannt, Empfindlichkeit steht schon auf `attempts`. Gemessene Accel-Rate 1,6–6,2 Hz (getaggt
   10/25), Puffer 4x voll (zuletzt 21.09. 15:45), ein Absturz `crash_phase = 3` (= mitten in der
   Aufnahme) am 21.09. 19:32. Andere FR55-Nutzer laufen einwandfrei (20/20, 6/6) — es ist diese
@@ -1450,8 +1459,17 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 
 
-- **🔲 21.09. — Die Montage-Richtung muss auch 90°/270° automatisch finden. Jans erste echte
-  Pump-Aufnahme hat gezeigt, dass 0/180 nicht reicht.**
+- **✅ 21./22.09. — Die Montage-Richtung findet auch 90°/270° automatisch. ERLEDIGT, nachgemessen.**
+  **Stand 22.09.:** die Achse aus der DREHRATE (`montage_achse_aus_kreisel`, seit `cf096133`) loest
+  genau das — die Zahlen unten stammen aus dem alten Weg ueber die gefilterten Winkel. An Jans
+  Aufnahme #9528 gemessen: Achse **89,4° bei Klarheit 20,8**, danach entscheidet die Start-Heuristik
+  auf **269,4°** — also genau die 270°, die er von Hand eingestellt hatte. Alle vier Brett-Aufnahmen
+  durchgerechnet: #8546 85,9° (Klarheit 3,6, ohne Kreisel), #9484 190,1° (8,5), #9528 269,4° (20,8),
+  #9535 133,2° (14,5, diagonal geklebt). Die synthetischen Tests decken alle acht Achtel ab
+  (`test_montage_drehung_wird_aus_dem_pumptakt_gefunden`, psi = 0/45/90/135/180/225/270/315).
+  **Offen bleibt nur eine Kleinigkeit:** #9528 traegt noch die Hand-Einstellung `attitude_rot_deg = 270`,
+  die die Automatik uebersteuert. Loeschen waere ein Schreibzugriff auf Jans eigene Aufnahme — auf seine Ansage.
+  Der urspruengliche Befund, zur Nachvollziehbarkeit:
   An #9528 (Handy QUER am Brett) sah Jan es sofort: „beim Nicken sieht man fast nichts und beim
   Rollen sieht man einen Rhythmus, der eigentlich das Nicken sein sollte." Nachgemessen ueber
   alle vier Drehungen, mit der fenix (#9529, 77 Pumps in 53 s = 1,45 Hz) als unabhaengiger
