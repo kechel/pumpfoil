@@ -601,6 +601,7 @@ const it: Record<string, string> = {
   "sd.attitudePerRun": "Assetto per run",
   "sd.colPitchRhythm": "ritmo di beccheggio",
   "sd.colHeave": "sollevamento",
+  "sd.mountInherited": "ripreso dall'intera registrazione — il segnale in questo run era troppo incerto",
   "sd.colGlide": "planata più lunga",
   "sd.colMaxHr": "Battito max",
   "hr.progressTitle": "Curva di allenamento: battito durante il pump",

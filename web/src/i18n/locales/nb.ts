@@ -708,6 +708,7 @@ const nb: Record<string, string> = {
   "sd.attitudePerRun": "Stilling per run",
   "sd.colPitchRhythm": "stampetakt",
   "sd.colHeave": "hiv",
+  "sd.mountInherited": "hentet fra hele opptaket — signalet i denne runden var for utydelig",
   "sd.colGlide": "lengste gliding",
   "sd.colMaxHr": "Maks puls",
   "hr.progressTitle": "Treningskurve: puls under pumping",

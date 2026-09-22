@@ -743,6 +743,7 @@ const pl: Record<string, string> = {
   "sd.attitudePerRun": "Położenie na przejazd",
   "sd.colPitchRhythm": "rytm pochylania",
   "sd.colHeave": "skok",
+  "sd.mountInherited": "przejęte z całego nagrania — sygnał w tym przejeździe był zbyt niejasny",
   "sd.colGlide": "najdłuższe szybowanie",
   "sd.colMaxHr": "Maks. tętno",
   "hr.progressTitle": "Krzywa treningowa: tętno podczas pompowania",

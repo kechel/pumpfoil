@@ -510,6 +510,7 @@ const deAT: Record<string, string> = {
   "sd.attitudePerRun": "Lage je Lauf",
   "sd.colPitchRhythm": "Nick-Takt",
   "sd.colHeave": "Hub",
+  "sd.mountInherited": "von der ganzen Aufnahme uebernommen — in dem Lauf war das Signal zu unklar",
   "sd.colGlide": "längste Gleitphase",
   "sd.colMaxHr": "Max. Puls",
   "hr.progressTitle": "Trainingskurve: Puls beim Pumpen",

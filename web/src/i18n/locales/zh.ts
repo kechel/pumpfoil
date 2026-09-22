@@ -694,6 +694,7 @@ const zh: Record<string, string> = {
   "sd.attitudePerRun": "每段姿态",
   "sd.colPitchRhythm": "俯仰节奏",
   "sd.colHeave": "起伏",
+  "sd.mountInherited": "沿用整段记录的值——这一段的信号不够清晰",
   "sd.colGlide": "最长滑行",
   "sd.colMaxHr": "最大心率",
   "hr.progressTitle": "训练曲线：泵动时的心率",
