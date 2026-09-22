@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
@@ -48,6 +49,49 @@ def _is_low_accel_model(part_number: str | None) -> bool:
     m = _partmap().get(part_number)
     name = (m or {}).get("name", "")
     return any(h in name for h in _LOW_ACCEL_MODEL_HINTS)
+
+
+def _norm_modell(text: str | None) -> str:
+    """Modellnamen vergleichbar machen: ohne ®/™, ohne Mehrfach-Leerzeichen, klein."""
+    if not text:
+        return ""
+    return re.sub(r"\s+", " ", text.replace("\u00ae", "").replace("\u2122", "")).strip().lower()
+
+
+_LOW_ACCEL_LABELS = frozenset(_norm_modell(h) for h in _LOW_ACCEL_MODEL_HINTS)
+
+
+def _is_low_accel_label(label: str | None) -> bool:
+    """Speicherarme Uhr schon am LABEL erkennen — beim Pairing gibt es noch keine Part-Number."""
+    n = _norm_modell(label)
+    return bool(n) and any(h in n for h in _LOW_ACCEL_LABELS)
+
+
+def _gps_only_wenn_speicherarm(db: Session, device: models.DeviceToken) -> bool:
+    """Frisch verknuepfte speicherarme Uhr (FR55 & Co.) startet auf GPS-only. -> geaendert?
+
+    WARUM NICHT NUR 'lite' (Jan, 22.09.2026): die Kappung `full -> lite` in
+    `_effective_record_mode` halbiert die Rate, aber die Uhr haelt auch 10 Hz nicht durch. An
+    Nutzer 533 (Forerunner 55) nachgemessen: getaggt 10 Hz, GEMESSEN 1,6-2,5 Hz. Damit faellt
+    jede Aufnahme unter das 15-Hz-Tor und wird ohnehin als `gps_only` ausgewertet — die Uhr
+    sammelt also Daten, die niemand benutzt, und bezahlt sie mit vollem Puffer (viermal
+    gemeldet) und einem Absturz mitten in der Aufnahme. GPS-only kostet nichts und rettet die
+    Aufnahme.
+
+    NUR BEIM VERKNUEPFEN, nicht rueckwirkend: eine Uhr, die schon aufgenommen hat, gehoert dem
+    Nutzer — wer 'full' bewusst eingestellt hat, behaelt es. Deshalb die drei Bedingungen unten.
+    Aendern kann es jeder hinterher selbst (`PUT /api/devices/<id>/record-mode`).
+    """
+    if device.record_mode is not None:
+        return False
+    if not (_is_low_accel_model(device.part_number) or _is_low_accel_label(device.label)):
+        return False
+    schon_gefahren = (db.query(models.Session.id)
+                      .filter(models.Session.device_id == device.id).first() is not None)
+    if schon_gefahren:
+        return False
+    device.record_mode = "gps"
+    return True
 
 
 def _hide_replaced_siblings(db: Session, device: models.DeviceToken) -> int:
@@ -210,6 +254,11 @@ def device_config(
                 # Rückfall: für Garmin bleibt der Partmap-Name die einzige Quelle, damit ein
                 # unbekannter Wert nicht als Modellname durchrutscht.
                 device.label = pn[:120]
+        # Jetzt erst steht fest, WELCHE Uhr das ist: die Part-Number kommt von der Hardware, das
+        # Label beim Pairing war nur eine Angabe. Deshalb hier noch einmal — eine frisch
+        # verknuepfte speicherarme Uhr bekommt GPS-only, bevor sie das erste Mal aufnimmt.
+        if _gps_only_wenn_speicherarm(db, device):
+            dirty = True
         _hide_replaced_siblings(db, device)
     # Gattungs-Label auf die GEMELDETE Plattform ziehen. Greift dort, wo es keine Part-Number gibt
     # (Apple, Wear): das Label kommt vom pairenden Client und war bei Apple fest "Garmin".
@@ -1110,6 +1159,8 @@ def pair(
     )
     pc.used_at = now
     db.add(device)
+    db.flush()
+    _gps_only_wenn_speicherarm(db, device)
     db.commit()
     db.refresh(device)
     return DeviceTokenOut(device_token=device.token, user_id=device.user_id)
@@ -1172,6 +1223,7 @@ def pair_claim(
     )
     db.add(device)
     db.flush()
+    _gps_only_wenn_speicherarm(db, device)
     p.device_token = device.token
     p.user_id = user.id
     db.commit()
