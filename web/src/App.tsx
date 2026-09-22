@@ -263,6 +263,10 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
           className={({ isActive }) => `mt-1 flex items-center gap-1.5 px-3 pl-[26px] text-xs ${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>
           ↳ Teil 3: Doppeluhr-Messung
         </NavLink>
+        <NavLink to="/nerd-analysen-4" end title="Handy am Brett: Nicken, Rollen, Gieren und Hub direkt an der Quelle gemessen (englisch)"
+          className={({ isActive }) => `mt-1 flex items-center gap-1.5 px-3 pl-[26px] text-xs ${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>
+          ↳ Teil 4: Handy am Brett
+        </NavLink>
         <NavLink to="/systemarchitektur" end title="Systemarchitektur: Stack, Datenbank, Sicherheit, Datenschutz"
           className={({ isActive }) => `mt-2 flex items-center gap-1.5 px-3 text-xs ${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>
           <ServerIcon className="h-4 w-4" /> Systemarchitektur

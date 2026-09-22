@@ -574,6 +574,8 @@ const gsw: Record<string, string> = {
   "land.deep1": "Doppeluhr-Experiment: was bim Pumpfoile würklich passiert",
   "land.deep2": "Wie d Pump-Erkennig funktioniert",
   "land.deep3": "Zwoiti Mässig, mit Foti und Mässkurve",
+  "nerd.part": "Teil {n}",
+  "land.deep5": "Handy am Brett: direkt a de Quelle gmässe (änglisch)",
   "land.deep4": "Systemarchitektur",
   "land.heroSub": "Pumpfoil verbindet dini Uhr mit ere detaillierte Analyse: GPS-Track, Foiling-Distanz, Pump-Frequänz und Gleitphase — automatisch us jedere Session.",
   "land.heroPlatforms": "Unterstützt Garmin, Apple Watch, Wear OS, Amazfit, Polar, COROS, Suunto, Xiaomi und dis Android- oder iOS-Handy.",

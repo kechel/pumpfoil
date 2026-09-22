@@ -534,6 +534,8 @@ const deAT: Record<string, string> = {
   "land.deep1": "Doppeluhr-Experiment: was beim Pumpfoilen wirklich passiert",
   "land.deep2": "Wie die Pump-Erkennung funktioniert",
   "land.deep3": "Zweite Messung, mit Fotos und Messkurven",
+  "nerd.part": "Teil {n}",
+  "land.deep5": "Handy am Brett: direkt an der Quelle gemessen (englisch)",
   "land.deep4": "Systemarchitektur",
   "land.heroSub": "Pumpfoil verbindt dei Uhr mit detaillierter Analyse: GPS-Track, Foiling-Distanz, Pump-Frequenz und Gleitphasen — automatisch aus jeder Session.",
   "land.heroPlatforms": "Unterstützt Garmin, Apple Watch, Wear OS, Amazfit, Polar, COROS, Suunto, Xiaomi und dein Android- oder iOS-Handy.",

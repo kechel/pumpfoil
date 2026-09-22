@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { NerdNav } from "../components/NerdNav";
 import { NerdIcon } from "../components/Icons";
 import { useI18n } from "../i18n";
 import { NERD2 } from "./nerd2.i18n";
@@ -392,6 +393,7 @@ export default function NerdAnalysen2() {
 
       <H>{c.limits.h}</H>
       <p className="mb-10 text-sm text-slate-400"><RT>{c.limits.p}</RT></p>
+      <NerdNav current={2} />
     </div>
   );
 }

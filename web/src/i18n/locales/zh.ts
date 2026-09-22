@@ -874,6 +874,8 @@ const zh: Record<string, string> = {
   "land.deep1": "双表实验：划水翼板时到底发生了什么",
   "land.deep2": "划水识别是怎么工作的",
   "land.deep3": "第二次实测，附照片与曲线",
+  "nerd.part": "第 {n} 部分",
+  "land.deep5": "板上放手机：直接在源头测量（英文）",
   "land.deep4": "系统架构",
   "land.heroSub": "Pumpfoil 将你的手表与详尽的分析结合：GPS 轨迹、水翼距离、泵动节奏和滑行阶段 —— 每次记录都自动生成。",
   "land.heroPlatforms": "支持 Garmin、Apple Watch、Wear OS、Amazfit、Polar、COROS、Suunto、Xiaomi，以及 Android 或 iOS 手机。",

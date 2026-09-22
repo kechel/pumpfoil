@@ -984,6 +984,8 @@ const cs: Record<string, string> = {
   "land.deep1": "Experiment se dvěma hodinkami: co se při pumpfoilingu opravdu děje",
   "land.deep2": "Jak funguje rozpoznávání pumpů",
   "land.deep3": "Druhé měření, s fotkami a křivkami",
+  "nerd.part": "Část {n}",
+  "land.deep5": "Telefon na prkně: měřeno přímo u zdroje (anglicky)",
   "land.deep4": "Architektura systému",
   "land.heroSub": "Pumpfoil spojuje tvé hodinky s detailní analýzou: GPS trasa, vzdálenost foilingu, frekvence pumpování a fáze klouzání — automaticky z každé relace.",
   "land.heroPlatforms": "Funguje s Garmin, Apple Watch, Wear OS, Amazfit, Polar, COROS, Suunto, Xiaomi a s tvým telefonem Android nebo iOS.",

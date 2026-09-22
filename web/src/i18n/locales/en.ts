@@ -1035,6 +1035,8 @@ const en: Record<string, string> = {
   "land.deep1": "Two-watch experiment: what really happens when you pump foil",
   "land.deep2": "How pump detection works",
   "land.deep3": "Second measurement, with photos and curves",
+  "nerd.part": "Part {n}",
+  "land.deep5": "A phone on the board: measured at the source",
   "land.deep4": "System architecture",
   "land.heroSub": "Pumpfoil pairs your watch with detailed analysis: GPS track, foiling distance, pump cadence and glide phases — automatically from every session.",
   "land.heroPlatforms": "Works with Garmin, Apple Watch, Wear OS, Amazfit, Polar, COROS, Suunto, Xiaomi and your Android or iOS phone.",

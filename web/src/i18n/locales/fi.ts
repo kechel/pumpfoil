@@ -951,6 +951,8 @@ const fi: Record<string, string> = {
   "land.deep1": "Kahden kellon koe: mitä pumpfoilatessa oikeasti tapahtuu",
   "land.deep2": "Näin pumppauksen tunnistus toimii",
   "land.deep3": "Toinen mittaus, kuvin ja käyrin",
+  "nerd.part": "Osa {n}",
+  "land.deep5": "Puhelin laudalla: mitattu suoraan lähteestä (englanniksi)",
   "land.deep4": "Järjestelmän rakenne",
   "land.heroSub": "Pumpfoil yhdistää kellosi yksityiskohtaiseen analyysiin: GPS-track, foiling-matka, pumppaustaajuus ja liukuvaiheet — automaattisesti jokaisesta sessiosta.",
   "land.heroPlatforms": "Toimii Garminin, Apple Watchin, Wear OS:n, Amazfitin, Polarin, COROSin, Suunton ja Xiaomin sekä Android- tai iOS-puhelimesi kanssa.",

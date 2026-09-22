@@ -1,15 +1,19 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { NerdNav } from "../components/NerdNav";
 import { FoilIcon } from "../components/Icons";
 import { ShortModal } from "../components/ShortModal";
-import { useI18n } from "../i18n";
-import { NERD3 } from "./nerd3.i18n";
+import { NerdNav } from "../components/NerdNav";
+import { NERD4 } from "./nerd4.i18n";
 import { useSeo } from "../lib/seo";
 
-// Nerd-Analysen — Teil 3: Bericht zur zweiten Doppeluhr-Messung (wo wir aktuell stehen).
-// Datengetrieben aus nerd3.i18n.ts (alle 8 Sprachen). Anders als Teil 1/2 mit echten
-// Fotos + Mess-Plots (web/public/nerd3/, same-origin -> CSP-konform). Später erweiterbar.
+// Nerd-Analysen — Teil 4: Handy am Brett (was sich messen laesst, wenn der Sensor nicht mehr
+// am Handgelenk mitfaehrt). Aufbau wie Teil 3, aber NUR ENGLISCH (Jans Vorgabe, 22.09.2026) —
+// deshalb kein `useI18n`, die Seite zeigt immer `NERD4.en`.
+//
+// Alle vier Grafiken sind aus ECHTEN Aufnahmen gerechnet (web/public/nerd4/, same-origin ->
+// CSP-konform), Skript im Scratchpad dokumentiert in docs/TODO.md. Quellen: #9535 (Handy quer
+// am Brett, mit Jans Erklaervideo) und #9528 (Handy diagonal), dazu #9534 als gleichzeitige
+// Garmin-Aufnahme am Handgelenk.
 
 function H({ children }: { children: React.ReactNode }) {
   return <h2 className="mb-3 mt-10 border-b border-slate-800 pb-1 text-lg font-bold text-slate-100">{children}</h2>;
@@ -17,7 +21,8 @@ function H({ children }: { children: React.ReactNode }) {
 function Code({ children }: { children: React.ReactNode }) {
   return <code className="rounded bg-slate-800/70 px-1 py-0.5 text-[0.85em] text-brand-600 dark:text-brand-300">{children}</code>;
 }
-// Rich-Markup: **fett**, `code`, *kursiv*, [label](/pfad).
+// Rich-Markup: **fett**, `code`, *kursiv*, [label](/pfad). Gleiche Funktion wie in Teil 3 —
+// bewusst kopiert statt geteilt, damit eine Aenderung an einem Artikel die anderen nicht trifft.
 function RT({ children }: { children: string }) {
   const s = children;
   const nodes: React.ReactNode[] = [];
@@ -36,7 +41,7 @@ function RT({ children }: { children: string }) {
   return <>{nodes}</>;
 }
 function Pr({ children }: { children: string }) {
-  return <p className="text-sm text-slate-300"><RT>{children}</RT></p>;
+  return <p className="mt-3 text-sm text-slate-300"><RT>{children}</RT></p>;
 }
 function List({ items }: { items: string[] }) {
   return <ul className="my-3 space-y-1.5 pl-5 text-sm text-slate-300 list-disc">{items.map((x, i) => <li key={i}><RT>{x}</RT></li>)}</ul>;
@@ -50,51 +55,47 @@ function Fig({ src, caption }: { src: string; caption: string }) {
   );
 }
 
-const VIDEO_ID = "S85hOgmajb4";   // Doppeluhr + Board-Handy (YouTube-Short)
+const VIDEO_ID = "5xt-yCcw0rA";   // Jans Erklaervideo, haengt an Session #9535
 
-export default function NerdAnalysen3() {
-  // Eigener Titel und eigene Beschreibung — sonst teilen sich alle
-  // oeffentlichen Seiten die Angaben aus `index.html`.
-  useSeo("Zweite Doppeluhr-Messung mit Fotos und Messkurven", "Pump-Foiling nachgemessen: zwei Uhren am selben Lauf, echte Fotos und Messkurven zu Pumps, Puls und Geschwindigkeit.");
-  const { lang } = useI18n();
-  const c = NERD3[lang] ?? NERD3.de!;
+export default function NerdAnalysen4() {
+  useSeo("A phone taped to the board — measuring pump foiling at the source",
+         "What a phone on the board measures that a watch on the wrist cannot: pitch, roll, yaw and heave, with real data from the first rides.");
+  const c = NERD4.en!;
   const [vidOpen, setVidOpen] = useState(false);
   return (
     <div className="w-full">
-      <Link to="/nerd-analysen-2" className="text-sm text-brand-400 hover:underline">{c.back}</Link>
+      <Link to="/nerd-analysen-3" className="text-sm text-brand-400 hover:underline">{c.back}</Link>
       <h1 className="mb-1 mt-4 flex items-center gap-2 text-2xl font-bold">
         <FoilIcon className="h-7 w-7 text-brand-400" /> {c.h1}
       </h1>
       <p className="mb-2 text-sm text-slate-400">{c.subtitle}</p>
       <Pr>{c.intro}</Pr>
 
-      <H>{c.setup.h}</H>
-      <Pr>{c.setup.p}</Pr>
-      <div className="my-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <figure className="overflow-hidden rounded-xl border border-slate-800 bg-slate-950">
-          <img src="/nerd3/setup-rumpf.webp" alt={c.setup.capRumpf} loading="lazy" className="block w-full" />
-          <figcaption className="border-t border-slate-800 px-3 py-2 text-xs text-slate-400">{c.setup.capRumpf}</figcaption>
-        </figure>
-        <figure className="overflow-hidden rounded-xl border border-slate-800 bg-slate-950">
-          <img src="/nerd3/setup-fuss.webp" alt={c.setup.capFuss} loading="lazy" className="block w-full" />
-          <figcaption className="border-t border-slate-800 px-3 py-2 text-xs text-slate-400">{c.setup.capFuss}</figcaption>
-        </figure>
-      </div>
+      <H>{c.why.h}</H>
+      <Pr>{c.why.p}</Pr>
+      <Fig src="/nerd4/board-vs-wrist.png" caption={c.why.cap} />
+      <Pr>{c.why.p2}</Pr>
 
-      <H>{c.pump.h}</H>
-      <Pr>{c.pump.p}</Pr>
-      <List items={c.pump.li} />
-      <Fig src="/nerd3/pump-summary.png" caption={c.pump.cap} />
+      <H>{c.what.h}</H>
+      <Pr>{c.what.p}</Pr>
+      <List items={c.what.li} />
+      <Fig src="/nerd4/pitch-roll-heave.png" caption={c.what.cap} />
 
-      <H>{c.glide.h}</H>
-      <Pr>{c.glide.p}</Pr>
-      <List items={c.glide.li} />
-      <Fig src="/nerd3/glide-sink.png" caption={c.glide.cap} />
+      <H>{c.mount.h}</H>
+      <Pr>{c.mount.p}</Pr>
+      <Pr>{c.mount.p2}</Pr>
+      <Fig src="/nerd4/mounting-axis.png" caption={c.mount.cap} />
+
+      <H>{c.heave.h}</H>
+      <Pr>{c.heave.p}</Pr>
+      <Pr>{c.heave.p2}</Pr>
+      <Fig src="/nerd4/heave-window.png" caption={c.heave.cap} />
 
       <H>{c.videorun.h}</H>
       <Pr>{c.videorun.p}</Pr>
       <figure className="mx-auto my-5 max-w-xs overflow-hidden rounded-xl border border-slate-800 bg-slate-950">
-        {/* Click-to-Load: Thumbnail (same-origin Proxy) öffnet den Short im großen Overlay. */}
+        {/* Click-to-Load ueber den same-origin Thumbnail-Proxy — kein Dritt-Skript, bis jemand
+            wirklich abspielt (s. Datenschutz-Regel in CLAUDE.md). Gleiches Muster wie Teil 3. */}
         <button onClick={() => setVidOpen(true)} className="group relative block aspect-[9/16] w-full" aria-label={c.videorun.h}>
           <img src={`/api/public/video-thumb/${VIDEO_ID}`} alt={c.videorun.cap} loading="lazy"
             className="h-full w-full object-cover transition group-hover:scale-105" />
@@ -110,12 +111,18 @@ export default function NerdAnalysen3() {
       </figure>
       {vidOpen && <ShortModal id={VIDEO_ID} title={c.videorun.h} onClose={() => setVidOpen(false)} />}
 
+      <H>{c.found.h}</H>
+      <Pr>{c.found.p}</Pr>
+      <List items={c.found.li} />
+
       <H>{c.limits.h}</H>
       <Pr>{c.limits.p}</Pr>
+      <List items={c.limits.li} />
 
-      <H>{c.outlook.h}</H>
-      <Pr>{c.outlook.p}</Pr>
-      <NerdNav current={3} />
+      <H>{c.next.h}</H>
+      <Pr>{c.next.p}</Pr>
+
+      <NerdNav current={4} />
     </div>
   );
 }
