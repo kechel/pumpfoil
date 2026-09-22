@@ -499,4 +499,333 @@ const cs: N3 = {
 };
 
 // Partial (siehe nerd1): fehlende Sprachen fallen im Consumer auf `de` zurück.
-export const NERD3: Partial<Record<Lang, N3>> = { de, gsw, "de-AT": deAT, en, fr, it, es, fi, nl, cs };
+
+const id: N3 = {
+  "back": "← Bagian 2: Cara Kerjanya",
+  "h1": "Bagian 3: Pengukuran Dual-Watch — di mana kami hari ini",
+  "subtitle": "Eksperimen dua-jam tangan kedua: pergelangan tangan versus kebenaran dekat-papan",
+  "intro": "Setelah bagian 1 kami kembali mengukur **secara bersamaan dengan dua jam tangan** — kali ini, untuk menguji **deteksi pompa** dan **akhir lari** (glide atau jatuh) terhadap kebenaran yang terikat-papan. Sebuah **Forerunner 55** di pergelangan tangan (GPS + 25 Hz akselerasi) dan sebuah **fēnix 7X Pro** sekali di rumpun foil di bawah air, sekali di pergelangan kaki (100 Hz akselerasi) — masing-masing selama seluruh lari, keduanya sinkron melalui waktu sistem dan disetel halus melalui impuls takeoff.",
+  "setup": {
+    "h": "Penyiapannya",
+    "p": "Kedua jam tangan menjalankan aplikasi recorder kami — hanya begitu kami mendapatkan aliran data akselerasi mentah. fēnix di **kaki** berperilaku kurang lebih seperti papan; di **rumpun** itu mengukur orientasi foil secara langsung (GPS mati di sana di bawah air, tetapi akselerasi terus melalui).",
+    "capRumpf": "fēnix di rumpun foil, di bawah air",
+    "capFuss": "fēnix di pergelangan kaki, Forerunner 55 di pergelangan tangan"
+  },
+  "pump": {
+    "h": "Deteksi pompa — cocok terhadap kebenaran",
+    "p": "Sensor yang terikat-papan melihat setiap pompa sebagai satu siklus bersih. Dibandingkan dengan itu, detektor **pergelangan tangan** murni kami memukul dengan akurat mengejutkan:",
+    "li": [
+      "**Angka:** 56 vs 59 · 38 vs 40 · 32 vs 31 pompa — pada ±~5%, tanpa under-counting sistematis.",
+      "**Kadence** hampir identik (~1,36–1,45 Hz).",
+      "**Waktu per-pompa:** presisi 88–95%, recall 90% (±0,35 detik)."
+    ],
+    "cap": "Angka & kadence pompa: kebenaran-papan vs. detektor pergelangan tangan"
+  },
+  "glide": {
+    "h": "Akhir lari — glide vs. jatuh",
+    "p": "Menjadi menarik di akhir lari. **GPS jatuh persis di sana** — pada kedua jam tangan — karena sensor menyelam segera setelah Anda melambat. Tetapi akselerasi terus melalui, dan sensor dekat-papan memisahkannya dengan bersih: **di foil** papan diam (foil-teredam), **jatuh** itu bergoyang bebas (besar, naik-turun lambat).",
+    "li": [
+      "Transisi \"masih di foil / di permukaan bergerak\" → \"jatuh\" jelas terlihat dalam akselerasi papan.",
+      "Detektor kami mengakhiri lari **pada ±2 detik presisi** pada titik jatuh yang asli — peluncuran jadi **tidak** dipotong pendek.",
+      "Batas ~9-km/h sesuai dengan **kecepatan stall** foil dengan cukup baik."
+    ],
+    "cap": "Papan-bobbing (rendah = di foil, tinggi = bergoyang bebas); hijau = akhir detektor, ungu = titik jatuh asli"
+  },
+  "limits": {
+    "h": "Batas jujur",
+    "p": "Hanya beberapa lari, semua di satu spot dan padat-pompa. **Pergelangan tangan sendiri** tidak *melihat* momen jatuh dengan bersih (lengan bergoyang saat memompa seperti saat bergoyang). Dan glides genua-panjang yang benar-benar nyaman (glassy, downwind) belum ada dalam kumpulan data ini."
+  },
+  "outlook": {
+    "h": "Bagaimana terusnya",
+    "p": "Kami sekarang **dengan sengaja mengubah apa-apa** pada detektor, tetapi meningkatkan **didorong-data** — dengan lebih banyak lari (juga glides panjang), kamera papan (**Insta360 X5**) sebagai kebenaran visual dan data pengguna di pumpfoil.org. Itulah cara kami telah menajamkan pengenalan beberapa kali sebelumnya."
+  },
+  "videorun": {
+    "h": "Lari uji lebih lanjut (Video)",
+    "p": "Inilah pengukuran yang terlihat dalam kehidupan nyata: **jam tangan di setiap tangan** dan **handy di papan** sebagai referensi dekat-papan. Detektor pergelangan tangan murni sesuai dengan baik dengan kebenaran dekat-papan (angka pompa akurat hingga beberapa persen). Pelajaran penting: untuk penyelarasan **presisi-detik** dari beberapa perangkat, diperlukan **impuls sinkronisasi sadar** di awal (mis. 3× ketuk papan dengan kuat) — waktu sistem saja tidak cukup.",
+    "cap": "Dua jam tangan di pergelangan tangan + handy di papan — lari uji dalam video"
+  }
+};
+
+
+const ja: N3 = {
+  "back": "← パート2：機能方法",
+  "h1": "パート3：デュアルウォッチ計測 — 今日の立場",
+  "subtitle": "2番目のデュアルウォッチ実験：リスト対ボード近傍真実",
+  "intro": "パート1の後、再び**同時に2つのウォッチ**で計測 — 今回は**ポンプ検出**とランの**エンド**（グライド対沈下）をボード結合真実に対してチェック。リスト上の**Forerunner 55**（GPS + 25 Hz accel）と**fēnix 7X Pro**はフォイルフューセラージ水中、足首（100 Hz accel）の一度 — ランの全体に越えて、両方ともシステム時刻経由で同期され、テイクオフインパルス上で微調整。",
+  "setup": {
+    "h": "セットアップ",
+    "p": "両方のウォッチは自社レコーダーアプリで実行 — そのようにしてだけ生加速度データストリームを得ます。**足**上のfēnixは大まかにボードのような振舞い；**フューセラージ**上でそれはフォイル姿勢を直接計測（GPS無し水中、しかしaccelが走り抜ける）。",
+    "capRumpf": "フォイルフューセラージ上のfēnix、水中",
+    "capFuss": "足首上のfēnix、リスト上のForerunner 55"
+  },
+  "pump": {
+    "h": "ポンプ検出 — 真実に対して一致",
+    "p": "ボード結合センサーは各ポンプを1つのクリーンサイクルとして見ます。それに対して、純粋な**リスト**検出器は驚くほど正確：",
+    "li": [
+      "**数：** 56対59 · 38対40 · 32対31ポンプ — ±~5%内、体系的な過少カウントなし。",
+      "**ケイデンス**実質的に同一（~1.36～1.45 Hz）。",
+      "**ポンプごとタイミング：** 88～95%精度、90%リコール（±0.35秒）。"
+    ],
+    "cap": "ポンプ数とケイデンス：ボード真実対リスト検出器"
+  },
+  "glide": {
+    "h": "ラン終了 — グライド対沈下",
+    "p": "ラン終了で興味深くなります。**GPSはちょうどそこで外れます** — 両ウォッチで — センサーが沈むから、スロー時間を減らします。Accelは走り抜けますが、ボード近傍センサーはきれいに分離：**フォイル上**ボードは静か（フォイル減衰）、**沈下**それは自由に動揺（大きく、遅い上下）。",
+    "li": [
+      "トランジション「まだフォイル上 / 表面上で動く」 → 「沈下」はボードAccelで明確に見える。",
+      "当社検出器は本当の沈下ポイントで**±2秒内**ランを終了 — グライドアウトは**カット**されません。",
+      "~9 km/h限界はフォイルの**失速速度**にかなり一致。"
+    ],
+    "cap": "ボード揺れ（低 = フォイル上、高 = 自由に動揺）；緑 = 検出器エンド、紫 = 本当の沈下ポイント"
+  },
+  "limits": {
+    "h": "正直な限界",
+    "p": "それはただの少数ランで、すべて1つのスポット、ポンプ密度。**リストだけ**は沈下モーメントを*クリーンに見ない*（腕はポンプ中と動揺中に動く）。そして本当に長い楽しみグライド（ガラス質、ダウンウインド）はまだこのデータセットにありません。"
+  },
+  "outlook": {
+    "h": "どこへ進むか",
+    "p": "私たちは今**意図的に何も変わらない**検出器で、しかし改善を**データドリブン** — より多くのラン（長いグライドも含む）、ボードカメラ（**Insta360 X5**）視覚真実として、および pumpfoil.org上のユーザーデータで。これは正確にどのように既に何度も検出を研ぎ澄ましてきました。"
+  },
+  "videorun": {
+    "h": "別の試験ラン（ビデオ）",
+    "p": "計測が実際にどう見えるか：**各手に1つのウォッチ**およびボード近傍参照として**ボード上の携帯**。純粋なリスト検出器はボード近傍真実とよく並ぶ（ポンプ数は数パーセント内）。重要な教訓：複数デバイスを**秒内**に調整するには、最初に意識的な**シンク衝撃**が必要（例ボード上で3回力強くタップ） — システム時刻だけでは十分。",
+    "cap": "リスト上の2つのウォッチ + ボード上の携帯 — ビデオ内の試験ラン"
+  }
+};
+
+
+const nb: N3 = {
+  "back": "← Del 2: Hvordan det fungerer",
+  "h1": "Del 3: Dobbelt-klokke-målingen — hvor vi står i dag",
+  "subtitle": "Andre to-klokke-forsøk: håndleddet mot board-nær sannhet",
+  "intro": "Etter Del 1 målte vi igjen **samtidig med to klokker** — denne gangen for å teste **pump-gjenkjenningen** og **slutten av en tur** (gliding eller synking) mot en board-koplet sannhet. En **Forerunner 55** på håndleddet (GPS + 25 Hz Accel) og en **fēnix 7X Pro** en gang på foil-skroget under vann, en gang på ankelen (100 Hz Accel) — hele turen for begge, begge synkront via systemtiden og fininjustert via hoppe-impulsen.",
+  "setup": {
+    "h": "Oppsettet",
+    "p": "Begge klokker kjørte på vår recorder-app — bare sånn får vi råakselerasjons-datastrømmen. Fenix på **ankelen** oppfører seg omtrent som brettet; på **skroget** måler den foil-posisjonen direkte (der er GPS dødvann under vann, men Accel går igjennom).",
+    "capRumpf": "fēnix på foil-skroget, under vann",
+    "capFuss": "fēnix på ankelen, Forerunner 55 på håndleddet"
+  },
+  "pump": {
+    "h": "Pump-gjenkjenning — stemmer mot sannheten",
+    "p": "Den board-koplet sensor ser hver pump som en ren syklus. Sammenlignet med det treffer vår rene **håndledds**-detektor overraskende nøyaktig:",
+    "li": [
+      "**Antall:** 56 vs 59 · 38 vs 40 · 32 vs 31 pumps — på ±~5 %, ingen systematisk under-telling.",
+      "**Kadense** praktisk identisk (~1,36–1,45 Hz).",
+      "**Per-pump-timing:** 88–95 % Precision, 90 % Recall (±0,35 s)."
+    ],
+    "cap": "Pump-antall & -kadense: Board-sannhet vs. håndledds-detektor"
+  },
+  "glide": {
+    "h": "Tur-slutten — gliding vs. synking",
+    "p": "Spennende blir det ved tur-slutten. **GPS faller akkurat der ut** — på begge klokker — fordi sensoren dykker ned når du blir saktere. Accel går dog igjennom, og den board-nær sensor skiller det rent: **på foilen** ligger brettet stille (foil-dempet), **sunket** duver det fritt (stort, langsomt opp og ned).",
+    "li": [
+      "Overgangen «fortsatt på foil / på overflaten i bevegelse» → «sunket» er klart synlig i board-Accel.",
+      "Vår detektor avslutter turen **på ±2 s nøyaktig** ved det virkelige synke-punktet — utløpet blir altså **ikke** klippet av.",
+      "~9-km/h-grensen svarer ganske nøyaktig til foilens **stallhastighet**."
+    ],
+    "cap": "Board-bobbing (lavt = på foil, høyt = duver fritt); grønt = detektor-slutt, lilla = virkelig synke-punkt"
+  },
+  "limits": {
+    "h": "Ærlige grenser",
+    "p": "Det er bare få turer, alle på ett spot og pump-tette. **Håndleddet alene** *ser* synke-øyeblikket ikke rent (armen vifter like mye under pumping som under duving). Og de virkelig lange glede-glides (glassy, nedvind) er ikke ennå i dette datasettet."
+  },
+  "outlook": {
+    "h": "Hvordan det fortsetter",
+    "p": "Vi endrer nå **ingenting bevisst** på detektoren, men forbedrer **datadrevet** — med flere turer (også lange glides), ett board-kamera (**Insta360 X5**) som visuell sannhet og dataene fra brukerne på pumpfoil.org. Akkurat sånn har vi skarpt gjenkjenningen flere ganger før."
+  },
+  "videorun": {
+    "h": "Annen testtur (Video)",
+    "p": "Sånn ser målingen ut i virkeligheten: **på hver hånd en klokke** og **mobilen på brettet** som board-nær referanse. Den rene håndledds-detektoren stemmer godt med board-nær sannhet (pump-antall på få prosent nøyaktig). Viktig læring: for **sekundnøyaktig** justering av flere enheter trenger du på begynnelsen en bevisst **sync-impuls** (f. eks. 3× hardt slå på brettet) — systemtiden alene reker ikke.",
+    "cap": "To klokker på håndleddet + mobil på brettet — testuren i videoen"
+  }
+};
+
+
+const ptPT: N3 = {
+  "back": "← Parte 2: Como funciona",
+  "h1": "Parte 3: A medição de dupla relógio — onde estamos hoje",
+  "subtitle": "Segunda experiência de dupla relógio: mão contra verdade próxima da prancha",
+  "intro": "Após a Parte 1 medimos novamente **em simultâneo com dois relógios** — desta vez, para testar a **deteção de bombeio** e o **fim de uma sessão** (planagem e afundamento) contra uma verdade próxima da prancha. Um **Forerunner 55** na mão (GPS + 25 Hz aceleração) e um **fēnix 7X Pro** uma vez no casco do foil debaixo de água, uma vez no tornozelo (100 Hz aceleração) — cada um ao longo de toda a sessão, ambos sincronizados pela hora do sistema e afinados pelo impulso de salto.",
+  "setup": {
+    "h": "O equipamento",
+    "p": "Ambos os relógios funcionam na nossa app de gravação — só assim obtemos o fluxo de aceleração bruto. O fēnix no **pé** comporta-se aproximadamente como a prancha; no **casco** mede a posição do foil diretamente (lá o GPS está morto debaixo de água, mas a aceleração funciona através).",
+    "capRumpf": "fēnix no casco do foil, debaixo de água",
+    "capFuss": "fēnix no pé, Forerunner 55 na mão"
+  },
+  "pump": {
+    "h": "Deteção de bombeio — correto contra a verdade",
+    "p": "O sensor próximo da prancha vê cada bombeio como um ciclo limpo. Comparado com isto o nosso puro detetor de **mão** é surpreendentemente preciso:",
+    "li": [
+      "**Número:** 56 vs 59 · 38 vs 40 · 32 vs 31 bombeios — ~±5%, sem subestimação sistemática.",
+      "**Cadência** praticamente idêntica (~1,36–1,45 Hz).",
+      "**Tempo por bombeio:** 88–95% precisão, 90% recall (±0,35s)."
+    ],
+    "cap": "Número e cadência de bombeio: verdade de prancha vs. detetor de mão"
+  },
+  "glide": {
+    "h": "O fim da sessão — planagem vs. afundamento",
+    "p": "Fica interessante no fim da sessão. O **GPS falha exatamente lá** — em ambos os relógios — porque o sensor mergulha assim que fica mais lento. Mas a aceleração funciona, e o sensor próximo da prancha separa-o bem: **em foil** a prancha fica quieta (amortecida por foil), **afundada** balança livremente (grande, lento sobe e desce).",
+    "li": [
+      "A transição «ainda em foil / à superfície em movimento» → «afundada» é claramente reconhecível na aceleração próxima da prancha.",
+      "O nosso detetor termina a sessão **±2s preciso** no ponto real de afundamento — o arrefecimento portanto **não** é cortado.",
+      "O limite ~9 km/h corresponde bastante bem à **velocidade de paragem** do foil."
+    ],
+    "cap": "Balançamento de prancha (baixo = em foil, alto = balança livre); verde = fim do detetor, roxo = ponto real de afundamento"
+  },
+  "limits": {
+    "h": "Limites honestos",
+    "p": "São apenas poucas sessões, todas num spot e cheias de bombeios. A **mão sozinha** *vê* o momento de afundamento não limpo (o braço balança ao bombear como ao oscilar). E os longos deslizes de desfrute reais (glassy, downwind) ainda não estão neste conjunto de dados."
+  },
+  "outlook": {
+    "h": "Como continua",
+    "p": "Agora **conscientemente não mudamos nada** no detetor, mas melhoramos **baseado em dados** — com mais sessões (também deslizes longos), uma câmara de prancha (**Insta360 X5**) como verdade visual e os dados dos utilizadores em pumpfoil.org. Exatamente assim já afiámos a deteção várias vezes."
+  },
+  "videorun": {
+    "h": "Outro teste (vídeo)",
+    "p": "Assim é a medição em realidade: **um relógio em cada mão** e o **telemóvel na prancha** como referência próxima da prancha. O puro detetor de mão combina bem com a verdade próxima da prancha (número de bombeios para poucos %). Lição importante: para alinhamento **segundo-preciso** de vários aparelhos precisa-se de um **impulso de sincronismo** consciencioso no início (p.ex. bater 3× firmemente na prancha) — a hora do sistema sozinha não chega.",
+    "cap": "Dois relógios na mão + telemóvel na prancha — o teste em vídeo"
+  }
+};
+
+
+const pt: N3 = {
+  "back": "← Parte 2: Como funciona",
+  "h1": "Parte 3: A Medição Dual-Relógio — Onde Estamos Agora",
+  "subtitle": "Segundo experimento de dois relógios: pulso contra verdade próxima à prancha",
+  "intro": "Depois da Parte 1, medimos novamente **simultaneamente com dois relógios** — desta vez, para testar o **reconhecimento de pump** e o **fim de uma sessão** (glide ou afundamento) contra uma verdade acoplada à prancha. Um **Forerunner 55** no pulso (GPS + 25 Hz aceleração) e um **fēnix 7X Pro** uma vez no casco do foil embaixo da água, uma vez no tornozelo (100 Hz aceleração) — cada um durante toda a sessão, ambos sincronizados via hora do sistema e ajustados com precisão pelo impulso de salto.",
+  "setup": {
+    "h": "O Setup",
+    "p": "Ambos os relógios rodam em nosso app de gravador — apenas assim conseguimos o fluxo de aceleração bruto. O fēnix no **tornozelo** se comporta aproximadamente como a prancha; no **casco** mede a posição do foil diretamente (lá o GPS fica embaixo da água, a aceleração segue).",
+    "capRumpf": "fēnix no casco do foil, embaixo da água",
+    "capFuss": "fēnix no tornozelo, Forerunner 55 no pulso"
+  },
+  "pump": {
+    "h": "Reconhecimento de Pump — Correto Contra a Verdade",
+    "p": "O sensor acoplado à prancha vê cada pump como um ciclo limpo. Comparado com isso, nosso puro detetor de **pulso** acerta surpreendentemente bem:",
+    "li": [
+      "**Número:** 56 vs 59 · 38 vs 40 · 32 vs 31 pumps — em ±~5 %, nenhuma contagem sistemática baixa.",
+      "**Cadência** praticamente idêntica (~1,36–1,45 Hz).",
+      "**Tempo por pump:** 88–95 % precisão, 90 % recall (±0,35 s)."
+    ],
+    "cap": "Número e cadência de pump: verdade de prancha vs. detetor de pulso"
+  },
+  "glide": {
+    "h": "O Fim da Sessão — Glide vs. Afundamento",
+    "p": "Fica interessante no fim da sessão. O **GPS cai exatamente ali** — em ambos os relógios —, porque o sensor mergulha assim que você fica mais lento. Mas a aceleração segue, e o sensor próximo à prancha separa bem: **no foil** a prancha fica quieta (amortecida pelo foil), **afundada** ela cabeceia livremente (grande e lento para cima e para baixo).",
+    "li": [
+      "A transição «ainda no foil / na superfície em movimento» → «afundada» é claramente reconhecível na aceleração da prancha.",
+      "Nosso detetor encerra a sessão **com ±2 s de precisão** no ponto real de afundamento — o arremate portanto **não é** cortado.",
+      "O limite de ~9 km/h corresponde bastante bem à **velocidade de parada** do foil."
+    ],
+    "cap": "Bobbing da prancha (baixo = no foil, alto = cabeceia livremente); verde = fim do detetor, roxo = ponto real de afundamento"
+  },
+  "limits": {
+    "h": "Limites Honestos",
+    "p": "São apenas poucos laufs, todos em um spot e densos em pump. O **pulso sozinho** *não vê* o momento de afundamento nitidamente (o braço se agita ao bombear como ao cabecear). E os verdadeiros glides de aproveitamento longo (glassy, downwind) ainda não estão neste conjunto de dados."
+  },
+  "outlook": {
+    "h": "Como Continua",
+    "p": "Agora **intencionalmente não mudamos nada** no detetor, mas melhoramos **orientado por dados** — com mais laufs (também glides longos), uma câmera de prancha (**Insta360 X5**) como verdade visual e os dados de usuários em pumpfoil.org. Exatamente assim já afiamos o reconhecimento várias vezes."
+  },
+  "videorun": {
+    "h": "Mais um Testlauf (Vídeo)",
+    "p": "Assim é como fica a medição na prática: **um relógio em cada mão** e o **celular na prancha** como referência próxima à prancha. O puro detetor de pulso fica bem com a verdade próxima à prancha (número de pump com alguns porcento de precisão). Lição importante: para alinhamento **segundo-preciso** de vários aparelhos você precisa de um **impulso de sincronia** consciente no início (p. ex., bater 3× na prancha) — apenas o tempo do sistema não é suficiente.",
+    "cap": "Dois relógios no pulso + celular na prancha — o testlauf no vídeo"
+  }
+};
+
+
+const ru: N3 = {
+  "back": "← Часть 2: Как это работает",
+  "h1": "Часть 3: Двойные часы — где мы сейчас",
+  "subtitle": "Второй эксперимент с двумя часами: запястье против истины рядом с доской",
+  "intro": "После Части 1 мы снова **одновременно измеряли двумя часами** — на этот раз чтобы проверить **Pump-распознавание** и **конец лауна** (глайд или опускание) против истины связанной с доской. **Forerunner 55** на запястье (GPS + 25 Hz Accel) и **fēnix 7X Pro** один раз на фойл-корпусе под водой, один раз на щиколотке (100 Hz Accel) — оба на протяжении всего лауна, оба синхронизированы через системное время и точно настроены через прыжок-импульс.",
+  "setup": {
+    "h": "Установка",
+    "p": "Обе часы работают на нашем приложении-рекордере — только так получаем сырой поток данных ускорения. Fēnix на **щиколотке** ведёт себя примерно как доска; на **корпусе** измеряет положение фойла напрямую (там GPS под водой мёртв, но Accel идёт дальше).",
+    "capRumpf": "fēnix на корпусе фойла, под водой",
+    "capFuss": "fēnix на щиколотке, Forerunner 55 на запястье"
+  },
+  "pump": {
+    "h": "Pump-распознавание — совпадает с истиной",
+    "p": "Датчик связанный с доской видит каждый Pump как чистый цикл. Сравнивая с этим, наш чистый **запястный** детектор удивительно точен:",
+    "li": [
+      "**Количество:** 56 vs 59 · 38 vs 40 · 32 vs 31 Pumps — на ±~5 %, нет систематического недосчёта.",
+      "**Кадансия** практически идентична (~1,36–1,45 Hz).",
+      "**Время за Pump:** 88–95 % точность, 90 % полнота (±0,35 s)."
+    ],
+    "cap": "Pump-количество и кадансия: доска-истина vs. запястный детектор"
+  },
+  "glide": {
+    "h": "Конец лауна — глайд vs. опускание",
+    "p": "Интересно становится в конце лауна. **GPS падает там же** — на обеих часах — потому что датчик погружается как только медленнеешь. Но Accel идёт дальше, и датчик связанный с доской разделяет чётко: **на фойле** доска спокойна (фойл-затухание), **опустилась** качается свободно (большое, медленное вверх-вниз).",
+    "li": [
+      "Переход «ещё на фойле / на поверхности в движении» → «опустилась» чётко виден в доска-Accel.",
+      "Наш детектор заканчивает лаун **на ±2 s точно** в точке реального опускания — раскат таким образом **не** обрезан.",
+      "~9-km/h граница примерно соответствует **скорости сваливания** фойла."
+    ],
+    "cap": "Доска-качание (низко = на фойле, высоко = качается свободно); зелёный = конец детектора, фиолетовый = точка реального опускания"
+  },
+  "limits": {
+    "h": "Честные ограничения",
+    "p": "Это только несколько лаунов, все в одном месте и Pump-плотные. **Запястье одно** *видит* момент опускания не чётко (рука машет при Pump как при качании). И по-настоящему длинные Glide для удовольствия (стеклянные, по ветру) в этом наборе данных ещё нет."
+  },
+  "outlook": {
+    "h": "Как это идёт дальше",
+    "p": "Мы **сознательно ничего не меняем** в детекторе, а улучшаем **данными** — с большим количеством лаунов (включая длинные глайды), доска-камерой (**Insta360 X5**) как визуальной истиной и данными пользователей на pumpfoil.org. Ровно так мы уже несколько раз заострили распознавание."
+  },
+  "videorun": {
+    "h": "Дополнительный тестовый лаун (видео)",
+    "p": "Вот как измерение выглядит на самом деле: **на каждой руке по часам** и **телефон на доске** как датчик рядом с доской. Чистый запястный детектор хорошо совпадает при этом с истиной рядом с доской (Pump-количество на несколько процентов точно). Важный урок: для **секунд-точной** синхронизации нескольких устройств нужен в начале сознательный **синх-импульс** (например 3× сильно постучать по доске) — системное время одно недостаточно.",
+    "cap": "Двое часов на запястье + телефон на доске — тестовый лаун в видео"
+  }
+};
+
+
+const zh: N3 = {
+  "back": "← 第2部分：工作原理",
+  "h1": "第3部分：双表测量 — 我们今天的立场",
+  "subtitle": "第二个双表实验：手腕对板近真相",
+  "intro": "在第1部分之后，我们再次**同时用两块表**测量 — 这次，为了对板耦合真相测试**泵动识别**和**运行的结束**（滑行或下沉）。一块**Forerunner 55**在手腕上（GPS + 25 Hz Accel）和一块**fēnix 7X Pro**一次在翼面船体水下，一次在脚踝（100 Hz Accel）— 整个运行长度都有，两个通过系统时间同步并通过起跳冲击进行微调。",
+  "setup": {
+    "h": "设置",
+    "p": "两块表在我们的记录器应用上运行 — 这样我们才能获得原始加速度数据流。**脚部**上的fēnix表现得大约像板；**船体**上的它直接测量翼面姿态（那里GPS在水下死亡，Accel贯穿）。",
+    "capRumpf": "fēnix在翼面船体，水下",
+    "capFuss": "fēnix在脚踝，Forerunner 55在手腕"
+  },
+  "pump": {
+    "h": "泵动识别 — 对真相是准确的",
+    "p": "板耦合的传感器看到每个泵动作为一个干净周期。相比之下，我们纯**手腕**探测器惊人地精确：",
+    "li": [
+      "**数字**：56对59 · 38对40 · 32对31泵 — 在±~5%，没有系统性欠计数。",
+      "**频率**几乎相同（~1.36–1.45 Hz）。",
+      "**每个泵动时间**：88–95% Precision，90% Recall（±0.35秒）。"
+    ],
+    "cap": "泵动数字和频率：板真相对手腕探测器"
+  },
+  "glide": {
+    "h": "运行结束 — 滑行对下沉",
+    "p": "有趣的是在运行的结尾。**GPS在那里恰好掉线** — 在两块表上 — 因为一旦你减速传感器就沉下去。但Accel贯穿，板近传感器干净地分离它：**在翼面上**板保持镇静（翼面阻尼），**沉下去**它自由漂移（大的、缓慢的上下）。",
+    "li": [
+      "从「仍在翼面上 / 在水面在运动」到「沉下去」的过渡在板Accel中清晰可见。",
+      "我们的探测器在**±2秒精度**时结束运行在真实的下沉点 — 衰退因此**不会**被切掉。",
+      "~9 km/h限制对应相当准确的**失速速度**翼面。"
+    ],
+    "cap": "板摇晃（低 = 在翼面上，高 = 自由漂移）；绿色 = 探测器结束，紫色 = 真实下沉点"
+  },
+  "limits": {
+    "h": "诚实的限制",
+    "p": "这些只是少数运行，都在一个垂钓点和泵动密集。**单独的手腕***看不到*下沉时刻干净（手臂在泵动和漂移时都晃动）。长享受滑行（玻璃般，逆风）还没有在这个数据集中。"
+  },
+  "outlook": {
+    "h": "接下来会怎样",
+    "p": "我们现在**有意什么都不改变**探测器，而是**数据驱动地**改进 — 用更多的运行（也长滑行），一个板摄像机（**Insta360 X5**）作为视觉真相，和pumpfoil.org用户的数据。我们已经多次以完全相同的方式锐化识别。"
+  },
+  "videorun": {
+    "h": "进一步的测试运行（视频）",
+    "p": "测量实际看起来像这样：**每只手一块表**并且**手机在板上**作为板近参考。纯手腕探测器与板近真相很好地吻合（泵动数到几个百分点精确）。重要的教训：为了**秒精度**多个设备的对齐，在开始时需要一个有意的**同步冲击**（例如3×用力点击板） — 系统时间本身不够。",
+    "cap": "两块表在手腕 + 手机在板 — 视频中的测试运行"
+  }
+};
+
+export const NERD3: Partial<Record<Lang, N3>> = { zh, ru, pt, "pt-PT": ptPT, nb, ja, id, de, gsw, "de-AT": deAT, en, fr, it, es, fi, nl, cs };
