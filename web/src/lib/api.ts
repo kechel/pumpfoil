@@ -160,6 +160,14 @@ export type BoardAttitude = {
   // Hoehe. null, wenn das Stueck zu kurz fuers gewaehlte Fenster ist.
   hub_cm?: number[] | null;
   hub_fenster_s?: number;
+  // Dieselben Kennzahlen je erkanntem Lauf, in der Reihenfolge der Segmente. In EINEM Abruf
+  // mitgerechnet (s. `lage.py`) — die Lauf-Tabelle braucht dafuer keinen Abruf je Zeile.
+  laeufe?: {
+    lauf: number; ok: boolean;
+    pitch_amplitude_deg?: number; roll_amplitude_deg?: number; gier_rms_deg_s?: number;
+    pitch_hz?: number | null; hub_fenster_s?: number;
+    hub_pp_cm?: number | null; hub_hz?: number | null; hub_sicher?: boolean;
+  }[];
   // Der ausgewaehlte Lauf/Versuch OHNE den Rand von `pad_s` — die Kurven markieren damit, wo er
   // wirklich anfaengt und aufhoert. null, wenn die ganze Aufnahme gezeigt wird.
   auswahl_von_ms?: number | null;
