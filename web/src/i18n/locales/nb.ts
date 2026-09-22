@@ -709,6 +709,8 @@ const nb: Record<string, string> = {
   "sd.colPitchRhythm": "stampetakt",
   "sd.colHeave": "hiv",
   "sd.mountInherited": "hentet fra hele opptaket — signalet i denne runden var for utydelig",
+  "sd.mountSlipped": "Denne stillingen passer ikke med de andre rundene — enheten har trolig forskjøvet seg",
+  "sd.mountDisputed": "Retningen var uklar i denne runden — hentet fra runden med tydeligere signal",
   "sd.colGlide": "lengste gliding",
   "sd.colMaxHr": "Maks puls",
   "hr.progressTitle": "Treningskurve: puls under pumping",

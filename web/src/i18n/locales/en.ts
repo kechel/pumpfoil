@@ -796,6 +796,8 @@ const en: Record<string, string> = {
   "sd.colPitchRhythm": "pitch rhythm",
   "sd.colHeave": "heave",
   "sd.mountInherited": "taken from the whole recording — the signal in this run was too unclear",
+  "sd.mountSlipped": "This attitude does not match the other runs — the device has probably shifted",
+  "sd.mountDisputed": "The direction was unclear in this run — taken from the run with the stronger signal",
   "sd.colGlide": "longest glide",
   "sd.colMaxHr": "Max HR",
   "hr.progressTitle": "Training curve: heart rate while pumping",

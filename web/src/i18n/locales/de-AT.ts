@@ -511,6 +511,8 @@ const deAT: Record<string, string> = {
   "sd.colPitchRhythm": "Nick-Takt",
   "sd.colHeave": "Hub",
   "sd.mountInherited": "von der ganzen Aufnahme uebernommen — in dem Lauf war das Signal zu unklar",
+  "sd.mountSlipped": "Die Lage passt nicht zu den anderen Laeufen — das Geraet ist wohl verrutscht",
+  "sd.mountDisputed": "Die Richtung war in dem Lauf unklar — uebernommen aus dem Lauf mit dem klareren Signal",
   "sd.colGlide": "längste Gleitphase",
   "sd.colMaxHr": "Max. Puls",
   "hr.progressTitle": "Trainingskurve: Puls beim Pumpen",
