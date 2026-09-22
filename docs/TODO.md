@@ -1410,6 +1410,11 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ### 22.09.2026 — Polar in der falschen Uhr-Sportart: Pierre (Nico)
 
+**Nicht mehr hier gefuehrt (Jan, 22.09.):** Fragen von Nutzern im SPOT-CHAT sind keine offene
+Arbeit — die kann nur jemand beantworten, der dort faehrt („was geht uns das an? … sowas bitte
+ignorieren"). Auch der Apple-Relay-Punkt ist erledigt und wird nicht weitergefuehrt: der Server
+verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Konten nie.
+
 - [ ] **Pierre (Nico), u624: seine Polar schreibt `running` in die Datei — beide Aufnahmen
   aussortiert.** Jans Frage: „wurden die sessions via polar von Pierre (Nico) als pumpfoil
   erkannt oder automatisch aussortiert?" Antwort: **aussortiert**. #9579 (22.09., 54 min,
