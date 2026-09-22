@@ -23,6 +23,13 @@ App wieder reinwill, ist sie beendet."
 **Was es NICHT loest:** die System-Tastensperre der Uhr. Die schaltet den Bildschirm selbst ab,
 und dagegen kommt eine Mini-App nicht an — das ist ein eigener Fall (s. `docs/TODO.md`).
 
+**Die App meldet jetzt, wenn sie nicht sauber beendet wurde.** Garmin tut das seit Wochen, die
+Amazfit-App hatte so etwas nie — deshalb stand in unseren Daten `crash_count = 0`, auch bei einem
+Nutzer, dessen Uhr sich waehrend eines Uploads dreimal neu gestartet hat (gemeldet per Mail,
+22.09.). Wir waren also genau bei dem Fehlerbild blind, das auf dieser Plattform am haeufigsten
+auftritt. Die Meldung ist rein diagnostisch und schaltet nichts ab; sie sagt nur, in welcher Phase
+es passiert ist (Start, Leerlauf, Aufnahme, Upload).
+
 **Die Uhr vibriert an den Strecken- und Zeitmarken aus dem Profil.**
 
 **Ein ausgegrauter Start-Knopf sagt jetzt, warum.** Wartet auf GPS, oder ein Upload laeuft noch.
