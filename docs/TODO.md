@@ -1408,6 +1408,14 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+### 06.10.2026 — Wiedervorlage: „neu"-Markierung an Teil 4
+
+- [ ] **Die `neu`-Markierung am Menuepunkt „Teil 4: Handy am Brett" ist ab dem 6.10. wirkungslos**
+  und kann bei Gelegenheit ganz raus (`web/src/App.tsx`, Konstante `NEU_BIS`). Sie verschwindet
+  von selbst — das Datum steht im Code, nicht in einem Schalter, den jemand umlegen muesste.
+  Kein Handlungsdruck, nur Aufraeumen.
+
+
 ### 22.09.2026 — Polar in der falschen Uhr-Sportart: Pierre (Nico)
 
 **Nicht mehr hier gefuehrt (Jan, 22.09.):** Fragen von Nutzern im SPOT-CHAT sind keine offene

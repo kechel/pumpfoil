@@ -30,6 +30,12 @@ const navItems: NavItem[] = [
 ];
 const adminItem: NavItem = { to: "/admin", labelKey: "nav.admin", icon: ShieldIcon, end: false };
 
+// Bis wann Teil 4 der Nerd-Analysen im Menue als „neu" markiert wird (Jan, 22.09.2026:
+// „bitte Teil 4 noch hervorheben fuer 1-2 wochen, der ist neu"). Als Datum im Code und nicht
+// als Schalter irgendwo: so verschwindet die Hervorhebung von selbst. Ein Merker, an den sich
+// jemand erinnern muesste, waere in drei Wochen noch da.
+const NEU_BIS = Date.UTC(2026, 9, 6);   // 6. Oktober 2026
+
 // Englisches Changelog-Datum ("July 21, 2026") -> kurzes Datum im Locale des Nutzers
 // fürs Menü-Badge (die Changelog-Seite selbst bleibt englisch). Fällt bei Fehler auf EN zurück.
 function shortDate(d: string, lang: string): string {
@@ -263,9 +269,19 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
           className={({ isActive }) => `mt-1 flex items-center gap-1.5 px-3 pl-[26px] text-xs ${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>
           ↳ Teil 3: Doppeluhr-Messung
         </NavLink>
-        <NavLink to="/nerd-analysen-4" end title="Handy am Brett: Nicken, Rollen, Gieren und Hub direkt an der Quelle gemessen (englisch)"
+        <NavLink to="/nerd-analysen-4" end title="Handy am Brett: Nicken, Rollen, Gieren und Hub direkt an der Quelle gemessen"
           className={({ isActive }) => `mt-1 flex items-center gap-1.5 px-3 pl-[26px] text-xs ${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>
           ↳ Teil 4: Handy am Brett
+          {/* „neu" nur fuer zwei Wochen (Jan, 22.09.2026: „bitte Teil 4 noch hervorheben fuer
+              1-2 wochen, der ist neu"). Das Datum steht im Code, damit die Hervorhebung von
+              selbst verschwindet — ein Merker, an den sich jemand erinnern muesste, waere in
+              drei Wochen noch da. Nach dem 6.10. rendert der Ausdruck nichts mehr; die Zeile
+              darf dann bei Gelegenheit ganz raus. */}
+          {NEU_BIS > Date.now() && (
+            <span className="rounded bg-brand-500 px-1.5 py-0.5 text-[10px] font-semibold uppercase leading-none tracking-wide text-slate-950">
+              {t("badge.new")}
+            </span>
+          )}
         </NavLink>
         <NavLink to="/systemarchitektur" end title="Systemarchitektur: Stack, Datenbank, Sicherheit, Datenschutz"
           className={({ isActive }) => `mt-2 flex items-center gap-1.5 px-3 text-xs ${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>
