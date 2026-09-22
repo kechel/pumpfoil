@@ -546,3 +546,66 @@ def test_montagewinkel_faellt_auch_kopfueber_heraus():
         # ... und darf im Ergebnis NICHT mehr auftauchen. Zweite Haelfte = die zu pruefende Lage.
         p = np.array(r["pitch_deg"])[len(r["pitch_deg"]) // 2 + 40:]
         assert abs(p).max() < 4.0, (kopfueber, abs(p).max())
+
+
+# --- Pumptakt und Hub kommen aus dem LAUF, nicht aus dem gezeigten Ausschnitt ------------------
+
+def _langsam_dann_pumpen(hz=50.0, ruhe_s=40.0, lauf_s=40.0, langsam_hz=0.3, takt_hz=1.4):
+    """Eine Aufnahme wie im Feld: erst Rauspaddeln/Duempeln, dann ein Lauf mit echtem Pumptakt.
+
+    Beides als reine Nick-Schwingung um dieselbe Achse, nur mit verschiedener Frequenz — die
+    langsame ist die groessere, genau wie in der Wirklichkeit (eine Welle hebt das Brett weiter
+    als ein Pumpstoss).
+    """
+    n_r, n_l = int(ruhe_s * hz), int(lauf_s * hz)
+    t = np.arange(n_r + n_l) / hz
+    theta = np.concatenate([
+        14.0 * np.sin(2 * np.pi * langsam_hz * t[:n_r]),
+        8.0 * np.sin(2 * np.pi * takt_hz * (t[n_r:] - ruhe_s)),
+    ])
+    d_theta = np.concatenate([
+        14.0 * 2 * np.pi * langsam_hz * np.cos(2 * np.pi * langsam_hz * t[:n_r]),
+        8.0 * 2 * np.pi * takt_hz * np.cos(2 * np.pi * takt_hz * (t[n_r:] - ruhe_s)),
+    ])
+    th, dth = np.radians(theta), np.radians(d_theta)
+    acc = np.column_stack([-np.sin(th), np.zeros_like(th), np.cos(th)]) * ACCEL_SCALE
+    gyr = np.column_stack([np.zeros_like(dth), dth, np.zeros_like(dth)]) * GYRO_SCALE
+    tms = t * 1000.0
+    return acc.astype(np.int16), tms, gyr.astype(np.int16), tms, ruhe_s * 1000.0
+
+
+def test_pumptakt_kommt_aus_dem_lauf_nicht_aus_der_ganzen_aufnahme():
+    """„All" muss dasselbe sagen wie der einzelne Lauf — sonst warnt die Ansicht gegen sich selbst.
+
+    Jan, 22.09.2026, an seiner Aufnahme #9535: „erscheint nur wenn ich 'all' anzeige, nicht wenn
+    ich einen Lauf auswaehle". Ueber die ganze Aufnahme gerechnet gewann dort das, was ZWISCHEN
+    den Laeufen passiert — 0,58 Hz statt 1,38 Hz, Fenster 3,45 s statt 1,45 s, und damit die
+    Meldung „Hub nicht belastbar" fuer eine saubere Pump-Aufnahme.
+    """
+    acc, ta, gyr, tg, lauf_ab = _langsam_dann_pumpen()
+    ref = [(lauf_ab, ta[-1])]
+    ganz = lage_berechnen(acc, ta, gyr, tg, ziel_hz=20.0, ref_bereiche_ms=ref)
+    nur_lauf = lage_berechnen(acc, ta, gyr, tg, ziel_hz=20.0, ref_bereiche_ms=ref,
+                              t_von_ms=lauf_ab, t_bis_ms=ta[-1])
+    assert ganz["ok"] and nur_lauf["ok"]
+    # Der Takt ist der des Laufs, nicht der des Duempelns.
+    assert abs(ganz["kennzahlen"]["pitch_hz"] - 1.4) < 0.1, ganz["kennzahlen"]["pitch_hz"]
+    assert ganz["kennzahlen"]["pitch_hz"] == nur_lauf["kennzahlen"]["pitch_hz"]
+    assert abs(ganz["hub_fenster_s"] - nur_lauf["hub_fenster_s"]) < 0.1
+    # Und damit faellt auch die Bewertung gleich aus — genau das war die Beschwerde: dieselbe
+    # Fahrt, einmal gewarnt und einmal nicht, nur weil ein anderer Ausschnitt gezeigt wurde.
+    assert ganz["kennzahlen"]["hub_sicher"] == nur_lauf["kennzahlen"]["hub_sicher"]
+
+
+def test_ohne_erkannten_lauf_zaehlt_der_ganze_ausschnitt():
+    """Gibt es keinen Laufbereich, bleibt nur das Bild — und dann ist die Warnung berechtigt."""
+    acc, ta, gyr, tg, _ = _langsam_dann_pumpen(lauf_s=0.0)
+    r = lage_berechnen(acc, ta, gyr, tg, ziel_hz=20.0, ref_bereiche_ms=[])
+    assert r["ok"]
+    # Ohne Lauf bleibt nur die langsame Bewegung, und die Suche findet entsprechend wenig: einen
+    # Wert am unteren Rand des Pumpbands (oder gar keinen). Das Fenster wird dadurch weit — und
+    # genau dort GEHOERT die Warnung hin, denn eine so langsame Bewegung laesst sich nicht
+    # zweimal integrieren, ohne dass jeder kleine Fehler mitwaechst.
+    takt = r["kennzahlen"]["pitch_hz"]
+    assert takt is None or takt <= 0.6, takt
+    assert r["hub_fenster_s"] >= 3.0, r["hub_fenster_s"]
