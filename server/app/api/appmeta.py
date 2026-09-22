@@ -153,7 +153,17 @@ _APP_META: dict[str, dict[str, str]] = {
         # Ein Nutzer mit 1.1.14 bekam dadurch einen Update-Hinweis, den Play nicht einloesen konnte
         # ("update button just opens google play and does not offer nor start update"). Deshalb: erst
         # eintragen, wenn Freigabe DA und Roll-out bei 100 % — "eingereicht" genuegt nie.
-        "latest": "1.1.30",   # LIVE 2026-09-21, 04:28: Play-Mail „Your update to Pumpfoil,
+        "latest": "1.1.31",   # LIVE 2026-09-22: Play-Mail „Your update to Pumpfoil, created on
+        # Sep 21, 2026 at 4:00 AM GMT, is live in the store." Der Zeitstempel passt EXAKT auf
+        # unsere Einreichung vom 21.09. 06:00 Berlin (Phone 1.1.31/45 + Wear 1.2.31/1041).
+        # ⏱️ EINEN TAG Pruefung — die schnellste Play-Runde bisher; 1.1.28, 1.1.29 und 1.1.30
+        # brauchten je drei. Woran es lag, ist von aussen nicht zu sehen; erwaehnenswert ist es,
+        # weil „drei Tage" bis eben der Normalfall war und die Planung darauf stand.
+        # Noch NICHT im Feld belegt: kein Geraet meldet bisher 1.1.31 oder 1.2.31 (die drei
+        # Sessions mit „1.1.31" sind Jans eigene Pixel-Builds, die iPhones mit derselben Nummer
+        # sind iOS — beide Plattformen nutzen 1.1.x, s. Notiz vom 07.09.). Wie bei 1.1.30 stuetzt
+        # sich die Zeile auf die Play-Mail, die fuer Play die massgebliche Quelle ist.
+        # ALT: "latest": "1.1.30",   # LIVE 2026-09-21, 04:28: Play-Mail „Your update to Pumpfoil,
         # created on Sep 18, 2026 at 5:38 AM GMT, is live in the store." Passt auf unsere
         # Einreichung vom 18.09. 07:38 Berlin (Phone 1.1.30/44 + Wear 1.2.30/1040), also
         # DREI TAGE Pruefung — wie bei 1.1.29 und 1.1.28, das ist inzwischen der Normalfall.
@@ -252,7 +262,9 @@ _APP_META: dict[str, dict[str, str]] = {
         # 05.08. 15:06 GMT). Eingereicht war 1.2.20/1030 zusammen mit Phone 1.1.20/34.
         # Der gebaute Nachzug 1.2.21/1031 (Token-Heilung bei Config-401) ist NOCH NICHT
         # eingereicht — hier also nicht eintragen. Vorher: 1.2.18/1028, live seit 04.08.
-        "latest": "1.2.30",   # LIVE 2026-09-21, dieselbe Play-Mail wie android (Release erstellt
+        "latest": "1.2.31",   # LIVE 2026-09-22, dieselbe Play-Mail wie android (ein Release,
+        # eine applicationId, beide Spuren). Begruendung und Belege stehen bei "android".
+        # ALT: "latest": "1.2.30",   # LIVE 2026-09-21, dieselbe Play-Mail wie android (Release erstellt
         # 18.09. 05:38 GMT) — eine Mail deckt immer beide Spuren ab. Beleg und der Hinweis, dass
         # der Roll-out noch nicht im Feld sichtbar ist, stehen bei "android".
         # ALT: "latest": "1.2.29",   # LIVE 2026-09-16, dieselbe Play-Mail wie android (Release erstellt
@@ -597,23 +609,10 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
-    {"name": "Android phone + Wear OS", "version": "1.1.31 / 1.2.31",
-     "eingereicht": "2026-09-21",
-     # EINGEREICHT 21.09. 06:00 — Jan hat den Build, den er selbst schon als Tester auf dem
-     # Handy hatte, in Produktion „promoted". Play-Konsole: „Aenderungen, die ueberprueft
-     # werden", Vorabpruefungen liefen noch, Produktion 45 (1.1.31) und Produktion (Wear OS)
-     # 1041 (1.2.31), verwaltete Veroeffentlichung AUS — es geht nach der Freigabe also direkt
-     # live. Beide Spuren zusammen, wie es die harte Regel vom 10.09. verlangt.
-     # Gebumpt waren die Nummern schon mit Commit b8ec06f1 (20.09. 19:02), damals noch waehrend
-     # 1.1.30 / 1.2.30 in Pruefung lagen — das ging auf, weil der Ausgang eine Freigabe war
-     # (eine ABGELEHNTE Nummer nimmt Play nicht wieder an, dann haette es 1.1.32 werden muessen).
-     # AB HIER EINGEFROREN: alles Weitere gehoert in einen neuen NAECHSTES-Eintrag.
-     "items": [
-         "On Wear OS the app now stays on screen until you close it.",
-         "The two new on-foil alarms are in the profile of the Android app.",
-         "Wear OS vibrates at the distance and time marks set in your profile.",
-         "The phone recorder also records the gyroscope, if the phone has one.",
-     ]},
+    # Android + Wear: 1.1.31 / 1.2.31 sind am 22.09. FREIGEGEBEN und stehen deshalb hier nicht
+    # mehr, sondern in `_APP_META` als live (eine Play-Mail deckt beide Spuren ab). Die vier
+    # Punkte sind in die Changelog-Tabelle gewandert, mit `versionen = {"android": "1.1.31",
+    # "wear": "1.2.31"}`, dazu ein Freigabe-Ereignis.
 
     # iOS/Apple: 1.1.36 ist am 21.09. FREIGEGEBEN und steht deshalb hier nicht mehr, sondern in
     # `_APP_META` als live (beide Schluessel, ein Bundle). Sein Punkt ist in die Changelog-Tabelle
