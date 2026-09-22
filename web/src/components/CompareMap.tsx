@@ -5,6 +5,7 @@ import { SessionSummary } from "../lib/api";
 import { rampColor, hrColor, hrRange as hrRangeOf, speedColor, optimalColor, OPTIMAL_SPAN } from "../lib/trackColors";
 import { DEFAULT_RIDER, calculateAR, calculateCLmax, calculateStallSpeed, calculateOptimalSpeed, riderWeightFor } from "../lib/foilPhysics";
 import { useT } from "../i18n";
+import { EyeIcon, EyeOffIcon } from "./Icons";
 import { usePumpFmt } from "../lib/pumpRate";
 import { useCloseOnBack } from "../lib/useCloseOnBack";
 import { syncPlan } from "../lib/syncPlayback";
@@ -55,6 +56,7 @@ function itemSpeeds(it: CompareMapItem, win: string): number[] {
 
 export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; win: "1" | "3" | "5"; weight: number | null }) {
   const t = useT();
+  const pf = usePumpFmt();   // Pump-Kadenz-Einheit (Hz | /min) aus dem Profil
   const mapRef = useRef<HTMLDivElement>(null);
   const mapObj = useRef<L.Map | null>(null);
 
@@ -73,6 +75,12 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
 
   // Datenverfügbarkeit über alle Items.
   const hasPump = items.some((it) => (it.session.analysis?.track_geojson?.properties?.pump_hz ?? []).some((v: number | null) => v != null));
+  // Erkannte EINZELPUMPS (`pump_idx` je Lauf) — eine andere Frage als die Kadenz-Faerbung oben:
+  // hier geht es um den Ort jedes einzelnen Stosses. Genau das will man sehen, wenn dieselbe
+  // Fahrt von Uhr UND Handy am Brett aufgezeichnet wurde (Jan, 22.09.2026).
+  const [showPumps, setShowPumps] = useState(false);
+  const hasPumpMarks = items.some((it) =>
+    (it.session.analysis?.segments ?? []).some((s: any) => (s.pump_idx ?? []).length > 0));
   // 0 = kein Messwert: eine Session, in der ALLE Werte 0 sind, hat keinen Puls — sonst boete die
   // Karte den Puls-Modus an und faerbte alles grau.
   const hasHr = items.some((it) => (it.session.analysis?.track_geojson?.properties?.hr ?? []).some((v: number | null) => v != null && v > 0));
@@ -335,8 +343,23 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
           L.polyline([coords[i], coords[i + 1]], { color, weight: 4, opacity: 0.92 }).addTo(lg);
         }
       }
+      // Pump-Marker NACH den Linien, sonst verdecken die Linien sie. Gefuellt in der Farbe des
+      // EINTRAGS (nicht des Fahrers): bei zwei Aufnahmen derselben Fahrt ist sonst nicht zu
+      // sehen, welches Geraet welchen Stoss gefunden hat. Weisser Rand, damit sie auf jeder
+      // Streckenfarbe und auf beiden Kartenhintergruenden stehen.
+      if (showPumps) {
+        for (const { seg } of ranges) {
+          for (const pidx of seg.pump_idx ?? []) {
+            if (!coords[pidx]) continue;
+            L.circleMarker(coords[pidx], {
+              radius: 3, color: "#f8fafc", weight: 1.2,
+              fillColor: it.color, fillOpacity: 0.95,
+            }).addTo(lg);
+          }
+        }
+      }
     }
-  }, [items, mode, win, sLo, sHi, pumpRange, hrRange, weight, fullscreen, spielModus]);
+  }, [items, mode, win, sLo, sHi, pumpRange, hrRange, weight, fullscreen, spielModus, showPumps]);
 
   if (!items.some((it) => it.session.analysis?.track_geojson)) return null;
 
@@ -354,8 +377,20 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
         <ModeBtn active={mode === "track"} onClick={() => setMode("track")}>{t("compare.colorTrack")}</ModeBtn>
         <ModeBtn active={mode === "speed"} onClick={() => setMode("speed")}>{t("sd.colorSpeed")}</ModeBtn>
         {anyOptimal && <ModeBtn active={mode === "optimal"} onClick={() => setMode("optimal")}>{t("sd.colorOptimal")}</ModeBtn>}
-        {hasPump && <ModeBtn active={mode === "pump"} onClick={() => setMode("pump")}>{t("sd.colorPumpHz")}</ModeBtn>}
+        {hasPump && <ModeBtn active={mode === "pump"} onClick={() => setMode("pump")}>{t("sd.colorPumpHz", { unit: pf.suffix })}</ModeBtn>}
         {hasHr && <ModeBtn active={mode === "hr"} onClick={() => setMode("hr")}>{t("sd.colorPulse")}</ModeBtn>}
+        {/* Kein Faerbe-Modus, sondern eine Ueberlagerung — deshalb abgesetzt und mit Auge, wie in
+            der Einzelansicht. */}
+        {hasPumpMarks && (
+          <button onClick={() => setShowPumps((v) => !v)}
+            className={`rounded-lg px-2.5 py-1 text-xs ${showPumps
+              ? "bg-brand-500 font-semibold text-slate-950"
+              : "bg-slate-800 text-slate-200"}`}>
+            <span className="inline-flex items-center gap-1">
+              {t("stat.pumps")} {showPumps ? <EyeIcon className="h-3.5 w-3.5" /> : <EyeOffIcon className="h-3.5 w-3.5" />}
+            </span>
+          </button>
+        )}
         <button onClick={() => setFullscreen((v) => !v)} className="ml-auto rounded-lg bg-slate-800 px-3 py-1 text-sm text-slate-200 hover:bg-slate-700">
           {fullscreen ? t("sd.close") : t("sd.fullscreen")}
         </button>
