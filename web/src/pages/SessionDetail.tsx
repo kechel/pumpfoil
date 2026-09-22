@@ -1655,7 +1655,12 @@ export default function SessionDetail() {
         {session.device_label && (
           // App-Version der Aufnahme nur dem Besitzer zeigen (Fehlersuche: „mit welcher Version
           // war das?" liess sich vorher nicht beantworten). Fremde brauchen das nicht.
-          <span className="inline-flex items-center gap-1 rounded bg-slate-800 px-2 py-1"
+          // Hervorhebung wie beim Skateboard (SessionCard.tsx): „Handy am Brett" ist der
+          // Sonderfall, der auffallen soll statt im Fliesstext unterzugehen.
+          <span className={`inline-flex items-center gap-1 rounded px-2 py-1 ${
+            session.placement === "board"
+              ? "bg-brand-500/20 font-semibold text-brand-700 dark:text-brand-300"
+              : "bg-slate-800"}`}
                 title={[session.device_model, session.app_version && `App ${session.app_version}`]
                   .filter(Boolean).join(" · ") || undefined}>
             <WatchIcon className="h-3.5 w-3.5" /> {geraeteText(session.device_label, session.placement, t)}
