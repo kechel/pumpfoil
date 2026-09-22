@@ -295,7 +295,10 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
   const hubUnsicher = d?.kennzahlen?.hub_pp_cm != null && d.kennzahlen.hub_sicher === false;
   const hubFenster = d?.hub_fenster_s ?? 3;
   useEffect(() => {
-    onHinweis?.(hubUnsicher ? t("board.heaveShaky", { s: String(hubFenster) }) : null);
+    // Eine Stelle nach dem Komma. Das Fenster kommt aus 2/Takt und ist damit krumm — ungerundet
+    // stand im Hinweis woertlich „3.4482758620689657-second window" (Jan, 22.09.).
+    onHinweis?.(hubUnsicher
+      ? t("board.heaveShaky", { s: hubFenster.toFixed(1).replace(/\.0$/, "") }) : null);
     return () => onHinweis?.(null);
   }, [hubUnsicher, hubFenster, onHinweis, t]);
 
@@ -430,7 +433,8 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
             yaw: k.gier_rms_deg_s.toFixed(0),
           })}
           {k.pitch_hz ? ` · ${t("board.cadence", { hz: k.pitch_hz.toFixed(2) })}` : ""}
-          {k.hub_pp_cm ? ` · ${t("board.heaveStat", { cm: k.hub_pp_cm.toFixed(0), s: String(d.hub_fenster_s ?? 3) })}` : ""}
+          {k.hub_pp_cm ? ` · ${t("board.heaveStat", { cm: k.hub_pp_cm.toFixed(0),
+            s: (d.hub_fenster_s ?? 3).toFixed(1).replace(/\.0$/, "") })}` : ""}
           {` · ${t(nullText)}`}
           {/* Was die Automatik gefunden hat, sichtbar machen — sonst ist nicht zu unterscheiden,
               ob das Brett schief steht oder die Montage falsch erkannt wurde. */}

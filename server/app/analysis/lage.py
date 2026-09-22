@@ -796,13 +796,45 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
     # heraus, mit 1 s dagegen 20,2 cm — und nur die zweite Zahl ist physikalisch plausibel.
     # Also die Grenze auf die HAELFTE des gemessenen Takts legen: bei 1,33 Hz sind das 1,5 s.
     # Gedeckelt, damit weder ein Ausreisser noch eine fehlende Messung Unsinn ergibt.
+    # GEMESSEN WIRD IM LAUF, NICHT IM GEZEIGTEN AUSSCHNITT (Jan, 22.09.2026: „erscheint nur wenn
+    # ich 'all' anzeige, nicht wenn ich einen Lauf auswaehle").
+    #
+    # Der Pumptakt ist eine Eigenschaft des FAHRENS — dasselbe Prinzip, nach dem schon der
+    # Nullpunkt und die Montage-Drehung aus den Laufbereichen kommen und nicht aus dem Bild.
+    # Ueber die ganze Aufnahme gerechnet gewinnt das, was dazwischen passiert: Rauspaddeln,
+    # Stehen, Zuruecklaufen. An #9535 (25 min, 2 Laeufe) nachgemessen:
+    #
+    #     ganze Aufnahme   Takt 0,58 Hz -> Fenster 3,45 s -> Hub 15,9 cm bei 0,30 Hz  UNSICHER
+    #     Lauf 0           Takt 1,41 Hz -> Fenster 1,42 s -> Hub 18,1 cm bei 1,41 Hz  sicher
+    #     Lauf 1           Takt 1,38 Hz -> Fenster 1,45 s -> Hub 19,5 cm bei 1,38 Hz  sicher
+    #
+    # Die Warnung hatte also recht — ueber die ganze Aufnahme WAR die Zahl wertlos. Nur war das
+    # keine Eigenschaft der Fahrt, sondern der Fragestellung: 25 Minuten Hub zu mitteln, von
+    # denen 21 nicht gefahren wurden, ergibt keine Groesse, die jemand wissen will. Deshalb
+    # messen wir jetzt auf den Laufbereichen INNERHALB des Fensters; gezeichnet wird weiter alles.
+    #
+    # Liegt kein Laufbereich im Fenster (Aufnahme ohne erkannten Lauf), bleibt es beim ganzen
+    # Ausschnitt — dann ist die Warnung wieder das, wofuer sie gedacht war.
+    _lauf_maske = np.zeros(len(t), dtype=bool)
+    for _a, _b in (ref_bereiche_ms or []):
+        _lauf_maske |= (t >= _a) & (t <= _b)
+    # Fuer die FFT ein zusammenhaengendes Stueck — der Sprung zwischen zwei Laeufen waere ein
+    # Signal, das niemand gefahren ist. Genommen wird der laengste Lauf im Fenster.
+    _laengster = None
+    for _a, _b in (ref_bereiche_ms or []):
+        _m = (t >= _a) & (t <= _b)
+        if _m.sum() >= 32 and (_laengster is None or _m.sum() > _laengster.sum()):
+            _laengster = _m
+    _takt_sig = pitch[_laengster] if _laengster is not None else pitch
+    _hub_maske = _lauf_maske if _lauf_maske.sum() >= 32 else np.ones(len(t), dtype=bool)
+
     if hub_fenster_s is None:
         # AUS DEM PUMPBAND, nicht aus dem ganzen Spektrum. Ueber einem engen Ausschnitt ist die
         # groesste Amplitude im Nicken oft die langsame Drift und nicht das Pumpen: an Lauf 2 von
         # #9535 fand die Suche ab 0,3 Hz genau die 0,3 Hz, das Fenster lief in den Deckel (5 s)
         # und der Hub kam mit 37 cm statt 21 cm heraus. Mit der unteren Grenze bei PUMP_UNTEN_HZ
         # bleibt nur uebrig, was ueberhaupt ein Pumptakt sein kann.
-        _takt = hauptfrequenz(pitch, unten=PUMP_UNTEN_HZ)
+        _takt = hauptfrequenz(_takt_sig, unten=PUMP_UNTEN_HZ)
         hub_fenster_s = float(min(5.0, max(1.0, 2.0 / _takt))) if _takt else 3.0
         hub = hub_berechnen(a_vert, 1.0 / rechen_hz, hub_fenster_s)
 
@@ -815,7 +847,8 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
     aus = slice(None, None, schritt)
 
 
-    _hub_hz = hauptfrequenz(hub) if hub is not None else None
+    _hub_hz = hauptfrequenz(hub[_laengster] if _laengster is not None else hub) \
+        if hub is not None else None
     # NUR ueber die Laufbereiche, nie ueber die ganze Aufnahme: ein Ueberschlag am Ende
     # ueberstimmt das Pumpen um Groessenordnungen. An #9484 belegt — ganze Aufnahme -86,1°
     # (Klarheit 19,5, in Wahrheit der Sturz), nur die Laeufe +14,0° (Klarheit 367).
@@ -862,9 +895,11 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
             "pitch_amplitude_deg": round(float(np.percentile(np.abs(pitch), 95)), 1),
             "roll_amplitude_deg": round(float(np.percentile(np.abs(roll), 95)), 1),
             "gier_rms_deg_s": round(float(np.sqrt(np.mean(gier_rate ** 2))), 1),
-            "pitch_hz": hauptfrequenz(pitch, unten=PUMP_UNTEN_HZ),
+            "pitch_hz": hauptfrequenz(_takt_sig, unten=PUMP_UNTEN_HZ),
             # Hub von unten nach oben, robust gegen einzelne Ausreisser (5./95. Perzentil).
-            "hub_pp_cm": (round(float(np.percentile(hub, 95) - np.percentile(hub, 5)), 1)
+            # Auf den Laufbereichen, nicht auf dem ganzen Bild (s. `_hub_maske` oben).
+            "hub_pp_cm": (round(float(np.percentile(hub[_hub_maske], 95)
+                                      - np.percentile(hub[_hub_maske], 5)), 1)
                           if hub is not None else None),
             "hub_hz": _hub_hz,
             # Liegt die Bewegung zu dicht an der unteren Bandgrenze, ist die Zahl WERTLOS — und
