@@ -87,3 +87,58 @@ def _reset_rate_limit():
     except Exception:  # noqa: BLE001 — Tabelle evtl. noch nicht angelegt (kein client-Fixture)
         pass
     yield
+
+
+@pytest.fixture(autouse=True)
+def _kein_netz(monkeypatch):
+    """Tests reden NICHT mit dem Internet — gemessen am 22.09.2026.
+
+    Der volle Lauf brauchte 785 s, davon 770 s in acht Tests. Kein einziger davon testet
+    Geocoding: sie legen eine Session an, und `import_parsed_session`/`run_analysis` rufen am
+    Ende `_geocode_place` auf. Das fragt Overpass und Nominatim. Von dieser VM aus laeuft eine
+    der vier Overpass-Instanzen sofort in „Network is unreachable", die naechste in 12 s
+    Lese-Timeout — mal 2 Versuche, mal 4 Instanzen, mal 3 Radien, plus Backoff-Schlaf. Macht
+    rund 60 s pro angelegter Session. Belegt mit py-spy:
+    `_overpass (places.py:74) < lookup_water_name < name_for < assign_one < _geocode_place`.
+
+    Deshalb sind hier die zwei Engstellen abgeklemmt. `None` ist genau das, was die Aufrufer
+    ohnehin sehen, wenn eine Instanz nicht antwortet (`OverpassUnavailable` bzw. „Ort kommt
+    spaeter") — der Testpfad bleibt also der echte Fehlerpfad, nur ohne die Wartezeit.
+
+    Ausserdem ein Riegel auf Socket-Ebene: localhost (Postgres) ja, alles andere fliegt sofort
+    mit einer klaren Meldung. Damit faellt ein NEU dazukommender Netz-Aufruf im Test sofort auf,
+    statt die Suite wieder still um eine Minute pro Fall zu verlaengern. Wer einen Netz-Aufruf
+    wirklich testen will, hebelt das Fixture gezielt aus — nicht pauschal.
+
+    Nebenwirkung, die uns lieb ist: in der GitHub-CI ist das Netz offen, dort liefen bisher bei
+    JEDEM Push echte Anfragen gegen die OSM-Server (deren Nutzungsregeln wir damit strapazieren).
+    Auch das hoert hiermit auf.
+    """
+    import socket
+
+    from app import places
+
+    monkeypatch.setattr(places, "_overpass", lambda *a, **k: None)
+    monkeypatch.setattr(places, "_nominatim", lambda *a, **k: None)
+
+    _echt_connect = socket.socket.connect
+    _echt_connect_ex = socket.socket.connect_ex
+
+    def _lokal(addr) -> bool:
+        if not isinstance(addr, tuple) or not addr:      # Unix-Socket (Postgres per Datei)
+            return True
+        return str(addr[0]) in ("127.0.0.1", "::1", "localhost", "")
+
+    def _connect(self, addr):
+        if not _lokal(addr):
+            raise OSError(f"Netzzugriff im Test gesperrt (s. conftest._kein_netz): {addr}")
+        return _echt_connect(self, addr)
+
+    def _connect_ex(self, addr):
+        if not _lokal(addr):
+            raise OSError(f"Netzzugriff im Test gesperrt (s. conftest._kein_netz): {addr}")
+        return _echt_connect_ex(self, addr)
+
+    monkeypatch.setattr(socket.socket, "connect", _connect)
+    monkeypatch.setattr(socket.socket, "connect_ex", _connect_ex)
+    yield
