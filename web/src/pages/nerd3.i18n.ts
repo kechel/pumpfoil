@@ -828,4 +828,51 @@ const zh: N3 = {
   }
 };
 
-export const NERD3: Partial<Record<Lang, N3>> = { zh, ru, pt, "pt-PT": ptPT, nb, ja, id, de, gsw, "de-AT": deAT, en, fr, it, es, fi, nl, cs };
+
+const pl: N3 = {
+  "back": "← Część 2: Jak to działa",
+  "h1": "Część 3: Pomiar z dwoma zegarkami — gdzie jesteśmy dzisiaj",
+  "subtitle": "Drugie dwa-zegarek-eksperyment: nadgarstek względem board-bliskości prawdy",
+  "intro": "Po Części 1 znowu mierzyliśmy **jednocześnie na dwóch zegarach** — tym razem, aby przetestować **detekcję pompowania** i **koniec sesji** (szybowanie vs. opadanie) względem board-sprzężonej prawdy. **Forerunner 55** na nadgarstku (GPS + 25 Hz przyspieszenie) i **fēnix 7X Pro** raz na rumplu foila pod wodą, raz na kostce (100 Hz przyspieszenie) — przez całą sesję, obie zsynchronizowane przez czas systemowy i precyzyjnie dostrojone przez impuls skoku.",
+  "setup": {
+    "h": "Setup",
+    "p": "Oba zegarki działają na naszej aplikacji rekodera — tylko wtedy dostajemy surowy strumień danych przyspieszenia. Fēnix na **stopie** zachowuje się w przybliżeniu jak deska; na **tułowiu** mierzy bezpośrednio orientację foila (tam GPS pod wodą nie działa, przyspieszenie jednak wpływa).",
+    "capRumpf": "Fēnix na rumplu foila, pod wodą",
+    "capFuss": "Fēnix na kostce, Forerunner 55 na nadgarstku"
+  },
+  "pump": {
+    "h": "Detekcja pompowania — zgadza się z prawdą",
+    "p": "Sensor board-sprzężony widzi każde pompowanie jako czysty cykl. Porównując z tym, nasz czysty detektor **nadgarstku** jest zdumiewająco dokładny:",
+    "li": [
+      "**Liczba:** 56 vs 59 · 38 vs 40 · 32 vs 31 pompowania — na ±~5%, bez systematycznego niedolicżania.",
+      "**Kadencja** praktycznie identyczna (~1,36–1,45 Hz).",
+      "**Timing na pompowanie:** 88–95% precyzja, 90% odwołanie (±0,35 s)."
+    ],
+    "cap": "Liczba pompowań i kadencja: board-prawda vs. detektor nadgarstku"
+  },
+  "glide": {
+    "h": "Koniec sesji — szybowanie vs. opadanie",
+    "p": "Interesujące staje się na końcu sesji. **GPS pada dokładnie tam** — na obu zegarach — ponieważ sensor nurkuje, gdy zwalniasz. Przyspieszenie jednak płynie, i sensor board-bliskości rozdzieli go czysto: **na foilu** deska spoczywa spokojnie (foil-tłumiona), **opadnięta** unosi się swobodnie (duże, powolne góra i dół).",
+    "li": [
+      "Przejście \"jeszcze na foilu / na powierzchni w ruchu\" → \"opadnięta\" jest wyraźnie rozpoznawalne w board-przyspieszeniu.",
+      "Nasz detektor kończy sesję **na ±2 s dokładnie** w prawdziwym punkcie opadnięcia — rozbiegu nie jest zatem **skracany**.",
+      "Granica ~9 km/h odpowiada dość dokładnie **szybkości zatrzymania** foila."
+    ],
+    "cap": "Board-bobbing (nisko = na foilu, wysoko = unosi się swobodnie); zielony = koniec detektora, fioletowy = prawdziwy punkt opadnięcia"
+  },
+  "limits": {
+    "h": "Uczciwe ograniczenia",
+    "p": "To tylko kilka sesji, wszystkie na jednym spocie i pompowanie-gęste. **Samo nadgarstek** nie widzi momenta opadnięcia czysto (ramię wachta podczas pompowania jak podczas unoszenia się). I naprawdę długie genialiane szybowania (glassy, downwind) nie są jeszcze w tym zbiorze danych."
+  },
+  "outlook": {
+    "h": "Jak to idzie dalej",
+    "p": "**Świadomie nie zmieniamy** detektora, tylko ulepszamy **prowadzone danymi** — więcej sesji (również długie szybowania), board-kamera (**Insta360 X5**) jako wizualna prawda i dane użytkowników na pumpfoil.org. Dokładnie tak już wielokrotnie ostrzyli rozpoznanie."
+  },
+  "videorun": {
+    "h": "Dalszy testowy przebieg (Wideo)",
+    "p": "Tak wygląda pomiar w rzeczywistości: **na każdej ręce jeden zegarek** i **telefon na desce** jako board-bliska referencja. Czysty detektor nadgarstku pokrywa się tu dobrze z board-bliskością (liczba pompowań na kilka procent dokładnie). Ważna lekcja: do **sekundowej** wyrównania wielu urządzeń potrzebny jest na początek świadomy **impuls synchronizacji** (np. 3× mocne stukanie na deskę) — sam czas systemowy nie wystarczy.",
+    "cap": "Dwa zegarki na nadgarstku + telefon na desce — testowy przebieg w wideo"
+  }
+};
+
+export const NERD3: Partial<Record<Lang, N3>> = { pl, zh, ru, pt, "pt-PT": ptPT, nb, ja, id, de, gsw, "de-AT": deAT, en, fr, it, es, fi, nl, cs };

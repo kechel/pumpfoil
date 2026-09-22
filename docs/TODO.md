@@ -1408,6 +1408,21 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+### 22.09.2026 — Handy-Recorder: Karte flackert beim Halten des Stop-Knopfes
+
+- [ ] **Beim Beenden der Aufnahme flackert die Kartenansicht stark, solange man den Stop-Knopf
+  haelt** (Jan, 22.09.2026, eigenes Android-Handy: „die kartenansicht flackert ganz furchtbar
+  wenn man zum beenden der session den stop-button gedrueckt haelt"). Nur notiert, noch nicht
+  untersucht.
+  **Wo ich anfangen wuerde:** das Halten laeuft ueber einen Fortschritt, der waehrenddessen
+  hochzaehlt — wenn dieser Zustand im selben Composable liegt wie die Karte, rechnet Compose
+  die Karte bei JEDER Aenderung neu. Genau diese Falle steht schon als Memory
+  (`compose-androidview-update-trap`: der `update`-Block eines `AndroidView` laeuft bei jeder
+  Recomposition). Verdacht, nicht Befund — erst nachsehen, dann behaupten.
+  Betroffen: `android/app/src/main/java/org/pumpfoil/app/RecordScreen.kt`. Nativ, also Code von
+  mir und Build/Einreichung von Jan.
+
+
 ### 06.10.2026 — Wiedervorlage: „neu"-Markierung an Teil 4
 
 - [ ] **Die `neu`-Markierung am Menuepunkt „Teil 4: Handy am Brett" ist ab dem 6.10. wirkungslos**

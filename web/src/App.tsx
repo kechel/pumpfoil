@@ -269,18 +269,28 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
           className={({ isActive }) => `mt-1 flex items-center gap-1.5 px-3 pl-[26px] text-xs ${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>
           ↳ Teil 3: Doppeluhr-Messung
         </NavLink>
+        {/* Solange der Artikel neu ist, liegt der Eintrag auf einer schwachen Markenfarbe
+            (Jan, 22.09.2026: „den link selber ruhig mit hintergrundfarbe oder so hervorheben").
+            `brand-500/10` traegt in hell wie dunkel; die 500er sind von der Zwei-Zahlen-Regel
+            ausgenommen. Die Hervorhebung faellt mit `NEU_BIS` von selbst weg — Polsterung und
+            Abstaende bleiben dabei unveraendert, damit der Eintrag nicht springt, wenn sie geht. */}
         <NavLink to="/nerd-analysen-4" end title="Handy am Brett: Nicken, Rollen, Gieren und Hub direkt an der Quelle gemessen"
-          className={({ isActive }) => `mt-1 flex items-center gap-1.5 px-3 pl-[26px] text-xs ${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>
-          ↳ Teil 4: Handy am Brett
+          className={({ isActive }) => `mt-1 flex items-center gap-1.5 px-3 pl-[26px] text-xs ${
+            NEU_BIS > Date.now() ? "rounded-lg py-1 bg-brand-500/10 ring-1 ring-brand-500/25 " : ""
+          }${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>
+          <span className="whitespace-nowrap">↳ Teil 4: Handy am Brett</span>
           {/* „neu" nur fuer zwei Wochen (Jan, 22.09.2026: „bitte Teil 4 noch hervorheben fuer
               1-2 wochen, der ist neu"). Das Datum steht im Code, damit die Hervorhebung von
               selbst verschwindet — ein Merker, an den sich jemand erinnern muesste, waere in
-              drei Wochen noch da. Nach dem 6.10. rendert der Ausdruck nichts mehr; die Zeile
-              darf dann bei Gelegenheit ganz raus. */}
+              drei Wochen noch da. Nach dem 6.10. rendert der Ausdruck nichts mehr.
+
+              EIN PUNKT, KEIN WORT-ABZEICHEN (Jan, 22.09.: „das sieht unschoen aus so mit dem
+              umbruch"): ein „NEU"-Schild kostete so viel Breite, dass der Menuepunkt in zwei
+              Zeilen umbrach. Der Punkt kostet 6 Pixel, bricht nie um und braucht keine
+              Uebersetzung; was er bedeutet, steht im Titel-Text fuer den Mauszeiger. */}
           {NEU_BIS > Date.now() && (
-            <span className="rounded bg-brand-500 px-1.5 py-0.5 text-[10px] font-semibold uppercase leading-none tracking-wide text-slate-950">
-              {t("badge.new")}
-            </span>
+            <span title={t("badge.new")} aria-label={t("badge.new")}
+              className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-400" />
           )}
         </NavLink>
         <NavLink to="/systemarchitektur" end title="Systemarchitektur: Stack, Datenbank, Sicherheit, Datenschutz"
