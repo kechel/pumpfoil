@@ -1408,6 +1408,57 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+### 22.09.2026 — 🔴 AMAZFIT VERLIERT DIE HAELFTE BIS 87 % SEINER GPS-ZEIT. Auf JEDER Uhr.
+
+Jans Frage: „ist das amazfit problem nicht bei allen amazfit uhren aufgetreten?" Nachgemessen —
+und die Antwort dreht die Lage um.
+
+**Das Absturz-Problem ist NICHT auf allen Uhren.** Lange Aufnahmen gelingen sehr wohl:
+El Manu (T-Rex 3) hat 94,8 / 64,8 / 61,6 / 32,7 Minuten aufgezeichnet, Matteo (Balance 2) 33,2,
+César (Active 2 NFC) 49,1 — alle auf ALTEN Fassungen (1.0.6/1.0.8). Und Klettermax' GTR 4, die
+uns als Problemfall galt, hat **heute auf 1.0.11 43,1 und 32,6 Minuten** durchgehalten.
+Der Accel lief dabei zu 98-100 % durch, die App war also die ganze Zeit am Leben.
+
+**Aber etwas anderes trifft ALLE — und das hatten wir nie gesehen:**
+
+| Aufnahme | Uhr | Dauer | Luecken >5 s | ohne GPS |
+|---|---|---|---|---|
+| #9602 | GTR 4 | 43,1 min | 52 | **87 %** |
+| #2989 | T-Rex 3 | 19,2 min | 36 | **85 %** |
+| #2990 | T-Rex 3 | 19,3 min | 31 | **85 %** |
+| #3419 | Active 2 NFC | 49,1 min | 104 | **82 %** |
+| #9626 | GTR 4 | 32,6 min | 47 | **82 %** |
+| #3216 | Balance | 11,3 min | 23 | **77 %** |
+| #2991 | T-Rex 3 | 32,7 min | 51 | **70 %** |
+| #2449 | T-Rex 3 | 61,6 min | 85 | **64 %** |
+| #8955 | Balance 2 | 33,2 min | 50 | **48 %** |
+
+**Neun von neun Aufnahmen ueber fuenf Minuten, fuenf verschiedene Modelle, vier Nutzer.** Keine
+Ausnahme. Im Plattform-Vergleich (Punkte je Sekunde Aufnahmedauer, Aufnahmen ueber 5 min):
+
+    garmin  0,84 (n=1258)   ·   apple 0,86 (n=254)   ·   wear 0,74 (n=148)
+    ios     0,81 (n=31)     ·   **zepp 0,23 (n=9), nie besser als 0,52**
+
+**Es ist KEINE niedrige Rate, es sind AUSSETZER.** Der Median-Abstand zwischen zwei Punkten ist
+ueberall 1,0 s — wenn GPS liefert, liefert es sauber im Sekundentakt. Dann bricht es fuer
+Minuten ab: laengste Luecken 235,6 s (#9602), 222,0 s (#2449). Bei Klettermax liegen 10 % der
+Abstaende ueber 19 Sekunden.
+
+**🔲 URSACHE UNBEKANNT — ausdruecklich als Vermutung gekennzeichnet.** Der Accel laeuft in
+denselben Aufnahmen durch, es ist also nicht die App als Ganzes. Denkbar: der Geolocation-Rueckruf
+schweigt bei abgedunkeltem Bildschirm, oder unser eigenes Schreiben blockiert ihn, oder die
+Zepp-Ortung faellt schlicht haeufig aus. **Vor jeder Aenderung messen, nicht raten.**
+
+**WAS DAS BEDEUTET:** unsere ganze Auswertung rechnet mit ~1 Hz GPS. Bei 0,23 ist die Spur
+vier- bis achtmal zu duenn — Strecke, Tempo und Lauf-Erkennung stehen auf Sand. César fuhr
+49 Minuten und bekam 0 Laeufe angezeigt; 82 % seiner Zeit hatte die Uhr keine Position. Das
+erklaert womoeglich mehr von dem „bei mir wird nichts erkannt" als alles, worauf wir bisher
+geschaut haben.
+
+**Fuer die Einreichung:** das ist eine Fehlerursache, die wir vor 1.0.12 nicht kannten. Sie
+gehoert auf die Liste, die Jan abgearbeitet haben will.
+
+
 ### 22.09.2026 — Workout Extension geprueft und VERWORFEN, mit Begruendung
 
 Jans Frage: „die frage ist was koennen diese workout extensions, waere das eine alternative,
