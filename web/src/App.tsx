@@ -10,6 +10,12 @@ import { Avatar } from "./components/ui";
 import { SessionsIcon, LogoutIcon, ChartIcon, SettingsIcon, ShieldIcon, CommunityIcon, SpotsIcon, HomeIcon, FoilIcon, ServerIcon, UploadIcon, ChevronIcon } from "./components/Icons";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { useI18n, useT } from "./i18n";
+// Die Untertitel der vier Artikel dienen als Titel fuer den Mauszeiger — sie sind
+// ohnehin in allen Sprachen gepflegt.
+import { NERD1 } from "./pages/nerd1.i18n";
+import { NERD2 } from "./pages/nerd2.i18n";
+import { NERD3 } from "./pages/nerd3.i18n";
+import { NERD4 } from "./pages/nerd4.i18n";
 import { CHANGELOG_SEEN_KEY, abonnieren, neuestesDatum } from "./lib/changelogLatest";
 import { FeedbackWidget } from "./components/FeedbackWidget";
 import { DmWidget } from "./components/DmWidget";
@@ -112,7 +118,7 @@ function BrandLogo({ className = "h-9" }: { className?: string }) {
  * fuer Angemeldete im gewohnten Rahmen.
  */
 export default function App({ children }: { children?: React.ReactNode } = {}) {
-  const { t, setLang } = useI18n();
+  const { t, lang, setLang } = useI18n();
   // Import-Button (Sidebar + Mobile-Topbar) nur auf der Sessions-Seite zeigen —
   // dort gehört der FIT-Upload hin; im Profil gibt es einen eigenen Einstieg.
   const ort = useLocation();
@@ -257,28 +263,37 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
           </button>
           <ThemeToggle className="shrink-0" />
         </div>
-        <NavLink to="/nerd-analysen" end title="On-Foil-/Pump-Erkennung: Dual-Watch-Experiment + wie es funktioniert"
+        {/* Die Reihe der Nerd-Analysen. BESCHRIFTUNGEN AUS DEN SPRACHDATEIEN (Jan, 22.09.2026:
+            „ich habe mal japanisch probiert, die menuepunkte selber sind noch nicht uebersetzt
+            fuer die 4 nerd-teile") — vorher stand hier deutscher Text fest im Quelltext, waehrend
+            die Artikel dahinter in 18 Sprachen vorliegen.
+
+            „Teil N" kommt aus `nerd.part`, dem Schluessel, den auch die Fussleiste der Artikel
+            benutzt: eine Zaehlweise, eine Uebersetzung. Der Titel fuer den Mauszeiger ist der
+            UNTERTITEL DES ARTIKELS SELBST — der ist ohnehin uebersetzt, und ein eigener Satz
+            dafuer waere eine zweite Stelle, die auseinanderlaufen kann. */}
+        <NavLink to="/nerd-analysen" end title={NERD1[lang]?.subtitle ?? NERD1.de?.subtitle}
           className={({ isActive }) => `mt-2 flex items-center gap-1.5 px-3 text-xs ${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>
-          <FoilIcon className="h-4 w-4" /> On-Foil / Pump Detection
+          <FoilIcon className="h-4 w-4" /> {t("nav.nerdSection")}
         </NavLink>
-        <NavLink to="/nerd-analysen-2" end title="Wie die Erkennung funktioniert (Signalverarbeitung, ML, Labeling)"
+        <NavLink to="/nerd-analysen-2" end title={NERD2[lang]?.subtitle ?? NERD2.de?.subtitle}
           className={({ isActive }) => `mt-1 flex items-center gap-1.5 px-3 pl-[26px] text-xs ${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>
-          ↳ Teil 2: Wie es funktioniert
+          ↳ {t("nerd.part").replace("{n}", "2")}: {t("nav.nerd2")}
         </NavLink>
-        <NavLink to="/nerd-analysen-3" end title="Doppeluhr-Messung: aktuelle Ergebnisse (Pump-/Glide-Wahrheit)"
+        <NavLink to="/nerd-analysen-3" end title={NERD3[lang]?.subtitle ?? NERD3.de?.subtitle}
           className={({ isActive }) => `mt-1 flex items-center gap-1.5 px-3 pl-[26px] text-xs ${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>
-          ↳ Teil 3: Doppeluhr-Messung
+          ↳ {t("nerd.part").replace("{n}", "3")}: {t("nav.nerd3")}
         </NavLink>
         {/* Solange der Artikel neu ist, liegt der Eintrag auf einer schwachen Markenfarbe
             (Jan, 22.09.2026: „den link selber ruhig mit hintergrundfarbe oder so hervorheben").
             `brand-500/10` traegt in hell wie dunkel; die 500er sind von der Zwei-Zahlen-Regel
             ausgenommen. Die Hervorhebung faellt mit `NEU_BIS` von selbst weg — Polsterung und
             Abstaende bleiben dabei unveraendert, damit der Eintrag nicht springt, wenn sie geht. */}
-        <NavLink to="/nerd-analysen-4" end title="Handy am Brett: Nicken, Rollen, Gieren und Hub direkt an der Quelle gemessen"
+        <NavLink to="/nerd-analysen-4" end title={NERD4[lang]?.subtitle ?? NERD4.en?.subtitle}
           className={({ isActive }) => `mt-1 flex items-center gap-1.5 px-3 pl-[26px] text-xs ${
             NEU_BIS > Date.now() ? "rounded-lg py-1 bg-brand-500/10 ring-1 ring-brand-500/25 " : ""
           }${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>
-          <span className="whitespace-nowrap">↳ Teil 4: Handy am Brett</span>
+          <span className="whitespace-nowrap">↳ {t("nerd.part").replace("{n}", "4")}: {t("nav.nerd4")}</span>
           {/* „neu" nur fuer zwei Wochen (Jan, 22.09.2026: „bitte Teil 4 noch hervorheben fuer
               1-2 wochen, der ist neu"). Das Datum steht im Code, damit die Hervorhebung von
               selbst verschwindet — ein Merker, an den sich jemand erinnern muesste, waere in
@@ -293,9 +308,10 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
               className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-400" />
           )}
         </NavLink>
-        <NavLink to="/systemarchitektur" end title="Systemarchitektur: Stack, Datenbank, Sicherheit, Datenschutz"
+        {/* Derselbe Fall eine Zeile tiefer: stand ebenfalls fest auf Deutsch. */}
+        <NavLink to="/systemarchitektur" end title={t("nav.arch")}
           className={({ isActive }) => `mt-2 flex items-center gap-1.5 px-3 text-xs ${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>
-          <ServerIcon className="h-4 w-4" /> Systemarchitektur
+          <ServerIcon className="h-4 w-4" /> {t("nav.arch")}
         </NavLink>
         {/* Social-Kanäle (Icons wie auf der öffentlichen Startseite) */}
         <a href="https://www.youtube.com/@pumpfoil-org/shorts" target="_blank" rel="noopener noreferrer"
