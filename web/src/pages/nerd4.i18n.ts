@@ -13,7 +13,8 @@ export interface N4 {
   subtitle: string;
   intro: string;
   why: { h: string; p: string; p2: string; cap: string };
-  what: { h: string; p: string; li: string[]; cap: string };
+  setup: { h: string; p: string; capDeck: string; capRail: string };
+  what: { h: string; p: string; li: string[]; cap: string; capTiles: string };
   mount: { h: string; p: string; p2: string; cap: string };
   heave: { h: string; p: string; p2: string; cap: string };
   found: { h: string; p: string; li: string[] };
@@ -38,6 +39,14 @@ const en: N4 = {
     cap: "Same ride, two sensors, 20 seconds of the longest run each. Both see 1.40 Hz.",
   },
 
+  setup: {
+    h: "The rig, such as it is",
+    p:
+      "There is no mount, no case, no bracket. The phone goes in a dry bag, the dry bag goes under a strap across the deck, and the strap goes tight enough that the phone cannot shift while the board is being thrown around. Total cost: one strap. The entire point is that this has to be something anyone can repeat on a Tuesday evening, because the data is only worth having if it can be collected more than once.",
+    capDeck: "The whole setup: dry bag under a strap, across the deck, ahead of the mast.",
+    capRail: "Strapped down and checked before the run — a phone that moves mid-ride ruins the recording.",
+  },
+
   what: {
     h: "What a phone on the board records",
     p:
@@ -49,6 +58,7 @@ const en: N4 = {
       "**Heave** — how far the board actually rises and falls, in centimetres, from integrating the vertical acceleration twice.",
     ],
     cap: "One run, 28 seconds. The pitch trace is the pumping; the heave below it is the same rhythm, in centimetres.",
+    capTiles: "The same three angles as the site shows them, live along the track.",
   },
 
   mount: {
