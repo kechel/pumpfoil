@@ -1125,6 +1125,8 @@ const nb: Record<string, string> = {
   "foilDetail.sessions": "Økter på denne foilen",
   "foilDetail.none": "Det er ikke tatt opp noen økter på denne foilen ennå.",
   "foilStats.none": "Ingen økter med valgt foil ennå.",
+  "foilStats.onlyBoard": "Bare opptak med telefonen på brettet",
+  "foilStats.noneBoard": "Ingen økter med telefonen på brettet og valgt foil ennå.",
   "foilStats.colFoil": "Foil",
   "foilStats.colSessions": "Økter",
   "foilStats.colUsers": "Foilere",

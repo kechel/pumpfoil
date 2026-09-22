@@ -1143,7 +1143,8 @@ export const api = {
     req<WatchLayout>(`/api/layouts/${id}/publish?published=${published}`, { method: "POST" }),
   layoutCopy: (id: number) => req<WatchLayout>(`/api/layouts/${id}/copy`, { method: "POST" }),
   layoutDelete: (id: number) => req<void>(`/api/layouts/${id}`, { method: "DELETE" }),
-  foilStats: () => req<{ foil_id: number; brand: string; model: string; size: string; aspect_ratio: number | null; sessions: number; users: number; avg_speed_kmh: number | null; meters_per_pump: number | null; best_distance_m: number | null; best_duration_s: number | null; avg_pump_hz: number | null }[]>("/api/community/foil-stats"),
+  // nurBrett: nur Aufnahmen mit dem Handy am Brett (genauer als die Uhr am Handgelenk).
+  foilStats: (nurBrett = false) => req<{ foil_id: number; brand: string; model: string; size: string; aspect_ratio: number | null; sessions: number; users: number; avg_speed_kmh: number | null; meters_per_pump: number | null; best_distance_m: number | null; best_duration_s: number | null; avg_pump_hz: number | null }[]>(`/api/community/foil-stats${nurBrett ? "?only_board=1" : ""}`),
   watchStats: () => req<{ watch: string; sessions: number; users: number; foiling_km: number; avg_speed_kmh: number | null; best_distance_m: number | null; best_speed_kmh: number | null; avg_pump_hz: number | null }[]>("/api/community/watch-stats"),
   pushKey: () => req<{ key: string }>("/api/push/key"),
   pushSubscribe: (sub: unknown) => req<{ ok: boolean }>("/api/push/subscribe", { method: "POST", body: JSON.stringify(sub) }),

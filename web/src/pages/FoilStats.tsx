@@ -17,19 +17,31 @@ export default function FoilStats() {
   const t = useT();
   const pf = usePumpFmt();
   const [rows, setRows] = useState<Row[] | null>(null);
+  const [nurBrett, setNurBrett] = useState(false);
   const sort = useSort<Row>(rows, "sessions", "desc", {
     foil: (r) => `${r.brand} ${r.model} ${r.size}`,
   });
 
-  useEffect(() => { api.foilStats().then(setRows).catch(() => setRows([])); }, []);
+  useEffect(() => {
+    setRows(null);
+    api.foilStats(nurBrett).then(setRows).catch(() => setRows([]));
+  }, [nurBrett]);
 
   return (
     <div className="w-full">
       <Link to="/community" className="mb-3 inline-flex items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
         <ChevronIcon className="h-4 w-4 rotate-180" /> {t("home.community")}
       </Link>
-      <div className="mb-1 flex items-center gap-2">
+      <div className="mb-1 flex flex-wrap items-center gap-x-3 gap-y-1">
         <h2 className="flex items-center gap-2 text-xl font-bold"><FoilIcon className="h-6 w-6 text-brand-400" /> {t("foilStats.title")}</h2>
+        {/* Umschalter auf die genaueren Zahlen: ein Handy am Brett sitzt fest, misst schneller und
+            hat den Kreisel dabei. Direkt neben der Ueberschrift (Jan, 22.09.), bricht auf schmalen
+            Schirmen in die naechste Zeile statt die Zeile zu sprengen. */}
+        <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-300">
+          <input type="checkbox" checked={nurBrett} onChange={(e) => setNurBrett(e.target.checked)}
+            className="h-4 w-4 accent-brand-500" />
+          {t("foilStats.onlyBoard")}
+        </label>
         <Link to="/watch-stats" title={t("watchStats.title")} aria-label={t("watchStats.title")}
           className="ml-auto inline-flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-brand-600 dark:text-brand-300 hover:bg-slate-700">
           <WatchIcon className="h-4 w-4" /> <span className="hidden sm:inline">{t("stats.short")}</span>
@@ -40,7 +52,9 @@ export default function FoilStats() {
       {!rows ? (
         <Spinner />
       ) : rows.length === 0 ? (
-        <Card className="p-8 text-center text-slate-300">{t("foilStats.none")}</Card>
+        <Card className="p-8 text-center text-slate-300">
+          {nurBrett ? t("foilStats.noneBoard") : t("foilStats.none")}
+        </Card>
       ) : (
         <div className="overflow-x-auto rounded-2xl border border-slate-800">
           <table className="w-full min-w-[720px] border-collapse text-sm">

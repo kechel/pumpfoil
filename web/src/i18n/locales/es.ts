@@ -854,6 +854,8 @@ const es: Record<string, string> = {
   "foilDetail.sessions": "Sesiones con este foil",
   "foilDetail.none": "Todavía no hay sesiones grabadas con este foil.",
   "foilStats.none": "Aún no hay sesiones con foil elegido.",
+  "foilStats.onlyBoard": "Solo grabaciones con el móvil en la tabla",
+  "foilStats.noneBoard": "Aún no hay sesiones con el móvil en la tabla y foil elegido.",
   "foilStats.colFoil": "Foil",
   "foilStats.colSessions": "Sesiones",
   "foilStats.colUsers": "Foilers",

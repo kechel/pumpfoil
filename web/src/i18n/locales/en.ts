@@ -1255,6 +1255,8 @@ const en: Record<string, string> = {
   "foilDetail.sessions": "Sessions on this foil",
   "foilDetail.none": "No sessions recorded on this foil yet.",
   "foilStats.none": "No sessions with a chosen foil yet.",
+  "foilStats.onlyBoard": "Only recordings with the phone on the board",
+  "foilStats.noneBoard": "No sessions with the phone on the board and a chosen foil yet.",
   "foilStats.colFoil": "Foil",
   "foilStats.colSessions": "Sessions",
   "foilStats.colUsers": "Foilers",

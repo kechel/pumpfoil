@@ -1198,6 +1198,8 @@ const cs: Record<string, string> = {
   "foilDetail.sessions": "Session s tímto foilem",
   "foilDetail.none": "S tímto foilem ještě není nahraná žádná session.",
   "foilStats.none": "Zatím žádné relace s vybraným foilem.",
+  "foilStats.onlyBoard": "Jen nahrávky s telefonem na prkně",
+  "foilStats.noneBoard": "Zatím žádné relace s telefonem na prkně a vybraným foilem.",
   "foilStats.colFoil": "Foil",
   "foilStats.colSessions": "Relace",
   "foilStats.colUsers": "Foileři",
