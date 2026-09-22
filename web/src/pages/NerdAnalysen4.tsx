@@ -76,10 +76,26 @@ export default function NerdAnalysen4() {
       <Fig src="/nerd4/board-vs-wrist.png" caption={c.why.cap} />
       <Pr>{c.why.p2}</Pr>
 
+      <H>{c.setup.h}</H>
+      <Pr>{c.setup.p}</Pr>
+      {/* Zwei echte Fotos vom Aufbau — dieselbe Rolle wie die Setup-Bilder in Teil 3: ohne sie
+          liest sich der Artikel wie ein Laborbericht ueber etwas, das niemand angefasst hat. */}
+      <div className="my-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <figure className="overflow-hidden rounded-xl border border-slate-800 bg-slate-950">
+          <img src="/nerd4/setup-deck.webp" alt={c.setup.capDeck} loading="lazy" className="block w-full" />
+          <figcaption className="border-t border-slate-800 px-3 py-2 text-xs text-slate-400">{c.setup.capDeck}</figcaption>
+        </figure>
+        <figure className="overflow-hidden rounded-xl border border-slate-800 bg-slate-950">
+          <img src="/nerd4/setup-rail.webp" alt={c.setup.capRail} loading="lazy" className="block w-full" />
+          <figcaption className="border-t border-slate-800 px-3 py-2 text-xs text-slate-400">{c.setup.capRail}</figcaption>
+        </figure>
+      </div>
+
       <H>{c.what.h}</H>
       <Pr>{c.what.p}</Pr>
       <List items={c.what.li} />
       <Fig src="/nerd4/pitch-roll-heave.png" caption={c.what.cap} />
+      <Fig src="/nerd4/tiles-pitch-roll-yaw.webp" caption={c.what.capTiles} />
 
       <H>{c.mount.h}</H>
       <Pr>{c.mount.p}</Pr>
