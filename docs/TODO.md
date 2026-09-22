@@ -2663,8 +2663,19 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     wir nicht** — und das ist das Muster dieses Tages: gemeldet wird fast nichts.
 
 
-- **🔴 APPLE-RELAY-KONTEN BEKOMMEN KEINE MAIL VON UNS — 85 von 569 Konten (14,9 %), 46 davon
-  aktiv.** Gefunden 17.09.2026, als Jans Mails an zwei Instinct-2-Nutzer zurueckkamen:
+- **🟢 HERUNTERGESTUFT 22.09.2026 — fuer das PRODUKT ist hier nichts offen.** Jans Frage:
+  „apple relay, warum willst du denn mails verschicken?" Zu Recht. Nachgezaehlt: `send_email`
+  wird im ganzen Server an **genau einer** Stelle aufgerufen — „Passwort zuruecksetzen"
+  (`api/auth.py:362`). Sonst verschickt pumpfoil.org keine Mail; alles andere laeuft ueber Push
+  und Chat. Und ausgerechnet dieser eine Fall trifft die Relay-Konten nicht: sie melden sich per
+  Apple-Login an, ihr Passwort ist der Zufallswert aus dem OAuth-Weg, „Passwort vergessen" ist
+  fuer sie kein Weg (das hatte Jan schon am 17.09. richtiggestellt).
+  **Was bleibt, ist eine Gewohnheit beim Schreiben, kein Fehler:** wer einem dieser Konten aus
+  dem eigenen Mailprogramm schreibt, muss `@pumpfoil.org` als Absender waehlen — `kechel.de` ist
+  bei Apple NICHT hinterlegt, nur `pumpfoil.org` mit `info@`, `noreply@`, `jan@`.
+  Der Befund darunter bleibt als Beleg stehen; die Arbeit daran (SPF, Apple-Registrierung) ist
+  seit dem 17.09. erledigt, der Server kann senden (22.09. per SMTP-Login geprueft).
+  Urspruenglicher Befund — **85 von 569 Konten (14,9 %), 46 davon aktiv:** Gefunden 17.09.2026, als Jans Mails an zwei Instinct-2-Nutzer zurueckkamen:
   `550 5.1.1 <jan@kechel.de>: unauthorized sender` von `privaterelay-mta-ms-prod.v.aaplimg.com`.
   - **Ursache:** Apples „Hide My Email"-Relay nimmt NUR Mail von Absendern an, die im
     Apple-Developer-Konto unter *Certificates, Identifiers & Profiles → More → Sign in with Apple
