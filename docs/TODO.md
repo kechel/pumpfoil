@@ -1408,6 +1408,47 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+### 22.09.2026 — Workout Extension geprueft und VERWORFEN, mit Begruendung
+
+Jans Frage: „die frage ist was koennen diese workout extensions, waere das eine alternative,
+dann sollten wir so eine zweite app implementieren und dann in der store-beschreibung der
+jetzigen app darauf hinweisen … ich weiss ja garnicht was das bedeutet und aendern wuerde".
+
+**Antwort: nein.** Eine Workout Extension ist kein Recorder, sondern eine ANZEIGE. Fuenf Punkte,
+jeder fuer sich ausreichend, alle mit Quelle:
+
+1. **Sie schlaeft, sobald sie den Fokus verliert.** Woertlich: „in this state, the context
+   information of the application will be retained, but it cannot respond to the registered
+   callback function, and the registered timer will pause." Genau das ist unser Problemfall —
+   Bildschirm aus. Eine pausierte App tastet nichts ab und schreibt nichts weg. Damit faellt der
+   einzige Grund weg, aus dem wir ueberhaupt hingeschaut haben.
+2. **Sie bekommt keine Rohdaten.** Die Workout-Sensor-API liefert VO2max, Trainingslast, Dauer,
+   Pulszonen — aufbereitete Systemwerte. **Keine Beschleunigung, kein Kreisel.** Unsere
+   Pump-Erkennung lebt von 25 Hz Rohdaten.
+3. **Sie kann unsere Bedienung nicht.** „does not support gesture monitoring or button response,
+   supports CLICK events" — kein langes Halten zum Stoppen, keine Tastenreaktion. Dazu: eine
+   einzige Seite, kein Scrollen, kein SCROLL_LIST/VIEW_CONTAINER/PAGE_INDICATOR, hoechstens EIN
+   Widget je appId. Unsere Datenseiten und Layouts gibt es dort nicht.
+4. **Sie erreicht unsere Nutzer nicht.** API_LEVEL 3.6, `minVersion` muss auf 3.6 stehen (wir:
+   3.0), und die Geraeteliste umfasst T-Rex 3, Cheetah Pro/Round/Square, T-Rex Ultra, Falcon.
+   Die betroffenen Uhren — GTR 4 (Klettermax, u352), Active 2 NFC Round (César), Balance,
+   Balance 2, Active 2 Square — sind alle nicht dabei.
+5. **Es waere eine zweite App, kein Code-Pfad.** „Workout Extension is an independent application
+   with an independent appId", eigene `app.json`-Struktur (`data-widget`), eigene Einreichung,
+   eigenes Review. Bei Zepp heisst das Wochen, und wir hatten dort gerade drei Ablehnungen in
+   Folge. Es gibt nichts, worauf die bestehende App zur Laufzeit pruefen koennte.
+
+**Was sie koennte, der Fairness halber:** waehrend einer SYSTEM-Aufzeichnung eine Zusatzanzeige
+einblenden — Tempo, Puls, unsere Farbzonen. Huebsch, aber sie loest keinen einzigen unserer
+Fehler, und sie kann nichts anzeigen, was das System nicht ohnehin schon misst.
+
+**Wann neu zu bewerten:** wenn Zepp die Geraeteliste deutlich verbreitert UND der Pausenzustand
+wegfaellt. Beides muesste zusammenkommen; eines allein reicht nicht.
+
+Quellen: docs.zepp.com/docs/guides/workout-extension/{intro,quick-start,distribute}/ ·
+docs.zepp.com/docs/reference/device-app-api/newAPI/sensor/Workout/
+
+
 ### 22.09.2026 — Zepp-Doku nachgelesen: eine Tuer zu, ein Werkzeug neu
 
 Jans Auftrag: „besorg dir doch nochmal die aktuelle dokumentation fuer amazfit apps, vielleicht
