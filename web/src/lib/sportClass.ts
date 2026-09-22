@@ -10,7 +10,7 @@
 // alle drei Namen im Label.
 export const SPORTS = ["pumpfoil", "wingfoil", "kitefoil", "parawing", "surf_downwind",
                        "surf_wave", "sup_paddle", "wakethief", "towed", "efoil",
-                       "foildrive", "other"] as const;
+                       "foildrive", "foil_scoot", "other"] as const;
 /** Datenqualität — Müll/Dopplung, zählt nirgends. */
 export const DATA_QUALITY = ["ok", "false_data", "duplicate", "test"] as const;
 

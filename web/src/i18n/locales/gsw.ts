@@ -1310,6 +1310,7 @@ const gsw: Record<string, string> = {
   "cls.sport.towed": "Gschleppt (Seil hinderem Boot)",
   "cls.sport.efoil": "eFoil (Motor im Board)",
   "cls.sport.foildrive": "Foildrive (Motor am Mascht)",
+  "cls.sport.foil_scoot": "Foil Scoot",
   "cls.sport.other": "Anderi Sportart",
   "cls.sport.wake": "Wake / Boot (alti Kategorie)",
   "cls.autoSetAs": "Automatisch iigordnet als {sport}. Wenn das nöd stimmt, änder s eifach da.",

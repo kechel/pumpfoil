@@ -1427,6 +1427,7 @@ const zh: Record<string, string> = {
   "cls.sport.towed": "被拖曳（船后拖绳）",
   "cls.sport.efoil": "eFoil（板内马达）",
   "cls.sport.foildrive": "Foildrive（桅杆马达）",
+  "cls.sport.foil_scoot": "Foil Scoot",
   "cls.sport.other": "其他运动",
   "cls.sport.wake": "Wake / 船（旧分类）",
   "cls.autoSetAs": "已自动归类为 {sport}。如果不对，在这里改即可。",

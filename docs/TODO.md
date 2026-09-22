@@ -1410,8 +1410,18 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ### 22.09.2026 — Foil Scoot als Sportart aufnehmen
 
-- [ ] **„Foil Scoot" als weitere Sportart** (Jan, 22.09.2026: „Foil Scoot als weitere sportart
-  mit aufnehmen"). Nur notiert, noch nichts gebaut.
+- [x] **„Foil Scoot" als weitere Sportart — ERLEDIGT 22.09.2026** (Jan: „Foil Scoot als weitere
+  sportart mit aufnehmen"). Eingetragen in allen vier Listen (Server `SPORTS`, Web, Android,
+  iOS), Label `cls.sport.foil_scoot` = „Foil Scoot" in 18 Sprachen und per `i18n-port.py` in
+  beide nativen Tabellen. Einsortiert hinter `foildrive`, damit `other` letzter bleibt.
+  **BEWUSST OHNE erklaerenden Zusatz im Label**, anders als bei `wakethief` („Welle eines fremden
+  Boots") und `parawing`: wie die Disziplin abgegrenzt ist, hat Jan nicht gesagt, und eine
+  erfundene Klammer stuende in 18 Sprachen falsch da. Wenn ein Zusatz gewuenscht ist, sagt Jan
+  ihn und er wird nachgetragen. Neuer Test `test_sportarten.py` haelt die vier Listen
+  deckungsgleich und prueft, dass jede Sportart in jeder Sprache ein Label hat — die Liste an
+  vier Stellen zu pflegen ist genau die Stelle, an der sonst still eine Kopie zurueckbleibt.
+  Die nativen Apps tragen die Sportart erst mit der naechsten Einreichung aus (Code steht).
+  Urspruengliche Notiz:
   **Wo es ueberall haengt** (die Liste ist an mehreren Stellen dieselbe, sonst laeuft sie
   auseinander):
   - `web/src/lib/sportClass.ts` — `SPORTS` (heute: pumpfoil, wingfoil, kitefoil, parawing,
@@ -1456,7 +1466,24 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   **alle 143 von 143 Chunks** und blieb trotzdem sechs Tage haengen — der Abschluss-Aufruf kam
   nie. Das ist kein Upload-Problem, sondern der letzte Schritt in `watch-apple/Sources/`.
   Apps sind eingefroren, braucht Jans Ansage.
-- [ ] **Android Phone-Recorder: Upload sichtbar machen und entkoppeln (Jan, 21.09.).** Heute
+- [x] **Android Phone-Recorder: Upload sichtbar machen und entkoppeln — ERLEDIGT 22.09.2026.**
+  Neue `PhoneUploadBar` sitzt in `MainActivity` direkt ueber der Navigationsleiste und ist damit
+  auf JEDEM Bildschirm dieselbe: Wolken-Symbol, „Session laedt hoch", Prozent plus „x/y Teile"
+  und ein Fortschrittsbalken; Antippen heisst „jetzt versuchen". Waehrend der Aufnahme
+  ausgeblendet (dort fuehrt der Aufnahme-Bildschirm und die Navigationsleiste ist ohnehin weg).
+  Derselbe Baustein ersetzt im Aufnahme-Bildschirm die fruehere kleine graue Textzeile — EIN
+  Bauteil, damit beide Anzeigen nie auseinanderlaufen.
+  **Was der Bestandsaufnahme nach gar nicht fehlte:** hochgeladen wurde schon immer im
+  `Recorder`-eigenen CoroutineScope, ein Bildschirmwechsel bricht also nichts ab, und
+  `uploadSent`/`uploadTotal` standen bereits im State — sie wurden nur nirgends gezeigt.
+  **Was wirklich fehlte:** der Upload wurde NUR vom Aufnahme-Bildschirm aus angestossen. Wer
+  nach der Fahrt direkt auf „Verlauf" ging, dessen Aufnahme blieb liegen, bis er zufaellig
+  wieder auf „Aufnehmen" tippte. Jetzt stossen App-Start und jede Rueckkehr in den Vordergrund
+  `Recorder.drain` an (`ON_RESUME` in `MainActivity`); `drain` haelt sich selbst ab, wenn schon
+  einer laeuft, und ist ohne offene Aufnahme sofort wieder draussen.
+  **Noch offen:** ausserhalb der App (Prozess beendet) laedt nichts nach — dafuer braeuchte es
+  einen Vordergrund-Dienst wie bei der Aufnahme. Bisher nicht verlangt.
+  Urspruengliche Notiz: Heute
   laedt die Android-App die Aufnahme offenbar nur hoch, solange der Phone-Recording-Screen offen
   ist, und die Anzeige ist „arg unscheinbar". Gewuenscht: Fortschrittsanzeige wie auf der
   Garmin-Uhr — in unserem Cyan, mit Balken und „x/y Chunks" —, Upload **laeuft im Hintergrund

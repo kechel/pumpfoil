@@ -12,7 +12,7 @@ import Foundation
 // `parawing` seit 13.09.2026: Lowkite / Parawing / Parakite sind dasselbe (Jan).
 let SPORTS = ["pumpfoil", "wingfoil", "kitefoil", "parawing", "surf_downwind",
               "surf_wave", "sup_paddle", "wakethief", "towed", "efoil",
-              "foildrive", "other"]
+              "foildrive", "foil_scoot", "other"]
 
 /// Datenqualität — Müll/Dopplung, zählt nirgends.
 let DATA_QUALITY = ["ok", "false_data", "duplicate", "test"]

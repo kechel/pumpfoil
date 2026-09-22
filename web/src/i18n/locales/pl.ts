@@ -1570,6 +1570,7 @@ const pl: Record<string, string> = {
   "cls.sport.wake": "Wake / łódź (stara kategoria)",
   "cls.sport.efoil": "eFoil (silnik w desce)",
   "cls.sport.foildrive": "Foildrive (silnik na maszcie)",
+  "cls.sport.foil_scoot": "Foil Scoot",
   "cls.sport.other": "Inny sport",
   "cls.dq.ok": "Dane są w porządku",
   "cls.dq.false_data": "Błędne dane",

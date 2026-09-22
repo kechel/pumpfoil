@@ -1508,6 +1508,7 @@ const cs: Record<string, string> = {
   "cls.sport.towed": "Ve vleku (lano za lodí)",
   "cls.sport.efoil": "eFoil (motor v boardu)",
   "cls.sport.foildrive": "Foildrive (motor na stěžni)",
+  "cls.sport.foil_scoot": "Foil Scoot",
   "cls.sport.other": "Jiný sport",
   "cls.sport.wake": "Wake / loď (stará kategorie)",
   "cls.autoSetAs": "Automaticky zařazeno jako {sport}. Pokud to nesedí, změň to tady.",

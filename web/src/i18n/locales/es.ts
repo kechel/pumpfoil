@@ -1277,6 +1277,7 @@ const es: Record<string, string> = {
   "cls.sport.towed": "Remolcado (cuerda tras un barco)",
   "cls.sport.efoil": "eFoil (motor en la tabla)",
   "cls.sport.foildrive": "Foildrive (motor en el mástil)",
+  "cls.sport.foil_scoot": "Foil Scoot",
   "cls.sport.other": "Otro deporte",
   "cls.sport.wake": "Wake / barco (categoría antigua)",
   "cls.autoSetAs": "Clasificada automáticamente como {sport}. Si no es correcto, cámbialo aquí.",

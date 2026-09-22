@@ -1424,6 +1424,7 @@ const ja: Record<string, string> = {
   "cls.sport.towed": "曳航（船の後ろでロープ）",
   "cls.sport.efoil": "eFoil（ボード内モーター）",
   "cls.sport.foildrive": "Foildrive（マストのモーター）",
+  "cls.sport.foil_scoot": "Foil Scoot",
   "cls.sport.other": "ほかの競技",
   "cls.sport.wake": "ウェイク／ボート（旧カテゴリー）",
   "cls.autoSetAs": "自動的に「{sport}」に分類されました。違う場合はここで変更できます。",

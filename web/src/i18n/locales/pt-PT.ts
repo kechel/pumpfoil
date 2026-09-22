@@ -1445,6 +1445,7 @@ const ptPT: Record<string, string> = {
   "cls.sport.towed": "Rebocado (corda atrás de um barco)",
   "cls.sport.efoil": "eFoil (motor na prancha)",
   "cls.sport.foildrive": "Foildrive (motor no mastro)",
+  "cls.sport.foil_scoot": "Foil Scoot",
   "cls.sport.other": "Outro desporto",
   "cls.sport.wake": "Wake / barco (categoria antiga)",
   "cls.autoSetAs": "Classificada automaticamente como {sport}. Se não estiver certo, altere aqui.",

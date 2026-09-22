@@ -1279,6 +1279,7 @@ const fr: Record<string, string> = {
   "cls.sport.towed": "Tracté (câble derrière un bateau)",
   "cls.sport.efoil": "eFoil (moteur dans la planche)",
   "cls.sport.foildrive": "Foildrive (moteur sur le mât)",
+  "cls.sport.foil_scoot": "Foil Scoot",
   "cls.sport.other": "Autre sport",
   "cls.sport.wake": "Wake / bateau (ancienne catégorie)",
   "cls.autoSetAs": "Classée automatiquement comme {sport}. Si ce n’est pas correct, change-le ici.",

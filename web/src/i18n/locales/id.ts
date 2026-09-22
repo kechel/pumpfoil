@@ -1451,6 +1451,7 @@ const id: Record<string, string> = {
   "cls.sport.towed": "Ditarik (tali di belakang kapal)",
   "cls.sport.efoil": "eFoil (motor di board)",
   "cls.sport.foildrive": "Foildrive (motor di mast)",
+  "cls.sport.foil_scoot": "Foil Scoot",
   "cls.sport.other": "Olahraga lain",
   "cls.sport.wake": "Wake / kapal (kategori lama)",
   "cls.autoSetAs": "Diklasifikasikan otomatis sebagai {sport}. Kalau tidak tepat, ubah saja di sini.",
