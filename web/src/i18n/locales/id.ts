@@ -694,6 +694,7 @@ const id: Record<string, string> = {
   "sd.attitudePerRun": "Sikap per run",
   "sd.colPitchRhythm": "irama angguk",
   "sd.colHeave": "ayunan",
+  "sd.mountInherited": "diambil dari seluruh rekaman — sinyal di run ini terlalu tidak jelas",
   "sd.colGlide": "glide terpanjang",
   "sd.colMaxHr": "Detak maks.",
   "hr.progressTitle": "Kurva latihan: detak jantung saat pumping",

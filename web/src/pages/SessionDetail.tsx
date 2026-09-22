@@ -880,7 +880,7 @@ export default function SessionDetail() {
   useEffect(() => {
     if (!session?.id || !hatLagedaten) { setLaufKennz([]); return; }
     let weg = false;
-    api.boardAttitude(session.id, { hz: 2 })
+    api.boardAttitude(session.id, { hz: 2, jeLauf: true })
       .then((d) => { if (!weg) setLaufKennz(d.ok ? (d.laeufe ?? []) : []); })
       .catch(() => { if (!weg) setLaufKennz([]); });
     return () => { weg = true; };
@@ -2917,6 +2917,7 @@ function RunsTable({
                 <th className="px-3 py-2 font-medium">{t("board.yaw")}</th>
                 <th className="px-3 py-2 font-medium">{t("sd.colPitchRhythm")}</th>
                 <th className="px-3 py-2 font-medium">{t("sd.colHeave")}</th>
+                <th className="px-3 py-2 font-medium">{t("board.mounting")}</th>
               </tr>
             </thead>
             <tbody>
@@ -2943,6 +2944,16 @@ function RunsTable({
                     {k.hub_pp_cm != null
                       ? (k.hub_sicher ? `${k.hub_pp_cm.toFixed(0)} cm` : `(${k.hub_pp_cm.toFixed(0)} cm)`)
                       : "–"}
+                  </td>
+                  {/* Die Montage je Lauf SICHTBAR machen (Jan, 22.09.): das Handy kann zwischen
+                      zwei Laeufen verrutschen. Grau, wenn sie nicht aus diesem Lauf stammt,
+                      sondern von der ganzen Aufnahme geerbt ist — dann war das Signal hier zu
+                      unklar, und die Zahl ist keine eigene Messung. */}
+                  <td className={`px-3 py-2 tabular-nums ${k.rot_eigen ? "" : "text-slate-500"}`}
+                    title={k.rot_eigen
+                      ? `${t("board.mountAuto")} · ${k.rot_klarheit ?? "–"}`
+                      : t("sd.mountInherited")}>
+                    {k.rot_deg != null ? `${Math.round(k.rot_deg)}°` : "–"}
                   </td>
                 </tr>
               ))}

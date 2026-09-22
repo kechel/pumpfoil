@@ -838,42 +838,6 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
         hub_fenster_s = float(min(5.0, max(1.0, 2.0 / _takt))) if _takt else 3.0
         hub = hub_berechnen(a_vert, 1.0 / rechen_hz, hub_fenster_s)
 
-    # KENNZAHLEN JE LAUF (Jan, 22.09.2026: „sollte eher als zusaetzliche stats-zeile in der
-    # tabelle je lauf angezeigt & berechnet werden oder?").
-    #
-    # Ja — fuer die Haelfte der Zeile, die ueberhaupt vom Lauf abhaengt: Nicken, Rollen, Gieren,
-    # Pumptakt, Hub. Die andere Haelfte (Montage-Drehung, Gier/GPS-Gegenprobe, Abtastraten) ist
-    # eine Eigenschaft der AUFNAHME und je Lauf per Konstruktion dieselbe Zahl — sie stuende dann
-    # in jeder Zeile gleich und wuerde die Tabelle nur breiter machen.
-    #
-    # In EINEM Durchgang, nicht ein Abruf je Lauf: der Komplementaerfilter laeuft ohnehin schon
-    # ueber das ganze Fenster, hier werden nur noch die fertigen Reihen je Laufbereich
-    # ausgewertet. Der Hub wird je Lauf EINZELN integriert und bekommt sein eigenes Fenster aus
-    # dem eigenen Takt — genau darum geht es ja: ein Lauf mit 1,4 Hz und einer mit 0,6 Hz
-    # vertragen nicht dieselbe Bandgrenze.
-    laeufe_kennz: list[dict] = []
-    for _i, (_a, _b) in enumerate(ref_bereiche_ms or []):
-        _m = (t >= _a) & (t <= _b)
-        if _m.sum() < 32:
-            laeufe_kennz.append({"lauf": _i, "ok": False})
-            continue
-        _takt_l = hauptfrequenz(pitch[_m], unten=PUMP_UNTEN_HZ)
-        _fen_l = float(min(5.0, max(1.0, 2.0 / _takt_l))) if _takt_l else 3.0
-        _hub_l = hub_berechnen(a_vert[_m], 1.0 / rechen_hz, _fen_l)
-        _hub_hz_l = hauptfrequenz(_hub_l) if _hub_l is not None else None
-        laeufe_kennz.append({
-            "lauf": _i, "ok": True,
-            "pitch_amplitude_deg": round(float(np.percentile(np.abs(pitch[_m]), 95)), 1),
-            "roll_amplitude_deg": round(float(np.percentile(np.abs(roll[_m]), 95)), 1),
-            "gier_rms_deg_s": round(float(np.sqrt(np.mean(gier_rate[_m] ** 2))), 1),
-            "pitch_hz": _takt_l,
-            "hub_fenster_s": round(_fen_l, 1),
-            "hub_pp_cm": (round(float(np.percentile(_hub_l, 95) - np.percentile(_hub_l, 5)), 1)
-                          if _hub_l is not None else None),
-            "hub_hz": _hub_hz_l,
-            "hub_sicher": bool(_hub_hz_l is not None and _hub_hz_l >= 1.5 / _fen_l),
-        })
-
     # Nur noch Auskunft: die Drehung ist oben schon angewandt, das Nicken am Lauf-Anfang sollte
     # jetzt negativ sein (bergab). Bleibt es positiv, hat die Heuristik nicht gegriffen — meist,
     # weil im Fenster gar kein Lauf-Anfang liegt.
@@ -927,8 +891,6 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
         "gier_delta_deg": [round(float(x), 2) for x in gier_delta[aus]],
         "hub_cm": [round(float(x), 1) for x in hub[aus]] if hub is not None else None,
         "hub_fenster_s": hub_fenster_s,
-        # Dieselben Groessen je erkanntem Lauf, in der Reihenfolge von `ref_bereiche_ms`.
-        "laeufe": laeufe_kennz,
         "kennzahlen": {
             "pitch_amplitude_deg": round(float(np.percentile(np.abs(pitch), 95)), 1),
             "roll_amplitude_deg": round(float(np.percentile(np.abs(roll), 95)), 1),
@@ -960,3 +922,77 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
             "bias_abgezogen": bool(still.sum() > RUHE_MIN_S * rechen_hz),
         },
     }
+
+
+def kennzahlen_je_lauf(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
+                       gyr_raw: np.ndarray, t_gyr_ms: np.ndarray,
+                       ref_bereiche_ms: list[tuple[float, float]],
+                       lauf_starts_ms: list[float] | None = None,
+                       gps: list | None = None,
+                       rot_vorgabe: float | None = None) -> list[dict]:
+    """Je Lauf ein vollstaendiger eigener Durchgang — inklusive eigener Montage-Drehung.
+
+    WARUM JE LAUF NEU GERECHNET (Jan, 22.09.2026): „ich denke das handy koennte zwischen den
+    laeufen auch ,verrutschen' oder eine andere ausrichtung haben, korrekt waere schon das je
+    lauf neu zu rechnen." Stimmt — Klebeband auf nassem Brett, und zwischen zwei Laeufen liegt
+    ein Sturz oder das Tragen zum Steg. Eine Drehung, die aus der ganzen Aufnahme gemittelt ist,
+    wuerde ein echtes Verrutschen glattbuegeln und BEIDE Laeufe falsch zeigen.
+
+    WAS DABEI ZU BEACHTEN IST, gemessen an den drei Aufnahmen mit Kreisel:
+
+        #9528  ganze Aufnahme 269,4°   Lauf 0 269,4°                    (Klarheit 20,8)
+        #9535  ganze Aufnahme 133,2°   Lauf 0 134,5°  Lauf 1 131,5°     (11,1 / 20,1)
+        #9484  ganze Aufnahme 190,1°   Lauf 0  20,5°  Lauf 1 180,0°     ( 7,5 / 19,8)
+
+    Die ACHSE ist stabil, wo das Signal klar ist: identisch bei #9528, 3° Unterschied bei #9535.
+    Das ist Rechen-Rauschen, kein Verrutschen. Die 170° bei #9484 sind dagegen NICHT die Achse
+    (20,5° gegen 1,3°, also 19° auseinander), sondern die 180°-Frage „Nase vorn oder hinten" —
+    und die entscheidet die Start-Heuristik aus der ersten Sekunde des Laufs. Bei Lauf 1 hat sie
+    gar nicht gegriffen (Quelle „heuristik" ohne Achse).
+
+    Deshalb: die Achse kommt je Lauf aus dem Kreisel dieses Laufs, solange sie klar genug ist
+    (`MONTAGE_KLARHEIT_MIN`); sonst faellt der Lauf auf die Drehung der ganzen Aufnahme zurueck.
+    Die gefundene Drehung steht mit in der Antwort, damit ein echtes Verrutschen SICHTBAR wird
+    statt stillschweigend eingerechnet — und ein Fehlgriff ebenso.
+
+    Eine feste Vorgabe (`rot_vorgabe`, von Hand gesetzt) gilt fuer alle Laeufe: wer sie setzt,
+    sagt damit, wie das Geraet lag.
+    """
+    if not ref_bereiche_ms:
+        return []
+    # Bezugswert: die Drehung ueber ALLE Laeufe — Rueckfall fuer Laeufe ohne klares Signal.
+    ganze = aufnahme_eigenschaften(acc_raw, t_acc_ms, gyr_raw, t_gyr_ms, ref_bereiche_ms,
+                                   lauf_starts_ms, gps=gps, rot_vorgabe=rot_vorgabe)
+    starts = [float(x) for x in (lauf_starts_ms or [])]
+    aus: list[dict] = []
+    for i, (a, b) in enumerate(ref_bereiche_ms):
+        eig = aufnahme_eigenschaften(acc_raw, t_acc_ms, gyr_raw, t_gyr_ms, [(a, b)],
+                                     [starts[i]] if i < len(starts) else None,
+                                     gps=gps, rot_vorgabe=rot_vorgabe)
+        klar = eig.get("klarheit")
+        eigen = rot_vorgabe is None and klar is not None and klar >= MONTAGE_KLARHEIT_MIN
+        rot = float(eig["rot_deg"]) if eigen else float(ganze["rot_deg"])
+        erg = lage_berechnen(acc_raw, t_acc_ms, gyr_raw, t_gyr_ms, ziel_hz=20.0,
+                             t_von_ms=a, t_bis_ms=b, ref_bereiche_ms=[(a, b)],
+                             rot_deg=rot, _roh=True)
+        if not erg.get("ok"):
+            aus.append({"lauf": i, "ok": False})
+            continue
+        k = erg["kennzahlen"]
+        aus.append({
+            "lauf": i, "ok": True,
+            "pitch_amplitude_deg": k["pitch_amplitude_deg"],
+            "roll_amplitude_deg": k["roll_amplitude_deg"],
+            "gier_rms_deg_s": k["gier_rms_deg_s"],
+            "pitch_hz": k["pitch_hz"],
+            "hub_fenster_s": round(float(erg["hub_fenster_s"]), 1),
+            "hub_pp_cm": k["hub_pp_cm"],
+            "hub_hz": k["hub_hz"],
+            "hub_sicher": k["hub_sicher"],
+            # Die Drehung DIESES Laufs — und ob sie aus ihm selbst kommt oder geerbt ist.
+            "rot_deg": round(rot, 1),
+            "rot_klarheit": klar,
+            "rot_eigen": bool(eigen),
+            "rot_quelle": eig["quelle"] if eigen else ganze["quelle"],
+        })
+    return aus

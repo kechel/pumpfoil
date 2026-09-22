@@ -694,6 +694,7 @@ const ru: Record<string, string> = {
   "sd.attitudePerRun": "Положение по заездам",
   "sd.colPitchRhythm": "ритм тангажа",
   "sd.colHeave": "вертикальный ход",
+  "sd.mountInherited": "взято из всей записи — сигнал в этом заезде был слишком нечётким",
   "sd.colGlide": "самое долгое скольжение",
   "sd.colMaxHr": "Макс. пульс",
   "hr.progressTitle": "Кривая тренированности: пульс при помпинге",

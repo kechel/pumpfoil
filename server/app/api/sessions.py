@@ -3581,6 +3581,8 @@ def board_lage(
     pad_s: float = Query(10.0, ge=0.0, le=60.0,
                          description="Zusaetzliche Sekunden vor und nach der Auswahl"),
     hz: float = Query(20.0, ge=2.0, le=50.0),
+    je_lauf: bool = Query(False, description="Kennzahlen je erkanntem Lauf mitliefern "
+                                             "(eigene Montage-Drehung je Lauf, s. lage.py)"),
     user: models.User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> dict:
@@ -3668,4 +3670,14 @@ def board_lage(
     erg["runs"] = laeufe
     erg["placement"] = s.placement
     erg["rig"] = _rig_geometrie(db, s)
+    # Kennzahlen je Lauf nur auf Anforderung: sie kosten einen eigenen Durchgang JE LAUF (die
+    # Montage wird dort neu bestimmt, s. `lage.kennzahlen_je_lauf`). Die Lauf-Tabelle holt sie
+    # einmal, die Lage-Ansicht selbst braucht sie nicht.
+    if je_lauf:
+        erg["laeufe"] = lage.kennzahlen_je_lauf(
+            acc, t_acc, gyr, t_gyr, lage.laufbereiche(segmente, off),
+            [float(g.get("t_start_session_ms", float(g["t_start_ms"]) + off))
+             for g in segmente if g.get("t_start_ms") is not None],
+            gps=storage.load_gps(uuid),
+            rot_vorgabe=(float(s.attitude_rot_deg) if s.attitude_rot_deg is not None else None))
     return erg

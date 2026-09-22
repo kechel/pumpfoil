@@ -701,6 +701,7 @@ const fi: Record<string, string> = {
   "sd.attitudePerRun": "Asento ajoa kohti",
   "sd.colPitchRhythm": "nyökkäystahti",
   "sd.colHeave": "nousu",
+  "sd.mountInherited": "otettu koko tallenteesta — signaali tässä ajossa oli liian epäselvä",
   "sd.colGlide": "pisin liukuvaihe",
   "sd.colMaxHr": "Maks. syke",
   "hr.progressTitle": "Harjoituskäyrä: syke pumpatessa",

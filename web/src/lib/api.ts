@@ -167,6 +167,9 @@ export type BoardAttitude = {
     pitch_amplitude_deg?: number; roll_amplitude_deg?: number; gier_rms_deg_s?: number;
     pitch_hz?: number | null; hub_fenster_s?: number;
     hub_pp_cm?: number | null; hub_hz?: number | null; hub_sicher?: boolean;
+    // Die Montage-Drehung DIESES Laufs. `rot_eigen` = aus dem Lauf selbst gefunden; false
+    // heisst, sie ist von der ganzen Aufnahme geerbt (Signal im Lauf zu unklar).
+    rot_deg?: number; rot_klarheit?: number | null; rot_eigen?: boolean; rot_quelle?: string;
   }[];
   // Der ausgewaehlte Lauf/Versuch OHNE den Rand von `pad_s` — die Kurven markieren damit, wo er
   // wirklich anfaengt und aufhoert. null, wenn die ganze Aufnahme gezeigt wird.
@@ -1112,9 +1115,13 @@ export const api = {
     vonMs?: number | null; bisMs?: number | null;
     // Sekunden vor und nach der Auswahl, die mitgezeigt werden (Server-Standard 10).
     padS?: number;
+    // Kennzahlen je erkanntem Lauf mitliefern. Kostet serverseitig einen Durchgang je Lauf
+    // (jeder bekommt seine eigene Montage-Drehung), deshalb nur fuer die Lauf-Tabelle.
+    jeLauf?: boolean;
   } = {}) => {
     const q = new URLSearchParams();
     if (o.run != null) q.set("run", String(o.run));
+    if (o.jeLauf) q.set("je_lauf", "1");
     if (o.run == null && o.vonMs != null && o.bisMs != null) {
       q.set("from_ms", String(Math.round(o.vonMs)));
       q.set("to_ms", String(Math.round(o.bisMs)));

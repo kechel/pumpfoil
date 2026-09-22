@@ -603,6 +603,7 @@ const fr: Record<string, string> = {
   "sd.attitudePerRun": "Assiette par run",
   "sd.colPitchRhythm": "rythme de tangage",
   "sd.colHeave": "pilonnement",
+  "sd.mountInherited": "repris de l'enregistrement entier — le signal de ce run était trop flou",
   "sd.colGlide": "plus longue glisse",
   "sd.colMaxHr": "Pouls max",
   "hr.progressTitle": "Courbe d'entraînement : pouls en pumping",

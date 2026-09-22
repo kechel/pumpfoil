@@ -550,6 +550,7 @@ const gsw: Record<string, string> = {
   "sd.attitudePerRun": "Lag pro Lauf",
   "sd.colPitchRhythm": "Nick-Takt",
   "sd.colHeave": "Hub",
+  "sd.mountInherited": "vo dr ganze Ufnahm uebernoh — i dem Lauf isch s Signal z unklar gsi",
   "sd.colGlide": "längschti Gleitphase",
   "sd.colMaxHr": "Max. Puls",
   "hr.progressTitle": "Trainingskurve: Puls bim Pumpe",

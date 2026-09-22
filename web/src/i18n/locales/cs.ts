@@ -718,6 +718,7 @@ const cs: Record<string, string> = {
   "sd.attitudePerRun": "Poloha na běh",
   "sd.colPitchRhythm": "rytmus klopení",
   "sd.colHeave": "zdvih",
+  "sd.mountInherited": "převzato z celé nahrávky — signál v tomto běhu byl příliš nejasný",
   "sd.colGlide": "nejdelší klouzání",
   "sd.colMaxHr": "Max. tep",
   "hr.progressTitle": "Tréninková křivka: tep při pumpování",

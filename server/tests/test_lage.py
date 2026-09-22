@@ -10,7 +10,7 @@ import pytest
 
 from app.analysis.lage import (ACCEL_SCALE, GYRO_SCALE, MONTAGE_KLARHEIT_MIN, _bezugsrichtung,
                                aufnahme_eigenschaften, gier_gegen_gps, hauptachse, hub_berechnen,
-                               kurs_aus_gps, lage_berechnen, laufbereiche,
+                               kennzahlen_je_lauf, kurs_aus_gps, lage_berechnen, laufbereiche,
                                montage_achse_aus_kreisel, zeitachse)
 
 
@@ -635,9 +635,7 @@ def test_kennzahlen_je_lauf_stehen_in_der_antwort():
     tms = t * 1000.0
     ref = [(pause_s * 1000.0, (pause_s + lauf_s) * 1000.0),
            ((2 * pause_s + lauf_s) * 1000.0, (2 * pause_s + 2 * lauf_s) * 1000.0)]
-    r = lage_berechnen(acc, tms, gyr, tms, ziel_hz=20.0, ref_bereiche_ms=ref)
-    assert r["ok"]
-    k = r["laeufe"]
+    k = kennzahlen_je_lauf(acc, tms, gyr, tms, ref, [a for a, _ in ref])
     assert len(k) == 2 and all(x["ok"] for x in k)
     for x, takt in zip(k, takte):
         assert abs(x["pitch_hz"] - takt) < 0.1, (x["pitch_hz"], takt)
@@ -645,3 +643,35 @@ def test_kennzahlen_je_lauf_stehen_in_der_antwort():
     # Und die beiden Zeilen unterscheiden sich wirklich — sonst kaeme das Fenster doch wieder
     # aus der ganzen Aufnahme.
     assert k[0]["hub_fenster_s"] != k[1]["hub_fenster_s"]
+
+
+def test_verrutschtes_handy_wird_je_lauf_neu_gefunden():
+    """Zwischen zwei Laeufen dreht sich das Geraet — beide Laeufe muessen trotzdem stimmen.
+
+    Jan, 22.09.2026: „ich denke das handy koennte zwischen den laeufen auch ,verrutschen' oder
+    eine andere ausrichtung haben, korrekt waere schon das je lauf neu zu rechnen." Genau das
+    baut dieser Test nach: Lauf 1 liegt laengs, Lauf 2 um 60° gedreht. Eine ueber die ganze
+    Aufnahme gemittelte Drehung wuerde BEIDE Laeufe falsch zeigen.
+    """
+    stuecke = []
+    for psi in (0.0, 60.0):
+        acc, ta, gyr, tg, _ = _pumpstrecke(psi, dauer_s=40.0, ab_s=2.0)
+        stuecke.append((acc, gyr, len(ta)))
+    hz = 50.0
+    acc = np.concatenate([a for a, _, _ in stuecke])
+    gyr = np.concatenate([g for _, g, _ in stuecke])
+    tms = np.arange(len(acc)) / hz * 1000.0
+    n0 = stuecke[0][2]
+    ref = [(2500.0, (n0 - 1) / hz * 1000.0),
+           ((n0 + 125) / hz * 1000.0, (len(acc) - 1) / hz * 1000.0)]
+    starts = [2000.0, (n0 + 100) / hz * 1000.0]
+
+    k = kennzahlen_je_lauf(acc, tms, gyr, tms, ref, starts)
+    assert len(k) == 2 and all(x["ok"] for x in k), k
+    assert all(x["rot_eigen"] for x in k), [x["rot_klarheit"] for x in k]
+    assert (k[0]["rot_deg"] - 0.0) % 360 < 5 or (0.0 - k[0]["rot_deg"]) % 360 < 5, k[0]["rot_deg"]
+    assert abs(k[1]["rot_deg"] - 60.0) < 5, k[1]["rot_deg"]
+    # Und das ist der Punkt: die Aufnahme als Ganzes findet dafuer KEINE gemeinsame Drehung, die
+    # beiden gerecht wuerde — sie liegt zwangslaeufig irgendwo dazwischen.
+    ganze = aufnahme_eigenschaften(acc, tms, gyr, tms, ref, starts)
+    assert min(abs(ganze["rot_deg"] - 0.0), abs(ganze["rot_deg"] - 60.0)) > 5, ganze["rot_deg"]
