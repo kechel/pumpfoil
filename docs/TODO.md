@@ -1667,7 +1667,21 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   gibt (s. Plan zur Geraete-Verknuepfung).
 
 
-- **🔴 21.09. — DER AUTO-ZUSCHNITT TRIFFT 38 NUTZER, nicht nur Jans Brett-Session. Gemessen.**
+- **🟢 ERLEDIGT 22.09.2026 — Auto-Zuschnitt: Ursache behoben (21.09.) UND Bestand repariert.**
+  Jans Freigabe: „Auto-Zuschnitt trifft 38 Nutzer bitte machen". Die beiden Schranken standen
+  seit `c051be25` im Code (`AUTO_TRIM_MIN_FENSTER_MS` 2 min, `AUTO_TRIM_MIN_ANTEIL` 10 %); offen
+  war der Bestand, der vor dem Fix entstanden ist.
+  **Gemacht:** `scripts/auto-zuschnitt-reparieren.py` (neu) sucht automatische Zuschnitte, die
+  die HEUTIGE Regel nicht mehr setzen wuerde, nimmt sie zurueck und rechnet neu. Von Hand
+  gesetzte Zuschnitte werden nie angefasst.
+  **Ergebnis: 102 von 2305 automatischen Zuschnitten waren zu eng. 36 Nutzer betroffen.
+  Gesamtstrecke dieser Sessions 32,4 km → 96,6 km (+64,2 km).** Bei 85 entfaellt der Zuschnitt
+  ganz, bei 17 setzt die neue Regel einen zulaessigen. Extremfaelle: #3878 373 m → 5833 m,
+  #8473 10 067 m → 17 051 m, #8186 944 m → 14 420 m.
+  **Ohne Benachrichtigung** (die Sessions reichen bis Juli zurueck — nachtraeglich pushen ist
+  verboten). Ist-Zustand vorher gesichert: `server/data/zuschnitt-vorher-*.json` plus ein
+  `pg_dump` von `analysis_results` + `sessions`.
+  Urspruenglicher Befund:
   Anlass war Jans Frage „hat das Auswirkungen auf alle?". Antwort: der Mechanismus laeuft fuer
   JEDE Pumpfoil-Session, und in einem Randfall schneidet er echte Fahrt weg.
 
@@ -2478,8 +2492,16 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 
 
-- **🔴 YOUTUBE-RSS ANTWORTET NICHT MEHR — der Social-Feed haengt daran KOMPLETT.** Gemessen am
-  18.09.2026, 07:36, Anlass war Jans Frage zu James' Kanal-Freigabe.
+- **🟢 ERLEDIGT 22.09.2026 — YouTube-RSS laeuft wieder, es war ein voruebergehender Ausfall.**
+  Jan: „das hatte immer mal haenger, ist das noch aktuell? in community kann ich mein neuestes
+  video von heute nachmittag im social feed sehen, ich denke das koennen wir ignorieren."
+  Nachgemessen statt geglaubt, an `social_items`: sein Video von heute **17:20 wurde um 18:04
+  geholt**, also 44 Minuten spaeter; davor 22.09. 05:00 → 09:01, 21.09. 05:00 → 09:03, 20.09.
+  10:48 → 11:03 (fremder Kanal, u489). Der Abruf laeuft also durchgehend und fuer alle Kanaele,
+  nicht nur fuer Jans. Der Befund vom 18.09. bleibt als Beleg stehen, dass der Feed KOMPLETT an
+  dieser einen Quelle haengt — wenn YouTube laenger schweigt, steht der Feed still, ohne dass es
+  jemandem auffaellt. Falls das wiederkommt und laenger dauert, ist das der Punkt zum Ansetzen.
+  Urspruenglicher Befund vom 18.09.:
 
   **Was verifiziert ist:**
   - `https://www.youtube.com/feeds/videos.xml?channel_id=UC…` antwortet **404** — auch fuer
