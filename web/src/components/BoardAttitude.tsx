@@ -452,17 +452,12 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
         </p>
       )}
 
-      {rig && (
-        <p className="text-xs text-slate-400">
-          {t("board.rig", {
-            foil: `${rig.name.foil ?? "?"} ${rig.foil_span_cm.toFixed(0)} cm`,
-            stab: `${rig.name.stab ?? "?"} ${rig.stab_span_cm.toFixed(0)} cm`,
-            mast: rig.mast_len_cm.toFixed(0),
-            board: `${rig.name.board ?? "?"} ${rig.board_len_cm.toFixed(0)} cm`,
-          })}
-          {" · "}{t("board.rigAssumed", { fuse: rig.fuse_len_cm.toFixed(0) })}
-        </p>
-      )}
+      {/* KEINE Ausruestungs-Zeile mehr (Jan, 22.09.2026): Foil, Stab, Mast und Brett stehen
+          bereits ganz oben auf der Seite als Chips (`FoilSelect`) — hier standen sie ein zweites
+          Mal, nur mit anderen Worten. Einzig die Rumpflaenge und der Hinweis „Laengspositionen
+          geschaetzt" waren neu; die laesst Jan vorerst weg. Die Zeichnung darueber braucht die
+          Masse weiterhin, sie kommen unveraendert aus `d.rig`. Die Schluessel `board.rig` und
+          `board.rigAssumed` bleiben in den Sprachdateien stehen — „erstmal weglassen". */}
     </div>
   );
 }
