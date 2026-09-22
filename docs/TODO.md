@@ -1408,6 +1408,38 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+### 22.09.2026 — César (u439): der Upload-Fix ist im Feld belegt, zwei neue Befunde dazu
+
+**Erster Feldbeleg fuer den fortsetzbaren Upload.** Seine Aufnahme #3419 vom 04.09. (49 min,
+Amazfit Active 2 NFC Round) hing bei 584 von 2349 Chunks fest — genau das, was er im GitHub-Ticket
+als „faengt wieder von vorn an" gemeldet hatte. Nach dem Update auf 1.0.11 kamen am 22.09.
+zwischen 21:10 und 21:43 die restlichen **1765 Chunks in 33 Minuten** an, und zwar **ohne einen
+einzigen doppelten**: die Uhr hat wirklich bei 584 weitergemacht. Die Session steht auf
+`analyzed`, 2292 Accel- plus 57 GPS-Chunks, 293.249 Samples.
+
+- [ ] **🔴 DIE UHR STARTET WAEHREND DES UPLOADS WEITER NEU — dreimal in 33 Minuten.** César
+  meldet es ausdruecklich („The watch rebooted three times"), und es steht in unseren Daten:
+  drei Luecken im Chunk-Eingang von 1,8 / 4,9 / 1,1 Minuten, sonst laeuft er gleichmaessig.
+  Der Speicherfehler ist damit **nicht behoben, nur ueberlebbar** — 1.0.11 rettet die Daten,
+  verhindert den Absturz aber nicht. Zum Vergleich der Lauf vom 04.09. mit 1.0.6: vier Haenger
+  von 4,7 / 15,8 / 4,9 / 38,0 Minuten und dann 18 Tage gar nichts.
+- [ ] **🔴 EIN NEUSTART DER UHR ERREICHT UNS NICHT.** `device_tokens.crash_count` steht bei ihm
+  auf **0**, obwohl die Uhr dreimal neu gestartet ist. Unser Lauf-Canary meldet nur, wenn UNSERE
+  App stirbt — ein System-Neustart nimmt den Merker offenbar mit. Wir sind also genau bei dem
+  Fehlerbild blind, das hier auftritt, und haben es nur erfahren, weil er eine Mail geschrieben
+  hat. Ohne Messung koennen wir weder sagen, wie viele Nutzer es trifft, noch ob eine Aenderung
+  etwas gebracht hat.
+- [ ] **📊 ERSTE ZAHL ZUM STROMVERBRAUCH DES UPLOADS: 15 % Akku** fuer 33 Minuten BLE-Uebertragung
+  (2349 Chunks). Dazu hatten wir bisher gar nichts. Eine einzelne Messung auf einer einzelnen Uhr,
+  aber besser als die bisherige Leerstelle.
+- [ ] **💡 PRODUKTWUNSCH: etwas fuer ANFAENGER, nicht nur fuer Koenner.** César woertlich: „I just
+  need to learn to pump foil now! Hoping your app brings features for those learning and not only
+  the experts!" Seine Aufnahme passt dazu: 1304 m in 49 Minuten, **null erkannte Laeufe** — fuer
+  ihn zeigt die App derzeit nichts als eine leere Bilanz. Genau die Nutzer, die am meisten
+  Rueckmeldung braeuchten, bekommen von uns am wenigsten. Beruehrt [`docs/UX-IA.md`] und die
+  Startversuch-Anzeige, die es dafuer schon gibt.
+
+
 ### 22.09.2026 — Handy-Recorder: Karte flackert beim Halten des Stop-Knopfes
 
 - [ ] **Beim Beenden der Aufnahme flackert die Kartenansicht stark, solange man den Stop-Knopf
