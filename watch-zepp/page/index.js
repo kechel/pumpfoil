@@ -46,6 +46,43 @@ const IDLE_BRIGHT_MS = 5 * 60 * 1000;
 // (~24 days), then explicitly restore the system timeout when the session stops.
 const RECORDING_BRIGHT_MS = 2147483000;
 const AUTOSTART_SPEED = 7 / 3.6, AUTOSTART_TICKS = 3;
+
+// --- LAUF-WAECHTER -----------------------------------------------------------------------
+// Phasen wie bei Garmin (`SessionRecorder.mc`), damit dieselbe Zahl auf dem Server dasselbe
+// bedeutet und `device_tokens.crash_phase` vergleichbar bleibt.
+const PHASE_BOOT = 1;     // App-Start: Verbinden, Config, Wiederaufnahme
+const PHASE_IDLE = 2;     // Startbildschirm steht, nichts laeuft
+const PHASE_RECORD = 3;   // Aufnahme
+const PHASE_UPLOAD = 4;   // Upload
+//
+// WARUM ES DEN WAECHTER GIBT (22.09.2026): César (Amazfit Active 2) meldete per Mail, seine Uhr
+// habe sich waehrend eines Uploads DREIMAL neu gestartet. In unseren Daten stand
+// `crash_count = 0` — nicht, weil der Merker verlorenging, sondern weil die Zepp-App ueberhaupt
+// keinen hatte. Garmin meldet Abstuerze seit Wochen, Amazfit nie. Wir waren also genau bei dem
+// Fehlerbild blind, das auf dieser Plattform am haeufigsten auftritt, und haben es nur durch
+// eine Mail erfahren. Ohne Messung laesst sich weder sagen, wie viele Nutzer es trifft, noch ob
+// eine Aenderung etwas gebracht hat.
+//
+// Die Marke liegt vom App-Start bis zum sauberen Ende. Kommt die App durch `onDestroy`, wird sie
+// geloescht; stirbt sie vorher — Absturz ODER Neustart der Uhr —, liegt sie beim naechsten Start
+// noch da und geht mit dem naechsten CONFIG-Abruf raus. Geschrieben wird nur beim PHASENWECHSEL,
+// also viermal je Lauf und nicht einmal je Sekunde.
+//
+// BEWUSST NUR DIAGNOSE: der Waechter schaltet nichts ab. Eine Uhr, die `onDestroy` nicht
+// zuverlaessig ruft, wuerde sich sonst selbst Funktionen abklemmen.
+function canaryWrite(phase) {
+  try { store.setItem("run_canary", String(phase)); } catch (e) {}
+}
+function canaryClear() {
+  try { store.setItem("run_canary", ""); } catch (e) {}
+}
+// -> Phase des letzten Laufs (1-4), wenn er nicht sauber endete; sonst 0.
+function canaryRead() {
+  let v = 0;
+  try { v = parseInt(store.getItem("run_canary", ""), 10) || 0; } catch (e) {}
+  canaryClear();
+  return v > 0 && v <= 4 ? v : 0;
+}
 // ---- Lauf-/Foil-Erkennung auf der Uhr ----------------------------------------------------------
 // WORTGLEICH übernommen von den beiden Uhren, die das schon gelöst haben — NICHT neu erfunden:
 //   watch/source/SessionRecorder.mc:150-158 (_updateRun, Referenz-Implementierung)
@@ -1001,6 +1038,10 @@ Page(
 
     build() {
       const s = this.state, w = s.w;
+      // Ist der letzte Lauf sauber zu Ende gekommen? Lesen, BEVOR wir unsere eigene Marke
+      // setzen — sonst ueberschreiben wir genau die Auskunft, die wir holen wollen.
+      s.crashPhase = canaryRead();
+      canaryWrite(PHASE_BOOT);
       // Sprache aus der letzten Sitzung (vom Server geliefert, s. connect()) — VOR dem ersten
       // Rendern setzen, damit die App auch offline/ungepairt gleich in der richtigen Sprache
       // startet. Leer/unbekannt -> Englisch.
@@ -1162,6 +1203,7 @@ Page(
       });
 
       this.recoverActive();   // unbeendete Aufnahme aus letztem Lauf in die Queue übernehmen
+      canaryWrite(PHASE_IDLE);   // die gefaehrliche Startphase ist ueberstanden
 
       try { s.geo = new Geolocation(); s.geo.start(); } catch (e) {}
       // Zepp's getCurrent() is valid only inside an onCurrentChange callback. Registering the
@@ -1206,8 +1248,13 @@ Page(
       // Version melden (Update-Hinweis) und Layouts anfordern, solange der Nutzer sie nicht
       // abgeschaltet hat. layoutsPref: null = automatisch (Server entscheidet), true/false = Wahl
       // auf der Uhr -- dieselbe Dreistufigkeit wie bei Garmin.
+      // `crash`: Phase des LETZTEN Laufs, wenn er nicht sauber endete (s. Lauf-Waechter oben).
+      // Nur einmal melden — danach auf 0, sonst zaehlt der Server denselben Absturz bei jedem
+      // Heartbeat erneut.
+      const crash = s.crashPhase || 0;
       this.reqQ({ method: "CONFIG", token: getTok(), version: APP_VERSION, model: DEVICE_MODEL,
-                  wantLayouts: s.layoutsPref !== false }).then((r) => {
+                  crash: crash, wantLayouts: s.layoutsPref !== false }).then((r) => {
+        if (crash) s.crashPhase = 0;
         if (r && r.revoked) { store.setItem("deviceToken", ""); s.paired = false; this.beginPairing(); return; }
         // Update-Hinweis: neuere Version im Store als die hier laufende -> kurz anzeigen.
         if (r && r.latestVersion && istNeuer(r.latestVersion, APP_VERSION)) s.updateVersion = r.latestVersion;
@@ -2621,6 +2668,7 @@ Page(
       this.hideBar();
       this.applyButton();
       this.renderRecording();
+      canaryWrite(PHASE_RECORD);
       this._lockTouch();
     },
     stop() {
@@ -2630,6 +2678,7 @@ Page(
       this._disableTouchLock();
       this._setBrightMode("idle", true);
       s.recording = false;
+      canaryWrite(s.uploading ? PHASE_UPLOAD : PHASE_IDLE);
       const el = (now - s.startedAtMs) / 1000;
       s.last = { dur: el, dist: s.dist, avg: el > 0 ? s.dist / el * 3.6 : 0, max: s.max * 3.6 };
       if (this._gpsGesamt()) {
@@ -2830,6 +2879,7 @@ Page(
       if (!getTok()) { if (list.length) { s.upStatus = t("up.later") + " (" + list.length + ")"; this.rerender(); } return; }
       if (!list.length) { if (inSummary) { s.upStatus = "✓ " + t("up.done"); this.showBar(100); this.renderSummary(); } this.applyButton(); return; }
       s.uploading = true;
+      canaryWrite(PHASE_UPLOAD);
       // Upload requires the Device App to stay alive for BLE/ZML. Keep the page awake for the whole
       // worker lifetime; the normal five-minute idle policy resumes on completion or failure.
       this._setBrightMode("uploading");
@@ -2851,6 +2901,7 @@ Page(
       const step = (i) => {
         if (i >= list.length) {
           s.uploading = false;
+          canaryWrite(PHASE_IDLE);
           this._setBrightMode("idle", true);
           console.log("[pumpfoil] upload worker done");
           s.upStatus = "✓ " + t("up.done"); if (inSummary) { this.showBar(100); this.renderSummary(); } else this.renderIdle(); this.applyButton(); return;
@@ -2865,6 +2916,7 @@ Page(
           })
           .catch((err) => {
             s.uploading = false;
+            canaryWrite(PHASE_IDLE);
             this._setBrightMode("idle", true);
             console.log("[pumpfoil] upload worker failed " + ((err && err.message) || "?"));
             s.upStatus = t("common.error") + ": " + ((err && err.message) || "?"); this.rerender(); this.applyButton();
@@ -2875,6 +2927,9 @@ Page(
 
     onDestroy() {
       const s = this.state;
+      // Sauberes Ende: die Marke darf nicht liegenbleiben, sonst meldet der naechste Start
+      // einen Absturz, den es nie gab.
+      canaryClear();
       this._setBrightMode("system");
       if (s.timer) clearInterval(s.timer);
       if (s.pollTimer) clearTimeout(s.pollTimer);

@@ -1408,6 +1408,45 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+### 22.09.2026 — Zepp-Doku nachgelesen: eine Tuer zu, ein Werkzeug neu
+
+Jans Auftrag: „besorg dir doch nochmal die aktuelle dokumentation fuer amazfit apps, vielleicht
+findest du ein paar interessante stichpunkte". Vier Befunde, alle mit Quelle.
+
+- **🔴 DER SPORTMODUS-WEG IST FUER UNSERE NUTZER ZU.** Die „Workout Extension" laeuft als Plug-in
+  IM System-Sportmodus — das waere die Loesung fuer die System-Tastensperre und das Bildschirm-Aus
+  gewesen. Sie verlangt aber **Zepp OS 3.5** und laeuft nur auf **T-Rex 3, Cheetah Pro, Cheetah
+  (Round), Cheetah Square, T-Rex Ultra und Falcon**. Von unseren Amazfit-Nutzern faellt damit die
+  Mehrheit heraus: GTR 4 (Klettermax, u352), Active 2 NFC Round (César), Balance, Balance 2,
+  Active 2 Square. Ein kompletter Umbau fuer eine Minderheit — **nicht weiterverfolgen**, bis sich
+  die Geraeteliste deutlich verbreitert. Quelle: docs.zepp.com/docs/guides/workout-extension/intro/
+- **✅ BESTAETIGT, dass unser Weg alternativlos ist.** Ein „App Service" (Hintergrunddienst ohne
+  UI) darf **keine hochverbrauchenden Sensoren** benutzen — woertlich „High-power sensors,
+  including Accelerometer, Geolocation, Gyroscope". Puls ginge, GPS und Beschleunigung nicht.
+  Unsere Aufnahme MUSS also die Seite am Leben halten; der Kommentar dazu im Code stimmt weiterhin.
+  Nebenbei: eine Einzelausfuehrung des Dienstes ist auf **600 ms** begrenzt.
+- **📊 NEUES WERKZEUG: `getPerformance` aus `@zos/app`** liefert `memory.app[].used`, `.peak`,
+  `memory.system.used/total` und sogar eine Liste `leaking`. Damit liesse sich der Speicherverbrauch
+  MESSEN statt geraten — genau die Luecke bei Césars Neustarts. **Haken: erst ab API_LEVEL 4.0**,
+  unsere `app.json` steht auf `minVersion 3.0`. Also nur in `try/catch` und als Zusatz, nicht als
+  Voraussetzung. Quelle: docs.zepp.com/docs/reference/device-app-api/newAPI/app/getPerformance/
+- **ℹ️ Bestaetigt:** ohne Zutun schaltet das System den Bildschirm ab und beendet die Mini-App
+  **nach 10 Sekunden**; `relaunch: true` laesst sie beim Aufwecken wiederkommen. Beides haben wir
+  gesetzt — die Auffrischung der Bildschirmzeit in 1.0.12 ist damit die richtige Stellschraube.
+
+- [x] **Absturz-/Neustart-Waechter fuer Amazfit gebaut (22.09.2026).** Und dabei eine Korrektur an
+  meiner eigenen Aussage von vorhin: ich hatte geschrieben, ein System-Neustart „nehme den Merker
+  mit". Falsch — die Zepp-App hatte **ueberhaupt keinen Waechter**. Garmin meldet Abstuerze seit
+  Wochen ueber `run_canary`, Amazfit nie. Césars `crash_count = 0` war also kein verlorener Merker,
+  sondern eine nie gebaute Funktion.
+  Jetzt nach demselben Muster und mit denselben Phasen-Nummern wie bei Garmin (1 Start, 2 Leerlauf,
+  3 Aufnahme, 4 Upload), damit `device_tokens.crash_phase` plattformuebergreifend dasselbe bedeutet.
+  Die Marke liegt vom App-Start bis zum sauberen `onDestroy`; bleibt sie liegen, geht sie mit dem
+  naechsten CONFIG-Abruf raus. Geschrieben wird nur beim Phasenwechsel. Der Bridge-Code reicht
+  `crash` mit durch — dieselbe Whitelist, die frueher Sprache und Layouts verschluckt hat.
+  Geht mit **1.0.12** raus.
+
+
 ### 22.09.2026 — César (u439): der Upload-Fix ist im Feld belegt, zwei neue Befunde dazu
 
 **Erster Feldbeleg fuer den fortsetzbaren Upload.** Seine Aufnahme #3419 vom 04.09. (49 min,

@@ -57,3 +57,40 @@ def test_nutzer_voreinstellung_greift_ohne_geraete_wert(client):
     r = client.put("/api/settings", headers=auth, json={"water_lock": "off"})
     assert r.status_code == 200, r.text
     assert _config(client, dev)["waterLock"] == "off"
+
+
+def test_absturzmeldung_wird_gezaehlt_und_entprellt(client):
+    """Die Uhr meldet einen nicht sauber beendeten Lauf — der Server zaehlt das EREIGNIS.
+
+    Gebaut fuer Amazfit am 22.09.2026, nachdem César (Amazfit Active 2) per Mail berichtete, seine
+    Uhr habe sich waehrend eines Uploads dreimal neu gestartet, waehrend bei uns `crash_count = 0`
+    stand: die Zepp-App hatte bis dahin gar keinen Waechter. Der Weg ist derselbe wie bei Garmin,
+    deshalb wird er hier auch einmal als Weg geprueft und nicht nur als Funktion.
+
+    ENTPRELLT: ein App-Start schickt ZWEI Config-Abrufe, die beide dasselbe Flag tragen. Gezaehlt
+    werden soll der Absturz, nicht der Abruf.
+    """
+    from app import models
+    from app.db import SessionLocal
+
+    auth, dev = _paar(client, "canary-zepp")
+    gid = client.get("/api/devices/list", headers=auth).json()[0]["id"]
+
+    def stand():
+        db = SessionLocal()
+        try:
+            d = db.get(models.DeviceToken, gid)
+            return int(d.crash_count or 0), d.crash_phase
+        finally:
+            db.close()
+
+    assert stand() == (0, None)
+    # Phase 4 = Upload (dieselbe Nummer wie bei Garmin, s. SessionRecorder.mc).
+    assert client.get("/api/devices/config?p=zepp&v=1.0.12&crash=4", headers=dev).status_code == 200
+    assert stand() == (1, 4)
+    # Zweiter Abruf desselben App-Starts: derselbe Absturz, kein zweiter Zaehler.
+    client.get("/api/devices/config?p=zepp&v=1.0.12&crash=4", headers=dev)
+    assert stand()[0] == 1, "der zweite Config-Abruf desselben Starts wurde mitgezaehlt"
+    # Ohne Meldung bleibt alles, wie es ist.
+    client.get("/api/devices/config?p=zepp&v=1.0.12", headers=dev)
+    assert stand() == (1, 4)
