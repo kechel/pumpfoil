@@ -218,6 +218,8 @@ def device_config(
     sf: int | None = Query(None),   # 1 = ein Storage-Write der Uhr ist gescheitert (Store voll)
     kb: int | None = Query(None),   # dabei gepuffertes Volumen in KB (Schaetzung der Uhr)
     crash: int | None = Query(None),  # Lauf-Canary: Phase, in der der letzte App-Lauf starb (1-4)
+    mem: int | None = Query(None, ge=0),      # Spitzen-Speicherverbrauch der App in KB
+    memtot: int | None = Query(None, ge=0),   # Systemspeicher der Uhr in KB (Modell-Konstante)
 ) -> dict:
     """Konfiguration für die Uhr-App (per Device-Token). Liefert die auf der Website
     konfigurierten Ansichten + die Farb-Option. Die Uhr lädt das beim App-Start und
@@ -314,6 +316,20 @@ def device_config(
             "   crash_at = now()"
             " WHERE id = :i"),
             {"i": device.id, "ph": max(0, min(int(crash), 9)), "deb": SF_DEBOUNCE_S})
+        db.commit()
+        db.refresh(device)
+    # Speicherverbrauch der App (Amazfit ab 1.0.12, s. models.DeviceToken). Der SPITZENWERT
+    # waechst nur — wir wollen wissen, wie nah die App je am Limit stand, nicht wie es gerade
+    # aussieht. Der Systemspeicher ist eine Modell-Konstante, dort gewinnt der letzte Wert.
+    # Nicht entprellt: ein doppelter Abruf meldet denselben Wert und aendert das Maximum nicht.
+    if mem or memtot:
+        db.execute(sa_text(
+            "UPDATE device_tokens SET"
+            "   mem_peak_kb = GREATEST(COALESCE(mem_peak_kb,0), :mp),"
+            "   mem_total_kb = CASE WHEN :mt > 0 THEN :mt ELSE COALESCE(mem_total_kb,0) END"
+            " WHERE id = :i"),
+            {"i": device.id, "mp": max(0, min(int(mem or 0), 1_000_000)),
+             "mt": max(0, min(int(memtot or 0), 1_000_000))})
         db.commit()
         db.refresh(device)
     if dirty:
@@ -711,6 +727,10 @@ def list_devices(
             # 3 Aufnahme · 4 Upload). Fuer die Fehlersuche — der Nutzer kann daran nichts drehen.
             "crash_count": int(d.crash_count or 0),
             "crash_phase": int(d.crash_phase) if d.crash_phase else None,
+            # Speicher: Spitzenwert der App und Systemspeicher der Uhr, beide in KB. 0 = die Uhr
+            # meldet es nicht (kein API_LEVEL 4.0 oder keine Amazfit).
+            "mem_peak_kb": int(d.mem_peak_kb or 0),
+            "mem_total_kb": int(d.mem_total_kb or 0),
             "crash_at": d.crash_at.isoformat() if d.crash_at else None,
             # WARUM liefert der Server dieser Uhr (keine) Layouts? Ohne das bleibt nur Raten —
             # genau daran hing eine ganze Testrunde („steht auf an, zeigt sie aber nicht").
