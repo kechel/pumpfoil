@@ -174,6 +174,19 @@ class DeviceToken(Base):
     crash_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     crash_phase: Mapped[int | None] = mapped_column(Integer)
     crash_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Speicherverbrauch der App, gemeldet von Amazfit ab 1.0.12 (`getPerformance`, Zepp OS
+    # API_LEVEL 4.0). `mem_peak_kb` ist der GROESSTE je gemeldete Spitzenwert dieser Uhr,
+    # `mem_total_kb` der Systemspeicher — eine Modell-Konstante, deshalb zuletzt gewinnt.
+    #
+    # WOZU (22.09.2026): Césars Uhr startete waehrend eines Uploads dreimal neu. Ob die App
+    # dabei am Speicherlimit stand oder aus einem ganz anderen Grund starb, konnten wir nicht
+    # sagen — wir hatten keine einzige Zahl dazu. Zusammen mit `crash_phase` beantwortet das
+    # Paar genau diese Frage: wie nah war sie dran, und in welcher Phase.
+    #
+    # REINE DIAGNOSE wie die Marken darueber. Es haengt keine Abschaltung daran, und eine Uhr
+    # ohne API_LEVEL 4.0 meldet einfach nichts — dann bleiben beide Werte 0.
+    mem_peak_kb: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    mem_total_kb: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     # Vom Nutzer ausgeblendet: rein kosmetisch. Erneutes Pairing legt IMMER eine neue Zeile
     # an (devices.py), und Zeilen mit Sessions duerfen nicht weg (sonst verlieren die
     # Sessions ihre Geraete-Zuordnung). Ein Nutzer hatte dadurch 5 Eintraege fuer EINE Uhr

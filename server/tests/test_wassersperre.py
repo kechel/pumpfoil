@@ -94,3 +94,41 @@ def test_absturzmeldung_wird_gezaehlt_und_entprellt(client):
     # Ohne Meldung bleibt alles, wie es ist.
     client.get("/api/devices/config?p=zepp&v=1.0.12", headers=dev)
     assert stand() == (1, 4)
+
+
+def test_speichermessung_behaelt_den_hoechststand(client):
+    """Der Spitzenwert waechst nur — wir wollen wissen, wie nah die App je am Limit stand.
+
+    Gebaut am 22.09.2026 fuer Amazfit (`getPerformance`, Zepp OS API_LEVEL 4.0). Anlass: Césars
+    Uhr startete waehrend eines Uploads dreimal neu, und wir hatten keine einzige Zahl dazu — ob
+    sie am Speicherlimit stand oder aus einem anderen Grund starb, war nicht zu sagen.
+    """
+    from app import models
+    from app.db import SessionLocal
+
+    auth, dev = _paar(client, "mem-zepp")
+    gid = client.get("/api/devices/list", headers=auth).json()[0]["id"]
+
+    def stand():
+        db = SessionLocal()
+        try:
+            d = db.get(models.DeviceToken, gid)
+            return int(d.mem_peak_kb or 0), int(d.mem_total_kb or 0)
+        finally:
+            db.close()
+
+    assert stand() == (0, 0), "ohne Meldung bleibt es bei null"
+    client.get("/api/devices/config?p=zepp&v=1.0.12&mem=420&memtot=2048", headers=dev)
+    assert stand() == (420, 2048)
+    # Ein niedrigerer Wert darf den Hoechststand NICHT senken.
+    client.get("/api/devices/config?p=zepp&v=1.0.12&mem=100&memtot=2048", headers=dev)
+    assert stand() == (420, 2048), "der Hoechststand wurde ueberschrieben"
+    # Ein hoeherer schon.
+    client.get("/api/devices/config?p=zepp&v=1.0.12&mem=900&memtot=2048", headers=dev)
+    assert stand() == (900, 2048)
+    # Eine Uhr ohne die API meldet nichts — und loescht damit auch nichts.
+    client.get("/api/devices/config?p=zepp&v=1.0.12", headers=dev)
+    assert stand() == (900, 2048)
+    # Die Geraeteliste zeigt beides, sonst sieht es nie jemand.
+    eintrag = [x for x in client.get("/api/devices/list", headers=auth).json() if x["id"] == gid][0]
+    assert eintrag["mem_peak_kb"] == 900 and eintrag["mem_total_kb"] == 2048

@@ -150,6 +150,9 @@ def _migrate_add_indexes() -> None:
         "ALTER TABLE device_tokens ADD COLUMN IF NOT EXISTS crash_count INTEGER NOT NULL DEFAULT 0",
         "ALTER TABLE device_tokens ADD COLUMN IF NOT EXISTS crash_phase INTEGER",
         "ALTER TABLE device_tokens ADD COLUMN IF NOT EXISTS crash_at TIMESTAMPTZ",
+        # Speicherverbrauch der App (Amazfit ab 1.0.12, `getPerformance`). S. models.py.
+        "ALTER TABLE device_tokens ADD COLUMN IF NOT EXISTS mem_peak_kb INTEGER NOT NULL DEFAULT 0",
+        "ALTER TABLE device_tokens ADD COLUMN IF NOT EXISTS mem_total_kb INTEGER NOT NULL DEFAULT 0",
         "ALTER TABLE device_tokens ADD COLUMN IF NOT EXISTS hidden_at TIMESTAMPTZ",
         # Detailed Setup je Session (je NULL = Standard des Nutzers aus settings_json).
         # Stab = Katalog (stabs), Board = eigene Einträge (boards); Mast/Shim sind reine Werte.

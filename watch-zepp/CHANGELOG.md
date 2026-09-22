@@ -30,6 +30,12 @@ Nutzer, dessen Uhr sich waehrend eines Uploads dreimal neu gestartet hat (gemeld
 auftritt. Die Meldung ist rein diagnostisch und schaltet nichts ab; sie sagt nur, in welcher Phase
 es passiert ist (Start, Leerlauf, Aufnahme, Upload).
 
+**Und sie misst dabei ihren eigenen Speicherverbrauch.** Ein Nutzer berichtete, seine Uhr habe
+sich waehrend eines Uploads dreimal neu gestartet — ob die App dabei am Speicherlimit stand oder
+aus einem ganz anderen Grund starb, konnten wir nicht sagen, weil wir keine einzige Zahl dazu
+hatten. Jetzt meldet die Uhr ihren Hoechststand mit; auf Geraeten, die das nicht koennen (aeltere
+Zepp-OS-Fassungen), bleibt es wie bisher.
+
 **Die Uhr vibriert an den Strecken- und Zeitmarken aus dem Profil.**
 
 **Ein ausgegrauter Start-Knopf sagt jetzt, warum.** Wartet auf GPS, oder ein Upload laeuft noch.

@@ -60,7 +60,10 @@ async function handle(req) {
     // diese Zeile bliebe der Waechter auf der Uhr stehen und erreichte den Server nie — genau
     // dieselbe Falle wie damals bei Sprache, Update-Hinweis und Layouts.
     const qc = req.crash ? "&crash=" + encodeURIComponent(req.crash) : "";
-    const r = await fetch({ url: BASE + "/api/devices/config?p=zepp" + qv + ql + qm + qc, method: "GET", headers: { "X-Device-Token": req.token } });
+    // Speicher-Spitzenwert der App und Systemspeicher der Uhr, beide in KB (s. models.py).
+    const qmem = req.mem ? "&mem=" + encodeURIComponent(req.mem) : "";
+    const qmt = req.memtot ? "&memtot=" + encodeURIComponent(req.memtot) : "";
+    const r = await fetch({ url: BASE + "/api/devices/config?p=zepp" + qv + ql + qm + qc + qmem + qmt, method: "GET", headers: { "X-Device-Token": req.token } });
     const code = r.status || 0;
     if (code === 401) return { paired: false, revoked: true };
     if (code < 200 || code >= 300) return { paired: true };

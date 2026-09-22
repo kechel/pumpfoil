@@ -17,6 +17,12 @@ import { getConnectStatus } from "@zos/ble";
 // setWakeUpRelaunch(true) laesst das System beim Aufwachen UNSERE App wieder oeffnen statt
 // des Zifferblatts; recoverActive() nimmt dann die gesicherte Aufnahme wieder auf.
 import { setWakeUpRelaunch, setPageBrightTime, resetPageBrightTime } from "@zos/display";
+// `getPerformance` gibt es erst ab Zepp OS API_LEVEL 4.0; unsere app.json steht auf minVersion
+// 3.0. Deshalb KEIN statischer Import — der waere auf aelteren Uhren ein Ladefehler, und ein
+// Ladefehler beim Start ist genau der Absturz, den diese Messung eigentlich aufklaeren soll.
+// `zosApp` bleibt null, wo es die API nicht gibt; dann meldet die Uhr eben keinen Speicher.
+let zosApp = null;
+try { zosApp = require("@zos/app"); } catch (e) { zosApp = null; }
 import { BasePage } from "@zeppos/zml/base-page";
 import { Geolocation, HeartRate, Accelerometer, Vibrator, Buzzer, FREQ_MODE_HIGH,
          FREQ_MODE_NORMAL, VIBRATOR_SCENE_SHORT_MIDDLE, VIBRATOR_SCENE_DURATION_LONG } from "@zos/sensor";
@@ -71,11 +77,50 @@ const PHASE_UPLOAD = 4;   // Upload
 // BEWUSST NUR DIAGNOSE: der Waechter schaltet nichts ab. Eine Uhr, die `onDestroy` nicht
 // zuverlaessig ruft, wuerde sich sonst selbst Funktionen abklemmen.
 function canaryWrite(phase) {
-  try { store.setItem("run_canary", String(phase)); } catch (e) {}
+  try {
+    store.setItem("run_canary", String(phase));
+    // Speicherstand MIT festhalten. Stirbt die App, liegt beim naechsten Start beides da: in
+    // welcher Phase es passierte und wie nah sie am Limit stand. Getrennt gespeichert, damit
+    // ein alter Waechter-Eintrag ohne Speicherwert weiterhin lesbar bleibt.
+    const m = memRead();
+    if (m) store.setItem("run_mem", m.peak + ":" + m.total);
+  } catch (e) {}
 }
 function canaryClear() {
-  try { store.setItem("run_canary", ""); } catch (e) {}
+  try { store.setItem("run_canary", ""); store.setItem("run_mem", ""); } catch (e) {}
 }
+// -> { peak, total } in KB aus dem letzten Lauf, oder null.
+function canaryMemRead() {
+  try {
+    const teile = String(store.getItem("run_mem", "")).split(":");
+    const peak = parseInt(teile[0], 10) || 0, total = parseInt(teile[1], 10) || 0;
+    return peak || total ? { peak: peak, total: total } : null;
+  } catch (e) {
+    return null;
+  }
+}
+// --- SPEICHERMESSUNG -----------------------------------------------------------------------
+// -> { peak, total } in KB, oder null, wenn die Uhr es nicht hergibt.
+//
+// Césars Uhr startete waehrend eines Uploads dreimal neu (Mail, 22.09.2026). Ob die App dabei am
+// Speicherlimit stand, konnten wir nicht sagen — wir hatten keine einzige Zahl. `getPerformance`
+// liefert sie: `memory.app[].peak` ist der Hoechststand seit App-Start, `memory.system.total` der
+// Speicher der Uhr. Zusammen mit der Absturz-Phase beantwortet das die Frage „wie nah war sie
+// dran", statt sie zu vermuten.
+function memRead() {
+  if (!zosApp || typeof zosApp.getPerformance !== "function") return null;
+  try {
+    const m = (zosApp.getPerformance("memory") || {}).memory || {};
+    const eigen = (m.app || [])[0] || {};
+    const kb = (v) => (typeof v === "number" && v > 0 ? Math.round(v / 1024) : 0);
+    const peak = kb(eigen.peak) || kb(eigen.used);
+    const total = kb((m.system || {}).total);
+    return peak || total ? { peak: peak, total: total } : null;
+  } catch (e) {
+    return null;   // eine Diagnose darf nie die App kosten, die sie diagnostiziert
+  }
+}
+
 // -> Phase des letzten Laufs (1-4), wenn er nicht sauber endete; sonst 0.
 function canaryRead() {
   let v = 0;
@@ -1041,6 +1086,7 @@ Page(
       // Ist der letzte Lauf sauber zu Ende gekommen? Lesen, BEVOR wir unsere eigene Marke
       // setzen — sonst ueberschreiben wir genau die Auskunft, die wir holen wollen.
       s.crashPhase = canaryRead();
+      s.crashMem = canaryMemRead();
       canaryWrite(PHASE_BOOT);
       // Sprache aus der letzten Sitzung (vom Server geliefert, s. connect()) — VOR dem ersten
       // Rendern setzen, damit die App auch offline/ungepairt gleich in der richtigen Sprache
@@ -1252,9 +1298,14 @@ Page(
       // Nur einmal melden — danach auf 0, sonst zaehlt der Server denselben Absturz bei jedem
       // Heartbeat erneut.
       const crash = s.crashPhase || 0;
+      // Speicher: beim ersten Abruf nach einem Absturz der Stand VON DAMALS — er beantwortet die
+      // Frage, wie nah die App dran war. Sonst der aktuelle Hoechststand dieses Laufs; der
+      // Server behaelt ohnehin nur das Maximum.
+      const mem = (crash && s.crashMem) || memRead();
       this.reqQ({ method: "CONFIG", token: getTok(), version: APP_VERSION, model: DEVICE_MODEL,
-                  crash: crash, wantLayouts: s.layoutsPref !== false }).then((r) => {
-        if (crash) s.crashPhase = 0;
+                  crash: crash, mem: mem && mem.peak, memtot: mem && mem.total,
+                  wantLayouts: s.layoutsPref !== false }).then((r) => {
+        if (crash) { s.crashPhase = 0; s.crashMem = null; }
         if (r && r.revoked) { store.setItem("deviceToken", ""); s.paired = false; this.beginPairing(); return; }
         // Update-Hinweis: neuere Version im Store als die hier laufende -> kurz anzeigen.
         if (r && r.latestVersion && istNeuer(r.latestVersion, APP_VERSION)) s.updateVersion = r.latestVersion;
