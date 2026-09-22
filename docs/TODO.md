@@ -1415,8 +1415,18 @@ Arbeit — die kann nur jemand beantworten, der dort faehrt („was geht uns das
 ignorieren"). Auch der Apple-Relay-Punkt ist erledigt und wird nicht weitergefuehrt: der Server
 verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Konten nie.
 
-- [ ] **Pierre (Nico), u624: seine Polar schreibt `running` in die Datei — beide Aufnahmen
-  aussortiert.** Jans Frage: „wurden die sessions via polar von Pierre (Nico) als pumpfoil
+- [x] **ERLEDIGT, nichts zu tun — Pierre (Nico), u624: seine Polar schreibt `running`, beide
+  Aufnahmen korrekt aussortiert.** Jan wollte das KONTROLLIERT haben, nicht repariert: „die
+  SOLLEN ja nicht als pumpfoil gezaehlt werden … das ist offensichtlich laufen / joggen."
+  Gegengeprueft: `is_pumpfoil=false`, `sport_class=other`, 0 Laeufe, `detection=none`,
+  `needs_classification=false`. Beide stehen bei ihm unter „Aussortiert" und sind aus Community,
+  Rekorden und Bestenlisten draussen (`community.py` verlangt `is_pumpfoil` UND `sport_class` in
+  (leer, pumpfoil)). Lief ohne Zutun — der Import macht aus Landsport in der Datei „aussortiert",
+  festgehalten in `test_import_ordnet_die_sportart_aus_der_datei_ein` seit dem 07.09.
+  **Mein Fehlgriff, hier notiert:** ich hatte einen fertigen franzoesischen Entwurf, der ihm
+  erklaert haette, wie er die Aufnahmen als Pumpfoil zaehlen laesst. Bei zwei Jogging-Runden
+  waere das die falsche Anleitung gewesen. Aus „wurde das erkannt?" hatte ich einen Fehler
+  gelesen, wo eine Kontrolle gemeint war — Entwurf geloescht. Jans Frage: „wurden die sessions via polar von Pierre (Nico) als pumpfoil
   erkannt oder automatisch aussortiert?" Antwort: **aussortiert**. #9579 (22.09., 54 min,
   4537 m) und #9578 (19.09.) stehen auf `sport_class = other`, `detection = none`, 0 Laeufe.
   **Kein Fehler, sondern die Regel:** `running` ist von der GPS-only-Erkennung ausgeschlossen —
