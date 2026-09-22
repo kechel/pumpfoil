@@ -1871,7 +1871,1540 @@ const cs: N2 = {
 };
 
 // Partial (siehe nerd1): fehlende Sprachen fallen im Consumer auf `de` zurück.
-export const NERD2: Partial<Record<Lang, N2>> = {
+
+const id: N2 = {
+  "back": "← Analisis Nerd (Bagian 1: eksperimen)",
+  "h1": "Analisis Nerd · Bagian 2",
+  "subtitle": "Bagaimana angka-angka sensor mentah menjadi pompa, lari on-foil, awal/akhir dan fase glide — pemrosesan sinyal, sliding-window, model ML dan pelabelan, satu demi satu.",
+  "intro": "Di [Bagian 1](/nerd-analysen) semuanya tentang **kebenaran**: jam tangan kedua di mast foil, yang mengungkap apa yang benar-benar dilakukan foil. Di sini tentang **mesin**: apa yang dihitung server agar dari sinyal bergoyang di pergelangan tangan menjadi evaluasi sesi yang bersih. Semuanya berikut terjadi **di sisi server** — jam tangan hanya perekam tipis.",
+  "raw": {
+    "h": "Apa yang tiba: data mentah",
+    "p": "Setiap sesi terdiri dari dua aliran, keduanya dengan basis waktu bersama (ms dari awal perekaman):",
+    "li": [
+      "**GPS**, sekitar **1 Hz**: per sampel `[t_ms, lat, lon, speed_mps, hr_bpm, h_acc_m]`. Kecepatan dan nadi dapat hilang (kemudian berasal dari posisi atau kosong).",
+      "**Akselerasi**, tergantung jam tangan **10–100 Hz**: array `int16` dengan bentuk `(N × 3)` — X/Y/Z dalam penghitung mentah. Sebuah `accel_scale` (penghitung per g) mengubahnya menjadi g fisik."
+    ],
+    "p2": "Mengapa `int16` bukan float? Bandwidth. 100 Hz × 3 sumbu × 8 jam adalah jutaan nilai — sebagai bilangan bulat 2-byte menguranginya setengahnya ukuran upload. Penskalaan kembali ke g terjadi di server."
+  },
+  "pipe": {
+    "h": "Pipeline sekilas",
+    "p": "Dua trek pemrosesan (GPS + Accel) masuk ke model ML yang memutuskan **per detik** \"di foil — ya/tidak\". Dari sini menjadi lari berkesinambungan, yang awal/akhirnya disetel dengan baik, dan akhirnya pompa & fase glide per lari:",
+    "cap": "Evaluasi lengkap: dari dua aliran data mentah melalui masker foiling menjadi lari, pompa dan fase glide.",
+    "gps": [
+      "GPS  ~1 Hz",
+      "t, lat, lon, kecepatan, hr, h_acc"
+    ],
+    "accel": [
+      "Akselerasi  10–100 Hz",
+      "int16 (N×3) · accel_scale"
+    ],
+    "gpsPrep": [
+      "Persiapkan GPS",
+      "Filter spike/Doppler · merata-ratakan · kecepatan"
+    ],
+    "accelPrep": [
+      "Persiapkan akselerasi",
+      "Magnitudo → vertikal · bandpass FFT"
+    ],
+    "model": [
+      "Model foil ML — RandomForest, ±5 s konteks",
+      "Fallback tanpa akselerasi: mesin-status GPS (histeresis + dwell)"
+    ],
+    "mask": [
+      "Masker foiling",
+      "foil / bukan-foil — per detik"
+    ],
+    "seg": [
+      "Segmentasi → lari",
+      "Tutup celah · gabung · awal/akhir snap"
+    ],
+    "pumps": [
+      "Pompa hitung",
+      "terpimpin-kadence, per lari"
+    ],
+    "glide": [
+      "Fase glide",
+      "Celah antara pompa"
+    ]
+  },
+  "mag": {
+    "h": "Langkah 1 — magnitudo bukan sumbu",
+    "p": "Jam tangan duduk di pergelangan tangan dan terus berputar — ketiga sumbu X/Y/Z menunjuk ke arah yang berbeda sepanjang waktu. Nilai sumbu tunggal tidak berharga. Penyelamatannya adalah **magnitudo** vektor:",
+    "formula": "|a| = √(x² + y² + z²) / accel_scale",
+    "p2": "Magnitudo adalah **orientation-invariant**: tidak peduli jam tangan diputar bagaimana, dorakan 2-g tetap dorakan 2-g. Ini membuat sinyal pertama kali sebanding (`magnitude_g`).",
+    "cap": "Tiga sumbu individual yang tidak berarti (jam tangan terus berubah) bersama-sama menghasilkan magnitudo yang stabil dan orientation-invariant |a|.",
+    "label": "|a| = √(x²+y²+z²)"
+  },
+  "vert": {
+    "h": "Langkah 2 — dari pergelangan tangan ke vertikal",
+    "p": "Magnitudo punya kelemahan: pompa adalah **dorakan ke atas**, tetapi `|a|` menghitung stroke bawah sama seperti stroke atas — setiap pompa muncul dua kali. Lebih baik adalah **akselerasi vertikal asli terhadap gravitasi**. Dan itu dapat direkonstruksi, tanpa giroskop sama sekali:",
+    "ol": [
+      "**Arah gravitasi** berubah perlahan saja → estimasi per sumbu via **low-pass** (< 0,25 Hz). Ini memberikan vektor `g`, yang selalu menunjuk \"ke bawah\".",
+      "**Akselerasi dinamis** adalah `a − g`.",
+      "Proyeksikan ini pada **vektor satuan arah gravitasi** → sinyal skalar: > 0 = ke atas (dorakan)."
+    ],
+    "f1": "v(t) = (a − g) · ĝ",
+    "fMid": "dengan",
+    "f2": "ĝ = g / |g|",
+    "cap": "Gravitasi yang bergeser perlahan g (low-pass) memisahkan orientasi dari dinamika. Akselerasi dinamis a−g, diproyeksikan pada ĝ, memberikan dorakan ke atas yang bersih per pompa.",
+    "gLabel": "g (gravitasi)",
+    "aLabel": "a (terukur)",
+    "amg": "a − g",
+    "topNote": "|Magnitudo|: setiap pompa dua kali",
+    "botNote": "v(t) terhadap gravitasi: satu dorakan per pompa"
+  },
+  "win": {
+    "h": "Langkah 3 — Sliding-Window & Bandpass FFT",
+    "p": "Memompa adalah **berirama** — dan ritme hidup dalam domain frekuensi. Itulah mengapa **jendela geser** (biasanya 4 detik lebar, langkah 2 detik) meluncur di atas sinyal, dan untuk setiap jendela **FFT** menghitung spektrum. Dua band penting:",
+    "li": [
+      "**Filter-band 0,3–3 Hz** — segala sesuatu di bawahnya adalah gravitasi/drift, di atasnya adalah kebisingan percikan. Keduanya dinolkan via bandpass FFT (`bandpass_fft`).",
+      "**Pump-band 0,5–2 Hz** — di sini kadence pompa hidup (30–120 pompa/min)."
+    ],
+    "p2": "Per jendela empat fitur jatuh:",
+    "li2": [
+      "**dom_freq** — frekuensi dominan dalam pump-band (laju pompa)",
+      "**band_power_ratio** — proporsi energi dalam pump-band ke band-total (tinggi = ritme jelas)",
+      "**rms** — kekuatan sinyal (amplitudo gerakan)",
+      "**spectral_entropy** — betapa \"teraturnya\" spektrum (rendah = satu frekuensi jelas = memompa; tinggi = kekacauan = kebisingan/glide)"
+    ],
+    "cap": "Jendela 4-detik meluncur di atas sinyal yang disaring (langkah 2 detik → tumpang tindih). Untuk setiap jendela FFT memberikan spektrum; energi dalam pump-band 0,5–2 Hz mengungkapkan laju dan ritme.",
+    "winT": "Jendela t",
+    "winT1": "Jendela t+1",
+    "sig": "v(t) — bandpass-disaring (0,3–3 Hz)",
+    "fft": "FFT",
+    "spec": "Spektrum",
+    "band": "0,5–2 Hz",
+    "freq": "Frekuensi →"
+  },
+  "rate": {
+    "h": "Detail nerd: laju sampel asli",
+    "p": "Beberapa jam tangan **berbohong** tentang laju mereka. Forerunner 55 menandai \"10 Hz\", tetapi benar-benar hanya memberikan ~2,5 Hz. Fitur frekuensi dan kadence pompa akan menjadi sampah. Itulah mengapa server menentukan laju **generik dari data itu sendiri**: `real_Hz = count_Accel-samples / GPS-duration`. Jika berbeda > 25% dari yang ditandai, laju terukur berlaku. Dan jika **di bawah 15 Hz**, sinyal terlalu kasar untuk analisis frekuensi → sesi dievaluasi sebagai **GPS-only** (pompa n/a, sebagai gantinya batas jujur bukan nilai fantasi)."
+  },
+  "ml": {
+    "h": "Di mana saya di foil? — model ML",
+    "p": "Apakah Anda **di foil** dalam satu detik diputuskan oleh **RandomForest** — hutan pohon keputusan yang memilih dengan mayoritas. Kecil dan dapat ditafsirkan, tidak perlu deep learning. Per detik mendapat **14 fitur**:",
+    "li": [
+      "**7 dari kecepatan & akselerasi**: kecepatan sekarang / 3 detik / 5 detik (median), variabilitas kecepatan, plus RMS di tiga band (keseluruhan, pump-band, frekuensi tinggi).",
+      "**7 dari jalur GPS**: perubahan kecepatan selama 1/3/5 detik, panjang jalur, offset bersih, **lurus** (bersih/jalur) dan perubahan heading. Fitur arah ini adalah leverage terbesar dalam eksperimen — mereka memegang fase glide tenang dalam lari, bukan merobek-robek."
+    ],
+    "p2": "Tricknya adalah **konteks**: setiap detik tidak diklasifikasikan secara terisolasi, tetapi bersama **±5 detik tetangga** (\"Windowize\"). Vektor fitur dari satu detik jadi 14 × 11 = 154 angka panjang. Jadi model melihat perjalanan — penurunan kecepatan pendek di tengah cruise tidak langsung dinilai sebagai \"keluar\". Ini membawa fragmentasi dari 1,10× ke 1,00× dan skor F1 dari **0,93 ke 0,97**.",
+    "cap": "Per detik vektor fitur 14er; untuk klasifikasi detik tetangga ±5 ditambahkan (pusat-label). RandomForest memilih → foil / bukan-foil.",
+    "featNote": "Jendela detik: 14 fitur per detik, ±5 detik konteks",
+    "forest": "RandomForest (mayoritas)",
+    "maskNote": "Masker per detik: foil ▮ / bukan-foil ▯"
+  },
+  "seg": {
+    "h": "Dari masker ke lari",
+    "p": "Masker detik masih berlubang. Dibentuk menjadi **lari** yang bersih:",
+    "li": [
+      "**Tutup celah pendek** (hingga ~2 detik): jeda glide tidak memisahkan lari.",
+      "**Floor fisika**: di bawah ~9 km/jam tidak ada foil yang menahan, dan tanpa gerakan posisi asli (bukan hanya field kecepatan) Anda tidak di foil — keduanya memotong tepi lembut.",
+      "**Panjang minimum & kecepatan rata-rata**: segmen di bawah 5 detik atau dengan rata-rata terlalu rendah terbang (berjalan cepat ≠ foiling).",
+      "**GPS-dropout memisahkan**: celah sampel > 15 detik (jam tangan di bawah air/jatuh) mengakhiri lari — waktu celah tidak dihitung sebagai waktu mengemudi.",
+      "**Penggabungan \"tanpa-henti\"**: jika kecepatan antara dua lari yang dikenali **tidak pernah** turun di bawah ~5,4 km/h dan tidak ada dropout, itu adalah **satu** lari sebenarnya (model-skip) → gabungkan, tidak peduli seberapa lama."
+    ],
+    "p2": "Tanpa akselerasi yang dapat digunakan (GPS-only) **mesin-status** dengan **histeresis** dan **dwell** menangani: Anda menjadi \"foiling\" hanya setelah beberapa detik dalam band kecepatan *dengan kecepatan mulus* (glide mulus, dayungan choppy) — dan meninggalkan keadaan hanya setelah beberapa detik di bawahnya. Dua ambang (masuk/keluar) mencegah berkedip di batas.",
+    "cap": "Atas: masker detik berlubang menjadi lari (celah ditutup, digabungkan, segmen pendek dibuang). Bawah: histeresis mesin-status GPS — masuk hanya di atas, keluar hanya di bawah, dengan waktu tahan (dwell).",
+    "maskLabel": "Masker (per detik)",
+    "runs": "Lari",
+    "run1": "Lari 1 (celah ditutup)",
+    "run2": "Lari 2",
+    "tooShort": "· terlalu pendek → dibuang",
+    "hyst": "Histeresis + dwell (fallback GPS)",
+    "enter": "MASUK ~10 km/h",
+    "exit": "KELUAR ~9 km/h"
+  },
+  "se": {
+    "h": "Awal & akhir — presisi sub-detik",
+    "p": "Model bekerja dalam grid detik, tetapi **lompatan** adalah acara yang tajam. Jadi awal lari di-snap ke **impuls lompatan**: puncak magnitudo yang sangat kuat (> 3,5× persentil ke-95 — dalam eksperimen lompatan sekitar ~4,3×, pompa hanya ~2,3×, jadi jelas dapat dipisahkan). Impuls tercepat seperti itu dalam jendela ±beberapa detik menandai takeoff asli — presisi sub-detik di antara dua titik GPS yang diinterpolasi. Jika impuls hilang, server menarik awal melalui rampa akselerasi hingga berhenti quasi-terakhir.",
+    "p2": "Di **akhir** dua jebakan bersembunyi: **dead-reckoning-drift** (jam tangan menyelam, mengekstrapolasi GPS dan \"melayang\" ke darat) dibuang — prioritas: lari tidak pernah berakhir lebih jauh darat dari awalnya. Dan di mana **permukaan air OSM** diketahui, awal dan akhir harus **di air** (point-in-polygon via ray-casting), atau dipotong kembali ke sampel air terakhir yang asli. Akhirnya akhir diklasifikasikan sebagai **jatuh** (penurunan kecepatan mendadak dari \"di foil\" ke \"di air\", atau GPS-dropout) atau **berhenti terkontrol**.",
+    "cap": "Awal detik yang dikenali (abu-abu) di-snap ke impuls takeoff yang tajam dalam magnitudo akselerasi (cyan) — awal foil yang benar.",
+    "thr": "3,5 × p95 (ambang lompatan)",
+    "secStart": "Awal detik",
+    "snapped": "← di-snap ke takeoff",
+    "afterPump": "setelah: ritme pompa"
+  },
+  "pump": {
+    "h": "Pompa hitung — terpimpin-kadence (v3)",
+    "p": "Cara yang jelas — \"hitung semua puncak di atas ambang amplitudo\" — **secara struktural kurang ~2×**: hanya mengambil dorongan terbesar dan melewatkan yang lebih kecil, ritme pompa di antaranya. Melawan **kebenaran** (pompa kebenaran yang saya ketik, lihat di bawah) hanya mengenai ~40%.",
+    "p2": "Pendekatan yang lebih baik adalah **terpimpin-kadence**: dalam bagian yang berirama dan penuh energi, FFT lokal mengestimasi **frekuensi pompa seketika**, dan kemudian **per periode kadence tepat satu** maksimum lokal asli dipilih sebagai pompa. Kadence adaptif-lokal, jadi mengikuti perubahan tempo. Hasil: **85–94%** hit bukan 40% — dan penghitung dan penanda peta secara otomatis konsisten (keduanya dari posisi yang sama). Gate RMS mencegah fase glide tanpa ritme dari dihitung.",
+    "cap": "Ambang amplitudo (atas) hanya melihat puncak tebal. Terpimpin-kadence (bawah): estimasi periode lokal T, ambil maksimum asli per periode — bahkan pompa lembut.",
+    "top": "Ambang amplitudo — melewatkan pompa kecil",
+    "bot": "Terpimpin-kadence — satu puncak per periode T"
+  },
+  "glide": {
+    "h": "Fase glide — ketenangan antara pompa",
+    "p": "Persis apa yang bagian 1 sebut potensi terbesar, sekarang hampir gratis: dengan waktu pompa diketahui, **fase glide adalah celah di antaranya** — plus pendekatan dari awal lari ke pompa pertama (*lead*) dan peluncuran dari pompa terakhir ke akhir (*tail*). Dari ini per lari jatuh **angka**, **rata-rata durasi glide** dan **fase glide terpanjang** — penanda efisiensi berapa baik foil mempertahankan momentum.",
+    "cap": "Pompa (penanda) membagi lari; celah di antaranya adalah fase glide. lead = awal→pompa 1., tail = pompa terakhir→akhir. tail panjang = peluncuran bersih.",
+    "start": "Awal",
+    "end": "Akhir",
+    "pumps": "Pompa",
+    "lead": "lead",
+    "tail": "tail (glide)",
+    "gaps": "Celah = fase glide"
+  },
+  "gpsonly": {
+    "h": "Tanpa akselerasi: GPS-only & jebakan-nya",
+    "p": "Sesi yang diimpor (mis. dari Polar) atau jam tangan dengan laju terlalu kasar **tidak punya akselerasi yang dapat digunakan**. Kemudian hanya GPS yang mengangkut — dan itu punya kecacatan:",
+    "li": [
+      "**Spike tunggal** (glitch Doppler, \"teleport\"): diganti terhadap median lokal atau lompatan keluar-dan-kembali dirata-ratakan.",
+      "**Doppler-bursts multi-detik** (~3 detik pada 50 km/h, tetapi di bawah ambang glitch 90 km/h): diganti terhadap **median 15-detik** yang robust — itu tidak sensitif terhadap burst pendek, lari nyata yang tertahan mengangkatnya dan tetap tidak tersentuh. Dua kondisi (relatif di atas median **dan** absolut di atas ~28 km/h) melindungi lari nyata.",
+      "**Gate 30-km/h pumpfoil**: tanpa akselerasi Anda tidak dapat memisahkan pumpfoil dengan aman dari foiling bertenaga (layang/angin/wake). Jika kecepatan teratas yang dirata-ratakan di atas 30 km/h, sesi dihitung sebagai bertenaga → **bukan** pumpfoil. Dengan akselerasi gate ini hilang — evaluasi mempercayai sinyal pompa/on-foil."
+    ]
+  },
+  "label": {
+    "h": "Dari mana kebenaran datang — pompa mengetuk",
+    "p": "Model membutuhkan **kebenaran**, yang terhadapnya penghitung pompa terpimpin-kadence dikalibrasi — dan saat ini saya mengetuk sendiri. Saya menonton **video** lari dan **ketuk setiap pompa asli** pada tombol. Saya melakukan ini dalam **beberapa pengambilan**; ini dikomputasikan via cross-korelasi menjadi **konsensus** (offset waktu reaksi kecil rata-rata). Hasil: angka pompa asli dan waktu tepat per lari. Ini dengan sengaja **transisi** — cukup akurat untuk dikalibrasi hari ini, tetapi diketuk dengan tangan.",
+    "p2": "Penting saat kalibrasi terhadap label seperti itu: **GroupKFold** bukan validasi silang normal. Detik tetangga dari lari yang sama hampir identik — jika mendaratkan di train dan set test secara bersamaan, model akan menanyakan dirinya sendiri (kebocoran) dan melaporkan nilai mimpi. GroupKFold jadi memegang **sesi lengkap** bersama: diuji selalu pada lari yang tidak pernah dilihat model.",
+    "cap": "Lingkaran: kebenaran pompa yang **diketuk** → fitur → RandomForest → foil_rf.pkl → evaluasi setiap sesi. Ketukan baru mengalir kembali, model dikalibrasi ulang.",
+    "fits": [
+      "Pompa ketuk",
+      "Video · beberapa pengambilan"
+    ],
+    "feats": [
+      "Fitur",
+      "14 × ±5 detik konteks"
+    ],
+    "rf": [
+      "RandomForest",
+      "GroupKFold-CV"
+    ],
+    "pkl": [
+      "foil_rf.pkl",
+      "→ setiap sesi"
+    ],
+    "loopNote": "lari baru diketuk → kalibrasi ulang"
+  },
+  "x5": {
+    "h": "Langkah selanjutnya — kebenaran asli per kamera (Insta360 X5)",
+    "p": "Mengetuk cukup baik untuk bootstrap, tetapi bergantung pada waktu reaksi saya. **Kebenaran fisik yang tepat** datang selanjutnya dari **kamera di papan**: Insta360 X5 merekam mast/foil, dan dari video Anda membaca **frame-presisi** kapan foil benar-benar mendapat tekanan dan kapan ia terbang. Dengan ini kami menaikkan waktu pompa dan pengenalan on-foil terhadap fisika asli bukan perkiraan yang diketuk. Segera setup rig berdiri, bagian sendiri datang di sini dengan setup kamera lengkap."
+  },
+  "summary": {
+    "h": "Seluruh jalan dalam satu kalimat",
+    "p1": "Akselerasi int16 mentah → **magnitudo** → **vertikal terhadap gravitasi** → **bandpass FFT** dalam sliding-window → 14 fitur per detik dengan **±5 detik konteks** → **RandomForest** berkata on-foil/tidak → **segmentasi** ke lari (histeresis, gabung, dropout) → awal pada **impuls lompatan**, akhir terhadap **permukaan air** & drift diperbaiki → **pompa terpimpin-kadence** → fase glide sebagai celah → metrik.",
+    "p2": "Dan itu semua dari **satu jam tangan pergelangan tangan** — jam tangan mast dari bagian 1 hanya referensi, menunjukkan itu benar."
+  },
+  "limits": {
+    "h": "Batas (tetap jujur)",
+    "p": "Jam tangan duduk di pergelangan tangan, bukan di papan — lengan berayun untuk menyeimbangkan dan tumpang tindih sinyal pompa (\"wrist-confound\"). Vertikal diestimasi dari arah gravitasi (tidak ada giroskop) dan sedikit terdistorsi di bawah akselerasi berkelanjutan. Penghitung terpimpin-kadence dikalibrasi terhadap kebenaran app dan video, tetapi **kalibrasi fisik** endgame (kamera di papan, Insta360 X5) masih tertunda. Dan gate GPS-only adalah kompromi: lebih baik jujur \"gps_only, pompa n/a\" daripada angka yang dibuat-buat."
+  }
+};
+
+
+const ja: N2 = {
+  "back": "← ナード向け分析（パート1：実験）",
+  "h1": "ナード向け分析 · パート2",
+  "subtitle": "生のセンサー数がポンプ、オンフォイルラン、スタート/エンド、グライド段階にどう変わるか — 信号処理、スライディングウィンドウ、MLモデル、ラベリングの全部、ちゃんと順番に。",
+  "intro": "[パート1](/nerd-analysen)は**真実**についてでした：フォイルマストの2番目のウォッチが、フォイルが本当に何をしているかを明かします。これは**機械**についてです：サーバーが何を計算して、リスト上のジッターするシグナルをきれいなセッション分析に変えるか。以下のすべては**サーバー側**で起きます — ウォッチはただの薄いレコーダーです。",
+  "raw": {
+    "h": "何が来るか：生データ",
+    "p": "各セッションは2つのストリームで構成され、両方とも共通の時間ベース（記録開始からのms）を持っています：",
+    "li": [
+      "**GPS**、約**1 Hz**：サンプルごと`[t_ms, lat, lon, speed_mps, hr_bpm, h_acc_m]`。スピードと心拍は欠落する可能性があります（その場合、位置から導出されるか、空のままです）。",
+      "**加速度**、ウォッチによって**10～100 Hz**：`int16`配列の形`(N × 3)` — 生カウントでのX/Y/Z。`accel_scale`（カウント毎g）はそれらを物理的なgに変えます。"
+    ],
+    "p2": "なぜ浮動小数点ではなく`int16`？帯域幅。100 Hz × 3軸 × 8時間は数百万の値 — 2バイト整数として、アップロードサイズを半分にします。スケーリングはサーバーでのみ起きます。"
+  },
+  "pipe": {
+    "h": "パイプラインを一目で",
+    "p": "2つの前処理トラック（GPS + accel）はMLモデルに流入し、**秒単位**で「フォイル上 — はい/いいえ」を決定します。そこから連続ランが来て、そのスタート/エンドが微調整され、最終的にはランごとのポンプとグライド段階：",
+    "cap": "完全な分析：2つの生データストリームからフォイリングマスク経由でランへ、ポンプとグライド段階へ。",
+    "gps": [
+      "GPS  ~1 Hz",
+      "t, lat, lon, speed, hr, h_acc"
+    ],
+    "accel": [
+      "加速度  10～100 Hz",
+      "int16 (N×3) · accel_scale"
+    ],
+    "gpsPrep": [
+      "GPS準備",
+      "スパイク/ドップラーフィルタ · スムーズ化 · スピード"
+    ],
+    "accelPrep": [
+      "Accel準備",
+      "マグニチュード → 垂直 · FFT帯域通過"
+    ],
+    "model": [
+      "MLフォイルモデル — RandomForest、±5秒コンテキスト",
+      "Accel無し時フォールバック：GPS状態機械（ヒステリシス + dwell）"
+    ],
+    "mask": [
+      "フォイリングマスク",
+      "フォイル / 非フォイル — 秒単位"
+    ],
+    "seg": [
+      "セグメンテーション → ラン",
+      "ギャップを閉じる · マージ · スタート/エンドをスナップ"
+    ],
+    "pumps": [
+      "ポンプカウント",
+      "ケイデンス主導、ランごと"
+    ],
+    "glide": [
+      "グライド段階",
+      "ポンプ間のギャップ"
+    ]
+  },
+  "mag": {
+    "h": "ステップ1 — 軸ではなくマグニチュード",
+    "p": "ウォッチはリスト上に座り、常に回転します — 3つの軸X/Y/Zは常に別の方向を指しています。単一の軸値は無意味です。救いは**ベクトルのマグニチュード**です：",
+    "formula": "|a| = √(x² + y² + z²) / accel_scale",
+    "p2": "マグニチュードは**方向不変**：ウォッチがどう回転されても、2 gの衝撃は2 gの衝撃のままです。これがシグナルを最初に比較可能にすることです（`magnitude_g`）。",
+    "cap": "3つの個別に無意味な軸（ウォッチは常に傾く）は、安定した方向不変マグニチュード|a|をもたらします。",
+    "label": "|a| = √(x²+y²+z²)"
+  },
+  "vert": {
+    "h": "ステップ2 — リストから垂直へ",
+    "p": "マグニチュードには落とし穴があります：ポンプは**上向きのプッシュ**ですが、`|a|`は下ろしも上げも同等にカウント — 各ポンプが2回現れます。より良いのは真の**重力に対する垂直加速度**です。そしてそれはジャイロスコープなしで再構成できます：",
+    "ol": [
+      "**重力方向**はゆっくりにしか変わりません → 軸ごと**ローパス**（< 0.25 Hz）で推定します。これはベクトル`g`をもたらし、常に「下」を指しています。",
+      "**動的**加速度は`a − g`です。",
+      "それを重力単位ベクトルに**投影** → スカラーシグナル：> 0 = 上向き（プッシュ）。"
+    ],
+    "f1": "v(t) = (a − g) · ĝ",
+    "fMid": "with",
+    "f2": "ĝ = g / |g|",
+    "cap": "ゆっくりドリフトする重力g（ローパス）は方向を動的に分離します。動的加速度a−g、投影ĝされたもの、各ポンプの清潔な上向きプッシュをもたらします。",
+    "gLabel": "g（重力）",
+    "aLabel": "a（測定）",
+    "amg": "a − g",
+    "topNote": "|マグニチュード|：各ポンプが2回",
+    "botNote": "v(t)重力に対して：ポンプごと1つのプッシュ"
+  },
+  "win": {
+    "h": "ステップ3 — スライディングウィンドウ＆FFT帯域通過",
+    "p": "ポンプ運動は**リズミカル** — そしてリズムは周波数領域に住んでいます。だから**スライディングウィンドウ**（典型的に4秒幅、2秒ごとに1ステップ）がシグナルを越えて移動し、各ウィンドウに対して**FFT**がスペクトラムを計算します。2つのバンドが重要：",
+    "li": [
+      "**フィルタバンド0.3～3 Hz** — その下はすべて重力/ドリフト、その上はすべてスプラッシュノイズ。両方ともFFT帯域通過経由で無効化されます（`bandpass_fft`）。",
+      "**ポンプバンド0.5～2 Hz** — ここにポンプケイデンスが住みます（30～120ポンプ/分）。"
+    ],
+    "p2": "各ウィンドウは4つの機能を生成：",
+    "li2": [
+      "**dom_freq** — ポンプバンドの支配的周波数（ポンプレート）",
+      "**band_power_ratio** — 全バンド対ポンプバンドのエネルギー割合（高 = 明確なリズム）",
+      "**rms** — シグナル強度（動き振幅）",
+      "**spectral_entropy** — スペクトラムがどれほど「整頓」されているか（低 = 1つの明確な周波数 = ポンプ；高 = カオス = ノイズ/グライド）"
+    ],
+    "cap": "4秒ウィンドウがフィルタされたシグナルを越えて移動します（2秒ステップ → オーバーラップ）。各ウィンドウに対してFFTはスペクトラムを配信；ポンプバンド0.5～2 Hzでのエネルギーはレートとリズムを明かします。",
+    "winT": "ウィンドウ t",
+    "winT1": "ウィンドウ t+1",
+    "sig": "v(t) — 帯域通過フィルタされた（0.3～3 Hz）",
+    "fft": "FFT",
+    "spec": "スペクトラム",
+    "band": "0.5～2 Hz",
+    "freq": "周波数 →"
+  },
+  "rate": {
+    "h": "ナード詳細：本当のサンプリングレート",
+    "p": "いくつかのウォッチは**嘘をつき**ます。Forerunner 55は「10 Hz」とタグを付けますが、本当は約2.5 Hzだけ配信します。周波数機能とポンプケイデンスはゴミになります。だからサーバーはレートを**データ自体から一般的に**決定します：`real_Hz = accel_sample_count / GPS_duration`。タグから25%以上偏差がある場合、測定レートが適用されます。そして**15 Hz未満**の場合、シグナルは周波数分析には粗すぎます → セッションは**GPS只**として評価されます（ポンプN/A、しかし幻想値の代わりに正直な限界）。"
+  },
+  "ml": {
+    "h": "フォイル上のどこにいるか？ — MLモデル",
+    "p": "所定の秒にあなたが**フォイル上**にいるかどうかは**RandomForest** — 多数決で投票する決定木の森によって決定されます。小さく解釈可能で、ディープラーニングは必要ありません。各秒は**14の機能**を取得：",
+    "li": [
+      "**スピード＆Accelから7つ**：スピード今/3秒/5秒（中央値）、スピード変動性、プラス3つのバンドでのRMS（全体、ポンプバンド、高周波数）。",
+      "**GPSトラックから7つ**：1/3/5秒のスピード変化、パス長、ネット変位、**直線性**（ネット/パス）およびコース変更。これらの方向特性は実験で最大のレバレッジ — ランをフラグメント化する代わりに、静かなグライド段階を保ちます。"
+    ],
+    "p2": "トリックは**コンテキスト**：各秒は分離して分類されるのではなく、**±5隣接秒**と一緒に（「ウィンドウ化」）。1秒の機能ベクトルは14 × 11 = 154の数値が長いです。そのようにモデルは軌跡を見る — 巡航中の短いスピード低下は「アウト」としてすぐカウントされません。これはフラグメント化を1.10×から1.00×に、F1スコアを**0.93から0.97**に持ちました。",
+    "cap": "秒単位で1つの14機能ベクトル；分類の為に±5隣接秒が付け加えられます（中心ラベル）。RandomForestは投票 → フォイル / 非フォイル。",
+    "featNote": "秒ウィンドウ：秒単位で14機能、±5秒コンテキスト",
+    "forest": "RandomForest（多数決）",
+    "maskNote": "秒単位マスク：フォイル ▮ / 非フォイル ▯"
+  },
+  "seg": {
+    "h": "マスクからランへ",
+    "p": "秒単位マスクはまだ穴だらけです。それはきれいな**ラン**に成形されます：",
+    "li": [
+      "**短いギャップを閉じます**（～2秒まで）：グライド一時停止はランを分割しません。",
+      "**物理フロア**：～9 km/h以下でフォイルは持たず、実際の位置移動なし（スピードフィールドではなく）あなたはフォイル上にいません — 両方とも柔らかいエッジを削除します。",
+      "**最小長＆平均スピード**：5秒以下のセグメント、または平均が低すぎるセグメントは削除（速い歩き ≠ フォイリング）。",
+      "**GPS ドロップアウト分離**：サンプルギャップ > 15秒（水中ウォッチ/落下）はランを終了 — ギャップ時間は走行時間にカウントされません。",
+      "**「ノーストップ」マージ**：2つの検出されたランの間でスピードが**決して** ~5.4 km/h以下に落ちず、ドロップアウトが無かった場合、実際には**1つ**のラン（モデル欠陥）→ マージ、長さに関わらず。"
+    ],
+    "p2": "使用可能な加速度なし（GPS只）は、**状態機械**が**ヒステリシス**と**dwell**で引き継ぎます：あなたはスピードバンド内で複数秒後のみ「フォイリング」になります*スムーズなスピード付き*（グライドはスムーズ、パドルはチョッピー） — そしてそれ以下で複数秒後のみ状態を離れます。2つの閾値（イン/アウト）は境界でのフリッカーを防ぎます。",
+    "cap": "上：穴だらけの秒単位マスクはランに成形されます（ギャップを閉じる、マージ、短いセグメント削除）。下：GPS状態機械のヒステリシス — 上でのみ入る、下でのみ出る、保持時間付き（dwell）。",
+    "maskLabel": "マスク（秒単位）",
+    "runs": "ラン",
+    "run1": "ラン1（ギャップ閉じた）",
+    "run2": "ラン2",
+    "tooShort": "· 短すぎる → 削除",
+    "hyst": "ヒステリシス + dwell（GPSフォールバック）",
+    "enter": "ENTER ~10 km/h",
+    "exit": "EXIT ~9 km/h"
+  },
+  "se": {
+    "h": "スタート＆エンド — 秒以下精度",
+    "p": "モデルは秒単位グリッドで機能しますが、**テイクオフ**は鋭いイベントです。だからランスタートは**ジャンプインパルス**にスナップされます：非常に強いマグニチュードスパイク（> 95パーセンタイルの3.5倍 — 実験ではジャンプは~4.3倍、ポンプは~2.3倍、明確に分離可能）。ウィンドウ±数秒内の最初のそのようなインパルスが本当のテイクオフをマークします — 2つのGPSポイント間で秒以下に補間。インパルスが欠落すると、サーバーは開始を加速度ランプに沿って最後の準停止まで引き戻します。",
+    "p2": "**エンド**で2つのトラップが待機：**デッドレコニングドリフト**（ウォッチがダイブ、GPSを外挿して「ドリフト」は陸地へ）は削除されます — 前提：ランはスタートより陸地的に終わりません。そして**OSM水面**が既知の場所では、スタートとエンドは**水中に**ある必要があります（レイキャスト経由のポイント-イン-ポリゴン）、そうでなければ最後の本当の水サンプルに戻されます。最後に、エンドは**落下**（「フォイル上」から「水中」へのスピード急低下、またはGPSドロップアウト）または**制御された停止**として分類されます。",
+    "cap": "検出された秒単位スタート（灰色）は加速度マグニチュードの鋭いテイクオフインパルス（シアン）にスナップ — 本当のフォイルスタート。",
+    "thr": "3.5 × p95（ジャンプ閾値）",
+    "secStart": "秒単位スタート",
+    "snapped": "← テイクオフにスナップ",
+    "afterPump": "その後：ポンプリズム"
+  },
+  "pump": {
+    "h": "ポンプカウント — ケイデンス主導（v3）",
+    "p": "明白な方法 — 「振幅閾値以上のすべてのピークをカウント」 — **構造的に~2倍過少推定**：最大の揺れだけを拾い、間の小さいリズミカルポンプを飲み込みます。**真実**に対して（自分のタップされたポンプ真実、下を見てください）それは~40%だけ当たりました。",
+    "p2": "より良いアプローチは**ケイデンス主導**：リズミカル、エネルギーリッチセクションでは、ローカルFFTが**瞬時ポンプ周波数**を推定し、その後**ケイデンス周期ごとに正確に1つ**の本当のローカル最大値がポンプとして選ばれます。ケイデンスはローカル適応型、したがってテンポ変化に従います。結果：~40%の代わりに**85～94%**ヒット率 — およびカウンタとマップマーカーは自動的に一貫（同じ位置から）。RMSゲートはリズムレスグライド段階がカウントされるのを防ぎます。",
+    "cap": "振幅閾値（上）は脂肪ピークだけを見ます。ケイデンス主導（下）：ローカル周期Tを推定、周期ごとに本当の最大値を拾う — 穏やかなポンプも含む。",
+    "top": "振幅閾値 — 小さいポンプを飲み込む",
+    "bot": "ケイデンス主導 — 周期Tごと1つのピーク"
+  },
+  "glide": {
+    "h": "グライド段階 — ポンプ間の沈黙",
+    "p": "パート1が最大の可能性として名付けたもの、まさに今はほぼ無料で来ます：ポンプタイムスタンプが既知の場合、**グライド段階は単にそれらの間のギャップ** — プラスランスタートから最初のポンプまでのラン（*lead*）および最後のポンプからエンドまでのラン（*tail*）。そこから各ランの**数**、**平均グライド期間**および**最長グライド段階** — フォイルが勢いをどれほど効率的に保つかの指標が出ます。",
+    "cap": "ポンプ（マーカー）はランを分割；間のギャップはグライド段階。lead = スタート→1番目ポンプ、tail = 最後のポンプ→エンド。長いtail = クリーンなラン終了。",
+    "start": "スタート",
+    "end": "エンド",
+    "pumps": "ポンプ",
+    "lead": "lead",
+    "tail": "tail（グライド）",
+    "gaps": "ギャップ = グライド段階"
+  },
+  "gpsonly": {
+    "h": "Accel無し：GPS只と落とし穴",
+    "p": "インポートセッション（例：Polar）または粗いレートのウォッチには**使用可能な加速度がありません**。その場合、GPSだけが持つ — そしてそれは奇癖を持つ：",
+    "li": [
+      "**単一スパイク**（ドップラーグリッチ、「テレポート」）：ローカル中央値に対して置き換えられる、またはアウト＆バックジャンプがスムーズ化。",
+      "**複数秒ドップラーバースト**（50 km/hで~3秒、しかし90 km/hグリッチ閾値以下）：堅牢な**15秒中央値**に対して置き換え — これは短いバーストに無感受、本当の持続ランはそれを持ち上げて触れられず。2つの条件（中央値を相対的に超えて**そして**~28 km/h以上）は本当のランを保護。",
+      "**30 km/h pumpfoilゲート**：accel無しで、pumpfoilingは動力フォイリング（凧/風/ウェーク）から確実に分離できません。スムーズ化されたトップスピードが30 km/h以上の場合、セッションは動力として数えられます → **pumpfoilingなし**。Accelでこのゲートは削除 — そこで分析はポンプ/オンフォイルシグナルを信頼。"
+    ]
+  },
+  "label": {
+    "h": "真実が来るところ — ポンプをタップ",
+    "p": "モデルは**真実**が必要 — そして今、自分でそれをタップします。ランの**ビデオ**を見て、**本当の各ポンプでボタンをタップ**します。これを**複数回**でしますが、**コンセンサス**に交差相関で組み合わされます（反応時間小さなオフセット平均アウト）。結果：本当のポンプ数とランごとのタイミング。これは意図的に**つなぎ**です — 今日を較正するのに十分正確ですが、手がタップします。",
+    "p2": "そのようなラベルに対して較正するとき重要：**GroupKFold**より通常クロス検証。同じランの隣接秒はほぼ同一 — 訓練とテストセット同時に着陸すると、モデルが自分自身をクイズに（漏洩）して夢値を報告。GroupKFoldしたがって**全セッション**を一緒に保つ：テストはモデルが決して見たことのないランで常に起こります。",
+    "cap": "ループ：**タップされた**ポンプ真実 → 機能 → RandomForest → foil_rf.pkl → 各セッションの分析。新タップが逆流、モデルは再較正。",
+    "fits": [
+      "ポンプをタップ",
+      "ビデオ · 複数回"
+    ],
+    "feats": [
+      "機能",
+      "14 × ±5秒コンテキスト"
+    ],
+    "rf": [
+      "RandomForest",
+      "GroupKFold-CV"
+    ],
+    "pkl": [
+      "foil_rf.pkl",
+      "→ 各セッション"
+    ],
+    "loopNote": "新しいタップされたラン → 再較正"
+  },
+  "x5": {
+    "h": "次のステップ — カメラからの本当の真実（Insta360 X5）",
+    "p": "タップはブートストラップするのに十分ですが、反応時間に頼ります。**物理的に正確な**真実は次にカメラから来ます**ボード上**：Insta360 X5がマスト/フォイルをフィルム、ビデオから**フレーム正確に**読み取る時フォイルが本当に圧力を得ていつフライしているか。それでポンプタイミングとオンフォイル検出をタップされた近似の代わりに本当の物理に対して較正。リグが立つと、ここにすべてのカメラセットアップを持つ専用セクションが来ます。"
+  },
+  "summary": {
+    "h": "全パス1文で",
+    "p1": "生int16加速度 → **マグニチュード** → **重力に対する垂直** → **スライディングウィンドウでFFT帯域通過** → 秒単位で14機能**±5秒コンテキスト付き** → **RandomForest**言う on-foil/not → ランへの**セグメンテーション**（ヒステリシス、マージ、ドロップアウト）→ スタートは**テイクオフインパルス**にスナップ、エンドは**水面**と ドリフトに対して修正 → **ケイデンス主導**ポンプカウント → グライド段階ギャップとして → 指標。",
+    "p2": "そして全部が**単一のリストウォッチから** — パート1のマストウォッチは真実参照でしかありませんでした。"
+  },
+  "limits": {
+    "h": "限界（いまだに正直）",
+    "p": "ウォッチはリスト上に座り、ボード上ではなく — 腕はバランス用に揺れてポンプシグナル（「リスト混同」）をオーバーレイ。垂直は重力方向から推定（ジャイロなし）で、持続加速度下でやや歪み。ケイデンス主導カウンターはアプリとビデオ真実に対して較正されますが、**物理的な**最終較正（ボード上カメラ、Insta360 X5）はまだペンディング。そしてGPS只ゲートはトレードオフ：作り上げられた数より正直な「gps_only、ポンプN/A」。"
+  }
+};
+
+
+const nb: N2 = {
+  "back": "← Nerd-analyser (Del 1: forsøket)",
+  "h1": "Nerd-analyser · Del 2",
+  "subtitle": "Hvordan rå sensor-tall blir til pumps, on-foil-turer, start/slutt og glidfaser — signalbehandlingen, sliding-window, ML-modellen og labeling, pent i rekkefølge.",
+  "intro": "I [Del 1](/nerd-analysen) handlet det om **sannheten**: en annen klokke på foil-masten som avslører hva foilen virkelig gjør. Her handler det om **maskineriet**: hva serveren regner ut slik at fra et ristende signal på håndleddet blir en ren session-analyse. Alt som følger skjer **server-side** — klokken er bare en tynn recorder.",
+  "raw": {
+    "h": "Hva som ankommer: rådata",
+    "p": "Hver session består av to strømmer, begge med felles tidsbasis (ms fra opptak-start):",
+    "li": [
+      "**GPS**, ca. **1 Hz**: pr. sample `[t_ms, lat, lon, speed_mps, hr_bpm, h_acc_m]`. Speed og puls kan mangle (da hentet fra posisjonen eller tom).",
+      "**Akselerasjon**, avhengig av klokke **10–100 Hz**: en `int16`-array av formen `(N × 3)` — X/Y/Z i råtellerere. En `accel_scale` (tellere per g) gjør det til fysikalsk g."
+    ],
+    "p2": "Hvorfor `int16` istedenfor floating-point? Båndbredde. 100 Hz × 3 akser × 8 timer er millioner av verdier — som 2-byte heltall halverer det opplastingsstørrelsen. Skalering tilbake til g skjer først på serveren."
+  },
+  "pipe": {
+    "h": "Pipelinjen på et øyeblikk",
+    "p": "To oppbehandlings-spor (GPS + Accel) går inn i en ML-modell som **per sekund** avgjør «på foilen — ja/nei». Fra det blir sammenhengende turer, der start/slutt finjusteres, og til slutt pumps & glidfaser per tur:",
+    "cap": "Hele analysen: fra de to rådata-strømmene over foiling-masken til turer, pumps og glidfaser.",
+    "gps": [
+      "GPS  ~1 Hz",
+      "t, lat, lon, speed, hr, h_acc"
+    ],
+    "accel": [
+      "Akselerasjon  10–100 Hz",
+      "int16 (N×3) · accel_scale"
+    ],
+    "gpsPrep": [
+      "GPS oppberedt",
+      "Spike-/Doppler-filter · utjevning · Speed"
+    ],
+    "accelPrep": [
+      "Accel oppberedt",
+      "Beløp → Vertikalt · FFT-båndpass"
+    ],
+    "model": [
+      "ML-foil-modell — RandomForest, ±5 s kontekst",
+      "Fallback uten Accel: GPS-tilstandsmaskin (hysterese + dwell)"
+    ],
+    "mask": [
+      "Foiling-maske",
+      "foil / ikke-foil — per sekund"
+    ],
+    "seg": [
+      "Segmentering → Turer",
+      "Lukk hull · flett · Start/slutt snap"
+    ],
+    "pumps": [
+      "Tell pumps",
+      "kadense-ledet, per tur"
+    ],
+    "glide": [
+      "Glidfaser",
+      "Hull mellom pumps"
+    ]
+  },
+  "mag": {
+    "h": "Steg 1 — Beløp istedenfor akser",
+    "p": "Klokken sitter på håndleddet og snur seg hele tiden — de tre aksene X/Y/Z peker stadig andre steder. En enkelt aksiverdi er derfor verdiløs. Redningen er **beløpet** av vektoren:",
+    "formula": "|a| = √(x² + y² + z²) / accel_scale",
+    "p2": "Beløpet er **orienteringsinvariant**: uansett hvordan klokken snues, forblir et 2-g-støt et 2-g-støt. Dermed blir signalet i det hele tatt sammenlignbart (`magnitude_g`).",
+    "cap": "Tre individuelle meningsløse akser (klokken kipper hele tiden) gir sammen et stabilt, orienteringsinvariant beløp |a|.",
+    "label": "|a| = √(x²+y²+z²)"
+  },
+  "vert": {
+    "h": "Steg 2 — fra håndleddet inn i vertikalen",
+    "p": "Beløpet har en hake: en pump er en **oppover-push**, men `|a|` teller ned-strekk like mye som oppstrek — hver pump vises to ganger. Bedre ville være den virkelige **vertikale akselerasjonen mot tyngdekraften**. Og det kan rekonstrueres helt uten gyroskop:",
+    "ol": [
+      "**Tyngdekraft-retningen** endres bare sakte → ved **lavpassfilter** (< 0,25 Hz) per akse estimere. Det gir vektoren `g`, som alltid peker «nedover».",
+      "Den **dynamiske** akselerasjonen er `a − g`.",
+      "Projekt dette på tyngdekraft-enhetsvektor **projiser** → skalär signal: > 0 = oppover (Push)."
+    ],
+    "f1": "v(t) = (a − g) · ĝ",
+    "fMid": "med",
+    "f2": "ĝ = g / |g|",
+    "cap": "Den sakte driftende tyngdekraften g (lavpassfilter) skiller orientering fra dynamikk. Den dynamiske akselerasjonen a−g, projisert på ĝ, gir en ren oppover-push per pump.",
+    "gLabel": "g (tyngdekraft)",
+    "aLabel": "a (målt)",
+    "amg": "a − g",
+    "topNote": "|Beløp|: hver pump dobbelt",
+    "botNote": "v(t) mot tyngdekraft: en push per pump"
+  },
+  "win": {
+    "h": "Steg 3 — Sliding-window & FFT-båndpass",
+    "p": "Pumping er **rytmisk** — og rytme lever i frekvensrommet. Derfor skjøver en **gleitende vindu** (typ. 4 s bred, alle 2 s et steg) over signalet, og for hvert vindu regner en **FFT** spektret. To bånd er viktige:",
+    "li": [
+      "**Filter-bånd 0,3–3 Hz** — alt under det er tyngdekraft/drift, alt over det er splash-støy. Begge nuller ut per FFT-båndpass (`bandpass_fft`).",
+      "**Pump-bånd 0,5–2 Hz** — her bor pump-kadensen (30–120 pumps/min)."
+    ],
+    "p2": "Per vindu faller fire trekk av:",
+    "li2": [
+      "**dom_freq** — dominantfrekvens i pump-båndet (pump-raten)",
+      "**band_power_ratio** — andel av energien i pump-båndet av total-båndet (høy = klar rytme)",
+      "**rms** — signalstyrke (amplitude av bevegelsen)",
+      "**spectral_entropy** — hvor «ryddig» spektret er (lav = én klar frekvens = pumping; høy = kaos = støy/gliding)"
+    ],
+    "cap": "Et 4-s-vindu vandrer over det filtrerte signalet (steg 2 s → overlapping). For hvert vindu gir FFT ett spektrum; energien i pump-båndet 0,5–2 Hz avslørar rate og rytme.",
+    "winT": "Vindu t",
+    "winT1": "Vindu t+1",
+    "sig": "v(t) — båndpass-filtrert (0,3–3 Hz)",
+    "fft": "FFT",
+    "spec": "Spektrum",
+    "band": "0,5–2 Hz",
+    "freq": "Frekvens →"
+  },
+  "rate": {
+    "h": "En nerd-detalj: den virkelige samplingsraten",
+    "p": "Noen klokker **lyver** om sin rate. En Forerunner 55 taggar «10 Hz», men leverer bare ~2,5 Hz i virkeligheten. Frekvens-trekk og pump-kadense ville være søppel. Derfor bestemmer serveren raten **generisk fra dataene selv**: `virkelig_Hz = Antall_Accel-samples / GPS-varighet`. Hvis det avviker > 25 % fra tagen, gjelder den målte raten. Og ligger den **under 15 Hz**, er signalet for grovt for frekvensanalyse → sesjonen blir vurdert som **GPS-only** (Pumps n/a, istedenfor fantasi-verdier)."
+  },
+  "ml": {
+    "h": "Hvor er jeg på foilen? — ML-modellen",
+    "p": "Om man i ett sekund **er på foilen**, avgjør en **RandomForest** — en skog av beslutningstrær som stemmer ved flertall. Liten og tolkbar, ingen deep learning nødvendig. Per sekund får den **14 trekk**:",
+    "li": [
+      "**7 fra Speed & Accel**: Speed nå / 3 s / 5 s (median), speed-variabilitet, samt RMS i tre bånd (totalt, pump-bånd, høyfrekvens).",
+      "**7 fra GPS-stien**: Speed-endring over 1/3/5 s, stilengde, netto offset, **lineæritet** (netto/sti) og kursendring. Disse retnings-trekkene var den største spaken i forsøket — de holder stille glidesfaser i turen, istedenfor å knuse den."
+    ],
+    "p2": "Trikset er **konteksten**: hver sekund klassifiseres ikke isolert, men sammen med **±5 nabo-sekunder** («windowize»). Trekk-vektoren for ett sekund er altså 14 × 11 = 154 tall langt. Sånn ser modellen forløpet — en kort speed-dip midt i cruising blir ikke straks vurdert som «ute». Det bragte fragmentering fra 1,10× til 1,00× og F1-score fra **0,93 til 0,97**.",
+    "cap": "Per sekund en 14-trekk vektor; for klassifikasjonen legges ±5 nabo-sekunder til (center-label). RandomForest stemmer → foil / ikke-foil.",
+    "featNote": "Sekund-vindu: 14 trekk per sekund, ±5 s kontekst",
+    "forest": "RandomForest (Flertall)",
+    "maskNote": "Maske per sekund: foil ▮ / ikke-foil ▯"
+  },
+  "seg": {
+    "h": "Fra masken til turer",
+    "p": "Sekund-masken er fortsatt hullet. Den blir formet til reine **turer**:",
+    "li": [
+      "**Lukk korte hull** (opp til ~2 s): en glide-pause deler ikke en tur.",
+      "**Fysikk-gulv**: under ~9 km/h bærer ingen foil, og uten reell posisjons-bevegelse (ikke bare speed-felt) er du ikke på foil — begge kutter de myke kantene vekk.",
+      "**Minimum lengde & Ø-speed**: Segmenter under 5 s eller med for lav gjennomsnitt faller ut (rask gåing ≠ foiling).",
+      "**GPS-dropout skiller**: et sample-hull > 15 s (klokke under vann/fall) avslutter turen — hulltiden teller ikke som kjøretid.",
+      "**«Ingen-stopp»-flett**: hvis speed mellom to gjenkjente turer **aldri** var under ~5,4 km/h og det var ingen dropout, var det egentlig **én** tur (modell-dropout) → slå sammen, uansett hvor langt."
+    ],
+    "p2": "Uten brukbar akselerasjon (GPS-only) tar en **tilstandsmaskin** over med **hysterese** og **dwell**: Du blir først «foilende» etter flere sekunder i speed-båndet *med glatt speed* (gliding er glatt, padling choppy) — og forlater tilstanden bare etter flere sekunder under. To terskler (inn/ut) forhindrer flickering på grensen.",
+    "cap": "Øverst: hullet sekund-masken blir til turer (lukk hull, flett, forkast korte segmenter). Nederst: hysterese av GPS-tilstandsmaskinen — inn bare over, ut bare under, med holdtid (Dwell).",
+    "maskLabel": "Maske (per sekund)",
+    "runs": "Turer",
+    "run1": "Tur 1 (hull lukket)",
+    "run2": "Tur 2",
+    "tooShort": "· for kort → forkastet",
+    "hyst": "Hysterese + Dwell (GPS-fallback)",
+    "enter": "INN ~10 km/h",
+    "exit": "UT ~9 km/h"
+  },
+  "se": {
+    "h": "Start & slutt — sub-sekundt nøyaktig",
+    "p": "Modellen arbeider i sekundrasteret, men **oppsprånget** er en skarp hendelse. Derfor snappas tur-starten til **hoppeimpulsen**: en veldig sterk magnitude-topp (> 3,5× 95-persentilen — i forsøket var et hopp ~4,3×, en pump bare ~2,3×, så klart skilelig). Den tidligste slike impulsen i vinduet ±få sekunder markerer det virkelige avsprånget — sub-sekundt mellom to GPS-punkt interpolert. Mangler impulsen, trekker serveren starten over akselerasjons-rampen tilbake til siste quasi-stopp.",
+    "p2": "Ved **slutten** ligger to feller: **Dead-Reckoning-drift** (klokken dykker ned, ekstrapolerer GPS og «driver» til land) blir forkastet — prior: en tur ender aldri landover fra sin start. Og hvor en **OSM-vannflate** er kjent, må start og slutt **være i vann** (punkt-i-polygon per ray-casting), ellers kuttes tilbake til siste virkelige vann-sample. Til slutt blir slutten klassifisert som **fall** (abrupt speed-fall fra «på foil» til «i vann», eller GPS-dropout) eller **kontrollert stopp**.",
+    "cap": "Den gjenkjente sekund-start (grå) snappas til den skarpe oppsprångs-impulsen i akselerasjons-beløp (cyan) — den virkelige foil-starten.",
+    "thr": "3,5 × p95 (Hopp-terskel)",
+    "secStart": "Sekund-start",
+    "snapped": "← snappt til oppsprånget",
+    "afterPump": "deretter: pump-rytme"
+  },
+  "pump": {
+    "h": "Tell pumps — kadense-ledet (v3)",
+    "p": "Den nærliggende måten — «tell alle topper over en amplitude-terskel» — **undervurderer strukturelt omkring 2×**: den plukker bare de største utslag og mister de mindre, rytmiske pumpene imellom. Mot **sannheten** (min tappet pump-sannhet, se under) traff det bare ~40 %.",
+    "p2": "Den bedre tilnærmingen er **kadense-ledet**: I rytmiske, energirike seksjoner estimerer en lokal FFT den **øyeblikk pump-frekvensen**, og så velges **per kadense-periode akkurat ett** virkelig lokalt maksimum som pump. Kadensen er lokalt-adaptiv, så den følger tempo-endringer. Resultat: **85–94 %** treff istedenfor 40 % — og teller og kart-markør er automatisk konsistent (begge fra samme posisjoner). En RMS-gate forhindrer at rytmeløse glidesfaser blir talt med.",
+    "cap": "Amplitude-terskel (øverst) ser bare de store toppene. Kadense-ledet (nederst): estimer lokal periode T, plukk det virkelige maksimum per periode — også de myke pumpene.",
+    "top": "Amplitude-terskel — mister små pumps",
+    "bot": "Kadense-ledet — ett topp per periode T"
+  },
+  "glide": {
+    "h": "Glidfaser — stillheten mellom pumpene",
+    "p": "Akkurat det Del 1 nevnte som største potensial faller nå nesten gratis av: Når pump-tidspunktene er kjent, er **glidfasene bare hullene imellom** — pluss oppløpet fra tur-start til første pump (*lead*) og utløpet fra siste pump til slutt (*tail*). Fra det faller per tur **antall**, **Ø-glide-varighet** og **lengste glidfase** av — kjenntallet for hvor effektivt en foil holder farten.",
+    "cap": "Pumps (markør) deler turen; hullene imellom er glidesfasene. lead = Start→1. Pump, tail = siste Pump→Slutt. En lang tail = rent utløp.",
+    "start": "Start",
+    "end": "Slutt",
+    "pumps": "Pumps",
+    "lead": "lead",
+    "tail": "tail (Gliding)",
+    "gaps": "Hull = Glidfaser"
+  },
+  "gpsonly": {
+    "h": "Uten Accel: GPS-only & dets fallgruver",
+    "p": "Importerte sesjoner (f. eks. fra Polar) eller klokker med for grov rate har **ingen brukbar akselerasjon**. Da bærer bare GPS — og det har quirks:",
+    "li": [
+      "**Enkelt-spikes** (Doppler-glitch, «teleport»): byttet mot lokalt median eller rund-og-tilbake-hopp glatt.",
+      "**Fler-sekund Doppler-bursts** (~3 s på 50 km/h, men under 90-km/h-glitch-terskelen): byttet mot en robust **15-s-median** — den er immun mot korte bursts, en ekte holdt tur løfter den med og forblir uberørt. To vilkår (relativt over median **og** absolutt over ~28 km/h) beskytter virkelige turer.",
+      "**30-km/h-Pumpfoil-gate**: uten Accel kan du ikke sikkert skille pumpfoil fra drevet foiling (kite/vind/wake). Ligger glatt top-speed over 30 km/h, telles sesjonen som drevet → **ingen** pumpfoil. Med Accel faller denne gate bort — der stoler analysen på pump-/on-foil-signalet."
+    ]
+  },
+  "label": {
+    "h": "Hvor sannheten kommer fra — Tap pumps",
+    "p": "Modellen trenger en **sannhet** som kadense-ledet pump-teller kalibreres mot — og den tapper jeg meg selv for øyeblikket. Jeg ser **videoen** av en tur og **trykker på en knapp ved hver virkelig pump**. Det gjør jeg i **flere gjennomkjøringer**; de blir regnet til et **konsensus** per kryss-korrelasjon (små reaktids-offset middels seg ut). Resultat: det virkelige pump-antall og den virkelige timingen per tur. Dette er bevisst en **overgang** — nøyaktig nok til å kalibrere i dag, men hånd-tappet.",
+    "p2": "Viktig når du kalibrerer mot slike labels: **GroupKFold** istedenfor normal kryss-validering. Nabo-sekunder av samme tur er nesten identiske — landet de sammen i trenings- og test-mengde, skulle modellen spørre seg selv (leakage) og rapportert drømmeverdier. GroupKFold holder derfor **hele sesjoner** sammen: testet er alltid på turer som modellen aldri har sett.",
+    "cap": "Syklusen: **tappet** pump-sannhet → Trekk → RandomForest → foil_rf.pkl → Analyse av hver session. Nye taps flyter tilbake, modellen blir rekalibrert.",
+    "fits": [
+      "Tap pumps",
+      "Video · flere gjennomkjøringer"
+    ],
+    "feats": [
+      "Trekk",
+      "14 × ±5 s kontekst"
+    ],
+    "rf": [
+      "RandomForest",
+      "GroupKFold-CV"
+    ],
+    "pkl": [
+      "foil_rf.pkl",
+      "→ hver session"
+    ],
+    "loopNote": "nye tappet turer → rekalibrering"
+  },
+  "x5": {
+    "h": "Neste steg — virkelig sannhet per kamera (Insta360 X5)",
+    "p": "Tapping er bra nok til å bootstrap, men henger fast på min reaktidstid. Den **fysisk eksakt** sannhet kommer som neste fra et **kamera på brettet**: en Insta360 X5 filmer mast/foil med, og fra videoen leser du **frame-nøyaktig** av når foilen virkelig får trykk og når den flyr. Med det kalibrerer vi pump-timing og on-foil-gjenkjenning mot ekte fysikk istedenfor hånd-tappet tilnærming. Når riggen står, kommer her sin egen seksjon med hele kamera-oppsettet."
+  },
+  "summary": {
+    "h": "Hele veien i en setning",
+    "p1": "Rå int16-akselerasjon → **beløp** → **vertikal mot tyngdekraft** → **FFT-båndpass** i sliding-window → 14 trekk per sekund med **±5 s kontekst** → **RandomForest** sier on-foil/ikke → **segmentering** til turer (hysterese, flett, dropout) → start snappt til **hoppe-impulsen**, slutt mot **vannflate** & drift korrigert → **kadense-ledet** pump-telling → glidfaser som hull → kjenntall.",
+    "p2": "Og det alt fra **ett håndledds-klokke** — mast-klokken fra Del 1 var bare referansen som viser at det stemmer."
+  },
+  "limits": {
+    "h": "Grenser (fortsatt ærlig)",
+    "p": "Klokken sitter på håndleddet, ikke på brettet — armene vifter for balanse og overlapper pump-signalet («Wrist-Confound»). Vertikalen estimeres fra tyngdekraft-retningen (ingen gyroskop) og er litt forskjøvet ved vedvarende akselerasjon. Den kadense-ledete telleren er kalibrert mot app- og video-sannhet, men den **fysiske** sluttkalibreringen (kamera på brett, Insta360 X5) venter ennå. Og GPS-only-gatene er et kompromiss: heller ærlig «gps_only, Pumps n/a» enn oppfunne tall."
+  }
+};
+
+
+const ptPT: N2 = {
+  "back": "← Análises para nerds (Parte 1: a experiência)",
+  "h1": "Análises para nerds · Parte 2",
+  "subtitle": "Como os números de sensores brutos viram bombeios, sessões-em-foil, início/fim e fases de planagem — o processamento de sinal, a janela deslizante, o modelo ML e as etiquetas, tudo em ordem.",
+  "intro": "Na [Parte 1](/nerd-analysen) era sobre a **verdade**: um segundo relógio no mastro do foil que revela o que o foil realmente faz. Aqui é sobre a **maquinaria**: o que o servidor calcula para que um sinal tremido na mão se torne uma avaliação de sessão limpa. Tudo o que se segue acontece **do lado do servidor** — o relógio é apenas um gravador fino.",
+  "raw": {
+    "h": "O que chega: os dados brutos",
+    "p": "Cada sessão consiste em dois fluxos, ambos com base de tempo comum (ms desde o início da gravação):",
+    "li": [
+      "**GPS**, cerca de **1 Hz**: por amostra `[t_ms, lat, lon, speed_mps, hr_bpm, h_acc_m]`. Velocidade e pulsação podem faltar (depois derivadas da posição ou vazias).",
+      "**Aceleração**, conforme o relógio **10–100 Hz**: um array `int16` da forma `(N × 3)` — X/Y/Z em contadores brutos. Uma `accel_scale` (contadores por g) transforma em g físicos."
+    ],
+    "p2": "Porque `int16` em vez de vírgula flutuante? Largura de banda. 100 Hz × 3 eixos × 8 h são milhões de valores — como números inteiros de 2 bytes reduz-se o tamanho de upload em metade. A transformação de volta para g acontece só no servidor."
+  },
+  "pipe": {
+    "h": "A tubagem num relance",
+    "p": "Duas vias de processamento (GPS + aceleração) desembocam num modelo ML que **por segundo** decide «em foil — sim/não». Disso saem sessões contíguas cujo início/fim é afinado, e finalmente bombeios e fases de planagem por sessão:",
+    "cap": "A avaliação completa: dos dois fluxos de dados brutos através da máscara de foiling até sessões, bombeios e fases de planagem.",
+    "gps": [
+      "GPS  ~1 Hz",
+      "t, lat, lon, speed, hr, h_acc"
+    ],
+    "accel": [
+      "Aceleração  10–100 Hz",
+      "int16 (N×3) · accel_scale"
+    ],
+    "gpsPrep": [
+      "Preparar GPS",
+      "Filtro espigão/Doppler · suavizar · velocidade"
+    ],
+    "accelPrep": [
+      "Preparar aceleração",
+      "Magnitude → vertical · FFT passa-banda"
+    ],
+    "model": [
+      "Modelo ML de foil — RandomForest, ±5 s contexto",
+      "Fallback sem aceleração: máquina de estados GPS (histerese + dwell)"
+    ],
+    "mask": [
+      "Máscara de foiling",
+      "foil / não-foil — por segundo"
+    ],
+    "seg": [
+      "Segmentação → sessões",
+      "Fechar buracos · juntar · encaixar início/fim"
+    ],
+    "pumps": [
+      "Contar bombeios",
+      "Guiado por cadência, por sessão"
+    ],
+    "glide": [
+      "Fases de planagem",
+      "Buracos entre bombeios"
+    ]
+  },
+  "mag": {
+    "h": "Passo 1 — Magnitude em vez de eixos",
+    "p": "O relógio fica na mão e roda constantemente — os três eixos X/Y/Z apontam sempre para lado diferente. Um único valor de eixo é portanto inútil. A salvação é a **magnitude** do vetor:",
+    "formula": "|a| = √(x² + y² + z²) / accel_scale",
+    "p2": "A magnitude é **invariante de orientação**: seja como for que o relógio rode, um impulso de 2g fica um impulso de 2g. Isto faz o sinal finalmente ser comparável (`magnitude_g`).",
+    "cap": "Três eixos isolados sem sentido (o relógio está a inclinar constantemente) formam em conjunto uma magnitude estável e invariante |a|.",
+    "label": "|a| = √(x²+y²+z²)"
+  },
+  "vert": {
+    "h": "Passo 2 — da mão para a vertical",
+    "p": "A magnitude tem um problema: um bombeio é um **impulso para cima**, mas `|a|` conta o movimento para cima igual ao para baixo — cada bombeio aparece duas vezes. Melhor seria a verdadeira **aceleração vertical contra a gravidade**. E consegue-se reconstruir sem giroscópio:",
+    "ol": [
+      "A **direção da gravidade** muda lentamente → por **filtro passa-baixo** (< 0,25 Hz) por eixo estimar. Isto dá o vetor `g` que aponta sempre «para baixo».",
+      "A **aceleração dinâmica** é `a − g`.",
+      "Projectar isto no vetor unitário da gravidade **ĝ** → sinal escalar: > 0 = para cima (impulso)."
+    ],
+    "f1": "v(t) = (a − g) · ĝ",
+    "fMid": "onde",
+    "f2": "ĝ = g / |g|",
+    "cap": "A gravidade lentamente à deriva g (filtro passa-baixo) separa orientação de dinâmica. A aceleração dinâmica a−g, projectada em ĝ, dá um impulso para cima limpo por bombeio.",
+    "gLabel": "g (gravidade)",
+    "aLabel": "a (medido)",
+    "amg": "a − g",
+    "topNote": "|Magnitude|: cada bombeio duas vezes",
+    "botNote": "v(t) contra gravidade: um impulso por bombeio"
+  },
+  "win": {
+    "h": "Passo 3 — Janela deslizante e FFT passa-banda",
+    "p": "O bombeio é **rítmico** — e ritmo vive no espaço de frequência. Por isso uma **janela deslizante** (típ. 4 s de largura, um passo a cada 2 s) desliza pelo sinal, e para cada janela uma **FFT** calcula o espectro. Duas bandas são importantes:",
+    "li": [
+      "**Banda de filtro 0,3–3 Hz** — tudo abaixo é gravidade/deriva, tudo acima é ruído de salpicos. Ambos são anulados por FFT passa-banda (`bandpass_fft`).",
+      "**Banda de bombeio 0,5–2 Hz** — aqui vive a cadência de bombeio (30–120 bombeios/min)."
+    ],
+    "p2": "Por janela caem quatro características:",
+    "li2": [
+      "**dom_freq** — frequência dominante na banda de bombeio (a taxa de bombeio)",
+      "**band_power_ratio** — proporção da energia na banda de bombeio na banda total (alta = ritmo claro)",
+      "**rms** — força do sinal (amplitude do movimento)",
+      "**spectral_entropy** — quão «organizado» o espectro está (baixo = uma frequência clara = bombeio; alto = caos = ruído/planagem)"
+    ],
+    "cap": "Uma janela de 4s desliza pelo sinal filtrado (passo 2s → sobreposição). Para cada janela a FFT fornece um espectro; a energia na banda de bombeio 0,5–2 Hz revela taxa e ritmo.",
+    "winT": "Janela t",
+    "winT1": "Janela t+1",
+    "sig": "v(t) — filtro passa-banda (0,3–3 Hz)",
+    "fft": "FFT",
+    "spec": "Espectro",
+    "band": "0,5–2 Hz",
+    "freq": "Frequência →"
+  },
+  "rate": {
+    "h": "Um detalhe para nerds: a verdadeira taxa de amostragem",
+    "p": "Alguns relógios **mentem** sobre a sua taxa. Um Forerunner 55 marca «10 Hz» mas fornece realmente apenas ~2,5 Hz. Características de frequência e cadência de bombeio seriam portanto lixo. Por isso o servidor determina a taxa **genericamente a partir dos dados**: `hz_real = Numero_Amostras_Accel / Duracao_GPS`. Se isto difere > 25% do marcado, usa-se a taxa medida. E se é **menor a 15 Hz**, o sinal é demasiado bruto para análise de frequência → a sessão é avaliada como **apenas GPS** (bombeios n/a, mas limites honestos em vez de números fantasma)."
+  },
+  "ml": {
+    "h": "Onde estou no foil? — o modelo ML",
+    "p": "Se em um segundo está **em foil**, um **RandomForest** decide — uma floresta de árvores de decisão que votam por maioria. Pequeno e interpretável, sem aprendizagem profunda necessária. Por segundo recebe **14 características**:",
+    "li": [
+      "**7 de velocidade e aceleração**: velocidade agora / 3s / 5s (mediana), variabilidade de velocidade, mais RMS em três bandas (total, banda de bombeio, alta frequência).",
+      "**7 do percurso GPS**: mudança de velocidade em 1/3/5s, comprimento do caminho, deslocamento líquido, **retidão** (líquido/caminho) e mudança de curso. Estas características de direção foram o maior ganho na experiência — mantêm fases de planagem calmas na sessão, em vez de as estilhaçar."
+    ],
+    "p2": "O truque é o **contexto**: cada segundo não é classificado isoladamente, mas junto com os **±5 segundos vizinhos** (o «windowize»). O vetor de características de um segundo é portanto 14 × 11 = 154 números. Assim o modelo vê o fluxo — uma pequena queda de velocidade no meio de um cruzeiro não é imediatamente considerada «fora». Isto reduziu a fragmentação de 1,10× para 1,00× e o F1-score de **0,93 para 0,97**.",
+    "cap": "Por segundo um vetor de 14 características; para classificação os ±5 segundos vizinhos são anexados (rótulo central). RandomForest vota → foil / não-foil.",
+    "featNote": "Janela de segundos: 14 características por segundo, ±5s contexto",
+    "forest": "RandomForest (maioria)",
+    "maskNote": "Máscara por segundo: foil ▮ / não-foil ▯"
+  },
+  "seg": {
+    "h": "Da máscara para sessões",
+    "p": "A máscara de segundos ainda tem buracos. É moldada em **sessões** limpas:",
+    "li": [
+      "**Fechar buracos curtos** (até ~2s): uma pausa de planagem não divide uma sessão.",
+      "**Piso de física**: abaixo de ~9 km/h nenhum foil sustém, e sem movimento real de posição (não apenas campo de velocidade) não está em foil — ambos cortam as margens suaves.",
+      "**Comprimento mínimo e velocidade média**: segmentos abaixo de 5s ou com média muito baixa são descartados (caminhar rápido ≠ foiling).",
+      "**Dropout de GPS separa**: um buraco de amostra > 15s (relógio debaixo de água/queda) termina a sessão — o tempo de buraco não conta como tempo de condução.",
+      "**Merge «sem-paragem»**: se a velocidade entre duas sessões detetadas **nunca** caiu abaixo de ~5,4 km/h e não houve dropout, foi realmente **uma** sessão (falha do modelo) → juntar, não importa quanto tempo."
+    ],
+    "p2": "Sem aceleração utilizável (apenas GPS) uma **máquina de estados** com **histerese** e **dwell** assume o comando: Fica-se «foilando» apenas após vários segundos na banda de velocidade *com velocidade lisa* (planagem é lisa, remar é saltado) — e deixa-se o estado apenas após vários segundos abaixo. Dois limiares (entrada/saída) evitam cintilação na borda.",
+    "cap": "Acima: a máscara de segundos cheia de buracos torna-se sessões (buracos fechados, juntos, segmentos curtos descartados). Abaixo: a histerese da máquina de estados GPS — entra apenas acima, sai apenas abaixo, com tempo de espera (dwell).",
+    "maskLabel": "Máscara (por segundo)",
+    "runs": "Sessões",
+    "run1": "Sessão 1 (buracos fechados)",
+    "run2": "Sessão 2",
+    "tooShort": "· demasiado curto → descartado",
+    "hyst": "Histerese + Dwell (fallback GPS)",
+    "enter": "ENTRADA ~10 km/h",
+    "exit": "SAÍDA ~9 km/h"
+  },
+  "se": {
+    "h": "Início e fim — sub-segundo preciso",
+    "p": "O modelo funciona na grelha de segundos, mas o **salto** é um evento afiado. Por isso o início da sessão é encaixado no **impulso de salto**: uma oscilação muito forte de magnitude (> 3,5× do percentil 95 — na experiência um salto tinha ~4,3×, um bombeio apenas ~2,3×, claramente separável). A oscilação mais cedo dessa amplitude na janela ±poucos segundos marca o verdadeiro salto — sub-segundo preciso entre dois pontos GPS interpolado. Se faltar a oscilação, o servidor puxa o início pela rampa de aceleração até ao quase-total-paragem.",
+    "p2": "No **fim** espreitam duas armadilhas: **dead-reckoning-drift** (o relógio mergulha, extrapola o GPS e «à deriva» para terra) é descartado — precedente: uma sessão nunca termina mais para terra que o seu início. E onde uma **superfície de água OSM** é conhecida, início e fim devem estar **na água** (ponto-em-polígono por ray-casting), senão cortam-se para a última amostra real de água. Finalmente o fim é ainda classificado como **queda** (queda abrupta de velocidade de «em foil» para «na água», ou dropout de GPS) ou **paragem controlada**.",
+    "cap": "O início da sessão detetado (cinza) é encaixado no impulso de salto afiado da magnitude de aceleração (ciano) — o verdadeiro início de foil.",
+    "thr": "3,5 × p95 (limiar de salto)",
+    "secStart": "Início de segundo",
+    "snapped": "← encaixado no salto",
+    "afterPump": "depois: ritmo de bombeio"
+  },
+  "pump": {
+    "h": "Contar bombeios — guiado por cadência (v3)",
+    "p": "O caminho óbvio — «contar todos os picos acima de um limiar de amplitude» — **subestima estruturalmente ~2×**: pega apenas nos maiores picos e deixa escorregar os menores rítmicos entre eles. Contra a **verdade** (a minha verdade de bombeio teclada, ver abaixo) isso acertava apenas ~40%.",
+    "p2": "A abordagem melhor é **guiada por cadência**: em secções rítmicas e energéticas uma FFT local estima a **frequência de bombeio momentânea**, e depois **por período de cadência exatamente um** máximo local real é escolhido como bombeio. A cadência é localmente adaptativa, portanto segue mudanças de ritmo. Resultado: **85–94%** acertos em vez de 40% — e contadores e marcadores de mapa são automaticamente coerentes (ambos das mesmas posições). Um gate de RMS evita que fases de planagem sem ritmo sejam contadas.",
+    "cap": "Limiar de amplitude (acima) vê apenas os picos gordos. Guiado por cadência (abaixo): estimar período local T, por período escolher o máximo real — incluindo os bombeios suaves.",
+    "top": "Limiar de amplitude — deixa escorregar bombeios pequenos",
+    "bot": "Guiado por cadência — um pico por período T"
+  },
+  "glide": {
+    "h": "Fases de planagem — o silêncio entre os bombeios",
+    "p": "Exatamente o que a Parte 1 nomeou como maior potencial cai agora quase de graça: com os tempos de bombeio conhecidos, as **fases de planagem são simplesmente os buracos entre eles** — mais a descida do início da sessão até ao primeiro bombeio (*lead*) e o arrefecimento do último bombeio até ao fim (*tail*). Disso caem por sessão **número**, **duração média de planagem** e **fase de planagem mais longa** — a métrica para quão eficientemente um foil mantém o impulso.",
+    "cap": "Bombeios (marcadores) dividem a sessão; os buracos entre são as fases de planagem. lead = início→1º. bombeio, tail = último bombeio→fim. Um longo tail = arrefecimento limpo.",
+    "start": "Início",
+    "end": "Fim",
+    "pumps": "Bombeios",
+    "lead": "lead",
+    "tail": "tail (planagem)",
+    "gaps": "Buracos = fases de planagem"
+  },
+  "gpsonly": {
+    "h": "Sem aceleração: apenas GPS e as suas armadilhas",
+    "p": "Sessões importadas (p.ex. de Polar) ou relógios com taxa demasiado bruta não têm **aceleração utilizável**. Depois apenas GPS — e tem macaqueices:",
+    "li": [
+      "**Espigões isolados** (glitch Doppler, «teletransporte»): substituídos contra a mediana local ou saltos de ida-e-volta suavizados.",
+      "**Rajadas Doppler de vários segundos** (~3s em 50 km/h, mas abaixo do limiar de glitch 90 km/h): substituídas por uma **mediana robusta de 15s** — é insensível a rajadas curtas, um verdadeiro cruzeiro sustentado a levanta com ele e fica intocado. Duas condições (relativa sobre mediana **e** absoluta acima de ~28 km/h) protegem verdadeiros cruzeiros.",
+      "**Gate de 30 km/h de Pumpfoil**: sem aceleração não se consegue separar com segurança Pumpfoil de foiling motorizado (kite/vento/wake). Se a velocidade máxima suavizada está acima 30 km/h, a sessão é considerada motorizada → **nenhum** Pumpfoil. Com aceleração este gate desaparece — lá o processamento confia no sinal de bombeio/estar-em-foil."
+    ]
+  },
+  "label": {
+    "h": "De onde vem a verdade — teclando bombeios",
+    "p": "O modelo precisa de uma **verdade** contra que o contador de bombeio guiado por cadência é calibrado — e eu teclo-a neste momento. Vejo o **vídeo** de uma sessão e **teclo em cada verdadeiro bombeio** num botão. Faço isto em **vários takes**; eles são calculados por correlação cruzada num **consenso** (pequenos desfasamentos de tempo reativo médiam-se). Resultado: o verdadeiro número de bombeios e o verdadeiro tempo por sessão. Isto é conscientemente uma **ponte** — precisão suficiente para calibrar hoje, mas teclado à mão.",
+    "p2": "Importante ao calibrar contra tais rótulos: **GroupKFold** em vez de validação cruzada normal. Segundos vizinhos da mesma sessão são quase idênticos — se caíssem simultaneamente em lote de treino e teste, o modelo estar-se-ia a auto-interrogar (vazamento) e valores de sonho seriam dados. GroupKFold mantém portanto **sessões inteiras** juntas: testado é sempre em sessões que o modelo nunca viu.",
+    "cap": "O ciclo: **verdade de bombeio teclada** → características → RandomForest → foil_rf.pkl → avaliação de cada sessão. Novos taps refluem, o modelo é recalibrado.",
+    "fits": [
+      "Teclagem de bombeios",
+      "Vídeo · vários takes"
+    ],
+    "feats": [
+      "Características",
+      "14 × ±5s contexto"
+    ],
+    "rf": [
+      "RandomForest",
+      "GroupKFold-CV"
+    ],
+    "pkl": [
+      "foil_rf.pkl",
+      "→ cada sessão"
+    ],
+    "loopNote": "novos takes teclados → recalibrar"
+  },
+  "x5": {
+    "h": "O próximo passo — verdade real por câmara (Insta360 X5)",
+    "p": "Teclagem é suficiente para começar, mas pendura no meu tempo reativo. A **verdade fisicamente exata** vem a seguir de uma **câmara na prancha**: uma Insta360 X5 filma mastro/foil com, e do vídeo lê-se **frame-exatamente** quando o foil realmente recebe pressão e quando voa. Com isto calibramos o tempo de bombeio e a deteção estar-em-foil contra verdadeira física em vez de aproximação teclada. Assim que o equipamento estiver pronto, vem aqui uma secção própria com toda a configuração de câmara."
+  },
+  "summary": {
+    "p1": "Aceleração bruta int16 → **magnitude** → **vertical contra gravidade** → **FFT passa-banda** em janela deslizante → 14 características por segundo com **±5s contexto** → **RandomForest** diz em-foil/não → **segmentação** para sessões (histerese, juntar, dropout) → início encaixado no **impulso de salto**, fim contra **superfície de água** & deriva corrigida → contagem de bombeio **guiada por cadência** → fases de planagem como buracos → métricas.",
+    "p2": "E tudo isto de **um relógio de mão** — o relógio no mastro da Parte 1 era apenas a referência que mostra que é verdadeiro.",
+    "h": "O caminho inteiro numa frase"
+  },
+  "limits": {
+    "h": "Limites (continuando honesto)",
+    "p": "O relógio fica na mão, não na prancha — os braços balancem para balancear e sobrepõem o sinal de bombeio («Wrist-Confound»). A vertical é estimada a partir da direção da gravidade (sem giroscópio) e é ligeiramente distorcida com aceleração sustentada. O contador guiado por cadência é calibrado contra verdade de app e vídeo, mas a **verdade física** (câmara na prancha, Insta360 X5) ainda falta. E os gates apenas GPS são um compromisso: melhor honestamente «gps_only, bombeios n/a» do que números inventados."
+  }
+};
+
+
+const pt: N2 = {
+  "back": "← Análises Nerd (Parte 1: o experimento)",
+  "h1": "Análises Nerd · Parte 2",
+  "subtitle": "Como números brutos de sensores se tornam pumps, sessões on-foil, início/fim e fases de glide — o processamento de sinal, a janela deslizante, o modelo ML e o labeling, passo a passo.",
+  "intro": "Na [Parte 1](/nerd-analysen) tratamos da **verdade**: um segundo relógio no mastro do foil que revela o que o foil realmente faz. Aqui trata-se da **maquinaria**: o que o servidor calcula para transformar um sinal agitado no pulso numa avaliação de sessão limpa. Tudo o que segue acontece **no servidor** — o relógio é apenas um gravador fino.",
+  "raw": {
+    "h": "O Que Chega: Os Dados Brutos",
+    "p": "Cada sessão consiste em dois fluxos, ambos com base de tempo comum (ms desde o início da gravação):",
+    "li": [
+      "**GPS**, aprox. **1 Hz**: por amostra `[t_ms, lat, lon, speed_mps, hr_bpm, h_acc_m]`. Velocidade e pulso podem estar faltando (então derivados da posição ou vazios).",
+      "**Aceleração**, conforme o relógio **10–100 Hz**: um array `int16` da forma `(N × 3)` — X/Y/Z em contadores brutos. Uma `accel_scale` (contadores por g) transforma isso em g físico."
+    ],
+    "p2": "Por que `int16` em vez de ponto flutuante? Largura de banda. 100 Hz × 3 eixos × 8 h são milhões de valores — como inteiros de 2 bytes isso reduz o tamanho de upload pela metade. A conversão de volta para g acontece apenas no servidor."
+  },
+  "pipe": {
+    "h": "A Pipeline em Uma Olhada",
+    "p": "Duas trilhas de processamento (GPS + aceleração) fluem para um modelo ML que decide **por segundo** «no foil — sim/não». Disto vêm sessões contíguas cujo início/fim é ajustado finamente, e finalmente pumps & fases de glide por sessão:",
+    "cap": "A avaliação completa: dos dois fluxos de dados brutos através da máscara de foiling para sessões, pumps e fases de glide.",
+    "gps": [
+      "GPS  ~1 Hz",
+      "t, lat, lon, speed, hr, h_acc"
+    ],
+    "accel": [
+      "Aceleração  10–100 Hz",
+      "int16 (N×3) · accel_scale"
+    ],
+    "gpsPrep": [
+      "Preparar GPS",
+      "Filtro de spike/Doppler · suavização · velocidade"
+    ],
+    "accelPrep": [
+      "Preparar aceleração",
+      "Magnitude → vertical · passa-banda FFT"
+    ],
+    "model": [
+      "Modelo ML de foil — RandomForest, contexto ±5 s",
+      "Fallback sem aceleração: máquina de estado GPS (histerese + dwell)"
+    ],
+    "mask": [
+      "Máscara de foiling",
+      "foil / não-foil — por segundo"
+    ],
+    "seg": [
+      "Segmentação → sessões",
+      "Fechar lacunas · mesclar · snapar início/fim"
+    ],
+    "pumps": [
+      "Contar pumps",
+      "Guiado por cadência, por sessão"
+    ],
+    "glide": [
+      "Fases de glide",
+      "Lacunas entre pumps"
+    ]
+  },
+  "mag": {
+    "h": "Passo 1 — Magnitude em vez de Eixos",
+    "p": "O relógio fica no pulso e gira o tempo todo — os três eixos X/Y/Z apontam em direções diferentes constantemente. Um valor de eixo único é portanto inútil. A salvação é a **magnitude** do vetor:",
+    "formula": "|a| = √(x² + y² + z²) / accel_scale",
+    "p2": "A magnitude é **invariante de orientação**: não importa como o relógio é girado, um impulso de 2 g permanece um impulso de 2 g. Isso torna o sinal comparável em primeiro lugar (`magnitude_g`).",
+    "cap": "Três eixos individuais sem sentido (o relógio se inclina constantemente) juntos produzem uma magnitude orientacionalmente estável |a|.",
+    "label": "|a| = √(x²+y²+z²)"
+  },
+  "vert": {
+    "h": "Passo 2 — Do Pulso para a Vertical",
+    "p": "A magnitude tem uma pegadinha: um pump é um **empurrão para cima**, mas `|a|` conta o downstroke tão bem quanto o upstroke — cada pump aparece duas vezes. Melhor seria a **aceleração vertical real contra a gravidade**. E isso pode ser reconstruído, completamente sem giroscópio:",
+    "ol": [
+      "A **direção da gravidade** muda apenas lentamente → estimar por **passa-baixa** (< 0,25 Hz) por eixo. Isso dá o vetor `g`, que sempre aponta «para baixo».",
+      "A **aceleração dinâmica** é `a − g`.",
+      "**Projetar** isso no vetor unitário de gravidade → sinal escalar: > 0 = para cima (push)."
+    ],
+    "f1": "v(t) = (a − g) · ĝ",
+    "fMid": "com",
+    "f2": "ĝ = g / |g|",
+    "cap": "A gravidade lentamente flutuante g (passa-baixa) separa orientação de dinâmica. A aceleração dinâmica a−g, projetada em ĝ, dá um empurrão para cima limpo por pump.",
+    "gLabel": "g (gravidade)",
+    "aLabel": "a (medido)",
+    "amg": "a − g",
+    "topNote": "|Magnitude|: cada pump duas vezes",
+    "botNote": "v(t) contra gravidade: um push por pump"
+  },
+  "win": {
+    "h": "Passo 3 — Janela Deslizante & Passa-Banda FFT",
+    "p": "Bombeio é **rítmico** — e ritmo vive no espaço de frequência. Por isso uma **janela deslizante** (typ. 4 s de largura, um passo a cada 2 s) desliza sobre o sinal, e para cada janela uma **FFT** calcula o espectro. Duas faixas são importantes:",
+    "li": [
+      "**Faixa de filtro 0,3–3 Hz** — tudo abaixo é gravidade/drift, tudo acima é ruído de splash. Ambos são anulados por passa-banda FFT (`bandpass_fft`).",
+      "**Faixa de pump 0,5–2 Hz** — aqui vive a cadência de pump (30–120 pumps/min)."
+    ],
+    "p2": "Por janela, caem quatro características:",
+    "li2": [
+      "**dom_freq** — frequência dominante na faixa de pump (a taxa de pump)",
+      "**band_power_ratio** — proporção de energia na faixa de pump na faixa geral (alta = ritmo claro)",
+      "**rms** — força do sinal (amplitude do movimento)",
+      "**spectral_entropy** — quão «arrumado» é o espectro (baixo = uma frequência clara = bombeio; alto = caos = ruído/glide)"
+    ],
+    "cap": "Uma janela de 4 s desliza sobre o sinal filtrado (passo 2 s → sobreposição). Para cada janela a FFT fornece um espectro; a energia na faixa de pump 0,5–2 Hz revela taxa e ritmo.",
+    "winT": "Janela t",
+    "winT1": "Janela t+1",
+    "sig": "v(t) — passa-banda filtrado (0,3–3 Hz)",
+    "fft": "FFT",
+    "spec": "Espectro",
+    "band": "0,5–2 Hz",
+    "freq": "Frequência →"
+  },
+  "rate": {
+    "h": "Um Detalhe Nerd: a Taxa de Amostragem Real",
+    "p": "Alguns relógios **mentem** sobre sua taxa. Um Forerunner 55 marca «10 Hz», mas realmente entrega apenas ~2,5 Hz. Características de frequência e cadência de pump seriam lixo. Por isso o servidor determina a taxa **genericamente a partir dos dados em si**: `hz_real = Número_Amostras_Accel / Duração_GPS`. Se isso se desviar > 25 % do marcado, a taxa medida é usada. E se estiver **abaixo de 15 Hz**, o sinal é muito grosseiro para análise de frequência → a sessão é avaliada como **apenas GPS** (pumps n/a, em vez disso, limites honestos em vez de valores de fantasia)."
+  },
+  "ml": {
+    "h": "Onde Estou no Foil? — o Modelo ML",
+    "p": "Se você está **no foil** em um segundo é decidido por um **RandomForest** — uma floresta de árvores de decisão que votam por maioria. Pequeno e interpretável, sem aprendizado profundo necessário. Por segundo ele recebe **14 características**:",
+    "li": [
+      "**7 de velocidade & aceleração**: velocidade agora / 3 s / 5 s (mediana), variabilidade de velocidade, bem como RMS em três faixas (geral, faixa de pump, alta frequência).",
+      "**7 da trilha GPS**: mudança de velocidade sobre 1/3/5 s, comprimento do caminho, deslocamento líquido, **linearidade** (líquido/caminho) e mudança de rumo. Essas características de direção foram a maior alavanca no experimento — mantêm fases de glide tranquilas na sessão, em vez de fragmentá-las."
+    ],
+    "p2": "O truque é o **contexto**: cada segundo não é classificado isoladamente, mas junto com os **±5 segundos vizinhos** (o «Windowize»). O vetor de características de um segundo tem portanto 14 × 11 = 154 números de comprimento. Assim o modelo vê o fluxo — uma queda curta de velocidade no meio do cruise não é imediatamente contada como «fora». Isso reduziu a fragmentação de 1,10× para 1,00× e o F1-score de **0,93 para 0,97**.",
+    "cap": "Por segundo um vetor de 14 características; para classificação os ±5 segundos vizinhos são anexados (Center-Label). O RandomForest vota → foil / não-foil.",
+    "featNote": "Janela de segundos: 14 características por segundo, contexto ±5 s",
+    "forest": "RandomForest (maioria)",
+    "maskNote": "Máscara por segundo: foil ▮ / não-foil ▯"
+  },
+  "seg": {
+    "h": "Da Máscara para Sessões",
+    "p": "A máscara de segundos é ainda furada. Ela é moldada em **sessões** limpas:",
+    "li": [
+      "**Fechar lacunas curtas** (até ~2 s): uma pausa de glide não fragmenta uma sessão.",
+      "**Limite de física**: abaixo de ~9 km/h nenhum foil carrega, e sem movimento real de posição (não apenas campo de velocidade) você não está no foil — ambos cortam as margens suaves.",
+      "**Comprimento mínimo & velocidade média**: segmentos abaixo de 5 s ou com média muito baixa são descartados (caminhada rápida ≠ foiling).",
+      "**Dropout de GPS separa**: uma lacuna de amostra > 15 s (relógio embaixo da água/queda) encerra a sessão — o tempo de lacuna não conta como tempo de condução.",
+      "**«Merge sem parada»**: se a velocidade entre duas sessões detectadas **nunca** caiu abaixo de ~5,4 km/h e não houve dropout, foi na verdade **uma** sessão (dropout do modelo) → mesclar, não importa quanto tempo."
+    ],
+    "p2": "Sem aceleração utilizável (apenas GPS) uma **máquina de estado** com **histerese** e **dwell** assume: você fica «foilando» apenas após vários segundos na faixa de velocidade *com velocidade suave* (glide é suave, paddling é agitado) — e sai do estado apenas após vários segundos abaixo. Dois limites (dentro/fora) evitam cintilação na borda.",
+    "cap": "Acima: a máscara furada de segundo é moldada em sessões (fechar lacunas, mesclar, descartar segmentos curtos). Abaixo: a histerese da máquina de estado GPS — entra apenas acima, sai apenas abaixo, com tempo de manutenção (dwell).",
+    "maskLabel": "Máscara (por segundo)",
+    "runs": "Sessões",
+    "run1": "Sessão 1 (lacunas fechadas)",
+    "run2": "Sessão 2",
+    "tooShort": "· muito curta → descartada",
+    "hyst": "Histerese + dwell (fallback de GPS)",
+    "enter": "ENTRAR ~10 km/h",
+    "exit": "SAIR ~9 km/h"
+  },
+  "se": {
+    "h": "Início & Fim — Sub-segundo-Preciso",
+    "p": "O modelo funciona na grade de segundo, mas o **salto** é um evento afiado. Por isso o início da sessão é snapado para o **impulso de salto**: um spike de magnitude muito forte (> 3,5× do percentil 95 — no experimento um salto estava em ~4,3×, um pump apenas em ~2,3×, então claramente separável). O impulso mais cedo dessa espécie na janela ±alguns segundos marca a decolagem real — sub-segundo-preciso interpolado entre dois pontos de GPS. Se o impulso estiver faltando, o servidor retira o início pela rampa de aceleração até o quase-parada anterior.",
+    "p2": "No **fim** espreitam duas armadilhas: **Dead-Reckoning-Drift** (o relógio mergulha, extrapola o GPS e «flutua» na terra) é descartado — prior: uma sessão nunca termina mais perto da terra que seu início. E onde uma **superfície de água OSM** é conhecida, início e fim devem estar **na água** (ponto-em-polígono por ray-casting), senão é cortado de volta para a última amostra de água real. Finalmente o fim ainda é classificado como **queda** (queda abrupta de velocidade de «no foil» para «na água», ou dropout de GPS) ou **parada controlada**.",
+    "cap": "O início de segundo detectado (cinza) é snapado para o impulso nítido de decolagem na magnitude de aceleração (ciano) — o verdadeiro início do foil.",
+    "thr": "3,5 × p95 (limiar de salto)",
+    "secStart": "Início de segundo",
+    "snapped": "← snapado para decolagem",
+    "afterPump": "depois: ritmo de pump"
+  },
+  "pump": {
+    "h": "Contar Pumps — Guiado por Cadência (v3)",
+    "p": "O caminho óbvio — «conte todos os peaks acima de um limiar de amplitude» — **subestima estruturalmente por ~2×**: ele pega apenas os maiores deflexões e perde os pequenos pumps rítmicos no meio. Contra a **verdade** (meu tap de pump verdade, veja abaixo) isso acertava apenas ~40 %.",
+    "p2": "A abordagem melhor é **guiada por cadência**: em seções rítmicas e energéticas, uma FFT local estima a **frequência de pump momentânea**, e então **por período de cadência exatamente um** verdadeiro máximo local é escolhido como pump. A cadência é localmente adaptativa, assim segue mudanças de tempo. Resultado: **85–94 %** acerto em vez de 40 % — e contagem e marcadores de mapa são automaticamente consistentes (ambos das mesmas posições). Um gate de RMS evita que fases de glide sem ritmo sejam contadas.",
+    "cap": "Limiar de amplitude (acima) vê apenas os maiores peaks. Guiado por cadência (abaixo): estimar período local T, por período escolher o verdadeiro máximo — também os pumps suaves.",
+    "top": "Limiar de amplitude — perde pequenos pumps",
+    "bot": "Guiado por cadência — um peak por período T"
+  },
+  "glide": {
+    "h": "Fases de Glide — o Silêncio Entre os Pumps",
+    "p": "Exatamente aquilo que a Parte 1 nomeou como o maior potencial cai agora quase de graça: são os tempos de pump conhecidos, as **fases de glide são simplesmente as lacunas entre eles** — mais a aceleração do início da sessão até o primeiro pump (*lead*) e o arremate do último pump até o fim (*tail*). Disso caem por sessão **número**, **duração média de glide** e **fase de glide mais longa** — o indicador de quão eficientemente um foil mantém o impulso.",
+    "cap": "Pumps (marcadores) dividem a sessão; as lacunas entre eles são as fases de glide. lead = início→1º pump, tail = último pump→fim. Um tail longo = arremate limpo.",
+    "start": "Início",
+    "end": "Fim",
+    "pumps": "Pumps",
+    "lead": "lead",
+    "tail": "tail (glide)",
+    "gaps": "Lacunas = fases de glide"
+  },
+  "gpsonly": {
+    "h": "Sem Aceleração: GPS-Only & Suas Armadilhas",
+    "p": "Sessões importadas (p. ex., de Polar) ou relógios com taxa muito grossa não têm **aceleração utilizável**. Então apenas GPS carrega — e isso tem truques:",
+    "li": [
+      "**Spikes individuais** (glitch de Doppler, «teletransporte»): substituído contra a mediana local ou suavizado saltos de ida e volta.",
+      "**Rajadas de Doppler de vários segundos** (~3 s em 50 km/h, mas abaixo do limiar de glitch de 90 km/h): substituído contra uma **mediana robusta de 15 s** — essa é insensível a rajadas curtas, um verdadeiro lauf mantido realmente a levanta com ele e permanece intocado. Duas condições (relativa sobre mediana **e** absoluta acima de ~28 km/h) protegem verdadeiros laufs.",
+      "**Gate de Pumpfoil de 30 km/h**: sem aceleração você não pode separar com segurança pumpfoil de foiling propulsado (kite/vento/wake). Se a velocidade máxima suavizada for acima de 30 km/h, a sessão é contada como propulsada → **nenhum** pumpfoil. Com aceleração esse gate cai — lá a avaliação confia no sinal de pump/on-foil."
+    ]
+  },
+  "label": {
+    "h": "De Onde Vem a Verdade — Pumps Antipatia",
+    "p": "O modelo precisa de uma **verdade**, contra a qual o contador de pump guiado por cadência é calibrado — e eu a digito para mim mesmo agora. Eu vejo o **vídeo** de uma sessão e **digito em um botão a cada pump real**. Faço isso em **vários testes**; eles são calculados por correlação cruzada para um **consenso** (pequenos desvios de tempo de reação se equilibram). Resultado: o verdadeiro número de pump e o verdadeiro tempo por sessão. Isto é deliberadamente uma **transição** — preciso o bastante para calibrar hoje, mas digitado à mão.",
+    "p2": "Importante ao calibrar contra rótulos assim: **GroupKFold** em vez de validação cruzada normal. Segundos vizinhos da mesma sessão são quase idênticos — se caíssem juntos em conjunto de treinamento e teste, o modelo se questionaria a si mesmo (vazamento) e relataria valores de sonho. GroupKFold portanto mantém **sessões inteiras** juntas: testado sempre em sessões que o modelo nunca viu.",
+    "cap": "O ciclo: **verdade de pump tappada** → características → RandomForest → foil_rf.pkl → avaliação de cada sessão. Novos taps fluem de volta, o modelo é recalibrado.",
+    "fits": [
+      "Pumps Antipatia",
+      "Vídeo · vários testes"
+    ],
+    "feats": [
+      "Características",
+      "14 × contexto ±5 s"
+    ],
+    "rf": [
+      "RandomForest",
+      "GroupKFold-CV"
+    ],
+    "pkl": [
+      "foil_rf.pkl",
+      "→ cada sessão"
+    ],
+    "loopNote": "novos laufs tappados → recalibrar"
+  },
+  "x5": {
+    "h": "O Próximo Passo — Verdade Real por Câmera (Insta360 X5)",
+    "p": "Antipatia é bom o suficiente para bootstrapping, mas depende do meu tempo de reação. A **verdade fisicamente exata** vem a seguir de uma **câmera na prancha**: uma Insta360 X5 filma mastro/foil com, e do vídeo você lê **frame-exatamente** quando o foil realmente recebe pressão e quando voa. Com isso calibramos pump-timing e reconhecimento on-foil contra física real em vez de aproximação tappada. Assim que o rig estiver pronto, vem aqui uma seção própria com o setup de câmera completo."
+  },
+  "summary": {
+    "h": "O Caminho Inteiro em Uma Frase",
+    "p1": "Aceleração bruta int16 → **magnitude** → **vertical contra gravidade** → **passa-banda FFT** em janela deslizante → 14 características por segundo com **contexto ±5 s** → **RandomForest** diz on-foil/não → **segmentação** para sessões (histerese, mesclar, dropout) → início snapado para **impulso de salto**, fim corrigido contra **superfície de água** & drift → **contagem de pump guiada por cadência** → fases de glide como lacunas → indicadores.",
+    "p2": "E tudo isso de **um relógio no pulso** — o relógio do mastro da Parte 1 era apenas a referência que mostra que está correto."
+  },
+  "limits": {
+    "h": "Limites (Continuando honesto)",
+    "p": "O relógio fica no pulso, não na prancha — os braços agitam para equilibrio e sobrepõem o sinal de pump («Wrist-Confound»). A vertical é estimada a partir da direção da gravidade (sem giroscópio) e é ligeiramente distorcida com aceleração contínua. O contador guiado por cadência é calibrado contra verdade de app e vídeo, mas a **calibração física** terminal (câmera na prancha, Insta360 X5) ainda está aberta. E os gates apenas-GPS são um compromisso: melhor honestamente «apenas_gps, pumps n/a» do que números inventados."
+  }
+};
+
+
+const ru: N2 = {
+  "back": "← Нерд-анализы (Часть 1: эксперимент)",
+  "h1": "Нерд-анализы · Часть 2",
+  "subtitle": "Как из сырых чисел датчиков получаются Pumps, On-Foil-лауны, старт/конец и глайд-фазы — обработка сигнала, скользящее окно, ML-модель и разметка, всё по порядку.",
+  "intro": "В [Части 1](/nerd-analysen) речь шла об **истине**: вторые часы на мачте фойла, которые показывают, что фойл на самом деле делает. Здесь речь о **механизме**: что считает сервер, чтобы из дрожащего сигнала на запястье получилась чистая разбор сессии. Всё дальше происходит **на сервере** — часы это просто тонкий рекордер.",
+  "raw": {
+    "h": "Что приходит: сырые данные",
+    "p": "Каждая сессия состоит из двух потоков, оба с общей временной базой (ms от начала записи):",
+    "li": [
+      "**GPS**, ~**1 Hz**: за Sample `[t_ms, lat, lon, speed_mps, hr_bpm, h_acc_m]`. Speed и пульс могут отсутствовать (тогда выводятся из позиции или пусто).",
+      "**Ускорение**, в зависимости от часов **10–100 Hz**: массив `int16` вида `(N × 3)` — X/Y/Z в сырых отсчётах. `accel_scale` (отсчёты на g) превращает это в физические g."
+    ],
+    "p2": "Почему `int16` вместо чисел с плавающей точкой? Полоса пропускания. 100 Hz × 3 оси × 8 h это миллионы значений — как 2-байтовые целые числа это вполовину сжимает размер загрузки. Масштабирование обратно в g происходит первым на сервере."
+  },
+  "pipe": {
+    "h": "Конвейер в одном взгляде",
+    "p": "Две подготовительные ветки (GPS + Accel) впадают в ML-модель, которая **в секунду** решает «на фойле — да/нет». Из этого получаются связанные лауны, их начало/конец уточняются, и наконец Pumps и глайд-фазы за лаун:",
+    "cap": "Полная разработка: от двух сырых потоков данных через маску фойлинга к лаунам, Pumps и глайд-фазам.",
+    "gps": [
+      "GPS  ~1 Hz",
+      "t, lat, lon, speed, hr, h_acc"
+    ],
+    "accel": [
+      "Ускорение  10–100 Hz",
+      "int16 (N×3) · accel_scale"
+    ],
+    "gpsPrep": [
+      "Подготовка GPS",
+      "Фильтр спайков/Доплера · сглаживание · Speed"
+    ],
+    "accelPrep": [
+      "Подготовка Accel",
+      "Величина → Вертикаль · FFT-полоса"
+    ],
+    "model": [
+      "ML-модель фойла — RandomForest, ±5 s контекст",
+      "Fallback без Accel: GPS-State-Machine (гистерезис + выдержка)"
+    ],
+    "mask": [
+      "Маска фойлинга",
+      "foil / not-foil — в секунду"
+    ],
+    "seg": [
+      "Сегментация → лауны",
+      "Закрытие лакун · слияние · старт/конец захвата"
+    ],
+    "pumps": [
+      "Подсчёт Pumps",
+      "кадансия-управляемый, за лаун"
+    ],
+    "glide": [
+      "Глайд-фазы",
+      "Лакуны между Pumps"
+    ]
+  },
+  "mag": {
+    "h": "Шаг 1 — Величина вместо осей",
+    "p": "Часы на запястье и постоянно поворачиваются — три оси X/Y/Z постоянно показывают в разные стороны. Одиночное значение оси бесполезно. Спасение в **величине** вектора:",
+    "formula": "|a| = √(x² + y² + z²) / accel_scale",
+    "p2": "Величина **инвариантна по ориентации**: неважно как часы повёрнуты, 2-g толчок остаётся 2-g толчком. Это делает сигнал вообще сравнимым (`magnitude_g`).",
+    "cap": "Три отдельно бессмысленные оси (часы постоянно кренятся) вместе дают стабильную, инвариантную по ориентации величину |a|.",
+    "label": "|a| = √(x²+y²+z²)"
+  },
+  "vert": {
+    "h": "Шаг 2 — с запястья в вертикаль",
+    "p": "У величины есть подвох: Pump это **вверх-толчок**, но `|a|` считает вниз-толчок также как вверх-толчок — каждый Pump появляется дважды. Лучше была бы настоящая **вертикальное ускорение против гравитации**. И это можно восстановить, вообще без гироскопа:",
+    "ol": [
+      "**Направление гравитации** меняется только медленно → по **низкочастотному фильтру** (< 0,25 Hz) за каждую ось оценить. Это даёт вектор `g`, который всегда указывает «вниз».",
+      "**Динамическое** ускорение это `a − g`.",
+      "Это **спроецировать** на единичный вектор гравитации → скалярный сигнал: > 0 = вверх (Push)."
+    ],
+    "f1": "v(t) = (a − g) · ĝ",
+    "fMid": "где",
+    "f2": "ĝ = g / |g|",
+    "cap": "Медленно дрейфующая гравитация g (низкочастотный фильтр) разделяет ориентацию от динамики. Динамическое ускорение a−g, спроецированное на ĝ, даёт чистый вверх-толчок за Pump.",
+    "gLabel": "g (гравитация)",
+    "aLabel": "a (измеренное)",
+    "amg": "a − g",
+    "topNote": "|Величина|: каждый Pump дважды",
+    "botNote": "v(t) против гравитации: один Push за Pump"
+  },
+  "win": {
+    "h": "Шаг 3 — Скользящее окно & FFT-полоса",
+    "p": "Pumping это **ритмичное** — и ритм живёт в частотной области. Поэтому **скользящее окно** (типично 4 s шириной, шаг все 2 s) скользит по сигналу, и за каждое окно **FFT** вычисляет спектр. Два диапазона важны:",
+    "li": [
+      "**Фильтр-диапазон 0,3–3 Hz** — всё ниже это гравитация/дрейф, всё выше это шум брызг. Оба по FFT-полосе зануляются (`bandpass_fft`).",
+      "**Pump-диапазон 0,5–2 Hz** — здесь живёт Pump-кадансия (30–120 Pumps/мин)."
+    ],
+    "p2": "За окно выпадают четыре признака:",
+    "li2": [
+      "**dom_freq** — доминирующая частота в Pump-диапазоне (Pump-частота)",
+      "**band_power_ratio** — доля энергии в Pump-диапазоне от всего диапазона (высоко = чёткий ритм)",
+      "**rms** — мощность сигнала (амплитуда движения)",
+      "**spectral_entropy** — как «чистый» спектр (низко = одна чёткая частота = Pumping; высоко = хаос = шум/глайд)"
+    ],
+    "cap": "4-s окно идёт над фильтрованным сигналом (шаг 2 s → перекрытие). За каждое окно FFT даёт спектр; энергия в Pump-диапазоне 0,5–2 Hz выдаёт частоту и ритм.",
+    "winT": "Окно t",
+    "winT1": "Окно t+1",
+    "sig": "v(t) — полоса-фильтрована (0,3–3 Hz)",
+    "fft": "FFT",
+    "spec": "Спектр",
+    "band": "0,5–2 Hz",
+    "freq": "Частота →"
+  },
+  "rate": {
+    "h": "Нерд-деталь: реальная частота дискретизации",
+    "p": "Некоторые часы **врут** о своей частоте. Forerunner 55 маркирует «10 Hz», доставляет на самом деле только ~2,5 Hz. Частотные признаки и Pump-кадансия были бы мусором. Поэтому сервер определяет частоту **общим способом из самих данных**: `real_Hz = Anzahl_Accel-Samples / GPS-Duration`. Если это > 25 % от дня, используется измеренная частота. И если она **ниже 15 Hz**, сигнал слишком грубый для частотного анализа → сессия вычисляется как **GPS-only** (Pumps n/a, вместо этого честные границы вместо фантазийных значений)."
+  },
+  "ml": {
+    "h": "Где я на фойле? — ML-модель",
+    "p": "Находишься ли ты **на фойле** в секунду, решает **RandomForest** — лес деревьев решений, голосующих большинством. Маленький и интерпретируемый, глубокое обучение не нужно. За секунду он получает **14 признаков**:",
+    "li": [
+      "**7 из Speed & Accel**: Speed сейчас / 3 s / 5 s (медиана), вариабельность Speed, плюс RMS в три диапазона (общий, Pump-диапазон, высокочастотный).",
+      "**7 из GPS-пути**: изменение Speed за 1/3/5 s, длина пути, чистое смещение, **прямолинейность** (чистое/путь) и изменение курса. Эти признаки направления были самым большим рычагом в эксперименте — они держат спокойные глайд-фазы в лауне, вместо того чтобы его фрагментировать."
+    ],
+    "p2": "Трюк в **контексте**: каждая секунда не классифицируется изолированно, а вместе с **±5 соседних секунд** («Windowize»). Вектор признаков секунды таким образом 14 × 11 = 154 числа длинный. Так модель видит направление — короткий Speed-провал посередине круиза не сразу оценивается как «вышли». Это привело фрагментацию с 1,10× на 1,00× и F1-скор с **0,93 на 0,97**.",
+    "cap": "За секунду 14-признаковый вектор; для классификации прилагаются соседние ±5 секунд (центральный лейбл). RandomForest голосует → foil / not-foil.",
+    "featNote": "Секундные окна: 14 признаков в секунду, ±5 s контекст",
+    "forest": "RandomForest (большинство)",
+    "maskNote": "Маска в секунду: foil ▮ / not-foil ▯"
+  },
+  "seg": {
+    "h": "От маски к лаунам",
+    "p": "Маска за секунду ещё дырявая. Она формируется в чистые **лауны**:",
+    "li": [
+      "**Закрыть короткие лакуны** (до ~2 s): пауза глайда не разбивает лаун.",
+      "**Физический минимум**: ниже ~9 km/h нет подъема фойла, и без реального смещения позиции (не просто Speed-поле) ты не на фойле — оба обрезают мягкие края.",
+      "**Минимальная длина & Ø-Speed**: сегменты < 5 s или с недостаточным средним вылетают (быстрая ходьба ≠ фойлинг).",
+      "**GPS-dropout разделяет**: лакуна Sample > 15 s (часы под водой/падение) заканчивает лаун — время лакуны не считается как время лауна.",
+      "**«Нет-стоп»-слияние**: если Speed между двумя распознанными лаунами **никогда** не падал ниже ~5,4 km/h и не было dropout, это на самом деле был **один** лаун (выпадение модели) → объединить, неважно как долго."
+    ],
+    "p2": "Без хорошего ускорения (GPS-only) берёт **State-Machine** с **гистерезисом** и **выдержкой**: ты становишься «фойлящим» только после нескольких секунд в Speed-диапазоне *при гладком Speed* (глайд гладкий, гребля рубленая) — и выходишь из состояния только после нескольких секунд ниже. Два порога (вход/выход) предотвращают мерцание на краю.",
+    "cap": "Вверху: дырявая маска за секунду становится лаунами (лакуны закрыты, слияние, короткие сегменты отброшены). Внизу: гистерезис GPS-State-Machine — вход только выше, выход только ниже, с выдержкой (Dwell).",
+    "maskLabel": "Маска (в секунду)",
+    "runs": "Лауны",
+    "run1": "Лаун 1 (лакуны закрыты)",
+    "run2": "Лаун 2",
+    "tooShort": "· слишком короткий → отброшен",
+    "hyst": "Гистерезис + Выдержка (GPS-fallback)",
+    "enter": "ENTER ~10 km/h",
+    "exit": "EXIT ~9 km/h"
+  },
+  "se": {
+    "h": "Старт & Конец — с точностью к подсекунде",
+    "p": "Модель работает в секундном растере, но **отрыв** это резкое событие. Поэтому начало лауна **схватывается на прыжок-импульс**: очень сильный спайк величины (> 3,5× 95-перцентиля — в эксперименте прыжок был ~4,3×, Pump только ~2,3×, таким образом чётко разделимо). Самый ранний такой импульс в окне ±несколько секунд отмечает истинный отрыв — с точностью к подсекунде между двумя GPS-точками интерполировано. Если импульса нет, сервер тащит старт по рампе ускорения до последнего квази-стопа.",
+    "p2": "В **конце** ловушки двойные: **Dead-Reckoning-дрейф** (часы погружаются, экстраполируют GPS и «дрейфуют» на берег) отбрасываются — предварительное знание: лаун никогда не кончается береговнее, чем начинается. И где известна **OSM-водная поверхность**, Start и End должны быть **в воде** (точка-в-полигоне через ray-casting), иначе обрезается обратно на последний настоящий водный Sample. Наконец, конец ещё классифицируется как **падение** (абrupt Speed-падение с «на фойле» на «в воде», или GPS-dropout) или **контролируемый стоп**.",
+    "cap": "Распознанный секундный старт (серый) захватывается на резкий прыжок-импульс в величине ускорения (голубой) — истинный фойл-старт.",
+    "thr": "3,5 × p95 (прыжок-порог)",
+    "secStart": "Секундный старт",
+    "snapped": "← захвачено на прыжок",
+    "afterPump": "после: Pump-ритм"
+  },
+  "pump": {
+    "h": "Подсчёт Pumps — кадансия-управляемый (v3)",
+    "p": "Очевидный путь — «подсчитай все пики выше порога амплитуды» — **структурно недооценивает в ~2×**: подбирает только самые большие взлёты и пропускает меньшие, ритмичные Pumps между ними. Против **истины** (мой припечатанный Pump-truth, см. ниже) это попало только ~40 %.",
+    "p2": "Лучший подход это **кадансия-управляемый**: В ритмичных, энергетичных разделах локальная FFT оценивает **текущую Pump-частоту**, и потом **за каждый период кадансии ровно один** настоящий локальный максимум выбирается как Pump. Кадансия локально-адаптивная, так что следует изменениям темпа. Результат: **85–94 %** попаданий вместо 40 % — и счётчик и маркеры карты автоматически согласованы (оба из одних позиций). RMS-ворота предотвращают ритм-свободные глайд-фазы от подсчёта.",
+    "cap": "Амплитудный порог (вверху) видит только толстые пики. Кадансия-управляемый (внизу): оценить локальный период T, за период подобрать истинный максимум — даже мягкие Pumps.",
+    "top": "Амплитудный порог — пропускает мягкие Pumps",
+    "bot": "Кадансия-управляемый — один пик на период T"
+  },
+  "glide": {
+    "h": "Глайд-фазы — тишина между Pumps",
+    "p": "Ровно то, что Часть 1 назвала наибольшим потенциалом, почти вылезает как подарок: Если Pump-времена известны, **глайд-фазы это просто лакуны между ними** — плюс разгон от лаун-старта до первого Pump (*lead*) и раскат от последнего Pump до конца (*tail*). Отсюда за лаун выпадают **количество**, **Ø-глайд-длительность** и **самая длинная глайд-фаза** — показатель того, как эффективно фойл держит импульс.",
+    "cap": "Pumps (маркеры) разделяют лаун; лакуны между ними это глайд-фазы. lead = Start→1. Pump, tail = последний Pump→End. Длинный tail = чистый раскат.",
+    "start": "Старт",
+    "end": "Конец",
+    "pumps": "Pumps",
+    "lead": "lead",
+    "tail": "tail (глайд)",
+    "gaps": "Лакуны = глайд-фазы"
+  },
+  "gpsonly": {
+    "h": "Без Accel: GPS-only и его ловушки",
+    "p": "Импортированные сессии (например от Polar) или часы с слишком грубой частотой не имеют **хорошего ускорения**. Тогда несёт только GPS — и у него есть особенности:",
+    "li": [
+      "**Одиночные спайки** (Доплер-глич, «телепорт»): заменены против локальной медианы или сглажены скачки туда-обратно.",
+      "**Многосекундные Доплер-всплески** (~3 s на 50 km/h, но ниже 90-km/h-глич-порога): заменены против робастной **15-s-медианы** — она невосприимчива к коротким всплескам, настоящий удерживаемый лаун её поднимает и остаётся нетронут. Два условия (относительно выше медианы **и** абсолютно выше ~28 km/h) защищают настоящие лауны.",
+      "**30-km/h-Pumpfoil-ворота**: без Accel нельзя безопасно отличить Pumpfoil от моторизованного фойлинга (Kite/Wind/Wake). Если сглаженный топ-Speed выше 30 km/h, сессия считается моторизованной → **нет** Pumpfoil. С Accel это ворота отпадают — там расчёты доверяют Pump-/On-Foil-сигналу."
+    ]
+  },
+  "label": {
+    "h": "Откуда истина — антиппинг Pumps",
+    "p": "Модели нужна **истина**, против которой кадансия-управляемый Pump-счётчик калибруется — и я ввожу её себе сейчас. Я смотрю **видео** лауна и **антипираю на каждом настоящем Pump** кнопку. Это я делаю в **нескольких takes**; они вычисляются через кросс-корреляцию в **консенсус** (малые время-реакции-сдвиги усредняются). Результат: настоящее Pump-количество и настоящее время за лаун. Это сознательно **переходный** — достаточно точный чтобы сегодня калибровать, но введённый рукой.",
+    "p2": "Важное при калибровке против таких лейблов: **GroupKFold** вместо нормальной кросс-валидации. Соседние секунды одного лауна почти идентичны — попадись они вместе в тренировку и тест, модель себя спросит (утечка) и доложит мечтательные значения. GroupKFold поэтому держит **целые сессии** вместе: тестируется всегда на лаунах, которые модель никогда не видела.",
+    "cap": "Цикл: **введённая** Pump-истина → признаки → RandomForest → foil_rf.pkl → разработка каждой сессии. Новые антиппы текут обратно, модель пересчитывается.",
+    "fits": [
+      "Antipate Pumps",
+      "Видео · несколько takes"
+    ],
+    "feats": [
+      "Признаки",
+      "14 × ±5 s контекст"
+    ],
+    "rf": [
+      "RandomForest",
+      "GroupKFold-CV"
+    ],
+    "pkl": [
+      "foil_rf.pkl",
+      "→ каждая сессия"
+    ],
+    "loopNote": "новые введённые лауны → пересчитать"
+  },
+  "x5": {
+    "h": "Следующий шаг — настоящая истина через камеру (Insta360 X5)",
+    "p": "Антиппинг достаточно хороший для запуска, но зависит от моего времени реакции. **Физически точная** истина придёт дальше от **камеры на доске**: Insta360 X5 снимает мачту/фойл с, и из видео читают **кадр-точно** когда фойл получает давление и когда летит. С этим калибруем Pump-время и On-Foil-распознавание против настоящей физики вместо введённого приближения. Как только риг встанет, здесь приходит целая секция с полной установкой камеры."
+  },
+  "summary": {
+    "h": "Весь путь в одном предложении",
+    "p1": "Сырое int16-ускорение → **величина** → **вертикаль против гравитации** → **FFT-полоса** в скользящем окне → 14 признаков за секунду с **±5 s контекстом** → **RandomForest** говорит on-foil/не → **сегментация** в лауны (гистерезис, слияние, dropout) → старт на **прыжок-импульс** захвачен, конец против **водной поверхности** & дрейф исправлен → **кадансия-управляемый** подсчёт Pump → глайд-фазы как лакуны → показатели.",
+    "p2": "И всё это из **одних часов на запястье** — часы на мачте из Части 1 были только эталоном, что это правда."
+  },
+  "limits": {
+    "h": "Ограничения (продолжая быть честным)",
+    "p": "Часы на запястье, не на доске — руки машут для баланса и накладываются на Pump-сигнал («Wrist-Confound»). Вертикаль оценивается из направления гравитации (нет гироскопа) и при длительном ускорении слегка искажена. Кадансия-управляемый счётчик калибруется против приложения и видео-истины, но **физическая** конечная калибровка (камера на доске, Insta360 X5) ещё не начата. И GPS-only ворота это компромисс: лучше честно «gps_only, Pumps n/a» чем выдуманные числа."
+  }
+};
+
+
+const zh: N2 = {
+  "back": "← 极客分析（第1部分：实验）",
+  "h1": "极客分析 · 第2部分",
+  "subtitle": "从原始传感器数字变成泵动、着翼运行、启动/结束和滑行阶段 — 信号处理、滑动窗口、ML模型和标记，一步步来。",
+  "intro": "在[第1部分](/nerd-analysen)中，讨论的是**真相**：翼面桅杆上的第二块表，它揭示翼面真正在做什么。这里讨论的是**机器**：服务器计算什么，使得从手腕上的信号波动变成干净的会话评估。以下所有内容都发生在**服务器端** — 表只是一个薄型记录器。",
+  "raw": {
+    "h": "进入的东西：原始数据",
+    "p": "每个会话由两个流组成，两者都有共同的时间基准（从录音开始的毫秒）：",
+    "li": [
+      "**GPS**，约**1 Hz**：每个样本`[t_ms, lat, lon, speed_mps, hr_bpm, h_acc_m]`。速度和脉搏可能缺失（然后从位置派生或为空）。",
+      "**加速度**，取决于表**10–100 Hz**：一个`int16`数组，形式为`(N × 3)` — X/Y/Z原始计数。一个`accel_scale`（计数每g）将其转换为物理g。"
+    ],
+    "p2": "为什么`int16`而不是浮点？带宽。100 Hz × 3轴 × 8小时是数百万个值 — 作为2字节整数，这将上传大小减半。缩放回g发生在服务器上。"
+  },
+  "pipe": {
+    "h": "管道一览",
+    "p": "两条处理路线（GPS + Accel）进入一个ML模型，该模型**每秒**决定「在翼面上 — 是/否」。从此得出连接的运行，其启动/结束经过微调，最后是每次运行的泵动和滑行阶段：",
+    "cap": "完整评估：从两个原始数据流通过着翼掩码到运行、泵动和滑行阶段。",
+    "gps": [
+      "GPS  约1 Hz",
+      "t, lat, lon, speed, hr, h_acc"
+    ],
+    "accel": [
+      "加速度  10–100 Hz",
+      "int16 (N×3) · accel_scale"
+    ],
+    "gpsPrep": [
+      "准备GPS",
+      "尖峰/多普勒滤波 · 平滑 · 速度"
+    ],
+    "accelPrep": [
+      "准备加速度",
+      "幅度 → 竖直 · FFT带通"
+    ],
+    "model": [
+      "ML着翼模型 — RandomForest，±5秒上下文",
+      "无Accel时回退：GPS状态机（迟滞 + 驻留）"
+    ],
+    "mask": [
+      "着翼掩码",
+      "着翼 / 非着翼 — 每秒"
+    ],
+    "seg": [
+      "分段 → 运行",
+      "关闭缝隙 · 合并 · 启动/结束对齐"
+    ],
+    "pumps": [
+      "计数泵动",
+      "频率引导，每次运行"
+    ],
+    "glide": [
+      "滑行阶段",
+      "泵动之间的缝隙"
+    ]
+  },
+  "mag": {
+    "h": "步骤1 — 幅度而非轴",
+    "p": "表坐在手腕上并不断旋转 — 三个轴X/Y/Z总是指向不同的方向。单个轴值因此毫无价值。救赎是向量的**幅度**：",
+    "formula": "|a| = √(x² + y² + z²) / accel_scale",
+    "p2": "幅度是**方向不变的**：无论表如何旋转，2g冲击仍然是2g冲击。这样信号首先变得可比较（`magnitude_g`）。",
+    "cap": "三个单独的无意义轴（表不断倾斜）一起产生稳定的、方向不变的幅度|a|。",
+    "label": "|a| = √(x²+y²+z²)"
+  },
+  "vert": {
+    "h": "步骤2 — 从手腕到竖直",
+    "p": "幅度有一个问题：泵动是一个**向上推动**，但`|a|`同样计算向下的划和向上的划 — 每个泵动都出现两次。更好的是真正的**对抗重力的竖直加速度**。它可以在没有陀螺仪的情况下重建：",
+    "ol": [
+      "**重力方向**变化缓慢 → 通过**低通**（< 0.25 Hz）估计每轴。这产生向量`g`，始终「向下」指向。",
+      "**动态**加速度是`a − g`。",
+      "**投影**到重力单位向量 → 标量信号：> 0 = 向上（推动）。"
+    ],
+    "f1": "v(t) = (a − g) · ĝ",
+    "fMid": "其中",
+    "f2": "ĝ = g / |g|",
+    "cap": "缓慢漂移的重力g（低通）将方向与动力分开。动态加速度a−g，投影到ĝ，为每个泵动产生干净的向上推动。",
+    "gLabel": "g（重力）",
+    "aLabel": "a（测量）",
+    "amg": "a − g",
+    "topNote": "|幅度|：每个泵动加倍",
+    "botNote": "v(t)对重力：每个泵动一个推动"
+  },
+  "win": {
+    "h": "步骤3 — 滑动窗口 & FFT带通",
+    "p": "泵动是**节奏性的** — 节奏在频率域中活跃。因此一个**滑动窗口**（典型4秒宽，每隔2秒一步）在信号上滑动，对每个窗口，**FFT**计算频谱。两个频带很重要：",
+    "li": [
+      "**滤波频带0.3–3 Hz** — 以下全是重力/漂移，以上全是飞溅噪声。两者都通过FFT带通零化（`bandpass_fft`）。",
+      "**泵动频带0.5–2 Hz** — 泵动频率在这里（30–120泵/分钟）。"
+    ],
+    "p2": "每个窗口产生四个特征：",
+    "li2": [
+      "**dom_freq** — 泵动频带中的主导频率（泵动频率）",
+      "**band_power_ratio** — 泵动频带中的能量占总频带的比例（高 = 清晰节奏）",
+      "**rms** — 信号强度（运动幅度）",
+      "**spectral_entropy** — 频谱有多「整洁」（低 = 一个清晰频率 = 泵动；高 = 混乱 = 噪声/滑行）"
+    ],
+    "cap": "一个4秒窗口在过滤后的信号上滑动（步骤2秒 → 重叠）。对每个窗口，FFT提供频谱；泵动频带0.5–2 Hz中的能量揭示频率和节奏。",
+    "winT": "窗口t",
+    "winT1": "窗口t+1",
+    "sig": "v(t) — 带通过滤（0.3–3 Hz）",
+    "fft": "FFT",
+    "spec": "频谱",
+    "band": "0.5–2 Hz",
+    "freq": "频率 →"
+  },
+  "rate": {
+    "h": "一个极客细节：真实采样率",
+    "p": "某些表**谎称**它们的频率。Forerunner 55标记「10 Hz」，实际上只提供~2.5 Hz。频率特征和泵动频率会因此变成垃圾。因此服务器**从数据本身通用地**确定频率：`真实Hz = Accel样本数 / GPS持续时间`。如果这与标签偏差 > 25%，则采用测量的频率。如果它**低于15 Hz**，信号对频率分析太粗糙 → 会话被评估为**仅GPS**（泵动不适用，相反为诚实的边界而不是虚假值）。"
+  },
+  "ml": {
+    "h": "我在翼面上吗？— ML模型",
+    "p": "是否在某一秒**在翼面上**由一个**RandomForest**决定 — 一片由决策树组成的森林，通过多数投票表决。小而可解释，不需要深度学习。每秒它获得**14个特征**：",
+    "li": [
+      "**7来自速度和Accel**：现在/3秒/5秒的速度（中位数）、速度变率，加上三个频带中的RMS（总体、泵动频带、高频）。",
+      "**7来自GPS路径**：1/3/5秒的速度变化、路径长度、净偏移、**直线性**（净/路径）和航向变化。这些方向特征在实验中是最大的杠杆 — 它们在运行中保持安静的滑行阶段，而不是将其分割。"
+    ],
+    "p2": "诀窍是**上下文**：每秒不是单独分类，而是与**±5个邻近秒**（「窗口化」）一起分类。一秒的特征向量因此是14 × 11 = 154个数字长。这样模型看到进展 — 巡航中的短速度下降不会立即被评估为「离开」。这将碎片化从1.10×降至1.00×，F1分数从**0.93增至0.97**。",
+    "cap": "每秒一个14特征向量；为了分类，±5个邻近秒被附加（中心标签）。RandomForest投票表决 → 着翼 / 非着翼。",
+    "featNote": "秒窗口：每秒14个特征，±5秒上下文",
+    "forest": "RandomForest（多数）",
+    "maskNote": "每秒掩码：着翼 ▮ / 非着翼 ▯"
+  },
+  "seg": {
+    "h": "从掩码到运行",
+    "p": "秒掩码仍有漏洞。它形成为干净的**运行**：",
+    "li": [
+      "**关闭短缝隙**（至~2秒）：滑行暂停不分割运行。",
+      "**物理底线**：低于~9 km/h没有翼面支撑，没有真实位置移动（不仅仅是速度域）就不在翼面上 — 两者都切掉柔软的边缘。",
+      "**最小长度和平均速度**：长度低于5秒或平均值太低的分段被舍弃（快速走路 ≠ 着翼）。",
+      "**GPS掉线分割**：样本缝隙 > 15秒（表在水下/摔倒）结束运行 — 缝隙时间不计为飞行时间。",
+      "**「无停止」合并**：如果两个识别的运行之间速度**从不**低于~5.4 km/h且没有掉线，实际上是**一个**运行（模型故障） → 合并，无论多长。"
+    ],
+    "p2": "没有可用的加速度（仅GPS），一个**状态机**用**迟滞**和**驻留**接管：在速度频带内的多个秒后，你首先变成「着翼」*伴随平滑速度*（滑行平滑，划桨不平滑） — 并在下方多个秒后离开状态。两个阈值（进/出）防止边界处的闪烁。",
+    "cap": "上面：有漏洞的秒掩码变成运行（关闭缝隙、合并、舍弃短分段）。下面：GPS状态机的迟滞 — 进入在上方、离开在下方，带有驻留时间（Dwell）。",
+    "maskLabel": "掩码（每秒）",
+    "runs": "运行",
+    "run1": "运行1（缝隙已关闭）",
+    "run2": "运行2",
+    "tooShort": "· 太短 → 已舍弃",
+    "hyst": "迟滞 + 驻留（GPS回退）",
+    "enter": "进入~10 km/h",
+    "exit": "离开~9 km/h"
+  },
+  "se": {
+    "h": "启动和结束 — 亚秒精度",
+    "p": "模型在秒栅格上工作，但**起跳**是一个尖锐事件。因此运行启动在**跳跃冲击**上对齐：一个非常强的幅度尖峰（> 3.5×第95百分位 — 在实验中跳跃约4.3×，泵动仅约2.3×，所以清晰可分）。窗口±几秒内的最早这样的冲击标记真实的起跳 — 亚秒精度，在两个GPS点之间插值。缺少冲击时，服务器通过加速度斜坡将启动拉回到最后的准停止。",
+    "p2": "在**结束**有两个陷阱：**死算法漂移**（表潜入水下，外推GPS并「漂移」到陆地）被舍弃 — 先验：运行永远不会在比其启动更靠陆的地方结束。还有**已知OSM水表面**，启动和结束必须**在水中**（通过光线投射的点在多边形）否则会切回到最后真实的水样本。最后，结束被分类为**摔倒**（从「在翼面上」到「在水中」的突然速度下降，或GPS掉线）或**受控停止**。",
+    "cap": "识别的秒启动（灰色）对齐到加速度幅度中的尖锐起跳冲击（青绿色）— 真正的着翼启动。",
+    "thr": "3.5 × p95（跳跃阈值）",
+    "secStart": "秒启动",
+    "snapped": "← 对齐到起跳",
+    "afterPump": "之后：泵动节奏"
+  },
+  "pump": {
+    "h": "计数泵动 — 频率引导（v3）",
+    "p": "显而易见的方式 — 「计算所有幅度阈值上的峰值」— **结构性低估约2倍**：它仅挑选最大的激荡并吞掉中间的较小、节奏性泵动。反对**真相**（我的点击泵动真相，见下文）它仅命中~40%。",
+    "p2": "更好的方法是**频率引导**：在节奏性、高能量的部分中，本地FFT估计**当前泵动频率**，然后**每个频率周期恰好选择一个**真实局部最大值作为泵动。频率是局部自适应的，因此遵循速度变化。结果：**85–94%**命中而不是40% — 计数器和地图标记自动一致（两者来自相同位置）。RMS门防止节奏性的滑行阶段被计入。",
+    "cap": "幅度阈值（上面）仅看到粗峰值。频率引导（下面）：估计局部周期T，每个周期选择真实最大值 — 也包括温和的泵动。",
+    "top": "幅度阈值 — 吞掉小泵动",
+    "bot": "频率引导 — 每个周期T一个峰值"
+  },
+  "glide": {
+    "h": "滑行阶段 — 泵动之间的寂静",
+    "p": "恰好第1部分称为最大潜力的东西，现在几乎是免费得到的：已知泵动时间点后，**滑行阶段简单地是其间的缝隙** — 加上从运行启动到第一个泵动的助跑（*lead*）和从最后泵动到结束的衰减（*tail*）。从此每次运行产生**数字**、**平均滑行持续时间**和**最长滑行阶段** — 翼面保持动量效率的度量。",
+    "cap": "泵动（标记）分割运行；其间的缝隙是滑行阶段。lead = 启动→1.泵动，tail = 最后泵动→结束。长tail = 干净衰退。",
+    "start": "启动",
+    "end": "结束",
+    "pumps": "泵动",
+    "lead": "lead",
+    "tail": "tail（滑行）",
+    "gaps": "缝隙 = 滑行阶段"
+  },
+  "gpsonly": {
+    "h": "没有Accel：仅GPS及其陷阱",
+    "p": "进口的会话（例如来自Polar）或速率太粗的表**没有可用的加速度**。那么仅GPS负责 — 它有怪癖：",
+    "li": [
+      "**单一尖峰**（多普勒故障、「传送」）：对本地中位数替换或往返跳跃平滑。",
+      "**多秒多普勒突发**（~3秒至50 km/h，但在90 km/h故障阈值下）：对鲁棒**15秒中位数**替换 — 它对短突发不敏感，真实保持的运行用其提升并保持不变。两个条件（相对超过中位数**和**绝对超过~28 km/h）保护真实运行。",
+      "**30 km/h泵翼门**：没有Accel无法安全地将泵翼与动力着翼（风筝/风/尾流）分离。如果平滑的最高速度超过30 km/h，会话被视为动力 → **无**泵翼。有Accel此门被移除 — 那里评估依赖泵动/着翼信号。"
+    ]
+  },
+  "label": {
+    "h": "真相来自哪里 — 点击泵动",
+    "p": "模型需要一个**真相**，对抗该频率引导的泵动计数器被校准 — 我目前自己点击它。我看**运行视频**并在**每个真实泵动点击一个按钮**。我用**多次尝试**做这个；它们通过互相关计算为**共识**（小反应时间偏移平均出去）。结果：真实泵动数和每次运行的真实时间。这有意是一个**过渡** — 足够精确以今天校准，但手工点击。",
+    "p2": "针对这样的标签校准时的重要事项：**GroupKFold**而不是正常交叉验证。同一运行的邻近秒几乎相同 — 如果它们同时进入训练和测试集，模型会自我检查（泄漏）并报告梦幻值。因此GroupKFold保持**整个会话**在一起：测试总是在模型从未见过的运行上进行。",
+    "cap": "循环：**点击**泵动真相 → 特征 → RandomForest → foil_rf.pkl → 每个会话评估。新的点击流回，模型重新校准。",
+    "fits": [
+      "点击泵动",
+      "视频 · 多次尝试"
+    ],
+    "feats": [
+      "特征",
+      "14 × ±5秒上下文"
+    ],
+    "rf": [
+      "RandomForest",
+      "GroupKFold-CV"
+    ],
+    "pkl": [
+      "foil_rf.pkl",
+      "→ 每个会话"
+    ],
+    "loopNote": "新点击的运行 → 重新校准"
+  },
+  "x5": {
+    "h": "下一步 — 通过摄像机的真正真相（Insta360 X5）",
+    "p": "点击足够好以自举，但挂在我的反应时间上。**物理精确**的真相接下来来自**板上摄像机**：Insta360 X5电影桅杆/翼面与，并从视频**逐帧**读取翼面何时真的受压以及何时飞行。我们用这个对真正的物理而不是点击的近似校准泵动时间和着翼识别。一旦钻机设置，这里会有完整的摄像机设置自己的部分。"
+  },
+  "summary": {
+    "h": "整个方式一句话",
+    "p1": "原始int16加速度 → **幅度** → **对重力的竖直** → **滑动窗口中的FFT带通** → 每秒14个特征带**±5秒上下文** → **RandomForest**说着翼/否则 → **分段**到运行（迟滞、合并、掉线） → 启动**对跳跃冲击**对齐，结束对**水表面**和漂移更正 → **频率引导的**泵动计数 → 滑行阶段作为缝隙 → 关键数字。",
+    "p2": "所有这一切来自**一块手腕表** — 第1部分的桅杆表只是参考，显示它是正确的。"
+  },
+  "limits": {
+    "h": "限制（继续诚实）",
+    "p": "表坐在手腕上，不在板上 — 手臂挥动以平衡并覆盖泵动信号（「手腕困扰」）。竖直从重力方向估计（无陀螺仪），在持续加速时轻微失真。频率引导的计数器对应用和视频真相校准，但**物理**最终校准（板上摄像机，Insta360 X5）仍待定。仅GPS门是一个妥协：更喜欢诚实「gps_only，泵动不适用」而不是虚构的数字。"
+  }
+};
+
+export const NERD2: Partial<Record<Lang, N2>> = { zh, ru, pt, "pt-PT": ptPT, nb, ja, id,
   de,
   gsw,
   "de-AT": deAT,
