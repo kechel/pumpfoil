@@ -984,6 +984,8 @@ const nl: Record<string, string> = {
   "land.deep1": "Twee-horloge-experiment: wat er echt gebeurt bij pumpfoilen",
   "land.deep2": "Hoe pumpherkenning werkt",
   "land.deep3": "Tweede meting, met foto's en curves",
+  "nerd.part": "Deel {n}",
+  "land.deep5": "Telefoon op de plank: gemeten bij de bron (Engels)",
   "land.deep4": "Systeemarchitectuur",
   "land.heroSub": "Pumpfoil verbindt je horloge met gedetailleerde analyse: GPS-track, foiling-afstand, pompfrequentie en glijfases — automatisch uit elke sessie.",
   "land.heroPlatforms": "Werkt met Garmin, Apple Watch, Wear OS, Amazfit, Polar, COROS, Suunto, Xiaomi en je Android- of iOS-telefoon.",

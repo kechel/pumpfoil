@@ -928,6 +928,8 @@ const nb: Record<string, string> = {
   "land.deep1": "To-klokke-eksperiment: hva som faktisk skjer når du pumpfoiler",
   "land.deep2": "Slik fungerer pumpgjenkjenningen",
   "land.deep3": "Andre måling, med bilder og kurver",
+  "nerd.part": "Del {n}",
+  "land.deep5": "Telefon på brettet: målt ved kilden (på engelsk)",
   "land.deep4": "Systemarkitektur",
   "land.heroSub": "Pumpfoil kobler klokka di til detaljert analyse: GPS-spor, foiling-distanse, pumpekadens og glidefaser — automatisk fra hver økt.",
   "land.heroPlatforms": "Fungerer med Garmin, Apple Watch, Wear OS, Amazfit, Polar, COROS, Suunto, Xiaomi og Android- eller iOS-telefonen din.",

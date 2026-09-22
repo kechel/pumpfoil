@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { NerdNav } from "../components/NerdNav";
 import { NerdIcon } from "../components/Icons";
 import { useI18n } from "../i18n";
 import { NERD1 } from "./nerd1.i18n";
@@ -123,6 +124,7 @@ export default function NerdAnalysen() {
       >
         {c.next}
       </Link>
+      <NerdNav current={1} />
     </div>
   );
 }

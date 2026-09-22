@@ -874,6 +874,8 @@ const ja: Record<string, string> = {
   "land.deep1": "2台の時計による実験：パンプフォイル中に実際に起きていること",
   "land.deep2": "パンプ検出のしくみ",
   "land.deep3": "2回目の計測（写真と波形つき）",
+  "nerd.part": "パート{n}",
+  "land.deep5": "ボードにスマホ: 発生源で直接計測（英語）",
   "land.deep4": "システム構成",
   "land.heroSub": "Pumpfoil はあなたのウォッチと詳細な解析を組み合わせます：GPS トラック、フォイリング距離、ポンプケイデンス、グライド区間 — すべてのセッションから自動的に。",
   "land.heroPlatforms": "Garmin、Apple Watch、Wear OS、Amazfit、Polar、COROS、Suunto、Xiaomi、そして Android / iOS スマートフォンに対応。",

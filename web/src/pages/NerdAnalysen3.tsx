@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { NerdNav } from "../components/NerdNav";
 import { FoilIcon } from "../components/Icons";
 import { ShortModal } from "../components/ShortModal";
 import { useI18n } from "../i18n";
@@ -114,7 +115,7 @@ export default function NerdAnalysen3() {
 
       <H>{c.outlook.h}</H>
       <Pr>{c.outlook.p}</Pr>
-      <div className="h-10" />
+      <NerdNav current={3} />
     </div>
   );
 }

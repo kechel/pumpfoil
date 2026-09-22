@@ -82,6 +82,7 @@ import Admin from "./pages/Admin";
 import NerdAnalysen from "./pages/NerdAnalysen";
 import NerdAnalysen2 from "./pages/NerdAnalysen2";
 import NerdAnalysen3 from "./pages/NerdAnalysen3";
+import NerdAnalysen4 from "./pages/NerdAnalysen4";
 import Systemarchitektur from "./pages/Systemarchitektur";
 import Reset from "./pages/Reset";
 import App from "./App";
@@ -145,6 +146,7 @@ const router = createBrowserRouter([
   { path: "/nerd-analysen", element: <TextSeite><NerdAnalysen /></TextSeite> },
   { path: "/nerd-analysen-2", element: <TextSeite><NerdAnalysen2 /></TextSeite> },
   { path: "/nerd-analysen-3", element: <TextSeite><NerdAnalysen3 /></TextSeite> },
+  { path: "/nerd-analysen-4", element: <TextSeite><NerdAnalysen4 /></TextSeite> },
   { path: "/systemarchitektur", element: <TextSeite><Systemarchitektur /></TextSeite> },
   { path: "/s/:token", element: <PublicSession /> },   // öffentlicher Teilen-Link (read-only, ohne Login)
   {

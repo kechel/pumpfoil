@@ -971,6 +971,8 @@ const pl: Record<string, string> = {
   "land.deep1": "Eksperyment z dwoma zegarkami: co naprawdę dzieje się przy pumpfoilingu",
   "land.deep2": "Jak działa wykrywanie pumpów",
   "land.deep3": "Drugi pomiar, ze zdjęciami i wykresami",
+  "nerd.part": "Część {n}",
+  "land.deep5": "Telefon na desce: mierzone u źródła (po angielsku)",
   "land.deep4": "Architektura systemu",
   "land.heroSub": "Pumpfoil łączy Twój zegarek ze szczegółową analizą: ślad GPS, dystans na foilu, kadencja pomp i fazy szybowania — automatycznie z każdej sesji.",
   "land.heroPlatforms": "Działa z Garmin, Apple Watch, Wear OS, Amazfit, Polar, COROS, Suunto, Xiaomi oraz z telefonem Android lub iOS.",

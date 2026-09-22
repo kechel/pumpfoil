@@ -647,6 +647,8 @@ const fr: Record<string, string> = {
   "land.deep1": "Expérience à deux montres : ce qui se passe vraiment en pump foil",
   "land.deep2": "Comment fonctionne la détection des pumps",
   "land.deep3": "Deuxième mesure, photos et courbes à l'appui",
+  "nerd.part": "Partie {n}",
+  "land.deep5": "Un téléphone sur la planche : mesuré à la source (en anglais)",
   "land.deep4": "Architecture du système",
   "land.heroSub": "Pumpfoil relie votre montre à une analyse détaillée : tracé GPS, distance en foil, cadence de pompage et phases de glisse — automatiquement à chaque session.",
   "land.heroPlatforms": "Compatible avec Garmin, Apple Watch, Wear OS, Amazfit, Polar, COROS, Suunto, Xiaomi et ton téléphone Android ou iOS.",

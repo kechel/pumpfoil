@@ -874,6 +874,8 @@ const id: Record<string, string> = {
   "land.deep1": "Eksperimen dua jam: apa yang sebenarnya terjadi saat pump foiling",
   "land.deep2": "Cara kerja pengenalan pump",
   "land.deep3": "Pengukuran kedua, dengan foto dan kurva",
+  "nerd.part": "Bagian {n}",
+  "land.deep5": "Ponsel di papan: diukur langsung di sumbernya (bahasa Inggris)",
   "land.deep4": "Arsitektur sistem",
   "land.heroSub": "Pumpfoil memadukan jammu dengan analisis mendetail: track GPS, jarak foiling, kadensi pump dan fase glide — otomatis dari setiap sesi.",
   "land.heroPlatforms": "Bekerja dengan Garmin, Apple Watch, Wear OS, Amazfit, Polar, COROS, Suunto, Xiaomi, dan ponsel Android atau iOS-mu.",

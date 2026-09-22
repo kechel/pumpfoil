@@ -879,6 +879,8 @@ const ptPT: Record<string, string> = {
   "land.deep1": "Experiência com dois relógios: o que acontece mesmo no pump foil",
   "land.deep2": "Como funciona a deteção de pumps",
   "land.deep3": "Segunda medição, com fotos e curvas",
+  "nerd.part": "Parte {n}",
+  "land.deep5": "Um telemóvel na prancha: medido na fonte (em inglês)",
   "land.deep4": "Arquitetura do sistema",
   "land.heroSub": "O Pumpfoil combina o teu relógio com uma análise detalhada: traçado GPS, distância de foil, cadência de pump e fases de planeio — automaticamente em cada sessão.",
   "land.heroPlatforms": "Compatível com Garmin, Apple Watch, Wear OS, Amazfit, Polar, COROS, Suunto, Xiaomi e o teu telemóvel Android ou iOS.",
