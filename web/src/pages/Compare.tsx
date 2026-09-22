@@ -3,7 +3,8 @@ import { fmtDate } from "../lib/time";
 import { Link, useNavigate } from "react-router-dom";
 import { api, SessionSummary } from "../lib/api";
 import { Card } from "../components/ui";
-import { CompareIcon, CloseIcon, ChevronIcon, FoilIcon } from "../components/Icons";
+import { CompareIcon, CloseIcon, ChevronIcon, FoilIcon, WatchIcon } from "../components/Icons";
+import { geraeteText } from "../lib/deviceLabel";
 import { computeFoilPowerAtSpeed, DEFAULT_RIDER, riderWeightFor } from "../lib/foilPhysics";
 import { useCompare, removeCompare, clearCompare, mergeableIds, CompareRef, refKey } from "../lib/compare";
 import { CompareMap, CompareMapItem } from "../components/CompareMap";
@@ -276,6 +277,15 @@ export default function Compare() {
                   {it.rider && <span className="pf-name font-semibold text-slate-100">{it.rider} · </span>}
                   <span>{itemLabel(it)}</span>
                   {foilLabel(it) && <span className="ml-1.5 inline-flex items-center gap-1 text-xs text-slate-400"><FoilIcon className="h-3.5 w-3.5" />{foilLabel(it)}</span>}
+                  {/* „Handy am Brett" nur wenn es zutrifft — im Vergleich ist genau das der
+                      Unterschied zwischen zwei Aufnahmen derselben Fahrt (Jan, 22.09.).
+                      Hervorgehoben wie in Liste und Detailansicht. */}
+                  {it.session?.placement === "board" && (
+                    <span className="ml-1.5 inline-flex items-center gap-1 rounded bg-brand-500/20 px-1.5 py-0.5 text-xs font-semibold text-brand-700 dark:text-brand-300">
+                      <WatchIcon className="h-3.5 w-3.5" />
+                      {geraeteText(it.session.device_label, it.session.placement, t)}
+                    </span>
+                  )}
                   {it.session === null && !loading && <span className="ml-1 text-xs text-slate-500">{t("compare.gone")}</span>}
                 </Link>
                 <button onClick={() => removeCompare(it.ref)} title={t("compare.remove")}
