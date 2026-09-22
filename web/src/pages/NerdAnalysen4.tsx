@@ -56,6 +56,8 @@ function Fig({ src, caption }: { src: string; caption: string }) {
 }
 
 const VIDEO_ID = "5xt-yCcw0rA";   // Jans Erklaervideo, haengt an Session #9535
+// Dieselbe Aufnahme als oeffentlicher Teilen-Link — die Daten zum Nachsehen.
+const BEISPIEL_TOKEN = "oKi6PIjxyFL2k9VN";
 
 export default function NerdAnalysen4() {
   useSeo("A phone taped to the board — measuring pump foiling at the source",
@@ -126,6 +128,19 @@ export default function NerdAnalysen4() {
         <figcaption className="border-t border-slate-800 px-3 py-2 text-xs text-slate-400">{c.videorun.cap}</figcaption>
       </figure>
       {vidOpen && <ShortModal id={VIDEO_ID} title={c.videorun.h} onClose={() => setVidOpen(false)} />}
+
+      {/* Die Aufnahme selbst, oeffentlich (Jan, 22.09.2026: „der darf ruhig oeffentlich sein als
+          beispiel"). Der Teilen-Link braucht keine Anmeldung und zeigt seit demselben Tag auch
+          die Lage-Ansicht — vorher lief deren Datenabruf gegen den angemeldeten Endpunkt und kam
+          mit 401 zurueck, die Ansicht blieb auf der oeffentlichen Seite einfach leer.
+
+          BEWUSST OHNE eigenen Sprachschluessel: Spot, Datum und Adresse lesen sich in jeder
+          Sprache gleich. Ein neuer Schluessel haette 17 Uebersetzungen gebraucht, fuer eine
+          Zeile, die keine Uebersetzung braucht. */}
+      <Link to={`/s/${BEISPIEL_TOKEN}`}
+        className="my-5 inline-flex items-center gap-2 rounded-xl border border-brand-700/50 bg-brand-500/10 px-4 py-3 text-sm font-semibold text-brand-600 transition-colors hover:bg-brand-500/20 dark:text-brand-300">
+        Illmensee · 2026-09-21 · pumpfoil.org/s/{BEISPIEL_TOKEN}
+      </Link>
 
       <H>{c.found.h}</H>
       <Pr>{c.found.p}</Pr>

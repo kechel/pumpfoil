@@ -3572,24 +3572,19 @@ def _rig_geometrie(db: Session, s: models.Session) -> dict:
     return g
 
 
-@router.get("/{session_id}/attitude")
-def board_lage(
-    session_id: int,
-    run: int | None = Query(None, description="Index des Laufs; ohne Angabe die ganze Aufnahme"),
-    yaw_window_s: float = Query(1.0, ge=0.1, le=10.0),
-    height_window_s: float | None = Query(None, ge=1.0, le=10.0,
-                                          description="Hub-Fenster in s; leer = am Pumptakt ausgerichtet"),
+def _lage_antwort(
+    db: Session,
+    s: models.Session,
+    run: int | None = None,
+    yaw_window_s: float = 1.0,
+    height_window_s: float | None = None,
     # Freies Fenster in SESSION-ms — fuer Startversuche, die keine Lauf-Nummer haben. Die
     # Oberflaeche holt ihre Zeiten aus `/attempts` (dort stehen sie schon in Session-ms).
-    from_ms: int | None = Query(None, ge=0),
-    to_ms: int | None = Query(None, ge=0),
-    pad_s: float = Query(10.0, ge=0.0, le=60.0,
-                         description="Zusaetzliche Sekunden vor und nach der Auswahl"),
-    hz: float = Query(20.0, ge=2.0, le=50.0),
-    je_lauf: bool = Query(False, description="Kennzahlen je erkanntem Lauf mitliefern "
-                                             "(eigene Montage-Drehung je Lauf, s. lage.py)"),
-    user: models.User = Depends(current_user),
-    db: Session = Depends(get_db),
+    from_ms: int | None = None,
+    to_ms: int | None = None,
+    pad_s: float = 10.0,
+    hz: float = 20.0,
+    je_lauf: bool = False,
 ) -> dict:
     """Lage des Bretts (Pitch/Roll absolut, Gierwinkel-Aenderung je Fenster) fuer einen Lauf.
 
@@ -3601,7 +3596,6 @@ def board_lage(
     nicht das Brett. Der Endpunkt liefert trotzdem, sagt aber im Feld `placement`, woran man ist —
     die Oberflaeche entscheidet, ob sie es zeigt.
     """
-    s = _readable(db, session_id)
     uuid = s.session_uuid
 
     acc = storage.load_accel(uuid)
@@ -3686,3 +3680,59 @@ def board_lage(
             gps=storage.load_gps(uuid),
             rot_vorgabe=(float(s.attitude_rot_deg) if s.attitude_rot_deg is not None else None))
     return erg
+
+
+# Gemeinsame Query-Parameter der beiden Lage-Endpunkte. Einmal beschrieben, zweimal benutzt —
+# sonst laufen die Grenzen (ge/le) zwischen oeffentlichem und angemeldetem Weg auseinander.
+def _lage_parameter(
+    run: int | None = Query(None, description="Index des Laufs; ohne Angabe die ganze Aufnahme"),
+    yaw_window_s: float = Query(1.0, ge=0.1, le=10.0),
+    height_window_s: float | None = Query(None, ge=1.0, le=10.0,
+                                          description="Hub-Fenster in s; leer = am Pumptakt ausgerichtet"),
+    from_ms: int | None = Query(None, ge=0),
+    to_ms: int | None = Query(None, ge=0),
+    pad_s: float = Query(10.0, ge=0.0, le=60.0,
+                         description="Zusaetzliche Sekunden vor und nach der Auswahl"),
+    hz: float = Query(20.0, ge=2.0, le=50.0),
+    je_lauf: bool = Query(False, description="Kennzahlen je erkanntem Lauf mitliefern "
+                                             "(eigene Montage-Drehung je Lauf, s. lage.py)"),
+) -> dict:
+    return dict(run=run, yaw_window_s=yaw_window_s, height_window_s=height_window_s,
+                from_ms=from_ms, to_ms=to_ms, pad_s=pad_s, hz=hz, je_lauf=je_lauf)
+
+
+@router.get("/{session_id}/attitude")
+def board_lage(
+    session_id: int,
+    p: dict = Depends(_lage_parameter),
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Lage des Bretts fuer einen Lauf — fuer angemeldete Nutzer (s. `_lage_antwort`)."""
+    return _lage_antwort(db, _readable(db, session_id), **p)
+
+
+@public_router.get("/session/{token}/attitude")
+def public_board_lage(
+    token: str,
+    p: dict = Depends(_lage_parameter),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Dieselbe Lage-Antwort ueber den TEILEN-TOKEN, ohne Login.
+
+    WARUM (Jan, 22.09.2026: „die lage-daten sind wohl nicht beim teilen enthalten, das haette
+    ich gerne noch"): die oeffentliche Ansicht bekommt `placement` mitgeliefert und zeigt die
+    Lage-Ansicht deshalb an — aber ihr Datenabruf lief gegen den angemeldeten Endpunkt und kam
+    mit 401 zurueck. Die Ansicht blieb leer, ohne dass es jemandem gesagt wurde.
+
+    Der Token ist derselbe Schluessel wie fuer die Session selbst: wer ihn hat, sieht die
+    Aufnahme ohnehin vollstaendig. Etwas Zusaetzliches gibt dieser Endpunkt nicht preis — und
+    er nennt die Session-ID nur in dem Feld, das die Antwort ohnehin fuehrt.
+    """
+    s = (db.query(models.Session)
+         .filter(models.Session.share_token == token, models.Session.deleted.isnot(True))
+         .first())
+    if s is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Kein geteilter Link (oder widerrufen)")
+    return _lage_antwort(db, s, **p)
+
