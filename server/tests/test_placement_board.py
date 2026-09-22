@@ -180,3 +180,33 @@ def test_foil_stats_nur_brett_zaehlt_nur_brett_aufnahmen(client):
     assert {r["foil_id"] for r in alle} >= {brett_foil, uhr_foil}
     assert [r["foil_id"] for r in nur_brett] == [brett_foil]
     assert next(r for r in nur_brett if r["foil_id"] == brett_foil)["sessions"] == 1
+
+
+def test_lage_ueber_den_teilen_link_ohne_login(client):
+    """Die Lage-Ansicht muss auch im oeffentlichen Teilen-Link Daten bekommen.
+
+    Jan, 22.09.2026: „die lage-daten sind wohl nicht beim teilen enthalten, das haette ich gerne
+    noch." Der Befund dahinter: die oeffentliche Ansicht bekommt `placement` mitgeliefert und
+    zeigt die Lage-Ansicht deshalb an — ihr Datenabruf lief aber gegen den angemeldeten Endpunkt
+    und kam mit 401 zurueck. Die Ansicht blieb leer, ohne dass es jemandem gesagt wurde.
+    """
+    auth = _konto(client, "lage-teilen@test.de")
+    sid = _session(client, auth, "lage-teilen-uuid")["id"]
+
+    token = client.post(f"/api/sessions/{sid}/share", headers=auth).json()["token"]
+
+    # OHNE Login: der angemeldete Weg bleibt zu, der oeffentliche antwortet.
+    assert client.get(f"/api/sessions/{sid}/attitude").status_code == 401
+    r = client.get(f"/api/public/session/{token}/attitude?hz=2")
+    assert r.status_code == 200, r.text
+    # Geprueft wird der ZUGANG, nicht der Inhalt: diese Attrappe hat nur GPS und keine
+    # Beschleunigung, die Antwort sagt das auch ehrlich („keine Beschleunigungsdaten"). Wichtig
+    # ist, dass sie ueberhaupt kommt — und dass sie `placement` traegt, woran die Oberflaeche
+    # entscheidet, ob sie die Lage-Ansicht zeigt.
+    d = r.json()
+    assert "placement" in d, d
+    assert "ok" in d, d
+
+    # Ein widerrufener Link gibt auch die Lage nicht mehr her.
+    assert client.delete(f"/api/sessions/{sid}/share", headers=auth).status_code == 200
+    assert client.get(f"/api/public/session/{token}/attitude").status_code == 404

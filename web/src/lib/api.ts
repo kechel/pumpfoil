@@ -1122,6 +1122,8 @@ export const api = {
     // Kennzahlen je erkanntem Lauf mitliefern. Kostet serverseitig einen Durchgang je Lauf
     // (jeder bekommt seine eigene Montage-Drehung), deshalb nur fuer die Lauf-Tabelle.
     jeLauf?: boolean;
+    // Teilen-Token: dann laeuft der Abruf ueber den oeffentlichen Weg, ohne Login.
+    token?: string | null;
   } = {}) => {
     const q = new URLSearchParams();
     if (o.run != null) q.set("run", String(o.run));
@@ -1133,7 +1135,12 @@ export const api = {
     if (o.yawWindowS != null) q.set("yaw_window_s", String(o.yawWindowS));
     if (o.hz != null) q.set("hz", String(o.hz));
     if (o.padS != null) q.set("pad_s", String(o.padS));
-    return req<BoardAttitude>(`/api/sessions/${sessionId}/attitude${q.toString() ? "?" + q : ""}`);
+    // Mit Token ueber den oeffentlichen Weg (kein Login), sonst wie bisher. Beide Endpunkte
+    // rechnen dieselbe Antwort (`_lage_antwort` im Server).
+    const basis = o.token
+      ? `/api/public/session/${encodeURIComponent(o.token)}/attitude`
+      : `/api/sessions/${sessionId}/attitude`;
+    return req<BoardAttitude>(`${basis}${q.toString() ? "?" + q : ""}`);
   },
   boards: () => req<Board[]>("/api/boards"),
   boardCreate: (b: { name: string; volume_l?: number | null; length_cm?: number | null }) =>

@@ -222,7 +222,7 @@ function Kurven({ reihen, t_ms, pos, zusammen, uhrzeit, auswahlVon, auswahlBis, 
 
 export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, playMode,
                                        playTMs, onZeit, onHinweis, onMontage, randS, startedAt,
-                                       tz, pausen }: {
+                                       tz, pausen, token }: {
   sessionId: number;
   run: number | null;
   // Alternativ zum Lauf: ein freies Fenster (Startversuch). `run` hat Vorrang.
@@ -250,6 +250,9 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
   startedAt: string;             // ISO-Start der Aufnahme — fuer die Uhrzeit an der Achse
   tz?: string | null;            // Ortszeit des Spots (s. lib/time.ts)
   pausen?: number[][] | null;    // Pausenfenster, s. lib/clock.ts
+  // Teilen-Token der oeffentlichen Ansicht. Gesetzt heisst: ueber den oeffentlichen Endpunkt
+  // holen, denn ohne Login antwortet der angemeldete mit 401 — und die Ansicht blieb leer.
+  token?: string | null;
 }) {
   const t = useT();
   const startMs = new Date(startedAt).getTime();
@@ -265,9 +268,9 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
 
   useEffect(() => {
     setLaden(true);
-    api.boardAttitude(sessionId, { run, vonMs, bisMs, yawWindowS: fenster, hz: 20, padS: randS })
+    api.boardAttitude(sessionId, { run, vonMs, bisMs, yawWindowS: fenster, hz: 20, padS: randS, token })
       .then(setD).catch(() => setD(null)).finally(() => setLaden(false));
-  }, [sessionId, run, vonMs, bisMs, fenster, randS]);
+  }, [sessionId, run, vonMs, bisMs, fenster, randS, token]);
 
   // Beim Abspielen führt die Wiedergabe, sonst die Maus; ohne beides steht der Zeiger am Ende.
   // Im Abspielmodus ueber die ECHTE Zeit, nicht ueber den Bruchteil (s. `playTMs`) — nur wenn

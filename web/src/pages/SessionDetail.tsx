@@ -880,11 +880,11 @@ export default function SessionDetail() {
   useEffect(() => {
     if (!session?.id || !hatLagedaten) { setLaufKennz([]); return; }
     let weg = false;
-    api.boardAttitude(session.id, { hz: 2, jeLauf: true })
+    api.boardAttitude(session.id, { hz: 2, jeLauf: true, token })
       .then((d) => { if (!weg) setLaufKennz(d.ok ? (d.laeufe ?? []) : []); })
       .catch(() => { if (!weg) setLaufKennz([]); });
     return () => { weg = true; };
-  }, [session?.id, hatLagedaten]);
+  }, [session?.id, hatLagedaten, token]);
   const zeigerRaf = useRef(0);
   const zeigerZuletzt = useRef(0);
 
@@ -1991,7 +1991,7 @@ export default function SessionDetail() {
                 bisMs={versuchFenster?.[1] ?? null}
                 progress={progress} playMode={playMode} playTMs={playTMs}
                 onZeit={zeigeZeitAufKarte} onHinweis={setLageHinweis} onMontage={merkeMontage}
-                randS={LAGE_RAND_S}
+                randS={LAGE_RAND_S} token={token}
                 startedAt={session.started_at} tz={session.tz}
                 pausen={session.pause_windows ?? []} />
             </div>
