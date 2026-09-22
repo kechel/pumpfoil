@@ -1316,6 +1316,7 @@ const deAT: Record<string, string> = {
   "cls.sport.towed": "Geschleppt (Seil hinter dem Boot)",
   "cls.sport.efoil": "eFoil (Motor im Board)",
   "cls.sport.foildrive": "Foildrive (Motor am Mast)",
+  "cls.sport.foil_scoot": "Foil Scoot",
   "cls.sport.other": "Andere Sportart",
   "cls.sport.wake": "Wake / Boot (alte Kategorie)",
   "cls.autoSetAs": "Automatisch eingeordnet als {sport}. Stimmt das nicht, änder es einfach hier.",

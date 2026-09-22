@@ -161,6 +161,15 @@ fun MainScaffold(onLogout: () -> Unit) {
     DisposableEffect(lifecycleOwner) {
         val obs = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
+                // OFFENE UPLOADS ANSTOSSEN — bei jedem App-Start und jeder Rueckkehr in den
+                // Vordergrund (Jan, 22.09.2026: „startet beim App-Start automatisch, wenn noch
+                // nicht abgeschlossene Aufnahmen vorliegen"). Bisher passierte das NUR im
+                // Aufnahme-Bildschirm: wer nach der Fahrt direkt auf „Verlauf" ging, dessen
+                // Aufnahme blieb liegen, bis er zufaellig wieder auf „Aufnehmen" tippte.
+                // `drain` haelt sich selbst ab, wenn schon einer laeuft, und ist ohne offene
+                // Aufnahme in wenigen Zeilen wieder draussen — der Aufruf kostet also nichts.
+                Recorder.refreshPending(ctx)
+                Recorder.drain(ctx)
                 scope.launch {
                     try {
                         val p = Api.me()
@@ -187,7 +196,15 @@ fun MainScaffold(onLogout: () -> Unit) {
         // auch in Detail-/Unterscreens wie Session-Detail. Highlight nur auf Top-Level-Tabs.
         bottomBar = {
             // Während der Aufnahme Nav-Bar ausblenden (fokussierter Recording-Modus).
-            if (!recSt.recording) PumpfoilBottomBar(route, social) { nav.switchTab(it) }
+            if (!recSt.recording) {
+                Column {
+                    // Upload-Leiste des Handy-Recorders DIREKT ueber der Navigationsleiste: so
+                    // ist sie auf jedem Bildschirm dieselbe und sitzt dort, wo man ohnehin
+                    // hinsieht. Sie zeigt sich nur, wenn wirklich etwas offen ist.
+                    PhoneUploadBar()
+                    PumpfoilBottomBar(route, social) { nav.switchTab(it) }
+                }
+            }
         },
         // Schwebender Vergleichs-Button (wie Web-CompareBar): sichtbar, sobald per Long-Press
         // Sessions markiert sind. Nicht auf dem Compare-Screen selbst.

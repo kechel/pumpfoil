@@ -1451,6 +1451,7 @@ const ru: Record<string, string> = {
   "cls.sport.towed": "На буксире (трос за катером)",
   "cls.sport.efoil": "eFoil (мотор в доске)",
   "cls.sport.foildrive": "Foildrive (мотор на мачте)",
+  "cls.sport.foil_scoot": "Foil Scoot",
   "cls.sport.other": "Другой вид спорта",
   "cls.sport.wake": "Wake / катер (старая категория)",
   "cls.autoSetAs": "Автоматически отнесено к категории {sport}. Если это неверно, просто измени здесь.",

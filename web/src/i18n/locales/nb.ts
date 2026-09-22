@@ -1514,6 +1514,7 @@ const nb: Record<string, string> = {
   "cls.sport.wake": "Wake / båt (gammel kategori)",
   "cls.sport.efoil": "eFoil (motor i brettet)",
   "cls.sport.foildrive": "Foildrive (motor på masta)",
+  "cls.sport.foil_scoot": "Foil Scoot",
   "cls.sport.other": "En annen sport",
   "cls.dq.ok": "Dataene er i orden",
   "cls.dq.false_data": "Feil i dataene",

@@ -270,29 +270,12 @@ fun RecordScreen(onBack: () -> Unit) {
                         },
                         modifier = Modifier.fillMaxWidth().height(56.dp),
                     ) { Text(I18n.t("rec.start"), fontWeight = FontWeight.Bold) }
-                    if (st.pendingCount > 0) {
+                    // Dieselbe Leiste wie ueberall sonst in der App (s. `PhoneUploadBar`) statt
+                    // der fruehereren kleinen grauen Textzeile ohne Zahlen. EIN Bauteil, damit
+                    // die Anzeige hier und in der Navigationsleiste nie auseinanderlaeuft.
+                    if (st.pendingCount > 0 || st.uploading) {
                         Spacer(Modifier.height(16.dp))
-                        val statusText = when {
-                            st.uploading -> I18n.t("rec.upRunning")
-                            st.uploadError == "offline" -> I18n.t("rec.upOffline")
-                            st.uploadError == "server" || st.uploadError == "auth" -> I18n.t("rec.upFailed")
-                            else -> I18n.t("rec.pending").replace("{n}", st.pendingCount.toString())
-                        }
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(statusText,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = if (st.uploadError.isNotEmpty() && !st.uploading)
-                                            MaterialTheme.colorScheme.error
-                                        else MaterialTheme.colorScheme.onSurfaceVariant)
-                            if (!st.uploading) {
-                                Spacer(Modifier.width(8.dp))
-                                Text(I18n.t("rec.uploadNow"),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.clickable { Recorder.drain(ctx) })
-                            }
-                        }
+                        PhoneUploadBar()
                     }
                     Spacer(Modifier.weight(1f))
                     // Halten-zum-Stoppen ist nur während der Aufnahme; hier Platzhalter-Ende.

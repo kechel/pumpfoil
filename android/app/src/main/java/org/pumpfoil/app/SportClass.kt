@@ -13,7 +13,7 @@ package org.pumpfoil.app
 // `parawing` seit 13.09.2026: Lowkite / Parawing / Parakite sind dasselbe (Jan).
 val SPORTS = listOf("pumpfoil", "wingfoil", "kitefoil", "parawing", "surf_downwind",
                     "surf_wave", "sup_paddle", "wakethief", "towed", "efoil",
-                    "foildrive", "other")
+                    "foildrive", "foil_scoot", "other")
 
 /** Datenqualität — Müll/Dopplung, zählt nirgends. */
 val DATA_QUALITY = listOf("ok", "false_data", "duplicate", "test")

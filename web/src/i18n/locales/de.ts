@@ -1741,6 +1741,7 @@ const de: Record<string, string> = {
   "cls.sport.wake": "Wake / Boot (alte Kategorie)",
   "cls.sport.efoil": "eFoil (Motor im Board)",
   "cls.sport.foildrive": "Foildrive (Motor am Mast)",
+  "cls.sport.foil_scoot": "Foil Scoot",
   "cls.sport.other": "Andere Sportart",
   "cls.dq.ok": "Daten in Ordnung",
   "cls.dq.false_data": "Fehlerhafte Daten",

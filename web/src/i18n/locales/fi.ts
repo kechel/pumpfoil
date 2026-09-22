@@ -1473,6 +1473,7 @@ const fi: Record<string, string> = {
   "cls.sport.towed": "Hinauksessa (köysi veneen perässä)",
   "cls.sport.efoil": "eFoil (moottori laudassa)",
   "cls.sport.foildrive": "Foildrive (moottori mastossa)",
+  "cls.sport.foil_scoot": "Foil Scoot",
   "cls.sport.other": "Muu laji",
   "cls.sport.wake": "Wake / vene (vanha kategoria)",
   "cls.autoSetAs": "Luokiteltu automaattisesti: {sport}. Jos se ei pidä paikkaansa, vaihda se tästä.",

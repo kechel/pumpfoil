@@ -1509,6 +1509,7 @@ const nl: Record<string, string> = {
   "cls.sport.towed": "Gesleept (lijn achter een boot)",
   "cls.sport.efoil": "eFoil (motor in het board)",
   "cls.sport.foildrive": "Foildrive (motor op de mast)",
+  "cls.sport.foil_scoot": "Foil Scoot",
   "cls.sport.other": "Andere sport",
   "cls.sport.wake": "Wake / boot (oude categorie)",
   "cls.autoSetAs": "Automatisch ingedeeld als {sport}. Klopt dat niet, verander het hier.",
