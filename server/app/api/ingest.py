@@ -301,8 +301,14 @@ def upload_chunk(
 # ihr in den Ruecken und stellten eine zweite daneben.
 HAENGER_RUHE_MIN = 15
 
+# Dasselbe fuer eine Aufnahme, die nie ein `/complete` bekommen hat und deshalb fuer immer auf
+# `live`/`recording` steht. Viel grosszuegiger, weil hier das zweite Signal fehlt: bei `complete`
+# hat die Uhr gesagt „ich bin fertig", hier sagt niemand etwas. Eine lange Fahrt plus Heimweg
+# ohne Netz muss durchpassen, ohne dass wir sie fuer tot erklaeren.
+HAENGER_LIVE_RUHE_H = 12
 
-def haenger_faellig(s: "models.Session", jetzt=None) -> bool:
+
+def haenger_faellig(s: "models.Session", jetzt=None, letzter_chunk=None) -> bool:
     """Ist diese Session auf `complete` haengengeblieben und reif fuer die finale Analyse?
 
     `complete` heisst: die Uhr hat `/complete` geschickt und eine Quittung bekommen, sie darf
@@ -313,18 +319,40 @@ def haenger_faellig(s: "models.Session", jetzt=None) -> bool:
     Raster). Passiert am 15.09.2026 an #8517 und #8504, als zwei Analysen gleichzeitig die
     Ergebniszeile anlegen wollten.
 
-    BEWUSST NUR `complete`: bei `live`/`recording` kann die Uhr noch Daten halten, und ein
-    verfruehter Abschluss wuerde ihr sagen, sie duerfe sie wegwerfen. Die raeumt
-    `_altlasten_abschliessen` auf, wenn dasselbe Geraet die naechste Aufnahme anmeldet.
+    SEIT 22.09.2026 AUCH `live`/`recording` — die frueher hier stehende Regel „bewusst nur
+    `complete`" ist von Jan ausdruecklich revidiert: „ist ja ungefaehrlich weil weitere daten
+    problemlos nachtraeglich trotzdem dazu koennen". Genau daran haengt es, und es stimmt: der
+    Abschluss sagt der UHR nichts. `/status` meldet ihr weiterhin erst dann „complete" (= du
+    darfst loeschen), wenn ALLE Chunks da sind; fehlt etwas, antwortet es „live" und der Uploader
+    schickt ueber `received_chunks` nur das Fehlende nach (Jans Vorgabe vom 06.09.: „mach es so,
+    dass moeglichst nie Daten verloren gehen"). Kommt spaeter doch noch etwas, wird die Session
+    also ergaenzt und neu gerechnet, statt abgeschnitten zu bleiben.
+
+    WARUM ES NOETIG WURDE: der bisherige Rueckweg `_altlasten_abschliessen` greift nur, wenn
+    DASSELBE Geraet eine neuere Aufnahme anmeldet. Am 21.09. lagen 28 Aufnahmen fest, und
+    25 dieser 28 Nutzer haben danach nie wieder aufgezeichnet — fuer sie waere dieser Rueckweg
+    nie gekommen.
+
+    Fuer `live`/`recording` zaehlt der LETZTE CHUNK, nicht `updated_at`: an einer laufenden
+    Aufnahme rechnet die Zwischenanalyse mit und fasst die Zeile dauernd an. Ohne einen einzigen
+    Chunk gibt es nichts auszuwerten — dann bleibt die Session unangetastet.
 
     Eine Funktion und kein Filter im Aufraeum-Skript, aus demselben Grund wie bei
     `_nachrechnen_faellig`: es soll nur EINE Definition davon geben, und sie soll pruefbar sein.
     """
     from datetime import datetime, timedelta, timezone
 
-    if s.deleted or s.status != "complete":
+    if s.deleted:
         return False
     jetzt = jetzt or datetime.now(timezone.utc)
+    if s.status in ("live", "recording"):
+        if letzter_chunk is None:
+            return False
+        if letzter_chunk.tzinfo is None:
+            letzter_chunk = letzter_chunk.replace(tzinfo=timezone.utc)
+        return letzter_chunk <= jetzt - timedelta(hours=HAENGER_LIVE_RUHE_H)
+    if s.status != "complete":
+        return False
     stand = s.updated_at or s.created_at
     if stand is None:
         return True
