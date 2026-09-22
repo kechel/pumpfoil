@@ -1267,4 +1267,76 @@ const zh: N4 = {
   }
 };
 
-export const NERD4: Partial<Record<Lang, N4>> = { zh, ru, pt, "pt-PT": ptPT, nl, nb, ja, it, id, gsw, fr, fi, es, de, "de-AT": deAT, cs, en };
+
+const pl: N4 = {
+  "back": "← Część 3: Pomiar z dwoma zegarkami",
+  "h1": "Część 4: Telefon zalepiony na desce",
+  "subtitle": "Co możemy zmierzyć, gdy sensor przestaje jeździć na nadgarstku",
+  "intro": "Każdy numer, który ta strona pokazuje o pompowaniu, pochodzi, ostatecznie, z sensora przywiązanego komuś do ramienia. To ramię robi swoje: huśta się, wspiera się, wyciąga się w równowagę. Przez trzy części tej serii pracowaliśmy wokół tego. We wrześniu 2026 przestaliśmy pracować wokół tego i **zalepiliśmy telefon na desce** — GPS, akcelerometr i żyroskop, 50 próbek na sekundę, przybolcowane do rzeczy, którą chcemy naprawdę znać. Ta część to co z tego wyszło.",
+  "why": {
+    "h": "Co nadgarstek może i czego nie może dać",
+    "p": "Pierwsza niespodzianka była ujemna i warta wyraźnego wyznaczenia, ponieważ spodziewaliśmy się wbrew. Położyliśmy recording deszy obok **Garmina na nadgarstku z tej samej jazdy, dwie minuty osobno**, i porównaliśmy to, co każdy sensor widzi w domenie częstotliwości. Gdyby nadgarstek był beznadziejny, rytm pompowania byłby rozmyciem tam i pikiem na desce.",
+    "p2": "To jest pik na **obu**. Ten sam pik, ten sam 1.40 Hz, ta sama wysokość. Nadgarstek znajduje rytm pompowania idealnie dobrze — co jest dokładnie dlaczego nasz licznik pompowania w ogóle działa: na tej jeździe recording deszy liczył **103 pompowania** a zegarek **106**, w obrębie trzech siebie. Tak że deska nie jest potrzebna do słuchania rytmu. To, co daje, to coś, czego nadgarstek nigdy nie może dać: **orientacja samej deszy** — jak daleko nos się chyla, jak daleko się przechyla, jak daleko całe się unosi i opada. Ramię nie może tego raportować, bez względu na to, jak dobry sensor na nim jest.",
+    "cap": "Ta sama jazda, dwa sensory, po 20 sekund najdłuższego biegu. Oba widzą 1.40 Hz."
+  },
+  "setup": {
+    "h": "Rig, taki jaki jest",
+    "p": "Nie ma montażu, nie ma etui, nie ma wspornika. Telefon idzie w torbę na sucho, torba na sucho idzie pod pasem przez pokład, i pas idzie wystarczająco mocno, że telefon nie może się przesunąć, gdy deska jest rzucana wokół. Całkowity koszt: jeden pas. Cały sens jest taki, że to musi być coś, co każdy może powtórzyć we wtorek wieczorem, ponieważ dane są warte posiadania tylko, jeśli mogą być zebrane więcej niż raz.",
+    "capDeck": "Cały setup: torba na sucho pod pasem, przez pokład, przed masztem.",
+    "capRail": "Zaciśnięty i sprawdzony przed jazdą — telefon, który się porusza w trakcie jazdy, niszczy nagrywanie."
+  },
+  "what": {
+    "h": "Co telefon na desce nagrywa",
+    "p": "Telefon pisze ten sam format przesyłania co każdy zegarek, który wspieramy, plus jeden kanał, który żaden zegarek nie ma: **żyroskop**. Ten dodatkowy kanał to to, co sprawia, że reszta jest możliwa — żyroskop mierzy obrót bezpośrednio, bez konieczności zgadywania, która część zmierzonego przyspieszenia to grawitacja, a która to ruch. Z trzech surowych strumieni wyprowadzamy trzy kąty i jedną odległość:",
+    "li": [
+      "**Pitch** — nos idzie w górę i w dół. To *jest* skok pompowania; wszystko inne jest drugorzędne.",
+      "**Roll** — deska przechyla się w lewo i prawo. Carving i małe korekty między skokami.",
+      "**Yaw** — zmiana kursu. Krzyżowa sprawdzian względem ścieżki GPS, ponieważ obie mierzą to samo i muszą się zgadzać.",
+      "**Heave** — jak daleko deska naprawdę się unosi i opada, w centymetrach, z integracji pionowego przyspieszenia dwa razy."
+    ],
+    "cap": "Jeden przebieg, 28 sekund. Ślad pitch to pompowanie; heave poniżej to ten sam rytm, w centymetrach.",
+    "capTiles": "Te same trzy kąty, które strona pokazuje, na żywo wzdłuż ścieżki."
+  },
+  "mount": {
+    "h": "Problem, o którym nikt nas nie ostrzegał: w którą stronę telefon jest zalepiony?",
+    "p": "Telefon nie wie, jak jest przyklejony do dechy. Zalepij wzdłużnie i pitch to pitch. Zalepij poprzecz i to, co telefon nazywa pitch, to deska się przechyla. Zalepij po skosie — co się stało na bardzo pierwszej rzeczywistej jeździe — i czysty oscylacja pitch pojawia się jako **71% pitch i 71% roll jednocześnie**. Prosić jeźdźca, aby go określił, działa dokładnie dopóki ktoś nie zalepni na nowo mokry telefon z zimnych palców.",
+    "p2": "Tak pozwalamy danym odpowiedzieć. Pompowanie jest rotacją wokół poprzecznej osi deszy, a żyroskop mierzy obrót bezpośrednio. Obróć zmierzony sygnał przez każdy możliwy kąt montażu i spytaj, gdzie oscylacja pitch w pasie pompowania (0.6–2.5 Hz) jest najsilniejsza — ten kierunek jest poprzeczną osią. Zdjęcie poniżej to ten przesiew dla dwóch jazd: jeden telefon zalepiony poprzecz deskę, jeden zalepiony po skosie. Dwie jazdy, dwa czyste piki, żaden wkład od nikogo. To, czego przesiew nie może zdecydować, to nos-do-przodu kontra nos-do-tyłu, ponieważ to ta sama oś; pierwsza sekunda jazdy to ustawia, ponieważ jazda zaczyna się od nosa pochylającego się w dół.",
+    "cap": "Energia pitch w pasie pompowania względem założonego obrotu montażu. Pik to odpowiedź."
+  },
+  "heave": {
+    "h": "Heave i dlaczego liczba potrzebuje zastrzeżenia",
+    "p": "Jak daleko naprawdę deska się unosi i opada, gdy pompujesz? Integracja przyspieszenia dwa razy daje odpowiedź w centymetrach i jest to rodzaj liczby, który wygląda autorytatywnie i jest cicho kruchy. Wszystko wolniejsze niż pasmo, które przechowujesz, jest amplifikowane przez kwadrat jego okresu — mały dryft na niskim końcu wylatuje jako metry wymyślonego heave.",
+    "p2": "Okno wyliczające ustawia ten dolny krawędź, i to nie jest wolny parametr. Poproś o ten sam przebieg z oknem 1-sekundowym a dostajesz 18 cm; poproś z 5 sekund a dostajesz 33 cm, na tej samej jeździe. Dlatego wyprowadzamy okno z **zmierzonej kadencji** tego przebiegu — tutaj 1.38 Hz, tak 1.45 sekundy — i oznaczamy liczbę jako niewiarygodną, ilekroć ruch siedzi zbyt blisko krawędzi. Uczciwe czytanie tego wykresu nie jest *heave to 20 cm*; to *heave to 20 cm, gdy definiujesz heave jako ruch przy prędkości pompowania*.",
+    "cap": "Ten sam przebieg, te same dane, sześć różnych okien wyliczających: 18 cm na 33 cm."
+  },
+  "found": {
+    "h": "Co cztery jazdy już nam powiedziały",
+    "p": "To jest mała sterta danych — cztery recording desz — więc to są obserwacje, nie prawa. Są jednak pierwsze liczby, które mamy, które opisują deskę zamiast jeźdźca.",
+    "li": [
+      "**Montaż jest znajduje się automatycznie i jest stabilny.** Przez dwa przebieg jednej jazdy wykryty kąt różnił się o 3°, co jest szumem obliczeń, nie telefon się porusza. Między jazdami różnił się dokładnie tyle, ile taśma.",
+      "**Kadencja jest niezwykle stała.** 1.38 i 1.39 Hz w dwóch przebiegów jednej jazdy; 1.45 Hz na innej. Pompowanie wygląda mniej jak wysiłek i bardziej jak rezonancja, którą ktoś znalazł.",
+      "**Heave to około 20 cm** przy tej kadencji, mierzone od dna do góry, z zastrzeżeniem powyżej.",
+      "**Pitch oscyluje około ±19°, roll około ±10°** w czystej jeździe — deska robi znacznie więcej pitchu niż rollu, co to, co całe podejście detekcji zakłada i nigdy faktycznie nie sprawdzało."
+    ]
+  },
+  "limits": {
+    "h": "Co to jeszcze nie dowodzi",
+    "p": "Lista rzeczy, których nie możemy twierdzić, jest dłuższa niż lista rzeczy, które możemy, i powinno to pozostać tak, dopóki dane rosną:",
+    "li": [
+      "**Cztery jazdy, jeden jeźdźca, jedna deska, jedno jezioro.** Nic tutaj nie jest sprawdzane między jeźdźcami i nasze liczenie pompowania wciąż jest kalibrowane na jedną osobę — zobacz [Część 3](/nerd-analysen-3), jak cienkie to podłoże jest.",
+      "**Detekcja szybowania wciąż nie istnieje.** Liczba, którą pokazujemy jako najdłuższe szybowanie, to najdłuższa luka między dwoma *wykrytymi* pompowaniami, co nie jest tym samym i nigdy nie było.",
+      "**Nikt nie jeździ z telefonem zalepioną na desce.** To jest instrument pomiarowy, nie funkcja. Jego zadaniem jest wytwarzanie prawdy, względem której zegarek na twoim nadgarstku jest mierzony."
+    ]
+  },
+  "videorun": {
+    "h": "Sama jazda",
+    "p": "Wyjaśniacz dla tego setupu, nagrany nad jeziorem: co idzie na deskę, jak się to naprawia, i co wraca.",
+    "cap": "Telefon na desce: GPS, żyroskop i przyspieszenie, zmierzone bezpośrednio."
+  },
+  "next": {
+    "h": "Gdzie to idzie",
+    "p": "Sens instrumentu pomiarowego to wskazywanie na coś. Dane deszy dają nam, po raz pierwszy, podstawową prawdę dla dwóch pytań, które tylko kiedykolwiek oszacowaliśmy: **czy to skok to pompowanie**, i **kiedy deska przestała latać**. Oba są liczone na nadgarstku dzisiaj i kalibrowane na jedną osobę. Jak to liczenie działa to [Część 2](/nerd-analysen-2); jak dobrze się trzyma względem drugiego sensora to [Część 3](/nerd-analysen-3)."
+  }
+};
+
+export const NERD4: Partial<Record<Lang, N4>> = { pl, zh, ru, pt, "pt-PT": ptPT, nl, nb, ja, it, id, gsw, fr, fi, es, de, "de-AT": deAT, cs, en };

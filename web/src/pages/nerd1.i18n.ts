@@ -1089,7 +1089,69 @@ const zh: N1 = {
   }
 };
 
-export const NERD1: Partial<Record<Lang, N1>> = { zh, ru, pt, "pt-PT": ptPT, nb, ja, id,
+
+const pl: N1 = {
+  "back": "← Wróć",
+  "next": "→ Część 2: Jak działa detekcja",
+  "h1": "Analizy dla nerdy",
+  "subtitle": "Eksperyment z dwoma zegarkami · Illmensee, 27.06.2026 · surowe dane przyspieszenia, dużo przetwarzania sygnału i trochę fizyki foila. Dla tych, którzy chcą wiedzieć dokładnie.",
+  "intro": "Pytanie: co można wyciągnąć z danych ruchu z sesji Pumpfoil — i czy możemy poprawić detekcję pompowania, bycia na foilu i fazy szybowania? W tym celu nagrywaliśmy jedną sesję **jednocześnie na dwóch zegarach**: jeden na nadgarstku i jeden **bezpośrednio na maszcie foila, pod wodą** — \"prawda\" o tym, co robi foil.",
+  "aufbau": {
+    "h": "Układ",
+    "p": "**fenix** na nadgarstku (25/100 Hz, dobre GPS) — to jest zegarek, który chcemy mieć w produkcie. **Forerunner 55** przywiązany do masztu foila, **pod wodą**, głowicą w górę, przyciskiem startu skierowanym w kierunku jazdy. Oba działały na naszej własnej aplikacji rekodera (v1.0.37). Zegarek na maszcie nie ma **GPS pod wodą** — mierzy tylko surowe przyspieszenie foila.",
+    "alt1": "Foil z zegarkiem na maszcie na molo",
+    "alt2": "FR55 na maszcie — automatyczny start",
+    "alt3": "FR55 na maszcie — wyszukiwanie GPS",
+    "altSpot": "Spot Illmensee o zachodzie słońca"
+  },
+  "daten": {
+    "h": "Dane",
+    "p": "Zamiast surowych chunks (które się przerywały na słabym FR55), analizowaliśmy **oryginalne pliki FIT** z Garmin Connect: fenix **100 Hz**, maszt **25 Hz**, przez całą sesję. Oba zegarki działały zsynchronizowane przez czas systemowy."
+  },
+  "start": {
+    "h": "Sekwencja startu",
+    "p": "Z danych można zrekonstruować cały start (potwierdzony wideo): deska leży **do góry nogami** na molo → jest obracana **o 180°** i foil zanurzony (powyżej: orientacja FR55 przechodzi z −1 na +1) → krótka koncentracja → **pchnięcie** ręką z zegarkiem → ręka **wyrzuca się w górę podczas wypuszczania** (4–6 g uderzenie ramienia, energia skoku) → **skok i lądowanie** na desce → pompowanie → lot.",
+    "cap1": "Obrót deski o 180° (grawitacja FR55 się zmienia) i strefa startu w następne 5 sekund.",
+    "cap2": "Sekwencja startu: obrót deski, przygotowanie, pchnięcie/skok, potem rampa prędkości do foilingu."
+  },
+  "truth": {
+    "h": "Pompowanie, bycie na foilu, szybowanie — prawda foila",
+    "p": "Maszt siedzi na foilu i \"wie\", czy naprawdę się pompuje i czy foil wciąż lata. Wyraźnie widać na końcu: najpierw **pompowanie ustaje** (aktywność nadgarstka → 0), ale prędkość się trzyma → to jest **faza szybowania**; potem foil opada (wychylenie masztu) i koniec. Dokładnie tę fazę szybowania nie detektujemy jawnie.",
+    "cap": "Prędkość GPS · Aktywność pompowania na nadgarstku · Pompowanie foila (maszt) · Orientacja foila. Na końcu: pompowanie ustaje → szybowanie → upadek foila."
+  },
+  "cadence": {
+    "h": "Kadencja pompowania",
+    "p": "Pompuje się z **≈ 1,29 Hz** (~77 pompowań/minutę). Nadgarstek trafia tę szybkość czysto (liczba i takt zgadzają się z impulsem foila) — detekcja pompowania działa więc zasadniczo dobrze.",
+    "cap": "Markery pompowania na nadgarstku vs. piki impulsu foila — ta sama kadencja (~1,3 Hz), takty się śledzą."
+  },
+  "pitch": {
+    "h": "Orientacja foila: pochylenie dominuje, napęd do przodu/do tyłu",
+    "p": "Gdy pompujesz, przychylasz foil na dźwigni 85 cm masztu **do przodu/do tyłu** (pochylenie), mało bocznie — w danych pochylenie wyraźnie dominuje nad ruchem bocznym. A przyspieszenie foila to przede wszystkim **napęd do przodu/do tyłu**, nie pionowo: foil pcha się do przodu, gdy aplikujesz nacisk.",
+    "cap": "Orientacja foila w sesji: pochylenie (przód/tył) ≫ boczne. Pochylenie i obciążenie pionowe są sprzężone."
+  },
+  "pics": {
+    "h": "Fajne obrazki",
+    "p": "Ścieżka, pokolorowana według orientacji foila i prędkości (biały = 0°, czerwony/niebieski dla kierunku):",
+    "cap1": "Ścieżka foilingu według kąta pochylenia, kąta przechyłu i prędkości. Foil przez cały czas lekko trzyma nos w górę (siła nośna).",
+    "cap2": "Ścieżka według napędu (czerwony=w przód) — widać każdy impuls pompowania — i pojedyncze markery pompowania na ścieżce.",
+    "cap3": "Dywan orientacji: pochylenie / przechył / napęd w funkcji czasu na jednym widoku."
+  },
+  "learned": {
+    "h": "Czego się nauczyliśmy",
+    "li": [
+      "**Detekcja pompowania** trafia szybkość i liczbę dobrze (~1,29 Hz) — zgadza się z prawdą foila na maszcie (kilka % różnicy).",
+      "**Detekcja bycia na foilu** jest dobra — pokazuje molo/odbicie precyzyjnie (przyciąga się do impulsu skoku).",
+      "**Faza szybowania / rozbiegu**: tu jest największy potencjał — \"on-foil ∧ aktywność pompowania ≈ 0\" mogłoby jawnie oznaczać szybowanie na końcu.",
+      "Wszystko to **jest możliwe tylko z zegarkiem na nadgarstku** — zegarek na maszcie był tylko referencją prawdy."
+    ]
+  },
+  "limits": {
+    "h": "Ograniczenia (dla uczciwości)",
+    "p": "Zegarek na maszcie jest pod wodą silnie tłumiony, dlatego widzi ostre uderzenia tylko osłabione. \"Kąty\" pochodzą z kierunku grawitacji (filtr dolnoprzepustowy) — przy stacjonarnym szybowaniu prawdziwa orientacja, przy trwającym przyspieszeniu lekko zniekształcona; do 100% czystych kątów obrotu potrzebny byłby żyroskop. I dokładny czasowy offset poszczególnych pompowań między zegarkami nie mógł być ustabilizowany na < 100 ms (brak czystego wspólnego punktu odniesienia; FR55 nie ma GPS pod wodą do ustawiania czasu)."
+  }
+};
+
+export const NERD1: Partial<Record<Lang, N1>> = { pl, zh, ru, pt, "pt-PT": ptPT, nb, ja, id,
   de,
   gsw,
   "de-AT": deAT,

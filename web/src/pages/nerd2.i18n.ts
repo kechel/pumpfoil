@@ -3404,7 +3404,226 @@ const zh: N2 = {
   }
 };
 
-export const NERD2: Partial<Record<Lang, N2>> = { zh, ru, pt, "pt-PT": ptPT, nb, ja, id,
+
+const pl: N2 = {
+  "back": "← Analizy dla nerdy (Część 1: eksperyment)",
+  "h1": "Analizy dla nerdy · Część 2",
+  "subtitle": "Jak z surowych liczb sensorów stają się pompowania, sesje na foilu, start/koniec i fazy szybowania — przetwarzanie sygnału, okno przesuwające, model ML i etykietowanie, wszystko po kolei.",
+  "intro": "W [Części 1](/nerd-analysen) chodziło o **prawdę**: drugi zegarek na maszcie foila, który zdradza, co robi foil naprawdę. Tu chodzi o **maszynerię**: co oblicza serwer, żeby z chaotycznego sygnału na nadgarstku zrobiła się czysta analiza sesji. Wszystko poniżej dzieje się **po stronie serwera** — zegarek to tylko cienki rekorder.",
+  "raw": {
+    "h": "Co przybywa: dane surowe",
+    "p": "Każda sesja składa się z dwóch strumieni, oba z wspólną podstawą czasu (ms od startu nagrania):",
+    "li": [
+      "**GPS**, ok. **1 Hz**: na sample `[t_ms, lat, lon, speed_mps, hr_bpm, h_acc_m]`. Prędkość i puls mogą brakować (wtedy obliczone z pozycji lub puste).",
+      "**Przyspieszenie**, w zależności od zegarka **10–100 Hz**: tablica `int16` postaci `(N × 3)` — X/Y/Z w surowych licznikach. `accel_scale` (liczniki na g) zamienia to na fizyczne g."
+    ],
+    "p2": "Dlaczego `int16` zamiast zmiennoprzecinkowych? Przepustowość. 100 Hz × 3 osie × 8 h to miliony wartości — jako 2-bajtowe liczby całkowite zmniejsza to rozmiar przesyłania o połowę. Skalowanie z powrotem do g odbywa się dopiero na serwerze."
+  },
+  "pipe": {
+    "h": "Linia przetwarzania na pierwszy rzut oka",
+    "p": "Dwa ścieżki przygotowania (GPS + przyspieszenie) wbiegają do modelu ML, który **co sekundę** decyduje \"na foilu — tak/nie\". Z tego powstają połączone sesje, których start/koniec jest dokładnie ustawiony, i wreszcie pompowania i fazy szybowania na sesję:",
+    "cap": "Cała analiza: z dwóch surowych strumieni danych przez maskę foilingu do sesji, pompowań i faz szybowania.",
+    "gps": [
+      "GPS  ~1 Hz",
+      "t, lat, lon, speed, hr, h_acc"
+    ],
+    "accel": [
+      "Przyspieszenie  10–100 Hz",
+      "int16 (N×3) · accel_scale"
+    ],
+    "gpsPrep": [
+      "Przygotuj GPS",
+      "Filtr skoków/Doppfera · wygładzanie · prędkość"
+    ],
+    "accelPrep": [
+      "Przygotuj przyspieszenie",
+      "Wielkość → pionowe · FFT-przepustowy"
+    ],
+    "model": [
+      "Model foilingu ML — RandomForest, ±5 s kontekst",
+      "Fallback bez przyspieszenia: maszyna stanów GPS (histereza + czekanie)"
+    ],
+    "mask": [
+      "Maska foilingu",
+      "foil / nie-foil — co sekundę"
+    ],
+    "seg": [
+      "Segmentacja → sesje",
+      "Zamknięcie luk · scalanie · snap startu/końca"
+    ],
+    "pumps": [
+      "Zlicz pompowania",
+      "prowadzone kadencją, na sesję"
+    ],
+    "glide": [
+      "Fazy szybowania",
+      "Luki między pompowaniami"
+    ]
+  },
+  "mag": {
+    "h": "Krok 1 — wielkość zamiast osi",
+    "p": "Zegarek siedzi na nadgarstku i cały czas się obraca — trzy osie X/Y/Z cały czas wskazują gdzie indziej. Pojedyncza wartość osi jest więc bezwartościowa. Ratunkiem jest **wielkość** wektora:",
+    "formula": "|a| = √(x² + y² + z²) / accel_scale",
+    "p2": "Wielkość jest **niezmienna na orientację**: niezależnie od tego, jak zegarek się obraca, 2-g uderzenie pozostaje 2-g uderzeniem. To sprawia, że sygnał w ogóle jest porównywalny (`magnitude_g`).",
+    "cap": "Trzy pojedynczo bezwartościowe osie (zegarek cały czas się przychyla) dają razem stabilną, niezmieniającą się na orientację wielkość |a|.",
+    "label": "|a| = √(x²+y²+z²)"
+  },
+  "vert": {
+    "h": "Krok 2 — z nadgarstka w pionie",
+    "p": "Wielkość ma haczyk: pompowanie to **pchnięcie w górę**, ale `|a|` liczy wciągnięcie tak samo co pchnięcie — każde pompowanie pojawia się dwa razy. Lepsze byłoby prawdziwe **przyspieszenie pionowe względem grawitacji**. I można je zrekonstruować, całkowicie bez żyroskopu:",
+    "ol": [
+      "Kierunek **grawitacji** zmienia się tylko powoli → oszacować per **filtr dolnoprzepustowy** (< 0,25 Hz) każdą oś. To daje wektor `g`, który zawsze wskazuje \"w dół\".",
+      "**Dynamiczne** przyspieszenie to `a − g`.",
+      "**Rzutuj** to na jednostkowy wektor grawitacji → sygnał skalarny: > 0 = w górę (pchnięcie)."
+    ],
+    "f1": "v(t) = (a − g) · ĝ",
+    "fMid": "z",
+    "f2": "ĝ = g / |g|",
+    "cap": "Powoli driftująca grawitacja g (filtr dolnoprzepustowy) oddziela orientację od dynamiki. Dynamiczne przyspieszenie a−g, rzutowane na ĝ, daje czysty impuls wzsteczny na każde pompowanie.",
+    "gLabel": "g (grawitacja)",
+    "aLabel": "a (mierzone)",
+    "amg": "a − g",
+    "topNote": "|Wielkość|: każde pompowanie dwa razy",
+    "botNote": "v(t) względem grawitacji: jeden impuls na pompowanie"
+  },
+  "win": {
+    "h": "Krok 3 — okno przesuwające i FFT-przepustowy",
+    "p": "Pompowanie jest **rytmiczne** — i rytm żyje w przestrzeni częstotliwości. Dlatego **okno przesuwające** (typ. 4 s szerokie, krok co 2 s) przesuwa się po sygnale, i na każde okno **FFT** oblicza spektrum. Dwa pasma są ważne:",
+    "li": [
+      "**Pasmo filtrujące 0,3–3 Hz** — wszystko poniżej to grawitacja/dryft, wszystko powyżej to szum bryzgu. Oba zeruje się per FFT-przepustowy (`bandpass_fft`).",
+      "**Pasmo pompowania 0,5–2 Hz** — tu żyje kadencja pompowania (30–120 pompowań/min)."
+    ],
+    "p2": "Na okno przypada cztery cechy:",
+    "li2": [
+      "**dom_freq** — dominująca częstotliwość w pasie pompowania (szybkość pompowania)",
+      "**band_power_ratio** — udział energii w pasie pompowania do całkowitego pasma (wysoko = wyraźny rytm)",
+      "**rms** — siła sygnału (amplituda ruchu)",
+      "**spectral_entropy** — jak \"sprzątniete\" jest spektrum (nisko = jedna wyraźna częstotliwość = pompowanie; wysoko = chaos = szum/szybowanie)"
+    ],
+    "cap": "Okno 4 s przesuwa się po przefiltrowanym sygnale (krok 2 s → nakładanie). Dla każdego okna FFT dostarcza spektrum; energia w pasie pompowania 0,5–2 Hz zdradza szybkość i rytm.",
+    "winT": "Okno t",
+    "winT1": "Okno t+1",
+    "sig": "v(t) — przepustowy-przefiltrowany (0,3–3 Hz)",
+    "fft": "FFT",
+    "spec": "Spektrum",
+    "band": "0,5–2 Hz",
+    "freq": "Częstotliwość →"
+  },
+  "rate": {
+    "h": "Detail dla nerda: prawdziwa szybkość próbkowania",
+    "p": "Niektóre zegarki **kłamią** o swojej szybkości. Forerunner 55 taguje \"10 Hz\", ale naprawdę dostarcza tylko ~2,5 Hz. Cechy częstotliwości i kadencja pompowania byłyby wtedy śmieciem. Dlatego serwer określa szybkość **generycznie z samych danych**: `prawdziwe_Hz = liczba_sampli_accel / czas_GPS`. Jeśli różnica > 25% od dnia, brana jest zmierzona szybkość. I jeśli jest **poniżej 15 Hz**, sygnał jest za gruby do analizy częstotliwości → sesja jest oceniana jako **GPS-only** (pompowania n/a, zamiast tego uczciwe granice zamiast wymyślonych wartości)."
+  },
+  "ml": {
+    "h": "Gdzie jestem na foilu? — model ML",
+    "p": "Czy w danej sekundzie **jesteś na foilu** decyduje **RandomForest** — las drzew decyzyjnych, które głosują większością. Mały i interpretowalny, nie trzeba Deep Learning. Na sekundę dostaje **14 cech**:",
+    "li": [
+      "**7 z prędkości i przyspieszenia**: prędkość teraz / 3 s / 5 s (mediana), zmienność prędkości, oraz RMS w trzech pasmach (całkowitym, pasie pompowania, wysokoczęstotliwościowym).",
+      "**7 z ścieżki GPS**: zmiana prędkości przez 1/3/5 s, długość ścieżki, netto-offset, **prostoliniowość** (netto/ścieżka) i zmiana kursu. Te cechy kierunkowe były w eksperymencie największym dźwignią — trzymają spokojne fazy szybowania w sesji zamiast rozbijać je."
+    ],
+    "p2": "Sztuczka to **kontekst**: każda sekunda nie jest klasyfikowana izolowanie, ale razem z **±5 sąsiadujące sekundy** (to \"okienkowanie\"). Wektor cech sekundy to zatem 14 × 11 = 154 liczby. Tak model widzi przebieg — krótki spadek prędkości pośrodku pędu nie jest natychmiast oceniany jako \"na zewnątrz\". To zmniejszyło fragmentację z 1,10× na 1,00× i wynik F1 z **0,93 na 0,97**.",
+    "cap": "Na sekundę jeden 14-wymiarowy wektor cech; do klasyfikacji dołączane są ±5 sąsiadujące sekundy (etykieta środka). RandomForest głosuje → foil / nie-foil.",
+    "featNote": "Okno sekundowe: 14 cech na sekundę, ±5 s kontekst",
+    "forest": "RandomForest (większość)",
+    "maskNote": "Maska na sekundę: foil ▮ / nie-foil ▯"
+  },
+  "seg": {
+    "h": "Od maski do sesji",
+    "p": "Maska sekundowa jest jeszcze dziurawa. Zamienia się na czyste **sesje**:",
+    "li": [
+      "**Zamknij krótkie luki** (do ~2 s): pauza szybowania nie dzieli sesji.",
+      "**Fizyka-floor**: poniżej ~9 km/h żaden foil nie nosi, i bez prawdziwego ruchu pozycji (nie tylko pola prędkości) nie jesteś na foilu — obydwa odrzynają miękkie krawędzie.",
+      "**Minimalna długość & średnia prędkość**: segmenty poniżej 5 s lub ze zbyt niskim średnią wylatują (szybkie chodzenie ≠ foiling).",
+      "**GPS-dropout dzieli**: luka w próbkach > 15 s (zegarek pod wodą/upadek) kończy sesję — czas luki nie liczy się jako czas jazdy.",
+      "**Merge bez-zatrzymania**: jeśli prędkość między dwiema rozpoznanymi sesjami **nigdy** nie spadła poniżej ~5,4 km/h i nie było dropoutu, był to w rzeczywistości **jedna** sesja (model mispfire) → scalić, niezależnie jak długo."
+    ],
+    "p2": "Bez przydatnego przyspieszenia (GPS-only) przejmuje **maszyna stanów** z **histerezą** i **czekaniem**: Zostaniesz \"foilujący\" dopiero po kilku sekundach w pasie prędkości *przy gładkiej prędkości* (szybowanie jest gładkie, wiosłowanie chrapawe) — i opuszczasz stan dopiero po kilku sekundach poniżej. Dwie progi (wejście/wyjście) zapobiegają migotaniu na granicy.",
+    "cap": "Powyżej: dziurawa maska sekundowa staje się sesjami (luki zamknięte, scalane, krótkie segmenty odrzucone). Poniżej: histereza maszyny stanów GPS — wejście dopiero powyżej, wyjście dopiero poniżej, z czasem czekania (Dwell).",
+    "maskLabel": "Maska (na sekundę)",
+    "runs": "Sesje",
+    "run1": "Sesja 1 (luki zamknięte)",
+    "run2": "Sesja 2",
+    "tooShort": "· za krótka → odrzucona",
+    "hyst": "Histereza + czekanie (fallback GPS)",
+    "enter": "WEJŚCIE ~10 km/h",
+    "exit": "WYJŚCIE ~9 km/h"
+  },
+  "se": {
+    "h": "Start i koniec — sub-sekundowo dokładnie",
+    "p": "Model pracuje w siatce sekundowej, ale **skok do góry** jest ostrym zdarzeniem. Dlatego start sesji jest przyciągany do **impulsu skoku**: bardzo silny pik wielkości (> 3,5× percentyla 95. — w eksperymencie skok był przy ~4,3×, pompowanie tylko przy ~2,3×, więc wyraźnie oddzielne). Najwcześniejszy taki impuls w oknie ±kilka sekund oznacza prawdziwy odbicie — sub-sekundowo między dwoma punktami GPS interpolowane. Jeśli impulsu brakuje, serwer ciąga start wstecz po ramie przyspieszenia do ostatniego quasi-zatrzymania.",
+    "p2": "Na **końcu** czają się dwie pułapki: **Dead-Reckoning-dryft** (zegarek się zanuża, ekstrapoluje GPS i \"dryftuje\" na ląd) jest odrzucany — prior: sesja nigdy nie kończy się bardziej lądowo niż się zaczyna. I gdzie znane jest **OSM-zwierciadło wody**, start i koniec muszą być **w wodzie** (punkt w poligonie per Ray-Casting), inaczej się wraca do ostatniej prawdziwej próbki wody. Wreszcie koniec jest klasyfikowany jako **upadek** (nagły spadek prędkości z \"na foilu\" na \"w wodzie\", lub GPS-dropout) lub **kontrolowane zatrzymanie**.",
+    "cap": "Rozpoznany start sekundowy (szary) jest przyciągany do ostrego impulsu skoku w wielkości przyspieszenia (cyan) — prawdziwy start foila.",
+    "thr": "3,5 × p95 (próg skoku)",
+    "secStart": "Start sekundowy",
+    "snapped": "← przyciągnięty do skoku",
+    "afterPump": "potem: rytm pompowania"
+  },
+  "pump": {
+    "h": "Zlicz pompowania — prowadzone kadencją (v3)",
+    "p": "Oczywisty sposób — \"zlicz wszystkie piki powyżej progu amplitudy\" — **strukturalnie niedoocenia o ~2×**: podnosi tylko największe wychylenia i przegapia mniejsze, rytmiczne pompowania między nimi. Przeciwko **prawdzie** (moja getippte prawda pompowania, patrz poniżej) trafiał tylko ~40%.",
+    "p2": "Lepsze podejście to **prowadzone kadencją**: W rytmicznych, energetycznych sekcjach lokalna FFT szacuje **momentalną częstotliwość pompowania**, i potem **na pojedynczą kadencję-okres bierze się dokładnie jedno** echte lokalne maksimum jako pompowanie. Kadencja jest lokalnie-adaptywna, więc podąża zmianami tempa. Wynik: **85–94%** trafienia zamiast 40% — i liczniki i markery na mapach są automatycznie spójne (oba z tych samych pozycji). Bramka RMS zapobiega tym, że czyste fazy szybowania są zliczane.",
+    "cap": "Próg amplitudy (powyżej) widzi tylko grube piki. Prowadzone kadencją (poniżej): szacuj lokalny okres T, na okres bierz echte maksimum — również miękkie pompowania.",
+    "top": "Próg amplitudy — przegapia małe pompowania",
+    "bot": "Prowadzone kadencją — jeden pik na okres T"
+  },
+  "glide": {
+    "h": "Fazy szybowania — cisza między pompowaniami",
+    "p": "Dokładnie to, co Część 1 nazwała największym potencjałem, spada teraz prawie bezpłatnie: Jeśli czasy pompowania są znane, **fazy szybowania to po prostu luki między nimi** — plus rozruch od startu sesji do pierwszego pompowania (*lead*) i rozbiegu od ostatniego pompowania do końca (*tail*). Z tego wypada na sesję **liczba**, **średni czas szybowania** i **najdłuższa faza szybowania** — metryka, jak sprawnie foil utrzymuje rozpęd.",
+    "cap": "Pompowania (markery) dzielą sesję; luki między nimi to fazy szybowania. lead = start→1. pompowanie, tail = ostatnie pompowanie→koniec. Długi tail = czysty rozbiegu.",
+    "start": "Start",
+    "end": "Koniec",
+    "pumps": "Pompowania",
+    "lead": "lead",
+    "tail": "tail (szybowanie)",
+    "gaps": "Luki = fazy szybowania"
+  },
+  "gpsonly": {
+    "h": "Bez przyspieszenia: GPS-only i jego pułapki",
+    "p": "Importowane sesje (np. z Polara) lub zegarki ze zbyt grubą szybkością nie mają **przydatnego przyspieszenia**. Wtedy nosi samo GPS — i to ma przywary:",
+    "li": [
+      "**Jedyne skoki** (Doppfer-glitch, \"teleport\"): są zastępywane lub wygładzane skokami w oknie fragemte wzory.",
+      "**Wielosekundowe burze Dopplera** (~3 s na 50 km/h, ale poniżej 90-km/h progu glitcha): zastępuje się względem solidnej **mediany 15 s** — to jest ododporne na krótkie burze, prawdziwy odbyty pęd je podnosi zamiast tego i pozostaje nienaruszone. Dwa warunki (względny nad medianą **i** absolutnie powyżej ~28 km/h) chronią prawdziwe sesje.",
+      "**Bramka 30 km/h Pumpfoil**: bez przyspieszenia nie możesz bezpiecznie oddzielić Pumpfoila od napędzonego foilingu (latawiec/wiatr/buda). Jeśli wygładzona top-prędkość jest powyżej 30 km/h, sesja jest traktowana jako napędzona → **bez** Pumpfoila. Z przyspieszeniem ta bramka upada — tam ocena ufa pompowaniu / sygnałowi na foilu."
+    ]
+  },
+  "label": {
+    "h": "Skąd pochodzi prawda — postukaj pompowania",
+    "p": "Model potrzebuje **prawdy**, względem której licznik pompowania prowadzony kadencją jest kalibrowany — i sam to stukam. Patrzę na **wideo** sesji i **stukam każde pompowanie** na przycisk. Robię to w **kilka podjęć**; są one obliczane per korelacja krzyżowa do **konsensusu** (małe wariancje czasu reakcji się uśredniają). Wynik: prawdziwa liczba pompowań i prawdziwy czas każdej sesji. To jest świadomie **przejście** — wystarczająco dokładne, aby dzisiaj kalibrować, ale getypkane ręcznie.",
+    "p2": "Ważne przy kalibracji względem takich etykiet: **GroupKFold** zamiast normalnej walidacji krzyżowej. Sąsiadujące sekundy tej samej sesji są prawie identyczne — trafiłyby jednocześnie w zbiór treningowy i testowy, model by sobie zadawał pytania (wyciek) i raportował wymyślone wartości. GroupKFold trzyma zatem **całe sesje** razem: testuje się zawsze na sesjach, które model nigdy nie widział.",
+    "cap": "Pętla: **getippte** pompowanie prawdy → cechy → RandomForest → foil_rf.pkl → analiza każdej sesji. Nowe stuknięcia wracają, model jest rekalibrowany.",
+    "fits": [
+      "Stukaj pompowania",
+      "Wideo · wiele prób"
+    ],
+    "feats": [
+      "Cechy",
+      "14 × ±5 s kontekst"
+    ],
+    "rf": [
+      "RandomForest",
+      "GroupKFold-CV"
+    ],
+    "pkl": [
+      "foil_rf.pkl",
+      "→ każda sesja"
+    ],
+    "loopNote": "nowe getippte sesje → rekalibruj"
+  },
+  "x5": {
+    "h": "Następny krok — prawdziwa prawda per kamerę (Insta360 X5)",
+    "p": "Stukanie jest wystarczająco dobre do bootstrappingu, ale wisi na mojej czasu reakcji. **Fizycznie dokładna** prawda będzie następna z **kamery na desce**: Insta360 X5 filmuje maszt/foil, i z wideo czyta się **frame-dokładnie**, kiedy foil naprawdę dostaje nacisk i kiedy lata. Tym kalibrujemy timing pompowania i rozpoznanie na foilu względem prawdziwej fizyki zamiast getippconej aproksymacji. Gdy rig będzie na miejscu, tu będzie własny rozdział z całym setupem kamery."
+  },
+  "summary": {
+    "h": "Cała droga w jednym zdaniu",
+    "p1": "Surowe int16-przyspieszenie → **wielkość** → **pionowe względem grawitacji** → **FFT-przepustowy** w oknie przesuwającym → 14 cech na sekundę z **±5 s kontekst** → **RandomForest** mówi on-foil/nie → **segmentacja** do sesji (histereza, scalenie, dropout) → start przyciągnięty do **impulsu skoku**, koniec korygowany względem **zwierciadła wody** i dryfu → **kadencję-prowadzona** liczba pompowań → fazy szybowania jako luki → metryki.",
+    "p2": "I wszystko z **jednego zegarku na nadgarstku** — zegarek na maszcie z Części 1 był tylko referencją, która pokazuje, że to działa."
+  },
+  "limits": {
+    "h": "Ograniczenia (nadal uczciwie)",
+    "p": "Zegarek siedzi na nadgarstku, nie na desce — ramiona machają do równowagi i nakładają się na sygnał pompowania (\"Wrist-Confound\"). Pionowość jest szacowana z kierunku grawitacji (bez żyroskopu) i jest lekko zniekształcona przy trwającym przyspieszeniu. Licznik prowadzony kadencją jest kalibrowany względem App i Video prawdy, ale **fizyczna** końcowa kalibracja (kamera na desce, Insta360 X5) jeszcze czeka. I bramy GPS-only są kompromisem: lepiej uczciwe \"gps_only, pompowania n/a\" niż wymyślone liczby."
+  }
+};
+
+export const NERD2: Partial<Record<Lang, N2>> = { pl, zh, ru, pt, "pt-PT": ptPT, nb, ja, id,
   de,
   gsw,
   "de-AT": deAT,
