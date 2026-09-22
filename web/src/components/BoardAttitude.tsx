@@ -221,7 +221,8 @@ function Kurven({ reihen, t_ms, pos, zusammen, uhrzeit, auswahlVon, auswahlBis, 
 }
 
 export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, playMode,
-                                       playTMs, onZeit, onHinweis, randS, startedAt, tz, pausen }: {
+                                       playTMs, onZeit, onHinweis, onMontage, randS, startedAt,
+                                       tz, pausen }: {
   sessionId: number;
   run: number | null;
   // Alternativ zum Lauf: ein freies Fenster (Startversuch). `run` hat Vorrang.
@@ -239,6 +240,10 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
   // Warnhinweise nach oben melden statt sie hier zu zeigen: Jan will sie unter dem
   // Abspielen-Knopf haben, und der steht in der Detailansicht.
   onHinweis?: (text: string | null) => void;
+  // Was die Automatik als Montage-Drehung gefunden hat, nach oben melden (Jan, 22.09.): auf dem
+  // Knopf „automatisch" soll die Gradzahl mit dranstehen. Sonst muesste man sie in der Fusszeile
+  // dieser Ansicht suchen, waehrend man oben zwischen den Stufen waehlt.
+  onMontage?: (grad: number | null, quelle: string | null) => void;
   // Sekunden vor und nach der Auswahl, die mitgezeigt werden. Kommt von oben, damit Karte,
   // Wiedergabe und Kurven denselben Rand benutzen.
   randS?: number;
@@ -293,6 +298,14 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
     onHinweis?.(hubUnsicher ? t("board.heaveShaky", { s: String(hubFenster) }) : null);
     return () => onHinweis?.(null);
   }, [hubUnsicher, hubFenster, onHinweis, t]);
+
+  // Gefundene Montage-Drehung nach oben melden (s. `onMontage`). Wie beim Hinweis aus `d`, damit
+  // der Hook vor den fruehen Returns steht.
+  const rotGrad = d?.rot_deg ?? null;
+  const rotQuelle = d?.rot_quelle ?? null;
+  useEffect(() => {
+    onMontage?.(rotGrad, rotQuelle);
+  }, [rotGrad, rotQuelle, onMontage]);
 
   // Zeit unter der Maus nach oben melden. Als Effekt, nicht im Zeichnen: `onZeit` setzt oben
   // Zustand, und das waehrend des Renderns waere eine Schleife.

@@ -1586,6 +1586,7 @@ const de: Record<string, string> = {
   "setup.boardVolPlaceholder": "Liter",
   "setup.boardLenPlaceholder": "cm",
   "setup.boardDelConfirm": "Dieses Board löschen? Sessions, die es nutzen, fallen zurück auf deinen Standard.",
+  "setup.stabSearch": "Stab suchen…",
   "setup.stabTitle": "Stabilizer",
   "setup.stabDesc": "Wähl deinen Stab über die Bezeichnung aus (z. B. „GONG Stab Trail L“). Nur der Name zählt — es wird nichts damit gerechnet.",
   "setup.myStabs": "Meine Stabs",

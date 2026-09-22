@@ -1781,6 +1781,7 @@ const cs: Record<string, string> = {
   "setup.stabDesc": "Vyber svůj stab podle názvu (např. „GONG Stab Trail L“). Záleží jen na názvu — nic se z něj nepočítá.",
   "setup.stabModelPlaceholder": "Model (např. Stab Trail)",
   "setup.stabSizePlaceholder": "Velikost",
+  "setup.stabSearch": "Hledat stabilizátor…",
   "setup.stabTitle": "Stabilizátor",
   "setup.title": "Podrobné nastavení",
   "spotnote.addPhoto": "Přidat foto",

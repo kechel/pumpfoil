@@ -276,6 +276,20 @@ export default function Setup() {
       <h3 className="mb-1 font-semibold">{t("setup.stabTitle")}</h3>
       <p className="mb-3 text-sm text-slate-400">{t("setup.stabDesc")}</p>
 
+      {/* ERST SUCHEN, DANN ANLEGEN (Jan, 22.09.2026). Vorher stand das Anlege-Feld oben und die
+          Suche darunter — wer seinen Stab eintragen wollte, sah das leere Formular zuerst und
+          legte ihn an, obwohl er im Katalog stand. Der Platzhalter sagte dabei auch noch
+          „Foil suchen" (`foils.search` mitbenutzt), was die Suche vollends unsichtbar machte. */}
+      <div className="mb-4 flex flex-wrap gap-2">
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("setup.stabSearch")}
+          className="min-w-[12rem] flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100" />
+        <select value={brand} onChange={(e) => setBrand(e.target.value)}
+          className="rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-2 text-sm text-slate-100">
+          <option value="">{t("foils.allBrands")}</option>
+          {brands.map((b) => <option key={b} value={b}>{b}</option>)}
+        </select>
+      </div>
+
       {/* Nicht im Katalog? Selbst anlegen (privat). */}
       <Card className="mb-4 p-4">
         <p className="mb-2 text-sm text-slate-300">{t("setup.stabAddHint")}</p>
@@ -293,16 +307,6 @@ export default function Setup() {
         </div>
         {stabErr && <p className="mt-2 text-sm text-red-700 dark:text-red-300">{stabErr}</p>}
       </Card>
-
-      <div className="mb-4 flex flex-wrap gap-2">
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("foils.search")}
-          className="min-w-[12rem] flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100" />
-        <select value={brand} onChange={(e) => setBrand(e.target.value)}
-          className="rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-2 text-sm text-slate-100">
-          <option value="">{t("foils.allBrands")}</option>
-          {brands.map((b) => <option key={b} value={b}>{b}</option>)}
-        </select>
-      </div>
       {mineList.length > 0 && (
         <div className="mb-5">
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-brand-700 dark:text-brand-300">{t("setup.myStabs")} ({mineList.length})</p>

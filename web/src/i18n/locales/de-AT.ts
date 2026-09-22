@@ -1602,6 +1602,7 @@ const deAT: Record<string, string> = {
   "setup.stabDesc": "Wähl deinen Stab über die Bezeichnung aus (z. B. „GONG Stab Trail L“). Nur der Name zählt — es wird nix damit gerechnet.",
   "setup.stabModelPlaceholder": "Modell (z. B. Stab Trail)",
   "setup.stabSizePlaceholder": "Größe",
+  "setup.stabSearch": "Stab suchen…",
   "setup.stabTitle": "Stabilizer",
   "setup.title": "Detailliertes Setup",
   "share.addPhoto": "Foto",

@@ -1596,6 +1596,7 @@ const gsw: Record<string, string> = {
   "setup.stabDesc": "Wähl din Stab über d Bezeichnig us (z. B. „GONG Stab Trail L\"). Nur de Name zellt — es wird nüt demit grächnet.",
   "setup.stabModelPlaceholder": "Modäll (z. B. Stab Trail)",
   "setup.stabSizePlaceholder": "Grössi",
+  "setup.stabSearch": "Stab sueche…",
   "setup.stabTitle": "Stabilizer",
   "setup.title": "Detailliert Setup",
   "share.addPhoto": "Foto",

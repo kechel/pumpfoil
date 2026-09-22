@@ -1382,6 +1382,7 @@ const pl: Record<string, string> = {
   "setup.boardVolPlaceholder": "litry",
   "setup.boardLenPlaceholder": "cm",
   "setup.boardDelConfirm": "Usunąć tę deskę? Sesje, które jej używają, wrócą do Twojej domyślnej.",
+  "setup.stabSearch": "Szukaj stabilizatora…",
   "setup.stabTitle": "Stabilizator",
   "setup.stabDesc": "Wybierz swój stabilizator po nazwie (np. „GONG Stab Trail L”). Liczy się tylko nazwa — nic z niej nie jest liczone.",
   "setup.myStabs": "Moje stabilizatory",

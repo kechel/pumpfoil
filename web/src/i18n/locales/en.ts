@@ -1496,6 +1496,7 @@ const en: Record<string, string> = {
   "setup.boardVolPlaceholder": "litres",
   "setup.boardLenPlaceholder": "cm",
   "setup.boardDelConfirm": "Delete this board? Sessions using it fall back to your default.",
+  "setup.stabSearch": "Search stab…",
   "setup.stabTitle": "Stabilizer",
   "setup.stabDesc": "Pick your stab by its name (e.g. \u201cGONG Stab Trail L\u201d). Only the name matters \u2014 nothing is computed from it.",
   "setup.myStabs": "My stabs",

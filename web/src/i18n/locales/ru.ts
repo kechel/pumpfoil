@@ -1725,6 +1725,7 @@ const ru: Record<string, string> = {
   "setup.stabDesc": "Выбери свой стаб по названию (напр. «GONG Stab Trail L»). Важно только название — ничего из него не рассчитывается.",
   "setup.stabModelPlaceholder": "Модель (напр. Stab Trail)",
   "setup.stabSizePlaceholder": "Размер",
+  "setup.stabSearch": "Поиск стабилизатора…",
   "setup.stabTitle": "Стабилизатор",
   "setup.title": "Подробная настройка",
   "spotnote.addPhoto": "Добавить фото",

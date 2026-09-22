@@ -1722,6 +1722,7 @@ const zh: Record<string, string> = {
   "setup.stabDesc": "按名称选择你的稳定翼（例如「GONG Stab Trail L」）。只有名称有意义——不会据此计算任何东西。",
   "setup.stabModelPlaceholder": "型号（例如 Stab Trail）",
   "setup.stabSizePlaceholder": "尺寸",
+  "setup.stabSearch": "搜索稳定翼…",
   "setup.stabTitle": "稳定翼",
   "setup.title": "详细装备设置",
   "spotnote.addPhoto": "添加照片",
