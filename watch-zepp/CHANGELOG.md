@@ -30,6 +30,14 @@ Nutzer, dessen Uhr sich waehrend eines Uploads dreimal neu gestartet hat (gemeld
 auftritt. Die Meldung ist rein diagnostisch und schaltet nichts ab; sie sagt nur, in welcher Phase
 es passiert ist (Start, Leerlauf, Aufnahme, Upload).
 
+**Die Uhr verliert viel weniger GPS-Punkte.** Bisher fragte die App einmal pro Sekunde nach der
+Position und verwarf alles, was der Sensor in genau diesem Augenblick nicht als gueltig meldete.
+Nachgemessen an neun Aufnahmen ueber fuenf Minuten, ueber fuenf Uhrenmodelle hinweg: dabei gingen
+**48 bis 87 Prozent der Aufnahmezeit** verloren — die Ortung lieferte im Mittel nur vier Sekunden
+am Stueck, dann zwanzig Sekunden nichts. Andere Uhren liefern in derselben Zeit das Vierfache.
+Jetzt meldet der Sensor seine Position selbst, sobald er eine hat, und die App merkt sie sich
+kurz. Eine echte Funkluecke bleibt weiterhin eine Luecke — erfunden wird nichts.
+
 **Und sie misst dabei ihren eigenen Speicherverbrauch.** Ein Nutzer berichtete, seine Uhr habe
 sich waehrend eines Uploads dreimal neu gestartet — ob die App dabei am Speicherlimit stand oder
 aus einem ganz anderen Grund starb, konnten wir nicht sagen, weil wir keine einzige Zahl dazu

@@ -52,6 +52,10 @@ const IDLE_BRIGHT_MS = 5 * 60 * 1000;
 // (~24 days), then explicitly restore the system timeout when the session stops.
 const RECORDING_BRIGHT_MS = 2147483000;
 const AUTOSTART_SPEED = 7 / 3.6, AUTOSTART_TICKS = 3;
+// Wie lange eine ueber `onChange` gemeldete Position als aktuell gilt. Drei Sekunden: lang genug,
+// um eine flackernde Statusabfrage zu ueberbruecken, kurz genug, dass eine echte Funkluecke eine
+// Luecke bleibt. Bei 1 Hz Abtastung heisst das hoechstens zwei uebersprungene Sekunden.
+const GEO_CACHE_MS = 3000;
 
 // --- LAUF-WAECHTER -----------------------------------------------------------------------
 // Phasen wie bei Garmin (`SessionRecorder.mc`), damit dieselbe Zahl auf dem Server dasselbe
@@ -838,7 +842,7 @@ Page(
       stopBackTimer: null, stopBackPage: 0,
       lockHoldTimer: null,   // laeuft, solange auf die Touch-Sperre gedrueckt wird
       touchLocked: false, brightMode: "system", brightUntilMs: 0,
-      geo: null, geoSpeedPrev: null, hrSensor: null, hrCallback: null, hrUpdatedMs: 0, _hrLogged: false, w: {},
+      geo: null, geoSpeedPrev: null, geoCallback: null, geoLast: null, hrSensor: null, hrCallback: null, hrUpdatedMs: 0, _hrLogged: false, w: {},
       accelSensor: null, accelCallback: null, accelBuffer: [], accelSamples: 0, accelBytes: 0,
       accelFirstMs: 0, accelLastMs: 0, accelChunkT0: [], accelFile: "", _accelLogged: false,
       // GPS-Datei. `gps` bleibt als RUECKFALL bestehen: laesst sich die Datei nicht oeffnen,
@@ -1251,7 +1255,33 @@ Page(
       this.recoverActive();   // unbeendete Aufnahme aus letztem Lauf in die Queue übernehmen
       canaryWrite(PHASE_IDLE);   // die gefaehrliche Startphase ist ueberstanden
 
-      try { s.geo = new Geolocation(); s.geo.start(); } catch (e) {}
+      try {
+        s.geo = new Geolocation();
+        s.geo.start();
+        // RUECKRUF ZUSAETZLICH ZUM TAKT (22.09.2026). Unsere Abtastung laeuft mit 1 Hz und
+        // verwirft jede Sekunde, in der `getStatus()` gerade nicht „A" sagt. Gemessen an neun
+        // Aufnahmen ueber fuenf Minuten (fuenf Modelle, vier Nutzer) kostet das 48 bis 87 % der
+        // Aufnahmezeit: GPS liefert im Median nur VIER Sekunden am Stueck, dann 22 Sekunden
+        // nichts. Zum Vergleich kommen Garmin auf 0,84 und Apple auf 0,86 Punkte je Sekunde,
+        // Amazfit auf 0,23 — und nie besser als 0,52.
+        //
+        // Das offizielle Beispiel der Zepp-Doku benutzt `onChange` und prueft den Status DARIN.
+        // Wir fragten stattdessen im festen Takt ab und trafen den Sensor dabei offenbar oft
+        // zwischen zwei Aktualisierungen an. Der Rueckruf haelt die zuletzt GUELTIGE Position
+        // fest; die Abtastung unten greift darauf zurueck, wenn ihr eigener Blick nichts ergibt.
+        //
+        // ES KANN NICHTS ERFINDEN: benutzt wird der Zwischenspeicher nur, wenn er juenger als
+        // GEO_CACHE_MS ist. Schweigt die Ortung wirklich, bleibt die Luecke eine Luecke — das
+        // soll sie auch, sonst malen wir eine Spur, die niemand gefahren ist.
+        s.geoCallback = () => {
+          try {
+            if (s.geo.getStatus && s.geo.getStatus() !== "A") return;
+            const la = s.geo.getLatitude(), lo = s.geo.getLongitude();
+            if (la != null && lo != null) s.geoLast = [la, lo, Date.now()];
+          } catch (e) {}
+        };
+        if (s.geo.onChange) s.geo.onChange(s.geoCallback);
+      } catch (e) {}
       // Zepp's getCurrent() is valid only inside an onCurrentChange callback. Registering the
       // callback also starts continuous heart-rate measurement (API 2.1+).
       try {
@@ -2529,6 +2559,11 @@ Page(
           lat = s.geo.getLatitude(); lon = s.geo.getLongitude();
           fix = st === "A" && lat != null && lon != null;
         } catch (e) {}
+        // Nichts gesehen? Dann die zuletzt vom Rueckruf gemeldete Position nehmen, solange sie
+        // frisch ist (s. `GEO_CACHE_MS` und die Begruendung bei `onChange`).
+        if (!fix && s.geoLast && sampleNow - s.geoLast[2] <= GEO_CACHE_MS) {
+          lat = s.geoLast[0]; lon = s.geoLast[1]; fix = true;
+        }
       }
       // Geolocation has no documented getSpeed() method. Derive m/s from consecutive WGS-84
       // positions instead; this is also consistent with the distance accumulated below.
@@ -2989,6 +3024,7 @@ Page(
       this._disableTouchLock();
       if (s.recording) { this._stopGps(); this._stopAccel(); this.persistActive(); }
       try { offGesture(); } catch (e) {}
+      try { s.geo && s.geoCallback && s.geo.offChange && s.geo.offChange(s.geoCallback); } catch (e) {}
       try { s.geo && s.geo.stop && s.geo.stop(); } catch (e) {}
       try { s.hrSensor && s.hrCallback && s.hrSensor.offCurrentChange(s.hrCallback); } catch (e) {}
     },

@@ -1444,7 +1444,27 @@ ueberall 1,0 s — wenn GPS liefert, liefert es sauber im Sekundentakt. Dann bri
 Minuten ab: laengste Luecken 235,6 s (#9602), 222,0 s (#2449). Bei Klettermax liegen 10 % der
 Abstaende ueber 19 Sekunden.
 
-**🔲 URSACHE UNBEKANNT — ausdruecklich als Vermutung gekennzeichnet.** Der Accel laeuft in
+**🟡 URSACHE EINGEGRENZT (22.09., nach Jans Einwand).** Jans erste Vermutung war, die App lande
+im Hintergrund und schalte das GPS ab — „genau das was wir mit dem always on display ping beheben
+versuchen". Die Struktur der Luecken spricht dagegen: GPS liefert im Median nur **4 Sekunden am
+Stueck** und schweigt dann **22 Sekunden** (Median), ohne jeden Rhythmus (3/13, 25/26, 11/22,
+5/10, 2/88 …). Eine Bildschirm-Zeitsperre saehe anders aus: lange Laufphasen, dann eine lange
+Pause. Dazu laeuft der Accel in denselben Aufnahmen zu 98-100 % durch — die App ist also wach.
+Und das Muster ist in 1.0.6 und 1.0.11 gleich.
+
+**Der wahrscheinliche Grund liegt bei UNS.** Unsere Abtastung laeuft mit 1 Hz und verwirft jede
+Sekunde, in der `getStatus()` gerade nicht „A" meldet. Das offizielle Beispiel der Zepp-Doku
+benutzt dagegen `onChange` und prueft den Status DARIN — wir trafen den Sensor offenbar oft
+zwischen zwei Aktualisierungen an. **In 1.0.12 eingebaut:** der Rueckruf haelt die zuletzt
+gueltige Position fest, die Abtastung greift darauf zurueck, solange sie juenger als 3 s ist.
+Erfinden kann das nichts; eine echte Funkluecke bleibt eine Luecke.
+
+**🔲 IM FELD ZU PRUEFEN, und zwar mit der Zahl:** nach 1.0.12 dieselbe Messung wiederholen. Steigt
+die Dichte von 0,23 in Richtung der 0,84 der anderen Plattformen, war es das. Bleibt sie, ist der
+naechste Verdaechtige die Ortungseinstellung der Uhr — die Zepp-Doku nennt „Power Saving" und
+„Super Power Saving" als Betriebsarten, ueber die wir nichts wissen.
+
+**Vorherige Notiz, als die Ursache noch offen war:** Der Accel laeuft in
 denselben Aufnahmen durch, es ist also nicht die App als Ganzes. Denkbar: der Geolocation-Rueckruf
 schweigt bei abgedunkeltem Bildschirm, oder unser eigenes Schreiben blockiert ihn, oder die
 Zepp-Ortung faellt schlicht haeufig aus. **Vor jeder Aenderung messen, nicht raten.**
