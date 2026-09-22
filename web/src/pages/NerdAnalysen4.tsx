@@ -3,12 +3,21 @@ import { Link } from "react-router-dom";
 import { FoilIcon } from "../components/Icons";
 import { ShortModal } from "../components/ShortModal";
 import { NerdNav } from "../components/NerdNav";
+import { useI18n } from "../i18n";
 import { NERD4 } from "./nerd4.i18n";
 import { useSeo } from "../lib/seo";
 
 // Nerd-Analysen — Teil 4: Handy am Brett (was sich messen laesst, wenn der Sensor nicht mehr
-// am Handgelenk mitfaehrt). Aufbau wie Teil 3, aber NUR ENGLISCH (Jans Vorgabe, 22.09.2026) —
-// deshalb kein `useI18n`, die Seite zeigt immer `NERD4.en`.
+// am Handgelenk mitfaehrt). Aufbau wie Teil 3.
+//
+// Geschrieben wurde der Artikel auf Englisch (Jans Vorgabe, 22.09.2026: „erstmal nur auf
+// englisch"), uebersetzt ist er seit demselben Tag in alle 18 Sprachen. Englisch bleibt der
+// Rueckfall — fuer eine Sprache, die noch fehlt, ist das ehrlicher als eine leere Seite.
+//
+// MERKE, teuer gelernt: solange hier fest `NERD4.en` stand, hat der Bundler alle anderen
+// Sprachbloecke als unbenutzt WEGGEWORFEN. Sie standen in der Quelldatei und waren trotzdem
+// nicht ausgeliefert — im Bundle lag genau eine Sprache. Wer hier wieder hart auf eine Sprache
+// greift, verliert die uebrigen lautlos.
 //
 // Alle vier Grafiken sind aus ECHTEN Aufnahmen gerechnet (web/public/nerd4/, same-origin ->
 // CSP-konform), Skript im Scratchpad dokumentiert in docs/TODO.md. Quellen: #9535 (Handy quer
@@ -62,7 +71,8 @@ const BEISPIEL_TOKEN = "oKi6PIjxyFL2k9VN";
 export default function NerdAnalysen4() {
   useSeo("A phone taped to the board — measuring pump foiling at the source",
          "What a phone on the board measures that a watch on the wrist cannot: pitch, roll, yaw and heave, with real data from the first rides.");
-  const c = NERD4.en!;
+  const { lang } = useI18n();
+  const c = NERD4[lang] ?? NERD4.en!;
   const [vidOpen, setVidOpen] = useState(false);
   return (
     <div className="w-full">
