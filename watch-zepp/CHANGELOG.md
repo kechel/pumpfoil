@@ -10,6 +10,46 @@ This changelog covers the Zepp OS watch app only.
 > and possibly after the upload — it is listed under 1.0.7. **Keep this file current with every
 > bump**, then nobody has to dig through commits again.
 
+## 1.0.12 — gebaut am 21.09.2026, NOCH NICHT eingereicht
+
+**Der Bildschirm bleibt waehrend der Aufnahme wach.** Das ist der wichtige Punkt dieser Fassung.
+Beim Start setzt die App die Bildschirmzeit auf den Zepp-Hoechstwert (~24 Tage) — aber nur EINMAL,
+und Zepp verliert oder kappt diesen Wert nach einer Weile still. Der Leerlauf-Pfad frischt ihn
+seit dem T-Rex-3-Feldtest alle 20 Sekunden nach; der Aufnahme-Pfad hat dieselbe Behandlung nie
+bekommen, weil `heartbeat()` bei laufender Aufnahme in der ersten Zeile ausgestiegen ist. Dann
+geht der Bildschirm aus und Zepp raeumt die App rund zehn Sekunden spaeter weg. Gemeldet von
+u352 (GTR 4): „Nach circa 4,5 Minuten kommt dann das Ziffernblatt und anschliessend, wenn ich die
+App wieder reinwill, ist sie beendet."
+**Was es NICHT loest:** die System-Tastensperre der Uhr. Die schaltet den Bildschirm selbst ab,
+und dagegen kommt eine Mini-App nicht an — das ist ein eigener Fall (s. `docs/TODO.md`).
+
+**Die Uhr vibriert an den Strecken- und Zeitmarken aus dem Profil.**
+
+**Ein ausgegrauter Start-Knopf sagt jetzt, warum.** Wartet auf GPS, oder ein Upload laeuft noch.
+Vorher passierte auf Antippen gar nichts, was sich wie eine kaputte App liest.
+
+**Die Datenseiten zeigen die Laufzeit der Aufnahme.** Sie blenden den Stop-Knopf absichtlich aus
+und sahen ohne laufende Uhr genauso aus wie der Startbildschirm — ein Fahrer hielt die App fuer
+verloren, waehrend sie in Wirklichkeit aufnahm.
+
+## 1.0.11 — 2026-09-21 (freigegeben)
+
+**1.0.9 und 1.0.10 kamen nie beim Nutzer an** — dreimal in Folge scheiterte die Einreichung an
+den Store-Vorschaubildern. 1.0.10 wurde am 19.09. zurueckgezogen und mit korrigierten Bildern als
+1.0.11 neu eingereicht; freigegeben am 21.09., nach zwei Tagen.
+
+**Diese Fassung traegt die beiden Fehler, an denen die Amazfit-Uhren praktisch unbrauchbar
+waren:** ein Tastendruck beendete die laufende Aufnahme, und lange Uploads starben an „Out of
+Memory", weil die ganze Aufnahme beim Senden im Speicher lag (gemeldet bei Block 108 von 2341).
+
+**Dazu:** Puls-Alarm, unterscheidbare Alarmmuster, Sparmodus/GPS-only, die sichtbare Tastensperre,
+das Foil auf dem Startbildschirm, Alarm-Schwellen unabhaengig vom Foil, und fehlende
+Chunk-Startzeiten werden fortgeschrieben statt neu gerechnet.
+
+**Ein Beinahe-Unfall, der hier stehen bleiben soll:** 1.0.11 war schon einmal eingereicht und
+musste zurueckgezogen werden, weil `DEV_FAKE_GPS` auf `true` stand. Seitdem kann der Build den
+Schalter nicht mehr mitnehmen (`8429b139`), und `npm run dev` raeumt ihn beim Beenden weg.
+
 ## 1.0.10 — 2026-09-13
 
 **1.0.9 wurde nie ausgeliefert.** Sie lag beim Zepp-Store im Review, als Cesar (GitHub #4,
