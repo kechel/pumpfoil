@@ -1782,6 +1782,7 @@ const nl: Record<string, string> = {
   "setup.stabDesc": "Kies je stab op naam (bv. «GONG Stab Trail L»). Alleen de naam telt — er wordt niets mee berekend.",
   "setup.stabModelPlaceholder": "Model (bv. Stab Trail)",
   "setup.stabSizePlaceholder": "Maat",
+  "setup.stabSearch": "Stabilizer zoeken…",
   "setup.stabTitle": "Stabilizer",
   "setup.title": "Gedetailleerde setup",
   "spotnote.addPhoto": "Foto toevoegen",

@@ -1754,6 +1754,7 @@ const fi: Record<string, string> = {
   "setup.stabDesc": "Valitse stabisi nimen perusteella (esim. «GONG Stab Trail L»). Vain nimellä on merkitystä — siitä ei lasketa mitään.",
   "setup.stabModelPlaceholder": "Malli (esim. Stab Trail)",
   "setup.stabSizePlaceholder": "Koko",
+  "setup.stabSearch": "Hae stabilisaattoria…",
   "setup.stabTitle": "Stabilisaattori",
   "setup.title": "Tarkat varusteet",
   "share.copied": "Kopioitu ✓",

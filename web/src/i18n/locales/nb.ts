@@ -1335,6 +1335,7 @@ const nb: Record<string, string> = {
   "setup.boardVolPlaceholder": "liter",
   "setup.boardLenPlaceholder": "cm",
   "setup.boardDelConfirm": "Slette dette brettet? Økter som bruker det, faller tilbake til standarden din.",
+  "setup.stabSearch": "Søk etter stabilisator…",
   "setup.stabTitle": "Stabilisator",
   "setup.stabDesc": "Velg stabben din etter navn (f.eks. \u201cGONG Stab Trail L\u201d). Bare navnet betyr noe \u2014 ingenting beregnes ut fra det.",
   "setup.myStabs": "Mine stabber",

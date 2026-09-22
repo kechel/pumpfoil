@@ -864,6 +864,13 @@ export default function SessionDetail() {
   // Hinweis aus der Lage-Ansicht (z. B. „Hub nicht belastbar"). Er steht bewusst NICHT dort,
   // sondern unter dem Abspielen-Knopf — Jans Anordnung, 21.09.
   const [lageHinweis, setLageHinweis] = useState<string | null>(null);
+  // Was die Lage-Ansicht als Montage-Drehung gefunden hat — steht unten auf dem Knopf
+  // „automatisch" (Jan, 22.09.). `useCallback`, weil die Meldung sonst bei jeder Neuzeichnung
+  // eine neue Funktion saehe und in eine Schleife liefe.
+  const [montageAuto, setMontageAuto] = useState<{ grad: number | null; quelle: string | null }>(
+    { grad: null, quelle: null });
+  const merkeMontage = useCallback(
+    (grad: number | null, quelle: string | null) => setMontageAuto({ grad, quelle }), []);
   const zeigerRaf = useRef(0);
   const zeigerZuletzt = useRef(0);
 
@@ -1965,7 +1972,8 @@ export default function SessionDetail() {
                 vonMs={versuchFenster?.[0] ?? null}
                 bisMs={versuchFenster?.[1] ?? null}
                 progress={progress} playMode={playMode} playTMs={playTMs}
-                onZeit={zeigeZeitAufKarte} onHinweis={setLageHinweis} randS={LAGE_RAND_S}
+                onZeit={zeigeZeitAufKarte} onHinweis={setLageHinweis} onMontage={merkeMontage}
+                randS={LAGE_RAND_S}
                 startedAt={session.started_at} tz={session.tz}
                 pausen={session.pause_windows ?? []} />
             </div>
@@ -2263,7 +2271,16 @@ export default function SessionDetail() {
                           ? "bg-brand-500 font-semibold text-slate-950"
                           : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
                       >
-                        {g === null ? t("board.mountAuto") : `${g}°`}
+                        {/* Auf „automatisch" die GEFUNDENE Gradzahl mitschreiben (Jan, 22.09.):
+                            wer zwischen den Stufen waehlt, sieht sonst nicht, was die Automatik
+                            sagt. Nur wenn sie auch greift — steht eine Hand-Einstellung, rechnet
+                            der Server sie gar nicht erst aus, dann waere jede Zahl geraten. */}
+                        {g === null
+                          ? (session.attitude_rot_deg == null && montageAuto.grad != null
+                            && montageAuto.quelle !== "manuell"
+                            ? `${t("board.mountAuto")} (${Math.round(montageAuto.grad)}°)`
+                            : t("board.mountAuto"))
+                          : `${g}°`}
                       </button>
                     ))}
                   </span>

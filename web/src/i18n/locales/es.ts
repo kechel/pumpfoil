@@ -1579,6 +1579,7 @@ const es: Record<string, string> = {
   "setup.stabDesc": "Elige tu stab por su nombre (p. ej. «GONG Stab Trail L»). Solo cuenta el nombre — no se calcula nada con él.",
   "setup.stabModelPlaceholder": "Modelo (p. ej. Stab Trail)",
   "setup.stabSizePlaceholder": "Tamaño",
+  "setup.stabSearch": "Buscar estabilizador…",
   "setup.stabTitle": "Estabilizador",
   "setup.title": "Configuración detallada",
   "share.addPhoto": "Foto",

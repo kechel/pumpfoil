@@ -1725,6 +1725,7 @@ const id: Record<string, string> = {
   "setup.stabDesc": "Pilih stab-mu berdasarkan namanya (mis. «GONG Stab Trail L»). Hanya namanya yang penting — tidak ada yang dihitung darinya.",
   "setup.stabModelPlaceholder": "Model (mis. Stab Trail)",
   "setup.stabSizePlaceholder": "Ukuran",
+  "setup.stabSearch": "Cari stabilizer…",
   "setup.stabTitle": "Stabilizer",
   "setup.title": "Setup terperinci",
   "spotnote.addPhoto": "Tambah foto",

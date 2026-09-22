@@ -1719,6 +1719,7 @@ const ja: Record<string, string> = {
   "setup.stabDesc": "スタビは名称で選びます（例：「GONG Stab Trail L」）。名称だけが意味を持ち、そこから計算は行いません。",
   "setup.stabModelPlaceholder": "モデル（例：Stab Trail）",
   "setup.stabSizePlaceholder": "サイズ",
+  "setup.stabSearch": "スタビライザーを検索…",
   "setup.stabTitle": "スタビライザー",
   "setup.title": "詳細セットアップ",
   "spotnote.addPhoto": "写真を追加",

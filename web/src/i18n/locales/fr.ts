@@ -1579,6 +1579,7 @@ const fr: Record<string, string> = {
   "setup.stabDesc": "Choisis ton stab par son nom (p. ex. « GONG Stab Trail L »). Seul le nom compte — rien n'en est calculé.",
   "setup.stabModelPlaceholder": "Modèle (p. ex. Stab Trail)",
   "setup.stabSizePlaceholder": "Taille",
+  "setup.stabSearch": "Rechercher un stab…",
   "setup.stabTitle": "Stabilisateur",
   "setup.title": "Configuration détaillée",
   "share.addPhoto": "Photo",

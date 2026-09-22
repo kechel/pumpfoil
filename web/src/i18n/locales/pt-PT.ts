@@ -1719,6 +1719,7 @@ const ptPT: Record<string, string> = {
   "setup.stabDesc": "Escolhe o teu stab pelo nome (ex. «GONG Stab Trail L»). Só o nome conta — nada é calculado a partir dele.",
   "setup.stabModelPlaceholder": "Modelo (ex. Stab Trail)",
   "setup.stabSizePlaceholder": "Tamanho",
+  "setup.stabSearch": "Procurar estabilizador…",
   "setup.stabTitle": "Estabilizador",
   "setup.title": "Setup detalhado",
   "spotnote.addPhoto": "Adicionar foto",
