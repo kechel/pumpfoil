@@ -1408,6 +1408,23 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+
+- **🔲 23.09. — Handy-Session TEILEN, wenn zwei Fahrer auf demselben Brett waren.** Jan war mit
+  Phil am See, Handy am Brett, Uhr am Arm. **Phil ist einen Teil der Zeit selbst gefahren** — der
+  Handy-Track deckt sich dort also nicht mit Jans GPS, sondern mit Phils FR55. Wunsch: die
+  Handy-Session an Lauf-Grenzen trennen und Phils Teil an ihn **übertragen**. Bausteine sind da —
+  Session-Übertragung ist im Web live, die Läufe stehen als `segments_json`, `excluded_ranges`
+  kann Bereiche schon ausnehmen; es fehlt das Trennen in ZWEI Sessions. **Phil hat noch nicht
+  hochgeladen**, der FR55-Track zum Abgleichen existiert also noch nicht. Jan: „erstmal nur
+  merken."
+- **🔲 23.09. — „⚠ verrutscht" ist die falsche Wortwahl, wenn jemand ABSICHTLICH dreht.** Jan hat
+  das Handy am 23.09. zweimal gedreht, davon einmal **innerhalb** einer Session, um die
+  Montage-Erkennung je Lauf zu prüfen. Sie hat funktioniert: Lauf 1 = 315°, Lauf 2 = 196°,
+  Achsenabstand 61° (> `MONTAGE_GLEICH_GRAD` = 25°), Lauf 2 behält seine eigene Drehung und wird
+  markiert — die Lage-Zahlen darunter sind korrekt mit 196° gerechnet. Nur liest sich `⚠` plus
+  „das Gerät ist vermutlich verrutscht" (`sd.mountSlipped`) wie ein Defekt, und Jan konnte sich
+  die Warnung nicht erklären. Gesucht ist eine neutrale Formulierung für „andere Montage als die
+  übrigen Läufe" — die Erkennung selbst bleibt, wie sie ist. Betrifft 18 Sprachen.
 - **🔲 23.09. — Ein Amazfit-Modell steht unter DREI Namen in `device_tokens`.** Beim Zusammenstellen
   der Emulator-Testuhren aufgefallen: `Amazfit%20T-Rex%203%20(8716545)` (6 Uhren, URL-kodiert),
   `Amazfit T-Rex 3 (8716545)` (2) und `T-Rex 3 (8716545)` (1) — dasselbe Geraet, drei Zeilen. Jede
