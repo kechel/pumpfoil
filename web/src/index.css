@@ -161,3 +161,28 @@ html.demo-names .pf-name {
 html.demo-names .pf-avatar {
   filter: blur(6px);
 }
+
+/* MILLIONEN-PULS an der Pump-Zahl der Community-Leiste (Jan, 23.09.2026).
+   Sichtbar ab 1.000.000 Pumps — und fuer Admins immer, damit der Effekt sich vor dem grossen
+   Moment ansehen laesst, statt ihn beim ersten Mal live zu debuggen.
+
+   Nur Helligkeit und Groesse, KEIN Farbwechsel: die Zahl steht in Markenfarbe, und die hat je
+   nach Hell/Dunkel verschiedene Werte (brand-600 gegen brand-300). Ein fester Farbton im
+   Keyframe wuerde in einem der beiden Modi danebenliegen. `currentColor` im Schein sorgt
+   dafuer, dass er in beiden Modi zur Zahl passt.
+
+   `inline-block` ist noetig, weil `transform` an Inline-Elementen nicht wirkt. */
+@keyframes pf-million {
+  0%, 100% { transform: scale(1);    filter: brightness(1);   text-shadow: none; }
+  50%      { transform: scale(1.09); filter: brightness(1.35);
+             text-shadow: 0 0 0.45em currentColor; }
+}
+.pf-million {
+  display: inline-block;
+  animation: pf-million 1.6s ease-in-out infinite;
+}
+/* Wer Bewegung im System abgestellt hat, bekommt sie auch hier nicht — der Meilenstein bleibt
+   trotzdem sichtbar, nur ruhig. */
+@media (prefers-reduced-motion: reduce) {
+  .pf-million { animation: none; text-shadow: 0 0 0.4em currentColor; }
+}
