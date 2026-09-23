@@ -3641,26 +3641,92 @@ def _lage_antwort(
         von = max(0, int(von - pad_s * 1000))
         bis = int(bis + pad_s * 1000)
 
+    bereiche = lage.laufbereiche(segmente, off)
+    starts = [float(g.get("t_start_session_ms", float(g["t_start_ms"]) + off))
+              for g in segmente if g.get("t_start_ms") is not None]
+
+    # MONTAGE-DREHUNG FUER DIESEN AUSSCHNITT (23.09.2026, Befund an #9656).
+    #
+    # Die Drehung ist eine Eigenschaft davon, WIE DAS HANDY IN DIESEM MOMENT auf dem Brett
+    # liegt. Bleibt sie ueber die Aufnahme gleich, ist ein Wert fuer alles richtig; aendert sie
+    # sich, ist ein einzelner Wert fuer mindestens einen Lauf zwangslaeufig falsch. Also muss
+    # der gezeigte Ausschnitt entscheiden, nicht die Aufnahme.
+    #
+    # Vorher tat das die Ansicht nicht, und an #9656 fiel es auf: Jan hatte das Handy zwischen
+    # den beiden Laeufen ABSICHTLICH gedreht (314,9° gegen 195,5°, 61° Achsenabstand).
+    # `aufnahme_eigenschaften` bestimmt EINE Achse ueber alle Laeufe zusammen — die beiden
+    # loeschen sich gegenseitig aus, die Klarheit faellt unter die Schwelle, und die Funktion
+    # gibt auf: `quelle = "keine"`, `rot = 0`. Die ganze Ansicht rechnete danach UNGEDREHT, also
+    # mit vermischtem Nicken und Rollen. Fuer Lauf 1 landete die Takterkennung dadurch bei
+    # 0,66 Hz statt 1,59 Hz, das Hub-Fenster wurde zu lang und der Hub kam mit 36 cm statt
+    # 16 cm heraus. Aufgefallen ist es nur an der gelben Hub-Warnung, die damit voellig recht
+    # hatte — die Tabelle darunter rechnete laengst je Lauf und zeigte die richtigen Werte.
+    #
+    # Wenn die Montage NICHT wechselt, aendert das hier nichts: dann ist die Drehung des Laufs
+    # dieselbe wie die der Aufnahme. Geprueft an allen Sessions mit Kreisel.
+    rot_fest = float(s.attitude_rot_deg) if s.attitude_rot_deg is not None else None
+    rot_quelle_fest = "manuell" if rot_fest is not None else None
+    if rot_fest is None and bereiche:
+        _ganze = lage.aufnahme_eigenschaften(acc, t_acc, gyr, t_gyr, bereiche, starts,
+                                             gps=storage.load_gps(uuid), rot_vorgabe=None)
+        if _ganze.get("quelle") == "keine":
+            # Nur DANN eingreifen. Die Einschraenkung ist nicht Vorsicht, sondern das Ergebnis
+            # des Regressions-Laufs: erst hatte ich die Ansicht IMMER auf die Lauf-Drehung
+            # gestellt, und dabei aenderten sich 10 von 15 Aufnahmen mit Kreisel. Nicht nur
+            # kosmetisch — #9650 sprang um 178° (die Richtungsfrage entscheidet sich je Lauf
+            # anders), und bei #9567 Lauf 14 fiel die eigene Drehung auf 0° zurueck, obwohl die
+            # Aufnahme 82,3° kennt. Das waere an vielen Stellen schlechter gewesen als vorher.
+            #
+            # Wenn die Aufnahme als Ganzes eine klare Achse hat, war die Montage konstant, und
+            # die Aufnahme-Drehung ist fuer jeden Ausschnitt richtig. Nur wenn sie KEINE findet,
+            # lag entweder ein Montagewechsel vor (#9656: 314,9° gegen 195,5°, die beiden
+            # loeschen sich im Mittel aus) oder das Signal ist schwach — und dann ist jede
+            # gemessene Drehung besser als gar keine. Denn "keine" heisst nicht "unbekannt",
+            # sondern rechnet mit 0°, also mit der Behauptung "laengs, Nase vorn".
+            _m = lage.montage_je_lauf(acc, t_acc, gyr, t_gyr, bereiche, starts,
+                                      gps=storage.load_gps(uuid), rot_vorgabe=None)
+            _je = _m["je_lauf"]
+            _wahl = None
+            if run is not None and run < len(_je):
+                # Genau die Drehung, die auch in der Lauf-Tabelle steht — sonst zeigten Ansicht
+                # und Tabelle fuer denselben Lauf verschiedene Zahlen.
+                _wahl = _je[run]
+            elif auswahl and _je:
+                # Freies Fenster (Startversuch): der Lauf mit der groessten Ueberschneidung.
+                _v, _b = auswahl
+                _max = 0.0
+                for _i, (_a, _e) in enumerate(bereiche):
+                    _u = min(_b, _e) - max(_v, _a)
+                    if _u > _max and _i < len(_je):
+                        _wahl, _max = _je[_i], _u
+            if _wahl is not None:
+                rot_fest, rot_quelle_fest = float(_wahl["rot_deg"]), _wahl["rot_quelle"]
+            elif _m["gruppe_rot_deg"] is not None:
+                # Gesamtansicht: die Drehung der groessten Montage-Gruppe, also "so lag das
+                # Handy die meiste Zeit". Ein Wert muss es sein, und dieser ist der belegteste.
+                rot_fest, rot_quelle_fest = float(_m["gruppe_rot_deg"]), "gruppe"
+
     # Nullpunkt-Bezug: ALLE Laeufe, auch wenn nur einer gezeigt wird. Die Null ist eine
     # Eigenschaft der Montage, nicht des Ausschnitts — sonst spraenge der Winkel beim
     # Umschalten zwischen den Laeufen.
     erg = lage.lage_berechnen(acc, t_acc, gyr, t_gyr,
                               ziel_hz=hz, yaw_fenster_s=yaw_window_s,
                               t_von_ms=von, t_bis_ms=bis,
-                              ref_bereiche_ms=lage.laufbereiche(segmente, off),
+                              ref_bereiche_ms=bereiche,
                               hub_fenster_s=height_window_s,
-                              # None = Automatik (Start-Heuristik). Ein gesetzter Wert gewinnt.
-                              rot_deg=(float(s.attitude_rot_deg)
-                                       if s.attitude_rot_deg is not None else None),
+                              # None = Automatik (Start-Heuristik). Ein gesetzter Wert gewinnt —
+                              # das ist jetzt auch die Drehung DIESES Ausschnitts, s. oben.
+                              rot_deg=rot_fest,
                               # Die Spur als GEGENPROBE fuers Gieren: Kurs ueber Grund und
                               # Gieren sind dieselbe Groesse (s. `lage.gier_gegen_gps`). Roh,
                               # ungetrimmt — die Funktion sucht sich ihre Laufbereiche selbst.
                               gps=storage.load_gps(uuid),
                               # ECHTE Lauf-Anfaenge, nicht die an den Raendern gekuerzten aus
                               # `laufbereiche` — die Heuristik lebt genau von der ersten Sekunde.
-                              lauf_starts_ms=[float(g.get("t_start_session_ms",
-                                                          float(g["t_start_ms"]) + off))
-                                              for g in segmente if g.get("t_start_ms") is not None])
+                              lauf_starts_ms=starts)
+    # `lage_berechnen` meldet jede Vorgabe als „manuell" — hier weiss die Antwort es besser.
+    if rot_quelle_fest:
+        erg["rot_quelle"] = rot_quelle_fest
     # Die ungekuerzte Auswahl, damit die Oberflaeche den Rand vom Lauf unterscheiden kann.
     erg["auswahl_von_ms"] = auswahl[0] if auswahl else None
     erg["auswahl_bis_ms"] = auswahl[1] if auswahl else None
@@ -3674,9 +3740,7 @@ def _lage_antwort(
     # einmal, die Lage-Ansicht selbst braucht sie nicht.
     if je_lauf:
         erg["laeufe"] = lage.kennzahlen_je_lauf(
-            acc, t_acc, gyr, t_gyr, lage.laufbereiche(segmente, off),
-            [float(g.get("t_start_session_ms", float(g["t_start_ms"]) + off))
-             for g in segmente if g.get("t_start_ms") is not None],
+            acc, t_acc, gyr, t_gyr, bereiche, starts,
             gps=storage.load_gps(uuid),
             rot_vorgabe=(float(s.attitude_rot_deg) if s.attitude_rot_deg is not None else None))
     return erg
