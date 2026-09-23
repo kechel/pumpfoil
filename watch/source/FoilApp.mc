@@ -16,6 +16,13 @@ class FoilApp extends Application.AppBase {
         AppBase.initialize();
     }
 
+    // Zugriff auf den Recorder von aussen (Uploader zieht nach einem fertigen Upload das Profil
+    // nach, s. Uploader._profilNachziehen). Bewusst hier statt einer Modul-Variablen: die App
+    // haelt den Recorder ohnehin, ein zweiter Verweis waere eine zweite Wahrheit.
+    function recorder() {
+        return _recorder;
+    }
+
     function onStart(state) {
     }
 

@@ -55,6 +55,13 @@ object Recorder {
         // sonst steht in der Spur, wo das Handy lag, nicht wo gefahren wurde (Vorgabe Jan,
         // 08.09.2026). Puls und Beschleunigung werden weiter aufgezeichnet.
         val gpsOhneHardware: Boolean = false,
+        // Wie viele Sessions in dieser Sitzung vollstaendig hochgeladen wurden. Die Oberflaeche
+        // haengt daran das Nachziehen des Profils (Jan, 23.09.2026): ein fertiger Upload ist der
+        // einzige Augenblick, in dem die Uhr nachweislich online ist, und er faellt genau
+        // dorthin, wo der Fahrer vor der naechsten Fahrt steht und vielleicht gerade etwas
+        // geaendert hat. Ein Zaehler statt eines Schalters, damit auch zwei Uploads kurz
+        // hintereinander zwei Ereignisse sind und nicht eins.
+        val uploadsFertig: Int = 0,
         // Die Ortung liefert nur noch ALTE Fixes (Fused wiederholt einen zwischengespeicherten
         // Stand). Feldbefund 03.09.: zwei Nutzer, drei Sessions ueber je eine Stunde — 2491 Fixes,
         // aber nur 71 verschiedene Positionen, eine davon 625-mal hintereinander, und dazu eine
@@ -458,7 +465,10 @@ object Recorder {
                 }
                 _state.value = _state.value.copy(uploadError = "")
                 for (dir in LocalStore.completedSessions(ctx)) {
-                    try { uploadSession(ctx, dir) }
+                    try {
+                        uploadSession(ctx, dir)
+                        _state.value = _state.value.copy(uploadsFertig = _state.value.uploadsFertig + 1)
+                    }
                     catch (e: ApiException) {
                         failed = true
                         if (e.status == 401) {

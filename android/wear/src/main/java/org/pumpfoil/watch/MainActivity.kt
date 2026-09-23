@@ -398,6 +398,23 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
         }
         fun skipSync() { configJob?.cancel(); syncing = false }
 
+        // PROFIL NACH EINEM FERTIGEN UPLOAD NACHZIEHEN (Jan, 23.09.2026). Der Zaehler kommt aus
+        // dem Recorder; jeder neue Wert ist genau eine vollstaendig hochgeladene Session. Beim
+        // ersten Zusammenbau steht er auf 0 — dann passiert hier nichts, den Start deckt der
+        // LaunchedEffect(Unit) darunter ab.
+        val fertig = s.uploadsFertig
+        LaunchedEffect(fertig) {
+            if (fertig > 0 && Api.isOnline(ctx)) {
+                try {
+                    val c = Api.deviceConfig(appVersion(ctx), wantLayouts = layoutsPref != false)
+                    applyConfig(c)
+                    Api.cacheConfig(ctx, c)
+                } catch (e: Exception) {
+                    // Ein Fehlschlag aendert nichts: der zwischengespeicherte Stand gilt weiter.
+                }
+            }
+        }
+
         LaunchedEffect(Unit) {
             Recorder.refreshPending(ctx)            // wie viele Sessions warten lokal?
             Recorder.drain(ctx)                     // gepairt + online -> jetzt hochladen
