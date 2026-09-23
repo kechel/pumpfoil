@@ -16,8 +16,22 @@
 // schreibt. Eine ENV-Variable ginge nicht: der Uhr-Code laeuft nicht in Node, `process.env` gibt
 // es dort nicht, der Wert muss beim Buendeln feststehen — und `zeus` kennt kein `--define`.
 //
-//     npm run dev     ->  DEV_FAKE_GPS = true   ->  zeus dev     (Simulator, Screenshots)
-//     npm run build   ->  DEV_FAKE_GPS = false  ->  zeus build   (Store-Paket)
+//     npm run dev      ->  DEV_FAKE_GPS = true   ->  zeus dev     (Simulator, Screenshots)
+//     npm run dev-echt ->  DEV_FAKE_GPS = false  ->  zeus dev     (Simulator, ECHTE Ortung)
+//     npm run build    ->  DEV_FAKE_GPS = false  ->  zeus build   (Store-Paket)
+//
+// `dev-echt` AENDERT AN DER SICHERUNG NICHTS, und das ist der Punkt: es schreibt `false`, also
+// den sicheren Wert. Der einzige Weg, auf dem ein `true` je in ein Paket kaeme, ist `build` — und
+// der setzt weiterhin selbst `false`, baut, und prueft danach das ERGEBNIS (`paketPruefen`), statt
+// jemandem zu glauben. Die neue Betriebsart kann nur in die harmlose Richtung wirken: im
+// schlimmsten Fall steht `false`, wo jemand die Fake-Spur erwartet hat, und der Simulator zeigt
+// „GPS suche…".
+//
+// `dev-echt` kam am 23.09.2026 dazu, beim Schreiben von TESTPLAN-EMULATOR.md. Der Fake-Zweig
+// ueberspringt `s.geo` KOMPLETT — und damit auch den `onChange`-Zwischenspeicher, der in 1.0.12
+// gegen die GPS-Luecken eingebaut wurde. Unter `npm run dev` laesst sich der neue Pfad also gar
+// nicht testen, er liegt hinter dem Schalter. Fuer Screenshots bleibt `dev` richtig: der
+// Simulator speist kein GPS ein, ohne Fake-Spur steht die Anzeige auf „GPS suche…".
 //
 // Damit ist egal, was gerade in der Datei steht oder was jemand vergessen hat zurueckzustellen.
 // Nach dem Bauen wird das ERGEBNIS geprueft, nicht die Eingabe: enthaelt das Paket die Fake-Spur,
@@ -122,20 +136,26 @@ function versionPruefen() {
 }
 
 const modus = process.argv[2];
-if (!["dev", "build", "pruefe"].includes(modus)) {
-  console.error("Aufruf: node zepp.mjs dev | build | pruefe");
-  console.error("  dev    Simulator, DEV_FAKE_GPS = true");
-  console.error("  build  Store-Paket, DEV_FAKE_GPS = false, mit Nachpruefung");
-  console.error("  pruefe nur das schon gebaute dist/*.zab nachpruefen");
+if (!["dev", "dev-echt", "build", "pruefe"].includes(modus)) {
+  console.error("Aufruf: node zepp.mjs dev | dev-echt | build | pruefe");
+  console.error("  dev      Simulator, DEV_FAKE_GPS = true  (Screenshots)");
+  console.error("  dev-echt Simulator, DEV_FAKE_GPS = false (echter Ortungs-Pfad, s. Testplan)");
+  console.error("  build    Store-Paket, DEV_FAKE_GPS = false, mit Nachpruefung");
+  console.error("  pruefe   nur das schon gebaute dist/*.zab nachpruefen");
   process.exit(2);
 }
 
 if (modus === "pruefe") process.exit(paketPruefen() ? 0 : 1);
 
-if (modus === "dev") {
+if (modus === "dev" || modus === "dev-echt") {
   // Kein Aufraeumen noetig: `devflags.js` ist gitignoriert und wird beim naechsten `npm run build`
   // ohnehin ueberschrieben. Im VERSIONIERTEN Code steht nie ein `true`.
-  schalter(true);
+  const fake = modus === "dev";
+  schalter(fake);
+  if (!fake) {
+    console.log("dev-echt: die Uhr liest die ECHTE Ortung des Simulators. Liefert der keine,");
+    console.log("          bleibt die Anzeige auf \"GPS suche…\" — das ist dann der Befund.");
+  }
   const r = spawnSync("zeus", ["dev"], { stdio: "inherit", cwd: WURZEL });
   process.exit(r.status ?? 1);
 }

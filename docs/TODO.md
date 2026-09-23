@@ -1408,6 +1408,13 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔲 23.09. — Ein Amazfit-Modell steht unter DREI Namen in `device_tokens`.** Beim Zusammenstellen
+  der Emulator-Testuhren aufgefallen: `Amazfit%20T-Rex%203%20(8716545)` (6 Uhren, URL-kodiert),
+  `Amazfit T-Rex 3 (8716545)` (2) und `T-Rex 3 (8716545)` (1) — dasselbe Geraet, drei Zeilen. Jede
+  Auswertung je Modell ist dadurch falsch, und zwar leise: die T-Rex 3 sieht nach 1 Uhr aus statt
+  nach 9. Zu klaeren ist beides — woher das `%20` kommt (Label-Pfad beim Pairing, vermutlich einmal
+  kodiert durchgereicht) und ob die Altdaten normalisiert werden. **Nicht Teil des 1.0.12-Testlaufs.**
+
 ### 22.09.2026 — 🔴 AMAZFIT VERLIERT DIE HAELFTE BIS 87 % SEINER GPS-ZEIT. Auf JEDER Uhr.
 
 Jans Frage: „ist das amazfit problem nicht bei allen amazfit uhren aufgetreten?" Nachgemessen —
