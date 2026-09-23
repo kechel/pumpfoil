@@ -1437,9 +1437,17 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   automatisches Trennen aufsetzen kann**, nicht die Montage-Drehung: Jan, 23.09.: „wir haben den
   aufbau nicht veraendert beim wechsel."
 
-  Nebenbefund, der eigene Beachtung verdient: **Jans Uhr zählte bei #9656 L1 einen Lauf mit,
-  obwohl er nicht auf dem Brett mit dem Handy stand** (14,7 m entfernt). Wrist-Falschpositiv oder
-  er fuhr ein zweites Brett — vor einer Auswertung zu klären.
+  **Geklärt, KEIN Falschpositiv:** Jans Uhr zählte bei #9656 L1 einen Lauf mit, obwohl er 14,7 m
+  vom Handy-Brett entfernt war. Jan, 23.09.: „wir waren mit 2 brettern unterwegs gleichzeitig die
+  meiste zeit, haben dann irgendwann halt boards gewechselt und damit auch das daran gebundene
+  handy." Er fuhr also zeitgleich das zweite Brett — die Lauferkennung am Handgelenk war richtig,
+  falsch wäre nur die Zuordnung „Uhr → welches Brett" gewesen.
+
+  **Warum der Fall heute trotzdem glatt aufging:** Jan hat beim Bretterwechsel die Aufnahme neu
+  gestartet (#9650 endet 10:35:05, #9656 beginnt 10:41:24), deshalb liegt die Fahrergrenze genau
+  auf einer Sessiongrenze. Der Fall, für den das Teilen gebraucht wird, tritt erst ein, wenn das
+  Brett ohne Neustart der Aufnahme wechselt — dann stehen beide Fahrer in EINER Session. Die
+  Methode oben hätte auch das getroffen.
 - **✅ 23.09. — ERLEDIGT: „⚠ verrutscht" war die falsche Wortwahl, wenn jemand ABSICHTLICH dreht.** Jan hat
   das Handy am 23.09. zweimal gedreht, davon einmal **innerhalb** einer Session, um die
   Montage-Erkennung je Lauf zu prüfen. Sie hat funktioniert: Lauf 1 = 315°, Lauf 2 = 196°,
