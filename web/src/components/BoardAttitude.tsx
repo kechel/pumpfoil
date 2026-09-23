@@ -240,9 +240,6 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
   // Warnhinweise nach oben melden statt sie hier zu zeigen: Jan will sie unter dem
   // Abspielen-Knopf haben, und der steht in der Detailansicht.
   onHinweis?: (text: string | null) => void;
-  // Was die Automatik als Montage-Drehung gefunden hat, nach oben melden (Jan, 22.09.): auf dem
-  // Knopf „automatisch" soll die Gradzahl mit dranstehen. Sonst muesste man sie in der Fusszeile
-  // dieser Ansicht suchen, waehrend man oben zwischen den Stufen waehlt.
   // Sekunden vor und nach der Auswahl, die mitgezeigt werden. Kommt von oben, damit Karte,
   // Wiedergabe und Kurven denselben Rand benutzen.
   randS?: number;
@@ -296,13 +293,21 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
   // Bewusst aus `d`, nicht aus dem spaeteren `k`: Hooks muessen VOR den fruehen Returns stehen.
   const hubUnsicher = d?.kennzahlen?.hub_pp_cm != null && d.kennzahlen.hub_sicher === false;
   const hubFenster = d?.hub_fenster_s ?? 3;
+  // WORAUF sich die Warnung bezieht, gehoert in den Text (Jan, 23.09.2026). Vorher stand dort
+  // „hier", und „hier" war je nach Auswahl etwas anderes: bei #9656 meldete die Gesamtansicht
+  // zu Recht einen unbrauchbaren Hub (Takt 0,33 Hz ueber 33 Minuten, das ist das Schaukeln
+  // zwischen den Laeufen), waehrend BEIDE Laeufe mit 1,59 und 1,80 Hz sauber waren und ihre
+  // 16/15 cm ohne Klammern dastanden. Die Warnung stand trotzdem direkt ueber dieser Tabelle,
+  // und Jan hat sie logischerweise auf seine Laeufe bezogen — „das war echtes Pumpen".
+  const ganzeAufnahme = run == null && vonMs == null && bisMs == null;
   useEffect(() => {
     // Eine Stelle nach dem Komma. Das Fenster kommt aus 2/Takt und ist damit krumm — ungerundet
     // stand im Hinweis woertlich „3.4482758620689657-second window" (Jan, 22.09.).
     onHinweis?.(hubUnsicher
-      ? t("board.heaveShaky", { s: hubFenster.toFixed(1).replace(/\.0$/, "") }) : null);
+      ? t(ganzeAufnahme ? "board.heaveShakyAll" : "board.heaveShaky",
+          { s: hubFenster.toFixed(1).replace(/\.0$/, "") }) : null);
     return () => onHinweis?.(null);
-  }, [hubUnsicher, hubFenster, onHinweis, t]);
+  }, [hubUnsicher, hubFenster, ganzeAufnahme, onHinweis, t]);
 
   // Zeit unter der Maus nach oben melden. Als Effekt, nicht im Zeichnen: `onZeit` setzt oben
   // Zustand, und das waehrend des Renderns waere eine Schleife.
