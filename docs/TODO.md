@@ -1867,6 +1867,18 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
   Im `heartbeat()` wird die Bildschirmzeit jetzt AUCH bei laufender Aufnahme aufgefrischt,
   bevor die Funktion aussteigt — dieselbe Auffrischung alle 20 s, die im Leerlauf seit dem
   T-Rex-3-Feldtest nachweislich hilft.
+  **🔲 VOR DER EINREICHUNG: der Emulator-Testplan** — `watch-zepp/TESTPLAN-EMULATOR.md`
+  (23.09.2026, auf Jans Bitte: „auch emulator abschiessen, zepp framework abschiessen etc.").
+  Zwanzig Schritte, gegliedert nach der Schicht, die abgeschossen wird: **QEMU-VM killen = Uhr
+  startet neu**, **Bridge killen = Handy weg**, App verlassen = sauberes Ende. Vier davon sind
+  Sperren fuer die Einreichung (Aufnahme ueberlebt den Kill · der Waechter schweigt beim sauberen
+  Beenden · der Upload faengt nicht wieder bei 0 an · der Speicher hat Abstand zum Limit).
+  **Test 0 zuerst:** ueberlebt `LocalStorage` in der VM ueberhaupt ein `kill -9`? Wenn nicht,
+  beweist der Emulator zum Absturz-Waechter gar nichts und der Block gehoert auf die echte Uhr.
+  Pruefkommando nach jedem Schritt: `scripts/zepp-testlauf-stand.py` (rein lesend — Absturzphase,
+  Speicher, Bloecke, Luecken, GPS-Dichte). Der Plan sagt auch, was der Emulator NICHT entscheiden
+  kann: Bildschirm-Wachbleiben, GPS-Dichte und die System-Tastensperre bleiben Feldtest.
+
   **🔲 OFFEN IST NUR NOCH DIE EINREICHUNG.** 1.0.12 (code 15) liegt gebaut da; Klettermax und
   u352 fahren auf 1.0.11 und haben den Fix deshalb NICHT. Jan, 22.09.: „habe gerade mit
   Klettermax am See seine Amazfit besprochen, er hat auch aufgezeichnet, aber irgendwann was die
