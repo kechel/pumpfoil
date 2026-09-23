@@ -470,29 +470,68 @@ Zahl nicht deutlich, ist der naechste Verdaechtige der Ortungsmodus der Uhr („
 Ausgefuellt ist das die Entscheidungsgrundlage fuer die Einreichung — nicht der Eindruck am Ende
 des Abends.
 
-| # | Test | Uhr | Erwartet | Beobachtet | OK? |
+| # | Test | Uhr | Erwartet | Beobachtet (23.09.2026) | OK? |
 |---|---|---|---|---|---|
-| 0 | Waechter ueberlebt harten Kill | Active 2 | Phase 2 | | |
-| 3.1 | Kill in Phase Start | Active 2 | Phase 1 | | |
-| 3.2 | Kill im Leerlauf | Active 2 | Phase 2 | | |
-| 3.3 | Kill in Aufnahme (>3 min) | Active 2 | Phase 3 + Aufnahme gerettet | | |
-| 3.4 | Kill im Upload | Active 2 | Phase 4 | | |
-| 4.1 | Sauber verlassen | Active 2 | **keine** Meldung | | |
-| 4.2 | Sauber nach Upload | Active 2 | **keine** Meldung | | |
-| 4.3 | Systemseitig weggeraeumt | Active 2 | nur notieren | | |
-| 5.1 | Upload nach VM-Kill | Active 2 | faengt nicht bei 0 an, lueckenlos | | |
-| 5.2 | Bridge-Kill im Upload | Active 2 | Fehler sichtbar, kein Absturz, kein Verlust | | |
-| 5.3 | Ohne Handy aufnehmen | Active 2 | nichts verloren | | |
-| 5.4 | Simulator-Kill | Active 2 | gleiche Phase wie 5.1 | | |
-| 6.1 | 10 min Aufnahme am Stueck | **GTR 4** | App lebt, Bildschirm wach | | |
-| 6.2 | Bildschirm aus/an | **GTR 4** | Aufnahme laeuft durch | | |
-| 6.3 | Tastensperre | **GTR 4** | nur notieren | | |
-| 7.1 | Speicher neues System | **Balance 2** | plausible Zahl | | |
-| 7.2 | Speicher altes System | **GTR 4** | keine Ausnahme | | |
-| 7.3 | Spitze unter Last | **Balance 2** | Abstand zum Limit | | |
-| 8.1 | GPS-Pfad laeuft (`dev-echt`) | Active 2 | keine Ausnahme | | |
-| 8.2 | Cache verfaellt (`dev-echt`) | Active 2 | Luecke bleibt Luecke | | |
-| opt. | 3.3 + 6.1 als Gegenprobe | **T-Rex 3** | wie oben | | |
+| 0 | Waechter ueberlebt harten Kill | Active 2 | Phase 2 | Phase 2, 07:56:07 | ✅ |
+| 3.1 | Kill in Phase Start | Active 2 | Phase 1 | **nicht ansteuerbar** — s. u. | – |
+| 3.2 | Kill im Leerlauf | Active 2 | Phase 2 | = Test 0 | ✅ |
+| 3.3 | Kill in Aufnahme (16 min) | Active 2 | Phase 3 + Aufnahme gerettet | Aufnahme vollstaendig (651 s, 54+87 Bloecke lueckenlos); **Phase kam als 2 statt 3** | ✅ / ⚠️ |
+| 3.4 | Kill im Upload | Active 2 | Phase 4 | Phase 4, 08:59:55 | ✅ |
+| 4.1 | Sauber verlassen | Active 2 | **keine** Meldung | Zaehler blieb 1 | ✅ |
+| 4.2 | Sauber nach Upload | Active 2 | **keine** Meldung | Zaehler blieb 3 | ✅ |
+| 4.3 | Systemseitig weggeraeumt | Active 2 | nur notieren | offen | – |
+| 5.1 | Upload nach VM-Kill | Active 2 | faengt nicht bei 0 an, lueckenlos | **zweimal** fortgesetzt, 0 doppelte Bloecke | ✅ |
+| 5.2 | Bridge-Kill im Upload | Active 2 | Fehler sichtbar, kein Absturz, kein Verlust | offen (5.3 deckt den Kern) | – |
+| 5.3 | Ohne Handy aufnehmen | Active 2 | nichts verloren | unfreiwillig eingetreten: „shake timeout", App bedienbar, nichts verworfen | ✅ |
+| 5.4 | Simulator-Kill | Active 2 | gleiche Phase wie 5.1 | offen | – |
+| 6.1 | 10 min Aufnahme am Stueck | **GTR 4** | App lebt, Bildschirm wach | offen | – |
+| 6.2 | Bildschirm aus/an | **GTR 4** | Aufnahme laeuft durch | offen | – |
+| 6.3 | Tastensperre | **GTR 4** | nur notieren | offen | – |
+| 7.1 | Speicher neues System | Active 2 (statt Balance 2) | plausible Zahl | **1288 von 3072 KB (42 %)** | ✅ |
+| 7.2 | Speicher altes System | **GTR 4** | keine Ausnahme | offen | – |
+| 7.3 | Spitze unter Last | Active 2 | Abstand zum Limit | Spitze blieb ueber 289 Bloecke **unveraendert** bei 1288 KB | ✅ |
+| 8.1 | GPS-Pfad laeuft (`dev-echt`) | Active 2 | keine Ausnahme | offen | – |
+| 8.2 | Cache verfaellt (`dev-echt`) | Active 2 | Luecke bleibt Luecke | offen | – |
+
+### Was der erste Durchlauf ergeben hat
+
+**Der teuerste Test ist bestanden.** Eine 16-Minuten-Aufnahme hat einen `kill -9` mitten im Lauf
+vollstaendig ueberlebt: 967 s, 798 GPS-Punkte, 12753 Accel-Werte, kein fehlender Block. Danach
+wurde derselbe Upload **zweimal** abgeschossen und setzte beide Male exakt dort fort, wo er stand:
+
+    gps:   0..48   08:54:37-08:54:48  |  49..79   08:56:07-08:56:13
+    accel: 0..43   08:56:13-08:56:28  |  44..99   08:59:18-08:59:35
+
+Kein Block ging doppelt raus. Césars Befund aus GitHub #4 („the transfer seemed to restart from
+zero") ist damit **belegt behoben**, nicht nur behauptet. Nachweisbar ist das serverseitig an
+`ingest_chunks.received_at`: ein erneut gesendeter Block traegt eine neue Ankunftszeit. Wer das
+nachstellt, misst also nicht den Bildschirm, sondern die Zeitstempel.
+
+**🔴 GEFUNDENER FEHLER — der Absturz-Waechter verliert seine Auskunft, wenn sie nicht ankommt.**
+`canaryRead()` loescht den Merker SOFORT beim Lesen. Scheitert die Meldung danach (auf Zepp der
+Normalfall: Handy weg, `shake timeout`), lebt die Phase nur noch im RAM — und der naechste
+App-Start ueberschreibt sie mit der eigenen. Genau so beobachtet: Kill in der Aufnahme (3),
+Neustart ohne Bridge, zweiter Neustart meldete **2**. Die Gegenprobe steht in 3.4: mit stehender
+Bridge kam die richtige Phase (4) an. Der Waechter verliert seine Information also ausgerechnet
+in der Lage, fuer die er gebaut wurde. **Fix:** erst nach erfolgreichem CONFIG loeschen, zwei
+Schluessel statt einem (laufende Phase / noch nicht gemeldeter Absturz).
+
+**3.1 laesst sich nicht von Hand treffen.** `PHASE_BOOT` → `PHASE_IDLE` laeuft synchron in
+`build()` durch (Waechter setzen → Widgets → `recoverActive()` → Leerlauf). Das Fenster liegt im
+Millisekundenbereich. Der Mechanismus ist durch 3.2 ohnehin belegt; die Phase faellt zufaellig
+mit, wenn sie faellt.
+
+**Die Speicher-Vermutung haelt NICHT.** Cesars dreifacher Neustart im Upload liess vermuten, die
+App stehe am Limit. Auf der Active 2 blieb die Spitze ueber einen 289-Block-Upload hinweg
+unveraendert bei 1288 von 3072 KB. 42 % im Leerlauf ist viel, aber der Upload treibt sie nicht.
+Wer die Ursache sucht, sucht woanders weiter.
+
+**Beobachtung, ausdruecklich als Vermutung:** in die Dateien landet weniger, als die Takte
+erwarten — 798 GPS-Punkte statt ~967 bei gefaelschtem GPS (das jede Sekunde einen Fix hat), Accel
+13,2 Hz statt der angeforderten 25. Naheliegendste Erklaerung ist, dass QEMU die Timer nicht
+haelt. Der Emulator kann das nicht entscheiden. **Nicht verwechseln** mit dem Fehler vom
+13.09.2026: dort brach der Schreibpfad ab, hier fehlt kein Block — es sind nur weniger als
+erwartet.
 
 **Einreichen nur**, wenn 3.3 die Aufnahme rettet, 4.1 und 4.2 schweigen, 5.1 nicht bei 0 anfaengt
 und 7.3 Abstand zum Limit zeigt. Alles andere ist Diagnose, die auch noch eine Runde spaeter
