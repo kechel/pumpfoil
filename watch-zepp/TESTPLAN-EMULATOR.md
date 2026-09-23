@@ -485,12 +485,12 @@ des Abends.
 | 5.3 | Ohne Handy aufnehmen | Active 2 | nichts verloren | unfreiwillig eingetreten: „shake timeout", App bedienbar, nichts verworfen | ✅ |
 | 5.4 | Simulator-Kill | Active 2 | gleiche Phase wie 5.1 | offen | – |
 | 6.1 | 10 min Aufnahme am Stueck | **GTR 4** | App lebt, Bildschirm wach | offen | – |
-| 6.2 | Bildschirm aus/an | **GTR 4** | Aufnahme laeuft durch | offen | – |
+| 6.2 | Bildschirm aus/an | **GTR 4** | Aufnahme laeuft durch | offen — aber: Aufnahme hat **2 h Laptop-Standby** ueberlebt und danach vollstaendig hochgeladen | (✅) |
 | 6.3 | Tastensperre | **GTR 4** | nur notieren | offen | – |
 | 7.1 | Speicher neues System | Active 2 (statt Balance 2) | plausible Zahl | **1288 von 3072 KB (42 %)** | ✅ |
 | 7.2 | Speicher altes System | **GTR 4** | keine Ausnahme | offen | – |
-| 7.3 | Spitze unter Last | Active 2 | Abstand zum Limit | Spitze blieb ueber 289 Bloecke **unveraendert** bei 1288 KB | ✅ |
-| 8.1 | GPS-Pfad laeuft (`dev-echt`) | Active 2 | keine Ausnahme | offen | – |
+| 7.3 | Spitze unter Last | Active 2 | Abstand zum Limit | 289 Bloecke: unveraendert 1288 KB · nach 2,5 h / 281 Bloecke: **1547 KB (50 %)** | ✅ |
+| 8.1 | GPS-Pfad laeuft (`dev-echt`) | Active 2 | keine Ausnahme | laeuft, schreibt, **118 % der zum eigenen Takt erwarteten Punkte** | ✅ |
 | 8.2 | Cache verfaellt (`dev-echt`) | Active 2 | Luecke bleibt Luecke | offen | – |
 
 ### Was der erste Durchlauf ergeben hat
@@ -526,6 +526,31 @@ App stehe am Limit. Auf der Active 2 blieb die Spitze ueber einen 289-Block-Uplo
 unveraendert bei 1288 von 3072 KB. 42 % im Leerlauf ist viel, aber der Upload treibt sie nicht.
 Wer die Ursache sucht, sucht woanders weiter.
 
+**Der neue GPS-Zweig verliert nichts — gemessen, nicht gehofft.** Bis hierher lief jeder Test mit
+`npm run dev`, also mit `DEV_FAKE_GPS = true`, und damit wurde der gesamte echte Ortungszweig samt
+dem `onChange`-Zwischenspeicher **kein einziges Mal ausgefuehrt**. Mit `npm run dev-echt` dann
+doch, und das Ergebnis braucht eine Zwischenrechnung, weil die rohe Zahl in die Irre fuehrt:
+
+| Session | Dauer | Accel gemessen | GPS-Dichte roh |
+|---|---|---|---|
+| #9642 (fake) | 651 s | 17 Hz | 0,83 |
+| #9644 (fake) | 967 s | 13 Hz | 0,83 |
+| #9671 (**echt**) | 9013 s, davon **7200 s Laptop zugeklappt** | 2 Hz (Artefakt) | 0,12 |
+
+0,12 ist genau der Feldwert — und trotzdem kein Beleg fuer den Feldfehler. **Der Accel ist die
+Uhr, an der alles andere zu messen ist:** rechnet man nur die aktive Zeit (≈1813 s), liegt er bei
+12,2 Hz, praktisch identisch mit #9644. Die VM lief also normal, sie stand nur zwei Stunden still.
+Bei diesem Takt (12,2/25 = 0,49) waeren 888 GPS-Punkte zu erwarten — angekommen sind **1050, also
+118 %**. Derselbe Faktor wie im Fake-Lauf.
+
+**Der Ortungspfad liefert damit auf praktisch jeden Abtast-Takt einen Punkt**, und das ist das
+Gegenteil des Feldmusters (4 s an, 22 s aus — dort fehlte die Position, waehrend die App normal
+weiterlief). Die ABSOLUTE Dichte bleibt Feldfrage, weil die Uhr des Emulators wandert.
+
+**Merke fuer den naechsten Durchlauf:** `sessions.accel_hz` und die GPS-Dichte sind fuer jede
+Session mit einer Pause **bedeutungslos** — beide werden ueber die Gesamtspanne gerechnet. Erst
+die aktive Zeit herausrechnen, dann vergleichen.
+
 **Beobachtung, ausdruecklich als Vermutung:** in die Dateien landet weniger, als die Takte
 erwarten — 798 GPS-Punkte statt ~967 bei gefaelschtem GPS (das jede Sekunde einen Fix hat), Accel
 13,2 Hz statt der angeforderten 25. Naheliegendste Erklaerung ist, dass QEMU die Timer nicht
@@ -546,3 +571,37 @@ Zusammen etwa **60–75 Minuten reine Laufzeit**, plus Neustarts. Kuerzen laesst
 ohne genau die Fehler wieder durchzuwinken, die am 13.09. nur lange Laeufe gezeigt haben: der
 GPS-Schreibpfad brach ab dem zweiten Block ab, der Accel-Pfad ebenso, und die Zeitachse kippte
 erst bei 142 Bloecken.
+
+---
+
+## 11. Wiederaufsetzpunkt (Stand 23.09.2026, 12:10)
+
+**In welchem Zustand der Aufbau steht:**
+- Simulator auf **Amazfit Active 2 (Round)**, gekoppelt als Geraet **#1125** an `jan@kechel.de`
+  (bewusst nicht `emu-test` — Jan, 23.09.: „meine sessions sind oeffentlich, die loesche ich
+  spaeter wieder, ich wechsel doch nicht staendig mein login").
+- **⚠️ Zuletzt lief `npm run dev-echt`, also `DEV_FAKE_GPS = false`.** Fuer alle Bloecke ausser 8
+  gehoert der Schalter wieder auf `npm run dev` — sonst kommt ohne Simulator-Ortung keine
+  Aufnahme zustande.
+- `crash_count` steht bei **4**, zuletzt Phase 2. Jeder weitere Test zaehlt darauf weiter.
+- Speicher-Hoechststand **1547 KB** — der Wert SINKT NIE (`GREATEST` auf dem Server). Ein
+  kleinerer Wert ist danach nicht mehr messbar, ohne neu zu koppeln.
+
+**Testsessions zum Loeschen** (alle auf Geraet #1125, alle `is_pumpfoil=false`, keine im Feed):
+`#9640` (23 s) · `#9642` (651 s) · `#9644` (967 s) · `#9671` (9013 s, **mit Zwei-Stunden-Loch** —
+die gehoert auf jeden Fall weg, sonst steht sie irgendwann in einer Auswertung).
+
+**Was noch offen ist**, nach Wert sortiert:
+
+1. **🔴 Den Waechter-Fix einbauen** (Claude) und danach 3.3 einmal wiederholen. Ohne ihn ist die
+   Feldmessung nach dem Release weniger wert — die Absturzphase IST das Messgeraet.
+2. **7.2 — Speichermessung auf einem aelteren System** (GTR 4). 5 Minuten. Fehlt `getPerformance`
+   und der Schutz greift nicht, stirbt die App beim Start auf allen aelteren Amazfits gleichzeitig.
+   Kleines Risiko, grosser Schaden, Korrektur dauert Wochen.
+3. **6.1 — zehn Minuten Aufnahme am Stueck** (GTR 4). Der Emulator kann das Wachbleiben nicht
+   entscheiden, aber er kann zeigen, dass die Auffrischung laeuft und nicht wirft.
+4. 8.2 (Cache verfaellt), 5.2 (Bridge-Kill im Upload), 5.4 (Simulator-Kill), 4.3 (systemseitig
+   weggeraeumt) — Varianten dessen, was heute schon mehrfach lief. Nice to have.
+
+**Nicht mehr noetig:** 3.1 (Fenster im Millisekundenbereich, nicht ansteuerbar) und 3.2
+(= Test 0, schon gelaufen).
