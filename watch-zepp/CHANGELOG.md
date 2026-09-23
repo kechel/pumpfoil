@@ -23,6 +23,21 @@ App wieder reinwill, ist sie beendet."
 **Was es NICHT loest:** die System-Tastensperre der Uhr. Die schaltet den Bildschirm selbst ab,
 und dagegen kommt eine Mini-App nicht an — das ist ein eigener Fall (s. `docs/TODO.md`).
 
+**Die Absturzmeldung haelt jetzt durch, bis sie angekommen ist.** Im Emulator-Testlauf vom
+23.09. fiel auf, dass sie genau dann verlorenging, wenn sie am wichtigsten ist: der Merker wurde
+beim LESEN geloescht, also bevor der Server ihn hatte. Scheitert die Meldung danach — auf dieser
+Plattform der Normalfall, weil das Handy nicht in Reichweite ist —, lebte die Auskunft nur noch
+im Arbeitsspeicher, und der naechste App-Start ueberschrieb sie mit seiner eigenen. Gemessen:
+Abbruch mitten in der Aufnahme, Neustart ohne Handy-Verbindung, und gemeldet wurde am Ende
+„Leerlauf" statt „Aufnahme". Jetzt bleibt die Meldung liegen, bis der Server geantwortet hat, und
+ueberlebt dabei auch ein sauberes Beenden. Faellt ein zweiter Abbruch an, bevor der erste
+gemeldet ist, gewinnt der erste — er hat die Kette angefangen.
+
+**Und der Speicherstand vom Abbruch kommt jetzt wirklich mit.** Derselbe Programmteil loeschte
+ihn eine Zeile zu frueh, sodass immer der aktuelle Wert gemeldet wurde statt des Werts von
+damals. Damit war die einzige Frage, fuer die gemessen wird — wie nah stand die App am Limit —
+gar nicht zu beantworten.
+
 **Die App meldet jetzt, wenn sie nicht sauber beendet wurde.** Garmin tut das seit Wochen, die
 Amazfit-App hatte so etwas nie — deshalb stand in unseren Daten `crash_count = 0`, auch bei einem
 Nutzer, dessen Uhr sich waehrend eines Uploads dreimal neu gestartet hat (gemeldet per Mail,
