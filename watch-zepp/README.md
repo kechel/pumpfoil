@@ -3,6 +3,10 @@
 Dünner Recorder für Amazfit-Uhren (Zepp OS 3.0), analog zu Garmin/Apple/Wear: nimmt auf,
 puffert, lädt über die Zepp-Handy-App zu **pumpfoil.org** hoch. Server macht die Analyse.
 
+**Vor jeder Einreichung:** [`TESTPLAN-EMULATOR.md`](TESTPLAN-EMULATOR.md) — was im Emulator
+abgeschossen wird (VM = Uhren-Neustart, Bridge = Handy), welche Phase der Absturz-Waechter danach
+melden muss, und welche drei Fragen der Emulator **nicht** beantworten kann.
+
 **Pairing (reverse, wie alle Uhren):** die Uhr-App zeigt beim ersten Start einen Code →
 auf pumpfoil.org → Konto → „Uhr verbinden" eintragen → die Uhr pollt und wird verbunden.
 
