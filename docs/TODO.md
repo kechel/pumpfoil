@@ -1410,6 +1410,31 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 
 
+
+- **🔲 23.09. — Profil nach einem fertigen Upload frisch holen (Garmin, Wear, Apple).** Jans Frage:
+  „wenigstens beim app-start und nach einem erfolgreichen upload auch nochmal direkt oder wo waere
+  es sinnvoll? nicht bei jedem block natuerlich." **Gemessen, damit die Abwaegung Zahlen hat: die
+  ganze CONFIG-Antwort ist 2502 Bytes** (40 Felder, groesster Posten `pages` mit 616 B). Eine
+  Aenderungs-Erkennung braucht es dafuer nicht.
+
+  **Stand heute je Plattform:**
+
+  | | Profil gespeichert | wird geholt |
+  |---|---|---|
+  | Garmin | ✅ | App-Start · nach dem Pairing · nach der Speichermessung (wenn verbunden + keine Aufnahme) |
+  | Wear OS | ✅ | beim Zurueckkehren in die App |
+  | Apple Watch | ✅ | beim Oeffnen der Ansicht |
+  | Zepp | ✅ (seit `d985938c`) | App-Start · **alle 20 s im Leerlauf** (nicht waehrend Upload) |
+
+  **Vorschlag:** bei Garmin, Wear und Apple je einen Abruf **nach dem abgeschlossenen Upload**
+  ergaenzen — nicht je Block, sondern einmal nach `complete`. Begruendung: das ist der einzige
+  Augenblick, in dem die Uhr nachweislich online ist, und er faellt genau dorthin, wo der Nutzer
+  gerade etwas am Profil geaendert haben koennte (neues Foil, neue Schwelle) und vor der naechsten
+  Fahrt steht. **Zepp braucht nichts**: der 20-Sekunden-Takt deckt es ab, ein Extra-Aufruf waere
+  eine Verdopplung.
+
+  **Wartet auf Jans OK** — die nativen Apps sind eingefroren, und die Aenderung sitzt im
+  Upload-Abschluss, also im empfindlicheren der beiden Pfade.
 - **🟡 23.09. — OFFEN: Lage-ANSICHT und Lauf-TABELLE nehmen verschiedene Montage-Drehungen.** Beim
   Fix oben aufgefallen und bewusst NICHT mitgemacht. Die Ansicht rechnet mit der Drehung der
   ganzen Aufnahme, die Tabelle je Lauf — und die unterscheiden sich auch ohne Montagewechsel, vor
