@@ -895,9 +895,43 @@ Page(
     // WICHTIG: zml macht pro Request einen BLE-Shake; PARALLELE Requests würgen sich gegenseitig ab
     // (undefined/shake timeout). Daher ALLE Requests hier serialisieren — immer nur EINER gleichzeitig
     // (FIFO), KEIN Retry. So kollidiert z.B. der Heartbeat-CONFIG nie mit einem laufenden Upload.
+    /**
+     * Ein Request, seriell eingereiht — und mit EIGENER Zeitgrenze, wenn `opts.timeout` steht.
+     *
+     * WARUM WIR SIE SELBST BAUEN (23.09.2026, im Emulator belegt): `@zeppos/zml/base-page` loest
+     * auf `dist/zml-page.js` auf, und dort kommt das Wort `timeout` KEIN EINZIGES MAL vor —
+     * anders als in `zml-app.js` (6x) und `zml-side.js` (7x). Die Uhren-Seite kennt also keine
+     * Zeitgrenze. Antwortet der App-Side-Worker nicht, bleibt die Promise FUER IMMER offen:
+     * weder `.then` noch `.catch` laufen je, und jeder Fehlerpfad, den wir daran haengen, ist
+     * toter Code.
+     *
+     * Genau daran ist Jans Pairing-Versuch haengengeblieben — Knopf gedrueckt, `shake send` im
+     * Log, danach Stille, auch nach Minuten. Und die „Error: shake timeout"-Meldungen, die wir
+     * sonst sehen, kommen von der HANDY-Seite: die hat Zeitgrenzen, aber sie meldet sich nur,
+     * wenn ihr Worker ueberhaupt laeuft. Laeuft er nicht, schweigt die ganze Kette.
+     *
+     * Die Grenze gilt NUR, wo sie ausdruecklich gesetzt wird. Ein pauschaler Wert waere hier
+     * falsch: Upload-Bloecke duerfen dauern, und ein Abbruch mitten im Upload waere teurer als
+     * das Warten. Laeuft der Request spaeter doch noch durch, schadet das nichts — die Antwort
+     * geht dann ins Leere.
+     *
+     * WICHTIG fuer die Warteschlange: `_chain` haengt an der GERENNTEN Promise. Ohne das bliebe
+     * die Kette nach einem stummen Request fuer immer blockiert, und jeder weitere Knopfdruck
+     * waere wirkungslos — auch das war heute zu sehen.
+     */
     reqQ(payload, opts) {
       const prev = this._chain || Promise.resolve();
-      const p = prev.catch(() => {}).then(() => this.request(payload, opts));
+      const roh = () => {
+        const r = this.request(payload, opts);
+        const ms = opts && opts.timeout;
+        if (!ms) return r;
+        return new Promise((loese, brich) => {
+          const timer = setTimeout(() => brich(new Error("timeout")), ms);
+          r.then((x) => { clearTimeout(timer); loese(x); },
+                 (e) => { clearTimeout(timer); brich(e); });
+        });
+      };
+      const p = prev.catch(() => {}).then(roh);
       this._chain = p.catch(() => {});
       return p;
     },
