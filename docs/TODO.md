@@ -1409,6 +1409,17 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 ## 📥 Inbox
 
 
+
+- **🟡 23.09. — OFFEN: Lage-ANSICHT und Lauf-TABELLE nehmen verschiedene Montage-Drehungen.** Beim
+  Fix oben aufgefallen und bewusst NICHT mitgemacht. Die Ansicht rechnet mit der Drehung der
+  ganzen Aufnahme, die Tabelle je Lauf — und die unterscheiden sich auch ohne Montagewechsel, vor
+  allem in der 180°-Richtungsfrage. Gemessen an 15 Aufnahmen mit Kreisel: stellt man die Ansicht
+  IMMER auf die Lauf-Drehung um, ändern sich **10 von 15**. Nicht nur kosmetisch — #9650 springt
+  um 178°, und bei #9567 Lauf 14 fällt die eigene Drehung auf 0° zurück, obwohl die Aufnahme
+  82,3° kennt. Das wäre an mehreren Stellen schlechter als vorher. Die saubere Lösung wäre, die
+  Richtungsentscheidung je Lauf so robust zu machen wie die über die ganze Aufnahme; bis dahin
+  greift der Fix nur dort, wo die Aufnahme **gar keine** Drehung findet. Vergleichsdaten liegen
+  im Scratchpad (`vorher.json` / `nachher.json`), die Zahlen stehen im Commit.
 - **🔲 23.09. — Handy-Session TEILEN, wenn zwei Fahrer auf demselben Brett waren.** Jan war mit
   Phil am See, Handy am Brett, Uhr am Arm. **Phil ist einen Teil der Zeit selbst gefahren** — der
   Handy-Track deckt sich dort also nicht mit Jans GPS, sondern mit Phils FR55. Wunsch: die

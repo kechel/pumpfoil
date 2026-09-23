@@ -930,13 +930,24 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
     }
 
 
-def kennzahlen_je_lauf(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
-                       gyr_raw: np.ndarray, t_gyr_ms: np.ndarray,
-                       ref_bereiche_ms: list[tuple[float, float]],
-                       lauf_starts_ms: list[float] | None = None,
-                       gps: list | None = None,
-                       rot_vorgabe: float | None = None) -> list[dict]:
-    """Je Lauf ein vollstaendiger eigener Durchgang — inklusive eigener Montage-Drehung.
+def montage_je_lauf(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
+                    gyr_raw: np.ndarray, t_gyr_ms: np.ndarray,
+                    ref_bereiche_ms: list[tuple[float, float]],
+                    lauf_starts_ms: list[float] | None = None,
+                    gps: list | None = None,
+                    rot_vorgabe: float | None = None) -> dict:
+    """NUR die Montage-Drehung je Lauf — ohne die teuren Kennzahlen.
+
+    Herausgeloest am 23.09.2026, weil nicht nur die Lauf-Tabelle sie braucht, sondern auch die
+    Lage-ANSICHT: die rechnete bis dahin immer mit der Drehung der ganzen Aufnahme, und wenn die
+    nicht zu bestimmen war, mit gar keiner. Siehe `_lage_antwort`.
+
+    -> {"je_lauf": [...], "ganze": {...}, "gruppe_rot_deg": float|None}
+       `gruppe_rot_deg` ist die Drehung der groessten zusammengehoerigen Montage-Gruppe, also
+       „so lag das Handy die meiste Zeit". Sie ist der beste Einzelwert fuer eine Ansicht, die
+       sich auf EINEN festlegen muss — und ehrlicher als 0°, was hiesse „laengs, Nase vorn".
+
+    Je Lauf ein vollstaendiger eigener Durchgang — inklusive eigener Montage-Drehung.
 
     WARUM JE LAUF NEU GERECHNET (Jan, 22.09.2026): „ich denke das handy koennte zwischen den
     laeufen auch ,verrutschen' oder eine andere ausrichtung haben, korrekt waere schon das je
@@ -965,7 +976,7 @@ def kennzahlen_je_lauf(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
     sagt damit, wie das Geraet lag.
     """
     if not ref_bereiche_ms:
-        return []
+        return {"je_lauf": [], "ganze": None, "gruppe_rot_deg": None}
     # Bezugswert ueber ALLE Laeufe — Rueckfall fuer Laeufe ohne eigenes klares Signal.
     ganze = aufnahme_eigenschaften(acc_raw, t_acc_ms, gyr_raw, t_gyr_ms, ref_bereiche_ms,
                                    lauf_starts_ms, gps=gps, rot_vorgabe=rot_vorgabe)
@@ -1032,7 +1043,7 @@ def kennzahlen_je_lauf(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
         mehrheit = dafuer * 2 > gesamt
 
     aus: list[dict] = []
-    for i, ((a, b), e) in enumerate(zip(ref_bereiche_ms, eigen)):
+    for i, e in enumerate(eigen):
         verrutscht = False
         strittig = False
         if rot_vorgabe is not None:
@@ -1048,15 +1059,50 @@ def kennzahlen_je_lauf(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
                       else e["quelle"])
         else:
             rot, quelle, verrutscht = e["rot"], e["quelle"], True
+        aus.append({
+            "lauf": i,
+            "rot_deg": round(rot % 360.0, 1),
+            "rot_klarheit": e["klar"],
+            "rot_eigen": bool(quelle not in ("geerbt", "manuell")),
+            "rot_quelle": quelle,
+            # Dieser Lauf passt NICHT zur Montage der uebrigen — Handy gedreht, verrutscht oder
+            # Fehlgriff. Bewusst nicht stillschweigend eingeebnet.
+            "rot_verrutscht": verrutscht,
+            # Die Start-Heuristik dieses Laufs sagte das Gegenteil und wurde von der klareren
+            # Mehrheit ueberstimmt. Kein Fehler, aber eine Stelle, an der man hinschauen darf.
+            "rot_strittig": strittig,
+        })
+    # Die Drehung der GROESSTEN Gruppe: so lag das Handy die meiste Zeit. Fuer eine Ansicht, die
+    # sich auf einen Wert festlegen muss, ist das der ehrlichste — und wenn die Montage nie
+    # wechselte, ist es ohnehin derselbe wie der der ganzen Aufnahme.
+    gruppe_rot = None
+    if gruppe:
+        _in_gruppe = [x for x, e in zip(aus, eigen) if e in gruppe and not x["rot_verrutscht"]]
+        if _in_gruppe:
+            gruppe_rot = max(_in_gruppe, key=lambda x: x["rot_klarheit"] or 0.0)["rot_deg"]
+    return {"je_lauf": aus, "ganze": ganze, "gruppe_rot_deg": gruppe_rot}
+
+
+def kennzahlen_je_lauf(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
+                       gyr_raw: np.ndarray, t_gyr_ms: np.ndarray,
+                       ref_bereiche_ms: list[tuple[float, float]],
+                       lauf_starts_ms: list[float] | None = None,
+                       gps: list | None = None,
+                       rot_vorgabe: float | None = None) -> list[dict]:
+    """Je Lauf ein vollstaendiger eigener Durchgang, mit der Drehung aus `montage_je_lauf`."""
+    montagen = montage_je_lauf(acc_raw, t_acc_ms, gyr_raw, t_gyr_ms, ref_bereiche_ms,
+                               lauf_starts_ms, gps=gps, rot_vorgabe=rot_vorgabe)["je_lauf"]
+    aus: list[dict] = []
+    for (a, b), m in zip(ref_bereiche_ms, montagen):
         erg = lage_berechnen(acc_raw, t_acc_ms, gyr_raw, t_gyr_ms, ziel_hz=20.0,
                              t_von_ms=a, t_bis_ms=b, ref_bereiche_ms=[(a, b)],
-                             rot_deg=rot % 360.0, _roh=True)
+                             rot_deg=float(m["rot_deg"]), _roh=True)
         if not erg.get("ok"):
-            aus.append({"lauf": i, "ok": False})
+            aus.append({"lauf": m["lauf"], "ok": False})
             continue
         k = erg["kennzahlen"]
         aus.append({
-            "lauf": i, "ok": True,
+            **m, "ok": True,
             "pitch_amplitude_deg": k["pitch_amplitude_deg"],
             "roll_amplitude_deg": k["roll_amplitude_deg"],
             "gier_rms_deg_s": k["gier_rms_deg_s"],
@@ -1065,15 +1111,5 @@ def kennzahlen_je_lauf(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
             "hub_pp_cm": k["hub_pp_cm"],
             "hub_hz": k["hub_hz"],
             "hub_sicher": k["hub_sicher"],
-            "rot_deg": round(rot % 360.0, 1),
-            "rot_klarheit": e["klar"],
-            "rot_eigen": bool(quelle not in ("geerbt", "manuell")),
-            "rot_quelle": quelle,
-            # Dieser Lauf passt NICHT zur Montage der uebrigen — Handy verrutscht oder
-            # Fehlgriff. Bewusst nicht stillschweigend eingeebnet.
-            "rot_verrutscht": verrutscht,
-            # Die Start-Heuristik dieses Laufs sagte das Gegenteil und wurde von der klareren
-            # Mehrheit ueberstimmt. Kein Fehler, aber eine Stelle, an der man hinschauen darf.
-            "rot_strittig": strittig,
         })
     return aus
