@@ -1440,7 +1440,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Nebenbefund, der eigene Beachtung verdient: **Jans Uhr zählte bei #9656 L1 einen Lauf mit,
   obwohl er nicht auf dem Brett mit dem Handy stand** (14,7 m entfernt). Wrist-Falschpositiv oder
   er fuhr ein zweites Brett — vor einer Auswertung zu klären.
-- **🔲 23.09. — „⚠ verrutscht" ist die falsche Wortwahl, wenn jemand ABSICHTLICH dreht.** Jan hat
+- **✅ 23.09. — ERLEDIGT: „⚠ verrutscht" war die falsche Wortwahl, wenn jemand ABSICHTLICH dreht.** Jan hat
   das Handy am 23.09. zweimal gedreht, davon einmal **innerhalb** einer Session, um die
   Montage-Erkennung je Lauf zu prüfen. Sie hat funktioniert: Lauf 1 = 315°, Lauf 2 = 196°,
   Achsenabstand 61° (> `MONTAGE_GLEICH_GRAD` = 25°), Lauf 2 behält seine eigene Drehung und wird
@@ -1448,6 +1448,19 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   „das Gerät ist vermutlich verrutscht" (`sd.mountSlipped`) wie ein Defekt, und Jan konnte sich
   die Warnung nicht erklären. Gesucht ist eine neutrale Formulierung für „andere Montage als die
   übrigen Läufe" — die Erkennung selbst bleibt, wie sie ist. Betrifft 18 Sprachen.
+  **Gemacht am 23.09.:** Warnfarbe und ⚠ raus, `sd.mountSlipped` in allen 18 Sprachen neutral
+  formuliert („Andere Montage als in den übrigen Läufen — das Handy wurde gedreht oder ist
+  verrutscht"). Im selben Zug die Hub-Warnung, die denselben Fehler machte: sie sagte „hier",
+  und „hier" war je nach Auswahl etwas anderes. Jetzt zwei Schlüssel — `board.heaveShaky` für
+  einen einzelnen Lauf, `board.heaveShakyAll` für die Gesamtansicht —, ebenfalls in allen 18
+  Sprachen. **Anlass, mit Zahlen:** an #9656 meldete die Gesamtansicht zu Recht einen
+  unbrauchbaren Hub (Takt 0,33 Hz über 33 Minuten = das Schaukeln zwischen den Läufen, Fenster
+  2,5 s, Schwelle 0,6 Hz, Hub 24 cm), während BEIDE Läufe mit 1,59 und 1,80 Hz sauber waren
+  (Fenster 1,3 / 1,1 s, 15,6 / 14,6 cm, ohne Klammern). Die Warnung stand trotzdem direkt über
+  der Lauf-Tabelle. Jan: „warum wird bei diesem lauf die gelbe warnung angezeigt? das war echtes
+  pumpen." **Und seine Vermutung war genau andersherum:** eine HÖHERE Pumpfrequenz macht den Hub
+  sicherer, nicht unsicherer — das Fenster wird aus dem Takt gerechnet (2/Takt), bei 1,8 Hz sind
+  das 1,1 s statt 2,5 s, und in einem kurzen Fenster bläst sich der Integrationsfehler nicht auf.
 - **🔲 23.09. — Ein Amazfit-Modell steht unter DREI Namen in `device_tokens`.** Beim Zusammenstellen
   der Emulator-Testuhren aufgefallen: `Amazfit%20T-Rex%203%20(8716545)` (6 Uhren, URL-kodiert),
   `Amazfit T-Rex 3 (8716545)` (2) und `T-Rex 3 (8716545)` (1) — dasselbe Geraet, drei Zeilen. Jede
