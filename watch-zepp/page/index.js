@@ -1520,6 +1520,7 @@ Page(
       };
       this.reqQ({ method: "PAIR_INIT", model: DEVICE_MODEL }, { timeout: 12000 }).then((r) => {
         if (!r || !r.code) { fehler(); return; }
+        this._idleHinweis("");   // alte Fehlermeldung raeumen, s. dort
         s.code = r.code; store.setItem("claimToken", r.claim_token || ""); this.applyButton(); this.rerender(); this.startPoll();
       }).catch(fehler);
     },
@@ -1813,10 +1814,19 @@ Page(
       const s = this.state;
       this._idleHinweis(s.uploading ? t("up.running") : t("gps.searching"));
     },
-    /** Kurzlebige Auskunft in der Statuszeile des Startbildschirms — vier Sekunden. */
+    /** Kurzlebige Auskunft in der Statuszeile — vier Sekunden. Leerer Text raeumt sie sofort weg. */
     _idleHinweis(text) {
       const s = this.state;
       s.idleHint = text;
+      if (!text) {
+        // Ein Erfolg loescht die Meldung des vorigen Versuchs. Sonst steht der Pairing-Code
+        // schon da und darunter „Server nicht erreichbar" (Jan, 23.09.2026: „da stand noch kurz
+        // 'server nicht erreichbar' aber der code war schon da") — zwei Aussagen, von denen eine
+        // veraltet ist, und der Nutzer muss raten welche.
+        if (s.idleHintTimer) { try { clearTimeout(s.idleHintTimer); } catch (e) {} s.idleHintTimer = null; }
+        this.renderIdle();
+        return;
+      }
       // Auch die Verbindungs-Seite zeigt ihn (s. renderIdle, `idlePage === 1`) — dort steht der
       // „Code erzeugen"-Knopf, und genau dort war ein Fehlschlag bisher unsichtbar.
       if (s.idleHintTimer) { try { clearTimeout(s.idleHintTimer); } catch (e) {} }
