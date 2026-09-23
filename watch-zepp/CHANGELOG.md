@@ -71,6 +71,13 @@ auf eine Antwort. Vorher wartete er UNBEGRENZT: die Uhren-Seite des Zepp-Bausatz
 keine Zeitgrenze, und wenn die Handy-Seite nicht antwortet, kommt schlicht nie etwas zurueck —
 weder Erfolg noch Fehler. Jede Meldung, die daran haengt, war damit unerreichbar.
 
+**Die eigenen Bildschirme sind jetzt auch ohne Handy da.** Bisher kamen nach jedem App-Start die
+Standard-Seiten, bis eine Verbindung zustande kam — am Wasser also fast immer, denn das Handy
+liegt im Auto. Aufgezeichnet wurde trotzdem alles, es sah nur aus wie eine fremde App. Jetzt
+merkt sich die Uhr das ganze Profil: eigene Seiten, Ansichten, Foils, Alarmschwellen, Puls- und
+Geschwindigkeitszonen. Die Sprache konnte sie das schon, der Rest fehlte. Garmin, Wear OS und
+Apple Watch machen es laengst so.
+
 **Die Uhr vibriert an den Strecken- und Zeitmarken aus dem Profil.**
 
 **Ein ausgegrauter Start-Knopf sagt jetzt, warum.** Wartet auf GPS, oder ein Upload laeuft noch.

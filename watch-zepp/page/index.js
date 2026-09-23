@@ -57,6 +57,11 @@ const AUTOSTART_SPEED = 7 / 3.6, AUTOSTART_TICKS = 3;
 // Luecke bleibt. Bei 1 Hz Abtastung heisst das hoechstens zwei uebersprungene Sekunden.
 const GEO_CACHE_MS = 3000;
 
+// Obergrenze fuer den gesicherten Profil-Stand (s. `_configSichern`). Ein volles Profil mit
+// eigenen Layouts liegt weit darunter; die Grenze ist da, damit ein unerwartet grosser Server-
+// Stand nicht die Ablage der Uhr fuellt, in der auch die unbeendeten Aufnahmen liegen.
+const CONFIG_CACHE_MAX = 24000;
+
 // --- LAUF-WAECHTER -----------------------------------------------------------------------
 // Phasen wie bei Garmin (`SessionRecorder.mc`), damit dieselbe Zahl auf dem Server dasselbe
 // bedeutet und `device_tokens.crash_phase` vergleichbar bleibt.
@@ -1172,6 +1177,11 @@ Page(
       // Rendern setzen, damit die App auch offline/ungepairt gleich in der richtigen Sprache
       // startet. Leer/unbekannt -> Englisch.
       setLang(store.getItem("lang", ""));
+      // PROFIL AUS DER ABLAGE, bevor das erste CONFIG kommt (23.09.2026). Ohne das standen die
+      // Standard-Bildschirme da, sobald kein Handy in Reichweite war — und am Wasser ist genau
+      // das der Normalfall. Der Server ueberschreibt es beim naechsten erfolgreichen Abruf;
+      // solange gilt der letzte bekannte Stand, und das ist naeher an der Wahrheit als nichts.
+      this._configLaden();
       // Auf runden Geraeten gibt es die Status-Bar nicht, dort wirft der Aufruf -> abfangen.
       try { setStatusBarVisible(false); } catch (e) {}
       this._setBrightMode("idle", true);
@@ -1416,6 +1426,21 @@ Page(
         // — auch ueber einen App-Neustart hinweg.
         if (crash) { s.crashPhase = 0; s.crashMem = null; crashGemeldet(); }
         if (r && r.revoked) { store.setItem("deviceToken", ""); s.paired = false; this.beginPairing(); return; }
+        this._configAnwenden(r);
+        this._configSichern(r);
+        s.paired = true;
+        if (s.brightMode === "idle") this._setBrightMode("idle");
+        this.applyButton(); this.rerender();
+        this.flushPending();
+      }).catch(() => { this.applyButton(); this.rerender(); this.flushPending(); });
+    },
+    /**
+     * Profil aus der CONFIG-Antwort uebernehmen. Aus `connect()` herausgeloest (23.09.2026),
+     * damit derselbe Weg auch fuer den GESPEICHERTEN Stand gilt — s. `_configSichern`.
+     */
+    _configAnwenden(r) {
+      const s = this.state;
+        if (r && r.revoked) { store.setItem("deviceToken", ""); s.paired = false; this.beginPairing(); return; }
         // Update-Hinweis: neuere Version im Store als die hier laufende -> kurz anzeigen.
         if (r && r.latestVersion && istNeuer(r.latestVersion, APP_VERSION)) s.updateVersion = r.latestVersion;
         // Profil-Sprache (kam schon immer mit, wurde nur nie ausgewertet). Persistieren, damit der
@@ -1483,12 +1508,51 @@ Page(
           else { s.foilId = null; s.foilLabel = "—"; }
           s.almSrc = ((r.alarmDefault || "foil") === "foil" && s.foils.length) ? "foil" : "manual";
         }
-        s.paired = true;
-        if (s.brightMode === "idle") this._setBrightMode("idle");
-        this.applyButton(); this.rerender();
-        this.flushPending();
-      }).catch(() => { this.applyButton(); this.rerender(); this.flushPending(); });
     },
+
+    /**
+     * Die ganze CONFIG-Antwort wegschreiben, damit der naechste App-Start sie OHNE Handy hat.
+     *
+     * WOFUER (Jan, 23.09.2026): „die uhr ist jetzt wieder nicht gepaired oder hatte keine
+     * verbindung, weil ich die custom screens nicht sehe, speichert die uhr die nicht
+     * zwischen?" Nein, tat sie nicht. Die Sprache wurde seit jeher gesichert, das ganze
+     * uebrige Profil aber nur im Arbeitsspeicher gehalten: eigene Seiten, Ansichten, Foils,
+     * Alarmschwellen, Puls- und Geschwindigkeitszonen. Nach jedem App-Start standen die
+     * Standard-Bildschirme da, bis ein CONFIG durchkam. Am Wasser ist das der Normalfall —
+     * das Handy liegt im Auto. Aufgezeichnet wurde trotzdem alles, es sah nur aus wie eine
+     * fremde App.
+     *
+     * GANZE ANTWORT statt einzelner Felder: so faellt jedes kuenftige Feld automatisch mit
+     * darunter. Wer hier eins vergisst, merkt es erst im Feld und nur, wenn jemand hinschaut.
+     * Ausgenommen sind die zwei, die NUR fuer diesen Augenblick gelten — `revoked` (schon oben
+     * behandelt) und `latestVersion` (sonst stuende Tage spaeter noch ein Update-Hinweis da,
+     * den es nicht mehr gibt).
+     *
+     * OBERGRENZE: was zu gross wird, wird nicht gespeichert, lieber Standard-Seiten als eine
+     * kaputte Ablage. Gemessen liegt ein volles Profil mit eigenen Layouts weit darunter.
+     */
+    _configSichern(r) {
+      if (!r || typeof r !== "object") return;
+      try {
+        const kopie = {};
+        for (const k in r) {
+          if (k === "revoked" || k === "latestVersion") continue;
+          kopie[k] = r[k];
+        }
+        const txt = JSON.stringify(kopie);
+        if (txt.length <= CONFIG_CACHE_MAX) store.setItem("cfg", txt);
+      } catch (e) {}
+    },
+
+    /** Gesicherten Stand einspielen — beim App-Start, VOR dem ersten CONFIG. */
+    _configLaden() {
+      let r = null;
+      try { r = JSON.parse(store.getItem("cfg", "null")); } catch (e) {}
+      if (!r || typeof r !== "object") return false;
+      try { this._configAnwenden(r); } catch (e) { return false; }
+      return true;
+    },
+
     // Pairing/Poll: DIREKTER this.request (ein Request pro Aufruf). Kein call()-Retry — der würde
     // Folge-Requests feuern, die im Sim keine Antwort bekommen; der einzelne Request lief zuverlässig.
     beginPairing() {
