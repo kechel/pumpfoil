@@ -59,6 +59,12 @@ aus einem ganz anderen Grund starb, konnten wir nicht sagen, weil wir keine einz
 hatten. Jetzt meldet die Uhr ihren Hoechststand mit; auf Geraeten, die das nicht koennen (aeltere
 Zepp-OS-Fassungen), bleibt es wie bisher.
 
+**„Code erzeugen" sagt jetzt, wenn es nicht geklappt hat.** Ohne Handy-Verbindung passierte auf
+den Knopf gar nichts — der Fehler lief ins Leere, und auf dem Bildschirm stand weiter
+„pumpfoil.org → eingeben", als waere alles in Ordnung. Das ist der ERSTE Bildschirm, den ein
+neuer Nutzer sieht; wer dort drueckt und nichts passiert, haelt die App fuer kaputt. Jetzt steht
+dort „Keine Verbindung".
+
 **Die Uhr vibriert an den Strecken- und Zeitmarken aus dem Profil.**
 
 **Ein ausgegrauter Start-Knopf sagt jetzt, warum.** Wartet auf GPS, oder ein Upload laeuft noch.

@@ -1461,10 +1461,19 @@ Page(
       const s = this.state;
       s.paired = false;
       this._setBrightMode("idle", true);
+      // SCHEITERN SICHTBAR MACHEN (23.09.2026). Vorher passierte auf „Code erzeugen" bei
+      // fehlender Handy-Verbindung GAR NICHTS: der Fehler lief in ein leeres `.catch`, und der
+      // Bildschirm blieb, wie er war. Jan ist genau da haengengeblieben — „ich bekomme keinen
+      // pairing code, weiss aber nicht obs an der bridge liegt oder an der uhr, es kommt kein
+      // error shake timeout oder so" — und das ist der ERSTE Bildschirm, den ein neuer Nutzer
+      // sieht. Wer dort auf einen Knopf drueckt und nichts passiert, haelt die App fuer kaputt.
+      // Dieselbe Entscheidung wie beim ausgegrauten Start-Knopf in 1.0.12: lieber eine knappe
+      // Auskunft als ein stummer Fehlschlag. `pair.noConn` gibt es laengst in allen Sprachen.
+      const fehler = () => { this._idleHinweis(t("pair.noConn")); this.rerender(); };
       this.reqQ({ method: "PAIR_INIT", model: DEVICE_MODEL }).then((r) => {
-        if (!r || !r.code) { this.rerender(); return; }
+        if (!r || !r.code) { fehler(); return; }
         s.code = r.code; store.setItem("claimToken", r.claim_token || ""); this.applyButton(); this.rerender(); this.startPoll();
-      }).catch(() => this.rerender());
+      }).catch(fehler);
     },
     startPoll() {
       const s = this.state;
@@ -1754,7 +1763,14 @@ Page(
      */
     _warumKeinStart() {
       const s = this.state;
-      s.idleHint = s.uploading ? t("up.running") : t("gps.searching");
+      this._idleHinweis(s.uploading ? t("up.running") : t("gps.searching"));
+    },
+    /** Kurzlebige Auskunft in der Statuszeile des Startbildschirms — vier Sekunden. */
+    _idleHinweis(text) {
+      const s = this.state;
+      s.idleHint = text;
+      // Auch die Verbindungs-Seite zeigt ihn (s. renderIdle, `idlePage === 1`) — dort steht der
+      // „Code erzeugen"-Knopf, und genau dort war ein Fehlschlag bisher unsichtbar.
       if (s.idleHintTimer) { try { clearTimeout(s.idleHintTimer); } catch (e) {} }
       s.idleHintTimer = setTimeout(() => {
         s.idleHint = ""; s.idleHintTimer = null;
@@ -1852,7 +1868,12 @@ Page(
       } else if (s.idlePage === 1) {
         if (!bleOk()) { this.setSlots(["—", t("up.noPhone")], ["", ""], ["", ""]); w.status.setProperty(hmUI.prop.TEXT, t("pair.noConn")); }
         else if (s.paired) { this.setSlots(["✓", t("menu.connected")], ["", ""], ["", ""]); w.status.setProperty(hmUI.prop.TEXT, t("menu.linked")); }
-        else { this.setSlots([s.code || "—", t("pair.code")], ["", ""], ["", ""]); w.status.setProperty(hmUI.prop.TEXT, "pumpfoil.org → " + t("pair.enterThere")); }
+        // Ein kurzlebiger Hinweis gewinnt gegen die Anleitung: scheitert „Code erzeugen", steht
+        // die Auskunft hier, wo der Nutzer gerade hinschaut. Vorher blieb „pumpfoil.org →
+        // eingeben" stehen, als waere alles in Ordnung.
+        else { this.setSlots([s.code || "—", t("pair.code")], ["", ""], ["", ""]);
+               w.status.setProperty(hmUI.prop.TEXT,
+                 s.idleHint || ("pumpfoil.org → " + t("pair.enterThere"))); }
       } else {
         const n = loadPending().length;
         this.setSlots(["" + n, t("up.open")], ["", ""], ["", ""]);
