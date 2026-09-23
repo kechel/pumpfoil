@@ -90,18 +90,10 @@ function canaryWrite(phase) {
     if (m) store.setItem("run_mem", m.peak + ":" + m.total);
   } catch (e) {}
 }
+// Marke des LAUFENDEN Laufs loeschen. Ruehrt `run_crash` NICHT an: ein Absturz, der noch nicht
+// gemeldet werden konnte, ueberlebt auch ein sauberes Beenden.
 function canaryClear() {
   try { store.setItem("run_canary", ""); store.setItem("run_mem", ""); } catch (e) {}
-}
-// -> { peak, total } in KB aus dem letzten Lauf, oder null.
-function canaryMemRead() {
-  try {
-    const teile = String(store.getItem("run_mem", "")).split(":");
-    const peak = parseInt(teile[0], 10) || 0, total = parseInt(teile[1], 10) || 0;
-    return peak || total ? { peak: peak, total: total } : null;
-  } catch (e) {
-    return null;
-  }
 }
 // --- SPEICHERMESSUNG -----------------------------------------------------------------------
 // -> { peak, total } in KB, oder null, wenn die Uhr es nicht hergibt.
@@ -125,12 +117,61 @@ function memRead() {
   }
 }
 
-// -> Phase des letzten Laufs (1-4), wenn er nicht sauber endete; sonst 0.
-function canaryRead() {
+// --- OFFENER ABSTURZ: getrennt vom laufenden Lauf gespeichert ------------------------------
+// ZWEI SCHLUESSEL, und dafuer gibt es einen teuer gelernten Grund (Emulator-Testlauf 23.09.2026,
+// s. watch-zepp/TESTPLAN-EMULATOR.md). Vorher gab es nur `run_canary`, und der wurde BEIM LESEN
+// geloescht — also bevor die Meldung beim Server war. Scheitert sie danach, und auf dieser
+// Plattform ist das der Normalfall (Handy weg, `shake timeout`), lebt die Phase nur noch im RAM.
+// Der naechste App-Start ueberschreibt sie mit seiner eigenen, und die Auskunft ist weg.
+// GEMESSEN: Kill mitten in der Aufnahme (Phase 3), Neustart ohne Bridge, zweiter Neustart
+// meldete 2 — den Leerlauf des gescheiterten Versuchs. Mit stehender Bridge kam im selben
+// Durchlauf die richtige Phase 4 an; es lag also nicht am Merker, sondern am Zeitpunkt des
+// Loeschens.
+//
+// Jetzt wandert die Phase beim Start nach `run_crash` und bleibt dort, bis der Server sie
+// bestaetigt hat (`crashGemeldet`). Ein sauberes Beenden raeumt sie NICHT weg.
+//
+// Zweiter Fehler derselben Stelle, gleich mit behoben: `canaryRead()` loeschte `run_mem` mit,
+// und `canaryMemRead()` las es erst DANACH — der Speicherstand vom Absturzzeitpunkt war also
+// immer null, und gemeldet wurde ersatzweise der aktuelle. Damit war die Frage „wie nah stand
+// sie am Limit" nie zu beantworten, obwohl genau dafuer gemessen wird.
+//
+// Faellt ein zweiter Absturz an, bevor der erste gemeldet ist, gewinnt der ERSTE — er wird
+// NICHT ueberschrieben. Das ist die entscheidende Haelfte des Fixes, und ich hatte es zuerst
+// andersherum gebaut: mit „der neuere gewinnt" waere genau der gemessene Fall wieder kaputt
+// gewesen. Dort starb die App in der Aufnahme (3), der Neustart ohne Bridge konnte es nicht
+// melden und starb selbst im Leerlauf (2) — die 2 haette die 3 verdraengt, und uebrig bliebe
+// wieder die harmlose Meldung. Der erste ungemeldete Absturz ist auch sachlich der
+// interessantere: er hat die Kette angefangen, alles danach ist Folge.
+//
+// -> { phase, mem } des letzten NICHT sauber beendeten Laufs; phase 0 = nichts offen.
+function crashUebernehmen() {
   let v = 0;
   try { v = parseInt(store.getItem("run_canary", ""), 10) || 0; } catch (e) {}
+  // Nur schreiben, wenn nichts Ungemeldetes daliegt — s. oben.
+  if (v > 0 && v <= 4 && crashOffen().phase === 0) {
+    try {
+      store.setItem("run_crash", v + ":" + String(store.getItem("run_mem", "")));
+    } catch (e) {}
+  }
   canaryClear();
-  return v > 0 && v <= 4 ? v : 0;
+  return crashOffen();
+}
+// -> der noch nicht gemeldete Absturz, ohne ihn zu verbrauchen.
+function crashOffen() {
+  try {
+    const teile = String(store.getItem("run_crash", "")).split(":");
+    const phase = parseInt(teile[0], 10) || 0;
+    if (!(phase > 0 && phase <= 4)) return { phase: 0, mem: null };
+    const peak = parseInt(teile[1], 10) || 0, total = parseInt(teile[2], 10) || 0;
+    return { phase: phase, mem: (peak || total) ? { peak: peak, total: total } : null };
+  } catch (e) {
+    return { phase: 0, mem: null };
+  }
+}
+// Erst wenn der Server geantwortet hat. Vorher nicht — s. die Begruendung oben.
+function crashGemeldet() {
+  try { store.setItem("run_crash", ""); } catch (e) {}
 }
 // ---- Lauf-/Foil-Erkennung auf der Uhr ----------------------------------------------------------
 // WORTGLEICH übernommen von den beiden Uhren, die das schon gelöst haben — NICHT neu erfunden:
@@ -1089,8 +1130,9 @@ Page(
       const s = this.state, w = s.w;
       // Ist der letzte Lauf sauber zu Ende gekommen? Lesen, BEVOR wir unsere eigene Marke
       // setzen — sonst ueberschreiben wir genau die Auskunft, die wir holen wollen.
-      s.crashPhase = canaryRead();
-      s.crashMem = canaryMemRead();
+      const _offen = crashUebernehmen();
+      s.crashPhase = _offen.phase;
+      s.crashMem = _offen.mem;
       canaryWrite(PHASE_BOOT);
       // Sprache aus der letzten Sitzung (vom Server geliefert, s. connect()) — VOR dem ersten
       // Rendern setzen, damit die App auch offline/ungepairt gleich in der richtigen Sprache
@@ -1335,7 +1377,10 @@ Page(
       this.reqQ({ method: "CONFIG", token: getTok(), version: APP_VERSION, model: DEVICE_MODEL,
                   crash: crash, mem: mem && mem.peak, memtot: mem && mem.total,
                   wantLayouts: s.layoutsPref !== false }).then((r) => {
-        if (crash) { s.crashPhase = 0; s.crashMem = null; }
+        // ERST HIER loeschen, nicht beim Lesen: der Server hat geantwortet, die Auskunft ist
+        // angekommen. Scheitert der Abruf, bleibt sie liegen und geht beim naechsten Versuch raus
+        // — auch ueber einen App-Neustart hinweg.
+        if (crash) { s.crashPhase = 0; s.crashMem = null; crashGemeldet(); }
         if (r && r.revoked) { store.setItem("deviceToken", ""); s.paired = false; this.beginPairing(); return; }
         // Update-Hinweis: neuere Version im Store als die hier laufende -> kurz anzeigen.
         if (r && r.latestVersion && istNeuer(r.latestVersion, APP_VERSION)) s.updateVersion = r.latestVersion;
