@@ -1,4 +1,5 @@
 using Toybox.Communications;
+using Toybox.Application;
 using Toybox.Application.Storage;
 using Toybox.StringUtil;
 using Toybox.System;
@@ -267,6 +268,19 @@ module Uploader {
         if (_queue == null || _queue.size() == 0) {
             _busy = false; _queue = null; _job = null;
             watch().arm();   // Lauf beendet -> bei Rest-Offenem den nächsten Auto-Retry planen
+            // PROFIL NACHZIEHEN, wenn wirklich etwas abgeschlossen wurde (Jan, 23.09.2026).
+            // HIER und nicht in onFinal: sonst feuerte es je Session, und beim Nachholen mehrerer
+            // Aufnahmen waeren das ebenso viele Abrufe. Hier ist die Warteschlange leer, also
+            // genau einmal je Lauf.
+            //
+            // WARUM UEBERHAUPT: ein abgeschlossener Upload ist der einzige Augenblick, in dem die
+            // Uhr nachweislich online ist — und er faellt genau dorthin, wo der Fahrer gerade
+            // etwas geaendert haben koennte (neues Foil, neue Schwelle, andere Seiten) und vor der
+            // naechsten Fahrt steht. Die ganze Antwort sind 2502 Bytes, gemessen am 23.09.
+            //
+            // NUR NACH ERFOLG: ein gescheiterter Versuch sagt nichts ueber die Verbindung, und
+            // der Retry-Waechter kuemmert sich ohnehin darum.
+            if (_etwasFertig) { _etwasFertig = false; _profilNachziehen(); }
             return;
         }
         var uuid = _queue[0];
@@ -279,6 +293,27 @@ module Uploader {
     function sessionDone() as Void {
         _next();
     }
+
+    // Hat in diesem Lauf mindestens eine Session ein erfolgreiches /complete gesehen?
+    var _etwasFertig = false;
+    function noteCompleted() as Void { _etwasFertig = true; }
+
+    // (:layouts): NUR in den Builds mit eigenen Seiten. Die sparsamen Stufen (LITE 96 KB +
+    // ENG 128 KB) bekommen vom Server ohnehin keine Layouts — dort waere der Abruf ein Byte
+    // Code und ein Funkkontakt fuer nichts (Jan, 23.09.2026: „nicht in den garmin-varianten
+    // die garkeine custom screens haben"). Sprache, Foils und Alarme holt der App-Start dort
+    // weiterhin wie bisher.
+    (:layouts) function _profilNachziehen() as Void {
+        try {
+            if (!System.getDeviceSettings().phoneConnected) { return; }
+            var app = Application.getApp();
+            if (app != null && (app has :recorder)) {
+                var r = app.recorder();
+                if (r != null) { r.fetchConfig(); }
+            }
+        } catch (e) { }
+    }
+    (:nolayouts) function _profilNachziehen() as Void { }
 
     function _toast(msg as Lang.String) as Void {
         System.println(msg);
@@ -576,6 +611,7 @@ class SessionSyncJob {
         Uploader.noteResult(responseCode);
         if (responseCode == 200) {
             _cleanup();   // vollständig hochgeladen + abgeschlossen -> lokal aufräumen
+            Uploader.noteCompleted();   // -> Profil nachziehen, sobald die Queue leer ist
         }
         Uploader.sessionDone();
     }
