@@ -59,11 +59,15 @@ aus einem ganz anderen Grund starb, konnten wir nicht sagen, weil wir keine einz
 hatten. Jetzt meldet die Uhr ihren Hoechststand mit; auf Geraeten, die das nicht koennen (aeltere
 Zepp-OS-Fassungen), bleibt es wie bisher.
 
-**„Code erzeugen" sagt jetzt, wenn es nicht geklappt hat.** Ohne Handy-Verbindung passierte auf
-den Knopf gar nichts — der Fehler lief ins Leere, und auf dem Bildschirm stand weiter
+**„Code erzeugen" sagt jetzt, wenn es nicht geklappt hat — und woran es lag.** Vorher passierte
+auf den Knopf gar nichts: der Fehler lief ins Leere, und auf dem Bildschirm stand weiter
 „pumpfoil.org → eingeben", als waere alles in Ordnung. Das ist der ERSTE Bildschirm, den ein
 neuer Nutzer sieht; wer dort drueckt und nichts passiert, haelt die App fuer kaputt. Jetzt steht
-dort „Keine Verbindung".
+dort entweder „Kein Telefon" oder „Server nicht erreichbar" — zwei Ursachen, gegen die man
+Verschiedenes tun kann. Der zweite Fall war bisher voellig unsichtbar: die Uhr prueft die
+Bluetooth-Kopplung, nicht den Weg ins Netz dahinter; steht die Kopplung und das Handy hat kein
+Internet, meldete sie „verbunden" und schwieg. Dazu wartet der Knopf jetzt 12 statt 60 Sekunden
+auf eine Antwort — eine Minute ist fuer einen Knopfdruck keine Rueckmeldung mehr.
 
 **Die Uhr vibriert an den Strecken- und Zeitmarken aus dem Profil.**
 
