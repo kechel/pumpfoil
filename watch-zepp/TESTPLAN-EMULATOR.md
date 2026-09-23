@@ -46,6 +46,45 @@ im Katch-Block verschwindet, faellt sonst nie auf.
 
 ---
 
+## 0b. Welche Uhren — und welcher Block auf welcher
+
+Der Simulator laedt **je Modell ein eigenes System**. Das heisst aber nicht, dass alles auf jeder
+Uhr laufen muss: **Bloecke 3, 4 und 5 pruefen Plattform-Verhalten, nicht Modell-Verhalten.** Die
+laufen **einmal**, auf der Uhr mit den meisten echten Nutzern. Nur die Bloecke 6 und 7 haengen am
+Modell. Sonst waeren es vier mal 75 Minuten statt einmal.
+
+Die Auswahl kommt aus unseren eigenen Zahlen (Zepp-Uhren im Feld, Stand 23.09.2026), nicht aus
+einer Modellliste:
+
+| Uhr | im Feld | warum genau die |
+|---|---|---|
+| **Active 2 (Round)** | 3 Uhren, **10 Sessions** — meistgenutzt | **Césars Modell.** Seine Uhr startete waehrend eines Uploads **dreimal** neu — der Fall, fuer den der Waechter gebaut wurde. |
+| **GTR 4** | 1 Uhr, 2 Sessions, schon auf 1.0.11 | **Klettermax' Modell.** „Nach circa 4,5 Minuten kommt dann das Ziffernblatt" — genau das Symptom, das 1.0.12 beheben soll. |
+| **Balance 2** | 2 Uhren | Neuestes System → hier **muss** der Speicherwert ankommen. Ist ausserdem das Standardmodell des Simulators. |
+| **T-Rex 3** | 9 Uhren (drei Schreibweisen, s. u.) | Die **Gegenprobe**: diese Uhr lief 94,8 Minuten am Stueck durch. Wenn hier etwas bricht, liegt es nicht am Modell. |
+
+**Zuteilung:**
+
+| Block | Uhr | Dauer |
+|---|---|---|
+| 0, 3, 4, 5 (Waechter, Negativtests, Upload) | **Active 2 (Round)** | ~45 min |
+| 6 (Bildschirm, 10 min am Stueck) | **GTR 4** | ~15 min |
+| 7.1 + 7.3 (Speicher, Spitze unter Last) | **Balance 2** | ~25 min |
+| 7.2 (faellt sauber aus) | **GTR 4** — aeltestes Modell der vier | 5 min |
+| 8 (GPS-Pfad) | egal, **Active 2** reicht | 10 min |
+| optional: 3.3 + 6.1 wiederholen | **T-Rex 3** als Gegenprobe | ~15 min |
+
+Gibt der Simulator ein Modell nicht her, ist das kein Beinbruch — dann rutscht der Block auf die
+naechste Uhr in der Liste. **Nicht** verzichtbar ist die Trennung „neues System / aelteres System"
+in Block 7: sie ist der einzige Test dafuer, dass `getPerformance` da fehlt, wo es fehlen darf.
+
+> **Nebenbefund beim Zusammenstellen:** dasselbe Modell steht bei uns unter drei Namen in der
+> Datenbank — `Amazfit%20T-Rex%203%20(8716545)`, `Amazfit T-Rex 3 (8716545)` und
+> `T-Rex 3 (8716545)`. Eine Uhr, drei Zeilen; jede Modell-Statistik ist dadurch falsch. Steht in
+> der TODO-Inbox, gehoert nicht in diesen Testlauf.
+
+---
+
 ## 1. Vorbereitung
 
 ### 1.1 Sauber starten
@@ -54,7 +93,24 @@ Reihenfolge nicht vertauschen, sonst endlos `shake timeout` (Abend vom 13.09. ve
 
 1. Code holen bei **ausgeschaltetem** Simulator, dann Cache weg.
 2. **Zepp-Simulator** starten (lauscht auf 7650 + 7833, laedt das Uhr-System in die QEMU-VM).
-3. `zeus dev` — verbindet sich nur, startet die VM **nicht** selbst.
+3. `zeus dev` — verbindet sich nur, startet die VM **nicht** selbst. **Welcher Modus, ist
+   nicht egal:**
+
+   ```
+   npm run dev
+   ```
+
+   setzt `DEV_FAKE_GPS = true` und ueberspringt den echten Ortungs-Zweig **komplett** — samt dem
+   `onChange`-Zwischenspeicher aus 1.0.12. Fuer alle Bloecke ausser 8 ist das richtig und
+   bequem (der Simulator speist kein GPS ein, ohne Fake-Spur kaeme keine Aufnahme zustande).
+   **Fuer Block 8 dagegen:**
+
+   ```
+   npm run dev-echt
+   ```
+
+   Gleicher Simulator, aber `DEV_FAKE_GPS = false` — die Uhr liest die echte Ortung. Liefert der
+   Simulator keine, bleibt die Anzeige auf „GPS suche…", und genau das ist dann der Befund.
 4. **Bridge** einschalten, **5–10 s warten**, bis das Bridge-Log auf `status:opened` steht.
 5. Erst jetzt die App in der VM starten.
 
@@ -375,6 +431,10 @@ Der Emulator kann die eigentliche Frage nicht beantworten: er hat keinen Funkemp
 simulierter Fix ist in der Regel dauerhaft gueltig. Genau der Zustand, in dem alter und neuer Code
 **gleich** aussehen. Zwei Dinge lassen sich trotzdem pruefen:
 
+**Erst `npm run dev-echt` starten** (s. 1.1). Unter `npm run dev` liegt der gesamte hier
+gepruefte Code hinter `DEV_FAKE_GPS` und laeuft gar nicht — man saehe eine gruene Spur und haette
+nichts getestet.
+
 ### 8.1 Der neue Pfad laeuft und wirft nicht
 
 1. Aufnahme mit Ortung, 5 Minuten.
@@ -409,28 +469,29 @@ Zahl nicht deutlich, ist der naechste Verdaechtige der Ortungsmodus der Uhr („
 Ausgefuellt ist das die Entscheidungsgrundlage fuer die Einreichung — nicht der Eindruck am Ende
 des Abends.
 
-| # | Test | Erwartet | Beobachtet | OK? |
-|---|---|---|---|---|
-| 0 | Waechter ueberlebt harten Kill | Phase 2 | | |
-| 3.1 | Kill in Phase Start | Phase 1 | | |
-| 3.2 | Kill im Leerlauf | Phase 2 | | |
-| 3.3 | Kill in Aufnahme (>3 min) | Phase 3 + Aufnahme gerettet | | |
-| 3.4 | Kill im Upload | Phase 4 | | |
-| 4.1 | Sauber verlassen | **keine** Meldung | | |
-| 4.2 | Sauber nach Upload | **keine** Meldung | | |
-| 4.3 | Systemseitig weggeraeumt | nur notieren | | |
-| 5.1 | Upload nach VM-Kill | faengt nicht bei 0 an, lueckenlos | | |
-| 5.2 | Bridge-Kill im Upload | Fehler sichtbar, kein Absturz, kein Verlust | | |
-| 5.3 | Ohne Handy aufnehmen | nichts verloren | | |
-| 5.4 | Simulator-Kill | gleiche Phase wie 5.1 | | |
-| 6.1 | 10 min Aufnahme am Stueck | App lebt, Bildschirm wach | | |
-| 6.2 | Bildschirm aus/an | Aufnahme laeuft durch | | |
-| 6.3 | Tastensperre | nur notieren | | |
-| 7.1 | Speicher neues System | plausible Zahl | | |
-| 7.2 | Speicher altes System | keine Ausnahme | | |
-| 7.3 | Spitze unter Last | Abstand zum Limit | | |
-| 8.1 | GPS-Pfad laeuft | keine Ausnahme | | |
-| 8.2 | Cache verfaellt | Luecke bleibt Luecke | | |
+| # | Test | Uhr | Erwartet | Beobachtet | OK? |
+|---|---|---|---|---|---|
+| 0 | Waechter ueberlebt harten Kill | Active 2 | Phase 2 | | |
+| 3.1 | Kill in Phase Start | Active 2 | Phase 1 | | |
+| 3.2 | Kill im Leerlauf | Active 2 | Phase 2 | | |
+| 3.3 | Kill in Aufnahme (>3 min) | Active 2 | Phase 3 + Aufnahme gerettet | | |
+| 3.4 | Kill im Upload | Active 2 | Phase 4 | | |
+| 4.1 | Sauber verlassen | Active 2 | **keine** Meldung | | |
+| 4.2 | Sauber nach Upload | Active 2 | **keine** Meldung | | |
+| 4.3 | Systemseitig weggeraeumt | Active 2 | nur notieren | | |
+| 5.1 | Upload nach VM-Kill | Active 2 | faengt nicht bei 0 an, lueckenlos | | |
+| 5.2 | Bridge-Kill im Upload | Active 2 | Fehler sichtbar, kein Absturz, kein Verlust | | |
+| 5.3 | Ohne Handy aufnehmen | Active 2 | nichts verloren | | |
+| 5.4 | Simulator-Kill | Active 2 | gleiche Phase wie 5.1 | | |
+| 6.1 | 10 min Aufnahme am Stueck | **GTR 4** | App lebt, Bildschirm wach | | |
+| 6.2 | Bildschirm aus/an | **GTR 4** | Aufnahme laeuft durch | | |
+| 6.3 | Tastensperre | **GTR 4** | nur notieren | | |
+| 7.1 | Speicher neues System | **Balance 2** | plausible Zahl | | |
+| 7.2 | Speicher altes System | **GTR 4** | keine Ausnahme | | |
+| 7.3 | Spitze unter Last | **Balance 2** | Abstand zum Limit | | |
+| 8.1 | GPS-Pfad laeuft (`dev-echt`) | Active 2 | keine Ausnahme | | |
+| 8.2 | Cache verfaellt (`dev-echt`) | Active 2 | Luecke bleibt Luecke | | |
+| opt. | 3.3 + 6.1 als Gegenprobe | **T-Rex 3** | wie oben | | |
 
 **Einreichen nur**, wenn 3.3 die Aufnahme rettet, 4.1 und 4.2 schweigen, 5.1 nicht bei 0 anfaengt
 und 7.3 Abstand zum Limit zeigt. Alles andere ist Diagnose, die auch noch eine Runde spaeter
