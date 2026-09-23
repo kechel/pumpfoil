@@ -147,10 +147,11 @@ python3 -c "import json;print(json.load(open('app.json'))['app']['version'])"
 ### 1.4 Das Pruefkommando
 
 Nach **jedem** Schritt dieselbe Frage: was hat der Server gesehen? Auf dem Uhrenbildschirm ist das
-nicht zu beantworten — nach einem Kill laeuft die App ja gerade nicht mehr. Auf der Server-VM:
+nicht zu beantworten — nach einem Kill laeuft die App ja gerade nicht mehr. Auf der Server-VM,
+**aus `watch-zepp/`** (das Skript sucht `server/.env` selbst, kein `cd` noetig):
 
 ```
-cd server && .venv/bin/python ../scripts/zepp-testlauf-stand.py --dev <ID>
+../server/.venv/bin/python ../scripts/zepp-testlauf-stand.py --dev <ID>
 ```
 
 Rein lesend. Zeigt Absturz-Phase, Speicher, und je Session die Bloecke, Luecken und die GPS-Dichte.

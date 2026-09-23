@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 """Was der Server von einer Zepp-Uhr gesehen hat — nach jedem Emulator-Testschritt. REIN LESEND.
 
-    cd server && .venv/bin/python ../scripts/zepp-testlauf-stand.py            # neueste Zepp-Uhr
-    cd server && .venv/bin/python ../scripts/zepp-testlauf-stand.py --dev 42   # bestimmte Uhr
-    cd server && .venv/bin/python ../scripts/zepp-testlauf-stand.py --n 5      # mehr Sessions
+Aufruf aus einem BELIEBIGEN Verzeichnis im Repo — das Skript sucht `server/.env` selbst
+(Jan, 23.09.2026: „ich arbeite immer nur im watch-zepp verzeichnis, bitte keine cd befehle,
+sonst klappt das mit dem kopieren doch nicht"). Aus `watch-zepp/` also:
+
+    ../server/.venv/bin/python ../scripts/zepp-testlauf-stand.py            # neueste Zepp-Uhr
+    ../server/.venv/bin/python ../scripts/zepp-testlauf-stand.py --dev 42   # bestimmte Uhr
+    ../server/.venv/bin/python ../scripts/zepp-testlauf-stand.py --n 5      # mehr Sessions
 
 WOZU: der Testplan in `watch-zepp/TESTPLAN-EMULATOR.md` besteht aus zwei Dutzend Schritten, nach
 denen jeweils dieselbe Frage steht — hat der Server die Meldung bekommen, und stimmt sie? Auf dem
@@ -30,12 +34,23 @@ import sys
 
 
 def lade_env() -> None:
-    if not os.path.exists(".env"):
-        sys.exit("Kein .env im Arbeitsverzeichnis — bitte aus server/ starten.")
-    env = dict(l.split("=", 1) for l in open(".env") if "=" in l and not l.startswith("#"))
-    if "DATABASE_URL" not in env:
-        sys.exit("DATABASE_URL fehlt in .env")
-    os.environ["DATABASE_URL"] = env["DATABASE_URL"].strip().strip('"')
+    """Sucht `server/.env` am Skript-Ort, nicht im Arbeitsverzeichnis.
+
+    Ein `cd server &&` davor waere eine Fehlerquelle mehr in einem Testlauf, der ohnehin aus
+    zwanzig Schritten besteht — und in einer Code-Box, die Jan per Klick kopiert, sowieso.
+    """
+    import pathlib
+    kandidaten = [pathlib.Path(__file__).resolve().parent.parent / "server" / ".env",
+                  pathlib.Path(".env").resolve()]
+    for pfad in kandidaten:
+        if pfad.is_file():
+            env = dict(l.split("=", 1) for l in pfad.read_text().splitlines()
+                       if "=" in l and not l.lstrip().startswith("#"))
+            if "DATABASE_URL" in env:
+                os.environ["DATABASE_URL"] = env["DATABASE_URL"].strip().strip('"')
+                return
+            sys.exit(f"DATABASE_URL fehlt in {pfad}")
+    sys.exit("server/.env nicht gefunden — laeuft das Skript im Repo?")
 
 
 def luecken(indizes: list[int]) -> str:
