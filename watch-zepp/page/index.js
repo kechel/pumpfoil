@@ -895,9 +895,9 @@ Page(
     // WICHTIG: zml macht pro Request einen BLE-Shake; PARALLELE Requests würgen sich gegenseitig ab
     // (undefined/shake timeout). Daher ALLE Requests hier serialisieren — immer nur EINER gleichzeitig
     // (FIFO), KEIN Retry. So kollidiert z.B. der Heartbeat-CONFIG nie mit einem laufenden Upload.
-    reqQ(payload) {
+    reqQ(payload, opts) {
       const prev = this._chain || Promise.resolve();
-      const p = prev.catch(() => {}).then(() => this.request(payload));
+      const p = prev.catch(() => {}).then(() => this.request(payload, opts));
       this._chain = p.catch(() => {});
       return p;
     },
@@ -1461,16 +1461,30 @@ Page(
       const s = this.state;
       s.paired = false;
       this._setBrightMode("idle", true);
-      // SCHEITERN SICHTBAR MACHEN (23.09.2026). Vorher passierte auf „Code erzeugen" bei
-      // fehlender Handy-Verbindung GAR NICHTS: der Fehler lief in ein leeres `.catch`, und der
-      // Bildschirm blieb, wie er war. Jan ist genau da haengengeblieben — „ich bekomme keinen
-      // pairing code, weiss aber nicht obs an der bridge liegt oder an der uhr, es kommt kein
-      // error shake timeout oder so" — und das ist der ERSTE Bildschirm, den ein neuer Nutzer
-      // sieht. Wer dort auf einen Knopf drueckt und nichts passiert, haelt die App fuer kaputt.
-      // Dieselbe Entscheidung wie beim ausgegrauten Start-Knopf in 1.0.12: lieber eine knappe
-      // Auskunft als ein stummer Fehlschlag. `pair.noConn` gibt es laengst in allen Sprachen.
-      const fehler = () => { this._idleHinweis(t("pair.noConn")); this.rerender(); };
-      this.reqQ({ method: "PAIR_INIT", model: DEVICE_MODEL }).then((r) => {
+      // SCHEITERN SICHTBAR MACHEN (23.09.2026). Vorher passierte auf „Code erzeugen" GAR NICHTS:
+      // der Fehler lief in ein leeres `.catch`, und der Bildschirm blieb, wie er war. Jan ist
+      // genau da haengengeblieben — „ich bekomme keinen pairing code, weiss aber nicht obs an
+      // der bridge liegt oder an der uhr, es kommt kein error shake timeout oder so". Das ist
+      // der ERSTE Bildschirm, den ein neuer Nutzer sieht; wer dort drueckt und nichts passiert,
+      // haelt die App fuer kaputt. Dieselbe Linie wie der ausgegraute Start-Knopf.
+      //
+      // ZWEI URSACHEN, ZWEI MELDUNGEN (Jan, 23.09.: „kein bluetooth und kein internet sind
+      // verschiedene meldungen wert"). Der Nutzer kann gegen beides etwas tun, aber Verschiedenes:
+      //   * Uhr sieht das Handy nicht      -> „Kein Telefon"        (`up.noPhone`)
+      //   * Handy da, aber kein Weg raus   -> „Server nicht erreichbar" (`up.serverUnreach`)
+      // Der zweite Fall ist der haeufigere und war bisher voellig unsichtbar: `bleOk()` fragt
+      // die BLE-Kopplung ab, nicht den Netzweg dahinter. Steht die Kopplung und das Handy hat
+      // kein Internet (oder die Zepp-App laeuft nicht), meldete die Uhr „verbunden" und schwieg.
+      //
+      // ZEITGRENZE 12 s statt der 60 s aus dem zml-Paket. Eine Minute ist fuer einen Knopfdruck
+      // keine Rueckmeldung mehr — und weil `reqQ` serialisiert, haengt jedes weitere Druecken
+      // eine weitere Minute hinten an. Genau das ist heute passiert: nach „zig mal" lagen zig
+      // Minuten in der Schlange, und der Bildschirm sagte die ganze Zeit nichts.
+      const fehler = () => {
+        this._idleHinweis(bleOk() ? t("up.serverUnreach") : t("up.noPhone"));
+        this.rerender();
+      };
+      this.reqQ({ method: "PAIR_INIT", model: DEVICE_MODEL }, { timeout: 12000 }).then((r) => {
         if (!r || !r.code) { fehler(); return; }
         s.code = r.code; store.setItem("claimToken", r.claim_token || ""); this.applyButton(); this.rerender(); this.startPoll();
       }).catch(fehler);
