@@ -202,6 +202,8 @@ struct RecordView: View {
         // Token serverseitig ungültig -> automatisch ein frisches vom iPhone anfordern
         // (Companion-Pairing). „Neu verbinden" bleibt als Code-Fallback bestehen.
         .onChange(of: rec.uploadError) { e in if e == "auth" { WatchLink.shared.requestToken(reason: "invalid") } }
+        // Eine Session ist fertig hochgeladen -> Profil nachziehen (s. profilNachziehen).
+        .onChange(of: rec.uploadsFertig) { n in if n > 0 { profilNachziehen() } }
         // Frisches Token eingetroffen -> sofort erneut hochladen (statt 5 s zu warten).
         .onReceive(NotificationCenter.default.publisher(for: .pumpfoilTokenUpdated)) { _ in
             Task { await rec.drain() }
@@ -683,6 +685,15 @@ struct RecordView: View {
                 .foregroundStyle(colorBy ? fieldColor(fid, rec) : Color.primary)
             Text(fv.1).font(.caption2).lineLimit(1).minimumScaleFactor(0.7)
                 .foregroundStyle(.secondary)
+        }
+    }
+
+    /// Profil nach einem fertigen Upload nachziehen (Jan, 23.09.2026). Jeder neue Zaehlerstand
+    /// aus dem Recorder ist genau eine vollstaendig hochgeladene Session. Ein Fehlschlag aendert
+    /// nichts — der zwischengespeicherte Stand gilt weiter.
+    private func profilNachziehen() {
+        Task {
+            if let c = try? await Api.deviceConfig() { applyConfig(c) }
         }
     }
 

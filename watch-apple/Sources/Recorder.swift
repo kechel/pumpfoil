@@ -54,6 +54,13 @@ final class Recorder: NSObject, ObservableObject {
     @Published var status = ""
     @Published var uploading = false   // zeigt aktiven Chunk-Upload in der UI an
     @Published var uploadSent = 0      // bestätigte Chunks der laufenden Session (Fortschritt)
+    /// Wie viele Sessions in dieser Sitzung vollstaendig hochgeladen wurden. Die Oberflaeche
+    /// haengt daran das Nachziehen des Profils (Jan, 23.09.2026): ein fertiger Upload ist der
+    /// einzige Augenblick, in dem die Uhr nachweislich online ist, und er faellt genau dorthin,
+    /// wo der Fahrer vor der naechsten Fahrt steht und vielleicht gerade etwas geaendert hat.
+    /// Ein Zaehler statt eines Schalters, damit zwei Uploads kurz hintereinander auch zwei
+    /// Ereignisse sind und nicht eins.
+    @Published var uploadsFertig = 0
     @Published var uploadTotal = 0     // Gesamt-Chunks der laufenden Session
     @Published var uploadError = ""    // letzte Fehlerursache: "" | "offline" | "server"
     @Published var isFoiling = false   // On-Watch-Erkennung (Hysterese) für Auto-Screen-Wechsel
@@ -422,7 +429,7 @@ final class Recorder: NSObject, ObservableObject {
         // tatsächlichen Netzfehler (isOfflineError) und wird dann sauber angezeigt.
         uploadError = ""   // optimistisch; bei Fehler unten gesetzt
         for dir in LocalStore.completedSessions() {
-            do { try await uploadSession(dir) }
+            do { try await uploadSession(dir); uploadsFertig += 1 }
             catch let e as Api.ApiError where e.status == 401 {
                 // Token ungültig/abgelaufen -> neu pairen. Weitere Versuche sind sinnlos,
                 // daher abbrechen statt mit dem schlechten Token weiterzuhämmern.

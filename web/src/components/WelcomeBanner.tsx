@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, NewsBanner } from "../lib/api";
 import { useI18n, formatNumber } from "../i18n";
+import { usePumpPuls } from "../lib/pumpPulse";
 import { CloseIcon, MailIcon } from "./Icons";
 
 // Willkommens-/News-Banner oben im Start-Bereich. Inhalt + Version kommen aus der DB
@@ -42,6 +43,8 @@ export function WelcomeBanner() {
       }).split("§")
     : [];
 
+  const puls = usePumpPuls(stats?.pumps);
+
   // Das ✉️ im Banner-Text ist ein Platzhalter → hier durchs echte Umschlag-Icon ersetzen
   // (identisch zum Feedback-Tab rechts), damit Text und Button-Icon zusammenpassen.
   const msg = t("banner.msg");
@@ -64,7 +67,10 @@ export function WelcomeBanner() {
         <p className="mt-1.5 text-sm text-slate-300">
           {parts.map((p, i) =>
             i % 2 === 1
-              ? <span key={i} className="font-bold tabular-nums text-brand-600 dark:text-brand-300">{p}</span>
+              ? <span key={i} className={"font-bold tabular-nums text-brand-600 dark:text-brand-300"
+                  /* NUR die Pump-Zahl pulsiert — erkannt am Wert, nicht an der Position: die
+                     Wortstellung des Satzes ist je Sprache anders. */
+                  + (puls && stats && p === formatNumber(stats.pumps, lang) ? " pf-million" : "")}>{p}</span>
               : <span key={i}>{p}</span>
           )}
         </p>
