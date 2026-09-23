@@ -1414,9 +1414,32 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Handy-Track deckt sich dort also nicht mit Jans GPS, sondern mit Phils FR55. Wunsch: die
   Handy-Session an Lauf-Grenzen trennen und Phils Teil an ihn **übertragen**. Bausteine sind da —
   Session-Übertragung ist im Web live, die Läufe stehen als `segments_json`, `excluded_ranges`
-  kann Bereiche schon ausnehmen; es fehlt das Trennen in ZWEI Sessions. **Phil hat noch nicht
-  hochgeladen**, der FR55-Track zum Abgleichen existiert also noch nicht. Jan: „erstmal nur
-  merken."
+  kann Bereiche schon ausnehmen; es fehlt das Trennen in ZWEI Sessions.
+
+  **🟢 DIESER Fall braucht kein Teilen — nachgemessen am 23.09.:** Philipp hatte doch schon
+  hochgeladen (user 5, FR55). Der Abgleich Lauf für Lauf ergibt, dass **#9650 komplett Jan** und
+  **#9656 komplett Philipp** gehört. Damit reicht die vorhandene Übertragung.
+
+  **Und die Methode dafür steht jetzt, gemessen statt vermutet.** Über die Uhrzeit allein geht es
+  NICHT: bei #9656 Lauf 1 starten Handy (11:02:50), Philipp (11:02:51) und Jan (11:02:53)
+  innerhalb von drei Sekunden. Entscheidend ist der **Median-Abstand der GPS-Spuren** im
+  Lauf-Fenster, Punkt gegen zeitlich nächsten Punkt:
+
+  | Lauf | Jan-Uhr | Philipp-Uhr | Fahrer |
+  |---|---|---|---|
+  | #9650 L1 10:24:08 | **6,3 m** | (keine Session) | Jan |
+  | #9650 L2 10:30:17 | **4,3 m** | 25,4 m | Jan |
+  | #9656 L1 11:02:50 | 14,7 m | **1,8 m** | Philipp |
+  | #9656 L2 11:08:10 | 37,2 m | **3,5 m** | Philipp |
+
+  Der echte Fahrer liegt bei 2–6 m (Handgelenk gegen Brett), der andere bei 15–37 m — eine
+  Größenordnung Abstand, und das über vier Läufe ohne Ausnahme. **Das ist der Test, auf dem ein
+  automatisches Trennen aufsetzen kann**, nicht die Montage-Drehung: Jan, 23.09.: „wir haben den
+  aufbau nicht veraendert beim wechsel."
+
+  Nebenbefund, der eigene Beachtung verdient: **Jans Uhr zählte bei #9656 L1 einen Lauf mit,
+  obwohl er nicht auf dem Brett mit dem Handy stand** (14,7 m entfernt). Wrist-Falschpositiv oder
+  er fuhr ein zweites Brett — vor einer Auswertung zu klären.
 - **🔲 23.09. — „⚠ verrutscht" ist die falsche Wortwahl, wenn jemand ABSICHTLICH dreht.** Jan hat
   das Handy am 23.09. zweimal gedreht, davon einmal **innerhalb** einer Session, um die
   Montage-Erkennung je Lauf zu prüfen. Sie hat funktioniert: Lauf 1 = 315°, Lauf 2 = 196°,

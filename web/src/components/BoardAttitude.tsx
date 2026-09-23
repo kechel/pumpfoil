@@ -221,7 +221,7 @@ function Kurven({ reihen, t_ms, pos, zusammen, uhrzeit, auswahlVon, auswahlBis, 
 }
 
 export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, playMode,
-                                       playTMs, onZeit, onHinweis, onMontage, randS, startedAt,
+                                       playTMs, onZeit, onHinweis, randS, startedAt,
                                        tz, pausen, token }: {
   sessionId: number;
   run: number | null;
@@ -243,7 +243,6 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
   // Was die Automatik als Montage-Drehung gefunden hat, nach oben melden (Jan, 22.09.): auf dem
   // Knopf „automatisch" soll die Gradzahl mit dranstehen. Sonst muesste man sie in der Fusszeile
   // dieser Ansicht suchen, waehrend man oben zwischen den Stufen waehlt.
-  onMontage?: (grad: number | null, quelle: string | null) => void;
   // Sekunden vor und nach der Auswahl, die mitgezeigt werden. Kommt von oben, damit Karte,
   // Wiedergabe und Kurven denselben Rand benutzen.
   randS?: number;
@@ -304,14 +303,6 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
       ? t("board.heaveShaky", { s: hubFenster.toFixed(1).replace(/\.0$/, "") }) : null);
     return () => onHinweis?.(null);
   }, [hubUnsicher, hubFenster, onHinweis, t]);
-
-  // Gefundene Montage-Drehung nach oben melden (s. `onMontage`). Wie beim Hinweis aus `d`, damit
-  // der Hook vor den fruehen Returns steht.
-  const rotGrad = d?.rot_deg ?? null;
-  const rotQuelle = d?.rot_quelle ?? null;
-  useEffect(() => {
-    onMontage?.(rotGrad, rotQuelle);
-  }, [rotGrad, rotQuelle, onMontage]);
 
   // Zeit unter der Maus nach oben melden. Als Effekt, nicht im Zeichnen: `onZeit` setzt oben
   // Zustand, und das waehrend des Renderns waere eine Schleife.

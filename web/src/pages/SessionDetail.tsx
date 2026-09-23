@@ -864,13 +864,6 @@ export default function SessionDetail() {
   // Hinweis aus der Lage-Ansicht (z. B. „Hub nicht belastbar"). Er steht bewusst NICHT dort,
   // sondern unter dem Abspielen-Knopf — Jans Anordnung, 21.09.
   const [lageHinweis, setLageHinweis] = useState<string | null>(null);
-  // Was die Lage-Ansicht als Montage-Drehung gefunden hat — steht unten auf dem Knopf
-  // „automatisch" (Jan, 22.09.). `useCallback`, weil die Meldung sonst bei jeder Neuzeichnung
-  // eine neue Funktion saehe und in eine Schleife liefe.
-  const [montageAuto, setMontageAuto] = useState<{ grad: number | null; quelle: string | null }>(
-    { grad: null, quelle: null });
-  const merkeMontage = useCallback(
-    (grad: number | null, quelle: string | null) => setMontageAuto({ grad, quelle }), []);
   // Kennzahlen JE LAUF fuer die Tabelle (Jan, 22.09.: „sollte eher als zusaetzliche stats-zeile
   // in der tabelle je lauf angezeigt & berechnet werden"). EIN Abruf fuer alle Laeufe, und mit
   // `hz: 2` bewusst die groebste erlaubte Aufloesung: die Kennzahlen rechnet der Server intern
@@ -1990,7 +1983,7 @@ export default function SessionDetail() {
                 vonMs={versuchFenster?.[0] ?? null}
                 bisMs={versuchFenster?.[1] ?? null}
                 progress={progress} playMode={playMode} playTMs={playTMs}
-                onZeit={zeigeZeitAufKarte} onHinweis={setLageHinweis} onMontage={merkeMontage}
+                onZeit={zeigeZeitAufKarte} onHinweis={setLageHinweis}
                 randS={LAGE_RAND_S} token={token}
                 startedAt={session.started_at} tz={session.tz}
                 pausen={session.pause_windows ?? []} />
@@ -2279,38 +2272,25 @@ export default function SessionDetail() {
                   />
                   {t("board.markBoard")}
                 </label>
-                {/* Die Richtung laesst sich nicht messen — die Hauptachse findet die ACHSE, nicht
-                    die Richtung. Der Server raet sie aus der Startlage („beim Start faehrt man
-                    bergab"); hier laesst sie sich ueberstimmen. */}
-                {session.placement === "board" && (
-                  <span className="inline-flex flex-wrap items-center gap-1.5">
-                    <span className="text-sm text-slate-300">{t("board.mounting")}</span>
-                    {[null, 0, 90, 180, 270].map((g) => (
-                      <button
-                        key={String(g)}
-                        onClick={() => api.updateSessionMeta(session.id,
-                          { attitude_rot_deg: g ?? -1 })   /* -1 = zurueck auf Automatik */
-                          .then((frisch) => setSession((alt) => (alt
-                            ? { ...alt, attitude_rot_deg: frisch.attitude_rot_deg } : alt)))
-                          .catch(() => {})}
-                        className={`rounded-lg px-2.5 py-1 text-xs tabular-nums ${(session.attitude_rot_deg ?? null) === g
-                          ? "bg-brand-500 font-semibold text-slate-950"
-                          : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}
-                      >
-                        {/* Auf „automatisch" die GEFUNDENE Gradzahl mitschreiben (Jan, 22.09.):
-                            wer zwischen den Stufen waehlt, sieht sonst nicht, was die Automatik
-                            sagt. Nur wenn sie auch greift — steht eine Hand-Einstellung, rechnet
-                            der Server sie gar nicht erst aus, dann waere jede Zahl geraten. */}
-                        {g === null
-                          ? (session.attitude_rot_deg == null && montageAuto.grad != null
-                            && montageAuto.quelle !== "manuell"
-                            ? `${t("board.mountAuto")} (${Math.round(montageAuto.grad)}°)`
-                            : t("board.mountAuto"))
-                          : `${g}°`}
-                      </button>
-                    ))}
-                  </span>
-                )}
+                {/* HANDEINSTELLUNG DER MONTAGE IST RAUS (Jan, 23.09.2026: „das manuelle
+                    'festlegen' koennen wir uns ganz sparen, die erkennung ist doch relativ genau
+                    und gut oder").
+
+                    Nachgemessen, bevor es wegkam: in der ganzen Datenbank war GENAU EINE Drehung
+                    je von Hand gesetzt (Session #9528, 270°, Jans eigene vom 21.09., aus der Zeit
+                    als die Erkennung noch jung war). Laesst man die Automatik darueber laufen,
+                    sagt sie 269,4° — 0,6° Unterschied. Eine Bedienmoeglichkeit, die in einem
+                    einzigen Fall benutzt wurde und dort dasselbe Ergebnis liefert wie die
+                    Automatik, kostet nur Platz und Erklaerung.
+
+                    Der SERVER kann es weiterhin: `attitude_rot_deg` bleibt im Modell und in
+                    `PATCH /meta` (mit Tests), als Notausstieg fuer einen Fall, den die Automatik
+                    einmal nicht trifft. Nur die Knopfreihe ist weg. Session #9528 traegt ihre
+                    270° unveraendert weiter — 0,6° neben der Automatik, das aendert keine Zahl.
+
+                    Falls das je zurueckkommt: die Richtung (nicht die Achse) ist der unsichere
+                    Teil — die Hauptachse findet die ACHSE, die Richtung raet der Server aus der
+                    Startlage („beim Start faehrt man bergab"). */}
               </div>
             )}
           </div>
@@ -2948,16 +2928,22 @@ function RunsTable({
                   {/* Die Montage je Lauf SICHTBAR machen (Jan, 22.09.): das Handy kann zwischen
                       zwei Laeufen verrutschen. Grau, wenn sie nicht aus diesem Lauf stammt,
                       sondern von der ganzen Aufnahme geerbt ist — dann war das Signal hier zu
-                      unklar, und die Zahl ist keine eigene Messung. */}
-                  <td className={`px-3 py-2 tabular-nums ${
-                    k.rot_verrutscht ? "text-amber-600 dark:text-amber-300"
-                      : k.rot_eigen ? "" : "text-slate-500"}`}
+                      unklar, und die Zahl ist keine eigene Messung.
+
+                      KEINE WARNFARBE UND KEIN ⚠ mehr (Jan, 23.09.2026: „die gradzahl muss
+                      garnicht hervorgehoben werden mehr"). Anlass war sein eigener Test: er hat
+                      das Handy MIT ABSICHT mitten in der Aufnahme gedreht, die Erkennung hat das
+                      korrekt gemeldet — und das bernsteinfarbene „⚠ vermutlich verrutscht" las
+                      sich trotzdem wie ein Defekt, den er sich nicht erklaeren konnte. Eine
+                      abweichende Gradzahl SAGT ja schon, dass die Montage eine andere war; ein
+                      Alarm macht daraus einen Fehler, wo keiner ist. Die Erklaerung bleibt im
+                      Tooltip, fuer den, der hinschaut. */}
+                  <td className={`px-3 py-2 tabular-nums ${k.rot_eigen ? "" : "text-slate-500"}`}
                     title={k.rot_verrutscht ? t("sd.mountSlipped")
                       : k.rot_strittig ? t("sd.mountDisputed")
                       : k.rot_eigen ? `${t("board.mountAuto")} · ${k.rot_klarheit ?? "–"}`
                       : t("sd.mountInherited")}>
                     {k.rot_deg != null ? `${Math.round(k.rot_deg)}°` : "–"}
-                    {k.rot_verrutscht ? " ⚠" : k.rot_strittig ? " ?" : ""}
                   </td>
                 </tr>
               ))}
