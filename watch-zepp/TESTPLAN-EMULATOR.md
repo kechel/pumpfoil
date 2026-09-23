@@ -585,6 +585,14 @@ einer aussieht.
   korrekt, die GTR 4 nicht; Ursache war allein der Build von 40 Minuten vorher. **Nach jedem
   Modellwechsel `npm run dev` erneut laufen lassen** und im Log die Zeile
   `device sources: …` gegen die Modellnummer pruefen (GTR 4 = `7930113`, Active 2 = `10092803`).
+- **🔴 Die GTR 4 laeuft im Simulator gar nicht** (Jan, 23.09.: „die gtr 4 ging nie bisher").
+  Der Plan hatte sie fuer die Bloecke 6 und 7.2 vorgesehen, weil sie Klettermax' Modell ist —
+  das geht so nicht. **Fuer 7.2 wird ein anderes Modell gebraucht, das `getPerformance` NICHT
+  kann.** T-Rex 3 und Active 2 koennen es (sie melden 1707 bzw. 1292 KB), pruefen also den
+  Schutz gar nicht. Durchprobieren, was der Simulator hergibt; meldet jedes Modell einen Wert,
+  ist der Rueckfallpfad im Simulator NICHT pruefbar — dann bleibt als Absicherung nur, dass der
+  Aufruf in zwei geschachtelten try/catch steckt, und das gehoert dann auch so notiert statt als
+  „getestet".
 - **Manche Modelle starten die App erst im zweiten Anlauf.** Jan, 23.09.: „ich habe mehrfach die
   gtr mit npm run dev gestartet, da passiert leider nichts, dann starte ich die gts 4 und danach
   die gtr 4 und dann oeffnet die app". Ein anderes Modell dazwischen zu laden hilft.
