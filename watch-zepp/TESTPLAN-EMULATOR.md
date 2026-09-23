@@ -574,6 +574,27 @@ erst bei 142 Bloecken.
 
 ---
 
+## 10b. Eigenarten des Simulators, die Zeit kosten (gemessen am 23.09.2026)
+
+Keine App-Fehler — aber jede davon hat an dem Abend eine Viertelstunde gekostet, weil sie wie
+einer aussieht.
+
+- **`zeus dev` baut NUR fuer das im Dialog gewaehlte Geraet.** Jede Uhr im Simulator traegt eine
+  eigene Installation. Wer das Modell wechselt, ohne neu zu bauen, testet dort einen ALTEN Stand
+  — und sieht die Aenderung von eben nicht. Am 23.09. zeigte die T-Rex 3 die neue Meldung
+  korrekt, die GTR 4 nicht; Ursache war allein der Build von 40 Minuten vorher. **Nach jedem
+  Modellwechsel `npm run dev` erneut laufen lassen** und im Log die Zeile
+  `device sources: …` gegen die Modellnummer pruefen (GTR 4 = `7930113`, Active 2 = `10092803`).
+- **Manche Modelle starten die App erst im zweiten Anlauf.** Jan, 23.09.: „ich habe mehrfach die
+  gtr mit npm run dev gestartet, da passiert leider nichts, dann starte ich die gts 4 und danach
+  die gtr 4 und dann oeffnet die app". Ein anderes Modell dazwischen zu laden hilft.
+- **Die Bridge kann `status:opened` melden, ohne unseren Worker zu starten.** Das Erfolgssignal
+  ist NICHT `status:opened`, sondern die Kette danach: `peerAppLaunched` → `createWorker` →
+  `[pumpfoil] app-side onInit`. Fehlt die, steht die Bridge und antwortet trotzdem niemand —
+  die Uhr schickt `shake send` ins Leere. Genau so am 23.09. ueber eine Stunde.
+
+---
+
 ## 11. Wiederaufsetzpunkt (Stand 23.09.2026, 12:10)
 
 **In welchem Zustand der Aufbau steht:**
