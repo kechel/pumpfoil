@@ -66,8 +66,10 @@ neuer Nutzer sieht; wer dort drueckt und nichts passiert, haelt die App fuer kap
 dort entweder „Kein Telefon" oder „Server nicht erreichbar" — zwei Ursachen, gegen die man
 Verschiedenes tun kann. Der zweite Fall war bisher voellig unsichtbar: die Uhr prueft die
 Bluetooth-Kopplung, nicht den Weg ins Netz dahinter; steht die Kopplung und das Handy hat kein
-Internet, meldete sie „verbunden" und schwieg. Dazu wartet der Knopf jetzt 12 statt 60 Sekunden
-auf eine Antwort — eine Minute ist fuer einen Knopfdruck keine Rueckmeldung mehr.
+Internet, meldete sie „verbunden" und schwieg. Dazu wartet der Knopf jetzt hoechstens 12 Sekunden
+auf eine Antwort. Vorher wartete er UNBEGRENZT: die Uhren-Seite des Zepp-Bausatzes kennt gar
+keine Zeitgrenze, und wenn die Handy-Seite nicht antwortet, kommt schlicht nie etwas zurueck —
+weder Erfolg noch Fehler. Jede Meldung, die daran haengt, war damit unerreichbar.
 
 **Die Uhr vibriert an den Strecken- und Zeitmarken aus dem Profil.**
 
