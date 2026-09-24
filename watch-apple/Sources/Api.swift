@@ -163,9 +163,18 @@ enum Api {
         let _: Ack = try await post("/api/ingest/session/\(uuid)/chunk", body)
     }
 
-    static func complete(_ uuid: String, endedAt: String, totalChunks: Int) async throws {
-        let _: Ack = try await post("/api/ingest/session/\(uuid)/complete",
-                                    ["ended_at": endedAt, "total_chunks": totalChunks])
+    static func complete(_ uuid: String, endedAt: String, totalChunks: Int,
+                         pauses: [[Int]]? = nil) async throws {
+        var body: [String: Any] = ["ended_at": endedAt, "total_chunks": totalChunks]
+        // Pausenfenster nur mitschicken, wenn es welche gibt — ein leeres Feld wuerde auf dem
+        // Server `pause_windows` loeschen, falls ein Wiederholungsversuch ohne sie ankommt.
+        if let p = pauses, !p.isEmpty { body["pauses"] = p }
+        let _: Ack = try await post("/api/ingest/session/\(uuid)/complete", body)
+    }
+
+    /// Teil-Analyse waehrend die Aufnahme laeuft (Pause). Schliesst die Session NICHT ab.
+    static func analyze(_ uuid: String) async throws {
+        let _: Ack = try await post("/api/ingest/session/\(uuid)/analyze", [:])
     }
 
     private static func post<T: Decodable>(_ path: String, _ body: [String: Any], auth: Bool = true) async throws -> T {

@@ -577,6 +577,15 @@ struct RecordView: View {
             // 3 s halten zum Stoppen; Ring füllt sich sichtbar als Fortschritt (wie Garmin Stop-Halten).
             HoldToStopButton(label: pressStattHalten ? WLoc.t("rec.stop", lang) : WLoc.t("rec.stopHold", lang),
                              press: pressStattHalten) { Task { await rec.stop() } }
+            // PAUSE (Jan, 24.09.2026) — unter dem Stoppen, weil sie seltener gebraucht wird und
+            // das Beenden die Hauptsache bleibt. Ein einfacher Druck genuegt: Pausieren ist
+            // umkehrbar, und ein Fehlgriff kostet nichts als einen zweiten Druck. In der Pause
+            // schickt die Uhr schon, was sie hat (s. Recorder.teilUpload).
+            Button(rec.isPaused ? WLoc.t("rec.resume", lang) : WLoc.t("rec.pause", lang)) {
+                if rec.isPaused { rec.resume() } else { rec.pause() }
+            }
+            .font(.caption2)
+            .buttonStyle(.bordered)
             wassersperreButton
             Text(hint).font(.caption2).foregroundStyle(.secondary)
         }

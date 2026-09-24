@@ -62,6 +62,8 @@ object Recorder {
         // geaendert hat. Ein Zaehler statt eines Schalters, damit auch zwei Uploads kurz
         // hintereinander zwei Ereignisse sind und nicht eins.
         val uploadsFertig: Int = 0,
+        /** Aufnahme laeuft, ist aber angehalten (s. Recorder.pause). */
+        val paused: Boolean = false,
         // Die Ortung liefert nur noch ALTE Fixes (Fused wiederholt einen zwischengespeicherten
         // Stand). Feldbefund 03.09.: zwei Nutzer, drei Sessions ueber je eine Stunde — 2491 Fixes,
         // aber nur 71 verschiedene Positionen, eine davon 625-mal hintereinander, und dazu eine
@@ -316,7 +318,28 @@ object Recorder {
         f.timeZone = TimeZone.getTimeZone("UTC")
         return f.format(java.util.Date())
     }
-    private fun elapsedMs() = (System.currentTimeMillis() - startMs).toInt()
+    // --- PAUSE (24.09.2026) ------------------------------------------------------------------
+    // Jan: „sowie die gesamte PAUSE moeglichkeit die dann auch schon versucht hochzuladen so wie
+    // auch bei garmin." Zwei Dinge sind daran heikel, beide von Garmin uebernommen:
+    //
+    //  1. DIE ZEITACHSE BLEIBT LUECKENLOS. `elapsedMs()` liefert AKTIVE Zeit — die Pausendauer
+    //     steht in `pausedMs` und das Fenster in `pauseListe`. Genau das erwartet der Server
+    //     (ingest.py: „der GPS-Zeitstempel ist AKTIVE Zeit, die Pausen fehlen darin"); er addiert
+    //     die Dauer fuer `ended_at` selbst wieder dazu. Mit Wanduhr klaffte ein Loch in der
+    //     Accel-Achse, und die gemessene Rate liefe ueber die Pause hinweg.
+    //  2. DIE PAUSE IST DIE GELEGENHEIT ZUM HOCHLADEN — s. `teilUpload`.
+    @Volatile var paused = false
+        private set
+    private var pausedMs = 0L
+    private var pauseStartMs = 0L
+    private var pauseBeiMs = 0
+    private val pauseListe = mutableListOf<Pair<Int, Int>>()
+
+    /** AKTIVE Zeit seit dem Start. In der Pause steht sie still. */
+    private fun elapsedMs(): Int {
+        if (paused) return pauseBeiMs
+        return (System.currentTimeMillis() - startMs - pausedMs).toInt()
+    }
 
     /** Millisekunden seit 1970 -> dasselbe ISO-Format wie `nowIso()`. */
     private fun isoVonMillis(ms: Long): String {
@@ -377,9 +400,64 @@ object Recorder {
         lastRunDurMs = 0; lastRunDistM = 0.0; lastRunAvgMps = 0.0; lastRunMaxMps = 0.0
         lastRunStartMs = 0L; lastRunStartDist = 0.0; minSpeedSeitEnde = 99.0; runIstFortsetzung = false
         runMaxHr = 0; lastRunMaxHr = 0
+        paused = false; pausedMs = 0L; pauseStartMs = 0L; pauseBeiMs = 0; pauseListe.clear()
         _state.value = State(recording = true, status = I18n.t("rec.recording"),
             pendingCount = LocalStore.pendingCount(ctx))
         scope.launch { flushLoop() }
+    }
+
+    /**
+     * Aufnahme PAUSIEREN. Sensoren schaltet der Dienst ab (er haelt sie), hier faellt die
+     * Zeitrechnung an — und das Bisherige darf hochgehen.
+     */
+    fun pause(ctx: Context) {
+        if (!running || paused) return
+        pauseBeiMs = elapsedMs()          // Position auf der aktiven Achse, VOR dem Anhalten
+        paused = true
+        pauseStartMs = System.currentTimeMillis()
+        LocalStore.loescheLaufMarke(ctx)  // in der Pause ist nichts „mitten in der Aufnahme"
+        _state.value = _state.value.copy(paused = true, status = I18n.t("rec.paused"))
+        scope.launch { teilUpload(ctx) }
+    }
+
+    /** Aufnahme FORTSETZEN: Pausendauer aufaddieren, Fenster festhalten. */
+    fun resume(ctx: Context) {
+        if (!running || !paused) return
+        val dauer = System.currentTimeMillis() - pauseStartMs
+        if (dauer > 0) {
+            pausedMs += dauer
+            pauseListe.add(pauseBeiMs to dauer.toInt())
+        }
+        paused = false
+        LocalStore.setzeLaufMarke(ctx)
+        _state.value = _state.value.copy(paused = false, status = I18n.t("rec.recording"))
+    }
+
+    /**
+     * Die LAUFENDE Session einmal senden, ohne sie abzuschliessen.
+     *
+     * Getrennt von `drain`: das arbeitet fertige Aufnahmen ab und raeumt sie danach lokal weg.
+     * Hier darf beides nicht passieren — die Aufnahme laeuft weiter und braucht ihre Dateien.
+     * Abgeschlossen wird mit /analyze statt /complete; der Server rechnet durch und haelt die
+     * Session auf `live`, damit die Laeufe auf dem Handy schon zu sehen sind.
+     */
+    private suspend fun teilUpload(ctx: Context) {
+        if (!paused || Api.deviceToken == null || !Api.isOnline(ctx)) return
+        try {
+            flushAll()
+            val dir = LocalStore.dir(ctx, uuid)
+            val start = LocalStore.readJson(java.io.File(dir, "session.json")) ?: return
+            Api.startSession(start)
+            for (cf in LocalStore.chunkFiles(dir)) {
+                if (!paused) return          // fortgesetzt -> nicht weiter senden
+                val chunk = LocalStore.readJson(cf) ?: continue
+                Api.uploadChunk(uuid, chunk)
+            }
+            if (paused) Api.analyze(uuid)
+        } catch (e: Exception) {
+            // Folgenlos: es geht nichts verloren, und beim Beenden laeuft der normale Weg
+            // ohnehin noch einmal.
+        }
     }
 
     fun stop() {
@@ -395,8 +473,20 @@ object Recorder {
             // Plattform-Regression auf seiner Uhr war. Jetzt steht in jeder Aufnahme, ob
             // ueberhaupt gemessen wurde und wie viele Werte ankamen.
             LocalStore.loescheLaufMarke(ctx)   // sauberes Ende -> keine Absturz-Meldung
+            // Aus der Pause heraus beenden: das offene Fenster zaehlt noch mit, sonst faellt die
+            // letzte Pause unter den Tisch und `ended_at` waere um ihre Dauer zu frueh.
+            if (paused) {
+                val dauer = System.currentTimeMillis() - pauseStartMs
+                if (dauer > 0) { pausedMs += dauer; pauseListe.add(pauseBeiMs to dauer.toInt()) }
+                paused = false
+            }
+            val pausenJson = org.json.JSONArray()
+            for ((pos, dauer) in pauseListe) {
+                pausenJson.put(org.json.JSONArray().put(pos).put(dauer))
+            }
             LocalStore.writeComplete(ctx, uuid, JSONObject()
                 .put("ended_at", nowIso()).put("total_chunks", chunkIndex)
+                .apply { if (pausenJson.length() > 0) put("pauses", pausenJson) }
                 .put("hr_samples", hrCount)
                 .put("hr_source", when {
                     hrCount == 0 -> "none"
@@ -625,7 +715,11 @@ object Recorder {
                      // -1 / null = nicht gemeldet; der Server laesst das Feld dann in Ruhe.
                      // Abgebrochene Aufnahmen (synthetisches complete.json) haben es nicht.
                      comp?.optInt("hr_samples", -1)?.takeIf { it >= 0 },
-                     comp?.optString("hr_source")?.takeIf { it.isNotEmpty() })
+                     comp?.optString("hr_source")?.takeIf { it.isNotEmpty() },
+                     // Pausenfenster aus complete.json — sie stehen dort seit 24.09. und
+                     // muessen den Weg ueber die Warteschlange ueberstehen, weil zwischen Stop
+                     // und Upload ein App-Neustart liegen kann.
+                     comp?.optJSONArray("pauses"))
         LocalStore.delete(ctx, sid)   // erst NACH /complete -> serverseitig sicher vorhanden
     }
 
