@@ -870,7 +870,7 @@ export interface LabelItem {
 // keine Aussage ueber Technik oder Foil (Jan, 24.09.2026).
 export type BoardKlasse = {
   klasse: string; laeufe: number; pitch_deg: number; roll_deg: number | null;
-  takt_hz: number | null; hub_cm: number | null; hub_laeufe: number;
+  takt_hz: number | null; takt_laeufe: number; hub_cm: number | null; hub_laeufe: number;
 };
 
 export const api = {
