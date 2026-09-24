@@ -61,7 +61,7 @@ const GEO_CACHE_MS = 3000;
 // (s. `_unlockFrisch`).
 const UNLOCK_MS = 10000;
 
-// Erste DATENSEITE waehrend der Aufnahme. Davor liegen Verwerfen (0) und Stopp (1) — s.
+// Erste DATENSEITE waehrend der Aufnahme. Davor liegen die Aktionsseite (0) und Stopp (1) — s.
 // `_letzteSeite`. Als Konstante, weil zwei Stellen darauf zuruecksetzen und ein vergessenes
 // Nachziehen den Fahrer nach jedem Zustandswechsel auf dem Stopp-Bildschirm abliefern wuerde.
 const ERSTE_DATENSEITE = 2;
@@ -1267,7 +1267,10 @@ Page(
               // verwerfen, sonst stoppen. Ein Gesten-Vokabular, zwei Bedeutungen — und welche
               // gilt, steht gross auf dem Bildschirm.
               if (key === KEY_SELECT && long) {
-                if (this._istVerwerfen(s.page)) this._verwerfen(); else this.stop();
+                // Auf der Aktionsseite loescht auch das Halten nicht direkt: es fuehrt auf
+                // dieselbe Rueckfrage wie der Knopf. Ein einziger Handgriff darf eine Aufnahme
+                // nicht kosten, egal welcher.
+                if (this._istVerwerfen(s.page)) this._verwerfenHinweis(); else this.stop();
                 return true;
               }
               if ((key === KEY_UP || key === KEY_DOWN) && long) {
@@ -1282,14 +1285,6 @@ Page(
                 // ist fuers Stoppen gedacht, und Verwerfen loescht Daten. Hier fuehrt der kurze
                 // Druck auf dieselbe Rueckfrage wie der Knopf.
                 if (this._istVerwerfen(s.page)) { this._verwerfenHinweis(); return true; }
-                // Auf der Stopp-Seite ist der kurze Druck frei (er sprang bisher nur auf genau
-                // diese Seite). Dort liegt jetzt Pause bzw. Fortsetzen — das Halten bleibt das
-                // Beenden. Zwei Handlungen an einer Taste, unterschieden durch die Dauer, wie
-                // schon beim Stoppen.
-                if (this._istStopp(s.page) && s.stopMode !== "press") {
-                  if (s.paused) this.resume(); else this.pause();
-                  return true;
-                }
                 if (s.stopMode === "press") { this.stop(); return true; }
                 if (s.touchLocked) this._showTouchLock();
                 this._toStopScreen();
@@ -1979,10 +1974,9 @@ Page(
       const s = this.state;
       if (s.recording) {
         if (this._istVerwerfen(s.page)) {
-          // NUR HALTEN, nie ein kurzer Druck — anders als beim Stoppen, wo das Profil einen
-          // kurzen Druck erlauben kann. Verwerfen loescht Daten: hier gibt es keine Abkuerzung,
-          // egal was im Profil steht.
-          this.setButton(t("rec.discard"), RED, RED_P, WHITE, () => this._verwerfenHinweis());
+          // Diese Seite fuehrt ZWEI eigene Knoepfe (s. _buildAktionBtns) — der Standardknopf
+          // wuerde sie ueberdecken.
+          this.hideButton();
         } else if (this._istStopp(s.page)) {
           if (s.paused) this.setButton(t("rec.resume"), CYAN, CYAN_P, INK, () => this.resume());
           else this.setButton(t("btn.stop"), RED, RED_P, WHITE, () => this.stop());
@@ -2040,6 +2034,7 @@ Page(
     renderIdle() {
       const s = this.state, w = s.w;
       this._clearFoilBtns();   // Foil-Seite: Buttons nur dort, sonst wegräumen
+      this._clearAktionBtns();
       this._clearLayout();
       this._verText();
       w.page.setProperty(hmUI.prop.TEXT, (s.idlePage + 1) + "/4");
@@ -2120,6 +2115,49 @@ Page(
         mk(ys[4], t("menu.touchLock") + ": " + lockTxt, () => { this._cycleTouchLockPref(); this.renderIdle(); }),
       ];
     },
+    /**
+     * Die AKTIONSSEITE (ganz aussen): oben blau die Pause, darunter rot das Verwerfen.
+     *
+     * Vorgabe Jan, 24.09.2026: „auf der discard-seite, zwei buttons untereinander, blau 'pause'
+     * und darunter rot 'discard' -> nur discard mit dem doppelten nachfragen." Die Trennung ist
+     * die Sache selbst: Pausieren ist umkehrbar und kostet einen Druck, Verwerfen loescht Daten
+     * und kostet zwei. Farbe und Reihenfolge sagen das, bevor jemand liest.
+     *
+     * Eigene Widgets statt `setButton`, weil das nur EINEN Knopf fuehrt. Sie liegen in
+     * `w.aktionBtns` und werden wie die Foil-Knoepfe beim Verlassen der Seite abgeraeumt.
+     */
+    _buildAktionBtns() {
+      const s = this.state, w = s.w;
+      this._clearAktionBtns();
+      const round = DW >= 450;
+      const breite = round ? DW - px(160) : DW - px(48);
+      const hoehe = round ? px(64) : Math.round(DH * 0.155);
+      const x = round ? px(80) : px(24);
+      // Zwei Knoepfe mittig gestapelt, der untere auf der Hoehe, auf der sonst der einzelne
+      // Knopf sitzt — so springt das Verwerfen nicht an eine ungewohnte Stelle.
+      const yUnten = round ? px(356) : Math.round(DH * 0.70);
+      const yOben = yUnten - hoehe - px(16);
+      const mk = (y, text, nc, pc, ink, fn) => hmUI.createWidget(hmUI.widget.BUTTON, {
+        x: x, y: y, w: breite, h: hoehe, radius: Math.round(hoehe / 2),
+        text: text, text_size: px(30), normal_color: nc, press_color: pc, color: ink,
+        click_func: fn });
+      w.aktionBtns = [
+        mk(yOben, s.paused ? t("rec.resume") : t("rec.pause"), 0x0e7490, 0x22d3ee, 0xffffff,
+           () => { if (s.paused) this.resume(); else this.pause(); }),
+        mk(yUnten, s.verwerfenArmed ? t("rec.discard") + "?" : t("rec.discard"),
+           0xb91c1c, 0xf87171, 0xffffff, () => this._verwerfenHinweis()),
+      ];
+    },
+    /** Beim Seitenwechsel abraeumen — auf der Aktionsseite selbst werden sie neu gebaut. */
+    _clearAktionBtnsWennNoetig() {
+      const s = this.state;
+      if (!s.recording || !this._istVerwerfen(s.page)) this._clearAktionBtns();
+    },
+    _clearAktionBtns() {
+      const w = this.state.w;
+      if (w.aktionBtns) { w.aktionBtns.forEach((b) => hmUI.deleteWidget(b)); w.aktionBtns = null; }
+    },
+
     _clearFoilBtns() {
       const w = this.state.w;
       if (w.foilBtns) { w.foilBtns.forEach((b) => hmUI.deleteWidget(b)); w.foilBtns = null; }
@@ -2316,11 +2354,22 @@ Page(
     /**
      * SEITEN WAEHREND DER AUFNAHME, von links nach rechts:
      *
-     *     0            VERWERFEN
+     *     0            PAUSE + VERWERFEN (zwei Knoepfe untereinander)
      *     1            STOPP
      *     2 … n+1      Datenseiten (Ring)
      *     n+2          STOPP
-     *     n+3          VERWERFEN
+     *     n+3          PAUSE + VERWERFEN
+     *
+     * STOPP bleibt DIREKT neben den Daten — ein Wischer, wie vorher. Aussen liegt die Seite mit
+     * den beiden selteneren Aktionen: oben blau die Pause (umkehrbar, ein Druck genuegt), unten
+     * rot das Verwerfen (loescht Daten, zwei Druecke). Vorgabe Jan, 24.09.2026: „auf der
+     * discard-seite, zwei buttons untereinander, blau 'pause' und darunter rot 'discard' -> nur
+     * discard mit dem doppelten nachfragen."
+     *
+     * KEIN erklaerender Text auf diesen Seiten. Vorher stand auf der Stopp-Seite
+     * „Hold = STOP · Pause" — das beschrieb Tastengesten auf einem Bildschirm, dessen Knopf
+     * etwas anderes tut. Ein Bildschirm, der erklaeren muss, was seine Knoepfe tun, ist der
+     * falsche Bildschirm.
      *
      * Das Verwerfen liegt GANZ AUSSEN, hinter dem Stoppen (Jan, 24.09.2026: „es fehlt der screen
      * gaaaanz links und gaaanz rechts vor/nach dem STOP screen zum VERWERFEN ohne zu speichern").
@@ -2730,21 +2779,22 @@ Page(
     renderRecording() {
       const s = this.state, w = s.w;
       this._clearFoilBtns();
+      this._clearAktionBtnsWennNoetig();
       this._clampPage();
       const ring = this._ring(s.foiling), n = ring.length;
       if (this._istVerwerfen(s.page)) {
-        // VERWERFEN. Bewusst ohne Zeit und Strecke: hier soll niemand ueberlegen, ob sich die
-        // Fahrt „gelohnt" hat — hier soll er merken, dass er auf der falschen Seite ist. Die
-        // Zahlen stehen eine Seite weiter.
+        // AKTIONSSEITE. Bewusst ohne Zeit und Strecke: hier soll niemand ueberlegen, ob sich die
+        // Fahrt „gelohnt" hat. Die Zahlen stehen eine Seite weiter.
         this._clearLayout();
+        this.hideButton();            // der EINE Standardknopf gilt hier nicht
+        this._buildAktionBtns();
         w.page.setProperty(hmUI.prop.TEXT, "");
-        this.setSlots([t("rec.discard"), ""], ["", ""], ["", ""]);
-        // KEIN Hinweis auf ein Halten (Jan, 24.09.2026: „das hat aber noch nie gestimmt sondern
-        // da es ein eigener screen ist reicht ein klick"). Er stand hier, weil die anderen Uhren
-        // ihn haben — dort ist das Verwerfen aber keine eigene Seite, sondern ein Knopf zwischen
-        // anderen, und das Halten IST dort der Schutz. Hier schuetzt die Rueckfrage, und einen
-        // Weg zu beschreiben, den es nicht gibt, ist schlimmer als gar nichts zu schreiben.
-        w.status.setProperty(hmUI.prop.TEXT, "");
+        this.setSlots([s.paused ? t("rec.paused") : "", ""], ["", ""], ["", ""]);
+        // KEIN erklaerender Text (Jan, 24.09.2026: „das hat aber noch nie gestimmt sondern da es
+        // ein eigener screen ist reicht ein klick"). Die Knoepfe sagen, was sie tun. Nur die
+        // Rueckmeldung des Teil-Uploads darf hier stehen — die entsteht erst durch eine
+        // Handlung auf dieser Seite.
+        w.status.setProperty(hmUI.prop.TEXT, s.paused ? (s.upStatus || "") : "");
         return;
       }
       if (this._istStopp(s.page)) {
@@ -2756,11 +2806,10 @@ Page(
         // Tasten-Hinweis: "Halten = STOPP", und seit dem 24.09. der kurze Druck dazu — er war
         // auf dieser Seite ohne Wirkung und traegt jetzt die Pause. Steht der Hinweis nicht da,
         // findet sie niemand; das Wort allein ist billiger als ein weiterer Bildschirm.
-        w.status.setProperty(hmUI.prop.TEXT,
-          s.upStatus ? s.upStatus
-          : s.stopMode === "press" ? t("btn.stop")
-          : t("rec.stopHold") + " = " + t("btn.stop") + " · "
-            + (s.paused ? t("rec.resume") : t("rec.pause")));
+        // KEIN erklaerender Text mehr (Jan, 24.09.2026: „bei stop genau das gleiche"). Hier
+        // stand „Hold = STOP · Pause" — und das beschrieb Tastengesten auf einem Bildschirm,
+        // dessen Knopf etwas anderes tut. Der Knopf sagt STOP; mehr braucht es nicht.
+        w.status.setProperty(hmUI.prop.TEXT, s.paused ? t("rec.paused") : "");
         return;
       }
       const pg = this._ringIndex(s.page), entry = ring[pg] || ring[0];
@@ -3103,11 +3152,11 @@ Page(
       if (!s.recording) return;
       if (s.verwerfenArmed) { this._verwerfen(); return; }
       s.verwerfenArmed = true;
-      this.setButton(t("rec.discard") + "?", RED, RED_P, WHITE, () => this._verwerfenHinweis());
+      this._buildAktionBtns();   // der untere Knopf traegt jetzt das Fragezeichen
       if (s.verwerfenTimer) clearTimeout(s.verwerfenTimer);
       s.verwerfenTimer = setTimeout(() => {
         s.verwerfenTimer = null; s.verwerfenArmed = false;
-        if (s.recording) this.applyButton();
+        if (s.recording && this._istVerwerfen(s.page)) this._buildAktionBtns();
       }, 4000);
     },
 
@@ -3135,6 +3184,7 @@ Page(
       this._disableTouchLock();
       this._setBrightMode("idle", true);
       s.recording = false; s.paused = false; s._teilUploadLaeuft = false;
+      this._clearAktionBtns();
       canaryClear();
       try { setWakeUpRelaunch({ relaunch: false }); } catch (e) {}
       if (s.accelFile) { try { rmSync({ path: s.accelFile }); } catch (e) {} }
@@ -3241,6 +3291,7 @@ Page(
       this._stopGps();
       this._stopAccel();
       this._disableTouchLock();
+      this._clearAktionBtns();
       this._setBrightMode("idle", true);
       s.recording = false;
       canaryWrite(s.uploading ? PHASE_UPLOAD : PHASE_IDLE);
