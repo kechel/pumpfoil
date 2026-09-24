@@ -12,6 +12,11 @@ struct RootView: View {
             .preferredColorScheme(preferredScheme)
             .ageGate(session: session)   // Declared Age Range (iOS 26+) -> social_allowed ans Backend
             .task { await session.bootstrap() }
+            // Liegengebliebene Aufnahme des HANDY-Recorders beim App-Start weiterschicken.
+            // Bis 1.1.36 stiess das NUR `RecordView` an: wer nach der Fahrt gleich auf
+            // „Verlauf" ging, dessen Aufnahme blieb liegen, bis er den Aufnahme-Bildschirm
+            // wieder oeffnete. `drain()` steigt sofort aus, wenn nichts offen ist.
+            .task { await PhoneRecorder.shared.drain() }
             // Nur echte Rückkehr aus dem Hintergrund (nicht der Start — den macht bootstrap()).
             .onChange(of: scenePhase) { phase in handleScenePhase(phase) }
             .overlay { splashOverlay }
@@ -44,6 +49,7 @@ struct RootView: View {
         } else if phase == .active, wasBackground {
             wasBackground = false
             Task { await session.refreshDisplayPrefs() }
+            Task { await PhoneRecorder.shared.drain() }
         }
     }
 
@@ -87,6 +93,10 @@ struct MainTabView: View {
     var body: some View {
         VStack(spacing: 0) {
             tabPages
+            // Upload-Leiste des Handy-Recorders DIREKT ueber der Tab-Leiste: so ist sie auf
+            // jedem Bildschirm dieselbe und sitzt dort, wo man ohnehin hinsieht. Sie zeigt
+            // sich nur, wenn wirklich etwas offen ist (gleiche Stelle wie MainActivity.kt).
+            PhoneUploadBar()
             Divider()
             tabBar
         }

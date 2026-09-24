@@ -31,6 +31,11 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
     @Published var uploading = false
     @Published var uploadError = ""
     @Published var pendingCount = 0
+    // „x von y" fuer die Upload-Leiste. `uploadTotal == 0` heisst „Gesamtzahl unbekannt" — dann
+    // zeigt die Leiste nur Text, keinen Balken. Ein unbestimmter Balken, der sich nie fuellt,
+    // sieht aus wie „haengt" (dieselbe Entscheidung wie in PhoneUploadBar.kt).
+    @Published var uploadSent = 0
+    @Published var uploadTotal = 0
     // Start-Screen (idle): Live-GPS-Status + Autostart (wie die Uhr).
     @Published var gpsReady = false
     @Published var autoStart = (UserDefaults.standard.object(forKey: "phone_autostart") as? Bool ?? true) {
@@ -136,6 +141,7 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         uuid = UUID().uuidString
         startMs = Date().timeIntervalSince1970 * 1000
         chunkIndex = 0
+        uploadSent = 0; uploadTotal = 0
         lock.lock(); accelBuf.removeAll(); gyroBuf.removeAll(); gpsBuf.removeAll(); spWin.removeAll(); lock.unlock()
         prevLat = .nan; prevLon = .nan; distM = 0; maxMps = 0
         foiling = false; foilEnter = 0; foilExit = 0; runEndedMs = -100000
@@ -431,7 +437,8 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
             }
             catch { uploadError = "server" }
         }
-        uploading = false; status = ""; pendingCount = Store.pendingCount()
+        uploading = false; status = ""; uploadSent = 0; uploadTotal = 0
+        pendingCount = Store.pendingCount()
     }
 
     private func uploadSession(_ dir: URL) async throws {
@@ -441,33 +448,40 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         // Balken. Die Chunk-Dateien liegen bereits vollstaendig im Verzeichnis, die Zahl ist also
         // exakt; waehrend einer laufenden Aufnahme duerfte sie nicht gesendet werden.
         var startMeta = meta
-        startMeta["expected_chunks"] = Store.chunkFiles(dir).count
+        let _cf = Store.chunkFiles(dir)
+        startMeta["expected_chunks"] = _cf.count
         let res = try await PhoneIngest.startSession(startMeta)
         let received = Set((res["received_chunks"] as? [Int]) ?? [])
+        let gesamt = _cf.count
         uploading = true; status = "lade hoch…"
+        // Was der Server schon hat, zaehlt als erledigt — sonst faengt die Anzeige nach einem
+        // abgebrochenen Upload wieder bei null an, obwohl nur der Rest gesendet wird.
+        uploadTotal = gesamt
+        uploadSent = min(received.count, gesamt)
         // Handy hat echtes Netz -> Chunks PARALLEL hochladen (Pool 6). Server nimmt sie in
         // beliebiger Reihenfolge (je Index eigene Datei/Zeile) -> kollisionsfrei. Jeder Task
         // liest seine Datei selbst (nur Sendable-Werte gefangen: URL, Set, String).
         // GPS-first: GPS-Chunks zuerst in den Pool (kind aus dem Dateinamen). Bei abgebrochenem
         // Upload ist die GPS-Spur zuerst vollständig -> Session als gps_only analysierbar statt
         // hängend. Parität zu Server/Web; Reihenfolge je Gruppe bleibt erhalten.
-        let _cf = Store.chunkFiles(dir)
         var it = (_cf.filter { Store.chunkKind($0) == "gps" } + _cf.filter { Store.chunkKind($0) != "gps" }).makeIterator()
-        try await withThrowingTaskGroup(of: Void.self) { group in
+        try await withThrowingTaskGroup(of: Bool.self) { group in
             func addNext() -> Bool {
                 guard let cf = it.next() else { return false }
                 group.addTask {
-                    guard let chunk = Store.readJson(cf) else { return }
-                    if let idx = chunk["index"] as? Int, received.contains(idx) { return }
+                    guard let chunk = Store.readJson(cf) else { return false }
+                    if let idx = chunk["index"] as? Int, received.contains(idx) { return false }
                     try await PhoneIngest.uploadChunk(sid, chunk)
+                    return true
                 }
                 return true
             }
             var running = 0
             for _ in 0..<6 { if addNext() { running += 1 } }
             while running > 0 {
-                try await group.next()
+                let geschickt = try await group.next() ?? false
                 running -= 1
+                if geschickt { uploadSent = min(uploadSent + 1, gesamt) }
                 if addNext() { running += 1 }
             }
         }
