@@ -1755,9 +1755,8 @@ export default function SessionDetail() {
           Merker. Ein Klick setzt `placement`, danach ist die Frage beantwortet und der Kasten
           verschwindet von selbst, weil der Server dann `verdacht: false` liefert. */}
       {brettFrage && (
-        <div className="mb-4 rounded-xl border border-brand-500/40 bg-brand-500/10 px-3 py-2.5 text-sm text-brand-700 dark:text-brand-200">
-          <div className="font-semibold">{t("sd.boardAsk")}</div>
-          <div className="mt-0.5">{t("sd.boardAskWhy")}</div>
+        <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-brand-500/40 bg-brand-500/10 px-3 py-2 text-sm text-brand-700 dark:text-brand-200">
+          <span className="font-semibold">{t("sd.boardAsk")}</span>
           <button
             type="button"
             onClick={() => {
@@ -1768,7 +1767,7 @@ export default function SessionDetail() {
                 })
                 .catch(() => {});
             }}
-            className="mt-2 rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400"
+            className="rounded-lg bg-brand-500 px-3 py-1 text-sm font-semibold text-slate-950 hover:bg-brand-400"
           >
             {t("sd.boardAskYes")}
           </button>
