@@ -1,6 +1,3 @@
-import { useEffect, useState } from "react";
-import { api } from "./api";
-
 /**
  * Wann eine Zahl in der Community-Leiste pulsiert.
  *
@@ -19,11 +16,12 @@ import { api } from "./api";
  * weiter gewachsen ist.
  *
  * JEDE STUFE ZAEHLT: das Fenster liegt ueber der jeweils erreichten Stufe, nicht nur ueber der
- * ersten. Die zweite Million pulst also wieder, von 2.000.000 bis 2.200.000. (Jan hat nur die
- * erste genannt; das hier ist die naheliegende Verallgemeinerung — falls es NUR beim ersten Mal
- * sein soll, ist es eine Zeile.)
+ * ersten. Die zweite Million pulst also wieder, von 2.000.000 bis 2.200.000.
  *
- * Fuer Admins ist es immer an — Jan, 23.09.: „dann kann ich den effekt kontrollieren vorher".
+ * KEIN ADMIN-SONDERFALL MEHR. Es gab einen, damit Jan den Effekt vor dem grossen Moment
+ * ansehen konnte; nachdem er das getan hatte: „fuer Admins jetzt wieder ausschalten, sehe ich
+ * dann ja, wenn es wirklich losgeht." Damit faellt auch der Profil-Abruf weg, den die Leiste
+ * nur dafuer gebraucht hat — die Regel haengt jetzt an nichts als der Zahl.
  */
 export const MEILENSTEIN_PUMPS = 1_000_000;
 export const MEILENSTEIN_LEUTE = 1_000;      // Foiler und Spots
@@ -34,19 +32,4 @@ export function imMeilensteinFenster(wert: number | null | undefined, stufe: num
   if (wert == null || wert < stufe) return false;
   const erreicht = Math.floor(wert / stufe) * stufe;
   return wert < erreicht * (1 + FENSTER);
-}
-
-/** true im Fenster — oder immer, wenn der Betrachter Admin ist. */
-export function useMeilensteinPuls(wert: number | null | undefined, stufe: number): boolean {
-  const imFenster = imMeilensteinFenster(wert, stufe);
-  const [admin, setAdmin] = useState(false);
-  useEffect(() => {
-    let lebt = true;
-    // Nur fragen, wenn es ueberhaupt etwas aendern kann: pulst es schon, waere der Abruf ein
-    // Request fuer nichts.
-    if (imFenster) return;
-    api.getProfile().then((p) => { if (lebt) setAdmin(!!p.is_admin); }).catch(() => {});
-    return () => { lebt = false; };
-  }, [imFenster]);
-  return imFenster || admin;
 }
