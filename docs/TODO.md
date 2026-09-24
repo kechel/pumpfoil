@@ -1411,6 +1411,14 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 
 
+
+- **🟡 24.09. — Garmin 1.0.89 liegt in `watch/bin`, aber `appmeta` steht mit Absicht noch auf
+  1.0.88.** Jan, 24.09.: „ja lass das stehen, das stoert nicht, niemand nutzt unseren
+  direktdownload, nur noch keinen update hinweis flaggen bitte." Der Update-Hinweis auf der Uhr
+  entsteht aus `_APP_META["garmin"]["latest"]` — solange dort 1.0.88 steht, meldet keine Uhr eine
+  neuere Version. **Sobald Jan getestet hat: `latest` auf 1.0.89 ziehen** und den Changelog-Punkt
+  mit `versionen={"garmin": "1.0.89"}` eintragen (Profil-Auffrischung nach fertigem Upload).
+  Bis dahin ist der Changelog dazu bewusst leer.
 - **🔲 23.09. — Profil nach einem fertigen Upload frisch holen (Garmin, Wear, Apple).** Jans Frage:
   „wenigstens beim app-start und nach einem erfolgreichen upload auch nochmal direkt oder wo waere
   es sinnvoll? nicht bei jedem block natuerlich." **Gemessen, damit die Abwaegung Zahlen hat: die
