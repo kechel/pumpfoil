@@ -190,13 +190,6 @@ export function SessionCard({
             >
               <HeartIcon className="h-4 w-4" filled={liked} />{count > 0 && <span className="text-xs tabular-nums">{count}</span>}
             </button>
-            <button
-              onClick={onCompare}
-              title={inCompare ? t("compare.remove") : t("compare.add")}
-              className={`flex items-center text-sm ${inCompare ? "text-brand-400" : "text-slate-400 hover:text-slate-200"}`}
-            >
-              <CompareIcon className="h-4 w-4" />
-            </button>
             {/* Mobil: Thumbnail + Video + Track linksbündig unter dem Profilbild */}
             {(thumbEl || videoEl || trackEl) && (
               <div className="mt-1 flex flex-col items-center gap-1.5 sm:hidden">
@@ -244,7 +237,28 @@ export function SessionCard({
                 </span>
               )}
             </div>
-            {stats}
+            {/* VERGLEICHEN HINTER DIE KENNZAHLEN (Jan, 24.09.2026): „in den session-kacheln
+                haben wir dieses icon zum markieren das bei vielen das einzige ist was die
+                kacheln hoeher macht als noetig, lass uns das mal woanders positionieren, z.B.
+                hinter der anzahl laeufe und km anzeige, und dann kann da auch ein label dran."
+
+                Vorher sass es unter dem Profilbild, als dritte Zeile einer Spalte, die sonst nur
+                Bild und Herz trug — bei jeder Kachel ohne Foto und ohne Spur war ALLEIN dieser
+                Knopf dafuer verantwortlich, dass die Karte hoeher wurde als ihr Inhalt.
+
+                Hier steht Platz zur Verfuegung, der ohnehin gebraucht wird, und es passt eine
+                Beschriftung dazu — ein Balkensymbol allein hat niemandem gesagt, was es tut. */}
+            <div className="flex flex-wrap items-center gap-x-4">
+              {stats}
+              <button
+                onClick={onCompare}
+                title={inCompare ? t("compare.remove") : t("compare.add")}
+                className={`mt-2 inline-flex items-center gap-1.5 text-sm ${inCompare ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-200"}`}
+              >
+                <CompareIcon className="h-4 w-4" />
+                {inCompare ? t("compare.remove") : t("compare.add")}
+              </button>
+            </div>
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-3">
