@@ -97,7 +97,8 @@ function BekannteProbleme({ probleme }: { probleme: Problem[] }) {
 
 function ReleaseStatus() {
   const [daten, setDaten] = useState<{
-    live: Release[]; review: Release[]; rejected?: Release[]; next: Release[]; probleme?: Problem[];
+    live: Release[]; review: Release[]; rejected?: Release[]; next: Release[];
+    ideen?: string[]; probleme?: Problem[];
   } | null>(null);
   useEffect(() => { api.appReleases().then(setDaten).catch(() => setDaten(null)); }, []);
   if (!daten) return null;
@@ -184,8 +185,44 @@ function ReleaseStatus() {
           </Fragment>
         ))}
       </div>
+      <Ideen ideen={daten.ideen ?? []} />
     </section>
     </>
+  );
+}
+
+// „Ideas for future development" — der unterste Abschnitt der Release-Uebersicht.
+//
+// BEWUSST OHNE Versionsnummer, Reihenfolge oder Termin: das hier ist kein Fahrplan, sondern
+// was wir vorhaben. Die Liste kommt vom Server (`appmeta.IDEEN`), damit ein neuer Punkt keinen
+// Neubau der PWA braucht — dieselbe Ueberlegung wie beim Changelog selbst.
+//
+// Die Zeile darunter fuehrt ins Feedback-Fenster (dasselbe Ereignis wie `MissingHint`), damit
+// aus einer Idee im Kopf eines Fahrers eine Zeile in unserer Liste werden kann.
+function Ideen({ ideen }: { ideen: string[] }) {
+  if (!ideen.length) return null;
+  return (
+    <div className="mt-4 border-t border-slate-800/70 pt-3">
+      <div className="pb-1 text-xs font-semibold uppercase tracking-wide text-violet-700 dark:text-violet-400">
+        Ideas for future development
+      </div>
+      <p className="mb-2 text-sm text-slate-400">
+        No dates and no order — things we would like to build.
+      </p>
+      <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">
+        {ideen.map((txt, i) => <li key={i}>{txt}</li>)}
+      </ul>
+      <p className="mt-3 text-sm text-slate-300">
+        Do you have an idea or a bug report you want added to the roadmap?{" "}
+        <button
+          type="button"
+          className="font-semibold text-brand-600 underline hover:no-underline dark:text-brand-400"
+          onClick={() => window.dispatchEvent(new CustomEvent("open-feedback"))}
+        >
+          Send us your input via feedback
+        </button>
+      </p>
+    </div>
   );
 }
 
