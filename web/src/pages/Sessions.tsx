@@ -872,12 +872,24 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
     // zwei sind erkennbar ein Stapel. Mehr braucht es nicht — die Zahl der Sessions steht als
     // Ziffer in der Karte, die Grafik soll nur sagen „hier ist mehr drin".
     //
-    // `mt-3` am Rahmen, nicht an der Karte: die Blaetter ragen nach oben hinaus und wuerden
+    // `mt-4` am Rahmen, nicht an der Karte: die Blaetter ragen nach oben hinaus und wuerden
     // sonst von der Kachel darueber ueberdeckt.
-    <div className="relative mt-3">
-      <div aria-hidden className="pointer-events-none absolute -top-2 left-4 right-[-6px] h-8 rounded-2xl border border-slate-800/60 bg-slate-900/20" />
-      <div aria-hidden className="pointer-events-none absolute -top-1 left-2 right-[-3px] h-8 rounded-2xl border border-slate-800/80 bg-slate-900/30" />
-      <div className="relative rounded-2xl border border-slate-800 bg-slate-900/40 shadow-md">
+    //
+    // WARUM KLEINERE slate-ZAHLEN ALS DIE KARTE (Jan, 24.09.2026: „noch etwas dunkler /
+    // staerker sichtbar, und im dark-mode praktisch garnicht zu erkennen bisher"): zuerst
+    // trugen die Blaetter `border-slate-800` wie die Karte — und `slate-800` liegt auf dunklem
+    // Grund praktisch auf dem Hintergrund, im Dark Mode war also nichts zu sehen. Die
+    // slate-Skala ist GESPIEGELT (s. scripts/check-contrast.mjs): eine kleinere Zahl wird auf
+    // Dunkel heller UND auf Hell dunkler. `slate-600`/`slate-500` heben sich damit in beiden
+    // Modi ab, ohne ein `dark:`-Gegenstueck und ohne zwei Wahrheiten.
+    //
+    // Die Blaetter sind DECKEND (`bg-slate-900`, nicht `/20`): ein durchscheinendes Blatt nimmt
+    // die Farbe des Hintergrunds an und ist damit genau das, was es nicht sein soll — ein
+    // Hauch. Ein Stapel besteht aus Papier, nicht aus Nebel.
+    <div className="relative mt-4">
+      <div aria-hidden className="pointer-events-none absolute -top-3 left-5 right-[-10px] h-10 rounded-2xl border border-slate-600/70 bg-slate-900" />
+      <div aria-hidden className="pointer-events-none absolute -top-1.5 left-2.5 right-[-5px] h-10 rounded-2xl border border-slate-500/80 bg-slate-900" />
+      <div className="relative rounded-2xl border border-slate-600 bg-slate-900/40 shadow-lg">
       <button
         onClick={() => setOpen((o) => !o)}
         className="flex w-full items-start gap-3 rounded-2xl px-4 py-3 text-left transition-colors hover:bg-slate-800/40"
