@@ -36,8 +36,8 @@ android {
         // 9 Punkte). Der Sprung ueber die noch nicht freigegebene 1.1.21 ist Absicht — Play
         // hat sie schon, ein zweites Einreichen derselben Nummer geht nicht.
         // Nebeneffekt: das „x" stimmt damit wieder mit WEAR (1.2.22) zusammen.
-        versionCode = 45
-        versionName = "1.1.31"
+        versionCode = 46
+        versionName = "1.1.32"
     }
     buildFeatures { compose = true; buildConfig = true }
     composeOptions { kotlinCompilerExtensionVersion = "1.5.14" }
