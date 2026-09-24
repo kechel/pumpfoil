@@ -895,7 +895,15 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
     // …UND DIE KARTE SELBST MUSS ES AUCH SEIN (Jan, 24.09.2026: „das ist transparent und nicht
     // der gewuenschte effekt vermute ich mal"). Sie war halbdurchsichtig, die Blaetter schienen
     // mitten durch sie hindurch, und statt eines Stapels sah man ein Drahtgitter. Deshalb zwei
-    // Ebenen: aussen `bg-slate-950` (die Seitenfarbe, deckend), innen der Schleier.
+    // Ebenen: aussen `bg-slate-950` (die Seitenfarbe, deckend), innen der Schleier. Das ergibt
+    // rechnerisch DENSELBEN Ton wie eine Einzelkarte, die mit `bg-slate-900/60` ueber `#root`
+    // (ebenfalls `slate-950`) liegt — im Light Mode beide Male rgb(244 247 250).
+    //
+    // DER SCHATTEN IST DESHALB KLEIN (Jan, 24.09.2026: „ist der hintergrund der gruppenkachel
+    // jetzt wieder weiss ploetzlich?"). War er nicht — die Fuellung war schon dieselbe. Aber
+    // `shadow-lg` legte im Light Mode einen grauen Hof um die Karte, und gegen den liest das
+    // Auge die Flaeche als weiss, waehrend die Nachbarkarten ganz ohne Schatten danebenliegen.
+    // `shadow-sm` genuegt fuer die Andeutung „hier liegt etwas obenauf".
     //
     // DER SCHLEIER IST `bg-slate-900/60`, NICHT `/40` (Jan, 24.09.2026: „den hintergrund der
     // gruppenkachel nich schwarz/weiss sondern genauso wie einzelsessions"). Genau das ist der
@@ -908,7 +916,7 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
     // Kante begleitet und nicht nur als Zipfel oben rechts steht.
     <div className="relative mt-2.5">
       <div aria-hidden className="pointer-events-none absolute -top-1.5 bottom-1.5 left-2 right-[-5px] rounded-2xl border border-slate-800 bg-slate-800" />
-      <div className="relative rounded-2xl border border-slate-800 bg-slate-950 shadow-lg">
+      <div className="relative rounded-2xl border border-slate-800 bg-slate-950 shadow-sm">
       <div className="rounded-2xl bg-slate-900/60">
       <button
         onClick={() => setOpen((o) => !o)}
