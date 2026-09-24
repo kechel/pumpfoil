@@ -609,6 +609,26 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # EINGEREICHT 24.09.2026 (Jans Meldung: „android ist schon hochgeladen und zur
+    # pruefung eingereicht"). Play und Wear gehen IMMER zusammen — eine Einreichung,
+    # eine Mail, zwei Spuren.
+    # EIN Eintrag fuer beide Spuren, und der Name muss WOERTLICH in `PRUEFER` stehen —
+    # `_note` schlaegt ihn dort nach und wirft sonst einen KeyError (am 24.09. genau so
+    # passiert: zwei getrennte Eintraege „Android phone" und „Wear OS" aus NAECHSTES
+    # uebernommen, `/api/app/releases` antwortete 500). In NAECHSTES sind sie getrennt
+    # erlaubt, weil dort kein Pruefer nachgeschlagen wird.
+    {"name": "Android phone + Wear OS", "version": "1.1.32 / 1.2.32",
+     "eingereicht": "2026-09-24",
+     "items": [
+         "A recording can be paused, and what is already recorded goes up while you wait.",
+         "Changes you make to your profile reach the watch right after an upload, not just at "
+         "the next start.",
+         "Foil Scoot is a sport you can pick for a session.",
+         "The phone recorder shows how far along an upload is, with a bar that moves.",
+         "An interrupted upload picks itself up when you open the app again.",
+         "When the community passes a round number — 1,000 foilers, 1,000 spots, a million "
+         "pumps — that number quietly celebrates for a while.",
+     ]},
     {"name": "Amazfit", "version": "1.0.12",
      # EINGEREICHT 24.09.2026: im Zepp-Entwicklerkonto steht 1.0.12 auf „Under Review (Can be
      # Withdrawn)", Application Time 2026.09.24; 1.0.11 daneben weiter „Approved".
@@ -661,20 +681,6 @@ NAECHSTES: list[dict] = [
     # android als coming next anstehen wuerde"). Sie standen nicht hier, weil es bis zum Bump
     # keine Versionsnummer gab — nicht, weil nichts fertig waere. Der Schnitt liegt jeweils bei
     # der letzten Freigabe: Android/Wear 22.09., iOS 21.09., Garmin 20.09.
-    {"name": "Android phone", "version": "1.1.32",
-     "items": [
-         "Foil Scoot is a sport you can pick for a session.",
-         "The phone recorder shows how far along an upload is, with a bar that moves.",
-         "An interrupted upload picks itself up when you open the app again.",
-         "When the community passes a round number — 1,000 foilers, 1,000 spots, a million "
-         "pumps — that number quietly celebrates for a while.",
-     ]},
-    {"name": "Wear OS", "version": "1.2.32",
-     "items": [
-         "A recording can be paused, and what is already recorded goes up while you wait.",
-         "Changes you make to your profile reach the watch right after an upload, not just at "
-         "the next start.",
-     ]},
     {"name": "iPhone + Apple Watch", "version": "1.1.37",
      "items": [
          "Foil Scoot is a sport you can pick for a session.",
