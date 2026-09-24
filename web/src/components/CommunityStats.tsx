@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import { useNumberFormat, useT } from "../i18n";
-import { usePumpPuls } from "../lib/pumpPulse";
+import { MEILENSTEIN_LEUTE, MEILENSTEIN_PUMPS, useMeilensteinPuls } from "../lib/pumpPulse";
 
 // Schlanke Stats-Leiste (nur die Zahlen aus dem Willkommens-Banner), dauerhaft oben im
 // Community-Bereich. Nutzt denselben Satz/Endpoint; Zahlen (§-markiert) fett/cyan.
@@ -24,7 +24,11 @@ export function CommunityStats({ className = "" }: { className?: string }) {
     }).catch(() => {});
     return () => { lebt = false; };
   }, []);
-  const puls = usePumpPuls(stats?.pumps);
+  // Drei Zahlen mit eigener Stufe. Sessions bleibt bewusst aussen vor: sie waechst am
+  // schnellsten und haette staendig einen frischen Tausender, der Puls verloere seinen Wert.
+  const pulsPumps = useMeilensteinPuls(stats?.pumps, MEILENSTEIN_PUMPS);
+  const pulsFoiler = useMeilensteinPuls(stats?.foilers, MEILENSTEIN_LEUTE);
+  const pulsSpots = useMeilensteinPuls(stats?.spots, MEILENSTEIN_LEUTE);
   if (!stats) return null;
 
   // Alle vier Zahlen durch den sprachabhaengigen Formatierer (auch sessions/foilers wachsen
@@ -33,14 +37,21 @@ export function CommunityStats({ className = "" }: { className?: string }) {
     foilers: nf(stats.foilers), spots: nf(stats.spots), sessions: nf(stats.sessions), pumps: nf(stats.pumps),
   }).split("§");
 
+  const pulst = (teil: string) =>
+    (pulsPumps && teil === nf(stats.pumps))
+    || (pulsFoiler && teil === nf(stats.foilers))
+    || (pulsSpots && teil === nf(stats.spots));
+
   return (
     <div className={`rounded-xl border border-brand-500/30 bg-gradient-to-br from-brand-500/15 via-brand-400/10 to-transparent px-4 py-1.5 text-sm text-slate-300 ${className}`}>
       {parts.map((p, i) =>
         i % 2 === 1
           ? <span key={i} className={"font-bold tabular-nums text-brand-600 dark:text-brand-300"
-              /* NUR die Pump-Zahl pulsiert — erkannt am Wert, nicht an der Position: die
-                 Wortstellung des Satzes ist je Sprache anders. */
-              + (puls && p === nf(stats.pumps) ? " pf-million" : "")}>{p}</span>
+              /* Erkannt am WERT, nicht an der Position: die Wortstellung des Satzes ist je
+                 Sprache anders. Haetten zwei Zahlen zufaellig denselben Wert, pulsten beide —
+                 das waere sichtbar, aber harmlos, und die Alternative waere ein zweiter
+                 Platzhalter-Satz je Sprache. */
+              + (pulst(p) ? " pf-million" : "")}>{p}</span>
           : <span key={i}>{p}</span>
       )}
     </div>

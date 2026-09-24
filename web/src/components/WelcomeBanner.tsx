@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, NewsBanner } from "../lib/api";
 import { useI18n, formatNumber } from "../i18n";
-import { usePumpPuls } from "../lib/pumpPulse";
+import { MEILENSTEIN_LEUTE, MEILENSTEIN_PUMPS, useMeilensteinPuls } from "../lib/pumpPulse";
 import { CloseIcon, MailIcon } from "./Icons";
 
 // Willkommens-/News-Banner oben im Start-Bereich. Inhalt + Version kommen aus der DB
@@ -43,7 +43,14 @@ export function WelcomeBanner() {
       }).split("§")
     : [];
 
-  const puls = usePumpPuls(stats?.pumps);
+  // Wie in CommunityStats: drei Zahlen mit eigener Stufe, Sessions bewusst nicht.
+  const pulsPumps = useMeilensteinPuls(stats?.pumps, MEILENSTEIN_PUMPS);
+  const pulsFoiler = useMeilensteinPuls(stats?.foilers, MEILENSTEIN_LEUTE);
+  const pulsSpots = useMeilensteinPuls(stats?.spots, MEILENSTEIN_LEUTE);
+  const pulst = (teil: string) => !!stats && (
+    (pulsPumps && teil === formatNumber(stats.pumps, lang))
+    || (pulsFoiler && teil === formatNumber(stats.foilers, lang))
+    || (pulsSpots && teil === formatNumber(stats.spots, lang)));
 
   // Das ✉️ im Banner-Text ist ein Platzhalter → hier durchs echte Umschlag-Icon ersetzen
   // (identisch zum Feedback-Tab rechts), damit Text und Button-Icon zusammenpassen.
@@ -68,9 +75,8 @@ export function WelcomeBanner() {
           {parts.map((p, i) =>
             i % 2 === 1
               ? <span key={i} className={"font-bold tabular-nums text-brand-600 dark:text-brand-300"
-                  /* NUR die Pump-Zahl pulsiert — erkannt am Wert, nicht an der Position: die
-                     Wortstellung des Satzes ist je Sprache anders. */
-                  + (puls && stats && p === formatNumber(stats.pumps, lang) ? " pf-million" : "")}>{p}</span>
+                  /* Erkannt am WERT, nicht an der Position — s. CommunityStats. */
+                  + (pulst(p) ? " pf-million" : "")}>{p}</span>
               : <span key={i}>{p}</span>
           )}
         </p>

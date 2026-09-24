@@ -2,29 +2,51 @@ import { useEffect, useState } from "react";
 import { api } from "./api";
 
 /**
- * Wann die Pump-Zahl in der Community-Leiste pulsiert.
+ * Wann eine Zahl in der Community-Leiste pulsiert.
  *
  * Jan, 23.09.2026: „die anzahl pumps 'pulsiert' oder so, sobald die 1.000.000 erreicht ist" —
- * und gleich danach: „mach das pulsieren mal immer an auch schon bei weniger pumps fuer admins,
- * dann kann ich den effekt kontrollieren vorher". Beides steckt hier drin, an EINER Stelle, weil
- * der Satz an zwei Orten gerendert wird (Willkommens-Banner und Community-Leiste) und der
- * Meilenstein nicht an einem davon ausbleiben soll.
+ * am 24.09. erweitert auf Foiler und Spots, dort ab 1.000.
  *
- * Stand am 23.09.2026: 972.235 Pumps. Es sind also keine 28.000 mehr — die Schwelle faellt
- * voraussichtlich in wenigen Wochen, und dann soll es ohne Deploy passieren.
+ * DIE ABSCHALT-REGEL kam aus seiner Rueckfrage („abschalten des pulses haben wir da schon eine
+ * regel fuer?" — hatten wir nicht, es haette ab der Million FUER IMMER gepulst) und ist seine:
+ * „puls bei 1000-1100 fuer nutzer und spots, und 1000000-1100000 bei pumps". Also ein FENSTER
+ * ueber der Stufe, zehn Prozent breit.
+ *
+ * Das ist besser als mein erster Entwurf, der sieben Tage ab dem ersten Sehen zaehlte und sich
+ * das je Betrachter im localStorage merkte: diese Regel braucht keinen Merker, kein Zeitrechnen
+ * und keine Sonderbehandlung fuer private Fenster. Sie steht in der Zahl selbst — wer sie sieht,
+ * sieht denselben Zustand wie alle anderen, und sie erlischt, wenn die Gemeinschaft zehn Prozent
+ * weiter gewachsen ist.
+ *
+ * JEDE STUFE ZAEHLT: das Fenster liegt ueber der jeweils erreichten Stufe, nicht nur ueber der
+ * ersten. Die zweite Million pulst also wieder, von 2.000.000 bis 2.200.000. (Jan hat nur die
+ * erste genannt; das hier ist die naheliegende Verallgemeinerung — falls es NUR beim ersten Mal
+ * sein soll, ist es eine Zeile.)
+ *
+ * Fuer Admins ist es immer an — Jan, 23.09.: „dann kann ich den effekt kontrollieren vorher".
  */
-export const PUMP_MEILENSTEIN = 1_000_000;
+export const MEILENSTEIN_PUMPS = 1_000_000;
+export const MEILENSTEIN_LEUTE = 1_000;      // Foiler und Spots
+const FENSTER = 0.1;                          // zehn Prozent ueber der Stufe
 
-/** true, sobald die Schwelle erreicht ist — oder immer, wenn der Betrachter Admin ist. */
-export function usePumpPuls(pumps: number | null | undefined): boolean {
+/** Liegt der Wert im Feier-Fenster ueber einer erreichten Stufe? */
+export function imMeilensteinFenster(wert: number | null | undefined, stufe: number): boolean {
+  if (wert == null || wert < stufe) return false;
+  const erreicht = Math.floor(wert / stufe) * stufe;
+  return wert < erreicht * (1 + FENSTER);
+}
+
+/** true im Fenster — oder immer, wenn der Betrachter Admin ist. */
+export function useMeilensteinPuls(wert: number | null | undefined, stufe: number): boolean {
+  const imFenster = imMeilensteinFenster(wert, stufe);
   const [admin, setAdmin] = useState(false);
   useEffect(() => {
     let lebt = true;
-    // Nur fragen, wenn es ueberhaupt etwas aendern kann: ist die Schwelle erreicht, pulsiert es
-    // fuer alle, und ein Profil-Abruf waere ein Request fuer nichts.
-    if (pumps != null && pumps >= PUMP_MEILENSTEIN) return;
+    // Nur fragen, wenn es ueberhaupt etwas aendern kann: pulst es schon, waere der Abruf ein
+    // Request fuer nichts.
+    if (imFenster) return;
     api.getProfile().then((p) => { if (lebt) setAdmin(!!p.is_admin); }).catch(() => {});
     return () => { lebt = false; };
-  }, [pumps]);
-  return (pumps != null && pumps >= PUMP_MEILENSTEIN) || admin;
+  }, [imFenster]);
+  return imFenster || admin;
 }
