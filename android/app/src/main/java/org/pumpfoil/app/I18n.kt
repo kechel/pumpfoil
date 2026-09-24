@@ -418,6 +418,11 @@ private fun sTabelle(): Map<String, Map<String, String>> = mapOf(
     "cls.autoWhyPulse" to row("Ausschlaggebend: längster Lauf {dur} s bei Ø {kmh} km/h, und der Puls reagierte kaum ({hr} bpm).", "Uusschlaggebend: längste Lauf {dur} s bi Ø {kmh} km/h, und de Puls het chuum reagiert ({hr} bpm).", "Ausschlaggebend: längster Lauf {dur} s bei Ø {kmh} km/h, und der Puls hat kaum reagiert ({hr} bpm).", "What decided it: longest run {dur} s at {kmh} km/h on average, and your heart rate barely responded ({hr} bpm).", "Ce qui a décidé : run le plus long {dur} s à {kmh} km/h de moyenne, et la fréquence cardiaque n’a presque pas réagi ({hr} bpm).", "Elemento decisivo: run più lungo {dur} s a {kmh} km/h di media, e la frequenza cardiaca non ha quasi reagito ({hr} bpm).", "Lo decisivo: run más largo {dur} s a {kmh} km/h de media, y la frecuencia cardíaca apenas reaccionó ({hr} bpm)."),
     "nav.home" to row("Home", "Home", "Start", "Home", "Accueil", "Home", "Inicio"),
     "upload.title" to row("Session lädt hoch", "Session lauft ue", "Session lädt hoch", "Session uploading", "Session en cours d'envoi", "Sessione in caricamento", "Subiendo sesión"),
+    // Reine Zahlenzeile — deshalb in allen Sprachen dieselbe Form; uebersetzt ist das Wort
+    // daneben (`upload.title`). Sie FEHLTE bis 24.09.2026 ganz: `I18n.t` gibt bei einem
+    // unbekannten Schluessel den Schluessel zurueck, auf dem Balken stand also woertlich
+    // „upload.progressPct" statt „45 % · 12/27".
+    "upload.progressPct" to row("{pct} % · {n}/{total}", "{pct} % · {n}/{total}", "{pct} % · {n}/{total}", "{pct}% · {n}/{total}", "{pct} % · {n}/{total}", "{pct}% · {n}/{total}", "{pct}% · {n}/{total}"),
     "upload.gpsReady" to row("GPS-Daten da", "GPS-Date da", "GPS-Daten da", "GPS data received", "Données GPS reçues", "Dati GPS ricevuti", "Datos GPS recibidos"),
     "upload.waiting" to row("Warte auf Daten…", "Warte uf Date…", "Warte auf Daten…", "Waiting for data…", "En attente de données…", "In attesa di dati…", "Esperando datos…"),
     "upload.chunks" to row("{n} Teile hochgeladen", "{n} Teil ueglade", "{n} Teile hochgeladen", "{n} parts uploaded", "{n} parties envoyées", "{n} parti caricate", "{n} partes subidas"),
