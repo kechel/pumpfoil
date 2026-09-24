@@ -741,8 +741,20 @@ IDEEN: list[str] = [
     "Make the Garmin data pages easier to set up. The current screen configuration confuses "
     "people, and rightly so.",
     "More watch brands, wherever the maker lets an app or an export through.",
-    "Sponsored campaigns: a local business puts up a small amount per pump at your spot, for a "
-    "cause you pick.",
+    # Die Erkennung laeuft heute NUR, wo ohnehin Pumpfoil behauptet wird (analysis/__init__.py:
+    # `sport_class == "pumpfoil"`), zweifelt also keine anderslautende Profil-Einstellung an.
+    # Jans Fall faellt damit durch. Detektor-Arbeit, braucht sein OK.
+    "Sort a recording into the right sport from the data itself. If your profile says wing "
+    "foiling but a session is clearly pumpfoil, it should be filed as pumpfoil without you "
+    "having to say so.",
+    # Der Antragsweg ins Garmin Connect Developer Program ist seit Monaten zu (17.08. geprueft,
+    # Memory `garmin-connect-integration-deferred`). Der Satz sagt das, ohne zu jammern: es
+    # liegt nicht an uns, und es aendert sich, wenn Garmin es aendert.
+    "Bring rides in straight from Garmin Connect. Garmin has its developer programme closed "
+    "at the moment, so this one is not in our hands — it goes in the day it opens again.",
+    "Numbers that only a phone on the board can give: how far the board pitched and rolled "
+    "through a run, split by how long the run lasted — half a minute, a minute, five minutes, "
+    "longer.",
 ]
 
 def _ver_tupel(v: str) -> tuple[int, ...]:
