@@ -182,20 +182,24 @@ html.demo-names .pf-avatar {
 
    `inline-block` ist noetig, weil `transform` an Inline-Elementen nicht wirkt. */
 @keyframes pf-million {
-  0%, 100% { transform: scale(1);    filter: brightness(1);   text-shadow: none; }
-  50%      { transform: scale(1.09); filter: brightness(1.35);
-             text-shadow: 0 0 0.45em currentColor; }
+  0%, 100% { transform: scale(1);     filter: brightness(1);   text-shadow: none; }
+  50%      { transform: scale(1.035); filter: brightness(1.16);
+             text-shadow: 0 0 0.28em currentColor; }
 }
 /* Hellmodus: SATTER statt heller. Der Hoehepunkt geht Richtung brand-700, der Schein bleibt,
    weil ein cyanfarbener Hauch auf Weiss gut sichtbar ist. */
 @keyframes pf-million-hell {
-  0%, 100% { transform: scale(1);    filter: brightness(1) saturate(1);      text-shadow: none; }
-  50%      { transform: scale(1.09); filter: brightness(0.86) saturate(1.3);
-             text-shadow: 0 0 0.4em currentColor; }
+  0%, 100% { transform: scale(1);     filter: brightness(1) saturate(1);      text-shadow: none; }
+  50%      { transform: scale(1.035); filter: brightness(0.94) saturate(1.12);
+             text-shadow: 0 0 0.25em currentColor; }
 }
+/* ZURUECKHALTEND (Jan, 24.09.2026: „das pulsieren etwas weniger stark"). Die Zahl steht in
+   einer Zeile mit drei anderen und soll auffallen, nicht ablenken — sie zuckt sonst staendig
+   im Augenwinkel, waehrend man daneben etwas liest. Langsamer wirkt dabei ruhiger als kleiner:
+   2,4 s statt 1,6 s nimmt mehr Unruhe als jede Verkleinerung des Ausschlags. */
 .pf-million {
   display: inline-block;
-  animation: pf-million 1.6s ease-in-out infinite;
+  animation: pf-million 2.4s ease-in-out infinite;
 }
 html.theme-light .pf-million {
   animation-name: pf-million-hell;
