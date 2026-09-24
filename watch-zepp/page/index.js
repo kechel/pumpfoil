@@ -566,7 +566,6 @@ const S = {
   "rec.paused":      ["Pausiert", "Pausiert", "Pausiert", "Paused", "En pause", "In pausa", "En pausa", "Pausado", "Dijeda", "Пауза", "Gepauzeerd", "Tauolla", "Pozastaveno", "一時停止中", "已暂停"],
   "rec.discard":     ["Verwerfen", "Verwärfe", "Verwerfen", "Discard", "Supprimer", "Scarta", "Descartar", "Descartar", "Buang", "Удалить", "Weggooien", "Hylkää", "Zahodit", "破棄", "丢弃"],
   "rec.discarded":   ["Verworfen", "Verworfe", "Verworfen", "Discarded", "Supprimé", "Scartata", "Descartada", "Descartada", "Dibuang", "Удалено", "Weggegooid", "Hylätty", "Zahozeno", "破棄しました", "已丢弃"],
-  "rec.discardHold": ["2 s halten = verwerfen", "2 s halte = verwärfe", "2 s halten = verwerfen", "Hold 2 s = discard", "Maintenir 2 s = supprimer", "Tieni 2 s = scarta", "Mantén 2 s = descartar", "Segurar 2 s = descartar", "Tahan 2 dtk = buang", "Держать 2 с = удалить", "2 s vasthouden = weggooien", "Pidä 2 s = hylkää", "Podržet 2 s = zahodit", "2秒長押しで破棄", "长按2秒丢弃"],
   "rec.stopHold":    ["Halten", "Halte", "Halten", "Hold", "Maintenir", "Tieni", "Mantén", "Segurar", "Tahan", "Держать", "Vasthouden", "Pidä", "Podržet", "長押し", "长按"],
   "rec.holdFree":    ["2 s halten = Touch frei", "2 s halte = Touch frei", "2 s halten = Touch frei", "Hold 2 s = touch free", "2 s = tactile libre", "2 s = touch libero", "2 s = táctil libre", "2 s = toque livre", "2 s = sentuh bebas", "2 с = касания вкл.", "2 s = touch vrij", "2 s = kosketus auki", "2 s = dotyk volný", "2秒長押しでタッチ解除", "长按2秒解锁触摸"],
   "menu.touchLock":  ["Touch-Sperre", "Touch-Sperri", "Touch-Sperre", "Touch lock", "Verrou tactile", "Blocco touch", "Bloqueo táctil", "Bloqueio do toque", "Kunci sentuh", "Блокировка касаний", "Touchvergrendeling", "Kosketuslukko", "Zámek dotyku", "タッチロック", "触摸锁定"],
@@ -684,7 +683,6 @@ const PL = {
   "rec.resume": "Wznów",
   "rec.paused": "Pauza",
   "rec.discard": "Odrzuć",
-  "rec.discardHold": "Przytrzymaj 2 s = odrzuć",
   "rec.discarded": "Odrzucono",
   "rec.stopHold": "Trzymaj",
   "rec.uploadNow": "Wyślij teraz",
@@ -721,7 +719,6 @@ const NB = {
   "rec.resume": "Fortsett",
   "rec.paused": "Pauset",
   "rec.discard": "Forkast",
-  "rec.discardHold": "Hold 2 s = forkast",
   "rec.discarded": "Forkastet",
   "rec.holdFree": "Hold 2 s = berøring fri",
   "menu.touchLock": "Berøringslås",
@@ -2742,7 +2739,12 @@ Page(
         this._clearLayout();
         w.page.setProperty(hmUI.prop.TEXT, "");
         this.setSlots([t("rec.discard"), ""], ["", ""], ["", ""]);
-        w.status.setProperty(hmUI.prop.TEXT, t("rec.discardHold"));
+        // KEIN Hinweis auf ein Halten (Jan, 24.09.2026: „das hat aber noch nie gestimmt sondern
+        // da es ein eigener screen ist reicht ein klick"). Er stand hier, weil die anderen Uhren
+        // ihn haben — dort ist das Verwerfen aber keine eigene Seite, sondern ein Knopf zwischen
+        // anderen, und das Halten IST dort der Schutz. Hier schuetzt die Rueckfrage, und einen
+        // Weg zu beschreiben, den es nicht gibt, ist schlimmer als gar nichts zu schreiben.
+        w.status.setProperty(hmUI.prop.TEXT, "");
         return;
       }
       if (this._istStopp(s.page)) {
