@@ -1978,8 +1978,10 @@ Page(
           // wuerde sie ueberdecken.
           this.hideButton();
         } else if (this._istStopp(s.page)) {
-          if (s.paused) this.setButton(t("rec.resume"), CYAN, CYAN_P, INK, () => this.resume());
-          else this.setButton(t("btn.stop"), RED, RED_P, WHITE, () => this.stop());
+          // IMMER Stopp, auch in der Pause. Fortsetzen liegt eine Seite weiter aussen, auf der
+          // Aktionsseite — zwei Bildschirme mit demselben Knopf waeren nur verwirrend, und
+          // dieser hier heisst nach dem, was er tut.
+          this.setButton(t("btn.stop"), RED, RED_P, WHITE, () => this.stop());
         }
         else this.hideButton();
       } else if (s.screen === "summary") {
@@ -2821,7 +2823,7 @@ Page(
         // KEIN erklaerender Text mehr (Jan, 24.09.2026: „bei stop genau das gleiche"). Hier
         // stand „Hold = STOP · Pause" — und das beschrieb Tastengesten auf einem Bildschirm,
         // dessen Knopf etwas anderes tut. Der Knopf sagt STOP; mehr braucht es nicht.
-        w.status.setProperty(hmUI.prop.TEXT, s.paused ? t("rec.paused") : "");
+        w.status.setProperty(hmUI.prop.TEXT, "");
         return;
       }
       const pg = this._ringIndex(s.page), entry = ring[pg] || ring[0];
