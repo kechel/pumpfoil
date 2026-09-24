@@ -621,6 +621,22 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    {"name": "iPhone + Apple Watch", "version": "1.1.37",
+     # EINGEREICHT 24.09.2026 um 11:32 (App Store Connect: Uebermittlung „iOS 1.1.37",
+     # Status „Warten auf Pruefung"). Die 1.1.36 daneben steht auf „Pruefung abgeschlossen".
+     "eingereicht": "2026-09-24",
+     "items": [
+         "Foil Scoot is a sport you can pick for a session.",
+         "The phone recorder shows how far along an upload is, with a bar that moves — on "
+         "every screen, not just while recording.",
+         "An interrupted upload picks itself up when you open the app again.",
+         "When the community passes a round number — 1,000 foilers, 1,000 spots, a million "
+         "pumps — that number quietly celebrates for a while.",
+         "A recording on the Apple Watch can be paused, and what is already recorded goes up "
+         "while you wait.",
+         "Changes you make to your profile reach the Apple Watch right after an upload, not "
+         "just at the next start.",
+     ]},
     # EINGEREICHT 24.09.2026 (Jans Meldung: „android ist schon hochgeladen und zur
     # pruefung eingereicht"). Play und Wear gehen IMMER zusammen — eine Einreichung,
     # eine Mail, zwei Spuren.
@@ -689,23 +705,8 @@ IN_REVIEW: list[dict] = [
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
-    # Nachgetragen am 24.09.2026 (Jan: „ich sehe nichts im changelog was bei garmin, ios oder
-    # android als coming next anstehen wuerde"). Sie standen nicht hier, weil es bis zum Bump
-    # keine Versionsnummer gab — nicht, weil nichts fertig waere. Der Schnitt liegt jeweils bei
-    # der letzten Freigabe: Android/Wear 22.09., iOS 21.09., Garmin 20.09.
-    {"name": "iPhone + Apple Watch", "version": "1.1.37",
-     "items": [
-         "Foil Scoot is a sport you can pick for a session.",
-         "The phone recorder shows how far along an upload is, with a bar that moves — on "
-         "every screen, not just while recording.",
-         "An interrupted upload picks itself up when you open the app again.",
-         "When the community passes a round number — 1,000 foilers, 1,000 spots, a million "
-         "pumps — that number quietly celebrates for a while.",
-         "A recording on the Apple Watch can be paused, and what is already recorded goes up "
-         "while you wait.",
-         "Changes you make to your profile reach the Apple Watch right after an upload, not "
-         "just at the next start.",
-     ]},
+    # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
+    # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.
 ]
 
 
