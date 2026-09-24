@@ -165,7 +165,7 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
     return Math.max(0, (bis - von) - plan.dauerMs) / 60000;
   }, [plan]);
   const [spielt, setSpielt] = useState(false);
-  const [tempo, setTempo] = useState(8);
+  const [tempo, setTempo] = useState(1);   // Echtzeit, wie in der Session-Ansicht
   const [pos, setPos] = useState(0);            // ms in der Wiedergabe (ohne die Leerlaufzeiten)
   const posRef = useRef(0);
   const spielerLayer = useRef<L.LayerGroup | null>(null);
