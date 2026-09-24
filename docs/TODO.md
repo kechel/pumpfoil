@@ -1413,6 +1413,17 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 
 
+
+- **🔲 24.09. — Ein ungemeldeter Absturz kann nach einem NEU-PAIRING auf dem neuen Token landen.**
+  Am 24.09. im Emulator beobachtet: Uhr #1153 wurde 08:04:39 gepairt und meldete in derselben
+  Sekunde `crash_count = 1`, Phase 3 — von einem App-Ende, das vor ihrem Token lag. Das ist der
+  Waechter, der korrekt arbeitet (die Meldung bleibt liegen, bis der Server sie bestaetigt, s.
+  `crashUebernehmen`), aber fuer die Statistik schief: dieselbe physische Uhr, neuer Eintrag, und
+  der neue startet nicht bei null. **Kein Fehler und nichts, was einen Nutzer trifft** — nur zu
+  wissen, wenn jemand `crash_count` je Geraet auswertet. Sauber waere, den Merker beim Pairing
+  mitzunehmen ODER ihn beim Token-Wechsel zu verwerfen; welches richtig ist, haengt daran, ob man
+  die UHR oder die INSTALLATION zaehlen will. Im Feld selten (Neu-Pairing passiert kaum), im
+  Emulator dauernd.
 - **🔲 24.09. — Zepp fehlt „Verwerfen ohne Speichern" (ganz links und ganz rechts vom Stop-Screen).**
   Jan: „es fehlt der screen gaaaanz links und gaaanz rechts vor/nach dem STOP screen zum VERWERFEN
   ohne zu speichern". **Apple macht es genau so** und ist die Vorlage:
