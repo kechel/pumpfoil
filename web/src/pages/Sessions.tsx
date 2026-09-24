@@ -464,6 +464,8 @@ function MySessionsList({ myName, accelOnly, onShowAll }:
   const offsetRef = useRef(0);
   const hasMoreRef = useRef(true);
   const loadingRef = useRef(false);
+  // Generationszaehler gegen veraltete Antworten beim Filter-/Monatswechsel (s. fetchPage).
+  const meinLaufRef = useRef(0);
   const cacheKey = () => `${filterRef.current}|${monthRef.current}|${accelRef.current}`;
   const restoreRef = useRef(false);                 // nach Cache-Restore die markierte Karte einscrollen
   const itemsRef = useRef<SessionSummary[]>([]);    // stets aktuelle Items (für Cache beim Unmount)
@@ -476,8 +478,13 @@ function MySessionsList({ myName, accelOnly, onShowAll }:
   };
 
   async function fetchPage(monthVal: string, replace: boolean) {
-    if (loadingRef.current) return;
+    // Beim NEU-Aufbau gewinnt immer der neue Abruf: eine noch laufende Anfrage gehoert zum alten
+    // Filter, ihre Sperre darf den Wechsel nicht blockieren. Dieselbe Wettlauf-Klasse wie in der
+    // Community-Liste (s. `laufRef` dort) — nur faellt sie hier weniger auf, weil „meine"
+    // Sessions ueberall dieselben Karten zeigen und nur die Auswahl falsch waere.
+    if (replace) meinLaufRef.current += 1; else if (loadingRef.current) return;
     if (!replace && !hasMoreRef.current) return;
+    const lauf = meinLaufRef.current;
     loadingRef.current = true; setLoading(true); setError(null);
     try {
       const off = replace ? 0 : offsetRef.current;
@@ -486,14 +493,15 @@ function MySessionsList({ myName, accelOnly, onShowAll }:
       // und man sieht denselben Stand wie vorher — Jans Befund 21.09.2026. Beim Nachladen
       // weiterer Seiten ist der Cache dagegen erwuenscht (alte Seiten aendern sich nicht).
       const page = await api.sessions({ limit: PAGE, offset: off, month: monthVal || undefined, filter: filterRef.current, accelOnly: accelRef.current, fresh: replace });
+      if (lauf !== meinLaufRef.current) return;   // Filter hat gewechselt -> Antwort ist veraltet
       offsetRef.current = off + page.length;
       hasMoreRef.current = page.length === PAGE;
       setHasMore(hasMoreRef.current);
       setItems((prev) => (replace ? page : [...prev, ...page]));
     } catch (e) {
-      setError(String(e));
+      if (lauf === meinLaufRef.current) setError(String(e));
     } finally {
-      loadingRef.current = false; setLoading(false);
+      if (lauf === meinLaufRef.current) { loadingRef.current = false; setLoading(false); }
     }
   }
 
@@ -501,11 +509,13 @@ function MySessionsList({ myName, accelOnly, onShowAll }:
   // seither hochgeladene Sessions oben einfügen. So bleibt Scroll/Position beim Zurück
   // aus dem Detail erhalten, aber neue Sessions erscheinen sofort (Cache „greift" online nicht dauerhaft).
   async function revalidateHead(monthVal: string) {
+    const lauf = meinLaufRef.current;
     try {
       // `fresh: true` geht am Service-Worker-Cache vorbei. Ohne das bekaeme die Nachpruefung
       // seit 15.09. dieselbe gecachte Antwort wie die Anzeige (StaleWhileRevalidate) und
       // koennte nie etwas Neues melden.
       const fresh = await api.sessions({ limit: PAGE, offset: 0, month: monthVal || undefined, filter: filterRef.current, accelOnly: accelRef.current, fresh: true });
+      if (lauf !== meinLaufRef.current) return;   // waehrend des Abrufs den Filter gewechselt
       const known = new Set(itemsRef.current.map((s) => s.id));
       const added = fresh.filter((s) => !known.has(s.id));
       // Bekannte Eintraege MITziehen, nicht nur neue einfuegen: sonst bleibt eine anderswo
@@ -976,6 +986,16 @@ function CommunityList({ name, spot, accelOnly, onShowAll }:
   const sentinel = useRef<HTMLDivElement>(null);
   const restoreRef = useRef(false);
   const itemsRef = useRef<CommunityGroup[]>([]);
+  // WETTLAUF-SPERRE (Jan, 24.09.2026: „wenn ich einen spot auswaehle sind da manchmal noch ganz
+  // andere sessions mit drin, Nateone ist ganz woanders gefahren").
+  //
+  // Jeder Filterwechsel zaehlt hier hoch. Eine Antwort, die zu einer aelteren Generation gehoert,
+  // wird verworfen, statt in die Liste zu laufen. Ohne das passierte zweierlei: `loadingRef`
+  // stand beim Wechsel noch vom vorigen Abruf auf `true`, der NEUE `load(true)` stieg deshalb
+  // sofort wieder aus — und die Antwort des ALTEN Spots schrieb danach ihre Zeilen in die neue
+  // Liste. Die Ueberschrift sagte Jettkofen, der Inhalt war der vorige Filter. Die Karten selbst
+  // waren echt (deshalb das fremde Spot-Abzeichen), sie gehoerten nur nicht dorthin.
+  const laufRef = useRef(0);
   const lastViewed = getLastSession();
 
   // Spot, an dem der Filter "nur präzise" mehr verbirgt als er zeigt: automatisch auf "alle"
@@ -1004,16 +1024,21 @@ function CommunityList({ name, spot, accelOnly, onShowAll }:
   const load = (reset: boolean) => {
     if (loadingRef.current || (!reset && !moreRef.current)) return;
     loadingRef.current = true; setLoading(true);
+    const lauf = laufRef.current;
     const off = reset ? 0 : offsetRef.current;
     api.communitySessionsGrouped(PAGE, off, { name: name || undefined, spot: spot || undefined, accelOnly, sport: "all" })
       .then((rows) => {
+        if (lauf !== laufRef.current) return;   // Filter hat gewechselt -> Antwort ist veraltet
         offsetRef.current = off + rows.length;
         moreRef.current = rows.length === PAGE;
         setItems((prev) => (reset ? rows : [...prev, ...rows]));
         maybeShowAll(rows, off);
       })
       .catch(() => {})
-      .finally(() => { loadingRef.current = false; setLoading(false); });
+      .finally(() => {
+        if (lauf !== laufRef.current) return;   // die neue Generation fuehrt bereits
+        loadingRef.current = false; setLoading(false);
+      });
   };
 
   // Erste Seite frisch holen und einmischen — das Gegenstueck zu `revalidateHead` der
@@ -1028,9 +1053,11 @@ function CommunityList({ name, spot, accelOnly, onShowAll }:
   // einem echten Neuladen plus Weiterscrollen.
   const gruppenKey = (g: CommunityGroup) => `${g.user_id}|${g.date}|${g.spot ?? ""}`;
   async function revalidateCommunityHead() {
+    const lauf = laufRef.current;
     try {
       const fresh = await api.communitySessionsGrouped(
         PAGE, 0, { name: name || undefined, spot: spot || undefined, accelOnly, sport: "all", fresh: true });
+      if (lauf !== laufRef.current) return;   // waehrend des Abrufs den Filter gewechselt
       if (!fresh.length) return;
       const frisch = new Set(fresh.map(gruppenKey));
       const rest = itemsRef.current.filter((g) => !frisch.has(gruppenKey(g)));
@@ -1047,6 +1074,10 @@ function CommunityList({ name, spot, accelOnly, onShowAll }:
   }
 
   useEffect(() => {
+    // Neue Generation. Und die Lade-Sperre ausdruecklich loesen: sie gehoert zum ABGEBROCHENEN
+    // Abruf, nicht zum neuen — bliebe sie stehen, stiege `load(true)` unten sofort wieder aus.
+    laufRef.current += 1;
+    loadingRef.current = false;
     const cached = communityCache.get(`${name}|${spot}|${accelOnly}`);
     if (cached && cached.items.length) {
       setItems(cached.items); offsetRef.current = cached.offset; moreRef.current = cached.more;
