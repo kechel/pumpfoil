@@ -1346,6 +1346,11 @@ export const api = {
   // Lage-Zahlen aus Aufnahmen MIT DEM HANDY AM BRETT (`placement = "board"`). Leere `klassen`
   // heisst: der Nutzer hat keine solche Aufnahme — die Startseite zeigt den Abschnitt dann nicht.
   // Heisst NICHT `boardAttitude` — den Namen hat schon die Lage-Ansicht EINER Session (s. oben).
+  // „Sass das Handy am Brett?" — Verdacht aus den Daten. Der Server antwortet `verdacht: false`
+  // fuer Fremde und fuer bereits markierte Aufnahmen; die Seite muss das nicht selbst pruefen.
+  boardHint: (id: number) => req<{
+    verdacht: boolean; laeufe?: number; nick_roll?: number | null; hub_anteil?: number | null;
+  }>(`/api/sessions/${id}/board-hint`),
   boardAttitudeStats: () => req<{
     gesamt: BoardKlasse[];
     je_foil: { foil_id: number; foil: string; laeufe: number; klassen: BoardKlasse[] }[];

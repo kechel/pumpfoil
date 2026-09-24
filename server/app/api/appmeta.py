@@ -755,6 +755,12 @@ IDEEN: list[str] = [
     "Numbers that only a phone on the board can give: how far the board pitched and rolled "
     "through a run, split by how long the run lasted — half a minute, a minute, five minutes, "
     "longer.",
+    # Uebergang: heute FRAGT die Seite (s. `_brett_verdacht` in api/sessions.py), weil die
+    # Eichung auf vier Beispielen von einem Fahrer steht. Jede Antwort ist ein Label; mit
+    # genug davon wird aus der Frage eine Voreinstellung, und der Haken unten bleibt fuer die
+    # Faelle, in denen sie danebenliegt (Jan, 24.09.2026).
+    "Recognise on its own when the phone was mounted on the board, instead of asking you. The "
+    "tick box stays for the times we get it wrong.",
 ]
 
 def _ver_tupel(v: str) -> tuple[int, ...]:
