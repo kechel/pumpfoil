@@ -157,10 +157,58 @@ class RecorderService : Service(), SensorEventListener {
         }
     }
 
+    /**
+     * WAKE-UP-VARIANTE DES BESCHLEUNIGUNGSSENSORS, wenn der Server sie zulaesst.
+     *
+     * WARUM (Befund 24.09.2026, ausgeloest von Foilberts Meldung „only 8hz"): in 7 von 121
+     * Wear-Sessions lag die gemessene Rate unter 15 Hz statt bei 25, die schlimmste bei 4,9 —
+     * und zwar PHASENWEISE, nicht gleichmaessig, und das GPS brach im selben Takt mit ein.
+     *
+     * `getDefaultSensor(type)` liefert die NON-WAKE-UP-Variante. Deren Werte landen, waehrend der
+     * Prozessor schlaeft, in einem Hardware-FIFO — und der ist laut Android-Sensor-Spezifikation
+     * ein RINGPUFFER: „When a non-wake-up FIFO fills up, it must wrap around and behave like a
+     * circular buffer, overwriting older events" und „the older events are lost; the oldest data
+     * is dropped to accommodate the latest data". Die Aufnahme laeuft also weiter und verliert
+     * trotzdem Samples. Die Wake-up-Variante weckt den Prozessor stattdessen auf: „no event shall
+     * be dropped or lost".
+     * (source.android.com/docs/core/interaction/sensors/suspend-mode und /batching)
+     *
+     * WARUM KEIN WAKELOCK: das war der erste Gedanke und ist die grobe Variante — Prozessor
+     * stundenlang wach. Google verfolgt lange Wake Locks seit Maerz 2026 als
+     * Batterie-Qualitaetsproblem, und in Doze werden sie ohnehin ignoriert. Der Vordergrunddienst
+     * bleibt noetig (er verhindert, dass die App wegraeumt wird), reicht aber allein nicht: er
+     * sagt nichts darueber, ob der Prozessor laeuft.
+     *
+     * WARUM KEIN BATCHING (`maxReportLatencyUs`), obwohl es hier Strom sparen wuerde: unser
+     * Zeitstempel je Block ist die ANKUNFTSZEIT (`Recorder.addAccel` -> `accelT0 = elapsedMs()`).
+     * Kaeme ein ganzer Block auf einmal an, truegen alle seine Samples denselben falschen
+     * Zeitpunkt — und genau darauf steht die `exact_chunks`-Achse des Servers
+     * (docs/DATA-PIPELINE.md). Batching braucht zuerst `SensorEvent.timestamp` als Quelle; das
+     * ist ein eigener Eingriff in den Aufnahmeweg und gehoert nicht in dieselbe Aenderung.
+     *
+     * WARUM HEALTH SERVICES NICHT: `ExerciseClient` liefert abgeleitete Groessen (Puls, Distanz,
+     * Schritte), keinen rohen Beschleunigungssensor. Fuer den Puls nutzen wir es bereits.
+     *
+     * ABSCHALTBAR VOM SERVER (`accelWakeup`, s. api/devices.py), weil niemand vorher weiss, was
+     * es auf welcher Uhr an Akku kostet. Und mit RUECKFALL: nicht jede Uhr hat eine
+     * Wake-up-Variante, `getDefaultSensor(type, true)` gibt dann `null` — dann eben wie bisher.
+     */
+    private fun accelSensor(): Sensor? {
+        val prefs = getSharedPreferences("pumpfoil", Context.MODE_PRIVATE)
+        if (prefs.getString("accel_wakeup", "on") != "off") {
+            sensors.getDefaultSensor(Sensor.TYPE_ACCELEROMETER, true)?.let {
+                android.util.Log.i("Pumpfoil", "Accel: Wake-up-Variante (${it.name})")
+                return it
+            }
+            android.util.Log.i("Pumpfoil", "Accel: keine Wake-up-Variante vorhanden, Rueckfall")
+        }
+        return sensors.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+    }
+
     private fun registerSensors() {
         // Modus "gps": kein Roh-Accel (minimaler Speicher); sonst Rate je Modus (full=25, lite=10).
         if (Recorder.recordMode != "gps") {
-            sensors.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)?.let {
+            accelSensor()?.let {
                 sensors.registerListener(this, it, 1_000_000 / Recorder.accelHzActual) // µs period
             }
         }
