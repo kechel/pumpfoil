@@ -585,6 +585,20 @@ einer aussieht.
   korrekt, die GTR 4 nicht; Ursache war allein der Build von 40 Minuten vorher. **Nach jedem
   Modellwechsel `npm run dev` erneut laufen lassen** und im Log die Zeile
   `device sources: …` gegen die Modellnummer pruefen (GTR 4 = `7930113`, Active 2 = `10092803`).
+- **🔴 Das GTR-4-Abbild im Simulator ist Zepp OS 2.1 — darauf laeuft unsere App nicht.**
+  Aufgeloest am 24.09.2026. In der Geraeteauswahl steht woertlich `GTR 4 v2.1.0`, unsere
+  `app.json` verlangt aber `minVersion 3.0` / `compatible 3.0.0`. Die GTR 4 kam mit Zepp OS 2.x
+  auf den Markt und bekam 3.0 erst per Update nachgeliefert (Firmware 6.3.2.3, spaeter 3.5) —
+  das Abbild ist also der Stand von davor. **Kein App-Fehler und kein Modell-Problem:** eine
+  ECHTE GTR 4 im Feld laeuft mit unserer App (Geraet #670, 1.0.11, Aufnahmen ueber 43 und 33
+  Minuten am 22.09.); auf 2.1 haette sie sich gar nicht erst installieren lassen.
+  Erklaert auch, warum dort nur das Pairing hakt: die App startet und zeichnet auf, aber der
+  Weg zum Handy (`base-page` → App-Side-Worker) braucht die 3.0-Schnittstelle. `shake send`
+  geht raus, nichts kommt zurueck.
+  **Folge fuer 7.2:** gesucht ist eine Uhr OHNE `getPerformance` (API < 4.0), die unsere App
+  aber ausfuehrt — also Zepp OS 3.0 bis 3.5. Ein 2.1-Abbild taugt dafuer nicht. Erst pruefen,
+  ob der Simulator die GTR 4 auch in einer 3.x-Fassung fuehrt (die Auswahl schreibt die Version
+  mit, es koennte also mehrere Eintraege geben).
 - **🔴 Die GTR 4 laeuft im Simulator gar nicht** (Jan, 23.09.: „die gtr 4 ging nie bisher").
   Der Plan hatte sie fuer die Bloecke 6 und 7.2 vorgesehen, weil sie Klettermax' Modell ist —
   das geht so nicht. **Fuer 7.2 wird ein anderes Modell gebraucht, das `getPerformance` NICHT
