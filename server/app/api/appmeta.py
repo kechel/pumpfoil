@@ -207,7 +207,19 @@ _APP_META: dict[str, dict[str, str]] = {
     "garmin": {
         # NUR auf eine im Connect-IQ-Store FREIGEGEBENE Version setzen (Pruefung durch)!
         # Die Garmin-App vergleicht das selbst mit Config.VERSION (SessionRecorder.mc:638).
-        "latest": "1.0.88",   # LIVE im CIQ-Store 2026-09-20, wenige Minuten nach dem Upload —
+        "latest": "1.0.89",   # LIVE im CIQ-Store 2026-09-24, DREIFACH belegt — Store-Seite
+        # (`latestExternalVersion` 1.0.89, `latestInternalVersion` 43), Jans PHYSISCHES Geraet
+        # (Token 297, part_number 006-B4376-00, fenix 7X Pro) und ein zweites (Token 1154,
+        # 006-B3888-00), dazu Sessions ab 11:10 mit `app_version 1.0.89`. Eine echte Uhr
+        # bekommt eine neue Version nur ueber den Store. Jans Wortlaut: „garmin 1.0.89 ist im
+        # store verfuegbar, habe meine echte uhr ueber den iq store geupdated und eine
+        # testsession schon hochgeladen"; die Store-Seite nennt „Latest Release September 24,
+        # 2026 · Version 1.0.89 · Size 77 KB".
+        # Inhalt: Aenderungen im Profil erreichen die Uhr direkt nach einem Upload
+        # (`_profilNachziehen()` in Uploader.mc), nicht erst beim naechsten App-Start.
+        # `watch/bin` traegt 1.0.89 seit 07:13 (129 von 129) — Direktdownload und Store
+        # zeigen damit dieselbe Version.
+        # ALT: "latest": "1.0.88",   # LIVE im CIQ-Store 2026-09-20, wenige Minuten nach dem Upload —
         # bei Garmin der NORMALFALL, nicht die Ausnahme (Jan: „garmin geht immer sehr schnell").
         # BELEG AUS UNSEREN DATEN, nicht nur Jans Meldung: sein PHYSISCHES Geraet (Token 297,
         # part_number 006-B4376-00, fenix 7X Pro) meldete um 08:14:43 noch `1.0.87` und um
@@ -693,11 +705,6 @@ NAECHSTES: list[dict] = [
          "while you wait.",
          "Changes you make to your profile reach the Apple Watch right after an upload, not "
          "just at the next start.",
-     ]},
-    {"name": "Garmin", "version": "1.0.89",
-     "items": [
-         "Changes you make to your profile reach the watch right after an upload, not just at "
-         "the next start.",
      ]},
 ]
 
