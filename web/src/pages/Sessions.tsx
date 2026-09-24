@@ -886,10 +886,21 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
     // Die Blaetter sind DECKEND (`bg-slate-900`, nicht `/20`): ein durchscheinendes Blatt nimmt
     // die Farbe des Hintergrunds an und ist damit genau das, was es nicht sein soll — ein
     // Hauch. Ein Stapel besteht aus Papier, nicht aus Nebel.
+    //
+    // …UND DIE KARTE SELBST MUSS ES AUCH SEIN (Jan, 24.09.2026: „das ist transparent und nicht
+    // der gewuenschte effekt vermute ich mal"). Sie trug `bg-slate-900/40`, also 40 % Deckung —
+    // die Blaetter schienen mitten durch sie hindurch, und statt eines Stapels sah man ein
+    // Drahtgitter. Deshalb zwei Ebenen: aussen `bg-slate-950` (die Seitenfarbe, deckend), innen
+    // der bisherige Schleier `bg-slate-900/40`. Zusammen ergibt das GENAU den Farbton von
+    // vorher — nur ist jetzt nichts mehr durchsichtig.
+    //
+    // Die Blaetter laufen bis kurz vors untere Ende (`bottom-*`), damit ihr Rand die ganze
+    // rechte Kante begleitet und nicht nur als Zipfel oben rechts steht.
     <div className="relative mt-4">
-      <div aria-hidden className="pointer-events-none absolute -top-3 left-5 right-[-10px] h-10 rounded-2xl border border-slate-600/70 bg-slate-900" />
-      <div aria-hidden className="pointer-events-none absolute -top-1.5 left-2.5 right-[-5px] h-10 rounded-2xl border border-slate-500/80 bg-slate-900" />
-      <div className="relative rounded-2xl border border-slate-600 bg-slate-900/40 shadow-lg">
+      <div aria-hidden className="pointer-events-none absolute -top-3 bottom-3 left-5 right-[-10px] rounded-2xl border border-slate-600/70 bg-slate-900" />
+      <div aria-hidden className="pointer-events-none absolute -top-1.5 bottom-1.5 left-2.5 right-[-5px] rounded-2xl border border-slate-500/80 bg-slate-900" />
+      <div className="relative rounded-2xl border border-slate-600 bg-slate-950 shadow-lg">
+      <div className="rounded-2xl bg-slate-900/40">
       <button
         onClick={() => setOpen((o) => !o)}
         className="flex w-full items-start gap-3 rounded-2xl px-4 py-3 text-left transition-colors hover:bg-slate-800/40"
@@ -941,6 +952,7 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
           {g.sessions.map((s) => renderCommunitySession(s, t, lastViewed))}
         </div>
       )}
+      </div>
       </div>
     </div>
   );

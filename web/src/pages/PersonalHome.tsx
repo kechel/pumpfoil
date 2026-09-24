@@ -113,9 +113,12 @@ function ChangelogBadge() {
 // der Laeufe je Zahl. Die steht hier mit dran: bei vier Laeufen ist ein Median keine Aussage,
 // und das soll man sehen statt es zu ahnen.
 //
-// Gieren und Hub koennen FEHLEN, auch wenn Nicken und Rollen dastehen — das erste braucht einen
-// Kreisel (nicht jedes Handy zeichnet einen auf), das zweite einen klar erkannten Pumptakt. In
-// dem Fall steht ein Strich, keine Null.
+// KEIN GIEREN (Jan, 24.09.2026): „das ist ja einfach die route die man frei waehlt und hat
+// nichts mit effizienz, pumpen oder foil zu tun." An seiner Stelle steht der Pumptakt — der
+// gehoert zu den anderen drei, er sagt etwas ueber das Fahren.
+//
+// Hub und Takt koennen FEHLEN, auch wenn Nicken und Rollen dastehen: beide brauchen einen klar
+// erkannten Pumptakt. In dem Fall steht ein Strich, keine Null.
 function BoardKlassenTabelle({ klassen }: { klassen: BoardKlasse[] }) {
   const t = useT();
   const label: Record<string, string> = {
@@ -131,8 +134,8 @@ function BoardKlassenTabelle({ klassen }: { klassen: BoardKlasse[] }) {
             <th className="px-3 py-2 font-medium">{t("home.baRunLength")}</th>
             <th className="px-3 py-2 text-right font-medium">{t("home.baPitch")}</th>
             <th className="px-3 py-2 text-right font-medium">{t("home.baRoll")}</th>
-            <th className="px-3 py-2 text-right font-medium">{t("home.baYaw")}</th>
             <th className="px-3 py-2 text-right font-medium">{t("home.baHeave")}</th>
+            <th className="px-3 py-2 text-right font-medium">{t("home.baCadence")}</th>
           </tr>
         </thead>
         <tbody>
@@ -151,10 +154,10 @@ function BoardKlassenTabelle({ klassen }: { klassen: BoardKlasse[] }) {
                 {zahl(k.roll_deg, "°")}
               </td>
               <td className="px-3 py-2 text-right tabular-nums text-slate-300">
-                {zahl(k.gier_deg_s, "°/s")}
+                {zahl(k.hub_cm, " cm")}
               </td>
               <td className="px-3 py-2 text-right tabular-nums text-slate-300">
-                {zahl(k.hub_cm, " cm")}
+                {zahl(k.takt_hz, " Hz")}
               </td>
             </tr>
           ))}
