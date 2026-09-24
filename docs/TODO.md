@@ -1412,6 +1412,30 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔴 24.09. — Wear OS nimmt KEINEN WakeLock; auf manchen Uhren bricht dadurch die Abtastrate ein.**
+  Anlass: Foilbert (u574) im Community-Chat, „only 8hz", Verdacht auf seine Glukose-App Juggluco.
+  **Der Verdacht traegt nicht** — und das ist der Punkt: es faellt nicht nur der Accel, sondern
+  GPS GENAUSO. #9023 (2 h 39): Accel 4,5 Hz statt 25, GPS 0,72 Hz statt 1. #9670 (64 min):
+  7,7 Hz, GPS 0,50 Hz. Und zwar PHASENWEISE, nicht gleichmaessig: die GPS-Rate je Zehntel der
+  Aufnahme wandert bei #9023 zwischen 0,45 und 1,00 Hz, bei #9670 zwischen 0,30 und 0,92. Eine
+  fremde App, die den Beschleunigungssensor belegt, wuerde das GPS nicht mitnehmen. Das Muster
+  ist das einer PROZESS-DROSSELUNG: die CPU schlaeft phasenweise ein, beide Quellen setzen
+  zusammen aus.
+  **Befund im Code:** `android/app` (Handy) nimmt einen `PARTIAL_WAKE_LOCK`, mit genau dieser
+  Begruendung im Kommentar („CPU wach halten, damit Accel bei Screen-off nicht aussetzt").
+  `android/wear` nimmt KEINEN — obwohl `WAKE_LOCK` in seinem Manifest steht (Zeile 21). Der
+  Vordergrunddienst allein haelt die CPU nicht wach.
+  **Nicht nur er:** in 30 Tagen 22 Wear-Sessions von 7 Nutzern unter 15 Hz (u343, u455, u469,
+  u477, u574, u581 und Jans eigene), gegen 270 Sessions von 23 Nutzern ab 15 Hz. Es trifft also
+  bestimmte Geraete/Einstellungen, nicht alle.
+  **Welche Uhr er hat, wissen wir nicht:** `device_model` meldet die App erst ab 1.2.30, er faehrt
+  1.2.29. Erste Bitte an ihn ist deshalb ein Update (1.2.31 ist live) — danach steht das Modell
+  in der Session und wir koennen es gegen die anderen sechs halten.
+  **Zu tun, in dieser Reihenfolge:** 1. Modelle der sieben Nutzer sammeln, sobald sie auf >= 1.2.30
+  sind. 2. WakeLock im Wear-Recorder nachruesten (analog `app/RecorderService.kt`), erst mit Jans
+  OK — Wear 1.2.32 liegt gerade im Review, es waere 1.2.33. 3. Danach an einer betroffenen Uhr
+  gegenmessen, nicht nur im Emulator.
+
 - **✅ 24.09. — Zepp-Pause auf der T-Rex 3 gegengeprueft, Fix bestaetigt.**
   Session #9742: 733 s Wanduhr, zwei Pausen (189,1 s + 8,4 s), 535,5 s aktiv. GPS 391 Punkte in
   den Bloecken 0-40, Accel 6132 Samples in 0-48 — lueckenlos, nichts doppelt, `total_chunks` 90.
