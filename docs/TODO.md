@@ -1425,9 +1425,18 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Begruendung im Kommentar („CPU wach halten, damit Accel bei Screen-off nicht aussetzt").
   `android/wear` nimmt KEINEN — obwohl `WAKE_LOCK` in seinem Manifest steht (Zeile 21). Der
   Vordergrunddienst allein haelt die CPU nicht wach.
-  **Nicht nur er:** in 30 Tagen 22 Wear-Sessions von 7 Nutzern unter 15 Hz (u343, u455, u469,
-  u477, u574, u581 und Jans eigene), gegen 270 Sessions von 23 Nutzern ab 15 Hz. Es trifft also
-  bestimmte Geraete/Einstellungen, nicht alle.
+  **Nicht nur er, aber selten:** in 30 Tagen **7 von 121** Wear-Sessions (app 1.2.x) unter
+  15 Hz, von 5 Nutzern — u574 (#9023 4,9 Hz / 159 min, #9670 7,7 / 64), u581 (#9565 7,3 / 79,
+  **SM-L715F**, Galaxy Watch 4 Classic), u477 (#8137 8,2 / 14), u469 (#5248 10,8 / 32),
+  u455 (#9624 11,1 / 107, #9713 13,5 / 101). Der Rest liegt bei Median 34-47 Hz.
+  **Die Dauer allein erklaert es nicht:** der Median ist in JEDER Laengenklasse 34-47 Hz, der
+  Anteil unter 15 Hz schwankt zwischen 0 und 11 % ohne Trend.
+  Beobachtung, kein Befund (5 Nutzer sind zu wenig): u455 ist nur bei seinen langen Aufnahmen
+  betroffen, u477 war auf 1.2.25 schwach und liegt auf 1.2.30 bei 25 Hz.
+  **ACHTUNG BEI DER ABFRAGE:** nicht ueber `device_tokens` auf „Nutzer mit Wear-Uhr" filtern —
+  das zieht auch deren Garmin- und Handy-Sessions herein (erster Anlauf zaehlte so 22 statt 7,
+  darunter 26 Garmin-Laeufe von Jan) und vervielfacht Zeilen, wenn jemand mehrere Token hat.
+  Wear erkennt man am Versionsschema: `app_version like '1.2.%'`.
   **Welche Uhr er hat, wissen wir nicht:** `device_model` meldet die App erst ab 1.2.30, er faehrt
   1.2.29. Erste Bitte an ihn ist deshalb ein Update (1.2.31 ist live) — danach steht das Modell
   in der Session und wir koennen es gegen die anderen sechs halten.
