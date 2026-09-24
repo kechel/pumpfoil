@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { Card } from "./ui";
 import { useT } from "../i18n";
 
@@ -8,6 +9,18 @@ import { useT } from "../i18n";
 // Hinweise nie kleiner als der Fliesstext.
 export function StartHelp() {
   const t = useT();
+  // Offline ergibt die Karte nie Sinn: beide Knoepfe brauchen Netz, und eine leere Liste kann
+  // dann auch einfach „noch nicht geladen" heissen. Die Aufrufer unterdruecken sie schon bei
+  // einem gescheiterten Abruf; das hier faengt den Rest ab (z. B. eine gecachte leere Liste).
+  const [online, setOnline] = useState(typeof navigator === "undefined" ? true : navigator.onLine);
+  useEffect(() => {
+    const an = () => setOnline(true);
+    const aus = () => setOnline(false);
+    window.addEventListener("online", an);
+    window.addEventListener("offline", aus);
+    return () => { window.removeEventListener("online", an); window.removeEventListener("offline", aus); };
+  }, []);
+  if (!online) return null;
   return (
     <Card className="p-6">
       <p className="mb-1 font-semibold">{t("phome.emptyTitle")}</p>

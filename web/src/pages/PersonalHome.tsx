@@ -272,6 +272,7 @@ export default function PersonalHome() {
   // Startseite ohne ihn nicht wartet — der Block erscheint einfach, sobald er da ist.
   const [byFoil, setByFoil] = useState<FoilStatsGroup[]>([]);
   const [latest, setLatest] = useState<SessionSummary[] | null>(null);
+  const [latestFehler, setLatestFehler] = useState(false);
   const [homespot, setHomespot] = useState("");
   // Rekorde: nur aus Sessions mit Accel (präzise) oder aus allen (inkl. GPS-only).
   // VORERST Default "alle" (zu wenige Nutzer, um einzuschränken); smarter Default vorbereitet.
@@ -294,8 +295,14 @@ export default function PersonalHome() {
   // Hintergrund zurueckkommt. Vorher hing das allein am Mount: wer die PWA tagelang offen liess
   // (oder den Laptop zuklappte), sah bis Strg-R denselben Stand. `fresh` geht dabei am
   // Service-Worker-Cache vorbei, sonst antwortet der mit genau der alten Liste.
+  // Ein FEHLGESCHLAGENER Abruf ist keine leere Liste (Jan, 24.09.2026: offline stand die
+  // Begruessung „So kommt deine erste Session hierher" da, obwohl er hunderte Sessions hat).
+  // `fresh` geht am Cache vorbei und scheitert offline zwangslaeufig — dann bleibt der Platz
+  // leer, den Grund nennt schon das Offline-Band ganz oben.
   const letzteHolen = () => {
-    api.sessions({ limit: 3, fresh: true }).then(setLatest).catch(() => setLatest([]));
+    api.sessions({ limit: 3, fresh: true })
+      .then((l) => { setLatestFehler(false); setLatest(l); })
+      .catch(() => { setLatestFehler(true); setLatest([]); });
   };
   useWiederAufwachen(letzteHolen);
 
@@ -435,7 +442,7 @@ export default function PersonalHome() {
         </Link>
       )}
       {!latest ? <Spinner /> : latest.length === 0 ? (
-        <StartHelp />
+        latestFehler ? null : <StartHelp />
       ) : (
         <div className="mb-6 space-y-3">
           {latest.map((s) => (

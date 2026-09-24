@@ -691,7 +691,9 @@ function MySessionsList({ myName, accelOnly, onShowAll }:
         </Card>
       )}
 
-      {items.length === 0 && !loading ? (
+      {/* `!error`: ein gescheiterter Abruf (offline, Serverfehler) ist kein leeres Konto —
+          sonst stand unter der Fehlermeldung auch noch die Begruessung fuer Erstnutzer. */}
+      {items.length === 0 && !loading && !error ? (
         month || filter === "other" ? (
           <Card className="flex flex-col items-center gap-3 p-10 text-center text-slate-300">
             <WaveIcon className="h-10 w-10 text-slate-400" />
