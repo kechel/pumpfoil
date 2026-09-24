@@ -1412,6 +1412,36 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 
 
+
+- **🔲 24.09. — Zepp fehlt „Verwerfen ohne Speichern" (ganz links und ganz rechts vom Stop-Screen).**
+  Jan: „es fehlt der screen gaaaanz links und gaaanz rechts vor/nach dem STOP screen zum VERWERFEN
+  ohne zu speichern". **Apple macht es genau so** und ist die Vorlage:
+  `ContentView.swift` setzt `discardPage()` auf `tag(0)` UND auf `tag(dataPages.count + 4)`, also
+  an beide Enden, mit Halten zum Bestätigen (`HoldToStopButton`). Wear hat `Recorder.discard()`
+  ebenfalls, Garmin auch. **Zepp hat gar nichts davon** — dort gibt es nur den Stop-Screen an
+  beiden Enden.
+
+- **🔲 24.09. — PAUSE gibt es nur auf Garmin.** Jan: „sowie die gesamte PAUSE moeglichkeit die
+  dann auch schon versucht hochzuladen so wie auch bei garmin." Stand nach Prüfung aller vier:
+
+  | | Pause | Verwerfen |
+  |---|---|---|
+  | Garmin | ✅ `RecordDelegate._pauseAction()` | ✅ |
+  | Apple Watch | ❌ | ✅ (beide Enden, Vorlage s. o.) |
+  | Wear OS | ❌ | ✅ |
+  | Zepp | ❌ | ❌ |
+
+  Der Teil-Upload aus der Pause heraus steckt auf Garmin in `Uploader` als `_partial` → der Server
+  bekommt `/analyze` statt `/complete` und hält die Session auf `status = live`; die Läufe sind
+  auf dem Handy also schon zu sehen, während die Aufnahme weiterläuft. Serverseitig ist damit
+  **alles vorhanden**, was die drei anderen bräuchten — es fehlt nur auf der Uhr.
+
+  **Reihenfolge-Vorschlag:** Verwerfen zuerst (klein, Vorlage da, Zepp ist die einzige Lücke),
+  Pause danach (drei Apps, neuer Zustand im Aufnahmepfad, Teil-Upload).
+
+  **NICHT mehr in 1.0.12:** beides sitzt im Aufnahmepfad, und „Verwerfen" löscht Daten. Ein
+  Fehlgriff dort kostet eine Aufnahme — genau die Kategorie, für die die Qualitätsregel da ist.
+  1.0.12 ist durchgetestet; das hier gehört in eine eigene Runde mit eigenem Testlauf.
 - **🟡 24.09. — Garmin 1.0.89 liegt in `watch/bin`, aber `appmeta` steht mit Absicht noch auf
   1.0.88.** Jan, 24.09.: „ja lass das stehen, das stoert nicht, niemand nutzt unseren
   direktdownload, nur noch keinen update hinweis flaggen bitte." Der Update-Hinweis auf der Uhr
