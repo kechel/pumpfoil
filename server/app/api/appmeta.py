@@ -649,6 +649,20 @@ NAECHSTES: list[dict] = [
          "hide the stop button on purpose, and without a running clock they looked exactly like "
          "the start screen — one rider thought the app had lost its buttons while it was in fact "
          "recording.",
+         # Der groesste Einzelpunkt dieser Fassung, gemessen an neun Aufnahmen ueber fuenf
+         # Minuten und fuenf Uhrenmodellen: 48 bis 87 % der Aufnahmezeit ohne Position.
+         "Amazfit watches now keep far more of your track. The app used to ask for a position "
+         "once a second and throw away everything the sensor did not call valid in that exact "
+         "moment, which cost half the recording or more; now the sensor reports its position "
+         "itself and the app remembers it briefly.",
+         "Your own screens, foils and alarm limits are there even when your phone is not. Only "
+         "the language survived a restart before, so without a connection the watch fell back "
+         "to the standard screens — and at the water the phone is usually in the car.",
+         "If getting a pairing code does not work, the watch now says why — no phone, or no way "
+         "out to the internet. It used to do nothing at all, on the very first screen a new "
+         "rider sees.",
+         "The app now reports when it did not shut down cleanly, so we can see how often that "
+         "happens and whether a change helped. It is a measurement only and switches nothing off.",
      ]},
 
 
