@@ -639,20 +639,13 @@ NAECHSTES: list[dict] = [
      # GEBUMPT auf 1.0.12 / code 15, nachdem 1.0.11 am 21.09. freigegeben wurde.
      "items": [
          "Amazfit watches vibrate at the distance and time marks set in your profile.",
-         "A recording keeps the screen awake for as long as it runs. The watch was told once at "
-         "the start and never reminded, and Zepp quietly drops that setting — after a few "
-         "minutes the watch face came back and the app was gone. Reported by a rider whose "
-         "recording stopped after four and a half minutes.",
+         "A recording keeps the screen awake for as long as it runs.",
          "If the start button is greyed out, tapping it now says why — waiting for GPS, or an "
-         "upload still running. It used to do nothing at all, which reads like a broken app.",
-         "While a recording runs, the data pages show how long it has been going. Those pages "
-         "hide the stop button on purpose, and without a running clock they looked exactly like "
-         "the start screen — one rider thought the app had lost its buttons while it was in fact "
-         "recording.",
+         "upload still running.",
+         "While a recording runs, the data pages show how long it has been going.",
          # Der groesste Einzelpunkt dieser Fassung: bis 1.0.11 gingen 48 bis 87 % der
          # Aufnahmezeit ohne Position verloren (neun Aufnahmen, fuenf Modelle).
-         "Amazfit watches keep far more of your track — half a recording or more used to come "
-         "back without positions.",
+         "Amazfit watches keep far more of your track.",
          "Your own screens, foils and alarm limits are there even without your phone nearby.",
          "If getting a pairing code fails, the watch says why: no phone, or no way out to the "
          "internet.",
