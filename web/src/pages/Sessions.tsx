@@ -873,7 +873,7 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
     // deckenden Vordergrund und dem klaren Versatz reicht eins — die Zahl der Sessions steht
     // ohnehin als Ziffer in der Karte, die Grafik soll nur sagen „hier ist mehr drin".
     //
-    // `mt-3` am Rahmen, nicht an der Karte: das Blatt ragt nach oben hinaus und wuerde sonst
+    // `mt-2.5` am Rahmen, nicht an der Karte: das Blatt ragt nach oben hinaus und wuerde sonst
     // von der Kachel darueber ueberdeckt.
     //
     // WARUM KLEINERE slate-ZAHLEN ALS DIE KARTE (Jan, 24.09.2026: „noch etwas dunkler /
@@ -889,18 +889,23 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
     // Ein Stapel besteht aus Papier, nicht aus Nebel.
     //
     // …UND DIE KARTE SELBST MUSS ES AUCH SEIN (Jan, 24.09.2026: „das ist transparent und nicht
-    // der gewuenschte effekt vermute ich mal"). Sie trug `bg-slate-900/40`, also 40 % Deckung —
-    // die Blaetter schienen mitten durch sie hindurch, und statt eines Stapels sah man ein
-    // Drahtgitter. Deshalb zwei Ebenen: aussen `bg-slate-950` (die Seitenfarbe, deckend), innen
-    // der bisherige Schleier `bg-slate-900/40`. Zusammen ergibt das GENAU den Farbton von
-    // vorher — nur ist jetzt nichts mehr durchsichtig.
+    // der gewuenschte effekt vermute ich mal"). Sie war halbdurchsichtig, die Blaetter schienen
+    // mitten durch sie hindurch, und statt eines Stapels sah man ein Drahtgitter. Deshalb zwei
+    // Ebenen: aussen `bg-slate-950` (die Seitenfarbe, deckend), innen der Schleier.
+    //
+    // DER SCHLEIER IST `bg-slate-900/60`, NICHT `/40` (Jan, 24.09.2026: „den hintergrund der
+    // gruppenkachel nich schwarz/weiss sondern genauso wie einzelsessions"). Genau das ist der
+    // Wert, den `ui.tsx` fuer JEDE Karte setzt — die Gruppenkachel trug seit jeher `/40` und war
+    // damit schon immer etwas heller als die Einzelsessions daneben; deckend fiel es dann auf.
+    // Aus demselben Grund traegt der Rahmen der Karte wieder `slate-800` wie alle anderen; den
+    // kraeftigen `slate-500` braucht nur das Blatt dahinter, das sich abheben soll.
     //
     // Das Blatt laeuft bis kurz vors untere Ende (`bottom-*`), damit sein Rand die ganze rechte
     // Kante begleitet und nicht nur als Zipfel oben rechts steht.
-    <div className="relative mt-3">
-      <div aria-hidden className="pointer-events-none absolute -top-2 bottom-2 left-3 right-[-7px] rounded-2xl border border-slate-500/80 bg-slate-900" />
-      <div className="relative rounded-2xl border border-slate-600 bg-slate-950 shadow-lg">
-      <div className="rounded-2xl bg-slate-900/40">
+    <div className="relative mt-2.5">
+      <div aria-hidden className="pointer-events-none absolute -top-1.5 bottom-1.5 left-2 right-[-5px] rounded-2xl border border-slate-500/80 bg-slate-900" />
+      <div className="relative rounded-2xl border border-slate-800 bg-slate-950 shadow-lg">
+      <div className="rounded-2xl bg-slate-900/60">
       <button
         onClick={() => setOpen((o) => !o)}
         className="flex w-full items-start gap-3 rounded-2xl px-4 py-3 text-left transition-colors hover:bg-slate-800/40"
