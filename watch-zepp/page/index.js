@@ -2147,6 +2147,18 @@ Page(
         mk(yUnten, s.verwerfenArmed ? t("rec.discard") + "?" : t("rec.discard"),
            0xb91c1c, 0xf87171, 0xffffff, () => this._verwerfenHinweis()),
       ];
+      // Die Meldung des Teil-Uploads UEBER die Knoepfe (Jan, 24.09.2026: „uploading / server
+      // error / etc. meldungen ueber die buttons bitte"). Das Standard-Statusfeld des Layouts
+      // sitzt an fester Hoehe und landete hier genau ZWISCHEN den beiden Knoepfen, halb
+      // verdeckt. Auf dieser Seite zeichnen wir es deshalb selbst und raeumen es mit den
+      // Knoepfen zusammen wieder ab.
+      if (s.paused && s.upStatus) {
+        w.aktionBtns.push(hmUI.createWidget(hmUI.widget.TEXT, {
+          x: px(20), y: yOben - px(46), w: DW - px(40), h: px(38),
+          color: 0x9aa4b2, text_size: px(24),
+          align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V,
+          text_style: hmUI.text_style.ELLIPSIS, text: s.upStatus }));
+      }
     },
     /** Beim Seitenwechsel abraeumen — auf der Aktionsseite selbst werden sie neu gebaut. */
     _clearAktionBtnsWennNoetig() {
@@ -2794,7 +2806,7 @@ Page(
         // ein eigener screen ist reicht ein klick"). Die Knoepfe sagen, was sie tun. Nur die
         // Rueckmeldung des Teil-Uploads darf hier stehen — die entsteht erst durch eine
         // Handlung auf dieser Seite.
-        w.status.setProperty(hmUI.prop.TEXT, s.paused ? (s.upStatus || "") : "");
+        w.status.setProperty(hmUI.prop.TEXT, "");
         return;
       }
       if (this._istStopp(s.page)) {
@@ -3260,7 +3272,7 @@ Page(
       if (!this._gpsGesamt()) return;   // noch nichts zu senden
       s._teilUploadLaeuft = true;
       s.upStatus = t("up.running");
-      this.renderRecording();
+      if (this._istVerwerfen(s.page)) this._buildAktionBtns();
       const sess = { uuid: s.uuid, startedAtMs: s.startedAtMs, foilId: s.foilId,
         accelFile: s.accelFile, accelSamples: s.accelSamples, accelHz: this._accelHz(),
         accelChunkT0: s.accelChunkT0.slice(), gpsFile: s.gpsFile, gpsCount: s.gpsCount,
@@ -3272,7 +3284,7 @@ Page(
         // Beenden laeuft der normale Weg ohnehin noch einmal.
         s.upStatus = t("up.serverUnreach");
       }).then(() => {
-        if (s.paused) this.renderRecording();
+        if (s.paused && this._istVerwerfen(s.page)) this._buildAktionBtns();
       });
     },
 
