@@ -885,7 +885,17 @@ export default function SessionDetail() {
   // `hz: 2` bewusst die groebste erlaubte Aufloesung: die Kennzahlen rechnet der Server intern
   // mit voller Rate, herunter geregelt werden nur die Kurven — die wir hier gar nicht brauchen.
   const [laufKennz, setLaufKennz] = useState<NonNullable<Lage["laeufe"]>>([]);
-  const hatLagedaten = !!session?.has_gyro || session?.placement === "board";
+  // NUR am Brett — dieselbe Bedingung wie fuer die Lage-ANSICHT (`zeigeLage`), naemlich das
+  // gesetzte Flag. Bis 24.09.2026 stand hier `has_gyro || placement === "board"`, die
+  // Tabelle erschien also bei JEDER Aufnahme mit Kreisel. Jans Befund an #9749: „aber
+  // https://pumpfoil.org/sessions/9749 ist doch schon umgestellt oder nicht? ich sehe
+  // ‚attitude per run‘ als tabelle" — war sie nicht, die Bedingung war zu weit.
+  //
+  // Warum das nicht nur unsauber, sondern falsch war: ohne feste Montage misst das Handy
+  // den FAHRER und nicht das Brett (s. Kopf von analysis/lage.py). Nick- und Rollwinkel
+  // aus einer Hosentasche sind keine Aussage ueber das Brett — die Animation war deshalb
+  // immer schon auf `board` beschraenkt, die Tabelle daneben nicht.
+  const hatLagedaten = session?.placement === "board";
   useEffect(() => {
     if (!session?.id || !hatLagedaten) { setLaufKennz([]); return; }
     let weg = false;
