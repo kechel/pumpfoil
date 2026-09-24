@@ -864,6 +864,15 @@ export interface LabelItem {
   label: string;
 }
 
+// Eine Lauflaengen-Klasse der Brett-Lage-Auswertung (/api/community/board-attitude).
+// `gier_deg_s` und `hub_cm` duerfen fehlen: das erste braucht einen Kreisel, das zweite einen
+// klar erkannten Pumptakt. Die zugehoerige `*_laeufe` sagt, auf wie vielen Laeufen die Zahl steht.
+export type BoardKlasse = {
+  klasse: string; laeufe: number; pitch_deg: number; roll_deg: number | null;
+  gier_deg_s: number | null; gier_laeufe: number; takt_hz: number | null;
+  hub_cm: number | null; hub_laeufe: number;
+};
+
 export const api = {
   register: (email: string, password: string, display_name?: string, language?: string) =>
     req<{ access_token: string }>("/api/auth/register", {
@@ -1334,6 +1343,14 @@ export const api = {
   foilBands: (accelOnly = true, sport = "pumpfoil") =>
     req<FoilBand[]>(`/api/community/foil-bands?accel_only=${accelOnly}&sport=${sport}`),
   communitySports: () => req<{ sport: string; runs: number }[]>("/api/community/sports"),
+  // Lage-Zahlen aus Aufnahmen MIT DEM HANDY AM BRETT (`placement = "board"`). Leere `klassen`
+  // heisst: der Nutzer hat keine solche Aufnahme — die Startseite zeigt den Abschnitt dann nicht.
+  // Heisst NICHT `boardAttitude` — den Namen hat schon die Lage-Ansicht EINER Session (s. oben).
+  boardAttitudeStats: () => req<{
+    gesamt: BoardKlasse[];
+    je_foil: { foil_id: number; foil: string; laeufe: number; klassen: BoardKlasse[] }[];
+    sessions: number; laeufe: number; ohne_kreisel: number;
+  }>("/api/community/board-attitude"),
   startSuccess: () => req<{ threshold_m: number; windows: Record<string, { total: number; success: number; failed: number; rate: number | null }> }>("/api/community/start-success"),
   carveStats: () => req<{ windows: Record<string, { s: number; m: number; l: number }> }>("/api/community/carve-stats"),
   communitySpots: (accelOnly = true, sport = "pumpfoil") =>

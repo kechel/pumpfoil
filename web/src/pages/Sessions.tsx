@@ -859,7 +859,25 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
     </>
   ) : null;
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/40">
+    // GRUPPENKACHEL SIEHT AUS WIE EIN STAPEL (Jan, 24.09.2026): „die ,gruppenkacheln' bei
+    // sessions sollten sich irgendwie optisch besser abgrenzen, vielleicht mit so einem
+    // doppelten rahmen oben und rechts als andeutung das da mehrere dahinterstecken und etwas
+    // schatten vielleicht."
+    //
+    // Zwei leere Blaetter hinter der Karte, jeweils nach oben UND nach rechts versetzt — von
+    // ihnen ist nur der Rand zu sehen. Sie tragen `aria-hidden` und schlucken keine Klicks: es
+    // ist reine Andeutung, der Knopf darunter bleibt die ganze Flaeche.
+    //
+    // WARUM ZWEI UND NICHT EINS: eins sieht aus wie ein Versehen (ein verrutschter Rahmen),
+    // zwei sind erkennbar ein Stapel. Mehr braucht es nicht — die Zahl der Sessions steht als
+    // Ziffer in der Karte, die Grafik soll nur sagen „hier ist mehr drin".
+    //
+    // `mt-3` am Rahmen, nicht an der Karte: die Blaetter ragen nach oben hinaus und wuerden
+    // sonst von der Kachel darueber ueberdeckt.
+    <div className="relative mt-3">
+      <div aria-hidden className="pointer-events-none absolute -top-2 left-4 right-[-6px] h-8 rounded-2xl border border-slate-800/60 bg-slate-900/20" />
+      <div aria-hidden className="pointer-events-none absolute -top-1 left-2 right-[-3px] h-8 rounded-2xl border border-slate-800/80 bg-slate-900/30" />
+      <div className="relative rounded-2xl border border-slate-800 bg-slate-900/40 shadow-md">
       <button
         onClick={() => setOpen((o) => !o)}
         className="flex w-full items-start gap-3 rounded-2xl px-4 py-3 text-left transition-colors hover:bg-slate-800/40"
@@ -911,6 +929,7 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
           {g.sessions.map((s) => renderCommunitySession(s, t, lastViewed))}
         </div>
       )}
+      </div>
     </div>
   );
 }
