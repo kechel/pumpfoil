@@ -184,19 +184,23 @@ html.demo-names .pf-avatar {
 @keyframes pf-million {
   0%, 100% { transform: scale(1);     filter: brightness(1);   text-shadow: none; }
   50%      { transform: scale(1.035); filter: brightness(1.16);
-             text-shadow: 0 0 0.28em currentColor; }
+             text-shadow: 0 0 0.14em currentColor; }
 }
 /* Hellmodus: SATTER statt heller. Der Hoehepunkt geht Richtung brand-700, der Schein bleibt,
    weil ein cyanfarbener Hauch auf Weiss gut sichtbar ist. */
 @keyframes pf-million-hell {
   0%, 100% { transform: scale(1);     filter: brightness(1) saturate(1);      text-shadow: none; }
   50%      { transform: scale(1.035); filter: brightness(0.94) saturate(1.12);
-             text-shadow: 0 0 0.25em currentColor; }
+             text-shadow: 0 0 0.12em currentColor; }
 }
 /* ZURUECKHALTEND (Jan, 24.09.2026: „das pulsieren etwas weniger stark"). Die Zahl steht in
    einer Zeile mit drei anderen und soll auffallen, nicht ablenken — sie zuckt sonst staendig
    im Augenwinkel, waehrend man daneben etwas liest. Langsamer wirkt dabei ruhiger als kleiner:
    2,4 s statt 1,6 s nimmt mehr Unruhe als jede Verkleinerung des Ausschlags. */
+/* Der Schein ist ENG (Jan, 24.09.2026: „etwas weniger schein, oder nicht so stark
+   verwischt"). Ein weiter Radius liest sich als Unschaerfe — die Zahl sieht dann aus, als
+   waere sie nicht scharf gerendert, statt als leuchte sie. Eng gesetzt bleibt die Kante der
+   Ziffern stehen und der Schein liegt nur knapp darum. */
 .pf-million {
   display: inline-block;
   animation: pf-million 2.4s ease-in-out infinite;
@@ -207,5 +211,5 @@ html.theme-light .pf-million {
 /* Wer Bewegung im System abgestellt hat, bekommt sie auch hier nicht — der Meilenstein bleibt
    trotzdem sichtbar, nur ruhig. */
 @media (prefers-reduced-motion: reduce) {
-  .pf-million { animation: none; text-shadow: 0 0 0.4em currentColor; }
+  .pf-million { animation: none; text-shadow: 0 0 0.14em currentColor; }
 }
