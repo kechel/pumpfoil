@@ -132,7 +132,19 @@ async function handle(req) {
     return { ok: true, index: req.index, http: r.status };
   }
   if (req.method === "COMPLETE") {
-    const r = await authPost(req.token, `/api/ingest/session/${req.session_uuid}/complete`, { ended_at: iso(req.ended_at_ms), total_chunks: req.total_chunks });
+    // `pauses` nur mitschicken, wenn es welche gibt — ein leeres Feld wuerde auf dem Server
+    // `pause_windows` auf null setzen und damit eine frueher gemeldete Pause loeschen, falls
+    // ein Wiederholungsversuch ohne sie ankommt.
+    const body = { ended_at: iso(req.ended_at_ms), total_chunks: req.total_chunks };
+    if (req.pauses && req.pauses.length) body.pauses = req.pauses;
+    const r = await authPost(req.token, `/api/ingest/session/${req.session_uuid}/complete`, body);
+    return { ok: true, http: r.status };
+  }
+  // TEIL-Upload aus einer Pause heraus: der Server rechnet das Bisherige durch und haelt die
+  // Session auf `status = live`. Ausdruecklich NICHT /complete — die Aufnahme laeuft weiter,
+  // und die Uhr darf ihre Daten nicht wegwerfen.
+  if (req.method === "ANALYZE") {
+    const r = await authPost(req.token, `/api/ingest/session/${req.session_uuid}/analyze`, {});
     return { ok: true, http: r.status };
   }
   return { error: "unknown method" };
