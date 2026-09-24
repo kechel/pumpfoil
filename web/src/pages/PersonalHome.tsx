@@ -8,7 +8,7 @@ import { api, BoardKlasse, FoilStatsGroup, OverallStats, Profile, SessionSummary
 import { usePumpFmt } from "../lib/pumpRate";
 import { Card, Spinner } from "../components/ui";
 import { SessionCard } from "../components/SessionCard";
-import { SessionStats, StatusBadge } from "./Sessions";
+import { EigeneAbzeichen, SessionStats } from "./Sessions";
 import { SpotWeather } from "../components/SpotWeather";
 import { InstallPwa } from "../components/InstallPwa";
 import { WelcomeBanner } from "../components/WelcomeBanner";
@@ -456,7 +456,7 @@ export default function PersonalHome() {
               liked0={!!s.liked}
               trackPreview={s.track_preview}
               stats={s.analysis && <SessionStats a={s.analysis} />}
-              statusBadge={s.status !== "analyzed" ? <StatusBadge status={s.status} /> : undefined}
+              statusBadge={<EigeneAbzeichen transferTo={s.transfer_to} status={s.status} />}
               sportClass={s.sport_class}
               dataQuality={s.data_quality}
               needsClassification={!!s.needs_classification}
