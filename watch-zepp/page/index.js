@@ -1122,6 +1122,30 @@ Page(
         // Nur ANLEGEN und sofort wieder schliessen — s. _flushAccelBuffer.
         const fd = openSync({ path: s.accelFile, flag: O_RDWR | O_CREAT | O_TRUNC });
         closeSync({ fd });
+      } catch (e) {
+        console.log("[pumpfoil] accelerometer file unavailable " + ((e && e.message) || e));
+        // Ohne Datei gibt es nichts zu schreiben. Den Namen loeschen, sonst versucht jeder
+        // Puffer-Lauf vergeblich zu oeffnen und fuellt das Log.
+        s.accelFile = "";
+        return;
+      }
+      this._accelAbonnieren();
+    },
+
+    /**
+     * NUR den Sensor scharf machen — ohne Datei, ohne Zaehler anzufassen.
+     *
+     * WARUM GETRENNT (Befund 24.09.2026, Session #9739): `resume()` rief anfangs `_startAccel()`
+     * und `_startGps()` auf. Die legen eine Aufnahme AN: Datei mit O_TRUNC leeren,
+     * `accelSamples`/`accelBytes`/`gpsCount` auf null. Jedes Fortsetzen hat damit alles
+     * Aufgezeichnete geloescht — 20 Minuten Fahrt mit zwei Pausen kamen als 3 GPS-Punkte und
+     * 85 Samples auf dem Server an. Fortsetzen darf nur abonnieren; die Zaehler laufen weiter,
+     * und `_flushAccelBuffer` schreibt an `position: s.accelBytes` also hinter das Bisherige.
+     */
+    _accelAbonnieren() {
+      const s = this.state;
+      if (!s.accelFile) return;
+      try {
         s.accelSensor = new Accelerometer();
         s.accelCallback = () => {
           if (!s.recording) return;
@@ -1148,8 +1172,6 @@ Page(
         s.accelSensor.start();
       } catch (e) {
         console.log("[pumpfoil] accelerometer unavailable " + ((e && e.message) || e));
-        // Ohne Datei gibt es nichts zu schreiben. Den Namen loeschen, sonst versucht jeder
-        // Puffer-Lauf vergeblich zu oeffnen und fuellt das Log.
         s.accelFile = "";
         this._stopAccel();
       }
@@ -3000,7 +3022,12 @@ Page(
       s.fix = fix;
       s.cur = fix ? speed : 0;
 
-      if (s.recording) {
+      if (s.recording && s.paused) {
+        // PAUSE: kein Punkt, keine Distanz, keine Lauf-Erkennung. `_aktivMs()` steht still —
+        // saemtliche Punkte der Pause haetten denselben Zeitstempel bekommen. Gezeichnet wird
+        // weiter, damit die Upload-Meldung auf der Pause-Seite sichtbar bleibt.
+        this.renderRecording();
+      } else if (s.recording) {
         const el = this._aktivMs();
         if (fix) {
           const punkt = [el, Math.round(lat * 1e6) / 1e6, Math.round(lon * 1e6) / 1e6,
@@ -3254,8 +3281,10 @@ Page(
       }
       s.paused = false;
       s._teilUploadLaeuft = false;
-      this._startGps();
-      this._startAccel();
+      // NUR abonnieren. `_startGps`/`_startAccel` legen eine Aufnahme AN und wuerden die
+      // bisherige loeschen — s. _accelAbonnieren. GPS braucht hier gar nichts: die Punkte
+      // kommen aus der 1-Hz-Schleife, die waehrend der Pause nur nichts eintraegt.
+      this._accelAbonnieren();
       this.persistActive();
       canaryWrite(PHASE_RECORD);
       this.applyButton(); this.renderRecording();

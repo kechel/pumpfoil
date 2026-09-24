@@ -30,7 +30,7 @@ const uhr = new Function("stubs", `const o = { ${teile},
   ...stubs };
   return o;`)({
     state: null,
-    _stopGps() {}, _stopAccel() {}, _startGps() {}, _startAccel() {},
+    _stopGps() {}, _stopAccel() {}, _accelAbonnieren() {},
     persistActive() {}, applyButton() {}, renderRecording() {}, _teilUpload() {},
   });
 // canaryWrite/PHASE_* sind im Modul-Gueltigkeitsbereich — hier als globale Attrappen.
@@ -96,6 +96,70 @@ console.log("\n5) Doppeltes Pausieren/Fortsetzen aendert nichts");
   jetzt = 40000; uhr.resume(); uhr.resume();
   pruefe("genau ein Fenster", s.pauseListe.length === 1, "  " + JSON.stringify(s.pauseListe));
   pruefe("Pausensumme einmal gezaehlt", s.pausedMs === 30000);
+}
+
+// ---------------------------------------------------------------------------
+// 6) DER FALL, DEN DIESER TEST AM 24.09.2026 DURCHGEWUNKEN HAT.
+//
+// Oben sind `_startGps`/`_startAccel` Attrappen — deshalb blieb unsichtbar, dass `resume()`
+// sie aufrief und damit die laufende Aufnahme loeschte: beide legen eine Aufnahme AN, also
+// Datei mit O_TRUNC leeren und Zaehler auf null. Auf dem Server kamen von 20 Minuten Fahrt
+// mit zwei Pausen 3 GPS-Punkte und 85 Samples an (Session #9739).
+//
+// Hier laufen die ECHTEN Funktionen, mit Attrappen nur fuer Datei und Sensor. Der Test haelt
+// fest, was die Trennung leisten muss: anlegen darf nur der Aufnahmestart, fortsetzen
+// abonniert.
+console.log("\n6) Fortsetzen loescht die Aufnahme NICHT");
+{
+  let truncs = 0, starts = 0;
+  globalThis.accelPath = (uuid) => "/acc_" + uuid;
+  globalThis.O_RDWR = 2; globalThis.O_CREAT = 64; globalThis.O_TRUNC = 512;
+  globalThis.openSync = ({ flag }) => { if (flag & O_TRUNC) truncs++; return 7; };
+  globalThis.closeSync = () => {};
+  globalThis.FREQ_MODE_HIGH = 1; globalThis.FREQ_MODE_NORMAL = 0;
+  globalThis.ACCEL_CHUNK_SAMPLES = 128; globalThis.ACCEL_SCALE = 4096;
+  globalThis.STANDARD_GRAVITY_CM_S2 = 980.665;
+  globalThis.clampI16 = (v) => v;
+  globalThis.Accelerometer = function () {
+    return { onChange() {}, offChange() {}, setFreqMode() {}, start() { starts++; }, stop() {},
+             getCurrent: () => null };
+  };
+
+  const echt = new Function("stubs", `const o = { ${["_aktivMs", "pause", "resume", "_startAccel", "_accelAbonnieren"].map(schneide).join(",\n")},
+    ...stubs };
+    return o;`)({
+      state: null,
+      _stopGps() {}, persistActive() {}, applyButton() {}, renderRecording() {}, _teilUpload() {},
+      // Anhalten wie auf der Uhr: abmelden, sonst nichts. Das Nachzaehlen aus der Dateigroesse
+      // braucht es hier nicht — es gibt keine Datei.
+      _stopAccel() { const s = this.state; s.accelSensor = null; s.accelCallback = null; },
+    });
+
+  const laufend = () => ({ recording: true, paused: false, startedAtMs: 0, uuid: "u1",
+    pausedMs: 0, pauseStartMs: 0, pauseBeiMs: 0, pauseListe: [], _teilUploadLaeuft: false,
+    recordMode: "full", accelFile: "/acc_u1", accelSamples: 500, accelBytes: 3000,
+    accelChunkT0: [0, 5120, 10240], accelFirstMs: 1, accelLastMs: 2,
+    gpsFile: "/gps_u1", gpsCount: 42, gpsBuffer: [], gps: [] });
+
+  // 6a) Der AUFNAHMESTART soll zuruecksetzen — das ist seine Aufgabe.
+  echt.state = laufend(); jetzt = 0; truncs = 0; starts = 0;
+  echt._startAccel();
+  pruefe("_startAccel leert die Datei", truncs === 1, `  (${truncs}x)`);
+  pruefe("_startAccel setzt die Zaehler", echt.state.accelSamples === 0 && echt.state.accelBytes === 0);
+  pruefe("_startAccel abonniert", starts === 1);
+
+  // 6b) FORTSETZEN darf nur abonnieren.
+  const s = echt.state = laufend(); jetzt = 0; truncs = 0; starts = 0;
+  jetzt = 600000; echt.pause();
+  jetzt = 660000; echt.resume();
+  pruefe("keine Datei geleert", truncs === 0, `  (${truncs}x)`);
+  pruefe("Samples erhalten", s.accelSamples === 500, `  (ist ${s.accelSamples})`);
+  pruefe("Schreibposition erhalten", s.accelBytes === 3000, `  (ist ${s.accelBytes})`);
+  pruefe("Block-Zeitpunkte erhalten", s.accelChunkT0.length === 3);
+  pruefe("GPS-Punkte erhalten", s.gpsCount === 42, `  (ist ${s.gpsCount})`);
+  pruefe("GPS-Datei unveraendert", s.gpsFile === "/gps_u1");
+  pruefe("Sensor wieder scharf", starts === 1, `  (${starts}x)`);
+  pruefe("aktive Zeit 10 min", echt._aktivMs() === 600000, `  (ist ${echt._aktivMs()})`);
 }
 
 Date.now = echtesNow;
