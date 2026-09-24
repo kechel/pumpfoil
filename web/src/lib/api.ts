@@ -865,12 +865,12 @@ export interface LabelItem {
 }
 
 // Eine Lauflaengen-Klasse der Brett-Lage-Auswertung (/api/community/board-attitude).
-// `gier_deg_s` und `hub_cm` duerfen fehlen: das erste braucht einen Kreisel, das zweite einen
-// klar erkannten Pumptakt. Die zugehoerige `*_laeufe` sagt, auf wie vielen Laeufen die Zahl steht.
+// `takt_hz` und `hub_cm` duerfen fehlen — beide brauchen einen erkannten Pumptakt; `hub_laeufe`
+// sagt, auf wie vielen Laeufen die Hub-Zahl steht. KEIN Gieren: das ist die gewaehlte Route,
+// keine Aussage ueber Technik oder Foil (Jan, 24.09.2026).
 export type BoardKlasse = {
   klasse: string; laeufe: number; pitch_deg: number; roll_deg: number | null;
-  gier_deg_s: number | null; gier_laeufe: number; takt_hz: number | null;
-  hub_cm: number | null; hub_laeufe: number;
+  takt_hz: number | null; hub_cm: number | null; hub_laeufe: number;
 };
 
 export const api = {

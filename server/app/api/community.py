@@ -2181,6 +2181,10 @@ def session_social(session_id: int, request: Request, user: models.User = Depend
 # den gesamten Bestand: 1,7 s fuer 6 Aufnahmen mit 11 Laeufen, das meiste davon Rechnen, nicht
 # Laden. Ein Cache je Nutzer deckelt die Wiederholung.
 #
+# OHNE GIEREN. Es stand hier zuerst mit drin und ist am selben Tag wieder rausgeflogen (Jan:
+# „das ist ja einfach die route die man frei waehlt"). Was bleibt, sind Groessen, die etwas ueber
+# das Fahren sagen: wie stark das Brett nickt und rollt, und wie hoch der Hub dabei ist.
+#
 # MEDIAN, NICHT MITTELWERT. Ein Sturz, bei dem das Brett durch die Gegend fliegt, verschiebt einen
 # Mittelwert und einen Median nicht — dieselbe Begruendung, aus der `lage.py` seinen Nullpunkt als
 # Median nimmt. Bei den kleinen Stueckzahlen hier ist das kein Detail.
@@ -2300,10 +2304,12 @@ def board_attitude(user: models.User = Depends(current_user),
                 "pitch": k.get("pitch_amplitude_deg"),
                 "roll": k.get("roll_amplitude_deg"),
                 "takt": k.get("pitch_hz"),
-                # Gieren NUR mit Kreisel: ohne ihn steht dort 0,0 °/s, und das ist keine
-                # Messung, sondern eine Luecke. Einmal eingerechnet zoege sie jeden Median
-                # nach unten.
-                "gier": k.get("gier_rms_deg_s") if hat_kreisel else None,
+                # GIEREN STEHT HIER BEWUSST NICHT (Jan, 24.09.2026): „das ist ja einfach die
+                # route die man frei waehlt und hat nichts mit effizienz, pumpen oder foil zu
+                # tun." Stimmt — Gier-RMS ueber einen Lauf misst, wie viel Kurve in der Strecke
+                # lag, und das entscheidet der See. Neben Nicken und Rollen haette es wie eine
+                # Technikzahl ausgesehen, die es nicht ist. Die Lage-ANSICHT einer einzelnen
+                # Session zeigt es weiter, dort ist es der Vergleich zum GPS-Kurs.
                 # Der Hub nur, wenn die Rechnung ihn selbst fuer belastbar haelt —
                 # `hub_sicher` faellt genau dann, wenn der Pumptakt nicht klar war (s. lage.py).
                 "hub": k.get("hub_pp_cm") if k.get("hub_sicher") else None,
@@ -2318,7 +2324,6 @@ def board_attitude(user: models.User = Depends(current_user),
             if not pitch:
                 continue
             roll = [float(x["roll"]) for x in teil if x["roll"] is not None]
-            gier = [float(x["gier"]) for x in teil if x["gier"] is not None]
             takt = [float(x["takt"]) for x in teil if x["takt"] is not None]
             hub = [float(x["hub"]) for x in teil if x["hub"] is not None]
             aus.append({
@@ -2326,8 +2331,6 @@ def board_attitude(user: models.User = Depends(current_user),
                 "laeufe": len(teil),
                 "pitch_deg": round(_median(pitch), 1),
                 "roll_deg": round(_median(roll), 1) if roll else None,
-                "gier_deg_s": round(_median(gier), 1) if gier else None,
-                "gier_laeufe": len(gier),
                 "takt_hz": round(_median(takt), 2) if takt else None,
                 "hub_cm": round(_median(hub), 1) if hub else None,
                 "hub_laeufe": len(hub),
