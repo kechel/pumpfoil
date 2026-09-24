@@ -684,6 +684,9 @@ NAECHSTES: list[dict] = [
     {"name": "iPhone + Apple Watch", "version": "1.1.37",
      "items": [
          "Foil Scoot is a sport you can pick for a session.",
+         "The phone recorder shows how far along an upload is, with a bar that moves — on "
+         "every screen, not just while recording.",
+         "An interrupted upload picks itself up when you open the app again.",
          "When the community passes a round number — 1,000 foilers, 1,000 spots, a million "
          "pumps — that number quietly celebrates for a while.",
          "A recording on the Apple Watch can be paused, and what is already recorded goes up "

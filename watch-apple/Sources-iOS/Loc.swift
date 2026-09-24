@@ -3276,6 +3276,8 @@ static let fiOverlay: [String: String] = {
         "rec.pending": r("{n} wartet auf Upload", "{n} wartet uf Upload", "{n} wartet auf Upload", "{n} waiting to upload", "{n} en attente d'envoi", "{n} in attesa di upload", "{n} pendiente de subida"),
         "rec.uploadNow": r("Jetzt hochladen", "Jetz ufelade", "Jetzt hochladen", "Upload now", "Envoyer", "Carica ora", "Subir ahora"),
         "rec.upRunning": r("lädt hoch…", "ladt ufe…", "lädt hoch…", "uploading…", "envoi…", "caricamento…", "subiendo…"),
+        "rec.upFailed": r("Upload fehlgeschlagen", "Upload fehlgschlage", "Upload fehlgeschlagen", "Upload failed", "Échec de l'envoi", "Upload fallito", "Error al subir"),
+        "rec.upOffline": r("offline — Upload später", "offline — Upload spöter", "offline — Upload später", "offline — upload later", "hors ligne — envoi plus tard", "offline — upload dopo", "sin conexión — subida después"),
         "rec.upLater": r("wird später hochgeladen", "wird spöter ufeglade", "wird später hochgeladen", "will upload later", "sera envoyé plus tard", "verrà caricato dopo", "se subirá después"),
         "rec.upDone": r("hochgeladen ✓", "ufeglade ✓", "hochgeladen ✓", "uploaded ✓", "envoyé ✓", "caricato ✓", "subido ✓"),
         "rec.saving": r("speichere…", "spichere…", "speichere…", "saving…", "enregistrement…", "salvataggio…", "guardando…"),
