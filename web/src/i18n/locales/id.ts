@@ -1017,7 +1017,6 @@ const id: Record<string, string> = {
   "alarm.markOnce": "hanya pada",
   "alarm.markEvery": "setiap",
   "alarm.markHint": "0 mematikan. Dihitung per run, mulai dari meter pertama yang terdeteksi — di luar run tidak terjadi apa-apa.",
-  "alarm.markSoon": "Di Garmin mulai versi 1.0.88. Segera hadir di jam tangan lain.",
   "alarm.repeatEvery": "ulangi setiap",
   "alarm.maxSpeed": "Maks",
   "alarm.minSpeed": "Min",

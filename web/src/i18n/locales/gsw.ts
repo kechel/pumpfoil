@@ -719,7 +719,6 @@ const gsw: Record<string, string> = {
   "alarm.markOnce": "nur bi",
   "alarm.markEvery": "alli",
   "alarm.markHint": "0 schaltet ab. Zellt wird pro Lauf, ab em erste erkennte Meter — usserhalb vomene Lauf passiert nüt.",
-  "alarm.markSoon": "Uf Garmin ab Version 1.0.88. D andere Uhre chöi das bald.",
   "alarm.repeatEvery": "wiederhole alli",
   "alarm.maxSpeed": "Max",
   "alarm.minSpeed": "Min",

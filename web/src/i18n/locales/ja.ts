@@ -1017,7 +1017,6 @@ const ja: Record<string, string> = {
   "alarm.markOnce": "ちょうど",
   "alarm.markEvery": "ごとに",
   "alarm.markHint": "0 でオフ。ランごとに最初に検出したメートルから数えます。ラン以外では何も起きません。",
-  "alarm.markSoon": "Garmin はバージョン 1.0.88 から対応。他の時計にも間もなく対応します。",
   "alarm.repeatEvery": "繰り返し間隔",
   "alarm.maxSpeed": "最高",
   "alarm.minSpeed": "最低",

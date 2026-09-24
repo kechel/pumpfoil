@@ -1017,7 +1017,6 @@ const zh: Record<string, string> = {
   "alarm.markOnce": "仅在",
   "alarm.markEvery": "每",
   "alarm.markHint": "0 表示关闭。按每次滑行计数，从检测到的第一米开始；不在滑行中时不会触发。",
-  "alarm.markSoon": "Garmin 自 1.0.88 版起支持。其他手表即将支持。",
   "alarm.repeatEvery": "重复间隔",
   "alarm.maxSpeed": "最高",
   "alarm.minSpeed": "最低",
