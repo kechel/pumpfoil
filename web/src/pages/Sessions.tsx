@@ -876,13 +876,17 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
     // `mt-2.5` am Rahmen, nicht an der Karte: das Blatt ragt nach oben hinaus und wuerde sonst
     // von der Kachel darueber ueberdeckt.
     //
-    // WARUM KLEINERE slate-ZAHLEN ALS DIE KARTE (Jan, 24.09.2026: „noch etwas dunkler /
-    // staerker sichtbar, und im dark-mode praktisch garnicht zu erkennen bisher"): zuerst
-    // trug das Blatt `border-slate-800` wie die Karte — und `slate-800` liegt auf dunklem
-    // Grund praktisch auf dem Hintergrund, im Dark Mode war also nichts zu sehen. Die
-    // slate-Skala ist GESPIEGELT (s. scripts/check-contrast.mjs): eine kleinere Zahl wird auf
-    // Dunkel heller UND auf Hell dunkler. `slate-600`/`slate-500` heben sich damit in beiden
-    // Modi ab, ohne ein `dark:`-Gegenstueck und ohne zwei Wahrheiten.
+    // DAS BLATT HEBT SICH UEBER DIE FLAECHE AB, NICHT UEBER DEN RAND (Jan, 24.09.2026: „der 2te
+    // rahmen ist viel zu hart so, lieber die flaeche etwas dunkler abgrenzen und den rahmen
+    // genauso wie der im vordergrund"). Es traegt deshalb denselben `border-slate-800` wie jede
+    // Karte; unterschiedlich ist nur die FUELLUNG.
+    //
+    // `bg-slate-800` und nicht etwa `slate-900`: die slate-Skala ist GESPIEGELT (s.
+    // scripts/check-contrast.mjs). Eine kleinere Zahl wird auf hellem Grund DUNKLER und auf
+    // dunklem HELLER — dieselbe Klasse setzt sich also in beiden Modi ab, ohne ein
+    // `dark:`-Gegenstueck und ohne zwei Wahrheiten. Ein Versuch davor hatte einen hellen Rand
+    // (`slate-500`) benutzt; der war im Dark Mode zwar endlich sichtbar, im Light Mode aber
+    // eine harte Linie neben einer weichen — genau das, was Jan hier beanstandet.
     //
     // Das Blatt ist DECKEND (`bg-slate-900`, nicht `/20`): ein durchscheinendes Blatt nimmt die
     // Farbe des Hintergrunds an und ist damit genau das, was es nicht sein soll — ein Hauch.
@@ -897,13 +901,13 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
     // gruppenkachel nich schwarz/weiss sondern genauso wie einzelsessions"). Genau das ist der
     // Wert, den `ui.tsx` fuer JEDE Karte setzt — die Gruppenkachel trug seit jeher `/40` und war
     // damit schon immer etwas heller als die Einzelsessions daneben; deckend fiel es dann auf.
-    // Aus demselben Grund traegt der Rahmen der Karte wieder `slate-800` wie alle anderen; den
-    // kraeftigen `slate-500` braucht nur das Blatt dahinter, das sich abheben soll.
+    // Aus demselben Grund traegt der Rahmen der Karte wieder `slate-800` wie alle anderen —
+    // und inzwischen das Blatt dahinter ebenso.
     //
     // Das Blatt laeuft bis kurz vors untere Ende (`bottom-*`), damit sein Rand die ganze rechte
     // Kante begleitet und nicht nur als Zipfel oben rechts steht.
     <div className="relative mt-2.5">
-      <div aria-hidden className="pointer-events-none absolute -top-1.5 bottom-1.5 left-2 right-[-5px] rounded-2xl border border-slate-500/80 bg-slate-900" />
+      <div aria-hidden className="pointer-events-none absolute -top-1.5 bottom-1.5 left-2 right-[-5px] rounded-2xl border border-slate-800 bg-slate-800" />
       <div className="relative rounded-2xl border border-slate-800 bg-slate-950 shadow-lg">
       <div className="rounded-2xl bg-slate-900/60">
       <button
