@@ -1,5 +1,14 @@
 package org.pumpfoil.app
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -750,9 +759,40 @@ private fun fmtMin(min: Double): String {
 // Kurzdatum dd.MM.yyyy jetzt zentral in TimeFmt.shortDateFull (Spot-Ortszeit via tz).
 
 // Community-Stats-Satz mit fett/cyan hervorgehobenen Zahlen (§-markiert, wie im Web).
+//
+// MEILENSTEIN-PULS (Jan, 24.09.2026, „bau diese funktion direkt mal in ios und android nach"):
+// erreicht eine Zahl ihre Stufe, atmet sie zehn Prozent lang. Die Regel steht in `Meilenstein`.
+//
+// NUR HELLIGKEIT, keine Groesse: einen einzelnen Abschnitt eines `AnnotatedString` kann man
+// nicht skalieren — er gehoert zu EINEM Text-Widget, und `scale` traefe den ganzen Satz. Im Web
+// ist der Groessenanteil ohnehin der kleinere (3,5 %), die Helligkeit macht den Effekt.
+//
+// Hell gegen dunkel wie im Web: auf dunklem Grund wird die Zahl HELLER, auf hellem SATTER.
+// Aufhellen auf Weiss zoege sie Richtung Hintergrund, und der Hoehepunkt des Pulses waere
+// genau der Moment, in dem sie am schlechtesten zu lesen ist.
 @Composable
 internal fun bannerStatsAnnotated(s: Api.CommunityStats): AnnotatedString {
     val primary = MaterialTheme.colorScheme.primary
+    val dunkel = isSystemInDarkTheme()
+    val pulsend = buildList {
+        if (Meilenstein.imFenster(s.pumps.toLong(), Meilenstein.PUMPS)) add("%,d".format(s.pumps))
+        if (Meilenstein.imFenster(s.foilers.toLong(), Meilenstein.LEUTE)) add(s.foilers.toString())
+        if (Meilenstein.imFenster(s.spots.toLong(), Meilenstein.LEUTE)) add(s.spots.toString())
+    }
+    // Den Takt nur laufen lassen, wenn ueberhaupt etwas pulst — eine Endlos-Animation kostet
+    // sonst jeden Frame Arbeit fuer nichts.
+    val takt = if (pulsend.isEmpty()) 0f else {
+        val t = rememberInfiniteTransition(label = "meilenstein")
+        t.animateFloat(
+            initialValue = 0f, targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(1200, easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Reverse),
+            label = "puls").value
+    }
+    val pulsFarbe = if (dunkel) lerp(primary, Color.White, 0.30f * takt)
+                    else lerp(primary, Color.Black, 0.22f * takt)
+
     val raw = I18n.t("banner.stats")
         .replace("{foilers}", s.foilers.toString())
         .replace("{spots}", s.spots.toString())
@@ -760,8 +800,11 @@ internal fun bannerStatsAnnotated(s: Api.CommunityStats): AnnotatedString {
         .replace("{pumps}", "%,d".format(s.pumps))
     return buildAnnotatedString {
         raw.split("§").forEachIndexed { i, p ->
-            if (i % 2 == 1) withStyle(SpanStyle(color = primary, fontWeight = FontWeight.Bold)) { append(p) }
-            else append(p)
+            if (i % 2 == 1) {
+                // Erkannt am WERT, nicht an der Position: die Wortstellung ist je Sprache anders.
+                val farbe = if (p in pulsend) pulsFarbe else primary
+                withStyle(SpanStyle(color = farbe, fontWeight = FontWeight.Bold)) { append(p) }
+            } else append(p)
         }
     }
 }

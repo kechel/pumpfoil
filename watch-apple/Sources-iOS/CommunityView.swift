@@ -133,7 +133,7 @@ struct CommunityView: View {
 
     @ViewBuilder private var statsHeader: some View {
         if let cs = cstats {
-            communityStatsText(cs, lang)
+            CommunityStatsText(stats: cs, lang: lang)
                 .font(.caption)
                 .listRowInsets(EdgeInsets(top: 6, leading: 12, bottom: 6, trailing: 12))
         }

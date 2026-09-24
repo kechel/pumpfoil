@@ -359,7 +359,7 @@ struct HomeView: View {
                     .buttonStyle(.plain).foregroundStyle(.secondary)
             }
             if let c = community {
-                communityStatsText(c, lang).font(.caption).foregroundStyle(.secondary)
+                CommunityStatsText(stats: c, lang: lang).font(.caption).foregroundStyle(.secondary)
             }
         }
         .padding(12)
