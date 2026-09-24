@@ -1412,6 +1412,34 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔴 24.09. — `ml/dataset.py` trainiert mit der ANGEFORDERTEN Rate, nicht der gemessenen.**
+  Gefunden beim Nachsehen auf Jans Vorgabe „alle auswertungen muessen die echten raten korrekt
+  beachten". `app/ml/dataset.py:79`:
+  `build_session_dataset(accel, s.accel_scale, float(s.accel_hz), spans)` — `s.accel_hz` ist die
+  Anforderung an die Uhr, nicht die Messung (s. CLAUDE.md, „sessions.accel_hz ist eine
+  ANFORDERUNG").
+  **Wie weit es auseinanderliegt, bei den GELABELTEN Sessions:** #321/#322/#355/#358 getaggt
+  10 Hz gegen gemessen 2,5 · #324 gegen 3,7 · #326 gegen 2,6 — also -63 bis -75 %. Das sind
+  **17 von 31 Labels**. Fuer sie rechnet der Fensteraufbau mit einer VIERMAL zu hohen Rate: ein
+  4-s-Fenster deckt real 16 s ab, jede Frequenz im Merkmalsvektor ist um Faktor 4 verschoben.
+  Das On-Foil-Modell hat fuer die Mehrheit seiner Beispiele also Pumpen bei einem Viertel der
+  Frequenz gelernt.
+  Die uebrigen gelabelten Sessions haben `accel_hz_measured = None` (kein Analyse-Ergebnis mehr
+  daneben) — dort ist die Abweichung nicht zu beziffern, nicht: sie ist null.
+  **Der Rest der Kette ist sauber:** `timebase.py` nimmt die gemessene Rate als effektive Achse
+  und faellt nur mit Notiz auf die getaggte zurueck („Accel-Spur deckt die Session nicht ab ->
+  getaggte Rate als Notbehelf"). Es ist diese EINE Stelle, und sie liegt ausserhalb der
+  Live-Analyse — `dataset.py` laeuft beim Training, nicht je Session.
+  **Fix (klein, aber Detektor-Pipeline -> Jans OK + Vorher-Nachher):** die Rate aus `timebase`
+  ziehen statt aus der Session-Spalte. Danach `foil_rf.pkl` neu trainieren und gegen die alte
+  Fassung halten (F1, und die Zahl der erkannten Laeufe auf einem festen Bestand).
+  **Warum das jetzt wichtiger wird:** die Handys liefern, was sie wollen — gemessen am 24.09.
+  Samsung A55/A26 **122-125 Hz** bei angeforderten 50 (Gyro bleibt bei 50), Pixel 7a 60/60,
+  iPhones exakt 50/50. Jans Einordnung dazu: die hohen Raten sind ein GEWINN, „die
+  hochaufloesenden daten koennen wir spaeter verwenden als beste datengrundlage fuer das training
+  das dann auch mit niedrigeren raten angewendet werden kann/soll". Genau dafuer muss die Rate
+  aber ueberall stimmen.
+
 - **🔴 24.09. — Wear OS nimmt KEINEN WakeLock; auf manchen Uhren bricht dadurch die Abtastrate ein.**
   Anlass: Foilbert (u574) im Community-Chat, „only 8hz", Verdacht auf seine Glukose-App Juggluco.
   **Der Verdacht traegt nicht** — und das ist der Punkt: es faellt nicht nur der Accel, sondern
