@@ -1451,6 +1451,7 @@ const en: Record<string, string> = {
   "wx.level": "Water level",
   "wx.water": "Water temp",
   "wx.source": "Source",
+  "compare.short": "Compare",
   "compare.title": "Compare",
   "compare.colorRider": "By rider",
   "compare.colorTrack": "By track",

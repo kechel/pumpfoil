@@ -256,7 +256,7 @@ export function SessionCard({
                 className={`mt-2 inline-flex items-center gap-1.5 text-sm ${inCompare ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-200"}`}
               >
                 <CompareIcon className="h-4 w-4" />
-                {inCompare ? t("compare.remove") : t("compare.add")}
+                {t("compare.short")}
               </button>
             </div>
           </div>

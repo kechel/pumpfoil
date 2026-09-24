@@ -1541,6 +1541,7 @@ const de: Record<string, string> = {
   "wx.level": "Pegel",
   "wx.water": "Wasser",
   "wx.source": "Quelle",
+  "compare.short": "Vergleichen",
   "compare.title": "Vergleich",
   "compare.colorRider": "Je Fahrer",
   "compare.colorTrack": "Je Track",
