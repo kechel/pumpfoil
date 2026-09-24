@@ -6,6 +6,7 @@ import json
 import math
 import secrets
 import uuid
+import threading
 import zipfile
 from datetime import datetime, timedelta, timezone
 
@@ -3774,6 +3775,125 @@ def board_lage(
 ) -> dict:
     """Lage des Bretts fuer einen Lauf — fuer angemeldete Nutzer (s. `_lage_antwort`)."""
     return _lage_antwort(db, _readable(db, session_id), **p)
+
+
+# --- „Sass das Handy am Brett?" — Verdacht aus den Daten -----------------------------------------
+#
+# Jan, 24.09.2026: „bau das ein ganz oben in den session-details unter den stats oben ueber der
+# karte, natuerlich nur bei 'phone' und wenn noch nicht entschieden, hervorgehoben so wie z.b.
+# sieht nicht nach pumpfoil aus" — und danach: „der Hinweis soll nur kommen wenn die erkennung
+# das sagt, dann erstmal dauerhaft ist ok."
+#
+# ZWEI MERKMALE, beide aus `kennzahlen_je_lauf`, also aus derselben Rechnung wie die Lauf-Tabelle:
+#
+#   1. NICKEN GEGEN ROLLEN. Ein festmontiertes Handy nickt im Pumptakt deutlich staerker als es
+#      rollt — die Schwingung liegt auf EINER Achse. Sitzt es am Koerper (oder ist die Montage
+#      nicht bestimmbar), verteilt sie sich gleichmaessig, das Verhaeltnis geht gegen 1.
+#   2. ANTEIL DER LAEUFE MIT SICHEREM HUB. `hub_sicher` verlangt einen klar erkannten Pumptakt.
+#      Am Brett ist er fast immer da, am Koerper selten — das Signal ist gedaempft und verschmiert.
+#
+# GEEICHT AM 24.09.2026 an allem, was es gab (11 Aufnahmen mit Kreisel):
+#
+#     bestaetigt am Brett   #9650 2,52/1,00 · #9535 1,88/1,00 · #9528 1,28/1,00   -> Treffer
+#                           #9484 3,18/0,00                                       -> kein Treffer
+#                           #9656 0,95/1,00  (Handy zwischen den Laeufen GEDREHT) -> kein Treffer
+#     vermutlich am Koerper #9734 0,98/0,11 · #9641 0,93/0,21 · #9567 1,01/0,24   -> kein Treffer
+#
+# Der Abstand ist gross: das kleinste Verhaeltnis eines Treffers ist 1,28, das groesste der
+# Koerper-Gruppe 1,01. Die Schwelle liegt dazwischen.
+#
+# DIE EICHUNG IST DUENN, und das ist wichtiger als die Trennschaerfe: vier positive Beispiele von
+# EINEM Fahrer, mit EINEM Geraet, an EINEM Spot. Null bestaetigte Gegenbeispiele — die drei
+# „Koerper"-Aufnahmen sind eine ANNAHME aus denselben Zahlen. Deshalb ist das hier ein HINWEIS,
+# der fragt, und keine automatische Zuordnung: er schreibt nichts, er erzeugt Labels. Sobald
+# Bestaetigungen von mehreren Fahrern da sind, laesst sich die Regel pruefen statt glauben.
+#
+# LIEBER EINEN TREFFER ZU WENIG: #9484 ist wirklich am Brett und faellt durch (kein Lauf mit
+# sicherem Hub). Ein falscher Hinweis kostet Vertrauen, ein fehlender kostet nichts.
+#
+# DAS HIER IST EINE UEBERGANGSLOESUNG, und zwar erklaertermassen (Jan, 24.09.2026): „ich gehe
+# stark davon aus das wir darauf bald verzichten koennen und das selber mit 99,9% sicherheit
+# voreinstellen koennen, dann gibt es nur noch unten den haken um den manuell rauszunehmen fuer
+# die 0,01% bei denen das falsch war." Der Hinweis ist also das Mittel, um dorthin zu kommen:
+# jede Antwort darauf ist ein bestaetigtes Label. Wer ihn spaeter durch eine Voreinstellung
+# ersetzt, sollte vorher nachsehen, wie oft er bestaetigt und wie oft er ignoriert wurde.
+BRETT_NICK_ROLL_MIN = 1.15    # Nicken/Rollen; darunter liegt die Schwingung auf keiner Achse
+BRETT_HUB_ANTEIL_MIN = 0.5    # Anteil der Laeufe mit `hub_sicher`
+
+_brett_lock = threading.Lock()
+_brett_cache: dict[int, tuple[float, dict]] = {}
+_BRETT_TTL = 900.0
+_BRETT_MAX = 128
+
+
+def _brett_verdacht(s: models.Session) -> dict:
+    """Sieht diese Aufnahme nach „Handy am Brett" aus? Rein lesend, nichts gespeichert."""
+    import time as _time
+
+    jetzt = _time.monotonic()
+    with _brett_lock:
+        treffer = _brett_cache.get(s.id)
+        if treffer and jetzt - treffer[0] < _BRETT_TTL:
+            return treffer[1]
+
+    aus = {"verdacht": False, "laeufe": 0, "nick_roll": None, "hub_anteil": None}
+    try:
+        uuid = s.session_uuid
+        acc = storage.load_accel(uuid)
+        if len(acc) >= 4:
+            t_acc = lage.zeitachse(storage.load_accel_t0(uuid), storage.chunk_laengen(uuid, "accel"))
+            gyr = storage.load_gyro(uuid)
+            t_gyr = lage.zeitachse(storage.load_gyro_t0(uuid), storage.chunk_laengen(uuid, "gyro"))
+            if len(t_acc) == len(acc) and len(t_gyr) == len(gyr) and len(gyr) >= 4:
+                try:
+                    segmente = json.loads(s.result.segments_json) if s.result and s.result.segments_json else []
+                except (ValueError, AttributeError):
+                    segmente = []
+                off = int(s.trim_start_ms or 0)
+                bereiche = lage.laufbereiche(segmente, off)
+                if bereiche:
+                    starts = [float(g.get("t_start_session_ms", float(g["t_start_ms"]) + off))
+                              for g in segmente if g.get("t_start_ms") is not None]
+                    k = lage.kennzahlen_je_lauf(acc, t_acc, gyr, t_gyr, bereiche, starts,
+                                                gps=storage.load_gps(uuid), rot_vorgabe=None)
+                    ok = [x for x in k if x.get("ok")]
+                    nick = [x["pitch_amplitude_deg"] for x in ok
+                            if x.get("pitch_amplitude_deg") and x.get("roll_amplitude_deg")]
+                    roll = [x["roll_amplitude_deg"] for x in ok
+                            if x.get("pitch_amplitude_deg") and x.get("roll_amplitude_deg")]
+                    if ok and nick:
+                        import statistics
+
+                        v = statistics.median(nick) / statistics.median(roll)
+                        anteil = sum(1 for x in ok if x.get("hub_sicher")) / len(ok)
+                        aus = {"verdacht": bool(v >= BRETT_NICK_ROLL_MIN
+                                                and anteil >= BRETT_HUB_ANTEIL_MIN),
+                               "laeufe": len(ok), "nick_roll": round(v, 2),
+                               "hub_anteil": round(anteil, 2)}
+    except Exception:   # noqa: BLE001 - ein Hinweis darf nie eine Seite kaputtmachen
+        aus = {"verdacht": False, "laeufe": 0, "nick_roll": None, "hub_anteil": None}
+
+    with _brett_lock:
+        if len(_brett_cache) >= _BRETT_MAX:
+            _brett_cache.clear()
+        _brett_cache[s.id] = (jetzt, aus)
+    return aus
+
+
+@router.get("/{session_id}/board-hint")
+def board_hint(session_id: int,
+               user: models.User = Depends(current_user),
+               db: Session = Depends(get_db)) -> dict:
+    """Sieht die Aufnahme nach „Handy am Brett" aus? Nur fuer den BESITZER — nur er kann es
+    beantworten, und nur bei ihm steht der Schalter.
+
+    Liefert `verdacht: false`, sobald die Aufnahme schon als Brett markiert ist: dann ist nichts
+    mehr zu fragen.
+    """
+    s = _readable(db, session_id)
+    if s.user_id != user.id or s.placement == "board":
+        return {"verdacht": False}
+    return _brett_verdacht(s)
 
 
 @public_router.get("/session/{token}/attitude")

@@ -444,6 +444,19 @@ export default function SessionDetail() {
   // haengt allein an der Markierung, und die darf nur ein Admin setzen — damit braucht der
   // Abschnitt kein weiteres Gate.
   const zeigeLage = session?.placement === "board";
+  // „Sass das Handy am Brett?" — der Server entscheidet, ob gefragt wird (er prueft Besitzer,
+  // Markierung und die Daten). Nur anfragen, wenn es ueberhaupt Kreiseldaten gibt; ohne die
+  // kann die Antwort nur „nein" lauten, und der Aufruf kostet einen Rechendurchgang je Lauf.
+  const [brettFrage, setBrettFrage] = useState(false);
+  useEffect(() => {
+    setBrettFrage(false);
+    if (!session?.id || !session.has_gyro || session.placement === "board") return;
+    let lebt = true;
+    api.boardHint(session.id)
+      .then((a) => { if (lebt) setBrettFrage(!!a.verdacht); })
+      .catch(() => {});
+    return () => { lebt = false; };
+  }, [session?.id, session?.has_gyro, session?.placement]);
   const [speedMin, setSpeedMin] = useState(8);
   const [speedMax, setSpeedMax] = useState(25);
   const [autoScaleOn, setAutoScaleOn] = useState(true);
@@ -1730,6 +1743,32 @@ export default function SessionDetail() {
       {zeigeEingefroren && session.status !== "live" && (
         <div className="mb-4 rounded-xl border border-amber-600/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-300">
           {t("sd.gpsFrozen")}
+        </div>
+      )}
+      {/* HANDY AM BRETT? Hervorgehoben wie die anderen Hinweise hier, aber in Marken-Cyan statt
+          Amber: es ist kein Problem, sondern ein Angebot. Er erscheint NUR, wenn die Erkennung
+          anschlaegt, und bleibt dann stehen (Jan, 24.09.2026: „der Hinweis soll nur kommen wenn
+          die erkennung das sagt, dann erstmal dauerhaft ist ok") — kein Wegklicken, kein
+          Merker. Ein Klick setzt `placement`, danach ist die Frage beantwortet und der Kasten
+          verschwindet von selbst, weil der Server dann `verdacht: false` liefert. */}
+      {brettFrage && (
+        <div className="mb-4 rounded-xl border border-brand-500/40 bg-brand-500/10 px-3 py-2.5 text-sm text-brand-700 dark:text-brand-200">
+          <div className="font-semibold">{t("sd.boardAsk")}</div>
+          <div className="mt-0.5">{t("sd.boardAskWhy")}</div>
+          <button
+            type="button"
+            onClick={() => {
+              api.updateSessionMeta(session.id, { placement: "board" })
+                .then((frisch) => {
+                  setBrettFrage(false);
+                  setSession((alt) => (alt ? { ...alt, placement: frisch.placement } : alt));
+                })
+                .catch(() => {});
+            }}
+            className="mt-2 rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400"
+          >
+            {t("sd.boardAskYes")}
+          </button>
         </div>
       )}
       {m?.detection === "gps_only" && !zeigeEingefroren && session.status !== "live" && (
