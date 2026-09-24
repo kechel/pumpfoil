@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import { useNumberFormat, useT } from "../i18n";
-import { MEILENSTEIN_LEUTE, MEILENSTEIN_PUMPS, useMeilensteinPuls } from "../lib/pumpPulse";
+import { MEILENSTEIN_LEUTE, MEILENSTEIN_PUMPS, imMeilensteinFenster } from "../lib/pumpPulse";
 
 // Schlanke Stats-Leiste (nur die Zahlen aus dem Willkommens-Banner), dauerhaft oben im
 // Community-Bereich. Nutzt denselben Satz/Endpoint; Zahlen (§-markiert) fett/cyan.
@@ -26,9 +26,9 @@ export function CommunityStats({ className = "" }: { className?: string }) {
   }, []);
   // Drei Zahlen mit eigener Stufe. Sessions bleibt bewusst aussen vor: sie waechst am
   // schnellsten und haette staendig einen frischen Tausender, der Puls verloere seinen Wert.
-  const pulsPumps = useMeilensteinPuls(stats?.pumps, MEILENSTEIN_PUMPS);
-  const pulsFoiler = useMeilensteinPuls(stats?.foilers, MEILENSTEIN_LEUTE);
-  const pulsSpots = useMeilensteinPuls(stats?.spots, MEILENSTEIN_LEUTE);
+  const pulsPumps = imMeilensteinFenster(stats?.pumps, MEILENSTEIN_PUMPS);
+  const pulsFoiler = imMeilensteinFenster(stats?.foilers, MEILENSTEIN_LEUTE);
+  const pulsSpots = imMeilensteinFenster(stats?.spots, MEILENSTEIN_LEUTE);
   if (!stats) return null;
 
   // Alle vier Zahlen durch den sprachabhaengigen Formatierer (auch sessions/foilers wachsen
