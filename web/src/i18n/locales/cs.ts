@@ -1130,7 +1130,6 @@ const cs: Record<string, string> = {
   "alarm.markOnce": "jen při",
   "alarm.markEvery": "každých",
   "alarm.markHint": "0 vypíná. Počítá se pro každou jízdu od prvního rozpoznaného metru — mimo jízdu se nic neděje.",
-  "alarm.markSoon": "Na Garminu od verze 1.0.88. Na ostatní hodinky brzy.",
   "alarm.repeatEvery": "opakovat každých",
   "alarm.maxSpeed": "Max",
   "alarm.minSpeed": "Min",
