@@ -492,6 +492,29 @@ des Abends.
 | 7.3 | Spitze unter Last | Active 2 | Abstand zum Limit | 289 Bloecke: unveraendert 1288 KB · nach 2,5 h / 281 Bloecke: **1547 KB (50 %)** | ✅ |
 | 8.1 | GPS-Pfad laeuft (`dev-echt`) | Active 2 | keine Ausnahme | laeuft, schreibt, **118 % der zum eigenen Takt erwarteten Punkte** | ✅ |
 | 8.2 | Cache verfaellt (`dev-echt`) | Active 2 | Luecke bleibt Luecke | offen | – |
+| A | Waechter nach gescheiterter Meldung | Active 2 | Phase 3, nicht 2 | **Phase 3**, Zaehler 1 trotz drei Kills | ✅ |
+| P1 | Pairing-Fehler sichtbar | T-Rex 3 + GTR 4 | Meldung statt Schweigen | „Server nicht erreichbar" / „Server unreachable" | ✅ |
+| P2 | Profil ohne Handy | T-Rex 3 | eigene Seiten ohne Verbindung | **sofort da** (Jan, 24.09.) | ✅ |
+
+### Nachtrag 24.09.2026 — die zweite Runde
+
+**Der Waechter-Fix haelt.** Derselbe Ablauf, an dem er am 23.09. scheiterte — Kill in der
+Aufnahme, Neustart OHNE Bridge, zweiter Kill, dann erst melden — liefert jetzt **Phase 3**
+statt 2. Der Zaehler stand dabei auf 1, obwohl dreimal abgeschossen wurde: der erste
+ungemeldete Absturz gewinnt, die harmlosen Leerlauf-Abbrueche danach verdraengen ihn nicht.
+
+**Das Profil ueberlebt den App-Start ohne Handy** (neu seit `d985938c`). Jan, 24.09.: „die
+seiten wurden korrekt gecached, auch ohne verbindung sind die custom screens jetzt da." Die
+Sprache konnte das schon immer — und genau deshalb ist die Luecke so lange niemandem
+aufgefallen: das Einzige, was ueberlebte, war auch das Einzige, worauf man beim Start schaut.
+
+**Vermutung, kein Beleg:** Jan, 24.09.: „die bridge funktioniert jetzt viel zuverlaessiger, die
+t-rex hat die verbindung direkt wieder gefunden." Dafuer gibt es einen Mechanismus, und er ist
+ein Nebeneffekt der Zeitgrenze: `reqQ` haengt seine Warteschlange an die GERANNTE Promise.
+Blieb die erste Anfrage fuer immer offen — und ohne Zeitgrenze tat sie das —, war die ganze
+Kette dahinter tot, fuer die Lebensdauer der App. Die erste Anfrage einer ungepairten Uhr ist
+`PAIR_INIT`. Eine Beobachtung ist aber kein Beleg, und der Simulator war an dem Abend in beide
+Richtungen launisch.
 
 ### Was der erste Durchlauf ergeben hat
 
