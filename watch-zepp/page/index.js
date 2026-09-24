@@ -61,6 +61,11 @@ const GEO_CACHE_MS = 3000;
 // (s. `_unlockFrisch`).
 const UNLOCK_MS = 10000;
 
+// Erste DATENSEITE waehrend der Aufnahme. Davor liegen Verwerfen (0) und Stopp (1) — s.
+// `_letzteSeite`. Als Konstante, weil zwei Stellen darauf zuruecksetzen und ein vergessenes
+// Nachziehen den Fahrer nach jedem Zustandswechsel auf dem Stopp-Bildschirm abliefern wuerde.
+const ERSTE_DATENSEITE = 2;
+
 // Obergrenze fuer den gesicherten Profil-Stand (s. `_configSichern`). Ein volles Profil mit
 // eigenen Layouts liegt weit darunter; die Grenze ist da, damit ein unerwartet grosser Server-
 // Stand nicht die Ablage der Uhr fuellt, in der auch die unbeendeten Aufnahmen liegen.
@@ -551,6 +556,11 @@ const S = {
   "btn.start": ["START", "START", "START", "START", "DÉMARRER", "AVVIA", "INICIAR", "INICIAR", "MULAI", "СТАРТ", "START", "START", "START", "スタート", "开始"],
   "btn.stop": ["STOPP", "STOPP", "STOPP", "STOP", "ARRÊTER", "STOP", "PARAR", "PARAR", "BERHENTI", "СТОП", "STOP", "STOP", "STOP", "ストップ", "停止"],
   "btn.unlock":      ["ENTSPERREN", "ENTSPERRE", "ENTSPERREN", "UNLOCK", "DÉVERROUILLER", "SBLOCCA", "DESBLOQUEAR", "DESBLOQUEAR", "BUKA", "РАЗБЛОК.", "ONTGRENDELEN", "AVAA", "ODEMKNOUT", "ロック解除", "解锁"],
+  // Verwerfen: Wortlaut aus der Apple Watch uebernommen, damit dieselbe Handlung auf beiden
+  // Uhren gleich heisst. Der Hinweis nennt das Halten — es gibt hier keinen kurzen Druck.
+  "rec.discard":     ["Verwerfen", "Verwärfe", "Verwerfen", "Discard", "Supprimer", "Scarta", "Descartar", "Descartar", "Buang", "Удалить", "Weggooien", "Hylkää", "Zahodit", "破棄", "丢弃"],
+  "rec.discarded":   ["Verworfen", "Verworfe", "Verworfen", "Discarded", "Supprimé", "Scartata", "Descartada", "Descartada", "Dibuang", "Удалено", "Weggegooid", "Hylätty", "Zahozeno", "破棄しました", "已丢弃"],
+  "rec.discardHold": ["2 s halten = verwerfen", "2 s halte = verwärfe", "2 s halten = verwerfen", "Hold 2 s = discard", "Maintenir 2 s = supprimer", "Tieni 2 s = scarta", "Mantén 2 s = descartar", "Segurar 2 s = descartar", "Tahan 2 dtk = buang", "Держать 2 с = удалить", "2 s vasthouden = weggooien", "Pidä 2 s = hylkää", "Podržet 2 s = zahodit", "2秒長押しで破棄", "长按2秒丢弃"],
   "rec.stopHold":    ["Halten", "Halte", "Halten", "Hold", "Maintenir", "Tieni", "Mantén", "Segurar", "Tahan", "Держать", "Vasthouden", "Pidä", "Podržet", "長押し", "长按"],
   "rec.holdFree":    ["2 s halten = Touch frei", "2 s halte = Touch frei", "2 s halten = Touch frei", "Hold 2 s = touch free", "2 s = tactile libre", "2 s = touch libero", "2 s = táctil libre", "2 s = toque livre", "2 s = sentuh bebas", "2 с = касания вкл.", "2 s = touch vrij", "2 s = kosketus auki", "2 s = dotyk volný", "2秒長押しでタッチ解除", "长按2秒解锁触摸"],
   "menu.touchLock":  ["Touch-Sperre", "Touch-Sperri", "Touch-Sperre", "Touch lock", "Verrou tactile", "Blocco touch", "Bloqueo táctil", "Bloqueio do toque", "Kunci sentuh", "Блокировка касаний", "Touchvergrendeling", "Kosketuslukko", "Zámek dotyku", "タッチロック", "触摸锁定"],
@@ -664,6 +674,9 @@ const PL = {
   "rec.noData": "Brak danych",
   "rec.repair": "Połącz ponownie",
   "btn.unlock": "ODBLOKUJ",
+  "rec.discard": "Odrzuć",
+  "rec.discardHold": "Przytrzymaj 2 s = odrzuć",
+  "rec.discarded": "Odrzucono",
   "rec.stopHold": "Trzymaj",
   "rec.uploadNow": "Wyślij teraz",
   "up.done": "Wysłano",
@@ -695,6 +708,9 @@ const NB = {
   "btn.stop": "STOP",
   "btn.unlock": "LÅS OPP",
   "rec.stopHold": "Hold",
+  "rec.discard": "Forkast",
+  "rec.discardHold": "Hold 2 s = forkast",
+  "rec.discarded": "Forkastet",
   "rec.holdFree": "Hold 2 s = berøring fri",
   "menu.touchLock": "Berøringslås",
   "rec.noData": "Ingen data ennå",
@@ -891,6 +907,7 @@ Page(
       // Rueckkehr vom Stopp-Bildschirm nach einem versehentlichen Tastendruck, s. _toStopScreen.
       stopBackTimer: null, stopBackPage: 0,
       lockHoldTimer: null,   // laeuft, solange auf die Touch-Sperre gedrueckt wird
+      verwerfenArmed: false, verwerfenTimer: null,   // Rueckfrage vor dem Verwerfen
       touchLocked: false, brightMode: "system", brightUntilMs: 0,
       geo: null, geoSpeedPrev: null, geoCallback: null, geoLast: null, hrSensor: null, hrCallback: null, hrUpdatedMs: 0, _hrLogged: false, w: {},
       accelSensor: null, accelCallback: null, accelBuffer: [], accelSamples: 0, accelBytes: 0,
@@ -1232,7 +1249,13 @@ Page(
             // konsumieren, s. Begruendung unten.
             if (!long && !click) return s.recording;
             if (s.recording) {
-              if (key === KEY_SELECT && long) { this.stop(); return true; }
+              // Die SEITE entscheidet, was das lange Halten bedeutet: auf den Verwerfen-Seiten
+              // verwerfen, sonst stoppen. Ein Gesten-Vokabular, zwei Bedeutungen — und welche
+              // gilt, steht gross auf dem Bildschirm.
+              if (key === KEY_SELECT && long) {
+                if (this._istVerwerfen(s.page)) this._verwerfen(); else this.stop();
+                return true;
+              }
               if ((key === KEY_UP || key === KEY_DOWN) && long) {
                 this._unlockTouchTemporarily();
                 return true;
@@ -1241,6 +1264,10 @@ Page(
               // sonst zeigt er nur den Touch-Sperr-Hinweis wie bisher. Das lange Halten bleibt
               // in BEIDEN Faellen erhalten, es faellt also kein Weg weg.
               if (key === KEY_SELECT && click) {
+                // Auf der Verwerfen-Seite gilt „ein Druck statt halten" NICHT: die Einstellung
+                // ist fuers Stoppen gedacht, und Verwerfen loescht Daten. Hier fuehrt der kurze
+                // Druck auf dieselbe Rueckfrage wie der Knopf.
+                if (this._istVerwerfen(s.page)) { this._verwerfenHinweis(); return true; }
                 if (s.stopMode === "press") { this.stop(); return true; }
                 if (s.touchLocked) this._showTouchLock();
                 this._toStopScreen();
@@ -1268,7 +1295,7 @@ Page(
               if (s.touchLocked) this._showTouchLock();
               // Seitenzahl aus dem Ring des AKTUELLEN Zustands (on-foil/off-foil), nicht mehr aus
               // s.views — die Sätze sind unterschiedlich lang (s. _ring).
-              const last = this._ringLen() + 1;
+              const last = this._letzteSeite();
               this._cancelStopBack();   // er blaettert selbst -> nicht mehr automatisch zurueck
               if (key === KEY_UP) s.page = s.page <= 0 ? last : s.page - 1;
               else s.page = s.page >= last ? 0 : s.page + 1;
@@ -1312,7 +1339,7 @@ Page(
           if (s.recording) {
             this._unlockFrisch();   // er bedient -> die Sperre faengt von vorn an zu zaehlen
             // Seiten: [STOPP] + Ring des Zustands + [STOPP] — beide Enden = Stop-Screen, kein Wrap.
-            const last = this._ringLen() + 1;
+            const last = this._letzteSeite();
             this._cancelStopBack();   // er wischt selbst -> nicht mehr automatisch zurueck
             s.page = Math.max(0, Math.min(last, s.page + dir));
             this.applyButton(); this.renderRecording();
@@ -1672,9 +1699,11 @@ Page(
      */
     _toStopScreen() {
       const s = this.state;
-      if (!s.recording || s.page === 0) return;
+      // SEITE 1, nicht 0 — seit dem 24.09. liegt auf 0 das Verwerfen. Ein Tastendruck waehrend
+      // der Fahrt soll zum Stoppen fuehren, nicht zum Loeschen.
+      if (!s.recording || this._istStopp(s.page)) return;
       s.stopBackPage = s.page;
-      s.page = 0;
+      s.page = 1;
       this.applyButton();
       this.renderRecording();
       // Nach STOP_AUTOBACK_MS von selbst zurueck auf die Seite, die vorher zu sehen war
@@ -1688,8 +1717,8 @@ Page(
         // Nur zurueck, wenn seither NICHTS passiert ist: noch am Aufnehmen und noch auf Seite 0.
         // Hat der Mensch inzwischen selbst geblaettert, hat er entschieden — dann nicht
         // hineinregieren.
-        if (!s.recording || s.page !== 0) return;
-        s.page = Math.max(0, Math.min(this._ringLen() + 1, s.stopBackPage));
+        if (!s.recording || !this._istStopp(s.page)) return;
+        s.page = Math.max(0, Math.min(this._letzteSeite(), s.stopBackPage));
         this.applyButton();
         this.renderRecording();
       }, STOP_AUTOBACK_MS);
@@ -1927,7 +1956,12 @@ Page(
     applyButton() {
       const s = this.state;
       if (s.recording) {
-        if (s.page === 0 || s.page >= this._ringLen() + 1) this.setButton(t("btn.stop"), RED, RED_P, WHITE, () => this.stop());
+        if (this._istVerwerfen(s.page)) {
+          // NUR HALTEN, nie ein kurzer Druck — anders als beim Stoppen, wo das Profil einen
+          // kurzen Druck erlauben kann. Verwerfen loescht Daten: hier gibt es keine Abkuerzung,
+          // egal was im Profil steht.
+          this.setButton(t("rec.discard"), RED, RED_P, WHITE, () => this._verwerfenHinweis());
+        } else if (this._istStopp(s.page)) this.setButton(t("btn.stop"), RED, RED_P, WHITE, () => this.stop());
         else this.hideButton();
       } else if (s.screen === "summary") {
         this.setButton(t("common.done"), CYAN, CYAN_P, INK, () => this.done());
@@ -2236,11 +2270,36 @@ Page(
       return out;
     },
     _ringLen() { const n = this._ring(this.state.foiling).length; return n > 0 ? n : 1; },
+
+    /**
+     * SEITEN WAEHREND DER AUFNAHME, von links nach rechts:
+     *
+     *     0            VERWERFEN
+     *     1            STOPP
+     *     2 … n+1      Datenseiten (Ring)
+     *     n+2          STOPP
+     *     n+3          VERWERFEN
+     *
+     * Das Verwerfen liegt GANZ AUSSEN, hinter dem Stoppen (Jan, 24.09.2026: „es fehlt der screen
+     * gaaaanz links und gaaanz rechts vor/nach dem STOP screen zum VERWERFEN ohne zu speichern").
+     * Genau so macht es die Apple Watch schon (`discardPage()` auf `tag(0)` und auf der letzten
+     * Seite), und die Reihenfolge ist kein Zufall: wer aus Versehen zu weit wischt, landet beim
+     * Stoppen — dem harmlosen der beiden. Zum Verwerfen muss man einmal mehr wischen UND halten.
+     *
+     * Die Arithmetik steht NUR hier. Vorher rechnete jede der zehn Aufruferstellen `+ 1` selbst,
+     * und beim Erweitern haette man genau eine davon vergessen.
+     */
+    _letzteSeite() { return this._ringLen() + 3; },
+    _istVerwerfen(p) { return p === 0 || p === this._letzteSeite(); },
+    _istStopp(p) { return p === 1 || p === this._letzteSeite() - 1; },
+    /** Index im Ring, oder -1 auf den vier Sonderseiten. */
+    _ringIndex(p) { return (this._istVerwerfen(p) || this._istStopp(p)) ? -1 : p - 2; },
+
     // Seite in den gültigen Bereich holen (Ring kann durch Zustands-/Config-Wechsel schrumpfen).
     _clampPage() {
       const s = this.state;
       if (!s.recording) return;
-      const last = this._ringLen() + 1;
+      const last = this._letzteSeite();
       if (s.page > last) { s.page = last; this.applyButton(); }
     },
 
@@ -2631,7 +2690,17 @@ Page(
       this._clearFoilBtns();
       this._clampPage();
       const ring = this._ring(s.foiling), n = ring.length;
-      if (s.page === 0 || s.page >= n + 1) {
+      if (this._istVerwerfen(s.page)) {
+        // VERWERFEN. Bewusst ohne Zeit und Strecke: hier soll niemand ueberlegen, ob sich die
+        // Fahrt „gelohnt" hat — hier soll er merken, dass er auf der falschen Seite ist. Die
+        // Zahlen stehen eine Seite weiter.
+        this._clearLayout();
+        w.page.setProperty(hmUI.prop.TEXT, "");
+        this.setSlots([t("rec.discard"), ""], ["", ""], ["", ""]);
+        w.status.setProperty(hmUI.prop.TEXT, t("rec.discardHold"));
+        return;
+      }
+      if (this._istStopp(s.page)) {
         this._clearLayout();
         w.page.setProperty(hmUI.prop.TEXT, "");
         const el = (Date.now() - s.startedAtMs) / 1000;
@@ -2643,7 +2712,7 @@ Page(
           s.stopMode === "press" ? t("btn.stop") : t("rec.stopHold") + " = " + t("btn.stop"));
         return;
       }
-      const pg = s.page - 1, entry = ring[pg] || ring[0];
+      const pg = this._ringIndex(s.page), entry = ring[pg] || ring[0];
       // Tag-Byte entscheidet: 1 = eigenes Layout (Hintergrund + Elemente inline), sonst klassische
       // Seite mit Feld-IDs AB INDEX 1 (das Tag gehört nicht dazu).
       if (entry && entry[0] === 1) {
@@ -2846,7 +2915,7 @@ Page(
         if (s.foiling !== s._prevFoil) {
           s._prevFoil = s.foiling;
           s._ringKey = null; s.w.layKey = null;
-          s.page = 1;
+          s.page = ERSTE_DATENSEITE;
           this._vibrate();
           this.applyButton();
         }
@@ -2953,7 +3022,7 @@ Page(
       if (!s.fix || s.uploading) return;
       this._setBrightMode("recording");
       s.recording = true; s.screen = "recording"; s.startedAtMs = now; s.uuid = makeUuid(now);
-      s.gps = []; s.dist = 0; s.max = 0; s.hrSum = 0; s.hrN = 0; s.hrMax = 0; s.prev = null; s.page = 1; s.autoTicks = 0; s.upStatus = "";
+      s.gps = []; s.dist = 0; s.max = 0; s.hrSum = 0; s.hrN = 0; s.hrMax = 0; s.prev = null; s.page = ERSTE_DATENSEITE; s.autoTicks = 0; s.upStatus = "";
       s._fi = 0;
       // Ueberleben bei Bildschirm-Aus: beim Aufwachen wieder DIESE App oeffnen. In try/catch wie
       // alles Ungetestete auf Hardware — schlaegt es fehl, laeuft die Aufnahme normal weiter.
@@ -2968,6 +3037,62 @@ Page(
       canaryWrite(PHASE_RECORD);
       this._lockTouch();
     },
+    /**
+     * Erster Druck fragt nach, zweiter verwirft. Vier Sekunden Bedenkzeit.
+     *
+     * WARUM ZWEI SCHRITTE: der Zepp-Knopf kennt keine Halte-Geste — er hat nur `click_func`.
+     * Beim Stoppen faengt die SELECT-Taste das Halten ab; hier soll es aber auch ohne Taste
+     * gehen, und ein einzelner Tipper darf eine Aufnahme nicht loeschen. Dieselbe Absicht wie
+     * Apples „Halten zum Verwerfen", nur mit den Mitteln, die diese Oberflaeche hat.
+     */
+    _verwerfenHinweis() {
+      const s = this.state;
+      if (!s.recording) return;
+      if (s.verwerfenArmed) { this._verwerfen(); return; }
+      s.verwerfenArmed = true;
+      this.setButton(t("rec.discard") + "?", RED, RED_P, WHITE, () => this._verwerfenHinweis());
+      if (s.verwerfenTimer) clearTimeout(s.verwerfenTimer);
+      s.verwerfenTimer = setTimeout(() => {
+        s.verwerfenTimer = null; s.verwerfenArmed = false;
+        if (s.recording) this.applyButton();
+      }, 4000);
+    },
+
+    /**
+     * Aufnahme WEGWERFEN — ohne Upload, ohne Zusammenfassung, ohne Rueckfrage danach.
+     *
+     * Jan, 24.09.2026: „es fehlt der screen gaaaanz links und gaaanz rechts vor/nach dem STOP
+     * screen zum VERWERFEN ohne zu speichern". Garmin, Wear und Apple koennen das laengst; Zepp
+     * war die einzige Uhr ohne.
+     *
+     * Aufgeraeumt wird wie in `stop()` im Zweig „keine Daten": beide Dateien weg, `active` leer.
+     * KEIN Eintrag in `pending` — genau das ist der Unterschied zum Stoppen.
+     *
+     * `canaryClear()` wie bei Garmin (`discard()` dort): bewusst verworfen IST ein sauberes
+     * Ende. Ohne das meldete der naechste Start einen Absturz, den es nie gab, und die
+     * Absturzzahl im Feld waere von da an Rauschen.
+     */
+    _verwerfen() {
+      const s = this.state;
+      if (!s.recording) return;
+      if (s.verwerfenTimer) { clearTimeout(s.verwerfenTimer); s.verwerfenTimer = null; }
+      s.verwerfenArmed = false;
+      this._stopGps();
+      this._stopAccel();
+      this._disableTouchLock();
+      this._setBrightMode("idle", true);
+      s.recording = false;
+      canaryClear();
+      try { setWakeUpRelaunch({ relaunch: false }); } catch (e) {}
+      if (s.accelFile) { try { rmSync({ path: s.accelFile }); } catch (e) {} }
+      if (s.gpsFile) { try { rmSync({ path: s.gpsFile }); } catch (e) {} }
+      store.setItem("active", "");
+      s.screen = "idle"; s.idlePage = 0;
+      s.upStatus = t("rec.discarded");
+      this._cancelStopBack();
+      this.applyButton(); this.renderIdle();
+    },
+
     stop() {
       const s = this.state, now = Date.now();
       this._stopGps();
