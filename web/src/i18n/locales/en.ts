@@ -315,7 +315,6 @@ const en: Record<string, string> = {
 
   "period.today": "Today",
   "home.boardAttitude": "Board attitude",
-  "home.boardAttitudeHint": "Only from recordings where the phone was mounted on the board. Averages are medians — one crash should not move the number.",
   "home.baRunLength": "Run length",
   "home.baRuns": "{n} runs",
   "home.baPitch": "Pitch",
@@ -327,7 +326,6 @@ const en: Record<string, string> = {
   "home.ba30to60s": "30 s to 1 min",
   "home.ba1to5min": "1 to 5 min",
   "home.baOver5min": "over 5 min",
-  "home.baFooter": "From {sessions} recordings with {runs} runs. Heave and cadence need a clear pump rhythm. Where it was not clear you see “not detected” instead of a number that would not be one.",
   "home.startSuccess": "Start success rate",
   "home.startThreshold": "Attempt < ",
   "period.10d": "10 days",

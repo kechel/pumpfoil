@@ -327,7 +327,6 @@ const de: Record<string, string> = {
   // Zeiträume
   "period.today": "Heute",
   "home.boardAttitude": "Lage des Bretts",
-  "home.boardAttitudeHint": "Nur aus Aufnahmen, bei denen das Handy am Brett saß. Mittelwerte sind Mediane — ein Sturz soll die Zahl nicht verschieben.",
   "home.baRunLength": "Lauflänge",
   "home.baRuns": "{n} Läufe",
   "home.baPitch": "Nicken",
@@ -339,7 +338,6 @@ const de: Record<string, string> = {
   "home.ba30to60s": "30 s bis 1 min",
   "home.ba1to5min": "1 bis 5 min",
   "home.baOver5min": "über 5 min",
-  "home.baFooter": "Aus {sessions} Aufnahmen mit {runs} Läufen. Hub und Takt brauchen einen klar erkannten Pumptakt. Wo er es nicht war, steht „nicht erkannt“ statt einer Zahl, die keine wäre.",
   "home.startSuccess": "Start-Erfolgsquote",
   "home.startThreshold": "Versuch < ",
   "period.10d": "10 Tage",
