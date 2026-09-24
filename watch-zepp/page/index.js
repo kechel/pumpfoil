@@ -558,6 +558,12 @@ const S = {
   "btn.unlock":      ["ENTSPERREN", "ENTSPERRE", "ENTSPERREN", "UNLOCK", "DÉVERROUILLER", "SBLOCCA", "DESBLOQUEAR", "DESBLOQUEAR", "BUKA", "РАЗБЛОК.", "ONTGRENDELEN", "AVAA", "ODEMKNOUT", "ロック解除", "解锁"],
   // Verwerfen: Wortlaut aus der Apple Watch uebernommen, damit dieselbe Handlung auf beiden
   // Uhren gleich heisst. Der Hinweis nennt das Halten — es gibt hier keinen kurzen Druck.
+  // Pause: die ersten dreizehn Spalten wortgleich von Garmin (Strings.mc) — dieselbe Handlung
+  // soll auf beiden Uhren gleich heissen. Japanisch und Chinesisch gab es dort nicht, weil
+  // Garmins Tabelle am Ende nb und pl fuehrt statt ja und zh.
+  "rec.pause":       ["Pausieren", "Pausiere", "Pausieren", "Pause", "Pause", "Pausa", "Pausar", "Pausar", "Jeda", "Пауза", "Pauzeren", "Tauko", "Pozastavit", "一時停止", "暂停"],
+  "rec.resume":      ["Fortsetzen", "Fortsetze", "Fortsetzen", "Resume", "Reprendre", "Riprendi", "Reanudar", "Retomar", "Lanjut", "Продолжить", "Hervatten", "Jatka", "Pokračovat", "再開", "继续"],
+  "rec.paused":      ["Pausiert", "Pausiert", "Pausiert", "Paused", "En pause", "In pausa", "En pausa", "Pausado", "Dijeda", "Пауза", "Gepauzeerd", "Tauolla", "Pozastaveno", "一時停止中", "已暂停"],
   "rec.discard":     ["Verwerfen", "Verwärfe", "Verwerfen", "Discard", "Supprimer", "Scarta", "Descartar", "Descartar", "Buang", "Удалить", "Weggooien", "Hylkää", "Zahodit", "破棄", "丢弃"],
   "rec.discarded":   ["Verworfen", "Verworfe", "Verworfen", "Discarded", "Supprimé", "Scartata", "Descartada", "Descartada", "Dibuang", "Удалено", "Weggegooid", "Hylätty", "Zahozeno", "破棄しました", "已丢弃"],
   "rec.discardHold": ["2 s halten = verwerfen", "2 s halte = verwärfe", "2 s halten = verwerfen", "Hold 2 s = discard", "Maintenir 2 s = supprimer", "Tieni 2 s = scarta", "Mantén 2 s = descartar", "Segurar 2 s = descartar", "Tahan 2 dtk = buang", "Держать 2 с = удалить", "2 s vasthouden = weggooien", "Pidä 2 s = hylkää", "Podržet 2 s = zahodit", "2秒長押しで破棄", "长按2秒丢弃"],
@@ -674,6 +680,9 @@ const PL = {
   "rec.noData": "Brak danych",
   "rec.repair": "Połącz ponownie",
   "btn.unlock": "ODBLOKUJ",
+  "rec.pause": "Pauza",
+  "rec.resume": "Wznów",
+  "rec.paused": "Pauza",
   "rec.discard": "Odrzuć",
   "rec.discardHold": "Przytrzymaj 2 s = odrzuć",
   "rec.discarded": "Odrzucono",
@@ -708,6 +717,9 @@ const NB = {
   "btn.stop": "STOP",
   "btn.unlock": "LÅS OPP",
   "rec.stopHold": "Hold",
+  "rec.pause": "Pause",
+  "rec.resume": "Fortsett",
+  "rec.paused": "Pauset",
   "rec.discard": "Forkast",
   "rec.discardHold": "Hold 2 s = forkast",
   "rec.discarded": "Forkastet",
@@ -908,6 +920,11 @@ Page(
       stopBackTimer: null, stopBackPage: 0,
       lockHoldTimer: null,   // laeuft, solange auf die Touch-Sperre gedrueckt wird
       verwerfenArmed: false, verwerfenTimer: null,   // Rueckfrage vor dem Verwerfen
+      // PAUSE (24.09.2026). `pausedMs` haelt die Sample-Achse lueckenlos: alle Zeitstempel sind
+      // AKTIVE Zeit, die Pausen sind herausgerechnet — genau das erwartet der Server, der
+      // `ended_at` als Wanduhr fuehrt und die Pausendauer separat dazurechnet (s. ingest.py).
+      // `pauseListe` sind die Fenster [Position in aktiver Zeit, Dauer], wie bei Garmin.
+      paused: false, pausedMs: 0, pauseStartMs: 0, pauseBeiMs: 0, pauseListe: [],
       touchLocked: false, brightMode: "system", brightUntilMs: 0,
       geo: null, geoSpeedPrev: null, geoCallback: null, geoLast: null, hrSensor: null, hrCallback: null, hrUpdatedMs: 0, _hrLogged: false, w: {},
       accelSensor: null, accelCallback: null, accelBuffer: [], accelSamples: 0, accelBytes: 0,
@@ -1117,7 +1134,7 @@ Page(
             const now = Date.now();
             if (!s.accelFirstMs) s.accelFirstMs = now;
             if (s.accelSamples % ACCEL_CHUNK_SAMPLES === 0) {
-              s.accelChunkT0.push(Math.max(0, now - s.startedAtMs));
+              s.accelChunkT0.push(this._aktivMs());
             }
             const scale = ACCEL_SCALE / STANDARD_GRAVITY_CM_S2;
             s.accelBuffer.push(clampI16(a.x * scale), clampI16(a.y * scale), clampI16(a.z * scale));
@@ -1268,6 +1285,14 @@ Page(
                 // ist fuers Stoppen gedacht, und Verwerfen loescht Daten. Hier fuehrt der kurze
                 // Druck auf dieselbe Rueckfrage wie der Knopf.
                 if (this._istVerwerfen(s.page)) { this._verwerfenHinweis(); return true; }
+                // Auf der Stopp-Seite ist der kurze Druck frei (er sprang bisher nur auf genau
+                // diese Seite). Dort liegt jetzt Pause bzw. Fortsetzen — das Halten bleibt das
+                // Beenden. Zwei Handlungen an einer Taste, unterschieden durch die Dauer, wie
+                // schon beim Stoppen.
+                if (this._istStopp(s.page) && s.stopMode !== "press") {
+                  if (s.paused) this.resume(); else this.pause();
+                  return true;
+                }
                 if (s.stopMode === "press") { this.stop(); return true; }
                 if (s.touchLocked) this._showTouchLock();
                 this._toStopScreen();
@@ -1961,7 +1986,10 @@ Page(
           // kurzen Druck erlauben kann. Verwerfen loescht Daten: hier gibt es keine Abkuerzung,
           // egal was im Profil steht.
           this.setButton(t("rec.discard"), RED, RED_P, WHITE, () => this._verwerfenHinweis());
-        } else if (this._istStopp(s.page)) this.setButton(t("btn.stop"), RED, RED_P, WHITE, () => this.stop());
+        } else if (this._istStopp(s.page)) {
+          if (s.paused) this.setButton(t("rec.resume"), CYAN, CYAN_P, INK, () => this.resume());
+          else this.setButton(t("btn.stop"), RED, RED_P, WHITE, () => this.stop());
+        }
         else this.hideButton();
       } else if (s.screen === "summary") {
         this.setButton(t("common.done"), CYAN, CYAN_P, INK, () => this.done());
@@ -2269,6 +2297,23 @@ Page(
       s._ringCache = out; s._ringKey = key;
       return out;
     },
+    /**
+     * AKTIVE Zeit seit dem Start, in Millisekunden — Pausen herausgerechnet.
+     *
+     * Jeder Zeitstempel der Aufnahme kommt hierher: GPS-Punkte, Accel-Chunk-Anfaenge, die
+     * angezeigte Laufzeit. Der Server rechnet damit (s. `ingest.py`: „der GPS-Zeitstempel ist
+     * AKTIVE Zeit, die Pausen fehlen darin") und addiert die Pausendauer fuer `ended_at` selbst
+     * wieder dazu. Wer hier die Wanduhr einsetzt, reisst ein Loch in die Accel-Achse — und die
+     * gemessene Rate wird ueber die Pause hinweg gerechnet und damit falsch.
+     */
+    _aktivMs() {
+      const s = this.state;
+      const roh = Date.now() - s.startedAtMs - s.pausedMs;
+      // In der Pause steht die Uhr: sonst liefe die angezeigte Zeit weiter, und der erste Punkt
+      // nach dem Fortsetzen saesse zu spaet.
+      return Math.max(0, s.paused ? s.pauseBeiMs : roh);
+    },
+
     _ringLen() { const n = this._ring(this.state.foiling).length; return n > 0 ? n : 1; },
 
     /**
@@ -2443,7 +2488,7 @@ Page(
     // Farbe nach Wert für ein Feld; null = keine (Aufrufer nimmt die Palette-/auto-Farbe).
     _fieldColor(id) {
       const s = this.state, last = s.last;
-      const el = s.recording ? (Date.now() - s.startedAtMs) / 1000 : 0;
+      const el = s.recording ? this._aktivMs() / 1000 : 0;
       switch (id) {
         case 1: return laySpeedColor(s.sp3 * 3.6);
         case 5: return laySpeedColor(s.cur * 3.6);
@@ -2703,13 +2748,17 @@ Page(
       if (this._istStopp(s.page)) {
         this._clearLayout();
         w.page.setProperty(hmUI.prop.TEXT, "");
-        const el = (Date.now() - s.startedAtMs) / 1000;
-        this.setSlots([mmss(el), t("f.time")], [fmtDist(s.dist), t("f.dist")], ["", ""]);
-        // Tasten-Hinweis: "Halten = STOPP". Das frueher angehaengte "kurz = Seite" ist entfallen —
-        // fuer "Seite" gibt es in den anderen Uhr-Apps keinen Wortlaut, und die Seitenanzeige
-        // (n/N) steht ohnehin oben rechts. Keinen Text erfinden.
+        const el = this._aktivMs() / 1000;
+        this.setSlots([mmss(el), t("f.time")], [fmtDist(s.dist), t("f.dist")],
+                      s.paused ? [t("rec.paused"), ""] : ["", ""]);
+        // Tasten-Hinweis: "Halten = STOPP", und seit dem 24.09. der kurze Druck dazu — er war
+        // auf dieser Seite ohne Wirkung und traegt jetzt die Pause. Steht der Hinweis nicht da,
+        // findet sie niemand; das Wort allein ist billiger als ein weiterer Bildschirm.
         w.status.setProperty(hmUI.prop.TEXT,
-          s.stopMode === "press" ? t("btn.stop") : t("rec.stopHold") + " = " + t("btn.stop"));
+          s.upStatus ? s.upStatus
+          : s.stopMode === "press" ? t("btn.stop")
+          : t("rec.stopHold") + " = " + t("btn.stop") + " · "
+            + (s.paused ? t("rec.resume") : t("rec.pause")));
         return;
       }
       const pg = this._ringIndex(s.page), entry = ring[pg] || ring[0];
@@ -2754,7 +2803,7 @@ Page(
       //
       // Das ist KEIN Wiederholen des Hinweises "Halten = STOPP", der hier zu Recht raus ist
       // (Jan, 13.09.): eine laufende Uhr ist ZUSTAND, und genau dafuer ist diese Zeile da.
-      const laufzeit = mmss(Math.max(0, (Date.now() - s.startedAtMs) / 1000));
+      const laufzeit = mmss(Math.max(0, this._aktivMs() / 1000));
       w.status.setProperty(hmUI.prop.TEXT, laufzeit + " · " + (s.fix ? "GPS ●" : t("gps.searching"))
         + (s.foiling ? " · " + t("f.runActive") : ""));
     },
@@ -2769,7 +2818,7 @@ Page(
     // -> die Grafik bleibt leer, statt 0 zu zeigen (0 hiesse "ganz unten in Zone 1").
     fieldNumber(id) {
       const s = this.state, last = s.last;
-      const el = s.recording ? (Date.now() - s.startedAtMs) / 1000 : 0;
+      const el = s.recording ? this._aktivMs() / 1000 : 0;
       const hasRun = s.runCount > 0;
       switch (id) {
         case 1: return s.sp3 * 3.6;
@@ -2787,7 +2836,7 @@ Page(
     },
     fieldValue(id) {
       const s = this.state, last = s.last;
-      const el = s.recording ? (Date.now() - s.startedAtMs) / 1000 : 0;
+      const el = s.recording ? this._aktivMs() / 1000 : 0;
       // Lauf-Kennzahlen: läuft gerade ein Lauf -> dessen Live-Werte, sonst die des letzten
       // (identisch mit _rec.runDurationMs()/runDistanceM() bei Garmin und Recorder.kt:393-395).
       const runDurMs = s.foiling ? Math.max(0, el * 1000 - s.runStartMs) : s.lastRunDurMs;
@@ -2887,7 +2936,7 @@ Page(
       s.cur = fix ? speed : 0;
 
       if (s.recording) {
-        const el = Date.now() - s.startedAtMs;
+        const el = this._aktivMs();
         if (fix) {
           const punkt = [el, Math.round(lat * 1e6) / 1e6, Math.round(lon * 1e6) / 1e6,
                          Math.round(speedRaw * 100) / 100, hr, 0];
@@ -3023,6 +3072,8 @@ Page(
       this._setBrightMode("recording");
       s.recording = true; s.screen = "recording"; s.startedAtMs = now; s.uuid = makeUuid(now);
       s.gps = []; s.dist = 0; s.max = 0; s.hrSum = 0; s.hrN = 0; s.hrMax = 0; s.prev = null; s.page = ERSTE_DATENSEITE; s.autoTicks = 0; s.upStatus = "";
+      s.paused = false; s.pausedMs = 0; s.pauseStartMs = 0; s.pauseBeiMs = 0;
+      s.pauseListe = []; s._teilUploadLaeuft = false;
       s._fi = 0;
       // Ueberleben bei Bildschirm-Aus: beim Aufwachen wieder DIESE App oeffnen. In try/catch wie
       // alles Ungetestete auf Hardware — schlaegt es fehl, laeuft die Aufnahme normal weiter.
@@ -3081,7 +3132,7 @@ Page(
       this._stopAccel();
       this._disableTouchLock();
       this._setBrightMode("idle", true);
-      s.recording = false;
+      s.recording = false; s.paused = false; s._teilUploadLaeuft = false;
       canaryClear();
       try { setWakeUpRelaunch({ relaunch: false }); } catch (e) {}
       if (s.accelFile) { try { rmSync({ path: s.accelFile }); } catch (e) {} }
@@ -3093,8 +3144,98 @@ Page(
       this.applyButton(); this.renderIdle();
     },
 
+    /**
+     * Aufnahme PAUSIEREN: Sensoren aus, Session offen, und das Bisherige darf schon hochgehen.
+     *
+     * Jan, 24.09.2026: „sowie die gesamte PAUSE moeglichkeit die dann auch schon versucht
+     * hochzuladen so wie auch bei garmin." Garmin macht dabei zwei Dinge, die hier genauso
+     * passieren muessen:
+     *
+     *  1. DIE ZEITACHSE BLEIBT LUECKENLOS. Alle Zeitstempel sind aktive Zeit (s. `_aktivMs`);
+     *     die Pausendauer wandert in `pausedMs` und das Fenster in `pauseListe`. Der Server
+     *     rechnet die Dauer fuer `ended_at` selbst wieder dazu. Ohne das klafft ein Loch in der
+     *     Accel-Achse, und die gemessene Rate wird ueber die Pause hinweg gerechnet — dasselbe
+     *     Artefakt, das am 23.09. ein zugeklappter Laptop erzeugt hat (2 Hz statt 12).
+     *
+     *  2. DIE PAUSE IST DIE GELEGENHEIT ZUM HOCHLADEN. Waehrend der Aufnahme laedt die App
+     *     nichts (`flushPending` steigt bei `s.recording` aus); in der Pause darf sie. Der
+     *     Teil-Upload schickt die bisherigen Bloecke und danach `/analyze` statt `/complete` —
+     *     der Server rechnet durch, haelt die Session auf `live`, und die Laeufe sind auf dem
+     *     Handy schon zu sehen. Die Uhr wirft dabei NICHTS weg: die Aufnahme laeuft weiter.
+     */
+    pause() {
+      const s = this.state;
+      if (!s.recording || s.paused) return;
+      s.pauseBeiMs = this._aktivMs();   // Position auf der aktiven Achse, VOR dem Anhalten
+      s.paused = true;
+      s.pauseStartMs = Date.now();
+      this._stopGps();
+      this._stopAccel();
+      this.persistActive();
+      canaryWrite(PHASE_IDLE);   // in der Pause ist nichts „mitten in der Aufnahme"
+      this.applyButton(); this.renderRecording();
+      this._teilUpload();
+    },
+
+    /** Aufnahme FORTSETZEN: Pausendauer aufaddieren, Sensoren wieder scharf. */
+    resume() {
+      const s = this.state;
+      if (!s.recording || !s.paused) return;
+      const dauer = Date.now() - s.pauseStartMs;
+      if (dauer > 0) {
+        s.pausedMs += dauer;
+        s.pauseListe.push([Math.round(s.pauseBeiMs), Math.round(dauer)]);
+      }
+      s.paused = false;
+      s._teilUploadLaeuft = false;
+      this._startGps();
+      this._startAccel();
+      this.persistActive();
+      canaryWrite(PHASE_RECORD);
+      this.applyButton(); this.renderRecording();
+    },
+
+    /**
+     * Die LAUFENDE Session einmal hochladen, ohne sie abzuschliessen.
+     *
+     * Getrennt von `flushPending`: das arbeitet die Warteschlange fertiger Aufnahmen ab und
+     * raeumt sie danach lokal weg. Hier darf beides nicht passieren — die Aufnahme laeuft
+     * weiter und braucht ihre Dateien. Deshalb ein eigener, einfacher Weg, der nur sendet.
+     */
+    _teilUpload() {
+      const s = this.state;
+      if (!s.paused || s._teilUploadLaeuft || s.uploading || !getTok()) return;
+      if (!this._gpsGesamt()) return;   // noch nichts zu senden
+      s._teilUploadLaeuft = true;
+      s.upStatus = t("up.running");
+      this.renderRecording();
+      const sess = { uuid: s.uuid, startedAtMs: s.startedAtMs, foilId: s.foilId,
+        accelFile: s.accelFile, accelSamples: s.accelSamples, accelHz: this._accelHz(),
+        accelChunkT0: s.accelChunkT0.slice(), gpsFile: s.gpsFile, gpsCount: s.gpsCount,
+        gps: s.gpsFile ? null : s.gps.slice(), teil: true };
+      this.uploadSession(sess).then(() => {
+        s.upStatus = t("up.done");
+      }).catch(() => {
+        // Ein gescheiterter Teil-Upload ist folgenlos: es geht nichts verloren, und beim
+        // Beenden laeuft der normale Weg ohnehin noch einmal.
+        s.upStatus = t("up.serverUnreach");
+      }).then(() => {
+        if (s.paused) this.renderRecording();
+      });
+    },
+
     stop() {
       const s = this.state, now = Date.now();
+      // Aus der Pause heraus beenden: das offene Fenster zaehlt noch mit, sonst faellt die
+      // letzte Pause unter den Tisch und `ended_at` waere um ihre Dauer zu frueh.
+      if (s.paused) {
+        const dauer = Date.now() - s.pauseStartMs;
+        if (dauer > 0) {
+          s.pausedMs += dauer;
+          s.pauseListe.push([Math.round(s.pauseBeiMs), Math.round(dauer)]);
+        }
+        s.paused = false; s._teilUploadLaeuft = false;
+      }
       this._stopGps();
       this._stopAccel();
       this._disableTouchLock();
@@ -3107,7 +3248,8 @@ Page(
         s.screen = "summary"; s.upPct = 0; s.upStatus = t("up.keepOpen");
         const eintrag = { uuid: s.uuid, startedAtMs: s.startedAtMs, endedAtMs: now,
           foilId: s.foilId, accelFile: s.accelFile, accelSamples: s.accelSamples,
-          accelHz: this._accelHz(), accelChunkT0: s.accelChunkT0.slice() };
+          accelHz: this._accelHz(), accelChunkT0: s.accelChunkT0.slice(),
+          pauses: s.pauseListe.slice() };
         if (s.gpsFile) { eintrag.gpsFile = s.gpsFile; eintrag.gpsCount = s.gpsCount; }
         else eintrag.gps = s.gps.slice();
         const list = loadPending(); list.push(eintrag); savePending(list);
@@ -3287,8 +3429,13 @@ Page(
       };
       return req({ method: "START", token: tok, meta }).then(() => { bump(); return sendGpsChunks(); })
         .then(() => sendAccelChunks())
-        .then(() => req({ method: "COMPLETE", token: tok, session_uuid: sess.uuid,
-                          ended_at_ms: sess.endedAtMs, total_chunks: dataChunkCount })).then(bump);
+        .then(() => (sess.teil
+          // TEIL-Upload aus der Pause: NICHT abschliessen. Der Server rechnet durch und haelt
+          // die Session auf `live`; die Aufnahme laeuft weiter und behaelt ihre Dateien.
+          ? req({ method: "ANALYZE", token: tok, session_uuid: sess.uuid })
+          : req({ method: "COMPLETE", token: tok, session_uuid: sess.uuid,
+                  ended_at_ms: sess.endedAtMs, total_chunks: dataChunkCount,
+                  pauses: sess.pauses || [] }))).then(bump);
     },
     flushPending() {
       const s = this.state;

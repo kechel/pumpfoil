@@ -78,6 +78,19 @@ merkt sich die Uhr das ganze Profil: eigene Seiten, Ansichten, Foils, Alarmschwe
 Geschwindigkeitszonen. Die Sprache konnte sie das schon, der Rest fehlte. Garmin, Wear OS und
 Apple Watch machen es laengst so.
 
+**Aufnahme pausieren — und das Bisherige geht schon hoch.** Auf dem Stopp-Bildschirm haelt ein
+kurzer Druck die Aufnahme an, ein weiterer setzt sie fort; das Halten beendet sie wie bisher. In
+der Pause schickt die Uhr, was sie hat, und auf dem Handy sind die Laeufe bis dahin schon zu
+sehen. Die Pausen fehlen in der Fahrzeit und stehen trotzdem in der Auswertung. Garmin kann das
+seit Laengerem.
+
+**Eine Aufnahme laesst sich verwerfen, ohne sie zu speichern.** Ganz links und ganz rechts, hinter
+dem Stopp-Bildschirm. Zum Ausloesen zweimal tippen oder die Taste halten — ein Tipper allein
+loescht nichts.
+
+**Die Touch-Sperre schnappt nicht mehr zu, waehrend man blaettert.** Sie zaehlt jetzt bei jeder
+Wischbewegung von vorn.
+
 **Die Uhr vibriert an den Strecken- und Zeitmarken aus dem Profil.**
 
 **Ein ausgegrauter Start-Knopf sagt jetzt, warum.** Wartet auf GPS, oder ein Upload laeuft noch.
