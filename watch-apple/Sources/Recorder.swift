@@ -208,7 +208,88 @@ final class Recorder: NSObject, ObservableObject {
         store.requestAuthorization(toShare: share, read: read) { _, _ in }
     }
 
-    private func elapsedMs() -> Int { Int(Date().timeIntervalSince(startedAt) * 1000) }
+    // MARK: - Pause
+    //
+    // Jan, 24.09.2026: „sowie die gesamte PAUSE moeglichkeit die dann auch schon versucht
+    // hochzuladen so wie auch bei garmin." Zwei Dinge sind daran heikel, beide von Garmin
+    // uebernommen:
+    //
+    //  1. DIE ZEITACHSE BLEIBT LUECKENLOS. `elapsedMs()` liefert AKTIVE Zeit — die Pausendauer
+    //     steht in `pausedMs`, das Fenster in `pauseListe`. Genau das erwartet der Server
+    //     (ingest.py: „der GPS-Zeitstempel ist AKTIVE Zeit, die Pausen fehlen darin"); er
+    //     addiert die Dauer fuer `ended_at` selbst wieder dazu. Mit Wanduhr klaffte ein Loch in
+    //     der Accel-Achse, und die gemessene Rate liefe ueber die Pause hinweg.
+    //  2. DIE PAUSE IST DIE GELEGENHEIT ZUM HOCHLADEN — s. `teilUpload()`.
+    @Published var isPaused = false
+    private var pausedMs = 0
+    private var pauseStart = Date()
+    private var pauseBeiMs = 0
+    private var pauseListe: [[Int]] = []
+
+    /// AKTIVE Zeit seit dem Start. In der Pause steht sie still.
+    private func elapsedMs() -> Int {
+        if isPaused { return pauseBeiMs }
+        return Int(Date().timeIntervalSince(startedAt) * 1000) - pausedMs
+    }
+
+    /// Aufnahme PAUSIEREN: Sensoren aus, Session offen, Bisheriges darf hochgehen.
+    func pause() {
+        guard isRecording, !isPaused else { return }
+        pauseBeiMs = elapsedMs()        // Position auf der aktiven Achse, VOR dem Anhalten
+        isPaused = true
+        pauseStart = Date()
+        motion.stopAccelerometerUpdates()
+        location.stopUpdatingLocation()
+        status = WLoc.t("rec.paused", UserDefaults.standard.string(forKey: "appLang") ?? "de")
+        Task { await teilUpload() }
+    }
+
+    /// Aufnahme FORTSETZEN: Pausendauer aufaddieren, Fenster festhalten, Sensoren zurueck.
+    func resume() {
+        guard isRecording, isPaused else { return }
+        let dauer = Int(Date().timeIntervalSince(pauseStart) * 1000)
+        if dauer > 0 {
+            pausedMs += dauer
+            pauseListe.append([pauseBeiMs, dauer])
+        }
+        isPaused = false
+        status = ""
+        startSensors()
+    }
+
+    /// Das offene Pausenfenster schliessen — beim Beenden aus der Pause heraus. Ohne das faellt
+    /// die letzte Pause unter den Tisch und `ended_at` waere um ihre Dauer zu frueh.
+    private func pauseAbschliessen() {
+        guard isPaused else { return }
+        let dauer = Int(Date().timeIntervalSince(pauseStart) * 1000)
+        if dauer > 0 { pausedMs += dauer; pauseListe.append([pauseBeiMs, dauer]) }
+        isPaused = false
+    }
+
+    /// Die LAUFENDE Session einmal senden, ohne sie abzuschliessen.
+    ///
+    /// Getrennt von `drain()`: das arbeitet fertige Aufnahmen ab und raeumt sie danach lokal
+    /// weg. Hier darf beides nicht passieren — die Aufnahme laeuft weiter und braucht ihre
+    /// Dateien. Abgeschlossen wird mit /analyze statt /complete; der Server rechnet durch und
+    /// haelt die Session auf `live`, damit die Laeufe auf dem iPhone schon zu sehen sind.
+    private func teilUpload() async {
+        guard isPaused, Api.deviceToken != nil else { return }
+        await flushAll()
+        let dir = LocalStore.dir(uuid)
+        guard let start = LocalStore.readJSON(dir.appendingPathComponent("session.json")) else { return }
+        do {
+            try await Api.startSession(start)
+            for cf in LocalStore.chunkFiles(dir) {
+                if !isPaused { return }          // fortgesetzt -> nicht weiter senden
+                guard let chunk = LocalStore.readJSON(cf) else { continue }
+                try await Api.uploadChunk(uuid, chunk)
+            }
+            if isPaused { try await Api.analyze(uuid) }
+        } catch {
+            // Folgenlos: es geht nichts verloren, und beim Beenden laeuft der normale Weg
+            // ohnehin noch einmal.
+        }
+    }
 
     // MARK: - Start / Stop
 
@@ -379,7 +460,10 @@ final class Recorder: NSObject, ObservableObject {
         location.stopUpdatingLocation()
         status = WLoc.t("rec.saving", UserDefaults.standard.string(forKey: "appLang") ?? "de")
         await flushAll()
-        LocalStore.writeComplete(uuid, ["ended_at": Date().iso8601Z, "total_chunks": chunkIndex])
+        pauseAbschliessen()
+        var fertig: [String: Any] = ["ended_at": Date().iso8601Z, "total_chunks": chunkIndex]
+        if !pauseListe.isEmpty { fertig["pauses"] = pauseListe }
+        LocalStore.writeComplete(uuid, fertig)
         status = WLoc.t("rec.saved", UserDefaults.standard.string(forKey: "appLang") ?? "de")
         pendingCount = LocalStore.pendingCount()
         endWorkout()
@@ -555,7 +639,11 @@ final class Recorder: NSObject, ObservableObject {
         let comp = LocalStore.readJSON(dir.appendingPathComponent("complete.json"))
         let endedAt = comp?["ended_at"] as? String ?? Date().iso8601Z
         let total = comp?["total_chunks"] as? Int ?? chunkIndex
-        try await Api.complete(sid, endedAt: endedAt, totalChunks: total)
+        // Pausenfenster aus complete.json — sie stehen dort seit 24.09. und muessen den Weg
+        // ueber die Warteschlange ueberstehen, weil zwischen Stop und Upload ein App-Neustart
+        // liegen kann.
+        let pausen = comp?["pauses"] as? [[Int]]
+        try await Api.complete(sid, endedAt: endedAt, totalChunks: total, pauses: pausen)
         LocalStore.delete(sid)   // erst NACH /complete -> serverseitig sicher vorhanden
     }
 

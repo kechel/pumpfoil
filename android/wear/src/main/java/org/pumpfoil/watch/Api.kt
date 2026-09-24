@@ -110,9 +110,18 @@ object Api {
         post("/api/ingest/session/$uuid/chunk", body)
     }
 
+    /** Teil-Analyse waehrend die Aufnahme laeuft (Pause). Schliesst die Session NICHT ab. */
+    suspend fun analyze(uuid: String) = withContext(Dispatchers.IO) {
+        post("/api/ingest/session/$uuid/analyze", JSONObject())
+    }
+
     suspend fun complete(uuid: String, endedAt: String, totalChunks: Int,
-                         hrSamples: Int? = null, hrSource: String? = null) = withContext(Dispatchers.IO) {
+                         hrSamples: Int? = null, hrSource: String? = null,
+                         pauses: org.json.JSONArray? = null) = withContext(Dispatchers.IO) {
         val body = JSONObject().put("ended_at", endedAt).put("total_chunks", totalChunks)
+        // Pausenfenster nur mitschicken, wenn es welche gibt — ein leeres Feld wuerde auf dem
+        // Server `pause_windows` loeschen, falls ein Wiederholungsversuch ohne sie ankommt.
+        if (pauses != null && pauses.length() > 0) body.put("pauses", pauses)
         // Puls-Diagnose nur mitschicken, wenn sie vorliegt — ein aelterer Server ignoriert
         // unbekannte Felder ohnehin, aber ein leeres Feld wuerde eine gemeldete Angabe
         // ueberschreiben, wenn /complete ein zweites Mal laeuft (Retry/Watchdog).

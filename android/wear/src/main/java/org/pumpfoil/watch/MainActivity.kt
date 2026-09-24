@@ -742,6 +742,19 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                                 ) {
                                     RecorderService.stop(applicationContext)
                                 }
+                                // PAUSE (Jan, 24.09.2026) — unter dem Stoppen, weil sie seltener
+                                // gebraucht wird und das Beenden die Hauptsache bleibt. Ein
+                                // einfacher Druck genuegt: Pausieren ist umkehrbar, und ein
+                                // Fehlgriff kostet nichts als einen zweiten Druck. In der Pause
+                                // laedt die Uhr schon hoch, was sie hat (s. Recorder.teilUpload).
+                                Spacer(Modifier.height(6.dp))
+                                HoldButton(
+                                    if (s.paused) I18n.t("rec.resume") else I18n.t("rec.pause"),
+                                    Color(0xFF0E7490), Color(0xFF22D3EE), press = true,
+                                ) {
+                                    if (s.paused) RecorderService.resume(applicationContext)
+                                    else RecorderService.pause(applicationContext)
+                                }
                                 if (s.status.isNotEmpty()) {
                                     Spacer(Modifier.height(6.dp))
                                     Text(s.status, style = MaterialTheme.typography.caption2, color = Color(0xFF94A3B8))

@@ -97,6 +97,23 @@ class RecorderService : Service(), SensorEventListener {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == ACTION_STOP) { stopEverything(save = true); return START_NOT_STICKY }
         if (intent?.action == ACTION_DISCARD) { stopEverything(save = false); return START_NOT_STICKY }
+        // PAUSE: Sensoren und Ortung aus, Dienst und Session bleiben. Der Vordergrund-Dienst
+        // laeuft weiter — er haelt die Aufnahme am Leben, und ohne ihn raeumt das System die
+        // App weg, waehrend jemand am Steg steht.
+        if (intent?.action == ACTION_PAUSE) {
+            sensors.unregisterListener(this)
+            stopHeartRate()
+            try { locMgr.removeUpdates(gpsListener) } catch (_: SecurityException) {}
+            Recorder.pause(applicationContext)
+            return START_STICKY
+        }
+        if (intent?.action == ACTION_RESUME) {
+            Recorder.resume(applicationContext)
+            registerSensors()
+            startLocation()
+            if (Recorder.state.value.pulsMessung) startHeartRate()
+            return START_STICKY
+        }
         // Puls-Berechtigung wurde WAEHREND der Aufnahme erteilt -> Health Services jetzt anhaengen,
         // statt die Session ohne Puls zu Ende laufen zu lassen. Kommt vom Start-Bildschirm, der
         // die Aufnahme nicht mehr auf den Dialog warten laesst (s. MainActivity).
@@ -426,6 +443,8 @@ class RecorderService : Service(), SensorEventListener {
         const val ACTION_STOP = "org.pumpfoil.watch.STOP"
         const val ACTION_DISCARD = "org.pumpfoil.watch.DISCARD"
         const val ACTION_HR_ON = "org.pumpfoil.watch.HR_ON"
+        const val ACTION_PAUSE = "org.pumpfoil.watch.PAUSE"
+        const val ACTION_RESUME = "org.pumpfoil.watch.RESUME"
         /** Solange darf die Puls-Messung stillstehen, bevor wir sie neu anfordern. */
         const val PULS_STILL_MS = 120_000L
         const val PULS_MAX_NEUSTARTS = 8
@@ -437,5 +456,9 @@ class RecorderService : Service(), SensorEventListener {
             Intent(ctx, RecorderService::class.java).setAction(ACTION_STOP))
         fun discard(ctx: Context) = ctx.startService(
             Intent(ctx, RecorderService::class.java).setAction(ACTION_DISCARD))
+        fun pause(ctx: Context) = ctx.startService(
+            Intent(ctx, RecorderService::class.java).setAction(ACTION_PAUSE))
+        fun resume(ctx: Context) = ctx.startService(
+            Intent(ctx, RecorderService::class.java).setAction(ACTION_RESUME))
     }
 }

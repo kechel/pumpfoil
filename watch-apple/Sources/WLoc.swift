@@ -48,6 +48,10 @@ enum WLoc {
         "common.off": r("Aus", "Us", "Aus", "Off", "Désactivé", "Off", "No"),
         "lay.none": r("keine Seiten", "kei Site", "keine Seiten", "no pages", "aucune page", "nessuna pagina", "sin páginas"),
         "rec.paused": r("Pausiert", "Pausiert", "Pausiert", "Paused", "En pause", "In pausa", "En pausa"),
+        // Pause/Fortsetzen: Wortlaut aus Garmins Strings.mc, damit dieselbe Handlung auf
+        // allen Uhren gleich heisst.
+        "rec.pause": r("Pausieren", "Pausiere", "Pausieren", "Pause", "Pause", "Pausa", "Pausar"),
+        "rec.resume": r("Fortsetzen", "Fortsetze", "Fortsetzen", "Resume", "Reprendre", "Riprendi", "Reanudar"),
         "pair.title": r("Uhr verbinden", "Uhr verbinde", "Uhr verbinden", "Connect watch", "Connecter la montre", "Collega l'orologio", "Conectar reloj"),
         "pair.howto": r("Pairing-Code erzeugen und auf pumpfoil.org (Account) eingeben.", "Pairing-Code erzüge und uf pumpfoil.org (Account) yygeh.", "Pairing-Code erzeugen und auf pumpfoil.org (Account) eingeben.", "Generate a pairing code and enter it on pumpfoil.org (Account).", "Générez un code et saisissez-le sur pumpfoil.org (Compte).", "Genera un codice e inseriscilo su pumpfoil.org (Account).", "Genera un código e introdúcelo en pumpfoil.org (Cuenta)."),
         "pair.gen": r("Pairing-Code erzeugen", "Pairing-Code erzüge", "Pairing-Code erzeugen", "Generate pairing code", "Générer un code", "Genera codice", "Generar código"),
@@ -186,6 +190,8 @@ let wPlOverlay: [String: String] = [
     "common.off": "Wył.",
     "lay.none": "brak stron",
     "rec.paused": "Pauza",
+    "rec.pause": "Pauza",
+    "rec.resume": "Wznów",
     "pair.title": "Połącz zegarek",
     "pair.howto": "Wygeneruj kod parowania i wpisz go na pumpfoil.org (Konto).",
     "pair.gen": "Wygeneruj kod parowania",

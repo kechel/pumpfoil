@@ -649,6 +649,10 @@ NAECHSTES: list[dict] = [
          "Your own screens, foils and alarm limits are there even without your phone nearby.",
          "If getting a pairing code fails, the watch says why: no phone, or no way out to the "
          "internet.",
+         "A recording can be paused, and what is already recorded goes up while you wait.",
+         "A recording can be discarded without saving it — far left and far right of the stop "
+         "screen.",
+         "The touch lock no longer snaps shut while you are swiping through the pages.",
      ]},
 
 
@@ -667,6 +671,7 @@ NAECHSTES: list[dict] = [
      ]},
     {"name": "Wear OS", "version": "1.2.32",
      "items": [
+         "A recording can be paused, and what is already recorded goes up while you wait.",
          "Changes you make to your profile reach the watch right after an upload, not just at "
          "the next start.",
      ]},
@@ -675,6 +680,8 @@ NAECHSTES: list[dict] = [
          "Foil Scoot is a sport you can pick for a session.",
          "When the community passes a round number — 1,000 foilers, 1,000 spots, a million "
          "pumps — that number quietly celebrates for a while.",
+         "A recording on the Apple Watch can be paused, and what is already recorded goes up "
+         "while you wait.",
          "Changes you make to your profile reach the Apple Watch right after an upload, not "
          "just at the next start.",
      ]},
