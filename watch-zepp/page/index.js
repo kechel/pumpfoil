@@ -57,6 +57,10 @@ const AUTOSTART_SPEED = 7 / 3.6, AUTOSTART_TICKS = 3;
 // Luecke bleibt. Bei 1 Hz Abtastung heisst das hoechstens zwei uebersprungene Sekunden.
 const GEO_CACHE_MS = 3000;
 
+// Wie lange die Touch-Sperre nach dem Entsperren offen bleibt — und ab JEDER Bedienung neu
+// (s. `_unlockFrisch`).
+const UNLOCK_MS = 10000;
+
 // Obergrenze fuer den gesicherten Profil-Stand (s. `_configSichern`). Ein volles Profil mit
 // eigenen Layouts liegt weit darunter; die Grenze ist da, damit ein unerwartet grosser Server-
 // Stand nicht die Ablage der Uhr fuellt, in der auch die unbeendeten Aufnahmen liegen.
@@ -1306,6 +1310,7 @@ Page(
           // I swipe back").
           if (dir === 0) return !!s.recording;
           if (s.recording) {
+            this._unlockFrisch();   // er bedient -> die Sperre faengt von vorn an zu zaehlen
             // Seiten: [STOPP] + Ring des Zustands + [STOPP] — beide Enden = Stop-Screen, kein Wrap.
             const last = this._ringLen() + 1;
             this._cancelStopBack();   // er wischt selbst -> nicht mehr automatisch zurueck
@@ -1849,12 +1854,30 @@ Page(
       if (!s.recording) return;
       s.touchLocked = false;
       this._removeTouchShield();
-      console.log("[pumpfoil] touch unlocked for 10s");
+      console.log("[pumpfoil] touch unlocked for " + (UNLOCK_MS / 1000) + "s");
+      this._unlockFrisch();
+    },
+    /**
+     * Die Sperre beginnt von vorn zu zaehlen. Bei JEDER Bedienung, nicht nur beim Entsperren.
+     *
+     * WOFUER (Jan, 24.09.2026): „der touch-lock der sich nach einer zeit automatisch wieder
+     * einschaltet sollte bei swipen aber die wartezeit aufgefrischt werden, derzeit slide ich
+     * nach unlock hin und her und bin ploetzlich wieder gelockt." Der Zaehler lief bisher stur
+     * ab dem Entsperren, egal was der Fahrer tat — wer laenger als zehn Sekunden durch die
+     * Seiten blaettert, wird mitten in der Bewegung ausgesperrt.
+     *
+     * Die Sperre soll vor dem SPRITZWASSER schuetzen, nicht vor der eigenen Hand. Solange jemand
+     * erkennbar bedient, ist das genau der Zustand, in dem sie nicht zuschnappen darf — dieselbe
+     * Logik wie bei jedem Bildschirm, der sich unter den Fingern nicht abschaltet.
+     */
+    _unlockFrisch() {
+      const s = this.state;
+      if (s.touchLocked || !s.recording) return;
       if (s.unlockTimer) clearTimeout(s.unlockTimer);
       s.unlockTimer = setTimeout(() => {
         s.unlockTimer = null;
         if (s.recording) { this._lockTouch(); this._showTouchLock(); }
-      }, 10000);
+      }, UNLOCK_MS);
     },
     _disableTouchLock() {
       const s = this.state;
