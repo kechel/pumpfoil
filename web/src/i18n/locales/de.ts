@@ -121,7 +121,6 @@ const de: Record<string, string> = {
   "board.heaveShaky": "Der Hub ist für diesen Lauf nicht belastbar: die Bewegung ist langsamer als das {s}-Sekunden-Fenster zulässt, und dann wird beim Umrechnen jeder kleine Fehler stark vergrößert. Beim Pumpen mit rund einer Bewegung pro Sekunde stimmt er.",
   "board.rigAssumed": "Rumpf {fuse} cm und die Längspositionen sind noch geschätzt",
   "sd.boardAsk": "War dein Handy am Brett befestigt?",
-  "sd.boardAskWhy": "Die Daten sehen danach aus: das Brett nickt im Pumptakt, und die Ausrichtung bleibt über die ganze Fahrt stabil. Wenn ja, schalten wir dir die Lage-Ansicht mit Nicken, Rollen und Hub frei.",
   "sd.boardAskYes": "Ja, es war am Brett",
   "board.markBoard": "Handy war am Brett",
   "session.onBoard": "am Brett",
