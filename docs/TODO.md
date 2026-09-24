@@ -1408,6 +1408,15 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔴 24.09. — Zepp: Pause vor dem Release NOCHMAL fahren (mit Server-Gegenprobe).**
+  Der erste Pause-Build hat beim Fortsetzen die bisherige Aufnahme geloescht (`resume()` rief
+  `_startGps`/`_startAccel`, die leeren Datei und Zaehler). Belegt an Session #9739: 1237 s
+  Wanduhr, zwei sauber gemeldete Pausen — 3 GPS-Punkte, 85 Samples. Gefixt in 6c15281a, aber
+  **nur in Node geprueft**, nicht auf der Uhr. Vor der Einreichung ein Lauf ueber >10 min mit
+  zwei Pausen, danach auf dem Server: Punktzahl gegen Dauer, `total_chunks`, `pause_windows`.
+  Kurze Laeufe beweisen hier nichts — der Fehler faellt erst auf, wenn vor der Pause genug
+  aufgezeichnet wurde, um es zu vermissen.
+
 
 
 
