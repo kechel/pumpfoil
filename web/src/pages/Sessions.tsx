@@ -733,17 +733,7 @@ function MySessionsList({ myName, accelOnly, onShowAll }:
                   {isInterim(s) && <ProcessingNote />}
                 </>
               }
-              statusBadge={(s.transfer_to || s.status !== "analyzed") ? (
-                <div className="flex items-center gap-1.5">
-                  {s.transfer_to && (
-                    <span title={t("transfer.pending", { name: s.transfer_to })}
-                      className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium uppercase text-amber-700 dark:text-amber-300">
-                      {t("transfer.badge")}
-                    </span>
-                  )}
-                  {s.status !== "analyzed" && <StatusBadge status={s.status} />}
-                </div>
-              ) : undefined}
+              statusBadge={<EigeneAbzeichen transferTo={s.transfer_to} status={s.status} />}
             />
           ))}
         </div>
@@ -1125,6 +1115,30 @@ export function SessionStats({ a }: { a: NonNullable<SessionSummary["analysis"]>
       {m?.avg_hr != null && <span className="inline-flex items-center gap-1"><HeartPulseIcon className="h-4 w-4 text-slate-400" /> {m.avg_hr}{m?.max_hr ? `/${m.max_hr}` : ""}</span>}
       {m?.farthest_segment_m != null && m.farthest_segment_m > 0 && <span>{t("sessions.farAbbr")} {Math.round(m.farthest_segment_m)} m</span>}
       {m?.longest_segment_s != null && m.longest_segment_s > 0 && <span>{t("sessions.longAbbr")} {dur(m.longest_segment_s)}</span>}
+    </div>
+  );
+}
+
+// Die Abzeichen ueber einer eigenen Session: offene Uebertragung und/oder Bearbeitungsstand.
+//
+// ALS EIGENE KOMPONENTE, weil es die Zeile ZWEIMAL gibt — in dieser Liste und auf der
+// Startseite. Dort fehlte das Uebertragungs-Abzeichen bis zum 24.09.2026 (Jans Befund: „in
+// meiner eigenen home-ansicht fehlt das badge uebertragung, das sehe ich nur wenn ich auf
+// sessions / meine gehe"), weil die Startseite nur `status` abfragte. Das Feld `transfer_to`
+// liefert derselbe Endpunkt fuer beide, es wurde schlicht nicht gelesen. Zwei Abschriften
+// desselben Markups waren die Ursache — jetzt ist es eine.
+export function EigeneAbzeichen({ transferTo, status }: { transferTo?: string | null; status: string }) {
+  const t = useT();
+  if (!transferTo && status === "analyzed") return null;
+  return (
+    <div className="flex items-center gap-1.5">
+      {transferTo && (
+        <span title={t("transfer.pending", { name: transferTo })}
+          className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium uppercase text-amber-700 dark:text-amber-300">
+          {t("transfer.badge")}
+        </span>
+      )}
+      {status !== "analyzed" && <StatusBadge status={status} />}
     </div>
   );
 }
