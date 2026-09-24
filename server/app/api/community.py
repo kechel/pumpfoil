@@ -2303,7 +2303,12 @@ def board_attitude(user: models.User = Depends(current_user),
                 "foil_id": foil_id,
                 "pitch": k.get("pitch_amplitude_deg"),
                 "roll": k.get("roll_amplitude_deg"),
-                "takt": k.get("pitch_hz"),
+                # Der Takt haengt am SELBEN Waechter wie der Hub. `hub_sicher` heisst
+                # `hub_hz >= 1.5 / Fenster` (lage.py), also „der Pumptakt lag klar im
+                # Auswertungsband" — ohne ihn ist die Taktzahl kein Takt, sondern ein NICHT
+                # erkannter Takt. Anlass: #9484, zwei Laeufe von 8 s, 0,53 und 0,61 Hz. Einmal
+                # eingerechnet zog das den Median einer ganzen Klasse nach unten.
+                "takt": k.get("pitch_hz") if k.get("hub_sicher") else None,
                 # GIEREN STEHT HIER BEWUSST NICHT (Jan, 24.09.2026): „das ist ja einfach die
                 # route die man frei waehlt und hat nichts mit effizienz, pumpen oder foil zu
                 # tun." Stimmt — Gier-RMS ueber einen Lauf misst, wie viel Kurve in der Strecke
@@ -2332,6 +2337,7 @@ def board_attitude(user: models.User = Depends(current_user),
                 "pitch_deg": round(_median(pitch), 1),
                 "roll_deg": round(_median(roll), 1) if roll else None,
                 "takt_hz": round(_median(takt), 2) if takt else None,
+                "takt_laeufe": len(takt),
                 "hub_cm": round(_median(hub), 1) if hub else None,
                 "hub_laeufe": len(hub),
             })

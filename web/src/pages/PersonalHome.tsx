@@ -5,6 +5,7 @@ import { fmtDate } from "../lib/time";
 import { foilLabel } from "../lib/foilLabel";
 import { Link } from "react-router-dom";
 import { api, BoardKlasse, FoilStatsGroup, OverallStats, Profile, SessionSummary } from "../lib/api";
+import { usePumpFmt } from "../lib/pumpRate";
 import { Card, Spinner } from "../components/ui";
 import { SessionCard } from "../components/SessionCard";
 import { SessionStats, StatusBadge } from "./Sessions";
@@ -121,11 +122,21 @@ function ChangelogBadge() {
 // erkannten Pumptakt. In dem Fall steht ein Strich, keine Null.
 function BoardKlassenTabelle({ klassen }: { klassen: BoardKlasse[] }) {
   const t = useT();
+  // Der Takt folgt der EINGESTELLTEN Einheit aus dem Profil (Hz oder /min), wie jede andere
+  // Kadenz-Anzeige — es gibt dafuer einen Formatierer, und der ist die einzige Wahrheit
+  // (users.pump_unit, s. lib/pumpRate.ts). Eine zweite Stelle mit fest verdrahtetem „Hz"
+  // waere genau die Sorte Abweichung, die man erst merkt, wenn jemand umstellt.
+  const pump = usePumpFmt();
   const label: Record<string, string> = {
     bis30s: t("home.baUpTo30s"), "30bis60s": t("home.ba30to60s"),
     "1bis5min": t("home.ba1to5min"), ueber5min: t("home.baOver5min"),
   };
-  const zahl = (v: number | null, einheit: string) => v == null ? "–" : `${v}${einheit}`;
+  // Fehlt eine Zahl, steht dort NICHT ein Strich, sondern warum sie fehlt (Jan, 24.09.2026:
+  // „schreib dann ,nicht erkannt‘ rein statt der zahl"). Ein Strich liesse offen, ob nichts
+  // gemessen wurde oder ob das Ergebnis null war — und bei Hub und Takt ist beides verschieden.
+  const zelle = (v: number | null, einheit: string) => v == null
+    ? <span className="text-sm text-slate-400">{t("home.baNotDetected")}</span>
+    : <>{v}{einheit}</>;
   return (
     <div className="overflow-hidden rounded-xl border border-slate-800">
       <table className="w-full text-sm">
@@ -135,7 +146,7 @@ function BoardKlassenTabelle({ klassen }: { klassen: BoardKlasse[] }) {
             <th className="px-3 py-2 text-right font-medium">{t("home.baPitch")}</th>
             <th className="px-3 py-2 text-right font-medium">{t("home.baRoll")}</th>
             <th className="px-3 py-2 text-right font-medium">{t("home.baHeave")}</th>
-            <th className="px-3 py-2 text-right font-medium">{t("home.baCadence")}</th>
+            <th className="px-3 py-2 text-right font-medium">{t("home.baCadence")} <span className="font-normal text-slate-400">{pump.suffix}</span></th>
           </tr>
         </thead>
         <tbody>
@@ -148,16 +159,18 @@ function BoardKlassenTabelle({ klassen }: { klassen: BoardKlasse[] }) {
                 </div>
               </td>
               <td className="px-3 py-2 text-right font-semibold tabular-nums text-brand-600 dark:text-brand-300">
-                {zahl(k.pitch_deg, "°")}
+                {zelle(k.pitch_deg, "°")}
               </td>
               <td className="px-3 py-2 text-right font-semibold tabular-nums text-brand-600 dark:text-brand-300">
-                {zahl(k.roll_deg, "°")}
+                {zelle(k.roll_deg, "°")}
               </td>
               <td className="px-3 py-2 text-right tabular-nums text-slate-300">
-                {zahl(k.hub_cm, " cm")}
+                {zelle(k.hub_cm, " cm")}
               </td>
               <td className="px-3 py-2 text-right tabular-nums text-slate-300">
-                {zahl(k.takt_hz, " Hz")}
+                {k.takt_hz == null
+                  ? <span className="text-sm text-slate-400">{t("home.baNotDetected")}</span>
+                  : pump.value(k.takt_hz)}
               </td>
             </tr>
           ))}
