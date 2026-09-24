@@ -609,6 +609,28 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    {"name": "Amazfit", "version": "1.0.12",
+     # EINGEREICHT 24.09.2026: im Zepp-Entwicklerkonto steht 1.0.12 auf „Under Review (Can be
+     # Withdrawn)", Application Time 2026.09.24; 1.0.11 daneben weiter „Approved".
+     "eingereicht": "2026-09-24",
+     "items": [
+         "Amazfit watches vibrate at the distance and time marks set in your profile.",
+         "A recording keeps the screen awake for as long as it runs.",
+         "If the start button is greyed out, tapping it now says why — waiting for GPS, or an "
+         "upload still running.",
+         "While a recording runs, the data pages show how long it has been going.",
+         # Der groesste Einzelpunkt dieser Fassung: bis 1.0.11 gingen 48 bis 87 % der
+         # Aufnahmezeit ohne Position verloren (neun Aufnahmen, fuenf Modelle).
+         "Amazfit watches keep far more of your track.",
+         "Your own screens, foils and alarm limits are there even without your phone nearby.",
+         "If getting a pairing code fails, the watch says why: no phone, or no way out to the "
+         "internet.",
+         "A recording can be paused, and what is already recorded goes up while you wait.",
+         "A recording can be discarded without saving it — far left and far right of the stop "
+         "screen.",
+         "The touch lock no longer snaps shut while you are swiping through the pages.",
+     ]},
+
     # Android + Wear: 1.1.31 / 1.2.31 sind am 22.09. FREIGEGEBEN und stehen deshalb hier nicht
     # mehr, sondern in `_APP_META` als live (eine Play-Mail deckt beide Spuren ab). Die vier
     # Punkte sind in die Changelog-Tabelle gewandert, mit `versionen = {"android": "1.1.31",
@@ -635,28 +657,6 @@ IN_REVIEW: list[dict] = [
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
-    {"name": "Amazfit", "version": "1.0.12",
-     # GEBUMPT auf 1.0.12 / code 15, nachdem 1.0.11 am 21.09. freigegeben wurde.
-     "items": [
-         "Amazfit watches vibrate at the distance and time marks set in your profile.",
-         "A recording keeps the screen awake for as long as it runs.",
-         "If the start button is greyed out, tapping it now says why — waiting for GPS, or an "
-         "upload still running.",
-         "While a recording runs, the data pages show how long it has been going.",
-         # Der groesste Einzelpunkt dieser Fassung: bis 1.0.11 gingen 48 bis 87 % der
-         # Aufnahmezeit ohne Position verloren (neun Aufnahmen, fuenf Modelle).
-         "Amazfit watches keep far more of your track.",
-         "Your own screens, foils and alarm limits are there even without your phone nearby.",
-         "If getting a pairing code fails, the watch says why: no phone, or no way out to the "
-         "internet.",
-         "A recording can be paused, and what is already recorded goes up while you wait.",
-         "A recording can be discarded without saving it — far left and far right of the stop "
-         "screen.",
-         "The touch lock no longer snaps shut while you are swiping through the pages.",
-     ]},
-
-
-
     # Nachgetragen am 24.09.2026 (Jan: „ich sehe nichts im changelog was bei garmin, ios oder
     # android als coming next anstehen wuerde"). Sie standen nicht hier, weil es bis zum Bump
     # keine Versionsnummer gab — nicht, weil nichts fertig waere. Der Schnitt liegt jeweils bei
