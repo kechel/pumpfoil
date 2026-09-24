@@ -85,7 +85,7 @@ sehen. Die Pausen fehlen in der Fahrzeit und stehen trotzdem in der Auswertung. 
 seit Laengerem.
 
 **Eine Aufnahme laesst sich verwerfen, ohne sie zu speichern.** Ganz links und ganz rechts, hinter
-dem Stopp-Bildschirm. Zum Ausloesen zweimal tippen oder die Taste halten — ein Tipper allein
+dem Stopp-Bildschirm. Der erste Tipper fragt nach, der zweite verwirft — ein Tipper allein
 loescht nichts.
 
 **Die Touch-Sperre schnappt nicht mehr zu, waehrend man blaettert.** Sie zaehlt jetzt bei jeder
