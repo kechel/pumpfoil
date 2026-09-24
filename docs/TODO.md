@@ -1421,10 +1421,32 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   fremde App, die den Beschleunigungssensor belegt, wuerde das GPS nicht mitnehmen. Das Muster
   ist das einer PROZESS-DROSSELUNG: die CPU schlaeft phasenweise ein, beide Quellen setzen
   zusammen aus.
-  **Befund im Code:** `android/app` (Handy) nimmt einen `PARTIAL_WAKE_LOCK`, mit genau dieser
-  Begruendung im Kommentar („CPU wach halten, damit Accel bei Screen-off nicht aussetzt").
-  `android/wear` nimmt KEINEN — obwohl `WAKE_LOCK` in seinem Manifest steht (Zeile 21). Der
-  Vordergrunddienst allein haelt die CPU nicht wach.
+  **URSACHE LAUT DOKU — NICHT der fehlende WakeLock, sondern der falsche Sensor** (nachgelesen
+  am 24.09. auf Jans Ansage „schau doch mal im sdk / doku / faq wie man das richtig macht bevor
+  wir wieder irgendeine halbgare sache entwickeln"):
+  `RecorderService.registerSensors()` ruft `getDefaultSensor(TYPE_ACCELEROMETER)` — das liefert
+  die **NON-WAKE-UP**-Variante. Android-Sensor-Spezifikation dazu, woertlich:
+  „While the SoC is in suspend mode, the sensors must continue to function and generate events,
+  which are put in a hardware FIFO. If the FIFO is too small to store all events, the older
+  events are lost" und „When a non-wake-up FIFO fills up, it must wrap around and behave like a
+  circular buffer". Genau unser Bild: die Aufnahme laeuft, aber phasenweise fehlen Samples.
+  **Der vorgesehene Weg ist die WAKE-UP-Variante** — `getDefaultSensor(TYPE_ACCELEROMETER, true)`
+  plus `maxReportLatencyUs` beim Registrieren: die Hardware sammelt im eigenen Wake-up-FIFO und
+  weckt den Prozessor nur zum Leeren, „no event shall be dropped or lost". Vollstaendige Daten
+  UND wenig Strom.
+  `getDefaultSensor(type, true)` kann `null` sein (Uhr ohne Wake-up-Variante) -> Rueckfall noetig;
+  erst DORT waere ein `PARTIAL_WAKE_LOCK` die Notloesung. Das Handy (`android/app`) nimmt einen,
+  mit der Begruendung „CPU wach halten, damit Accel bei Screen-off nicht aussetzt" — auf der Uhr
+  waere das die grobe Variante, und Google geht seit Maerz 2026 mit „Battery Technical Quality
+  Enforcement" gegen lange Wake Locks vor.
+  **Health Services taugt hier NICHT:** `ExerciseClient` liefert abgeleitete Groessen
+  (HEART_RATE_BPM, DISTANCE, STEPS_TOTAL), keinen rohen Beschleunigungssensor. Fuer den Puls
+  nutzen wir es bereits.
+  **OFFEN und davon UNBERUEHRT: das GPS.** Die Positionen kommen ueber `LocationManager`, nicht
+  ueber einen Sensor-FIFO. Warum sie mit 0,3-0,5 statt 1 Hz ankommen, erklaert der Wake-up-Sensor
+  nicht und repariert es auch nicht. Eigene Untersuchung.
+  Quellen: source.android.com/docs/core/interaction/sensors/suspend-mode und /batching,
+  developer.android.com/training/wearables/health-services/active.
   **Nicht nur er, aber selten:** in 30 Tagen **7 von 121** Wear-Sessions (app 1.2.x) unter
   15 Hz, von 5 Nutzern — u574 (#9023 4,9 Hz / 159 min, #9670 7,7 / 64), u581 (#9565 7,3 / 79,
   **SM-L715F**, Galaxy Watch 4 Classic), u477 (#8137 8,2 / 14), u469 (#5248 10,8 / 32),
@@ -1440,10 +1462,13 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   **Welche Uhr er hat, wissen wir nicht:** `device_model` meldet die App erst ab 1.2.30, er faehrt
   1.2.29. Erste Bitte an ihn ist deshalb ein Update (1.2.31 ist live) — danach steht das Modell
   in der Session und wir koennen es gegen die anderen sechs halten.
-  **Zu tun, in dieser Reihenfolge:** 1. Modelle der sieben Nutzer sammeln, sobald sie auf >= 1.2.30
-  sind. 2. WakeLock im Wear-Recorder nachruesten (analog `app/RecorderService.kt`), erst mit Jans
-  OK — Wear 1.2.32 liegt gerade im Review, es waere 1.2.33. 3. Danach an einer betroffenen Uhr
-  gegenmessen, nicht nur im Emulator.
+  **Zu tun, in dieser Reihenfolge:** 1. Modelle der fuenf Nutzer sammeln, sobald sie auf >= 1.2.30
+  sind. 2. Auf die Wake-up-Variante umstellen (mit Rueckfall, wenn sie fehlt), erst mit Jans OK —
+  Wear 1.2.32 liegt im Review, es waere 1.2.33. Jans Vorgabe dazu: vom Server schaltbar, damit wir
+  es abstellen koennen, falls Akku-Meldungen kommen (Muster: `_effective_record_mode` /
+  `_effective_gnss_mode` / `_effective_water_lock` in `api/devices.py`, Geraete-Override ->
+  Konto-Einstellung -> Standard; der Standard ist der globale Hebel). 3. An einer betroffenen Uhr
+  gegenmessen, nicht im Emulator — dort schlaeft nichts ein. 4. GPS getrennt untersuchen.
 
 - **✅ 24.09. — Zepp-Pause auf der T-Rex 3 gegengeprueft, Fix bestaetigt.**
   Session #9742: 733 s Wanduhr, zwei Pausen (189,1 s + 8,4 s), 535,5 s aktiv. GPS 391 Punkte in
