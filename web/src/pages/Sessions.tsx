@@ -864,28 +864,29 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
     // doppelten rahmen oben und rechts als andeutung das da mehrere dahinterstecken und etwas
     // schatten vielleicht."
     //
-    // Zwei leere Blaetter hinter der Karte, jeweils nach oben UND nach rechts versetzt — von
-    // ihnen ist nur der Rand zu sehen. Sie tragen `aria-hidden` und schlucken keine Klicks: es
-    // ist reine Andeutung, der Knopf darunter bleibt die ganze Flaeche.
+    // EIN leeres Blatt hinter der Karte, nach oben UND nach rechts versetzt — von ihm ist nur
+    // der Rand zu sehen. Es traegt `aria-hidden` und schluckt keine Klicks: reine Andeutung,
+    // der Knopf darunter bleibt die ganze Flaeche.
     //
-    // WARUM ZWEI UND NICHT EINS: eins sieht aus wie ein Versehen (ein verrutschter Rahmen),
-    // zwei sind erkennbar ein Stapel. Mehr braucht es nicht — die Zahl der Sessions steht als
-    // Ziffer in der Karte, die Grafik soll nur sagen „hier ist mehr drin".
+    // Zuerst waren es ZWEI, mit dem Argument, eins sehe aus wie ein verrutschter Rahmen. Jans
+    // Ansage am 24.09.2026: „mach den stabel nur mit einem zusaetzlichen rand, nicht 2." Mit dem
+    // deckenden Vordergrund und dem klaren Versatz reicht eins — die Zahl der Sessions steht
+    // ohnehin als Ziffer in der Karte, die Grafik soll nur sagen „hier ist mehr drin".
     //
-    // `mt-4` am Rahmen, nicht an der Karte: die Blaetter ragen nach oben hinaus und wuerden
-    // sonst von der Kachel darueber ueberdeckt.
+    // `mt-3` am Rahmen, nicht an der Karte: das Blatt ragt nach oben hinaus und wuerde sonst
+    // von der Kachel darueber ueberdeckt.
     //
     // WARUM KLEINERE slate-ZAHLEN ALS DIE KARTE (Jan, 24.09.2026: „noch etwas dunkler /
     // staerker sichtbar, und im dark-mode praktisch garnicht zu erkennen bisher"): zuerst
-    // trugen die Blaetter `border-slate-800` wie die Karte — und `slate-800` liegt auf dunklem
+    // trug das Blatt `border-slate-800` wie die Karte — und `slate-800` liegt auf dunklem
     // Grund praktisch auf dem Hintergrund, im Dark Mode war also nichts zu sehen. Die
     // slate-Skala ist GESPIEGELT (s. scripts/check-contrast.mjs): eine kleinere Zahl wird auf
     // Dunkel heller UND auf Hell dunkler. `slate-600`/`slate-500` heben sich damit in beiden
     // Modi ab, ohne ein `dark:`-Gegenstueck und ohne zwei Wahrheiten.
     //
-    // Die Blaetter sind DECKEND (`bg-slate-900`, nicht `/20`): ein durchscheinendes Blatt nimmt
-    // die Farbe des Hintergrunds an und ist damit genau das, was es nicht sein soll — ein
-    // Hauch. Ein Stapel besteht aus Papier, nicht aus Nebel.
+    // Das Blatt ist DECKEND (`bg-slate-900`, nicht `/20`): ein durchscheinendes Blatt nimmt die
+    // Farbe des Hintergrunds an und ist damit genau das, was es nicht sein soll — ein Hauch.
+    // Ein Stapel besteht aus Papier, nicht aus Nebel.
     //
     // …UND DIE KARTE SELBST MUSS ES AUCH SEIN (Jan, 24.09.2026: „das ist transparent und nicht
     // der gewuenschte effekt vermute ich mal"). Sie trug `bg-slate-900/40`, also 40 % Deckung —
@@ -894,11 +895,10 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
     // der bisherige Schleier `bg-slate-900/40`. Zusammen ergibt das GENAU den Farbton von
     // vorher — nur ist jetzt nichts mehr durchsichtig.
     //
-    // Die Blaetter laufen bis kurz vors untere Ende (`bottom-*`), damit ihr Rand die ganze
-    // rechte Kante begleitet und nicht nur als Zipfel oben rechts steht.
-    <div className="relative mt-4">
-      <div aria-hidden className="pointer-events-none absolute -top-3 bottom-3 left-5 right-[-10px] rounded-2xl border border-slate-600/70 bg-slate-900" />
-      <div aria-hidden className="pointer-events-none absolute -top-1.5 bottom-1.5 left-2.5 right-[-5px] rounded-2xl border border-slate-500/80 bg-slate-900" />
+    // Das Blatt laeuft bis kurz vors untere Ende (`bottom-*`), damit sein Rand die ganze rechte
+    // Kante begleitet und nicht nur als Zipfel oben rechts steht.
+    <div className="relative mt-3">
+      <div aria-hidden className="pointer-events-none absolute -top-2 bottom-2 left-3 right-[-7px] rounded-2xl border border-slate-500/80 bg-slate-900" />
       <div className="relative rounded-2xl border border-slate-600 bg-slate-950 shadow-lg">
       <div className="rounded-2xl bg-slate-900/40">
       <button
