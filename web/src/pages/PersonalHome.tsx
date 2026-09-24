@@ -14,7 +14,8 @@ import { InstallPwa } from "../components/InstallPwa";
 import { WelcomeBanner } from "../components/WelcomeBanner";
 import { StartHelp } from "../components/StartHelp";
 import { UploadProgressCard } from "../components/UploadProgressCard";
-import { CommunityIcon, SendIcon, HomeIcon, SparklesIcon } from "../components/Icons";
+import { CommunityIcon, SendIcon, HomeIcon, SparklesIcon, WatchIcon } from "../components/Icons";
+import { geraeteText } from "../lib/deviceLabel";
 import { PERIODS } from "./Home";
 
 // Voreingestelltes Zeitfenster der Kacheln. Einer der Werte aus PERIODS.
@@ -187,8 +188,15 @@ function BoardAttitudeSection() {
   if (!data || !data.gesamt.length) return null;   // keine Brett-Aufnahme: nichts zeigen
   return (
     <div className="mt-8">
-      <h2 className="mb-1 text-xl font-bold">{t("home.boardAttitude")}</h2>
-      <p className="mb-2 text-sm text-slate-400">{t("home.boardAttitudeHint")}</p>
+      {/* Statt eines erklaerenden Satzes (Jan, 24.09.2026: „ganz raus") steht neben der
+          Ueberschrift dasselbe Abzeichen wie auf den Kacheln — es sagt schon, woher die
+          Zahlen kommen: nur aus Aufnahmen mit dem Handy am Brett. */}
+      <h2 className="mb-2 flex flex-wrap items-center gap-2 text-xl font-bold">
+        {t("home.boardAttitude")}
+        <span className="inline-flex items-center gap-1 rounded bg-brand-500/20 px-1.5 py-0.5 text-xs font-semibold text-brand-700 dark:text-brand-300">
+          <WatchIcon className="h-3.5 w-3.5" /> {geraeteText("Phone", "board", t)}
+        </span>
+      </h2>
       <BoardKlassenTabelle klassen={data.gesamt} />
       {/* Je Foil nur, wenn es ueberhaupt mehr als eines gibt — bei einem einzigen stuende
           dieselbe Tabelle zweimal untereinander. */}
@@ -202,9 +210,6 @@ function BoardAttitudeSection() {
           <BoardKlassenTabelle klassen={f.klassen} />
         </div>
       ))}
-      <p className="mt-2 text-sm text-slate-400">
-        {t("home.baFooter", { sessions: String(data.sessions), runs: String(data.laeufe) })}
-      </p>
     </div>
   );
 }
