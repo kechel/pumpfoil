@@ -391,10 +391,17 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                 pauseView = (0 until pva.length()).map { pva.getInt(it) }
             }
             // Aufzeichnungsmodus (full/lite/gps) persistieren -> Recorder liest beim Start (offline-tauglich).
+            // Ebenso der Wake-up-Sensor-Schalter: der Dienst liest ihn beim Registrieren der
+            // Sensoren, auch ohne Handy in der Naehe (s. RecorderService.accelSensor). Ein
+            // unbekannter Wert wird nicht gespeichert, dann bleibt der letzte gueltige stehen.
             val rm = c.optString("recordMode", "full")
             Recorder.recordMode = rm
-            ctx.getSharedPreferences("pumpfoil", Context.MODE_PRIVATE)
-                .edit().putString("record_mode", rm).apply()
+            val aw = c.optString("accelWakeup", "")
+            ctx.getSharedPreferences("pumpfoil", Context.MODE_PRIVATE).edit().apply {
+                putString("record_mode", rm)
+                if (aw == "on" || aw == "off") putString("accel_wakeup", aw)
+                apply()
+            }
         }
         fun skipSync() { configJob?.cancel(); syncing = false }
 

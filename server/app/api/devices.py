@@ -152,6 +152,37 @@ def _effective_gnss_mode(device: models.DeviceToken, settings: dict) -> str:
 
 WATER_LOCK_MODES = ("auto", "on", "off")
 
+# --- Wake-up-Beschleunigungssensor auf Wear OS ------------------------------------------------
+#
+# "on"  = die Uhr fordert die WAKE-UP-Variante an (`getDefaultSensor(type, wakeUp = true)`).
+# "off" = wie bisher, also die Non-wake-up-Variante.
+#
+# WARUM ES DEN SCHALTER GIBT (Jan, 24.09.2026): „dann aber ein/ausschaltbar, damit wir das vom
+# server aus steuern koennen falls dann lauter meldungen kommen das die batterie zu schnell leer
+# geht." Ein Wake-up-Sensor weckt den Prozessor, um seine Werte loszuwerden — das kostet Strom,
+# und wie viel, weiss man erst im Feld.
+#
+# WARUM ES DAS PROBLEM UEBERHAUPT GIBT: die Non-wake-up-Variante legt ihre Werte waehrend des
+# Suspend in einen Hardware-FIFO, und der ist laut Android-Sensor-Spezifikation ein RINGPUFFER —
+# „the older events are lost; the oldest data is dropped to accommodate the latest data". Die
+# Aufnahme laeuft also weiter und verliert trotzdem Samples, phasenweise. Belegt an 7 von 121
+# Wear-Sessions (24.09.), die schlimmste mit 4,9 statt 25 Hz. Die Wake-up-Variante weckt den
+# Prozessor stattdessen: „no event shall be dropped or lost".
+# Quellen: source.android.com/docs/core/interaction/sensors/suspend-mode und /batching.
+#
+# KEIN GERAETE-OVERRIDE, wie bei `stop_mode`: es gibt dafuer keine Spalte, und der Zweck ist ein
+# globaler Hebel. Der STANDARD unten ist dieser Hebel — umstellen, Server neu starten, gilt fuer
+# alle, die nichts eigenes gesetzt haben. Kein Uhr-Update noetig.
+ACCEL_WAKEUP_MODES = ("on", "off")
+ACCEL_WAKEUP_DEFAULT = "on"
+
+
+def _effective_accel_wakeup(settings: dict) -> str:
+    """Wake-up-Sensor fuer diese Uhr: Konto-Einstellung, sonst der globale Standard."""
+    base = settings.get("accel_wakeup", ACCEL_WAKEUP_DEFAULT)
+    return base if base in ACCEL_WAKEUP_MODES else ACCEL_WAKEUP_DEFAULT
+
+
 
 def _effective_water_lock(device: models.DeviceToken, settings: dict) -> str:
     """Wassersperre dieser Uhr: Geraete-Override vor Nutzer-Default, sonst "auto".
@@ -421,6 +452,9 @@ def device_config(
         # bewusst KEIN Geraete-Override — anders als recordMode/gnssMode ist das eine
         # Bediengewohnheit des Menschen, nicht eine Eigenschaft des Geraets.
         # Aeltere Uhr-Versionen ignorieren den Schluessel und halten wie bisher.
+        # Wake-up-Beschleunigungssensor (nur Wear OS): "on" | "off". Aeltere Uhr-Versionen
+        # ignorieren den Schluessel und registrieren wie bisher die Non-wake-up-Variante.
+        "accelWakeup": _effective_accel_wakeup(settings),
         "stopMode": settings.get("stop_mode", "hold"),
         # Aktivitätstyp der FIT-Session (Garmin-Connect-Kategorie): surfing | openwater.
         "activityType": settings.get("activity_type", "pumpfoil"),   # Rückfall wie DEFAULTS in settings.py
