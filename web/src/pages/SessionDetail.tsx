@@ -484,7 +484,10 @@ export default function SessionDetail() {
   // --- Play-Animation: zeichnet die Strecke über die Zeit auf (wie beim Fahren) ---
   const [playMode, setPlayMode] = useState(false);   // Wiedergabe-Modus aktiv (Teilstrecke sichtbar)
   const [playing, setPlaying] = useState(false);      // läuft gerade (vs. pausiert)
-  const [playMul, setPlayMul] = useState(8);          // Tempo-Faktor (1× ≈ Echtzeit bei ~1 Hz GPS)
+  // 1× = Echtzeit, und das ist jetzt der Standard (Jan, 24.09.2026). Vorher startete die
+  // Wiedergabe mit 8× — wer zum ersten Mal auf Abspielen drueckt, sieht dann einen Strich
+  // ueber die Karte huschen und muss erst herunterschalten, um etwas zu erkennen.
+  const [playMul, setPlayMul] = useState(1);
   // ECHTE Zeit je Track-Punkt (Session-ms) vom Server. null = noch nicht da oder nicht
   // nutzbar, dann greift die Schaetzung in `indexZuSessionMs`.
   const [trackZeiten, setTrackZeiten] = useState<number[] | null>(null);
