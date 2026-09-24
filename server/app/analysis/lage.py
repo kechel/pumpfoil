@@ -54,7 +54,7 @@ in die Senkrechte lecken. Bei 1 Hz wird daraus nach zweimaliger Integration (Fak
 1/39,5) ein Fehler von vier Millimetern. Bei 0,1 Hz waeren es 43 cm — deswegen das Band.
 
 ZWEI ZEITACHSEN. Accel und Gyro laufen NICHT zwingend gleich schnell: auf dem iPhone beide exakt
-50 Hz mit identischen Chunk-Startzeiten, auf einem Pixel 7a dagegen 120,5 gegen 60,3 Hz (bei
+50 Hz mit identischen Chunk-Startzeiten, auf den Samsung-A-Modellen dagegen rund 122 gegen 50 Hz (bei
 angeforderten 50 — Android behandelt die Rate als Wunsch). Deshalb wird jeder Kanal aus seinen
 EIGENEN `.t0`-Sidecars aufgebaut und dann auf ein gemeinsames Raster gelegt.
 """
