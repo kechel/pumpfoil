@@ -2165,3 +2165,197 @@ def session_social(session_id: int, request: Request, user: models.User = Depend
         # IG/TikTok nur an anzeige-fähige Clients (Web/App>=Min) — sonst nur YouTube.
         "videos": filter_videos([{"id": vid, "youtube_url": vurl} for vid, vurl in videos], request),
     }
+
+
+# --- Lage-Zahlen aus Aufnahmen MIT DEM HANDY AM BRETT ------------------------------------------
+#
+# Jan, 24.09.2026 („was wir jetzt direkt angehen koennten"): unten auf der Startseite Zahlen, die
+# es nur mit dem Handy am Brett gibt — wie weit das Brett im Lauf genickt und gerollt hat,
+# aufgeteilt nach Lauflaenge.
+#
+# WARUM NUR `placement = "board"`: in der Tasche oder am Arm misst das Handy den FAHRER, nicht das
+# Brett (s. Kopf von analysis/lage.py — genau der „arm-confound", an dem die Wrist-Auswertung
+# 2026-06 gescheitert ist). `placement = "phone"` zaehlt hier also NICHT mit.
+#
+# AUF ABRUF GERECHNET, NICHTS GESPEICHERT — wie die Lage-Ansicht selbst. Gemessen am 24.09. ueber
+# den gesamten Bestand: 1,7 s fuer 6 Aufnahmen mit 11 Laeufen, das meiste davon Rechnen, nicht
+# Laden. Ein Cache je Nutzer deckelt die Wiederholung.
+#
+# MEDIAN, NICHT MITTELWERT. Ein Sturz, bei dem das Brett durch die Gegend fliegt, verschiebt einen
+# Mittelwert und einen Median nicht — dieselbe Begruendung, aus der `lage.py` seinen Nullpunkt als
+# Median nimmt. Bei den kleinen Stueckzahlen hier ist das kein Detail.
+#
+# DIE ANZAHL STEHT IMMER DABEI. Bei zwei Laeufen ist ein Median keine Aussage, und das soll man
+# sehen statt es zu ahnen.
+_LAGE_TTL = 600.0
+_LAGE_MAX = 32
+_lage_lock = threading.Lock()
+_lage_cache: dict[int, tuple[float, dict]] = {}
+
+# Lauflaengen-Klassen wie von Jan vorgegeben. Die oberen beiden sind Stand 24.09. LEER — der
+# laengste Brett-Lauf im Bestand dauert 50 s. Sie stehen trotzdem hier, weil sich das mit der
+# naechsten laengeren Aufnahme aendert; die Antwort liefert nur die Klassen mit Laeufen.
+_LAGE_KLASSEN: list[tuple[str, float, float]] = [
+    ("bis30s", 0.0, 30.0),
+    ("30bis60s", 30.0, 60.0),
+    ("1bis5min", 60.0, 300.0),
+    ("ueber5min", 300.0, float("inf")),
+]
+
+
+def _median(werte: list[float]) -> float | None:
+    if not werte:
+        return None
+    s = sorted(werte)
+    m = len(s) // 2
+    return s[m] if len(s) % 2 else (s[m - 1] + s[m]) / 2.0
+
+
+@router.get("/board-attitude")
+def board_attitude(user: models.User = Depends(current_user),
+                   db: Session = Depends(get_db)) -> dict:
+    """PERSOENLICH: Nick-, Roll- und Gierzahlen je Lauflaenge, nur aus Aufnahmen mit dem Handy
+    AM BRETT (`placement = "board"`).
+
+    Leere Antwort (`klassen: []`), wenn es keine gibt — die Startseite blendet den Abschnitt dann
+    aus, statt eine Ueberschrift ohne Inhalt zu zeigen.
+    """
+    import numpy as np
+
+    from .. import storage
+    from ..analysis import lage
+
+    jetzt = time.monotonic()
+    with _lage_lock:
+        treffer = _lage_cache.get(user.id)
+        if treffer and jetzt - treffer[0] < _LAGE_TTL:
+            return treffer[1]
+
+    sessions = (db.query(models.Session)
+                .filter(models.Session.user_id == user.id,
+                        models.Session.placement == "board",
+                        models.Session.deleted.is_(False))
+                .order_by(models.Session.id).all())
+
+    # EIN Eintrag je Lauf, erst danach zusammengefasst — Jan, 24.09.2026: „die aufschluesselung
+    # auch einmal gesamt und einmal je foil bitte". Zweimal dieselbe Rechnung ueber verschiedene
+    # Teilmengen, statt zwei Wege, die auseinanderlaufen koennen.
+    laeufe: list[dict] = []
+    sessions_gezaehlt = 0
+    ohne_kreisel = 0
+    foil_namen: dict[int, str] = {}
+
+    for s in sessions:
+        uuid = s.session_uuid
+        acc = storage.load_accel(uuid)
+        if len(acc) < 4:
+            continue
+        t_acc = lage.zeitachse(storage.load_accel_t0(uuid), storage.chunk_laengen(uuid, "accel"))
+        if len(t_acc) != len(acc):
+            # Ohne `.t0`-Sidecars keine exakte Zeitachse — lieber auslassen als raten
+            # (dieselbe Regel wie im Lage-Endpunkt, s. docs/DATA-PIPELINE.md).
+            continue
+        gyr = storage.load_gyro(uuid)
+        t_gyr = lage.zeitachse(storage.load_gyro_t0(uuid), storage.chunk_laengen(uuid, "gyro"))
+        hat_kreisel = len(gyr) >= 4 and len(t_gyr) == len(gyr)
+        if not hat_kreisel:
+            gyr, t_gyr = np.empty((0, 3)), np.empty(0)
+            ohne_kreisel += 1
+        try:
+            segmente = json.loads(s.result.segments_json) if s.result and s.result.segments_json else []
+        except (ValueError, AttributeError):
+            segmente = []
+        if not segmente:
+            continue
+        off = int(s.trim_start_ms or 0)
+        bereiche = lage.laufbereiche(segmente, off)
+        if not bereiche:
+            continue
+        starts = [float(g.get("t_start_session_ms", float(g["t_start_ms"]) + off))
+                  for g in segmente if g.get("t_start_ms") is not None]
+        kennzahlen = lage.kennzahlen_je_lauf(
+            acc, t_acc, gyr, t_gyr, bereiche, starts,
+            gps=storage.load_gps(uuid),
+            rot_vorgabe=(float(s.attitude_rot_deg) if s.attitude_rot_deg is not None else None))
+        sessions_gezaehlt += 1
+
+        # Das Foil der AUFNAHME. Ein Foil je Lauf gibt es noch nicht (es steht als Idee auf
+        # /changelog) — bis dahin gilt fuer alle Laeufe einer Aufnahme dasselbe.
+        foil_id = int(s.foil_id) if s.foil_id else None
+        if foil_id and foil_id not in foil_namen:
+            f = db.query(models.Foil).get(foil_id)
+            if f is not None:
+                foil_namen[foil_id] = " ".join(x for x in (f.brand, f.model, f.size) if x)
+
+        for (a, b), k in zip(bereiche, kennzahlen):
+            if not k.get("ok"):
+                continue
+            dauer_s = (b - a) / 1000.0
+            eimer = next((name for name, u, o in _LAGE_KLASSEN if u <= dauer_s < o), None)
+            if eimer is None:
+                continue
+            laeufe.append({
+                "klasse": eimer,
+                "foil_id": foil_id,
+                "pitch": k.get("pitch_amplitude_deg"),
+                "roll": k.get("roll_amplitude_deg"),
+                "takt": k.get("pitch_hz"),
+                # Gieren NUR mit Kreisel: ohne ihn steht dort 0,0 °/s, und das ist keine
+                # Messung, sondern eine Luecke. Einmal eingerechnet zoege sie jeden Median
+                # nach unten.
+                "gier": k.get("gier_rms_deg_s") if hat_kreisel else None,
+                # Der Hub nur, wenn die Rechnung ihn selbst fuer belastbar haelt —
+                # `hub_sicher` faellt genau dann, wenn der Pumptakt nicht klar war (s. lage.py).
+                "hub": k.get("hub_pp_cm") if k.get("hub_sicher") else None,
+            })
+
+    def _zusammenfassen(menge: list[dict]) -> list[dict]:
+        """Die Lauflaengen-Klassen ueber EINE Teilmenge — einmal ueber alles, einmal je Foil."""
+        aus = []
+        for name, _u, _o in _LAGE_KLASSEN:
+            teil = [x for x in menge if x["klasse"] == name]
+            pitch = [float(x["pitch"]) for x in teil if x["pitch"] is not None]
+            if not pitch:
+                continue
+            roll = [float(x["roll"]) for x in teil if x["roll"] is not None]
+            gier = [float(x["gier"]) for x in teil if x["gier"] is not None]
+            takt = [float(x["takt"]) for x in teil if x["takt"] is not None]
+            hub = [float(x["hub"]) for x in teil if x["hub"] is not None]
+            aus.append({
+                "klasse": name,
+                "laeufe": len(teil),
+                "pitch_deg": round(_median(pitch), 1),
+                "roll_deg": round(_median(roll), 1) if roll else None,
+                "gier_deg_s": round(_median(gier), 1) if gier else None,
+                "gier_laeufe": len(gier),
+                "takt_hz": round(_median(takt), 2) if takt else None,
+                "hub_cm": round(_median(hub), 1) if hub else None,
+                "hub_laeufe": len(hub),
+            })
+        return aus
+
+    # Je Foil dieselbe Aufschluesselung. Laeufe ohne Foil bleiben in `gesamt`, bekommen aber
+    # keine eigene Gruppe — „unbekannt" waere eine Sammelkategorie aus verschiedenen Foils und
+    # damit die eine Zahl, die niemandem etwas sagt.
+    je_foil = []
+    for fid in {x["foil_id"] for x in laeufe if x["foil_id"]}:
+        menge = [x for x in laeufe if x["foil_id"] == fid]
+        klassen_f = _zusammenfassen(menge)
+        if klassen_f:
+            je_foil.append({"foil_id": fid, "foil": foil_namen.get(fid) or f"Foil {fid}",
+                            "laeufe": len(menge), "klassen": klassen_f})
+    je_foil.sort(key=lambda x: (-x["laeufe"], x["foil"]))
+
+    out = {"gesamt": _zusammenfassen(laeufe), "je_foil": je_foil,
+           "sessions": sessions_gezaehlt, "laeufe": len(laeufe),
+           "ohne_kreisel": ohne_kreisel}
+
+    with _lage_lock:
+        if len(_lage_cache) >= _LAGE_MAX:
+            for k2, (t0, _v) in list(_lage_cache.items()):
+                if jetzt - t0 >= _LAGE_TTL:
+                    _lage_cache.pop(k2, None)
+            if len(_lage_cache) >= _LAGE_MAX:
+                _lage_cache.clear()
+        _lage_cache[user.id] = (jetzt, out)
+    return out

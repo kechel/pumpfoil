@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { fmtDate } from "../lib/time";
 import { foilLabel } from "../lib/foilLabel";
 import { Link } from "react-router-dom";
-import { api, FoilStatsGroup, OverallStats, Profile, SessionSummary } from "../lib/api";
+import { api, BoardKlasse, FoilStatsGroup, OverallStats, Profile, SessionSummary } from "../lib/api";
 import { Card, Spinner } from "../components/ui";
 import { SessionCard } from "../components/SessionCard";
 import { SessionStats, StatusBadge } from "./Sessions";
@@ -99,6 +99,97 @@ function ChangelogBadge() {
       className={`ml-auto inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-medium transition ${unseen ? "bg-brand-500/15 text-brand-600 dark:text-brand-300" : "text-slate-500 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300"}`}>
       <SparklesIcon className="h-4 w-4" filled={unseen} /> {dateStr}
     </Link>
+  );
+}
+
+// Lage des Bretts je Lauflaenge — NUR aus Aufnahmen mit dem Handy AM BRETT.
+//
+// Jan, 24.09.2026: „was wir jetzt direkt angehen koennten waere auf dem home-screen ganz unten
+// stats die sich nur aus dem phone-recorder ergeben wie avg. pitch/roll angles during runs
+// 30s/1min/5min/longer" — und kurz darauf: „die aufschluesselung auch einmal gesamt und einmal
+// je foil bitte". Deshalb dieselbe Tabelle zweimal: ueber alles, dann je Foil.
+//
+// Der Server liefert MEDIANE, keine Mittelwerte (s. community.board_attitude), und die Anzahl
+// der Laeufe je Zahl. Die steht hier mit dran: bei vier Laeufen ist ein Median keine Aussage,
+// und das soll man sehen statt es zu ahnen.
+//
+// Gieren und Hub koennen FEHLEN, auch wenn Nicken und Rollen dastehen — das erste braucht einen
+// Kreisel (nicht jedes Handy zeichnet einen auf), das zweite einen klar erkannten Pumptakt. In
+// dem Fall steht ein Strich, keine Null.
+function BoardKlassenTabelle({ klassen }: { klassen: BoardKlasse[] }) {
+  const t = useT();
+  const label: Record<string, string> = {
+    bis30s: t("home.baUpTo30s"), "30bis60s": t("home.ba30to60s"),
+    "1bis5min": t("home.ba1to5min"), ueber5min: t("home.baOver5min"),
+  };
+  const zahl = (v: number | null, einheit: string) => v == null ? "–" : `${v}${einheit}`;
+  return (
+    <div className="overflow-hidden rounded-xl border border-slate-800">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="bg-slate-900/60 text-left text-slate-400">
+            <th className="px-3 py-2 font-medium">{t("home.baRunLength")}</th>
+            <th className="px-3 py-2 text-right font-medium">{t("home.baPitch")}</th>
+            <th className="px-3 py-2 text-right font-medium">{t("home.baRoll")}</th>
+            <th className="px-3 py-2 text-right font-medium">{t("home.baYaw")}</th>
+            <th className="px-3 py-2 text-right font-medium">{t("home.baHeave")}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {klassen.map((k) => (
+            <tr key={k.klasse} className="border-t border-slate-800/70">
+              <td className="px-3 py-2">
+                <div className="text-slate-200">{label[k.klasse] ?? k.klasse}</div>
+                <div className="text-sm tabular-nums text-slate-400">
+                  {t("home.baRuns", { n: String(k.laeufe) })}
+                </div>
+              </td>
+              <td className="px-3 py-2 text-right font-semibold tabular-nums text-brand-600 dark:text-brand-300">
+                {zahl(k.pitch_deg, "°")}
+              </td>
+              <td className="px-3 py-2 text-right font-semibold tabular-nums text-brand-600 dark:text-brand-300">
+                {zahl(k.roll_deg, "°")}
+              </td>
+              <td className="px-3 py-2 text-right tabular-nums text-slate-300">
+                {zahl(k.gier_deg_s, "°/s")}
+              </td>
+              <td className="px-3 py-2 text-right tabular-nums text-slate-300">
+                {zahl(k.hub_cm, " cm")}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function BoardAttitudeSection() {
+  const t = useT();
+  const [data, setData] = useState<Awaited<ReturnType<typeof api.boardAttitudeStats>> | null>(null);
+  useEffect(() => { api.boardAttitudeStats().then(setData).catch(() => {}); }, []);
+  if (!data || !data.gesamt.length) return null;   // keine Brett-Aufnahme: nichts zeigen
+  return (
+    <div className="mt-8">
+      <h2 className="mb-1 text-xl font-bold">{t("home.boardAttitude")}</h2>
+      <p className="mb-2 text-sm text-slate-400">{t("home.boardAttitudeHint")}</p>
+      <BoardKlassenTabelle klassen={data.gesamt} />
+      {/* Je Foil nur, wenn es ueberhaupt mehr als eines gibt — bei einem einzigen stuende
+          dieselbe Tabelle zweimal untereinander. */}
+      {data.je_foil.length > 1 && data.je_foil.map((f) => (
+        <div key={f.foil_id} className="mt-4">
+          <div className="mb-1 text-sm font-semibold text-slate-200">
+            {f.foil} <span className="font-normal text-slate-400">
+              · {t("home.baRuns", { n: String(f.laeufe) })}
+            </span>
+          </div>
+          <BoardKlassenTabelle klassen={f.klassen} />
+        </div>
+      ))}
+      <p className="mt-2 text-sm text-slate-400">
+        {t("home.baFooter", { sessions: String(data.sessions), runs: String(data.laeufe) })}
+      </p>
+    </div>
   );
 }
 
@@ -435,6 +526,7 @@ export default function PersonalHome() {
 
       <StartSuccessSection />
       <CarveStatsSection />
+      <BoardAttitudeSection />
     </div>
   );
 }

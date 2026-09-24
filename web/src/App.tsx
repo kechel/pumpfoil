@@ -263,6 +263,11 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
           </button>
           <ThemeToggle className="shrink-0" />
         </div>
+        {/* Changelog DIREKT unter dem Abmelden-Knopf (Jan, 24.09.2026) — vorher stand es
+            ganz unten zwischen den Social-Links und dem Impressum, also dort, wo niemand
+            hinsieht. Es ist die Seite, die sagt, was sich geaendert hat; das gehoert nach
+            oben zu den Inhalten, nicht in die Fussleiste. */}
+        <ChangelogLink />
         {/* Die Reihe der Nerd-Analysen. BESCHRIFTUNGEN AUS DEN SPRACHDATEIEN (Jan, 22.09.2026:
             „ich habe mal japanisch probiert, die menuepunkte selber sind noch nicht uebersetzt
             fuer die 4 nerd-teile") — vorher stand hier deutscher Text fest im Quelltext, waehrend
@@ -356,7 +361,6 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
           </svg>
           RedNote
         </a>
-        <ChangelogLink />
         <Link to="/impressum" className="mt-1 px-3 text-xs text-slate-400 hover:text-slate-300">
           {t("nav.imprint")}
         </Link>
