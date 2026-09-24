@@ -127,11 +127,15 @@ function TextSeite({ children }: { children: React.ReactNode }) {
 const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
   { path: "/reset", element: <Reset /> },
-  { path: "/impressum", element: <Impressum /> },
+  { path: "/impressum", element: <TextSeite><Impressum /></TextSeite> },
   // Statusseite fuer Facebook-Loeschanfragen — die Adresse gibt der Data-Deletion-Callback
   // zurueck, Meta prueft sie vor der Freigabe. Oeffentlich, ohne Login.
-  { path: "/datenloeschung", element: <Datenloeschung /> },
-  { path: "/changelog", element: <Changelog /> },
+  { path: "/datenloeschung", element: <TextSeite><Datenloeschung /></TextSeite> },
+  // IM App-Rahmen fuer Angemeldete, nackt fuer Gaeste — wie die Nerd-Seiten seit 07.09.
+  // Jans Befund 24.09.: der „Send us your input via feedback"-Knopf tat nichts, weil das
+  // Feedback-Fenster (`FeedbackWidget`) im App-Rahmen haengt und der hier fehlte. Dasselbe
+  // galt fuers Menue: „da wird die ganze app nicht angezeigt, nur der content-bereich".
+  { path: "/changelog", element: <TextSeite><Changelog /></TextSeite> },
   // Eine eigene Adresse je Sprache fuer die oeffentliche Startseite: /en/, /fr/, /ja/ …
   // Statische Pfade wie /login gewinnen in React Router gegen dieses dynamische Segment,
   // die bestehenden Routen bleiben also unberuehrt. Unbekannte Segmente landen auf /.
