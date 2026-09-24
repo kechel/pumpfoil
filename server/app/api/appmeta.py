@@ -709,6 +709,41 @@ NAECHSTES: list[dict] = [
 ]
 
 
+# „Ideas for future development" — der UNTERSTE Abschnitt der Release-Tabelle auf /changelog.
+#
+# Jan, 24.09.2026: „bau mal in der changelog tabelle einen ganz neuen abschnitt zuunterst mit
+# ein 'ideas for future development', und lass uns mal nachschauen was wir noch alles geplant
+# haben schon und dann da mit auflisten."
+#
+# WAS HIER HINEINGEHOERT: was wir wirklich vorhaben und irgendwo aufgeschrieben haben —
+# `docs/TODO.md` (Backlog + R&D), `docs/ROADMAP.md`, `docs/FORUM.md`, `docs/GROUND-TRUTH.md`.
+# NICHT: was schon gebaut ist (das steht in NAECHSTES oder im Changelog) und nichts, was nur
+# in einem Kopf existiert.
+#
+# NOCH LOCKERER ALS „Coming next": keine Versionsnummer, keine Reihenfolge, kein Termin. Ein
+# Punkt darf jahrelang stehen und darf auch wieder verschwinden. Deshalb steht kein „soon" und
+# kein „next" darin — sonst wird daraus ein Versprechen, das wir nicht gegeben haben.
+#
+# Dieselbe Kuerze wie im Changelog: ein Satz, nur WAS, kein Fachjargon (s. Memory
+# `changelog-ein-satz`). Englisch wie die ganze Seite.
+IDEEN: list[str] = [
+    "A forum, with threads per spot and per topic, so questions do not scroll away in the chat.",
+    "Turns and wide carves as their own numbers and records, separate from the tight ones "
+    "already drawn on the map.",
+    "Paddle-up starts: count the strokes it takes you to get up, and how fast you are when "
+    "the board lifts.",
+    "Pick the foil per run, not just per session — most of us swap gear during a session.",
+    "See who is out on the water right now, for anyone who chooses to show it.",
+    "Translate a comment into your language at the tap of a button.",
+    "Measure how well pump detection really works, and build glide detection on top — right "
+    "now a long glide only means that no pump was recognised.",
+    "Make the Garmin data pages easier to set up. The current screen configuration confuses "
+    "people, and rightly so.",
+    "More watch brands, wherever the maker lets an app or an export through.",
+    "Sponsored campaigns: a local business puts up a small amount per pump at your spot, for a "
+    "cause you pick.",
+]
+
 def _ver_tupel(v: str) -> tuple[int, ...]:
     """„1.1.26" -> (1, 1, 26). Fehlende/kaputte Stellen zaehlen als 0 — ein Vergleich soll nie
     an einem Tippfehler in einer Versionsangabe scheitern."""
@@ -875,6 +910,7 @@ def releases() -> dict:
             "review": _mit_note(IN_REVIEW, "review"),
             "rejected": _mit_note(abgelehnt, "rejected"),
             "next": _mit_note(NAECHSTES, "next"),
+            "ideen": IDEEN,
             "probleme": probleme}
 
 
