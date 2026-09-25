@@ -619,6 +619,10 @@ struct SessionDetailView: View {
             VStack(alignment: .leading, spacing: 10) {
                 Divider()
                 TransferPickerView(sessionId: s.id)
+                // „Ort verbergen" fuer DIESE Aufnahme — eine Entscheidung ueber die Aufnahme, keine
+                // Anzeige-Einstellung. Danach frisch laden: die Karte springt nach Point Nemo,
+                // auch fuer einen selbst (Jan, 25.09.2026).
+                OrtSchalterView(session: s, lang: lang) { await frischLaden() }
                 HStack(spacing: 10) {
                     if durSec > 1 {
                         Button { presetTrimSliders(s); showTrim = true } label: {
@@ -1721,6 +1725,11 @@ struct SessionDetailView: View {
         attempts = (try? await Api.sessionAttempts(sid)) ?? []
     }
 
+    /// Nach einer Aenderung, die der Server in der Antwort spiegelt (Ort verbergen): ohne Cache holen.
+    private func frischLaden() async {
+        if let fresh = try? await Api.session(sid) { session = fresh; SessionCache.store(fresh) }
+    }
+
     private func load() async {
         loading = true; defer { loading = false }
         // Cache-Treffer (data_version stimmt) -> Detail aus dem Disk-Cache, kein Netz-Fetch.
@@ -2547,3 +2556,40 @@ private struct PhotoLightboxView: View {
 
 /// Fertige Export-Datei fuers Share-Sheet (`.sheet(item:)` braucht Identifiable).
 private struct ExportItem: Identifiable { let id = UUID(); let url: URL }
+
+
+/// „Ort verbergen" fuer EINE Aufnahme — drei Zustaende, wie die PWA (SessionDetail.tsx OrtSchalter).
+struct OrtSchalterView: View {
+    let session: SessionDetail
+    let lang: String
+    let nachher: () async -> Void
+    @State private var busy = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Picker(Loc.t("sd.ortLabel", lang), selection: auswahl) {
+                Text(Loc.t("sd.ortProfil", lang)).tag("")
+                Text(Loc.t("sd.ortZeigen", lang)).tag("show")
+                Text(Loc.t("sd.ortVerbergen", lang)).tag("hide")
+            }
+            .disabled(busy)
+            if session.ort_verborgen == true {
+                Text(Loc.t("sd.ortAktiv", lang)).font(.callout.weight(.semibold)).foregroundStyle(Color.accentColor)
+            }
+        }
+    }
+
+    private var auswahl: Binding<String> {
+        Binding(get: { session.ort_sichtbarkeit ?? "" }, set: { neu in setzen(neu) })
+    }
+
+    private func setzen(_ neu: String) {
+        guard !busy, neu != (session.ort_sichtbarkeit ?? "") else { return }
+        busy = true
+        Task {
+            try? await Api.setOrtSichtbarkeit(session.id, neu)
+            await nachher()
+            busy = false
+        }
+    }
+}
