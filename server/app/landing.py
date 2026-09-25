@@ -188,6 +188,27 @@ SEITEN: tuple[Seite, ...] = (
         bild="landing-spots.webp",
         bild_alt="Spot-Karte mit aufgezeichneten Sessions",
     ),
+    Seite(
+        host="foilscoot.org",
+        titel="Foil Scoot — Sessions aufzeichnen und auswerten",
+        beschreibung="Foil Scoot mit der Sportuhr aufzeichnen: Läufe, Pumps, Kadenz und "
+                     "Geschwindigkeit, ausgewertet auf dem Server. Kostenlos, ohne Tracker.",
+        h1="Foil Scoot",
+        claim="Der Lenker hilft beim Start — gepumpt wird trotzdem.",
+        absaetze=(
+            "Foil Scoot heißt: ein Lenker am Board, die Hände haben etwas zu halten. Das nimmt "
+            "dem Start den Schrecken und hilft beim Gleichgewicht, und es verteilt die Arbeit "
+            "anders — gepumpt wird aus Armen und Beinen zusammen statt nur aus den Beinen. Wer "
+            "vom Pumpfoil kommt, merkt am ersten Tag, dass sich die Bewegung anders anfühlt.",
+            "Aufgezeichnet wird es wie jede andere Foil-Sportart: die Uhr nimmt auf, gerechnet "
+            "wird auf dem Server — Läufe, Pumps, Kadenz, Gleitphasen, Geschwindigkeit. Und "
+            "ehrlich gesagt steht die Erkennung hier noch am Anfang: sie ist auf Pumpfoil "
+            "geeicht, und Foil Scoot bewegt sich nun einmal anders. Sie wird mit jeder "
+            "Aufzeichnung besser — deine Sessions zählen dabei wirklich mit.",
+        ),
+        bild="landing-sessions.webp",
+        bild_alt="Session in einzelne Läufe zerlegt, je Lauf Dauer und Geschwindigkeit",
+    ),
 )
 
 KANONISCH: dict[str, Seite] = {s.host: s for s in SEITEN}
@@ -211,6 +232,9 @@ ALIASSE: dict[str, str] = {
     # wuerden sich gegenseitig verdraengen. Die drei Namen stehen dafuer sichtbar
     # im Text von parawing.org, damit man sie dort auch findet.
     "lowkitefoil.org": "parawing.org",
+    # Wie pumpfoil.org: die Schreibweise OHNE Bindestrich ist die beworbene
+    # (Jan, 25.09.2026), die mit leitet dorthin.
+    "foil-scoot.org": "foilscoot.org",
 }
 
 # Reine Schutz-Domains: gekauft, damit sie niemand anders hat. Eine eigene Seite waere ein
