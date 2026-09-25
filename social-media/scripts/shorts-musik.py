@@ -798,6 +798,31 @@ MUSIK_QUELLE = {
     "instagram": "music-insta",             # Meta Sound Collection — nur FB/Instagram
     "marcus-gruenschneder": "music-marcus",  # eigene Aufnahmen, mit Erlaubnis
 }
+# Musik von befreundeten Musikern wird genannt — ausfuehrlich dort, wo Platz ist
+# (YouTube, Instagram, Facebook), kurz auf TikTok. Der Eintrag haengt am
+# Suffix aus MUSIK_QUELLE, also an der Datei: nur die Plattform-Fassung, die
+# seine Musik wirklich enthaelt, bekommt die Nennung. Wer nur auf einer
+# Plattform Musik von ihm nimmt, nennt ihn auch nur dort.
+#
+# Je Plattform zwei Formen: das @handle verlinkt NUR auf der eigenen Plattform
+# von selbst — auf fremden steht deshalb die Adresse, sonst ist es toter Text.
+# Fehlt eine Adresse (Facebook hat keine bekannte Vanity-URL), bleibt der Name.
+MUSIK_CREDIT = {
+    "music-marcus": {
+        "name": "Marcus Grün",
+        # Adressen am 25.09. von Jan bestaetigt — nicht aus den Handles geraten.
+        "kanaele": [
+            ("youtube", "YouTube", "@marcusgrun8545", "youtube.com/@marcusgrun8545"),
+            ("instagram", "Instagram", "@marcusgrun", "instagram.com/marcusgrun"),
+            ("tiktok", "TikTok", "@marcus_gruen", "tiktok.com/@marcus_gruen"),
+            ("facebook", "Facebook", "@marcusgruenmusic", "facebook.com/marcusgruenmusic"),
+        ],
+    },
+}
+# Wo die Nennung ausfuehrlich hinpasst. TikTok hat nur den kurzen Titel, und
+# RedNote verlinkt ohnehin nicht nach draussen — dort nur der Name.
+CREDIT_LANG = ("youtube", "instagram", "facebook")
+
 MUSIK_FREI = "music-frei"    # unbekannter Ordner: frei nutzbar, aber ohne Nachweis
 KEIN_TON = "no-music"        # O-Ton pur — bei TikTok das Zeichen "Ton kommt in der App"
 
@@ -815,6 +840,24 @@ def musik_suffix(rel) -> str:
         if x in MUSIK_QUELLE:
             return "-" + MUSIK_QUELLE[x]
     return "-" + MUSIK_FREI
+
+
+def musik_credit(suffix: str, pf: str) -> str:
+    """Nennung des Musikers fuer eine Plattform — leer, wenn keine faellig ist."""
+    eintrag = MUSIK_CREDIT.get((suffix or "").lstrip("-"))
+    if not eintrag:
+        return ""
+    name = eintrag["name"]
+    if pf not in CREDIT_LANG:
+        # TikTok: nur das Handle, es passt kaum mehr in den Titel.
+        eigenes = next((h for k, _, h, _ in eintrag["kanaele"] if k == pf), "")
+        return f"🎵 {eigenes}" if eigenes else f"🎵 Music by {name}"
+    zeilen = [f"🎵 Music by {name}", ""]
+    # Die eigene Plattform zuerst: dort verlinkt das Handle von selbst.
+    for schluessel, label, handle, adresse in sorted(
+            eintrag["kanaele"], key=lambda k: k[0] != pf):
+        zeilen.append(f"{label}: {handle if schluessel == pf else (adresse or handle)}")
+    return "\n".join(zeilen)
 
 
 def pixabay_ids(rels) -> list:
@@ -1891,6 +1934,21 @@ def exports_state():
         g["source"] = src.name if src else None
         first = OUT_DIR / g["platforms"][0] / g["files"][g["platforms"][0]]
         g["duration"] = track_duration(first)
+        # Musik-Nennung je Plattform, abgeleitet aus dem Suffix DER Datei —
+        # die Spuren koennen sich je Plattform unterscheiden. Facebook hat
+        # keinen eigenen Render, dort laeuft die Instagram-Fassung.
+        credits = {}
+        for pf, datei in g["files"].items():
+            m = MUSIK_SUFFIX_RE.search(Path(datei).stem)
+            text = musik_credit(m.group(0), pf) if m else ""
+            if text:
+                credits[pf] = text
+            if pf == "instagram" and m:
+                fb = musik_credit(m.group(0), "facebook")
+                if fb:
+                    credits["facebook"] = fb
+        if credits:
+            g["credits"] = credits
     return result
 
 
