@@ -764,6 +764,10 @@ export interface AdminStatsBucket {
   // Aufrufe unsere eigenen Pruefungen, und wiederkehrende Besucher holen die Seite aus dem
   // Service-Worker-Cache. `h_bot` sind die, die sich per User-Agent als Crawler ausweisen.
   h_web: number; h_bot: number;
+  // KI-Zugang (MCP), ab 25.09.2026. `mcp_users` = verschiedene Nutzer AN DEM TAG, `mcp_calls` =
+  // Einzelaufrufe an dem Tag. Quelle ist `mcp_call_stats` (ein Zaehler je Tag, Nutzer und
+  // Werkzeug) — wann genau und mit welchen Angaben jemand gefragt hat, steht nirgends.
+  mcp_users: number; mcp_calls: number;
 }
 export interface AdminStatsSeries {
   period: string;
@@ -773,7 +777,12 @@ export interface AdminStatsSeries {
             p_garmin: number; p_apple: number; p_wear: number; p_zepp: number; p_phone: number;
             p_suunto: number; p_polar: number; p_coros: number; p_datei: number;
             c_web: number; c_android: number; c_ios: number; c_unbekannt: number;
-            h_web: number; h_bot: number };
+            h_web: number; h_bot: number;
+            // KI-Zugang: wie viele LEUTE im Fenster gefragt haben (verschiedene Nutzer, nicht die
+            // Summe der Tageswerte) und wie viele Einzelaufrufe es insgesamt waren.
+            mcp_users: number; mcp_calls: number };
+  /** Fenster-Summe je Werkzeug — zeigt, welche Aufrufe wirklich gebraucht werden. */
+  mcp_werkzeuge?: Record<string, number>;
 }
 
 /** Systemzustand des Servers (Admin). Feldnamen wie im Server (`api/health.py`) — deutsch, weil

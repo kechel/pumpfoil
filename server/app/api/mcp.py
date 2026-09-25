@@ -85,6 +85,13 @@ def _zaehlen(db: Session, user_id: int, werkzeug: str) -> None:
 
 ANLEITUNG = """Pumpfoil.org — die eigenen Aufnahmen eines Pumpfoil-Fahrers.
 
+WO MAN ANFAENGT
+Rufe ZUERST `get_overview` auf. Es sagt in einer Antwort, was es ueberhaupt gibt — Aufnahmen je
+Sportart, Spot, Geraet und Jahr, der Zeitraum, und wie viele davon am Brett aufgenommen wurden.
+Die Werte darin sind genau die, die `list_sessions` als Filter erwartet. Ohne diesen Schritt raetst
+du Spot- und Sportartnamen oder ziehst erst einmal alles; beides kostet Platz und liefert
+schlechtere Antworten.
+
 WAS HIER ZU HABEN IST
 Nur die Aufnahmen des Nutzers, der diesen Zugang genehmigt hat, und nur lesend. Keine Daten
 anderer Fahrer, keine Rekorde, keine Bestenlisten, keine Vergleichswerte vom selben Spot — auch
@@ -133,6 +140,13 @@ NIE in km/h, ausser es steht ausdruecklich im Feldnamen.
 # --- Werkzeuge ---------------------------------------------------------------------------------
 
 WERKZEUGE = [
+    {"name": "get_overview",
+     "description": "ZUERST DIESE AUFRUFEN. Ein Ueberblick ueber den ganzen Bestand des Nutzers: "
+                    "wie viele Aufnahmen es je Sportart, Spot, Geraet und Jahr gibt, von wann bis "
+                    "wann, und was davon auswertbar ist. Die Werte in den Listen sind GENAU die, "
+                    "die `list_sessions` als Filter erwartet — damit laesst sich jede weitere "
+                    "Abfrage gezielt stellen, statt zu raten.",
+     "inputSchema": {"type": "object", "properties": {}}},
     {"name": "list_sessions",
      "description": "Die eigenen Aufnahmen, neueste zuerst. Ohne Angaben die letzten 20.",
      "inputSchema": {"type": "object", "properties": {
@@ -395,7 +409,63 @@ def _get_stats(db: Session, user_id: int, arg: dict) -> dict:
     }
 
 
+def _get_overview(db: Session, user_id: int, _arg: dict) -> dict:
+    """Der Einstieg. Sagt, WAS es gibt — und mit welchen Werten man danach fragt.
+
+    Jan, 25.09.2026: „vielleicht brauchen wir noch eine einleitungs-mcp abfrage, die sowas wie
+    ‚wieviel sessions je sportart' inkl. der keys fuer die abfrage danach". Genau das: jede Liste
+    hier nennt den Wert SO, wie `list_sessions` ihn als Filter erwartet. Ohne diesen Aufruf raet
+    ein Agent Spot- und Sportartnamen oder zieht erst einmal alles — beides kostet Kontext und
+    liefert schlechtere Antworten.
+
+    Dass er zuerst kommen soll, steht an zwei Stellen: in der Beschreibung des Werkzeugs und in
+    der Anleitung. Mehr sieht ein Agent nicht — MCP kennt keine Reihenfolge, nur Text.
+    """
+    q = _eigene(db, user_id)
+    S = models.Session
+    gesamt = q.count()
+    if not gesamt:
+        return {"sessions": 0,
+                "hinweis": "Noch keine auswertbaren Aufnahmen auf diesem Konto."}
+
+    def zaehlen(spalte, grenze: int = 40) -> list[dict]:
+        zeilen = (q.with_entities(spalte, func.count(S.id))
+                   .group_by(spalte).order_by(func.count(S.id).desc()).limit(grenze).all())
+        return [{"wert": w, "aufnahmen": int(n)} for w, n in zeilen if w is not None]
+
+    erste, letzte = q.with_entities(func.min(S.started_at), func.max(S.started_at)).one()
+    jahre = (q.with_entities(func.extract("year", S.started_at), func.count(S.id))
+              .group_by(func.extract("year", S.started_at))
+              .order_by(func.extract("year", S.started_at)).all())
+    ids = [r[0] for r in q.with_entities(S.id).all()]
+    A = models.AnalysisResult
+    erkennung = (db.query(A.detection, func.count(A.id))
+                   .filter(A.session_id.in_(ids)).group_by(A.detection).all())
+    am_brett = q.filter(S.placement == "board").count()
+
+    aus = {
+        "sessions": gesamt,
+        "erste_aufnahme": _iso(erste),
+        "letzte_aufnahme": _iso(letzte),
+        "je_jahr": [{"jahr": int(j), "aufnahmen": int(n)} for j, n in jahre],
+        # Die Werte unten sind die FILTER von list_sessions — woertlich so uebergeben.
+        "je_sportart": zaehlen(S.sport),
+        "je_spot": zaehlen(S.place_name),
+        "je_geraet": zaehlen(S.device_model),
+        "am_brett_aufgenommen": am_brett,
+        "je_erkennung": [{"wert": d, "aufnahmen": int(n)} for d, n in erkennung if d],
+        "filter_hinweis": (
+            "`je_sportart[].wert` gehoert in list_sessions(sportart=…), `je_spot[].wert` in "
+            "list_sessions(spot=…). `je_erkennung` sagt, worauf die Lauferkennung stand: bei "
+            "`gps_only` gibt es weder Pumps noch Takt — das ist kein Nullwert, sondern eine "
+            "Leerstelle. `am_brett_aufgenommen` sind die Aufnahmen mit dem Handy am Brett; nur "
+            "fuer die gibt es Nicken und Rollen."),
+    }
+    return aus
+
+
 _HANDLER = {
+    "get_overview": lambda db, uid, arg: _get_overview(db, uid, arg),
     "list_sessions": _list_sessions,
     "get_session": _get_session,
     "get_stats": _get_stats,

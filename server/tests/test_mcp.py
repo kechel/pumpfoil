@@ -166,7 +166,8 @@ def _session_anlegen(user_id: int, **felder):
             session_uuid=secrets.token_hex(16), user_id=user_id,
             started_at=datetime.now(timezone.utc) - timedelta(hours=2),
             ended_at=datetime.now(timezone.utc) - timedelta(hours=1),
-            sport="pumpfoil", place_name="Teststrand",
+            sport=felder.pop("sport", "pumpfoil"),
+            place_name=felder.pop("place_name", "Teststrand"),
             is_pumpfoil=felder.pop("is_pumpfoil", True), **felder)
         db.add(s)
         db.commit()
@@ -258,3 +259,43 @@ def test_widerruf_macht_zu(client):
     assert r.status_code == 400
     # Ein unbekanntes Token: ebenfalls 200, sonst waere die Antwort ein Orakel.
     assert client.post("/oauth/revoke", data={"token": "gibtsnicht"}).status_code == 200
+
+
+def test_overview_ist_das_erste_werkzeug_und_nennt_die_filter(client):
+    """Der Einstieg muss oben stehen UND sagen, dass er der Einstieg ist — mehr Mittel als Text
+    und Reihenfolge hat MCP nicht."""
+    jwt = _konto(client, "mcp-overview@b.de")
+    ich = _user_id(client, jwt)
+    _session_anlegen(ich, sport="pumpfoil")
+    _session_anlegen(ich, sport="wingfoil")
+    _session_anlegen(ich, sport="wingfoil")
+    token = _zugang(client, jwt, _client_anmelden(client))
+
+    r = client.post("/mcp", headers={"Authorization": f"Bearer {token}"},
+                    json={"jsonrpc": "2.0", "id": 1, "method": "tools/list"})
+    werkzeuge = r.json()["result"]["tools"]
+    assert werkzeuge[0]["name"] == "get_overview"
+    assert "ZUERST" in werkzeuge[0]["description"]
+
+    u = _ruf(client, token, "get_overview")
+    assert u["sessions"] == 3
+    je_sport = {x["wert"]: x["aufnahmen"] for x in u["je_sportart"]}
+    assert je_sport == {"pumpfoil": 1, "wingfoil": 2}
+    # Und die Werte muessen als Filter WIRKLICH funktionieren — sonst ist der Einstieg eine
+    # Behauptung.
+    gefiltert = _ruf(client, token, "list_sessions", {"sportart": "wingfoil"})
+    assert gefiltert["gesamt"] == 2
+
+
+def test_overview_zeigt_auch_hier_nichts_fremdes(client):
+    jwt = _konto(client, "mcp-ov-grenze@b.de")
+    fremd = _konto(client, "mcp-ov-fremd@b.de")
+    ich, anderer = _user_id(client, jwt), _user_id(client, fremd)
+    _session_anlegen(ich, sport="pumpfoil", place_name="Meiner")
+    _session_anlegen(anderer, sport="wingfoil", place_name="Seiner")
+    _session_anlegen(ich, is_pumpfoil=False, sport="autofahrt")
+    token = _zugang(client, jwt, _client_anmelden(client))
+    u = _ruf(client, token, "get_overview")
+    assert u["sessions"] == 1
+    assert [x["wert"] for x in u["je_sportart"]] == ["pumpfoil"]
+    assert [x["wert"] for x in u["je_spot"]] == ["Meiner"]
