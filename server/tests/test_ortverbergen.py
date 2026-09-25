@@ -103,7 +103,7 @@ def _session_mit_spur(uid, **f):
                            ended_at=datetime.now(timezone.utc) - timedelta(hours=1),
                            sport="pumpfoil", is_pumpfoil=True, status="done",
                            place_name="Jettkofen", place_water="Federsee",
-                           place_lat=48.07, place_lon=9.35, spot_id=42, **f)
+                           place_lat=48.07, place_lon=9.35, spot_id=f.pop("spot_id", 42), **f)
         db.add(s); db.flush()
         db.add(models.AnalysisResult(
             # `num_runs`/`detection` gesetzt, sonst faellt die Aufnahme aus dem Community-Feed:
@@ -283,3 +283,65 @@ def test_umschalter_am_endpunkt(client):
 
     r = client.patch(f"/api/sessions/{sid}/meta", headers=kopf, json={"ort_sichtbarkeit": "quatsch"})
     assert r.status_code == 400
+
+
+def test_teilen_link_verbirgt_ebenfalls(client):
+    """Beim normalen Teilen geht der ausdrueckliche Wunsch vor (25.09., Jan). Beim verborgenen
+    ORT nicht: ein Link, der ihn doch zeigt, umgeht genau das, was der Schalter verspricht."""
+    kopf = _konto(client, "ort-teilen@b.de")
+    uid = client.get("/api/auth/me", headers=kopf).json()["id"]
+    sid = _session_mit_spur(uid, ort_sichtbarkeit="hide")
+    pfad = client.post(f"/api/sessions/{sid}/share", headers=kopf).json()["path"]
+    token = pfad.rsplit("/", 1)[-1]
+
+    r = client.get(f"/api/public/session/{token}")     # OHNE Login
+    assert r.status_code == 200, r.text
+    d = r.json()
+    assert d["place_name"] == "Point Nemo"
+    assert d["ort_verborgen"] is True
+    lon, lat = d["analysis"]["track_geojson"]["coordinates"][0]
+    assert lat < -40 and lon < -100, (lat, lon)
+
+
+def test_rohdaten_sind_ebenfalls_versetzt(client):
+    """Der direkteste Weg an die Koordinaten — hier ist die Versetzung am wichtigsten."""
+    kopf = _konto(client, "ort-roh@b.de")
+    uid = client.get("/api/auth/me", headers=kopf).json()["id"]
+    sid = _session_mit_spur(uid, ort_sichtbarkeit="hide")
+
+    from app import models, storage
+    from app.db import SessionLocal
+    db = SessionLocal()
+    try:
+        uuid = db.get(models.Session, sid).session_uuid
+    finally:
+        db.close()
+    storage.save_gps_chunk(uuid, 0, [[0, 48.07, 9.35, 5.0, 120, 3.0],
+                                     [1000, 48.071, 9.351, 5.2, 121, 3.0]])
+
+    r = client.get(f"/api/sessions/{sid}/raw", headers=kopf)
+    assert r.status_code == 200, r.text
+    d = r.json()
+    assert d["gps_lat"] and d["gps_lat"][0] < -40, d["gps_lat"]
+    assert d["gps_lon"][0] < -100, d["gps_lon"]
+
+
+def test_spotkarte_zaehlt_verborgene_nicht_mit(client):
+    """Weder in der Zahl am Marker noch im Mittel seiner Koordinaten — sonst verschoebe eine
+    verborgene Aufnahme den Spot und liesse sich daran ablesen."""
+    from app.api import community
+    kopf = _konto(client, "ort-karte@b.de")
+    uid = client.get("/api/auth/me", headers=kopf).json()["id"]
+    # Ohne spot_id: die Karte gruppiert solche Aufnahmen nach `place_name` und braucht keine
+    # Spot-Stammdaten (zu einer erfundenen spot_id gibt es keine, der Marker fiele weg).
+    _session_mit_spur(uid, spot_id=None)                              # offen
+    _session_mit_spur(uid, spot_id=None, ort_sichtbarkeit="hide")     # verborgen
+    community._VERBERGER_CACHE.update({"zeit": 0.0, "ids": frozenset()})
+
+    r = client.get("/api/community/spot-map?accel_only=false&sport=all", headers=kopf)
+    assert r.status_code == 200, r.text
+    meiner = [m for m in r.json() if (m.get("spot") or "") == "Jettkofen"]
+    assert meiner, "der offene Spot fehlt ganz"
+    assert meiner[0]["sessions"] == 1, meiner[0]
+    # Und keiner der Marker liegt im Pazifik.
+    assert not [m for m in r.json() if m.get("lat", 0) < -40], "Point Nemo gehoert nicht auf die Uebersichtskarte"

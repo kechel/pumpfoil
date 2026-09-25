@@ -2757,6 +2757,21 @@ def get_raw(
     gps_speed = [float(r[3]) if len(r) > 3 and r[3] is not None else None for r in gps]
     gps_lat = [round(float(r[1]), 6) if len(r) > 2 and r[1] is not None else None for r in gps]
     gps_lon = [round(float(r[2]), 6) if len(r) > 2 and r[2] is not None else None for r in gps]
+    # ORT VERBERGEN: die Rohdaten sind der direkteste Weg an die Koordinaten — hier ist die
+    # Versetzung am wichtigsten. Versetzt wird die ganze Spur auf einmal, damit die Abstaende
+    # untereinander stimmen; Luecken (None) bleiben Luecken.
+    if _ort_verborgen(s):
+        paare = [(la, lo) for la, lo in zip(gps_lat, gps_lon) if la is not None and lo is not None]
+        if paare:
+            versetzt = iter(ortverbergen.versetzen(paare))
+            neu_lat, neu_lon = [], []
+            for la, lo in zip(gps_lat, gps_lon):
+                if la is None or lo is None:
+                    neu_lat.append(None); neu_lon.append(None)
+                else:
+                    a, b = next(versetzt)
+                    neu_lat.append(round(a, 6)); neu_lon.append(round(b, 6))
+            gps_lat, gps_lon = neu_lat, neu_lon
 
     accel = storage.load_accel(s.session_uuid)
     ds = max(int(accel_downsample), 1)
