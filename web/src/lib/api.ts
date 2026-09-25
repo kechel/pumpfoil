@@ -1511,8 +1511,10 @@ export const api = {
   deleteLabel: (id: number, labelId: number) =>
     req(`/api/sessions/${id}/labels/${labelId}`, { method: "DELETE" }),
   mergeSuggestions: () => req<{ ids: number[]; count: number; place: string | null; date: string; sessions: { id: number; start: string; end: string }[] }[]>("/api/sessions/merge-suggestions"),
+  // `geteilte_links` = wie viele der Quellen einen Teilen-Link hatten. Er ist nach dem
+  // Zusammenfuehren ungueltig; die Detailansicht sagt es dem Nutzer einmal (s. SessionDetail).
   mergeSessions: (ids: number[]) =>
-    req<{ id: number }>("/api/sessions/merge", { method: "POST", body: JSON.stringify({ session_ids: ids }) }),
+    req<{ id: number; geteilte_links?: number }>("/api/sessions/merge", { method: "POST", body: JSON.stringify({ session_ids: ids }) }),
   unmergeSession: (id: number) =>
     req<{ ids: number[] }>(`/api/sessions/${id}/unmerge`, { method: "POST" }),
   getSettings: () => req<Record<string, any>>("/api/settings"),

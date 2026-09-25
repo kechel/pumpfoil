@@ -1801,12 +1801,18 @@ def merge_own_sessions(
     ok, why = merge.can_merge(ss)
     if not ok:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, why)
+    # VOR dem Zusammenfuehren zaehlen, wie viele Quellen einen Teilen-Link hatten: `merge_sessions`
+    # loescht die Quellen und raeumt den Token dabei ab (s. dort). Der Link war ohnehin ab dem
+    # Moment tot, in dem die Quelle geloescht ist — der oeffentliche Endpunkt filtert `deleted` —,
+    # das galt auch schon, bevor der Token mit geleert wurde. Neu ist nur, dass wir es SAGEN:
+    # Jan, 25.09.2026: „mir wuerde ja ein hinweis beim mergen reichen".
+    geteilt = sum(1 for s in ss if s.share_token)
     try:
         ns = merge.merge_sessions(db, ss)
     except ValueError as e:
         # z. B. dieselbe Zusammenfuehrung lief parallel schon und ist nicht mehr eindeutig
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(e))
-    return {"id": ns.id}
+    return {"id": ns.id, "geteilte_links": geteilt}
 
 
 @router.post("/{session_id}/unmerge")
