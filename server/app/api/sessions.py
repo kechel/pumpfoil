@@ -31,6 +31,7 @@ from ..schemas import (
     AnalysisOut, ExcludeRunIn, IncludeRangeIn, LabelIn, LabelOut, PumpTruthIn, RawDataOut,
     SessionMetaIn, SessionOut, SessionVideoIn, TrimIn,
 )
+from .. import ortverbergen
 from ..tzlookup import tz_name
 from ..videos import client_wants_all_videos, filter_videos
 from .community import _community, _spot_cond
@@ -116,8 +117,25 @@ _VALID_LABELS = {"pump", "glide", "not_foiling"}
 _OUT_VERSION = 5
 
 
+def _ort_verborgen(s: models.Session) -> bool:
+    """Gilt „Ort verbergen" fuer diese Aufnahme? Aufnahme schlaegt Profil (s. ortverbergen).
+
+    AUCH FUER DEN BESITZER (Jan, 25.09.2026): wer verbirgt, soll sich selbst an Point Nemo sehen
+    — „dann weiss man: so darf auch jeder andere sehen". Deshalb kein Betrachter-Argument.
+    """
+    return ortverbergen.ist_verborgen(s, ortverbergen.profil_verbirgt(getattr(s, "user", None)))
+
+
+def _spur_fuer_ausgabe(result: models.AnalysisResult, verbergen: bool):
+    if not result.track_geojson:
+        return None
+    gj = json.loads(result.track_geojson)
+    return ortverbergen.geojson_versetzen(gj) if verbergen else gj
+
+
 def _analysis_out(result: models.AnalysisResult | None, slim: bool = False, sens: str = "normal",
-                  session: models.Session | None = None) -> AnalysisOut | None:
+                  session: models.Session | None = None,
+                  ort_verbergen: bool = False) -> AnalysisOut | None:
     """slim=True lässt die großen JSON-Blobs (Track/Segmente/Accel-Fenster) weg — für die
     Listenansicht. sens != "normal" (nur für den Besitzer): überlagert Foiling-Zeit/-Distanz und
     v. a. die einzelnen LÄUFE (Segmente) mit der gecachten Preset-Auswertung aus sensitivity_json,
@@ -152,7 +170,10 @@ def _analysis_out(result: models.AnalysisResult | None, slim: bool = False, sens
         pump_count=result.pump_count,
         avg_cadence_hz=result.avg_cadence_hz,
         metrics=metrics,
-        track_geojson=None if slim else (json.loads(result.track_geojson) if result.track_geojson else None),
+        # Die Spur ist das Einzige hier, was Koordinaten traegt. Bei „Ort verbergen" wandert sie
+        # formtreu nach Point Nemo (s. app/ortverbergen.py) — Laengen und Form bleiben, der Ort
+        # nicht. Versetzt wird erst HIER, beim Hinausgeben; gespeichert bleibt die Wahrheit.
+        track_geojson=None if slim else _spur_fuer_ausgabe(result, ort_verbergen),
         segments=segments,
         accel_windows=None if slim else (
             json.loads(result.accel_windows_json) if result.accel_windows_json else None
@@ -316,9 +337,14 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
         owned=owned,
         owner_name=owner_name,
         owner_avatar_url=owner_avatar_url,
-        place_name=s.place_name or None,
-        place_water=s.place_water or None,
-        spot_id=s.spot_id,
+        # ORT VERBERGEN: statt des echten Spots der Platzhalter. Kein Gewaessername (der waere
+        # ein Hinweis) und keine Spot-ID (sonst haengt die Aufnahme weiter an der echten
+        # Spot-Seite). Das Abzeichen „Position verborgen" setzt die Oberflaeche aus `ort_verborgen`.
+        place_name=(ortverbergen.NEMO_NAME if _ort_verborgen(s) else (s.place_name or None)),
+        place_water=(None if _ort_verborgen(s) else (s.place_water or None)),
+        spot_id=(None if _ort_verborgen(s) else s.spot_id),
+        ort_verborgen=_ort_verborgen(s),
+        ort_sichtbarkeit=s.ort_sichtbarkeit,
         tz=tz_name(s.place_lat, s.place_lon),   # Ortszeit des Spots — Clients formatieren damit
         caption=s.caption or None,
         youtube_url=s.youtube_url or None,
@@ -338,6 +364,7 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
             sens=((sens if sens is not None else (s.user.foil_sensitivity or "normal") if (owned and s.user) else "normal")
                   if (with_analysis and owned) else "normal"),
             session=s,
+            ort_verbergen=_ort_verborgen(s),
         ) if with_analysis else None,
     )
 

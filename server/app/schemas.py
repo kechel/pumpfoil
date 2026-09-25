@@ -247,6 +247,12 @@ class SessionOut(BaseModel):
     place_name: str | None = None  # Spot-Name (Ufer-Venue bevorzugt, sonst Gewässer)
     place_water: str | None = None  # Gewässername als Zusatz-Label (wenn place_name ein Ufer-Venue ist)
     spot_id: int | None = None      # Spot-Cluster-ID (additiv; künftige Clients gruppieren darüber)
+    # „Ort verbergen" (25.09.2026): wahr = place_name/Spur zeigen Point Nemo statt des echten
+    # Orts. Die Oberflaeche haengt daran das Abzeichen „Position verborgen".
+    ort_verborgen: bool = False
+    # Der EIGENE Zustand dieser Aufnahme: None = folgt dem Profil, "show", "hide". Nur fuer den
+    # Besitzer interessant (er stellt ihn dort um), aber unschaedlich fuer alle.
+    ort_sichtbarkeit: str | None = None
     # Menschliche Sportart-Klassifikation (docs/sport-classification.md). `sport` oben ist der
     # Aktivitätstyp AUS DER AUFNAHME — etwas anderes.
     sport_class: str | None = None          # pumpfoil (Default) | wingfoil | foildrive | …
