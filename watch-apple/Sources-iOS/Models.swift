@@ -49,6 +49,11 @@ struct PairedDevice: Codable, Identifiable {
     // GNSS-Stufe je Uhr (best|l1|two|gps) — NUR Garmin, ab Uhr 1.0.77. nil = keine eigene
     // Wahl, die Uhr faehrt die Voreinstellung "best" (alle Systeme, bestes Band).
     let gnss_mode: String?
+    // Wassersperre je Uhr (auto|on|off) — nicht Garmin. Wirksamer Wert wie in /config.
+    let water_lock: String?
+    // Wake-up-Sensor je Uhr (nur Wear OS): Override (nil = Standard) und was ohne ihn gilt.
+    let accel_wakeup: String?
+    let accel_wakeup_standard: String?
     let low_accel: Bool?       // FR55 & Co. → bei "full" autom. "lite"
     // Wie viele Sessions an dem Eintrag haengen. 0 = fehlgeschlagener Pairing-Versuch, den man
     // gefahrlos entfernen darf; sonst nur ausblenden (sonst verliert die Session ihr Geraet).

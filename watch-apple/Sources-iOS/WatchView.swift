@@ -9,6 +9,9 @@ struct WatchView: View {
     @State private var modes: [Int: String] = [:]     // record_mode je Uhr (id → full|lite|gps)
     // GNSS-Stufe je Uhr (id → best|l1|two|gps). NUR Garmin waehlt sie, ab Uhr 1.0.77.
     @State private var gnss: [Int: String] = [:]
+    // Wassersperre (nicht Garmin) und Wake-up-Sensor (nur Wear) je Uhr, id → Wert.
+    @State private var waterLocks: [Int: String] = [:]
+    @State private var wakeups: [Int: String] = [:]
     @State private var savedFlash = false
     // Aufraeumen je Uhr (wie PWA): ausgeblendete auf Wunsch mitladen — sonst waere Ausblenden auf
     // dem Telefon eine Einbahnstrasse. `frage` haelt die offene Rueckfrage.
@@ -109,9 +112,10 @@ struct WatchView: View {
             updateHinweis(d)
             autoLiteHint(d)
             gpsOnlyHint(d)
-            zeppHint(d)
             garminHint(d)
             gnssPicker(d)
+            waterLockPicker(d)
+            accelWakeupPicker(d)
             geraeteAktionen(d)
         }
     }
@@ -192,12 +196,49 @@ struct WatchView: View {
         }
     }
 
-    // Amazfit holt sich den Aufzeichnungsmodus gar nicht ab (watch-zepp/app-side/index.js reicht
-    // ihn nicht durch) -> ehrlich dranschreiben statt den Regler wirkungslos anbieten.
-    @ViewBuilder private func zeppHint(_ d: PairedDevice) -> some View {
-        if d.platform == "zepp" {
-            Text(Loc.t("account.recordModeZeppHint", lang)).font(.callout).foregroundStyle(.orange)
+    // Je Uhr NUR, was sie auch umsetzt — wie die PWA (Jan, 25.09.2026: „je uhr einfach nur das
+    // anbieten was auch sinn ergibt"). Wassersperre: alle ausser Garmin.
+    @ViewBuilder private func waterLockPicker(_ d: PairedDevice) -> some View {
+        if d.platform != "garmin" {
+            Picker(Loc.t("account.waterLock", lang), selection: waterLockBinding(d)) {
+                Text(Loc.t("account.waterLockAuto", lang)).tag("auto")
+                Text(Loc.t("account.waterLockOn", lang)).tag("on")
+                Text(Loc.t("account.waterLockOff", lang)).tag("off")
+            }
+            Text(Loc.t("account.waterLockHint", lang)).font(.callout).foregroundStyle(.secondary)
         }
+    }
+
+    // Wake-up-Sensor — nur Wear OS. „Standard" entfernt den Override, damit man spaeter mitzieht,
+    // wenn der Standard umgestellt wird.
+    @ViewBuilder private func accelWakeupPicker(_ d: PairedDevice) -> some View {
+        if d.platform == "wear" {
+            Picker(Loc.t("account.accelWakeup", lang), selection: wakeupBinding(d)) {
+                Text(wakeupStandardLabel(d)).tag("default")
+                Text(Loc.t("account.accelWakeupOn", lang)).tag("on")
+                Text(Loc.t("account.accelWakeupOff", lang)).tag("off")
+            }
+            Text(Loc.t("account.accelWakeupHint", lang)).font(.callout).foregroundStyle(.secondary)
+        }
+    }
+
+    private func wakeupStandardLabel(_ d: PairedDevice) -> String {
+        let key: String = (d.accel_wakeup_standard ?? "off") == "on" ? "account.accelWakeupOn" : "account.accelWakeupOff"
+        return Loc.t("account.accelWakeupDefault", lang).replacingOccurrences(of: "{v}", with: Loc.t(key, lang))
+    }
+
+    private func waterLockBinding(_ d: PairedDevice) -> Binding<String> {
+        Binding(get: { waterLocks[d.id] ?? d.water_lock ?? "auto" }, set: { v in
+            waterLocks[d.id] = v
+            Task { try? await Api.setDeviceWaterLock(d.id, mode: v); flashSaved() }
+        })
+    }
+
+    private func wakeupBinding(_ d: PairedDevice) -> Binding<String> {
+        Binding(get: { wakeups[d.id] ?? d.accel_wakeup ?? "default" }, set: { v in
+            wakeups[d.id] = v
+            Task { try? await Api.setDeviceAccelWakeup(d.id, mode: v); flashSaved() }
+        })
     }
 
     private func gnssBinding(_ d: PairedDevice) -> Binding<String> {
@@ -274,6 +315,8 @@ struct WatchView: View {
             devices = ds
             modes = Dictionary(uniqueKeysWithValues: ds.map { ($0.id, $0.record_mode ?? "full") })
             gnss = Dictionary(uniqueKeysWithValues: ds.map { ($0.id, $0.gnss_mode ?? "best") })
+            waterLocks = [:]
+            wakeups = [:]
         }
     }
 

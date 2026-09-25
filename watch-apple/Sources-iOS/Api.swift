@@ -1217,6 +1217,19 @@ enum Api {
         let _: GnssModeResp = try await request("/api/devices/\(id)/gnss-mode", method: "PUT", body: ["gnss_mode": mode], auth: true)
     }
 
+    // Wassersperre je Uhr (auto|on|off). Nicht Garmin — dort hat der Aufnahme-Bildschirm gar
+    // keine Tipp-Behandlung.
+    struct WaterLockResp: Decodable { let water_lock: String? }
+    static func setDeviceWaterLock(_ id: Int, mode: String) async throws {
+        let _: WaterLockResp = try await request("/api/devices/\(id)/water-lock", method: "PUT", body: ["water_lock": mode], auth: true)
+    }
+
+    // Wake-up-Sensor je Uhr (on|off|default). Nur Wear OS; "default" entfernt den Override.
+    struct AccelWakeupResp: Decodable { let accel_wakeup: String? }
+    static func setDeviceAccelWakeup(_ id: Int, mode: String) async throws {
+        let _: AccelWakeupResp = try await request("/api/devices/\(id)/accel-wakeup", method: "PUT", body: ["accel_wakeup": mode], auth: true)
+    }
+
     // Client-Kennung: Plattform/Version -> Server gated Video-Plattformen (IG/TikTok erst ab
     // App-Version mit Anzeige; bis dahin nur YouTube). Siehe server/app/videos.py.
     /// Eigene App-Version (CFBundleShortVersionString aus dem Bundle) — EINE Quelle für
