@@ -1480,6 +1480,19 @@ export const api = {
   // Öffentlicher Teilen-Link: erzeugen (idempotent) / widerrufen / anonym abrufen.
   createShareLink: (id: number) => req<{ token: string; path: string }>(`/api/sessions/${id}/share`, { method: "POST" }),
   revokeShareLink: (id: number) => req<{ ok: boolean }>(`/api/sessions/${id}/share`, { method: "DELETE" }),
+
+  // --- KI-Zugang (MCP) ---------------------------------------------------------------------
+  // `url` ist die Adresse, die der Nutzer in seinem KI-Programm eintraegt; `verbunden` sind die
+  // Agenten, die gerade Zugriff haben. Der Zustimmungsschritt laeuft ueber /oauth/consent.
+  mcpStatus: () => req<{ url: string; scope: string;
+                         verbunden: { client_id: string; name: string; seit: string;
+                                      zuletzt: string | null; zugaenge: number }[] }>("/api/mcp/status"),
+  mcpVerbindungSchliessen: (clientId: string) =>
+    req<{ geschlossen: number; nachwirkzeit_s: number }>(
+      `/api/mcp/verbindungen/${encodeURIComponent(clientId)}`, { method: "DELETE" }),
+  mcpZustimmen: (body: { client_id: string; redirect_uri: string; code_challenge: string; resource?: string }) =>
+    req<{ code: string; redirect_uri: string }>("/oauth/consent",
+      { method: "POST", body: JSON.stringify(body) }),
   publicSession: (token: string) => req<SessionSummary>(`/api/public/session/${encodeURIComponent(token)}`),
   // „Älter/neuer" folgt dem Filter der Liste, aus der man kam (s. lastSession.ts). Ohne
   // Angaben antwortet der Server wie bisher: eigene Sessions, gleiche Art.

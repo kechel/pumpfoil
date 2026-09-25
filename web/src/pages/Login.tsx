@@ -81,7 +81,12 @@ export default function Login() {
         ? await api.register(email, password, displayName, lang)
         : await api.login(email, password);
       setToken(res.access_token);
-      nav("/home");
+      // `?next=` fuehrt nach der Anmeldung dorthin zurueck, wo man hinwollte — gebraucht seit
+      // 25.09.2026 von der OAuth-Zustimmungsseite, die man aus einem fremden Programm heraus
+      // aufruft. NUR eigene Pfade: ein „next" mit Gegenstelle waere eine offene Weiterleitung,
+      // mit der man von unserer Adresse aus auf eine fremde Seite schicken koennte.
+      const ziel = new URLSearchParams(window.location.search).get("next") || "";
+      nav(ziel.startsWith("/") && !ziel.startsWith("//") ? ziel : "/home");
     } catch (err) {
       setError(humanError(err, t));
     } finally {
