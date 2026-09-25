@@ -333,3 +333,27 @@ def test_lage_nur_am_brett_und_get_session_sagt_es(client):
     fremd = _konto(client, "mcp-lage-fremd@b.de")
     fremde = _session_anlegen(_user_id(client, fremd), placement="board")
     assert "fehler" in _ruf(client, token, "get_board_attitude", {"session_id": fremde})
+
+
+def test_lage_zwischenspeicher_verfaellt_bei_neuer_analyse():
+    """Der Zwischenspeicher darf nie ein ueberholtes Ergebnis ausliefern.
+
+    Der Schluessel ist ein Fingerabdruck der Eingaben (Algorithmus-Fassung, Trim, vorgegebene
+    Drehung, Lauf-Segmente). Aendert sich eine davon, MUSS der Eintrag durchfallen — sonst
+    zeigte der MCP nach einer Reanalyse still die alten Zahlen. Geprueft wird die Schluessel-
+    Rechnung selbst, ohne Rohdaten: sie ist der ganze Riegel.
+    """
+    import hashlib
+
+    def schluessel(algo, trim, rot, segmente):
+        return hashlib.sha256("|".join([
+            str(algo), str(trim), str(rot),
+            hashlib.sha256((segmente or "").encode()).hexdigest(),
+        ]).encode()).hexdigest()
+
+    basis = schluessel("v2-windows-1", 0, None, '[{"t_start_ms": 0}]')
+    assert basis == schluessel("v2-windows-1", 0, None, '[{"t_start_ms": 0}]')
+    assert basis != schluessel("v3", 0, None, '[{"t_start_ms": 0}]')          # Reanalyse
+    assert basis != schluessel("v2-windows-1", 5000, None, '[{"t_start_ms": 0}]')   # Trim
+    assert basis != schluessel("v2-windows-1", 0, 180, '[{"t_start_ms": 0}]')       # Drehung
+    assert basis != schluessel("v2-windows-1", 0, None, '[{"t_start_ms": 10}]')     # Laeufe

@@ -1621,3 +1621,32 @@ class McpCallStat(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     werkzeug: Mapped[str] = mapped_column(String(48))
     zahl: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+
+
+class BoardAttitudeCache(Base):
+    """Zwischengespeicherte Lage-Rechnung je Aufnahme (Jan, 25.09.2026: „sollten wir das nicht
+    besser cachen dann?").
+
+    **Warum ueberhaupt.** `lage.kennzahlen_je_lauf` liest die vollen Beschleunigungs- und
+    Kreiseldaten und rechnet JE LAUF einen komplementaeren Filter. Gemessen an echten Aufnahmen:
+    80 bis 420 ms bei 20 Minuten, und es waechst mit der Zahl der Laeufe (rund 150-200 ms je
+    Lauf). Eine Zwei-Stunden-Session mit 40 Laeufen laege bei sechs bis acht Sekunden — je Abruf,
+    jedes Mal dasselbe Ergebnis.
+
+    **Warum in der DB und nicht im Prozess.** Es laufen vier uvicorn-Arbeiter; ein Merker im
+    Speicher wuerde bis zu viermal dieselbe Rechnung machen und bei jedem Neustart verfallen.
+
+    **Wann er verfaellt.** `schluessel` ist ein Fingerabdruck aller Eingaben, aus denen die
+    Rechnung entsteht: Algorithmus-Fassung, Trim-Versatz, vorgegebene Montage-Drehung und die
+    Lauf-Segmente. Aendert sich eines davon — Reanalyse, anderer Trim, andere Laeufe —, passt der
+    Schluessel nicht mehr und es wird neu gerechnet. Es gibt also nichts zu „leeren": ein
+    veralteter Eintrag kann gar nicht gelesen werden.
+    """
+
+    __tablename__ = "board_attitude_cache"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    session_id: Mapped[int] = mapped_column(ForeignKey("sessions.id"), unique=True, index=True)
+    schluessel: Mapped[str] = mapped_column(String(64))
+    daten: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
