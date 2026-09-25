@@ -48,9 +48,9 @@ enum Api {
     /// Feedback senden -> id der Meldung. Die Anhaenge haengen danach an GENAU dieser Meldung
     /// (und nur innerhalb der Serverfrist von 30 Minuten).
     @discardableResult
-    static func submitFeedback(_ text: String) async throws -> Int {
+    static func submitFeedback(_ text: String, url: String = "ios-app") async throws -> Int {
         struct Ok: Decodable { let ok: Bool?; let id: Int? }
-        let r: Ok = try await request("/api/feedback", method: "POST", body: ["text": text, "url": "ios-app"], auth: true)
+        let r: Ok = try await request("/api/feedback", method: "POST", body: ["text": text, "url": url], auth: true)
         return r.id ?? 0
     }
 
@@ -190,6 +190,13 @@ enum Api {
     // Lage-Zahlen aus Aufnahmen mit dem Handy am Brett, je Lauflaenge (Startseite).
     static func boardAttitudeStats() async throws -> BoardAttitudeStats {
         try await request("/api/community/board-attitude", method: "GET", body: nil, auth: true)
+    }
+
+    // Hat man an DIESEM Spot selbst schon aufgenommen? (Knopf „Anderen Namen vorschlagen")
+    struct SpotMine: Decodable { let mine: Bool? }
+    static func spotMine(_ spotId: Int) async throws -> Bool {
+        let r: SpotMine = try await request("/api/sessions/spot-mine?spot_id=\(spotId)", method: "GET", body: nil, auth: true)
+        return r.mine ?? false
     }
 
     // KI-Zugang (MCP): Adresse + verbundene Programme; Schliessen widerruft deren Zugang.

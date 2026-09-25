@@ -347,3 +347,96 @@ struct SpotNotesView: View {
         }
     }
 }
+
+
+/// „Anderen Namen vorschlagen" (PWA SpotRenameRequest.tsx). BEWUSST NUR EIN VORSCHLAG (Jan,
+/// 12.09.2026: „sonst wird das ne witz-runde") — geht als Feedback ein, entschieden wird von Hand.
+/// Der Meldetext ist ENGLISCH und fest aufgebaut. Nur fuer die, die hier selbst gefahren sind.
+struct SpotNamensVorschlag: View {
+    let spotId: Int
+    let spotName: String
+    let lang: String
+    @State private var meiner = false
+    @State private var offen = false
+
+    var body: some View {
+        Group {
+            if meiner {
+                Section {
+                    Button(Loc.t("spotRename.cta", lang)) { offen = true }
+                }
+            } else {
+                Color.clear.frame(height: 0).listRowBackground(Color.clear)
+            }
+        }
+        .task(id: spotId) { meiner = (try? await Api.spotMine(spotId)) ?? false }
+        .sheet(isPresented: $offen) { SpotNamensDialog(spotId: spotId, spotName: spotName, lang: lang) }
+    }
+}
+
+private struct SpotNamensDialog: View {
+    let spotId: Int
+    let spotName: String
+    let lang: String
+    @Environment(\.dismiss) private var dismiss
+    @State private var name = ""
+    @State private var grund = ""
+    @State private var busy = false
+    @State private var fertig = false
+    @State private var fehler: String? = nil
+
+    private var vorschlag: String { name.trimmingCharacters(in: .whitespacesAndNewlines) }
+    private var kannSenden: Bool {
+        vorschlag.count >= 2 && vorschlag != spotName.trimmingCharacters(in: .whitespaces) && !busy
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                if fertig {
+                    Text(Loc.t("spotRename.sent", lang))
+                } else {
+                    Section { Text(Loc.t("spotRename.hint", lang)).font(.callout) }
+                    Section(Loc.t("spotRename.current", lang)) { Text(spotName) }
+                    Section(Loc.t("spotRename.proposed", lang)) {
+                        TextField("", text: $name).onChange(of: name) { v in if v.count > 60 { name = String(v.prefix(60)) } }
+                    }
+                    Section(Loc.t("spotRename.reason", lang)) {
+                        TextField("", text: $grund, axis: .vertical).lineLimit(2...4)
+                            .onChange(of: grund) { v in if v.count > 200 { grund = String(v.prefix(200)) } }
+                    }
+                    if let f = fehler { Text(f).foregroundStyle(.red) }
+                }
+            }
+            .navigationTitle(Loc.t("spotRename.title", lang))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { knoepfe }
+        }
+    }
+
+    @ToolbarContentBuilder private var knoepfe: some ToolbarContent {
+        ToolbarItem(placement: .cancellationAction) {
+            Button(Loc.t(fertig ? "common.close" : "common.cancel", lang)) { dismiss() }
+        }
+        if !fertig {
+            ToolbarItem(placement: .confirmationAction) {
+                Button(Loc.t("spotRename.send", lang)) { senden() }.disabled(!kannSenden)
+            }
+        }
+    }
+
+    private func senden() {
+        busy = true
+        fehler = nil
+        let kopf: String = "Spot name change requested\nSpot: \(spotName) (#\(spotId))\nProposed: \(vorschlag)"
+        let g: String = grund.trimmingCharacters(in: .whitespacesAndNewlines)
+        let text: String = g.isEmpty ? kopf : "\(kopf)\nReason: \(g)"
+        Task {
+            do {
+                _ = try await Api.submitFeedback(String(text.prefix(500)), url: "/sessions?spot=\(spotId)")
+                fertig = true
+            } catch { fehler = error.localizedDescription }
+            busy = false
+        }
+    }
+}

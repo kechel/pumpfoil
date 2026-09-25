@@ -50,6 +50,8 @@ struct SpotSessionsView: View {
             // im Task uebernommen — nach dem Laden der Sessions — und bis dahin (oder wenn der
             // Task nicht durchlief) stand hier nichts.
             if let sid = spotId ?? vorgegebeneSpotId { SpotNotesView(spotId: sid, lang: lang) }
+            // „Anderen Namen vorschlagen" — nur wer hier selbst gefahren ist (s. SpotNotesView.swift).
+            if let sid = spotId ?? vorgegebeneSpotId { SpotNamensVorschlag(spotId: sid, spotName: spot, lang: lang) }
             ForEach(items) { c in
                 NavigationLink { SessionDetailView(id: c.id) } label: { CommunityRow(item: c) }
             }
