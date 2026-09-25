@@ -1413,6 +1413,34 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟡 25.09. — IDEE (Jan): geteilte Aufnahmen im Profil auflisten und per Knopf widerrufen.**
+  Jans Anstoss: „wir wissen doch welche teilen-links ueberhaupt jemals von wem erzeugt wurden
+  oder? … damit man ueberhaupt weiss was noch geteilt ist und da die links dann auch per
+  knopfdruck easy wiederrufen kann, ganz unabhaengig von dem privat feature, der teilen link
+  umgeht ja auch das login auf die seite komplett." **Jeder sieht nur seine eigenen** — die Token
+  sind privat, ausser gegenueber den Leuten, denen der Nutzer den Link selbst gegeben hat.
+
+  **Die Datenlage taugt dafuer (geprueft 25.09., rein lesend):** `sessions.share_token` ist NULL,
+  bis jemand `POST /api/sessions/{id}/share` drueckt (`api/sessions.py:1980`) — ein gesetzter
+  Token heisst also wirklich „hier wurde ein Link erzeugt", nicht „koennte mal". Stand heute:
+  **122 aktive Links von 64 Nutzern** (bei 7.692 Sessions), Spitzenreiter 8 Stueck.
+  `DELETE /api/sessions/{id}/share` (`:1985`) widerruft schon heute, und die Web-Anbindung dafuer
+  gibt es auch (`api.revokeShareLink`). **Die Arbeit ist also fast nur Oberflaeche:** eine Liste
+  im Profil, die nach `share_token IS NOT NULL` filtert, plus den vorhandenen Knopf.
+
+  **Was wir NICHT wissen und deshalb nicht behaupten duerfen:** wann ein Link erzeugt wurde
+  (keine Spalte), ob er je geoeffnet wurde und von wem (kein Zugriffs-Log, und dafuer eines
+  anzulegen waere Tracking — [[no-analytics-ever]]). Die Liste kann also sagen „fuer diese
+  Aufnahme existiert ein Link", nicht „zwoelf Leute haben ihn gesehen". Genau so beschriften.
+
+  **Zwei Unsauberkeiten am Rand:**
+  - **Behoben am 25.09.:** `/s/<token>` fehlte in `_PRIVAT` (`app/main.py`) und bekam damit als
+    EINZIGE Route ohne Login kein `X-Robots-Tag: noindex`. Die robots.txt erlaubt seit dem 06.09.
+    absichtlich das Crawlen, der Ausschluss haengt allein an dem Kopf — ein Teilen-Link in einem
+    Forum haette gereicht, damit die Session dauerhaft im Google-Index steht.
+  - **Offen:** 11 GELOESCHTE Sessions tragen noch einen Token. Die Links sind tot (der oeffentliche
+    Endpunkt filtert `deleted`), aber sauber waere, den Token beim Loeschen mit zu leeren.
+
 - **🟡 25.09. — ENTWURF: Modus „privat" fuer Aufnahmen. Nichts gebaut, Zuschnitt steht.**
   Ausloeser: Feedback #146 vom 24.09. („Gibt es einen Weg die Daten komplett privat zu schalten?
   Also den Ort auszublenden für public?") und ein 1:1-Chat, den Jan am 25.09. mit demselben
