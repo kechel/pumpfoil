@@ -402,7 +402,10 @@ function ExportCard({ exp, ytReady, showTexts }: {
                       geht, nicht in die Beschreibung (Jan, 25.09.). */}
                   {exp.credits && Object.entries(exp.credits).map(([pf, text]) => (
                     <CapRow key={"credit-" + pf} pf={pf} breit
-                      name={`Musik-Credit ${pfLabel(pf)}`}
+                      // Nur "Credit YT": "Musik-Credit YT" passt nicht in die
+                      // 96 px breite Spalte und wurde abgeschnitten — damit sahen
+                      // alle fuenf Zeilen gleich aus (Jan, 25.09.).
+                      name={`Credit ${pfLabel(pf)}`}
                       title={text}
                       titleFull={
                         <>
