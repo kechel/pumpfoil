@@ -739,7 +739,7 @@ struct SessionRow: View {
     // steht bei eigenen Sessions schon als Abzeichen unten (classBadge) und fehlt hier absichtlich.
     private var chipItems: [SessionChipItem] {
         sessionChipItems(spot: session.place_name, foil: foilChipText,
-                         setup: session.setup, device: session.device_label)
+                         setup: session.setup, device: session.device_label, placement: session.placement)
     }
 
     private var foilChipText: String {
@@ -952,7 +952,7 @@ struct TrackPreviewView: View {
 
 // Ein Chip einer Listenkarte: fertiger Text plus Darstellung.
 // plain = grau (Spot/Foil/Setup/Uhr) · brand = Marken-Cyan · sport = amber (Sportart-Kennzeichen).
-enum SessionChipStyle { case plain, brand, sport }
+enum SessionChipStyle { case plain, brand, sport, geraet, geraetBrett }
 
 struct SessionChipItem: Identifiable {
     let id: Int
@@ -965,7 +965,24 @@ struct SessionChipItem: Identifiable {
     case .plain: sessionPill(c.text)
     case .brand: sessionPill(c.text, highlight: true)
     case .sport: sportClassPill(c.text)
+    case .geraet: geraeteAbzeichen(c.text, amBrett: false)
+    case .geraetBrett: geraeteAbzeichen(c.text, amBrett: true)
     }
+}
+
+/// Geraete-Abzeichen: Uhr-Symbol + Bezeichnung, „Handy am Brett" in Marken-Cyan — dasselbe Bild wie
+/// die PWA (SessionCard.tsx), auf ALLEN Karten und in den Details (Jan, 25.09.2026: „diesen badge
+/// meinte ich ueberall"). `text` traegt den Zusatz „· am Brett" schon.
+func geraeteAbzeichen(_ text: String, amBrett: Bool) -> some View {
+    let fg: Color = amBrett ? Color.accentColor : Color.secondary
+    let bg: Color = amBrett ? Color.accentColor.opacity(0.18) : Color.secondary.opacity(0.15)
+    return Label(text, systemImage: "applewatch")
+        .font(.caption2.weight(amBrett ? .semibold : .regular))
+        .labelStyle(.titleAndIcon)
+        .lineLimit(1)
+        .foregroundStyle(fg)
+        .padding(.horizontal, 6).padding(.vertical, 2)
+        .background(bg, in: Capsule())
 }
 
 /// Chips einer Listenkarte in fester Reihenfolge: Sportart · Spot · Foil · Stab · Mastlänge ·
@@ -973,7 +990,7 @@ struct SessionChipItem: Identifiable {
 /// Das Board „Skateboard" wird hervorgehoben: Pumpen auf dem Skateboard ist kein Tippfehler,
 /// sondern Trockentraining, und das darf auffallen.
 func sessionChipItems(sport: String? = nil, spot: String?, foil: String? = nil,
-                      setup: SessionSetup?, device: String?) -> [SessionChipItem] {
+                      setup: SessionSetup?, device: String?, placement: String? = nil) -> [SessionChipItem] {
     var out: [SessionChipItem] = []
     func add(_ raw: String, _ style: SessionChipStyle = .plain) {
         let t: String = raw.trimmingCharacters(in: .whitespaces)
@@ -988,7 +1005,14 @@ func sessionChipItems(sport: String? = nil, spot: String?, foil: String? = nil,
         if let m = s.mast_len_cm, m > 0 { add("\(m) cm") }
         if let b = s.board { add(b.name, isDrylandBoard(b.name) ? .brand : .plain) }
     }
-    add(device ?? "")
+    // „Handy am Brett" soll man auf den ersten Blick sehen — wie das Skateboard in Marken-Cyan
+    // und mit dem Zusatz (PWA SessionCard.tsx / lib/deviceLabel.ts).
+    if placement == "board", let d = device, !d.isEmpty {
+        let lang: String = UserDefaults.standard.string(forKey: "appLang") ?? "de"
+        add("\(d) · \(Loc.t("session.onBoard", lang))", .geraetBrett)
+    } else {
+        add(device ?? "", .geraet)
+    }
     return out
 }
 

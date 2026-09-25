@@ -730,8 +730,8 @@ struct SessionDetailView: View {
         if let dl = s.device_label, !dl.isEmpty {
             // Am Brett sagt das Abzeichen es mit — wie die PWA (lib/deviceLabel.ts).
             let amBrett: Bool = s.placement == "board"
-            Label(amBrett ? "\(dl) · \(Loc.t("session.onBoard", lang))" : dl, systemImage: "applewatch")
-                .font(.caption2).foregroundStyle(amBrett ? Color.accentColor : Color.secondary)
+            // Dasselbe Abzeichen wie auf den Karten (SessionsView.geraeteAbzeichen).
+            geraeteAbzeichen(amBrett ? "\(dl) · \(Loc.t("session.onBoard", lang))" : dl, amBrett: amBrett)
         }
     }
 

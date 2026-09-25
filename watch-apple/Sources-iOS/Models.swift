@@ -105,6 +105,7 @@ struct SessionSummary: Codable, Identifiable {
     let foil: FoilBrief?       // aufgelöstes Foil (Marke/Modell/Größe) für die Anzeige
     let analysis: Analysis?    // slim: Kennzahlen für die Listenkarte
     let device_label: String?  // Aufzeichnungs-Uhr (Kurzform) für das Badge
+    let placement: String?     // "board" = Handy war am Brett -> Abzeichen hervorgehoben
     let youtube_url: String?   // verlinktes Video → Vorschau-Thumb
     let transfer_to: String?   // offene Übertragung → Badge
     // Sportart-Klassifikation durch Menschen (docs/sport-classification.md) — NICHT `sport`,
@@ -147,6 +148,7 @@ struct CommunityItem: Codable, Identifiable {
     let like_count: Int?
     let liked: Bool?
     let device_label: String?  // Aufzeichnungs-Uhr (Kurzform) für das Badge
+    let placement: String?     // "board" = Handy war am Brett -> Abzeichen hervorgehoben
     let tz: String?            // IANA-Zeitzone des Spots — Uhrzeiten in Ortszeit anzeigen
     // Menschliche Sportart-Klassifikation (docs/sport-classification.md): null/"pumpfoil" =
     // Pumpfoilen, sonst kennzeichnet die Karte es — die allgemeine Liste zeigt alle Sportarten.
