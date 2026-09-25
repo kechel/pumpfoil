@@ -1493,3 +1493,131 @@ class PageHit(Base):
     tag: Mapped[date] = mapped_column(Date, index=True)
     art: Mapped[str] = mapped_column(String(16))   # "web" = laufende Seite, "bot" = deklarierter Crawler
     zahl: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+
+
+# --- MCP: eigener OAuth-2.1-Autorisierungsserver -----------------------------------------------
+#
+# Damit ein KI-Agent die EIGENEN Aufnahmen eines Nutzers auswerten kann, ohne dass der Nutzer uns
+# ein Passwort oder einen Dauer-Schluessel in eine Konfigdatei schreibt. Der Weg ist derselbe, den
+# COROS im September aufgemacht hat und den wir in `api/coros_mcp.py` bereits als CLIENT bedienen
+# — nur stehen wir hier auf der anderen Seite. Alles Weitere dort im Kopfkommentar.
+#
+# Drei Tabellen, weil OAuth drei Lebensdauern kennt:
+#   OAuthClient — der registrierte Client (Dynamic Client Registration, RFC 7591). Bleibt.
+#   OAuthGrant  — ein Autorisierungscode. Lebt Minuten und wird genau EINMAL eingeloest.
+#   OAuthToken  — ein Refresh-Token. Lebt Wochen, wird bei jeder Nutzung getauscht.
+#
+# Access-Tokens stehen NICHT in der DB: sie sind kurzlebige JWTs (s. `api/mcp_oauth.py`). Der
+# Widerruf haengt deshalb am Refresh-Token plus der kurzen Laufzeit — wer widerruft, ist
+# spaetestens nach der Laufzeit eines Access-Tokens draussen. Das ist der uebliche Handel;
+# die Alternative waere ein DB-Treffer bei JEDEM MCP-Aufruf.
+
+
+class OAuthClient(Base):
+    """Ein per Dynamic Client Registration angemeldeter MCP-Client (Claude, Cursor, …).
+
+    **Oeffentlicher Client, kein Secret.** Genau wie COROS es uns gegenueber macht
+    (`token_endpoint_auth_method: none`): ein Programm auf dem Rechner des Nutzers kann kein
+    Geheimnis bewahren. Die Sicherheit haengt deshalb an PKCE und an der exakten Rueckkehr-Adresse,
+    nicht an einem Secret.
+
+    **`/register` ist unangemeldet erreichbar** — das ist so vorgesehen, sonst koennte sich kein
+    neuer Client anmelden. Es ist damit aber ein Schreib-Endpunkt ohne Login: er gehoert hinter die
+    Rate-Begrenzung, und ein Client, den nie jemand benutzt hat, wird wieder aufgeraeumt
+    (`last_used_at`). Registriert sein heisst NICHT, Zugriff auf Daten zu haben — den gibt allein
+    der Nutzer im Zustimmungsschritt.
+    """
+
+    __tablename__ = "oauth_clients"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    client_id: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    client_name: Mapped[str | None] = mapped_column(String(120))
+    # JSON-Liste. EXAKTER Abgleich beim Authorize — kein Praefix, keine Platzhalter.
+    redirect_uris: Mapped[str] = mapped_column(Text)
+    client_uri: Mapped[str | None] = mapped_column(String(255))
+    software_id: Mapped[str | None] = mapped_column(String(120))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class OAuthGrant(Base):
+    """Ein ausgegebener Autorisierungscode. Kurzlebig, einmalig einloesbar.
+
+    Der Code steht nur als Hash hier: wer die DB liest, kann damit nichts einloesen. `used_at`
+    statt Loeschen, weil ein ZWEITER Einloeseversuch ein Angriffssignal ist — dann werden nach
+    RFC 6749 §10.5 auch die daraus entstandenen Tokens ungueltig.
+    """
+
+    __tablename__ = "oauth_grants"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    code_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    client_id: Mapped[str] = mapped_column(String(64), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    redirect_uri: Mapped[str] = mapped_column(String(255))
+    # PKCE ist Pflicht, und zwar S256 — `plain` lehnen wir ab.
+    code_challenge: Mapped[str] = mapped_column(String(128))
+    scope: Mapped[str] = mapped_column(String(255))
+    # RFC 8707: fuer WELCHE Ressource das Token gilt. Wird ins Token geschrieben und beim
+    # Zugriff geprueft, damit ein Token fuer uns nirgendwo anders passt (und umgekehrt).
+    resource: Mapped[str | None] = mapped_column(String(255))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class OAuthToken(Base):
+    """Ein Refresh-Token. Wird bei jeder Nutzung gegen ein neues getauscht (Rotation).
+
+    Rotation ist bei oeffentlichen Clients vorgeschrieben und hat einen zweiten Zweck: taucht ein
+    SCHON GETAUSCHTES Token wieder auf, hat es jemand kopiert — dann fliegt die ganze Kette raus.
+    Dafuer steht `ersetzt_durch` hier.
+
+    Diese Zeilen sind zugleich die Liste, die der Nutzer im Profil sieht: welcher Agent hat
+    gerade Zugriff, seit wann, zuletzt benutzt wann — und der Knopf, der ihn wieder zumacht.
+    Dieselbe Idee wie bei den Teilen-Links (25.09.2026).
+    """
+
+    __tablename__ = "oauth_tokens"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    client_id: Mapped[str] = mapped_column(String(64), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    scope: Mapped[str] = mapped_column(String(255))
+    resource: Mapped[str | None] = mapped_column(String(255))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    ersetzt_durch: Mapped[str | None] = mapped_column(String(64))
+
+
+class McpCallStat(Base):
+    """Nutzung des MCP-Servers, fuer die Admin-Ansicht (Jan, 25.09.2026).
+
+    EIN Zaehler je Tag, Nutzer und Werkzeug — nicht je Aufruf. Damit lassen sich beide Fragen
+    beantworten, die Jan gestellt hat: wie viele NUTZER den MCP ueberhaupt benutzen (verschiedene
+    `user_id` im Fenster) und wie viele EINZELAUFRUFE es insgesamt waren (Summe ueber `zahl`),
+    je Tag, Woche, Monat. Das Werkzeug steht mit dabei, weil sich daran ablesen laesst, welche
+    Aufrufe wirklich gebraucht werden und welche nur gut gemeint waren.
+
+    **Warum hier eine `user_id` steht und bei [[PageHit]] nicht:** dort lautet die Frage „kommt
+    jemand", hier lautet sie „wie viele Leute" — und die laesst sich aus Tagessummen nicht
+    zurueckrechnen. Gespeichert wird trotzdem nur die Zahl: kein Zeitpunkt je Aufruf, keine
+    Parameter, keine Antwort, keine Session-IDs. Das ist keine Verhaltensmessung
+    ([[no-analytics-ever]] gilt), sondern der Betriebszaehler einer Schnittstelle — dieselbe Art
+    Zahl, die der Admin-Bereich fuer Anmeldungen und Aufnahmen ohnehin zeigt.
+
+    Die Rate-Begrenzung (100 Aufrufe je Stunde und Nutzer) laeuft NICHT hierueber, sondern wie
+    gehabt ueber `RateEvent` — die Zeilen dort verfallen mit dem Fenster, diese hier bleiben.
+    """
+
+    __tablename__ = "mcp_call_stats"
+    __table_args__ = (UniqueConstraint("tag", "user_id", "werkzeug", name="uq_mcp_call_stat"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    tag: Mapped[date] = mapped_column(Date, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    werkzeug: Mapped[str] = mapped_column(String(48))
+    zahl: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
