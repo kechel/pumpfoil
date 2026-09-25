@@ -1,4 +1,5 @@
 const en: Record<string, string> = {
+  "nav.adminPending": "Open moderation (reported + suspected fake)",
   "hr.viewPeak": "Absolute",
   "hr.viewRise": "Rise",
   "hr.viewRiseHint": "Shows how far your heart rate climbed during the run — measured against the rate at the start of that same run. That makes runs comparable even when you started them at different heart rates.",
