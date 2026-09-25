@@ -53,7 +53,17 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.36",   # FREIGEGEBEN 2026-09-21, ZWEITE Apple-Mail („The following app is
+        "latest": "1.1.37",   # FREIGEGEBEN 2026-09-25, ZWEITE Apple-Mail („The following app is
+        # ready for distribution · App Version Number: 1.1.37 · Platform: iOS").
+        # GEGENGEPRUEFT an der Store-API: de/gb/ch melden 1.1.37 mit currentVersionReleaseDate
+        # 2026-09-24T22:42:13Z (25.09. 00:42 Berlin), us hing noch auf 1.1.36 — der bekannte
+        # Cache-Nachhang einer einzelnen Storefront, kein Grund zu warten (so schon bei 1.1.35).
+        # EINGEREICHT 24.09. um 11:32, Freigabe 25.09. 00:42 — rund DREIZEHN Stunden Pruefung.
+        # Inhalt: Foil Scoot als Sportart, die Upload-Leiste des Handy-Recorders auf jedem
+        # Bildschirm, ein abgebrochener Upload macht beim naechsten Start selbst weiter, Pause
+        # mit Teil-Upload auf der Apple Watch, Profil-Abgleich direkt nach dem Upload und der
+        # Meilenstein-Puls auf den Community-Zahlen.
+        # ALT: "latest": "1.1.36",   # FREIGEGEBEN 2026-09-21, ZWEITE Apple-Mail („The following app is
         # ready for distribution · App Version Number: 1.1.36 · Platform: iOS").
         # GEGENGEPRUEFT an der Store-API in de/us/gb/ch: alle vier melden 1.1.36 mit
         # currentVersionReleaseDate 2026-09-21T02:28:55Z (04:28 Berlin) — diesmal ohne
@@ -304,7 +314,11 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.36",   # FREIGEGEBEN 2026-09-21 — dieselbe Einreichung wie "ios" (ein Bundle,
+        "latest": "1.1.37",   # FREIGEGEBEN 2026-09-25 — dieselbe Einreichung wie "ios" (ein Bundle,
+        # dieselbe MARKETING_VERSION in project.yml). Beleg s. dort. Fuer die WATCH-App bringt
+        # 1.1.37: eine Aufnahme laesst sich pausieren, das schon Aufgezeichnete geht dabei hoch,
+        # und Profil-Aenderungen kommen direkt nach dem Upload an statt erst beim naechsten Start.
+        # ALT: "latest": "1.1.36",   # FREIGEGEBEN 2026-09-21 — dieselbe Einreichung wie "ios" (ein Bundle,
         # dieselbe MARKETING_VERSION in project.yml). Beleg s. dort.
         # ALT: "latest": "1.1.35",   # FREIGEGEBEN 2026-09-20 — dieselbe Einreichung wie "ios" (ein Bundle,
         # eine MARKETING_VERSION). Fuer die WATCH-App bringt 1.1.35: die Apple Watch vibriert bei
@@ -621,22 +635,20 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
-    {"name": "iPhone + Apple Watch", "version": "1.1.37",
-     # EINGEREICHT 24.09.2026 um 11:32 (App Store Connect: Uebermittlung „iOS 1.1.37",
-     # Status „Warten auf Pruefung"). Die 1.1.36 daneben steht auf „Pruefung abgeschlossen".
-     "eingereicht": "2026-09-24",
-     "items": [
-         "Foil Scoot is a sport you can pick for a session.",
-         "The phone recorder shows how far along an upload is, with a bar that moves — on "
-         "every screen, not just while recording.",
-         "An interrupted upload picks itself up when you open the app again.",
-         "When the community passes a round number — 1,000 foilers, 1,000 spots, a million "
-         "pumps — that number quietly celebrates for a while.",
-         "A recording on the Apple Watch can be paused, and what is already recorded goes up "
-         "while you wait.",
-         "Changes you make to your profile reach the Apple Watch right after an upload, not "
-         "just at the next start.",
-     ]},
+    # iOS/Apple: 1.1.37 ist am 25.09. um 00:42 (Berlin) FREIGEGEBEN und steht deshalb hier nicht
+    # mehr, sondern in `_APP_META` als live (beide Schluessel, ein Bundle). Die Punkte sind in die
+    # Changelog-Tabelle gewandert, mit `versionen = {"ios": "1.1.37", "apple": "1.1.37"}`, dazu ein
+    # Freigabe-Ereignis. ZWEI der sechs eingereichten Punkte stehen dort BEWUSST ANDERS:
+    #   - Der Meilenstein-Puls auf den Community-Zahlen ist ein Web-Punkt vom 24.09. ohne Versionen
+    #     („gilt ueberall sofort") — ein zweites Mal mit iOS-Version daneben waere derselbe Satz
+    #     zweimal an zwei Tagen.
+    #   - „Foil Scoot is a sport you can pick for a session." steht OHNE Versionen: die Sportart
+    #     ist seit dem 22.09. in Web und Server (Commit c655d596), nur angekuendigt wurde sie nie.
+    #     Mit iOS-Version davor haetten Web-Nutzer gelesen, sie brauchten dafuer die iPhone-App.
+    # Sobald Android 1.1.32 / Wear 1.2.32 freigegeben sind, bekommen deren eigene Punkte eine
+    # eigene Zeile mit ihren Versionen — so wie der Gyroskop-Punkt am 21.09. (ios/apple) und am
+    # 22.09. (android/wear) zweimal steht. Das ist gewollt: der Leser sieht, was SEIN Update bringt.
+
     # EINGEREICHT 24.09.2026 (Jans Meldung: „android ist schon hochgeladen und zur
     # pruefung eingereicht"). Play und Wear gehen IMMER zusammen — eine Einreichung,
     # eine Mail, zwei Spuren.
