@@ -1415,6 +1415,17 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 ## 📥 Inbox
 
 - **🔲 25.09. abends — WIEDERAUFSETZPUNKT fuer den 26.09.: testen und releasen.**
+  - **NEU (25.09. spaet): PWA-Portierung in beide Handy-Apps** (Android `df804496`…`df54ca55`,
+    iOS dieselben Punkte): Lage des Bretts (Frage, Schalter, Ansicht mit Foil-Zeichnung +
+    Echtzeit-Abspielen, Tabelle je Lauf, Startseite), oeffentliche Foiler-Seite, Ort verbergen
+    (Profil + je Aufnahme), geteilte Links, Wassersperre + Wake-up je Uhr, KI-Zugang (MCP),
+    Vergleich in Echtzeit, Trainingskurven-Regler, Vergleichs-Knopf, Spot-Namensvorschlag,
+    keine alte Liste beim Spot-Wechsel. Android-Lage am Emulator an #9535 gesehen (Befunde
+    gefixt, `c199d76d`/`4e2ade4c`); der Rest nur kompiliert bzw. `swiftc -parse`.
+    **iOS: zwei neue Dateien (FoilRig.swift, LageAnsicht.swift) -> `xcodegen generate`.**
+    Alles in `NAECHSTES` (Android phone 1.1.33, iPhone 1.1.38).
+    Bewusst NICHT portiert: Wiedergabe in der Session-Detailansicht (gibt es nativ nicht, die
+    Lage-Ansicht hat dafuer ihren eigenen Abspielknopf).
   - **Emulator, jede Uhr durch JEDEN Zustand** (Checkliste oben in `docs/PARITY-AUDIT.md`):
     Pausieren ueber die Aktionsseite -> Sprung auf Pausen-Seite + „Pausiert" ueberall; Blaettern
     in der Pause mit/ohne eigene Layouts; Fortsetzen -> zurueck auf Datenseiten. Wear: „Pausiert"
