@@ -649,12 +649,14 @@ object Api {
     // Lage des Bretts (Nicken/Rollen/Gieren/Hub). `run` = ein Lauf, sonst die ganze Aufnahme;
     // `jeLauf` liefert die Kennzahlen je Lauf mit (ein Abruf fuer die ganze Tabelle), `hz` regelt
     // nur die Aufloesung der Kurven herunter — die Kennzahlen rechnet der Server mit voller Rate.
-    suspend fun boardAttitude(id: Int, run: Int? = null, jeLauf: Boolean = false, hz: Int? = null): BoardAttitude =
+    suspend fun boardAttitude(id: Int, run: Int? = null, jeLauf: Boolean = false, hz: Int? = null,
+                              yawWindowS: Double? = null): BoardAttitude =
         withContext(Dispatchers.IO) {
             val q = buildList {
                 if (run != null) add("run=$run")
                 if (jeLauf) add("je_lauf=1")
                 if (hz != null) add("hz=$hz")
+                if (yawWindowS != null) add("yaw_window_s=$yawWindowS")
             }.joinToString("&")
             json.decodeFromString(BoardAttitude.serializer(),
                 http("GET", "/api/sessions/$id/attitude" + (if (q.isNotEmpty()) "?$q" else ""), null, auth = true))

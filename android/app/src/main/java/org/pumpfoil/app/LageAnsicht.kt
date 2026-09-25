@@ -11,6 +11,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -155,3 +161,283 @@ fun LageJeLaufTabelle(s: SessionDetail, selected: Int?, onSelect: (Int) -> Unit)
         }
     }
 }
+
+private val GIER_FENSTER = listOf(0.1, 0.5, 1.0, 3.0, 5.0)   // Sekunden fuer die Gier-Aenderung
+
+private class Reihe(val name: String, val werte: List<Double>, val farbe: androidx.compose.ui.graphics.Color,
+                    val einheit: String) {
+    val max: Double = maxOf(1.0, werte.maxOfOrNull { kotlin.math.abs(it) } ?: 1.0)
+}
+
+/**
+ * Die LAGE-ANSICHT: drei Kacheln mit der massstaeblichen Zeichnung (Nicken, Rollen, Gieren), die
+ * Kurven darunter mit Zeiger, und die Kennzahlen. Portiert aus BoardAttitude.tsx.
+ *
+ * WIE DIE ZEICHNUNG SICH BEWEGT: in der PWA folgt sie der Wiedergabe der Session-Karte — die gibt
+ * es in der App nicht. Hier fuehren deshalb zwei Wege zur selben Stelle, wie im Web Maus und
+ * Wiedergabe: der FINGER auf den Kurven, und ein eigener Abspielknopf, der in ECHTZEIT laeuft
+ * (Changelog 24.09.: „Playing back a session starts at real speed instead of eight times
+ * faster"). Beide speisen denselben Index, damit Zeiger und Zeichnung nie auseinanderlaufen.
+ */
+@Composable
+fun LageAnsicht(s: SessionDetail, run: Int?) {
+    if (s.placement != "board") return
+    var fenster by remember { mutableStateOf(1.0) }
+    var d by remember(s.id) { mutableStateOf<BoardAttitude?>(null) }
+    var laden by remember { mutableStateOf(true) }
+    // Standard: alles in EINEM Bild (Jan, 21.09.) — der Vergleich der Kurven ist der Zweck.
+    var zusammen by remember { mutableStateOf(true) }
+    var pos by remember(s.id, run) { mutableStateOf(1f) }          // 0..1 auf der Zeitachse
+    var spielt by remember(s.id, run) { mutableStateOf(false) }
+    var gezogen by remember { mutableStateOf(false) }
+    LaunchedEffect(s.id, run, fenster) {
+        laden = true
+        d = try { Api.boardAttitude(s.id, run = run, hz = 20, yawWindowS = fenster) } catch (_: Exception) { null }
+        laden = false
+    }
+    val daten = d
+    val tMs = daten?.tMs.orEmpty()
+    // Abspielen in Echtzeit: die Position waechst um die vergangene Wanduhrzeit geteilt durch die
+    // Spanne der Aufnahme. Vom Ende aus neu starten.
+    LaunchedEffect(spielt, tMs) {
+        if (!spielt || tMs.size < 2) return@LaunchedEffect
+        val spanne = (tMs.last() - tMs.first()).coerceAtLeast(1L).toFloat()
+        if (pos >= 1f) pos = 0f
+        var vorher = androidx.compose.runtime.withFrameMillis { it }
+        while (spielt && pos < 1f) {
+            val jetzt = androidx.compose.runtime.withFrameMillis { it }
+            if (!gezogen) pos = (pos + (jetzt - vorher) / spanne).coerceAtMost(1f)
+            vorher = jetzt
+        }
+        spielt = false
+    }
+
+    Spacer(Modifier.height(12.dp))
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(12.dp)) {
+            Text(I18n.t("board.title"), style = MaterialTheme.typography.titleSmall)
+            Spacer(Modifier.height(6.dp))
+            when {
+                laden && daten == null -> Box(Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+                daten == null || !daten.ok || tMs.isEmpty() -> Text(
+                    daten?.grund?.let { "${I18n.t("board.noData")} ($it)" } ?: I18n.t("board.noData"),
+                    style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                else -> LageInhalt(s, daten, fenster, zusammen, pos, spielt,
+                    onPos = { pos = it }, onZiehen = { gezogen = it; if (it) spielt = false },
+                    onSpielen = { spielt = !spielt }, onZusammen = { zusammen = !zusammen },
+                    onFenster = { fenster = it })
+            }
+        }
+    }
+}
+
+@Composable
+private fun LageInhalt(
+    s: SessionDetail, d: BoardAttitude, fenster: Double, zusammen: Boolean, pos: Float, spielt: Boolean,
+    onPos: (Float) -> Unit, onZiehen: (Boolean) -> Unit, onSpielen: () -> Unit, onZusammen: () -> Unit,
+    onFenster: (Double) -> Unit,
+) {
+    val tMs = d.tMs
+    val idx = ((tMs.size - 1) * pos).roundToInt().coerceIn(0, tMs.size - 1)
+    val grau = MaterialTheme.colorScheme.onSurfaceVariant
+    val reihen = remember(d) {
+        buildList {
+            add(Reihe(I18n.t("board.pitch"), d.pitchDeg, androidx.compose.ui.graphics.Color(0xFF38BDF8), "°"))
+            add(Reihe(I18n.t("board.roll"), d.rollDeg, androidx.compose.ui.graphics.Color(0xFFF59E0B), "°"))
+            add(Reihe(I18n.t("board.yaw"), d.gierDeltaDeg, androidx.compose.ui.graphics.Color(0xFFA78BFA), "°"))
+            d.hubCm?.let { add(Reihe(I18n.t("board.height"), it, androidx.compose.ui.graphics.Color(0xFF34D399), " cm")) }
+        }
+    }
+    // Bildausschnitt der Seitenansicht NUR aus dem ausgewaehlten Lauf, mit robustem Maximum
+    // (95. Perzentil) — sonst bestimmt der Rand (Steg, Sturz, doppelt integrierter Hub bis 147 cm)
+    // den Massstab, und das Rig wird winzig (Jan, 21.09.: „warum ist das board links so klein?").
+    val hubBereich = remember(d) {
+        val hub = d.hubCm.orEmpty()
+        if (hub.isEmpty()) 0.0 else {
+            val von = d.auswahlVonMs; val bis = d.auswahlBisMs
+            val nur = if (von != null && bis != null) hub.filterIndexed { i, _ -> tMs[i] in von..bis } else hub
+            val basis = if (nur.size >= 8) nur else hub
+            val sortiert = basis.map { kotlin.math.abs(it) }.sorted()
+            maxOf(2.0, sortiert[minOf(sortiert.size - 1, (sortiert.size * 0.95).toInt())])
+        }
+    }
+    val hub = (d.hubCm?.getOrNull(idx) ?: 0.0).coerceIn(-hubBereich, hubBereich)
+    val pitch = d.pitchDeg.getOrNull(idx) ?: 0.0
+    val roll = d.rollDeg.getOrNull(idx) ?: 0.0
+    val gier = d.gierDeltaDeg.getOrNull(idx) ?: 0.0
+    val uhrzeit = { t: Long ->
+        hhmmssOffset(s.startedAt, s.tz, Clockmap.wanduhrMs(s.pauseWindows, t) / 1000) ?: ""
+    }
+
+    d.rig?.let { rig ->
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            LageKachel(I18n.t("board.pitch"), I18n.t("board.pitchHint"), pitch) {
+                SeitenAnsicht(rig, pitch, hub, hubBereich, grau)
+            }
+            LageKachel(I18n.t("board.roll"), I18n.t("board.rollHint"), roll) {
+                FrontAnsicht(rig, roll, pitch, grau)
+            }
+            LageKachel(I18n.t("board.yaw"),
+                I18n.t("board.yawHint").replace("{s}", fensterText(fenster)), gier) {
+                DraufAnsicht(rig, gier, grau)
+            }
+        }
+        Spacer(Modifier.height(10.dp))
+    }
+
+    LageKurven(reihen, tMs, pos, idx, zusammen, d.auswahlVonMs, d.auswahlBisMs, onPos, onZiehen)
+    Row(Modifier.fillMaxWidth().padding(top = 2.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+        listOf(0f, 0.5f, 1f).forEach { f ->
+            val i = ((tMs.size - 1) * f).roundToInt().coerceIn(0, tMs.size - 1)
+            Text(uhrzeit(tMs[i]), style = MaterialTheme.typography.labelSmall, color = grau)
+        }
+    }
+
+    // Bedienelemente UNTER den Kurven (Jan, 20.09.), damit Zeichnung und Kurve zusammenstehen.
+    Spacer(Modifier.height(8.dp))
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        FilledTonalButton(onClick = onSpielen) {
+            Icon(if (spielt) Icons.Filled.Pause else Icons.Filled.PlayArrow, contentDescription = null)
+        }
+        OutlinedButton(onClick = onZusammen) {
+            Text(I18n.t(if (zusammen) "board.separate" else "board.combined"))
+        }
+        Spacer(Modifier.weight(1f))
+        val sek = (tMs[idx] - tMs.first()) / 1000.0
+        Text("${uhrzeit(tMs[idx])} · ${String.format("%.1f", sek)} s",
+            style = MaterialTheme.typography.labelMedium, color = grau)
+    }
+    Row(Modifier.horizontalScroll(rememberScrollState()), verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(I18n.t("board.window"), style = MaterialTheme.typography.labelMedium, color = grau)
+        GIER_FENSTER.forEach { f ->
+            FilterChip(selected = f == fenster, onClick = { onFenster(f) },
+                label = { Text("${fensterText(f)} s") })
+        }
+    }
+
+    d.kennzahlen?.let { k ->
+        val teile = buildList {
+            add(I18n.t("board.stats")
+                .replace("{pitch}", k.pitchAmplitudeDeg.roundToInt().toString())
+                .replace("{roll}", k.rollAmplitudeDeg.roundToInt().toString())
+                .replace("{yaw}", k.gierRmsDegS.roundToInt().toString()))
+            k.pitchHz?.let { add(I18n.t("board.cadence").replace("{hz}", String.format("%.2f", it))) }
+            k.hubPpCm?.let {
+                add(I18n.t("board.heaveStat").replace("{cm}", it.roundToInt().toString())
+                    .replace("{s}", fensterText(d.hubFensterS ?: 3.0)))
+            }
+            d.rotDeg?.let { add("${I18n.t("board.mounting")} ${it.roundToInt()}° (${I18n.t("board.mountAuto")})") }
+        }
+        Text(teile.joinToString(" · "), style = MaterialTheme.typography.bodyMedium, color = grau,
+            modifier = Modifier.padding(top = 6.dp))
+        // Unsicherer Hub: sagen, WORAUF sich das bezieht — die ganze Aufnahme oder der Lauf
+        // (Jan, 23.09.2026: „hier" war je nach Auswahl etwas anderes).
+        if (k.hubPpCm != null && !k.hubSicher) {
+            val schluessel = if (d.auswahlVonMs == null) "board.heaveShakyAll" else "board.heaveShaky"
+            Text(I18n.t(schluessel).replace("{s}", fensterText(d.hubFensterS ?: 3.0)),
+                style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.tertiary,
+                modifier = Modifier.padding(top = 4.dp))
+        }
+    }
+}
+
+/** Eine Stelle nach dem Komma, ohne „.0" — das Fenster kommt aus 2/Takt und ist krumm. */
+private fun fensterText(f: Double): String = String.format(java.util.Locale.US, "%.1f", f).removeSuffix(".0")
+
+@Composable
+private fun LageKachel(label: String, hinweis: String, wert: Double, zeichnung: @Composable () -> Unit) {
+    Column(
+        Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+            androidx.compose.foundation.shape.RoundedCornerShape(12.dp)).padding(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(label.uppercase(), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+        zeichnung()
+        Text((if (wert > 0) "+" else "") + String.format("%.1f°", wert),
+            style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Text(hinweis, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+    }
+}
+
+/**
+ * Die Kurven mit Zeiger. Im gemeinsamen Bild ist jede Reihe auf IHR EIGENES Maximum normiert —
+ * Grad und Zentimeter haben keinen gemeinsamen Massstab; die Legende nennt je Farbe ihren Bereich.
+ * Finger auflegen und ziehen setzt den Zeiger (wie die Maus im Web).
+ */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+private fun LageKurven(
+    reihen: List<Reihe>, tMs: List<Long>, pos: Float, idx: Int, zusammen: Boolean,
+    von: Long?, bis: Long?, onPos: (Float) -> Unit, onZiehen: (Boolean) -> Unit,
+) {
+    val linie = MaterialTheme.colorScheme.outline
+    val zeiger = MaterialTheme.colorScheme.onSurface
+    val t0 = tMs.first(); val spanne = (tMs.last() - t0).coerceAtLeast(1L).toFloat()
+    val gruppen = if (zusammen) listOf(reihen) else reihen.map { listOf(it) }
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        gruppen.forEach { gruppe ->
+            if (!zusammen) {
+                val r = gruppe.first()
+                Row(Modifier.fillMaxWidth()) {
+                    Text(r.name, color = r.farbe, style = MaterialTheme.typography.labelMedium, modifier = Modifier.weight(1f))
+                    Text(wertText(r, idx) + "  ±${r.max.roundToInt()}${r.einheit}",
+                        style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            androidx.compose.foundation.Canvas(
+                Modifier.fillMaxWidth().height(if (zusammen) 150.dp else 72.dp)
+                    .pointerInput(tMs) {
+                        detectDragGestures(
+                            onDragStart = { o -> onZiehen(true); onPos((o.x / size.width).coerceIn(0f, 1f)) },
+                            onDragEnd = { onZiehen(false) },
+                            onDragCancel = { onZiehen(false) },
+                        ) { change, _ -> onPos((change.position.x / size.width).coerceIn(0f, 1f)) }
+                    }
+                    .pointerInput(tMs) {
+                        detectTapGestures { o -> onPos((o.x / size.width).coerceIn(0f, 1f)) }
+                    },
+            ) {
+                val w = size.width; val h = size.height
+                fun x(t: Long) = (t - t0) / spanne * w
+                // Grauer Rand vor und nach dem Lauf — dort liegt der Anlauf, der Grund fuer den Rand.
+                if (von != null && bis != null) {
+                    val a = x(von).coerceIn(0f, w); val b = x(bis).coerceIn(0f, w)
+                    if (a > 0) drawRect(linie.copy(alpha = 0.14f), size = androidx.compose.ui.geometry.Size(a, h))
+                    if (b < w) drawRect(linie.copy(alpha = 0.14f), topLeft = androidx.compose.ui.geometry.Offset(b, 0f),
+                        size = androidx.compose.ui.geometry.Size(w - b, h))
+                }
+                drawLine(linie, androidx.compose.ui.geometry.Offset(0f, h / 2), androidx.compose.ui.geometry.Offset(w, h / 2), 1f)
+                gruppe.forEach { r ->
+                    val pfad = androidx.compose.ui.graphics.Path()
+                    r.werte.forEachIndexed { i, v ->
+                        val px = x(tMs[i]); val py = h / 2 - (v / r.max).toFloat() * (h / 2 - 6f)
+                        if (i == 0) pfad.moveTo(px, py) else pfad.lineTo(px, py)
+                    }
+                    drawPath(pfad, r.farbe, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2.dp.toPx()))
+                }
+                val zx = (pos * w).coerceIn(1f, w - 1f)
+                drawLine(zeiger, androidx.compose.ui.geometry.Offset(zx, 0f), androidx.compose.ui.geometry.Offset(zx, h), 1.5.dp.toPx())
+                gruppe.forEach { r ->
+                    r.werte.getOrNull(idx)?.let { v ->
+                        drawCircle(r.farbe, 4.dp.toPx(), androidx.compose.ui.geometry.Offset(zx, h / 2 - (v / r.max).toFloat() * (h / 2 - 6f)))
+                    }
+                }
+            }
+        }
+        if (zusammen) {
+            androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                reihen.forEach { r ->
+                    Text("${r.name} ${wertText(r, idx)} (±${r.max.roundToInt()}${r.einheit})",
+                        color = r.farbe, style = MaterialTheme.typography.labelMedium)
+                }
+            }
+        }
+    }
+}
+
+private fun wertText(r: Reihe, idx: Int): String =
+    r.werte.getOrNull(idx)?.let { (if (it > 0) "+" else "") + String.format("%.1f", it) + r.einheit } ?: ""

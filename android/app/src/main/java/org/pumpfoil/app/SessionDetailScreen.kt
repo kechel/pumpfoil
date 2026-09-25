@@ -1145,6 +1145,8 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 farthestRunIdx?.let { add(StatItem(I18n.t("home.farthestRun"), dist(segList[it].distanceM), it)) }
                 bestGlideIdx?.let { if (segList[it].longestGlideS > 0) add(StatItem(I18n.t("home.longestGlide"), "%.1f s".format(segList[it].longestGlideS), it)) }
             }
+            // Lage des Bretts (Handy am Brett) — Zeichnung, Kurven, Kennzahlen; folgt dem gewaehlten Lauf.
+            LageAnsicht(s, selectedRun)
             StatGrid(stats, selectedRun) { selectedRun = if (selectedRun == it) null else it }
             // Aussortierte/abgetrennte Läufe stehen nicht mehr in den Segmenten — die Hinweise über
             // der Tabelle sind die einzige Spur davon, deshalb auch bei 0 Läufen rendern (wie PWA).
