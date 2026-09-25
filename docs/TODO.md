@@ -1413,6 +1413,57 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟡 25.09. — ENTWURF: Modus „privat" fuer Aufnahmen. Nichts gebaut, Zuschnitt steht.**
+  Ausloeser: Feedback #146 vom 24.09. („Gibt es einen Weg die Daten komplett privat zu schalten?
+  Also den Ort auszublenden für public?") und ein 1:1-Chat, den Jan am 25.09. mit demselben
+  Anliegen gefuehrt hat. **Damit ist die Produktentscheidung vom 11.09. („sessions werden immer
+  geteilt") von Jan selbst wieder geoeffnet** — wer hier weiterarbeitet, traegt sie nicht mehr
+  als Gegenargument vor.
+
+  **Jans Zuschnitt (25.09., 06:25–06:28):** Laeufe werden weiter ausgewertet und die Stats
+  angezeigt, aber **ohne GPS-Track, ohne Spot-Zugehoerigkeit und ohne Uhrzeit** — „so als eigener
+  spot 'privat' wo dann alle drin landen egal wo man gefahren ist". Das nimmt genau die drei
+  Achsen weg, aus denen ein Bewegungsprofil entsteht (dieselbe Begruendung wie bei
+  `no-per-user-session-lists` vom 04.09.).
+
+  **Offene Entscheidungen (Jan):**
+  1. Zaehlt eine ortlose Session noch in Community-Rekorde und die Meilenstein-Zaehler?
+     Vorschlag: ja bei community-weiten, nein bei SPOT-Rekorden — ein Spot-Rekord ohne Spot
+     ergibt keinen Sinn.
+  2. Rueckwirkend fuer alle schon hochgeladenen Aufnahmen? Vorschlag: ja, sonst ist der Schalter
+     fuer genau den wertlos, der ihn aus Sorge umlegt.
+  3. Profilweit oder je Session? **ENTSCHIEDEN von Jan als Frage gestellt, Vorschlag: profilweit
+     als Vorgabe, je Session uebersteuerbar** — wer aus Sorge schaltet, denkt nicht bei jeder
+     Aufnahme daran; „diese eine will ich zeigen" ist dagegen eine bewusste Freigabe.
+  4. Teilen-Link: **ENTSCHIEDEN (Jan, 25.09.)** — „wenn der user seine private session trotzdem
+     selber teilt, dann ist das ja sein expliziter wunsch und sollte dann die sperre umgehen".
+     Der `share_token`-Link zeigt also die volle Session inkl. Track, Spot und Uhrzeiten.
+     Folge fuer die Benennung: „privat" heisst **nicht im oeffentlichen Feed / nicht auf den
+     Spot-Seiten**, nicht „unsichtbar". Das Etikett muss das sagen.
+     NOCH OFFEN dazu: Links, die VOR dem Umlegen des Schalters verschickt wurden, waren keine
+     Zustimmung fuer danach. Vorschlag: sie bleiben gueltig (es sind Links, die er jemandem
+     gegeben hat), aber beim Einschalten einmal anzeigen, welche es gibt, mit der Moeglichkeit
+     sie zu widerrufen.
+
+  **Technische Punkte, die beim Bauen sonst durchrutschen:**
+  - **Der Ort steckt an fuenf Stellen, nicht an einer:** Spotname, `track_preview` (auch in den
+    Kombi-Minimaps der Tages-Gruppen), Karte in der Detailansicht, Pin auf der Spot-Karte,
+    Spot-Seiten/Spot-Rekorde. Ein Schalter, der nur den Namen wegnimmt, laesst die Spur stehen
+    und ist wertlos.
+  - **„Privat" darf KEINE Zeile in `spots` werden.** Ein echter Spot bekaeme sofort eine
+    oeffentliche Spot-Seite samt Chat, Wetter, Rekorden und Karten-Pin — eine Sammelseite mit den
+    Aufnahmen aller Vorsichtigen. Es ist ein Etikett an der Session, kein Ort.
+  - **Daten bleiben, nur die Ausgabe wird verborgen.** `spot_id` und Track weiter speichern:
+    sonst fallen Steg-Kalibrierung, Spot-Statistik und Trainingsdaten weg — und der Nutzer sieht
+    seine EIGENE Karte nicht mehr.
+  - **Uhrzeit relativ statt weg.** Heute stehen Wanduhrzeiten in `SessionDetail.tsx:1681/1685`
+    (Start/Ende), `2567` und `2707` (Lauf-Zeiten, Diagramm-Tooltips). Als „+4:12 ab Start"
+    bleibt die Auswertung vollstaendig lesbar. **Der Wochentag bleibt trotzdem ablesbar**, weil
+    das Datum steht — bewusst so, eine Session ohne Datum ist keine Session mehr.
+  - **Die groesste Luecke sitzt am PROFIL, nicht an der Session:** ortlose Aufnahmen nuetzen
+    nichts, solange die Foiler-Seite `homespot`, `spots` und `titles` zeigt
+    (`settings.DEFAULTS["public_profile"]`). Der Schalter muss die mit abraeumen oder es sagen.
+
 - **🔴 24.09. — `ml/dataset.py` trainiert mit der ANGEFORDERTEN Rate, nicht der gemessenen.**
   Gefunden beim Nachsehen auf Jans Vorgabe „alle auswertungen muessen die echten raten korrekt
   beachten". `app/ml/dataset.py:79`:
