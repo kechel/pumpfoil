@@ -35,7 +35,8 @@ struct CompareView: View {
     // verglichenen Sessions zeitlich ueberschneiden UND am gleichen Spot liegen. Die Zeitrechnung
     // steckt in SyncPlayback.swift — dort steht auch, warum „ein Trackpunkt = eine Sekunde" nicht reicht.
     @State private var spielt = false
-    @State private var tempo = 8
+    // Echtzeit als Start, wie die PWA seit 24.09.; 1× steht mit in der Auswahl.
+    @State private var tempo = 1
     @State private var pos: Double = 0     // ms in der Wiedergabe (ohne die Leerlaufzeiten)
 
     // Zerlegt, weil Swift einen ViewBuilder als EINEN Ausdruck auflöst: Ladezustand, Inhalt,
@@ -274,7 +275,7 @@ struct CompareView: View {
                     Text(Loc.t(spielt ? "sd.pause" : "sd.play", lang)).font(.subheadline).fontWeight(.semibold)
                 }
                 .buttonStyle(.borderedProminent)
-                ForEach([2, 8, 30], id: \.self) { m in
+                ForEach([1, 2, 8, 30], id: \.self) { m in
                     Button { tempo = m } label: {
                         Text("\(m)×").font(.caption)
                             .foregroundStyle(tempo == m ? Color.accentColor : Color.secondary)

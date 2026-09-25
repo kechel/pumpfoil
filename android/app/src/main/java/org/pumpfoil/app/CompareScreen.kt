@@ -151,7 +151,9 @@ fun CompareScreen(onBack: () -> Unit, onOpen: (Int) -> Unit = {}) {
                       cmpTracks.associate { it.session.id to it.track.points.size })
     }
     var spielt by remember(plan) { mutableStateOf(false) }
-    var tempo by remember(plan) { mutableStateOf(8) }
+    // Echtzeit als Start, wie die PWA seit 24.09. (Changelog: „starts at real speed instead of
+    // eight times faster"); 1× steht mit in der Auswahl, sonst kaeme man nicht dorthin zurueck.
+    var tempo by remember(plan) { mutableStateOf(1) }
     var pos by remember(plan) { mutableStateOf(0.0) }   // ms in der Wiedergabe (ohne Leerlauf)
     // Die Karte gehoert dem Abspieler, sobald er einmal gelaufen ist. Bei Position 0 und Pause
     // steht wieder die normale Vergleichsansicht mit allen vollstaendigen Strecken da.
@@ -724,7 +726,7 @@ private fun SyncBedienzeile(
             Button(onClick = onPlay, contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)) {
                 Text(I18n.t(if (spielt) "sd.pause" else "sd.play"))
             }
-            listOf(2, 8, 30).forEach { m ->
+            listOf(1, 2, 8, 30).forEach { m ->
                 val an = tempo == m
                 TextButton(onClick = { onTempo(m) }, contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)) {
                     Text("${m}×", color = if (an) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
