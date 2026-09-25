@@ -1574,9 +1574,9 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 - **🟡 24.09. — Wear OS: Abtastrate bricht auf manchen Uhren ein. FIX GEBAUT, ABER NOCH NICHT
   AUSGELIEFERT.** `f0184015` (24.09. 15:02): Wake-up-Beschleunigungssensor mit Rueckfall, vom
   Server schaltbar (`accel_wakeup`, Standard `on`, `api/devices.py`). Wear 1.2.32 wurde schon um
-  11:11 eingereicht, enthaelt ihn also NICHT. `versionName` steht noch auf 1.2.32, `NAECHSTES`
-  hat keinen Eintrag. **Offen:** Bump auf 1.2.33 (Phone mit, harte Regel) + `NAECHSTES`, danach an
-  einer betroffenen Uhr gegenmessen (Schritt 3 unten), GPS getrennt (Schritt 4).
+  11:11 eingereicht, enthaelt ihn also NICHT. **25.09.: gebumpt auf Wear 1.2.33 / 1043 (Phone
+  1.1.33 / 47 nur mitgezaehlt, inhaltlich leer), in `NAECHSTES`.** Offen: Jans Build + Upload,
+  danach an einer betroffenen Uhr gegenmessen (Schritt 3 unten), GPS getrennt (Schritt 4).
   Urspruenglicher Befund:
   Anlass: Foilbert (u574) im Community-Chat, „only 8hz", Verdacht auf seine Glukose-App Juggluco.
   **Der Verdacht traegt nicht** — und das ist der Punkt: es faellt nicht nur der Accel, sondern

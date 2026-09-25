@@ -722,6 +722,16 @@ IN_REVIEW: list[dict] = [
 NAECHSTES: list[dict] = [
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.
+
+    # Wear 1.2.33: Wake-up-Beschleunigungssensor (f0184015, 24.09. 15:02) — kam vier Stunden
+    # NACH dem Play-Upload von 1.2.32 und ist deshalb nicht drin. Vom Server abschaltbar
+    # (`accel_wakeup` in api/devices.py). Phone 1.1.33 ist nur mitgebumpt (gleiches x) und
+    # bringt inhaltlich nichts, deshalb kein eigener Eintrag.
+    {"name": "Wear OS", "version": "1.2.33",
+     "items": [
+         "Watches that doze off during a long recording no longer lose motion data while "
+         "they sleep.",
+     ]},
 ]
 
 
