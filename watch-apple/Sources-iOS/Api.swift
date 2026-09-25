@@ -1197,8 +1197,9 @@ enum Api {
         try await request("/api/foils/brands", method: "GET", body: nil, auth: true)
     }
 
-    static func foilStats() async throws -> [FoilStat] {
-        try await request("/api/community/foil-stats", method: "GET", body: nil, auth: true)
+    // `nurBrett`: nur Aufnahmen mit dem Handy am Brett (genauere Zahlen).
+    static func foilStats(nurBrett: Bool = false) async throws -> [FoilStat] {
+        try await request("/api/community/foil-stats" + (nurBrett ? "?only_board=1" : ""), method: "GET", body: nil, auth: true)
     }
 
     static func watchStats() async throws -> [WatchStat] {
