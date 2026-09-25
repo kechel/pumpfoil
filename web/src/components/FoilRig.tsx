@@ -139,6 +139,12 @@ function rahmen(punkte: [number, number][], maxWinkel: number, rand = 7): string
 const BOARD = "fill-brand-500";
 const TEIL = "fill-slate-400";      // slate kippt selbst mit dem Theme -> nur EINE Zahl
 const MAST = "fill-slate-500";      // 500 ist in beiden Themes derselbe Mittelton
+// DER STAB IST BLAU (Jan, 25.09.2026): „dann sieht man ob der vor oder hinter dem foil ist und
+// ueberlegt nicht jedesmal aus welcher richtung man da draufschaut." In der Frontansicht liegen
+// Frontfluegel und Stab uebereinander — ohne Farbunterschied ist nicht zu sehen, welches Teil
+// naeher ist, und damit auch nicht, von wo man schaut. Eine Farbe je Teil, in allen drei
+// Ansichten dieselbe: sky-500 liegt wie slate-500 in beiden Themes im lesbaren Mittelfeld.
+const STAB = "fill-sky-500";
 
 /**
  * Die WASSERLINIE als Bezug, plus Drehpunkt-Fadenkreuz am Frontfluegel.
@@ -198,7 +204,7 @@ export function SeitenAnsicht({ rig, pitch, hub = 0, hubBereich = 0 }: {
         <rect className={MAST} x={rig.x_stab_cm} y={-RUMPF_DICKE / 2}
           width={rig.x_foil_cm - rig.x_stab_cm} height={RUMPF_DICKE} rx={RUMPF_DICKE / 2} />
         <path d={profilSeite(rig.x_foil_cm, 0, rig.foil_chord_cm)} className={TEIL} />
-        <path d={profilSeite(rig.x_stab_cm, 0, rig.stab_chord_cm)} className={TEIL} />
+        <path d={profilSeite(rig.x_stab_cm, 0, rig.stab_chord_cm)} className={STAB} />
       </g>
     </svg>
   );
@@ -207,9 +213,10 @@ export function SeitenAnsicht({ rig, pitch, hub = 0, hubBereich = 0 }: {
 /**
  * FRONTANSICHT fuer das Rollen — mit der Hoehenverschiebung aus dem Nicken.
  *
- * Gezeichnet wird von hinten auf das Brett geschaut. Der Stab liegt rund 50 cm hinter dem
- * Frontfluegel und wandert deshalb beim Nicken sichtbar nach oben oder unten; er ist blasser
- * gezeichnet, weil er weiter weg ist.
+ * BLICK VON HINTEN — wie hinter dem Fahrer herfahrend. Der Stab liegt rund 50 cm hinter dem
+ * Frontfluegel, ist von hier aus also das NAEHERE Teil: er wird zuletzt gezeichnet, liegt damit
+ * oben und ist blau. Der Frontfluegel dahinter bleibt grau. Beim Nicken wandert der Stab
+ * gegenueber dem Frontfluegel sichtbar nach oben oder unten (s. unten).
  */
 export function FrontAnsicht({ rig, roll, pitch }: { rig: Rig; roll: number; pitch: number }) {
   const r = (pitch * Math.PI) / 180, c = Math.cos(r), s = Math.sin(r);
@@ -239,11 +246,20 @@ export function FrontAnsicht({ rig, roll, pitch }: { rig: Rig; roll: number; pit
           width={bBoard} height={BOARD_DICKE} rx={BOARD_DICKE / 2.2} />
         <rect className={MAST} x={-(MAST_DICKE * FRONT_UEBERHOEHUNG) / 2} y={-zBoard}
           width={MAST_DICKE * FRONT_UEBERHOEHUNG} height={Math.max(1, zBoard - zMastFuss)} />
-        <path d={fluegelVorn(rig.stab_span_cm, rig.stab_chord_cm, zStab)}
-          className="fill-slate-500 stroke-slate-200" strokeWidth={1.4}
-          vectorEffect="non-scaling-stroke" />
+        {/* REIHENFOLGE = TIEFE, und sie war falsch herum (Jan, 25.09.2026: „entweder sind die
+            richtungen vertauscht oder man schaut aktuell von vorne drauf"). Er hatte recht:
+            bis hierher wurde der Stab ZUERST gezeichnet und der Frontfluegel darueber — wer
+            ueberlappende Teile so stapelt, sagt damit „der Frontfluegel ist naeher", und das
+            ist der Blick von VORN. Der Drehsinn stimmte dagegen fuer den Blick von HINTEN; er
+            wurde am 21.09. an einer echten Aufnahme geeicht. Das Bild widersprach sich also in
+            sich, und genau deshalb war die Blickrichtung nicht abzulesen.
+            Jetzt konsequent VON HINTEN: erst der Frontfluegel (weiter weg), dann der Stab
+            darueber (naeher) und in Blau. */}
         <path d={fluegelVorn(rig.foil_span_cm, rig.foil_chord_cm, hoehe(rig.x_foil_cm, 0))}
           className={TEIL} />
+        <path d={fluegelVorn(rig.stab_span_cm, rig.stab_chord_cm, zStab)}
+          className={`${STAB} stroke-slate-200`} strokeWidth={1.4}
+          vectorEffect="non-scaling-stroke" />
       </g>
     </svg>
   );
@@ -271,7 +287,7 @@ export function Drauf({ rig, yaw }: { rig: Rig; yaw: number }) {
         <rect className={MAST} x={-RUMPF_DICKE / 2} y={-rig.x_foil_cm}
           width={RUMPF_DICKE} height={Math.max(1, rig.x_foil_cm - rig.x_stab_cm)} />
         <path d={fluegelOben(rig.foil_span_cm, rig.foil_chord_cm, rig.x_foil_cm)} className={TEIL} />
-        <path d={fluegelOben(rig.stab_span_cm, rig.stab_chord_cm, rig.x_stab_cm)} className={TEIL} />
+        <path d={fluegelOben(rig.stab_span_cm, rig.stab_chord_cm, rig.x_stab_cm)} className={STAB} />
         {/* Brett zuletzt und halbdurchsichtig: es liegt oben, das Foil soll durchscheinen. */}
         <path d={boardOben(rig.board_len_cm, bBoard)} className={`${BOARD} opacity-75`} />
       </g>
