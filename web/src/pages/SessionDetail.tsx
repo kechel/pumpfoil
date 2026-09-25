@@ -2334,7 +2334,21 @@ export default function SessionDetail() {
                     type="checkbox"
                     checked={session.placement === "board"}
                     onChange={(e) => {
-                      const wert = e.target.checked ? "board" : "phone";
+                      // ABHAKEN heisst NICHT „war am Koerper" (25.09.2026). Bis hierher schrieb
+                      // das Wegnehmen des Hakens immer "phone" — auch bei einer UHREN-Aufnahme,
+                      // und dann stand dort die glatte Unwahrheit, das sei ein Handy-Recording
+                      // gewesen. Jan hatte #8546 (fenix 7X Pro) versehentlich als „am Brett"
+                      // markiert; nach dem Abhaken stand sie als Handy-Aufnahme in der DB.
+                      //
+                      // Das ist nicht nur kosmetisch: `_handy_aufnahme` im Server (sessions.py)
+                      // liest JEDEN gesetzten `placement`-Wert als „kam vom Handy-Recorder" —
+                      // eine Uhr waere damit dauerhaft als Handy verbucht.
+                      //
+                      // Richtig ist: bei einer Handy-Aufnahme heisst „nicht am Brett" wirklich
+                      // "phone" (Tasche/Huefte), bei allem anderen gehoert das Feld geleert.
+                      // Merkmal ist der Kreisel — den liefern nur die Handy-Recorder, und genau
+                      // daran haengt auch der Server (eine Bedeutung, eine Pruefung).
+                      const wert = e.target.checked ? "board" : (session.has_gyro ? "phone" : "");
                       api.updateSessionMeta(session.id, { placement: wert })
                         .then((frisch) => setSession((alt) => (alt
                           ? { ...alt, placement: frisch.placement } : alt)))
