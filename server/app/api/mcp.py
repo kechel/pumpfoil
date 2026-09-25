@@ -119,7 +119,11 @@ Jede Zahl traegt, woher sie kommt. Achte darauf, bevor du sie deutest:
 * `detection` sagt, worauf die Lauferkennung stand: `gps_only` heisst, es gab keine brauchbaren
   Beschleunigungsdaten — dann sind Pumps und Takt nicht vorhanden, nicht null.
 
-LAGE DES BRETTS (nur wenn das Handy am Brett sass)
+LAGE DES BRETTS (nur wenn das Handy am Brett sass) — `get_board_attitude(session_id)`
+Diese Zahlen stehen NICHT in `get_session` — sie werden bei jedem Abruf aus den Rohdaten
+gerechnet und haben deshalb einen eigenen Aufruf. `get_session` sagt im Feld `lage_je_lauf`, ob es
+sie fuer die Aufnahme gibt.
+
 Nicken und Rollen kommen aus einem komplementaeren Filter ueber Beschleunigung und Kreisel. Wie
 das Handy montiert war, wird JE LAUF aus den Daten bestimmt, nicht vom Nutzer angegeben. Der Hub
 (die Auf-/Abbewegung) erscheint nur, wenn der Pumptakt sicher erkannt war; sonst fehlt er, und
@@ -160,6 +164,14 @@ WERKZEUGE = [
      "description": "Eine eigene Aufnahme mit allem, was wir dazu gerechnet haben: Kennzahlen, "
                     "Laeufe einzeln, Lage des Bretts je Lauf (falls das Handy am Brett sass), "
                     "Ausruestung, und die Herkunft jeder Zahl.",
+     "inputSchema": {"type": "object", "properties": {
+         "session_id": {"type": "integer"}}, "required": ["session_id"]}},
+    {"name": "get_board_attitude",
+     "description": "Nicken und Rollen JE LAUF fuer eine Aufnahme, die mit dem Handy am Brett "
+                    "entstanden ist. Wird bei jedem Aufruf frisch gerechnet (die Rohdaten stehen "
+                    "nicht als Ergebnis in der Datenbank), deshalb ein eigener Aufruf und nicht "
+                    "Teil von get_session. Nur sinnvoll, wenn `am_brett` wahr ist — sonst misst "
+                    "das Geraet den Fahrer und nicht das Brett.",
      "inputSchema": {"type": "object", "properties": {
          "session_id": {"type": "integer"}}, "required": ["session_id"]}},
     {"name": "get_stats",
@@ -290,7 +302,16 @@ def _get_session(db: Session, user_id: int, arg: dict) -> dict:
     except ValueError:
         m = {}
     aus = _kurz(s, ar)
+    # `device_model` ist bei aelteren Aufnahmen leer — dann steht die Beschriftung nur am Token.
+    # Ohne diesen Rueckfall musste Jans Agent am 25.09.2026 aus der Abtastrate erraten, welche
+    # Uhr eine Aufnahme gemacht hat („25 Hz, also wohl Garmin"). Raten soll er hier nie muessen.
+    etikett = None
+    if s.device_id:
+        dev = db.get(models.DeviceToken, s.device_id)
+        if dev is not None and dev.label:
+            etikett = dev.label.split("/")[0].strip()
     aus.update({
+        "geraet_etikett": etikett,
         "dauer_s": ((s.ended_at - s.started_at).total_seconds()
                     if s.ended_at and s.started_at else None),
         "avg_cadence_hz": (ar.avg_cadence_hz if ar else None),
@@ -306,6 +327,10 @@ def _get_session(db: Session, user_id: int, arg: dict) -> dict:
         "puls_quelle": s.hr_source,
         "puls_proben": s.hr_samples,
         "laeufe_einzeln": _laeufe(ar, int(s.trim_start_ms or 0)),
+        # Der Agent soll nicht schliessen muessen, dass es Lage-Daten gibt — er soll es lesen.
+        # Jans Agent hielt sie am 25.09.2026 fuer fehlend, weil hier nichts davon stand.
+        "lage_je_lauf": ("Mit get_board_attitude(session_id) abrufbar." if s.placement == "board"
+                         else "Nicht vorhanden: diese Aufnahme entstand nicht mit dem Handy am Brett."),
         "ausruestung": _ausruestung_der_session(db, s),
         "herkunft": _herkunft(s, m),
     })
@@ -409,6 +434,108 @@ def _get_stats(db: Session, user_id: int, arg: dict) -> dict:
     }
 
 
+def _get_board_attitude(db: Session, user_id: int, arg: dict) -> dict:
+    """Nicken und Rollen je Lauf — dieselbe Rechnung, die die Lage-Ansicht der Website benutzt.
+
+    Auf Abruf gerechnet und NICHT in `get_session` mit drin: die Rechnung liest die vollen
+    Beschleunigungs- und Kreiseldaten. Eine Stunde bei 120 Hz sind 430.000 Werte je Achse; das
+    gehoert weder in die Analyse-Tabelle noch in jede Session-Antwort (so steht es auch am
+    Endpunkt in `api/sessions.py`).
+
+    **Gebaut am 25.09.2026, nachdem Jans Agent danach gefragt hatte** („the API doesn't return
+    any pitch or roll values"). Er hatte recht: die Zahlen gab es laengst, sie kamen nur nie am
+    MCP an.
+    """
+    s = _eigene(db, user_id).filter(models.Session.id == int(arg["session_id"])).first()
+    if s is None:
+        return {"fehler": "Diese Aufnahme gibt es fuer dich nicht."}
+    if s.placement != "board":
+        return {"session_id": s.id, "am_brett": False,
+                "hinweis": "Diese Aufnahme ist nicht als „Handy am Brett\" markiert. Nicken und "
+                           "Rollen waeren hier die Bewegung des Fahrers, nicht die des Bretts."}
+
+    import numpy as np
+    from .. import storage
+    from ..analysis import lage
+
+    uuid = s.session_uuid
+    acc = storage.load_accel(uuid)
+    if len(acc) < 4:
+        return {"session_id": s.id, "fehler": "Keine Beschleunigungsdaten."}
+    t_acc = lage.zeitachse(storage.load_accel_t0(uuid), storage.chunk_laengen(uuid, "accel"))
+    if len(t_acc) != len(acc):
+        # Ohne `.t0`-Beiwerk laesst sich keine exakte Zeitachse bauen. Lieber nichts liefern als
+        # eine geratene — dieselbe Regel wie im Lage-Endpunkt (s. docs/DATA-PIPELINE.md).
+        return {"session_id": s.id,
+                "fehler": "Keine exakte Zeitachse — fuer diese Aufnahme nicht berechenbar."}
+    gyr = storage.load_gyro(uuid)
+    t_gyr = lage.zeitachse(storage.load_gyro_t0(uuid), storage.chunk_laengen(uuid, "gyro"))
+    hat_kreisel = len(gyr) >= 4 and len(t_gyr) == len(gyr)
+    if not hat_kreisel:
+        gyr, t_gyr = np.empty((0, 3)), np.empty(0)
+
+    ar = db.query(models.AnalysisResult).filter(
+        models.AnalysisResult.session_id == s.id).first()
+    try:
+        segmente = json.loads(ar.segments_json) if ar and ar.segments_json else []
+    except ValueError:
+        segmente = []
+    if not segmente:
+        return {"session_id": s.id, "laeufe": [],
+                "hinweis": "In dieser Aufnahme wurde kein Lauf erkannt."}
+
+    off = int(s.trim_start_ms or 0)
+    bereiche = lage.laufbereiche(segmente, off)
+    starts = [float(g.get("t_start_session_ms", float(g["t_start_ms"]) + off))
+              for g in segmente if g.get("t_start_ms") is not None]
+    kennzahlen = lage.kennzahlen_je_lauf(
+        acc, t_acc, gyr, t_gyr, bereiche, starts, gps=storage.load_gps(uuid),
+        rot_vorgabe=(float(s.attitude_rot_deg) if s.attitude_rot_deg is not None else None))
+
+    laeufe = []
+    for i, ((a, b), k) in enumerate(zip(bereiche, kennzahlen)):
+        if not k.get("ok"):
+            laeufe.append({"lauf": i, "auswertbar": False,
+                           "grund": "Zu kurz oder zu wenig Daten fuer eine Lage-Rechnung."})
+            continue
+        sicher = bool(k.get("hub_sicher"))
+        laeufe.append({
+            "lauf": i,
+            "auswertbar": True,
+            "dauer_s": round((b - a) / 1000.0, 1),
+            # 95. Perzentil des Betrags, nicht der Groesstwert: ein einzelner Ausschlag soll die
+            # Zahl nicht bestimmen.
+            "nicken_amplitude_deg": k.get("pitch_amplitude_deg"),
+            "rollen_amplitude_deg": k.get("roll_amplitude_deg"),
+            "gier_rate_rms_deg_s": k.get("gier_rms_deg_s"),
+            # Takt und Hub NUR, wenn die Rechnung sie selbst fuer belastbar haelt. Sonst steht
+            # hier null, und das ist die ehrliche Antwort — nicht die Zahl.
+            "pump_takt_hz": k.get("pitch_hz") if sicher else None,
+            "hub_pp_cm": k.get("hub_pp_cm") if sicher else None,
+            "takt_und_hub_belastbar": sicher,
+            # Wie das Handy in DIESEM Lauf auf dem Brett lag — aus den Daten bestimmt, nicht
+            # angegeben. Dreht sich das von Lauf zu Lauf stark, sass es locker.
+            "montage_drehung_deg": k.get("rot_deg"),
+        })
+
+    return {
+        "session_id": s.id,
+        "am_brett": True,
+        "kreiseldaten": hat_kreisel,
+        "laeufe": laeufe,
+        "wie_gerechnet": (
+            "Nicken und Rollen kommen aus einem komplementaeren Filter ueber Beschleunigung und "
+            "Kreisel; die Werte sind das 95. Perzentil des Betrags ueber den Lauf, in Grad — "
+            "also die Auslenkung, NICHT eine Winkelgeschwindigkeit. Eine Rate in Grad je Sekunde "
+            "gibt es bisher nur fuers Gieren (`gier_rate_rms_deg_s`). Die Montage-Drehung wird je "
+            "Lauf aus den Daten bestimmt. Ohne Kreiseldaten (`kreiseldaten: false`) stuetzt sich "
+            "alles allein auf die Beschleunigung und ist traeger."),
+        "gieren_hinweis": (
+            "Gieren ist die gefahrene Route und sagt nichts ueber Technik oder Effizienz — es "
+            "steht hier als Zusatz, nicht als Guetemass."),
+    }
+
+
 def _get_overview(db: Session, user_id: int, _arg: dict) -> dict:
     """Der Einstieg. Sagt, WAS es gibt — und mit welchen Werten man danach fragt.
 
@@ -468,6 +595,7 @@ _HANDLER = {
     "get_overview": lambda db, uid, arg: _get_overview(db, uid, arg),
     "list_sessions": _list_sessions,
     "get_session": _get_session,
+    "get_board_attitude": lambda db, uid, arg: _get_board_attitude(db, uid, arg),
     "get_stats": _get_stats,
     "list_equipment": _list_equipment,
 }
