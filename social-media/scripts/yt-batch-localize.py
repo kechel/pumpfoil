@@ -102,9 +102,12 @@ def main():
             # Lesen, dieser Weg hier tat es nicht — die chinesische YouTube-
             # Lokalisierung ging also mit dem erfundenen Begriff raus.
             korr = sm.zh_begriffe(caps)
+            # Musik-Nennung aus der Exportdatei zur laufenden Nummer — sonst
+            # verlöre ein spaeterer Komplettlauf sie wieder aus allen Sprachen.
             r = sm.yt_localize(v["id"], korr.get("titles") or {},
                                korr.get("descriptions") or {},
-                               str(korr.get("hashtags", "")))
+                               str(korr.get("hashtags", "")), "",
+                               sm.musik_credit_nummer(v["prefix"].split()[0]))
             with lock:
                 progress[v["id"]] = {"status": "ok", "title": v["title"],
                                      "written": len(r["written"])}
