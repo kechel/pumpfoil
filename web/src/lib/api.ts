@@ -1489,6 +1489,11 @@ export const api = {
   // Öffentlicher Teilen-Link: erzeugen (idempotent) / widerrufen / anonym abrufen.
   createShareLink: (id: number) => req<{ token: string; path: string }>(`/api/sessions/${id}/share`, { method: "POST" }),
   revokeShareLink: (id: number) => req<{ ok: boolean }>(`/api/sessions/${id}/share`, { method: "DELETE" }),
+  // Alle eigenen Aufnahmen, fuer die gerade ein Teilen-Link besteht. `share_token` ist NULL, bis
+  // jemand den Teilen-Knopf drueckt — die Liste zeigt also wirklich Erzeugtes, nichts Moegliches.
+  geteilteLinks: () => req<{ id: number; started_at: string | null; tz: string;
+                             place_name: string | null; sport: string;
+                             path: string }[]>("/api/sessions/geteilte"),
 
   // --- KI-Zugang (MCP) ---------------------------------------------------------------------
   // `url` ist die Adresse, die der Nutzer in seinem KI-Programm eintraegt; `verbunden` sind die
