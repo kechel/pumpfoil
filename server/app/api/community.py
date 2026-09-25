@@ -25,6 +25,7 @@ from ..accounts import is_new_account
 from ..db import get_db
 from ..media import thumb_url as _thumb
 from ..naming import geraete_label, owner_label, owner_label_sql
+from .. import ortverbergen
 from ..tzlookup import tz_name, tz_of
 from ..videos import client_wants_all_videos, filter_videos
 from ..weather import spot_water_temp, spot_weather
@@ -81,9 +82,35 @@ BRIEF_COLS = (AR.foiling_distance_m, AR.max_speed_mps, AR.num_runs,
               # Wo das Geraet lag ("board" = Handy am Brett) — die Liste schreibt das an die
               # Geraete-Bezeichnung. Bewusst HIER und nicht am Ende eingefuegt, s. naechster Satz.
               S.placement,
+              # „Ort verbergen" je Aufnahme (None = folgt dem Profil des Besitzers, das `_brief`
+              # ueber `_verbergende_nutzer` nachschlaegt).
+              S.ort_sichtbarkeit,
               # place_lat/place_lon MUESSEN die letzten beiden bleiben: sessions-grouped greift
               # positionsbasiert darauf zu (r[nb-2], r[nb-1]).
               S.place_lat, S.place_lon)
+
+
+# Wer hat „Ort verbergen" im Profil stehen? Einmal je Anfrage statt je Zeile — `settings_json` ist
+# ein grosser Textblock, den man nicht in jede Feed-Zeile ziehen will. Die Menge ist klein (nur
+# wer den Schalter umgelegt hat), und der Vorfilter im SQL haelt sie klein.
+_VERBERGER_CACHE: dict[str, object] = {"zeit": 0.0, "ids": frozenset()}
+
+
+def _verbergende_nutzer(db: Session) -> frozenset:
+    import time
+    jetzt = time.time()
+    if jetzt - float(_VERBERGER_CACHE["zeit"]) < 60:
+        return _VERBERGER_CACHE["ids"]
+    ids = set()
+    for uid, roh in db.query(models.User.id, models.User.settings_json).filter(
+            models.User.settings_json.ilike("%hide_location%")).all():
+        try:
+            if json.loads(roh or "{}").get("hide_location"):
+                ids.add(uid)
+        except ValueError:
+            continue
+    _VERBERGER_CACHE.update({"zeit": jetzt, "ids": frozenset(ids)})
+    return _VERBERGER_CACHE["ids"]
 
 
 def _cutoff(period: str) -> datetime | None:
@@ -161,17 +188,24 @@ def _community(query, viewer_id: int | None = None, accel_only: bool = True,
 def _brief(fdist, max_speed, num_runs, sid, ts, uname, place, avatar, caption=None, track_preview=None,
            foil_id=None, author_created_at=None, device_id=None, ended=None, youtube=None,
            stab_id=None, board_id=None, mast_len_cm=None, owner_id=None, sport_class=None,
-           placement=None, lat=None, lon=None) -> dict:
+           placement=None, ort_sichtbarkeit=None, lat=None, lon=None,
+           verbergende=frozenset()) -> dict:
+    # „Ort verbergen": die Aufnahme entscheidet, sonst das Profil des Besitzers. Im Feed faellt
+    # damit der Spotname weg — die Zeitzone ebenfalls, denn eine Ortszeit IST eine Ortsangabe
+    # (wer die Uhrzeit einer verborgenen Aufnahme in Spot-Zeit liest, kennt grob den Laengengrad).
+    verborgen = (ort_sichtbarkeit == "hide"
+                 or (ort_sichtbarkeit != "show" and owner_id in verbergende))
     return {
         "session_id": sid,
+        "ort_verborgen": verborgen,
         "started_at": ts.isoformat() if ts else None,
         "ended_at": ended.isoformat() if ended else None,
-        "tz": tz_name(lat, lon),   # Uhrzeiten in Spot-Ortszeit anzeigen
+        "tz": ("UTC" if verborgen else tz_name(lat, lon)),   # Uhrzeiten in Spot-Ortszeit anzeigen
         "youtube_url": youtube or None,
         "name": uname,
         "author_new": is_new_account(author_created_at),
         "avatar_url": avatar,
-        "spot": place or None,
+        "spot": (ortverbergen.NEMO_NAME if verborgen else (place or None)),
         "caption": caption or None,
         "track_preview": track_preview or None,
         "runs": int(num_runs or 0),
@@ -236,7 +270,7 @@ def community_sessions(
     if foil_id:
         q = q.filter(S.foil_id == foil_id)
     rows = q.order_by(S.started_at.desc()).offset(max(offset, 0)).limit(min(max(limit, 1), 100)).all()
-    return _attach_first_video(db, _attach_social(db, user, [_brief(*r) for r in rows]), request)
+    return _attach_first_video(db, _attach_social(db, user, [_brief(*r, verbergende=_verbergende_nutzer(db)) for r in rows]), request)
 
 
 @spot_router.get("/spot-sessions")
@@ -251,7 +285,7 @@ def spot_sessions(
         .order_by(S.started_at.desc())
         .offset(max(offset, 0)).limit(min(max(limit, 1), 100)).all()
     )
-    return _attach_first_video(db, _attach_social(db, user, [_brief(*r) for r in rows]), request)
+    return _attach_first_video(db, _attach_social(db, user, [_brief(*r, verbergende=_verbergende_nutzer(db)) for r in rows]), request)
 
 
 # Extra-Spalten fürs Tages-Gruppen-Aggregat (Σ On-Foil-Zeit + Σ Pumps): _brief liefert die
@@ -299,7 +333,7 @@ def sessions_grouped(
     nb = len(BRIEF_COLS)
     groups: dict[tuple, dict] = {}
     for r in rows:
-        brief = _brief(*r[:nb])
+        brief = _brief(*r[:nb], verbergende=_verbergende_nutzer(db))
         uid, ftime, pumps = r[nb], r[nb + 1], r[nb + 2]
         ts = r[4]                      # S.started_at (Position in BRIEF_COLS)
         lat, lon = r[nb - 2], r[nb - 1]  # place_lat, place_lon (letzte zwei BRIEF_COLS)
@@ -1994,7 +2028,7 @@ def top_liked(
     if cut is not None:
         q = q.filter(S.started_at >= cut)
     rows = q.order_by(likes_sq.c.n.desc(), S.started_at.desc()).limit(min(max(limit, 1), 20)).all()
-    return _attach_social(db, user, [_brief(*r[:len(BRIEF_COLS)]) for r in rows])
+    return _attach_social(db, user, [_brief(*r[:len(BRIEF_COLS)], verbergende=_verbergende_nutzer(db)) for r in rows])
 
 
 # ------------------------------------------------------------ Likes / Votes ----

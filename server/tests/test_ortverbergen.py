@@ -101,12 +101,15 @@ def _session_mit_spur(uid, **f):
         s = models.Session(session_uuid=secrets.token_hex(16), user_id=uid,
                            started_at=datetime.now(timezone.utc) - timedelta(hours=2),
                            ended_at=datetime.now(timezone.utc) - timedelta(hours=1),
-                           sport="pumpfoil", is_pumpfoil=True,
+                           sport="pumpfoil", is_pumpfoil=True, status="done",
                            place_name="Jettkofen", place_water="Federsee",
                            place_lat=48.07, place_lon=9.35, spot_id=42, **f)
         db.add(s); db.flush()
         db.add(models.AnalysisResult(
-            session_id=s.id, algo_version="test",
+            # `num_runs`/`detection` gesetzt, sonst faellt die Aufnahme aus dem Community-Feed:
+            # der nimmt nur, was eine erkannte Fahrt ist (s. `_community`).
+            session_id=s.id, algo_version="test", detection="model", num_runs=1,
+            foiling_distance_m=400.0, foiling_time_s=120.0,
             track_geojson=_json.dumps({"type": "LineString",
                                        "coordinates": [[9.35, 48.07], [9.351, 48.071]]})))
         db.commit()
@@ -163,3 +166,42 @@ def test_besitzer_sieht_sich_selbst_an_point_nemo(client):
     uid = client.get("/api/auth/me", headers=kopf).json()["id"]
     sid = _session_mit_spur(uid, ort_sichtbarkeit="hide")
     assert _detail(client, kopf, sid)["place_name"] == "Point Nemo"
+
+
+def test_feed_zeigt_point_nemo_statt_des_spots(client):
+    """Der Community-Feed ist der Weg, auf den es ankommt: dort lesen ANDERE mit."""
+    kopf = _konto(client, "ort-feed@b.de")
+    uid = client.get("/api/auth/me", headers=kopf).json()["id"]
+    offen = _session_mit_spur(uid)
+    verborgen = _session_mit_spur(uid, ort_sichtbarkeit="hide")
+
+    from app.api import community
+    community._VERBERGER_CACHE.update({"zeit": 0.0, "ids": frozenset()})   # Cache nicht mitschleppen
+
+    r = client.get("/api/community/sessions?period=all&accel_only=false", headers=kopf)
+    assert r.status_code == 200, r.text
+    je_id = {z["session_id"]: z for z in r.json()}
+    assert je_id[offen]["spot"] == "Jettkofen"
+    assert je_id[verborgen]["spot"] == "Point Nemo"
+    assert je_id[verborgen]["ort_verborgen"] is True
+    # Eine Ortszeit IST eine Ortsangabe — sie verraet grob den Laengengrad.
+    assert je_id[verborgen]["tz"] == "UTC"
+
+
+def test_mcp_verbirgt_ebenfalls(client):
+    """Jan, 25.09.2026: „wir bleiben stringent … auch die Daten gehen ja an irgendeine
+    Drittfirma und das koennte einen dann ueberraschen." Ein Kanal, der die Daten aus dem Haus
+    gibt, ist der letzte, bei dem man eine Ausnahme macht."""
+    from app.api import mcp
+    from app.db import SessionLocal
+    kopf = _konto(client, "ort-mcp@b.de")
+    uid = client.get("/api/auth/me", headers=kopf).json()["id"]
+    sid = _session_mit_spur(uid, ort_sichtbarkeit="hide")
+    db = SessionLocal()
+    try:
+        zeilen = mcp._list_sessions(db, uid, {})["sessions"]
+    finally:
+        db.close()
+    zeile = [z for z in zeilen if z["session_id"] == sid][0]
+    assert zeile["spot"] == "Point Nemo"
+    assert zeile["ort_verborgen"] is True
