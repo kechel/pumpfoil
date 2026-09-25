@@ -725,8 +725,7 @@ NAECHSTES: list[dict] = [
 
     # Wear 1.2.33: Wake-up-Beschleunigungssensor (f0184015, 24.09. 15:02) — kam vier Stunden
     # NACH dem Play-Upload von 1.2.32 und ist deshalb nicht drin. Vom Server abschaltbar
-    # (`accel_wakeup` in api/devices.py). Phone 1.1.33 ist nur mitgebumpt (gleiches x) und
-    # bringt inhaltlich nichts, deshalb kein eigener Eintrag.
+    # (`accel_wakeup` in api/devices.py).
     {"name": "Wear OS", "version": "1.2.33",
      "items": [
          "Watches that doze off during a long recording no longer lose motion data while "
@@ -735,6 +734,30 @@ NAECHSTES: list[dict] = [
          "While a recording is paused, the watch shows your pause pages and says so on every "
          "page.",
      ]},
+    # Android Phone 1.1.33 / iPhone 1.1.38: die PWA-Portierung vom 25.09. (Lage des Bretts,
+    # Privatsphaere, Einstellungen je Uhr, KI-Zugang und die kleineren Punkte, Commits df804496
+    # bis df54ca55). Dieselbe Liste fuer beide, weil beide Apps denselben Stand bekommen haben.
+    {"name": "Android phone", "version": "1.1.33",
+     "items": [
+         "If your phone rode on the board, the app shows how the board pitched, rolled and "
+         "turned, with a moving drawing of your foil.",
+         "The app asks when a recording looks like it was taken with the phone on the board.",
+         "Your home page shows your board angles by run length, from recordings with the phone "
+         "on the board.",
+         "You can hide where you rode, for all your recordings or one at a time.",
+         "Your profile lists which recordings are shared by link, with a button to take the link "
+         "back.",
+         "You decide in the app what your public foiler page shows.",
+         "Each watch in your profile only offers the settings it actually uses, now including the "
+         "water lock.",
+         "Your profile shows which AI programs can read your recordings and lets you close their "
+         "access.",
+         "Comparisons play back at real speed first.",
+         "The training curve has a slider to pick any moment into a run.",
+         "A button on each session card marks it for comparison.",
+         "You can suggest a better name for a spot you ride.",
+         "Switching spots no longer shows sessions from the previous one for a moment.",
+     ]},
     # Apple + Zepp: derselbe Pausen-Umbau vom 25.09. (Commits 0c5e6d6d, 1612070b). Die Nummern
     # sind die naechsten ueber dem Live- bzw. Review-Stand; gebumpt wird beim Bauen.
     {"name": "iPhone + Apple Watch", "version": "1.1.38",
@@ -742,6 +765,25 @@ NAECHSTES: list[dict] = [
          "Pause sits next to discard now, and stop has its page to itself again.",
          "While a recording is paused, the watch shows your pause pages and says so on every "
          "page.",
+     ] + [
+         "If your phone rode on the board, the app shows how the board pitched, rolled and "
+         "turned, with a moving drawing of your foil.",
+         "The app asks when a recording looks like it was taken with the phone on the board.",
+         "Your home page shows your board angles by run length, from recordings with the phone "
+         "on the board.",
+         "You can hide where you rode, for all your recordings or one at a time.",
+         "Your profile lists which recordings are shared by link, with a button to take the link "
+         "back.",
+         "You decide in the app what your public foiler page shows.",
+         "Each watch in your profile only offers the settings it actually uses, now including the "
+         "water lock.",
+         "Your profile shows which AI programs can read your recordings and lets you close their "
+         "access.",
+         "Comparisons play back at real speed first.",
+         "The training curve has a slider to pick any moment into a run.",
+         "A button on each session card marks it for comparison.",
+         "You can suggest a better name for a spot you ride.",
+         "Switching spots no longer shows sessions from the previous one for a moment.",
      ]},
     {"name": "Amazfit", "version": "1.0.13",
      "items": [
