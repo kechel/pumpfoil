@@ -40,6 +40,8 @@ data class PairedDevice(
 // Spiegelt die API-Schemas (snake_case JSON -> camelCase via @SerialName).
 @Serializable
 data class Profile(
+    // Eigene Nutzer-ID — fuer den Link auf die eigene Foiler-Seite (/foiler/<id>).
+    val id: Int = 0,
     val email: String,
     @SerialName("display_name") val displayName: String? = null,
     @SerialName("avatar_url") val avatarUrl: String? = null,
@@ -957,6 +959,11 @@ data class SessionDetail(
     val analysis: Analysis? = null,
     @SerialName("merged_count") val mergedCount: Int = 0,   // >0 -> aus N Sessions zusammengeführt
     @SerialName("device_label") val deviceLabel: String? = null,   // Uhr-Bezeichnung der Aufnahme
+    // „Ort verbergen": `ortVerborgen` = der Server hat Ort und Spur nach Point Nemo versetzt (auch
+    // fuer den Besitzer); `ortSichtbarkeit` ist die EIGENE Wahl dieser Aufnahme: null/"" = wie im
+    // Profil, "show", "hide".
+    @SerialName("ort_sichtbarkeit") val ortSichtbarkeit: String? = null,
+    @SerialName("ort_verborgen") val ortVerborgen: Boolean = false,
     // Aus der Auswertung genommene Zeitfenster [[start_ms, end_ms], …], ms ab Session-Start
     // (dieselbe Basis wie trim_start_ms). Nullable + Default leer: alte Server kennen das Feld nicht.
     @SerialName("excluded_ranges") val excludedRanges: List<List<Long>>? = emptyList(),
@@ -1063,4 +1070,15 @@ data class OAuthProvider(
     val id: String = "",
     val label: String = "",
     val note: String? = null,
+)
+
+
+// Eine eigene Aufnahme mit aktivem Teilen-Link (GET /api/sessions/geteilte).
+@Serializable
+data class GeteilterLink(
+    val id: Int,
+    @SerialName("started_at") val startedAt: String? = null,
+    val tz: String? = null,
+    @SerialName("place_name") val placeName: String? = null,
+    val sport: String? = null,
 )
