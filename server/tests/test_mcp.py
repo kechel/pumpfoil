@@ -299,3 +299,37 @@ def test_overview_zeigt_auch_hier_nichts_fremdes(client):
     assert u["sessions"] == 1
     assert [x["wert"] for x in u["je_sportart"]] == ["pumpfoil"]
     assert [x["wert"] for x in u["je_spot"]] == ["Meiner"]
+
+
+def test_lage_nur_am_brett_und_get_session_sagt_es(client):
+    """Jans Agent hielt die Lage-Daten am 25.09.2026 fuer fehlend — sie kamen nie am MCP an.
+
+    Geprueft wird beides: dass es das Werkzeug gibt, und dass `get_session` DARAUF ZEIGT statt
+    zu schweigen. Ein Agent soll nicht schliessen muessen, was da ist.
+    """
+    jwt = _konto(client, "mcp-lage@b.de")
+    ich = _user_id(client, jwt)
+    am_brett = _session_anlegen(ich, placement="board")
+    am_arm = _session_anlegen(ich)
+    token = _zugang(client, jwt, _client_anmelden(client))
+
+    r = client.post("/mcp", headers={"Authorization": f"Bearer {token}"},
+                    json={"jsonrpc": "2.0", "id": 1, "method": "tools/list"})
+    assert "get_board_attitude" in [w["name"] for w in r.json()["result"]["tools"]]
+
+    assert "get_board_attitude" in _ruf(client, token, "get_session",
+                                        {"session_id": am_brett})["lage_je_lauf"]
+    assert "Nicht vorhanden" in _ruf(client, token, "get_session",
+                                     {"session_id": am_arm})["lage_je_lauf"]
+
+    # Am Arm: klare Absage statt einer Zahl, die das Brett meinen wuerde.
+    ohne = _ruf(client, token, "get_board_attitude", {"session_id": am_arm})
+    assert ohne["am_brett"] is False
+    # Am Brett, aber ohne Rohdaten in dieser Testzeile: ein benannter Grund, kein Absturz.
+    mit = _ruf(client, token, "get_board_attitude", {"session_id": am_brett})
+    assert mit["session_id"] == am_brett and ("fehler" in mit or "laeufe" in mit)
+
+    # Und die Grenze gilt auch hier.
+    fremd = _konto(client, "mcp-lage-fremd@b.de")
+    fremde = _session_anlegen(_user_id(client, fremd), placement="board")
+    assert "fehler" in _ruf(client, token, "get_board_attitude", {"session_id": fremde})
