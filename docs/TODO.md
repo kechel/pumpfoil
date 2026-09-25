@@ -1475,7 +1475,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   - **Offen:** 11 GELOESCHTE Sessions tragen noch einen Token. Die Links sind tot (der oeffentliche
     Endpunkt filtert `deleted`), aber sauber waere, den Token beim Loeschen mit zu leeren.
 
-- **🟢 25.09. — „ORT VERBERGEN": Zuschnitt ENTSCHIEDEN, Bau begonnen.**
+- **🟢 25.09. — „ORT VERBERGEN": FERTIG UND LIVE.**
   Aus Feedback #146 („Gibt es einen Weg die Daten komplett privat zu schalten? Also den Ort
   auszublenden für public?") und zwei Gespraechen mit Jan. Der erste Entwurf hiess „privat" und
   haette Track und Uhrzeiten mit weggenommen; Jan hat ihn am 25.09. praeziser geschnitten:
@@ -1516,6 +1516,19 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Aenderung im Profil fuer alte Aufnahmen nicht mehr erreichen, und genau das ist der Fall, der
   zaehlt. Beide Richtungen sind damit moeglich: Profil oeffentlich + einzelne verbergen, oder
   Profil verborgen + einzelne freigeben.
+
+  **Gebaut und je mit Test belegt:** Detailansicht, Community-Feed, Teilen-Link (die einzige
+  Adresse ohne Login), Rohdaten-Endpunkt, Spot-Filter in beide Richtungen, Spotkarte, MCP. Dazu
+  die Schalter im Profil und in jeder Aufnahme, in allen 18 Sprachen. `app/ortverbergen.py`
+  rechnet, `tests/test_ortverbergen.py` prueft.
+
+  **Zwei Fehler, die dabei gefangen wurden — beide waeren still gewesen:**
+  * **Eine ORTSZEIT IST EINE ORTSANGABE.** Der Feed zeigt Uhrzeiten in Spot-Ortszeit; wer die
+    bei einer verborgenen Aufnahme liest, kennt grob den Laengengrad. Verborgene tragen UTC.
+  * **Drei-wertige Logik.** `ort_sichtbarkeit` ist meistens NULL, und `NULL = 'hide'` ist in SQL
+    weder wahr noch falsch. Ein `NOT (…)` darueber bleibt NULL — und eine Zeile mit
+    NULL-Bedingung faellt aus JEDEM Filter. Die Spot-Liste lieferte kurzzeitig gar nichts mehr.
+    Seitdem `coalesce`, und ein Test haelt SQL- und Python-Fassung deckungsgleich.
 
   **Die drei Punkte, an denen es sonst schiefgeht:**
   - **Versetzt wird am AUSGANG, nie in den Daten.** Gespeichert bleibt die Wahrheit. Sonst
