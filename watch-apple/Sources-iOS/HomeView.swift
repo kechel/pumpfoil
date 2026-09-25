@@ -110,12 +110,14 @@ struct HomeView: View {
             if let n = session.profile?.needs_classification, n > 0 { needsClassHint(n) }
             if let n = session.profile?.sorted_out_new, n > 0 { aussortiertHinweis(n) }
             latestSection
+            // Wetter am Homespot direkt unter den letzten Sessions und UEBER den eigenen Rekorden
+            // (Jan, 25.09.2026: „weiter nach oben unter die ersten drei sessions").
+            if let sw = weather { HomeWeatherCard(sw: sw, lang: lang) }
             if let st = stats { recordsSection(st) }
             if let ss = startSuccess { startSuccessSection(ss) }
             if let cs = carveStats, carveStatsHasAny(cs) { carveStatsSection(cs) }
             // Lage des Bretts je Lauflaenge — nur mit Aufnahmen vom Handy am Brett.
             BrettLageStartseite(lang: lang)
-            if let sw = weather { HomeWeatherCard(sw: sw, lang: lang) }
         }
         .padding(.horizontal).padding(.bottom).padding(.top, 2)
     }

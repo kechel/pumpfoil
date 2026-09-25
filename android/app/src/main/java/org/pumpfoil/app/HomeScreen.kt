@@ -404,6 +404,15 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
                 }
             }
 
+            // Wetter am Homespot direkt unter den letzten Sessions und UEBER den eigenen Rekorden
+            // (Jan, 25.09.2026: „weiter nach oben unter die ersten drei sessions") — wer die
+            // Startseite oeffnet, will meist wissen, ob es heute geht.
+            weather?.let { sw ->
+                Spacer(Modifier.height(6.dp))
+                WeatherCard(sw)
+                Spacer(Modifier.height(10.dp))
+            }
+
             stats?.let { st ->
                 // Rekorde-Kopf + Accel/alle-Umschalter (zuerst, wie PWA).
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -467,11 +476,6 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
                         TileGrid(kachelListe(g.stats), { id -> onOpen(id, null) }, columns = 3)
                     }
                 }
-            }
-
-            weather?.let { sw ->
-                Spacer(Modifier.height(10.dp))
-                WeatherCard(sw)
             }
 
             // Persönliche Home-Stats (wie PWA): Start-Erfolgsquote + Carve-Zähler je Zeitfenster.
