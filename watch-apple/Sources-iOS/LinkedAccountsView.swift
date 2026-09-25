@@ -85,6 +85,8 @@ struct LinkedAccountsView: View {
                 }
             }
             XiaomiHinweis(lang: lang)
+            // KI-Zugang (MCP) — wie die PWA ganz unten bei den verknuepften Konten.
+            McpSection(lang: lang)
         }
         .brandToolbar(Loc.t("accounts.title", lang))
         .navigationBarTitleDisplayMode(.inline)
@@ -322,4 +324,74 @@ private struct SportAuswahl: View {
             if let neu = try? await Api.setImportSports(pfad, [key: an]) { sports = neu }
         }
     }
+}
+
+
+/// KI-Zugang (MCP) — Adresse zum Eintragen und wer gerade Zugriff hat (PWA LinkedAccounts.tsx
+/// McpCard). Die Liste ist der wichtigere Teil: man kann nur zumachen, was man sieht. Ein schon
+/// ausgegebenes Token laeuft nur ab — das sagt der Hinweis, statt „sofort gesperrt" zu behaupten.
+private struct McpSection: View {
+    let lang: String
+    @State private var st: Api.McpStatus? = nil
+    @State private var kopiert = false
+
+    var body: some View {
+        Section {
+            if let s = st {
+                inhalt(s)
+            } else {
+                ProgressView()
+            }
+        } header: {
+            Text(Loc.t("mcp.cardTitle", lang))
+        } footer: {
+            Text(Loc.t("mcp.cardHint", lang))
+        }
+        .task { await laden() }
+    }
+
+    @ViewBuilder private func inhalt(_ s: Api.McpStatus) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(Loc.t("mcp.cardUrlLabel", lang)).font(.caption).foregroundStyle(.secondary)
+            Text(s.url).font(.callout.monospaced()).textSelection(.enabled)
+            Button(Loc.t(kopiert ? "mcp.copied" : "mcp.copy", lang)) {
+                UIPasteboard.general.string = s.url
+                kopiert = true
+            }
+            .font(.callout).buttonStyle(.borderless)
+        }
+        Text(Loc.t("mcp.cardScope", lang)).font(.callout).foregroundStyle(.secondary)
+        if s.verbunden.isEmpty {
+            Text(Loc.t("mcp.none", lang)).font(.callout).foregroundStyle(.secondary)
+        } else {
+            ForEach(s.verbunden) { v in zeile(v) }
+            Text(Loc.t("mcp.revokeNote", lang)).font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    private func zeile(_ v: Api.McpVerbindung) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(v.name).fontWeight(.medium)
+                Text(datumsZeile(v)).font(.caption).foregroundStyle(.secondary)
+            }
+            Spacer()
+            Button(Loc.t("mcp.revoke", lang)) { schliessen(v.client_id) }.buttonStyle(.borderless)
+        }
+    }
+
+    private func datumsZeile(_ v: Api.McpVerbindung) -> String {
+        let seit: String = Loc.t("mcp.since", lang).replacingOccurrences(of: "{d}", with: TimeFmt.shortDate(v.seit, nil) ?? v.seit)
+        guard let z = v.zuletzt else { return seit }
+        return seit + " · " + Loc.t("mcp.last", lang).replacingOccurrences(of: "{d}", with: TimeFmt.shortDate(z, nil) ?? z)
+    }
+
+    private func schliessen(_ id: String) {
+        Task {
+            try? await Api.mcpVerbindungSchliessen(id)
+            await laden()
+        }
+    }
+
+    private func laden() async { st = (try? await Api.mcpStatus()) ?? st }
 }

@@ -192,6 +192,23 @@ enum Api {
         try await request("/api/community/board-attitude", method: "GET", body: nil, auth: true)
     }
 
+    // KI-Zugang (MCP): Adresse + verbundene Programme; Schliessen widerruft deren Zugang.
+    struct McpVerbindung: Decodable, Identifiable {
+        let client_id: String
+        let name: String
+        let seit: String
+        let zuletzt: String?
+        var id: String { client_id }
+    }
+    struct McpStatus: Decodable { let url: String; let verbunden: [McpVerbindung] }
+    static func mcpStatus() async throws -> McpStatus {
+        try await request("/api/mcp/status", method: "GET", body: nil, auth: true)
+    }
+    static func mcpVerbindungSchliessen(_ clientId: String) async throws {
+        let c = clientId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? clientId
+        try await sendVoid("/api/mcp/verbindungen/\(c)", method: "DELETE")
+    }
+
     // Montage: "board" | "phone" | "" — nur bei Handy-Aufnahmen (Server prueft).
     static func setPlacement(_ id: Int, _ wert: String) async throws {
         try await sendVoid("/api/sessions/\(id)/meta", method: "PUT", body: ["placement": wert])

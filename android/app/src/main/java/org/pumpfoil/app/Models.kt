@@ -1186,3 +1186,16 @@ data class BoardAttitudeStats(
     val gesamt: List<BoardKlasse> = emptyList(),
     @SerialName("je_foil") val jeFoil: List<BoardFoilKlassen> = emptyList(),
 )
+
+
+// KI-Zugang (GET /api/mcp/status): die Adresse zum Eintragen und wer gerade Zugriff hat.
+@Serializable
+data class McpVerbindung(
+    @SerialName("client_id") val clientId: String,
+    val name: String = "",
+    val seit: String = "",
+    val zuletzt: String? = null,
+)
+
+@Serializable
+data class McpStatus(val url: String = "", val verbunden: List<McpVerbindung> = emptyList())
