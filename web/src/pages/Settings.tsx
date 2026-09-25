@@ -288,6 +288,11 @@ export default function Settings() {
 
       <PublicProfileCard onSaved={flashSaved} />
 
+      {/* ORT VERBERGEN, Voreinstellung fuer ALLE eigenen Aufnahmen (Jan, 25.09.2026: „das wuerde
+          unter den block mit Public profile page passen"). Steht richtig hier: es ist dieselbe
+          Art Entscheidung — was sehen andere von mir. */}
+      <OrtVerbergenCard onSaved={flashSaved} />
+
       <Card className="mt-4 p-5">
         <h3 className="mb-1 font-semibold">{t("pumpunit.label")}</h3>
         <p className="mb-3 text-sm text-slate-300">{t("pumpunit.hint")}</p>
@@ -601,6 +606,53 @@ function GeteilteAufnahmen() {
           </div>
         ))}
       </div>
+    </Card>
+  );
+}
+
+
+/**
+ * „Ort verbergen" als Voreinstellung fuer alle eigenen Aufnahmen.
+ *
+ * Der Schalter gilt RUECKWIRKEND — auch fuer alles, was schon hochgeladen ist. Das ist der ganze
+ * Sinn: wer ihn aus Sorge umlegt, meint nicht nur die naechste Aufnahme. Moeglich ist es, weil
+ * nicht die Daten geaendert werden, sondern nur ihre Ausgabe; einzelne Aufnahmen lassen sich in
+ * ihrer Detailansicht wieder freigeben.
+ *
+ * Der Text sagt ausdruecklich, was NICHT verborgen wird. Ein Schalter, bei dem man raten muss,
+ * wie weit er reicht, ist schlimmer als keiner — und hier reicht er bewusst nicht sehr weit:
+ * die Strecke, die Zahlen und der Name bleiben sichtbar.
+ */
+function OrtVerbergenCard({ onSaved }: { onSaved?: () => void }) {
+  const t = useT();
+  const [an, setAn] = useState<boolean | null>(null);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    api.getSettings().then((s) => setAn(!!s.hide_location)).catch(() => setAn(false));
+  }, []);
+  if (an === null) return null;
+
+  return (
+    <Card className="mt-4 p-5">
+      <h3 className="mb-1 font-semibold">{t("hideloc.title")}</h3>
+      <p className="mb-3 text-sm text-slate-300">{t("hideloc.hint")}</p>
+      <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-slate-200">
+        <input
+          type="checkbox" checked={an} disabled={busy}
+          onChange={(e) => {
+            const wert = e.target.checked;
+            setBusy(true);
+            api.saveSettings({ hide_location: wert })
+              .then(() => { setAn(wert); onSaved?.(); })
+              .catch(() => {})
+              .finally(() => setBusy(false));
+          }}
+          className="h-4 w-4 rounded border-slate-600 bg-slate-800"
+        />
+        {t("hideloc.switch")}
+      </label>
+      <p className="mt-3 text-sm text-slate-400">{t("hideloc.scope")}</p>
+      <p className="mt-1 text-sm text-slate-400">{t("hideloc.single")}</p>
     </Card>
   );
 }
