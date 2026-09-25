@@ -1447,7 +1447,8 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Amplituden in Grad (95. Perzentil); eine Rate gibt es nur fuers Gieren. Das waere eine
   Aenderung in `analysis/lage.py` und faellt damit unter die Detektor-Regel.
 
-- **🟡 25.09. — IDEE (Jan): geteilte Aufnahmen im Profil auflisten und per Knopf widerrufen.**
+- **✅ 25.09. — Geteilte Aufnahmen im Profil auflisten und per Knopf widerrufen: GEBAUT UND LIVE**
+  (`6e865181`, Web). Urspruenglich IDEE (Jan):
   Jans Anstoss: „wir wissen doch welche teilen-links ueberhaupt jemals von wem erzeugt wurden
   oder? … damit man ueberhaupt weiss was noch geteilt ist und da die links dann auch per
   knopfdruck easy wiederrufen kann, ganz unabhaengig von dem privat feature, der teilen link
@@ -1570,7 +1571,13 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   das dann auch mit niedrigeren raten angewendet werden kann/soll". Genau dafuer muss die Rate
   aber ueberall stimmen.
 
-- **🔴 24.09. — Wear OS nimmt KEINEN WakeLock; auf manchen Uhren bricht dadurch die Abtastrate ein.**
+- **🟡 24.09. — Wear OS: Abtastrate bricht auf manchen Uhren ein. FIX GEBAUT, ABER NOCH NICHT
+  AUSGELIEFERT.** `f0184015` (24.09. 15:02): Wake-up-Beschleunigungssensor mit Rueckfall, vom
+  Server schaltbar (`accel_wakeup`, Standard `on`, `api/devices.py`). Wear 1.2.32 wurde schon um
+  11:11 eingereicht, enthaelt ihn also NICHT. `versionName` steht noch auf 1.2.32, `NAECHSTES`
+  hat keinen Eintrag. **Offen:** Bump auf 1.2.33 (Phone mit, harte Regel) + `NAECHSTES`, danach an
+  einer betroffenen Uhr gegenmessen (Schritt 3 unten), GPS getrennt (Schritt 4).
+  Urspruenglicher Befund:
   Anlass: Foilbert (u574) im Community-Chat, „only 8hz", Verdacht auf seine Glukose-App Juggluco.
   **Der Verdacht traegt nicht** — und das ist der Punkt: es faellt nicht nur der Accel, sondern
   GPS GENAUSO. #9023 (2 h 39): Accel 4,5 Hz statt 25, GPS 0,72 Hz statt 1. #9670 (64 min):
@@ -1652,7 +1659,8 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   mitzunehmen ODER ihn beim Token-Wechsel zu verwerfen; welches richtig ist, haengt daran, ob man
   die UHR oder die INSTALLATION zaehlen will. Im Feld selten (Neu-Pairing passiert kaum), im
   Emulator dauernd.
-- **🔲 24.09. — Zepp fehlt „Verwerfen ohne Speichern" (ganz links und ganz rechts vom Stop-Screen).**
+- **✅ 24.09. — Zepp „Verwerfen ohne Speichern": GEBAUT (`5b1d6063`), in Zepp 1.0.12 (seit 24.09. im
+  Review), auf der T-Rex 3 gegengeprueft.** Urspruenglicher Befund:
   Jan: „es fehlt der screen gaaaanz links und gaaanz rechts vor/nach dem STOP screen zum VERWERFEN
   ohne zu speichern". **Apple macht es genau so** und ist die Vorlage:
   `ContentView.swift` setzt `discardPage()` auf `tag(0)` UND auf `tag(dataPages.count + 4)`, also
@@ -1660,7 +1668,10 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   ebenfalls, Garmin auch. **Zepp hat gar nichts davon** — dort gibt es nur den Stop-Screen an
   beiden Enden.
 
-- **🔲 24.09. — PAUSE gibt es nur auf Garmin.** Jan: „sowie die gesamte PAUSE moeglichkeit die
+- **✅ 24.09. — PAUSE auf allen vier Uhren: GEBAUT.** Zepp `6479222d` (+ Fix `6c15281a`, in 1.0.12,
+  im Review), Wear OS + Apple Watch `d252d17a` (live mit Wear 1.2.32 bzw. iOS 1.1.37, 25.09.).
+  Die Tabelle und der Satz „NICHT mehr in 1.0.12" unten sind damit ueberholt — beides IST in
+  1.0.12. Urspruenglicher Befund: Jan: „sowie die gesamte PAUSE moeglichkeit die
   dann auch schon versucht hochzuladen so wie auch bei garmin." Stand nach Prüfung aller vier:
 
   | | Pause | Verwerfen |
@@ -1681,14 +1692,17 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   **NICHT mehr in 1.0.12:** beides sitzt im Aufnahmepfad, und „Verwerfen" löscht Daten. Ein
   Fehlgriff dort kostet eine Aufnahme — genau die Kategorie, für die die Qualitätsregel da ist.
   1.0.12 ist durchgetestet; das hier gehört in eine eigene Runde mit eigenem Testlauf.
-- **🟡 24.09. — Garmin 1.0.89 liegt in `watch/bin`, aber `appmeta` steht mit Absicht noch auf
-  1.0.88.** Jan, 24.09.: „ja lass das stehen, das stoert nicht, niemand nutzt unseren
+- **✅ 24.09. — Garmin 1.0.89 ist LIVE, `appmeta` steht auf 1.0.89, Update-Hinweis an (`898dab17`).**
+  Damit erledigt. Vorheriger Stand: 1.0.89 lag in `watch/bin`, `appmeta` stand mit Absicht noch auf
+  1.0.88. Jan, 24.09.: „ja lass das stehen, das stoert nicht, niemand nutzt unseren
   direktdownload, nur noch keinen update hinweis flaggen bitte." Der Update-Hinweis auf der Uhr
   entsteht aus `_APP_META["garmin"]["latest"]` — solange dort 1.0.88 steht, meldet keine Uhr eine
   neuere Version. **Sobald Jan getestet hat: `latest` auf 1.0.89 ziehen** und den Changelog-Punkt
   mit `versionen={"garmin": "1.0.89"}` eintragen (Profil-Auffrischung nach fertigem Upload).
   Bis dahin ist der Changelog dazu bewusst leer.
-- **🔲 23.09. — Profil nach einem fertigen Upload frisch holen (Garmin, Wear, Apple).** Jans Frage:
+- **✅ 23.09. — Profil nach einem fertigen Upload frisch holen: GEBAUT (`23e8b666`) und LIVE** —
+  Garmin 1.0.89 (24.09.), Wear 1.2.32 und iOS 1.1.37 (25.09.). Die Tabelle unten ist der Stand
+  VOR dem Bau. Urspruenglich: Jans Frage:
   „wenigstens beim app-start und nach einem erfolgreichen upload auch nochmal direkt oder wo waere
   es sinnvoll? nicht bei jedem block natuerlich." **Gemessen, damit die Abwaegung Zahlen hat: die
   ganze CONFIG-Antwort ist 2502 Bytes** (40 Felder, groesster Posten `pages` mit 616 B). Eine
