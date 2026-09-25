@@ -877,6 +877,32 @@ def stats_series(period: str = "30d", _a: models.User = Depends(current_admin),
     plat_tage, plat_gesamt = plat_serie()
     cli_tage, cli_gesamt = client_serie()
     # Seitenaufrufe: schon als Tageszahl gespeichert, hier nur einlesen.
+    # MCP-Nutzung (Jan, 25.09.2026: „wieviele user mcp aufrufe gemacht haben und wieviele
+    # einzel-aufrufe insgesamt ueber die zeit / fenster etc."). Quelle ist `mcp_call_stats`, ein
+    # Zaehler je Tag, Nutzer und Werkzeug — kein Zugriffs-Protokoll. Deshalb sind zwei Zahlen zu
+    # haben und auch nur zwei: wie viele LEUTE (verschiedene user_id) und wie viele AUFRUFE
+    # (Summe). Die Werkzeug-Aufteilung kommt als Fenster-Summe dazu, damit ablesbar ist, welche
+    # Aufrufe wirklich gebraucht werden.
+    M = models.McpCallStat
+    mcp_nutzer: dict[str, int] = {}
+    mcp_aufrufe: dict[str, int] = {}
+    mq = db.query(M.tag, func.count(func.distinct(M.user_id)), func.sum(M.zahl))
+    if cut is not None:
+        mq = mq.filter(M.tag >= cut.date())
+    for tag_, n_, summe_ in mq.group_by(M.tag).all():
+        mcp_nutzer[str(tag_)] = int(n_ or 0)
+        mcp_aufrufe[str(tag_)] = int(summe_ or 0)
+    wq = db.query(M.werkzeug, func.sum(M.zahl))
+    if cut is not None:
+        wq = wq.filter(M.tag >= cut.date())
+    mcp_werkzeuge = {str(w): int(n or 0) for w, n in wq.group_by(M.werkzeug).all()}
+    # Verschiedene Nutzer ueber das GANZE Fenster — nicht die Summe der Tageswerte: wer an drei
+    # Tagen fragt, ist eine Person und nicht drei.
+    mq2 = db.query(func.count(func.distinct(M.user_id)))
+    if cut is not None:
+        mq2 = mq2.filter(M.tag >= cut.date())
+    mcp_nutzer_fenster = int(mq2.scalar() or 0)
+
     hit_tage: dict[str, dict[str, int]] = {}
     hq = db.query(H.tag, H.art, H.zahl)
     if cut is not None:
@@ -888,7 +914,7 @@ def stats_series(period: str = "30d", _a: models.User = Depends(current_admin),
         for a_, n_ in tag.items():
             hit_gesamt[a_] = hit_gesamt.get(a_, 0) + n_
     dates = sorted(set(nu) | set(au) | set(se) | set(im) | set(ph) | set(li)
-                   | set(plat_tage) | set(cli_tage) | set(hit_tage))
+                   | set(plat_tage) | set(cli_tage) | set(hit_tage) | set(mcp_aufrufe))
     buckets = [{
         "date": d, "new_users": nu.get(d, 0), "active_users": au.get(d, 0),
         "sessions": se.get(d, 0), "imported": im.get(d, 0),
@@ -896,6 +922,7 @@ def stats_series(period: str = "30d", _a: models.User = Depends(current_admin),
         **{f"p_{p}": plat_tage.get(d, {}).get(p, 0) for p in PLATTFORMEN},
         **{f"c_{c}": cli_tage.get(d, {}).get(c, 0) for c in CLIENTS},
         **{f"h_{a}": hit_tage.get(d, {}).get(a, 0) for a in HITS},
+        "mcp_users": mcp_nutzer.get(d, 0), "mcp_calls": mcp_aufrufe.get(d, 0),
     } for d in dates]
     totals = {
         "new_users": total(U, col=U.created_at),
@@ -908,8 +935,11 @@ def stats_series(period: str = "30d", _a: models.User = Depends(current_admin),
         **{f"p_{p}": plat_gesamt.get(p, 0) for p in PLATTFORMEN},
         **{f"c_{c}": cli_gesamt.get(c, 0) for c in CLIENTS},
         **{f"h_{a}": hit_gesamt.get(a, 0) for a in HITS},
+        "mcp_users": mcp_nutzer_fenster,
+        "mcp_calls": sum(mcp_aufrufe.values()),
     }
-    return {"period": period, "buckets": buckets, "totals": totals}
+    return {"period": period, "buckets": buckets, "totals": totals,
+            "mcp_werkzeuge": mcp_werkzeuge}
 
 
 def _news_row(db: Session) -> "models.NewsBanner":

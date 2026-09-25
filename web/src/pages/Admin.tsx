@@ -288,6 +288,35 @@ const HIT_METRICS: [keyof AdminStatsSeries["totals"], string, string][] = [
   ["h_bot", "davon erkannte Bots", "#94a3b8"],
 ];
 
+// KI-Zugang (MCP), ab 25.09.2026. Zwei Zahlen, und mehr gibt die Quelle auch nicht her: ein
+// Zaehler je Tag, Nutzer und Werkzeug. „Nutzer" ist im FENSTER die Zahl verschiedener Personen,
+// nicht die Summe der Tageswerte — wer an drei Tagen fragt, ist eine Person.
+/** Welche Werkzeuge im gewaehlten Fenster wirklich gerufen wurden. Sagt, was ein Agent braucht —
+ *  und was wir gebaut haben, ohne dass es jemand benutzt. */
+function McpWerkzeuge({ daten }: { daten?: Record<string, number> }) {
+  const zeilen = Object.entries(daten ?? {}).sort((a, b) => b[1] - a[1]);
+  if (!zeilen.length) return null;
+  return (
+    <div className="mt-2 overflow-x-auto rounded-xl border border-slate-800">
+      <table className="w-full min-w-[280px] text-sm">
+        <tbody>
+          {zeilen.map(([name, n]) => (
+            <tr key={name} className="border-t border-slate-800 first:border-t-0">
+              <td className="px-3 py-1.5 font-mono text-slate-300">{name}</td>
+              <td className="px-3 py-1.5 text-right tabular-nums text-brand-400">{n}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+const MCP_METRICS: [keyof AdminStatsSeries["totals"], string, string][] = [
+  ["mcp_users", "Nutzer mit KI-Zugang", "#22d3ee"],
+  ["mcp_calls", "Abfragen", "#a78bfa"],
+];
+
 const DAY_MS = 86400000;
 
 /** Anzeigezeitraum: was auf der x-Achse zu sehen ist. */
@@ -511,6 +540,16 @@ function StatsSection() {
           {raster(HIT_METRICS, false)}
           <h3 className="pt-4 text-sm font-semibold text-slate-100">Angemeldete je Client</h3>
           {raster(CLIENT_METRICS, false)}
+
+          <h3 className="pt-4 text-sm font-semibold text-slate-100">KI-Zugang (MCP)</h3>
+          <p className="-mt-1 text-xs text-slate-400">
+            Wie viele Nutzer ihre eigenen Aufnahmen von einem KI-Programm lesen lassen, und wie
+            viele Abfragen das waren. Gespeichert wird ein Zähler je Tag, Nutzer und Werkzeug —
+            keine Zeitpunkte, keine Parameter, keine Antworten. Erlaubt sind 100 Abfragen je
+            Stunde und Nutzer.
+          </p>
+          {raster(MCP_METRICS, false)}
+          <McpWerkzeuge daten={data?.mcp_werkzeuge} />
         </>
       )}
     </div>
