@@ -179,9 +179,8 @@ ACCEL_WAKEUP_MODES = ("on", "off")
 # (`settings_json.accel_wakeup = "on"`). Niemand weiss vorher, was der Sensor auf welcher Uhr an
 # Akku kostet, und ob eine Uhr eine fehlerhafte Wake-up-Variante hat. Sieht die gemessene Rate der
 # Gruppe gut aus und meldet keiner einen leeren Akku: Standard auf "on", Server neu starten.
-# ACHTUNG: eine Uhr, die nach dem Update noch keine Konfiguration geholt hat, nimmt ihren
-# eingebauten Standard, und der ist "on" (RecorderService.accelSensor). "off" greift erst nach
-# dem ersten Abgleich.
+# Die Uhr nimmt die Wake-up-Variante NUR auf ausdrueckliches "on" (RecorderService.accelSensor);
+# ohne Abgleich bleibt sie bei der alten Variante.
 ACCEL_WAKEUP_DEFAULT = "off"
 
 
