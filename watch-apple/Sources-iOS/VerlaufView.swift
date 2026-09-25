@@ -119,7 +119,7 @@ struct VerlaufView: View {
         catch { self.error = error.localizedDescription }
         // Bewusst NACH den Verlaufsdaten und mit `try?`: schlaegt die Trainingskurve fehl, bleibt
         // der Rest der Ansicht heil — sie ist ein Zusatz, kein Kern.
-        hrDaten = try? await Api.hrProgress()
+        hrDaten = try? await Api.hrProgress(grid: true)
     }
 
     // ISO → epoch seconds; nicht parsbar → nil (Punkt fällt raus).

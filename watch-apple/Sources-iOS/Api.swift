@@ -413,12 +413,14 @@ enum Api {
     // derselben Abfrage. `sport` nil = der Server nimmt die haeufigste Sportart und sagt in der
     // Antwort, welche es war (plus die Auswahlliste).
     // Trainingskurve. `sport` nil = der Server nimmt die haeufigste Sportart des Nutzers.
-    static func hrProgress(sport: String? = nil) async throws -> HrProgress {
-        var pfad = "/api/sessions/hr-progress"
+    static func hrProgress(sport: String? = nil, grid: Bool = false) async throws -> HrProgress {
+        var teile: [String] = []
         if let s = sport, !s.isEmpty,
            let enc = s.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) {
-            pfad += "?sport=\(enc)"
+            teile.append("sport=\(enc)")
         }
+        if grid { teile.append("grid=1") }
+        let pfad = "/api/sessions/hr-progress" + (teile.isEmpty ? "" : "?" + teile.joined(separator: "&"))
         return try await request(pfad, method: "GET", body: nil, auth: true)
     }
 
