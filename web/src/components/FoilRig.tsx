@@ -67,10 +67,10 @@ function profilSeite(cx: number, cz: number, tiefe: number): string {
  * eine quadratische Bezier laeuft bei t=0.5 durch (P0 + 2C + P2)/4, also C = 2·Mitte − (P0+P2)/2.
  * Ohne das liegt die Woelbung bei der Haelfte des Gewollten.
  */
-function fluegelVorn(span: number, tiefe: number, z: number, extra = 1): string {
+function fluegelVorn(span: number, tiefe: number, z: number): string {
   const b = span / 2;
   const sack = span * 0.07;            // wie tief die Spitzen haengen (massstaeblich)
-  const t = tiefe * 0.16 * FRONT_UEBERHOEHUNG * extra;   // Dicke an der Wurzel — s. oben
+  const t = tiefe * 0.16 * FRONT_UEBERHOEHUNG;   // Dicke an der Wurzel — s. FRONT_UEBERHOEHUNG
   const zSpitze = z - sack;
   return [
     `M ${P(-b, zSpitze)}`,
@@ -145,14 +145,12 @@ const MAST = "fill-slate-500";      // 500 ist in beiden Themes derselbe Mittelt
 // naeher ist, und damit auch nicht, von wo man schaut. Eine Farbe je Teil, in allen drei
 // Ansichten dieselbe: sky-500 liegt wie slate-500 in beiden Themes im lesbaren Mittelfeld.
 const STAB = "fill-sky-500";
-// NUR DIE DICKE DES STABS, und nur in der Frontansicht (Jan, 25.09.2026: „ist nur beim yaw
-// sichtbar, in der mitte vielleicht miniminimal"). Er hatte recht, und es liegt an den echten
-// Massen: Jans Stab misst 39 cm Spannweite bei 4,8 cm Tiefe, der Frontfluegel 156 bei 12,8. Selbst
-// mit der ueblichen Ueberhoehung bleibt davon ein Strich von zwei Zentimetern uebrig, der unter
-// der Woelbung des Frontfluegels verschwindet. Dabei ist GERADE ER das Teil, das die
-// Blickrichtung verraet. Spannweite, Hoehe und Lage bleiben massstaeblich — ueberhoeht ist
-// ausschliesslich die Dicke, wie schon bei Fluegeldicke und Mastbreite.
-const STAB_EXTRA = 2.4;
+// AN DER FORM DES STABS WIRD NICHT GEDREHT (Jan, 25.09.2026: „hat der stab jetzt eine andere
+// form? vorher war besser! bitte garkein rand, nur das blau, so wie in der yaw ansicht").
+// Ich hatte ihn erst dicker gezeichnet und dann auch noch umrandet, um ihn sichtbarer zu machen —
+// beides war zu viel. Die Farbe allein reicht, und sie ist das Einzige, was sich gegenueber
+// frueher aendert: gleiche Form, gleiche Masse, nur blau statt grau. Genau so macht es die
+// Draufsicht seit jeher.
 
 /**
  * Die WASSERLINIE als Bezug, plus Drehpunkt-Fadenkreuz am Frontfluegel.
@@ -212,8 +210,6 @@ export function SeitenAnsicht({ rig, pitch, hub = 0, hubBereich = 0 }: {
         <rect className={MAST} x={rig.x_stab_cm} y={-RUMPF_DICKE / 2}
           width={rig.x_foil_cm - rig.x_stab_cm} height={RUMPF_DICKE} rx={RUMPF_DICKE / 2} />
         <path d={profilSeite(rig.x_foil_cm, 0, rig.foil_chord_cm)} className={TEIL} />
-        {/* Ohne Kontur, aus demselben Grund wie in der Frontansicht: die Form ist zu klein,
-            eine Linie wuerde sie auffressen statt sie zu zeigen. */}
         <path d={profilSeite(rig.x_stab_cm, 0, rig.stab_chord_cm)} className={STAB} />
       </g>
     </svg>
@@ -267,13 +263,7 @@ export function FrontAnsicht({ rig, roll, pitch }: { rig: Rig; roll: number; pit
             darueber (naeher) und in Blau. */}
         <path d={fluegelVorn(rig.foil_span_cm, rig.foil_chord_cm, hoehe(rig.x_foil_cm, 0))}
           className={TEIL} />
-        {/* KEINE KONTUR (Jan, 25.09.2026: „blau ist nur ein 1px strich in der mitte des
-            stabs"). Der Stab trug eine Linie von 1,4 px — bei rund einem Pixel je Zentimeter
-            frisst die von beiden Seiten in eine Form, die selbst nur knapp fuenf Zentimeter
-            dick ist. Uebrig blieb ein dunkler Rand mit einem blauen Faden darin. Die Flaeche
-            allein sagt alles; eine Kontur braucht hier nichts. */}
-        <path d={fluegelVorn(rig.stab_span_cm, rig.stab_chord_cm, zStab, STAB_EXTRA)}
-          className={STAB} />
+        <path d={fluegelVorn(rig.stab_span_cm, rig.stab_chord_cm, zStab)} className={STAB} />
       </g>
     </svg>
   );
