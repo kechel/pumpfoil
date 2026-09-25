@@ -2201,7 +2201,7 @@ def session_neighbors(
         # Fremde Fahrer: dieselben Sichtbarkeits- und Sportfilter wie der Community-Feed.
         base = _community(db.query(models.Session.id), user.id, accel_only, sport)
         if spot:
-            base = base.filter(_spot_cond(spot))
+            base = base.filter(_spot_cond(spot, db))
         if name:
             base = base.filter(func.lower(models.User.display_name).like(f"%{name.lower()}%"))
         if foil_id:

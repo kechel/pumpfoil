@@ -205,3 +205,61 @@ def test_mcp_verbirgt_ebenfalls(client):
     zeile = [z for z in zeilen if z["session_id"] == sid][0]
     assert zeile["spot"] == "Point Nemo"
     assert zeile["ort_verborgen"] is True
+
+
+def test_spot_filter_verraet_nichts_und_point_nemo_sammelt(client):
+    """Die gefaehrlichste Stelle des Features: wer nach dem echten Spot filtert, darf eine
+    verborgene Aufnahme NICHT bekommen — sonst ist die Filterung selbst der Verrat.
+
+    Und die Gegenrichtung (Jan, 25.09.2026): „alle Location-anonymisierten Sessions sollen dann
+    nur fuer diesen Spot zaehlen und nicht da, wo sie eigentlich waren."
+    """
+    from app.api import community
+    kopf = _konto(client, "ort-spotfilter@b.de")
+    uid = client.get("/api/auth/me", headers=kopf).json()["id"]
+    offen = _session_mit_spur(uid)
+    verborgen = _session_mit_spur(uid, ort_sichtbarkeit="hide")
+    community._VERBERGER_CACHE.update({"zeit": 0.0, "ids": frozenset()})
+
+    def ids(spot):
+        r = client.get(f"/api/community/sessions?period=all&accel_only=false&spot={spot}",
+                       headers=kopf)
+        assert r.status_code == 200, r.text
+        return {z["session_id"] for z in r.json()}
+
+    am_echten_spot = ids("Jettkofen")
+    assert offen in am_echten_spot
+    assert verborgen not in am_echten_spot, "die Filterung haette den Ort verraten"
+
+    bei_nemo = ids("Point%20Nemo")
+    assert verborgen in bei_nemo
+    assert offen not in bei_nemo
+
+
+def test_sql_und_python_sagen_dasselbe(client):
+    """`_verborgen_cond` (SQL) und `ist_verborgen` (Python) muessen deckungsgleich sein — sonst
+    verbirgt die Liste etwas anderes als die Detailansicht, und niemand merkt es."""
+    from app.api import community
+    from app.db import SessionLocal
+    from app import models
+    from app.ortverbergen import ist_verborgen, profil_verbirgt
+
+    kopf = _konto(client, "ort-deckung@b.de")
+    uid = client.get("/api/auth/me", headers=kopf).json()["id"]
+    a = _session_mit_spur(uid)                            # folgt dem Profil (aus)
+    b = _session_mit_spur(uid, ort_sichtbarkeit="hide")
+    c = _session_mit_spur(uid, ort_sichtbarkeit="show")
+    client.put("/api/settings", headers=kopf, json={"hide_location": True})
+    community._VERBERGER_CACHE.update({"zeit": 0.0, "ids": frozenset()})
+
+    db = SessionLocal()
+    try:
+        laut_sql = {r[0] for r in db.query(models.Session.id).filter(
+            models.Session.user_id == uid, community._verborgen_cond(db)).all()}
+        laut_python = set()
+        for s in db.query(models.Session).filter(models.Session.user_id == uid).all():
+            if ist_verborgen(s, profil_verbirgt(s.user)):
+                laut_python.add(s.id)
+    finally:
+        db.close()
+    assert laut_sql == laut_python == {a, b}, (laut_sql, laut_python, {"a": a, "b": b, "c": c})
