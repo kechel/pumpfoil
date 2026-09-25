@@ -297,6 +297,12 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
         // des Schalters beim App-Start — danach entscheidet der Nutzer am Handgelenk (wie Garmin).
         var onFoilPages by remember { mutableStateOf<List<WatchPageRef>>(emptyList()) }
         var offFoilPages by remember { mutableStateOf<List<WatchPageRef>>(emptyList()) }
+        // Pausen-Seiten (F3), wie Garmin `_setFor(:paused)`: eigener Satz fuer die manuelle Pause.
+        // null = keiner geliefert -> die klassische Pausen-Ansicht (pauseView) als einzige Seite.
+        var pausePages by remember { mutableStateOf<List<WatchPageRef>?>(null) }
+        // „Auch die uebrigen Seiten" (Profil, Standard an): in der Pause nach den Pausen-Seiten
+        // auch die Datenseiten erreichbar — wie Garmin `_ring()`.
+        var browseAll by remember { mutableStateOf(true) }
         var layoutsPref by remember { mutableStateOf(LocalStore.layoutsPref(ctx)) }   // null = automatisch
         var layoutsServerDefault by remember { mutableStateOf(false) }
         // Neueste im Store freigegebene Version (Server: appmeta._APP_META["wear"]). Leer = kein
@@ -318,6 +324,8 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
             // fehlt das Paket, bleiben die klassischen 3-Feld-Seiten unveraendert stehen.
             layoutsServerDefault = c.optBoolean("layoutsOn", false)
             onFoilPages = parsePageRefs(c.optJSONArray("pages")) ?: pagesFromViews(views)
+            pausePages = parsePageRefs(c.optJSONArray("pausePages"))?.ifEmpty { null }
+            browseAll = c.optBoolean("browseAll", true)
             offFoilPages = parsePageRefs(c.optJSONArray("offFoilPages"))
                 ?: listOf(WatchPageRef.Classic(c.optJSONArray("offFoilView").let { a ->
                     if (a == null) offFoil else (0 until a.length()).map { a.getInt(it) }
@@ -620,15 +628,32 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
         if (s.recording && AmbientState.aktiv.value) {
             AmbientRecordingScreen(s)
         } else if (s.recording) {
-            // Pager: Verwerfen(0) | Stop(1) | Datenansichten 2..dataCount+1 | Übersicht | Stop | Verwerfen.
-            // Verwerfen-Seiten ganz außen (versehentlich schwer erreichbar), Stop je einwärts.
-            // Seitenzahl aus dem gemischten Satz (Layouts + 3-Feld-Seiten), Rueckfall views.
-            val dataCount = (if (onFoilPages.isNotEmpty()) onFoilPages.size else views.size).coerceAtLeast(1)
+            // Pager: Aktion(0) | Stop(1) | Datenseiten 2..lastData | [Übersicht] | Stop | Aktion.
+            // AKTIONSSEITEN ganz außen: oben Pausieren/Fortsetzen, darunter Verwerfen (Jan,
+            // 25.09.2026: „mach pause lieber mit auf den screen wo auch verwerfen ist, halten
+            // wieder die eigene seite wie vorher" — dieselbe Aufteilung wie auf Zepp seit 24.09.).
+            //
+            // WELCHE Datenseiten, haengt am Zustand — wie Garmin (`RecordView._ring`):
+            //   laeuft    -> die On-Foil-Seiten, dahinter die Übersicht (Lauf-Ende / Pausen-Ansicht)
+            //   pausiert  -> die PAUSEN-Seiten, bei „alle Seiten" dahinter die On-Foil-Seiten;
+            //                keine Übersicht, die zeigt ja genau das, was die Pause schon zeigt.
+            // Bis 25.09. blieb in der Pause alles wie beim Fahren: man sah keine Pausen-Seite und
+            // nirgends, dass pausiert war (Jan am Emulator).
+            val onRefs = if (onFoilPages.isNotEmpty()) onFoilPages else pagesFromViews(views)
+            val onSet: List<Pair<WatchPageRef?, List<Int>>> =
+                onRefs.mapIndexed { i, r -> r to (views.getOrNull(i) ?: listOf(1)) }
+                    .ifEmpty { listOf(null to listOf(1)) }
+            val pauseSet: List<Pair<WatchPageRef?, List<Int>>> =
+                (pausePages ?: listOf(WatchPageRef.Classic(pauseView))).map { it to pauseView }
+            // Jede Datenseite traegt ihre Rueckfall-Felder mit: ist der Layout-Schalter aus, zeigt
+            // eine Layout-Seite stattdessen diese klassischen Felder.
+            val ring = if (s.paused) pauseSet + (if (browseAll) onSet else emptyList()) else onSet
+            val dataCount = ring.size
             val firstData = 2
             val lastData = dataCount + 1
-            val summaryPage = dataCount + 2
-            val stopBack = dataCount + 3
-            val pageCount = dataCount + 5
+            val summaryPage = if (s.paused) -1 else dataCount + 2
+            val stopBack = if (s.paused) dataCount + 2 else dataCount + 3
+            val pageCount = stopBack + 2
             val pager = rememberPagerState(initialPage = firstData, pageCount = { pageCount })
             var prevFoil by remember { mutableStateOf(s.isFoiling) }
             // Die grosse GPS-Warnung laesst sich wegtippen; sie kommt wieder, sobald die Ortung
@@ -649,8 +674,20 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
             // Auto-Wechsel NUR auf der Flanke: Lauf beendet -> Übersicht (+kurze Vibration): erst
             // kurz die Lauf-Zusammenfassung, nach 8 s die Pausen-Ansicht (bleibt bis zum nächsten
             // Lauf stehen — KEIN Rücksprung zur Datenansicht). Lauf gestartet -> zurück zu Daten.
+            // Zustandswechsel Pause <-> Aufnahme: vorne anfangen und kurz vibrieren, wie Garmin
+            // (`RecordView.onUpdate`: screenIdx = 0 + _vibeSwitch). Sonst stuende man nach dem
+            // Pausieren weiter auf der Aktionsseite und saehe von den Pausen-Seiten nichts.
+            var prevPaused by remember { mutableStateOf(s.paused) }
+            LaunchedEffect(s.paused) {
+                if (s.paused == prevPaused) return@LaunchedEffect
+                prevPaused = s.paused
+                showRunEnd = false
+                pager.scrollToPage(firstData)
+                vibrate(ctx, 200)
+            }
             LaunchedEffect(s.isFoiling) {
                 if (s.isFoiling == prevFoil) return@LaunchedEffect
+                if (s.paused) { prevFoil = s.isFoiling; return@LaunchedEffect }
                 val wasFoiling = prevFoil
                 prevFoil = s.isFoiling
                 if (!s.isFoiling && wasFoiling) {
@@ -674,7 +711,7 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                     val useLayouts = layoutsPref ?: layoutsServerDefault
                     val pageLayout = if (!useLayouts) null else when {
                         page in firstData..lastData ->
-                            (onFoilPages.getOrNull(page - firstData) as? WatchPageRef.Layout)?.def
+                            (ring.getOrNull(page - firstData)?.first as? WatchPageRef.Layout)?.def
                         page == summaryPage && showRunEnd ->
                             (offFoilPages.firstOrNull() as? WatchPageRef.Layout)?.def
                         else -> null
@@ -691,17 +728,17 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                     ) {
                         when {
                             page in firstData..lastData -> {
-                                val ref = onFoilPages.getOrNull(page - firstData)
+                                val (ref, rueckfall) = ring.getOrNull(page - firstData) ?: (null to listOf(1))
                                 val def = pageLayout
                                 if (def != null) {
                                     LayoutPageView(
                                         page = def, pageIndex = page - firstData, pageCount = dataCount,
                                         recording = true, pausedText = I18n.t("rec.paused"),
-                                        // Die manuelle Pause gibt es auf Wear noch nicht (nur
-                                        // Garmin hat sie). Bis dahin ist der Hinweis IMMER falsch,
-                                        // deshalb hart false — sonst stünde "Pausiert" auf jeder
-                                        // durchgeblätterten Pausen-Seite mitten in der Aufnahme.
-                                        paused = false,
+                                        // Der Pflicht-Hinweis (Typ 7) erscheint nur, wenn WIRKLICH
+                                        // pausiert ist — blaettert man bei „alle Seiten" durch die
+                                        // Pausen-Layouts, waehrend aufgezeichnet wird, bleibt er weg.
+                                        // Bis 25.09. stand hier hart `false` aus der Zeit vor der Pause.
+                                        paused = s.paused,
                                         fieldValue = { fid -> fieldValue(fid, s).first },
                                         fieldLabel = { fid -> fieldValue(fid, s).second },
                                         fieldColor = { fid -> fieldColor(fid, s).takeIf { c -> c != Color.Unspecified } },
@@ -709,8 +746,7 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                                         modifier = Modifier.fillMaxSize(),
                                     )
                                 } else {
-                                    val classic = (ref as? WatchPageRef.Classic)?.fields
-                                        ?: views.getOrNull(page - firstData) ?: listOf(1)
+                                    val classic = (ref as? WatchPageRef.Classic)?.fields ?: rueckfall
                                     val fields = classic.filter { it != 0 }.ifEmpty { listOf(1) }
                                     fields.forEach { fid -> FieldView(fid, s, colorBy, fields.size) }
                                 }
@@ -722,10 +758,7 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                                     LayoutPageView(
                                         page = def, pageIndex = 0, pageCount = 1,
                                         recording = true, pausedText = I18n.t("rec.paused"),
-                                        // Die manuelle Pause gibt es auf Wear noch nicht (nur
-                                        // Garmin hat sie). Bis dahin ist der Hinweis IMMER falsch,
-                                        // deshalb hart false — sonst stünde "Pausiert" auf jeder
-                                        // durchgeblätterten Pausen-Seite mitten in der Aufnahme.
+                                        // Die Übersicht gibt es nur, solange NICHT pausiert ist.
                                         paused = false,
                                         fieldValue = { fid -> fieldValue(fid, s).first },
                                         fieldLabel = { fid -> fieldValue(fid, s).second },
@@ -749,12 +782,15 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                                 ) {
                                     RecorderService.stop(applicationContext)
                                 }
-                                // PAUSE (Jan, 24.09.2026) — unter dem Stoppen, weil sie seltener
-                                // gebraucht wird und das Beenden die Hauptsache bleibt. Ein
-                                // einfacher Druck genuegt: Pausieren ist umkehrbar, und ein
+                                if (s.status.isNotEmpty()) {
+                                    Spacer(Modifier.height(6.dp))
+                                    Text(s.status, style = MaterialTheme.typography.caption2, color = Color(0xFF94A3B8))
+                                }
+                            }
+                            else -> {  // Aktionsseiten (ganz außen): oben Pause, darunter Verwerfen
+                                // PAUSE — ein einfacher Druck genuegt: Pausieren ist umkehrbar, ein
                                 // Fehlgriff kostet nichts als einen zweiten Druck. In der Pause
                                 // laedt die Uhr schon hoch, was sie hat (s. Recorder.teilUpload).
-                                Spacer(Modifier.height(6.dp))
                                 HoldButton(
                                     if (s.paused) I18n.t("rec.resume") else I18n.t("rec.pause"),
                                     Color(0xFF0E7490), Color(0xFF22D3EE), press = true,
@@ -762,12 +798,8 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                                     if (s.paused) RecorderService.resume(applicationContext)
                                     else RecorderService.pause(applicationContext)
                                 }
-                                if (s.status.isNotEmpty()) {
-                                    Spacer(Modifier.height(6.dp))
-                                    Text(s.status, style = MaterialTheme.typography.caption2, color = Color(0xFF94A3B8))
-                                }
-                            }
-                            else -> {  // Verwerfen-Seiten (ganz außen): 2 s halten -> Aufnahme löschen (kein Upload)
+                                Spacer(Modifier.height(6.dp))
+                                // Verwerfen: 2 s halten -> Aufnahme löschen (kein Upload).
                                 // Verwerfen im press-Modus mit ZWEITEM Druck bestaetigen: das Halten
                                 // war hier der einzige Schutz davor, eine Aufnahme mit einem
                                 // Fehlgriff zu loeschen. Ein Druck + „Sicher?" kostet eine Geste
@@ -792,11 +824,20 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                 // Zeigt die aktuelle Seite ein eigenes Layout? (fuer die Punkte-Unterdrueckung unten)
                 val currentIsLayoutPage = (layoutsPref ?: layoutsServerDefault) && when {
                     pager.currentPage in firstData until (firstData + dataCount) ->
-                        onFoilPages.getOrNull(pager.currentPage - firstData) is WatchPageRef.Layout
+                        ring.getOrNull(pager.currentPage - firstData)?.first is WatchPageRef.Layout
                     pager.currentPage == summaryPage && showRunEnd ->
                         offFoilPages.firstOrNull() is WatchPageRef.Layout
                     else -> false
                 }
+                // „PAUSIERT" auf JEDER Seite, solange pausiert ist — wie Garmin
+                // (`_drawPausedChrome`): eine eigene Layout-Seite mit dem Pflicht-Hinweis (Typ 7)
+                // zeichnet ihn selbst, sonst blendet die Uhr ihn ein. Ohne das sitzt man in einer
+                // pausierten Aufnahme und haelt die Zahlen fuer live (Jan, 25.09.2026: „keinen
+                // hinweis auf eine pause in den anderen screens").
+                val layoutZeigtPause = currentIsLayoutPage &&
+                    ((ring.getOrNull(pager.currentPage - firstData)?.first as? WatchPageRef.Layout)
+                        ?.def?.elements?.any { it.typ == 7 } == true)
+                val pausiertZeigen = s.paused && !layoutZeigtPause
                 // Seiten-Punkte unten — NICHT auf einer eigenen Layout-Seite. Dort bringt das Layout
                 // seinen eigenen Punkte-Indikator mit (Element typ 6), und Garmin macht es genauso:
                 // _drawLayoutPage kehrt vor _drawPageDots zurueck (RecordView.mc:98-115). Ohne das
@@ -981,8 +1022,16 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                 // Antippen macht der Tropfen nur im ENTSPERRTEN Zustand. Gesperrt liegt das
                 // Schild darueber und faengt den Tipp ohnehin ab (und zeigt die Freigabe-Geste);
                 // das Schloss ist reine Anzeige und deshalb ohne `clickable`.
-                if (wasserSperrModus != "off") {
+                // „Pausiert" sitzt GEKRUEMMT oben am Rand, in derselben Zeile wie der Tropfen —
+                // aus demselben Grund wie der Tropfen dort sitzt: ein gerader Text im oberen Band
+                // laege bei grosser Schrift auf dem ersten Wert (nachgemessen am 10.09., s. oben).
+                if (wasserSperrModus != "off" || pausiertZeigen) {
                     CurvedLayout(anchor = 270f, modifier = Modifier.fillMaxSize()) {
+                      if (pausiertZeigen) {
+                        curvedText(I18n.t("rec.paused"), color = Color(0xFF22D3EE),
+                            fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                      }
+                      if (wasserSperrModus != "off") {
                         curvedComposable {
                             Box(
                                 Modifier
@@ -1011,6 +1060,7 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                                 } else WasserTropfen(Modifier.size(14.dp))
                             }
                         }
+                      }
                     }
                 }
                 // Das Schild: schluckt jede Beruehrung, bis 2 s gehalten wird. Dieselbe Geste und
@@ -2065,6 +2115,13 @@ fun AmbientRecordingScreen(s: Recorder.State) {
             modifier = Modifier.offset(x = versatz.dp, y = versatz.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            // Auch im Dämmerbild erkennbar, dass pausiert ist — sonst liest man stehende Zahlen
+            // als laufende Aufnahme. Grau statt Cyan: im Ambient-Modus keine Farbflächen.
+            if (s.paused) {
+                Text(I18n.t("rec.paused"), color = Color(0xFF9AA4B2), fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(4.dp))
+            }
             Text(
                 String.format("%.1f", s.speed3sKmh),
                 color = Color.White, fontSize = 44.sp, fontWeight = FontWeight.Light,
