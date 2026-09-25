@@ -1475,56 +1475,59 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   - **Offen:** 11 GELOESCHTE Sessions tragen noch einen Token. Die Links sind tot (der oeffentliche
     Endpunkt filtert `deleted`), aber sauber waere, den Token beim Loeschen mit zu leeren.
 
-- **🟡 25.09. — ENTWURF: Modus „privat" fuer Aufnahmen. Nichts gebaut, Zuschnitt steht.**
-  Ausloeser: Feedback #146 vom 24.09. („Gibt es einen Weg die Daten komplett privat zu schalten?
-  Also den Ort auszublenden für public?") und ein 1:1-Chat, den Jan am 25.09. mit demselben
-  Anliegen gefuehrt hat. **Damit ist die Produktentscheidung vom 11.09. („sessions werden immer
-  geteilt") von Jan selbst wieder geoeffnet** — wer hier weiterarbeitet, traegt sie nicht mehr
-  als Gegenargument vor.
+- **🟢 25.09. — „ORT VERBERGEN": Zuschnitt ENTSCHIEDEN, Bau begonnen.**
+  Aus Feedback #146 („Gibt es einen Weg die Daten komplett privat zu schalten? Also den Ort
+  auszublenden für public?") und zwei Gespraechen mit Jan. Der erste Entwurf hiess „privat" und
+  haette Track und Uhrzeiten mit weggenommen; Jan hat ihn am 25.09. praeziser geschnitten:
 
-  **Jans Zuschnitt (25.09., 06:25–06:28):** Laeufe werden weiter ausgewertet und die Stats
-  angezeigt, aber **ohne GPS-Track, ohne Spot-Zugehoerigkeit und ohne Uhrzeit** — „so als eigener
-  spot 'privat' wo dann alle drin landen egal wo man gefahren ist". Das nimmt genau die drei
-  Achsen weg, aus denen ein Bewegungsprofil entsteht (dieselbe Begruendung wie bei
-  `no-per-user-session-lists` vom 04.09.).
+  > „Ich würde ja gern trotzdem den GPS-Track anzeigen, allerdings muss der halt irgendwie
+  > repositioniert werden … irgendwo mitten auf dem Ozean. Dass es klar ist, dass man da nicht
+  > wirklich pumpen war … Die Strecke, die man gefahren ist, muss ja nicht privat sein. Ich
+  > glaube, es ging hauptsächlich um den Ort."
 
-  **Offene Entscheidungen (Jan):**
-  1. Zaehlt eine ortlose Session noch in Community-Rekorde und die Meilenstein-Zaehler?
-     Vorschlag: ja bei community-weiten, nein bei SPOT-Rekorden — ein Spot-Rekord ohne Spot
-     ergibt keinen Sinn.
-  2. Rueckwirkend fuer alle schon hochgeladenen Aufnahmen? Vorschlag: ja, sonst ist der Schalter
-     fuer genau den wertlos, der ihn aus Sorge umlegt.
-  3. Profilweit oder je Session? **ENTSCHIEDEN von Jan als Frage gestellt, Vorschlag: profilweit
-     als Vorgabe, je Session uebersteuerbar** — wer aus Sorge schaltet, denkt nicht bei jeder
-     Aufnahme daran; „diese eine will ich zeigen" ist dagegen eine bewusste Freigabe.
-  4. Teilen-Link: **ENTSCHIEDEN (Jan, 25.09.)** — „wenn der user seine private session trotzdem
-     selber teilt, dann ist das ja sein expliziter wunsch und sollte dann die sperre umgehen".
-     Der `share_token`-Link zeigt also die volle Session inkl. Track, Spot und Uhrzeiten.
-     Folge fuer die Benennung: „privat" heisst **nicht im oeffentlichen Feed / nicht auf den
-     Spot-Seiten**, nicht „unsichtbar". Das Etikett muss das sagen.
-     NOCH OFFEN dazu: Links, die VOR dem Umlegen des Schalters verschickt wurden, waren keine
-     Zustimmung fuer danach. Vorschlag: sie bleiben gueltig (es sind Links, die er jemandem
-     gegeben hat), aber beim Einschalten einmal anzeigen, welche es gibt, mit der Moeglichkeit
-     sie zu widerrufen.
+  **Der Gedanke dahinter:** die Strecke ist die Leistung, der Ort ist das Schuetzenswerte. Eine
+  Unschaerfe (Radius, Rauschen) loest das schlechter als eine VERSETZUNG — versetzt ist es
+  erkennbar kein echter Ort, und niemand raetselt, ob die Zahl noch stimmt.
 
-  **Technische Punkte, die beim Bauen sonst durchrutschen:**
-  - **Der Ort steckt an fuenf Stellen, nicht an einer:** Spotname, `track_preview` (auch in den
-    Kombi-Minimaps der Tages-Gruppen), Karte in der Detailansicht, Pin auf der Spot-Karte,
-    Spot-Seiten/Spot-Rekorde. Ein Schalter, der nur den Namen wegnimmt, laesst die Spur stehen
-    und ist wertlos.
-  - **„Privat" darf KEINE Zeile in `spots` werden.** Ein echter Spot bekaeme sofort eine
-    oeffentliche Spot-Seite samt Chat, Wetter, Rekorden und Karten-Pin — eine Sammelseite mit den
-    Aufnahmen aller Vorsichtigen. Es ist ein Etikett an der Session, kein Ort.
-  - **Daten bleiben, nur die Ausgabe wird verborgen.** `spot_id` und Track weiter speichern:
-    sonst fallen Steg-Kalibrierung, Spot-Statistik und Trainingsdaten weg — und der Nutzer sieht
-    seine EIGENE Karte nicht mehr.
-  - **Uhrzeit relativ statt weg.** Heute stehen Wanduhrzeiten in `SessionDetail.tsx:1681/1685`
-    (Start/Ende), `2567` und `2707` (Lauf-Zeiten, Diagramm-Tooltips). Als „+4:12 ab Start"
-    bleibt die Auswertung vollstaendig lesbar. **Der Wochentag bleibt trotzdem ablesbar**, weil
-    das Datum steht — bewusst so, eine Session ohne Datum ist keine Session mehr.
-  - **Die groesste Luecke sitzt am PROFIL, nicht an der Session:** ortlose Aufnahmen nuetzen
-    nichts, solange die Foiler-Seite `homespot`, `spots` und `titles` zeigt
-    (`settings.DEFAULTS["public_profile"]`). Der Schalter muss die mit abraeumen oder es sagen.
+  **Name:** „Ort verbergen". Nicht „privat" — die Aufnahme bleibt sichtbar, samt Strecke, Zahlen
+  und Zeiten. Nur der Ort nicht. Ein Etikett, das mehr verspricht als der Code haelt, ist
+  schlimmer als keines.
+
+  **Zielort: Point Nemo** (48°52,6′ S, 123°23,6′ W), der ozeanische Pol der Unzugaenglichkeit.
+  Wer die Koordinate nachschlaegt, versteht sofort, dass sie ein Platzhalter ist, und die
+  Kartenkacheln zeigen leeres Blau — auch die Umgebung verraet also nichts.
+
+  **ENTSCHIEDEN (Jan, 25.09.):**
+  1. **Community-Rekorde zaehlen mit.** „man kann die Session sich ja auch angucken und das
+     verifizieren" — die Leistung ist nachpruefbar, nur der Ort fehlt.
+  2. **Point Nemo IST ein sichtbarer Spot.** Jan: „da darf ruhig auch Point Nemo heissen … dann
+     kann man auch alle anonymisierten Sachen so gemeinsam einsehen." Angezeigt als
+     „Point Nemo" plus uebersetzter Zusatz „Position verborgen". Das war im ersten Entwurf noch
+     andersherum geplant (ganz raus aus allen Spot-Seiten) — Jans Fassung ist stimmiger: dort
+     ist nichts zu verraten, weil der Ort fuer alle darin schon falsch ist.
+  3. **Profilschalter gilt rueckwirkend.** Wer ihn aus Sorge umlegt, meint alles, was schon
+     oben ist.
+  4. **Der Teilen-Link verbirgt ebenfalls.** Anders als beim Teilen einer normalen Aufnahme
+     (dort geht der ausdrueckliche Wunsch vor): ein Link, der den Ort doch zeigt, umgeht genau
+     das, was der Schalter verspricht.
+
+  **Einstellung: DREI Zustaende je Session**, nicht ja/nein — „folgt dem Profil", „zeigen",
+  „verbergen". Ein Schalter, der beim Anlegen den Profilwert kopiert, wuerde eine spaetere
+  Aenderung im Profil fuer alte Aufnahmen nicht mehr erreichen, und genau das ist der Fall, der
+  zaehlt. Beide Richtungen sind damit moeglich: Profil oeffentlich + einzelne verbergen, oder
+  Profil verborgen + einzelne freigeben.
+
+  **Die drei Punkte, an denen es sonst schiefgeht:**
+  - **Versetzt wird am AUSGANG, nie in den Daten.** Gespeichert bleibt die Wahrheit. Sonst
+    brechen Spot-Zuordnung, Wetter, Reanalyse und die EIGENE Ansicht des Nutzers — der soll
+    seine echte Karte weiter sehen.
+  - **In METERN versetzen, nicht in Grad.** Ein Grad Laenge sind bei 54° Nord 65 km, bei 48°
+    Sued 74 km. Wer Koordinaten einfach addiert, streckt die Strecke um 14 % und macht aus einem
+    400-m-Lauf 456 m. Richtig: Spur relativ zum eigenen Mittelpunkt in Meter umrechnen und am
+    Zielort neu projizieren — dann stimmen Form UND Distanzen.
+  - **Die Spot-Zuordnung darf auf den versetzten Koordinaten NIEMALS laufen.** Sonst entstuende
+    aus dem Cluster ein echter Spot-Eintrag mit Nachbarschaft und Umbenennungs-Antraegen. Point
+    Nemo ist ein System-Spot: kein Wetter, keine Umbenennung, kein Eintrag in der spots-Tabelle.
 
 - **🔴 24.09. — `ml/dataset.py` trainiert mit der ANGEFORDERTEN Rate, nicht der gemessenen.**
   Gefunden beim Nachsehen auf Jans Vorgabe „alle auswertungen muessen die echten raten korrekt

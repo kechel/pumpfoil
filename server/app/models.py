@@ -421,6 +421,10 @@ class Session(Base):
     # Aufnahme-Platzierung, von der Uhr/App gemeldet: None/"" = Uhr am Handgelenk, "phone" = Handy
     # (Tasche/Hüfte, „Record on Phone"-Beta). Für spätere platzierungs-spezifische Pump-Analyse.
     placement: Mapped[str | None] = mapped_column(String(16))
+    # „Ort verbergen" je Aufnahme. NULL = folgt der Einstellung im Profil (s. ORT_SICHTBARKEIT
+    # unten und `hide_location` in api/settings.py). Versetzt wird erst bei der AUSGABE, die
+    # gespeicherten Koordinaten bleiben echt — sonst waere der Schalter nicht umkehrbar.
+    ort_sichtbarkeit: Mapped[str | None] = mapped_column(String(8))
     # Wie das HANDY auf dem Brett gedreht lag, in Grad um die Hochachse (0/90/180/270).
     # NULL/0 = so, wie die Geraeteachsen liegen. Noetig, weil sich das nicht messen laesst: die
     # Neigungs-Hauptachse (`kennzahlen.ausrichtung_deg`) findet die ACHSE, aber nicht die
@@ -1650,3 +1654,14 @@ class BoardAttitudeCache(Base):
     schluessel: Mapped[str] = mapped_column(String(64))
     daten: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
+# --- „Ort verbergen" --------------------------------------------------------------------------
+#
+# Drei Zustaende je Aufnahme, nicht ja/nein: NULL = „folgt dem Profil", "show" = zeigen,
+# "hide" = verbergen. Ein blosser Haken, der beim Anlegen den Profilwert KOPIERT, wuerde eine
+# spaetere Aenderung im Profil fuer alte Aufnahmen nicht mehr erreichen — und genau das ist der
+# Fall, der zaehlt: wer den Schalter aus Sorge umlegt, meint alles, was schon oben ist.
+# Damit gehen beide Richtungen: Profil oeffentlich + einzelne verbergen, oder Profil verborgen +
+# einzelne freigeben.
+ORT_SICHTBARKEIT = ("show", "hide")
