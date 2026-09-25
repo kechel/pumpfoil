@@ -1720,6 +1720,19 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   hochgeladen (user 5, FR55). Der Abgleich Lauf für Lauf ergibt, dass **#9650 komplett Jan** und
   **#9656 komplett Philipp** gehört. Damit reicht die vorhandene Übertragung.
 
+  **🟢 #9656 IST DIE KONTROLLE, KEIN WIDERSPRUCH — nicht wieder falsch lesen (25.09.).** Die
+  Montage-Drehung springt dort zwischen den beiden Laeufen von **314,9° auf 195,5°**, waehrend sie
+  in Jans drei Brett-Aufnahmen je Session konstant bleibt (185,5/185,5 · 270,0 · 132,6/132,6). Das
+  sieht nach „Handy sass locker" aus und ist das Gegenteil: **in dieser Session wurde das Handy
+  mitten drin absichtlich gedreht, zum Testen** (Jan, 25.09.). Die Erkennung hat den Wechsel also
+  gesehen und je Lauf den richtigen Winkel genommen, statt einen Mittelwert ueber beide zu legen
+  oder den zweiten Lauf als Fehler zu markieren — genau das, wofuer sie am 23.09. gebaut wurde.
+  Damit verhalten sich ALLE VIER Brett-Aufnahmen wie erwartet: drei mit fester Montage, eine mit
+  absichtlich geaenderter.
+  **Offen und nur von Jan zu beantworten:** 119,4° Unterschied — passt das zur tatsaechlichen
+  Drehung? Bei 90° oder 180° laege die Schaetzung 30 bis 60 Grad daneben. Diese Zahl sollte
+  bekannt sein, BEVOR eine Automatik darauf aufbaut.
+
   **Und die Methode dafür steht jetzt, gemessen statt vermutet.** Über die Uhrzeit allein geht es
   NICHT: bei #9656 Lauf 1 starten Handy (11:02:50), Philipp (11:02:51) und Jan (11:02:53)
   innerhalb von drei Sekunden. Entscheidend ist der **Median-Abstand der GPS-Spuren** im
