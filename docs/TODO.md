@@ -1434,8 +1434,15 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   - **Wear 1.2.33 / 1043** (gebumpt): Pausen-Umbau `ddea1a37` + Wake-up-Sensor (`a7471f69`, nur
     auf ausdrueckliches "on"). Phone 1.1.33 / 47 nur mitgezaehlt.
   - **iOS + Apple Watch 1.1.38** (noch NICHT gebumpt): Pausen-Umbau `0c5e6d6d`.
-  - **Amazfit 1.0.13** (noch NICHT gebumpt): Pausen-Umbau `1612070b`. Offen: 1.0.12 (im Review,
-    ohne den Umbau) laufen lassen oder zurueckziehen — Jans Entscheidung.
+  - **Amazfit 1.0.13** (noch NICHT gebumpt): Pausen-Umbau `1612070b`. **1.0.12 laeuft durch**
+    (Jan, 25.09.: „zepp lassen wir auf jeden fall durchlaufen, da warten wir").
+  - **Garmin 1.0.90** (gebumpt, NICHT live — kein build-all): Mittelklasse (128 KB, z. B. Instinct 3
+    Solar) liest klassische Seiten-Saetze + „alle Seiten". Test-`.prg` fuer instinct2, instinct3solar45mm,
+    fenix7xpro unter `/home/jan/release-staging/garmin-1.0.90-test/`. Groesse: Lite + voll byte-gleich,
+    Mittelklasse +608 B Code. Laufzeit-Speicher nur im Emulator messbar. Roman (u244) wartet darauf;
+    Korrektur an ihn als Entwurf bei Jan.
+  - **MCP:** Puls fehlt ganz (nur Quelle/Probenzahl). avg/max der Aufnahme liegen in metrics_json,
+    je Lauf muesste der Server aus der Spur rechnen. Einzige Frage bisher: Roman.
   - **Wake-up-Testgruppe** noch nicht gesetzt (DB-Schreiben war fuer mich gesperrt): Konten
     2, 455, 469, 477, 574, 581 -> `settings_json.accel_wakeup = "on"`, oder je Uhr im Profil.
     Danach Ankuendigung entwerfen (Jan postet).

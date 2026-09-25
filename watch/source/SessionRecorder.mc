@@ -579,8 +579,48 @@ class SessionRecorder {
     }
     (:nolayouts) function bootCanaryClear() { }
 
-    (:nolayouts) hidden function _layoutsFromConfig(data) { }
-    (:nolayouts) hidden function _layoutsFromCache() { }
+    // LITE (96 KB): nichts zu uebernehmen — die Stufe ist am Speicherlimit und darf nicht wachsen
+    // (Jan, 25.09.2026). Bis dahin standen hier `(:nolayouts)`-Stubs fuer LITE UND MITTELKLASSE.
+    (:lite) hidden function _layoutsFromConfig(data) { }
+    (:lite) hidden function _layoutsFromCache() { }
+
+    // MITTELKLASSE (128 KB, voller Build ohne Layout-Renderer, z. B. Instinct 3 Solar): die
+    // KLASSISCHEN Seiten-Saetze und „alle Seiten" uebernehmen. Bis 25.09.2026 kamen beide hier nie
+    // an — die Uhr zeigte zwischen den Laeufen nur EINE Seite und blaetterte immer durch alle
+    // Zustaende, egal was eingestellt war (Romans Meldung, u244). RecordView._setFor nimmt
+    // `offFoilPages`/`pausePages` schon, sobald sie gefuellt sind; `[0,a,b,c]` zeichnet es klassisch.
+    // Eigene Layouts (`[1,…]`) filtert schon der Server heraus, hier zur Sicherheit noch einmal.
+    // Eigene Annotation `(:klassik)` statt einer Kombination: wie Monkey C zwei Annotationen an
+    // einem Block auswertet, sagt die SDK-Doku nicht — so gibt es in jeder Stufe genau eine Fassung.
+    (:klassik) hidden function _layoutsFromConfig(data) {
+        if (!data.hasKey("offFoilPages") && !data.hasKey("browseAll")) { return; }
+        var k = {
+            "off" => _nurKlassisch(data.hasKey("offFoilPages") ? data["offFoilPages"] : null),
+            "pause" => _nurKlassisch(data.hasKey("pausePages") ? data["pausePages"] : null),
+            "all" => !(data.hasKey("browseAll") && data["browseAll"] == false)};
+        _applyKlassik(k);
+        _store("klassik_config", k);
+    }
+    (:klassik) hidden function _layoutsFromCache() {
+        var k = Storage.getValue("klassik_config");
+        if (k instanceof Lang.Dictionary) { _applyKlassik(k); }
+    }
+    (:klassik) hidden function _applyKlassik(k) {
+        var o = k.hasKey("off") ? k["off"] : null;
+        var p = k.hasKey("pause") ? k["pause"] : null;
+        offFoilPages = (o instanceof Lang.Array) ? o : [];
+        pausePages = (p instanceof Lang.Array) ? p : [];
+        browseAll = !(k.hasKey("all") && k["all"] == false);
+    }
+    (:klassik) hidden function _nurKlassisch(src) {
+        var out = [];
+        if (!(src instanceof Lang.Array)) { return out; }
+        for (var i = 0; i < src.size(); i++) {
+            var e = src[i];
+            if (e instanceof Lang.Array && e.size() >= 4 && e[0] == 0) { out.add(e); }
+        }
+        return out;
+    }
 
     // Canary scharf machen — NUR wenn diese Aufnahme wirklich mit dynamischem Layout läuft.
     // Ein Storage-Write pro Session-Start, nicht pro Frame.
