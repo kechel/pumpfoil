@@ -761,6 +761,9 @@ def list_devices(
             # Aufzeichnungsmodus pro Uhr: gesetzter Override, sonst User-Default (zur Anzeige).
             "record_mode": d.record_mode or udefault,
             "gnss_mode": d.gnss_mode or gdefault,
+            # Wassersperre: fehlte hier bis 25.09. — gespeichert wurde richtig, aber das Profil
+            # zeigte nach dem Neuladen immer „Automatisch". Wie `/config`: Uhr vor Konto vor "auto".
+            "water_lock": _effective_water_lock(d, ustored),
             # Wake-up-Sensor (Wear): gesetzter Override (None = Standard) und was ohne ihn gilt —
             # die UI zeigt „Standard (an/aus)" und kann den Override wieder entfernen.
             "accel_wakeup": d.accel_wakeup if d.accel_wakeup in ACCEL_WAKEUP_MODES else None,

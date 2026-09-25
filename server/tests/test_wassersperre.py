@@ -38,6 +38,8 @@ def test_je_geraet_uebersteuerbar(client):
         r = client.put(f"/api/devices/{gid}/water-lock", headers=auth, json={"water_lock": modus})
         assert r.status_code == 200, r.text
         assert _config(client, dev)["waterLock"] == modus
+        # Das Profil muss nach dem Neuladen denselben Wert zeigen (fehlte bis 25.09.).
+        assert client.get("/api/devices/list", headers=auth).json()[0]["water_lock"] == modus
 
 
 def test_unsinn_wird_abgewiesen(client):
