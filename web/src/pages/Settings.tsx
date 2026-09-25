@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { SettingsIcon, WatchIcon, ChevronIcon, FoilIcon, CalculatorIcon, DownloadIcon, UploadIcon, CheckIcon } from "../components/Icons";
 import { useI18n, useT } from "../i18n";
 import { APP_BUILD } from "../buildInfo";
+import { fmtDate } from "../lib/time";
 import { LanguageSelect } from "../components/LanguageSelect";
 import { ThemeSelect } from "../components/ThemeSelect";
 import { FontScaleSelect } from "../components/FontScaleSelect";
@@ -373,6 +374,12 @@ export default function Settings() {
         <NotificationsToggle />
       </Card>
 
+      {/* GETEILTE AUFNAHMEN, direkt ueber dem Einrichtungs-Assistenten (Jan, 25.09.2026:
+          „gaaanz unten ueber dem setup assistant abschnitt"). Der Knopf nimmt den Link HIER
+          zurueck, ohne das Profil zu verlassen — man soll nicht erst jede Session einzeln
+          aufmachen muessen, um zu sehen, was noch offen ist. */}
+      <GeteilteAufnahmen />
+
       {/* Einstieg in den Einrichtungs-Assistenten — fuer ALLE und jederzeit (Vorgabe Jan,
           11.09.2026). Damit ist /onboarding ab jetzt verlinkt: bisher kam man nur ueber die
           Adresse hin. Die automatische WEICHE fuer neue Konten ist davon unberuehrt und weiter
@@ -535,6 +542,65 @@ function SocialChannelCard() {
         )}
       </div>
       {fehler && <p className="mt-2 text-sm text-rose-600 dark:text-rose-400">{fehler}</p>}
+    </Card>
+  );
+}
+
+
+/**
+ * Welche der eigenen Aufnahmen gerade per Link geteilt sind — und der Knopf, das zu beenden.
+ *
+ * Jans Anstoss (25.09.2026): „damit man ueberhaupt weiss was noch geteilt ist … der teilen link
+ * umgeht ja auch das login auf die seite komplett." Genau darum geht es: ein Link, den man einmal
+ * verschickt und danach vergisst, zeigt die Aufnahme jedem, der ihn hat — ohne Anmeldung. Man kann
+ * nur zumachen, was man sieht.
+ *
+ * Die Karte ERSCHEINT NICHT, wenn nichts geteilt ist. Eine leere Liste waere kein Hinweis,
+ * sondern nur eine Zeile mehr auf einer ohnehin langen Seite.
+ *
+ * Was hier bewusst NICHT steht: wann ein Link erzeugt wurde und ob ihn je jemand geoeffnet hat.
+ * Beides wissen wir nicht — dafuer braeuchte es ein Zugriffs-Protokoll, und das waere Tracking.
+ * Lieber eine ehrliche Liste als eine erfundene Zahl.
+ */
+function GeteilteAufnahmen() {
+  const { t } = useI18n();
+  const [zeilen, setZeilen] = useState<Awaited<ReturnType<typeof api.geteilteLinks>> | null>(null);
+  const [busy, setBusy] = useState<number | null>(null);
+  useEffect(() => { api.geteilteLinks().then(setZeilen).catch(() => setZeilen([])); }, []);
+  if (!zeilen || !zeilen.length) return null;
+
+  async function zuruecknehmen(id: number) {
+    setBusy(id);
+    try {
+      await api.revokeShareLink(id);
+      // Ohne Nachladen: die Zeile verschwindet sofort, das ist die Rueckmeldung.
+      setZeilen((alt) => (alt ? alt.filter((z) => z.id !== id) : alt));
+    } catch { /* stehen lassen, der naechste Versuch geht */ }
+    finally { setBusy(null); }
+  }
+
+  return (
+    <Card className="mt-4 p-5">
+      <h3 className="mb-1 font-semibold">{t("shared.title")}</h3>
+      <p className="mb-3 text-sm text-slate-300">{t("shared.hint")}</p>
+      <div className="space-y-2">
+        {zeilen.map((z) => (
+          <div key={z.id}
+            className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-slate-800 px-3 py-2">
+            <Link to={`/sessions/${z.id}`} className="font-medium text-slate-200 hover:text-brand-400">
+              {z.started_at ? fmtDate(z.started_at, z.tz) : `#${z.id}`}
+            </Link>
+            {z.place_name && <span className="text-sm text-slate-400">{z.place_name}</span>}
+            <button
+              type="button" disabled={busy === z.id}
+              onClick={() => zuruecknehmen(z.id)}
+              className="ml-auto rounded-lg border border-slate-700 px-2.5 py-1 text-sm text-slate-200 hover:bg-slate-800 disabled:opacity-50"
+            >
+              {t("shared.revoke")}
+            </button>
+          </div>
+        ))}
+      </div>
     </Card>
   );
 }

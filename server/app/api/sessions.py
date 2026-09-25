@@ -1861,6 +1861,41 @@ def merge_suggestions_endpoint(
     return out
 
 
+# WICHTIG: DIESE ROUTE MUSS VOR `/{session_id}` STEHEN. FastAPI probiert der Reihe
+# nach; steht sie danach, landet `GET /api/sessions/geteilte` in der Platzhalter-Route
+# und scheitert mit 422, weil „geteilte" keine Zahl ist.
+@router.get("/geteilte")
+def geteilte_links(user: models.User = Depends(current_user),
+                   db: Session = Depends(get_db)) -> list[dict]:
+    """Die EIGENEN Aufnahmen, fuer die gerade ein Teilen-Link existiert.
+
+    Jans Anstoss (25.09.2026): „damit man ueberhaupt weiss was noch geteilt ist und da die links
+    dann auch per knopfdruck easy wiederrufen kann … der teilen link umgeht ja auch das login auf
+    die seite komplett." Man kann nur zumachen, was man sieht.
+
+    `share_token` ist NULL, bis jemand den Teilen-Knopf drueckt — ein gesetzter Token heisst also
+    wirklich „hier wurde ein Link erzeugt", nicht „koennte mal". Was wir NICHT wissen und deshalb
+    auch nicht behaupten: wann er erzeugt wurde (keine Spalte) und ob ihn je jemand geoeffnet hat
+    (kein Zugriffs-Protokoll, und eines dafuer anzulegen waere Tracking).
+
+    Der Token selbst geht MIT zurueck — der Besitzer soll den Link hier auch kopieren koennen,
+    ohne erst die Session zu oeffnen. Oeffentlich ist er ohnehin nur fuer den, der ihn hat.
+    """
+    zeilen = (db.query(models.Session)
+                .filter(models.Session.user_id == user.id,
+                        models.Session.share_token.isnot(None),
+                        models.Session.deleted.isnot(True))
+                .order_by(models.Session.started_at.desc()).all())
+    return [{
+        "id": s.id,
+        "started_at": s.started_at.isoformat() if s.started_at else None,
+        "tz": tz_name(s.place_lat, s.place_lon),
+        "place_name": s.place_name,
+        "sport": s.sport,
+        "path": f"/s/{s.share_token}",
+    } for s in zeilen]
+
+
 @router.get("/{session_id}", response_model=SessionOut)
 def get_session(
     session_id: int,
