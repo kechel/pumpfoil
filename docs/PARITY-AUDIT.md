@@ -2,6 +2,51 @@
 
 **Vorgabe Phone/Web:** [pumpfoil.org](https://pumpfoil.org) (`web/`) · **Vorgabe Uhren:** Garmin (`watch/`).
 
+## ✅ CHECKLISTE: eine Aufnahme-Funktion auf den Uhren (vor jedem Commit abhaken)
+
+**Warum es sie gibt (25.09.2026).** Die Pause kam am 24.09. auf Zepp, Wear und Apple Watch — und
+auf allen dreien fehlte danach dasselbe: in der Pause blaetterte man durch die normalen
+Datenseiten, nirgends stand „Pausiert", und im Code stand an genau den Stellen noch „die Pause
+gibt es hier noch nicht" (`paused = false` hart verdrahtet, `pausePages` bewusst nicht gelesen).
+Wear 1.2.32 und iOS 1.1.37 gingen so live; Jan fand es am Emulator. Gebaut war der AUFNAHMEPFAD
+(Zeitachse, Teil-Upload), vergessen die OBERFLAECHE je Zustand. Jan: „wie konntest du das nur
+uebersehen? gibts keine checkliste oder so?" — jetzt ja.
+
+**Vorlage ist Garmin** (`watch/source/RecordView.mc`, `SessionRecorder.mc`). Wer eine Funktion auf
+einer Uhr baut, geht diese Liste fuer ALLE VIER durch und traegt das Ergebnis in die Tabelle unten.
+
+1. **Jeder Zustand, jede Seite.** Zustaende: Start · Aufnahme auf dem Foil · zwischen den Laeufen
+   · PAUSIERT · Stop-Seite · Aktionsseite (Pause + Verwerfen) · Always-on/Daemmerbild ·
+   eigenes Layout (mit und ohne Pflicht-Element Typ 7). Fuer jeden: was sieht man, was kann man tun?
+2. **Seiten je Zustand wie `_ring()`**: welcher Satz (`pages` / `offFoilPages` / `pausePages`),
+   was haengt `browseAll` dran, springt der Zustandswechsel auf die erste Seite und vibriert er?
+3. **Config-Schluessel wirklich gelesen?** Jeden neuen Schluessel in `/api/devices/config` auf
+   jeder Uhr suchen. Zepp zusaetzlich in der Whitelist von `watch-zepp/app-side/index.js` —
+   dort sind schon dreimal Felder unsichtbar verschwunden.
+4. **Platzhalter aus der Zeit davor suchen**: `grep -rn "noch nicht\|hart false\|gibt es hier"`
+   in `android/wear`, `watch-apple/Sources`, `watch-zepp/page`. Ein Kommentar „kommt spaeter" ist
+   ab dem Tag, an dem es kommt, ein Fehler.
+5. **Profil (Web) zeigt je Uhr nur, was sie kann** — kein Regler mit Entschuldigungstext daneben.
+6. **Tests**: Zepp in Node (`watch-zepp/tests/*.mjs`, aus der Quelle geschnitten), Wear
+   `:wear:compileDebugKotlin`, Apple `swiftc -parse` + Member-Abgleich von Hand. Und Jans
+   Emulator-Lauf DURCH JEDEN ZUSTAND, nicht nur durch den Normalfall.
+7. **Changelog `NAECHSTES`** je Plattform mit eigener Version.
+
+| Aufnahme: Pause (Stand 25.09., nach dem Umbau) | Garmin | Zepp | Wear OS | Apple Watch |
+|---|---|---|---|---|
+| Pause + Verwerfen auf der Aktionsseite, Stop allein | Taste | ✅ 24.09. | ✅ 25.09. `ddea1a37` | ✅ 25.09. `0c5e6d6d` |
+| In der Pause die Pausen-Seiten (`pausePages`/`pauseView`) | ✅ | ✅ 25.09. `1612070b` | ✅ 25.09. | ✅ 25.09. |
+| `browseAll` in der Pause | ✅ Pause+On+Off | ✅ Pause+On+Off | ✅ Pause+On | ✅ Pause+On |
+| Sprung auf Seite 1 + Vibration beim Pausieren/Fortsetzen | ✅ | ✅ | ✅ | ✅ (Klick) |
+| „Pausiert" auf jeder Seite (Typ 7 oder eingeblendet) | ✅ | ✅ | ✅ gekruemmt oben | ✅ oben mittig |
+| „Pausiert" im Daemmerbild | — (MIP) | — | ✅ | Systemverhalten |
+| Ausgeliefert | 1.0.x live | **nicht** in 1.0.12 (Review) | **nicht** in 1.2.32 (live) | **nicht** in 1.1.37 (live) |
+
+Wear/Apple haengen in der Pause nur die On-Foil-Seiten an, weil beide keinen eigenen
+Off-Foil-Ring haben (sie zeigen zwischen den Laeufen die Uebersichtsseite). Garmin/Zepp: On + Off.
+
+---
+
 **Stand: 2026-09-07** — gegen den Code geprueft, mit einem systematischen Hebel statt Gefuehl:
 alle **61 nutzersichtbaren Textschluessel, die seit dem 26.08. in der PWA dazukamen**, wurden
 gegen die Sprachdateien beider Apps gehalten (`I18n.kt`/`I18nExtra.kt`, `Loc.swift`/`LocExtra.swift`).
