@@ -590,6 +590,8 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             }
             Spacer(Modifier.height(8.dp))
         }
+        // Handy am Brett? — nur wenn die Erkennung anschlaegt (s. LageAnsicht.kt).
+        BrettFrage(s, onReload)
         if (mdet?.detection == "gps_only" && !zeigeEingefroren && s.status != "live") {
             val hzEff = mdet.accelHzEffective
             val warnText = if (hzEff != null && hzEff > 0)
@@ -1158,6 +1160,8 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 win = win, wattFuer = FoilPhysics.wattRechner(s.foil, weightKg),
                 onSaved = { fresh -> selectedRun = null; SessionCache.store(fresh); onReload() },
             ) { selectedRun = if (selectedRun == it) null else it }
+            // Lage je Lauf — nur am Brett, eigene kleine Tabelle unter der grossen (wie PWA).
+            LageJeLaufTabelle(s, selectedRun) { selectedRun = if (selectedRun == it) null else it }
         }
 
         // Melden ganz unten, UNTER den Lauf-Statistiken (Jan, 29.07.): erst die Session ansehen,
@@ -1199,6 +1203,8 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             // sich selber an Point Nemo und weiss: so darf auch jeder andere sehen").
             OrtSchalter(s, onReload)
             Spacer(Modifier.height(8.dp))
+            // „Handy war am Brett" — nur bei Handy-Aufnahmen mit Kreisel (s. LageAnsicht.kt).
+            BrettSchalter(s, onReload)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (canTrim) {
                     OutlinedButton(onClick = onTrim, modifier = Modifier.weight(1f)) {
