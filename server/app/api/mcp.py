@@ -454,9 +454,29 @@ def _get_board_attitude(db: Session, user_id: int, arg: dict) -> dict:
                 "hinweis": "Diese Aufnahme ist nicht als „Handy am Brett\" markiert. Nicken und "
                            "Rollen waeren hier die Bewegung des Fahrers, nicht die des Bretts."}
 
+    import hashlib
+
     import numpy as np
     from .. import storage
     from ..analysis import lage
+
+    ar = db.query(models.AnalysisResult).filter(
+        models.AnalysisResult.session_id == s.id).first()
+
+    # Fingerabdruck aller Eingaben. Passt er, steht das Ergebnis schon da; passt er nicht, ist es
+    # ueberholt und wird neu gerechnet. Ein veralteter Eintrag kann so gar nicht gelesen werden,
+    # und es gibt nichts, was jemand haendisch leeren muesste (s. models.BoardAttitudeCache).
+    schluessel = hashlib.sha256("|".join([
+        str(getattr(ar, "algo_version", None)),
+        str(s.trim_start_ms), str(s.attitude_rot_deg),
+        hashlib.sha256((getattr(ar, "segments_json", None) or "").encode()).hexdigest(),
+    ]).encode()).hexdigest()
+    treffer = db.query(models.BoardAttitudeCache).filter(
+        models.BoardAttitudeCache.session_id == s.id).first()
+    if treffer is not None and treffer.schluessel == schluessel:
+        return {**json.loads(treffer.daten), "session_id": s.id, "am_brett": True,
+                "aus_zwischenspeicher": True,
+                "wie_gerechnet": _LAGE_ERKLAERUNG, "gieren_hinweis": _GIEREN_HINWEIS}
 
     uuid = s.session_uuid
     acc = storage.load_accel(uuid)
@@ -474,8 +494,6 @@ def _get_board_attitude(db: Session, user_id: int, arg: dict) -> dict:
     if not hat_kreisel:
         gyr, t_gyr = np.empty((0, 3)), np.empty(0)
 
-    ar = db.query(models.AnalysisResult).filter(
-        models.AnalysisResult.session_id == s.id).first()
     try:
         segmente = json.loads(ar.segments_json) if ar and ar.segments_json else []
     except ValueError:
@@ -518,22 +536,33 @@ def _get_board_attitude(db: Session, user_id: int, arg: dict) -> dict:
             "montage_drehung_deg": k.get("rot_deg"),
         })
 
-    return {
-        "session_id": s.id,
-        "am_brett": True,
-        "kreiseldaten": hat_kreisel,
-        "laeufe": laeufe,
-        "wie_gerechnet": (
-            "Nicken und Rollen kommen aus einem komplementaeren Filter ueber Beschleunigung und "
-            "Kreisel; die Werte sind das 95. Perzentil des Betrags ueber den Lauf, in Grad — "
-            "also die Auslenkung, NICHT eine Winkelgeschwindigkeit. Eine Rate in Grad je Sekunde "
-            "gibt es bisher nur fuers Gieren (`gier_rate_rms_deg_s`). Die Montage-Drehung wird je "
-            "Lauf aus den Daten bestimmt. Ohne Kreiseldaten (`kreiseldaten: false`) stuetzt sich "
-            "alles allein auf die Beschleunigung und ist traeger."),
-        "gieren_hinweis": (
-            "Gieren ist die gefahrene Route und sagt nichts ueber Technik oder Effizienz — es "
-            "steht hier als Zusatz, nicht als Guetemass."),
-    }
+    ergebnis = {"kreiseldaten": hat_kreisel, "laeufe": laeufe}
+    # Zwei Arbeiter koennen dasselbe gleichzeitig rechnen — dann gewinnt der letzte, und das ist
+    # egal: bei gleichem Schluessel ist das Ergebnis dasselbe.
+    roh = json.dumps(ergebnis, ensure_ascii=False)
+    db.execute(pg_insert(models.BoardAttitudeCache)
+               .values(session_id=s.id, schluessel=schluessel, daten=roh)
+               .on_conflict_do_update(index_elements=["session_id"],
+                                      set_={"schluessel": schluessel, "daten": roh}))
+    db.commit()
+    return {**ergebnis, "session_id": s.id, "am_brett": True,
+            "aus_zwischenspeicher": False,
+            "wie_gerechnet": _LAGE_ERKLAERUNG, "gieren_hinweis": _GIEREN_HINWEIS}
+
+
+# Die beiden Erklaerungen stehen neben der Rechnung, nicht darin: sie gehen bei JEDER Antwort mit
+# raus, auch bei einer aus dem Zwischenspeicher — gespeichert werden nur die Zahlen.
+_LAGE_ERKLAERUNG = (
+    "Nicken und Rollen kommen aus einem komplementaeren Filter ueber Beschleunigung und "
+    "Kreisel; die Werte sind das 95. Perzentil des Betrags ueber den Lauf, in Grad — "
+    "also die Auslenkung, NICHT eine Winkelgeschwindigkeit. Eine Rate in Grad je Sekunde "
+    "gibt es bisher nur fuers Gieren (`gier_rate_rms_deg_s`). Die Montage-Drehung wird je "
+    "Lauf aus den Daten bestimmt. Ohne Kreiseldaten (`kreiseldaten: false`) stuetzt sich "
+    "alles allein auf die Beschleunigung und ist traeger.")
+
+_GIEREN_HINWEIS = (
+    "Gieren ist die gefahrene Route und sagt nichts ueber Technik oder Effizienz — es "
+    "steht hier als Zusatz, nicht als Guetemass.")
 
 
 def _get_overview(db: Session, user_id: int, _arg: dict) -> dict:
