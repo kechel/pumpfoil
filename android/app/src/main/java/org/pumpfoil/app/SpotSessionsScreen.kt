@@ -124,6 +124,8 @@ fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, 
                             item { Box(Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) { WeatherCard(sw, titelKey = "spot.weatherTitle") } }
                         }
                         spotId?.let { sid -> item { SpotNotesSection(sid) } }
+                        // „Anderen Namen vorschlagen" — nur wer hier selbst gefahren ist.
+                        spotId?.let { sid -> item { SpotNamensVorschlag(sid, spot) } }
                         if (items.isEmpty() && !loading && error == null) {
                             item { Text(I18n.t("sessions.empty"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                         }

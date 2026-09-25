@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -323,3 +324,74 @@ private fun FotoReihe(n: SpotNote, eigen: Boolean, onOpen: (String) -> Unit, onD
 
 // ISO-Zeitstempel -> kurzes Datum (die Uhrzeit sagt bei einer Spot-Beschreibung nichts).
 private fun kurzDatum(iso: String): String = iso.take(10)
+
+
+/**
+ * „Anderen Namen vorschlagen" (PWA SpotRenameRequest.tsx). Spot-Namen kommen aus dem Geocoder und
+ * treffen oft nicht, was man vor Ort sagt. BEWUSST NUR EIN VORSCHLAG (Jan, 12.09.2026: „bitte
+ * nicht einfach automatisch aendern sowas durch user, sonst wird das ne witz-runde") — er geht
+ * als Feedback ein und wird von Hand entschieden. Der Meldetext ist ENGLISCH und fest aufgebaut,
+ * damit er in der Feedback-Liste ohne Uebersetzen lesbar ist. Nur fuer die, die hier gefahren sind.
+ */
+@Composable
+fun SpotNamensVorschlag(spotId: Int, spotName: String) {
+    var meiner by remember(spotId) { mutableStateOf(false) }
+    var offen by remember { mutableStateOf(false) }
+    LaunchedEffect(spotId) { meiner = try { Api.spotMine(spotId) } catch (_: Exception) { false } }
+    if (!meiner) return
+    OutlinedButton(onClick = { offen = true }, modifier = Modifier.padding(vertical = 6.dp)) {
+        Text(I18n.t("spotRename.cta"))
+    }
+    if (offen) SpotNamensDialog(spotId, spotName) { offen = false }
+}
+
+@Composable
+private fun SpotNamensDialog(spotId: Int, spotName: String, onClose: () -> Unit) {
+    val scope = rememberCoroutineScope()
+    var name by remember { mutableStateOf("") }
+    var grund by remember { mutableStateOf("") }
+    var busy by remember { mutableStateOf(false) }
+    var fertig by remember { mutableStateOf(false) }
+    var fehler by remember { mutableStateOf<String?>(null) }
+    val vorschlag = name.trim()
+    val kannSenden = vorschlag.length >= 2 && vorschlag != spotName.trim() && !busy
+    AlertDialog(
+        onDismissRequest = onClose,
+        title = { Text(I18n.t("spotRename.title")) },
+        text = {
+            Column {
+                if (fertig) {
+                    Text(I18n.t("spotRename.sent"))
+                } else {
+                    Text(I18n.t("spotRename.hint"), style = MaterialTheme.typography.bodyMedium)
+                    Spacer(Modifier.height(8.dp))
+                    Text(I18n.t("spotRename.current"), style = MaterialTheme.typography.labelMedium)
+                    Text(spotName, style = MaterialTheme.typography.bodyMedium)
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(value = name, onValueChange = { name = it.take(60) }, singleLine = true,
+                        label = { Text(I18n.t("spotRename.proposed")) }, modifier = Modifier.fillMaxWidth())
+                    Spacer(Modifier.height(6.dp))
+                    OutlinedTextField(value = grund, onValueChange = { grund = it.take(200) }, minLines = 2,
+                        label = { Text(I18n.t("spotRename.reason")) }, modifier = Modifier.fillMaxWidth())
+                    fehler?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 4.dp)) }
+                }
+            }
+        },
+        confirmButton = {
+            if (fertig) TextButton(onClick = onClose) { Text(I18n.t("common.close")) }
+            else TextButton(enabled = kannSenden, onClick = {
+                busy = true; fehler = null
+                scope.launch {
+                    try {
+                        val kopf = "Spot name change requested\nSpot: $spotName (#$spotId)\nProposed: $vorschlag"
+                        val text = if (grund.isNotBlank()) "$kopf\nReason: ${grund.trim()}" else kopf
+                        Api.submitFeedback(text.take(500), "/sessions?spot=$spotId")
+                        fertig = true
+                    } catch (e: Exception) { fehler = e.message }
+                    busy = false
+                }
+            }) { Text(I18n.t("spotRename.send")) }
+        },
+        dismissButton = { if (!fertig) TextButton(onClick = onClose) { Text(I18n.t("common.cancel")) } },
+    )
+}

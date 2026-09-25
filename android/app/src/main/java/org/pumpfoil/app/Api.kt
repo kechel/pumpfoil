@@ -92,8 +92,8 @@ object Api {
 
     // Feedback senden (POST /api/feedback {text, url}) -> id der Meldung, denn die Anhaenge
     // haengen danach an GENAU dieser Meldung (und nur innerhalb der Serverfrist von 30 min).
-    suspend fun submitFeedback(text: String): Int = withContext(Dispatchers.IO) {
-        val r = http("POST", "/api/feedback", buildJsonObject { put("text", text); put("url", "android-app") }.toString(), auth = true)
+    suspend fun submitFeedback(text: String, url: String = "android-app"): Int = withContext(Dispatchers.IO) {
+        val r = http("POST", "/api/feedback", buildJsonObject { put("text", text); put("url", url) }.toString(), auth = true)
         json.parseToJsonElement(r).jsonObject["id"]?.jsonPrimitive?.intOrNull ?: 0
     }
 
@@ -1107,6 +1107,12 @@ object Api {
     }
 
     // --- Spot-Beschreibungen (je Nutzer ein Textblock + Fotos pro Spot) ---
+    // Hat man an DIESEM Spot selbst schon aufgenommen? (Knopf „Anderen Namen vorschlagen")
+    suspend fun spotMine(spotId: Int): Boolean = withContext(Dispatchers.IO) {
+        val r = http("GET", "/api/sessions/spot-mine?spot_id=$spotId", null, auth = true)
+        json.parseToJsonElement(r).jsonObject["mine"]?.jsonPrimitive?.booleanOrNull ?: false
+    }
+
     suspend fun spotNotes(spotId: Int): SpotNotesOut = withContext(Dispatchers.IO) {
         json.decodeFromString(SpotNotesOut.serializer(),
             http("GET", "/api/community/spot/$spotId/notes", null, auth = true))
