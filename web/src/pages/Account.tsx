@@ -242,6 +242,10 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
     setDevices((ds) => (ds ? ds.map((x) => (x.id === id ? { ...x, water_lock: mode } : x)) : ds));
     api.setDeviceWaterLock(id, mode).catch(() => load());
   };
+  const setAccelWakeup = (id: number, mode: string) => {
+    setDevices((ds) => (ds ? ds.map((x) => (x.id === id ? { ...x, accel_wakeup: mode === "default" ? null : mode } : x)) : ds));
+    api.setDeviceAccelWakeup(id, mode).catch(() => load());
+  };
   const fmt = (s: string | null) => (s ? new Date(s).toLocaleString() : "–");
 
   if (!devices) return null;
@@ -308,12 +312,6 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
                     {d.platform === "garmin" && (
                       <p className="mt-1 text-[11px] text-slate-400">{t("account.recordModeGarminHint")}</p>
                     )}
-                    {/* Ehrlich dranschreiben statt den Regler wirkungslos anbieten: Amazfit holt
-                        sich den Modus gar nicht ab — `watch-zepp/app-side/index.js` reicht nur
-                        language/latestVersion/pauseView/layoutsOn/layouts/pages durch. */}
-                    {d.platform === "zepp" && (
-                      <p className="mt-1 text-sm text-amber-600 dark:text-amber-400">{t("account.recordModeZeppHint")}</p>
-                    )}
                   </div>
                 )}
                 {/* Satellitensysteme je Uhr — nur Garmin: nur dort waehlt die App die GNSS-Stufe
@@ -348,6 +346,23 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
                       <option value="off">{t("account.waterLockOff")}</option>
                     </select>
                     <p className="mt-1 text-sm text-slate-400">{t("account.waterLockHint")}</p>
+                  </div>
+                )}
+                {/* Wake-up-Sensor je Uhr — NUR Wear OS: nur dort gibt es die zwei Varianten des
+                    Beschleunigungssensors (s. RecorderService.accelSensor). Zum Selbsttesten
+                    fuer Freiwillige (Jan, 25.09.); „Standard" entfernt den Override wieder, damit
+                    man spaeter mitzieht, wenn der Standard umgestellt wird. */}
+                {!d.revoked_at && d.platform === "wear" && (
+                  <div className="mt-2">
+                    <label className="mb-1 block text-xs text-slate-400">{t("account.accelWakeup")}</label>
+                    <select value={d.accel_wakeup ?? "default"} onChange={(e) => setAccelWakeup(d.id, e.target.value)}
+                      className="w-full max-w-sm truncate rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100">
+                      <option value="default">{t("account.accelWakeupDefault", {
+                        v: t(d.accel_wakeup_standard === "on" ? "account.accelWakeupOn" : "account.accelWakeupOff") })}</option>
+                      <option value="on">{t("account.accelWakeupOn")}</option>
+                      <option value="off">{t("account.accelWakeupOff")}</option>
+                    </select>
+                    <p className="mt-1 text-sm text-slate-400">{t("account.accelWakeupHint")}</p>
                   </div>
                 )}
                 {/* Eigene Layouts je Uhr: hat sie einen Absturz gemeldet, sind sie für DIESE Uhr

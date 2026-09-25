@@ -146,6 +146,9 @@ class DeviceToken(Base):
     gnss_mode: Mapped[str | None] = mapped_column(String(8))
     # Wassersperre dieser Uhr: "auto" (Uhr entscheidet) | "on" | "off"; None = Nutzer-Default.
     water_lock: Mapped[str | None] = mapped_column(String(8))
+    # Wake-up-Beschleunigungssensor dieser Uhr (nur Wear OS, ab 1.2.33): "on" | "off";
+    # None = Konto-Einstellung bzw. globaler Standard (api/devices.py, ACCEL_WAKEUP_DEFAULT).
+    accel_wakeup: Mapped[str | None] = mapped_column(String(8))
     # Soft-Revoke: Token ungültig, Record bleibt (Session-Zuordnung + Historie erhalten).
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     # Canary der dynamischen Layouts: die Uhr setzt beim Aufnahme-Start ein Storage-Flag und

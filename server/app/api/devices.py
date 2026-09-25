@@ -170,9 +170,12 @@ WATER_LOCK_MODES = ("auto", "on", "off")
 # Prozessor stattdessen: „no event shall be dropped or lost".
 # Quellen: source.android.com/docs/core/interaction/sensors/suspend-mode und /batching.
 #
-# KEIN GERAETE-OVERRIDE, wie bei `stop_mode`: es gibt dafuer keine Spalte, und der Zweck ist ein
-# globaler Hebel. Der STANDARD unten ist dieser Hebel — umstellen, Server neu starten, gilt fuer
-# alle, die nichts eigenes gesetzt haben. Kein Uhr-Update noetig.
+# DREI EBENEN wie bei der Wassersperre: Geraete-Override (`device_tokens.accel_wakeup`, im Profil
+# je Uhr umschaltbar) vor Konto-Einstellung (`settings_json.accel_wakeup`) vor dem STANDARD unten.
+# Der Standard ist der globale Hebel — umstellen, Server neu starten, gilt fuer alle, die nichts
+# eigenes gesetzt haben. Kein Uhr-Update noetig.
+# Je Uhr einstellbar (Jan, 25.09.2026), damit Fahrer es zu Hause selbst ausprobieren und
+# zurueckstellen koennen — die Einfuehrung lebt von Freiwilligen.
 ACCEL_WAKEUP_MODES = ("on", "off")
 # STUFENWEISE EINFUEHRUNG (Jan, 25.09.2026, vor Wear 1.2.33): der Standard steht erst auf "off",
 # eingeschaltet wird nur fuer eine kleine Testgruppe ueber die Konto-Einstellung
@@ -184,10 +187,16 @@ ACCEL_WAKEUP_MODES = ("on", "off")
 ACCEL_WAKEUP_DEFAULT = "off"
 
 
-def _effective_accel_wakeup(settings: dict) -> str:
-    """Wake-up-Sensor fuer diese Uhr: Konto-Einstellung, sonst der globale Standard."""
+def _accel_wakeup_standard(settings: dict) -> str:
+    """Was ohne Geraete-Override gilt: Konto-Einstellung, sonst der globale Standard."""
     base = settings.get("accel_wakeup", ACCEL_WAKEUP_DEFAULT)
     return base if base in ACCEL_WAKEUP_MODES else ACCEL_WAKEUP_DEFAULT
+
+
+def _effective_accel_wakeup(device: models.DeviceToken | None, settings: dict) -> str:
+    """Wake-up-Sensor fuer diese Uhr: Geraete-Override, sonst Konto-Einstellung, sonst Standard."""
+    dev = getattr(device, "accel_wakeup", None)
+    return dev if dev in ACCEL_WAKEUP_MODES else _accel_wakeup_standard(settings)
 
 
 
@@ -461,7 +470,7 @@ def device_config(
         # Aeltere Uhr-Versionen ignorieren den Schluessel und halten wie bisher.
         # Wake-up-Beschleunigungssensor (nur Wear OS): "on" | "off". Aeltere Uhr-Versionen
         # ignorieren den Schluessel und registrieren wie bisher die Non-wake-up-Variante.
-        "accelWakeup": _effective_accel_wakeup(settings),
+        "accelWakeup": _effective_accel_wakeup(device, settings),
         "stopMode": settings.get("stop_mode", "hold"),
         # Aktivitätstyp der FIT-Session (Garmin-Connect-Kategorie): surfing | openwater.
         "activityType": settings.get("activity_type", "pumpfoil"),   # Rückfall wie DEFAULTS in settings.py
@@ -752,6 +761,10 @@ def list_devices(
             # Aufzeichnungsmodus pro Uhr: gesetzter Override, sonst User-Default (zur Anzeige).
             "record_mode": d.record_mode or udefault,
             "gnss_mode": d.gnss_mode or gdefault,
+            # Wake-up-Sensor (Wear): gesetzter Override (None = Standard) und was ohne ihn gilt —
+            # die UI zeigt „Standard (an/aus)" und kann den Override wieder entfernen.
+            "accel_wakeup": d.accel_wakeup if d.accel_wakeup in ACCEL_WAKEUP_MODES else None,
+            "accel_wakeup_standard": _accel_wakeup_standard(ustored),
             # FR55 & Co. werden bei 'full' automatisch auf 'lite' gekappt -> UI-Hinweis.
             "low_accel": _is_low_accel_model(d.part_number),
             # Eigene Layouts: kann diese Uhr sie überhaupt (Speicher) und hat sie einen Absturz
@@ -891,6 +904,31 @@ def set_device_water_lock(
     d.water_lock = mode
     db.commit()
     return {"ok": True, "water_lock": mode}
+
+
+@router.put("/{device_id}/accel-wakeup")
+def set_device_accel_wakeup(
+    device_id: int, body: dict,
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """Wake-up-Sensor (on|off|default) fuer EINE Uhr setzen — nur Wear OS, wirkt ab 1.2.33.
+
+    "default" entfernt den Override; dann gilt wieder Konto-Einstellung bzw. globaler Standard.
+    Das ist wichtig fuer die Einfuehrung: wer testet und zurueckstellt, soll spaeter automatisch
+    mitziehen, wenn der Standard umgestellt wird, statt auf seinem Test-Wert festzusitzen.
+    Greift beim naechsten Abgleich der Uhr (sie holt `/config`), kein Uhr-Update noetig.
+    """
+    d = db.get(models.DeviceToken, device_id)
+    if d is None or d.user_id != user.id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Gerät nicht gefunden")
+    if d.revoked_at is not None:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Gerät ist widerrufen")
+    mode = (body or {}).get("accel_wakeup")
+    if mode not in ACCEL_WAKEUP_MODES + ("default",):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Ungültiger Wert")
+    d.accel_wakeup = None if mode == "default" else mode
+    db.commit()
+    return {"ok": True, "accel_wakeup": d.accel_wakeup}
 
 
 def _partmap() -> dict:
