@@ -556,7 +556,7 @@ struct CommunityRow: View {
     // Pumpfoilen war). Je Teil nur, wenn hinterlegt — wie web/src/components/SessionCard.tsx.
     private var chipItems: [SessionChipItem] {
         sessionChipItems(sport: sportLabel, spot: item.spot, foil: foilChipText,
-                         setup: item.setup, device: item.device_label)
+                         setup: item.setup, device: item.device_label, placement: item.placement)
     }
 
     private var foilChipText: String {
