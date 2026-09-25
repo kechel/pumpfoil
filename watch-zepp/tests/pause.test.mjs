@@ -32,6 +32,8 @@ const uhr = new Function("stubs", `const o = { ${teile},
     state: null,
     _stopGps() {}, _stopAccel() {}, _accelAbonnieren() {},
     persistActive() {}, applyButton() {}, renderRecording() {}, _teilUpload() {},
+    // Seitenwechsel beim Pausieren gehoert zur Oberflaeche, nicht zur Zeitachse -> seiten.test.
+    _zustandGewechselt() {},
   });
 // canaryWrite/PHASE_* sind im Modul-Gueltigkeitsbereich — hier als globale Attrappen.
 globalThis.canaryWrite = () => {};
@@ -129,7 +131,7 @@ console.log("\n6) Fortsetzen loescht die Aufnahme NICHT");
     ...stubs };
     return o;`)({
       state: null,
-      _stopGps() {}, persistActive() {}, applyButton() {}, renderRecording() {}, _teilUpload() {},
+      _stopGps() {}, persistActive() {}, applyButton() {}, renderRecording() {}, _teilUpload() {}, _zustandGewechselt() {},
       // Anhalten wie auf der Uhr: abmelden, sonst nichts. Das Nachzaehlen aus der Dateigroesse
       // braucht es hier nicht — es gibt keine Datei.
       _stopAccel() { const s = this.state; s.accelSensor = null; s.accelCallback = null; },

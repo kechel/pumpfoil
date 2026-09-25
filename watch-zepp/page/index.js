@@ -887,6 +887,8 @@ Page(
       // browseAll = im Off-Foil-Zustand auch durch die On-Foil-Seiten blättern. _ringKey cached den
       // zuletzt gebauten Ring (Zustand + Layout-Schalter) — bei Config-Änderung auf null setzen.
       pages: [], offFoilPages: [], browseAll: true, _ringCache: null, _ringKey: null,
+      // Pausen-Seiten (F3) + klassische Pausen-Ansicht — wie Garmin `_setFor(:paused)`.
+      pausePages: [], pauseView: [12, 20, 2],
       // Update-Hinweis + Layout-Zustand. layoutsPref wird aus LocalStorage geladen (siehe init),
       // null = automatisch; layoutsServerDefault ist nur die Vorbelegung vom Server.
       updateVersion: "", layoutsPref: null, layoutsServerDefault: false,
@@ -1530,9 +1532,11 @@ Page(
         // und kein `layouts`-Wörterbuch (server/app/api/devices.py:_layouts_for_watch):
         //   [0,a,b,c]         klassische Seite mit drei Feld-IDs
         //   [1,bg,[elemente]] eigenes Layout, Hintergrund + Elemente inline
-        // `pausePages` wird BEWUSST nicht gelesen: die Zepp-App hat kein manuelles Pausieren
-        // (Taste halten = Stopp), der Zustand kann also nie eintreten.
+        // `pausePages`/`pauseView`: seit dem 24.09. gibt es die manuelle Pause, bis 25.09. wurden
+        // beide trotzdem nicht gelesen — in der Pause sah man nur die normalen Datenseiten.
         if (r && Array.isArray(r.pages) && r.pages.length) s.pages = r.pages;
+        if (r && Array.isArray(r.pausePages) && r.pausePages.length) s.pausePages = r.pausePages;
+        if (r && Array.isArray(r.pauseView) && r.pauseView.length) s.pauseView = r.pauseView;
         if (r && Array.isArray(r.offFoilPages) && r.offFoilPages.length) s.offFoilPages = r.offFoilPages;
         if (r && typeof r.browseAll !== "undefined") s.browseAll = !!r.browseAll;
         // Wert-Skalen der Layout-Grafiken (Puls-Zonen + Geschwindigkeitsspanne aus dem Profil).
@@ -2332,12 +2336,18 @@ Page(
     },
 
     // ---- Seiten-Ring je Zustand (F3) -----------------------------------------------------------
-    // Portiert von watch/source/RecordView.mc:_state/_setFor/_ring. Zepp kennt nur zwei Zustände
-    // (onFoil/offFoil) — ein manuelles Pausieren gibt es hier nicht, also auch kein :paused.
+    // Portiert von watch/source/RecordView.mc:_state/_setFor/_ring. Drei Zustaende wie dort:
+    // "p" (manuell pausiert, sticht alles), "on" (auf dem Foil), "off" (zwischen den Laeufen).
     _useLayouts() { const s = this.state; return s.layoutsPref === null ? !!s.layoutsServerDefault : !!s.layoutsPref; },
-    _setFor(onFoil) {
+    _zustand() { const s = this.state; return s.paused ? "p" : (s.foiling ? "on" : "off"); },
+    _setFor(z) {
       const s = this.state, dyn = this._useLayouts();
-      if (onFoil) {
+      if (z === "p") {
+        if (dyn && s.pausePages.length) return s.pausePages;
+        const f = s.pauseView || [];
+        return [[0, f[0] | 0, f[1] | 0, f[2] | 0]];
+      }
+      if (z === "on") {
         if (dyn && s.pages.length) return s.pages;
         const out = [];
         for (let i = 0; i < s.views.length; i++) { const v = s.views[i] || []; out.push([0, v[0] | 0, v[1] | 0, v[2] | 0]); }
@@ -2347,23 +2357,26 @@ Page(
       const f = s.offFoil || [];
       return [[0, f[0] | 0, f[1] | 0, f[2] | 0]];
     },
-    _ring(onFoil) {
-      const s = this.state;
-      const key = (onFoil ? "1" : "0") + (this._useLayouts() ? "1" : "0");
+    _ring() {
+      const s = this.state, z = this._zustand();
+      const key = z + (this._useLayouts() ? "1" : "0");
       if (s._ringCache && s._ringKey === key) return s._ringCache;
       // Einmal je Wechsel sagen, WORAUS der Ring gebaut wird. Genau diese Zeile fehlte, als Jans
       // Balance 2 klassische On-Foil-Seiten zeigte: so sieht man sofort, ob es an den gelieferten
       // Seiten (pages=0) oder am Schalter (layouts=off) liegt.
       try {
-        console.log("[pumpfoil] ring " + (onFoil ? "on-foil" : "off-foil")
+        console.log("[pumpfoil] ring " + (z === "p" ? "paused" : z === "on" ? "on-foil" : "off-foil")
           + " layouts=" + (this._useLayouts() ? "on" : "off")
           + " pages=" + s.pages.length + " offFoilPages=" + s.offFoilPages.length
+          + " pausePages=" + s.pausePages.length
           + " pref=" + String(s.layoutsPref) + " serverDefault=" + String(s.layoutsServerDefault));
       } catch (e) {}
-      let out = this._setFor(onFoil);
-      // „Auch die übrigen Seiten": im Off-Foil-Zustand hängen die On-Foil-Seiten hinten dran —
-      // feste Reihenfolge, vorhersehbar statt clever (RecordView.mc:150-162).
-      if (!onFoil && s.browseAll) out = out.concat(this._setFor(true));
+      let out = this._setFor(z);
+      // „Auch die übrigen Seiten": im Off-Foil-Zustand hängen die On-Foil-Seiten hinten dran,
+      // in der Pause die On- und Off-Foil-Seiten — feste Reihenfolge, vorhersehbar statt clever
+      // (RecordView.mc:_ring).
+      if (z === "off" && s.browseAll) out = out.concat(this._setFor("on"));
+      if (z === "p" && s.browseAll) out = out.concat(this._setFor("on"), this._setFor("off"));
       if (!out.length) out = [[0, 1, 0, 0]];
       s._ringCache = out; s._ringKey = key;
       return out;
@@ -2385,7 +2398,7 @@ Page(
       return Math.max(0, s.paused ? s.pauseBeiMs : roh);
     },
 
-    _ringLen() { const n = this._ring(this.state.foiling).length; return n > 0 ? n : 1; },
+    _ringLen() { const n = this._ring().length; return n > 0 ? n : 1; },
 
     /**
      * SEITEN WAEHREND DER AUFNAHME, von links nach rechts:
@@ -2603,7 +2616,8 @@ Page(
     _renderLayoutPage(entry, idx, count, recording) {
       const s = this.state, w = s.w;
       const els = (entry && Array.isArray(entry[2])) ? entry[2] : [];
-      const key = idx + "/" + count + "/" + (recording ? 1 : 0) + "/" + els.length + "/" + (entry[1] | 0);
+      const key = idx + "/" + count + "/" + (recording ? 1 : 0) + "/" + els.length + "/" + (entry[1] | 0)
+        + "/" + (s.paused ? 1 : 0);
       if (w.layKey === key && w.layDyn) { this._updateLayoutDyn(); return; }
       this._clearLayout();
       // Klassische Widgets leeren. Der Layout-Hintergrund deckt sie zwar ab (Zepp zeichnet in
@@ -2706,9 +2720,13 @@ Page(
           gfx.push(eintrag);
           continue;
         }
-        // typ 7 ("Pausiert") wird auf Zepp NIE gezeichnet: es gibt kein manuelles Pausieren, der
-        // Hinweis wäre also immer falsch. Genau wie Wear (paused = hart false), bis es eine Pause gibt.
-        if (typ === 7) continue;
+        // typ 7 ("Pausiert", Pflicht in Pausen-Layouts): nur, wenn WIRKLICH pausiert ist —
+        // blaettert man bei „alle Seiten" durch die Pausen-Layouts, waehrend aufgezeichnet wird,
+        // bleibt er weg (wie Garmin RecordView.mc, typ 7). Bis 25.09. hier hart uebersprungen.
+        if (typ === 7) {
+          if (s.paused) list.push(this._layText(ax, ay, fl, laySize(step), layColor(ci, 0x22d3ee), t("rec.paused")));
+          continue;
+        }
         if (typ !== 1 && typ !== 2 && typ !== 3) continue;
         const fid = (e.length > 6) ? (e[6] | 0) : 0;
         const txt = typ === 1 ? this.fieldValue(fid)[0]
@@ -2723,6 +2741,11 @@ Page(
         const wg = this._layText(ax, ay, fl, laySize(step), col, txt);
         list.push(wg);
         if (typ === 1) dyn.push([wg, fid, byVal, base]);
+      }
+      // Pausiert, aber das Layout hat den Pflicht-Hinweis nicht (Layout von vor F3): die Uhr
+      // blendet ihn selbst ein, oben mittig — sonst haelt man die stehenden Zahlen fuer live.
+      if (s.paused && !els.some((x) => x && (x[0] | 0) === 7)) {
+        list.push(this._layText(Math.round(DW / 2), Math.round(DH * 0.07), 0, laySize(2), 0x22d3ee, t("rec.paused")));
       }
       w.layW = list; w.layDyn = dyn; w.layGfx = gfx; w.layKey = key;
       w.layCanvas = gfx.length ? gfxCanvas : null;
@@ -2817,7 +2840,7 @@ Page(
       this._clearFoilBtns();
       this._clearAktionBtnsWennNoetig();
       this._clampPage();
-      const ring = this._ring(s.foiling), n = ring.length;
+      const ring = this._ring(), n = ring.length;
       if (this._istVerwerfen(s.page)) {
         // AKTIONSSEITE. Bewusst ohne Zeit und Strecke: hier soll niemand ueberlegen, ob sich die
         // Fahrt „gelohnt" hat. Die Zahlen stehen eine Seite weiter.
@@ -2891,8 +2914,15 @@ Page(
       // Das ist KEIN Wiederholen des Hinweises "Halten = STOPP", der hier zu Recht raus ist
       // (Jan, 13.09.): eine laufende Uhr ist ZUSTAND, und genau dafuer ist diese Zeile da.
       const laufzeit = mmss(Math.max(0, this._aktivMs() / 1000));
-      w.status.setProperty(hmUI.prop.TEXT, laufzeit + " · " + (s.fix ? "GPS ●" : t("gps.searching"))
-        + (s.foiling ? " · " + t("f.runActive") : ""));
+      // In der Pause steht „Pausiert" VORN, und der Stand des Teil-Uploads dahinter — die
+      // Aktionsseite, auf der er bisher stand, verlaesst die Uhr beim Pausieren ja sofort.
+      if (s.paused) {
+        w.status.setProperty(hmUI.prop.TEXT, t("rec.paused") + " · " + laufzeit
+          + (s.upStatus ? " · " + s.upStatus : ""));
+      } else {
+        w.status.setProperty(hmUI.prop.TEXT, laufzeit + " · " + (s.fix ? "GPS ●" : t("gps.searching"))
+          + (s.foiling ? " · " + t("f.runActive") : ""));
+      }
     },
     renderSummary() {
       const s = this.state, w = s.w, last = s.last || { dist: 0, dur: 0, avg: 0, max: 0 };
@@ -3266,6 +3296,7 @@ Page(
       this._stopAccel();
       this.persistActive();
       canaryWrite(PHASE_IDLE);   // in der Pause ist nichts „mitten in der Aufnahme"
+      this._zustandGewechselt();
       this.applyButton(); this.renderRecording();
       this._teilUpload();
     },
@@ -3287,7 +3318,21 @@ Page(
       this._accelAbonnieren();
       this.persistActive();
       canaryWrite(PHASE_RECORD);
+      this._zustandGewechselt();
       this.applyButton(); this.renderRecording();
+    },
+
+    /**
+     * Pause <-> Aufnahme: Ring des neuen Zustands von vorne + kurze Vibration, wie beim
+     * Foil-Wechsel und wie Garmin (`screenIdx = 0` + `_vibeSwitch`). Sonst stuende man nach dem
+     * Pausieren weiter auf der Aktionsseite und saehe von den Pausen-Seiten nichts (Jan, 25.09.).
+     */
+    _zustandGewechselt() {
+      const s = this.state;
+      s._ringKey = null; if (s.w) s.w.layKey = null;
+      s.page = ERSTE_DATENSEITE;
+      this._clearAktionBtnsWennNoetig();
+      this._vibrate();
     },
 
     /**
