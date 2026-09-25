@@ -39,7 +39,25 @@ jobs:
           cache: pip
       # [ml] = scipy/scikit-learn/pandas — die Detektions-/ML-Tests brauchen sklearn.
       - run: pip install -e ".[dev,ml]"
-      - run: pytest -q
+      # Ausgabe mitschreiben, damit der naechste Schritt sie melden kann. `pipefail`, sonst
+      # verschluckt `tee` den Rueckgabewert von pytest und ein roter Lauf saehe gruen aus.
+      - name: pytest
+        run: |
+          set -o pipefail
+          pytest -q 2>&1 | tee /tmp/pytest.log
+      # WARUM DAS HIER STEHT (25.09.2026): die Server-Tests waren ueber eine Woche rot, ohne dass
+      # es jemandem auffiel — und als es auffiel, war der Fehler nicht zu lesen. Den LOG eines
+      # Laufs gibt GitHub nur mit Anmeldung heraus; die Benachrichtigungs-Mail sagt bloss „Some
+      # jobs were not successful", und die oeffentlich lesbaren Annotationen sagten nur „Process
+      # completed with exit code 1". Also schreiben wir das Wesentliche selbst als Annotation:
+      # `::error::` erscheint oben am Lauf und ist ohne Anmeldung abrufbar. Zeilenumbrueche
+      # muessen als %0A maskiert werden, sonst bleibt nur die erste Zeile stehen.
+      - name: Fehler als Annotation melden
+        if: failure()
+        run: |
+          ausschnitt=$(grep -E "^(FAILED|ERROR)|short test summary|^E  " /tmp/pytest.log | head -40)
+          [ -n "$ausschnitt" ] || ausschnitt=$(tail -40 /tmp/pytest.log)
+          echo "::error title=pytest::$(printf '%s' "$ausschnitt" | sed ':a;N;$!ba;s/\n/%0A/g')"
 
   web:
     name: Web (tsc + build)
