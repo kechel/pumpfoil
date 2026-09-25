@@ -81,6 +81,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.material.icons.filled.Watch
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -556,7 +557,7 @@ fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, onClick: () -> 
                     // Sportart bekommt hier KEINEN Chip: eigene Sessions tragen das schon im
                     // Klassifikations-Badge in der Fußzeile (samt Datenqualität) — sonst doppelt.
                     SessionChips(sportClass = null, spot = s.placeName, foil = foilLabel,
-                        setup = s.setup, deviceLabel = s.deviceLabel)
+                        setup = s.setup, deviceLabel = s.deviceLabel, placement = s.placement)
                 }
                 // Track-Vorschau bleibt rechts im Kopf.
                 s.trackPreview?.let { tp ->
@@ -679,7 +680,10 @@ private fun Pill(text: String, accent: ChipAccent = ChipAccent.NORMAL) {
     val bg = when (accent) {
         ChipAccent.AMBER -> Amber500.copy(alpha = 0.15f)
         ChipAccent.BRAND -> Brand500.copy(alpha = 0.20f)
-        ChipAccent.NORMAL -> MaterialTheme.colorScheme.surfaceVariant
+        // NICHT surfaceVariant: das ist genau die Kartenfarbe, der Chip war unsichtbar und las sich
+        // wie loser Text (am Emulator gesehen, 25.09.2026). Ein leichter Ton ueber der Karte, wie
+        // bg-slate-800 auf der Karte in der PWA.
+        ChipAccent.NORMAL -> MaterialTheme.colorScheme.onSurface.copy(alpha = if (dark) 0.10f else 0.07f)
     }
     Text(text, style = MaterialTheme.typography.labelSmall,
         fontWeight = if (accent == ChipAccent.BRAND) FontWeight.SemiBold else FontWeight.Normal,
@@ -701,6 +705,7 @@ private fun SessionChips(
     foil: String?,
     setup: SessionSetup?,
     deviceLabel: String?,
+    placement: String? = null,
 ) {
     val chips = buildList {
         // Sportart-Kennzeichen: die Liste „was ist neu" zeigt seit 2026-07-31 alle Sportarten,
@@ -719,15 +724,44 @@ private fun SessionChips(
             // Groß-/Kleinschreibung).
             add(ChipSpec(name, if (name.contains("skateboard", ignoreCase = true)) ChipAccent.BRAND else ChipAccent.NORMAL))
         }
-        deviceLabel?.takeIf { it.isNotBlank() }?.let { add(ChipSpec(it)) }
+        // „Handy am Brett" ist der Sonderfall, den man auf den ersten Blick sehen soll — wie das
+        // Skateboard in Marken-Cyan und mit dem Zusatz (PWA SessionCard.tsx / lib/deviceLabel.ts).
     }
-    if (chips.isEmpty()) return
+    val geraet = deviceLabel?.takeIf { it.isNotBlank() }
+    if (chips.isEmpty() && geraet == null) return
     FlowRow(
         Modifier.padding(top = 3.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         chips.forEach { Pill(it.text, it.accent) }
+        geraet?.let { GeraeteAbzeichen(it, placement) }
+    }
+}
+
+/**
+ * Geraete-Abzeichen: Uhr-Symbol + Bezeichnung, „Handy am Brett" in Marken-Cyan mit Zusatz —
+ * dasselbe Bild wie die PWA (SessionCard.tsx), auf ALLEN Karten und in den Session-Details (Jan,
+ * 25.09.2026: „diesen badge meinte ich ueberall"). Der Sonderfall soll auf den ersten Blick
+ * auffallen, wie das Skateboard.
+ */
+@Composable
+fun GeraeteAbzeichen(label: String, placement: String?) {
+    val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val brett = placement == "board"
+    val fg = if (brett) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+    val bg = if (brett) Brand500.copy(alpha = 0.20f)
+             else MaterialTheme.colorScheme.onSurface.copy(alpha = if (dark) 0.10f else 0.07f)
+    Row(
+        Modifier.clip(RoundedCornerShape(6.dp)).background(bg).padding(horizontal = 6.dp, vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(Icons.Filled.Watch, contentDescription = null, tint = fg, modifier = Modifier.size(13.dp))
+        Spacer(Modifier.width(4.dp))
+        Text(if (brett) "$label · ${I18n.t("session.onBoard")}" else label,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = if (brett) FontWeight.SemiBold else FontWeight.Normal,
+            color = fg, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -887,7 +921,7 @@ fun CommunityItemRow(c: CommunityItem, modifier: Modifier = Modifier, onClick: (
                     }
                     val cFoil = c.foil?.let { foilLabel(it.brand, it.model, it.size, it.aspectRatio) }?.takeIf { it.isNotBlank() }
                     SessionChips(sportClass = c.sportClass, spot = c.spot, foil = cFoil,
-                        setup = c.setup, deviceLabel = c.deviceLabel)
+                        setup = c.setup, deviceLabel = c.deviceLabel, placement = c.placement)
                 }
                 Spacer(Modifier.width(8.dp))
                 c.trackPreview?.let { tp ->
@@ -1052,10 +1086,11 @@ object SessionsWunsch {
  */
 @Composable
 private fun VergleichKnopf(id: Int, aktiv: Boolean) {
-    TextButton(onClick = { CompareStore.toggle(id) },
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 0.dp, vertical = 2.dp)) {
-        Text("⇄ ${I18n.t("compare.short")}", style = MaterialTheme.typography.bodyMedium,
-            fontWeight = if (aktiv) FontWeight.SemiBold else FontWeight.Normal,
-            color = if (aktiv) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
-    }
+    // Kein TextButton: der bringt 48 dp Mindesthoehe mit und machte jede Karte sichtbar hoeher
+    // (am Emulator gesehen). Eine anklickbare Zeile mit etwas Innenabstand reicht als Ziel.
+    Text("⇄ ${I18n.t("compare.short")}", style = MaterialTheme.typography.bodyMedium,
+        fontWeight = if (aktiv) FontWeight.SemiBold else FontWeight.Normal,
+        color = if (aktiv) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(top = 4.dp).clip(RoundedCornerShape(6.dp))
+            .clickable { CompareStore.toggle(id) }.padding(vertical = 4.dp, horizontal = 2.dp))
 }
