@@ -596,6 +596,9 @@ data class HrProgress(
     val sports: List<SportCount> = emptyList(),
     val marks: List<Int> = emptyList(),
     val series: List<kotlinx.serialization.json.JsonObject> = emptyList(),
+    // Mit `grid=1`: das Raster (5-s-Schritte bis 5 min); je Session dann `g`, `dg`, `gn` als
+    // Listen entlang dieses Rasters — der Regler rechnet ohne Nachladen.
+    val grid: List<Int> = emptyList(),
 )
 
 // Monats-Facetten für den Sessions-Monatsfilter (GET /api/sessions/months).

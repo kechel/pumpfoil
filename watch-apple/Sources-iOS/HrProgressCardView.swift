@@ -74,6 +74,7 @@ struct HrProgressCardView: View {
             ForEach(m, id: \.mark) { eintrag in
                 abschnitt(eintrag)
             }
+            EigenerZeitpunktView(daten: daten, anstieg: anstieg, lang: lang)
             Text(Loc.t("hr.axisHint", lang)).font(.caption).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -123,18 +124,18 @@ struct HrProgressCardView: View {
 
     /// Pulswert beschriften. Im Anstiegs-Modus MIT Vorzeichen: „+18 bpm" liest sich als Zunahme,
     /// „18 bpm" waere von einem absoluten Wert nicht zu unterscheiden.
-    private static func bpm(_ v: Double, _ anstieg: Bool) -> String {
+    static func bpm(_ v: Double, _ anstieg: Bool) -> String {
         let n: Int = Int(v.rounded())
         return (anstieg && n > 0) ? "+\(n) bpm" : "\(n) bpm"
     }
 
     /// Rose wie in der PWA (#f43f5e) — Puls hat dort durchgehend diese Farbe.
-    private static let hrFarbe = Color(red: 0.957, green: 0.247, blue: 0.369)
+    static let hrFarbe = Color(red: 0.957, green: 0.247, blue: 0.369)
 
     /// ISO-Zeitstempel -> Sekunden seit 1970. WICHTIG: die uebrigen Verlaufs-Diagramme rechnen
     /// ebenfalls in SEKUNDEN (DAY_S = 86400, VerlaufView), nicht in Millisekunden — sonst passt die
     /// Zeitachse nicht zum Rest.
-    private static func zeit(_ iso: String) -> Double? {
+    static func zeit(_ iso: String) -> Double? {
         let mit = ISO8601DateFormatter()
         mit.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         if let d = mit.date(from: iso) { return d.timeIntervalSince1970 }
@@ -142,5 +143,81 @@ struct HrProgressCardView: View {
         ohne.formatOptions = [.withInternetDateTime]
         if let d = ohne.date(from: iso) { return d.timeIntervalSince1970 }
         return nil
+    }
+}
+
+
+/// Frei waehlbarer Zeitpunkt (Jan, 05.09.2026: „mich wuerde z. B. nach 45 Sekunden interessieren"),
+/// wie die PWA (HrProgress.tsx EigenerZeitpunkt). Der Regler laeuft OHNE Nachladen, der Server
+/// schickt das ganze Raster je Session. Die Wahl bleibt gemerkt (@AppStorage). Wie viele Sessions
+/// einen Wert haben, steht dabei — je weiter rechts, desto weniger Laeufe waren so lang.
+struct EigenerZeitpunktView: View {
+    let daten: HrProgress?
+    let anstieg: Bool
+    let lang: String
+    @AppStorage("hrMark") private var sek: Int = 45
+
+    private var raster: [Int] { daten?.grid ?? [] }
+    private var index: Int { raster.firstIndex(of: sek) ?? min(raster.count - 1, max(0, raster.count / 6)) }
+
+    var body: some View {
+        if raster.count >= 2 {
+            inhalt
+        }
+    }
+
+    private var punkte: [VPt] {
+        let i: Int = index
+        var out: [VPt] = []
+        for p in daten?.series ?? [] {
+            let liste: [Double?] = anstieg ? p.rasterAnstieg : p.raster
+            guard i < liste.count, let v = liste[i], anstieg || v > 0,
+                  let iso = p.started_at, let ts = HrProgressCardView.zeit(iso) else { continue }
+            out.append(VPt(t: ts, v: v))
+        }
+        return out.sorted { $0.t < $1.t }
+    }
+
+    private var regler: Binding<Double> {
+        Binding(get: { Double(index) }, set: { f in
+            let i: Int = max(0, min(raster.count - 1, Int(f.rounded())))
+            sek = raster[i]
+        })
+    }
+
+    @ViewBuilder private var inhalt: some View {
+        let pts: [VPt] = punkte
+        let gesamt: Int = daten?.series?.count ?? 0
+        Divider().padding(.vertical, 6)
+        Text(Loc.t("hr.pickTitle", lang)).font(.subheadline.weight(.semibold))
+        Text(Loc.t("hr.pickHint", lang)).font(.callout).foregroundStyle(.secondary)
+        HStack {
+            Slider(value: regler, in: 0...Double(raster.count - 1), step: 1).tint(HrProgressCardView.hrFarbe)
+            Text("\(raster[index]) s").font(.subheadline.weight(.bold)).monospacedDigit()
+        }
+        Text(Loc.t("hr.pickCount", lang).replacingOccurrences(of: "{n}", with: "\(pts.count)")
+                .replacingOccurrences(of: "{total}", with: "\(gesamt)")).font(.callout)
+        if pts.count < 2 {
+            Text(Loc.t("hr.pickNone", lang)).font(.callout).foregroundStyle(.secondary)
+        } else {
+            diagramm(pts)
+        }
+    }
+
+    private func diagramm(_ pts: [VPt]) -> some View {
+        let tiefster: Double = pts.map { $0.v }.min() ?? 0
+        let vmin: Double = anstieg ? tiefster - 4 : max(0, tiefster - 8)
+        let bereich: (Double, Double) = (pts.first?.t ?? 0, pts.last?.t ?? 1)
+        return VStack(alignment: .leading, spacing: 2) {
+            HStack {
+                Text(Loc.t("hr.afterSecondsExact", lang).replacingOccurrences(of: "{sec}", with: "\(raster[index])"))
+                    .font(.subheadline).fontWeight(.semibold)
+                Spacer()
+                Text(HrProgressCardView.bpm(pts.last?.v ?? 0, anstieg)).font(.subheadline).bold()
+                    .foregroundStyle(HrProgressCardView.hrFarbe)
+            }
+            LineChartView(pts: pts, color: HrProgressCardView.hrFarbe, domain: bereich, lang: lang, vmin: vmin)
+                .frame(height: 110)
+        }
     }
 }

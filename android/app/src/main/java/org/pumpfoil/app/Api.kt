@@ -500,8 +500,12 @@ object Api {
     }
 
     // Trainingskurve. `sport` leer = der Server nimmt die haeufigste Sportart des Nutzers.
-    suspend fun hrProgress(sport: String? = null): HrProgress = withContext(Dispatchers.IO) {
-        val s = sport?.let { "?sport=" + java.net.URLEncoder.encode(it, "UTF-8") } ?: ""
+    suspend fun hrProgress(sport: String? = null, grid: Boolean = false): HrProgress = withContext(Dispatchers.IO) {
+        val teile = buildList {
+            sport?.let { add("sport=" + java.net.URLEncoder.encode(it, "UTF-8")) }
+            if (grid) add("grid=1")
+        }
+        val s = if (teile.isEmpty()) "" else "?" + teile.joinToString("&")
         json.decodeFromString(HrProgress.serializer(),
             http("GET", "/api/sessions/hr-progress$s", null, auth = true))
     }

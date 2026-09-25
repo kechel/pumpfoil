@@ -280,7 +280,7 @@ private fun HrProgressCard() {
     // PWA, dort gemerkt in localStorage "hrRise" — hier je Sitzung, das reicht fuer einen Blick.
     var anstieg by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        daten = try { Api.hrProgress() } catch (_: Exception) { null }
+        daten = try { Api.hrProgress(grid = true) } catch (_: Exception) { null }
         geladen = true
     }
     val d = daten
@@ -359,9 +359,67 @@ private fun HrProgressCard() {
                     Modifier.fillMaxWidth().height(110.dp).padding(top = 4.dp, bottom = 10.dp),
                     vmin = vmin)
             }
+            EigenerZeitpunkt(d, anstieg)
             Text(I18n.t("hr.axisHint"), style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
+    }
+}
+
+/**
+ * Frei waehlbarer Zeitpunkt (Jan, 05.09.2026: „mich wuerde z. B. nach 45 Sekunden interessieren"),
+ * wie die PWA (HrProgress.tsx EigenerZeitpunkt). Der Regler laeuft OHNE Nachladen: der Server
+ * schickt je Session das ganze Raster, hier wird nur ausgewaehlt. Die Wahl bleibt gemerkt.
+ * Wie viele Sessions einen Wert haben, steht sichtbar dabei — je weiter rechts, desto weniger
+ * Laeufe waren so lang.
+ */
+@Composable
+private fun EigenerZeitpunkt(d: HrProgress, anstieg: Boolean) {
+    val raster = d.grid
+    if (raster.size < 2) return
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val prefs = remember { ctx.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE) }
+    var sek by remember { mutableStateOf(prefs.getInt("hrMark", 45).takeIf { it in raster } ?: raster[raster.size / 6]) }
+    val i = raster.indexOf(sek).coerceAtLeast(0)
+    fun wert(s: kotlinx.serialization.json.JsonObject): Double? =
+        (s[if (anstieg) "dg" else "g"] as? kotlinx.serialization.json.JsonArray)
+            ?.getOrNull(i)?.jsonPrimitive?.doubleOrNull
+    val pts = remember(d, anstieg, i) {
+        d.series.mapNotNull { s ->
+            val t = s["started_at"]?.jsonPrimitive?.contentOrNull?.let { epochMsIso(it) }
+            val v = wert(s)
+            if (t != null && v != null && (anstieg || v > 0)) Pt(t, v) else null
+        }.sortedBy { it.t }
+    }
+    androidx.compose.material3.HorizontalDivider(Modifier.padding(vertical = 8.dp))
+    Text(I18n.t("hr.pickTitle"), style = MaterialTheme.typography.titleSmall)
+    Text(I18n.t("hr.pickHint"), style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp, bottom = 4.dp))
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Slider(
+            value = i.toFloat(), onValueChange = { f ->
+                val neu = raster[f.roundToInt().coerceIn(0, raster.size - 1)]
+                if (neu != sek) { sek = neu; prefs.edit().putInt("hrMark", neu).apply() }
+            },
+            valueRange = 0f..(raster.size - 1).toFloat(), steps = (raster.size - 2).coerceAtLeast(0),
+            colors = androidx.compose.material3.SliderDefaults.colors(thumbColor = HR_FARBE, activeTrackColor = HR_FARBE),
+            modifier = Modifier.weight(1f),
+        )
+        Text("$sek s", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(start = 8.dp))
+    }
+    Text(I18n.t("hr.pickCount").replace("{n}", "${pts.size}").replace("{total}", "${d.series.size}"),
+        style = MaterialTheme.typography.bodyMedium)
+    if (pts.size < 2) {
+        Text(I18n.t("hr.pickNone"), style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
+    } else {
+        val vmin = if (anstieg) pts.minOf { it.v } - 4 else (pts.minOf { it.v } - 8).coerceAtLeast(0.0)
+        Row(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(I18n.t("hr.afterSecondsExact").replace("{sec}", "$sek"), style = MaterialTheme.typography.labelLarge)
+            Text(bpmText(pts.last().v, anstieg), style = MaterialTheme.typography.labelLarge, color = HR_FARBE)
+        }
+        LineChart(pts, HR_FARBE, Pair(pts.first().t, pts.last().t),
+            Modifier.fillMaxWidth().height(110.dp).padding(top = 4.dp, bottom = 10.dp), vmin = vmin)
     }
 }
 

@@ -255,6 +255,9 @@ struct HrProgress: Codable {
     let sports: [SportCount]?
     let marks: [Int]?
     let series: [HrSeriesPoint]?
+    // Mit `grid=1`: das Raster (5-s-Schritte bis 5 min); je Punkt dann `raster`/`rasterAnstieg`
+    // entlang dieses Rasters — der Regler rechnet ohne Nachladen.
+    let grid: [Int]?
 }
 
 // Ein Punkt der Serie. Der Server liefert DYNAMISCHE Schluessel je Marke (`hr60`, `n60`, …), die
@@ -270,6 +273,9 @@ struct HrSeriesPoint: Codable, Identifiable {
     /// Marke (Sekunden) -> ANSTIEG gegenueber dem Puls zu Beginn desselben Laufs (`d<marke>`).
     /// Fehlt, wenn kein Lauf einen Start-Puls hatte — dann zeigt die Umschaltung dort nichts.
     let anstieg: [Int: Double]
+    /// Mit `grid=1`: Puls bzw. Anstieg je Rasterstelle (`g`, `dg`), nil = kein Lauf so lang.
+    let raster: [Double?]
+    let rasterAnstieg: [Double?]
 
     var id: Int { session_id ?? 0 }
 
@@ -287,9 +293,16 @@ struct HrSeriesPoint: Codable, Identifiable {
         var v: [Int: Double] = [:]
         var n: [Int: Int] = [:]
         var a: [Int: Double] = [:]
+        var g: [Double?] = []
+        var dg: [Double?] = []
         for k in c.allKeys {
             let name: String = k.stringValue
             if name == "session_id" { sid = try? c.decode(Int.self, forKey: k); continue }
+            // Raster-Listen zuerst: "dg" finge sonst die Pruefung auf "d<marke>" ein (Int("g") ist
+            // nil, es passierte also nichts — aber so steht es ausdruecklich da).
+            if name == "g" { g = (try? c.decode([Double?].self, forKey: k)) ?? []; continue }
+            if name == "dg" { dg = (try? c.decode([Double?].self, forKey: k)) ?? []; continue }
+            if name == "gn" { continue }
             if name == "started_at" { ts = try? c.decode(String.self, forKey: k); continue }
             if name.hasPrefix("hr"), let m = Int(name.dropFirst(2)) {
                 v[m] = try? c.decode(Double.self, forKey: k)
@@ -308,6 +321,8 @@ struct HrSeriesPoint: Codable, Identifiable {
         werte = v
         laeufe = n
         anstieg = a
+        raster = g
+        rasterAnstieg = dg
     }
 
     func encode(to encoder: Encoder) throws {
