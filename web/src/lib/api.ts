@@ -306,6 +306,11 @@ export interface SessionSummary {
   // Lage-Ansicht sinnvoll), "phone" = am Körper, null = Uhr oder unbekannt. Setzen dürfen das
   // nur Admins — deshalb braucht die Ansicht selbst kein zweites Gate.
   placement?: string | null;
+  // „Ort verbergen": `ort_verborgen` = der Server hat Ort und Spur nach Point Nemo
+  // versetzt (auch fuer den Besitzer). `ort_sichtbarkeit` ist der EIGENE Zustand
+  // dieser Aufnahme: null = wie im Profil, "show", "hide".
+  ort_verborgen?: boolean;
+  ort_sichtbarkeit?: string | null;
   // Aussortierte Läufe als Zeitfenster [[start_ms, end_ms], …] (ms ab Session-Start).
   // Nur die Auswertung ist betroffen — Rohdaten bleiben, jederzeit zurücknehmbar.
   excluded_ranges?: number[][];
@@ -1442,6 +1447,8 @@ export const api = {
     stab_id?: number | null; mast_len_cm?: number | null; shim_deg?: number | null; board_id?: number | null;
     // "board" | "phone" | "" — nur Admins, der Server weist alle anderen mit 403 ab.
     placement?: string;
+    // „Ort verbergen" fuer diese Aufnahme: "" = wie im Profil, "show", "hide".
+    ort_sichtbarkeit?: string;
     // Montage-Drehung 0/90/180/270 — ebenfalls nur Admins.
     attitude_rot_deg?: number }) =>
     req<SessionSummary>(`/api/sessions/${id}/meta`, {

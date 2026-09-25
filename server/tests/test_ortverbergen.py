@@ -263,3 +263,23 @@ def test_sql_und_python_sagen_dasselbe(client):
     finally:
         db.close()
     assert laut_sql == laut_python == {a, b}, (laut_sql, laut_python, {"a": a, "b": b, "c": c})
+
+
+def test_umschalter_am_endpunkt(client):
+    """Der Schalter in der Session: "" muss NULL ergeben („wie im Profil"), nicht "show"."""
+    kopf = _konto(client, "ort-schalter@b.de")
+    uid = client.get("/api/auth/me", headers=kopf).json()["id"]
+    sid = _session_mit_spur(uid)
+
+    r = client.patch(f"/api/sessions/{sid}/meta", headers=kopf, json={"ort_sichtbarkeit": "hide"})
+    assert r.status_code == 200 and r.json()["ort_verborgen"] is True
+
+    r = client.patch(f"/api/sessions/{sid}/meta", headers=kopf, json={"ort_sichtbarkeit": ""})
+    assert r.status_code == 200
+    assert r.json()["ort_sichtbarkeit"] in (None, ""), "leer heisst „wie im Profil\", nicht „zeigen\""
+    # Und das ist der Unterschied: jetzt greift das Profil wieder.
+    client.put("/api/settings", headers=kopf, json={"hide_location": True})
+    assert client.get(f"/api/sessions/{sid}", headers=kopf).json()["ort_verborgen"] is True
+
+    r = client.patch(f"/api/sessions/{sid}/meta", headers=kopf, json={"ort_sichtbarkeit": "quatsch"})
+    assert r.status_code == 400

@@ -323,6 +323,9 @@ class IncludeRangeIn(BaseModel):
 class SessionMetaIn(BaseModel):
     # Nur mitgeschickte Felder werden geändert. "" = leeren.
     caption: str | None = None
+    # „Ort verbergen" fuer DIESE Aufnahme: "" = wie im Profil, "show" = zeigen, "hide" =
+    # verbergen. Drei Zustaende mit Absicht — s. models.Session.ort_sichtbarkeit.
+    ort_sichtbarkeit: str | None = None
     youtube_url: str | None = None
     # Foil dieser Session (Foil.id). null = zurück auf Standard-Foil des Nutzers.
     foil_id: int | None = None
