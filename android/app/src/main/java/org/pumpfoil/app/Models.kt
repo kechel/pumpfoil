@@ -23,6 +23,11 @@ data class PairedDevice(
     // eigene Wahl, die Uhr faehrt die Voreinstellung "best" (alle Systeme, bestes Band).
     // Mehr Systeme finden die Position schneller und zuverlaessiger, kosten aber Akku.
     @SerialName("gnss_mode") val gnssMode: String? = null,
+    // Wassersperre je Uhr (auto|on|off) — nicht Garmin. Wirksamer Wert wie in /config.
+    @SerialName("water_lock") val waterLock: String? = null,
+    // Wake-up-Sensor je Uhr (nur Wear OS): gesetzter Override (null = Standard) und was ohne ihn gilt.
+    @SerialName("accel_wakeup") val accelWakeup: String? = null,
+    @SerialName("accel_wakeup_standard") val accelWakeupStandard: String = "off",
     // Wie viele Sessions an diesem Eintrag haengen. 0 = fehlgeschlagener Pairing-Versuch, den man
     // gefahrlos entfernen darf; sonst nur ausblenden (sonst verliert die Session ihr Geraet).
     val sessions: Int = 0,

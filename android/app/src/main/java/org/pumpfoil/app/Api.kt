@@ -1175,6 +1175,19 @@ object Api {
         Unit
     }
 
+    // Wassersperre je Uhr (auto|on|off). Nicht fuer Garmin — dort hat der Aufnahme-Bildschirm
+    // gar keine Tipp-Behandlung.
+    suspend fun setDeviceWaterLock(id: Int, mode: String): Unit = withContext(Dispatchers.IO) {
+        http("PUT", "/api/devices/$id/water-lock", buildJsonObject { put("water_lock", mode) }.toString(), auth = true)
+        Unit
+    }
+
+    // Wake-up-Sensor je Uhr (on|off|default). Nur Wear OS; "default" entfernt den Override.
+    suspend fun setDeviceAccelWakeup(id: Int, mode: String): Unit = withContext(Dispatchers.IO) {
+        http("PUT", "/api/devices/$id/accel-wakeup", buildJsonObject { put("accel_wakeup", mode) }.toString(), auth = true)
+        Unit
+    }
+
     // Companion-Pairing: eingeloggte Phone-App mintet ein Device-Token für die Wear-Uhr.
     suspend fun mintDeviceToken(label: String = "Wear OS"): String = withContext(Dispatchers.IO) {
         val l = java.net.URLEncoder.encode(label, "UTF-8")
