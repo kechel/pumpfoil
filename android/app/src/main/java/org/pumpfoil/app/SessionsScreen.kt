@@ -592,6 +592,7 @@ fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, onClick: () -> 
                 // um Avatar-Breite (40) + Spacer (10) einrücken.
                 Box(Modifier.padding(start = 50.dp)) { SessionStatsRow(a, m) }
             }
+            Box(Modifier.padding(start = 50.dp)) { VergleichKnopf(s.id, inCompare) }
             // Fußzeile für Transfer-/Status-/Klassifikations-Badge (Like ist unter dem Avatar).
             val classified = isClassified(s.sportClass, s.dataQuality)
             if (s.transferTo != null || s.status != "analyzed" || classified || s.needsClassification) {
@@ -919,6 +920,7 @@ fun CommunityItemRow(c: CommunityItem, modifier: Modifier = Modifier, onClick: (
                     stats.forEach { Text(it, style = MaterialTheme.typography.bodySmall, maxLines = 1) }
                 }
             }
+            VergleichKnopf(c.id, inCompare)
             // Like ist jetzt unter dem Avatar (nicht mehr eigene Fußzeile).
         }
     }
@@ -1040,4 +1042,20 @@ object SessionsWunsch {
     private var filter: String? = null
     fun setzeFilter(f: String) { filter = f }
     fun abholen(): String? { val f = filter; filter = null; return f }
+}
+
+
+/**
+ * „Vergleichen" als sichtbarer Knopf bei den Zahlen der Karte (PWA SessionCard.tsx, 24.09.2026:
+ * „the button that marks it for comparison sits next to the numbers now and says what it does").
+ * Das lange Druecken bleibt, ist aber unsichtbar — ein Knopf mit Beschriftung sagt, dass es geht.
+ */
+@Composable
+private fun VergleichKnopf(id: Int, aktiv: Boolean) {
+    TextButton(onClick = { CompareStore.toggle(id) },
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 0.dp, vertical = 2.dp)) {
+        Text("⇄ ${I18n.t("compare.short")}", style = MaterialTheme.typography.bodyMedium,
+            fontWeight = if (aktiv) FontWeight.SemiBold else FontWeight.Normal,
+            color = if (aktiv) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+    }
 }
