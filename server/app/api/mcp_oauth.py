@@ -439,3 +439,57 @@ def widerrufen(token: str = Form(...), db: Session = Depends(get_db)):
         zeile.revoked_at = _jetzt()
         db.commit()
     return {}
+
+
+# --- Was der Nutzer im Profil sieht ------------------------------------------------------------
+
+@router.get("/api/mcp/status")
+def status(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+    """Welche Agenten gerade Zugriff haben — und die Adresse zum Eintragen.
+
+    Dieselbe Idee wie die Liste der geteilten Aufnahmen: man kann nur zumachen, was man sieht.
+    """
+    zeilen = (db.query(models.OAuthToken)
+                .filter(models.OAuthToken.user_id == user.id,
+                        models.OAuthToken.revoked_at.is_(None),
+                        models.OAuthToken.expires_at > _jetzt())
+                .order_by(models.OAuthToken.created_at.desc()).all())
+    namen = {c.client_id: (c.client_name or c.client_id)
+             for c in db.query(models.OAuthClient).filter(
+                 models.OAuthClient.client_id.in_([z.client_id for z in zeilen]))} if zeilen else {}
+    # Ein Client kann mehrere gueltige Refresh-Tokens haben (mehrere Rechner). Der Nutzer denkt
+    # aber in „welches Programm", nicht in „welches Token" — deshalb je Client eine Zeile.
+    je_client: dict[str, dict] = {}
+    for z in zeilen:
+        eintrag = je_client.setdefault(z.client_id, {
+            "client_id": z.client_id,
+            "name": namen.get(z.client_id, z.client_id),
+            "seit": z.created_at.isoformat(),
+            "zuletzt": None,
+            "zugaenge": 0,
+        })
+        eintrag["zugaenge"] += 1
+        if z.created_at.isoformat() < eintrag["seit"]:
+            eintrag["seit"] = z.created_at.isoformat()
+        letzte = (z.last_used_at or z.created_at).isoformat()
+        if eintrag["zuletzt"] is None or letzte > eintrag["zuletzt"]:
+            eintrag["zuletzt"] = letzte
+    return {"url": RESOURCE, "scope": SCOPE, "verbunden": list(je_client.values())}
+
+
+@router.delete("/api/mcp/verbindungen/{client_id}")
+def verbindung_schliessen(client_id: str,
+                          user: models.User = Depends(current_user),
+                          db: Session = Depends(get_db)) -> dict:
+    """Einen Agenten wieder aussperren. Gilt fuer ALLE seine Tokens auf diesem Konto.
+
+    Ein schon ausgegebenes Access-Token laesst sich nicht zurueckholen — es steht nicht in der DB.
+    Es laeuft nach spaetestens 15 Minuten ab; das sagt die Oberflaeche auch so.
+    """
+    n = (db.query(models.OAuthToken)
+           .filter(models.OAuthToken.user_id == user.id,
+                   models.OAuthToken.client_id == client_id,
+                   models.OAuthToken.revoked_at.is_(None))
+           .update({"revoked_at": _jetzt()}, synchronize_session=False))
+    db.commit()
+    return {"geschlossen": n, "nachwirkzeit_s": int(ACCESS_TTL.total_seconds())}

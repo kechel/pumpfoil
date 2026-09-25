@@ -55,6 +55,7 @@ import Home from "./pages/Home";
 import History from "./pages/History";
 import Settings from "./pages/Settings";
 import LinkedAccounts from "./pages/LinkedAccounts";
+import OAuthConsent from "./pages/OAuthConsent";
 import Sessions from "./pages/Sessions";
 import CurrentFeedbackRequest from "./pages/CurrentFeedbackRequest";
 import AllSessionsRedirect from "./pages/AllSessionsRedirect";
@@ -186,6 +187,10 @@ const router = createBrowserRouter([
       { path: "onboarding", element: <Onboarding /> },
       { path: "einstellungen", element: <Settings /> },
       { path: "konten", element: <LinkedAccounts /> },
+      // Zustimmungsseite des eigenen OAuth-Servers. IM App-Rahmen, damit sie aussieht wie der
+      // Rest und der Nutzer sieht, wo er ist — wer aus einem fremden Programm hierher springt,
+      // soll Pumpfoil erkennen und nicht ein nacktes Formular.
+      { path: "/oauth/consent", element: <OAuthConsent /> },
       { path: "vergleich", element: <Compare /> },
       { path: "sessions/:id", element: <SessionDetail /> },
       { path: "sessions/:id/label", element: <Labeling /> },

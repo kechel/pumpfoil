@@ -73,6 +73,7 @@ export default function LinkedAccounts() {
         <SuuntoCard />
         <XiaomiHinweis />
         <StravaCard />
+        <McpCard />
       </div>
       <div className="mt-6">
         <p className="mb-1.5 text-xs font-medium text-slate-400">{t("linked.platformsTitle")}</p>
@@ -509,6 +510,84 @@ function StravaCard() {
         </div>
       )}
       {msg && <p className="mt-2 text-xs text-slate-400">{msg}</p>}
+    </Card>
+  );
+}
+
+
+/**
+ * KI-Zugang (MCP) — die Adresse zum Eintragen, und wer gerade Zugriff hat.
+ *
+ * Steht bewusst bei den verknuepften Konten und nicht in den Einstellungen: es ist dieselbe Art
+ * Entscheidung wie „COROS darf meine Trainings schicken", nur andersherum. Wer hier landet, sucht
+ * Verbindungen nach aussen.
+ *
+ * Die Liste ist der wichtigere Teil. Ein Zugang, den man genehmigt und danach nie wiedersieht,
+ * ist der Normalfall — man kann nur zumachen, was man sieht (dieselbe Ueberlegung wie bei den
+ * geteilten Aufnahmen, 25.09.2026).
+ */
+function McpCard() {
+  const { t } = useI18n();
+  const [st, setSt] = useState<Awaited<ReturnType<typeof api.mcpStatus>> | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [kopiert, setKopiert] = useState(false);
+  const laden = () => { api.mcpStatus().then(setSt).catch(() => {}); };
+  useEffect(laden, []);
+  if (!st) return null;
+
+  async function schliessen(clientId: string) {
+    setBusy(clientId);
+    try { await api.mcpVerbindungSchliessen(clientId); laden(); }
+    catch { /* stehen lassen, der naechste Versuch geht */ }
+    finally { setBusy(null); }
+  }
+
+  return (
+    <Card className="p-5">
+      <h3 className="mb-1 flex items-center gap-2 font-semibold"><LinkIcon className="h-4 w-4 text-brand-400" /> {t("mcp.cardTitle")}</h3>
+      <p className="mb-3 text-sm text-slate-300">{t("mcp.cardHint")}</p>
+
+      <p className="mb-1 text-xs font-medium text-slate-400">{t("mcp.cardUrlLabel")}</p>
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <code className="break-all rounded-lg bg-slate-900/70 px-2.5 py-1.5 text-sm text-slate-200">{st.url}</code>
+        <button
+          type="button"
+          onClick={() => { navigator.clipboard?.writeText(st.url).then(() => setKopiert(true)).catch(() => {}); }}
+          className="rounded-lg border border-slate-700 px-2.5 py-1.5 text-sm text-slate-200 hover:bg-slate-800"
+        >
+          {kopiert ? t("mcp.copied") : t("mcp.copy")}
+        </button>
+      </div>
+
+      <p className="mb-3 text-sm text-slate-300">{t("mcp.cardScope")}</p>
+
+      {st.verbunden.length === 0 ? (
+        <p className="text-sm text-slate-400">{t("mcp.none")}</p>
+      ) : (
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-slate-400">{t("mcp.connectedTitle")}</p>
+          {st.verbunden.map((v) => (
+            <div key={v.client_id} className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-slate-800 px-3 py-2">
+              <span className="font-medium text-slate-200">{v.name}</span>
+              <span className="text-xs text-slate-400">
+                {t("mcp.since", { d: new Date(v.seit).toLocaleDateString() })}
+                {v.zuletzt ? ` · ${t("mcp.last", { d: new Date(v.zuletzt).toLocaleDateString() })}` : ""}
+              </span>
+              <button
+                type="button" disabled={busy === v.client_id}
+                onClick={() => schliessen(v.client_id)}
+                className="ml-auto rounded-lg border border-slate-700 px-2.5 py-1 text-sm text-slate-200 hover:bg-slate-800 disabled:opacity-50"
+              >
+                {t("mcp.revoke")}
+              </button>
+            </div>
+          ))}
+          {/* Ehrlich bleiben: ein schon ausgegebenes Zugangs-Token laesst sich nicht
+              zurueckholen, es laeuft nur ab. Das steht hier, statt „sofort gesperrt" zu
+              behaupten. */}
+          <p className="text-xs text-slate-400">{t("mcp.revokeNote")}</p>
+        </div>
+      )}
     </Card>
   );
 }
