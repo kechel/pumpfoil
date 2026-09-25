@@ -2,6 +2,8 @@ import Foundation
 
 // Spiegelt die API-Schemas (snake_case wie vom Server geliefert).
 struct Profile: Codable {
+    // Eigene Nutzer-ID — fuer den Link auf die eigene Foiler-Seite (/foiler/<id>).
+    let id: Int?
     let email: String
     let display_name: String?
     let avatar_url: String?
@@ -978,6 +980,10 @@ struct SessionDetail: Codable, Identifiable {
     let merged_count: Int?   // >0 -> aus mehreren Sessions zusammengeführt
     let device_label: String?  // Aufzeichnungs-Uhr (Kurzform) für das Badge
     let tz: String?            // IANA-Zeitzone des Spots — Uhrzeiten in Ortszeit anzeigen
+    // „Ort verbergen": `ort_verborgen` = der Server hat Ort und Spur nach Point Nemo versetzt (auch
+    // fuer den Besitzer); `ort_sichtbarkeit` ist die EIGENE Wahl: nil/"" = wie im Profil, show, hide.
+    let ort_sichtbarkeit: String?
+    let ort_verborgen: Bool?
     // Aussortierte Zeitfenster [[start_ms, end_ms], …] (ms ab Session-Start, gleiche Basis wie
     // trim_*). Optional, damit ältere Server-Antworten ohne das Feld weiter dekodieren.
     let excluded_ranges: [[Int]]?

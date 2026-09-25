@@ -51,6 +51,11 @@ struct SettingsView: View {
             zonenSection
             spZonenSection
             homespotSection
+            // Was sehen andere von mir — oeffentliche Foiler-Seite und „Ort verbergen" direkt
+            // untereinander, wie in der PWA. Beide speichern sofort, nicht ueber „Speichern".
+            OeffentlicheSeiteSection(lang: lang)
+            OrtVerbergenSection(lang: lang)
+            GeteilteAufnahmenSection(lang: lang)
             designSection
             pumpUnitSection
             sensitivitySection
@@ -461,6 +466,162 @@ struct SettingsView: View {
                 "notify_prefs": ["like": nLike, "analyzed": nAnalyzed, "record": nRecord, "chat": nChat],
             ])
             saved = true
+        }
+    }
+}
+
+
+// MARK: - Privatsphaere (portiert aus der PWA am 25.09.2026, s. Android PrivatsphaereKarten.kt)
+//
+// Jede Karte laedt selbst und speichert sofort — wie in der PWA. Eigene Structs statt Properties
+// von SettingsView: der Type-Checker prueft sie getrennt (s. Kommentar ueber `body`).
+
+private let pubprofFelder = ["join", "watch", "foil", "homespot", "records", "media", "spots",
+                             "sessions", "titles", "channel"]
+
+/// Oeffentliche Foiler-Seite: Hauptschalter + Einzelschalter. Der SERVER entscheidet, was auf der
+/// Seite landet; die Karte schreibt nur und filtert nicht selbst. Die Seite gibt es nur im Web.
+struct OeffentlicheSeiteSection: View {
+    let lang: String
+    @State private var werte: [String: Bool]? = nil
+    @State private var eigeneId: Int = 0
+
+    var body: some View {
+        Group {
+            if let w = werte {
+                Section {
+                    Toggle(Loc.t("pubprof.enabled", lang), isOn: binding("enabled", w))
+                    if w["enabled"] == true {
+                        ForEach(pubprofFelder, id: \.self) { k in
+                            Toggle(Loc.t("pubprof.\(k)", lang), isOn: binding(k, w))
+                        }
+                        ansehenLink
+                    }
+                } header: {
+                    Text(Loc.t("pubprof.title", lang))
+                } footer: {
+                    Text(Loc.t("pubprof.hint", lang))
+                }
+            } else {
+                // Ohne sichtbaren Inhalt laeuft `.task` nie (s. Memory swiftui-leere-group-laedt-nicht).
+                Section(Loc.t("pubprof.title", lang)) { ProgressView() }
+            }
+        }
+        .task { await laden() }
+    }
+
+    @ViewBuilder private var ansehenLink: some View {
+        if eigeneId > 0, let url = URL(string: Api.baseURL + "/foiler/\(eigeneId)") {
+            Link(Loc.t("pubprof.view", lang), destination: url)
+        }
+    }
+
+    private func binding(_ k: String, _ w: [String: Bool]) -> Binding<Bool> {
+        Binding(get: { werte?[k] ?? true }, set: { v in setzen(k, v) })
+    }
+
+    private func setzen(_ k: String, _ v: Bool) {
+        guard let alt = werte else { return }
+        var neu = alt
+        neu[k] = v
+        werte = neu                               // sofort sichtbar, der Server bestaetigt danach
+        Task {
+            do { try await Api.saveSettings(["public_profile": neu]) } catch { werte = alt }
+        }
+    }
+
+    private func laden() async {
+        let s = (try? await Api.settings()) ?? [:]
+        let p = (s["public_profile"] as? [String: Any]) ?? [:]
+        var w: [String: Bool] = [:]
+        // Fehlt ein Wert, gilt er als an — dieselbe Vorgabe wie settings.DEFAULTS.
+        for k in ["enabled"] + pubprofFelder { w[k] = (p[k] as? Bool) != false }
+        werte = w
+        if let prof = try? await Api.getProfile() { eigeneId = prof.id ?? 0 }
+    }
+}
+
+/// „Ort verbergen" als Voreinstellung fuer ALLE eigenen Aufnahmen, rueckwirkend. Der Text sagt
+/// ausdruecklich, was NICHT verborgen wird.
+struct OrtVerbergenSection: View {
+    let lang: String
+    @State private var an: Bool? = nil
+
+    var body: some View {
+        Section {
+            if an != nil {
+                Toggle(Loc.t("hideloc.switch", lang), isOn: Binding(get: { an ?? false }, set: { v in setzen(v) }))
+                Text(Loc.t("hideloc.scope", lang)).font(.callout).foregroundStyle(.secondary)
+                Text(Loc.t("hideloc.single", lang)).font(.callout).foregroundStyle(.secondary)
+            } else {
+                ProgressView()
+            }
+        } header: {
+            Text(Loc.t("hideloc.title", lang))
+        } footer: {
+            Text(Loc.t("hideloc.hint", lang))
+        }
+        .task { await laden() }
+    }
+
+    private func setzen(_ v: Bool) {
+        let alt = an
+        an = v
+        Task {
+            do { try await Api.saveSettings(["hide_location": v]) } catch { an = alt }
+        }
+    }
+
+    private func laden() async {
+        let s = (try? await Api.settings()) ?? [:]
+        an = (s["hide_location"] as? Bool) ?? false
+    }
+}
+
+/// Jede eigene Aufnahme mit aktivem Teilen-Link, mit Knopf zum Zuruecknehmen. Nichts geteilt ->
+/// keine Karte. Wann ein Link erzeugt oder ob er je geoeffnet wurde, wissen wir nicht — dafuer
+/// braeuchte es ein Zugriffsprotokoll, und das waere Tracking.
+struct GeteilteAufnahmenSection: View {
+    let lang: String
+    @State private var zeilen: [Api.GeteilterLink]? = nil
+
+    var body: some View {
+        Group {
+            if let z = zeilen, !z.isEmpty {
+                Section {
+                    ForEach(z) { link in zeile(link) }
+                } header: {
+                    Text(Loc.t("shared.title", lang))
+                } footer: {
+                    Text(Loc.t("shared.hint", lang))
+                }
+            } else if zeilen == nil {
+                // Platzhalter, damit `.task` ueberhaupt laeuft; danach verschwindet die Karte ganz.
+                Color.clear.frame(height: 0).listRowBackground(Color.clear)
+            }
+        }
+        .task { zeilen = (try? await Api.geteilteLinks()) ?? [] }
+    }
+
+    @ViewBuilder private func zeile(_ l: Api.GeteilterLink) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(TimeFmt.shortDate(l.started_at, l.tz) ?? "#\(l.id)").fontWeight(.medium)
+                if let p = l.place_name { Text(p).font(.callout).foregroundStyle(.secondary) }
+            }
+            Spacer()
+            Button(Loc.t("shared.revoke", lang)) { zuruecknehmen(l.id) }
+                .buttonStyle(.borderless)
+        }
+    }
+
+    private func zuruecknehmen(_ id: Int) {
+        Task {
+            do {
+                try await Api.revokeShareLink(id)
+                // Ohne Nachladen: die Zeile verschwindet sofort, das ist die Rueckmeldung.
+                zeilen = zeilen?.filter { $0.id != id }
+            } catch {}
         }
     }
 }

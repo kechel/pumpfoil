@@ -156,6 +156,22 @@ enum Api {
         let r: ShareLinkResp = try await request("/api/sessions/\(id)/share", method: "POST", body: nil, auth: true)
         return "https://pumpfoil.org" + r.path
     }
+    // Alle eigenen Aufnahmen mit aktivem Teilen-Link (Profil -> „Geteilte Aufnahmen").
+    struct GeteilterLink: Decodable, Identifiable {
+        let id: Int
+        let started_at: String?
+        let tz: String?
+        let place_name: String?
+    }
+    static func geteilteLinks() async throws -> [GeteilterLink] {
+        try await request("/api/sessions/geteilte", method: "GET", body: nil, auth: true)
+    }
+
+    // „Ort verbergen" fuer EINE Aufnahme: "" = wie im Profil, "show", "hide".
+    static func setOrtSichtbarkeit(_ id: Int, _ wert: String) async throws {
+        try await sendVoid("/api/sessions/\(id)/meta", method: "PUT", body: ["ort_sichtbarkeit": wert])
+    }
+
     static func revokeShareLink(_ id: Int) async throws {
         struct Ok: Decodable { let ok: Bool? }
         let _: Ok = try await request("/api/sessions/\(id)/share", method: "DELETE", body: nil, auth: true)
