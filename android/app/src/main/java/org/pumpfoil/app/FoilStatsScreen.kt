@@ -15,6 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -49,8 +50,11 @@ fun FoilStatsScreen(onBack: () -> Unit, onWatchStats: () -> Unit = {},
     var sortKey by remember { mutableStateOf("sessions") }
     var sortAsc by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        try { rows = Api.foilStats() } catch (e: Exception) { error = e.message; rows = emptyList() }
+    // „Nur mit Handy am Brett" — wie die PWA (FoilStats.tsx, Jan 22.09.), direkt ueber der Liste.
+    var nurBrett by remember { mutableStateOf(false) }
+    LaunchedEffect(nurBrett) {
+        rows = null
+        try { rows = Api.foilStats(nurBrett) } catch (e: Exception) { error = e.message; rows = emptyList() }
     }
 
     Scaffold(topBar = {
@@ -88,6 +92,13 @@ fun FoilStatsScreen(onBack: () -> Unit, onWatchStats: () -> Unit = {},
         }
         fun sel(k: String) { if (sortKey == k) sortAsc = !sortAsc else { sortKey = k; sortAsc = (k == "name") } }
         LazyColumn(Modifier.padding(pad).fillMaxSize().padding(horizontal = 12.dp)) {
+            item {
+                Row(Modifier.fillMaxWidth().clickable { nurBrett = !nurBrett }.padding(top = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(checked = nurBrett, onCheckedChange = { nurBrett = it })
+                    Text(I18n.t("foilStats.onlyBoard"), style = MaterialTheme.typography.bodyMedium)
+                }
+            }
             item {
                 Text(I18n.t("foilStats.hint"),
                     style = MaterialTheme.typography.bodyMedium,

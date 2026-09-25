@@ -46,6 +46,8 @@ struct FoilStatsView: View {
     @AppStorage(PumpUnit.storeKey) private var pumpUnit = "hz"
     @State private var rows: [FoilStat] = []
     @State private var loading = true
+    // „Nur mit Handy am Brett" — genauere Zahlen (fest montiert, schneller getaktet, mit Kreisel).
+    @State private var nurBrett = false
     @State private var error: String?
     @State private var sortKey = "sessions"
     @State private var sortAsc = false
@@ -81,11 +83,13 @@ struct FoilStatsView: View {
         .brandToolbar(Loc.t("profile.stats", lang))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { otherStatsToolbar }
-        .task { await load() }
+        .task(id: nurBrett) { await load() }
     }
 
     private var introSection: some View {
         Section {
+            // „Nur mit Handy am Brett" — wie die PWA (FoilStats.tsx, Jan 22.09.).
+            Toggle(Loc.t("foilStats.onlyBoard", lang), isOn: $nurBrett)
             Text(Loc.t("foilStats.hint", lang))
                 .font(.subheadline).foregroundStyle(.secondary)
             StatSortBar(options: sortOptions, sortKey: $sortKey, sortAsc: $sortAsc)
@@ -185,7 +189,7 @@ struct FoilStatsView: View {
 
     private func load() async {
         loading = true; defer { loading = false }
-        do { rows = try await Api.foilStats(); error = nil }
+        do { rows = try await Api.foilStats(nurBrett: nurBrett); error = nil }
         catch { self.error = error.localizedDescription }
     }
 }

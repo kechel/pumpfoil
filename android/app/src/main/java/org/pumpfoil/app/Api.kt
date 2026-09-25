@@ -1180,8 +1180,11 @@ object Api {
         }
     }
 
-    suspend fun foilStats(): List<FoilStat> = withContext(Dispatchers.IO) {
-        json.decodeFromString(ListSerializer(FoilStat.serializer()), http("GET", "/api/community/foil-stats", null, auth = true))
+    // `nurBrett`: nur Aufnahmen mit dem Handy am Brett — genauere Zahlen (fest montiert, schneller
+    // getaktet, mit Kreisel).
+    suspend fun foilStats(nurBrett: Boolean = false): List<FoilStat> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(FoilStat.serializer()),
+            http("GET", "/api/community/foil-stats" + (if (nurBrett) "?only_board=1" else ""), null, auth = true))
     }
 
     suspend fun watchStats(): List<WatchStat> = withContext(Dispatchers.IO) {
