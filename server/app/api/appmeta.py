@@ -163,7 +163,15 @@ _APP_META: dict[str, dict[str, str]] = {
         # Ein Nutzer mit 1.1.14 bekam dadurch einen Update-Hinweis, den Play nicht einloesen konnte
         # ("update button just opens google play and does not offer nor start update"). Deshalb: erst
         # eintragen, wenn Freigabe DA und Roll-out bei 100 % — "eingereicht" genuegt nie.
-        "latest": "1.1.31",   # LIVE 2026-09-22: Play-Mail „Your update to Pumpfoil, created on
+        "latest": "1.1.32",   # LIVE 2026-09-25: Play-Mail „Your update to Pumpfoil, created on
+        # Sep 24, 2026 at 9:05 AM GMT, is live in the store." Der Zeitstempel passt auf unsere
+        # Einreichung vom 24.09. 11:05 Berlin (Phone 1.1.32 + Wear 1.2.32) — Jans Meldung an dem
+        # Tag lautete „android ist schon hochgeladen und zur pruefung eingereicht".
+        # ⏱️ EINEN TAG Pruefung, wie schon bei 1.1.31; die drei davor brauchten je drei Tage.
+        # Inhalt: Pause mit Teil-Upload, Profil-Abgleich direkt nach dem Upload, Foil Scoot als
+        # Sportart, die Upload-Leiste des Handy-Recorders, Fortsetzen eines abgebrochenen
+        # Uploads beim naechsten Start und der Meilenstein-Puls auf den Community-Zahlen.
+        # ALT: "latest": "1.1.31",   # LIVE 2026-09-22: Play-Mail „Your update to Pumpfoil, created on
         # Sep 21, 2026 at 4:00 AM GMT, is live in the store." Der Zeitstempel passt EXAKT auf
         # unsere Einreichung vom 21.09. 06:00 Berlin (Phone 1.1.31/45 + Wear 1.2.31/1041).
         # ⏱️ EINEN TAG Pruefung — die schnellste Play-Runde bisher; 1.1.28, 1.1.29 und 1.1.30
@@ -284,7 +292,11 @@ _APP_META: dict[str, dict[str, str]] = {
         # 05.08. 15:06 GMT). Eingereicht war 1.2.20/1030 zusammen mit Phone 1.1.20/34.
         # Der gebaute Nachzug 1.2.21/1031 (Token-Heilung bei Config-401) ist NOCH NICHT
         # eingereicht — hier also nicht eintragen. Vorher: 1.2.18/1028, live seit 04.08.
-        "latest": "1.2.31",   # LIVE 2026-09-22, dieselbe Play-Mail wie android (ein Release,
+        "latest": "1.2.32",   # LIVE 2026-09-25, dieselbe Play-Mail wie android (ein Release,
+        # zwei Spuren). Fuer die UHR bringt 1.2.32: eine Aufnahme laesst sich pausieren, das schon
+        # Aufgezeichnete geht dabei hoch, und Profil-Aenderungen kommen direkt nach dem Upload an
+        # statt erst beim naechsten Start.
+        # ALT: "latest": "1.2.31",   # LIVE 2026-09-22, dieselbe Play-Mail wie android (ein Release,
         # eine applicationId, beide Spuren). Begruendung und Belege stehen bei "android".
         # ALT: "latest": "1.2.30",   # LIVE 2026-09-21, dieselbe Play-Mail wie android (Release erstellt
         # 18.09. 05:38 GMT) — eine Mail deckt immer beide Spuren ab. Beleg und der Hinweis, dass
@@ -649,26 +661,17 @@ IN_REVIEW: list[dict] = [
     # eigene Zeile mit ihren Versionen — so wie der Gyroskop-Punkt am 21.09. (ios/apple) und am
     # 22.09. (android/wear) zweimal steht. Das ist gewollt: der Leser sieht, was SEIN Update bringt.
 
-    # EINGEREICHT 24.09.2026 (Jans Meldung: „android ist schon hochgeladen und zur
-    # pruefung eingereicht"). Play und Wear gehen IMMER zusammen — eine Einreichung,
-    # eine Mail, zwei Spuren.
-    # EIN Eintrag fuer beide Spuren, und der Name muss WOERTLICH in `PRUEFER` stehen —
-    # `_note` schlaegt ihn dort nach und wirft sonst einen KeyError (am 24.09. genau so
-    # passiert: zwei getrennte Eintraege „Android phone" und „Wear OS" aus NAECHSTES
-    # uebernommen, `/api/app/releases` antwortete 500). In NAECHSTES sind sie getrennt
-    # erlaubt, weil dort kein Pruefer nachgeschlagen wird.
-    {"name": "Android phone + Wear OS", "version": "1.1.32 / 1.2.32",
-     "eingereicht": "2026-09-24",
-     "items": [
-         "A recording can be paused, and what is already recorded goes up while you wait.",
-         "Changes you make to your profile reach the watch right after an upload, not just at "
-         "the next start.",
-         "Foil Scoot is a sport you can pick for a session.",
-         "The phone recorder shows how far along an upload is, with a bar that moves.",
-         "An interrupted upload picks itself up when you open the app again.",
-         "When the community passes a round number — 1,000 foilers, 1,000 spots, a million "
-         "pumps — that number quietly celebrates for a while.",
-     ]},
+    # Android + Wear: 1.1.32 / 1.2.32 sind am 25.09. FREIGEGEBEN und stehen deshalb hier nicht
+    # mehr, sondern in `_APP_META` als live (eine Play-Mail deckt beide Spuren ab). Von den sechs
+    # eingereichten Punkten sind VIER in die Changelog-Tabelle gewandert, mit
+    # `versionen = {"android": "1.1.32", "wear": "1.2.32"}`, dazu ein Freigabe-Ereignis.
+    # Die beiden anderen standen schon ohne Versionen drin und gelten damit fuer alle:
+    # der Meilenstein-Puls (24.09., Web) und Foil Scoot (25.09., seit dem 22.09. in Web und
+    # Server). Sie ein zweites Mal mit Play-Version zu zeigen, waere derselbe Satz doppelt.
+    # Die vier uebrigen stehen bewusst ZWEIMAL in der Tabelle — am 25.09. einmal mit
+    # {ios, apple} und einmal mit {android, wear} —, weil es zwei getrennte Auslieferungen
+    # sind. Genau so schon beim Gyroskop-Punkt am 21./22.09.
+
     {"name": "Amazfit", "version": "1.0.12",
      # EINGEREICHT 24.09.2026: im Zepp-Entwicklerkonto steht 1.0.12 auf „Under Review (Can be
      # Withdrawn)", Application Time 2026.09.24; 1.0.11 daneben weiter „Approved".
