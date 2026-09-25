@@ -357,3 +357,53 @@ def test_lage_zwischenspeicher_verfaellt_bei_neuer_analyse():
     assert basis != schluessel("v2-windows-1", 5000, None, '[{"t_start_ms": 0}]')   # Trim
     assert basis != schluessel("v2-windows-1", 0, 180, '[{"t_start_ms": 0}]')       # Drehung
     assert basis != schluessel("v2-windows-1", 0, None, '[{"t_start_ms": 10}]')     # Laeufe
+
+
+def test_liste_traegt_den_besten_lauf_und_kann_laeufe_mitliefern(client):
+    """Jans Agent zog fuenfzig Mal `get_session`, nur um die laengste Lauf-Dauer zu bekommen."""
+    jwt = _konto(client, "mcp-liste@b.de")
+    ich = _user_id(client, jwt)
+    _session_anlegen(ich)
+    token = _zugang(client, jwt, _client_anmelden(client))
+    zeile = _ruf(client, token, "list_sessions")["sessions"][0]
+    for feld in ("bester_lauf_dauer_s", "bester_lauf_strecke_m", "bester_lauf_max_speed_mps"):
+        assert feld in zeile, f"{feld} fehlt in der Listenzeile"
+    # Ohne Schalter bleiben die Laeufe draussen, mit Schalter sind sie da.
+    assert "laeufe_einzeln" not in zeile
+    mit = _ruf(client, token, "list_sessions", {"mit_laeufen": True})["sessions"][0]
+    assert "laeufe_einzeln" in mit
+
+
+def test_laeufe_schalter_deckelt_die_menge(client):
+    """Mit allen Laeufen wird eine Zeile vielfach laenger — ein zu grosses Limit wuerde das
+    Kontextfenster des Agenten fuellen, und genau davor soll der Deckel schuetzen."""
+    from app.api import mcp as mcp_modul
+    jwt = _konto(client, "mcp-deckel@b.de")
+    ich = _user_id(client, jwt)
+    for _ in range(mcp_modul.MAX_MIT_LAEUFEN + 3):
+        _session_anlegen(ich)
+    token = _zugang(client, jwt, _client_anmelden(client))
+    # 50 angefragt -> auf MAX_MIT_LAEUFEN gedeckelt, und die Antwort sagt, wie es weitergeht.
+    r = _ruf(client, token, "list_sessions", {"mit_laeufen": True, "limit": 50})
+    assert len(r["sessions"]) == mcp_modul.MAX_MIT_LAEUFEN
+    assert "weiter" in r and "offset=" in r["weiter"]
+    # Ohne den Schalter gilt weiter das grosse Limit.
+    assert len(_ruf(client, token, "list_sessions", {"limit": 50})["sessions"]) > mcp_modul.MAX_MIT_LAEUFEN
+
+
+def test_kontingent_kappt_die_verbindung_nicht(client):
+    """Ein blankes 429 sah fuer den Client aus wie ein kaputter Server — der Zugang verschwand
+    danach ganz aus Jans Sitzung. Jetzt kommt eine gewoehnliche Antwort mit `isError`."""
+    from app.api import mcp as mcp_modul
+    jwt = _konto(client, "mcp-kontingent@b.de")
+    token = _zugang(client, jwt, _client_anmelden(client))
+    kopf = {"Authorization": f"Bearer {token}"}
+    anfrage = {"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+               "params": {"name": "get_stats", "arguments": {}}}
+    letzte = None
+    for _ in range(mcp_modul.LIMITS[1][0] + 2):    # ueber die Minuten-Stufe hinaus
+        letzte = client.post("/mcp", headers=kopf, json=anfrage)
+    assert letzte.status_code == 200, "429 als HTTP-Status wirft der Client den Server weg"
+    ergebnis = letzte.json()["result"]
+    assert ergebnis.get("isError") is True
+    assert "Verbindung bleibt bestehen" in ergebnis["content"][0]["text"]

@@ -27,7 +27,7 @@ from __future__ import annotations
 import json
 from datetime import date, datetime, timezone
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy import func
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -48,6 +48,9 @@ LIMITS = [(100, 3600), (20, 60)]
 # Jeder Lauf einzeln kostet Platz im Kontextfenster des Agenten. Mehr als das gibt eine Antwort
 # nicht her; wer mehr will, blaettert.
 MAX_SESSIONS = 50
+# Mit allen Laeufen einzeln wird eine Zeile schnell zehnmal so lang — eine Aufnahme mit 40 Laeufen
+# traegt 40 Bloecke. Deshalb ein eigenes, viel kleineres Limit fuer diesen Fall.
+MAX_MIT_LAEUFEN = 10
 
 
 def _eigene(db: Session, user_id: int):
@@ -159,7 +162,14 @@ WERKZEUGE = [
          "sportart": {"type": "string"},
          "spot": {"type": "string", "description": "Teil des Ortsnamens"},
          "limit": {"type": "integer", "minimum": 1, "maximum": MAX_SESSIONS},
-         "offset": {"type": "integer", "minimum": 0}}}},
+         "offset": {"type": "integer", "minimum": 0},
+         "mit_laeufen": {"type": "boolean",
+                         "description": "Jeden Lauf einzeln mitliefern statt nur die Summen. "
+                                        "Das ist VIEL mehr Text — deshalb gilt dann ein Limit "
+                                        "von hoechstens " + str(MAX_MIT_LAEUFEN) + " Aufnahmen "
+                                        "je Abruf. Fuer eine Uebersicht ueber viele Aufnahmen "
+                                        "reichen die Summen und der beste Lauf, die ohnehin in "
+                                        "jeder Zeile stehen."}}}},
     {"name": "get_session",
      "description": "Eine eigene Aufnahme mit allem, was wir dazu gerechnet haben: Kennzahlen, "
                     "Laeufe einzeln, Lage des Bretts je Lauf (falls das Handy am Brett sass), "
@@ -217,6 +227,13 @@ def _kurz(s: models.Session, ar: models.AnalysisResult | None) -> dict:
         "max_speed_mps": (ar.max_speed_mps if ar else None),
         "pumps": (ar.pump_count if ar else None),
         "erkennung": (ar.detection if ar else None),
+        # DER BESTE LAUF GEHOERT IN DIE ZEILE (25.09.2026). Jans Agent brauchte die laengste
+        # Lauf-Dauer je Aufnahme, fand sie nur in `get_session` und rief deshalb ueber fuenfzig
+        # Mal einzeln an — bis das Kontingent griff. Die Werte stehen als Spalten in derselben
+        # Analyse-Zeile, die hier ohnehin schon geladen ist: sie kosten nichts.
+        "bester_lauf_dauer_s": (ar.best_duration_s if ar else None),
+        "bester_lauf_strecke_m": (ar.best_distance_m if ar else None),
+        "bester_lauf_max_speed_mps": (ar.best_speed_mps if ar else None),
     }
 
 
@@ -234,13 +251,25 @@ def _list_sessions(db: Session, user_id: int, arg: dict) -> dict:
     if arg.get("spot"):
         q = q.filter(models.Session.place_name.ilike(f"%{str(arg['spot'])[:80]}%"))
     gesamt = q.count()
-    limit = max(1, min(int(arg.get("limit") or 20), MAX_SESSIONS))
+    mit_laeufen = bool(arg.get("mit_laeufen"))
+    obergrenze = MAX_MIT_LAEUFEN if mit_laeufen else MAX_SESSIONS
+    limit = max(1, min(int(arg.get("limit") or (5 if mit_laeufen else 20)), obergrenze))
     offset = max(0, int(arg.get("offset") or 0))
     zeilen = q.order_by(models.Session.started_at.desc()).offset(offset).limit(limit).all()
     ars = {a.session_id: a for a in db.query(models.AnalysisResult).filter(
         models.AnalysisResult.session_id.in_([z.id for z in zeilen]))} if zeilen else {}
-    return {"gesamt": gesamt, "offset": offset,
-            "sessions": [_kurz(z, ars.get(z.id)) for z in zeilen]}
+    sessions = []
+    for z in zeilen:
+        zeile = _kurz(z, ars.get(z.id))
+        if mit_laeufen:
+            zeile["laeufe_einzeln"] = _laeufe(ars.get(z.id), int(z.trim_start_ms or 0))
+        sessions.append(zeile)
+    aus = {"gesamt": gesamt, "offset": offset, "sessions": sessions}
+    if offset + len(zeilen) < gesamt:
+        aus["weiter"] = (f"Es gibt mehr: naechste Seite mit offset={offset + len(zeilen)}. "
+                         f"Hoechstens {obergrenze} Aufnahmen je Abruf"
+                         + (" mit `mit_laeufen`." if mit_laeufen else "."))
+    return aus
 
 
 def _herkunft(s: models.Session, m: dict) -> dict:
@@ -693,8 +722,27 @@ async def mcp(request: Request, db: Session = Depends(get_db)):
             return JSONResponse(_rpc_fehler(id_, -32601, f"Unbekanntes Werkzeug: {name}"))
         # Jans Vorgabe: 100 je Stunde und Nutzer. Geprueft wird ERST hier — `initialize` und
         # `tools/list` kosten nichts und sollen nicht gegen das Kontingent laufen.
-        enforce_user_tiers(db, user_id, LIMITS, "mcp",
-                           "Zu viele Abfragen. Es sind 100 je Stunde erlaubt.")
+        #
+        # DAS KONTINGENT DARF DIE VERBINDUNG NICHT KAPPEN (25.09.2026). Beim ersten echten
+        # Einsatz lief Jans Agent hinein, und danach war der Zugang aus seiner Sitzung ganz
+        # verschwunden: „the Pumpfoil connection has dropped out of this session entirely."
+        # Ursache war ein blankes HTTP 429 — fuer einen MCP-Client sieht das aus wie ein kaputter
+        # Server, nicht wie eine Bitte zu warten. Ein Werkzeug-Fehler gehoert nach der
+        # MCP-Festlegung als GEWOEHNLICHE Antwort mit `isError` zurueck: dann liest das Modell
+        # den Satz, wartet und versucht es spaeter noch einmal, statt den Server wegzuwerfen.
+        try:
+            enforce_user_tiers(db, user_id, LIMITS, "mcp", "")
+        except HTTPException as e:
+            wartezeit = e.headers.get("Retry-After", "?") if e.headers else "?"
+            return JSONResponse({"jsonrpc": "2.0", "id": id_, "result": {
+                "content": [{"type": "text", "text":
+                             f"Zu viele Abfragen. Erlaubt sind {LIMITS[0][0]} je Stunde und "
+                             f"{LIMITS[1][0]} je Minute. In etwa {wartezeit} Sekunden geht es "
+                             f"wieder. Die Verbindung bleibt bestehen — einfach spaeter noch "
+                             f"einmal fragen. Tipp: list_sessions traegt die Summen und den "
+                             f"besten Lauf je Aufnahme schon mit, dafuer braucht es kein "
+                             f"get_session je Zeile."}],
+                "isError": True}})
         try:
             ergebnis = handler(db, user_id, params.get("arguments") or {})
         except (KeyError, ValueError, TypeError) as e:
