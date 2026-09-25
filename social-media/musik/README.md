@@ -50,7 +50,9 @@ Benachrichtigung. **Facebook ist die Ausnahme:** dort muss man den Vorschlag aus
 Liste anklicken, die beim `@` aufgeht; nur getippt bleibt es einfacher Text ohne
 Verknuepfung.
 
-Aktuell eingetragen: **Marcus Grün** (`marcus-gruenschneder/`) — YouTube
+Aktuell eingetragen: **Marcus Grün** (Ordner `marcus-gruenschneder/` — Grünschneder ist
+der buergerliche Name, Grün der Kuenstlername, unter dem er genannt werden will; beides
+ist richtig) — YouTube
 `@marcusgrun8545`, Instagram `@marcusgrun`, TikTok `@marcus_gruen`, Facebook
 `marcusgruenmusic`. Adressen am 25.09.2026 von Jan bestaetigt.
 

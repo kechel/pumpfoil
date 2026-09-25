@@ -809,6 +809,10 @@ MUSIK_QUELLE = {
 # Fehlt eine Adresse (Facebook hat keine bekannte Vanity-URL), bleibt der Name.
 MUSIK_CREDIT = {
     "music-marcus": {
+        # Der Ordner heisst marcus-gruenschneder, genannt wird "Marcus Grün":
+        # Grünschneder ist der buergerliche Name, Grün der Kuenstlername — so
+        # will er genannt werden (Jan, 25.09.). Beides ist richtig, keins ist
+        # ein Tippfehler; Ordner und Suffix bleiben, wie sie sind.
         "name": "Marcus Grün",
         # Adressen am 25.09. von Jan bestaetigt — nicht aus den Handles geraten.
         "kanaele": [
