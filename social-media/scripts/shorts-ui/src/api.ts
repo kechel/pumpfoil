@@ -41,6 +41,9 @@ export interface ExportItem {
   duration?: number | null;
   sizes?: Record<string, number>;
   files?: Record<string, string>; // echte Dateinamen je Plattform (Pixabay-ID kann abweichen)
+  // Musik-Nennung je Plattform, nur wo ein befreundeter Musiker die Spur
+  // gestellt hat. Kommt vom Server aus dem Dateinamen-Suffix.
+  credits?: Record<string, string>;
 }
 
 export interface Captions {

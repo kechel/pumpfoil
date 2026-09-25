@@ -1,6 +1,7 @@
 import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { api, Captions, ExportItem } from "./api";
 import { Icon } from "./icons";
+import { pfLabel } from "./pf";
 
 // Zusatz = deutsche Sprachbezeichnung, wie sie im YT Studio auszuwählen ist
 const LANG_LABELS: Record<string, string> = {
@@ -390,6 +391,26 @@ function ExportCard({ exp, ytReady, showTexts }: {
                         </>
                       } />
                   )}
+                  {/* Musik von einem befreundeten Musiker: die Nennung kommt vom
+                      Server und haengt an der DATEI — nur die Plattform-Fassung,
+                      die seine Spur wirklich enthaelt, bekommt sie. Steht ganz
+                      unten, weil sie als eigener Kommentar unter den Beitrag
+                      geht, nicht in die Beschreibung (Jan, 25.09.). */}
+                  {exp.credits && Object.entries(exp.credits).map(([pf, text]) => (
+                    <CapRow key={"credit-" + pf} pf={pf} breit
+                      name={`Musik-Credit ${pfLabel(pf)}`}
+                      title={text}
+                      titleFull={
+                        <>
+                          <pre>{text}</pre>
+                          <div className="note">
+                            Als <b>Kommentar</b> unter den Beitrag — dort verlinkt das
+                            @handle der jeweils eigenen Plattform von selbst, fremde
+                            Plattformen stehen als Adresse.
+                          </div>
+                        </>
+                      } />
+                  ))}
                   {bili && (
                     <CapRow pf="bilibili" onCopied={merken("bilibili")} name="Bilibili" title={bili.title} desc={bili.description}
                       descFull={
