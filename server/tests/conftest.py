@@ -47,6 +47,13 @@ os.environ["DATABASE_URL"] = _test_db_url()
 os.environ["DATA_DIR"] = f"{_tmp}/data"
 os.environ["JWT_SECRET"] = "test-secret"
 os.environ["WEB_DIST"] = f"{_tmp}/nonexistent-dist"
+# Die Uhren-Builds sind AUSGABE (`watch/bin/`, in .gitignore) und liegen nie im Repo. Zeigt der
+# Pfad im Test auf das echte Verzeichnis, laeuft die Suite hier mit Daten, die es in der CI nicht
+# gibt — und genau das ist am 22.09.2026 passiert: drei Tests in `test_fr55_gps_only.py` lasen
+# `partmap.json`, blieben lokal gruen und waren in der CI ueber hundert Laeufe lang rot.
+# Ein leeres Verzeichnis macht beide Seiten gleich: wer eine Build-Datei braucht, bringt sie im
+# Test selbst mit (dort per monkeypatch) und merkt es sofort, nicht erst in der CI.
+os.environ["APP_BUILDS_DIR"] = f"{_tmp}/nonexistent-builds"
 
 
 @pytest.fixture(scope="session")

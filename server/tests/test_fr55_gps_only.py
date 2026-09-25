@@ -13,11 +13,37 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
 
+import pytest
+
 from app import models
+from app.api import devices
 from app.db import SessionLocal
 
 FR55 = "006-B4838-00"
 FENIX7 = "006-B3906-00"
+
+
+@pytest.fixture(autouse=True)
+def _partmap(monkeypatch):
+    """Die Part-Number-Tabelle fuer diese Tests selbst mitbringen.
+
+    WARUM (25.09.2026): `devices._partmap()` liest `watch/bin/partmap.json` — das ist AUSGABE des
+    Garmin-Builds und steht in `.gitignore`. Auf dieser Entwickler-VM existiert sie, in der CI
+    nicht. Genau daran sind drei dieser Tests ab dem 22.09. in der CI gescheitert, waehrend sie
+    lokal gruen blieben: ohne Tabelle heisst jede Part-Number „unbekannt", die Forerunner 55 wird
+    nicht als speicherarm erkannt und der Aufnahmemodus bleibt auf `full`.
+
+    Ein Test darf nicht an einer Datei haengen, die im Repo gar nicht liegen kann. Er bringt
+    deshalb genau die zwei Zeilen mit, um die es ihm geht — und wird dadurch nebenbei
+    unabhaengig davon, was gerade zuletzt gebaut wurde.
+    """
+    monkeypatch.setattr(devices, "_partmap", lambda: {
+        # WOERTLICH wie im echten Build, samt ®: `_is_low_accel_model` vergleicht den Namen als
+        # Teilzeichenkette gegen `_LOW_ACCEL_MODEL_HINTS`, und dort steht „Forerunner® 55".
+        # Ohne das ® greift die Erkennung nicht — beim ersten Anlauf genau so passiert.
+        FR55: {"id": "fr55", "name": "Forerunner\u00ae 55"},
+        FENIX7: {"id": "fenix7", "name": "f\u0113nix\u00ae 7 / quatix\u00ae 7"},
+    })
 
 
 def _konto(client, kennung: str) -> dict:
