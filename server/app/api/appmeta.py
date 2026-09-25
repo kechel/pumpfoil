@@ -773,6 +773,13 @@ IDEEN: list[str] = [
     # Faelle, in denen sie danebenliegt (Jan, 24.09.2026).
     "Recognise on its own when the phone was mounted on the board, instead of asking you. The "
     "tick box stays for the times we get it wrong.",
+    # Aus Feedback #146 (24.09.) und einem 1:1-Chat; Jan hat damit die Entscheidung vom 11.09.
+    # („sessions werden immer geteilt") selbst wieder geoeffnet. Zuschnitt, offene Fragen und
+    # die technischen Fallen stehen in docs/TODO.md, Inbox-Eintrag vom 25.09. — hier steht
+    # bewusst nur, WAS der Nutzer bekaeme, nicht wie es gebaut wird: entschieden ist es nicht.
+    "A private mode for your recordings: your runs are still analysed and the numbers still "
+    "count, but the spot, the track and the time of day stay out of the public feed — unless "
+    "you share a session yourself.",
 ]
 
 def _ver_tupel(v: str) -> tuple[int, ...]:
