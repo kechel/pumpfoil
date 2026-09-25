@@ -19,6 +19,9 @@ STRATO = [
     "downwind-foil.org", "foilers.org", "lowkitefoil.org", "paddle-up.org", "paddleup.org",
     "parawing.org", "parawingfoil.org", "pump-foil.org", "pumpfoil.org", "sup-foil.org",
     "supfoil.org", "wake-thief.org", "wake-thieving.org", "wakethief.org",
+    # Am 25.09.2026 dazu, als Foil Scoot eine eigene Sportart wurde. Beide
+    # Schreibweisen gekauft, beworben wird die ohne Bindestrich.
+    "foilscoot.org", "foil-scoot.org",
 ]
 
 
