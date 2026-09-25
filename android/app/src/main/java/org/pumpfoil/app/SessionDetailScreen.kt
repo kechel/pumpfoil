@@ -669,18 +669,8 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 }
             }
             // Uhr-Badge: mit welcher Uhr aufgenommen.
-            s.deviceLabel?.takeIf { it.isNotBlank() }?.let {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.Watch, contentDescription = null, modifier = Modifier.size(14.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(Modifier.width(4.dp))
-                    // Am Brett sagt das Abzeichen es mit — wie die PWA (lib/deviceLabel.ts): die Lage
-                    // unten gilt nur fuer diese Aufnahmen, und das soll man schon hier sehen.
-                    val text = if (s.placement == "board") "$it · ${I18n.t("session.onBoard")}" else it
-                    Text(text, style = MaterialTheme.typography.labelMedium,
-                        color = if (s.placement == "board") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
+            // Dasselbe Abzeichen wie auf den Karten (SessionsScreen.GeraeteAbzeichen).
+            s.deviceLabel?.takeIf { it.isNotBlank() }?.let { GeraeteAbzeichen(it, s.placement) }
             if (caption.isNotBlank()) Text(caption)
         }
         // Medien (Videos + Fotos): Besitzer kann Fotos hochladen + YouTube-Videos verlinken

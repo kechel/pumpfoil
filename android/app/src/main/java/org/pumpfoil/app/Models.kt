@@ -152,6 +152,7 @@ data class SessionSummary(
     @SerialName("track_preview") val trackPreview: String? = null,
     val foil: FoilBrief? = null,          // aufgelöstes Foil (Marke/Modell/Größe) für die Anzeige
     @SerialName("device_label") val deviceLabel: String? = null,   // Uhr-Bezeichnung der Aufnahme
+    val placement: String? = null,   // "board" = Handy war am Brett -> Abzeichen hervorgehoben
     @SerialName("transfer_to") val transferTo: String? = null,      // offene Übertragung → Badge
     // Sportart-Klassifikation durch Menschen (docs/sport-classification.md) — NICHT `sport`, das ist
     // der Aktivitätstyp aus der Aufnahmedatei.
@@ -205,6 +206,7 @@ data class CommunityItem(
     @SerialName("like_count") val likeCount: Int = 0,
     val liked: Boolean = false,
     @SerialName("device_label") val deviceLabel: String? = null,   // Uhr-Bezeichnung der Aufnahme
+    val placement: String? = null,   // "board" = Handy war am Brett -> Abzeichen hervorgehoben
     val foil: FoilBrief? = null,          // aufgelöstes Foil (Marke/Modell/Größe) für die Karte
     // Restliches Setup der Aufnahme (Session-Wert, sonst Standard des Besitzers; community.py
     // löst es im Batch auf). null = nichts hinterlegt -> Karte zeigt keinen Chip.
