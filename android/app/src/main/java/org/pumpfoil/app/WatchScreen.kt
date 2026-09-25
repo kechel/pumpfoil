@@ -261,12 +261,6 @@ fun PairedDevicesCard(onSaved: () -> Unit = {}) {
                     Text(I18n.t("account.recordModeGarminHint"), style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
                 }
-                // Amazfit holt sich den Modus gar nicht ab (watch-zepp/app-side/index.js reicht ihn
-                // nicht durch) -> ehrlich dranschreiben statt den Regler wirkungslos anbieten.
-                if (d.platform == "zepp") {
-                    Text(I18n.t("account.recordModeZeppHint"), style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.tertiary, modifier = Modifier.padding(top = 4.dp))
-                }
                 // Satellitensysteme — nur Garmin. Der groesste Akku-Hebel (s. Changelog 17.08.).
                 if (d.platform == "garmin") {
                     Spacer(Modifier.height(10.dp))
@@ -293,6 +287,40 @@ fun PairedDevicesCard(onSaved: () -> Unit = {}) {
                     }
                     Text(I18n.t("account.gnssModeHint"), style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
+                }
+                // Je Uhr NUR, was sie auch umsetzt — wie die PWA (Jan, 25.09.2026: „je uhr einfach
+                // nur das anbieten was auch sinn ergibt"). Wassersperre: alle ausser Garmin, dort hat
+                // der Aufnahme-Bildschirm gar keine Tipp-Behandlung.
+                if (d.platform != "garmin") {
+                    Spacer(Modifier.height(10.dp))
+                    UhrAuswahl(
+                        titel = I18n.t("account.waterLock"),
+                        optionen = listOf(
+                            "auto" to I18n.t("account.waterLockAuto"),
+                            "on" to I18n.t("account.waterLockOn"),
+                            "off" to I18n.t("account.waterLockOff"),
+                        ),
+                        start = d.waterLock ?: "auto",
+                        schluessel = d.id,
+                        hinweis = I18n.t("account.waterLockHint"),
+                    ) { id -> scope.launch { try { Api.setDeviceWaterLock(d.id, id); onSaved() } catch (_: Exception) {} } }
+                }
+                // Wake-up-Sensor — nur Wear OS (s. RecorderService.accelSensor). „Standard" entfernt
+                // den Override, damit man spaeter mitzieht, wenn der Standard umgestellt wird.
+                if (d.platform == "wear") {
+                    Spacer(Modifier.height(10.dp))
+                    val std = I18n.t(if (d.accelWakeupStandard == "on") "account.accelWakeupOn" else "account.accelWakeupOff")
+                    UhrAuswahl(
+                        titel = I18n.t("account.accelWakeup"),
+                        optionen = listOf(
+                            "default" to I18n.t("account.accelWakeupDefault").replace("{v}", std),
+                            "on" to I18n.t("account.accelWakeupOn"),
+                            "off" to I18n.t("account.accelWakeupOff"),
+                        ),
+                        start = d.accelWakeup ?: "default",
+                        schluessel = d.id,
+                        hinweis = I18n.t("account.accelWakeupHint"),
+                    ) { id -> scope.launch { try { Api.setDeviceAccelWakeup(d.id, id); onSaved() } catch (_: Exception) {} } }
                 }
 
                 // Aufraeumen je Uhr — bisher nur in der PWA, dadurch war eine verkaufte oder
@@ -348,4 +376,36 @@ fun PairedDevicesCard(onSaved: () -> Unit = {}) {
             }
         }
     }
+}
+
+
+/** Auswahl je Uhr (Titel, Knopf mit Aufklappliste, Hinweis darunter) — dieselbe Form wie
+ *  Aufzeichnungsmodus und GNSS-Stufe, fuer die Einstellungen, die nur manche Uhren haben. */
+@Composable
+private fun UhrAuswahl(
+    titel: String,
+    optionen: List<Pair<String, String>>,
+    start: String,
+    schluessel: Int,
+    hinweis: String,
+    onWahl: (String) -> Unit,
+) {
+    Text(titel, style = MaterialTheme.typography.labelMedium)
+    var offen by remember(schluessel) { mutableStateOf(false) }
+    var wert by remember(schluessel, start) { mutableStateOf(start) }
+    Box {
+        OutlinedButton(onClick = { offen = true }, modifier = Modifier.fillMaxWidth()) {
+            Text(optionen.firstOrNull { it.first == wert }?.second ?: wert)
+        }
+        DropdownMenu(expanded = offen, onDismissRequest = { offen = false }) {
+            optionen.forEach { (id, lbl) ->
+                DropdownMenuItem(text = { Text(lbl) }, onClick = {
+                    offen = false
+                    if (id != wert) { wert = id; onWahl(id) }
+                })
+            }
+        }
+    }
+    Text(hinweis, style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
 }
