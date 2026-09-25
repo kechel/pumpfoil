@@ -167,6 +167,36 @@ enum Api {
         try await request("/api/sessions/geteilte", method: "GET", body: nil, auth: true)
     }
 
+    // „Sass das Handy am Brett?" — der Server entscheidet, ob gefragt wird.
+    struct BoardHint: Decodable { let verdacht: Bool? }
+    static func boardHint(_ id: Int) async throws -> Bool {
+        let r: BoardHint = try await request("/api/sessions/\(id)/board-hint", method: "GET", body: nil, auth: true)
+        return r.verdacht ?? false
+    }
+
+    // Lage des Bretts. `run` = ein Lauf, sonst die ganze Aufnahme; `jeLauf` liefert die Kennzahlen
+    // je Lauf mit (ein Abruf fuer die ganze Tabelle); `hz` regelt nur die Aufloesung der Kurven.
+    static func boardAttitude(_ id: Int, run: Int? = nil, jeLauf: Bool = false, hz: Int? = nil,
+                              yawWindowS: Double? = nil) async throws -> BoardAttitude {
+        var q: [String] = []
+        if let run { q.append("run=\(run)") }
+        if jeLauf { q.append("je_lauf=1") }
+        if let hz { q.append("hz=\(hz)") }
+        if let yawWindowS { q.append("yaw_window_s=\(yawWindowS)") }
+        let pfad = "/api/sessions/\(id)/attitude" + (q.isEmpty ? "" : "?" + q.joined(separator: "&"))
+        return try await request(pfad, method: "GET", body: nil, auth: true)
+    }
+
+    // Lage-Zahlen aus Aufnahmen mit dem Handy am Brett, je Lauflaenge (Startseite).
+    static func boardAttitudeStats() async throws -> BoardAttitudeStats {
+        try await request("/api/community/board-attitude", method: "GET", body: nil, auth: true)
+    }
+
+    // Montage: "board" | "phone" | "" — nur bei Handy-Aufnahmen (Server prueft).
+    static func setPlacement(_ id: Int, _ wert: String) async throws {
+        try await sendVoid("/api/sessions/\(id)/meta", method: "PUT", body: ["placement": wert])
+    }
+
     // „Ort verbergen" fuer EINE Aufnahme: "" = wie im Profil, "show", "hide".
     static func setOrtSichtbarkeit(_ id: Int, _ wert: String) async throws {
         try await sendVoid("/api/sessions/\(id)/meta", method: "PUT", body: ["ort_sichtbarkeit": wert])

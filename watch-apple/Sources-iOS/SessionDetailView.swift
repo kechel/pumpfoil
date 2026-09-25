@@ -548,6 +548,8 @@ struct SessionDetailView: View {
                 SessionUploadCard(id: s.id)
             }
             nurGpsHinweis(s)
+            // Handy am Brett? — nur wenn die Erkennung anschlaegt (s. LageAnsicht.swift).
+            BrettFrageView(session: s, lang: lang) { await frischLaden() }
             neighborNav
             headerRow(s)
             foilPicker(s)      // Foil gehört zu den Metadaten (wie PWA) — direkt unter dem Kopf
@@ -560,7 +562,11 @@ struct SessionDetailView: View {
             if let a = s.analysis, let foil = s.foil, hasSpecs(foil), weightKg > 0 {
                 PowerCard(analysis: a, foil: foil, weightKg: weightKg, lang: lang)
             }
+            // Lage des Bretts (Handy am Brett) — Zeichnung, Kurven, Kennzahlen; folgt dem Lauf.
+            if s.placement == "board" { LageAnsichtView(session: s, run: selectedRun, lang: lang) }
             statsSection(s)
+            // Lage je Lauf — eigene kleine Tabelle unter der grossen (wie PWA).
+            LageJeLaufTabelle(session: s, lang: lang, ausgewaehlt: $selectedRun)
             unmergeRow(s)
             bottomActions(s)
             reportSection(s)
@@ -623,6 +629,7 @@ struct SessionDetailView: View {
                 // Anzeige-Einstellung. Danach frisch laden: die Karte springt nach Point Nemo,
                 // auch fuer einen selbst (Jan, 25.09.2026).
                 OrtSchalterView(session: s, lang: lang) { await frischLaden() }
+                BrettSchalterView(session: s, lang: lang) { await frischLaden() }
                 HStack(spacing: 10) {
                     if durSec > 1 {
                         Button { presetTrimSliders(s); showTrim = true } label: {
@@ -721,7 +728,10 @@ struct SessionDetailView: View {
 
     @ViewBuilder private func deviceLine(_ s: SessionDetail) -> some View {
         if let dl = s.device_label, !dl.isEmpty {
-            Label(dl, systemImage: "applewatch").font(.caption2).foregroundStyle(.secondary)
+            // Am Brett sagt das Abzeichen es mit — wie die PWA (lib/deviceLabel.ts).
+            let amBrett: Bool = s.placement == "board"
+            Label(amBrett ? "\(dl) · \(Loc.t("session.onBoard", lang))" : dl, systemImage: "applewatch")
+                .font(.caption2).foregroundStyle(amBrett ? Color.accentColor : Color.secondary)
         }
     }
 

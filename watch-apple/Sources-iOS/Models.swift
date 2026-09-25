@@ -984,6 +984,11 @@ struct SessionDetail: Codable, Identifiable {
     // fuer den Besitzer); `ort_sichtbarkeit` ist die EIGENE Wahl: nil/"" = wie im Profil, show, hide.
     let ort_sichtbarkeit: String?
     let ort_verborgen: Bool?
+    // Wo sass das Geraet: "board" (Handy am Brett) | "phone" (Tasche/Huefte) | nil (Uhr). Nur
+    // "board" macht Nicken/Rollen zu einer Aussage ueber das BRETT (s. analysis/lage.py).
+    let placement: String?
+    // Kreiseldaten vorhanden — liefern allein die Handy-Recorder. Ohne sie gibt es keine Lage.
+    let has_gyro: Bool?
     // Aussortierte Zeitfenster [[start_ms, end_ms], …] (ms ab Session-Start, gleiche Basis wie
     // trim_*). Optional, damit ältere Server-Antworten ohne das Feld weiter dekodieren.
     let excluded_ranges: [[Int]]?
@@ -1147,4 +1152,85 @@ func gearMatches(_ text: String, _ query: String) -> Bool {
     // Foundation — mit einem echten String ist es dieselbe Ueberladung, die der bisherige Code
     // schon benutzte (".lowercased().contains(q)"), also garantiert vorhanden.
     return worte.allSatisfy { t.contains(String($0)) }
+}
+
+
+// MARK: - Lage des Bretts (Handy am Brett), s. PWA lib/api.ts BoardAttitude
+
+/// Antwort von /api/sessions/{id}/attitude (Zeiten in Session-ms). Nur die Felder, die die App zeigt.
+struct BoardAttitude: Decodable {
+    let ok: Bool
+    let grund: String?
+    let t_ms: [Double]?
+    let pitch_deg: [Double]?
+    let roll_deg: [Double]?
+    let gier_delta_deg: [Double]?
+    let hub_cm: [Double]?
+    let hub_fenster_s: Double?
+    let rot_deg: Double?
+    let auswahl_von_ms: Double?
+    let auswahl_bis_ms: Double?
+    let kennzahlen: LageKennzahlen?
+    let laeufe: [LageLauf]?
+    let rig: FoilRigMasse?
+}
+
+struct LageKennzahlen: Decodable {
+    let pitch_amplitude_deg: Double
+    let roll_amplitude_deg: Double
+    let gier_rms_deg_s: Double
+    let pitch_hz: Double?
+    let hub_pp_cm: Double?
+    let hub_sicher: Bool?
+}
+
+struct LageLauf: Decodable, Identifiable {
+    let lauf: Int
+    let ok: Bool
+    let pitch_amplitude_deg: Double?
+    let roll_amplitude_deg: Double?
+    let gier_rms_deg_s: Double?
+    let pitch_hz: Double?
+    let hub_pp_cm: Double?
+    let hub_sicher: Bool?
+    let rot_deg: Double?
+    let rot_eigen: Bool?
+    var id: Int { lauf }
+}
+
+/// Masse des Foils in cm fuer die Zeichnung (PWA FoilRig.tsx).
+struct FoilRigMasse: Decodable {
+    let foil_span_cm: Double
+    let foil_chord_cm: Double
+    let stab_span_cm: Double
+    let stab_chord_cm: Double
+    let mast_len_cm: Double
+    let board_len_cm: Double
+    let x_foil_cm: Double
+    let x_mast_cm: Double
+    let x_stab_cm: Double
+}
+
+/// Eine Lauflaengen-Klasse der Brett-Lage-Auswertung (/api/community/board-attitude). MEDIANE.
+struct BoardKlasse: Decodable, Identifiable {
+    let klasse: String
+    let laeufe: Int
+    let pitch_deg: Double?
+    let roll_deg: Double?
+    let takt_hz: Double?
+    let hub_cm: Double?
+    var id: String { klasse }
+}
+
+struct BoardFoilKlassen: Decodable, Identifiable {
+    let foil_id: Int
+    let foil: String
+    let laeufe: Int
+    let klassen: [BoardKlasse]
+    var id: Int { foil_id }
+}
+
+struct BoardAttitudeStats: Decodable {
+    let gesamt: [BoardKlasse]
+    let je_foil: [BoardFoilKlassen]
 }
