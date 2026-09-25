@@ -113,6 +113,8 @@ struct HomeView: View {
             if let st = stats { recordsSection(st) }
             if let ss = startSuccess { startSuccessSection(ss) }
             if let cs = carveStats, carveStatsHasAny(cs) { carveStatsSection(cs) }
+            // Lage des Bretts je Lauflaenge — nur mit Aufnahmen vom Handy am Brett.
+            BrettLageStartseite(lang: lang)
             if let sw = weather { HomeWeatherCard(sw: sw, lang: lang) }
         }
         .padding(.horizontal).padding(.bottom).padding(.top, 2)
