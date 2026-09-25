@@ -510,9 +510,16 @@ if settings.web_dist.exists():
     # Als Kopfzeile statt als Meta-Tag, weil die PWA fuer JEDE Route dieselbe `index.html`
     # ausliefert — ein Meta-Tag darin gaelte auch fuer die Startseite. Die Kopfzeile kann pro
     # Pfad gesetzt werden. `follow` bleibt drin: den Links darf Google weiter folgen.
+    # „s" = die oeffentliche Teilen-Seite /s/<token>. Sie FEHLTE hier bis zum 25.09.2026, und das
+    # war die einzige Route, die ohne Login echte Sessiondaten zeigt: Spot, Track, Uhrzeiten. Die
+    # robots.txt erlaubt seit dem 06.09. absichtlich das Crawlen (sonst landen Adressen ohne
+    # Inhalt im Index, s. Kommentar dort) — den Ausschluss macht allein dieser Kopf. Ohne ihn
+    # genuegte ein einziger Teilen-Link in einem Forum, einer oeffentlichen Gruppe oder einer
+    # Vorschau-Abruf-Kette, damit die Session dauerhaft bei Google steht. Der Nutzer hat sie EINER
+    # Person geschickt, nicht der Suchmaschine.
     _PRIVAT = ("login", "reset", "home", "community", "chat", "verlauf", "sessions", "import",
                "alle-sessions", "spots", "foils", "foil-stats", "foil-rechner", "account",
-               "einstellungen", "konten", "vergleich", "admin")
+               "einstellungen", "konten", "vergleich", "admin", "s")
 
     def _privat(pfad: str) -> bool:
         erstes = pfad.strip("/").split("/", 1)[0].lower()
