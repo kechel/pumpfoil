@@ -1237,14 +1237,19 @@ def spot_map(request: Request, accel_only: bool = True, sport: str = "all",
     mit_id = (
         _community(db.query(S.spot_id, func.avg(S.place_lat), func.avg(S.place_lon), func.count()),
                    _user.id, accel_only, sport)
-        .filter(S.spot_id.isnot(None), S.place_lat.isnot(None))
+        # ORT VERBERGEN: verborgene Aufnahmen zaehlen NICHT zu ihrem echten Spot — weder in der
+        # Zahl am Marker noch im Mittelwert seiner Koordinaten (Jan, 25.09.2026). Auf der
+        # Uebersichtskarte tauchen sie auch nicht als eigener Marker auf: ein Pin mitten im
+        # Pazifik wuerde den Kartenausschnitt ueber den halben Globus ziehen. Erreichbar sind
+        # sie ueber den Spot-Filter „Point Nemo", z. B. vom Spotnamen einer Aufnahme aus.
+        .filter(S.spot_id.isnot(None), S.place_lat.isnot(None), not_(_verborgen_cond(db)))
         .group_by(S.spot_id).all()
     )
     ohne_id = (
         _community(db.query(S.place_name, func.avg(S.place_lat), func.avg(S.place_lon), func.count()),
                    _user.id, accel_only, sport)
         .filter(S.spot_id.is_(None), S.place_name.isnot(None), S.place_name != "",
-                S.place_lat.isnot(None))
+                S.place_lat.isnot(None), not_(_verborgen_cond(db)))
         .group_by(S.place_name).all()
     )
     # Name UND Gewaesser: viele Spots heissen nach der Ortschaft und bekommen bei mehreren
