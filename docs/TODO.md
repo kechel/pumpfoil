@@ -1414,6 +1414,22 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔲 25.09. abends — WIEDERAUFSETZPUNKT fuer den 26.09.: testen und releasen.**
+  - **Emulator, jede Uhr durch JEDEN Zustand** (Checkliste oben in `docs/PARITY-AUDIT.md`):
+    Pausieren ueber die Aktionsseite -> Sprung auf Pausen-Seite + „Pausiert" ueberall; Blaettern
+    in der Pause mit/ohne eigene Layouts; Fortsetzen -> zurueck auf Datenseiten. Wear: „Pausiert"
+    neben dem Tropfen bei grosser Schrift + Daemmerbild. Zepp: der Pause-Knopf wird in seinem
+    eigenen Klick weggeraeumt — auf Haenger achten.
+  - **Wear 1.2.33 / 1043** (gebumpt): Pausen-Umbau `ddea1a37` + Wake-up-Sensor (`a7471f69`, nur
+    auf ausdrueckliches "on"). Phone 1.1.33 / 47 nur mitgezaehlt.
+  - **iOS + Apple Watch 1.1.38** (noch NICHT gebumpt): Pausen-Umbau `0c5e6d6d`.
+  - **Amazfit 1.0.13** (noch NICHT gebumpt): Pausen-Umbau `1612070b`. Offen: 1.0.12 (im Review,
+    ohne den Umbau) laufen lassen oder zurueckziehen — Jans Entscheidung.
+  - **Wake-up-Testgruppe** noch nicht gesetzt (DB-Schreiben war fuer mich gesperrt): Konten
+    2, 455, 469, 477, 574, 581 -> `settings_json.accel_wakeup = "on"`, oder je Uhr im Profil.
+    Danach Ankuendigung entwerfen (Jan postet).
+  - Alles in `NAECHSTES` (appmeta) eingetragen; bei Einreichung nach `IN_REVIEW` ziehen.
+
 - **🟢 25.09. — MCP-Server mit eigenem OAuth-Autorisierungsserver. FERTIG UND IM ECHTEN EINSATZ.**
   Jan hat ihn am selben Tag mit seiner Claude-App verbunden und eine Jahresauswertung darueber
   laufen lassen. Code in `app/api/mcp_oauth.py` (Autorisierungsserver) und `app/api/mcp.py`
