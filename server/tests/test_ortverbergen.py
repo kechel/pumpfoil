@@ -80,3 +80,86 @@ def test_drei_zustaende_in_beide_richtungen():
     assert ist_verborgen(_S(None), False) is False
     assert ist_verborgen(_S("show"), True) is False   # einzelne Freigabe trotz Profil
     assert ist_verborgen(_S("hide"), False) is True   # einzelnes Verbergen trotz Profil
+
+
+# --- Am echten Ausgabeweg ----------------------------------------------------------------------
+
+def _konto(client, mail):
+    r = client.post("/api/auth/register", json={"email": mail, "password": "supersecret"})
+    return {"Authorization": f"Bearer {r.json()['access_token']}"}
+
+
+def _session_mit_spur(uid, **f):
+    import json as _json
+    import secrets
+    from datetime import datetime, timedelta, timezone
+
+    from app import models
+    from app.db import SessionLocal
+    db = SessionLocal()
+    try:
+        s = models.Session(session_uuid=secrets.token_hex(16), user_id=uid,
+                           started_at=datetime.now(timezone.utc) - timedelta(hours=2),
+                           ended_at=datetime.now(timezone.utc) - timedelta(hours=1),
+                           sport="pumpfoil", is_pumpfoil=True,
+                           place_name="Jettkofen", place_water="Federsee",
+                           place_lat=48.07, place_lon=9.35, spot_id=42, **f)
+        db.add(s); db.flush()
+        db.add(models.AnalysisResult(
+            session_id=s.id, algo_version="test",
+            track_geojson=_json.dumps({"type": "LineString",
+                                       "coordinates": [[9.35, 48.07], [9.351, 48.071]]})))
+        db.commit()
+        return s.id
+    finally:
+        db.close()
+
+
+def _detail(client, kopf, sid):
+    r = client.get(f"/api/sessions/{sid}", headers=kopf)
+    assert r.status_code == 200, r.text
+    return r.json()
+
+
+def test_sichtbar_solange_niemand_etwas_umstellt(client):
+    kopf = _konto(client, "ort-normal@b.de")
+    uid = client.get("/api/auth/me", headers=kopf).json()["id"]
+    d = _detail(client, kopf, _session_mit_spur(uid))
+    assert d["place_name"] == "Jettkofen" and d["spot_id"] == 42
+    assert d["ort_verborgen"] is False
+    assert d["analysis"]["track_geojson"]["coordinates"][0] == [9.35, 48.07]
+
+
+def test_einzelne_aufnahme_verbergen(client):
+    kopf = _konto(client, "ort-einzeln@b.de")
+    uid = client.get("/api/auth/me", headers=kopf).json()["id"]
+    d = _detail(client, kopf, _session_mit_spur(uid, ort_sichtbarkeit="hide"))
+    assert d["ort_verborgen"] is True
+    assert d["place_name"] == "Point Nemo"
+    assert d["place_water"] is None, "der Gewaessername waere ein Hinweis"
+    assert d["spot_id"] is None, "sonst haengt sie weiter an der echten Spot-Seite"
+    lon, lat = d["analysis"]["track_geojson"]["coordinates"][0]
+    assert lat < -40 and lon < -100, (lat, lon)
+
+
+def test_profil_verbirgt_rueckwirkend_und_einzeln_freigeben_geht(client):
+    """Der Fall, der zaehlt: der Schalter im Profil erreicht auch ALTE Aufnahmen."""
+    kopf = _konto(client, "ort-profil@b.de")
+    uid = client.get("/api/auth/me", headers=kopf).json()["id"]
+    alt = _session_mit_spur(uid)                              # laengst hochgeladen
+    frei = _session_mit_spur(uid, ort_sichtbarkeit="show")    # ausdruecklich freigegeben
+    assert _detail(client, kopf, alt)["ort_verborgen"] is False
+
+    r = client.put("/api/settings", headers=kopf, json={"hide_location": True})
+    assert r.status_code == 200, r.text
+    assert _detail(client, kopf, alt)["ort_verborgen"] is True
+    assert _detail(client, kopf, frei)["ort_verborgen"] is False
+
+
+def test_besitzer_sieht_sich_selbst_an_point_nemo(client):
+    """Jan, 25.09.2026: „dann sieht man sich selber an Point Nemo und weiss: so darf auch jeder
+    andere sehen." Kein Sonderweg fuer den Besitzer — das IST die Verifikation."""
+    kopf = _konto(client, "ort-selbst@b.de")
+    uid = client.get("/api/auth/me", headers=kopf).json()["id"]
+    sid = _session_mit_spur(uid, ort_sichtbarkeit="hide")
+    assert _detail(client, kopf, sid)["place_name"] == "Point Nemo"

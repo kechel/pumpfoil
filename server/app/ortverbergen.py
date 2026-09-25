@@ -114,3 +114,60 @@ def ist_verborgen(session, profil_verbirgt: bool) -> bool:
     if eigen == "show":
         return False
     return bool(profil_verbirgt)
+
+
+def profil_verbirgt(user) -> bool:
+    """Liest `hide_location` aus den Einstellungen des Besitzers.
+
+    Bewusst hier und nicht ueber `settings._merged`: das wuerde einen Import-Kreis schliessen
+    (settings -> models -> …), und gebraucht wird genau ein Wahrheitswert. Fehlt die Einstellung,
+    gilt „nein" — dieselbe Vorgabe wie in `settings.DEFAULTS`.
+    """
+    import json
+    if user is None:
+        return False
+    try:
+        return bool((json.loads(user.settings_json) if user.settings_json else {})
+                    .get("hide_location", False))
+    except (ValueError, TypeError):
+        return False
+
+
+def _koordinaten_sammeln(knoten, aus: list) -> None:
+    """Alle [lon, lat]-Paare in einer GeoJSON-Struktur einsammeln (rekursiv)."""
+    if isinstance(knoten, dict):
+        for schluessel, wert in knoten.items():
+            if schluessel == "coordinates":
+                _koordinaten_sammeln(wert, aus)
+            elif schluessel in ("features", "geometry", "geometries"):
+                _koordinaten_sammeln(wert, aus)
+    elif isinstance(knoten, list):
+        if (len(knoten) >= 2 and isinstance(knoten[0], (int, float))
+                and isinstance(knoten[1], (int, float))):
+            aus.append(knoten)
+        else:
+            for k in knoten:
+                _koordinaten_sammeln(k, aus)
+
+
+def geojson_versetzen(gj):
+    """Eine GeoJSON-Struktur nach Point Nemo versetzen — formtreu, in Metern gerechnet.
+
+    Arbeitet auf einer Kopie und laeuft ueber die Struktur, statt ein festes Format anzunehmen:
+    unsere Spuren sind LineStrings, aber ein FeatureCollection mit mehreren Teilen soll hier
+    nicht still durchrutschen. GeoJSON speichert [LON, LAT] — in dieser Reihenfolge, und genau
+    das ist die Stelle, an der man sich vertut.
+    """
+    import copy
+    if not gj:
+        return gj
+    kopie = copy.deepcopy(gj)
+    paare: list = []
+    _koordinaten_sammeln(kopie, paare)
+    if not paare:
+        return kopie
+    # [lon, lat] -> (lat, lon) und zurueck.
+    versetzt = versetzen([(p[1], p[0]) for p in paare])
+    for paar, (lat, lon) in zip(paare, versetzt):
+        paar[0], paar[1] = lon, lat
+    return kopie
