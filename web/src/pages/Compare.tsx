@@ -129,7 +129,14 @@ export default function Compare() {
   async function doMerge() {
     if (!canMergeIds) return;
     setMerging(true); setMergeErr(null);
-    try { const r = await api.mergeSessions(canMergeIds); await invalidateSessionListCache(); clearCompare(); setLastSession(r.id); nav(`/sessions/${r.id}`); }
+    try {
+      const r = await api.mergeSessions(canMergeIds);
+      await invalidateSessionListCache(); clearCompare(); setLastSession(r.id);
+      // War eine der Quellen per Link geteilt, sagt es die Detailansicht einmal — der Link ist
+      // mit der Quelle weg. Ueber den Navigations-Zustand, damit der Hinweis genau einmal
+      // erscheint: ein Neuladen der Seite bringt ihn nicht zurueck.
+      nav(`/sessions/${r.id}`, r.geteilte_links ? { state: { geteilteLinks: r.geteilte_links } } : undefined);
+    }
     catch (e) {
       const raw = e instanceof Error ? e.message : String(e);
       const m = raw.match(/\{"detail":"(.*?)"\}/);

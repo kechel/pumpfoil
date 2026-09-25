@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { geraeteText } from "../lib/deviceLabel";
-import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import L from "leaflet";
 import { basiskarten } from "../lib/mapTiles";
 import { api, BoardAttitude as Lage, SessionSummary, SessionSocial as SocialData, SessionVideo } from "../lib/api";
@@ -447,6 +447,14 @@ export default function SessionDetail() {
   // „Sass das Handy am Brett?" — der Server entscheidet, ob gefragt wird (er prueft Besitzer,
   // Markierung und die Daten). Nur anfragen, wenn es ueberhaupt Kreiseldaten gibt; ohne die
   // kann die Antwort nur „nein" lauten, und der Aufruf kostet einen Rechendurchgang je Lauf.
+  // Nach dem Zusammenfuehren: eine der Quellen war per Link geteilt. Der Link ist mit der Quelle
+  // weg (er war es schon immer — der oeffentliche Endpunkt filtert geloeschte Sessions), nur
+  // wusste es bisher niemand. Die Zahl kommt aus dem Navigations-Zustand, den `Compare` setzt;
+  // sie wird beim ersten Rendern gelesen und dann verworfen, damit ein Neuladen der Seite den
+  // Hinweis nicht wiederholt.
+  const ort = useLocation();
+  const [geteilteLinksWeg, setGeteilteLinksWeg] = useState<number>(
+    () => Number((ort.state as { geteilteLinks?: number } | null)?.geteilteLinks || 0));
   const [brettFrage, setBrettFrage] = useState(false);
   useEffect(() => {
     setBrettFrage(false);
@@ -1764,6 +1772,19 @@ export default function SessionDetail() {
           die erkennung das sagt, dann erstmal dauerhaft ist ok") — kein Wegklicken, kein
           Merker. Ein Klick setzt `placement`, danach ist die Frage beantwortet und der Kasten
           verschwindet von selbst, weil der Server dann `verdacht: false` liefert. */}
+      {/* TEILEN-LINK NACH DEM ZUSAMMENFUEHREN (Jan, 25.09.2026). Keine Warnung in Amber: es ist
+          nichts kaputt, es ist eine Folge dessen, was der Nutzer gerade selbst getan hat. Er
+          steht ueber der Brett-Frage, weil er sich auf die eben ausgeloeste Aktion bezieht.
+          Wegklickbar, denn anders als die Brett-Frage gibt es hier nichts zu entscheiden. */}
+      {geteilteLinksWeg > 0 && (
+        <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-brand-500/40 bg-brand-500/10 px-3 py-2 text-sm text-brand-700 dark:text-brand-200">
+          <span>{geteilteLinksWeg === 1 ? t("sd.mergeShareGone") : t("sd.mergeShareGoneN", { n: geteilteLinksWeg })}</span>
+          <button type="button" onClick={() => setGeteilteLinksWeg(0)}
+            className="ml-auto rounded-lg bg-brand-500 px-3 py-1 text-sm font-semibold text-slate-950 hover:bg-brand-400">
+            {t("sd.mergeShareGoneOk")}
+          </button>
+        </div>
+      )}
       {brettFrage && (
         <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-brand-500/40 bg-brand-500/10 px-3 py-2 text-sm text-brand-700 dark:text-brand-200">
           <span className="font-semibold">{t("sd.boardAsk")}</span>
