@@ -11,6 +11,20 @@
 // beim Build). YouTube und die Kanalbeschreibung folgen derselben Trennung — Details in
 // brand/social/kanal-beschreibung-README.md.
 const ptPT: Record<string, string> = {
+  "hideloc.hint": "As tuas gravações continuam visíveis — só não onde andaste. O mapa e o nome do spot mostram então Point Nemo, no meio do Pacífico. Ali não bombeia ninguém, e vê-se logo.",
+  "hideloc.scope": "Continuam visíveis: o percurso, todos os números, o teu nome e o teu material. Ficam escondidos: o spot, a posição no mapa e a hora local.",
+  "hideloc.single": "Vale já para todas as tuas gravações, incluindo as antigas. Podes voltar a mostrar algumas no ecrã de detalhe delas — ou, ao contrário, esconder só algumas.",
+  "hideloc.switch": "Esconder o local das minhas gravações",
+  "hideloc.title": "Esconder o local",
+  "sd.ortAktiv": "escondido",
+  "sd.ortLabel": "Local desta gravação",
+  "sd.ortProfil": "Local: como no perfil",
+  "sd.ortTitle": "Escondido quer dizer que o mapa e o nome do spot mostram Point Nemo — para todos, tu incluído. O percurso em si continua visível.",
+  "sd.ortVerbergen": "Local: esconder",
+  "sd.ortZeigen": "Local: mostrar",
+  "shared.hint": "Estas gravações têm uma ligação com que qualquer pessoa as pode ver — sem conta. É aqui que a retiras.",
+  "shared.revoke": "Retirar a ligação",
+  "shared.title": "Gravações partilhadas",
   "mcp.cardHint": "Liga um programa de IA às tuas próprias gravações e deixa que as analise ali. Colocas o endereço abaixo no teu programa e confirmas uma vez aqui.",
   "mcp.cardScope": "Um programa ligado só pode ler, e só as tuas próprias gravações — nenhuns dados de outros riders, nenhumas imagens, nenhumas conversas.",
   "mcp.cardTitle": "Acesso de IA (MCP)",

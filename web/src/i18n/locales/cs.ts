@@ -1,6 +1,20 @@
 // Tschechisch (cs / Čeština). Struktur 1:1 zu de.ts (Quelle der Wahrheit).
 // Erstübersetzung maschinell; Muttersprachler-Review empfohlen.
 const cs: Record<string, string> = {
+  "hideloc.hint": "Tvoje nahrávky zůstanou viditelné — jen ne to, kde jsi jezdil. Mapa a název spotu pak ukážou Point Nemo uprostřed Tichého oceánu. Tam nikdo nepumpuje a je to hned vidět.",
+  "hideloc.scope": "Zůstává viditelné: projetá stopa, všechna čísla, tvoje jméno a vybavení. Skryje se: spot, poloha na mapě a místní čas.",
+  "hideloc.single": "Platí hned pro všechny tvoje nahrávky, i ty starší. Jednotlivé můžeš znovu zveřejnit v jejich detailu — nebo naopak skrýt jen některé.",
+  "hideloc.switch": "Skrýt místo mých nahrávek",
+  "hideloc.title": "Skrýt místo",
+  "sd.ortAktiv": "skryto",
+  "sd.ortLabel": "Místo této nahrávky",
+  "sd.ortProfil": "Místo: jako v profilu",
+  "sd.ortTitle": "Skryto znamená, že mapa a název spotu ukazují Point Nemo — všem, i tobě. Samotná stopa zůstane viditelná.",
+  "sd.ortVerbergen": "Místo: skrýt",
+  "sd.ortZeigen": "Místo: zobrazit",
+  "shared.hint": "Tyto nahrávky mají odkaz, přes který se na ně může podívat kdokoli — bez účtu. Tady ho vezmeš zpět.",
+  "shared.revoke": "Zrušit odkaz",
+  "shared.title": "Sdílené nahrávky",
   "mcp.cardHint": "Propoj AI program se svými nahrávkami a nech je tam vyhodnotit. Adresu níže vložíš do svého programu a jednou to tady potvrdíš.",
   "mcp.cardScope": "Propojený program smí jen číst, a jen tvoje vlastní nahrávky — žádná data jiných jezdců, žádné obrázky, žádné chaty.",
   "mcp.cardTitle": "Přístup pro AI (MCP)",

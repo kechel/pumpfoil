@@ -1,6 +1,20 @@
 // Niederländisch (nl). Struktur 1:1 zu de.ts (Quelle der Wahrheit).
 // Erstübersetzung maschinell (informelles je/jij); Muttersprachler-Review empfohlen.
 const nl: Record<string, string> = {
+  "hideloc.hint": "Je opnames blijven zichtbaar — alleen niet waar je hebt gevaren. De kaart en de spotnaam tonen dan Point Nemo, midden in de Stille Oceaan. Daar pompt niemand, en dat zie je meteen.",
+  "hideloc.scope": "Blijft zichtbaar: het gevaren spoor, alle cijfers, je naam en je materiaal. Verborgen worden: de spot, de positie op de kaart en de lokale tijd.",
+  "hideloc.single": "Geldt meteen voor al je opnames, ook de oudere. Losse opnames kun je in hun detailweergave weer vrijgeven — of juist alleen losse verbergen.",
+  "hideloc.switch": "De locatie van mijn opnames verbergen",
+  "hideloc.title": "Locatie verbergen",
+  "sd.ortAktiv": "verborgen",
+  "sd.ortLabel": "Locatie van deze opname",
+  "sd.ortProfil": "Locatie: zoals in je profiel",
+  "sd.ortTitle": "Verborgen betekent dat kaart en spotnaam Point Nemo tonen — voor iedereen, ook voor jou. Het spoor zelf blijft zichtbaar.",
+  "sd.ortVerbergen": "Locatie: verbergen",
+  "sd.ortZeigen": "Locatie: tonen",
+  "shared.hint": "Deze opnames hebben een link waarmee iedereen ze kan bekijken — zonder account. Hier neem je die terug.",
+  "shared.revoke": "Link intrekken",
+  "shared.title": "Gedeelde opnames",
   "mcp.cardHint": "Verbind een AI-programma met je eigen opnames en laat ze daar analyseren. Je zet het adres hieronder in je programma en bevestigt hier één keer.",
   "mcp.cardScope": "Een verbonden programma mag alleen lezen, en alleen jouw eigen opnames — geen gegevens van andere riders, geen foto's, geen chats.",
   "mcp.cardTitle": "AI-toegang (MCP)",
