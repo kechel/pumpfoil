@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
@@ -35,6 +36,9 @@ import kotlin.math.sin
  *
  * Der SVG-Weg (y nach unten, Drehung positiv = im Uhrzeigersinn) ist derselbe wie der des
  * Compose-Canvas, deshalb gehen die Transformationen 1:1 durch: `P(a, z)` = Offset(a, -z).
+ * ABGESCHNITTEN wird am Rand der Zeichenflaeche (`clipToBounds`) — im Web tut das die viewBox. Ohne
+ * das ragte ein an Land umgedrehtes Brett (Rollen -163°, weit ausserhalb der ±40° des Rahmens)
+ * quer ueber die Nachbarkacheln (am Emulator gesehen, 25.09.).
  * Die Linienstaerken sind — wie `vector-effect: non-scaling-stroke` im Web — in Bildpunkten,
  * nicht in Zentimetern (geteilt durch den Massstab).
  */
@@ -159,7 +163,7 @@ fun SeitenAnsicht(rig: FoilRigMasse, pitch: Double, hub: Double = 0.0, hubBereic
         a to m + BOARD_DICKE + hb, -a to m + BOARD_DICKE + hb, -a to m,
         (rig.xStabCm - rig.stabChordCm).toFloat() to -hb, rig.foilChordCm.toFloat() to -hb,
     ), 25f)
-    Canvas(Modifier.fillMaxWidth().height(140.dp)) {
+    Canvas(Modifier.fillMaxWidth().height(140.dp).clipToBounds()) {
         inBox(box) { k ->
             bezug(m / 2, k, linie)
             translate(0f, -hub.toFloat()) {
@@ -202,7 +206,7 @@ fun FrontAnsicht(rig: FoilRigMasse, roll: Double, pitch: Double, linie: Color) {
         halb to 0f, -halb to 0f, bBoard / 2 to m + BOARD_DICKE, -bBoard / 2 to m + BOARD_DICKE,
         0f to -rig.foilSpanCm.toFloat() * 0.07f,
     ), 40f)
-    Canvas(Modifier.fillMaxWidth().height(140.dp)) {
+    Canvas(Modifier.fillMaxWidth().height(140.dp).clipToBounds()) {
         inBox(box) { k ->
             bezug(m / 2, k, linie)
             rotate(roll.toFloat(), pivot = Offset.Zero) {
@@ -229,7 +233,7 @@ fun DraufAnsicht(rig: FoilRigMasse, yaw: Double, linie: Color) {
         halb to 0f, -halb to 0f, 0f to rig.boardLenCm.toFloat() / 2,
         0f to (rig.xStabCm - rig.stabChordCm).toFloat(),
     ), 40f)
-    Canvas(Modifier.fillMaxWidth().height(140.dp)) {
+    Canvas(Modifier.fillMaxWidth().height(140.dp).clipToBounds()) {
         inBox(box) { k ->
             bezug(0f, k, linie)
             rotate(yaw.toFloat(), pivot = Offset.Zero) {

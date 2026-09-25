@@ -486,6 +486,8 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
                     CarveStatsSection(cs)
                 }
             }
+            // Lage des Bretts je Lauflaenge — nur, wenn es Aufnahmen mit dem Handy am Brett gibt.
+            BrettLageStartseite()
 
             // Community-Link (wie PWA) — unter 13 (kein social) ausgeblendet.
             if (social) {

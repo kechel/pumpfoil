@@ -145,6 +145,15 @@ private val TOP_LEVEL = setOf("home", "community", "sessions", "verlauf", "spots
 @Composable
 fun MainScaffold(onLogout: () -> Unit) {
     val nav = rememberNavController()
+    // NUR IM DEBUG-BUILD: `adb shell am start -n org.pumpfoil.app/.MainActivity --ei debug_session <id>`
+    // oeffnet eine Session direkt. Fuer Emulator-Tests einer bestimmten Aufnahme (z. B. einer mit
+    // dem Handy am Brett), ohne sich durch Listen zu tippen. Im Release gibt es den Weg nicht.
+    val debugCtx = androidx.compose.ui.platform.LocalContext.current
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        if (!BuildConfig.DEBUG) return@LaunchedEffect
+        val id = (debugCtx as? android.app.Activity)?.intent?.getIntExtra("debug_session", 0) ?: 0
+        if (id > 0) nav.navigate("session/$id")
+    }
     // Das in der Foil-Liste angetippte Foil, fuer die Detailseite. Als Merker statt in der
     // Route: die Detailseite braucht Name, AR und die Zaehler, und die stehen in der Liste
     // schon — ein zweiter Abruf nur fuer drei Textfelder waere Verschwendung.
