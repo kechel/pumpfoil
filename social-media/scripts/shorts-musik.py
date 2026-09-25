@@ -864,6 +864,28 @@ def musik_credit(suffix: str, pf: str) -> str:
     return "\n".join(zeilen)
 
 
+def musik_credit_nummer(nummer, pf: str = "youtube") -> str:
+    """Nennung fuer eine laufende Videonummer, ueber die fertige Exportdatei.
+
+    Der Batch-Lauf (yt-batch-localize.py) kennt nur Kanaltitel und Nummer, nicht
+    den Export. Damit eine spaetere Neuauflage der Beschreibungen die Nennung
+    nicht wieder verliert, wird sie hier aus der Datei geholt — dieselbe Quelle
+    wie im Studio.
+    """
+    try:
+        nr = int(nummer)
+    except (TypeError, ValueError):
+        return ""
+    d = OUT_DIR / pf
+    if not d.is_dir():
+        return ""
+    datei = next((x for x in d.glob(f"{nr:03d}-*.mp4")), None)
+    if datei is None:
+        return ""
+    m = MUSIK_SUFFIX_RE.search(datei.stem)
+    return musik_credit(m.group(0), pf) if m else ""
+
+
 def pixabay_ids(rels) -> list:
     ids = []
     for rel in rels:
@@ -1088,17 +1110,25 @@ def yt_access_token():
 
 
 def yt_compose_description(lang: str, descriptions: dict, hashtags: str = "",
-                           fallback: str = "", boiler: dict = None) -> str:
-    """Video-Beschreibung je Sprache: Kurztext + Hashtags + Standard-Block."""
+                           fallback: str = "", boiler: dict = None,
+                           credit: str = "") -> str:
+    """Video-Beschreibung je Sprache: Kurztext + Musik-Nennung + Hashtags + Block.
+
+    Die Nennung steht zwischen Kurztext und Hashtags — dieselbe Reihenfolge, die
+    Jan am 25.09. von Hand gebaut hat. Sie bleibt in ALLEN Sprachen englisch: es
+    sind Handles und Adressen, da gibt es nichts zu uebersetzen, und der Musiker
+    soll ueberall gleich heissen.
+    """
     if boiler is None:
         boiler = _load_json(YT_BOILERPLATE_FILE, {})
     parts = [p.strip() for p in ((descriptions or {}).get(lang) or fallback,
-                                 hashtags, boiler.get(lang, "")) if p and p.strip()]
+                                 credit, hashtags, boiler.get(lang, "")) if p and p.strip()]
     return "\n\n".join(parts)
 
 
 def yt_localize(video_url: str, titles: dict, descriptions: dict,
-                hashtags: str = "", fallback_description: str = ""):
+                hashtags: str = "", fallback_description: str = "",
+                credit: str = ""):
     m = YT_ID_RE.search(video_url.strip())
     if not m:
         raise RuntimeError("Keine Video-ID im Link gefunden")
@@ -1107,7 +1137,7 @@ def yt_localize(video_url: str, titles: dict, descriptions: dict,
 
     def compose(lang: str) -> str:
         return yt_compose_description(lang, descriptions, hashtags,
-                                      fallback_description, boiler)
+                                      fallback_description, boiler, credit)
 
     auth = {"Authorization": f"Bearer {yt_access_token()}"}
     data = _http_json(
@@ -2245,7 +2275,8 @@ class Handler(BaseHTTPRequestHandler):
                     req.get("titles") or {},
                     req.get("descriptions") or {},
                     str(req.get("hashtags", "")),
-                    str(req.get("description", ""))))
+                    str(req.get("description", "")),
+                    str(req.get("credit", ""))))
             except (RuntimeError, ValueError, OSError) as e:
                 return self._json({"error": str(e)}, 500)
         if self.path == "/api/tiktok/login":

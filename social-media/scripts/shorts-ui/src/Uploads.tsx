@@ -319,7 +319,11 @@ function ExportCard({ exp, ytReady, showTexts }: {
                         setYtMsg("");
                         const r = await api.post<{ ok?: boolean; written?: string[]; error?: string }>(
                           "/api/yt/localize",
-                          { url: ytUrl, titles: caps.titles, descriptions: caps.descriptions, hashtags: caps.hashtags },
+                          { url: ytUrl, titles: caps.titles, descriptions: caps.descriptions,
+                            hashtags: caps.hashtags,
+                            // Musik-Nennung geht in ALLE Sprachen mit — englisch,
+                            // es sind Handles und Adressen.
+                            credit: exp.credits?.youtube ?? "" },
                         );
                         setYtMsg(r.error ? `❌ ${r.error}` : `✅ ${r.written?.length ?? 0} Sprachen geschrieben`);
                         setYtBusy(false);
