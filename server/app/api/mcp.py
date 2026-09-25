@@ -35,6 +35,7 @@ from sqlalchemy.orm import Session
 
 from .. import models
 from ..db import get_db
+from .. import ortverbergen
 from ..ratelimit import enforce_user_tiers
 from ..tzlookup import tz_name
 from .mcp_oauth import RESOURCE, SCOPE, access_token_pruefen
@@ -211,15 +212,26 @@ def _tag(s: str | None) -> date | None:
 
 def _kurz(s: models.Session, ar: models.AnalysisResult | None) -> dict:
     """Eine Zeile fuer `list_sessions`. Bewusst schmal — der Agent holt Details einzeln nach."""
+    verborgen = ortverbergen.ist_verborgen(
+        s, ortverbergen.profil_verbirgt(getattr(s, "user", None)))
     return {
         "session_id": s.id,
         "start": _iso(s.started_at),
         "ende": _iso(s.ended_at),
         # `tz` ist KEINE Spalte, sondern wird aus der Position abgeleitet (wie
         # ueberall sonst in der API). Ohne Position gibt es keine — dann bleibt UTC.
-        "zeitzone": tz_name(s.place_lat, s.place_lon),
+        # Bei verborgenem Ort faellt sie weg: eine Ortszeit IST eine Ortsangabe.
+        "zeitzone": ("UTC" if verborgen else tz_name(s.place_lat, s.place_lon)),
+        "ort_verborgen": verborgen,
         "sportart": s.sport,
-        "spot": s.place_name,
+        # „ORT VERBERGEN" GILT AUCH HIER (Jan, 25.09.2026). Erst war der MCP ausgenommen — es
+        # fragt ja der Besitzer seine eigenen Daten ab. Jans Einwand kurz darauf gab den
+        # Ausschlag: „wir bleiben stringent … auch die Daten gehen ja an irgendeine Drittfirma
+        # und das koennte einen dann ueberraschen."
+        # Genau das ist der Punkt. Der Schalter ist ein Versprechen ueber den ORT, nicht ueber
+        # einen bestimmten Kanal — und ein Kanal, der die Daten aus dem Haus gibt, ist der
+        # letzte, bei dem man eine Ausnahme machen sollte.
+        "spot": (ortverbergen.NEMO_NAME if verborgen else s.place_name),
         "geraet": s.device_model,
         "am_brett": s.placement == "board",
         "laeufe": (ar.num_runs if ar else None),
