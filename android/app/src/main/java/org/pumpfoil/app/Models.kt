@@ -964,6 +964,11 @@ data class SessionDetail(
     // Profil, "show", "hide".
     @SerialName("ort_sichtbarkeit") val ortSichtbarkeit: String? = null,
     @SerialName("ort_verborgen") val ortVerborgen: Boolean = false,
+    // Wo sass das Geraet: "board" (Handy am Brett) | "phone" (Tasche/Huefte) | null (Uhr). Nur
+    // "board" macht Nicken/Rollen zu einer Aussage ueber das BRETT (s. analysis/lage.py).
+    val placement: String? = null,
+    // Kreiseldaten vorhanden — liefern allein die Handy-Recorder. Ohne sie gibt es keine Lage.
+    @SerialName("has_gyro") val hasGyro: Boolean = false,
     // Aus der Auswertung genommene Zeitfenster [[start_ms, end_ms], …], ms ab Session-Start
     // (dieselbe Basis wie trim_start_ms). Nullable + Default leer: alte Server kennen das Feld nicht.
     @SerialName("excluded_ranges") val excludedRanges: List<List<Long>>? = emptyList(),
@@ -1081,4 +1086,76 @@ data class GeteilterLink(
     val tz: String? = null,
     @SerialName("place_name") val placeName: String? = null,
     val sport: String? = null,
+)
+
+
+// „Sass das Handy am Brett?" (GET /api/sessions/{id}/board-hint). Der Server antwortet
+// `verdacht = false` fuer Fremde und fuer schon markierte Aufnahmen.
+@Serializable
+data class BoardHint(val verdacht: Boolean = false)
+
+// Antwort von /api/sessions/{id}/attitude (Zeiten in Session-ms). Nur die Felder, die die App
+// zeigt; alles Weitere (Gier/GPS-Gegenprobe, Quell-Raten) bleibt Sache der PWA.
+@Serializable
+data class BoardAttitude(
+    val ok: Boolean = false,
+    val grund: String? = null,
+    val placement: String? = null,
+    @SerialName("hat_gyro") val hatGyro: Boolean = false,
+    @SerialName("t_ms") val tMs: List<Long> = emptyList(),
+    @SerialName("pitch_deg") val pitchDeg: List<Double> = emptyList(),
+    @SerialName("roll_deg") val rollDeg: List<Double> = emptyList(),
+    @SerialName("gier_delta_deg") val gierDeltaDeg: List<Double> = emptyList(),
+    @SerialName("hub_cm") val hubCm: List<Double>? = null,
+    @SerialName("hub_fenster_s") val hubFensterS: Double? = null,
+    @SerialName("yaw_fenster_s") val yawFensterS: Double? = null,
+    @SerialName("rot_deg") val rotDeg: Double? = null,
+    @SerialName("auswahl_von_ms") val auswahlVonMs: Long? = null,
+    @SerialName("auswahl_bis_ms") val auswahlBisMs: Long? = null,
+    val kennzahlen: LageKennzahlen? = null,
+    val laeufe: List<LageLauf> = emptyList(),
+    val rig: FoilRigMasse? = null,
+)
+
+@Serializable
+data class LageKennzahlen(
+    @SerialName("pitch_amplitude_deg") val pitchAmplitudeDeg: Double = 0.0,
+    @SerialName("roll_amplitude_deg") val rollAmplitudeDeg: Double = 0.0,
+    @SerialName("gier_rms_deg_s") val gierRmsDegS: Double = 0.0,
+    @SerialName("pitch_hz") val pitchHz: Double? = null,
+    @SerialName("hub_pp_cm") val hubPpCm: Double? = null,
+    @SerialName("hub_hz") val hubHz: Double? = null,
+    @SerialName("hub_sicher") val hubSicher: Boolean = false,
+)
+
+@Serializable
+data class LageLauf(
+    val lauf: Int,
+    val ok: Boolean = false,
+    @SerialName("pitch_amplitude_deg") val pitchAmplitudeDeg: Double? = null,
+    @SerialName("roll_amplitude_deg") val rollAmplitudeDeg: Double? = null,
+    @SerialName("gier_rms_deg_s") val gierRmsDegS: Double? = null,
+    @SerialName("pitch_hz") val pitchHz: Double? = null,
+    @SerialName("hub_fenster_s") val hubFensterS: Double? = null,
+    @SerialName("hub_pp_cm") val hubPpCm: Double? = null,
+    @SerialName("hub_sicher") val hubSicher: Boolean = false,
+    @SerialName("rot_deg") val rotDeg: Double? = null,
+    @SerialName("rot_eigen") val rotEigen: Boolean = false,
+)
+
+// Masse des Foils in cm fuer die Zeichnung (s. PWA FoilRig.tsx). `gemessen` sagt je Feld, ob der
+// Wert aus den Daten kommt oder eine Annahme ist.
+@Serializable
+data class FoilRigMasse(
+    @SerialName("foil_span_cm") val foilSpanCm: Double = 80.0,
+    @SerialName("foil_chord_cm") val foilChordCm: Double = 15.0,
+    @SerialName("stab_span_cm") val stabSpanCm: Double = 35.0,
+    @SerialName("stab_chord_cm") val stabChordCm: Double = 7.0,
+    @SerialName("mast_len_cm") val mastLenCm: Double = 75.0,
+    @SerialName("board_len_cm") val boardLenCm: Double = 120.0,
+    @SerialName("shim_deg") val shimDeg: Double = 0.0,
+    @SerialName("x_foil_cm") val xFoilCm: Double = 0.0,
+    @SerialName("x_mast_cm") val xMastCm: Double = 10.0,
+    @SerialName("x_stab_cm") val xStabCm: Double = -60.0,
+    @SerialName("fuse_len_cm") val fuseLenCm: Double = 70.0,
 )

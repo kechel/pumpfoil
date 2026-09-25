@@ -641,6 +641,31 @@ object Api {
         http("PUT", "/api/sessions/$id/meta", body.toString(), auth = true)
     }
 
+    // „Sass das Handy am Brett?" — der Server entscheidet, ob gefragt wird.
+    suspend fun boardHint(id: Int): BoardHint = withContext(Dispatchers.IO) {
+        json.decodeFromString(BoardHint.serializer(), http("GET", "/api/sessions/$id/board-hint", null, auth = true))
+    }
+
+    // Lage des Bretts (Nicken/Rollen/Gieren/Hub). `run` = ein Lauf, sonst die ganze Aufnahme;
+    // `jeLauf` liefert die Kennzahlen je Lauf mit (ein Abruf fuer die ganze Tabelle), `hz` regelt
+    // nur die Aufloesung der Kurven herunter — die Kennzahlen rechnet der Server mit voller Rate.
+    suspend fun boardAttitude(id: Int, run: Int? = null, jeLauf: Boolean = false, hz: Int? = null): BoardAttitude =
+        withContext(Dispatchers.IO) {
+            val q = buildList {
+                if (run != null) add("run=$run")
+                if (jeLauf) add("je_lauf=1")
+                if (hz != null) add("hz=$hz")
+            }.joinToString("&")
+            json.decodeFromString(BoardAttitude.serializer(),
+                http("GET", "/api/sessions/$id/attitude" + (if (q.isNotEmpty()) "?$q" else ""), null, auth = true))
+        }
+
+    // Montage der Aufnahme: "board" | "phone" | "" — nur bei Handy-Aufnahmen (Server prueft).
+    suspend fun setPlacement(id: Int, wert: String): Unit = withContext(Dispatchers.IO) {
+        http("PUT", "/api/sessions/$id/meta", buildJsonObject { put("placement", wert) }.toString(), auth = true)
+        Unit
+    }
+
     // „Ort verbergen" fuer EINE Aufnahme: "" = wie im Profil, "show", "hide".
     suspend fun setOrtSichtbarkeit(id: Int, wert: String): Unit = withContext(Dispatchers.IO) {
         http("PUT", "/api/sessions/$id/meta", buildJsonObject { put("ort_sichtbarkeit", wert) }.toString(), auth = true)
