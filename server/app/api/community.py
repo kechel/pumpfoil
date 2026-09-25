@@ -16,7 +16,7 @@ import time
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
-from sqlalchemy import Float, cast, func, literal, or_, true
+from sqlalchemy import Float, and_, cast, false, func, literal, not_, or_, true
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session, joinedload
 
@@ -51,10 +51,49 @@ U = models.User
 NAME = owner_label_sql(U)  # display_name mit Fallback "User #<id>"
 
 
-def _spot_cond(spot: str):
+def _verborgen_cond(db: Session):
+    """SQL-Bedingung „diese Aufnahme hat den Ort verborgen".
+
+    Dieselbe Regel wie `ortverbergen.ist_verborgen`, nur in SQL: die Aufnahme entscheidet, sonst
+    das Profil des Besitzers. Beide Fassungen muessen zusammenpassen — sie stehen deshalb
+    nebeneinander in den Tests.
+    """
+    verbergende = _verbergende_nutzer(db)
+    # `coalesce` ist hier KEIN Schoenheitsfehler, sondern der Kern: `ort_sichtbarkeit` ist meistens
+    # NULL, und in SQL ist `NULL = 'hide'` weder wahr noch falsch, sondern NULL. Ein `NOT (…)`
+    # darueber bleibt NULL, und eine Zeile mit NULL-Bedingung faellt aus JEDEM Filter heraus.
+    # Beim ersten Anlauf lieferte die Spot-Liste deshalb gar nichts mehr — auch die offenen
+    # Aufnahmen nicht. Mit dem Ersatzwert ist die Bedingung immer wahr oder falsch.
+    zustand = func.coalesce(S.ort_sichtbarkeit, "")
+    eigen_an = zustand == "hide"
+    folgt_profil = and_(zustand == "",
+                        S.user_id.in_(verbergende) if verbergende else false())
+    return or_(eigen_an, folgt_profil)
+
+
+def _spot_cond(spot: str, db: Session | None = None):
     """Filter für den spot-Param: numerisch -> spot_id (neue Clients/PWA), sonst
-    place_name (Rückwärtskompat für released Apps). Namen sind eindeutig -> korrekt."""
-    return S.spot_id == int(spot) if str(spot).isdigit() else S.place_name == spot
+    place_name (Rückwärtskompat für released Apps). Namen sind eindeutig -> korrekt.
+
+    „ORT VERBERGEN" (Jan, 25.09.2026): „alle Location-anonymisierten Sessions sollen nur fuer
+    diesen Spot zaehlen und nicht da, wo sie eigentlich waren." Also gehoert eine verborgene
+    Aufnahme zu Point Nemo und zu KEINEM anderen Spot mehr:
+
+      * Filtert jemand auf den echten Spot, faellt sie heraus. Sonst waere die Filterung selbst
+        der Verrat — man sucht „Jettkofen" und bekommt eine Aufnahme, die ihren Ort verbirgt.
+        Das ist die gefaehrlichste Stelle des ganzen Features.
+      * Filtert jemand auf „Point Nemo", bekommt er GENAU die verborgenen. So entsteht die
+        gemeinsame Seite, die Jan wollte, ohne dass irgendwo ein Spot-Eintrag angelegt wird.
+
+    `db` ist optional, damit alte Aufrufer nicht brechen — ohne `db` gibt es keine Verbergung
+    (und kein Point Nemo), das ist das Verhalten von vorher.
+    """
+    if db is not None and str(spot) == ortverbergen.NEMO_NAME:
+        return _verborgen_cond(db)
+    basis = S.spot_id == int(spot) if str(spot).isdigit() else S.place_name == spot
+    if db is None:
+        return basis
+    return and_(basis, not_(_verborgen_cond(db)))
 
 # Rekord-Kennzahl -> (Wert-Spalte, Lauf-Index-Spalte | None)
 # Max-Puls steckt (nur) in metrics_json -> JSONB-Extraktion; Tabelle ist klein, kein Index nötig.
@@ -266,7 +305,7 @@ def community_sessions(
     if name:
         q = q.filter(func.lower(U.display_name).like(f"%{name.lower()}%"))
     if spot:
-        q = q.filter(_spot_cond(spot))
+        q = q.filter(_spot_cond(spot, db))
     if foil_id:
         q = q.filter(S.foil_id == foil_id)
     rows = q.order_by(S.started_at.desc()).offset(max(offset, 0)).limit(min(max(limit, 1), 100)).all()
@@ -281,7 +320,7 @@ def spot_sessions(
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> list[dict]:
     rows = (
-        _community(db.query(*BRIEF_COLS), user.id, accel_only, sport).filter(_spot_cond(spot))
+        _community(db.query(*BRIEF_COLS), user.id, accel_only, sport).filter(_spot_cond(spot, db))
         .order_by(S.started_at.desc())
         .offset(max(offset, 0)).limit(min(max(limit, 1), 100)).all()
     )
@@ -322,7 +361,7 @@ def sessions_grouped(
     if name:
         q = q.filter(func.lower(U.display_name).like(f"%{name.lower()}%"))
     if spot:
-        q = q.filter(_spot_cond(spot))
+        q = q.filter(_spot_cond(spot, db))
     rows = q.order_by(S.started_at.desc()).limit(_GROUP_SCAN_CAP + 1).all()
     truncated = len(rows) > _GROUP_SCAN_CAP
     if truncated:
@@ -438,7 +477,7 @@ def _record_entry(db: Session, metric: str, cut: datetime | None, spot: str | No
     if cut is not None:
         q = q.filter(S.started_at >= cut)
     if spot is not None:
-        q = q.filter(_spot_cond(spot))
+        q = q.filter(_spot_cond(spot, db))
     row = q.order_by(valcol.desc()).first()
     if row is None:
         return dict(_EMPTY_REC)
@@ -474,7 +513,7 @@ def _time_rows(db: Session, spot: str | None, viewer_id: int | None, accel_only:
                             AR.segments_json), viewer_id, accel_only, sport, nur_gps=nur_gps)
     q = _band_filter(db, q, foil_band, viewer_id or 0)
     if spot is not None:
-        q = q.filter(_spot_cond(spot))
+        q = q.filter(_spot_cond(spot, db))
     rows: list[tuple] = []
     for sid, st, trim0, lat, lon, name, place, avatar, preview, segs_json in q.all():
         if st is None or not segs_json:
@@ -590,7 +629,7 @@ def _carve_record(db: Session, cut: datetime | None, spot: str | None = None, vi
     if cut is not None:
         q = q.filter(S.started_at >= cut)
     if spot is not None:
-        q = q.filter(_spot_cond(spot))
+        q = q.filter(_spot_cond(spot, db))
     row = q.group_by(U.id, U.display_name, U.avatar_url).order_by(total.desc()).first()
     if row is None or not row[2]:
         return dict(_EMPTY_REC)
@@ -1383,7 +1422,7 @@ def spot_weather_endpoint(
     # auch GPS-only/eigene zählen, damit das Widget überall greift.
     row = (
         db.query(func.avg(S.place_lat), func.avg(S.place_lon))
-        .filter(_spot_cond(spot), S.place_lat.isnot(None), S.deleted.isnot(True)).first()
+        .filter(_spot_cond(spot, db), S.place_lat.isnot(None), S.deleted.isnot(True)).first()
     )
     if not row or row[0] is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Spot ohne Koordinaten")
