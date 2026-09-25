@@ -484,6 +484,12 @@ function MySessionsList({ myName, accelOnly, onShowAll }:
     // Sessions ueberall dieselben Karten zeigen und nur die Auswahl falsch waere.
     if (replace) meinLaufRef.current += 1; else if (loadingRef.current) return;
     if (!replace && !hasMoreRef.current) return;
+    // Beim Neu-Aufbau sofort leeren, nicht erst wenn die Antwort da ist: sonst steht die Liste
+    // des vorigen Monats/Tabs unter der neuen Ueberschrift, bis geladen wurde. Dieselbe Sache
+    // wie in der Community-Liste (Jan, 25.09.2026, dort mit fremden Spots) — hier faellt sie
+    // nur weniger auf, weil es die eigenen Sessions sind. Der Umschalter accel|alle machte es
+    // schon richtig, die beiden anderen Wechsel nicht.
+    if (replace) { itemsRef.current = []; setItems([]); }
     const lauf = meinLaufRef.current;
     loadingRef.current = true; setLoading(true); setError(null);
     try {
@@ -1087,6 +1093,14 @@ function CommunityList({ name, spot, accelOnly, onShowAll }:
       restoreRef.current = true;  // nach dem Render die markierte Karte einscrollen
       revalidateCommunityHead();  // im Hintergrund neue Sessions nachziehen
     } else {
+      // DIE ALTE LISTE MUSS WEG, BEVOR DIE NEUE DA IST (Jan, 25.09.2026: „klick auf alle
+      // gefolgt von schnellem klick auf meinen spot zeigt mir immernoch fremde sessions").
+      // Der Generationszaehler vom 24.09. verhindert nur noch, dass eine VERALTETE ANTWORT
+      // in die Liste schreibt. Er sagt nichts darueber, was waehrenddessen auf dem Schirm
+      // steht — und das waren weiter die Gruppen des vorigen Filters, unter der neuen
+      // Ueberschrift. Ohne Cache-Treffer gibt es nichts Richtiges zu zeigen: leeren und den
+      // Ladekringel zeigen, bis die Antwort zum aktuellen Filter da ist.
+      itemsRef.current = []; setItems([]);
       moreRef.current = true; offsetRef.current = 0; load(true);
     }
     // Lag die PWA lange im Hintergrund, laeuft beim Zurueckkommen KEIN Mount — ohne das hier
