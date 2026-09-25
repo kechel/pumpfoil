@@ -192,15 +192,21 @@ class RecorderService : Service(), SensorEventListener {
      * ABSCHALTBAR VOM SERVER (`accelWakeup`, s. api/devices.py), weil niemand vorher weiss, was
      * es auf welcher Uhr an Akku kostet. Und mit RUECKFALL: nicht jede Uhr hat eine
      * Wake-up-Variante, `getDefaultSensor(type, true)` gibt dann `null` — dann eben wie bisher.
+     *
+     * NUR AUF AUSDRUECKLICHES "on" (Jan, 25.09.2026): eingefuehrt wird bei ausgewaehlten Fahrern
+     * einzeln. Solange die Uhr noch keine Konfiguration geholt hat, fehlt der Wert — dann bleibt
+     * alles wie vor 1.2.33, auch bei der ersten Aufnahme direkt nach dem Update.
      */
     private fun accelSensor(): Sensor? {
         val prefs = getSharedPreferences("pumpfoil", Context.MODE_PRIVATE)
-        if (prefs.getString("accel_wakeup", "on") != "off") {
+        if (prefs.getString("accel_wakeup", "off") == "on") {
             sensors.getDefaultSensor(Sensor.TYPE_ACCELEROMETER, true)?.let {
                 android.util.Log.i("Pumpfoil", "Accel: Wake-up-Variante (${it.name})")
                 return it
             }
             android.util.Log.i("Pumpfoil", "Accel: keine Wake-up-Variante vorhanden, Rueckfall")
+        } else {
+            android.util.Log.i("Pumpfoil", "Accel: Non-wake-up-Variante (Schalter aus)")
         }
         return sensors.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
     }
