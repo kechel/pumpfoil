@@ -1729,9 +1729,15 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   oder den zweiten Lauf als Fehler zu markieren — genau das, wofuer sie am 23.09. gebaut wurde.
   Damit verhalten sich ALLE VIER Brett-Aufnahmen wie erwartet: drei mit fester Montage, eine mit
   absichtlich geaenderter.
-  **Offen und nur von Jan zu beantworten:** 119,4° Unterschied — passt das zur tatsaechlichen
-  Drehung? Bei 90° oder 180° laege die Schaetzung 30 bis 60 Grad daneben. Diese Zahl sollte
-  bekannt sein, BEVOR eine Automatik darauf aufbaut.
+  **WAS SIE BELEGT UND WAS NICHT.** Gedreht wurde frei Hand, „einfach absichtlich schraeg"
+  (Jan, 25.09.) — es gibt also keinen Sollwert, gegen den sich die gemessenen 119,4° pruefen
+  liessen. Die Session belegt damit, dass eine Aenderung ERKANNT wird und je Lauf richtig
+  angewendet, aber NICHT, wie genau der Winkel stimmt. Wer die absolute Genauigkeit wissen will,
+  braucht eine Aufnahme mit bekannter Drehung (90° oder 180°, notiert) — vorher sollte keine
+  Automatik auf dem Winkel selbst aufbauen.
+  Ob das Handy dabei auch kopfueber lag, weiss Jan nicht mehr. Fuer die veroeffentlichten Zahlen
+  ist das unerheblich: Nicken und Rollen gehen als 95. Perzentil des BETRAGS hinaus, ein
+  Vorzeichenwechsel aendert daran nichts.
 
   **Und die Methode dafür steht jetzt, gemessen statt vermutet.** Über die Uhrzeit allein geht es
   NICHT: bei #9656 Lauf 1 starten Handy (11:02:50), Philipp (11:02:51) und Jan (11:02:53)
