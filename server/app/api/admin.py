@@ -164,6 +164,7 @@ def delete(session_id: int, admin: models.User = Depends(current_admin), db: Ses
     s = _get_session(db, session_id)
     alter_spot = s.spot_id
     s.deleted = True
+    s.share_token = None   # s. delete_session in api/sessions.py
     _log(db, admin, "session_delete", "session", session_id)
     db.commit()
     # Letzte gueltige Session am Spot geloescht -> Spot mit weg (Jan, 26.08.).

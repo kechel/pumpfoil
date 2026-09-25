@@ -299,6 +299,7 @@ def merge_sessions(db: DbSession, sessions: list[models.Session]) -> models.Sess
              models.SessionVideo.merged_from_session_id: s.id})
         s.deleted = True
         s.merged_into = ns.id
+        s.share_token = None   # s. delete_session in api/sessions.py
     db.flush()
     sync_video_mirror(db, ns)
     run_analysis(db, ns)

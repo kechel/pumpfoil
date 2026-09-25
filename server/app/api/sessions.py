@@ -2226,6 +2226,7 @@ def delete_all_other_sessions(
     rows = q.all()
     for s in rows:
         s.deleted = True
+        s.share_token = None   # s. delete_session
     db.commit()
     return {"ok": True, "deleted": len(rows)}
 
@@ -2241,6 +2242,13 @@ def delete_session(
     s = _owned(db, user, session_id)
     alter_spot = s.spot_id
     s.deleted = True
+    # Den Teilen-Link mit abraeumen (Jan, 25.09.2026). Der Link war schon vorher tot — der
+    # oeffentliche Endpunkt filtert `deleted` —, aber der Token blieb in der Zeile stehen. Das
+    # ist aus zwei Gruenden falsch: wer seine Aufnahme loescht, will sie weg haben und nicht
+    # einen stillen Schluessel darauf behalten, und jede Liste „was ist von mir noch geteilt?"
+    # zaehlt sonst Aufnahmen mit, die es gar nicht mehr gibt. Gilt an ALLEN vier Loesch-Wegen:
+    # hier, beim Massen-Loeschen der Aussortierten, im Admin-Bereich und beim Zusammenfuehren.
+    s.share_token = None
     db.commit()
     # War das die letzte gueltige Session an dem Spot? Dann faellt der Spot mit (s. _spot_aufraeumen).
     _spot_aufraeumen(db, alter_spot)
