@@ -177,6 +177,14 @@ DEFAULTS = {
         # Link auf den eigenen (freigegebenen) YouTube-Kanal.
         "channel": True,
     },
+    # „ORT VERBERGEN" (25.09.2026) — die Voreinstellung fuer ALLE eigenen Aufnahmen. Je Aufnahme
+    # laesst sie sich in beide Richtungen uebersteuern (`sessions.ort_sichtbarkeit`).
+    #
+    # Sie gilt RUECKWIRKEND, und das ist der Punkt: wer den Schalter aus Sorge umlegt, meint
+    # alles, was schon oben ist — ein Schalter, der nur fuer kuenftige Aufnahmen greift, waere
+    # fuer genau diesen Menschen wertlos. Moeglich ist das, weil nicht die Daten geaendert
+    # werden, sondern nur ihre Ausgabe (s. app/ortverbergen.py).
+    "hide_location": False,
 }
 
 # Schalter der oeffentlichen Foiler-Seite (ohne `enabled`, das steht fuer die ganze Seite).
@@ -524,6 +532,8 @@ def update_settings(
                 if k in v:
                     aktuell[k] = bool(v[k])
             current["public_profile"] = aktuell
+    if "hide_location" in patch:
+        current["hide_location"] = bool(patch["hide_location"])
     if "weight_kg" in patch:
         try:
             current["weight_kg"] = max(0, min(300, round(float(patch["weight_kg"]))))

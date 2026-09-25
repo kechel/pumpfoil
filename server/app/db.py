@@ -116,6 +116,8 @@ def _migrate_add_indexes() -> None:
         "UPDATE sessions SET updated_at = created_at WHERE updated_at IS NULL",
         # Aufnahme-Platzierung (Handy-Recorder „Record on Phone" = 'phone', sonst Uhr).
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS placement VARCHAR(16)",
+        # „Ort verbergen" je Aufnahme (25.09.2026). NULL = folgt dem Profil.
+        "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS ort_sichtbarkeit VARCHAR(8)",
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS attitude_rot_deg INTEGER",
         # Puls-Diagnose der Aufnahme (15.09.2026). Ein Puls-Ausfall war bisher nur am Ergebnis
         # sichtbar — „keine Werte da" —, und ob der Recorder ueberhaupt gemessen hat, stand
