@@ -41,7 +41,14 @@ Plattform von selbst. Auf YouTube ist `@marcusgrun` (Instagram) toter Text — d
 deshalb die Adresse. Die eigene Plattform steht zuerst.
 
 **TikTok bekommt nur das Handle** (`🎵 @marcus_gruen`): dort ist bloss ein kurzer Titel
-moeglich. **RedNote** verlinkt nicht nach draussen, dort steht nur der Name.
+moeglich, und das Handle gehoert in den Titel statt in einen Kommentar. **RedNote**
+verlinkt nicht nach draussen, dort steht nur der Name.
+
+**Wie die Erwaehnung wirklich entsteht:** auf YouTube, Instagram und TikTok genuegt das
+getippte `@handle` — es wird von selbst zum Link, und der Musiker bekommt eine
+Benachrichtigung. **Facebook ist die Ausnahme:** dort muss man den Vorschlag aus der
+Liste anklicken, die beim `@` aufgeht; nur getippt bleibt es einfacher Text ohne
+Verknuepfung.
 
 Aktuell eingetragen: **Marcus Grün** (`marcus-gruenschneder/`) — YouTube
 `@marcusgrun8545`, Instagram `@marcusgrun`, TikTok `@marcus_gruen`, Facebook

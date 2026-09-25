@@ -404,9 +404,14 @@ function ExportCard({ exp, ytReady, showTexts }: {
                         <>
                           <pre>{text}</pre>
                           <div className="note">
-                            Als <b>Kommentar</b> unter den Beitrag — dort verlinkt das
-                            @handle der jeweils eigenen Plattform von selbst, fremde
-                            Plattformen stehen als Adresse.
+                            Als <b>Kommentar</b> unter den Beitrag (TikTok: in den Titel).
+                            Das @handle der jeweils eigenen Plattform verlinkt von selbst,
+                            fremde Plattformen stehen deshalb als Adresse.
+                            {pf === "facebook" && (
+                              <> <b>Bei Facebook reicht Tippen nicht</b> — den Vorschlag
+                              aus der Liste anklicken, die beim @ aufgeht, sonst bleibt es
+                              einfacher Text ohne Verknüpfung.</>
+                            )}
                           </div>
                         </>
                       } />
