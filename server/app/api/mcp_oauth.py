@@ -36,7 +36,7 @@ from datetime import datetime, timedelta, timezone
 
 import jwt
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
 from .. import models
@@ -232,8 +232,7 @@ def autorisieren(request: Request, db: Session = Depends(get_db)):
         if p.get("state"):
             teile["state"] = p["state"]
         trenner = "&" if "?" in redirect_uri else "?"
-        return JSONResponse(status_code=302, content=None,
-                            headers={"Location": f"{redirect_uri}{trenner}{urlencode(teile)}"})
+        return RedirectResponse(f"{redirect_uri}{trenner}{urlencode(teile)}", status_code=302)
 
     if p.get("response_type") != "code":
         return zurueck("unsupported_response_type", "Nur response_type=code.")
@@ -257,8 +256,7 @@ def autorisieren(request: Request, db: Session = Depends(get_db)):
         "state": p.get("state") or "",
         "resource": ressource or RESOURCE,
     }
-    return JSONResponse(status_code=302, content=None,
-                        headers={"Location": f"{ISSUER}/oauth/consent?{urlencode(weiter)}"})
+    return RedirectResponse(f"{ISSUER}/oauth/consent?{urlencode(weiter)}", status_code=302)
 
 
 @router.post("/oauth/consent")

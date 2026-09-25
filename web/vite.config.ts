@@ -66,9 +66,18 @@ export default defineConfig({
           /^\/api/, /^\/media/, /^\/demo/, /^\/promo/, /^\/landing-vorschau/, /-oauth(\?|$)/,
           /^\/sitemap\.xml$/, /^\/robots\.txt$/, /^\/\.well-known/,
           // Unser eigener MCP-Zugang (25.09.2026). `/mcp` und die vier OAuth-Endpunkte gehoeren
-          // dem Server. `/oauth/consent` steht hier ABSICHTLICH NICHT: das ist die
-          // Zustimmungsseite und damit eine echte Seite der App — sie MUSS aus der Shell kommen.
-          /^\/mcp$/, /^\/oauth\/(authorize|token|register|revoke)$/,
+          // dem Server.
+          //
+          // `/oauth/consent` steht hier MIT, obwohl es eine echte Seite der App ist — und das ist
+          // der Grund: Jans erster Verbindungsversuch endete dort mit „Unexpected Application
+          // Error! 404 Not Found". Die Route gab es im frisch gebauten Bundle laengst; sein
+          // Browser bekam aber die GECACHTE Huelle mitsamt dem ALTEN Bundle, das sie noch nicht
+          // kannte (registerType „prompt": die neue Fassung wartet, bis der Nutzer zustimmt).
+          // Eine Zustimmungsseite darf nie aus einem alten Cache kommen — sie wird aus einem
+          // fremden Programm heraus aufgerufen, genau einmal, und ein 404 dort sieht aus wie ein
+          // kaputter Dienst. Mit der Ausnahme holt der Browser die Huelle vom Server, also immer
+          // die aktuelle.
+          /^\/mcp$/, /^\/oauth\//,
           // Search Console legt eine Datei wie `google1a2b3c4d5e.html` in den Wurzelordner.
           /^\/google[0-9a-f]+\.html$/,
         ],
