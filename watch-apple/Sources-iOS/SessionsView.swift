@@ -568,6 +568,19 @@ struct SessionRow: View {
             }
     }
 
+    /// „Vergleichen" als sichtbarer Knopf bei den Zahlen (PWA SessionCard.tsx, 24.09.2026). Das
+    /// Kontextmenue bleibt, ist aber unsichtbar. `.borderless`, sonst loest der Tipp in der
+    /// Listenzeile auch die Navigation aus (Memory swiftui-listenzeile-mehrere-knoepfe).
+    private var vergleichKnopf: some View {
+        let an: Bool = compare.contains(session.id)
+        return Button { compare.toggle(session.id) } label: {
+            Label(Loc.t("compare.short", lang), systemImage: "arrow.left.arrow.right")
+                .font(.subheadline.weight(an ? .semibold : .regular))
+                .foregroundStyle(an ? Color.accentColor : Color.secondary)
+        }
+        .buttonStyle(.borderless)
+    }
+
     // War ein 58-Zeilen-Ausdruck mit vier verschachtelten Stacks und mehreren Badge-Zweigen ->
     // in typisierte Teile zerlegt, damit jeder unter der Type-Checker-Schwelle bleibt.
     private var content: some View {
@@ -575,6 +588,7 @@ struct SessionRow: View {
             headRow
             media   // Foto/Video als eigene Zeile DARUNTER
             statsLine
+            vergleichKnopf
             bottomRow
         }
         .padding(.vertical, 4)
