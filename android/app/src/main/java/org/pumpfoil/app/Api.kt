@@ -213,6 +213,11 @@ object Api {
         val path = json.parseToJsonElement(resp).jsonObject["path"]?.jsonPrimitive?.content ?: ""
         "https://pumpfoil.org$path"
     }
+    // Alle eigenen Aufnahmen mit aktivem Teilen-Link (Profil -> „Geteilte Aufnahmen").
+    suspend fun geteilteLinks(): List<GeteilterLink> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(GeteilterLink.serializer()), http("GET", "/api/sessions/geteilte", null, auth = true))
+    }
+
     suspend fun revokeShareLink(id: Int): Unit = withContext(Dispatchers.IO) {
         http("DELETE", "/api/sessions/$id/share", null, auth = true); Unit
     }
@@ -634,6 +639,12 @@ object Api {
             if (setBoard) { if (boardId == null) put("board_id", JsonNull) else put("board_id", boardId) }
         }
         http("PUT", "/api/sessions/$id/meta", body.toString(), auth = true)
+    }
+
+    // „Ort verbergen" fuer EINE Aufnahme: "" = wie im Profil, "show", "hide".
+    suspend fun setOrtSichtbarkeit(id: Int, wert: String): Unit = withContext(Dispatchers.IO) {
+        http("PUT", "/api/sessions/$id/meta", buildJsonObject { put("ort_sichtbarkeit", wert) }.toString(), auth = true)
+        Unit
     }
 
     suspend fun setSessionFoil(id: Int, foilId: Int?): Unit = withContext(Dispatchers.IO) {

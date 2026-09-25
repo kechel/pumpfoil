@@ -1193,6 +1193,12 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             Spacer(Modifier.height(8.dp))
             TransferPicker(s.id)
             Spacer(Modifier.height(8.dp))
+            // „Ort verbergen" fuer DIESE Aufnahme — eine Entscheidung ueber die Aufnahme, keine
+            // Anzeige-Einstellung, deshalb hier unten. Was es bewirkt, sieht man sofort: die Karte
+            // springt nach Point Nemo, auch fuer einen selbst (Jan, 25.09.2026: „dann sieht man
+            // sich selber an Point Nemo und weiss: so darf auch jeder andere sehen").
+            OrtSchalter(s, onReload)
+            Spacer(Modifier.height(8.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (canTrim) {
                     OutlinedButton(onClick = onTrim, modifier = Modifier.weight(1f)) {
@@ -2527,4 +2533,37 @@ private fun exportDateiname(s: SessionDetail, kind: String): String {
         java.time.Instant.ofEpochMilli(ms).atZone(zone).toLocalDate().toString()
     }
     return "pumpfoil-$tag-${s.id}.$kind"
+}
+
+
+@Composable
+private fun OrtSchalter(s: SessionDetail, onReload: () -> Unit) {
+    val scope = rememberCoroutineScope()
+    var busy by remember(s.id) { mutableStateOf(false) }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(I18n.t("sd.ortLabel"), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(end = 8.dp))
+        Box(Modifier.weight(1f)) {
+            Dropdown(
+                options = listOf(
+                    "" to I18n.t("sd.ortProfil"),
+                    "show" to I18n.t("sd.ortZeigen"),
+                    "hide" to I18n.t("sd.ortVerbergen"),
+                ),
+                selected = s.ortSichtbarkeit ?: "",
+                onSelect = { neu ->
+                    if (!busy && neu != (s.ortSichtbarkeit ?: "")) {
+                        busy = true
+                        scope.launch {
+                            try { Api.setOrtSichtbarkeit(s.id, neu); onReload() } catch (_: Exception) {}
+                            busy = false
+                        }
+                    }
+                },
+            )
+        }
+    }
+    if (s.ortVerborgen) {
+        Text(I18n.t("sd.ortAktiv"), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(top = 4.dp))
+    }
 }

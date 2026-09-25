@@ -237,6 +237,16 @@ fun SettingsScreen(onBack: () -> Unit) {
             )
             Spacer(Modifier.height(16.dp))
 
+            // Was sehen andere von mir — oeffentliche Foiler-Seite und „Ort verbergen" direkt
+            // untereinander, wie in der PWA (Jan, 25.09.2026: „das wuerde unter den block mit
+            // Public profile page passen"). Beide speichern sofort, nicht ueber „Speichern".
+            OeffentlicheSeiteKarte(onSaved = { flashSaved() })
+            Spacer(Modifier.height(12.dp))
+            OrtVerbergenKarte(onSaved = { flashSaved() })
+            Spacer(Modifier.height(12.dp))
+            GeteilteAufnahmenKarte()
+            Spacer(Modifier.height(16.dp))
+
 
             // Theme (lokal, sofort wirksam).
             Text(I18n.t("settings.design"), style = MaterialTheme.typography.labelLarge)
