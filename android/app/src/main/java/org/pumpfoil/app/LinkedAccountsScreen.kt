@@ -210,6 +210,8 @@ fun LinkedAccountsScreen(onBack: () -> Unit) {
                 }
             }
             XiaomiHinweis()
+            // KI-Zugang (MCP) — wie die PWA ganz unten bei den verknuepften Konten.
+            McpKarte()
         }
     }
 

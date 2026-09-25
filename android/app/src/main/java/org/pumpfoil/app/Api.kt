@@ -668,6 +668,15 @@ object Api {
         json.decodeFromString(BoardAttitudeStats.serializer(), http("GET", "/api/community/board-attitude", null, auth = true))
     }
 
+    // KI-Zugang (MCP): Adresse + verbundene Programme; Schliessen widerruft deren Zugang.
+    suspend fun mcpStatus(): McpStatus = withContext(Dispatchers.IO) {
+        json.decodeFromString(McpStatus.serializer(), http("GET", "/api/mcp/status", null, auth = true))
+    }
+    suspend fun mcpVerbindungSchliessen(clientId: String): Unit = withContext(Dispatchers.IO) {
+        http("DELETE", "/api/mcp/verbindungen/" + java.net.URLEncoder.encode(clientId, "UTF-8"), null, auth = true)
+        Unit
+    }
+
     // Montage der Aufnahme: "board" | "phone" | "" — nur bei Handy-Aufnahmen (Server prueft).
     suspend fun setPlacement(id: Int, wert: String): Unit = withContext(Dispatchers.IO) {
         http("PUT", "/api/sessions/$id/meta", buildJsonObject { put("placement", wert) }.toString(), auth = true)

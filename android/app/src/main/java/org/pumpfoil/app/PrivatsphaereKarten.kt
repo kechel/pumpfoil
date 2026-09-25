@@ -170,3 +170,68 @@ private fun Haken(text: String, wert: Boolean, aktiv: Boolean = true, onChange: 
         Text(text, style = MaterialTheme.typography.bodyMedium)
     }
 }
+
+
+/**
+ * KI-Zugang (MCP) — die Adresse zum Eintragen und wer gerade Zugriff hat. Portiert aus der PWA
+ * (LinkedAccounts.tsx McpCard). Die Liste ist der wichtigere Teil: man kann nur zumachen, was man
+ * sieht. Ein schon ausgegebenes Token laesst sich nicht zurueckholen, es laeuft nur ab — das sagt
+ * der Hinweis, statt „sofort gesperrt" zu behaupten.
+ */
+@Composable
+fun McpKarte() {
+    val scope = rememberCoroutineScope()
+    val clipboard = androidx.compose.ui.platform.LocalClipboardManager.current
+    var st by remember { mutableStateOf<McpStatus?>(null) }
+    var busy by remember { mutableStateOf<String?>(null) }
+    var kopiert by remember { mutableStateOf(false) }
+    suspend fun laden() { st = try { Api.mcpStatus() } catch (_: Exception) { st } }
+    LaunchedEffect(Unit) { laden() }
+    val s = st ?: return
+    Spacer(Modifier.height(12.dp))
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(14.dp)) {
+            Text(I18n.t("mcp.cardTitle"), style = MaterialTheme.typography.titleMedium)
+            Text(I18n.t("mcp.cardHint"), style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp, bottom = 8.dp))
+            Text(I18n.t("mcp.cardUrlLabel"), style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(s.url, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium,
+                    fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace)
+                TextButton(onClick = {
+                    clipboard.setText(androidx.compose.ui.text.AnnotatedString(s.url)); kopiert = true
+                }) { Text(I18n.t(if (kopiert) "mcp.copied" else "mcp.copy")) }
+            }
+            Text(I18n.t("mcp.cardScope"), style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 6.dp))
+            if (s.verbunden.isEmpty()) {
+                Text(I18n.t("mcp.none"), style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            } else {
+                Text(I18n.t("mcp.connectedTitle"), style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                s.verbunden.forEach { v ->
+                    Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(v.name, fontWeight = FontWeight.Medium)
+                            val seit = I18n.t("mcp.since").replace("{d}", shortDateFull(v.seit) ?: v.seit)
+                            val zuletzt = v.zuletzt?.let { " · " + I18n.t("mcp.last").replace("{d}", shortDateFull(it) ?: it) } ?: ""
+                            Text(seit + zuletzt, style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        OutlinedButton(enabled = busy != v.clientId, onClick = {
+                            busy = v.clientId
+                            scope.launch {
+                                try { Api.mcpVerbindungSchliessen(v.clientId); laden() } catch (_: Exception) {}
+                                busy = null
+                            }
+                        }) { Text(I18n.t("mcp.revoke")) }
+                    }
+                }
+                Text(I18n.t("mcp.revokeNote"), style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
+            }
+        }
+    }
+}
