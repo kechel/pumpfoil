@@ -1268,6 +1268,11 @@ export const api = {
     req<{ ok: boolean; gnss_mode: string }>(`/api/devices/${id}/gnss-mode`, {
       method: "PUT", body: JSON.stringify({ gnss_mode }),
     }),
+  // Wake-up-Sensor je Uhr: on | off | default (entfernt den Override). Nur Wear OS.
+  setDeviceAccelWakeup: (id: number, accel_wakeup: string) =>
+    req<{ ok: boolean; accel_wakeup: string | null }>(`/api/devices/${id}/accel-wakeup`, {
+      method: "PUT", body: JSON.stringify({ accel_wakeup }),
+    }),
   // Wassersperre je Uhr: auto | on | off. Nicht fuer Garmin — unser Aufnahme-Bildschirm hat
   // dort gar keine Tipp-Behandlung, ein Wassertropfen kann also nichts ausloesen.
   setDeviceWaterLock: (id: number, water_lock: string) =>
@@ -1838,6 +1843,8 @@ export interface PairedDevice {
   record_mode: string;        // Aufzeichnungsmodus dieser Uhr (full|lite|gps)
   gnss_mode?: string;         // GNSS-Stufe dieser Uhr (best|l1|two|gps), nur Garmin ab 1.0.77
   water_lock?: string;        // Wassersperre dieser Uhr (auto|on|off); nicht fuer Garmin
+  accel_wakeup?: string | null;       // Wake-up-Sensor (on|off), null = Standard; nur Wear
+  accel_wakeup_standard?: string;     // was ohne Override gilt (Konto bzw. global)
   low_accel: boolean;         // FR55 & Co.: 'full' wird automatisch auf 'lite' gekappt
   // Displaymaße/Form aus dem Build-Katalog (nur Garmin; Apple/Wear melden sie noch nicht) —
   // damit die Layout-Vorschau die ECHTE Größe dieser Uhr nutzen kann.

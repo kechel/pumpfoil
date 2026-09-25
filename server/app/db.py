@@ -131,6 +131,8 @@ def _migrate_add_indexes() -> None:
         "ALTER TABLE changelog_items ADD COLUMN IF NOT EXISTS art VARCHAR(16) DEFAULT 'punkt'",
         "UPDATE changelog_items SET art = 'punkt' WHERE art IS NULL",
         "ALTER TABLE device_tokens ADD COLUMN IF NOT EXISTS water_lock VARCHAR(8)",
+        # Wake-up-Sensor je Uhr (25.09.2026, Wear OS): "on" | "off", NULL = Konto/Standard.
+        "ALTER TABLE device_tokens ADD COLUMN IF NOT EXISTS accel_wakeup VARCHAR(8)",
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS hr_samples INTEGER",
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS hr_source VARCHAR(16)",
         # Aufnahme-Gerät (Modell + OS) — nur zur Fehlersuche.
