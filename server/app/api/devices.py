@@ -174,7 +174,15 @@ WATER_LOCK_MODES = ("auto", "on", "off")
 # globaler Hebel. Der STANDARD unten ist dieser Hebel — umstellen, Server neu starten, gilt fuer
 # alle, die nichts eigenes gesetzt haben. Kein Uhr-Update noetig.
 ACCEL_WAKEUP_MODES = ("on", "off")
-ACCEL_WAKEUP_DEFAULT = "on"
+# STUFENWEISE EINFUEHRUNG (Jan, 25.09.2026, vor Wear 1.2.33): der Standard steht erst auf "off",
+# eingeschaltet wird nur fuer eine kleine Testgruppe ueber die Konto-Einstellung
+# (`settings_json.accel_wakeup = "on"`). Niemand weiss vorher, was der Sensor auf welcher Uhr an
+# Akku kostet, und ob eine Uhr eine fehlerhafte Wake-up-Variante hat. Sieht die gemessene Rate der
+# Gruppe gut aus und meldet keiner einen leeren Akku: Standard auf "on", Server neu starten.
+# ACHTUNG: eine Uhr, die nach dem Update noch keine Konfiguration geholt hat, nimmt ihren
+# eingebauten Standard, und der ist "on" (RecorderService.accelSensor). "off" greift erst nach
+# dem ersten Abgleich.
+ACCEL_WAKEUP_DEFAULT = "off"
 
 
 def _effective_accel_wakeup(settings: dict) -> str:
