@@ -125,6 +125,10 @@ struct RecordView: View {
     // koennen, ohne dass der Server ihn ueberstimmt. Genau wie bei Garmin.
     @State private var onFoilPages: [WatchPageRef] = []
     @State private var offFoilPages: [WatchPageRef] = []
+    // Pausen-Seiten (F3), wie Garmin `_setFor(:paused)`; nil = keine geliefert -> pauseView.
+    @State private var pausePages: [WatchPageRef]? = nil
+    // „Auch die uebrigen Seiten": in der Pause dahinter auch die Datenseiten (Garmin `_ring`).
+    @State private var browseAll = true
     @State private var layoutsServerDefault = false
     // Neueste im Store freigegebene Version (Server: appmeta._APP_META["apple"]). Das Feld kam schon
     // in der Config an, wurde aber nirgends angezeigt — der Nutzer erfuhr nie von einem Update.
@@ -212,23 +216,29 @@ struct RecordView: View {
 
     // MARK: - Aufnahme
 
-    // Pager: Verwerfen(0) | Stop(1) | Daten 2..n+1 | Übersicht(n+2) | Stop(n+3) | Verwerfen(n+4).
-    // Verwerfen-Seiten ganz außen (versehentlich schwer erreichbar), Stop je einwärts. Die Übersicht
-    // ist eine wischbare Seite; Auto-Wechsel NUR auf der Flanke „Lauf beendet" (+kurze Vibration).
+    // Pager: Aktion(0) | Stop(1) | Daten 2..n+1 | [Übersicht(n+2)] | Stop | Aktion.
+    // AKTIONSSEITEN ganz außen: oben Pausieren/Fortsetzen, darunter Verwerfen (Jan, 25.09.2026:
+    // „mach pause lieber mit auf den screen wo auch verwerfen ist, halten wieder die eigene seite
+    // wie vorher" — dieselbe Aufteilung wie auf Zepp seit 24.09.).
+    // WELCHE Datenseiten, haengt am Zustand, wie Garmin (`RecordView._ring`): laeuft -> On-Foil-
+    // Seiten + Übersicht; pausiert -> Pausen-Seiten (bei „alle Seiten" dahinter die On-Foil-Seiten),
+    // keine Übersicht. Bis 25.09. sah man in der Pause weder Pausen-Seiten noch einen Hinweis.
     // Die .tag()-Aufrufe bleiben ABSICHTLICH direkte Kinder des TabView — nur so findet die
     // Auswahl ihre Seiten.
     private var recordingPager: some View {
         TabView(selection: $page) {
-            discardPage().tag(0)
+            actionPage().tag(0)
             stopPage(WLoc.t("rec.toData", lang)).tag(1)
-            ForEach(Array(dataPages.enumerated()), id: \.offset) { idx, ref in
-                dataPageView(ref, idx: idx)
+            ForEach(Array(ringPages.enumerated()), id: \.offset) { idx, entry in
+                dataPageView(entry.ref, idx: idx, rueckfall: entry.rueckfall)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .tag(idx + 2)
             }
-            summaryPage.tag(dataPages.count + 2)
-            stopPage(WLoc.t("rec.toSummary", lang)).tag(dataPages.count + 3)
-            discardPage().tag(dataPages.count + 4)
+            if !rec.isPaused {
+                summaryPage.tag(ringPages.count + 2)
+            }
+            stopPage(WLoc.t("rec.toSummary", lang)).tag(stopBackTag)
+            actionPage().tag(stopBackTag + 1)
         }
         // Der System-Indikator wird auf eigenen Layout-Seiten ausgeblendet: dort bringt das
         // Layout seine eigenen Punkte mit (Element typ 6). Garmin macht es genauso
@@ -244,9 +254,63 @@ struct RecordView: View {
                 if wassersperre == "on" { WKInterfaceDevice.current().enableWaterLock() }
             }
         }
-        .onChange(of: page) { p in if p >= 2 && p <= views.count + 1 { lastDataPage = p } }
+        .onChange(of: page) { p in if !rec.isPaused && p >= 2 && p <= dataPages.count + 1 { lastDataPage = p } }
         .onChange(of: rec.isFoiling) { foiling in onFoilingChanged(foiling) }
-        .overlay(alignment: .top) { uploadBadge }
+        .onChange(of: rec.isPaused) { _ in onPausedChanged() }
+        .overlay(alignment: .top) { topBadges }
+    }
+
+    /// Ein Eintrag im Datenring: die Seite und ihre klassischen Rueckfall-Felder (fuer eine
+    /// Layout-Seite bei ausgeschaltetem Layout-Schalter).
+    private struct RingEntry {
+        let ref: WatchPageRef
+        let rueckfall: [Int]
+    }
+
+    private var ringPages: [RingEntry] {
+        let on: [RingEntry] = dataPages.enumerated().map { pair in
+            RingEntry(ref: pair.element, rueckfall: pair.offset < views.count ? views[pair.offset] : [1])
+        }
+        guard rec.isPaused else { return on }
+        let pauseRefs: [WatchPageRef] = pausePages ?? [WatchPageRef.classic(pauseView)]
+        let pause: [RingEntry] = pauseRefs.map { RingEntry(ref: $0, rueckfall: pauseView) }
+        return browseAll ? pause + on : pause
+    }
+
+    /// Tag der hinteren Stop-Seite: ohne Übersicht (in der Pause) eine Seite weiter vorn.
+    private var stopBackTag: Int { ringPages.count + (rec.isPaused ? 2 : 3) }
+
+    /// Zustandswechsel Pause <-> Aufnahme: vorne anfangen und kurz klicken, wie Garmin
+    /// (`screenIdx = 0` + `_vibeSwitch`). Sonst stuende man nach dem Pausieren weiter auf der
+    /// Aktionsseite und saehe von den Pausen-Seiten nichts.
+    private func onPausedChanged() {
+        showRunEnd = false
+        page = 2
+        WKInterfaceDevice.current().play(.click)
+    }
+
+    /// Oben mittig: Upload-Wolke und „Pausiert". Der Hinweis steht auf JEDER Seite, solange
+    /// pausiert ist — ausser ein eigenes Layout zeichnet ihn selbst (Pflicht-Element Typ 7), wie
+    /// Garmin `_drawPausedChrome`.
+    @ViewBuilder private var topBadges: some View {
+        HStack(spacing: 4) {
+            if showPausedBadge {
+                Text(WLoc.t("rec.paused", lang))
+                    .font(.caption2.weight(.bold)).foregroundStyle(Color.cyan)
+            }
+            uploadBadge
+        }
+    }
+
+    private var showPausedBadge: Bool {
+        guard rec.isPaused else { return false }
+        guard layoutsEffective else { return true }
+        let idx: Int = page - 2
+        guard idx >= 0, idx < ringPages.count else { return true }
+        if case .layout(let def) = ringPages[idx].ref {
+            return !def.elements.contains { $0.typ == 7 }
+        }
+        return true
     }
 
     // Übersicht: kurz Lauf-Ende, dann Pause (Uhrzeit·Läufe·Puls).
@@ -270,7 +334,11 @@ struct RecordView: View {
     // Datenansicht mehr — die bleibt bis zum nächsten Lauf. Als Methode statt als Closure im Body:
     // Ablauflogik kostet den Type-Checker im ViewBuilder unnötig viel.
     private func onFoilingChanged(_ foiling: Bool) {
-        let summaryIdx: Int = views.count + 2
+        // In der Pause gibt es keine Übersicht, also auch keinen Sprung dorthin.
+        guard !rec.isPaused else { return }
+        // `dataPages.count`, nicht `views.count` (bis 25.09.): mit eigenen Layouts sind es nicht
+        // gleich viele Seiten, und der Sprung nach Lauf-Ende landete auf der falschen.
+        let summaryIdx: Int = dataPages.count + 2
         if !foiling {
             page = summaryIdx
             showRunEnd = true
@@ -577,15 +645,6 @@ struct RecordView: View {
             // 3 s halten zum Stoppen; Ring füllt sich sichtbar als Fortschritt (wie Garmin Stop-Halten).
             HoldToStopButton(label: pressStattHalten ? WLoc.t("rec.stop", lang) : WLoc.t("rec.stopHold", lang),
                              press: pressStattHalten) { Task { await rec.stop() } }
-            // PAUSE (Jan, 24.09.2026) — unter dem Stoppen, weil sie seltener gebraucht wird und
-            // das Beenden die Hauptsache bleibt. Ein einfacher Druck genuegt: Pausieren ist
-            // umkehrbar, und ein Fehlgriff kostet nichts als einen zweiten Druck. In der Pause
-            // schickt die Uhr schon, was sie hat (s. Recorder.teilUpload).
-            Button(rec.isPaused ? WLoc.t("rec.resume", lang) : WLoc.t("rec.pause", lang)) {
-                if rec.isPaused { rec.resume() } else { rec.pause() }
-            }
-            .font(.caption2)
-            .buttonStyle(.bordered)
             wassersperreButton
             Text(hint).font(.caption2).foregroundStyle(.secondary)
         }
@@ -610,9 +669,18 @@ struct RecordView: View {
         }
     }
 
-    // Verwerfen-Seite (ganz außen): 3 s halten -> Aufnahme löschen ohne Upload (orange statt rot).
-    @ViewBuilder private func discardPage() -> some View {
+    // Aktionsseite (ganz außen): oben Pausieren/Fortsetzen, darunter Verwerfen.
+    // PAUSE — ein einfacher Druck genuegt: Pausieren ist umkehrbar, ein Fehlgriff kostet nichts
+    // als einen zweiten Druck. In der Pause schickt die Uhr schon, was sie hat (s. Recorder.teilUpload).
+    // VERWERFEN — 3 s halten -> Aufnahme löschen ohne Upload (orange statt rot).
+    @ViewBuilder private func actionPage() -> some View {
         VStack(spacing: 12) {
+            Button(rec.isPaused ? WLoc.t("rec.resume", lang) : WLoc.t("rec.pause", lang)) {
+                if rec.isPaused { rec.resume() } else { rec.pause() }
+            }
+            .font(.caption2)
+            .buttonStyle(.bordered)
+            .tint(Color.cyan)
             // Verwerfen im Tipp-Modus mit einem ZWEITEN Tipp bestaetigen — das Halten war hier der
             // einzige Schutz davor, eine Aufnahme mit einem Fehlgriff zu loeschen.
             HoldToStopButton(label: pressStattHalten ? WLoc.t("rec.discard", lang) : WLoc.t("rec.discardHold", lang),
@@ -646,23 +714,22 @@ struct RecordView: View {
     private var currentPageIsLayout: Bool {
         guard layoutsEffective else { return false }
         let idx = page - 2
-        guard idx >= 0, idx < dataPages.count else { return false }
-        if case .layout = dataPages[idx] { return true }
+        guard idx >= 0, idx < ringPages.count else { return false }
+        if case .layout = ringPages[idx].ref { return true }
         return false
     }
 
-    @ViewBuilder private func dataPageView(_ ref: WatchPageRef, idx: Int) -> some View {
+    @ViewBuilder private func dataPageView(_ ref: WatchPageRef, idx: Int, rueckfall: [Int]) -> some View {
         switch ref {
         case .layout(let def):
             if layoutsEffective {
                 LayoutPageView(
-                    page: def, pageIndex: idx, pageCount: dataPages.count,
+                    page: def, pageIndex: idx, pageCount: ringPages.count,
                     recording: rec.isRecording, pausedText: WLoc.t("rec.paused", lang),
-                    // Die manuelle Pause gibt es auf der Apple Watch noch nicht (nur Garmin hat
-                    // sie). Bis dahin waere der Hinweis IMMER falsch, deshalb hart false — sonst
-                    // stuende "Pausiert" auf jeder durchgeblaetterten Pausen-Seite mitten in der
-                    // Aufnahme.
-                    paused: false,
+                    // Der Pflicht-Hinweis (Typ 7) erscheint nur, wenn WIRKLICH pausiert ist —
+                    // blaettert man bei „alle Seiten" durch die Pausen-Layouts, waehrend
+                    // aufgezeichnet wird, bleibt er weg. Bis 25.09. stand hier hart `false`.
+                    paused: rec.isPaused,
                     fieldValue: { fid in fieldValue(fid, rec, lang).0 },
                     fieldLabel: { fid in fieldValue(fid, rec, lang).1 },
                     fieldColor: { fid in colorBy ? fieldColor(fid, rec) : nil },
@@ -671,7 +738,7 @@ struct RecordView: View {
             } else {
                 // Layout aus oder Definition fehlt -> klassische Ansicht, damit die Seite nicht leer ist.
                 VStack(spacing: 10) {
-                    ForEach(activeFields(views.first ?? [1]), id: \.self) { fid in fieldView(fid) }
+                    ForEach(activeFields(rueckfall), id: \.self) { fid in fieldView(fid) }
                 }
             }
         case .classic(let fields):
@@ -737,6 +804,9 @@ struct RecordView: View {
         layoutsServerDefault = c.layoutsOn ?? false
         storeVersion = c.latestVersion ?? ""
         onFoilPages = (c.pages?.compactMap { WatchPageRef($0) }) ?? views.map { WatchPageRef.classic($0) }
+        let pp: [WatchPageRef] = c.pausePages?.compactMap { WatchPageRef($0) } ?? []
+        pausePages = pp.isEmpty ? nil : pp
+        browseAll = c.browseAll ?? true
         offFoilPages = (c.offFoilPages?.compactMap { WatchPageRef($0) })
             ?? [WatchPageRef.classic(c.offFoilView ?? offFoil)]
         colorBy = c.colorByValue
