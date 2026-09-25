@@ -545,7 +545,7 @@ function StatsSection() {
           <p className="-mt-1 text-xs text-slate-400">
             Wie viele Nutzer ihre eigenen Aufnahmen von einem KI-Programm lesen lassen, und wie
             viele Abfragen das waren. Gespeichert wird ein Zähler je Tag, Nutzer und Werkzeug —
-            keine Zeitpunkte, keine Parameter, keine Antworten. Erlaubt sind 100 Abfragen je
+            keine Zeitpunkte, keine Parameter, keine Antworten. Erlaubt sind 200 Abfragen je
             Stunde und Nutzer.
           </p>
           {raster(MCP_METRICS, false)}

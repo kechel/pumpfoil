@@ -1432,7 +1432,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Umsetzung: EINE gemeinsame Basisabfrage erzwingt Besitzer + `deleted` + `is_pumpfoil`; jedes
   Werkzeug baut darauf auf. Kein Werkzeug fragt selbst.
 
-  **Rate-Begrenzung (Jan): 100 Aufrufe je Stunde und NUTZER.** `app/ratelimit.py` kann das schon
+  **Rate-Begrenzung (Jan): 200 Aufrufe je Stunde und NUTZER** (am 25.09.2026 von 100 angehoben, nachdem eine echte Wochenauswertung ueber 50 Abrufe brauchte und in die Grenze lief).** `app/ratelimit.py` kann das schon
   („je User + Stufe", DB-gestuetzt ueber `rate_events`, also korrekt ueber alle vier Worker).
   Zusaetzlich eine eigene, strengere Stufe auf `/oauth/register`: das ist ein Schreib-Endpunkt
   OHNE Login (muss es sein, sonst kann sich kein Client anmelden).
