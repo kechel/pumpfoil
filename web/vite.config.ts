@@ -65,6 +65,10 @@ export default defineConfig({
           // unter pumpfoil.org an, solange der Proxy dort noch umleitet.
           /^\/api/, /^\/media/, /^\/demo/, /^\/promo/, /^\/landing-vorschau/, /-oauth(\?|$)/,
           /^\/sitemap\.xml$/, /^\/robots\.txt$/, /^\/\.well-known/,
+          // Unser eigener MCP-Zugang (25.09.2026). `/mcp` und die vier OAuth-Endpunkte gehoeren
+          // dem Server. `/oauth/consent` steht hier ABSICHTLICH NICHT: das ist die
+          // Zustimmungsseite und damit eine echte Seite der App — sie MUSS aus der Shell kommen.
+          /^\/mcp$/, /^\/oauth\/(authorize|token|register|revoke)$/,
           // Search Console legt eine Datei wie `google1a2b3c4d5e.html` in den Wurzelordner.
           /^\/google[0-9a-f]+\.html$/,
         ],
