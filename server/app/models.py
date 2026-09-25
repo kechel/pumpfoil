@@ -1609,7 +1609,7 @@ class McpCallStat(Base):
     ([[no-analytics-ever]] gilt), sondern der Betriebszaehler einer Schnittstelle — dieselbe Art
     Zahl, die der Admin-Bereich fuer Anmeldungen und Aufnahmen ohnehin zeigt.
 
-    Die Rate-Begrenzung (100 Aufrufe je Stunde und Nutzer) laeuft NICHT hierueber, sondern wie
+    Die Rate-Begrenzung (200 Aufrufe je Stunde und Nutzer) laeuft NICHT hierueber, sondern wie
     gehabt ueber `RateEvent` — die Zeilen dort verfallen mit dem Fenster, diese hier bleiben.
     """
 

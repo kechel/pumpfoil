@@ -41,9 +41,11 @@ from .mcp_oauth import RESOURCE, SCOPE, access_token_pruefen
 
 router = APIRouter(tags=["mcp"])
 
-# Jans Vorgabe: 100 Aufrufe je Stunde und NUTZER. Die zweite Stufe faengt den Fall ab, dass ein
-# Agent in einer Schleife haengt — 100 in einer Stunde sind in Ordnung, 100 in einer Minute nicht.
-LIMITS = [(100, 3600), (20, 60)]
+# Jans Vorgabe: 200 Aufrufe je Stunde und NUTZER (25.09.2026 von 100 angehoben, nachdem eine
+# echte Wochenauswertung ueber 50 Abrufe brauchte und in die Grenze lief). Die zweite Stufe faengt
+# den Fall ab, dass ein Agent in einer Schleife haengt — 200 in einer Stunde sind in Ordnung,
+# 200 in einer Minute nicht.
+LIMITS = [(200, 3600), (20, 60)]
 
 # Jeder Lauf einzeln kostet Platz im Kontextfenster des Agenten. Mehr als das gibt eine Antwort
 # nicht her; wer mehr will, blaettert.
@@ -720,7 +722,7 @@ async def mcp(request: Request, db: Session = Depends(get_db)):
         handler = _HANDLER.get(name)
         if handler is None:
             return JSONResponse(_rpc_fehler(id_, -32601, f"Unbekanntes Werkzeug: {name}"))
-        # Jans Vorgabe: 100 je Stunde und Nutzer. Geprueft wird ERST hier — `initialize` und
+        # Jans Vorgabe: 200 je Stunde und Nutzer. Geprueft wird ERST hier — `initialize` und
         # `tools/list` kosten nichts und sollen nicht gegen das Kontingent laufen.
         #
         # DAS KONTINGENT DARF DIE VERBINDUNG NICHT KAPPEN (25.09.2026). Beim ersten echten
