@@ -1414,81 +1414,38 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
-- **🟡 25.09. — MCP-Server mit eigenem OAuth-Autorisierungsserver. BEGONNEN (nur die Tabellen).**
-  Jan will seine eigenen Aufnahmen von einem KI-Agenten auswerten lassen. Entscheidung: „wenn
-  machen wir das direkt richtig mit dem oauth server" — also kein Token in der URL, sondern ein
-  vollwertiger Autorisierungsserver.
+- **🟢 25.09. — MCP-Server mit eigenem OAuth-Autorisierungsserver. FERTIG UND IM ECHTEN EINSATZ.**
+  Jan hat ihn am selben Tag mit seiner Claude-App verbunden und eine Jahresauswertung darueber
+  laufen lassen. Code in `app/api/mcp_oauth.py` (Autorisierungsserver) und `app/api/mcp.py`
+  (Werkzeuge), Zustimmungsseite `web/src/pages/OAuthConsent.tsx`, Liste der verbundenen Programme
+  im Profil unter „Verknuepfte Konten". Tests in `tests/test_mcp.py`.
 
-  **Den Bauplan haben wir im Haus:** `app/api/coros_mcp.py` bedient seit dem 04.09. genau so einen
-  Server als CLIENT (COROS). Dort steht im Kopfkommentar, was die Gegenseite koennen muss:
-  Metadaten unter `/.well-known/oauth-authorization-server`, Dynamic Client Registration, ein
-  OEFFENTLICHER Client ohne Secret (`token_endpoint_auth_method: none`), PKCE als Pflicht,
-  Streamable HTTP mit JSON **oder** SSE. Wir bauen jetzt die andere Seite davon.
+  **Die Grenze** (Jan, woertlich: „NUR LESEND, NUR EIGENE SESSIONS … auch keine aussortierten
+  sessions oder geloeschte") steht in EINER Abfrage, `mcp._eigene()`. Jedes Werkzeug baut darauf
+  auf, keines fragt selbst. Ausfuehrlich in der Memory `mcp-server-scope` — dort steht auch,
+  warum „oeffentlich" bei uns „fuer angemeldete Nutzer" heisst und nicht „fuer fremde Firmen".
 
-  **HARTE GRENZE (Jan, woertlich):** „NUR LESEND, NUR EIGENE SESSIONS, keine rekorde oder infos
-  ueber andere aus dem bestand oder gleichen spot, kein zugriff auf chats oder feedback oder
-  bewertungen oder medien oder bilder, nur die surfspezifischen daten" — und: „auch keine
-  aussortierten sessions oder geloeschte". Ausfuehrlich in der Memory `mcp-server-scope`.
-  Umsetzung: EINE gemeinsame Basisabfrage erzwingt Besitzer + `deleted` + `is_pumpfoil`; jedes
-  Werkzeug baut darauf auf. Kein Werkzeug fragt selbst.
+  **Sechs Werkzeuge:** `get_overview` (Einstieg: was gibt es, und mit welchen Werten fragt man
+  danach), `list_sessions`, `get_session`, `get_board_attitude`, `get_stats`, `list_equipment`.
+  Kontingent 200 Aufrufe je Stunde und Nutzer, zweite Stufe 20 je Minute.
 
-  **Rate-Begrenzung (Jan): 200 Aufrufe je Stunde und NUTZER** (am 25.09.2026 von 100 angehoben, nachdem eine echte Wochenauswertung ueber 50 Abrufe brauchte und in die Grenze lief).** `app/ratelimit.py` kann das schon
-  („je User + Stufe", DB-gestuetzt ueber `rate_events`, also korrekt ueber alle vier Worker).
-  Zusaetzlich eine eigene, strengere Stufe auf `/oauth/register`: das ist ein Schreib-Endpunkt
-  OHNE Login (muss es sein, sonst kann sich kein Client anmelden).
+  **Vier Dinge, die erst der ECHTE Einsatz gezeigt hat** — jedes davon haette man am Schreibtisch
+  nicht gefunden, und jedes ist ein Muster fuer das naechste Mal:
+  1. **Die Lage-Daten kamen nie an.** Ich hatte den Aufruf im Plan und nicht gebaut; die Zahlen
+     gab es laengst. Jetzt `get_board_attitude`, und `get_session` ZEIGT DARAUF, statt zu
+     schweigen — ein Agent soll nicht schliessen muessen, was da ist.
+  2. **Der beste Lauf fehlte in der Liste.** Der Agent rief deshalb ueber fuenfzig Mal
+     `get_session` auf, nur fuer eine Zahl, die als Spalte in derselben Analyse-Zeile steht.
+     Jetzt traegt jede Listenzeile `bester_lauf_*`: aus 50 Aufrufen wurden 6 Seiten.
+  3. **Das Kontingent kappte die VERBINDUNG.** Ein blankes HTTP 429 sieht fuer einen MCP-Client
+     aus wie ein kaputter Server. Werkzeug-Fehler gehoeren als gewoehnliche Antwort mit
+     `isError` zurueck, dann wartet das Modell, statt den Server wegzuwerfen.
+  4. **Die Lage-Rechnung war teuer** (80-433 ms, wachsend mit der Zahl der Laeufe). Jetzt in der
+     DB zwischengespeichert, Schluessel = Fingerabdruck der Eingaben, danach 2 ms.
 
-  **Stand:** die drei Tabellen stehen (`OAuthClient`, `OAuthGrant`, `OAuthToken`, s. `models.py`
-  mit Begruendung). Access-Tokens kommen bewusst NICHT in die DB — kurzlebige JWTs, Widerruf
-  haengt am Refresh-Token plus kurzer Laufzeit; sonst ein DB-Treffer bei jedem Aufruf.
-
-  **Noch zu bauen, in dieser Reihenfolge:**
-  1. `GET /.well-known/oauth-protected-resource` (RFC 9728) und
-     `GET /.well-known/oauth-authorization-server` (RFC 8414).
-  2. `POST /oauth/register` (RFC 7591) mit Rate-Begrenzung und Aufraeumen ungenutzter Clients.
-  3. `GET /oauth/authorize` -> Zustimmungsseite in der PWA -> Code. **Hier stecken die einzigen
-     Produkt-Entscheidungen:** wie die Seite aussieht und was sie verspricht. Der Text muss die
-     Grenze oben WOERTLICH nennen, sonst stimmt jemand etwas zu, das er nicht gelesen hat.
-     Braucht neue i18n-Schluessel — nach dem 25.09. in ALLEN 18 Sprachen.
-  4. `POST /oauth/token` (authorization_code + refresh_token, Rotation) und `POST /oauth/revoke`.
-  5. Der MCP-Endpunkt selbst: `initialize`, `tools/list`, `tools/call`, `resources/*`.
-  6. Liste der verbundenen Agenten im Profil, mit Widerruf-Knopf — dieselbe Stelle wie die
-     geteilten Aufnahmen (Inbox-Eintrag daneben).
-
-  **Werkzeuge (Entwurf):** `list_sessions` (Zeitraum/Sportart/Spot/Limit/Cursor),
-  `get_session(id)` angereichert (Kacheln, Laeufe, Brett-Lage je Lauf, Ausruestung),
-  `get_stats(zeitraum)` fuer Summen und Verlaeufe — damit der Agent nicht 200 Sessions einzeln
-  zieht —, `list_equipment`, und `get_run_series(session, lauf, was, max_punkte)` mit HARTEM
-  Deckel. Eine Stunde bei 100 Hz sind 360.000 Accel-Werte; das passt in kein Kontextfenster.
-  Rekorde fehlen mit Absicht (s. Grenze oben).
-
-  **Der wichtigste Teil ist die Erklaerung fuer den Agenten** (MCP-`instructions` + Resources).
-  Ohne sie rechnet ein Agent selbstbewussten Unsinn, und es faellt niemandem auf. Hinein gehoert,
-  was in `docs/DATA-PIPELINE.md` und `docs/GROUND-TRUTH.md` steht: `accel_hz` ist eine
-  ANFORDERUNG, die Messung steht in `accel_hz_measured`; Accel-Werte haben keine Zeitstempel und
-  `time_base` sagt, wie die Achse gebaut wurde; `longest_glide_s` ist die laengste Luecke zwischen
-  ERKANNTEN Pumps und heisst bei hohem Wert meist „Pumps nicht erkannt"; die Pump-Zaehlung ist auf
-  EINEM Fahrer geeicht und unterzaehlt etwa um das Doppelte; eine Gleit-Erkennung existiert nicht;
-  beim Brett: komplementaerer Filter, Montage-Drehung je Lauf, Hub nur bei sicherem Pumptakt.
-  Dazu je Zahl, ob sie gemessen, gerechnet oder geschaetzt ist — bei den Foil-Massen ausdruecklich
-  (wer Auftrieb rechnet, muss wissen, dass die Rumpflaenge geraten war).
-
-  **Drei Fallen, die diese VM/dieses Projekt mitbringt:**
-  - **Die Metadaten duerfen NIE aus `request.base_url` gebaut werden.** Der Reverse-Proxy steht
-    auf einer anderen VM; `request` traegt hier den INTERNEN Host. Der Aussteller ist
-    `settings.base_url` (`https://pumpfoil.org`) und sonst nichts — sonst zeigt das
-    Metadatendokument auf eine Adresse, die kein Client erreicht.
-  - **Der Service Worker.** Neue Server-Routen fallen sonst in den SPA-Router und antworten mit
-    der App-Huelle statt mit JSON (Memory `neue-server-route-service-worker`). `/.well-known/*`,
-    `/oauth/*` und `/mcp` brauchen die Ausnahme.
-  - **`/oauth/consent` gehoert in `_PRIVAT`** in `main.py`, sonst fehlt der `noindex`-Kopf —
-    dieselbe Luecke, die `/s/<token>` bis heute frueh hatte.
-
-  **Admin-Ansicht (Jan, 25.09.):** „wieviele user mcp aufrufe gemacht haben und wieviele
-  einzel-aufrufe insgesamt ueber die zeit / fenster etc." Dafuer `McpCallStat` — EIN Zaehler je
-  Tag, Nutzer und Werkzeug. Daraus kommen beide Zahlen (verschiedene Nutzer im Fenster; Summe
-  der Aufrufe) je Tag/Woche/Monat, und nebenbei, welche Werkzeuge wirklich gebraucht werden.
-  Gespeichert wird nur die Zahl — kein Zeitpunkt je Aufruf, keine Parameter, keine Session-IDs.
-  Die Kacheln gehoeren neben die vorhandenen `adm.act.*`-Zahlen.
+  **Noch offen, braucht Jans OK:** Nicken und Rollen als RATE in Grad je Sekunde. Wir liefern
+  Amplituden in Grad (95. Perzentil); eine Rate gibt es nur fuers Gieren. Das waere eine
+  Aenderung in `analysis/lage.py` und faellt damit unter die Detektor-Regel.
 
 - **🟡 25.09. — IDEE (Jan): geteilte Aufnahmen im Profil auflisten und per Knopf widerrufen.**
   Jans Anstoss: „wir wissen doch welche teilen-links ueberhaupt jemals von wem erzeugt wurden
