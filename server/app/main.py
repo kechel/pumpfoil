@@ -11,7 +11,7 @@ from fastapi.responses import (FileResponse, HTMLResponse, PlainTextResponse, Re
                                Response)
 from fastapi.staticfiles import StaticFiles
 
-from .api import admin, appmeta, auth, boards, chat, community, coros, coros_mcp, devices, feedback, foils, health as health_api, ingest, layouts, ml, oauth, polar, push, sessions, settings as settings_api, social, spotnotes, stabs, strava, suunto, transfers
+from .api import admin, appmeta, auth, boards, chat, community, coros, coros_mcp, devices, feedback, foils, health as health_api, ingest, layouts, mcp, mcp_oauth, ml, oauth, polar, push, sessions, settings as settings_api, social, spotnotes, stabs, strava, suunto, transfers
 from . import landing
 from .api.deps import require_social
 from .config import get_settings
@@ -469,6 +469,11 @@ app.include_router(polar.router)
 app.include_router(coros.router)
 # COROS ueber den MCP-Server — der Weg ohne Partner-Vertrag (s. app/api/coros_mcp.py).
 app.include_router(coros_mcp.router)
+# Unser EIGENER MCP-Zugang: Autorisierungsserver + der MCP-Endpunkt selbst. Beide Router haben
+# keinen Praefix — die well-known-Dokumente muessen an der Wurzel liegen (RFC 8414/9728). Sie
+# stehen VOR dem SPA-Auffangpfad ganz unten, sonst bekaeme ein Client die App-Huelle statt JSON.
+app.include_router(mcp_oauth.router)
+app.include_router(mcp.router)
 app.include_router(suunto.router)
 app.include_router(strava.router)
 app.include_router(push.router)
@@ -519,7 +524,7 @@ if settings.web_dist.exists():
     # Person geschickt, nicht der Suchmaschine.
     _PRIVAT = ("login", "reset", "home", "community", "chat", "verlauf", "sessions", "import",
                "alle-sessions", "spots", "foils", "foil-stats", "foil-rechner", "account",
-               "einstellungen", "konten", "vergleich", "admin", "s")
+               "einstellungen", "konten", "vergleich", "admin", "s", "oauth")
 
     def _privat(pfad: str) -> bool:
         erstes = pfad.strip("/").split("/", 1)[0].lower()
