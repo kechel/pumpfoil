@@ -1739,6 +1739,33 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   ist das unerheblich: Nicken und Rollen gehen als 95. Perzentil des BETRAGS hinaus, ein
   Vorzeichenwechsel aendert daran nichts.
 
+  **⚠️ DIE 180°-FALLE — vor jeder automatischen Brett-Erkennung lesen (gemessen 25.09.2026).**
+  Jans Idee vom 24.09. traegt: „wenn das konstant bleibt ist das handy vermutlich fest montiert."
+  Nachgemessen, indem jeder Lauf in Fenster von acht bis zehn Sekunden geteilt und die Montage je
+  Fenster NEU bestimmt wurde:
+
+  | Lauf | Dauer | Fenster (mod 180°) | Streuung |
+  |---|---|---|---|
+  | #9528 L0 | 40 s | 88,4 · 90,4 · 88,0 · 90,9 | **1,5°** |
+  | #9535 L0 | 28 s | 136,7 · 136,9 · 123,9 | 8,6° |
+  | #9535 L1 | 37 s | 148,4 · 152,5 · 121,6 · 117,0 | 17,9° |
+  | #9656 L1 | 13 s | 55,2 · 21,4 | 16,9° |
+
+  **ROH sieht das nach Wackeln aus und ist keines.** In #9528 kamen zuerst
+  88,4° · 270,4° · 88,0° · 270,9° heraus — Werte, die sich um exakt 182° unterscheiden. Das sind
+  keine zwei Lagen, sondern zweimal dieselbe: die Schaetzung bestimmt die ACHSE sicher, aber
+  nicht immer, WELCHES ENDE DIE NASE IST. Ueber einen ganzen Lauf loest sie das am GPS-Kurs auf;
+  in einem Acht-Sekunden-Fenster fehlt ihr dafuer die Strecke.
+
+  **Wer eine Automatik darauf baut, MUSS modulo 180° rechnen.** Sonst liest sie den
+  Nasen-Wechsel als „Handy verrutscht" und sperrt genau die Aufnahmen aus, die fest montiert
+  waren — ein stiller Fehler, der die Datengrundlage vergiftet, statt sie zu schuetzen.
+
+  **Noch keine Schwelle setzen.** Zwischen 1,5° und 17,9° liegt ein Faktor zwoelf, und bei vier
+  Aufnahmen laesst sich nicht trennen, ob das echte kleine Bewegung ist oder Rauschen in kurzen
+  Fenstern. Laeufe unter zehn Sekunden (#9484: 5 und 6 s) liefern gar nichts Belastbares — dort
+  reicht es nicht einmal fuer zwei Fenster.
+
   **Und die Methode dafür steht jetzt, gemessen statt vermutet.** Über die Uhrzeit allein geht es
   NICHT: bei #9656 Lauf 1 starten Handy (11:02:50), Philipp (11:02:51) und Jan (11:02:53)
   innerhalb von drei Sekunden. Entscheidend ist der **Median-Abstand der GPS-Spuren** im

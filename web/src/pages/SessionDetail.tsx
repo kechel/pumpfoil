@@ -6,7 +6,7 @@ import { basiskarten } from "../lib/mapTiles";
 import { api, BoardAttitude as Lage, SessionSummary, SessionSocial as SocialData, SessionVideo } from "../lib/api";
 import { fmtDate, fmtTime } from "../lib/time";
 import { laufUhrzeitMs, pauseVersatzMs, wanduhrMs } from "../lib/clock";
-import { Card, Stat, Spinner, ErrorBox, Avatar, InfoDialog, InfoKnopf } from "../components/ui";
+import { Card, Stat, Spinner, ErrorBox, Avatar, InfoDialog, InfoKnopf, SELECT_SCHRUMPFT } from "../components/ui";
 import { ChevronIcon, HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon, EditIcon, StarIcon, CloseIcon, KeyboardIcon, WifiOffIcon, EyeIcon, EyeOffIcon, CompareIcon, ChatBubbleIcon, ShareIcon, WatchIcon, WaveIcon, ScissorsIcon, LinkIcon, CheckIcon, InstagramIcon, TikTokIcon, DownloadIcon } from "../components/Icons";
 import { Lightbox } from "../components/Lightbox";
 import { ShareDialog } from "../components/ShareDialog";
@@ -2430,6 +2430,12 @@ export default function SessionDetail() {
                 {t("sd.trim")}{(session.trim_start_ms != null || session.trim_end_ms != null) && <span className="ml-1 text-brand-400">{t("sd.trimActive")}</span>}
               </button>
               <TransferPicker sessionId={session.id} />
+              {/* ORT VERBERGEN je Aufnahme (Jan, 25.09.2026: „ich haette das ganz unten neben
+                  diesen buttons erwartet"). Ein Auswahlfeld und kein Haken, weil es DREI
+                  Zustaende gibt: „wie im Profil" ist etwas anderes als „sichtbar". Nur so
+                  erreicht eine spaetere Aenderung im Profil auch diese Aufnahme. */}
+              <OrtSchalter session={session} onChange={(frisch) =>
+                setSession((alt) => (alt ? { ...alt, ...frisch } : alt))} />
             </div>
             <button
               onClick={() => {
@@ -3287,5 +3293,52 @@ function RunsStartsStat({ runs, attempts }: { runs: number; attempts: number | n
         <InfoDialog title={t("stat.runsStartsInfo")} text={t("stat.runsStartsTip")} onClose={() => setOffen(false)} />
       )}
     </>
+  );
+}
+
+
+/**
+ * „Ort verbergen" fuer EINE Aufnahme — drei Zustaende.
+ *
+ * Steht bei den uebrigen Aktionen unten, weil es eine Entscheidung ueber diese Aufnahme ist und
+ * keine Anzeige-Einstellung. Was es bewirkt, sieht man sofort: die Karte springt nach Point Nemo,
+ * und zwar auch fuer einen selbst (Jan, 25.09.2026: „dann sieht man sich selber an Point Nemo und
+ * weiss: so darf auch jeder andere sehen").
+ */
+function OrtSchalter({ session, onChange }: {
+  session: { id: number; ort_sichtbarkeit?: string | null; ort_verborgen?: boolean };
+  onChange: (frisch: { ort_sichtbarkeit: string | null; ort_verborgen: boolean }) => void;
+}) {
+  const t = useT();
+  const [busy, setBusy] = useState(false);
+  const wert = session.ort_sichtbarkeit ?? "";
+  return (
+    <label className="inline-flex items-center gap-1.5 text-xs text-slate-300">
+      <span className="sr-only">{t("sd.ortLabel")}</span>
+      <select
+        value={wert}
+        disabled={busy}
+        onChange={(e) => {
+          const neu = e.target.value;
+          setBusy(true);
+          api.updateSessionMeta(session.id, { ort_sichtbarkeit: neu })
+            .then((frisch) => onChange({
+              ort_sichtbarkeit: frisch.ort_sichtbarkeit ?? null,
+              ort_verborgen: !!frisch.ort_verborgen,
+            }))
+            .catch(() => {})
+            .finally(() => setBusy(false));
+        }}
+        className={`rounded-lg bg-slate-800 px-2.5 py-1.5 text-xs text-slate-200 ${SELECT_SCHRUMPFT}`}
+        title={t("sd.ortTitle")}
+      >
+        <option value="">{t("sd.ortProfil")}</option>
+        <option value="show">{t("sd.ortZeigen")}</option>
+        <option value="hide">{t("sd.ortVerbergen")}</option>
+      </select>
+      {session.ort_verborgen && (
+        <span className="font-semibold text-brand-700 dark:text-brand-300">{t("sd.ortAktiv")}</span>
+      )}
+    </label>
   );
 }

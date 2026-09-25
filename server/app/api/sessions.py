@@ -2656,6 +2656,14 @@ def set_meta(
         if wert not in ("", "board", "phone"):
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "placement: board | phone | (leer)")
         s.placement = wert or None
+    if body.ort_sichtbarkeit is not None:
+        wert = body.ort_sichtbarkeit.strip().lower()
+        if wert not in ("", "show", "hide"):
+            raise HTTPException(status.HTTP_400_BAD_REQUEST,
+                                "ort_sichtbarkeit: show | hide | (leer = wie im Profil)")
+        # "" -> NULL: „wie im Profil". Das ist NICHT dasselbe wie "show", und genau darauf
+        # beruht, dass eine spaetere Aenderung im Profil diese Aufnahme noch erreicht.
+        s.ort_sichtbarkeit = wert or None
     if body.attitude_rot_deg is not None:
         # -1 = zurueck auf AUTOMATIK (NULL). Noetig, weil `None` im Body schon „nicht
         # mitgeschickt" bedeutet und deshalb nicht zum Loeschen taugt.
