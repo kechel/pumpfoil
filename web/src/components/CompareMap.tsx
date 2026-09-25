@@ -444,7 +444,9 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
             >
               {spielt ? t("sd.pause") : t("sd.play")}
             </button>
-            {[2, 8, 30].map((m) => (
+            {/* 1× mit in der Auswahl: gestartet wird in Echtzeit, und ohne den Knopf kam man nach
+                einem Wechsel nicht mehr dorthin zurueck. */}
+            {[1, 2, 8, 30].map((m) => (
               <button key={m} onClick={() => setTempo(m)}
                 className={`rounded-lg px-2 py-1 text-xs ${tempo === m ? "bg-brand-500 text-slate-950" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}>
                 {m}×
