@@ -199,25 +199,44 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
         if (probe.size > rows.size) accel.setAuto(false)   // löst über accelOnly ein Neuladen aus
     }
 
+    var ladeGeneration by remember { mutableStateOf(0) }
+    // GENERATION je Abruf: kommt die Antwort eines ALTEN Abrufs spaeter an als die des neuen
+    // (schneller Spot-Wechsel, ON_RESUME-Nachladen parallel), darf sie die Liste nicht mehr
+    // ueberschreiben — sonst stand die alte Liste unter der neuen Ueberschrift (PWA, 24.09.2026).
     suspend fun load() {
+        val meine = ++ladeGeneration
         loading = true
         try {
             when (scope) {
-                Scope.MINE -> own = Api.sessions(month = month.ifBlank { null }, filter = filter, accelOnly = accelOnly)
+                Scope.MINE -> {
+                    val r = Api.sessions(month = month.ifBlank { null }, filter = filter, accelOnly = accelOnly)
+                    if (meine != ladeGeneration) return
+                    own = r
+                }
                 // sport="all": die Liste „was ist neu" zeigt ALLE Sportarten (wie die PWA seit
                 // 2026-07-31) — ohne das griff der Endpunkt-Default „pumpfoil" und eFoil/Wake/…
                 // fehlten. Die Karte kennzeichnet, was kein Pumpfoilen ist. Die sportgetrennten
                 // Ansichten (Community-Seite, Bestenlisten) bleiben bei genau einer Sportart.
-                Scope.ALL -> groups = Api.communitySessionsGrouped(null, accelOnly = accelOnly, sport = "all")
+                Scope.ALL -> {
+                    val r = Api.communitySessionsGrouped(null, accelOnly = accelOnly, sport = "all")
+                    if (meine != ladeGeneration) return
+                    groups = r
+                }
                 Scope.SPOT -> {
-                    groups = if (spot.isNotBlank()) Api.communitySessionsGrouped(spot, accelOnly = accelOnly, sport = "all") else emptyList()
+                    val r = if (spot.isNotBlank()) Api.communitySessionsGrouped(spot, accelOnly = accelOnly, sport = "all") else emptyList()
+                    if (meine != ladeGeneration) return
+                    groups = r
                     maybeShowAll(groups)
                 }
             }
             error = null
-        } catch (e: Exception) { error = e.message }
-        loading = false
+        } catch (e: Exception) { if (meine == ladeGeneration) error = e.message }
+        if (meine == ladeGeneration) loading = false
     }
+    // Filterwechsel: die ALTE Liste sofort weg, nicht erst, wenn die neue da ist (PWA 8f9cc725) —
+    // sonst liest man Sessions eines anderen Spots unter der neuen Ueberschrift. Nicht bei `tick`
+    // (Nachladen derselben Liste), dort bleibt sie stehen, bis die frische kommt.
+    LaunchedEffect(scope, spot, accelOnly, filter, month) { groups = emptyList(); own = emptyList() }
     LaunchedEffect(scope, spot, tick, accelOnly, filter, month) { load() }
     // Denselben Filter merken: „älter/neuer" im Detail navigiert damit innerhalb GENAU dieser
     // Liste statt immer durch die eigenen Sessions (Jan, 17.09.2026). sport="all" wie oben.

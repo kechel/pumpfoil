@@ -18,6 +18,8 @@ struct SessionsView: View {
     @State private var spotIds: [String: Int] = [:]   // Name -> spot_id (Spot-Beschreibungen)
     @State private var spotLabels: [String: String] = [:]   // Name -> Gewaesser bzw. Steg/Ortslage
     @State private var loading = false
+    // Zaehler je Abruf, s. `load()` — eine spaete Antwort eines alten Abrufs wird verworfen.
+    @State private var ladeGeneration = 0
     @State private var error: String?
     @State private var suggestions: [MergeSuggestion] = []
     @State private var incoming: [Transfer] = []
@@ -64,13 +66,14 @@ struct SessionsView: View {
                 // Bei jedem Betreten neu laden (neue Sessions sofort sichtbar, wie PWA) — leert
                 // die Liste nicht, aktualisiert nur im Hintergrund.
                 .onAppear { Task { await load() } }
-                .onChange(of: scope) { _ in Task { await load() } }
+                // Filterwechsel: die ALTE Liste sofort weg (PWA 8f9cc725), nicht erst mit der neuen.
+                .onChange(of: scope) { _ in listeLeeren(); Task { await load() } }
                 // Spot gewechselt/verlassen: eine vorherige Automatik („Spot ohne Accel-Sessions")
                 // verwerfen -> es gilt wieder der Default aus der eigenen Uhr. Nichts wird gemerkt.
-                .onChange(of: spot) { _ in resetAccelAuto(); Task { await loadWeather(); await load() } }
-                .onChange(of: accelOnly) { _ in Task { await load() } }
-                .onChange(of: filter) { _ in Task { await loadMonths(); await load() } }
-                .onChange(of: month) { _ in Task { await load() } }
+                .onChange(of: spot) { _ in resetAccelAuto(); listeLeeren(); Task { await loadWeather(); await load() } }
+                .onChange(of: accelOnly) { _ in listeLeeren(); Task { await load() } }
+                .onChange(of: filter) { _ in listeLeeren(); Task { await loadMonths(); await load() } }
+                .onChange(of: month) { _ in listeLeeren(); Task { await load() } }
                 .onChange(of: sync.tick) { _ in Task { await load() } }
                 .task { await loadMonths() }
                 // Laeuft eine eigene Aufnahme noch (status recording/live), die Liste alle 4 s
@@ -384,6 +387,8 @@ struct SessionsView: View {
         }
     }
 
+    private func listeLeeren() { own = []; groups = [] }
+
     private func reloadIncoming() async { incoming = (try? await Api.transfersIncoming()) ?? [] }
     private func loadMonths() async { months = (try? await Api.sessionMonths(filter: filter)) ?? [] }
     private func loadWeather() async {
@@ -495,17 +500,30 @@ struct SessionsView: View {
         }
     }
 
+    /// GENERATION je Abruf: die Antwort eines ALTEN Abrufs, die spaeter ankommt als die des neuen
+    /// (schneller Spot-Wechsel, `.onAppear` parallel), darf die Liste nicht mehr ueberschreiben —
+    /// sonst stand die alte Liste unter der neuen Ueberschrift (PWA, 24.09.2026).
     private func load() async {
-        loading = true; defer { loading = false }
+        ladeGeneration += 1
+        let meine: Int = ladeGeneration
+        loading = true; defer { if meine == ladeGeneration { loading = false } }
         do {
             switch scope {
-            case .mine: own = try await Api.sessions(month: month.isEmpty ? nil : month, filter: filter, accelOnly: accelOnly)
+            case .mine:
+                let r = try await Api.sessions(month: month.isEmpty ? nil : month, filter: filter, accelOnly: accelOnly)
+                guard meine == ladeGeneration else { return }
+                own = r
             // sport: "all" — diese Liste ist das „was ist neu" und soll ALLE Sportarten zeigen
             // (ohne den Parameter greift der Endpunkt-Default "pumpfoil"). Die Karte kennzeichnet
             // alles, was kein Pumpfoilen ist. Rekorde/Bestenlisten fragen weiter genau eine Sportart.
-            case .all: groups = try await Api.communitySessionsGrouped(accelOnly: accelOnly, sport: "all")
+            case .all:
+                let r = try await Api.communitySessionsGrouped(accelOnly: accelOnly, sport: "all")
+                guard meine == ladeGeneration else { return }
+                groups = r
             case .spot:
-                groups = spot.isEmpty ? [] : (try await Api.communitySessionsGrouped(spot: spot, accelOnly: accelOnly, sport: "all"))
+                let r = spot.isEmpty ? [] : (try await Api.communitySessionsGrouped(spot: spot, accelOnly: accelOnly, sport: "all"))
+                guard meine == ladeGeneration else { return }
+                groups = r
                 await maybeShowAllForSpot()
             }
             // Denselben Filter merken: „älter/neuer" im Detail navigiert damit innerhalb GENAU
