@@ -165,7 +165,9 @@ dazwischenhängt. Konkret, aus dem Abend, an dem die Regel entstand:
 - [`docs/UX-IA.md`](docs/UX-IA.md) — Informationsarchitektur über bestehende + geplante Features.
 - [`docs/TODO.md`](docs/TODO.md) — **einzige Quelle für offene Arbeit** (TODOs + Backlog-Ideen + R&D,
   git-abgeglichen). Neue spontane TODOs dort in die 📥 Inbox. (`docs/IDEAS.md` ist nur noch ein Pointer.)
-- [`docs/PARITY-AUDIT.md`](docs/PARITY-AUDIT.md) — Feature-Parität Web ↔ Watch/Apps (✅/⚠️/❌/🐛).
+- [`docs/PARITY-AUDIT.md`](docs/PARITY-AUDIT.md) — Feature-Parität Web ↔ Watch/Apps (✅/⚠️/❌/🐛). **Oben die
+  CHECKLISTE für jede Aufnahme-Funktion auf den Uhren** (alle vier, jeder Zustand inkl. Pause) —
+  vor dem Commit abhaken.
 - [`docs/WATCH-STORAGE.md`](docs/WATCH-STORAGE.md) — **Uhr-Puffer**: warum die Restzeit geschaetzt
   ist (Connect IQ kennt kein `freeStorage`), gemessene Kapazitaeten der Flotte, Warnschwellen.
 - [`docs/COLOR-ZONES.md`](docs/COLOR-ZONES.md) — **Farbskalen (Puls-/Geschwindigkeits-Zonen)**: eine

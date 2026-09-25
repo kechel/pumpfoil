@@ -731,6 +731,22 @@ NAECHSTES: list[dict] = [
      "items": [
          "Watches that doze off during a long recording no longer lose motion data while "
          "they sleep.",
+         "Pause sits next to discard now, and stop has its page to itself again.",
+         "While a recording is paused, the watch shows your pause pages and says so on every "
+         "page.",
+     ]},
+    # Apple + Zepp: derselbe Pausen-Umbau vom 25.09. (Commits 0c5e6d6d, 1612070b). Die Nummern
+    # sind die naechsten ueber dem Live- bzw. Review-Stand; gebumpt wird beim Bauen.
+    {"name": "iPhone + Apple Watch", "version": "1.1.38",
+     "items": [
+         "Pause sits next to discard now, and stop has its page to itself again.",
+         "While a recording is paused, the watch shows your pause pages and says so on every "
+         "page.",
+     ]},
+    {"name": "Amazfit", "version": "1.0.13",
+     "items": [
+         "While a recording is paused, the watch shows your pause pages and says so on every "
+         "page.",
      ]},
 ]
 
