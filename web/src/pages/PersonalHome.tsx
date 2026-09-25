@@ -477,6 +477,11 @@ export default function PersonalHome() {
         </div>
       )}
 
+      {/* Wetter & Pegel für den eigenen Homespot — direkt unter den letzten Sessions und ÜBER den
+          eigenen Rekorden (Jan, 25.09.2026: „weiter nach oben unter die ersten drei sessions").
+          Wer die Startseite öffnet, will meist wissen, ob es heute geht. */}
+      {homespot && <div className="mb-6"><SpotWeather spot={homespot} showSpot /></div>}
+
       {/* Rekorde-Kopf mit Accel/alle-Auswahl (zwei Buttons, aktiver markiert) */}
       <div className="mb-2 flex flex-wrap items-center gap-2">
         <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-400">{t("side.records")}</h3>
@@ -542,9 +547,6 @@ export default function PersonalHome() {
           ))}
         </div>
       )}
-
-      {/* Wetter & Pegel für den eigenen Homespot */}
-      {homespot && <SpotWeather spot={homespot} showSpot />}
 
       <div className="mt-6">
         <Link to="/community" className="inline-flex items-center gap-1 text-sm text-brand-600 dark:text-brand-300 hover:text-brand-700 dark:hover:text-brand-200">

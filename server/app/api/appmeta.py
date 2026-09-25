@@ -757,6 +757,9 @@ NAECHSTES: list[dict] = [
          "A button on each session card marks it for comparison.",
          "You can suggest a better name for a spot you ride.",
          "Switching spots no longer shows sessions from the previous one for a moment.",
+         "Recordings with the phone on the board carry a highlighted badge on every session card.",
+         "The foil stats can be narrowed to recordings with the phone on the board.",
+         "The weather at your home spot sits right under your latest sessions.",
      ]},
     # Apple + Zepp: derselbe Pausen-Umbau vom 25.09. (Commits 0c5e6d6d, 1612070b). Die Nummern
     # sind die naechsten ueber dem Live- bzw. Review-Stand; gebumpt wird beim Bauen.
@@ -784,6 +787,9 @@ NAECHSTES: list[dict] = [
          "A button on each session card marks it for comparison.",
          "You can suggest a better name for a spot you ride.",
          "Switching spots no longer shows sessions from the previous one for a moment.",
+         "Recordings with the phone on the board carry a highlighted badge on every session card.",
+         "The foil stats can be narrowed to recordings with the phone on the board.",
+         "The weather at your home spot sits right under your latest sessions.",
      ]},
     {"name": "Amazfit", "version": "1.0.13",
      "items": [
