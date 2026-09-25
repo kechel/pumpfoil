@@ -1159,3 +1159,30 @@ data class FoilRigMasse(
     @SerialName("x_stab_cm") val xStabCm: Double = -60.0,
     @SerialName("fuse_len_cm") val fuseLenCm: Double = 70.0,
 )
+
+
+// Eine Lauflaengen-Klasse der Brett-Lage-Auswertung (/api/community/board-attitude). MEDIANE,
+// dazu die Zahl der Laeufe. Takt und Hub duerfen fehlen — beide brauchen einen erkannten Pumptakt.
+@Serializable
+data class BoardKlasse(
+    val klasse: String,
+    val laeufe: Int = 0,
+    @SerialName("pitch_deg") val pitchDeg: Double? = null,
+    @SerialName("roll_deg") val rollDeg: Double? = null,
+    @SerialName("takt_hz") val taktHz: Double? = null,
+    @SerialName("hub_cm") val hubCm: Double? = null,
+)
+
+@Serializable
+data class BoardFoilKlassen(
+    @SerialName("foil_id") val foilId: Int,
+    val foil: String = "",
+    val laeufe: Int = 0,
+    val klassen: List<BoardKlasse> = emptyList(),
+)
+
+@Serializable
+data class BoardAttitudeStats(
+    val gesamt: List<BoardKlasse> = emptyList(),
+    @SerialName("je_foil") val jeFoil: List<BoardFoilKlassen> = emptyList(),
+)

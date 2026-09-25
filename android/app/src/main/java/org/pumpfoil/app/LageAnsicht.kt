@@ -121,7 +121,7 @@ fun LageJeLaufTabelle(s: SessionDetail, selected: Int?, onSelect: (Int) -> Unit)
             Text(I18n.t("sd.attitudePerRun").uppercase(), style = MaterialTheme.typography.labelMedium,
                 color = grau, modifier = Modifier.padding(horizontal = 12.dp))
             Column(Modifier.horizontalScroll(rememberScrollState()).padding(top = 6.dp)) {
-                val breiten = listOf(36, 64, 64, 72, 88, 72, 72)
+                val breiten = listOf(36, 72, 72, 104, 120, 72, 80)
                 @Composable
                 fun Zeile(werte: List<String>, kopf: Boolean, gedimmt: Set<Int> = emptySet(), mod: Modifier = Modifier) {
                     Row(mod.padding(horizontal = 12.dp, vertical = 6.dp)) {
@@ -441,3 +441,83 @@ private fun LageKurven(
 
 private fun wertText(r: Reihe, idx: Int): String =
     r.werte.getOrNull(idx)?.let { (if (it > 0) "+" else "") + String.format("%.1f", it) + r.einheit } ?: ""
+
+
+/**
+ * Startseite ganz unten: Lage des Bretts je LAUFLAENGE, einmal gesamt und einmal je Foil (Jan,
+ * 24.09.2026). Nur aus Aufnahmen mit dem Handy AM BRETT; ohne solche erscheint nichts. MEDIANE
+ * mit der Zahl der Laeufe daneben — bei vier Laeufen ist ein Median keine Aussage.
+ * KEIN Gieren: das ist die gewaehlte Route, keine Aussage ueber Technik (Jan, 24.09.). Fehlt
+ * eine Zahl, steht dort „nicht erkannt", kein Strich.
+ */
+@Composable
+fun BrettLageStartseite() {
+    var daten by remember { mutableStateOf<BoardAttitudeStats?>(null) }
+    LaunchedEffect(Unit) { daten = try { Api.boardAttitudeStats() } catch (_: Exception) { null } }
+    val d = daten ?: return
+    if (d.gesamt.isEmpty()) return
+    Spacer(Modifier.height(16.dp))
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(I18n.t("home.boardAttitude"), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.width(8.dp))
+        // Abzeichen statt Erklaertext (Jan, 24.09.: „ganz raus") — es sagt, woher die Zahlen kommen.
+        Text("Phone · ${I18n.t("session.onBoard")}", style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                androidx.compose.foundation.shape.RoundedCornerShape(4.dp)).padding(horizontal = 6.dp, vertical = 2.dp))
+    }
+    Spacer(Modifier.height(6.dp))
+    BrettKlassenTabelle(d.gesamt)
+    // Je Foil nur bei mehr als einem — sonst stuende dieselbe Tabelle zweimal da.
+    if (d.jeFoil.size > 1) d.jeFoil.forEach { f ->
+        Spacer(Modifier.height(10.dp))
+        Text("${f.foil} · ${I18n.t("home.baRuns").replace("{n}", f.laeufe.toString())}",
+            style = MaterialTheme.typography.labelLarge)
+        BrettKlassenTabelle(f.klassen)
+    }
+}
+
+@Composable
+private fun BrettKlassenTabelle(klassen: List<BoardKlasse>) {
+    val label = mapOf(
+        "bis30s" to I18n.t("home.baUpTo30s"), "30bis60s" to I18n.t("home.ba30to60s"),
+        "1bis5min" to I18n.t("home.ba1to5min"), "ueber5min" to I18n.t("home.baOver5min"),
+    )
+    val grau = MaterialTheme.colorScheme.onSurfaceVariant
+    val akzent = MaterialTheme.colorScheme.primary
+    val nichtErkannt = I18n.t("home.baNotDetected")
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(vertical = 6.dp)) {
+            Row(Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) {
+                Text(I18n.t("home.baRunLength"), Modifier.weight(1.4f), style = MaterialTheme.typography.labelMedium, color = grau)
+                listOf(I18n.t("home.baPitch"), I18n.t("home.baRoll"), I18n.t("home.baHeave"),
+                    "${I18n.t("home.baCadence")} ${PumpUnit.unitLabel()}").forEach {
+                    Text(it, Modifier.weight(1f), style = MaterialTheme.typography.labelMedium, color = grau,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.End)
+                }
+            }
+            klassen.forEach { k ->
+                HorizontalDivider()
+                Row(Modifier.padding(horizontal = 12.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1.4f)) {
+                        Text(label[k.klasse] ?: k.klasse, style = MaterialTheme.typography.bodyMedium)
+                        Text(I18n.t("home.baRuns").replace("{n}", k.laeufe.toString()),
+                            style = MaterialTheme.typography.bodySmall, color = grau)
+                    }
+                    @Composable
+                    fun Zelle(text: String?, betont: Boolean) = Text(
+                        text ?: nichtErkannt, Modifier.weight(1f),
+                        style = if (text == null) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium,
+                        fontWeight = if (betont && text != null) FontWeight.SemiBold else FontWeight.Normal,
+                        color = if (text == null) grau else if (betont) akzent else MaterialTheme.colorScheme.onSurface,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.End)
+                    Zelle(k.pitchDeg?.let { "${it.roundToInt()}°" }, true)
+                    Zelle(k.rollDeg?.let { "${it.roundToInt()}°" }, true)
+                    Zelle(k.hubCm?.let { "${it.roundToInt()} cm" }, false)
+                    // Der Takt folgt der eingestellten Einheit (Hz oder /min), wie jede Kadenz-Anzeige.
+                    Zelle(k.taktHz?.let { PumpUnit.fmtValue(it) }, false)
+                }
+            }
+        }
+    }
+}

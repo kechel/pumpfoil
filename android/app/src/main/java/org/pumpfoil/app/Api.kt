@@ -662,6 +662,12 @@ object Api {
                 http("GET", "/api/sessions/$id/attitude" + (if (q.isNotEmpty()) "?$q" else ""), null, auth = true))
         }
 
+    // Lage-Zahlen aus Aufnahmen MIT DEM HANDY AM BRETT, je Lauflaenge. Leere `gesamt` = keine
+    // solche Aufnahme — die Startseite zeigt den Abschnitt dann nicht.
+    suspend fun boardAttitudeStats(): BoardAttitudeStats = withContext(Dispatchers.IO) {
+        json.decodeFromString(BoardAttitudeStats.serializer(), http("GET", "/api/community/board-attitude", null, auth = true))
+    }
+
     // Montage der Aufnahme: "board" | "phone" | "" — nur bei Handy-Aufnahmen (Server prueft).
     suspend fun setPlacement(id: Int, wert: String): Unit = withContext(Dispatchers.IO) {
         http("PUT", "/api/sessions/$id/meta", buildJsonObject { put("placement", wert) }.toString(), auth = true)

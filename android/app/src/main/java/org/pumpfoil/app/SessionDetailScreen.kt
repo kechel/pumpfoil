@@ -674,7 +674,11 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                     Icon(Icons.Filled.Watch, contentDescription = null, modifier = Modifier.size(14.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(Modifier.width(4.dp))
-                    Text(it, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    // Am Brett sagt das Abzeichen es mit — wie die PWA (lib/deviceLabel.ts): die Lage
+                    // unten gilt nur fuer diese Aufnahmen, und das soll man schon hier sehen.
+                    val text = if (s.placement == "board") "$it · ${I18n.t("session.onBoard")}" else it
+                    Text(text, style = MaterialTheme.typography.labelMedium,
+                        color = if (s.placement == "board") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
             if (caption.isNotBlank()) Text(caption)
