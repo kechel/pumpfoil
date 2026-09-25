@@ -11,16 +11,19 @@ base.resourcePath = resources
 #   Menüs    `(:full)`      <-> `(:lite)`        Pausen-Menü, Aktions-Menü
 #   Layouts  `(:layouts)`   <-> `(:nolayouts)`   dynamischer Renderer + Layout-Canary
 #   Sprachen `(:i18n)`      <-> `(:noi18n)`      13-Sprachen-Tabelle vs. English-only
+#   Klassik  `(:klassik)`                        klassische Seiten-Saetze + „alle Seiten" OHNE Layout-
+#                                               Renderer — NUR Mittelklasse (VOLL und LITE schliessen
+#                                               es aus; LITE ist am Limit, Jan 25.09.2026)
 #
 # VOLL (>= 512 KB, ~100 Geräte): alles an.
-base.excludeAnnotations = lite;nolayouts;noi18n
+base.excludeAnnotations = lite;nolayouts;noi18n;klassik
 #
 # LITE (96 KB, Instinct-2-Klasse): alles Schwere raus. Siehe memory garmin-instinct2-lowmem.
-instinct2.excludeAnnotations = full;layouts;i18n
-instinct2s.excludeAnnotations = full;layouts;i18n
-instinct2x.excludeAnnotations = full;layouts;i18n
-instinctcrossover.excludeAnnotations = full;layouts;i18n
-descentg1.excludeAnnotations = full;layouts;i18n
+instinct2.excludeAnnotations = full;layouts;i18n;klassik
+instinct2s.excludeAnnotations = full;layouts;i18n;klassik
+instinct2x.excludeAnnotations = full;layouts;i18n;klassik
+instinctcrossover.excludeAnnotations = full;layouts;i18n;klassik
+descentg1.excludeAnnotations = full;layouts;i18n;klassik
 #
 # ENG (128 KB, 16 Geräte) — NEU 17.08., Anlass war ein gemessener stiller Totalausfall:
 # diese Klasse fährt den VOLLEN Build und ist mit ihm aus dem Speicher gewachsen. Gemessen an

@@ -791,6 +791,14 @@ NAECHSTES: list[dict] = [
          "The foil stats can be narrowed to recordings with the phone on the board.",
          "The weather at your home spot sits right under your latest sessions.",
      ]},
+    # Garmin 1.0.90: die 128-KB-Klasse (voller Build ohne Layout-Renderer, z. B. Instinct 3 Solar)
+    # liest die klassischen Seiten-Saetze und „alle Seiten" (`(:klassik)`, SessionRecorder.mc);
+    # Anlass Romans Meldung (u244). Lite (96 KB) und die grossen Uhren byte-gleich.
+    {"name": "Garmin", "version": "1.0.90",
+     "items": [
+         "Watches with less memory, such as the Instinct 3 Solar, show all the pages you set up "
+         "between runs and respect the switch for browsing through the other pages.",
+     ]},
     {"name": "Amazfit", "version": "1.0.13",
      "items": [
          "While a recording is paused, the watch shows your pause pages and says so on every "

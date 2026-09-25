@@ -447,6 +447,22 @@ def device_config(
         or (_mem >= LAYOUT_MIN_ON_REQUEST and lay == 1)
     )
     layout_block = _layouts_for_watch(db, device.user_id, settings) if layout_capable else {}
+    # GARMIN OHNE LAYOUT-PAKET (128-KB-Klasse, z. B. Instinct 3 Solar): die Seiten-SAETZE und
+    # „alle Seiten" kamen bis 25.09.2026 gar nicht an, weil sie nur im Layout-Paket standen. Die
+    # Uhr zeigte dann zwischen den Laeufen nur die erste Seite und blaetterte immer durch alle
+    # Zustaende — Romans Meldung (u244): „still same old datascreens", auch nach 1.0.89. Jetzt
+    # bekommen diese Uhren die KLASSISCHEN Seiten (`[0,a,b,c]`) der Saetze und den Schalter; eigene
+    # Layouts bleiben draussen, die kann ihr Build nicht zeichnen. Lesen tut das erst die
+    # Uhr-Version mit `(:klassik)` (SessionRecorder.mc); aeltere ignorieren die Schluessel.
+    if is_garmin and not layout_capable:
+        voll = _layouts_for_watch(db, device.user_id, settings)
+        def klassisch(saetze: list) -> list:
+            return [e for e in (saetze or []) if isinstance(e, list) and len(e) >= 4 and e[0] == 0]
+        layout_block = {
+            "offFoilPages": klassisch(voll.get("offFoilPages")),
+            "pausePages": klassisch(voll.get("pausePages")),
+            "browseAll": bool(voll.get("browseAll", True)),
+        }
 
     return {
         "views": settings.get("views", [[1, 2, 0]]),
