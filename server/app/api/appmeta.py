@@ -800,6 +800,7 @@ NAECHSTES: list[dict] = [
          "between runs and respect the switch for browsing through the other pages.",
          "On black-and-white watches such as the Instinct, values that used to be drawn in colour "
          "are now shown in white instead of disappearing.",
+         "On the Instinct 3, pages with one or two values start below the small round display.",
      ]},
     {"name": "Amazfit", "version": "1.0.13",
      "items": [

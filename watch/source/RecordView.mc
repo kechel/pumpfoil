@@ -265,7 +265,10 @@ class RecordView extends WatchUi.View {
     (:nolayouts) hidden function _hasPausedHint(entry) { return false; }
 
     // Klassische Seite: bis zu 3 Felder gleichmäßig in einem sicheren Band gestapelt.
-    hidden function _drawFieldPage(dc, fields, w, h) {
+    // ZWEI Fassungen: `(:nichtklassik)` = Lite + grosse Uhren, unveraendert; `(:klassik)` = die
+    // 128-KB-Mittelklasse, die das Instinct-NEBENDISPLAY ausspart (s. unten). So waechst die Lite-
+    // Stufe nicht (Jan, 25.09.2026: „die lite-fassung darf nicht groesser werden").
+    (:nichtklassik) hidden function _drawFieldPage(dc, fields, w, h) {
         var active = [];
         for (var i = 0; i < 3; i++) {
             if (fields[i] != Config.FIELD_NONE) { active.add(fields[i]); }
@@ -279,6 +282,45 @@ class RecordView extends WatchUi.View {
         for (var i = 0; i < n; i++) {
             var cy = top + band * (i + 0.5) / n;
             _drawField(dc, active[i], w / 2, cy, n);
+        }
+    }
+
+    // MITTELKLASSE: die Felder beginnen UNTER dem runden Nebendisplay (Instinct 3 Solar u. a., oben
+    // rechts). Bis 26.09.2026 lag der erste Wert darunter und war angeschnitten — sichtbar wurde es
+    // erst, als die Werte auf Schwarz-Weiss-Uhren ueberhaupt zu sehen waren (Jan im Emulator:
+    // „mach die mittelklasse mal richtig"). `getSubscreen()` sagt, wo es liegt (ab API 3.2.7); ohne
+    // Nebendisplay kommt null, dann bleibt alles wie in der anderen Fassung. Die Schriften schrumpfen
+    // mit dem kleineren Band: `_drawField` rechnet seine Feldhoehe aus `n`, also bekommt es die
+    // Feldzahl, die dem Band entspricht.
+    (:klassik) hidden function _drawFieldPage(dc, fields, w, h) {
+        var active = [];
+        for (var i = 0; i < 3; i++) {
+            if (fields[i] != Config.FIELD_NONE) { active.add(fields[i]); }
+        }
+        var n = active.size();
+        if (n == 0) { n = 1; active = [Config.FIELD_SPEED3S]; }
+        var top = h * 0.13;
+        var band = h * 0.74;
+        var nSchrift = n;
+        // NUR bei ein oder zwei Feldern. Mit drei bleiben unter dem Nebendisplay auf 176 px rund
+        // 30 px je Feld, die Beschriftung allein braucht ~15 und schrumpft nicht mit — Wert und
+        // Beschriftung lagen uebereinander, der dritte Wert verschwand (Jan im Emulator, 26.09.).
+        // Drei Felder bleiben deshalb in der vollen Hoehe (Jan: „bei drei feldern ist das halt so").
+        var sub = (n <= 2 && (WatchUi has :getSubscreen)) ? WatchUi.getSubscreen() : null;
+        if (sub != null && sub.y != null && sub.height > 0) {
+            var unter = sub.y + sub.height + 2;
+            // Nur ein Nebendisplay OBEN verschiebt; eines weiter unten wuerde das Band halbieren,
+            // dann lieber die bisherige Aufteilung.
+            if (unter > top && unter < h * 0.5) {
+                var ende = top + band;
+                top = unter;
+                band = ende - top;
+                nSchrift = n * (h * 0.74) / band;
+            }
+        }
+        for (var i = 0; i < n; i++) {
+            var cy = top + band * (i + 0.5) / n;
+            _drawField(dc, active[i], w / 2, cy, nSchrift);
         }
     }
 
