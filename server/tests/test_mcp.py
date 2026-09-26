@@ -415,7 +415,9 @@ def _puls_session(user_id: int) -> int:
     import json as _json
     from app import models, storage
     from app.db import SessionLocal
-    sid = _session_anlegen(user_id, hr_samples=300, hr_source="watch")
+    # hr_samples bewusst LEER: so steht es im echten Bestand fast immer. Mit gesetztem Wert
+    # hatte der Test am 26.09.2026 einen Fehler verdeckt, der jedem Agenten „kein Puls" meldete.
+    sid = _session_anlegen(user_id)
     db = SessionLocal()
     try:
         s = db.get(models.Session, sid)
@@ -458,6 +460,7 @@ def test_puls_zusammenfassung_und_reihe_je_lauf(client):
     s = _ruf(client, token, "get_session", {"session_id": sid})
     assert s["puls"]["avg_puls"] == 130 and s["puls"]["max_puls"] == 159
     assert s["puls"]["tiefster_puls"] == 90          # die Pause, kein echter Ruhepuls
+    assert s["puls_proben"] == 120                   # aus den Daten: 0-119 s, der Rest stand
     assert "get_run_heart_rate" in s["puls_hinweis"]
     l0, l1 = s["laeufe_einzeln"]
     assert (l0["lauf"], l0["lauf_nr_in_app"]) == (0, 1)
