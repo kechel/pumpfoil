@@ -472,6 +472,12 @@ _APP_META: dict[str, dict[str, str]] = {
 PRUEFER = {
     "iPhone + Apple Watch": "Apple",
     "Android phone + Wear OS": "Google",
+    # Phone und Wear stehen seit 1.1.33/1.2.33 als ZWEI Eintraege da (je eigene Punkte). Fehlte
+    # ein Name hier, warf `_note` einen KeyError und /api/app/releases antwortete 500 — die
+    # ganze Tabelle auf /changelog verschwand (26.09.2026). tests/test_releases.py prueft jetzt
+    # jeden Namen in IN_REVIEW/NAECHSTES gegen diese Liste.
+    "Android phone": "Google",
+    "Wear OS": "Google",
     "Amazfit": "the Zepp store",
     "Garmin": "the Connect IQ store",
 }
@@ -509,7 +515,7 @@ def _note(e: dict, zustand: str) -> str:
         # Store es wirklich ausliefert (Regel vom 10.08.2026). Dafuer dieser dritte Zustand.
         if e.get("freigegeben"):
             return f"approved {_datum(e['freigegeben'])}, appearing in the store shortly"
-        return f"submitted {_datum(e['eingereicht'])}, waiting for {PRUEFER[e['name']]}"
+        return f"submitted {_datum(e['eingereicht'])}, waiting for {PRUEFER.get(e['name'], 'the store')}"
     if zustand == "next":
         # Schlicht „current development" — KEINE Aussage darueber, ob schon gebaut oder
         # hochladefertig. Jan, 19.09.2026: „das wird released wenn ich denke das es ein release
@@ -655,6 +661,37 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # EINGEREICHT 26.09.2026 vormittags (Jan: „das android und ios eingereicht wurden"), 1.1.38 (42).
+    {"name": "iPhone + Apple Watch", "version": "1.1.38",
+     "eingereicht": "2026-09-26",
+     "items": [
+         "Pause sits next to discard now, and stop has its page to itself again.",
+         "While a recording is paused, the watch shows your pause pages and says so on every "
+         "page.",
+     ] + [
+         "If your phone rode on the board, the app shows how the board pitched, rolled and "
+         "turned, with a moving drawing of your foil.",
+         "The app asks when a recording looks like it was taken with the phone on the board.",
+         "Your home page shows your board angles by run length, from recordings with the phone "
+         "on the board.",
+         "You can hide where you rode, for all your recordings or one at a time.",
+         "Your profile lists which recordings are shared by link, with a button to take the link "
+         "back.",
+         "You decide in the app what your public foiler page shows.",
+         "Each watch in your profile only offers the settings it actually uses, now including the "
+         "water lock.",
+         "Your profile shows which AI programs can read your recordings and lets you close their "
+         "access.",
+         "Comparisons play back at real speed first.",
+         "The training curve has a slider to pick any moment into a run.",
+         "A button on each session card marks it for comparison.",
+         "You can suggest a better name for a spot you ride.",
+         "Switching spots no longer shows sessions from the previous one for a moment.",
+         "Recordings with the phone on the board carry a highlighted badge on every session card.",
+         "The foil stats can be narrowed to recordings with the phone on the board.",
+         "The weather at your home spot sits right under your latest sessions.",
+         "Between runs, the watch shows every page you set up for that time, and you can browse them.",
+     ]},
     # EINGEREICHT 26.09.2026 ~08:30 (Berlin), eine Play-Einreichung fuer beide Spuren: Jans
     # Console „Produktion 47 (1.1.33) · Produktion (Wear OS) 1043 (1.2.33)", Vorabpruefung laeuft.
     # Wear 1.2.33: Wake-up-Beschleunigungssensor (f0184015, 24.09. 15:02) — kam vier Stunden
@@ -751,35 +788,6 @@ NAECHSTES: list[dict] = [
 
     # Apple + Zepp: derselbe Pausen-Umbau vom 25.09. (Commits 0c5e6d6d, 1612070b). Die Nummern
     # sind die naechsten ueber dem Live- bzw. Review-Stand; gebumpt wird beim Bauen.
-    {"name": "iPhone + Apple Watch", "version": "1.1.38",
-     "items": [
-         "Pause sits next to discard now, and stop has its page to itself again.",
-         "While a recording is paused, the watch shows your pause pages and says so on every "
-         "page.",
-     ] + [
-         "If your phone rode on the board, the app shows how the board pitched, rolled and "
-         "turned, with a moving drawing of your foil.",
-         "The app asks when a recording looks like it was taken with the phone on the board.",
-         "Your home page shows your board angles by run length, from recordings with the phone "
-         "on the board.",
-         "You can hide where you rode, for all your recordings or one at a time.",
-         "Your profile lists which recordings are shared by link, with a button to take the link "
-         "back.",
-         "You decide in the app what your public foiler page shows.",
-         "Each watch in your profile only offers the settings it actually uses, now including the "
-         "water lock.",
-         "Your profile shows which AI programs can read your recordings and lets you close their "
-         "access.",
-         "Comparisons play back at real speed first.",
-         "The training curve has a slider to pick any moment into a run.",
-         "A button on each session card marks it for comparison.",
-         "You can suggest a better name for a spot you ride.",
-         "Switching spots no longer shows sessions from the previous one for a moment.",
-         "Recordings with the phone on the board carry a highlighted badge on every session card.",
-         "The foil stats can be narrowed to recordings with the phone on the board.",
-         "The weather at your home spot sits right under your latest sessions.",
-         "Between runs, the watch shows every page you set up for that time, and you can browse them.",
-     ]},
     {"name": "Amazfit", "version": "1.0.13",
      "items": [
          "While a recording is paused, the watch shows your pause pages and says so on every "
