@@ -140,7 +140,7 @@ class RecordView extends WatchUi.View {
         if (state == :paused) {
             _drawPausedChrome(dc, w, h, true, true, true);   // klassische Seite: beides, dauerhaft
         } else {
-            _drawRec(dc, w / 2, h * 0.085, Graphics.COLOR_RED);
+            _drawRec(dc, w / 2, h * 0.085, FARBE_ROT);
         }
         _drawDataLossWarn(dc, w, h);
     }
@@ -173,12 +173,12 @@ class RecordView extends WatchUi.View {
             _storageWarned = true;
             _vibeSwitch();
         }
-        dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_BLACK);
+        dc.setColor(FARBE_ORANGE, Graphics.COLOR_BLACK);
         // Tilde, weil beides geschaetzt ist: das Budget (gemessen, aber je Geraet verschieden)
         // und das Puffervolumen (pendingKb, ~±30 %).
         _drawWrap(dc, w / 2, h * 0.97, Graphics.FONT_XTINY,
             "~" + min.toString() + " " + Strings.s("err.storageSoon"), true);
-        dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(FARBE_ORANGE, Graphics.COLOR_TRANSPARENT);
     }
 
     hidden function _drawDataLossWarn(dc, w, h) {
@@ -186,9 +186,9 @@ class RecordView extends WatchUi.View {
         // Unten VERANKERT (Unterkante 0,97) statt Oberkante 0,90: mit der alten Rechnung stand
         // die Zeile auf 176 px teilweise ausserhalb des Displays. Schwarzer Textgrund, weil die
         // Warnung ueber den Datenfeldern liegt und bei zwei Zeilen sonst im Wert verschwindet.
-        dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_BLACK);
+        dc.setColor(FARBE_ROT, Graphics.COLOR_BLACK);
         _drawWrap(dc, w / 2, h * 0.97, Graphics.FONT_XTINY, Strings.s("err.dataLost"), true);
-        dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(FARBE_ROT, Graphics.COLOR_TRANSPARENT);
     }
 
     // Welcher Zustand gilt gerade? Reihenfolge ist wichtig: manuell pausiert sticht alles.
@@ -237,7 +237,7 @@ class RecordView extends WatchUi.View {
     // sonst nur die knappe Zeile, damit ein eigenes Layout nicht zugedeckt wird.
     hidden function _drawPausedChrome(dc, w, h, classic, showPaused, showResume) {
         if (showPaused) {
-            dc.setColor(Config.BRAND_CYAN, Graphics.COLOR_BLACK);
+            dc.setColor(FARBE_CYAN, Graphics.COLOR_BLACK);
             _drawWrap(dc, w / 2, h * 0.04, Graphics.FONT_XTINY, Strings.s("rec.paused"), false);
         }
         if (showResume) {
@@ -308,7 +308,7 @@ class RecordView extends WatchUi.View {
         dc.clear();
         var r = (w < h ? w : h) / 2 - 8;
         dc.setPenWidth(12);
-        dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(FARBE_ROT, Graphics.COLOR_TRANSPARENT);
         dc.drawArc(w / 2, h / 2, r, Graphics.ARC_CLOCKWISE, 90, 90.0 - 360.0 * sp);
         dc.setPenWidth(1);
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
@@ -348,7 +348,7 @@ class RecordView extends WatchUi.View {
         // Update-Hinweis: kurz nach App-Start einblenden, wenn der Server eine neuere IQ-Store-
         // Version meldet (Config-Abruf setzt updateHintUntilMs). Ganz oben, brand-cyan.
         if (_rec.updateAvailable && System.getTimer() < _rec.updateHintUntilMs) {
-            dc.setColor(Config.BRAND_CYAN, Graphics.COLOR_TRANSPARENT);
+            dc.setColor(FARBE_CYAN, Graphics.COLOR_TRANSPARENT);
             _drawWrap(dc, w / 2, h * 0.05, Graphics.FONT_XTINY, Strings.s("upd.store"), false);
         }
         // Selbstheilung: letzte Aufnahme mit dynamischem Layout ist abgestürzt -> diese Sitzung
@@ -385,7 +385,7 @@ class RecordView extends WatchUi.View {
         }
         var mw = _usableWidth(dc, y + fh / 2);
         if (_rec.hasGpsFix()) {
-            dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+            dc.setColor(FARBE_GRUEN, Graphics.COLOR_TRANSPARENT);
             var auto = Strings.s("auto.short");
             if (_rec.autoStartOn() && !_rec.autoArmed()) { auto += " " + _rec.autoLead() + "s"; }
             var teile = _rec.autoStartOn() ? [Strings.s("gps.ready"), auto, rl]
@@ -394,7 +394,7 @@ class RecordView extends WatchUi.View {
                                                             : [Strings.s("gps.ready"), puffer, rl]; }
             y += _drawWrap(dc, w / 2, y, xf, _zusammen(dc, xf, mw, teile), false) + luft;
         } else {
-            dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
+            dc.setColor(FARBE_ORANGE, Graphics.COLOR_TRANSPARENT);
             var teileS = (puffer != null) ? [Strings.s("gps.searching"), puffer, rl]
                                           : [Strings.s("gps.searching"), rl];
             y += _drawWrap(dc, w / 2, y, xf, _zusammen(dc, xf, mw, teileS), false) + luft;
@@ -408,10 +408,10 @@ class RecordView extends WatchUi.View {
         // erfuhr der Nutzer nichts, obwohl genau das die Ursache ist.
         mw = _usableWidth(dc, y + fh / 2);
         if (_rec.storageFull || Uploader.storageFull() || Config.storeFailed) {
-            dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
+            dc.setColor(FARBE_ROT, Graphics.COLOR_TRANSPARENT);
             y += _drawWrap(dc, w / 2, y, xf, Strings.s("err.storageFull"), false) + luft;
         } else if (!_rec.isPaired()) {
-            dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
+            dc.setColor(FARBE_ORANGE, Graphics.COLOR_TRANSPARENT);
             // "MENU: Einstellungen" nur, wenn es in dieselbe Zeile passt — der Hinweis steht
             // ohnehin unten auf der Seite.
             y += _drawWrap(dc, w / 2, y, xf,
@@ -426,13 +426,13 @@ class RecordView extends WatchUi.View {
                 if (_pendKbFor != pn) { _pendKb = Uploader.pendingKb(); _pendKbFor = pn; }
                 var teile2 = [pn + " " + Strings.s("up.pendingN")];
                 if (_pendKb >= 1024) { teile2.add((_pendKb / 1024) + " MB"); }
-                dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
+                dc.setColor(FARBE_ORANGE, Graphics.COLOR_TRANSPARENT);
                 y += _drawWrap(dc, w / 2, y, xf, _zusammen(dc, xf, mw, teile2), false) + luft;
                 // Auf speicherarmen Uhren (~96 KB) beschaedigt schon EINE wartende Session die
                 // naechste Aufnahme: der Store ist voll, die neuen Chunks werden verworfen. Also
                 // hier sagen, was zu tun ist, BEVOR er startet — nicht hinterher erklaeren muessen.
                 if ((_rec.isLowMemWatch() || _pendKb >= 200) && y < mitteMax) {
-                    dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
+                    dc.setColor(FARBE_ROT, Graphics.COLOR_TRANSPARENT);
                     y += _drawWrap(dc, w / 2, y, xf, Strings.s("up.uploadFirst"), false) + luft;
                 }
             }
@@ -470,10 +470,10 @@ class RecordView extends WatchUi.View {
             var unten = h * 0.99;
             if (sy + sf > unten) { sy = unten - sf; }
             if (sy < y) { sy = y; }
-            dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+            dc.setColor(FARBE_GRUEN, Graphics.COLOR_TRANSPARENT);
             _drawWrap(dc, w / 2, sy, Graphics.FONT_SMALL, Strings.s("start.rec"), false);
             var yh = sy + sf + 2;
-            dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
+            dc.setColor(FARBE_DUNKEL, Graphics.COLOR_TRANSPARENT);
             if (yh + _wrapHoehe(dc, yh, xf, Strings.s("start.menu"), false) <= unten) {
                 yh += _drawWrap(dc, w / 2, yh, xf, Strings.s("start.menu"), false) + 2;
             }
@@ -487,7 +487,7 @@ class RecordView extends WatchUi.View {
         var h2 = hatFoils ? _wrapHoehe(dc, yb - h1 - 2, xf, Strings.s("start.chooseAlarm"), true) : 0;
         if (sy + sf > yb - h1 - h2 - 4) { h2 = 0; }
         if (sy + sf > yb - h1 - 4) { h1 = 0; }
-        dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(FARBE_DUNKEL, Graphics.COLOR_TRANSPARENT);
         if (h1 > 0) {
             _drawWrap(dc, w / 2, yb, xf, Strings.s("start.menu"), true);
             if (h2 > 0) { _drawWrap(dc, w / 2, yb - h1 - 2, xf, Strings.s("start.chooseAlarm"), true); }
@@ -497,7 +497,7 @@ class RecordView extends WatchUi.View {
         var grenze = yb - h1 - h2 - (h1 > 0 ? 4 : 0);
         if (sy + sf > grenze) { sy = grenze - sf; }
         if (sy < y) { sy = y; }
-        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(FARBE_GRUEN, Graphics.COLOR_TRANSPARENT);
         _drawWrap(dc, w / 2, sy, Graphics.FONT_SMALL, Strings.s("start.rec"), false);
     }
 
@@ -536,7 +536,7 @@ class RecordView extends WatchUi.View {
         // die drei Hinweise darunter kein Platz: auf 176 px reichte es bisher rechnerisch bis
         // y = 213 bei 176 px Displayhoehe — die letzte Zeile lag komplett ausserhalb.
         var ty = klein ? h * 0.10 : h * 0.28;
-        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(FARBE_GRUEN, Graphics.COLOR_TRANSPARENT);
         dc.drawText(w / 2, ty, Graphics.FONT_MEDIUM, Strings.s("saved.title"), Graphics.TEXT_JUSTIFY_CENTER);
         // grünes Häkchen — Groesse und Lage relativ zum Titel statt auf festen Bruchteilen,
         // damit es auf jeder Displaygroesse gleich sitzt.
@@ -562,7 +562,7 @@ class RecordView extends WatchUi.View {
         // spaeter) hatten genau diese Wissensluecke. Orange, damit es nicht im Grau untergeht.
         var txt = [];
         var col = [];
-        if (busy) { txt.add(Strings.s("up.keepOpen")); col.add(Graphics.COLOR_ORANGE); }
+        if (busy) { txt.add(Strings.s("up.keepOpen")); col.add(FARBE_ORANGE); }
         txt.add(Strings.s("saved.upload")); col.add(Graphics.COLOR_LT_GRAY);
         txt.add(Strings.s("saved.newRec")); col.add(Graphics.COLOR_LT_GRAY);
         txt.add("v" + Config.VERSION); col.add(Graphics.COLOR_LT_GRAY);
@@ -596,7 +596,7 @@ class RecordView extends WatchUi.View {
     hidden function _drawGpsSearch(dc) {
         var w = dc.getWidth();
         var h = dc.getHeight();
-        dc.setColor(Graphics.COLOR_YELLOW, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(FARBE_GELB, Graphics.COLOR_TRANSPARENT);
         dc.drawText(w / 2, h * 0.40, Graphics.FONT_MEDIUM, Strings.s("gps.searchBig"),
             Graphics.TEXT_JUSTIFY_CENTER);
         // animierte Punkte (1 Hz Update)
@@ -608,7 +608,7 @@ class RecordView extends WatchUi.View {
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
         _drawWrap(dc, w / 2, h * 0.58, Graphics.FONT_XTINY, Strings.s("gps.sky"), false);
         // Aufnahme läuft bereits (roter Punkt oben).
-        dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(FARBE_ROT, Graphics.COLOR_TRANSPARENT);
         dc.fillCircle(w / 2, h * 0.10, 6);
     }
 
@@ -667,11 +667,11 @@ class RecordView extends WatchUi.View {
         } else if (type == Config.FIELD_RUN_DURATION) {
             value = _fmtTime(_rec.runDurationMs());
             label = _rec.isFoiling() ? Strings.s("f.runActive") : Strings.s("f.run");
-            if (_rec.isFoiling()) { color = Graphics.COLOR_GREEN; }
+            if (_rec.isFoiling()) { color = FARBE_GRUEN; }
         } else if (type == Config.FIELD_RUN_DISTANCE) {
             value = _distVal(_rec.runDistanceM());
             label = _distUnit(_rec.runDistanceM()) + " " + (_rec.isFoiling() ? Strings.s("f.runActive") : Strings.s("f.run"));
-            if (_rec.isFoiling()) { color = Graphics.COLOR_GREEN; }
+            if (_rec.isFoiling()) { color = FARBE_GRUEN; }
         } else if (type == Config.FIELD_LAST_RUN_DURATION) {
             value = _fmtTime(_rec.lastRunDurationMs()); label = Strings.s("f.lastRun");
         } else if (type == Config.FIELD_LAST_RUN_DISTANCE) {
@@ -1190,7 +1190,7 @@ class RecordView extends WatchUi.View {
 
     (:layouts) hidden function _drawLayoutCrashHint(dc, w, h) as Void {
         if (!_rec.layoutCrash || System.getTimer() >= _rec.layoutHintUntilMs) { return; }
-        dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(FARBE_ORANGE, Graphics.COLOR_TRANSPARENT);
         // 0,05 statt 0,03: ganz oben ist die nutzbare Sehne einer runden Uhr am schmalsten,
         // ein paar Prozent tiefer bringt spuerbar Breite (176 px: 60 -> 101 px).
         _drawWrap(dc, w / 2, h * 0.05, Graphics.FONT_XTINY, Strings.s("lay.fallback"), false);
@@ -1199,7 +1199,7 @@ class RecordView extends WatchUi.View {
 
     // Kleine Glocke (~12 px), gezeichnet neben der Foil-Zeile, wenn der Alarm an ist.
     hidden function _drawBell(dc, cx, cy) {
-        dc.setColor(Graphics.COLOR_YELLOW, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(FARBE_GELB, Graphics.COLOR_TRANSPARENT);
         dc.fillRectangle(cx - 1, cy - 6, 2, 2);                                   // Griff oben
         dc.fillCircle(cx, cy - 3, 3);                                             // Kuppel
         dc.fillPolygon([[cx - 5, cy + 3], [cx + 5, cy + 3], [cx + 3, cy - 2], [cx - 3, cy - 2]]); // Körper
@@ -1209,11 +1209,11 @@ class RecordView extends WatchUi.View {
 
     // Kleines Telefon-Icon (grün = aktive Handy-Verbindung).
     hidden function _drawPhone(dc, cx, cy) {
-        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(FARBE_GRUEN, Graphics.COLOR_TRANSPARENT);
         dc.fillRoundedRectangle(cx - 6, cy - 9, 12, 18, 2);                       // Gehäuse
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_TRANSPARENT);
         dc.fillRectangle(cx - 4, cy - 5, 8, 10);                                  // Display
-        dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(FARBE_GRUEN, Graphics.COLOR_TRANSPARENT);
         dc.fillRectangle(cx - 2, cy - 7, 4, 1);                                   // Hörer oben
         dc.fillCircle(cx, cy + 7, 1);                                             // Home-Button
     }
@@ -1234,11 +1234,11 @@ class RecordView extends WatchUi.View {
     // Zonen-Farben Z1…Z5 in JEDEM Build (blau ruhig … rot maximal), damit die Wert-Farbe auch
     // auf den kleinen Uhren ohne Layout-Renderer dieselbe Bedeutung hat.
     hidden function _zoneColorAll(z) {
-        if (z <= 0) { return Graphics.COLOR_BLUE; }
-        if (z == 1) { return Graphics.COLOR_GREEN; }
-        if (z == 2) { return Graphics.COLOR_YELLOW; }
-        if (z == 3) { return Graphics.COLOR_ORANGE; }
-        return Graphics.COLOR_RED;
+        if (z <= 0) { return FARBE_BLAU; }
+        if (z == 1) { return FARBE_GRUEN; }
+        if (z == 2) { return FARBE_GELB; }
+        if (z == 3) { return FARBE_ORANGE; }
+        return FARBE_ROT;
     }
 
     // Dauer als M:SS, ab einer Stunde als H:MM:SS (Sekunden immer dabei).

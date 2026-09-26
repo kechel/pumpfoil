@@ -108,3 +108,16 @@ def test_nur_layouts_werden_fuer_kleine_uhren_umgerechnet(client):
     # Die grosse Uhr bekommt die Layouts selbst, unveraendert.
     g = _config(client, dev, GROSS)
     assert g["pages"][0][0] == 1
+
+
+def test_schwarzweiss_uhr_faerbt_nie_ein(client, monkeypatch):
+    """1-Bit-Display: Zonenfarben waeren schwarz auf schwarz — der Server schaltet sie ab."""
+    monkeypatch.setattr(devices, "_catalog_entry", lambda pn: {
+        MITTEL: {"id": "instinct3solar45mm", "mem": 131072, "bpp": 1},
+        GROSS: {"id": "fenix7xpro", "mem": 786432, "bpp": 8},
+    }.get(pn))
+    auth = _konto(client, "mono-farbe")
+    dev = _paaren(client, auth)
+    assert client.put("/api/settings", headers=auth, json={"colorByValue": True}).status_code == 200
+    assert _config(client, dev, MITTEL)["colorByValue"] is False
+    assert _config(client, dev, GROSS)["colorByValue"] is True

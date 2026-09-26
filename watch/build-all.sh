@@ -16,6 +16,10 @@ KEY="${KEY:-$SDK_HOME/developer_key.der}"
 DEVDIR="${DEVDIR:-$HOME/.Garmin/ConnectIQ/Devices}"
 mkdir -p "$HERE/bin"
 
+# Farb-Einteilung gegen das SDK pruefen (1-Bit-Displays -> `(:mono)`, s. source/Farbe.mc). Bricht
+# ab, bevor irgendetwas gebaut oder nach bin/ geschrieben wird.
+python3 "$HERE/check-mono.py" "$DEVDIR"
+
 # Geräte-IDs aus dem Manifest ziehen.
 DEVICES=$(grep -oP '(?<=iq:product id=")[^"]+' "$HERE/manifest.xml")
 
@@ -59,13 +63,16 @@ for fn in sorted(os.listdir(os.path.join(here, "bin"))):
         continue
     dev = fn[len("foil-"):-len(".prg")]
     cj = os.path.join(devdir, dev, "compiler.json")
-    name, fam, w, h, mem = dev, "?", None, None, None
+    name, fam, w, h, mem, bpp = dev, "?", None, None, None, None
     if os.path.exists(cj):
         c = json.load(open(cj))
         name = c.get("displayName", dev)
         fam = c.get("deviceFamily", "?")
         res = c.get("resolution", {})
         w, h = res.get("width"), res.get("height")
+        # Farbtiefe: 1 = Schwarz-Weiss-Display. Der Server schaltet dort „Werte einfaerben" ab
+        # (Zonenfarben wuerden schwarz auf schwarz), s. watch/source/Farbe.mc.
+        bpp = c.get("bitsPerPixel")
         # Speicherbudget der watchApp (Bytes) — entscheidet, was das Gerät verträgt:
         # 96 KB = Lite-Build (5 Geräte), 128 KB = voll aber knapp (16), ab 512 KB reichlich (100).
         # Der Server nutzt das fürs Feature-Gating (z. B. dynamische Layouts erst ab 512 KB).
@@ -82,7 +89,7 @@ for fn in sorted(os.listdir(os.path.join(here, "bin"))):
                 pns.add(pn["number"])
         for pn in pns:
             partmap[pn] = {"id": dev, "name": name}
-    cat.append(dict(id=dev, name=name, family=fam, w=w, h=h, mem=mem,
+    cat.append(dict(id=dev, name=name, family=fam, w=w, h=h, mem=mem, bpp=bpp,
                     bytes=os.path.getsize(os.path.join(here, "bin", fn)),
                     version=version))
 cat.sort(key=lambda x: x["name"])

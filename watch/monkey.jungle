@@ -11,19 +11,21 @@ base.resourcePath = resources
 #   Menüs    `(:full)`      <-> `(:lite)`        Pausen-Menü, Aktions-Menü
 #   Layouts  `(:layouts)`   <-> `(:nolayouts)`   dynamischer Renderer + Layout-Canary
 #   Sprachen `(:i18n)`      <-> `(:noi18n)`      13-Sprachen-Tabelle vs. English-only
+#   Farbe    `(:farbig)`    <-> `(:mono)`        Akzentfarben vs. alles weiss (1-Bit-Displays,
+#                                               Liste aus dem SDK, geprueft von check-mono.py)
 #   Klassik  `(:klassik)`                        klassische Seiten-Saetze + „alle Seiten" OHNE Layout-
 #                                               Renderer — NUR Mittelklasse (VOLL und LITE schliessen
 #                                               es aus; LITE ist am Limit, Jan 25.09.2026)
 #
 # VOLL (>= 512 KB, ~100 Geräte): alles an.
-base.excludeAnnotations = lite;nolayouts;noi18n;klassik
+base.excludeAnnotations = lite;nolayouts;noi18n;klassik;mono
 #
 # LITE (96 KB, Instinct-2-Klasse): alles Schwere raus. Siehe memory garmin-instinct2-lowmem.
-instinct2.excludeAnnotations = full;layouts;i18n;klassik
-instinct2s.excludeAnnotations = full;layouts;i18n;klassik
-instinct2x.excludeAnnotations = full;layouts;i18n;klassik
-instinctcrossover.excludeAnnotations = full;layouts;i18n;klassik
-descentg1.excludeAnnotations = full;layouts;i18n;klassik
+instinct2.excludeAnnotations = full;layouts;i18n;klassik;farbig
+instinct2s.excludeAnnotations = full;layouts;i18n;klassik;farbig
+instinct2x.excludeAnnotations = full;layouts;i18n;klassik;farbig
+instinctcrossover.excludeAnnotations = full;layouts;i18n;klassik;farbig
+descentg1.excludeAnnotations = full;layouts;i18n;klassik;farbig
 #
 # ENG (128 KB, 16 Geräte) — NEU 17.08., Anlass war ein gemessener stiller Totalausfall:
 # diese Klasse fährt den VOLLEN Build und ist mit ihm aus dem Speicher gewachsen. Gemessen an
@@ -33,19 +35,19 @@ descentg1.excludeAnnotations = full;layouts;i18n;klassik
 # Weggenommen wird nur, was hier ohnehin kaum trägt: der Layout-Renderer (dieser Klasse liefert
 # der Server Layouts nur auf ausdrückliche Anforderung) und die 13-Sprachen-Tabelle (-> Englisch).
 # Die MENÜS bleiben — das ist der Unterschied zu LITE.
-venusq.excludeAnnotations = lite;layouts;i18n
-enduro.excludeAnnotations = lite;layouts;i18n
-fenix6.excludeAnnotations = lite;layouts;i18n
-fenix6s.excludeAnnotations = lite;layouts;i18n
-fr245.excludeAnnotations = lite;layouts;i18n
-fr645.excludeAnnotations = lite;layouts;i18n
-fr935.excludeAnnotations = lite;layouts;i18n
-fenix5.excludeAnnotations = lite;layouts;i18n
-fenix5s.excludeAnnotations = lite;layouts;i18n
-fr55.excludeAnnotations = lite;layouts;i18n
-vivoactive3.excludeAnnotations = lite;layouts;i18n
-vivoactive3d.excludeAnnotations = lite;layouts;i18n
-fenixchronos.excludeAnnotations = lite;layouts;i18n
-instinct3solar45mm.excludeAnnotations = lite;layouts;i18n
-instincte45mm.excludeAnnotations = lite;layouts;i18n
-instincte40mm.excludeAnnotations = lite;layouts;i18n
+venusq.excludeAnnotations = lite;layouts;i18n;mono
+enduro.excludeAnnotations = lite;layouts;i18n;mono
+fenix6.excludeAnnotations = lite;layouts;i18n;mono
+fenix6s.excludeAnnotations = lite;layouts;i18n;mono
+fr245.excludeAnnotations = lite;layouts;i18n;mono
+fr645.excludeAnnotations = lite;layouts;i18n;mono
+fr935.excludeAnnotations = lite;layouts;i18n;mono
+fenix5.excludeAnnotations = lite;layouts;i18n;mono
+fenix5s.excludeAnnotations = lite;layouts;i18n;mono
+fr55.excludeAnnotations = lite;layouts;i18n;mono
+vivoactive3.excludeAnnotations = lite;layouts;i18n;mono
+vivoactive3d.excludeAnnotations = lite;layouts;i18n;mono
+fenixchronos.excludeAnnotations = lite;layouts;i18n;mono
+instinct3solar45mm.excludeAnnotations = lite;layouts;i18n;farbig
+instincte45mm.excludeAnnotations = lite;layouts;i18n;farbig
+instincte40mm.excludeAnnotations = lite;layouts;i18n;farbig

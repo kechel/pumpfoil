@@ -33,7 +33,7 @@ class PairView extends WatchUi.View {
             // die Zeile frei. Platz dafuer kommt aus der grossen Luecke zwischen Code und
             // „pumpfoil.org" (war 0.22 der Hoehe), die jetzt eine normale Zeilenluecke ist.
             dc.drawText(w / 2, h * 0.38, Graphics.FONT_XTINY, "Code:", Graphics.TEXT_JUSTIFY_CENTER);
-            dc.setColor(Config.BRAND_CYAN, Graphics.COLOR_TRANSPARENT);
+            dc.setColor(FARBE_CYAN, Graphics.COLOR_TRANSPARENT);
             // WICHTIG: alphanumerische Font — der Code enthält Buchstaben (FONT_NUMBER_*
             // zeigt nur Ziffern und würde die Buchstaben verschlucken).
             dc.drawText(w / 2, h * 0.60, Graphics.FONT_LARGE, _rec.pairCode, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
@@ -50,7 +50,7 @@ class PairView extends WatchUi.View {
             dc.drawText(w / 2, h * 0.58, Graphics.FONT_XTINY, pmsg, Graphics.TEXT_JUSTIFY_CENTER);
             dc.drawText(w / 2, h * 0.74, Graphics.FONT_XTINY, Strings.s("pair.repairHint"), Graphics.TEXT_JUSTIFY_CENTER);
         } else if (_rec.isPaired()) {
-            dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+            dc.setColor(FARBE_GRUEN, Graphics.COLOR_TRANSPARENT);
             dc.drawText(w / 2, h * 0.30, Graphics.FONT_MEDIUM, Strings.s("menu.connected"), Graphics.TEXT_JUSTIFY_CENTER);
             // grünes Häkchen
             dc.setPenWidth(4);
