@@ -1112,7 +1112,7 @@ const pl: Record<string, string> = {
   "land.kann5Title": "Telefon na desce mierzy to, czego zegarek nie widzi",
   "land.kann5Body": "Dzięki żyroskopowi telefonu Pumpfoil pokazuje, jak Twoja deska kiwa się i przechyla na boki, dla każdego przejazdu i jako ruchomy rysunek Twojego foila.",
   "land.kann6Title": "Analizuj z własną SI",
-  "land.kann6Body": "Połącz własną SI, na przykład Claude, przez nasz serwer MCP i pytaj o wszystko, co chcesz wiedzieć — jak zmieniało się Twoje tętno przez lato albo na którym foilu dojeżdżasz najdalej. Czyta Twoje sesje i surowe dane, tylko do odczytu i tylko Twoje. W „Połączone konta”.",
+  "land.kann6Body": "Połącz własną SI, na przykład Claude, ChatGPT, Gemini, Copilot lub Mistral, przez nasz serwer MCP i pytaj o wszystko, co chcesz wiedzieć — jak zmieniało się Twoje tętno przez lato albo na którym foilu dojeżdżasz najdalej. Czyta Twoje sesje i surowe dane, tylko do odczytu i tylko Twoje. W „Połączone konta”.",
   "land.commTitle": "Społeczność",
   "land.commBody": "Pumpfoiling jest fajniejszy razem. Wszystko, co przepływasz, liczy się też dla innych — a Ty widzisz, co dzieje się na Twoim spocie.",
   "land.comm1Title": "Rekordy",

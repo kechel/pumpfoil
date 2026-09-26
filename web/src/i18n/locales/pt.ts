@@ -1016,7 +1016,7 @@ const pt: Record<string, string> = {
   "land.kann5Title": "O celular na prancha mede o que o relógio não vê",
   "land.kann5Body": "Com o giroscópio do celular, o Pumpfoil mostra como sua prancha arfa e rola, por volta e como um desenho animado do seu foil.",
   "land.kann6Title": "Analise com a sua própria IA",
-  "land.kann6Body": "Conecte a sua própria IA, como o Claude, pelo nosso servidor MCP e pergunte o que quiser saber — como sua frequência cardíaca evoluiu no verão ou com qual foil você vai mais longe. Ela lê suas sessões e dados brutos, somente leitura e só os seus. Em “Contas vinculadas”.",
+  "land.kann6Body": "Conecte a sua própria IA, como o Claude, ChatGPT, Gemini, Copilot ou Mistral, pelo nosso servidor MCP e pergunte o que quiser saber — como sua frequência cardíaca evoluiu no verão ou com qual foil você vai mais longe. Ela lê suas sessões e dados brutos, somente leitura e só os seus. Em “Contas vinculadas”.",
   "land.commTitle": "Comunidade",
   "land.commBody": "Pump foil é mais divertido junto. Tudo o que você anda conta também para os outros — e você vê o que está rolando no seu spot.",
   "land.comm1Title": "Recordes",

@@ -650,7 +650,7 @@ const deAT: Record<string, string> = {
   "land.kann5Title": "S Handy am Brett misst, wos de Uhr ned siacht",
   "land.kann5Body": "Mit'm Kreisel vom Handy zeigt Pumpfoil, wia dei Brett nickt und rollt, je Lauf und ois bewegte Zeichnung vo deim Foil.",
   "land.kann6Title": "Mit deiner KI auswerten",
-  "land.kann6Body": "Verbind deine eigene KI, zum Beispiel Claude, über unsern MCP-Server und frog sie, wos du wissn wüllst — wia sich dei Puls über’n Summa entwickelt hot oder mit wöchem Foil du am weitesten kummst. Sie liest deine Sessions und Rohdaten, nur lesend und nur deine. Unter „Verknüpfte Konten“.",
+  "land.kann6Body": "Verbind deine eigene KI, zum Beispiel Claude, ChatGPT, Gemini, Copilot oder Mistral, über unsern MCP-Server und frog sie, wos du wissn wüllst — wia sich dei Puls über’n Summa entwickelt hot oder mit wöchem Foil du am weitesten kummst. Sie liest deine Sessions und Rohdaten, nur lesend und nur deine. Unter „Verknüpfte Konten“.",
   "land.commTitle": "Community",
   "land.commBody": "Pumpfoilen macht zaum mehr Spaß. Ois, wos'd foahrst, zöht aa für de aundern — und du siachst, wos an deim Spot los is.",
   "land.comm1Title": "Rekorde",

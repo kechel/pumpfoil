@@ -1016,7 +1016,7 @@ const zh: Record<string, string> = {
   "land.kann5Title": "板上的手机能测出手表看不到的东西",
   "land.kann5Body": "借助手机的陀螺仪，Pumpfoil 按航段显示你的板如何俯仰和侧倾，还会以水翼的动态图呈现。",
   "land.kann6Title": "用你自己的 AI 分析",
-  "land.kann6Body": "通过我们的 MCP 服务器连接你自己的 AI（比如 Claude），想知道什么就问什么——整个夏天你的心率如何变化，或者用哪块水翼滑得最远。它只读取你自己的记录和原始数据，只读访问。在“已关联账号”中设置。",
+  "land.kann6Body": "通过我们的 MCP 服务器连接你自己的 AI（比如 Claude、ChatGPT、Gemini、Copilot 或 Mistral），想知道什么就问什么——整个夏天你的心率如何变化，或者用哪块水翼滑得最远。它只读取你自己的记录和原始数据，只读访问。在“已关联账号”中设置。",
   "land.commTitle": "社区",
   "land.commBody": "泵翼一起玩更有意思。你滑的每一段都会计入大家的统计——你也能看到自己的地点上正在发生什么。",
   "land.comm1Title": "纪录",
