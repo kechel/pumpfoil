@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import {
   ChevronIcon, WatchIcon, ChartIcon, MapIcon, CommunityIcon, UploadIcon,
   FoilIcon, FakeIcon, BellIcon, DownloadIcon, ChatBubbleIcon, LocationIcon, TagIcon,
-  LockIcon, HeartIcon, EditIcon, BoardIcon, SparklesIcon,
+  LockIcon, HeartIcon, EditIcon, BoardIcon, SparklesIcon, StarIcon, ListIcon, SpotsIcon,
+  CameraIcon, ShareIcon, LinkIcon, CompareIcon,
 } from "../components/Icons";
 import { useT, useI18n } from "../i18n";
 import { LanguageFlags } from "../components/LanguageSelect";
@@ -95,6 +96,13 @@ export default function Landing() {
       </div>
     </section>
   );
+  const commPunkte = [
+    { icon: StarIcon, k: "comm1" }, { icon: ListIcon, k: "comm2" },
+    { icon: SpotsIcon, k: "comm3" }, { icon: ChatBubbleIcon, k: "comm4" },
+    { icon: WatchIcon, k: "comm5" }, { icon: CameraIcon, k: "comm6" },
+    { icon: ShareIcon, k: "comm7" }, { icon: LinkIcon, k: "comm8" },
+    { icon: CompareIcon, k: "comm9" }, { icon: FoilIcon, k: "comm10" },
+  ];
   const kannPunkte = [
     { icon: EditIcon, k: "kann1" }, { icon: CommunityIcon, k: "kann2" },
     { icon: WatchIcon, k: "kann3" }, { icon: ChartIcon, k: "kann4" },
@@ -397,6 +405,22 @@ export default function Landing() {
           <h2 className="mb-2 text-center text-xl font-bold sm:text-2xl">{t("land.phoneRecTitle")}</h2>
           <p className="mx-auto max-w-2xl text-center text-slate-300">{t("land.phoneRecBody")}</p>
         </section>
+
+        {vorschau && (
+          <section className="pb-12">
+            <h2 className="mb-2 text-center text-xl font-bold sm:text-2xl">{t("land.commTitle")}</h2>
+            <p className="mx-auto mb-6 max-w-2xl text-center text-slate-300">{t("land.commBody")}</p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {commPunkte.map((p) => (
+                <div key={p.k} className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
+                  <p.icon className="h-7 w-7 text-brand-400" />
+                  <h3 className="mt-2 font-semibold">{t(`land.${p.k}Title`)}</h3>
+                  <p className="mt-1 text-sm text-slate-400">{t(`land.${p.k}Body`)}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* App-Screens: Mobile-Slider, Desktop 2 nebeneinander / Mobile 1 */}
         <section className="pb-10">
