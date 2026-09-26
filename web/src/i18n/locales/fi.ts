@@ -471,6 +471,8 @@ const fi: Record<string, string> = {
   "account.sideStep3": "Irrota USB — sovellus ilmestyy aktiviteettilistaan.",
   "account.viewsTitle": "Kello-sovelluksen näkymät",
   "account.viewsDesc": "Rajattomasti näkymiä, kussakin enintään 3 kenttää. Kellossa vaihdettavissa UP/DOWN-napeilla. (Sovellus lataa asetukset käynnistyksessä.)",
+  "account.viewsKlassikHint": "Nämä kellot eivät voi näyttää omia asettelujasi: {names}. Asettelun sijaan ne näyttävät sen kolme ensimmäistä arvoa ylhäältä alas, kukin kentän nimellä. Klassiset sivut näkyvät juuri niin kuin ne asetat.",
+  "account.viewsLiteHint": "Näissä kelloissa on hyvin vähän muistia: {names}. Omat asettelut ne näyttävät niiden kolmena ensimmäisenä arvona. Ajojen välissä ja tauolla ne näyttävät vain ensimmäisen sivun ja selaavat aina kaikki sivut.",
   "account.colorByValue": "Väritä arvot niiden suuruuden mukaan (nopeus/syke)",
   "account.autoStart": "Aloita tallennus automaattisesti, kun lähden liikkeelle (GPS)",
   "account.stopMode": "Tallennuksen lopetus kellossa",

@@ -466,6 +466,8 @@ const ja: Record<string, string> = {
   "account.sideStep3": "USB を外す — アプリがアクティビティ一覧に表示されます。",
   "account.viewsTitle": "ウォッチアプリの画面",
   "account.viewsDesc": "各画面に最大3フィールドまで、いくつでも設定できます。ウォッチ上で UP/DOWN で切り替え。（アプリは起動時に設定を読み込みます。）",
+  "account.viewsKlassikHint": "次のウォッチは独自レイアウトを表示できません：{names}。レイアウトの代わりに、上から順に最初の3つの値をそれぞれ項目名付きで表示します。クラシックページは設定したとおりに表示されます。",
+  "account.viewsLiteHint": "次のウォッチはメモリが非常に少ないです：{names}。独自レイアウトは最初の3つの値として表示されます。ラン間と一時停止中は最初のページだけを表示し、常にすべてのページを切り替えます。",
   "account.colorByValue": "値をレベルで色分け（速度／心拍数）",
   "account.autoStart": "離水したら自動的に記録を開始（GPS）",
   "account.stopMode": "時計で記録を終える操作",

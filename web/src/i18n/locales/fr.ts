@@ -439,6 +439,8 @@ const fr: Record<string, string> = {
   "account.sideStep3": "Débrancher l'USB — l'app apparaît dans la liste d'activités.",
   "account.viewsTitle": "Vues de l'app de montre",
   "account.viewsDesc": "Autant de vues que voulu, jusqu'à 3 champs chacune. Bascule avec UP/DOWN sur la montre. (L'app charge la config au démarrage.)",
+  "account.viewsKlassikHint": "Ces montres ne peuvent pas afficher tes propres mises en page : {names}. À la place, elles affichent ses trois premières valeurs de haut en bas, chacune avec le nom du champ. Les pages classiques s'affichent exactement comme tu les règles.",
+  "account.viewsLiteHint": "Ces montres ont très peu de mémoire : {names}. Elles affichent tes mises en page comme leurs trois premières valeurs. Entre les runs et en pause, elles n'affichent que la première page et font toujours défiler toutes les pages.",
   "account.colorByValue": "Colorer les valeurs selon le niveau (vitesse/FC)",
   "account.viewN": "Vue {n}",
   "account.addView": "+ Ajouter une vue",

@@ -454,18 +454,38 @@ def device_config(
     # bekommen diese Uhren die KLASSISCHEN Seiten (`[0,a,b,c]`) der Saetze und den Schalter; eigene
     # Layouts bleiben draussen, die kann ihr Build nicht zeichnen. Lesen tut das erst die
     # Uhr-Version mit `(:klassik)` (SessionRecorder.mc); aeltere ignorieren die Schluessel.
+    #
+    # EIGENE LAYOUTS werden fuer diese Uhren in KLASSISCHE Seiten UMGERECHNET (Jan, 26.09.2026: „ja
+    # so finde ich es genau richtig") — die ersten drei Wertfelder von oben nach unten. Vorher
+    # fielen sie ersatzlos weg, und die Uhr zeigte die alte klassische Ersatzliste (`views`,
+    # `off_foil_view`, `pause_view`): die wird nur nachgefuehrt, wenn man klassische Seiten waehlt,
+    # und ist im Editor unsichtbar. Wer nur Layouts nahm, sah also Werte, die er nirgends einstellen
+    # konnte (Jans Instinct 3 Solar im Emulator). Umgerechnet gilt fuer ALLE drei Wege: die Saetze
+    # (Mittelklasse ab 1.0.90), und `views`/`offFoilView`/`pauseView` (Lite und aeltere Versionen).
+    views_out = settings.get("views", [[1, 2, 0]])
+    off_view_out = settings.get("off_foil_view") or [12, 17, 16]
+    pause_view_out = settings.get("pause_view") or [12, 20, 2]
     if is_garmin and not layout_capable:
         voll = _layouts_for_watch(db, device.user_id, settings)
         def klassisch(saetze: list) -> list:
-            return [e for e in (saetze or []) if isinstance(e, list) and len(e) >= 4 and e[0] == 0]
+            return [_als_klassik(e) for e in (saetze or []) if isinstance(e, list) and e]
+        seiten = klassisch(voll.get("pages"))
+        off_saetze = klassisch(voll.get("offFoilPages"))
+        pause_saetze = klassisch(voll.get("pausePages"))
+        if seiten:
+            views_out = [e[1:4] for e in seiten]
+        if off_saetze:
+            off_view_out = off_saetze[0][1:4]
+        if pause_saetze:
+            pause_view_out = pause_saetze[0][1:4]
         layout_block = {
-            "offFoilPages": klassisch(voll.get("offFoilPages")),
-            "pausePages": klassisch(voll.get("pausePages")),
+            "offFoilPages": off_saetze,
+            "pausePages": pause_saetze,
             "browseAll": bool(voll.get("browseAll", True)),
         }
 
     return {
-        "views": settings.get("views", [[1, 2, 0]]),
+        "views": views_out,
         "colorByValue": bool(settings.get("colorByValue", False)),
         # Auto-Start: Aufnahme automatisch starten, wenn man losfährt (GPS). Default an.
         "autoStart": bool(settings.get("auto_start", True)),
@@ -529,11 +549,11 @@ def device_config(
         "foils": foils_out,
         # Off-Foil-Screen (Auto-Umschaltung, wenn gerade nicht gefoilt wird):
         # Default Uhrzeit + letzter-Lauf-Distanz + letzter-Lauf-Dauer (Feld-IDs).
-        "offFoilView": settings.get("off_foil_view") or [12, 17, 16],
+        "offFoilView": off_view_out,
         # Pausen-Ansicht: Dümpeln ZWISCHEN den Läufen (nach dem Off-Foil-Screen). War auf allen
         # vier Uhr-Plattformen hartcodiert [Uhrzeit, Läufe, Puls] -> jetzt konfigurierbar.
         # Alte Clients ignorieren den Key und nutzen weiter ihren eigenen Default.
-        "pauseView": settings.get("pause_view") or [12, 20, 2],
+        "pauseView": pause_view_out,
         # Wert-Skalen fuer die Grafik-Elemente der freien Layouts (Rand-Grafik / Balken) UND fuer
         # die Wert-Farbe: Puls-Zonen aus dem Profil, Geschwindigkeit aus derselben Spanne, die auch
         # Alarm und Farbskala benutzen. Puls-Zonen kann NUR Garmin (UserProfile) und Zepp (4.2)
@@ -789,6 +809,12 @@ def list_devices(
             # Eigene Layouts: kann diese Uhr sie überhaupt (Speicher) und hat sie einen Absturz
             # gemeldet? Die UI zeigt das je Uhr und bietet das Zurücksetzen an.
             "layout_capable": bool(((cat.get(model["id"]) or {}).get("mem") or 0) >= LAYOUT_MIN_MEMORY) if model else False,
+            # Was diese Uhr von den Datenseiten zeigen kann — fuer den Hinweis im Editor (Jan,
+            # 26.09.2026). "layouts" = alles; "klassik" = keine eigenen Layouts (werden in drei
+            # Werte umgerechnet), aber alle Seiten je Zustand (ab 1.0.90); "lite" = dazu je
+            # Zustand nur EINE Seite zwischen den Laeufen/in der Pause und immer „alle Seiten".
+            # Nur Garmin mit bekanntem Modell; sonst None (andere Plattformen koennen alles).
+            "seiten_klasse": _seiten_klasse(cat.get(model["id"]) if model else None) if d.platform == "garmin" else None,
             "layout_canary_count": int(d.layout_canary_count or 0),
             "layout_canary_at": d.layout_canary_at.isoformat() if d.layout_canary_at else None,
             # Voller Uhr-Speicher: wie oft gemeldet und bei welchem gepufferten Volumen. Das ist
@@ -1086,6 +1112,48 @@ def _model_canary_devices(db: Session, model_id: str | None) -> int:
     return (db.query(func.count(models.DeviceToken.id))
             .filter(models.DeviceToken.part_number.in_(pns),
                     models.DeviceToken.layout_canary_count > 0).scalar() or 0)
+
+
+# Unter dieser Grenze baut die Uhr die LITE-Stufe (monkey.jungle: `full;layouts;i18n` aus) —
+# die Instinct-2-Familie und Descent G1 mit 96 KB; die 128-KB-Klasse ist die Mittelklasse.
+LITE_MAX_MEMORY = 131072
+
+
+def _seiten_klasse(cat_entry: dict | None) -> str | None:
+    mem = (cat_entry or {}).get("mem") or 0
+    if not mem:
+        return None
+    if mem >= LAYOUT_MIN_MEMORY:
+        return "layouts"
+    return "lite" if mem < LITE_MAX_MEMORY else "klassik"
+
+
+def _als_klassik(eintrag: list) -> list:
+    """Eine Seite in KLASSISCHE Form `[0,a,b,c]` bringen — fuer Uhren ohne Layout-Renderer.
+
+    Klassisch bleibt klassisch. Ein eigenes Layout `[1, bg, [elemente]]` wird zu den ersten DREI
+    Wertfeldern (Element-Typ 1, Feld-ID an Stelle 6), von oben nach unten und bei gleicher Hoehe
+    von links nach rechts sortiert, jede ID nur einmal. So zeigt eine kleine Uhr dieselben Zahlen
+    wie das Layout, nur in der klassischen Anordnung. Ein Layout ganz ohne Wertfeld (nur Text,
+    Linien) wird zu Tempo — eine leere Seite hilft niemandem.
+    """
+    if not eintrag or eintrag[0] != 1:
+        f = [int(x) for x in (eintrag[1:4] if eintrag and eintrag[0] == 0 else eintrag[:3])]
+        return [0] + (f + [0, 0, 0])[:3]
+    elemente = eintrag[2] if len(eintrag) > 2 and isinstance(eintrag[2], list) else []
+    werte = []
+    for e in elemente:
+        if isinstance(e, list) and len(e) > 6 and int(e[0] or 0) == 1:
+            try:
+                werte.append((int(e[2] or 0), int(e[1] or 0), int(e[6] or 0)))
+            except (TypeError, ValueError):
+                continue
+    ids: list = []
+    for _, _, fid in sorted(werte):
+        if fid and fid not in ids:
+            ids.append(fid)
+    ids = ids[:3] or [1]
+    return [0] + (ids + [0, 0, 0])[:3]
 
 
 def _layout_payload(l: models.WatchLayout) -> list:

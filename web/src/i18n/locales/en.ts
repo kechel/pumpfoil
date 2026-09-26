@@ -502,6 +502,8 @@ const en: Record<string, string> = {
   "account.emptyStateDefault": "No page assigned — the watch shows its default here.",
   "account.viewsTitle": "Watch app views",
   "account.viewsDesc": "Any number of views with up to 3 fields each. Switch with UP/DOWN on the watch. (The app loads the config on start.)",
+  "account.viewsKlassikHint": "These watches cannot show your own layouts: {names}. Instead of a layout they show its first three values from top to bottom, each with its field name. Classic pages appear exactly as you set them.",
+  "account.viewsLiteHint": "These watches have very little memory: {names}. They show your own layouts as their first three values. Between runs and during a pause they only show the first page and always browse through all pages.",
   "account.colorByValue": "Color values by level (speed/HR)",
   "account.autoStart": "Auto-start recording when I take off (GPS)",
   "account.stopMode": "Ending a recording on the watch",

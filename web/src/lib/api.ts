@@ -1854,6 +1854,8 @@ export interface PairedDevice {
   // Eigene Layouts: Speicher reicht? Und hat DIESE Uhr einen Absturz gemeldet (Canary)?
   // Ein Absturz schaltet die Layouts nur für diese Uhr ab, bis der Nutzer zurücksetzt.
   layout_capable?: boolean;
+  // Was die Uhr von den Datenseiten zeigen kann: "layouts" | "klassik" | "lite" (nur Garmin).
+  seiten_klasse?: string | null;
   layout_canary_count?: number;
   layout_canary_at?: string | null;
   // Warum liefert der Server dieser Uhr (keine) Layouts: on | off_user | off_memory | off_canary

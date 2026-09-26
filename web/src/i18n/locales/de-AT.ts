@@ -1038,6 +1038,8 @@ const deAT: Record<string, string> = {
   "account.step3": "Fertig — Uploads landen automatisch in deinem Account.",
   "account.tabGuide": "Anleitung",
   "account.viewsDesc": "Beliebig viele Ansichten mit je bis zu 3 Feldern. Auf der Uhr mit UP/DOWN umschaltbar. (Die App lädt die Konfiguration beim Start.)",
+  "account.viewsKlassikHint": "Diese Uhren können keine eigenen Layouts zeigen: {names}. Statt eines Layouts zeigen sie seine ersten drei Werte von oben nach unten, jeweils mit Feldbezeichnung. Klassische Seiten erscheinen genau so, wie du sie einstellst.",
+  "account.viewsLiteHint": "Diese Uhren haben besonders wenig Speicher: {names}. Eigene Layouts zeigen sie als ihre ersten drei Werte. Zwischen den Läufen und in der Pause zeigen sie nur die jeweils erste Seite und blättern immer durch alle Seiten.",
   "chat.kindSession": "Session-Chat",
   "chat.kindSpot": "Spot-Chat",
   "compare.add": "Zum Vergleich",
