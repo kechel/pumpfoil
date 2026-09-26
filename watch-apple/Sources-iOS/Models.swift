@@ -56,6 +56,8 @@ struct PairedDevice: Codable, Identifiable {
     // Wake-up-Sensor je Uhr (nur Wear OS): Override (nil = Standard) und was ohne ihn gilt.
     let accel_wakeup: String?
     let accel_wakeup_standard: String?
+    // Was die Uhr von den Datenseiten zeigen kann: "layouts" | "klassik" | "lite" (nur Garmin).
+    let seiten_klasse: String?
     let low_accel: Bool?       // FR55 & Co. → bei "full" autom. "lite"
     // Wie viele Sessions an dem Eintrag haengen. 0 = fehlgeschlagener Pairing-Versuch, den man
     // gefahrlos entfernen darf; sonst nur ausblenden (sonst verliert die Session ihr Geraet).

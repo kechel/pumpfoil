@@ -70,6 +70,10 @@ struct DataFieldsView: View {
     // hier bei den anderen Uhr-Einstellungen (Jan). Nur mit verknüpfter Garmin sichtbar.
     @State private var activityType = "pumpfoil"
     @State private var hasGarmin = false
+    // Verbundene Uhren, die nicht alles zeigen koennen, was hier eingestellt wird — mit Namen, wie
+    // die PWA (Account.tsx, Jan 26.09.2026). Die Klasse entscheidet der Server (`seiten_klasse`).
+    @State private var klassikNamen = ""
+    @State private var liteNamen = ""
     @State private var layouts: [WatchLayoutBrief] = []
     @State private var saved = false
     // Welche der drei Seitenlisten hat die Vorschau-Auswahl geoeffnet ("on"|"off"|"pause")?
@@ -80,6 +84,7 @@ struct DataFieldsView: View {
         Form {
             Section {
                 Text(Loc.t("datafields.intro", lang)).font(.callout).foregroundStyle(.secondary)
+                kleineUhrenHinweis
                 // Eigene Screens lassen sich hier EINFUEGEN und ansehen, aber nicht bauen — der
                 // Editor ist bewusst Web-only (Jan, 17.08.). Also sagen wir, wo er ist.
                 Text(Loc.t("datafields.editorInBrowser", lang))
@@ -310,6 +315,8 @@ struct DataFieldsView: View {
         activityType = (s["activity_type"] as? String) ?? "pumpfoil"
         if let ds = try? await Api.myDevices() {
             hasGarmin = ds.contains { $0.platform == "garmin" && $0.revoked_at == nil }
+            klassikNamen = uhrNamen(ds, "klassik")
+            liteNamen = uhrNamen(ds, "lite")
         }
         // Skalen der Wert-Grafiken (Puls-Zonen + Geschwindigkeitsspanne) aus dem Profil — ohne sie
         // zeichnete die Vorschau geratene Zonenfarben.
@@ -335,4 +342,26 @@ struct DataFieldsView: View {
             saved = true
         }
     }
+
+    // Was die kleinen Uhren davon zeigen — nur, wenn so eine verbunden ist.
+    @ViewBuilder private var kleineUhrenHinweis: some View {
+        if !klassikNamen.isEmpty {
+            Text(Loc.t("account.viewsKlassikHint", lang).replacingOccurrences(of: "{names}", with: klassikNamen))
+                .font(.callout).foregroundStyle(.orange)
+        }
+        if !liteNamen.isEmpty {
+            Text(Loc.t("account.viewsLiteHint", lang).replacingOccurrences(of: "{names}", with: liteNamen))
+                .font(.callout).foregroundStyle(.orange)
+        }
+    }
+
+    private func uhrNamen(_ ds: [PairedDevice], _ klasse: String) -> String {
+        var namen: [String] = []
+        for d in ds where d.revoked_at == nil && d.seiten_klasse == klasse {
+            let n: String = d.model ?? d.label ?? "Garmin"
+            if !namen.contains(n) { namen.append(n) }
+        }
+        return namen.joined(separator: ", ")
+    }
+
 }
