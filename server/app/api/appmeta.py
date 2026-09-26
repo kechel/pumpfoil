@@ -798,6 +798,8 @@ NAECHSTES: list[dict] = [
      "items": [
          "Watches with less memory, such as the Instinct 3 Solar, show all the pages you set up "
          "between runs and respect the switch for browsing through the other pages.",
+         "On black-and-white watches such as the Instinct, values that used to be drawn in colour "
+         "are now shown in white instead of disappearing.",
      ]},
     {"name": "Amazfit", "version": "1.0.13",
      "items": [

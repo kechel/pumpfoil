@@ -484,9 +484,17 @@ def device_config(
             "browseAll": bool(voll.get("browseAll", True)),
         }
 
+    # SCHWARZ-WEISS-DISPLAY (SDK `bitsPerPixel` 1, im Katalog als `bpp`): „Werte einfaerben" immer
+    # aus. Die Zonenfarben (Blau, Gruen, Orange, Rot) rundet das Geraet auf Schwarz — der Wert stuende
+    # schwarz auf schwarz, also gar nicht da (Jan, 26.09.2026). Wirkt sofort, ohne Uhr-Update; die
+    # fest verdrahteten Akzente deckt die Uhr-Seite ab (watch/source/Farbe.mc).
+    einfaerben = bool(settings.get("colorByValue", False))
+    if is_garmin and (cat or {}).get("bpp") == 1:
+        einfaerben = False
+
     return {
         "views": views_out,
-        "colorByValue": bool(settings.get("colorByValue", False)),
+        "colorByValue": einfaerben,
         # Auto-Start: Aufnahme automatisch starten, wenn man losfährt (GPS). Default an.
         "autoStart": bool(settings.get("auto_start", True)),
         # Aufzeichnungsmodus: full (25 Hz) | lite (10 Hz) | gps (nur GPS). Quelle: Geräte-

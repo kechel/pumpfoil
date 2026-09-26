@@ -67,7 +67,7 @@ class UploadView extends WatchUi.View {
         var connected = Uploader.phoneConnected();
 
         // Verbindungsstatus oben — die Kernfrage „habe ich überhaupt Verbindung?".
-        dc.setColor(connected ? Graphics.COLOR_GREEN : Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(connected ? FARBE_GRUEN : FARBE_ORANGE, Graphics.COLOR_TRANSPARENT);
         dc.fillCircle(w / 2 - 52, h * 0.16, 5);
         dc.drawText(w / 2 - 42, h * 0.16, Graphics.FONT_XTINY,
             connected ? Strings.s("up.connected") : Strings.s("up.noPhone"),
@@ -76,13 +76,13 @@ class UploadView extends WatchUi.View {
         if (_startCount == 0) {
             dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
             dc.drawText(w / 2, h * 0.45, Graphics.FONT_MEDIUM, Strings.s("up.nothing"), Graphics.TEXT_JUSTIFY_CENTER);
-            dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
+            dc.setColor(FARBE_DUNKEL, Graphics.COLOR_TRANSPARENT);
             dc.drawText(w / 2, h * 0.62, Graphics.FONT_XTINY, Strings.s("up.allDone"), Graphics.TEXT_JUSTIFY_CENTER);
             return;
         }
 
         if (busy) {
-            dc.setColor(Config.BRAND_CYAN, Graphics.COLOR_TRANSPARENT);
+            dc.setColor(FARBE_CYAN, Graphics.COLOR_TRANSPARENT);
             dc.drawText(w / 2, h * 0.40, Graphics.FONT_MEDIUM, Strings.s("up.running"), Graphics.TEXT_JUSTIFY_CENTER);
             _drawBar(dc, w, h);
             dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
@@ -91,36 +91,36 @@ class UploadView extends WatchUi.View {
             // Nicht busy, aber noch offen -> warum? Klartext statt scheinbarem Hängen.
             var err = Uploader.lastError();
             if (err == :auth) {
-                dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
+                dc.setColor(FARBE_ORANGE, Graphics.COLOR_TRANSPARENT);
                 dc.drawText(w / 2, h * 0.38, Graphics.FONT_MEDIUM, Strings.s("up.notLinked"), Graphics.TEXT_JUSTIFY_CENTER);
                 dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
                 // Direkte Aktion: START/Tap erzeugt hier den Pairing-Code (PairView).
                 // Fallback bleibt der MENU-Weg.
                 dc.drawText(w / 2, h * 0.58, Graphics.FONT_XTINY, Strings.s("up.pairAction"), Graphics.TEXT_JUSTIFY_CENTER);
-                dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
+                dc.setColor(FARBE_DUNKEL, Graphics.COLOR_TRANSPARENT);
                 dc.drawText(w / 2, h * 0.58 + 20, Graphics.FONT_XTINY, Strings.s("up.linkHint"), Graphics.TEXT_JUSTIFY_CENTER);
             } else if (!connected) {
                 // Wirklich kein Telefon -> auf Verbindung warten (Retry bringt ohne Telefon nichts).
-                dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
+                dc.setColor(FARBE_ORANGE, Graphics.COLOR_TRANSPARENT);
                 dc.drawText(w / 2, h * 0.40, Graphics.FONT_MEDIUM, Strings.s("up.waitConn"), Graphics.TEXT_JUSTIFY_CENTER);
                 dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
                 dc.drawText(w / 2, h * 0.62, Graphics.FONT_XTINY, pending + " " + Strings.s("up.open") + " — " + Strings.s("up.willResume"), Graphics.TEXT_JUSTIFY_CENTER);
             } else if (err == :offline || err == :server) {
                 // Telefon verbunden, aber Server/Netz nicht erreichbar -> Countdown zum nächsten Versuch.
                 var eta = Uploader.retryEtaSecs();
-                dc.setColor(Graphics.COLOR_ORANGE, Graphics.COLOR_TRANSPARENT);
+                dc.setColor(FARBE_ORANGE, Graphics.COLOR_TRANSPARENT);
                 dc.drawText(w / 2, h * 0.40, Graphics.FONT_MEDIUM, Strings.s("up.serverUnreach"), Graphics.TEXT_JUSTIFY_CENTER);
                 dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
                 var sub = (eta >= 0) ? (Strings.s("up.retryIn") + " " + eta + " s") : Strings.s("up.later");
                 dc.drawText(w / 2, h * 0.62, Graphics.FONT_XTINY, sub, Graphics.TEXT_JUSTIFY_CENTER);
             } else {
-                dc.setColor(Config.BRAND_CYAN, Graphics.COLOR_TRANSPARENT);
+                dc.setColor(FARBE_CYAN, Graphics.COLOR_TRANSPARENT);
                 dc.drawText(w / 2, h * 0.40, Graphics.FONT_MEDIUM, Strings.s("up.waiting"), Graphics.TEXT_JUSTIFY_CENTER);
                 dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
                 dc.drawText(w / 2, h * 0.62, Graphics.FONT_XTINY, pending + " " + Strings.s("up.open"), Graphics.TEXT_JUSTIFY_CENTER);
             }
         } else {
-            dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
+            dc.setColor(FARBE_GRUEN, Graphics.COLOR_TRANSPARENT);
             dc.drawText(w / 2, h * 0.42, Graphics.FONT_MEDIUM, Strings.s("up.done"), Graphics.TEXT_JUSTIFY_CENTER);
             dc.setPenWidth(4);
             dc.drawLine(w / 2 - 14, h * 0.62, w / 2 - 4, h * 0.66);
@@ -137,12 +137,12 @@ class UploadView extends WatchUi.View {
         var barX = w / 2 - barW / 2;
         var barY = h * 0.58;
         var barH = 10;
-        dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(FARBE_DUNKEL, Graphics.COLOR_TRANSPARENT);
         dc.fillRectangle(barX, barY, barW, barH);
         if (total > 0) {
             var frac = sent.toFloat() / total;
             if (frac > 1.0) { frac = 1.0; }
-            dc.setColor(Config.BRAND_CYAN, Graphics.COLOR_TRANSPARENT);
+            dc.setColor(FARBE_CYAN, Graphics.COLOR_TRANSPARENT);
             dc.fillRectangle(barX, barY, barW * frac, barH);
             dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
             dc.drawText(w / 2, barY + barH + 12, Graphics.FONT_XTINY,

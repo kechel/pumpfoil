@@ -37,7 +37,7 @@ class SessionActionView extends WatchUi.View {
             // Nicht gewählt = WEISS, nicht grau: das Menü kommt am Wasser bei Sonne, und DK_GRAY
             // ist auf einem MIP-Display im Sonnenlicht nicht lesbar (Jan im Feld). Die Auswahl
             // hebt sich weiter über Cyan + größeren Font ab.
-            dc.setColor(hot ? Config.BRAND_CYAN : Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+            dc.setColor(hot ? FARBE_CYAN : Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
             dc.drawText(w / 2, h * ys[i], hot ? Graphics.FONT_MEDIUM : Graphics.FONT_TINY,
                 labels[i], Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         }
@@ -50,7 +50,7 @@ class SessionActionView extends WatchUi.View {
                 Strings.s("rec.save") + " " + _remaining.toString() + " s",
                 Graphics.TEXT_JUSTIFY_CENTER);
         } else {
-            dc.setColor(Config.BRAND_CYAN, Graphics.COLOR_TRANSPARENT);
+            dc.setColor(FARBE_CYAN, Graphics.COLOR_TRANSPARENT);
             dc.drawText(w / 2, h * 0.10, Graphics.FONT_XTINY, Strings.s("rec.paused"),
                 Graphics.TEXT_JUSTIFY_CENTER);
         }
