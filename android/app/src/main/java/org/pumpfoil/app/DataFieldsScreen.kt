@@ -132,6 +132,9 @@ fun DataFieldsScreen(onBack: () -> Unit, onGallery: () -> Unit = {}) {
     // andere Uhren kennen die Garmin-Connect-Kategorie nicht.
     var activityType by remember { mutableStateOf("pumpfoil") }
     var hasGarmin by remember { mutableStateOf(false) }
+    // Verbundene Uhren, die nicht alles zeigen koennen, was hier eingestellt wird — mit Namen, wie
+    // die PWA (Account.tsx, Jan 26.09.2026). Die Klasse entscheidet der Server (`seiten_klasse`).
+    var kleineUhren by remember { mutableStateOf<List<Pair<String, String>>>(emptyList()) }
     var layouts by remember { mutableStateOf<List<WatchLayoutBrief>>(emptyList()) }
 
     LaunchedEffect(Unit) {
@@ -152,7 +155,10 @@ fun DataFieldsScreen(onBack: () -> Unit, onGallery: () -> Unit = {}) {
             // ohne sie zeichnete die Vorschau geratene Zonenfarben.
             LayoutScales.aus(s)
         } catch (_: Exception) {}
-        hasGarmin = try { Api.myDevices().any { it.platform == "garmin" && it.revokedAt == null } } catch (_: Exception) { false }
+        val geraete = try { Api.myDevices() } catch (_: Exception) { emptyList() }
+        hasGarmin = geraete.any { it.platform == "garmin" && it.revokedAt == null }
+        kleineUhren = geraete.filter { it.revokedAt == null && (it.seitenKlasse == "klassik" || it.seitenKlasse == "lite") }
+            .map { (it.model ?: it.label ?: "Garmin") to (it.seitenKlasse ?: "") }
         layouts = try { Api.watchLayouts() } catch (_: Exception) { emptyList() }
         loaded = true
     }
@@ -194,6 +200,21 @@ fun DataFieldsScreen(onBack: () -> Unit, onGallery: () -> Unit = {}) {
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
             Text(I18n.t("datafields.intro"),
                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            // Was die kleinen Uhren davon zeigen — nur, wenn so eine verbunden ist.
+            val klassik = kleineUhren.filter { it.second == "klassik" }.map { it.first }.distinct().joinToString(", ")
+            val lite = kleineUhren.filter { it.second == "lite" }.map { it.first }.distinct().joinToString(", ")
+            if (klassik.isNotEmpty() || lite.isNotEmpty()) {
+                Spacer(Modifier.height(8.dp))
+                Card(Modifier.fillMaxWidth(), colors = androidx.compose.material3.CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer)) {
+                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        if (klassik.isNotEmpty()) Text(I18n.t("account.viewsKlassikHint").replace("{names}", klassik),
+                            style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onTertiaryContainer)
+                        if (lite.isNotEmpty()) Text(I18n.t("account.viewsLiteHint").replace("{names}", lite),
+                            style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onTertiaryContainer)
+                    }
+                }
+            }
 
             // Die Einstellungen stehen VOR den eigenen Screens (Jan, 02.09., wie auf der
             // Uhren-Seite): die Seiten-Sätze sind lang, wer nur einen Schalter umlegen wollte,

@@ -28,6 +28,8 @@ data class PairedDevice(
     // Wake-up-Sensor je Uhr (nur Wear OS): gesetzter Override (null = Standard) und was ohne ihn gilt.
     @SerialName("accel_wakeup") val accelWakeup: String? = null,
     @SerialName("accel_wakeup_standard") val accelWakeupStandard: String = "off",
+    // Was die Uhr von den Datenseiten zeigen kann: "layouts" | "klassik" | "lite" (nur Garmin).
+    @SerialName("seiten_klasse") val seitenKlasse: String? = null,
     // Wie viele Sessions an diesem Eintrag haengen. 0 = fehlgeschlagener Pairing-Versuch, den man
     // gefahrlos entfernen darf; sonst nur ausblenden (sonst verliert die Session ihr Geraet).
     val sessions: Int = 0,
