@@ -102,7 +102,7 @@ export default function Landing() {
     { icon: WatchIcon, k: "comm5" }, { icon: CameraIcon, k: "comm6" },
     { icon: ShareIcon, k: "comm7" }, { icon: LinkIcon, k: "comm8" },
     { icon: CompareIcon, k: "comm9" }, { icon: FoilIcon, k: "comm10" },
-    { icon: SendIcon, k: "comm11" },
+    { icon: SendIcon, k: "comm11" }, { icon: ChartIcon, k: "comm12" },
   ];
   const kannPunkte = [
     { icon: EditIcon, k: "kann1" }, { icon: CommunityIcon, k: "kann2" },
