@@ -47,6 +47,9 @@ async def lifespan(app: FastAPI):
 
     settings.data_dir.mkdir(parents=True, exist_ok=True)
     init_db()
+    # Auswertungen nachholen, die der letzte Neustart abgebrochen hat (s. app/nach_neustart.py).
+    from .nach_neustart import starten as nach_neustart_starten
+    nach_neustart_starten()
     yield
 
 
