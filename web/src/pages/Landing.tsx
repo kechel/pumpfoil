@@ -70,6 +70,31 @@ export default function Landing() {
   // abgenommen hat — erst Deutsch, die anderen Sprachen folgen danach. Nach der Abnahme faellt
   // dieser Schalter weg.
   const vorschau = new URLSearchParams(window.location.search).has("vorschau");
+  // Kontoverknuepfung (Suunto/Polar/Xiaomi/COROS): in der Vorschau direkt unter den Uhren, damit
+  // man als Allererstes alle Logos sieht (Jan, 26.09.2026); sonst an der alten Stelle.
+  const verknuepfung = (
+    <section className="pb-12 pt-2">
+      <h2 className="mb-2 text-center text-xl font-bold sm:text-2xl">{t("land.connectTitle")}</h2>
+      <p className="mx-auto mb-6 max-w-2xl text-center text-slate-300">{t("land.connectBody")}</p>
+      <div className="flex flex-wrap items-center justify-center gap-6">
+        <span className="inline-block rounded-xl bg-white px-5 py-3 shadow-sm">
+          <img src="/suunto-logo.png" alt="Suunto" loading="lazy" className="h-14 w-auto" />
+        </span>
+        <span className="inline-block rounded-xl bg-white px-5 py-3 shadow-sm">
+          <img src="/polar-logo.jpg" alt="Polar" loading="lazy" className="h-7 w-auto" />
+        </span>
+        {/* Xiaomi: keine eigene Schnittstelle — Mi Fitness schiebt die Trainings offiziell zu
+            Suunto, dort holen wir sie ab. Der Zusatz sagt das in einer Zeile. */}
+        <span className="inline-flex flex-col items-center gap-1 rounded-xl bg-white px-5 py-3 shadow-sm">
+          <img src="/xiaomi-logo.jpg" alt="Xiaomi" loading="lazy" className="h-10 w-auto rounded-lg" />
+          <span className="text-[11px] text-slate-500">{t("land.connectXiaomi")}</span>
+        </span>
+        <span className="inline-block rounded-xl bg-white px-5 py-3 shadow-sm">
+          <img src="/coros-logo.png" alt="COROS" loading="lazy" className="h-7 w-auto" />
+        </span>
+      </div>
+    </section>
+  );
   const kannPunkte = [
     { icon: EditIcon, k: "kann1" }, { icon: CommunityIcon, k: "kann2" },
     { icon: WatchIcon, k: "kann3" }, { icon: ChartIcon, k: "kann4" },
@@ -294,6 +319,7 @@ export default function Landing() {
 
       {/* Uhr-App Key-Features — unterhalb des Video-Bands (Band endet an den Store-Buttons). */}
       <div className="mx-auto max-w-5xl px-5">
+        {vorschau && verknuepfung}
         <section className="pb-8">
             <div className="mx-auto mt-2 max-w-3xl rounded-3xl border border-brand-500/30 bg-gradient-to-b from-brand-500/10 to-slate-900/40 p-6 sm:p-8">
               <h3 className="mb-7 text-center text-base font-bold sm:text-lg">
@@ -364,28 +390,7 @@ export default function Landing() {
           </section>
         )}
 
-        {/* Schon eine Sportuhr? Bestehendes Suunto-/Polar-Konto verbinden (Import ohne unsere App). */}
-        <section className="pb-12 pt-2">
-          <h2 className="mb-2 text-center text-xl font-bold sm:text-2xl">{t("land.connectTitle")}</h2>
-          <p className="mx-auto mb-6 max-w-2xl text-center text-slate-300">{t("land.connectBody")}</p>
-          <div className="flex flex-wrap items-center justify-center gap-6">
-            <span className="inline-block rounded-xl bg-white px-5 py-3 shadow-sm">
-              <img src="/suunto-logo.png" alt="Suunto" loading="lazy" className="h-14 w-auto" />
-            </span>
-            <span className="inline-block rounded-xl bg-white px-5 py-3 shadow-sm">
-              <img src="/polar-logo.jpg" alt="Polar" loading="lazy" className="h-7 w-auto" />
-            </span>
-            {/* Xiaomi: keine eigene Schnittstelle — Mi Fitness schiebt die Trainings offiziell zu
-                Suunto, dort holen wir sie ab. Der Zusatz sagt das in einer Zeile. */}
-            <span className="inline-flex flex-col items-center gap-1 rounded-xl bg-white px-5 py-3 shadow-sm">
-              <img src="/xiaomi-logo.jpg" alt="Xiaomi" loading="lazy" className="h-10 w-auto rounded-lg" />
-              <span className="text-[11px] text-slate-500">{t("land.connectXiaomi")}</span>
-            </span>
-            <span className="inline-block rounded-xl bg-white px-5 py-3 shadow-sm">
-              <img src="/coros-logo.png" alt="COROS" loading="lazy" className="h-7 w-auto" />
-            </span>
-          </div>
-        </section>
+        {!vorschau && verknuepfung}
 
         {/* Keine Uhr? Session direkt mit dem Handy aufnehmen (native Android-/iOS-App). */}
         <section className="pb-12">
