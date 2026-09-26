@@ -1021,7 +1021,7 @@ const ptPT: Record<string, string> = {
   "land.kann5Title": "O telemóvel na prancha mede o que o relógio não vê",
   "land.kann5Body": "Com o giroscópio do telemóvel, o Pumpfoil mostra como a tua prancha arfa e rola, por volta e como um desenho animado do teu foil.",
   "land.kann6Title": "Analisa com a tua própria IA",
-  "land.kann6Body": "Liga a tua própria IA, como o Claude, ChatGPT, Gemini, Copilot ou Mistral, através do nosso servidor MCP e pergunta-lhe o que quiseres saber — como evoluiu a tua frequência cardíaca durante o verão ou com que foil vais mais longe. Lê as tuas sessões e dados em bruto, só leitura e só os teus. Em «Contas vinculadas».",
+  "land.kann6Body": "Liga a tua própria IA, como o Claude, ChatGPT, Gemini ou Mistral, através do nosso servidor MCP e pergunta-lhe o que quiseres saber — como evoluiu a tua frequência cardíaca durante o verão ou com que foil vais mais longe. Lê as tuas sessões e dados em bruto, só leitura e só os teus. Em «Contas vinculadas».",
   "land.commTitle": "Comunidade",
   "land.commBody": "O pump foil é mais divertido em conjunto. Tudo o que andas conta também para os outros — e vês o que se passa no teu spot.",
   "land.comm1Title": "Recordes",

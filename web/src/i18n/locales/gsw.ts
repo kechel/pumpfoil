@@ -693,7 +693,7 @@ const gsw: Record<string, string> = {
   "land.kann5Title": "S Händy am Brätt misst, was d Uhr nöd gseht",
   "land.kann5Body": "Mit em Chreisel vom Händy zeigt Pumpfoil, wie dis Brätt nickt und rollt, pro Lauf und als bewegti Zeichnig vo dim Foil.",
   "land.kann6Title": "Mit dinere KI uswärte",
-  "land.kann6Body": "Verbind dini eigeti KI, zum Bischpil Claude, ChatGPT, Gemini, Copilot oder Mistral, über eusi MCP-Server und frog si, was du wüsse wotsch — wie sich din Puls über de Summer entwicklet het oder mit welem Foil du am wytischte chunnsch. Si list dini Sessions und Rohdate, nume läsend und nume dini. Under „Verknüpfti Konte“.",
+  "land.kann6Body": "Verbind dini eigeti KI, zum Bischpil Claude, ChatGPT, Gemini oder Mistral, über eusi MCP-Server und frog si, was du wüsse wotsch — wie sich din Puls über de Summer entwicklet het oder mit welem Foil du am wytischte chunnsch. Si list dini Sessions und Rohdate, nume läsend und nume dini. Under „Verknüpfti Konte“.",
   "land.commTitle": "Community",
   "land.commBody": "Pumpfoile macht zäme meh Spass. Alles, was du fahrsch, zellt au für di andere — und du gsehsch, was a dim Spot los isch.",
   "land.comm1Title": "Rekord",
