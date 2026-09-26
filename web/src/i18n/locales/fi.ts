@@ -1093,7 +1093,7 @@ const fi: Record<string, string> = {
   "land.kann5Title": "Laudalla oleva puhelin mittaa sen, mitä kello ei näe",
   "land.kann5Body": "Puhelimen gyroskoopin avulla Pumpfoil näyttää, miten lautasi keinuu pituus- ja sivusuunnassa, lenkeittäin ja foilisi liikkuvana piirroksena.",
   "land.kann6Title": "Analysoi omalla tekoälylläsi",
-  "land.kann6Body": "Yhdistä oma tekoälysi, esimerkiksi Claude, ChatGPT, Gemini, Copilot tai Mistral, MCP-palvelimemme kautta ja kysy mitä haluat tietää — miten sykkeesi kehittyi kesän aikana tai millä siivellä pääset pisimmälle. Se lukee sessiosi ja raakadatasi, vain lukuoikeudella ja vain omasi. Kohdassa ”Linkitetyt tilit”.",
+  "land.kann6Body": "Yhdistä oma tekoälysi, esimerkiksi Claude, ChatGPT, Gemini tai Mistral, MCP-palvelimemme kautta ja kysy mitä haluat tietää — miten sykkeesi kehittyi kesän aikana tai millä siivellä pääset pisimmälle. Se lukee sessiosi ja raakadatasi, vain lukuoikeudella ja vain omasi. Kohdassa ”Linkitetyt tilit”.",
   "land.commTitle": "Yhteisö",
   "land.commBody": "Pumpfoilaus on hauskempaa yhdessä. Kaikki, mitä ajat, lasketaan myös muille — ja näet, mitä spotillasi tapahtuu.",
   "land.comm1Title": "Ennätykset",

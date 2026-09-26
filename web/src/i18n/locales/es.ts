@@ -782,7 +782,7 @@ const es: Record<string, string> = {
   "land.kann5Title": "El móvil en la tabla mide lo que el reloj no ve",
   "land.kann5Body": "Con el giroscopio del móvil, Pumpfoil muestra cómo cabecea y se inclina tu tabla, por run y como un dibujo animado de tu foil.",
   "land.kann6Title": "Analiza con tu propia IA",
-  "land.kann6Body": "Conecta tu propia IA, por ejemplo Claude, ChatGPT, Gemini, Copilot o Mistral, a través de nuestro servidor MCP y pregúntale lo que quieras saber — cómo ha evolucionado tu pulso durante el verano o con qué foil llegas más lejos. Lee tus sesiones y tus datos en bruto, solo lectura y solo los tuyos. En «Cuentas vinculadas».",
+  "land.kann6Body": "Conecta tu propia IA, por ejemplo Claude, ChatGPT, Gemini o Mistral, a través de nuestro servidor MCP y pregúntale lo que quieras saber — cómo ha evolucionado tu pulso durante el verano o con qué foil llegas más lejos. Lee tus sesiones y tus datos en bruto, solo lectura y solo los tuyos. En «Cuentas vinculadas».",
   "land.commTitle": "Comunidad",
   "land.commBody": "El pump foil es más divertido en compañía. Todo lo que navegas cuenta también para los demás — y ves lo que pasa en tu spot.",
   "land.comm1Title": "Récords",

@@ -1070,7 +1070,7 @@ const nb: Record<string, string> = {
   "land.kann5Title": "Telefonen på brettet måler det klokka ikke ser",
   "land.kann5Body": "Med telefonens gyroskop viser Pumpfoil hvordan brettet ditt stamper og ruller, per run og som en animert tegning av foilen din.",
   "land.kann6Title": "Analyser med din egen KI",
-  "land.kann6Body": "Koble din egen KI, for eksempel Claude, ChatGPT, Gemini, Copilot eller Mistral, til vår MCP-server og spør om det du lurer på — hvordan pulsen din har utviklet seg gjennom sommeren, eller hvilken foil som tar deg lengst. Den leser øktene og rådataene dine, bare lesetilgang og bare dine. Under «Tilkoblede kontoer».",
+  "land.kann6Body": "Koble din egen KI, for eksempel Claude, ChatGPT, Gemini eller Mistral, til vår MCP-server og spør om det du lurer på — hvordan pulsen din har utviklet seg gjennom sommeren, eller hvilken foil som tar deg lengst. Den leser øktene og rådataene dine, bare lesetilgang og bare dine. Under «Tilkoblede kontoer».",
   "land.commTitle": "Fellesskap",
   "land.commBody": "Pumpfoiling er morsommere sammen. Alt du kjører, teller også for de andre — og du ser hva som skjer på spoten din.",
   "land.comm1Title": "Rekorder",

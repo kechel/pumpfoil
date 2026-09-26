@@ -1016,7 +1016,7 @@ const id: Record<string, string> = {
   "land.kann5Title": "Ponsel di papan mengukur apa yang tidak terlihat oleh jam",
   "land.kann5Body": "Dengan giroskop ponsel, Pumpfoil menunjukkan bagaimana papanmu mengangguk dan berguling, per run dan sebagai gambar bergerak dari foil-mu.",
   "land.kann6Title": "Analisis dengan AI milikmu",
-  "land.kann6Body": "Hubungkan AI milikmu sendiri, misalnya Claude, ChatGPT, Gemini, Copilot atau Mistral, lewat server MCP kami dan tanyakan apa saja — bagaimana detak jantungmu berkembang selama musim panas atau foil mana yang membawamu paling jauh. AI itu membaca sesi dan data mentahmu, hanya baca dan hanya milikmu. Di \"Akun tertaut\".",
+  "land.kann6Body": "Hubungkan AI milikmu sendiri, misalnya Claude, ChatGPT, Gemini atau Mistral, lewat server MCP kami dan tanyakan apa saja — bagaimana detak jantungmu berkembang selama musim panas atau foil mana yang membawamu paling jauh. AI itu membaca sesi dan data mentahmu, hanya baca dan hanya milikmu. Di \"Akun tertaut\".",
   "land.commTitle": "Komunitas",
   "land.commBody": "Pump foiling lebih seru bersama. Semua yang kamu kendarai juga dihitung untuk yang lain — dan kamu bisa melihat apa yang terjadi di spot-mu.",
   "land.comm1Title": "Rekor",
