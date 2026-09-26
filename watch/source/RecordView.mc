@@ -304,6 +304,7 @@ class RecordView extends WatchUi.View {
         var nSchrift = n;
         var sub = (WatchUi has :getSubscreen) ? WatchUi.getSubscreen() : null;
         var cx0 = w / 2;   // Mitte des ERSTEN Felds (s. drei Felder unten)
+        var unterSub = false;   // Band beginnt unter dem Nebendisplay (ein oder zwei Felder)
         // DREI FELDER: das Band NICHT kuerzen — unter dem Nebendisplay blieben auf 176 px rund 30 px
         // je Feld, die Beschriftung allein braucht ~15 und schrumpft nicht mit; Wert und
         // Beschriftung lagen uebereinander, der dritte Wert verschwand (Jan im Emulator, 26.09.).
@@ -319,20 +320,25 @@ class RecordView extends WatchUi.View {
             // Nur ein Nebendisplay OBEN verschiebt; eines weiter unten wuerde das Band halbieren,
             // dann lieber die bisherige Aufteilung.
             if (unter > top && unter < h * 0.5) {
+                unterSub = true;
                 var ende = top + band;
                 top = unter;
                 band = ende - top;
                 nSchrift = n * (h * 0.74) / band;
             }
         }
-        // FEINJUSTAGE bei drei Feldern neben dem Nebendisplay (Jan im Emulator, 26.09.: „das oberste
-        // und mittlere label 2px hoeher, den untersten value 1px hoeher"). Nur dort, wo das erste
-        // Feld nach links geschoben ist — also nur auf den 176-px-Instinct mit Nebendisplay.
-        var justiert = (n >= 3 && cx0 != w / 2);
+        // FEINJUSTAGE auf den 176-px-Instinct mit Nebendisplay, nach Jans Emulator-Bildern (26.09.):
+        //   drei Felder (erstes nach links geschoben): obere zwei Beschriftungen 2 px hoeher;
+        //   zwei Felder (unter dem Nebendisplay): erster Wert 1 px und seine Beschriftung 2 px hoeher,
+        //   zweiter Wert 2 px hoeher — dessen Beschriftung bleibt, wo sie war.
+        var drei = (n >= 3 && cx0 != w / 2);
+        var zwei = (n == 2 && unterSub);
         for (var i = 0; i < n; i++) {
             var cy = top + band * (i + 0.5) / n;
-            var wertDy = (justiert && i == 2) ? -1 : 0;
-            var lblDy = justiert ? ((i < 2) ? -2 : 1) : 0;   // unten: Beschriftung bleibt, wo sie war
+            var wertDy = zwei ? ((i == 0) ? -1 : -2) : 0;
+            var lblDy = 0;
+            if (drei && i < 2) { lblDy = -2; }
+            if (zwei) { lblDy = (i == 0) ? -1 : 2; }   // lblDy wirkt ZUSAETZLICH zum Wert-Versatz
             _drawField(dc, active[i], (i == 0) ? cx0 : w / 2, cy + wertDy, nSchrift, lblDy);
         }
     }
