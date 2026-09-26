@@ -3916,6 +3916,15 @@ def board_lage(
 # die 0,01% bei denen das falsch war." Der Hinweis ist also das Mittel, um dorthin zu kommen:
 # jede Antwort darauf ist ein bestaetigtes Label. Wer ihn spaeter durch eine Voreinstellung
 # ersetzt, sollte vorher nachsehen, wie oft er bestaetigt und wie oft er ignoriert wurde.
+#
+# NACHGEZOGEN AM 26.09.2026 (Jans OK): das Verhaeltnis ist jetzt der MEDIAN DER VERHAELTNISSE JE
+# LAUF, nicht mehr Median(Nicken) / Median(Rollen). Anlass #10195, bestaetigt am Brett und NICHT
+# gefragt: vier Laeufe, alle mit sicherem Hub, aber 26/18 · 24/27 · 12/20 · 19/8 — zwei Laeufe mit
+# mehr Rollen zogen den Quotienten der Mediane auf 1,13. Je Lauf gerechnet 1,20. Nachgerechnet an
+# allen 25 Aufnahmen mit Kreisel: die drei Treffer oben bleiben (2,44 · 1,85 · 1,28), die drei
+# „Koerper"-Aufnahmen bleiben draussen (0,93 · 0,96 · 0,85), #9484 und #9656 unveraendert nicht;
+# unter den unbestaetigten Handy-Aufnahmen anderer kommt KEINE dazu (#10086 zeigt gerundet 1,15,
+# liegt aber knapp darunter).
 BRETT_NICK_ROLL_MIN = 1.15    # Nicken/Rollen; darunter liegt die Schwingung auf keiner Achse
 BRETT_HUB_ANTEIL_MIN = 0.5    # Anteil der Laeufe mit `hub_sicher`
 
@@ -3923,6 +3932,21 @@ _brett_lock = threading.Lock()
 _brett_cache: dict[int, tuple[float, dict]] = {}
 _BRETT_TTL = 900.0
 _BRETT_MAX = 128
+
+
+def brett_urteil(kennzahlen: list[dict]) -> dict | None:
+    """Das Urteil aus den Lage-Kennzahlen je Lauf — rein, ohne Daten zu laden (getestet in
+    tests/test_brett_hinweis.py). None = es gibt keinen auswertbaren Lauf."""
+    import statistics
+    ok = [x for x in kennzahlen if x.get("ok")]
+    paare = [(x["pitch_amplitude_deg"], x["roll_amplitude_deg"]) for x in ok
+             if x.get("pitch_amplitude_deg") and x.get("roll_amplitude_deg")]
+    if not ok or not paare:
+        return None
+    v = statistics.median(n / r for n, r in paare)
+    anteil = sum(1 for x in ok if x.get("hub_sicher")) / len(ok)
+    return {"verdacht": bool(v >= BRETT_NICK_ROLL_MIN and anteil >= BRETT_HUB_ANTEIL_MIN),
+            "laeufe": len(ok), "nick_roll": round(v, 2), "hub_anteil": round(anteil, 2)}
 
 
 def _brett_verdacht(s: models.Session) -> dict:
@@ -3955,20 +3979,7 @@ def _brett_verdacht(s: models.Session) -> dict:
                               for g in segmente if g.get("t_start_ms") is not None]
                     k = lage.kennzahlen_je_lauf(acc, t_acc, gyr, t_gyr, bereiche, starts,
                                                 gps=storage.load_gps(uuid), rot_vorgabe=None)
-                    ok = [x for x in k if x.get("ok")]
-                    nick = [x["pitch_amplitude_deg"] for x in ok
-                            if x.get("pitch_amplitude_deg") and x.get("roll_amplitude_deg")]
-                    roll = [x["roll_amplitude_deg"] for x in ok
-                            if x.get("pitch_amplitude_deg") and x.get("roll_amplitude_deg")]
-                    if ok and nick:
-                        import statistics
-
-                        v = statistics.median(nick) / statistics.median(roll)
-                        anteil = sum(1 for x in ok if x.get("hub_sicher")) / len(ok)
-                        aus = {"verdacht": bool(v >= BRETT_NICK_ROLL_MIN
-                                                and anteil >= BRETT_HUB_ANTEIL_MIN),
-                               "laeufe": len(ok), "nick_roll": round(v, 2),
-                               "hub_anteil": round(anteil, 2)}
+                    aus = brett_urteil(k) or aus
     except Exception:   # noqa: BLE001 - ein Hinweis darf nie eine Seite kaputtmachen
         aus = {"verdacht": False, "laeufe": 0, "nick_roll": None, "hub_anteil": None}
 
