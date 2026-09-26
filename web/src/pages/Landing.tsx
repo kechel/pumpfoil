@@ -4,7 +4,7 @@ import {
   ChevronIcon, WatchIcon, ChartIcon, MapIcon, CommunityIcon, UploadIcon,
   FoilIcon, FakeIcon, BellIcon, DownloadIcon, ChatBubbleIcon, LocationIcon, TagIcon,
   LockIcon, HeartIcon, EditIcon, BoardIcon, SparklesIcon, StarIcon, ListIcon, SpotsIcon,
-  CameraIcon, ShareIcon, LinkIcon, CompareIcon,
+  CameraIcon, ShareIcon, LinkIcon, CompareIcon, SendIcon,
 } from "../components/Icons";
 import { useT, useI18n } from "../i18n";
 import { LanguageFlags } from "../components/LanguageSelect";
@@ -102,6 +102,7 @@ export default function Landing() {
     { icon: WatchIcon, k: "comm5" }, { icon: CameraIcon, k: "comm6" },
     { icon: ShareIcon, k: "comm7" }, { icon: LinkIcon, k: "comm8" },
     { icon: CompareIcon, k: "comm9" }, { icon: FoilIcon, k: "comm10" },
+    { icon: SendIcon, k: "comm11" },
   ];
   const kannPunkte = [
     { icon: EditIcon, k: "kann1" }, { icon: CommunityIcon, k: "kann2" },
