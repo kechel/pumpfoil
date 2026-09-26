@@ -103,7 +103,7 @@ export default function Landing() {
   const kannPunkte = [
     { icon: EditIcon, k: "kann1" }, { icon: CommunityIcon, k: "kann2" },
     { icon: WatchIcon, k: "kann3" }, { icon: ChartIcon, k: "kann4" },
-    { icon: BoardIcon, k: "kann5" }, { icon: LockIcon, k: "kann6" },
+    { icon: BoardIcon, k: "kann5" }, { icon: SparklesIcon, k: "kann6" },
   ];
   const features = [
     { icon: WatchIcon, title: t("land.f1Title"), body: t("land.f1Body") },
