@@ -700,8 +700,11 @@ IN_REVIEW: list[dict] = [
     {"name": "Wear OS", "version": "1.2.33",
      "eingereicht": "2026-09-26",
      "items": [
-         "Watches that doze off during a long recording no longer lose motion data while "
-         "they sleep.",
+         # Bis 26.09. stand hier „… no longer lose motion data while they sleep" — falsch fuer
+         # fast alle: der Sensor ist standardmaessig AUS (ACCEL_WAKEUP_DEFAULT). Jan: „benenne es
+         # das was es ist, eine neue option im profil fuer tester".
+         "For testers: a new option in your profile, per Wear OS watch, switches on a motion "
+         "sensor that keeps recording while the watch dozes. It is off unless you turn it on.",
          "Pause sits next to discard now, and stop has its page to itself again.",
          "While a recording is paused, the watch shows your pause pages and says so on every "
          "page.",
