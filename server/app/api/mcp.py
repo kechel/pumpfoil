@@ -361,8 +361,10 @@ def _puls_reihe(s: models.Session):
     import numpy as np
     from ..analysis.detect_v2 import puls_ohne_eingefrorene
     from ..analysis.timebase import build_timebase_for_session
-    if not s.hr_samples:
-        return None
+    # NICHT an `hr_samples` festmachen: die Spalte ist fast nie gefuellt (26.09.2026: bei 7.633
+    # von 7.656 Aufnahmen MIT Puls leer). So stand es am ersten Tag drin — und ein Agent meldete
+    # Jan „keiner deiner Laeufe hat Pulsdaten", obwohl jeder GPS-Punkt einen trug. Ob es Puls
+    # gibt, sagen nur die Daten selbst.
     try:
         tb = build_timebase_for_session(s, accel=np.empty((0, 3), dtype=np.int16))
     except Exception:
@@ -438,6 +440,7 @@ def _get_session(db: Session, user_id: int, arg: dict) -> dict:
         m = json.loads(ar.metrics_json) if ar and ar.metrics_json else {}
     except ValueError:
         m = {}
+    import numpy as np
     aus = _kurz(s, ar)
     puls = _puls_reihe(s)
     puls_ges = None
@@ -469,8 +472,8 @@ def _get_session(db: Session, user_id: int, arg: dict) -> dict:
         "laengste_pumppause_s_hinweis":
             "Luecke zwischen zwei ERKANNTEN Pumps, keine gemessene Gleitphase. Ein hoher Wert "
             "heisst meist, dass Pumps nicht erkannt wurden.",
-        "puls_quelle": s.hr_source,
-        "puls_proben": s.hr_samples,
+        # Aus den DATEN gezaehlt, nicht aus `sessions.hr_samples` (fast immer leer, s. _puls_reihe).
+        "puls_proben": (int((~np.isnan(puls[1])).sum()) if puls is not None else 0),
         # Puls als ZAHLEN (26.09.2026). Bis dahin standen hier nur Quelle und Probenzahl — ein
         # Agent sah, DASS es 2.000 Pulswerte gab, aber keinen einzigen davon.
         "puls": puls_ges,
