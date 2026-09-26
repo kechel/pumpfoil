@@ -628,34 +628,52 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
         if (s.recording && AmbientState.aktiv.value) {
             AmbientRecordingScreen(s)
         } else if (s.recording) {
-            // Pager: Aktion(0) | Stop(1) | Datenseiten 2..lastData | [Übersicht] | Stop | Aktion.
+            // Pager: Aktion(0) | Stop(1) | Datenseiten 2..lastData | Stop | Aktion.
             // AKTIONSSEITEN ganz außen: oben Pausieren/Fortsetzen, darunter Verwerfen (Jan,
             // 25.09.2026: „mach pause lieber mit auf den screen wo auch verwerfen ist, halten
             // wieder die eigene seite wie vorher" — dieselbe Aufteilung wie auf Zepp seit 24.09.).
             //
-            // WELCHE Datenseiten, haengt am Zustand — wie Garmin (`RecordView._ring`):
-            //   laeuft    -> die On-Foil-Seiten, dahinter die Übersicht (Lauf-Ende / Pausen-Ansicht)
-            //   pausiert  -> die PAUSEN-Seiten, bei „alle Seiten" dahinter die On-Foil-Seiten;
-            //                keine Übersicht, die zeigt ja genau das, was die Pause schon zeigt.
-            // Bis 25.09. blieb in der Pause alles wie beim Fahren: man sah keine Pausen-Seite und
-            // nirgends, dass pausiert war (Jan am Emulator).
+            // WELCHE Datenseiten, haengt am Zustand — genau wie Garmin (`RecordView._state/_ring`):
+            //   im Lauf          -> die On-Foil-Seiten
+            //   zwischen Laeufen -> die Off-Foil-Seiten, bei „alle Seiten" dahinter On-Foil + Pause
+            //   pausiert         -> die Pausen-Seiten, bei „alle Seiten" dahinter On-Foil + Off-Foil
+            // Bis 25.09. blieb in der Pause alles wie beim Fahren (Jan am Emulator). Bis 26.09.
+            // gab es statt des Off-Foil-Satzes eine „Übersicht" hinter den Datenseiten, die nur die
+            // ERSTE Off-Foil-Seite zeigte und nach 8 s auf die Pausen-Ansicht umsprang — die
+            // weiteren Off-Foil-Seiten aus dem Profil kamen nie auf den Schirm.
             val onRefs = if (onFoilPages.isNotEmpty()) onFoilPages else pagesFromViews(views)
             val onSet: List<Pair<WatchPageRef?, List<Int>>> =
                 onRefs.mapIndexed { i, r -> r to (views.getOrNull(i) ?: listOf(1)) }
                     .ifEmpty { listOf(null to listOf(1)) }
+            val offSet: List<Pair<WatchPageRef?, List<Int>>> =
+                offFoilPages.ifEmpty { listOf(WatchPageRef.Classic(offFoil)) }.map { it to offFoil }
             val pauseSet: List<Pair<WatchPageRef?, List<Int>>> =
                 (pausePages ?: listOf(WatchPageRef.Classic(pauseView))).map { it to pauseView }
             // Jede Datenseite traegt ihre Rueckfall-Felder mit: ist der Layout-Schalter aus, zeigt
             // eine Layout-Seite stattdessen diese klassischen Felder.
-            val ring = if (s.paused) pauseSet + (if (browseAll) onSet else emptyList()) else onSet
+            // Garmin `_ring`: der Satz des Zustands, bei „alle Seiten" die anderen in fester Folge.
+            fun ringFuer(paused: Boolean, foiling: Boolean) = when {
+                paused -> pauseSet + (if (browseAll) onSet + offSet else emptyList())
+                foiling -> onSet
+                else -> offSet + (if (browseAll) onSet + pauseSet else emptyList())
+            }
+            val ring = ringFuer(s.paused, s.isFoiling)
             val dataCount = ring.size
             val firstData = 2
             val lastData = dataCount + 1
-            val summaryPage = if (s.paused) -1 else dataCount + 2
-            val stopBack = if (s.paused) dataCount + 2 else dataCount + 3
+            val stopBack = dataCount + 2
             val pageCount = stopBack + 2
             val pager = rememberPagerState(initialPage = firstData, pageCount = { pageCount })
             var prevFoil by remember { mutableStateOf(s.isFoiling) }
+            // Die Seiten sind DURCHNUMMERIERT: wechselt der Satz die Laenge, zeigt dieselbe Nummer
+            // auf eine andere Seite. Wer gerade hinten auf Stop/Aktion steht (Stop halten, waehrend
+            // der Lauf ausklingt), soll dort bleiben. Dafuer braucht es die Lage VOR dem Wechsel:
+            // `vorigeStop` wird erst nach jeder Komposition nachgezogen, `seiteJetzt` ist in dieser
+            // Komposition noch die alte Seite (der Pager misst erst danach neu).
+            val vorigeStop = remember { intArrayOf(-1) }
+            val altStop = if (vorigeStop[0] < 0) stopBack else vorigeStop[0]
+            val seiteJetzt = pager.currentPage
+            SideEffect { vorigeStop[0] = stopBack }
             // Die grosse GPS-Warnung laesst sich wegtippen; sie kommt wieder, sobald die Ortung
             // erneut einfriert.
             var staleWeggetippt by remember { mutableStateOf(false) }
@@ -670,10 +688,6 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                     vibratePattern(ctx, "short2")
                 }
             }
-            var showRunEnd by remember { mutableStateOf(false) }   // true = Lauf-Ende, false = Pause
-            // Auto-Wechsel NUR auf der Flanke: Lauf beendet -> Übersicht (+kurze Vibration): erst
-            // kurz die Lauf-Zusammenfassung, nach 8 s die Pausen-Ansicht (bleibt bis zum nächsten
-            // Lauf stehen — KEIN Rücksprung zur Datenansicht). Lauf gestartet -> zurück zu Daten.
             // Zustandswechsel Pause <-> Aufnahme: vorne anfangen und kurz vibrieren, wie Garmin
             // (`RecordView.onUpdate`: screenIdx = 0 + _vibeSwitch). Sonst stuende man nach dem
             // Pausieren weiter auf der Aktionsseite und saehe von den Pausen-Seiten nichts.
@@ -681,23 +695,20 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
             LaunchedEffect(s.paused) {
                 if (s.paused == prevPaused) return@LaunchedEffect
                 prevPaused = s.paused
-                showRunEnd = false
                 pager.scrollToPage(firstData)
                 vibrate(ctx, 200)
             }
+            // Lauf beginnt / endet: anderer Satz -> vorne anfangen und vibrieren, wie Garmin. Aber
+            // NUR, wer gerade Daten ansieht: auf Garmin ist das Aktionsmenue eine eigene Ansicht,
+            // die ein Lauf-Wechsel nicht anfasst. In der Pause haengt der Satz nicht am Lauf.
             LaunchedEffect(s.isFoiling) {
                 if (s.isFoiling == prevFoil) return@LaunchedEffect
-                if (s.paused) { prevFoil = s.isFoiling; return@LaunchedEffect }
-                val wasFoiling = prevFoil
                 prevFoil = s.isFoiling
-                if (!s.isFoiling && wasFoiling) {
-                    pager.animateScrollToPage(summaryPage)
-                    vibrate(ctx, 200)
-                    showRunEnd = true
-                    kotlinx.coroutines.delay(8_000)
-                    if (!Recorder.state.value.isFoiling) showRunEnd = false
-                } else if (s.isFoiling && pager.currentPage == summaryPage) {
-                    pager.animateScrollToPage(lastData)
+                if (s.paused) return@LaunchedEffect
+                when {
+                    seiteJetzt >= altStop -> pager.scrollToPage(stopBack + (seiteJetzt - altStop))
+                    seiteJetzt >= firstData -> { pager.scrollToPage(firstData); vibrate(ctx, 200) }
+                    else -> pager.scrollToPage(seiteJetzt)
                 }
             }
             // Beim Start automatisch sperren — NUR bei "on". "auto" bietet den Knopf bloss an;
@@ -712,8 +723,6 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                     val pageLayout = if (!useLayouts) null else when {
                         page in firstData..lastData ->
                             (ring.getOrNull(page - firstData)?.first as? WatchPageRef.Layout)?.def
-                        page == summaryPage && showRunEnd ->
-                            (offFoilPages.firstOrNull() as? WatchPageRef.Layout)?.def
                         else -> null
                     }
                     Column(
@@ -748,30 +757,6 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                                 } else {
                                     val classic = (ref as? WatchPageRef.Classic)?.fields ?: rueckfall
                                     val fields = classic.filter { it != 0 }.ifEmpty { listOf(1) }
-                                    fields.forEach { fid -> FieldView(fid, s, colorBy, fields.size) }
-                                }
-                            }
-                            page == summaryPage -> {  // Übersicht: kurz Lauf-Ende, dann Pause
-                                val ref = if (showRunEnd) offFoilPages.firstOrNull() else null
-                                val def = pageLayout
-                                if (def != null) {
-                                    LayoutPageView(
-                                        page = def, pageIndex = 0, pageCount = 1,
-                                        recording = true, pausedText = I18n.t("rec.paused"),
-                                        // Die Übersicht gibt es nur, solange NICHT pausiert ist.
-                                        paused = false,
-                                        fieldValue = { fid -> fieldValue(fid, s).first },
-                                        fieldLabel = { fid -> fieldValue(fid, s).second },
-                                        fieldColor = { fid -> fieldColor(fid, s).takeIf { c -> c != Color.Unspecified } },
-                                        fieldNumber = { fid -> fieldNumber(fid, s) },
-                                        modifier = Modifier.fillMaxSize(),
-                                    )
-                                } else {
-                                    val v = when {
-                                        showRunEnd -> (ref as? WatchPageRef.Classic)?.fields ?: offFoil
-                                        else -> pauseView
-                                    }
-                                    val fields = v.filter { it != 0 }.ifEmpty { listOf(12) }
                                     fields.forEach { fid -> FieldView(fid, s, colorBy, fields.size) }
                                 }
                             }
@@ -825,8 +810,6 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                 val currentIsLayoutPage = (layoutsPref ?: layoutsServerDefault) && when {
                     pager.currentPage in firstData until (firstData + dataCount) ->
                         ring.getOrNull(pager.currentPage - firstData)?.first is WatchPageRef.Layout
-                    pager.currentPage == summaryPage && showRunEnd ->
-                        offFoilPages.firstOrNull() is WatchPageRef.Layout
                     else -> false
                 }
                 // „PAUSIERT" auf JEDER Seite, solange pausiert ist — wie Garmin

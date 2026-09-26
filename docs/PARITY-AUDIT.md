@@ -36,14 +36,18 @@ einer Uhr baut, geht diese Liste fuer ALLE VIER durch und traegt das Ergebnis in
 |---|---|---|---|---|
 | Pause + Verwerfen auf der Aktionsseite, Stop allein | Taste | ✅ 24.09. | ✅ 25.09. `ddea1a37` | ✅ 25.09. `0c5e6d6d` |
 | In der Pause die Pausen-Seiten (`pausePages`/`pauseView`) | ✅ | ✅ 25.09. `1612070b` | ✅ 25.09. | ✅ 25.09. |
-| `browseAll` in der Pause | ✅ Pause+On+Off | ✅ Pause+On+Off | ✅ Pause+On | ✅ Pause+On |
+| `browseAll` in der Pause | ✅ Pause+On+Off | ✅ Pause+On+Off | ✅ Pause+On+Off 26.09. | ✅ Pause+On+Off 26.09. |
+| Zwischen den Laeufen der Off-Foil-SATZ (`offFoilPages`), keine „Übersicht" | ✅ | ✅ | ✅ 26.09. | ✅ 26.09. |
+| Sprung auf Seite 1 + Vibration bei Lauf-Beginn/-Ende (nicht von Stop/Aktion weg) | ✅ | ✅ | ✅ 26.09. | ✅ 26.09. (Klick) |
 | Sprung auf Seite 1 + Vibration beim Pausieren/Fortsetzen | ✅ | ✅ | ✅ | ✅ (Klick) |
 | „Pausiert" auf jeder Seite (Typ 7 oder eingeblendet) | ✅ | ✅ | ✅ gekruemmt oben | ✅ oben mittig |
 | „Pausiert" im Daemmerbild | — (MIP) | — | ✅ | Systemverhalten |
 | Ausgeliefert | 1.0.x live | **nicht** in 1.0.12 (Review) | **nicht** in 1.2.32 (live) | **nicht** in 1.1.37 (live) |
 
-Wear/Apple haengen in der Pause nur die On-Foil-Seiten an, weil beide keinen eigenen
-Off-Foil-Ring haben (sie zeigen zwischen den Laeufen die Uebersichtsseite). Garmin/Zepp: On + Off.
+Bis 26.09. hatten Wear/Apple keinen Off-Foil-Ring: zwischen den Laeufen stand hinter den
+Datenseiten eine „Übersicht" (Wear: erste Off-Foil-Seite 8 s, dann Pausen-Ansicht; Apple: nur die
+alte klassische Einzelansicht, `offFoilPages` gelesen und nie gezeigt). Jan sah sie am Emulator als
+„4te klassische ansicht ganz am ende". Jetzt wie Garmin `_state/_ring` auf allen vier Uhren.
 
 ---
 
