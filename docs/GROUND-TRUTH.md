@@ -533,6 +533,78 @@ macht, ob die dann eintreffenden Daten verwertbar sind oder nicht.
 
 ---
 
+## 12. Paar-Aufnahmen automatisch erkennen (gemessen 26.09.2026)
+
+Anlass: #10194 (fēnix 7X Pro, Handgelenk) und #10195 (Pixel 7a, **am Brett**), dieselbe Fahrt,
+40 min. Frage: woran erkennt man ohne Zutun, dass zwei Aufnahmen zusammengehoeren — und reicht
+dafuer schon, was ohnehin in der Datenbank steht? **Alles rein lesend gerechnet, nichts gespeichert.**
+
+### 12a. Was an diesem Paar uebereinstimmt
+
+| Merkmal | Wert | Rohdaten noetig? |
+|---|---|---|
+| Zeitliche Ueberlappung | 100 % der Uhr-Aufnahme (Handy 3,5 min frueher gestartet) | nein |
+| Ort (`place_lat/lon`) | 0,00 km | nein |
+| Geraete | verschiedene: Uhr + Handy (`placement = board`) | nein |
+| **Laeufe** (`segments_json`) | **4 von 4** Handy-Laeufen mit Partner, Start/Ende auf 0–5 s; die Uhr hat einen 5-s-Minilauf mehr | nein |
+| Pumptakt je Lauf | 1,45/1,45 · 1,35/1,37 · 1,43/1,40 · 1,43/1,42 Hz | nein |
+| Strecke je Lauf | 120/132 · 177/212 · 196/202 · 183/193 m | nein |
+| GPS zur selben Sekunde | Median 7 m, 90 % < 16 m, max 36 m (beide `h_acc` ~4 m) | ja |
+| Tempo-Verlauf (1 Hz) | r = 0,67 ohne Versatz, 0,71 bei 3 s | ja |
+| Kurs (nur > 2 m/s) | Median-Abweichung 19° | ja |
+| **Beschleunigung Brett ↔ Handgelenk** (Betrag, 3-s-Trend weg, je Lauf) | bester Versatz **−0,68 · −0,72 · −0,76 · −0,72 s**, r 0,54–0,66 | ja |
+
+Der letzte Punkt ist der fuer das Sammeln entscheidende: der Uhrenversatz zwischen den beiden
+Geraeten ist **von Lauf zu Lauf stabil** und laesst sich aus der Pumpbewegung selbst auf Zehntel
+bestimmen. Damit lassen sich einzelne Pumps vom Brett auf die Pumps am Handgelenk legen (Abschnitt 8,
+„Ableiter"). Der Versatz der Lauf-Grenzen (~2 s) taugt dafuer nicht, er ist Erkennungs-Rauschen.
+
+### 12b. Nur aus Metadaten — am ganzen Bestand ausprobiert
+
+Kandidaten: derselbe Nutzer, zeitliche Ueberlappung ≥ 50 % der kuerzeren Aufnahme → **31 Paare**.
+Sie zerfallen klar in drei Sorten:
+
+1. **Echte Paare aus zwei Geraeten** — Uhr + Handy am selben Ort, Laeufe um wenige Sekunden versetzt
+   (#10194/#10195: 4/4, −2,4 s · #9534/#9535: 2/2, −1,5 s). Viele Paare haben zu wenige Laeufe fuer
+   den Laufvergleich (#9484/#9485, #9528/#9529, #9650 mit #9648+#9649, #9656/#9665).
+2. **Doppelt eingespielte Aufnahmen** (z. B. Uhr-Upload + FIT-Import derselben Fahrt): die Laeufe
+   passen auf **exakt 0,0 s** — das kommt bei zwei echten Geraeten nie vor (#1955/#2041,
+   #2131/#2674, #3240/#3252).
+3. **Ohne Laeufe oder vom selben Geraet** — nicht entscheidbar bzw. Teilstuecke.
+
+**Vorgeschlagene Regel, zweistufig (noch nicht gebaut):**
+
+- **Stufe 1, nur Metadaten:** derselbe Nutzer · verschiedene Geraete · Ueberlappung ≥ 50 % der
+  kuerzeren · Ort ≤ 200 m · bei ≥ 2 Laeufen auf beiden Seiten: ≥ 75 % der Laeufe mit Partner
+  innerhalb ±10 s (Start UND Ende), Median-Versatz **nicht** exakt 0 (sonst Doppelung, kein Paar).
+- **Stufe 2, nur fuer Kandidaten:** Tempo-Verlauf (grob, Sekunden) und Beschleunigung je Lauf
+  (fein, Zehntel) legen den Versatz fest — auch fuer Paare mit zu wenigen Laeufen.
+- Speichern als `paired_session_id` + Versatz (Entwurf aus Abschnitt 8). Die Doppelungen aus
+  Sorte 2 fallen nebenbei als Liste ab — nur anzeigen, nicht automatisch anfassen.
+
+### 12c. Bestand an Paaren (Stand 26.09.2026)
+
+**14 Ueberschneidungen Handy + Uhr, von nur 4 Nutzern:**
+
+| Nutzer | Paare | Geraete | am Brett? |
+|---|---|---|---|
+| u2 | 7 an 4 Tagen (19.07., 21.09., 23.09., 26.09.) | Pixel 7a + fēnix 7X Pro (einmal zusaetzlich Forerunner 55) | 5 markiert |
+| u5 | 3 (19.07., 2× 23.09.) | am 23.09. derselbe Pixel 7a + Forerunner 55 | #9656 markiert (Handy zwischen den Laeufen gedreht) |
+| u55 | 2 (02./03.08.) | Samsung-Handy + Wear OS, 25 und 70 min | nicht markiert, damals ohne Kreisel |
+| u546 | 1 (15.09.) | Fairphone + Forerunner 945 | nicht markiert; Orte 1,4 km auseinander — Handy vermutlich an Land |
+
+Brauchbare Paare **Handy am Brett + Uhr am Handgelenk** gibt es damit nur von **zwei** Fahrern,
+etwa sieben Aufnahmen. Die elf Handy-Aufnahmen anderer, bei denen der Brett-Hinweis anschlaegt
+(Abschnitt „Sass das Handy am Brett?" in `api/sessions.py`), hatten **alle keine** gleichzeitige
+Uhr — diese Fahrer nehmen nur mit dem Handy auf. Fuer die Lage-Erkennung sind sie wertvoll, fuer
+die Paar-Wahrheit nicht.
+
+**Der Engpass sind Fahrer, nicht Technik.** Abschnitt 3 rechnet mit 8–10 Fahrern × 5 min. Die
+Erkennung aus 12b findet Paare, sobald es sie gibt; entstehen werden sie erst auf Nachfrage
+(Abschnitt 11). Entscheidung 26.09.: erst abwarten.
+
+---
+
 ## Verweise
 
 - `docs/DATA-PIPELINE.md` — Datenweg, drei Zeitbegriffe, Achsenrekonstruktion (**vorher lesen**)
