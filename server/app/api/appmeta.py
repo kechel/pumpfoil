@@ -53,7 +53,13 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.37",   # FREIGEGEBEN 2026-09-25, ZWEITE Apple-Mail („The following app is
+        "latest": "1.1.38",   # FREIGEGEBEN 2026-09-26, Apple-Mail „The following app is ready for
+        # distribution · App Version Number: 1.1.38 · Platform: iOS"; GEGENGEPRUEFT an der Store-API:
+        # de/us/gb/ch/at melden 1.1.38, currentVersionReleaseDate 2026-09-26T17:02:09Z (19:02 Berlin).
+        # EINGEREICHT 26.09. um 08:42 — rund ZEHN Stunden Pruefung. Inhalt: der Nachzug der PWA
+        # (Brettlage, Privatsphaere, Einstellungen je Uhr, MCP-Karte …) und auf der Watch Pause neben
+        # Verwerfen, Pausen-Seiten und die Seiten je Zustand wie Garmin.
+        # ALT: "latest": "1.1.37",   # FREIGEGEBEN 2026-09-25, ZWEITE Apple-Mail („The following app is
         # ready for distribution · App Version Number: 1.1.37 · Platform: iOS").
         # GEGENGEPRUEFT an der Store-API: de/gb/ch melden 1.1.37 mit currentVersionReleaseDate
         # 2026-09-24T22:42:13Z (25.09. 00:42 Berlin), us hing noch auf 1.1.36 — der bekannte
@@ -334,7 +340,11 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.37",   # FREIGEGEBEN 2026-09-25 — dieselbe Einreichung wie "ios" (ein Bundle,
+        "latest": "1.1.38",   # FREIGEGEBEN 2026-09-26 — dieselbe Einreichung wie "ios" (ein Bundle,
+        # dieselbe MARKETING_VERSION), Beleg s. dort. Fuer die WATCH-App bringt 1.1.38: Pause neben
+        # Verwerfen, Stop allein; Pausen-Seiten mit „Pausiert" auf jeder Seite; zwischen den Laeufen
+        # der ganze Off-Foil-Satz statt der alten Uebersicht.
+        # ALT: "latest": "1.1.37",   # FREIGEGEBEN 2026-09-25 — dieselbe Einreichung wie "ios" (ein Bundle,
         # dieselbe MARKETING_VERSION in project.yml). Beleg s. dort. Fuer die WATCH-App bringt
         # 1.1.37: eine Aufnahme laesst sich pausieren, das schon Aufgezeichnete geht dabei hoch,
         # und Profil-Aenderungen kommen direkt nach dem Upload an statt erst beim naechsten Start.
@@ -661,37 +671,6 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
-    # EINGEREICHT 26.09.2026 vormittags (Jan: „das android und ios eingereicht wurden"), 1.1.38 (42).
-    {"name": "iPhone + Apple Watch", "version": "1.1.38",
-     "eingereicht": "2026-09-26",
-     "items": [
-         "Pause sits next to discard now, and stop has its page to itself again.",
-         "While a recording is paused, the watch shows your pause pages and says so on every "
-         "page.",
-     ] + [
-         "If your phone rode on the board, the app shows how the board pitched, rolled and "
-         "turned, with a moving drawing of your foil.",
-         "The app asks when a recording looks like it was taken with the phone on the board.",
-         "Your home page shows your board angles by run length, from recordings with the phone "
-         "on the board.",
-         "You can hide where you rode, for all your recordings or one at a time.",
-         "Your profile lists which recordings are shared by link, with a button to take the link "
-         "back.",
-         "You decide in the app what your public foiler page shows.",
-         "Each watch in your profile only offers the settings it actually uses, now including the "
-         "water lock.",
-         "Your profile shows which AI programs can read your recordings and lets you close their "
-         "access.",
-         "Comparisons play back at real speed first.",
-         "The training curve has a slider to pick any moment into a run.",
-         "A button on each session card marks it for comparison.",
-         "You can suggest a better name for a spot you ride.",
-         "Switching spots no longer shows sessions from the previous one for a moment.",
-         "Recordings with the phone on the board carry a highlighted badge on every session card.",
-         "The foil stats can be narrowed to recordings with the phone on the board.",
-         "The weather at your home spot sits right under your latest sessions.",
-         "Between runs, the watch shows every page you set up for that time, and you can browse them.",
-     ]},
     # EINGEREICHT 26.09.2026 ~08:30 (Berlin), eine Play-Einreichung fuer beide Spuren: Jans
     # Console „Produktion 47 (1.1.33) · Produktion (Wear OS) 1043 (1.2.33)", Vorabpruefung laeuft.
     # Wear 1.2.33: Wake-up-Beschleunigungssensor (f0184015, 24.09. 15:02) — kam vier Stunden
