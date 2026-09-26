@@ -38,6 +38,7 @@ from ..db import get_db
 from .. import ortverbergen
 from ..ratelimit import enforce_user_tiers
 from ..tzlookup import tz_name
+from . import mcp_dateien
 from .mcp_oauth import RESOURCE, SCOPE, access_token_pruefen
 
 router = APIRouter(tags=["mcp"])
@@ -148,6 +149,14 @@ genau das Feld `lauf` aus `laeufe_einzeln` (ab 0; in der App heisst er „Lauf l
   und erscheinen als `null` — sie waeren kein Messwert.
 * Der Puls haengt an den GPS-Punkten, also rund einer pro Sekunde. Feiner gibt es ihn nicht.
 
+ROHDATEN ALS DATEI — fuer eigene Auswertungen per Skript
+`get_session` traegt unter `dateien` je vorhandener Datenart einen Download-Link: `gps` (Position,
+Tempo, Puls, Genauigkeit), `accel` (Beschleunigung in g), `gyro` (Drehrate in rad/s, nur
+Handy-Aufnahmen). CSV, 15 Minuten gueltig, ohne Anmeldung abrufbar. Lade sie per Code
+(z. B. `pandas.read_csv(url)`) und rechne dort — hole sie NICHT in den Kontext, eine Stunde
+Beschleunigung sind Hunderttausende Zeilen. Abgelaufen? `get_download_link(session_id, datei)`
+stellt einen neuen aus. Ist der Ort verborgen, ist die GPS-Spur nach Point Nemo versetzt.
+
 AUSRUESTUNG
 Bei Foils, Stabilisatoren und Boards steht je Mass, ob es aus dem Herstellerkatalog stammt oder
 geschaetzt ist (`geschaetzt: true`). Rechne nichts Physikalisches ohne diesen Blick — eine
@@ -211,6 +220,14 @@ WERKZEUGE = [
          "intervall_s": {"type": "integer", "enum": [1, 10],
                          "description": "1 oder 10 Sekunden je Wert; ohne Angabe 10."}},
          "required": ["session_id", "lauf"]}},
+    {"name": "get_download_link",
+     "description": "Ein frischer Download-Link fuer die Rohdaten EINER Datenart einer Aufnahme "
+                    "(CSV, 15 Minuten gueltig). get_session liefert die Links schon mit; das "
+                    "hier nur, wenn einer abgelaufen ist.",
+     "inputSchema": {"type": "object", "properties": {
+         "session_id": {"type": "integer"},
+         "datei": {"type": "string", "enum": ["gps", "accel", "gyro"]}},
+         "required": ["session_id", "datei"]}},
     {"name": "get_stats",
      "description": "Summen und Bestwerte des Nutzers ueber einen Zeitraum — damit man nicht "
                     "jede Aufnahme einzeln ziehen muss.",
@@ -468,8 +485,24 @@ def _get_session(db: Session, user_id: int, arg: dict) -> dict:
                          else "Nicht vorhanden: diese Aufnahme entstand nicht mit dem Handy am Brett."),
         "ausruestung": _ausruestung_der_session(db, s),
         "herkunft": _herkunft(s, m),
+        # Links kosten beim Ausstellen nichts — gebaut wird die Datei erst beim Abruf (Jan,
+        # 26.09.2026: „die meisten Ressourcen werden halt nicht gelesen").
+        "dateien": [mcp_dateien.link_ausstellen(db, user_id, s, art)
+                    for art in mcp_dateien.verfuegbar(s)],
     })
     return aus
+
+
+def _get_download_link(db: Session, user_id: int, arg: dict) -> dict:
+    s = _eigene(db, user_id).filter(models.Session.id == int(arg["session_id"])).first()
+    if s is None:
+        return {"fehler": "Diese Aufnahme gibt es fuer dich nicht."}
+    art = str(arg.get("datei", ""))
+    da = mcp_dateien.verfuegbar(s)
+    if art not in da:
+        return {"fehler": f"Die Datenart „{art}\" gibt es fuer diese Aufnahme nicht.",
+                "vorhanden": da}
+    return {"dateien": [mcp_dateien.link_ausstellen(db, user_id, s, art)]}
 
 
 # Obergrenze der Reihe: eine Stunde im Sekundentakt. Laengere Laeufe gibt es praktisch nicht,
@@ -803,6 +836,7 @@ _HANDLER = {
     "get_session": _get_session,
     "get_board_attitude": lambda db, uid, arg: _get_board_attitude(db, uid, arg),
     "get_run_heart_rate": _get_run_heart_rate,
+    "get_download_link": _get_download_link,
     "get_stats": _get_stats,
     "list_equipment": _list_equipment,
 }
@@ -904,9 +938,16 @@ async def mcp(request: Request, db: Session = Depends(get_db)):
         _zaehlen(db, user_id, name)
         # MCP erwartet Inhalt als Liste von Bloecken. JSON als Text ist der uebliche Weg; ein
         # Agent liest es ohne Umweg.
+        inhalt = [{"type": "text", "text": json.dumps(ergebnis, ensure_ascii=False, default=str)}]
+        # Download-Links zusaetzlich als `resource_link` (MCP 2025-06-18): ein Client, der das
+        # kennt, kann die Datei selbst anbieten, ohne den Text zu lesen. Der Inhalt bleibt
+        # draussen — nur der Verweis kommt mit.
+        for d in (ergebnis.get("dateien") or []) if isinstance(ergebnis, dict) else []:
+            inhalt.append({"type": "resource_link", "uri": d["url"], "name": d["dateiname"],
+                           "mimeType": d["format"],
+                           "description": f"{d['datei']}-Rohdaten, gueltig bis {d['gueltig_bis']}"})
         return JSONResponse({"jsonrpc": "2.0", "id": id_, "result": {
-            "content": [{"type": "text",
-                         "text": json.dumps(ergebnis, ensure_ascii=False, default=str)}],
+            "content": inhalt,
             "structuredContent": ergebnis,
         }})
 

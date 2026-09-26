@@ -482,3 +482,91 @@ def test_pulsreihe_gibt_es_nur_fuer_eigene(client):
     fremd = _puls_session(_user_id(client, _konto(client, "mcp-puls-fremd@b.de")))
     token = _zugang(client, jwt, _client_anmelden(client))
     assert "fehler" in _ruf(client, token, "get_run_heart_rate", {"session_id": fremd, "lauf": 0})
+
+
+def _accel_ablegen(sid: int, n: int = 250) -> None:
+    """Ein Accel-Block mit t0 und ein Gyro-Block, beide n Proben."""
+    import struct
+    from app import models, storage
+    from app.db import SessionLocal
+    db = SessionLocal()
+    try:
+        s = db.get(models.Session, sid)
+        s.accel_hz, s.accel_scale = 25, 1000
+        db.commit()
+        uuid = s.session_uuid
+    finally:
+        db.close()
+    roh = struct.pack(f"<{3 * n}h", *([1000, 0, -500] * n))
+    storage.save_accel_raw(uuid, 0, roh, t0_ms=0)
+    d = storage.session_dir(uuid) / "gyro"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "0.bin").write_bytes(struct.pack(f"<{3 * n}h", *([1024, 512, 0] * n)))
+    (d / "0.t0").write_text("0")
+
+
+def _datei_holen(client, url: str):
+    return client.get(url.split("pumpfoil.org", 1)[-1] if "pumpfoil.org" in url
+                      else "/" + url.split("/", 3)[3])
+
+
+def test_rohdaten_als_link_und_erst_beim_abruf_gebaut(client):
+    jwt = _konto(client, "mcp-datei@b.de")
+    sid = _puls_session(_user_id(client, jwt))
+    _accel_ablegen(sid)
+    cid = _client_anmelden(client)
+    token = _zugang(client, jwt, cid)
+
+    # Die Links kommen mit get_session — auch als resource_link, fuer Clients, die das kennen.
+    r = client.post("/mcp", headers={"Authorization": f"Bearer {token}"},
+                    json={"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+                          "params": {"name": "get_session", "arguments": {"session_id": sid}}})
+    ergebnis = r.json()["result"]
+    dateien = {d["datei"]: d for d in ergebnis["structuredContent"]["dateien"]}
+    assert set(dateien) == {"gps", "accel", "gyro"}
+    links = [c for c in ergebnis["content"] if c["type"] == "resource_link"]
+    assert {c["uri"] for c in links} == {d["url"] for d in dateien.values()}
+
+    gps = _datei_holen(client, dateien["gps"]["url"])
+    assert gps.status_code == 200 and gps.headers["content-type"].startswith("text/csv")
+    zeilen = gps.text.strip().split("\n")
+    assert zeilen[0] == "t_ms,lat,lon,speed_mps,hr_bpm,h_acc_m" and len(zeilen) == 301
+    assert zeilen[1].startswith("0,47.5000000,9.7000000,") and ",100," in zeilen[1]
+
+    acc = _datei_holen(client, dateien["accel"]["url"]).text.strip().split("\n")
+    assert acc[0] == "t_ms,ax_g,ay_g,az_g" and len(acc) == 251
+    assert acc[1].endswith(",1.00000,0.00000,-0.50000")
+    gyr = _datei_holen(client, dateien["gyro"]["url"]).text.strip().split("\n")
+    assert gyr[1].endswith(",1.00000,0.50000,0.00000")
+
+    # Ein frischer Link fuer genau eine Art; eine Art, die es nicht gibt, sagt was es gibt.
+    neu = _ruf(client, token, "get_download_link", {"session_id": sid, "datei": "accel"})
+    assert neu["dateien"][0]["datei"] == "accel"
+
+    # Veraendert, oder der Zugang widerrufen -> tot.
+    assert _datei_holen(client, dateien["gps"]["url"] + "x").status_code == 404
+    assert client.delete(f"/api/mcp/verbindungen/{cid}",
+                         headers={"Authorization": f"Bearer {jwt}"}).status_code == 200
+    assert _datei_holen(client, dateien["gps"]["url"]).status_code == 404
+
+
+def test_rohdaten_nur_eigene_und_ort_verborgen(client):
+    from app import models
+    from app.db import SessionLocal
+    jwt = _konto(client, "mcp-datei-ort@b.de")
+    sid = _puls_session(_user_id(client, jwt))
+    fremd = _puls_session(_user_id(client, _konto(client, "mcp-datei-fremd@b.de")))
+    token = _zugang(client, jwt, _client_anmelden(client))
+    assert "fehler" in _ruf(client, token, "get_download_link", {"session_id": fremd, "datei": "gps"})
+    assert "fehler" in _ruf(client, token, "get_download_link", {"session_id": sid, "datei": "gyro"})
+
+    db = SessionLocal()
+    try:
+        db.get(models.Session, sid).ort_sichtbarkeit = "hide"
+        db.commit()
+    finally:
+        db.close()
+    link = _ruf(client, token, "get_download_link", {"session_id": sid, "datei": "gps"})["dateien"][0]
+    assert "Point Nemo" in link["ort"]
+    zeile = _datei_holen(client, link["url"]).text.split("\n")[1].split(",")
+    assert abs(float(zeile[1]) - 47.5) > 1 and abs(float(zeile[2]) - 9.7) > 1   # nicht echt
