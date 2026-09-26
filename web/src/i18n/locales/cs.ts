@@ -1126,7 +1126,7 @@ const cs: Record<string, string> = {
   "land.kann5Title": "Telefon na prkně měří, co hodinky nevidí",
   "land.kann5Body": "Pomocí gyroskopu telefonu Pumpfoil ukazuje, jak se tvé prkno naklání dopředu a do stran, pro každou jízdu i jako pohyblivou kresbu tvého foilu.",
   "land.kann6Title": "Vyhodnocuj se svou AI",
-  "land.kann6Body": "Připoj svou vlastní AI, třeba Claude, přes náš MCP server a ptej se na cokoli — jak se ti přes léto vyvíjel tep nebo s jakým foilem dojedeš nejdál. Čte tvoje relace a surová data, jen pro čtení a jen tvoje. V „Propojené účty“.",
+  "land.kann6Body": "Připoj svou vlastní AI, třeba Claude, ChatGPT, Gemini, Copilot nebo Mistral, přes náš MCP server a ptej se na cokoli — jak se ti přes léto vyvíjel tep nebo s jakým foilem dojedeš nejdál. Čte tvoje relace a surová data, jen pro čtení a jen tvoje. V „Propojené účty“.",
   "land.commTitle": "Komunita",
   "land.commBody": "Pumpfoiling je zábavnější společně. Všechno, co odjezdíš, se počítá i pro ostatní — a vidíš, co se děje na tvém spotu.",
   "land.comm1Title": "Rekordy",

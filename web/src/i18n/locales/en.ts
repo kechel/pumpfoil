@@ -1143,7 +1143,7 @@ const en: Record<string, string> = {
   "land.kann5Title": "The phone on the board measures what the watch cannot see",
   "land.kann5Body": "With the phone's gyroscope, Pumpfoil shows how your board pitches and rolls, per run and as a moving drawing of your foil.",
   "land.kann6Title": "Analyse with your own AI",
-  "land.kann6Body": "Connect your own AI, such as Claude, through our MCP server and ask it whatever you want to know — how your heart rate developed over the summer or which foil takes you farthest. It reads your sessions and raw data, read-only and only yours. Under “Linked accounts”.",
+  "land.kann6Body": "Connect your own AI, such as Claude, ChatGPT, Gemini, Copilot or Mistral, through our MCP server and ask it whatever you want to know — how your heart rate developed over the summer or which foil takes you farthest. It reads your sessions and raw data, read-only and only yours. Under “Linked accounts”.",
   "land.commTitle": "Community",
   "land.commBody": "Pump foiling is more fun together. Everything you ride counts for the others too — and you see what is going on at your spot.",
   "land.comm1Title": "Records",
