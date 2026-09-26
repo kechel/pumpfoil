@@ -136,6 +136,18 @@ das Handy montiert war, wird JE LAUF aus den Daten bestimmt, nicht vom Nutzer an
 das Fehlen ist die ehrliche Antwort. Gieren wird bewusst nicht ausgewertet: es ist die frei
 gewaehlte Route und sagt nichts ueber Technik.
 
+PULS
+`get_session` traegt je Aufnahme und je Lauf Durchschnitt, Hoechstwert und den tiefsten Wert,
+`list_sessions` mit `mit_laeufen` ebenso je Lauf. Die Reihe selbst — ein Wert je Sekunde oder je
+10 Sekunden — gibt es nur ueber `get_run_heart_rate(session_id, lauf, intervall_s)`; `lauf` ist
+genau das Feld `lauf` aus `laeufe_einzeln` (ab 0; in der App heisst er „Lauf lauf+1").
+* Einen echten RUHEPULS messen wir nicht (der wird morgens in Ruhe erhoben). `tiefster_puls` ist
+  der niedrigste Wert der Aufnahme, meist in einer Pause am Ufer; `start_puls` eines Laufs ist der
+  erste Messwert darin, also der Ausgangspuls, von dem aus der Lauf anstieg.
+* Stehengebliebene Werte (derselbe Wert zwei Minuten lang: der Sensor hing) sind herausgenommen
+  und erscheinen als `null` — sie waeren kein Messwert.
+* Der Puls haengt an den GPS-Punkten, also rund einer pro Sekunde. Feiner gibt es ihn nicht.
+
 AUSRUESTUNG
 Bei Foils, Stabilisatoren und Boards steht je Mass, ob es aus dem Herstellerkatalog stammt oder
 geschaetzt ist (`geschaetzt: true`). Rechne nichts Physikalisches ohne diesen Blick — eine
@@ -187,6 +199,18 @@ WERKZEUGE = [
                     "das Geraet den Fahrer und nicht das Brett.",
      "inputSchema": {"type": "object", "properties": {
          "session_id": {"type": "integer"}}, "required": ["session_id"]}},
+    {"name": "get_run_heart_rate",
+     "description": "Der Puls EINES Laufs als Reihe: ein Wert je Sekunde oder je 10 Sekunden "
+                    "(Mittel der Messwerte im Abschnitt). `lauf` ist das Feld `lauf` aus "
+                    "`laeufe_einzeln` in get_session. Die Zusammenfassung je Lauf (Durchschnitt, "
+                    "Hoechstwert, Start) steht schon in get_session — diesen Aufruf nur fuer den "
+                    "Verlauf im Lauf.",
+     "inputSchema": {"type": "object", "properties": {
+         "session_id": {"type": "integer"},
+         "lauf": {"type": "integer", "minimum": 0},
+         "intervall_s": {"type": "integer", "enum": [1, 10],
+                         "description": "1 oder 10 Sekunden je Wert; ohne Angabe 10."}},
+         "required": ["session_id", "lauf"]}},
     {"name": "get_stats",
      "description": "Summen und Bestwerte des Nutzers ueber einen Zeitraum — damit man nicht "
                     "jede Aufnahme einzeln ziehen muss.",
@@ -276,7 +300,8 @@ def _list_sessions(db: Session, user_id: int, arg: dict) -> dict:
     for z in zeilen:
         zeile = _kurz(z, ars.get(z.id))
         if mit_laeufen:
-            zeile["laeufe_einzeln"] = _laeufe(ars.get(z.id), int(z.trim_start_ms or 0))
+            zeile["laeufe_einzeln"] = _laeufe(ars.get(z.id), int(z.trim_start_ms or 0),
+                                              _puls_reihe(z))
         sessions.append(zeile)
     aus = {"gesamt": gesamt, "offset": offset, "sessions": sessions}
     if offset + len(zeilen) < gesamt:
@@ -307,7 +332,52 @@ def _herkunft(s: models.Session, m: dict) -> dict:
     }
 
 
-def _laeufe(ar: models.AnalysisResult | None, off: int) -> list[dict]:
+def _puls_reihe(s: models.Session):
+    """(t_ms, puls) der ganzen Aufnahme auf DERSELBEN Achse wie die Auswertung, oder None.
+
+    Session-Millisekunden aus `timebase` (wie Export und Analyse), damit die Laufgrenzen aus
+    `segments_json` ohne Umrechnung passen. Stehengebliebene Werte sind herausgenommen — dieselbe
+    Funktion wie in der Erkennung (`puls_ohne_eingefrorene`), sonst stuenden hier Werte, die
+    Kacheln und Kurve der App gar nicht zeigen. Accel wird nicht geladen (leeres Array): der
+    Puls haengt an den GPS-Punkten.
+    """
+    import numpy as np
+    from ..analysis.detect_v2 import puls_ohne_eingefrorene
+    from ..analysis.timebase import build_timebase_for_session
+    if not s.hr_samples:
+        return None
+    try:
+        tb = build_timebase_for_session(s, accel=np.empty((0, 3), dtype=np.int16))
+    except Exception:
+        return None
+    if not tb.gps:
+        return None
+    t = tb.t_gps_ms.astype(float)
+    hr = np.array([float(p[4]) if len(p) > 4 and p[4] else np.nan for p in tb.gps])
+    hr = puls_ohne_eingefrorene(t, hr)
+    if np.isnan(hr).all():
+        return None
+    return t, hr
+
+
+def _puls_zusammen(t, hr, a_ms: float | None = None, b_ms: float | None = None) -> dict:
+    """Durchschnitt, Hoechstwert, tiefster und erster Messwert im Fenster (ganz ohne Fenster:
+    die ganze Aufnahme). Ohne Messwert alles None — nicht 0, das waere ein Messwert."""
+    import numpy as np
+    m = np.ones(t.shape, dtype=bool)
+    if a_ms is not None:
+        m &= t >= a_ms
+    if b_ms is not None:
+        m &= t <= b_ms
+    w = hr[m]
+    w = w[~np.isnan(w)]
+    if not w.size:
+        return {"avg_puls": None, "max_puls": None, "tiefster_puls": None, "start_puls": None}
+    return {"avg_puls": int(round(float(w.mean()))), "max_puls": int(w.max()),
+            "tiefster_puls": int(w.min()), "start_puls": int(w[0])}
+
+
+def _laeufe(ar: models.AnalysisResult | None, off: int, puls=None) -> list[dict]:
     if ar is None or not ar.segments_json:
         return []
     try:
@@ -320,6 +390,9 @@ def _laeufe(ar: models.AnalysisResult | None, off: int) -> list[dict]:
         ende = g.get("t_end_session_ms", (g.get("t_end_ms") or 0) + off)
         aus.append({
             "lauf": i,
+            # Die App zaehlt ab 1 — ohne diese Zeile spricht der Agent von „Lauf 3", wo der
+            # Nutzer „Lauf 4" sieht.
+            "lauf_nr_in_app": i + 1,
             "start_ms_ab_sessionbeginn": start,
             "ende_ms_ab_sessionbeginn": ende,
             "dauer_s": round((ende - start) / 1000.0, 1),
@@ -329,6 +402,10 @@ def _laeufe(ar: models.AnalysisResult | None, off: int) -> list[dict]:
             "pumps": g.get("pump_count"),
             "takt_hz": g.get("cadence_hz"),
         })
+        if puls is not None:
+            z = _puls_zusammen(puls[0], puls[1], start, ende)
+            aus[-1].update({"avg_puls": z["avg_puls"], "max_puls": z["max_puls"],
+                            "start_puls": z["start_puls"]})
     return aus
 
 
@@ -345,6 +422,14 @@ def _get_session(db: Session, user_id: int, arg: dict) -> dict:
     except ValueError:
         m = {}
     aus = _kurz(s, ar)
+    puls = _puls_reihe(s)
+    puls_ges = None
+    if puls is not None:
+        z = _puls_zusammen(puls[0], puls[1])
+        # Durchschnitt und Hoechstwert wie in der App (metrics_json), der tiefste aus der Reihe.
+        puls_ges = {"avg_puls": m.get("avg_hr", z["avg_puls"]),
+                    "max_puls": m.get("max_hr", z["max_puls"]),
+                    "tiefster_puls": z["tiefster_puls"]}
     # `device_model` ist bei aelteren Aufnahmen leer — dann steht die Beschriftung nur am Token.
     # Ohne diesen Rueckfall musste Jans Agent am 25.09.2026 aus der Abtastrate erraten, welche
     # Uhr eine Aufnahme gemacht hat („25 Hz, also wohl Garmin"). Raten soll er hier nie muessen.
@@ -369,7 +454,14 @@ def _get_session(db: Session, user_id: int, arg: dict) -> dict:
             "heisst meist, dass Pumps nicht erkannt wurden.",
         "puls_quelle": s.hr_source,
         "puls_proben": s.hr_samples,
-        "laeufe_einzeln": _laeufe(ar, int(s.trim_start_ms or 0)),
+        # Puls als ZAHLEN (26.09.2026). Bis dahin standen hier nur Quelle und Probenzahl — ein
+        # Agent sah, DASS es 2.000 Pulswerte gab, aber keinen einzigen davon.
+        "puls": puls_ges,
+        "puls_hinweis": ("Kein Puls in dieser Aufnahme." if puls is None else
+                         "tiefster_puls ist der niedrigste Wert der Aufnahme, kein echter "
+                         "Ruhepuls. Verlauf je Lauf: get_run_heart_rate(session_id, lauf, "
+                         "intervall_s=1 oder 10) mit `lauf` aus laeufe_einzeln."),
+        "laeufe_einzeln": _laeufe(ar, int(s.trim_start_ms or 0), puls),
         # Der Agent soll nicht schliessen muessen, dass es Lage-Daten gibt — er soll es lesen.
         # Jans Agent hielt sie am 25.09.2026 fuer fehlend, weil hier nichts davon stand.
         "lage_je_lauf": ("Mit get_board_attitude(session_id) abrufbar." if s.placement == "board"
@@ -377,6 +469,48 @@ def _get_session(db: Session, user_id: int, arg: dict) -> dict:
         "ausruestung": _ausruestung_der_session(db, s),
         "herkunft": _herkunft(s, m),
     })
+    return aus
+
+
+# Obergrenze der Reihe: eine Stunde im Sekundentakt. Laengere Laeufe gibt es praktisch nicht,
+# und eine Antwort soll das Kontextfenster des Agenten nicht fluten.
+MAX_PULS_WERTE = 3600
+
+
+def _get_run_heart_rate(db: Session, user_id: int, arg: dict) -> dict:
+    """Der Puls eines Laufs als Reihe, je 1 oder 10 s. Details auf Abruf — die Zusammenfassung
+    steht in get_session (Jan, 26.09.2026: „die details nur per zusaetzlicher abfrage")."""
+    import numpy as np
+    s = _eigene(db, user_id).filter(models.Session.id == int(arg["session_id"])).first()
+    if s is None:
+        return {"fehler": "Diese Aufnahme gibt es fuer dich nicht."}
+    ar = db.query(models.AnalysisResult).filter(
+        models.AnalysisResult.session_id == s.id).first()
+    laeufe = _laeufe(ar, int(s.trim_start_ms or 0))
+    nr = int(arg["lauf"])
+    if not 0 <= nr < len(laeufe):
+        return {"fehler": f"Einen Lauf {nr} gibt es in dieser Aufnahme nicht "
+                          f"({len(laeufe)} Laeufe, `lauf` 0 bis {len(laeufe) - 1})."}
+    schritt = 1 if int(arg.get("intervall_s") or 10) == 1 else 10
+    lauf = laeufe[nr]
+    a, b = float(lauf["start_ms_ab_sessionbeginn"]), float(lauf["ende_ms_ab_sessionbeginn"])
+    puls = _puls_reihe(s)
+    aus = {"session_id": s.id, "lauf": nr, "lauf_nr_in_app": nr + 1, "intervall_s": schritt,
+           "start_ms_ab_sessionbeginn": int(a), "dauer_s": lauf["dauer_s"]}
+    if puls is None:
+        return {**aus, "werte": [], "hinweis": "Kein Puls in dieser Aufnahme."}
+    t, hr = puls
+    m = (t >= a) & (t <= b)
+    tl, hl = (t[m] - a) / 1000.0, hr[m]
+    n = min(int((b - a) / 1000.0 // schritt) + 1, MAX_PULS_WERTE)
+    werte = []
+    for k in range(n):
+        w = hl[(tl >= k * schritt) & (tl < (k + 1) * schritt)]
+        w = w[~np.isnan(w)]
+        werte.append({"t_s": k * schritt, "puls": int(round(float(w.mean()))) if w.size else None})
+    aus["werte"] = werte
+    aus["werte_bedeutung"] = ("t_s = Sekunden ab Laufbeginn; puls = Mittel der Messwerte in "
+                              f"[t_s, t_s+{schritt}) in bpm, null = kein Messwert.")
     return aus
 
 
@@ -668,6 +802,7 @@ _HANDLER = {
     "list_sessions": _list_sessions,
     "get_session": _get_session,
     "get_board_attitude": lambda db, uid, arg: _get_board_attitude(db, uid, arg),
+    "get_run_heart_rate": _get_run_heart_rate,
     "get_stats": _get_stats,
     "list_equipment": _list_equipment,
 }
@@ -721,7 +856,12 @@ async def mcp(request: Request, db: Session = Depends(get_db)):
         return JSONResponse({"jsonrpc": "2.0", "id": id_, "result": {
             "protocolVersion": "2025-06-18",
             "capabilities": {"tools": {}},
-            "serverInfo": {"name": "pumpfoil", "version": "1.0.0"},
+            # Version nur zur Nachvollziehbarkeit (steht im Log des Clients). Neue Werkzeuge
+            # erfaehrt ein Agent NICHT hierueber, sondern ueber `tools/list`, das ein Client bei
+            # jeder neuen Verbindung abfragt. Ein `listChanged`-Push ginge nur ueber einen
+            # offenen Ereignis-Strom (GET /mcp), den wir nicht anbieten.
+            # 1.1.0 (26.09.2026): Puls je Aufnahme und Lauf, `get_run_heart_rate`.
+            "serverInfo": {"name": "pumpfoil", "version": "1.1.0"},
             "instructions": ANLEITUNG,
         }})
     if methode in ("notifications/initialized", "ping"):
