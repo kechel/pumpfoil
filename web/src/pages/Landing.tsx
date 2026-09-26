@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import {
   ChevronIcon, WatchIcon, ChartIcon, MapIcon, CommunityIcon, UploadIcon,
   FoilIcon, FakeIcon, BellIcon, DownloadIcon, ChatBubbleIcon, LocationIcon, TagIcon,
-  LockIcon, HeartIcon,
+  LockIcon, HeartIcon, EditIcon, BoardIcon, SparklesIcon,
 } from "../components/Icons";
 import { useT, useI18n } from "../i18n";
 import { LanguageFlags } from "../components/LanguageSelect";
@@ -66,6 +66,15 @@ export default function Landing() {
   useSeo(t("seo.landTitle"), t("seo.landDesc"), window.location.pathname);
   // Kompakter Lieblings-Short ganz oben (Click-to-Load-Fassade, datensparsam).
   const [heroVideoOn, setHeroVideoOn] = useState(false);
+  // VORSCHAU (26.09.2026): der neue Startseiten-Text erscheint nur mit `?vorschau=1`, bis Jan ihn
+  // abgenommen hat — erst Deutsch, die anderen Sprachen folgen danach. Nach der Abnahme faellt
+  // dieser Schalter weg.
+  const vorschau = new URLSearchParams(window.location.search).has("vorschau");
+  const kannPunkte = [
+    { icon: EditIcon, k: "kann1" }, { icon: CommunityIcon, k: "kann2" },
+    { icon: WatchIcon, k: "kann3" }, { icon: ChartIcon, k: "kann4" },
+    { icon: BoardIcon, k: "kann5" }, { icon: LockIcon, k: "kann6" },
+  ];
   const features = [
     { icon: WatchIcon, title: t("land.f1Title"), body: t("land.f1Body") },
     { icon: ChartIcon, title: t("land.f2Title"), body: t("land.f2Body") },
@@ -318,6 +327,17 @@ export default function Landing() {
                     <p className="mt-1 text-sm text-slate-400">{t("land.watchFeat3Body")}</p>
                   </div>
                 </li>
+                {vorschau && (
+                  <li className="flex items-start gap-4">
+                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-500/15 text-brand-400">
+                      <SparklesIcon className="h-6 w-6" />
+                    </span>
+                    <div>
+                      <h4 className="font-semibold">{t("land.watchFeat4Title")}</h4>
+                      <p className="mt-1 text-sm text-slate-400">{t("land.watchFeat4Body")}</p>
+                    </div>
+                  </li>
+                )}
               </ul>
               <p className="mt-6 text-center text-sm font-medium text-brand-400">
                 {t("land.watchFeatMore")}
@@ -327,6 +347,22 @@ export default function Landing() {
       </div>
 
       <main className="mx-auto max-w-5xl px-5">
+
+        {vorschau && (
+          <section className="pb-12 pt-2">
+            <h2 className="mb-2 text-center text-xl font-bold sm:text-2xl">{t("land.kannTitle")}</h2>
+            <p className="mx-auto mb-6 max-w-2xl text-center text-slate-300">{t("land.kannBody")}</p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {kannPunkte.map((p) => (
+                <div key={p.k} className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
+                  <p.icon className="h-7 w-7 text-brand-400" />
+                  <h3 className="mt-2 font-semibold">{t(`land.${p.k}Title`)}</h3>
+                  <p className="mt-1 text-sm text-slate-400">{t(`land.${p.k}Body`)}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Schon eine Sportuhr? Bestehendes Suunto-/Polar-Konto verbinden (Import ohne unsere App). */}
         <section className="pb-12 pt-2">
