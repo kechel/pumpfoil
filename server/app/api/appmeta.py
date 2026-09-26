@@ -225,7 +225,15 @@ _APP_META: dict[str, dict[str, str]] = {
     "garmin": {
         # NUR auf eine im Connect-IQ-Store FREIGEGEBENE Version setzen (Pruefung durch)!
         # Die Garmin-App vergleicht das selbst mit Config.VERSION (SessionRecorder.mc:638).
-        "latest": "1.0.89",   # LIVE im CIQ-Store 2026-09-24, DREIFACH belegt — Store-Seite
+        "latest": "1.0.90",   # LIVE im CIQ-Store 2026-09-26, belegt am STORE, nicht nur gemeldet:
+        # Produktseite und Store-API `latestExternalVersion` 1.0.90 / `latestInternalVersion` 44
+        # (um ~07:50 UTC noch 1.0.89/43 — der Store brauchte eine Weile). Jans Geraet (Token 297,
+        # fenix 7X Pro) meldet 1.0.90, Session #10131. Die Session ALLEIN belegte nichts: dieselbe
+        # Uhr hatte am Morgen die Test-.prg 1.0.90. Jans Wortlaut: „die 1090 ist ja freigegeben.
+        # ich habe die ja schon echt … aus dem store auf meiner echten uhr geupdatet".
+        # Inhalt: Seiten-Saetze + „alle Seiten" fuer die 128-KB-Klasse, Schwarz-Weiss-Uhren weiss,
+        # Instinct-3-Seiten unter dem Nebendisplay.
+        # ALT: "latest": "1.0.89",   # LIVE im CIQ-Store 2026-09-24, DREIFACH belegt — Store-Seite
         # (`latestExternalVersion` 1.0.89, `latestInternalVersion` 43), Jans PHYSISCHES Geraet
         # (Token 297, part_number 006-B4376-00, fenix 7X Pro) und ein zweites (Token 1154,
         # 006-B3888-00), dazu Sessions ab 11:10 mit `app_version 1.0.89`. Eine echte Uhr
@@ -647,46 +655,6 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
-    # Garmin 1.0.90: die 128-KB-Klasse (voller Build ohne Layout-Renderer, z. B. Instinct 3 Solar)
-    # liest die klassischen Seiten-Saetze und „alle Seiten" (`(:klassik)`, SessionRecorder.mc);
-    # Anlass Romans Meldung (u244). Lite (96 KB) und die grossen Uhren byte-gleich.
-    # EINGEREICHT 26.09.2026 vormittags (Jan: „habe die 1.0.90 aus dem iq store auf meine echte uhr
-    # installiert"). Um 07:50 UTC meldeten Store-Seite UND Store-API aber noch 1.0.89 (intern 43) —
-    # `_APP_META["garmin"]` erst umstellen, wenn der Store 1.0.90 selbst nennt.
-    {"name": "Garmin", "version": "1.0.90",
-     "eingereicht": "2026-09-26",
-     "items": [
-         "Watches with less memory, such as the Instinct 3 Solar, show all the pages you set up "
-         "between runs and respect the switch for browsing through the other pages.",
-         "On black-and-white watches such as the Instinct, values that used to be drawn in colour "
-         "are now shown in white instead of disappearing.",
-         "On the Instinct 3, pages with one or two values start below the small round display.",
-     ]},
-    # iOS/Apple: 1.1.37 ist am 25.09. um 00:42 (Berlin) FREIGEGEBEN und steht deshalb hier nicht
-    # mehr, sondern in `_APP_META` als live (beide Schluessel, ein Bundle). Die Punkte sind in die
-    # Changelog-Tabelle gewandert, mit `versionen = {"ios": "1.1.37", "apple": "1.1.37"}`, dazu ein
-    # Freigabe-Ereignis. ZWEI der sechs eingereichten Punkte stehen dort BEWUSST ANDERS:
-    #   - Der Meilenstein-Puls auf den Community-Zahlen ist ein Web-Punkt vom 24.09. ohne Versionen
-    #     („gilt ueberall sofort") — ein zweites Mal mit iOS-Version daneben waere derselbe Satz
-    #     zweimal an zwei Tagen.
-    #   - „Foil Scoot is a sport you can pick for a session." steht OHNE Versionen: die Sportart
-    #     ist seit dem 22.09. in Web und Server (Commit c655d596), nur angekuendigt wurde sie nie.
-    #     Mit iOS-Version davor haetten Web-Nutzer gelesen, sie brauchten dafuer die iPhone-App.
-    # Sobald Android 1.1.32 / Wear 1.2.32 freigegeben sind, bekommen deren eigene Punkte eine
-    # eigene Zeile mit ihren Versionen — so wie der Gyroskop-Punkt am 21.09. (ios/apple) und am
-    # 22.09. (android/wear) zweimal steht. Das ist gewollt: der Leser sieht, was SEIN Update bringt.
-
-    # Android + Wear: 1.1.32 / 1.2.32 sind am 25.09. FREIGEGEBEN und stehen deshalb hier nicht
-    # mehr, sondern in `_APP_META` als live (eine Play-Mail deckt beide Spuren ab). Von den sechs
-    # eingereichten Punkten sind VIER in die Changelog-Tabelle gewandert, mit
-    # `versionen = {"android": "1.1.32", "wear": "1.2.32"}`, dazu ein Freigabe-Ereignis.
-    # Die beiden anderen standen schon ohne Versionen drin und gelten damit fuer alle:
-    # der Meilenstein-Puls (24.09., Web) und Foil Scoot (25.09., seit dem 22.09. in Web und
-    # Server). Sie ein zweites Mal mit Play-Version zu zeigen, waere derselbe Satz doppelt.
-    # Die vier uebrigen stehen bewusst ZWEIMAL in der Tabelle — am 25.09. einmal mit
-    # {ios, apple} und einmal mit {android, wear} —, weil es zwei getrennte Auslieferungen
-    # sind. Genau so schon beim Gyroskop-Punkt am 21./22.09.
-
     {"name": "Amazfit", "version": "1.0.12",
      # EINGEREICHT 24.09.2026: im Zepp-Entwicklerkonto steht 1.0.12 auf „Under Review (Can be
      # Withdrawn)", Application Time 2026.09.24; 1.0.11 daneben weiter „Approved".
