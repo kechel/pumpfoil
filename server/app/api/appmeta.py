@@ -841,6 +841,11 @@ IDEEN: list[str] = [
     "Make the Garmin data pages easier to set up. The current screen configuration confuses "
     "people, and rightly so.",
     "More watch brands, wherever the maker lets an app or an export through.",
+    # Das runde Nebendisplay der Instinct (WatchUi.getSubscreen) — Jan, 26.09.2026: „dann lassen
+    # wir das fuer dieses release und nehmen es mit in ideas auf". Nur Mittelklasse (Instinct 3);
+    # die Instinct-2-Familie ist Lite-Stufe am Speicherlimit.
+    "Use the small round display of the Instinct 3 for a value of your choice, visible on every "
+    "page.",
     # Die Erkennung laeuft heute NUR, wo ohnehin Pumpfoil behauptet wird (analysis/__init__.py:
     # `sport_class == "pumpfoil"`), zweifelt also keine anderslautende Profil-Einstellung an.
     # Jans Fall faellt damit durch. Detektor-Arbeit, braucht sein OK.

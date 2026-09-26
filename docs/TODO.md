@@ -1161,6 +1161,13 @@ Erledigtes steht nicht mehr hier. Neue spontane TODOs unten unter „📥 Inbox"
 
 ## 💡 Backlog (Produktideen — bewusst später)
 
+- **Instinct-Nebendisplay nutzen** (26.09.2026, Jan: „fuer dieses release nicht, mit in ideas"):
+  das runde Mini-Display oben rechts (`WatchUi.getSubscreen()`, ab API 3.2.7) fuer einen Wert, der
+  auf jeder Seite steht — Puls, Laufdauer o. ae., evtl. im Profil waehlbar. Nur Mittelklasse
+  (Instinct 3 Solar; Instinct E im Emulator pruefen, ob es dort eines gibt). Die Instinct-2-Familie
+  hat eines, ist aber Lite-Stufe am Speicherlimit — dort NICHT. Seit 1.0.90 spart die Seitenaufteilung
+  das Nebendisplay bei 1-2 Feldern aus bzw. rueckt bei 3 Feldern das erste nach links.
+
 - **Forum** (Threads/Antworten/Zitieren/Bilder, Bereiche, Spot-Kopplung) — Entwurf liegt in
   [`docs/FORUM.md`](FORUM.md) (Feature-Liste, Architektur, Phasen, 5 offene Entscheidungen,
   u. a. „öffentlich lesbar?"). Nur Planung, nichts gebaut; wartet auf Jans Entscheidungen.

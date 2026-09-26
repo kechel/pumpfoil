@@ -302,11 +302,18 @@ class RecordView extends WatchUi.View {
         var top = h * 0.13;
         var band = h * 0.74;
         var nSchrift = n;
-        // NUR bei ein oder zwei Feldern. Mit drei bleiben unter dem Nebendisplay auf 176 px rund
-        // 30 px je Feld, die Beschriftung allein braucht ~15 und schrumpft nicht mit — Wert und
+        var sub = (WatchUi has :getSubscreen) ? WatchUi.getSubscreen() : null;
+        var cx0 = w / 2;   // Mitte des ERSTEN Felds (s. drei Felder unten)
+        // DREI FELDER: das Band NICHT kuerzen — unter dem Nebendisplay blieben auf 176 px rund 30 px
+        // je Feld, die Beschriftung allein braucht ~15 und schrumpft nicht mit; Wert und
         // Beschriftung lagen uebereinander, der dritte Wert verschwand (Jan im Emulator, 26.09.).
-        // Drei Felder bleiben deshalb in der vollen Hoehe (Jan: „bei drei feldern ist das halt so").
-        var sub = (n <= 2 && (WatchUi has :getSubscreen)) ? WatchUi.getSubscreen() : null;
+        // Stattdessen das ERSTE Feld samt Beschriftung nach links in die freie Flaeche neben dem
+        // Nebendisplay schieben (Jans Vorschlag), sofern es auf dessen Hoehe liegt.
+        if (n >= 3 && sub != null && sub.x != null && sub.y != null && sub.height > 0) {
+            var cy0 = top + band * 0.5 / n;
+            if (cy0 < sub.y + sub.height && sub.x > w * 0.4) { cx0 = sub.x / 2; }
+            sub = null;
+        }
         if (sub != null && sub.y != null && sub.height > 0) {
             var unter = sub.y + sub.height + 2;
             // Nur ein Nebendisplay OBEN verschiebt; eines weiter unten wuerde das Band halbieren,
@@ -318,9 +325,15 @@ class RecordView extends WatchUi.View {
                 nSchrift = n * (h * 0.74) / band;
             }
         }
+        // FEINJUSTAGE bei drei Feldern neben dem Nebendisplay (Jan im Emulator, 26.09.: „das oberste
+        // und mittlere label 2px hoeher, den untersten value 1px hoeher"). Nur dort, wo das erste
+        // Feld nach links geschoben ist — also nur auf den 176-px-Instinct mit Nebendisplay.
+        var justiert = (n >= 3 && cx0 != w / 2);
         for (var i = 0; i < n; i++) {
             var cy = top + band * (i + 0.5) / n;
-            _drawField(dc, active[i], w / 2, cy, nSchrift);
+            var wertDy = (justiert && i == 2) ? -1 : 0;
+            var lblDy = justiert ? ((i < 2) ? -2 : 1) : 0;   // unten: Beschriftung bleibt, wo sie war
+            _drawField(dc, active[i], (i == 0) ? cx0 : w / 2, cy + wertDy, nSchrift, lblDy);
         }
     }
 
@@ -867,7 +880,10 @@ class RecordView extends WatchUi.View {
         return text;
     }
 
-    hidden function _drawField(dc, type, cx, cy, n) {
+    // `(:nichtklassik)`: Lite + grosse Uhren, unveraendert. Die `(:klassik)`-Fassung darunter ist
+    // dieselbe Funktion mit einem Versatz `lblDy` fuer die Beschriftung — die Instinct-Feinjustage
+    // bei drei Feldern (s. _drawFieldPage) braucht Beschriftung und Wert getrennt.
+    (:nichtklassik) hidden function _drawField(dc, type, cx, cy, n) {
         var pp = _fieldParts(type);
         var value = pp[0];
         var label = pp[1];
@@ -917,6 +933,58 @@ class RecordView extends WatchUi.View {
         var floorY = hh * 0.92 - 5 - dc.getFontHeight(lblFont);
         if (_pageCount() > 1 && y > floorY) { y = floorY; }
         dc.drawText(cx, y, lblFont, label, Graphics.TEXT_JUSTIFY_CENTER);
+    }
+
+    (:klassik) hidden function _drawField(dc, type, cx, cy, n, lblDy) {
+        var pp = _fieldParts(type);
+        var value = pp[0];
+        var label = pp[1];
+        dc.setColor(pp[2], Graphics.COLOR_TRANSPARENT);
+        // Font-Leiter: so gross wie moeglich, aber nur so gross, wie er an DIESER Stelle passt.
+        // Die NUMBER-Fonts enthalten nur Ziffern (plus : . -) und reichen fuer alle Werte; darunter
+        // die Text-Fonts als letzter Rueckfall, damit auch "--" und lange Zeiten nie ueberstehen.
+        var kandidaten = (n >= 3)
+            ? [Graphics.FONT_NUMBER_MEDIUM, Graphics.FONT_NUMBER_MILD, Graphics.FONT_LARGE,
+               Graphics.FONT_MEDIUM, Graphics.FONT_SMALL]
+            : [Graphics.FONT_NUMBER_HOT, Graphics.FONT_NUMBER_MEDIUM, Graphics.FONT_NUMBER_MILD,
+               Graphics.FONT_LARGE, Graphics.FONT_MEDIUM];
+        var hh0 = dc.getHeight();
+        var slotH = hh0 * 0.74 / n;
+        // Beschriftung größer + lesbarer (Nutzer-Feedback): bei 1–2 Feldern FONT_TINY, bei 3 (eng)
+        // FONT_XTINY. Abstand aus der echten Fonthöhe statt fixer 30 px — trägt über alle
+        // Auflösungen (176…454 px) und ist die Grundlage des Layout-Renderers.
+        var lblFont = _fitFont(dc, label,
+            (n >= 3) ? [Graphics.FONT_XTINY] : [Graphics.FONT_TINY, Graphics.FONT_XTINY],
+            _usableWidth(dc, cy + hh0 * 0.08), hh0);
+        // HOEHENBUDGET des Werts. Ein Feld ist NICHT nur die Zahl: darunter haengen Abstand und
+        // Beschriftung, und die naechste Zahl steht schon `slotH` tiefer. Ohne diese Rechnung
+        // durfte die Zahl fast den ganzen Slot fuellen — auf 176 px (Instinct 2, drei Felder)
+        // blieben zwischen Beschriftung und naechstem Wert rechnerisch <1 px, die Seite wirkte
+        // ueberfuellt. Zahl ist auf cy zentriert, also zaehlt die halbe Hoehe nach unten:
+        //   halbe Zahl + Abstand + Beschriftung <= slotH.
+        var gap0 = slotH * 0.33;
+        if (gap0 > hh0 * 0.10) { gap0 = hh0 * 0.10; }
+        var budget = 2.0 * (slotH - gap0 - dc.getFontHeight(lblFont) * 0.8);
+        if (budget > slotH * 0.95) { budget = slotH * 0.95; }
+        if (budget < slotH * 0.45) { budget = slotH * 0.45; }   // nie laecherlich klein werden
+        var font = _fitFont(dc, value, kandidaten, _usableWidth(dc, cy), budget);
+        dc.drawText(cx, cy, font, value, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+        // Label-Abstand: NICHT aus dc.getFontHeight() ableiten. Die Funktion liefert bei den
+        // NUMBER-Fonts die ZEILENhöhe inklusive Durchschuss (deutlich mehr als die Ziffernhöhe) —
+        // damit landete das Label mitten im NÄCHSTEN Feld statt unter seinem eigenen Wert
+        // (Jan im Simulator, zwei Anläufe: /2 klebte am Wert, *0,75 rutschte ins nächste Feld).
+        // Stattdessen geometrisch: 33 % der Slot-Höhe (bleibt im eigenen Feld), gekappt auf 10 %
+        // der Displayhöhe (sonst schwebt das Label bei nur einem Feld weit weg vom Wert).
+        var hh = hh0;
+        var y = cy + gap0;
+        // Unterste Grenze: das Label darf die Seiten-Punkte (h*0.92, Radius 3) nicht berühren.
+        // `drawText` ohne VCENTER setzt die Textkante OBEN an, also die Fonthöhe einrechnen. Auf
+        // 240 px (fēnix 5, 3 Felder) lief das Label sonst genau in die Punktreihe — von Jan im
+        // Simulator gesehen; auf 280 px fiel es nicht auf, weil dort 26 px Luft bleiben.
+        var floorY = hh * 0.92 - 5 - dc.getFontHeight(lblFont);
+        if (_pageCount() > 1 && y > floorY) { y = floorY; }
+        dc.drawText(cx, y + lblDy, lblFont, label, Graphics.TEXT_JUSTIFY_CENTER);
     }
 
     // ================================ Layout-Renderer =================================
