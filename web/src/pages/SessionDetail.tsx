@@ -2765,6 +2765,19 @@ function RunsTable({
     return m || null;
   };
   const hasHr = segments.some((s) => maxHr(s) != null);
+  // Start-, End- und Durchschnittspuls je Lauf (Jan, 26.09.2026) — aus denselben Messpunkten wie
+  // der Hoechstpuls. Start/Ende = erster/letzter GEMESSENE Wert im Lauf, nicht hr[i_start]: am
+  // Laufanfang fehlt der Puls oft ein paar Sekunden.
+  const hrWerte = (s: any): number[] => {
+    if (!hr.length || s?.i_start == null || s?.i_end == null) return [];
+    const out: number[] = [];
+    for (let i = Math.max(0, s.i_start); i <= Math.min(s.i_end, hr.length - 1); i++) {
+      const v = hr[i];
+      if (v != null && v > 0) out.push(v);
+    }
+    return out;
+  };
+  const bpm = (v: number | null | undefined) => (v != null ? `${Math.round(v)} bpm` : "–");
   // Kadenz-Zellen ohne Einheit — die steht in der Spaltenüberschrift (Hz bzw. /min).
   const hz = (v: number | null | undefined) => (v != null ? pf.value(v) : "–");
   const val = (s: any, kind: "avg" | "max" | "min") => {
@@ -2894,7 +2907,10 @@ function RunsTable({
               {hasPump && <th className="px-3 py-2 font-medium">{t("sd.colDistPerPump")}</th>}
               {hasPump && <th className="px-3 py-2 font-medium">{t("sd.colAvgPump", { unit: pf.suffix })}</th>}
               {hasPump && <th className="px-3 py-2 font-medium">{t("sd.colPumpMaxMin", { unit: pf.suffix })}</th>}
+              {hasHr && <th className="px-3 py-2 font-medium">{t("sd.colHrStart")}</th>}
+              {hasHr && <th className="px-3 py-2 font-medium">{t("sd.colHrAvg")}</th>}
               {hasHr && <th className="px-3 py-2 font-medium">{t("sd.colMaxHr")}</th>}
+              {hasHr && <th className="px-3 py-2 font-medium">{t("sd.colHrEnd")}</th>}
               <th className="px-3 py-2 font-medium">{t("sd.colGlide")}</th>
               {canEdit && <th className="px-3 py-2 font-medium" title={t("sd.excludeRun")}><FoilOffIcon className="h-4 w-4" /></th>}
             </tr>
@@ -2941,11 +2957,16 @@ function RunsTable({
                   {hasPump && <td className="px-3 py-2 tabular-nums">{s.pumps ? `${(s.distance_m / s.pumps).toFixed(1)} m` : "–"}</td>}
                   {hasPump && <td className="px-3 py-2 tabular-nums">{hz(s.avg_pump_hz)}</td>}
                   {hasPump && <td className="px-3 py-2 tabular-nums">{hz(s.max_pump_hz)} / {hz(s.min_pump_hz)}</td>}
-                  {hasHr && (
-                    <td className="px-3 py-2 tabular-nums">
-                      {(() => { const v = maxHr(s); return v != null ? `${v} bpm` : "–"; })()}
-                    </td>
-                  )}
+                  {hasHr && (() => {
+                    const w = hrWerte(s);
+                    const avg = w.length ? w.reduce((a, b) => a + b, 0) / w.length : null;
+                    return (<>
+                      <td className="px-3 py-2 tabular-nums">{bpm(w.length ? w[0] : null)}</td>
+                      <td className="px-3 py-2 tabular-nums">{bpm(avg)}</td>
+                      <td className="px-3 py-2 tabular-nums">{bpm(maxHr(s))}</td>
+                      <td className="px-3 py-2 tabular-nums">{bpm(w.length ? w[w.length - 1] : null)}</td>
+                    </>);
+                  })()}
                   <td className="px-3 py-2 tabular-nums">{s.longest_glide_s != null ? `${s.longest_glide_s.toFixed(1)} s` : "–"}</td>
                   {canEdit && (
                     <td className="px-3 py-2">
