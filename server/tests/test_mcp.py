@@ -407,3 +407,78 @@ def test_kontingent_kappt_die_verbindung_nicht(client):
     ergebnis = letzte.json()["result"]
     assert ergebnis.get("isError") is True
     assert "Verbindung bleibt bestehen" in ergebnis["content"][0]["text"]
+
+
+def _puls_session(user_id: int) -> int:
+    """Eine Aufnahme mit echter GPS-Spur samt Puls auf der Platte und zwei Laeufen: 0–60 s Puls
+    100→159, dann 60 s Pause bei 90, dann Lauf 2 mit 3 Minuten STEHENGEBLIEBENEM Wert 170."""
+    import json as _json
+    from app import models, storage
+    from app.db import SessionLocal
+    sid = _session_anlegen(user_id, hr_samples=300, hr_source="watch")
+    db = SessionLocal()
+    try:
+        s = db.get(models.Session, sid)
+        punkte = []
+        for sek in range(300):
+            if sek < 60:
+                hr = 100 + sek
+            elif sek < 120:
+                hr = 90
+            else:
+                hr = 170
+            punkte.append([sek * 1000, 47.5 + sek * 1e-5, 9.7, 4.0, hr, 3.0])
+        d = storage.session_dir(s.session_uuid) / "gps"
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "0.json").write_text(_json.dumps(punkte))
+        db.add(models.AnalysisResult(
+            session_id=sid, algo_version="test",
+            metrics_json=_json.dumps({"avg_hr": 130, "max_hr": 159}),
+            segments_json=_json.dumps([
+                # Vollstaendige Laeufe (mit Indizes und Kennzahlen): andere Tests lesen jede
+                # Auswertung der Test-DB, und ein halber Lauf bricht dort mit KeyError.
+                {"t_start_session_ms": 0, "t_end_session_ms": 59000, "t_start_ms": 0,
+                 "t_end_ms": 59000, "i_start": 0, "i_end": 59, "duration_s": 59.0,
+                 "distance_m": 60.0, "max_speed_mps": 4.0, "avg_speed_mps": 4.0},
+                {"t_start_session_ms": 120000, "t_end_session_ms": 299000, "t_start_ms": 120000,
+                 "t_end_ms": 299000, "i_start": 120, "i_end": 299, "duration_s": 179.0,
+                 "distance_m": 180.0, "max_speed_mps": 4.0, "avg_speed_mps": 4.0}])))
+        db.commit()
+    finally:
+        db.close()
+    return sid
+
+
+def test_puls_zusammenfassung_und_reihe_je_lauf(client):
+    """Bis 26.09.2026 sah ein Agent nur, DASS es Pulswerte gab, aber keinen davon."""
+    jwt = _konto(client, "mcp-puls@b.de")
+    sid = _puls_session(_user_id(client, jwt))
+    token = _zugang(client, jwt, _client_anmelden(client))
+
+    s = _ruf(client, token, "get_session", {"session_id": sid})
+    assert s["puls"]["avg_puls"] == 130 and s["puls"]["max_puls"] == 159
+    assert s["puls"]["tiefster_puls"] == 90          # die Pause, kein echter Ruhepuls
+    assert "get_run_heart_rate" in s["puls_hinweis"]
+    l0, l1 = s["laeufe_einzeln"]
+    assert (l0["lauf"], l0["lauf_nr_in_app"]) == (0, 1)
+    assert l0["start_puls"] == 100 and l0["max_puls"] == 159
+    # Lauf 2 hat nur den stehengebliebenen Wert: der ist KEIN Messwert, also nichts statt 170.
+    assert l1["max_puls"] is None and l1["avg_puls"] is None
+
+    r10 = _ruf(client, token, "get_run_heart_rate", {"session_id": sid, "lauf": 0})
+    # Mittel 100..109 = 104,5 -> 104 (round halb-gerade, wie avg_hr in der Analyse).
+    assert r10["intervall_s"] == 10 and r10["werte"][0] == {"t_s": 0, "puls": 104}
+    r1 = _ruf(client, token, "get_run_heart_rate", {"session_id": sid, "lauf": 0, "intervall_s": 1})
+    assert [w["puls"] for w in r1["werte"][:3]] == [100, 101, 102]
+    assert "fehler" in _ruf(client, token, "get_run_heart_rate", {"session_id": sid, "lauf": 5})
+
+    # Auch mit `mit_laeufen` in der Liste steht der Puls je Lauf.
+    zeile = _ruf(client, token, "list_sessions", {"mit_laeufen": True})["sessions"][0]
+    assert zeile["laeufe_einzeln"][0]["max_puls"] == 159
+
+
+def test_pulsreihe_gibt_es_nur_fuer_eigene(client):
+    jwt = _konto(client, "mcp-puls-ich@b.de")
+    fremd = _puls_session(_user_id(client, _konto(client, "mcp-puls-fremd@b.de")))
+    token = _zugang(client, jwt, _client_anmelden(client))
+    assert "fehler" in _ruf(client, token, "get_run_heart_rate", {"session_id": fremd, "lauf": 0})
