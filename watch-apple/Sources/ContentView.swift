@@ -155,10 +155,8 @@ struct RecordView: View {
     @State private var fixedHigh = 0
     @State private var selInit = false         // Default-Vorwahl nur einmal setzen
     @State private var alarmSource = "foil"     // Schwellen-Quelle: "foil" (Auto) | "manual"
-    @State private var offFoil: [Int] = [12, 17, 16]   // Lauf-Ende-Screen (kurz nach Lauf-Ende)
+    @State private var offFoil: [Int] = [12, 17, 16]   // klassische Off-Foil-Seite, falls kein Satz kommt
     @State private var pauseView: [Int] = [12, 20, 2]  // Pausen-Screen: Uhrzeit · Läufe · Puls
-    @State private var showRunEnd = false               // true = Lauf-Ende-Screen, false = Pausen-Screen
-    @State private var lastDataPage = 2                 // Rücksprungziel nach der Übersicht
     @State private var autoStart = false                // GPS-Auto-Start (Config-Default, auf der Uhr umschaltbar)
     // Profil-Einstellung „ein Tipp statt 2 s halten" (gilt fuer alle Uhren des Nutzers).
     @State private var pressStattHalten = false
@@ -216,13 +214,18 @@ struct RecordView: View {
 
     // MARK: - Aufnahme
 
-    // Pager: Aktion(0) | Stop(1) | Daten 2..n+1 | [Übersicht(n+2)] | Stop | Aktion.
+    // Pager: Aktion(0) | Stop(1) | Daten 2..n+1 | Stop(STOP_HINTEN) | Aktion(STOP_HINTEN+1).
     // AKTIONSSEITEN ganz außen: oben Pausieren/Fortsetzen, darunter Verwerfen (Jan, 25.09.2026:
     // „mach pause lieber mit auf den screen wo auch verwerfen ist, halten wieder die eigene seite
     // wie vorher" — dieselbe Aufteilung wie auf Zepp seit 24.09.).
-    // WELCHE Datenseiten, haengt am Zustand, wie Garmin (`RecordView._ring`): laeuft -> On-Foil-
-    // Seiten + Übersicht; pausiert -> Pausen-Seiten (bei „alle Seiten" dahinter die On-Foil-Seiten),
-    // keine Übersicht. Bis 25.09. sah man in der Pause weder Pausen-Seiten noch einen Hinweis.
+    // WELCHE Datenseiten, haengt am Zustand, genau wie Garmin (`RecordView._state/_ring`): im Lauf
+    // die On-Foil-Seiten, zwischen den Läufen die Off-Foil-Seiten, pausiert die Pausen-Seiten; bei
+    // „alle Seiten" hängen die übrigen Sätze hinten dran. Bis 26.09.2026 gab es statt des
+    // Off-Foil-Satzes eine „Übersicht" mit der alten klassischen Einzelansicht — die im Profil
+    // eingerichteten Off-Foil-Seiten kamen an, wurden aber nie gezeigt (Jan: „eine 4te
+    // klassische ansicht ganz am ende").
+    // Die hinteren Tags sind FEST (nicht n+2): wechselt der Satz mitten im Blättern die Länge,
+    // bleibt man so auf der Stop-/Aktionsseite, statt auf einer Datenseite zu landen.
     // Die .tag()-Aufrufe bleiben ABSICHTLICH direkte Kinder des TabView — nur so findet die
     // Auswahl ihre Seiten.
     private var recordingPager: some View {
@@ -234,11 +237,8 @@ struct RecordView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .tag(idx + 2)
             }
-            if !rec.isPaused {
-                summaryPage.tag(ringPages.count + 2)
-            }
-            stopPage(WLoc.t("rec.toSummary", lang)).tag(stopBackTag)
-            actionPage().tag(stopBackTag + 1)
+            stopPage(zurueckZuDaten).tag(Self.STOP_HINTEN)
+            actionPage().tag(Self.STOP_HINTEN + 1)
         }
         // Der System-Indikator wird auf eigenen Layout-Seiten ausgeblendet: dort bringt das
         // Layout seine eigenen Punkte mit (Element typ 6). Garmin macht es genauso
@@ -254,8 +254,7 @@ struct RecordView: View {
                 if wassersperre == "on" { WKInterfaceDevice.current().enableWaterLock() }
             }
         }
-        .onChange(of: page) { p in if !rec.isPaused && p >= 2 && p <= dataPages.count + 1 { lastDataPage = p } }
-        .onChange(of: rec.isFoiling) { foiling in onFoilingChanged(foiling) }
+        .onChange(of: rec.isFoiling) { _ in onFoilingChanged() }
         .onChange(of: rec.isPaused) { _ in onPausedChanged() }
         .overlay(alignment: .top) { topBadges }
     }
@@ -267,24 +266,67 @@ struct RecordView: View {
         let rueckfall: [Int]
     }
 
-    private var ringPages: [RingEntry] {
-        let on: [RingEntry] = dataPages.enumerated().map { pair in
-            RingEntry(ref: pair.element, rueckfall: pair.offset < views.count ? views[pair.offset] : [1])
-        }
-        guard rec.isPaused else { return on }
-        let pauseRefs: [WatchPageRef] = pausePages ?? [WatchPageRef.classic(pauseView)]
-        let pause: [RingEntry] = pauseRefs.map { RingEntry(ref: $0, rueckfall: pauseView) }
-        return browseAll ? pause + on : pause
+    /// Die drei Zustaende wie Garmin `RecordView._state()`: pausiert geht vor, sonst Lauf ja/nein.
+    private enum RingZustand { case onFoil, offFoil, paused }
+
+    private var ringZustand: RingZustand {
+        if rec.isPaused { return .paused }
+        return rec.isFoiling ? .onFoil : .offFoil
     }
 
-    /// Tag der hinteren Stop-Seite: ohne Übersicht (in der Pause) eine Seite weiter vorn.
-    private var stopBackTag: Int { ringPages.count + (rec.isPaused ? 2 : 3) }
+    /// Seiten-Satz eines Zustands, wie Garmin `_setFor`: fehlt ein geliefertes Set, die klassische
+    /// Einzelansicht des Zustands. Die Rueckfall-Felder einer Layout-Seite (Layout-Schalter aus)
+    /// sind die des Zustands, bei On-Foil die klassische Ansicht an derselben Stelle.
+    private func seitenSatz(_ z: RingZustand) -> [RingEntry] {
+        switch z {
+        case .onFoil:
+            return dataPages.enumerated().map { pair in
+                RingEntry(ref: pair.element, rueckfall: pair.offset < views.count ? views[pair.offset] : [1])
+            }
+        case .offFoil:
+            let refs: [WatchPageRef] = offFoilPages.isEmpty ? [WatchPageRef.classic(offFoil)] : offFoilPages
+            return refs.map { RingEntry(ref: $0, rueckfall: offFoil) }
+        case .paused:
+            let refs: [WatchPageRef] = pausePages ?? [WatchPageRef.classic(pauseView)]
+            return refs.map { RingEntry(ref: $0, rueckfall: pauseView) }
+        }
+    }
+
+    /// Garmin `_ring`: der Satz des Zustands; bei „alle Seiten" dahinter die anderen beiden in
+    /// fester Reihenfolge (On-Foil zuerst). Im Lauf nie — da will man nur die Lauf-Seiten.
+    private var ringPages: [RingEntry] {
+        let z: RingZustand = ringZustand
+        let eigen: [RingEntry] = seitenSatz(z)
+        if z == .onFoil || !browseAll { return eigen }
+        let rest: [RingZustand] = z == .paused ? [.onFoil, .offFoil] : [.onFoil, .paused]
+        return eigen + rest.flatMap { seitenSatz($0) }
+    }
+
+    /// Fester Tag der hinteren Stop-Seite (s. Kommentar am Pager); weit hinter jeder Seitenzahl.
+    private static let STOP_HINTEN = 1000
+
+    /// Hinweis auf der hinteren Stop-Seite: dieselbe Beschriftung wie vorn, Pfeil andersherum.
+    private var zurueckZuDaten: String {
+        var t: String = WLoc.t("rec.toData", lang)
+        if t.hasSuffix(" →") { t = String(t.dropLast(2)) }
+        return "← " + t
+    }
 
     /// Zustandswechsel Pause <-> Aufnahme: vorne anfangen und kurz klicken, wie Garmin
     /// (`screenIdx = 0` + `_vibeSwitch`). Sonst stuende man nach dem Pausieren weiter auf der
     /// Aktionsseite und saehe von den Pausen-Seiten nichts.
     private func onPausedChanged() {
-        showRunEnd = false
+        page = 2
+        WKInterfaceDevice.current().play(.click)
+    }
+
+    /// Lauf beginnt / endet: anderer Satz -> vorne anfangen und klicken, wie Garmin. Aber NUR, wenn
+    /// man gerade Daten ansieht: auf Garmin ist das Aktionsmenue eine eigene Ansicht, die ein
+    /// Lauf-Wechsel nicht anfasst — hier soll er einen genauso wenig von Stop/Verwerfen wegreissen.
+    /// In der Pause haengt der Satz nicht am Lauf, also nichts tun.
+    private func onFoilingChanged() {
+        guard !rec.isPaused else { return }
+        guard page >= 2 && page < Self.STOP_HINTEN else { return }
         page = 2
         WKInterfaceDevice.current().play(.click)
     }
@@ -313,42 +355,11 @@ struct RecordView: View {
         return true
     }
 
-    // Übersicht: kurz Lauf-Ende, dann Pause (Uhrzeit·Läufe·Puls).
-    private var summaryPage: some View {
-        let fields: [Int] = activeFields(showRunEnd ? offFoil : pauseView)
-        return VStack(spacing: 10) {
-            ForEach(fields, id: \.self) { fid in fieldView(fid) }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
     // Upload-Indikator: kleines Wolken-Symbol, wenn gerade Chunks hochgeladen werden.
     @ViewBuilder private var uploadBadge: some View {
         if rec.uploading {
             Image(systemName: "icloud.and.arrow.up")
                 .font(.caption2).foregroundStyle(.secondary).padding(.top, 1)
-        }
-    }
-
-    // Lauf beendet -> Übersicht: erst kurz Lauf-Ende, nach 8 s Pausen-Ansicht. KEIN Rücksprung zur
-    // Datenansicht mehr — die bleibt bis zum nächsten Lauf. Als Methode statt als Closure im Body:
-    // Ablauflogik kostet den Type-Checker im ViewBuilder unnötig viel.
-    private func onFoilingChanged(_ foiling: Bool) {
-        // In der Pause gibt es keine Übersicht, also auch keinen Sprung dorthin.
-        guard !rec.isPaused else { return }
-        // `dataPages.count`, nicht `views.count` (bis 25.09.): mit eigenen Layouts sind es nicht
-        // gleich viele Seiten, und der Sprung nach Lauf-Ende landete auf der falschen.
-        let summaryIdx: Int = dataPages.count + 2
-        if !foiling {
-            page = summaryIdx
-            showRunEnd = true
-            WKInterfaceDevice.current().play(.click)
-            Task {
-                try? await Task.sleep(nanoseconds: 8_000_000_000)
-                if !rec.isFoiling { showRunEnd = false }
-            }
-        } else if page == summaryIdx {
-            page = lastDataPage
         }
     }
 
