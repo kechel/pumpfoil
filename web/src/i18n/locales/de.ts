@@ -1236,7 +1236,7 @@ const de: Record<string, string> = {
   "land.watchFeat3Body": "Die Aufnahme läuft eigenständig auf der Uhr. Sync beim Stopp, wenn ein Handy verbunden ist — sonst automatisch beim nächsten Start der App.",
   "land.watchFeatMore": "… und viele weitere Features",
   "land.watchFeat4Title": "Lernt vom Handy am Brett",
-  "land.watchFeat4Body": "Wer mit Handy am Brett und Uhr zugleich fährt, zeigt uns jeden echten Pump — daraus trainieren wir gerade eine Pump- und Gleit-Erkennung, die danach mit der Uhr allein funktioniert.",
+  "land.watchFeat4Body": "Wer mit Handy am Brett und Uhr zugleich fährt, zeigt uns jeden echten Pump — daraus trainieren wir eine Pump- und Gleit-Erkennung, die danach mit der Uhr allein funktioniert.",
   "land.kannTitle": "Die Pumpfoil-App für jede Sportuhr",
   "land.kannBody": "Aufzeichnen am Handgelenk oder am Brett, auswerten automatisch: Läufe, Pumps, Takt, Gleitstrecken, Puls.",
   "land.kann1Title": "Deine Uhr, deine Datenseiten",

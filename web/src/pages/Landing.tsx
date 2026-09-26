@@ -67,12 +67,8 @@ export default function Landing() {
   useSeo(t("seo.landTitle"), t("seo.landDesc"), window.location.pathname);
   // Kompakter Lieblings-Short ganz oben (Click-to-Load-Fassade, datensparsam).
   const [heroVideoOn, setHeroVideoOn] = useState(false);
-  // VORSCHAU (26.09.2026): der neue Startseiten-Text erscheint nur mit `?vorschau=1`, bis Jan ihn
-  // abgenommen hat — erst Deutsch, die anderen Sprachen folgen danach. Nach der Abnahme faellt
-  // dieser Schalter weg.
-  const vorschau = new URLSearchParams(window.location.search).has("vorschau");
-  // Kontoverknuepfung (Suunto/Polar/Xiaomi/COROS): in der Vorschau direkt unter den Uhren, damit
-  // man als Allererstes alle Logos sieht (Jan, 26.09.2026); sonst an der alten Stelle.
+  // Kontoverknuepfung (Suunto/Polar/Xiaomi/COROS): direkt unter den Uhren, damit man als
+  // Allererstes alle Logos sieht (Jan, 26.09.2026).
   const verknuepfung = (
     <section className="pb-12 pt-2">
       <h2 className="mb-2 text-center text-xl font-bold sm:text-2xl">{t("land.connectTitle")}</h2>
@@ -328,7 +324,7 @@ export default function Landing() {
 
       {/* Uhr-App Key-Features — unterhalb des Video-Bands (Band endet an den Store-Buttons). */}
       <div className="mx-auto max-w-5xl px-5">
-        {vorschau && verknuepfung}
+        {verknuepfung}
         <section className="pb-8">
             <div className="mx-auto mt-2 max-w-3xl rounded-3xl border border-brand-500/30 bg-gradient-to-b from-brand-500/10 to-slate-900/40 p-6 sm:p-8">
               <h3 className="mb-7 text-center text-base font-bold sm:text-lg">
@@ -362,17 +358,15 @@ export default function Landing() {
                     <p className="mt-1 text-sm text-slate-400">{t("land.watchFeat3Body")}</p>
                   </div>
                 </li>
-                {vorschau && (
-                  <li className="flex items-start gap-4">
-                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-500/15 text-brand-400">
-                      <SparklesIcon className="h-6 w-6" />
-                    </span>
-                    <div>
-                      <h4 className="font-semibold">{t("land.watchFeat4Title")}</h4>
-                      <p className="mt-1 text-sm text-slate-400">{t("land.watchFeat4Body")}</p>
-                    </div>
-                  </li>
-                )}
+                <li className="flex items-start gap-4">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-500/15 text-brand-400">
+                    <SparklesIcon className="h-6 w-6" />
+                  </span>
+                  <div>
+                    <h4 className="font-semibold">{t("land.watchFeat4Title")}</h4>
+                    <p className="mt-1 text-sm text-slate-400">{t("land.watchFeat4Body")}</p>
+                  </div>
+                </li>
               </ul>
               <p className="mt-6 text-center text-sm font-medium text-brand-400">
                 {t("land.watchFeatMore")}
@@ -383,23 +377,19 @@ export default function Landing() {
 
       <main className="mx-auto max-w-5xl px-5">
 
-        {vorschau && (
-          <section className="pb-12 pt-2">
-            <h2 className="mb-2 text-center text-xl font-bold sm:text-2xl">{t("land.kannTitle")}</h2>
-            <p className="mx-auto mb-6 max-w-2xl text-center text-slate-300">{t("land.kannBody")}</p>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {kannPunkte.map((p) => (
-                <div key={p.k} className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-                  <p.icon className="h-7 w-7 text-brand-400" />
-                  <h3 className="mt-2 font-semibold">{t(`land.${p.k}Title`)}</h3>
-                  <p className="mt-1 text-sm text-slate-400">{t(`land.${p.k}Body`)}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {!vorschau && verknuepfung}
+        <section className="pb-12 pt-2">
+          <h2 className="mb-2 text-center text-xl font-bold sm:text-2xl">{t("land.kannTitle")}</h2>
+          <p className="mx-auto mb-6 max-w-2xl text-center text-slate-300">{t("land.kannBody")}</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {kannPunkte.map((p) => (
+              <div key={p.k} className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
+                <p.icon className="h-7 w-7 text-brand-400" />
+                <h3 className="mt-2 font-semibold">{t(`land.${p.k}Title`)}</h3>
+                <p className="mt-1 text-sm text-slate-400">{t(`land.${p.k}Body`)}</p>
+              </div>
+            ))}
+          </div>
+        </section>
 
         {/* Keine Uhr? Session direkt mit dem Handy aufnehmen (native Android-/iOS-App). */}
         <section className="pb-12">
@@ -407,21 +397,19 @@ export default function Landing() {
           <p className="mx-auto max-w-2xl text-center text-slate-300">{t("land.phoneRecBody")}</p>
         </section>
 
-        {vorschau && (
-          <section className="pb-12">
-            <h2 className="mb-2 text-center text-xl font-bold sm:text-2xl">{t("land.commTitle")}</h2>
-            <p className="mx-auto mb-6 max-w-2xl text-center text-slate-300">{t("land.commBody")}</p>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {commPunkte.map((p) => (
-                <div key={p.k} className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-                  <p.icon className="h-7 w-7 text-brand-400" />
-                  <h3 className="mt-2 font-semibold">{t(`land.${p.k}Title`)}</h3>
-                  <p className="mt-1 text-sm text-slate-400">{t(`land.${p.k}Body`)}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
+        <section className="pb-12">
+          <h2 className="mb-2 text-center text-xl font-bold sm:text-2xl">{t("land.commTitle")}</h2>
+          <p className="mx-auto mb-6 max-w-2xl text-center text-slate-300">{t("land.commBody")}</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {commPunkte.map((p) => (
+              <div key={p.k} className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
+                <p.icon className="h-7 w-7 text-brand-400" />
+                <h3 className="mt-2 font-semibold">{t(`land.${p.k}Title`)}</h3>
+                <p className="mt-1 text-sm text-slate-400">{t(`land.${p.k}Body`)}</p>
+              </div>
+            ))}
+          </div>
+        </section>
 
         {/* App-Screens: Mobile-Slider, Desktop 2 nebeneinander / Mobile 1 */}
         <section className="pb-10">
