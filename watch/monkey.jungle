@@ -13,6 +13,7 @@ base.resourcePath = resources
 #   Sprachen `(:i18n)`      <-> `(:noi18n)`      13-Sprachen-Tabelle vs. English-only
 #   Farbe    `(:farbig)`    <-> `(:mono)`        Akzentfarben vs. alles weiss (1-Bit-Displays,
 #                                               Liste aus dem SDK, geprueft von check-mono.py)
+#   Mittel   `(:klassik)`   <-> `(:nichtklassik)` Seitenaufteilung mit Nebendisplay (nur 128 KB)
 #   Klassik  `(:klassik)`                        klassische Seiten-Saetze + „alle Seiten" OHNE Layout-
 #                                               Renderer — NUR Mittelklasse (VOLL und LITE schliessen
 #                                               es aus; LITE ist am Limit, Jan 25.09.2026)
@@ -35,19 +36,19 @@ descentg1.excludeAnnotations = full;layouts;i18n;klassik;farbig
 # Weggenommen wird nur, was hier ohnehin kaum trägt: der Layout-Renderer (dieser Klasse liefert
 # der Server Layouts nur auf ausdrückliche Anforderung) und die 13-Sprachen-Tabelle (-> Englisch).
 # Die MENÜS bleiben — das ist der Unterschied zu LITE.
-venusq.excludeAnnotations = lite;layouts;i18n;mono
-enduro.excludeAnnotations = lite;layouts;i18n;mono
-fenix6.excludeAnnotations = lite;layouts;i18n;mono
-fenix6s.excludeAnnotations = lite;layouts;i18n;mono
-fr245.excludeAnnotations = lite;layouts;i18n;mono
-fr645.excludeAnnotations = lite;layouts;i18n;mono
-fr935.excludeAnnotations = lite;layouts;i18n;mono
-fenix5.excludeAnnotations = lite;layouts;i18n;mono
-fenix5s.excludeAnnotations = lite;layouts;i18n;mono
-fr55.excludeAnnotations = lite;layouts;i18n;mono
-vivoactive3.excludeAnnotations = lite;layouts;i18n;mono
-vivoactive3d.excludeAnnotations = lite;layouts;i18n;mono
-fenixchronos.excludeAnnotations = lite;layouts;i18n;mono
-instinct3solar45mm.excludeAnnotations = lite;layouts;i18n;farbig
-instincte45mm.excludeAnnotations = lite;layouts;i18n;farbig
-instincte40mm.excludeAnnotations = lite;layouts;i18n;farbig
+venusq.excludeAnnotations = lite;layouts;i18n;nichtklassik;mono
+enduro.excludeAnnotations = lite;layouts;i18n;nichtklassik;mono
+fenix6.excludeAnnotations = lite;layouts;i18n;nichtklassik;mono
+fenix6s.excludeAnnotations = lite;layouts;i18n;nichtklassik;mono
+fr245.excludeAnnotations = lite;layouts;i18n;nichtklassik;mono
+fr645.excludeAnnotations = lite;layouts;i18n;nichtklassik;mono
+fr935.excludeAnnotations = lite;layouts;i18n;nichtklassik;mono
+fenix5.excludeAnnotations = lite;layouts;i18n;nichtklassik;mono
+fenix5s.excludeAnnotations = lite;layouts;i18n;nichtklassik;mono
+fr55.excludeAnnotations = lite;layouts;i18n;nichtklassik;mono
+vivoactive3.excludeAnnotations = lite;layouts;i18n;nichtklassik;mono
+vivoactive3d.excludeAnnotations = lite;layouts;i18n;nichtklassik;mono
+fenixchronos.excludeAnnotations = lite;layouts;i18n;nichtklassik;mono
+instinct3solar45mm.excludeAnnotations = lite;layouts;i18n;nichtklassik;farbig
+instincte45mm.excludeAnnotations = lite;layouts;i18n;nichtklassik;farbig
+instincte40mm.excludeAnnotations = lite;layouts;i18n;nichtklassik;farbig
