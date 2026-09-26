@@ -439,6 +439,8 @@ const es: Record<string, string> = {
   "account.sideStep3": "Desconecta el USB — la app aparece en la lista de actividades.",
   "account.viewsTitle": "Vistas de la app del reloj",
   "account.viewsDesc": "Tantas vistas como quieras, con hasta 3 campos cada una. Cambia con UP/DOWN en el reloj. (La app carga la configuración al iniciar.)",
+  "account.viewsKlassikHint": "Estos relojes no pueden mostrar tus propios diseños: {names}. En lugar de un diseño muestran sus tres primeros valores de arriba abajo, cada uno con el nombre del campo. Las páginas clásicas aparecen exactamente como las configuras.",
+  "account.viewsLiteHint": "Estos relojes tienen muy poca memoria: {names}. Muestran tus diseños como sus tres primeros valores. Entre tandas y en pausa solo muestran la primera página y siempre pasan por todas las páginas.",
   "account.colorByValue": "Colorear valores por nivel (velocidad/pulso)",
   "account.viewN": "Vista {n}",
   "account.addView": "+ Añadir vista",

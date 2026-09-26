@@ -547,6 +547,10 @@ function ViewsEditor() {
   // Nur sichtbar mit verknüpfter Garmin — andere Uhren kennen die Garmin-Connect-Kategorie nicht.
   const [activityType, setActivityType] = useState("pumpfoil");
   const [hasGarmin, setHasGarmin] = useState(false);
+  // Verbundene Uhren, die NICHT alles zeigen koennen, was hier eingestellt wird (Jan, 26.09.2026:
+  // „bei mir im profil werden dann entsprechend viele uhren aufgelistet fuer die das gilt").
+  // Die Klasse entscheidet der Server aus dem Speicher der Uhr (devices.py `_seiten_klasse`).
+  const [kleineUhren, setKleineUhren] = useState<{ name: string; klasse: string }[]>([]);
   const [layoutsEnabled, setLayoutsEnabled] = useState(true);
   const [browseAll, setBrowseAll] = useState(true);
   const [saved, setSaved] = useState(false);
@@ -556,7 +560,12 @@ function ViewsEditor() {
     // Aktivitätstyp nur zeigen, wenn wirklich eine Garmin verknüpft ist (wie vorher auf der
     // Einstellungs-Seite) — sonst stünde hier eine Garmin-Connect-Kategorie für eine Apple Watch.
     api.myDevices()
-      .then((ds) => setHasGarmin(ds.some((x) => x.platform === "garmin" && !x.revoked_at)))
+      .then((ds) => {
+        setHasGarmin(ds.some((x) => x.platform === "garmin" && !x.revoked_at));
+        setKleineUhren(ds
+          .filter((x) => !x.revoked_at && (x.seiten_klasse === "klassik" || x.seiten_klasse === "lite"))
+          .map((x) => ({ name: x.model || x.label || "Garmin", klasse: x.seiten_klasse as string })));
+      })
       .catch(() => {});
     api.getSettings().then((s) => {
       setPages((s.pages as Page[]) ?? (s.views as number[][]) ?? [[1, 2, 0]]);
@@ -624,6 +633,19 @@ function ViewsEditor() {
         </div>
       </div>
       <p className="mb-3 text-sm text-slate-300">{t("account.viewsDesc")}</p>
+      {/* WAS DIE KLEINEN UHREN DAVON ZEIGEN — nur, wenn so eine verbunden ist, und mit Namen.
+          Ohne den Satz sucht man auf einer Instinct die eigenen Layouts und findet andere Zahlen. */}
+      {(() => {
+        const namen = (k: string) => [...new Set(kleineUhren.filter((u) => u.klasse === k).map((u) => u.name))].join(", ");
+        const klassik = namen("klassik"), lite = namen("lite");
+        if (!klassik && !lite) return null;
+        return (
+          <div className="mb-3 space-y-2 rounded-xl border border-amber-600/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-800 dark:text-amber-200">
+            {klassik && <p>{t("account.viewsKlassikHint", { names: klassik })}</p>}
+            {lite && <p>{t("account.viewsLiteHint", { names: lite })}</p>}
+          </div>
+        );
+      })()}
       <label className="mb-2 flex items-center gap-2 text-sm text-slate-200">
         <input type="checkbox" checked={colorByValue} onChange={(e) => { setColorByValue(e.target.checked); setSaved(false); }} />
         {t("account.colorByValue")}

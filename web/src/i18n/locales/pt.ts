@@ -466,6 +466,8 @@ const pt: Record<string, string> = {
   "account.sideStep3": "Desconecte o USB — o app aparece na lista de atividades.",
   "account.viewsTitle": "Telas do app no relógio",
   "account.viewsDesc": "Quantas telas quiser, com até 3 campos cada. Alterne com CIMA/BAIXO no relógio. (O app carrega a configuração ao iniciar.)",
+  "account.viewsKlassikHint": "Estes relógios não conseguem mostrar seus próprios layouts: {names}. Em vez de um layout, mostram seus três primeiros valores de cima para baixo, cada um com o nome do campo. As páginas clássicas aparecem exatamente como você as configura.",
+  "account.viewsLiteHint": "Estes relógios têm muito pouca memória: {names}. Mostram seus layouts como os três primeiros valores. Entre as corridas e na pausa mostram só a primeira página e sempre passam por todas as páginas.",
   "account.colorByValue": "Colorir valores por nível (velocidade/FC)",
   "account.autoStart": "Iniciar gravação automaticamente ao decolar (GPS)",
   "account.stopMode": "Terminar a gravação no relógio",

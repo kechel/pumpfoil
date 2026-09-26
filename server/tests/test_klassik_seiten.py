@@ -69,3 +69,42 @@ def test_grosse_uhr_unveraendert(client):
     c = _config(client, dev, GROSS)
     assert c["browseAll"] is False
     assert c["offFoilPages"] == [[0, 17, 16, 12], [0, 20, 4, 2]]
+
+
+def test_als_klassik_nimmt_die_ersten_drei_wertfelder_von_oben():
+    # [typ, x, y, schritt, farbe, flags, feld]: Wertfelder (typ 1) bei y 700 / 200 / 450, dazu ein
+    # Beschriftungsfeld (typ 2) und ein doppeltes Feld — gezaehlt werden nur Werte, jede ID einmal.
+    layout = [1, 0, [[1, 500, 700, 2, 0, 0, 4], [2, 500, 150, 1, 0, 0, 9],
+                     [1, 500, 200, 3, 0, 0, 1], [1, 300, 450, 2, 0, 0, 2],
+                     [1, 700, 450, 2, 0, 0, 2]]]
+    assert devices._als_klassik(layout) == [0, 1, 2, 4]
+    assert devices._als_klassik([0, 12, 20, 2]) == [0, 12, 20, 2]
+    # Ohne Wertfeld keine leere Seite, sondern Tempo.
+    assert devices._als_klassik([1, 0, [[3, 500, 500, 1, 0, 0, "Hi"]]]) == [0, 1, 0, 0]
+
+
+def test_nur_layouts_werden_fuer_kleine_uhren_umgerechnet(client):
+    """Jans Fall: im Profil NUR eigene Layouts. Vorher zeigte die Instinct die alte, im Editor
+    unsichtbare Ersatzliste; jetzt die Werte der Layouts in klassischer Anordnung."""
+    auth = _konto(client, "klassik-layouts")
+    dev = _paaren(client, auth)
+    def anlegen(cat, felder):
+        els = [[1, 500, 200 + 200 * i, 2, 0, 0, f] for i, f in enumerate(felder)]
+        r = client.post("/api/layouts", headers=auth, json={"name": cat, "category": cat, "elements": els})
+        assert r.status_code == 201, r.text
+        return r.json()["id"]
+    an = anlegen("on_foil", [1, 14, 2])
+    aus = anlegen("off_foil", [17, 16, 12])
+    pau = anlegen("pause", [12, 20])
+    r = client.put("/api/settings", headers=auth, json={
+        "views": [[16, 17, 18]], "pages": [an], "off_foil_pages": [aus], "pause_pages": [pau],
+        "browse_all_pages": False})
+    assert r.status_code == 200, r.text
+    c = _config(client, dev, MITTEL)
+    assert c["views"] == [[1, 14, 2]]              # nicht die alte Ersatzliste [16,17,18]
+    assert c["offFoilView"] == [17, 16, 12]
+    assert c["pauseView"] == [12, 20, 0]
+    assert c["offFoilPages"] == [[0, 17, 16, 12]]
+    # Die grosse Uhr bekommt die Layouts selbst, unveraendert.
+    g = _config(client, dev, GROSS)
+    assert g["pages"][0][0] == 1

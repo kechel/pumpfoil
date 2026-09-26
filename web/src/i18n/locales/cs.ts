@@ -488,6 +488,8 @@ const cs: Record<string, string> = {
   "account.sideStep3": "Odpoj USB — aplikace se objeví v seznamu aktivit.",
   "account.viewsTitle": "Zobrazení aplikace v hodinkách",
   "account.viewsDesc": "Libovolný počet zobrazení, každé až se 3 poli. Na hodinkách přepínatelné tlačítky UP/DOWN. (Aplikace načte konfiguraci při startu.)",
+  "account.viewsKlassikHint": "Tyto hodinky neumí zobrazit vlastní rozvržení: {names}. Místo rozvržení ukazují jeho první tři hodnoty shora dolů, každou s názvem pole. Klasické stránky se zobrazí přesně tak, jak je nastavíš.",
+  "account.viewsLiteHint": "Tyto hodinky mají velmi málo paměti: {names}. Vlastní rozvržení ukazují jako jeho první tři hodnoty. Mezi jízdami a v pauze ukazují jen první stránku a vždy listují všemi stránkami.",
   "account.colorByValue": "Obarvit hodnoty podle velikosti (rychlost/tep)",
   "account.autoStart": "Spustit nahrávání automaticky, když se rozjedu (GPS)",
   "account.stopMode": "Ukončení nahrávání na hodinkách",

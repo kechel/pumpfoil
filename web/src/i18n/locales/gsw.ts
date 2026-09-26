@@ -1164,6 +1164,8 @@ const gsw: Record<string, string> = {
   "account.step3": "Fertig — Uploads landet automatisch i dim Account.",
   "account.tabGuide": "Aaleitig",
   "account.viewsDesc": "Beliebig vili Aasichte mit je bis zu 3 Fälder. Uf de Uhr mit UP/DOWN umschaltbar. (D App ladt d Konfiguration bim Start.)",
+  "account.viewsKlassikHint": "Die Uhre chönd kei eigeni Layouts zeige: {names}. Statt emne Layout zeiged si sini erschte drei Wert vo obe nach unde, jewils mit Feldbezeichnig. Klassischi Siite chömed genau so, wie du si iistellsch.",
+  "account.viewsLiteHint": "Die Uhre händ bsunders wenig Speicher: {names}. Eigeni Layouts zeiged si als ihri erschte drei Wert. Zwüsched de Läuf und i de Pause zeiged si nur di jewils erschti Siite und blättered immer dur alli Siite.",
   "chat.kindSession": "Session-Chat",
   "chat.kindSpot": "Spot-Chat",
   "compare.add": "Zum Verglych",

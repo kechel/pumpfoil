@@ -488,6 +488,8 @@ const nl: Record<string, string> = {
   "account.sideStep3": "USB loskoppelen — de app verschijnt in de activiteitenlijst.",
   "account.viewsTitle": "Weergaven van de horloge-app",
   "account.viewsDesc": "Zoveel weergaven als je wilt, elk met max. 3 velden. Op het horloge te wisselen met UP/DOWN. (De app laadt de configuratie bij het starten.)",
+  "account.viewsKlassikHint": "Deze horloges kunnen je eigen lay-outs niet tonen: {names}. In plaats van een lay-out tonen ze de eerste drie waarden van boven naar beneden, elk met de veldnaam. Klassieke pagina's verschijnen precies zoals je ze instelt.",
+  "account.viewsLiteHint": "Deze horloges hebben heel weinig geheugen: {names}. Ze tonen je lay-outs als de eerste drie waarden. Tussen de runs en in een pauze tonen ze alleen de eerste pagina en bladeren ze altijd door alle pagina's.",
   "account.colorByValue": "Waarden kleuren op basis van hun hoogte (snelheid/hartslag)",
   "account.autoStart": "Opname automatisch starten zodra ik wegvaar (GPS)",
   "account.stopMode": "Opname op het horloge beëindigen",

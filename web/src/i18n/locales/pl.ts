@@ -484,6 +484,8 @@ const pl: Record<string, string> = {
   "account.emptyStateDefault": "Brak przypisanej strony — zegarek pokazuje tutaj swoją domyślną.",
   "account.viewsTitle": "Widoki aplikacji na zegarku",
   "account.viewsDesc": "Dowolna liczba widoków, każdy z maks. 3 polami. Przełączasz przyciskami UP/DOWN na zegarku. (Aplikacja wczytuje konfigurację przy starcie.)",
+  "account.viewsKlassikHint": "Te zegarki nie potrafią wyświetlać własnych układów: {names}. Zamiast układu pokazują jego pierwsze trzy wartości od góry do dołu, każdą z nazwą pola. Klasyczne strony wyglądają dokładnie tak, jak je ustawisz.",
+  "account.viewsLiteHint": "Te zegarki mają bardzo mało pamięci: {names}. Własne układy pokazują jako ich pierwsze trzy wartości. Między przejazdami i w pauzie pokazują tylko pierwszą stronę i zawsze przewijają wszystkie strony.",
   "account.colorByValue": "Koloruj wartości według poziomu (prędkość/tętno)",
   "account.autoStart": "Rozpocznij nagrywanie automatycznie, gdy ruszę (GPS)",
   "account.stopMode": "Kończenie nagrania na zegarku",

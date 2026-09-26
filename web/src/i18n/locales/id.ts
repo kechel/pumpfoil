@@ -466,6 +466,8 @@ const id: Record<string, string> = {
   "account.sideStep3": "Cabut USB — aplikasi muncul di daftar aktivitas.",
   "account.viewsTitle": "Tampilan aplikasi jam",
   "account.viewsDesc": "Sejumlah tampilan dengan hingga 3 field masing-masing. Ganti dengan UP/DOWN di jam. (Aplikasi memuat konfigurasi saat mulai.)",
+  "account.viewsKlassikHint": "Jam ini tidak bisa menampilkan tata letak buatanmu: {names}. Sebagai gantinya jam menampilkan tiga nilai pertamanya dari atas ke bawah, masing-masing dengan nama kolomnya. Halaman klasik tampil persis seperti yang kamu atur.",
+  "account.viewsLiteHint": "Jam ini memorinya sangat kecil: {names}. Tata letak buatanmu ditampilkan sebagai tiga nilai pertamanya. Di antara run dan saat jeda, jam hanya menampilkan halaman pertama dan selalu menelusuri semua halaman.",
   "account.colorByValue": "Warnai nilai berdasarkan level (kecepatan/HR)",
   "account.autoStart": "Mulai rekam otomatis saat aku take off (GPS)",
   "account.stopMode": "Mengakhiri rekaman di jam",

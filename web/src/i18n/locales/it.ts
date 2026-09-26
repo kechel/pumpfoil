@@ -439,6 +439,8 @@ const it: Record<string, string> = {
   "account.sideStep3": "Scollega l'USB — l'app appare nella lista attività.",
   "account.viewsTitle": "Viste dell'app dell'orologio",
   "account.viewsDesc": "Quante viste vuoi, con fino a 3 campi ciascuna. Cambia con UP/DOWN sull'orologio. (L'app carica la configurazione all'avvio.)",
+  "account.viewsKlassikHint": "Questi orologi non possono mostrare i tuoi layout: {names}. Al posto di un layout mostrano i suoi primi tre valori dall'alto verso il basso, ognuno con il nome del campo. Le pagine classiche appaiono esattamente come le imposti.",
+  "account.viewsLiteHint": "Questi orologi hanno pochissima memoria: {names}. Mostrano i tuoi layout come i loro primi tre valori. Tra una run e l'altra e in pausa mostrano solo la prima pagina e scorrono sempre tutte le pagine.",
   "account.colorByValue": "Colora i valori per livello (velocità/FC)",
   "account.viewN": "Vista {n}",
   "account.addView": "+ Aggiungi vista",

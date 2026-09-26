@@ -466,6 +466,8 @@ const zh: Record<string, string> = {
   "account.sideStep3": "断开 USB —— 应用会出现在活动列表中。",
   "account.viewsTitle": "手表应用视图",
   "account.viewsDesc": "任意数量的视图，每个最多 3 个字段。在手表上用 UP/DOWN 切换。（应用在启动时加载配置。）",
+  "account.viewsKlassikHint": "这些手表无法显示你的自定义布局：{names}。它们会改为从上到下显示布局中的前三个数值，并各自带有字段名称。经典页面会完全按你的设置显示。",
+  "account.viewsLiteHint": "这些手表的内存非常小：{names}。自定义布局会显示为其前三个数值。在两次滑行之间和暂停时只显示第一页，并且总是浏览所有页面。",
   "account.colorByValue": "按数值等级着色（速度/心率）",
   "account.autoStart": "起航时自动开始记录（GPS）",
   "account.stopMode": "在手表上结束记录",

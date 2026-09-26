@@ -483,6 +483,8 @@ const nb: Record<string, string> = {
   "account.emptyStateDefault": "Ingen side valgt — klokka viser sin standard her.",
   "account.viewsTitle": "Visninger i klokke-appen",
   "account.viewsDesc": "Så mange visninger du vil, med opptil 3 felt hver. Bytt med UP/DOWN på klokka. (Appen henter oppsettet ved start.)",
+  "account.viewsKlassikHint": "Disse klokkene kan ikke vise dine egne oppsett: {names}. I stedet for et oppsett viser de de tre første verdiene ovenfra og ned, hver med feltnavnet. Klassiske sider vises nøyaktig slik du stiller dem inn.",
+  "account.viewsLiteHint": "Disse klokkene har svært lite minne: {names}. De viser egne oppsett som de tre første verdiene. Mellom rundene og i pause viser de bare den første siden og blar alltid gjennom alle sidene.",
   "account.colorByValue": "Fargelegg verdier etter nivå (fart/puls)",
   "account.autoStart": "Start opptak automatisk når jeg tar av (GPS)",
   "account.stopMode": "Avslutte opptak på klokka",
