@@ -1242,7 +1242,7 @@ const de: Record<string, string> = {
   "land.kann1Title": "Deine Uhr, deine Datenseiten",
   "land.kann1Body": "Gestalte deine Anzeigen selbst, Feld für Feld, mit Farben nach Tempo oder Puls — eigene Seiten für den Lauf, für die Pause und für zwischen den Läufen. Auf Garmin, Apple Watch, Wear OS und Amazfit.",
   "land.kann2Title": "Von der Community, für die Community",
-  "land.kann2Body": "Fahrer teilen ihre Layouts. Stöbere in der Galerie, sieh jedes Layout in der Form deiner eigenen Uhr und übernimm es mit einem Tipp.",
+  "land.kann2Body": "Fahrer teilen ihre Layouts. Stöbere in der Galerie, sieh jedes Layout in der Form deiner eigenen Uhr und übernimm es mit einem Klick.",
   "land.kann3Title": "Für jede Garmin gebaut",
   "land.kann3Body": "129 Garmin-Modelle, jedes mit der passenden Fassung: die volle mit eigenen Layouts, eine klassische für die Mittelklasse wie die Instinct 3 und eine schlanke für die kleinsten wie die Instinct 2. Keine Uhr bekommt eine App, die ihren Speicher sprengt.",
   "land.kann4Title": "Rohdaten statt Schätzung",
