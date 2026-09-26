@@ -98,7 +98,14 @@
             "Pumps zaehlen und Pump-Frequenz messen",
             "Foiling-Distanz, Gleitphasen und Startversuche erkennen",
             "GPS-Track nach Geschwindigkeit, Puls oder Pump-Frequenz einfaerben",
-            "Sessions vergleichen, Community-Rekorde und Spot-Chats"
+            "Sessions vergleichen, Community-Rekorde und Spot-Chats",
+            "Eigene Datenseiten fuer die Uhr gestalten, Community-Galerie zum Uebernehmen",
+            "129 Garmin-Modelle, je Speicherklasse eine passende Fassung",
+            "Rohdaten: 25 Hz Beschleunigung am Handgelenk, 50 Hz am Handy inklusive Kreisel, GPS jede Sekunde",
+            "Lage des Bretts (Nicken und Rollen) mit dem Handy am Brett",
+            "Foil- und Uhren-Statistik der Community",
+            "Session per Link ohne Anmeldung teilen, als Bild teilen, an einen Freund uebertragen",
+            "Export als GPX und FIT, MCP-Server fuer die eigene KI"
           ]
         },
         {
@@ -133,7 +140,23 @@
               "name": "Womit kann ich Pumpfoiling aufzeichnen?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "Mit einer Garmin-Uhr (ueber 120 Modelle), einer Apple Watch, einer Wear-OS-Uhr oder einer Amazfit. Ohne Uhr geht es auch mit dem Handy. Wer eine Polar, Suunto, COROS oder Xiaomi nutzt, verknuepft sein Konto und die Sessions kommen automatisch an."
+                "text": "Mit einer Garmin-Uhr (129 Modelle), einer Apple Watch, einer Wear-OS-Uhr oder einer Amazfit. Ohne Uhr geht es auch mit dem Handy. Wer eine Polar, Suunto, COROS oder Xiaomi nutzt, verknuepft sein Konto und die Sessions kommen automatisch an."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Welche Pumpfoil-App gibt es fuer Garmin-Uhren?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Pumpfoil hat eine eigene Connect-IQ-App fuer 129 Garmin-Modelle, jede Uhr bekommt die Fassung, die zu ihrem Speicher passt: die volle mit eigenen Datenseiten-Layouts, eine klassische fuer die Mittelklasse wie die Instinct 3 und eine schlanke fuer die kleinsten wie die Instinct 2. Sie zeichnet GPS, Puls und die Beschleunigung am Handgelenk auf; ausgewertet wird auf pumpfoil.org. Dieselbe Auswertung gibt es fuer Apple Watch, Wear OS, Amazfit und das Handy."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Kann ich die Datenseiten auf der Uhr selbst gestalten?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Ja. Im Layout-Editor auf pumpfoil.org gestaltest du jede Seite Feld fuer Feld, mit Farben nach Tempo oder Puls, getrennt fuer den Lauf, zwischen den Laeufen und die Pause. In der Community-Galerie uebernimmst du Layouts anderer Fahrer mit einem Klick. Das geht auf Garmin, Apple Watch, Wear OS und Amazfit."
               }
             },
             {
@@ -177,6 +200,19 @@
           GPS-Track, gefahrene Foiling-Distanz, Pump-Frequenz und Gleitphasen.
           Lege ein Konto an, verbinde deine Uhr und vergleiche deine Sessions über die Zeit.
         </p>
+        <!-- Fuer Crawler, die kein JavaScript ausfuehren (viele KI-Crawler): die Kernaussagen der
+             Startseite als echter Text. Ausfuehrlich und auf Englisch in /llms.txt. -->
+        <h2>Was Pumpfoil kann</h2>
+        <ul>
+          <li>Eigene Uhren-Apps für Garmin (129 Modelle, je Speicherklasse die passende Fassung), Apple Watch, Wear OS und Amazfit — dazu Aufnahme per Handy.</li>
+          <li>Datenseiten auf der Uhr selbst gestalten; Layouts anderer Fahrer aus der Community-Galerie mit einem Klick übernehmen.</li>
+          <li>Rohdaten: 25 Messungen pro Sekunde am Handgelenk, 50 am Handy inklusive Kreisel, GPS jede Sekunde, Puls.</li>
+          <li>Mit dem Handy am Brett: wie das Brett nickt und rollt, je Lauf.</li>
+          <li>Community: Rekorde weltweit, je Spot und je Foil, Bestenlisten, Spotkarte mit Beschreibungen, Chat je Spot, Foil- und Uhren-Statistik.</li>
+          <li>Teilen per Link ohne Anmeldung, als Bild, oder die Session an einen Freund übertragen.</li>
+          <li>Kostenlos, quelloffen (AGPL), ohne Tracking. Export als GPX und FIT.</li>
+        </ul>
+        <p lang="en">Pumpfoil is a free, open-source pump foiling app for Garmin (129 models), Apple Watch, Wear OS, Amazfit and your phone: custom watch data pages with a community layout gallery, raw data at 25 Hz on the wrist and 50 Hz on the phone including the gyroscope, board attitude with the phone on the board, records, leaderboards, spot map and chat. More: <a href="/llms.txt">/llms.txt</a></p>
         <p>Diese Anwendung benötigt JavaScript. Bitte aktiviere es, um fortzufahren.</p>
       </div>
     </noscript>

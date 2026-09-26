@@ -1,0 +1,37 @@
+# Pumpfoil
+
+> Pumpfoil (pumpfoil.org) is a free, open-source (AGPL-3.0) app for recording and analysing pump foiling — riding a hydrofoil without wind, waves or motor, kept up by pumping. It records on Garmin, Apple Watch, Wear OS and Amazfit watches or on an Android or iPhone, imports from Polar, COROS, Suunto and Xiaomi, and analyses every session automatically: runs, pumps, pump cadence, glides, speed, heart rate, records. No ads, no tracking. Available in 15 languages plus Swiss and Austrian German.
+
+## What it does
+
+- **Native watch apps** that record GPS (every second), heart rate and raw wrist acceleration (25 samples per second) for Garmin (Connect IQ), Apple Watch, Wear OS and Amazfit (Zepp OS). The watch records on its own; no phone needed during the session.
+- **Built for every Garmin**: 129 Garmin models, each with a matching build — a full one with custom layouts (512 KB memory and up), a classic one for the mid range (e.g. Instinct 3), and a slim one for the smallest watches (e.g. Instinct 2).
+- **Custom data pages**: users design their own watch screens field by field, with colours by speed or heart rate, and separate page sets for the run, between runs and the pause. Works on Garmin, Apple Watch, Wear OS and Amazfit.
+- **Community layout gallery**: riders publish their layouts; others preview them in the shape of their own watch and copy them with one click.
+- **Phone recorder**: the Android and iOS apps record with the phone alone — in a pocket or strapped to the board — at 50 samples per second, including the gyroscope where the phone has one.
+- **Board attitude**: with the phone on the board, Pumpfoil shows how the board pitches and rolls, per run, as a moving drawing of the foil.
+- **Raw data kept unchanged**: every improvement of the analysis can recalculate old sessions.
+- **Analysis**: run detection (only real foiling counts), pump count and cadence, foiling distance and time, glides, start attempts, speed and heart-rate colouring of the track, heart-rate progress over weeks.
+- **On the watch**: vibration alarm for too slow / too fast (tuned to rider weight and foil), distance and time marks per run, heart-rate alarm, pause with partial upload.
+- **Community**: records (farthest and longest run, top speed, longest glide, most runs/pumps/distance per session, peak heart rate, early bird, night owl, carves) for today, 10 days, 30 days, the year and all time — worldwide, per spot and per foil; leaderboards filterable by sport and foil size; spot map with weather and rider-written spot descriptions; chat per spot and direct messages; photos, videos and likes; foil and watch statistics (what gets ridden with which foil; how good GPS, heart rate and pump detection are per watch model).
+- **Sharing**: a session as a ready-made image (track and chosen numbers on a map, satellite view or own photo); a link that shows the full analysis without an account; transfer a session to a friend who rode with your watch; compare any runs side by side.
+- **Your data**: export as GPX and FIT; an MCP server lets the user's own AI assistant read their own sessions (read-only, own data only, OAuth).
+
+## How to be precise about it
+
+- Pump counting is calibrated on one rider and undercounts; it is meant for comparing a rider's sessions with each other. A dedicated glide detection is being trained from recordings with a phone on the board and a watch on the wrist at the same time.
+- Recording rates are chosen, not hardware limits: 25 Hz on watches, 50 Hz on phones, GPS 1 Hz.
+- Sessions are visible to logged-in community members by default; locations can be hidden per session or for the whole profile.
+
+## Links
+
+- [Start page](https://pumpfoil.org/): overview, all supported watches ([English](https://pumpfoil.org/en/))
+- [Garmin Connect IQ store](https://apps.garmin.com/apps/9a2a753e-b52f-4587-aee4-900caf5cb351)
+- [App Store (iPhone and Apple Watch)](https://apps.apple.com/app/id6783975714)
+- [Google Play (Android and Wear OS)](https://play.google.com/store/apps/details?id=org.pumpfoil.app)
+- [How pump detection works](https://pumpfoil.org/nerd-analysen-2)
+- [Two-watch experiment: what really happens when pump foiling](https://pumpfoil.org/nerd-analysen)
+- [Phone on the board: measured at the source](https://pumpfoil.org/nerd-analysen-4)
+- [System architecture](https://pumpfoil.org/systemarchitektur)
+- [Changelog](https://pumpfoil.org/changelog)
+- [Source code (GitHub)](https://github.com/kechel/pumpfoil)
