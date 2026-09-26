@@ -230,21 +230,40 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
   const hide = (id: number, hidden: boolean) => {
     api.hideDevice(id, hidden).then(() => load()).catch(() => {});
   };
+  // Rueckmeldung je Uhr UND Einstellung: die Regler hier speichern sofort beim Umstellen, ohne
+  // Speichern-Knopf — bis 26.09.2026 ganz ohne Hinweis, anders als der Rest des Profils (Jan:
+  // „fehlt der uebliche 'gespeichert' hinweis"). Schlaegt es fehl, steht der Fehler da und die
+  // Liste wird neu geladen, damit der Regler wieder den echten Wert zeigt.
+  const [rueckmeldung, setRueckmeldung] = useState<{ k: string; ok: boolean } | null>(null);
+  const rueckTimer = useRef<number | undefined>(undefined);
+  const speichern = (k: string, p: Promise<unknown>) => {
+    window.clearTimeout(rueckTimer.current);
+    setRueckmeldung(null);
+    p.then(() => {
+      setRueckmeldung({ k, ok: true });
+      rueckTimer.current = window.setTimeout(() => setRueckmeldung(null), 3000);
+    }).catch(() => { setRueckmeldung({ k, ok: false }); load(); });
+  };
+  const Rueck = ({ k }: { k: string }) => rueckmeldung?.k === k ? (
+    rueckmeldung.ok
+      ? <p className="mt-1 text-sm text-emerald-700 dark:text-emerald-400">{t("account.saved")}</p>
+      : <p className="mt-1 text-sm text-red-600 dark:text-red-400">{t("profile.saveError")}</p>
+  ) : null;
   const setMode = (id: number, mode: string) => {
     setDevices((ds) => (ds ? ds.map((x) => (x.id === id ? { ...x, record_mode: mode } : x)) : ds));
-    api.setDeviceRecordMode(id, mode).catch(() => load());
+    speichern(`${id}:mode`, api.setDeviceRecordMode(id, mode));
   };
   const setGnss = (id: number, mode: string) => {
     setDevices((ds) => (ds ? ds.map((x) => (x.id === id ? { ...x, gnss_mode: mode } : x)) : ds));
-    api.setDeviceGnssMode(id, mode).catch(() => load());
+    speichern(`${id}:gnss`, api.setDeviceGnssMode(id, mode));
   };
   const setWaterLock = (id: number, mode: string) => {
     setDevices((ds) => (ds ? ds.map((x) => (x.id === id ? { ...x, water_lock: mode } : x)) : ds));
-    api.setDeviceWaterLock(id, mode).catch(() => load());
+    speichern(`${id}:water`, api.setDeviceWaterLock(id, mode));
   };
   const setAccelWakeup = (id: number, mode: string) => {
     setDevices((ds) => (ds ? ds.map((x) => (x.id === id ? { ...x, accel_wakeup: mode === "default" ? null : mode } : x)) : ds));
-    api.setDeviceAccelWakeup(id, mode).catch(() => load());
+    speichern(`${id}:accel`, api.setDeviceAccelWakeup(id, mode));
   };
   const fmt = (s: string | null) => (s ? new Date(s).toLocaleString() : "–");
 
@@ -299,6 +318,7 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
                       <option value="lite">{t("account.recordModeLite")}</option>
                       <option value="gps">{t("account.recordModeGps")}</option>
                     </select>
+                    <Rueck k={`${d.id}:mode`} />
                     {d.low_accel && d.record_mode === "full" && (
                       <p className="mt-1 text-[11px] text-amber-600 dark:text-amber-400">{t("account.recordModeAutoLite")}</p>
                     )}
@@ -327,6 +347,7 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
                       <option value="two">{t("account.gnssModeTwo")}</option>
                       <option value="gps">{t("account.gnssModeGps")}</option>
                     </select>
+                    <Rueck k={`${d.id}:gnss`} />
                     <p className="mt-1 text-sm text-slate-400">{t("account.gnssModeHint")}</p>
                   </div>
                 )}
@@ -345,6 +366,7 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
                       <option value="on">{t("account.waterLockOn")}</option>
                       <option value="off">{t("account.waterLockOff")}</option>
                     </select>
+                    <Rueck k={`${d.id}:water`} />
                     <p className="mt-1 text-sm text-slate-400">{t("account.waterLockHint")}</p>
                   </div>
                 )}
@@ -362,6 +384,7 @@ function PairedDevices({ onDownload }: { onDownload?: () => void }) {
                       <option value="on">{t("account.accelWakeupOn")}</option>
                       <option value="off">{t("account.accelWakeupOff")}</option>
                     </select>
+                    <Rueck k={`${d.id}:accel`} />
                     <p className="mt-1 text-sm text-slate-400">{t("account.accelWakeupHint")}</p>
                   </div>
                 )}
