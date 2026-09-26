@@ -647,6 +647,21 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # Garmin 1.0.90: die 128-KB-Klasse (voller Build ohne Layout-Renderer, z. B. Instinct 3 Solar)
+    # liest die klassischen Seiten-Saetze und „alle Seiten" (`(:klassik)`, SessionRecorder.mc);
+    # Anlass Romans Meldung (u244). Lite (96 KB) und die grossen Uhren byte-gleich.
+    # EINGEREICHT 26.09.2026 vormittags (Jan: „habe die 1.0.90 aus dem iq store auf meine echte uhr
+    # installiert"). Um 07:50 UTC meldeten Store-Seite UND Store-API aber noch 1.0.89 (intern 43) —
+    # `_APP_META["garmin"]` erst umstellen, wenn der Store 1.0.90 selbst nennt.
+    {"name": "Garmin", "version": "1.0.90",
+     "eingereicht": "2026-09-26",
+     "items": [
+         "Watches with less memory, such as the Instinct 3 Solar, show all the pages you set up "
+         "between runs and respect the switch for browsing through the other pages.",
+         "On black-and-white watches such as the Instinct, values that used to be drawn in colour "
+         "are now shown in white instead of disappearing.",
+         "On the Instinct 3, pages with one or two values start below the small round display.",
+     ]},
     # iOS/Apple: 1.1.37 ist am 25.09. um 00:42 (Berlin) FREIGEGEBEN und steht deshalb hier nicht
     # mehr, sondern in `_APP_META` als live (beide Schluessel, ein Bundle). Die Punkte sind in die
     # Changelog-Tabelle gewandert, mit `versionen = {"ios": "1.1.37", "apple": "1.1.37"}`, dazu ein
@@ -733,6 +748,7 @@ NAECHSTES: list[dict] = [
          "Pause sits next to discard now, and stop has its page to itself again.",
          "While a recording is paused, the watch shows your pause pages and says so on every "
          "page.",
+         "Between runs, the watch shows every page you set up for that time, and you can browse them.",
      ]},
     # Android Phone 1.1.33 / iPhone 1.1.38: die PWA-Portierung vom 25.09. (Lage des Bretts,
     # Privatsphaere, Einstellungen je Uhr, KI-Zugang und die kleineren Punkte, Commits df804496
@@ -790,17 +806,7 @@ NAECHSTES: list[dict] = [
          "Recordings with the phone on the board carry a highlighted badge on every session card.",
          "The foil stats can be narrowed to recordings with the phone on the board.",
          "The weather at your home spot sits right under your latest sessions.",
-     ]},
-    # Garmin 1.0.90: die 128-KB-Klasse (voller Build ohne Layout-Renderer, z. B. Instinct 3 Solar)
-    # liest die klassischen Seiten-Saetze und „alle Seiten" (`(:klassik)`, SessionRecorder.mc);
-    # Anlass Romans Meldung (u244). Lite (96 KB) und die grossen Uhren byte-gleich.
-    {"name": "Garmin", "version": "1.0.90",
-     "items": [
-         "Watches with less memory, such as the Instinct 3 Solar, show all the pages you set up "
-         "between runs and respect the switch for browsing through the other pages.",
-         "On black-and-white watches such as the Instinct, values that used to be drawn in colour "
-         "are now shown in white instead of disappearing.",
-         "On the Instinct 3, pages with one or two values start below the small round display.",
+         "Between runs, the watch shows every page you set up for that time, and you can browse them.",
      ]},
     {"name": "Amazfit", "version": "1.0.13",
      "items": [
