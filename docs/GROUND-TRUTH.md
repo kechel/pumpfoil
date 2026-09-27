@@ -639,13 +639,24 @@ Brett gegen 0,26–0,70 Koerper; der 1-Hz-Kurs ist zu grob) und „Reinheit des 
 **Nicken verkehrt herum bei #10248 (27.09.)** — Jan: nach dem Sturz am Ende von Lauf 4 trieb das
 Brett mit der Nase ~45° OBEN, die Anzeige zeigte −35 bis −47°. Ursache: vorn/hinten entschied die
 Start-Heuristik „am Start Nase unten"; bei u13 sagt sie das Gegenteil. Jan: „es gibt keine regel wie
-man startet … alle lagen sind prinzipiell moeglich" und „NIE etwas von hand setzen". Die
-Schwerkraft allein kann vorn/hinten nicht unterscheiden (eine 180°-Drehung um die Senkrechte laesst
-sie unveraendert). **Geloest aus Physik (`lage.vorn_aus_anfahrt`):** an den Lauf-STARTS
-Laengs-Kraft minus Schwerkraftanteil aus dem KREISEL-Nicken gegen dv/dt aus dem GPS, Fenster −2/+8 s.
-Ueber ganze Laeufe traegt das nicht (|r| 0,1–0,4, Pumptakt zu schnell fuers 1-Hz-GPS), Lauf-Enden
-streuen; an den Starts |r| 0,80–0,93 bei allen fuenf Brett-Aufnahmen mit bekannter Richtung. Dreht
-#10248 richtig (−88,3° → 91,7°) und #9650 (u2, 23.09.) ebenfalls; u2s andere Aufnahmen unveraendert.
+man startet … alle lagen sind prinzipiell moeglich", „NIE etwas von hand setzen" und „keinerlei
+annahmen oder fallbacks". Die Schwerkraft allein kann vorn/hinten nicht unterscheiden (eine
+180°-Drehung um die Senkrechte laesst sie unveraendert).
+
+**Versucht und VERWORFEN — die Anfahrt:** Laengs-Kraft minus Schwerkraftanteil aus dem Kreisel-Nicken
+gegen dv/dt aus dem GPS, an den Lauf-Starts. Sah zuerst glaenzend aus (|r| 0,80–0,93 bei −2/+8 s,
+passend zu Jans Beobachtung). Jans Nachfrage zu Lauf 4 deckte auf: das AUFSUMMIERTE Kreisel-Nicken
+driftet im Fenster bis 90° in 13 s; der „Schwerkraft-Abzug" war damit bis 9 m/s² gross und
+bestimmte das Vorzeichen — die Werte massen die Drift, nicht die Physik. Ohne Drift (Hochpass)
+|r| 0,1–0,5, uneinheitlich, bei #10248 FALSCH herum. Grund: beim Dock-Start springt das Tempo in
+~1 s von 0 auf 10 km/h, das 1-Hz-GPS sieht davon einen Wert; danach aendert es sich zu wenig.
+Die On-Foil-Starts sassen richtig (Tempo springt genau dort). Stand jetzt: **vorn/hinten ist
+ausdruecklich unbestimmt** (`richtung_bestimmt=false`, Hinweis in der Lage-Ansicht), bis es ein
+Messverfahren gibt: **Kompass gegen GPS-Kurs** — die Vorwaertsachse zeigt auf geraden Strecken in
+die Fahrtrichtung, vorn/hinten liegen 180° auseinander. Braucht das Magnetometer im Handy-Recorder
+(App-Update). Das Weitertragen ueber die Laeufe (vorwaerts, rueckwirkend, je Montage-Abschnitt
+gemittelt) ist gebaut und wartet auf diese Messung; die Achse selbst streut je Lauf bis 17°, das
+Mittel ist die genauere Zahl.
 
 **Der Engpass sind Fahrer, nicht Technik.** Abschnitt 3 rechnet mit 8–10 Fahrern × 5 min. Die
 Erkennung aus 12b findet Paare, sobald es sie gibt; entstehen werden sie erst auf Nachfrage

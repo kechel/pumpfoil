@@ -456,23 +456,25 @@ def test_montage_drehung_wird_aus_dem_pumptakt_gefunden(psi):
     r = lage_berechnen(acc, t, gyr, tg, ziel_hz=50.0,
                        ref_bereiche_ms=[(8000.0, 45000.0)], lauf_starts_ms=[5000.0], gps=_gps())
     assert r["ok"]
-    # Vorn/hinten aus der ANFAHRT gemessen, nicht angenommen.
-    assert r["richtung_bestimmt"] is True and "anfahrt" in r["rot_quelle"], r["rot_quelle"]
-    assert (r["rot_deg"] - psi) % 360 < 1.0 or (psi - r["rot_deg"]) % 360 < 1.0, r["rot_deg"]
+    # Die ACHSE ist gemessen; vorn/hinten gibt es (noch) kein Messverfahren -> ausdruecklich offen.
+    assert r["richtung_bestimmt"] is False
+    assert abs(((r["rot_deg"] - psi) % 180.0 + 90.0) % 180.0 - 90.0) < 1.0, r["rot_deg"]
     tt = np.array(r["t_ms"])
     m = (tt >= 10000) & (tt <= 45000)
-    fehler = np.array(r["pitch_deg"])[m] - np.interp(tt, t, soll)[m]
+    # Je nach getroffener Richtung ist das Nicken exakt umgekehrt — mehr darf nicht falsch sein.
+    vz = 1.0 if abs(((r["rot_deg"] - psi) + 180.0) % 360.0 - 180.0) < 90.0 else -1.0
+    fehler = vz * np.array(r["pitch_deg"])[m] - np.interp(tt, t, soll)[m]
     assert np.sqrt(np.mean(fehler ** 2)) < 2.0, np.sqrt(np.mean(fehler ** 2))
     # Und im Rollen darf davon nichts uebrig bleiben.
     assert np.abs(np.array(r["roll_deg"])[m]).max() < 2.0
-    # Das Wegtauchen am Lauf-Anfang ist nur noch Auskunft — aber richtig herum, in JEDER Montage.
-    assert r["start_nicken_deg"] < -10.0, r["start_nicken_deg"]
+    # Das Wegtauchen am Lauf-Anfang ist nur Auskunft — mit dem Vorzeichen der getroffenen Richtung.
+    assert vz * r["start_nicken_deg"] < -10.0, r["start_nicken_deg"]
 
 
 @pytest.mark.parametrize("psi", [45, 225])
-def test_ohne_anfahrt_bleibt_die_richtung_unbestimmt(psi):
-    """Ohne GPS keine Anfahrt — dann wird vorn/hinten NICHT geraten (Jan, 27.09.2026: „keinerlei
-    annahmen oder fallbacks"). Die Achse stimmt trotzdem, nur mod 180."""
+def test_ohne_messung_bleibt_die_richtung_unbestimmt(psi):
+    """Vorn/hinten wird NICHT geraten (Jan, 27.09.2026: „keinerlei annahmen oder fallbacks").
+    Die Achse stimmt trotzdem, nur mod 180."""
     acc, t, gyr, tg, _ = _pumpstrecke(psi)
     r = lage_berechnen(acc, t, gyr, tg, ziel_hz=50.0,
                        ref_bereiche_ms=[(8000.0, 45000.0)], lauf_starts_ms=[5000.0])
@@ -721,11 +723,28 @@ def _zwei_laeufe(psi0, psi1):
     return acc, tms, gyr, ref, starts, gps
 
 
-def test_gleiche_montage_wird_gemittelt():
+def _messung_vortaeuschen(monkeypatch, wahr_je_start: dict):
+    """Ein Richtungs-Messverfahren simulieren (das echte — Kompass — kommt mit dem Magnetometer):
+    fuer die Laeufe in `wahr_je_start` (Start-ms -> wahre Montage) die richtige Antwort, sonst
+    „nicht messbar". So wird die Logik ums Messen herum geprueft, nicht eine Annahme."""
+    from app.analysis import lage as _lage
+
+    def fake(acc, ta, gyr, tg, bezug, rot_deg, starts, gps):
+        if not starts or len(starts) != 1:
+            return None
+        wahr = wahr_je_start.get(float(starts[0]))
+        if wahr is None:
+            return None
+        return {"vorzeichen": 1 if abs(((rot_deg - wahr) + 180.0) % 360.0 - 180.0) < 90.0 else -1}
+    monkeypatch.setattr(_lage, "richtung_messen", fake)
+
+
+def test_gleiche_montage_wird_gemittelt(monkeypatch):
     """Zwei Laeufe, 3° auseinander: dieselbe Montage — beide zeigen das MITTEL, weil eine
     Einzelmessung an echten Aufnahmen ±8° streut (Jan, 27.09.2026: „stoert das nicht die
     genauigkeit?" — die gemittelte Zahl ist die genauere)."""
     acc, tms, gyr, ref, starts, gps = _zwei_laeufe(40.0, 43.0)
+    _messung_vortaeuschen(monkeypatch, {starts[0]: 40.0, starts[1]: 43.0})
     k = kennzahlen_je_lauf(acc, tms, gyr, tms, ref, starts, gps=gps)
     assert len(k) == 2 and all(x["ok"] for x in k)
     assert k[0]["rot_deg"] == k[1]["rot_deg"] and 39.0 <= k[0]["rot_deg"] <= 44.0, [x["rot_deg"] for x in k]
@@ -733,9 +752,10 @@ def test_gleiche_montage_wird_gemittelt():
     assert not any(x["rot_verrutscht"] for x in k)
 
 
-def test_ein_verrutschter_lauf_bleibt_sichtbar():
+def test_ein_verrutschter_lauf_bleibt_sichtbar(monkeypatch):
     """Springt die Achse deutlich, wird NICHT gemittelt — der Lauf behaelt seine eigene Zahl."""
     acc, tms, gyr, ref, starts, gps = _zwei_laeufe(0.0, 60.0)
+    _messung_vortaeuschen(monkeypatch, {starts[0]: 0.0, starts[1]: 60.0})
     k = kennzahlen_je_lauf(acc, tms, gyr, tms, ref, starts, gps=gps)
     assert len(k) == 2 and all(x["ok"] for x in k)
     assert abs(k[1]["rot_deg"] - 60.0) < 5, k[1]["rot_deg"]
@@ -744,9 +764,9 @@ def test_ein_verrutschter_lauf_bleibt_sichtbar():
     assert [x["rot_verrutscht"] for x in k] == [False, True], [x["rot_verrutscht"] for x in k]
 
 
-def test_richtung_wird_weitergetragen_und_rueckwirkend_uebernommen():
-    """Nur der MITTLERE von drei Laeufen hat eine messbare Anfahrt (GPS-Tempo nur dort). Seine
-    Richtung gilt fuer den folgenden UND rueckwirkend fuer den ersten (Jan, 27.09.2026)."""
+def test_richtung_wird_weitergetragen_und_rueckwirkend_uebernommen(monkeypatch):
+    """Nur der MITTLERE von drei Laeufen hat eine gemessene Richtung. Sie gilt fuer den folgenden
+    UND rueckwirkend fuer den ersten (Jan, 27.09.2026)."""
     psi, hz = 225.0, 50.0
     stuecke = [_pumpstrecke(psi, dauer_s=40.0, ab_s=2.0) for _ in range(3)]
     acc = np.concatenate([x[0] for x in stuecke])
@@ -757,8 +777,9 @@ def test_richtung_wird_weitergetragen_und_rueckwirkend_uebernommen():
     starts = [(j * n + 100) / hz * 1000.0 for j in range(3)]
     gps = [[int(k * 1000), 47.6, 11.18, float(_tempo(k - 40, 2.0) if 40 <= k < 80 else 4.0), 0, 3.0]
            for k in range(120)]
+    _messung_vortaeuschen(monkeypatch, {starts[1]: psi})
     k = kennzahlen_je_lauf(acc, tms, gyr, tms, ref, starts, gps=gps)
-    assert [x["rot_quelle"] for x in k] == ["weitergetragen", "achse+anfahrt", "weitergetragen"], \
+    assert [x["rot_quelle"] for x in k] == ["weitergetragen", "achse+gemessen", "weitergetragen"], \
         [x["rot_quelle"] for x in k]
     assert all(x["richtung_bestimmt"] for x in k)
     for x in k:
