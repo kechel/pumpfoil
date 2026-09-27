@@ -729,13 +729,17 @@ def _messung_vortaeuschen(monkeypatch, wahr_je_start: dict):
     „nicht messbar". So wird die Logik ums Messen herum geprueft, nicht eine Annahme."""
     from app.analysis import lage as _lage
 
-    def fake(acc, ta, gyr, tg, bezug, rot_deg, starts, gps):
-        if not starts or len(starts) != 1:
+    def fake(acc, ta, rot_deg, gps, ref_bereiche, mag):
+        # Nur fuer EINEN Laufbereich antworten (der Durchgang je Lauf), und nur, wenn einer der
+        # vorgegebenen Starts darin bzw. kurz davor liegt (die Bereiche sind an den Raendern gekuerzt).
+        if not ref_bereiche or len(ref_bereiche) != 1:
             return None
-        wahr = wahr_je_start.get(float(starts[0]))
+        a, b = ref_bereiche[0]
+        wahr = next((w for st, w in wahr_je_start.items() if a - 5000.0 <= float(st) <= b), None)
         if wahr is None:
             return None
-        return {"vorzeichen": 1 if abs(((rot_deg - wahr) + 180.0) % 360.0 - 180.0) < 90.0 else -1}
+        return {"vorzeichen": 1 if abs(((rot_deg - wahr) + 180.0) % 360.0 - 180.0) < 90.0 else -1,
+                "acc_vz": 1}
     monkeypatch.setattr(_lage, "richtung_messen", fake)
 
 
