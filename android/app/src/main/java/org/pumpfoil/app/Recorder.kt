@@ -35,6 +35,10 @@ object Recorder {
     // +/-32 rad/s (rund 1830 Grad/s) bequem in int16 und lassen 0,001 rad/s Aufloesung.
     // Gleiche Bauart wie ACCEL_SCALE, damit der Kanal sich genauso liest.
     const val GYRO_SCALE = 1024.0    // int16 1024 == 1 rad/s
+    // Magnetfeld. Android liefert TYPE_MAGNETIC_FIELD in µT; 10 Schritte je µT ist im Vertrag
+    // fest (docs/data-format.md „Magnetfeld-Chunk"): +/-3276 µT reichen fuer Erdfeld (25–65 µT)
+    // und Halterungen mit Magneten, 0,1 µT Aufloesung genuegt fuer den Kurs.
+    const val MAG_SCALE = 10.0       // int16 10 == 1 µT
     private const val G = 9.80665
     private const val UPLOAD_POOL = 6   // parallele Chunk-Uploads (Handy hat echtes Netz)
 
@@ -188,6 +192,11 @@ object Recorder {
     // genau das (s. docs/data-format.md).
     private val gyro = ArrayList<Short>(16384)
     private var gyroT0 = 0
+    // Magnetometer, falls vorhanden (Jan 27.09.2026). Wozu: vorn/hinten eines Handys am Brett —
+    // die Schwerkraft kann das nicht unterscheiden, der Kompass gegen den GPS-Kurs schon
+    // (docs/GROUND-TRUTH.md 12d). Eigener Puffer und eigener Chunk-Kanal, genau wie der Kreisel.
+    private val mag = ArrayList<Short>(16384)
+    private var magT0 = 0
     private val gps = ArrayList<DoubleArray>(256)
     private var prevLat = Double.NaN
     private var prevLon = Double.NaN
@@ -229,7 +238,7 @@ object Recorder {
         uuid = UUID.randomUUID().toString()
         startMs = System.currentTimeMillis()
         chunkIndex = 0
-        synchronized(lock) { accel.clear(); gyro.clear(); gps.clear(); spWin.clear() }
+        synchronized(lock) { accel.clear(); gyro.clear(); mag.clear(); gps.clear(); spWin.clear() }
         prevLat = Double.NaN; prevLon = Double.NaN
         distM = 0.0; maxMps = 0.0
         val meta = JSONObject()
@@ -403,6 +412,17 @@ object Recorder {
         }
     }
 
+    /** Magnetfeld in µT (TYPE_MAGNETIC_FIELD, kalibriert). Nur aufgerufen, wenn das Geraet ein Magnetometer hat. */
+    fun addMag(x: Float, y: Float, z: Float) {
+        if (!running) return
+        synchronized(lock) {
+            if (mag.isEmpty()) magT0 = elapsedMs()
+            mag.add(toI16(x * MAG_SCALE))
+            mag.add(toI16(y * MAG_SCALE))
+            mag.add(toI16(z * MAG_SCALE))
+        }
+    }
+
     // Standschwelle fuer die LIVE-Distanz. Ohne sie summiert jeder GPS-Fix seinen Abstand zum
     // Vorgaenger auf — auch wenn die Uhr am Steg liegt und nur der Empfang zittert. Gemessen an
     // 400 echten Sessions (26.08.): die ungefilterte Punkt-zu-Punkt-Summe liegt bis zu 53 %
@@ -486,7 +506,7 @@ object Recorder {
     private suspend fun flushLoop() {
         while (running) { delay(10_000); flushAll() }
     }
-    private fun flushAll() { flushAccel(); flushGyro(); flushGps() }
+    private fun flushAll() { flushAccel(); flushGyro(); flushMag(); flushGps() }
 
     private fun flushAccel() {
         val ctx = appCtx ?: return
@@ -520,6 +540,25 @@ object Recorder {
         val b64 = Base64.encodeToString(bb.array(), Base64.NO_WRAP)
         RecStore.writeChunk(ctx, uuid, chunkIndex, JSONObject()
             .put("index", chunkIndex).put("kind", "gyro").put("encoding", "int16-b64")
+            .put("t0_ms", t0).put("count", buf.size / 3).put("data", b64))
+        chunkIndex++
+    }
+
+    // Wie flushGyro. Ohne Magnetometer bleibt der Puffer leer und es entsteht kein Chunk. Die
+    // Chunks laufen durch denselben Index und zaehlen damit in total_chunks mit (Vertrag).
+    private fun flushMag() {
+        val ctx = appCtx ?: return
+        val buf: ShortArray; val t0: Int
+        synchronized(lock) {
+            if (mag.isEmpty()) return
+            buf = ShortArray(mag.size) { mag[it] }; t0 = magT0
+            mag.clear()
+        }
+        val bb = ByteBuffer.allocate(buf.size * 2).order(ByteOrder.LITTLE_ENDIAN)
+        for (s in buf) bb.putShort(s)
+        val b64 = Base64.encodeToString(bb.array(), Base64.NO_WRAP)
+        RecStore.writeChunk(ctx, uuid, chunkIndex, JSONObject()
+            .put("index", chunkIndex).put("kind", "mag").put("encoding", "int16-b64")
             .put("t0_ms", t0).put("count", buf.size / 3).put("data", b64))
         chunkIndex++
     }
