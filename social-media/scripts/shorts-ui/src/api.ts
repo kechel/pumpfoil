@@ -57,6 +57,8 @@ export interface Captions {
 export interface RenderResult {
   results: Record<string, { ok: boolean; out?: string; error?: string }>;
   moved: string | null;
+  cancelled?: boolean;          // abgebrochen: nichts gerendert, nichts verschoben
+  entfernt?: string[];          // dabei wieder geloeschte Teil-Exporte
 }
 
 export interface Progress {

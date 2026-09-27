@@ -88,6 +88,10 @@ OUTRO_SECS = 2.5       # Like/Follow-Icons: sichtbar in den letzten x Sekunden �
 OUTRO_SECS_LONG = 4.0  # … bzw. bei Videos über 20 s
 OUTRO_LONG_AB = 20.0
 PROGRESS = {"active": False, "label": "", "pct": 0.0}  # Render-Fortschritt fürs UI
+# Der laufende ffmpeg-Prozess und die Abbruch-Anforderung. Der Render laeuft im
+# Handler-Thread; abgebrochen wird aus einem ZWEITEN Request heraus, deshalb
+# muss der Prozess von aussen erreichbar sein.
+RENDER = {"proc": None, "cancel": False}
 STARS_FILE = BASE / ".shorts-musik-stars.json"  # gemerkte Videos (⭐ in der Sidebar)
 LAST_RENDER_FILE = BASE / ".shorts-last-render.json"  # für „letzten Render zurückholen"
 CAPTIONS_CACHE_FILE = BASE / ".captions-cache.json"  # generierte Titel/Captions je Export-Name
@@ -552,6 +556,10 @@ def endcard_teile(endcard) -> tuple[float, float, float]:
             max(0.05, float(endcard.get("fade_out", 0.3))))
 
 
+class RenderAbgebrochen(Exception):
+    """Der Render wurde aus der Oberflaeche abgebrochen — kein Fehler."""
+
+
 def endcard_len(endcard) -> float:
     """Wieviel eine Endcard das Ergebnis verlaengert.
 
@@ -751,6 +759,7 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
     ]
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT, text=True)
+    RENDER["proc"] = proc
     errtail = []
     for line in proc.stdout:
         line = line.strip()
@@ -764,9 +773,15 @@ def render(video: Path, track: Path, out: Path, gain_db: float,
             errtail.append(line)
             if len(errtail) > 50:
                 del errtail[0]
-    if proc.wait() != 0:
-        raise subprocess.CalledProcessError(proc.returncode, cmd,
-                                            stderr="\n".join(errtail))
+    rc = proc.wait()
+    RENDER["proc"] = None
+    if RENDER["cancel"]:
+        # Angebrochene Datei liegen zu lassen waere schlimmer als nichts: sie
+        # sieht aus wie ein fertiger Export.
+        out.unlink(missing_ok=True)
+        raise RenderAbgebrochen()
+    if rc != 0:
+        raise subprocess.CalledProcessError(rc, cmd, stderr="\n".join(errtail))
     drehung_entfernen(out)
     PROGRESS["pct"] = 100.0
 
@@ -2379,6 +2394,14 @@ class Handler(BaseHTTPRequestHandler):
                     "privacy": r["yt_status"].get("privacyStatus", "?")}
             save_upload_state(name, "youtube", info)
             return self._json({"ok": True, **info, "state": uploads_state()})
+        if self.path == "/api/render/cancel":
+            if not PROGRESS.get("active"):
+                return self._json({"ok": False, "error": "Gerade laeuft kein Render"})
+            RENDER["cancel"] = True
+            proc = RENDER.get("proc")
+            if proc is not None and proc.poll() is None:
+                proc.terminate()
+            return self._json({"ok": True})
         if self.path == "/api/redo_last":
             try:
                 info = json.loads(LAST_RENDER_FILE.read_text())
@@ -2529,7 +2552,9 @@ class Handler(BaseHTTPRequestHandler):
         for pf, dataurl in (req.get("outros") or {}).items():
             if dataurl:
                 outros[pf] = Path(_png_datei(dataurl))
-        out_name = re.sub(r"[/\\:\x00-\x1f]+", "-", (req.get("out_name") or "").strip())
+        # Leerzeichen werden zu Bindestrichen — ein Dateiname mit Leerzeichen
+        # bricht jede Kette, die ihn spaeter unquotiert weiterreicht.
+        out_name = re.sub(r"[/\\:\s\x00-\x1f]+", "-", (req.get("out_name") or "").strip())
         out_name = re.sub(r"\.mp4$", "", out_name, flags=re.I)
         # Nummer + "Pumpfoil-<Jahr>-" automatisch; manuell Getipptes gewinnt
         m = NUM_RE.match(out_name)
@@ -2563,6 +2588,9 @@ class Handler(BaseHTTPRequestHandler):
             except (FileNotFoundError, TypeError, ValueError):
                 return self._json({"error": "Endcard nicht gefunden"}, 400)
         results = {}
+        gebaut = []           # was dieser Lauf geschrieben hat — fuer den Abbruch
+        abgebrochen = False
+        RENDER["cancel"] = False
         for pf in EXPORT_PLATFORMS:
             rel = (req.get("tracks") or {}).get(pf)
             PROGRESS.update(active=True, label=pf, pct=0.0)
@@ -2584,17 +2612,22 @@ class Handler(BaseHTTPRequestHandler):
                     if overlay:
                         ov_pf = zh_variante(overlay)
                 out = OUT_DIR / pf / (num + base + pf_suffix + ".mp4")
-                # Altbestand mit abweichendem Suffix ersetzen statt doppeln
-                old = export_file(pf, out.name)
-                if old is not None and old != out:
-                    old.unlink()
+                alt = export_file(pf, out.name)
                 render(video, track, out, gain, fade_out, ov_pf,
                        trim_start, trim_end, tx_pf, outros.get(pf),
                        float(req.get("overlay_alpha", 1.0)),
                        oton_gain_db=oton_gain, ducks=ducks, endcard=ec_pf,
                        tail_secs=float(req.get("tail_secs") or 0.0),
                        halten=bool(req.get("halten")))
+                # Altbestand mit abweichendem Suffix ersetzen statt doppeln —
+                # ERST jetzt, wo der neue Export wirklich fertig ist.
+                if alt is not None and alt != out:
+                    alt.unlink(missing_ok=True)
+                gebaut.append(out)
                 results[pf] = {"ok": True, "out": str(out.relative_to(BASE))}
+            except RenderAbgebrochen:
+                abgebrochen = True
+                break
             except subprocess.CalledProcessError as e:
                 results[pf] = {"ok": False, "error": (e.stderr or "")[-400:]}
             except (ValueError, FileNotFoundError) as e:
@@ -2605,6 +2638,18 @@ class Handler(BaseHTTPRequestHandler):
             except OSError:
                 pass
         PROGRESS.update(active=False, label="", pct=0.0)
+        if abgebrochen:
+            # Zustand von vor dem Render: die schon fertigen Plattform-Dateien
+            # wieder weg, Quellvideo bleibt liegen (es wird ohnehin erst nach
+            # einem VOLLSTAENDIGEN Lauf weggeraeumt), kein Rezept, kein
+            # "letzter Render". Danach ist nicht mehr zu sehen, dass er lief.
+            for f in gebaut:
+                f.unlink(missing_ok=True)
+            RENDER["cancel"] = False
+            # Dieselbe Form wie ein normaler Render, damit die Oberflaeche
+            # nichts Besonderes braucht — nur eben ohne Ergebnisse.
+            return self._json({"results": {}, "moved": None, "cancelled": True,
+                               "entfernt": [f.name for f in gebaut]})
         # Quellvideo wegräumen, wenn alle angeforderten Renders geklappt haben
         moved = None
         if results and all(r.get("ok") for r in results.values()):
