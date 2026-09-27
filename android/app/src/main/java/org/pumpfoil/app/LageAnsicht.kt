@@ -271,6 +271,23 @@ private fun LageInhalt(
         hhmmssOffset(s.startedAt, s.tz, Clockmap.wanduhrMs(s.pauseWindows, t) / 1000) ?: ""
     }
 
+    // Vorn/hinten nicht aus den Daten bestimmbar (keine eindeutige Anfahrt): dann ist das
+    // Vorzeichen von Nicken und Rollen NICHT bekannt — sagen statt still ein Bild zeigen, das
+    // genauso gut spiegelverkehrt sein kann (Jan, 27.09.2026: „keinerlei annahmen"; PWA a7e6cdb6).
+    // Bernstein wie die uebrigen Hinweis-Kaesten (tertiaryContainer, s. Theme.kt), normale Schrift.
+    if (d.richtungBestimmt == false) {
+        Surface(
+            color = MaterialTheme.colorScheme.tertiaryContainer,
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(I18n.t("board.directionUnknown"), style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp))
+        }
+        Spacer(Modifier.height(10.dp))
+    }
+
     d.rig?.let { rig ->
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             LageKachel(I18n.t("board.pitch"), I18n.t("board.pitchHint"), pitch) {

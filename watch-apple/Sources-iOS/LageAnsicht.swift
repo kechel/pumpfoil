@@ -258,12 +258,28 @@ struct LageInhaltView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
+            richtungHinweis
             kacheln
             LageKurvenView(reihen: reihen, tMs: tMs, pos: $pos, spielt: $spielt, idx: idx, zusammen: zusammen,
                            von: d.auswahl_von_ms, bis: d.auswahl_bis_ms)
             zeitachse
             bedienung
             kennzahlen
+        }
+    }
+
+    /// Vorn/hinten nicht aus den Daten bestimmbar: sagen statt still ein Bild zeigen, das genauso
+    /// gut spiegelverkehrt sein kann (PWA BoardAttitude.tsx, Jan 27.09.2026: „keinerlei annahmen").
+    /// Normale Schriftgroesse, Amber-Kasten wie die uebrigen Hinweise der App.
+    @ViewBuilder private var richtungHinweis: some View {
+        if d.richtung_bestimmt == false {
+            Text(Loc.t("board.directionUnknown", lang))
+                .font(.body)
+                .padding(10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.orange.opacity(0.12))
+                .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.orange.opacity(0.4), lineWidth: 1))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
         }
     }
 

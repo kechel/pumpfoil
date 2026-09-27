@@ -95,15 +95,31 @@ enum Api {
         let _: Ok = try await request("/api/auth/me", method: "DELETE", body: nil, auth: true)
     }
 
-    static func sessions(month: String? = nil, filter: String = "pump", accelOnly: Bool = false) async throws -> [SessionSummary] {
+    // `sport`: "all" (Default) schraenkt nicht ein und wird gar nicht erst mitgeschickt — wie die
+    // PWA (api.ts). Der Server liest es fuer eigene Sessions wie der Community-Feed (27.09.2026).
+    static func sessions(month: String? = nil, filter: String = "pump", accelOnly: Bool = false,
+                         sport: String = "all") async throws -> [SessionSummary] {
         var qs = "?filter=\(filter)"
         if let month, !month.isEmpty { qs += "&month=\(month)" }
         if accelOnly { qs += "&accel_only=true" }
+        qs += sportQuery(sport)
         return try await request("/api/sessions\(qs)", method: "GET", body: nil, auth: true)
     }
 
-    static func sessionMonths(filter: String = "pump") async throws -> [MonthCount] {
-        try await request("/api/sessions/months?filter=\(filter)", method: "GET", body: nil, auth: true)
+    static func sessionMonths(filter: String = "pump", sport: String = "all") async throws -> [MonthCount] {
+        try await request("/api/sessions/months?filter=\(filter)\(sportQuery(sport))", method: "GET", body: nil, auth: true)
+    }
+
+    /// "&sport=<x>" fuer eine echte Sportart, leer fuer "all"/leer.
+    private static func sportQuery(_ sport: String) -> String {
+        guard !sport.isEmpty, sport != "all" else { return "" }
+        return "&sport=\(sport.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sport)"
+    }
+
+    // Sportarten mit mindestens einem Lauf (all time, Community-Filter) — Auswahl des
+    // Sportart-Filters in Sessions-Liste und Spot-Karte (PWA api.communitySports).
+    static func communitySports() async throws -> [CommunitySport] {
+        try await request("/api/community/sports", method: "GET", body: nil, auth: true)
     }
 
     static func inProgress() async throws -> [InProgressSession] {
@@ -402,9 +418,12 @@ enum Api {
         return try await request("/api/community/sessions\(qs)", method: "GET", body: nil, auth: true)
     }
 
-    static func spotSessions(_ spot: String, accelOnly: Bool = true, limit: Int = 50) async throws -> [CommunityItem] {
+    // `sport` nil = Endpunkt-Default ("pumpfoil"), sonst genau diese Sportart bzw. "all".
+    static func spotSessions(_ spot: String, accelOnly: Bool = true, limit: Int = 50,
+                             sport: String? = nil) async throws -> [CommunityItem] {
         let s = spot.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? spot
-        return try await request("/api/community/spot-sessions?spot=\(s)&accel_only=\(accelOnly)&limit=\(limit)", method: "GET", body: nil, auth: true)
+        let sp = sport.map { "&sport=\($0.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? $0)" } ?? ""
+        return try await request("/api/community/spot-sessions?spot=\(s)&accel_only=\(accelOnly)&limit=\(limit)\(sp)", method: "GET", body: nil, auth: true)
     }
 
     // Tages-Gruppierung (Community/Spot): ein Nutzer+Tag = eine Gruppe (server-seitig).
@@ -851,8 +870,10 @@ enum Api {
     }
 
     // accelOnly=false wie die PWA — sonst fehlen GPS-only-Spots (z. B. Frankreich).
-    static func spotMap(accelOnly: Bool = false) async throws -> [SpotMapItem] {
-        try await request("/api/community/spot-map?accel_only=\(accelOnly)", method: "GET", body: nil, auth: true)
+    // `sport` (Default "all" = Serverdefault): die Zahl je Spot zaehlt dann nur diese Sportart.
+    static func spotMap(accelOnly: Bool = false, sport: String = "all") async throws -> [SpotMapItem] {
+        let sp = sport.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sport
+        return try await request("/api/community/spot-map?accel_only=\(accelOnly)&sport=\(sp)", method: "GET", body: nil, auth: true)
     }
 
     // Spot-Vergleich (wie SpotCompare.tsx): accelOnly=false wie bei der Spot-Karte, sonst fallen
@@ -1140,11 +1161,14 @@ enum Api {
         guard (200..<300).contains((resp as? HTTPURLResponse)?.statusCode ?? -1) else { throw ApiError.http(-1, "") }
     }
 
-    struct MergeResp: Decodable { let id: Int }
+    // `geteilte_links`: wie viele der Quellen per Link geteilt waren — der Link ist mit der Quelle
+    // weg (PWA 25.09.). Optional, damit eine aeltere Server-Antwort weiter dekodiert.
+    struct MergeResp: Decodable { let id: Int; let geteilte_links: Int? }
 
     // Mehrere eigene Sessions zusammenführen -> neue Session-ID. Server prüft same-spot/on-foil.
     static func mergeSessions(_ ids: [Int]) async throws -> Int {
         let r: MergeResp = try await request("/api/sessions/merge", method: "POST", body: ["session_ids": ids], auth: true)
+        if let n = r.geteilte_links, n > 0 { MergeHinweis.merken(r.id, n) }
         return r.id
     }
 

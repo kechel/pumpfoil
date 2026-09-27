@@ -114,7 +114,9 @@ fun WatchScreen(
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
             )
             Spacer(Modifier.height(8.dp))
-            PairedDevicesCard(onSaved = { scope.launch { snackHost.showSnackbar(I18n.t("common.saved")) } })
+            // Rueckmeldung „gespeichert" steht seit 28.09.2026 direkt unter dem jeweiligen Regler
+            // (wie die PWA), nicht mehr als Snackbar am unteren Rand.
+            PairedDevicesCard()
         }
     }
 }
@@ -166,8 +168,45 @@ fun PairedDevicesCard(onSaved: () -> Unit = {}) {
     var zeigeAusgeblendete by remember { mutableStateOf(false) }
     var neuLaden by remember { mutableStateOf(0) }
     var frage by remember { mutableStateOf<Triple<String, String, () -> Unit>?>(null) }
+    // Rueckmeldung je Uhr UND Einstellung (PWA 3ffb76ca, Jan 26.09.2026: „fehlt der uebliche
+    // 'gespeichert' hinweis"): die Regler speichern sofort beim Umstellen. „Gespeichert" steht
+    // 3 s unter dem Regler; schlaegt es fehl, steht der Fehler da und die Liste wird neu geladen,
+    // damit der Regler wieder den echten Wert zeigt. Schluessel "<id>:mode|gnss|water|accel".
+    var rueckmeldung by remember { mutableStateOf<Pair<String, Boolean>?>(null) }
+    var rueckJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
+    fun speichern(k: String, tun: suspend () -> Unit) {
+        rueckJob?.cancel()
+        rueckmeldung = null
+        rueckJob = scope.launch {
+            try {
+                tun()
+                onSaved()
+                rueckmeldung = k to true
+                kotlinx.coroutines.delay(3000)
+                rueckmeldung = null
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                rueckmeldung = k to false
+                neuLaden++
+            }
+        }
+    }
+    @Composable
+    fun Rueck(k: String) {
+        val r = rueckmeldung ?: return
+        if (r.first != k) return
+        Text(I18n.t(if (r.second) "common.saved" else "profile.saveError"),
+            style = MaterialTheme.typography.bodyMedium,
+            color = if (r.second) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+            modifier = Modifier.padding(top = 4.dp))
+    }
+    // Zaehlt jede frisch geladene Liste mit: die Regler-Zustaende haengen daran, damit sie nach
+    // einem fehlgeschlagenen Speichern (-> Neuladen) wieder den Wert vom Server zeigen.
+    var ladeStand by remember { mutableStateOf(0) }
     LaunchedEffect(zeigeAusgeblendete, neuLaden) {
         devices = try { Api.myDevices(includeHidden = zeigeAusgeblendete) } catch (_: Exception) { emptyList() }
+        ladeStand++
     }
     val active = devices?.filter { it.revokedAt == null } ?: return
     val ausgeblendet = devices?.firstOrNull()?.hiddenTotal ?: 0
@@ -233,7 +272,7 @@ fun PairedDevicesCard(onSaved: () -> Unit = {}) {
                 Spacer(Modifier.height(6.dp))
                 Text(I18n.t("account.recordMode"), style = MaterialTheme.typography.labelMedium)
                 var open by remember(d.id) { mutableStateOf(false) }
-                var mode by remember(d.id) { mutableStateOf(d.recordMode) }
+                var mode by remember(d.id, ladeStand) { mutableStateOf(d.recordMode) }
                 Box {
                     OutlinedButton(onClick = { open = true }, modifier = Modifier.fillMaxWidth()) {
                         Text(modes.firstOrNull { it.first == mode }?.second ?: mode)
@@ -242,11 +281,12 @@ fun PairedDevicesCard(onSaved: () -> Unit = {}) {
                         modes.forEach { (id, lbl) ->
                             DropdownMenuItem(text = { Text(lbl) }, onClick = {
                                 open = false
-                                if (id != mode) { mode = id; scope.launch { try { Api.setDeviceRecordMode(d.id, id); onSaved() } catch (_: Exception) {} } }
+                                if (id != mode) { mode = id; speichern("${d.id}:mode") { Api.setDeviceRecordMode(d.id, id) } }
                             })
                         }
                     }
                 }
+                Rueck("${d.id}:mode")
                 if (d.lowAccel && mode == "full") {
                     Text(I18n.t("account.recordModeAutoLite"), style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.tertiary, modifier = Modifier.padding(top = 4.dp))
@@ -266,7 +306,7 @@ fun PairedDevicesCard(onSaved: () -> Unit = {}) {
                     Spacer(Modifier.height(10.dp))
                     Text(I18n.t("account.gnssMode"), style = MaterialTheme.typography.labelMedium)
                     var gnssOffen by remember(d.id) { mutableStateOf(false) }
-                    var gnss by remember(d.id) { mutableStateOf(d.gnssMode ?: "best") }
+                    var gnss by remember(d.id, ladeStand) { mutableStateOf(d.gnssMode ?: "best") }
                     Box {
                         OutlinedButton(onClick = { gnssOffen = true }, modifier = Modifier.fillMaxWidth()) {
                             Text(gnssStufen.firstOrNull { it.first == gnss }?.second ?: gnss)
@@ -277,14 +317,13 @@ fun PairedDevicesCard(onSaved: () -> Unit = {}) {
                                     gnssOffen = false
                                     if (id != gnss) {
                                         gnss = id
-                                        scope.launch {
-                                            try { Api.setDeviceGnssMode(d.id, id); onSaved() } catch (_: Exception) {}
-                                        }
+                                        speichern("${d.id}:gnss") { Api.setDeviceGnssMode(d.id, id) }
                                     }
                                 })
                             }
                         }
                     }
+                    Rueck("${d.id}:gnss")
                     Text(I18n.t("account.gnssModeHint"), style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
                 }
@@ -302,8 +341,10 @@ fun PairedDevicesCard(onSaved: () -> Unit = {}) {
                         ),
                         start = d.waterLock ?: "auto",
                         schluessel = d.id,
+                        stand = ladeStand,
                         hinweis = I18n.t("account.waterLockHint"),
-                    ) { id -> scope.launch { try { Api.setDeviceWaterLock(d.id, id); onSaved() } catch (_: Exception) {} } }
+                        rueck = { Rueck("${d.id}:water") },
+                    ) { id -> speichern("${d.id}:water") { Api.setDeviceWaterLock(d.id, id) } }
                 }
                 // Wake-up-Sensor — nur Wear OS (s. RecorderService.accelSensor). „Standard" entfernt
                 // den Override, damit man spaeter mitzieht, wenn der Standard umgestellt wird.
@@ -319,8 +360,10 @@ fun PairedDevicesCard(onSaved: () -> Unit = {}) {
                         ),
                         start = d.accelWakeup ?: "default",
                         schluessel = d.id,
+                        stand = ladeStand,
                         hinweis = I18n.t("account.accelWakeupHint"),
-                    ) { id -> scope.launch { try { Api.setDeviceAccelWakeup(d.id, id); onSaved() } catch (_: Exception) {} } }
+                        rueck = { Rueck("${d.id}:accel") },
+                    ) { id -> speichern("${d.id}:accel") { Api.setDeviceAccelWakeup(d.id, id) } }
                 }
 
                 // Aufraeumen je Uhr — bisher nur in der PWA, dadurch war eine verkaufte oder
@@ -388,11 +431,13 @@ private fun UhrAuswahl(
     start: String,
     schluessel: Int,
     hinweis: String,
+    stand: Int = 0,
+    rueck: @Composable () -> Unit = {},
     onWahl: (String) -> Unit,
 ) {
     Text(titel, style = MaterialTheme.typography.labelMedium)
     var offen by remember(schluessel) { mutableStateOf(false) }
-    var wert by remember(schluessel, start) { mutableStateOf(start) }
+    var wert by remember(schluessel, start, stand) { mutableStateOf(start) }
     Box {
         OutlinedButton(onClick = { offen = true }, modifier = Modifier.fillMaxWidth()) {
             Text(optionen.firstOrNull { it.first == wert }?.second ?: wert)
@@ -406,6 +451,8 @@ private fun UhrAuswahl(
             }
         }
     }
+    // „Gespeichert"/Fehler direkt unter dem Regler, vor dem Hinweis — wie in der PWA.
+    rueck()
     Text(hinweis, style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
 }

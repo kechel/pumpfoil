@@ -548,6 +548,9 @@ struct SessionDetailView: View {
                 SessionUploadCard(id: s.id)
             }
             nurGpsHinweis(s)
+            // Teilen-Link nach dem Zusammenfuehren (PWA 03b0b7da) — ueber der Brett-Frage, weil er
+            // sich auf die eben ausgeloeste Aktion bezieht. Keine Warnung: es ist nichts kaputt.
+            MergeLinkHinweisView(sessionId: s.id, lang: lang)
             // Handy am Brett? — nur wenn die Erkennung anschlaegt (s. LageAnsicht.swift).
             BrettFrageView(session: s, lang: lang) { await frischLaden() }
             neighborNav
@@ -2276,6 +2279,29 @@ private struct RunsTable: View {
         return m > 0 ? m : nil
     }
 
+    /// Alle gemessenen Pulswerte im Lauf, in Reihenfolge (PWA `hrWerte`, 26.09.2026). Quelle fuer
+    /// Start-, Durchschnitts- und Endpuls. Start/Ende = erster/letzter GEMESSENE Wert, nicht
+    /// hr[i_start]: am Laufanfang fehlt der Puls oft ein paar Sekunden.
+    private func hrWerte(_ seg: Segment) -> [Int] {
+        guard !hr.isEmpty else { return [] }
+        var out: [Int] = []
+        var i = max(0, seg.i_start)
+        while i <= min(seg.i_end, hr.count - 1) {
+            if let v = hr[i], v > 0 { out.append(v) }
+            i += 1
+        }
+        return out
+    }
+
+    private static func bpm(_ v: Int?) -> String { v.map { "\($0) bpm" } ?? "–" }
+
+    private func hrMittel(_ seg: Segment) -> Int? {
+        let w = hrWerte(seg)
+        guard !w.isEmpty else { return nil }
+        let summe: Int = w.reduce(0, +)
+        return Int((Double(summe) / Double(w.count)).rounded())
+    }
+
     // Spalten nur zeigen, wenn wenigstens EIN Lauf sie fuellt - sonst stehen dort nur Striche und
     // nehmen Platz weg. Dieselben drei Bedingungen wie die PWA (hasPump / hasHr / showPower).
     private var hatPump: Bool { segments.contains { $0.avg_pump_hz != nil && ($0.pumps ?? 0) > 0 } }
@@ -2332,10 +2358,20 @@ private struct RunsTable: View {
                 PumpUnit.fmtValue(seg.max_pump_hz) + " / " + PumpUnit.fmtValue(seg.min_pump_hz)
             })
         }
+        // Puls: Start, Durchschnitt, Max, Ende — Reihenfolge wie in der PWA (26.09.2026).
         if zeigeMaxHr {
+            s.append(Spalte(kopf: k("sd.colHrStart"), breite: 64) { _, seg in
+                Self.bpm(self.hrWerte(seg).first)
+            })
+            s.append(Spalte(kopf: k("sd.colHrAvg"), breite: 64) { _, seg in
+                Self.bpm(self.hrMittel(seg))
+            })
             s.append(Spalte(kopf: k("sd.colMaxHr"), breite: 64) { _, seg in
                 guard let v = self.maxHr(seg) else { return "–" }
                 return "\(v) bpm"
+            })
+            s.append(Spalte(kopf: k("sd.colHrEnd"), breite: 64) { _, seg in
+                Self.bpm(self.hrWerte(seg).last)
             })
         }
         s.append(Spalte(kopf: k("sd.colGlide"), breite: 70) { _, seg in
@@ -2601,5 +2637,55 @@ struct OrtSchalterView: View {
             await nachher()
             busy = false
         }
+    }
+}
+
+/// Nach dem Zusammenfuehren: wie viele der Quellen per Link geteilt waren. Die Detailansicht der
+/// neuen Session holt die Zahl GENAU EINMAL ab — wie der Navigations-Zustand der PWA (03b0b7da),
+/// ein erneutes Oeffnen bringt den Hinweis nicht zurueck.
+enum MergeHinweis {
+    private static var offen: [Int: Int] = [:]
+    private static let lock = NSLock()
+    static func merken(_ id: Int, _ n: Int) { lock.lock(); offen[id] = n; lock.unlock() }
+    static func abholen(_ id: Int) -> Int {
+        lock.lock(); defer { lock.unlock() }
+        return offen.removeValue(forKey: id) ?? 0
+    }
+}
+
+/// Einmaliger, wegklickbarer Hinweis nach dem Zusammenfuehren, s. `MergeHinweis`.
+struct MergeLinkHinweisView: View {
+    let sessionId: Int
+    let lang: String
+    @State private var anzahl = 0
+    @State private var geholt = false
+
+    var body: some View {
+        Group {
+            if anzahl > 0 {
+                HStack(spacing: 10) {
+                    Text(text).font(.subheadline)
+                    Spacer(minLength: 4)
+                    Button(Loc.t("sd.mergeShareGoneOk", lang)) { anzahl = 0 }
+                        .buttonStyle(.borderedProminent)
+                }
+                .padding(12)
+                .background(Color.accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
+            } else {
+                // Ohne sichtbaren Inhalt liefe `.onAppear` nicht zuverlaessig
+                // (Memory swiftui-leere-group-laedt-nicht).
+                Color.clear.frame(height: 0)
+            }
+        }
+        .onAppear {
+            guard !geholt else { return }
+            geholt = true
+            anzahl = MergeHinweis.abholen(sessionId)
+        }
+    }
+
+    private var text: String {
+        anzahl == 1 ? Loc.t("sd.mergeShareGone", lang)
+            : Loc.t("sd.mergeShareGoneN", lang).replacingOccurrences(of: "{n}", with: String(anzahl))
     }
 }

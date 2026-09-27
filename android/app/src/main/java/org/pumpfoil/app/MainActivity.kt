@@ -234,13 +234,17 @@ fun MainScaffold(onLogout: () -> Unit) {
             composable("sessions") { SessionsScreen(onOpen = { id, v -> nav.navigate("session/$id" + (v?.let { "?v=$it" } ?: "")) }, onCompare = { nav.navigate("compare") }, onSpotChat = { s -> nav.navigate("chatroom/${Uri.encode("spot:" + s)}?label=${Uri.encode(s)}") }) }
             composable("community") { CommunityScreen(onOpen = { id -> nav.navigate("session/$id") }, onFoilStats = { nav.navigate("foilstats") }, onWatchStats = { nav.navigate("watchstats") }) }
             composable("verlauf") { VerlaufScreen(onOpen = { id -> nav.navigate("session/$id") }) }
-            composable("spots") { SpotsScreen(onOpenSpot = { nav.navigate("spot/${Uri.encode(it)}") }, onOpenSession = { id -> nav.navigate("session/$id") }) }
+            // Marker/Treffer auf der Spot-Karte reichen die dort gewaehlte Sportart mit (wie die PWA).
+            composable("spots") { SpotsScreen(onOpenSpot = { nav.navigate("spot/${Uri.encode(it)}") }, onOpenSession = { id -> nav.navigate("session/$id") },
+                                              onOpenSpotSport = { s, sp -> nav.navigate("spot/${Uri.encode(s)}?sport=${Uri.encode(sp)}") }) }
             composable(
-                "spot/{name}",
-                arguments = listOf(navArgument("name") { type = NavType.StringType }),
+                "spot/{name}?sport={sport}",
+                arguments = listOf(navArgument("name") { type = NavType.StringType },
+                                   navArgument("sport") { type = NavType.StringType; defaultValue = "all" }),
             ) { entry ->
                 SpotSessionsScreen(
                     spot = entry.arguments?.getString("name").orEmpty(),
+                    sport0 = entry.arguments?.getString("sport") ?: "all",
                     onBack = { nav.popBackStack() },
                     onOpen = { id -> nav.navigate("session/$id") },
                     onSpotChat = { s -> nav.navigate("chatroom/${Uri.encode("spot:" + s)}?label=${Uri.encode(s)}") },

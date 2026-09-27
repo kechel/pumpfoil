@@ -119,6 +119,11 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
     // "aussortiert" -> Tabwechsel, s. SessionsWunsch).
     var filter by remember { mutableStateOf(SessionsWunsch.abholen() ?: "pump") }
     var month by remember { mutableStateOf("") }           // "YYYY-MM" | "" (nur eigene)
+    // Sportart-Filter (Nutzerwunsch 27.09.2026: „filter sessions … for Wakethief"). Default „all",
+    // anders als auf der Community-Seite (dort Pumpfoil) — die Liste ist die Uebersicht (Jan).
+    // Gilt fuer Meine/Homespot/Alle/Spot gleichermassen und bleibt beim Wechsel stehen.
+    var sport by remember { mutableStateOf("all") }
+    var sports by remember { mutableStateOf<List<SportRuns>>(emptyList()) }
     // EIN EIGENER Scrollzustand JE LISTE — nicht einer fuer alle mit einem Ruecksprung.
     //
     // Erst hatte ich `rememberLazyListState()` plus `scrollToItem(0)` bei jedem Wechsel. Das hat
@@ -133,7 +138,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
     // Zustand, und ein frischer Zustand steht bei 0 — es gibt gar nichts, was zurueckspringen
     // muesste. Die Rueckkehr aus einer Session aendert keinen der vier Schluessel, dort bleibt die
     // Position also erhalten.
-    val listenStand = remember(scope, spot, filter, month) {
+    val listenStand = remember(scope, spot, filter, month, sport) {
         androidx.compose.foundation.lazy.LazyListState()
     }
     var months by remember { mutableStateOf<List<MonthCount>>(emptyList()) }
@@ -151,6 +156,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
             (st["homespot_effective"] ?: st["homespot"])?.jsonPrimitive?.contentOrNull ?: ""
         } catch (_: Exception) { "" }
         spots = try { Api.spots(accelOnly = false).all } catch (_: Exception) { emptyList() }
+        sports = try { Api.communitySports() } catch (_: Exception) { emptyList() }
         // Einmal die Karte holen, nur fuer die Zuordnung Name -> spot_id. Billig (ein Aufruf) und
         // die Alternative waere ein neuer Endpunkt fuer denselben Zusammenhang.
         try {
@@ -169,9 +175,9 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
     LaunchedEffect(tick, xferTick) {
         incoming = try { Api.transfersIncoming() } catch (_: Exception) { emptyList() }
     }
-    // Monats-Facetten je Filter (für den Monats-Dropdown der eigenen Sessions).
-    LaunchedEffect(filter) {
-        months = try { Api.sessionMonths(filter) } catch (_: Exception) { emptyList() }
+    // Monats-Facetten je Filter + Sportart (für den Monats-Dropdown der eigenen Sessions).
+    LaunchedEffect(filter, sport) {
+        months = try { Api.sessionMonths(filter, sport) } catch (_: Exception) { emptyList() }
     }
     // Spot-Wetter im Spot-Scope (wie PWA).
     LaunchedEffect(spot) {
@@ -195,7 +201,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
         if (spot.isBlank() || !accelOnly || accel.userChose || accelAutoSpot == spot) return
         accelAutoSpot = spot
         val probe = try {
-            Api.communitySessionsGrouped(spot, accelOnly = false, sport = "all")
+            Api.communitySessionsGrouped(spot, accelOnly = false, sport = sport)
         } catch (_: Exception) { emptyList() }
         if (probe.size > rows.size) accel.setAuto(false)   // löst über accelOnly ein Neuladen aus
     }
@@ -210,21 +216,21 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
         try {
             when (scope) {
                 Scope.MINE -> {
-                    val r = Api.sessions(month = month.ifBlank { null }, filter = filter, accelOnly = accelOnly)
+                    val r = Api.sessions(month = month.ifBlank { null }, filter = filter, accelOnly = accelOnly, sport = sport)
                     if (meine != ladeGeneration) return
                     own = r
                 }
-                // sport="all": die Liste „was ist neu" zeigt ALLE Sportarten (wie die PWA seit
-                // 2026-07-31) — ohne das griff der Endpunkt-Default „pumpfoil" und eFoil/Wake/…
-                // fehlten. Die Karte kennzeichnet, was kein Pumpfoilen ist. Die sportgetrennten
-                // Ansichten (Community-Seite, Bestenlisten) bleiben bei genau einer Sportart.
+                // sport="all" (Default der Auswahl): die Liste „was ist neu" zeigt ALLE Sportarten
+                // (wie die PWA seit 2026-07-31) — ohne das griff der Endpunkt-Default „pumpfoil"
+                // und eFoil/Wake/… fehlten. Die Karte kennzeichnet, was kein Pumpfoilen ist. Seit
+                // 27.09.2026 laesst sich die Liste auf eine Sportart einschraenken (Sportart-Auswahl).
                 Scope.ALL -> {
-                    val r = Api.communitySessionsGrouped(null, accelOnly = accelOnly, sport = "all")
+                    val r = Api.communitySessionsGrouped(null, accelOnly = accelOnly, sport = sport)
                     if (meine != ladeGeneration) return
                     groups = r
                 }
                 Scope.SPOT -> {
-                    val r = if (spot.isNotBlank()) Api.communitySessionsGrouped(spot, accelOnly = accelOnly, sport = "all") else emptyList()
+                    val r = if (spot.isNotBlank()) Api.communitySessionsGrouped(spot, accelOnly = accelOnly, sport = sport) else emptyList()
                     if (meine != ladeGeneration) return
                     groups = r
                     maybeShowAll(groups)
@@ -237,17 +243,17 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
     // Filterwechsel: die ALTE Liste sofort weg, nicht erst, wenn die neue da ist (PWA 8f9cc725) —
     // sonst liest man Sessions eines anderen Spots unter der neuen Ueberschrift. Nicht bei `tick`
     // (Nachladen derselben Liste), dort bleibt sie stehen, bis die frische kommt.
-    LaunchedEffect(scope, spot, accelOnly, filter, month) { groups = emptyList(); own = emptyList() }
-    LaunchedEffect(scope, spot, tick, accelOnly, filter, month) { load() }
+    LaunchedEffect(scope, spot, accelOnly, filter, month, sport) { groups = emptyList(); own = emptyList() }
+    LaunchedEffect(scope, spot, tick, accelOnly, filter, month, sport) { load() }
     // Denselben Filter merken: „älter/neuer" im Detail navigiert damit innerhalb GENAU dieser
-    // Liste statt immer durch die eigenen Sessions (Jan, 17.09.2026). sport="all" wie oben.
-    LaunchedEffect(scope, spot, accelOnly, filter, month) {
+    // Liste statt immer durch die eigenen Sessions (Jan, 17.09.2026) — samt Sportart.
+    LaunchedEffect(scope, spot, accelOnly, filter, month, sport) {
         NachbarFilter.merken(when (scope) {
-            Scope.MINE -> NachbarFilter(scope = "mine", accelOnly = accelOnly,
+            Scope.MINE -> NachbarFilter(scope = "mine", sport = sport, accelOnly = accelOnly,
                                         filter = filter, month = month.ifBlank { null })
-            Scope.ALL -> NachbarFilter(scope = "all", sport = "all", accelOnly = accelOnly)
+            Scope.ALL -> NachbarFilter(scope = "all", sport = sport, accelOnly = accelOnly)
             Scope.SPOT -> NachbarFilter(scope = "all", spot = spot.ifBlank { null },
-                                        sport = "all", accelOnly = accelOnly)
+                                        sport = sport, accelOnly = accelOnly)
         })
     }
     // Laeuft eine eigene Aufnahme noch (status recording/live), die Liste alle 4 s nachladen —
@@ -339,14 +345,20 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
             // (Jan, 18.09.2026). Nur in „Meine": ein Import erzeugt immer eine EIGENE Session,
             // und in einer fremden Liste waere der Knopf sinnlos.
             Kompakt {
-                Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 2.dp),
-                    verticalAlignment = Alignment.CenterVertically) {
+                // FlowRow statt Row: mit der Sportart passen Spot, Sportart und Import auf dem Handy
+                // nicht mehr in eine Zeile — in einer Row wurde die Sportart zu „Kai…" gequetscht
+                // (Emulator, Finnisch). So bricht der Import-Knopf um, statt etwas abzuschneiden.
+                FlowRow(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 2.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     SpotDropdown(spots, spotLabels, if (scope == Scope.SPOT) spot else "") { sel ->
                         if (sel.isBlank()) { spot = ""; if (scope == Scope.SPOT) scope = Scope.ALL }
                         else { spot = sel; scope = Scope.SPOT }
                     }
+                    // Sportart gleich daneben: sie gilt fuer jede Ansicht, nicht nur fuer „Meine".
+                    // Der Monat zaehlt je Sportart anders -> beim Wechsel zuruecksetzen (wie PWA).
+                    SportDropdown(sports, sport) { sel -> sport = sel; month = "" }
                     if (scope == Scope.MINE) {
-                        Spacer(Modifier.weight(1f))
                         ImportFileButton({ neueId ->
                             if (neueId != null) onOpen(neueId, null) else scopeC.launch { load() }
                         })
@@ -974,6 +986,38 @@ private fun MonthDropdown(months: List<MonthCount>, month: String, onSelect: (St
             DropdownMenuItem(text = { Text(I18n.t("sessions.allMonths")) }, onClick = { onSelect(""); open = false })
             months.forEach { mc ->
                 DropdownMenuItem(text = { Text("${monthLabel(mc.month)} (${mc.count})") }, onClick = { onSelect(mc.month); open = false })
+            }
+        }
+    }
+}
+
+/**
+ * Sportart-Auswahl (wie das PWA-<select> in Sessions.tsx/Spots.tsx, Nutzerwunsch 27.09.2026):
+ * „Alle Sportarten" steht IMMER oben und bleibt waehlbar, auch wenn gerade z. B. Wingfoil aktiv
+ * ist (Jan). Nur sichtbar, wenn es mehr als eine Sportart gibt oder schon eine gewaehlt ist.
+ * Eine gewaehlte Sportart ohne Laeufe fehlt in `sports` — dann trotzdem anzeigen, sonst stuende
+ * die Auswahl auf einem Wert, den es in der Liste nicht gibt. Gemeinsam fuer Sessions-Liste,
+ * Spot-Sessions und Spot-Karte.
+ */
+@Composable
+internal fun SportDropdown(sports: List<SportRuns>, selected: String, modifier: Modifier = Modifier,
+                           onSelect: (String) -> Unit) {
+    if (sports.size <= 1 && selected == "all") return
+    var open by remember { mutableStateOf(false) }
+    val label: (String) -> String = { if (it == "all") I18n.t("all.allSports") else I18n.t(classLabelKey(it, null)) }
+    Box(modifier) {
+        AssistChip(
+            onClick = { open = true },
+            label = { Text(label(selected), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+            trailingIcon = { Icon(Icons.Filled.ArrowDropDown, contentDescription = null) },
+        )
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            DropdownMenuItem(text = { Text(label("all")) }, onClick = { onSelect("all"); open = false })
+            if (selected != "all" && sports.none { it.sport == selected }) {
+                DropdownMenuItem(text = { Text(label(selected)) }, onClick = { open = false })
+            }
+            sports.forEach { sr ->
+                DropdownMenuItem(text = { Text(label(sr.sport)) }, onClick = { onSelect(sr.sport); open = false })
             }
         }
     }
