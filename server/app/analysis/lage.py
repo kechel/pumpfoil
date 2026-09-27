@@ -111,12 +111,15 @@ MONTAGE_BAND_HZ = (0.6, 2.5)
 # Version der Lage-RECHNUNG. Steht in jedem Zwischenspeicher-Schluessel (MCP `BoardAttitudeCache`),
 # damit ein geaendertes Verfahren nie ein altes Ergebnis ausliefert. Bei jeder Aenderung, die das
 # Ergebnis veraendert, hochzaehlen.
-LAGE_VERSION = "2026-09-27-ohne-annahmen"
+LAGE_VERSION = "2026-09-27-weitergetragen"
 MONTAGE_KLARHEIT_MIN = 3.0   # Verhaeltnis der Eigenwerte; darunter ist keine Achse zu erkennen
 MONTAGE_MIN_GRAD = 10.0      # darunter lohnt das Drehen nicht, es waere nur Rauschen
 MONTAGE_MIN_SAMPLES = 64     # je Laufbereich; darunter traegt er nichts zur Achse bei
 MONTAGE_VORLAUF_S = 10.0     # Einschwingzeit des Filters vor dem ersten Lauf-Anfang
-# Bis hierhin gelten zwei Laeufe als DIESELBE Montage (Achse mod 180). Jan, 22.09.2026:
+# Bis hierhin gelten zwei Laeufe als DIESELBE Montage (Achse mod 180). Nachgemessen 27.09.2026 an
+# allen Brett-Aufnahmen: an festsitzenden Handys streut die Achse je Lauf bis 17° (±8°); die 25°
+# liegen knapp darueber. Innerhalb einer Montage wird gemittelt, darueber beginnt eine neue.
+# Jan, 22.09.2026:
 # „innerhalb einer session wird sich das eher garnicht oder merklich stark aendern (also nur bei
 # verrutschen)". Genau so sehen die Daten aus: #9528 Lauf 0 gegen die ganze Aufnahme 0,0°,
 # #9535 zwischen seinen beiden Laeufen 3,0°. Das ist Rechen-Rauschen. Ein echtes Verrutschen
@@ -1067,92 +1070,110 @@ def montage_je_lauf(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
             "brauchbar": klar is not None and klar >= MONTAGE_KLARHEIT_MIN,
         })
 
-    # --- Schritt 2: gleiche Montage zusammenfassen --------------------------------------------
-    # Jans Vorgabe: innerhalb einer Session aendert sich die Montage gar nicht oder deutlich.
-    # Also: der klarste Lauf gibt die Achse vor, alle Laeufe in Reichweite bekommen GENAU DIESE
-    # Achse (das 3°-Rauschen zwischen zwei Laeufen ist keine Information). Wer weit daneben
-    # liegt, ist verrutscht — oder falsch erkannt; beides bleibt sichtbar, statt gemittelt zu
-    # werden. Der Abstand wird auf dem Kreis mod 180 gemessen, sonst waeren 179° und 1° „weit".
+    # --- Schritt 2: die Montage WEITERTRAGEN (Jan, 27.09.2026) ---------------------------------
+    # „wenn wir innerhalb einer session eine lage in allen richtungen erkannt haben, dann sollten
+    # wir das auch fuer die anderen laeufe annehmen die darauf folgen, wurde der erste nicht
+    # erkannt dann entsprechend auch rueckwirkend, und immer wenn es eindeutig anders erkannt wird
+    # dann fuer die darauf folgenden entsprechend wieder den neuen wert … in den allermeisten
+    # faellen verrutscht das handy garnicht."
+    #
+    # BEFUND = ein Lauf mit gemessener Achse UND aus der Anfahrt gemessener Richtung. Er gilt fuer
+    # die folgenden Laeufe, bis ein EINDEUTIG ANDERER Befund kommt; vor dem ersten gilt der erste.
+    # „Eindeutig anders" heisst: eine andere ACHSE (> MONTAGE_GLEICH_GRAD, mod 180). Dieselbe Achse
+    # mit umgekehrter Richtung ist KEIN Verrutschen — ein Handy dreht sich nicht um genau 180°, ohne
+    # dass sich die Achse mitbewegt —, sondern eine einzelne, verrauschte Anfahrt (so Lauf 4 von
+    # #10248: seine eine Anfahrt sagte das Gegenteil, Jan sah das Brett danach Nase oben treiben).
+    # Solche Laeufe werden `rot_strittig` markiert und schalten nicht um.
     def _abstand(x: float, y: float) -> float:
         d = abs(x - y) % 180.0
         return min(d, 180.0 - d)
 
-    klarste = max((e for e in eigen if e["brauchbar"]), key=lambda e: e["klar"], default=None)
-    if klarste is not None and rot_vorgabe is None:
-        gruppe = [e for e in eigen if e["brauchbar"]
-                  and _abstand(e["achse"], klarste["achse"]) <= MONTAGE_GLEICH_GRAD]
-        # Klarheitsgewichtetes Mittel der Gruppe, um den Kreis herum gerechnet.
-        gew = np.array([e["klar"] for e in gruppe], dtype=float)
-        win = np.radians(2.0 * np.array([e["achse"] for e in gruppe], dtype=float))
-        achse_gem = float(np.degrees(np.arctan2((gew * np.sin(win)).sum(),
-                                                (gew * np.cos(win)).sum())) / 2.0) % 180.0
-    else:
-        gruppe, achse_gem = [], None
-
-    # --- Schritt 3: Richtung. Wo sie in einem Lauf nicht gemessen ist, gilt die Mehrheit der
-    #     GEMESSENEN Laeufe (dasselbe Handy); ist keiner gemessen, bleibt sie unbestimmt. -------
-    # Ist bei diesem Lauf die Achse um 180° gedreht worden? NICHT ueber `_abstand` pruefen: der
-    # rechnet mod 180, und genau dort ist 180° dasselbe wie 0°. Gefragt ist der Abstand auf dem
-    # VOLLEN Kreis zwischen der gefundenen Drehung und ihrer eigenen Achse.
     def _ist_gedreht(e: dict) -> bool:
         return abs(((e["rot"] - e["achse"]) % 360.0) - 180.0) < 90.0
 
-    # EINE Richtung fuer die ganze Gruppe, gewichtet nach Klarheit. Begruendung wie bei der
-    # Achse: dasselbe Handy dreht sich zwischen zwei Laeufen nicht um 180°, ohne dass sich die
-    # Achse mitbewegt. An #9484 ist genau das der Fall — Lauf 0 sagt „nicht gedreht" (Klarheit
-    # 7,5), Lauf 1 sagt „gedreht" (19,8), die Achsen liegen 19° auseinander, sind also dieselbe.
-    # Eine der beiden Messungen irrt; die klarere gewinnt, und die ueberstimmte wird
-    # gekennzeichnet statt stillschweigend umgebogen.
-    gemessen = [e for e in eigen if e["richtung_gemessen"] and e["brauchbar"]]
-    mehrheit = None
-    if gemessen:
-        dafuer = sum(e["klar"] for e in gemessen if _ist_gedreht(e))
-        gesamt = sum(e["klar"] for e in gemessen)
-        mehrheit = dafuer * 2 > gesamt
+    montage: list[float | None] = [None] * len(eigen)      # weitergetragene VOLLE Drehung je Lauf
+    strittig_idx: set[int] = set()
+    wechsel_idx: set[int] = set()                           # hier beginnt eine NEUE Montage
+    aktuell = None
+    for i, e in enumerate(eigen):
+        if e["brauchbar"] and e["richtung_gemessen"]:
+            if aktuell is None or _abstand(e["achse"], aktuell % 180.0) > MONTAGE_GLEICH_GRAD:
+                if aktuell is not None:
+                    wechsel_idx.add(i)
+                aktuell = e["rot"] % 360.0                       # neue Montage
+            elif abs(((e["rot"] - aktuell) % 360.0) - 180.0) < 90.0:
+                strittig_idx.add(i)                              # gleiche Achse, Gegenrichtung
+        montage[i] = aktuell
+    erster = next((m for m in montage if m is not None), None)
+    montage = [m if m is not None else erster for m in montage]   # rueckwirkend
+
+    # Je MONTAGE-ABSCHNITT die Achse als klarheitsgewichtetes Mittel aller Laeufe darin. Warum
+    # nicht die eigene Achse je Lauf (Jan, 27.09.2026: „was ist bei einem verrutschen um 5 grad?"):
+    # an festsitzenden Handys streut die Achse von Lauf zu Lauf bis 17° (#10195: 101,8 · 101,7 ·
+    # 84,9 · 91,9; #9650: 97,5 · 113,2) — eine Einzelmessung ist ±8° genau, ein echtes Verrutschen
+    # um 5° geht darin unter. Das Mittel ueber die Laeufe ist die genauere Zahl; ein grosses
+    # Verrutschen (> MONTAGE_GLEICH_GRAD) beginnt ohnehin einen neuen Abschnitt.
+    abschnitt_achse: dict[float, float] = {}
+    for mw in {m for m in montage if m is not None}:
+        glieder = [e for e, m in zip(eigen, montage) if m == mw and e["brauchbar"]
+                   and _abstand(e["achse"], mw % 180.0) <= MONTAGE_GLEICH_GRAD]
+        if glieder:
+            gew = np.array([e["klar"] for e in glieder], dtype=float)
+            win = np.radians(2.0 * np.array([e["achse"] for e in glieder], dtype=float))
+            achse_mw = float(np.degrees(np.arctan2((gew * np.sin(win)).sum(),
+                                                   (gew * np.cos(win)).sum())) / 2.0) % 180.0
+            # Richtung der Montage beibehalten.
+            abschnitt_achse[mw] = achse_mw if abs(((achse_mw - mw) + 180.0) % 360.0 - 180.0) <= 90.0 \
+                else (achse_mw + 180.0) % 360.0
 
     aus: list[dict] = []
     for i, e in enumerate(eigen):
-        verrutscht = False
-        strittig = False
+        verrutscht = strittig = False
+        bestimmt = False
         if rot_vorgabe is not None:
-            rot, quelle = float(rot_vorgabe), "manuell"
-        elif achse_gem is None or not e["brauchbar"]:
-            rot, quelle = float(ganze["rot_deg"]), "geerbt"
-        elif e in gruppe:
-            # Gemeinsame Achse; die Richtung aus dem Lauf selbst, sonst aus der Mehrheit.
-            gedreht = bool(mehrheit) if mehrheit is not None else _ist_gedreht(e)
-            rot = (achse_gem + 180.0) % 360.0 if gedreht else achse_gem
-            strittig = e["richtung_gemessen"] and _ist_gedreht(e) != gedreht
-            quelle = ("achse+mehrheit" if not e["richtung_gemessen"] or strittig
-                      else e["quelle"])
+            rot, quelle, bestimmt = float(rot_vorgabe), "manuell", True
+        elif montage[i] is None:
+            # Kein einziger Befund in der ganzen Aufnahme: Achse ja (sofern gemessen), Richtung
+            # NICHT — ausdruecklich unbestimmt statt geraten.
+            if e["brauchbar"]:
+                rot, quelle = e["achse"], "achse"
+            else:
+                rot, quelle = float(ganze["rot_deg"]), "geerbt"
+                bestimmt = bool(ganze.get("richtung_bestimmt"))
+        elif e["brauchbar"] and _abstand(e["achse"], montage[i] % 180.0) > MONTAGE_GLEICH_GRAD \
+                and not e["richtung_gemessen"]:
+            # Eigene, deutlich andere Achse, aber ohne gemessene Richtung: verrutscht, Richtung
+            # dieses Laufs unbekannt. Die weitergetragene Montage aendert das nicht.
+            rot, quelle, verrutscht = e["achse"], "achse", True
         else:
-            rot, quelle, verrutscht = e["rot"], e["quelle"], True
+            # Die Drehung des Montage-Abschnitts: gemittelte Achse, weitergetragene Richtung.
+            bestimmt = True
+            strittig = i in strittig_idx
+            rot = float(abschnitt_achse.get(montage[i], montage[i]))
+            quelle = e["quelle"] if (e["richtung_gemessen"] and not strittig) else "weitergetragen"
+            # Ab hier gilt eine andere Montage als davor — sichtbar machen, nicht einebnen.
+            verrutscht = i in wechsel_idx
         aus.append({
             "lauf": i,
             "rot_deg": round(rot % 360.0, 1),
             "rot_klarheit": e["klar"],
-            "rot_eigen": bool(quelle not in ("geerbt", "manuell")),
+            "rot_eigen": bool(quelle not in ("geerbt", "manuell", "weitergetragen")),
             "rot_quelle": quelle,
-            # Dieser Lauf passt NICHT zur Montage der uebrigen — Handy gedreht, verrutscht oder
-            # Fehlgriff. Bewusst nicht stillschweigend eingeebnet.
+            # Hier wechselt die Montage (neuer Befund) oder der Lauf hat eine eigene, deutlich andere
+            # Achse ohne gemessene Richtung — Handy verrutscht oder Fehlgriff.
             "rot_verrutscht": verrutscht,
-            # Die Anfahrt dieses Laufs sagte das Gegenteil und wurde von der klareren Mehrheit
-            # ueberstimmt. Kein Fehler, aber eine Stelle, an der man hinschauen darf.
+            # Die Anfahrt dieses Laufs sagte auf derselben Achse das Gegenteil; weitergetragen gilt.
             "rot_strittig": strittig,
-            # Vorn/hinten aus Messung (eigene Anfahrt oder Mehrheit gemessener Laeufe) — sonst
-            # False, und dann ist das Vorzeichen von Nicken/Rollen NICHT bekannt.
-            "richtung_bestimmt": bool(rot_vorgabe is not None or e["richtung_gemessen"]
-                                      or (e in gruppe and mehrheit is not None)
-                                      or (quelle == "geerbt" and ganze.get("richtung_bestimmt"))),
+            # Vorn/hinten aus Messung (eigener oder weitergetragener Befund) — sonst False, und
+            # dann ist das Vorzeichen von Nicken/Rollen NICHT bekannt.
+            "richtung_bestimmt": bool(bestimmt),
         })
-    # Die Drehung der GROESSTEN Gruppe: so lag das Handy die meiste Zeit. Fuer eine Ansicht, die
-    # sich auf einen Wert festlegen muss, ist das der ehrlichste — und wenn die Montage nie
-    # wechselte, ist es ohnehin derselbe wie der der ganzen Aufnahme.
+    # Die Drehung, mit der die MEISTEN Laeufe gezeigt werden: fuer eine Ansicht, die sich auf einen
+    # Wert festlegen muss („so lag das Handy die meiste Zeit").
     gruppe_rot = None
-    if gruppe:
-        _in_gruppe = [x for x, e in zip(aus, eigen) if e in gruppe and not x["rot_verrutscht"]]
-        if _in_gruppe:
-            gruppe_rot = max(_in_gruppe, key=lambda x: x["rot_klarheit"] or 0.0)["rot_deg"]
+    _best = [x["rot_deg"] for x in aus if x["richtung_bestimmt"]]
+    if _best:
+        gruppe_rot = max(set(_best), key=_best.count)
     return {"je_lauf": aus, "ganze": ganze, "gruppe_rot_deg": gruppe_rot}
 
 
