@@ -51,6 +51,7 @@ const pl: Record<string, string> = {
   "board.map": "Mapa",
   "board.markBoard": "Telefon był na desce",
   "board.mountAuto": "automatycznie",
+  "board.directionUnknown": "Nie udało się ustalić z danych, gdzie jest przód, a gdzie tył w tym nagraniu — pochylenie i przechył mogą być tu odwrócone.",
   "board.mounting": "Obrót montażu:",
   "board.mountingHint": "jak telefon leżał na desce — 180° zamienia dziób i przechył",
   "board.noData": "Brak danych o położeniu deski dla tego nagrania.",

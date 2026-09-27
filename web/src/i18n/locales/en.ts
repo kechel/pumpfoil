@@ -90,6 +90,7 @@ const en: Record<string, string> = {
   "sd.boardGpsWarning": "This was recorded with the phone on the board. Run detection here relies on GPS alone — the motion model is trained on wrist recordings and does not fit a board. Runs may be missing or over-counted.",
   "sd.attemptsLabel": "Attempt:",
   "board.mountAuto": "automatic",
+  "board.directionUnknown": "Front and back could not be determined from the data for this recording — pitch and roll may be reversed here.",
   "board.mounting": "Mounting rotation:",
   "board.mountingHint": "how the phone sat on the board — 180° swaps nose and lean",
   "board.title": "Board attitude",

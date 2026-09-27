@@ -135,6 +135,8 @@ export type BoardAttitude = {
   // eindeutiger liegt das Geraet).
   rot_deg?: number;
   rot_quelle?: string;
+  // Vorn/hinten aus der Anfahrt gemessen? false = Vorzeichen von Nicken/Rollen unbekannt.
+  richtung_bestimmt?: boolean;
   rot_klarheit?: number | null;
   // Gegenprobe des Gierens am GPS-Kurs: beide messen dasselbe, die Steigung sollte also nahe 1
   // liegen. null, wenn im Lauf zu wenig Kurven liegen. `gier_umgekehrt` = die Aufnahme hat dem

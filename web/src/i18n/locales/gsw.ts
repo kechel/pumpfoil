@@ -49,6 +49,7 @@ const gsw: Record<string, string> = {
   "board.heaveStat": "Hub {cm} cm (über {s} s uusgrichtet)",
   "board.height": "Höchi",
   "board.mountAuto": "automatisch",
+  "board.directionUnknown": "Vorne und hine hät sich bi dere Ufzeichnig nöd us de Date bestimme lah — Nicke und Rolle chönd do umkehrt si.",
   "board.mounting": "Montage-Drehig:",
   "board.mountingHint": "wie s Händy uf em Brätt gläge isch — 180° drait Nase und Schräglag um",
   "board.rig": "{foil} · {stab} · Mast {mast} cm · {board}",

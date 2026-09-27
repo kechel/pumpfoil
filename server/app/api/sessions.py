@@ -3770,6 +3770,7 @@ def _lage_antwort(
     # dieselbe wie die der Aufnahme. Geprueft an allen Sessions mit Kreisel.
     rot_fest = float(s.attitude_rot_deg) if s.attitude_rot_deg is not None else None
     rot_quelle_fest = "manuell" if rot_fest is not None else None
+    richtung_fest: bool | None = True if rot_fest is not None else None
     if rot_fest is None and bereiche:
         _ganze = lage.aufnahme_eigenschaften(acc, t_acc, gyr, t_gyr, bereiche, starts,
                                              gps=storage.load_gps(uuid), rot_vorgabe=None)
@@ -3805,10 +3806,13 @@ def _lage_antwort(
                         _wahl, _max = _je[_i], _u
             if _wahl is not None:
                 rot_fest, rot_quelle_fest = float(_wahl["rot_deg"]), _wahl["rot_quelle"]
+                richtung_fest = bool(_wahl.get("richtung_bestimmt"))
             elif _m["gruppe_rot_deg"] is not None:
                 # Gesamtansicht: die Drehung der groessten Montage-Gruppe, also "so lag das
                 # Handy die meiste Zeit". Ein Wert muss es sein, und dieser ist der belegteste.
                 rot_fest, rot_quelle_fest = float(_m["gruppe_rot_deg"]), "gruppe"
+                richtung_fest = any(bool(e.get("richtung_bestimmt")) for e in _je
+                                    if e["rot_deg"] == _m["gruppe_rot_deg"])
 
     # Nullpunkt-Bezug: ALLE Laeufe, auch wenn nur einer gezeigt wird. Die Null ist eine
     # Eigenschaft der Montage, nicht des Ausschnitts — sonst spraenge der Winkel beim
@@ -3818,7 +3822,7 @@ def _lage_antwort(
                               t_von_ms=von, t_bis_ms=bis,
                               ref_bereiche_ms=bereiche,
                               hub_fenster_s=height_window_s,
-                              # None = Automatik (Start-Heuristik). Ein gesetzter Wert gewinnt —
+                              # None = Automatik (Achse + Anfahrt). Ein gesetzter Wert gewinnt —
                               # das ist jetzt auch die Drehung DIESES Ausschnitts, s. oben.
                               rot_deg=rot_fest,
                               # Die Spur als GEGENPROBE fuers Gieren: Kurs ueber Grund und
@@ -3826,11 +3830,16 @@ def _lage_antwort(
                               # ungetrimmt — die Funktion sucht sich ihre Laufbereiche selbst.
                               gps=storage.load_gps(uuid),
                               # ECHTE Lauf-Anfaenge, nicht die an den Raendern gekuerzten aus
-                              # `laufbereiche` — die Heuristik lebt genau von der ersten Sekunde.
+                              # `laufbereiche` — die Anfahrt lebt genau von diesen Sekunden.
                               lauf_starts_ms=starts)
     # `lage_berechnen` meldet jede Vorgabe als „manuell" — hier weiss die Antwort es besser.
     if rot_quelle_fest:
         erg["rot_quelle"] = rot_quelle_fest
+    # Ebenso, ob vorn/hinten GEMESSEN ist (Anfahrt, s. `lage.vorn_aus_anfahrt`) — die Vorgabe
+    # aus der Montage je Lauf gilt fuer `lage_berechnen` als „bekannt", ist es aber nur, wenn die
+    # Montage es gemessen hat.
+    if richtung_fest is not None:
+        erg["richtung_bestimmt"] = richtung_fest
     # Die ungekuerzte Auswahl, damit die Oberflaeche den Rand vom Lauf unterscheiden kann.
     erg["auswahl_von_ms"] = auswahl[0] if auswahl else None
     erg["auswahl_bis_ms"] = auswahl[1] if auswahl else None

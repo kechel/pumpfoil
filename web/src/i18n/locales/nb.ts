@@ -51,6 +51,7 @@ const nb: Record<string, string> = {
   "board.map": "Kart",
   "board.markBoard": "Telefonen satt på brettet",
   "board.mountAuto": "automatisk",
+  "board.directionUnknown": "Foran og bak kunne ikke bestemmes ut fra dataene for dette opptaket — stamping og rulling kan være omvendt her.",
   "board.mounting": "Monteringsrotasjon:",
   "board.mountingHint": "hvordan telefonen lå på brettet — 180° bytter om nesen og krengningen",
   "board.noData": "Ingen stillingsdata for dette opptaket.",

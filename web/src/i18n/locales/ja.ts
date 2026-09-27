@@ -51,6 +51,7 @@ const ja: Record<string, string> = {
   "board.map": "地図",
   "board.markBoard": "スマホはボードに付いていた",
   "board.mountAuto": "自動",
+  "board.directionUnknown": "この記録では、データから前後を判定できませんでした。ピッチとロールが逆になっている可能性があります。",
   "board.mounting": "取り付けの回転:",
   "board.mountingHint": "スマホがボードにどう載っていたか — 180°でノーズと傾きが入れ替わります",
   "board.noData": "この記録には姿勢データがありません。",

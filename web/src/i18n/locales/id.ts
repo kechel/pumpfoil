@@ -51,6 +51,7 @@ const id: Record<string, string> = {
   "board.map": "Peta",
   "board.markBoard": "Ponsel ada di papan",
   "board.mountAuto": "otomatis",
+  "board.directionUnknown": "Depan dan belakang tidak dapat ditentukan dari data rekaman ini — pitch dan roll di sini bisa terbalik.",
   "board.mounting": "Rotasi pemasangan:",
   "board.mountingHint": "bagaimana ponsel terpasang di papan — 180° menukar hidung dan kemiringan",
   "board.noData": "Tidak ada data posisi papan untuk rekaman ini.",

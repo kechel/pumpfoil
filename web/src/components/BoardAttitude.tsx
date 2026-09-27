@@ -383,6 +383,14 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
 
   return (
     <div className="space-y-3">
+      {/* Vorn/hinten nicht aus den Daten bestimmbar (keine eindeutige Anfahrt): dann ist das
+          Vorzeichen von Nicken und Rollen NICHT bekannt — sagen statt still ein Bild zeigen, das
+          genauso gut spiegelverkehrt sein kann (Jan, 27.09.2026: „keinerlei annahmen"). */}
+      {d.richtung_bestimmt === false && (
+        <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-300">
+          {t("board.directionUnknown")}
+        </p>
+      )}
       {rig && (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <Kachel label={t("board.pitch")} hinweis={t("board.pitchHint")} kind={pitch}>
