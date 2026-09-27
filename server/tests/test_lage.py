@@ -705,15 +705,9 @@ def test_verrutschtes_handy_wird_je_lauf_neu_gefunden():
     assert min(abs(ganze["rot_deg"] - 0.0), abs(ganze["rot_deg"] - 60.0)) > 5, ganze["rot_deg"]
 
 
-def test_gleiche_montage_bekommt_in_allen_laeufen_dieselbe_zahl():
-    """Zwei Laeufe, dasselbe Klebeband — dann steht in beiden Zeilen GENAU dieselbe Drehung.
-
-    Jan, 22.09.2026: „innerhalb einer session wird sich das eher garnicht oder merklich stark
-    aendern (also nur bei verrutschen)." Das 1-2°-Rauschen zwischen zwei Laeufen ist damit keine
-    Information, sondern Rechenstreuung — es wird zusammengefasst statt angezeigt.
-    """
-    stuecke = [_pumpstrecke(40.0, dauer_s=40.0, ab_s=2.0),
-               _pumpstrecke(43.0, dauer_s=40.0, ab_s=2.0)]      # 3° auseinander = dieselbe Montage
+def _zwei_laeufe(psi0, psi1):
+    """Zwei Pump-Strecken hintereinander, jede mit Anfahrt, dazu die passende GPS-Spur."""
+    stuecke = [_pumpstrecke(psi0, dauer_s=40.0, ab_s=2.0), _pumpstrecke(psi1, dauer_s=40.0, ab_s=2.0)]
     hz = 50.0
     acc = np.concatenate([x[0] for x in stuecke])
     gyr = np.concatenate([x[2] for x in stuecke])
@@ -722,29 +716,50 @@ def test_gleiche_montage_bekommt_in_allen_laeufen_dieselbe_zahl():
     ref = [(2500.0, (n0 - 1) / hz * 1000.0),
            ((n0 + 125) / hz * 1000.0, (len(acc) - 1) / hz * 1000.0)]
     starts = [2000.0, (n0 + 100) / hz * 1000.0]
-    k = kennzahlen_je_lauf(acc, tms, gyr, tms, ref, starts)
+    gps = [[int(k * 1000), 47.6, 11.18,
+            float(_tempo(k, 2.0) if k < 40 else _tempo(k - 40, 2.0)), 0, 3.0] for k in range(80)]
+    return acc, tms, gyr, ref, starts, gps
+
+
+def test_gleiche_montage_wird_gemittelt():
+    """Zwei Laeufe, 3° auseinander: dieselbe Montage — beide zeigen das MITTEL, weil eine
+    Einzelmessung an echten Aufnahmen ±8° streut (Jan, 27.09.2026: „stoert das nicht die
+    genauigkeit?" — die gemittelte Zahl ist die genauere)."""
+    acc, tms, gyr, ref, starts, gps = _zwei_laeufe(40.0, 43.0)
+    k = kennzahlen_je_lauf(acc, tms, gyr, tms, ref, starts, gps=gps)
     assert len(k) == 2 and all(x["ok"] for x in k)
-    assert k[0]["rot_deg"] == k[1]["rot_deg"], [x["rot_deg"] for x in k]
+    assert k[0]["rot_deg"] == k[1]["rot_deg"] and 39.0 <= k[0]["rot_deg"] <= 44.0, [x["rot_deg"] for x in k]
+    assert all(x["richtung_bestimmt"] for x in k)
     assert not any(x["rot_verrutscht"] for x in k)
-    # Und der gemeinsame Wert liegt zwischen den beiden Einzelmessungen, nicht auf einer davon.
-    assert 38.0 <= k[0]["rot_deg"] <= 45.0, k[0]["rot_deg"]
 
 
 def test_ein_verrutschter_lauf_bleibt_sichtbar():
     """Springt die Achse deutlich, wird NICHT gemittelt — der Lauf behaelt seine eigene Zahl."""
-    stuecke = [_pumpstrecke(0.0, dauer_s=40.0, ab_s=2.0),
-               _pumpstrecke(60.0, dauer_s=40.0, ab_s=2.0)]
-    hz = 50.0
-    acc = np.concatenate([x[0] for x in stuecke])
-    gyr = np.concatenate([x[2] for x in stuecke])
-    tms = np.arange(len(acc)) / hz * 1000.0
-    n0 = len(stuecke[0][1])
-    ref = [(2500.0, (n0 - 1) / hz * 1000.0),
-           ((n0 + 125) / hz * 1000.0, (len(acc) - 1) / hz * 1000.0)]
-    starts = [2000.0, (n0 + 100) / hz * 1000.0]
-    k = kennzahlen_je_lauf(acc, tms, gyr, tms, ref, starts)
+    acc, tms, gyr, ref, starts, gps = _zwei_laeufe(0.0, 60.0)
+    k = kennzahlen_je_lauf(acc, tms, gyr, tms, ref, starts, gps=gps)
     assert len(k) == 2 and all(x["ok"] for x in k)
     assert abs(k[1]["rot_deg"] - 60.0) < 5, k[1]["rot_deg"]
     assert (k[0]["rot_deg"] % 360) < 5 or (k[0]["rot_deg"] % 360) > 355, k[0]["rot_deg"]
-    # Genau EINER faellt aus der Reihe — der mit der kleineren Klarheit gilt als verrutscht.
-    assert sum(1 for x in k if x["rot_verrutscht"]) == 1, [x["rot_verrutscht"] for x in k]
+    # Ab dem zweiten Lauf gilt eine neue Montage — genau DER ist als Wechsel markiert.
+    assert [x["rot_verrutscht"] for x in k] == [False, True], [x["rot_verrutscht"] for x in k]
+
+
+def test_richtung_wird_weitergetragen_und_rueckwirkend_uebernommen():
+    """Nur der MITTLERE von drei Laeufen hat eine messbare Anfahrt (GPS-Tempo nur dort). Seine
+    Richtung gilt fuer den folgenden UND rueckwirkend fuer den ersten (Jan, 27.09.2026)."""
+    psi, hz = 225.0, 50.0
+    stuecke = [_pumpstrecke(psi, dauer_s=40.0, ab_s=2.0) for _ in range(3)]
+    acc = np.concatenate([x[0] for x in stuecke])
+    gyr = np.concatenate([x[2] for x in stuecke])
+    tms = np.arange(len(acc)) / hz * 1000.0
+    n = len(stuecke[0][1])
+    ref = [((j * n + 125) / hz * 1000.0, ((j + 1) * n - 1) / hz * 1000.0) for j in range(3)]
+    starts = [(j * n + 100) / hz * 1000.0 for j in range(3)]
+    gps = [[int(k * 1000), 47.6, 11.18, float(_tempo(k - 40, 2.0) if 40 <= k < 80 else 4.0), 0, 3.0]
+           for k in range(120)]
+    k = kennzahlen_je_lauf(acc, tms, gyr, tms, ref, starts, gps=gps)
+    assert [x["rot_quelle"] for x in k] == ["weitergetragen", "achse+anfahrt", "weitergetragen"], \
+        [x["rot_quelle"] for x in k]
+    assert all(x["richtung_bestimmt"] for x in k)
+    for x in k:
+        assert abs(((x["rot_deg"] - psi) + 180.0) % 360.0 - 180.0) < 2.0, x["rot_deg"]
