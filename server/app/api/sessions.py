@@ -570,7 +570,11 @@ def import_parsed_session(db, user, raw: bytes, parsed: dict, *, src_label: str,
         "source": src_label,
     })
     storage.save_gps_chunk(session_uuid, 0, samples)
-    if accel_bytes:
+    if parsed.get("accel_chunks"):
+        # Bloecke mit echter Startzeit (GPX mit Zeitstempel je Wert, s. tcximport) -> exakte Achse.
+        for i, (t0_ms, roh) in enumerate(parsed["accel_chunks"]):
+            storage.save_accel_raw(session_uuid, i, roh, t0_ms=t0_ms)
+    elif accel_bytes:
         storage.save_accel_raw(session_uuid, 0, accel_bytes)
     # Originaldatei unveraendert danebenlegen: ohne sie liesse sich eine importierte Session nach
     # einem Backup-Ruecklauf nicht wiederherstellen (Jan, 07.08.). Kostet ein paar hundert kB und
