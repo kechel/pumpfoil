@@ -408,6 +408,15 @@ def test_kurs_aus_gps_zeigt_nach_norden_und_osten():
 # quer (#9528), diagonal (#9535). Vierteldrehungen von Hand reichen dafuer nicht — 45° laesst
 # sich mit 0/90/180/270 gar nicht geraderuecken.
 
+def _tempo(t_s, ab_s):
+    """Anfahrt: von 0 auf 5 m/s in rund 4 s, Mitte 2 s nach dem Lauf-Start."""
+    return 5.0 / (1 + np.exp(-(t_s - ab_s - 2.0) * 1.5))
+
+
+def _gps(dauer_s=50.0, ab_s=5.0):
+    return [[int(k * 1000), 47.6, 11.18, float(_tempo(k, ab_s)), 0, 3.0] for k in range(int(dauer_s))]
+
+
 def _pumpstrecke(psi_grad, hz=50.0, dauer_s=50.0, ab_s=5.0, takt_hz=1.3, amp=8.0,
                  tauch=25.0, tauch_s=0.5):
     """Eine Pump-Strecke, aufgenommen von einem um `psi_grad` verdreht montierten Geraet.
@@ -428,8 +437,13 @@ def _pumpstrecke(psi_grad, hz=50.0, dauer_s=50.0, ab_s=5.0, takt_hz=1.3, amp=8.0
     th, dth = np.radians(theta), np.radians(d_theta)
     p = math.radians(psi_grad)
     cp, sp = math.cos(p), math.sin(p)
+    # ANFAHRT (seit 27.09.2026 entscheidet sie vorn/hinten): das Brett beschleunigt nach vorn, das
+    # GPS sieht dasselbe Tempo (s. `_gps`). Laengs-Kraft des Bretts = Vorwaertsbeschleunigung +
+    # Schwerkraftanteil des Nickens.
+    a_g = np.gradient(_tempo(t, ab_s), t) / 9.81
+    bx = -np.sin(th) + a_g
     # Weltoben und Drehratenvektor im GERAETE-System: Brett = Rz(psi) · Geraet.
-    acc = np.column_stack([-np.sin(th) * cp, np.sin(th) * sp, np.cos(th)]) * ACCEL_SCALE
+    acc = np.column_stack([bx * cp, -bx * sp, np.cos(th)]) * ACCEL_SCALE
     gyr = np.column_stack([dth * sp, dth * cp, np.zeros_like(dth)]) * GYRO_SCALE
     t_ms = t * 1000.0
     return acc.astype(np.int16), t_ms, gyr.astype(np.int16), t_ms, theta
@@ -440,8 +454,10 @@ def test_montage_drehung_wird_aus_dem_pumptakt_gefunden(psi):
     """Egal wie das Handy liegt — das Nicken des BRETTS kommt heraus, nicht das des Handys."""
     acc, t, gyr, tg, soll = _pumpstrecke(psi)
     r = lage_berechnen(acc, t, gyr, tg, ziel_hz=50.0,
-                       ref_bereiche_ms=[(8000.0, 45000.0)], lauf_starts_ms=[5000.0])
+                       ref_bereiche_ms=[(8000.0, 45000.0)], lauf_starts_ms=[5000.0], gps=_gps())
     assert r["ok"]
+    # Vorn/hinten aus der ANFAHRT gemessen, nicht angenommen.
+    assert r["richtung_bestimmt"] is True and "anfahrt" in r["rot_quelle"], r["rot_quelle"]
     assert (r["rot_deg"] - psi) % 360 < 1.0 or (psi - r["rot_deg"]) % 360 < 1.0, r["rot_deg"]
     tt = np.array(r["t_ms"])
     m = (tt >= 10000) & (tt <= 45000)
@@ -449,8 +465,19 @@ def test_montage_drehung_wird_aus_dem_pumptakt_gefunden(psi):
     assert np.sqrt(np.mean(fehler ** 2)) < 2.0, np.sqrt(np.mean(fehler ** 2))
     # Und im Rollen darf davon nichts uebrig bleiben.
     assert np.abs(np.array(r["roll_deg"])[m]).max() < 2.0
-    # Am Lauf-Anfang taucht die Nase weg — negativ, in JEDER Montage.
+    # Das Wegtauchen am Lauf-Anfang ist nur noch Auskunft — aber richtig herum, in JEDER Montage.
     assert r["start_nicken_deg"] < -10.0, r["start_nicken_deg"]
+
+
+@pytest.mark.parametrize("psi", [45, 225])
+def test_ohne_anfahrt_bleibt_die_richtung_unbestimmt(psi):
+    """Ohne GPS keine Anfahrt — dann wird vorn/hinten NICHT geraten (Jan, 27.09.2026: „keinerlei
+    annahmen oder fallbacks"). Die Achse stimmt trotzdem, nur mod 180."""
+    acc, t, gyr, tg, _ = _pumpstrecke(psi)
+    r = lage_berechnen(acc, t, gyr, tg, ziel_hz=50.0,
+                       ref_bereiche_ms=[(8000.0, 45000.0)], lauf_starts_ms=[5000.0])
+    assert r["richtung_bestimmt"] is False
+    assert abs(((r["rot_deg"] - psi) % 180.0 + 90.0) % 180.0 - 90.0) < 1.0, r["rot_deg"]
 
 
 def test_montage_achse_kommt_aus_der_drehrate():
@@ -468,14 +495,15 @@ def test_montage_achse_kommt_aus_der_drehrate():
     assert klar > MONTAGE_KLARHEIT_MIN, klar
 
 
-def test_ohne_kreisel_bleibt_der_umweg_ueber_die_winkel():
-    """Altbestand ohne Drehrate: dieselbe Achse, nur unschaerfer — aber sie kommt heraus."""
+def test_ohne_kreisel_wird_nichts_geschaetzt():
+    """Ohne Drehrate keine Montage-Erkennung: bis 27.09.2026 gab es einen Umweg ueber die
+    gefilterten Winkel — eine Schaetzung dessen, was sich nicht messen liess. Jetzt: ungedreht
+    und ausdruecklich unbestimmt."""
     acc, ta, gyr, tg, _ = _pumpstrecke(45)
     e = lage_berechnen(acc, ta, np.zeros_like(gyr), tg, ziel_hz=50.0,
-                       ref_bereiche_ms=[(8000.0, 45000.0)], lauf_starts_ms=[5000.0])
+                       ref_bereiche_ms=[(8000.0, 45000.0)], lauf_starts_ms=[5000.0], gps=_gps())
     assert e["ok"]
-    # Ohne Kreisel traegt die Schwerkraft allein; die Richtung findet sie trotzdem.
-    assert abs((e["rot_deg"] - 45.0 + 180) % 360 - 180) < 12.0, e["rot_deg"]
+    assert e["rot_deg"] == 0.0 and e["richtung_bestimmt"] is False
 
 
 def test_montage_drehung_haengt_nicht_am_gezeigten_ausschnitt():

@@ -83,9 +83,9 @@ LAUF_RAND_MAX_MS = 3000.0
 LAUF_REST_MIN_MS = 2000.0
 # So viele Samples muss ein Bezugsbereich mindestens haben, sonst ist der Median Zufall.
 BEZUG_MIN_SAMPLES = 10
-# Start-Heuristik fuer die Montage-Richtung (Jan, 21.09.): „ein Start wird praktisch nie mit
-# Stall beginnen koennen, man muss beim Start immer erst bergab fahren, sonst wird es ein Sturz."
-# Zeigt die Rechnung am Lauf-ANFANG die Nase nach OBEN, liegt das Handy andersherum.
+# Nicken in der ersten Sekunde der Laeufe — nur noch AUSKUNFT (`start_nicken_deg`). Bis 27.09.2026
+# entschied es als Heuristik „am Start Nase unten" ueber vorn/hinten; das war eine Annahme ueber
+# den Fahrstil und ist raus (s. ANFAHRT_*).
 START_FENSTER_S = 1.0      # so lange nach dem Lauf-Start wird gemittelt
 # VORN/HINTEN AUS DER ANFAHRT (27.09.2026) — ersetzt die Start-Heuristik, wo die Daten es tragen.
 # Jan: „es gibt keine regel wie man startet oder einen lauf endet, alle lagen sind prinzipiell
@@ -103,8 +103,7 @@ START_FENSTER_S = 1.0      # so lange nach dem Lauf-Start wird gemittelt
 ANFAHRT_VOR_MS = 2000.0    # Fenster um den Lauf-Start: so weit davor …
 ANFAHRT_NACH_MS = 8000.0   # … und danach
 ANFAHRT_MIN_DV = 0.2       # m/s je s Streuung der Tempoaenderung — darunter ist es keine Anfahrt
-ANFAHRT_R_MIN = 0.4        # |Median r| ueber die Starts; darunter entscheidet die Heuristik
-START_SCHWELLE_GRAD = 5.0  # darunter ist das Signal zu schwach fuer eine Entscheidung
+ANFAHRT_R_MIN = 0.4        # |Median r| ueber die Starts; darunter bleibt die Richtung UNBESTIMMT
 # Montage-DREHUNG um die Hochachse, automatisch gesucht (s. `montage_drehung`). Nur im PUMPBAND:
 # die langsame Drift beim Aufrichten des Bretts ist viel groesser als der Pumpausschlag und wuerde
 # die Hauptkomponente sonst an sich ziehen.
@@ -112,7 +111,7 @@ MONTAGE_BAND_HZ = (0.6, 2.5)
 # Version der Lage-RECHNUNG. Steht in jedem Zwischenspeicher-Schluessel (MCP `BoardAttitudeCache`),
 # damit ein geaendertes Verfahren nie ein altes Ergebnis ausliefert. Bei jeder Aenderung, die das
 # Ergebnis veraendert, hochzaehlen.
-LAGE_VERSION = "2026-09-27-anfahrt"
+LAGE_VERSION = "2026-09-27-ohne-annahmen"
 MONTAGE_KLARHEIT_MIN = 3.0   # Verhaeltnis der Eigenwerte; darunter ist keine Achse zu erkennen
 MONTAGE_MIN_GRAD = 10.0      # darunter lohnt das Drehen nicht, es waere nur Rauschen
 MONTAGE_MIN_SAMPLES = 64     # je Laufbereich; darunter traegt er nichts zur Achse bei
@@ -487,9 +486,8 @@ def aufnahme_eigenschaften(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
        Hauptkomponente zu sich. Ohne Kreisel (Altbestand) bleibt der Umweg ueber die fertigen
        Winkel — dasselbe Verfahren, nur unschaerfer.
     2. DIE RICHTUNG. Die Achse ist auf (-90°, 90°] gefaltet, sie weiss nicht, ob die Nase vorn
-       oder hinten liegt. Das entscheidet die Start-Heuristik (s. `START_SCHWELLE_GRAD`): am
-       Lauf-Anfang faehrt man bergab. Sie wird NACH der Achsen-Drehung gerechnet, denn erst dann
-       ist „Nicken" wirklich das Nicken des Bretts.
+       oder hinten liegt. Das entscheidet die PHYSIK DER ANFAHRT (s. `vorn_aus_anfahrt`), sonst
+       nichts: ist sie nicht eindeutig, bleibt die Richtung unbestimmt (`richtung_bestimmt`).
 
     DAS GIEREN wird am Track gegengeprueft (s. `gier_gegen_gps`). Die Rechnung liefert es im
     Rechtssystem, also positiv nach LINKS; nach aussen gilt die Flieger-Konvention „positiv =
@@ -501,7 +499,7 @@ def aufnahme_eigenschaften(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
     """
     leer = {"rot_deg": 0.0 if rot_vorgabe is None else float(rot_vorgabe),
             "klarheit": None, "quelle": "manuell" if rot_vorgabe is not None else "keine",
-            "gier_vz": 1, "gier_gps": None}
+            "gier_vz": 1, "gier_gps": None, "richtung_bestimmt": rot_vorgabe is not None}
     if not ref_bereiche_ms:
         return leer
     starts = [float(x) for x in (lauf_starts_ms or [])]
@@ -542,28 +540,13 @@ def aufnahme_eigenschaften(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
 
     if rot_vorgabe is not None:
         return {"rot_deg": float(rot_vorgabe), "klarheit": None, "quelle": "manuell",
-                "gier_vz": gier_vz, "gier_gps": gps_pruef}
+                "gier_vz": gier_vz, "gier_gps": gps_pruef, "richtung_bestimmt": True}
 
     t = np.asarray(erg["t_ms"], dtype=float)
     pitch = np.asarray(erg["pitch_deg"], dtype=float)
-    if klarheit < MONTAGE_KLARHEIT_MIN:
-        # RUECKFALL ohne (brauchbaren) Kreisel: dieselbe Hauptkomponente, aber auf den fertigen
-        # Winkeln. Kostet jeden Fehler des Filters und ist entsprechend unschaerfer — an Jans
-        # Aufnahmen Klarheit 7 statt 15-21 — aber fuer eine Aufnahme ohne Drehrate ist es das
-        # Einzige, was es gibt.
-        hz = float(erg["hz"])
-        lo, hi = MONTAGE_BAND_HZ
-        stueck_p, stueck_r = [], []
-        roll = np.asarray(erg["roll_deg"], dtype=float)
-        for a, b in ref_bereiche_ms:
-            m = (t >= a) & (t <= b)
-            if m.sum() < MONTAGE_MIN_SAMPLES:
-                continue
-            stueck_p.append(_bandpass(pitch[m], hz, lo, hi))
-            stueck_r.append(_bandpass(roll[m], hz, lo, hi))
-        if stueck_p:
-            achse, klarheit = hauptachse(np.concatenate(stueck_p), np.concatenate(stueck_r))
-
+    # KEIN Rueckfall ohne Kreisel (Jan, 27.09.2026: „keinerlei annahmen oder fallbacks"): die Achse
+    # kommt nur aus der Drehrate. Bis dahin gab es einen Umweg ueber die fertigen Winkel — der
+    # schaetzte, was er nicht messen konnte.
     rot = 0.0
     teile = []
     if klarheit >= MONTAGE_KLARHEIT_MIN and abs(achse) >= MONTAGE_MIN_GRAD:
@@ -575,21 +558,24 @@ def aufnahme_eigenschaften(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
         t = np.asarray(erg["t_ms"], dtype=float)
         pitch = np.asarray(erg["pitch_deg"], dtype=float)
 
-    # VORN/HINTEN: zuerst die Physik der Anfahrt (s. ANFAHRT_*), die Heuristik nur als Rueckfall.
-    anfahrt = vorn_aus_anfahrt(acc_raw, t_acc_ms, gyr_raw, t_gyr_ms, bezug, rot, starts or None, gps)
-    if anfahrt is not None and abs(anfahrt["r"]) >= ANFAHRT_R_MIN:
+    # VORN/HINTEN NUR AUS DER ANFAHRT (s. ANFAHRT_*). Traegt sie nicht, wird NICHT geraten —
+    # `richtung_bestimmt` ist dann False, und jede Anzeige muss das sagen. Die fruehere
+    # Start-Heuristik („am Start Nase unten") ist raus: eine Annahme ueber den Fahrstil, die beim
+    # zweiten Fahrer falsch war (Jan, 27.09.2026: „keinerlei annahmen oder fallbacks").
+    # Nur auf einer GEMESSENEN Achse: vorn/hinten zu entscheiden hat keinen Sinn, solange nicht
+    # einmal feststeht, wo laengs ist (kein Kreisel oder keine klare Pump-Achse).
+    achse_gemessen = klarheit is not None and klarheit >= MONTAGE_KLARHEIT_MIN
+    anfahrt = (vorn_aus_anfahrt(acc_raw, t_acc_ms, gyr_raw, t_gyr_ms, bezug, rot, starts or None, gps)
+               if achse_gemessen else None)
+    bestimmt = anfahrt is not None and abs(anfahrt["r"]) >= ANFAHRT_R_MIN
+    if bestimmt:
         teile.append("anfahrt")
         if anfahrt["r"] < 0:
             rot = (rot + 180.0) % 360.0
-    else:
-        start_nicken = startlage(pitch, t, starts or None)
-        if start_nicken is not None and abs(start_nicken) >= START_SCHWELLE_GRAD:
-            teile.append("heuristik")
-            if start_nicken > 0:
-                rot = (rot + 180.0) % 360.0
     return {"rot_deg": round(rot, 1), "klarheit": klarheit,
             "quelle": "+".join(teile) or "keine",
-            "gier_vz": gier_vz, "gier_gps": gps_pruef, "anfahrt": anfahrt}
+            "gier_vz": gier_vz, "gier_gps": gps_pruef, "anfahrt": anfahrt,
+            "richtung_bestimmt": bool(bestimmt)}
 
 
 def vorn_aus_anfahrt(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
@@ -752,6 +738,7 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
     achse_klarheit = None
     rot_quelle = "manuell"
     gier_vz, gier_gps = 1, None
+    richtung_bestimmt = not auto
     if not _roh:
         # Montage-Drehung und Gier-Vorzeichen kommen ueber ALLE Laufbereiche und sind damit
         # unabhaengig vom gezeigten Ausschnitt (s. `aufnahme_eigenschaften`). `_roh` markiert
@@ -763,6 +750,7 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
         if auto:
             rot_wirksam = _eig["rot_deg"]
             achse_klarheit, rot_quelle = _eig["klarheit"], _eig["quelle"]
+            richtung_bestimmt = bool(_eig.get("richtung_bestimmt"))
     if rot_wirksam:
         w = np.radians(rot_wirksam)
         c, sn = np.cos(w), np.sin(w)
@@ -923,9 +911,7 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
         hub_fenster_s = float(min(5.0, max(1.0, 2.0 / _takt))) if _takt else 3.0
         hub = hub_berechnen(a_vert, 1.0 / rechen_hz, hub_fenster_s)
 
-    # Nur noch Auskunft: die Drehung ist oben schon angewandt, das Nicken am Lauf-Anfang sollte
-    # jetzt negativ sein (bergab). Bleibt es positiv, hat die Heuristik nicht gegriffen — meist,
-    # weil im Fenster gar kein Lauf-Anfang liegt.
+    # Nur noch Auskunft: das Nicken am Lauf-Anfang, nach der Drehung. Entscheidet nichts.
     start_nicken = startlage(pitch, t, lauf_starts_ms)
 
     schritt = max(1, int(round(rechen_hz / ziel_hz)))
@@ -954,8 +940,10 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
         "yaw_fenster_s": yaw_fenster_s,
         "nullpunkt": null_quelle,
         "rot_deg": round(rot_wirksam, 1),
-        # manuell | achse | heuristik | achse+heuristik | keine
+        # manuell | achse | anfahrt | achse+anfahrt | keine (seit 27.09.2026 keine Heuristik mehr)
         "rot_quelle": rot_quelle,
+        # Vorn/hinten gemessen? False = das Vorzeichen von Nicken und Rollen ist NICHT bekannt.
+        "richtung_bestimmt": richtung_bestimmt,
         # Wie deutlich die Pump-Achse aus dem Rauschen ragt (Eigenwert-Verhaeltnis). None, wenn
         # gar nicht gesucht wurde (manuelle Vorgabe).
         "rot_klarheit": achse_klarheit,
@@ -964,8 +952,8 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
         # liegen oder keine Spur da ist. `gier_umgekehrt` sagt, ob sie das Vorzeichen gedreht hat.
         "gier_gps": gier_gps,
         "gier_umgekehrt": gier_vz < 0,
-        # Mittleres Nicken in der ersten Sekunde der Laeufe, NACH der Drehung. Sollte negativ
-        # sein (bergab); ein positiver Wert heisst, dass die Heuristik nicht greifen konnte.
+        # Mittleres Nicken in der ersten Sekunde der Laeufe, NACH der Drehung — reine Auskunft,
+        # entscheidet nichts (s. START_FENSTER_S).
         "start_nicken_deg": None if start_nicken is None else round(start_nicken, 1),
         "null_pitch_deg": round(null_p, 2),
         "null_roll_deg": round(null_r, 2),
@@ -1074,8 +1062,8 @@ def montage_je_lauf(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
             "achse": float(e["rot_deg"]) % 180.0,
             "klar": klar,
             "quelle": e["quelle"],
-            # Hat die Start-Heuristik in DIESEM Lauf ueberhaupt gegriffen?
-            "richtung_gemessen": "heuristik" in (e["quelle"] or ""),
+            # Ist die Richtung in DIESEM Lauf aus der Anfahrt GEMESSEN?
+            "richtung_gemessen": bool(e.get("richtung_bestimmt")) and "anfahrt" in (e["quelle"] or ""),
             "brauchbar": klar is not None and klar >= MONTAGE_KLARHEIT_MIN,
         })
 
@@ -1101,7 +1089,8 @@ def montage_je_lauf(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
     else:
         gruppe, achse_gem = [], None
 
-    # --- Schritt 3: Richtung. Wo die Start-Heuristik nicht gegriffen hat, gilt die Mehrheit ----
+    # --- Schritt 3: Richtung. Wo sie in einem Lauf nicht gemessen ist, gilt die Mehrheit der
+    #     GEMESSENEN Laeufe (dasselbe Handy); ist keiner gemessen, bleibt sie unbestimmt. -------
     # Ist bei diesem Lauf die Achse um 180° gedreht worden? NICHT ueber `_abstand` pruefen: der
     # rechnet mod 180, und genau dort ist 180° dasselbe wie 0°. Gefragt ist der Abstand auf dem
     # VOLLEN Kreis zwischen der gefundenen Drehung und ihrer eigenen Achse.
@@ -1112,7 +1101,7 @@ def montage_je_lauf(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
     # Achse: dasselbe Handy dreht sich zwischen zwei Laeufen nicht um 180°, ohne dass sich die
     # Achse mitbewegt. An #9484 ist genau das der Fall — Lauf 0 sagt „nicht gedreht" (Klarheit
     # 7,5), Lauf 1 sagt „gedreht" (19,8), die Achsen liegen 19° auseinander, sind also dieselbe.
-    # Eine der beiden Start-Heuristiken irrt; die klarere gewinnt, und die ueberstimmte wird
+    # Eine der beiden Messungen irrt; die klarere gewinnt, und die ueberstimmte wird
     # gekennzeichnet statt stillschweigend umgebogen.
     gemessen = [e for e in eigen if e["richtung_gemessen"] and e["brauchbar"]]
     mehrheit = None
@@ -1147,9 +1136,14 @@ def montage_je_lauf(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
             # Dieser Lauf passt NICHT zur Montage der uebrigen — Handy gedreht, verrutscht oder
             # Fehlgriff. Bewusst nicht stillschweigend eingeebnet.
             "rot_verrutscht": verrutscht,
-            # Die Start-Heuristik dieses Laufs sagte das Gegenteil und wurde von der klareren
-            # Mehrheit ueberstimmt. Kein Fehler, aber eine Stelle, an der man hinschauen darf.
+            # Die Anfahrt dieses Laufs sagte das Gegenteil und wurde von der klareren Mehrheit
+            # ueberstimmt. Kein Fehler, aber eine Stelle, an der man hinschauen darf.
             "rot_strittig": strittig,
+            # Vorn/hinten aus Messung (eigene Anfahrt oder Mehrheit gemessener Laeufe) — sonst
+            # False, und dann ist das Vorzeichen von Nicken/Rollen NICHT bekannt.
+            "richtung_bestimmt": bool(rot_vorgabe is not None or e["richtung_gemessen"]
+                                      or (e in gruppe and mehrheit is not None)
+                                      or (quelle == "geerbt" and ganze.get("richtung_bestimmt"))),
         })
     # Die Drehung der GROESSTEN Gruppe: so lag das Handy die meiste Zeit. Fuer eine Ansicht, die
     # sich auf einen Wert festlegen muss, ist das der ehrlichste — und wenn die Montage nie

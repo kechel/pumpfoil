@@ -51,6 +51,7 @@ const it: Record<string, string> = {
   "board.map": "Mappa",
   "board.markBoard": "Il telefono era sulla tavola",
   "board.mountAuto": "automatico",
+  "board.directionUnknown": "Non è stato possibile determinare dai dati il davanti e il dietro di questa registrazione — beccheggio e rollio potrebbero essere invertiti.",
   "board.mounting": "Rotazione del montaggio:",
   "board.mountingHint": "come stava il telefono sulla tavola — 180° inverte punta e inclinazione",
   "board.noData": "Nessun dato di assetto per questa registrazione.",
