@@ -672,8 +672,20 @@ horizontal 18–25 µT (Bodensee: ~48 / ~21 µT).
 Runde mittelt sich der horizontale Anteil weg. Nord immer je kurzem Fenster bestimmen, nie aus dem
 Session-Mittel. Die ersten 1–2 s und das Ende von #10353 fallen auf ~35 µT ab (vermutlich
 Kalibrierung, nicht belegt) — solche Fenster ueber die Feldstaerke aussortieren.
-Naechster Schritt: `richtung_messen()` in `lage.py` darauf bauen — Detektor-Aenderung, braucht
-Jans OK; pruefen gegen diese drei Gaenge und die ersten Brett-Aufnahmen mit Magnetometer.
+**Gebaut 28.09.2026 (Jans OK: „die analyse-pipeline darf das ruhig direkt bekommen, das muss ja
+eh optional sein"):** `lage.richtung_messen()` rechnet genau das, nur in Laufbereichen, je Fenster
+mit Plausibilitaetspruefung (Feld 20–75 µT, waagerecht ≥ 8 µT, Kurs im Fenster ≤ 30° gedreht,
+≥ 0,7 m/s, ≥ 8 Fenster, |Einigkeit| ≥ 0,5). Ohne Magnetometer: None wie bisher — an allen 8
+Brett-Aufnahmen (alle ohne Magnetometer) Ergebnis identisch vorher/nachher. An den Spaziergaengen
+richtig (Einigkeit 0,74 / 0,56 / 0,83; die Gegen-Hypothese 0,02 / 0,41 / 0,13).
+**Zweiter Befund dabei: das Vorzeichen des Beschleunigungsmessers ist je Plattform verschieden.**
+Android misst im Stillstand +1 g nach OBEN, CoreMotion (iPhone) −1 g, also nach UNTEN — der
+Vertrag (docs/data-format.md) legt es nicht fest. Fuer die Lage-Rechnung wirkt das genau wie eine
+180°-Drehung (Nicken und Rollen kehren sich um, Gieren auch). Bisher unsichtbar, weil alle
+Brett-Aufnahmen vom Pixel stammen. `richtung_messen` misst es mit (beide Hypothesen, die
+richtige ist die, bei der Nase und Fahrt uebereinstimmen), faltet es in `vorzeichen` und setzt
+`gier_vz`, wo die GPS-Gegenprobe nichts sagt. OHNE Magnetometer bleibt ein iPhone am Brett
+dadurch ausdruecklich „Richtung unbestimmt" — was es ohnehin ist.
 
 **Der Engpass sind Fahrer, nicht Technik.** Abschnitt 3 rechnet mit 8–10 Fahrern × 5 min. Die
 Erkennung aus 12b findet Paare, sobald es sie gibt; entstehen werden sie erst auf Nachfrage

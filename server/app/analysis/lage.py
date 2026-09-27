@@ -11,8 +11,8 @@ WARUM BEIDE SENSOREN GEBRAUCHT WERDEN
 - Zusammen ergaenzen sie sich: der Kreisel traegt die schnellen Aenderungen im Stroke, die
   Schwerkraft haelt den Nullpunkt fest (Komplementaerfilter).
 
-YAW IST ANDERS. Fuer die Drehung um die Hochachse gibt es keinen Anker — ein Magnetometer
-zeichnen wir nicht auf. Ein absoluter Kurs waere deshalb integrierter Drift. Was geht, ist die
+YAW IST ANDERS. Fuer die Drehung um die Hochachse gibt es keinen Anker — das Magnetometer (seit
+27.09.2026, optional) dient nur der Frage vorn/hinten (`richtung_messen`), nicht dem Kurs. Ein absoluter Kurs waere deshalb integrierter Drift. Was geht, ist die
 AENDERUNG ueber ein kurzes Fenster: der Fehler ist im Wesentlichen Bias × Fensterlaenge, bei
 einer Sekunde also rund ein Grad. Das Fenster ist damit keine Genauigkeits-, sondern eine
 Was-sehe-ich-Schraube (0,1 s ≈ Momentanrate, 1 s ein Pumpzyklus, 3-5 s der ganze Carve).
@@ -95,8 +95,21 @@ START_FENSTER_S = 1.0      # so lange nach dem Lauf-Start wird gemittelt
 #   * die Anfahrt (Laengs-Kraft minus Kreisel-Nicken gegen GPS-dv/dt) — ihre klaren Werte kamen von
 #     der DRIFT des aufsummierten Kreisel-Nickens (bis 90° in 13 s), ohne Drift |r| 0,1–0,5 und bei
 #     #10248 falsch herum. Beim Dock-Start springt das Tempo in ~1 s, das 1-Hz-GPS sieht es nicht.
-# Messverfahren, das kommt: KOMPASS gegen GPS-Kurs — die Vorwaertsachse zeigt auf geraden Strecken
-# in die Fahrtrichtung, vorn/hinten liegen 180° auseinander. Braucht das Magnetometer im Recorder.
+# Messverfahren seit 27.09.2026: KOMPASS gegen GPS-Kurs (s. `richtung_messen`) — die Vorwaertsachse
+# zeigt in die Fahrtrichtung, vorn/hinten liegen 180° auseinander. Braucht das Magnetometer im
+# Recorder; ohne Magnetometer (aeltere App, Handy ohne Kompass) bleibt die Richtung unbestimmt.
+# Belegt an drei Spaziergaengen mit je einer anderen Haltung (docs/GROUND-TRUTH.md 12d).
+MAG_SCALE = 10.0            # int16 je µT (docs/data-format.md, Magnetfeld-Chunk)
+RICHTUNG_FENSTER_S = 3.0    # Fenster fuer „unten" und Nord. NIE das Session-Mittel: auf einer Runde
+                            # mittelt sich der waagerechte Anteil weg (85° statt 64° Inklination).
+RICHTUNG_MIN_TEMPO = 0.7    # m/s; darunter ist der Kurs aus dem GPS Rauschen
+RICHTUNG_MAX_KURVE_DEG = 30.0   # so weit darf sich der Kurs im Fenster drehen (Kurven raus)
+RICHTUNG_FELD_UT = (20.0, 75.0)  # Erdfeld 25–65 µT; ausserhalb: Kalibrierung, Magnet, Stahl
+RICHTUNG_MIN_WAAG_UT = 8.0  # waagerechter Anteil — darunter ist Nord nicht bestimmbar
+RICHTUNG_MIN_FENSTER = 8    # so viele brauchbare Fenster je Messung
+RICHTUNG_MIN_EINIG = 0.5    # |mittleres Skalarprodukt Nase·Fahrtrichtung|, sonst keine Aussage
+RICHTUNG_MIN_ABSTAND = 0.2  # so viel klarer muss die bessere der beiden Oben-Hypothesen sein
+RICHTUNG_MIN_NASE_WAAG = 0.5    # Nase muss so weit waagerecht liegen, sonst hat sie keinen Kurs
 # Montage-DREHUNG um die Hochachse, automatisch gesucht (s. `montage_drehung`). Nur im PUMPBAND:
 # die langsame Drift beim Aufrichten des Bretts ist viel groesser als der Pumpausschlag und wuerde
 # die Hauptkomponente sonst an sich ziehen.
@@ -104,7 +117,7 @@ MONTAGE_BAND_HZ = (0.6, 2.5)
 # Version der Lage-RECHNUNG. Steht in jedem Zwischenspeicher-Schluessel (MCP `BoardAttitudeCache`),
 # damit ein geaendertes Verfahren nie ein altes Ergebnis ausliefert. Bei jeder Aenderung, die das
 # Ergebnis veraendert, hochzaehlen.
-LAGE_VERSION = "2026-09-27-richtung-nur-gemessen"
+LAGE_VERSION = "2026-09-28-richtung-kompass"
 MONTAGE_KLARHEIT_MIN = 3.0   # Verhaeltnis der Eigenwerte; darunter ist keine Achse zu erkennen
 MONTAGE_MIN_GRAD = 10.0      # darunter lohnt das Drehen nicht, es waere nur Rauschen
 MONTAGE_MIN_SAMPLES = 64     # je Laufbereich; darunter traegt er nichts zur Achse bei
@@ -458,7 +471,8 @@ def aufnahme_eigenschaften(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
                            ref_bereiche_ms: list[tuple[float, float]],
                            lauf_starts_ms: list[float] | None,
                            gps: list | None = None,
-                           rot_vorgabe: float | None = None) -> dict:
+                           rot_vorgabe: float | None = None,
+                           mag: tuple[np.ndarray, np.ndarray] | None = None) -> dict:
     """Alles, was zur AUFNAHME gehoert und nicht zum gezeigten Ausschnitt.
 
     Liefert `rot_deg` (Montage-Drehung um die Hochachse), `klarheit`, `quelle` und `gier_vz`
@@ -559,30 +573,115 @@ def aufnahme_eigenschaften(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
     # Nur auf einer GEMESSENEN Achse: vorn/hinten zu entscheiden hat keinen Sinn, solange nicht
     # einmal feststeht, wo laengs ist (kein Kreisel oder keine klare Pump-Achse).
     achse_gemessen = klarheit is not None and klarheit >= MONTAGE_KLARHEIT_MIN
-    messung = (richtung_messen(acc_raw, t_acc_ms, gyr_raw, t_gyr_ms, bezug, rot, starts or None, gps)
+    messung = (richtung_messen(acc_raw, t_acc_ms, rot, gps, ref_bereiche_ms, mag)
                if achse_gemessen else None)
     bestimmt = messung is not None
     if bestimmt:
         teile.append("gemessen")
         if messung["vorzeichen"] < 0:
             rot = (rot + 180.0) % 360.0
+        # Zeigt der Beschleunigungsmesser „unten" statt „oben" (CoreMotion), laeuft auch das
+        # Gieren gespiegelt (es wird auf die gemessene Schwerkraft projiziert). Die GPS-Gegenprobe
+        # misst das Gesamtergebnis und behaelt Vorrang; nur wo sie nichts sagt, gilt die Messung.
+        if messung["acc_vz"] < 0 and not (gps_pruef and abs(gps_pruef["r"]) >= GIER_GPS_MIN_R):
+            gier_vz = -1
     return {"rot_deg": round(rot, 1), "klarheit": klarheit,
             "quelle": "+".join(teile) or "keine",
             "gier_vz": gier_vz, "gier_gps": gps_pruef, "messung": messung,
             "richtung_bestimmt": bool(bestimmt)}
 
 
-def richtung_messen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
-                   gyr_raw: np.ndarray, t_gyr_ms: np.ndarray,
-                   bezug: np.ndarray | None, rot_deg: float,
-                   lauf_starts_ms: list[float] | None, gps: list | None) -> dict | None:
+def magnetfeld(mag_raw: np.ndarray, t_mag_ms: np.ndarray) -> tuple[np.ndarray, np.ndarray] | None:
+    """Magnetfeld-Kanal fuer `richtung_messen` — oder None, wenn es keinen brauchbaren gibt.
+
+    Optional: aeltere Apps, Uhren und Handys ohne Kompass liefern keinen. Dann bleibt alles, wie es
+    ohne war (Richtung unbestimmt). Ohne exakte Zeitachse ebenfalls None — das Feld muss zu den
+    Beschleunigungs-Samples passen, sonst ist „unten" ein anderer Moment als Nord."""
+    if len(mag_raw) < 50 or len(t_mag_ms) != len(mag_raw):
+        return None
+    return mag_raw, t_mag_ms
+
+
+def richtung_messen(acc_raw: np.ndarray, t_acc_ms: np.ndarray, rot_deg: float,
+                   gps: list | None, ref_bereiche_ms: list[tuple[float, float]] | None,
+                   mag: tuple[np.ndarray, np.ndarray] | None) -> dict | None:
     """Liegt „vorn" bei der Montage-Drehung `rot_deg` richtig? GEMESSEN, nicht angenommen.
 
     Liefert {"vorzeichen": +1 (stimmt) | -1 (um 180° verkehrt), ...} oder None, wenn es nicht
-    messbar ist. HEUTE IMMER None: es gibt noch kein Verfahren, das es eindeutig kann (s. oben).
-    Der Kompass-Vergleich kommt hierher, sobald der Recorder das Magnetometer aufzeichnet.
+    messbar ist — kein Magnetometer, kein GPS, zu wenig gerade Fahrt, unplausibles Feld.
+
+    VERFAHREN (Kompass gegen GPS-Kurs, belegt an drei Spaziergaengen, docs/GROUND-TRUTH.md 12d):
+    je Fenster von `RICHTUNG_FENSTER_S` „unten" aus dem Accel-Mittel, Nord aus dem waagerechten
+    Anteil des Magnetfelds, daraus mit dem GPS-Kurs die Fahrtrichtung in Geraeteachsen. Die Nase
+    des Bretts ist bei `rot_deg` die Geraeteachse (−cos r, sin r, 0) — so rechnet `lage_berechnen`
+    (positives Nicken = diese Achse hebt sich). Zeigt sie im Mittel mit der Fahrt, stimmt „vorn".
+
+    DAS VORZEICHEN DER SCHWERKRAFT WIRD MITGEMESSEN, nicht angenommen: Android liefert im
+    Stillstand +1 g nach OBEN, CoreMotion (iPhone) −1 g, also nach UNTEN. Mit falschem „oben" ist
+    Ost gespiegelt, und die Fahrtrichtung passt nur zufaellig zur Nase. Gerechnet wird deshalb mit
+    beiden Moeglichkeiten; die richtige ist die, bei der Nase und Fahrt uebereinstimmen. Liegen sie
+    zu dicht beieinander (fast nur Nord-Sued-Fahrten), gibt es keine Aussage.
+    Fuer `lage_berechnen` wirkt ein nach unten zeigender Beschleunigungsmesser genau wie eine
+    180°-Drehung (Nicken und Rollen kehren sich um) — deshalb fliesst `acc_vz` in `vorzeichen` ein.
     """
-    return None
+    if mag is None or not gps or not ref_bereiche_ms or len(acc_raw) < 50:
+        return None
+    mag_raw, t_mag_ms = mag
+    t_gps, kurs, tempo = kurs_aus_gps(gps)
+    if len(t_gps) < 4:
+        return None
+    w = np.radians(rot_deg)
+    nase = np.array([-np.cos(w), np.sin(w), 0.0])
+    halb = RICHTUNG_FENSTER_S * 500.0
+    a = acc_raw / ACCEL_SCALE
+    m = mag_raw / MAG_SCALE
+    dots = {+1: [], -1: []}
+    for von, bis in ref_bereiche_ms:
+        for t in np.arange(von + halb, bis - halb + 1.0, 1000.0):
+            v = float(np.interp(t, t_gps, tempo))
+            if v < RICHTUNG_MIN_TEMPO:
+                continue
+            k0, k1 = np.interp([t - halb, t + halb], t_gps, kurs)
+            if abs(k1 - k0) > RICHTUNG_MAX_KURVE_DEG:
+                continue
+            wa = (t_acc_ms >= t - halb) & (t_acc_ms <= t + halb)
+            wm = (t_mag_ms >= t - halb) & (t_mag_ms <= t + halb)
+            if wa.sum() < 10 or wm.sum() < 10:
+                continue
+            ab = a[wa].mean(axis=0)
+            if np.linalg.norm(ab) < 0.5:
+                continue
+            ab /= np.linalg.norm(ab)
+            mv = m[wm].mean(axis=0)
+            if not (RICHTUNG_FELD_UT[0] <= np.linalg.norm(mv) <= RICHTUNG_FELD_UT[1]):
+                continue
+            nord = mv - (mv @ ab) * ab
+            if np.linalg.norm(nord) < RICHTUNG_MIN_WAAG_UT:
+                continue
+            nord /= np.linalg.norm(nord)
+            nase_h = nase - (nase @ ab) * ab
+            if np.linalg.norm(nase_h) < RICHTUNG_MIN_NASE_WAAG:
+                continue
+            nase_h /= np.linalg.norm(nase_h)
+            kr = np.radians(float(np.interp(t, t_gps, kurs)))
+            for vz in (+1, -1):
+                ost = np.cross(nord, vz * ab)
+                fahrt = np.cos(kr) * nord + np.sin(kr) * ost
+                dots[vz].append(float(fahrt @ nase_h))
+    n = len(dots[+1])
+    if n < RICHTUNG_MIN_FENSTER:
+        return None
+    s_plus, s_minus = float(np.mean(dots[+1])), float(np.mean(dots[-1]))
+    acc_vz = +1 if abs(s_plus) >= abs(s_minus) else -1
+    s_best, s_ander = (s_plus, s_minus) if acc_vz > 0 else (s_minus, s_plus)
+    if abs(s_best) < RICHTUNG_MIN_EINIG:
+        return None
+    if np.sign(s_best) != np.sign(s_ander) and abs(s_best) - abs(s_ander) < RICHTUNG_MIN_ABSTAND:
+        return None                    # die beiden Moeglichkeiten sagen Gegensaetzliches, beide gleich klar
+    nase_vorn = 1 if s_best > 0 else -1
+    return {"vorzeichen": int(nase_vorn * acc_vz), "nase_vorn": nase_vorn, "acc_vz": acc_vz,
+            "einigkeit": round(abs(s_best), 2), "einigkeit_andere": round(abs(s_ander), 2),
+            "fenster": n, "verfahren": "kompass"}
 
 
 def startlage(pitch: np.ndarray, t_ms: np.ndarray,
@@ -642,7 +741,8 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
                    ref_bereiche_ms: list[tuple[float, float]] | None = None,
                    hub_fenster_s: float | None = None, rot_deg: float | None = None,
                    lauf_starts_ms: list[float] | None = None,
-                   gps: list | None = None, _roh: bool = False) -> dict:
+                   gps: list | None = None, _roh: bool = False,
+                   mag: tuple[np.ndarray, np.ndarray] | None = None) -> dict:
     """Pitch/Roll (absolut, in Grad) und Gierwinkel-Aenderung je Fenster (Grad).
 
     `acc_raw`/`gyr_raw` sind die int16-Rohwerte, `t_*_ms` die zugehoerigen Zeitachsen. Das
@@ -701,7 +801,7 @@ def lage_berechnen(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
         # die Durchgaenge, die genau das erst ermitteln.
         _eig = aufnahme_eigenschaften(acc_raw, t_acc_ms, gyr_raw, t_gyr_ms,
                                       ref_bereiche_ms or [], lauf_starts_ms, gps,
-                                      rot_vorgabe=None if auto else float(rot_deg))
+                                      rot_vorgabe=None if auto else float(rot_deg), mag=mag)
         gier_vz, gier_gps = _eig["gier_vz"], _eig["gier_gps"]
         if auto:
             rot_wirksam = _eig["rot_deg"]
@@ -958,7 +1058,8 @@ def montage_je_lauf(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
                     ref_bereiche_ms: list[tuple[float, float]],
                     lauf_starts_ms: list[float] | None = None,
                     gps: list | None = None,
-                    rot_vorgabe: float | None = None) -> dict:
+                    rot_vorgabe: float | None = None,
+                    mag: tuple[np.ndarray, np.ndarray] | None = None) -> dict:
     """NUR die Montage-Drehung je Lauf — ohne die teuren Kennzahlen.
 
     Herausgeloest am 23.09.2026, weil nicht nur die Lauf-Tabelle sie braucht, sondern auch die
@@ -1002,7 +1103,7 @@ def montage_je_lauf(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
         return {"je_lauf": [], "ganze": None, "gruppe_rot_deg": None}
     # Bezugswert ueber ALLE Laeufe — Rueckfall fuer Laeufe ohne eigenes klares Signal.
     ganze = aufnahme_eigenschaften(acc_raw, t_acc_ms, gyr_raw, t_gyr_ms, ref_bereiche_ms,
-                                   lauf_starts_ms, gps=gps, rot_vorgabe=rot_vorgabe)
+                                   lauf_starts_ms, gps=gps, rot_vorgabe=rot_vorgabe, mag=mag)
     starts = [float(x) for x in (lauf_starts_ms or [])]
 
     # --- Schritt 1: je Lauf die eigene Drehung suchen -----------------------------------------
@@ -1010,7 +1111,7 @@ def montage_je_lauf(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
     for i, (a, b) in enumerate(ref_bereiche_ms):
         e = aufnahme_eigenschaften(acc_raw, t_acc_ms, gyr_raw, t_gyr_ms, [(a, b)],
                                    [starts[i]] if i < len(starts) else None,
-                                   gps=gps, rot_vorgabe=rot_vorgabe)
+                                   gps=gps, rot_vorgabe=rot_vorgabe, mag=mag)
         klar = e.get("klarheit")
         eigen.append({
             "rot": float(e["rot_deg"]),
@@ -1018,7 +1119,7 @@ def montage_je_lauf(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
             "achse": float(e["rot_deg"]) % 180.0,
             "klar": klar,
             "quelle": e["quelle"],
-            # Ist die Richtung in DIESEM Lauf aus der Anfahrt GEMESSEN?
+            # Ist die Richtung in DIESEM Lauf GEMESSEN (Kompass gegen GPS-Kurs)?
             "richtung_gemessen": bool(e.get("richtung_bestimmt")) and "gemessen" in (e["quelle"] or ""),
             "brauchbar": klar is not None and klar >= MONTAGE_KLARHEIT_MIN,
         })
@@ -1136,10 +1237,11 @@ def kennzahlen_je_lauf(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
                        ref_bereiche_ms: list[tuple[float, float]],
                        lauf_starts_ms: list[float] | None = None,
                        gps: list | None = None,
-                       rot_vorgabe: float | None = None) -> list[dict]:
+                       rot_vorgabe: float | None = None,
+                       mag: tuple[np.ndarray, np.ndarray] | None = None) -> list[dict]:
     """Je Lauf ein vollstaendiger eigener Durchgang, mit der Drehung aus `montage_je_lauf`."""
     montagen = montage_je_lauf(acc_raw, t_acc_ms, gyr_raw, t_gyr_ms, ref_bereiche_ms,
-                               lauf_starts_ms, gps=gps, rot_vorgabe=rot_vorgabe)["je_lauf"]
+                               lauf_starts_ms, gps=gps, rot_vorgabe=rot_vorgabe, mag=mag)["je_lauf"]
     aus: list[dict] = []
     for (a, b), m in zip(ref_bereiche_ms, montagen):
         erg = lage_berechnen(acc_raw, t_acc_ms, gyr_raw, t_gyr_ms, ziel_hz=20.0,

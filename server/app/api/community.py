@@ -2358,7 +2358,9 @@ def board_attitude(user: models.User = Depends(current_user),
         kennzahlen = lage.kennzahlen_je_lauf(
             acc, t_acc, gyr, t_gyr, bereiche, starts,
             gps=storage.load_gps(uuid),
-            rot_vorgabe=(float(s.attitude_rot_deg) if s.attitude_rot_deg is not None else None))
+            rot_vorgabe=(float(s.attitude_rot_deg) if s.attitude_rot_deg is not None else None),
+            mag=lage.magnetfeld(storage.load_mag(uuid), lage.zeitachse(
+                storage.load_mag_t0(uuid), storage.chunk_laengen(uuid, "mag"))))
         sessions_gezaehlt += 1
 
         # Das Foil der AUFNAHME. Ein Foil je Lauf gibt es noch nicht (es steht als Idee auf
