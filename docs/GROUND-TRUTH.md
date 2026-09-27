@@ -658,6 +658,23 @@ die Fahrtrichtung, vorn/hinten liegen 180° auseinander. Braucht das Magnetomete
 gemittelt) ist gebaut und wartet auf diese Messung; die Achse selbst streut je Lauf bis 17°, das
 Mittel ist die genauere Zahl.
 
+**Kompass-Verfahren belegt (27.09.2026, drei Spaziergaenge, iPhone SE 3, TestFlight 1.1.39):** Jan
+hielt das Handy je Gang in einer von drei Lagen, ohne sie zu nennen; das Verfahren fand alle drei
+richtig, von Jan bestaetigt („das ist genau richtig"). #10352 flach vor sich, Oberkante vorn ·
+#10353 hochkant, Display zu ihm, Rueckseite vorn · #10354 auf der linken Laengskante, Oberkante
+vorn, Display links. Weg: „unten" aus dem 3-s-Mittel des Accel (CoreMotion: Messvektor zeigt
+nach unten), Nord = horizontaler Anteil des Magnetfelds im selben Fenster, Vorwaertsachse =
+Nord um den GPS-Kurs (±3 s, nur ab 0,7 m/s) gedreht; gemittelt ueber alle Sekunden. Einigkeit
+R = 0,92–0,95 aus 55–64 s, jeder Gang eine volle Runde, der Kompass folgt dem Kurs durch alle
+360° meist auf 10–30°. Kanaele vollstaendig: je ~3700 Samples, gemessen 50 Hz, |B| 45–49 µT,
+horizontal 18–25 µT (Bodensee: ~48 / ~21 µT).
+**FALLE:** ueber die GANZE Aufnahme gemittelt ergab die Inklination 85° statt ~64° — auf einer
+Runde mittelt sich der horizontale Anteil weg. Nord immer je kurzem Fenster bestimmen, nie aus dem
+Session-Mittel. Die ersten 1–2 s und das Ende von #10353 fallen auf ~35 µT ab (vermutlich
+Kalibrierung, nicht belegt) — solche Fenster ueber die Feldstaerke aussortieren.
+Naechster Schritt: `richtung_messen()` in `lage.py` darauf bauen — Detektor-Aenderung, braucht
+Jans OK; pruefen gegen diese drei Gaenge und die ersten Brett-Aufnahmen mit Magnetometer.
+
 **Der Engpass sind Fahrer, nicht Technik.** Abschnitt 3 rechnet mit 8–10 Fahrern × 5 min. Die
 Erkennung aus 12b findet Paare, sobald es sie gibt; entstehen werden sie erst auf Nachfrage
 (Abschnitt 11). Entscheidung 26.09.: erst abwarten.
