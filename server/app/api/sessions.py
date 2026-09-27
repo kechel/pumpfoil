@@ -3737,6 +3737,9 @@ def _lage_antwort(
         return {"ok": False, "grund": "keine exakte Zeitachse", "placement": s.placement}
     if len(t_gyr) != len(gyr):
         gyr, t_gyr = np.empty((0, 3)), np.empty(0)
+    # Kompass fuer vorn/hinten (`lage.richtung_messen`) — optional, None ohne Magnetometer.
+    mag = lage.magnetfeld(storage.load_mag(uuid),
+                          lage.zeitachse(storage.load_mag_t0(uuid), storage.chunk_laengen(uuid, "mag")))
 
     # Lauf-Fenster in SESSION-ms. Die gespeicherten Segmente sind auf den Trim re-based
     # (docs/DATA-PIPELINE.md) -> Trim-Offset wieder drauf, sonst liegt das Fenster daneben.
@@ -3796,7 +3799,7 @@ def _lage_antwort(
     richtung_fest: bool | None = True if rot_fest is not None else None
     if rot_fest is None and bereiche:
         _ganze = lage.aufnahme_eigenschaften(acc, t_acc, gyr, t_gyr, bereiche, starts,
-                                             gps=storage.load_gps(uuid), rot_vorgabe=None)
+                                             gps=storage.load_gps(uuid), rot_vorgabe=None, mag=mag)
         if _ganze.get("quelle") == "keine":
             # Nur DANN eingreifen. Die Einschraenkung ist nicht Vorsicht, sondern das Ergebnis
             # des Regressions-Laufs: erst hatte ich die Ansicht IMMER auf die Lauf-Drehung
@@ -3812,7 +3815,7 @@ def _lage_antwort(
             # gemessene Drehung besser als gar keine. Denn "keine" heisst nicht "unbekannt",
             # sondern rechnet mit 0°, also mit der Behauptung "laengs, Nase vorn".
             _m = lage.montage_je_lauf(acc, t_acc, gyr, t_gyr, bereiche, starts,
-                                      gps=storage.load_gps(uuid), rot_vorgabe=None)
+                                      gps=storage.load_gps(uuid), rot_vorgabe=None, mag=mag)
             _je = _m["je_lauf"]
             _wahl = None
             if run is not None and run < len(_je):
@@ -3854,7 +3857,7 @@ def _lage_antwort(
                               gps=storage.load_gps(uuid),
                               # ECHTE Lauf-Anfaenge, nicht die an den Raendern gekuerzten aus
                               # `laufbereiche` — die Anfahrt lebt genau von diesen Sekunden.
-                              lauf_starts_ms=starts)
+                              lauf_starts_ms=starts, mag=mag)
     # `lage_berechnen` meldet jede Vorgabe als „manuell" — hier weiss die Antwort es besser.
     if rot_quelle_fest:
         erg["rot_quelle"] = rot_quelle_fest
@@ -3878,7 +3881,8 @@ def _lage_antwort(
         erg["laeufe"] = lage.kennzahlen_je_lauf(
             acc, t_acc, gyr, t_gyr, bereiche, starts,
             gps=storage.load_gps(uuid),
-            rot_vorgabe=(float(s.attitude_rot_deg) if s.attitude_rot_deg is not None else None))
+            rot_vorgabe=(float(s.attitude_rot_deg) if s.attitude_rot_deg is not None else None),
+            mag=mag)
     return erg
 
 

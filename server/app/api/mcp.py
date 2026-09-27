@@ -723,7 +723,9 @@ def _get_board_attitude(db: Session, user_id: int, arg: dict) -> dict:
               for g in segmente if g.get("t_start_ms") is not None]
     kennzahlen = lage.kennzahlen_je_lauf(
         acc, t_acc, gyr, t_gyr, bereiche, starts, gps=storage.load_gps(uuid),
-        rot_vorgabe=(float(s.attitude_rot_deg) if s.attitude_rot_deg is not None else None))
+        rot_vorgabe=(float(s.attitude_rot_deg) if s.attitude_rot_deg is not None else None),
+        mag=lage.magnetfeld(storage.load_mag(uuid), lage.zeitachse(
+            storage.load_mag_t0(uuid), storage.chunk_laengen(uuid, "mag"))))
 
     laeufe = []
     for i, ((a, b), k) in enumerate(zip(bereiche, kennzahlen)):
