@@ -93,9 +93,6 @@ export default function Landing() {
       </div>
     </section>
   );
-  // VORSCHAU (27.09.2026): der Sportarten-Abschnitt erscheint nur mit `?vorschau=1`, bis Jan ihn
-  // abgenommen hat — erst Deutsch, die anderen Sprachen danach. Faellt nach der Abnahme weg.
-  const vorschau = new URLSearchParams(window.location.search).has("vorschau");
   // Auswaehlbare Sportarten ausser „andere" — die Namen kommen aus cls.sport.* (schon in allen
   // Sprachen), dieselbe Quelle wie die Auswahl in der Session.
   const sportarten = SPORTS.filter((k) => k !== "other");
@@ -418,20 +415,18 @@ export default function Landing() {
           </div>
         </section>
 
-        {vorschau && (
-          <section className="pb-12">
-            <h2 className="mb-2 text-center text-xl font-bold sm:text-2xl">{t("land.sportTitle")}</h2>
-            <p className="mx-auto mb-5 max-w-2xl text-center text-slate-300">{t("land.sportBody")}</p>
-            <ul className="mx-auto flex max-w-3xl flex-wrap justify-center gap-2">
-              {sportarten.map((k) => (
-                <li key={k} className="rounded-full border border-slate-700 bg-slate-900/60 px-3 py-1 text-sm text-slate-200">
-                  {t(`cls.sport.${k}`)}
-                </li>
-              ))}
-            </ul>
-            <p className="mx-auto mt-5 max-w-2xl text-center text-slate-300">{t("land.sportMore")}</p>
-          </section>
-        )}
+        <section className="pb-12">
+          <h2 className="mb-2 text-center text-xl font-bold sm:text-2xl">{t("land.sportTitle")}</h2>
+          <p className="mx-auto mb-5 max-w-2xl text-center text-slate-300">{t("land.sportBody")}</p>
+          <ul className="mx-auto flex max-w-3xl flex-wrap justify-center gap-2">
+            {sportarten.map((k) => (
+              <li key={k} className="rounded-full border border-slate-700 bg-slate-900/60 px-3 py-1 text-sm text-slate-200">
+                {t(`cls.sport.${k}`)}
+              </li>
+            ))}
+          </ul>
+          <p className="mx-auto mt-5 max-w-2xl text-center text-slate-300">{t("land.sportMore")}</p>
+        </section>
 
         {/* App-Screens: Mobile-Slider, Desktop 2 nebeneinander / Mobile 1 */}
         <section className="pb-10">
