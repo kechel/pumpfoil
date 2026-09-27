@@ -52,6 +52,10 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
     // +/-32 rad/s (rund 1830 Grad/s) bequem in int16. Gleicher Wert wie in der Android-App
     // (`Recorder.GYRO_SCALE`) — ein Format fuer beide Handys.
     private let GYRO_SCALE = 1024.0
+    // Magnetfeld. CoreMotion liefert µT; 10 Schritte je µT sind im Vertrag fest (±3276 µT —
+    // das Erdfeld hat 25–65 µT, Halterungen mit Magneten einige hundert, s. docs/data-format.md
+    // „Magnetfeld-Chunk"). Gleicher Wert wie am Server (MAG_SCALE).
+    private let MAG_SCALE = 10.0
 
     private let loc = CLLocationManager()
     private let motion = CMMotionManager()
@@ -65,6 +69,11 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
     // Format mit drei Achsen, und alle vorhandenen Recorder lesen genau das.
     private var gyroBuf: [Int16] = []
     private var gyroT0Ms = 0
+    // Magnetometer, falls vorhanden (Jan 27.09.2026): vorn/hinten eines Handys am Brett laesst
+    // sich aus der Schwerkraft nicht bestimmen, aus Kompass gegen GPS-Kurs schon
+    // (docs/GROUND-TRUTH.md 12d). Eigener Puffer und eigener Kanal, genau wie der Kreisel.
+    private var magBuf: [Int16] = []
+    private var magT0Ms = 0
     private var gpsBuf: [[Double]] = []
 
     // Live-Kennzahlen
@@ -142,7 +151,7 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         startMs = Date().timeIntervalSince1970 * 1000
         chunkIndex = 0
         uploadSent = 0; uploadTotal = 0
-        lock.lock(); accelBuf.removeAll(); gyroBuf.removeAll(); gpsBuf.removeAll(); spWin.removeAll(); lock.unlock()
+        lock.lock(); accelBuf.removeAll(); gyroBuf.removeAll(); magBuf.removeAll(); gpsBuf.removeAll(); spWin.removeAll(); lock.unlock()
         prevLat = .nan; prevLon = .nan; distM = 0; maxMps = 0
         foiling = false; foilEnter = 0; foilExit = 0; runEndedMs = -100000
         runCnt = 0; runStartMs = 0; runStartDist = 0; runMaxMps = 0
@@ -180,6 +189,22 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
                 self.addGyro(r.x, r.y, r.z)
             }
         }
+        // Magnetfeld NUR, wenn das Geraet ein Magnetometer hat UND der Referenzrahmen mit
+        // Kompass verfuegbar ist. Ueber deviceMotion statt startMagnetometerUpdates: nur dort
+        // liefert CoreMotion das KALIBRIERTE Feld (Harte-Eisen-Abzug des Geraets eingerechnet),
+        // und das verlangt der Vertrag. `magneticField` ist nur mit einem Rahmen gefuellt, der
+        // das Magnetometer nutzt — `.xArbitraryCorrectedZVertical` ist der schwaechste davon
+        // (braucht kein „wahres Nord", nur den Kompass). Accel und Kreisel laufen UNVERAENDERT
+        // ueber ihre Roh-Updates weiter; deviceMotion kommt nur fuer diesen einen Kanal dazu.
+        // Dieselbe Rate wie Accel/Kreisel.
+        if motion.isMagnetometerAvailable, motion.isDeviceMotionAvailable,
+           CMMotionManager.availableAttitudeReferenceFrames().contains(.xArbitraryCorrectedZVertical) {
+            motion.deviceMotionUpdateInterval = 1.0 / ACCEL_HZ
+            motion.startDeviceMotionUpdates(using: .xArbitraryCorrectedZVertical, to: motionQ) { [weak self] data, _ in
+                guard let self, let m = data?.magneticField else { return }
+                self.addMag(m.field.x, m.field.y, m.field.z)
+            }
+        }
         flushTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.flushAll() }
         }
@@ -191,6 +216,7 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         loc.stopUpdatingLocation()
         motion.stopAccelerometerUpdates()
         motion.stopGyroUpdates()
+        motion.stopDeviceMotionUpdates()
         flushTimer?.invalidate(); flushTimer = nil
         status = "saving"
         flushAll()
@@ -263,6 +289,24 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
             self.gyroBuf.append(self.toI16(x * self.GYRO_SCALE))
             self.gyroBuf.append(self.toI16(y * self.GYRO_SCALE))
             self.gyroBuf.append(self.toI16(z * self.GYRO_SCALE))
+            self.lock.unlock()
+        }
+    }
+
+    /// Kalibriertes Magnetfeld in µT (CMDeviceMotion.magneticField.field), Geraeteachsen wie
+    /// Accel/Kreisel. Auch Samples mit `accuracy == .uncalibrated` werden BEWUSST behalten:
+    /// Samples tragen keinen eigenen Zeitstempel, die Achse entsteht aus `t0_ms` + Anzahl je
+    /// Chunk — ein ausgelassenes Sample verschiebt alle folgenden. Die Genauigkeit reist nicht
+    /// mit (der Vertrag kennt sie nicht); ein unbrauchbarer Abschnitt ist am Server an der
+    /// Feldstaerke erkennbar (Erdfeld 25–65 µT), ein weggeworfener waere nur still weg.
+    nonisolated func addMag(_ x: Double, _ y: Double, _ z: Double) {
+        Task { @MainActor in
+            guard self.recording else { return }
+            self.lock.lock()
+            if self.magBuf.isEmpty { self.magT0Ms = self.elapsedMs() }
+            self.magBuf.append(self.toI16(x * self.MAG_SCALE))
+            self.magBuf.append(self.toI16(y * self.MAG_SCALE))
+            self.magBuf.append(self.toI16(z * self.MAG_SCALE))
             self.lock.unlock()
         }
     }
@@ -377,7 +421,7 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
 
     // MARK: Flush (lokal persistieren)
 
-    private func flushAll() { flushAccel(); flushGyro(); flushGps() }
+    private func flushAll() { flushAccel(); flushGyro(); flushMag(); flushGps() }
 
     private func flushAccel() {
         lock.lock()
@@ -404,6 +448,23 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         for s in buf { var le = s.littleEndian; withUnsafeBytes(of: &le) { data.append(contentsOf: $0) } }
         Store.writeChunk(uuid, chunkIndex, [
             "index": chunkIndex, "kind": "gyro", "encoding": "int16-b64",
+            "t0_ms": t0, "count": buf.count / 3, "data": data.base64EncodedString(),
+        ])
+        chunkIndex += 1
+    }
+
+    // Wie flushGyro. Ohne Magnetometer bleibt der Puffer leer und es entsteht kein Chunk. Der
+    // Chunk bekommt einen Index aus dem gemeinsamen Zaehler und zaehlt damit in `total_chunks`
+    // (stop()) und im Upload-Fortschritt (Store.chunkFiles) mit, wie Gyro.
+    private func flushMag() {
+        lock.lock()
+        if magBuf.isEmpty { lock.unlock(); return }
+        let buf = magBuf; let t0 = magT0Ms; magBuf.removeAll()
+        lock.unlock()
+        var data = Data(capacity: buf.count * 2)
+        for s in buf { var le = s.littleEndian; withUnsafeBytes(of: &le) { data.append(contentsOf: $0) } }
+        Store.writeChunk(uuid, chunkIndex, [
+            "index": chunkIndex, "kind": "mag", "encoding": "int16-b64",
             "t0_ms": t0, "count": buf.count / 3, "data": data.base64EncodedString(),
         ])
         chunkIndex += 1
