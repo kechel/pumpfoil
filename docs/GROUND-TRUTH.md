@@ -636,6 +636,17 @@ Zwei weitere Ansaetze trennten NICHT und sind verworfen: „Mitdrehen mit dem GP
 Brett gegen 0,26–0,70 Koerper; der 1-Hz-Kurs ist zu grob) und „Reinheit des Pumptakts im Spektrum"
 (0,26–0,30 gegen 0,19–0,57). Code und Messtabelle: `BRETT_ACHSE_MAX_DEG` in `api/sessions.py`.
 
+**Nicken verkehrt herum bei #10248 (27.09.)** — Jan: nach dem Sturz am Ende von Lauf 4 trieb das
+Brett mit der Nase ~45° OBEN, die Anzeige zeigte −35 bis −47°. Ursache: vorn/hinten entschied die
+Start-Heuristik „am Start Nase unten"; bei u13 sagt sie das Gegenteil. Jan: „es gibt keine regel wie
+man startet … alle lagen sind prinzipiell moeglich" und „NIE etwas von hand setzen". Die
+Schwerkraft allein kann vorn/hinten nicht unterscheiden (eine 180°-Drehung um die Senkrechte laesst
+sie unveraendert). **Geloest aus Physik (`lage.vorn_aus_anfahrt`):** an den Lauf-STARTS
+Laengs-Kraft minus Schwerkraftanteil aus dem KREISEL-Nicken gegen dv/dt aus dem GPS, Fenster −2/+8 s.
+Ueber ganze Laeufe traegt das nicht (|r| 0,1–0,4, Pumptakt zu schnell fuers 1-Hz-GPS), Lauf-Enden
+streuen; an den Starts |r| 0,80–0,93 bei allen fuenf Brett-Aufnahmen mit bekannter Richtung. Dreht
+#10248 richtig (−88,3° → 91,7°) und #9650 (u2, 23.09.) ebenfalls; u2s andere Aufnahmen unveraendert.
+
 **Der Engpass sind Fahrer, nicht Technik.** Abschnitt 3 rechnet mit 8–10 Fahrern × 5 min. Die
 Erkennung aus 12b findet Paare, sobald es sie gibt; entstehen werden sie erst auf Nachfrage
 (Abschnitt 11). Entscheidung 26.09.: erst abwarten.
