@@ -738,9 +738,10 @@ NAECHSTES: list[dict] = [
     # Apple + Zepp: derselbe Pausen-Umbau vom 25.09. (Commits 0c5e6d6d, 1612070b). Die Nummern
     # sind die naechsten ueber dem Live- bzw. Review-Stand; gebumpt wird beim Bauen.
     # Handy-Recorder mit Magnetometer (Android 8469b0b9, iOS 78c6d95a, Server 20ff00a8). Android
-    # 1.1.34 geht zuerst in den internen Test (Jan, 27.09.), iOS 1.1.39 liegt in TestFlight.
+    # 1.1.34 ging in den internen Test (Jan, 27.09.); 1.1.35 bringt dazu die Portierung vom 28.09.
+    # (bf972167). iOS 1.1.39 Build 43 liegt in TestFlight, Build 44 hat die Portierung.
     # Wear 1.2.34 wird nur mitgebumpt (harte Regel: Phone und Wear immer zusammen), ohne eigenen Punkt.
-    {"name": "Android phone", "version": "1.1.34",
+    {"name": "Android phone", "version": "1.1.35",
      "items": [
          "With the phone on the board, the app also records the compass, so the analysis can tell "
          "the nose of the board from the tail.",

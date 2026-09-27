@@ -26,7 +26,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: org.pumpfoil.coolwatch
         PRODUCT_NAME: Pumpfoil
         MARKETING_VERSION: "1.1.39"
-        CURRENT_PROJECT_VERSION: "43"
+        CURRENT_PROJECT_VERSION: "44"
         GENERATE_INFOPLIST_FILE: NO
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
@@ -96,7 +96,7 @@ targets:
         # auf 1.1.24/28, waehrend die ausgelieferte Uhren-App im Feld 1.1.25 meldete — das Archiv
         # wurde also hoeher gebaut als das Repo behauptete. Seitdem hier gleichgezogen.
         MARKETING_VERSION: "1.1.39"
-        CURRENT_PROJECT_VERSION: "43"
+        CURRENT_PROJECT_VERSION: "44"
         GENERATE_INFOPLIST_FILE: NO
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         SWIFT_VERSION: "5.0"
