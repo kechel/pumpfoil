@@ -26,6 +26,12 @@ METRICS = ["distance", "duration", "speed", "glide", "runs"]
 _LABEL = {"distance": "Weitester Lauf", "duration": "Längster Lauf", "speed": "Top-Speed",
           "glide": "Längste Gleitphase", "runs": "Meiste Läufe"}
 _WIN_LABEL = {"10d": "10 Tage", "30d": "30 Tage", "365d": "1 Jahr", "all": "insgesamt"}
+# Gepusht wird nur fuer FRISCHE Aufnahmen (Jans Regel „nie nachtraeglich pushen"). Ohne das bekaeme
+# nach einer Neuauswertung alter Sessions (27.09.2026: 86 Aufnahmen mit veraltetem Zuschnitt) oder
+# nach einem tagelang haengenden Upload der Halter eine „Rekord!"-Meldung zu einer Fahrt von vor
+# Wochen. Das EREIGNIS wird trotzdem festgehalten (Abzeichen), nur ohne Push. 3 Tage decken einen
+# ueber Nacht haengenden Upload ab (#10158: Rest kam am Folgetag).
+PUSH_FRISCH_TAGE = 3
 
 
 def _fmt(metric: str, v: float) -> str:
@@ -56,12 +62,13 @@ def run_record_snapshot(db: Session, *, do_push: bool = True) -> int:
     scopes: list[tuple[str, int | None]] = [("global", None)] + [(f"spot:{sid}", sid) for sid in spot_ids]
 
     new_events: list[models.RecordEvent] = []
+    alte_events: set[int] = set()        # Events zu Aufnahmen aelter als PUSH_FRISCH_TAGE
     for metric in METRICS:
         valcol = REC_COL[metric][0]
         for win, days in WINDOWS.items():
             cut = _cut(days)
             for scope, sid in scopes:
-                q = _community(db.query(valcol, S.id, S.user_id)).filter(valcol > 0)
+                q = _community(db.query(valcol, S.id, S.user_id, S.started_at)).filter(valcol > 0)
                 if cut is not None:
                     q = q.filter(S.started_at >= cut)
                 if sid is not None:
@@ -69,7 +76,7 @@ def run_record_snapshot(db: Session, *, do_push: bool = True) -> int:
                 row = q.order_by(valcol.desc()).first()
                 if row is None:
                     continue
-                value, sess_id, uid = float(row[0]), row[1], row[2]
+                value, sess_id, uid, gestartet = float(row[0]), row[1], row[2], row[3]
                 key = f"{metric}|{scope}|{win}"
                 snap = db.get(models.RecordSnapshot, key)
                 if snap is None:
@@ -84,14 +91,21 @@ def run_record_snapshot(db: Session, *, do_push: bool = True) -> int:
                         prev_value=snap.value)
                     db.add(ev)
                     new_events.append(ev)
+                    if gestartet is not None:
+                        if gestartet.tzinfo is None:
+                            gestartet = gestartet.replace(tzinfo=timezone.utc)
+                        if gestartet < datetime.now(timezone.utc) - timedelta(days=PUSH_FRISCH_TAGE):
+                            alte_events.add(id(ev))
                 # Snapshot in ALLEN Fällen auf den aktuellen Top-Stand ziehen (Verbesserung ODER Alterung).
                 snap.session_id, snap.user_id, snap.value = sess_id, uid, value
                 snap.updated_at = models._utcnow()
 
     # Pushes gebündelt: pro Nutzer max. EINE Nachricht (sonst Spam bei Mehrfach-Rekord in einer Nacht).
-    if do_push and push_enabled() and new_events:
+    # Nur fuer frische Aufnahmen (s. PUSH_FRISCH_TAGE) — alte Events bleiben ungepusht.
+    zu_pushen = [ev for ev in new_events if id(ev) not in alte_events]
+    if do_push and push_enabled() and zu_pushen:
         by_user: dict[int, list[models.RecordEvent]] = {}
-        for ev in new_events:
+        for ev in zu_pushen:
             by_user.setdefault(ev.user_id, []).append(ev)
         for uid, evs in by_user.items():
             if not wants(db, uid, "record"):
