@@ -169,7 +169,12 @@ _APP_META: dict[str, dict[str, str]] = {
         # Ein Nutzer mit 1.1.14 bekam dadurch einen Update-Hinweis, den Play nicht einloesen konnte
         # ("update button just opens google play and does not offer nor start update"). Deshalb: erst
         # eintragen, wenn Freigabe DA und Roll-out bei 100 % — "eingereicht" genuegt nie.
-        "latest": "1.1.32",   # LIVE 2026-09-25: Play-Mail „Your update to Pumpfoil, created on
+        "latest": "1.1.33",   # LIVE 2026-09-27 (abends, Jans Meldung kurz vor Mitternacht): Play-Mail
+        # „Your update to Pumpfoil, created on Sep 26, 2026 at 6:32 AM GMT, is live in the store."
+        # Passt auf unsere Einreichung vom 26.09. ~08:30 Berlin (Phone 1.1.33/47 + Wear 1.2.33/1043).
+        # ⏱️ Gut ZWEI Tage Pruefung. Inhalt: die PWA-Portierung vom 25.09. (Lage des Bretts,
+        # Ort verbergen, Einstellungen je Uhr, KI-Zugang u. a.).
+        # ALT: "latest": "1.1.32",   # LIVE 2026-09-25: Play-Mail „Your update to Pumpfoil, created on
         # Sep 24, 2026 at 9:05 AM GMT, is live in the store." Der Zeitstempel passt auf unsere
         # Einreichung vom 24.09. 11:05 Berlin (Phone 1.1.32 + Wear 1.2.32) — Jans Meldung an dem
         # Tag lautete „android ist schon hochgeladen und zur pruefung eingereicht".
@@ -306,7 +311,10 @@ _APP_META: dict[str, dict[str, str]] = {
         # 05.08. 15:06 GMT). Eingereicht war 1.2.20/1030 zusammen mit Phone 1.1.20/34.
         # Der gebaute Nachzug 1.2.21/1031 (Token-Heilung bei Config-401) ist NOCH NICHT
         # eingereicht — hier also nicht eintragen. Vorher: 1.2.18/1028, live seit 04.08.
-        "latest": "1.2.32",   # LIVE 2026-09-25, dieselbe Play-Mail wie android (ein Release,
+        "latest": "1.2.33",   # LIVE 2026-09-27, dieselbe Play-Mail wie android (eine Einreichung,
+        # beide Spuren). Fuer die UHR: Seiten je Zustand wie Garmin, Pause neben Verwerfen, und der
+        # Wake-up-Bewegungssensor als Tester-Option.
+        # ALT: "latest": "1.2.32",   # LIVE 2026-09-25, dieselbe Play-Mail wie android (ein Release,
         # zwei Spuren). Fuer die UHR bringt 1.2.32: eine Aufnahme laesst sich pausieren, das schon
         # Aufgezeichnete geht dabei hoch, und Profil-Aenderungen kommen direkt nach dem Upload an
         # statt erst beim naechsten Start.
@@ -671,52 +679,6 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
-    # EINGEREICHT 26.09.2026 ~08:30 (Berlin), eine Play-Einreichung fuer beide Spuren: Jans
-    # Console „Produktion 47 (1.1.33) · Produktion (Wear OS) 1043 (1.2.33)", Vorabpruefung laeuft.
-    # Wear 1.2.33: Wake-up-Beschleunigungssensor (f0184015, 24.09. 15:02) — kam vier Stunden
-    # NACH dem Play-Upload von 1.2.32 und ist deshalb nicht drin. Vom Server abschaltbar
-    # (`accel_wakeup` in api/devices.py).
-    {"name": "Wear OS", "version": "1.2.33",
-     "eingereicht": "2026-09-26",
-     "items": [
-         # Bis 26.09. stand hier „… no longer lose motion data while they sleep" — falsch fuer
-         # fast alle: der Sensor ist standardmaessig AUS (ACCEL_WAKEUP_DEFAULT). Jan: „benenne es
-         # das was es ist, eine neue option im profil fuer tester".
-         "For testers: a motion sensor that keeps recording while the watch dozes. In your "
-         "profile under each Wear OS watch.",
-         "Pause sits next to discard now, and stop has its page to itself again.",
-         "While a recording is paused, the watch shows your pause pages and says so on every "
-         "page.",
-         "Between runs, the watch shows every page you set up for that time, and you can browse them.",
-     ]},
-    # Android Phone 1.1.33 / iPhone 1.1.38: die PWA-Portierung vom 25.09. (Lage des Bretts,
-    # Privatsphaere, Einstellungen je Uhr, KI-Zugang und die kleineren Punkte, Commits df804496
-    # bis df54ca55). Dieselbe Liste fuer beide, weil beide Apps denselben Stand bekommen haben.
-    {"name": "Android phone", "version": "1.1.33",
-     "eingereicht": "2026-09-26",
-     "items": [
-         "If your phone rode on the board, the app shows how the board pitched, rolled and "
-         "turned, with a moving drawing of your foil.",
-         "The app asks when a recording looks like it was taken with the phone on the board.",
-         "Your home page shows your board angles by run length, from recordings with the phone "
-         "on the board.",
-         "You can hide where you rode, for all your recordings or one at a time.",
-         "Your profile lists which recordings are shared by link, with a button to take the link "
-         "back.",
-         "You decide in the app what your public foiler page shows.",
-         "Each watch in your profile only offers the settings it actually uses, now including the "
-         "water lock.",
-         "Your profile shows which AI programs can read your recordings and lets you close their "
-         "access.",
-         "Comparisons play back at real speed first.",
-         "The training curve has a slider to pick any moment into a run.",
-         "A button on each session card marks it for comparison.",
-         "You can suggest a better name for a spot you ride.",
-         "Switching spots no longer shows sessions from the previous one for a moment.",
-         "Recordings with the phone on the board carry a highlighted badge on every session card.",
-         "The foil stats can be narrowed to recordings with the phone on the board.",
-         "The weather at your home spot sits right under your latest sessions.",
-     ]},
     {"name": "Amazfit", "version": "1.0.12",
      # EINGEREICHT 24.09.2026: im Zepp-Entwicklerkonto steht 1.0.12 auf „Under Review (Can be
      # Withdrawn)", Application Time 2026.09.24; 1.0.11 daneben weiter „Approved".
@@ -738,6 +700,11 @@ IN_REVIEW: list[dict] = [
          "screen.",
          "The touch lock no longer snaps shut while you are swiping through the pages.",
      ]},
+
+    # Android + Wear: 1.1.33 / 1.2.33 sind am 27.09. FREIGEGEBEN (eine Play-Mail, beide Spuren).
+    # Die vier Wear-Punkte stehen in der Changelog-Tabelle mit `versionen = {"wear": "1.2.33"}`;
+    # die Phone-Punkte waren die PWA-Portierung vom 24./25.09. und stehen dort schon (ohne
+    # Plattform) — ein Punkt je Neuerung, nicht einmal je App.
 
     # Android + Wear: 1.1.31 / 1.2.31 sind am 22.09. FREIGEGEBEN und stehen deshalb hier nicht
     # mehr, sondern in `_APP_META` als live (eine Play-Mail deckt beide Spuren ab). Die vier
@@ -770,6 +737,19 @@ NAECHSTES: list[dict] = [
 
     # Apple + Zepp: derselbe Pausen-Umbau vom 25.09. (Commits 0c5e6d6d, 1612070b). Die Nummern
     # sind die naechsten ueber dem Live- bzw. Review-Stand; gebumpt wird beim Bauen.
+    # Handy-Recorder mit Magnetometer (Android 8469b0b9, iOS 78c6d95a, Server 20ff00a8). Android
+    # 1.1.34 geht zuerst in den internen Test (Jan, 27.09.), iOS 1.1.39 liegt in TestFlight.
+    # Wear 1.2.34 wird nur mitgebumpt (harte Regel: Phone und Wear immer zusammen), ohne eigenen Punkt.
+    {"name": "Android phone", "version": "1.1.34",
+     "items": [
+         "With the phone on the board, the app also records the compass, so the analysis can tell "
+         "the nose of the board from the tail.",
+     ]},
+    {"name": "iPhone + Apple Watch", "version": "1.1.39",
+     "items": [
+         "With the phone on the board, the app also records the compass, so the analysis can tell "
+         "the nose of the board from the tail.",
+     ]},
     {"name": "Amazfit", "version": "1.0.13",
      "items": [
          "While a recording is paused, the watch shows your pause pages and says so on every "
