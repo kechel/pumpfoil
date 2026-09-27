@@ -268,6 +268,12 @@ def upload_chunk(
         if not isinstance(body.data, str):
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "gyro data must be base64 string")
         n = storage.save_gyro_chunk(session_uuid, body.index, body.data, t0_ms=body.t0_ms)
+    elif body.kind == "mag":
+        # Magnetfeld (Kompass), nur von den Handy-Recordern. Fuer vorn/hinten am Brett (s.
+        # storage.save_mag_chunk); die Auswertung liest ihn, sobald das Verfahren steht.
+        if not isinstance(body.data, str):
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "mag data must be base64 string")
+        n = storage.save_mag_chunk(session_uuid, body.index, body.data, t0_ms=body.t0_ms)
     else:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, f"unknown kind {body.kind!r}")
 

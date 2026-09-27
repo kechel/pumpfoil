@@ -82,6 +82,20 @@ Accel, flach im Muster `[gx, gy, gz, ...]`. Physikalisch: **`rad/s = raw / 1024`
   später überhaupt etwas zum Auswerten da ist (Pump-/Turn-Erkennung, s. `docs/TODO.md`).
 - **Kosten:** verdoppelt den Roh-Umfang einer Handy-Aufnahme (s. Größen-Richtwert unten).
 
+**Magnetfeld-Chunk** (`kind=mag`, `encoding=int16-b64`) — **optional, seit 27.09.2026**: gleiche Form
+wie Accel/Gyro, flach im Muster `[mx, my, mz, ...]`. Physikalisch: **`µT = raw / 10`** (fest im
+Vertrag, Bereich ±3276 µT — das Erdfeld hat 25–65 µT, Halterungen mit Magneten einige hundert).
+
+- **KALIBRIERT** senden: Android `Sensor.TYPE_MAGNETIC_FIELD` (nicht `_UNCALIBRATED`), iOS
+  `CMDeviceMotion.magneticField.field` (Referenzrahmen `xArbitraryCorrectedZVertical`, Kalibrierung
+  ist dort eingerechnet). Achsen = Geraeteachsen, dieselben wie Accel und Gyro.
+- **Rate:** was das Geraet liefert, angefordert wie Accel; die echte Rate aus `.t0` + Sample-Zahl.
+- **Wozu:** vorn/hinten eines Handys am Brett. Die Schwerkraft kann es nicht unterscheiden, der
+  Kompass schon — auf geraden Strecken zeigt die Vorwaertsachse in die Fahrtrichtung laut GPS
+  (docs/GROUND-TRUTH.md 12d). Die Auswertung liest den Kanal, sobald das Verfahren geprueft ist.
+- **Wer ihn schickt:** die Handy-Recorder (Android/iOS ab dem Release nach 1.1.33/1.1.38), nur mit
+  Magnetometer. Der Chunk zaehlt im gemeinsamen Index und in `total_chunks` mit, wie Gyro.
+
 ### 3. Session abschließen
 ```
 POST /api/ingest/session/{session_uuid}/complete
