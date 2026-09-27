@@ -394,6 +394,7 @@ const deAT: Record<string, string> = {
 
   "all.filterName": "Nach Nam filtern…",
   "all.allSpots": "Olle Spots",
+  "all.allSports": "Olle Sportarten",
   "all.resetFilter": "Filter zrucksetzn",
   "all.none": "Kane Sessions gfunden.",
   "reset.title": "Neues Passwort setzn",

@@ -1080,7 +1080,7 @@ export const api = {
     const m = /filename="([^"]+)"/.exec(cd);
     return { blob: await res.blob(), name: m?.[1] || `pumpfoil-${id}.${kind}` };
   },
-  spotMap: (accelOnly = true) => req<{ spot: string; spot_id: number | null; water?: string | null; lat: number; lon: number; sessions: number; notes?: number }[]>(`/api/community/spot-map?accel_only=${accelOnly}`),
+  spotMap: (accelOnly = true, sport = "all") => req<{ spot: string; spot_id: number | null; water?: string | null; lat: number; lon: number; sessions: number; notes?: number }[]>(`/api/community/spot-map?accel_only=${accelOnly}&sport=${encodeURIComponent(sport)}`),
   spotWeather: (spot: string) => req<SpotWeather>(`/api/community/spot/weather?spot=${encodeURIComponent(spot)}`),
   chatList: (scope: string, after = 0) => req<ChatMsg[]>(`/api/chat?scope=${encodeURIComponent(scope)}&after=${after}`),
   chatLatest: (scope: string, limit = 30) => req<ChatMsg[]>(`/api/chat?scope=${encodeURIComponent(scope)}&limit=${limit}`),
@@ -1311,7 +1311,7 @@ export const api = {
   // Cache AUS (s. vite.config.ts) — sie gehen garantiert ans Netz. Gedacht fuer die
   // Nachpruefung einer schon angezeigten Liste: die Anzeige kommt sofort aus dem Cache, die
   // Wahrheit kommt hierueber nach. Der Server ignoriert den Zusatzparameter.
-  sessions: (params?: { limit?: number; offset?: number; month?: string; filter?: string; accelOnly?: boolean; foilId?: number; fresh?: boolean }) => {
+  sessions: (params?: { limit?: number; offset?: number; month?: string; filter?: string; accelOnly?: boolean; foilId?: number; sport?: string; fresh?: boolean }) => {
     const qs = new URLSearchParams();
     if (params?.limit != null) qs.set("limit", String(params.limit));
     if (params?.offset != null) qs.set("offset", String(params.offset));
@@ -1320,12 +1320,18 @@ export const api = {
     if (params?.accelOnly) qs.set("accel_only", "true");
     // Genau ein Foil (Foil-Detailseite): meine Sessions mit diesem Fluegel.
     if (params?.foilId) qs.set("foil_id", String(params.foilId));
+    if (params?.sport && params.sport !== "all") qs.set("sport", params.sport);
     if (params?.fresh) qs.set("fresh", "1");
     const q = qs.toString();
     return req<SessionSummary[]>(`/api/sessions${q ? "?" + q : ""}`);
   },
-  sessionMonths: (filter?: string) =>
-    req<{ month: string; count: number }[]>(`/api/sessions/months${filter ? "?filter=" + filter : ""}`),
+  sessionMonths: (filter?: string, sport?: string) => {
+    const qs = new URLSearchParams();
+    if (filter) qs.set("filter", filter);
+    if (sport && sport !== "all") qs.set("sport", sport);
+    const q = qs.toString();
+    return req<{ month: string; count: number }[]>(`/api/sessions/months${q ? "?" + q : ""}`);
+  },
   hasAccel: () => req<{ has_accel: boolean }>("/api/sessions/has-accel"),
   // period: today|10d|30d|365d|all — dieselben Fenster wie die Community-Ranglisten (PERIODS).
   // `sport` leer lassen = der Server nimmt die haeufigste Sportart des Nutzers und sagt in der

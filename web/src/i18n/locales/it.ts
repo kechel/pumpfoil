@@ -405,6 +405,7 @@ const it: Record<string, string> = {
 
   "all.filterName": "Filtra per nome…",
   "all.allSpots": "Tutti gli spot",
+  "all.allSports": "Tutti gli sport",
   "all.resetFilter": "Reimposta filtro",
   "all.none": "Nessuna sessione trovata.",
 

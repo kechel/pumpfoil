@@ -26,6 +26,11 @@ export default function Spots() {
   // Filter „nur mit Beschreibung" (Wunsch Jan): rein clientseitig — `spot-map` liefert je Spot
   // schon die Anzahl der sichtbaren Beschreibungen mit, ein zweiter Server-Aufruf waere unnoetig.
   const [nurNotes, setNurNotes] = useState(false);
+  // Sportart (Nutzerwunsch 27.09.2026: „where others are wake-thiefing"). Default „all" wie
+  // bisher; „Alle Sportarten" bleibt immer waehlbar (Jan).
+  const [sport, setSport] = useState("all");
+  const [sports, setSports] = useState<{ sport: string; runs: number }[]>([]);
+  useEffect(() => { api.communitySports().then(setSports).catch(() => {}); }, []);
   const spots = useMemo(
     () => (alle == null ? null : (nurNotes ? alle.filter((s) => (s.notes ?? 0) > 0) : alle)),
     [alle, nurNotes]);
@@ -56,7 +61,10 @@ export default function Spots() {
   const viewGesetzt = useRef(false);
 
   // Immer ALLE Spots (auch GPS-only mit erkanntem On-Foil) — die Karte ist reine Übersicht.
-  useEffect(() => { api.spotMap(false).then(setAlle).catch(() => setAlle([])); }, []);
+  // Die Sportart geht an den Server: die Zahl je Spot zaehlt dann nur diese Sportart, und der
+  // Klick fuehrt in die Sessions-Liste mit DEMSELBEN Filter — Etikett und Klickziel meinen so
+  // dieselbe Menge (s. `spot_map`).
+  useEffect(() => { api.spotMap(false, sport).then(setAlle).catch(() => setAlle([])); }, [sport]);
 
   // Spot suchen -> zentrieren + ~50 km Radius (Quadrat 100 km) als Zoom.
   function focusSpot(name: string) {
@@ -133,7 +141,8 @@ export default function Spots() {
           // Gewaesser mit in den Tooltip: Spots am selben Ort heissen „Berlin 3"/„Berlin 4" und sind
           // sonst nicht auseinanderzuhalten (Jan, 24.08.).
           mk.bindTooltip(`${esc(s.spot)} · ${s.sessions}` + (s.water ? `<br><span style="opacity:.7">${esc(s.water)}</span>` : ""), { direction: "top" });
-          mk.on("click", () => nav(`/sessions?spot=${s.spot_id ?? encodeURIComponent(s.spot)}`));
+          mk.on("click", () => nav(`/sessions?spot=${s.spot_id ?? encodeURIComponent(s.spot)}`
+                                   + (sport !== "all" ? `&sport=${encodeURIComponent(sport)}` : "")));
           grp.addLayer(mk);
           continue;
         }
@@ -169,7 +178,7 @@ export default function Spots() {
       viewGesetzt.current = true;
     }
     return () => { m.off("zoomend", zeichne); };
-  }, [spots, nav, spotsLabel]);
+  }, [spots, nav, spotsLabel, sport]);
 
   return (
     <div>
@@ -181,6 +190,13 @@ export default function Spots() {
         </h2>
         {/* Filter rechtsbuendig auf Hoehe der Ueberschrift (Jan, 30.08.) — er stand vorher als
             eigene Zeile ueber der Karte und schob sie nach unten. */}
+        {(sports.length > 1 || sport !== "all") && (
+          <select value={sport} onChange={(e) => setSport(e.target.value)}
+            className="ml-auto min-w-0 max-w-full truncate rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-2 text-sm text-slate-100">
+            <option value="all">{t("all.allSports")}</option>
+            {sports.map((x) => <option key={x.sport} value={x.sport}>{t(`cls.sport.${x.sport}`)}</option>)}
+          </select>
+        )}
         {(spots?.length ?? 0) > 0 && (
           <label className="ml-auto flex cursor-pointer items-center gap-2 text-sm text-slate-300">
             <input type="checkbox" checked={nurNotes} onChange={(e) => setNurNotes(e.target.checked)}

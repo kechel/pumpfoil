@@ -445,6 +445,7 @@ const pl: Record<string, string> = {
   "metric.foilingPerSession": "Foiling / sesja",
   "all.filterName": "Filtruj po nazwie…",
   "all.allSpots": "Wszystkie spoty",
+  "all.allSports": "Wszystkie sporty",
   "all.resetFilter": "Wyczyść filtr",
   "all.none": "Nie znaleziono sesji.",
   "reset.title": "Ustaw nowe hasło",

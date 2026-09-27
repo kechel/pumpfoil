@@ -402,6 +402,7 @@ const gsw: Record<string, string> = {
 
   "all.filterName": "Nach Name filtere…",
   "all.allSpots": "Alli Spots",
+  "all.allSports": "Alli Sportarte",
   "all.resetFilter": "Filter zruggsetze",
   "all.none": "Kei Sessions gfunde.",
 

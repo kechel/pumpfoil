@@ -449,6 +449,7 @@ const nl: Record<string, string> = {
   // Alle Sessions
   "all.filterName": "Op naam filteren…",
   "all.allSpots": "Alle spots",
+  "all.allSports": "Alle sporten",
   "all.resetFilter": "Filter resetten",
   "all.none": "Geen sessies gevonden.",
 

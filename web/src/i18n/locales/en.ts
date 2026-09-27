@@ -460,6 +460,7 @@ const en: Record<string, string> = {
 
   "all.filterName": "Filter by name…",
   "all.allSpots": "All spots",
+  "all.allSports": "All sports",
   "all.resetFilter": "Reset filter",
   "all.none": "No sessions found.",
 

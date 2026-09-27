@@ -430,6 +430,7 @@ const id: Record<string, string> = {
 
   "all.filterName": "Saring berdasarkan nama…",
   "all.allSpots": "Semua spot",
+  "all.allSports": "Semua olahraga",
   "all.resetFilter": "Reset saringan",
   "all.none": "Tidak ada sesi ditemukan.",
 

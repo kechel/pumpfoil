@@ -236,6 +236,10 @@ export default function Sessions() {
   const [sp, setSp] = useSearchParams();
   const scope = sp.get("scope") === "all" ? "all" : "mine";
   const spot = sp.get("spot") || "";   // spot_id (String) — Name wird für Anzeige/Chat aufgelöst
+  // Sportart-Filter (Nutzerwunsch 27.09.2026: „filter sessions … for Wakethief"). Default „all",
+  // anders als auf der Community-Seite (dort Pumpfoil) — die Liste ist die Uebersicht (Jan).
+  const sport = sp.get("sport") || "all";
+  const [sports, setSports] = useState<{ sport: string; runs: number }[]>([]);
   const [homespot, setHomespot] = useState("");
   const [homespotId, setHomespotId] = useState<number | null>(null);
   const [spots, setSpots] = useState<{ id: number; name: string; water?: string | null }[]>([]);
@@ -271,6 +275,7 @@ export default function Sessions() {
       m.filter((x) => x.spot_id != null).map((x) => ({ id: x.spot_id as number, name: x.spot, water: x.water }))
        .sort((a, b) => a.name.localeCompare(b.name)))).catch(() => {});
     api.getProfile().then((p) => setMyName(p.display_name)).catch(() => {});
+    api.communitySports().then(setSports).catch(() => {});
   }, []);
 
   // Aktuelle Listen-Query merken (scope/spot/filter/month), damit der Zurück-Link im Detail
@@ -278,23 +283,30 @@ export default function Sessions() {
   useEffect(() => { setLastSessionsSearch(`?${sp.toString()}`); }, [sp]);
   // Denselben Filter auch als Objekt merken: „älter/neuer" im Detail navigiert damit innerhalb
   // GENAU dieser Liste (Jan, 17.09.2026). `accelOnly` steht bewusst nicht in der URL, deshalb
-  // hier eigens mit hinein; `sport` ist auf der Sessions-Seite immer „alle".
+  // hier eigens mit hinein; `sport` ebenso (Default „all").
   useEffect(() => {
     setLastSessionsFilter({
       scope: spot ? "all" : (scope === "all" ? "all" : "mine"),
       spot: spot || undefined,
-      sport: "all",
+      sport,
       accelOnly,
       filter: sp.get("filter") === "other" ? "other" : "pump",
       month: sp.get("month") || undefined,
     });
-  }, [sp, scope, spot, accelOnly]);
+  }, [sp, scope, spot, sport, accelOnly]);
 
   const isMine = scope === "mine" && !spot;
   const setScope = (next: "mine" | "all", nextSpot = "") => {
     const n = new URLSearchParams();
     if (next === "all") n.set("scope", "all");
     if (nextSpot) n.set("spot", nextSpot);
+    if (sport !== "all") n.set("sport", sport);   // die Sportart bleibt beim Wechsel Meine/Spot/Alle
+    setSp(n);
+  };
+  const setSport = (next: string) => {
+    const n = new URLSearchParams(sp);
+    next === "all" ? n.delete("sport") : n.set("sport", next);
+    n.delete("month");   // die Monate zaehlen je Sportart anders
     setSp(n);
   };
 
@@ -366,6 +378,19 @@ export default function Sessions() {
             );
           })()}
         </select>
+        {/* „Alle Sportarten" steht immer oben und bleibt waehlbar, auch wenn gerade z. B. Wingfoil
+            aktiv ist (Jan). Eine per Link gewaehlte Sportart ohne Laeufe fehlt in `sports` —
+            dann trotzdem anzeigen, sonst stuende die Auswahl auf einem Wert, den es nicht gibt. */}
+        {(sports.length > 1 || sport !== "all") && (
+          <select value={sport} onChange={(e) => setSport(e.target.value)}
+            className={`${SELECT_SCHRUMPFT} rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-2 text-sm text-slate-100`}>
+            <option value="all">{t("all.allSports")}</option>
+            {sport !== "all" && !sports.some((x) => x.sport === sport) && (
+              <option value={sport}>{t(`cls.sport.${sport}`)}</option>
+            )}
+            {sports.map((x) => <option key={x.sport} value={x.sport}>{t(`cls.sport.${x.sport}`)}</option>)}
+          </select>
+        )}
         {spot && <SpotChatToggle spot={spotName} t={t} />}
         {/* Anderen Spot-Namen VORSCHLAGEN (nicht selbst setzen) — nur bei einem echten Spot mit
             numerischer id; Namens-Gruppen aus dem Altbestand haben keine Spot-Zeile, die man
@@ -403,8 +428,8 @@ export default function Sessions() {
           Nur bei einem echten Spot (numerische id) — Namens-Gruppen aus dem Altbestand haben
           keine Spot-Zeile, an der eine Beschreibung haengen koennte. */}
       {spot && /^\d+$/.test(spot) && <SpotNotes spotId={Number(spot)} />}
-      {isMine ? <MySessionsList key={reloadKey} myName={myName} accelOnly={accelOnly}
-                                onShowAll={() => setAccelAuto(false)} /> : <CommunityList name="" spot={spot} accelOnly={accelOnly} onShowAll={() => setAccelAuto(false)} />}
+      {isMine ? <MySessionsList key={`${reloadKey}|${sport}`} myName={myName} accelOnly={accelOnly} sport={sport}
+                                onShowAll={() => setAccelAuto(false)} /> : <CommunityList name="" spot={spot} accelOnly={accelOnly} sport={sport} onShowAll={() => setAccelAuto(false)} />}
     </div>
   );
 }
@@ -438,8 +463,8 @@ export function ProcessingNote() {
   );
 }
 
-function MySessionsList({ myName, accelOnly, onShowAll }:
-    { myName: string | null; accelOnly: boolean; onShowAll?: () => void }) {
+function MySessionsList({ myName, accelOnly, sport, onShowAll }:
+    { myName: string | null; accelOnly: boolean; sport: string; onShowAll?: () => void }) {
   const t = useT();
   const accelRef = useRef(accelOnly); accelRef.current = accelOnly;
   const firstAccel = useRef(true);
@@ -466,7 +491,8 @@ function MySessionsList({ myName, accelOnly, onShowAll }:
   const loadingRef = useRef(false);
   // Generationszaehler gegen veraltete Antworten beim Filter-/Monatswechsel (s. fetchPage).
   const meinLaufRef = useRef(0);
-  const cacheKey = () => `${filterRef.current}|${monthRef.current}|${accelRef.current}`;
+  // `sport` wechselt nur per Neu-Mount (key im Aufrufer), deshalb reicht hier der Prop.
+  const cacheKey = () => `${filterRef.current}|${monthRef.current}|${accelRef.current}|${sport}`;
   const restoreRef = useRef(false);                 // nach Cache-Restore die markierte Karte einscrollen
   const itemsRef = useRef<SessionSummary[]>([]);    // stets aktuelle Items (für Cache beim Unmount)
 
@@ -498,7 +524,7 @@ function MySessionsList({ myName, accelOnly, onShowAll }:
       // (StaleWhileRevalidate) den Wechsel zwischen „meine / alle / am Spot" aus seinem Cache,
       // und man sieht denselben Stand wie vorher — Jans Befund 21.09.2026. Beim Nachladen
       // weiterer Seiten ist der Cache dagegen erwuenscht (alte Seiten aendern sich nicht).
-      const page = await api.sessions({ limit: PAGE, offset: off, month: monthVal || undefined, filter: filterRef.current, accelOnly: accelRef.current, fresh: replace });
+      const page = await api.sessions({ limit: PAGE, offset: off, month: monthVal || undefined, filter: filterRef.current, accelOnly: accelRef.current, sport, fresh: replace });
       if (lauf !== meinLaufRef.current) return;   // Filter hat gewechselt -> Antwort ist veraltet
       offsetRef.current = off + page.length;
       hasMoreRef.current = page.length === PAGE;
@@ -520,7 +546,7 @@ function MySessionsList({ myName, accelOnly, onShowAll }:
       // `fresh: true` geht am Service-Worker-Cache vorbei. Ohne das bekaeme die Nachpruefung
       // seit 15.09. dieselbe gecachte Antwort wie die Anzeige (StaleWhileRevalidate) und
       // koennte nie etwas Neues melden.
-      const fresh = await api.sessions({ limit: PAGE, offset: 0, month: monthVal || undefined, filter: filterRef.current, accelOnly: accelRef.current, fresh: true });
+      const fresh = await api.sessions({ limit: PAGE, offset: 0, month: monthVal || undefined, filter: filterRef.current, accelOnly: accelRef.current, sport, fresh: true });
       if (lauf !== meinLaufRef.current) return;   // waehrend des Abrufs den Filter gewechselt
       const known = new Set(itemsRef.current.map((s) => s.id));
       const added = fresh.filter((s) => !known.has(s.id));
@@ -551,7 +577,7 @@ function MySessionsList({ myName, accelOnly, onShowAll }:
   }
 
   useEffect(() => {
-    api.sessionMonths(filterRef.current).then(setMonths).catch(() => {});
+    api.sessionMonths(filterRef.current, sport).then(setMonths).catch(() => {});
     api.getProfile().then((p) => {
       setAvatar(p.avatar_url);
       setSortedOut(p.sorted_out ?? 0);
@@ -618,7 +644,7 @@ function MySessionsList({ myName, accelOnly, onShowAll }:
   useEffect(() => {
     if (!items.some(isInterim)) return;
     const iv = setInterval(() => {
-      api.sessions({ limit: PAGE, offset: 0, month: monthRef.current || undefined, filter: filterRef.current, accelOnly: accelRef.current })
+      api.sessions({ limit: PAGE, offset: 0, month: monthRef.current || undefined, filter: filterRef.current, accelOnly: accelRef.current, sport })
         .then((fresh) => setItems((prev) => prev.map((p) => fresh.find((f) => f.id === p.id) ?? p)))
         .catch(() => {});
     }, 4000);
@@ -636,7 +662,7 @@ function MySessionsList({ myName, accelOnly, onShowAll }:
     if (f === "other" && accelRef.current) onShowAll?.();
     setFilter(f); filterRef.current = f; setMonth(""); monthRef.current = ""; hasMoreRef.current = true; offsetRef.current = 0;
     listCache.delete(cacheKey());
-    syncUrl(f, ""); api.sessionMonths(f).then(setMonths).catch(() => {}); fetchPage("", true);
+    syncUrl(f, ""); api.sessionMonths(f, sport).then(setMonths).catch(() => {}); fetchPage("", true);
   }
 
   const lastViewed = getLastSession();
@@ -983,8 +1009,8 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
   );
 }
 
-function CommunityList({ name, spot, accelOnly, onShowAll }:
-    { name: string; spot: string; accelOnly: boolean; onShowAll?: () => void }) {
+function CommunityList({ name, spot, accelOnly, sport, onShowAll }:
+    { name: string; spot: string; accelOnly: boolean; sport: string; onShowAll?: () => void }) {
   const t = useT();
   const [items, setItems] = useState<CommunityGroup[]>([]);
   const [loading, setLoading] = useState(false);
@@ -1024,7 +1050,7 @@ function CommunityList({ name, spot, accelOnly, onShowAll }:
   const maybeShowAll = (rows: CommunityGroup[], off: number) => {
     if (!spot || !accelOnly || off !== 0 || autoTried.current === spot) return;
     autoTried.current = spot;
-    api.communitySessionsGrouped(PAGE, 0, { name: name || undefined, spot, accelOnly: false, sport: "all" })
+    api.communitySessionsGrouped(PAGE, 0, { name: name || undefined, spot, accelOnly: false, sport })
       .then((probe) => { if (probe.length > rows.length) onShowAll?.(); })
       .catch(() => {});
   };
@@ -1034,7 +1060,7 @@ function CommunityList({ name, spot, accelOnly, onShowAll }:
     loadingRef.current = true; setLoading(true);
     const lauf = laufRef.current;
     const off = reset ? 0 : offsetRef.current;
-    api.communitySessionsGrouped(PAGE, off, { name: name || undefined, spot: spot || undefined, accelOnly, sport: "all" })
+    api.communitySessionsGrouped(PAGE, off, { name: name || undefined, spot: spot || undefined, accelOnly, sport })
       .then((rows) => {
         if (lauf !== laufRef.current) return;   // Filter hat gewechselt -> Antwort ist veraltet
         offsetRef.current = off + rows.length;
@@ -1064,7 +1090,7 @@ function CommunityList({ name, spot, accelOnly, onShowAll }:
     const lauf = laufRef.current;
     try {
       const fresh = await api.communitySessionsGrouped(
-        PAGE, 0, { name: name || undefined, spot: spot || undefined, accelOnly, sport: "all", fresh: true });
+        PAGE, 0, { name: name || undefined, spot: spot || undefined, accelOnly, sport, fresh: true });
       if (lauf !== laufRef.current) return;   // waehrend des Abrufs den Filter gewechselt
       if (!fresh.length) return;
       const frisch = new Set(fresh.map(gruppenKey));
@@ -1076,7 +1102,7 @@ function CommunityList({ name, spot, accelOnly, onShowAll }:
       itemsRef.current = merged;
       offsetRef.current = merged.length;
       setItems(merged);
-      communityCache.set(`${name}|${spot}|${accelOnly}`,
+      communityCache.set(`${name}|${spot}|${accelOnly}|${sport}`,
                          { items: merged, offset: offsetRef.current, more: moreRef.current });
     } catch { /* offline/Fehler: der Cache bleibt einfach stehen */ }
   }
@@ -1086,7 +1112,7 @@ function CommunityList({ name, spot, accelOnly, onShowAll }:
     // Abruf, nicht zum neuen — bliebe sie stehen, stiege `load(true)` unten sofort wieder aus.
     laufRef.current += 1;
     loadingRef.current = false;
-    const cached = communityCache.get(`${name}|${spot}|${accelOnly}`);
+    const cached = communityCache.get(`${name}|${spot}|${accelOnly}|${sport}`);
     if (cached && cached.items.length) {
       setItems(cached.items); offsetRef.current = cached.offset; moreRef.current = cached.more;
       itemsRef.current = cached.items;
@@ -1109,14 +1135,14 @@ function CommunityList({ name, spot, accelOnly, onShowAll }:
     document.addEventListener("visibilitychange", beiRueckkehr);
     return () => {
       document.removeEventListener("visibilitychange", beiRueckkehr);
-      communityCache.set(`${name}|${spot}|${accelOnly}`, { items: itemsRef.current, offset: offsetRef.current, more: moreRef.current });
+      communityCache.set(`${name}|${spot}|${accelOnly}|${sport}`, { items: itemsRef.current, offset: offsetRef.current, more: moreRef.current });
     };
-  }, [name, spot, accelOnly]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [name, spot, accelOnly, sport]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     const o = new IntersectionObserver((e) => { if (e[0].isIntersecting) load(false); }, { rootMargin: "400px" });
     if (sentinel.current) o.observe(sentinel.current);
     return () => o.disconnect();
-  }, [name, spot, accelOnly]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [name, spot, accelOnly, sport]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     itemsRef.current = items;
     if (restoreRef.current && items.length) {

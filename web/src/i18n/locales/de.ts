@@ -478,6 +478,7 @@ const de: Record<string, string> = {
   // Alle Sessions
   "all.filterName": "Nach Name filtern…",
   "all.allSpots": "Alle Spots",
+  "all.allSports": "Alle Sportarten",
   "all.resetFilter": "Filter zurücksetzen",
   "all.none": "Keine Sessions gefunden.",
 

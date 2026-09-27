@@ -449,6 +449,18 @@ def _resolve_setup(db: Session, s: models.Session) -> dict | None:
     return out or None
 
 
+def _sport_cond(sport: str | None):
+    """Sportart-Bedingung fuer EIGENE Sessions — dieselbe Lesart wie `_community` im Community-Feed:
+    „pumpfoil" nimmt Altbestaende mit NULL mit, jede andere Sportart muss ausdruecklich gesetzt
+    sein, „all"/leer schraenkt nicht ein. Nutzerwunsch 27.09.2026 („filter sessions … for
+    Wakethief"); Default bleibt „alle" (Jan)."""
+    if not sport or sport == "all":
+        return None
+    if sport == "pumpfoil":
+        return or_(models.Session.sport_class.is_(None), models.Session.sport_class == "pumpfoil")
+    return models.Session.sport_class == sport
+
+
 def _apply_pump_filter(q, user, filter: str):
     """Filtert eine Session-Query auf Pumpfoil ('pump') bzw. Aussortierte ('other').
     Für Nutzer mit persönlicher Empfindlichkeit entscheidet sein gecachtes Preset
@@ -713,6 +725,7 @@ def list_sessions(
     filter: str = "pump",
     accel_only: bool = False,
     foil_id: int | None = None,
+    sport: str = "all",
 ) -> list[SessionOut]:
     """Ohne limit: alle (für Gesamt-Stats/Nachbarnavigation). Mit limit/offset:
     seitenweise (Infinite-Scroll). Optionaler Monatsfilter 'YYYY-MM'.
@@ -729,6 +742,8 @@ def list_sessions(
     # gefahren. Nutzer-Vorschlag 04.09. („make the foil model clickable").
     if foil_id:
         q = q.filter(models.Session.foil_id == foil_id)
+    if (sc := _sport_cond(sport)) is not None:
+        q = q.filter(sc)
     # Persönliche Empfindlichkeit: für den Besitzer entscheidet sein Preset (gecacht in
     # sensitivity_json), ob eine Session als Pumpfoil zählt — nicht nur das globale is_pumpfoil.
     # So taucht z. B. eine Session, die erst mit „attempts" Läufe zeigt, auch in seiner Pump-Liste
@@ -1513,10 +1528,13 @@ def history(
 def list_months(
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
     filter: str = "pump",
+    sport: str = "all",
 ) -> list[dict]:
     """Verfügbare Monate (YYYY-MM) mit Anzahl, neueste zuerst — für den Filter."""
     q = db.query(models.Session.started_at).filter(
         models.Session.user_id == user.id, models.Session.deleted.isnot(True))
+    if (sc := _sport_cond(sport)) is not None:
+        q = q.filter(sc)
     q, _ = _apply_pump_filter(q, user, filter)
     rows = q.all()
     counts: dict[str, int] = {}
@@ -2252,6 +2270,8 @@ def session_neighbors(
                                       models.AnalysisResult.session_id == models.Session.id)
         if accel_only:
             base = base.filter(models.AnalysisResult.detection == "model")
+        if (sc := _sport_cond(sport)) is not None:
+            base = base.filter(sc)
         if foil_id:
             base = base.filter(models.Session.foil_id == foil_id)
         if month:

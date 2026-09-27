@@ -449,6 +449,7 @@ const cs: Record<string, string> = {
   // Alle Sessions
   "all.filterName": "Filtrovat podle jména…",
   "all.allSpots": "Všechny spoty",
+  "all.allSports": "Všechny sporty",
   "all.resetFilter": "Resetovat filtr",
   "all.none": "Nenalezeny žádné relace.",
 
