@@ -10941,3 +10941,23 @@ Offen daraus:
   frueh** bei jedem Lauf; genau deshalb sah Roman den ersten Lauf „korrekt gegen 08:20" (angezeigt
   08:21:24, real 08:25:47). Betrifft jede Session mit Zuschnitt, unabhaengig von Pausen. Einzeiler
   im Web, unabhaengig von (2) — dieselbe Stelle in Android/iOS noch pruefen.
+
+- **🟢 ERLEDIGT 27.09.2026 — Veralteter Auto-Zuschnitt nach nachtraeglichen Uploads.**
+  Anlass #10158 (Nutzermeldung im Community-Chat): der Upload stockte, der Aufraeum-Timer schloss
+  die Session mit den ersten 22 min ab und schnitt sie zu; der Rest kam am Morgen, aber
+  `maybe_auto_trim` sah „schon zugeschnitten" und rechnete nicht neu. **Fix `f8c03ad8`:**
+  `analysis.abschliessend_auswerten` verwirft einen AUTOMATISCHEN Zuschnitt bei jeder
+  abschliessenden Auswertung und bestimmt ihn neu (Nutzer-Zuschnitt bleibt); benutzt in
+  `ingest._analyze_in_background(final=True)` und den beiden Haenger-Skripten.
+  **Rekord-Pushes** nur noch fuer Aufnahmen ≤ 3 Tage (`records.PUSH_FRISCH_TAGE`, `098faeb6`),
+  damit neu ausgewertete Altbestaende keine nachtraeglichen Meldungen ausloesen.
+  **Bestand:** 86 Sessions mit Upload-Luecke ≥ 0,5 h neu ausgewertet (Sicherung
+  `backup-reanalyse86.json` im Session-Scratchpad), alle 86 neu zugeschnitten, bei 10 mehr Laeufe
+  (z. B. #9708 7→19, #9583 11→24, #9701 9→18). Die 10 Nutzer per DM aus Konto 230 informiert.
+- **⏰ NACHPRUEFEN ab ~01.10.2026 — greift der Neu-Zuschnitt bei NEUEN Sessions?** Rein lesend:
+  Sessions seit 27.09. mit `trim_auto = true`, deren Upload-Chunks eine Luecke ≥ 0,5 h haben
+  (`ingest_chunks.received_at`) — liegt jeder erkannte Lauf innerhalb des Zuschnitts, und passt der
+  Zuschnitt zum letzten Lauf + 15 s? Zusaetzlich: lief fuer diese Sessions nach dem letzten Chunk
+  noch eine abschliessende Auswertung (`abschliessend_auswerten`), oder hing der Rest am
+  Haenger-Timer? Gegenprobe gegen die 784er-Kandidatenabfrage vom 27.09.: neue Faelle mit „wuerde
+  laenger" duerfen nur noch legitime Zuschnitte sein (z. B. Autofahrt am Ende).
