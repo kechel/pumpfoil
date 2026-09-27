@@ -89,6 +89,13 @@ class RecorderService : Service(), SensorEventListener {
         sensors.getDefaultSensor(Sensor.TYPE_GYROSCOPE)?.let {
             sensors.registerListener(this, it, 1_000_000 / Recorder.accelHzActual)
         }
+        // Magnetometer ebenso nur, wenn vorhanden, und mit derselben Rate (Jan 27.09.2026, fuer
+        // vorn/hinten am Brett, docs/GROUND-TRUTH.md 12d). KALIBRIERT (TYPE_MAGNETIC_FIELD, nicht
+        // _UNCALIBRATED): der Vertrag verlangt das Feld mit eingerechneter Hard-Iron-Korrektur,
+        // sonst verschiebt der Eigenmagnetismus des Handys den Kurs.
+        sensors.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)?.let {
+            sensors.registerListener(this, it, 1_000_000 / Recorder.accelHzActual)
+        }
     }
 
     private fun startLocation() {
@@ -119,6 +126,7 @@ class RecorderService : Service(), SensorEventListener {
         when (e.sensor.type) {
             Sensor.TYPE_ACCELEROMETER -> Recorder.addAccel(e.values[0], e.values[1], e.values[2])
             Sensor.TYPE_GYROSCOPE -> Recorder.addGyro(e.values[0], e.values[1], e.values[2])
+            Sensor.TYPE_MAGNETIC_FIELD -> Recorder.addMag(e.values[0], e.values[1], e.values[2])
         }
     }
     override fun onAccuracyChanged(s: Sensor?, a: Int) {}
