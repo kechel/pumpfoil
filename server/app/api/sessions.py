@@ -3925,7 +3925,30 @@ def board_lage(
 # „Koerper"-Aufnahmen bleiben draussen (0,93 · 0,96 · 0,85), #9484 und #9656 unveraendert nicht;
 # unter den unbestaetigten Handy-Aufnahmen anderer kommt KEINE dazu (#10086 zeigt gerundet 1,15,
 # liegt aber knapp darunter).
-BRETT_NICK_ROLL_MIN = 1.15    # Nicken/Rollen; darunter liegt die Schwingung auf keiner Achse
+#
+# NEU GEEICHT AM 27.09.2026 — Nicken/Rollen fliegt raus, die LAGE IM RAUM kommt rein. Anlass: #10248,
+# Handy die ganze Zeit fest an einem ZWEITEN Fahrer-Brett, und nicht gefragt — dort rollt das Brett
+# staerker als es nickt (0,70), die Annahme „Brett nickt mehr" stammte aus EINEM Fahrer. Jans Hinweis:
+# „die bei denen es irgendwie schraeg im raum haengt [sind] mit sehr hoher wahrscheinlichkeit wirklich
+# nicht am board befestigt" — und am Mast montiert waere es hochkant, also nicht „flach" pruefen,
+# sondern: liegt es an IRGENDEINER Geraeteachse ausgerichtet?
+#
+# Merkmal: je Lauf die mittlere Schwerkraftrichtung (2-s-Mittel, normiert, gemittelt), davon der
+# Winkel zur naechsten Geraeteachse; Median ueber die Laeufe. Nur IN den Laeufen — das Tragen zum
+# Wasser zaehlt nicht. Gemessen an allen Handy-Aufnahmen mit Kreisel:
+#
+# (Werte mit genau dieser Funktion, Laufraender gekuerzt wie in `lage.laufbereiche`)
+#     bestaetigt am Brett   #9528 7,7° · #9535 6,0° · #9650 6,4° · #10195 6,6° · #10248 2,5°
+#     vermutlich Koerper    #9567 22,8° · #9641 19,9° · #9734 33,8° · #9807 34,6° · #10255 27,6°
+#     bisher gefragt, frei  #9678 29,2 · #9697 40,0 · #9749 38,0 · #9767 48,0 · #10034 35,8 ·
+#                           #10038 30,7 · #10097 35,9 · #10147 24,4 · #10254 40,3   (alle SCHRAEG)
+#
+# Kein fest montiertes Handy ueber 8°, keine andere Aufnahme mit Takt unter 19° (einzige
+# darunter: #10053 mit 5,4° und 50 % Takt — wird jetzt gefragt, ob es stimmt, zeigt die Antwort). Die bisher Gefragten hatten sauberen Takt, hingen aber schraeg — Armband oder enge
+# Tasche; genau die hat die alte Regel faelschlich gefragt. #9656 (bestaetigt, Handy zwischen den
+# Laeufen gedreht) liegt bei 25° und faellt heraus — dort sass es nicht durchgehend fest.
+# Getestet in tests/test_brett_hinweis.py. Mit Jans Auftrag („versuch es mal richtig zu machen").
+BRETT_ACHSE_MAX_DEG = 15.0    # Winkel der Schwerkraft zur naechsten Geraeteachse, in den Laeufen
 BRETT_HUB_ANTEIL_MIN = 0.5    # Anteil der Laeufe mit `hub_sicher`
 
 _brett_lock = threading.Lock()
@@ -3934,19 +3957,56 @@ _BRETT_TTL = 900.0
 _BRETT_MAX = 128
 
 
-def brett_urteil(kennzahlen: list[dict]) -> dict | None:
-    """Das Urteil aus den Lage-Kennzahlen je Lauf — rein, ohne Daten zu laden (getestet in
-    tests/test_brett_hinweis.py). None = es gibt keinen auswertbaren Lauf."""
+def lage_achse_deg(acc: "np.ndarray", t_acc_ms: "np.ndarray", bereiche: list) -> float | None:
+    """Wie schraeg haengt das Handy in den Laeufen? Winkel der mittleren Schwerkraft zur naechsten
+    Geraeteachse, Median ueber die Laeufe (>= 10 s). Flach am Brett und hochkant am Mast ergeben
+    beide wenige Grad; am Koerper 25° und mehr. None = kein auswertbarer Lauf."""
+    import math
+    import statistics
+    import numpy as np
+    winkel = []
+    t = np.asarray(t_acc_ms, dtype=float)
+    x = np.asarray(acc, dtype=float)
+    for a, b in bereiche:
+        if b - a < 10000:
+            continue
+        m = (t >= a) & (t <= b)
+        X, T = x[m], t[m]
+        if len(X) < 50 or T[-1] <= T[0]:
+            continue
+        fs = len(X) / ((T[-1] - T[0]) / 1000.0)
+        w = max(1, int(2 * fs))
+        n = len(X) // w
+        if n < 2:
+            continue
+        G = X[:n * w].reshape(n, w, 3).mean(axis=1)
+        G /= np.maximum(np.linalg.norm(G, axis=1, keepdims=True), 1e-9)
+        mu = G.mean(axis=0)
+        norm = float(np.linalg.norm(mu))
+        if norm <= 0:
+            continue
+        winkel.append(math.degrees(math.acos(min(1.0, float(np.max(np.abs(mu / norm)))))))
+    return statistics.median(winkel) if winkel else None
+
+
+def brett_urteil(kennzahlen: list[dict], achse_deg: float | None) -> dict | None:
+    """Das Urteil aus Lage-Kennzahlen je Lauf und der Lage im Raum — rein, ohne Daten zu laden
+    (getestet in tests/test_brett_hinweis.py). None = es gibt keinen auswertbaren Lauf."""
     import statistics
     ok = [x for x in kennzahlen if x.get("ok")]
+    if not ok:
+        return None
+    anteil = sum(1 for x in ok if x.get("hub_sicher")) / len(ok)
     paare = [(x["pitch_amplitude_deg"], x["roll_amplitude_deg"]) for x in ok
              if x.get("pitch_amplitude_deg") and x.get("roll_amplitude_deg")]
-    if not ok or not paare:
-        return None
-    v = statistics.median(n / r for n, r in paare)
-    anteil = sum(1 for x in ok if x.get("hub_sicher")) / len(ok)
-    return {"verdacht": bool(v >= BRETT_NICK_ROLL_MIN and anteil >= BRETT_HUB_ANTEIL_MIN),
-            "laeufe": len(ok), "nick_roll": round(v, 2), "hub_anteil": round(anteil, 2)}
+    # Nicken/Rollen nur noch zur Auskunft — es haengt am Fahrstil, nicht an der Montage.
+    v = statistics.median(n / r for n, r in paare) if paare else None
+    verdacht = (achse_deg is not None and achse_deg <= BRETT_ACHSE_MAX_DEG
+                and anteil >= BRETT_HUB_ANTEIL_MIN)
+    return {"verdacht": bool(verdacht), "laeufe": len(ok),
+            "nick_roll": round(v, 2) if v is not None else None,
+            "hub_anteil": round(anteil, 2),
+            "achse_deg": round(achse_deg, 1) if achse_deg is not None else None}
 
 
 def _brett_verdacht(s: models.Session) -> dict:
@@ -3979,7 +4039,7 @@ def _brett_verdacht(s: models.Session) -> dict:
                               for g in segmente if g.get("t_start_ms") is not None]
                     k = lage.kennzahlen_je_lauf(acc, t_acc, gyr, t_gyr, bereiche, starts,
                                                 gps=storage.load_gps(uuid), rot_vorgabe=None)
-                    aus = brett_urteil(k) or aus
+                    aus = brett_urteil(k, lage_achse_deg(acc, t_acc, bereiche)) or aus
     except Exception:   # noqa: BLE001 - ein Hinweis darf nie eine Seite kaputtmachen
         aus = {"verdacht": False, "laeufe": 0, "nick_roll": None, "hub_anteil": None}
 
