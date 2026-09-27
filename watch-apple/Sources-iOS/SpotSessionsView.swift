@@ -12,6 +12,9 @@ struct SpotSessionsView: View {
     /// Vom Einstieg mitgegebene Spot-Zeile (Karte/Liste/Session). Ist sie da, wird nicht mehr
     /// gesucht — genau diese Suche hat die Beschreibungen verschluckt.
     var vorgegebeneSpotId: Int? = nil
+    /// Sportart-Filter der Spot-Karte (27.09.2026), damit die Liste dieselbe Menge zeigt wie die
+    /// Zahl am Pin. nil = Endpunkt-Default (Einstieg aus Session/Vergleich, unveraendert).
+    var sport: String? = nil
     @EnvironmentObject private var store: SessionStore
     @AppStorage("appLang") private var lang = "de"
     @State private var items: [CommunityItem] = []
@@ -97,7 +100,7 @@ struct SpotSessionsView: View {
             // Default wie die PWA (useAccelDefault): seit 31.08. IMMER „alle", auch wenn der
             // Nutzer selbst Accel-Läufe hat — s. AccelDefault.swift.
             let only = showAll ? false : await AccelDefault.preferred()
-            var rows = try await Api.spotSessions(spot, accelOnly: only)
+            var rows = try await Api.spotSessions(spot, accelOnly: only, sport: sport)
             // Frueher griff das NUR bei einer komplett leeren Liste, und genau daran ist am 29.08. ein
             // Nutzer haengen geblieben: die Spot-Karte sagte „Meerkerk · 14“, nach dem Klick standen dort
             // seine eigenen drei. Die anderen elf sind ohne verwertbare Beschleunigungsdaten aufgenommen
@@ -106,13 +109,13 @@ struct SpotSessionsView: View {
             // nicht. Verglichen wird jetzt die erste Seite gegen „alle“.
             if only, !autoTried {
                 autoTried = true
-                let all = try await Api.spotSessions(spot, accelOnly: false)
+                let all = try await Api.spotSessions(spot, accelOnly: false, sport: sport)
                 if all.count > rows.count { showAll = true; rows = all }
             }
             items = rows
             // „Älter/neuer" im Detail soll an DIESEM Spot bleiben, über alle Fahrer — mit
             // demselben Accel-Filter, den diese Liste gerade zeigt (Jan, 17.09.2026).
-            NachbarFilter.aktuell = NachbarFilter(scope: "all", spot: spot, sport: "all",
+            NachbarFilter.aktuell = NachbarFilter(scope: "all", spot: spot, sport: sport ?? "all",
                                                   accelOnly: only && !showAll)
             error = nil
         } catch { self.error = error.localizedDescription }

@@ -58,6 +58,7 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Watch
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -590,6 +591,9 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             }
             Spacer(Modifier.height(8.dp))
         }
+        // Teilen-Link nach dem Zusammenfuehren (PWA 03b0b7da) — ueber der Brett-Frage, weil er sich
+        // auf die eben ausgeloeste Aktion bezieht. Keine Warnung: es ist nichts kaputt.
+        MergeLinkHinweis(s.id)
         // Handy am Brett? — nur wenn die Erkennung anschlaegt (s. LageAnsicht.kt).
         BrettFrage(s, onReload)
         if (mdet?.detection == "gps_only" && !zeigeEingefroren && s.status != "live") {
@@ -1804,6 +1808,18 @@ private fun RunsTable(
             if (m > 0) m else null
         }
     }
+    // Alle GEMESSENEN Pulswerte im Lauf (Nullen/0 raus) — daraus Start/Durchschnitt/Ende
+    // (Jan, 26.09.2026, wie die PWA). Start/Ende = erster/letzter gemessene Wert, nicht
+    // hr[iStart]: am Laufanfang fehlt der Puls oft ein paar Sekunden.
+    val hrWerteImLauf: (Segment) -> List<Int> = { seg ->
+        if (hr.isEmpty()) emptyList() else {
+            val out = ArrayList<Int>()
+            var i = maxOf(0, seg.iStart)
+            val bis = minOf(seg.iEnd, hr.size - 1)
+            while (i <= bis) { hr[i]?.let { if (it > 0) out.add(it) }; i++ }
+            out
+        }
+    }
     // Spalte nur zeigen, wenn wenigstens EIN Lauf einen Puls hat — sonst steht eine Spalte voller
     // Striche und nimmt auf dem Handy Platz weg (genauso macht es die PWA mit `hasHr`).
     Card(Modifier.fillMaxWidth()) {
@@ -1816,7 +1832,7 @@ private fun RunsTable(
             // fehlten damit ganz (Jans Meldung 18.08.). Gewichte gehen bei Scroll nicht: der
             // Inhalt ist dann breiter als der Container, und Kopf und Zellen muessen exakt
             // dieselbe Breite haben, sonst laufen sie auseinander.
-            val spalten = laufSpalten(segments, win, wattFuer, maxHrImLauf, startedAt, tz,
+            val spalten = laufSpalten(segments, win, wattFuer, maxHrImLauf, hrWerteImLauf, startedAt, tz,
                                       trimStartMs, pausen)
             val hScroll = rememberScrollState()
             Column(Modifier.horizontalScroll(hScroll)) {
@@ -1890,6 +1906,7 @@ private fun laufSpalten(
     win: Int,
     wattFuer: ((Double, Double?) -> Int?)?,
     maxHr: (Segment) -> Int?,
+    hrWerte: (Segment) -> List<Int>,
     startedAt: String,
     tz: String?,
     trimStartMs: Long?,
@@ -1927,9 +1944,17 @@ private fun laufSpalten(
                 PumpUnit.fmtValue(seg.maxPumpHz) + " / " + PumpUnit.fmtValue(seg.minPumpHz)
             })
         }
-        if (zeigeMaxHr) add(LaufSpalte(k("sd.colMaxHr"), 62) { seg ->
-            maxHr(seg)?.let { "$it bpm" } ?: "–"
-        })
+        // Puls: Start, Durchschnitt, Max., Ende — Reihenfolge wie in der PWA (26.09.2026).
+        if (zeigeMaxHr) {
+            add(LaufSpalte(k("sd.colHrStart"), 62) { seg -> hrWerte(seg).firstOrNull()?.let { "$it bpm" } ?: "–" })
+            add(LaufSpalte(k("sd.colHrAvg"), 62) { seg ->
+                hrWerte(seg).takeIf { it.isNotEmpty() }?.let { "${Math.round(it.average())} bpm" } ?: "–"
+            })
+            add(LaufSpalte(k("sd.colMaxHr"), 62) { seg ->
+                maxHr(seg)?.let { "$it bpm" } ?: "–"
+            })
+            add(LaufSpalte(k("sd.colHrEnd"), 62) { seg -> hrWerte(seg).lastOrNull()?.let { "$it bpm" } ?: "–" })
+        }
         add(LaufSpalte(k("sd.colGlide"), 68) { seg -> "%.1f s".format(seg.longestGlideS) })
     }
 }
@@ -2568,4 +2593,25 @@ private fun OrtSchalter(s: SessionDetail, onReload: () -> Unit) {
         Text(I18n.t("sd.ortAktiv"), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(top = 4.dp))
     }
+}
+
+/** Einmaliger Hinweis nach dem Zusammenfuehren, s. [MergeHinweis]. Wegklickbar. */
+@Composable
+private fun MergeLinkHinweis(sessionId: Int) {
+    var anzahl by remember(sessionId) { mutableStateOf(MergeHinweis.abholen(sessionId)) }
+    if (anzahl <= 0) return
+    Card(
+        Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+    ) {
+        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(if (anzahl == 1) I18n.t("sd.mergeShareGone")
+                 else I18n.t("sd.mergeShareGoneN").replace("{n}", anzahl.toString()),
+                Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer)
+            Spacer(Modifier.width(8.dp))
+            Button(onClick = { anzahl = 0 }) { Text(I18n.t("sd.mergeShareGoneOk")) }
+        }
+    }
+    Spacer(Modifier.height(8.dp))
 }

@@ -15,6 +15,18 @@ data class CompareRef(val sessionId: Int, val runIdx: Int? = null) {
 // Sitzungsuebergreifende Auswahl fuer den Vergleich: ganze Sessions per Long-Press auf einer
 // Session-Karte (Sessions/Community/Home), einzelne Laeufe ueber die Vergleichs-Spalte der
 // Lauf-Tabelle in der Session-Detailansicht.
+/**
+ * Nach dem Zusammenfuehren: wie viele der Quellen per Link geteilt waren (Server-Antwort
+ * `geteilte_links`). Die Detailansicht der neuen Session holt die Zahl GENAU EINMAL ab und sagt es
+ * — wie der Navigations-Zustand der PWA (03b0b7da), ein erneutes Oeffnen bringt den Hinweis nicht
+ * zurueck. Der Link war schon immer mit der Quelle weg; neu ist nur, dass wir es sagen.
+ */
+object MergeHinweis {
+    private val offen = mutableMapOf<Int, Int>()
+    @Synchronized fun merken(sessionId: Int, anzahl: Int) { offen[sessionId] = anzahl }
+    @Synchronized fun abholen(sessionId: Int): Int = offen.remove(sessionId) ?: 0
+}
+
 object CompareStore {
     const val MAX = 4
 

@@ -12,15 +12,47 @@ struct WatchView: View {
     // Wassersperre (nicht Garmin) und Wake-up-Sensor (nur Wear) je Uhr, id → Wert.
     @State private var waterLocks: [Int: String] = [:]
     @State private var wakeups: [Int: String] = [:]
-    @State private var savedFlash = false
+    // Rueckmeldung je Uhr UND Einstellung (PWA Account.tsx, 26.09.2026): die Regler speichern
+    // sofort beim Umstellen. Vorher kam nur ein kurzes „Gespeichert" unten am Abschnitt, auch wenn
+    // der Aufruf scheiterte (`try?`). Jetzt steht es direkt unter dem Regler, 3 s lang; bei einem
+    // Fehler die Meldung, und die Liste wird neu geladen, damit der Regler den echten Wert zeigt.
+    @State private var rueckmeldung: Rueckmeldung? = nil
+    // Zaehler, damit das Ausblenden einer ALTEN Meldung nicht die neue wegnimmt.
+    @State private var rueckLauf = 0
     // Aufraeumen je Uhr (wie PWA): ausgeblendete auf Wunsch mitladen — sonst waere Ausblenden auf
     // dem Telefon eine Einbahnstrasse. `frage` haelt die offene Rueckfrage.
     @State private var zeigeAusgeblendete = false
     @State private var frage: GeraeteFrage? = nil
 
-    private func flashSaved() {
-        savedFlash = true
-        Task { try? await Task.sleep(nanoseconds: 1_600_000_000); savedFlash = false }
+    /// Speichern mit Rueckmeldung unter genau diesem Regler (`k` = "<id>:mode|gnss|water|accel").
+    private func speichern(_ k: String, _ aufruf: @escaping () async throws -> Void) {
+        rueckLauf += 1
+        let meiner: Int = rueckLauf
+        rueckmeldung = nil
+        Task {
+            do {
+                try await aufruf()
+                guard meiner == rueckLauf else { return }
+                rueckmeldung = Rueckmeldung(k: k, fehler: nil)
+                try? await Task.sleep(nanoseconds: 3_000_000_000)
+                if meiner == rueckLauf { rueckmeldung = nil }
+            } catch {
+                guard meiner == rueckLauf else { return }
+                rueckmeldung = Rueckmeldung(k: k, fehler: error.localizedDescription)
+                await loadDevices()
+            }
+        }
+    }
+
+    /// „Gespeichert" bzw. die Fehlermeldung unter dem Regler — normale Hinweisgroesse, nie winzig.
+    @ViewBuilder private func rueck(_ k: String) -> some View {
+        if let r = rueckmeldung, r.k == k {
+            if let f = r.fehler {
+                Text(f).font(.callout).foregroundStyle(.red)
+            } else {
+                Text(Loc.t("common.saved", lang)).font(.callout).foregroundStyle(.green)
+            }
+        }
     }
 
     // Ein Abschnitt = eine eigene, explizit typisierte Property. Swifts Type-Checker loest einen
@@ -81,17 +113,12 @@ struct WatchView: View {
                 Text(Loc.t("account.deviceHideHint", lang)).font(.subheadline).foregroundStyle(.secondary)
                 ausgeblendetKnopf
             } header: { Text(Loc.t("account.devicesTitle", lang)) }
-            footer: { savedFooter }
         }
     }
 
     // Filter als typisierte Property statt als `let` im ViewBuilder.
     private var activeDevices: [PairedDevice] {
         devices.filter { $0.revoked_at == nil }
-    }
-
-    @ViewBuilder private var savedFooter: some View {
-        if savedFlash { Text(Loc.t("common.saved", lang)).foregroundStyle(.green) }
     }
 
     private func deviceRow(_ d: PairedDevice) -> some View {
@@ -109,6 +136,7 @@ struct WatchView: View {
                 Text(Loc.t("account.recordModeLite", lang)).tag("lite")
                 Text(Loc.t("account.recordModeGps", lang)).tag("gps")
             }
+            rueck("\(d.id):mode")
             updateHinweis(d)
             autoLiteHint(d)
             gpsOnlyHint(d)
@@ -184,6 +212,7 @@ struct WatchView: View {
                 Text(Loc.t("account.gnssModeTwo", lang)).tag("two")
                 Text(Loc.t("account.gnssModeGps", lang)).tag("gps")
             }
+            rueck("\(d.id):gnss")
             Text(Loc.t("account.gnssModeHint", lang)).font(.callout).foregroundStyle(.secondary)
         }
     }
@@ -205,6 +234,7 @@ struct WatchView: View {
                 Text(Loc.t("account.waterLockOn", lang)).tag("on")
                 Text(Loc.t("account.waterLockOff", lang)).tag("off")
             }
+            rueck("\(d.id):water")
             Text(Loc.t("account.waterLockHint", lang)).font(.callout).foregroundStyle(.secondary)
         }
     }
@@ -218,6 +248,7 @@ struct WatchView: View {
                 Text(Loc.t("account.accelWakeupOn", lang)).tag("on")
                 Text(Loc.t("account.accelWakeupOff", lang)).tag("off")
             }
+            rueck("\(d.id):accel")
             Text(Loc.t("account.accelWakeupHint", lang)).font(.callout).foregroundStyle(.secondary)
         }
     }
@@ -230,14 +261,14 @@ struct WatchView: View {
     private func waterLockBinding(_ d: PairedDevice) -> Binding<String> {
         Binding(get: { waterLocks[d.id] ?? d.water_lock ?? "auto" }, set: { v in
             waterLocks[d.id] = v
-            Task { try? await Api.setDeviceWaterLock(d.id, mode: v); flashSaved() }
+            speichern("\(d.id):water") { try await Api.setDeviceWaterLock(d.id, mode: v) }
         })
     }
 
     private func wakeupBinding(_ d: PairedDevice) -> Binding<String> {
         Binding(get: { wakeups[d.id] ?? d.accel_wakeup ?? "default" }, set: { v in
             wakeups[d.id] = v
-            Task { try? await Api.setDeviceAccelWakeup(d.id, mode: v); flashSaved() }
+            speichern("\(d.id):accel") { try await Api.setDeviceAccelWakeup(d.id, mode: v) }
         })
     }
 
@@ -247,7 +278,7 @@ struct WatchView: View {
 
     private func setGnss(_ id: Int, _ v: String) {
         gnss[id] = v
-        Task { try? await Api.setDeviceGnssMode(id, mode: v); flashSaved() }
+        speichern("\(id):gnss") { try await Api.setDeviceGnssMode(id, mode: v) }
     }
 
     @ViewBuilder private func versionLabel(_ d: PairedDevice) -> some View {
@@ -307,7 +338,7 @@ struct WatchView: View {
 
     private func setMode(_ id: Int, _ v: String) {
         modes[id] = v
-        Task { try? await Api.setDeviceRecordMode(id, mode: v); flashSaved() }
+        speichern("\(id):mode") { try await Api.setDeviceRecordMode(id, mode: v) }
     }
 
     private func loadDevices() async {
@@ -350,6 +381,12 @@ struct WatchView: View {
             Button(Loc.t("common.cancel", lang), role: .cancel) { frage = nil }
         }
     }
+}
+
+/// Rueckmeldung nach dem Speichern einer Einstellung je Uhr; `fehler` nil = gespeichert.
+struct Rueckmeldung {
+    let k: String
+    let fehler: String?
 }
 
 /// Offene Rueckfrage zu einer Uhr — Wert statt Flut von Bool-Zustaenden.

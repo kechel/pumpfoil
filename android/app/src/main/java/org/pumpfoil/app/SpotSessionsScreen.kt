@@ -31,7 +31,14 @@ import kotlinx.coroutines.launch
 // Sessions eines Spots (Tippen auf einen Pin/Eintrag in den Spots) — reiche Karten wie der Feed.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, onSpotChat: (String) -> Unit = {}, social: Boolean = true) {
+fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, onSpotChat: (String) -> Unit = {}, social: Boolean = true,
+                       sport0: String = "all") {
+    // Sportart-Filter (27.09.2026, wie `/sessions?spot=…&sport=…` in der PWA): kommt von der
+    // Spot-Karte mit, damit Etikett (Zahl am Marker) und Klickziel dieselbe Menge meinen; hier
+    // wieder umstellbar, „Alle Sportarten" bleibt immer waehlbar. Default „all".
+    var sport by remember(spot, sport0) { mutableStateOf(sport0.ifBlank { "all" }) }
+    var sports by remember { mutableStateOf<List<SportRuns>>(emptyList()) }
+    LaunchedEffect(Unit) { sports = try { Api.communitySports() } catch (_: Exception) { emptyList() } }
     var items by remember(spot) { mutableStateOf<List<CommunityItem>>(emptyList()) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -62,7 +69,9 @@ fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, 
             // Default wie die PWA (useAccelDefault): seit 31.08. IMMER „alle", auch wenn der
             // Nutzer selbst Accel-Läufe hat — s. AccelDefault.kt.
             val only = if (showAll) false else AccelDefault.preferred()
-            var rows = Api.spotSessions(spot, accelOnly = only)
+            // Ohne `sport` galt der Endpunkt-Default „pumpfoil" — die Liste zeigte damit weniger,
+            // als die Spot-Karte (sport=all) zaehlte. Jetzt immer die gewaehlte Sportart.
+            var rows = Api.spotSessions(spot, accelOnly = only, sport = sport)
             // Frueher griff das NUR bei einer komplett leeren Liste, und genau daran ist am 29.08. ein
             // Nutzer haengen geblieben: die Spot-Karte sagte „Meerkerk · 14“, nach dem Klick standen dort
             // seine eigenen drei. Die anderen elf sind ohne verwertbare Beschleunigungsdaten aufgenommen
@@ -71,19 +80,20 @@ fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, 
             // nicht. Verglichen wird jetzt die erste Seite gegen „alle“.
             if (only && !autoTried) {
                 autoTried = true
-                val all = Api.spotSessions(spot, accelOnly = false)
+                val all = Api.spotSessions(spot, accelOnly = false, sport = sport)
                 if (all.size > rows.size) { showAll = true; rows = all }
             }
             items = rows
             // „Älter/neuer" im Detail soll an DIESEM Spot bleiben, über alle Fahrer — mit
             // demselben Accel-Filter, den diese Liste gerade zeigt (Jan, 17.09.2026).
-            NachbarFilter.merken(NachbarFilter(scope = "all", spot = spot, sport = "all",
+            NachbarFilter.merken(NachbarFilter(scope = "all", spot = spot, sport = sport,
                                                accelOnly = only && !showAll))
             error = null
         } catch (e: Exception) { error = e.message }
         loading = false
     }
-    LaunchedEffect(spot) { load() }
+    // Sportart-Wechsel: die alte Liste sofort weg, nicht erst, wenn die neue da ist.
+    LaunchedEffect(spot, sport) { items = emptyList(); load() }
 
     Scaffold(
         topBar = {
@@ -126,6 +136,13 @@ fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, 
                         spotId?.let { sid -> item { SpotNotesSection(sid) } }
                         // „Anderen Namen vorschlagen" — nur wer hier selbst gefahren ist.
                         spotId?.let { sid -> item { SpotNamensVorschlag(sid, spot) } }
+                        if (sports.size > 1 || sport != "all") {
+                            item {
+                                Box(Modifier.padding(horizontal = 12.dp, vertical = 2.dp)) {
+                                    SportDropdown(sports, sport) { sport = it }
+                                }
+                            }
+                        }
                         if (items.isEmpty() && !loading && error == null) {
                             item { Text(I18n.t("sessions.empty"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                         }

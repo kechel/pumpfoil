@@ -36,6 +36,11 @@ struct SessionsView: View {
     @State private var filter = "pump"         // pump | other (nur eigene)
     @State private var month = ""              // "YYYY-MM" | "" (nur eigene)
     @State private var months: [MonthCount] = []
+    // Sportart-Filter (Nutzerwunsch 27.09.2026: „filter sessions … for Wakethief", PWA eb1286b5).
+    // Default „all", anders als auf der Community-Seite (dort Pumpfoil) — die Liste ist die
+    // Uebersicht (Jan). Bleibt beim Wechsel Meine/Homespot/Alle/Spot stehen.
+    @State private var sport = "all"
+    @State private var sports: [CommunitySport] = []
     @State private var weather: SpotWeather?
     // Datei-Import (FIT/TCX/GPX, auch ZIP) — in der PWA sitzt der Knopf seit dem 07.09.2026 in
     // „Meine Sessions" unter den Filtern. In den Apps fehlte der Import ganz (s. ImportFileButton
@@ -74,6 +79,7 @@ struct SessionsView: View {
                 .onChange(of: accelOnly) { _ in listeLeeren(); Task { await load() } }
                 .onChange(of: filter) { _ in listeLeeren(); Task { await loadMonths(); await load() } }
                 .onChange(of: month) { _ in listeLeeren(); Task { await load() } }
+                .onChange(of: sport) { _ in listeLeeren(); Task { await loadMonths(); await load() } }
                 .onChange(of: sync.tick) { _ in Task { await load() } }
                 .task { await loadMonths() }
                 // Laeuft eine eigene Aufnahme noch (status recording/live), die Liste alle 4 s
@@ -183,6 +189,7 @@ struct SessionsView: View {
                 ?? (s?["homespot"] as? String) ?? ""
         }
         suggestions = (try? await Api.mergeSuggestions()) ?? []
+        sports = (try? await Api.communitySports()) ?? []
         spotNames = (try? await Api.spots(accelOnly: false))?.all ?? []
         // Einmal die Karte holen, nur fuer die Zuordnung Name -> spot_id (ein Aufruf; ein
         // eigener Endpunkt fuer denselben Zusammenhang waere Ballast).
@@ -257,9 +264,21 @@ struct SessionsView: View {
                             .font(.subheadline).lineLimit(1)
                     }
                 }
+                sportFilterRow
                 if scope == .mine { monthFilterRow }
             }
             .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+        }
+    }
+
+    /// Eigene Zeile, nur wenn es etwas zu waehlen gibt (s. SportFilterMenu). Die Monate zaehlen je
+    /// Sportart anders, deshalb faellt ein gewaehlter Monat beim Wechsel weg (wie die PWA).
+    @ViewBuilder private var sportFilterRow: some View {
+        if SportFilterMenu.zeigen(sport: sport, sports: sports) {
+            HStack {
+                SportFilterMenu(sport: sport, sports: sports, lang: lang) { neu in month = ""; sport = neu }
+                Spacer()
+            }
         }
     }
 
@@ -390,7 +409,7 @@ struct SessionsView: View {
     private func listeLeeren() { own = []; groups = [] }
 
     private func reloadIncoming() async { incoming = (try? await Api.transfersIncoming()) ?? [] }
-    private func loadMonths() async { months = (try? await Api.sessionMonths(filter: filter)) ?? [] }
+    private func loadMonths() async { months = (try? await Api.sessionMonths(filter: filter, sport: sport)) ?? [] }
     private func loadWeather() async {
         weather = spot.isEmpty ? nil : (try? await Api.spotWeather(spot))
     }
@@ -483,7 +502,7 @@ struct SessionsView: View {
     private func maybeShowAllForSpot() async {
         guard !spot.isEmpty, accelOnly, !accelTouched, accelAutoSpot != spot else { return }
         accelAutoSpot = spot
-        let probe = (try? await Api.communitySessionsGrouped(spot: spot, accelOnly: false, sport: "all")) ?? []
+        let probe = (try? await Api.communitySessionsGrouped(spot: spot, accelOnly: false, sport: sport)) ?? []
         if probe.count > groups.count { setAccelAuto(false) }   // onChange(of: accelOnly) lädt neu
     }
 
@@ -510,18 +529,19 @@ struct SessionsView: View {
         do {
             switch scope {
             case .mine:
-                let r = try await Api.sessions(month: month.isEmpty ? nil : month, filter: filter, accelOnly: accelOnly)
+                let r = try await Api.sessions(month: month.isEmpty ? nil : month, filter: filter,
+                                               accelOnly: accelOnly, sport: sport)
                 guard meine == ladeGeneration else { return }
                 own = r
-            // sport: "all" — diese Liste ist das „was ist neu" und soll ALLE Sportarten zeigen
-            // (ohne den Parameter greift der Endpunkt-Default "pumpfoil"). Die Karte kennzeichnet
-            // alles, was kein Pumpfoilen ist. Rekorde/Bestenlisten fragen weiter genau eine Sportart.
+            // sport: Default "all" — diese Liste ist das „was ist neu" und soll ALLE Sportarten
+            // zeigen (ohne den Parameter greift der Endpunkt-Default "pumpfoil"). Die Karte
+            // kennzeichnet alles, was kein Pumpfoilen ist. Seit 27.09.2026 waehlbar (Sportart-Filter).
             case .all:
-                let r = try await Api.communitySessionsGrouped(accelOnly: accelOnly, sport: "all")
+                let r = try await Api.communitySessionsGrouped(accelOnly: accelOnly, sport: sport)
                 guard meine == ladeGeneration else { return }
                 groups = r
             case .spot:
-                let r = spot.isEmpty ? [] : (try await Api.communitySessionsGrouped(spot: spot, accelOnly: accelOnly, sport: "all"))
+                let r = spot.isEmpty ? [] : (try await Api.communitySessionsGrouped(spot: spot, accelOnly: accelOnly, sport: sport))
                 guard meine == ladeGeneration else { return }
                 groups = r
                 await maybeShowAllForSpot()
@@ -530,16 +550,59 @@ struct SessionsView: View {
             // dieser Liste statt immer durch die eigenen Sessions (Jan, 17.09.2026).
             switch scope {
             case .mine:
-                NachbarFilter.aktuell = NachbarFilter(scope: "mine", accelOnly: accelOnly,
+                // "all" gar nicht erst mitschicken — der Server schraenkt dann nicht ein.
+                NachbarFilter.aktuell = NachbarFilter(scope: "mine", sport: sport == "all" ? nil : sport,
+                                                      accelOnly: accelOnly,
                                                       filter: filter, month: month.isEmpty ? nil : month)
             case .all:
-                NachbarFilter.aktuell = NachbarFilter(scope: "all", sport: "all", accelOnly: accelOnly)
+                NachbarFilter.aktuell = NachbarFilter(scope: "all", sport: sport, accelOnly: accelOnly)
             case .spot:
                 NachbarFilter.aktuell = NachbarFilter(scope: "all", spot: spot.isEmpty ? nil : spot,
-                                                      sport: "all", accelOnly: accelOnly)
+                                                      sport: sport, accelOnly: accelOnly)
             }
             error = nil
         } catch { self.error = error.localizedDescription }
+    }
+}
+
+/// Auswahl der Sportart fuer Sessions-Liste und Spot-Karte (PWA Sessions.tsx/Spots.tsx, 27.09.2026).
+/// „Alle Sportarten" steht immer OBEN und bleibt waehlbar, auch wenn gerade z. B. Wingfoil aktiv
+/// ist (Jan). Eine aktive Sportart, die in `sports` fehlt (keine Laeufe mehr), steht trotzdem
+/// drin — sonst stuende die Auswahl auf einem Wert, den es nicht gibt.
+struct SportFilterMenu: View {
+    let sport: String
+    let sports: [CommunitySport]
+    let lang: String
+    let onSelect: (String) -> Void
+
+    /// Nur zeigen, wenn es mehr als eine Sportart gibt oder schon eine gewaehlt ist.
+    static func zeigen(sport: String, sports: [CommunitySport]) -> Bool {
+        sports.count > 1 || sport != "all"
+    }
+
+    private func label(_ s: String) -> String {
+        s == "all" ? Loc.t("all.allSports", lang) : Loc.t("cls.sport.\(s)", lang)
+    }
+
+    private var fehltInListe: Bool {
+        sport != "all" && !sports.contains { $0.sport == sport }
+    }
+
+    var body: some View {
+        Menu {
+            Button(label("all")) { onSelect("all") }
+            if fehltInListe {
+                Button(label(sport)) { onSelect(sport) }
+            }
+            ForEach(sports) { s in
+                Button(label(s.sport)) { onSelect(s.sport) }
+            }
+        } label: {
+            HStack(spacing: 4) {
+                Text(label(sport)).font(.subheadline).lineLimit(1)
+                Image(systemName: "chevron.down").font(.caption2)
+            }
+        }
     }
 }
 

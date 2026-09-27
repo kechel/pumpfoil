@@ -57,8 +57,18 @@ import org.osmdroid.views.overlay.Marker
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit = {}) {
+fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit = {},
+                onOpenSpotSport: (String, String) -> Unit = { s, _ -> onOpenSpot(s) }) {
     var items by remember { mutableStateOf<List<SpotMapItem>>(emptyList()) }
+    // Sportart (Nutzerwunsch 27.09.2026: „where others are wake-thiefing"). Default „all" wie
+    // bisher; „Alle Sportarten" bleibt immer waehlbar (Jan). Geht an den Server: die Zahl je Spot
+    // zaehlt dann nur diese Sportart, und der Klick fuehrt in die Spot-Sessions mit DEMSELBEN
+    // Filter — Etikett und Klickziel meinen so dieselbe Menge (wie Spots.tsx).
+    var sport by remember { mutableStateOf("all") }
+    var sports by remember { mutableStateOf<List<SportRuns>>(emptyList()) }
+    LaunchedEffect(Unit) { sports = try { Api.communitySports() } catch (_: Exception) { emptyList() } }
+    // Spot oeffnen mit der aktuellen Sportart (Marker + Suchtreffer; der Spot-Vergleich nicht).
+    val oeffneSpot: (String) -> Unit = { s -> onOpenSpotSport(s, sport) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     // Suchtext. Er ERSETZT die frueher hier stehende Liste ALLER Spots (Jan, 16.09.2026: „warum
@@ -92,7 +102,7 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
 
     suspend fun load() {
         loading = true
-        try { items = Api.spotMap().sortedByDescending { it.sessions }; error = null }
+        try { items = Api.spotMap(sport = sport).sortedByDescending { it.sessions }; error = null }
         catch (e: Exception) { error = e.message }
         loading = false
     }
@@ -105,7 +115,7 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
             (st["homespot_effective"] ?: st["homespot"])?.jsonPrimitive?.contentOrNull?.trim() ?: ""
         } catch (_: Exception) { "" }
     }
-    LaunchedEffect(Unit) { load() }
+    LaunchedEffect(sport) { load() }
 
     // EINE Karte fuer die Lebensdauer der Seite — bewusst HIER und nicht in `SpotsMap`.
     //
@@ -159,6 +169,7 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
           Column(Modifier.fillMaxSize()) {
             // Filterzeile ueber dem Suchfeld. In der PWA steht sie rechts neben der Ueberschrift;
             // hier sitzt der Titel in der TopBar, also bekommt sie eine eigene Zeile.
+            SportDropdown(sports, sport, Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp)) { sport = it }
             if (mitNotes > 0) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -216,7 +227,7 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
             // 3. Der Inhalt darunter bekommt einen DECKENDEN Hintergrund. Compose-Flaechen sind
             //    sonst durchsichtig, und dann scheint alles durch, was dahinter liegt.
             SpotsMap(
-                karte, sichtbar, onOpenSpot, startSpot,
+                karte, sichtbar, oeffneSpot, startSpot,
                 Modifier.fillMaxWidth().height(220.dp).clipToBounds(),
             )
             Refreshable(refreshing = loading, onRefresh = { scope.launch { load() } }) {
@@ -245,7 +256,7 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
                     // („Berlin 3" / „Berlin 4") oben steht.
                     items(treffer) { s ->
                         ListItem(
-                            modifier = Modifier.clickable { onOpenSpot(s.spot) },
+                            modifier = Modifier.clickable { oeffneSpot(s.spot) },
                             headlineContent = { Text(s.spot) },
                             // Gewaesser mit in die Zeile: „Berlin 3" und „Berlin 4" waren vorher
                             // nicht zu unterscheiden — genau dafuer steht es im PWA-Auswahlfeld.

@@ -57,6 +57,10 @@ struct SpotsView: View {
     @State private var suche = ""
     // Filter „nur mit Beschreibung" — rein clientseitig, `spot-map` liefert die Zahl je Spot mit.
     @State private var nurNotes = false
+    // Sportart (Nutzerwunsch 27.09.2026: „where others are wake-thiefing", PWA Spots.tsx). Default
+    // „all" wie bisher; „Alle Sportarten" bleibt immer waehlbar (Jan).
+    @State private var sport = "all"
+    @State private var sports: [CommunitySport] = []
     @State private var loading = false
     @State private var error: String?
     @State private var region = MKCoordinateRegion(
@@ -99,7 +103,9 @@ struct SpotsView: View {
                 .listStyle(.insetGrouped)
             }
             // Wert-basiertes Ziel statt eines Links IN der Kartenzeile (s. `annotation`).
-            .navigationDestination(for: SpotDest.self) { d in SpotSessionsView(spot: d.spot, vorgegebeneSpotId: d.spotId) }
+            .navigationDestination(for: SpotDest.self) { d in
+                SpotSessionsView(spot: d.spot, vorgegebeneSpotId: d.spotId, sport: d.sport)
+            }
             // Rekord-Karten des Vergleichs fuehren zu genau der Session, die den Wert haelt.
             .navigationDestination(for: SpotCmpSessionDest.self) { d in SessionDetailView(id: d.id) }
             // `.searchable` statt eines eigenen Feldes ueber der Karte: auf iOS gehoert die
@@ -112,6 +118,7 @@ struct SpotsView: View {
             .overlay { if loading && items.isEmpty { ProgressView() } }
             .refreshable { await load() }
             .task { if items.isEmpty { await load() } }
+            .onChange(of: sport) { _ in Task { await sportLaden() } }
         }
     }
 
@@ -169,7 +176,7 @@ struct SpotsView: View {
     /// Session zurueck"); dort wie hier ist die Loesung ein Button, der GENAU EIN Ziel anhaengt.
     @ViewBuilder private func annotation(_ b: SpotBuendel) -> some View {
         if b.teil.count == 1 {
-            Button { navPath.append(SpotDest(spot: b.teil[0].spot, spotId: b.teil[0].spot_id)) } label: { pin(b.teil[0].sessions) }
+            Button { navPath.append(ziel(b.teil[0])) } label: { pin(b.teil[0].sessions) }
                 .buttonStyle(.plain)
                 .accessibilityLabel(b.teil[0].spot)
         } else {
@@ -221,8 +228,17 @@ struct SpotsView: View {
     /// Filterzeile + Erklaertext. In der PWA steht der Filter rechts neben der Ueberschrift und
     /// der Text darunter; hier sitzt der Titel in der Navigationsleiste, also bekommen beide
     /// eine eigene Zeile ueber der Karte.
+    /// Klickziel eines Spots — mit der Sportart der Karte, damit Pin-Zahl und Liste dieselbe
+    /// Menge meinen (wie die PWA, die `&sport=` an die Sessions-Liste haengt).
+    private func ziel(_ s: SpotMapItem) -> SpotDest {
+        SpotDest(spot: s.spot, spotId: s.spot_id, sport: sport)
+    }
+
     @ViewBuilder private var kopfSection: some View {
         Section {
+            if SportFilterMenu.zeigen(sport: sport, sports: sports) {
+                SportFilterMenu(sport: sport, sports: sports, lang: lang) { sport = $0 }
+            }
             if mitNotes > 0 {
                 Toggle(isOn: $nurNotes) {
                     Text("\(Loc.t("spots.onlyWithNotes", lang)) (\(mitNotes))")
@@ -239,7 +255,7 @@ struct SpotsView: View {
         Section {
             if let error { Text(error).foregroundStyle(.secondary) }
             ForEach(treffer) { s in
-                NavigationLink(value: SpotDest(spot: s.spot, spotId: s.spot_id)) { spotRow(s) }
+                NavigationLink(value: ziel(s)) { spotRow(s) }
             }
             if !suche.trimmingCharacters(in: .whitespaces).isEmpty && treffer.isEmpty {
                 Text(Loc.t("spots.empty", lang)).foregroundStyle(.secondary)
@@ -346,10 +362,25 @@ struct SpotsView: View {
             eigenerSpot = (einst?["homespot_effective"] as? String)
                 ?? (einst?["homespot"] as? String) ?? ""
         }
+        if sports.isEmpty { sports = (try? await Api.communitySports()) ?? [] }
         do {
-            let s = try await Api.spotMap().sorted { $0.sessions > $1.sessions }
+            let s = try await Api.spotMap(sport: sport).sorted { $0.sessions > $1.sessions }
             items = s
             startAusschnitt(s)
+            buendeln()
+            error = nil
+        } catch { self.error = error.localizedDescription }
+    }
+
+    /// Sportart gewechselt: nur die Spots neu holen und neu buendeln — der Kartenausschnitt bleibt,
+    /// wo der Nutzer ihn hat. Eine spaete Antwort einer frueheren Wahl wird verworfen.
+    private func sportLaden() async {
+        let gewaehlt: String = sport
+        loading = true; defer { loading = false }
+        do {
+            let s = try await Api.spotMap(sport: gewaehlt).sorted { $0.sessions > $1.sessions }
+            guard gewaehlt == sport else { return }
+            items = s
             buendeln()
             error = nil
         } catch { self.error = error.localizedDescription }

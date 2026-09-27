@@ -542,6 +542,10 @@ data class OverallStats(
 @Serializable
 data class SportCount(val sport: String = "", val sessions: Int = 0)
 
+// Eine Sportart mit Laufzahl aus GET /api/community/sports (Auswahlfeld „Alle Sportarten" + je Sportart).
+@Serializable
+data class SportRuns(val sport: String = "", val runs: Int = 0)
+
 // Dieselben Kennzahlen wie `OverallStats`, aber je Foil (GET /api/sessions/stats-by-foil).
 // Der Server liefert nur Foils, die im gewaehlten Zeitfenster vorkommen, sortiert nach dem
 // LAENGSTEN Lauf; `foilId == null` ist die Gruppe "kein Foil eingetragen".
@@ -1117,6 +1121,9 @@ data class BoardAttitude(
     @SerialName("hub_fenster_s") val hubFensterS: Double? = null,
     @SerialName("yaw_fenster_s") val yawFensterS: Double? = null,
     @SerialName("rot_deg") val rotDeg: Double? = null,
+    // Vorn/hinten aus der Anfahrt gemessen? false = Vorzeichen von Nicken/Rollen unbekannt.
+    // null = aeltere Serverantwort ohne das Feld -> kein Hinweis.
+    @SerialName("richtung_bestimmt") val richtungBestimmt: Boolean? = null,
     @SerialName("auswahl_von_ms") val auswahlVonMs: Long? = null,
     @SerialName("auswahl_bis_ms") val auswahlBisMs: Long? = null,
     val kennzahlen: LageKennzahlen? = null,

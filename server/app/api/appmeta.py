@@ -744,11 +744,23 @@ NAECHSTES: list[dict] = [
      "items": [
          "With the phone on the board, the app also records the compass, so the analysis can tell "
          "the nose of the board from the tail.",
+         "Sessions and the spot map can be filtered by sport.",
+         "The run table shows your heart rate at the start, on average and at the end of each run.",
+         "Each watch setting in your profile confirms that it was saved.",
+         "The board view says when front and back could not be told apart.",
+         "After merging, the app tells you if a share link of one of the merged recordings stopped "
+         "working.",
      ]},
     {"name": "iPhone + Apple Watch", "version": "1.1.39",
      "items": [
          "With the phone on the board, the app also records the compass, so the analysis can tell "
          "the nose of the board from the tail.",
+         "Sessions and the spot map can be filtered by sport.",
+         "The run table shows your heart rate at the start, on average and at the end of each run.",
+         "Each watch setting in your profile confirms that it was saved.",
+         "The board view says when front and back could not be told apart.",
+         "After merging, the app tells you if a share link of one of the merged recordings stopped "
+         "working.",
      ]},
     {"name": "Amazfit", "version": "1.0.13",
      "items": [

@@ -229,11 +229,15 @@ object Api {
         )
     }
 
-    suspend fun sessions(month: String? = null, filter: String = "pump", accelOnly: Boolean = false): List<SessionSummary> = withContext(Dispatchers.IO) {
+    // `sport`: null/"all" = alle Sportarten (Serverdefault), sonst genau diese — wie `api.sessions`
+    // in der PWA (Nutzerwunsch 27.09.2026, Filter nach Sportart).
+    suspend fun sessions(month: String? = null, filter: String = "pump", accelOnly: Boolean = false,
+                         sport: String? = null): List<SessionSummary> = withContext(Dispatchers.IO) {
         val qs = buildString {
             append("?filter=$filter")
             if (!month.isNullOrBlank()) append("&month=$month")
             if (accelOnly) append("&accel_only=true")
+            if (!sport.isNullOrBlank() && sport != "all") append("&sport=" + java.net.URLEncoder.encode(sport, "UTF-8"))
         }
         json.decodeFromString(
             ListSerializer(SessionSummary.serializer()),
@@ -241,10 +245,11 @@ object Api {
         )
     }
 
-    suspend fun sessionMonths(filter: String = "pump"): List<MonthCount> = withContext(Dispatchers.IO) {
+    suspend fun sessionMonths(filter: String = "pump", sport: String? = null): List<MonthCount> = withContext(Dispatchers.IO) {
+        val sp = if (!sport.isNullOrBlank() && sport != "all") "&sport=" + java.net.URLEncoder.encode(sport, "UTF-8") else ""
         json.decodeFromString(
             ListSerializer(MonthCount.serializer()),
-            http("GET", "/api/sessions/months?filter=$filter", null, auth = true),
+            http("GET", "/api/sessions/months?filter=$filter$sp", null, auth = true),
         )
     }
 
@@ -431,11 +436,14 @@ object Api {
         )
     }
 
-    suspend fun spotSessions(spot: String, accelOnly: Boolean = true, limit: Int = 50): List<CommunityItem> = withContext(Dispatchers.IO) {
+    // `sport` null = Serverdefault (dort "pumpfoil"); "all" = alle Sportarten.
+    suspend fun spotSessions(spot: String, accelOnly: Boolean = true, limit: Int = 50,
+                             sport: String? = null): List<CommunityItem> = withContext(Dispatchers.IO) {
         val s = java.net.URLEncoder.encode(spot, "UTF-8")
+        val sp = sport?.let { "&sport=" + java.net.URLEncoder.encode(it, "UTF-8") } ?: ""
         json.decodeFromString(
             ListSerializer(CommunityItem.serializer()),
-            http("GET", "/api/community/spot-sessions?spot=$s&accel_only=$accelOnly&limit=$limit", null, auth = true),
+            http("GET", "/api/community/spot-sessions?spot=$s&accel_only=$accelOnly&limit=$limit$sp", null, auth = true),
         )
     }
 
@@ -785,8 +793,17 @@ object Api {
     }
 
     // accelOnly=false wie die PWA (Spots.tsx) — sonst fehlen GPS-only-Spots (z. B. Frankreich).
-    suspend fun spotMap(accelOnly: Boolean = false): List<SpotMapItem> = withContext(Dispatchers.IO) {
-        json.decodeFromString(ListSerializer(SpotMapItem.serializer()), http("GET", "/api/community/spot-map?accel_only=$accelOnly", null, auth = true))
+    // `sport` wie in der PWA (Spots.tsx, 27.09.2026): die Zahl je Spot zaehlt dann nur diese
+    // Sportart; "all" ist auch der Serverdefault.
+    suspend fun spotMap(accelOnly: Boolean = false, sport: String = "all"): List<SpotMapItem> = withContext(Dispatchers.IO) {
+        val sp = java.net.URLEncoder.encode(sport, "UTF-8")
+        json.decodeFromString(ListSerializer(SpotMapItem.serializer()), http("GET", "/api/community/spot-map?accel_only=$accelOnly&sport=$sp", null, auth = true))
+    }
+
+    // Sportarten mit mindestens einem sichtbaren Lauf (all time) — fuer die Sportart-Auswahl der
+    // Sessions-Liste und der Spot-Karte (wie `api.communitySports` in der PWA).
+    suspend fun communitySports(): List<SportRuns> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(SportRuns.serializer()), http("GET", "/api/community/sports", null, auth = true))
     }
 
     // Spot-Vergleich (wie SpotCompare.tsx): accelOnly=false, damit GPS-only-Spots mitzaehlen —
@@ -1046,12 +1063,18 @@ object Api {
     }
 
     @kotlinx.serialization.Serializable
-    private data class MergeResp(val id: Int)
+    private data class MergeResp(
+        val id: Int,
+        // Wie viele der Quellen per Link geteilt waren — der Link ist mit der Quelle weg (PWA 25.09.).
+        @kotlinx.serialization.SerialName("geteilte_links") val geteilteLinks: Int = 0,
+    )
 
     // Mehrere eigene Sessions zusammenführen -> neue Session-ID. Server prüft same-spot/on-foil.
     suspend fun mergeSessions(ids: List<Int>): Int = withContext(Dispatchers.IO) {
         val body = buildJsonObject { put("session_ids", buildJsonArray { ids.forEach { add(it) } }) }.toString()
-        json.decodeFromString(MergeResp.serializer(), http("POST", "/api/sessions/merge", body, auth = true)).id
+        val r = json.decodeFromString(MergeResp.serializer(), http("POST", "/api/sessions/merge", body, auth = true))
+        if (r.geteilteLinks > 0) MergeHinweis.merken(r.id, r.geteilteLinks)
+        r.id
     }
 
     // Zusammenführung wieder auflösen.

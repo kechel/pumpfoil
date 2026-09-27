@@ -209,6 +209,13 @@ struct SportCount: Codable, Identifiable {
     var id: String { sport }
 }
 
+// Eine Sportart mit Laufzahl (GET /api/community/sports) — Auswahl des Sportart-Filters.
+struct CommunitySport: Codable, Identifiable {
+    let sport: String
+    let runs: Int
+    var id: String { sport }
+}
+
 // Ein Video im Community-Feed (GET /api/social/feed). Alle freigegebenen Kanaele zusammen,
 // neueste zuerst — nicht nach Kanal gruppiert und nicht nach Beliebtheit, das ist der Punkt.
 struct SocialItem: Codable, Identifiable {
@@ -1153,6 +1160,9 @@ struct SpotDest: Hashable {
     /// fehlten die Beschreibungen ohne jeden Hinweis. Der Einstieg hat die id ohnehin zur Hand,
     /// also wird sie durchgegeben; die Suche bleibt nur als Rueckfall.
     var spotId: Int? = nil
+    /// Sportart-Filter der Spot-Karte (27.09.2026): die Zahl am Pin zaehlt nur diese Sportart,
+    /// also zeigt die Liste dahinter DIESELBE Menge. nil = Endpunkt-Default der Spot-Liste.
+    var sport: String? = nil
 }
 
 // Freitextsuche im Material-Katalog — UNABHAENGIG von der Wortstellung.
@@ -1192,6 +1202,9 @@ struct BoardAttitude: Decodable {
     let kennzahlen: LageKennzahlen?
     let laeufe: [LageLauf]?
     let rig: FoilRigMasse?
+    // false = vorn/hinten war aus den Daten nicht bestimmbar (keine eindeutige Anfahrt), dann ist
+    // das Vorzeichen von Nicken und Rollen NICHT bekannt. Optional: aeltere Server kennen das Feld nicht.
+    let richtung_bestimmt: Bool?
 }
 
 struct LageKennzahlen: Decodable {
