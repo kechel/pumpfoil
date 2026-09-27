@@ -1424,6 +1424,13 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔲 27.09. — Foilbert (u574) nach Freigabe von Wear 1.2.33 Bescheid geben** und um eine kurze
+  Testaufzeichnung bitten (DM von u230, `dm:230-574`; zugesagt am 27.09.). Befund: seine Wear-Uhr
+  (OPWWE251, Android 14) liefert zu Beginn jeder Aufnahme volle 25–27 Hz und drosselt nach
+  20–30 s auf 2–7 Hz, mit Spitzen bis 52 Hz — Stromsparen bei dunklem Display (Muster, nicht
+  bewiesen; Juggluco passt nicht zum Einbruch genau beim Display-Aus). Er steht auf der
+  Wake-up-Testliste, gesetzt ist der Sensor aber noch nicht (weder Geraet noch Profil). Nach dem
+  Test: Rate je 10-s-Block gegen #10163/#10215 vergleichen (`storage.chunk_laengen`).
 - **🔲 25.09. abends — WIEDERAUFSETZPUNKT fuer den 26.09.: testen und releasen.**
   - **NEU (25.09. spaet): PWA-Portierung in beide Handy-Apps** (Android `df804496`…`df54ca55`,
     iOS dieselben Punkte): Lage des Bretts (Frage, Schalter, Ansicht mit Foil-Zeichnung +
