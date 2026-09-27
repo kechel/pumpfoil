@@ -817,6 +817,11 @@ IDEEN: list[str] = [
     # Nutzerfrage im Community-Chat 27.09.2026 („Is it possible to save friends and view their
     # sessions?"), Jan hat dort geantwortet, es stehe auf der Roadmap.
     "Mark riders as friends and see their sessions in one place.",
+    # Nutzerfrage im Community-Chat 28.09.2026 („dass man seine bisherigen Runs der Session auf der
+    # Uhr scrollen kann … direkt am Wasser seine Runs (mit Kollegen) abgleichen"). Heute zeigt die
+    # Uhr nur den letzten Lauf; Jan: „direkt auf der uhr ist aber auch ne gute idee".
+    "Scroll through all runs of the session on your watch, not just the last one, to compare "
+    "them with friends right at the water.",
     # Der „private Modus" (Feedback #146) stand hier bis 25.09. — gebaut als „Ort verbergen",
     # steht seitdem im Changelog. Nicht wieder eintragen.
 ]
