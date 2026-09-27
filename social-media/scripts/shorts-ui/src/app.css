@@ -423,3 +423,11 @@ table.cmp { max-width: 520px; }
 .expfilter { display: flex; align-items: center; gap: 6px; margin: 0 0 10px; }
 .expfilter input[type=search] { flex: 1; min-width: 0; font-size: 13px; padding: 6px 9px;
   border-radius: 7px; border: 1px solid #8886; background: transparent; color: inherit; }
+
+/* Unter dem Render-Knopf: Zurueckholen schmal, Abbrechen daneben (Jan, 27.09.) */
+.rendertools { display: flex; gap: 6px; margin-top: 6px; }
+.rendertools .btn { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rendertools .btn:first-child { flex: 0 0 40%; }
+.rendertools .btn.abbruch { flex: 1; }
+.rendertools .btn.abbruch:not(:disabled) { border-color: #ef444488; color: #ef4444; }
+.rendertools .btn.abbruch:not(:disabled):hover { background: #ef444422; }

@@ -77,6 +77,10 @@ const ZH_DEFAULT_2ND_LAST_TEXT =
 const txText = (tx: TextSlot, zh: boolean) =>
   (zh && tx.zh && tx.zh.trim()) ? tx.zh : tx.text;
 
+// Dateinamen ohne Leerzeichen: ein Name mit Leerzeichen bricht jede Kette,
+// die ihn spaeter unquotiert weiterreicht. Dieselbe Regel steht im Server.
+const dateiname = (s: string) =>
+  s.trim().replace(/[/\\:\s\x00-\x1f]+/g, "-").replace(/^-+|-+$/g, "");
 const isStamp = (s?: TxStyle): s is "success" | "fail" => s === "success" || s === "fail";
 const shapeOf = (tx: TextSlot): TxShape => tx.shape ?? "plain";
 // Alles Gezeichnete (Urteil oder geformter Text) hat feste Masse und rastet
@@ -1406,11 +1410,17 @@ function Studio() {
             }
           : null,
       });
-      const errs = Object.entries(r.results).filter(([, res]) => !res.ok);
-      setLog(errs.map(([pf, res]) => `✗ ${pf}: ${res.error}`).join("\n"));
-      // verwendeten Namen (inkl. Nummer) behalten → erneutes Rendern überschreibt
-      const first = Object.values(r.results).find((res) => res.ok && res.out);
-      if (first?.out) setOutName(first.out.split("/").pop()!.replace(/\.mp4$/, ""));
+      if (r.cancelled) {
+        // Nichts gerendert, nichts verschoben — auch der Name bleibt, wie er war.
+        setLog("Render abgebrochen"
+          + (r.entfernt?.length ? ` — ${r.entfernt.length} angefangene Datei(en) wieder entfernt` : ""));
+      } else {
+        const errs = Object.entries(r.results).filter(([, res]) => !res.ok);
+        setLog(errs.map(([pf, res]) => `✗ ${pf}: ${res.error}`).join("\n"));
+        // verwendeten Namen (inkl. Nummer) behalten → erneutes Rendern überschreibt
+        const first = Object.values(r.results).find((res) => res.ok && res.out);
+        if (first?.out) setOutName(first.out.split("/").pop()!.replace(/\.mp4$/, ""));
+      }
     } catch (e) {
       setLog(`Fehler: ${e}`);
     }
@@ -2110,7 +2120,12 @@ function Studio() {
               placeholder="z.B. sunset-carving"
               spellCheck={false}
               value={outName}
+              title="Leerzeichen werden beim Verlassen des Feldes zu Bindestrichen"
               onChange={(e) => setOutName(e.target.value)}
+              // Erst beim Verlassen umwandeln — waehrend des Tippens wuerde
+              // jedes Leerzeichen sofort zum Bindestrich und man kaeme nicht
+              // mehr zurueck. Der Server macht dasselbe noch einmal.
+              onBlur={(e) => setOutName(dateiname(e.target.value))}
             />
             {pxSuffix.length > 0 && (
               <div className="nfix" title="Pixabay-Track-ID — hängt der Render je Plattform automatisch an (Lizenznachweis bei Content-ID-Claims)">
@@ -2128,23 +2143,37 @@ function Studio() {
           >
             {rendering ? "Rendere …" : "Rendern → shorts-mit-musik/"}
           </button>
-          <button
-            className="btn"
-            style={{ width: "100%", marginTop: 6 }}
-            title="Gerenderte Dateien des letzten Renders löschen und das Quellvideo zurückholen (Original bleibt erhalten)"
-            onClick={async () => {
-              if (!window.confirm("Letzten Render zurückholen?\nDie 3 gerenderten Dateien werden gelöscht, das Quellvideo kommt zurück in die Auswahl.")) return;
-              const d = await api.post<AppState & { restored?: string; error?: string }>("/api/redo_last", {});
-              if (d.error) {
-                setLog(d.error);
-                return;
-              }
-              setState(d);
-              if (d.restored) pickVideo(d.restored);
-            }}
-          >
-            ↩ Letzten Render zurückholen
-          </button>
+          <div className="rendertools">
+            <button
+              className="btn"
+              title="Gerenderte Dateien des letzten Renders löschen und das Quellvideo zurückholen (Original bleibt erhalten)"
+              onClick={async () => {
+                if (!window.confirm("Letzten Render zurückholen?\nDie 3 gerenderten Dateien werden gelöscht, das Quellvideo kommt zurück in die Auswahl.")) return;
+                const d = await api.post<AppState & { restored?: string; error?: string }>("/api/redo_last", {});
+                if (d.error) {
+                  setLog(d.error);
+                  return;
+                }
+                setState(d);
+                if (d.restored) pickVideo(d.restored);
+              }}
+            >
+              ↩ Letzten Render zurückholen
+            </button>
+            <button
+              className="btn abbruch"
+              disabled={!rendering}
+              title={rendering
+                ? "Den laufenden Render abbrechen — angefangene Dateien werden wieder entfernt, das Quellvideo bleibt liegen"
+                : "Gerade läuft kein Render"}
+              onClick={async () => {
+                const d = await api.post<{ ok: boolean; error?: string }>("/api/render/cancel", {});
+                if (!d.ok) setLog(d.error ?? "Abbruch nicht möglich");
+              }}
+            >
+              ✕ Aktuellen Render abbrechen
+            </button>
+          </div>
           {prog && (
             <div className="prog" style={{ display: "block" }}>
               <div className="track">
