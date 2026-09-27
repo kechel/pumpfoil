@@ -134,9 +134,9 @@ sie fuer die Aufnahme gibt.
 Nicken und Rollen kommen aus einem komplementaeren Filter ueber Beschleunigung und Kreisel. Wie
 das Handy montiert war, wird JE LAUF aus den Daten bestimmt, nicht vom Nutzer angegeben. Der Hub
 (die Auf-/Abbewegung) erscheint nur, wenn der Pumptakt sicher erkannt war; sonst fehlt er, und
-das Fehlen ist die ehrliche Antwort. Vorn/hinten wird aus der Anfahrt GEMESSEN; steht
-`richtung_bestimmt: false`, war das nicht moeglich — dann ist das VORZEICHEN von Nicken und Rollen
-unbekannt, und du darfst nicht sagen, ob die Nase hoch oder runter ging. Gieren wird bewusst nicht ausgewertet: es ist die frei
+das Fehlen ist die ehrliche Antwort. Vorn/hinten laesst sich bisher NICHT messen (die
+Schwerkraft allein kann es nicht unterscheiden); steht `richtung_bestimmt: false`, ist das VORZEICHEN
+von Nicken und Rollen unbekannt, und du darfst nicht sagen, ob die Nase hoch oder runter ging. Gieren wird bewusst nicht ausgewertet: es ist die frei
 gewaehlte Route und sagt nichts ueber Technik.
 
 PULS

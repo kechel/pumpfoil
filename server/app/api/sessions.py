@@ -3835,7 +3835,7 @@ def _lage_antwort(
     # `lage_berechnen` meldet jede Vorgabe als „manuell" — hier weiss die Antwort es besser.
     if rot_quelle_fest:
         erg["rot_quelle"] = rot_quelle_fest
-    # Ebenso, ob vorn/hinten GEMESSEN ist (Anfahrt, s. `lage.vorn_aus_anfahrt`) — die Vorgabe
+    # Ebenso, ob vorn/hinten GEMESSEN ist (s. `lage.richtung_messen`) — die Vorgabe
     # aus der Montage je Lauf gilt fuer `lage_berechnen` als „bekannt", ist es aber nur, wenn die
     # Montage es gemessen hat.
     if richtung_fest is not None:
