@@ -599,6 +599,37 @@ etwa sieben Aufnahmen. Die elf Handy-Aufnahmen anderer, bei denen der Brett-Hinw
 Uhr — diese Fahrer nehmen nur mit dem Handy auf. Fuer die Lage-Erkennung sind sie wertvoll, fuer
 die Paar-Wahrheit nicht.
 
+### 12d. Zweiter Fahrer, nutzeruebergreifend (27.09.2026)
+
+u2s Handy (Pixel 7a) fest an **u13s Brett**, u13 mit fēnix 7 am Handgelenk: #10248 (Handy,
+09:38–10:17) gegen #10250 (Uhr, 09:47–10:43). Anschliessend #10248 auf u13 umgehaengt, Ausruestung
+aus #10250 uebernommen.
+
+- **Die Paar-Erkennung aus 12b haette es gefunden** — deutlicher als u2s eigenes Paar: Ort 0,01 km,
+  4/4 Laeufe mit Partner (−2,4 s), GPS Median 5,4 m, Tempo r = 0,90. Drei weitere Aufnahmen zur
+  selben Zeit lagen 330–900 km entfernt und hatten keinen passenden Lauf.
+- **Beschleunigung je Lauf: −0,24 · −0,24 · −0,28 s** (r 0,75–0,86) — und im langen ersten Lauf
+  (191 s) ein Nebenmaximum bei −2,72 s. Das ist die **Mehrdeutigkeit des Pumprhythmus** (~1,4 Hz →
+  Periode ~0,7 s; −2,72 liegt dreieinhalb Pumps neben −0,25). Die Feinsuche braucht deshalb einen
+  ENGEN Bereich um den Versatz aus den Laeufen (±1 s) und den Median ueber alle Laeufe.
+- **Nutzeruebergreifend** geht technisch genauso, sollte aber nur als Vorschlag laufen, den beide
+  bestaetigen — es verknuepft die Daten zweier Menschen.
+
+**Und der Brett-Hinweis hat NICHT gefragt**, obwohl das Handy die ganze Zeit fest sass (Montage-
+Erkennung: 269,2° in allen vier Laeufen, nirgends „verrutscht"; die Drehung ist vor Nicken/Rollen
+schon herausgerechnet). Grund: **auf u13s Brett rollt es staerker, als es nickt** — Laeufe 2–4
+Nicken 15/13/14° gegen Rollen 22/19/22°, Verhaeltnis 0,70 gegen die Schwelle 1,15. Der Pumptakt war
+in allen vier Laeufen sicher (100 %).
+
+Die Annahme „ein Brett nickt mehr als es rollt" stammt aus Aufnahmen EINES Fahrers (u2) und traegt
+beim zweiten nicht. **Vermutung, nicht belegt:** der bessere Fahrer pumpt effizienter — laengere
+Laeufe, weniger Nicken (u13: 13–15°, Hub 13–18 cm; u2: bis 26°, Hub 20–23 cm). Nachgerechnet an
+allen 26 Aufnahmen mit Kreisel: das Achsen-Verhaeltnis trennt Brett von Koerper nur schwach (am
+Koerper verteilt sich die Bewegung zufaellig), **der Anteil sicherer Pumptakte trennt klar** (Brett
+100 %, Koerper-Verdacht 8–24 %). Regel bewusst NICHT geaendert (Jan, 27.09.): erst Aufnahmen weiterer
+Fahrer, statt sie an einem zweiten anzupassen. Kandidat fuer spaeter: staerkere Achse (max/min) ≥ 1,15
+UND sichere Pumptakte ≥ 75 % — faengt alle sechs bestaetigten Brett-Aufnahmen ausser #9484.
+
 **Der Engpass sind Fahrer, nicht Technik.** Abschnitt 3 rechnet mit 8–10 Fahrern × 5 min. Die
 Erkennung aus 12b findet Paare, sobald es sie gibt; entstehen werden sie erst auf Nachfrage
 (Abschnitt 11). Entscheidung 26.09.: erst abwarten.
