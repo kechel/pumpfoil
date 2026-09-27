@@ -58,7 +58,7 @@ def main() -> int:
     from sqlalchemy import func
 
     from app import models, storage
-    from app.analysis import maybe_auto_trim, run_analysis
+    from app.analysis import abschliessend_auswerten, maybe_auto_trim, run_analysis
     from app.api.ingest import _analyze_in_background, haenger_faellig
     from app.clockmap import gesamt_pause_ms
     from app.db import SessionLocal
@@ -135,9 +135,8 @@ def main() -> int:
                     s.ended_at = s.started_at + timedelta(milliseconds=lm + gesamt_pause_ms(s))
                     db.commit()
             try:
-                run_analysis(db, s, final=True)
-                if maybe_auto_trim(db, s):
-                    run_analysis(db, s, final=True)
+                # Samt Zuschnitt; ein automatischer wird neu bestimmt (analysis.abschliessend_auswerten).
+                abschliessend_auswerten(db, s)
             except Exception as e:                                  # noqa: BLE001
                 print(f"   #{sid}: FEHLER {e!r}")
                 db.rollback()
