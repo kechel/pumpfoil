@@ -626,9 +626,15 @@ beim zweiten nicht. **Vermutung, nicht belegt:** der bessere Fahrer pumpt effizi
 Laeufe, weniger Nicken (u13: 13–15°, Hub 13–18 cm; u2: bis 26°, Hub 20–23 cm). Nachgerechnet an
 allen 26 Aufnahmen mit Kreisel: das Achsen-Verhaeltnis trennt Brett von Koerper nur schwach (am
 Koerper verteilt sich die Bewegung zufaellig), **der Anteil sicherer Pumptakte trennt klar** (Brett
-100 %, Koerper-Verdacht 8–24 %). Regel bewusst NICHT geaendert (Jan, 27.09.): erst Aufnahmen weiterer
-Fahrer, statt sie an einem zweiten anzupassen. Kandidat fuer spaeter: staerkere Achse (max/min) ≥ 1,15
-UND sichere Pumptakte ≥ 75 % — faengt alle sechs bestaetigten Brett-Aufnahmen ausser #9484.
+100 %, Koerper-Verdacht 8–24 %). **Noch am selben Tag geaendert — und zwar nicht an u13
+angepasst, sondern an der Physik:** Jans Hinweis „die bei denen es schraeg im raum haengt, [sind]
+sehr wahrscheinlich nicht am board befestigt" (und: am MAST waere es hochkant). Neues Merkmal: der
+**Winkel der mittleren Schwerkraft zur naechsten Geraeteachse in den Laeufen** — fest montierte Handys
+2,5–7,7°, vermutete Koerper-Aufnahmen 19,9–34,6°, alle neun bisher gefragten Fremdaufnahmen schraeg
+(24–48°). Regel jetzt: Winkel ≤ 15° UND sichere Pumptakte ≥ 50 %; Nicken/Rollen nur noch Auskunft.
+Zwei weitere Ansaetze trennten NICHT und sind verworfen: „Mitdrehen mit dem GPS-Kurs" (r 0,31–0,62
+Brett gegen 0,26–0,70 Koerper; der 1-Hz-Kurs ist zu grob) und „Reinheit des Pumptakts im Spektrum"
+(0,26–0,30 gegen 0,19–0,57). Code und Messtabelle: `BRETT_ACHSE_MAX_DEG` in `api/sessions.py`.
 
 **Der Engpass sind Fahrer, nicht Technik.** Abschnitt 3 rechnet mit 8–10 Fahrern × 5 min. Die
 Erkennung aus 12b findet Paare, sobald es sie gibt; entstehen werden sie erst auf Nachfrage
