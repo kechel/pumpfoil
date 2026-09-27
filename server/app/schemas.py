@@ -150,7 +150,7 @@ class SessionStartOut(BaseModel):
 
 class ChunkIn(BaseModel):
     index: int
-    kind: str  # "gps" | "accel"
+    kind: str  # "gps" | "accel" | "gyro" | "mag"
     encoding: str  # "json" | "int16-b64"
     # Startzeit des Chunks in ms seit Session-Start. None = Client sendet es nicht (Garmin bis
     # 1.0.70) -> es wird KEIN .t0-Sidecar geschrieben. Der fruehere Default 0 hat Sidecars mit

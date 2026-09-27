@@ -38,6 +38,7 @@ def ensure_session_dir(session_uuid: str) -> Path:
     (d / "gps").mkdir(parents=True, exist_ok=True)
     (d / "accel").mkdir(parents=True, exist_ok=True)
     (d / "gyro").mkdir(parents=True, exist_ok=True)
+    (d / "mag").mkdir(parents=True, exist_ok=True)
     return d
 
 
@@ -86,6 +87,56 @@ def save_gyro_chunk(session_uuid: str, index: int, b64: str, t0_ms: int | None =
     if t0_ms is not None:
         (d / "gyro" / f"{index}.t0").write_text(str(int(t0_ms)))
     return len(raw) // 2 // 3
+
+
+# Magnetometer: 10 Schritte je µT (±3276 µT). Das Erdfeld hat 25–65 µT; Handyhalterungen mit
+# Magneten erzeugen am Sensor einige hundert µT — die sollen nicht abgeschnitten werden.
+MAG_SCALE = 10.0
+
+
+def save_mag_chunk(session_uuid: str, index: int, b64: str, t0_ms: int | None = None) -> int:
+    """Magnetfeld-Chunk ablegen — gleiche Form wie Accel/Gyro, eigenes Verzeichnis.
+
+    WOZU (Jan, 27.09.2026): vorn/hinten eines Handys am Brett laesst sich aus Schwerkraft,
+    Beschleunigung und GPS nicht eindeutig bestimmen (docs/GROUND-TRUTH.md 12d). Der Kompass kann
+    es: auf geraden Strecken zeigt die Vorwaertsachse in die Fahrtrichtung laut GPS.
+    Format: int16 little-endian, drei Achsen (x, y, z) je Sample, `MAG_SCALE` Schritte je µT,
+    kalibriert (Android TYPE_MAGNETIC_FIELD, iOS deviceMotion.magneticField).
+    """
+    d = ensure_session_dir(session_uuid)
+    raw = base64.b64decode(b64)
+    (d / "mag" / f"{index}.bin").write_bytes(raw)
+    if t0_ms is not None:
+        (d / "mag" / f"{index}.t0").write_text(str(int(t0_ms)))
+    return len(raw) // 2 // 3
+
+
+def load_mag(session_uuid: str) -> np.ndarray:
+    """Alle Magnetfeld-Chunks zu einem (N, 3) int16-Array. Leer = kein Magnetometer."""
+    d = session_dir(session_uuid) / "mag"
+    if not d.exists():
+        return np.empty((0, 3), dtype=np.int16)
+    parts = [np.frombuffer(f.read_bytes(), dtype="<i2")
+             for f in sorted(d.glob("*.bin"), key=lambda p: int(p.stem))]
+    if not parts:
+        return np.empty((0, 3), dtype=np.int16)
+    flat = np.concatenate(parts)
+    n = (flat.size // 3) * 3
+    return flat[:n].reshape(-1, 3)
+
+
+def load_mag_t0(session_uuid: str) -> dict[int, int]:
+    """Chunk-Index -> Startzeit in ms fuer den Magnetfeld-Kanal (wie `load_gyro_t0`)."""
+    d = session_dir(session_uuid) / "mag"
+    if not d.exists():
+        return {}
+    out: dict[int, int] = {}
+    for f in d.glob("*.t0"):
+        try:
+            out[int(f.stem)] = int(f.read_text().strip())
+        except (ValueError, OSError):
+            continue
+    return out
 
 
 # Ablage fuer Dateien, die der Import NICHT lesen konnte. Liegt unter data/ und wandert damit

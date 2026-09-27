@@ -908,6 +908,7 @@ def list_in_progress(
     gps_n: dict[int, int] = {}
     accel_n: dict[int, int] = {}
     gyro_n: dict[int, int] = {}
+    mag_n: dict[int, int] = {}
     for sid, kind, n in (
         db.query(models.IngestChunk.session_id, models.IngestChunk.kind, func.count())
         .filter(models.IngestChunk.session_id.in_(ids))
@@ -922,6 +923,8 @@ def list_in_progress(
             accel_n[sid] = int(n)
         elif kind == "gyro":
             gyro_n[sid] = int(n)
+        elif kind == "mag":
+            mag_n[sid] = int(n)
     # Zeitpunkt des zuletzt empfangenen Chunks je Session — Client erkennt darüber einen
     # ins Stocken geratenen Upload (>5 min still) und zeigt dann den „App auf der Uhr erneut
     # öffnen"-Hinweis.
@@ -947,7 +950,7 @@ def list_in_progress(
     for s in rows:
         g = gps_n.get(s.id, 0)
         a = accel_n.get(s.id, 0)
-        gy = gyro_n.get(s.id, 0)
+        gy = gyro_n.get(s.id, 0) + mag_n.get(s.id, 0)   # beide zaehlen im Fortschritt mit
         lbl = dmap.get(s.device_id) if s.device_id else None
         out.append({
             "id": s.id,
