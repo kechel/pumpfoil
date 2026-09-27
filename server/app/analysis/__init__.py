@@ -324,6 +324,30 @@ def maybe_auto_trim(db: DbSession, session: "models.Session") -> bool:
     return True
 
 
+def abschliessend_auswerten(db: DbSession, session: "models.Session") -> None:
+    """Die ABSCHLIESSENDE Auswertung samt Zuschnitt — an jeder Stelle, die final auswertet.
+
+    Ein AUTOMATISCH gesetzter Zuschnitt (`trim_auto`) wird dabei jedes Mal neu bestimmt: erst
+    verwerfen, dann auf der ganzen Aufnahme rechnen, dann neu zuschneiden. Ein vom Nutzer gesetzter
+    bleibt, wie er ist.
+
+    WARUM (27.09.2026, #10158, Bartosz): der Upload einer Apple Watch stockte nach 131 von 2041
+    Chunks. Nachts schloss der Aufraeum-Timer die Session mit diesen ersten 22 Minuten ab, der
+    Zuschnitt landete auf 3,9–21,9 min. Am Morgen kam der Rest, die Uhr schloss sauber ab — aber
+    `maybe_auto_trim` sah „schon zugeschnitten" und rechnete nicht neu. Zwei Stunden Fahrt lagen
+    ausserhalb, seine laengsten Laeufe (180, 145, 126 m) standen nur als Startversuche da. Jan:
+    „dann muss ja nach weiteren uploads nochmal korrigiert werden, da fehlt der automatismus".
+    """
+    if session.trim_auto and (session.trim_start_ms is not None or session.trim_end_ms is not None):
+        session.trim_start_ms = None
+        session.trim_end_ms = None
+        session.trim_auto = False
+        db.commit()
+    run_analysis(db, session, final=True)
+    if maybe_auto_trim(db, session):
+        run_analysis(db, session, final=True)
+
+
 def attempt_distances(gps_samples, gps_hz) -> list:
     """Lauf-Distanzen unter dem 'attempts'-Preset (lockere Startversuch-Erkennung, ab ~8 km/h →
     keine Landgänge) — NUR für die Start-Erfolgsquote-Anzeige. Reine GPS-Segmentierung, erfasst

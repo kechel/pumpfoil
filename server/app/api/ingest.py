@@ -12,7 +12,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from .. import models, storage
-from ..analysis import maybe_auto_trim, run_analysis
+from ..analysis import abschliessend_auswerten, maybe_auto_trim, run_analysis
 from ..clockmap import gesamt_pause_ms
 from ..db import SessionLocal, get_db
 from ..naming import ist_gattung, modell_aus_session
@@ -373,9 +373,11 @@ def _analyze_in_background(session_id: int, final: bool = True) -> None:
     try:
         s = db.get(models.Session, session_id)
         if s is not None:
-            run_analysis(db, s, final=final)
-            if final and maybe_auto_trim(db, s):  # nach Abschluss Heimfahrt o.ä. wegschneiden
-                run_analysis(db, s, final=True)
+            if final:
+                # Samt Zuschnitt, und ein automatischer wird dabei NEU bestimmt (s. Funktion).
+                abschliessend_auswerten(db, s)
+            else:
+                run_analysis(db, s, final=False)
             if final:
                 from ..notify import notify_session_analyzed
                 notify_session_analyzed(db, s)

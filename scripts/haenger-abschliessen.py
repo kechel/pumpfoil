@@ -55,7 +55,7 @@ if os.environ.get("DETECTOR_V2", "").strip().lower() not in ("1", "true", "yes",
 from sqlalchemy import func, text                                    # noqa: E402
 
 from app import models, storage                                      # noqa: E402
-from app.analysis import maybe_auto_trim, run_analysis               # noqa: E402
+from app.analysis import abschliessend_auswerten, maybe_auto_trim, run_analysis               # noqa: E402
 from app.db import SessionLocal                                      # noqa: E402
 from app.clockmap import gesamt_pause_ms                             # noqa: E402
 
@@ -163,9 +163,8 @@ def main() -> None:
         if neu:
             db.commit()
         try:
-            run_analysis(db, s, final=True)
-            if maybe_auto_trim(db, s):
-                run_analysis(db, s, final=True)
+            # Samt Zuschnitt; ein automatischer wird neu bestimmt (analysis.abschliessend_auswerten).
+            abschliessend_auswerten(db, s)
         except Exception as e:                                  # noqa: BLE001
             print(f"  #{s.id}: FEHLER {e!r}")
             db.rollback()
