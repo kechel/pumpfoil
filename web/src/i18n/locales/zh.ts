@@ -430,6 +430,7 @@ const zh: Record<string, string> = {
 
   "all.filterName": "按名称筛选…",
   "all.allSpots": "所有地点",
+  "all.allSports": "所有运动",
   "all.resetFilter": "重置筛选",
   "all.none": "未找到记录。",
 

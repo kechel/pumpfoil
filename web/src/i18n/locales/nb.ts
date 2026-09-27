@@ -444,6 +444,7 @@ const nb: Record<string, string> = {
   "metric.foilingPerSession": "Foiling / økt",
   "all.filterName": "Filtrer etter navn…",
   "all.allSpots": "Alle spots",
+  "all.allSports": "Alle sporter",
   "all.resetFilter": "Nullstill filter",
   "all.none": "Ingen økter funnet.",
   "reset.title": "Sett nytt passord",

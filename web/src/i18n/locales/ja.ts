@@ -430,6 +430,7 @@ const ja: Record<string, string> = {
 
   "all.filterName": "名前で絞り込み…",
   "all.allSpots": "全スポット",
+  "all.allSports": "すべてのスポーツ",
   "all.resetFilter": "絞り込みをリセット",
   "all.none": "セッションが見つかりません。",
 

@@ -834,6 +834,9 @@ IDEEN: list[str] = [
     # Faelle, in denen sie danebenliegt (Jan, 24.09.2026).
     "Recognise on its own when the phone was mounted on the board, instead of asking you. The "
     "tick box stays for the times we get it wrong.",
+    # Nutzerfrage im Community-Chat 27.09.2026 („Is it possible to save friends and view their
+    # sessions?"), Jan hat dort geantwortet, es stehe auf der Roadmap.
+    "Mark riders as friends and see their sessions in one place.",
     # Der „private Modus" (Feedback #146) stand hier bis 25.09. — gebaut als „Ort verbergen",
     # steht seitdem im Changelog. Nicht wieder eintragen.
 ]

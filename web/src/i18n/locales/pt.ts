@@ -430,6 +430,7 @@ const pt: Record<string, string> = {
 
   "all.filterName": "Filtrar por nome…",
   "all.allSpots": "Todos os spots",
+  "all.allSports": "Todos os esportes",
   "all.resetFilter": "Limpar filtro",
   "all.none": "Nenhuma sessão encontrada.",
 

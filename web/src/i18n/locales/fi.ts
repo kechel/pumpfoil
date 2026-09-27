@@ -432,6 +432,7 @@ const fi: Record<string, string> = {
   // Alle Sessions
   "all.filterName": "Suodata nimellä…",
   "all.allSpots": "Kaikki spotit",
+  "all.allSports": "Kaikki lajit",
   "all.resetFilter": "Nollaa suodatin",
   "all.none": "Sessioita ei löytynyt.",
 

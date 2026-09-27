@@ -430,6 +430,7 @@ const ru: Record<string, string> = {
 
   "all.filterName": "Фильтр по имени…",
   "all.allSpots": "Все споты",
+  "all.allSports": "Все виды спорта",
   "all.resetFilter": "Сбросить фильтр",
   "all.none": "Сессии не найдены.",
 
