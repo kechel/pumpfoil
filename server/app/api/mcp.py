@@ -680,7 +680,7 @@ def _get_board_attitude(db: Session, user_id: int, arg: dict) -> dict:
     # ueberholt und wird neu gerechnet. Ein veralteter Eintrag kann so gar nicht gelesen werden,
     # und es gibt nichts, was jemand haendisch leeren muesste (s. models.BoardAttitudeCache).
     schluessel = hashlib.sha256("|".join([
-        str(getattr(ar, "algo_version", None)),
+        str(getattr(ar, "algo_version", None)), lage.LAGE_VERSION,
         str(s.trim_start_ms), str(s.attitude_rot_deg),
         hashlib.sha256((getattr(ar, "segments_json", None) or "").encode()).hexdigest(),
     ]).encode()).hexdigest()
