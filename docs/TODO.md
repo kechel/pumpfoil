@@ -10961,3 +10961,8 @@ Offen daraus:
   noch eine abschliessende Auswertung (`abschliessend_auswerten`), oder hing der Rest am
   Haenger-Timer? Gegenprobe gegen die 784er-Kandidatenabfrage vom 27.09.: neue Faelle mit „wuerde
   laenger" duerfen nur noch legitime Zuschnitte sein (z. B. Autofahrt am Ende).
+
+- **🔍 #10319 (Apple Watch 1.1.38, u401, 27.09.2026): `ended_at` liegt VOR `started_at`** (17:27:39
+  gegen 17:25:27, 13-s-Aufnahme, 4 Bloecke, Luecken bei 3 und 8, kein `/complete`). Rein lesend
+  pruefen, woher die beiden Zeiten kommen (meta `started_at` vs. Haenger-Abschluss) — kleiner
+  Schoenheitsfehler, aber eine negative Dauer darf nirgends ankommen.
