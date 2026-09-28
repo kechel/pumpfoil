@@ -679,6 +679,20 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # EINGEREICHT 28.09.2026 07:42 (App Store Connect: „iOS-App 1.1.39 (44) · Warten auf Pruefung",
+    # Uebermittlungskennung 3d3077d9-fad6-440e-a204-f472ef338f51), aus Commit 5c485b25.
+    {"name": "iPhone + Apple Watch", "version": "1.1.39",
+     "eingereicht": "2026-09-28",
+     "items": [
+         "With the phone on the board, the app also records the compass, so the analysis can tell "
+         "the nose of the board from the tail.",
+         "Sessions and the spot map can be filtered by sport.",
+         "The run table shows your heart rate at the start, on average and at the end of each run.",
+         "Each watch setting in your profile confirms that it was saved.",
+         "The board view says when front and back could not be told apart.",
+         "After merging, the app tells you if a share link of one of the merged recordings stopped "
+         "working.",
+     ]},
     # EINGEREICHT 28.09.2026 (Jans Meldung, Console: „Produktion 49 (1.1.35) · Produktion (Wear OS)
     # 1045 (1.2.35)", Vorabpruefung laeuft). Wear ohne eigene Aenderung mitgebumpt (harte Regel:
     # Phone und Wear immer zusammen) — deshalb EINE Zeile mit beiden Nummern und den Handy-Punkten.
@@ -756,17 +770,6 @@ NAECHSTES: list[dict] = [
     # 1.1.34 ging in den internen Test (Jan, 27.09.); 1.1.35 bringt dazu die Portierung vom 28.09.
     # (bf972167). iOS 1.1.39 Build 43 liegt in TestFlight, Build 44 hat die Portierung.
     # Wear 1.2.34 wird nur mitgebumpt (harte Regel: Phone und Wear immer zusammen), ohne eigenen Punkt.
-    {"name": "iPhone + Apple Watch", "version": "1.1.39",
-     "items": [
-         "With the phone on the board, the app also records the compass, so the analysis can tell "
-         "the nose of the board from the tail.",
-         "Sessions and the spot map can be filtered by sport.",
-         "The run table shows your heart rate at the start, on average and at the end of each run.",
-         "Each watch setting in your profile confirms that it was saved.",
-         "The board view says when front and back could not be told apart.",
-         "After merging, the app tells you if a share link of one of the merged recordings stopped "
-         "working.",
-     ]},
     {"name": "Amazfit", "version": "1.0.13",
      "items": [
          "While a recording is paused, the watch shows your pause pages and says so on every "
