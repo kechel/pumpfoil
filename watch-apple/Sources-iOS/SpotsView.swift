@@ -239,7 +239,9 @@ struct SpotsView: View {
             if SportFilterMenu.zeigen(sport: sport, sports: sports) {
                 SportFilterMenu(sport: sport, sports: sports, lang: lang) { sport = $0 }
             }
-            if mitNotes > 0 {
+            // Auch bei 0 zeigen, solange der Schalter an ist: sonst bleibt nach einem Sportart-Wechsel
+            // eine leere Karte ohne Weg zurueck (Jan, 28.09.2026, am Android gefunden).
+            if mitNotes > 0 || nurNotes {
                 Toggle(isOn: $nurNotes) {
                     Text("\(Loc.t("spots.onlyWithNotes", lang)) (\(mitNotes))")
                 }

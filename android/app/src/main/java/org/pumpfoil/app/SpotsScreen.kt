@@ -179,7 +179,9 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 SportDropdown(sports, sport, Modifier.align(Alignment.CenterVertically)) { sport = it }
-                if (mitNotes > 0) {
+                // Auch bei 0 zeigen, solange der Haken sitzt: sonst bleibt nach einem Sportart-Wechsel
+                // eine leere Karte ohne Weg zurueck (Jan, 28.09.2026).
+                if (mitNotes > 0 || nurNotes) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.align(Alignment.CenterVertically).clickable { nurNotes = !nurNotes },
