@@ -1,5 +1,9 @@
 package org.pumpfoil.app
 
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Arrangement
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -55,7 +59,7 @@ import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit = {},
                 onOpenSpotSport: (String, String) -> Unit = { s, _ -> onOpenSpot(s) }) {
@@ -168,17 +172,22 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
         Box(Modifier.padding(pad)) {
           Column(Modifier.fillMaxSize()) {
             // Filterzeile ueber dem Suchfeld. In der PWA steht sie rechts neben der Ueberschrift;
-            // hier sitzt der Titel in der TopBar, also bekommt sie eine eigene Zeile.
-            SportDropdown(sports, sport, Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp)) { sport = it }
-            if (mitNotes > 0) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 4.dp)
-                        .clickable { nurNotes = !nurNotes },
-                ) {
-                    Checkbox(checked = nurNotes, onCheckedChange = { nurNotes = it })
-                    Text("${I18n.t("spots.onlyWithNotes")} ($mitNotes)",
-                         style = MaterialTheme.typography.bodyMedium)
+            // hier sitzt der Titel in der TopBar, also bekommt sie eine eigene Zeile — Sportart und
+            // „mit Beschreibung" nebeneinander (Jan, 28.09.2026), umbrechend, falls es nicht passt.
+            FlowRow(
+                Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                SportDropdown(sports, sport, Modifier.align(Alignment.CenterVertically)) { sport = it }
+                if (mitNotes > 0) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.align(Alignment.CenterVertically).clickable { nurNotes = !nurNotes },
+                    ) {
+                        Checkbox(checked = nurNotes, onCheckedChange = { nurNotes = it })
+                        Text("${I18n.t("spots.onlyWithNotes")} ($mitNotes)",
+                             style = MaterialTheme.typography.bodyMedium)
+                    }
                 }
             }
             // Suchfeld ueber der Karte — dieselbe Stelle wie in der PWA.
