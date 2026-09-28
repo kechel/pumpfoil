@@ -197,7 +197,9 @@ export default function Spots() {
             {sports.map((x) => <option key={x.sport} value={x.sport}>{t(`cls.sport.${x.sport}`)}</option>)}
           </select>
         )}
-        {(spots?.length ?? 0) > 0 && (
+        {/* Nicht an der GEFILTERTEN Liste festmachen: mit Haken und einer Sportart ohne Beschreibungen
+            waere sie leer, der Haken verschwaende — und mit ihm der Weg zurueck (Jan, 28.09.2026). */}
+        {((alle ?? []).some((s) => (s.notes ?? 0) > 0) || nurNotes) && (
           <label className="ml-auto flex cursor-pointer items-center gap-2 text-sm text-slate-300">
             <input type="checkbox" checked={nurNotes} onChange={(e) => setNurNotes(e.target.checked)}
               className="h-4 w-4 accent-brand-500" />
