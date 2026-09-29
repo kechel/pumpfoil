@@ -21,6 +21,7 @@ import numpy as np
 
 WURZEL = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(WURZEL / "server"))
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
 HZ = 25.0
 PUMP_MIN_DEG = float(os.environ.get("PUMP_MIN_DEG", "3.0"))
@@ -95,8 +96,22 @@ def main():
             best = (lag, r)
     fein = best[0] / HZ * 1000
     versatz = grob - fein
-    print(f"#{a_id} ({A['model']}) gegen #{b_id} ({B['model']}): Versatz {versatz / 1000:+.2f} s, "
-          f"Nicken r = {best[1]:+.2f}{' (Vorzeichen verdreht)' if best[1] < 0 else ''}")
+    # 29.09.2026: diese Kreuzkorrelation des NICKENS ist mehrdeutig (Pumptakt ~0,7 s) und lag an
+    # #10874/#10875 um ~3 Perioden daneben (+2,04 s statt −0,04 s). Richtig ist der Weg ueber die
+    # Uebergaenge (paare_ausrichten.ausrichten: Laeufe mit 8 s Rand, Betrag ohne Bandpass). Wer
+    # einen Versatz vorgibt (VERSATZ_MS), bekommt ihn; sonst wird er so bestimmt.
+    if os.environ.get("VERSATZ_MS"):
+        versatz = float(os.environ["VERSATZ_MS"])
+    else:
+        import paare_ausrichten as _P
+        from app import db as _db
+        _S = _db.SessionLocal()
+        try:
+            versatz = float(_P.ausrichten(_P.laden(_S, a_id), _P.laden(_S, b_id))["versatz_ms"])
+        finally:
+            _S.rollback(); _S.close()
+    print(f"#{a_id} ({A['model']}) gegen #{b_id} ({B['model']}): Versatz {versatz / 1000:+.3f} s "
+          f"(ueber die Uebergaenge; die alte Nicken-Korrelation haette {(grob - fein) / 1000:+.2f} s gesagt)")
     pb_in_a = B["pumps"] + versatz
     lo, hi = max(tA[0], pb_in_a.min()), min(tA[-1], pb_in_a.max())
     # Nur in Laeufen vergleichen (Vereinigung der Lauf-Fenster beider Erkennungen, in A-Zeit):
