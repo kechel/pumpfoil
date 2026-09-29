@@ -1716,6 +1716,8 @@ const pl: Record<string, string> = {
   "fw.19": "km/h maks. ost.",
   "fw.20": "Przejazdy",
   "fw.21": "bpm maks. ost.",
+  "fw.22": "km wsz. przejazdy",
+  "fw.23": "wsz. przejazdy",
   "cls.sport.pumpfoil": "Pumpfoil",
   "cls.sport.wingfoil": "Wingfoil",
   "cls.sport.kitefoil": "Kitefoil",

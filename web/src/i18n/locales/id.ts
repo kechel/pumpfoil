@@ -1602,6 +1602,8 @@ const id: Record<string, string> = {
   "fw.19": "km/h maks akhir",
   "fw.20": "Run",
   "fw.21": "bpm maks akhir",
+  "fw.22": "km semua run",
+  "fw.23": "semua run",
   "cls.autoAsk": "Sesi ini bagi kami tidak terlihat seperti pumpfoil — untuk sementara tidak dihitung di statistik mana pun. Mau mengklasifikasikannya dengan benar? Kalau memang pumpfoil, pilih saja “Pumpfoil”.",
   "cls.sport.surf_downwind": "Surf / downwind",
   "cls.sport.surf_wave": "Ombak laut (surf)",

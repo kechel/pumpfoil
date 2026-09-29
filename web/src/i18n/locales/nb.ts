@@ -1661,6 +1661,8 @@ const nb: Record<string, string> = {
   "fw.19": "km/h maks siste",
   "fw.20": "Runs",
   "fw.21": "bpm maks siste",
+  "fw.22": "km alle runs",
+  "fw.23": "alle runs",
   "cls.sport.pumpfoil": "Pumpfoil",
   "cls.sport.wingfoil": "Wingfoil",
   "cls.sport.kitefoil": "Kitefoil",

@@ -1624,6 +1624,8 @@ const fi: Record<string, string> = {
   "fw.19": "km/h maks viim",
   "fw.20": "Vedot",
   "fw.21": "bpm maks viim",
+  "fw.22": "km kaikki lenkit",
+  "fw.23": "kaikki lenkit",
   "cls.autoAsk": "Tämä sessio ei näytä meistä pumpfoilaukselta — siksi se ei toistaiseksi näy missään tilastossa. Haluatko luokitella sen oikein? Jos se sittenkin oli pumpfoilausta, valitse vain „Pumpfoil“.",
   "cls.sport.surf_downwind": "Surffaus / downwind",
   "cls.sport.surf_wave": "Valtameren aalto (surffaus)",

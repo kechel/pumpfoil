@@ -1659,6 +1659,8 @@ const cs: Record<string, string> = {
   "fw.19": "km/h max posl.",
   "fw.20": "Jízdy",
   "fw.21": "bpm max posl.",
+  "fw.22": "km všechny jízdy",
+  "fw.23": "všechny jízdy",
   "cls.autoAsk": "Tato session nám nevypadá jako pumpfoil — proto se zatím nezapočítává do žádných statistik. Zařadíš ji správně? Pokud to pumpfoil přece jen byl, vyber prostě „Pumpfoil“.",
   "cls.sport.surf_downwind": "Surf / downwind",
   "cls.sport.surf_wave": "Oceánská vlna (surf)",

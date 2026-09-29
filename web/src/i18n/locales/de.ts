@@ -1852,6 +1852,8 @@ const de: Record<string, string> = {
   "fw.19": "km/h max letzt.",
   "fw.20": "Läufe",
   "fw.21": "bpm max letzt.",
+  "fw.22": "km alle Läufe",
+  "fw.23": "alle Läufe",
 
   // Advanced Uhr-Layouts (frei positionierbare Datenfelder)
   "cls.sport.pumpfoil": "Pumpfoil",

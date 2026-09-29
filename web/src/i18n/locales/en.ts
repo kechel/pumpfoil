@@ -1798,6 +1798,8 @@ const en: Record<string, string> = {
   "fw.19": "km/h max last",
   "fw.20": "Runs",
   "fw.21": "bpm max last",
+  "fw.22": "km all runs",
+  "fw.23": "all runs",
 
   // Advanced watch layouts (freely positioned data fields)
   "cls.sport.pumpfoil": "Pumpfoil",
