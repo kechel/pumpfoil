@@ -53,7 +53,11 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.39",   # FREIGEGEBEN 2026-09-29, zweite Apple-Mail „ready for distribution ·
+        "latest": "1.1.40",   # FREIGEGEBEN 2026-09-29 nachmittags, Apple-Mail „ready for distribution ·
+        # 1.1.40 · iOS" (Jans Meldung). Eingereicht 29.09. 11:13 (Build 45). Store-API zeigte beim
+        # Eintragen noch 1.1.39 (haengt erfahrungsgemaess nach). Inhalt: Datenfelder 22/23,
+        # Datenschutz mit Facebook-/KI-Block, Impressum im Profil.
+        # ALT: "latest": "1.1.39",   # FREIGEGEBEN 2026-09-29, zweite Apple-Mail „ready for distribution ·
         # 1.1.39 · iOS"; Store-API de/us/gb 1.1.39, currentVersionReleaseDate 2026-09-29T03:28:54Z.
         # Eingereicht 28.09. 07:42 (Build 44) — rund 22 Stunden Pruefung. Inhalt: Kompass im
         # Handy-Recorder, Sportart-Filter, Puls je Lauf, „gespeichert" je Uhr, Richtungs-Hinweis,
@@ -363,7 +367,8 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.39",   # FREIGEGEBEN 2026-09-29 — dieselbe Einreichung wie "ios" (ein Bundle).
+        "latest": "1.1.40",   # FREIGEGEBEN 2026-09-29 — dieselbe Einreichung wie "ios" (ein Bundle).
+        # ALT: "latest": "1.1.39",   # FREIGEGEBEN 2026-09-29 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.38",   # FREIGEGEBEN 2026-09-26 — dieselbe Einreichung wie "ios" (ein Bundle,
         # dieselbe MARKETING_VERSION), Beleg s. dort. Fuer die WATCH-App bringt 1.1.38: Pause neben
         # Verwerfen, Stop allein; Pausen-Seiten mit „Pausiert" auf jeder Seite; zwischen den Laeufen
@@ -710,14 +715,8 @@ IN_REVIEW: list[dict] = [
     # Garmin 1.0.91 am 29.09. FREIGEGEBEN (s. `_APP_META`); Punkt + Ereignis im Changelog.
     # Android 1.1.35 / Wear 1.2.35 am 29.09. FREIGEGEBEN (Play-Mail); der Kompass-Punkt traegt jetzt
     # auch "android", die uebrigen fuenf Punkte standen schon versionslos im Changelog (29.09.).
-    # EINGEREICHT 29.09.2026 11:13 (Jans Meldung, ASC „Warten auf Pruefung", Uebermittlung
-    # 80e8978f-7f65-414e-9329-db793b1ede6e). Dazu ohne eigenen Punkt: Facebook-/KI-Block und
-    # antippbare Links im Datenschutz, Impressum im Profil (Jan: kein Changelog dafuer).
-    {"name": "iPhone + Apple Watch", "version": "1.1.40",
-     "eingereicht": "2026-09-29",
-     "items": [
-         "Two new data fields add up the distance and the time of all your runs in a session.",
-     ]},
+    # iOS/Apple 1.1.40 am 29.09. FREIGEGEBEN (s. `_APP_META`); der Datenfelder-Punkt traegt im
+    # Changelog jetzt auch "ios"/"apple", dazu ein Freigabe-Ereignis.
     {"name": "Amazfit", "version": "1.0.12",
      # EINGEREICHT 24.09.2026: im Zepp-Entwicklerkonto steht 1.0.12 auf „Under Review (Can be
      # Withdrawn)", Application Time 2026.09.24; 1.0.11 daneben weiter „Approved".
