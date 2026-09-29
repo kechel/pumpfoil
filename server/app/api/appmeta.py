@@ -685,6 +685,13 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # EINGEREICHT 29.09.2026 (Jans Meldung): Connect IQ 1.0.91, pumpfoil-1.0.91.iq 13.876.756 B,
+    # sha1 90b6666c…, aus Commit b0fd6fb5. watch/bin bleibt auf 1.0.90 bis zur Freigabe.
+    {"name": "Garmin", "version": "1.0.91",
+     "eingereicht": "2026-09-29",
+     "items": [
+         "Two new data fields add up the distance and the time of all your runs in a session.",
+     ]},
     # iOS/Apple 1.1.39 am 29.09. FREIGEGEBEN (s. `_APP_META`). Im Changelog: der Kompass-Punkt mit
     # `versionen={ios}`, die fuenf uebrigen als versionslose Punkte — sie sind auch im Web live und
     # standen bis dahin nirgends (Foil-Scoot-Regel vom 25.09.).
@@ -775,10 +782,6 @@ NAECHSTES: list[dict] = [
     # (bf972167). iOS 1.1.39 Build 43 liegt in TestFlight, Build 44 hat die Portierung.
     # Wear 1.2.34 wird nur mitgebumpt (harte Regel: Phone und Wear immer zusammen), ohne eigenen Punkt.
     # Datenfelder 22/23 (Summe aller Laeufe), Wunsch Roman 28.09.2026 — auf allen vier Uhren gebaut.
-    {"name": "Garmin", "version": "1.0.91",
-     "items": [
-         "Two new data fields add up the distance and the time of all your runs in a session.",
-     ]},
     {"name": "iPhone + Apple Watch", "version": "1.1.40",
      "items": [
          "Two new data fields add up the distance and the time of all your runs in a session.",
