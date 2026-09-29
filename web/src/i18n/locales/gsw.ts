@@ -1444,6 +1444,8 @@ const gsw: Record<string, string> = {
   "fw.19": "km/h max letscht.",
   "fw.20": "Läuf",
   "fw.21": "bpm max letscht.",
+  "fw.22": "km alli Läuf",
+  "fw.23": "alli Läuf",
   "cls.autoAsk": "Die Session gseht für üs nöd nach Pumpfoile us — drum zellt si vorerst i kener Uswertig mit. Magsch si richtig zuordne? Wenn s doch Pumpfoile gsi isch, nimm eifach „Pumpfoil“.",
   "cls.sport.surf_downwind": "Surf / Downwind",
   "cls.sport.surf_wave": "Ozeanwälle (Surfe)",

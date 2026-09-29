@@ -1428,6 +1428,8 @@ const it: Record<string, string> = {
   "fw.19": "km/h max ult.",
   "fw.20": "Run",
   "fw.21": "bpm max ult.",
+  "fw.22": "km tutti i run",
+  "fw.23": "tutti i run",
   "cls.autoAsk": "Questa sessione non ci sembra pumpfoil — per ora non conta in nessuna statistica. Vuoi classificarla correttamente? Se era davvero pumpfoil, scegli semplicemente « Pumpfoil ».",
   "cls.sport.surf_downwind": "Surf / downwind",
   "cls.sport.surf_wave": "Onda dell'oceano (surf)",

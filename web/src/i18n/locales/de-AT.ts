@@ -1450,6 +1450,8 @@ const deAT: Record<string, string> = {
   "fw.19": "km/h max letzt.",
   "fw.20": "Läufe",
   "fw.21": "bpm max letzt.",
+  "fw.22": "km olle Läufe",
+  "fw.23": "olle Läufe",
   "cls.autoAsk": "Diese Session sieht für uns nicht nach Pumpfoiling aus — deshalb zählt sie vorerst in keiner Auswertung mit. Magst du sie richtig zuordnen? War es doch Pumpfoiling, wähl einfach „Pumpfoil“.",
   "cls.sport.surf_downwind": "Surf / Downwind",
   "cls.sport.surf_wave": "Ozeanwelle (Surfen)",

@@ -1596,6 +1596,8 @@ const ptPT: Record<string, string> = {
   "fw.19": "km/h máx últ.",
   "fw.20": "Runs",
   "fw.21": "bpm máx últ.",
+  "fw.22": "km todas voltas",
+  "fw.23": "todas voltas",
   "cls.autoAsk": "Esta sessão não nos parece pumpfoil — por enquanto ela não conta em nenhuma estatística. Quer classificá-la corretamente? Se foi mesmo pumpfoil, basta escolher “Pumpfoil”.",
   "cls.sport.surf_downwind": "Surf / downwind",
   "cls.sport.surf_wave": "Onda do oceano (surf)",

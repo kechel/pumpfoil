@@ -1660,6 +1660,8 @@ const nl: Record<string, string> = {
   "fw.19": "km/h max laatst",
   "fw.20": "Runs",
   "fw.21": "bpm max laatst",
+  "fw.22": "km alle runs",
+  "fw.23": "alle runs",
   "cls.autoAsk": "Deze sessie lijkt ons geen pumpfoilen — daarom telt hij voorlopig in geen enkele statistiek mee. Wil je hem juist indelen? Was het toch pumpfoilen, kies dan gewoon ‘Pumpfoil’.",
   "cls.sport.surf_downwind": "Surf / downwind",
   "cls.sport.surf_wave": "Oceaangolf (surfen)",
