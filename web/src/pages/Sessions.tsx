@@ -422,7 +422,7 @@ export default function Sessions() {
       {/* Rekorde an DIESEM Spot — ganz oben, ueber dem Wetter (Nutzer-Idee aus dem Feedback,
           Jan 06.09.). Dieselben Kacheln und dieselben Zeitfenster wie auf der Community-Seite,
           nur eben auf den Spot eingegrenzt. */}
-      {spot && <SpotRecords spot={spot} accelOnly={accelOnly} />}
+      {spot && <SpotRecords spot={spot} accelOnly={accelOnly} sport={sport} sports={sports.map((x) => x.sport)} />}
       {spot && <SpotWeather spot={spot} />}
       {/* Spot-Beschreibungen der Community: zwischen Wetter und Session-Liste (Jan, 24.08.).
           Nur bei einem echten Spot (numerische id) — Namens-Gruppen aus dem Altbestand haben
@@ -1266,7 +1266,18 @@ function hatRekorde(satz: unknown): boolean {
     .some((r) => r && r.session_id != null);
 }
 
-function SpotRecords({ spot, accelOnly }: { spot: string; accelOnly: boolean }) {
+/** Rekorde je Sportart (Jan, 29.09.2026, Anlass ThermikDreher: seine Foil-Scoot-Rekorde fehlten am
+ * Spot, weil hier fest „pumpfoil" abgefragt wurde). Folgt dem Sportarten-Filter der Seite: eine
+ * Sportart gewaehlt -> nur deren Rekorde; „alle Sportarten" -> ein Kasten JE Sportart, nicht ein
+ * gemischter — ein Foil-Scoot-Tempo gegen ein Pumpfoil-Tempo waere kein Rekord. Kaesten ohne
+ * Rekord blenden sich selbst aus. */
+function SpotRecords({ spot, accelOnly, sport, sports }:
+    { spot: string; accelOnly: boolean; sport: string; sports: string[] }) {
+  const liste = sport !== "all" ? [sport] : (sports.length ? sports : ["pumpfoil"]);
+  return <>{liste.map((s) => <SpotRecordsSport key={s} spot={spot} accelOnly={accelOnly} sport={s} />)}</>;
+}
+
+function SpotRecordsSport({ spot, accelOnly, sport }: { spot: string; accelOnly: boolean; sport: string }) {
   const t = useT();
   const [data, setData] = useState<Awaited<ReturnType<typeof api.communityRecords>> | null>(null);
   const [period, setPeriod] = useState("10d");
@@ -1276,7 +1287,7 @@ function SpotRecords({ spot, accelOnly }: { spot: string; accelOnly: boolean }) 
 
   useEffect(() => {
     setData(null);
-    api.communityRecords(accelOnly, "pumpfoil", "all", spot).then((d) => {
+    api.communityRecords(accelOnly, sport, "all", spot).then((d) => {
       setData(d);
       if (!selbstGewaehlt.current) {
         // Erstes Fenster, in dem es etwas zu sehen gibt. Ohne das steht an ruhigeren Spots
@@ -1284,7 +1295,7 @@ function SpotRecords({ spot, accelOnly }: { spot: string; accelOnly: boolean }) 
         setPeriod(SPOT_FENSTER.find((k) => hatRekorde((d as Record<string, unknown>)[k])) ?? "all");
       }
     }).catch(() => setData(null));
-  }, [spot, accelOnly]);
+  }, [spot, accelOnly, sport]);
 
   // Gar nichts an diesem Spot? Dann auch keinen Kasten — an einem Spot ohne Sessions stuenden
   // sonst zwoelf leere Kacheln ueber dem Wetter (an Gourvieille gesehen, wo ein Nutzer seine
@@ -1292,7 +1303,7 @@ function SpotRecords({ spot, accelOnly }: { spot: string; accelOnly: boolean }) 
   if (!data || !SPOT_FENSTER.some((k) => hatRekorde((data as Record<string, unknown>)[k]))) return null;
   return (
     <Card className="mb-3 p-4">
-      <h3 className="mb-2 font-semibold">{t("rec.spotTitle")}</h3>
+      <h3 className="mb-2 font-semibold">{t("rec.spotTitle")} · {t(`cls.sport.${sport}`)}</h3>
       <div className="mb-3 flex flex-wrap items-center gap-1">
         {PERIODS.map(([k, labelKey]) => (
           <button
