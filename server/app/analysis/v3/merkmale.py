@@ -19,7 +19,7 @@ from types import SimpleNamespace
 
 import numpy as np
 
-from ..foil_model import FEATURE_NAMES as BASIS_NAMEN, extract_features, windowize
+from ..foil_model import FEATURE_NAMES as BASIS_NAMEN, extract_features, windowize  # noqa: F401
 
 ZIEL_HZ = 25.0
 FENSTER_S = 8           # Spektrum-Fenster (±4 s)
@@ -28,7 +28,13 @@ AUTO_MPS = 40 / 3.6
 
 NEU_NAMEN = ["band_pump", "band_schritt", "band_vib", "f_dom", "woelbung",
              "ctx_vmax60", "ctx_auto60", "ctx_vmed30", "abstand_zentrum_km",
-             "hacc", "puls_rel", "puls_fehlt", "gps_luecke_s"]
+             "hacc", "puls_rel", "puls_fehlt", "gps_luecke_s",
+             # 29.09.2026 (Jan: „die 3 accel axen separat + gravitation sind doch super wichtig"):
+             # der BETRAG wirft die Richtung weg — Balancieren der Hand beim Gleiten und Pumpen
+             # landen in derselben Zahl. Deshalb lageunabhaengig gegen die Schwerkraft zerlegt.
+             "vert_rms", "hor_rms", "vert_anteil", "dreh_grad_s", "neigung_grad",
+             # Vortrieb ohne Armbewegung (#10266: Tempo steigt bei ruhigem Arm -> Beine pumpen).
+             "tempo_trend"]
 NAMEN = list(BASIS_NAMEN) + NEU_NAMEN
 KONTEXT_R = 5           # ±5 s wie das bisherige Modell (windowize)
 
@@ -86,6 +92,38 @@ def _spektrum(mag: np.ndarray, t_rel_ms: np.ndarray) -> np.ndarray:
     return out
 
 
+def _achsen(r: np.ndarray, scale: float, t_rel_ms: np.ndarray) -> np.ndarray:
+    """(n, 5) je GPS-Zeitpunkt im ±1-s-Fenster: vertikale und waagerechte Energie (gegen die
+    Schwerkraft, damit die Lage der Uhr am Handgelenk keine Rolle spielt), Anteil der vertikalen,
+    Drehung der Schwerkraft-Richtung im Uhr-Rahmen (Grad/s = Drehen des Handgelenks) und Neigung
+    der Uhr (Winkel zwischen Schwerkraft und Zifferblatt-Normale)."""
+    n = t_rel_ms.size
+    out = np.zeros((n, 5))
+    if r.shape[0] < int(2 * ZIEL_HZ):
+        return out
+    a = r / scale
+    k = int(ZIEL_HZ)                                          # 1-s-Mittel = Schwerkraft/Haltung
+    kern = np.ones(k) / k
+    g = np.stack([np.convolve(a[:, i], kern, mode="same") for i in range(3)], axis=1)
+    gn = g / (np.linalg.norm(g, axis=1, keepdims=True) + 1e-9)
+    dyn = a - g
+    vert = (dyn * gn).sum(axis=1)
+    hor = np.linalg.norm(dyn - vert[:, None] * gn, axis=1)
+    dreh = np.zeros(gn.shape[0])
+    dreh[1:] = np.degrees(np.arccos(np.clip((gn[1:] * gn[:-1]).sum(axis=1), -1, 1))) * ZIEL_HZ
+    neig = np.degrees(np.arccos(np.clip(np.abs(gn[:, 2]), 0, 1)))
+    w = int(ZIEL_HZ)
+    mitte = np.clip((t_rel_ms / 1000.0 * ZIEL_HZ).astype(int), w, a.shape[0] - w - 1)
+    idx = mitte[:, None] + np.arange(-w, w + 1)[None, :]
+    vv, hh = vert[idx], hor[idx]
+    out[:, 0] = vv.std(axis=1)
+    out[:, 1] = hh.std(axis=1)
+    out[:, 2] = vv.var(axis=1) / (vv.var(axis=1) + hh.var(axis=1) + 1e-12)
+    out[:, 3] = dreh[idx].mean(axis=1)
+    out[:, 4] = neig[idx].mean(axis=1)
+    return out
+
+
 def merkmale(tb) -> tuple[np.ndarray, np.ndarray]:
     """-> (t_ms Session-ms je GPS-Sample, X (n, len(NAMEN)) OHNE Kontextfenster)."""
     gps = tb.gps
@@ -126,8 +164,18 @@ def merkmale(tb) -> tuple[np.ndarray, np.ndarray]:
     hr[hr <= 0] = np.nan
     med = np.nanmedian(hr) if np.isfinite(hr).any() else np.nan
     luecke = np.concatenate([[1.0], np.diff(sek)])
+    achsen = _achsen(r, scale, t - off) if r.shape[0] else np.zeros((n, 5))
+    # Tempo-Trend: Steigung (m/s je s) ueber ±5 s — haelt oder steigt das Tempo, ohne dass der Arm
+    # sich bewegt, muss es Vortrieb geben (Beine pumpen, Welle, Wind).
+    trend = np.zeros(n)
+    lo5 = np.searchsorted(sek, sek - 5); hi5 = np.searchsorted(sek, sek + 5)
+    for i in range(n):
+        a_, b_ = lo5[i], hi5[i]
+        if b_ - a_ >= 3:
+            trend[i] = np.polyfit(sek[a_:b_] - sek[i], v[a_:b_], 1)[0]
     neu = np.column_stack([spek, ctx, abst, np.nan_to_num(hacc, nan=-1),
-                           np.nan_to_num(hr - med, nan=0.0), ~np.isfinite(hr), luecke])
+                           np.nan_to_num(hr - med, nan=0.0), ~np.isfinite(hr), luecke,
+                           achsen, trend])
     return t, np.hstack([basis, neu])
 
 

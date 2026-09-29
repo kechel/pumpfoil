@@ -1429,6 +1429,13 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔲 29.09. — Gyro auch auf den UHREN aufzeichnen (Jan: ja).** Apple Watch, Wear OS und die
+  meisten Garmin-Modelle haben einen Kreisel, unsere Uhren-Apps schicken ihn nicht (nur die
+  Handy-Recorder, `kind=gyro`, data-format.md). Grund: Gleitphasen erkennt man am seitlichen
+  Balancieren der Hand bei ruhiger Vertikalen — die Drehung des Handgelenks laesst sich heute nur
+  aus der Schwerkraft-Richtung rekonstruieren. Server nimmt `gyro` schon an. Garmin-Speicher
+  (Instinct 2 Lite!) vorher pruefen. Erst nach dem Board-Wahrheits-Schritt (DETECTION-V3.md).
+
 - **🟡 29.09. — Sammel-Upload (Server 489bc1fe live, Apps 7b19c5f4: iOS 1.1.41/46, Phone 1.1.37/51,
   Wear 1.2.37/1047 — noch NICHT eingereicht).** Getestet: Server 5 Tests; Wear-Emulator 26 min
   (#10883, danach geloescht): 312/312 Bloecke in 16 Anfragen statt 312, ~1 s, `exact_chunks`

@@ -142,3 +142,23 @@ Kurzer gezaehlter Lauf 2:01-2:07 (23 m): Arm pumpt 0,5-1,8, Modell 0,64.
 nur gegen die Brett-Paare messen, nicht als Einzel-Fix. Jan: „aendern wir erstmal nichts".
 Ohne On-Foil-Modell (gemessen): +43 % Laeufe, 25 % unter 8 s, neue Laeufe nur zu 13 % von
 foil_status bestaetigt — das Modell bleibt.
+
+## Schritt 1: taugt das Handy am Brett als Wahrheit? (29.09.2026, scripts/v3/brett_wahrheit.py)
+
+Zwei Handys in DERSELBEN Tasche am Brett (#10874 iPhone SE 3, #10875 Pixel 7a), Pump-Gipfel aus
+dem Nicken (0,8-2,5 Hz, >= 3°): Versatz 2,04 s, Nicken r = 0,77. **In Laeufen 77 gemeinsame Pumps
+von 88/92 (84-88 %), Median-Abstand 70 ms**; die Abweichungen liegen ALLE an Uebergaengen (Anfahrt,
+Ende von Lauf 1, Sturz am Ende von Lauf 2), dort um eine halbe Pump-Periode verschraenkt — im
+gleichmaessigen Pumpen praktisch deckungsgleich. Die Schwelle (2-8°) aendert daran nichts.
+Folgerung: Brett-Wahrheit fuer Pumps im Lauf brauchbar; an Anfahrt/Sturz nur auf ±eine halbe
+Periode genau. Einschraenkung: EIN Brett, EIN Fahrer, 2 Laeufe.
+
+## Neue Merkmale (29.09.2026, noch nicht trainiert)
+
+Jan: „die 3 accel axen separat + gravitation sind doch super wichtig, insbesondere um glides zu
+erkennen, da wackelt man viel mit der hand hin und her, aber eben nicht mehr vertikal". Der Betrag
+der Beschleunigung (altes Modell UND Stufe A) wirft die Richtung weg — systematischer Fehler. Neu,
+lageunabhaengig gegen die Schwerkraft: `vert_rms`, `hor_rms`, `vert_anteil`, `dreh_grad_s`,
+`neigung_grad`, dazu `tempo_trend` (±5 s). An #10266: ruhige Phase des langen Versuchs vert_anteil
+0,46 / Trend +0,11 / Neigung 30° gegen den gepumpten Lauf 0,81 / −0,07 / 78°. Trainiert wird erst
+mit der Brett-Wahrheit (Schritt 3); alte Modelle nehmen weiter nur ihre eigenen Spalten.

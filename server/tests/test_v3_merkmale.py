@@ -59,4 +59,24 @@ def test_ganze_aufnahme_ohne_zuschnitt_und_ausschluss():
 
 
 def test_namen_passen_zur_spaltenzahl():
-    assert len(M.NAMEN) == len(M.BASIS_NAMEN) + len(M.NEU_NAMEN) == 27
+    assert len(M.NAMEN) == len(M.BASIS_NAMEN) + len(M.NEU_NAMEN) == 33
+
+
+def _raster(vert_amp, hor_amp, f=1.4, dauer_s=20, scale=2048):
+    """Uhr um 30° geneigt; Pumpen = Schwingung entlang der Schwerkraft, Balancieren = quer dazu."""
+    n = int(dauer_s * M.ZIEL_HZ)
+    t = np.arange(n) / M.ZIEL_HZ
+    g = np.array([0.0, np.sin(np.radians(30)), np.cos(np.radians(30))])       # Schwerkraft in Uhr-Achsen
+    quer = np.array([1.0, 0.0, 0.0])
+    a = g[None, :] + (vert_amp * np.sin(2 * np.pi * f * t))[:, None] * g[None, :] \
+        + (hor_amp * np.sin(2 * np.pi * 0.9 * t))[:, None] * quer[None, :]
+    return a * scale
+
+
+def test_pumpen_ist_vertikal_balancieren_waagerecht():
+    t_rel = np.arange(3, 17) * 1000.0
+    pump = M._achsen(_raster(0.5, 0.05), 2048, t_rel).mean(axis=0)
+    gleit = M._achsen(_raster(0.03, 0.3), 2048, t_rel).mean(axis=0)
+    assert pump[2] > 0.9 and gleit[2] < 0.1              # Anteil vertikal
+    assert pump[0] > 5 * gleit[0] and gleit[1] > 3 * pump[1]
+    assert abs(pump[4] - 30) < 3                          # Neigung erkannt, egal wie die Uhr sitzt

@@ -33,13 +33,20 @@ def wahrscheinlichkeit(tb, pfad: Path = STANDARD, fahrer: int | None = None) -> 
     if not tb.has_accel or len(tb.gps) == 0:
         return None
     _, X = M.merkmale(tb)
-    Xk = M.mit_kontext(X)
+
+    def _spalten(modell: dict) -> np.ndarray:
+        # Ein Modell kennt die Merkmale, mit denen es trainiert wurde (`namen`). Kommen spaeter
+        # neue dazu (29.09.: Achsen gegen die Schwerkraft), nimmt ein altes Modell nur seine.
+        namen = modell.get("namen") or M.NAMEN
+        sp = [M.NAMEN.index(n) for n in namen]
+        return M.windowize(X[:, sp], modell.get("kontext_r", M.KONTEXT_R))
     if fahrer is not None and FALTEN.exists():
         f = _modell(str(FALTEN))
         k = f["fahrer_falte"].get(int(fahrer))
         if k is not None:
-            return f["falten"][k].predict_proba(Xk)[:, 1]
-    return _modell(str(pfad))["clf"].predict_proba(Xk)[:, 1]
+            return f["falten"][k].predict_proba(_spalten(f))[:, 1]
+    m = _modell(str(pfad))
+    return m["clf"].predict_proba(_spalten(m))[:, 1]
 
 
 # Glaettung + Hysterese (29.09.2026): die rohe Wahrscheinlichkeit pendelt in ruhigen Gleitphasen um
