@@ -781,6 +781,16 @@ NAECHSTES: list[dict] = [
     # (bf972167). iOS 1.1.39 Build 43 liegt in TestFlight, Build 44 hat die Portierung.
     # Wear 1.2.34 wird nur mitgebumpt (harte Regel: Phone und Wear immer zusammen), ohne eigenen Punkt.
     # Datenfelder 22/23 (Summe aller Laeufe), Wunsch Roman 28.09.2026 — auf allen vier Uhren gebaut.
+    # Sammel-Upload (29.09.2026, Server 489bc1fe): Apple Watch und Wear OS schicken ihre Chunks zu
+    # 20 je Anfrage statt einzeln (#10266: 1848 Anfragen, drei Tage). Phone + Wear zusammen gebumpt.
+    {"name": "Android phone + Wear OS", "version": "1.1.37 / 1.2.37",
+     "items": [
+         "Wear OS watches upload long sessions much faster.",
+     ]},
+    {"name": "iPhone + Apple Watch", "version": "1.1.41",
+     "items": [
+         "The Apple Watch uploads long sessions much faster.",
+     ]},
     {"name": "Amazfit", "version": "1.0.13",
      "items": [
          "Two new data fields add up the distance and the time of all your runs in a session.",

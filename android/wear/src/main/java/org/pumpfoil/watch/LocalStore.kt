@@ -99,6 +99,12 @@ object LocalStore {
 
     fun readJson(f: File): JSONObject? = try { JSONObject(f.readText()) } catch (_: Exception) { null }
 
+    /** Index aus dem Dateinamen (chunk-000123.json) — der Sammel-Upload sortiert Empfangenes aus,
+     *  ohne jede Datei zu lesen. null bei fremdem Namen. */
+    fun chunkIndex(name: String): Int? =
+        name.removePrefix("chunk-").substringBefore('.').substringBefore('-').toIntOrNull()
+            ?.takeIf { name.startsWith("chunk-") }
+
     fun chunkFiles(dir: File): List<File> =
         dir.listFiles()?.filter { it.name.startsWith("chunk-") }?.sortedBy { it.name } ?: emptyList()
 

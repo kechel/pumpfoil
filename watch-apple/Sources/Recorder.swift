@@ -288,10 +288,14 @@ final class Recorder: NSObject, ObservableObject {
         guard let start = LocalStore.readJSON(dir.appendingPathComponent("session.json")) else { return }
         do {
             try await Api.startSession(start)
-            for cf in LocalStore.chunkFiles(dir) {
+            // In Sammel-Anfragen (s. Api.uploadChunks); nach jeder pruefen, ob fortgesetzt wurde.
+            let dateien = LocalStore.chunkFiles(dir)
+            var i = 0
+            while i < dateien.count {
                 if !isPaused { return }          // fortgesetzt -> nicht weiter senden
-                guard let chunk = LocalStore.readJSON(cf) else { continue }
-                try await Api.uploadChunk(uuid, chunk)
+                let stueck = dateien[i..<min(i + Api.sammelGroesse, dateien.count)].compactMap { LocalStore.readJSON($0) }
+                i += Api.sammelGroesse
+                if !stueck.isEmpty { _ = try await Api.uploadChunks(uuid, stueck) }
             }
             if isPaused { try await Api.analyze(uuid) }
         } catch {
@@ -640,24 +644,45 @@ final class Recorder: NSObject, ObservableObject {
         // über den Bluetooth-Proxy zum iPhone sanft. Jeder Task liest seine Datei selbst (nur
         // Sendable-Werte werden gefangen: URL, Set, String).
         let pool = uploadPool()
-        var it = chunkFiles.makeIterator()
-        try await withThrowingTaskGroup(of: Void.self) { group in
+        // SAMMEL-ANFRAGEN (29.09.2026): bis zu `Api.sammelGroesse` Chunks je Anfrage statt einer.
+        // Die Chunks selbst bleiben dieselben (gleiche Indizes, Resume, Vollstaendigkeit), nur die
+        // Anfragen werden weniger — s. Api.uploadChunks. Schon Empfangenes faellt vorher heraus
+        // (Index aus dem Dateinamen, ohne die Datei zu lesen); die GPS-first-Reihenfolge bleibt.
+        let offen = chunkFiles.filter { cf in
+            guard let idx = LocalStore.chunkIndex(cf) else { return true }
+            return !received.contains(idx)
+        }
+        var pakete: [[URL]] = []
+        var k = 0
+        while k < offen.count {
+            pakete.append(Array(offen[k..<min(k + Api.sammelGroesse, offen.count)]))
+            k += Api.sammelGroesse
+        }
+        var it = pakete.makeIterator()
+        try await withThrowingTaskGroup(of: Int.self) { group in
             func addNext() -> Bool {
-                guard let cf = it.next() else { return false }
+                guard let paket = it.next() else { return false }
                 group.addTask {
-                    guard let chunk = LocalStore.readJSON(cf) else { return }
-                    let idx = chunk["index"] as? Int ?? -1
-                    if received.contains(idx) { return }
-                    try await Api.uploadChunk(sid, chunk)
+                    let chunks = paket.compactMap { LocalStore.readJSON($0) }
+                    if chunks.isEmpty { return 0 }
+                    let gesendet = Set(chunks.compactMap { $0["index"] as? Int })
+                    let ok = Set(try await Api.uploadChunks(sid, chunks))
+                    // Nur quittiert zaehlt. Fehlt etwas, schlaegt der Upload fehl und laeuft
+                    // spaeter erneut — wie frueher bei einem abgelehnten Einzel-Chunk.
+                    if !gesendet.isSubset(of: ok) {
+                        throw NSError(domain: "Pumpfoil", code: 1,
+                                      userInfo: [NSLocalizedDescriptionKey: "chunk rejected"])
+                    }
+                    return chunks.count
                 }
                 return true
             }
             var running = 0
             for _ in 0..<pool { if addNext() { running += 1 } }
             while running > 0 {
-                try await group.next()
+                let n = try await group.next() ?? 0
                 running -= 1
-                uploadSent = min(uploadSent + 1, chunkFiles.count)
+                uploadSent = min(uploadSent + n, chunkFiles.count)
                 if addNext() { running += 1 }
             }
         }
