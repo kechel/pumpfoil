@@ -209,9 +209,13 @@ function Ideen({ ideen }: { ideen: string[] }) {
       <p className="mb-2 text-sm text-slate-400">
         No dates and no order — things we would like to build.
       </p>
-      <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">
-        {ideen.map((txt, i) => <li key={i}>{txt}</li>)}
-      </ul>
+      {/* Eingeklappt wie die Punkte je Plattform darueber, nur eine Ebene hoeher: EIN Aufklapper
+          fuer alle Ideen (Jan, 29.09.2026). */}
+      <Details anzahl={ideen.length}>
+        <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">
+          {ideen.map((txt, i) => <li key={i}>{txt}</li>)}
+        </ul>
+      </Details>
       <p className="mt-3 text-sm text-slate-300">
         Do you have an idea or a bug report you want added to the roadmap?{" "}
         <button
