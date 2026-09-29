@@ -695,6 +695,18 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # EINGEREICHT 29.09.2026 (Jans Meldung, Play Console: „Produktion 50 (1.1.36) · Produktion
+    # (Wear OS) 1046 (1.2.36)", Vorabpruefung laeuft, verwaltete Veroeffentlichung). Vorher 32 min
+    # Langlauf im Wear-Emulator (#10851, danach geloescht): 193+193 Bloecke ohne Luecke,
+    # exact_chunks, 25,0 Hz, konstante 5-m-Genauigkeit -> Platzhalter-Pfad aktiv, Live-Laeufe ok.
+    # Dazu ohne eigenen Punkt: Datenschutz mit Facebook-/KI-Block und antippbaren Links.
+    {"name": "Android phone + Wear OS", "version": "1.1.36 / 1.2.36",
+     "eingereicht": "2026-09-29",
+     "items": [
+         "Watches that report the same GPS accuracy all the time now show GPS as ready, show your "
+         "speed and detect runs while you ride.",
+         "Two new data fields add up the distance and the time of all your runs in a session.",
+     ]},
     # Garmin 1.0.91 am 29.09. FREIGEGEBEN (s. `_APP_META`); Punkt + Ereignis im Changelog.
     # Android 1.1.35 / Wear 1.2.35 am 29.09. FREIGEGEBEN (Play-Mail); der Kompass-Punkt traegt jetzt
     # auch "android", die uebrigen fuenf Punkte standen schon versionslos im Changelog (29.09.).
@@ -759,15 +771,6 @@ IN_REVIEW: list[dict] = [
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
-    # Wear: Platzhalter-Genauigkeit (OnePlus OPWWE251 meldet immer 125,0 m) sperrte „GPS bereit",
-    # Live-Tempo und Lauf-Erkennung (Nutzermeldung 28.09.2026). Gebaut; nach der Freigabe von
-    # 1.1.35/1.2.35 am 29.09. auf Phone 1.1.36/50 + Wear 1.2.36/1046 gebumpt (Phone und Wear zusammen).
-    {"name": "Android phone + Wear OS", "version": "1.1.36 / 1.2.36",
-     "items": [
-         "Watches that report the same GPS accuracy all the time now show GPS as ready, show your "
-         "speed and detect runs while you ride.",
-         "Two new data fields add up the distance and the time of all your runs in a session.",
-     ]},
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.
 
