@@ -1466,6 +1466,13 @@ def _spot_anzahl(db: Session, accel_only: bool = False, sport: str = "all") -> i
     return int(mit_id) + int(ohne_id)
 
 
+# Sportarten, in denen wirklich GEPUMPT wird — sie zaehlen in die Community-Zahlen des Banners
+# („… Sessions und zusammen … Pumps"). Jan, 29.09.2026, als ThermikDrehers Sessions auf Foil Scoot
+# umgestellt wurden und die Pumps-Zahl dadurch um 36.533 FIEL: „foilscoot auf jeden fall, die
+# sollten mit reinzaehlen, genauso wakethief". Rekorde und Bestenlisten bleiben je Sportart getrennt.
+PUMP_SPORTARTEN = ("pumpfoil", "foil_scoot", "wakethief")
+
+
 @router.get("/stats")
 def community_stats(
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
@@ -1480,7 +1487,8 @@ def community_stats(
       Session" stimmte hier nicht.
     - Spots über `_spot_anzahl` → nach `spot_id`, `place_name` nur als Rückfall für Altbestand
       ohne Id, und über ALLE Sportarten (`sport="all"`, deckungsgleich mit der Spots-Karte).
-    - Sessions/Pumps nur Pumpfoil, inkl. GPS-only-Läufe (`accel_only=False`) — also KEIN Filter
+    - Sessions/Pumps ueber die Sportarten mit echtem Pumpen (`PUMP_SPORTARTEN`, seit 29.09.2026;
+      vorher nur Pumpfoil), inkl. GPS-only-Läufe (`accel_only=False`) — also KEIN Filter
       auf Accel-Daten oder `pump_count`: von 1.981 Sessions sind 779 reine GPS-Aufnahmen und nur
       1.198 haben Pumps. Die Pumps-Summe ist trotzdem de facto accel-only, weil GPS-only-Läufe
       keine Pumps zählen — wer das je ändert, ändert diese Zahl still mit.
@@ -1494,13 +1502,15 @@ def community_stats(
     # Foiler = ALLE registrierten Nutzer (inkl. Testaccounts) — die Zahl wirkt sonst zu klein.
     # Spots/Sessions bleiben community-sichtbar (accel_only=False, versteckte Konten raus).
     foilers = db.query(func.count(U.id)).scalar()
+    # Sessions/Pumps ueber alle Sportarten, in denen wirklich GEPUMPT wird (s. PUMP_SPORTARTEN) —
+    # nicht nur Pumpfoil. NULL zaehlt wie ueberall als Pumpfoil (Altbestand vor 27.07.).
     row = _community(
         db.query(
             func.count(func.distinct(S.id)),
             func.coalesce(func.sum(AR.pump_count), 0),
         ),
-        viewer_id=None, accel_only=False,
-    ).first()
+        viewer_id=None, accel_only=False, sport="all",
+    ).filter(or_(S.sport_class.is_(None), S.sport_class.in_(PUMP_SPORTARTEN))).first()
     # Spots aus DERSELBEN Quelle wie die Spots-Seite (s. _spot_anzahl). Sessions und Pumps
     # bleiben die Pumpfoil-Basis — die Karte zeigt bewusst auch Aufnahmen anderer Sportarten,
     # und "353 Pumpfoiler" sind ohnehin alle registrierten Nutzer. Wichtiger als eine reine
