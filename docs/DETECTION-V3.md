@@ -130,3 +130,15 @@ gegen 0,4, dominante Frequenz 0,6-0,7 gegen 1,6 Hz, Stoss-Woelbung 9-15 gegen 3)
 Lauf-Klassifikator nur aus dem Lauf trennt aber NICHT sauber: ~60 der 1237 „echten" kurzen Laeufe
 (nur „auf Wasser", nicht geprueft) sehen genauso ruhig aus. Naechster Schritt: diese ansehen — sind
 es selbst Gehen/Tragen, ist die Regel richtig und das Label falsch.
+
+## Beine pumpen, Arm ruht (#10266, Bartosz, 29.09.2026)
+
+„Lange Startversuche" statt Laeufe: das alte Modell zaehlt ARMbewegung. Beispiel Versuch 6:21-6:43
+(88 m): 8 s Arm-Pumpen 0,3-0,5, Modell bis 0,46 (Schwelle 0,5), danach 15 s Arm fast still
+(0,04-0,14), das Tempo HAELT 9,6 km/h und STEIGT auf 13 km/h. Ohne Vortrieb faellt ein Foil in
+Sekunden ab — Vermutung: mit den Beinen gepumpt (oder Welle/Wind), fuer das Handgelenk unsichtbar.
+Kurzer gezaehlter Lauf 2:01-2:07 (23 m): Arm pumpt 0,5-1,8, Modell 0,64.
+**Kandidat fuer v3:** Tempo gehalten oder steigend bei ruhigem Arm als Zeichen fuer Vortrieb —
+nur gegen die Brett-Paare messen, nicht als Einzel-Fix. Jan: „aendern wir erstmal nichts".
+Ohne On-Foil-Modell (gemessen): +43 % Laeufe, 25 % unter 8 s, neue Laeufe nur zu 13 % von
+foil_status bestaetigt — das Modell bleibt.
