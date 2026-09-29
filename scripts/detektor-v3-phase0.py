@@ -58,6 +58,7 @@ def main() -> None:
                    s.app_version, s.accel_hz, s.placement, s.sport_class, s.sport_source,
                    s.is_pumpfoil, s.pumpfoil_override, s.trim_start_ms, s.trim_end_ms, s.trim_auto,
                    s.excluded_ranges, s.fremdkraft_keep, s.session_uuid, s.place_lat, s.place_lon,
+                   s.sport_auto_json,
                    u.foil_sensitivity,
                    a.algo_version, a.detection, a.num_runs, a.foiling_time_s, a.foiling_distance_m,
                    a.pump_count, a.segments_json, a.metrics_json, a.sensitivity_json
@@ -83,6 +84,9 @@ def main() -> None:
                 "is_pumpfoil": r["is_pumpfoil"], "pumpfoil_override": r["pumpfoil_override"],
                 "trim": [r["trim_start_ms"], r["trim_end_ms"]], "trim_auto": r["trim_auto"],
                 "sensitivity": r["foil_sensitivity"],
+                # Eigenes Sportart-Urteil der Erkennung (sportauto), unabhaengig vom Menschen.
+                "sport_auto": (_j(r["sport_auto_json"], {}) or {}).get("hinweis"),
+                "place": [r["place_lat"], r["place_lon"]], "uuid": r["session_uuid"],
                 "algo_version": r["algo_version"], "detection": r["detection"],
                 "num_runs": r["num_runs"], "foiling_time_s": r["foiling_time_s"],
                 "foiling_distance_m": r["foiling_distance_m"], "pump_count": r["pump_count"],
