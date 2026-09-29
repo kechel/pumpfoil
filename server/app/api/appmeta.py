@@ -174,7 +174,12 @@ _APP_META: dict[str, dict[str, str]] = {
         # Ein Nutzer mit 1.1.14 bekam dadurch einen Update-Hinweis, den Play nicht einloesen konnte
         # ("update button just opens google play and does not offer nor start update"). Deshalb: erst
         # eintragen, wenn Freigabe DA und Roll-out bei 100 % — "eingereicht" genuegt nie.
-        "latest": "1.1.33",   # LIVE 2026-09-27 (abends, Jans Meldung kurz vor Mitternacht): Play-Mail
+        "latest": "1.1.35",   # LIVE 2026-09-29: Play-Mail „Your update to Pumpfoil, created on
+        # Sep 28, 2026 at 5:37 AM GMT, is live in the store." Passt auf die Einreichung vom 28.09.
+        # ~07:37 Berlin (Phone 1.1.35/49 + Wear 1.2.35/1045). ⏱️ Gut EINEN Tag Pruefung. Inhalt:
+        # Kompass beim Handy am Brett, Sportart-Filter, Puls je Lauf, Speichern-Rueckmeldung je Uhr,
+        # Hinweis in der Brett-Ansicht, Hinweis auf verlorene Teilen-Links nach dem Zusammenfuehren.
+        # ALT: "latest": "1.1.33",   # LIVE 2026-09-27 (abends, Jans Meldung kurz vor Mitternacht): Play-Mail
         # „Your update to Pumpfoil, created on Sep 26, 2026 at 6:32 AM GMT, is live in the store."
         # Passt auf unsere Einreichung vom 26.09. ~08:30 Berlin (Phone 1.1.33/47 + Wear 1.2.33/1043).
         # ⏱️ Gut ZWEI Tage Pruefung. Inhalt: die PWA-Portierung vom 25.09. (Lage des Bretts,
@@ -319,7 +324,9 @@ _APP_META: dict[str, dict[str, str]] = {
         # 05.08. 15:06 GMT). Eingereicht war 1.2.20/1030 zusammen mit Phone 1.1.20/34.
         # Der gebaute Nachzug 1.2.21/1031 (Token-Heilung bei Config-401) ist NOCH NICHT
         # eingereicht — hier also nicht eintragen. Vorher: 1.2.18/1028, live seit 04.08.
-        "latest": "1.2.33",   # LIVE 2026-09-27, dieselbe Play-Mail wie android (eine Einreichung,
+        "latest": "1.2.35",   # LIVE 2026-09-29, dieselbe Play-Mail wie android (eine Einreichung,
+        # beide Spuren). Fuer die UHR ohne eigene Aenderung, nur mitgebumpt.
+        # ALT: "latest": "1.2.33",   # LIVE 2026-09-27, dieselbe Play-Mail wie android (eine Einreichung,
         # beide Spuren). Fuer die UHR: Seiten je Zustand wie Garmin, Pause neben Verwerfen, und der
         # Wake-up-Bewegungssensor als Tester-Option.
         # ALT: "latest": "1.2.32",   # LIVE 2026-09-25, dieselbe Play-Mail wie android (ein Release,
@@ -689,21 +696,8 @@ ABGELEHNT: list[dict] = [
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
     # Garmin 1.0.91 am 29.09. FREIGEGEBEN (s. `_APP_META`); Punkt + Ereignis im Changelog.
-    # EINGEREICHT 28.09.2026 (Jans Meldung, Console: „Produktion 49 (1.1.35) · Produktion (Wear OS)
-    # 1045 (1.2.35)", Vorabpruefung laeuft). Wear ohne eigene Aenderung mitgebumpt (harte Regel:
-    # Phone und Wear immer zusammen) — deshalb EINE Zeile mit beiden Nummern und den Handy-Punkten.
-    {"name": "Android phone + Wear OS", "version": "1.1.35 / 1.2.35",
-     "eingereicht": "2026-09-28",
-     "items": [
-         "With the phone on the board, the app also records the compass, so the analysis can tell "
-         "the nose of the board from the tail.",
-         "Sessions and the spot map can be filtered by sport.",
-         "The run table shows your heart rate at the start, on average and at the end of each run.",
-         "Each watch setting in your profile confirms that it was saved.",
-         "The board view says when front and back could not be told apart.",
-         "After merging, the app tells you if a share link of one of the merged recordings stopped "
-         "working.",
-     ]},
+    # Android 1.1.35 / Wear 1.2.35 am 29.09. FREIGEGEBEN (Play-Mail); der Kompass-Punkt traegt jetzt
+    # auch "android", die uebrigen fuenf Punkte standen schon versionslos im Changelog (29.09.).
     {"name": "Amazfit", "version": "1.0.12",
      # EINGEREICHT 24.09.2026: im Zepp-Entwicklerkonto steht 1.0.12 auf „Under Review (Can be
      # Withdrawn)", Application Time 2026.09.24; 1.0.11 daneben weiter „Approved".
@@ -758,9 +752,9 @@ IN_REVIEW: list[dict] = [
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
     # Wear: Platzhalter-Genauigkeit (OnePlus OPWWE251 meldet immer 125,0 m) sperrte „GPS bereit",
-    # Live-Tempo und Lauf-Erkennung (Nutzermeldung 28.09.2026). Gebaut, wartet auf die laufende
-    # Play-Pruefung von 1.1.35/1.2.35; Nummern werden beim Bauen gezogen (Phone und Wear zusammen).
-    {"name": "Wear OS", "version": "1.2.36",
+    # Live-Tempo und Lauf-Erkennung (Nutzermeldung 28.09.2026). Gebaut; nach der Freigabe von
+    # 1.1.35/1.2.35 am 29.09. auf Phone 1.1.36/50 + Wear 1.2.36/1046 gebumpt (Phone und Wear zusammen).
+    {"name": "Android phone + Wear OS", "version": "1.1.36 / 1.2.36",
      "items": [
          "Watches that report the same GPS accuracy all the time now show GPS as ready, show your "
          "speed and detect runs while you ride.",
