@@ -226,6 +226,7 @@ VARIANTEN = {
     "beide+teil0.4+veto0.5+kurz0.9": ("beide", [("teil", 0.4), ("veto", 0.5), ("kurz", 0.9)]),
     "beide+empfteilkurz": ("beide", "empfteilkurz"),
     "tief+empfteilkurz": ("tief", "empfteilkurz"),
+    "beide+empfteilkurzroh": ("beide", "empfteilkurzroh"),
     "tief+schnitt0.5+veto0.6": ("tief", [("schnitt", 0.5), ("veto", 0.6)]),
     "tief+schnitt0.6+veto0.6": ("tief", [("schnitt", 0.6), ("veto", 0.6)]),
     "tief+schnitt0.5+naht4+veto0.5": ("tief", [("schnitt", 0.5), ("naht", 4), ("veto", 0.5)]),
@@ -241,13 +242,21 @@ EMPF_SCHWELLEN = {
 }
 
 
-def anwenden(L, schritte, t, v, pg, empf="normal"):
+EMPF_KURZ = {"normal": 0.8, "light": 0.7, "attempts": 0.6}
+
+
+def anwenden(L, schritte, t, v, pg, empf="normal", p_roh=None):
     if schritte == "empfteil":
         theta, tau = EMPF_TEIL.get(empf or "normal", EMPF_TEIL["normal"])
         schritte = [("teil", theta), ("veto", tau)]
     elif schritte == "empfteilkurz":
         theta, tau = EMPF_TEIL.get(empf or "normal", EMPF_TEIL["normal"])
         schritte = [("teil", theta), ("veto", tau), ("kurz", 0.8)]
+    elif schritte == "empfteilkurzroh":
+        # kurze Stuecke am UNGEGLAETTETEN p messen (die Glaettung zieht p an den Raendern kurzer
+        # Laeufe herunter) und je Empfindlichkeit milder
+        theta, tau = EMPF_TEIL.get(empf or "normal", EMPF_TEIL["normal"])
+        schritte = [("teil", theta), ("veto", tau), ("kurzroh", EMPF_KURZ.get(empf or "normal", 0.8))]
     if isinstance(schritte, str):
         tau, theta = EMPF_SCHWELLEN[schritte].get(empf or "normal", EMPF_SCHWELLEN[schritte]["normal"])
         schritte = [("veto", tau), ("schnitt", theta)]
@@ -265,6 +274,8 @@ def anwenden(L, schritte, t, v, pg, empf="normal"):
             L = teil(L, t, pg, x)
         elif art == "kurz":
             L = kurz(L, t, pg, x)
+        elif art == "kurzroh":
+            L = kurz(L, t, p_roh if p_roh is not None else pg, x)
     return L
 
 
@@ -315,7 +326,7 @@ def main():
                 L0 = vereinigung(L0, [(x["t0"], x["t1"]) for x in basis[sid]["runs"]])
             if sid in P and schritte:
                 t, v, p = P[sid]
-                L = anwenden(L0, schritte, t, v, glaetten(p), r.get("sensitivity"))
+                L = anwenden(L0, schritte, t, v, glaetten(p), r.get("sensitivity"), p)
             else:
                 L = L0
             if sid in P:
