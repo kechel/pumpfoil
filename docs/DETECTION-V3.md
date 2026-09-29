@@ -143,7 +143,30 @@ nur gegen die Brett-Paare messen, nicht als Einzel-Fix. Jan: „aendern wir erst
 Ohne On-Foil-Modell (gemessen): +43 % Laeufe, 25 % unter 8 s, neue Laeufe nur zu 13 % von
 foil_status bestaetigt — das Modell bleibt.
 
-## Schritt 1: taugt das Handy am Brett als Wahrheit? (29.09.2026, scripts/v3/brett_wahrheit.py)
+## KORREKTUR zu Schritt 1 (29.09.2026, abends)
+
+Der erste Versatz (+2,04 s, Kreuzkorrelation des NICKENS) war um ~3 Pump-Perioden falsch: der
+Pumptakt (~0,7 s) ist mehrdeutig, und mit ±250 ms Toleranz passen Pumps auch um einen ganzen Takt
+versetzt noch „zusammen". Aufgefallen an der Gegenprobe ueber die Garmin #10873, die mit beiden
+Handys gepaart ist (−22 ms statt +2040). Richtig ausgerichtet ueber die UEBERGAENGE (Laeufe mit
+8 s Rand, Betrag ohne Bandpass, `paare_ausrichten.ausrichten`): **Versatz −0,044 s (r 0,97/0,93),
+86 gemeinsame Pumps von 87/86 (99-100 %), Median-Abstand 18 ms**, Zustand je Sekunde 97,0 %.
+Die Erklaerung „Abweichungen an Anfahrt/Sturz" unten war FALSCH — das war der Versatz.
+**Lehre:** einen Versatz nie aus einem periodischen Signal allein bestimmen; immer eine Gegenprobe.
+
+## Schritt 2: Uhr und Brett ausgerichtet (scripts/v3/paare_ausrichten.py -> data/ml/v3/paare.json)
+
+| Paar | Fahrer | Laeufe | fein je Lauf (ms) | Urteil |
+|---|---|---|---|---|
+| #10195/#10194 | u2 | 4 | 1680 · 1680 · 1680 · 1720 | sehr gut |
+| #9535/#9534 | u2 | 2 | 2360 · 2280 | gut |
+| #10248/#10250 | u13 | 4 | −320 · 2160 · 2120 · 2080 | gut (1 Ausreisser) |
+| #10328/#10326 | u2 | 5 | 1560 · 2440 · 2400 · 2440 · 640 | brauchbar (3 von 5) |
+| #10874/#10873 + #10875/#10873 | u2 | 2 | Gegenprobe: 22 ms auseinander | gut |
+| #9650/#9649 | u2 | 1 | 1480 (r 0,57) | brauchbar |
+| #9528/#9529, #9650/#9648 | u2 | je 1 | r 0,23 / 0,21 | zu schwach, raus |
+
+## Schritt 1: taugt das Handy am Brett als Wahrheit? (29.09.2026, scripts/v3/brett_wahrheit.py — ZAHLEN UEBERHOLT, s. Korrektur oben)
 
 Zwei Handys in DERSELBEN Tasche am Brett (#10874 iPhone SE 3, #10875 Pixel 7a), Pump-Gipfel aus
 dem Nicken (0,8-2,5 Hz, >= 3°): Versatz 2,04 s, Nicken r = 0,77. **In Laeufen 77 gemeinsame Pumps
