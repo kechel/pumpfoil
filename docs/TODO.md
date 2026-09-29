@@ -10969,7 +10969,15 @@ Offen daraus:
   **Bestand:** 86 Sessions mit Upload-Luecke ≥ 0,5 h neu ausgewertet (Sicherung
   `backup-reanalyse86.json` im Session-Scratchpad), alle 86 neu zugeschnitten, bei 10 mehr Laeufe
   (z. B. #9708 7→19, #9583 11→24, #9701 9→18). Die 10 Nutzer per DM aus Konto 230 informiert.
-- **⏰ NACHPRUEFEN ab ~01.10.2026 — greift der Neu-Zuschnitt bei NEUEN Sessions?** Rein lesend:
+- **🟢 GEPRUEFT 29.09.2026 — der Neu-Zuschnitt greift bei neuen Sessions.** 487 Geraete-Sessions seit
+  dem Fix (27.09. 21:03), 96 mit Auto-Zuschnitt. 5 hatten eine Upload-Luecke >= 30 min (0,7–2,5 h);
+  bei allen dreien mit Auto-Zuschnitt (#10452, #10469, #10471) liegen Laeufe NACH der Luecke im
+  Ergebnis und der Zuschnitt endet am letzten Lauf + 15 s. Keine Session mit einem Lauf ausserhalb
+  des Zuschnitts. Einziger Fall mit Tempo ausserhalb: #10478, 67 s bis 62 km/h nach dem Ende —
+  Autofahrt, zu Recht draussen. FALLE fuer Nachpruefer: `analysis_results.created_at` wird nur beim
+  ANLEGEN gesetzt, nicht bei der Neuauswertung — „Auswertung vor dem letzten Chunk" daraus ist
+  kein Befund. Skript lag im Scratchpad (rein lesend). Urspruengliche Aufgabe:
+  **⏰ NACHPRUEFEN ab ~01.10.2026 — greift der Neu-Zuschnitt bei NEUEN Sessions?** Rein lesend:
   Sessions seit 27.09. mit `trim_auto = true`, deren Upload-Chunks eine Luecke ≥ 0,5 h haben
   (`ingest_chunks.received_at`) — liegt jeder erkannte Lauf innerhalb des Zuschnitts, und passt der
   Zuschnitt zum letzten Lauf + 15 s? Zusaetzlich: lief fuer diese Sessions nach dem letzten Chunk
