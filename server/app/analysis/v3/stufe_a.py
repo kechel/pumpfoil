@@ -6,6 +6,7 @@ server/data/ml/v3/ (nicht im Repo) und wird nur von scripts/v3/ geladen.
 """
 from __future__ import annotations
 
+import os
 import pickle
 from functools import lru_cache
 from pathlib import Path
@@ -14,7 +15,11 @@ import numpy as np
 
 from . import merkmale as M
 
-STANDARD = Path(__file__).resolve().parents[3] / "data" / "ml" / "v3" / "stufe_a.pkl"
+# Welche Modellfassung (nur Messungen): V3_MODELL=r2 -> stufe_a_r2.pkl + stufe_a_r2_falten.pkl.
+# Leer = die erste Fassung (stufe_a.pkl), damit fruehere Messungen nachrechenbar bleiben.
+_NAME = os.environ.get("V3_MODELL", "")
+STANDARD = (Path(__file__).resolve().parents[3] / "data" / "ml" / "v3"
+            / (f"stufe_a_{_NAME}.pkl" if _NAME else "stufe_a.pkl"))
 
 
 @lru_cache(maxsize=2)
@@ -23,7 +28,7 @@ def _modell(pfad: str):
         return pickle.load(f)
 
 
-FALTEN = STANDARD.with_name("stufe_a_falten.pkl")
+FALTEN = STANDARD.with_name(STANDARD.stem + "_falten.pkl")
 
 
 def wahrscheinlichkeit(tb, pfad: Path = STANDARD, fahrer: int | None = None) -> np.ndarray | None:
