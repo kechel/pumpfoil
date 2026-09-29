@@ -1,4 +1,5 @@
 import SwiftUI
+import Foundation
 
 /// Text mit `<b>…</b>` als echte Fettung.
 ///
@@ -8,9 +9,15 @@ import SwiftUI
 /// verlieren) werden sie hier in Markdown uebersetzt, das `AttributedString` versteht.
 /// - Parameter farbe: optional zusaetzlich zur Fettung. Der Social-Hinweis nutzt Marken-Cyan,
 ///   weil der fette Satz dort die Aufforderung ist (Jan, 31.08.); im Impressum bleibt es fett.
+///
+/// LINKS (29.09.2026): seit dem Hosting-Block und in den Overlays cs/nl/fi/nb/pl stehen auch
+/// `<a href>`-Marken in den Texten — die App zeigte sie als rohes HTML. Sie werden zu Markdown-
+/// Links (`[Text](Ziel)`), die SwiftUI antippbar in Akzentfarbe zeigt; relative Ziele wie
+/// `/datenloeschung` zeigen auf pumpfoil.org. Jede ANDERE Marke faellt stumm weg.
 func impText(_ roh: String, farbe: Color? = nil) -> AttributedString {
-    let md = roh.replacingOccurrences(of: "<b>", with: "**")
+    var md = roh.replacingOccurrences(of: "<b>", with: "**")
                 .replacingOccurrences(of: "</b>", with: "**")
+    md = impLinks(md)
     // `interpretedSyntax: .inlineOnlyPreservingWhitespace` — sonst frisst Markdown Zeilenumbrueche.
     guard var s = try? AttributedString(markdown: md,
         options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace))
@@ -22,6 +29,26 @@ func impText(_ roh: String, farbe: Color? = nil) -> AttributedString {
         }
     }
     return s
+}
+
+/// `<a … href="X" …>T</a>` -> `[T](X)`, danach alle uebrigen Marken entfernen.
+private func impLinks(_ s: String) -> String {
+    let ns = s as NSString
+    guard let re = try? NSRegularExpression(pattern: "<a\\b[^>]*?href\\s*=\\s*\"([^\"]*)\"[^>]*>(.*?)</a>",
+                                            options: [.caseInsensitive, .dotMatchesLineSeparators])
+    else { return s }
+    var aus = ""
+    var pos = 0
+    for m in re.matches(in: s, range: NSRange(location: 0, length: ns.length)) {
+        aus += ns.substring(with: NSRange(location: pos, length: m.range.location - pos))
+        var ziel = ns.substring(with: m.range(at: 1))
+        if ziel.hasPrefix("/") { ziel = "https://pumpfoil.org" + ziel }
+        let text = ns.substring(with: m.range(at: 2))
+        aus += "[\(text)](\(ziel))"
+        pos = m.range.location + m.range.length
+    }
+    aus += ns.substring(from: pos)
+    return aus.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
 }
 
 // Impressum + Datenschutzhinweis in der App. Gleiche Reihenfolge/Inhalte wie web /impressum + Android.
@@ -38,9 +65,13 @@ struct ImpressumView: View {
             Sec(title: "imp.hostTitle", intro: nil, bullets: ["imp.host1", "imp.host2"], note: nil),   // Server + Hosting (29.09.2026, wie PWA)
             Sec(title: "imp.googleTitle", intro: "imp.googleIntro", bullets: ["imp.google1", "imp.google2", "imp.google3", "imp.google4"], note: "imp.googleNote"),
             Sec(title: "imp.appleTitle", intro: "imp.appleIntro", bullets: ["imp.apple1", "imp.apple2", "imp.apple3"], note: nil),
+            // Facebook-Anmeldung und KI-Unterstuetzung (29.09.2026): standen nur in der PWA.
+            // Reihenfolge ab hier wie web /impressum: Facebook, Konten, KI, Karten, YouTube.
+            Sec(title: "imp.fbTitle", intro: "imp.fbIntro", bullets: ["imp.fb1", "imp.fb2", "imp.fb3", "imp.fb4", "imp.fb5"], note: "imp.fbNote"),
             Sec(title: "imp.connTitle", intro: "imp.connIntro", bullets: ["imp.conn1", "imp.conn2", "imp.conn3"], note: nil),
-            Sec(title: "imp.ytTitle", intro: nil, bullets: ["imp.yt1", "imp.yt2"], note: "imp.ytNote"),
+            Sec(title: "imp.aiTitle", intro: "imp.aiIntro", bullets: ["imp.ai1", "imp.ai2", "imp.ai3", "imp.ai4"], note: "imp.aiNote"),
             Sec(title: "imp.mapTitle", intro: nil, bullets: ["imp.map1", "imp.map2", "imp.mapApple"], note: nil),
+            Sec(title: "imp.ytTitle", intro: nil, bullets: ["imp.yt1", "imp.yt2"], note: "imp.ytNote"),
         ]
     }
 

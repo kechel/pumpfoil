@@ -158,6 +158,9 @@ struct ProfileView: View {
     // Konto-Löschung (App-Store-Pflicht 5.1.1(v)): DSGVO-Delete + danach abmelden.
     private var deleteSection: some View {
         Section {
+            // Impressum/Datenschutz: war nach dem Login nirgends erreichbar, nur auf dem Login-
+            // Bildschirm (Jan, 29.09.2026: „im profil ganz unten neben der versionsnummer").
+            NavigationLink(Loc.t("nav.imprint", lang)) { ImpressumView() }
             Button(Loc.t("profile.deleteAccount", lang), role: .destructive) { confirmingDelete = true }
         } footer: {
             Text(versionFooterText)
