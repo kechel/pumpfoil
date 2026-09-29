@@ -698,6 +698,14 @@ IN_REVIEW: list[dict] = [
     # Garmin 1.0.91 am 29.09. FREIGEGEBEN (s. `_APP_META`); Punkt + Ereignis im Changelog.
     # Android 1.1.35 / Wear 1.2.35 am 29.09. FREIGEGEBEN (Play-Mail); der Kompass-Punkt traegt jetzt
     # auch "android", die uebrigen fuenf Punkte standen schon versionslos im Changelog (29.09.).
+    # EINGEREICHT 29.09.2026 11:13 (Jans Meldung, ASC „Warten auf Pruefung", Uebermittlung
+    # 80e8978f-7f65-414e-9329-db793b1ede6e). Dazu ohne eigenen Punkt: Facebook-/KI-Block und
+    # antippbare Links im Datenschutz, Impressum im Profil (Jan: kein Changelog dafuer).
+    {"name": "iPhone + Apple Watch", "version": "1.1.40",
+     "eingereicht": "2026-09-29",
+     "items": [
+         "Two new data fields add up the distance and the time of all your runs in a session.",
+     ]},
     {"name": "Amazfit", "version": "1.0.12",
      # EINGEREICHT 24.09.2026: im Zepp-Entwicklerkonto steht 1.0.12 auf „Under Review (Can be
      # Withdrawn)", Application Time 2026.09.24; 1.0.11 daneben weiter „Approved".
@@ -770,10 +778,6 @@ NAECHSTES: list[dict] = [
     # (bf972167). iOS 1.1.39 Build 43 liegt in TestFlight, Build 44 hat die Portierung.
     # Wear 1.2.34 wird nur mitgebumpt (harte Regel: Phone und Wear immer zusammen), ohne eigenen Punkt.
     # Datenfelder 22/23 (Summe aller Laeufe), Wunsch Roman 28.09.2026 — auf allen vier Uhren gebaut.
-    {"name": "iPhone + Apple Watch", "version": "1.1.40",
-     "items": [
-         "Two new data fields add up the distance and the time of all your runs in a session.",
-     ]},
     {"name": "Amazfit", "version": "1.0.13",
      "items": [
          "Two new data fields add up the distance and the time of all your runs in a session.",
