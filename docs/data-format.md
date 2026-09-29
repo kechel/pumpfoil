@@ -58,6 +58,12 @@ X-Device-Token: <token>
 ```
 `hr_bpm` und `h_acc_m` dürfen `null` sein. `t_ms` ist Offset zu `started_at`.
 
+**Optionale Felder 7-9** (iPhone-Recorder ab 1.1.41, 29.09.2026): `speed_acc_mps`, `course_deg`,
+`course_acc_deg`, so wie CoreLocation sie meldet (`-1` = ungueltig). Hinten angehaengt — Feld 1-6
+behalten fuer jede Auswertung ihre Bedeutung, wer die Zusatzfelder nicht kennt, ignoriert sie.
+Anlass: #10874 meldete 20 s lang ~6,7 km/h, der Pixel in derselben Tasche 14 km/h — ob iOS dem
+Wert selbst misstraute, liess sich ohne `speedAccuracy` nicht sagen.
+
 **Accel-Chunk** (`kind=accel`, `encoding=int16-b64`): `data` = base64 eines **little-endian int16-Arrays**,
 flach im Muster `[ax, ay, az, ax, ay, az, ...]`. Physikalisch: `g = raw / accel_scale`.
 Sample-Zeit = `started_at + t0_ms + i * (1000 / accel_hz)`.

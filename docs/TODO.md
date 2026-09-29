@@ -1442,6 +1442,13 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   ~200 m). Vermutung: Doppler kurz weg, CoreLocation liefert eine Schaetzung (speedAccuracy speichern
   wir nicht). Idee: bei anhaltend viel niedrigerem gemeldeten als Positions-Tempo den Positionen
   glauben — erst Haeufigkeit ueber alle iPhone-Sessions messen, Pipeline-Aenderung nur mit Jans OK.
+  **Nachtrag 29.09.:** beide Handys lagen in DERSELBEN Tasche am Brett — Gischt/Lage scheiden aus.
+  Tischtest #10882 (19 min, iPhone): GPS 1/s ohne Luecke, alle Sensoren 50 Hz — kein Stromsparen.
+  Vermutungen: iPhone SE 3 empfaengt nur ein Band (Median-Genauigkeit 15 m gegen 4,4 m am Pixel),
+  und CoreLocation glaettet — auch die iPhone-POSITIONEN waren langsamer (11,5 gegen 14,6 km/h), was
+  zu einem Filter passt, der die Kurve abschneidet (Lauf 1 endet genau im Bogen). Ab iOS 1.1.41
+  speichert der Handy-Recorder `speedAccuracy`, `course`, `courseAccuracy` (GPS-Felder 7-9) — die
+  naechste Aufnahme zeigt, ob iOS dem Wert selbst misstraut.
 
 - **🔲 29.09. — Overpass von der VM aus NICHT erreichbar** (alle Instanzen: overpass-api.de
   verweigert sofort, kumi.systems/private.coffee/openstreetmap.ru laufen in den Timeout, osm.jp
