@@ -1429,6 +1429,14 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔲 29.09. — Overpass von der VM aus NICHT erreichbar** (alle Instanzen: overpass-api.de
+  verweigert sofort, kumi.systems/private.coffee/openstreetmap.ru laufen in den Timeout, osm.jp
+  und nchc.org.tw verweigern; openstreetmap.org, GitHub, Google Storage gehen). Trifft auch die
+  Produktion: neue Wasserflaechen (`_water_rings_cached`, End-/Start-Marker) und Ufer-Namen koennen
+  gerade nicht nachgeschlagen werden, die 792 gecachten Orte laufen weiter. Klaeren, ob es an der
+  VM/Firewall liegt oder an Overpass selbst. Fuers v3-Training ausgewichen auf JRC Global Surface
+  Water (docs/DETECTION-V3.md).
+
 - **🔲 29.09. — Oura Ring (Frage eines Nutzers, u217): nur als Pulsquelle denkbar, Test angefragt.**
   API V2 (OpenAPI 1.41, V1 abgeschaltet) liefert kein GPS und keine Bewegungsdaten; nutzbar waere
   allein `/v2/usercollection/heartrate` (`timestamp`, `bpm`, `source`), passend zum Zeitfenster
