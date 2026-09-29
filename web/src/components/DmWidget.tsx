@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { api, BotMsg, BotRoom, ChatRoom, DmUser } from "../lib/api";
 import { istSelbstPop } from "../lib/selfPop";
 import { Avatar } from "./ui";
-import { BellIcon, ChatBubbleIcon, CloseIcon, LocationIcon } from "./Icons";
+import { BellIcon, ChatBubbleIcon, CloseIcon, LocationIcon, MaximizeIcon, MinimizeIcon } from "./Icons";
 import { Chat } from "./Chat";
 import { useT } from "../i18n";
 
@@ -41,9 +41,27 @@ export function DmWidget() {
   // falls man sich verschoben hat). Clamp hält die Titelzeile IMMER im Viewport (Fenster ist
   // 66vh hoch; y so begrenzen, dass die Oberkante nie über den oberen Rand rutscht).
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  // Vollbild auf dem Desktop (Jan, 29.09.2026) — mobil ist das Overlay ohnehin immer Vollbild,
+  // deshalb gibt es den Knopf erst ab `md`. Nur im Speicher, wie die Position: beim naechsten
+  // Oeffnen startet es wieder als kleines Fenster.
+  const [gross, setGross] = useState(false);
+  // Deckt das Overlay das ganze Fenster ab (Desktop-Vollbild, mobil immer), soll die Seite
+  // dahinter nicht mitscrollen (Jan, 29.09.2026: „scrollt der hintergrund / body noch wenn man im
+  // chat selber oben oder unten angekommen ist"). Die Scrollbereiche selbst tragen zusaetzlich
+  // `overscroll-contain`, damit auch das kleine Fenster die Seite nicht mitzieht.
+  useEffect(() => {
+    if (!open) return;
+    const deckend = () => gross || window.innerWidth < 768;
+    const el = document.documentElement;
+    const vorher = el.style.overflow;
+    const setzen = () => { el.style.overflow = deckend() ? "hidden" : vorher; };
+    setzen();
+    window.addEventListener("resize", setzen);
+    return () => { window.removeEventListener("resize", setzen); el.style.overflow = vorher; };
+  }, [open, gross]);
   const dragRef = useRef<{ sx: number; sy: number; ox: number; oy: number } | null>(null);
   const startDrag = (e: React.PointerEvent) => {
-    if (window.innerWidth < 768) return;   // mobil = Vollbild, kein Drag
+    if (window.innerWidth < 768 || gross) return;   // mobil bzw. Vollbild: kein Drag
     if ((e.target as HTMLElement).closest("button,input")) return;
     const cur = pos ?? { x: 16, y: 80 };   // Default = right-4 / bottom-20
     dragRef.current = { sx: e.clientX, sy: e.clientY, ox: cur.x, oy: cur.y };
@@ -191,7 +209,7 @@ export function DmWidget() {
       window.history.go(-1);
     }
   };
-  const closeOverlay = () => { setActive(null); setOpen(false); consumeMarkers(); };
+  const closeOverlay = () => { setActive(null); setOpen(false); setGross(false); consumeMarkers(); };
 
   const toggleBlock = () => {
     if (!active || !active.otherId) return;
@@ -257,14 +275,15 @@ export function DmWidget() {
 
       {open && (
         <div
-          className="fixed inset-0 z-[1550] flex flex-col overflow-hidden border-slate-700 bg-slate-900 shadow-2xl md:inset-auto md:bottom-20 md:right-4 md:h-[66vh] md:w-[350px] md:rounded-2xl md:border"
+          className={`fixed inset-0 z-[1550] flex flex-col overflow-hidden border-slate-700 bg-slate-900 shadow-2xl ${
+            gross ? "" : "md:inset-auto md:bottom-20 md:right-4 md:h-[66vh] md:w-[350px] md:rounded-2xl md:border"}`}
           style={{
             paddingBottom: "env(safe-area-inset-bottom)",
-            ...(pos && window.innerWidth >= 768 ? { right: pos.x, bottom: pos.y, left: "auto", top: "auto" } : {}),
+            ...(pos && !gross && window.innerWidth >= 768 ? { right: pos.x, bottom: pos.y, left: "auto", top: "auto" } : {}),
           }}
         >
           <div
-            className="flex touch-none items-center gap-2 border-b border-slate-800 bg-slate-950/60 px-3 py-2 md:cursor-move"
+            className={`flex touch-none items-center gap-2 border-b border-slate-800 bg-slate-950/60 px-3 py-2 ${gross ? "" : "md:cursor-move"}`}
             style={{ paddingTop: "calc(0.5rem + env(safe-area-inset-top))" }}
             onPointerDown={startDrag} onPointerMove={onDrag} onPointerUp={endDrag} onPointerCancel={endDrag}
           >
@@ -289,6 +308,12 @@ export function DmWidget() {
                 )}
               </div>
             )}
+            {/* Vollbild umschalten — zwischen den Tabs und dem X, nur Desktop. */}
+            <button onClick={() => setGross((g) => !g)}
+              aria-label={t(gross ? "dm.shrink" : "dm.fullscreen")} title={t(gross ? "dm.shrink" : "dm.fullscreen")}
+              className="hidden text-slate-400 hover:text-slate-200 md:inline-flex">
+              {gross ? <MinimizeIcon className="h-4 w-4" /> : <MaximizeIcon className="h-4 w-4" />}
+            </button>
             <button onClick={closeOverlay} aria-label="Close" className="text-slate-400 hover:text-slate-200"><CloseIcon className="h-4 w-4" /></button>
           </div>
 
@@ -311,7 +336,7 @@ export function DmWidget() {
                   placeholder={t("dm.searchAll")}
                   className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100" />
               </div>
-              <div className="min-h-0 flex-1 overflow-y-auto">
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
                 {q.trim() ? (
                   // Globale Suche: Personen + Spots kombiniert, egal welcher Tab aktiv ist.
                   <>
@@ -383,7 +408,7 @@ export function DmWidget() {
                           {botOpen.bot_count}/{botOpen.total_count}
                         </span>
                       </div>
-                      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
+                      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain p-3">
                         {botMsgs === null && <p className="text-center text-sm text-slate-400">…</p>}
                         {botMsgs?.length === 0 && <p className="text-center text-sm text-slate-400">{t("dm.botEmpty")}</p>}
                         {botMsgs?.map((m) => (

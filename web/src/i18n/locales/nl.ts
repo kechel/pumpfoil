@@ -1055,6 +1055,8 @@ const nl: Record<string, string> = {
   "adm.blocks.blocked": "heeft geblokkeerd →",
   "dm.title": "Chats",
   "dm.back": "Terug",
+  "dm.fullscreen": "Volledig scherm",
+  "dm.shrink": "Verkleinen",
   "dm.block": "Blokkeren",
   "dm.unblock": "Deblokkeren",
   "dm.blockConfirm": "{name} blokkeren? Jullie kunnen elkaar dan geen berichten meer sturen.",

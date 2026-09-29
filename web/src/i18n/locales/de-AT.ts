@@ -961,6 +961,8 @@ const deAT: Record<string, string> = {
   "banner.msg": "is gaaanz frisch (seit 23. Juni 2026) — fost täglich neiche Features & Foils. Sog ma, wos da taugt (und wos ned): einfoch rechts aufs ✉️ klickn →",
   "dm.title": "Chats",
   "dm.back": "Zurück",
+  "dm.fullscreen": "Vollbild",
+  "dm.shrink": "Verkleinern",
   "dm.block": "Blockieren",
   "dm.unblock": "Entblocken",
   "dm.blockConfirm": "{name} blockieren? Ihr könnt einander dann keine Nachrichten mehr schreiben.",

@@ -1055,6 +1055,8 @@ const cs: Record<string, string> = {
   "adm.blocks.blocked": "zablokoval(a) →",
   "dm.title": "Chaty",
   "dm.back": "Zpět",
+  "dm.fullscreen": "Celá obrazovka",
+  "dm.shrink": "Zmenšit",
   "dm.block": "Zablokovat",
   "dm.unblock": "Odblokovat",
   "dm.blockConfirm": "Zablokovat {name}? Pak si už nebudete moci psát zprávy.",

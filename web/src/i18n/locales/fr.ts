@@ -1107,6 +1107,8 @@ const fr: Record<string, string> = {
   "banner.msg": "est tout nouveau (depuis le 23 juin 2026) — de nouvelles fonctions & de nouveaux foils presque chaque jour. Dis-moi ce qui te plaît (et ce qui ne te plaît pas) : clique sur le ✉️ à droite →",
   "dm.title": "Discussions",
   "dm.back": "Retour",
+  "dm.fullscreen": "Plein écran",
+  "dm.shrink": "Réduire",
   "dm.block": "Bloquer",
   "dm.unblock": "Débloquer",
   "dm.blockConfirm": "Bloquer {name} ? Vous ne pourrez plus vous écrire.",

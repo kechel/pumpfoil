@@ -226,7 +226,7 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
         </button>
         <button onClick={leave} className="text-slate-500 hover:text-red-400" title={t("chat.leave")}>{t("chat.leave")}</button>
       </div>
-      <div ref={scrollRef} onScroll={onScroll} className={`mb-3 space-y-3 overflow-y-auto ${fill ? "min-h-0 flex-1" : "h-96"}`}>
+      <div ref={scrollRef} onScroll={onScroll} className={`mb-3 space-y-3 overflow-y-auto overscroll-contain ${fill ? "min-h-0 flex-1" : "h-96"}`}>
         {loadingMore && <p className="py-1 text-center text-xs text-slate-500">…</p>}
         {capped && <p className="py-1 text-center text-[10px] text-slate-600">{t("chat.capped")}</p>}
         {!capped && !hasMore && msgs.length > PAGE && <p className="py-1 text-center text-[10px] text-slate-600">{t("chat.start")}</p>}
@@ -310,7 +310,7 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
           }}
           placeholder={t("chat.placeholder")}
           maxLength={2000}
-          className="max-h-[50vh] min-w-0 flex-1 resize-none overflow-y-auto rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
+          className="max-h-[50vh] min-w-0 flex-1 resize-none overflow-y-auto overscroll-contain rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
         />
         {editing == null && <MicButton value={text} onChange={(v) => setText(v)} onSubmit={(v) => sendText(v)} disabled={busy}
           title={scope.startsWith("spot:") ? `${t("chat.spotChat")} ${scope.slice(5)}` : scope.startsWith("session:") ? t("chat.kindSession") : ""} />}

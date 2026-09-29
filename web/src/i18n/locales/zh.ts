@@ -1347,6 +1347,8 @@ const zh: Record<string, string> = {
   "banner.msg": "全新上线（自 2026 年 6 月 23 日起）—— 几乎每天都有新功能和新水翼。告诉我你喜欢什么（和不喜欢什么）：点击右侧的 ✉️ 即可 →",
   "dm.title": "聊天",
   "dm.back": "返回",
+  "dm.fullscreen": "全屏",
+  "dm.shrink": "缩小",
   "dm.block": "屏蔽",
   "dm.unblock": "解除屏蔽",
   "dm.blockConfirm": "屏蔽 {name}？你们将无法再互相发消息。",

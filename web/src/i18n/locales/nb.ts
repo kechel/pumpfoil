@@ -1384,6 +1384,8 @@ const nb: Record<string, string> = {
   "banner.msg": "er helt ny (siden 23. juni 2026) — nye funksjoner og foiler nesten daglig. Si hva du liker (og hva du ikke liker): bare trykk på ✉️ til høyre →",
   "dm.title": "Chatter",
   "dm.back": "Tilbake",
+  "dm.fullscreen": "Fullskjerm",
+  "dm.shrink": "Forminsk",
   "dm.block": "Blokker",
   "dm.unblock": "Fjern blokkering",
   "dm.blockConfirm": "Blokkere {name}? Dere kan ikke sende meldinger til hverandre lenger.",

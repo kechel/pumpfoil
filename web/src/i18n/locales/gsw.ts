@@ -1021,6 +1021,8 @@ const gsw: Record<string, string> = {
   "banner.msg": "isch ganz nöi (sit em 23. Juni 2026) — fascht jede Tag nöii Features & Foils. Säg mer, was der gfallt (und was nöd): eifach rächts ufs ✉️ klicke →",
   "dm.title": "Chats",
   "dm.back": "Zrugg",
+  "dm.fullscreen": "Vollbild",
+  "dm.shrink": "Verchliinere",
   "dm.block": "Blockiere",
   "dm.unblock": "Entblockiere",
   "dm.blockConfirm": "{name} blockiere? Denn chönd er enand kei Nachrichte meh schriibe.",
