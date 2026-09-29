@@ -2024,7 +2024,8 @@ def get_session(
         # wuerde der Poll dieser Seite waehrend eines Uploads bei jedem Durchlauf eine komplette
         # Analyse ausloesen.
         if has_gps and (s.result is None or _nachrechnen_faellig(db, s)):
-            background_tasks.add_task(_analyze_in_background, s.id, False)
+            # Schon abgeschlossen (spaete Chunks, s. `_nachrechnen_faellig`) -> final rechnen.
+            background_tasks.add_task(_analyze_in_background, s.id, s.status == "analyzed")
     # SICHERHEITSNETZ (15.09.2026): eine Session, die `/complete` bekommen hat, deren FINALE
     # Analyse aber gestorben ist, kam bisher NIE mehr weiter — es gab keinen Weg zurueck.
     # Sie stand fuer immer als „wird verarbeitet" in der Liste, ohne Benachrichtigung und ohne

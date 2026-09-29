@@ -5,7 +5,7 @@
     cd server && .venv/bin/python ../scripts/live-sessions-nachrechnen.py --trocken
 
 SCHREIBT: rechnet die Analyse neu (`final=False`) — der Status bleibt `live`, die Uhr darf ihre
-Daten also weiter behalten. Laeuft ueber `foil-live-analyse.timer` alle 5 Minuten.
+Daten also weiter behalten. Schon abgeschlossene Sessions mit spaeten Chunks rechnet es FINAL. Laeuft ueber `foil-live-analyse.timer` alle 5 Minuten.
 
 WARUM ES DAS GIBT (Jan, 06.09.2026): „auswerten und anzeigen was schon da ist … und immer wenn
 zusaetzliche Daten ankamen, nochmal neu die ganze Analyse."
@@ -45,7 +45,7 @@ def main() -> int:
     sys.path.insert(0, ".")
 
     from app import models, storage
-    from app.analysis import run_analysis
+    from app.analysis import abschliessend_auswerten, run_analysis
     from app.api.ingest import _nachrechnen_faellig
     from app.db import SessionLocal
 
@@ -55,7 +55,18 @@ def main() -> int:
                  .filter(models.Session.status.in_(("recording", "live")),
                          models.Session.deleted.is_(False))
                  .order_by(models.Session.id).all())
-        print(f"{len(offen)} noch laufende Session(s)")
+        # Dazu abgeschlossene Sessions, in die NACH der letzten Analyse noch Chunks kamen (29.09.,
+        # s. `_nachrechnen_faellig`). Eng abgefragt — sonst liefe die Pruefung alle 5 Minuten
+        # ueber jede Session im Bestand.
+        from sqlalchemy import exists, and_
+        spaet = (db.query(models.Session)
+                 .filter(models.Session.status == "analyzed",
+                         models.Session.deleted.is_(False),
+                         exists().where(and_(models.IngestChunk.session_id == models.Session.id,
+                                             models.IngestChunk.received_at > models.Session.updated_at)))
+                 .order_by(models.Session.id).all())
+        offen += spaet
+        print(f"{len(offen) - len(spaet)} noch laufende Session(s), {len(spaet)} abgeschlossene mit spaeten Chunks")
         gerechnet = 0
         for s in offen:
             if not _nachrechnen_faellig(db, s):
@@ -70,7 +81,12 @@ def main() -> int:
             if args.trocken:
                 print(f"   #{s.id} (user {s.user_id}): faellig, bisher {vorher} Laeufe")
                 continue
-            res = run_analysis(db, s, final=False)
+            if s.status == "analyzed":
+                abschliessend_auswerten(db, s)          # samt Zuschnitt, Status bleibt
+                db.refresh(s)
+                res = s.result
+            else:
+                res = run_analysis(db, s, final=False)
             db.commit()
             gerechnet += 1
             print(f"   #{s.id} (user {s.user_id}): {vorher} -> {res.num_runs} Laeufe, "
