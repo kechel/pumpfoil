@@ -693,6 +693,14 @@ Erkennung aus 12b findet Paare, sobald es sie gibt; entstehen werden sie erst au
 
 ---
 
+## 13. Pump-Zaehler gegen das Brett (29.09.2026)
+
+Mit richtig ausgerichteten Paaren (Versatz ueber die Uebergaenge, s. DETECTION-V3.md): Uhr/Brett
+Median **1,10** (u2, 19 Laeufe) und **1,08** (u13, 4 Laeufe) — der heutige Zaehler
+(`find_pumps_cadence`) ueberzaehlt leicht, die fruehere „~2× zu wenig" gilt fuer den alten.
+Ausreisser: kurze Laeufe (11-14 s) mit exakt doppelter Uhr-Zahl. Brett gegen Brett (zwei Handys
+in derselben Tasche): 99-100 % gemeinsame Pumps, 18 ms — das Brett-Handy taugt als Wahrheit.
+
 ## Verweise
 
 - `docs/DATA-PIPELINE.md` — Datenweg, drei Zeitbegriffe, Achsenrekonstruktion (**vorher lesen**)
