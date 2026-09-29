@@ -48,7 +48,7 @@ def eine(arg):
         kw_extra = {"use_model": False}
     else:
         kw_extra = {}
-    if variante in ("v3veto", "ohneveto"):
+    if variante in ("v3veto", "ohneveto", "tiefveto"):
         from app.analysis.timebase import build_timebase_for_session
         from app.analysis.v3 import veto
     if variante == "v3":
@@ -56,6 +56,10 @@ def eine(arg):
         detect_v2.model_mask_on_timebase = lambda tb: stufe_a.maske(tb)
     sens = "normal" if EMPF == "normal" else (s.get("sensitivity") or "normal")
     kw = dict(SENSITIVITY_PRESETS.get(sens) or {}) if sens != "normal" else {}
+    if variante in ("tief", "tiefveto"):
+        # Jans Idee 29.09.: keine (fast keine) Tempo-Grenzen, das Modell sortiert Gehen/Schwimmen/
+        # Paddeln selbst aus. Fuer ALLE gleich, unabhaengig von der Profil-Empfindlichkeit.
+        kw = {"enter_speed": 1.4, "exit_speed": 1.1, "min_segment_s": 3, "min_seg_avg_speed": 1.4}
     judge = (s.get("sport_class") or "pumpfoil") == "pumpfoil"
     try:
         res = detect_v2.analyze_session_v2(M.ganze_aufnahme(s), rebase=False, judge_fremdkraft=judge, **kw, **kw_extra)
@@ -65,12 +69,12 @@ def eine(arg):
                                  "accel_hz", "placement", "sport_class", "sport_source", "sensitivity",
                                  "sport_auto", "place", "uuid", "detection")}
     segs = res["segments"]
-    if variante in ("v3veto", "ohneveto"):
+    if variante in ("v3veto", "ohneveto", "tiefveto"):
         tb = res.get("timebase") or build_timebase_for_session(M.ganze_aufnahme(s))
         segs, weg = veto.pruefen(tb, segs, fahrer=s["user_id"])
         out_weg = [dict(_lauf(x), v3_p=x["v3_p"]) for x in weg]
     out["runs"] = [_lauf(x) for x in segs]
-    if variante in ("v3veto", "ohneveto"):
+    if variante in ("v3veto", "ohneveto", "tiefveto"):
         out["verworfen"] = out_weg
     out["num_runs"] = len(out["runs"])
     out["foiling_time_s"] = res.get("foiling_time_s")

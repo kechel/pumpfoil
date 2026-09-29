@@ -172,7 +172,14 @@ def merkmale(tb) -> tuple[np.ndarray, np.ndarray]:
     for i in range(n):
         a_, b_ = lo5[i], hi5[i]
         if b_ - a_ >= 3:
-            trend[i] = np.polyfit(sek[a_:b_] - sek[i], v[a_:b_], 1)[0]
+            # Steigung von Hand (kleinste Quadrate) statt np.polyfit: polyfit bricht bei
+            # entarteten Fenstern mit „SVD did not converge" ab (29.09.2026, Schattenlauf).
+            x = sek[a_:b_] - sek[i]; y = v[a_:b_]
+            ok = np.isfinite(x) & np.isfinite(y)
+            if ok.sum() >= 3:
+                x, y = x[ok], y[ok]
+                vx = ((x - x.mean()) ** 2).sum()
+                trend[i] = ((x - x.mean()) * (y - y.mean())).sum() / vx if vx > 0 else 0.0
     neu = np.column_stack([spek, ctx, abst, np.nan_to_num(hacc, nan=-1),
                            np.nan_to_num(hr - med, nan=0.0), ~np.isfinite(hr), luecke,
                            achsen, trend])
