@@ -336,7 +336,12 @@ export function DmWidget() {
                   placeholder={t("dm.searchAll")}
                   className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100" />
               </div>
-              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+              {/* Offener Bot-Raum: der Behaelter wird Flex-Spalte, damit dessen Nachrichtenliste eine
+                  begrenzte Hoehe bekommt und SELBST scrollt. Ohne das war sie so hoch wie ihr Inhalt,
+                  scrollte nie, und `overscroll-contain` auf ihr hielt das Rad trotzdem fest — das
+                  Ende des Verlaufs war nicht erreichbar (Jan, 29.09.2026). */}
+              <div className={`min-h-0 flex-1 overflow-y-auto overscroll-contain${
+                tab === "bot" && botOpen && !q.trim() ? " flex flex-col" : ""}`}>
                 {q.trim() ? (
                   // Globale Suche: Personen + Spots kombiniert, egal welcher Tab aktiv ist.
                   <>
