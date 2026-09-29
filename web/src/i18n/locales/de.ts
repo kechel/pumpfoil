@@ -1689,6 +1689,8 @@ const de: Record<string, string> = {
   "field.19": "Letzter Lauf: Max Speed",
   "field.20": "Läufe (Anzahl)",
   "field.21": "Letzter Lauf: Max Puls",
+  "field.22": "Alle Läufe: Strecke",
+  "field.23": "Alle Läufe: Zeit",
 
   // Account: Reverse-Pairing-Code + Off-Foil-Screen
   "account.claimTitle": "Code von der Uhr eingeben",

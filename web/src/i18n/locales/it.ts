@@ -1317,6 +1317,8 @@ const it: Record<string, string> = {
   "account.genHelp": "Solo Garmin: se preferisci non leggere il codice sull’orologio, generalo qui e inseriscilo nell’app Garmin Connect in «Pumpfoil» → Impostazioni. Wear OS, Apple Watch e Amazfit non hanno questa strada: lì l’orologio mostra il codice che inserisci sopra.",
   "field.20": "Run (numero)",
   "field.21": "Ultimo run: battito max",
+  "field.22": "Tutti i run: distanza",
+  "field.23": "Tutti i run: tempo",
   "imp.appleTitle": "Accesso Apple (« Accedi con Apple »)",
   "account.recordModeGps": "Solo GPS",
   "account.gnssMode": "Sistemi satellitari",

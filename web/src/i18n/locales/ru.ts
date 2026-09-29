@@ -1440,6 +1440,8 @@ const ru: Record<string, string> = {
   "field.19": "Последний заезд: макс. скорость",
   "field.20": "Заезды (количество)",
   "field.21": "Последний заезд: макс. пульс",
+  "field.22": "Все заезды: дистанция",
+  "field.23": "Все заезды: время",
 
   // Account: reverse pairing code + off-foil screen
   "account.claimTitle": "Введите код с часов",

@@ -28,6 +28,11 @@ export const FIELD_OPTIONS: { id: number; label: string }[] = [
   // (Garmin RecordView, Wear fieldValue, Apple ContentView, Zepp page/index.js: alle geprueft
   // am 17.08.). Der Hinweis im Namen sagt trotzdem, warum das Feld dort noch leer bleibt.
   { id: 21, label: "Letzter Lauf: Max Puls (neue Uhr-Version)" },
+  // 22/23: Summe ueber ALLE Laeufe der Aufnahme, der laufende mitgezaehlt (Wunsch Roman,
+  // 28.09.2026: „Distance" zaehlt Steg, Zurueckschwimmen und Fehlstarts mit). Aeltere Uhren zeigen
+  // fuer unbekannte IDs „–" (s. Kommentar zu 21).
+  { id: 22, label: "Alle Läufe: Strecke" },
+  { id: 23, label: "Alle Läufe: Zeit" },
 ];
 
 export function fieldLabel(id: number): string {

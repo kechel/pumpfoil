@@ -1539,6 +1539,8 @@ const cs: Record<string, string> = {
   "field.19": "Poslední jízda: max rychlost",
   "field.20": "Jízdy (počet)",
   "field.21": "Poslední jízda: max tep",
+  "field.22": "Všechny jízdy: trasa",
+  "field.23": "Všechny jízdy: čas",
 
   // Account: Reverse-Pairing-Code + Off-Foil-Screen
   "account.claimTitle": "Zadej kód z hodinek",

@@ -1440,6 +1440,8 @@ const id: Record<string, string> = {
   "field.19": "Run terakhir: kecepatan maks",
   "field.20": "Run (jumlah)",
   "field.21": "Run terakhir: maks HR",
+  "field.22": "Semua run: jarak",
+  "field.23": "Semua run: waktu",
 
   // Account: reverse pairing code + off-foil screen
   "account.claimTitle": "Masukkan kode dari jam",

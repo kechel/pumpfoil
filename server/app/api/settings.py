@@ -16,7 +16,7 @@ router = APIRouter(prefix="/api/settings", tags=["settings"])
 # Gültige Datenfeld-IDs (gemeinsamer Katalog mit Web + Uhr). 0 = leer/aus.
 # 0-13 Live-Felder, 14-21 Lauf-Felder. Bis 28.09.2026 stand hier range(0, 21): Feld 21 („Letzter Lauf:
 # Max Puls") fiel beim Speichern einer klassischen Seite stumm weg, waehrend layouts.py es laengst kannte.
-VALID_FIELD_IDS = set(range(0, 22))
+VALID_FIELD_IDS = set(range(0, 24))   # 22/23: Strecke/Zeit aller Laeufe (28.09.2026)
 # Default: eine Ansicht mit Speed(3s) + Puls.
 DEFAULTS = {
     "speed_min": 8, "speed_max": 25, "speed_auto": True, "views": [[1, 2, 0]],

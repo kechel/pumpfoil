@@ -1600,6 +1600,8 @@ const en: Record<string, string> = {
   "field.19": "Last run: max speed",
   "field.20": "Runs (count)",
   "field.21": "Last run: max HR",
+  "field.22": "All runs: distance",
+  "field.23": "All runs: time",
 
   // Account: reverse pairing code + off-foil screen
   "account.claimTitle": "Enter code from the watch",

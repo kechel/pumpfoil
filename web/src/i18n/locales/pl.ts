@@ -1520,6 +1520,8 @@ const pl: Record<string, string> = {
   "field.19": "Ostatni przejazd: prędkość maks.",
   "field.20": "Przejazdy (liczba)",
   "field.21": "Ostatni przejazd: maks. tętno",
+  "field.22": "Wszystkie przejazdy: dystans",
+  "field.23": "Wszystkie przejazdy: czas",
   "account.claimTitle": "Wpisz kod z zegarka",
   "account.claimHelp": "Otwórz Pumpfoil na zegarku i przejdź do „Połącz” — Garmin: przytrzymaj MENU (środkowy lewy przycisk) → „Ustawienia” → „Połącz”; Amazfit: przesuń palcem w lewo z ekranu startowego; Wear OS i Apple Watch pokazują ten ekran przy pierwszym uruchomieniu. Wpisz tutaj pokazany kod (6 znaków, litery i cyfry).",
   "account.claimReq": "Ważne: aplikacja towarzysząca zegarka musi być otwarta w telefonie i połączona z zegarkiem (Garmin Connect, Zepp, Wear OS albo Apple Watch), a telefon potrzebuje internetu — zegarek wychodzi do sieci przez telefon. Wpisz kod w ciągu 15 min; jeśli zegarek nie pokazuje kodu, zaktualizuj aplikację.",

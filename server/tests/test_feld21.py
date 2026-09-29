@@ -23,6 +23,18 @@ def test_feld_21_bleibt_auf_klassischen_seiten(client):
     s = client.get("/api/settings", headers=auth).json()
     assert s["pages"] == [[1, 21, 2]]
     assert s["off_foil_pages"] == [[21, 17, 16]] and s["pause_pages"] == [[12, 20, 21]]
-    # 22 gibt es nicht — faellt weiter weg
-    client.put("/api/settings", headers=auth, json={"views": [[1, 22, 2]]})
+    # 24 gibt es nicht — faellt weiter weg (22/23 seit 29.09.2026, s. unten)
+    client.put("/api/settings", headers=auth, json={"views": [[1, 24, 2]]})
     assert client.get("/api/settings", headers=auth).json()["views"] == [[1, 2, 0]]
+
+
+def test_felder_22_23_alle_laeufe(client):
+    """Strecke/Zeit ueber alle Laeufe (Wunsch Roman, 28.09.2026) — klassisch und im Layout-Katalog."""
+    from app.api import layouts
+    r = client.post("/api/auth/register", json={"email": "feld2223@t.de", "password": "supersecret"})
+    auth = {"Authorization": f"Bearer {r.json()['access_token']}"}
+    r = client.put("/api/settings", headers=auth, json={"views": [[22, 23, 1]], "off_foil_view": [22, 23, 12]})
+    assert r.status_code == 200, r.text
+    s = client.get("/api/settings", headers=auth).json()
+    assert s["views"] == [[22, 23, 1]] and s["off_foil_view"] == [22, 23, 12]
+    assert {22, 23} <= layouts.VALID_FIELD_IDS and 24 not in layouts.VALID_FIELD_IDS

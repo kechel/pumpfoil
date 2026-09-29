@@ -1310,6 +1310,8 @@ const fr: Record<string, string> = {
   "field.2": "Pouls",
   "field.20": "Runs (nombre)",
   "field.21": "Dernier run : pouls max",
+  "field.22": "Tous les runs : distance",
+  "field.23": "Tous les runs : temps",
   "field.3": "Temps",
   "field.4": "Distance",
   "field.5": "Vitesse (actuelle)",
