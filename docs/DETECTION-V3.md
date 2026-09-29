@@ -265,3 +265,23 @@ Profil-Empfindlichkeit). Gemessen mit detektor-v3-messen.py + direkt gegen Brett
   Pumps je Lauf muessen fuer neue Grenzen neu gezaehlt werden (die Werkbank zaehlt keine).
   Gleiten: weiter nur 31 Brett-Sekunden, nicht messbar.
 - Bilder: `server/data/ml/bilder/vergleich/` (blau gemeinsam, rot faellt weg, gruen kommt dazu).
+
+**Nachtrag 30.09. (Lernkurve, Modellgroesse, Restfaelle):**
+- Lernkurve (r3-Einstellungen, 150 Baeume): 4 Fahrer 0,982/0,984 · 16 Fahrer 0,989/0,949 ·
+  64 Fahrer 0,993/0,992 · alle 258 gleich. Ab ~64 Fahrern flach — MEHR Sessions derselben Art helfen
+  nicht mehr, bessere Labels schon (Brett-Paare, Gleiten, Fahrer wie Guillaume).
+- r3gross (600 Baeume, 127 Blaetter): Land 0,732 statt 0,728, sonst gleich, Guillaume schlechter.
+  Die Groesse ist nicht der Engpass -> r3 bleibt (kleiner, schneller).
+- Die 21 Rest-„Land"-Laeufe sind teils GPS-Fehler: #541 GPS-Gezappel am Steg zieht aufs Land, der
+  Arm pumpt (p 0,99); #2684 Gerade neben der Wosha mit duennen GPS-Punkten. L kann nicht 0 werden.
+- #9455 (Pruefliste): 1 -> 28 km/h in 12 s und zurueck, Arm bewegt (p 0,9) — kein Pumpfoil, das
+  Modell irrt. Eine Tempo-Regel dafuer waere Ueberanpassung an einen Fall (Wing/Efoil sind so
+  schnell); bleibt als bekannter Fehler.
+- Pumps: werden in `run_analysis` je Lauf gezaehlt, NACH der Erkennung — laeuft die Nachbearbeitung
+  spaeter in `detect_v2` (vor der Fremdkraft), sind die Pumps automatisch auf den neuen Grenzen.
+
+**Empfehlung (Stand 30.09., Jans Entscheidung offen):** Modell r3, Ausgang v2 ∪ tief, `teil`
+(Stuecke mit p >= θ) + Veto je Stueck + kurze Stuecke nur bei klarem p, alle Schwellen je
+Profil-Empfindlichkeit. Offen fuer Jan: wie streng bei kurzen Laeufen (141 bis 1290 unter 8 s,
+foil_status-Trefferquote gleich) und #9580 (Steg-Gewimmel). Live erst nach Jans OK, mit
+Lauf-Status manuell/auto und Sicherung des Bestands.
