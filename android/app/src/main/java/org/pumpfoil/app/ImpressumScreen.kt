@@ -56,9 +56,13 @@ fun ImpressumScreen(onBack: () -> Unit) {
             Section("imp.hostTitle", null, listOf("imp.host1", "imp.host2"), null)   // Server + Hosting (29.09.2026, wie PWA)
             Section("imp.googleTitle", "imp.googleIntro", listOf("imp.google1", "imp.google2", "imp.google3", "imp.google4"), "imp.googleNote")
             Section("imp.appleTitle", "imp.appleIntro", listOf("imp.apple1", "imp.apple2", "imp.apple3"), null)
+            // Facebook-Anmeldung und KI-Unterstuetzung (29.09.2026): standen nur in der PWA.
+            // Reihenfolge ab hier wie web /impressum: Facebook, Konten, KI, Karten, YouTube.
+            Section("imp.fbTitle", "imp.fbIntro", listOf("imp.fb1", "imp.fb2", "imp.fb3", "imp.fb4", "imp.fb5"), "imp.fbNote")
             Section("imp.connTitle", "imp.connIntro", listOf("imp.conn1", "imp.conn2", "imp.conn3"), null)
-            Section("imp.ytTitle", null, listOf("imp.yt1", "imp.yt2"), "imp.ytNote")
+            Section("imp.aiTitle", "imp.aiIntro", listOf("imp.ai1", "imp.ai2", "imp.ai3", "imp.ai4"), "imp.aiNote")
             Section("imp.mapTitle", null, listOf("imp.map1", "imp.map2", "imp.mapApple"), null)
+            Section("imp.ytTitle", null, listOf("imp.yt1", "imp.yt2"), "imp.ytNote")
 
             Spacer(Modifier.height(16.dp))
             H2(I18n.t("imp.privacyTitle"))
@@ -76,7 +80,7 @@ private fun H2(text: String) {
 
 @Composable
 private fun Body(text: String) {
-    Text(richText(text), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    RichTextView(text, MaterialTheme.typography.bodyMedium, MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
 
@@ -89,8 +93,8 @@ private fun Section(titleKey: String, introKey: String?, bulletKeys: List<String
     bulletKeys.forEach { k ->
         Row(Modifier.padding(vertical = 1.dp)) {
             Text("•  ", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(richText(I18n.t(k)), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            RichTextView(I18n.t(k), MaterialTheme.typography.bodyMedium, MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
-    noteKey?.let { Spacer(Modifier.height(4.dp)); Text(richText(I18n.t(it)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+    noteKey?.let { Spacer(Modifier.height(4.dp)); RichTextView(I18n.t(it), MaterialTheme.typography.bodySmall, MaterialTheme.colorScheme.onSurfaceVariant) }
 }
