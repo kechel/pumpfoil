@@ -1470,7 +1470,9 @@ def _spot_anzahl(db: Session, accel_only: bool = False, sport: str = "all") -> i
 # („… Sessions und zusammen … Pumps"). Jan, 29.09.2026, als ThermikDrehers Sessions auf Foil Scoot
 # umgestellt wurden und die Pumps-Zahl dadurch um 36.533 FIEL: „foilscoot auf jeden fall, die
 # sollten mit reinzaehlen, genauso wakethief". Rekorde und Bestenlisten bleiben je Sportart getrennt.
-PUMP_SPORTARTEN = ("pumpfoil", "foil_scoot", "wakethief")
+# Dazu am selben Tag: „paddle-up sollte mit rein auf jeden fall, surf downwind und surf wave gerne
+# auch, ist ja eher eine werbezahl" — Paddle-up ist `sup_paddle`.
+PUMP_SPORTARTEN = ("pumpfoil", "foil_scoot", "wakethief", "sup_paddle", "surf_downwind", "surf_wave")
 
 
 @router.get("/stats")
