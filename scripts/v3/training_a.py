@@ -81,10 +81,20 @@ def main():
     X, y, q, g, heute = laden()
     print("Zeilen", len(y), "Merkmale", X.shape[1], "Fahrer", len(np.unique(g)), flush=True)
     p = np.zeros_like(y)
+    falten, fahrer_falte = [], {}
     for k, (tr, te) in enumerate(GroupKFold(5).split(X, y, g)):
         clf = modell().fit(X[tr], y[tr])
         p[te] = clf.predict(X[te])
+        falten.append(clf)
+        for u in np.unique(g[te]):
+            fahrer_falte[int(u)] = k
         print(f"  Teil {k + 1}/5 fertig", flush=True)
+    # Die fuenf Teilmodelle aufheben: im Schattenlauf bekommt jede Session das Modell, das ihren
+    # Fahrer NIE gesehen hat — sonst misst der Vergleich Auswendiglernen (Sichtpruefung, Labels).
+    (ML / "v3").mkdir(parents=True, exist_ok=True)
+    with open(ML / "v3" / "stufe_a_falten.pkl", "wb") as f:
+        pickle.dump({"falten": falten, "fahrer_falte": fahrer_falte, "namen": M.NAMEN,
+                     "kontext_r": M.KONTEXT_R}, f)
     bericht("Stufe A, Fahrer herausgehalten (heute = heutiger Lauf an derselben Sekunde)", y, p, q,
             heute.astype(np.int8))
     np.savez_compressed(ML / "v3" / "cv_a.npz", y=y, p=p, q=q, g=g, heute=heute)

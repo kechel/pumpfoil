@@ -23,14 +23,51 @@ def _modell(pfad: str):
         return pickle.load(f)
 
 
-def wahrscheinlichkeit(tb, pfad: Path = STANDARD) -> np.ndarray | None:
+FALTEN = STANDARD.with_name("stufe_a_falten.pkl")
+
+
+def wahrscheinlichkeit(tb, pfad: Path = STANDARD, fahrer: int | None = None) -> np.ndarray | None:
+    """Wahrscheinlichkeit „auf dem Foil" je GPS-Sample. Mit `fahrer` (nur fuer Messungen): das
+    Teilmodell, das diesen Fahrer im Training NIE gesehen hat — sonst misst man Auswendiglernen.
+    Fahrer, die gar nicht im Training waren, bekommen das Gesamtmodell."""
     if not tb.has_accel or len(tb.gps) == 0:
         return None
-    m = _modell(str(pfad))
     _, X = M.merkmale(tb)
-    return m["clf"].predict_proba(M.mit_kontext(X))[:, 1]
+    Xk = M.mit_kontext(X)
+    if fahrer is not None and FALTEN.exists():
+        f = _modell(str(FALTEN))
+        k = f["fahrer_falte"].get(int(fahrer))
+        if k is not None:
+            return f["falten"][k].predict_proba(Xk)[:, 1]
+    return _modell(str(pfad))["clf"].predict_proba(Xk)[:, 1]
 
 
-def maske(tb, schwelle: float = 0.5, pfad: Path = STANDARD) -> np.ndarray | None:
+# Glaettung + Hysterese (29.09.2026): die rohe Wahrscheinlichkeit pendelt in ruhigen Gleitphasen um
+# 0,5, die Maske flackert, und die Segmentierung macht aus einem Lauf mehrere (erster Schattenlauf:
+# 41 % mehr Laeufe bei 7 % mehr Fahrzeit). Werte auf einem eigenen Abstimm-Satz bestimmt.
+GLAETTEN_S = 5
+EIN, AUS = 0.6, 0.4
+
+
+def glaetten(p: np.ndarray, k: int = GLAETTEN_S) -> np.ndarray:
+    if k <= 1 or p.size < k:
+        return p
+    return np.convolve(np.pad(p, (k // 2, k - 1 - k // 2), mode="edge"), np.ones(k) / k, mode="valid")
+
+
+def hysterese(p: np.ndarray, ein: float = EIN, aus: float = AUS) -> np.ndarray:
+    m = np.zeros(p.size, bool)
+    an = False
+    for i, x in enumerate(p):
+        an = (x >= ein) if not an else (x > aus)
+        m[i] = an
+    return m
+
+
+def maske(tb, pfad: Path = STANDARD, k: int | None = None, ein: float | None = None,
+          aus: float | None = None) -> np.ndarray | None:
     p = wahrscheinlichkeit(tb, pfad)
-    return None if p is None else (p >= schwelle)
+    if p is None:
+        return None
+    return hysterese(glaetten(p, GLAETTEN_S if k is None else k), EIN if ein is None else ein,
+                     AUS if aus is None else aus)

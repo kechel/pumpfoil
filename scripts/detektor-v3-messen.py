@@ -116,12 +116,14 @@ def autostrecken(sessions):
     return aus
 
 
-def paare(sessions):
+def paare(sessions, basis=None):
     """Handy am Brett + zweites Geraet derselben Fahrt (GROUND-TRUTH.md §12b)."""
     from datetime import datetime
     def ts(x):
         return datetime.fromisoformat(x).timestamp() if x else None
-    brett = [s for s in sessions if s.get("placement") == "board" and s["runs"]]
+    # Die Brett-Seite ist die WAHRHEIT und kommt immer aus dem Ausgangsstand (der Schattenlauf
+    # rechnet Brett-Aufnahmen gar nicht) — gemessen wird nur die Uhr-Seite aus `sessions`.
+    brett = [s for s in (basis or sessions) if s.get("placement") == "board" and s["runs"]]
     andere = [s for s in sessions if s.get("placement") != "board" and s["runs"] and s["ended_at"]]
     out = []
     for b in brett:
@@ -268,7 +270,8 @@ def main():
     # --- G Uhr gegen Brett ----------------------------------------------------------------
     p("\nG  Uhr/zweites Geraet gegen Handy am Brett (Brett = Wahrheit fuer Lauf und Pumps)")
     je_fahrer = collections.defaultdict(lambda: {"brett": 0, "treffer": 0, "extra": 0, "quot": []})
-    for b, u, versatz in paare(S):
+    basis_S = laden(sorted(ML.glob("baseline-*.json.gz"))[-1])
+    for b, u, versatz in paare(S, basis_S):
         brett_l = b["runs"]
         uhr_l = [{**r, "t0": r["t0"] + versatz, "t1": r["t1"] + versatz} for r in u["runs"]]
         # Versatz der Uhren fein: Median der naechsten Starts
@@ -347,7 +350,7 @@ def main():
         drin = np.zeros(t.size, bool)
         for r in s["runs"]:
             drin |= (t >= r["t0"]) & (t <= r["t1"])
-        wahr = np.asarray(fs) >= 0.5
+        wahr = np.array([x is not None and x >= 0.5 for x in fs])
         tp += int((drin & wahr).sum()); fp += int((drin & ~wahr).sum()); fn += int((~drin & wahr).sum())
     if tp + fp + fn:
         p(f"\nK  Gegen foil_status der anderen App (je Sekunde): Praezision {tp / max(tp + fp, 1):.3f}, "
@@ -399,6 +402,16 @@ def main():
             p(f"   {'ok    ' if ok else 'FALSCH'} #{fall['session']} soll {fall['soll']:9s} {txt} — {fall['warum']}")
         p(f"   {ok_n}/{n_n} erfuellt")
         R["M"] = {"ok": ok_n, "n": n_n}
+
+    # --- N Zerstueckelung -------------------------------------------------------------------
+    alle = [r for s in S for r in s["runs"]]
+    std = sum((r.get("dur_s") or 0) for r in alle) / 3600
+    kurz = sum(1 for r in alle if (r.get("dur_s") or 0) < 8)
+    dauer = sorted((r.get("dur_s") or 0) for r in alle)
+    p(f"\nN  Zerstueckelung: {len(alle)} Laeufe in {std:.1f} h -> {len(alle) / max(std, 1e-9):.0f} Laeufe je "
+      f"Stunde auf dem Foil · Median-Dauer {dauer[len(dauer) // 2] if dauer else 0:.0f} s · unter 8 s: {kurz} "
+      f"({kurz / max(len(alle), 1):.0%})")
+    R["N"] = {"laeufe": len(alle), "std": std, "kurz": kurz}
     # --- J Summen ------------------------------------------------------------------------
     p("\nJ  Summen je Geraetefamilie (nur Sessions mit Laeufen)")
     fam = collections.defaultdict(lambda: [0, 0, 0.0, 0.0])

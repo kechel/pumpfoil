@@ -43,6 +43,9 @@ def eine(arg):
     from app.analysis import detect_v2
     from app.analysis.gps import SENSITIVITY_PRESETS
     from app.analysis.v3 import merkmale as M
+    if variante == "v3veto":
+        from app.analysis.timebase import build_timebase_for_session
+        from app.analysis.v3 import veto
     if variante == "v3":
         from app.analysis.v3 import stufe_a
         detect_v2.model_mask_on_timebase = lambda tb: stufe_a.maske(tb)
@@ -56,7 +59,14 @@ def eine(arg):
     out = {k: s.get(k) for k in ("id", "user_id", "device_id", "started_at", "ended_at", "device_model",
                                  "accel_hz", "placement", "sport_class", "sport_source", "sensitivity",
                                  "sport_auto", "place", "uuid", "detection")}
-    out["runs"] = [_lauf(x) for x in res["segments"]]
+    segs = res["segments"]
+    if variante == "v3veto":
+        tb = res.get("timebase") or build_timebase_for_session(M.ganze_aufnahme(s))
+        segs, weg = veto.pruefen(tb, segs, fahrer=s["user_id"])
+        out_weg = [dict(_lauf(x), v3_p=x["v3_p"]) for x in weg]
+    out["runs"] = [_lauf(x) for x in segs]
+    if variante == "v3veto":
+        out["verworfen"] = out_weg
     out["num_runs"] = len(out["runs"])
     out["foiling_time_s"] = res.get("foiling_time_s")
     out["foiling_distance_m"] = res.get("foiling_distance_m")

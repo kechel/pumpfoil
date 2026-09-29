@@ -86,7 +86,7 @@ def main(sid, zoom=None, titel=""):
         ax.plot(lon[mm], lat[mm], color="#ff2200", lw=4, zorder=4)
     ax.set_xlim(w, e); ax.set_ylim(s, n)
     ax.set_aspect(1 / math.cos(math.radians((s + n) / 2)))
-    ax.set_title(f"#{sid}  {titel}\nblau = Lauf · rot = Lauf ueberwiegend >60 m vom Wasser (JRC) · "
+    ax.set_title(f"#{sid}  {titel}\nblau = Lauf · rot = Lauf (je nach Bild: an Land laut JRC bzw. vom v3-Veto verworfen) · "
                  f"Blaufaerbung = Wasserhaeufigkeit 1984-2021", fontsize=14)
     ax.text(0.99, 0.01, "© OpenStreetMap contributors · JRC Global Surface Water", transform=ax.transAxes,
             ha="right", va="bottom", fontsize=10, bbox=dict(fc="white", alpha=0.7))
