@@ -1429,6 +1429,14 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔲 29.09. — iOS meldet zeitweise zu niedriges Tempo (fuer spaeter, Jan: „merken wir uns fuer
+  ein andermal").** #10874 (iPhone 1.1.40, Brett) gegen #10875 (Pixel, dasselbe Brett): ab 15:10:15
+  meldet iOS 20 s lang glatt ~6,7 km/h, aus den iPhone-Positionen ergeben sich 11,5, der Pixel misst
+  13,9-14,6. Die Lauf-Erkennung nimmt das gemeldete Tempo -> Lauf 1 endet 26 s zu frueh (113 statt
+  ~200 m). Vermutung: Doppler kurz weg, CoreLocation liefert eine Schaetzung (speedAccuracy speichern
+  wir nicht). Idee: bei anhaltend viel niedrigerem gemeldeten als Positions-Tempo den Positionen
+  glauben — erst Haeufigkeit ueber alle iPhone-Sessions messen, Pipeline-Aenderung nur mit Jans OK.
+
 - **🔲 29.09. — Overpass von der VM aus NICHT erreichbar** (alle Instanzen: overpass-api.de
   verweigert sofort, kumi.systems/private.coffee/openstreetmap.ru laufen in den Timeout, osm.jp
   und nchc.org.tw verweigern; openstreetmap.org, GitHub, Google Storage gehen). Trifft auch die
