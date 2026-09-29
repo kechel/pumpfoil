@@ -1347,6 +1347,8 @@ const pt: Record<string, string> = {
   "banner.msg": "está novinho em folha (desde 23 de junho de 2026) — novos recursos e foils quase todo dia. Me conta o que você curte (e o que não curte): é só tocar no ✉️ à direita →",
   "dm.title": "Chats",
   "dm.back": "Voltar",
+  "dm.fullscreen": "Tela cheia",
+  "dm.shrink": "Reduzir",
   "dm.block": "Bloquear",
   "dm.unblock": "Desbloquear",
   "dm.blockConfirm": "Bloquear {name}? Vocês não poderão mais se enviar mensagens.",

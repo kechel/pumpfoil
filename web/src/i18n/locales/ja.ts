@@ -1347,6 +1347,8 @@ const ja: Record<string, string> = {
   "banner.msg": "はできたばかりです（2026年6月23日から）— 新機能とフォイルがほぼ毎日追加されます。気に入った点（そうでない点も）を教えてください：右の ✉️ をタップするだけ →",
   "dm.title": "チャット",
   "dm.back": "戻る",
+  "dm.fullscreen": "全画面",
+  "dm.shrink": "縮小",
   "dm.block": "ブロック",
   "dm.unblock": "ブロック解除",
   "dm.blockConfirm": "{name} をブロックしますか？お互いにメッセージを送れなくなります。",

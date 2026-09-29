@@ -1105,6 +1105,8 @@ const es: Record<string, string> = {
   "banner.msg": "es totalmente nuevo (desde el 23 de junio de 2026) — nuevas funciones y foils casi a diario. Dime qué te gusta (y qué no): pulsa el ✉️ de la derecha →",
   "dm.title": "Chats",
   "dm.back": "Volver",
+  "dm.fullscreen": "Pantalla completa",
+  "dm.shrink": "Reducir",
   "dm.block": "Bloquear",
   "dm.unblock": "Desbloquear",
   "dm.blockConfirm": "¿Bloquear a {name}? Ya no podréis escribiros.",

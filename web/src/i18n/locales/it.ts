@@ -1105,6 +1105,8 @@ const it: Record<string, string> = {
   "banner.msg": "è nuovissimo (dal 23 giugno 2026) — nuove funzioni e nuovi foil quasi ogni giorno. Dimmi cosa ti piace (e cosa no): basta cliccare sul ✉️ a destra →",
   "dm.title": "Chat",
   "dm.back": "Indietro",
+  "dm.fullscreen": "Schermo intero",
+  "dm.shrink": "Riduci",
   "dm.block": "Blocca",
   "dm.unblock": "Sblocca",
   "dm.blockConfirm": "Bloccare {name}? Non potrete più scrivervi.",

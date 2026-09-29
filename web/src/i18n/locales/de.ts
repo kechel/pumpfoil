@@ -1175,6 +1175,8 @@ const de: Record<string, string> = {
   "adm.blocks.blocked": "hat blockiert →",
   "dm.title": "Chats",
   "dm.back": "Zurück",
+  "dm.fullscreen": "Vollbild",
+  "dm.shrink": "Verkleinern",
   "dm.block": "Blockieren",
   "dm.unblock": "Entblocken",
   "dm.blockConfirm": "{name} blockieren? Ihr könnt einander dann keine Nachrichten mehr schreiben.",

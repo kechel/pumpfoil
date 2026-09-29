@@ -241,7 +241,10 @@ _APP_META: dict[str, dict[str, str]] = {
     "garmin": {
         # NUR auf eine im Connect-IQ-Store FREIGEGEBENE Version setzen (Pruefung durch)!
         # Die Garmin-App vergleicht das selbst mit Config.VERSION (SessionRecorder.mc:638).
-        "latest": "1.0.90",   # LIVE im CIQ-Store 2026-09-26, belegt am STORE, nicht nur gemeldet:
+        "latest": "1.0.91",   # LIVE 2026-09-29: Store-API latestExternalVersion 1.0.91 / intern 45,
+        # Jans echte fenix 7X Pro (Token 297) meldet 1.0.91, Testsession #10844 — am selben Tag
+        # eingereicht und freigegeben. Inhalt: Datenfelder 22/23 „alle Laeufe: Strecke/Zeit".
+        # ALT: "latest": "1.0.90",   # LIVE im CIQ-Store 2026-09-26, belegt am STORE, nicht nur gemeldet:
         # Produktseite und Store-API `latestExternalVersion` 1.0.90 / `latestInternalVersion` 44
         # (um ~07:50 UTC noch 1.0.89/43 — der Store brauchte eine Weile). Jans Geraet (Token 297,
         # fenix 7X Pro) meldet 1.0.90, Session #10131. Die Session ALLEIN belegte nichts: dieselbe
@@ -685,16 +688,7 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
-    # EINGEREICHT 29.09.2026 (Jans Meldung): Connect IQ 1.0.91, pumpfoil-1.0.91.iq 13.876.756 B,
-    # sha1 90b6666c…, aus Commit b0fd6fb5. watch/bin bleibt auf 1.0.90 bis zur Freigabe.
-    {"name": "Garmin", "version": "1.0.91",
-     "eingereicht": "2026-09-29",
-     "items": [
-         "Two new data fields add up the distance and the time of all your runs in a session.",
-     ]},
-    # iOS/Apple 1.1.39 am 29.09. FREIGEGEBEN (s. `_APP_META`). Im Changelog: der Kompass-Punkt mit
-    # `versionen={ios}`, die fuenf uebrigen als versionslose Punkte — sie sind auch im Web live und
-    # standen bis dahin nirgends (Foil-Scoot-Regel vom 25.09.).
+    # Garmin 1.0.91 am 29.09. FREIGEGEBEN (s. `_APP_META`); Punkt + Ereignis im Changelog.
     # EINGEREICHT 28.09.2026 (Jans Meldung, Console: „Produktion 49 (1.1.35) · Produktion (Wear OS)
     # 1045 (1.2.35)", Vorabpruefung laeuft). Wear ohne eigene Aenderung mitgebumpt (harte Regel:
     # Phone und Wear immer zusammen) — deshalb EINE Zeile mit beiden Nummern und den Handy-Punkten.

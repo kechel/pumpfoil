@@ -1343,6 +1343,8 @@ const ptPT: Record<string, string> = {
   "banner.msg": "está acabadinho de sair (desde 23 de junho de 2026) — novas funcionalidades e foils quase todos os dias. Diz-me o que gostas (e o que não gostas): é só tocar no ✉️ à direita →",
   "dm.title": "Chats",
   "dm.back": "Voltar",
+  "dm.fullscreen": "Ecrã inteiro",
+  "dm.shrink": "Reduzir",
   "dm.block": "Bloquear",
   "dm.unblock": "Desbloquear",
   "dm.blockConfirm": "Bloquear {name}? Deixam de poder enviar mensagens um ao outro.",

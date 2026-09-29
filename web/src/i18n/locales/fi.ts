@@ -1025,6 +1025,8 @@ const fi: Record<string, string> = {
   "adm.blocks.blocked": "on estänyt →",
   "dm.title": "Chatit",
   "dm.back": "Takaisin",
+  "dm.fullscreen": "Koko näyttö",
+  "dm.shrink": "Pienennä",
   "dm.block": "Estä",
   "dm.unblock": "Poista esto",
   "dm.blockConfirm": "Estetäänkö {name}? Ette voi enää lähettää toisillenne viestejä.",

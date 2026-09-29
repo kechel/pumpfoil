@@ -1347,6 +1347,8 @@ const id: Record<string, string> = {
   "banner.msg": "masih sangat baru (sejak 23 Juni 2026) — fitur & foil baru hampir tiap hari. Beri tahu aku yang kamu suka (dan yang tidak): cukup ketuk ✉️ di kanan →",
   "dm.title": "Chat",
   "dm.back": "Kembali",
+  "dm.fullscreen": "Layar penuh",
+  "dm.shrink": "Perkecil",
   "dm.block": "Blokir",
   "dm.unblock": "Buka blokir",
   "dm.blockConfirm": "Blokir {name}? Kalian tidak akan bisa saling berkirim pesan lagi.",

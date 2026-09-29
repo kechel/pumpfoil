@@ -1484,6 +1484,8 @@ const en: Record<string, string> = {
   "banner.msg": "is brand-new (since 23 June 2026) — new features & foils almost daily. Tell me what you like (and what you don't): just tap the ✉️ on the right →",
   "dm.title": "Chats",
   "dm.back": "Back",
+  "dm.fullscreen": "Full screen",
+  "dm.shrink": "Shrink",
   "dm.block": "Block",
   "dm.unblock": "Unblock",
   "dm.blockConfirm": "Block {name}? You won't be able to message each other anymore.",
