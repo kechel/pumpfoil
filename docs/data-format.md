@@ -111,4 +111,21 @@ unveränderlich (`server/data/<session_uuid>/`) und stößt die Analyse an.
 Mit Gyro kommt derselbe Betrag noch einmal dazu: ein Handy bei 50 Hz schreibt pro Stunde
 180 000 Accel- **und** 180 000 Gyro-Samples, zusammen rund 2,1 MB roh statt 1,1 MB.
 Chunkgröße so wählen, dass eine `makeWebRequest`-Payload klein bleibt (BLE-Limit) — z. B. 30 s
-Accel/Chunk (750 Samples ≈ 6 KB base64) bzw. 60 s GPS/Chunk.
+Accel/Chunk (750 Samples ≈ 6 KB base64) bzw. 60 s GPS/Chunk. **Das gilt nur fuer Garmin**
+(Connect IQ sendet ueber Bluetooth und das Handy). Apple Watch, Wear OS und die Handys laden per
+HTTPS und haben dieses Limit nicht — sie schicken ihre 10-s-Chunks gesammelt (s. unten).
+
+### Sammel-Upload (seit 29.09.2026)
+
+```
+POST /api/ingest/session/{session_uuid}/chunks
+{ "chunks": [ {index, kind, encoding, t0_ms, count, data}, … ] }   // hoechstens 30
+→ 200 { "ok": true, "received": [0,1,2,…], "failed": [] }
+```
+
+Dieselben Chunks wie einzeln, nur in einer Anfrage: gleiche Indizes, gleiche Vollstaendigkeits-
+pruefung, Resume ueber `received_chunks` unveraendert. Jeder Chunk wird **einzeln** quittiert —
+die Uhr darf nur verwerfen, was in `received` steht; ein abgelehnter Chunk steht mit Grund in
+`failed` und haelt die anderen nicht auf. Mehr als 30 -> 413, leer -> 400. Anlass: #10266 (Apple
+Watch, 2 h 48 min) brauchte 1848 Einzel-Anfragen fuer 2,2 MB, der Upload zog sich ueber drei Tage.
+Apple Watch und Wear OS schicken ab iOS 1.1.41 / Wear 1.2.37 je 20 Chunks pro Anfrage.
