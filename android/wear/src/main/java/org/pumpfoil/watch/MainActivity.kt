@@ -1184,6 +1184,9 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
             DisposableEffect(Unit) {
                 val lm = ctx.getSystemService(Context.LOCATION_SERVICE) as LocationManager
                 var streak = 0
+                // Dieselbe Platzhalter-Erkennung wie in der Aufnahme (s. `Genauigkeit`): meldet die
+                // Uhr immer denselben Wert, ist „bereit" allein eine Frage der Frische.
+                val genau = Genauigkeit()
                 // `l` ist hier NICHT nullbar (anders als `LocationResult.lastLocation` vorher),
                 // deshalb kein `?.` und kein `return` — ein Lambda kehrt nicht so zurueck.
                 val cb = LocationListener { l ->
@@ -1196,7 +1199,8 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                     // Steg steht — auf dem Wasser schaut niemand hin.
                     val frisch =
                         (SystemClock.elapsedRealtimeNanos() - l.elapsedRealtimeNanos) < 5_000_000_000L
-                    gpsBereit = l.hasAccuracy() && l.accuracy <= 20f && frisch
+                    if (l.hasAccuracy()) genau.sehen(l.accuracy.toDouble())
+                    gpsBereit = l.hasAccuracy() && !genau.zuUngenau(l.accuracy.toDouble()) && frisch
                     if (!autoScharf.value) {
                         streak = 0
                     } else {

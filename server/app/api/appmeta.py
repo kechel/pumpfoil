@@ -761,6 +761,14 @@ IN_REVIEW: list[dict] = [
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
+    # Wear: Platzhalter-Genauigkeit (OnePlus OPWWE251 meldet immer 125,0 m) sperrte „GPS bereit",
+    # Live-Tempo und Lauf-Erkennung (Nutzermeldung 28.09.2026). Gebaut, wartet auf die laufende
+    # Play-Pruefung von 1.1.35/1.2.35; Nummern werden beim Bauen gezogen (Phone und Wear zusammen).
+    {"name": "Wear OS", "version": "1.2.36",
+     "items": [
+         "Watches that report the same GPS accuracy all the time now show GPS as ready, show your "
+         "speed and detect runs while you ride.",
+     ]},
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.
 

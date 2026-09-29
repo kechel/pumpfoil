@@ -299,6 +299,7 @@ object Recorder {
     private var prevLat = Double.NaN
     private var prevLon = Double.NaN
     private var alteFixes = 0        // Fixes in Folge, deren MESSUNG aelter als FIX_ALT_MS war
+    private val genauigkeit = Genauigkeit()   // erkennt eine Platzhalter-Genauigkeit (s. dort)
     private var distM = 0.0
     private var maxMps = 0.0
     private var hrSum = 0L
@@ -377,7 +378,7 @@ object Recorder {
         LocalStore.setzeLaufMarke(ctx)
         chunkIndex = 0
         synchronized(lock) { accel.clear(); gps.clear(); spWin.clear() }
-        prevLat = Double.NaN; prevLon = Double.NaN; alteFixes = 0; lastHrMs = 0
+        prevLat = Double.NaN; prevLon = Double.NaN; alteFixes = 0; lastHrMs = 0; genauigkeit.reset()
         distM = 0.0; maxMps = 0.0; hrSum = 0; hrCount = 0; maxHrV = 0; lastHr = 0
         val meta = JSONObject()
             .put("session_uuid", uuid)
@@ -787,7 +788,10 @@ object Recorder {
         // Qualitaets-Gate fuer alles Live (Anzeige, Max, Lauf-Erkennung): hAcc > 20 m -> 0.
         // Eine eingefrorene Ortung gehoert genauso hierher: ihre Position ist alt, ihr Tempo
         // ist 0, und ein daraus gebauter „Lauf" waere frei erfunden.
-        val poor = accuracyM > 20.0 || stale
+        // Eine Genauigkeit, die sich nie bewegt, ist KEINE Messung (s. `Genauigkeit`) — dann
+        // entscheidet nur noch das Alter des Fixes.
+        genauigkeit.sehen(accuracyM)
+        val poor = genauigkeit.zuUngenau(accuracyM) || stale
         val sp = if (poor) 0.0 else spRaw
         synchronized(lock) {
             // 0 = kein Puls (der Server behandelt 0 wie „fehlt"): ein veralteter Wert waere
@@ -909,5 +913,47 @@ object Recorder {
             .put("index", chunkIndex).put("kind", "gps").put("encoding", "json")
             .put("t0_ms", buf.first()[0].toInt()).put("count", buf.size).put("data", arr))
         chunkIndex++
+    }
+}
+
+/**
+ * Ist die gemeldete GPS-Genauigkeit eine MESSUNG oder ein Platzhalter?
+ *
+ * Meldet eine Uhr Fix fuer Fix exakt denselben Wert, misst sie nichts — sie fuellt das Feld.
+ * Belegt an der OnePlus-Uhr OPWWE251 (zwei Nutzer, alle Sessions): 4619 von 4619 Fixes mit genau
+ * 125,0 m, waehrend die Positionen einwandfrei sind (bis 17 km/h, der Server findet 8–15 Laeufe).
+ * Unser 20-m-Gate hielt das fuer schlechtes GPS: vor dem Start stand ewig „GPS suchen…", waehrend
+ * der Aufnahme Tempo 0 und keine Lauf-Erkennung (Nutzermeldung 28.09.2026). Jan: „wenn die
+ * genauigkeit unveraendert bleibt sollte es nicht als messung sondern als datenfehler gelten und
+ * dann trotzdem anzeigen".
+ *
+ * Dieselbe Regel wie am Server (`analysis/gps.py`, `detect_v2.py`: keine Streuung ueber die ganze
+ * Aufnahme = kein Gate) — nur live: nach [KONSTANT_MIN] gleichen Werten in Folge gilt die Angabe
+ * als Platzhalter, bis sie sich einmal bewegt; ab dann ist sie fuer diese Aufnahme eine Messung.
+ * Ein Geraet, das ehrlich schwankt, bleibt also unveraendert gegated. Das Alter des Fixes
+ * (eingefrorene Ortung) prueft der Aufrufer weiter selbst.
+ */
+class Genauigkeit {
+    private var erster = Double.NaN
+    private var anzahl = 0
+    private var variiert = false
+
+    fun reset() { erster = Double.NaN; anzahl = 0; variiert = false }
+
+    fun sehen(accuracyM: Double) {
+        if (accuracyM.isNaN()) return
+        if (anzahl == 0) erster = accuracyM else if (accuracyM != erster) variiert = true
+        anzahl++
+    }
+
+    /** true = seit [KONSTANT_MIN] Fixes unveraendert: kein Messwert. */
+    val platzhalter: Boolean get() = !variiert && anzahl >= KONSTANT_MIN
+
+    /** Das 20-m-Gate — greift nur, wenn die Angabe eine Messung ist. */
+    fun zuUngenau(accuracyM: Double): Boolean = !platzhalter && accuracyM > MAX_M
+
+    companion object {
+        const val MAX_M = 20.0
+        const val KONSTANT_MIN = 20
     }
 }
