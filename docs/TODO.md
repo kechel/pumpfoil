@@ -1429,6 +1429,12 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟡 29.09. — Sammel-Upload (Server 489bc1fe live, Apps 7b19c5f4: iOS 1.1.41/46, Phone 1.1.37/51,
+  Wear 1.2.37/1047 — noch NICHT eingereicht).** Getestet: Server 5 Tests; Wear-Emulator 26 min
+  (#10883, danach geloescht): 312/312 Bloecke in 16 Anfragen statt 312, ~1 s, `exact_chunks`
+  25,0 Hz. **Noch offen vor der Einreichung:** Apple Watch nur Swift-Parse-Check (Jan: Xcode-Build +
+  lange Aufnahme), Teil-Upload in der PAUSE auf beiden Uhren nicht getestet, Wear auf echter Uhr.
+
 - **🔲 29.09. — iOS meldet zeitweise zu niedriges Tempo (fuer spaeter, Jan: „merken wir uns fuer
   ein andermal").** #10874 (iPhone 1.1.40, Brett) gegen #10875 (Pixel, dasselbe Brett): ab 15:10:15
   meldet iOS 20 s lang glatt ~6,7 km/h, aus den iPhone-Positionen ergeben sich 11,5, der Pixel misst
