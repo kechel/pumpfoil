@@ -7,7 +7,7 @@ Gzip-Kopf, begrenzt den entpackten Umfang und behandelt den Rest wie die ungepac
 import gzip
 
 from app.api import sessions as sessions_api
-from tests.test_gpx_accel import _gpx
+from test_gpx_accel import _gpx
 
 
 def _auth(client, mail):
