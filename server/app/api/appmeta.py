@@ -768,6 +768,7 @@ NAECHSTES: list[dict] = [
      "items": [
          "Watches that report the same GPS accuracy all the time now show GPS as ready, show your "
          "speed and detect runs while you ride.",
+         "Two new data fields add up the distance and the time of all your runs in a session.",
      ]},
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.
@@ -778,8 +779,18 @@ NAECHSTES: list[dict] = [
     # 1.1.34 ging in den internen Test (Jan, 27.09.); 1.1.35 bringt dazu die Portierung vom 28.09.
     # (bf972167). iOS 1.1.39 Build 43 liegt in TestFlight, Build 44 hat die Portierung.
     # Wear 1.2.34 wird nur mitgebumpt (harte Regel: Phone und Wear immer zusammen), ohne eigenen Punkt.
+    # Datenfelder 22/23 (Summe aller Laeufe), Wunsch Roman 28.09.2026 — auf allen vier Uhren gebaut.
+    {"name": "Garmin", "version": "1.0.91",
+     "items": [
+         "Two new data fields add up the distance and the time of all your runs in a session.",
+     ]},
+    {"name": "iPhone + Apple Watch", "version": "1.1.40",
+     "items": [
+         "Two new data fields add up the distance and the time of all your runs in a session.",
+     ]},
     {"name": "Amazfit", "version": "1.0.13",
      "items": [
+         "Two new data fields add up the distance and the time of all your runs in a session.",
          "While a recording is paused, the watch shows your pause pages and says so on every "
          "page.",
      ]},

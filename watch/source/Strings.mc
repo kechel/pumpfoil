@@ -174,6 +174,7 @@ module Strings {
         if (key.equals("f.kmhAvgLast")) { return ["km/h Ø letzt.", "km/h Ø letscht.", "km/h Ø letzt.", "km/h avg last", "km/h moy dern.", "km/h media ult.", "km/h med últ.", "km/h méd últ.", "km/h rata akhir", "km/h ср посл.", "km/h gem laatst", "km/h ka viim", "km/h prům posl.", "km/h snitt siste", "km/h śr. ost."]; }
         if (key.equals("f.kmhMaxLast")) { return ["km/h max letzt.", "km/h max letscht.", "km/h max letzt.", "km/h max last", "km/h max dern.", "km/h max ult.", "km/h máx últ.", "km/h máx últ.", "km/h maks akhir", "km/h макс посл.", "km/h max laatst", "km/h maks viim", "km/h max posl.", "km/h maks siste", "km/h maks. ost."]; }
         if (key.equals("f.bpmMaxLast")) { return ["bpm max letzt.", "bpm max letscht.", "bpm max letzt.", "bpm max last", "bpm max dern.", "bpm max ult.", "bpm máx últ.", "bpm máx últ.", "bpm maks akhir", "bpm макс посл.", "bpm max laatst", "bpm maks viim", "bpm max posl.", "bpm maks siste", "bpm maks. ost."]; }
+        if (key.equals("f.allRuns")) { return ["alle Läufe", "alli Läuf", "olle Läufe", "all runs", "tous les runs", "tutti i run", "todos los runs", "todas voltas", "semua run", "все заезды", "alle runs", "kaikki lenkit", "všechny jízdy", "alle runs", "wsz. przejazdy"]; }
         if (key.equals("f.runs"))    { return ["Läufe", "Läuf", "Läufe", "Runs", "Runs", "Run", "Tramos", "Runs", "Run", "Заезды", "Runs", "Vedot", "Jízdy", "Runs", "Przejazdy"]; }
         return null;
     }

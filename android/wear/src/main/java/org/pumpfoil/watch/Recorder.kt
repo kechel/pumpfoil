@@ -111,6 +111,9 @@ object Recorder {
         // Hoechstpuls IM letzten Lauf (Feld 21). Der Session-Hoechstpuls ist maxHr (Feld 9) —
         // je Lauf fuehrt den niemand, also hier selbst mitschreiben wie das Lauf-Hoechsttempo.
         val lastRunMaxHr: Int = 0,
+        // Summe aller gewerteten Laeufe inkl. des laufenden (Felder 22/23), s. LaufSumme.
+        val allRunsDistanceM: Double = 0.0,
+        val allRunsDurationMs: Long = 0,
     )
 
     // Foil-/Lauf-Erkennung wie Garmin: rein ab ~10 km/h (4 s Dwell), raus unter ~9 km/h (3 s).
@@ -153,6 +156,7 @@ object Recorder {
     private var lastRunMaxMps = 0.0
     private var runMaxHr = 0
     private var lastRunMaxHr = 0
+    private val laufSumme = LaufSumme()   // Felder 22/23
 
     /** Wert fuer den HOECHSTWERT saeubern (s. burstRing). */
     private fun maxKandidat(v: Double): Double {
@@ -278,6 +282,7 @@ object Recorder {
                 lastRunMaxMps = runMaxMps
                 lastRunMaxHr = runMaxHr
                 runMaxHr = 0
+                laufSumme.laufEnde(distM, durMs, runIstFortsetzung)   // VOR dem Ruecksetzen der Flagge
                 if (!runIstFortsetzung) runCount++
                 runIstFortsetzung = false
             }
@@ -400,6 +405,7 @@ object Recorder {
         markDistN = 0; markTimeN = 0
         lastRunDurMs = 0; lastRunDistM = 0.0; lastRunAvgMps = 0.0; lastRunMaxMps = 0.0
         lastRunStartMs = 0L; lastRunStartDist = 0.0; minSpeedSeitEnde = 99.0; runIstFortsetzung = false
+        laufSumme.reset()
         runMaxHr = 0; lastRunMaxHr = 0
         paused = false; pausedMs = 0L; pauseStartMs = 0L; pauseBeiMs = 0; pauseListe.clear()
         _state.value = State(recording = true, status = I18n.t("rec.recording"),
@@ -531,6 +537,7 @@ object Recorder {
             runDurationMs = 84_000, runDistanceM = 420.0, runMaxSpeedKmh = speedKmh + 1.2,
             lastRunDurationMs = 96_000, lastRunDistanceM = 480.0,
             lastRunAvgSpeedKmh = speedKmh - 0.5, lastRunMaxSpeedKmh = speedKmh + 0.9,
+            allRunsDistanceM = 1380.0, allRunsDurationMs = 276_000,
             hr = hr, maxHr = hr + 6, avgHr = hr - 4, hrSamples = 1,
             // Demo: „passiv" heisst hier ein alter Wert (59 s), sonst ein frischer.
             hrAlterS = if (pulsMessung) 0 else 59,
@@ -823,6 +830,10 @@ object Recorder {
         val runDur = if (nowFoiling) (tMs.toLong() - runStartMs).coerceAtLeast(0) else lastRunDurMs
         val runDist = if (nowFoiling) (distM - runStartDist).coerceAtLeast(0.0) else lastRunDistM
         val runMax = if (nowFoiling) runMaxMps else lastRunMaxMps
+        // Summe aller Laeufe: gewertete + der laufende live. runIstFortsetzung gilt hier noch fuer
+        // den laufenden Lauf (zurueckgesetzt wird sie erst an dessen Ende).
+        val allDist = laufSumme.distM(if (nowFoiling) runDist else null, runIstFortsetzung)
+        val allDur = laufSumme.durMs(if (nowFoiling) runDur else null, runIstFortsetzung)
         _state.value = _state.value.copy(
             gpsPoor = poor,
             gpsStale = stale,
@@ -844,6 +855,8 @@ object Recorder {
             lastRunAvgSpeedKmh = lastRunAvgMps * 3.6,
             lastRunMaxSpeedKmh = lastRunMaxMps * 3.6,
             lastRunMaxHr = lastRunMaxHr,
+            allRunsDistanceM = allDist,
+            allRunsDurationMs = allDur,
         )
     }
     /** Vom RecorderService gesetzt: misst Health Services gerade aktiv (true) oder nicht. */
@@ -955,5 +968,47 @@ class Genauigkeit {
     companion object {
         const val MAX_M = 20.0
         const val KONSTANT_MIN = 20
+    }
+}
+
+/**
+ * Summe aller erkannten Laeufe (Felder 22 „Alle Laeufe: Strecke" und 23 „Alle Laeufe: Zeit").
+ * Wunsch 28.09.2026: Feld 4 zaehlt Steg-Gang, Zurueckschwimmen und Fehlstarts mit — hier nur, was
+ * die Uhr als Lauf gewertet hat, der laufende Lauf live dazu.
+ *
+ * Die Falle ist die FORTSETZUNG (runIstFortsetzung): ein Lauf, der nach einem kurzen Einbruch
+ * ohne echten Stopp weitergeht, erbt Start und Strecke des vorigen — dessen „Ende" wird
+ * zurueckgenommen. Deshalb merkt sich die Klasse den Beitrag des zuletzt gewerteten Laufs und
+ * nimmt ihn bei einer Fortsetzung wieder heraus, bevor der GANZE Lauf neu hineinkommt.
+ * Sonst stuende der erste Teil doppelt drin.
+ */
+class LaufSumme {
+    private var fertigDistM = 0.0
+    private var fertigDurMs = 0L
+    private var letzterDistM = 0.0   // Beitrag des zuletzt gewerteten Laufs
+    private var letzterDurMs = 0L
+
+    fun reset() { fertigDistM = 0.0; fertigDurMs = 0L; letzterDistM = 0.0; letzterDurMs = 0L }
+
+    /** Lauf gewertet. [distM]/[durMs] sind die des GANZEN Laufs — bei einer Fortsetzung inkl. des
+     *  vorigen Teils (Recorder setzt runStartMs/runStartDist dann auf dessen Start zurueck). */
+    fun laufEnde(distM: Double, durMs: Long, fortsetzung: Boolean) {
+        if (fortsetzung) { fertigDistM -= letzterDistM; fertigDurMs -= letzterDurMs }
+        fertigDistM += distM; fertigDurMs += durMs
+        letzterDistM = distM; letzterDurMs = durMs
+    }
+
+    /** Anzeige-Strecke. Waehrend eines Laufs ([live] = Strecke seit runStartDist) kommt der live
+     *  dazu; bei einer Fortsetzung steckt der vorige Teil schon in [live]. */
+    fun distM(live: Double?, fortsetzung: Boolean): Double {
+        if (live == null) return fertigDistM
+        val basis = if (fortsetzung) fertigDistM - letzterDistM else fertigDistM
+        return (basis + live).coerceAtLeast(0.0)
+    }
+
+    fun durMs(live: Long?, fortsetzung: Boolean): Long {
+        if (live == null) return fertigDurMs
+        val basis = if (fortsetzung) fertigDurMs - letzterDurMs else fertigDurMs
+        return (basis + live).coerceAtLeast(0L)
     }
 }

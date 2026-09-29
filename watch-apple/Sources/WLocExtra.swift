@@ -5,6 +5,8 @@ import Foundation
 
 // Portugiesisch-Overlay (71 Keys). Fallback: Englisch.
 let wPtOverlay: [String: String] = [
+    "f.allRunsDist": "todas voltas dist",
+    "f.allRunsTime": "todas voltas tempo",
     "gps.ready": "GPS pronto",
     "gps.searching": "Buscando GPS…",
     "common.auto": "Automático",
@@ -99,6 +101,8 @@ let wPtOverlay: [String: String] = [
 
 // Japanisch-Overlay (71 Keys). Fallback: Englisch.
 let wJaOverlay: [String: String] = [
+    "f.allRunsDist": "全ラン距離",
+    "f.allRunsTime": "全ラン時間",
     "gps.ready": "GPS 準備完了",
     "gps.searching": "GPS 検索中…",
     "common.auto": "自動",
@@ -193,6 +197,8 @@ let wJaOverlay: [String: String] = [
 
 // Chinesisch (vereinfacht)-Overlay (71 Keys). Fallback: Englisch.
 let wZhOverlay: [String: String] = [
+    "f.allRunsDist": "全部航段距离",
+    "f.allRunsTime": "全部航段时间",
     "gps.ready": "GPS 就绪",
     "gps.searching": "正在搜索 GPS…",
     "common.auto": "自动",
@@ -287,6 +293,8 @@ let wZhOverlay: [String: String] = [
 
 // Russisch-Overlay (71 Keys). Fallback: Englisch.
 let wRuOverlay: [String: String] = [
+    "f.allRunsDist": "все заезды дист",
+    "f.allRunsTime": "все заезды время",
     "gps.ready": "GPS готов",
     "gps.searching": "Поиск GPS…",
     "common.auto": "Авто",
@@ -381,6 +389,8 @@ let wRuOverlay: [String: String] = [
 
 // Indonesisch-Overlay (71 Keys). Fallback: Englisch.
 let wIdOverlay: [String: String] = [
+    "f.allRunsDist": "semua run jarak",
+    "f.allRunsTime": "semua run waktu",
     "gps.ready": "GPS siap",
     "gps.searching": "Mencari GPS…",
     "common.auto": "Otomatis",
@@ -477,6 +487,8 @@ let wIdOverlay: [String: String] = [
 // Kam mit dem ersten norwegischen Nutzer (Sogndal, 05.08.2026) dazu; Bokmål deckt auch
 // nn-/no-Geräte ab (siehe web/src/i18n/index.tsx).
 let wNbOverlay: [String: String] = [
+    "f.allRunsDist": "alle runs dist",
+    "f.allRunsTime": "alle runs tid",
     "gps.ready": "GPS klar",
     "gps.searching": "GPS søker…",
     "f.lastRunMaxHr": "siste maks bpm",
@@ -573,6 +585,8 @@ let wNbOverlay: [String: String] = [
 // Reihenfolge: watch/source/Strings.mc (Garmin, laengst im Store), dann die
 // Web-Locales ueber den deutschen Text, dann eigene Uebersetzung der Kurztexte.
 let wNlOverlay: [String: String] = [
+    "f.allRunsDist": "alle runs afst",
+    "f.allRunsTime": "alle runs tijd",
     "gps.ready": "GPS klaar",
     "gps.searching": "GPS zoeken…",
     "foil.alarmHelp": "Trilt wanneer je boven of onder het optimale snelheidsbereik van je foil komt.",
@@ -669,6 +683,8 @@ let wNlOverlay: [String: String] = [
 // Reihenfolge: watch/source/Strings.mc (Garmin, laengst im Store), dann die
 // Web-Locales ueber den deutschen Text, dann eigene Uebersetzung der Kurztexte.
 let wFiOverlay: [String: String] = [
+    "f.allRunsDist": "kaikki lenkit matka",
+    "f.allRunsTime": "kaikki lenkit aika",
     "gps.ready": "GPS valmis",
     "gps.searching": "GPS haku…",
     "foil.alarmHelp": "Värisee, kun ylität tai alitat foilisi optimaalisen nopeusalueen.",
@@ -765,6 +781,8 @@ let wFiOverlay: [String: String] = [
 // Reihenfolge: watch/source/Strings.mc (Garmin, laengst im Store), dann die
 // Web-Locales ueber den deutschen Text, dann eigene Uebersetzung der Kurztexte.
 let wCsOverlay: [String: String] = [
+    "f.allRunsDist": "všechny jízdy vzdál",
+    "f.allRunsTime": "všechny jízdy čas",
     "gps.ready": "GPS připraveno",
     "gps.searching": "hledání GPS…",
     "foil.alarmHelp": "Zavibruje, když překročíš nebo klesneš pod optimální rychlostní rozsah svého foilu.",

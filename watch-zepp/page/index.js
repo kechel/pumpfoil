@@ -623,6 +623,9 @@ const S = {
   "f.lastRunDist": ["letzte Dist", "letschti Dist", "letzte Dist", "last dist", "dern. dist", "ult. dist", "últ. dist", "última dist", "jarak terakhir", "посл дист", "laatste afst", "ed. matka", "posl. vzdál", "前回の距離", "上次距离"],
   "f.lastRunAvg": ["letzter Ø", "letschte Ø", "letzter Ø", "last avg", "dern. moy", "ult. media", "últ. med", "última méd", "rata terakhir", "посл средн", "laatste Ø", "ed. Ø", "posl. Ø", "前回の平均", "上次平均"],
   "f.lastRunMax": ["letzter max", "letschte max", "letzter max", "last max", "dern. max", "ult. max", "últ. máx", "último máx", "maks terakhir", "посл макс", "laatste max", "ed. maks", "posl. max", "前回の最大", "上次最高"],
+  // Summe ALLER Laeufe dieser Aufnahme inkl. des laufenden (Feld 22/23, Wunsch 28.09.2026).
+  "f.allRunsDist": ["alle Läufe Dist", "alli Läuf Dist", "olle Läufe Dist", "all runs dist", "tous runs dist", "tutti run dist", "todos runs dist", "todas voltas dist", "semua run jarak", "все заезды дист", "alle runs afst", "kaikki lenkit matka", "všechny jízdy vzdál", "全ラン距離", "全部航段距离"],
+  "f.allRunsTime": ["alle Läufe Zeit", "alli Läuf Ziit", "olle Läufe Zeit", "all runs time", "tous runs temps", "tutti run tempo", "todos runs tiempo", "todas voltas tempo", "semua run waktu", "все заезды время", "alle runs tijd", "kaikki lenkit aika", "všechny jízdy čas", "全ラン時間", "全部航段时间"],
   "f.lastRunMaxHr": ["letzter max bpm", "letschte max bpm", "letzter max bpm", "last max bpm", "dern. max bpm", "ult. max bpm", "últ. máx bpm", "último máx bpm", "maks terakhir bpm", "посл макс bpm", "laatste max bpm", "ed. maks bpm", "posl. max bpm", "前回の最大心拍", "上次最高心率"],
 };
 // Norwegisch (Bokmål) als OVERLAY statt 16. Spalte: die Zeilen oben haben teils weniger
@@ -653,6 +656,8 @@ const PL = {
   "f.lastRunDist": "ost. dyst.",
   "f.lastRunMax": "ost. maks.",
   "f.lastRunMaxHr": "ost. maks. bpm",
+  "f.allRunsDist": "wsz. przejazdy dyst.",
+  "f.allRunsTime": "wsz. przejazdy czas",
   "f.lastRunTime": "ost. czas",
   "f.runActive": "przejazd trwa",
   "f.runDist": "Dyst. przejazdu",
@@ -762,6 +767,8 @@ const NB = {
   "f.lastRunAvg": "siste snitt",
   "f.lastRunMax": "siste maks",
   "f.lastRunMaxHr": "siste maks bpm",
+  "f.allRunsDist": "alle runs dist",
+  "f.allRunsTime": "alle runs tid",
 };
 // Aktive Spalte. Default ENGLISCH (3), nicht Deutsch: die App liegt international im Store, und
 // die Geraete-Systemsprache ist ohne zusaetzlichen (riskanten) @zos-Import nicht lesbar. Sobald
@@ -882,6 +889,8 @@ Page(
       // niemand, also selbst mitschreiben wie das Lauf-Hoechsttempo.
       runMaxHr: 0, lastRunMaxHr: 0,
       lastRunDurMs: 0, lastRunDistM: 0, lastRunAvgMps: 0, lastRunMaxMps: 0,
+      // Summe der ABGESCHLOSSENEN Laeufe (Feld 22/23); der laufende kommt in _runsSum() dazu.
+      runsSumDurMs: 0, runsSumDistM: 0,
       views: [[1, 3, 4]], offFoil: [12, 17, 16], autoStart: false, stopMode: "hold",
       // Seiten-Sätze je Zustand (Server, getaggte Listen: [0,a,b,c] klassisch | [1,bg,[el…]] Layout).
       // browseAll = im Off-Foil-Zustand auch durch die On-Foil-Seiten blättern. _ringKey cached den
@@ -2272,6 +2281,11 @@ Page(
               s.runStartDist = s.lastRunStartDist;
               if (s.lastRunMaxMps > s.runMaxMps) s.runMaxMps = s.lastRunMaxMps;
               if (s.lastRunMaxHr > s.runMaxHr) s.runMaxHr = s.lastRunMaxHr;
+              // Der fortgesetzte Lauf steckt schon in der Summe (Feld 22/23) und laeuft ab jetzt
+              // wieder live ab SEINEM Start mit -> seinen Anteil zuruecknehmen, sonst doppelt.
+              // Beim erneuten Ende kommt der GANZE Lauf wieder hinein.
+              s.runsSumDurMs = Math.max(0, s.runsSumDurMs - s.lastRunDurMs);
+              s.runsSumDistM = Math.max(0, s.runsSumDistM - s.lastRunDistM);
             } else {
               // Lauf-Start auf den ersten schnellen Tick zurückdatieren (wie Garmin/Wear).
               s.runStartMs = tMs - RUN_ENTER_DWELL * 1000;
@@ -2310,6 +2324,10 @@ Page(
           s.lastRunMaxMps = s.runMaxMps;
           s.lastRunMaxHr = s.runMaxHr;
           s.runMaxHr = 0;
+          // Summe aller Laeufe (Feld 22/23): nur gezaehlte Laeufe (Verworfenes ist oben schon raus).
+          // Bei einer Fortsetzung wurde der alte Anteil beim Wiederanlaufen abgezogen.
+          s.runsSumDurMs += durMs;
+          s.runsSumDistM += distM;
           if (!s.runIstFortsetzung) s.runCount++;
           s.runIstFortsetzung = false;
           console.log("[pumpfoil] run end count=" + s.runCount
@@ -2318,6 +2336,19 @@ Page(
         }
       }
       return false;
+    },
+    // Summe aller Laeufe (Feld 22/23) = abgeschlossene + Live-Anteil des laufenden. Der Live-Anteil
+    // ist genau das, was Feld 14/15 zeigt; ein Lauf, der am Ende als zu kurz/zu langsam verworfen
+    // wird, faellt dann wieder heraus (wie bei 14/15). In der Pause steht die aktive Zeit, also
+    // auch die Summe. Gibt [ms, m] zurueck.
+    _runsSum(elMs) {
+      const s = this.state;
+      let d = s.runsSumDurMs, m = s.runsSumDistM;
+      if (s.foiling) {
+        d += Math.max(0, elMs - s.runStartMs);
+        m += Math.max(0, s.dist - s.runStartDist);
+      }
+      return [d, m];
     },
     _resetRun() {
       const s = this.state;
@@ -2332,6 +2363,7 @@ Page(
       s.burstBuf = []; s.spdMaxClean = 0; s.minSpeedSeitEnde = 99; s.runIstFortsetzung = false;
       s.lastRunStartMs = 0; s.lastRunStartDist = 0;
       s.lastRunDurMs = 0; s.lastRunDistM = 0; s.lastRunAvgMps = 0; s.lastRunMaxMps = 0;
+      s.runsSumDurMs = 0; s.runsSumDistM = 0;
       s._ringKey = null;
     },
 
@@ -2985,6 +3017,11 @@ Page(
         case 19: return [hasRun ? (s.lastRunMaxMps * 3.6).toFixed(1) : "–", t("f.lastRunMax")];
         case 20: return ["" + s.runCount, t("f.runs")];
         case 21: return [s.lastRunMaxHr > 0 ? "" + s.lastRunMaxHr : "–", t("f.lastRunMaxHr")];
+        // 22/23 = Summe ALLER Laeufe inkl. des laufenden (Format wie 17 bzw. 16).
+        case 22: { const m = this._runsSum(el * 1000)[1];
+                   return [hasRun || s.foiling ? distVal(m) : "–", distUnit(m) + " " + t("f.allRunsDist")]; }
+        case 23: { const ms = this._runsSum(el * 1000)[0];
+                   return [hasRun || s.foiling ? mmss(ms / 1000) : "–", t("f.allRunsTime")]; }
         default: return ["–", ""];
       }
     },

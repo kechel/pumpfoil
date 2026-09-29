@@ -165,6 +165,8 @@ private val NB: Map<String, String> = mapOf(
     "f.lastRunAvg" to "siste snitt",
     "f.lastRunMax" to "siste maks",
     "f.lastRunMaxHr" to "siste maks bpm",
+    "f.allRunsDist" to "alle runs dist",
+    "f.allRunsTime" to "alle runs tid",
 )
 
 private fun row(de: String, gsw: String, deAT: String, en: String, fr: String, it: String, es: String) =
@@ -340,6 +342,8 @@ private val S: Map<String, Map<String, String>> = mapOf(
     "f.lastRunAvg" to row("letzter Ø", "letschte Ø", "letzter Ø", "last avg", "dern. moy", "ult. media", "últ. med"),
     "f.lastRunMax" to row("letzter max", "letschte max", "letzter max", "last max", "dern. max", "ult. max", "últ. máx"),
     "f.lastRunMaxHr" to row("letzter max bpm", "letschte max bpm", "letzter max bpm", "last max bpm", "dern. max bpm", "ult. max bpm", "últ. máx bpm"),
+    "f.allRunsDist" to row("alle Läufe Dist", "alli Läuf Dist", "olle Läufe Dist", "all runs dist", "tous runs dist", "tutti run dist", "todos runs dist"),
+    "f.allRunsTime" to row("alle Läufe Zeit", "alli Läuf Ziit", "olle Läufe Zeit", "all runs time", "tous runs temps", "tutti run tempo", "todos runs tiempo"),
 )
 
 // Zusatz-Sprach-Overlays (pt, ja, zh, ru, id) — je Key aus dem ENGLISCHEN Quellwert.
@@ -448,6 +452,8 @@ private val PT: Map<String, String> = mapOf(
     "f.lastRunAvg" to "última méd",
     "f.lastRunMax" to "último máx",
     "f.lastRunMaxHr" to "último máx bpm",
+    "f.allRunsDist" to "todas voltas dist",
+    "f.allRunsTime" to "todas voltas tempo",
 )
 private val JA: Map<String, String> = mapOf(
     "gps.ready" to "GPS 準備完了",
@@ -552,6 +558,8 @@ private val JA: Map<String, String> = mapOf(
     "f.lastRunAvg" to "前回の平均",
     "f.lastRunMax" to "前回の最大",
     "f.lastRunMaxHr" to "前回の最大 bpm",
+    "f.allRunsDist" to "全ラン距離",
+    "f.allRunsTime" to "全ラン時間",
 )
 private val ZH: Map<String, String> = mapOf(
     "gps.ready" to "GPS 就绪",
@@ -656,6 +664,8 @@ private val ZH: Map<String, String> = mapOf(
     "f.lastRunAvg" to "上次平均",
     "f.lastRunMax" to "上次最高",
     "f.lastRunMaxHr" to "上次最高 bpm",
+    "f.allRunsDist" to "全部航段距离",
+    "f.allRunsTime" to "全部航段时间",
 )
 private val RU: Map<String, String> = mapOf(
     "gps.ready" to "GPS готов",
@@ -761,6 +771,8 @@ private val RU: Map<String, String> = mapOf(
     "f.lastRunAvg" to "посл средн",
     "f.lastRunMax" to "посл макс",
     "f.lastRunMaxHr" to "посл макс bpm",
+    "f.allRunsDist" to "все заезды дист",
+    "f.allRunsTime" to "все заезды время",
 )
 private val ID: Map<String, String> = mapOf(
     "gps.ready" to "GPS siap",
@@ -866,6 +878,8 @@ private val ID: Map<String, String> = mapOf(
     "f.lastRunAvg" to "rata terakhir",
     "f.lastRunMax" to "maks terakhir",
     "f.lastRunMaxHr" to "maks terakhir bpm",
+    "f.allRunsDist" to "semua run jarak",
+    "f.allRunsTime" to "semua run waktu",
 )
 
 // Polnisch — 17. Sprache (28.08.), Texte aus den Web-Locales bzw. einmal uebersetzt
@@ -974,6 +988,8 @@ private val PL: Map<String, String> = mapOf(
     "f.lastRunAvg" to "ost. śr.",
     "f.lastRunMax" to "ost. maks.",
     "f.lastRunMaxHr" to "ost. maks. bpm",
+    "f.allRunsDist" to "wsz. przejazdy dyst.",
+    "f.allRunsTime" to "wsz. przejazdy czas",
 )
 
 // NL-Overlay: 85 Schluessel. Quellen in dieser Reihenfolge —
@@ -1085,6 +1101,8 @@ private fun nlTabelle(): Map<String, String> = mapOf(
     "f.lastRunAvg" to "laatste Ø",
     "f.lastRunMax" to "laatste max",
     "f.lastRunMaxHr" to "laatste max bpm",
+    "f.allRunsDist" to "alle runs afst",
+    "f.allRunsTime" to "alle runs tijd",
 )
 
 // FI-Overlay: 85 Schluessel. Quellen in dieser Reihenfolge —
@@ -1196,6 +1214,8 @@ private fun fiTabelle(): Map<String, String> = mapOf(
     "f.lastRunAvg" to "ed. Ø",
     "f.lastRunMax" to "ed. maks",
     "f.lastRunMaxHr" to "ed. maks bpm",
+    "f.allRunsDist" to "kaikki lenkit matka",
+    "f.allRunsTime" to "kaikki lenkit aika",
 )
 
 // CS-Overlay: 85 Schluessel. Quellen in dieser Reihenfolge —
@@ -1307,4 +1327,6 @@ private fun csTabelle(): Map<String, String> = mapOf(
     "f.lastRunAvg" to "posl. Ø",
     "f.lastRunMax" to "posl. max",
     "f.lastRunMaxHr" to "posl. max bpm",
+    "f.allRunsDist" to "všechny jízdy vzdál",
+    "f.allRunsTime" to "všechny jízdy čas",
 )

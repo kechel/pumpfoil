@@ -1205,6 +1205,8 @@ struct HoldToStopButton: View {
     case 19: return (String(format: "%.1f", r.lastRunMaxSpeedKmh), WLoc.t("f.lastRunMax", lang))
     case 20: return ("\(r.runCount)", WLoc.t("f.runs", lang))
     case 21: return (r.lastRunMaxHr > 0 ? "\(r.lastRunMaxHr)" : "–", WLoc.t("f.lastRunMaxHr", lang))
+    case 22: return (distVal(r.allRunsDistanceM), distUnit(r.allRunsDistanceM) + " " + WLoc.t("f.allRunsDist", lang))
+    case 23: return (msStr(r.allRunsDurationMs), WLoc.t("f.allRunsTime", lang))
     default: return ("—", "")
     }
 }
