@@ -328,7 +328,12 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         let tMs = elapsedMs()
         let sp = max(0, l.speed)   // m/s (-1 = ungültig -> 0)
         lock.lock()
-        gpsBuf.append([Double(tMs), l.coordinate.latitude, l.coordinate.longitude, sp, 0, l.horizontalAccuracy])
+        // Felder 7-9 (seit 1.1.41, 29.09.2026): Genauigkeit des Tempos, Kurs und dessen Genauigkeit,
+        // so wie CoreLocation sie meldet (-1 = ungueltig). Anlass #10874: iOS meldete 20 s lang
+        // ~6,7 km/h, der Pixel in derselben Tasche 14; ob iOS dem Wert selbst misstraute, war nicht
+        // zu sehen. Hinten angehaengt, damit Feld 1-6 fuer jede Auswertung gleich bleiben.
+        gpsBuf.append([Double(tMs), l.coordinate.latitude, l.coordinate.longitude, sp, 0, l.horizontalAccuracy,
+                       l.speedAccuracy, l.course, l.courseAccuracy])
         // Distanz nur, wenn wir uns wirklich bewegen (s. standMps). Der Handy-Recorder hat kein
         // eigenes Qualitaets-Gate fuer die Anzeige, deshalb steht die Genauigkeitsgrenze hier —
         // mit demselben Wert (20 m) wie auf Uhr und Server.
