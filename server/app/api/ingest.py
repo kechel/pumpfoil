@@ -211,7 +211,8 @@ def _nachrechnen_faellig(db: Session, s: "models.Session") -> bool:
     dass sich das Rechnen lohnt?
 
     Drei Bedingungen, alle noetig:
-    1. Die Session laeuft noch (`recording`/`live`). Abgeschlossene rechnet `/complete`.
+    1. Die Session laeuft noch (`recording`/`live`) — ODER sie ist schon `analyzed`, und danach
+       kamen noch Chunks (s. unten). `complete` rechnet `/complete` bzw. der Haenger-Lauf.
     2. Seit der letzten Analyse sind Chunks angekommen. `updated_at` ist der Zeitpunkt der
        letzten Analyse — `run_analysis` schreibt in die Session-Zeile, ein Chunk-Upload nicht.
        Das braucht keine neue Spalte und gilt ueber alle vier uvicorn-Arbeitsprozesse hinweg,
@@ -223,7 +224,14 @@ def _nachrechnen_faellig(db: Session, s: "models.Session") -> bool:
 
     from sqlalchemy import func as _f
 
-    if s.status not in ("recording", "live", None):
+    # `analyzed` MIT: eine Aufnahme, die der Haenger-Lauf abgeschlossen hat, bekommt ihre
+    # restlichen Chunks oft erst Stunden oder Tage spaeter. Bis 29.09.2026 wurden die nur
+    # gespeichert — die Analyse blieb auf dem alten Stand, bis irgendwann `/complete` kam. Belegt
+    # an #10266 (Apple Watch, 2 h 48 min): 1009 Chunks am 29.09. nachgeliefert, darunter fast die
+    # ganze Beschleunigung, die Analyse aber von 04:03 und „nur GPS"; die letzten 74 Chunks kamen
+    # nie (App beim Update von der Uhr geflogen), also auch kein `/complete`. Der Aufrufer rechnet
+    # eine `analyzed`-Session FINAL (samt Zuschnitt), damit der Status bleibt, wie er ist.
+    if s.status not in ("recording", "live", "analyzed", None):
         return False
     letzter, anzahl = (db.query(_f.max(models.IngestChunk.received_at),
                                 _f.count(models.IngestChunk.id))
@@ -298,7 +306,7 @@ def upload_chunk(
     # der ersten hochgeladenen Minuten — 4 statt 13 Laeufe — und niemand konnte es sehen.
     # `final=False`: der Status bleibt „live", die Uhr darf ihre Daten NICHT wegwerfen.
     if _nachrechnen_faellig(db, s):
-        background.add_task(_analyze_in_background, s.id, False)
+        background.add_task(_analyze_in_background, s.id, s.status == "analyzed")
     return ChunkOut(ok=True, index=body.index)
 
 
