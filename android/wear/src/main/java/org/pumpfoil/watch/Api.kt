@@ -110,6 +110,20 @@ object Api {
         post("/api/ingest/session/$uuid/chunk", body)
     }
 
+    /**
+     * Mehrere Chunks in EINER Anfrage (Server seit 29.09.2026). Die Chunkgroesse stammt aus dem
+     * Garmin-BLE-Limit, das Wear OS nicht hat — mit einem Chunk je Anfrage brauchte eine lange
+     * Session tausende Anfragen (#10266, Apple Watch: 1848 fuer 2,2 MB, drei Tage).
+     * Liefert die Indizes, die der Server GESPEICHERT hat — nur die zaehlen als quittiert.
+     */
+    suspend fun uploadChunks(uuid: String, chunks: List<JSONObject>): Set<Int> = withContext(Dispatchers.IO) {
+        val arr = org.json.JSONArray(); chunks.forEach { arr.put(it) }
+        val res = post("/api/ingest/session/$uuid/chunks", JSONObject().put("chunks", arr))
+        val ok = HashSet<Int>()
+        res.optJSONArray("received")?.let { a -> for (i in 0 until a.length()) ok.add(a.getInt(i)) }
+        ok
+    }
+
     /** Teil-Analyse waehrend die Aufnahme laeuft (Pause). Schliesst die Session NICHT ab. */
     suspend fun analyze(uuid: String) = withContext(Dispatchers.IO) {
         post("/api/ingest/session/$uuid/analyze", JSONObject())

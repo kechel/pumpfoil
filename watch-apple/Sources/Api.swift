@@ -163,6 +163,20 @@ enum Api {
         let _: Ack = try await post("/api/ingest/session/\(uuid)/chunk", body)
     }
 
+    /// Chunks je Sammel-Anfrage. Der Server nimmt bis 30 (`MAX_SAMMEL_CHUNKS`); 20 sind gut
+    /// drei Minuten Aufnahme, bei 50 Hz rund 70 KB — klein genug fuer den Weg ueber das iPhone.
+    static let sammelGroesse = 20
+
+    struct ChunksAck: Decodable { let ok: Bool; let received: [Int] }
+
+    /// Mehrere Chunks in EINER Anfrage (Server seit 29.09.2026). Die Chunkgroesse stammt aus dem
+    /// Garmin-BLE-Limit, das die Apple Watch nicht hat: #10266 brauchte 1848 Einzel-Anfragen fuer
+    /// 2,2 MB und drei Tage. Liefert die Indizes, die der Server GESPEICHERT hat — nur die zaehlen.
+    static func uploadChunks(_ uuid: String, _ chunks: [[String: Any]]) async throws -> [Int] {
+        let a: ChunksAck = try await post("/api/ingest/session/\(uuid)/chunks", ["chunks": chunks])
+        return a.received
+    }
+
     static func complete(_ uuid: String, endedAt: String, totalChunks: Int,
                          pauses: [[Int]]? = nil) async throws {
         var body: [String: Any] = ["ended_at": endedAt, "total_chunks": totalChunks]

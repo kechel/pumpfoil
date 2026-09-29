@@ -455,10 +455,11 @@ object Recorder {
             val dir = LocalStore.dir(ctx, uuid)
             val start = LocalStore.readJson(java.io.File(dir, "session.json")) ?: return
             Api.startSession(start)
-            for (cf in LocalStore.chunkFiles(dir)) {
+            // In Sammel-Anfragen (s. Api.uploadChunks); nach jeder pruefen, ob fortgesetzt wurde.
+            for (paket in Sammel.pakete(LocalStore.chunkFiles(dir), Sammel.GROESSE)) {
                 if (!paused) return          // fortgesetzt -> nicht weiter senden
-                val chunk = LocalStore.readJson(cf) ?: continue
-                Api.uploadChunk(uuid, chunk)
+                val chunks = paket.mapNotNull { LocalStore.readJson(it) }
+                if (chunks.isNotEmpty()) Api.uploadChunks(uuid, chunks)
             }
             if (paused) Api.analyze(uuid)
         } catch (e: Exception) {
@@ -706,14 +707,23 @@ object Recorder {
         // über die Bluetooth-Bridge zum Telefon sanft. JSON erst im Permit lesen (Speicher bremsen).
         val sent = AtomicInteger(received.size.coerceAtMost(chunkFiles.size))
         val sem = Semaphore(uploadPool(ctx))
+        // SAMMEL-ANFRAGEN (29.09.2026): bis zu `Sammel.GROESSE` Chunks je Anfrage statt einer.
+        // Die Chunks selbst bleiben dieselben (gleiche Indizes, Resume, Vollstaendigkeit), nur die
+        // Anfragen werden weniger. Schon Empfangenes faellt vorher heraus (Index aus dem Namen),
+        // die GPS-first-Reihenfolge bleibt.
+        val offen = chunkFiles.filter { f -> LocalStore.chunkIndex(f.name)?.let { it !in received } ?: true }
         coroutineScope {
-            chunkFiles.map { cf ->
+            Sammel.pakete(offen, Sammel.GROESSE).map { paket ->
                 async(Dispatchers.IO) {
                     sem.withPermit {
-                        val chunk = LocalStore.readJson(cf) ?: return@withPermit
-                        if (chunk.optInt("index", -1) in received) return@withPermit
-                        Api.uploadChunk(sid, chunk)
-                        _state.value = _state.value.copy(uploadSent = sent.incrementAndGet().coerceAtMost(chunkFiles.size))
+                        val chunks = paket.mapNotNull { LocalStore.readJson(it) }
+                        if (chunks.isEmpty()) return@withPermit
+                        val gesendet = chunks.map { it.optInt("index", -1) }.toSet()
+                        val ok = Api.uploadChunks(sid, chunks)
+                        // Nur quittiert zaehlt. Fehlt etwas, schlaegt der Upload fehl und laeuft
+                        // spaeter erneut — wie frueher bei einem abgelehnten Einzel-Chunk.
+                        if (!ok.containsAll(gesendet)) throw ApiException(400, "chunk rejected")
+                        _state.value = _state.value.copy(uploadSent = sent.addAndGet(chunks.size).coerceAtMost(chunkFiles.size))
                     }
                 }
             }.awaitAll()
@@ -1011,4 +1021,14 @@ class LaufSumme {
         val basis = if (fortsetzung) fertigDurMs - letzterDurMs else fertigDurMs
         return (basis + live).coerceAtLeast(0L)
     }
+}
+
+
+/** Sammel-Upload: Liste in Pakete schneiden (rein, damit testbar — s. SammelTest). */
+object Sammel {
+    /** Chunks je Anfrage. Der Server nimmt bis 30; 20 sind gut drei Minuten Aufnahme. */
+    const val GROESSE = 20
+
+    fun <T> pakete(liste: List<T>, groesse: Int): List<List<T>> =
+        if (groesse <= 0) listOf(liste) else liste.chunked(groesse)
 }

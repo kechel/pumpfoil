@@ -52,6 +52,12 @@ enum LocalStore {
         if n.contains("-accel.") { return "accel" }
         return ""
     }
+    /// Index aus dem Dateinamen (chunk-<index>-<kind>.json) — fuer den Sammel-Upload, der schon
+    /// Empfangenes aussortiert, ohne jede Datei zu lesen. nil bei fremdem Namen.
+    static func chunkIndex(_ url: URL) -> Int? {
+        let teile = url.deletingPathExtension().lastPathComponent.split(separator: "-")
+        return teile.count >= 2 ? Int(teile[1]) : nil
+    }
     static func writeComplete(_ uuid: String, _ c: [String: Any]) {
         writeJSON(c, to: dir(uuid).appendingPathComponent("complete.json"))
     }
