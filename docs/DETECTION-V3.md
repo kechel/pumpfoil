@@ -1,6 +1,6 @@
 # Erkennung v3 — Laeufe und Sportart aus einem Modell (Plan, Stand 29.09.2026)
 
-**Status: Phase 0.** Nichts davon ist live. Die laufende Erkennung ist v2 (`analysis/detect_v2.py`,
+**Status: Phasen 0–4 durchgerechnet (29.09.2026), Ergebnis unten.** Nichts davon ist live. Die laufende Erkennung ist v2 (`analysis/detect_v2.py`,
 `DETECTOR_V2=1`), siehe [`GROUND-TRUTH.md`](GROUND-TRUTH.md) fuer die Grundlagen der Pump-Erkennung.
 
 ## Ziel
@@ -71,3 +71,40 @@ bei einem bis vier Fahrern je Sportart lernt ein Modell den Fahrer, nicht die Sp
 
 Regressionstests in der CI bleiben synthetisch (oeffentliches Repo). Der Vergleich gegen echte Daten
 laeuft lokal und rein lesend.
+
+## Ergebnis 29.09.2026 (Phasen 0–4, alles offline, nichts live)
+
+**Wasser fuers Training:** Overpass war von der VM nicht erreichbar (TODO-Inbox) → JRC Global Surface
+Water (30 m, Wasserhaeufigkeit 1984–2021). JRC uebersieht schmale Gewaesser (Kanaele, Fluesse,
+Lagunen, ein Becken): „an Land" allein ist KEIN Label. 73 Sessions mit Laeufen auf JRC-Land per
+Kartenbild gesichtet: 49 Land, 22 schmales Wasser, 2 unklar (Jan: #7160, #9455).
+
+**Stufe A als eigene Maske: verworfen.** Sie fand 7668 zusaetzliche kurze Laeufe (Median 6 s); die
+unabhaengige foil_status-Wahrheit bestaetigt davon 37 %, von den mit v2 gemeinsamen 98 %.
+
+**Stufe A als Veto (`analysis/v3/veto.py`, Schwelle 0,4):** v2 findet die Laeufe wie heute, Stufe A
+verwirft Laeufe mit mittlerer Wahrscheinlichkeit < 0,4. Gemessen mit Teilmodellen, die den Fahrer
+NIE gesehen haben (sonst Auswendiglernen: am Abstimm-Satz sah es mit 3 statt 35 Land-Laeufen viel
+besser aus), ganze Aufnahme, eigene Empfindlichkeit, 2648 Sessions:
+
+| Kennzahl | v2 heute | v3-Veto |
+|---|---|---|
+| Laeufe ≤ 60 s an einer Autofahrt | 25 | 0 |
+| Laeufe an Land (Sichtpruefung) noch da | 81/81 | 35/81 |
+| Feste Pruefliste (u. a. #10478 Parkplatzrunde) | 4/7 | 7/7 |
+| Laeufe auf schmalem Wasser behalten | 61/62 | 61/62 |
+| foil_status Praezision / Trefferquote | 0,902 / 0,925 | 0,903 / 0,925 |
+| Laeufe gesamt | 18339 | 18235 (−104) |
+
+Von den 104 verworfenen: 51 klar an Land, 53 nahe Wasser. Stichprobe 8 der naechst-am-Wasser:
+7 richtig (Uferstrassen), **1 falsch (#3045, Lauf mitten auf dem Zuideinderplas)**. Grenze: eine
+Autofahrt NEBEN einem Kanal (#1232, B235) behaelt auch das Veto.
+
+**Stufe B (Sportart, Fahrer herausgehalten, je Session):** Pumpfoil 62/62 · Wingfoil 20/24
+(heute 0/21) · Wakethief 1/35 · Foildrive 3/11 · Efoil/Foil Scoot je 1 Fahrer = nicht pruefbar.
+
+**Empfindlichkeit:** Schattenlauf „alle normal" liegt vor (schatten-v2/-v3-normal), der Vergleich,
+ob v3 die Einstellung ersetzen kann, steht noch aus — als Maske taugt v3 dafuer nicht (s. oben).
+
+**Offen vor jedem Live-Schritt:** Jans Blick auf die Liste der 104 (server/data/ml/verworfen-v3veto.json)
+und die Bilder; #3045-Fall verstehen; die 2 unklaren Sessions; Stufe B nur als Vorschlag.
