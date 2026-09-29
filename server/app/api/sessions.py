@@ -1,6 +1,7 @@
 """Sessions auflisten/anzeigen + Rohdaten + Labels (für Web-Auswertung)."""
 from __future__ import annotations
 
+import gzip
 import io
 import json
 import math
@@ -8,6 +9,7 @@ import secrets
 import uuid
 import threading
 import zipfile
+import zlib
 from datetime import datetime, timedelta, timezone
 
 import numpy as np
@@ -42,6 +44,35 @@ MAX_FIT_BYTES = 25 * 1024 * 1024  # 25 MB
 
 def _ms(ms: int) -> timedelta:
     return timedelta(milliseconds=ms)
+
+
+# Entpackt hoechstens so viel. Gemessen am 29.09.2026 an der groessten GPX-mit-Beschleunigung im
+# Bestand: 25,2 MB -> 3,6 MB gepackt, beim Einlesen 310 MB Speicher-Spitze (ElementTree). 64 MiB
+# entpackt sind rund drei Stunden in diesem Format und bleiben unter ~1 GB Spitze je Worker.
+MAX_ENTPACKT_BYTES = 64 * 1024 * 1024
+
+
+def _gzip_entpacken(data: bytes, filename: str | None) -> tuple[bytes, str | None]:
+    """`.gpx.gz` / `.tcx.gz` / `.fit.gz` annehmen (Nutzerwunsch 29.09.2026; so liefern es auch
+    Stravas Gesamtexport und grosse Tracks mit Beschleunigung). Erkannt am Gzip-Kopf, nicht an der
+    Endung. Gibt die entpackten Bytes und den Dateinamen OHNE `.gz` zurueck, damit die
+    Formaterkennung danach wie bei der ungepackten Datei laeuft. Liest hoechstens
+    MAX_ENTPACKT_BYTES + 1 — eine Gzip-Bombe endet so mit 413 statt im Speicher."""
+    if data[:2] != b"\x1f\x8b":
+        return data, filename
+    try:
+        with gzip.GzipFile(fileobj=io.BytesIO(data)) as gz:
+            aus = gz.read(MAX_ENTPACKT_BYTES + 1)
+    except (OSError, EOFError, zlib.error):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid gzip file")
+    if len(aus) > MAX_ENTPACKT_BYTES:
+        raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "File too large (unpacked)")
+    if not aus:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Empty file")
+    name = filename
+    if name and name.lower().endswith(".gz"):
+        name = name[:-3]
+    return aus, name
 
 
 def _fit_bytes_from_upload(data: bytes, filename: str | None) -> bytes:
@@ -636,19 +667,22 @@ async def upload_fit(
     if len(data) > MAX_FIT_BYTES:
         raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "File too large")
 
+    # Gepackt? Dann zuerst entpacken; ab hier sieht alles die ungepackte Datei und ihren Namen.
+    data, dateiname = _gzip_entpacken(data, file.filename)
+
     # Format erkennen: TCX/GPX (XML) vs. FIT/ZIP.
-    name = (file.filename or "").lower()
+    name = (dateiname or "").lower()
     head = data.lstrip()[:5].lower()
     is_xml = name.endswith((".tcx", ".gpx")) or head.startswith(b"<?xml") or head.startswith(b"<")
     try:
         if is_xml:
             from ..tcximport import parse_track_bytes
-            parsed = parse_track_bytes(data, file.filename)
+            parsed = parse_track_bytes(data, dateiname)
             raw = data
             src_label = "gpx-upload" if name.endswith(".gpx") else "tcx-upload"
             uuid_prefix = "imp-"
         else:
-            raw = _fit_bytes_from_upload(data, file.filename)
+            raw = _fit_bytes_from_upload(data, dateiname)
             parsed = parse_fit_bytes(raw)
             src_label = "fit-upload"
             uuid_prefix = "fit-"
@@ -656,7 +690,7 @@ async def upload_fit(
         # Auch hier aufheben: der Nutzer bekommt eine Fehlermeldung und laedt die Datei
         # erfahrungsgemaess nie wieder hoch. Mit der Kopie kann ein spaeterer Fix sie nachholen.
         storage.quarantaene_ablegen(data, quelle="upload", user_id=user.id,
-                                    grund=str(exc), filename=file.filename)
+                                    grund=str(exc), filename=dateiname)
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc))
     samples = parsed["gps_samples"]
     started_at = parsed["started_at"]
@@ -698,7 +732,7 @@ async def upload_fit(
         return {"skipped": "not_water", "sport": sport, "started_at": started_at.isoformat()}
 
     s = import_parsed_session(db, user, raw, parsed, src_label=src_label, uuid_prefix=uuid_prefix,
-                              filename=getattr(file, "filename", None))
+                              filename=dateiname)
     if s is None:  # bewusst gelöschte Aktivität nicht wieder importieren
         return {"skipped": "deleted", "sport": sport, "started_at": started_at.isoformat()}
     return _session_out(s, with_analysis=True)

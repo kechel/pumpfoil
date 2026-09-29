@@ -71,7 +71,7 @@ export function UploadFitButton({
           {uploading ? `${t("sessions.importing")}${progress ? " " + progress : ""}…` : t("sessions.uploadFitZip")}
         </span>
       </Button>
-      <input ref={fileRef} type="file" accept=".fit,.zip,.tcx,.gpx" multiple className="hidden" onChange={onPick} />
+      <input ref={fileRef} type="file" accept=".fit,.zip,.tcx,.gpx,.gz" multiple className="hidden" onChange={onPick} />
     </>
   );
 }
