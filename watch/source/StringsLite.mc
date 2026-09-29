@@ -171,6 +171,7 @@ module Strings {
         if (key.equals("rec.cancel"))    { return "Cancel"; }
         if (key.equals("rec.endSave"))   { return "End & save"; }
         if (key.equals("f.bpmMaxLast"))  { return "bpm max last"; }
+        if (key.equals("f.allRuns"))     { return "all runs"; }
         // Layout-Keys: in LITE/ENG ist der Renderer nicht dabei, der Menuepunkt also auch nicht.
         // Trotzdem hinterlegt, damit ein kuenftiger Aufruf keinen rohen Key mehr zeigen kann.
         if (key.equals("menu.layouts"))  { return "Custom layouts"; }

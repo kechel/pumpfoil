@@ -1715,7 +1715,7 @@ private val DEFAULT_VIEWS = listOf(
     listOf(4, 3),   // Distanz + Zeit
 )
 
-// Feld-IDs identisch mit web/src/lib/fields.ts + Garmin Config.mc (alle 22 Felder).
+// Feld-IDs identisch mit web/src/lib/fields.ts + Garmin Config.mc (alle 24 Felder, 0..23).
 /** Beschriftung des LIVE-Puls-Felds: normalerweise „bpm", sonst wie alt der Wert ist.
  *
  *  Vorschlag Jan (10.09.2026): statt „Puls passiv" — ein Begriff, den niemand versteht — die
@@ -1788,6 +1788,10 @@ private fun fieldValue(id: Int, s: Recorder.State): Pair<String, String> = when 
     19 -> String.format("%.1f", s.lastRunMaxSpeedKmh) to I18n.t("f.lastRunMax")
     20 -> s.runCount.toString() to I18n.t("f.runs")
     21 -> (if (s.lastRunMaxHr > 0) s.lastRunMaxHr.toString() else "–") to I18n.t("f.lastRunMaxHr")
+    // Summe aller gewerteten Laeufe inkl. des laufenden (Wunsch 28.09.2026: Feld 4 zaehlt Steg,
+    // Zurueckschwimmen und Fehlstarts mit). Format wie 17 bzw. 16.
+    22 -> distVal(s.allRunsDistanceM) to (distUnit(s.allRunsDistanceM) + " " + I18n.t("f.allRunsDist"))
+    23 -> msStr(s.allRunsDurationMs) to I18n.t("f.allRunsTime")
     else -> "—" to ""
 }
 

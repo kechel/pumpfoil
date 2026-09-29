@@ -316,6 +316,12 @@ class SessionRecorder {
     hidden var _runMaxHr = 0;
     hidden var _lastRunMaxHr = 0;
     hidden var _lastRunAvgSpeed = 0.0;
+    // Summe ALLER abgeschlossenen Laeufe (Felder 22/23, Wunsch 28.09.2026: Feld 4 zaehlt auch
+    // Steg, Zurueckschwimmen und Fehlstarts). Der laufende Lauf kommt erst in den Gettern dazu.
+    // Fortsetzung: der weitergefuehrte Lauf beginnt wieder beim Start des vorigen, also wird
+    // dessen Anteil beim Wiederaufnehmen aus der Summe genommen (sonst doppelt gezaehlt).
+    hidden var _sumRunDurMs = 0;
+    hidden var _sumRunDistM = 0.0;
 
     // Stop erfordert Halten (gegen versehentliches Beenden beim Foilen) — seit 2026-07-27 ZWEI
     // Sekunden statt drei (Jan): seit es das Menue Speichern/Pausieren/Verwerfen gibt, beendet das
@@ -1213,6 +1219,7 @@ class SessionRecorder {
         _lastRunDurMs = 0; _lastRunDistM = 0.0; _lastRunMaxSpeed = 0.0; _lastRunAvgSpeed = 0.0;
         _lastRunStartMs = 0; _lastRunStartDist = 0.0; _minSpeedSeitEnde = 99.0; _runIstFortsetzung = false;
         _runMaxHr = 0; _lastRunMaxHr = 0;
+        _sumRunDurMs = 0; _sumRunDistM = 0.0;
         resetMarks();
 
         // Roh-Accel ist OPTIONAL: ältere/abweichende Geräte ohne SensorLogging bzw.
@@ -1702,6 +1709,9 @@ class SessionRecorder {
                         // Bruchstueck. Genau das fehlte bisher: 1.0.80 verschmolz nur den Zaehler.
                         _runStartMs = _lastRunStartMs;
                         _runStartDist = _lastRunStartDist;
+                        // Der vorige Lauf steckt ab jetzt im laufenden -> aus der Summe nehmen.
+                        _sumRunDurMs -= _lastRunDurMs;
+                        _sumRunDistM -= _lastRunDistM;
                         if (_lastRunMaxSpeed > _runMaxSpeed) { _runMaxSpeed = _lastRunMaxSpeed; }
                         if (_lastRunMaxHr > _runMaxHr) { _runMaxHr = _lastRunMaxHr; }
                     } else {
@@ -1745,6 +1755,8 @@ class SessionRecorder {
                 _lastRunMaxHr = _runMaxHr;
                 _runMaxHr = 0;
                 _lastRunAvgSpeed = (durMs > 0) ? _lastRunDistM / (durMs / 1000.0) : 0.0;
+                _sumRunDurMs += durMs;
+                _sumRunDistM += distM;
                 if (!_runIstFortsetzung) { _runCount++; }
                 _runIstFortsetzung = false;
                 return true;   // Lauf gerade beendet -> Live-Sync anstoßen
@@ -1768,6 +1780,13 @@ class SessionRecorder {
     function lastRunAvgSpeed() { return _lastRunAvgSpeed; }
     function lastRunMaxSpeed() { return _lastRunMaxSpeed; }
     function lastRunMaxHr() { return _lastRunMaxHr; }
+    // Alle Laeufe dieser Aufnahme, der laufende eingeschlossen (Felder 22/23).
+    function allRunsDurationMs() {
+        return _foiling ? _sumRunDurMs + (elapsedTimeMs() - _runStartMs) : _sumRunDurMs;
+    }
+    function allRunsDistanceM() {
+        return _foiling ? _sumRunDistM + (distanceM() - _runStartDist) : _sumRunDistM;
+    }
 
     // --- Sensor-Callbacks --- (nur Roh-Datenerfassung für die spätere Auswertung)
     // GPS schon beim App-Start vorwärmen (nicht-blockierend) -> beim Drücken von

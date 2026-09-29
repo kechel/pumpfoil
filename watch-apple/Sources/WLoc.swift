@@ -176,6 +176,8 @@ enum WLoc {
         "f.lastRunAvg": r("letzter Ø", "letschte Ø", "letzter Ø", "last avg", "dern. moy", "ult. media", "últ. med"),
         "f.lastRunMax": r("letzter max", "letschte max", "letzter max", "last max", "dern. max", "ult. max", "últ. máx"),
         "f.lastRunMaxHr": r("letzter max bpm", "letschte max bpm", "letzter max bpm", "last max bpm", "dern. max bpm", "ult. max bpm", "últ. máx bpm"),
+        "f.allRunsDist": r("alle Läufe Dist", "alli Läuf Dist", "olle Läufe Dist", "all runs dist", "tous runs dist", "tutti run dist", "todos runs dist"),
+        "f.allRunsTime": r("alle Läufe Zeit", "alli Läuf Ziit", "olle Läufe Zeit", "all runs time", "tous runs temps", "tutti run tempo", "todos runs tiempo"),
     ]
 }
 
@@ -272,4 +274,6 @@ let wPlOverlay: [String: String] = [
     "f.lastRunAvg": "ost. śr.",
     "f.lastRunMax": "ost. maks.",
     "f.lastRunMaxHr": "ost. maks. bpm",
+    "f.allRunsDist": "wsz. przejazdy dyst.",
+    "f.allRunsTime": "wsz. przejazdy czas",
 ]

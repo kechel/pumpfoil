@@ -76,6 +76,10 @@ final class Recorder: NSObject, ObservableObject {
     // Höchstpuls IM letzten Lauf (Feld 21). Der Session-Höchstpuls ist `maxHr` (Feld 9) — je Lauf
     // führt den niemand, also hier selbst mitschreiben, genau wie das Lauf-Höchsttempo.
     @Published var lastRunMaxHr: Int = 0
+    // Summe ALLER erkannten Laeufe dieser Aufnahme, der laufende eingeschlossen (Felder 22/23;
+    // Wunsch 28.09.2026: Feld 4 zaehlt Steg-Gang, Zurueckschwimmen, Fehlstarts mit).
+    @Published var allRunsDurationMs = 0
+    @Published var allRunsDistanceM: Double = 0
 
     // Foil-Erkennung wie Garmin: rein ab ~10 km/h (4 s anhaltend), raus unter ~9 km/h (3 s).
     private let foilEnterKmh = 10.0
@@ -99,6 +103,11 @@ final class Recorder: NSObject, ObservableObject {
     private var lastRunMaxMps = 0.0
     private var runMaxHr = 0
     private var lastRunMaxHrV = 0
+    // Summe der ABGESCHLOSSENEN Laeufe. Der letzte beendete Lauf steckt schon mit
+    // lastRunDurMs/lastRunDistM darin — setzt ihn eine Fortsetzung fort, wird dieser Anteil
+    // gegen den ganzen Lauf getauscht, nicht noch einmal addiert.
+    private var sumRunsDurMs = 0
+    private var sumRunsDistM = 0.0
 
     private let store = HKHealthStore()
     private let motion = CMMotionManager()
@@ -335,6 +344,7 @@ final class Recorder: NSObject, ObservableObject {
         runCount = 0; runStartMs = 0; runStartDist = 0; runMaxMps = 0; runMaxHr = 0; lastRunMaxHrV = 0
         lastRunDurMs = 0; lastRunDistM = 0; lastRunAvgMps = 0; lastRunMaxMps = 0
         lastRunStartMs = 0; lastRunStartDist = 0; minSpeedSeitEnde = 99.0; runIstFortsetzung = false
+        sumRunsDurMs = 0; sumRunsDistM = 0; allRunsDurationMs = 0; allRunsDistanceM = 0
         markDistN = 0; markTimeN = 0
         runDurationMs = 0; runDistanceM = 0; runMaxSpeedKmh = 0
         lastRunDurationMs = 0; lastRunDistanceM = 0; lastRunAvgSpeedKmh = 0; lastRunMaxSpeedKmh = 0; lastRunMaxHr = 0
@@ -408,6 +418,12 @@ final class Recorder: NSObject, ObservableObject {
                 if verwerfen {
                     runMaxHr = 0
                 } else {
+                    // Fortsetzung: der vorige Teil (alter lastRun*) steckt schon in der Summe ->
+                    // herausnehmen, der ganze Lauf (durMs/distM ab lastRunStartMs) kommt dazu.
+                    if runIstFortsetzung {
+                        sumRunsDurMs -= lastRunDurMs; sumRunsDistM -= lastRunDistM
+                    }
+                    sumRunsDurMs += durMs; sumRunsDistM += distM
                     lastRunStartMs = runStartMs
                     lastRunStartDist = runStartDist
                     lastRunDurMs = durMs
@@ -430,6 +446,15 @@ final class Recorder: NSObject, ObservableObject {
         lastRunAvgSpeedKmh = lastRunAvgMps * 3.6
         lastRunMaxSpeedKmh = lastRunMaxMps * 3.6
         lastRunMaxHr = lastRunMaxHrV
+        // Alle Laeufe: abgeschlossene + laufender Lauf live. Bei einer Fortsetzung zaehlt
+        // runDurationMs/runDistanceM schon ab dem Start des vorigen Teils -> dessen Anteil
+        // nicht doppelt. Ein zu kurzer Lauf zaehlt live mit und faellt beim Verwerfen wieder raus.
+        let alterTeilMs = isFoiling && runIstFortsetzung ? lastRunDurMs : 0
+        let alterTeilM = isFoiling && runIstFortsetzung ? lastRunDistM : 0
+        let liveMs = isFoiling ? runDurationMs - alterTeilMs : 0
+        let liveM = isFoiling ? runDistanceM - alterTeilM : 0
+        allRunsDurationMs = max(0, sumRunsDurMs + liveMs)
+        allRunsDistanceM = max(0, sumRunsDistM + liveM)
         if isFoiling { pruefeMarken(tMs: tMs, dist: dist) }
     }
 

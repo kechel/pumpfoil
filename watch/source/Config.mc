@@ -76,6 +76,8 @@ module Config {
         FIELD_LAST_RUN_AVG_SPEED = 18,
         FIELD_LAST_RUN_MAX_SPEED = 19,
         FIELD_RUN_COUNT = 20,
-        FIELD_LAST_RUN_MAX_HR = 21
+        FIELD_LAST_RUN_MAX_HR = 21,
+        FIELD_ALL_RUNS_DISTANCE = 22,   // Summe aller Laeufe inkl. des laufenden (Wunsch 28.09.)
+        FIELD_ALL_RUNS_DURATION = 23
     }
 }

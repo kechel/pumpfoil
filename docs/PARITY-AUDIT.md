@@ -44,6 +44,21 @@ einer Uhr baut, geht diese Liste fuer ALLE VIER durch und traegt das Ergebnis in
 | „Pausiert" im Daemmerbild | — (MIP) | — | ✅ | Systemverhalten |
 | Ausgeliefert | 1.0.x live | **nicht** in 1.0.12 (Review) | **nicht** in 1.2.32 (live) | **nicht** in 1.1.37 (live) |
 
+| Datenfelder 22/23 „alle Läufe: Strecke/Zeit" (Stand 29.09.) | Garmin | Zepp | Wear OS | Apple Watch |
+|---|---|---|---|---|
+| Summe abgeschlossener Laeufe + laufender Lauf live | ✅ `SessionRecorder` | ✅ `_runsSum` | ✅ `LaufSumme` | ✅ `Recorder.swift` |
+| Fortsetzung eines Laufs nicht doppelt gezaehlt | ✅ (Node-Nachbau) | ✅ Test `laufsumme.test.mjs` (18) | ✅ `LaufSummeTest` (4) | ✅ (von Hand, `swiftc -parse`) |
+| Verworfener Fehlstart zaehlt am Ende nicht | ✅ | ✅ | ✅ | ✅ |
+| Pause: Werte stehen | ✅ | ✅ | ✅ | ✅ |
+| Reset nur beim Aufnahme-Start | ✅ | ✅ | ✅ | ✅ |
+| Kurz-Beschriftung im Stil von 16/17 | „alle Läufe" (+ Einheit) | „alle Läufe Dist/Zeit" | „alle Läufe Dist/Zeit" | „alle Läufe Dist/Zeit" |
+| Speicherklassen | voll/mittel/lite gebaut (fenix7xpro, fr55, instinct2) | — | — | — |
+| Ausgeliefert | **nicht** (1.0.90 live) | **nicht** | **nicht** (1.2.35 im Review) | **nicht** (1.1.39 im Review) |
+
+Bekannte, gewollte Spruenge wie bei 14/16: beim Lauf-Ende faellt die Zeit um die rueckdatierten
+2–4 s, bei einer Fortsetzung kommt die kurze Luecke dazu, ein Fehlstart steht live mit drin und
+verschwindet am Ende. Ueberleben keinen App-Neustart mitten in der Aufnahme (wie alle Lauf-Werte).
+
 Bis 26.09. hatten Wear/Apple keinen Off-Foil-Ring: zwischen den Laeufen stand hinter den
 Datenseiten eine „Übersicht" (Wear: erste Off-Foil-Seite 8 s, dann Pausen-Ansicht; Apple: nur die
 alte klassische Einzelansicht, `offFoilPages` gelesen und nie gezeigt). Jan sah sie am Emulator als
