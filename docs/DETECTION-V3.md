@@ -185,3 +185,25 @@ lageunabhaengig gegen die Schwerkraft: `vert_rms`, `hor_rms`, `vert_anteil`, `dr
 `neigung_grad`, dazu `tempo_trend` (±5 s). An #10266: ruhige Phase des langen Versuchs vert_anteil
 0,46 / Trend +0,11 / Neigung 30° gegen den gepumpten Lauf 0,81 / −0,07 / 78°. Trainiert wird erst
 mit der Brett-Wahrheit (Schritt 3); alte Modelle nehmen weiter nur ihre eigenen Spalten.
+
+## Schritt 3: Uhr gegen Brett-Wahrheit (29.09.2026, scripts/v3/brett_training.py)
+
+6 Paare (u2: 5, u13: 1), 9525 s, davon **947 s pumpen und nur 33 s gleiten** — beide Fahrer pumpen
+auf dem Foil fast durchgehend. Die Frage „ruhiger Arm beim Gleiten" laesst sich mit diesen Daten
+NICHT messen.
+
+| auf dem Foil je Sekunde | Praezision | Trefferquote | Pump-Sek. |
+|---|---|---|---|
+| bisheriges On-Foil-Modell | 0,940 | 0,935 | 95 % |
+| Stufe A (Fahrer nie gesehen) | 0,837 | 0,957 | 97 % |
+| Modell auf Brett-Wahrheit (je Fahrt heraus) | 0,926 | 0,921 | 94 % |
+
+Folgerung: das bisherige Modell ist fuer u2/u13 gegen das Brett schon gut; ein Brett-Modell aus
+~16 min Pump-Wahrheit ist nicht besser. Fuer die Gleit-/Beine-pumpen-Frage braucht es Brett-Paare
+von Fahrern, die wirklich gleiten (Bartosz-Stil). Bis dahin: altes Modell bleiben lassen.
+
+**Pump-Zaehler gegen das Brett (Nebenbefund, wichtig):** u2 19 Laeufe, Uhr/Brett Median 1,10
+(0,67-2,00); u13 4 Laeufe, 1,08 (1,03-1,16). Der Zaehler ueberzaehlt ~8-10 % — die alte Aussage
+„unter-erkennt ~2×" betrifft den Zaehler VOR find_pumps_cadence. Ausreisser: kurze u2-Laeufe
+(11-14 s) mit genau doppelt so vielen Uhr-Pumps (6->12, 8->16) — Verdacht Doppelzaehlung
+(Ab- und Aufbewegung) in kurzen Laeufen.
