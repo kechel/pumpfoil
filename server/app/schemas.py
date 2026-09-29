@@ -166,6 +166,17 @@ class ChunkOut(BaseModel):
     index: int
 
 
+class ChunksIn(BaseModel):
+    """Sammel-Upload (seit 29.09.2026): dieselben Chunks wie einzeln, nur in einer Anfrage."""
+    chunks: list[ChunkIn]
+
+
+class ChunksOut(BaseModel):
+    ok: bool                       # False, sobald ein Chunk abgelehnt wurde
+    received: list[int]            # gespeichert -> darf die Uhr verwerfen
+    failed: list[dict] = []        # {index, kind, error}
+
+
 class SessionCompleteIn(BaseModel):
     ended_at: datetime | None = None
     total_chunks: int | None = None

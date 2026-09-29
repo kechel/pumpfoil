@@ -19,6 +19,8 @@ from ..naming import ist_gattung, modell_aus_session
 from ..schemas import (
     ChunkIn,
     ChunkOut,
+    ChunksIn,
+    ChunksOut,
     SessionCompleteIn,
     SessionStartIn,
     SessionStartOut,
@@ -251,16 +253,9 @@ def _nachrechnen_faellig(db: Session, s: "models.Session") -> bool:
     return (datetime.now(timezone.utc) - letzter).total_seconds() >= RUHE_S
 
 
-@router.post("/session/{session_uuid}/chunk", response_model=ChunkOut)
-def upload_chunk(
-    session_uuid: str,
-    body: ChunkIn,
-    background: BackgroundTasks,
-    device: models.DeviceToken = Depends(current_device),
-    db: Session = Depends(get_db),
-) -> ChunkOut:
-    s = _get_owned_session(db, device, session_uuid)
-
+def _chunk_speichern(db: Session, s: "models.Session", session_uuid: str, body: ChunkIn) -> None:
+    """EINEN Chunk ablegen und in `ingest_chunks` vermerken (ohne Commit). Gemeinsam fuer den
+    Einzel- und den Sammel-Upload — es gibt nur eine Stelle, die entscheidet, was gueltig ist."""
     if body.kind == "gps":
         if not isinstance(body.data, list):
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "gps data must be a list")
@@ -297,6 +292,18 @@ def upload_chunk(
         db.add(chunk)
     else:
         chunk.sample_count = n
+
+
+@router.post("/session/{session_uuid}/chunk", response_model=ChunkOut)
+def upload_chunk(
+    session_uuid: str,
+    body: ChunkIn,
+    background: BackgroundTasks,
+    device: models.DeviceToken = Depends(current_device),
+    db: Session = Depends(get_db),
+) -> ChunkOut:
+    s = _get_owned_session(db, device, session_uuid)
+    _chunk_speichern(db, s, session_uuid, body)
     db.commit()
     # Weiterrechnen, solange Daten nachkommen (Jan, 06.09.): auswerten und anzeigen, was DA ist —
     # bis zu dem Punkt, bis zu dem die Daten reichen. Kommt nichts mehr, hoert es von selbst auf;
@@ -308,6 +315,50 @@ def upload_chunk(
     if _nachrechnen_faellig(db, s):
         background.add_task(_analyze_in_background, s.id, s.status == "analyzed")
     return ChunkOut(ok=True, index=body.index)
+
+
+# Hoechstzahl Chunks je Sammel-Upload. Die Uhren legen alle 10 s zwei Chunks ab (Accel + GPS);
+# 30 sind damit gut zweieinhalb Minuten Aufnahme, bei 25 Hz rund 60 KB Base64 — klein genug fuer
+# jeden Proxy, gross genug, dass eine lange Session nicht mehr tausende Anfragen braucht.
+MAX_SAMMEL_CHUNKS = 30
+
+
+@router.post("/session/{session_uuid}/chunks", response_model=ChunksOut)
+def upload_chunks(
+    session_uuid: str,
+    body: ChunksIn,
+    background: BackgroundTasks,
+    device: models.DeviceToken = Depends(current_device),
+    db: Session = Depends(get_db),
+) -> ChunksOut:
+    """Mehrere Chunks in EINER Anfrage (seit 29.09.2026).
+
+    WARUM: die Chunkgroesse stammt aus dem Garmin-BLE-Limit (`makeWebRequest`, s.
+    docs/data-format.md) — Apple Watch und Wear OS laden aber per HTTPS und haben das Limit nicht.
+    Mit einem Chunk je Anfrage brauchte #10266 (Apple Watch, 2 h 48 min) 1848 Anfragen fuer
+    2,2 MB, der Upload zog sich ueber drei Tage. Die Chunks bleiben dieselben (gleiche Indizes,
+    gleiche Vollstaendigkeitspruefung, Resume unveraendert) — nur die Anfragen werden weniger.
+
+    Jeder Chunk wird EINZELN quittiert: `received` nennt die gespeicherten Indizes, `failed` die
+    abgelehnten mit Grund. Die Uhr darf nur verwerfen, was in `received` steht — ein kaputter
+    Chunk haelt die anderen nicht auf."""
+    if not body.chunks:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "no chunks")
+    if len(body.chunks) > MAX_SAMMEL_CHUNKS:
+        raise HTTPException(status.HTTP_413_CONTENT_TOO_LARGE,
+                            f"max {MAX_SAMMEL_CHUNKS} chunks per request")
+    s = _get_owned_session(db, device, session_uuid)
+    received, failed = [], []
+    for c in body.chunks:
+        try:
+            _chunk_speichern(db, s, session_uuid, c)
+            received.append(c.index)
+        except HTTPException as e:
+            failed.append({"index": c.index, "kind": c.kind, "error": str(e.detail)})
+    db.commit()
+    if received and _nachrechnen_faellig(db, s):
+        background.add_task(_analyze_in_background, s.id, s.status == "analyzed")
+    return ChunksOut(ok=not failed, received=received, failed=failed)
 
 
 # Wie lange eine auf `complete` haengende Session in Ruhe sein muss, bevor der Aufraeum-Lauf

@@ -51,6 +51,13 @@ token on the device and reuse it for every upload.
    ```
    → `{ "ok": true, "index": int }`. Re-uploading an index overwrites it (safe retry).
 
+   **Batch (since 2026-09-29):** `POST /api/ingest/session/{session_uuid}/chunks` with
+   `{ "chunks": [<chunk>, …] }` (at most 30) → `{ "ok": bool, "received": [int, …], "failed":
+   [{index, kind, error}, …] }`. Same chunks, same indices, fewer requests. Each chunk is
+   acknowledged on its own: only delete what is listed in `received`. Use it whenever the
+   platform uploads over plain HTTPS; the small chunk size only exists for Garmin's Bluetooth
+   request limit.
+
 3. **(optional) Live analyze** `POST /api/ingest/session/{session_uuid}/analyze`
    Re-runs analysis on what arrived so far, without finishing — for live sync.
 
