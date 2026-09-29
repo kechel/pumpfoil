@@ -1135,6 +1135,8 @@ const deAT: Record<string, string> = {
   "field.2": "Puls",
   "field.20": "Läufe (Anzahl)",
   "field.21": "Letzter Lauf: Max Puls",
+  "field.22": "Olle Läufe: Strecke",
+  "field.23": "Olle Läufe: Zeit",
   "field.3": "Zeit",
   "field.4": "Distanz",
   "field.5": "Speed (aktuell)",

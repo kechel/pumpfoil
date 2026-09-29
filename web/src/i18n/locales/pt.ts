@@ -1440,6 +1440,8 @@ const pt: Record<string, string> = {
   "field.19": "Última volta: vel. máxima",
   "field.20": "Voltas (contagem)",
   "field.21": "Última volta: FC máxima",
+  "field.22": "Todas as voltas: distância",
+  "field.23": "Todas as voltas: tempo",
 
   // Account: reverse pairing code + off-foil screen
   "account.claimTitle": "Digite o código do relógio",

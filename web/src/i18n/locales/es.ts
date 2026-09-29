@@ -1349,6 +1349,8 @@ const es: Record<string, string> = {
   "sd.colorOptimal": "vs. óptimo",
   "field.20": "Runs (número)",
   "field.21": "Último run: pulso máx",
+  "field.22": "Todos los runs: distancia",
+  "field.23": "Todos los runs: tiempo",
   "field.6": "Velocidad media",
   "wx.water": "Agua",
   "account.recordModeGps": "Solo GPS",

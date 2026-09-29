@@ -1539,6 +1539,8 @@ const nl: Record<string, string> = {
   "field.19": "Laatste run: max snelheid",
   "field.20": "Runs (aantal)",
   "field.21": "Laatste run: max hartslag",
+  "field.22": "Alle runs: afstand",
+  "field.23": "Alle runs: tijd",
 
   // Account: Reverse-Pairing-Code + Off-Foil-Screen
   "account.claimTitle": "Code van het horloge invoeren",

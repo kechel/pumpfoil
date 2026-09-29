@@ -63,7 +63,8 @@ import kotlinx.serialization.json.put
 // Höhe (10) / Anstieg (13) / Temperatur (11) ausgelassen: Wear/Apple Watch haben keinen Baro-/
 // Temp-Sensor und für einen Wassersport sind sie ~konstant/0 -> würden nur „–" zeigen. (Web
 // behält sie für Garmin-Nutzer mit Barometer.)
-private val FIELD_IDS = listOf(0, 1, 5, 6, 7, 2, 8, 9, 3, 4, 12, 14, 15, 16, 17, 18, 19, 20)
+// 21 fehlte hier seit 17.08. (Web hatte es), 22/23 seit 29.09.2026 (Strecke/Zeit aller Laeufe).
+private val FIELD_IDS = listOf(0, 1, 5, 6, 7, 2, 8, 9, 3, 4, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23)
 private fun fieldLabel(id: Int) = I18n.t("field.$id")
 
 // Eine Seite ist ENTWEDER eine klassische 3-Feld-Seite ODER ein eigenes Layout (nur Verweis auf

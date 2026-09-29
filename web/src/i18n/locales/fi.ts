@@ -1503,6 +1503,8 @@ const fi: Record<string, string> = {
   "field.19": "Viimeisin lenkki: maks. nopeus",
   "field.20": "Lenkit (määrä)",
   "field.21": "Viimeisin lenkki: maks. syke",
+  "field.22": "Kaikki lenkit: matka",
+  "field.23": "Kaikki lenkit: aika",
 
   // Account: Reverse-Pairing-Code + Off-Foil-Screen
   "account.claimTitle": "Syötä koodi kellosta",

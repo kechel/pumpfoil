@@ -1474,6 +1474,8 @@ const nb: Record<string, string> = {
   "field.19": "Siste run: maks hastighet",
   "field.20": "Runs (antall)",
   "field.21": "Siste run: makspuls",
+  "field.22": "Alle runs: distanse",
+  "field.23": "Alle runs: tid",
   "account.claimTitle": "Skriv inn koden fra klokka",
   "account.claimHelp": "Åpne Pumpfoil på klokka og gå til “Koble til” — Garmin: hold inne MENU (midtre knapp til venstre) → “Innstillinger” → “Koble til”; Amazfit: sveip mot venstre fra startskjermen; Wear OS og Apple Watch viser den skjermen ved første oppstart. Skriv inn koden som vises (6 tegn, bokstaver og tall) her.",
   "account.claimReq": "Viktig: følgeappen til klokka må være åpen på telefonen og koblet til klokka (Garmin Connect, Zepp, Wear OS eller Apple Watch), og telefonen må ha internett — klokka går på nett via telefonen. Skriv inn koden innen 15 min; viser klokka ingen kode, oppdater appen.",

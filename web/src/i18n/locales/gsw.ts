@@ -1261,6 +1261,8 @@ const gsw: Record<string, string> = {
   "field.2": "Puls",
   "field.20": "Läuf (Aazahl)",
   "field.21": "Letschte Lauf: Max Puls",
+  "field.22": "Alli Läuf: Strecki",
+  "field.23": "Alli Läuf: Ziit",
   "field.3": "Ziit",
   "field.4": "Distanz",
   "field.5": "Speed (aktuell)",
