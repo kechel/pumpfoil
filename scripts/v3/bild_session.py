@@ -13,6 +13,10 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from jrc_wasser import JRC, kachel_name  # noqa: E402
 
 ML = pathlib.Path(__file__).resolve().parents[2] / "server" / "data" / "ml"
+# BILD_DIR=vergleich: Vergleichsbilder (vergleich_bilder.py) — blau gemeinsam, rot nur heute
+# (faellt weg), gruen nur neu (kommt dazu); getrennter Ordner, die Sichtpruefungs-Bilder bleiben.
+import os
+BILDER = ML / "bilder" / os.environ["BILD_DIR"] if os.environ.get("BILD_DIR") else ML / "bilder"
 FIG = 16
 NUR_LAND = False
 UA = {"User-Agent": "pumpfoil.org-training/1.0 (+https://pumpfoil.org)"}
@@ -51,14 +55,15 @@ def hintergrund(s, w, n, e, z):
 
 
 def main(sid, zoom=None, titel=""):
-    d = np.load(ML / "bilder" / f"s{sid}.npz")
+    d = np.load(BILDER / f"s{sid}.npz")
     g, runs, land = d["gps"], d["runs"], d["land"]
+    neu = d["neu"] if "neu" in d else np.zeros((0, 2))
     ok = ~((np.abs(g[:, 1]) < 1e-6) & (np.abs(g[:, 2]) < 1e-6))
     g = g[ok]
     lat, lon, t = g[:, 1], g[:, 2], g[:, 0]
     # Ausschnitt: um die Laeufe (nicht die ganze Autofahrt)
     m = np.zeros(t.size, bool)
-    for a, b in (list(land) if NUR_LAND else list(runs) + list(land)):
+    for a, b in (list(land) if NUR_LAND else list(runs) + list(land) + list(neu)):
         m |= (t >= a - 120000) & (t <= b + 120000)
     if not m.any():
         m[:] = True
@@ -84,13 +89,17 @@ def main(sid, zoom=None, titel=""):
     for a0, b0 in land:
         mm = (t >= a0) & (t <= b0)
         ax.plot(lon[mm], lat[mm], color="#ff2200", lw=4, zorder=4)
+    for a0, b0 in neu:
+        mm = (t >= a0) & (t <= b0)
+        ax.plot(lon[mm], lat[mm], color="#00c040", lw=4, zorder=4)
     ax.set_xlim(w, e); ax.set_ylim(s, n)
     ax.set_aspect(1 / math.cos(math.radians((s + n) / 2)))
-    ax.set_title(f"#{sid}  {titel}\nblau = Lauf · rot = Lauf (je nach Bild: an Land laut JRC bzw. vom v3-Veto verworfen) · "
-                 f"Blaufaerbung = Wasserhaeufigkeit 1984-2021", fontsize=14)
+    legende = ("blau = Lauf heute UND neu · rot = nur heute (faellt weg) · gruen = nur neu (kommt dazu)"
+               if "neu" in d else "blau = Lauf · rot = Lauf (je nach Bild: an Land laut JRC bzw. vom v3-Veto verworfen)")
+    ax.set_title(f"#{sid}  {titel}\n{legende} · Blaufaerbung = Wasserhaeufigkeit 1984-2021", fontsize=14)
     ax.text(0.99, 0.01, "© OpenStreetMap contributors · JRC Global Surface Water", transform=ax.transAxes,
             ha="right", va="bottom", fontsize=10, bbox=dict(fc="white", alpha=0.7))
-    out = ML / "bilder" / f"s{sid}.png"
+    out = BILDER / f"s{sid}.png"
     fig.savefig(out, bbox_inches="tight", dpi=100)
     print(out)
 

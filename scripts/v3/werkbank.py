@@ -116,6 +116,66 @@ def dehn(L, t, v, pg, theta, vmin=4 / 3.6, stopp_v=3 / 3.6, stopp_s=2):
     return out
 
 
+def teil(L, t, pg, theta, luecke_s=3, min_s=3):
+    """Jeden Lauf in die Stuecke zerlegen, in denen p >= theta ist (Loecher <= luecke_s geschlossen).
+    Anlass: tief verschmilzt Gehen und Fahren zu EINEM Abschnitt, dessen mittleres p dann unter der
+    Veto-Schwelle liegt — das Veto warf den echten Lauf darin mit weg (#8490, #1341)."""
+    out = []
+    for a, b in L:
+        idx = np.flatnonzero((t >= a) & (t <= b))
+        if idx.size == 0:
+            out.append((a, b)); continue
+        gut = pg[idx] >= theta
+        # kurze Loecher schliessen
+        i = 0
+        while i < gut.size:
+            if not gut[i]:
+                j = i
+                while j + 1 < gut.size and not gut[j + 1]:
+                    j += 1
+                if i > 0 and j + 1 < gut.size and (t[idx[j + 1]] - t[idx[i - 1]]) / 1000 <= luecke_s + 1:
+                    gut[i:j + 1] = True
+                i = j + 1
+            else:
+                i += 1
+        i = 0
+        while i < gut.size:
+            if gut[i]:
+                j = i
+                while j + 1 < gut.size and gut[j + 1]:
+                    j += 1
+                x, y = t[idx[i]], t[idx[j]]
+                if y - x >= min_s * 1000:
+                    out.append((x, y))
+                i = j + 1
+            else:
+                i += 1
+    return out
+
+
+def kurz(L, t, pg, tau_k, k_s=8):
+    """Stuecke unter k_s Sekunden brauchen ein klar hohes mittleres p — die meisten kurzen Stuecke
+    nach `teil` sind Reste langer Nicht-Foil-Abschnitte (Gehen am Ufer), in denen p kurz hochging."""
+    out = []
+    for a, b in L:
+        if b - a >= k_s * 1000:
+            out.append((a, b)); continue
+        m = (t >= a) & (t <= b)
+        if m.any() and pg[m].mean() >= tau_k:
+            out.append((a, b))
+    return out
+
+
+def vereinigung(L1, L2):
+    out = []
+    for a, b in sorted(list(L1) + list(L2)):
+        if out and a <= out[-1][1]:
+            out[-1] = (out[-1][0], max(out[-1][1], b))
+        else:
+            out.append((a, b))
+    return out
+
+
 def naht(L, t, pg, g_s, pmin=0.5):
     if not L:
         return L
@@ -144,6 +204,28 @@ VARIANTEN = {
     "tief+schnitt0.3+veto0.4": ("tief", [("schnitt", 0.3), ("veto", 0.4)]),
     "tief+schnitt0.5+veto0.5": ("tief", [("schnitt", 0.5), ("veto", 0.5)]),
     "tief+schnitt0.4+veto0.5": ("tief", [("schnitt", 0.4), ("veto", 0.5)]),
+    # Reihenfolge umgekehrt: erst den GANZEN Lauf pruefen, dann die Raender schneiden. Andersherum
+    # blieb von langen tief-Laeufen, die kaum Foilen waren, ein kurzes Stueck mit hohem p stehen
+    # und bestand das Veto muehelos (2554 neue Laeufe unter 8 s, 1179 davon ohne v2-Gegenstueck).
+    "tief+veto0.4+schnitt0.5": ("tief", [("veto", 0.4), ("schnitt", 0.5)]),
+    "tief+veto0.5+schnitt0.5": ("tief", [("veto", 0.5), ("schnitt", 0.5)]),
+    "tief+veto0.5+schnitt0.4": ("tief", [("veto", 0.5), ("schnitt", 0.4)]),
+    "tief+veto0.6+schnitt0.5": ("tief", [("veto", 0.6), ("schnitt", 0.5)]),
+    "tief+veto0.5+schnitt0.5+veto0.5": ("tief", [("veto", 0.5), ("schnitt", 0.5), ("veto", 0.5)]),
+    # Profil-Empfindlichkeit als Stellschraube fuer die MODELL-Schwellen statt fuer die Tempo-
+    # Grenzen (Jan: „es sollte auch die profileinstellung beachten … oder vielleicht brauchen wir
+    # die dann auch nicht mehr"). Werte je Stufe in EMPF_SCHWELLEN.
+    "tief+empf": ("tief", "empf"),
+    "tief+empf2": ("tief", "empf2"),
+    "tief+teil0.4+veto0.5": ("tief", [("teil", 0.4), ("veto", 0.5)]),
+    "tief+teil0.5+veto0.5": ("tief", [("teil", 0.5), ("veto", 0.5)]),
+    "tief+teil0.3+veto0.5": ("tief", [("teil", 0.3), ("veto", 0.5)]),
+    "tief+empfteil": ("tief", "empfteil"),
+    "tief+teil0.4+veto0.5+kurz0.8": ("tief", [("teil", 0.4), ("veto", 0.5), ("kurz", 0.8)]),
+    "beide+teil0.4+veto0.5+kurz0.8": ("beide", [("teil", 0.4), ("veto", 0.5), ("kurz", 0.8)]),
+    "beide+teil0.4+veto0.5+kurz0.9": ("beide", [("teil", 0.4), ("veto", 0.5), ("kurz", 0.9)]),
+    "beide+empfteilkurz": ("beide", "empfteilkurz"),
+    "tief+empfteilkurz": ("tief", "empfteilkurz"),
     "tief+schnitt0.5+veto0.6": ("tief", [("schnitt", 0.5), ("veto", 0.6)]),
     "tief+schnitt0.6+veto0.6": ("tief", [("schnitt", 0.6), ("veto", 0.6)]),
     "tief+schnitt0.5+naht4+veto0.5": ("tief", [("schnitt", 0.5), ("naht", 4), ("veto", 0.5)]),
@@ -152,7 +234,23 @@ VARIANTEN = {
 }
 
 
-def anwenden(L, schritte, t, v, pg):
+EMPF_TEIL = {"normal": (0.4, 0.5), "light": (0.3, 0.4), "attempts": (0.25, 0.3)}
+EMPF_SCHWELLEN = {
+    "empf": {"normal": (0.5, 0.4), "light": (0.4, 0.3), "attempts": (0.3, 0.25)},
+    "empf2": {"normal": (0.5, 0.4), "light": (0.35, 0.3), "attempts": (0.2, 0.2)},
+}
+
+
+def anwenden(L, schritte, t, v, pg, empf="normal"):
+    if schritte == "empfteil":
+        theta, tau = EMPF_TEIL.get(empf or "normal", EMPF_TEIL["normal"])
+        schritte = [("teil", theta), ("veto", tau)]
+    elif schritte == "empfteilkurz":
+        theta, tau = EMPF_TEIL.get(empf or "normal", EMPF_TEIL["normal"])
+        schritte = [("teil", theta), ("veto", tau), ("kurz", 0.8)]
+    if isinstance(schritte, str):
+        tau, theta = EMPF_SCHWELLEN[schritte].get(empf or "normal", EMPF_SCHWELLEN[schritte]["normal"])
+        schritte = [("veto", tau), ("schnitt", theta)]
     L = sorted(L)
     for art, x in schritte:
         if art == "veto":
@@ -163,6 +261,10 @@ def anwenden(L, schritte, t, v, pg):
             L = dehn(L, t, v, pg, x)
         elif art == "naht":
             L = naht(L, t, pg, x)
+        elif art == "teil":
+            L = teil(L, t, pg, x)
+        elif art == "kurz":
+            L = kurz(L, t, pg, x)
     return L
 
 
@@ -200,17 +302,20 @@ def main():
     zeilen = []
     fehlt = set()
     for name, (quelle, schritte) in VARIANTEN.items():
-        Q = basis if quelle == "v2" else tief
+        Q = basis if quelle == "v2" else tief      # „beide": Kopf von tief, Laeufe vereinigt
         res, gesamt_s = [], 0.0
         br = np.zeros(4, int)            # tp fp fn, gleit erkannt
         gl = [0, 0]
         fo = [0, 0]; g_s = 0.0
+        klar = [0, 0]
         for sid in ids:
             r = dict(Q[sid])
             L0 = [(x["t0"], x["t1"]) for x in r["runs"]]
+            if quelle == "beide":
+                L0 = vereinigung(L0, [(x["t0"], x["t1"]) for x in basis[sid]["runs"]])
             if sid in P and schritte:
                 t, v, p = P[sid]
-                L = anwenden(L0, schritte, t, v, glaetten(p))
+                L = anwenden(L0, schritte, t, v, glaetten(p), r.get("sensitivity"))
             else:
                 L = L0
             if sid in P:
@@ -229,6 +334,14 @@ def main():
                     fo[0] += int((w & m).sum()); fo[1] += int(w.sum())
             if r.get("user_id") == 350:
                 g_s += r["foiling_time_s"]
+            if sid in P:
+                t, _, p = P[sid]
+                for x in basis[sid]["runs"]:
+                    m = (t >= x["t0"]) & (t <= x["t1"])
+                    if m.sum() >= 5 and p[m].mean() >= 0.8:
+                        klar[1] += 1
+                        o = sum(max(0, min(x["t1"], y["t1"]) - max(x["t0"], y["t0"])) for y in r["runs"])
+                        klar[0] += o < 0.5 * (x["t1"] - x["t0"])
         if brett:
             for d in brett:
                 sid = d["paar"][1]
@@ -245,7 +358,9 @@ def main():
         tp, fp, fn = br[:3]
         z = (f"{name:28s} Laeufe {sum(len(x['runs']) for x in res):6d} · {gesamt_s / 3600:6.1f} h"
              + (f" · Brett Praez. {tp / max(tp + fp, 1):.3f} Treffer {tp / max(tp + fn, 1):.3f} Gleit {gl[0]}/{gl[1]}" if brett else "")
-             + f" · Guillaume-Fortsetzung {fo[0]}/{fo[1]} s, u350 gesamt {g_s / 60:.0f} min")
+             + f" · Guillaume-Fortsetzung {fo[0]}/{fo[1]} s, u350 gesamt {g_s / 60:.0f} min"
+             + f" · klare v2-Laeufe verloren {klar[0]}/{klar[1]}"
+             + f" · <8 s {sum(1 for x in res for y in x['runs'] if y['dur_s'] < 8)}")
         print(z, flush=True); zeilen.append(z)
     if fehlt:
         print("Brett-Uhren nicht im Ausgangs-Satz:", sorted(fehlt))

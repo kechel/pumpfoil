@@ -207,3 +207,61 @@ von Fahrern, die wirklich gleiten (Bartosz-Stil). Bis dahin: altes Modell bleibe
 „unter-erkennt ~2×" betrifft den Zaehler VOR find_pumps_cadence. Ausreisser: kurze u2-Laeufe
 (11-14 s) mit genau doppelt so vielen Uhr-Pumps (6->12, 8->16) — Verdacht Doppelzaehlung
 (Ab- und Aufbewegung) in kurzen Laeufen.
+
+## Training r2/r3 + Werkbank (29./30.09.2026, nachts — alles offline, nichts live)
+
+Jan: „mache das model-training, und dann vergleiche / verifiziere mit allem was wir wissen … ueberlege
+fuer uns die beste loesung, models, zusaetzliche dinge vorher / hinterher / puffer / rahmen".
+
+**Daten:** Datensatz neu mit 33 Merkmalen (2491 Sessions, 258 Fahrer). Neu als Quellen: Jans
+Garmin-FIT ohne Pumpfoil (Ostrach, Gehen + Auto, 7257 s, `fit_neg`), Guillaumes langsames
+Weiterpumpen (790 s nahe Wasser, `fortsetzung`), die Brett-Wahrheit der 6 Paare (`brett`).
+Guillaumes Fortsetzungen sehen im Arm aus wie seine Laeufe (Pump-Staerke 0,64 gegen 0,67, 1,62 Hz,
+97 % vertikal), nur bei 6,4 statt 11,5 km/h — auch #9525, das ist Pumpen, kein Paddeln.
+
+**Modelle (Stufe A, je Sekunde, Fahrer herausgehalten):**
+
+| | r1 | r2 (33 Merkmale) | r2 nur 14 alte | r3 |
+|---|---|---|---|---|
+| Laeufe an Land (Sicht) als „nein" | 0,606 | 0,648 | 0,480 | **0,728** |
+| foil_status auf / neben dem Foil | 0,961 / – | 0,957 / 0,984 | 0,957 / 0,982 | **0,961 / 0,994** |
+| Guillaumes Fortsetzung | – | 0,26 | 0,40 | 0,27 |
+
+r3 = r2 + die heutigen Lauf-GRENZEN (±3 s) als unsicher fuer die geschaetzten Quellen (sonst lernt
+das Modell die v2-Tempo-Schwellen nach) + unabhaengige Wahrheiten staerker gewichtet (fremd ×3,
+brett/fortsetzung/sicht ×5, fit_neg ×2). Guillaumes Stil kann ein Modell, das ihn NIE gesehen hat,
+nicht lernen — das ist die ehrliche Zahl fuer „der naechste Fahrer wie er".
+
+**Werkbank (`scripts/v3/werkbank.py`):** p je Session einmal (Teilmodell ohne den Fahrer), dann
+Nachbearbeitung auf den Ausgangs-Laeufen v2 oder `tief` (fast ohne Tempo-Grenzen):
+veto (ganzer Lauf weg bei mittlerem p < τ), schnitt (Raender mit p < θ ab), teil (Lauf in die Stuecke
+mit p >= θ zerlegen), dehn, naht, kurz (Stuecke < 8 s brauchen p >= 0,8), empf (Schwellen je
+Profil-Empfindlichkeit). Gemessen mit detektor-v3-messen.py + direkt gegen Brett und Guillaume.
+
+| r3 | v2 heute | tief+empf | beide+empfteilkurz |
+|---|---|---|---|
+| foil_status Praez. / Treffer | 0,902 / 0,925 | **0,942 / 0,940** | **0,943 / 0,940** |
+| Laeufe an Land noch da | 81/82 | **15/82** | 21/82 |
+| an Autofahrt | 25 | **0** | 1 |
+| in Nutzer-Aussortiertem | 73 | 30 | **26** |
+| schmales Wasser behalten | 61/62 | 61/62 | 60/62 |
+| Pruefliste | – | 11/12 | 11/12 |
+| Brett Praez. / Treffer | 0,872 / 0,948 | 0,915 / 0,938 | 0,918 / 0,935 |
+| Guillaume gesamt (heute 22 min) | 22 | **26** | 25 |
+| klare v2-Laeufe (p >= 0,8) verloren | 0 | 165 | **63** |
+| Laeufe < 8 s | 1059 | 1078 | **141** |
+
+- `tief+empf`: tief-Laeufe, Veto dann Schnitt, Schwellen je Empfindlichkeit (normal 0,5/0,4, light
+  0,4/0,3, attempts 0,3/0,25) — die Einstellung stellt dann die MODELL-Schwellen statt der Tempo-
+  Grenzen. Schwaeche: tief verschmilzt Gehen und Fahren zu einem Abschnitt, das Veto wirft den
+  echten Lauf mit weg (#8490 312 s -> 0, #1341 239 s -> 5 s; p dort 0,98-0,99).
+- `beide+empfteilkurz`: Vereinigung v2 ∪ tief, in Stuecke mit hohem p zerlegen, Veto je Stueck,
+  kurze Stuecke nur bei p >= 0,8. Verliert kaum klare Laeufe, aber kurze Laeufe fast alle (141
+  statt 1059) — die Trefferquote gegen foil_status bleibt gleich, die Frage ist, ob Nutzer mit
+  „attempts" die kurzen sehen wollen.
+- Reihenfolge zaehlt: erst schneiden, dann Veto liess aus langen Nicht-Foil-Abschnitten kurze
+  Stuecke mit hohem p stehen (2554 neue Laeufe < 8 s). Naht aendert nichts (v2 verbindet schon).
+- Offen: #9580 (u186, am Steg) bekommt viele gruene Stuecke im GPS-Gewimmel am Ufer — Jans Blick.
+  Pumps je Lauf muessen fuer neue Grenzen neu gezaehlt werden (die Werkbank zaehlt keine).
+  Gleiten: weiter nur 31 Brett-Sekunden, nicht messbar.
+- Bilder: `server/data/ml/bilder/vergleich/` (blau gemeinsam, rot faellt weg, gruen kommt dazu).
