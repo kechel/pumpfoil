@@ -35,6 +35,7 @@ struct ImpressumView: View {
             Sec(title: "imp.communityTitle", intro: "imp.communityIntro", bullets: ["imp.community1", "imp.community2", "imp.community3", "imp.community4"], note: "imp.communityNote"),
             Sec(title: "imp.ownerTitle", intro: nil, bullets: ["imp.owner1", "imp.owner2", "imp.owner3", "imp.owner4"], note: nil),
             Sec(title: "imp.operatorTitle", intro: nil, bullets: ["imp.operator1", "imp.operator2"], note: nil),
+            Sec(title: "imp.hostTitle", intro: nil, bullets: ["imp.host1", "imp.host2"], note: nil),   // Server + Hosting (29.09.2026, wie PWA)
             Sec(title: "imp.googleTitle", intro: "imp.googleIntro", bullets: ["imp.google1", "imp.google2", "imp.google3", "imp.google4"], note: "imp.googleNote"),
             Sec(title: "imp.appleTitle", intro: "imp.appleIntro", bullets: ["imp.apple1", "imp.apple2", "imp.apple3"], note: nil),
             Sec(title: "imp.connTitle", intro: "imp.connIntro", bullets: ["imp.conn1", "imp.conn2", "imp.conn3"], note: nil),
