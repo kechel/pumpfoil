@@ -62,6 +62,17 @@ export default function Impressum() {
           </ul>
         </section>
 
+        {/* Server und Hosting (Jan, 29.09.2026): stand bisher nirgends. SmartKomm betreibt den
+            Server, Hetzner hostet ihn, mit Hetzner besteht ein AVV nach Art. 28 DSGVO. Bewusst ohne
+            Rechenzentrums-Standort — der ist hier nicht belegt. */}
+        <section className="rounded-xl border border-slate-700 bg-slate-900/40 p-4">
+          <h3 className="mb-2 font-semibold text-slate-200">{t("imp.hostTitle")}</h3>
+          <ul className="list-disc space-y-1 pl-5 text-slate-200">
+            {li("imp.host1")}
+            {li("imp.host2")}
+          </ul>
+        </section>
+
         <section className="rounded-xl border border-slate-700 bg-slate-900/40 p-4">
           <h3 className="mb-2 font-semibold text-slate-200">{t("imp.googleTitle")}</h3>
           <p className="mb-2 text-slate-300">{t("imp.googleIntro")}</p>
