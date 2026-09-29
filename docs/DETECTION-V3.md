@@ -108,3 +108,25 @@ ob v3 die Einstellung ersetzen kann, steht noch aus — als Maske taugt v3 dafue
 
 **Offen vor jedem Live-Schritt:** Jans Blick auf die Liste der 104 (server/data/ml/verworfen-v3veto.json)
 und die Bilder; #3045-Fall verstehen; die 2 unklaren Sessions; Stufe B nur als Vorschlag.
+
+## Anforderung fuers Live-Schalten: Lauf-Status mit Herkunft (Jan, 29.09.2026)
+
+„bei der 'lauf ausblenden' funktion … noch einen 3ten zustand 'gueltig / aussortiert / manuell oder
+auto', und dann muss es bei 'manuell' nicht wieder ueberschrieben werden bei model-updates oder
+reanalysen." Umsetzung (Entwurf, nicht gebaut):
+
+- Je Lauf **Status** gueltig/aussortiert und **Herkunft** manuell/auto.
+- **Manuell gewinnt immer** und wird nie ueberschrieben: aussortiert = `excluded_ranges`, gueltig =
+  Zurueckhol-Liste (wie `fremdkraft_keep`, dann auch gegen das v3-Veto).
+- **Auto** = v3-Veto mit Grund und Modellversion gespeichert; nach einem Modell-Update werden NUR
+  diese Urteile neu gerechnet.
+- In der Lauf-Tabelle sichtbar (z. B. „automatisch aussortiert — trotzdem zaehlen?").
+
+## Kurze Laeufe am Ufer (Jan, 29.09.: #7160 Lauf 2, #9455 Lauf 1)
+
+Innerhalb des Laufs unterscheiden sie sich klar (Pump-Energie 0,06-0,12 gegen 0,55, Rhythmus 0,1
+gegen 0,4, dominante Frequenz 0,6-0,7 gegen 1,6 Hz, Stoss-Woelbung 9-15 gegen 3). Das Modell sieht
+±5 s Kontext und das Veto mittelt ueber den Lauf — bei 4-11 s ueberwiegt das Pumpen daneben. Ein
+Lauf-Klassifikator nur aus dem Lauf trennt aber NICHT sauber: ~60 der 1237 „echten" kurzen Laeufe
+(nur „auf Wasser", nicht geprueft) sehen genauso ruhig aus. Naechster Schritt: diese ansehen — sind
+es selbst Gehen/Tragen, ist die Regel richtig und das Label falsch.
