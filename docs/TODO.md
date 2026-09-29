@@ -1427,6 +1427,16 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔲 29.09. — Oura Ring (Frage eines Nutzers, u217): nur als Pulsquelle denkbar, Test angefragt.**
+  API V2 (OpenAPI 1.41, V1 abgeschaltet) liefert kein GPS und keine Bewegungsdaten; nutzbar waere
+  allein `/v2/usercollection/heartrate` (`timestamp`, `bpm`, `source`), passend zum Zeitfenster
+  einer Handy-Session nachgetragen. Bedingungen: nur OAuth2 (Personal Tokens seit 12/2025 weg,
+  Access-Token ~24 h, Refresh noetig), 10 Nutzer ohne Oura-Freigabe, aktive Oura-Mitgliedschaft
+  (sonst 403), Webhooks ~30 s nach App-Sync. **Offen und entscheidend:** wie dicht der Puls
+  waehrend eines Workouts ist — steht nicht in der Doku, erst mit echtem Konto messen. Bauen erst
+  danach und nur mit Jans OK (Puls aus zweiter Quelle aendert Kennzahlen). Nutzer am 29.09. aus
+  u230 gefragt (`dm:217-230`), ob er testet.
+
 - **🔲 27.09. — Foilbert (u574) nach Freigabe von Wear 1.2.33 Bescheid geben** und um eine kurze
   Testaufzeichnung bitten (DM von u230, `dm:230-574`; zugesagt am 27.09.). Befund: seine Wear-Uhr
   (OPWWE251, Android 14) liefert zu Beginn jeder Aufnahme volle 25–27 Hz und drosselt nach
