@@ -53,7 +53,12 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.38",   # FREIGEGEBEN 2026-09-26, Apple-Mail „The following app is ready for
+        "latest": "1.1.39",   # FREIGEGEBEN 2026-09-29, zweite Apple-Mail „ready for distribution ·
+        # 1.1.39 · iOS"; Store-API de/us/gb 1.1.39, currentVersionReleaseDate 2026-09-29T03:28:54Z.
+        # Eingereicht 28.09. 07:42 (Build 44) — rund 22 Stunden Pruefung. Inhalt: Kompass im
+        # Handy-Recorder, Sportart-Filter, Puls je Lauf, „gespeichert" je Uhr, Richtungs-Hinweis,
+        # Merge-Hinweis.
+        # ALT: "latest": "1.1.38",   # FREIGEGEBEN 2026-09-26, Apple-Mail „The following app is ready for
         # distribution · App Version Number: 1.1.38 · Platform: iOS"; GEGENGEPRUEFT an der Store-API:
         # de/us/gb/ch/at melden 1.1.38, currentVersionReleaseDate 2026-09-26T17:02:09Z (19:02 Berlin).
         # EINGEREICHT 26.09. um 08:42 — rund ZEHN Stunden Pruefung. Inhalt: der Nachzug der PWA
@@ -348,7 +353,8 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.38",   # FREIGEGEBEN 2026-09-26 — dieselbe Einreichung wie "ios" (ein Bundle,
+        "latest": "1.1.39",   # FREIGEGEBEN 2026-09-29 — dieselbe Einreichung wie "ios" (ein Bundle).
+        # ALT: "latest": "1.1.38",   # FREIGEGEBEN 2026-09-26 — dieselbe Einreichung wie "ios" (ein Bundle,
         # dieselbe MARKETING_VERSION), Beleg s. dort. Fuer die WATCH-App bringt 1.1.38: Pause neben
         # Verwerfen, Stop allein; Pausen-Seiten mit „Pausiert" auf jeder Seite; zwischen den Laeufen
         # der ganze Off-Foil-Satz statt der alten Uebersicht.
@@ -679,20 +685,9 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
-    # EINGEREICHT 28.09.2026 07:42 (App Store Connect: „iOS-App 1.1.39 (44) · Warten auf Pruefung",
-    # Uebermittlungskennung 3d3077d9-fad6-440e-a204-f472ef338f51), aus Commit 5c485b25.
-    {"name": "iPhone + Apple Watch", "version": "1.1.39",
-     "eingereicht": "2026-09-28",
-     "items": [
-         "With the phone on the board, the app also records the compass, so the analysis can tell "
-         "the nose of the board from the tail.",
-         "Sessions and the spot map can be filtered by sport.",
-         "The run table shows your heart rate at the start, on average and at the end of each run.",
-         "Each watch setting in your profile confirms that it was saved.",
-         "The board view says when front and back could not be told apart.",
-         "After merging, the app tells you if a share link of one of the merged recordings stopped "
-         "working.",
-     ]},
+    # iOS/Apple 1.1.39 am 29.09. FREIGEGEBEN (s. `_APP_META`). Im Changelog: der Kompass-Punkt mit
+    # `versionen={ios}`, die fuenf uebrigen als versionslose Punkte — sie sind auch im Web live und
+    # standen bis dahin nirgends (Foil-Scoot-Regel vom 25.09.).
     # EINGEREICHT 28.09.2026 (Jans Meldung, Console: „Produktion 49 (1.1.35) · Produktion (Wear OS)
     # 1045 (1.2.35)", Vorabpruefung laeuft). Wear ohne eigene Aenderung mitgebumpt (harte Regel:
     # Phone und Wear immer zusammen) — deshalb EINE Zeile mit beiden Nummern und den Handy-Punkten.
