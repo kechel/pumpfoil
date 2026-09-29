@@ -11,6 +11,9 @@ Woher die Labels kommen (Vertrauen absteigend) — Regeln und Begruendung in doc
   lauf     heutiger Lauf, nahe JRC-Wasser, <= 40 km/h -> 1
   land     klar an Land (kein JRC-Wasser in ±60 m), in Bewegung, KEIN heutiger Lauf -> 0
   ruhe     Stillstand < 1 m/s -> 0 (verduennt), auf Wasser < 2 m/s ausserhalb eines Laufs -> 0
+  fortsetzung  langsames Weiterpumpen vor/nach einem Lauf (fortsetzung_labels.py; Guillaume u350,
+           „Laeufe zu kurz") -> 1, nur nahe Wasser. Eigene Quelle, damit sie sich getrennt messen
+           und im Training an- und abschalten laesst.
 Alles andere ist unsicher: auf Wasser in Fahrt ohne Lauf (vielleicht ein verpasster Lauf).
 
 Aufruf (aus server/): DATABASE_URL=... .venv/bin/python ../scripts/v3/datensatz.py [--jobs 20]
@@ -35,7 +38,7 @@ sys.path.insert(0, str(WURZEL / "server"))
 ML = WURZEL / "server" / "data" / "ml"
 DS = ML / "v3" / "ds"
 
-QUELLEN = ["mensch", "sicht", "fremd", "lauf", "land", "ruhe"]
+QUELLEN = ["mensch", "sicht", "fremd", "lauf", "land", "ruhe", "fortsetzung"]
 
 
 def _laden():
@@ -48,14 +51,16 @@ def _laden():
     ausg = {x["session"]: x["bereiche"] for x in L["nutzer_aussortiert"]}
     p = np.load(ML / "punkte.npz")
     w = np.load(ML / "wasser.npz")
-    return b, sicht, an_land, ausg, p, w
+    fp = ML / "v3" / "labels_fortsetzung.json"
+    fort = {int(k): v["bereiche_ms"] for k, v in json.loads(fp.read_text())["sessions"].items()} if fp.exists() else {}
+    return b, sicht, an_land, ausg, p, w, fort
 
 
 G = {}
 
 
 def _init():
-    G["b"], G["sicht"], G["an_land"], G["ausg"], p, w = _laden()
+    G["b"], G["sicht"], G["an_land"], G["ausg"], p, w, G["fort"] = _laden()
     ses = p["session"]
     u, idx = np.unique(ses, return_index=True)
     ende = list(idx[1:]) + [ses.size]
@@ -105,6 +110,9 @@ def eine(s):
         elif sid in sicht["wasser"]:
             setze(m, 1, "sicht")
         # unklar: bleibt -1
+    # 2b) langsames Weiterpumpen am Lauf (nur nahe Wasser — an Land waere es Gehen)
+    for b0, b1, _seite in G["fort"].get(sid, []):
+        setze((t >= b0) & (t <= b1) & (occmax_t > 0), 1, "fortsetzung")
     # 3) foil_status der anderen App
     fs = WURZEL / "server" / "data" / s["uuid"] / "foil_status.json"
     if fs.exists():
@@ -131,6 +139,7 @@ def eine(s):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--jobs", type=int, default=20)
+    ap.add_argument("--fit-negativ", action="store_true")
     a = ap.parse_args()
     b, *_ = _laden()
     auswahl = [s for s in b if (s["accel_hz"] or 0) >= 15 and s["detection"] == "model"
@@ -144,5 +153,42 @@ def main():
     print("Sekunden y=1:", sum(r[2] for r in ok), " y=0:", sum(r[3] for r in ok), " unsicher:", sum(r[4] for r in ok))
 
 
-if __name__ == "__main__":
+if __name__ == "__main__" and "--fit-negativ" not in sys.argv:
     main()
+
+
+# --- Zusaetzliche Negativ-Beispiele aus FIT-Dateien (Jan, 29.09.2026) ---------------------------
+# „Ostrach, alle kein Pumpfoiling, sondern mal Spaziergang, mal auch aus Versehen im Auto". Nur
+# Dateien MIT Beschleunigung (SensorLogging). Offline gelesen, NICHT importiert (keine DB).
+NEG_FIT = WURZEL / "server" / "data" / "ml" / "v3" / "negativ_fit"
+
+
+def fit_negative(pfade, user_id=2):
+    """FIT-/ZIP-Dateien -> je Datei ein Datensatz mit y=0 (Quelle „mensch") in ds/neg-<name>.npz."""
+    import io, zipfile
+    from app.fitimport import parse_fit_bytes
+    from app.analysis.timebase import build_timebase
+    from app.analysis.v3 import merkmale as M
+    DS.mkdir(parents=True, exist_ok=True)
+    for p in pfade:
+        roh = pathlib.Path(p).read_bytes()
+        if roh[:2] == b"PK":
+            z = zipfile.ZipFile(io.BytesIO(roh))
+            roh = z.read([n for n in z.namelist() if n.lower().endswith(".fit")][0])
+        f = parse_fit_bytes(roh)
+        acc = np.frombuffer(f.get("accel_bytes") or b"", dtype="<i2").reshape(-1, 3)
+        if acc.shape[0] < 500 or len(f["gps_samples"]) < 60:
+            print(f"  {pathlib.Path(p).name}: zu wenig Daten, uebersprungen"); continue
+        tb = build_timebase(f["gps_samples"], acc, 2048, f.get("accel_hz"))
+        t, X = M.merkmale(tb)
+        y = np.zeros(t.size, dtype=np.int8)
+        q = np.full(t.size, QUELLEN.index("mensch"), dtype=np.int8)
+        name = pathlib.Path(p).stem
+        np.savez_compressed(DS / f"neg-{name}.npz", t=t, X=X.astype(np.float32), y=y, q=q,
+                            im_lauf=np.zeros(t.size, bool), occ=np.full(t.size, -1, np.int16),
+                            user_id=np.int32(user_id))
+        print(f"  {name}: {t.size} s als 'kein Pumpfoil' ({tb.accel_hz:.0f} Hz)")
+
+
+if __name__ == "__main__" and "--fit-negativ" in sys.argv:
+    fit_negative(sorted(NEG_FIT.glob("*.zip")) + sorted(NEG_FIT.glob("*.fit")))

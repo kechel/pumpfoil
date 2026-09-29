@@ -107,7 +107,8 @@ def main():
             res = list(pool.imap_unordered(eine, [(s, v) for s in auswahl], chunksize=4))
         fehl = [r for r in res if "fehler" in r]
         ok = [r for r in res if "fehler" not in r]
-        name = f"schatten-{v}" + ("-normal" if EMPF == "normal" else "") + ("-test" if nur else "")
+        mod = os.environ.get("V3_MODELL", "")
+        name = f"schatten-{v}" + (f"-{mod}" if mod and v != "v2" else "") + ("-normal" if EMPF == "normal" else "") + ("-test" if nur else "")
         with gzip.open(ML / f"{name}.json.gz", "wt") as f:
             json.dump(ok, f, default=str)
         print(v, "Sessions", len(ok), "Fehler", len(fehl), fehl[:3], "Laeufe", sum(len(r["runs"]) for r in ok), flush=True)
