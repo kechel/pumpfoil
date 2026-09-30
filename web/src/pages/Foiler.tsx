@@ -15,6 +15,8 @@ import { api, OverallStats } from "../lib/api";
 import { Card, Avatar } from "../components/ui";
 import { ScrollToTop } from "../components/ScrollToTop";
 import { SessionCard } from "../components/SessionCard";
+import { ListenAnsicht } from "../components/ListenAnsicht";
+import { useKompakteListe } from "../lib/kompakteListe";
 import { PlayIcon, LocationIcon, WatchIcon, FoilIcon, CommunityIcon } from "../components/Icons";
 import { Lightbox, LightboxPhoto } from "../components/Lightbox";
 import { VideoModal, ytId } from "../components/VideoModal";
@@ -61,6 +63,7 @@ export default function Foiler() {
   const { id } = useParams();
   const { t, lang } = useI18n();
   const nf = useNumberFormat();
+  const kompakt = useKompakteListe();   // Kacheln oder Zeilen, derselbe Umschalter wie auf Home/Sessions
   // Datumsangaben in der PROFILSPRACHE, nicht in der des Browsers (Jan, 08.09.2026): sonst
   // stand auf der englischen Seite „20. Juni 2026", weil `toLocaleDateString(undefined, …)`
   // die Browser-Sprache nimmt. Zeitzone bleibt die des Spots, wo wir sie kennen.
@@ -386,8 +389,11 @@ export default function Foiler() {
       {/* Die letzten fuenf — dieselbe Karte wie in der eigenen Sessionliste. */}
       {d.zeigt.sessions && (d.sessions?.length ?? 0) > 0 && (
         <div className="mt-6">
-          <h2 className="mb-2 text-sm font-semibold text-slate-200">{t("foiler.lastSessions")}</h2>
-          <div className="space-y-3">
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <h2 className="text-sm font-semibold text-slate-200">{t("foiler.lastSessions")}</h2>
+            <ListenAnsicht />
+          </div>
+          <div className={kompakt ? "space-y-1.5" : "space-y-3"}>
             {d.sessions!.map((s) => (
               <SessionCard
                 key={s.id}
