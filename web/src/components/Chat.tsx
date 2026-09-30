@@ -39,6 +39,8 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
   // steht und das Senden sofort geht. `id` fehlt, solange der Upload laeuft.
   const [anhaenge, setAnhaenge] = useState<{ key: string; vorschau: string; id?: number; fehler?: boolean }[]>([]);
   const dateiRef = useRef<HTMLInputElement>(null);
+  const laedtNoch = anhaenge.some((a) => a.id == null && !a.fehler);
+  const bereiteBilder = anhaenge.filter((a) => a.id != null).map((a) => a.id as number);
   const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastId = useRef(0);          // höchste geladene id (für Polling)
   const firstId = useRef(0);         // niedrigste geladene id (für Hochscroll-Nachladen)
@@ -166,17 +168,33 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
   }
   function pressCancel() { if (pressTimer.current) { clearTimeout(pressTimer.current); pressTimer.current = null; } }
 
+  // Bearbeiten (Jan, 30.09.2026): die Bilder der Nachricht stehen als Anhaenge im Eingabefeld —
+  // einzelne lassen sich entfernen, neue dazunehmen. Wirksam erst beim Speichern; Abbrechen
+  // laesst die Nachricht, wie sie war. Die Vorschau bestehender Bilder ist ihr Vorschaubild (URL).
   function startEdit(m: ChatMsg) {
     setEditing(m.id); setText(m.text); setMenuFor(null);
+    setAnhaenge((m.photos ?? []).map((p) => ({ key: `p${p.id}`, vorschau: p.thumb_url || p.url, id: p.id })));
     requestAnimationFrame(() => inputRef.current?.focus());
   }
-  function cancelEdit() { setEditing(null); setText(""); }
+  function anhaengeLeeren() {
+    anhaenge.forEach((a) => { if (a.vorschau.startsWith("blob:")) URL.revokeObjectURL(a.vorschau); });
+    setAnhaenge([]);
+  }
+  function cancelEdit() { setEditing(null); setText(""); anhaengeLeeren(); }
   function saveEdit() {
     const v = text.trim();
-    if (editing == null || !v || busy) return;
+    if (editing == null || busy || laedtNoch) return;
+    const orig = msgs.find((x) => x.id === editing);
+    const hatteBilder = (orig?.photos?.length ?? 0) > 0;
+    // Bildliste nur mitschicken, wenn es Bilder gibt oder gab — reine Textnachrichten wie bisher.
+    const ids = hatteBilder || anhaenge.length > 0 ? bereiteBilder : undefined;
+    if (!v && !(ids && ids.length)) return;
     setBusy(true);
-    api.chatEdit(editing, v)
-      .then((r) => { setMsgs((prev) => prev.map((x) => x.id === editing ? { ...x, text: r.text } : x)); setEditing(null); setText(""); })
+    api.chatEdit(editing, v, ids)
+      .then((r) => {
+        setMsgs((prev) => prev.map((x) => x.id === editing ? { ...x, text: r.text, photos: r.photos ?? x.photos } : x));
+        setEditing(null); setText(""); anhaengeLeeren();
+      })
       .catch((e) => alert(String(e)))
       .finally(() => setBusy(false));
   }
@@ -203,12 +221,10 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
   function anhangWeg(key: string) {
     setAnhaenge((prev) => {
       const a = prev.find((x) => x.key === key);
-      if (a) URL.revokeObjectURL(a.vorschau);
+      if (a && a.vorschau.startsWith("blob:")) URL.revokeObjectURL(a.vorschau);
       return prev.filter((x) => x.key !== key);
     });
   }
-  const laedtNoch = anhaenge.some((a) => a.id == null && !a.fehler);
-  const bereiteBilder = anhaenge.filter((a) => a.id != null).map((a) => a.id as number);
 
   function send() { if (editing != null) { saveEdit(); return; } sendText(text); }
   function sendText(raw: string) {
@@ -218,8 +234,7 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
     api.chatPost(scope, v, bereiteBilder)
       .then((m) => {
         setText("");
-        anhaenge.forEach((a) => URL.revokeObjectURL(a.vorschau));
-        setAnhaenge([]);
+        anhaengeLeeren();
         if (m.id > lastId.current) {
           lastId.current = m.id;
           setMsgs((prev) => {
@@ -328,7 +343,7 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
           <button onClick={cancelEdit} className="text-slate-400 hover:text-slate-200" title={t("chat.editCancel")}><CloseIcon className="h-3.5 w-3.5" /></button>
         </div>
       )}
-      {anhaenge.length > 0 && editing == null && (
+      {anhaenge.length > 0 && (
         <div className="mb-2 flex flex-wrap gap-2">
           {anhaenge.map((a) => (
             <div key={a.key} className="relative">
@@ -344,7 +359,7 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
         </div>
       )}
       <div className="flex items-end gap-2">
-        {isAdmin && editing == null && (
+        {isAdmin && (
           <>
             <input ref={dateiRef} type="file" accept="image/*" multiple className="hidden"
               onChange={(e) => bilderWaehlen(e.target.files)} />
@@ -370,7 +385,7 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
         />
         {editing == null && <MicButton value={text} onChange={(v) => setText(v)} onSubmit={(v) => sendText(v)} disabled={busy}
           title={scope.startsWith("spot:") ? `${t("chat.spotChat")} ${scope.slice(5)}` : scope.startsWith("session:") ? t("chat.kindSession") : ""} />}
-        <button onClick={send} disabled={busy || laedtNoch || (!text.trim() && (editing != null || bereiteBilder.length === 0))}
+        <button onClick={send} disabled={busy || laedtNoch || (!text.trim() && bereiteBilder.length === 0)}
           className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-50">
           {editing != null ? t("chat.save") : t("chat.send")}
         </button>

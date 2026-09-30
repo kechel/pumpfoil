@@ -93,3 +93,26 @@ def test_kontoloeschung_raeumt_chat_bilder_ab(client):
     assert db.query(models.ChatPhoto).filter_by(id=up["id"]).first() is None
     db.close()
     assert not datei.exists()
+
+
+def test_bearbeiten_bilder_dazu_und_weg(client):
+    """Beim Bearbeiten: einzelne Bilder entfernen (Datei weg), neue dazu, Reihenfolge wie geschickt."""
+    from app.config import get_settings
+    admin = _konto(client, "chatfoto-edit@example.com", admin=True)
+    a, b = _hoch(client, admin).json(), _hoch(client, admin, (0, 0, 200)).json()
+    m = client.post("/api/chat?scope=global:main", headers=admin, json={"text": "", "photo_ids": [a["id"], b["id"]]}).json()
+    c = _hoch(client, admin, (0, 200, 0)).json()
+    r = client.patch(f"/api/chat/{m['id']}", headers=admin, json={"text": "jetzt mit Text", "photo_ids": [c["id"], b["id"]]})
+    assert r.status_code == 200, r.text
+    assert [p["id"] for p in r.json()["photos"]] == [c["id"], b["id"]]
+    media = get_settings().media_dir
+    assert not (media / a["url"].removeprefix("/media/")).exists()     # entferntes Bild: Datei weg
+    assert (media / b["url"].removeprefix("/media/")).exists()
+    # Ohne photo_ids (alte Clients) bleiben die Bilder
+    r = client.patch(f"/api/chat/{m['id']}", headers=admin, json={"text": "nur Text geaendert"})
+    assert [p["id"] for p in r.json()["photos"]] == [c["id"], b["id"]]
+    # Alles weg und kein Text: abgelehnt
+    assert client.patch(f"/api/chat/{m['id']}", headers=admin, json={"text": "", "photo_ids": []}).status_code == 400
+    # Nur Text, Bilder alle entfernt: erlaubt
+    r = client.patch(f"/api/chat/{m['id']}", headers=admin, json={"text": "ohne Bilder", "photo_ids": []})
+    assert r.status_code == 200 and r.json()["photos"] == []
