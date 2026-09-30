@@ -1429,6 +1429,19 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔍 30.09. — Wear OPWWE251 (u574): Accel meist nur 3,5 Hz, Mittel 8,4 Hz taeuscht — Pumps -23 % gegen das Brett (belegt, Fix offen).**
+  Paar #10979 (Uhr, 1.2.32) / #10993 (Handy am Brett, 50 Hz exact_chunks), 15 gemeinsame Laeufe:
+  Uhr 265 gegen Brett 345 Pumps auf gemeinsamer Zeit, Kadenz 1,2 gegen 1,55 Hz. **Die Rate allein ist
+  NICHT schuld:** Brett-Daten auf 8,4 Hz ausgeduennt zaehlen nur -2 bis -3 % (auch mit Jitter; 6 Hz +8 %).
+  **Schuld ist die ungleichmaessige Rate:** 577 Chunks im 10-s-Takt mit 9-270 Samples, Rate je Chunk
+  Median 3,5 Hz (P5 1,6 / P95 26,8), im Lauf wie ausserhalb gleich. `timebase` verwirft darum die
+  vorhandenen t0_ms (Median ausserhalb des Bandes um 25 Hz) und legt 8,44 Hz gleichmaessig drueber ->
+  Signal lokal gestaucht/gedehnt; bei 3,5 Hz liegen 1,6-Hz-Pumps ohnehin an der Nyquist-Grenze. Gilt fuer
+  alle Sessions dieser Uhr seit 19.09. (3,6-16 Hz). Zwei Hebel, beide brauchen Jans OK:
+  (a) Uhr: warum drosselt Wear den Sensor (Vermutung, unbelegt: Batching/Energiesparen bei Display aus);
+  (b) Server: t0-Achse auch bei stark schwankender Rate annehmen und Stuecke < ~5 Hz wie `accel_fehlt`
+  behandeln statt Pumps zu erfinden.
+
 - **✅ 30.09. — Kompakte Session-Liste (Feedback #156, gizmomogwai u683) — LIVE 30.09. (9160c6a2), Umschalter Kacheln/Zeilen auf Startseite, Sessions, Spot, Gruppen; Nutzer per DM (u230) informiert.** „on a laptop i can only
   fit 3-4 sessions on one screen … an option for a oneline view would be great!" Idee: Umschalter
   Kacheln/Zeilen auf /sessions (Merker per localStorage), eine Zeile je Session mit Datum, Spot,
