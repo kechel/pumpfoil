@@ -622,7 +622,7 @@ const deAT: Record<string, string> = {
   "nav.nerd2": "Wie es funktioniert",
   "nav.nerd3": "Doppeluhr-Messung",
   "nav.nerd4": "Handy aufm Brett",
-  "nav.nerd5": "Echte Läufe erkennen",
+  "nav.nerd5": "Erkennungsmodell",
   "nav.arch": "Systemarchitektur",
   "land.deep5": "Handy am Brett: direkt an der Quelle gemessen (englisch)",
   "land.deep4": "Systemarchitektur",

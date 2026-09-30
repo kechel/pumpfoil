@@ -993,7 +993,7 @@ const ptPT: Record<string, string> = {
   "nav.nerd2": "Como funciona",
   "nav.nerd3": "Medição com dois relógios",
   "nav.nerd4": "Telefone na prancha",
-  "nav.nerd5": "Detetar percursos reais",
+  "nav.nerd5": "Modelo de deteção",
   "nav.arch": "Arquitetura do sistema",
   "land.deep5": "Um telemóvel na prancha: medido na fonte (em inglês)",
   "land.deep4": "Arquitetura do sistema",

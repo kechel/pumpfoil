@@ -29,7 +29,7 @@ export interface N5 {
 
 const en: N5 = {
   back: "← Part 4: A phone taped to the board",
-  h1: "Part 5: Teaching the detection what a run is",
+  h1: "Part 5: Detection model",
   subtitle: "A new on-foil detection, built from everything riders have told us — and where it still needs you",
   intro:
     "Everything this site counts — runs, foiling time, distance, pumps, records — starts with one decision per second: **is this person on the foil right now?** Get that wrong and every number after it is wrong too. The detection that runs today works well for most sessions, but over the last weeks riders showed us exactly where it breaks. This part is the story of rebuilding that decision from scratch, measured against every piece of truth we have, and it ends with a request: we need more sessions recorded with a watch on the wrist **and** a phone on the board at the same time.",

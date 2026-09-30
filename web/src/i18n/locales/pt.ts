@@ -988,7 +988,7 @@ const pt: Record<string, string> = {
   "nav.nerd2": "Como funciona",
   "nav.nerd3": "Medição com dois relógios",
   "nav.nerd4": "Telefone na placa",
-  "nav.nerd5": "Detectar percursos reais",
+  "nav.nerd5": "Modelo de detecção",
   "nav.arch": "Arquitetura do sistema",
   "land.deep5": "Um celular na prancha: medido na fonte (em inglês)",
   "land.deep4": "Arquitetura do sistema",

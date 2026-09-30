@@ -662,7 +662,7 @@ const gsw: Record<string, string> = {
   "nav.nerd2": "Wie es funktioniert",
   "nav.nerd3": "Doppeluhr-Messig",
   "nav.nerd4": "Handy uf em Brett",
-  "nav.nerd5": "Ächti Läuf erchänne",
+  "nav.nerd5": "Erkännigsmodäll",
   "nav.arch": "Systemarchitektur",
   "land.deep5": "Handy am Brett: direkt a de Quelle gmässe (änglisch)",
   "land.deep4": "Systemarchitektur",

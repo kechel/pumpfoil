@@ -53,7 +53,7 @@ function Fig({ src, caption }: { src: string; caption: string }) {
 }
 
 export default function NerdAnalysen5() {
-  useSeo("Teaching the detection what a run is — a new on-foil detection",
+  useSeo("Detection model — a new on-foil detection for pump foiling",
          "How pumpfoil.org rebuilt its on-foil detection against every truth it has: a phone on the board, map checks, riders’ own corrections — and why watch-plus-phone sessions help most.");
   const { lang } = useI18n();
   const c = NERD5[lang] ?? NERD5.en!;
