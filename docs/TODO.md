@@ -1441,6 +1441,10 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   (a) Uhr: warum drosselt Wear den Sensor (Vermutung, unbelegt: Batching/Energiesparen bei Display aus);
   (b) Server: t0-Achse auch bei stark schwankender Rate annehmen und Stuecke < ~5 Hz wie `accel_fehlt`
   behandeln statt Pumps zu erfinden.
+  **Stand 30.09. abends:** er faehrt noch 1.2.32 (vor dem Wake-up-Sensor, 1.2.33+); Jan hat ihn um das
+  Update auf 1.2.36 gebeten. Geraete-Override `device_tokens.accel_wakeup='on'` fuer Geraet 1005 ist
+  der naechste Schritt (1.2.32 ignoriert den Schluessel, harmlos). **Danach:** naechstes Paar Uhr +
+  Brett gegen #10979/#10993 halten — Rate je Chunk, `time_base`, Pumps je gemeinsamem Lauf.
 
 - **✅ 30.09. — Kompakte Session-Liste (Feedback #156, gizmomogwai u683) — LIVE 30.09. (9160c6a2), Umschalter Kacheln/Zeilen auf Startseite, Sessions, Spot, Gruppen; Nutzer per DM (u230) informiert.** „on a laptop i can only
   fit 3-4 sessions on one screen … an option for a oneline view would be great!" Idee: Umschalter
