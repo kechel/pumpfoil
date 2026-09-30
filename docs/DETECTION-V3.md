@@ -378,3 +378,36 @@ Schwellen je Profil-Empfindlichkeit:
 | Brett Praez. / Treffer | 0,872 / 0,948 | 0,922 / 0,930 |
 | Guillaume gesamt | 22 min | 26 min |
 | Laeufe < 8 s | 1059 | 164 (streng) bzw. 1305 (roh, mild) |
+
+## Regressionstest ueber den Bestand (30.09.2026, `scripts/v3/regression.py`, nichts live)
+
+Jan: „koennen wir 'reanalysieren und gegen den Schnappschuss vergleichen' nicht machen ohne live zu
+gehen als Regressionstest?" — ja: der Weg von `run_analysis` ohne jedes Schreiben nachgebaut, mit
+der ECHTEN Session (Zuschnitt, aussortierte Bereiche, zurueckgeholte Laeufe, Empfindlichkeit),
+Pumps/Gleiten/Rekordfelder wie dort. v3 = Modell r4 (Gesamt-Modell, wie es live liefe),
+Ausgang v2 ∪ tief, teil + Veto + kurze Stuecke, streng bzw. mild. 2743 Accel-Sessions, 0 Fehler.
+
+**Nachbau exakt:** Laeufe 2739/2743, Foil-Zeit und Pumps 2724/2743. Die 19 Abweichungen sind alte
+gespeicherte Ergebnisse (Juli/August, zuletzt am 14.09. gerechnet), aelter als spaetere
+Code-Aenderungen — Kandidaten fuer eine Reanalyse, kein Fehler des Nachbaus.
+
+| | heute | v3 streng | v3 mild |
+|---|---|---|---|
+| Laeufe | 18765 | 18235 | 19336 |
+| Foil-Zeit | 235,9 h | 241,0 h | 242,9 h |
+| Strecke | 3507 km | 3530 km | 3558 km |
+| Pumps | 1340913 | 1366462 | 1375289 |
+| verlieren Pumpfoil-Status | – | 30 | 17 |
+
+- **Tempo-Rekorde:** alle vier, die herausfallen, sind Land-Laeufe der Sichtpruefung (u259 #3810 8,9
+  -> 5,9 m/s, u516 #8970 8,4 -> 4,3, u127 #10478 Parkplatzrunde 8,3 -> 4,9, u524 #8473 7,7 -> 0).
+  Strecken- und Dauer-Rekorde: nur Sekunden/Meter an den Raendern.
+- **Pumpfoil-Status verloren (streng, 30):** 11 Land laut Sichtpruefung; die uebrigen fast alle
+  winzig (5-30 s kurze Laeufe) — dort entscheidet die Strenge. Mild: 17.
+- Groesste Verluste gesichtet: #9619 (Laeufe auf der N15 bei Sligo = Autofahrt, zu Recht weg),
+  #440 (alle 12 Laeufe bleiben, nur Raender). Groesste Gewinne: #9580 (Steg, s. oben), Guillaumes
+  #9525 248 -> 577 s.
+- **Fehler im ersten Lauf, behoben:** neue Laeufe nahmen das ROHE GPS-Tempo -> 54-km/h-„Rekorde".
+  Jetzt Felder wie v2 (`_seg_fields` auf bereinigtem, geglaettetem Tempo) plus
+  `_gate_implausible_runs`.
+- Nebenbefund: u239 hat 3 Sessions mit Laeufen von 0 s Dauer (TODO-Inbox).
