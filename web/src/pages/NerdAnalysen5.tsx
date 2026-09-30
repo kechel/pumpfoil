@@ -107,6 +107,9 @@ export default function NerdAnalysen5() {
 
       <H>{c.status.h}</H>
       <Pr>{c.status.p}</Pr>
+      <List items={c.status.li} />
+      <Pr>{c.status.p2}</Pr>
+      <List items={c.status.li2} />
 
       {/* Der Aufruf zum Mitmachen steht bewusst ALS LETZTER Abschnitt und abgesetzt (Jan,
           30.09.2026: „darauf hinweisen dass mehr sessions parallel mit uhr und phone on board

@@ -23,7 +23,7 @@ export interface N5 {
   watch: { h: string; p: string; cap1: string; p2: string; cap2: string; p3: string };
   result: { h: string; p: string; cap: string; li: string[] };
   failed: { h: string; p: string; li: string[] };
-  status: { h: string; p: string };
+  status: { h: string; p: string; li: string[]; p2: string; li2: string[] };
   help: { h: string; p: string; li: string[]; p2: string };
 }
 
@@ -136,9 +136,21 @@ const en: N5 = {
   },
 
   status: {
-    h: "Where this stands",
+    h: "Live since 30 September 2026 — what changed",
     p:
-      "Nothing of this is live yet. Before it is, it runs as a full regression test over every recording — the complete analysis, pumps, records and all, computed next to the stored results without changing any of them — and every difference gets looked at. When it does go live, every run will carry whether it was removed **by you** or **by the detection**, and a run you decided about yourself will never be overruled by a later model.",
+      "Before switching it on, the complete analysis — runs, pumps, glides, records and all — ran as a regression test over every recording with motion data, next to the stored results and without changing any of them. It reproduced today’s stored numbers exactly for 2,724 of 2,743 recordings (the rest were stored with older code), so the test measured what it claimed to. Then every one of the 2,743 recordings was recalculated with the new detection:",
+    li: [
+      "**Runs:** 18,765 → **19,336** (+3 %) — a few land and car runs fewer, more slow continuations and short real runs.",
+      "**Foiling time:** 235.9 h → **242.9 h** (+3 %). **Distance:** 3,507 km → **3,558 km**. **Pumps:** 1,340,913 → **1,375,289**.",
+      "**Recordings that no longer count as pumpfoiling:** 17 — most of them runs on land confirmed on the map, the rest a handful of seconds each.",
+      "**Speed records:** four entries left the all-time top ten, and all four were runs on land — the parking-lot loop among them. The distance and duration records moved by seconds and metres at the run edges, nothing more.",
+    ],
+    p2: "What you see in your own sessions:",
+    li2: [
+      "**Runs set aside by the detection** are listed under the run table with the reason, and one tap brings a run back if the detection got it wrong. A run you brought back, or removed yourself, is never overruled by a later model — your decision always wins.",
+      "**The sensitivity setting in your profile** now sets how strict the model is: *normal*, *light* and *attempts* keep more and more of the doubtful and short pieces. The old speed limits still apply as well, but they no longer decide on their own.",
+      "**New recordings** are analysed with the new detection as soon as the upload is complete; the preliminary numbers during the upload still come from the previous detection.",
+    ],
   },
 
   help: {
