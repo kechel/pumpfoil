@@ -1370,7 +1370,10 @@ function UserRow({ u, upd, onRemove }: { u: AdminUser; upd: (p: Partial<AdminUse
     <Card className="p-3">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
         <div className="flex min-w-0 flex-1 items-center gap-3">
-        <Avatar name={u.display_name} url={u.avatar_url} size={36} />
+        {/* Profilbild fuehrt zur Foiler-Seite des Nutzers (Jan, 30.09.2026). */}
+        <Link to={`/foiler/${u.id}`} title={u.display_name || undefined} className="shrink-0 rounded-full hover:ring-2 hover:ring-brand-400">
+          <Avatar name={u.display_name} url={u.avatar_url} size={36} />
+        </Link>
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-medium text-slate-100">
             {u.display_name || <span className="text-slate-400">{t("adm.noName")}</span>}
@@ -1913,7 +1916,9 @@ function UserSportRow({ u, onDone }: { u: AdminUserSport; onDone: () => void }) 
   return (
     <Card className="p-3">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-        <Avatar url={u.avatar_url} name={u.display_name} size={28} />
+        <Link to={`/foiler/${u.id}`} title={u.display_name || undefined} className="shrink-0 rounded-full hover:ring-2 hover:ring-brand-400">
+          <Avatar url={u.avatar_url} name={u.display_name} size={28} />
+        </Link>
         <span className="font-semibold text-slate-100">{u.display_name ?? "—"}</span>
         <span className="text-slate-300">
           {t("adm.usport.default", { sport: t(`cls.sport.${u.default_sport_class}`) })}
