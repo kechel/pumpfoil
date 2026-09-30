@@ -1100,6 +1100,7 @@ const nl: Record<string, string> = {
   "nav.nerd2": "Hoe het werkt",
   "nav.nerd3": "Dubbele horlogemetingen",
   "nav.nerd4": "Telefoon op de plank",
+  "nav.nerd5": "Echte runs herkennen",
   "nav.arch": "Systeemarchitectuur",
   "land.deep5": "Telefoon op de plank: gemeten bij de bron (Engels)",
   "land.deep4": "Systeemarchitectuur",

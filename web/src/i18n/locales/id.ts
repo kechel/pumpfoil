@@ -988,6 +988,7 @@ const id: Record<string, string> = {
   "nav.nerd2": "Cara kerjanya",
   "nav.nerd3": "Pengukuran dual jam",
   "nav.nerd4": "Ponsel di papan",
+  "nav.nerd5": "Mengenali run yang sebenarnya",
   "nav.arch": "Arsitektur sistem",
   "land.deep5": "Ponsel di papan: diukur langsung di sumbernya (bahasa Inggris)",
   "land.deep4": "Arsitektur sistem",

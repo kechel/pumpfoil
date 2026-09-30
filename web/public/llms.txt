@@ -33,6 +33,7 @@
 - [How pump detection works](https://pumpfoil.org/nerd-analysen-2)
 - [Two-watch experiment: what really happens when pump foiling](https://pumpfoil.org/nerd-analysen)
 - [Phone on the board: measured at the source](https://pumpfoil.org/nerd-analysen-4)
+- [A new on-foil detection, checked against every truth we have](https://pumpfoil.org/nerd-analysen-5)
 - [System architecture](https://pumpfoil.org/systemarchitektur)
 - [Changelog](https://pumpfoil.org/changelog)
 - [Source code (GitHub)](https://github.com/kechel/pumpfoil)
