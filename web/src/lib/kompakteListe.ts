@@ -31,3 +31,10 @@ function abonnieren(f: () => void): () => void {
 export function useKompakteListe(): boolean {
   return useSyncExternalStore(abonnieren, () => aktuell, () => false);
 }
+
+// SPALTEN der Zeilen-Ansicht ab `sm` (Feedback #158, gizmomogwai: „the columns of the one-line view
+// are not properly aligned"). EIN Raster fuer Einzel- UND Gruppenzeilen, damit alles untereinander
+// steht: Bild | Datum | Uhrzeit | Name | Spot | Kennzahlen | Herz + Pfeil. Feste Breiten, Ueberlanges
+// wird mit „…" gekuerzt. Als ganzer Klassen-String hier, damit Tailwind ihn beim Bauen findet.
+export const ZEILEN_RASTER =
+  "sm:grid sm:grid-cols-[22px_8.5rem_4.5rem_9rem_11rem_minmax(0,1fr)_4.5rem] sm:items-center sm:gap-x-3";
