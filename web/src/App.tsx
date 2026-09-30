@@ -16,6 +16,7 @@ import { NERD1 } from "./pages/nerd1.i18n";
 import { NERD2 } from "./pages/nerd2.i18n";
 import { NERD3 } from "./pages/nerd3.i18n";
 import { NERD4 } from "./pages/nerd4.i18n";
+import { NERD5 } from "./pages/nerd5.i18n";
 import { CHANGELOG_SEEN_KEY, abonnieren, neuestesDatum } from "./lib/changelogLatest";
 import { FeedbackWidget } from "./components/FeedbackWidget";
 import { DmWidget } from "./components/DmWidget";
@@ -41,6 +42,7 @@ const adminItem: NavItem = { to: "/admin", labelKey: "nav.admin", icon: ShieldIc
 // als Schalter irgendwo: so verschwindet die Hervorhebung von selbst. Ein Merker, an den sich
 // jemand erinnern muesste, waere in drei Wochen noch da.
 const NEU_BIS = Date.UTC(2026, 9, 6);   // 6. Oktober 2026
+const NEU_BIS_5 = Date.UTC(2026, 9, 14); // Teil 5, erschienen 30.09.2026 — zwei Wochen „neu" wie Teil 4
 
 // Englisches Changelog-Datum ("July 21, 2026") -> kurzes Datum im Locale des Nutzers
 // fürs Menü-Badge (die Changelog-Seite selbst bleibt englisch). Fällt bei Fehler auf EN zurück.
@@ -309,6 +311,16 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
               Zeilen umbrach. Der Punkt kostet 6 Pixel, bricht nie um und braucht keine
               Uebersetzung; was er bedeutet, steht im Titel-Text fuer den Mauszeiger. */}
           {NEU_BIS > Date.now() && (
+            <span title={t("badge.new")} aria-label={t("badge.new")}
+              className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-400" />
+          )}
+        </NavLink>
+        <NavLink to="/nerd-analysen-5" end title={NERD5[lang]?.subtitle ?? NERD5.en?.subtitle}
+          className={({ isActive }) => `mt-1 flex items-center gap-1.5 px-3 pl-[26px] text-xs ${
+            NEU_BIS_5 > Date.now() ? "rounded-lg py-1 bg-brand-500/10 ring-1 ring-brand-500/25 " : ""
+          }${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>
+          <span className="whitespace-nowrap">↳ {t("nerd.part").replace("{n}", "5")}: {t("nav.nerd5")}</span>
+          {NEU_BIS_5 > Date.now() && (
             <span title={t("badge.new")} aria-label={t("badge.new")}
               className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-400" />
           )}

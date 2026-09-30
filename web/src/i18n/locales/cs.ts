@@ -1100,6 +1100,7 @@ const cs: Record<string, string> = {
   "nav.nerd2": "Jak to funguje",
   "nav.nerd3": "Měření s dvěma hodinkami",
   "nav.nerd4": "Telefon na desce",
+  "nav.nerd5": "Rozpoznání skutečných jízd",
   "nav.arch": "Architektura systému",
   "land.deep5": "Telefon na prkně: měřeno přímo u zdroje (anglicky)",
   "land.deep4": "Architektura systému",

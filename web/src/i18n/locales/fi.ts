@@ -1067,6 +1067,7 @@ const fi: Record<string, string> = {
   "nav.nerd2": "Kuinka se toimii",
   "nav.nerd3": "Kaksikellomittaus",
   "nav.nerd4": "Puhelin laudalla",
+  "nav.nerd5": "Oikeiden ajojen tunnistus",
   "nav.arch": "Järjestelmäarkkitehtuuri",
   "land.deep5": "Puhelin laudalla: mitattu suoraan lähteestä (englanniksi)",
   "land.deep4": "Järjestelmän rakenne",

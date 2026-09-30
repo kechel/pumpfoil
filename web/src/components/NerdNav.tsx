@@ -11,13 +11,14 @@ import { useT } from "../i18n";
 // Eine Zeile Zahlen statt vier Titeln: die Titel stehen in den Artikel-Sprachdateien (8 Sprachen),
 // die Reihe hat aber inzwischen vier Teile und die Hauptsprachen sind 18. Ein Schluessel mit
 // Platzhalter ist in allen 18 uebersetzt, bleibt kurz und wird durch die Position eindeutig.
-export function NerdNav({ current }: { current: 1 | 2 | 3 | 4 }) {
+export function NerdNav({ current }: { current: 1 | 2 | 3 | 4 | 5 }) {
   const t = useT();
-  const teile: { n: 1 | 2 | 3 | 4; zu: string }[] = [
+  const teile: { n: 1 | 2 | 3 | 4 | 5; zu: string }[] = [
     { n: 1, zu: "/nerd-analysen" },
     { n: 2, zu: "/nerd-analysen-2" },
     { n: 3, zu: "/nerd-analysen-3" },
     { n: 4, zu: "/nerd-analysen-4" },
+    { n: 5, zu: "/nerd-analysen-5" },
   ];
   return (
     <nav className="mb-10 mt-10 flex flex-wrap gap-2 border-t border-slate-800 pt-4 text-sm">
