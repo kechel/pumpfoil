@@ -207,7 +207,7 @@ const de: Record<string, string> = {
   "transfer.confirmSend": "Diese Session an {name} übertragen? Bei Annahme gehört sie ihm/ihr und verschwindet bei dir.",
   "transfer.homeHint": "Du hast eingehende Session-Übertragungen",
   "foilsens.label": "Erkennungs-Empfindlichkeit",
-  "foilsens.hint": "Ab welcher Geschwindigkeit und Mindestdauer eine Strecke als On-Foil-Lauf zählt — betrifft vor allem die einzelnen Läufe auf der Karte. Empfindlichere Stufen erfassen auch kurze/langsame Startversuche. Gilt überall — deine Stufe ist die maßgebliche Auswertung, auch in Community, Rekorden und Bestenlisten. Bereits berechnete Stufen sind gecacht, Umschalten geht dann ohne Neurechnung.",
+  "foilsens.hint": "Wie streng die Erkennung ist: ab welcher Geschwindigkeit eine Strecke überhaupt in Frage kommt und wie sicher sich das Erkennungsmodell sein muss, dass du auf dem Foil bist. Empfindlichere Stufen behalten mehr kurze und langsame Läufe. Gilt überall — deine Stufe ist die maßgebliche Auswertung, auch in Community, Rekorden und Bestenlisten. Bereits berechnete Stufen sind gecacht, Umschalten geht dann ohne Neurechnung.",
   "foilsens.normal": "Standard – ab ~10 km/h, mind. 5 s",
   "foilsens.light": "Empfindlicher – ab ~8,5 km/h, mind. 3 s",
   "foilsens.attempts": "Am empfindlichsten – ab ~8 km/h, mind. 2 s",

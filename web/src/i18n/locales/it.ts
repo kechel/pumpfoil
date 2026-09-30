@@ -194,7 +194,7 @@ const it: Record<string, string> = {
   "transfer.confirmSend": "Trasferire questa sessione a {name}? Una volta accettata è sua e sparisce dal tuo elenco.",
   "transfer.homeHint": "Hai trasferimenti di sessione in arrivo",
   "foilsens.label": "Sensibilità di rilevamento",
-  "foilsens.hint": "Da quale velocità e durata minima un tratto conta come run sul foil — riguarda soprattutto i run singoli sulla mappa. I livelli più sensibili colgono anche i tentativi di partenza brevi/lenti. Vale in tutto — il tuo livello è l'analisi che conta, anche nella community, nei record e nelle classifiche. I livelli già calcolati sono in cache, quindi passare da uno all'altro è immediato.",
+  "foilsens.hint": "Quanto è severo il rilevamento: da quale velocità un tratto viene preso in considerazione e quanto deve essere sicuro il modello di rilevamento che sei sul foil. I livelli più sensibili conservano più run brevi e lente. Vale in tutto — il tuo livello è l'analisi che conta, anche nella community, nei record e nelle classifiche. I livelli già calcolati sono in cache, quindi passare da uno all'altro è immediato.",
   "foilsens.normal": "Standard – da ~10 km/h, min 5 s",
   "foilsens.light": "Più sensibile – da ~8,5 km/h, min 3 s",
   "foilsens.attempts": "Massima sensibilità – da ~8 km/h, min 2 s",

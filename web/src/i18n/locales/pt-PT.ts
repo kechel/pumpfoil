@@ -206,7 +206,7 @@ const ptPT: Record<string, string> = {
   "transfer.confirmSend": "Transferir esta sessão para {name}? Depois de aceite, ela passa a ser dessa pessoa e desaparece da tua lista.",
   "transfer.homeHint": "Tens transferências de sessão recebidas",
   "foilsens.label": "Sensibilidade de deteção",
-  "foilsens.hint": "A partir de que velocidade e duração mínima um troço conta como uma volta on-foil — afeta sobretudo as voltas individuais no mapa. Níveis mais sensíveis também captam tentativas de arranque curtas/lentas. Vale em todo o lado — o teu nível é a análise que conta, também na comunidade, nos recordes e nos rankings. Níveis já calculados ficam em cache, por isso trocar depois é instantâneo.",
+  "foilsens.hint": "O quão rigorosa é a deteção: a partir de que velocidade um troço é considerado e o quão seguro o modelo de deteção tem de estar de que estás no foil. Níveis mais sensíveis mantêm mais voltas curtas e lentas. Vale em todo o lado — o teu nível é a análise que conta, também na comunidade, nos recordes e nos rankings. Níveis já calculados ficam em cache, por isso trocar depois é instantâneo.",
   "foilsens.normal": "Padrão – a partir de ~10 km/h, mín. 5 s",
   "foilsens.light": "Mais sensível – a partir de ~8,5 km/h, mín. 3 s",
   "foilsens.attempts": "Mais sensível de todos – a partir de ~8 km/h, mín. 2 s",

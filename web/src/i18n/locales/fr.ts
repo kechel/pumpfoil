@@ -194,7 +194,7 @@ const fr: Record<string, string> = {
   "transfer.confirmSend": "Transférer cette session à {name} ? Une fois acceptée, elle lui appartient et disparaît de ta liste.",
   "transfer.homeHint": "Tu as des transferts de session entrants",
   "foilsens.label": "Sensibilité de détection",
-  "foilsens.hint": "À partir de quelle vitesse et durée minimale un tronçon compte comme un run on-foil — concerne surtout les runs individuels sur la carte. Les niveaux plus sensibles captent aussi les tentatives de départ courtes/lentes. S'applique partout — ton niveau est l'analyse de référence, y compris dans la communauté, les records et les classements. Les niveaux déjà calculés sont mis en cache, le changement est alors instantané.",
+  "foilsens.hint": "Le degré d'exigence de la détection : à partir de quelle vitesse un tronçon est pris en compte, et à quel point le modèle de détection doit être sûr que tu es sur le foil. Les niveaux plus sensibles gardent davantage de runs courts et lents. S'applique partout — ton niveau est l'analyse de référence, y compris dans la communauté, les records et les classements. Les niveaux déjà calculés sont mis en cache, le changement est alors instantané.",
   "foilsens.normal": "Standard – à partir de ~10 km/h, min 5 s",
   "foilsens.light": "Plus sensible – à partir de ~8,5 km/h, min 3 s",
   "foilsens.attempts": "Le plus sensible – à partir de ~8 km/h, min 2 s",

@@ -217,7 +217,7 @@ const pl: Record<string, string> = {
   "transfer.confirmSend": "Przekazać tę sesję do {name}? Po zaakceptowaniu należy do tej osoby i zniknie z Twojej listy.",
   "transfer.homeHint": "Masz przychodzące przekazania sesji",
   "foilsens.label": "Czułość wykrywania",
-  "foilsens.hint": "Od jakiej prędkości i minimalnego czasu odcinek liczy się jako przejazd na foilu — wpływa głównie na pojedyncze przejazdy na mapie. Czulsze poziomy wyłapują też krótkie/wolne próby startu. Obowiązuje wszędzie — Twój poziom to analiza, która się liczy, także w społeczności, rekordach i rankingach. Już policzone poziomy są zapisane w pamięci, więc przełączanie jest potem natychmiastowe.",
+  "foilsens.hint": "Jak surowe jest rozpoznawanie: od jakiej prędkości odcinek w ogóle jest brany pod uwagę i jak pewny musi być model rozpoznawania, że jesteś na foilu. Czulsze poziomy zachowują więcej krótkich i wolnych przejazdów. Obowiązuje wszędzie — Twój poziom to analiza, która się liczy, także w społeczności, rekordach i rankingach. Już policzone poziomy są zapisane w pamięci, więc przełączanie jest potem natychmiastowe.",
   "foilsens.normal": "Standard – od ok. 10 km/h, min. 5 s",
   "foilsens.light": "Czulsze – od ok. 8,5 km/h, min. 3 s",
   "foilsens.attempts": "Najczulsze – od ok. 8 km/h, min. 2 s",
