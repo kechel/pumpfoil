@@ -14,7 +14,8 @@ import { usePumpFmt } from "../lib/pumpRate";
 // die Spot-Rekorde nicht anders aussehen als dieselben Rekorde eine Seite weiter.
 import { RecordGrid, PERIODS } from "./Home";
 import { ListenAnsicht } from "../components/ListenAnsicht";
-import { useKompakteListe } from "../lib/kompakteListe";
+import { useKompakteListe, ZEILEN_RASTER } from "../lib/kompakteListe";
+import { fmtDate } from "../lib/time";
 import { SessionCard } from "../components/SessionCard";
 import { UploadProgressCard } from "../components/UploadProgressCard";
 import { TrackPreview } from "../components/TrackPreview";
@@ -902,6 +903,8 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
   // Der Stapel bleibt als Andeutung (ein Blatt, kleiner versetzt), damit die Gruppe auch als Zeile
   // eine Gruppe bleibt; Kopf wie die Einzelzeile in SessionCard, ohne Fotos und Minimaps.
   if (kompakt) {
+    // Gleiches Kurzformat wie die Einzelzeilen („Di., 29. Sept. 26"), sonst springt die Datumsspalte.
+    const kurzDatum = g.date ? fmtDate(`${g.date}T12:00:00`, null, { weekday: "short", day: "2-digit", month: "short", year: "2-digit" }) : "";
     return (
       <div className="relative mt-1.5">
         <div aria-hidden className="pointer-events-none absolute -top-1 bottom-1 left-2 right-[-4px] rounded-xl border border-slate-800 bg-slate-800" />
@@ -909,25 +912,48 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
         <div className="rounded-xl bg-slate-900/60">
         <button
           onClick={() => setOpen((o) => !o)}
-          className="flex w-full flex-wrap items-center gap-x-3 gap-y-0.5 rounded-xl px-3 py-1.5 text-left text-sm transition-colors hover:bg-slate-800/40 sm:flex-nowrap"
+          className="w-full rounded-xl px-3 py-1.5 text-left text-sm transition-colors hover:bg-slate-800/40"
           aria-expanded={open}
         >
-          <Avatar name={g.name} url={g.avatar_url} size={22} />
-          <span className="shrink-0 font-semibold tabular-nums">{dateStr}</span>
-          {g.name && <span className="max-w-[10rem] truncate text-brand-600 dark:text-brand-300">{g.name}</span>}
-          {g.spot && (
-            <span className="inline-flex min-w-0 max-w-[12rem] items-center gap-1 truncate text-slate-300">
-              <LocationIcon className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{g.spot}</span>
-            </span>
-          )}
-          <span className="order-last flex min-w-0 basis-full items-center gap-x-3 overflow-hidden whitespace-nowrap text-slate-300 sm:order-none sm:basis-auto sm:flex-1">
+          {/* Handy: hoechstens zwei Zeilen wie die Einzelzeile (SessionCard). */}
+          <div className="sm:hidden">
+            <div className="flex items-center gap-2 overflow-hidden whitespace-nowrap">
+              <Avatar name={g.name} url={g.avatar_url} size={20} />
+              <span className="shrink-0 font-semibold tabular-nums">{kurzDatum}</span>
+              {g.name && <span className="min-w-0 max-w-[40%] shrink-0 truncate text-brand-600 dark:text-brand-300">{g.name}</span>}
+              {g.spot && <span className="inline-flex min-w-0 shrink items-center gap-1 text-slate-300"><LocationIcon className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{g.spot}</span></span>}
+            </div>
+            <div className="mt-0.5 flex items-center gap-2">
+              <span className="flex min-w-0 flex-1 items-center gap-x-3 overflow-hidden whitespace-nowrap text-slate-300">
             <span className="inline-flex items-center gap-1"><SessionsIcon className="h-4 w-4 text-brand-400" /> <b className="text-brand-400">{g.count}</b> {t("unit.sessions")}</span>
             <span className="inline-flex items-center gap-1"><FoilIcon className="h-4 w-4 text-brand-400" /> <b className="text-brand-400">{g.foiling_km.toFixed(1)}</b> km</span>
             {g.foiling_time_s > 0 && <span className="inline-flex items-center gap-1"><TimerIcon className="h-4 w-4 text-slate-400" /> {durHM(g.foiling_time_s)}</span>}
             {g.pump_count > 0 && <span className="inline-flex items-center gap-1"><WaveIcon className="h-4 w-4 text-slate-400" /> {g.pump_count}</span>}
             {kmh && <span className="text-slate-400">max {kmh} km/h</span>}
-          </span>
-          <ChevronIcon className={`ml-auto h-4 w-4 shrink-0 text-slate-400 transition-transform sm:ml-0 ${open ? "rotate-90" : ""}`} />
+              </span>
+              <ChevronIcon className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${open ? "rotate-90" : ""}`} />
+            </div>
+          </div>
+          {/* Ab sm: dieselben Spalten wie die Einzelzeilen (ZEILEN_RASTER), Uhrzeit-Spalte leer. */}
+          <div className={`hidden ${ZEILEN_RASTER}`}>
+            <Avatar name={g.name} url={g.avatar_url} size={22} />
+            <span className="truncate font-semibold tabular-nums">{kurzDatum}</span>
+            <span />
+            <span className="truncate text-brand-600 dark:text-brand-300">{g.name ?? ""}</span>
+            <span className="flex min-w-0 items-center gap-1 text-slate-300">
+              {g.spot && <><LocationIcon className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{g.spot}</span></>}
+            </span>
+            <span className="flex min-w-0 items-center gap-x-3 overflow-hidden whitespace-nowrap text-slate-300">
+            <span className="inline-flex items-center gap-1"><SessionsIcon className="h-4 w-4 text-brand-400" /> <b className="text-brand-400">{g.count}</b> {t("unit.sessions")}</span>
+            <span className="inline-flex items-center gap-1"><FoilIcon className="h-4 w-4 text-brand-400" /> <b className="text-brand-400">{g.foiling_km.toFixed(1)}</b> km</span>
+            {g.foiling_time_s > 0 && <span className="inline-flex items-center gap-1"><TimerIcon className="h-4 w-4 text-slate-400" /> {durHM(g.foiling_time_s)}</span>}
+            {g.pump_count > 0 && <span className="inline-flex items-center gap-1"><WaveIcon className="h-4 w-4 text-slate-400" /> {g.pump_count}</span>}
+            {kmh && <span className="text-slate-400">max {kmh} km/h</span>}
+            </span>
+            <span className="flex justify-end">
+              <ChevronIcon className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${open ? "rotate-90" : ""}`} />
+            </span>
+          </div>
         </button>
         {open && (
           <div className="space-y-1.5 border-t border-slate-800 px-2 py-2 sm:px-3">
