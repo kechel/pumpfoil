@@ -1601,11 +1601,41 @@ struct SessionDetailView: View {
         return hhmmss(start.addingTimeInterval(wanduhr / 1000.0), s.tz)
     }
 
+    // Grund fuer vom Erkennungsmodell aussortierte Laeufe (quelle "v3", 30.09.2026), Wortlaut aus der
+    // PWA (v3.sepWhy). BEWUSST ein eigenes kleines Woerterbuch statt eines weiteren Eintrags in den
+    // grossen Loc-Tabellen: die sind je Teil auf <= 50 Eintraege begrenzt, sonst haengt der Type-Checker.
+    private static let v3Warum: [String: String] = [
+        "de": "{dur} s bei Ø {kmh} km/h — das Erkennungsmodell sieht hier kein Foilen",
+        "gsw": "{dur} s bi Ø {kmh} km/h — s Erkännigsmodäll gseht da kei Foile",
+        "de-AT": "{dur} s bei Ø {kmh} km/h — das Erkennungsmodell sieht da kein Foilen",
+        "en": "{dur} s at {kmh} km/h average — the detection model sees no foiling here",
+        "fr": "{dur} s à {kmh} km/h de moyenne — le modèle de détection ne voit pas de foil ici",
+        "it": "{dur} s a {kmh} km/h di media — il modello di rilevamento qui non vede foil",
+        "es": "{dur} s a {kmh} km/h de media: el modelo de detección no ve foil aquí",
+        "fi": "{dur} s keskinopeudella {kmh} km/h — tunnistusmalli ei näe tässä foilausta",
+        "nl": "{dur} s bij gem. {kmh} km/h — het detectiemodel ziet hier geen foilen",
+        "cs": "{dur} s při průměru {kmh} km/h — model rozpoznávání tu nevidí foilování",
+        "pl": "{dur} s przy średnio {kmh} km/h — model rozpoznawania nie widzi tu foilowania",
+        "pt": "{dur} s a {kmh} km/h de média — o modelo de detecção não vê foil aqui",
+        "pt-PT": "{dur} s a {kmh} km/h de média — o modelo de deteção não vê foil aqui",
+        "ja": "{dur}秒・平均{kmh} km/h — 検出モデルはここでフォイルを認識していません",
+        "zh": "{dur} 秒，平均 {kmh} km/h——检测模型在这里没有看到上翼",
+        "ru": "{dur} с при средней {kmh} км/ч — модель распознавания не видит здесь фойлинга",
+        "id": "{dur} dtk rata-rata {kmh} km/j — model deteksi tidak melihat foiling di sini",
+        "nb": "{dur} s med snitt {kmh} km/t — gjenkjenningsmodellen ser ingen foiling her",
+    ]
+
     // Begründung lokalisiert aus den MESSWERTEN gebaut — metrics.grund ist deutscher Admin-Klartext
     // und wird nie angezeigt (wie PWA poweredWhy).
     private func poweredWhyText(_ r: PoweredRun) -> String {
         let dur: String = String(Int((r.dauer_s ?? 0).rounded()))
         let kmh: String = String(format: "%.1f", r.kmh ?? 0)
+        if r.quelle == "v3" {
+            let vorlage: String = Self.v3Warum[lang] ?? Self.v3Warum["en"] ?? ""
+            return vorlage
+                .replacingOccurrences(of: "{dur}", with: dur)
+                .replacingOccurrences(of: "{kmh}", with: kmh)
+        }
         if let hr = r.puls_antwort_bpm {
             let hrTxt: String = (hr > 0 ? "+" : "") + String(Int(hr.rounded()))
             return Loc.t("v2.sepWhyPulse", lang)

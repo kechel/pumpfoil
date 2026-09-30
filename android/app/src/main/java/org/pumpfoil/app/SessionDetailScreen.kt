@@ -1737,6 +1737,9 @@ private fun RunsTable(
             val dur = Math.round(r.dauerS).toString()
             val kmh = "%.1f".format(r.kmh)
             val hr = r.pulsAntwortBpm
+            // Vom Erkennungsmodell aussortiert: eigener Grund — „ohne eigene Kraft" waere fuer einen
+            // Gang an Land falsch (wie PWA poweredWhy).
+            if (r.quelle == "v3") return I18n.t("v3.sepWhy").replace("{dur}", dur).replace("{kmh}", kmh)
             return if (hr != null)
                 I18n.t("v2.sepWhyPulse").replace("{dur}", dur).replace("{kmh}", kmh)
                     .replace("{hr}", (if (hr > 0) "+" else "") + Math.round(hr))

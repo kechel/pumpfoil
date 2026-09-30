@@ -782,13 +782,17 @@ NAECHSTES: list[dict] = [
     # Datenfelder 22/23 (Summe aller Laeufe), Wunsch Roman 28.09.2026 — auf allen vier Uhren gebaut.
     # Sammel-Upload (29.09.2026, Server 489bc1fe): Apple Watch und Wear OS schicken ihre Chunks zu
     # 20 je Anfrage statt einzeln (#10266: 1848 Anfragen, drei Tage). Phone + Wear zusammen gebumpt.
+    # 30.09.2026: Texte zur neuen Erkennung (v3) — aussortierte Laeufe mit eigenem Grund, Profil-Hinweis
+    # zur Empfindlichkeit; Server und Web sind schon live, die Apps ziehen den Wortlaut nach.
     {"name": "Android phone + Wear OS", "version": "1.1.37 / 1.2.37",
      "items": [
          "Wear OS watches upload long sessions much faster.",
+         "Runs the new detection sets aside show why, and one tap brings them back.",
      ]},
     {"name": "iPhone + Apple Watch", "version": "1.1.41",
      "items": [
          "The Apple Watch uploads long sessions much faster.",
+         "Runs the new detection sets aside show why, and one tap brings them back.",
      ]},
     {"name": "Amazfit", "version": "1.0.13",
      "items": [
