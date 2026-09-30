@@ -6,7 +6,7 @@ import logging
 import re
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from pydantic import BaseModel
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
@@ -146,16 +146,39 @@ def _canon_scope(db: Session, scope: str) -> str:
 
 
 class PostIn(BaseModel):
-    text: str
+    text: str = ""
+    # Vorher hochgeladene Bilder (POST /api/chat/photos) — vorerst nur Admins (Jan, 30.09.2026).
+    photo_ids: list[int] = []
+
+
+MAX_CHAT_FOTOS = 10
+
+
+def _photos_for(db: Session, msg_ids: list[int]) -> dict[int, list[dict]]:
+    """Batch: {message_id: [{id, url, thumb_url}, …]} in Reihenfolge."""
+    if not msg_ids:
+        return {}
+    from ..media import thumb_url
+    out: dict[int, list[dict]] = {}
+    for p in (db.query(models.ChatPhoto).filter(models.ChatPhoto.message_id.in_(msg_ids))
+              .order_by(models.ChatPhoto.message_id, models.ChatPhoto.sort, models.ChatPhoto.id).all()):
+        out.setdefault(p.message_id, []).append({"id": p.id, "url": p.url, "thumb_url": thumb_url(p.url)})
+    return out
+
+
+def _hat_fotos(db: Session, msg_id: int) -> bool:
+    return db.query(models.ChatPhoto.id).filter(models.ChatPhoto.message_id == msg_id).first() is not None
 
 
 def _msg_out(m: models.ChatMessage, name: str, avatar: str | None, uid: int,
-             author_new: bool = False, like_count: int = 0, liked: bool = False) -> dict:
+             author_new: bool = False, like_count: int = 0, liked: bool = False,
+             photos: list | None = None) -> dict:
     return {
         "id": m.id, "user_id": m.user_id, "name": name, "avatar_url": avatar,
         "text": m.text, "created_at": m.created_at.isoformat() if m.created_at else None,
         "mine": m.user_id == uid, "hidden": m.hidden, "report_count": m.report_count,
         "author_new": author_new, "like_count": like_count, "liked": liked,
+        "photos": photos or [],
     }
 
 
@@ -205,9 +228,11 @@ def list_messages(
             q = q.filter(models.ChatMessage.id < before)
         rows = q.order_by(models.ChatMessage.id.desc()).limit(lim).all()
         rows = list(reversed(rows))
-    counts, mine = _likes_for(db, [m.id for m, _n, _a, _c in rows], user.id)
+    ids = [m.id for m, _n, _a, _c in rows]
+    counts, mine = _likes_for(db, ids, user.id)
+    fotos = _photos_for(db, ids)
     return [_msg_out(m, name, avatar, user.id, is_new_account(created),
-                     counts.get(m.id, 0), m.id in mine)
+                     counts.get(m.id, 0), m.id in mine, fotos.get(m.id))
             for m, name, avatar, created in rows]
 
 
@@ -263,7 +288,19 @@ def post_message(
     if user.chat_readonly:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Im Chat schreibgesperrt")
     text = (body.text or "").strip()
-    if not text:
+    # Bilder: vorerst NUR Admins (Jan, 30.09.2026). Nur eigene, noch nicht versandte Uploads.
+    fotos: list[models.ChatPhoto] = []
+    if body.photo_ids:
+        if not user.is_admin:
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "Bilder im Chat sind noch nicht freigeschaltet")
+        ids = list(dict.fromkeys(body.photo_ids))[:MAX_CHAT_FOTOS]
+        fotos = (db.query(models.ChatPhoto)
+                 .filter(models.ChatPhoto.id.in_(ids), models.ChatPhoto.user_id == user.id,
+                         models.ChatPhoto.message_id.is_(None)).all())
+        if len(fotos) != len(ids):
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "Unbekanntes oder schon versandtes Bild")
+        fotos.sort(key=lambda p: ids.index(p.id))
+    if not text and not fotos:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Leere Nachricht")
     if len(text) > 2000:
         text = text[:2000]
@@ -290,7 +327,7 @@ def post_message(
         .filter(models.ChatMessage.user_id == user.id, models.ChatMessage.created_at >= since)
         .order_by(models.ChatMessage.id.desc()).limit(20).all()
     )
-    for r in recent:
+    for r in (recent if not fotos else []):   # Nachrichten mit Bildern sind nie ein Duplikat
         if _norm(r.text) != norm:
             continue
         if r.scope == scope:
@@ -312,6 +349,9 @@ def post_message(
         log.info("Store-Testroboter erkannt: u%s (%s) in %s — Konto ausgeblendet",
                  user.id, user.email, scope)
     db.flush()
+    for i, p in enumerate(fotos):
+        p.message_id = m.id
+        p.sort = i
     # Eigene Nachricht gilt als gelesen; Raum nicht mehr „verlassen".
     st = _state(db, user.id, scope)
     st.last_read_id = m.id
@@ -328,7 +368,41 @@ def post_message(
     db.commit()
     db.refresh(m)
     _notify_subscribers(db, m, user)
-    return _msg_out(m, user.display_name, user.avatar_url, user.id, is_new)
+    return _msg_out(m, user.display_name, user.avatar_url, user.id, is_new,
+                    photos=_photos_for(db, [m.id]).get(m.id))
+
+
+@router.post("/photos")
+async def upload_chat_photo(
+    file: UploadFile = File(...),
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """Ein Bild fuer eine Chat-Nachricht hochladen — VOR dem Senden (Vorschau im Eingabefeld).
+    Vorerst nur Admins. Gleiche Aufbereitung wie Spot-Fotos: verkleinert, WebP, ohne EXIF/GPS."""
+    if not user.is_admin:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Bilder im Chat sind noch nicht freigeschaltet")
+    from ..media import ImageError, MAX_UPLOAD_BYTES, save_image, thumb_url
+    raw = await file.read()
+    if len(raw) > MAX_UPLOAD_BYTES:
+        raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Bild zu gross")
+    try:
+        url = save_image(raw, subdir="chat", max_dim=1600, thumb_dim=480)
+    except ImageError as e:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(e))
+    p = models.ChatPhoto(user_id=user.id, url=url)
+    db.add(p)
+    db.commit()
+    return {"id": p.id, "url": url, "thumb_url": thumb_url(url)}
+
+
+def _fotos_weg(db: Session, message_id: int) -> list[str]:
+    """Bilder einer Nachricht aus der DB nehmen; die URLs zum Loeschen NACH dem Commit zurueck."""
+    urls = []
+    for p in db.query(models.ChatPhoto).filter(models.ChatPhoto.message_id == message_id).all():
+        urls.append(p.url)
+        db.delete(p)
+    db.flush()
+    return urls
 
 
 def _notify_subscribers(db: Session, m: models.ChatMessage, author: models.User) -> None:
@@ -344,7 +418,7 @@ def _notify_subscribers(db: Session, m: models.ChatMessage, author: models.User)
     if not subs:
         return
     title = f"💬 {_scope_label_db(db, m.scope)}"
-    body = f"{author.display_name or 'Jemand'}: {m.text[:120]}"
+    body = f"{author.display_name or 'Jemand'}: {m.text[:120] or '📷'}"
     url = _scope_url(m.scope)
     for st in subs:
         if wants(db, st.user_id, "chat"):
@@ -438,8 +512,12 @@ def delete_message(
 ) -> dict:
     """Eigene Nachricht löschen (nur innerhalb 1 h)."""
     m = _own_editable(message_id, user, db)
+    urls = _fotos_weg(db, m.id)
     db.delete(m)
     db.commit()
+    from ..media import delete_media
+    for u in urls:
+        delete_media(u)
     return {"ok": True, "id": message_id}
 
 
@@ -655,6 +733,7 @@ def my_rooms(
             "push": st.push,
             "unread": int(unread),
             "last_text": last.text[:120],
+            "last_photo": _hat_fotos(db, last.id),
             "last_at": last.created_at.isoformat() if last.created_at else None,
         }
         parts = _dm_parts(st.scope)
@@ -695,6 +774,7 @@ def my_rooms(
             "push": bool(gst and gst.push),
             "unread": int(gunread),
             "last_text": glast.text[:120] if glast else "",
+            "last_photo": _hat_fotos(db, glast.id) if glast else False,
             "last_at": glast.created_at.isoformat() if glast and glast.created_at else None,
         })
     return out
@@ -800,9 +880,11 @@ def bot_messages(
         .filter(models.ChatMessage.scope == scope)
         .order_by(models.ChatMessage.id.desc()).limit(lim).all()
     )
+    fotos = _photos_for(db, [m.id for m, _n, _a in rows])
     return [{"id": m.id, "user_id": m.user_id, "name": name, "avatar_url": avatar,
              "text": m.text, "hidden": bool(m.hidden), "is_bot": m.user_id == bot.id,
-             "created_at": m.created_at.isoformat() if m.created_at else None}
+             "created_at": m.created_at.isoformat() if m.created_at else None,
+             "photos": fotos.get(m.id, [])}
             for m, name, avatar in reversed(rows)]
 
 
@@ -861,6 +943,7 @@ def active_rooms(
             "scope": scope, "label": _scope_label_db(db, scope, user.id), "url": _scope_url(scope),
             "messages": int(n),
             "last_text": last.text[:120] if last else "",
+            "last_photo": _hat_fotos(db, last.id) if last else False,
             "last_at": last.created_at.isoformat() if last and last.created_at else None,
         })
         if len(out) >= min(max(limit, 1), 20):

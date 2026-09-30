@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { api, BotMsg, BotRoom, ChatRoom, DmUser } from "../lib/api";
 import { istSelbstPop } from "../lib/selfPop";
 import { Avatar } from "./ui";
-import { BellIcon, ChatBubbleIcon, CloseIcon, LocationIcon, MaximizeIcon, MinimizeIcon } from "./Icons";
+import { BellIcon, CameraIcon, ChatBubbleIcon, CloseIcon, LocationIcon, MaximizeIcon, MinimizeIcon } from "./Icons";
+import { FotoStapel } from "./FotoStapel";
 import { Chat } from "./Chat";
 import { useT } from "../i18n";
 
@@ -377,7 +378,7 @@ export function DmWidget() {
                               {r.unread > 0 && <span className="rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">{r.unread}</span>}
                             </span>
                           </div>
-                          <div className="truncate text-xs text-slate-400">{r.last_text}</div>
+                          <div className="flex items-center gap-1 truncate text-xs text-slate-400">{r.last_photo && <CameraIcon className="h-3.5 w-3.5 shrink-0" />}<span className="truncate">{r.last_text}</span></div>
                         </div>
                       </button>
                     ))}
@@ -425,7 +426,8 @@ export function DmWidget() {
                                 <span className="shrink-0">{m.created_at ? new Date(m.created_at).toLocaleString() : ""}</span>
                                 {m.hidden && <span className="shrink-0 rounded bg-slate-700/60 px-1">{t("adm.chat.hidden")}</span>}
                               </div>
-                              <div className="whitespace-pre-wrap break-words">{m.text}</div>
+                              {m.text && <div className="whitespace-pre-wrap break-words">{m.text}</div>}
+                              {m.photos && m.photos.length > 0 && <FotoStapel photos={m.photos} name={m.name} avatarUrl={m.avatar_url} />}
                             </div>
                           </div>
                         ))}
@@ -449,7 +451,7 @@ export function DmWidget() {
                               <span className="truncate text-sm font-medium text-slate-100">{r.other?.name || r.label}</span>
                               <span className="ml-auto shrink-0 text-[11px] text-slate-500">{r.bot_count}/{r.total_count}</span>
                             </div>
-                            <div className="truncate text-xs text-slate-400">{r.last_text}</div>
+                            <div className="flex items-center gap-1 truncate text-xs text-slate-400">{r.last_photo && <CameraIcon className="h-3.5 w-3.5 shrink-0" />}<span className="truncate">{r.last_text}</span></div>
                           </div>
                         </button>
                       ))}

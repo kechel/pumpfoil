@@ -19,4 +19,8 @@ def test_eingereicht_steht_im_review():
 def test_releases_antwortet(client):
     r = client.get("/api/app/releases")
     assert r.status_code == 200, r.text
-    assert r.json()["review"]
+    d = r.json()
+    # „review" darf LEER sein (30.09.2026: alle Einreichungen freigegeben) — geprueft wird, dass die
+    # Antwort steht und jeder Abschnitt so viele Zeilen hat wie seine Quelle in appmeta.
+    assert isinstance(d["review"], list) and len(d["review"]) == len(appmeta.IN_REVIEW)
+    assert d["live"]
