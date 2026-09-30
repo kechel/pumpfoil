@@ -10,6 +10,15 @@ This changelog covers the Zepp OS watch app only.
 > and possibly after the upload — it is listed under 1.0.7. **Keep this file current with every
 > bump**, then nobody has to dig through commits again.
 
+## 1.0.13 — gebumpt am 30.09.2026, NOCH NICHT eingereicht
+
+- **Pause/Fortsetzen mit 2 s halten** (Jan, 30.09.): auf der Aktionsseite loeste ein einfacher Tipp
+  die Pause aus; nasse Aermel blaettern die Seiten weiter und pausierten so mitten im Lauf (Meldung
+  von der Apple Watch, Wear und Apple bekommen dasselbe). Ereignis-Canvas ueber dem Knopf wie bei der
+  Touch-Sperre; im Profil-Modus „ein Druck statt halten" bleibt der Tipp.
+- Datenfelder 22/23 (Summe aller Laeufe: Strecke/Zeit) und die Pausen-Seiten — s. `NAECHSTES` in
+  `server/app/api/appmeta.py`.
+
 ## 1.0.12 — gebaut am 21.09.2026, NOCH NICHT eingereicht
 
 **Der Bildschirm bleibt waehrend der Aufnahme wach.** Das ist der wichtige Punkt dieser Fassung.
