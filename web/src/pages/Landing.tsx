@@ -582,7 +582,7 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* Die vier Textseiten. Sie sind seit 06.09.2026 ohne Login erreichbar, waren aber von
+        {/* Die Textseiten (Nerd-Teile 1-5 + Systemarchitektur). Sie sind seit 06.09.2026 ohne Login erreichbar, waren aber von
             NIRGENDS verlinkt — weder Besucher noch Suchmaschinen fanden sie. Es ist der tiefste
             eigene Inhalt, den wir haben, und er beantwortet genau die Fragen, die Leute zum
             Pumpfoilen stellen. */}
@@ -592,7 +592,7 @@ export default function Landing() {
           <ul className="mt-4 space-y-2">
             {[["/nerd-analysen", "land.deep1"], ["/nerd-analysen-2", "land.deep2"],
               ["/nerd-analysen-3", "land.deep3"], ["/nerd-analysen-4", "land.deep5"],
-              ["/systemarchitektur", "land.deep4"]].map(([zu, k]) => (
+              ["/nerd-analysen-5", "land.deep6"], ["/systemarchitektur", "land.deep4"]].map(([zu, k]) => (
               <li key={zu}>
                 <Link to={zu} className="text-brand-700 hover:underline dark:text-brand-300">
                   {t(k)}

@@ -37,7 +37,11 @@ import numpy as np
 log = logging.getLogger(__name__)
 
 VERSION = "v3-r4-mild-1"
-MODELLE = Path(__file__).resolve().parents[3] / "data" / "ml" / "v3" / "live"
+# Die Live-Modelle liegen IM REPO neben dem Code (wie `foil_rf.pkl`), nicht unter data/ (Jan, 30.09.:
+# „bitte ins repo committen, nicht dass das verloren geht"). Sie enthalten nur Baeume und
+# Bin-Grenzen, keine Sessions. Neue Fassung: unter neuem Namen trainieren, pruefen, HIER ablegen,
+# VERSION hochzaehlen.
+MODELLE = Path(__file__).resolve().parent / "modelle"
 MODELL, REF = MODELLE / "stufe_a_r4.pkl", MODELLE / "stufe_a_r3.pkl"
 TIEF_KW = {"enter_speed": 1.4, "exit_speed": 1.1, "min_segment_s": 3, "min_seg_avg_speed": 1.4}
 # (theta fuer `teil`, tau fuer das Veto) und die Schwelle fuer kurze Stuecke, je Empfindlichkeit

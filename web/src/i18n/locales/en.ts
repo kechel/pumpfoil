@@ -1120,6 +1120,7 @@ const en: Record<string, string> = {
   "list.compact": "One line per session",
   "nav.arch": "System architecture",
   "land.deep5": "A phone on the board: measured at the source",
+  "land.deep6": "The detection model: how we tell real runs apart",
   "land.deep4": "System architecture",
   "land.heroSub": "Pumpfoil pairs your watch with detailed analysis: GPS track, foiling distance, pump cadence and glide phases — automatically from every session.",
   "land.heroPlatforms": "Works with Garmin, Apple Watch, Wear OS, Amazfit, Polar, COROS, Suunto, Xiaomi and your Android or iOS phone.",
