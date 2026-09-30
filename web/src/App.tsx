@@ -41,7 +41,9 @@ const adminItem: NavItem = { to: "/admin", labelKey: "nav.admin", icon: ShieldIc
 // „bitte Teil 4 noch hervorheben fuer 1-2 wochen, der ist neu"). Als Datum im Code und nicht
 // als Schalter irgendwo: so verschwindet die Hervorhebung von selbst. Ein Merker, an den sich
 // jemand erinnern muesste, waere in drei Wochen noch da.
-const NEU_BIS = Date.UTC(2026, 9, 6);   // 6. Oktober 2026
+// Teil 4: Hervorhebung am 30.09.2026 vorzeitig beendet (Jan: „teil 4 im menue nicht mehr highlighten
+// jetzt") — Teil 5 ist erschienen und traegt jetzt die Markierung.
+const NEU_BIS = Date.UTC(2026, 8, 30);   // 30. September 2026
 const NEU_BIS_5 = Date.UTC(2026, 9, 14); // Teil 5, erschienen 30.09.2026 — zwei Wochen „neu" wie Teil 4
 
 // Englisches Changelog-Datum ("July 21, 2026") -> kurzes Datum im Locale des Nutzers
