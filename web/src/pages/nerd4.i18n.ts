@@ -1054,7 +1054,7 @@ const ptPT: N4 = {
 
 const pt: N4 = {
   "back": "← Parte 3: A medição dual-relógio",
-  "h1": "Parte 4: Um Celular Fita na Prancha",
+  "h1": "Parte 4: Um celular preso à prancha com fita",
   "subtitle": "O que conseguimos medir quando o sensor para de estar no pulso",
   "intro": "Cada número que este site mostra sobre bombeio vem, no final das contas, de um sensor preso ao braço de alguém. Esse braço faz suas próprias coisas: balança, se equilibra, se estende para manter o equilíbrio. Por três partes desta série trabalhamos contornando isso. Em setembro de 2026 paramos de contornar e **fitamos um celular na prancha** — GPS, acelerómetro e giroscópio, 50 amostras por segundo, preso à coisa que realmente queremos saber. Esta parte é o que saiu.",
   "why": {
