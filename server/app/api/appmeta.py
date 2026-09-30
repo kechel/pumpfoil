@@ -422,7 +422,12 @@ _APP_META: dict[str, dict[str, str]] = {
         # store_url bleibt LEER, und das aendert sich nicht mehr: fuer die Pumpfoil-App im
         # Zepp-Store existiert keine Web-Adresse (Jan, 07.08.) — man kommt nur ueber die
         # Zepp-Handy-App dran, die auf /uhr verlinkt ist (ZeppAppBadges -> App Store / Play).
-        "latest": "1.0.11",  # FREIGEGEBEN 2026-09-21 (Zepp-Mail: „The application Pumpfoil
+        "latest": "1.0.12",  # FREIGEGEBEN 2026-09-30 (Zepp-Mail: „The application Pumpfoil
+        # (1.0.12) you submitted has been approved and added to the ZEPP app store", Jans Meldung).
+        # Eingereicht 24.09. — sechs Tage. Inhalt: Vibration an Strecken-/Zeitmarken, Bildschirm
+        # bleibt an, Pause mit Teil-Upload, Verwerfen, viel vollstaendigere Spur, Einstellungen
+        # ohne Handy, Grund bei ausgegrautem Start / fehlgeschlagenem Pairing-Code.
+        # ALT: "latest": "1.0.11",  # FREIGEGEBEN 2026-09-21 (Zepp-Mail: „The application Pumpfoil
         # (1.0.11) you submitted has been approved and added to the ZEPP app store"). Nummer AUS
         # DER MAIL, wie es die Regel verlangt. Eingereicht 19.09. — also ZWEI TAGE, und damit die
         # schnellste Zepp-Runde bisher; davor lagen 1.0.9 und 1.0.10 dreimal in Folge an den
@@ -717,27 +722,8 @@ IN_REVIEW: list[dict] = [
     # auch "android", die uebrigen fuenf Punkte standen schon versionslos im Changelog (29.09.).
     # iOS/Apple 1.1.40 am 29.09. FREIGEGEBEN (s. `_APP_META`); der Datenfelder-Punkt traegt im
     # Changelog jetzt auch "ios"/"apple", dazu ein Freigabe-Ereignis.
-    {"name": "Amazfit", "version": "1.0.12",
-     # EINGEREICHT 24.09.2026: im Zepp-Entwicklerkonto steht 1.0.12 auf „Under Review (Can be
-     # Withdrawn)", Application Time 2026.09.24; 1.0.11 daneben weiter „Approved".
-     "eingereicht": "2026-09-24",
-     "items": [
-         "Amazfit watches vibrate at the distance and time marks set in your profile.",
-         "A recording keeps the screen awake for as long as it runs.",
-         "If the start button is greyed out, tapping it now says why — waiting for GPS, or an "
-         "upload still running.",
-         "While a recording runs, the data pages show how long it has been going.",
-         # Der groesste Einzelpunkt dieser Fassung: bis 1.0.11 gingen 48 bis 87 % der
-         # Aufnahmezeit ohne Position verloren (neun Aufnahmen, fuenf Modelle).
-         "Amazfit watches keep far more of your track.",
-         "Your own screens, foils and alarm limits are there even without your phone nearby.",
-         "If getting a pairing code fails, the watch says why: no phone, or no way out to the "
-         "internet.",
-         "A recording can be paused, and what is already recorded goes up while you wait.",
-         "A recording can be discarded without saving it — far left and far right of the stop "
-         "screen.",
-         "The touch lock no longer snaps shut while you are swiping through the pages.",
-     ]},
+    # Amazfit 1.0.12 am 30.09. FREIGEGEBEN (s. `_APP_META`); die 10 Punkte stehen im Changelog mit
+    # `versionen = {"zepp": "1.0.12"}` (der Pausen-Punkt hat `zepp` dazubekommen), dazu ein Ereignis.
 
     # Android + Wear: 1.1.33 / 1.2.33 sind am 27.09. FREIGEGEBEN (eine Play-Mail, beide Spuren).
     # Die vier Wear-Punkte stehen in der Changelog-Tabelle mit `versionen = {"wear": "1.2.33"}`;
