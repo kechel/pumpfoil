@@ -1429,6 +1429,12 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔲 30.09. — Kompakte Session-Liste (Feedback #156, gizmomogwai u683).** „on a laptop i can only
+  fit 3-4 sessions on one screen … an option for a oneline view would be great!" Idee: Umschalter
+  Kacheln/Zeilen auf /sessions (Merker per localStorage), eine Zeile je Session mit Datum, Spot,
+  Laeufe, Foil-Zeit, bester Lauf. Nebenbei geklaert (seine Frage im 1:1): der Import dedupliziert
+  schon je Nutzer ueber Datei-Hash (entpackt) ODER gleiche Startzeit — bei ihm 42 Sessions, kein Duplikat.
+
 - **🔍 30.09. — Laeufe mit 0 s Dauer bei u239 (Garmin, 3 Sessions #1794, #8529, #2323).** Beim
   v3-Regressionstest aufgefallen: 3-12 Laeufe je Session mit 18-72 m Strecke, aber
   `duration_s` 0,0 und Zeiten wie 15000 -> 15004 ms; Foil-Zeit 0, Pumps 0, trotzdem
