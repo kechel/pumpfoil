@@ -1,6 +1,9 @@
 package org.pumpfoil.app
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -129,25 +132,30 @@ fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, 
                         // `/sessions?spot=…`. Die beiden Android-Bildschirme sind auseinander-
                         // gelaufen; angeglichen sind sie jetzt, zusammengelegt gehoeren sie
                         // trotzdem (s. docs/TODO.md).
-                        item { SpotRecordsSection(spot, accelOnly = false, onOpen = onOpen) }
+                        item { SpotRecordsSection(spot, accelOnly = false, sport = sport, sports = sports, onOpen = onOpen) }
                         weather?.let { sw ->
                             item { Box(Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) { WeatherCard(sw, titelKey = "spot.weatherTitle") } }
                         }
                         spotId?.let { sid -> item { SpotNotesSection(sid) } }
                         // „Anderen Namen vorschlagen" — nur wer hier selbst gefahren ist.
                         spotId?.let { sid -> item { SpotNamensVorschlag(sid, spot) } }
-                        if (sports.size > 1 || sport != "all") {
-                            item {
-                                Box(Modifier.padding(horizontal = 12.dp, vertical = 2.dp)) {
+                        // Sportart (nur wenn es etwas zu waehlen gibt) und rechts der Umschalter
+                        // Kacheln / Zeilen (ListenAnsicht.kt) — eine Werkzeugzeile wie im Web.
+                        item {
+                            Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 2.dp),
+                                verticalAlignment = Alignment.CenterVertically) {
+                                if (sports.size > 1 || sport != "all") {
                                     SportDropdown(sports, sport) { sport = it }
                                 }
+                                Spacer(Modifier.weight(1f))
+                                ListenAnsichtUmschalter()
                             }
                         }
                         if (items.isEmpty() && !loading && error == null) {
                             item { Text(I18n.t("sessions.empty"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                         }
                         items(items) { c ->
-                            CommunityItemRow(c, Modifier.padding(horizontal = 12.dp, vertical = 5.dp)) { onOpen(c.id) }
+                            CommunityItemRow(c, Modifier.padding(horizontal = 12.dp, vertical = ListenAnsicht.abstand)) { onOpen(c.id) }
                         }
                     }
                 }

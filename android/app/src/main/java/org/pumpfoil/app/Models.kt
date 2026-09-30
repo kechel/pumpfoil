@@ -317,10 +317,15 @@ data class Segment(
     @SerialName("duration_s") val durationS: Double = 0.0,
     @SerialName("avg_speed_mps") val avgSpeedMps: Double = 0.0,
     @SerialName("max_speed_mps") val maxSpeedMps: Double = 0.0,
-    val pumps: Int = 0,
+    // `pumps`/`longest_glide_s` sind NULL, wenn der Lauf (fast) keine echten Beschleunigungswerte
+    // hat (Server 30.09.2026, run_analysis: Abdeckung < 50 % -> `accel_fehlt`). Frueher stand hier
+    // `= 0` mit `coerceInputValues`: aus „nicht gemessen" wurde eine 0 — eine 0-s-Gleitphase und
+    // 0 Pumps, die es nie gab. Die Anzeige zeigt dann „–" wie Web und iOS.
+    val pumps: Int? = null,
     @SerialName("pump_idx") val pumpIdx: List<Int> = emptyList(),
     @SerialName("avg_pump_hz") val avgPumpHz: Double? = null,
-    @SerialName("longest_glide_s") val longestGlideS: Double = 0.0,
+    @SerialName("longest_glide_s") val longestGlideS: Double? = null,
+    @SerialName("accel_fehlt") val accelFehlt: Boolean = false,
     // Ab hier: Felder, die der Server schon immer liefert, die Android aber nicht gelesen hat —
     // deshalb fehlten sieben der dreizehn Spalten der PWA-Lauf-Tabelle (Jans Meldung 18.08.).
     @SerialName("min_speed_mps") val minSpeedMps: Double? = null,
@@ -732,6 +737,18 @@ data class ChatMsg(
     // Daumen-hoch je Nachricht (Server: chat.py:_msg_out + POST /api/chat/{id}/like).
     @SerialName("like_count") val likeCount: Int = 0,
     val liked: Boolean = false,
+    // Angehaengte Bilder in Reihenfolge (Server seit 30.09.2026, chat.py:_photos_for). Senden
+    // koennen vorerst nur Admins, ANZEIGEN muss jeder — sonst sieht eine reine Bild-Nachricht
+    // aus wie eine leere Zeile.
+    val photos: List<ChatPhoto> = emptyList(),
+)
+
+// Ein Chat-Bild: `url` ist das Bild (max. 1600 px), `thumb_url` das Vorschaubild (480 px).
+@Serializable
+data class ChatPhoto(
+    val id: Int,
+    val url: String = "",
+    @SerialName("thumb_url") val thumbUrl: String? = null,
 )
 
 @Serializable
@@ -740,6 +757,9 @@ data class ChatRoom(
     val label: String = "",
     val unread: Int = 0,
     @SerialName("last_text") val lastText: String = "",
+    // Letzte Nachricht traegt Bilder -> Kamera-Symbol in der Vorschau (sonst stuende bei einer
+    // reinen Bild-Nachricht eine leere Zeile da).
+    @SerialName("last_photo") val lastPhoto: Boolean = false,
     val kind: String = "",           // spot | dm | session
     val push: Boolean = false,       // abonniert (Push) → Glocke
     val other: DmOther? = null,      // nur bei dm

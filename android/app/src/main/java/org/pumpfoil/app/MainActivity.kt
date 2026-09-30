@@ -77,6 +77,7 @@ class MainActivity : ComponentActivity() {
         ThemeState.load(applicationContext)
         I18n.load(applicationContext)
         PumpUnit.load(applicationContext)   // Pump-Kadenz als Hz oder Pumps/min (Profil-Einstellung)
+        ListenAnsicht.load(applicationContext)   // Session-Listen als Kacheln oder Zeilen
         WatchSync.pushPairing(applicationContext)   // eingeloggt -> Wear-Uhr (Data Layer) verknüpfen
         OAuthRuecksprung.verarbeite(applicationContext, intent?.data)   // Kaltstart aus dem Browser
         setContent { PumpfoilTheme { App() } }

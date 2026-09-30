@@ -122,6 +122,14 @@ private fun row(de: String, gsw: String, deAT: String, en: String, fr: String, i
 private val S: Map<String, Map<String, String>> = sTabelle()
 
 private fun sTabelle(): Map<String, Map<String, String>> = mapOf(
+    // Kacheln/Zeilen-Umschalter (ListenAnsicht.kt) + Chat-Bilder (ChatFotos.kt), aus den Web-Sprachdateien 30.09.2026.
+    "list.cards" to row("Kacheln", "Chachle", "Kacheln", "Cards", "Cartes", "Schede", "Tarjetas"),
+    "list.compact" to row("Eine Zeile je Session", "Ei Ziile pro Session", "Eine Zeile pro Session", "One line per session", "Une ligne par session", "Una riga per sessione", "Una línea por sesión"),
+    "chat.photoAdd" to row("Bilder anhängen", "Bilder aahänke", "Bilder anhängen", "Add photos", "Ajouter des photos", "Aggiungi foto", "Añadir fotos"),
+    "chat.photoRemove" to row("Bild entfernen", "Bild entferne", "Bild entfernen", "Remove photo", "Retirer la photo", "Rimuovi foto", "Quitar foto"),
+    "chat.photoFailed" to row("Ein Bild konnte nicht hochgeladen werden — entfernen oder nochmal versuchen.", "Es Bild isch nöd ufeglade worde — entferne oder nomal probiere.", "Ein Bild konnte nicht hochgeladen werden — entfernen oder nochmal probieren.", "A photo could not be uploaded — remove it or try again.", "Une photo n'a pas pu être envoyée — retire-la ou réessaie.", "Non è stato possibile caricare una foto — rimuovila o riprova.", "No se pudo subir una foto: quítala o vuelve a intentarlo."),
+    "chat.photoOpen" to row("Bild öffnen", "Bild öffne", "Bild öffnen", "Open photo", "Ouvrir la photo", "Apri foto", "Abrir foto"),
+    "chat.photosOpen" to row("{n} Bilder öffnen", "{n} Bilder öffne", "{n} Bilder öffnen", "Open {n} photos", "Ouvrir {n} photos", "Apri {n} foto", "Abrir {n} fotos"),
     "foilStats.hint" to row("Welche Werte werden mit welchem Foil gefahren (Community). Gezählt werden nur Pumpfoil-Sessions mit Accel-Erkennung — andere Sportarten (Wing, eFoil, Foildrive, Wakethief), GPS-only-Aufnahmen und als fehlerhaft markierte Daten sind nicht dabei.", "Weli Wärt mit welem Foil gfahre wärde (Community). Zellt wärded nume Pumpfoil-Sessions mit Accel-Erkennig — anderi Sportarte (Wing, eFoil, Foildrive, Wakethief), GPS-only-Ufnahme und als fählerhaft markierti Date sind nöd debi.", "Wöche Werte werdn mit wöchem Foil gfahrn (Community). Gezählt werdn nur Pumpfoil-Sessions mit Accel-Erkennung — andere Sportarten (Wing, eFoil, Foildrive, Wakethief), GPS-only-Aufnahmen und ois fehlerhaft markierte Daten san net dabei.", "Which numbers people achieve on which foil (community). Only pumpfoil sessions with accel detection are counted — other sports (wing, eFoil, foildrive, wakethief), GPS-only recordings and data marked as faulty are left out.", "Quelles valeurs sont atteintes avec quel foil (communauté). Seules les sessions de pumpfoil avec détection accéléromètre sont comptées — les autres sports (wing, eFoil, foildrive, wakethief), les enregistrements GPS seuls et les données marquées comme erronées sont exclus.", "Quali valori si ottengono con quale foil (community). Contano solo le sessioni di pumpfoil con rilevamento accelerometrico — altri sport (wing, eFoil, foildrive, wakethief), registrazioni solo GPS e dati segnati come errati restano fuori.", "Qué valores se logran con qué foil (comunidad). Solo cuentan las sesiones de pumpfoil con detección por acelerómetro — otros deportes (wing, eFoil, foildrive, wakethief), grabaciones solo GPS y datos marcados como erróneos quedan fuera."),
     "watchStats.hint" to row("Welche Werte werden mit welcher Uhr gefahren — Community-Aggregat je Modell. Hier zählt jede Aufnahme: alle Sportarten, mit und ohne Accel-Daten.", "Weli Wärt wärded mit weler Uhr gfahre — Community-Aggregat je Modäll. Do zellt jedi Ufnahm: alli Sportarte, mit und ohni Accel-Date.", "Welche Werte werden mit welcher Uhr gefahren — Community-Aggregat je Modell. Do zöhlt jede Aufnahme: olle Sportartn, mit und ohne Accel-Datn.", "Which numbers are ridden with which watch — community aggregate per model. Everything counts here: every sport, with or without accel data.", "Quels chiffres avec quelle montre — agrégat communautaire par modèle. Ici tout compte : tous les sports, avec ou sans données accéléromètre.", "Quali valori con quale orologio — aggregato community per modello. Qui conta ogni registrazione: tutti gli sport, con o senza dati accelerometrici.", "Qué valores con qué reloj — agregado de la comunidad por modelo. Aquí cuenta cada grabación: todos los deportes, con o sin datos de acelerómetro."),
     "spotcmp.title" to row("Spot-Rekorde", "Spot-Rekord", "Spot-Rekorde", "Spot records", "Records des spots", "Record degli spot", "Récords de spots"),
@@ -1442,6 +1450,14 @@ private fun sTabelle(): Map<String, Map<String, String>> = mapOf(
 private val FI: Map<String, String> = fiTabelle()
 
 private fun fiTabelle(): Map<String, String> = mapOf(
+    // Kacheln/Zeilen-Umschalter (ListenAnsicht.kt) + Chat-Bilder (ChatFotos.kt), aus den Web-Sprachdateien 30.09.2026.
+    "list.cards" to "Kortit",
+    "list.compact" to "Yksi rivi per sessio",
+    "chat.photoAdd" to "Lisää kuvia",
+    "chat.photoRemove" to "Poista kuva",
+    "chat.photoFailed" to "Kuvaa ei voitu ladata — poista se tai yritä uudelleen.",
+    "chat.photoOpen" to "Avaa kuva",
+    "chat.photosOpen" to "Avaa {n} kuvaa",
     "foilStats.hint" to "Mitä arvoja millläkin foililla ajetaan (yhteisö). Mukaan lasketaan vain pumpfoil-sessiot accel-tunnistuksella — muut lajit (wing, eFoil, foildrive, wakethief), pelkät GPS-tallenteet ja virheellisiksi merkityt tiedot jäävät pois.",
     "watchStats.hint" to "Mitkä arvot millä kellolla — yhteisön koonti mallia kohti. Tässä lasketaan kaikki: kaikki lajit, accel-datan kanssa tai ilman.",
     "spotcmp.title" to "Spotti-ennätykset",
@@ -2491,6 +2507,14 @@ private fun fiTabelle(): Map<String, String> = mapOf(
 private val NL: Map<String, String> = nlTabelle()
 
 private fun nlTabelle(): Map<String, String> = mapOf(
+    // Kacheln/Zeilen-Umschalter (ListenAnsicht.kt) + Chat-Bilder (ChatFotos.kt), aus den Web-Sprachdateien 30.09.2026.
+    "list.cards" to "Kaarten",
+    "list.compact" to "Eén regel per sessie",
+    "chat.photoAdd" to "Foto's toevoegen",
+    "chat.photoRemove" to "Foto verwijderen",
+    "chat.photoFailed" to "Een foto kon niet worden geüpload — verwijder hem of probeer het opnieuw.",
+    "chat.photoOpen" to "Foto openen",
+    "chat.photosOpen" to "{n} foto's openen",
     "foilStats.hint" to "Welke waarden worden met welke foil gereden (community). Alleen pumpfoil-sessies met accel-detectie tellen mee — andere sporten (wing, eFoil, foildrive, wakethief), alleen-GPS-opnames en als foutief gemarkeerde data blijven buiten beschouwing.",
     "watchStats.hint" to "Welke waarden met welk horloge worden gevaren — community-aggregaat per model. Hier telt elke opname mee: alle sporten, met en zonder accel-data.",
     "spotcmp.title" to "Spot-records",
@@ -3539,6 +3563,14 @@ private fun nlTabelle(): Map<String, String> = mapOf(
 private val CS: Map<String, String> = csTabelle()
 
 private fun csTabelle(): Map<String, String> = mapOf(
+    // Kacheln/Zeilen-Umschalter (ListenAnsicht.kt) + Chat-Bilder (ChatFotos.kt), aus den Web-Sprachdateien 30.09.2026.
+    "list.cards" to "Karty",
+    "list.compact" to "Jeden řádek na relaci",
+    "chat.photoAdd" to "Přidat fotky",
+    "chat.photoRemove" to "Odebrat fotku",
+    "chat.photoFailed" to "Fotku se nepodařilo nahrát — odeber ji nebo to zkus znovu.",
+    "chat.photoOpen" to "Otevřít fotku",
+    "chat.photosOpen" to "Otevřít {n} fotek",
     "foilStats.hint" to "Které hodnoty se jezdí s kterým foilem (komunita). Počítají se jen pumpfoil session s accel detekcí — ostatní sporty (wing, eFoil, foildrive, wakethief), pouze GPS záznamy a data označená jako chybná se nezapočítávají.",
     "watchStats.hint" to "Které hodnoty se jezdí s kterými hodinkami — komunitní souhrn podle modelu. Tady se počítá každý záznam: všechny sporty, s accel daty i bez nich.",
     "spotcmp.title" to "Rekordy spotů",

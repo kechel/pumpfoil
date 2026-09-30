@@ -27,6 +27,8 @@ import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
@@ -58,6 +60,12 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.LocalContext
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -172,7 +180,19 @@ private fun ChatRoomsList(onOpen: (ChatRoom) -> Unit) {
                                 ListItem(
                                     modifier = Modifier.clickable { onOpen(r) },
                                     headlineContent = { Text(if (isDm) (r.other?.name ?: r.label.ifBlank { r.scope }) else r.label.ifBlank { r.scope }) },
-                                    supportingContent = { if (r.lastText.isNotBlank()) Text(r.lastText, maxLines = 1) },
+                                    // Letzte Nachricht mit Bildern: Kamera-Symbol davor (wie Web DmWidget) —
+                                    // bei einer reinen Bild-Nachricht stuende sonst nichts da.
+                                    supportingContent = {
+                                        if (r.lastText.isNotBlank() || r.lastPhoto) Row(verticalAlignment = Alignment.CenterVertically) {
+                                            if (r.lastPhoto) {
+                                                Icon(Icons.Filled.PhotoCamera, contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(15.dp))
+                                                Spacer(Modifier.width(4.dp))
+                                            }
+                                            if (r.lastText.isNotBlank()) Text(r.lastText, maxLines = 1,
+                                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                                        }
+                                    },
                                     leadingContent = { Icon(if (isDm) Icons.Filled.Person else Icons.Filled.Forum, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                                     trailingContent = {
                                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -271,6 +291,11 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
     var actionMsg by remember { mutableStateOf<ChatMsg?>(null) }   // Long-Press -> Aktionsauswahl
     var editMsg by remember { mutableStateOf<ChatMsg?>(null) }     // Bearbeiten-Dialog
     var editText by remember { mutableStateOf("") }
+    // Bilder (30.09.2026, wie Web Chat.tsx): Anhaenge im Eingabefeld bzw. im Bearbeiten-Dialog.
+    // Hochgeladen wird gleich beim Waehlen, damit beim Senden nur noch die ids mitgehen.
+    var anhaenge by remember(room.scope) { mutableStateOf<List<ChatAnhang>>(emptyList()) }
+    var editAnhaenge by remember { mutableStateOf<List<ChatAnhang>>(emptyList()) }
+    var waehleFuerEdit by remember { mutableStateOf(false) }   // wohin der Bild-Waehler liefert
     var showDict by remember { mutableStateOf(false) }            // Diktat-Vollbild
     var isAdmin by remember { mutableStateOf(false) }
     var push by remember { mutableStateOf(false) }
@@ -282,6 +307,39 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
     var confirmBlock by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
+    val ctx = LocalContext.current
+
+    // Bild-Waehler (bis zu 10 je Nachricht, Server-Grenze MAX_CHAT_FOTOS). Jedes Bild wird
+    // verkleinert und sofort hochgeladen; die Vorschau steht schon, waehrend es laeuft.
+    val bildWaehler = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(10)) { uris ->
+        if (uris.isEmpty()) return@rememberLauncherForActivityResult
+        val fuerEdit = waehleFuerEdit
+        val bisher = if (fuerEdit) editAnhaenge.size else anhaenge.size
+        val neu = uris.take((10 - bisher).coerceAtLeast(0)).map { u ->
+            ChatAnhang(key = "${System.nanoTime()}-${u.hashCode()}", uri = u)
+        }
+        fun aendern(f: (List<ChatAnhang>) -> List<ChatAnhang>) {
+            if (fuerEdit) editAnhaenge = f(editAnhaenge) else anhaenge = f(anhaenge)
+        }
+        aendern { it + neu }
+        neu.forEach { n ->
+            scope.launch {
+                val foto = runCatching {
+                    val bytes = withContext(Dispatchers.IO) {
+                        ctx.contentResolver.openInputStream(n.uri!!)?.use { it.readBytes() }?.let { downscaleJpeg(it) }
+                    } ?: throw RuntimeException("leer")
+                    Api.uploadChatPhoto(bytes)
+                }.getOrNull()
+                aendern { l -> l.map { if (it.key == n.key) (if (foto != null) it.copy(id = foto.id) else it.copy(fehler = true)) else it } }
+            }
+        }
+    }
+    fun bilderWaehlen(fuerEdit: Boolean) {
+        waehleFuerEdit = fuerEdit
+        bildWaehler.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+    }
+    val laedtNoch = anhaenge.any { it.id == null && !it.fehler }
+    val bereiteBilder = anhaenge.mapNotNull { it.id }
 
     // Beim Öffnen und bei neuen Nachrichten ans Ende scrollen (wie die Web-PWA).
     LaunchedEffect(msgs.size) {
@@ -295,6 +353,17 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
             lastId = rows.maxOfOrNull { it.id } ?: 0
             if (lastId > 0) runCatching { Api.chatMarkRead(room.scope, lastId) }
         } catch (e: Exception) { error = e.message }
+    }
+    // Senden mit Text und/oder fertig hochgeladenen Bildern (Tastatur UND Diktat, wie Web sendText).
+    fun senden(t: String) {
+        if ((t.isEmpty() && bereiteBilder.isEmpty()) || sending || laedtNoch) return
+        sending = true
+        val ids = bereiteBilder
+        scope.launch {
+            try { Api.chatPost(room.scope, t, ids); input = ""; anhaenge = emptyList(); load() }
+            catch (e: Exception) { error = e.message }
+            sending = false
+        }
     }
     LaunchedEffect(room.scope) {
         isAdmin = runCatching { Api.me().isAdmin }.getOrDefault(false)
@@ -326,7 +395,10 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
                 showDict = false
                 val t = (if (input.isBlank()) text else "$input $text").trim()
                 if (send) {
-                    if (t.isNotEmpty()) scope.launch { try { Api.chatPost(room.scope, t); input = ""; load() } catch (e: Exception) { error = e.message } }
+                    // Erst ins Feld: scheitert das Senden (oder laeuft noch ein Bild-Upload), bleibt
+                    // der diktierte Text stehen statt zu verschwinden.
+                    input = t
+                    senden(t)
                 } else {
                     input = t
                 }
@@ -340,11 +412,17 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
         val editable = m.mine && withinEditWindow(m.createdAt)
         AlertDialog(
             onDismissRequest = { actionMsg = null },
-            title = { Text(m.text, maxLines = 2) },
+            title = { if (m.text.isNotBlank()) Text(m.text, maxLines = 2) },
             text = {
                 Column {
                     if (editable) {
-                        TextButton(onClick = { editText = m.text; editMsg = m; actionMsg = null }) { Text(I18n.t("chat.edit")) }
+                        TextButton(onClick = {
+                            editText = m.text
+                            // Die Bilder der Nachricht stehen als Anhaenge im Dialog — einzelne
+                            // entfernen, neue dazunehmen; wirksam erst beim Speichern (wie Web).
+                            editAnhaenge = m.photos.map { p -> ChatAnhang(key = "p${p.id}", url = p.thumbUrl ?: p.url, id = p.id) }
+                            editMsg = m; actionMsg = null
+                        }) { Text(I18n.t("chat.edit")) }
                         TextButton(onClick = {
                             val id = m.id; actionMsg = null
                             scope.launch { try { Api.chatDelete(id); load() } catch (e: Exception) { error = e.message } }
@@ -395,19 +473,38 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
         )
     }
     editMsg?.let { m ->
+        val editLaedt = editAnhaenge.any { it.id == null && !it.fehler }
+        val editIds = editAnhaenge.mapNotNull { it.id }
+        // Bildliste nur mitschicken, wenn es Bilder gibt oder gab — reine Textnachrichten wie bisher.
+        val schickeBilder = m.photos.isNotEmpty() || editAnhaenge.isNotEmpty()
+        val speicherbar = !editLaedt && (editText.isNotBlank() || (schickeBilder && editIds.isNotEmpty()))
         AlertDialog(
-            onDismissRequest = { editMsg = null },
+            onDismissRequest = { editMsg = null; editAnhaenge = emptyList() },
             title = { Text(I18n.t("chat.edit")) },
             text = {
-                OutlinedTextField(value = editText, onValueChange = { editText = it }, maxLines = 4)
+                Column {
+                    OutlinedTextField(value = editText, onValueChange = { editText = it }, maxLines = 4)
+                    ChatAnhangLeiste(editAnhaenge, onWeg = { k -> editAnhaenge = editAnhaenge.filter { it.key != k } },
+                        modifier = Modifier.padding(top = 8.dp))
+                    // Neue Bilder dazunehmen nur als Admin (Server: 403 sonst); entfernen darf jeder.
+                    if (isAdmin && editAnhaenge.size < 10) {
+                        TextButton(onClick = { bilderWaehlen(fuerEdit = true) }) {
+                            Icon(Icons.Filled.AddPhotoAlternate, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text(I18n.t("chat.photoAdd"))
+                        }
+                    }
+                }
             },
             confirmButton = {
-                TextButton(onClick = {
-                    val id = m.id; val t = editText.trim(); editMsg = null
-                    if (t.isNotEmpty()) scope.launch { try { Api.chatEdit(id, t); load() } catch (e: Exception) { error = e.message } }
+                TextButton(enabled = speicherbar, onClick = {
+                    val id = m.id; val t = editText.trim()
+                    val ids = if (schickeBilder) editIds else null
+                    editMsg = null; editAnhaenge = emptyList()
+                    scope.launch { try { Api.chatEdit(id, t, ids); load() } catch (e: Exception) { error = e.message } }
                 }) { Text(I18n.t("common.save")) }
             },
-            dismissButton = { TextButton(onClick = { editMsg = null }) { Text(I18n.t("common.cancel")) } },
+            dismissButton = { TextButton(onClick = { editMsg = null; editAnhaenge = emptyList() }) { Text(I18n.t("common.cancel")) } },
         )
     }
 
@@ -446,10 +543,20 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
             )
         },
         bottomBar = {
+            Column(Modifier.fillMaxWidth()) {
+            ChatAnhangLeiste(anhaenge, onWeg = { k -> anhaenge = anhaenge.filter { it.key != k } },
+                modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 8.dp))
             Row(
                 Modifier.fillMaxWidth().padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                // Kamera-Knopf: Bilder anhaengen, vorerst NUR fuer Admins (wie Web; der Server lehnt
+                // Uploads anderer mit 403 ab).
+                if (isAdmin) {
+                    IconButton(onClick = { bilderWaehlen(fuerEdit = false) }, enabled = !sending && anhaenge.size < 10) {
+                        Icon(Icons.Filled.PhotoCamera, contentDescription = I18n.t("chat.photoAdd"), tint = MaterialTheme.colorScheme.primary)
+                    }
+                }
                 OutlinedTextField(
                     value = input, onValueChange = { input = it },
                     modifier = Modifier.weight(1f),
@@ -458,16 +565,10 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
                 IconButton(onClick = { showDict = true }) {
                     Icon(Icons.Filled.Mic, contentDescription = I18n.t("dict.button"), tint = MaterialTheme.colorScheme.primary)
                 }
-                IconButton(onClick = {
-                    val t = input.trim()
-                    if (t.isEmpty() || sending) return@IconButton
-                    sending = true
-                    scope.launch {
-                        try { Api.chatPost(room.scope, t); input = ""; load() }
-                        catch (e: Exception) { error = e.message }
-                        sending = false
-                    }
-                }) { Icon(Icons.AutoMirrored.Filled.Send, contentDescription = I18n.t("chat.send"), tint = MaterialTheme.colorScheme.primary) }
+                IconButton(onClick = { senden(input.trim()) }, enabled = !sending && !laedtNoch) {
+                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = I18n.t("chat.send"), tint = MaterialTheme.colorScheme.primary)
+                }
+            }
             }
         },
     ) { pad ->
@@ -530,7 +631,9 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
                                 Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
-                        LinkifiedText(m.text)
+                        // Reine Bild-Nachricht: kein leerer Textblock, nur die Bilder.
+                        if (m.text.isNotBlank()) LinkifiedText(m.text)
+                        ChatFotoStapel(m.photos)
                     }
                 }
             }

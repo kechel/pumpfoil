@@ -363,6 +363,9 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                             if (neueId != null) onOpen(neueId, null) else scopeC.launch { load() }
                         })
                     }
+                    // Kacheln / eine Zeile je Session (ListenAnsicht.kt) — in der Werkzeugzeile wie
+                    // im Web; gilt fuer Meine, Alle und die Spot-Ansicht zugleich.
+                    ListenAnsichtUmschalter(Modifier.align(Alignment.CenterVertically))
                 }
             }
             // Sportart-Filter + Monat (nur eigene, scrollbar) — wie PWA.
@@ -442,7 +445,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                             }
                             if (scope == Scope.SPOT) {
                                 if (spot.isNotBlank()) {
-                                    item { SpotRecordsSection(spot, accelOnly) { id -> onOpen(id, null) } }
+                                    item { SpotRecordsSection(spot, accelOnly, sport, sports) { id -> onOpen(id, null) } }
                                 }
                                 weather?.let { sw ->
                                     item {
@@ -479,7 +482,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                                 item { Text(msg, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                             }
                             if (scope == Scope.MINE) {
-                                items(own) { s -> SessionRow(s, Modifier.padding(horizontal = 12.dp, vertical = 5.dp)) { onOpen(s.id, s.dataVersion) } }
+                                items(own) { s -> SessionRow(s, Modifier.padding(horizontal = 12.dp, vertical = ListenAnsicht.abstand)) { onOpen(s.id, s.dataVersion) } }
                                 if (own.isNotEmpty()) item {
                                     Text(I18n.t("sessions.listEnd"), Modifier.fillMaxWidth().padding(vertical = 12.dp),
                                         style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -487,7 +490,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                                 }
                             } else {
                                 items(groups) { g ->
-                                    val pad = Modifier.padding(horizontal = 12.dp, vertical = 5.dp)
+                                    val pad = Modifier.padding(horizontal = 12.dp, vertical = ListenAnsicht.abstand)
                                     if (g.count <= 1) {
                                         g.sessions.firstOrNull()?.let { c -> CommunityItemRow(c, pad) { onOpen(c.id, null) } }
                                     } else {
@@ -542,6 +545,26 @@ fun AvatarCircle(name: String?, avatarUrl: String?, size: Dp = 40.dp) {
 fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, onClick: () -> Unit) {
     val a = s.analysis
     val m = a?.metrics
+    // Zeilen-Ansicht (ListenAnsicht.kt): eigene Session — kein Name (es ist die eigene, wie im
+    // Web), Status/Uebertragung als Abzeichen vor dem Herz.
+    if (ListenAnsicht.kompakt) {
+        SessionZeile(
+            sessionId = s.id, avatarName = s.ownerName, avatarUrl = s.ownerAvatarUrl,
+            datum = zeilenDatum(s.startedAt, s.tz), uhrzeit = hhmm(s.startedAt, s.tz),
+            name = null, spot = s.placeName, sportLabel = null,
+            kennzahlen = if (a != null) sessionStatsTeile(a, m) else emptyList(),
+            liked = s.liked, likeCount = s.likeCount, modifier = modifier,
+            abzeichen = if (s.transferTo != null || s.status != "analyzed") {
+                {
+                    Text(if (s.transferTo != null) I18n.t("transfer.badge") else statusLabel(s.status),
+                        style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.tertiary,
+                        maxLines = 1, softWrap = false)
+                }
+            } else null,
+            onClick = onClick,
+        )
+        return
+    }
     val inCompare = CompareStore.refs.collectAsState().value.contains(CompareRef(s.id))
     Card(
         modifier = modifier.fillMaxWidth().combinedClickable(
@@ -646,7 +669,7 @@ fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, onClick: () -> 
 
 // Tappbarer Like-Button in Listenkarten (optimistisch, wie Web): rosa wenn geliked.
 @Composable
-private fun LikeToggle(sessionId: Int, liked0: Boolean, count0: Int) {
+internal fun LikeToggle(sessionId: Int, liked0: Boolean, count0: Int) {
     var liked by remember(sessionId) { mutableStateOf(liked0) }
     var count by remember(sessionId) { mutableStateOf(count0) }
     val scope = rememberCoroutineScope()
@@ -779,18 +802,23 @@ fun GeraeteAbzeichen(label: String, placement: String?) {
 
 @Composable
 private fun SessionStatsRow(a: Analysis, m: Metrics?) {
-    val parts = buildList {
+    val parts = sessionStatsTeile(a, m)
+    if (parts.isEmpty()) return
+    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        parts.forEach { Text(it, style = MaterialTheme.typography.bodySmall, maxLines = 1) }
+    }
+}
+
+// Kennzahlen der eigenen Session — Kachel (scrollbar) und Zeile (abgeschnitten) zeigen dieselben.
+internal fun sessionStatsTeile(a: Analysis, m: Metrics?): List<String> {
+    return buildList {
         a.foilingDistanceM?.let { add("%.2f km".format(it / 1000.0)) }
         a.foilingTimeS?.let { add(fmtDur(it)) }
         m?.numSegments?.let { if (it > 0) add("$it " + I18n.t(if (it == 1) "unit.run" else "unit.runs")) }
         m?.avgSpeedMps?.let { add("Ø %.1f km/h".format(it * 3.6)) }
         a.pumpCount?.let { pc -> add("↕ $pc" + (m?.avgPumpHz?.let { " · " + PumpUnit.fmt(it) } ?: "")) }
         m?.avgHr?.let { if (it > 0) add("$it" + (m.maxHr?.let { mx -> "/$mx" } ?: "") + " bpm") }
-    }
-    if (parts.isEmpty()) return
-    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        parts.forEach { Text(it, style = MaterialTheme.typography.bodySmall, maxLines = 1) }
     }
 }
 
@@ -800,6 +828,7 @@ private fun fmtDur(s: Double): String { val t = s.toInt(); return "%d:%02d".form
 // Zähler + Kombi-Minimap(s); aufgeklappt die Einzel-Sessions (je mit Detail-Link). Wie PWA.
 @Composable
 private fun GroupCard(g: CommunityGroup, modifier: Modifier, onOpen: (Int) -> Unit) {
+    if (ListenAnsicht.kompakt) { GruppenZeile(g, modifier, onOpen); return }
     var open by remember(g.userId, g.date) { mutableStateOf(false) }
     val dateLabel = remember(g.date) {
         runCatching { g.date.split("-").let { "${it[2]}.${it[1]}.${it[0]}" } }.getOrDefault(g.date)
@@ -862,7 +891,7 @@ private fun GroupCard(g: CommunityGroup, modifier: Modifier, onOpen: (Int) -> Un
             }
             if (open) {
                 g.sessions.forEach { c ->
-                    CommunityItemRow(c, Modifier.padding(horizontal = 12.dp, vertical = 5.dp)) { onOpen(c.id) }
+                    CommunityItemRow(c, Modifier.padding(horizontal = 12.dp, vertical = ListenAnsicht.abstand)) { onOpen(c.id) }
                 }
             }
         }
@@ -906,6 +935,17 @@ internal fun TrackPreviewCanvas(data: String, modifier: Modifier) {
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun CommunityItemRow(c: CommunityItem, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    if (ListenAnsicht.kompakt) {
+        SessionZeile(
+            sessionId = c.id, avatarName = c.name, avatarUrl = c.avatarUrl,
+            datum = zeilenDatum(c.startedAt, c.tz), uhrzeit = hhmm(c.startedAt, c.tz),
+            name = c.name, spot = c.spot,
+            sportLabel = c.sportClass?.takeIf { it.isNotBlank() && it != "pumpfoil" }?.let { I18n.t("cls.sport.$it") },
+            kennzahlen = communityStatsTeile(c),
+            liked = c.liked, likeCount = c.likeCount, modifier = modifier, onClick = onClick,
+        )
+        return
+    }
     val inCompare = CompareStore.refs.collectAsState().value.contains(CompareRef(c.id))
     Card(
         modifier = modifier.fillMaxWidth().combinedClickable(
@@ -954,11 +994,7 @@ fun CommunityItemRow(c: CommunityItem, modifier: Modifier = Modifier, onClick: (
                     }
                 }
             }
-            val stats = buildList {
-                if (c.runs > 0) add("${c.runs} " + I18n.t(if (c.runs == 1) "unit.run" else "unit.runs"))
-                if (c.foilingKm > 0) add("%.2f km".format(c.foilingKm))
-                c.maxSpeedMps?.let { add("max %.1f km/h".format(it * 3.6)) }
-            }
+            val stats = communityStatsTeile(c)
             if (stats.isNotEmpty()) {
                 Spacer(Modifier.height(8.dp))
                 Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
@@ -970,6 +1006,13 @@ fun CommunityItemRow(c: CommunityItem, modifier: Modifier = Modifier, onClick: (
             // Like ist jetzt unter dem Avatar (nicht mehr eigene Fußzeile).
         }
     }
+}
+
+// Kennzahlen einer Community-Session — Kachel und Zeile zeigen dieselben.
+internal fun communityStatsTeile(c: CommunityItem): List<String> = buildList {
+    if (c.runs > 0) add("${c.runs} " + I18n.t(if (c.runs == 1) "unit.run" else "unit.runs"))
+    if (c.foilingKm > 0) add("%.2f km".format(c.foilingKm))
+    c.maxSpeedMps?.let { add("max %.1f km/h".format(it * 3.6)) }
 }
 
 // Monats-Auswahl (wie das PWA-<select>): „Alle Monate" + Monat (Anzahl).

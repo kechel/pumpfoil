@@ -776,12 +776,15 @@ object Api {
         accelOnly: Boolean = true,
         foilBand: String = "all",
         spot: String? = null,
+        // Sportart der Rekorde; null = Serverdefault „pumpfoil" (Community-Seite, Foil-Detail).
+        sport: String? = null,
     ): Map<String, PeriodRecords> = withContext(Dispatchers.IO) {
         json.decodeFromString(
             MapSerializer(String.serializer(), PeriodRecords.serializer()),
             http("GET", buildString {
             append("/api/community/records?accel_only=$accelOnly&foil_band=$foilBand")
             if (!spot.isNullOrBlank()) append("&spot=" + java.net.URLEncoder.encode(spot, "UTF-8"))
+            if (!sport.isNullOrBlank()) append("&sport=" + java.net.URLEncoder.encode(sport, "UTF-8"))
         }, null, auth = true),
         )
     }
@@ -846,9 +849,14 @@ object Api {
         json.decodeFromString(ListSerializer(ChatMsg.serializer()), http("GET", "/api/chat?scope=$s&limit=$limit", null, auth = true))
     }
 
-    suspend fun chatPost(scope: String, text: String): ChatMsg = withContext(Dispatchers.IO) {
+    // `photoIds`: vorher per uploadChatPhoto hochgeladene Bilder (vorerst nur Admins); die
+    // Nachricht darf dann auch ganz ohne Text sein.
+    suspend fun chatPost(scope: String, text: String, photoIds: List<Int> = emptyList()): ChatMsg = withContext(Dispatchers.IO) {
         val s = java.net.URLEncoder.encode(scope, "UTF-8")
-        val body = buildJsonObject { put("text", text) }.toString()
+        val body = buildJsonObject {
+            put("text", text)
+            if (photoIds.isNotEmpty()) put("photo_ids", kotlinx.serialization.json.JsonArray(photoIds.map { kotlinx.serialization.json.JsonPrimitive(it) }))
+        }.toString()
         json.decodeFromString(ChatMsg.serializer(), http("POST", "/api/chat?scope=$s", body, auth = true))
     }
 
@@ -1104,8 +1112,13 @@ object Api {
     }
 
     // Eigene Chat-Nachricht bearbeiten (nur < 1 h). PUT-Alias, da HttpURLConnection kein PATCH kann.
-    suspend fun chatEdit(messageId: Int, text: String): Unit = withContext(Dispatchers.IO) {
-        val body = buildJsonObject { put("text", text) }.toString()
+    // `photoIds` = die KOMPLETTE neue Bildliste in Reihenfolge; null = Bilder unveraendert lassen
+    // (so schicken es auch alte Clients, s. chat.py:EditIn).
+    suspend fun chatEdit(messageId: Int, text: String, photoIds: List<Int>? = null): Unit = withContext(Dispatchers.IO) {
+        val body = buildJsonObject {
+            put("text", text)
+            if (photoIds != null) put("photo_ids", kotlinx.serialization.json.JsonArray(photoIds.map { kotlinx.serialization.json.JsonPrimitive(it) }))
+        }.toString()
         http("PUT", "/api/chat/$messageId", body, auth = true)
     }
 
@@ -1177,6 +1190,33 @@ object Api {
 
     suspend fun deleteSpotNotePhoto(spotId: Int, photoId: Int): Unit = withContext(Dispatchers.IO) {
         http("DELETE", "/api/community/spot/$spotId/note/photos/$photoId", null, auth = true); Unit
+    }
+
+    // Bild fuer eine Chat-Nachricht, hochgeladen VOR dem Senden (Vorschau im Eingabefeld) — vorerst
+    // nur Admins (Server: POST /api/chat/photos, 403 sonst). Die zurueckgegebene id geht beim Senden
+    // bzw. Bearbeiten als `photo_ids` mit. Dieselbe multipart-Form wie uploadSessionPhoto.
+    suspend fun uploadChatPhoto(bytes: ByteArray, filename: String = "photo.jpg",
+                                mime: String = "image/jpeg"): ChatPhoto = withContext(Dispatchers.IO) {
+        val boundary = "----pumpfoil${System.nanoTime()}"
+        val conn = (URL(BASE + "/api/chat/photos").openConnection() as HttpURLConnection).apply {
+            requestMethod = "POST"
+            doOutput = true
+            setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
+            token?.let { setRequestProperty("Authorization", "Bearer $it") }
+            connectTimeout = 15000; readTimeout = 60000
+        }
+        conn.outputStream.use { out ->
+            out.write(("--$boundary\r\nContent-Disposition: form-data; name=\"file\"; filename=\"$filename\"\r\n" +
+                "Content-Type: $mime\r\n\r\n").toByteArray())
+            out.write(bytes)
+            out.write("\r\n--$boundary--\r\n".toByteArray())
+        }
+        val code = conn.responseCode
+        if (code !in 200..299) {
+            val err = conn.errorStream?.bufferedReader()?.readText() ?: ""
+            throw RuntimeException(I18n.t("err.uploadFailed").replace("{code}", code.toString()) + ": $err")
+        }
+        json.decodeFromString(ChatPhoto.serializer(), conn.inputStream.bufferedReader().readText())
     }
 
     // Foto zur eigenen Spot-Beschreibung — dieselbe multipart-Form wie uploadSessionPhoto.

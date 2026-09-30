@@ -121,7 +121,7 @@ fun FoilDetailScreen(foil: FoilStat, onBack: () -> Unit, onOpen: (Int) -> Unit) 
                 }
             }
             items(sessions) { c ->
-                CommunityItemRow(c, Modifier.padding(horizontal = 12.dp, vertical = 5.dp)) { onOpen(c.id) }
+                CommunityItemRow(c, Modifier.padding(horizontal = 12.dp, vertical = ListenAnsicht.abstand)) { onOpen(c.id) }
             }
             if (mehr) {
                 item {

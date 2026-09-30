@@ -8,6 +8,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -32,14 +33,34 @@ import androidx.compose.ui.unit.dp
  * eins und würde für den Rückfall vier Abrufe brauchen.
  */
 @Composable
-fun SpotRecordsSection(spot: String, accelOnly: Boolean, onOpen: (Int) -> Unit) {
-    val fenster = listOf("10d", "30d", "365d", "all")
-    var alle by remember(spot) { mutableStateOf<Map<String, PeriodRecords>?>(null) }
-    var wahl by remember(spot) { mutableStateOf("10d") }
-    var selbstGewaehlt by remember(spot) { mutableStateOf(false) }
+fun SpotRecordsSection(spot: String, accelOnly: Boolean, sport: String, sports: List<SportRuns>, onOpen: (Int) -> Unit) {
+    // REKORDE JE SPORTART (wie die PWA seit 29.09.2026, Anlass: ein Foil-Scoot-Fahrer vermisste
+    // seine Rekorde am Spot, abgefragt wurde fest „pumpfoil"). Folgt dem Sportarten-Filter der
+    // Seite: eine Sportart gewaehlt -> nur deren Rekorde; „alle Sportarten" -> ein Kasten JE
+    // Sportart, kein gemischter — ein Foil-Scoot-Tempo gegen ein Pumpfoil-Tempo waere kein
+    // Rekord. Kaesten ohne Rekord blenden sich selbst aus (s. unten).
+    val liste = if (sport != "all") listOf(sport)
+                else sports.map { it.sport }.filter { it.isNotBlank() }.ifEmpty { listOf("pumpfoil") }
+    Column {
+        // Den Lade-Kopf (Anker, s. unten) zeigt nur der ERSTE Kasten: bei „alle Sportarten"
+        // stuenden sonst kurz acht Ueberschriften untereinander, von denen die meisten gleich
+        // wieder verschwinden.
+        liste.forEachIndexed { i, sp ->
+            key(sp) { SpotRecordsSport(spot, accelOnly, sp, ladeKopf = i == 0, onOpen = onOpen) }
+        }
+    }
+}
 
-    LaunchedEffect(spot, accelOnly) {
-        alle = try { Api.communityRecords(accelOnly = accelOnly, spot = spot) } catch (_: Exception) { emptyMap() }
+@Composable
+private fun SpotRecordsSport(spot: String, accelOnly: Boolean, sport: String, ladeKopf: Boolean, onOpen: (Int) -> Unit) {
+    val fenster = listOf("10d", "30d", "365d", "all")
+    var alle by remember(spot, sport) { mutableStateOf<Map<String, PeriodRecords>?>(null) }
+    var wahl by remember(spot, sport) { mutableStateOf("10d") }
+    var selbstGewaehlt by remember(spot, sport) { mutableStateOf(false) }
+    val titel = I18n.t("rec.spotTitle") + " · " + I18n.t("cls.sport.$sport")
+
+    LaunchedEffect(spot, accelOnly, sport) {
+        alle = try { Api.communityRecords(accelOnly = accelOnly, spot = spot, sport = sport) } catch (_: Exception) { emptyMap() }
         if (!selbstGewaehlt) {
             wahl = fenster.firstOrNull { hatRekorde(alle?.get(it)) } ?: "all"
         }
@@ -61,7 +82,8 @@ fun SpotRecordsSection(spot: String, accelOnly: Boolean, onOpen: (Int) -> Unit) 
     // bleibt auf Position 0, und alles Nachgeladene waechst UNTERHALB davon ein.
     val daten = alle
     if (daten == null) {
-        Text(I18n.t("rec.spotTitle"), style = MaterialTheme.typography.titleSmall,
+        if (!ladeKopf) return
+        Text(titel, style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp))
         return
@@ -71,7 +93,7 @@ fun SpotRecordsSection(spot: String, accelOnly: Boolean, onOpen: (Int) -> Unit) 
     if (fenster.none { hatRekorde(daten[it]) }) return
 
     Column(Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) {
-        Text(I18n.t("rec.spotTitle"), style = MaterialTheme.typography.titleSmall,
+        Text(titel, style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 4.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(bottom = 6.dp)) {
             fenster.forEach { f ->
