@@ -31,20 +31,27 @@ def _modell(pfad: str):
 FALTEN = STANDARD.with_name(STANDARD.stem + "_falten.pkl")
 
 
-def wahrscheinlichkeit(tb, pfad: Path = STANDARD, fahrer: int | None = None) -> np.ndarray | None:
+def wahrscheinlichkeit(tb, pfad: Path = STANDARD, fahrer: int | None = None,
+                       p_ref: np.ndarray | None = None) -> np.ndarray | None:
     """Wahrscheinlichkeit „auf dem Foil" je GPS-Sample. Mit `fahrer` (nur fuer Messungen): das
     Teilmodell, das diesen Fahrer im Training NIE gesehen hat — sonst misst man Auswendiglernen.
     Fahrer, die gar nicht im Training waren, bekommen das Gesamtmodell."""
     if not tb.has_accel or len(tb.gps) == 0:
         return None
-    _, X = M.merkmale(tb)
+    t, X = M.merkmale(tb)
+    from . import haltung as HA
+    alle = list(M.NAMEN) + list(HA.NAMEN)
 
     def _spalten(modell: dict) -> np.ndarray:
         # Ein Modell kennt die Merkmale, mit denen es trainiert wurde (`namen`). Kommen spaeter
         # neue dazu (29.09.: Achsen gegen die Schwerkraft), nimmt ein altes Modell nur seine.
         namen = modell.get("namen") or M.NAMEN
-        sp = [M.NAMEN.index(n) for n in namen]
-        return M.windowize(X[:, sp], modell.get("kontext_r", M.KONTEXT_R))
+        X0 = X
+        if any(n in HA.NAMEN for n in namen):
+            # zweistufig: Haltung gegen die sicheren Sekunden eines Vorgaenger-Modells (p_ref)
+            X0 = np.hstack([X, HA.merkmale(tb, t, X[:, 0], p_ref)])
+        sp = [alle.index(n) for n in namen]
+        return M.windowize(X0[:, sp], modell.get("kontext_r", M.KONTEXT_R))
     if fahrer is not None and FALTEN.exists():
         f = _modell(str(FALTEN))
         k = f["fahrer_falte"].get(int(fahrer))

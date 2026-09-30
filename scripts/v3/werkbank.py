@@ -52,7 +52,11 @@ def p_je_session(s):
     from app.analysis.v3 import merkmale as M, stufe_a
     try:
         tb = build_timebase_for_session(M.ganze_aufnahme(s))
-        p = stufe_a.wahrscheinlichkeit(tb, fahrer=s["user_id"])
+        p_ref = None
+        rf = ML / "v3" / "p_r3" / f"{s['id']}.npz"
+        if MODELL != "r3" and rf.exists():          # Haltungs-Modelle brauchen r3 als Referenz
+            rr = np.load(rf); p_ref = np.interp(tb.t_gps_ms.astype(float), rr["t"], rr["p"])
+        p = stufe_a.wahrscheinlichkeit(tb, fahrer=s["user_id"], p_ref=p_ref)
     except Exception:
         return s["id"], None, None, None
     if p is None:
@@ -166,6 +170,56 @@ def kurz(L, t, pg, tau_k, k_s=8):
     return out
 
 
+HS = ML / "v3" / "hs"
+
+
+def haltung_je_sekunde(s):
+    """Schwerkraft + Bewegungs-Energie je Sekunde (fuer den Haltungs-Check), zwischengespeichert."""
+    f = HS / f"{s['id']}.npz"
+    if f.exists():
+        d = np.load(f)
+        return s["id"], d["t"], d["g"], d["a2"]
+    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+    import haltung as H
+    from app.analysis.timebase import build_timebase_for_session
+    from app.analysis.v3 import merkmale as M
+    try:
+        t, g, a2 = H.je_sekunde(build_timebase_for_session(M.ganze_aufnahme(s)))
+    except Exception:
+        return s["id"], None, None, None
+    HS.mkdir(parents=True, exist_ok=True)
+    np.savez_compressed(f, t=t, g=g.astype(np.float32), a2=a2.astype(np.float32))
+    return s["id"], t, g, a2
+
+
+def haltung_check(L, t, p, hs, regel, ref_p=0.9, ref_s=10):
+    """Jans Idee (30.09.): in echten Laeufen sitzt die Uhr wie in den ANDEREN sicheren Laeufen der
+    Session. Lauf weg, wenn (winkel > w ODER profil > pr) UND staerke < st — gegen die Referenz aus
+    den uebrigen sicheren Laeufen (mittleres p >= ref_p, >= ref_s s), nie gegen sich selbst.
+    Weniger als 2 Referenz-Laeufe: kein Urteil."""
+    import haltung as H
+    w, pr, st = regel
+    th, g, a2 = hs
+    sicher = []
+    for a, b in L:
+        m = (t >= a) & (t <= b)
+        if b - a >= ref_s * 1000 and m.any() and p[m].mean() >= ref_p:
+            x = H.abschnitt(th, g, a2, a, b)
+            if x:
+                sicher.append(((a, b), x))
+    out = []
+    for a, b in L:
+        andere = [x for (aa, bb), x in sicher if (aa, bb) != (a, b)]
+        x = H.abschnitt(th, g, a2, a, b)
+        if len(andere) < 2 or x is None:
+            out.append((a, b)); continue
+        f = H.merkmale_gegen(x, H.referenz(andere))
+        if (f[0] > w or f[2] > pr) and f[3] < st:
+            continue
+        out.append((a, b))
+    return out
+
+
 def vereinigung(L1, L2):
     out = []
     for a, b in sorted(list(L1) + list(L2)):
@@ -227,6 +281,8 @@ VARIANTEN = {
     "beide+empfteilkurz": ("beide", "empfteilkurz"),
     "tief+empfteilkurz": ("tief", "empfteilkurz"),
     "beide+empfteilkurzroh": ("beide", "empfteilkurzroh"),
+    "beide+empfteilkurzhalt": ("beide", "empfteilkurzhalt"),
+    "beide+empfteilkurzhalt2": ("beide", "empfteilkurzhalt2"),
     "tief+schnitt0.5+veto0.6": ("tief", [("schnitt", 0.5), ("veto", 0.6)]),
     "tief+schnitt0.6+veto0.6": ("tief", [("schnitt", 0.6), ("veto", 0.6)]),
     "tief+schnitt0.5+naht4+veto0.5": ("tief", [("schnitt", 0.5), ("naht", 4), ("veto", 0.5)]),
@@ -245,13 +301,17 @@ EMPF_SCHWELLEN = {
 EMPF_KURZ = {"normal": 0.8, "light": 0.7, "attempts": 0.6}
 
 
-def anwenden(L, schritte, t, v, pg, empf="normal", p_roh=None):
+def anwenden(L, schritte, t, v, pg, empf="normal", p_roh=None, hs=None):
     if schritte == "empfteil":
         theta, tau = EMPF_TEIL.get(empf or "normal", EMPF_TEIL["normal"])
         schritte = [("teil", theta), ("veto", tau)]
     elif schritte == "empfteilkurz":
         theta, tau = EMPF_TEIL.get(empf or "normal", EMPF_TEIL["normal"])
         schritte = [("teil", theta), ("veto", tau), ("kurz", 0.8)]
+    elif schritte in ("empfteilkurzhalt", "empfteilkurzhalt2"):
+        theta, tau = EMPF_TEIL.get(empf or "normal", EMPF_TEIL["normal"])
+        regel = (30, 0.4, 0.5) if schritte == "empfteilkurzhalt" else (30, 0.4, 0.4)
+        schritte = [("teil", theta), ("veto", tau), ("kurz", 0.8), ("haltung", regel)]
     elif schritte == "empfteilkurzroh":
         # kurze Stuecke am UNGEGLAETTETEN p messen (die Glaettung zieht p an den Raendern kurzer
         # Laeufe herunter) und je Empfindlichkeit milder
@@ -274,6 +334,9 @@ def anwenden(L, schritte, t, v, pg, empf="normal", p_roh=None):
             L = teil(L, t, pg, x)
         elif art == "kurz":
             L = kurz(L, t, pg, x)
+        elif art == "haltung":
+            if hs is not None:
+                L = haltung_check(L, t, p_roh if p_roh is not None else pg, hs, x)
         elif art == "kurzroh":
             L = kurz(L, t, p_roh if p_roh is not None else pg, x)
     return L
@@ -305,6 +368,10 @@ def main():
         P = {sid: (t, v, p) for sid, t, v, p in pool.imap_unordered(p_je_session, [basis[i] for i in ids], chunksize=4)
              if t is not None}
     print(f"[{MODELL}] Sessions mit p: {len(P)} von {len(ids)}", flush=True)
+    with Pool(a.jobs) as pool:
+        HSD = {sid: (t, g, a2) for sid, t, g, a2 in pool.imap_unordered(haltung_je_sekunde, [basis[i] for i in ids], chunksize=4)
+               if t is not None}
+    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
     # Wahrheiten fuer die direkte Messung
     brett = pickle.load(open(a.brett, "rb")) if a.brett else None
     fort = json.loads((ML / "v3" / "labels_fortsetzung.json").read_text())["sessions"]
@@ -326,7 +393,7 @@ def main():
                 L0 = vereinigung(L0, [(x["t0"], x["t1"]) for x in basis[sid]["runs"]])
             if sid in P and schritte:
                 t, v, p = P[sid]
-                L = anwenden(L0, schritte, t, v, glaetten(p), r.get("sensitivity"), p)
+                L = anwenden(L0, schritte, t, v, glaetten(p), r.get("sensitivity"), p, HSD.get(sid))
             else:
                 L = L0
             if sid in P:

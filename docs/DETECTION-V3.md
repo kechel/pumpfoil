@@ -285,3 +285,32 @@ Profil-Empfindlichkeit). Gemessen mit detektor-v3-messen.py + direkt gegen Brett
 Profil-Empfindlichkeit. Offen fuer Jan: wie streng bei kurzen Laeufen (141 bis 1290 unter 8 s,
 foil_status-Trefferquote gleich) und #9580 (Steg-Gewimmel). Live erst nach Jans OK, mit
 Lauf-Status manuell/auto und Sicherung des Bestands.
+
+## Haltung der Uhr relativ zur Session (Jans Idee, 30.09.2026)
+
+Jan an #9580: „ich vermute bei den meisten Pumpern ist die Richtung der Uhr immer etwa gleich
+verteilt waehrend eines Laufs, und genau das koennte bei erkanntem Pumpen an Land (also Laufen) ganz
+anders sein." `scripts/v3/haltung.py`, je Abschnitt gegen die UEBRIGEN sicheren Laeufe derselben
+Session (p_r3 >= 0,9, >= 10 s):
+
+| | n | Winkel | Streuung | Profil-Abstand | Staerke rel. |
+|---|---|---|---|---|---|
+| echte Laeufe | 2593 | 4,5° | 10° | 0,10 | 1,00 |
+| Nutzer-aussortiert | 74 | 21° | 21° | 0,56 | 0,81 |
+| Laeufe an Land (Sicht) | 47 | 75° | 17° | 0,68 | 0,12 |
+| Gehen/Tragen an Land | 188 | 72° | 18° | 0,70 | 0,12 |
+
+AUC Winkel 0,95 / 0,89 / 0,97, Profil 0,93 / 0,96 / 0,95. Die Brett-Paare bestaetigen es
+unabhaengig von der Karte (Brett pumpt nicht, Uhr 2,5-8 km/h): Fahren 3-7°, Gehen 39-91°, Staerke
+0,13-0,27. #9580 selbst: der neue Lauf 2143-2180 s, Lauf 19 und 21 halten die Uhr anders (Streuung
+29-44° statt 10-19°, 0,3 g statt 1,1-1,4 g) — im Satelliten-Bild nicht entscheidbar (Jan: „entweder
+… an der Strasse stehengeblieben und umgekehrt, oder er ist vom Steg an Land gesurft").
+
+**Als Merkmal (r4, `analysis/v3/haltung.py`, zweistufig mit r3 als Referenz):** kleiner Gewinn —
+Land je Sekunde 0,728 -> 0,763, in der Werkbank (beide+empfteilkurz) Land 21 -> 19, Nutzer-
+aussortiert 26 -> 24, Guillaume 25 -> 26 min, foil_status unveraendert 0,943/0,940. #9580 aendert
+es nicht: die Referenz je Sekunde enthaelt die verdaechtigen Laeufe selbst.
+**Als harte Lauf-Pruefung** ((Winkel > 30° oder Profil > 0,4) und Staerke < 0,5, gegen die anderen
+sicheren Laeufe): Land 19 -> 12, ABER foil_status-Trefferquote 0,940 -> 0,919 bei gleicher Praezision
+— sie wirft echtes Foilen weg (vermutlich Stellungswechsel: u98 allein 41 Laeufe). Verworfen.
+-> r4 ist die beste Fassung; die Haltung bleibt Merkmal, nicht Regel.
