@@ -430,3 +430,18 @@ Code-Aenderungen — Kandidaten fuer eine Reanalyse, kein Fehler des Nachbaus.
 - Panne unterwegs: 6 Reanalyse-Prozesse ohne Thread-Grenze -> Last 96 auf der geteilten VM. Neu gestartet
   mit `OMP_NUM_THREADS=1`; der Dienst hat seitdem `OMP_NUM_THREADS=2` in server/.env.
 - Zurueckschalten: `DETECTOR_V3=0` in server/.env, Neustart, Reanalyse der Accel-Sessions.
+
+## Fuer spaetere Verbesserungen (Jan, 30.09.2026)
+
+- **#9455 als Pruefstein** (Jan: „merken fuer zukuenftige Verbesserungen"): 1 -> 28 km/h in 12 s und
+  zurueck, Arm bewegt, p 0,9 — kein Pumpfoil. Kandidat: Beschleunigung/Tempo-Verlauf je Lauf gegen die
+  Physik eines Foils (kein Foiler beschleunigt aus dem Stand in Sekunden auf 28 km/h), gegen Wing/Efoil
+  abgrenzen.
+- **Gleitphasen automatisch** (Jan: „bei mir wurden in Gleitphasen weniger Pump-Marker gesetzt, was genau
+  das ist, woraus wir derzeit Gleitphasen berechnen"). Heute: `longest_glide_s` = laengste Luecke zwischen
+  zwei erkannten Pumps. Naechster Schritt: Luecken ab ~1,8 Pump-Perioden im Lauf als Gleitphase markieren
+  (wie die Carves einzeichnen), gegen die 12 Brett-Gleitpausen (v. a. u13) und Jans Laeufe pruefen;
+  die Haltungs-/Konstanz-Merkmale (ruhige Vertikale, seitliches Balancieren) als Bestaetigung.
+- **Stufe B (Sportart je Session/Lauf)** ist trainiert (Wingfoil 20/24 statt 0/21), aber nicht live —
+  heute ordnet `sportauto.einordnen` regelbasiert nach der finalen Analyse zu. Vor einem Einsatz ein
+  eigener Regressionstest wie fuer die Laeufe.
