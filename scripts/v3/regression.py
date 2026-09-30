@@ -161,38 +161,49 @@ def v3_laeufe_fabrik(strenge):
 
 def segmente_aus(L, res, session):
     """Neue Laeufe -> Segment-Dicts. Deckt sich ein Lauf mit einem v2-Lauf (±1 s), bleibt dessen
-    Dict (exakte heutige Werte); sonst aus dem GPS der Session gerechnet wie v1 (Strecke aus den
-    Schritten, Dauer, Tempo 3-s-Median)."""
+    Dict (exakte heutige Werte); sonst die Felder GENAU wie v2 (`gps._seg_fields` auf der
+    bereinigten, geglaetteten Geschwindigkeit wie in `detect_v2`) und danach dieselbe
+    Plausibilitaets-Schranke (`_gate_implausible_runs`: > 32 km/h Spitze oder zu hoher Schnitt).
+    30.09.2026: der erste Lauf nahm das ROHE GPS-Tempo — Ausreisser ergaben 54 km/h „Rekorde"."""
     from app import storage
-    from app.analysis.gps import step_distances_m
     from app.analysis import gps as v1
+    from app.analysis.detect_v2 import _clean_speed
+    from app.analysis.gps import step_distances_m
     alt = {(s["t_start_session_ms"], s["t_end_session_ms"]): s for s in res["segments"]}
-    # derselbe Versatz, mit dem analyze_session_v2 re-basiert (tb.window_start_ms)
     if res["segments"]:
         s0 = res["segments"][0]
         off = int(s0["t_start_session_ms"]) - int(s0["t_start_ms"])
     else:
         off = int(session.trim_start_ms or 0)
-    g = np.asarray(storage.load_gps(session.session_uuid), float)
-    t = g[:, 0]; lat, lon = g[:, 1], g[:, 2]
+    g = storage.load_gps(session.session_uuid)
+    t = np.array([float(x[0]) for x in g])
+    lat = np.array([float(x[1]) for x in g]); lon = np.array([float(x[2]) for x in g])
+    lat, lon = v1._fill_invalid_coords(lat, lon)
+    lat, lon = v1._repair_spikes(lat, lon)
     step = step_distances_m(lat, lon); step = np.where(step > v1.OUTLIER_STEP_M, 0.0, step)
-    sp = np.nan_to_num(g[:, 3]); sp3 = v1._running_median(sp, 3)
-    out = []
+    hz = session.gps_hz or 1
+    dt = np.diff(t, prepend=t[0]) / 1000.0
+    dt = np.where(dt <= 0, 1.0 / max(hz, 1), dt)
+    roh = np.array([float(x[3]) if len(x) > 3 and x[3] is not None else np.nan for x in g])
+    speed = _clean_speed(np.where(np.isnan(roh), step / dt, roh), hz)
+    win = max(int(round(v1.SMOOTH_WINDOW_S * hz)), 1)
+    speeds = {"1": speed, "3": v1._running_median(speed, win),
+              "5": v1._running_median(speed, max(int(round(5 * hz)), 1))}
+    out, neu = [], []
     for a, b in L:
         treffer = [s for (x, y), s in alt.items() if abs(x - a) <= 1000 and abs(y - b) <= 1000]
         if treffer:
             out.append(treffer[0]); continue
-        m = (t >= a) & (t <= b)
-        if m.sum() < 2:
+        i = np.flatnonzero((t >= a) & (t <= b))
+        if i.size < 2:
             continue
-        i = np.flatnonzero(m)
-        out.append({"t_start_session_ms": int(a), "t_end_session_ms": int(b),
-                    "t_start_ms": int(a) - off, "t_end_ms": int(b) - off,
-                    "i_start": int(i[0]), "i_end": int(i[-1]),
-                    "duration_s": round((b - a) / 1000.0, 1), "distance_m": round(float(step[i[1:]].sum()), 1),
-                    "avg_speed_mps": round(float(sp[m].mean()), 2), "max_speed_mps": round(float(sp3[m].max()), 2),
-                    "neu_v3": True})
-    return out
+        seg = v1._seg_fields(int(i[0]), int(i[-1]) + 1, t, step, speeds)
+        seg["t_start_session_ms"], seg["t_end_session_ms"] = int(seg["t_start_ms"]), int(seg["t_end_ms"])
+        seg["t_start_ms"] -= off; seg["t_end_ms"] -= off
+        seg["neu_v3"] = True
+        neu.append(seg)
+    neu, _ = v1._gate_implausible_runs(neu)
+    return sorted(out + neu, key=lambda s: s["t_start_session_ms"])
 
 
 def gespeichert(session):

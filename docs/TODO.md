@@ -1429,6 +1429,12 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔍 30.09. — Laeufe mit 0 s Dauer bei u239 (Garmin, 3 Sessions #1794, #8529, #2323).** Beim
+  v3-Regressionstest aufgefallen: 3-12 Laeufe je Session mit 18-72 m Strecke, aber
+  `duration_s` 0,0 und Zeiten wie 15000 -> 15004 ms; Foil-Zeit 0, Pumps 0, trotzdem
+  `is_pumpfoil = True`. Vermutung (unbelegt): die GPS-Zeitachse ist gestaucht (Sekunden als ms?).
+  Rein lesend pruefen: Rohdaten `gps.json` der drei Sessions, Chunk-Zeiten, App-Version.
+
 - **🔲 29.09. — Gyro auch auf den UHREN aufzeichnen (Jan: ja).** Apple Watch, Wear OS und die
   meisten Garmin-Modelle haben einen Kreisel, unsere Uhren-Apps schicken ihn nicht (nur die
   Handy-Recorder, `kind=gyro`, data-format.md). Grund: Gleitphasen erkennt man am seitlichen
