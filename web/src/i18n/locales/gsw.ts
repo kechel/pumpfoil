@@ -663,6 +663,8 @@ const gsw: Record<string, string> = {
   "nav.nerd3": "Doppeluhr-Messig",
   "nav.nerd4": "Handy uf em Brett",
   "nav.nerd5": "Erkännigsmodäll",
+  "list.cards": "Chachle",
+  "list.compact": "Ei Ziile pro Session",
   "nav.arch": "Systemarchitektur",
   "land.deep5": "Handy am Brett: direkt a de Quelle gmässe (änglisch)",
   "land.deep4": "Systemarchitektur",

@@ -1101,6 +1101,8 @@ const nl: Record<string, string> = {
   "nav.nerd3": "Dubbele horlogemetingen",
   "nav.nerd4": "Telefoon op de plank",
   "nav.nerd5": "Detectiemodel",
+  "list.cards": "Kaarten",
+  "list.compact": "Eén regel per sessie",
   "nav.arch": "Systeemarchitectuur",
   "land.deep5": "Telefoon op de plank: gemeten bij de bron (Engels)",
   "land.deep4": "Systeemarchitectuur",

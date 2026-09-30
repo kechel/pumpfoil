@@ -13,6 +13,8 @@ import { usePumpFmt } from "../lib/pumpRate";
 // Rekord-Kacheln und Zeitfenster kommen aus der Community-Seite — eine Quelle, damit
 // die Spot-Rekorde nicht anders aussehen als dieselben Rekorde eine Seite weiter.
 import { RecordGrid, PERIODS } from "./Home";
+import { ListenAnsicht } from "../components/ListenAnsicht";
+import { useKompakteListe } from "../lib/kompakteListe";
 import { SessionCard } from "../components/SessionCard";
 import { UploadProgressCard } from "../components/UploadProgressCard";
 import { TrackPreview } from "../components/TrackPreview";
@@ -411,7 +413,9 @@ export default function Sessions() {
             <UploadIcon className="h-4 w-4" /> {t("import.title")}
           </Link>
         )}
-        <AccelToggle value={accelOnly} onChange={setAccelOnly} className={isMine ? "" : "ml-auto"} />
+        {/* Kacheln / eine Zeile je Session (Feedback #156) — gilt fuer Meine, Alle und den Spot. */}
+        <ListenAnsicht className={isMine ? "" : "ml-auto"} />
+        <AccelToggle value={accelOnly} onChange={setAccelOnly} />
       </div>
 
 
@@ -465,6 +469,7 @@ export function ProcessingNote() {
 
 function MySessionsList({ myName, accelOnly, sport, onShowAll }:
     { myName: string | null; accelOnly: boolean; sport: string; onShowAll?: () => void }) {
+  const kompakt = useKompakteListe();   // Kacheln oder Zeilen (ListenAnsicht)
   const t = useT();
   const accelRef = useRef(accelOnly); accelRef.current = accelOnly;
   const firstAccel = useRef(true);
@@ -743,7 +748,7 @@ function MySessionsList({ myName, accelOnly, sport, onShowAll }:
           <StartHelp />
         )
       ) : (
-        <div className="space-y-3">
+        <div className={kompakt ? "space-y-1.5" : "space-y-3"}>
           {items.map((s) => (
             <SessionCard
               key={s.id}
@@ -839,6 +844,7 @@ function durHM(s: number) {
 // Tages-Gruppe (≥2 Sessions eines Nutzers am selben Tag/Spot): eingeklappte Kopf-Kachel mit
 // Tages-Summen + Zähler + Chevron; aufgeklappt die Einzel-Sessions (jede mit Detail-Link).
 function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) => string; lastViewed: number | null }) {
+  const kompakt = useKompakteListe();   // Kacheln oder Zeilen (ListenAnsicht)
   const [open, setOpen] = useState(false);
   const dateStr = g.date ? new Date(g.date + "T00:00:00").toLocaleDateString([], { day: "2-digit", month: "2-digit", year: "numeric" }) : "";
   const kmh = g.max_speed_mps != null ? (g.max_speed_mps * 3.6).toFixed(1) : null;
@@ -892,6 +898,48 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
       )}
     </>
   ) : null;
+  // EINE ZEILE auch fuer die Gruppe (Jan, 30.09.2026: „fehlt noch bei den session-gruppenkarten").
+  // Der Stapel bleibt als Andeutung (ein Blatt, kleiner versetzt), damit die Gruppe auch als Zeile
+  // eine Gruppe bleibt; Kopf wie die Einzelzeile in SessionCard, ohne Fotos und Minimaps.
+  if (kompakt) {
+    return (
+      <div className="relative mt-1.5">
+        <div aria-hidden className="pointer-events-none absolute -top-1 bottom-1 left-2 right-[-4px] rounded-xl border border-slate-800 bg-slate-800" />
+        <div className="relative rounded-xl border border-slate-800 bg-slate-950">
+        <div className="rounded-xl bg-slate-900/60">
+        <button
+          onClick={() => setOpen((o) => !o)}
+          className="flex w-full flex-wrap items-center gap-x-3 gap-y-0.5 rounded-xl px-3 py-1.5 text-left text-sm transition-colors hover:bg-slate-800/40 sm:flex-nowrap"
+          aria-expanded={open}
+        >
+          <Avatar name={g.name} url={g.avatar_url} size={22} />
+          <span className="shrink-0 font-semibold tabular-nums">{dateStr}</span>
+          {g.name && <span className="max-w-[10rem] truncate text-brand-600 dark:text-brand-300">{g.name}</span>}
+          {g.spot && (
+            <span className="inline-flex min-w-0 max-w-[12rem] items-center gap-1 truncate text-slate-300">
+              <LocationIcon className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{g.spot}</span>
+            </span>
+          )}
+          <span className="order-last flex min-w-0 basis-full items-center gap-x-3 overflow-hidden whitespace-nowrap text-slate-300 sm:order-none sm:basis-auto sm:flex-1">
+            <span className="inline-flex items-center gap-1"><SessionsIcon className="h-4 w-4 text-brand-400" /> <b className="text-brand-400">{g.count}</b> {t("unit.sessions")}</span>
+            <span className="inline-flex items-center gap-1"><FoilIcon className="h-4 w-4 text-brand-400" /> <b className="text-brand-400">{g.foiling_km.toFixed(1)}</b> km</span>
+            {g.foiling_time_s > 0 && <span className="inline-flex items-center gap-1"><TimerIcon className="h-4 w-4 text-slate-400" /> {durHM(g.foiling_time_s)}</span>}
+            {g.pump_count > 0 && <span className="inline-flex items-center gap-1"><WaveIcon className="h-4 w-4 text-slate-400" /> {g.pump_count}</span>}
+            {kmh && <span className="text-slate-400">max {kmh} km/h</span>}
+          </span>
+          <ChevronIcon className={`ml-auto h-4 w-4 shrink-0 text-slate-400 transition-transform sm:ml-0 ${open ? "rotate-90" : ""}`} />
+        </button>
+        {open && (
+          <div className="space-y-1.5 border-t border-slate-800 px-2 py-2 sm:px-3">
+            {g.sessions.map((s) => renderCommunitySession(s, t, lastViewed))}
+          </div>
+        )}
+        </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     // GRUPPENKACHEL SIEHT AUS WIE EIN STAPEL (Jan, 24.09.2026): „die ,gruppenkacheln' bei
     // sessions sollten sich irgendwie optisch besser abgrenzen, vielleicht mit so einem
@@ -999,7 +1047,7 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
         <ChevronIcon className={`h-5 w-5 shrink-0 self-center text-slate-400 transition-transform ${open ? "rotate-90" : ""}`} />
       </button>
       {open && (
-        <div className="space-y-3 border-t border-slate-800 px-2 py-3 sm:px-3">
+        <div className={`${kompakt ? "space-y-1.5" : "space-y-3"} border-t border-slate-800 px-2 py-3 sm:px-3`}>
           {g.sessions.map((s) => renderCommunitySession(s, t, lastViewed))}
         </div>
       )}
@@ -1011,6 +1059,7 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
 
 function CommunityList({ name, spot, accelOnly, sport, onShowAll }:
     { name: string; spot: string; accelOnly: boolean; sport: string; onShowAll?: () => void }) {
+  const kompakt = useKompakteListe();   // Kacheln oder Zeilen (ListenAnsicht)
   const t = useT();
   const [items, setItems] = useState<CommunityGroup[]>([]);
   const [loading, setLoading] = useState(false);
@@ -1158,7 +1207,7 @@ function CommunityList({ name, spot, accelOnly, sport, onShowAll }:
       {items.length === 0 && !loading ? (
         <Card className="p-8 text-center text-slate-300">{t("all.none")}</Card>
       ) : (
-        <div className="space-y-3">
+        <div className={kompakt ? "space-y-1.5" : "space-y-3"}>
           {items.map((g) => (
             g.count <= 1
               ? renderCommunitySession(g.sessions[0], t, lastViewed)

@@ -1043,6 +1043,8 @@ const nb: Record<string, string> = {
   "nav.nerd3": "Dobbeltklokke-måling",
   "nav.nerd4": "Telefon på brettet",
   "nav.nerd5": "Gjenkjenningsmodell",
+  "list.cards": "Kort",
+  "list.compact": "Én linje per økt",
   "nav.arch": "Systemarkitektur",
   "land.deep5": "Telefon på brettet: målt ved kilden (på engelsk)",
   "land.deep4": "Systemarkitektur",

@@ -1225,6 +1225,8 @@ const de: Record<string, string> = {
   "nav.nerd3": "Doppeluhr-Messung",
   "nav.nerd4": "Handy am Brett",
   "nav.nerd5": "Erkennungsmodell",
+  "list.cards": "Kacheln",
+  "list.compact": "Eine Zeile je Session",
   "nav.arch": "Systemarchitektur",
   "land.deep5": "Handy am Brett: direkt an der Quelle gemessen (englisch)",
   "land.deep4": "Systemarchitektur",

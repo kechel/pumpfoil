@@ -1116,6 +1116,8 @@ const en: Record<string, string> = {
   "nav.nerd3": "Dual-watch measurement",
   "nav.nerd4": "Phone on the board",
   "nav.nerd5": "Detection model",
+  "list.cards": "Cards",
+  "list.compact": "One line per session",
   "nav.arch": "System architecture",
   "land.deep5": "A phone on the board: measured at the source",
   "land.deep4": "System architecture",
