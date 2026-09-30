@@ -1116,6 +1116,12 @@ function CommunityList({ name, spot, accelOnly, sport, onShowAll }:
         moreRef.current = rows.length === PAGE;
         setItems((prev) => (reset ? rows : [...prev, ...rows]));
         maybeShowAll(rows, off);
+        // ERSTE Seite ohne Speicher-Treffer: die Antwort kann aus dem Service-Worker-Cache
+        // stammen (StaleWhileRevalidate) — also gleich die Wahrheit nachholen. Das fehlte bis
+        // 30.09.2026 (Jan, 12:32: „meine neuen Sessions erscheinen nicht, ich muss immer zuerst
+        // woanders hin"): nach Neustart/Aufwachen der PWA ist die Speicher-Map leer, der erste
+        // Aufruf lief durch den SW und zeigte den Stand vom Morgen — ohne Nachpruefung.
+        if (reset) { itemsRef.current = rows; revalidateCommunityHead(); }
       })
       .catch(() => {})
       .finally(() => {
@@ -1178,15 +1184,14 @@ function CommunityList({ name, spot, accelOnly, sport, onShowAll }:
       itemsRef.current = []; setItems([]);
       moreRef.current = true; offsetRef.current = 0; load(true);
     }
-    // Lag die PWA lange im Hintergrund, laeuft beim Zurueckkommen KEIN Mount — ohne das hier
-    // bliebe eine schon offene Liste beliebig lange alt stehen.
-    const beiRueckkehr = () => { if (document.visibilityState === "visible") revalidateCommunityHead(); };
-    document.addEventListener("visibilitychange", beiRueckkehr);
     return () => {
-      document.removeEventListener("visibilitychange", beiRueckkehr);
       communityCache.set(`${name}|${spot}|${accelOnly}|${sport}`, { items: itemsRef.current, offset: offsetRef.current, more: moreRef.current });
     };
   }, [name, spot, accelOnly, sport]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Lag die PWA lange im Hintergrund, laeuft beim Zurueckkommen KEIN Mount — ohne das hier bliebe
+  // eine schon offene Liste beliebig lange alt stehen. Wie bei „Meine" ueber `useWiederAufwachen`
+  // (Sichtbarkeit UND Fokus, Laptop-Zuklappen feuert oft nur `focus`); vorher nur `visibilitychange`.
+  useWiederAufwachen(() => revalidateCommunityHead());
   useEffect(() => {
     const o = new IntersectionObserver((e) => { if (e[0].isIntersecting) load(false); }, { rootMargin: "400px" });
     if (sentinel.current) o.observe(sentinel.current);
