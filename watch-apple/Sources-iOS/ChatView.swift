@@ -1,4 +1,6 @@
+import PhotosUI
 import SwiftUI
+import UIKit
 
 // Chat: Räume (Spot/Community) -> Nachrichten + Senden (spiegelt web/Android-Chat).
 // Zwei Tabs: „Meine" (DMs + eigene Spot-Chats) und „Spot-Chats" (alle, aktivste zuerst).
@@ -173,13 +175,25 @@ struct ChatView: View {
                     .foregroundStyle(Color.accentColor)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(roomTitle(r)).font(.headline)
-                    if !r.last_text.isEmpty {
-                        Text(r.last_text).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
-                    }
+                    roomPreview(r)
                 }
                 Spacer()
                 roomBadges(r)
             }
+        }
+    }
+
+    // Vorschau der letzten Nachricht; hatte sie Bilder, steht ein Kamera-Symbol davor (PWA
+    // DmWidget, 30.09.2026). Eine Nachricht NUR aus Bildern hat leeren Text — dann steht das
+    // Symbol allein da, statt dass die Zeile leer bleibt.
+    @ViewBuilder private func roomPreview(_ r: ChatRoom) -> some View {
+        let foto: Bool = r.last_photo == true
+        if foto || !r.last_text.isEmpty {
+            HStack(spacing: 4) {
+                if foto { Image(systemName: "camera.fill").font(.caption) }
+                Text(r.last_text).lineLimit(1)
+            }
+            .font(.subheadline).foregroundStyle(.secondary)
         }
     }
 
@@ -280,9 +294,17 @@ struct ChatRoomView: View {
     @State private var draft = ""
     @State private var sending = false
     @State private var error: String?
+    // Nachricht, die gerade bearbeitet wird. Seit 30.09.2026 im EINGABEFELD wie die PWA (vorher
+    // ein Alert mit Textfeld): nur dort lassen sich die Bilder der Nachricht zeigen, entfernen und
+    // ergaenzen. Wirksam erst beim Speichern, Abbrechen laesst alles, wie es war.
     @State private var editMsg: ChatMsg?
-    @State private var editText = ""
     @State private var showDict = false
+    // Bilder im Eingabefeld (senden vorerst nur Admins, wie die PWA): gleich beim Auswaehlen
+    // hochgeladen, damit die Vorschau steht und das Senden sofort geht (s. ChatAnhang).
+    @State private var anhaenge: [ChatAnhang] = []
+    @State private var bildItems: [PhotosPickerItem] = []
+    @State private var zeigeBildWahl = false
+    @State private var galerie: ChatGalerie?
     @State private var isAdmin = false
     @State private var push = false
     @State private var confirmLeave = false
@@ -312,7 +334,13 @@ struct ChatRoomView: View {
         }
         .task { await enterRoom() }
         .fullScreenCover(isPresented: $showDict) { dictationCover }
-        .alert(Loc.t("chat.edit", lang), isPresented: editBinding) { editDialogButtons }
+        .fullScreenCover(item: $galerie) { g in ChatBildGalerie(photos: g.photos, start: g.start) { galerie = nil } }
+        // Knopf + `.photosPicker(isPresented:)` statt der PhotosPicker-View: an dieser Ansicht
+        // haengen mehrere Darstellungs-Modifier, darunter kommt die View-Variante nicht durch
+        // (Memory swiftui-listenzeile-mehrere-knoepfe, Falle 2).
+        .photosPicker(isPresented: $zeigeBildWahl, selection: $bildItems,
+                      maxSelectionCount: bildPlatz, matching: .images)
+        .onChange(of: bildItems) { neu in bilderGewaehlt(neu) }
     }
 
     // Der ScrollViewReader bleibt hier: proxy.scrollTo muss im selben ViewBuilder-Scope stehen wie
@@ -347,29 +375,130 @@ struct ChatRoomView: View {
     }
 
     private var composer: some View {
-        HStack(spacing: 8) {
-            TextField(Loc.t("chat.placeholder", lang), text: $draft, axis: .vertical)
-                .textFieldStyle(.roundedBorder)
-                .lineLimit(1...4)
-            Button { showDict = true } label: { Image(systemName: "mic.fill") }
-            sendButton
+        VStack(alignment: .leading, spacing: 6) {
+            editBar
+            anhangLeiste
+            composerRow
         }
         .padding(8)
         .background(.bar)
+    }
+
+    private var composerRow: some View {
+        HStack(spacing: 8) {
+            bildKnopf
+            TextField(Loc.t("chat.placeholder", lang), text: $draft, axis: .vertical)
+                .textFieldStyle(.roundedBorder)
+                .lineLimit(1...4)
+            micKnopf
+            sendButton
+        }
+    }
+
+    // Beim Bearbeiten kein Diktat — wie die PWA (dort entfaellt das Mikro im Bearbeiten-Modus).
+    @ViewBuilder private var micKnopf: some View {
+        if editMsg == nil {
+            Button { showDict = true } label: { Image(systemName: "mic.fill") }
+        }
+    }
+
+    // Bilder anhaengen: vorerst nur Admins (Server antwortet sonst 403), wie die PWA.
+    @ViewBuilder private var bildKnopf: some View {
+        if isAdmin {
+            Button { zeigeBildWahl = true } label: { Image(systemName: "camera") }
+                .disabled(sending || anhaenge.count >= Self.maxBilder)
+                .accessibilityLabel(Loc.t("chat.photoAdd", lang))
+        }
+    }
+
+    // „Nachricht bearbeiten" + X ueber dem Eingabefeld, solange eine Nachricht bearbeitet wird.
+    @ViewBuilder private var editBar: some View {
+        if editMsg != nil {
+            HStack {
+                Text(Loc.t("chat.editing", lang)).font(.caption).foregroundStyle(Color.accentColor)
+                Spacer()
+                Button { cancelEdit() } label: { Image(systemName: "xmark").font(.caption) }
+                    .foregroundStyle(.secondary)
+                    .accessibilityLabel(Loc.t("chat.editCancel", lang))
+            }
+        }
+    }
+
+    @ViewBuilder private var anhangLeiste: some View {
+        if !anhaenge.isEmpty {
+            VStack(alignment: .leading, spacing: 4) {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(anhaenge) { a in anhangKachel(a) }
+                    }
+                    .padding(.top, 6).padding(.trailing, 6)
+                }
+                if anhaenge.contains(where: { $0.fehler }) {
+                    Text(Loc.t("chat.photoFailed", lang)).font(.caption).foregroundStyle(.red)
+                }
+            }
+        }
+    }
+
+    // Vorschau eines Anhangs: laeuft der Upload noch, halb durchsichtig mit Kreisel; ging er
+    // schief, roter Rand. Das X entfernt den Anhang (bei einer bearbeiteten Nachricht erst beim
+    // Speichern wirksam).
+    private func anhangKachel(_ a: ChatAnhang) -> some View {
+        let rand: Color = a.fehler ? Color.red : Color.secondary.opacity(0.4)
+        let laeuft: Bool = a.photoId == nil && !a.fehler
+        return anhangBild(a)
+            .frame(width: 64, height: 64)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .overlay(RoundedRectangle(cornerRadius: 10).stroke(rand, lineWidth: 1))
+            .opacity(laeuft || a.fehler ? 0.5 : 1)
+            .overlay { if laeuft { ProgressView() } }
+            .overlay(alignment: .topTrailing) {
+                Button { anhangWeg(a.key) } label: {
+                    Image(systemName: "xmark.circle.fill").font(.body)
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(Color.white, Color.black.opacity(0.7))
+                }
+                .offset(x: 6, y: -6)
+                .accessibilityLabel(Loc.t("chat.photoRemove", lang))
+            }
+    }
+
+    // Neu gewaehlte Bilder zeigen ihr lokales Bild, schon versandte (Bearbeiten) ihr Vorschaubild.
+    @ViewBuilder private func anhangBild(_ a: ChatAnhang) -> some View {
+        if let ui = a.lokal {
+            Image(uiImage: ui).resizable().scaledToFill()
+        } else {
+            NetzBild(url: a.vorschauURL) { stand in
+                switch stand {
+                case .da(let img): img.resizable().scaledToFill()
+                default: Color.secondary.opacity(0.15)
+                }
+            }
+        }
     }
 
     private var sendButton: some View {
         Button {
             Task { await send() }
         } label: {
-            Image(systemName: "paperplane.fill")
+            Image(systemName: editMsg == nil ? "paperplane.fill" : "checkmark")
         }
         .disabled(sendDisabled)
+        .accessibilityLabel(Loc.t(editMsg == nil ? "chat.send" : "common.save", lang))
     }
 
+    // Ohne Text darf nur gesendet werden, wenn fertige Bilder dabei sind; waehrend ein Bild noch
+    // hochlaedt gar nicht (sonst fehlte es in der Nachricht).
     private var sendDisabled: Bool {
-        sending || draft.trimmingCharacters(in: .whitespaces).isEmpty
+        if sending || laedtNoch { return true }
+        return draft.trimmingCharacters(in: .whitespaces).isEmpty && bereiteBilder.isEmpty
     }
+
+    private static let maxBilder = 10   // Server MAX_CHAT_FOTOS
+    private var laedtNoch: Bool { anhaenge.contains { $0.photoId == nil && !$0.fehler } }
+    private var bereiteBilder: [Int] { anhaenge.compactMap { $0.photoId } }
+    // Der Picker braucht mindestens 1, auch wenn der Knopf bei 10 Bildern ohnehin gesperrt ist.
+    private var bildPlatz: Int { max(1, Self.maxBilder - anhaenge.count) }
 
     // Abonnieren (Push) + Verlassen — wie Web-Chat.
     @ToolbarContentBuilder private var roomToolbar: some ToolbarContent {
@@ -411,16 +540,6 @@ struct ChatRoomView: View {
         }
     }
 
-    private var editBinding: Binding<Bool> {
-        Binding(get: { editMsg != nil }, set: { if !$0 { editMsg = nil } })
-    }
-
-    @ViewBuilder private var editDialogButtons: some View {
-        TextField(Loc.t("chat.placeholder", lang), text: $editText)
-        Button(Loc.t("common.save", lang)) { saveEdit() }
-        Button(Loc.t("common.cancel", lang), role: .cancel) { editMsg = nil }
-    }
-
     // Symbol/Farbe vorab typisiert — Ternaries direkt im Modifier sind fuer den Type-Checker teuer.
     private var pushIcon: String { push ? "bell.fill" : "bell.slash" }
     private var pushTint: Color { push ? Color.accentColor : .secondary }
@@ -451,11 +570,87 @@ struct ChatRoomView: View {
         if doSend { Task { await self.send() } }
     }
 
-    private func saveEdit() {
-        guard let m = editMsg else { return }
-        let t: String = editText.trimmingCharacters(in: .whitespaces)
+    // MARK: - Bearbeiten und Bilder (30.09.2026, PWA 866779e6 + bd988744)
+
+    private func startEdit(_ m: ChatMsg) {
+        editMsg = m
+        draft = m.text
+        anhaenge = (m.photos ?? []).map { p in
+            ChatAnhang(key: "p\(p.id)", lokal: nil, vorschauURL: Api.mediaURL(p.thumb_url ?? p.url),
+                       photoId: p.id, fehler: false)
+        }
+    }
+
+    private func cancelEdit() {
         editMsg = nil
-        if !t.isEmpty { Task { try? await Api.chatEdit(m.id, text: t); await load() } }
+        draft = ""
+        anhaenge = []
+    }
+
+    // Die Bildliste geht nur mit, wenn die Nachricht Bilder hat oder hatte — reine
+    // Textnachrichten laufen wie bisher (`photo_ids` fehlt, der Server laesst die Bilder in Ruhe).
+    private func saveEdit() async {
+        guard let m = editMsg, !sending, !laedtNoch else { return }
+        let t: String = draft.trimmingCharacters(in: .whitespaces)
+        let hatteBilder: Bool = !(m.photos ?? []).isEmpty
+        let ids: [Int]? = (hatteBilder || !anhaenge.isEmpty) ? bereiteBilder : nil
+        if t.isEmpty && (ids ?? []).isEmpty { return }
+        sending = true; defer { sending = false }
+        do {
+            try await Api.chatEdit(m.id, text: t, photoIds: ids)
+            editMsg = nil
+            draft = ""
+            anhaenge = []
+            error = nil
+            await load()
+        } catch { self.error = error.localizedDescription }
+    }
+
+    /// Gewaehlte Bilder sofort als Anhang zeigen und einzeln hochladen; die id kommt nach, sobald
+    /// der Upload durch ist. Ein Fehler bleibt am Anhang stehen (roter Rand + Hinweis) — nicht
+    /// stumm verworfen, sonst fehlte das Bild ohne Erklaerung in der Nachricht.
+    private func bilderGewaehlt(_ items: [PhotosPickerItem]) {
+        guard !items.isEmpty else { return }
+        bildItems = []
+        for item in items.prefix(bildPlatz) {
+            let key: String = UUID().uuidString
+            anhaenge.append(ChatAnhang(key: key, lokal: nil, vorschauURL: nil, photoId: nil, fehler: false))
+            Task { await bildHochladen(item, key: key) }
+        }
+    }
+
+    private func bildHochladen(_ item: PhotosPickerItem, key: String) async {
+        guard let raw = try? await item.loadTransferable(type: Data.self) else {
+            anhangAendern(key) { $0.fehler = true }
+            return
+        }
+        let bild: UIImage? = UIImage(data: raw)
+        anhangAendern(key) { $0.lokal = bild }
+        do {
+            let p = try await Api.uploadChatPhoto(data: chatJPEG(raw, bild))
+            anhangAendern(key) { $0.photoId = p.id }
+        } catch {
+            anhangAendern(key) { $0.fehler = true }
+        }
+    }
+
+    /// Immer JPEG hochladen: `downscaleJPEG` gibt bei „kein Gewinn" das Original zurueck, und das
+    /// ist aus der Fotomediathek oft HEIC — das kann der Server (Pillow ohne HEIF) nicht lesen.
+    private func chatJPEG(_ raw: Data, _ bild: UIImage?) -> Data {
+        let klein: Data = downscaleJPEG(raw, maxEdge: 1600)
+        if klein.starts(with: [0xFF, 0xD8]) { return klein }
+        return bild?.jpegData(compressionQuality: 0.85) ?? klein
+    }
+
+    // Anhang ueber seinen Schluessel aendern — die Liste kann sich waehrend des Uploads aendern
+    // (entfernt, weitere dazu), ein gemerkter Index waere dann falsch.
+    private func anhangAendern(_ key: String, _ f: (inout ChatAnhang) -> Void) {
+        guard let i = anhaenge.firstIndex(where: { $0.key == key }) else { return }
+        f(&anhaenge[i])
+    }
+
+    private func anhangWeg(_ key: String) {
+        anhaenge.removeAll { $0.key == key }
     }
 
     private func enterRoom() async {
@@ -496,13 +691,29 @@ struct ChatRoomView: View {
             chatAvatarColumn(m)
             VStack(alignment: .leading, spacing: 2) {
                 bubbleHeader(m)
-                Text(linkified(m.text)).fixedSize(horizontal: false, vertical: true)
+                bubbleText(m)
+                bubblePhotos(m)
             }
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .opacity(bubbleOpacity(m))
         .contextMenu { bubbleMenu(m) }
+    }
+
+    // Eine Nachricht darf NUR aus Bildern bestehen — dann kein leerer Textblock.
+    @ViewBuilder private func bubbleText(_ m: ChatMsg) -> some View {
+        if !m.text.isEmpty {
+            Text(linkified(m.text)).fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    @ViewBuilder private func bubblePhotos(_ m: ChatMsg) -> some View {
+        let fotos: [ChatPhoto] = m.photos ?? []
+        if !fotos.isEmpty {
+            ChatFotoStapel(photos: fotos, lang: lang) { i in galerie = ChatGalerie(photos: fotos, start: i) }
+                .padding(.top, 4)
+        }
     }
 
     @ViewBuilder private func bubbleHeader(_ m: ChatMsg) -> some View {
@@ -516,7 +727,7 @@ struct ChatRoomView: View {
 
     @ViewBuilder private func bubbleMenu(_ m: ChatMsg) -> some View {
         if editable(m) {
-            Button(Loc.t("chat.edit", lang)) { editText = m.text; editMsg = m }
+            Button(Loc.t("chat.edit", lang)) { startEdit(m) }
             Button(Loc.t("common.delete", lang), role: .destructive) {
                 Task { try? await Api.chatDelete(m.id); await load() }
             }
@@ -597,7 +808,7 @@ struct ChatRoomView: View {
         guard x.id == id else { return x }
         return ChatMsg(id: x.id, user_id: x.user_id, name: x.name, avatar_url: x.avatar_url,
                        text: x.text, created_at: x.created_at, mine: x.mine, hidden: x.hidden,
-                       like_count: count, liked: liked)
+                       like_count: count, liked: liked, photos: x.photos)
     }
 
     @ViewBuilder private func chatAvatar(_ m: ChatMsg) -> some View {
@@ -630,15 +841,154 @@ struct ChatRoomView: View {
     }
 
     private func send() async {
+        if editMsg != nil { await saveEdit(); return }
         let text = draft.trimmingCharacters(in: .whitespaces)
-        guard !text.isEmpty else { return }
+        let ids: [Int] = bereiteBilder
+        guard !text.isEmpty || !ids.isEmpty, !laedtNoch, !sending else { return }
         sending = true; defer { sending = false }
         do {
-            let m = try await Api.chatPost(scope: scope, text: text)
+            let m = try await Api.chatPost(scope: scope, text: text, photoIds: ids)
             msgs.append(m)
             lastId = max(lastId, m.id)
             draft = ""
+            anhaenge = []
             error = nil
         } catch { self.error = error.localizedDescription }
+    }
+}
+
+// MARK: - Bilder im Chat (30.09.2026, PWA FotoStapel.tsx)
+
+/// Ein Bild im Eingabefeld. `photoId` (Server) fehlt, solange der Upload laeuft; `lokal` ist das gewaehlte Bild
+/// (neu), `vorschauURL` das Vorschaubild eines schon versandten Bildes (beim Bearbeiten).
+struct ChatAnhang: Identifiable {
+    let key: String
+    var lokal: UIImage?
+    var vorschauURL: URL?
+    var photoId: Int?
+    var fehler: Bool
+    var id: String { key }
+}
+
+/// Welche Bilder die Vollbild-Galerie zeigt und mit welchem sie beginnt (`fullScreenCover(item:)`).
+struct ChatGalerie: Identifiable {
+    let id = UUID()
+    let photos: [ChatPhoto]
+    let start: Int
+}
+
+/// Bilder an einer Chat-Nachricht (Jan, 30.09.2026: „wenn mehr Bilder als eins in einer Nachricht,
+/// dann gestapelt"). EIN Bild: normal gross. MEHRERE: ein Stapel — das erste obenauf, bis zu zwei
+/// weitere leicht versetzt und gedreht dahinter, dazu die Anzahl. Ein Tipp oeffnet die Galerie.
+struct ChatFotoStapel: View {
+    let photos: [ChatPhoto]
+    let lang: String
+    let oeffnen: (Int) -> Void
+
+    var body: some View {
+        Button { oeffnen(0) } label: { inhalt }
+            .buttonStyle(.plain)
+            .accessibilityLabel(label)
+    }
+
+    @ViewBuilder private var inhalt: some View {
+        if photos.count == 1 {
+            einzeln
+        } else {
+            stapel
+        }
+    }
+
+    private var label: String {
+        if photos.count == 1 { return Loc.t("chat.photoOpen", lang) }
+        return Loc.t("chat.photosOpen", lang).replacingOccurrences(of: "{n}", with: "\(photos.count)")
+    }
+
+    private var rest: String { "+\(photos.count - 1)" }
+
+    private func kleinURL(_ p: ChatPhoto) -> URL? { Api.mediaURL(p.thumb_url ?? p.url) }
+
+    // Ein Bild in seinem Seitenverhaeltnis, hoechstens 240 × 240 (PWA: max 16rem × 16rem).
+    private var einzeln: some View {
+        NetzBild(url: kleinURL(photos[0])) { stand in
+            switch stand {
+            case .da(let img): img.resizable().scaledToFit()
+            default: Color.secondary.opacity(0.15).frame(width: 200, height: 150)
+            }
+        }
+        .frame(maxWidth: 240, maxHeight: 240, alignment: .leading)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    private var stapel: some View {
+        let hinten: [ChatPhoto] = Array(photos.dropFirst().prefix(2))
+        return ZStack(alignment: .bottomTrailing) {
+            ForEach(Array(hinten.enumerated().reversed()), id: \.element.id) { i, p in
+                stapelBlatt(p, versatz: i == 0 ? 8 : 16, grad: i == 0 ? 3 : 6)
+                    .opacity(i == 0 ? 0.9 : 0.75)
+            }
+            stapelBlatt(photos[0], versatz: 0, grad: 0)
+            Text(rest).font(.caption.weight(.semibold)).foregroundStyle(.white)
+                .padding(.horizontal, 8).padding(.vertical, 2)
+                .background(Color.black.opacity(0.75), in: Capsule())
+                .padding(6)
+        }
+        .frame(width: 200, height: 150)
+        .padding(.top, 12).padding(.trailing, 16)
+    }
+
+    private func stapelBlatt(_ p: ChatPhoto, versatz: CGFloat, grad: Double) -> some View {
+        NetzBild(url: kleinURL(p)) { stand in
+            switch stand {
+            case .da(let img): img.resizable().scaledToFill()
+            default: Color.secondary.opacity(0.2)
+            }
+        }
+        .frame(width: 200, height: 150)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.secondary.opacity(0.4), lineWidth: 1))
+        .rotationEffect(.degrees(grad))
+        .offset(x: versatz, y: -versatz * 0.75)
+    }
+}
+
+/// Vollbild-Galerie der Bilder einer Nachricht: wischen blaettert, X oder Tipp schliesst —
+/// dieselbe Bedienung wie die Foto-Ansicht der Session (SessionDetailView.PhotoLightboxView).
+struct ChatBildGalerie: View {
+    let photos: [ChatPhoto]
+    let start: Int
+    let schliessen: () -> Void
+    @State private var sel = 0
+
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+            TabView(selection: $sel) {
+                ForEach(Array(photos.enumerated()), id: \.element.id) { i, p in
+                    vollbild(p).tag(i)
+                }
+            }
+            .tabViewStyle(.page(indexDisplayMode: photos.count > 1 ? .automatic : .never))
+        }
+        .overlay(alignment: .topTrailing) {
+            Button { schliessen() } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.title)
+                    .foregroundStyle(.white.opacity(0.9))
+                    .padding(12)
+                    .shadow(radius: 4)
+            }
+        }
+        .onTapGesture { schliessen() }
+        .onAppear { sel = start }
+    }
+
+    private func vollbild(_ p: ChatPhoto) -> some View {
+        NetzBild(url: Api.mediaURL(p.url)) { stand in
+            switch stand {
+            case .da(let img): img.resizable().scaledToFit()
+            default: ProgressView()
+            }
+        }
     }
 }

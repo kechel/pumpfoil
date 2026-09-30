@@ -91,7 +91,9 @@ struct SessionsView: View {
                 .task(id: laeuftNoch) { await pollWhileLive() }
                 // Dateiauswahl: `.data` statt einer engeren Liste — .fit hat auf iOS keinen
                 // eigenen Typ, eine Filterung wuerde genau die Dateien ausgrauen, die gemeint
-                // sind. Geprueft wird serverseitig.
+                // sind. Geprueft wird serverseitig. Das deckt auch gepackte Dateien ab
+                // (`.gpx.gz`/`.tcx.gz`/`.fit.gz`, seit 30.09.2026): der Server erkennt sie am
+                // Gzip-Kopf und entpackt selbst (8550b18c) — hier ist dafuer nichts zu tun.
                 .fileImporter(isPresented: $zeigeWaehler, allowedContentTypes: [.data],
                               allowsMultipleSelection: true) { ergebnis in
                     if case .success(let urls) = ergebnis { importiere(urls) }
@@ -135,7 +137,9 @@ struct SessionsView: View {
     // Beschreibungen, dann die Sessions (Jan, 07.09.: „die 3 muessen nach oben wie in der pwa").
     @ViewBuilder private var spotRecordsSection: some View {
         if scope == .spot, !spot.isEmpty {
-            SpotRecordsView(spot: spot, lang: lang, accelOnly: accelOnly)
+            // Rekorde folgen dem Sportarten-Filter; bei „alle" ein Kasten je Sportart (PWA a9725cb9).
+            SpotRecordsView(spot: spot, lang: lang, accelOnly: accelOnly,
+                            sport: sport, sports: sports.map { $0.sport })
         }
     }
 
@@ -271,14 +275,18 @@ struct SessionsView: View {
         }
     }
 
-    /// Eigene Zeile, nur wenn es etwas zu waehlen gibt (s. SportFilterMenu). Die Monate zaehlen je
-    /// Sportart anders, deshalb faellt ein gewaehlter Monat beim Wechsel weg (wie die PWA).
-    @ViewBuilder private var sportFilterRow: some View {
-        if SportFilterMenu.zeigen(sport: sport, sports: sports) {
-            HStack {
+    /// Sportart-Auswahl, nur wenn es etwas zu waehlen gibt (s. SportFilterMenu). Die Monate zaehlen
+    /// je Sportart anders, deshalb faellt ein gewaehlter Monat beim Wechsel weg (wie die PWA).
+    /// Rechts in derselben Zeile der Umschalter Kacheln / eine Zeile je Session (PWA 9160c6a2,
+    /// dort in der Werkzeugzeile neben dem Accel-Umschalter) — gilt fuer Meine, Alle und den Spot.
+    /// Die Zeile steht deshalb immer, auch ohne Sportart-Auswahl.
+    private var sportFilterRow: some View {
+        HStack {
+            if SportFilterMenu.zeigen(sport: sport, sports: sports) {
                 SportFilterMenu(sport: sport, sports: sports, lang: lang) { neu in month = ""; sport = neu }
-                Spacer()
             }
+            Spacer()
+            ListenAnsichtUmschalter(lang: lang)
         }
     }
 
@@ -613,9 +621,11 @@ struct SessionRow: View {
     @AppStorage("appLang") private var lang = "de"
     // Beobachtet die Anzeige-Einheit der Pump-Kadenz -> Umschalten wirkt sofort (PumpUnit.swift).
     @AppStorage(PumpUnit.storeKey) private var pumpUnit = "hz"
+    // Kacheln oder EINE Zeile je Session — ein Merker fuer alle Listen (KompakteListe).
+    @AppStorage(KompakteListe.key) private var kompakt = false
 
     var body: some View {
-        content
+        zeile
             .contextMenu {
                 Button {
                     compare.toggle(session.id)
@@ -629,6 +639,29 @@ struct SessionRow: View {
                     RoundedRectangle(cornerRadius: 3).fill(Color.accentColor).frame(width: 3)
                 }
             }
+    }
+
+    @ViewBuilder private var zeile: some View {
+        if kompakt { kompaktZeile } else { content }
+    }
+
+    // Zeilen-Ansicht wie die PWA mobil (SessionCard kompakt): oben Datum, Uhrzeit, Spot; unten
+    // Kennzahlen, Status und Herz. Ohne Bilder, Setup, Geraet und Vergleichen-Knopf (Vergleichen
+    // bleibt im Kontextmenue). Der Name nur, wo die Karte ihn auch zeigt (showOwner).
+    private var kompaktZeile: some View {
+        KompaktZeile(avatarName: session.owner_name, avatarURL: Api.mediaURL(session.owner_avatar_url),
+                     datum: TimeFmt.kurzDatum(session.started_at, session.tz) ?? "",
+                     zeit: TimeFmt.timeOnly(session.started_at, session.tz) ?? "",
+                     name: showOwner ? session.owner_name : nil, spot: session.place_name,
+                     status: kompaktStatus, kennzahlen: statsText ?? "",
+                     likeId: session.id, liked: session.liked ?? false, likeCount: session.like_count ?? 0)
+    }
+
+    // Wie `EigeneAbzeichen` der PWA: erst „wird uebertragen", sonst der Verarbeitungsstand.
+    private var kompaktStatus: String? {
+        if session.transfer_to != nil { return Loc.t("transfer.badge", lang) }
+        if session.status != "analyzed" { return statusLabel(session.status, lang) }
+        return nil
     }
 
     /// „Vergleichen" als sichtbarer Knopf bei den Zahlen (PWA SessionCard.tsx, 24.09.2026). Das
@@ -868,6 +901,7 @@ struct GroupCardView: View {
     let group: CommunityGroup
     @State private var open = false
     @AppStorage("appLang") private var lang = "de"
+    @AppStorage(KompakteListe.key) private var kompakt = false
 
     private var dateLabel: String {
         let p = group.date.split(separator: "-")
@@ -940,33 +974,168 @@ struct GroupCardView: View {
             Image(systemName: "play.circle.fill").foregroundStyle(.white).font(.title3)
         }
     }
+    // Kopf als EINE Zeile (PWA DayGroupCard kompakt): dasselbe Datumsformat wie die Einzelzeilen,
+    // Uhrzeit leer, unten die Tagessummen; der Pfeil klappt auf wie bei der Kachel.
+    private var kompaktKopf: some View {
+        KompaktZeile(avatarName: group.name, avatarURL: Api.mediaURL(group.avatar_url),
+                     datum: TimeFmt.kurzDatum("\(group.date)T12:00:00Z", "UTC") ?? dateLabel,
+                     zeit: "", name: group.name, spot: group.spot,
+                     kennzahlen: statsText, aufgeklappt: open)
+    }
+
+    @ViewBuilder private var kopf: some View {
+        if kompakt { kompaktKopf } else { kachelKopf }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Button { withAnimation { open.toggle() } } label: {
-                HStack(alignment: .top, spacing: 12) {
-                    AvatarView(name: group.name, url: Api.mediaURL(group.avatar_url), size: 40)
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(dateLabel + (group.name.map { " · \($0)" } ?? "")).font(.headline)
-                        if let sp = group.spot, !sp.isEmpty { sessionPill(sp) }
-                        Text(statsText).font(.caption).foregroundStyle(.secondary)
-                    }
-                    Spacer(minLength: 8)
-                    media
-                    if let tp = group.track_previews?.first { TrackPreviewView(data: tp).frame(width: 58, height: 42) }
-                    Image(systemName: open ? "chevron.up" : "chevron.down").foregroundStyle(.secondary)
-                }
-            }
+            Button { withAnimation { open.toggle() } } label: { kopf }
             .buttonStyle(.plain)
             if open {
-                Divider().padding(.top, 10)
-                VStack(spacing: 14) {
+                Divider().padding(.top, kompakt ? 4 : 10)
+                VStack(spacing: kompakt ? 8 : 14) {
                     ForEach(group.sessions) { c in
                         NavigationLink { SessionDetailView(id: c.id) } label: { CommunityRow(item: c) }
                     }
                 }
-                .padding(.top, 12)
+                .padding(.top, kompakt ? 6 : 12)
                 .padding(.leading, 8)
             }
+        }
+    }
+
+    private var kachelKopf: some View {
+        HStack(alignment: .top, spacing: 12) {
+            AvatarView(name: group.name, url: Api.mediaURL(group.avatar_url), size: 40)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(dateLabel + (group.name.map { " · \($0)" } ?? "")).font(.headline)
+                if let sp = group.spot, !sp.isEmpty { sessionPill(sp) }
+                Text(statsText).font(.caption).foregroundStyle(.secondary)
+            }
+            Spacer(minLength: 8)
+            media
+            if let tp = group.track_previews?.first { TrackPreviewView(data: tp).frame(width: 58, height: 42) }
+            Image(systemName: open ? "chevron.up" : "chevron.down").foregroundStyle(.secondary)
+        }
+    }
+}
+
+// MARK: - Kacheln oder eine Zeile je Session (PWA 9160c6a2 / 320a4e61, Feedback #156/#158)
+
+/// EIN Merker fuer ALLE Session-Listen (Startseite, Meine/Alle, Spot, Tagesgruppen) — wer kompakt
+/// will, will es ueberall (PWA lib/kompakteListe.ts). @AppStorage: jede Liste und jeder Umschalter
+/// hoert auf denselben Schluessel, alle stellen sich gleichzeitig um. Gemerkt je Geraet.
+enum KompakteListe {
+    static let key = "foil_list_compact"
+}
+
+/// Umschalter Kacheln / Zeilen ueber den Session-Listen. Zwei Symbole statt Worten, damit er in
+/// jede Kopfzeile passt; was sie tun, sagt VoiceOver in der Sprache des Nutzers (list.cards /
+/// list.compact). EIN segmentiertes Steuerelement — zwei lose Knoepfe in einer List-Zeile
+/// loesten beide zugleich aus (Memory swiftui-listenzeile-mehrere-knoepfe).
+struct ListenAnsichtUmschalter: View {
+    let lang: String
+    @AppStorage(KompakteListe.key) private var kompakt = false
+
+    var body: some View {
+        Picker(Loc.t("list.compact", lang), selection: $kompakt) {
+            Image(systemName: "rectangle.grid.1x2")
+                .accessibilityLabel(Loc.t("list.cards", lang))
+                .tag(false)
+            Image(systemName: "list.bullet")
+                .accessibilityLabel(Loc.t("list.compact", lang))
+                .tag(true)
+        }
+        .pickerStyle(.segmented)
+        .fixedSize()
+    }
+}
+
+/// Eine Session (oder Tagesgruppe) als Zeile — auf dem Handy HOECHSTENS ZWEI Zeilen (Jan,
+/// 30.09.2026: „mobile nicht mehr als 2 zeilen max je session"), was nicht passt, wird mit „…"
+/// abgeschnitten statt umzubrechen. Oben Datum, Uhrzeit, Name, Spot — der Name hat Vorrang vor dem
+/// Spot; unten Sportart, Kennzahlen, Status und Herz (bzw. der Aufklapp-Pfeil einer Gruppe).
+struct KompaktZeile: View {
+    let avatarName: String?
+    let avatarURL: URL?
+    let datum: String
+    let zeit: String
+    var name: String? = nil
+    var spot: String? = nil
+    var abzeichen: String? = nil
+    var status: String? = nil
+    let kennzahlen: String
+    var likeId: Int? = nil
+    var liked: Bool = false
+    var likeCount: Int = 0
+    /// nur bei Tagesgruppen: Pfeil statt Herz, zeigt auf/zu
+    var aufgeklappt: Bool? = nil
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            obereZeile
+            untereZeile
+        }
+        .padding(.vertical, 2)
+    }
+
+    private var obereZeile: some View {
+        HStack(spacing: 6) {
+            AvatarView(name: avatarName, url: avatarURL, size: 20)
+            Text(datum).font(.footnote.weight(.semibold)).monospacedDigit().fixedSize()
+            if !zeit.isEmpty {
+                Text(zeit).font(.footnote).monospacedDigit().foregroundStyle(.secondary).fixedSize()
+            }
+            nameText
+            spotText
+            Spacer(minLength: 0)
+        }
+        .lineLimit(1)
+    }
+
+    @ViewBuilder private var nameText: some View {
+        if let n = name, !n.isEmpty {
+            Text(n).font(.footnote).foregroundStyle(Color.accentColor).layoutPriority(1)
+        }
+    }
+
+    @ViewBuilder private var spotText: some View {
+        if let sp = spot, !sp.isEmpty {
+            HStack(spacing: 2) {
+                Image(systemName: "mappin.and.ellipse").font(.caption2)
+                Text(sp)
+            }
+            .font(.footnote).foregroundStyle(.secondary)
+        }
+    }
+
+    private var untereZeile: some View {
+        HStack(spacing: 6) {
+            abzeichenText
+            Text(kennzahlen).font(.caption).foregroundStyle(.secondary)
+            Spacer(minLength: 4)
+            statusText
+            rechts
+        }
+        .lineLimit(1)
+    }
+
+    @ViewBuilder private var abzeichenText: some View {
+        if let a = abzeichen, !a.isEmpty { sportClassPill(a).fixedSize() }
+    }
+
+    @ViewBuilder private var statusText: some View {
+        if let st = status, !st.isEmpty {
+            Text(st).font(.caption2).foregroundStyle(.orange).fixedSize()
+        }
+    }
+
+    @ViewBuilder private var rechts: some View {
+        if let offen = aufgeklappt {
+            Image(systemName: offen ? "chevron.up" : "chevron.down")
+                .font(.caption).foregroundStyle(.secondary)
+        } else if let id = likeId {
+            LikeButton(sessionId: id, liked: liked, count: likeCount).fixedSize()
         }
     }
 }

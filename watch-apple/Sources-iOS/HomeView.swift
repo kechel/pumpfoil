@@ -244,6 +244,8 @@ struct HomeView: View {
         HStack {
             Text(Loc.t("phome.latest", lang)).font(.headline)
             Spacer()
+            // Kacheln / eine Zeile je Session (PWA PersonalHome, 30.09.2026) — gilt fuer alle Listen.
+            ListenAnsichtUmschalter(lang: lang)
             NavigationLink { SessionsView() } label: {
                 Text("\(Loc.t("phome.allMine", lang)) →").font(.caption).foregroundStyle(Color.accentColor)
             }

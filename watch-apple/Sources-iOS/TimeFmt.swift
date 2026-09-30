@@ -58,6 +58,16 @@ enum TimeFmt {
         return f.string(from: date)
     }
 
+    // Kurzes Datum mit Wochentag fuer die Zeilen-Ansicht der Session-Listen („Di., 29. Sept. 26",
+    // PWA SessionCard kompakt: weekday short, day 2-digit, month short, year 2-digit). Ueberall
+    // dasselbe Format, damit die Datumsspalte nicht springt (Einzel- und Gruppenzeilen).
+    static func kurzDatum(_ iso: String?, _ tz: String?) -> String? {
+        guard let iso, !iso.isEmpty, let d = parseISO(iso) else { return nil }
+        let style = Date.FormatStyle(timeZone: zone(tz))
+            .weekday(.abbreviated).day(.twoDigits).month(.abbreviated).year(.twoDigits)
+        return d.formatted(style)
+    }
+
     // "dd.MM.yy" (Community-Rekord-Kacheln).
     static func shortDate(_ iso: String?, _ tz: String?) -> String? {
         guard let iso, !iso.isEmpty, let d = parseISO(iso) else { return nil }

@@ -585,7 +585,10 @@ struct CompareView: View {
         }))
         out.append(CmpMetric(label: Loc.t("sd.maxGlide", lang), unit: "s", dir: "max",
                              fmt: einF, wert: { r, s in
-            self.lauf(r, s)?.longest_glide_s ?? self.bestSeg(segsOf(s), { $0.longest_glide_s }, { $0 > $1 })
+            // Ein gewaehlter LAUF zeigt nur seinen eigenen Wert: ohne Beschleunigungsdaten ist er
+            // nil (Server 8a4ed6ad, `accel_fehlt`) -> „–", nicht der beste Lauf der Session.
+            if let l = self.lauf(r, s) { return l.longest_glide_s }
+            return self.bestSeg(segsOf(s), { $0.longest_glide_s }, { $0 > $1 })
         }))
         out.append(CmpMetric(label: Loc.t("stat.pumps", lang), unit: nil, dir: nil,
                              fmt: ganzF, wert: { r, s in
@@ -594,7 +597,9 @@ struct CompareView: View {
         }))
         out.append(CmpMetric(label: Loc.t("sd.avgPump", lang), unit: PumpUnit.unitLabel(lang), dir: nil,
                              fmt: { PumpUnit.fmtValue($0) }, wert: { r, s in
-            self.lauf(r, s)?.avg_pump_hz ?? s.analysis?.metrics?.avg_pump_hz
+            // Wie oben: ein Lauf ohne Accel hat keine Kadenz — nicht auf den Session-Schnitt ausweichen.
+            if let l = self.lauf(r, s) { return l.avg_pump_hz }
+            return s.analysis?.metrics?.avg_pump_hz
         }))
         out.append(CmpMetric(label: Loc.t("sd.avgDistPerPump", lang), unit: "m/Pump", dir: "max",
                              fmt: einF, wert: { r, s in

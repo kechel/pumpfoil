@@ -312,7 +312,8 @@ enum Api {
         let detail: String?
     }
 
-    /// Aufgezeichnete Aktivitaet importieren (FIT/TCX/GPX, auch als ZIP) — derselbe Endpunkt,
+    /// Aufgezeichnete Aktivitaet importieren (FIT/TCX/GPX, auch als ZIP oder gepackt als `.gz` —
+    /// der Server entpackt am Gzip-Kopf, die Bytes gehen unveraendert hoch) — derselbe Endpunkt,
     /// den die PWA benutzt. Uebersprungen ist KEIN Fehler (der Garmin-Gesamtexport enthaelt
     /// Aktivitaeten und Tagesaufzeichnungen gemischt), deshalb kommt das Ergebnis zurueck,
     /// statt zu werfen. `timeoutInterval` hoch: der Server parst UND wertet gleich aus.
@@ -514,9 +515,12 @@ enum Api {
     /// Community-Rekorde. Mit `spot` nur die dieses Spots — dann kommen ALLE Zeitfenster in
     /// einem Aufruf, was der Ruckfall „10 Tage, sonst 30, sonst ein Jahr, sonst alles" braucht
     /// (`/community/spot-records` liefert immer nur EIN Fenster).
+    /// `sport`: nil = Endpunkt-Default (pumpfoil), wie bisher. Die Spot-Rekorde fragen seit dem
+    /// 29.09.2026 je Sportart einzeln (PWA a9725cb9), s. SpotRecordsView.
     static func communityRecords(accelOnly: Bool = true, foilBand: String = "all",
-                                 spot: String? = nil) async throws -> [String: PeriodRecords] {
+                                 spot: String? = nil, sport: String? = nil) async throws -> [String: PeriodRecords] {
         var pfad = "/api/community/records?accel_only=\(accelOnly)&foil_band=\(foilBand)"
+        if let sport, !sport.isEmpty { pfad += "&sport=\(sport)" }
         if let spot, !spot.isEmpty {
             let s = spot.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? spot
             pfad += "&spot=\(s)"
@@ -894,9 +898,35 @@ enum Api {
         return try await request("/api/chat?scope=\(s)&limit=\(limit)", method: "GET", body: nil, auth: true)
     }
 
-    static func chatPost(scope: String, text: String) async throws -> ChatMsg {
+    /// `photoIds`: vorher hochgeladene Bilder (`uploadChatPhoto`); die Nachricht darf auch NUR
+    /// aus Bildern bestehen (Server chat.py, 30.09.2026).
+    static func chatPost(scope: String, text: String, photoIds: [Int] = []) async throws -> ChatMsg {
         let s = scope.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? scope
-        return try await request("/api/chat?scope=\(s)", method: "POST", body: ["text": text], auth: true)
+        let body: [String: Any] = ["text": text, "photo_ids": photoIds]
+        return try await request("/api/chat?scope=\(s)", method: "POST", body: body, auth: true)
+    }
+
+    /// Ein Bild fuer eine Chat-Nachricht hochladen — VOR dem Senden, damit die Vorschau im
+    /// Eingabefeld steht (PWA api.uploadChatPhoto). Vorerst nur Admins, der Server antwortet
+    /// sonst 403. Gleiche multipart-Form wie uploadSessionPhoto.
+    static func uploadChatPhoto(data: Data, filename: String = "photo.jpg", mime: String = "image/jpeg") async throws -> ChatPhoto {
+        guard let url = URL(string: baseURL + "/api/chat/photos") else { throw ApiError.badURL }
+        let boundary = "----pumpfoil\(Int(Date().timeIntervalSince1970 * 1000))"
+        var body = Data()
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"\(filename)\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: \(mime)\r\n\r\n".data(using: .utf8)!)
+        body.append(data)
+        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.timeoutInterval = 60
+        req.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        if let t = token { req.setValue("Bearer \(t)", forHTTPHeaderField: "Authorization") }
+        let (respData, resp) = try await URLSession.shared.upload(for: req, from: body)
+        let code = (resp as? HTTPURLResponse)?.statusCode ?? -1
+        guard (200..<300).contains(code) else { throw ApiError.http(code, String(data: respData, encoding: .utf8) ?? "") }
+        return try JSONDecoder().decode(ChatPhoto.self, from: respData)
     }
 
     // Neue Nachrichten seit `after` (Live-Polling).
@@ -1198,9 +1228,14 @@ enum Api {
     }
 
     // Eigene Chat-Nachricht bearbeiten (nur < 1 h).
-    static func chatEdit(_ messageId: Int, text: String) async throws {
-        struct Ok: Decodable { let ok: Bool? }
-        let _: Ok = try await request("/api/chat/\(messageId)", method: "PATCH", body: ["text": text], auth: true)
+    /// `photoIds`: die KOMPLETTE neue Bildliste in Reihenfolge (PWA bd988744) — nil laesst die
+    /// Bilder unangetastet (so wie bisher). Zurueck kommen die Bilder nach dem Speichern.
+    struct ChatEditResult: Decodable { let ok: Bool?; let photos: [ChatPhoto]? }
+    @discardableResult
+    static func chatEdit(_ messageId: Int, text: String, photoIds: [Int]? = nil) async throws -> ChatEditResult {
+        var body: [String: Any] = ["text": text]
+        if let photoIds { body["photo_ids"] = photoIds }
+        return try await request("/api/chat/\(messageId)", method: "PATCH", body: body, auth: true)
     }
 
     // Eigene Chat-Nachricht löschen (nur < 1 h).
