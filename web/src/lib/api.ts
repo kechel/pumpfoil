@@ -73,11 +73,15 @@ export interface ChatMsg {
   text: string; created_at: string | null; mine: boolean; hidden: boolean; report_count: number;
   author_new?: boolean;   // Konto jünger als 24 h -> "neu"-Badge
   like_count?: number; liked?: boolean;   // 👍
+  photos?: ChatPhoto[];   // angehaengte Bilder (30.09.2026, vorerst nur Admins koennen senden)
 }
+
+export interface ChatPhoto { id: number; url: string; thumb_url: string }
 
 export interface ChatRoom {
   scope: string; label: string; url: string; push: boolean;
   unread: number; last_text: string; last_at: string | null;
+  last_photo?: boolean;   // letzte Nachricht hat Bilder (Vorschau zeigt dann ein Kamera-Symbol)
   kind?: string;   // spot | dm | session
   other?: { id: number; name: string | null; avatar_url: string | null };  // nur bei dm
 }
@@ -89,11 +93,13 @@ export interface DmUser { id: number; display_name: string | null; avatar_url: s
 export interface BotRoom {
   scope: string; kind: string; label: string; url: string;
   bot_count: number; total_count: number; last_text: string; last_at: string | null;
+  last_photo?: boolean;
   other?: { id: number; name: string | null; avatar_url: string | null };   // nur bei dm
 }
 export interface BotMsg {
   id: number; user_id: number; name: string; avatar_url: string | null;
   text: string; hidden: boolean; is_bot: boolean; created_at: string | null;
+  photos?: ChatPhoto[];
 }
 
 export interface TransferSessionBrief { id: number; place: string | null; water: string | null; started_at: string | null; sport: string; foiling_time_s: number | null; }
@@ -1085,7 +1091,9 @@ export const api = {
   chatList: (scope: string, after = 0) => req<ChatMsg[]>(`/api/chat?scope=${encodeURIComponent(scope)}&after=${after}`),
   chatLatest: (scope: string, limit = 30) => req<ChatMsg[]>(`/api/chat?scope=${encodeURIComponent(scope)}&limit=${limit}`),
   chatBefore: (scope: string, before: number, limit = 30) => req<ChatMsg[]>(`/api/chat?scope=${encodeURIComponent(scope)}&before=${before}&limit=${limit}`),
-  chatPost: (scope: string, text: string) => req<ChatMsg>(`/api/chat?scope=${encodeURIComponent(scope)}`, { method: "POST", body: JSON.stringify({ text }) }),
+  chatPost: (scope: string, text: string, photoIds: number[] = []) => req<ChatMsg>(`/api/chat?scope=${encodeURIComponent(scope)}`, { method: "POST", body: JSON.stringify({ text, photo_ids: photoIds }) }),
+  // Bild VOR dem Senden hochladen (Vorschau im Eingabefeld), vorerst nur Admins.
+  uploadChatPhoto: async (file: File) => uploadFile<ChatPhoto>(`/api/chat/photos`, await downscaleImage(file)),
   chatReport: (id: number) => req<{ ok: boolean; report_count: number; hidden: boolean }>(`/api/chat/${id}/report`, { method: "POST" }),
   chatLike: (id: number) => req<{ liked: boolean; like_count: number }>(`/api/chat/${id}/like`, { method: "POST" }),
   chatEdit: (id: number, text: string) => req<{ ok: boolean; id: number; text: string }>(`/api/chat/${id}`, { method: "PATCH", body: JSON.stringify({ text }) }),

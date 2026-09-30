@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { api, ChatMsg } from "../lib/api";
 import { Avatar, NewBadge } from "./ui";
-import { FlagIcon, BellIcon, BellOffIcon, EyeIcon, EyeOffIcon, MuteIcon, EditIcon, TrashIcon, CloseIcon, ThumbUpIcon } from "./Icons";
+import { FlagIcon, BellIcon, BellOffIcon, EyeIcon, EyeOffIcon, MuteIcon, EditIcon, TrashIcon, CloseIcon, ThumbUpIcon, CameraIcon } from "./Icons";
+import { FotoStapel } from "./FotoStapel";
 import { useT } from "../i18n";
 import { MicButton } from "./MicButton";
 
@@ -34,6 +35,10 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
   const [editing, setEditing] = useState<number | null>(null);   // id der Nachricht, die gerade bearbeitet wird
   const [menuFor, setMenuFor] = useState<number | null>(null);    // per Long-Press geöffnete Aktionen (Bearbeiten/Löschen)
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  // Bilder im Eingabefeld (vorerst nur Admins): beim Auswaehlen schon hochgeladen, damit die Vorschau
+  // steht und das Senden sofort geht. `id` fehlt, solange der Upload laeuft.
+  const [anhaenge, setAnhaenge] = useState<{ key: string; vorschau: string; id?: number; fehler?: boolean }[]>([]);
+  const dateiRef = useRef<HTMLInputElement>(null);
   const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastId = useRef(0);          // höchste geladene id (für Polling)
   const firstId = useRef(0);         // niedrigste geladene id (für Hochscroll-Nachladen)
@@ -183,14 +188,38 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
       .catch((e) => alert(String(e)));
   }
 
+  function bilderWaehlen(files: FileList | null) {
+    if (!files) return;
+    const neu = Array.from(files).slice(0, Math.max(0, 10 - anhaenge.length)).map((f) => ({
+      key: `${Date.now()}-${Math.random()}`, vorschau: URL.createObjectURL(f), datei: f }));
+    setAnhaenge((prev) => [...prev, ...neu.map(({ key, vorschau }) => ({ key, vorschau }))]);
+    for (const n of neu) {
+      api.uploadChatPhoto(n.datei)
+        .then((p) => setAnhaenge((prev) => prev.map((a) => a.key === n.key ? { ...a, id: p.id } : a)))
+        .catch(() => setAnhaenge((prev) => prev.map((a) => a.key === n.key ? { ...a, fehler: true } : a)));
+    }
+    if (dateiRef.current) dateiRef.current.value = "";
+  }
+  function anhangWeg(key: string) {
+    setAnhaenge((prev) => {
+      const a = prev.find((x) => x.key === key);
+      if (a) URL.revokeObjectURL(a.vorschau);
+      return prev.filter((x) => x.key !== key);
+    });
+  }
+  const laedtNoch = anhaenge.some((a) => a.id == null && !a.fehler);
+  const bereiteBilder = anhaenge.filter((a) => a.id != null).map((a) => a.id as number);
+
   function send() { if (editing != null) { saveEdit(); return; } sendText(text); }
   function sendText(raw: string) {
     const v = raw.trim();
-    if (!v || busy) return;
+    if ((!v && bereiteBilder.length === 0) || busy || laedtNoch) return;
     setBusy(true);
-    api.chatPost(scope, v)
+    api.chatPost(scope, v, bereiteBilder)
       .then((m) => {
         setText("");
+        anhaenge.forEach((a) => URL.revokeObjectURL(a.vorschau));
+        setAnhaenge([]);
         if (m.id > lastId.current) {
           lastId.current = m.id;
           setMsgs((prev) => {
@@ -281,7 +310,8 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
                   )}
                 </span>
               </div>
-              <div className="whitespace-pre-wrap break-words text-sm text-slate-100">{linkify(m.text)}</div>
+              {m.text && <div className="whitespace-pre-wrap break-words text-sm text-slate-100">{linkify(m.text)}</div>}
+              {m.photos && m.photos.length > 0 && <FotoStapel photos={m.photos} name={m.name} avatarUrl={m.avatar_url} />}
             </div>
             {!isDesktop && menuFor === m.id && canEdit(m) && (
               <button onClick={() => del(m)} title={t("chat.delete")} aria-label={t("chat.delete")}
@@ -298,7 +328,33 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
           <button onClick={cancelEdit} className="text-slate-400 hover:text-slate-200" title={t("chat.editCancel")}><CloseIcon className="h-3.5 w-3.5" /></button>
         </div>
       )}
+      {anhaenge.length > 0 && editing == null && (
+        <div className="mb-2 flex flex-wrap gap-2">
+          {anhaenge.map((a) => (
+            <div key={a.key} className="relative">
+              <img src={a.vorschau} alt="" className={`h-16 w-16 rounded-lg border object-cover ${
+                a.fehler ? "border-red-500 opacity-50" : "border-slate-700"} ${a.id == null && !a.fehler ? "animate-pulse" : ""}`} />
+              <button type="button" onClick={() => anhangWeg(a.key)} aria-label={t("chat.photoRemove")} title={t("chat.photoRemove")}
+                className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 text-slate-200 ring-1 ring-slate-700 hover:text-red-400">
+                <CloseIcon className="h-3 w-3" />
+              </button>
+            </div>
+          ))}
+          {anhaenge.some((a) => a.fehler) && <p className="w-full text-xs text-red-400">{t("chat.photoFailed")}</p>}
+        </div>
+      )}
       <div className="flex items-end gap-2">
+        {isAdmin && editing == null && (
+          <>
+            <input ref={dateiRef} type="file" accept="image/*" multiple className="hidden"
+              onChange={(e) => bilderWaehlen(e.target.files)} />
+            <button type="button" onClick={() => dateiRef.current?.click()} disabled={busy || anhaenge.length >= 10}
+              title={t("chat.photoAdd")} aria-label={t("chat.photoAdd")}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-700 bg-slate-900 text-slate-300 hover:text-brand-600 disabled:opacity-50 dark:hover:text-brand-300">
+              <CameraIcon className="h-5 w-5" />
+            </button>
+          </>
+        )}
         <textarea
           ref={inputRef}
           value={text}
@@ -314,7 +370,7 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
         />
         {editing == null && <MicButton value={text} onChange={(v) => setText(v)} onSubmit={(v) => sendText(v)} disabled={busy}
           title={scope.startsWith("spot:") ? `${t("chat.spotChat")} ${scope.slice(5)}` : scope.startsWith("session:") ? t("chat.kindSession") : ""} />}
-        <button onClick={send} disabled={busy || !text.trim()}
+        <button onClick={send} disabled={busy || laedtNoch || (!text.trim() && (editing != null || bereiteBilder.length === 0))}
           className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-50">
           {editing != null ? t("chat.save") : t("chat.send")}
         </button>

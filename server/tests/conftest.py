@@ -45,6 +45,9 @@ def _test_db_url() -> str:
 
 os.environ["DATABASE_URL"] = _test_db_url()
 os.environ["DATA_DIR"] = f"{_tmp}/data"
+# Bilder aus Tests NIE in den echten Medienordner (Default ./media = server/media, wird ausgeliefert
+# und gesichert). Aufgefallen am 30.09.2026 beim ersten Test, der wirklich ein Bild speichert.
+os.environ["MEDIA_DIR"] = f"{_tmp}/media"
 os.environ["JWT_SECRET"] = "test-secret"
 os.environ["WEB_DIST"] = f"{_tmp}/nonexistent-dist"
 # Die Uhren-Builds sind AUSGABE (`watch/bin/`, in .gitignore) und liegen nie im Repo. Zeigt der

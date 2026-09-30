@@ -82,6 +82,12 @@ def konto_loeschen(db: Session, user: models.User) -> dict:
     for n in db.query(models.SpotNote).filter_by(user_id=uid).all():
         _note_weg(db, n)
 
+    # 2b) Eigene Chat-Bilder (Tabelle chat_photos): Dateien einsammeln, Zeilen VOR den Nachrichten
+    # entfernen — die generische Runde unten kennt die Reihenfolge der Tabellen nicht.
+    for p in db.query(models.ChatPhoto).filter_by(user_id=uid).all():
+        medien.append(p.url)
+        db.delete(p)
+
     if user.avatar_url:
         medien.append(user.avatar_url)
     db.flush()

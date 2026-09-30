@@ -350,6 +350,21 @@ class ChatMessage(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, index=True)
 
 
+class ChatPhoto(Base):
+    """Bild an einer Chat-Nachricht (Jan, 30.09.2026: Bilder im Community- und 1:1-Chat, vorerst
+    nur fuer Admins). Hochgeladen VOR dem Senden (dann `message_id` leer), beim Senden an die
+    Nachricht gehaengt. Datei wie bei Session-/Spot-Fotos: WebP ohne EXIF unter /media/chat/."""
+
+    __tablename__ = "chat_photos"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    message_id: Mapped[int | None] = mapped_column(ForeignKey("chat_messages.id"), index=True, nullable=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    url: Mapped[str] = mapped_column(String(255))
+    sort: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
 class ChatReport(Base):
     """Meldung einer Chat-Nachricht (1× je Nutzer)."""
 
