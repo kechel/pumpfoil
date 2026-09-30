@@ -48,6 +48,8 @@ GPS_ONLY_SPORTS = {
 # Die Schwelle arbeitet auf der GEMESSENEN Rate (aus timebase), nicht auf der getaggten. Deshalb
 # bleiben die FR55-Sessions mit real 2,5 Hz weiter draußen, obwohl sie 10 oder 25 Hz melden.
 MODEL_MIN_ACCEL_HZ = 8.0
+# Obergrenze fuer eine Gleitphase (Luecke zwischen zwei erkannten Pumps), s. Pump-Schleife.
+MAX_GLIDE_S = 15.0
 
 
 def _accel_spans_session(accel, scale) -> bool:
@@ -412,6 +414,7 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
 
     accel_hz = float(session.accel_hz or 0.0)
     timebase_source = "none"
+    accel_echt = None   # je Rasterpunkt: echter Messwert in der Naehe? (s. unten)
     if accel.shape[0] > 0 and gps_samples:
         _tb = build_timebase(
             gps_samples, accel, session.accel_scale, session.accel_hz,
@@ -428,6 +431,16 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
             grid_ms = np.arange(n_grid) / accel_hz * 1000.0
             pick = np.clip(np.searchsorted(src_ms, grid_ms), 0, src_ms.size - 1)
             accel = _tb.accel[pick]
+            # WO GIBT ES WIRKLICH MESSWERTE? (30.09.2026, #10266 Bartosz: 22,8 s „Gleitphase" in
+            # einem Lauf ganz OHNE Beschleunigung.) Das Raster reicht immer ueber das ganze
+            # Zeitfenster; wo Accel fehlt (Upload unvollstaendig, Luecke zwischen Bloecken),
+            # wiederholt `pick` den naechsten Messwert. Der Bandpass macht daraus Nachschwinger,
+            # `find_pumps_cadence` zaehlt ein paar davon als Pumps, und die Luecken dazwischen
+            # wurden zu Rekord-Gleitphasen. `accel_echt` markiert je Rasterpunkt, ob ein echter
+            # Messwert naeher als zwei Abtastschritte liegt — Pumps und Gleitphasen zaehlen nur dort.
+            links = src_ms[np.clip(pick - 1, 0, src_ms.size - 1)]
+            abstand = np.minimum(np.abs(src_ms[pick] - grid_ms), np.abs(links - grid_ms))
+            accel_echt = abstand <= max(2000.0 / accel_hz, 250.0)
         else:
             accel = accel[0:0]
 
@@ -639,10 +652,22 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
         # Pro Trackpunkt eine lokale Pump-Frequenz (Hz) für die Karten-Einfärbung;
         # None außerhalb der Foiling-Läufe (dort gibt es keine Pump-Kadenz).
         pump_hz = [None] * int(gps_t.size)
+        echt = accel_echt if accel_echt is not None and accel_echt.size == vsig.size else np.ones(vsig.size, bool)
         for seg in res["segments"]:
             a_lo = max(int(round(seg["t_start_ms"] / 1000.0 * fs)), 0)
             a_hi = min(int(round(seg["t_end_ms"] / 1000.0 * fs)), vsig.size)
+            abgedeckt = echt[a_lo:a_hi] if a_hi > a_lo else np.zeros(0, bool)
+            if abgedeckt.size == 0 or abgedeckt.mean() < 0.5:
+                # Lauf (fast) ohne Beschleunigung: KEINE Pumps und KEINE Gleitphase erfinden.
+                # Die Clients zeigen „–" (Web/iOS) bzw. 0 (Android); Rekorde sehen 0.
+                seg.update({"pumps": None, "pump_idx": [], "avg_pump_hz": None, "max_pump_hz": None,
+                            "min_pump_hz": None, "t_to_first_pump_s": None, "dist_per_pump_m": None,
+                            "pumps_per_min": None, "num_glides": 0, "avg_glide_s": None,
+                            "longest_glide_s": None, "accel_fehlt": True})
+                continue
             local_idx = find_pumps_cadence(vsig[a_lo:a_hi], fs) if a_hi > a_lo else np.empty(0, dtype=int)
+            # Nur Pumps an Stellen mit echten Messwerten (Nachschwinger im Luecken-Raster fallen weg)
+            local_idx = local_idx[abgedeckt[local_idx]] if local_idx.size else local_idx
             pts = (a_lo + local_idx) / fs * 1000.0
             seg["pumps"] = int(pts.size)
             # Pump-Positionen als Track-Index (für ein-/ausblendbare Marker auf der Karte).
@@ -678,15 +703,25 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
             )
             if pts.size >= 1:
                 ps = np.sort(pts)
-                gaps = list(np.diff(ps) / 1000.0)               # zwischen den Pumps
-                # Gleitphasen NUR über den accel-abgedeckten Bereich [a_lo, a_hi]: bricht die
-                # Accel-Spur vor dem GPS-Lauf ab (verkürzte/abgebrochene Aufzeichnung), darf der
-                # accel-lose Schwanz NICHT als riesige Gleitphase zählen (Befund Session 521).
-                acc_start_ms = a_lo / fs * 1000.0
-                acc_end_ms = a_hi / fs * 1000.0
+                # Zwischen zwei Pumps nur dann eine Gleitphase, wenn dazwischen durchgehend echte
+                # Messwerte liegen — eine Accel-Luecke ist kein Gleiten (30.09.2026, #10266).
+                pi = np.round(ps / 1000.0 * fs).astype(int)
+                luecke = np.concatenate([[0], np.cumsum(~echt)])
+                gaps = [float(ps[k + 1] - ps[k]) / 1000.0 for k in range(ps.size - 1)
+                        if luecke[min(pi[k + 1], echt.size)] - luecke[min(pi[k], echt.size)] == 0]
+                # Gleitphasen NUR über den accel-abgedeckten Bereich: bricht die Accel-Spur vor dem
+                # GPS-Lauf ab (verkürzte/abgebrochene Aufzeichnung), darf der accel-lose Schwanz
+                # NICHT als riesige Gleitphase zählen (Befund Session 521). Seit 30.09.2026 gegen
+                # die ECHTEN Messwerte, nicht gegen das aufgefuellte Raster.
+                drin = np.flatnonzero(abgedeckt)
+                acc_start_ms = (a_lo + int(drin[0])) / fs * 1000.0
+                acc_end_ms = (a_lo + int(drin[-1]) + 1) / fs * 1000.0
                 lead = (float(ps[0]) - acc_start_ms) / 1000.0   # Accel-Start -> 1. Pump
                 tail = (acc_end_ms - float(ps[-1])) / 1000.0    # letzter Pump -> Accel-Ende
-                glides = [g for g in ([lead] + gaps + [tail]) if g > 0]
+                # Laenger als MAX_GLIDE_S gleitet niemand (Jan, 30.09.2026: „Gleitphasen > 15 s
+                # kategorisch ausschliessen") — so eine Luecke ist ein Erkennungsfehler (verpasste
+                # Pumps, Accel-Luecke), keine Gleitphase. Sie faellt ganz weg, sie wird nicht gekappt.
+                glides = [g for g in ([lead] + gaps + [tail]) if 0 < g <= MAX_GLIDE_S]
                 seg["num_glides"] = len(glides)
                 seg["avg_glide_s"] = round(float(np.mean(glides)), 2) if glides else 0.0
                 seg["longest_glide_s"] = round(float(max(glides)), 2) if glides else 0.0
