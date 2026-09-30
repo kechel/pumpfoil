@@ -42,6 +42,8 @@ def main() -> None:
     ap.add_argument("--dry", action="store_true", help="nichts schreiben")
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--pause", type=float, default=0.05)
+    ap.add_argument("--log", default=LOG, help="JSONL-Protokoll (vorher/nachher je Session)")
+    ap.add_argument("--session-datei", default="", help="Datei mit Session-IDs (eine je Zeile)")
     ap.add_argument("--session", type=int, action="append", default=[],
                     help="nur diese Session-IDs (mehrfach angebbar)")
     args = ap.parse_args()
@@ -80,6 +82,8 @@ def main() -> None:
             ids.append(sid)
         else:
             ohne_daten.append(sid)
+    if args.session_datei:
+        args.session += [int(x) for x in open(args.session_datei).read().split() if x.strip()]
     if args.session:
         gewuenscht = set(args.session)
         fehlt = gewuenscht - set(ids)
@@ -97,7 +101,7 @@ def main() -> None:
         print(f"UEBERSPRUNGEN (keine GPS-Rohdaten auf der Platte): {len(ohne_daten)}"
               f" -> {ohne_daten[:20]}{' …' if len(ohne_daten) > 20 else ''}", flush=True)
     t0 = time.time()
-    log = open(LOG, "a")
+    log = open(args.log, "a")
     geaendert = fehler = 0
     for i, sid in enumerate(ids, 1):
         try:
@@ -132,7 +136,7 @@ def main() -> None:
         time.sleep(args.pause)
     log.close()
     print(f"FERTIG: {len(ids)} Sessions, {geaendert} geaendert, {fehler} Fehler,"
-          f" {(time.time()-t0)/60:.1f} min. Protokoll: {LOG}", flush=True)
+          f" {(time.time()-t0)/60:.1f} min. Protokoll: {args.log}", flush=True)
 
 
 if __name__ == "__main__":
