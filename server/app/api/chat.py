@@ -479,7 +479,11 @@ def _own_editable(message_id: int, user: models.User, db: Session) -> models.Cha
 
 
 class EditIn(BaseModel):
-    text: str
+    text: str = ""
+    # Optional die KOMPLETTE neue Bildliste der Nachricht, in Reihenfolge (Jan, 30.09.2026: beim
+    # Bearbeiten Bilder dazunehmen oder einzelne entfernen). Fehlt das Feld (alte Clients), bleiben
+    # die Bilder unangetastet.
+    photo_ids: list[int] | None = None
 
 
 @router.patch("/{message_id}")
@@ -490,11 +494,37 @@ def edit_message(
     """Eigene Nachricht bearbeiten (nur innerhalb 1 h)."""
     m = _own_editable(message_id, user, db)
     text = (body.text or "").strip()[:2000]
-    if not text:
+    weg_urls: list[str] = []
+    if body.photo_ids is not None:
+        ids = list(dict.fromkeys(body.photo_ids))[:MAX_CHAT_FOTOS]
+        bisher = {p.id: p for p in db.query(models.ChatPhoto).filter(models.ChatPhoto.message_id == m.id).all()}
+        neu_ids = [i for i in ids if i not in bisher]
+        if neu_ids and not user.is_admin:
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "Bilder im Chat sind noch nicht freigeschaltet")
+        neue = {p.id: p for p in (db.query(models.ChatPhoto)
+                .filter(models.ChatPhoto.id.in_(neu_ids), models.ChatPhoto.user_id == user.id,
+                        models.ChatPhoto.message_id.is_(None)).all() if neu_ids else [])}
+        if len(neue) != len(neu_ids):
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "Unbekanntes oder schon versandtes Bild")
+        for pid, p in bisher.items():          # nicht mehr in der Liste -> weg (Datei nach dem Commit)
+            if pid not in ids:
+                weg_urls.append(p.url)
+                db.delete(p)
+        for i, pid in enumerate(ids):
+            p = bisher.get(pid) or neue[pid]
+            p.message_id = m.id
+            p.sort = i
+        hat_bilder = bool(ids)
+    else:
+        hat_bilder = _hat_fotos(db, m.id)
+    if not text and not hat_bilder:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Leerer Text")
     m.text = text
     db.commit()
-    return {"ok": True, "id": m.id, "text": m.text}
+    from ..media import delete_media
+    for u in weg_urls:
+        delete_media(u)
+    return {"ok": True, "id": m.id, "text": m.text, "photos": _photos_for(db, [m.id]).get(m.id, [])}
 
 
 @router.put("/{message_id}")
