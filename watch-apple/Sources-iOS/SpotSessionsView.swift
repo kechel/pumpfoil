@@ -30,6 +30,8 @@ struct SpotSessionsView: View {
     @State private var spotId: Int?
     @State private var spotLabel: String?      // Gewaesser bzw. Steg/Ortslage, fuer den Titel
     @State private var weather: SpotWeather?
+    // Sportarten fuer die Rekord-Kaesten, nur wenn die Karte „alle Sportarten" mitgab.
+    @State private var sportarten: [String] = []
 
     var body: some View {
         List {
@@ -47,7 +49,10 @@ struct SpotSessionsView: View {
             if let error { Text(error).foregroundStyle(.secondary) }
             // Reihenfolge wie in der PWA: Rekorde, Wetter, Beschreibungen, dann die Sessions
             // (Jan, 07.09.: „die 3 muessen nach oben wie in der pwa").
-            SpotRecordsView(spot: spot, lang: lang, accelOnly: showAll ? false : true)
+            // Rekorde je Sportart wie die Liste darunter: ohne Vorgabe Pumpfoil (Endpunkt-Default
+            // der Liste), bei „alle" ein Kasten je Sportart (PWA a9725cb9).
+            SpotRecordsView(spot: spot, lang: lang, accelOnly: showAll ? false : true,
+                            sport: sport ?? "pumpfoil", sports: sportarten)
             if let sw = weather { Section { HomeWeatherCard(sw: sw, lang: lang, titelKey: "spot.weatherTitle") } }
             // `?? vorgegebeneSpotId`: die id des Einstiegs gilt SOFORT. Vorher wurde sie erst
             // im Task uebernommen — nach dem Laden der Sessions — und bis dahin (oder wenn der
@@ -55,6 +60,10 @@ struct SpotSessionsView: View {
             if let sid = spotId ?? vorgegebeneSpotId { SpotNotesView(spotId: sid, lang: lang) }
             // „Anderen Namen vorschlagen" — nur wer hier selbst gefahren ist (s. SpotNotesView.swift).
             if let sid = spotId ?? vorgegebeneSpotId { SpotNamensVorschlag(spotId: sid, spotName: spot, lang: lang) }
+            // Kacheln / eine Zeile je Session (PWA 9160c6a2) — derselbe Merker wie alle Listen.
+            if !items.isEmpty {
+                HStack { Spacer(); ListenAnsichtUmschalter(lang: lang) }
+            }
             ForEach(items) { c in
                 NavigationLink { SessionDetailView(id: c.id) } label: { CommunityRow(item: c) }
             }
@@ -84,6 +93,9 @@ struct SpotSessionsView: View {
         .task {
             if items.isEmpty { await load() }
             if spotId == nil { spotId = vorgegebeneSpotId }
+            if sport == "all", sportarten.isEmpty {
+                sportarten = ((try? await Api.communitySports()) ?? []).map { $0.sport }
+            }
             async let w = Api.spotWeather(spot)
             async let karte = Api.spotMap(accelOnly: false)
             weather = try? await w

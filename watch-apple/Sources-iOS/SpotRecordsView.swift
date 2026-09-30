@@ -58,24 +58,41 @@ return [
 
 /// Die Rekorde dieses Spots, ganz oben auf der Spot-Seite — wie in der PWA seit dem 06.09.2026.
 ///
-/// Zeitfenster wie im Web: erst zehn Tage, und wenn dort nichts steht, weiter auf 30 Tage, ein
-/// Jahr, alles. Sobald der Nutzer selbst ein Fenster wählt, bleibt seine Wahl stehen. Gibt es in
-/// KEINEM Fenster einen Rekord, verschwindet der Block ganz — eine Reihe „–" hilft niemandem.
+/// JE SPORTART (PWA a9725cb9, 29.09.2026; Anlass: ein Nutzer vermisste seine Foil-Scoot-Rekorde am
+/// Spot, abgefragt wurde fest Pumpfoil). Folgt dem Sportarten-Filter der Seite: eine Sportart
+/// gewaehlt -> nur deren Rekorde; „alle Sportarten" -> ein Kasten JE Sportart, nicht ein gemischter
+/// — ein Foil-Scoot-Tempo gegen ein Pumpfoil-Tempo waere kein Rekord. Kaesten ohne Rekord fallen
+/// weg. Gibt es in KEINEM Kasten einen Rekord, steht EIN Hinweis da (s. unten, warum nicht nichts).
 struct SpotRecordsView: View {
     let spot: String
     let lang: String
     let accelOnly: Bool
+    /// Sportart-Filter der Seite: "all" = je Sportart ein Kasten.
+    var sport: String = "all"
+    /// Sportarten fuer „alle" (Server /api/community/sports). Leer -> nur Pumpfoil, wie die PWA.
+    var sports: [String] = []
 
-    private static let fenster = ["10d", "30d", "365d", "all"]
-
-    @State private var alle: [String: PeriodRecords] = [:]
-    @State private var fensterWahl = "10d"
-    @State private var selbstGewaehlt = false
+    @State private var jeSportart: [String: [String: PeriodRecords]] = [:]
     @State private var geladen = false
+    @State private var ladeStand = 0     // zaehlt Abrufe; die Kaesten waehlen danach ihr Fenster neu
+    // Fuer welchen Schluessel schon geladen wird/wurde. NOETIG: eine `Group` gibt ihre Modifier an
+    // JEDES Kind weiter — bei drei Sportart-Kaesten liefe `.task` dreimal, und jeder neu
+    // erscheinende Kasten stiesse es erneut an. Der erste Lauf je Schluessel gewinnt.
+    @State private var geladenFuer: String?
 
-    private var zeilen: [RecRow] { rekordZeilen(alle[fensterWahl], lang: lang) }
-    private var etwasDa: Bool {
-        Self.fenster.contains { !rekordZeilen(alle[$0], lang: lang).allSatisfy { $0.entry == nil } }
+    private var liste: [String] {
+        if sport != "all" { return [sport] }
+        return sports.isEmpty ? ["pumpfoil"] : sports
+    }
+
+    /// Neu laden, sobald sich Spot, Filter oder die Liste der Sportarten aendert.
+    private var ladeSchluessel: String {
+        let teile: [String] = [spot, String(accelOnly)] + liste
+        return teile.joined(separator: "|")
+    }
+
+    private var mitRekorden: [String] {
+        liste.filter { SpotRecordsKasten.hatRekorde(jeSportart[$0], lang: lang) }
     }
 
     var body: some View {
@@ -84,45 +101,107 @@ struct SpotRecordsView: View {
             // aber nichts drin ist, sagt die Ansicht das AUCH. Vorher gab sie in beiden Faellen
             // gar nichts aus, und damit war nicht unterscheidbar, ob der Abruf scheitert, ob es
             // keine Rekorde gibt oder ob die Ansicht nie gebaut wird (Jan, 07.09.: „keine
-            // rekorde" bei frischem Build, waehrend der Server 11 Kacheln liefert).
+            // rekorde" bei frischem Build, waehrend der Server 11 Kacheln liefert). Ausserdem
+            // haengt `.task` hier: ohne sichtbaren Inhalt liefe es nicht zuverlaessig
+            // (Memory swiftui-leere-group-laedt-nicht).
             if !geladen {
                 Section { Text(Loc.t("common.loading", lang)).font(.caption).foregroundStyle(.secondary) }
                     header: { Text(Loc.t("rec.spotTitle", lang)) }
-            } else if !etwasDa {
+            } else if mitRekorden.isEmpty {
                 Section { Text(Loc.t("records.empty", lang)).font(.caption).foregroundStyle(.secondary) }
                     header: { Text(Loc.t("rec.spotTitle", lang)) }
             } else {
-                Section {
-                    Picker("", selection: $fensterWahl) {
-                        ForEach(Self.fenster, id: \.self) { f in
-                            Text(Loc.t("period.\(f)", lang)).tag(f)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    .onChange(of: fensterWahl) { _ in selbstGewaehlt = true }
+                ForEach(mitRekorden, id: \.self) { s in
+                    SpotRecordsKasten(sport: s, alle: jeSportart[s] ?? [:], lang: lang, ladeStand: ladeStand)
+                }
+            }
+        }
+        .task(id: ladeSchluessel) { await laden() }
+    }
 
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
-                        ForEach(zeilen) { z in
-                            if let sid = z.entry?.session_id {
-                                NavigationLink { SessionDetailView(id: sid) } label: { kachel(z) }
-                                    .buttonStyle(.plain)
-                            } else {
-                                kachel(z)
-                            }
-                        }
+    /// Alle Sportarten nebeneinander abfragen; eine gescheiterte zaehlt als „keine Rekorde".
+    private func laden() async {
+        let schluessel: String = ladeSchluessel
+        guard geladenFuer != schluessel else { return }
+        geladenFuer = schluessel
+        let spot: String = self.spot
+        let only: Bool = accelOnly
+        var neu: [String: [String: PeriodRecords]] = [:]
+        await withTaskGroup(of: (String, [String: PeriodRecords]).self) { gruppe in
+            for s in liste {
+                gruppe.addTask {
+                    let r = (try? await Api.communityRecords(accelOnly: only, spot: spot, sport: s)) ?? [:]
+                    return (s, r)
+                }
+            }
+            for await (s, r) in gruppe { neu[s] = r }
+        }
+        jeSportart = neu
+        geladen = true
+        ladeStand += 1
+    }
+}
+
+/// Ein Kasten „Rekorde an diesem Spot · <Sportart>". Zeitfenster wie im Web: erst zehn Tage, und
+/// wenn dort nichts steht, weiter auf 30 Tage, ein Jahr, alles. Sobald der Nutzer selbst ein
+/// Fenster waehlt, bleibt seine Wahl stehen.
+struct SpotRecordsKasten: View {
+    let sport: String
+    let alle: [String: PeriodRecords]
+    let lang: String
+    let ladeStand: Int
+
+    static let fenster = ["10d", "30d", "365d", "all"]
+
+    @State private var fensterWahl = "10d"
+    @State private var selbstGewaehlt = false
+
+    static func hatRekorde(_ alle: [String: PeriodRecords]?, lang: String) -> Bool {
+        guard let alle else { return false }
+        return fenster.contains { !rekordZeilen(alle[$0], lang: lang).allSatisfy { $0.entry == nil } }
+    }
+
+    private var zeilen: [RecRow] { rekordZeilen(alle[fensterWahl], lang: lang) }
+
+    private var titel: String {
+        let t: String = Loc.t("rec.spotTitle", lang)
+        return t + " · " + Loc.t("cls.sport.\(sport)", lang)
+    }
+
+    // Eigene Wahl merken — ueber das Binding statt `.onChange(of:)`, das auch beim automatischen
+    // Setzen feuerte und die Automatik damit nach dem ersten Laden abschaltete.
+    private var wahl: Binding<String> {
+        Binding(get: { fensterWahl }, set: { fensterWahl = $0; selbstGewaehlt = true })
+    }
+
+    var body: some View {
+        Section {
+            Picker("", selection: wahl) {
+                ForEach(Self.fenster, id: \.self) { f in
+                    Text(Loc.t("period.\(f)", lang)).tag(f)
+                }
+            }
+            .pickerStyle(.segmented)
+
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+                ForEach(zeilen) { z in
+                    if let sid = z.entry?.session_id {
+                        NavigationLink { SessionDetailView(id: sid) } label: { kachel(z) }
+                            .buttonStyle(.plain)
+                    } else {
+                        kachel(z)
                     }
-                } header: { Text(Loc.t("rec.spotTitle", lang)) }
+                }
             }
-        }
-        .task(id: accelOnly) {
-            alle = (try? await Api.communityRecords(accelOnly: accelOnly, spot: spot)) ?? [:]
-            geladen = true
-            if !selbstGewaehlt {
-                fensterWahl = Self.fenster.first {
-                    !rekordZeilen(alle[$0], lang: lang).allSatisfy { $0.entry == nil }
-                } ?? "all"
-            }
-        }
+        } header: { Text(titel) }
+        .task(id: ladeStand) { ersteFensterWahl() }
+    }
+
+    private func ersteFensterWahl() {
+        guard !selbstGewaehlt else { return }
+        fensterWahl = Self.fenster.first {
+            !rekordZeilen(alle[$0], lang: lang).allSatisfy { $0.entry == nil }
+        } ?? "all"
     }
 
     private func kachel(_ z: RecRow) -> some View {

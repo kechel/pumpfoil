@@ -580,6 +580,9 @@ struct ChatRoom: Codable, Identifiable {
     var kind: String? = nil          // spot | dm | session
     var push: Bool? = nil            // abonniert (Push) → Glocke
     var other: DmOther? = nil        // nur bei dm
+    // Letzte Nachricht hat Bilder -> Vorschau zeigt ein Kamera-Symbol (Server chat.py, 30.09.2026).
+    // Bei einer Nachricht NUR aus Bildern ist `last_text` leer.
+    var last_photo: Bool? = nil
     var id: String { scope }
 }
 
@@ -647,6 +650,17 @@ struct ChatMsg: Codable, Identifiable {
     // Daumen-hoch je Nachricht (Server: chat.py:_msg_out + POST /api/chat/{id}/like).
     let like_count: Int?
     let liked: Bool?
+    // Angehaengte Bilder (30.09.2026; senden koennen vorerst nur Admins, sehen alle). `var` mit
+    // Vorgabe, damit der Memberwise-Init ohne das Feld weiter geht und Decodable es liest.
+    var photos: [ChatPhoto]? = nil
+}
+
+/// Ein Bild an einer Chat-Nachricht (Server chat.py `_photos_for`): `url` = volles Bild,
+/// `thumb_url` = Vorschaubild fuer den Stapel in der Nachricht.
+struct ChatPhoto: Codable, Identifiable, Hashable {
+    let id: Int
+    let url: String
+    let thumb_url: String?
 }
 
 struct Foil: Codable, Identifiable {

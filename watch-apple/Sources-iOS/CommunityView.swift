@@ -497,9 +497,11 @@ struct CommunityRow: View {
     let item: CommunityItem
     @ObservedObject private var compare = CompareStore.shared
     @AppStorage("appLang") private var lang = "de"
+    // Kacheln oder EINE Zeile je Session — derselbe Merker wie alle Listen (KompakteListe).
+    @AppStorage(KompakteListe.key) private var kompakt = false
 
     var body: some View {
-        content
+        zeile
             .contextMenu {
                 Button {
                     compare.toggle(item.id)
@@ -513,6 +515,21 @@ struct CommunityRow: View {
                     RoundedRectangle(cornerRadius: 3).fill(Color.accentColor).frame(width: 3)
                 }
             }
+    }
+
+    @ViewBuilder private var zeile: some View {
+        if kompakt { kompaktZeile } else { content }
+    }
+
+    // Zeilen-Ansicht wie die PWA mobil (SessionCard kompakt): oben Datum, Uhrzeit, Name, Spot;
+    // unten Sportart, Kennzahlen und Herz — ohne Bilder, Setup und Geraet.
+    private var kompaktZeile: some View {
+        KompaktZeile(avatarName: item.name, avatarURL: Api.mediaURL(item.avatar_url),
+                     datum: TimeFmt.kurzDatum(item.started_at, item.tz) ?? "",
+                     zeit: TimeFmt.timeOnly(item.started_at, item.tz) ?? "",
+                     name: item.name, spot: item.spot, abzeichen: sportLabel,
+                     kennzahlen: statsText ?? "",
+                     likeId: item.id, liked: item.liked ?? false, likeCount: item.like_count ?? 0)
     }
 
     // Zeile in Spalten zerlegt: die Zeile war EIN Ausdruck mit sieben Geschwistern, davon drei
