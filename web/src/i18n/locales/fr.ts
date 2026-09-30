@@ -754,6 +754,8 @@ const fr: Record<string, string> = {
   "nav.nerd3": "Mesure bi-montre",
   "nav.nerd4": "Téléphone sur la planche",
   "nav.nerd5": "Modèle de détection",
+  "list.cards": "Cartes",
+  "list.compact": "Une ligne par session",
   "nav.arch": "Architecture du système",
   "land.deep5": "Un téléphone sur la planche : mesuré à la source (en anglais)",
   "land.deep4": "Architecture du système",

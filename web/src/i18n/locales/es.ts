@@ -752,6 +752,8 @@ const es: Record<string, string> = {
   "nav.nerd3": "Medición con doble reloj",
   "nav.nerd4": "Teléfono en la tabla",
   "nav.nerd5": "Modelo de detección",
+  "list.cards": "Tarjetas",
+  "list.compact": "Una línea por sesión",
   "nav.arch": "Arquitectura del sistema",
   "land.deep5": "Un móvil en la tabla: medido en la fuente (en inglés)",
   "land.deep4": "Arquitectura del sistema",

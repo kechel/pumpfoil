@@ -8,6 +8,8 @@ import { api, BoardKlasse, FoilStatsGroup, OverallStats, Profile, SessionSummary
 import { usePumpFmt } from "../lib/pumpRate";
 import { Card, Spinner } from "../components/ui";
 import { SessionCard } from "../components/SessionCard";
+import { ListenAnsicht } from "../components/ListenAnsicht";
+import { useKompakteListe } from "../lib/kompakteListe";
 import { EigeneAbzeichen, SessionStats } from "./Sessions";
 import { SpotWeather } from "../components/SpotWeather";
 import { InstallPwa } from "../components/InstallPwa";
@@ -261,6 +263,7 @@ const setupLabels = (s: { setup?: { stab?: { brand: string; model: string; size:
 
 export default function PersonalHome() {
   const t = useT();
+  const kompakt = useKompakteListe();   // Session-Liste als Kacheln oder Zeilen (ListenAnsicht)
   // Wer von der Startseite aus eine Session öffnet, kommt aus KEINER gefilterten Liste — dann
   // sollen „älter/neuer" dort wieder durch die eigenen Sessions gehen und nicht durch den
   // Spot, den man vorhin angeschaut hat (s. lastSession.ts).
@@ -411,7 +414,10 @@ export default function PersonalHome() {
       {/* Letzte Sessions ganz oben (direkt nach der Begrüßung) */}
       <div className="mb-2 flex items-center justify-between">
         <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-400">{t("phome.latest")}</h3>
-        <Link to="/sessions" className="text-xs text-brand-600 dark:text-brand-300 hover:text-brand-700 dark:hover:text-brand-200">{t("phome.allMine")} →</Link>
+        <div className="flex items-center gap-3">
+          <ListenAnsicht />
+          <Link to="/sessions" className="text-xs text-brand-600 dark:text-brand-300 hover:text-brand-700 dark:hover:text-brand-200">{t("phome.allMine")} →</Link>
+        </div>
       </div>
       {/* Wartet eine eigene Session auf Zuordnung, MUSS es hier stehen: ein Push allein genügt nicht
           (wer Push aus hat, erfährt nie, dass seine Session aus den Auswertungen gefallen ist) und die
@@ -444,7 +450,7 @@ export default function PersonalHome() {
       {!latest ? <Spinner /> : latest.length === 0 ? (
         latestFehler ? null : <StartHelp />
       ) : (
-        <div className="mb-6 space-y-3">
+        <div className={`mb-6 ${kompakt ? "space-y-1.5" : "space-y-3"}`}>
           {latest.map((s) => (
             <SessionCard
               key={s.id}

@@ -623,6 +623,8 @@ const deAT: Record<string, string> = {
   "nav.nerd3": "Doppeluhr-Messung",
   "nav.nerd4": "Handy aufm Brett",
   "nav.nerd5": "Erkennungsmodell",
+  "list.cards": "Kacheln",
+  "list.compact": "Eine Zeile pro Session",
   "nav.arch": "Systemarchitektur",
   "land.deep5": "Handy am Brett: direkt an der Quelle gemessen (englisch)",
   "land.deep4": "Systemarchitektur",

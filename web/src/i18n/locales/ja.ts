@@ -989,6 +989,8 @@ const ja: Record<string, string> = {
   "nav.nerd3": "ダブル計測",
   "nav.nerd4": "ボード上の電話",
   "nav.nerd5": "検出モデル",
+  "list.cards": "カード",
+  "list.compact": "1セッション1行",
   "nav.arch": "システムアーキテクチャ",
   "land.deep5": "ボードにスマホ: 発生源で直接計測（英語）",
   "land.deep4": "システム構成",

@@ -10,6 +10,7 @@ import { useCompare, toggleCompare, refKey } from "../lib/compare";
 import { useT } from "../i18n";
 import { classLabelKey, isClassified } from "../lib/sportClass";
 import { fmtDate, fmtTime } from "../lib/time";
+import { useKompakteListe } from "../lib/kompakteListe";
 function fmtSpan(start: string, end: string) {
   const s = Math.max(0, Math.round((new Date(end).getTime() - new Date(start).getTime()) / 1000));
   const h = Math.floor(s / 3600);
@@ -68,6 +69,7 @@ export function SessionCard({
   const [count, setCount] = useState(likeCount0);
   const [vid, setVid] = useState<string | null>(null);   // offenes Video-Popup
   const compareRefs = useCompare();
+  const kompakt = useKompakteListe();
   const inCompare = compareRefs.some((r) => refKey(r) === refKey({ sessionId, runIdx: null }));
   const toggleLike = (e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation();
@@ -152,6 +154,60 @@ export function SessionCard({
       >
         {isIg ? <InstagramIcon className="h-6 w-6" /> : <TikTokIcon className="h-6 w-6" />}
       </a>
+    );
+  }
+
+  // EINE ZEILE je Session (Umschalter ueber den Listen, lib/kompakteListe.ts; Feedback #156). Datum,
+  // Uhrzeit, Name, Spot, die Kennzahlen und das Herz — ohne Bilder, Setup und Geraet. Die Kennzahlen
+  // (`stats`) kommen unveraendert von der Liste und werden hier nur auf eine Zeile gezwungen; auf dem
+  // Handy darf die Zeile umbrechen, statt Zahlen abzuschneiden. Long-Press = Vergleich wie bei der Kachel.
+  if (kompakt) {
+    const kurzDatum = startedAt ? fmtDate(startedAt, tz, { weekday: "short", day: "2-digit", month: "short", year: "2-digit" }) : "";
+    return (
+      <Link
+        to={`/sessions/${sessionId}`}
+        id={highlight ? "session-highlight" : undefined}
+        className="block select-none scroll-mt-24"
+        style={{ WebkitTouchCallout: "none" }}
+        draggable={false}
+        onContextMenu={(e) => e.preventDefault()}
+        onPointerDown={onPointerDown}
+        onPointerUp={cancelHold}
+        onPointerLeave={cancelHold}
+        onPointerCancel={cancelHold}
+        onPointerMove={onPointerMove}
+        onClickCapture={onClickCapture}
+      >
+        <div className={`flex flex-wrap items-center gap-x-3 gap-y-0.5 rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-1.5 text-sm transition-colors hover:border-slate-700 hover:bg-slate-900 sm:flex-nowrap ${
+          inCompare ? "ring-2 ring-brand-500" : highlight ? "ring-2 ring-brand-400" : ""}`}>
+          <Avatar name={avatarName ?? name} url={avatarUrl} size={22} />
+          <span className="shrink-0 font-semibold tabular-nums">{kurzDatum}</span>
+          {startedAt && <span className="shrink-0 tabular-nums text-slate-400">{fmtTime(startedAt, tz)}</span>}
+          {name && <span className="pf-name max-w-[10rem] truncate text-brand-600 dark:text-brand-300">{name}</span>}
+          {spot && (
+            <span className="inline-flex min-w-0 max-w-[12rem] items-center gap-1 truncate text-slate-300">
+              <LocationIcon className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{spot}</span>
+            </span>
+          )}
+          {sportLabel && <span className="shrink-0 rounded bg-amber-500/15 px-1.5 py-0.5 text-xs text-amber-700 dark:text-amber-300">{sportLabel}</span>}
+          {/* Handy: Kennzahlen in eine EIGENE zweite Zeile (order-last + volle Breite), sonst
+              schneidet die eine Zeile die Zahlen ab; ab sm alles in einer Zeile. */}
+          <div className="order-last min-w-0 basis-full overflow-hidden whitespace-nowrap [&>div]:mt-0 [&>div]:flex-nowrap [&>div]:gap-x-3 sm:order-none sm:basis-auto sm:flex-1">
+            {stats}
+          </div>
+          <span className="ml-auto flex shrink-0 items-center gap-3 sm:ml-0">
+            {statusBadge}
+            <button
+              onClick={toggleLike}
+              title={liked ? t("row.unlike") : t("row.like")}
+              className={`flex shrink-0 items-center gap-1 ${liked ? "text-rose-400" : "text-slate-400 hover:text-slate-200"}`}
+            >
+              <HeartIcon className="h-4 w-4" filled={liked} />{count > 0 && <span className="text-xs tabular-nums">{count}</span>}
+            </button>
+            <ChevronIcon className="h-4 w-4 shrink-0 text-slate-400" />
+          </span>
+        </div>
+      </Link>
     );
   }
 

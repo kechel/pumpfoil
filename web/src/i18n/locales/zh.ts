@@ -989,6 +989,8 @@ const zh: Record<string, string> = {
   "nav.nerd3": "双表测量",
   "nav.nerd4": "手机放在板上",
   "nav.nerd5": "检测模型",
+  "list.cards": "卡片",
+  "list.compact": "每条记录一行",
   "nav.arch": "系统架构",
   "land.deep5": "板上放手机：直接在源头测量（英文）",
   "land.deep4": "系统架构",
