@@ -194,7 +194,7 @@ const id: Record<string, string> = {
   "transfer.confirmSend": "Transfer sesi ini ke {name}? Setelah diterima, sesi jadi milik mereka dan hilang dari daftarmu.",
   "transfer.homeHint": "Kamu punya transfer sesi masuk",
   "foilsens.label": "Sensitivitas deteksi",
-  "foilsens.hint": "Dari kecepatan dan durasi minimum berapa sebuah bagian dihitung sebagai run on-foil — terutama memengaruhi run individual di peta. Level yang lebih sensitif juga menangkap upaya start yang singkat/pelan. Berlaku di mana saja — level yang kamu pilih adalah analisis yang berlaku, termasuk di komunitas, rekor, dan papan peringkat. Level yang sudah dihitung di-cache, jadi berpindah jadi instan setelahnya.",
+  "foilsens.hint": "Seberapa ketat deteksinya: dari kecepatan berapa suatu bagian mulai dipertimbangkan, dan seberapa yakin model deteksi harus bahwa kamu sedang di atas foil. Level yang lebih sensitif menyimpan lebih banyak run pendek dan lambat. Berlaku di mana saja — level yang kamu pilih adalah analisis yang berlaku, termasuk di komunitas, rekor, dan papan peringkat. Level yang sudah dihitung di-cache, jadi berpindah jadi instan setelahnya.",
   "foilsens.normal": "Standar – dari ~10 km/h, min 5 d",
   "foilsens.light": "Lebih sensitif – dari ~8,5 km/h, min 3 d",
   "foilsens.attempts": "Paling sensitif – dari ~8 km/h, min 2 d",

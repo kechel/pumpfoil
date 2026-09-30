@@ -217,7 +217,7 @@ const nb: Record<string, string> = {
   "transfer.confirmSend": "Overføre denne økta til {name}? Når den er godtatt, er den deres og forsvinner fra lista di.",
   "transfer.homeHint": "Du har innkommende øktoverføringer",
   "foilsens.label": "Følsomhet for gjenkjenning",
-  "foilsens.hint": "Fra hvilken fart og minste varighet en strekning teller som et run på foil — påvirker mest de enkelte runs på kartet. Mer følsomme nivåer fanger også opp korte/langsomme startforsøk. Gjelder overalt — nivået ditt er den gjeldende analysen, også i fellesskapet, rekordene og topplistene. Ferdig beregnede nivåer mellomlagres, så etterpå bytter du med én gang.",
+  "foilsens.hint": "Hvor streng gjenkjenningen er: fra hvilken fart en strekning i det hele tatt vurderes, og hvor sikker gjenkjenningsmodellen må være på at du er på foilen. Mer følsomme nivåer beholder flere korte og langsomme turer. Gjelder overalt — nivået ditt er den gjeldende analysen, også i fellesskapet, rekordene og topplistene. Ferdig beregnede nivåer mellomlagres, så etterpå bytter du med én gang.",
   "foilsens.normal": "Standard – fra ~10 km/h, min 5 s",
   "foilsens.light": "Mer følsom – fra ~8.5 km/h, min 3 s",
   "foilsens.attempts": "Mest følsom – fra ~8 km/h, min 2 s",

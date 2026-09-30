@@ -196,7 +196,7 @@ const nl: Record<string, string> = {
   "transfer.confirmSend": "Deze sessie aan {name} overdragen? Bij acceptatie is de sessie van hem/haar en verdwijnt hij bij jou.",
   "transfer.homeHint": "Je hebt inkomende sessie-overdrachten",
   "foilsens.label": "Detectiegevoeligheid",
-  "foilsens.hint": "Vanaf welke snelheid en minimale duur een stuk als on-foil-run telt — dit beïnvloedt vooral de losse runs op de kaart. Gevoeligere niveaus registreren ook korte/langzame startpogingen. Geldt overal — jouw niveau is de bepalende analyse, ook in de community, records en ranglijsten. Al berekende niveaus zijn gecachet, wisselen kan dan zonder herberekening.",
+  "foilsens.hint": "Hoe streng de detectie is: vanaf welke snelheid een stuk überhaupt meetelt en hoe zeker het detectiemodel moet zijn dat je op de foil staat. Gevoeligere niveaus houden meer korte en langzame runs over. Geldt overal — jouw niveau is de bepalende analyse, ook in de community, records en ranglijsten. Al berekende niveaus zijn gecachet, wisselen kan dan zonder herberekening.",
   "foilsens.normal": "Standaard – vanaf ~10 km/h, min. 5 s",
   "foilsens.light": "Gevoeliger – vanaf ~8,5 km/h, min. 3 s",
   "foilsens.attempts": "Meest gevoelig – vanaf ~8 km/h, min. 2 s",
