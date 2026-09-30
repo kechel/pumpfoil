@@ -555,6 +555,14 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
         if am_brett:
             _v2_kw["use_model"] = False
         res = analyze_session_v2(session, judge_fremdkraft=_judge, **_v2_kw)
+        # Erkennung v3 (Jans OK 30.09.2026, docs/DETECTION-V3.md): Nachbearbeitung der Laeufe mit
+        # dem Erkennungsmodell — nur in der FINALEN Analyse, nur fuer Modell-Sessions am
+        # Handgelenk, hinter dem Schalter DETECTOR_V3. Vom Nutzer Aussortiertes/Zurueckgeholtes
+        # gewinnt immer; was v3 wegnimmt, steht mit Grund in metrics.fremdkraft_laeufe (quelle v3)
+        # und laesst sich dort zurueckholen. Faellt bei jedem Fehler auf das v2-Ergebnis zurueck.
+        from .v3.nachbearbeitung import anwenden as _v3_anwenden, detector_v3_enabled
+        if final and accel_usable and detector_v3_enabled():
+            res = _v3_anwenden(res, session, _judge, _sens)
         res.pop("windows", None)
         res.pop("timebase", None)
         if detection == "none":
