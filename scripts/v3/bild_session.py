@@ -92,6 +92,15 @@ def main(sid, zoom=None, titel=""):
     for a0, b0 in neu:
         mm = (t >= a0) & (t <= b0)
         ax.plot(lon[mm], lat[mm], color="#00c040", lw=4, zorder=4)
+    # Einzel-Lauf-Bild: Start (gruener Kreis), Ende (rotes Quadrat), Pumps (weisse Punkte) wie in
+    # der PWA — Positionen auf der Spur interpoliert.
+    if "start_ende" in d:
+        a0, b0 = d["start_ende"]
+        ax.plot(np.interp(a0, t, lon), np.interp(a0, t, lat), "o", ms=16, mfc="#16a34a", mec="k", zorder=6)
+        ax.plot(np.interp(b0, t, lon), np.interp(b0, t, lat), "s", ms=15, mfc="#ef4444", mec="k", zorder=6)
+    if "pumps" in d and d["pumps"].size:
+        ax.plot(np.interp(d["pumps"], t, lon), np.interp(d["pumps"], t, lat), "o", ms=8, mfc="white",
+                mec="k", zorder=5)
     ax.set_xlim(w, e); ax.set_ylim(s, n)
     ax.set_aspect(1 / math.cos(math.radians((s + n) / 2)))
     legende = ("blau = Lauf heute UND neu · rot = nur heute (faellt weg) · gruen = nur neu (kommt dazu)"

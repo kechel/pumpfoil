@@ -43,7 +43,13 @@ RUHE_ANTEIL = 0.12      # Stillstand ist trivial und riesig — verduennen
 ACHSEN = ["vert_rms", "hor_rms", "vert_anteil", "dreh_grad_s", "neigung_grad", "tempo_trend"]
 
 
-def spalten(auswahl):
+def spalten(auswahl, mit_haltung=False):
+    from app.analysis.v3 import haltung as HA
+    extra = list(HA.NAMEN) if mit_haltung else []
+    return _spalten(auswahl) + extra
+
+
+def _spalten(auswahl):
     if auswahl == "basis":
         return list(M.BASIS_NAMEN)
     if auswahl == "ohne_achsen":
@@ -55,8 +61,11 @@ GEWICHT = {"fremd": 3.0, "brett": 5.0, "fortsetzung": 5.0, "sicht": 5.0, "fit_ne
 
 
 def laden(namen, ohne=(), rand_s=0, brett=None):
+    from app.analysis.v3 import haltung as HA
+    alle = list(M.NAMEN) + list(HA.NAMEN)
     b = {s["id"]: s for s in json.load(gzip.open(sorted(ML.glob("baseline-*.json.gz"))[-1]))}
-    sp = [M.NAMEN.index(n) for n in namen]
+    sp = [alle.index(n) for n in namen]
+    mit_h = any(n in HA.NAMEN for n in namen)
     Xs, ys, qs, gs, ls, ss = [], [], [], [], [], []
     rng = np.random.default_rng(0)
     for f in sorted(glob.glob(str(ML / "v3" / "ds" / "*.npz"))):
@@ -93,7 +102,12 @@ def laden(namen, ohne=(), rand_s=0, brett=None):
         m &= ~((q == Q.index("ruhe")) & (rng.random(y.size) > RUHE_ANTEIL))
         if not m.any():
             continue
-        Xk = M.mit_kontext(d["X"][:, sp])     # Kontext je Session bilden, dann auswaehlen
+        X0 = d["X"]
+        if mit_h:
+            hf = ML / "v3" / "ds_h" / f"{stamm}.npz"
+            H = np.load(hf)["H"] if hf.exists() else np.full((X0.shape[0], len(HA.NAMEN)), np.nan, np.float32)
+            X0 = np.hstack([X0, H])
+        Xk = M.mit_kontext(X0[:, sp])     # Kontext je Session bilden, dann auswaehlen
         Xs.append(Xk[m].astype(np.float32)); ys.append(y[m]); qs.append(q[m])
         gs.append(np.full(m.sum(), uid, dtype=np.int32))
         ls.append(d["im_lauf"][m]); ss.append(np.full(m.sum(), sid, dtype=np.int32))
@@ -144,11 +158,12 @@ def main():
     ap.add_argument("--rand", type=int, default=0)
     ap.add_argument("--gewichte", action="store_true")
     ap.add_argument("--brett", default="")
+    ap.add_argument("--haltung", action="store_true", help="Haltung relativ zur Session (ds_h/, s. datensatz_haltung.py)")
     a = ap.parse_args()
     if a.name in ("", "r1"):
         raise SystemExit("r1 ist die erste Fassung und bleibt unangetastet — anderen --name waehlen")
     from sklearn.model_selection import GroupKFold
-    namen = spalten(a.merkmale)
+    namen = spalten(a.merkmale, a.haltung)
     ohne = [x for x in a.ohne.split(",") if x]
     brett = None
     if a.brett:
