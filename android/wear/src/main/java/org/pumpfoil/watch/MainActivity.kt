@@ -773,12 +773,16 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                                 }
                             }
                             else -> {  // Aktionsseiten (ganz außen): oben Pause, darunter Verwerfen
-                                // PAUSE — ein einfacher Druck genuegt: Pausieren ist umkehrbar, ein
-                                // Fehlgriff kostet nichts als einen zweiten Druck. In der Pause
+                                // PAUSE — 2 s halten wie Stopp und Verwerfen (Jan, 30.09.2026, nach
+                                // einer Nutzermeldung von der Apple Watch: Aermel und Wasser blaettern
+                                // die Seiten weiter, ein einfacher Druck pausierte mitten im Lauf).
+                                // Bis dahin genuegte ein Druck, weil Pausieren umkehrbar ist — aber
+                                // eine unbemerkte Pause kostet die Laeufe danach. Die Profil-
+                                // Einstellung „ein Druck statt halten" gilt auch hier. In der Pause
                                 // laedt die Uhr schon hoch, was sie hat (s. Recorder.teilUpload).
                                 HoldButton(
                                     if (s.paused) I18n.t("rec.resume") else I18n.t("rec.pause"),
-                                    Color(0xFF0E7490), Color(0xFF22D3EE), press = true,
+                                    Color(0xFF0E7490), Color(0xFF22D3EE), press = stopMode == "press",
                                 ) {
                                     if (s.paused) RecorderService.resume(applicationContext)
                                     else RecorderService.pause(applicationContext)

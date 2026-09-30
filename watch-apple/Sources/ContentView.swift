@@ -681,22 +681,25 @@ struct RecordView: View {
     }
 
     // Aktionsseite (ganz außen): oben Pausieren/Fortsetzen, darunter Verwerfen.
-    // PAUSE — ein einfacher Druck genuegt: Pausieren ist umkehrbar, ein Fehlgriff kostet nichts
-    // als einen zweiten Druck. In der Pause schickt die Uhr schon, was sie hat (s. Recorder.teilUpload).
-    // VERWERFEN — 3 s halten -> Aufnahme löschen ohne Upload (orange statt rot).
+    // PAUSE — 2 s halten wie Stopp und Verwerfen (Jan, 30.09.2026, nach einer Nutzermeldung: beim
+    // Pumpen blaettern Aermel und Wasser die Seiten weiter, und ein einfacher Tipp pausierte die
+    // Aufnahme mitten im Lauf). Bis dahin genuegte ein Druck, weil Pausieren umkehrbar ist — aber
+    // eine Pause, die man nicht bemerkt, kostet die Laeufe danach. Die Profil-Einstellung „ein Tipp
+    // statt halten" gilt auch hier. In der Pause schickt die Uhr schon, was sie hat (s. Recorder.teilUpload).
+    // VERWERFEN — 2 s halten -> Aufnahme löschen ohne Upload (orange statt rot).
+    // Beide Knoepfe kleiner als auf der Stopp-Seite: zwei 104-pt-Kreise brauchen mit Abstand 220 pt,
+    // die 40/41-mm-Uhren haben 197-215 pt Hoehe.
     @ViewBuilder private func actionPage() -> some View {
-        VStack(spacing: 12) {
-            Button(rec.isPaused ? WLoc.t("rec.resume", lang) : WLoc.t("rec.pause", lang)) {
+        VStack(spacing: 8) {
+            HoldToStopButton(label: rec.isPaused ? WLoc.t("rec.resume", lang) : WLoc.t("rec.pause", lang),
+                             tint: .cyan, press: pressStattHalten, groesse: 84) {
                 if rec.isPaused { rec.resume() } else { rec.pause() }
             }
-            .font(.caption2)
-            .buttonStyle(.bordered)
-            .tint(Color.cyan)
             // Verwerfen im Tipp-Modus mit einem ZWEITEN Tipp bestaetigen — das Halten war hier der
             // einzige Schutz davor, eine Aufnahme mit einem Fehlgriff zu loeschen.
             HoldToStopButton(label: pressStattHalten ? WLoc.t("rec.discard", lang) : WLoc.t("rec.discardHold", lang),
                              tint: .orange, press: pressStattHalten,
-                             bestaetigen: pressStattHalten) { rec.discard() }
+                             bestaetigen: pressStattHalten, groesse: 84) { rec.discard() }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -1104,6 +1107,8 @@ struct HoldToStopButton: View {
     var press: Bool = false
     /// Nur im Tipp-Modus: erst der ZWEITE Tipp loest aus (Schutz beim Verwerfen).
     var bestaetigen: Bool = false
+    /// Durchmesser in pt; die Aktionsseite traegt zwei Knoepfe und nimmt kleinere.
+    var groesse: CGFloat = 104
     let onStop: () -> Void
     @State private var progress: CGFloat = 0
     @State private var scharf = false
@@ -1121,7 +1126,7 @@ struct HoldToStopButton: View {
             Text(scharf ? label + "?" : label).font(.caption).bold().multilineTextAlignment(.center)
                 .foregroundStyle(.white).padding(8)
         }
-        .frame(width: 104, height: 104)
+        .frame(width: groesse, height: groesse)
         .contentShape(Circle())
         .onTapGesture {
             if bestaetigen && !scharf {
@@ -1145,7 +1150,7 @@ struct HoldToStopButton: View {
             Text(label).font(.caption).bold().multilineTextAlignment(.center)
                 .foregroundStyle(.white).padding(8)
         }
-        .frame(width: 104, height: 104)
+        .frame(width: groesse, height: groesse)
         .contentShape(Circle())
         .onLongPressGesture(minimumDuration: 2, maximumDistance: 60, pressing: { down in
             // Fuell-Dauer MUSS zu minimumDuration passen, sonst feuert die Aktion vor dem vollen Ring.
