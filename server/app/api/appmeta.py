@@ -178,7 +178,10 @@ _APP_META: dict[str, dict[str, str]] = {
         # Ein Nutzer mit 1.1.14 bekam dadurch einen Update-Hinweis, den Play nicht einloesen konnte
         # ("update button just opens google play and does not offer nor start update"). Deshalb: erst
         # eintragen, wenn Freigabe DA und Roll-out bei 100 % — "eingereicht" genuegt nie.
-        "latest": "1.1.35",   # LIVE 2026-09-29: Play-Mail „Your update to Pumpfoil, created on
+        "latest": "1.1.36",   # LIVE 2026-09-30: Play-Mail „Your update to Pumpfoil, created on Sep 29,
+        # 2026 at 9:14 AM GMT, is live in the store." (Jans Meldung) — passt auf die Einreichung 29.09.
+        # 11:14 Berlin, gut ein Tag Pruefung. Phone: Editor-Felder 21-23, Datenschutz-Texte.
+        # ALT: "latest": "1.1.35",   # LIVE 2026-09-29: Play-Mail „Your update to Pumpfoil, created on
         # Sep 28, 2026 at 5:37 AM GMT, is live in the store." Passt auf die Einreichung vom 28.09.
         # ~07:37 Berlin (Phone 1.1.35/49 + Wear 1.2.35/1045). ⏱️ Gut EINEN Tag Pruefung. Inhalt:
         # Kompass beim Handy am Brett, Sportart-Filter, Puls je Lauf, Speichern-Rueckmeldung je Uhr,
@@ -328,7 +331,9 @@ _APP_META: dict[str, dict[str, str]] = {
         # 05.08. 15:06 GMT). Eingereicht war 1.2.20/1030 zusammen mit Phone 1.1.20/34.
         # Der gebaute Nachzug 1.2.21/1031 (Token-Heilung bei Config-401) ist NOCH NICHT
         # eingereicht — hier also nicht eintragen. Vorher: 1.2.18/1028, live seit 04.08.
-        "latest": "1.2.35",   # LIVE 2026-09-29, dieselbe Play-Mail wie android (eine Einreichung,
+        "latest": "1.2.36",   # LIVE 2026-09-30, dieselbe Play-Mail wie android (eine Einreichung,
+        # beide Spuren). Uhr: Platzhalter-GPS-Genauigkeit sperrt nicht mehr, Datenfelder 22/23.
+        # ALT: "latest": "1.2.35",   # LIVE 2026-09-29, dieselbe Play-Mail wie android (eine Einreichung,
         # beide Spuren). Fuer die UHR ohne eigene Aenderung, nur mitgebumpt.
         # ALT: "latest": "1.2.33",   # LIVE 2026-09-27, dieselbe Play-Mail wie android (eine Einreichung,
         # beide Spuren). Fuer die UHR: Seiten je Zustand wie Garmin, Pause neben Verwerfen, und der
@@ -705,18 +710,8 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
-    # EINGEREICHT 29.09.2026 (Jans Meldung, Play Console: „Produktion 50 (1.1.36) · Produktion
-    # (Wear OS) 1046 (1.2.36)", Vorabpruefung laeuft, verwaltete Veroeffentlichung). Vorher 32 min
-    # Langlauf im Wear-Emulator (#10851, danach geloescht): 193+193 Bloecke ohne Luecke,
-    # exact_chunks, 25,0 Hz, konstante 5-m-Genauigkeit -> Platzhalter-Pfad aktiv, Live-Laeufe ok.
-    # Dazu ohne eigenen Punkt: Datenschutz mit Facebook-/KI-Block und antippbaren Links.
-    {"name": "Android phone + Wear OS", "version": "1.1.36 / 1.2.36",
-     "eingereicht": "2026-09-29",
-     "items": [
-         "Watches that report the same GPS accuracy all the time now show GPS as ready, show your "
-         "speed and detect runs while you ride.",
-         "Two new data fields add up the distance and the time of all your runs in a session.",
-     ]},
+    # Android 1.1.36 / Wear 1.2.36 am 30.09. FREIGEGEBEN (s. `_APP_META`); der Wear-GPS-Punkt steht im
+    # Changelog mit `versionen={wear}`, der Datenfelder-Punkt (id 487) hat android/wear dazubekommen.
     # Garmin 1.0.91 am 29.09. FREIGEGEBEN (s. `_APP_META`); Punkt + Ereignis im Changelog.
     # Android 1.1.35 / Wear 1.2.35 am 29.09. FREIGEGEBEN (Play-Mail); der Kompass-Punkt traegt jetzt
     # auch "android", die uebrigen fuenf Punkte standen schon versionslos im Changelog (29.09.).
