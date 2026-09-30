@@ -305,6 +305,8 @@ data class FremdkraftLauf(
     @SerialName("dauer_s") val dauerS: Double = 0.0,
     val kmh: Double = 0.0,
     @SerialName("puls_antwort_bpm") val pulsAntwortBpm: Double? = null,
+    // "v3" = vom Erkennungsmodell aussortiert (Erkennung v3, 30.09.2026) statt Fremdkraft-Verdacht.
+    val quelle: String? = null,
 )
 
 @Serializable

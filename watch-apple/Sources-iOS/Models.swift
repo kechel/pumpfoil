@@ -908,6 +908,8 @@ struct PoweredRun: Codable {
     let dauer_s: Double?
     let kmh: Double?
     let puls_antwort_bpm: Double?
+    // "v3" = vom Erkennungsmodell aussortiert (Erkennung v3, 30.09.2026) statt Fremdkraft-Verdacht.
+    let quelle: String?
 }
 
 // Begründung der automatischen Sportart-Erkennung (Server: sessions._sport_auto, nur Besitzer und
