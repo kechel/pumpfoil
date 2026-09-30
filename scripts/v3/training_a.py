@@ -60,7 +60,7 @@ def _spalten(auswahl):
 GEWICHT = {"fremd": 3.0, "brett": 5.0, "fortsetzung": 5.0, "sicht": 5.0, "fit_neg": 2.0}
 
 
-def laden(namen, ohne=(), rand_s=0, brett=None):
+def laden(namen, ohne=(), rand_s=0, brett=None, lauf_nur_wasser=False):
     from app.analysis.v3 import haltung as HA
     alle = list(M.NAMEN) + list(HA.NAMEN)
     b = {s["id"]: s for s in json.load(gzip.open(sorted(ML.glob("baseline-*.json.gz"))[-1]))}
@@ -90,6 +90,11 @@ def laden(namen, ohne=(), rand_s=0, brett=None):
                 nah[max(k - rand_s + 1, 0):k + rand_s + 1] = True
             geschaetzt = np.isin(q, [Q.index("lauf"), Q.index("land"), Q.index("ruhe")])
             y[nah & geschaetzt] = -1
+        if lauf_nur_wasser:
+            # 30.09.: „lauf nahe Wasser" labelte auch die Stuecke AM UFER als Foilen (#9580: Lauf 19
+            # zum Parkplatz) — so lernt das Modell genau die Faelle falsch. Lauf-Sekunden ohne
+            # JRC-Wasser (occ == 0) werden unsicher; schmales Wasser deckt die Sichtpruefung ab.
+            y[(q == Q.index("lauf")) & (d["occ"] == 0)] = -1
         if brett is not None and sid in brett:
             tb_, zb = brett[sid]
             j = np.clip(np.searchsorted(tb_, d["t"]), 0, tb_.size - 1)
@@ -158,6 +163,7 @@ def main():
     ap.add_argument("--rand", type=int, default=0)
     ap.add_argument("--gewichte", action="store_true")
     ap.add_argument("--brett", default="")
+    ap.add_argument("--lauf-nur-wasser", dest="lauf_nur_wasser", action="store_true")
     ap.add_argument("--haltung", action="store_true", help="Haltung relativ zur Session (ds_h/, s. datensatz_haltung.py)")
     a = ap.parse_args()
     if a.name in ("", "r1"):
@@ -168,7 +174,7 @@ def main():
     brett = None
     if a.brett:
         brett = {d["paar"][1]: (np.asarray(d["t"], float), np.asarray(d["z"])) for d in pickle.load(open(a.brett, "rb"))}
-    X, y, q, g, heute, sid = laden(namen, ohne, a.rand, brett)
+    X, y, q, g, heute, sid = laden(namen, ohne, a.rand, brett, a.lauf_nur_wasser)
     w = np.ones(y.size, np.float32)
     if a.gewichte:
         for n, f in GEWICHT.items():

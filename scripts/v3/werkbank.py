@@ -220,6 +220,25 @@ def haltung_check(L, t, p, hs, regel, ref_p=0.9, ref_s=10):
     return out
 
 
+def konstanz_check(L, sid, schwelle, max_s=None):
+    """Jan (30.09.): in echten Laeufen bleibt die Uhr-Haltung konstant (gegen SICH SELBST, also
+    unabhaengig von Stellungswechseln). Lauf weg, wenn der Median von konstanz30 (±15 s, Anteil
+    innerhalb 20° der eigenen Hauptrichtung) im Lauf unter `schwelle` liegt. Optional nur fuer
+    Laeufe bis max_s Sekunden."""
+    f = ML / "v3" / "ds_h" / f"{sid}.npz"
+    if not f.exists():
+        return L
+    d = np.load(f)
+    t, k = d["t"], d["H"][:, 4]
+    out = []
+    for a, b in L:
+        m = (t >= a) & (t <= b) & np.isfinite(k)
+        if m.sum() >= 3 and np.median(k[m]) < schwelle and (max_s is None or (b - a) / 1000 <= max_s):
+            continue
+        out.append((a, b))
+    return out
+
+
 def vereinigung(L1, L2):
     out = []
     for a, b in sorted(list(L1) + list(L2)):
@@ -282,6 +301,10 @@ VARIANTEN = {
     "tief+empfteilkurz": ("tief", "empfteilkurz"),
     "beide+empfteilkurzroh": ("beide", "empfteilkurzroh"),
     "beide+empfteilkurzhalt": ("beide", "empfteilkurzhalt"),
+    "beide+empfteilkurzkonst0.2": ("beide", "empfteilkurzkonst:0.2"),
+    "beide+empfteilkurzkonst0.3": ("beide", "empfteilkurzkonst:0.3"),
+    "beide+empfteilkurzkonst0.4": ("beide", "empfteilkurzkonst:0.4"),
+    "beide+empfteilkurzkonst0.3bis60": ("beide", "empfteilkurzkonst:0.3:60"),
     "beide+empfteilkurzhalt2": ("beide", "empfteilkurzhalt2"),
     "tief+schnitt0.5+veto0.6": ("tief", [("schnitt", 0.5), ("veto", 0.6)]),
     "tief+schnitt0.6+veto0.6": ("tief", [("schnitt", 0.6), ("veto", 0.6)]),
@@ -301,6 +324,9 @@ EMPF_SCHWELLEN = {
 EMPF_KURZ = {"normal": 0.8, "light": 0.7, "attempts": 0.6}
 
 
+empf_sid = [None]
+
+
 def anwenden(L, schritte, t, v, pg, empf="normal", p_roh=None, hs=None):
     if schritte == "empfteil":
         theta, tau = EMPF_TEIL.get(empf or "normal", EMPF_TEIL["normal"])
@@ -312,6 +338,11 @@ def anwenden(L, schritte, t, v, pg, empf="normal", p_roh=None, hs=None):
         theta, tau = EMPF_TEIL.get(empf or "normal", EMPF_TEIL["normal"])
         regel = (30, 0.4, 0.5) if schritte == "empfteilkurzhalt" else (30, 0.4, 0.4)
         schritte = [("teil", theta), ("veto", tau), ("kurz", 0.8), ("haltung", regel)]
+    elif isinstance(schritte, str) and schritte.startswith("empfteilkurzkonst"):
+        theta, tau = EMPF_TEIL.get(empf or "normal", EMPF_TEIL["normal"])
+        teile = schritte.split(":")          # empfteilkurzkonst:<schwelle>[:<max_s>]
+        k = (float(teile[1]), float(teile[2]) if len(teile) > 2 else None)
+        schritte = [("teil", theta), ("veto", tau), ("kurz", 0.8), ("konstanz", k)]
     elif schritte == "empfteilkurzroh":
         # kurze Stuecke am UNGEGLAETTETEN p messen (die Glaettung zieht p an den Raendern kurzer
         # Laeufe herunter) und je Empfindlichkeit milder
@@ -334,6 +365,8 @@ def anwenden(L, schritte, t, v, pg, empf="normal", p_roh=None, hs=None):
             L = teil(L, t, pg, x)
         elif art == "kurz":
             L = kurz(L, t, pg, x)
+        elif art == "konstanz":
+            L = konstanz_check(L, empf_sid[0], *x)
         elif art == "haltung":
             if hs is not None:
                 L = haltung_check(L, t, p_roh if p_roh is not None else pg, hs, x)
@@ -393,6 +426,7 @@ def main():
                 L0 = vereinigung(L0, [(x["t0"], x["t1"]) for x in basis[sid]["runs"]])
             if sid in P and schritte:
                 t, v, p = P[sid]
+                empf_sid[0] = sid
                 L = anwenden(L0, schritte, t, v, glaetten(p), r.get("sensitivity"), p, HSD.get(sid))
             else:
                 L = L0

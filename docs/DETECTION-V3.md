@@ -337,3 +337,12 @@ ohnehin (Gehen 2 von 188, Auto 0 von 82 falsch). Bei den SCHWEREN Faellen (Model
 Land/aussortiert) stimmt Jans Vermutung: Konstanz 0,55 / 0,54 gegen 0,88. Fensterlaenge an genau
 diesen Faellen: 10 s trennt 0,78 · 20 s 0,86 · **30 s 0,88** · 60 s 0,78. An #9580: neuer Lauf 0,31,
 Lauf 19 0,07, echter Lauf 14 0,76. -> als Merkmale konstanz20/konstanz30/wechsel30 in r5.
+
+**r5 (Haltung + Konstanz als Merkmale, 30.09.):** je Sekunde wie r4 (Land 0,762). Werkbank
+beide+empfteilkurz: foil_status 0,944/0,940, Land 18/82 (r4 19), Guillaume 25 min, #9580 unveraendert
+(p 0,88-0,96) — die Labels lehren das Modell, dass Laeufe am Ufer Foilen sind („lauf nahe Wasser").
+**Konstanz als harte Lauf-Pruefung verworfen:** Schwelle 0,2 -> Brett-Trefferquote 0,935 -> 0,908,
+foil_status 0,940 -> 0,923 (0,3: 0,898; 0,4: 0,811) — wirft echte Fahrten weg. Grund an der
+Brett-Wahrheit: Jan (u2) pumpt mit konstanz30 nur 0,35-0,49 (kurze Laeufe, das 30-s-Fenster reicht
+ueber den Lauf hinaus), u13 mit 0,85 — so viel wie Gehen. Fahrer unterscheiden sich zu stark fuer
+eine globale Schwelle; die Konstanz bleibt Merkmal.
