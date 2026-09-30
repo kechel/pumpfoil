@@ -1435,11 +1435,15 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Laeufe, Foil-Zeit, bester Lauf. Nebenbei geklaert (seine Frage im 1:1): der Import dedupliziert
   schon je Nutzer ueber Datei-Hash (entpackt) ODER gleiche Startzeit — bei ihm 42 Sessions, kein Duplikat.
 
-- **🔍 30.09. — Laeufe mit 0 s Dauer bei u239 (Garmin, 3 Sessions #1794, #8529, #2323).** Beim
-  v3-Regressionstest aufgefallen: 3-12 Laeufe je Session mit 18-72 m Strecke, aber
-  `duration_s` 0,0 und Zeiten wie 15000 -> 15004 ms; Foil-Zeit 0, Pumps 0, trotzdem
-  `is_pumpfoil = True`. Vermutung (unbelegt): die GPS-Zeitachse ist gestaucht (Sekunden als ms?).
-  Rein lesend pruefen: Rohdaten `gps.json` der drei Sessions, Chunk-Zeiten, App-Version.
+- **🔍 30.09. — Laeufe mit 0 s Dauer: Wear-GPS-Zeitstempel = ZUSTELL- statt MESSZEIT (Ursache belegt).**
+  9 Sessions, 2 Nutzer (u239, u258), beide Samsung Galaxy Watch SM-L715F, Wear 1.2.18-1.2.28
+  (#1794, #2323, #2324, #7097, #8241, #8529, #2042, #2282, #2456): die Uhr haelt Fixes zurueck und
+  liefert Minuten davon gebuendelt (#8529: 709 Punkte in 6 s), `Recorder.addGps` stempelt jeden mit
+  `elapsedMs()` beim EMPFANG — die Zeitachse staucht, Laeufe haben 0 s. `fixAlterMs` (Alter der
+  Messung) ist vorhanden, wird aber nur fuer „eingefroren" genutzt. Tritt sporadisch auf (u239: 1.2.23,
+  1.2.24, 1.2.31 sauber). Fix-Vorschlag: `tMs = elapsedMs() - fixAlterMs`, streng steigend, Rueckfall
+  wie bisher — AUFNAHMEPFAD, erst mit Jans OK + langem Emulator-Test (Wear 1.2.37). Die 9 Sessions
+  lassen sich nicht sauber retten (echte Messzeiten nie gespeichert) -> so lassen.
 
 - **🔲 29.09. — Gyro auch auf den UHREN aufzeichnen (Jan: ja).** Apple Watch, Wear OS und die
   meisten Garmin-Modelle haben einen Kreisel, unsere Uhren-Apps schicken ihn nicht (nur die
