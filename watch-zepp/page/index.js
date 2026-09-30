@@ -927,6 +927,7 @@ Page(
       // Rueckkehr vom Stopp-Bildschirm nach einem versehentlichen Tastendruck, s. _toStopScreen.
       stopBackTimer: null, stopBackPage: 0,
       lockHoldTimer: null,   // laeuft, solange auf die Touch-Sperre gedrueckt wird
+      pauseHoldTimer: null,  // laeuft, solange auf den Pause-Knopf gedrueckt wird (2 s halten)
       verwerfenArmed: false, verwerfenTimer: null,   // Rueckfrage vor dem Verwerfen
       // PAUSE (24.09.2026). `pausedMs` haelt die Sample-Achse lueckenlos: alle Zeitstempel sind
       // AKTIVE Zeit, die Pausen sind herausgerechnet — genau das erwartet der Server, der
@@ -2178,12 +2179,44 @@ Page(
         x: x, y: y, w: breite, h: hoehe, radius: Math.round(hoehe / 2),
         text: text, text_size: px(30), normal_color: nc, press_color: pc, color: ink,
         click_func: fn });
+      // PAUSE — 2 s halten (Jan, 30.09.2026: „pause … mit 2s press/hold zum auslösen", nach einer
+      // Meldung von der Apple Watch: Aermel und Wasser blaettern die Seiten weiter, ein einfacher
+      // Tipp pausierte mitten im Lauf). Wear und Apple Watch haben dafuer seit heute denselben
+      // Halte-Knopf wie beim Stoppen. Im Profil-Modus „ein Druck statt halten" bleibt der Tipp.
+      const umschalten = () => { if (s.paused) this.resume(); else this.pause(); };
+      const halten = s.stopMode !== "press";
+      const pauseText = s.paused ? t("rec.resume") : t("rec.pause");
+      const pauseBtn = mk(yOben, halten ? pauseText + " · 2 s" : pauseText, 0x0e7490, 0x22d3ee,
+                          0xffffff, halten ? () => {} : umschalten);
       w.aktionBtns = [
-        mk(yOben, s.paused ? t("rec.resume") : t("rec.pause"), 0x0e7490, 0x22d3ee, 0xffffff,
-           () => { if (s.paused) this.resume(); else this.pause(); }),
+        pauseBtn,
         mk(yUnten, s.verwerfenArmed ? t("rec.discard") + "?" : t("rec.discard"),
            0xb91c1c, 0xf87171, 0xffffff, () => this._verwerfenHinweis()),
       ];
+      if (halten) {
+        // Die Ereignisse nimmt ein leerer CANVAS UEBER dem Knopf entgegen, nach dem Muster der
+        // Touch-Sperre (`_showTouchLock`): ein BUTTON kennt kein 2-s-Halten, und auf dem
+        // Ereignis-Canvas darf nichts gezeichnet werden — das bricht die laufende Beruehrung ab,
+        // CLICK_UP feuert und der Timer kommt nie an (10.09.2026). Die Rueckmeldung „halten …"
+        // traegt deshalb der Knopf darunter, nicht der Canvas.
+        const flaeche = hmUI.createWidget(hmUI.widget.CANVAS, { x: x, y: yOben, w: breite, h: hoehe });
+        const abbrechen = () => {
+          if (s.pauseHoldTimer) { clearTimeout(s.pauseHoldTimer); s.pauseHoldTimer = null; }
+          try { pauseBtn.setProperty(hmUI.prop.TEXT, pauseText + " · 2 s"); } catch (e) {}
+        };
+        flaeche.addEventListener(hmUI.event.CLICK_DOWN, () => {
+          abbrechen();
+          try { pauseBtn.setProperty(hmUI.prop.TEXT, t("rec.stopHold") + " …"); } catch (e) {}
+          s.pauseHoldTimer = setTimeout(() => {
+            s.pauseHoldTimer = null;
+            if (!s.recording) return;
+            this._vibratePattern("short1");
+            umschalten();   // baut die Knoepfe neu (Fortsetzen/Pause)
+          }, 2000);
+        });
+        flaeche.addEventListener(hmUI.event.CLICK_UP, abbrechen);
+        w.aktionBtns.push(flaeche);
+      }
       // Die Meldung des Teil-Uploads UEBER die Knoepfe (Jan, 24.09.2026: „uploading / server
       // error / etc. meldungen ueber die buttons bitte"). Das Standard-Statusfeld des Layouts
       // sitzt an fester Hoehe und landete hier genau ZWISCHEN den beiden Knoepfen, halb
@@ -2204,6 +2237,7 @@ Page(
     },
     _clearAktionBtns() {
       const w = this.state.w;
+      if (this.state.pauseHoldTimer) { clearTimeout(this.state.pauseHoldTimer); this.state.pauseHoldTimer = null; }
       if (w.aktionBtns) { w.aktionBtns.forEach((b) => hmUI.deleteWidget(b)); w.aktionBtns = null; }
     },
 
