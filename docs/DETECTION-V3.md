@@ -346,3 +346,35 @@ foil_status 0,940 -> 0,923 (0,3: 0,898; 0,4: 0,811) — wirft echte Fahrten weg.
 Brett-Wahrheit: Jan (u2) pumpt mit konstanz30 nur 0,35-0,49 (kurze Laeufe, das 30-s-Fenster reicht
 ueber den Lauf hinaus), u13 mit 0,85 — so viel wie Gehen. Fahrer unterscheiden sich zu stark fuer
 eine globale Schwelle; die Konstanz bleibt Merkmal.
+
+**r6 (r5 + Lauf-Sekunden ohne JRC-Wasser unsicher, 109334 von 795265 s):** Land 18 -> 16, foil_status
+0,944/0,941 unveraendert, aber Guillaume schlechter (Fortsetzung 289 -> 231 s: sein Hafen ist
+teils JRC-Land), #9580 unveraendert (p 0,87-0,90). Kein Gewinn.
+
+## Plateau (30.09.2026, morgens)
+
+r3 -> r4 -> r5 -> r6 bringen je Sekunde und in der Werkbank nur noch Zehntel: foil_status 0,943-0,944 /
+0,940-0,941, Land 21 -> 16 von 82, Brett 0,920/0,935. Modellgroesse (r3gross) und Datenmenge
+(Lernkurve flach ab ~64 Fahrern) sind nicht der Engpass. Die Rest-Fehler sind wenige und haben
+drei Ursachen, die kein weiteres Merkmal aus den vorhandenen Labels loest:
+1. GPS-Fehler am Ufer (#541, #2684, #9580: Position laeuft der Geschwindigkeit hinterher, der Arm
+   pumpt) — dort IST unklar, was stimmt; Jan konnte #9580 im Satellitenbild auch nicht entscheiden.
+2. Labels: „Lauf nahe Wasser" lehrt Ufer-Stuecke als Foilen; ohne sie (r6) leidet Guillaume.
+3. Fahrer unterscheiden sich stark (Konstanz u2 0,35-0,49 gegen u13 0,85) — globale Regeln
+   treffen echte Fahrten (Haltungs- und Konstanz-Pruefung beide verworfen, Brett-Beleg).
+Was wirklich weiterhilft, sind NEUE Wahrheiten: Brett-Paare mit Land-Phasen (Jan: „zum Auto gegangen"),
+Gleit-Phasen (bisher 31 s), weitere Fahrer mit Brett-Handy, Guillaumes Stil mit Brett-Handy.
+
+**Stand der Empfehlung:** Modell **r4** (r5 gleichwertig, r4 einfacher: keine Konstanz-Rechnung),
+Ausgang v2 ∪ tief, teil + Veto je Stueck + kurze Stuecke (Strenge offen, Jans Entscheidung),
+Schwellen je Profil-Empfindlichkeit:
+
+| r4, beide+empfteilkurz | v2 heute | neu |
+|---|---|---|
+| foil_status Praez. / Treffer | 0,902 / 0,925 | 0,943 / 0,940 |
+| Laeufe an Land noch da | 81/82 | 19/82 |
+| an Autofahrt | 25 | 1 |
+| in Nutzer-Aussortiertem | 73 | 24 |
+| Brett Praez. / Treffer | 0,872 / 0,948 | 0,922 / 0,930 |
+| Guillaume gesamt | 22 min | 26 min |
+| Laeufe < 8 s | 1059 | 164 (streng) bzw. 1305 (roh, mild) |
