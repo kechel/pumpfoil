@@ -314,3 +314,26 @@ es nicht: die Referenz je Sekunde enthaelt die verdaechtigen Laeufe selbst.
 sicheren Laeufe): Land 19 -> 12, ABER foil_status-Trefferquote 0,940 -> 0,919 bei gleicher Praezision
 — sie wirft echtes Foilen weg (vermutlich Stellungswechsel: u98 allein 41 Laeufe). Verworfen.
 -> r4 ist die beste Fassung; die Haltung bleibt Merkmal, nicht Regel.
+
+## Konstanz der Uhr-Haltung gegen sich selbst (Jan, 30.09.2026)
+
+Jan: „95 %+ je Run sollte eher konstant bleiben, waehrend Spazierengehen eher nur <20 % konstant
+haben. Bei Autofahrten noch viel extremer … schau dir das auch ueber sliding windows an."
+`scripts/v3/konstanz.py`: Anteil der Schwerkraft-Richtung innerhalb 20° der EIGENEN Hauptrichtung
+(je Abschnitt und in 10-s-Fenstern) und Drehrate der Uhr-Achse.
+
+| je 10-s-Fenster (Median) | Konstanz | Drehrate | Bewegung |
+|---|---|---|---|
+| echte Laeufe (27296) | 0,96 | 29 °/s | 0,86 g |
+| Brett-Wahrheit fahren | 0,86 | 35 °/s | 0,74 g |
+| Gehen an Land (4507) | 1,00 | 7 °/s | 0,09 g |
+| Autofahrt > 40 km/h (3149) | 1,00 | 7 °/s | 0,09 g |
+| Jans FIT Gehen / Auto | 1,00 / 0,32 | 5 / 19 °/s | 0,38 / 0,19 g |
+
+Befund anders als vermutet: im kurzen Fenster sind Gehen und Auto NICHT unruhig, sondern ruhig
+(Arm haengt, Haende am Steuer). Ein echter Lauf ist konstant in der Hauptrichtung UND dreht
+laufend darum (Handgelenk beim Pumpen) — Gehen/Auto haben beides nicht; das erkennt das Modell
+ohnehin (Gehen 2 von 188, Auto 0 von 82 falsch). Bei den SCHWEREN Faellen (Modell p >= 0,5, doch
+Land/aussortiert) stimmt Jans Vermutung: Konstanz 0,55 / 0,54 gegen 0,88. Fensterlaenge an genau
+diesen Faellen: 10 s trennt 0,78 · 20 s 0,86 · **30 s 0,88** · 60 s 0,78. An #9580: neuer Lauf 0,31,
+Lauf 19 0,07, echter Lauf 14 0,76. -> als Merkmale konstanz20/konstanz30/wechsel30 in r5.
