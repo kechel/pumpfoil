@@ -411,3 +411,22 @@ Code-Aenderungen — Kandidaten fuer eine Reanalyse, kein Fehler des Nachbaus.
   Jetzt Felder wie v2 (`_seg_fields` auf bereinigtem, geglaettetem Tempo) plus
   `_gate_implausible_runs`.
 - Nebenbefund: u239 hat 3 Sessions mit Laeufen von 0 s Dauer (TODO-Inbox).
+
+## LIVE seit 30.09.2026, ~08:00 (Jans OK: „ja perfekt, bitte live schalten")
+
+- Modul `server/app/analysis/v3/nachbearbeitung.py` (VERSION `v3-r4-mild-1`), in `run_analysis` nur bei
+  `final=True`, Modell-Session am Handgelenk und `DETECTOR_V3=1` (server/.env). Modelle
+  `server/data/ml/v3/live/` (nicht im Repo, im Backup). Vorher gegen den Regressionstest: 14/14 exakt.
+- Lauf-Status manuell/auto: von v3 weggenommene v2-Laeufe in `metrics.fremdkraft_laeufe` (`quelle: "v3"`,
+  Grund, Modellfassung, p) -> Ein-Tipp-Rueckholung ueber `fremdkraft_keep`; zurueckgeholte Laeufe fasst
+  v3 nicht an; `excluded_ranges` wirkt wie immer vor jeder Rechnung. Web-Texte allgemein („Aussortierte
+  Laeufe", 18 Sprachen); die nativen Apps zeigen die Eintraege mit ihrem alten Text bis zum naechsten Release.
+- Sicherung vorher: `server/data/sicherung/vor-v3-20260930-0758.dump` (sessions + analysis_results).
+- Reanalyse: 2590 Accel-Sessions (153 mit leerem GPS-Ordner vom Skript zu Recht uebersprungen), 0 Fehler,
+  2584 exakt wie der Regressionstest, 6 um Sekunden daneben. Laeufe 18765 -> 19336, Foil-Zeit 235,9 ->
+  242,9 h, Strecke 3507 -> 3558 km, Pumps 1340913 -> 1375236. Gegen die Sicherung: 16 Sessions nicht mehr
+  Pumpfoil (Land laut Sichtpruefung, winzige Reste, die 3 u239-Sessions mit gestauchter Zeitachse),
+  8 zum ersten Mal Pumpfoil.
+- Panne unterwegs: 6 Reanalyse-Prozesse ohne Thread-Grenze -> Last 96 auf der geteilten VM. Neu gestartet
+  mit `OMP_NUM_THREADS=1`; der Dienst hat seitdem `OMP_NUM_THREADS=2` in server/.env.
+- Zurueckschalten: `DETECTOR_V3=0` in server/.env, Neustart, Reanalyse der Accel-Sessions.
