@@ -1429,7 +1429,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
-- **🔲 30.09. — Kompakte Session-Liste (Feedback #156, gizmomogwai u683).** „on a laptop i can only
+- **✅ 30.09. — Kompakte Session-Liste (Feedback #156, gizmomogwai u683) — LIVE 30.09. (9160c6a2), Umschalter Kacheln/Zeilen auf Startseite, Sessions, Spot, Gruppen; Nutzer per DM (u230) informiert.** „on a laptop i can only
   fit 3-4 sessions on one screen … an option for a oneline view would be great!" Idee: Umschalter
   Kacheln/Zeilen auf /sessions (Merker per localStorage), eine Zeile je Session mit Datum, Spot,
   Laeufe, Foil-Zeit, bester Lauf. Nebenbei geklaert (seine Frage im 1:1): der Import dedupliziert
