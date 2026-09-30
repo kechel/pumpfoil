@@ -51,6 +51,9 @@ fun ImportFileButton(onImported: (Int?) -> Unit, modifier: Modifier = Modifier) 
 
     // "*/*": .fit und .gpx haben auf Android oft gar keinen registrierten MIME-Typ, eine engere
     // Liste versteckt genau die Dateien, die importiert werden sollen. Der Server prueft ohnehin.
+    // Das gilt auch fuer gepackte Dateien (.gpx.gz, .tcx.gz, .fit.gz, Server seit 29.09.2026): der
+    // Server erkennt gzip am Dateikopf und entpackt selbst — hier ist dafuer nichts zu tun, der
+    // Dateiname geht unveraendert mit (geprueft 30.09.2026).
     val waehler = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenMultipleDocuments()
     ) { uris ->

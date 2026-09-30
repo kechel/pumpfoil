@@ -497,7 +497,7 @@ private fun AllRuns(tracks: List<CmpTrack>, mode: CompareMode) {
                 }
                 Column(horizontalAlignment = Alignment.End) {
                     Text("${seg.distanceM.toInt()} m · ${cmpMmss(seg.durationS)}", style = MaterialTheme.typography.bodySmall)
-                    Text("%.1f km/h · %dP".format(seg.avgSpeedMps * 3.6, seg.pumps), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("%.1f km/h · %sP".format(seg.avgSpeedMps * 3.6, seg.pumps?.toString() ?: "–"), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
             HorizontalDivider()
@@ -628,17 +628,21 @@ private fun cmpMetrics(win: Int, weightKg: Double): List<CmpMetric> {
                 ?: bestSeg(segs(s), { it.fenster(win, "min") }, { x, y -> x < y })?.times(3.6)
         },
         CmpMetric(I18n.t("sd.maxGlide"), "s", "max", ::ein) { r, s ->
-            lauf(r, s)?.longestGlideS ?: bestSeg(segs(s), { it.longestGlideS }, { x, y -> x > y })
+            // Gewaehlter Lauf ohne Accel (longestGlideS == null) bleibt leer, statt still auf den
+            // besten Lauf der Session zurueckzufallen.
+            val l = lauf(r, s)
+            if (l != null) l.longestGlideS else bestSeg(segs(s), { it.longestGlideS }, { x, y -> x > y })
         },
         CmpMetric(I18n.t("stat.pumps"), null, null, ::ganz) { r, s ->
-            lauf(r, s)?.pumps?.toDouble() ?: s.analysis?.pumpCount?.toDouble()
+            val l = lauf(r, s)
+            if (l != null) l.pumps?.toDouble() else s.analysis?.pumpCount?.toDouble()
         },
         CmpMetric(I18n.t("sd.avgPump"), PumpUnit.unitLabel(), null, { PumpUnit.fmtValue(it) }) { r, s ->
             lauf(r, s)?.avgPumpHz ?: s.analysis?.metrics?.avgPumpHz
         },
         CmpMetric(I18n.t("sd.avgDistPerPump"), "m/Pump", "max", ::ein) { r, s ->
             val l = lauf(r, s)
-            if (l != null) if (l.pumps > 0) l.distanceM / l.pumps else null
+            if (l != null) l.pumps?.takeIf { it > 0 }?.let { l.distanceM / it }
             else {
                 val n = s.analysis?.pumpCount ?: 0
                 val d = s.analysis?.foilingDistanceM

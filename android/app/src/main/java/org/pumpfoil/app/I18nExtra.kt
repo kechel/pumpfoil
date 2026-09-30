@@ -7,6 +7,14 @@ package org.pumpfoil.app
 val PT: Map<String, String> = ptTabelle()
 
 private fun ptTabelle(): Map<String, String> = mapOf(
+    // Kacheln/Zeilen-Umschalter (ListenAnsicht.kt) + Chat-Bilder (ChatFotos.kt), aus den Web-Sprachdateien 30.09.2026.
+    "list.cards" to "Cartões",
+    "list.compact" to "Uma linha por sessão",
+    "chat.photoAdd" to "Adicionar fotos",
+    "chat.photoRemove" to "Remover foto",
+    "chat.photoFailed" to "Não foi possível enviar uma foto — remova-a ou tente de novo.",
+    "chat.photoOpen" to "Abrir foto",
+    "chat.photosOpen" to "Abrir {n} fotos",
     "foilStats.hint" to "Quais números as pessoas alcançam em qual foil (comunidade). Contam apenas sessões de pumpfoil com deteção por acelerómetro — outros desportos (wing, eFoil, foildrive, wakethief), gravações só de GPS e dados marcados como incorretos ficam de fora.",
     "watchStats.hint" to "Quais números são feitos com qual relógio — média da comunidade por modelo. Aqui conta cada gravação: todos os desportos, com ou sem dados de acelerómetro.",
     "spotcmp.title" to "Recordes do spot",
@@ -1064,6 +1072,14 @@ private fun ptTabelle(): Map<String, String> = mapOf(
 val JA: Map<String, String> = jaTabelle()
 
 private fun jaTabelle(): Map<String, String> = mapOf(
+    // Kacheln/Zeilen-Umschalter (ListenAnsicht.kt) + Chat-Bilder (ChatFotos.kt), aus den Web-Sprachdateien 30.09.2026.
+    "list.cards" to "カード",
+    "list.compact" to "1セッション1行",
+    "chat.photoAdd" to "写真を追加",
+    "chat.photoRemove" to "写真を削除",
+    "chat.photoFailed" to "写真をアップロードできませんでした。削除するか、もう一度お試しください。",
+    "chat.photoOpen" to "写真を開く",
+    "chat.photosOpen" to "{n}枚の写真を開く",
     "foilStats.hint" to "ã©ã®ãã©ã¤ã«ã§ã©ããªæ°å¤ãåºããï¼ã³ãã¥ããã£ï¼ã カウントされるのは加速度センサーで判定されたパンプフォイルのセッションのみです。他の競技（ウィング、eFoil、フォイルドライブ、ウェイクシーフ）、GPSのみの記録、誤りとして印を付けたデータは含まれません。",
     "watchStats.hint" to "どの数値がどのウォッチで記録されたか — モデルごとのコミュニティ集計。 ここではすべての記録が対象です。競技を問わず、加速度データの有無も問いません。",
     "spotcmp.title" to "スポット記録",
@@ -2121,6 +2137,14 @@ private fun jaTabelle(): Map<String, String> = mapOf(
 val ZH: Map<String, String> = zhTabelle()
 
 private fun zhTabelle(): Map<String, String> = mapOf(
+    // Kacheln/Zeilen-Umschalter (ListenAnsicht.kt) + Chat-Bilder (ChatFotos.kt), aus den Web-Sprachdateien 30.09.2026.
+    "list.cards" to "卡片",
+    "list.compact" to "每条记录一行",
+    "chat.photoAdd" to "添加照片",
+    "chat.photoRemove" to "移除照片",
+    "chat.photoFailed" to "有一张照片上传失败——请移除或重试。",
+    "chat.photoOpen" to "打开照片",
+    "chat.photosOpen" to "打开 {n} 张照片",
     "foilStats.hint" to "äººä»¬å¨åªæ¬¾æ°´ç¿¼ä¸åå¾åªäºæ°æ®ï¼ç¤¾åºï¼ã 仅统计带加速度识别的 pumpfoil 记录 — 其他运动（wing、eFoil、foildrive、wakethief）、仅 GPS 的记录以及被标记为错误的数据不计入。",
     "watchStats.hint" to "哪些数据是用哪块手表骑出来的 —— 按型号的社区汇总。 这里统计所有记录：不限运动项目，有无加速度数据都算。",
     "spotcmp.title" to "地点纪录",
@@ -3178,6 +3202,14 @@ private fun zhTabelle(): Map<String, String> = mapOf(
 val RU: Map<String, String> = ruTabelle()
 
 private fun ruTabelle(): Map<String, String> = mapOf(
+    // Kacheln/Zeilen-Umschalter (ListenAnsicht.kt) + Chat-Bilder (ChatFotos.kt), aus den Web-Sprachdateien 30.09.2026.
+    "list.cards" to "Карточки",
+    "list.compact" to "Одна строка на сессию",
+    "chat.photoAdd" to "Добавить фото",
+    "chat.photoRemove" to "Убрать фото",
+    "chat.photoFailed" to "Не удалось загрузить фото — убери его или попробуй ещё раз.",
+    "chat.photoOpen" to "Открыть фото",
+    "chat.photosOpen" to "Открыть фото ({n})",
     "foilStats.hint" to "ÐÐ°ÐºÐ¸Ðµ Ð¿Ð¾ÐºÐ°Ð·Ð°ÑÐµÐ»Ð¸ Ð´Ð¾ÑÑÐ¸Ð³Ð°ÑÑÑÑ Ð½Ð° ÐºÐ°ÐºÐ¾Ð¼ ÑÐ¾Ð¹Ð»Ðµ (ÑÐ¾Ð¾Ð±ÑÐµÑÑÐ²Ð¾). Учитываются только сессии pumpfoil с определением по акселерометру — другие виды (wing, eFoil, foildrive, wakethief), записи только по GPS и данные, помеченные как ошибочные, не входят.",
     "watchStats.hint" to "Какие показатели достигаются на каких часах — совокупные данные сообщества по каждой модели. Здесь учитывается всё: любые виды спорта, с данными акселерометра и без них.",
     "spotcmp.title" to "Рекорды спота",
@@ -4235,6 +4267,14 @@ private fun ruTabelle(): Map<String, String> = mapOf(
 val ID: Map<String, String> = idTabelle()
 
 private fun idTabelle(): Map<String, String> = mapOf(
+    // Kacheln/Zeilen-Umschalter (ListenAnsicht.kt) + Chat-Bilder (ChatFotos.kt), aus den Web-Sprachdateien 30.09.2026.
+    "list.cards" to "Kartu",
+    "list.compact" to "Satu baris per sesi",
+    "chat.photoAdd" to "Tambah foto",
+    "chat.photoRemove" to "Hapus foto",
+    "chat.photoFailed" to "Sebuah foto gagal diunggah — hapus atau coba lagi.",
+    "chat.photoOpen" to "Buka foto",
+    "chat.photosOpen" to "Buka {n} foto",
     "foilStats.hint" to "Angka apa yang dicapai orang di foil mana (komunitas). Hanya sesi pumpfoil dengan deteksi accel yang dihitung — olahraga lain (wing, eFoil, foildrive, wakethief), rekaman GPS saja, dan data yang ditandai keliru tidak ikut.",
     "watchStats.hint" to "Angka apa yang dicapai dengan jam mana — agregat komunitas per model. Di sini semua dihitung: semua olahraga, dengan atau tanpa data accel.",
     "spotcmp.title" to "Rekor spot",
@@ -5295,6 +5335,14 @@ private fun idTabelle(): Map<String, String> = mapOf(
 val NB: Map<String, String> = nbTabelle()
 
 private fun nbTabelle(): Map<String, String> = mapOf(
+    // Kacheln/Zeilen-Umschalter (ListenAnsicht.kt) + Chat-Bilder (ChatFotos.kt), aus den Web-Sprachdateien 30.09.2026.
+    "list.cards" to "Kort",
+    "list.compact" to "Én linje per økt",
+    "chat.photoAdd" to "Legg til bilder",
+    "chat.photoRemove" to "Fjern bildet",
+    "chat.photoFailed" to "Et bilde kunne ikke lastes opp — fjern det eller prøv igjen.",
+    "chat.photoOpen" to "Åpne bildet",
+    "chat.photosOpen" to "Åpne {n} bilder",
     "foilStats.hint" to "Hvilke tall folk oppnår på hvilken foil (fellesskapet). Bare pumpfoil-økter med accel-gjenkjenning telles — andre sporter (wing, eFoil, foildrive, wakethief), rene GPS-opptak og data merket som feil er ikke med.",
     "watchStats.hint" to "Hvilke tall som kjøres med hvilken klokke — samlet fra fellesskapet per modell. Her teller alt: alle sporter, med og uten accel-data.",
     "spotcmp.title" to "Spot-rekorder",
@@ -6392,6 +6440,14 @@ private fun nbTabelle(): Map<String, String> = mapOf(
 val PL: Map<String, String> = plTabelle()
 
 private fun plTabelle(): Map<String, String> = mapOf(
+    // Kacheln/Zeilen-Umschalter (ListenAnsicht.kt) + Chat-Bilder (ChatFotos.kt), aus den Web-Sprachdateien 30.09.2026.
+    "list.cards" to "Kafelki",
+    "list.compact" to "Jeden wiersz na sesję",
+    "chat.photoAdd" to "Dodaj zdjęcia",
+    "chat.photoRemove" to "Usuń zdjęcie",
+    "chat.photoFailed" to "Nie udało się wysłać zdjęcia — usuń je lub spróbuj ponownie.",
+    "chat.photoOpen" to "Otwórz zdjęcie",
+    "chat.photosOpen" to "Otwórz {n} zdjęć",
     "foilStats.hint" to "Jakie wartości osiąga się na jakim foilu (społeczność). Liczą się tylko sesje pumpfoil z wykrywaniem po akcelerometrze — inne sporty (wing, eFoil, foildrive, wakethief), nagrania tylko z GPS i dane oznaczone jako błędne nie są uwzględniane.",
     "watchStats.hint" to "Jakie wartości osiąga się na jakim zegarku — zbiorczo w całej społeczności, według modelu. Tutaj liczy się każde nagranie: wszystkie sporty, z danymi akcelerometru i bez nich.",
     "spotcmp.title" to "Rekordy spotu",
@@ -7491,6 +7547,12 @@ private fun plTabelle(): Map<String, String> = mapOf(
 val PTPT: Map<String, String> = ptptTabelle()
 
 private fun ptptTabelle(): Map<String, String> = mapOf(
+    // Kacheln/Zeilen-Umschalter (ListenAnsicht.kt) + Chat-Bilder (ChatFotos.kt), aus den Web-Sprachdateien 30.09.2026.
+    "chat.photoAdd" to "Adicionar fotografias",
+    "chat.photoRemove" to "Remover fotografia",
+    "chat.photoFailed" to "Não foi possível enviar uma fotografia — remove-a ou tenta de novo.",
+    "chat.photoOpen" to "Abrir fotografia",
+    "chat.photosOpen" to "Abrir {n} fotografias",
     // Anker fuer scripts/i18n-port.py — steht als erster Eintrag in JEDEM Block.
     // Hier zufaellig wortgleich mit pt; drin bleibt er trotzdem, sonst findet das
     // Skript diesen Block nicht und pt-PT bekaeme neue Schluessel nie.

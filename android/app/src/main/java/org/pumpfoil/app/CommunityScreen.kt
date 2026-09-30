@@ -331,7 +331,7 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                         // Best bewertet (meiste Likes).
                         if (topLiked.isNotEmpty()) {
                             item { SectionHeader("${I18n.t("community.topRated")} · ${I18n.t(PERIODS.firstOrNull { it.first == period }?.second ?: "period.all")}") }
-                            items(topLiked) { c -> CommunityItemRow(c, Modifier.padding(horizontal = 12.dp, vertical = 5.dp)) { onOpen(c.id) } }
+                            items(topLiked) { c -> CommunityItemRow(c, Modifier.padding(horizontal = 12.dp, vertical = ListenAnsicht.abstand)) { onOpen(c.id) } }
                         }
 
                         // Spots: eigene Spots + Suche, je Spot ein Rekord-Grid.

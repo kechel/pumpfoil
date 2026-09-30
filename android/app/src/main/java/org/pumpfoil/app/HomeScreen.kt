@@ -387,6 +387,8 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
             Spacer(Modifier.height(10.dp))
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(I18n.t("phome.latest"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                // Kacheln / eine Zeile je Session (ListenAnsicht.kt), wie die PWA-Startseite.
+                ListenAnsichtUmschalter()
                 TextButton(onClick = onOpenSessions) {
                     Text("${I18n.t("phome.allMine")} →", style = MaterialTheme.typography.labelMedium)
                 }
@@ -400,7 +402,7 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
                 }
             } else {
                 latest.forEach { s ->
-                    SessionRow(s, Modifier.padding(vertical = 5.dp)) { onOpen(s.id, s.dataVersion) }
+                    SessionRow(s, Modifier.padding(vertical = ListenAnsicht.abstand)) { onOpen(s.id, s.dataVersion) }
                 }
             }
 

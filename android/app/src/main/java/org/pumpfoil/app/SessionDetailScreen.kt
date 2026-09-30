@@ -1111,7 +1111,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             val bestSpeedIdx = segList.indices.maxByOrNull { segList[it].maxSpeedMps }
             val longestRunIdx = segList.indices.maxByOrNull { segList[it].durationS }
             val farthestRunIdx = segList.indices.maxByOrNull { segList[it].distanceM }
-            val bestGlideIdx = segList.indices.maxByOrNull { segList[it].longestGlideS }
+            val bestGlideIdx = segList.indices.filter { segList[it].longestGlideS != null }.maxByOrNull { segList[it].longestGlideS ?: 0.0 }
             val stats = buildList {
                 a.totalDistanceM?.let { add(StatItem(I18n.t("compare.distance"), dist(it))) }
                 a.foilingDistanceM?.let { add(StatItem(I18n.t("home.foiling"), dist(it))) }
@@ -1141,7 +1141,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 (m?.maxHr)?.let { if (it > 0) add(StatItem(I18n.t("sd.maxHr"), "$it")) }
                 longestRunIdx?.let { add(StatItem(I18n.t("home.longestRun"), mmssD(segList[it].durationS), it)) }
                 farthestRunIdx?.let { add(StatItem(I18n.t("home.farthestRun"), dist(segList[it].distanceM), it)) }
-                bestGlideIdx?.let { if (segList[it].longestGlideS > 0) add(StatItem(I18n.t("home.longestGlide"), "%.1f s".format(segList[it].longestGlideS), it)) }
+                bestGlideIdx?.let { i -> segList[i].longestGlideS?.takeIf { it > 0 }?.let { add(StatItem(I18n.t("home.longestGlide"), "%.1f s".format(it), i)) } }
             }
             // Lage des Bretts (Handy am Brett) — Zeichnung, Kurven, Kennzahlen; folgt dem gewaehlten Lauf.
             LageAnsicht(s, selectedRun)
@@ -1918,7 +1918,7 @@ private fun laufSpalten(
     val einheit = PumpUnit.unitLabel()
     // Die PWA-Keys tragen Platzhalter ({win}, {unit}); I18n.t kennt keine Interpolation.
     fun k(key: String) = I18n.t(key).replace("{win}", win.toString()).replace("{unit}", einheit)
-    val hatPump = segments.any { it.avgPumpHz != null && it.pumps > 0 }
+    val hatPump = segments.any { it.avgPumpHz != null && (it.pumps ?: 0) > 0 }
     val zeigeMaxHr = segments.any { maxHr(it) != null }
     val zeigeWatt = wattFuer != null && segments.any { wattFuer(it.avgSpeedMps, it.avgPumpHz) != null }
     fun eine(v: Double?) = if (v == null) "–" else "%.1f".format(v)
@@ -1937,10 +1937,11 @@ private fun laufSpalten(
         if (zeigeWatt) add(LaufSpalte(k("sd.colPower"), 58) { seg ->
             wattFuer!!(seg.avgSpeedMps, seg.avgPumpHz)?.let { "$it W" } ?: "–"
         })
-        add(LaufSpalte(k("sd.colPumps"), 52) { seg -> if (seg.pumps > 0) "${seg.pumps}" else "–" })
+        // „–" auch fuer null: Lauf ohne Beschleunigungswerte (Segment.accelFehlt), nichts gemessen.
+        add(LaufSpalte(k("sd.colPumps"), 52) { seg -> seg.pumps?.takeIf { it > 0 }?.toString() ?: "–" })
         if (hatPump) {
             add(LaufSpalte(k("sd.colDistPerPump"), 70) { seg ->
-                if (seg.pumps > 0) "%.1f m".format(seg.distanceM / seg.pumps) else "–"
+                seg.pumps?.takeIf { it > 0 }?.let { "%.1f m".format(seg.distanceM / it) } ?: "–"
             })
             add(LaufSpalte(k("sd.colAvgPump"), 62) { seg -> PumpUnit.fmtValue(seg.avgPumpHz) })
             add(LaufSpalte(k("sd.colPumpMaxMin"), 84) { seg ->
@@ -1958,7 +1959,7 @@ private fun laufSpalten(
             })
             add(LaufSpalte(k("sd.colHrEnd"), 62) { seg -> hrWerte(seg).lastOrNull()?.let { "$it bpm" } ?: "–" })
         }
-        add(LaufSpalte(k("sd.colGlide"), 68) { seg -> "%.1f s".format(seg.longestGlideS) })
+        add(LaufSpalte(k("sd.colGlide"), 68) { seg -> seg.longestGlideS?.let { "%.1f s".format(it) } ?: "–" })
     }
 }
 
@@ -2027,18 +2028,25 @@ private fun StatGrid(stats: List<StatItem>, selected: Int? = null, onSelect: (In
 // Vollbild-Foto-Ansicht (Dialog): tippen schließt, bei mehreren Fotos horizontal wischen.
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun PhotoLightbox(photos: List<SessionPhoto>, startIdx: Int, onClose: () -> Unit) {
-    if (photos.isEmpty()) return
+private fun PhotoLightbox(photos: List<SessionPhoto>, startIdx: Int, onClose: () -> Unit) =
+    BilderVollbild(photos.map { it.url }, startIdx, onClose)
+
+// Vollbild-Lightbox fuer eine Bilderliste (Roh-Pfade): tippen schließt; bei mehreren Bildern
+// horizontal wischen. Gemeinsam fuer Session-Fotos und Chat-Bilder (ChatFotos.kt).
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+internal fun BilderVollbild(urls: List<String>, startIdx: Int, onClose: () -> Unit) {
+    if (urls.isEmpty()) return
     Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         val pager = rememberPagerState(
-            initialPage = startIdx.coerceIn(0, photos.size - 1), pageCount = { photos.size })
+            initialPage = startIdx.coerceIn(0, urls.size - 1), pageCount = { urls.size })
         Box(
             Modifier.fillMaxSize().background(Color.Black).clickable(onClick = onClose),
             contentAlignment = Alignment.Center,
         ) {
             HorizontalPager(state = pager, modifier = Modifier.fillMaxSize()) { page ->
                 AsyncImage(
-                    model = Api.mediaUrl(photos[page].url),
+                    model = Api.mediaUrl(urls[page]),
                     contentDescription = null,
                     contentScale = ContentScale.Fit,
                     modifier = Modifier.fillMaxSize(),
