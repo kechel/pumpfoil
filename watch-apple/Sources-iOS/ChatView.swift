@@ -157,12 +157,15 @@ struct ChatView: View {
         }
     }
 
+    // Profilbild statt Personen-Symbol, damit der Online-Punkt einen Platz hat (PWA DmWidget).
+    // `link: false`: der Tipp oeffnet hier den Chat, nicht die Foiler-Seite.
     @ViewBuilder private func userRow(_ u: DmUser) -> some View {
         Button {
             openDmWith(u)
         } label: {
             HStack {
-                Image(systemName: "person.crop.circle.fill").foregroundStyle(Color.accentColor)
+                AvatarView(name: u.display_name, url: Api.mediaURL(u.avatar_url), size: 28,
+                           userId: u.id, link: false)
                 Text(u.display_name ?? "—")
             }
         }
@@ -171,8 +174,7 @@ struct ChatView: View {
     @ViewBuilder private func roomRow(_ r: ChatRoom) -> some View {
         NavigationLink { ChatRoomView(scope: r.scope, title: roomTitle(r), otherId: r.other?.id ?? 0) } label: {
             HStack {
-                Image(systemName: roomIcon(r))
-                    .foregroundStyle(Color.accentColor)
+                roomLeading(r)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(roomTitle(r)).font(.headline)
                     roomPreview(r)
@@ -180,6 +182,17 @@ struct ChatView: View {
                 Spacer()
                 roomBadges(r)
             }
+        }
+    }
+
+    // 1:1: Profilbild des Gegenuebers mit Online-Punkt (PWA DmWidget), ohne Tipp auf die
+    // Foiler-Seite — die Zeile oeffnet den Chat. Spot-/Community-Raeume behalten ihr Symbol.
+    @ViewBuilder private func roomLeading(_ r: ChatRoom) -> some View {
+        if r.kind == "dm", let o = r.other {
+            AvatarView(name: o.name, url: Api.mediaURL(o.avatar_url), size: 32, userId: o.id, link: false)
+        } else {
+            Image(systemName: roomIcon(r))
+                .foregroundStyle(Color.accentColor)
         }
     }
 
@@ -317,6 +330,15 @@ struct ChatRoomView: View {
     // mit Jan. Jan, 01.10.2026: „dann ist jedem klar das hier kein ki-agent automatisch antwortet".
     @State private var weiterAn: DmOther?
     @State private var weiterDm: DmOpen?
+    // LESEBESTAETIGUNG, nur im 1:1 (PWA 1d7ac4a0, Jan 01.10.2026: „wie in WhatsApp, aber nur im
+    // 1:1"): bis zu welcher Nachricht das Gegenueber gelesen hat. nil = kein 1:1 / alter Server.
+    @State private var gelesenBis: Int?
+    // Den EIGENEN Lesestand nur setzen, wenn der Raum wirklich vor Augen ist: App aktiv, Ansicht
+    // erschienen (nicht von einer weiteren ueberdeckt) und ihr Tab vorne. Sonst kaeme beim
+    // Gegenueber ✓✓ von einem Chat, den niemand ansieht — der Raum pollt auch verdeckt weiter.
+    @State private var sichtbar = false
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.tabSichtbar) private var tabSichtbar
     private var isDm: Bool { scope.hasPrefix("dm:") }
     @Environment(\.dismiss) private var dismiss
 
@@ -340,6 +362,10 @@ struct ChatRoomView: View {
             blockDialogButtons
         }
         .task { await enterRoom() }
+        .onAppear { sichtbar = true; lesestandSetzen() }
+        .onDisappear { sichtbar = false }
+        .onChange(of: scenePhase) { _ in lesestandSetzen() }
+        .onChange(of: tabSichtbar) { _ in lesestandSetzen() }
         .fullScreenCover(isPresented: $showDict) { dictationCover }
         .fullScreenCover(item: $galerie) { g in ChatBildGalerie(photos: g.photos, start: g.start) { galerie = nil } }
         // Knopf + `.photosPicker(isPresented:)` statt der PhotosPicker-View: an dieser Ansicht
@@ -703,7 +729,9 @@ struct ChatRoomView: View {
             isAdmin = p.is_admin ?? false
             kannFotos = p.chat_photos ?? isAdmin
         }
-        if let st = try? await Api.chatRoomState(scope: scope) { push = st.push; weiterAn = st.weiter_an } else { push = false }
+        if let st = try? await Api.chatRoomState(scope: scope) {
+            push = st.push; weiterAn = st.weiter_an; gelesenBis = st.gelesen_bis
+        } else { push = false }
         if isDm && otherId > 0 { blocked = ((try? await Api.chatBlocks()) ?? []).contains { $0.id == otherId } }
         await load()
         await pollNew()
@@ -714,16 +742,27 @@ struct ChatRoomView: View {
         while !Task.isCancelled {
             try? await Task.sleep(nanoseconds: 10_000_000_000)
             if Task.isCancelled { break }
+            // Im 1:1 den Lesestand des Gegenuebers mitholen (✓ -> ✓✓), wie die PWA.
+            if isDm, let st = try? await Api.chatRoomState(scope: scope) { gelesenBis = st.gelesen_bis }
             if let since = try? await Api.chatSince(scope: scope, after: lastId), !since.isEmpty {
                 let known = Set(msgs.map { $0.id })
                 let add = since.filter { !known.contains($0.id) }
                 if !add.isEmpty {
                     msgs.append(contentsOf: add)
                     lastId = msgs.map { $0.id }.max() ?? lastId
-                    try? await Api.chatMarkRead(scope: scope, upTo: lastId)
+                    lesestandSetzen()
                 }
             }
         }
+    }
+
+    /// Eigenen Lesestand setzen (Unread auf der Startseite, im 1:1 die ✓✓ beim Gegenueber) — nur
+    /// wenn der Raum wirklich angesehen wird. Wird er spaeter sichtbar (App wieder aktiv, Tab vorne,
+    /// zurueck aus einer anderen Ansicht), holt der Aufruf aus dem jeweiligen Wechsel es nach.
+    private func lesestandSetzen() {
+        guard lastId > 0, sichtbar, tabSichtbar, scenePhase == .active else { return }
+        let bis: Int = lastId
+        Task { try? await Api.chatMarkRead(scope: scope, upTo: bis) }
     }
 
     // Eigene Nachricht < 1 h -> bearbeitbar/löschbar (Server erzwingt es ohnehin).
@@ -769,6 +808,30 @@ struct ChatRoomView: View {
             Text(m.name ?? "—").font(.subheadline).fontWeight(.semibold)
             if let ts = hhmmChat(m.created_at) {
                 Text(ts).font(.caption2).foregroundStyle(.secondary)
+            }
+            lesehaken(m)
+        }
+    }
+
+    // ✓ grau = gesendet, ✓✓ in Markenfarbe = gelesen — nur an EIGENEN Nachrichten im 1:1.
+    // Zwei ueberlagerte, leicht versetzte Haken: ein Doppelhaken-Symbol gibt es in SF Symbols nicht.
+    @ViewBuilder private func lesehaken(_ m: ChatMsg) -> some View {
+        if isDm && m.mine, let g = gelesenBis {
+            if m.id <= g {
+                ZStack(alignment: .leading) {
+                    Image(systemName: "checkmark")
+                    Image(systemName: "checkmark").offset(x: 5)
+                }
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(Color.accentColor)
+                .padding(.trailing, 5)
+                .accessibilityElement()
+                .accessibilityLabel(Loc.t("chat.read", lang))
+            } else {
+                Image(systemName: "checkmark")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .accessibilityLabel(Loc.t("chat.sent", lang))
             }
         }
     }
@@ -859,7 +922,12 @@ struct ChatRoomView: View {
                        like_count: count, liked: liked, photos: x.photos)
     }
 
-    @ViewBuilder private func chatAvatar(_ m: ChatMsg) -> some View {
+    // Online-Punkt + Tipp auf die Foiler-Seite des Verfassers (OnlinePunkt.swift).
+    private func chatAvatar(_ m: ChatMsg) -> some View {
+        chatAvatarBild(m).profilbild(userId: m.user_id, size: 32)
+    }
+
+    @ViewBuilder private func chatAvatarBild(_ m: ChatMsg) -> some View {
         if let url = Api.mediaURL(m.avatar_url) {
             NetzBild(url: url) { stand in
                 switch stand {
@@ -884,7 +952,7 @@ struct ChatRoomView: View {
         do {
             msgs = try await Api.chatLatest(scope: scope, limit: 100); error = nil
             lastId = msgs.map { $0.id }.max() ?? 0
-            if lastId > 0 { try? await Api.chatMarkRead(scope: scope, upTo: lastId) }
+            lesestandSetzen()
         } catch { self.error = error.localizedDescription }
     }
 

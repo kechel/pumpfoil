@@ -683,7 +683,7 @@ struct SessionDetailView: View {
 
     private func headerRow(_ s: SessionDetail) -> some View {
         HStack(alignment: .top, spacing: 10) {
-            AvatarView(name: s.owner_name, url: Api.mediaURL(s.owner_avatar_url), size: 44)
+            AvatarView(name: s.owner_name, url: Api.mediaURL(s.owner_avatar_url), size: 44, userId: s.owner_id)
             headerMeta(s)
             Spacer()
             likeButton(s)
