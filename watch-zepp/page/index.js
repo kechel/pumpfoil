@@ -247,8 +247,10 @@ import { DEV_FAKE_GPS } from "./devflags.js";
 // MUSS mit version.name in ../app.json übereinstimmen — beides beim Bump ändern. (Zur Laufzeit
 // aus dem Paket lesen ginge nur über einen weiteren @zos-Import; die sind hier ungetestet und
 // können beim Laden crashen, deshalb bewusst eine Konstante.) Der Bump auf 1.0.4 hatte nur
-// app.json getroffen: die Uhr zeigte weiter "v1.0.3" und meldete das auch dem Server.
-const APP_VERSION = "1.0.12";
+// app.json getroffen: die Uhr zeigte weiter "v1.0.3" und meldete das auch dem Server. Beim Bump auf
+// 1.0.13 passierte es noch einmal (01.10.2026, erst in Jans Testsession aufgefallen) — seitdem prueft
+// tests/version.test.mjs beide Stellen gegeneinander.
+const APP_VERSION = "1.0.13";
 
 // Wie lange der Stopp-Bildschirm nach einem Tastendruck stehen bleibt, bevor die vorherige
 // Seite zurueckkommt. Fuenf Sekunden reichen zum Lesen und Antippen, und ein Fehlgriff ist
