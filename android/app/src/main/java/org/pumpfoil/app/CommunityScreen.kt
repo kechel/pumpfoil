@@ -345,7 +345,7 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                                 modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
                             )
                             val matches = spotQuery.trim().takeIf { it.isNotBlank() }?.let { q ->
-                                spots?.all?.filter { it.lowercase().contains(q.lowercase()) && it !in spotShown }?.take(6) ?: emptyList()
+                                spots?.all?.filter { passtZu(q, it) && it !in spotShown }?.take(6) ?: emptyList()
                             } ?: emptyList()
                             matches.forEach { m ->
                                 Text("📍 $m", Modifier.fillMaxWidth().clickable { if (m !in spotShown) spotShown.add(0, m); spotQuery = "" }

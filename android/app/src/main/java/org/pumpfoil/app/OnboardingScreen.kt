@@ -390,7 +390,7 @@ private fun FoilKarte(
     val treffer = if (suche.isBlank()) emptyList() else foils.filter {
         // Der Katalog fuehrt Zweitbezeichnungen; das Android-Modell traegt sie nicht,
         // also suchen wir hier ueber Marke, Modell und Groesse.
-        "${it.brand} ${it.model} ${it.size}".contains(suche.trim(), ignoreCase = true)
+        passtZu(suche, it.brand, it.model, it.size)   // wie die Katalogsuche des Servers, s. Suche.kt
     }.take(8)
 
     Card(Modifier.fillMaxWidth()) {

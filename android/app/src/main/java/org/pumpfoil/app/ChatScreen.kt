@@ -163,7 +163,7 @@ private fun ChatRoomsList(onOpen: (ChatRoom) -> Unit) {
     val visibleRooms = rooms.filter { !(it.kind == "dm" && (it.other?.id ?: 0) in blockedIds) }
     val spotsSorted = allSpots.sortedByDescending { it.messages }      // aktivste zuerst
     val spotsShown = if (term.isEmpty()) spotsSorted
-                     else spotsSorted.filter { it.label.contains(term, ignoreCase = true) }
+                     else spotsSorted.filter { passtZu(term, it.label) }   // ohne Akzente, s. Suche.kt
 
     val openDm: (DmUser) -> Unit = { u ->
         scope.launch {
