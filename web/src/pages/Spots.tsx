@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { passtZu, suchform } from "../lib/suche";
 import { useNavigate } from "react-router-dom";
 import L from "leaflet";
 import { basiskarten } from "../lib/mapTiles";
@@ -70,7 +71,7 @@ export default function Spots() {
   function focusSpot(name: string) {
     const n = name.trim().toLowerCase();
     if (!n || !spots || !mapObj.current) return;
-    const s = spots.find((x) => x.spot.toLowerCase() === n) || spots.find((x) => x.spot.toLowerCase().includes(n));
+    const s = spots.find((x) => suchform(x.spot) === suchform(n)) || spots.find((x) => passtZu(x.spot, n));
     if (s) mapObj.current.fitBounds(L.latLng(s.lat, s.lon).toBounds(100000));
   }
 

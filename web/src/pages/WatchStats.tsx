@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { passtZu } from "../lib/suche";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { usePumpFmt } from "../lib/pumpRate";
@@ -30,12 +31,13 @@ type Qualitaet = Awaited<ReturnType<typeof api.watchQuality>> | null;
 const WENIG_NUTZER = 3;
 
 /** Freitext-Filter ueber den Modellnamen: Teiltreffer, Gross/Klein egal, leer = alles.
+ *  Akzente und ® zaehlen nicht (lib/suche.ts: „vivo" findet „vívoactive®").
  *  Beide Tabellen benutzen denselben Begriff — sie zeigen dieselben Uhren aus zwei Blickwinkeln,
  *  und getrennte Suchfelder waeren nur doppelte Arbeit fuer denselben Gedanken. */
 function passend<T>(zeilen: T[], name: (z: T) => string, suche: string): T[] {
   const q = suche.trim().toLowerCase();
   if (!q) return [...zeilen];
-  return zeilen.filter((z) => (name(z) ?? "").toLowerCase().includes(q));
+  return zeilen.filter((z) => passtZu(name(z), q));
 }
 
 function Uhrenqualitaet({ d, suche }: { d: Qualitaet; suche: string }) {

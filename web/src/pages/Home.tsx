@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { passtZu } from "../lib/suche";
 import { fmtDate } from "../lib/time";
 import { Link } from "react-router-dom";
 import { api, CommunityRecords, RecordSet, CommunitySession, Leaders, LeaderRow, CommunityPhoto, WatchLayout, FoilBand } from "../lib/api";
@@ -655,7 +656,7 @@ function SpotSection({ period, accelOnly, sport = "pumpfoil" }: { period: string
 
   const pick = (sp: string) => { setSelected(sp); setQ(""); };   // ersetzt (immer nur EIN Spot)
   const matches = q.trim()
-    ? spots.all.filter((s) => s.toLowerCase().includes(q.trim().toLowerCase()) && s !== selected).slice(0, 6)
+    ? spots.all.filter((s) => passtZu(s, q) && s !== selected).slice(0, 6)
     : [];
   const others = spots.all.filter((s) => s !== selected);
 
