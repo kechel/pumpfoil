@@ -756,6 +756,7 @@ const ru: Record<string, string> = {
   "account.revokeConfirm": "Отозвать «{name}»? Токен станет недействительным (сессии сохраняются).",
   "chat.placeholder": "Написать сообщение …",
   "chat.photoAdd": "Добавить фото",
+  "chat.replyDirect": "Пожалуйста, пишите напрямую: {name}",
   "chat.photoRemove": "Убрать фото",
   "chat.photoFailed": "Не удалось загрузить фото — убери его или попробуй ещё раз.",
   "chat.photoOpen": "Открыть фото",

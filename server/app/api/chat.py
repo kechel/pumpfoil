@@ -280,6 +280,12 @@ def post_message(
     _check_scope(scope)
     scope = _canon_scope(db, scope)
     _require_access(scope, user.id)
+    # 1:1 mit dem Bot-Account -> die Nachricht geht an Jan (s. `_weiter_an`). Betrifft nur
+    # aeltere Apps; die neuen zeigen dort gar kein Eingabefeld mehr.
+    _k = _weiter_an(db, scope, user)
+    if _k is not None:
+        _a, _b = sorted([user.id, _k.id])
+        scope = f"dm:{_a}-{_b}"
     _dm = _dm_parts(scope)
     _other_id = None
     if _dm is not None:
@@ -706,11 +712,14 @@ def room_state(
     scope = _canon_scope(db, scope)
     _require_access(scope, user.id)
     st = db.query(models.ChatRoomState).filter_by(user_id=user.id, scope=scope).first()
+    k = _weiter_an(db, scope, user)
     return {
         "scope": scope,
         "push": bool(st and st.push),
         "left": bool(st and st.left),
         "last_read_id": (st.last_read_id if st else 0),
+        # 1:1 mit dem Bot: statt Eingabefeld „Antworten bitte direkt an <Name>" (s. `_weiter_an`).
+        "weiter_an": ({"id": k.id, "name": k.display_name, "avatar_url": k.avatar_url} if k else None),
     }
 
 
@@ -828,6 +837,49 @@ def _bot_user(db: Session) -> models.User:
     if u is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Kein Bot-Account konfiguriert")
     return u
+
+
+def _kontakt_user(db: Session) -> models.User | None:
+    """Wer Antworten an den Bot-Account bekommt: Jan. Per `KONTAKT_EMAIL` in server/.env, sonst
+    der aelteste Admin, der nicht der Bot ist (keine Adresse im oeffentlichen Repo)."""
+    import os
+
+    from sqlalchemy import func as _f
+    email = os.environ.get("KONTAKT_EMAIL", "").strip()
+    if email:
+        u = db.query(models.User).filter(_f.lower(models.User.email) == email.lower()).first()
+        if u is not None:
+            return u
+    from ..config import get_settings
+    bot_email = (getattr(get_settings(), "bot_email", "") or "").lower()
+    return (db.query(models.User)
+            .filter(models.User.is_admin.is_(True), _f.lower(models.User.email) != bot_email)
+            .order_by(models.User.id.asc()).first())
+
+
+def _weiter_an(db: Session, scope: str, user: models.User) -> models.User | None:
+    """1:1-Chat MIT DEM BOT-ACCOUNT? Dann der Mensch, an den Antworten gehen sollen.
+
+    Jan, 01.10.2026: „antworten an dich sollten einfach in meinem 1:1 chat landen, bzw. anstelle
+    des input-feldes unten ein link sein 'Antworten bitte direkt an Jan' … dann ist jedem klar das
+    hier kein ki-agent automatisch antwortet". Die Clients zeigen statt des Eingabefelds den Link
+    (Feld `weiter_an` in /state); wer mit einer aelteren App trotzdem schreibt, dessen Nachricht
+    landet per `post_message` direkt im 1:1 mit Jan. Fuer den Bot selbst gilt das nicht — er
+    antwortet weiter in seinen Raeumen (scripts/bot-post.py).
+    """
+    parts = _dm_parts(scope)
+    if parts is None:
+        return None
+    try:
+        bot = _bot_user(db)
+    except HTTPException:
+        return None
+    if bot.id not in parts or user.id == bot.id:
+        return None
+    k = _kontakt_user(db)
+    if k is None or k.id == user.id or k.id == bot.id:
+        return None
+    return k
 
 
 @router.get("/bot/rooms")

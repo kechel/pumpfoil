@@ -660,6 +660,7 @@ const fr: Record<string, string> = {
   "account.revokeConfirm": "Révoquer « {name} » ? Le jeton devient invalide (sessions conservées).",
   "chat.placeholder": "Écrire un message …",
   "chat.photoAdd": "Ajouter des photos",
+  "chat.replyDirect": "Merci de répondre directement à {name}",
   "chat.photoRemove": "Retirer la photo",
   "chat.photoFailed": "Une photo n'a pas pu être envoyée — retire-la ou réessaie.",
   "chat.photoOpen": "Ouvrir la photo",

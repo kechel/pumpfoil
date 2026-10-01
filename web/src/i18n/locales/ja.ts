@@ -756,6 +756,7 @@ const ja: Record<string, string> = {
   "account.revokeConfirm": "「{name}」を取り消しますか？トークンが無効になります（セッションは保持されます）。",
   "chat.placeholder": "メッセージを入力 …",
   "chat.photoAdd": "写真を追加",
+  "chat.replyDirect": "返信は {name} に直接お願いします",
   "chat.photoRemove": "写真を削除",
   "chat.photoFailed": "写真をアップロードできませんでした。削除するか、もう一度お試しください。",
   "chat.photoOpen": "写真を開く",

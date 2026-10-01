@@ -824,6 +824,7 @@ const en: Record<string, string> = {
   "account.revokeConfirm": "Revoke “{name}”? The token becomes invalid (sessions are kept).",
   "chat.placeholder": "Write a message …",
   "chat.photoAdd": "Add photos",
+  "chat.replyDirect": "Please reply directly to {name}",
   "chat.photoRemove": "Remove photo",
   "chat.photoFailed": "A photo could not be uploaded — remove it or try again.",
   "chat.photoOpen": "Open photo",

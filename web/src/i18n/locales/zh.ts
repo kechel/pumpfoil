@@ -756,6 +756,7 @@ const zh: Record<string, string> = {
   "account.revokeConfirm": "撤销“{name}”？令牌将失效（记录会保留）。",
   "chat.placeholder": "写条消息 …",
   "chat.photoAdd": "添加照片",
+  "chat.replyDirect": "请直接回复 {name}",
   "chat.photoRemove": "移除照片",
   "chat.photoFailed": "有一张照片上传失败——请移除或重试。",
   "chat.photoOpen": "打开照片",

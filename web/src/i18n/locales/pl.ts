@@ -804,6 +804,7 @@ const pl: Record<string, string> = {
   "account.revokeConfirm": "Cofnąć „{name}”? Token przestanie być ważny (sesje zostają).",
   "chat.placeholder": "Napisz wiadomość …",
   "chat.photoAdd": "Dodaj zdjęcia",
+  "chat.replyDirect": "Prosimy pisać bezpośrednio do: {name}",
   "chat.photoRemove": "Usuń zdjęcie",
   "chat.photoFailed": "Nie udało się wysłać zdjęcia — usuń je lub spróbuj ponownie.",
   "chat.photoOpen": "Otwórz zdjęcie",

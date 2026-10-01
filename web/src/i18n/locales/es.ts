@@ -660,6 +660,7 @@ const es: Record<string, string> = {
   "account.revokeConfirm": "¿Revocar «{name}»? El token quedará invalidado (las sesiones se conservan).",
   "chat.placeholder": "Escribe un mensaje …",
   "chat.photoAdd": "Añadir fotos",
+  "chat.replyDirect": "Responde directamente a {name}",
   "chat.photoRemove": "Quitar foto",
   "chat.photoFailed": "No se pudo subir una foto: quítala o vuelve a intentarlo.",
   "chat.photoOpen": "Abrir foto",

@@ -780,6 +780,7 @@ const cs: Record<string, string> = {
   "account.revokeConfirm": "Odvolat „{name}“? Token se zneplatní (relace zůstanou).",
   "chat.placeholder": "Napsat zprávu …",
   "chat.photoAdd": "Přidat fotky",
+  "chat.replyDirect": "Odpovídejte prosím přímo: {name}",
   "chat.photoRemove": "Odebrat fotku",
   "chat.photoFailed": "Fotku se nepodařilo nahrát — odeber ji nebo to zkus znovu.",
   "chat.photoOpen": "Otevřít fotku",

@@ -763,6 +763,7 @@ const fi: Record<string, string> = {
   "account.revokeConfirm": "Peruutetaanko „{name}“? Token mitätöityy (sessiot säilyvät).",
   "chat.placeholder": "Kirjoita viesti …",
   "chat.photoAdd": "Lisää kuvia",
+  "chat.replyDirect": "Vastaa suoraan: {name}",
   "chat.photoRemove": "Poista kuva",
   "chat.photoFailed": "Kuvaa ei voitu ladata — poista se tai yritä uudelleen.",
   "chat.photoOpen": "Avaa kuva",
