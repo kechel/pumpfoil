@@ -53,7 +53,11 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.40",   # FREIGEGEBEN 2026-09-29 nachmittags, Apple-Mail „ready for distribution ·
+        "latest": "1.1.41",   # FREIGEGEBEN 2026-10-01, Apple-Mail „ready for distribution · 1.1.41 · iOS"
+        # (Jans Meldung), Store-API de zeigt 1.1.41. Eingereicht 01.10. 13:18 (Build 46). Inhalt:
+        # Sammel-Upload der Uhr, Pause 2 s halten, Kacheln/Zeilen, Spot-Rekorde je Sportart,
+        # Chat-Bilder, „–" ohne Accel, v3-Texte, Claude-1:1-Link.
+        # ALT: "latest": "1.1.40",   # FREIGEGEBEN 2026-09-29 nachmittags, Apple-Mail „ready for distribution ·
         # 1.1.40 · iOS" (Jans Meldung). Eingereicht 29.09. 11:13 (Build 45). Store-API zeigte beim
         # Eintragen noch 1.1.39 (haengt erfahrungsgemaess nach). Inhalt: Datenfelder 22/23,
         # Datenschutz mit Facebook-/KI-Block, Impressum im Profil.
@@ -372,7 +376,8 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.40",   # FREIGEGEBEN 2026-09-29 — dieselbe Einreichung wie "ios" (ein Bundle).
+        "latest": "1.1.41",   # FREIGEGEBEN 2026-10-01 — dieselbe Einreichung wie "ios" (ein Bundle).
+        # ALT: "latest": "1.1.40",   # FREIGEGEBEN 2026-09-29 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.39",   # FREIGEGEBEN 2026-09-29 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.38",   # FREIGEGEBEN 2026-09-26 — dieselbe Einreichung wie "ios" (ein Bundle,
         # dieselbe MARKETING_VERSION), Beleg s. dort. Fuer die WATCH-App bringt 1.1.38: Pause neben
@@ -725,17 +730,7 @@ IN_REVIEW: list[dict] = [
     # f1acdcef-93f5-4369-b729-67fcadc062d2). Auf der VM nur swiftc -parse; Jans Xcode-Build + Simulator
     # (Uhr startete erst nach Schliessen des Android-Emulators). Ohne eigenen Punkt: Claude-1:1 mit
     # Link zu Jan, Chat-Bilder-Schalter.
-    {"name": "iPhone + Apple Watch", "version": "1.1.41",
-     "eingereicht": "2026-10-01",
-     "items": [
-         "The Apple Watch uploads long sessions much faster.",
-         "Runs the new detection sets aside show why, and one tap brings them back.",
-         "Pause and resume now need a two-second hold, like stop, so a wet sleeve can't pause you mid-run.",
-         "Session lists can switch between cards and a compact one-line view.",
-         "Spot records follow the sport filter, with one box per sport when all sports are shown.",
-         "Photos in the chat show up in the app, several as a stack you can swipe through.",
-         "Runs without motion data show a dash instead of zero pumps.",
-     ]},
+    # iOS/Apple 1.1.41 am 01.10. FREIGEGEBEN (s. `_APP_META`); Punkte im Changelog mit ios/apple.
     # EINGEREICHT 01.10.2026 (Jans Meldung, Play Console: „Produktion 51 (1.1.37) · Produktion
     # (Wear OS) 1047 (1.2.37)", Vorabpruefung laeuft, verwaltete Veroeffentlichung). Getestet: Wear-
     # Emulator nur 36 s (#12507: 8/8 Bloecke, exact_chunks 25,08 Hz, GPS streng steigend 1,0 s) —
