@@ -292,7 +292,7 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
               </button>
             )}
             <div className="flex shrink-0 flex-col items-center gap-1">
-              <Avatar name={m.name} url={m.avatar_url} size={32} className="mt-0.5" />
+              <Avatar name={m.name} url={m.avatar_url} userId={m.user_id} size={32} className="mt-0.5" />
               {!m.hidden && (
                 <button onClick={() => like(m.id)} aria-label="Like"
                   className={`flex items-center gap-0.5 text-[10px] leading-none transition ${m.liked ? "text-brand-400" : "text-slate-500 hover:text-slate-300"}`}>

@@ -80,6 +80,12 @@ class User(Base):
     session_epoch: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     # Zuletzt aktiv (letzter authentifizierter Request; gedrosselt aktualisiert) — für den Admin.
     last_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # ONLINE-PUNKT (Jan, 01.10.2026: „im chat so einen kleinen gruenen kreis … bei usern die gerade
+    # online sind", dann „ueberall wo das profilbild angezeigt wird", „egal ob app oder web").
+    # `online_at` = letzter Request bei OFFENER App/Seite, minuetlich gedrosselt (s. deps.py);
+    # `show_online` = im Profil abschaltbar, Standard an (Jan: „erstmal default an fuer alle").
+    online_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    show_online: Mapped[bool] = mapped_column(Boolean, default=True, server_default="1")
 
     devices: Mapped[list["DeviceToken"]] = relationship(back_populates="user")
     sessions: Mapped[list["Session"]] = relationship(back_populates="user")

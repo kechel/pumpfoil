@@ -94,7 +94,7 @@ export function TransferPicker({ sessionId }: { sessionId: number }) {
                 : list.map((u) => (
                   <button key={u.id} onClick={() => send(u)} disabled={busy}
                     className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left hover:bg-slate-800 disabled:opacity-50">
-                    <Avatar name={u.display_name} url={u.avatar_url} size={28} />
+                    <Avatar name={u.display_name} url={u.avatar_url} userId={u.id} size={28} />
                     <span className="truncate text-sm text-slate-100">{u.display_name || "?"}</span>
                   </button>
                 ))}

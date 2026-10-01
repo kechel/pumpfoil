@@ -2,6 +2,7 @@
 import { ReactNode, useState } from "react";
 import { useT } from "../i18n";
 import { InfoIcon } from "./Icons";
+import { useOnline } from "../lib/online";
 
 // „neu"-Badge für frische Konten (< 24 h) — sichtbar in Community & Chat.
 /**
@@ -136,7 +137,37 @@ function avatarColor(seed: string): string {
   return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
 }
 
-export function Avatar({
+/** Profilbild. Mit `userId` bekommt es den gruenen Online-Punkt, wenn der Nutzer gerade App oder
+ *  Seite offen hat (lib/online.ts). Ohne `userId` (z. B. das eigene Bild) nie. */
+export function Avatar(props: {
+  name?: string | null;
+  url?: string | null;
+  seed?: string | number | null;
+  size?: number;
+  fill?: boolean;
+  rounded?: string;
+  className?: string;
+  userId?: number | null;
+}) {
+  const t = useT();
+  const online = useOnline(props.userId);
+  const bild = <AvatarBild {...props} />;
+  if (!online) return bild;
+  const size = props.size ?? 32;
+  const punkt = Math.max(8, Math.round(size * 0.28));
+  return (
+    <span className={`relative ${props.fill ? "block h-full w-full" : "inline-flex shrink-0"}`}>
+      {bild}
+      <span
+        role="img" aria-label={t("presence.online")} title={t("presence.online")}
+        className="absolute bottom-0 right-0 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900"
+        style={{ width: punkt, height: punkt }}
+      />
+    </span>
+  );
+}
+
+function AvatarBild({
   name,
   url,
   seed,

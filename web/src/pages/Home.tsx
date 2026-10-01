@@ -146,7 +146,7 @@ export function RecordGrid({ rec, showSpot }: { rec?: RecordSet | null; showSpot
               <div className="mt-0.5 text-[11px] text-slate-300">
                 {r!.name && (
                   <span className="inline-flex items-center gap-1 align-middle">
-                    <Avatar name={r!.name} url={r!.avatar_url} size={20} />
+                    <Avatar name={r!.name} url={r!.avatar_url} userId={r!.user_id} size={20} />
                     <span className="pf-name text-brand-600 dark:text-brand-300">{r!.name}</span>
                   </span>
                 )}
@@ -191,7 +191,7 @@ function LeaderList({ rows, field, unit }: { rows: LeaderRow[]; field: keyof Lea
       {rows.map((r, i) => (
         <div key={r.name} className="flex items-center gap-2 rounded-lg bg-slate-900 px-2.5 py-1.5">
           <span className="w-4 shrink-0 text-center text-xs font-bold tabular-nums text-slate-400">{i + 1}</span>
-          <Avatar name={r.name} url={r.avatar_url} size={30} />
+          <Avatar name={r.name} url={r.avatar_url} userId={r.user_id} size={30} />
           <span className="pf-name min-w-0 flex-1 truncate text-sm text-slate-200">{r.name}</span>
           <span className="shrink-0 text-sm font-semibold tabular-nums text-slate-100">{r[field] as number}</span>
           <span className="shrink-0 text-[10px] uppercase text-slate-400">{unit}</span>
@@ -244,7 +244,7 @@ function LatestMedia() {
                 )}
               </button>
               <div className="mt-1 flex items-center gap-1.5">
-                <Avatar name={p.name} url={p.avatar_url} size={18} />
+                <Avatar name={p.name} url={p.avatar_url} userId={p.user_id} size={18} />
                 <div className="min-w-0 text-[11px] leading-tight">
                   <div className="truncate text-slate-200">{p.name || "—"}</div>
                   <div className="truncate text-slate-400">

@@ -145,7 +145,7 @@ export default function Foiler() {
       )}
 
       <div className="mb-5 flex items-center gap-3">
-        <Avatar name={d.name} url={d.avatar_url} seed={d.id} size={56} />
+        <Avatar name={d.name} url={d.avatar_url} seed={d.id} userId={d.id} size={56} />
         <div className="min-w-0">
           <h1 className="truncate text-xl font-bold">{d.name ?? "—"}</h1>
           {d.seit && (
@@ -408,6 +408,7 @@ export default function Foiler() {
               placement={s.placement}
                 caption={s.caption}
                 avatarName={d.name}
+                avatarUserId={d.id}
                 avatarUrl={d.avatar_url}
                 thumbUrl={s.thumb_url}
                 photoCount={s.photo_count}

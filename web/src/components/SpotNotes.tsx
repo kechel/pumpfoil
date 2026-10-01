@@ -143,7 +143,7 @@ export function SpotNotes({ spotId }: { spotId: number }) {
   // Herzchen (Jan, 24.08.: spart die Knopfzeile unter dem Text). Nur Symbol, der Platz ist knapp.
   const kopfzeile = (n: SpotNote, onEdit?: () => void) => (
     <div className="flex items-center gap-2">
-      <Avatar name={n.name} url={n.avatar_url} size={32} />
+      <Avatar name={n.name} url={n.avatar_url} userId={n.user_id} size={32} />
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-semibold text-slate-100">{n.name ?? "—"}</div>
         {n.updated_at && <div className="text-xs text-slate-400">{t("spotnote.updated")} {datum(n.updated_at)}</div>}
