@@ -71,3 +71,15 @@ def test_blockiert_unter13_und_bot_nie(client):
     db = SessionLocal(); db.add(models.UserBlock(blocker_id=b, blocked_id=me)); db.commit(); db.close()
     _setze(k, social_allowed=False)
     assert _online(client, ich, b, k, bot) == []
+
+
+def test_lesebestaetigung_nur_im_1zu1(client):
+    """/api/chat/state meldet im 1:1, bis wohin das Gegenueber gelesen hat (✓✓); sonst None."""
+    a, ida = _konto(client, "lesen-a@online.example.com")
+    b, idb = _konto(client, "lesen-b@online.example.com")
+    scope = "dm:%d-%d" % tuple(sorted([ida, idb]))
+    m = client.post(f"/api/chat?scope={scope}", headers=a, json={"text": "hallo"}).json()
+    assert client.get(f"/api/chat/state?scope={scope}", headers=a).json()["gelesen_bis"] == 0   # ✓
+    client.post("/api/chat/read", headers=b, json={"scope": scope, "up_to": m["id"]})
+    assert client.get(f"/api/chat/state?scope={scope}", headers=a).json()["gelesen_bis"] == m["id"]   # ✓✓
+    assert client.get("/api/chat/state?scope=global:main", headers=a).json()["gelesen_bis"] is None

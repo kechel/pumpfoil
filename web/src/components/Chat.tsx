@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api, ChatMsg } from "../lib/api";
 import { Avatar, NewBadge } from "./ui";
-import { FlagIcon, BellIcon, BellOffIcon, EyeIcon, EyeOffIcon, MuteIcon, EditIcon, TrashIcon, CloseIcon, ThumbUpIcon, CameraIcon } from "./Icons";
+import { FlagIcon, BellIcon, BellOffIcon, EyeIcon, EyeOffIcon, MuteIcon, EditIcon, TrashIcon, CloseIcon, ThumbUpIcon, CameraIcon, CheckIcon, DoubleCheckIcon } from "./Icons";
 import { FotoStapel } from "./FotoStapel";
 import { useT } from "../i18n";
 import { MicButton } from "./MicButton";
@@ -34,6 +34,9 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
   // 1:1 mit dem Bot-Account: statt Eingabefeld ein Link in den 1:1 mit Jan (Server: /state.weiter_an).
   const [weiterAn, setWeiterAn] = useState<{ id: number; name: string | null } | null>(null);
   const [meineId, setMeineId] = useState(0);
+  // Lesebestaetigung, NUR im 1:1: bis zu welcher Nachricht das Gegenueber gelesen hat.
+  const istDm = scope.startsWith("dm:");
+  const [gelesenBis, setGelesenBis] = useState<number | null>(null);
   const [push, setPush] = useState(false);
   const [hasMore, setHasMore] = useState(false);   // gibt es ältere (nachladbare) Nachrichten?
   const [capped, setCapped] = useState(false);     // 100er-Limit erreicht: ältere bleiben ausgeblendet
@@ -57,7 +60,7 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
   const isDesktop = typeof window !== "undefined" && !!window.matchMedia?.("(hover: hover) and (pointer: fine)").matches;
 
   useEffect(() => { api.getProfile().then((p) => { setIsAdmin(!!p.is_admin); setKannFotos(!!(p.chat_photos ?? p.is_admin)); setMeineId(p.id ?? 0); }).catch(() => {}); }, []);
-  useEffect(() => { api.chatRoomState(scope).then((s) => { setPush(s.push); setWeiterAn(s.weiter_an ?? null); }).catch(() => {}); }, [scope]);
+  useEffect(() => { api.chatRoomState(scope).then((s) => { setPush(s.push); setWeiterAn(s.weiter_an ?? null); setGelesenBis(s.gelesen_bis ?? null); }).catch(() => {}); }, [scope]);
 
   // Bearbeiten/Löschen-Icons wieder ausblenden, sobald man woanders hin tippt/klickt.
   // Listener verzögert anhängen, damit der öffnende Long-Press ihn nicht sofort auslöst.
@@ -79,10 +82,16 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
     el.style.height = Math.min(el.scrollHeight, Math.round(window.innerHeight * 0.5)) + "px";
   }, [text]);
 
-  // Lesestand serverseitig setzen (für Unread auf der Startseite).
+  // Lesestand serverseitig setzen (Unread auf der Startseite, und im 1:1 die ✓✓ beim Gegenueber).
+  // NUR bei sichtbarem Tab — sonst kaeme „gelesen" von einem Chat, der im Hintergrund pollt.
   function markRead(id: number) {
-    if (id > 0) api.chatMarkRead(scope, id).catch(() => {});
+    if (id > 0 && !document.hidden) api.chatMarkRead(scope, id).catch(() => {});
   }
+  useEffect(() => {
+    const h = () => { if (!document.hidden) markRead(lastId.current); };
+    document.addEventListener("visibilitychange", h);
+    return () => document.removeEventListener("visibilitychange", h);
+  }, [scope]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const atBottom = () => {
     const el = scrollRef.current;
@@ -107,7 +116,11 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
       setTimeout(scrollToBottom, 200);   // spät geladene Avatare/Höhen -> nochmal ganz nach unten
     }).catch(() => {});
     // Polling für neue Nachrichten.
-    const poll = () => api.chatList(scope, lastId.current).then((rows) => {
+    const poll = () => {
+      if (istDm) api.chatRoomState(scope).then((s) => setGelesenBis(s.gelesen_bis ?? null)).catch(() => {});
+      return pollNachrichten();
+    };
+    const pollNachrichten = () => api.chatList(scope, lastId.current).then((rows) => {
       if (!alive || rows.length === 0) return;
       const stick = atBottom();
       lastId.current = Math.max(lastId.current, ...rows.map((r) => r.id));
@@ -306,6 +319,11 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
                 <span className="pf-name text-sm font-semibold text-slate-200">{m.name || "—"}</span>
                 {m.author_new && <NewBadge />}
                 <span className="text-[10px] text-slate-500">{hhmm(m.created_at)}</span>
+                {istDm && m.mine && gelesenBis != null && (
+                  m.id <= gelesenBis
+                    ? <span role="img" aria-label={t("chat.read")} title={t("chat.read")} className="text-brand-600 dark:text-brand-300"><DoubleCheckIcon className="h-3.5 w-3.5" /></span>
+                    : <span role="img" aria-label={t("chat.sent")} title={t("chat.sent")} className="text-slate-500"><CheckIcon className="h-3.5 w-3.5" /></span>
+                )}
                 <span className="ml-auto flex items-center gap-2">
                   {isDesktop && canEdit(m) && (
                     <>

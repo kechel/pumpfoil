@@ -771,6 +771,8 @@ const nb: Record<string, string> = {
   "chat.placeholder": "Skriv en melding …",
   "chat.photoAdd": "Legg til bilder",
   "chat.replyDirect": "Svar gjerne direkte til {name}",
+  "chat.sent": "Sendt",
+  "chat.read": "Lest",
   "presence.online": "Pålogget",
   "online.title": "Pålogget-prikk",
   "online.hint": "Så lenge du har appen eller nettsiden åpen, ser andre en liten grønn prikk på profilbildet ditt.",

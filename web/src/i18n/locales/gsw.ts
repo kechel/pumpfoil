@@ -601,6 +601,8 @@ const gsw: Record<string, string> = {
   "chat.placeholder": "Nachricht schribe …",
   "chat.photoAdd": "Bilder aahänke",
   "chat.replyDirect": "Antworte bitte diräkt a {name}",
+  "chat.sent": "Gschickt",
+  "chat.read": "Gläse",
   "presence.online": "Online",
   "online.title": "Online-Pünktli",
   "online.hint": "Solang du d App oder d Siite offe hesch, gsehnd anderi es chliises grüens Pünktli a dim Profilbild.",

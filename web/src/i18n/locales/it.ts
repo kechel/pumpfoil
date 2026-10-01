@@ -661,6 +661,8 @@ const it: Record<string, string> = {
   "chat.placeholder": "Scrivi un messaggio …",
   "chat.photoAdd": "Aggiungi foto",
   "chat.replyDirect": "Rispondi direttamente a {name}",
+  "chat.sent": "Inviato",
+  "chat.read": "Letto",
   "presence.online": "Online",
   "online.title": "Punto online",
   "online.hint": "Finché hai l'app o il sito aperti, gli altri vedono un piccolo punto verde sulla tua foto profilo.",

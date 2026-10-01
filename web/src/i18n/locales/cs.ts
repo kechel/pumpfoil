@@ -781,6 +781,8 @@ const cs: Record<string, string> = {
   "chat.placeholder": "Napsat zprávu …",
   "chat.photoAdd": "Přidat fotky",
   "chat.replyDirect": "Odpovídejte prosím přímo: {name}",
+  "chat.sent": "Odesláno",
+  "chat.read": "Přečteno",
   "presence.online": "Online",
   "online.title": "Online tečka",
   "online.hint": "Dokud máš otevřenou aplikaci nebo web, ostatní vidí u tvého profilového obrázku malou zelenou tečku.",

@@ -757,6 +757,8 @@ const ja: Record<string, string> = {
   "chat.placeholder": "メッセージを入力 …",
   "chat.photoAdd": "写真を追加",
   "chat.replyDirect": "返信は {name} に直接お願いします",
+  "chat.sent": "送信済み",
+  "chat.read": "既読",
   "presence.online": "オンライン",
   "online.title": "オンライン表示",
   "online.hint": "アプリやサイトを開いている間、他の人にはプロフィール画像に小さな緑の点が表示されます。",

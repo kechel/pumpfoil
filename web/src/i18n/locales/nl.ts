@@ -781,6 +781,8 @@ const nl: Record<string, string> = {
   "chat.placeholder": "Bericht schrijven …",
   "chat.photoAdd": "Foto's toevoegen",
   "chat.replyDirect": "Antwoord graag rechtstreeks aan {name}",
+  "chat.sent": "Verzonden",
+  "chat.read": "Gelezen",
   "presence.online": "Online",
   "online.title": "Online-stip",
   "online.hint": "Zolang je de app of de website open hebt, zien anderen een klein groen stipje bij je profielfoto.",

@@ -825,6 +825,8 @@ const en: Record<string, string> = {
   "chat.placeholder": "Write a message …",
   "chat.photoAdd": "Add photos",
   "chat.replyDirect": "Please reply directly to {name}",
+  "chat.sent": "Sent",
+  "chat.read": "Read",
   "presence.online": "Online",
   "online.title": "Online dot",
   "online.hint": "While you have the app or the website open, others see a small green dot on your profile picture.",

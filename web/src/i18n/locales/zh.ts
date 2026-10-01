@@ -757,6 +757,8 @@ const zh: Record<string, string> = {
   "chat.placeholder": "写条消息 …",
   "chat.photoAdd": "添加照片",
   "chat.replyDirect": "请直接回复 {name}",
+  "chat.sent": "已发送",
+  "chat.read": "已读",
   "presence.online": "在线",
   "online.title": "在线标记",
   "online.hint": "当你打开应用或网站时，其他人会在你的头像上看到一个小绿点。",

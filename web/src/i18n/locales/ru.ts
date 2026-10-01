@@ -757,6 +757,8 @@ const ru: Record<string, string> = {
   "chat.placeholder": "Написать сообщение …",
   "chat.photoAdd": "Добавить фото",
   "chat.replyDirect": "Пожалуйста, пишите напрямую: {name}",
+  "chat.sent": "Отправлено",
+  "chat.read": "Прочитано",
   "presence.online": "В сети",
   "online.title": "Значок «в сети»",
   "online.hint": "Пока у тебя открыто приложение или сайт, другие видят маленькую зелёную точку на твоём фото профиля.",

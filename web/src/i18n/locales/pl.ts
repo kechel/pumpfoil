@@ -805,6 +805,8 @@ const pl: Record<string, string> = {
   "chat.placeholder": "Napisz wiadomość …",
   "chat.photoAdd": "Dodaj zdjęcia",
   "chat.replyDirect": "Prosimy pisać bezpośrednio do: {name}",
+  "chat.sent": "Wysłano",
+  "chat.read": "Przeczytano",
   "presence.online": "Online",
   "online.title": "Kropka online",
   "online.hint": "Gdy masz otwartą aplikację lub stronę, inni widzą małą zieloną kropkę przy twoim zdjęciu profilowym.",
