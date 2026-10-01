@@ -298,6 +298,9 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
     var waehleFuerEdit by remember { mutableStateOf(false) }   // wohin der Bild-Waehler liefert
     var showDict by remember { mutableStateOf(false) }            // Diktat-Vollbild
     var isAdmin by remember { mutableStateOf(false) }
+    // Bilder anhaengen: Server-Schalter (`chat_photos`), NICHT isAdmin — so gibt Jan sie spaeter
+    // fuer alle frei, ohne dass die App neu raus muss.
+    var kannFotos by remember { mutableStateOf(false) }
     var push by remember { mutableStateOf(false) }
     var confirmLeave by remember { mutableStateOf(false) }
     var lastId by remember(room.scope) { mutableStateOf(0) }
@@ -366,7 +369,7 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
         }
     }
     LaunchedEffect(room.scope) {
-        isAdmin = runCatching { Api.me().isAdmin }.getOrDefault(false)
+        runCatching { Api.me() }.getOrNull()?.let { me -> isAdmin = me.isAdmin; kannFotos = me.chatPhotos ?: me.isAdmin }
         push = runCatching { Api.chatRoomState(room.scope).push }.getOrDefault(false)
         if (isDm && otherId > 0) blocked = runCatching { Api.chatBlocks().any { it.id == otherId } }.getOrDefault(false)
         load()
@@ -487,7 +490,7 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
                     ChatAnhangLeiste(editAnhaenge, onWeg = { k -> editAnhaenge = editAnhaenge.filter { it.key != k } },
                         modifier = Modifier.padding(top = 8.dp))
                     // Neue Bilder dazunehmen nur als Admin (Server: 403 sonst); entfernen darf jeder.
-                    if (isAdmin && editAnhaenge.size < 10) {
+                    if (kannFotos && editAnhaenge.size < 10) {
                         TextButton(onClick = { bilderWaehlen(fuerEdit = true) }) {
                             Icon(Icons.Filled.AddPhotoAlternate, contentDescription = null, modifier = Modifier.size(18.dp))
                             Spacer(Modifier.width(6.dp))
@@ -552,7 +555,7 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
             ) {
                 // Kamera-Knopf: Bilder anhaengen, vorerst NUR fuer Admins (wie Web; der Server lehnt
                 // Uploads anderer mit 403 ab).
-                if (isAdmin) {
+                if (kannFotos) {
                     IconButton(onClick = { bilderWaehlen(fuerEdit = false) }, enabled = !sending && anhaenge.size < 10) {
                         Icon(Icons.Filled.PhotoCamera, contentDescription = I18n.t("chat.photoAdd"), tint = MaterialTheme.colorScheme.primary)
                     }

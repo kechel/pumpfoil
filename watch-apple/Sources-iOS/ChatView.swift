@@ -306,6 +306,8 @@ struct ChatRoomView: View {
     @State private var zeigeBildWahl = false
     @State private var galerie: ChatGalerie?
     @State private var isAdmin = false
+    // Bilder anhaengen: Server-Schalter (`chat_photos`), NICHT isAdmin — Freigabe fuer alle ohne neuen Build.
+    @State private var kannFotos = false
     @State private var push = false
     @State private var confirmLeave = false
     @State private var lastId = 0
@@ -404,7 +406,7 @@ struct ChatRoomView: View {
 
     // Bilder anhaengen: vorerst nur Admins (Server antwortet sonst 403), wie die PWA.
     @ViewBuilder private var bildKnopf: some View {
-        if isAdmin {
+        if kannFotos {
             Button { zeigeBildWahl = true } label: { Image(systemName: "camera") }
                 .disabled(sending || anhaenge.count >= Self.maxBilder)
                 .accessibilityLabel(Loc.t("chat.photoAdd", lang))
@@ -654,7 +656,10 @@ struct ChatRoomView: View {
     }
 
     private func enterRoom() async {
-        if let p = try? await Api.getProfile() { isAdmin = p.is_admin ?? false }
+        if let p = try? await Api.getProfile() {
+            isAdmin = p.is_admin ?? false
+            kannFotos = p.chat_photos ?? isAdmin
+        }
         push = (try? await Api.chatRoomState(scope: scope).push) ?? false
         if isDm && otherId > 0 { blocked = ((try? await Api.chatBlocks()) ?? []).contains { $0.id == otherId } }
         await load()

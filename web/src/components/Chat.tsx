@@ -28,6 +28,9 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  // Bilder anhaengen: Server-Schalter (`chat_photos` aus /api/me, Admins immer; CHAT_PHOTOS_ALL
+  // gibt es fuer alle frei) — NICHT is_admin, damit das Umlegen ohne neuen Build wirkt.
+  const [kannFotos, setKannFotos] = useState(false);
   const [push, setPush] = useState(false);
   const [hasMore, setHasMore] = useState(false);   // gibt es ältere (nachladbare) Nachrichten?
   const [capped, setCapped] = useState(false);     // 100er-Limit erreicht: ältere bleiben ausgeblendet
@@ -50,7 +53,7 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
   // Desktop (Maus): Bearbeiten/Löschen per Hover statt Long-Press (der greift nur auf Touch).
   const isDesktop = typeof window !== "undefined" && !!window.matchMedia?.("(hover: hover) and (pointer: fine)").matches;
 
-  useEffect(() => { api.getProfile().then((p) => setIsAdmin(!!p.is_admin)).catch(() => {}); }, []);
+  useEffect(() => { api.getProfile().then((p) => { setIsAdmin(!!p.is_admin); setKannFotos(!!(p.chat_photos ?? p.is_admin)); }).catch(() => {}); }, []);
   useEffect(() => { api.chatRoomState(scope).then((s) => setPush(s.push)).catch(() => {}); }, [scope]);
 
   // Bearbeiten/Löschen-Icons wieder ausblenden, sobald man woanders hin tippt/klickt.
@@ -359,7 +362,7 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
         </div>
       )}
       <div className="flex items-end gap-2">
-        {isAdmin && (
+        {kannFotos && (
           <>
             <input ref={dateiRef} type="file" accept="image/*" multiple className="hidden"
               onChange={(e) => bilderWaehlen(e.target.files)} />

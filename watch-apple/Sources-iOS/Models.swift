@@ -8,6 +8,8 @@ struct Profile: Codable {
     let display_name: String?
     let avatar_url: String?
     let is_admin: Bool?
+    // Darf Bilder im Chat anhaengen (Server-Schalter CHAT_PHOTOS_ALL, Admins immer); nil = alter Server.
+    let chat_photos: Bool?
     let language: String?
     let foil_sensitivity: String?
     let pump_unit: String?      // hz|ppm — Anzeige-Einheit der Pump-Kadenz (nur Darstellung, PumpUnit.swift)

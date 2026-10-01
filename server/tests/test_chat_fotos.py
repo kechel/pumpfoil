@@ -116,3 +116,23 @@ def test_bearbeiten_bilder_dazu_und_weg(client):
     # Nur Text, Bilder alle entfernt: erlaubt
     r = client.patch(f"/api/chat/{m['id']}", headers=admin, json={"text": "ohne Bilder", "photo_ids": []})
     assert r.status_code == 200 and r.json()["photos"] == []
+
+
+def test_schalter_gibt_bilder_fuer_alle_frei(client, monkeypatch):
+    """CHAT_PHOTOS_ALL (Jan, 01.10.2026): aus = nur Admins, an = alle. /api/me meldet es als
+    `chat_photos`, damit die Apps nicht auf is_admin schauen muessen."""
+    normal = _konto(client, "chatfoto-schalter@example.com")
+    admin = _konto(client, "chatfoto-schalter-admin@example.com", admin=True)
+    monkeypatch.delenv("CHAT_PHOTOS_ALL", raising=False)
+    assert client.get("/api/auth/me", headers=normal).json()["chat_photos"] is False
+    assert client.get("/api/auth/me", headers=admin).json()["chat_photos"] is True
+    assert _hoch(client, normal).status_code == 403
+
+    monkeypatch.setenv("CHAT_PHOTOS_ALL", "1")
+    assert client.get("/api/auth/me", headers=normal).json()["chat_photos"] is True
+    r = _hoch(client, normal)
+    assert r.status_code == 200, r.text
+    pid = r.json()["id"]
+    r = client.post("/api/chat?scope=global:main", headers=normal, json={"text": "", "photo_ids": [pid]})
+    assert r.status_code == 200, r.text
+    assert len(r.json()["photos"]) == 1

@@ -12,6 +12,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from .. import models
+from ..schalter import darf_chat_fotos
 from ..accounts import NEW_ACCOUNT_AGE_S, is_new_account
 from ..db import get_db
 from ..naming import owner_label, owner_label_sql
@@ -288,10 +289,10 @@ def post_message(
     if user.chat_readonly:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Im Chat schreibgesperrt")
     text = (body.text or "").strip()
-    # Bilder: vorerst NUR Admins (Jan, 30.09.2026). Nur eigene, noch nicht versandte Uploads.
+    # Bilder: vorerst NUR Admins (Jan, 30.09.2026), fuer alle per Schalter `CHAT_PHOTOS_ALL` (schalter.py). Nur eigene, noch nicht versandte Uploads.
     fotos: list[models.ChatPhoto] = []
     if body.photo_ids:
-        if not user.is_admin:
+        if not darf_chat_fotos(user):
             raise HTTPException(status.HTTP_403_FORBIDDEN, "Bilder im Chat sind noch nicht freigeschaltet")
         ids = list(dict.fromkeys(body.photo_ids))[:MAX_CHAT_FOTOS]
         fotos = (db.query(models.ChatPhoto)
@@ -378,8 +379,8 @@ async def upload_chat_photo(
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> dict:
     """Ein Bild fuer eine Chat-Nachricht hochladen — VOR dem Senden (Vorschau im Eingabefeld).
-    Vorerst nur Admins. Gleiche Aufbereitung wie Spot-Fotos: verkleinert, WebP, ohne EXIF/GPS."""
-    if not user.is_admin:
+    Vorerst nur Admins, fuer alle per Schalter (schalter.py). Gleiche Aufbereitung wie Spot-Fotos: verkleinert, WebP, ohne EXIF/GPS."""
+    if not darf_chat_fotos(user):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Bilder im Chat sind noch nicht freigeschaltet")
     from ..media import ImageError, MAX_UPLOAD_BYTES, save_image, thumb_url
     raw = await file.read()
@@ -499,7 +500,7 @@ def edit_message(
         ids = list(dict.fromkeys(body.photo_ids))[:MAX_CHAT_FOTOS]
         bisher = {p.id: p for p in db.query(models.ChatPhoto).filter(models.ChatPhoto.message_id == m.id).all()}
         neu_ids = [i for i in ids if i not in bisher]
-        if neu_ids and not user.is_admin:
+        if neu_ids and not darf_chat_fotos(user):
             raise HTTPException(status.HTTP_403_FORBIDDEN, "Bilder im Chat sind noch nicht freigeschaltet")
         neue = {p.id: p for p in (db.query(models.ChatPhoto)
                 .filter(models.ChatPhoto.id.in_(neu_ids), models.ChatPhoto.user_id == user.id,
