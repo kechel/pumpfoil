@@ -28,6 +28,9 @@ async function req<T>(path: string, opts: RequestInit = {}): Promise<T> {
   };
   const token = getToken();
   if (token) headers["Authorization"] = `Bearer ${token}`;
+  // Tab im Hintergrund: der Server soll uns dann NICHT als online fuehren (gruener Punkt am
+  // Profilbild, s. server/app/api/deps.py) — sonst gaelte als online, wer einen Tab vergessen hat.
+  if (typeof document !== "undefined" && document.hidden) headers["X-Foil-Sichtbar"] = "0";
 
   const res = await fetch(path, { ...opts, headers });
   // Sliding-Refresh: der Server schickt bei knapper Restlaufzeit ein frisches Token mit.
@@ -501,6 +504,7 @@ export interface CarveData {
 
 // Einzel-Rekord je Spot (von einer Session/einem Lauf gewonnen -> mit Rekordhalter).
 export interface SpotRecHolder {
+  user_id?: number | null;   // fuer den Online-Punkt am Profilbild (Server additiv seit 01.10.2026)
   value: number;
   session_id: number | null;
   run_idx?: number | null;
@@ -524,6 +528,7 @@ export interface SpotAgg {
 }
 
 export interface CommunitySession {
+  user_id?: number | null;   // fuer den Online-Punkt am Profilbild (Server additiv seit 01.10.2026)
   // "board" = Handy war am Brett (Feed + „alle"-Tab haengen das an die
   // Geraete-Bezeichnung); null = Uhr oder Handy am Koerper.
   placement?: string | null;
@@ -594,6 +599,7 @@ export interface SessionVideo {
 }
 
 export interface CommunityPhoto {
+  user_id?: number | null;   // fuer den Online-Punkt am Profilbild (Server additiv seit 01.10.2026)
   tz?: string | null;   // IANA-Zeitzone des Spots — Uhrzeiten in Spot-Ortszeit anzeigen
   kind?: "photo" | "video";
   photo_id?: number;
@@ -612,6 +618,7 @@ export interface CommunityPhoto {
 }
 
 export interface LeaderRow {
+  user_id?: number | null;   // fuer den Online-Punkt am Profilbild (Server additiv seit 01.10.2026)
   name: string;
   avatar_url: string | null;
   sessions: number;
@@ -632,6 +639,7 @@ export interface Profile {
   display_name: string | null;
   avatar_url: string | null;
   is_admin: boolean;
+  show_online?: boolean;   // gruener Online-Punkt fuer andere sichtbar (Profil-Schalter, Standard an)
   chat_photos?: boolean;   // darf Bilder im Chat anhaengen (Server-Schalter, s. schalter.py)
   language: string;
   beta?: boolean;   // Beta-Features (z. B. Polar-BLE-Recorder) nur für Allowlist-User
@@ -1109,6 +1117,7 @@ export const api = {
   chatSubscribe: (scope: string, on: boolean) => req<{ ok: boolean; push: boolean }>(`/api/chat/subscribe`, { method: "POST", body: JSON.stringify({ scope, on }) }),
   chatRoomState: (scope: string) => req<{ scope: string; push: boolean; left: boolean; last_read_id: number; weiter_an?: { id: number; name: string | null; avatar_url: string | null } | null }>(`/api/chat/state?scope=${encodeURIComponent(scope)}`),
   chatRooms: () => req<ChatRoom[]>(`/api/chat/rooms`),
+  chatOnline: (ids: number[]) => req<{ online: number[] }>(`/api/chat/online?ids=${ids.join(",")}`),
   chatDmOpen: (userId: number) => req<{ scope: string; other: { id: number; name: string | null; avatar_url: string | null }; blocked: boolean }>(`/api/chat/dm?user_id=${userId}`),
   chatSearchUsers: (q: string) => req<DmUser[]>(`/api/chat/users?q=${encodeURIComponent(q)}`),
   chatBlock: (userId: number) => req<{ ok: boolean; blocked: boolean }>(`/api/chat/block`, { method: "POST", body: JSON.stringify({ user_id: userId }) }),
@@ -1221,6 +1230,12 @@ export const api = {
     req<Profile>("/api/auth/me", {
       method: "PATCH",
       body: JSON.stringify({ language }),
+    }),
+  // Gruener Online-Punkt am Profilbild fuer andere sichtbar (Standard an).
+  updateShowOnline: (show_online: boolean) =>
+    req<Profile>("/api/auth/me", {
+      method: "PATCH",
+      body: JSON.stringify({ show_online }),
     }),
   // Anzeige-Einheit der Pump-Kadenz (hz|ppm). Reine Darstellung — nichts wird neu berechnet.
   updatePumpUnit: (pump_unit: string) =>
@@ -1750,6 +1765,7 @@ export interface AdminFeedback {
 }
 
 export interface StatRecord {
+  user_id?: number | null;   // fuer den Online-Punkt am Profilbild (Server additiv seit 01.10.2026)
   tz?: string | null;   // IANA-Zeitzone des Spots — Uhrzeiten in Spot-Ortszeit anzeigen
   session_id: number | null;
   value: number;

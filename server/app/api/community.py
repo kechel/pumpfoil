@@ -242,6 +242,7 @@ def _brief(fdist, max_speed, num_runs, sid, ts, uname, place, avatar, caption=No
         "tz": ("UTC" if verborgen else tz_name(lat, lon)),   # Uhrzeiten in Spot-Ortszeit anzeigen
         "youtube_url": youtube or None,
         "name": uname,
+        "user_id": owner_id,   # fuer den Online-Punkt am Profilbild (additiv)
         "author_new": is_new_account(author_created_at),
         "avatar_url": avatar,
         "spot": (ortverbergen.NEMO_NAME if verborgen else (place or None)),
@@ -471,7 +472,7 @@ def _record_entry(db: Session, metric: str, cut: datetime | None, spot: str | No
     valcol, idxcol = REC_COL[metric]
     idx_sel = idxcol if idxcol is not None else literal(None)
     q = _community(db.query(valcol, idx_sel, S.id, S.started_at, NAME, S.place_name, U.avatar_url, AR.track_preview,
-                            S.place_lat, S.place_lon), viewer_id, accel_only, sport, nur_gps=nur_gps)
+                            S.place_lat, S.place_lon, U.id), viewer_id, accel_only, sport, nur_gps=nur_gps)
     q = _band_filter(db, q, foil_band, viewer_id or 0)
     q = q.filter(valcol > 0)
     if cut is not None:
@@ -481,11 +482,11 @@ def _record_entry(db: Session, metric: str, cut: datetime | None, spot: str | No
     row = q.order_by(valcol.desc()).first()
     if row is None:
         return dict(_EMPTY_REC)
-    val, idx, sid, ts, name, place, avatar, preview, lat, lon = row
+    val, idx, sid, ts, name, place, avatar, preview, lat, lon, uid = row
     return {
         "session_id": sid, "value": round(float(val), 2),
         "started_at": ts.isoformat() if ts else None, "run_idx": idx,
-        "name": name, "avatar_url": avatar, "spot": place or None, "track_preview": preview or None,
+        "name": name, "avatar_url": avatar, "user_id": uid, "spot": place or None, "track_preview": preview or None,
         "tz": tz_name(lat, lon),
     }
 
@@ -623,7 +624,7 @@ def _carve_record(db: Session, cut: datetime | None, spot: str | None = None, vi
         if cache is not None:
             cache["carve_cache"] = True
     total = func.coalesce(func.sum(AR.carve_m + AR.carve_l), 0)
-    q = _community(db.query(NAME, U.avatar_url, total), viewer_id, accel_only, sport, nur_gps=nur_gps)
+    q = _community(db.query(NAME, U.avatar_url, total, U.id), viewer_id, accel_only, sport, nur_gps=nur_gps)
     q = _band_filter(db, q, foil_band, viewer_id or 0)
     q = q.filter(AR.carve_m.isnot(None))
     if cut is not None:
@@ -633,8 +634,8 @@ def _carve_record(db: Session, cut: datetime | None, spot: str | None = None, vi
     row = q.group_by(U.id, U.display_name, U.avatar_url).order_by(total.desc()).first()
     if row is None or not row[2]:
         return dict(_EMPTY_REC)
-    name, avatar, val = row
-    return {**_EMPTY_REC, "value": float(int(val)), "name": name, "avatar_url": avatar}
+    name, avatar, val, uid = row
+    return {**_EMPTY_REC, "value": float(int(val)), "name": name, "avatar_url": avatar, "user_id": uid}
 
 
 @router.get("/sports")
@@ -1024,7 +1025,7 @@ def spot_records(
 def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil", foil_band: str = "all", _user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
     cut = _cutoff(period)
     q = _community(db.query(
-        NAME, U.avatar_url,
+        NAME, U.avatar_url, U.id,
         func.count(S.id), func.coalesce(func.sum(AR.num_runs), 0),
         func.count(func.distinct(func.nullif(S.place_name, ""))),
         func.coalesce(func.sum(AR.pump_count), 0),
@@ -1033,9 +1034,9 @@ def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil
     if cut is not None:
         q = q.filter(S.started_at >= cut)
     rows = q.group_by(U.id, U.display_name, U.avatar_url).all()
-    flat = [{"name": name or "—", "avatar_url": av, "sessions": int(ns), "runs": int(nr or 0),
+    flat = [{"name": name or "—", "avatar_url": av, "user_id": uid, "sessions": int(ns), "runs": int(nr or 0),
              "spots": int(nsp or 0), "pumps": int(np or 0)}
-            for name, av, ns, nr, nsp, np in rows]
+            for name, av, uid, ns, nr, nsp, np in rows]
     top = lambda key: [x for x in sorted(flat, key=lambda y: y[key], reverse=True) if x[key] > 0][:10]  # noqa: E731
     return {"sessions": top("sessions"), "runs": top("runs"), "spots": top("spots"), "pumps": top("pumps")}
 
@@ -1056,27 +1057,27 @@ def latest_photos(
     # Fotos: je Session das neueste, nach Upload-Zeit.
     prows = (
         db.query(P.id, P.url, P.created_at, P.session_id, S.started_at, NAME, U.avatar_url, S.place_name, S.caption,
-                 S.place_lat, S.place_lon)
+                 S.place_lat, S.place_lon, U.id)
         .select_from(P).join(S, P.session_id == S.id).join(U, S.user_id == U.id)
         .filter(P.blocked.isnot(True), *_vis)
         .order_by(P.id.desc()).limit(80).all()
     )
     seenp: set[int] = set()
-    for pid, url, cts, sid, sts, name, avatar, place, caption, lat, lon in prows:
+    for pid, url, cts, sid, sts, name, avatar, place, caption, lat, lon, uid in prows:
         if sid in seenp:
             continue
         seenp.add(sid)
         items.append({"kind": "photo", "_ts": cts or sts, "photo_id": pid, "url": url,
                       "thumb_url": _thumb(url), "youtube_url": None,
                       "session_id": sid, "started_at": sts.isoformat() if sts else None, "name": name,
-                      "avatar_url": avatar, "spot": place or None, "caption": caption or None,
+                      "avatar_url": avatar, "user_id": uid, "spot": place or None, "caption": caption or None,
                       "tz": tz_name(lat, lon)})
 
     # Videos: je Session das neueste verlinkte YouTube-Video, nach Verlink-Zeit.
     V = models.SessionVideo
     vrows = (
         db.query(V.youtube_url, V.created_at, V.session_id, S.started_at, NAME, U.avatar_url, S.place_name, S.caption,
-                 S.place_lat, S.place_lon)
+                 S.place_lat, S.place_lon, U.id)
         .select_from(V).join(S, V.session_id == S.id).join(U, S.user_id == U.id)
         # Nur YouTube im „Neueste Medien"-Feed: nur die haben ein einbettbares Vorschaubild
         # (img.youtube.com). Instagram/TikTok werden auf der Session verlinkt, aber nicht als
@@ -1085,13 +1086,13 @@ def latest_photos(
         .order_by(V.id.desc()).limit(80).all()
     )
     seenv: set[int] = set()
-    for yturl, cts, sid, sts, name, avatar, place, caption, lat, lon in vrows:
+    for yturl, cts, sid, sts, name, avatar, place, caption, lat, lon, uid in vrows:
         if sid in seenv:
             continue
         seenv.add(sid)
         items.append({"kind": "video", "_ts": cts or sts, "url": None, "youtube_url": yturl,
                       "session_id": sid, "started_at": sts.isoformat() if sts else None, "name": name,
-                      "avatar_url": avatar, "spot": place or None, "caption": caption or None,
+                      "avatar_url": avatar, "user_id": uid, "spot": place or None, "caption": caption or None,
                       "tz": tz_name(lat, lon)})
 
     _floor = datetime.min.replace(tzinfo=timezone.utc)

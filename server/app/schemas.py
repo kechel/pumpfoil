@@ -19,6 +19,7 @@ class ProfileIn(BaseModel):
     language: str | None = None
     foil_sensitivity: str | None = None   # normal|light|attempts (persönliche Erkennungs-Empfindlichkeit)
     pump_unit: str | None = None          # hz|ppm — Anzeige-Einheit der Pump-Kadenz (nur Darstellung)
+    show_online: bool | None = None       # gruener Online-Punkt am Profilbild sichtbar (Standard an)
 
 
 class PasswordChangeIn(BaseModel):
@@ -63,6 +64,7 @@ class ProfileOut(BaseModel):
     beta: bool = False   # Beta-Features (z. B. Polar-BLE-Recorder) nur für Allowlist-User
     foil_sensitivity: str = "normal"   # persönliche Erkennungs-Empfindlichkeit (normal|light|attempts)
     pump_unit: str = "hz"              # Anzeige-Einheit der Pump-Kadenz: hz|ppm (nur Darstellung)
+    show_online: bool = True           # gruener Online-Punkt fuer andere sichtbar (Profil-Schalter)
     social_allowed: bool = True   # UGC/Feed/Chat freigegeben (false = unter 13, Apple-Vorgabe)
     # Soll dieses Konto zum Einrichtungs-Assistenten (/onboarding) geleitet werden? Die Regel
     # steht NUR im Server (api/settings.onboarding_faellig) — der Client soll sie nicht

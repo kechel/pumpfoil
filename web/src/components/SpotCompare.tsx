@@ -124,7 +124,7 @@ export function SpotCompare() {
                   <div className="mt-0.5 text-[11px] text-slate-300">
                     {lh.name && (
                       <span className="inline-flex items-center gap-1 align-middle">
-                        <Avatar name={lh.name} url={null} size={18} />
+                        <Avatar name={lh.name} url={null} userId={lh.user_id} size={18} />
                         <span className="text-brand-600 dark:text-brand-300">{lh.name}</span>
                       </span>
                     )}

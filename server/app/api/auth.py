@@ -208,7 +208,7 @@ def register(
 
 @router.get("/me", response_model=ProfileOut)
 def me(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> ProfileOut:
-    return ProfileOut(id=user.id, email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "en", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), pump_unit=(user.pump_unit or "hz"), social_allowed=(user.social_allowed is not False),
+    return ProfileOut(id=user.id, email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "en", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), pump_unit=(user.pump_unit or "hz"), show_online=(user.show_online is not False), social_allowed=(user.social_allowed is not False),
                       **_profile_hinweise(db, user.id, user))
 
 
@@ -233,6 +233,8 @@ def update_me(
     # Anzeige-Einheit der Kadenz: reine Darstellung -> KEINE Reanalyse, kein Einfluss auf Rekorde.
     if body.pump_unit is not None:
         user.pump_unit = body.pump_unit if body.pump_unit in ("hz", "ppm") else "hz"
+    if body.show_online is not None:
+        user.show_online = bool(body.show_online)
     if body.foil_sensitivity is not None:
         from ..analysis.gps import SENSITIVITY_PRESETS
         from ..reanalysis import start_reanalysis
@@ -245,7 +247,7 @@ def update_me(
             start_reanalysis(user.id, new_sens)
     db.commit()
     db.refresh(user)
-    return ProfileOut(id=user.id, email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "en", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), pump_unit=(user.pump_unit or "hz"), social_allowed=(user.social_allowed is not False),
+    return ProfileOut(id=user.id, email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "en", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), pump_unit=(user.pump_unit or "hz"), show_online=(user.show_online is not False), social_allowed=(user.social_allowed is not False),
                       **_profile_hinweise(db, user.id, user))
 
 
@@ -263,7 +265,7 @@ def set_age_range(
     return ProfileOut(id=user.id, email=user.email, display_name=user.display_name, avatar_url=user.avatar_url,
                       is_admin=user.is_admin, language=user.language or "en",
                       beta=True,
-                      foil_sensitivity=(user.foil_sensitivity or "normal"), pump_unit=(user.pump_unit or "hz"),
+                      foil_sensitivity=(user.foil_sensitivity or "normal"), pump_unit=(user.pump_unit or "hz"), show_online=(user.show_online is not False),
                       social_allowed=(user.social_allowed is not False),
                       **_profile_hinweise(db, user.id, user))
 
@@ -414,7 +416,7 @@ async def upload_avatar(
     user.avatar_url = url
     db.commit()
     db.refresh(user)
-    return ProfileOut(id=user.id, email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "en", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), pump_unit=(user.pump_unit or "hz"), social_allowed=(user.social_allowed is not False),
+    return ProfileOut(id=user.id, email=user.email, display_name=user.display_name, avatar_url=user.avatar_url, is_admin=user.is_admin, language=user.language or "en", beta=True, foil_sensitivity=(user.foil_sensitivity or "normal"), pump_unit=(user.pump_unit or "hz"), show_online=(user.show_online is not False), social_allowed=(user.social_allowed is not False),
                       **_profile_hinweise(db, user.id, user))
 
 

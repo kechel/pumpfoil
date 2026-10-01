@@ -95,6 +95,16 @@ def current_user(
     if last is None or now - last > timedelta(hours=1):
         user.last_seen_at = now
         db.commit()
+    # Online-Punkt: hoechstens EIN Schreibzugriff je Nutzer und Minute (s. models.User.online_at).
+    # Die PWA meldet per `X-Foil-Sichtbar: 0`, wenn ihr Tab im Hintergrund pollt — sonst gaelte
+    # als online, wer irgendwo einen Tab offen vergessen hat. Die Apps fragen im Hintergrund nicht.
+    if request.headers.get("X-Foil-Sichtbar") != "0":
+        oa = user.online_at
+        if oa is not None and oa.tzinfo is None:
+            oa = oa.replace(tzinfo=timezone.utc)
+        if oa is None or now - oa > timedelta(seconds=60):
+            user.online_at = now
+            db.commit()
     # Getrennt von der Stunden-Drosselung oben: wer zuerst die PWA und zehn Minuten spaeter die
     # App oeffnet, soll an dem Tag fuer BEIDE zaehlen. Der Prozess-Cache haelt es trotzdem bei
     # einem Schreibversuch je Nutzer/Client/Tag.

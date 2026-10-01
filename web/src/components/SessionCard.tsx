@@ -23,7 +23,7 @@ function fmtSpan(start: string, end: string) {
 // frei einsetzbarer Stats-Block, rechts Like + Vorschaubild + optionaler Status.
 export function SessionCard({
   sessionId, startedAt, endedAt, tz, spot, foil, sportLabel, stab, mast, board, deviceLabel, placement, caption,
-  avatarName, avatarUrl, name, stats, thumbUrl, photoCount = 0, youtubeUrl, videoUrl,
+  avatarName, avatarUrl, avatarUserId, name, stats, thumbUrl, photoCount = 0, youtubeUrl, videoUrl,
   likeCount0 = 0, liked0 = false, statusBadge, trackPreview, highlight = false, owned = false,
   sportClass, dataQuality, needsClassification = false,
 }: {
@@ -46,6 +46,7 @@ export function SessionCard({
   caption?: string | null;
   avatarName?: string | null;
   avatarUrl?: string | null;
+  avatarUserId?: number | null;   // Online-Punkt am Profilbild (lib/online.ts)
   name?: string | null;
   stats?: ReactNode;
   thumbUrl?: string | null;
@@ -197,7 +198,7 @@ export function SessionCard({
               Kennzahlen + Herz; was nicht passt, wird abgeschnitten statt umzubrechen. */}
           <div className="sm:hidden">
             <div className="flex items-center gap-2 overflow-hidden whitespace-nowrap">
-              <Avatar name={avatarName ?? name} url={avatarUrl} size={20} />
+              <Avatar name={avatarName ?? name} url={avatarUrl} userId={avatarUserId} size={20} />
               <span className="shrink-0 font-semibold tabular-nums">{kurzDatum}</span>
               {startedAt && <span className="shrink-0 tabular-nums text-slate-400">{fmtTime(startedAt, tz)}</span>}
               {/* Name vor Spot: der Name bekommt bis zu 40 % der Breite, gekuerzt wird zuerst der Spot. */}
@@ -214,7 +215,7 @@ export function SessionCard({
           </div>
           {/* AB sm: ein Raster, dieselben Spalten in jeder Zeile (ZEILEN_RASTER). */}
           <div className={`hidden ${ZEILEN_RASTER}`}>
-            <Avatar name={avatarName ?? name} url={avatarUrl} size={22} />
+            <Avatar name={avatarName ?? name} url={avatarUrl} userId={avatarUserId} size={22} />
             <span className="truncate font-semibold tabular-nums">{kurzDatum}</span>
             <span className="truncate tabular-nums text-slate-400">{startedAt ? fmtTime(startedAt, tz) : ""}</span>
             <span className="pf-name truncate text-brand-600 dark:text-brand-300">{name ?? ""}</span>
@@ -259,7 +260,7 @@ export function SessionCard({
         <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 gap-3">
           <div className="flex shrink-0 flex-col items-center gap-1.5">
-            <Avatar name={avatarName ?? name} url={avatarUrl} size={44} />
+            <Avatar name={avatarName ?? name} url={avatarUrl} userId={avatarUserId} size={44} />
             <button
               onClick={toggleLike}
               title={liked ? t("row.unlike") : t("row.like")}

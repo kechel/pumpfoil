@@ -111,6 +111,8 @@ def _migrate_add_indexes() -> None:
         "ALTER TABLE analysis_results ADD COLUMN IF NOT EXISTS hr_by_min_json TEXT",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS social_allowed BOOLEAN DEFAULT true",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS age_bracket VARCHAR(16)",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS online_at TIMESTAMPTZ",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS show_online BOOLEAN DEFAULT true",
         # App-Caching: „zuletzt geändert" je Session (Backfill = created_at für Altbestand).
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ",
         "UPDATE sessions SET updated_at = created_at WHERE updated_at IS NULL",

@@ -818,6 +818,7 @@ export function renderCommunitySession(s: CommunitySession, t: (k: string) => st
       caption={s.caption}
       name={s.name}
       avatarName={s.name}
+      avatarUserId={s.user_id}
       avatarUrl={s.avatar_url}
       thumbUrl={s.thumb_url}
       photoCount={s.photo_count}
@@ -918,7 +919,7 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
           {/* Handy: hoechstens zwei Zeilen wie die Einzelzeile (SessionCard). */}
           <div className="sm:hidden">
             <div className="flex items-center gap-2 overflow-hidden whitespace-nowrap">
-              <Avatar name={g.name} url={g.avatar_url} size={20} />
+              <Avatar name={g.name} url={g.avatar_url} userId={g.user_id} size={20} />
               <span className="shrink-0 font-semibold tabular-nums">{kurzDatum}</span>
               {g.name && <span className="min-w-0 max-w-[40%] shrink-0 truncate text-brand-600 dark:text-brand-300">{g.name}</span>}
               {g.spot && <span className="inline-flex min-w-0 shrink items-center gap-1 text-slate-300"><LocationIcon className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{g.spot}</span></span>}
@@ -936,7 +937,7 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
           </div>
           {/* Ab sm: dieselben Spalten wie die Einzelzeilen (ZEILEN_RASTER), Uhrzeit-Spalte leer. */}
           <div className={`hidden ${ZEILEN_RASTER}`}>
-            <Avatar name={g.name} url={g.avatar_url} size={22} />
+            <Avatar name={g.name} url={g.avatar_url} userId={g.user_id} size={22} />
             <span className="truncate font-semibold tabular-nums">{kurzDatum}</span>
             <span />
             <span className="truncate text-brand-600 dark:text-brand-300">{g.name ?? ""}</span>
@@ -1032,7 +1033,7 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
         aria-expanded={open}
       >
         <div className="flex shrink-0 flex-col items-center gap-1.5">
-          <Avatar name={g.name} url={g.avatar_url} size={44} />
+          <Avatar name={g.name} url={g.avatar_url} userId={g.user_id} size={44} />
           {/* Mobil: Fotos/Videos + Minimap(s) unter dem Avatar (wie Einzel-Kachel), gestapelt. */}
           {(hasMedia || (g.track_previews?.length ?? 0) > 0) && (
             <div className="flex flex-col items-center gap-1.5 sm:hidden">

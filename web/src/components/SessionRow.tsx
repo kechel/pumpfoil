@@ -81,7 +81,7 @@ export function SessionRow({ s, showName = true, showSpot = true }: { s: Communi
       )}
       {showName && (
         <div className="w-14 shrink-0 self-stretch">
-          <Avatar name={s.name} url={s.avatar_url} size={48} fill rounded="rounded-none" />
+          <Avatar name={s.name} url={s.avatar_url} userId={s.user_id} size={48} fill rounded="rounded-none" />
         </div>
       )}
       <Link to={`/sessions/${s.session_id}`} draggable={false} style={{ WebkitTouchCallout: "none" }} className="flex min-w-0 flex-1 items-center gap-3 py-2.5 pl-3 pr-1">

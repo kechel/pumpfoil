@@ -293,6 +293,10 @@ export default function Settings() {
           Art Entscheidung — was sehen andere von mir. */}
       <OrtVerbergenCard onSaved={flashSaved} />
 
+      {/* Online-Punkt (Jan, 01.10.2026: „bau das mit ins profil ein zum ausstellen, aber erstmal
+          default an fuer alle"). Dieselbe Art Entscheidung wie oben — was sehen andere von mir. */}
+      <OnlinePunktCard onSaved={flashSaved} />
+
       <Card className="mt-4 p-5">
         <h3 className="mb-1 font-semibold">{t("pumpunit.label")}</h3>
         <p className="mb-3 text-sm text-slate-300">{t("pumpunit.hint")}</p>
@@ -623,6 +627,37 @@ function GeteilteAufnahmen() {
  * wie weit er reicht, ist schlimmer als keiner — und hier reicht er bewusst nicht sehr weit:
  * die Strecke, die Zahlen und der Name bleiben sichtbar.
  */
+function OnlinePunktCard({ onSaved }: { onSaved?: () => void }) {
+  const t = useT();
+  const [an, setAn] = useState<boolean | null>(null);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    api.getProfile().then((p) => setAn(p.show_online !== false)).catch(() => setAn(true));
+  }, []);
+  if (an === null) return null;
+  return (
+    <Card className="mt-4 p-5">
+      <h3 className="mb-1 font-semibold">{t("online.title")}</h3>
+      <p className="mb-3 text-sm text-slate-300">{t("online.hint")}</p>
+      <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-slate-200">
+        <input
+          type="checkbox" checked={an} disabled={busy}
+          onChange={(e) => {
+            const wert = e.target.checked;
+            setBusy(true);
+            api.updateShowOnline(wert)
+              .then(() => { setAn(wert); onSaved?.(); })
+              .catch(() => {})
+              .finally(() => setBusy(false));
+          }}
+          className="h-4 w-4 rounded border-slate-600 bg-slate-800"
+        />
+        {t("online.switch")}
+      </label>
+    </Card>
+  );
+}
+
 function OrtVerbergenCard({ onSaved }: { onSaved?: () => void }) {
   const t = useT();
   const [an, setAn] = useState<boolean | null>(null);

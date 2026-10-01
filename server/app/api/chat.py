@@ -1058,6 +1058,52 @@ def all_spot_chats(user: models.User = Depends(current_user), db: Session = Depe
 
 
 # ----------------------------- 1:1-Direktnachrichten -----------------------------
+ONLINE_FENSTER_S = 150   # online = Request in den letzten 2,5 min (Drosselung 60 s + Polling-Takt)
+
+
+@router.get("/online")
+def wer_ist_online(
+    ids: str = Query("", description="kommagetrennte Nutzer-IDs, hoechstens 200"),
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """Welche dieser Nutzer sind GERADE online? Fuer den gruenen Punkt am Profilbild.
+
+    Jan, 01.10.2026: „ueberall wo das profilbild angezeigt wird", „egal ob app oder web". Die
+    Clients sammeln die IDs der sichtbaren Profilbilder und fragen hoechstens minuetlich in EINEM
+    Aufruf — so muss keine der vielen Listen-Antworten ein eigenes Feld bekommen.
+
+    NICHT gemeldet wird, wer den Punkt im Profil abgeschaltet hat (`show_online`), wer unter 13 ist
+    (`social_allowed`), versteckte Testkonten, Blockierte (in beide Richtungen) und der KI-Account:
+    der „waere" sonst online, sobald ein Skript unter ihm postet — genau der Eindruck, den der
+    Link „Antworten bitte direkt an Jan" vermeiden soll.
+    """
+    try:
+        wunsch = {int(x) for x in ids.split(",") if x.strip()}
+    except ValueError:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "ids: Zahlen, kommagetrennt")
+    wunsch = set(list(wunsch)[:200])
+    if not wunsch:
+        return {"online": []}
+    grenze = datetime.now(timezone.utc) - timedelta(seconds=ONLINE_FENSTER_S)
+    q = (db.query(models.User.id)
+         .filter(models.User.id.in_(wunsch), models.User.online_at >= grenze,
+                 models.User.show_online.isnot(False), models.User.social_allowed.isnot(False),
+                 models.User.hidden.isnot(True), models.User.blocked.isnot(True)))
+    try:
+        q = q.filter(models.User.id != _bot_user(db).id)
+    except HTTPException:
+        pass
+    kandidaten = [r[0] for r in q.all()]
+    if kandidaten:
+        from sqlalchemy import and_
+        gesperrt = {r[0] for r in db.query(models.UserBlock.blocked_id).filter(
+                        models.UserBlock.blocker_id == user.id, models.UserBlock.blocked_id.in_(kandidaten))}
+        gesperrt |= {r[0] for r in db.query(models.UserBlock.blocker_id).filter(
+                        models.UserBlock.blocked_id == user.id, models.UserBlock.blocker_id.in_(kandidaten))}
+        kandidaten = [i for i in kandidaten if i not in gesperrt]
+    return {"online": sorted(kandidaten)}
+
+
 @router.get("/dm")
 def dm_open(user_id: int = Query(...), user: models.User = Depends(current_user),
             db: Session = Depends(get_db)) -> dict:

@@ -12,6 +12,7 @@ export interface LightboxPhoto {
   session_id: number;
   name?: string | null;
   avatar_url?: string | null;
+  user_id?: number | null;   // Online-Punkt am Profilbild
   caption?: string | null;
   started_at?: string | null;
   like_count?: number;
@@ -107,7 +108,7 @@ export function Lightbox({ photos, index, onClose, onChange, readOnly = false }:
       {/* Fußzeile: Wer/Caption + Votes + Session-Link */}
       <div className="shrink-0 p-3" onClick={(e) => e.stopPropagation()}>
         <div className="mx-auto flex max-w-2xl flex-wrap items-center gap-3 rounded-xl bg-slate-900/80 px-3 py-2">
-          <Avatar name={p.name} url={p.avatar_url} size={28} />
+          <Avatar name={p.name} url={p.avatar_url} userId={p.user_id} size={28} />
           <div className="min-w-0 flex-1">
             {p.name && <div className="truncate text-sm text-slate-100">{p.name}</div>}
             {p.caption && <div className="truncate text-xs italic text-slate-300">{p.caption}</div>}
