@@ -316,7 +316,7 @@ struct HomeView: View {
     @ViewBuilder private func kachelGitter(_ st: OverallStats) -> some View {
         let r = st.records
         LazyVGrid(columns: cols3, spacing: 10) {
-            recTile(r?.distance, Loc.t("rec.farthestRun", lang)) { "\(Int($0)) m" }
+            recTile(r?.distance, Loc.t("rec.farthestRun", lang)) { meterOderKm($0) }
             recTile(r?.duration, Loc.t("rec.longestRun", lang)) { fmtDur($0) }
             recTile(r?.speed, Loc.t("rec.topSpeed", lang)) { String(format: "%.1f km/h", $0 * 3.6) }
             recTile(r?.glide, Loc.t("rec.longestGlide", lang)) { String(format: "%.1f s", $0) }
@@ -459,7 +459,7 @@ struct HomeView: View {
     private func dateText(_ s: SessionSummary) -> String {
         TimeFmt.dateTime(s.started_at, s.tz) ?? s.started_at
     }
-    private func fmtDist(_ m: Double) -> String { m < 1000 ? "\(Int(m)) m" : String(format: "%.2f km", m / 1000) }
+    private func fmtDist(_ m: Double) -> String { meterOderKm(m) }
     private func fmtDur(_ s: Double) -> String { String(format: "%d:%02d", Int(s) / 60, Int(s) % 60) }
     // Foiling-Zeit aus Minuten, Format wie Web-fmtDur: "X h Y min" bzw. "Y min".
     private func fmtMin(_ min: Double) -> String {
@@ -778,3 +778,6 @@ private func dayLabel(_ i: Int, _ date: String?, _ lang: String) -> String {
     let wf = DateFormatter(); wf.dateFormat = "EE"
     return wf.string(from: d)
 }
+
+/// Strecke ab 1000 m in km (Jan, 01.10.2026: „23647 m" beim weitesten Lauf).
+func meterOderKm(_ m: Double) -> String { m < 1000 ? "\(Int(m.rounded())) m" : String(format: "%.2f km", m / 1000) }

@@ -110,7 +110,9 @@ const hhmm = (v: number) => `${String(Math.floor(v / 3600)).padStart(2, "0")}:${
 // Auch die Foiler-Profilseite nutzt das: Label UND Formatierung je Kennzahl gehoeren an
 // EINE Stelle, sonst steht derselbe Rekord an zwei Orten mit zwei Zahlen.
 export const REC_ITEMS: { key: keyof RecordSet; labelKey: string; fmt: (v: number) => string }[] = [
-  { key: "distance", labelKey: "rec.farthestRun", fmt: (v) => `${Math.round(v)} m` },
+  // Ab 1000 m in km (Jan, 01.10.2026: „23647 m" beim weitesten Lauf) — ein Pumpfoil-Lauf bleibt
+  // fast immer darunter, darum fiel es erst bei einer 23-km-Fahrt auf.
+  { key: "distance", labelKey: "rec.farthestRun", fmt: (v) => (v < 1000 ? `${Math.round(v)} m` : `${(v / 1000).toFixed(2)} km`) },
   { key: "duration", labelKey: "rec.longestRun", fmt: (v) => `${Math.floor(v / 60)}:${String(Math.round(v % 60)).padStart(2, "0")}` },
   { key: "speed", labelKey: "rec.topSpeed", fmt: (v) => `${(v * 3.6).toFixed(1)} km/h` },
   { key: "glide", labelKey: "rec.longestGlide", fmt: (v) => `${v.toFixed(1)} s` },

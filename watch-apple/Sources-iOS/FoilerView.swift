@@ -650,7 +650,7 @@ func foilerRekordKey(_ metric: String) -> String {
 /// Sekunden seit Mitternacht; die Nachteule kann ueber 24 h liegen -> mod 24 h.
 func foilerRekordWert(_ metric: String, _ v: Double) -> String {
     switch metric {
-    case "distance": return "\(Int(v.rounded())) m"
+    case "distance": return meterOderKm(v)
     case "duration": return foilerMinSek(v)
     case "speed": return String(format: "%.1f km/h", v * 3.6)
     case "glide": return String(format: "%.1f s", v)
