@@ -799,12 +799,14 @@ NAECHSTES: list[dict] = [
          "A green dot on profile pictures shows who is online right now; you can turn yours off in your profile.",
          "In direct chats, two ticks show that your message has been read.",
          "Tapping a profile picture opens that rider's profile, with a button to send them a message.",
+         "Search finds names, spots and gear regardless of accents and hyphens, so fenix finds fēnix and fone finds F-One.",
      ]},
     {"name": "iPhone + Apple Watch", "version": "1.1.42",
      "items": [
          "A green dot on profile pictures shows who is online right now; you can turn yours off in your profile.",
          "In direct chats, two ticks show that your message has been read.",
          "Tapping a profile picture opens that rider's profile, with a button to send them a message.",
+         "Search finds names, spots and gear regardless of accents and hyphens, so fenix finds fēnix and fone finds F-One.",
      ]},
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.
