@@ -710,6 +710,17 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # EINGEREICHT 01.10.2026 (Jans Meldung, Zepp-Konsole appId 1118995 „Under Review (Can be Withdrawn)").
+    # UNGETESTET: die Testsession #12510 kam noch vom 1.0.12-Build (APP_VERSION war beim Bump vergessen,
+    # 43bc9f02); bis zur Einreichung meldete keine Uhr 1.0.13. Halten fuer Stopp/Pause nur per Node-Test.
+    {"name": "Amazfit", "version": "1.0.13",
+     "eingereicht": "2026-10-01",
+     "items": [
+         "Two new data fields add up the distance and the time of all your runs in a session.",
+         "While a recording is paused, the watch shows your pause pages and says so on every "
+         "page.",
+         "Stop, pause and resume now need a two-second hold, so a wet sleeve can't end or pause your session by accident.",
+     ]},
     # EINGEREICHT 01.10.2026 13:18 (Jans Meldung, ASC „Warten auf Prüfung", 1.1.41 (46), Kennung
     # f1acdcef-93f5-4369-b729-67fcadc062d2). Auf der VM nur swiftc -parse; Jans Xcode-Build + Simulator
     # (Uhr startete erst nach Schliessen des Android-Emulators). Ohne eigenen Punkt: Claude-1:1 mit
@@ -799,13 +810,6 @@ NAECHSTES: list[dict] = [
     # 30.09.2026: Texte zur neuen Erkennung (v3) — aussortierte Laeufe mit eigenem Grund, Profil-Hinweis
     # zur Empfindlichkeit; Server und Web sind schon live, die Apps ziehen den Wortlaut nach.
     # 30.09.2026: Pause auf Apple Watch und Wear OS mit 2 s halten wie Stopp (Nutzermeldung).
-    {"name": "Amazfit", "version": "1.0.13",
-     "items": [
-         "Two new data fields add up the distance and the time of all your runs in a session.",
-         "While a recording is paused, the watch shows your pause pages and says so on every "
-         "page.",
-         "Stop, pause and resume now need a two-second hold, so a wet sleeve can't end or pause your session by accident.",
-     ]},
 ]
 
 
