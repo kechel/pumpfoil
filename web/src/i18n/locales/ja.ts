@@ -757,6 +757,7 @@ const ja: Record<string, string> = {
   "chat.placeholder": "メッセージを入力 …",
   "chat.photoAdd": "写真を追加",
   "chat.replyDirect": "返信は {name} に直接お願いします",
+  "foiler.chat": "メッセージ",
   "chat.sent": "送信済み",
   "chat.read": "既読",
   "presence.online": "オンライン",

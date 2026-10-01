@@ -781,6 +781,7 @@ const nl: Record<string, string> = {
   "chat.placeholder": "Bericht schrijven …",
   "chat.photoAdd": "Foto's toevoegen",
   "chat.replyDirect": "Antwoord graag rechtstreeks aan {name}",
+  "foiler.chat": "Bericht",
   "chat.sent": "Verzonden",
   "chat.read": "Gelezen",
   "presence.online": "Online",

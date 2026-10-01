@@ -601,6 +601,7 @@ const gsw: Record<string, string> = {
   "chat.placeholder": "Nachricht schribe …",
   "chat.photoAdd": "Bilder aahänke",
   "chat.replyDirect": "Antworte bitte diräkt a {name}",
+  "foiler.chat": "Nachricht",
   "chat.sent": "Gschickt",
   "chat.read": "Gläse",
   "presence.online": "Online",

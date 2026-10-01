@@ -15,9 +15,10 @@ import { api, OverallStats } from "../lib/api";
 import { Card, Avatar } from "../components/ui";
 import { ScrollToTop } from "../components/ScrollToTop";
 import { SessionCard } from "../components/SessionCard";
+import { openDmOverlay } from "../components/DmWidget";
 import { ListenAnsicht } from "../components/ListenAnsicht";
 import { useKompakteListe } from "../lib/kompakteListe";
-import { PlayIcon, LocationIcon, WatchIcon, FoilIcon, CommunityIcon } from "../components/Icons";
+import { PlayIcon, LocationIcon, WatchIcon, FoilIcon, CommunityIcon, ChatBubbleIcon } from "../components/Icons";
 import { Lightbox, LightboxPhoto } from "../components/Lightbox";
 import { VideoModal, ytId } from "../components/VideoModal";
 import { SessionStats } from "./Sessions";
@@ -154,6 +155,16 @@ export default function Foiler() {
             </p>
           )}
         </div>
+        {/* Nachricht schreiben, oben rechts — wie der Spot-Chat-Knopf in der Spot-Ansicht. Nicht auf
+            der eigenen Seite. */}
+        {!d.ich && (
+          <button
+            onClick={() => openDmOverlay(d.id)}
+            className="ml-auto inline-flex shrink-0 items-center gap-1 self-start rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:bg-slate-800"
+          >
+            <ChatBubbleIcon className="h-4 w-4 text-brand-400" /> {t("foiler.chat")}
+          </button>
+        )}
       </div>
 
       {/* Angaben als zweispaltiges Raster: die Werte stehen dadurch UNTEREINANDER auf einer

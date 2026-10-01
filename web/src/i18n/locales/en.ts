@@ -825,6 +825,7 @@ const en: Record<string, string> = {
   "chat.placeholder": "Write a message …",
   "chat.photoAdd": "Add photos",
   "chat.replyDirect": "Please reply directly to {name}",
+  "foiler.chat": "Message",
   "chat.sent": "Sent",
   "chat.read": "Read",
   "presence.online": "Online",

@@ -661,6 +661,7 @@ const es: Record<string, string> = {
   "chat.placeholder": "Escribe un mensaje …",
   "chat.photoAdd": "Añadir fotos",
   "chat.replyDirect": "Responde directamente a {name}",
+  "foiler.chat": "Mensaje",
   "chat.sent": "Enviado",
   "chat.read": "Leído",
   "presence.online": "En línea",

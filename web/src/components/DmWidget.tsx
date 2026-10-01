@@ -21,6 +21,13 @@ export function openChatOverlay(scope: string, label: string) {
   window.dispatchEvent(new CustomEvent("pumpfoil:open-chat", { detail: { scope, label } }));
 }
 
+// 1:1-Chat mit einer Person von aussen oeffnen (Foiler-Seite, Jan 01.10.2026: „oben rechts noch einen
+// Button 'open chat' … so aehnlich wie in spot ansichten"). Ueber die User-ID statt ueber den Scope:
+// so holt das Overlay Name, Profilbild und Blockier-Status wie bei der Personensuche.
+export function openDmOverlay(userId: number) {
+  window.dispatchEvent(new CustomEvent("pumpfoil:open-dm", { detail: { userId } }));
+}
+
 export function DmWidget() {
   const t = useT();
   const [open, setOpen] = useState(false);
@@ -115,7 +122,15 @@ export function DmWidget() {
       setActive({ scope: d.scope, name: d.label ?? "", otherId: 0, avatar: null, blocked: false });
     };
     window.addEventListener("pumpfoil:open-chat", h);
-    return () => window.removeEventListener("pumpfoil:open-chat", h);
+    const dm = (e: Event) => {
+      const id = (e as CustomEvent<{ userId: number }>).detail?.userId;
+      if (!id) return;
+      setOpen(true);
+      api.chatDmOpen(id).then((r) => setActive({ scope: r.scope, name: r.other.name, otherId: r.other.id,
+                                                avatar: r.other.avatar_url, blocked: r.blocked })).catch(() => {});
+    };
+    window.addEventListener("pumpfoil:open-dm", dm);
+    return () => { window.removeEventListener("pumpfoil:open-chat", h); window.removeEventListener("pumpfoil:open-dm", dm); };
   }, []);
 
   // Globale Suche (unabhängig vom Tab): findet Personen (→ DM) UND Spots. Personensuche

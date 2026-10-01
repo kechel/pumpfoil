@@ -1434,7 +1434,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 - **🔲 01.10. — Online-Punkt + Lesebestaetigung in die nativen Apps.** Web + Server live (Online-Punkt am Profilbild, `GET /api/chat/online`, Profil-Schalter `show_online` per PATCH /api/auth/me, Standard an). Android/iOS: Punkt an den Profilbildern (IDs sammeln, minuetlich EIN Abruf, nur im Vordergrund) und der Schalter im Profil — wichtig, weil App-only-Nutzer den Punkt sonst nicht abschalten koennen. Ohne Update zaehlen App-Nutzer trotzdem als online (jeder Request markiert), sehen aber keine Punkte.
 
-- **💡 30.09. — Feedback #157 (gizmomogwai u683): Wetter JE SESSION, rueckwirkend.** „would it be possible to
+- **⏸ 30.09. — Feedback #157 (gizmomogwai u683): Wetter JE SESSION, rueckwirkend. ZURUECKGESTELLT 01.10. (Jan: „lassen wir erstmal, klingt mir sehr aufwaendig“).** Machbar ueber Open-Meteo (historical-forecast + ERA5-Archiv, dieselbe Quelle wie das Spot-Wetter); Plan stand im Chat vom 01.10.: „would it be possible to
   collect (historical) weather information for the location in the sessions? … mainly wind, temperature
   and general sunny/cloudy". Heute gibt es nur das AKTUELLE Spot-Wetter (`SpotWeather.tsx`). Idee: beim
   Abschluss der Analyse Wind/Boeen/Richtung, Temperatur und Bewoelkung fuer Ort + Zeitfenster der Session
