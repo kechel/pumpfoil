@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, computed_field
 
 
 # --- Auth ---
@@ -51,6 +51,15 @@ class ProfileOut(BaseModel):
     avatar_url: str | None = None
     is_admin: bool = False
     language: str = "en"
+
+    @computed_field   # type: ignore[prop-decorator]
+    @property
+    def chat_photos(self) -> bool:
+        """Darf dieses Konto Bilder an Chat-Nachrichten haengen? Admins immer, sonst nur mit dem
+        globalen Schalter `CHAT_PHOTOS_ALL` (app/schalter.py). Die Clients fragen DIESES Feld ab,
+        nicht `is_admin` — so legt Jan den Schalter um, ohne dass eine App neu raus muss."""
+        from .schalter import chat_fotos_fuer_alle
+        return bool(self.is_admin) or chat_fotos_fuer_alle()
     beta: bool = False   # Beta-Features (z. B. Polar-BLE-Recorder) nur für Allowlist-User
     foil_sensitivity: str = "normal"   # persönliche Erkennungs-Empfindlichkeit (normal|light|attempts)
     pump_unit: str = "hz"              # Anzeige-Einheit der Pump-Kadenz: hz|ppm (nur Darstellung)

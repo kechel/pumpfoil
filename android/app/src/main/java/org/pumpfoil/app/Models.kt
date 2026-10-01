@@ -48,6 +48,9 @@ data class Profile(
     @SerialName("display_name") val displayName: String? = null,
     @SerialName("avatar_url") val avatarUrl: String? = null,
     @SerialName("is_admin") val isAdmin: Boolean = false,
+    // Darf Bilder im Chat anhaengen (Server-Schalter CHAT_PHOTOS_ALL, Admins immer). null = alter
+    // Server -> wie bisher nur Admins.
+    @SerialName("chat_photos") val chatPhotos: Boolean? = null,
     val language: String? = null,
     @SerialName("foil_sensitivity") val foilSensitivity: String? = null,
     // Anzeige-Einheit der Pump-Kadenz: hz|ppm (nur Darstellung, siehe PumpUnit.kt).

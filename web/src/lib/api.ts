@@ -632,6 +632,7 @@ export interface Profile {
   display_name: string | null;
   avatar_url: string | null;
   is_admin: boolean;
+  chat_photos?: boolean;   // darf Bilder im Chat anhaengen (Server-Schalter, s. schalter.py)
   language: string;
   beta?: boolean;   // Beta-Features (z. B. Polar-BLE-Recorder) nur für Allowlist-User
   foil_sensitivity?: string;   // persönliche Erkennungs-Empfindlichkeit (normal|light|attempts)
