@@ -710,6 +710,24 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # EINGEREICHT 01.10.2026 (Jans Meldung, Play Console: „Produktion 51 (1.1.37) · Produktion
+    # (Wear OS) 1047 (1.2.37)", Vorabpruefung laeuft, verwaltete Veroeffentlichung). Getestet: Wear-
+    # Emulator nur 36 s (#12507: 8/8 Bloecke, exact_chunks 25,08 Hz, GPS streng steigend 1,0 s) —
+    # KEIN Langlauf; Phone nur kompiliert. Dazu ohne eigenen Punkt: Claude-1:1 mit Link zu Jan,
+    # Chat-Bilder-Schalter (chat_photos).
+    {"name": "Android phone + Wear OS", "version": "1.1.37 / 1.2.37",
+     "eingereicht": "2026-10-01",
+     "items": [
+         "Wear OS watches upload long sessions much faster.",
+         "The share picture can be saved straight to your gallery, next to sharing it.",
+         "On some Galaxy watches, runs no longer show up with a duration of zero.",
+         "Runs the new detection sets aside show why, and one tap brings them back.",
+         "Pause and resume now need a two-second hold, like stop, so a wet sleeve can't pause you mid-run.",
+         "Session lists can switch between cards and a compact one-line view.",
+         "Spot records follow the sport filter, with one box per sport when all sports are shown.",
+         "Photos in the chat show up in the app, several as a stack you can swipe through.",
+         "Runs without motion data show a dash instead of zero pumps.",
+     ]},
     # Android 1.1.36 / Wear 1.2.36 am 30.09. FREIGEGEBEN (s. `_APP_META`); der Wear-GPS-Punkt steht im
     # Changelog mit `versionen={wear}`, der Datenfelder-Punkt (id 487) hat android/wear dazubekommen.
     # Garmin 1.0.91 am 29.09. FREIGEGEBEN (s. `_APP_META`); Punkt + Ereignis im Changelog.
@@ -766,18 +784,6 @@ NAECHSTES: list[dict] = [
     # 30.09.2026: Texte zur neuen Erkennung (v3) — aussortierte Laeufe mit eigenem Grund, Profil-Hinweis
     # zur Empfindlichkeit; Server und Web sind schon live, die Apps ziehen den Wortlaut nach.
     # 30.09.2026: Pause auf Apple Watch und Wear OS mit 2 s halten wie Stopp (Nutzermeldung).
-    {"name": "Android phone + Wear OS", "version": "1.1.37 / 1.2.37",
-     "items": [
-         "Wear OS watches upload long sessions much faster.",
-         "The share picture can be saved straight to your gallery, next to sharing it.",
-         "On some Galaxy watches, runs no longer show up with a duration of zero.",
-         "Runs the new detection sets aside show why, and one tap brings them back.",
-         "Pause and resume now need a two-second hold, like stop, so a wet sleeve can't pause you mid-run.",
-         "Session lists can switch between cards and a compact one-line view.",
-         "Spot records follow the sport filter, with one box per sport when all sports are shown.",
-         "Photos in the chat show up in the app, several as a stack you can swipe through.",
-         "Runs without motion data show a dash instead of zero pumps.",
-     ]},
     {"name": "iPhone + Apple Watch", "version": "1.1.41",
      "items": [
          "The Apple Watch uploads long sessions much faster.",
