@@ -19,6 +19,7 @@ from sqlalchemy import case, func, literal, or_, select
 from sqlalchemy.orm import Session
 
 from .. import models, storage
+from ..suche import bedingung_oder_alles as _such_alles, wort_bedingung as _such
 from ..accounts import NEW_ACCOUNT_AGE_S, is_new_account
 from ..db import get_db
 from ..naming import geraete_label
@@ -131,13 +132,9 @@ def all_sessions(
         query = query.filter(models.Session.deleted.is_(True))
     else:
         query = query.filter(models.Session.deleted.isnot(True))
-    if q:
-        like = f"%{q.lower()}%"
-        query = query.filter(
-            func.lower(models.User.email).like(like)
-            | func.lower(func.coalesce(models.User.display_name, "")).like(like)
-            | func.lower(func.coalesce(models.Session.place_name, "")).like(like)
-        )
+    bed = _such(q, [models.User.email, models.User.display_name, models.Session.place_name])
+    if bed is not None:
+        query = query.filter(bed)
     rows = query.offset(max(offset, 0)).limit(min(max(limit, 1), 200)).all()
     return [_session_brief(db, s, u) for s, u in rows]
 
@@ -332,10 +329,9 @@ def _filtered_users(
     Kategorien: admin=is_admin, tester=hidden, neu=Konto < 24 h, normal=keines davon.
     Alle vier an = alle Nutzer; keiner an = leer."""
     query = db.query(models.User)
-    if q:
-        like = f"%{q.lower()}%"
-        query = query.filter(func.lower(models.User.email).like(like)
-                             | func.lower(func.coalesce(models.User.display_name, "")).like(like))
+    bed = _such(q, [models.User.email, models.User.display_name])
+    if bed is not None:
+        query = query.filter(bed)
     U = models.User
     cutoff = datetime.now(timezone.utc) - timedelta(seconds=NEW_ACCOUNT_AGE_S)
     c_admin = U.is_admin.is_(True)
@@ -385,10 +381,9 @@ def _users_query(db: Session, q: str | None, normal: bool, tester: bool,
     damit die Liste exakt der gezählten Statistik entspricht; sonst die Kategorie-Filter."""
     if stat:
         query = db.query(models.User)
-        if q:
-            like = f"%{q.lower()}%"
-            query = query.filter(func.lower(models.User.email).like(like)
-                                 | func.lower(func.coalesce(models.User.display_name, "")).like(like))
+        bed = _such(q, [models.User.email, models.User.display_name])
+        if bed is not None:
+            query = query.filter(bed)
         cond = _stat_condition(stat)
         if cond is not None:
             query = query.filter(cond)
@@ -1531,7 +1526,7 @@ def user_sport_list(
     term = (q or "").strip()
     if term:
         rows = (db.query(U)
-                .filter(func.lower(func.coalesce(U.display_name, "")).like(f"%{term.lower()}%"))
+                .filter(_such_alles(term, [U.display_name]))
                 .order_by(U.display_name.asc()).limit(min(max(limit, 1), 50)).all())
     else:
         open_q = (db.query(models.Session.user_id, func.count(models.Session.id).label("n"))

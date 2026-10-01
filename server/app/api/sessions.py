@@ -21,6 +21,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session, joinedload, object_session
 
 from .. import export_track, media, models, storage
+from ..suche import bedingung_oder_alles as _such_alles, wort_bedingung as _such
 from ..analysis import EXCLUDE_MARGIN_MS, dump_excluded_windows, excluded_windows, maybe_auto_trim, run_analysis
 from ..analysis import lage
 from ..db import get_db
@@ -2263,7 +2264,7 @@ def session_neighbors(
         if spot:
             base = base.filter(_spot_cond(spot, db))
         if name:
-            base = base.filter(func.lower(models.User.display_name).like(f"%{name.lower()}%"))
+            base = base.filter(_such_alles(name, [models.User.display_name]))
         if foil_id:
             base = base.filter(models.Session.foil_id == foil_id)
     else:
