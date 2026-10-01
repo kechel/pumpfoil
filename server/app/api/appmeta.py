@@ -769,6 +769,7 @@ NAECHSTES: list[dict] = [
     {"name": "Android phone + Wear OS", "version": "1.1.37 / 1.2.37",
      "items": [
          "Wear OS watches upload long sessions much faster.",
+         "On some Galaxy watches, runs no longer show up with a duration of zero.",
          "Runs the new detection sets aside show why, and one tap brings them back.",
          "Pause and resume now need a two-second hold, like stop, so a wet sleeve can't pause you mid-run.",
          "Session lists can switch between cards and a compact one-line view.",
