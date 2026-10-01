@@ -562,6 +562,8 @@ const deAT: Record<string, string> = {
   "chat.placeholder": "Schreib wos …",
   "chat.photoAdd": "Bilder anhängen",
   "chat.replyDirect": "Antworten bitte direkt an {name}",
+  "chat.sent": "Gesendet",
+  "chat.read": "Gelesen",
   "presence.online": "Online",
   "online.title": "Online-Punkt",
   "online.hint": "Solange du die App oder die Seite offen hast, sehen andere einen kleinen grünen Punkt an deinem Profilbild.",

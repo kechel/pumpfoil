@@ -757,6 +757,8 @@ const id: Record<string, string> = {
   "chat.placeholder": "Tulis pesan …",
   "chat.photoAdd": "Tambah foto",
   "chat.replyDirect": "Silakan balas langsung ke {name}",
+  "chat.sent": "Terkirim",
+  "chat.read": "Dibaca",
   "presence.online": "Online",
   "online.title": "Titik online",
   "online.hint": "Selama aplikasi atau situs terbuka, orang lain melihat titik hijau kecil di foto profilmu.",

@@ -1115,7 +1115,7 @@ export const api = {
   chatMarkRead: (scope: string, upTo: number) => req<{ ok: boolean; last_read_id: number }>(`/api/chat/read`, { method: "POST", body: JSON.stringify({ scope, up_to: upTo }) }),
   chatLeave: (scope: string) => req<{ ok: boolean }>(`/api/chat/leave?scope=${encodeURIComponent(scope)}`, { method: "POST" }),
   chatSubscribe: (scope: string, on: boolean) => req<{ ok: boolean; push: boolean }>(`/api/chat/subscribe`, { method: "POST", body: JSON.stringify({ scope, on }) }),
-  chatRoomState: (scope: string) => req<{ scope: string; push: boolean; left: boolean; last_read_id: number; weiter_an?: { id: number; name: string | null; avatar_url: string | null } | null }>(`/api/chat/state?scope=${encodeURIComponent(scope)}`),
+  chatRoomState: (scope: string) => req<{ scope: string; push: boolean; left: boolean; last_read_id: number; gelesen_bis?: number | null; weiter_an?: { id: number; name: string | null; avatar_url: string | null } | null }>(`/api/chat/state?scope=${encodeURIComponent(scope)}`),
   chatRooms: () => req<ChatRoom[]>(`/api/chat/rooms`),
   chatOnline: (ids: number[]) => req<{ online: number[] }>(`/api/chat/online?ids=${ids.join(",")}`),
   chatDmOpen: (userId: number) => req<{ scope: string; other: { id: number; name: string | null; avatar_url: string | null }; blocked: boolean }>(`/api/chat/dm?user_id=${userId}`),

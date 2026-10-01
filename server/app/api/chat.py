@@ -713,7 +713,17 @@ def room_state(
     _require_access(scope, user.id)
     st = db.query(models.ChatRoomState).filter_by(user_id=user.id, scope=scope).first()
     k = _weiter_an(db, scope, user)
+    # LESEBESTAETIGUNG, nur im 1:1 (Jan, 01.10.2026: „lesebestaetigungs-doppel-haken wie in WhatsApp,
+    # aber nur im 1:1"): bis zu welcher Nachricht das Gegenueber gelesen hat. Der Lesestand wird nur
+    # bei SICHTBAREM Chat gesetzt (Chat.tsx), damit ✓✓ nicht von einem Hintergrund-Tab kommt.
+    gelesen_bis = None
+    parts = _dm_parts(scope)
+    if parts is not None and user.id in parts:
+        other = parts[1] if user.id == parts[0] else parts[0]
+        ost = db.query(models.ChatRoomState).filter_by(user_id=other, scope=scope).first()
+        gelesen_bis = int(ost.last_read_id) if ost and ost.last_read_id else 0
     return {
+        "gelesen_bis": gelesen_bis,
         "scope": scope,
         "push": bool(st and st.push),
         "left": bool(st and st.left),

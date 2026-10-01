@@ -764,6 +764,8 @@ const fi: Record<string, string> = {
   "chat.placeholder": "Kirjoita viesti …",
   "chat.photoAdd": "Lisää kuvia",
   "chat.replyDirect": "Vastaa suoraan: {name}",
+  "chat.sent": "Lähetetty",
+  "chat.read": "Luettu",
   "presence.online": "Paikalla",
   "online.title": "Paikalla-piste",
   "online.hint": "Kun sovellus tai sivusto on auki, muut näkevät pienen vihreän pisteen profiilikuvassasi.",

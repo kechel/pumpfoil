@@ -244,6 +244,13 @@ export const HeartPulseIcon = ({ className = base }: P) => (
   </svg>
 );
 
+// Lesebestaetigung im 1:1: ein Haken = gesendet, zwei = gelesen (wie WhatsApp).
+export const DoubleCheckIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M2 12.5l4.5 4.5L16 7.5" />
+    <path d="M10.5 16.5l.5.5L20.5 7.5" />
+  </svg>
+);
 export const CameraIcon = ({ className = base }: P) => (
   <svg className={className} viewBox="0 0 24 24" {...stroke}>
     <path d="M3 7h3l2-2.5h8L18 7h3v13H3z" />
