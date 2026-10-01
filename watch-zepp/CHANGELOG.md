@@ -16,6 +16,11 @@ This changelog covers the Zepp OS watch app only.
   die Pause aus; nasse Aermel blaettern die Seiten weiter und pausierten so mitten im Lauf (Meldung
   von der Apple Watch, Wear und Apple bekommen dasselbe). Ereignis-Canvas ueber dem Knopf wie bei der
   Touch-Sperre; im Profil-Modus „ein Druck statt halten" bleibt der Tipp.
+- **Stopp auf dem Bildschirm ebenfalls 2 s halten** (Jan, 01.10.: „zepp bitte auch 2s hold"); bis dahin
+  stoppte ein Tipp. Die SELECT-Taste bleibt wie sie war (lang = Stopp).
+- **Fehler im ersten Wurf behoben, bevor er rausging:** `renderRecording` baute die Knoepfe der
+  Aktionsseite jede Sekunde neu — ein 2-s-Halten waere nie angekommen. Jetzt nur bei Zustandswechsel;
+  `tests/halten.test.mjs` haelt das fest (mit dem alten Verhalten: 2 Fehler).
 - Datenfelder 22/23 (Summe aller Laeufe: Strecke/Zeit) und die Pausen-Seiten — s. `NAECHSTES` in
   `server/app/api/appmeta.py`.
 
