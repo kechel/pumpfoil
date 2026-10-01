@@ -36,6 +36,7 @@ einer Uhr baut, geht diese Liste fuer ALLE VIER durch und traegt das Ergebnis in
 |---|---|---|---|---|
 | Pause + Verwerfen auf der Aktionsseite, Stop allein | Taste | ✅ 24.09. | ✅ 25.09. `ddea1a37` | ✅ 25.09. `0c5e6d6d` |
 | Pause/Fortsetzen mit 2 s halten (Tipp-Modus `stopMode=press` wie Stop) — 30.09., Nutzermeldung „pausiert beim Pumpen von selbst“ | Taste + Menue | ✅ 30.09. (1.0.13, Canvas-Halten wie Touch-Sperre) | ✅ 30.09. (1.2.37) | ✅ 30.09. (1.1.41) |
+| Stopp auf dem Bildschirm mit 2 s halten | Taste | ✅ 01.10. (1.0.13; vorher ein Tipp) | ✅ | ✅ |
 | In der Pause die Pausen-Seiten (`pausePages`/`pauseView`) | ✅ | ✅ 25.09. `1612070b` | ✅ 25.09. | ✅ 25.09. |
 | `browseAll` in der Pause | ✅ Pause+On+Off | ✅ Pause+On+Off | ✅ Pause+On+Off 26.09. | ✅ Pause+On+Off 26.09. |
 | Zwischen den Laeufen der Off-Foil-SATZ (`offFoilPages`), keine „Übersicht" | ✅ | ✅ | ✅ 26.09. | ✅ 26.09. |

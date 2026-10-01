@@ -927,7 +927,8 @@ Page(
       // Rueckkehr vom Stopp-Bildschirm nach einem versehentlichen Tastendruck, s. _toStopScreen.
       stopBackTimer: null, stopBackPage: 0,
       lockHoldTimer: null,   // laeuft, solange auf die Touch-Sperre gedrueckt wird
-      pauseHoldTimer: null,  // laeuft, solange auf den Pause-Knopf gedrueckt wird (2 s halten)
+      haltTimer: null,       // laeuft, solange ein 2-s-Halteknopf gedrueckt wird (Stopp, Pause)
+      haltKnopf: null, haltRuheText: "",
       verwerfenArmed: false, verwerfenTimer: null,   // Rueckfrage vor dem Verwerfen
       // PAUSE (24.09.2026). `pausedMs` haelt die Sample-Achse lueckenlos: alle Zeitstempel sind
       // AKTIVE Zeit, die Pausen sind herausgerechnet — genau das erwartet der Server, der
@@ -1735,8 +1736,57 @@ Page(
     },
 
     // ---- Button pro Screen/Seite ----
-    setButton(text, nc, pc, ink, fn) { const w = this.state.w; if (w.btn) hmUI.deleteWidget(w.btn); w.btn = hmUI.createWidget(hmUI.widget.BUTTON, { ...BUTTON, text, normal_color: nc, press_color: pc, color: ink, click_func: fn }); },
-    hideButton() { const w = this.state.w; if (w.btn) { hmUI.deleteWidget(w.btn); w.btn = null; } },
+    setButton(text, nc, pc, ink, fn) { this.hideButton(); const w = this.state.w; w.btn = hmUI.createWidget(hmUI.widget.BUTTON, { ...BUTTON, text, normal_color: nc, press_color: pc, color: ink, click_func: fn }); },
+    hideButton() {
+      const w = this.state.w;
+      // Nur einen Halt abbrechen, der zu DIESEM Knopf gehoert — `hideButton` laeuft auf der
+      // Aktionsseite bei jedem Takt, und dort haelt man gerade womoeglich die Pause.
+      if (w.btnHalt) { this._haltAbbrechen(); hmUI.deleteWidget(w.btnHalt); w.btnHalt = null; }
+      if (w.btn) { hmUI.deleteWidget(w.btn); w.btn = null; }
+    },
+    /** Der Standardknopf, aber erst nach 2 s HALTEN ausgeloest (Stopp, s. `_halteFlaeche`). */
+    setHaltButton(text, nc, pc, ink, fn) {
+      this.setButton(text + " · 2 s", nc, pc, ink, () => {});
+      const w = this.state.w;
+      w.btnHalt = this._halteFlaeche(w.btn, BUTTON.x, BUTTON.y, BUTTON.w, BUTTON.h, text + " · 2 s", fn);
+    },
+    /**
+     * 2 s HALTEN statt Tippen, fuer Stopp und Pause (Jan, 30.09.2026: „pause … mit 2s press/hold
+     * zum auslösen, genauso wie bei stopp und verwerfen", dann „zepp bitte auch 2s hold"). Anlass
+     * war eine Meldung von der Apple Watch: Aermel und Wasser blaettern die Seiten weiter, und ein
+     * Tipp pausierte mitten im Lauf. Auf Zepp loeste bis dahin auch das Stoppen per Tipp aus.
+     *
+     * Ein BUTTON kennt kein Halten. Die Ereignisse nimmt deshalb ein leerer CANVAS UEBER dem
+     * Knopf entgegen — dasselbe Muster wie das 2-s-Entsperren der Touch-Sperre, das auf echter
+     * Hardware laeuft. Auf dem Ereignis-Canvas darf NICHTS gezeichnet werden: das bricht die
+     * laufende Beruehrung ab, CLICK_UP feuert und der Timer kommt nie an (10.09.2026). Die
+     * Rueckmeldung „Halten …" traegt deshalb der Knopf darunter.
+     */
+    _halteFlaeche(btn, x, y, breite, hoehe, ruheText, fn) {
+      const s = this.state;
+      const flaeche = hmUI.createWidget(hmUI.widget.CANVAS, { x: x, y: y, w: breite, h: hoehe });
+      flaeche.addEventListener(hmUI.event.CLICK_DOWN, () => {
+        this._haltAbbrechen();
+        s.haltKnopf = btn; s.haltRuheText = ruheText;
+        try { btn.setProperty(hmUI.prop.TEXT, t("rec.stopHold") + " …"); } catch (e) {}
+        s.haltTimer = setTimeout(() => {
+          s.haltTimer = null; s.haltKnopf = null;
+          if (!s.recording) return;
+          this._vibratePattern("short1");
+          fn();
+        }, 2000);
+      });
+      flaeche.addEventListener(hmUI.event.CLICK_UP, () => this._haltAbbrechen());
+      return flaeche;
+    },
+    _haltAbbrechen() {
+      const s = this.state;
+      if (s.haltTimer) { clearTimeout(s.haltTimer); s.haltTimer = null; }
+      if (s.haltKnopf) {
+        try { s.haltKnopf.setProperty(hmUI.prop.TEXT, s.haltRuheText); } catch (e) {}
+        s.haltKnopf = null;
+      }
+    },
     /** Auf den Stopp-Bildschirm springen (Seite 0 des Aufnahme-Rings).
      *
      *  So verhalten sich die eingebauten Zepp-Aktivitaeten: ein Tastendruck waehrend der Aufnahme
@@ -2017,7 +2067,9 @@ Page(
           // IMMER Stopp, auch in der Pause. Fortsetzen liegt eine Seite weiter aussen, auf der
           // Aktionsseite — zwei Bildschirme mit demselben Knopf waeren nur verwirrend, und
           // dieser hier heisst nach dem, was er tut.
-          this.setButton(t("btn.stop"), RED, RED_P, WHITE, () => this.stop());
+          // 2 s halten (s. `_halteFlaeche`); im Profil-Modus „ein Druck statt halten" ein Tipp.
+          if (s.stopMode === "press") this.setButton(t("btn.stop"), RED, RED_P, WHITE, () => this.stop());
+          else this.setHaltButton(t("btn.stop"), RED, RED_P, WHITE, () => this.stop());
         }
         else this.hideButton();
       } else if (s.screen === "summary") {
@@ -2166,6 +2218,12 @@ Page(
      */
     _buildAktionBtns() {
       const s = this.state, w = s.w;
+      // NUR NEU BAUEN, WENN SICH ETWAS GEAENDERT HAT. `renderRecording` ruft das bei jedem
+      // GPS-Takt (1 s) — bis 30.09. wurden die Knoepfe damit jede Sekunde abgerissen und neu
+      // gesetzt. Fuer Tipp-Knoepfe war das unsichtbar, ein 2-s-Halten kaeme so nie ans Ziel.
+      const key = [s.paused, s.verwerfenArmed, s.stopMode, s.paused ? s.upStatus : ""].join("|");
+      if (w.aktionBtns && w.aktionKey === key) return;
+      w.aktionKey = key;
       this._clearAktionBtns();
       const round = DW >= 450;
       const breite = round ? DW - px(160) : DW - px(48);
@@ -2179,10 +2237,8 @@ Page(
         x: x, y: y, w: breite, h: hoehe, radius: Math.round(hoehe / 2),
         text: text, text_size: px(30), normal_color: nc, press_color: pc, color: ink,
         click_func: fn });
-      // PAUSE — 2 s halten (Jan, 30.09.2026: „pause … mit 2s press/hold zum auslösen", nach einer
-      // Meldung von der Apple Watch: Aermel und Wasser blaettern die Seiten weiter, ein einfacher
-      // Tipp pausierte mitten im Lauf). Wear und Apple Watch haben dafuer seit heute denselben
-      // Halte-Knopf wie beim Stoppen. Im Profil-Modus „ein Druck statt halten" bleibt der Tipp.
+      // PAUSE — 2 s halten wie Stopp (s. `_halteFlaeche`). Im Profil-Modus „ein Druck statt
+      // halten" bleibt der Tipp.
       const umschalten = () => { if (s.paused) this.resume(); else this.pause(); };
       const halten = s.stopMode !== "press";
       const pauseText = s.paused ? t("rec.resume") : t("rec.pause");
@@ -2193,30 +2249,8 @@ Page(
         mk(yUnten, s.verwerfenArmed ? t("rec.discard") + "?" : t("rec.discard"),
            0xb91c1c, 0xf87171, 0xffffff, () => this._verwerfenHinweis()),
       ];
-      if (halten) {
-        // Die Ereignisse nimmt ein leerer CANVAS UEBER dem Knopf entgegen, nach dem Muster der
-        // Touch-Sperre (`_showTouchLock`): ein BUTTON kennt kein 2-s-Halten, und auf dem
-        // Ereignis-Canvas darf nichts gezeichnet werden — das bricht die laufende Beruehrung ab,
-        // CLICK_UP feuert und der Timer kommt nie an (10.09.2026). Die Rueckmeldung „halten …"
-        // traegt deshalb der Knopf darunter, nicht der Canvas.
-        const flaeche = hmUI.createWidget(hmUI.widget.CANVAS, { x: x, y: yOben, w: breite, h: hoehe });
-        const abbrechen = () => {
-          if (s.pauseHoldTimer) { clearTimeout(s.pauseHoldTimer); s.pauseHoldTimer = null; }
-          try { pauseBtn.setProperty(hmUI.prop.TEXT, pauseText + " · 2 s"); } catch (e) {}
-        };
-        flaeche.addEventListener(hmUI.event.CLICK_DOWN, () => {
-          abbrechen();
-          try { pauseBtn.setProperty(hmUI.prop.TEXT, t("rec.stopHold") + " …"); } catch (e) {}
-          s.pauseHoldTimer = setTimeout(() => {
-            s.pauseHoldTimer = null;
-            if (!s.recording) return;
-            this._vibratePattern("short1");
-            umschalten();   // baut die Knoepfe neu (Fortsetzen/Pause)
-          }, 2000);
-        });
-        flaeche.addEventListener(hmUI.event.CLICK_UP, abbrechen);
-        w.aktionBtns.push(flaeche);
-      }
+      if (halten) w.aktionBtns.push(this._halteFlaeche(pauseBtn, x, yOben, breite, hoehe,
+                                                       pauseText + " · 2 s", umschalten));
       // Die Meldung des Teil-Uploads UEBER die Knoepfe (Jan, 24.09.2026: „uploading / server
       // error / etc. meldungen ueber die buttons bitte"). Das Standard-Statusfeld des Layouts
       // sitzt an fester Hoehe und landete hier genau ZWISCHEN den beiden Knoepfen, halb
@@ -2237,8 +2271,10 @@ Page(
     },
     _clearAktionBtns() {
       const w = this.state.w;
-      if (this.state.pauseHoldTimer) { clearTimeout(this.state.pauseHoldTimer); this.state.pauseHoldTimer = null; }
-      if (w.aktionBtns) { w.aktionBtns.forEach((b) => hmUI.deleteWidget(b)); w.aktionBtns = null; }
+      if (w.aktionBtns) {
+        this._haltAbbrechen();
+        w.aktionBtns.forEach((b) => hmUI.deleteWidget(b)); w.aktionBtns = null;
+      }
     },
 
     _clearFoilBtns() {
