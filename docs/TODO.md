@@ -1461,7 +1461,14 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Laeufe, Foil-Zeit, bester Lauf. Nebenbei geklaert (seine Frage im 1:1): der Import dedupliziert
   schon je Nutzer ueber Datei-Hash (entpackt) ODER gleiche Startzeit — bei ihm 42 Sessions, kein Duplikat.
 
-- **🔍 30.09. — Laeufe mit 0 s Dauer: Wear-GPS-Zeitstempel = ZUSTELL- statt MESSZEIT (Ursache belegt).**
+- **🟡 30.09. / 01.10. — Laeufe mit 0 s Dauer: Wear-GPS-Zeitstempel = ZUSTELL- statt MESSZEIT — FIX GEBAUT
+  (2b891fd0, Wear 1.2.37; Jan 01.10.: „klingt nach einem BUG, bitte beheben“).** `GpsZeit.stempel` in
+  Recorder.kt: Messzeit = jetzt − Fix-Alter, nur wenn ≥ 0 und nach dem letzten Punkt, sonst Zustellzeit
+  streng steigend (eingefrorene Ortung + Pause bleiben wie vorher). Puls-Zuordnung per Betrag. 6 JUnit-Tests.
+  **Offen vor der Einreichung:** langer Emulator-/Uhrlauf gegen 1.2.36 vergleichen (Punkte je Minute,
+  Laufdauern, `time_base`). Erwartung: normale Fixes ~0,3-2 s frueher gestempelt als bisher -> GPS und
+  Accel (Ankunftszeit) liegen enger beisammen, Pumps je Lauf koennen sich an den Raendern um ±1 aendern.
+  Urspruenglicher Befund:
   9 Sessions, 2 Nutzer (u239, u258), beide Samsung Galaxy Watch SM-L715F, Wear 1.2.18-1.2.28
   (#1794, #2323, #2324, #7097, #8241, #8529, #2042, #2282, #2456): die Uhr haelt Fixes zurueck und
   liefert Minuten davon gebuendelt (#8529: 709 Punkte in 6 s), `Recorder.addGps` stempelt jeden mit
