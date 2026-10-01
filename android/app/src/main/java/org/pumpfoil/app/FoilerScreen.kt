@@ -346,7 +346,7 @@ private fun Chip(text: String, gefuellt: Boolean, onClick: (() -> Unit)?) {
 // Label und Format einer Rekord-Kennzahl — dieselbe Liste wie REC_ITEMS (web Home.tsx) bzw. die
 // Community-Kacheln (CommunityScreen.recItems).
 private fun titelFormat(metric: String): Pair<String, (Double) -> String> = when (metric) {
-    "distance" -> "rec.farthestRun" to { v -> "${v.roundToInt()} m" }
+    "distance" -> "rec.farthestRun" to { v -> fmtDist(v) }
     "duration" -> "rec.longestRun" to { v -> minSek(v) }
     "speed" -> "rec.topSpeed" to { v -> "%.1f km/h".format(v * 3.6) }
     "glide" -> "rec.longestGlide" to { v -> "%.1f s".format(v) }

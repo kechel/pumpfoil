@@ -40,7 +40,7 @@ func hhmm(_ v: Double) -> String {
     return String(format: "%02d:%02d", s / 3600, (s % 3600) / 60)
 }
 return [
-    row("rec.farthestRun", r?.distance) { "\(Int($0.rounded())) m" },
+    row("rec.farthestRun", r?.distance) { meterOderKm($0) },
     row("rec.longestRun", r?.duration) { dur($0) },
     row("rec.topSpeed", r?.speed) { String(format: "%.1f km/h", $0 * 3.6) },
     row("rec.longestGlide", r?.glide) { String(format: "%.1f s", $0) },

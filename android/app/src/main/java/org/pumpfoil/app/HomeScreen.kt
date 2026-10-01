@@ -756,7 +756,7 @@ private fun TileGrid(tiles: List<RecTile>, onOpen: (Int) -> Unit, columns: Int =
     }
 }
 
-private fun fmtDist(m: Double): String = if (m < 1000) "%.0f m".format(m) else "%.2f km".format(m / 1000)
+internal fun fmtDist(m: Double): String = if (m < 1000) "%.0f m".format(m) else "%.2f km".format(m / 1000)
 private fun fmtDur(s: Double): String = "%d:%02d".format((s / 60).toInt(), (s % 60).toInt())
 // Foiling-Zeit aus Minuten, Format wie Web-fmtDur: "X h Y min" bzw. "Y min".
 private fun fmtMin(min: Double): String {

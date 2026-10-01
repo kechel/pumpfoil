@@ -438,7 +438,7 @@ private fun hhmmOfDay(v: Double): String {
 @Composable
 fun RecordGrid(r: PeriodRecords?, showSpot: Boolean, onOpen: (Int) -> Unit, modifier: Modifier = Modifier) {
     val items = buildList {
-        r?.distance?.let { add(RecItem(I18n.t("rec.farthestRun"), "%.0f m".format(it.value), it)) }
+        r?.distance?.let { add(RecItem(I18n.t("rec.farthestRun"), fmtDist(it.value), it)) }
         r?.duration?.let { add(RecItem(I18n.t("rec.longestRun"), fmtDurC(it.value), it)) }
         r?.speed?.let { add(RecItem(I18n.t("rec.topSpeed"), "%.1f km/h".format(it.value * 3.6), it)) }
         r?.glide?.let { add(RecItem(I18n.t("rec.longestGlide"), "%.1f s".format(it.value), it)) }
