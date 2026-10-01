@@ -158,6 +158,7 @@ internal fun SessionZeile(
     sessionId: Int,
     avatarName: String?,
     avatarUrl: String?,
+    avatarUserId: Int? = null,
     datum: String,
     uhrzeit: String?,
     name: String?,
@@ -178,7 +179,7 @@ internal fun SessionZeile(
         border = if (inCompare) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
     ) {
         Column(Modifier.padding(horizontal = 10.dp, vertical = 6.dp)) {
-            ZeilenKopf(avatarName, avatarUrl, datum, uhrzeit, name, spot)
+            ZeilenKopf(avatarName, avatarUrl, datum, uhrzeit, name, spot, avatarUserId)
             Row(Modifier.fillMaxWidth().padding(top = 2.dp), verticalAlignment = Alignment.CenterVertically) {
                 Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
                     sportLabel?.let { SportMarke(it); Spacer(Modifier.width(6.dp)) }
@@ -216,7 +217,7 @@ internal fun GruppenZeile(g: CommunityGroup, modifier: Modifier, onOpen: (Int) -
         Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) {
             Column {
                 Column(Modifier.fillMaxWidth().clickable { open = !open }.padding(horizontal = 10.dp, vertical = 6.dp)) {
-                    ZeilenKopf(g.name, g.avatarUrl, zeilenDatumTag(g.date), null, g.name, g.spot)
+                    ZeilenKopf(g.name, g.avatarUrl, zeilenDatumTag(g.date), null, g.name, g.spot, g.userId)
                     Row(Modifier.fillMaxWidth().padding(top = 2.dp), verticalAlignment = Alignment.CenterVertically) {
                         Kennzahlen(kennzahlen, Modifier.weight(1f))
                         Icon(if (open) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
@@ -238,11 +239,11 @@ internal fun GruppenZeile(g: CommunityGroup, modifier: Modifier, onOpen: (Int) -
 // Obere Zeile: Profilbild · Datum · Uhrzeit · Name · Spot. Name vor Spot; der Name bekommt bis zu
 // 40 % der Breite, gekuerzt wird zuerst der Spot (wie im Web).
 @Composable
-private fun ZeilenKopf(avatarName: String?, avatarUrl: String?, datum: String, uhrzeit: String?, name: String?, spot: String?) {
+private fun ZeilenKopf(avatarName: String?, avatarUrl: String?, datum: String, uhrzeit: String?, name: String?, spot: String?, userId: Int? = null) {
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         val nameMax = maxWidth * 0.4f
         Row(verticalAlignment = Alignment.CenterVertically) {
-            AvatarCircle(name = avatarName, avatarUrl = avatarUrl, size = 20.dp)
+            AvatarCircle(name = avatarName, avatarUrl = avatarUrl, size = 20.dp, userId = userId)
             Spacer(Modifier.width(6.dp))
             Text(datum, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold,
                 maxLines = 1, softWrap = false)

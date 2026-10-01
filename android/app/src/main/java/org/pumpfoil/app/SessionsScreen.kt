@@ -525,8 +525,19 @@ fun avatarColorFor(seed: String): Color {
 }
 
 // Profilbild ODER farbiger Kreis mit Initiale (wie PWA/iOS). avatarUrl = Roh-Pfad.
+// Mit `userId` kommt der gruene Online-Punkt dazu, und ein Tipp fuehrt auf die Profilseite
+// (ProfilbildRahmen in Online.kt). Ohne `userId` (z. B. das eigene Bild) beides nicht.
 @Composable
-fun AvatarCircle(name: String?, avatarUrl: String?, size: Dp = 40.dp) {
+fun AvatarCircle(name: String?, avatarUrl: String?, size: Dp = 40.dp, userId: Int? = null, link: Boolean = true) {
+    if (userId != null && userId > 0) {
+        ProfilbildRahmen(userId, size, link) { AvatarCircleBild(name, avatarUrl, size) }
+    } else {
+        AvatarCircleBild(name, avatarUrl, size)
+    }
+}
+
+@Composable
+private fun AvatarCircleBild(name: String?, avatarUrl: String?, size: Dp) {
     val url = Api.mediaUrl(avatarUrl)
     if (url != null) {
         AsyncImage(model = url, contentDescription = null, contentScale = ContentScale.Crop,
@@ -542,14 +553,14 @@ fun AvatarCircle(name: String?, avatarUrl: String?, size: Dp = 40.dp) {
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, onClick: () -> Unit) {
+fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, avatarUserId: Int? = null, onClick: () -> Unit) {
     val a = s.analysis
     val m = a?.metrics
     // Zeilen-Ansicht (ListenAnsicht.kt): eigene Session — kein Name (es ist die eigene, wie im
     // Web), Status/Uebertragung als Abzeichen vor dem Herz.
     if (ListenAnsicht.kompakt) {
         SessionZeile(
-            sessionId = s.id, avatarName = s.ownerName, avatarUrl = s.ownerAvatarUrl,
+            sessionId = s.id, avatarName = s.ownerName, avatarUrl = s.ownerAvatarUrl, avatarUserId = avatarUserId,
             datum = zeilenDatum(s.startedAt, s.tz), uhrzeit = hhmm(s.startedAt, s.tz),
             name = null, spot = s.placeName, sportLabel = null,
             kennzahlen = if (a != null) sessionStatsTeile(a, m) else emptyList(),
@@ -574,7 +585,9 @@ fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, onClick: () -> 
         Column(Modifier.padding(12.dp)) {
             Row(verticalAlignment = Alignment.Top) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {   // Like unter dem Avatar (wie PWA)
-                    AvatarCircle(name = s.ownerName, avatarUrl = s.ownerAvatarUrl, size = 40.dp)
+                    // avatarUserId nur auf fremden Listen (Profilseite); die eigene Liste ohne —
+                    // wie im Web hat das eigene Bild weder Punkt noch Link.
+                    AvatarCircle(name = s.ownerName, avatarUrl = s.ownerAvatarUrl, size = 40.dp, userId = avatarUserId)
                     LikeToggle(s.id, s.liked, s.likeCount)
                 }
                 Spacer(Modifier.width(10.dp))
@@ -836,7 +849,7 @@ private fun GroupCard(g: CommunityGroup, modifier: Modifier, onOpen: (Int) -> Un
     Card(modifier.fillMaxWidth()) {
         Column {
             Row(Modifier.fillMaxWidth().clickable { open = !open }.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                AvatarCircle(name = g.name, avatarUrl = g.avatarUrl, size = 40.dp)
+                AvatarCircle(name = g.name, avatarUrl = g.avatarUrl, size = 40.dp, userId = g.userId)
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
                     Text(dateLabel + (g.name?.let { " · $it" } ?: ""), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
@@ -937,7 +950,7 @@ internal fun TrackPreviewCanvas(data: String, modifier: Modifier) {
 fun CommunityItemRow(c: CommunityItem, modifier: Modifier = Modifier, onClick: () -> Unit) {
     if (ListenAnsicht.kompakt) {
         SessionZeile(
-            sessionId = c.id, avatarName = c.name, avatarUrl = c.avatarUrl,
+            sessionId = c.id, avatarName = c.name, avatarUrl = c.avatarUrl, avatarUserId = c.userId,
             datum = zeilenDatum(c.startedAt, c.tz), uhrzeit = hhmm(c.startedAt, c.tz),
             name = c.name, spot = c.spot,
             sportLabel = c.sportClass?.takeIf { it.isNotBlank() && it != "pumpfoil" }?.let { I18n.t("cls.sport.$it") },
@@ -955,7 +968,7 @@ fun CommunityItemRow(c: CommunityItem, modifier: Modifier = Modifier, onClick: (
         Column(Modifier.padding(12.dp)) {
             Row(verticalAlignment = Alignment.Top) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {   // Like unter dem Avatar (wie PWA)
-                    AvatarCircle(name = c.name, avatarUrl = c.avatarUrl, size = 40.dp)
+                    AvatarCircle(name = c.name, avatarUrl = c.avatarUrl, size = 40.dp, userId = c.userId)
                     LikeToggle(c.id, c.liked, c.likeCount)
                 }
                 Spacer(Modifier.width(10.dp))

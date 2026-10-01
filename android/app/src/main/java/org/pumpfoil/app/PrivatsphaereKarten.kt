@@ -20,8 +20,8 @@ import kotlinx.serialization.json.*
  *
  *  - OEFFENTLICHE FOILER-SEITE: Hauptschalter + Einzelschalter. Der SERVER entscheidet, was auf
  *    der Seite landet (community.foiler_profil liest genau diese Werte); die Karte schreibt sie
- *    nur und filtert nicht selbst, sonst gaebe es zwei Wahrheiten. Die Seite selbst gibt es nur
- *    im Web, der Link oeffnet sie im Browser.
+ *    nur und filtert nicht selbst, sonst gaebe es zwei Wahrheiten. Die Seite selbst gibt es seit
+ *    01.10.2026 auch nativ (FoilerScreen.kt); der Link oeffnet sie dort.
  *  - ORT VERBERGEN als Voreinstellung fuer ALLE eigenen Aufnahmen, rueckwirkend.
  *  - GETEILTE AUFNAHMEN: jede Aufnahme mit aktivem Teilen-Link, Knopf zum Zuruecknehmen. Die
  *    Karte erscheint nicht, wenn nichts geteilt ist. Wann ein Link erzeugt oder ob er je geoeffnet
@@ -36,6 +36,7 @@ private val PUBPROF_FELDER = listOf(
 fun OeffentlicheSeiteKarte(onSaved: () -> Unit) {
     val scope = rememberCoroutineScope()
     val ctx = LocalContext.current
+    val oeffneProfil = LocalOpenFoiler.current
     var werte by remember { mutableStateOf<Map<String, Boolean>?>(null) }
     var eigeneId by remember { mutableStateOf(0) }
     LaunchedEffect(Unit) {
@@ -77,8 +78,12 @@ fun OeffentlicheSeiteKarte(onSaved: () -> Unit) {
                     Haken(I18n.t("pubprof.$k"), w[k] == true) { setzen(k, it) }
                 }
                 if (eigeneId > 0) {
+                    // Seit 01.10.2026 gibt es die Seite nativ (FoilerScreen) — dorthin statt in den
+                    // Browser, wo man erst angemeldet sein muesste. Ohne Navigation (sollte nicht
+                    // vorkommen) bleibt der Browser-Weg.
                     TextButton(onClick = {
-                        ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("${Api.BASE}/foiler/$eigeneId")))
+                        oeffneProfil?.invoke(eigeneId)
+                            ?: ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("${Api.BASE}/foiler/$eigeneId")))
                     }) { Text(I18n.t("pubprof.view")) }
                 }
             }
@@ -116,6 +121,44 @@ fun OrtVerbergenKarte(onSaved: () -> Unit) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 6.dp))
             Text(I18n.t("hideloc.single"), style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp))
+        }
+    }
+}
+
+/**
+ * Gruener Online-Punkt am Profilbild abschaltbar (Web: OnlinePunktCard in Settings.tsx; Jan,
+ * 01.10.2026: „bau das mit ins profil ein zum ausstellen, aber erstmal default an fuer alle").
+ * Dieselbe Art Entscheidung wie „Ort verbergen" — was sehen andere von mir —, deshalb direkt
+ * darunter. Ohne diese Karte koennten Nutzer, die nur die App benutzen, den Punkt nie abschalten.
+ * Gespeichert wird sofort (PATCH /api/auth/me), nicht ueber „Speichern".
+ */
+@Composable
+fun OnlinePunktKarte(onSaved: () -> Unit) {
+    val scope = rememberCoroutineScope()
+    var an by remember { mutableStateOf<Boolean?>(null) }
+    var busy by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        // Fehlt der Wert (alter Server) oder scheitert der Abruf, gilt der Standard: an.
+        an = try { Api.me().showOnline != false } catch (_: Exception) { true }
+    }
+    val wert = an ?: return
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(14.dp)) {
+            Text(I18n.t("online.title"), style = MaterialTheme.typography.titleMedium)
+            Text(I18n.t("online.hint"), style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp, bottom = 6.dp))
+            Haken(I18n.t("online.switch"), wert, aktiv = !busy) { neu ->
+                busy = true
+                scope.launch {
+                    try {
+                        // Den Wert aus der Antwort uebernehmen, nicht den gewuenschten: so steht da,
+                        // was der Server wirklich gespeichert hat.
+                        an = Api.updateShowOnline(neu).showOnline ?: neu
+                        onSaved()
+                    } catch (_: Exception) {}
+                    busy = false
+                }
+            }
         }
     }
 }

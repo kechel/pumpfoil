@@ -55,6 +55,8 @@ data class Profile(
     @SerialName("foil_sensitivity") val foilSensitivity: String? = null,
     // Anzeige-Einheit der Pump-Kadenz: hz|ppm (nur Darstellung, siehe PumpUnit.kt).
     @SerialName("pump_unit") val pumpUnit: String? = null,
+    // Gruener Online-Punkt fuer andere sichtbar (Profil-Schalter, Standard an). null = alter Server.
+    @SerialName("show_online") val showOnline: Boolean? = null,
     @SerialName("social_allowed") val socialAllowed: Boolean? = null,
     // Soll dieses Konto einmalig zum Einrichtungs-Assistenten geleitet werden? Die Regel liegt
     // KOMPLETT im Server (api/settings.onboarding_faellig: Stichtag + Konto danach angelegt +
@@ -194,6 +196,8 @@ data class TrackPreview(
 @Serializable
 data class CommunityItem(
     @SerialName("session_id") val id: Int,
+    // fuer den Online-Punkt + Link aufs Profil (Server additiv seit 01.10.2026; aeltere: null)
+    @SerialName("user_id") val userId: Int? = null,
     @SerialName("started_at") val startedAt: String = "",
     @SerialName("ended_at") val endedAt: String? = null,
     val name: String? = null,
@@ -405,6 +409,8 @@ data class HistoryPoint(
 // Bestenliste (GET /api/community/leaders) — je Metrik eine Rangliste.
 @Serializable
 data class LeaderEntry(
+    // fuer den Online-Punkt + Link aufs Profil (Server additiv seit 01.10.2026; aeltere: null)
+    @SerialName("user_id") val userId: Int? = null,
     val name: String? = null,
     @SerialName("avatar_url") val avatarUrl: String? = null,
     val sessions: Int = 0, val runs: Int = 0, val spots: Int = 0, val pumps: Int = 0,
@@ -421,6 +427,8 @@ data class Leaders(
 // Neueste Medien (GET /api/community/latest-photos) — Fotos + YouTube je Session.
 @Serializable
 data class MediaItem(
+    // fuer den Online-Punkt + Link aufs Profil (Server additiv seit 01.10.2026; aeltere: null)
+    @SerialName("user_id") val userId: Int? = null,
     val kind: String = "photo",
     val url: String? = null,
     @SerialName("youtube_url") val youtubeUrl: String? = null,
@@ -636,11 +644,16 @@ data class ChatState(
     // 1:1 mit dem Bot-Account (Jan, 01.10.2026): der Mensch, an den Antworten gehen sollen. Gesetzt
     // -> statt Eingabefeld der Knopf „Antworten bitte direkt an {name}". Aeltere Server: null.
     @SerialName("weiter_an") val weiterAn: DmOther? = null,
+    // LESEBESTAETIGUNG, nur im 1:1 (Web 1d7ac4a0): bis zu welcher Nachricht das Gegenueber gelesen
+    // hat. In Spot-/Session-Chats und bei aelteren Servern null -> keine Haken.
+    @SerialName("gelesen_bis") val gelesenBis: Int? = null,
 )
 
 // Community-Rekorde (GET /api/community/records): {period -> {distance/duration/speed/glide/runs}}.
 @Serializable
 data class CommunityRecordEntry(
+    // fuer den Online-Punkt + Link aufs Profil (Server additiv seit 01.10.2026; aeltere: null)
+    @SerialName("user_id") val userId: Int? = null,
     @SerialName("session_id") val sessionId: Int? = null,
     val value: Double = 0.0,
     val name: String? = null,
@@ -691,6 +704,8 @@ data class AttemptLine(
 // Rekordhalter einer Spot-Kennzahl (von EINER Session/EINEM Lauf gewonnen).
 @Serializable
 data class SpotRecHolder(
+    // fuer den Online-Punkt + Link aufs Profil (Server additiv seit 01.10.2026; aeltere: null)
+    @SerialName("user_id") val userId: Int? = null,
     val value: Double = 0.0,
     @SerialName("session_id") val sessionId: Int? = null,
     @SerialName("run_idx") val runIdx: Int? = null,
@@ -966,6 +981,9 @@ data class SessionDetail(
     val caption: String? = null,
     @SerialName("owner_name") val ownerName: String? = null,
     @SerialName("owner_avatar_url") val ownerAvatarUrl: String? = null,
+    // Nutzer-ID des Besitzers: Online-Punkt am Profilbild + Tipp auf seine Profilseite. Im
+    // oeffentlichen Teilen-Payload leert der Server das Feld (die Profilseite verlangt Anmeldung).
+    @SerialName("owner_id") val ownerId: Int? = null,
     @SerialName("like_count") val likeCount: Int = 0,
     val liked: Boolean = false,
     val owned: Boolean = false,
@@ -1241,3 +1259,71 @@ data class McpVerbindung(
 
 @Serializable
 data class McpStatus(val url: String = "", val verbunden: List<McpVerbindung> = emptyList())
+
+
+// Oeffentliche Foiler-Seite EINES Nutzers (GET /api/community/foiler/{id}, Web: Foiler.tsx).
+// Welche Bloecke es gibt, entscheidet der SERVER anhand der Schalter des Nutzers; fehlt ein Feld,
+// wird es nicht gezeigt. `aus` liefert er nur dem Besitzer (sonst waere „ist abgeschaltet" selbst
+// eine Auskunft ueber ein fremdes Konto).
+@Serializable
+data class FoilerProfil(
+    val id: Int,
+    val name: String? = null,
+    @SerialName("avatar_url") val avatarUrl: String? = null,
+    val ich: Boolean = false,
+    val aus: Boolean = false,
+    val zeigt: FoilerZeigt = FoilerZeigt(),
+    val seit: String? = null,
+    val homespot: String? = null,
+    @SerialName("homespot_id") val homespotId: Int? = null,
+    val uhren: List<String> = emptyList(),
+    val kanal: String? = null,                  // freigegebener YouTube-Kanal
+    val foils: List<FoilBrief> = emptyList(),
+    val rekorde: OverallStats? = null,
+    val medien: List<FoilerMedium> = emptyList(),
+    @SerialName("spot_notizen") val spotNotizen: List<FoilerSpotNotiz> = emptyList(),
+    // Rekorde, die er AKTUELL haelt (12 Monate): community-weit (basis accel|gps) und je Spot.
+    val titel: List<FoilerTitel> = emptyList(),
+    @SerialName("spot_titel") val spotTitel: List<FoilerTitel> = emptyList(),
+    // Die letzten FUENF — dieselbe Form wie die eigene Liste, ohne Besitzer-Felder. Die Grenze
+    // zieht der Server (keine Sessionliste je Nutzer, Entscheidung 04.09./08.09.2026).
+    val sessions: List<SessionSummary> = emptyList(),
+)
+
+@Serializable
+data class FoilerZeigt(
+    val join: Boolean = false, val watch: Boolean = false, val foil: Boolean = false,
+    val homespot: Boolean = false, val records: Boolean = false, val media: Boolean = false,
+    val spots: Boolean = false, val sessions: Boolean = false, val titles: Boolean = false,
+    val channel: Boolean = false,
+)
+
+@Serializable
+data class FoilerMedium(
+    val kind: String = "photo",
+    val url: String? = null,
+    @SerialName("thumb_url") val thumbUrl: String? = null,
+    @SerialName("youtube_url") val youtubeUrl: String? = null,
+    @SerialName("session_id") val sessionId: Int = 0,
+    @SerialName("started_at") val startedAt: String? = null,
+)
+
+@Serializable
+data class FoilerSpotNotiz(
+    @SerialName("spot_id") val spotId: Int = 0,
+    val name: String = "",
+    @SerialName("area_name") val areaName: String? = null,
+)
+
+// Ein gehaltener Rekord. Community-weit mit `basis`, je Spot mit `spotId`/`spot`/`allein`.
+@Serializable
+data class FoilerTitel(
+    val metric: String = "",
+    val value: Double = 0.0,
+    val basis: String? = null,                  // "accel" | "gps" (nur community-weit)
+    @SerialName("spot_id") val spotId: Int? = null,
+    val spot: String? = null,
+    @SerialName("started_at") val startedAt: String? = null,
+    @SerialName("session_id") val sessionId: Int? = null,
+    val allein: Boolean = false,                // er ist dort der einzige Fahrer
+)
