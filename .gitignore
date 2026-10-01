@@ -41,6 +41,10 @@ server/media/promo/*
 
 # Trainierte ML-Modelle (aus Nutzerdaten abgeleitet) – nicht veröffentlichen
 *.pkl
+# AUSNAHME: die LIVE-Modelle der Erkennung v3 (Jan, 30.09./01.10.2026: „bitte ins repo committen,
+# nicht dass das verloren geht"). Geprueft: nur Merkmalsnamen, Einstellungen und Entscheidungsbaeume
+# mit Bin-Grenzen — keine Sessions, keine IDs, keine Mail-Adressen. Wie foil_rf.pkl.
+!server/app/analysis/v3/modelle/*.pkl
 
 # Node / web
 node_modules/
