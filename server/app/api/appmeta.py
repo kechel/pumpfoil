@@ -795,6 +795,22 @@ IN_REVIEW: list[dict] = [
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
+    # 01.10.2026 (Jan: „direkt auf android & iOS nachziehen fuer coming next"): Online-Punkt am
+    # Profilbild + Schalter im Profil, Lesebestaetigung im 1:1, eigene Profilseite je Nutzer mit
+    # Knopf „Nachricht", Profilbild fuehrt dorthin. Web ist live (c27b7aa5, 1d7ac4a0, 5272d67a,
+    # b89044e2). Phone 1.1.38 (52) + Wear 1.2.38 (1048, ohne eigene Aenderung mitgebumpt), iOS 1.1.42 (47).
+    {"name": "Android phone + Wear OS", "version": "1.1.38 / 1.2.38",
+     "items": [
+         "A green dot on profile pictures shows who is online right now; you can turn yours off in your profile.",
+         "In direct chats, two ticks show that your message has been read.",
+         "Tapping a profile picture opens that rider's profile, with a button to send them a message.",
+     ]},
+    {"name": "iPhone + Apple Watch", "version": "1.1.42",
+     "items": [
+         "A green dot on profile pictures shows who is online right now; you can turn yours off in your profile.",
+         "In direct chats, two ticks show that your message has been read.",
+         "Tapping a profile picture opens that rider's profile, with a button to send them a message.",
+     ]},
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.
 

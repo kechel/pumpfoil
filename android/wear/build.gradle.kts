@@ -27,8 +27,8 @@ android {
         // size" — „Puls passiv" lag oben rechts hinter der runden Fassung). Eine abgelehnte
         // Nummer laesst Play nicht erneut einreichen, also ein Bump ohne Phone-Aenderung; das
         // „x" laeuft damit vorruebergehend auseinander (Phone bleibt 1.1.27/41).
-        versionCode = 1047
-        versionName = "1.2.37"
+        versionCode = 1048
+        versionName = "1.2.38"
     }
     buildFeatures { compose = true }
     composeOptions { kotlinCompilerExtensionVersion = "1.5.14" }
