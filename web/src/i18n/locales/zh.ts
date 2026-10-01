@@ -757,6 +757,7 @@ const zh: Record<string, string> = {
   "chat.placeholder": "写条消息 …",
   "chat.photoAdd": "添加照片",
   "chat.replyDirect": "请直接回复 {name}",
+  "foiler.chat": "发消息",
   "chat.sent": "已发送",
   "chat.read": "已读",
   "presence.online": "在线",

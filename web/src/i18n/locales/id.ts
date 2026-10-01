@@ -757,6 +757,7 @@ const id: Record<string, string> = {
   "chat.placeholder": "Tulis pesan …",
   "chat.photoAdd": "Tambah foto",
   "chat.replyDirect": "Silakan balas langsung ke {name}",
+  "foiler.chat": "Pesan",
   "chat.sent": "Terkirim",
   "chat.read": "Dibaca",
   "presence.online": "Online",

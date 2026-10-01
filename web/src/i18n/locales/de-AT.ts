@@ -562,6 +562,7 @@ const deAT: Record<string, string> = {
   "chat.placeholder": "Schreib wos …",
   "chat.photoAdd": "Bilder anhängen",
   "chat.replyDirect": "Antworten bitte direkt an {name}",
+  "foiler.chat": "Nachricht",
   "chat.sent": "Gesendet",
   "chat.read": "Gelesen",
   "presence.online": "Online",

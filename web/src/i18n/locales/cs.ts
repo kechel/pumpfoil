@@ -781,6 +781,7 @@ const cs: Record<string, string> = {
   "chat.placeholder": "Napsat zprávu …",
   "chat.photoAdd": "Přidat fotky",
   "chat.replyDirect": "Odpovídejte prosím přímo: {name}",
+  "foiler.chat": "Zpráva",
   "chat.sent": "Odesláno",
   "chat.read": "Přečteno",
   "presence.online": "Online",
