@@ -63,7 +63,7 @@ struct CommunityView: View {
     private var spotMatches: [String] {
         let q = spotQuery.trimmingCharacters(in: .whitespaces).lowercased()
         guard !q.isEmpty, let all = spots?.all else { return [] }
-        return all.filter { $0.lowercased().contains(q) && !spotShown.contains($0) }.prefix(6).map { $0 }
+        return all.filter { passtZu(q, $0) && !spotShown.contains($0) }   // ohne Akzente, s. Models.swift.prefix(6).map { $0 }
     }
 
     // Kopfzeilen + Toolbar ebenfalls als eigene Teile, Ladefolgen als Methoden: der Body war EIN

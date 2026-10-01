@@ -1367,3 +1367,38 @@ struct BoardAttitudeStats: Decodable {
     let gesamt: [BoardKlasse]
     let je_foil: [BoardFoilKlassen]
 }
+
+// MARK: - Suche ohne Akzente (01.10.2026)
+// Dieselbe Regel wie Server (server/app/suche.py), Web (web/src/lib/suche.ts) und Android (Suche.kt).
+// Anlass (Jan): „vivo" fand „vívoactive®" nicht, „zurich" nicht Zürich, „fone" nicht F-One.
+// Der Suchtext zerfaellt in WORTE, jedes muss vorkommen; verglichen wird klein, ohne Akzente,
+// ohne Bindestriche, Leerzeichen und ®™©.
+private let suchMehr: [Character: String] = ["ß": "ss", "æ": "ae", "œ": "oe"]
+private let suchExtra: [Character: Character] = ["ł": "l", "đ": "d", "ø": "o", "ı": "i", "ħ": "h", "þ": "t"]
+private let suchWeg: Set<Character> = ["-", "‐", "–", "—", "_", "®", "™", "©", "'", "’"]
+
+func suchform(_ s: String?) -> String {
+    let klein = (s ?? "").lowercased()   // VOR den Buchstaben unten, sonst bliebe das grosse Ł stehen
+    var zwischen = ""
+    for c in klein {
+        if let m = suchMehr[c] { zwischen += m } else { zwischen.append(suchExtra[c] ?? c) }
+    }
+    var ohneAkzent = String.UnicodeScalarView()
+    for u in zwischen.decomposedStringWithCanonicalMapping.unicodeScalars
+    where u.properties.generalCategory != .nonspacingMark {
+        ohneAkzent.append(u)
+    }
+    return String(String(ohneAkzent).filter { !suchWeg.contains($0) && !$0.isWhitespace })
+}
+
+func suchworte(_ q: String?) -> [String] {
+    (q ?? "").split(whereSeparator: { $0.isWhitespace }).map { suchform(String($0)) }.filter { !$0.isEmpty }
+}
+
+/// Kommt jedes Wort der Suche `q` in einem der Texte vor? Leere Suche passt immer.
+func passtZu(_ q: String?, _ texte: String?...) -> Bool {
+    let ws = suchworte(q)
+    if ws.isEmpty { return true }
+    let t = texte.map { suchform($0) }.joined(separator: " ")
+    return ws.allSatisfy { t.contains($0) }
+}

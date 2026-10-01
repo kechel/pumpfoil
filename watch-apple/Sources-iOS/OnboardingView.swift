@@ -360,7 +360,7 @@ struct OnboardingView: View {
     private var trefferFoils: [Foil] {
         let q = suche.trimmingCharacters(in: .whitespaces).lowercased()
         if q.isEmpty { return [] }
-        return foils.filter { "\($0.brand) \($0.model) \($0.size)".lowercased().contains(q) }.prefix(8).map { $0 }
+        return foils.filter { passtZu(q, $0.brand, $0.model, $0.size) }   // wie die Katalogsuche des Servers.prefix(8).map { $0 }
     }
 
     private func laden() async {
