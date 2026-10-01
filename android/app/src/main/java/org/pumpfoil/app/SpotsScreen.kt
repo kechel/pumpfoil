@@ -161,7 +161,7 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
         val n = suche.trim().lowercase()
         if (n.isEmpty()) emptyList()
         else sichtbar.filter {
-            it.spot.lowercase().contains(n) || (it.water?.lowercase()?.contains(n) == true)
+            passtZu(n, it.spot) || passtZu(n, it.water)   // ohne Akzente: „cheran" findet Chéran
         }
     }
 
