@@ -1429,6 +1429,15 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **💡 30.09. — Feedback #157 (gizmomogwai u683): Wetter JE SESSION, rueckwirkend.** „would it be possible to
+  collect (historical) weather information for the location in the sessions? … mainly wind, temperature
+  and general sunny/cloudy". Heute gibt es nur das AKTUELLE Spot-Wetter (`SpotWeather.tsx`). Idee: beim
+  Abschluss der Analyse Wind/Boeen/Richtung, Temperatur und Bewoelkung fuer Ort + Zeitfenster der Session
+  holen und in `metrics_json` ablegen (eine Quelle, die auch Vergangenes liefert — erst pruefen, welche
+  wir ohnehin fuers Spot-Wetter nutzen und ob sie Historie hat). Datenschutz: der Ort ist schon in der
+  Session, es geht nichts Neues raus — ausser die Abfrage an den Wetterdienst selbst (Server-seitig).
+  Noch nicht entschieden, nur gesammelt.
+
 - **🔍 30.09. — Wear OPWWE251 (u574): Accel meist nur 3,5 Hz, Mittel 8,4 Hz taeuscht — Pumps -23 % gegen das Brett (belegt, Fix offen).**
   Paar #10979 (Uhr, 1.2.32) / #10993 (Handy am Brett, 50 Hz exact_chunks), 15 gemeinsame Laeufe:
   Uhr 265 gegen Brett 345 Pumps auf gemeinsamer Zeit, Kadenz 1,2 gegen 1,55 Hz. **Die Rate allein ist
