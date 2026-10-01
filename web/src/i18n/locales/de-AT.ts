@@ -561,6 +561,7 @@ const deAT: Record<string, string> = {
   "account.revokeConfirm": "„{name}“ widerrufen? Der Token wird ungültig (Sessions bleiben).",
   "chat.placeholder": "Schreib wos …",
   "chat.photoAdd": "Bilder anhängen",
+  "chat.replyDirect": "Antworten bitte direkt an {name}",
   "chat.photoRemove": "Bild entfernen",
   "chat.photoFailed": "Ein Bild konnte nicht hochgeladen werden — entfernen oder nochmal probieren.",
   "chat.photoOpen": "Bild öffnen",

@@ -756,6 +756,7 @@ const id: Record<string, string> = {
   "account.revokeConfirm": "Cabut “{name}”? Token jadi tidak valid (sesi tetap tersimpan).",
   "chat.placeholder": "Tulis pesan …",
   "chat.photoAdd": "Tambah foto",
+  "chat.replyDirect": "Silakan balas langsung ke {name}",
   "chat.photoRemove": "Hapus foto",
   "chat.photoFailed": "Sebuah foto gagal diunggah — hapus atau coba lagi.",
   "chat.photoOpen": "Buka foto",

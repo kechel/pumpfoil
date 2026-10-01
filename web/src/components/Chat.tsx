@@ -31,6 +31,9 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
   // Bilder anhaengen: Server-Schalter (`chat_photos` aus /api/me, Admins immer; CHAT_PHOTOS_ALL
   // gibt es fuer alle frei) — NICHT is_admin, damit das Umlegen ohne neuen Build wirkt.
   const [kannFotos, setKannFotos] = useState(false);
+  // 1:1 mit dem Bot-Account: statt Eingabefeld ein Link in den 1:1 mit Jan (Server: /state.weiter_an).
+  const [weiterAn, setWeiterAn] = useState<{ id: number; name: string | null } | null>(null);
+  const [meineId, setMeineId] = useState(0);
   const [push, setPush] = useState(false);
   const [hasMore, setHasMore] = useState(false);   // gibt es ältere (nachladbare) Nachrichten?
   const [capped, setCapped] = useState(false);     // 100er-Limit erreicht: ältere bleiben ausgeblendet
@@ -53,8 +56,8 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
   // Desktop (Maus): Bearbeiten/Löschen per Hover statt Long-Press (der greift nur auf Touch).
   const isDesktop = typeof window !== "undefined" && !!window.matchMedia?.("(hover: hover) and (pointer: fine)").matches;
 
-  useEffect(() => { api.getProfile().then((p) => { setIsAdmin(!!p.is_admin); setKannFotos(!!(p.chat_photos ?? p.is_admin)); }).catch(() => {}); }, []);
-  useEffect(() => { api.chatRoomState(scope).then((s) => setPush(s.push)).catch(() => {}); }, [scope]);
+  useEffect(() => { api.getProfile().then((p) => { setIsAdmin(!!p.is_admin); setKannFotos(!!(p.chat_photos ?? p.is_admin)); setMeineId(p.id ?? 0); }).catch(() => {}); }, []);
+  useEffect(() => { api.chatRoomState(scope).then((s) => { setPush(s.push); setWeiterAn(s.weiter_an ?? null); }).catch(() => {}); }, [scope]);
 
   // Bearbeiten/Löschen-Icons wieder ausblenden, sobald man woanders hin tippt/klickt.
   // Listener verzögert anhängen, damit der öffnende Long-Press ihn nicht sofort auslöst.
@@ -340,6 +343,21 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
           </div>
         ))}
       </div>
+      {/* Jan, 01.10.2026: „anstelle des input-feldes unten ein link 'Antworten bitte direkt an Jan',
+          der in einen 1:1 chat mit mir wechselt — dann ist jedem klar, dass hier kein KI-Agent
+          automatisch antwortet". Schreibt eine aeltere App trotzdem hier, leitet der Server um. */}
+      {weiterAn ? (
+        <button type="button"
+          onClick={() => {
+            const [a, b] = [meineId, weiterAn.id].sort((x, y) => x - y);
+            window.dispatchEvent(new CustomEvent("pumpfoil:open-chat",
+              { detail: { scope: `dm:${a}-${b}`, label: weiterAn.name ?? "" } }));
+          }}
+          disabled={!meineId}
+          className="w-full rounded-xl border border-brand-500/50 px-3 py-2.5 text-sm font-semibold text-brand-600 hover:bg-brand-500/10 disabled:opacity-50 dark:text-brand-300">
+          {t("chat.replyDirect", { name: weiterAn.name ?? "Jan" })} →
+        </button>
+      ) : (<>
       {editing != null && (
         <div className="mb-1 flex items-center justify-between text-xs text-brand-600 dark:text-brand-300">
           <span>{t("chat.editing")}</span>
@@ -394,6 +412,7 @@ export function Chat({ scope, fill = false }: { scope: string; fill?: boolean })
         </button>
       </div>
       <p className="mt-1.5 text-[10px] leading-snug text-slate-500">{t(isDesktop ? "chat.editHintDesktop" : "chat.editHint")}</p>
+      </>)}
     </div>
   );
 }

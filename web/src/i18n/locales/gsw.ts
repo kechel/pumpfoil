@@ -600,6 +600,7 @@ const gsw: Record<string, string> = {
   "account.revokeConfirm": "„{name}“ widerrueffe? De Token wird ungültig (Sessions bliibe).",
   "chat.placeholder": "Nachricht schribe …",
   "chat.photoAdd": "Bilder aahänke",
+  "chat.replyDirect": "Antworte bitte diräkt a {name}",
   "chat.photoRemove": "Bild entferne",
   "chat.photoFailed": "Es Bild isch nöd ufeglade worde — entferne oder nomal probiere.",
   "chat.photoOpen": "Bild öffne",

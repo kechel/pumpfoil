@@ -770,6 +770,7 @@ const nb: Record<string, string> = {
   "account.revokeConfirm": "Trekke tilbake «{name}»? Token blir ugyldig (øktene beholdes).",
   "chat.placeholder": "Skriv en melding …",
   "chat.photoAdd": "Legg til bilder",
+  "chat.replyDirect": "Svar gjerne direkte til {name}",
   "chat.photoRemove": "Fjern bildet",
   "chat.photoFailed": "Et bilde kunne ikke lastes opp — fjern det eller prøv igjen.",
   "chat.photoOpen": "Åpne bildet",

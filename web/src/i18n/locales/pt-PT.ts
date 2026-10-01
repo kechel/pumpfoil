@@ -763,6 +763,7 @@ const ptPT: Record<string, string> = {
   "account.revokeConfirm": "Revogar “{name}”? O token fica inválido (as sessões são mantidas).",
   "chat.placeholder": "Escreva uma mensagem …",
   "chat.photoAdd": "Adicionar fotografias",
+  "chat.replyDirect": "Responda diretamente a {name}",
   "chat.photoRemove": "Remover fotografia",
   "chat.photoFailed": "Não foi possível enviar uma fotografia — remove-a ou tenta de novo.",
   "chat.photoOpen": "Abrir fotografia",

@@ -780,6 +780,7 @@ const nl: Record<string, string> = {
   "account.revokeConfirm": "‘{name}’ intrekken? De token wordt ongeldig (sessies blijven).",
   "chat.placeholder": "Bericht schrijven …",
   "chat.photoAdd": "Foto's toevoegen",
+  "chat.replyDirect": "Antwoord graag rechtstreeks aan {name}",
   "chat.photoRemove": "Foto verwijderen",
   "chat.photoFailed": "Een foto kon niet worden geüpload — verwijder hem of probeer het opnieuw.",
   "chat.photoOpen": "Foto openen",
