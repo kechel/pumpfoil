@@ -27,7 +27,7 @@ struct ChatView: View {
     private var spotsShown: [SpotChat] {
         let sorted = allSpots.sorted { $0.messages > $1.messages }    // aktivste zuerst
         guard !term.isEmpty else { return sorted }
-        return sorted.filter { $0.label.lowercased().contains(term.lowercased()) }
+        return sorted.filter { passtZu(term, $0.label) }
     }
 
     // Ein Body pro Abschnitt: Swifts Type-Checker loest einen ViewBuilder als EINEN Ausdruck auf,

@@ -221,7 +221,7 @@ struct SpotsView: View {
         let n = suche.trimmingCharacters(in: .whitespaces).lowercased()
         guard !n.isEmpty else { return [] }
         return sichtbar.filter {
-            $0.spot.lowercased().contains(n) || ($0.water?.lowercased().contains(n) ?? false)
+            passtZu(n, $0.spot) || passtZu(n, $0.water)   // ohne Akzente: „cheran" findet Chéran
         }
     }
 
