@@ -2415,6 +2415,27 @@ static let nlOverlay: [String: String] = {
         "id": "Buka {n} foto",
         "nb": "Åpne {n} bilder",
     ]
+    // 1:1 mit dem Bot-Account (01.10.2026, aus web/src/i18n/locales/*.ts): statt Eingabefeld.
+    private static let _neu_chat_replyDirect: [String: String] = [
+        "de": "Antworten bitte direkt an {name}",
+        "gsw": "Antworte bitte diräkt a {name}",
+        "de-AT": "Antworten bitte direkt an {name}",
+        "en": "Please reply directly to {name}",
+        "fr": "Merci de répondre directement à {name}",
+        "it": "Rispondi direttamente a {name}",
+        "es": "Responde directamente a {name}",
+        "fi": "Vastaa suoraan: {name}",
+        "nl": "Antwoord graag rechtstreeks aan {name}",
+        "cs": "Odpovídejte prosím přímo: {name}",
+        "pl": "Prosimy pisać bezpośrednio do: {name}",
+        "pt": "Responda diretamente para {name}",
+        "pt-PT": "Responda diretamente a {name}",
+        "ja": "返信は {name} に直接お願いします",
+        "zh": "请直接回复 {name}",
+        "ru": "Пожалуйста, пишите напрямую: {name}",
+        "id": "Silakan balas langsung ke {name}",
+        "nb": "Svar gjerne direkte til {name}",
+    ]
     static let neuTexte: [String: [String: String]] = [
         "list.cards": _neu_list_cards,
         "list.compact": _neu_list_compact,
@@ -2425,6 +2446,7 @@ static let nlOverlay: [String: String] = {
         "chat.photoFailed": _neu_chat_photoFailed,
         "chat.photoOpen": _neu_chat_photoOpen,
         "chat.photosOpen": _neu_chat_photosOpen,
+        "chat.replyDirect": _neu_chat_replyDirect,
     ]
 
     static func t(_ key: String, _ lang: String) -> String {

@@ -48,6 +48,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -82,14 +83,19 @@ fun ChatScreen() {
     var room by remember { mutableStateOf<ChatRoom?>(null) }
     val r = room
     if (r == null) ChatRoomsList(onOpen = { room = it })
-    else ChatRoomView(r, onBack = { room = null })
+    // key: wechselt ein Raum direkt in den naechsten (Knopf „Antworten bitte direkt an …"), sonst
+    // stuende der Zustand des alten Raums (Nachrichten, Eingabe) kurz im neuen.
+    else key(r.scope) { ChatRoomView(r, onBack = { room = null }, onOpen = { room = it }) }
 }
 
 // Öffentlicher Einstieg in einen bestimmten Chatraum per scope (Spot-/Session-Chat) von
 // außerhalb des Chat-Tabs — generisch für alle Direkt-Links (Spot-Buttons, Home „Meine Chats").
 @Composable
 fun ChatRoomByScope(scope: String, label: String, onBack: () -> Unit) {
-    ChatRoomView(ChatRoom(scope = scope, label = label), onBack = onBack)
+    // Eigener Merker, damit ein Wechsel aus dem Raum heraus (1:1 mit dem Bot -> 1:1 mit Jan) auch
+    // bei Direkt-Links von ausserhalb des Chat-Tabs geht; Zurueck fuehrt dann wie gehabt hinaus.
+    var room by remember(scope) { mutableStateOf(ChatRoom(scope = scope, label = label)) }
+    key(room.scope) { ChatRoomView(room, onBack = onBack, onOpen = { room = it }) }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -283,7 +289,7 @@ private fun SpotRow(s: SpotChat, joined: Boolean, subscribed: Boolean, onClick: 
 
 @OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
-private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
+private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit, onOpen: (ChatRoom) -> Unit) {
     var msgs by remember { mutableStateOf<List<ChatMsg>>(emptyList()) }
     var input by remember { mutableStateOf("") }
     var sending by remember { mutableStateOf(false) }
@@ -302,6 +308,9 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
     // fuer alle frei, ohne dass die App neu raus muss.
     var kannFotos by remember { mutableStateOf(false) }
     var push by remember { mutableStateOf(false) }
+    // 1:1 mit dem Bot-Account (Server: /state.weiter_an): statt Eingabebereich ein Knopf in den 1:1
+    // mit Jan. Jan, 01.10.2026: „dann ist jedem klar das hier kein ki-agent automatisch antwortet".
+    var weiterAn by remember(room.scope) { mutableStateOf<DmOther?>(null) }
     var confirmLeave by remember { mutableStateOf(false) }
     var lastId by remember(room.scope) { mutableStateOf(0) }
     val isDm = room.scope.startsWith("dm:")
@@ -370,7 +379,7 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
     }
     LaunchedEffect(room.scope) {
         runCatching { Api.me() }.getOrNull()?.let { me -> isAdmin = me.isAdmin; kannFotos = me.chatPhotos ?: me.isAdmin }
-        push = runCatching { Api.chatRoomState(room.scope).push }.getOrDefault(false)
+        runCatching { Api.chatRoomState(room.scope) }.getOrNull()?.let { st -> push = st.push; weiterAn = st.weiterAn }
         if (isDm && otherId > 0) blocked = runCatching { Api.chatBlocks().any { it.id == otherId } }.getOrDefault(false)
         load()
         // Live-Polling neuer Nachrichten (~10 s) + Lesestand, wie die Web-PWA.
@@ -546,6 +555,24 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
             )
         },
         bottomBar = {
+            val w = weiterAn
+            if (w != null) {
+                // Derselbe Weg wie die Nutzersuche (`openDm`): /api/chat/dm liefert scope + other,
+                // damit der Kopf des neuen Raums Name und Avatar zeigt. Schreibt eine aeltere App
+                // trotzdem hier hinein, leitet der Server die Nachricht an Jan um.
+                androidx.compose.material3.OutlinedButton(
+                    onClick = {
+                        scope.launch {
+                            runCatching { Api.chatDmOpen(w.id) }.getOrNull()?.let { d ->
+                                onOpen(ChatRoom(scope = d.scope, label = d.other.name ?: "", kind = "dm", other = d.other))
+                            }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
+                ) {
+                    Text("${I18n.t("chat.replyDirect").replace("{name}", w.name ?: "Jan")} →", fontWeight = FontWeight.SemiBold)
+                }
+            } else
             Column(Modifier.fillMaxWidth()) {
             ChatAnhangLeiste(anhaenge, onWeg = { k -> anhaenge = anhaenge.filter { it.key != k } },
                 modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 8.dp))
@@ -640,7 +667,7 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit) {
                     }
                 }
             }
-            item {
+            if (weiterAn == null) item {
                 Text(
                     I18n.t("chat.editHint"),
                     Modifier.padding(vertical = 10.dp),

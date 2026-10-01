@@ -313,6 +313,10 @@ struct ChatRoomView: View {
     @State private var lastId = 0
     @State private var blocked = false
     @State private var confirmBlock = false
+    // 1:1 mit dem Bot-Account (Server: /state.weiter_an): statt Eingabebereich ein Knopf in den 1:1
+    // mit Jan. Jan, 01.10.2026: „dann ist jedem klar das hier kein ki-agent automatisch antwortet".
+    @State private var weiterAn: DmOther?
+    @State private var weiterDm: DmOpen?
     private var isDm: Bool { scope.hasPrefix("dm:") }
     @Environment(\.dismiss) private var dismiss
 
@@ -324,9 +328,10 @@ struct ChatRoomView: View {
             messageScroll
             blockedNote
             errorNote
-            composer
+            composerOderWeiter
         }
         .brandToolbar(title)
+        .navigationDestination(isPresented: weiterBinding) { weiterDestination }
         .toolbar { roomToolbar }
         .confirmationDialog(Loc.t("chat.leaveConfirm", lang), isPresented: $confirmLeave, titleVisibility: .visible) {
             leaveDialogButtons
@@ -359,10 +364,7 @@ struct ChatRoomView: View {
     private var messageList: some View {
         LazyVStack(alignment: .leading, spacing: 8) {
             ForEach(msgs) { m in bubble(m) }
-            Text(Loc.t("chat.editHint", lang))
-                .font(.caption2).foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity, alignment: .center)
-                .padding(.top, 6)
+            editHintRow
         }
         .padding()
         .id("bottom")
@@ -374,6 +376,47 @@ struct ChatRoomView: View {
 
     @ViewBuilder private var errorNote: some View {
         if let error { Text(error).font(.caption).foregroundStyle(.red).padding(.horizontal) }
+    }
+
+    // Hinweis „lange druecken zum Bearbeiten" entfaellt mit dem Eingabefeld (1:1 mit dem Bot).
+    @ViewBuilder private var editHintRow: some View {
+        if weiterAn == nil {
+            Text(Loc.t("chat.editHint", lang))
+                .font(.caption2).foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.top, 6)
+        }
+    }
+
+    // Jan, 01.10.2026: „anstelle des input-feldes unten ein link 'Antworten bitte direkt an Jan'".
+    // Schreibt eine aeltere App trotzdem hier hinein, leitet der Server die Nachricht an Jan um.
+    @ViewBuilder private var composerOderWeiter: some View {
+        if let w = weiterAn { weiterKnopf(w) } else { composer }
+    }
+
+    private func weiterKnopf(_ w: DmOther) -> some View {
+        let text: String = Loc.t("chat.replyDirect", lang).replacingOccurrences(of: "{name}", with: w.name ?? "Jan")
+        return Button { openWeiter(w) } label: {
+            Text(text + " →").font(.subheadline.weight(.semibold)).frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.bordered)
+        .padding(8)
+        .background(.bar)
+    }
+
+    // Derselbe Weg wie die Nutzersuche (`openDmWith`): /api/chat/dm liefert scope + other, damit
+    // der Kopf des neuen Raums Name und Avatar zeigt.
+    private func openWeiter(_ w: DmOther) {
+        Task { if let d = try? await Api.chatDmOpen(userId: w.id) { weiterDm = d } }
+    }
+
+    // Binding vorab (wie ChatView.dmBinding), damit der Type-Checker den Modifier billig bekommt.
+    private var weiterBinding: Binding<Bool> {
+        Binding(get: { weiterDm != nil }, set: { if !$0 { weiterDm = nil } })
+    }
+
+    @ViewBuilder private var weiterDestination: some View {
+        if let d = weiterDm { ChatRoomView(scope: d.scope, title: d.other.name ?? "", otherId: d.other.id) }
     }
 
     private var composer: some View {
@@ -660,7 +703,7 @@ struct ChatRoomView: View {
             isAdmin = p.is_admin ?? false
             kannFotos = p.chat_photos ?? isAdmin
         }
-        push = (try? await Api.chatRoomState(scope: scope).push) ?? false
+        if let st = try? await Api.chatRoomState(scope: scope) { push = st.push; weiterAn = st.weiter_an } else { push = false }
         if isDm && otherId > 0 { blocked = ((try? await Api.chatBlocks()) ?? []).contains { $0.id == otherId } }
         await load()
         await pollNew()
