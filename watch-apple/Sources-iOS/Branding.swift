@@ -55,6 +55,10 @@ struct AvatarView: View {
     let name: String?
     let url: URL?
     var size: CGFloat = 40
+    // Mit `userId`: gruener Online-Punkt + Tipp auf die Foiler-Seite (OnlinePunkt.swift, PWA
+    // <Avatar userId>). `link: false`, wo der Tipp schon etwas anderes tut.
+    var userId: Int? = nil
+    var link: Bool = true
 
     private var initialCircle: some View {
         let n = (name ?? "?").trimmingCharacters(in: .whitespaces)
@@ -65,6 +69,10 @@ struct AvatarView: View {
     }
 
     var body: some View {
+        bild.profilbild(userId: userId, size: size, link: link)
+    }
+
+    @ViewBuilder private var bild: some View {
         if let url {
             NetzBild(url: url) { stand in
                 switch stand {

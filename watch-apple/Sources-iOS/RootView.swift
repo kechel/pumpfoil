@@ -44,6 +44,9 @@ struct RootView: View {
     // die Anzeige-Einstellungen neu — den Kaltstart macht bootstrap(). Als Methode statt als
     // onChange-Closure: Ablauflogik kostet den Type-Checker im ViewBuilder unnoetig viel.
     private func handleScenePhase(_ phase: ScenePhase) {
+        // Online-Punkt: nur im Vordergrund fragen, und im Hintergrund nicht als online gelten
+        // (OnlinePunkt.swift). Bei JEDEM Wechsel, auch .inactive (Kontrollzentrum, App-Umschalter).
+        OnlineStore.shared.szenenWechsel(phase)
         if phase == .background {
             wasBackground = true
         } else if phase == .active, wasBackground {
@@ -132,6 +135,9 @@ struct MainTabView: View {
             ForEach(visibleTabs, id: \.self) { i in
                 if besucht.contains(i) {
                 tabContent(i)
+                    // Verdeckte Tabs bleiben unsichtbar liegen und feuern kein onDisappear —
+                    // Chat-Lesestand und Online-Punkt muessen wissen, ob ihr Tab vorne ist.
+                    .environment(\.tabSichtbar, tab == i)
                     .id("tab\(i)-\(resetTokens[i])")
                     .opacity(tab == i ? 1 : 0)
                     .allowsHitTesting(tab == i)

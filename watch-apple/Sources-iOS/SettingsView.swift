@@ -55,6 +55,10 @@ struct SettingsView: View {
             // untereinander, wie in der PWA. Beide speichern sofort, nicht ueber „Speichern".
             OeffentlicheSeiteSection(lang: lang)
             OrtVerbergenSection(lang: lang)
+            // Online-Punkt (Jan, 01.10.2026: „im profil zum ausstellen, aber erstmal default an").
+            // Dieselbe Art Entscheidung — was sehen andere von mir. Ohne diesen Schalter koennte ein
+            // Nutzer, der nur die App hat, den Punkt nicht abschalten.
+            OnlinePunktSection(lang: lang)
             GeteilteAufnahmenSection(lang: lang)
             designSection
             pumpUnitSection
@@ -575,6 +579,55 @@ struct OrtVerbergenSection: View {
     private func laden() async {
         let s = (try? await Api.settings()) ?? [:]
         an = (s["hide_location"] as? Bool) ?? false
+    }
+}
+
+/// Gruener Online-Punkt am eigenen Profilbild fuer andere sichtbar (PWA OnlinePunktCard). Speichert
+/// sofort per PATCH /api/auth/me; schlaegt das fehl, springt der Schalter zurueck — nicht stumm
+/// auf dem falschen Stand stehen lassen. Fehlt das Feld (alter Server), gilt es als an.
+struct OnlinePunktSection: View {
+    let lang: String
+    @State private var an: Bool? = nil
+    @State private var busy = false
+
+    var body: some View {
+        Section {
+            if an != nil {
+                Toggle(Loc.t("online.switch", lang), isOn: Binding(get: { an ?? true }, set: { v in setzen(v) }))
+                    .disabled(busy)
+            } else {
+                // Ohne sichtbaren Inhalt laeuft `.task` nie (Memory swiftui-leere-group-laedt-nicht).
+                ProgressView()
+            }
+        } header: {
+            Text(Loc.t("online.title", lang))
+        } footer: {
+            Text(Loc.t("online.hint", lang))
+        }
+        .task { await laden() }
+    }
+
+    private func setzen(_ v: Bool) {
+        let alt = an
+        an = v
+        busy = true
+        Task {
+            do {
+                let p = try await Api.setShowOnline(v)
+                an = p.show_online ?? v
+            } catch {
+                an = alt
+            }
+            busy = false
+        }
+    }
+
+    private func laden() async {
+        if let p = try? await Api.getProfile() {
+            an = p.show_online ?? true
+        } else {
+            an = true   // wie die PWA: lieber den Schalter zeigen als eine leere Karte
+        }
     }
 }
 

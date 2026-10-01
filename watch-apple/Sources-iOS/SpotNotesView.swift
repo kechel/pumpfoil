@@ -153,7 +153,7 @@ struct SpotNotesView: View {
     @ViewBuilder private func noteBlock(_ n: SpotNote, own: Bool) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
-                AvatarView(name: n.name, url: Api.mediaURL(n.avatar_url), size: 28)
+                AvatarView(name: n.name, url: Api.mediaURL(n.avatar_url), size: 28, userId: n.user_id)
                 VStack(alignment: .leading, spacing: 0) {
                     Text(n.name ?? "—").font(.subheadline.weight(.semibold))
                     if let u = n.updated_at {

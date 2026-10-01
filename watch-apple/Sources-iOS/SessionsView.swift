@@ -617,6 +617,9 @@ struct SportFilterMenu: View {
 struct SessionRow: View {
     let session: SessionSummary
     var showOwner: Bool = false
+    // Online-Punkt + Tipp aufs Profilbild — nur wo der Besitzer ein ANDERER sein kann (Foiler-Seite).
+    // Die eigene Liste reicht nichts durch: dort ist es das eigene Bild (PWA genauso).
+    var avatarUserId: Int? = nil
     @ObservedObject private var compare = CompareStore.shared
     @AppStorage("appLang") private var lang = "de"
     // Beobachtet die Anzeige-Einheit der Pump-Kadenz -> Umschalten wirkt sofort (PumpUnit.swift).
@@ -650,6 +653,7 @@ struct SessionRow: View {
     // bleibt im Kontextmenue). Der Name nur, wo die Karte ihn auch zeigt (showOwner).
     private var kompaktZeile: some View {
         KompaktZeile(avatarName: session.owner_name, avatarURL: Api.mediaURL(session.owner_avatar_url),
+                     avatarUserId: avatarUserId,
                      datum: TimeFmt.kurzDatum(session.started_at, session.tz) ?? "",
                      zeit: TimeFmt.timeOnly(session.started_at, session.tz) ?? "",
                      name: showOwner ? session.owner_name : nil, spot: session.place_name,
@@ -786,7 +790,8 @@ struct SessionRow: View {
     // Profilbild des Besitzers, sonst farbiger Kreis mit Initiale (wie PWA). owner_* liefert der
     // Server jetzt für alle Sessions (auch eigene).
     private var leading: some View {
-        AvatarView(name: session.owner_name, url: Api.mediaURL(session.owner_avatar_url), size: 40)
+        AvatarView(name: session.owner_name, url: Api.mediaURL(session.owner_avatar_url), size: 40,
+                   userId: avatarUserId)
     }
 
     // Foto/Video als eigene Zeile unter dem Titel — gleich große Kacheln (Track bleibt im Kopf).
@@ -978,6 +983,7 @@ struct GroupCardView: View {
     // Uhrzeit leer, unten die Tagessummen; der Pfeil klappt auf wie bei der Kachel.
     private var kompaktKopf: some View {
         KompaktZeile(avatarName: group.name, avatarURL: Api.mediaURL(group.avatar_url),
+                     avatarUserId: group.user_id,
                      datum: TimeFmt.kurzDatum("\(group.date)T12:00:00Z", "UTC") ?? dateLabel,
                      zeit: "", name: group.name, spot: group.spot,
                      kennzahlen: statsText, aufgeklappt: open)
@@ -1006,7 +1012,7 @@ struct GroupCardView: View {
 
     private var kachelKopf: some View {
         HStack(alignment: .top, spacing: 12) {
-            AvatarView(name: group.name, url: Api.mediaURL(group.avatar_url), size: 40)
+            AvatarView(name: group.name, url: Api.mediaURL(group.avatar_url), size: 40, userId: group.user_id)
             VStack(alignment: .leading, spacing: 3) {
                 Text(dateLabel + (group.name.map { " · \($0)" } ?? "")).font(.headline)
                 if let sp = group.spot, !sp.isEmpty { sessionPill(sp) }
@@ -1058,6 +1064,7 @@ struct ListenAnsichtUmschalter: View {
 struct KompaktZeile: View {
     let avatarName: String?
     let avatarURL: URL?
+    var avatarUserId: Int? = nil   // Online-Punkt + Tipp aufs Profilbild (OnlinePunkt.swift)
     let datum: String
     let zeit: String
     var name: String? = nil
@@ -1081,7 +1088,7 @@ struct KompaktZeile: View {
 
     private var obereZeile: some View {
         HStack(spacing: 6) {
-            AvatarView(name: avatarName, url: avatarURL, size: 20)
+            AvatarView(name: avatarName, url: avatarURL, size: 20, userId: avatarUserId)
             Text(datum).font(.footnote.weight(.semibold)).monospacedDigit().fixedSize()
             if !zeit.isEmpty {
                 Text(zeit).font(.footnote).monospacedDigit().foregroundStyle(.secondary).fixedSize()

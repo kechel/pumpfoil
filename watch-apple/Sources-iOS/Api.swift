@@ -85,6 +85,18 @@ enum Api {
         try await request("/api/auth/me", method: "GET", body: nil, auth: true)
     }
 
+    /// Gruener Online-Punkt am eigenen Profilbild fuer andere sichtbar (Profil-Schalter, Standard an).
+    @discardableResult
+    static func setShowOnline(_ an: Bool) async throws -> Profile {
+        try await request("/api/auth/me", method: "PATCH", body: ["show_online": an], auth: true)
+    }
+
+    /// Oeffentliche Foiler-Seite eines Nutzers. 404 = nicht verfuegbar (abgeschaltet, gesperrt,
+    /// unter 13) — der Server verraet bewusst nicht, welcher Grund es ist.
+    static func foilerProfil(_ id: Int) async throws -> FoilerProfil {
+        try await request("/api/community/foiler/\(id)", method: "GET", body: nil, auth: true)
+    }
+
     static func updateDisplayName(_ name: String) async throws -> Profile {
         try await request("/api/auth/me", method: "PUT", body: ["display_name": name], auth: true)
     }
@@ -937,7 +949,12 @@ enum Api {
 
     // `weiter_an`: 1:1 mit dem Bot-Account (Jan, 01.10.2026) -> der Mensch, an den Antworten gehen
     // sollen; dann statt Eingabefeld „Antworten bitte direkt an {name}". Aeltere Server: fehlt.
-    struct ChatState: Decodable { let push: Bool; let left: Bool?; let last_read_id: Int?; let weiter_an: DmOther? }
+    // `gelesen_bis`: nur im 1:1 — bis zu welcher Nachricht das GEGENUEBER gelesen hat (✓✓,
+    // Server seit 01.10.2026); in Spot-/Community-Raeumen nil.
+    struct ChatState: Decodable {
+        let push: Bool; let left: Bool?; let last_read_id: Int?; let weiter_an: DmOther?
+        let gelesen_bis: Int?
+    }
     static func chatRoomState(scope: String) async throws -> ChatState {
         let s = scope.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? scope
         return try await request("/api/chat/state?scope=\(s)", method: "GET", body: nil, auth: true)
@@ -970,6 +987,15 @@ enum Api {
     }
 
     // --- 1:1-Direktnachrichten + Blockieren ---
+    /// Welche dieser Nutzer sind gerade online? (gruener Punkt am Profilbild, OnlinePunkt.swift).
+    /// Der Server nimmt hoechstens 200 IDs und laesst weg, wer den Punkt abgeschaltet hat.
+    static func chatOnline(ids: [Int]) async throws -> [Int] {
+        struct R: Decodable { let online: [Int] }
+        let q: String = ids.map { String($0) }.joined(separator: ",")
+        let r: R = try await request("/api/chat/online?ids=\(q)", method: "GET", body: nil, auth: true)
+        return r.online
+    }
+
     static func chatDmOpen(userId: Int) async throws -> DmOpen {
         try await request("/api/chat/dm?user_id=\(userId)", method: "GET", body: nil, auth: true)
     }
@@ -1398,6 +1424,9 @@ enum Api {
         req.timeoutInterval = 20
         req.setValue(clientId, forHTTPHeaderField: "X-Pumpfoil-Client")
         if auth, let t = token { req.setValue("Bearer \(t)", forHTTPHeaderField: "Authorization") }
+        // App im Hintergrund: der Server soll uns dann NICHT als online fuehren (gruener Punkt am
+        // Profilbild, server/app/api/deps.py) — dieselbe Regel wie die PWA bei verstecktem Tab.
+        if !Vordergrund.aktiv { req.setValue("0", forHTTPHeaderField: "X-Foil-Sichtbar") }
         if let body {
             req.setValue("application/json", forHTTPHeaderField: "Content-Type")
             req.httpBody = try JSONSerialization.data(withJSONObject: body)

@@ -28,6 +28,9 @@ struct Profile: Codable {
     // damit von selbst, es gibt nichts wegzuklicken.
     let sorted_out: Int?
     let sorted_out_new: Int?
+    // Gruener Online-Punkt fuer andere sichtbar (Profil-Schalter, Standard an; PATCH /api/auth/me).
+    // nil = alter Server -> wie an behandeln.
+    let show_online: Bool?
 }
 
 // Fortschritt der Reanalyse nach Empfindlichkeits-Wechsel (GET /api/auth/me/reanalysis).
@@ -162,6 +165,8 @@ struct CommunityItem: Codable, Identifiable {
     // Aufgelöstes Foil (Marke/Modell/Größe) — der Brief liefert es seit je, die App zeigte es in
     // den Community-Zeilen bisher nicht (die PWA-Karte tut es).
     let foil: FoilBrief?
+    // Besitzer — fuer Online-Punkt und Tipp aufs Profilbild (Server additiv seit 01.10.2026).
+    let user_id: Int?
     var id: Int { session_id }
 
     var startedDate: Date? {
@@ -360,6 +365,8 @@ struct CommunityRecordEntry: Codable {
     // Mini-Track-Vorschau der Rekord-Session (dieselbe Form wie in den Session-Karten).
     // Fehlt bei Sessions ohne Vorschau in der Analyse -> dann wird nichts gezeichnet.
     let track_preview: String?
+    // Rekordhalter — fuer Online-Punkt und Tipp aufs Profilbild (Server additiv seit 01.10.2026).
+    let user_id: Int?
 }
 
 struct PeriodRecords: Codable {
@@ -547,6 +554,7 @@ struct WxDay: Codable {
 struct LeaderEntry: Codable, Identifiable {
     let name: String?; let avatar_url: String?
     let sessions: Int?; let runs: Int?; let spots: Int?; let pumps: Int?
+    let user_id: Int?   // Online-Punkt + Tipp aufs Profilbild (Server additiv seit 01.10.2026)
     var id: String { (name ?? "") + (avatar_url ?? "") }
 }
 struct Leaders: Codable {
@@ -564,6 +572,7 @@ struct MediaItem: Codable, Identifiable {
     let spot: String?
     let caption: String?
     let tz: String?            // IANA-Zeitzone des Spots — Uhrzeiten in Ortszeit anzeigen
+    let user_id: Int?          // Besitzer (Server additiv seit 01.10.2026); die Kachel zeigt kein Profilbild
     var id: String {
         // Schrittweise und explizit typisiert: die Kombination aus ??-Kette, "+"-Verkettung und
         // Interpolation in EINEM Ausdruck ist der Fall, an dem der Swift-Solver exponentiell wird.
@@ -840,6 +849,77 @@ struct CommunityGroup: Codable, Identifiable {
     var id: String { "\(user_id)-\(date)" }
 }
 
+// Oeffentliche Foiler-Seite EINES Nutzers (GET /api/community/foiler/{id}, PWA Foiler.tsx).
+// Welche Bloecke da sind, entscheidet der SERVER anhand der Schalter des Nutzers — fehlt ein Feld,
+// wird es nicht gezeigt. Darum ist hier fast alles optional.
+struct FoilerProfil: Decodable {
+    let id: Int
+    let name: String?
+    let avatar_url: String?
+    let ich: Bool
+    let aus: Bool                 // Seite abgeschaltet — liefert der Server nur dem Besitzer
+    let zeigt: FoilerZeigt
+    let seit: String?             // "YYYY-MM-DD"
+    let homespot: String?
+    let homespot_id: Int?
+    let uhren: [String]?
+    let kanal: String?            // freigegebener YouTube-Kanal
+    let foils: [FoilerFoil]?
+    let rekorde: OverallStats?    // eigene Rekorde + Summen, fest 12 Monate
+    let medien: [FoilerMedium]?
+    let spot_notizen: [FoilerSpotNotiz]?
+    let titel: [FoilerTitel]?
+    let spot_titel: [FoilerSpotTitel]?
+    let sessions: [SessionSummary]?   // die letzten FUENF (Grenze zieht der Server)
+}
+
+struct FoilerZeigt: Decodable {
+    let join: Bool?; let watch: Bool?; let foil: Bool?; let homespot: Bool?; let records: Bool?
+    let media: Bool?; let spots: Bool?; let sessions: Bool?; let titles: Bool?; let channel: Bool?
+}
+
+struct FoilerFoil: Decodable {
+    let brand: String?
+    let model: String?
+    let size: String?
+}
+
+struct FoilerMedium: Decodable {
+    let kind: String              // photo | video
+    let url: String?
+    let thumb_url: String?
+    let youtube_url: String?
+    let session_id: Int
+    let started_at: String?
+}
+
+struct FoilerSpotNotiz: Decodable {
+    let spot_id: Int
+    let name: String
+    let area_name: String?
+}
+
+// Ein Rekord, den er AKTUELL community-weit haelt. basis: "accel" = unter Aufnahmen MIT
+// Bewegungssensor, "gps" = unter denen ohne — zwei Zeilen, jede vergleicht Gleiches mit Gleichem.
+struct FoilerTitel: Decodable {
+    let metric: String
+    let value: Double
+    let basis: String
+    let started_at: String?
+    let spot: String?
+    let session_id: Int?
+}
+
+struct FoilerSpotTitel: Decodable {
+    let metric: String
+    let value: Double
+    let spot_id: Int
+    let spot: String?
+    let started_at: String?
+    let session_id: Int?
+    let allein: Bool?             // einziger Fahrer am Spot -> haelt zwangslaeufig alles
+}
+
 // Home-Stats (persönlich): Start-Erfolgsquote + Carve-Anzahl je Zeitfenster.
 struct StartSuccess: Codable {
     let threshold_m: Int
@@ -1020,6 +1100,9 @@ struct SessionDetail: Codable, Identifiable {
     // immer mit dem Gewicht des eingeloggten Nutzers; bei fremden Sessions war die Zahl damit
     // falsch (Meldung 27.08.). Optional: alte Server liefern das Feld nicht.
     let owner_weight_kg: Int?
+    // Besitzer-ID: Online-Punkt am Profilbild + Tipp auf seine Foiler-Seite (Server seit 08.09.;
+    // nil bei geteilten Links ohne Anmeldung).
+    let owner_id: Int?
     let analysis: Analysis?
     let merged_count: Int?   // >0 -> aus mehreren Sessions zusammengeführt
     let device_label: String?  // Aufzeichnungs-Uhr (Kurzform) für das Badge

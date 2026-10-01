@@ -193,7 +193,7 @@ struct CommunityView: View {
             if let e = t.entry {
                 if let n = e.name, !n.isEmpty {
                     HStack(spacing: 4) {
-                        recAvatar(e.avatar_url)
+                        recAvatar(e.avatar_url, userId: e.user_id)
                         Text(n).font(.caption).foregroundStyle(Color.accentColor).lineLimit(1)
                     }
                 }
@@ -233,7 +233,9 @@ struct CommunityView: View {
         .buttonStyle(.plain)
     }
 
-    @ViewBuilder private func recAvatar(_ url: String?) -> some View {
+    // Punkt + Tipp nur am vorhandenen Bild: ohne Profilbild zeigt die Kachel wie bisher nur den
+    // Namen, ein Punkt im Leeren waere keinem Bild zuzuordnen.
+    @ViewBuilder private func recAvatar(_ url: String?, userId: Int?) -> some View {
         if let u = Api.mediaURL(url) {
             NetzBild(url: u) { stand in
                     switch stand {
@@ -242,6 +244,7 @@ struct CommunityView: View {
                     }
                 }
             .frame(width: 18, height: 18).clipShape(Circle())
+            .profilbild(userId: userId, size: 18)
         }
     }
 
@@ -254,6 +257,7 @@ struct CommunityView: View {
                     }
                 }
             .frame(width: 28, height: 28).clipShape(Circle())
+            .profilbild(userId: e.user_id, size: 28)
         }
     }
 
@@ -525,6 +529,7 @@ struct CommunityRow: View {
     // unten Sportart, Kennzahlen und Herz — ohne Bilder, Setup und Geraet.
     private var kompaktZeile: some View {
         KompaktZeile(avatarName: item.name, avatarURL: Api.mediaURL(item.avatar_url),
+                     avatarUserId: item.user_id,
                      datum: TimeFmt.kurzDatum(item.started_at, item.tz) ?? "",
                      zeit: TimeFmt.timeOnly(item.started_at, item.tz) ?? "",
                      name: item.name, spot: item.spot, abzeichen: sportLabel,
@@ -650,7 +655,13 @@ struct CommunityRow: View {
         return parts.isEmpty ? nil : parts.joined(separator: "  ·  ")
     }
 
-    @ViewBuilder private var avatar: some View {
+    // Online-Punkt + Tipp auf die Foiler-Seite (OnlinePunkt.swift). Die Zeile selbst oeffnet die
+    // Session; der Profilbild-Knopf ist `.borderless` und faengt seinen Tipp selbst ab.
+    private var avatar: some View {
+        avatarBild.profilbild(userId: item.user_id, size: 36)
+    }
+
+    @ViewBuilder private var avatarBild: some View {
         if let url = Api.mediaURL(item.avatar_url) {
             NetzBild(url: url) { stand in
                     switch stand {
