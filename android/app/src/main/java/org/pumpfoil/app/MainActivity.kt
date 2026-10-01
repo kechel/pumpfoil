@@ -194,6 +194,20 @@ fun MainScaffold(onLogout: () -> Unit) {
         lifecycleOwner.lifecycle.addObserver(obs)
         onDispose { lifecycleOwner.lifecycle.removeObserver(obs) }
     }
+    // Online-Punkt (Online.kt): Abfragen nur, solange die App sichtbar ist. ON_START/ON_STOP der
+    // Activity statt RESUME/PAUSE: ein Dialog oder der geteilte Bildschirm pausiert, die Punkte
+    // sind dann aber weiter zu sehen. Beim Abmelden/Verlassen gilt die App als Hintergrund.
+    DisposableEffect(lifecycleOwner) {
+        val obs = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_START -> OnlineStatus.setVordergrund(true)
+                Lifecycle.Event.ON_STOP -> OnlineStatus.setVordergrund(false)
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(obs)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(obs); OnlineStatus.setVordergrund(false) }
+    }
 
     val compareIds by CompareStore.refs.collectAsState()
     val recSt by Recorder.state.collectAsState()
@@ -230,6 +244,9 @@ fun MainScaffold(onLogout: () -> Unit) {
             }
         },
     ) { pad ->
+        // Tipp auf ein Profilbild -> Profilseite (Online.kt, LocalOpenFoiler). Einmal hier gesetzt,
+        // gilt es fuer jede Karte, Zeile und Chat-Nachricht darunter.
+        androidx.compose.runtime.CompositionLocalProvider(LocalOpenFoiler provides { uid: Int -> nav.navigate("foiler/$uid") }) {
         NavHost(nav, startDestination = "home", modifier = Modifier.padding(pad)) {
             composable("home") { HomeScreen(onOpen = { id, v -> nav.navigate("session/$id" + (v?.let { "?v=$it" } ?: "")) }, onOpenChat = { nav.switchTab("chat") }, onOpenSessions = { nav.switchTab("sessions") }, onOpenCommunity = { nav.switchTab("community") }, onOpenChatRoom = { sc, lb -> nav.navigate("chatroom/${Uri.encode(sc)}?label=${Uri.encode(lb)}") }, onRecord = { nav.navigate("record") }, onOpenSortedOut = { SessionsWunsch.setzeFilter("other"); nav.switchTab("sessions") }, onOnboarding = { nav.navigate("onboarding") }, social = social) }
             composable("sessions") { SessionsScreen(onOpen = { id, v -> nav.navigate("session/$id" + (v?.let { "?v=$it" } ?: "")) }, onCompare = { nav.navigate("compare") }, onSpotChat = { s -> nav.navigate("chatroom/${Uri.encode("spot:" + s)}?label=${Uri.encode(s)}") }) }
@@ -350,6 +367,29 @@ fun MainScaffold(onLogout: () -> Unit) {
             ) { entry ->
                 LabelingScreen(id = entry.arguments?.getInt("id") ?: 0, onBack = { nav.popBackStack() })
             }
+            // Native Profilseite eines Nutzers (Web: /foiler/<id>, Foiler.tsx).
+            composable(
+                "foiler/{id}",
+                arguments = listOf(navArgument("id") { type = NavType.IntType }),
+            ) { entry ->
+                FoilerScreen(
+                    userId = entry.arguments?.getInt("id") ?: 0,
+                    onBack = { nav.popBackStack() },
+                    onOpenSession = { sid -> nav.navigate("session/$sid") },
+                    onOpenSpot = { s -> nav.navigate("spot/${Uri.encode(s)}") },
+                    onChat = { uid -> nav.navigate("dm/$uid") },
+                    onSettings = { nav.navigate("settings") },
+                    social = social,
+                )
+            }
+            // 1:1-Chat ueber die User-ID (Knopf „Nachricht" auf der Profilseite).
+            composable(
+                "dm/{id}",
+                arguments = listOf(navArgument("id") { type = NavType.IntType }),
+            ) { entry ->
+                ChatRoomByUser(userId = entry.arguments?.getInt("id") ?: 0, onBack = { nav.popBackStack() })
+            }
+        }
         }
     }
 }

@@ -244,6 +244,8 @@ fun SettingsScreen(onBack: () -> Unit) {
             Spacer(Modifier.height(12.dp))
             OrtVerbergenKarte(onSaved = { flashSaved() })
             Spacer(Modifier.height(12.dp))
+            OnlinePunktKarte(onSaved = { flashSaved() })
+            Spacer(Modifier.height(12.dp))
             GeteilteAufnahmenKarte()
             Spacer(Modifier.height(16.dp))
 

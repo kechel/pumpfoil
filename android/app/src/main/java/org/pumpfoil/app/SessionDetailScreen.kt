@@ -622,7 +622,8 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             }
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
-            AvatarCircle(name = s.ownerName, avatarUrl = s.ownerAvatarUrl, size = 44.dp)
+            // Wie im Web auch auf der eigenen Session: der Tipp fuehrt dann auf die eigene Profilseite.
+            AvatarCircle(name = s.ownerName, avatarUrl = s.ownerAvatarUrl, size = 44.dp, userId = s.ownerId)
             Spacer(Modifier.width(10.dp))
             Column(Modifier.weight(1f)) {
                 Text(prettyDate(s.startedAt, s.tz), style = MaterialTheme.typography.headlineSmall)
@@ -2158,12 +2159,15 @@ private fun TransferPicker(sessionId: Int) {
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             val av = Api.mediaUrl(u.avatarUrl)
-                            if (av != null) {
-                                AsyncImage(model = av, contentDescription = null, contentScale = ContentScale.Crop,
-                                    modifier = Modifier.size(32.dp).clip(CircleShape))
-                            } else {
-                                Icon(Icons.Filled.Person, contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(32.dp))
+                            // Punkt ja, Link nein: der Tipp waehlt hier den Empfaenger aus.
+                            ProfilbildRahmen(u.id, 32.dp, link = false) {
+                                if (av != null) {
+                                    AsyncImage(model = av, contentDescription = null, contentScale = ContentScale.Crop,
+                                        modifier = Modifier.size(32.dp).clip(CircleShape))
+                                } else {
+                                    Icon(Icons.Filled.Person, contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(32.dp))
+                                }
                             }
                             Spacer(Modifier.width(10.dp))
                             Text(u.displayName ?: "?", style = MaterialTheme.typography.bodyMedium)

@@ -15,6 +15,7 @@ import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
@@ -152,6 +153,13 @@ object Api {
     // PUT-Alias, da HttpURLConnection kein PATCH kann; ungültige Werte fängt der Server auf "hz".
     suspend fun updatePumpUnit(v: String): Unit = withContext(Dispatchers.IO) {
         http("PUT", "/api/auth/me", "{\"pump_unit\":\"$v\"}", auth = true)
+    }
+
+    // Gruener Online-Punkt am Profilbild fuer andere sichtbar (Profil-Schalter, Standard an).
+    // PUT-Alias, da HttpURLConnection kein PATCH kann.
+    suspend fun updateShowOnline(an: Boolean): Profile = withContext(Dispatchers.IO) {
+        val body = buildJsonObject { put("show_online", an) }.toString()
+        json.decodeFromString(Profile.serializer(), http("PUT", "/api/auth/me", body, auth = true))
     }
 
     // Age-Gate (Apple Declared Age Range): social_allowed + age_bracket setzen. Auf Android v. a.
@@ -905,6 +913,19 @@ object Api {
     }
 
     // --- 1:1-Direktnachrichten + Blockieren ---
+    // Gruener Online-Punkt (OnlineStatus in Online.kt): welche dieser Nutzer sind gerade online?
+    // Hoechstens 200 IDs je Aufruf (Server-Grenze). Blockierte, Abgeschaltete, unter 13 meldet er nie.
+    suspend fun chatOnline(ids: List<Int>): List<Int> = withContext(Dispatchers.IO) {
+        val r = json.parseToJsonElement(http("GET", "/api/chat/online?ids=${ids.joinToString(",")}", null, auth = true)).jsonObject
+        r["online"]?.jsonArray?.mapNotNull { it.jsonPrimitive.intOrNull } ?: emptyList()
+    }
+
+    // Oeffentliche Foiler-Seite EINES Nutzers. Was drinsteht, entscheidet der Server anhand der
+    // Schalter des Nutzers (`zeigt`); die App filtert nichts nach.
+    suspend fun foilerProfil(userId: Int): FoilerProfil = withContext(Dispatchers.IO) {
+        json.decodeFromString(FoilerProfil.serializer(), http("GET", "/api/community/foiler/$userId", null, auth = true))
+    }
+
     suspend fun chatDmOpen(userId: Int): DmOpen = withContext(Dispatchers.IO) {
         json.decodeFromString(DmOpen.serializer(), http("GET", "/api/chat/dm?user_id=$userId", null, auth = true))
     }
@@ -1416,6 +1437,10 @@ object Api {
             readTimeout = 30000
             setRequestProperty("X-Pumpfoil-Client", CLIENT_ID)
             if (auth) token?.let { setRequestProperty("Authorization", "Bearer $it") }
+            // App im Hintergrund (Upload-Worker, Recorder): der Server soll uns dann NICHT als
+            // online fuehren (gruener Punkt, server/app/api/deps.py) — sonst gaelte als online,
+            // wer gerade nur eine Aufnahme hochlaedt, waehrend das Handy in der Tasche steckt.
+            if (auth && !OnlineStatus.vordergrund) setRequestProperty("X-Foil-Sichtbar", "0")
             if (body != null) {
                 doOutput = true
                 setRequestProperty("Content-Type", "application/json")

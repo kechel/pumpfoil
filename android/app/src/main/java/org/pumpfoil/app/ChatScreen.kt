@@ -22,6 +22,8 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Notifications
@@ -96,6 +98,28 @@ fun ChatRoomByScope(scope: String, label: String, onBack: () -> Unit) {
     // bei Direkt-Links von ausserhalb des Chat-Tabs geht; Zurueck fuehrt dann wie gehabt hinaus.
     var room by remember(scope) { mutableStateOf(ChatRoom(scope = scope, label = label)) }
     key(room.scope) { ChatRoomView(room, onBack = onBack, onOpen = { room = it }) }
+}
+
+// 1:1-Chat mit einer Person von aussen oeffnen (Profilseite, Knopf „Nachricht", Web b89044e2).
+// Ueber die User-ID statt ueber den Scope: /api/chat/dm liefert Name, Profilbild und die ID des
+// Gegenuebers mit — ohne `other` fehlten im Raum Blockieren und die Lesebestaetigung.
+@Composable
+fun ChatRoomByUser(userId: Int, onBack: () -> Unit) {
+    var room by remember(userId) { mutableStateOf<ChatRoom?>(null) }
+    var fehler by remember(userId) { mutableStateOf<String?>(null) }
+    LaunchedEffect(userId) {
+        try {
+            val d = Api.chatDmOpen(userId)
+            room = ChatRoom(scope = d.scope, label = d.other.name ?: "", kind = "dm", other = d.other)
+        } catch (e: Exception) { fehler = e.message }
+    }
+    val r = room
+    if (r != null) key(r.scope) { ChatRoomView(r, onBack = onBack, onOpen = { room = it }) }
+    else androidx.compose.foundation.layout.Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        val f = fehler
+        if (f != null) Text(f, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error)
+        else CircularProgressIndicator()
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -199,7 +223,13 @@ private fun ChatRoomsList(onOpen: (ChatRoom) -> Unit) {
                                                 overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                                         }
                                     },
-                                    leadingContent = { Icon(if (isDm) Icons.Filled.Person else Icons.Filled.Forum, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                                    // DM: Profilbild mit Online-Punkt (wie Web DmWidget), ohne Link —
+                                    // der Tipp auf die Zeile oeffnet hier den Chat.
+                                    leadingContent = {
+                                        val o = r.other
+                                        if (isDm && o != null && o.id > 0) AvatarCircle(name = o.name, avatarUrl = o.avatarUrl, size = 32.dp, userId = o.id, link = false)
+                                        else Icon(if (isDm) Icons.Filled.Person else Icons.Filled.Forum, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                    },
                                     trailingContent = {
                                         Row(verticalAlignment = Alignment.CenterVertically) {
                                             if (r.scope in subscribed) {
@@ -260,7 +290,8 @@ private fun UserRow(u: DmUser, onClick: () -> Unit) {
     ListItem(
         modifier = Modifier.clickable { onClick() },
         headlineContent = { Text(u.displayName ?: "—") },
-        leadingContent = { Icon(Icons.Filled.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+        // Personensuche: Profilbild mit Online-Punkt, ohne Link (der Tipp oeffnet den Chat).
+        leadingContent = { AvatarCircle(name = u.displayName, avatarUrl = u.avatarUrl, size = 32.dp, userId = u.id, link = false) },
     )
 }
 
@@ -314,6 +345,19 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit, onOpen: (ChatRoom) 
     var confirmLeave by remember { mutableStateOf(false) }
     var lastId by remember(room.scope) { mutableStateOf(0) }
     val isDm = room.scope.startsWith("dm:")
+    // Lesebestaetigung, NUR im 1:1 (Web 1d7ac4a0): bis zu welcher Nachricht das Gegenueber gelesen
+    // hat. null = Spot-/Session-Chat oder alter Server -> keine Haken.
+    var gelesenBis by remember(room.scope) { mutableStateOf<Int?>(null) }
+    // Den EIGENEN Lesestand nur setzen, wenn dieser Chat wirklich vorn zu sehen ist: Der
+    // Polling-Loop laeuft weiter, solange der Screen im Back-Stack liegt oder die App im
+    // Hintergrund ist — ohne diese Sperre kaeme beim Gegenueber ✓✓ von einem Chat, den niemand
+    // ansieht. Der Lifecycle des NavBackStackEntry ist RESUMED nur, wenn der Screen oben liegt
+    // UND die Activity im Vordergrund ist.
+    val lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
+    fun sichtbar() = lifecycleOwner.lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)
+    suspend fun alsGelesen(id: Int) {
+        if (id > 0 && sichtbar()) runCatching { Api.chatMarkRead(room.scope, id) }
+    }
     val otherId = room.other?.id ?: 0
     var blocked by remember(room.scope) { mutableStateOf(false) }
     var confirmBlock by remember { mutableStateOf(false) }
@@ -363,7 +407,7 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit, onOpen: (ChatRoom) 
         try {
             val rows = Api.chatLatest(room.scope, limit = 100); msgs = rows; error = null
             lastId = rows.maxOfOrNull { it.id } ?: 0
-            if (lastId > 0) runCatching { Api.chatMarkRead(room.scope, lastId) }
+            alsGelesen(lastId)
         } catch (e: Exception) { error = e.message }
     }
     // Senden mit Text und/oder fertig hochgeladenen Bildern (Tastatur UND Diktat, wie Web sendText).
@@ -379,12 +423,14 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit, onOpen: (ChatRoom) 
     }
     LaunchedEffect(room.scope) {
         runCatching { Api.me() }.getOrNull()?.let { me -> isAdmin = me.isAdmin; kannFotos = me.chatPhotos ?: me.isAdmin }
-        runCatching { Api.chatRoomState(room.scope) }.getOrNull()?.let { st -> push = st.push; weiterAn = st.weiterAn }
+        runCatching { Api.chatRoomState(room.scope) }.getOrNull()?.let { st -> push = st.push; weiterAn = st.weiterAn; gelesenBis = st.gelesenBis }
         if (isDm && otherId > 0) blocked = runCatching { Api.chatBlocks().any { it.id == otherId } }.getOrDefault(false)
         load()
         // Live-Polling neuer Nachrichten (~10 s) + Lesestand, wie die Web-PWA.
         while (isActive) {
             kotlinx.coroutines.delay(10_000)
+            // Im 1:1 den Lesestand des Gegenuebers mitholen (die Haken), wie Chat.tsx.
+            if (isDm) runCatching { Api.chatRoomState(room.scope) }.getOrNull()?.let { gelesenBis = it.gelesenBis }
             runCatching {
                 val since = Api.chatSince(room.scope, lastId)
                 val known = msgs.map { it.id }.toSet()
@@ -392,10 +438,20 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit, onOpen: (ChatRoom) 
                 if (add.isNotEmpty()) {
                     msgs = msgs + add
                     lastId = msgs.maxOf { it.id }
-                    Api.chatMarkRead(room.scope, lastId)
+                    alsGelesen(lastId)
                 }
             }
         }
+    }
+
+    // Wieder vorn (aus dem Hintergrund oder von einem Screen darueber zurueck): was inzwischen
+    // per Polling dazukam, jetzt als gelesen melden — vorher lag es ungesehen im Speicher.
+    androidx.compose.runtime.DisposableEffect(lifecycleOwner, room.scope) {
+        val obs = androidx.lifecycle.LifecycleEventObserver { _, e ->
+            if (e == androidx.lifecycle.Lifecycle.Event.ON_RESUME) scope.launch { alsGelesen(lastId) }
+        }
+        lifecycleOwner.lifecycle.addObserver(obs)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(obs) }
     }
 
     if (showDict) {
@@ -619,12 +675,16 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit, onOpen: (ChatRoom) 
                     // (Chat.tsx:244-252): aktiv cyan/gefuellt, inaktiv grau, Zaehler nur wenn > 0.
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         val av = Api.mediaUrl(m.avatarUrl)
-                        if (av != null) {
-                            AsyncImage(model = av, contentDescription = null, contentScale = ContentScale.Crop,
-                                modifier = Modifier.size(32.dp).clip(CircleShape))
-                        } else {
-                            Icon(Icons.Filled.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(32.dp))
+                        // Online-Punkt + Tipp aufs Profil. Das eigene Bild ohne beides (wie Web: der
+                        // eigene Punkt sagt einem nichts, und die eigene Seite ist im Profil verlinkt).
+                        ProfilbildRahmen(if (m.mine) null else m.userId, 32.dp) {
+                            if (av != null) {
+                                AsyncImage(model = av, contentDescription = null, contentScale = ContentScale.Crop,
+                                    modifier = Modifier.size(32.dp).clip(CircleShape))
+                            } else {
+                                Icon(Icons.Filled.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(32.dp))
+                            }
                         }
                         if (!m.hidden) {
                             Row(
@@ -659,6 +719,16 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit, onOpen: (ChatRoom) 
                             hhmmChat(m.createdAt)?.let {
                                 Spacer(Modifier.width(6.dp))
                                 Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            // Lesebestaetigung wie WhatsApp, nur im 1:1 und nur an eigenen Nachrichten:
+                            // ✓ grau = gesendet, ✓✓ Markenfarbe = vom Gegenueber gelesen.
+                            val gb = gelesenBis
+                            if (isDm && m.mine && gb != null) {
+                                Spacer(Modifier.width(4.dp))
+                                if (m.id <= gb) Icon(Icons.Filled.DoneAll, contentDescription = I18n.t("chat.read"),
+                                    tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
+                                else Icon(Icons.Filled.Done, contentDescription = I18n.t("chat.sent"),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
                             }
                         }
                         // Reine Bild-Nachricht: kein leerer Textblock, nur die Bilder.

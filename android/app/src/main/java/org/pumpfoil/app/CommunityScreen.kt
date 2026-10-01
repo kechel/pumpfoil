@@ -311,8 +311,10 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                                                 Text("${i + 1}", Modifier.width(20.dp), style = MaterialTheme.typography.titleSmall,
                                                     color = MaterialTheme.colorScheme.primary)
                                                 Api.mediaUrl(e.avatarUrl)?.let { av ->
-                                                    AsyncImage(model = av, contentDescription = null, contentScale = ContentScale.Crop,
-                                                        modifier = Modifier.size(28.dp).clip(CircleShape))
+                                                    ProfilbildRahmen(e.userId, 28.dp) {
+                                                        AsyncImage(model = av, contentDescription = null, contentScale = ContentScale.Crop,
+                                                            modifier = Modifier.size(28.dp).clip(CircleShape))
+                                                    }
                                                     Spacer(Modifier.width(8.dp))
                                                 }
                                                 Text(e.name ?: "—", Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -476,8 +478,11 @@ fun RecordGrid(r: PeriodRecords?, showSpot: Boolean, onOpen: (Int) -> Unit, modi
                                     Spacer(Modifier.height(2.dp))
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Api.mediaUrl(ri.e.avatarUrl)?.let { av ->
-                                            AsyncImage(model = av, contentDescription = null, contentScale = ContentScale.Crop,
-                                                modifier = Modifier.size(18.dp).clip(CircleShape))
+                                            // Tipp aufs Bild -> Profil; auf den Rest der Kachel -> Session.
+                                            ProfilbildRahmen(ri.e.userId, 18.dp) {
+                                                AsyncImage(model = av, contentDescription = null, contentScale = ContentScale.Crop,
+                                                    modifier = Modifier.size(18.dp).clip(CircleShape))
+                                            }
                                             Spacer(Modifier.width(4.dp))
                                         }
                                         Text(nm, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary,

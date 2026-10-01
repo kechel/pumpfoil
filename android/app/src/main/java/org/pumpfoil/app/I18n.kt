@@ -122,6 +122,26 @@ private fun row(de: String, gsw: String, deAT: String, en: String, fr: String, i
 private val S: Map<String, Map<String, String>> = sTabelle()
 
 private fun sTabelle(): Map<String, Map<String, String>> = mapOf(
+    // Online-Punkt, Lesebestaetigung, native Profilseite (Online.kt, ChatScreen.kt, FoilerScreen.kt), aus den Web-Sprachdateien 01.10.2026.
+    "presence.online" to row("Online", "Online", "Online", "Online", "En ligne", "Online", "En línea"),
+    "online.title" to row("Online-Punkt", "Online-Pünktli", "Online-Punkt", "Online dot", "Point en ligne", "Punto online", "Punto en línea"),
+    "online.hint" to row("Solange du die App oder die Seite offen hast, sehen andere einen kleinen grünen Punkt an deinem Profilbild.", "Solang du d App oder d Siite offe hesch, gsehnd anderi es chliises grüens Pünktli a dim Profilbild.", "Solange du die App oder die Seite offen hast, sehen andere einen kleinen grünen Punkt an deinem Profilbild.", "While you have the app or the website open, others see a small green dot on your profile picture.", "Tant que l'appli ou le site est ouvert, les autres voient un petit point vert sur ta photo de profil.", "Finché hai l'app o il sito aperti, gli altri vedono un piccolo punto verde sulla tua foto profilo.", "Mientras tengas la app o la web abiertas, los demás ven un pequeño punto verde en tu foto de perfil."),
+    "online.switch" to row("Anderen zeigen, wenn ich online bin", "Andere zeige, wenn i online bi", "Anderen zeigen, wenn ich online bin", "Show others when I'm online", "Montrer aux autres quand je suis en ligne", "Mostra agli altri quando sono online", "Mostrar a los demás cuando estoy en línea"),
+    "chat.sent" to row("Gesendet", "Gschickt", "Gesendet", "Sent", "Envoyé", "Inviato", "Enviado"),
+    "chat.read" to row("Gelesen", "Gläse", "Gelesen", "Read", "Lu", "Letto", "Leído"),
+    "foiler.chat" to row("Nachricht", "Nachricht", "Nachricht", "Message", "Message", "Messaggio", "Mensaje"),
+    "foiler.since" to row("Dabei seit {date}", "Dabii sit {date}", "Dabei seit {date}", "Foiling here since {date}", "Inscrit depuis le {date}", "Iscritto dal {date}", "Miembro desde el {date}"),
+    "foiler.homespot" to row("Homespot", "Homespot", "Homespot", "Home spot", "Spot habituel", "Spot di casa", "Spot habitual"),
+    "foiler.watch" to row("Uhr", "Uhr", "Uhr", "Watch", "Montre", "Orologio", "Reloj"),
+    "foiler.foil" to row("Foil", "Foil", "Foil", "Foil", "Foil", "Foil", "Foil"),
+    "foiler.records" to row("Persönliche Rekorde (12 Monate)", "Persönlichi Rekord (12 Mönet)", "Persönliche Rekorde (12 Monate)", "Personal Records (12 months)", "Records personnels (12 mois)", "Record personali (12 mesi)", "Récords personales (12 meses)"),
+    "foiler.notFound" to row("Diese Profilseite ist nicht verfügbar.", "Die Profilsite isch nöd verfüegbar.", "Diese Profilseite is net verfügbar.", "This profile page is not available.", "Cette page de profil n'est pas disponible.", "Questa pagina del profilo non è disponibile.", "Esta página de perfil no está disponible."),
+    "foiler.offHint" to row("Deine Profilseite ist für andere ausgeblendet. Sichtbarkeit ändern:", "Dini Profilsite isch für anderi usgblendet. Sichtbarkeit ändere:", "Deine Profilseite is für andere ausgeblendet. Sichtbarkeit ändern:", "Your profile page is hidden from others. Change visibility:", "Ta page de profil est masquée aux autres. Modifier la visibilité :", "La tua pagina del profilo è nascosta agli altri. Cambia visibilità:", "Tu página de perfil está oculta para los demás. Cambiar visibilidad:"),
+    "foiler.spotNotes" to row("Spot-Beschreibungen", "Spot-Beschribige", "Spot-Beschreibungen", "Spot descriptions", "Descriptions de spots", "Descrizioni degli spot", "Descripciones de spots"),
+    "foiler.lastSessions" to row("Letzte 5 Sessions", "Letschti 5 Sessions", "Letzte 5 Sessions", "Latest 5 sessions", "5 dernières sessions", "Ultime 5 sessioni", "Últimas 5 sesiones"),
+    "foiler.onlyFoiler" to row("Einziger Foiler an diesem Spot", "Einzige Foiler a dem Spot", "Einziger Foiler an dem Spot", "Only foiler at this spot", "Seul foiler sur ce spot", "Unico foiler in questo spot", "Único foiler en este spot"),
+    "foiler.titles" to row("Community-Rekorde (12 Monate)", "Community-Rekord (12 Mönet)", "Community-Rekorde (12 Monate)", "Community Records (12 months)", "Records de la communauté (12 mois)", "Record della community (12 mesi)", "Récords de la comunidad (12 meses)"),
+    "foiler.basisGps" to row("Nur GPS", "Nur GPS", "Nur GPS", "GPS only", "GPS seul", "Solo GPS", "Solo GPS"),
     // Kacheln/Zeilen-Umschalter (ListenAnsicht.kt) + Chat-Bilder (ChatFotos.kt), aus den Web-Sprachdateien 30.09.2026.
     "list.cards" to row("Kacheln", "Chachle", "Kacheln", "Cards", "Cartes", "Schede", "Tarjetas"),
     "list.compact" to row("Eine Zeile je Session", "Ei Ziile pro Session", "Eine Zeile pro Session", "One line per session", "Une ligne par session", "Una riga per sessione", "Una línea por sesión"),
@@ -1453,6 +1473,26 @@ private fun sTabelle(): Map<String, Map<String, String>> = mapOf(
 private val FI: Map<String, String> = fiTabelle()
 
 private fun fiTabelle(): Map<String, String> = mapOf(
+    // Online-Punkt, Lesebestaetigung, Profilseite — aus web fi.ts, 01.10.2026.
+    "presence.online" to "Paikalla",
+    "online.title" to "Paikalla-piste",
+    "online.hint" to "Kun sovellus tai sivusto on auki, muut näkevät pienen vihreän pisteen profiilikuvassasi.",
+    "online.switch" to "Näytä muille, kun olen paikalla",
+    "chat.sent" to "Lähetetty",
+    "chat.read" to "Luettu",
+    "foiler.chat" to "Viesti",
+    "foiler.since" to "Mukana {date} lähtien",
+    "foiler.homespot" to "Kotispotti",
+    "foiler.watch" to "Kello",
+    "foiler.foil" to "Foili",
+    "foiler.records" to "Omat ennätykset (12 kk)",
+    "foiler.notFound" to "Tätä profiilisivua ei ole saatavilla.",
+    "foiler.offHint" to "Profiilisivusi on piilotettu muilta. Muuta näkyvyyttä:",
+    "foiler.spotNotes" to "Spottikuvaukset",
+    "foiler.lastSessions" to "5 viimeisintä sessiota",
+    "foiler.onlyFoiler" to "Ainoa foilaaja tällä spotilla",
+    "foiler.titles" to "Yhteisön ennätykset (12 kk)",
+    "foiler.basisGps" to "Vain GPS",
     // Kacheln/Zeilen-Umschalter (ListenAnsicht.kt) + Chat-Bilder (ChatFotos.kt), aus den Web-Sprachdateien 30.09.2026.
     "list.cards" to "Kortit",
     "list.compact" to "Yksi rivi per sessio",
@@ -2513,6 +2553,26 @@ private fun fiTabelle(): Map<String, String> = mapOf(
 private val NL: Map<String, String> = nlTabelle()
 
 private fun nlTabelle(): Map<String, String> = mapOf(
+    // Online-Punkt, Lesebestaetigung, Profilseite — aus web nl.ts, 01.10.2026.
+    "presence.online" to "Online",
+    "online.title" to "Online-stip",
+    "online.hint" to "Zolang je de app of de website open hebt, zien anderen een klein groen stipje bij je profielfoto.",
+    "online.switch" to "Anderen laten zien wanneer ik online ben",
+    "chat.sent" to "Verzonden",
+    "chat.read" to "Gelezen",
+    "foiler.chat" to "Bericht",
+    "foiler.since" to "Lid sinds {date}",
+    "foiler.homespot" to "Homespot",
+    "foiler.watch" to "Horloge",
+    "foiler.foil" to "Foil",
+    "foiler.records" to "Persoonlijke records (12 maanden)",
+    "foiler.notFound" to "Deze profielpagina is niet beschikbaar.",
+    "foiler.offHint" to "Je profielpagina is verborgen voor anderen. Zichtbaarheid wijzigen:",
+    "foiler.spotNotes" to "Spotbeschrijvingen",
+    "foiler.lastSessions" to "Laatste 5 sessies",
+    "foiler.onlyFoiler" to "Enige foiler op deze spot",
+    "foiler.titles" to "Communityrecords (12 maanden)",
+    "foiler.basisGps" to "Alleen GPS",
     // Kacheln/Zeilen-Umschalter (ListenAnsicht.kt) + Chat-Bilder (ChatFotos.kt), aus den Web-Sprachdateien 30.09.2026.
     "list.cards" to "Kaarten",
     "list.compact" to "Eén regel per sessie",
@@ -3572,6 +3632,26 @@ private fun nlTabelle(): Map<String, String> = mapOf(
 private val CS: Map<String, String> = csTabelle()
 
 private fun csTabelle(): Map<String, String> = mapOf(
+    // Online-Punkt, Lesebestaetigung, Profilseite — aus web cs.ts, 01.10.2026.
+    "presence.online" to "Online",
+    "online.title" to "Online tečka",
+    "online.hint" to "Dokud máš otevřenou aplikaci nebo web, ostatní vidí u tvého profilového obrázku malou zelenou tečku.",
+    "online.switch" to "Ukázat ostatním, když jsem online",
+    "chat.sent" to "Odesláno",
+    "chat.read" to "Přečteno",
+    "foiler.chat" to "Zpráva",
+    "foiler.since" to "Členem od {date}",
+    "foiler.homespot" to "Domácí spot",
+    "foiler.watch" to "Hodinky",
+    "foiler.foil" to "Foil",
+    "foiler.records" to "Osobní rekordy (12 měsíců)",
+    "foiler.notFound" to "Tato profilová stránka není dostupná.",
+    "foiler.offHint" to "Tvoje profilová stránka je pro ostatní skrytá. Změnit viditelnost:",
+    "foiler.spotNotes" to "Popisy spotů",
+    "foiler.lastSessions" to "Posledních 5 sessions",
+    "foiler.onlyFoiler" to "Jediný foiler na tomto spotu",
+    "foiler.titles" to "Rekordy komunity (12 měsíců)",
+    "foiler.basisGps" to "Jen GPS",
     // Kacheln/Zeilen-Umschalter (ListenAnsicht.kt) + Chat-Bilder (ChatFotos.kt), aus den Web-Sprachdateien 30.09.2026.
     "list.cards" to "Karty",
     "list.compact" to "Jeden řádek na relaci",

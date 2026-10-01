@@ -7,6 +7,26 @@ package org.pumpfoil.app
 val PT: Map<String, String> = ptTabelle()
 
 private fun ptTabelle(): Map<String, String> = mapOf(
+    // Online-Punkt, Lesebestaetigung, Profilseite — aus web pt.ts, 01.10.2026.
+    "presence.online" to "Online",
+    "online.title" to "Ponto online",
+    "online.hint" to "Enquanto o app ou o site estiver aberto, os outros veem um pequeno ponto verde na sua foto de perfil.",
+    "online.switch" to "Mostrar aos outros quando estou online",
+    "chat.sent" to "Enviado",
+    "chat.read" to "Lido",
+    "foiler.chat" to "Mensagem",
+    "foiler.since" to "Membro desde {date}",
+    "foiler.homespot" to "Spot habitual",
+    "foiler.watch" to "Relógio",
+    "foiler.foil" to "Foil",
+    "foiler.records" to "Recordes pessoais (12 meses)",
+    "foiler.notFound" to "Esta página de perfil não está disponível.",
+    "foiler.offHint" to "A sua página de perfil está oculta para os outros. Alterar visibilidade:",
+    "foiler.spotNotes" to "Descrições de spots",
+    "foiler.lastSessions" to "Últimas 5 sessões",
+    "foiler.onlyFoiler" to "Único foiler neste spot",
+    "foiler.titles" to "Recordes da comunidade (12 meses)",
+    "foiler.basisGps" to "Só GPS",
     // Kacheln/Zeilen-Umschalter (ListenAnsicht.kt) + Chat-Bilder (ChatFotos.kt), aus den Web-Sprachdateien 30.09.2026.
     "list.cards" to "Cartões",
     "list.compact" to "Uma linha por sessão",
@@ -1075,6 +1095,26 @@ private fun ptTabelle(): Map<String, String> = mapOf(
 val JA: Map<String, String> = jaTabelle()
 
 private fun jaTabelle(): Map<String, String> = mapOf(
+    // Online-Punkt, Lesebestaetigung, Profilseite — aus web ja.ts, 01.10.2026.
+    "presence.online" to "オンライン",
+    "online.title" to "オンライン表示",
+    "online.hint" to "アプリやサイトを開いている間、他の人にはプロフィール画像に小さな緑の点が表示されます。",
+    "online.switch" to "オンライン中であることを他の人に表示する",
+    "chat.sent" to "送信済み",
+    "chat.read" to "既読",
+    "foiler.chat" to "メッセージ",
+    "foiler.since" to "{date} から参加",
+    "foiler.homespot" to "ホームスポット",
+    "foiler.watch" to "ウォッチ",
+    "foiler.foil" to "フォイル",
+    "foiler.records" to "自己記録（12か月）",
+    "foiler.notFound" to "このプロフィールページは利用できません。",
+    "foiler.offHint" to "あなたのプロフィールページは他の人には非表示です。公開設定を変更:",
+    "foiler.spotNotes" to "スポットの説明",
+    "foiler.lastSessions" to "最近の5セッション",
+    "foiler.onlyFoiler" to "このスポットで唯一のフォイラー",
+    "foiler.titles" to "コミュニティ記録（12か月）",
+    "foiler.basisGps" to "GPSのみ",
     // Kacheln/Zeilen-Umschalter (ListenAnsicht.kt) + Chat-Bilder (ChatFotos.kt), aus den Web-Sprachdateien 30.09.2026.
     "list.cards" to "カード",
     "list.compact" to "1セッション1行",
@@ -2143,6 +2183,26 @@ private fun jaTabelle(): Map<String, String> = mapOf(
 val ZH: Map<String, String> = zhTabelle()
 
 private fun zhTabelle(): Map<String, String> = mapOf(
+    // Online-Punkt, Lesebestaetigung, Profilseite — aus web zh.ts, 01.10.2026.
+    "presence.online" to "在线",
+    "online.title" to "在线标记",
+    "online.hint" to "当你打开应用或网站时，其他人会在你的头像上看到一个小绿点。",
+    "online.switch" to "向他人显示我在线",
+    "chat.sent" to "已发送",
+    "chat.read" to "已读",
+    "foiler.chat" to "发消息",
+    "foiler.since" to "自 {date} 加入",
+    "foiler.homespot" to "主玩点",
+    "foiler.watch" to "手表",
+    "foiler.foil" to "水翼",
+    "foiler.records" to "个人记录（12 个月）",
+    "foiler.notFound" to "该个人主页不可用。",
+    "foiler.offHint" to "你的个人主页对其他人隐藏。修改可见性:",
+    "foiler.spotNotes" to "地点说明",
+    "foiler.lastSessions" to "最近 5 次活动",
+    "foiler.onlyFoiler" to "该地点唯一的水翼玩家",
+    "foiler.titles" to "社区记录（12 个月）",
+    "foiler.basisGps" to "仅 GPS",
     // Kacheln/Zeilen-Umschalter (ListenAnsicht.kt) + Chat-Bilder (ChatFotos.kt), aus den Web-Sprachdateien 30.09.2026.
     "list.cards" to "卡片",
     "list.compact" to "每条记录一行",
@@ -3211,6 +3271,26 @@ private fun zhTabelle(): Map<String, String> = mapOf(
 val RU: Map<String, String> = ruTabelle()
 
 private fun ruTabelle(): Map<String, String> = mapOf(
+    // Online-Punkt, Lesebestaetigung, Profilseite — aus web ru.ts, 01.10.2026.
+    "presence.online" to "В сети",
+    "online.title" to "Значок «в сети»",
+    "online.hint" to "Пока у тебя открыто приложение или сайт, другие видят маленькую зелёную точку на твоём фото профиля.",
+    "online.switch" to "Показывать другим, когда я в сети",
+    "chat.sent" to "Отправлено",
+    "chat.read" to "Прочитано",
+    "foiler.chat" to "Написать",
+    "foiler.since" to "С нами с {date}",
+    "foiler.homespot" to "Домашний спот",
+    "foiler.watch" to "Часы",
+    "foiler.foil" to "Фойл",
+    "foiler.records" to "Личные рекорды (12 месяцев)",
+    "foiler.notFound" to "Эта страница профиля недоступна.",
+    "foiler.offHint" to "Ваша страница профиля скрыта от других. Изменить видимость:",
+    "foiler.spotNotes" to "Описания спотов",
+    "foiler.lastSessions" to "Последние 5 сессий",
+    "foiler.onlyFoiler" to "Единственный фойлер на споте",
+    "foiler.titles" to "Рекорды сообщества (12 месяцев)",
+    "foiler.basisGps" to "Только GPS",
     // Kacheln/Zeilen-Umschalter (ListenAnsicht.kt) + Chat-Bilder (ChatFotos.kt), aus den Web-Sprachdateien 30.09.2026.
     "list.cards" to "Карточки",
     "list.compact" to "Одна строка на сессию",
@@ -4279,6 +4359,26 @@ private fun ruTabelle(): Map<String, String> = mapOf(
 val ID: Map<String, String> = idTabelle()
 
 private fun idTabelle(): Map<String, String> = mapOf(
+    // Online-Punkt, Lesebestaetigung, Profilseite — aus web id.ts, 01.10.2026.
+    "presence.online" to "Online",
+    "online.title" to "Titik online",
+    "online.hint" to "Selama aplikasi atau situs terbuka, orang lain melihat titik hijau kecil di foto profilmu.",
+    "online.switch" to "Tampilkan ke orang lain saat saya online",
+    "chat.sent" to "Terkirim",
+    "chat.read" to "Dibaca",
+    "foiler.chat" to "Pesan",
+    "foiler.since" to "Bergabung sejak {date}",
+    "foiler.homespot" to "Spot utama",
+    "foiler.watch" to "Jam",
+    "foiler.foil" to "Foil",
+    "foiler.records" to "Rekor pribadi (12 bulan)",
+    "foiler.notFound" to "Halaman profil ini tidak tersedia.",
+    "foiler.offHint" to "Halaman profilmu disembunyikan dari orang lain. Ubah visibilitas:",
+    "foiler.spotNotes" to "Deskripsi spot",
+    "foiler.lastSessions" to "5 sesi terakhir",
+    "foiler.onlyFoiler" to "Satu-satunya foiler di spot ini",
+    "foiler.titles" to "Rekor komunitas (12 bulan)",
+    "foiler.basisGps" to "Hanya GPS",
     // Kacheln/Zeilen-Umschalter (ListenAnsicht.kt) + Chat-Bilder (ChatFotos.kt), aus den Web-Sprachdateien 30.09.2026.
     "list.cards" to "Kartu",
     "list.compact" to "Satu baris per sesi",
@@ -5350,6 +5450,26 @@ private fun idTabelle(): Map<String, String> = mapOf(
 val NB: Map<String, String> = nbTabelle()
 
 private fun nbTabelle(): Map<String, String> = mapOf(
+    // Online-Punkt, Lesebestaetigung, Profilseite — aus web nb.ts, 01.10.2026.
+    "presence.online" to "Pålogget",
+    "online.title" to "Pålogget-prikk",
+    "online.hint" to "Så lenge du har appen eller nettsiden åpen, ser andre en liten grønn prikk på profilbildet ditt.",
+    "online.switch" to "Vis andre når jeg er pålogget",
+    "chat.sent" to "Sendt",
+    "chat.read" to "Lest",
+    "foiler.chat" to "Melding",
+    "foiler.since" to "Med siden {date}",
+    "foiler.homespot" to "Hjemmespot",
+    "foiler.watch" to "Klokke",
+    "foiler.foil" to "Foil",
+    "foiler.records" to "Personlige rekorder (12 måneder)",
+    "foiler.notFound" to "Denne profilsiden er ikke tilgjengelig.",
+    "foiler.offHint" to "Profilsiden din er skjult for andre. Endre synlighet:",
+    "foiler.spotNotes" to "Spotbeskrivelser",
+    "foiler.lastSessions" to "Siste 5 sessions",
+    "foiler.onlyFoiler" to "Eneste foiler på denne spoten",
+    "foiler.titles" to "Fellesskapsrekorder (12 måneder)",
+    "foiler.basisGps" to "Bare GPS",
     // Kacheln/Zeilen-Umschalter (ListenAnsicht.kt) + Chat-Bilder (ChatFotos.kt), aus den Web-Sprachdateien 30.09.2026.
     "list.cards" to "Kort",
     "list.compact" to "Én linje per økt",
@@ -6458,6 +6578,26 @@ private fun nbTabelle(): Map<String, String> = mapOf(
 val PL: Map<String, String> = plTabelle()
 
 private fun plTabelle(): Map<String, String> = mapOf(
+    // Online-Punkt, Lesebestaetigung, Profilseite — aus web pl.ts, 01.10.2026.
+    "presence.online" to "Online",
+    "online.title" to "Kropka online",
+    "online.hint" to "Gdy masz otwartą aplikację lub stronę, inni widzą małą zieloną kropkę przy twoim zdjęciu profilowym.",
+    "online.switch" to "Pokazuj innym, kiedy jestem online",
+    "chat.sent" to "Wysłano",
+    "chat.read" to "Przeczytano",
+    "foiler.chat" to "Wiadomość",
+    "foiler.since" to "Z nami od {date}",
+    "foiler.homespot" to "Domowy spot",
+    "foiler.watch" to "Zegarek",
+    "foiler.foil" to "Foil",
+    "foiler.records" to "Rekordy osobiste (12 miesięcy)",
+    "foiler.notFound" to "Ta strona profilu jest niedostępna.",
+    "foiler.offHint" to "Twoja strona profilu jest ukryta przed innymi. Zmień widoczność:",
+    "foiler.spotNotes" to "Opisy spotów",
+    "foiler.lastSessions" to "Ostatnie 5 sesji",
+    "foiler.onlyFoiler" to "Jedyny foiler na tym spocie",
+    "foiler.titles" to "Rekordy społeczności (12 miesięcy)",
+    "foiler.basisGps" to "Tylko GPS",
     // Kacheln/Zeilen-Umschalter (ListenAnsicht.kt) + Chat-Bilder (ChatFotos.kt), aus den Web-Sprachdateien 30.09.2026.
     "list.cards" to "Kafelki",
     "list.compact" to "Jeden wiersz na sesję",
@@ -7568,6 +7708,26 @@ private fun plTabelle(): Map<String, String> = mapOf(
 val PTPT: Map<String, String> = ptptTabelle()
 
 private fun ptptTabelle(): Map<String, String> = mapOf(
+    // Online-Punkt, Lesebestaetigung, Profilseite — aus web pt-PT.ts, 01.10.2026.
+    "presence.online" to "Online",
+    "online.title" to "Ponto online",
+    "online.hint" to "Enquanto tiveres a app ou o site aberto, os outros veem um pequeno ponto verde na tua foto de perfil.",
+    "online.switch" to "Mostrar aos outros quando estou online",
+    "chat.sent" to "Enviado",
+    "chat.read" to "Lido",
+    "foiler.chat" to "Mensagem",
+    "foiler.since" to "Membro desde {date}",
+    "foiler.homespot" to "Spot habitual",
+    "foiler.watch" to "Relógio",
+    "foiler.foil" to "Foil",
+    "foiler.records" to "Recordes pessoais (12 meses)",
+    "foiler.notFound" to "Esta página de perfil não está disponível.",
+    "foiler.offHint" to "A tua página de perfil está oculta para os outros. Alterar visibilidade:",
+    "foiler.spotNotes" to "Descrições de spots",
+    "foiler.lastSessions" to "Últimas 5 sessões",
+    "foiler.onlyFoiler" to "Único foiler neste spot",
+    "foiler.titles" to "Recordes da comunidade (12 meses)",
+    "foiler.basisGps" to "Só GPS",
     // Kacheln/Zeilen-Umschalter (ListenAnsicht.kt) + Chat-Bilder (ChatFotos.kt), aus den Web-Sprachdateien 30.09.2026.
     "chat.photoAdd" to "Adicionar fotografias",
     "chat.photoRemove" to "Remover fotografia",

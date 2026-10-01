@@ -267,7 +267,7 @@ private fun NoteKopf(n: SpotNote, spotId: Int, onChanged: () -> Unit) {
     var liked by remember(n.id) { mutableStateOf(n.liked) }
     var likes by remember(n.id) { mutableStateOf(n.like_count) }
     Row(verticalAlignment = Alignment.CenterVertically) {
-        AvatarCircle(name = n.name, avatarUrl = n.avatar_url, size = 28.dp)
+        AvatarCircle(name = n.name, avatarUrl = n.avatar_url, size = 28.dp, userId = n.user_id)
         Spacer(Modifier.width(6.dp))
         Column(Modifier.weight(1f)) {
             Text(n.name ?: "—", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
