@@ -633,6 +633,9 @@ data class ChatState(
     val push: Boolean = false,
     val left: Boolean = false,
     @SerialName("last_read_id") val lastReadId: Int = 0,
+    // 1:1 mit dem Bot-Account (Jan, 01.10.2026): der Mensch, an den Antworten gehen sollen. Gesetzt
+    // -> statt Eingabefeld der Knopf „Antworten bitte direkt an {name}". Aeltere Server: null.
+    @SerialName("weiter_an") val weiterAn: DmOther? = null,
 )
 
 // Community-Rekorde (GET /api/community/records): {period -> {distance/duration/speed/glide/runs}}.

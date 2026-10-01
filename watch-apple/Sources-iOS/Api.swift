@@ -935,7 +935,9 @@ enum Api {
         return try await request("/api/chat?scope=\(s)&after=\(after)", method: "GET", body: nil, auth: true)
     }
 
-    struct ChatState: Decodable { let push: Bool; let left: Bool?; let last_read_id: Int? }
+    // `weiter_an`: 1:1 mit dem Bot-Account (Jan, 01.10.2026) -> der Mensch, an den Antworten gehen
+    // sollen; dann statt Eingabefeld „Antworten bitte direkt an {name}". Aeltere Server: fehlt.
+    struct ChatState: Decodable { let push: Bool; let left: Bool?; let last_read_id: Int?; let weiter_an: DmOther? }
     static func chatRoomState(scope: String) async throws -> ChatState {
         let s = scope.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? scope
         return try await request("/api/chat/state?scope=\(s)", method: "GET", body: nil, auth: true)
