@@ -711,8 +711,8 @@ ABGELEHNT: list[dict] = [
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
     # EINGEREICHT 01.10.2026 (Jans Meldung, Zepp-Konsole appId 1118995 „Under Review (Can be Withdrawn)").
-    # UNGETESTET: die Testsession #12510 kam noch vom 1.0.12-Build (APP_VERSION war beim Bump vergessen,
-    # 43bc9f02); bis zur Einreichung meldete keine Uhr 1.0.13. Halten fuer Stopp/Pause nur per Node-Test.
+    # Vor der Einreichung ungetestet (Testsession #12510 kam vom 1.0.12-Build, APP_VERSION vergessen,
+    # 43bc9f02); DANACH auf Jans T-Rex 3 nachgetestet: #12511/#12512, Halten fuer Pause/Stopp ok.
     {"name": "Amazfit", "version": "1.0.13",
      "eingereicht": "2026-10-01",
      "items": [
