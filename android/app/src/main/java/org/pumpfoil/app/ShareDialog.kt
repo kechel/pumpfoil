@@ -23,6 +23,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -185,6 +186,19 @@ fun ShareDialog(session: SessionDetail, initialHighlight: Int = -1, onDismiss: (
     var loading by remember { mutableStateOf(true) }
     var busy by remember { mutableStateOf(false) }
 
+    // Android 8/9: Datei-Speichern-Dialog (s. doSave). Das Bild wird beim Schreiben NEU gebaut —
+    // so passt es auch dann zur Auswahl, wenn sie sich waehrend des Dialogs aenderte.
+    val alteSpeichern = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.CreateDocument("image/png"),
+    ) { uri ->
+        if (uri != null) {
+            val bmp = composeCard(card, photo, xf, dim)
+            val ok = bmp != null && runCatching {
+                ctx.contentResolver.openOutputStream(uri)!!.use { bmp.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
+            }.isSuccess
+            android.widget.Toast.makeText(ctx, if (ok) I18n.t("share.saved") else I18n.t("profile.error"), android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
     val picker = androidx.activity.compose.rememberLauncherForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.GetContent()
     ) { uri ->
@@ -276,6 +290,38 @@ fun ShareDialog(session: SessionDetail, initialHighlight: Int = -1, onDismiss: (
                 })
             })
         } catch (_: Exception) {}
+    }
+
+    // SPEICHERN (Jan, 01.10.2026: „hat die android app im share dialog kein 'speichern'?") — die
+    // PWA hat „Teilen" und „Speichern" nebeneinander, iOS bringt „Bild sichern" im System-Blatt
+    // mit; der Android-Auswahldialog bietet dagegen keine Galerie als Ziel. Ab Android 10 direkt
+    // per MediaStore nach Bilder/Pumpfoil (keine Berechtigung noetig), darunter ueber den
+    // Datei-Speichern-Dialog (CreateDocument), der ebenfalls ohne Berechtigung auskommt.
+    fun bildBytes(): ByteArray? {
+        val bmp = composeCard(card, photo, xf, dim) ?: return null
+        return java.io.ByteArrayOutputStream().also { bmp.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }.toByteArray()
+    }
+    fun meldung(text: String) = android.widget.Toast.makeText(ctx, text, android.widget.Toast.LENGTH_SHORT).show()
+    fun doSave() {
+        val bytes = bildBytes() ?: return
+        if (android.os.Build.VERSION.SDK_INT < 29) { alteSpeichern.launch("pumpfoil-${session.id}.png"); return }
+        busy = true
+        scope.launch {
+            val ok = runCatching {
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    val werte = android.content.ContentValues().apply {
+                        put(android.provider.MediaStore.Images.Media.DISPLAY_NAME, "pumpfoil-${session.id}-${System.currentTimeMillis() / 1000}.png")
+                        put(android.provider.MediaStore.Images.Media.MIME_TYPE, "image/png")
+                        put(android.provider.MediaStore.Images.Media.RELATIVE_PATH, android.os.Environment.DIRECTORY_PICTURES + "/Pumpfoil")
+                    }
+                    val uri = ctx.contentResolver.insert(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, werte)
+                        ?: error("kein Ziel")
+                    ctx.contentResolver.openOutputStream(uri)!!.use { it.write(bytes) }
+                }
+            }.isSuccess
+            busy = false
+            meldung(if (ok) I18n.t("share.saved") else I18n.t("profile.error"))
+        }
     }
 
     fun doShare() {
@@ -471,13 +517,24 @@ fun ShareDialog(session: SessionDetail, initialHighlight: Int = -1, onDismiss: (
                 }
             }
 
-            Button(
-                onClick = { doShare() }, enabled = !busy && card != null,
-                modifier = Modifier.fillMaxWidth().height(48.dp),
-            ) {
-                Icon(Icons.Filled.Share, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text(I18n.t("sd.share"))
+            // Teilen und Speichern nebeneinander, wie in der PWA.
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                Button(
+                    onClick = { doShare() }, enabled = !busy && card != null,
+                    modifier = Modifier.weight(1f).height(48.dp),
+                ) {
+                    Icon(Icons.Filled.Share, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(I18n.t("sd.share"))
+                }
+                OutlinedButton(
+                    onClick = { doSave() }, enabled = !busy && card != null,
+                    modifier = Modifier.weight(1f).height(48.dp),
+                ) {
+                    Icon(Icons.Filled.Download, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(I18n.t("share.save"))
+                }
             }
 
             // Luft UNTER dem Knopf, und zwar im scrollbaren Inhalt. Damit laesst sich der Knopf
