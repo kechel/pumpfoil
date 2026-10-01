@@ -1,3 +1,4 @@
+import { passtZu } from "./suche";
 // Freitextsuche im Material-Katalog — UNABHAENGIG von der Wortstellung.
 //
 // Anlass (24.08.): Meldung „fehlt im Katalog: Axis png 1300 v2". Der Fluegel stand drin, als
@@ -9,8 +10,7 @@
 // Katalog-Dopplungen vom 17.08. Deshalb: in Worte zerlegen, JEDES Wort muss vorkommen
 // (Reihenfolge egal). Serverseitig macht `server/app/gearsearch.py` dasselbe.
 export function gearMatches(text: string, query: string): boolean {
-  const worte = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
-  if (worte.length === 0) return true;
-  const t = text.toLowerCase();
-  return worte.every((w) => t.includes(w));
+  // Seit 01.10.2026 dieselbe Regel wie alle Suchen (lib/suche.ts, Server app/suche.py): zusaetzlich
+  // ohne Akzente, Bindestriche und Leerzeichen — „fone" findet F-One, „xover" X-Over.
+  return passtZu(text, query);
 }
