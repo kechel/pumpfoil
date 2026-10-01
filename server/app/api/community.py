@@ -2212,6 +2212,16 @@ def toggle_like(session_id: int, user: models.User = Depends(require_social), db
     return _like_state(db, session_id, user)
 
 
+def _admin_hat_verborgen(db: Session, session_id: int) -> bool:
+    """Hat zuletzt ein ADMIN die Session verborgen (session_hide nach dem letzten session_ok)?"""
+    letzte = (db.query(models.AdminAudit.action)
+              .filter(models.AdminAudit.target_type == "session",
+                      models.AdminAudit.target_id == session_id,
+                      models.AdminAudit.action.in_(("session_hide", "session_ok")))
+              .order_by(models.AdminAudit.id.desc()).first())
+    return bool(letzte and letzte[0] == "session_hide")
+
+
 @router.post("/sessions/{session_id}/vote")
 def toggle_vote(
     session_id: int, kind: str = Query(...),
@@ -2228,10 +2238,21 @@ def toggle_vote(
         db.delete(row)
     else:
         db.add(models.SessionVote(user_id=user.id, session_id=session_id, kind=kind))
-    # Nur eine NEUE "unangemessen"-Meldung blendet aus; Rücknahme blendet NIE auto. wieder
-    # ein; "fake" beeinflusst die Sichtbarkeit nicht. mod_ok schützt vor Auto-Verstecken.
+    # Eine NEUE "unangemessen"-Meldung blendet aus; "fake" beeinflusst die Sichtbarkeit nicht.
+    # mod_ok schützt vor Auto-Verstecken.
     if kind == "inappropriate" and added and not sess.mod_ok:
         sess.flagged = True
+    # RUECKNAHME hebt das Ausblenden wieder auf — aber nur, wenn es allein an Meldungen hing:
+    # keine andere "unangemessen"-Meldung mehr da und kein Admin hat die Session verborgen.
+    # Bis 01.10.2026 blieb sie hier IMMER verborgen (#8970: eine Meldung, vermutlich ein
+    # Fehlgriff, zurueckgenommen und durch „fake" ersetzt — die Session war zwei Tage still aus
+    # Feed, Rekorden und Spot-Listen verschwunden, ohne dass irgendwo stand, warum).
+    if kind == "inappropriate" and not added and sess.flagged:
+        db.flush()
+        noch_gemeldet = (db.query(models.SessionVote.id)
+                         .filter_by(session_id=session_id, kind="inappropriate").first())
+        if noch_gemeldet is None and not _admin_hat_verborgen(db, session_id):
+            sess.flagged = False
     db.commit()
     return _vote_counts(db, session_id, user)
 
