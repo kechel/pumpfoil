@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { passtZu } from "../lib/suche";
 import { api, BotMsg, BotRoom, ChatRoom, DmUser } from "../lib/api";
 import { istSelbstPop } from "../lib/selfPop";
 import { Avatar } from "./ui";
@@ -255,7 +256,7 @@ export function DmWidget() {
   // Spot-Chats: aktivste (meiste Nachrichten) zuerst; Suche filtert nach Spotname.
   const spotsSorted = [...allSpots].sort((a, b) => b.messages - a.messages);
   const spotsShown = q.trim()
-    ? spotsSorted.filter((s) => s.label.toLowerCase().includes(q.trim().toLowerCase()))
+    ? spotsSorted.filter((s) => passtZu(s.label, q))
     : spotsSorted;
   const joined = new Set(rooms.map((r) => r.scope));               // Spots, in denen man drin ist
   const subscribed = new Set(rooms.filter((r) => r.push).map((r) => r.scope));   // abonniert → Glocke
