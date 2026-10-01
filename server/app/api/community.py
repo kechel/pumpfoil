@@ -21,6 +21,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session, joinedload
 
 from .. import models
+from ..suche import bedingung_oder_alles as _such_alles, wort_bedingung as _such
 from ..accounts import is_new_account
 from ..db import get_db
 from ..media import thumb_url as _thumb
@@ -304,7 +305,7 @@ def community_sessions(
     """
     q = _community(db.query(*BRIEF_COLS), user.id, accel_only, sport)
     if name:
-        q = q.filter(func.lower(U.display_name).like(f"%{name.lower()}%"))
+        q = q.filter(_such_alles(name, [U.display_name]))
     if spot:
         q = q.filter(_spot_cond(spot, db))
     if foil_id:
@@ -360,7 +361,7 @@ def sessions_grouped(
     als normale Kachel mit Direkt-Link; ab count≥2 als aufklappbares Akkordeon."""
     q = _community(db.query(*BRIEF_COLS, *GROUP_EXTRA), user.id, accel_only, sport)
     if name:
-        q = q.filter(func.lower(U.display_name).like(f"%{name.lower()}%"))
+        q = q.filter(_such_alles(name, [U.display_name]))
     if spot:
         q = q.filter(_spot_cond(spot, db))
     rows = q.order_by(S.started_at.desc()).limit(_GROUP_SCAN_CAP + 1).all()

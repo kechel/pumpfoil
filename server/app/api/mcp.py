@@ -34,6 +34,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 
 from .. import models
+from ..suche import wort_bedingung as _such
 from ..db import get_db
 from .. import ortverbergen
 from ..ratelimit import enforce_user_tiers
@@ -306,7 +307,9 @@ def _list_sessions(db: Session, user_id: int, arg: dict) -> dict:
     if arg.get("sportart"):
         q = q.filter(models.Session.sport == str(arg["sportart"])[:40])
     if arg.get("spot"):
-        q = q.filter(models.Session.place_name.ilike(f"%{str(arg['spot'])[:80]}%"))
+        bed = _such(str(arg["spot"])[:80], [models.Session.place_name])
+        if bed is not None:
+            q = q.filter(bed)
     gesamt = q.count()
     mit_laeufen = bool(arg.get("mit_laeufen"))
     obergrenze = MAX_MIT_LAEUFEN if mit_laeufen else MAX_SESSIONS

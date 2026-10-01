@@ -13,16 +13,12 @@ v2", „1300 png", „png v2 1300" finden damit alle dieselbe Zeile.
 """
 from __future__ import annotations
 
-from sqlalchemy import and_, func, or_
 
 
 def wort_bedingung(q: str | None, spalten: list):
-    """SQL-Bedingung fuer `q` ueber `spalten` (Modell-Attribute). None = nicht filtern."""
-    worte = (q or "").lower().split()
-    if not worte:
-        return None
-    bed = []
-    for wort in worte:
-        like = f"%{wort}%"
-        bed.append(or_(*[func.lower(func.coalesce(s, "")).like(like) for s in spalten]))
-    return and_(*bed)
+    """SQL-Bedingung fuer `q` ueber `spalten` (Modell-Attribute). None = nicht filtern.
+
+    Seit 01.10.2026 ueber app/suche.py: zusaetzlich ohne Akzente, Bindestriche und Leerzeichen —
+    „fone" findet F-One, „xover" X-Over, „mach2" Mach-2 (vorher nur mit Bindestrich)."""
+    from .suche import wort_bedingung as gemeinsam
+    return gemeinsam(q, spalten)

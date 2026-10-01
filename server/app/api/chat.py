@@ -12,6 +12,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from .. import models
+from ..suche import wort_bedingung as _such
 from ..schalter import darf_chat_fotos
 from ..accounts import NEW_ACCOUNT_AGE_S, is_new_account
 from ..db import get_db
@@ -1135,10 +1136,11 @@ def search_users(q: str = Query(..., min_length=1), user: models.User = Depends(
     """Nutzersuche für den DM-Start — NUR nach öffentlichem Anzeigenamen. E-Mail o. Ä.
     werden bewusst NICHT zurückgegeben (bleiben geheim)."""
     from sqlalchemy import func
-    like = f"%{q.lower().strip()}%"
+    # Ohne Akzente/Bindestriche, Wort fuer Wort (app/suche.py): „frederic" findet Frédéric.
+    bed = _such(q, [models.User.display_name])
     rows = (db.query(models.User)
             .filter(models.User.display_name.isnot(None),
-                    func.lower(models.User.display_name).like(like),
+                    bed if bed is not None else models.User.id == -1,
                     models.User.id != user.id,
                     models.User.hidden.isnot(True),
                     models.User.blocked.isnot(True))
