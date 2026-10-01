@@ -484,11 +484,14 @@ private let pubprofFelder = ["join", "watch", "foil", "homespot", "records", "me
                              "sessions", "titles", "channel"]
 
 /// Oeffentliche Foiler-Seite: Hauptschalter + Einzelschalter. Der SERVER entscheidet, was auf der
-/// Seite landet; die Karte schreibt nur und filtert nicht selbst. Die Seite gibt es nur im Web.
+/// Seite landet; die Karte schreibt nur und filtert nicht selbst. „Seite ansehen" oeffnet seit
+/// 01.10.2026 die NATIVE Seite (FoilerView): im Browser war die App nicht angemeldet, und die
+/// Foiler-Seite verlangt eine Anmeldung — der Link endete auf dem Login (Jan).
 struct OeffentlicheSeiteSection: View {
     let lang: String
     @State private var werte: [String: Bool]? = nil
     @State private var eigeneId: Int = 0
+    @State private var zeigeSeite = false
 
     var body: some View {
         Group {
@@ -512,11 +515,12 @@ struct OeffentlicheSeiteSection: View {
             }
         }
         .task { await laden() }
+        .sheet(isPresented: $zeigeSeite) { FoilerSheet(userId: eigeneId) }
     }
 
     @ViewBuilder private var ansehenLink: some View {
-        if eigeneId > 0, let url = URL(string: Api.baseURL + "/foiler/\(eigeneId)") {
-            Link(Loc.t("pubprof.view", lang), destination: url)
+        if eigeneId > 0 {
+            Button(Loc.t("pubprof.view", lang)) { zeigeSeite = true }
         }
     }
 
