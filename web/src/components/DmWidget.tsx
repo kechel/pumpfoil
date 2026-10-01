@@ -249,7 +249,7 @@ export function DmWidget() {
 
   const userRow = (u: DmUser) => (
     <button key={`u${u.id}`} onClick={() => openDm(u.id)} className="flex w-full items-center gap-2 px-3 py-1.5 text-left hover:bg-slate-800">
-      <Avatar name={u.display_name} url={u.avatar_url} userId={u.id} size={28} />
+      <Avatar name={u.display_name} url={u.avatar_url} userId={u.id} link={false} size={28} />
       <span className="truncate text-sm text-slate-100">{u.display_name}</span>
     </button>
   );
@@ -366,7 +366,7 @@ export function DmWidget() {
                     {visibleRooms.map((r) => (
                       <button key={r.scope} onClick={() => openRoom(r)} className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-slate-800">
                         {r.kind === "dm"
-                          ? <Avatar name={r.other?.name} url={r.other?.avatar_url} userId={r.other?.id} size={36} />
+                          ? <Avatar name={r.other?.name} url={r.other?.avatar_url} userId={r.other?.id} link={false} size={36} />
                           : r.kind === "global"
                           ? <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-500/20"><ChatBubbleIcon className="h-5 w-5 text-brand-400" /></span>
                           : <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-800"><LocationIcon className="h-5 w-5 text-brand-400" /></span>}
@@ -391,7 +391,7 @@ export function DmWidget() {
                         </button>
                         {showBlocked && blockedUsers.map((u) => (
                           <div key={u.id} className="flex items-center gap-2 px-3 py-1.5">
-                            <Avatar name={u.display_name} url={u.avatar_url} userId={u.id} size={28} />
+                            <Avatar name={u.display_name} url={u.avatar_url} userId={u.id} link={false} size={28} />
                             <span className="min-w-0 flex-1 truncate text-sm text-slate-300">{u.display_name}</span>
                             <button onClick={() => unblockUser(u)} className="shrink-0 text-xs text-emerald-400 hover:text-emerald-300">{t("dm.unblock")}</button>
                           </div>
@@ -444,7 +444,7 @@ export function DmWidget() {
                         <button key={r.scope} onClick={() => openBotRoom(r)}
                           className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-slate-800">
                           {r.kind === "dm"
-                            ? <Avatar name={r.other?.name} url={r.other?.avatar_url} userId={r.other?.id} size={36} />
+                            ? <Avatar name={r.other?.name} url={r.other?.avatar_url} userId={r.other?.id} link={false} size={36} />
                             : <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-500/20"><ChatBubbleIcon className="h-5 w-5 text-brand-400" /></span>}
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">

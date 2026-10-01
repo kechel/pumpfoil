@@ -1642,12 +1642,12 @@ export default function SessionDetail() {
         <div className="flex shrink-0 flex-col items-center gap-1">
           {session.owner_id ? (
             <Link to={`/foiler/${session.owner_id}`} className="flex flex-col items-center gap-1">
-              <Avatar name={session.owner_name ?? null} url={session.owner_avatar_url ?? null} userId={session.owner_id} size={96} className="h-24 w-24" />
+              <Avatar name={session.owner_name ?? null} url={session.owner_avatar_url ?? null} userId={session.owner_id} link={false} size={96} className="h-24 w-24" />
               {session.owner_name && <span className="max-w-24 truncate text-[10px] text-slate-300">{session.owner_name}</span>}
             </Link>
           ) : (
             <>
-              <Avatar name={session.owner_name ?? null} url={session.owner_avatar_url ?? null} userId={session.owner_id} size={96} className="h-24 w-24" />
+              <Avatar name={session.owner_name ?? null} url={session.owner_avatar_url ?? null} userId={session.owner_id} link={false} size={96} className="h-24 w-24" />
               {session.owner_name && <span className="max-w-24 truncate text-[10px] text-slate-300">{session.owner_name}</span>}
             </>
           )}

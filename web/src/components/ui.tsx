@@ -1,5 +1,6 @@
 // Kleine, wiederverwendbare UI-Bausteine (Tailwind).
-import { ReactNode, useState } from "react";
+import React, { ReactNode, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useT } from "../i18n";
 import { InfoIcon } from "./Icons";
 import { useOnline } from "../lib/online";
@@ -138,7 +139,12 @@ function avatarColor(seed: string): string {
 }
 
 /** Profilbild. Mit `userId` bekommt es den gruenen Online-Punkt, wenn der Nutzer gerade App oder
- *  Seite offen hat (lib/online.ts). Ohne `userId` (z. B. das eigene Bild) nie. */
+ *  Seite offen hat (lib/online.ts), und fuehrt per Tipp auf seine Foiler-Seite (Jan, 01.10.2026:
+ *  „das profilbild ueberall als link zur jeweiligen profil-seite"). Ohne `userId` beides nicht.
+ *
+ *  KEIN <a>: viele Profilbilder sitzen IN einem Link (Session-Karten fuehren zur Session), und ein
+ *  Link im Link ist ungueltiges HTML. Deshalb ein Element mit role="link", das den Klick selbst
+ *  uebernimmt und den aeusseren Link anhaelt. `link={false}`, wo der Aufrufer schon verlinkt. */
 export function Avatar(props: {
   name?: string | null;
   url?: string | null;
@@ -148,21 +154,39 @@ export function Avatar(props: {
   rounded?: string;
   className?: string;
   userId?: number | null;
+  link?: boolean;
 }) {
   const t = useT();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
   const online = useOnline(props.userId);
   const bild = <AvatarBild {...props} />;
-  if (!online) return bild;
+  const ziel = props.userId ? `/foiler/${props.userId}` : null;
+  const verlinkt = !!ziel && props.link !== false && pathname !== ziel;
+  if (!online && !verlinkt) return bild;
   const size = props.size ?? 32;
   const punkt = Math.max(8, Math.round(size * 0.28));
+  const oeffnen = (e: React.SyntheticEvent) => {
+    e.preventDefault(); e.stopPropagation();
+    navigate(ziel!);
+  };
   return (
-    <span className={`relative ${props.fill ? "block h-full w-full" : "inline-flex shrink-0"}`}>
+    <span
+      className={`relative ${props.fill ? "block h-full w-full" : "inline-flex shrink-0"} ${verlinkt ? "cursor-pointer rounded-full" : ""}`}
+      {...(verlinkt ? {
+        role: "link", tabIndex: 0, title: props.name || undefined,
+        onClick: oeffnen,
+        onKeyDown: (e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") oeffnen(e); },
+      } : {})}
+    >
       {bild}
-      <span
-        role="img" aria-label={t("presence.online")} title={t("presence.online")}
-        className="absolute bottom-0 right-0 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900"
-        style={{ width: punkt, height: punkt }}
-      />
+      {online && (
+        <span
+          role="img" aria-label={t("presence.online")} title={t("presence.online")}
+          className="absolute bottom-0 right-0 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900"
+          style={{ width: punkt, height: punkt }}
+        />
+      )}
     </span>
   );
 }
