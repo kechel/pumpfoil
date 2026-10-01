@@ -791,7 +791,7 @@ NAECHSTES: list[dict] = [
          "Two new data fields add up the distance and the time of all your runs in a session.",
          "While a recording is paused, the watch shows your pause pages and says so on every "
          "page.",
-         "Pause and resume now need a two-second hold, so a wet sleeve can't pause you mid-run.",
+         "Stop, pause and resume now need a two-second hold, so a wet sleeve can't end or pause your session by accident.",
      ]},
 ]
 
