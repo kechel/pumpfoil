@@ -300,6 +300,7 @@ object Recorder {
     private val gps = ArrayList<DoubleArray>(256)
     private var lastHr = 0
     private var lastHrMs = 0          // wann der letzte ECHTE Messwert kam (elapsedMs)
+    private var letzteGpsT = -1       // Zeitstempel des letzten GPS-Punkts (aktive ms), s. GpsZeit
     // Live-Kennzahlen
     private var prevLat = Double.NaN
     private var prevLon = Double.NaN
@@ -383,7 +384,7 @@ object Recorder {
         LocalStore.setzeLaufMarke(ctx)
         chunkIndex = 0
         synchronized(lock) { accel.clear(); gps.clear(); spWin.clear() }
-        prevLat = Double.NaN; prevLon = Double.NaN; alteFixes = 0; lastHrMs = 0; genauigkeit.reset()
+        prevLat = Double.NaN; prevLon = Double.NaN; alteFixes = 0; lastHrMs = 0; letzteGpsT = -1; genauigkeit.reset()
         distM = 0.0; maxMps = 0.0; hrSum = 0; hrCount = 0; maxHrV = 0; lastHr = 0
         val meta = JSONObject()
             .put("session_uuid", uuid)
@@ -793,7 +794,10 @@ object Recorder {
     /** @param fixAlterMs Alter der MESSUNG (elapsedRealtime), nicht der Zustellung. -1 = unbekannt. */
     fun addGps(lat: Double, lon: Double, speedMps: Double, accuracyM: Double, fixAlterMs: Long = -1L) {
         if (!running) return
-        val tMs = elapsedMs()
+        // MESSZEIT statt Zustellzeit (s. `GpsZeit`). Bis 1.2.36 stand hier `elapsedMs()` — die Uhr
+        // haelt Fixes manchmal minutenlang zurueck und liefert sie gebuendelt, dann landeten
+        // hunderte Punkte in wenigen Sekunden und die Laeufe hatten 0 s Dauer.
+        val tMs = synchronized(lock) { GpsZeit.stempel(elapsedMs(), fixAlterMs, letzteGpsT).also { letzteGpsT = it } }
         val spRaw = maxOf(0.0, speedMps)
         // Veraltete Fixes zaehlen. Wir verlassen uns bewusst NICHT darauf, dass sich die
         // Koordinaten nicht aendern — wer am Steg steht, steht auch wirklich still; ein echter
@@ -813,7 +817,9 @@ object Recorder {
         synchronized(lock) {
             // 0 = kein Puls (der Server behandelt 0 wie „fehlt"): ein veralteter Wert waere
             // eine Erfindung, s. PULS_ALT_MS.
-            val pulsFrisch = if (lastHr > 0 && tMs - lastHrMs <= PULS_ALT_MS) lastHr else 0
+            // Betrag: der Fix kann jetzt AELTER sein als der letzte Pulswert (nachgereichte
+            // Fixes) — dann gehoert ein Puls von „gerade eben" nicht zu ihm.
+            val pulsFrisch = if (lastHr > 0 && kotlin.math.abs(tMs - lastHrMs) <= PULS_ALT_MS) lastHr else 0
             gps.add(doubleArrayOf(tMs.toDouble(), lat, lon, spRaw, pulsFrisch.toDouble(), accuracyM))
             // Distanz aufsummieren (Haversine zwischen Punkten) — aber nur, wenn wir uns
             // wirklich bewegen (s. STAND_MPS).
@@ -936,6 +942,33 @@ object Recorder {
             .put("index", chunkIndex).put("kind", "gps").put("encoding", "json")
             .put("t0_ms", buf.first()[0].toInt()).put("count", buf.size).put("data", arr))
         chunkIndex++
+    }
+}
+
+/**
+ * Zeitstempel eines GPS-Punkts: wann er GEMESSEN wurde, nicht wann er ankam.
+ *
+ * Belegt an 9 Sessions zweier Galaxy Watch 4 Classic (SM-L715F, u239/u258, Wear 1.2.18-1.2.28;
+ * #8529: 709 Punkte in 6 s): die Uhr haelt Fixes zurueck und liefert Minuten davon auf einmal. Mit
+ * der Zustellzeit stauchte das die Zeitachse, die Laeufe hatten 0 s. Jan, 01.10.2026: „klingt nach
+ * einem BUG, bitte beheben".
+ *
+ * Regel: Messzeit = jetzt − Alter der Messung — aber NUR, wenn sie nicht negativ ist und nach dem
+ * letzten Punkt liegt. Sonst wie bisher die Zustellzeit, streng steigend. Damit bleiben zwei Faelle
+ * genau wie vorher:
+ *  - eine EINGEFRORENE Ortung (dasselbe alte Fix immer wieder, Alter waechst) ergaebe jedes Mal
+ *    dieselbe Messzeit — die liegt nicht nach dem letzten Punkt, also Zustellzeit;
+ *  - ueber eine PAUSE hinweg: `jetzt` ist aktive Zeit, das Alter Wanduhr-Zeit — ein vor der Pause
+ *    gemessenes Fix faellt dadurch vor den letzten Punkt und bekommt die Zustellzeit.
+ * Der Server verlangt steigende Zeitstempel je Session; das bleibt garantiert.
+ */
+object GpsZeit {
+    fun stempel(jetztMs: Int, alterMs: Long, letzteMs: Int): Int {
+        if (alterMs in 0..jetztMs.toLong()) {
+            val gemessen = (jetztMs - alterMs).toInt()
+            if (gemessen > letzteMs) return gemessen
+        }
+        return maxOf(jetztMs, letzteMs + 1)
     }
 }
 
