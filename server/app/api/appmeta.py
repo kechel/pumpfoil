@@ -182,7 +182,10 @@ _APP_META: dict[str, dict[str, str]] = {
         # Ein Nutzer mit 1.1.14 bekam dadurch einen Update-Hinweis, den Play nicht einloesen konnte
         # ("update button just opens google play and does not offer nor start update"). Deshalb: erst
         # eintragen, wenn Freigabe DA und Roll-out bei 100 % — "eingereicht" genuegt nie.
-        "latest": "1.1.36",   # LIVE 2026-09-30: Play-Mail „Your update to Pumpfoil, created on Sep 29,
+        "latest": "1.1.37",   # LIVE 2026-10-02: Play-Mail „Your update to Pumpfoil, created on Oct 1, 2026
+        # at 11:17 AM GMT, is live in the store" (Jans Meldung). Kacheln/Zeilen, Spot-Rekorde je Sportart,
+        # Chat-Bilder, „–" ohne Accel, Speichern im Teilen-Dialog, v3-Texte, Claude-1:1-Link.
+        # ALT: "latest": "1.1.36",   # LIVE 2026-09-30: Play-Mail „Your update to Pumpfoil, created on Sep 29,
         # 2026 at 9:14 AM GMT, is live in the store." (Jans Meldung) — passt auf die Einreichung 29.09.
         # 11:14 Berlin, gut ein Tag Pruefung. Phone: Editor-Felder 21-23, Datenschutz-Texte.
         # ALT: "latest": "1.1.35",   # LIVE 2026-09-29: Play-Mail „Your update to Pumpfoil, created on
@@ -335,7 +338,9 @@ _APP_META: dict[str, dict[str, str]] = {
         # 05.08. 15:06 GMT). Eingereicht war 1.2.20/1030 zusammen mit Phone 1.1.20/34.
         # Der gebaute Nachzug 1.2.21/1031 (Token-Heilung bei Config-401) ist NOCH NICHT
         # eingereicht — hier also nicht eintragen. Vorher: 1.2.18/1028, live seit 04.08.
-        "latest": "1.2.36",   # LIVE 2026-09-30, dieselbe Play-Mail wie android (eine Einreichung,
+        "latest": "1.2.37",   # LIVE 2026-10-02, dieselbe Play-Mail wie android. Uhr: Sammel-Upload,
+        # GPS-Messzeit statt Zustellzeit (SM-L715F), Pause/Fortsetzen 2 s halten.
+        # ALT: "latest": "1.2.36",   # LIVE 2026-09-30, dieselbe Play-Mail wie android (eine Einreichung,
         # beide Spuren). Uhr: Platzhalter-GPS-Genauigkeit sperrt nicht mehr, Datenfelder 22/23.
         # ALT: "latest": "1.2.35",   # LIVE 2026-09-29, dieselbe Play-Mail wie android (eine Einreichung,
         # beide Spuren). Fuer die UHR ohne eigene Aenderung, nur mitgebumpt.
@@ -731,24 +736,7 @@ IN_REVIEW: list[dict] = [
     # (Uhr startete erst nach Schliessen des Android-Emulators). Ohne eigenen Punkt: Claude-1:1 mit
     # Link zu Jan, Chat-Bilder-Schalter.
     # iOS/Apple 1.1.41 am 01.10. FREIGEGEBEN (s. `_APP_META`); Punkte im Changelog mit ios/apple.
-    # EINGEREICHT 01.10.2026 (Jans Meldung, Play Console: „Produktion 51 (1.1.37) · Produktion
-    # (Wear OS) 1047 (1.2.37)", Vorabpruefung laeuft, verwaltete Veroeffentlichung). Getestet: Wear-
-    # Emulator nur 36 s (#12507: 8/8 Bloecke, exact_chunks 25,08 Hz, GPS streng steigend 1,0 s) —
-    # KEIN Langlauf; Phone nur kompiliert. Dazu ohne eigenen Punkt: Claude-1:1 mit Link zu Jan,
-    # Chat-Bilder-Schalter (chat_photos).
-    {"name": "Android phone + Wear OS", "version": "1.1.37 / 1.2.37",
-     "eingereicht": "2026-10-01",
-     "items": [
-         "Wear OS watches upload long sessions much faster.",
-         "The share picture can be saved straight to your gallery, next to sharing it.",
-         "On some Galaxy watches, runs no longer show up with a duration of zero.",
-         "Runs the new detection sets aside show why, and one tap brings them back.",
-         "Pause and resume now need a two-second hold, like stop, so a wet sleeve can't pause you mid-run.",
-         "Session lists can switch between cards and a compact one-line view.",
-         "Spot records follow the sport filter, with one box per sport when all sports are shown.",
-         "Photos in the chat show up in the app, several as a stack you can swipe through.",
-         "Runs without motion data show a dash instead of zero pumps.",
-     ]},
+    # Android 1.1.37 / Wear 1.2.37 am 02.10. FREIGEGEBEN (s. `_APP_META`); Punkte im Changelog mit android/wear.
     # Android 1.1.36 / Wear 1.2.36 am 30.09. FREIGEGEBEN (s. `_APP_META`); der Wear-GPS-Punkt steht im
     # Changelog mit `versionen={wear}`, der Datenfelder-Punkt (id 487) hat android/wear dazubekommen.
     # Garmin 1.0.91 am 29.09. FREIGEGEBEN (s. `_APP_META`); Punkt + Ereignis im Changelog.
