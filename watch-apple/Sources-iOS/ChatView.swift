@@ -319,8 +319,9 @@ struct ChatRoomView: View {
     @State private var zeigeBildWahl = false
     @State private var galerie: ChatGalerie?
     @State private var isAdmin = false
-    // Bilder anhaengen: Server-Schalter (`chat_photos`), NICHT isAdmin — Freigabe fuer alle ohne neuen Build.
-    @State private var kannFotos = false
+    // Bilder anhaengen: ab 1.1.42 IMMER (Jan, 02.10.2026: „ab dann immer aktiviert"). Bis 1.1.41 fragte die
+    // App `chat_photos`; der Server muss mit diesem Release CHAT_PHOTOS_ALL=1 haben, sonst 403.
+    private let kannFotos = true
     @State private var push = false
     @State private var confirmLeave = false
     @State private var lastId = 0
@@ -727,7 +728,6 @@ struct ChatRoomView: View {
     private func enterRoom() async {
         if let p = try? await Api.getProfile() {
             isAdmin = p.is_admin ?? false
-            kannFotos = p.chat_photos ?? isAdmin
         }
         if let st = try? await Api.chatRoomState(scope: scope) {
             push = st.push; weiterAn = st.weiter_an; gelesenBis = st.gelesen_bis

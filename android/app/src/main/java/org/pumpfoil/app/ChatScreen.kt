@@ -335,9 +335,10 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit, onOpen: (ChatRoom) 
     var waehleFuerEdit by remember { mutableStateOf(false) }   // wohin der Bild-Waehler liefert
     var showDict by remember { mutableStateOf(false) }            // Diktat-Vollbild
     var isAdmin by remember { mutableStateOf(false) }
-    // Bilder anhaengen: Server-Schalter (`chat_photos`), NICHT isAdmin — so gibt Jan sie spaeter
-    // fuer alle frei, ohne dass die App neu raus muss.
-    var kannFotos by remember { mutableStateOf(false) }
+    // Bilder anhaengen: ab 1.1.38 IMMER (Jan, 02.10.2026: „den Schalter der erst beim server fragt …
+    // raus, ab dann immer aktiviert"). Bis 1.1.37 fragte die App `chat_photos`; der Server muss mit
+    // diesem Release CHAT_PHOTOS_ALL=1 haben, sonst lehnt er die Uploads ab (403).
+    val kannFotos = true
     var push by remember { mutableStateOf(false) }
     // 1:1 mit dem Bot-Account (Server: /state.weiter_an): statt Eingabebereich ein Knopf in den 1:1
     // mit Jan. Jan, 01.10.2026: „dann ist jedem klar das hier kein ki-agent automatisch antwortet".
@@ -422,7 +423,7 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit, onOpen: (ChatRoom) 
         }
     }
     LaunchedEffect(room.scope) {
-        runCatching { Api.me() }.getOrNull()?.let { me -> isAdmin = me.isAdmin; kannFotos = me.chatPhotos ?: me.isAdmin }
+        runCatching { Api.me() }.getOrNull()?.let { me -> isAdmin = me.isAdmin }
         runCatching { Api.chatRoomState(room.scope) }.getOrNull()?.let { st -> push = st.push; weiterAn = st.weiterAn; gelesenBis = st.gelesenBis }
         if (isDm && otherId > 0) blocked = runCatching { Api.chatBlocks().any { it.id == otherId } }.getOrDefault(false)
         load()
