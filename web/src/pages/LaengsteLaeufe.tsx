@@ -7,7 +7,7 @@
 // (GET /api/sessions/longest-runs). Die Kurven je Lauf brauchen die volle Session (Puls je
 // Trackpunkt) und bei „Handy am Brett" die Lage-Kennzahlen je Lauf — beides holt die Seite je
 // betroffener Session nach. Bei fuenf Laeufen sind das hoechstens fuenf Abrufe.
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { api, BoardAttitude, SessionSummary } from "../lib/api";
 import { Card, Spinner } from "../components/ui";
@@ -23,6 +23,13 @@ type Lauf = Awaited<ReturnType<typeof api.longestRuns>>[number] & {
 type LageZeile = NonNullable<BoardAttitude["laeufe"]>[number];
 
 const ANZAHL = [5, 10, 20];   // Jan, 02.10.2026: „maximal bis top 20"
+
+// SORTIERUNG, gemeinsam fuer alle drei Ansichten (Jan, 02.10.2026: „Spaltentitel anklickbar …
+// alle 3 Tabellen entsprechend nach der Spalte sortieren"). Ohne Wahl gilt die Lauf-Dauer,
+// laengste zuerst — so liefert der Server die Liste.
+const SORT = ["datum", "dauer", "strecke", "hrStart", "hrAvg", "hrEnd", "avg", "max", "pumps", "rate", "glide",
+  "pitch", "roll", "yaw", "pitchHz", "hub"] as const;
+type SortKey = typeof SORT[number];
 
 function mmss(s: number | null | undefined) {
   if (s == null) return "–";
@@ -67,6 +74,17 @@ export default function LaengsteLaeufe() {
     setSuche(q, { replace: true });
   };
   const markSet = useMemo(() => new Set(markiert), [markiert]);
+  const sortGewaehlt = (SORT as readonly string[]).includes(suche.get("s") ?? "");
+  const sortKey: SortKey = sortGewaehlt ? (suche.get("s") as SortKey) : "dauer";
+  const sortAuf = sortGewaehlt && suche.get("d") === "auf";
+  // Erster Klick: groesster Wert (bzw. neuestes Datum) zuerst, zweiter Klick dreht um.
+  // „#" fuehrt zurueck zur Grundordnung.
+  const sortieren = (k: SortKey | null) => {
+    const q = new URLSearchParams(suche);
+    if (k == null) { q.delete("s"); q.delete("d"); }
+    else { q.set("s", k); if (k === sortKey && !sortAuf) q.set("d", "auf"); else q.delete("d"); }
+    setSuche(q, { replace: true });
+  };
   const umschalten = (k: string) => setMarkiert((alt) => alt.includes(k) ? alt.filter((x) => x !== k) : [...alt, k]);
   const schl = (l: Lauf) => `${l.session_id}-${l.run_idx}`;
 
@@ -108,8 +126,54 @@ export default function LaengsteLaeufe() {
     for (const l of [...arr, ...mitVergleich, ...zusatz]) if (!alle.some((a) => schl(a) === schl(l))) alle.push(l);
     const oben = markiert.map((k) => alle.find((l) => schl(l) === k)).filter((x): x is Lauf => !!x);
     const vgl = alle.filter((l) => vglSet.has(schl(l)) && !markSet.has(schl(l)));
-    return [...oben, ...vgl, ...alle.filter((l) => !markSet.has(schl(l)) && !vglSet.has(schl(l)))];
+    const rest = alle.filter((l) => !markSet.has(schl(l)) && !vglSet.has(schl(l)));
+    // Sortiert wird INNERHALB der drei Gruppen — markierte bleiben oben, der Korb darunter.
+    // Ohne gewaehlte Spalte bleibt alles wie geliefert (Markier-Reihenfolge, Korb-Reihenfolge).
+    if (!sortGewaehlt) return [...oben, ...vgl, ...rest];
+    return [...sortiert(oben), ...sortiert(vgl), ...sortiert(rest)];
   }
+  function lageVon(l: Lauf): LageZeile | undefined {
+    const k = lage[l.session_id]?.find((x) => x.lauf === l.run_idx);
+    return k?.ok ? k : undefined;
+  }
+  function wert(l: Lauf, k: SortKey): number | null {
+    switch (k) {
+      case "datum": return l.started_at ? Date.parse(l.started_at) : null;
+      case "dauer": return l.duration_s ?? null;
+      case "strecke": return l.distance_m ?? null;
+      case "hrStart": return pulsDesLaufs(sessions[l.session_id], l.run_idx)[0];
+      case "hrAvg": return pulsDesLaufs(sessions[l.session_id], l.run_idx)[1];
+      case "hrEnd": return pulsDesLaufs(sessions[l.session_id], l.run_idx)[2];
+      case "avg": return l.avg_speed_mps ?? null;
+      case "max": return l.max_speed_mps ?? null;
+      case "pumps": return l.pumps ?? null;
+      case "rate": return l.avg_pump_hz ?? null;
+      case "glide": return l.longest_glide_s ?? null;
+      case "pitch": return lageVon(l)?.pitch_amplitude_deg ?? null;
+      case "roll": return lageVon(l)?.roll_amplitude_deg ?? null;
+      case "yaw": return lageVon(l)?.gier_rms_deg_s ?? null;
+      case "pitchHz": return lageVon(l)?.pitch_hz ?? null;
+      case "hub": return lageVon(l)?.hub_pp_cm ?? null;
+    }
+  }
+  // Fehlende Werte stehen immer unten, egal in welche Richtung sortiert wird.
+  function sortiert(arr: Lauf[]): Lauf[] {
+    return [...arr].sort((a, b) => {
+      const va = wert(a, sortKey), vb = wert(b, sortKey);
+      if (va == null || vb == null) return va == null ? (vb == null ? 0 : 1) : -1;
+      return sortAuf ? va - vb : vb - va;
+    });
+  }
+  // Anklickbarer Spaltentitel; der Pfeil zeigt die aktive Spalte und Richtung.
+  const kopf = (k: SortKey | null, inhalt: React.ReactNode) => (
+    <th className="px-3 py-2 font-medium">
+      <button type="button" onClick={() => sortieren(k)}
+        className={`inline-flex items-center gap-1 uppercase tracking-wide hover:text-slate-200 ${k === sortKey ? "text-slate-200" : ""}`}>
+        {inhalt}
+        {k === sortKey && <span aria-hidden>{sortAuf ? "▲" : "▼"}</span>}
+      </button>
+    </th>
+  );
   // Scrollposition fuer den Rueckweg aus der Session-Detailansicht.
   const merkeScroll = () => { try { sessionStorage.setItem("laeufeScroll", String(window.scrollY)); } catch { /* egal */ } };
   const zuSession = (l: Lauf) => ({ pathname: `/sessions/${l.session_id}`, search: `?run=${l.run_idx}` });
@@ -162,7 +226,7 @@ export default function LaengsteLaeufe() {
     .filter((l) => sessions[l.session_id])
     .map((l) => ({ key: `${l.session_id}-${l.run_idx}`, label: (l.fahrer ? `${l.fahrer} · ` : "") + (l.started_at ? fmtDate(l.started_at, l.tz, { day: "2-digit", month: "2-digit", year: "2-digit" }) : "–"),   // kurz; die Lauf-Nummer setzt CompareHrStrips selbst
                    session: sessions[l.session_id], runIdx: l.run_idx })),
-  [laeufe, brettLaeufe, sessions, markiert, vergleich]); // eslint-disable-line react-hooks/exhaustive-deps
+  [laeufe, brettLaeufe, sessions, markiert, vergleich, sortKey, sortAuf, lage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="py-2">   {/* volle Breite (Jan, 02.10.2026) — der Rahmen der App polstert schon */}
@@ -193,18 +257,18 @@ export default function LaengsteLaeufe() {
             <table className="w-full min-w-[760px] text-sm">
               <thead>
                 <tr className="border-b border-slate-800 text-left text-xs uppercase tracking-wide text-slate-400">
-                  <th className="px-3 py-2 font-medium">#</th>
-                  <th className="px-3 py-2 font-medium">{t("longest.session")}</th>
-                  <th className="px-3 py-2 font-medium">{t("sd.colDuration")}</th>
-                  <th className="px-3 py-2 font-medium">{t("sd.colDistance")}</th>
-                  <th className="px-3 py-2 font-medium">{t("sd.colHrStart")}</th>
-                  <th className="px-3 py-2 font-medium">{t("sd.colHrAvg")}</th>
-                  <th className="px-3 py-2 font-medium">{t("sd.colHrEnd")}</th>
-                  <th className="px-3 py-2 font-medium">{t("sd.colAvg")}</th>
-                  <th className="px-3 py-2 font-medium">{t("longest.max")}</th>
-                  <th className="px-3 py-2 font-medium">{t("sd.colPumps")}</th>
-                  <th className="px-3 py-2 font-medium">{t("sd.colAvgPump", { unit: einheit === "hz" ? "Hz" : t("unit.pumpPerMin") })}</th>
-                  <th className="px-3 py-2 font-medium">{t("sd.colGlide")}</th>
+                  {kopf(null, "#")}
+                  {kopf("datum", t("longest.session"))}
+                  {kopf("dauer", t("sd.colDuration"))}
+                  {kopf("strecke", t("sd.colDistance"))}
+                  {kopf("hrStart", t("sd.colHrStart"))}
+                  {kopf("hrAvg", t("sd.colHrAvg"))}
+                  {kopf("hrEnd", t("sd.colHrEnd"))}
+                  {kopf("avg", t("sd.colAvg"))}
+                  {kopf("max", t("longest.max"))}
+                  {kopf("pumps", t("sd.colPumps"))}
+                  {kopf("rate", t("sd.colAvgPump", { unit: einheit === "hz" ? "Hz" : t("unit.pumpPerMin") }))}
+                  {kopf("glide", t("sd.colGlide"))}
                 </tr>
               </thead>
               <tbody>
@@ -239,7 +303,9 @@ export default function LaengsteLaeufe() {
           </Card>
 
           {/* 2. Puls ueber die Zeit — dieselben Streifen wie in der Session, je Lauf eine Zeile. */}
-          {items.length > 0 ? <CompareHrStrips items={items} markiert={markSet} onKlick={umschalten} vergleich={vglSet} /> : <Spinner />}
+          {items.length > 0 ? <CompareHrStrips items={items} markiert={markSet} onKlick={umschalten} vergleich={vglSet}
+            sortierung={{ puls: sortKey === "hrAvg", m: sortKey === "strecke", kmh: sortKey === "avg", auf: sortAuf }}
+            onSortieren={(k) => sortieren(k === "puls" ? "hrAvg" : k === "m" ? "strecke" : "avg")} /> : <Spinner />}
 
           {/* 3. Lage je Lauf — nur Laeufe mit „Handy am Brett". */}
           {brettLaeufe && brettLaeufe.length > 0 && (
@@ -248,14 +314,14 @@ export default function LaengsteLaeufe() {
               <table className="w-full min-w-[620px] text-sm">
                 <thead>
                   <tr className="border-b border-slate-800 text-left text-xs uppercase tracking-wide text-slate-400">
-                    <th className="px-3 py-2 font-medium">{t("longest.session")}</th>
-                    <th className="px-3 py-2 font-medium">{t("sd.colDuration")}</th>
-                    <th className="px-3 py-2 font-medium">{t("sd.colDistance")}</th>
-                    <th className="px-3 py-2 font-medium">{t("board.pitch")}</th>
-                    <th className="px-3 py-2 font-medium">{t("board.roll")}</th>
-                    <th className="px-3 py-2 font-medium">{t("board.yaw")}</th>
-                    <th className="px-3 py-2 font-medium">{t("sd.colPitchRhythm")}</th>
-                    <th className="px-3 py-2 font-medium">{t("sd.colHeave")}</th>
+                    {kopf("datum", t("longest.session"))}
+                    {kopf("dauer", t("sd.colDuration"))}
+                    {kopf("strecke", t("sd.colDistance"))}
+                    {kopf("pitch", t("board.pitch"))}
+                    {kopf("roll", t("board.roll"))}
+                    {kopf("yaw", t("board.yaw"))}
+                    {kopf("pitchHz", t("sd.colPitchRhythm"))}
+                    {kopf("hub", t("sd.colHeave"))}
                   </tr>
                 </thead>
                 <tbody>
