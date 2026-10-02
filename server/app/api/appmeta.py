@@ -782,8 +782,7 @@ NAECHSTES: list[dict] = [
     # Profilbild + Schalter im Profil, Lesebestaetigung im 1:1, eigene Profilseite je Nutzer mit
     # Knopf „Nachricht", Profilbild fuehrt dorthin. Web ist live (c27b7aa5, 1d7ac4a0, 5272d67a,
     # b89044e2). Phone 1.1.38 (52) + Wear 1.2.38 (1048, ohne eigene Aenderung mitgebumpt), iOS 1.1.42 (47).
-    # ⚠ BEI DER FREIGABE: CHAT_PHOTOS_ALL=1 in server/.env + Neustart — die Apps zeigen ab hier den
-    # Kamera-Knopf IMMER (Jan, 02.10.), der Server lehnt Uploads sonst mit 403 ab.
+    # Kamera-Knopf ab hier IMMER (Jan, 02.10.); CHAT_PHOTOS_ALL=1 ist seit 02.10. gesetzt.
     {"name": "Android phone + Wear OS", "version": "1.1.38 / 1.2.38",
      "items": [
          "A green dot on profile pictures shows who is online right now; you can turn yours off in your profile.",

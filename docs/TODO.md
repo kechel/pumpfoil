@@ -1432,7 +1432,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
-- **⚠ 02.10. — Chat-Bilder fuer alle: mit Phone 1.1.38 / iOS 1.1.42 `CHAT_PHOTOS_ALL=1` setzen.** Jan: „den Schalter, der erst beim Server fragt … raus, ab dann immer aktiviert". Die Apps zeigen den Kamera-Knopf ab diesen Versionen IMMER (Android ChatScreen.kt, iOS ChatView.swift); der Server prueft Uploads weiter mit `darf_chat_fotos` und antwortet ohne den Schalter 403. Also spaetestens bei der Freigabe: `CHAT_PHOTOS_ALL=1` in server/.env, dann Neustart (Web und aeltere Apps folgen automatisch ueber `chat_photos`).
+- **✅ 02.10. — Chat-Bilder fuer alle: `CHAT_PHOTOS_ALL=1` GESETZT am 02.10. (Jan: „iOS ist raus, Google hat das Update verfuegbar … jetzt aktivieren“).** Urspruenglich geplant mit Phone 1.1.38 / iOS 1.1.42: Jan: „den Schalter, der erst beim Server fragt … raus, ab dann immer aktiviert". Die Apps zeigen den Kamera-Knopf ab diesen Versionen IMMER (Android ChatScreen.kt, iOS ChatView.swift); der Server prueft Uploads weiter mit `darf_chat_fotos` und antwortet ohne den Schalter 403. Also spaetestens bei der Freigabe: `CHAT_PHOTOS_ALL=1` in server/.env, dann Neustart (Web und aeltere Apps folgen automatisch ueber `chat_photos`).
 
 - **🔲 01.10. — Online-Punkt + Lesebestaetigung in die nativen Apps.** Web + Server live (Online-Punkt am Profilbild, `GET /api/chat/online`, Profil-Schalter `show_online` per PATCH /api/auth/me, Standard an). Android/iOS: Punkt an den Profilbildern (IDs sammeln, minuetlich EIN Abruf, nur im Vordergrund) und der Schalter im Profil — wichtig, weil App-only-Nutzer den Punkt sonst nicht abschalten koennen. Ohne Update zaehlen App-Nutzer trotzdem als online (jeder Request markiert), sehen aber keine Punkte.
 
