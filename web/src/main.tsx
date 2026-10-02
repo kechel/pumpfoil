@@ -68,6 +68,7 @@ import Datenloeschung from "./pages/Datenloeschung";
 import Changelog from "./pages/Changelog";
 import Import from "./pages/Import";
 import Foiler from "./pages/Foiler";
+import LaengsteLaeufe from "./pages/LaengsteLaeufe";
 import Spots from "./pages/Spots";
 import Foils from "./pages/Foils";
 import Setup from "./pages/Setup";
@@ -170,6 +171,8 @@ const router = createBrowserRouter([
       // Oeffentliche Foiler-Seite. NOCH NICHT VERLINKT (Jan, 08.09.2026: erst ansehen,
       // dann entscheiden, wo sie erscheint) — nur direkt ueber /foiler/<id> erreichbar.
       { path: "foiler/:id", element: <Foiler /> },
+      // Laengste eigene Laeufe im Vergleich (Jan, 02.10.2026) — vorerst nur Admins, Link ganz unten auf Home.
+      { path: "laeufe", element: <LaengsteLaeufe /> },
       { path: "alle-sessions", element: <AllSessionsRedirect /> },
       { path: "spots", element: <Spots /> },
       { path: "foils", element: <Foils /> },

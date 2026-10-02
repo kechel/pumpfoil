@@ -1417,6 +1417,71 @@ def overall_stats(
     return out
 
 
+@router.get("/longest-runs")
+def my_longest_runs(
+    n: int = Query(5, ge=1, le=50),
+    accel_only: bool = False,
+    user: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> list[dict]:
+    """Die laengsten EIGENEN Laeufe ueber alle Sessions (Jan, 02.10.2026: „die 50 laengsten Laeufe
+    von mir … Puls ueber die Zeit, die Tabelle mit den Stats und bei Phone on Board Nicken und
+    Rollen … erstmal die fuenf laengsten"). Nur lesend, nur die eigenen.
+
+    Dieselbe Auswahl wie die Rekorde der Startseite (`compute_overall_stats`): nur Pumpfoil-
+    Sessions, das persoenliche Empfindlichkeits-Preset ueberlagert die Laeufe. Sortiert nach DAUER.
+    Die Kurven (Puls, Lage) holt die Seite danach je Session selbst — hier nur die Auswahl, damit
+    die Liste schnell bleibt (kein track_geojson).
+    """
+    sens = user.foil_sensitivity or "normal"
+    rows = (
+        db.query(models.AnalysisResult.metrics_json, models.AnalysisResult.segments_json,
+                 models.AnalysisResult.sensitivity_json, models.Session.id, models.Session.started_at,
+                 models.Session.place_name, models.Session.placement,
+                 models.Session.place_lat, models.Session.place_lon)
+        .join(models.Session, models.AnalysisResult.session_id == models.Session.id)
+        .filter(models.Session.user_id == user.id, models.Session.deleted.isnot(True),
+                or_(models.Session.sport_class.is_(None), models.Session.sport_class == "pumpfoil"))
+        .all()
+    )
+    laeufe: list[dict] = []
+    for mj, sj, senj, sid, ts, spot, placement, lat, lon in rows:
+        try:
+            metrics = json.loads(mj) if mj else {}
+        except ValueError:
+            metrics = {}
+        preset = None
+        if sens != "normal" and senj:
+            try:
+                preset = (json.loads(senj) or {}).get(sens)
+            except ValueError:
+                preset = None
+        if preset:
+            segs = preset.get("segments") or []
+            is_pump = (preset.get("num_runs") or 0) > 0
+        else:
+            try:
+                segs = json.loads(sj) if sj else []
+            except ValueError:
+                segs = []
+            is_pump = bool(metrics.get("is_pumpfoil"))
+        if not is_pump or (accel_only and metrics.get("detection") != "model"):
+            continue
+        for j, seg in enumerate(segs):
+            laeufe.append({
+                "session_id": sid, "run_idx": j,
+                "started_at": ts.isoformat() if ts else None,
+                "tz": tz_name(lat, lon), "spot": spot, "placement": placement,
+                "duration_s": seg.get("duration_s"), "distance_m": seg.get("distance_m"),
+                "avg_speed_mps": seg.get("avg_speed_mps"), "max_speed_mps": seg.get("max_speed_mps"),
+                "pumps": seg.get("pumps"), "avg_pump_hz": seg.get("avg_pump_hz"),
+                "longest_glide_s": seg.get("longest_glide_s"),
+                "t_start_ms": seg.get("t_start_ms"),
+            })
+    laeufe.sort(key=lambda x: x.get("duration_s") or 0, reverse=True)
+    return laeufe[:n]
+
+
 @router.get("/stats-by-foil")
 def stats_by_foil(
     user: models.User = Depends(current_user),
