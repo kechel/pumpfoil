@@ -758,7 +758,6 @@ const ru: Record<string, string> = {
   "chat.photoAdd": "Добавить фото",
   "chat.replyDirect": "Пожалуйста, пишите напрямую: {name}",
   "longest.title": "Самые длинные заезды",
-  "longest.intro": "Твои самые длинные заезды из всех сессий: значения, пульс во времени и, с телефоном на доске, положение доски.",
   "longest.top": "Топ {n}",
   "longest.none": "Пока нет заездов.",
   "longest.session": "Сессия",

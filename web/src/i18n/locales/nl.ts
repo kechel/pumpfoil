@@ -782,7 +782,6 @@ const nl: Record<string, string> = {
   "chat.photoAdd": "Foto's toevoegen",
   "chat.replyDirect": "Antwoord graag rechtstreeks aan {name}",
   "longest.title": "Langste runs",
-  "longest.intro": "Je langste runs uit alle sessies onder elkaar: waarden, hartslag in de tijd en, met de telefoon op het board, de stand.",
   "longest.top": "Top {n}",
   "longest.none": "Nog geen runs.",
   "longest.session": "Sessie",

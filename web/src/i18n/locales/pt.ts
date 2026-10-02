@@ -758,7 +758,6 @@ const pt: Record<string, string> = {
   "chat.photoAdd": "Adicionar fotos",
   "chat.replyDirect": "Responda diretamente para {name}",
   "longest.title": "Corridas mais longas",
-  "longest.intro": "Suas corridas mais longas de todas as sessões: valores, frequência cardíaca no tempo e, com o celular na prancha, a atitude.",
   "longest.top": "Top {n}",
   "longest.none": "Ainda sem corridas.",
   "longest.session": "Sessão",

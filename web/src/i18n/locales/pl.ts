@@ -806,7 +806,6 @@ const pl: Record<string, string> = {
   "chat.photoAdd": "Dodaj zdjęcia",
   "chat.replyDirect": "Prosimy pisać bezpośrednio do: {name}",
   "longest.title": "Najdłuższe przejazdy",
-  "longest.intro": "Twoje najdłuższe przejazdy ze wszystkich sesji jeden pod drugim: wartości, tętno w czasie i z telefonem na desce położenie.",
   "longest.top": "Top {n}",
   "longest.none": "Jeszcze brak przejazdów.",
   "longest.session": "Sesja",

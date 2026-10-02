@@ -826,7 +826,6 @@ const en: Record<string, string> = {
   "chat.photoAdd": "Add photos",
   "chat.replyDirect": "Please reply directly to {name}",
   "longest.title": "Longest runs",
-  "longest.intro": "Your longest runs from all sessions, one below the other: stats, heart rate over time and, with the phone on the board, its attitude.",
   "longest.top": "Top {n}",
   "longest.none": "No runs yet.",
   "longest.session": "Session",
