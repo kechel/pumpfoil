@@ -167,10 +167,10 @@ export default function LaengsteLaeufe() {
   [laeufe, brettLaeufe, sessions, markiert, vergleich]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (admin === null) return <Spinner />;
-  if (!admin) return <div className="mx-auto max-w-5xl px-4 py-6 text-sm text-slate-400">{t("longest.adminOnly")}</div>;
+  if (!admin) return <div className="py-2 text-sm text-slate-400">{t("longest.adminOnly")}</div>;
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6">
+    <div className="py-2">   {/* volle Breite (Jan, 02.10.2026) — der Rahmen der App polstert schon */}
       <h1 className="mb-4 text-xl font-bold">{t("longest.title")}</h1>
       <div className="mb-5 flex flex-wrap gap-2">
         {ANZAHL.map((k) => (
