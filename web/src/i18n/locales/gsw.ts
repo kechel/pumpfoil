@@ -608,6 +608,8 @@ const gsw: Record<string, string> = {
   "longest.session": "Session",
   "longest.max": "Max km/h",
   "longest.hrTitle": "Puls über d Zyt",
+  "longest.markHint": "Tipp Ziile aa, zum Läuf markiere — markierti stönd i allne Tabälle obe.",
+  "longest.unmark": "Uswahl ufhebe ({n})",
   "longest.link": "Mini längschte Läuf vergliiche",
   "longest.adminOnly": "Vorerscht nur für Admins.",
   "foiler.chat": "Nachricht",

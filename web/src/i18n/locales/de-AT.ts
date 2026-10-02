@@ -569,6 +569,8 @@ const deAT: Record<string, string> = {
   "longest.session": "Session",
   "longest.max": "Max km/h",
   "longest.hrTitle": "Puls über die Zeit",
+  "longest.markHint": "Tippe Zeilen an, um Läufe zu markieren — markierte stehen in allen Tabellen oben.",
+  "longest.unmark": "Auswahl aufheben ({n})",
   "longest.link": "Meine längsten Läufe vergleichen",
   "longest.adminOnly": "Vorerst nur für Admins.",
   "foiler.chat": "Nachricht",

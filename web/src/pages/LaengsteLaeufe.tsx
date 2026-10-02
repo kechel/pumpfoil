@@ -47,6 +47,18 @@ export default function LaengsteLaeufe() {
   // 02.10.2026: „bei Top 5 im Abschnitt fuer die Attitude die 5 laengsten mit phone on board") —
   // unabhaengig von der Gesamtliste, deren laengste Laeufe meist von der Uhr stammen.
   const [brettLaeufe, setBrettLaeufe] = useState<Lauf[] | null>(null);
+  // MARKIERTE Laeufe, gemeinsam fuer alle drei Ansichten (Jan, 02.10.2026: „egal in welcher der
+  // drei Tabellen ich auf eine Zeile klicke … in allen Tabellen hervorheben und nach ganz oben
+  // schieben, Mehrfachauswahl"). Reihenfolge = Reihenfolge des Markierens.
+  const [markiert, setMarkiert] = useState<string[]>([]);
+  const markSet = useMemo(() => new Set(markiert), [markiert]);
+  const umschalten = (k: string) => setMarkiert((alt) => alt.includes(k) ? alt.filter((x) => x !== k) : [...alt, k]);
+  const schl = (l: Lauf) => `${l.session_id}-${l.run_idx}`;
+  // Markierte nach oben (in Markier-Reihenfolge), der Rest in seiner Ordnung darunter.
+  function nachOben<T extends Lauf>(arr: T[]): T[] {
+    const oben = markiert.map((k) => arr.find((l) => schl(l) === k)).filter((x): x is T => !!x);
+    return [...oben, ...arr.filter((l) => !markSet.has(schl(l)))];
+  }
   const [fehler, setFehler] = useState(false);
   const einheit = pumpUnit();
   const [admin, setAdmin] = useState<boolean | null>(null);
@@ -72,11 +84,11 @@ export default function LaengsteLaeufe() {
   }, [laeufe]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const datum = (l: Lauf) => (l.started_at ? fmtDate(l.started_at, l.tz) : "–");
-  const items: HrStripItem[] = useMemo(() => (laeufe ?? [])
+  const items: HrStripItem[] = useMemo(() => nachOben(laeufe ?? [])
     .filter((l) => sessions[l.session_id])
     .map((l) => ({ key: `${l.session_id}-${l.run_idx}`, label: l.started_at ? fmtDate(l.started_at, l.tz, { day: "2-digit", month: "2-digit", year: "2-digit" }) : "–",   // kurz; die Lauf-Nummer setzt CompareHrStrips selbst
                    session: sessions[l.session_id], runIdx: l.run_idx })),
-  [laeufe, sessions]); // eslint-disable-line react-hooks/exhaustive-deps
+  [laeufe, sessions, markiert]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (admin === null) return <Spinner />;
   if (!admin) return <div className="mx-auto max-w-5xl px-4 py-6 text-sm text-slate-400">{t("longest.adminOnly")}</div>;
@@ -92,7 +104,13 @@ export default function LaengsteLaeufe() {
             {t("longest.top", { n: k })}
           </button>
         ))}
+        {markiert.length > 0 && (
+          <button onClick={() => setMarkiert([])} className="rounded-lg px-3 py-1.5 text-sm text-brand-600 hover:underline dark:text-brand-300">
+            {t("longest.unmark", { n: markiert.length })}
+          </button>
+        )}
       </div>
+      <p className="-mt-3 mb-4 text-sm text-slate-400">{t("longest.markHint")}</p>
 
       {fehler && <Card className="p-4 text-sm text-red-400">{t("profile.error")}</Card>}
       {!laeufe && !fehler && <Spinner />}
@@ -120,13 +138,15 @@ export default function LaengsteLaeufe() {
                 </tr>
               </thead>
               <tbody>
-                {laeufe.map((l, i) => {
+                {nachOben(laeufe).map((l) => {
                   const [hs, ha, he] = pulsDesLaufs(sessions[l.session_id], l.run_idx);
                   return (
-                    <tr key={`${l.session_id}-${l.run_idx}`} className="border-b border-slate-800/50">
-                      <td className="px-3 py-2 tabular-nums text-slate-400">{i + 1}</td>
+                    <tr key={schl(l)} onClick={() => umschalten(schl(l))}
+                      className={`cursor-pointer border-b border-slate-800/50 hover:bg-slate-800/50 ${markSet.has(schl(l)) ? "bg-brand-500/20" : ""}`}>
+                      {/* Rang in der Gesamtliste — bleibt beim Hochschieben stehen. */}
+                      <td className="px-3 py-2 tabular-nums text-slate-400">{laeufe.indexOf(l) + 1}</td>
                       <td className="px-3 py-2">
-                        <Link to={`/sessions/${l.session_id}?run=${l.run_idx}`} className="text-brand-600 hover:underline dark:text-brand-300">
+                        <Link to={`/sessions/${l.session_id}?run=${l.run_idx}`} onClick={(e) => e.stopPropagation()} className="text-brand-600 hover:underline dark:text-brand-300">
                           {datum(l)} · #{l.run_idx + 1}
                         </Link>
                         {l.spot && <span className="ml-1 text-slate-400">· {l.spot}</span>}
@@ -150,7 +170,7 @@ export default function LaengsteLaeufe() {
 
           {/* 2. Puls ueber die Zeit — dieselben Streifen wie in der Session, je Lauf eine Zeile. */}
           <h2 className="mb-2 mt-6 text-sm font-semibold uppercase tracking-wide text-slate-400">{t("longest.hrTitle")}</h2>
-          {items.length > 0 ? <CompareHrStrips items={items} /> : <Spinner />}
+          {items.length > 0 ? <CompareHrStrips items={items} markiert={markSet} onKlick={umschalten} /> : <Spinner />}
 
           {/* 3. Lage je Lauf — nur Laeufe mit „Handy am Brett". */}
           {brettLaeufe && brettLaeufe.length > 0 && (
@@ -170,12 +190,13 @@ export default function LaengsteLaeufe() {
                   </tr>
                 </thead>
                 <tbody>
-                  {brettLaeufe.map((l) => {
+                  {nachOben(brettLaeufe).map((l) => {
                     const k = lage[l.session_id]?.find((x) => x.lauf === l.run_idx);
                     return (
-                      <tr key={`${l.session_id}-${l.run_idx}`} className="border-b border-slate-800/50">
+                      <tr key={schl(l)} onClick={() => umschalten(schl(l))}
+                        className={`cursor-pointer border-b border-slate-800/50 hover:bg-slate-800/50 ${markSet.has(schl(l)) ? "bg-brand-500/20" : ""}`}>
                         <td className="px-3 py-2">
-                          <Link to={`/sessions/${l.session_id}?run=${l.run_idx}`} className="text-brand-600 hover:underline dark:text-brand-300">
+                          <Link to={`/sessions/${l.session_id}?run=${l.run_idx}`} onClick={(e) => e.stopPropagation()} className="text-brand-600 hover:underline dark:text-brand-300">
                             {datum(l)} · #{l.run_idx + 1}
                           </Link>
                         </td>

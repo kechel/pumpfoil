@@ -764,6 +764,8 @@ const ru: Record<string, string> = {
   "longest.session": "Сессия",
   "longest.max": "Макс. км/ч",
   "longest.hrTitle": "Пульс во времени",
+  "longest.markHint": "Нажми на строки, чтобы отметить заезды — отмеченные будут вверху всех таблиц.",
+  "longest.unmark": "Снять выбор ({n})",
   "longest.link": "Сравнить мои самые длинные заезды",
   "longest.adminOnly": "Пока только для админов.",
   "foiler.chat": "Написать",
