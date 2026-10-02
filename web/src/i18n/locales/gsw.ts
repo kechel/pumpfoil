@@ -606,7 +606,7 @@ const gsw: Record<string, string> = {
   "longest.none": "No kei Läuf.",
   "longest.session": "Session",
   "longest.max": "Max km/h",
-  "longest.markHint": "Tipp Ziile aa, zum Läuf markiere — markierti stönd i allne Tabälle obe.",
+  "longest.markHint": "Tipp Ziile aa, zum Läuf markiere — markierti stönd i allne Tabälle obe. Sessions, wo du i de Sessionlischte zum Vergliiche gmerkt häsch, chömed da au, au die vo andere Fahrer.",
   "longest.unmark": "Uswahl ufhebe ({n})",
   "longest.link": "Mini längschte Läuf vergliiche",
   "longest.newHint": "NEU: längschti Läuf vergliiche",

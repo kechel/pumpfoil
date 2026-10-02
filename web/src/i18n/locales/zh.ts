@@ -762,7 +762,7 @@ const zh: Record<string, string> = {
   "longest.none": "还没有滑行。",
   "longest.session": "记录",
   "longest.max": "最高 km/h",
-  "longest.markHint": "点按行来标记滑行 — 标记的会排在每个表格的最上面。",
+  "longest.markHint": "点按行来标记滑行 — 标记的会排在每个表格的最上面。 在会话列表中加入对比的会话也会显示在这里，包括其他骑手的。",
   "longest.unmark": "取消选择 ({n})",
   "longest.link": "比较我最长的滑行",
   "longest.newHint": "新功能：比较最长滑行",

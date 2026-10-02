@@ -769,7 +769,7 @@ const ptPT: Record<string, string> = {
   "longest.none": "Ainda sem corridas.",
   "longest.session": "Sessão",
   "longest.max": "Máx km/h",
-  "longest.markHint": "Toca nas linhas para marcar corridas — as marcadas sobem em todas as tabelas.",
+  "longest.markHint": "Toca nas linhas para marcar corridas — as marcadas sobem em todas as tabelas. As sessões guardadas para comparar na lista de sessões também aparecem aqui, incluindo as de outros riders.",
   "longest.unmark": "Limpar seleção ({n})",
   "longest.link": "Comparar as minhas corridas mais longas",
   "longest.newHint": "NOVO: comparar as corridas mais longas",

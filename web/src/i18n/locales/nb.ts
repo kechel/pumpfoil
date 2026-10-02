@@ -776,7 +776,7 @@ const nb: Record<string, string> = {
   "longest.none": "Ingen løp ennå.",
   "longest.session": "Økt",
   "longest.max": "Maks km/t",
-  "longest.markHint": "Trykk på rader for å markere løp — markerte står øverst i alle tabeller.",
+  "longest.markHint": "Trykk på rader for å markere løp — markerte står øverst i alle tabeller. Økter du har lagret for sammenligning i øktlisten, vises også her, også andre ryttere sine.",
   "longest.unmark": "Fjern valg ({n})",
   "longest.link": "Sammenlign mine lengste løp",
   "longest.newHint": "NYTT: sammenlign lengste løp",
