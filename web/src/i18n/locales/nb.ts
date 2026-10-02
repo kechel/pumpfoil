@@ -778,7 +778,6 @@ const nb: Record<string, string> = {
   "longest.session": "Økt",
   "longest.max": "Maks km/t",
   "longest.hrTitle": "Puls over tid",
-  "longest.attTimeTitle": "Stilling over tid",
   "longest.link": "Sammenlign mine lengste løp",
   "longest.adminOnly": "Foreløpig bare for admins.",
   "foiler.chat": "Melding",

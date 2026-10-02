@@ -764,7 +764,6 @@ const ru: Record<string, string> = {
   "longest.session": "Сессия",
   "longest.max": "Макс. км/ч",
   "longest.hrTitle": "Пульс во времени",
-  "longest.attTimeTitle": "Положение во времени",
   "longest.link": "Сравнить мои самые длинные заезды",
   "longest.adminOnly": "Пока только для админов.",
   "foiler.chat": "Написать",

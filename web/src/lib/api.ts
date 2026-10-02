@@ -1216,10 +1216,10 @@ export const api = {
   // nurBrett: nur Aufnahmen mit dem Handy am Brett (genauer als die Uhr am Handgelenk).
   foilStats: (nurBrett = false) => req<{ foil_id: number; brand: string; model: string; size: string; aspect_ratio: number | null; sessions: number; users: number; avg_speed_kmh: number | null; meters_per_pump: number | null; best_distance_m: number | null; best_duration_s: number | null; avg_pump_hz: number | null }[]>(`/api/community/foil-stats${nurBrett ? "?only_board=1" : ""}`),
   // Die laengsten eigenen Laeufe ueber alle Sessions (Seite /laeufe, vorerst nur Admins).
-  longestRuns: (n = 5) => req<{ session_id: number; run_idx: number; started_at: string | null; tz: string | null;
+  longestRuns: (n = 5, nurBrett = false) => req<{ session_id: number; run_idx: number; started_at: string | null; tz: string | null;
     spot: string | null; placement: string | null; duration_s: number | null; distance_m: number | null;
     avg_speed_mps: number | null; max_speed_mps: number | null; pumps: number | null; avg_pump_hz: number | null;
-    longest_glide_s: number | null; t_start_ms: number | null }[]>(`/api/sessions/longest-runs?n=${n}`),
+    longest_glide_s: number | null; t_start_ms: number | null }[]>(`/api/sessions/longest-runs?n=${n}${nurBrett ? "&nur_brett=true" : ""}`),
   watchStats: () => req<{ watch: string; sessions: number; users: number; foiling_km: number; avg_speed_kmh: number | null; best_distance_m: number | null; best_speed_kmh: number | null; avg_pump_hz: number | null }[]>("/api/community/watch-stats"),
   pushKey: () => req<{ key: string }>("/api/push/key"),
   pushSubscribe: (sub: unknown) => req<{ ok: boolean }>("/api/push/subscribe", { method: "POST", body: JSON.stringify(sub) }),
