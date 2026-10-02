@@ -56,12 +56,14 @@ const MAX_LUECKE_M = 200;
 const ZEILE_H = 13;
 const ZEILE_LUECKE = 8;
 
-export function CompareHrStrips({ items, markiert, onKlick }: {
+export function CompareHrStrips({ items, markiert, onKlick, vergleich }: {
   items: HrStripItem[];
   // Optional (Seite „Laengste Laeufe", Jan 02.10.2026): Zeilen anklickbar und hervorgehoben.
   // Schluessel ist `HrStripItem.key`; die Reihenfolge bestimmt der Aufrufer ueber `items`.
   markiert?: Set<string>;
   onKlick?: (itemKey: string) => void;
+  // Zweite Farbe: Laeufe aus dem Vergleichskorb (auch fremde Fahrer), bernsteinfarben.
+  vergleich?: Set<string>;
 }) {
   const t = useT();
   // Zwei Lesarten derselben Streifen (Jan, 11.09.2026): der absolute Puls, oder der ANSTIEG
@@ -294,7 +296,8 @@ export function CompareHrStrips({ items, markiert, onKlick }: {
               key={z.key}
               onClick={onKlick ? () => onKlick(z.item) : undefined}
               className={`flex items-center justify-end gap-1.5 rounded px-1 text-sm leading-none ${
-                markiert?.has(z.item) ? "bg-brand-500/20 font-semibold text-slate-100" : "text-slate-400"} ${
+                markiert?.has(z.item) ? "bg-brand-500/20 font-semibold text-slate-100"
+                  : vergleich?.has(z.item) ? "bg-amber-500/20 text-slate-200" : "text-slate-400"} ${
                 onKlick ? "cursor-pointer hover:bg-slate-800/60" : ""}`}
               style={{ height: ZEILE_H, marginBottom: ZEILE_LUECKE }}
             >
@@ -333,7 +336,7 @@ export function CompareHrStrips({ items, markiert, onKlick }: {
                 key={z.key}
                 onClick={onKlick ? () => onKlick(z.item) : undefined}
                 className={`flex items-center gap-1 whitespace-nowrap rounded text-sm leading-none tabular-nums text-slate-300 ${
-                  markiert?.has(z.item) ? "bg-brand-500/20" : ""} ${onKlick ? "cursor-pointer" : ""}`}
+                  markiert?.has(z.item) ? "bg-brand-500/20" : vergleich?.has(z.item) ? "bg-amber-500/20" : ""} ${onKlick ? "cursor-pointer" : ""}`}
                 style={{ height: ZEILE_H, marginBottom: ZEILE_LUECKE }}
               >
                 {/* Nur Zahlen — die Einheiten stehen einmal als Spaltentitel oben. Feste,
