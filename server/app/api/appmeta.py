@@ -789,7 +789,6 @@ NAECHSTES: list[dict] = [
          "In direct chats, two ticks show that your message has been read.",
          "Tapping a profile picture opens that rider's profile, with a button to send them a message.",
          "Search finds names, spots and gear regardless of accents and hyphens, so fenix finds fēnix and fone finds F-One.",
-         "Everyone can attach photos to chat messages.",
      ]},
     {"name": "iPhone + Apple Watch", "version": "1.1.42",
      "items": [
@@ -797,7 +796,6 @@ NAECHSTES: list[dict] = [
          "In direct chats, two ticks show that your message has been read.",
          "Tapping a profile picture opens that rider's profile, with a button to send them a message.",
          "Search finds names, spots and gear regardless of accents and hyphens, so fenix finds fēnix and fone finds F-One.",
-         "Everyone can attach photos to chat messages.",
      ]},
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.
