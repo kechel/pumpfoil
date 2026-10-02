@@ -1419,8 +1419,11 @@ def overall_stats(
 
 @router.get("/longest-runs")
 def my_longest_runs(
-    n: int = Query(5, ge=1, le=50),
+    n: int = Query(5, ge=1, le=20),
     accel_only: bool = False,
+    # Nur Laeufe mit „Handy am Brett" (Jan, 02.10.2026: im Lage-Abschnitt die 5 laengsten MIT
+    # Phone-on-board-Daten, unabhaengig von der Gesamtliste oben).
+    nur_brett: bool = False,
     user: models.User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> list[dict]:
@@ -1441,7 +1444,8 @@ def my_longest_runs(
                  models.Session.place_lat, models.Session.place_lon)
         .join(models.Session, models.AnalysisResult.session_id == models.Session.id)
         .filter(models.Session.user_id == user.id, models.Session.deleted.isnot(True),
-                or_(models.Session.sport_class.is_(None), models.Session.sport_class == "pumpfoil"))
+                or_(models.Session.sport_class.is_(None), models.Session.sport_class == "pumpfoil"),
+                *((models.Session.placement == "board",) if nur_brett else ()))
         .all()
     )
     laeufe: list[dict] = []

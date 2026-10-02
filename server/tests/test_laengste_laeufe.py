@@ -13,10 +13,11 @@ def _konto(client, mail):
     return auth, client.get("/api/auth/me", headers=auth).json()["id"]
 
 
-def _session(uid, dauern, pumpfoil=True, sport="pumpfoil"):
+def _session(uid, dauern, pumpfoil=True, sport="pumpfoil", placement=None):
     db = SessionLocal()
     s = models.Session(session_uuid=str(uuid.uuid4()), started_at=datetime(2026, 9, 1, tzinfo=timezone.utc),
-                       user_id=uid, is_pumpfoil=pumpfoil, sport_class=sport, status="analyzed")
+                       user_id=uid, is_pumpfoil=pumpfoil, sport_class=sport, status="analyzed",
+                       placement=placement)
     db.add(s); db.flush()
     segs = [{"duration_s": d, "distance_m": d * 4, "i_start": 0, "i_end": 1} for d in dauern]
     db.add(models.AnalysisResult(session_id=s.id, algo_version="t", detection="model", num_runs=len(segs),
@@ -38,3 +39,11 @@ def test_laengste_eigene_laeufe_sortiert_und_gefiltert(client):
     assert r.status_code == 200, r.text
     got = [(x["session_id"], x["run_idx"], x["duration_s"]) for x in r.json()]
     assert got == [(b, 1, 600), (a, 1, 300), (b, 0, 120)]
+
+
+def test_nur_brett(client):
+    ich, uid = _konto(client, "brett@lang.example.com")
+    _session(uid, [900])                              # Uhr, laenger -> faellt raus
+    c = _session(uid, [50, 70], placement="board")
+    r = client.get("/api/sessions/longest-runs?n=5&nur_brett=true", headers=ich)
+    assert [(x["session_id"], x["run_idx"]) for x in r.json()] == [(c, 1), (c, 0)]

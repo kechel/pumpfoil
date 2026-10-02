@@ -764,7 +764,6 @@ const id: Record<string, string> = {
   "longest.session": "Sesi",
   "longest.max": "Maks km/j",
   "longest.hrTitle": "Detak jantung dari waktu ke waktu",
-  "longest.attTimeTitle": "Posisi dari waktu ke waktu",
   "longest.link": "Bandingkan run terpanjangku",
   "longest.adminOnly": "Sementara hanya untuk admin.",
   "foiler.chat": "Pesan",
