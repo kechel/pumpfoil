@@ -810,7 +810,6 @@ const pl: Record<string, string> = {
   "longest.none": "Jeszcze brak przejazdów.",
   "longest.session": "Sesja",
   "longest.max": "Maks. km/h",
-  "longest.hrTitle": "Tętno w czasie",
   "longest.markHint": "Stuknij wiersze, by zaznaczyć przejazdy — zaznaczone są na górze każdej tabeli.",
   "longest.unmark": "Wyczyść wybór ({n})",
   "longest.link": "Porównaj moje najdłuższe przejazdy",

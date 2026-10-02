@@ -786,7 +786,6 @@ const cs: Record<string, string> = {
   "longest.none": "Zatím žádné jízdy.",
   "longest.session": "Session",
   "longest.max": "Max km/h",
-  "longest.hrTitle": "Tep v čase",
   "longest.markHint": "Klepni na řádky a označ jízdy — označené jsou ve všech tabulkách nahoře.",
   "longest.unmark": "Zrušit výběr ({n})",
   "longest.link": "Porovnat mé nejdelší jízdy",

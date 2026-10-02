@@ -762,7 +762,6 @@ const id: Record<string, string> = {
   "longest.none": "Belum ada run.",
   "longest.session": "Sesi",
   "longest.max": "Maks km/j",
-  "longest.hrTitle": "Detak jantung dari waktu ke waktu",
   "longest.markHint": "Ketuk baris untuk menandai run — yang ditandai naik ke atas di setiap tabel.",
   "longest.unmark": "Hapus pilihan ({n})",
   "longest.link": "Bandingkan run terpanjangku",

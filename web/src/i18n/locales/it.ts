@@ -666,7 +666,6 @@ const it: Record<string, string> = {
   "longest.none": "Ancora nessun run.",
   "longest.session": "Sessione",
   "longest.max": "Max km/h",
-  "longest.hrTitle": "Battito nel tempo",
   "longest.markHint": "Tocca le righe per segnare i run — quelli segnati salgono in cima a ogni tabella.",
   "longest.unmark": "Annulla selezione ({n})",
   "longest.link": "Confronta i miei run più lunghi",

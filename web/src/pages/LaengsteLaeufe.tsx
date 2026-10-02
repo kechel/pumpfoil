@@ -244,7 +244,6 @@ export default function LaengsteLaeufe() {
           </Card>
 
           {/* 2. Puls ueber die Zeit — dieselben Streifen wie in der Session, je Lauf eine Zeile. */}
-          <h2 className="mb-2 mt-6 text-sm font-semibold uppercase tracking-wide text-slate-400">{t("longest.hrTitle")}</h2>
           {items.length > 0 ? <CompareHrStrips items={items} markiert={markSet} onKlick={umschalten} vergleich={vglSet} /> : <Spinner />}
 
           {/* 3. Lage je Lauf — nur Laeufe mit „Handy am Brett". */}
