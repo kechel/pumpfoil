@@ -311,7 +311,7 @@ export default function Changelog() {
                   {(it.plattformen ?? []).map((p) => (
                     <span key={p.name}
                       className="ml-1.5 whitespace-nowrap rounded-full bg-slate-800/60 px-2 py-0.5 align-middle text-xs font-medium text-slate-300">
-                      {p.name} {p.version}
+                      {p.version ? `${p.name} ${p.version}` : p.name}
                     </span>
                   ))}
                   {it.img && (
