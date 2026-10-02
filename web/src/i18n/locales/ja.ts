@@ -764,6 +764,7 @@ const ja: Record<string, string> = {
   "longest.session": "セッション",
   "longest.max": "最高 km/h",
   "longest.hrTitle": "時間ごとの心拍",
+  "longest.attTimeTitle": "時間ごとの姿勢",
   "longest.link": "最長ランを比較",
   "longest.adminOnly": "現在は管理者のみ。",
   "foiler.chat": "メッセージ",

@@ -43,6 +43,9 @@ export default function LaengsteLaeufe() {
   const [laeufe, setLaeufe] = useState<Lauf[] | null>(null);
   const [sessions, setSessions] = useState<Record<number, SessionSummary>>({});
   const [lage, setLage] = useState<Record<number, LageZeile[]>>({});
+  // Lage ueber die Zeit je Brett-Lauf (Schluessel "session-lauf"): 10 Hz, damit der Nick-Takt
+  // (~1,4 Hz) sichtbar bleibt — mit 2 Hz waere er nur noch Rauschen.
+  const [kurven, setKurven] = useState<Record<string, BoardAttitude>>({});
   const [fehler, setFehler] = useState(false);
   const einheit = pumpUnit();
   const [admin, setAdmin] = useState<boolean | null>(null);
@@ -63,12 +66,15 @@ export default function LaengsteLaeufe() {
       .filter((id) => !lage[id]);
     brett.forEach((id) => api.boardAttitude(id, { hz: 2, jeLauf: true })
       .then((a) => setLage((alt) => ({ ...alt, [id]: a.laeufe ?? [] }))).catch(() => {}));
+    laeufe.filter((l) => l.placement === "board" && !kurven[`${l.session_id}-${l.run_idx}`]).forEach((l) =>
+      api.boardAttitude(l.session_id, { run: l.run_idx, hz: 10, padS: 0 })
+        .then((a) => setKurven((alt) => ({ ...alt, [`${l.session_id}-${l.run_idx}`]: a }))).catch(() => {}));
   }, [laeufe]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const datum = (l: Lauf) => (l.started_at ? fmtDate(l.started_at, l.tz) : "–");
   const items: HrStripItem[] = useMemo(() => (laeufe ?? [])
     .filter((l) => sessions[l.session_id])
-    .map((l) => ({ key: `${l.session_id}-${l.run_idx}`, label: datum(l),   // die Lauf-Nummer setzt CompareHrStrips selbst dahinter
+    .map((l) => ({ key: `${l.session_id}-${l.run_idx}`, label: l.started_at ? fmtDate(l.started_at, l.tz, { day: "2-digit", month: "2-digit", year: "2-digit" }) : "–",   // kurz; die Lauf-Nummer setzt CompareHrStrips selbst
                    session: sessions[l.session_id], runIdx: l.run_idx })),
   [laeufe, sessions]); // eslint-disable-line react-hooks/exhaustive-deps
   const brettLaeufe = (laeufe ?? []).filter((l) => l.placement === "board");
@@ -104,14 +110,14 @@ export default function LaengsteLaeufe() {
                   <th className="px-3 py-2 font-medium">{t("longest.session")}</th>
                   <th className="px-3 py-2 font-medium">{t("sd.colDuration")}</th>
                   <th className="px-3 py-2 font-medium">{t("sd.colDistance")}</th>
+                  <th className="px-3 py-2 font-medium">{t("sd.colHrStart")}</th>
+                  <th className="px-3 py-2 font-medium">{t("sd.colHrAvg")}</th>
+                  <th className="px-3 py-2 font-medium">{t("sd.colHrEnd")}</th>
                   <th className="px-3 py-2 font-medium">{t("sd.colAvg")}</th>
                   <th className="px-3 py-2 font-medium">{t("longest.max")}</th>
                   <th className="px-3 py-2 font-medium">{t("sd.colPumps")}</th>
                   <th className="px-3 py-2 font-medium">{t("sd.colAvgPump", { unit: einheit === "hz" ? "Hz" : t("unit.pumpPerMin") })}</th>
                   <th className="px-3 py-2 font-medium">{t("sd.colGlide")}</th>
-                  <th className="px-3 py-2 font-medium">{t("sd.colHrStart")}</th>
-                  <th className="px-3 py-2 font-medium">{t("sd.colHrAvg")}</th>
-                  <th className="px-3 py-2 font-medium">{t("sd.colHrEnd")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -128,14 +134,14 @@ export default function LaengsteLaeufe() {
                       </td>
                       <td className="px-3 py-2 tabular-nums font-semibold">{mmss(l.duration_s)}</td>
                       <td className="px-3 py-2 tabular-nums">{l.distance_m != null ? `${Math.round(l.distance_m)} m` : "–"}</td>
+                      <td className="px-3 py-2 tabular-nums">{hs ?? "–"}</td>
+                      <td className="px-3 py-2 tabular-nums"><b>{ha ?? "–"}</b></td>
+                      <td className="px-3 py-2 tabular-nums">{he ?? "–"}</td>
                       <td className="px-3 py-2 tabular-nums">{l.avg_speed_mps != null ? (l.avg_speed_mps * 3.6).toFixed(1) : "–"}</td>
                       <td className="px-3 py-2 tabular-nums">{l.max_speed_mps != null ? (l.max_speed_mps * 3.6).toFixed(1) : "–"}</td>
                       <td className="px-3 py-2 tabular-nums">{l.pumps ?? "–"}</td>
                       <td className="px-3 py-2 tabular-nums">{l.avg_pump_hz != null ? fmtPumpRate(l.avg_pump_hz, einheit, t) : "–"}</td>
                       <td className="px-3 py-2 tabular-nums">{l.longest_glide_s != null ? `${l.longest_glide_s.toFixed(1)} s` : "–"}</td>
-                      <td className="px-3 py-2 tabular-nums">{hs ?? "–"}</td>
-                      <td className="px-3 py-2 tabular-nums">{ha ?? "–"}</td>
-                      <td className="px-3 py-2 tabular-nums">{he ?? "–"}</td>
                     </tr>
                   );
                 })}
@@ -191,8 +197,80 @@ export default function LaengsteLaeufe() {
               </table>
             </Card>
           )}
+
+          {/* 4. Lage UEBER DIE ZEIT je Brett-Lauf (Jan, 02.10.2026: „das gleiche unten drunter noch mit
+              den Onboard-Stats, also Nick, Rollwinkel, Hub"): wie die Puls-Streifen eine Zeile je
+              Lauf auf gemeinsamer Zeitachse, aber als Kurve — Nicken schwingt mit ~1,4 Hz, als
+              Farbstreifen waere das nur ein Streifenmuster. */}
+          {brettLaeufe.length > 0 && (
+            <LageKurven laeufe={brettLaeufe} kurven={kurven} datum={datum} />
+          )}
         </>
       )}
     </div>
+  );
+}
+
+
+// Drei Kennlinien je Lauf, gemeinsame Zeitachse (laengster Lauf = volle Breite) und gemeinsame
+// Skala je Groesse ueber ALLE Laeufe — sonst saehe ein ruhiger Lauf genauso wild aus wie ein wilder.
+const LAGE_REIHEN: { key: "pitch_deg" | "roll_deg" | "hub_cm"; tKey: string; einheit: string; farbe: string }[] = [
+  { key: "pitch_deg", tKey: "board.pitch", einheit: "°", farbe: "#22d3ee" },
+  { key: "roll_deg", tKey: "board.roll", einheit: "°", farbe: "#a3e635" },
+  { key: "hub_cm", tKey: "sd.colHeave", einheit: "cm", farbe: "#f59e0b" },
+];
+
+function LageKurven({ laeufe, kurven, datum }: {
+  laeufe: Lauf[]; kurven: Record<string, BoardAttitude>; datum: (l: Lauf) => string;
+}) {
+  const t = useT();
+  const da = laeufe.map((l) => ({ l, k: kurven[`${l.session_id}-${l.run_idx}`] }));
+  const geladen = da.filter((x) => x.k?.ok && x.k.t_ms?.length);
+  const dauerMs = Math.max(1, ...geladen.map((x) => (x.k!.t_ms![x.k!.t_ms!.length - 1] - x.k!.t_ms![0])));
+  // Gemeinsamer Ausschlag je Groesse (98. Perzentil des Betrags, damit ein Ausreisser nicht alles plattdrueckt).
+  const skala = Object.fromEntries(LAGE_REIHEN.map((r) => {
+    const w = geladen.flatMap((x) => (x.k![r.key] ?? []) as number[]).map(Math.abs).sort((a, b) => a - b);
+    return [r.key, Math.max(1, w.length ? w[Math.floor(w.length * 0.98)] : 1)];
+  })) as Record<string, number>;
+  const B = 600, H = 34;
+
+  return (
+    <Card className="mt-6 p-3">
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">{t("longest.attTimeTitle")}</p>
+      {da.length > geladen.length && <Spinner />}
+      {geladen.map(({ l, k }) => {
+        const t0 = k!.t_ms![0];
+        return (
+          <div key={`${l.session_id}-${l.run_idx}`} className="mb-3">
+            <div className="mb-0.5 text-sm text-slate-300">{datum(l)} <span className="text-slate-500">#{l.run_idx + 1}</span></div>
+            {LAGE_REIHEN.map((r) => {
+              const ys = (k![r.key] ?? []) as (number | null)[];
+              if (!ys.length) return null;
+              const pkt = k!.t_ms!.map((tm, i) => {
+                const y = ys[i]; if (y == null) return null;
+                const x = ((tm - t0) / dauerMs) * B;
+                const yy = H / 2 - (Math.max(-1, Math.min(1, y / skala[r.key])) * (H / 2 - 2));
+                return `${x.toFixed(1)},${yy.toFixed(1)}`;
+              }).filter(Boolean).join(" ");
+              return (
+                <div key={r.key} className="flex items-center gap-2">
+                  <span className="w-16 shrink-0 text-right text-xs text-slate-400">{t(r.tKey)}</span>
+                  <svg viewBox={`0 0 ${B} ${H}`} preserveAspectRatio="none" className="h-[34px] min-w-0 flex-1 rounded bg-slate-900/40">
+                    <line x1="0" x2={B} y1={H / 2} y2={H / 2} stroke="currentColor" className="text-slate-700" strokeWidth="0.5" />
+                    <polyline points={pkt} fill="none" stroke={r.farbe} strokeWidth="1.2" vectorEffect="non-scaling-stroke" />
+                  </svg>
+                  <span className="w-14 shrink-0 text-xs tabular-nums text-slate-500">±{skala[r.key].toFixed(0)} {r.einheit}</span>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
+      {geladen.length > 0 && (
+        <div className="ml-[4.5rem] mr-16 flex justify-between text-xs tabular-nums text-slate-500">
+          <span>0:00</span><span>{mmss(dauerMs / 1000)}</span>
+        </div>
+      )}
+    </Card>
   );
 }

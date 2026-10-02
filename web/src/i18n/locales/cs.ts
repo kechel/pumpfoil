@@ -788,6 +788,7 @@ const cs: Record<string, string> = {
   "longest.session": "Session",
   "longest.max": "Max km/h",
   "longest.hrTitle": "Tep v čase",
+  "longest.attTimeTitle": "Poloha v čase",
   "longest.link": "Porovnat mé nejdelší jízdy",
   "longest.adminOnly": "Zatím jen pro adminy.",
   "foiler.chat": "Zpráva",

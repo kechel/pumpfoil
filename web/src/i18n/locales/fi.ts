@@ -771,6 +771,7 @@ const fi: Record<string, string> = {
   "longest.session": "Sessio",
   "longest.max": "Max km/h",
   "longest.hrTitle": "Syke ajan mukaan",
+  "longest.attTimeTitle": "Asento ajan mukaan",
   "longest.link": "Vertaa pisimpiä lenkkejäni",
   "longest.adminOnly": "Toistaiseksi vain ylläpitäjille.",
   "foiler.chat": "Viesti",

@@ -764,6 +764,7 @@ const zh: Record<string, string> = {
   "longest.session": "记录",
   "longest.max": "最高 km/h",
   "longest.hrTitle": "心率随时间变化",
+  "longest.attTimeTitle": "姿态随时间变化",
   "longest.link": "比较我最长的滑行",
   "longest.adminOnly": "目前仅限管理员。",
   "foiler.chat": "发消息",
