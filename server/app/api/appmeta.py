@@ -962,7 +962,13 @@ def changelog(plattform: str = "", version: str = "",
             for k, v in alle.items():
                 if not v:
                     continue
-                eintrag = {"name": PLATTFORM_NAMEN.get(k, k), "version": str(v)}
+                # „web": Marke OHNE Nummer — die Seite ist immer aktuell. Noetig, sobald ein Web-Punkt
+                # auch App-Versionen traegt: sonst sah er aus wie „nur in den Apps" (Jan, 02.10.2026,
+                # Chat-Bilder). Wert beliebig wahr, z. B. true.
+                if k == "web":
+                    eintrag = {"name": "Web", "version": ""}
+                else:
+                    eintrag = {"name": PLATTFORM_NAMEN.get(k, k), "version": str(v)}
                 if eintrag not in marken:
                     marken.append(eintrag)
             if marken:
@@ -973,7 +979,8 @@ def changelog(plattform: str = "", version: str = "",
                 vs = json.loads(z.versionen) or {}
             except ValueError:
                 vs = {}
-            noetig = (vs.get(plat) or "").strip()
+            _v = vs.get(plat)
+            noetig = _v.strip() if isinstance(_v, str) else ""   # „web": true traegt keine Nummer
             if noetig and _neuer_als(noetig, version):
                 punkt["mit_update"] = noetig
         tage[-1]["items"].append(punkt)
