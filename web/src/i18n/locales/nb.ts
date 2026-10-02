@@ -776,7 +776,6 @@ const nb: Record<string, string> = {
   "longest.none": "Ingen løp ennå.",
   "longest.session": "Økt",
   "longest.max": "Maks km/t",
-  "longest.hrTitle": "Puls over tid",
   "longest.markHint": "Trykk på rader for å markere løp — markerte står øverst i alle tabeller.",
   "longest.unmark": "Fjern valg ({n})",
   "longest.link": "Sammenlign mine lengste løp",
