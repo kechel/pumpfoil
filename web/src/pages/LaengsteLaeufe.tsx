@@ -226,7 +226,6 @@ export default function LaengsteLaeufe() {
                           {datum(l)} · #{l.run_idx + 1}
                         </Link>
                         {l.fahrer && <span className="ml-1 font-semibold text-amber-600 dark:text-amber-300">· {l.fahrer}</span>}
-                        {l.spot && <span className="ml-1 text-slate-400">· {l.spot}</span>}
                       </td>
                       <td className="px-3 py-2 tabular-nums font-semibold">{mmss(l.duration_s)}</td>
                       <td className="px-3 py-2 tabular-nums">{l.distance_m != null ? `${Math.round(l.distance_m)} m` : "–"}</td>
