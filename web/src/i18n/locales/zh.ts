@@ -758,7 +758,6 @@ const zh: Record<string, string> = {
   "chat.photoAdd": "添加照片",
   "chat.replyDirect": "请直接回复 {name}",
   "longest.title": "最长滑行",
-  "longest.intro": "你所有记录中最长的滑行：数据、心率随时间变化，以及手机装在板上时的姿态。",
   "longest.top": "前 {n}",
   "longest.none": "还没有滑行。",
   "longest.session": "记录",

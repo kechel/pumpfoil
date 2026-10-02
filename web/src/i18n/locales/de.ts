@@ -849,7 +849,6 @@ const de: Record<string, string> = {
   "chat.photoAdd": "Bilder anhängen",
   "chat.replyDirect": "Antworten bitte direkt an {name}",
   "longest.title": "Längste Läufe",
-  "longest.intro": "Deine längsten Läufe aus allen Sessions untereinander: Werte, Puls über die Zeit und bei Handy am Brett die Lage.",
   "longest.top": "Top {n}",
   "longest.none": "Noch keine Läufe.",
   "longest.session": "Session",

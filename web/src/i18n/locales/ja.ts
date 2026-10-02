@@ -758,7 +758,6 @@ const ja: Record<string, string> = {
   "chat.photoAdd": "写真を追加",
   "chat.replyDirect": "返信は {name} に直接お願いします",
   "longest.title": "最長ラン",
-  "longest.intro": "全セッションからの最長ラン一覧：数値、時間ごとの心拍、ボードにスマホを付けた場合は姿勢。",
   "longest.top": "トップ {n}",
   "longest.none": "まだランがありません。",
   "longest.session": "セッション",

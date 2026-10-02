@@ -758,7 +758,6 @@ const id: Record<string, string> = {
   "chat.photoAdd": "Tambah foto",
   "chat.replyDirect": "Silakan balas langsung ke {name}",
   "longest.title": "Run terpanjang",
-  "longest.intro": "Run terpanjangmu dari semua sesi: nilai, detak jantung dari waktu ke waktu dan, dengan ponsel di papan, posisinya.",
   "longest.top": "Top {n}",
   "longest.none": "Belum ada run.",
   "longest.session": "Sesi",

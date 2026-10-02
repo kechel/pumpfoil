@@ -782,7 +782,6 @@ const cs: Record<string, string> = {
   "chat.photoAdd": "Přidat fotky",
   "chat.replyDirect": "Odpovídejte prosím přímo: {name}",
   "longest.title": "Nejdelší jízdy",
-  "longest.intro": "Tvé nejdelší jízdy ze všech sessions pod sebou: hodnoty, tep v čase a s telefonem na prkně i poloha.",
   "longest.top": "Top {n}",
   "longest.none": "Zatím žádné jízdy.",
   "longest.session": "Session",

@@ -172,7 +172,6 @@ export default function LaengsteLaeufe() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-6">
       <h1 className="mb-1 text-xl font-bold">{t("longest.title")}</h1>
-      <p className="mb-4 text-sm text-slate-400">{t("longest.intro")}</p>
       <div className="mb-5 flex flex-wrap gap-2">
         {ANZAHL.map((k) => (
           <button key={k} onClick={() => setN(k)}

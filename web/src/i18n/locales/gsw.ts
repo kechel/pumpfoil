@@ -602,7 +602,6 @@ const gsw: Record<string, string> = {
   "chat.photoAdd": "Bilder aahänke",
   "chat.replyDirect": "Antworte bitte diräkt a {name}",
   "longest.title": "Längschti Läuf",
-  "longest.intro": "Dini längschte Läuf us allne Sessions undereinand: Wärt, Puls über d Zyt und bim Handy am Brätt d Lag.",
   "longest.top": "Top {n}",
   "longest.none": "No kei Läuf.",
   "longest.session": "Session",

@@ -765,7 +765,6 @@ const fi: Record<string, string> = {
   "chat.photoAdd": "Lisää kuvia",
   "chat.replyDirect": "Vastaa suoraan: {name}",
   "longest.title": "Pisimmät lenkit",
-  "longest.intro": "Pisimmät lenkkisi kaikista sessioista allekkain: arvot, syke ajan mukaan ja puhelin laudalla -asennossa laudan asento.",
   "longest.top": "Top {n}",
   "longest.none": "Ei vielä lenkkejä.",
   "longest.session": "Sessio",

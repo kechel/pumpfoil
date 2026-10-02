@@ -772,7 +772,6 @@ const nb: Record<string, string> = {
   "chat.photoAdd": "Legg til bilder",
   "chat.replyDirect": "Svar gjerne direkte til {name}",
   "longest.title": "Lengste løp",
-  "longest.intro": "Dine lengste løp fra alle økter under hverandre: verdier, puls over tid og, med telefonen på brettet, stillingen.",
   "longest.top": "Topp {n}",
   "longest.none": "Ingen løp ennå.",
   "longest.session": "Økt",
