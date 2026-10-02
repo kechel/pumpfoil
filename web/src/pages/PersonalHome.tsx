@@ -261,6 +261,9 @@ const setupLabels = (s: { setup?: { stab?: { brand: string; model: string; size:
   board: s.setup?.board?.name || null,
 });
 
+// „NEW: compare longest runs" oben neben der Begruessung — bis einschliesslich 15.10.2026.
+const NEU_LAEUFE_BIS = Date.UTC(2026, 9, 16);
+
 export default function PersonalHome() {
   const t = useT();
   const kompakt = useKompakteListe();   // Session-Liste als Kacheln oder Zeilen (ListenAnsicht)
@@ -401,6 +404,23 @@ export default function PersonalHome() {
           {profile?.display_name ? t("phome.hello", { name: profile.display_name }) : t("nav.home")}
         </h2>
         <ChangelogBadge />
+        {/* Hinweis auf die neue Seite (Jan, 02.10.2026: „ganz oben hinter 'Hi, Jan' einen Hinweis
+            'NEW: compare longest runs', der bei Klick ganz runterrollt, damit man lernt, wo der neue
+            Knopf ist"). Zwei Wochen sichtbar, wie die „neu"-Marken der Nerd-Artikel. */}
+        {Date.now() < NEU_LAEUFE_BIS && (
+          <button
+            onClick={() => {
+              const k = document.getElementById("laengste-laeufe-knopf");
+              if (!k) return;
+              k.scrollIntoView({ behavior: "smooth", block: "center" });
+              k.classList.add("ring-4", "ring-brand-400/60");
+              setTimeout(() => k.classList.remove("ring-4", "ring-brand-400/60"), 2500);
+            }}
+            className="shrink-0 whitespace-nowrap rounded-full bg-brand-500/15 px-2.5 py-1 text-xs font-semibold text-brand-600 ring-1 ring-brand-500/30 hover:bg-brand-500/25 dark:text-brand-300"
+          >
+            {t("longest.newHint")} ↓
+          </button>
+        )}
       </div>
 
       {/* Live-Upload-Karte: eigene Session lädt gerade hoch (Home + Sessions, NICHT Community). */}
@@ -566,13 +586,13 @@ export default function PersonalHome() {
 
       {/* Laengste eigene Laeufe im Vergleich (Jan, 02.10.2026: „ganz unten einen Button … erstmal
           wieder nur fuer Admins"). */}
-      {profile?.is_admin && (
-        <div className="mt-6">
-          <Link to="/laeufe" className="inline-flex items-center gap-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:bg-slate-800">
-            {t("longest.link")} →
-          </Link>
-        </div>
-      )}
+      {/* Fuer alle seit 02.10.2026 (vorher nur Admins), cyan hervorgehoben (Jan). */}
+      <div className="mt-6">
+        <Link id="laengste-laeufe-knopf" to="/laeufe"
+          className="inline-flex items-center gap-1 rounded-xl bg-brand-500 px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-brand-400">
+          {t("longest.link")} →
+        </Link>
+      </div>
     </div>
   );
 }

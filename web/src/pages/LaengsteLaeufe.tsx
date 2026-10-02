@@ -1,7 +1,7 @@
 // Die laengsten EIGENEN Laeufe ueber alle Sessions, untereinander vergleichbar — dieselben drei
 // Ansichten wie in einer Session (Puls ueber die Zeit, Lauf-Tabelle, Lage je Lauf), nur quer
 // durch alle Sessions. Jan, 02.10.2026: „erstmal die fuenf laengsten … vielleicht spaeter andere
-// Auswahlkriterien … erstmal wieder nur fuer Admins". Verlinkt ganz unten auf der Startseite.
+// Auswahlkriterien". Seit 02.10.2026 fuer alle; Knopf ganz unten auf der Startseite.
 //
 // Woher die Daten kommen: die AUSWAHL liefert der Server in einem Aufruf
 // (GET /api/sessions/longest-runs). Die Kurven je Lauf brauchen die volle Session (Puls je
@@ -134,15 +134,13 @@ export default function LaengsteLaeufe() {
   const zeilenFarbe = (l: Lauf) => markSet.has(schl(l)) ? "bg-brand-500/20" : vglSet.has(schl(l)) ? "bg-amber-500/20" : "";
   const [fehler, setFehler] = useState(false);
   const einheit = pumpUnit();
-  const [admin, setAdmin] = useState<boolean | null>(null);
-  useEffect(() => { api.getProfile().then((p) => setAdmin(!!p.is_admin)).catch(() => setAdmin(false)); }, []);
+  // Seit 02.10.2026 fuer alle (Jan: „jetzt auch fuer alle anzeigen, nicht mehr nur Admins").
 
   useEffect(() => {
-    if (!admin) return;
     setLaeufe(null); setBrettLaeufe(null); setFehler(false);
     api.longestRuns(n).then(setLaeufe).catch(() => setFehler(true));
     api.longestRuns(n, true).then(setBrettLaeufe).catch(() => setBrettLaeufe([]));
-  }, [n, admin]);
+  }, [n]);
   useEffect(() => {
     // Volle Session auch fuer Brett-Laeufe: markiert man einen, erscheint er in den Puls-Streifen.
     (brettLaeufe ?? []).map((l) => l.session_id).filter((id, i, a) => a.indexOf(id) === i && !sessions[id])
@@ -165,9 +163,6 @@ export default function LaengsteLaeufe() {
     .map((l) => ({ key: `${l.session_id}-${l.run_idx}`, label: (l.fahrer ? `${l.fahrer} · ` : "") + (l.started_at ? fmtDate(l.started_at, l.tz, { day: "2-digit", month: "2-digit", year: "2-digit" }) : "–"),   // kurz; die Lauf-Nummer setzt CompareHrStrips selbst
                    session: sessions[l.session_id], runIdx: l.run_idx })),
   [laeufe, brettLaeufe, sessions, markiert, vergleich]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  if (admin === null) return <Spinner />;
-  if (!admin) return <div className="py-2 text-sm text-slate-400">{t("longest.adminOnly")}</div>;
 
   return (
     <div className="py-2">   {/* volle Breite (Jan, 02.10.2026) — der Rahmen der App polstert schon */}

@@ -765,7 +765,7 @@ const ru: Record<string, string> = {
   "longest.markHint": "Нажми на строки, чтобы отметить заезды — отмеченные будут вверху всех таблиц.",
   "longest.unmark": "Снять выбор ({n})",
   "longest.link": "Сравнить мои самые длинные заезды",
-  "longest.adminOnly": "Пока только для админов.",
+  "longest.newHint": "НОВОЕ: сравнить самые длинные заезды",
   "foiler.chat": "Написать",
   "chat.sent": "Отправлено",
   "chat.read": "Прочитано",

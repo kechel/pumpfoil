@@ -813,7 +813,7 @@ const pl: Record<string, string> = {
   "longest.markHint": "Stuknij wiersze, by zaznaczyć przejazdy — zaznaczone są na górze każdej tabeli.",
   "longest.unmark": "Wyczyść wybór ({n})",
   "longest.link": "Porównaj moje najdłuższe przejazdy",
-  "longest.adminOnly": "Na razie tylko dla adminów.",
+  "longest.newHint": "NOWOŚĆ: porównaj najdłuższe przejazdy",
   "foiler.chat": "Wiadomość",
   "chat.sent": "Wysłano",
   "chat.read": "Przeczytano",

@@ -765,7 +765,7 @@ const id: Record<string, string> = {
   "longest.markHint": "Ketuk baris untuk menandai run — yang ditandai naik ke atas di setiap tabel.",
   "longest.unmark": "Hapus pilihan ({n})",
   "longest.link": "Bandingkan run terpanjangku",
-  "longest.adminOnly": "Sementara hanya untuk admin.",
+  "longest.newHint": "BARU: bandingkan run terpanjang",
   "foiler.chat": "Pesan",
   "chat.sent": "Terkirim",
   "chat.read": "Dibaca",

@@ -789,7 +789,7 @@ const cs: Record<string, string> = {
   "longest.markHint": "Klepni na řádky a označ jízdy — označené jsou ve všech tabulkách nahoře.",
   "longest.unmark": "Zrušit výběr ({n})",
   "longest.link": "Porovnat mé nejdelší jízdy",
-  "longest.adminOnly": "Zatím jen pro adminy.",
+  "longest.newHint": "NOVÉ: porovnej nejdelší jízdy",
   "foiler.chat": "Zpráva",
   "chat.sent": "Odesláno",
   "chat.read": "Přečteno",

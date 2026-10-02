@@ -765,7 +765,7 @@ const zh: Record<string, string> = {
   "longest.markHint": "点按行来标记滑行 — 标记的会排在每个表格的最上面。",
   "longest.unmark": "取消选择 ({n})",
   "longest.link": "比较我最长的滑行",
-  "longest.adminOnly": "目前仅限管理员。",
+  "longest.newHint": "新功能：比较最长滑行",
   "foiler.chat": "发消息",
   "chat.sent": "已发送",
   "chat.read": "已读",
