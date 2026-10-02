@@ -453,6 +453,11 @@ export default function SessionDetail() {
   // sie wird beim ersten Rendern gelesen und dann verworfen, damit ein Neuladen der Seite den
   // Hinweis nicht wiederholt.
   const ort = useLocation();
+  // Mitgegebener Rueckweg (Link-State), s. Kopfzeile. Nur Pfade innerhalb der App.
+  const zurueckZu = (() => {
+    const st = ort.state as { zurueck?: string; zurueckText?: string } | null;
+    return st?.zurueck?.startsWith("/") ? { zurueck: st.zurueck, zurueckText: st.zurueckText ?? "" } : null;
+  })();
   const [geteilteLinksWeg, setGeteilteLinksWeg] = useState<number>(
     () => Number((ort.state as { geteilteLinks?: number } | null)?.geteilteLinks || 0));
   const [brettFrage, setBrettFrage] = useState(false);
@@ -1571,13 +1576,22 @@ export default function SessionDetail() {
       {/* Kopfzeile (Zurück/Nachbarn/Spot-Chat/Vergleich) — nur in der App, im öffentlichen Link ganz aus. */}
       {!isPublic && (
       <div className="mb-4 flex flex-wrap items-center gap-2">
+        {/* Zurueck: kam man von einer Seite, die sich mitgegeben hat (z. B. „Laengste Laeufe", Jan
+            02.10.2026: „einen Zurueck-Button, der mich wieder genau in die gleiche Ansicht
+            zurueckbringt"), dorthin — sonst wie bisher in die Sessionliste. */}
+        {zurueckZu ? (
+          <Link to={zurueckZu.zurueck} className="inline-flex shrink-0 items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
+            <ChevronIcon className="h-4 w-4 rotate-180" /> {zurueckZu.zurueckText}
+          </Link>
+        ) : (
         <Link to={`/sessions${getLastSessionsSearch()}`} className="inline-flex shrink-0 items-center gap-1 text-sm text-slate-300 hover:text-slate-200">
           <ChevronIcon className="h-4 w-4 rotate-180" /> {t("sessions.title")}
         </Link>
+        )}
         <div className="ml-auto inline-flex shrink-0 overflow-hidden rounded-lg sm:order-last sm:ml-0">
           <button
             disabled={neighbors.older == null}
-            onClick={() => neighbors.older != null && nav(`/sessions/${neighbors.older}`)}
+            onClick={() => neighbors.older != null && nav(`/sessions/${neighbors.older}`, { state: ort.state })}
             className="bg-slate-800 px-3 py-1 text-sm text-slate-200 enabled:hover:bg-slate-700 disabled:opacity-40"
             title={t("sd.olderTitle")}
           >
@@ -1585,7 +1599,7 @@ export default function SessionDetail() {
           </button>
           <button
             disabled={neighbors.newer == null}
-            onClick={() => neighbors.newer != null && nav(`/sessions/${neighbors.newer}`)}
+            onClick={() => neighbors.newer != null && nav(`/sessions/${neighbors.newer}`, { state: ort.state })}
             className="border-l border-slate-900/60 bg-slate-800 px-3 py-1 text-sm text-slate-200 enabled:hover:bg-slate-700 disabled:opacity-40"
             title={t("sd.newerTitle")}
           >
