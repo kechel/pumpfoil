@@ -68,7 +68,7 @@ export default function LaengsteLaeufe() {
   const datum = (l: Lauf) => (l.started_at ? fmtDate(l.started_at, l.tz) : "–");
   const items: HrStripItem[] = useMemo(() => (laeufe ?? [])
     .filter((l) => sessions[l.session_id])
-    .map((l) => ({ key: `${l.session_id}-${l.run_idx}`, label: `${datum(l)} · #${l.run_idx + 1}`,
+    .map((l) => ({ key: `${l.session_id}-${l.run_idx}`, label: datum(l),   // die Lauf-Nummer setzt CompareHrStrips selbst dahinter
                    session: sessions[l.session_id], runIdx: l.run_idx })),
   [laeufe, sessions]); // eslint-disable-line react-hooks/exhaustive-deps
   const brettLaeufe = (laeufe ?? []).filter((l) => l.placement === "board");
