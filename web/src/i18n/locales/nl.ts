@@ -786,7 +786,7 @@ const nl: Record<string, string> = {
   "longest.none": "Nog geen runs.",
   "longest.session": "Sessie",
   "longest.max": "Max km/u",
-  "longest.markHint": "Tik op rijen om runs te markeren — gemarkeerde staan in elke tabel bovenaan.",
+  "longest.markHint": "Tik op rijen om runs te markeren — gemarkeerde staan in elke tabel bovenaan. Sessies die je in de sessielijst voor vergelijking hebt bewaard, verschijnen hier ook, ook die van andere riders.",
   "longest.unmark": "Selectie wissen ({n})",
   "longest.link": "Mijn langste runs vergelijken",
   "longest.newHint": "NIEUW: langste runs vergelijken",

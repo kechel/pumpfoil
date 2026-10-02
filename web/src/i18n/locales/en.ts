@@ -830,7 +830,7 @@ const en: Record<string, string> = {
   "longest.none": "No runs yet.",
   "longest.session": "Session",
   "longest.max": "Max km/h",
-  "longest.markHint": "Tap rows to mark runs — marked runs move to the top of every table.",
+  "longest.markHint": "Tap rows to mark runs — marked runs move to the top of every table. Sessions saved for comparison in the session list show up here too, including other riders' runs.",
   "longest.unmark": "Clear selection ({n})",
   "longest.link": "Compare my longest runs",
   "longest.newHint": "NEW: compare longest runs",

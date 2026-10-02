@@ -853,7 +853,7 @@ const de: Record<string, string> = {
   "longest.none": "Noch keine Läufe.",
   "longest.session": "Session",
   "longest.max": "Max km/h",
-  "longest.markHint": "Tippe Zeilen an, um Läufe zu markieren — markierte stehen in allen Tabellen oben.",
+  "longest.markHint": "Tippe Zeilen an, um Läufe zu markieren — markierte stehen in allen Tabellen oben. Sessions, die du in der Sessionliste zum Vergleich gemerkt hast, erscheinen hier ebenfalls, auch die von anderen Fahrern.",
   "longest.unmark": "Auswahl aufheben ({n})",
   "longest.link": "Meine längsten Läufe vergleichen",
   "longest.newHint": "NEU: längste Läufe vergleichen",

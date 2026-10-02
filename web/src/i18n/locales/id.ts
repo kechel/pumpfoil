@@ -762,7 +762,7 @@ const id: Record<string, string> = {
   "longest.none": "Belum ada run.",
   "longest.session": "Sesi",
   "longest.max": "Maks km/j",
-  "longest.markHint": "Ketuk baris untuk menandai run — yang ditandai naik ke atas di setiap tabel.",
+  "longest.markHint": "Ketuk baris untuk menandai run — yang ditandai naik ke atas di setiap tabel. Sesi yang disimpan untuk dibandingkan di daftar sesi juga muncul di sini, termasuk milik rider lain.",
   "longest.unmark": "Hapus pilihan ({n})",
   "longest.link": "Bandingkan run terpanjangku",
   "longest.newHint": "BARU: bandingkan run terpanjang",

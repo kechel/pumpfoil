@@ -769,7 +769,7 @@ const fi: Record<string, string> = {
   "longest.none": "Ei vielä lenkkejä.",
   "longest.session": "Sessio",
   "longest.max": "Max km/h",
-  "longest.markHint": "Napauta rivejä merkitäksesi lenkkejä — merkityt nousevat kaikissa taulukoissa ylös.",
+  "longest.markHint": "Napauta rivejä merkitäksesi lenkkejä — merkityt nousevat kaikissa taulukoissa ylös. Sessiolistassa vertailuun tallennetut sessiot näkyvät myös täällä, myös muiden kuskien.",
   "longest.unmark": "Poista valinta ({n})",
   "longest.link": "Vertaa pisimpiä lenkkejäni",
   "longest.newHint": "UUTTA: vertaa pisimpiä lenkkejä",

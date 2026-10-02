@@ -810,7 +810,7 @@ const pl: Record<string, string> = {
   "longest.none": "Jeszcze brak przejazdów.",
   "longest.session": "Sesja",
   "longest.max": "Maks. km/h",
-  "longest.markHint": "Stuknij wiersze, by zaznaczyć przejazdy — zaznaczone są na górze każdej tabeli.",
+  "longest.markHint": "Stuknij wiersze, by zaznaczyć przejazdy — zaznaczone są na górze każdej tabeli. Sesje zapisane do porównania na liście sesji też się tu pojawiają, także innych riderów.",
   "longest.unmark": "Wyczyść wybór ({n})",
   "longest.link": "Porównaj moje najdłuższe przejazdy",
   "longest.newHint": "NOWOŚĆ: porównaj najdłuższe przejazdy",

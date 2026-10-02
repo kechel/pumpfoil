@@ -762,7 +762,7 @@ const ja: Record<string, string> = {
   "longest.none": "まだランがありません。",
   "longest.session": "セッション",
   "longest.max": "最高 km/h",
-  "longest.markHint": "行をタップしてランをマーク — マークしたランはすべての表で上に表示されます。",
+  "longest.markHint": "行をタップしてランをマーク — マークしたランはすべての表で上に表示されます。 セッション一覧で比較用に保存したセッションもここに表示されます（他のライダーのものも含む）。",
   "longest.unmark": "選択を解除 ({n})",
   "longest.link": "最長ランを比較",
   "longest.newHint": "新機能：最長ランを比較",
