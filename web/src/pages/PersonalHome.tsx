@@ -563,6 +563,16 @@ export default function PersonalHome() {
       <StartSuccessSection />
       <CarveStatsSection />
       <BoardAttitudeSection />
+
+      {/* Laengste eigene Laeufe im Vergleich (Jan, 02.10.2026: „ganz unten einen Button … erstmal
+          wieder nur fuer Admins"). */}
+      {profile?.is_admin && (
+        <div className="mt-6">
+          <Link to="/laeufe" className="inline-flex items-center gap-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:bg-slate-800">
+            {t("longest.link")} →
+          </Link>
+        </div>
+      )}
     </div>
   );
 }
