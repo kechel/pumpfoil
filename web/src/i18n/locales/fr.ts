@@ -668,6 +668,7 @@ const fr: Record<string, string> = {
   "longest.session": "Session",
   "longest.max": "Max km/h",
   "longest.hrTitle": "Fréquence cardiaque dans le temps",
+  "longest.attTimeTitle": "Assiette dans le temps",
   "longest.link": "Comparer mes plus longs runs",
   "longest.adminOnly": "Réservé aux admins pour l'instant.",
   "foiler.chat": "Message",

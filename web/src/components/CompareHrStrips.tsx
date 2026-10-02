@@ -169,6 +169,21 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
 
   const maxLen = useMemo(() => zeilen.reduce((m, z) => Math.max(m, z.hr.length), 0), [zeilen]);
 
+  // Zusammenfassung je Lauf fuer die Werte-Spalte ohne Zeiger (s. unten).
+  const zusammen = (z: Zeile) => {
+    const hr = z.hr.filter((v): v is number => v != null);
+    const sp = z.spd.filter((v): v is number => v != null);
+    const dEnde = [...z.delta].reverse().find((v) => v != null);
+    const puls = anstieg
+      ? (dEnde == null ? "–" : dEnde > 0 ? `+${dEnde}` : `${dEnde}`)
+      : (hr.length ? `${Math.round(hr.reduce((a, b) => a + b, 0) / hr.length)}` : "–");
+    return {
+      puls,
+      m: z.dist.length ? String(Math.round(z.dist[z.dist.length - 1])) : "–",
+      kmh: sp.length ? (sp.reduce((a, b) => a + b, 0) / sp.length).toFixed(1) : "–",
+    };
+  };
+
   useEffect(() => {
     const cv = canvasRef.current, box = boxRef.current;
     if (!cv || !box || !zeilen.length || !maxLen) return;
@@ -257,10 +272,12 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
           inhaltsgetrieben und liessen sich hier gar nicht nachbilden. */}
       <div className="flex gap-2">
         <div className="min-w-0 flex-1" />
-        <div className="flex w-[184px] shrink-0 items-center gap-1 whitespace-nowrap pb-1 text-sm leading-none text-slate-400">
+        {/* Auf dem Handy nur die Puls-Spalte: mit allen drei blieben dem Streifen dort wenige
+            Pixel (Jan, 02.10.2026). Strecke und Tempo stehen in der Lauf-Tabelle darueber. */}
+        <div className="flex w-12 shrink-0 items-center gap-1 whitespace-nowrap pb-1 text-sm leading-none text-slate-400 sm:w-[184px]">
           <span className="w-12 shrink-0 text-right">{anstieg ? "Δ bpm" : "bpm"}</span>
-          <span className="w-14 shrink-0 text-right">m</span>
-          <span className="w-[72px] shrink-0 text-right">km/h (5s)</span>
+          <span className="hidden w-14 shrink-0 text-right sm:inline">m</span>
+          <span className="hidden w-[72px] shrink-0 text-right sm:inline">km/h (5s)</span>
         </div>
       </div>
       <div className="flex gap-2">
@@ -271,7 +288,7 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
               className="flex items-center justify-end gap-1.5 text-sm leading-none text-slate-400"
               style={{ height: ZEILE_H, marginBottom: ZEILE_LUECKE }}
             >
-              {z.label && <span className="pf-name max-w-[9rem] truncate">{z.label}</span>}
+              {z.label && <span className="pf-name max-w-[5.5rem] truncate sm:max-w-[9rem]">{z.label}</span>}
               <span className="tabular-nums text-slate-500">#{z.nr}</span>
             </div>
           ))}
@@ -296,7 +313,7 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
         {/* Werte-Spalte: zeigt fuer JEDEN Lauf die Zahlen an der Zeit-Position unter dem Zeiger.
             Immer vorhanden (auch leer), damit beim Ueberfahren nichts springt. Laeufe, die zu
             diesem Zeitpunkt schon vorbei sind, bleiben leer statt „0" zu behaupten. */}
-        <div className="w-[184px] shrink-0">
+        <div className="w-12 shrink-0 sm:w-[184px]">
           {zeilen.map((z) => {
             const i = hoverI;
             const da = i != null && i < z.hr.length;
@@ -315,12 +332,23 @@ export function CompareHrStrips({ items }: { items: HrStripItem[] }) {
                     <span className="w-12 shrink-0 text-right font-semibold text-slate-100">
                       {puls == null ? "–" : anstieg && puls > 0 ? `+${puls}` : `${puls}`}
                     </span>
-                    <span className="w-14 shrink-0 text-right">{Math.round(z.dist[i!])}</span>
-                    <span className="w-[72px] shrink-0 text-right">
+                    <span className="hidden w-14 shrink-0 text-right sm:inline">{Math.round(z.dist[i!])}</span>
+                    <span className="hidden w-[72px] shrink-0 text-right sm:inline">
                       {z.spd[i!] != null ? z.spd[i!]!.toFixed(1) : "–"}
                     </span>
                   </>
-                ) : null}
+                ) : (
+                  // OHNE Zeiger die Zusammenfassung je Lauf (Jan, 02.10.2026: „mir fehlt noch der Puls
+                  // bei den Laeufen, der wird nirgendwo angezeigt" — auf dem Handy gibt es kein
+                  // Ueberfahren, die Spalte blieb dort immer leer). Ø-Puls (im Anstieg-Modus der
+                  // Anstieg am Ende), Lauf-Strecke, Ø-Tempo — gedaempft, damit man sie von den
+                  // Werten unter dem Zeiger unterscheidet.
+                  <>
+                    <span className="w-12 shrink-0 text-right text-slate-400">{zusammen(z).puls}</span>
+                    <span className="hidden w-14 shrink-0 text-right text-slate-400 sm:inline">{zusammen(z).m}</span>
+                    <span className="hidden w-[72px] shrink-0 text-right text-slate-400 sm:inline">{zusammen(z).kmh}</span>
+                  </>
+                )}
               </div>
             );
           })}

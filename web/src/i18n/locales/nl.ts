@@ -788,6 +788,7 @@ const nl: Record<string, string> = {
   "longest.session": "Sessie",
   "longest.max": "Max km/u",
   "longest.hrTitle": "Hartslag in de tijd",
+  "longest.attTimeTitle": "Stand in de tijd",
   "longest.link": "Mijn langste runs vergelijken",
   "longest.adminOnly": "Voorlopig alleen voor admins.",
   "foiler.chat": "Bericht",

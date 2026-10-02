@@ -812,6 +812,7 @@ const pl: Record<string, string> = {
   "longest.session": "Sesja",
   "longest.max": "Maks. km/h",
   "longest.hrTitle": "Tętno w czasie",
+  "longest.attTimeTitle": "Położenie w czasie",
   "longest.link": "Porównaj moje najdłuższe przejazdy",
   "longest.adminOnly": "Na razie tylko dla adminów.",
   "foiler.chat": "Wiadomość",
