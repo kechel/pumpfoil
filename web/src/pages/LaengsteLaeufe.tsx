@@ -15,8 +15,11 @@ import { CompareHrStrips, HrStripItem } from "../components/CompareHrStrips";
 import { useT } from "../i18n";
 import { fmtDate } from "../lib/time";
 import { fmtPumpRate, pumpUnit } from "../lib/pumpRate";
+import { useCompare } from "../lib/compare";
 
-type Lauf = Awaited<ReturnType<typeof api.longestRuns>>[number];
+type Lauf = Awaited<ReturnType<typeof api.longestRuns>>[number] & {
+  fahrer?: string | null;   // nur bei Laeufen aus dem Vergleichskorb, die einem anderen gehoeren
+};
 type LageZeile = NonNullable<BoardAttitude["laeufe"]>[number];
 
 const ANZAHL = [5, 10, 20];   // Jan, 02.10.2026: „maximal bis top 20"
@@ -54,11 +57,48 @@ export default function LaengsteLaeufe() {
   const markSet = useMemo(() => new Set(markiert), [markiert]);
   const umschalten = (k: string) => setMarkiert((alt) => alt.includes(k) ? alt.filter((x) => x !== k) : [...alt, k]);
   const schl = (l: Lauf) => `${l.session_id}-${l.run_idx}`;
-  // Markierte nach oben (in Markier-Reihenfolge), der Rest in seiner Ordnung darunter.
-  function nachOben<T extends Lauf>(arr: T[]): T[] {
-    const oben = markiert.map((k) => arr.find((l) => schl(l) === k)).filter((x): x is T => !!x);
-    return [...oben, ...arr.filter((l) => !markSet.has(schl(l)))];
+
+  // VERGLEICHSKORB (Jan, 02.10.2026: „die laengsten Laeufe der Sessions, die ich zum Vergleich
+  // markiert habe, ebenso anzeigen, auch die von anderen Fahrern, mit anderer Farbmarkierung"):
+  // ein Lauf im Korb -> genau dieser; eine ganze Session -> ihr laengster Lauf.
+  const korb = useCompare();
+  useEffect(() => {
+    korb.map((r) => r.sessionId).filter((id) => !sessions[id])
+      .forEach((id) => api.session(id).then((x) => setSessions((alt) => ({ ...alt, [id]: x }))).catch(() => {}));
+  }, [korb]); // eslint-disable-line react-hooks/exhaustive-deps
+  const vergleich: Lauf[] = useMemo(() => korb.flatMap((r) => {
+    const x = sessions[r.sessionId]; const segs = x?.analysis?.segments ?? [];
+    if (!x || !segs.length) return [];
+    const ri = r.runIdx ?? segs.reduce((b, sg, i) => ((sg.duration_s ?? 0) > (segs[b].duration_s ?? 0) ? i : b), 0);
+    const sg = segs[ri]; if (!sg) return [];
+    return [{ session_id: r.sessionId, run_idx: ri, started_at: x.started_at, tz: x.tz ?? null,
+      spot: x.place_name ?? null, placement: x.placement ?? null, duration_s: sg.duration_s ?? null,
+      distance_m: sg.distance_m ?? null, avg_speed_mps: sg.avg_speed_mps ?? null, max_speed_mps: sg.max_speed_mps ?? null,
+      pumps: sg.pumps ?? null, avg_pump_hz: sg.avg_pump_hz ?? null, longest_glide_s: sg.longest_glide_s ?? null,
+      t_start_ms: null, fahrer: x.owned === false ? (x.owner_name ?? "—") : null } as Lauf];
+  }), [korb, sessions]);
+  const vglSet = useMemo(() => new Set(vergleich.map(schl)), [vergleich]);
+  useEffect(() => {
+    vergleich.filter((l) => l.placement === "board" && !lage[l.session_id]).forEach((l) =>
+      api.boardAttitude(l.session_id, { hz: 2, jeLauf: true })
+        .then((a) => setLage((alt) => ({ ...alt, [l.session_id]: a.laeufe ?? [] }))).catch(() => {}));
+  }, [vergleich]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Reihenfolge in jeder Ansicht: markierte (Markier-Reihenfolge) -> Vergleichskorb -> Rest.
+  // MARKIERTE erscheinen in JEDER Ansicht, auch wenn sie dort nicht in den Top x stehen (Jan,
+  // 02.10.2026: „wenn ich einen Lauf aus der Phone-on-board-Tabelle waehle, soll der auch in den
+  // beiden anderen Tabellen angezeigt werden"). Die Lage-Tabelle nimmt davon nur Brett-Laeufe —
+  // fuer die anderen gibt es keine Lage.
+  function anordnen(arr: Lauf[], mitVergleich: Lauf[], nurBrett = false): Lauf[] {
+    const bekannt = [...(laeufe ?? []), ...(brettLaeufe ?? []), ...vergleich];
+    const zusatz = markiert.map((k) => bekannt.find((l) => schl(l) === k))
+      .filter((x): x is Lauf => !!x && (!nurBrett || x.placement === "board"));
+    const alle: Lauf[] = [];
+    for (const l of [...arr, ...mitVergleich, ...zusatz]) if (!alle.some((a) => schl(a) === schl(l))) alle.push(l);
+    const oben = markiert.map((k) => alle.find((l) => schl(l) === k)).filter((x): x is Lauf => !!x);
+    const vgl = alle.filter((l) => vglSet.has(schl(l)) && !markSet.has(schl(l)));
+    return [...oben, ...vgl, ...alle.filter((l) => !markSet.has(schl(l)) && !vglSet.has(schl(l)))];
   }
+  const zeilenFarbe = (l: Lauf) => markSet.has(schl(l)) ? "bg-brand-500/20" : vglSet.has(schl(l)) ? "bg-amber-500/20" : "";
   const [fehler, setFehler] = useState(false);
   const einheit = pumpUnit();
   const [admin, setAdmin] = useState<boolean | null>(null);
@@ -71,6 +111,9 @@ export default function LaengsteLaeufe() {
     api.longestRuns(n, true).then(setBrettLaeufe).catch(() => setBrettLaeufe([]));
   }, [n, admin]);
   useEffect(() => {
+    // Volle Session auch fuer Brett-Laeufe: markiert man einen, erscheint er in den Puls-Streifen.
+    (brettLaeufe ?? []).map((l) => l.session_id).filter((id, i, a) => a.indexOf(id) === i && !sessions[id])
+      .forEach((id) => api.session(id).then((x) => setSessions((alt) => ({ ...alt, [id]: x }))).catch(() => {}));
     (brettLaeufe ?? []).map((l) => l.session_id).filter((id, i, a) => a.indexOf(id) === i && !lage[id])
       .forEach((id) => api.boardAttitude(id, { hz: 2, jeLauf: true })
         .then((a) => setLage((alt) => ({ ...alt, [id]: a.laeufe ?? [] }))).catch(() => {}));
@@ -84,11 +127,11 @@ export default function LaengsteLaeufe() {
   }, [laeufe]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const datum = (l: Lauf) => (l.started_at ? fmtDate(l.started_at, l.tz) : "–");
-  const items: HrStripItem[] = useMemo(() => nachOben(laeufe ?? [])
+  const items: HrStripItem[] = useMemo(() => anordnen(laeufe ?? [], vergleich)
     .filter((l) => sessions[l.session_id])
-    .map((l) => ({ key: `${l.session_id}-${l.run_idx}`, label: l.started_at ? fmtDate(l.started_at, l.tz, { day: "2-digit", month: "2-digit", year: "2-digit" }) : "–",   // kurz; die Lauf-Nummer setzt CompareHrStrips selbst
+    .map((l) => ({ key: `${l.session_id}-${l.run_idx}`, label: (l.fahrer ? `${l.fahrer} · ` : "") + (l.started_at ? fmtDate(l.started_at, l.tz, { day: "2-digit", month: "2-digit", year: "2-digit" }) : "–"),   // kurz; die Lauf-Nummer setzt CompareHrStrips selbst
                    session: sessions[l.session_id], runIdx: l.run_idx })),
-  [laeufe, sessions, markiert]); // eslint-disable-line react-hooks/exhaustive-deps
+  [laeufe, brettLaeufe, sessions, markiert, vergleich]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (admin === null) return <Spinner />;
   if (!admin) return <div className="mx-auto max-w-5xl px-4 py-6 text-sm text-slate-400">{t("longest.adminOnly")}</div>;
@@ -138,17 +181,18 @@ export default function LaengsteLaeufe() {
                 </tr>
               </thead>
               <tbody>
-                {nachOben(laeufe).map((l) => {
+                {anordnen(laeufe, vergleich).map((l) => {
                   const [hs, ha, he] = pulsDesLaufs(sessions[l.session_id], l.run_idx);
                   return (
                     <tr key={schl(l)} onClick={() => umschalten(schl(l))}
-                      className={`cursor-pointer border-b border-slate-800/50 hover:bg-slate-800/50 ${markSet.has(schl(l)) ? "bg-brand-500/20" : ""}`}>
-                      {/* Rang in der Gesamtliste — bleibt beim Hochschieben stehen. */}
-                      <td className="px-3 py-2 tabular-nums text-slate-400">{laeufe.indexOf(l) + 1}</td>
+                      className={`cursor-pointer border-b border-slate-800/50 hover:bg-slate-800/50 ${zeilenFarbe(l)}`}>
+                      {/* Rang in der Gesamtliste — bleibt beim Hochschieben stehen; Vergleichslaeufe: „V". */}
+                      <td className="px-3 py-2 tabular-nums text-slate-400">{laeufe.indexOf(l) >= 0 ? laeufe.indexOf(l) + 1 : vglSet.has(schl(l)) ? "V" : "–"}</td>
                       <td className="px-3 py-2">
                         <Link to={`/sessions/${l.session_id}?run=${l.run_idx}`} onClick={(e) => e.stopPropagation()} className="text-brand-600 hover:underline dark:text-brand-300">
                           {datum(l)} · #{l.run_idx + 1}
                         </Link>
+                        {l.fahrer && <span className="ml-1 font-semibold text-amber-600 dark:text-amber-300">· {l.fahrer}</span>}
                         {l.spot && <span className="ml-1 text-slate-400">· {l.spot}</span>}
                       </td>
                       <td className="px-3 py-2 tabular-nums font-semibold">{mmss(l.duration_s)}</td>
@@ -170,7 +214,7 @@ export default function LaengsteLaeufe() {
 
           {/* 2. Puls ueber die Zeit — dieselben Streifen wie in der Session, je Lauf eine Zeile. */}
           <h2 className="mb-2 mt-6 text-sm font-semibold uppercase tracking-wide text-slate-400">{t("longest.hrTitle")}</h2>
-          {items.length > 0 ? <CompareHrStrips items={items} markiert={markSet} onKlick={umschalten} /> : <Spinner />}
+          {items.length > 0 ? <CompareHrStrips items={items} markiert={markSet} onKlick={umschalten} vergleich={vglSet} /> : <Spinner />}
 
           {/* 3. Lage je Lauf — nur Laeufe mit „Handy am Brett". */}
           {brettLaeufe && brettLaeufe.length > 0 && (
@@ -190,11 +234,11 @@ export default function LaengsteLaeufe() {
                   </tr>
                 </thead>
                 <tbody>
-                  {nachOben(brettLaeufe).map((l) => {
+                  {anordnen(brettLaeufe, vergleich.filter((v) => v.placement === "board"), true).map((l) => {
                     const k = lage[l.session_id]?.find((x) => x.lauf === l.run_idx);
                     return (
                       <tr key={schl(l)} onClick={() => umschalten(schl(l))}
-                        className={`cursor-pointer border-b border-slate-800/50 hover:bg-slate-800/50 ${markSet.has(schl(l)) ? "bg-brand-500/20" : ""}`}>
+                        className={`cursor-pointer border-b border-slate-800/50 hover:bg-slate-800/50 ${zeilenFarbe(l)}`}>
                         <td className="px-3 py-2">
                           <Link to={`/sessions/${l.session_id}?run=${l.run_idx}`} onClick={(e) => e.stopPropagation()} className="text-brand-600 hover:underline dark:text-brand-300">
                             {datum(l)} · #{l.run_idx + 1}
