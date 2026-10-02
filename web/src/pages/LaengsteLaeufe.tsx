@@ -8,7 +8,7 @@
 // Trackpunkt) und bei „Handy am Brett" die Lage-Kennzahlen je Lauf — beides holt die Seite je
 // betroffener Session nach. Bei fuenf Laeufen sind das hoechstens fuenf Abrufe.
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { api, BoardAttitude, SessionSummary } from "../lib/api";
 import { Card, Spinner } from "../components/ui";
 import { CompareHrStrips, HrStripItem } from "../components/CompareHrStrips";
@@ -42,7 +42,13 @@ function pulsDesLaufs(s: SessionSummary | undefined, runIdx: number): [number | 
 
 export default function LaengsteLaeufe() {
   const t = useT();
-  const [n, setN] = useState(5);
+  // Die Ansicht steht in der ADRESSE (Top x, markierte Laeufe) — so bringt der Zurueck-Knopf der
+  // Session-Detailansicht genau hierher zurueck (Jan, 02.10.2026). `replace`, damit das Markieren
+  // nicht jede Zeile einzeln in den Browser-Verlauf schreibt.
+  const [suche, setSuche] = useSearchParams();
+  const ort = useLocation();
+  const n = [5, 10, 20].includes(Number(suche.get("n"))) ? Number(suche.get("n")) : 5;
+  const setN = (k: number) => { const q = new URLSearchParams(suche); q.set("n", String(k)); setSuche(q, { replace: true }); };
   const [laeufe, setLaeufe] = useState<Lauf[] | null>(null);
   const [sessions, setSessions] = useState<Record<number, SessionSummary>>({});
   const [lage, setLage] = useState<Record<number, LageZeile[]>>({});
@@ -53,7 +59,13 @@ export default function LaengsteLaeufe() {
   // MARKIERTE Laeufe, gemeinsam fuer alle drei Ansichten (Jan, 02.10.2026: „egal in welcher der
   // drei Tabellen ich auf eine Zeile klicke … in allen Tabellen hervorheben und nach ganz oben
   // schieben, Mehrfachauswahl"). Reihenfolge = Reihenfolge des Markierens.
-  const [markiert, setMarkiert] = useState<string[]>([]);
+  const markiert = useMemo(() => (suche.get("m") ?? "").split(",").filter((x) => /^\d+-\d+$/.test(x)), [suche]);
+  const setMarkiert = (f: string[] | ((alt: string[]) => string[])) => {
+    const neu = typeof f === "function" ? f(markiert) : f;
+    const q = new URLSearchParams(suche);
+    if (neu.length) q.set("m", neu.join(",")); else q.delete("m");
+    setSuche(q, { replace: true });
+  };
   const markSet = useMemo(() => new Set(markiert), [markiert]);
   const umschalten = (k: string) => setMarkiert((alt) => alt.includes(k) ? alt.filter((x) => x !== k) : [...alt, k]);
   const schl = (l: Lauf) => `${l.session_id}-${l.run_idx}`;
@@ -98,6 +110,27 @@ export default function LaengsteLaeufe() {
     const vgl = alle.filter((l) => vglSet.has(schl(l)) && !markSet.has(schl(l)));
     return [...oben, ...vgl, ...alle.filter((l) => !markSet.has(schl(l)) && !vglSet.has(schl(l)))];
   }
+  // Scrollposition fuer den Rueckweg aus der Session-Detailansicht.
+  const merkeScroll = () => { try { sessionStorage.setItem("laeufeScroll", String(window.scrollY)); } catch { /* egal */ } };
+  const zuSession = (l: Lauf) => ({ pathname: `/sessions/${l.session_id}`, search: `?run=${l.run_idx}` });
+  const zurueckState = { zurueck: `${ort.pathname}${ort.search}`, zurueckText: t("longest.title") };
+  // Rueckweg aus der Session-Detailansicht: Position wiederherstellen, sobald die Liste da ist,
+  // und bis zu ~4 s nachsetzen — das Seiten-Scrollen der App und die nachladenden Puls-Streifen
+  // (die Seite waechst) schieben sie sonst wieder weg.
+  const listeDa = !!laeufe;
+  useEffect(() => {
+    if (!listeDa) return;
+    let y: string | null = null;
+    try { y = sessionStorage.getItem("laeufeScroll"); sessionStorage.removeItem("laeufeScroll"); } catch { /* egal */ }
+    if (!y) return;
+    const ziel = Number(y);
+    let n = 0;
+    const iv = setInterval(() => {
+      if (Math.abs(window.scrollY - ziel) > 4) window.scrollTo(0, ziel);
+      if (++n >= 26) clearInterval(iv);
+    }, 150);
+    return () => clearInterval(iv);
+  }, [listeDa]);
   const zeilenFarbe = (l: Lauf) => markSet.has(schl(l)) ? "bg-brand-500/20" : vglSet.has(schl(l)) ? "bg-amber-500/20" : "";
   const [fehler, setFehler] = useState(false);
   const einheit = pumpUnit();
@@ -189,7 +222,7 @@ export default function LaengsteLaeufe() {
                       {/* Rang in der Gesamtliste — bleibt beim Hochschieben stehen; Vergleichslaeufe: „V". */}
                       <td className="px-3 py-2 tabular-nums text-slate-400">{laeufe.indexOf(l) >= 0 ? laeufe.indexOf(l) + 1 : vglSet.has(schl(l)) ? "V" : "–"}</td>
                       <td className="px-3 py-2">
-                        <Link to={`/sessions/${l.session_id}?run=${l.run_idx}`} onClick={(e) => e.stopPropagation()} className="text-brand-600 hover:underline dark:text-brand-300">
+                        <Link to={zuSession(l)} state={zurueckState} onClick={(e) => { e.stopPropagation(); merkeScroll(); }} className="text-brand-600 hover:underline dark:text-brand-300">
                           {datum(l)} · #{l.run_idx + 1}
                         </Link>
                         {l.fahrer && <span className="ml-1 font-semibold text-amber-600 dark:text-amber-300">· {l.fahrer}</span>}
@@ -240,7 +273,7 @@ export default function LaengsteLaeufe() {
                       <tr key={schl(l)} onClick={() => umschalten(schl(l))}
                         className={`cursor-pointer border-b border-slate-800/50 hover:bg-slate-800/50 ${zeilenFarbe(l)}`}>
                         <td className="px-3 py-2">
-                          <Link to={`/sessions/${l.session_id}?run=${l.run_idx}`} onClick={(e) => e.stopPropagation()} className="text-brand-600 hover:underline dark:text-brand-300">
+                          <Link to={zuSession(l)} state={zurueckState} onClick={(e) => { e.stopPropagation(); merkeScroll(); }} className="text-brand-600 hover:underline dark:text-brand-300">
                             {datum(l)} · #{l.run_idx + 1}
                           </Link>
                         </td>
