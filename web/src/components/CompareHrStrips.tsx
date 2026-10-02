@@ -56,7 +56,7 @@ const MAX_LUECKE_M = 200;
 const ZEILE_H = 13;
 const ZEILE_LUECKE = 8;
 
-export function CompareHrStrips({ items, markiert, onKlick, vergleich }: {
+export function CompareHrStrips({ items, markiert, onKlick, vergleich, sortierung, onSortieren }: {
   items: HrStripItem[];
   // Optional (Seite „Laengste Laeufe", Jan 02.10.2026): Zeilen anklickbar und hervorgehoben.
   // Schluessel ist `HrStripItem.key`; die Reihenfolge bestimmt der Aufrufer ueber `items`.
@@ -64,6 +64,10 @@ export function CompareHrStrips({ items, markiert, onKlick, vergleich }: {
   onKlick?: (itemKey: string) => void;
   // Zweite Farbe: Laeufe aus dem Vergleichskorb (auch fremde Fahrer), bernsteinfarben.
   vergleich?: Set<string>;
+  // Optional: Spaltentitel anklickbar (Seite „Laengste Laeufe" sortiert damit alle drei Ansichten).
+  // Die Reihenfolge der Zeilen bestimmt weiterhin der Aufrufer ueber `items`.
+  sortierung?: { puls: boolean; m: boolean; kmh: boolean; auf: boolean };
+  onSortieren?: (spalte: "puls" | "m" | "kmh") => void;
 }) {
   const t = useT();
   // Zwei Lesarten derselben Streifen (Jan, 11.09.2026): der absolute Puls, oder der ANSTIEG
@@ -284,9 +288,18 @@ export function CompareHrStrips({ items, markiert, onKlick, vergleich }: {
         {/* Auf dem Handy nur die Puls-Spalte: mit allen drei blieben dem Streifen dort wenige
             Pixel (Jan, 02.10.2026). Strecke und Tempo stehen in der Lauf-Tabelle darueber. */}
         <div className="flex w-12 shrink-0 items-center gap-1 whitespace-nowrap pb-1 text-sm leading-none text-slate-400 sm:w-[184px]">
-          <span className="w-12 shrink-0 text-right">{anstieg ? "Δ bpm" : "bpm"}</span>
-          <span className="hidden w-14 shrink-0 text-right sm:inline">m</span>
-          <span className="hidden w-[72px] shrink-0 text-right sm:inline">km/h (5s)</span>
+          {(["puls", "m", "kmh"] as const).map((sp) => {
+            const text = sp === "puls" ? (anstieg ? "Δ bpm" : "bpm") : sp === "m" ? "m" : "km/h (5s)";
+            const breite = sp === "puls" ? "w-12" : sp === "m" ? "hidden w-14 sm:inline-flex" : "hidden w-[72px] sm:inline-flex";
+            if (!onSortieren) return <span key={sp} className={`${sp === "puls" ? "w-12" : sp === "m" ? "hidden w-14 sm:inline" : "hidden w-[72px] sm:inline"} shrink-0 text-right`}>{text}</span>;
+            const aktiv = !!sortierung?.[sp];
+            return (
+              <button key={sp} type="button" onClick={() => onSortieren(sp)}
+                className={`${breite} shrink-0 justify-end text-right hover:text-slate-200 ${aktiv ? "text-slate-200" : ""}`}>
+                {text}{aktiv && <span aria-hidden className="ml-0.5">{sortierung!.auf ? "▲" : "▼"}</span>}
+              </button>
+            );
+          })}
         </div>
       </div>
       <div className="flex gap-2">
